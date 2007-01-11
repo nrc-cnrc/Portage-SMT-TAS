@@ -16,6 +16,8 @@ We don't use autoconf, so the installation is done manually.
 Copy the full contents of the CD to a directory of your choice, say
 $HOME/PORTAGEshared.
    cp -prd /CDlocation/PORTAGEshared $HOME/PORTAGEshared
+or
+   rsync -av /CDlocation/PORTAGEshared $HOME/PORTAGEshared
 
 If you chose a location other than $HOME/PORTAGEshared, edit SETUP.tcsh and
 SETUP.bash and change the value of the PORTAGE variable to the actual location
@@ -82,7 +84,8 @@ Mandatory dependencies:
    install it in your own user space.  In that case, make sure you set your
    LD_LIBRARY_PATH and CPLUS_INCLUDE_PATH environment variables to point to the
    appropriate locations, so that g++ can find the boost include and library
-   files when compiling PORTAGEshared.
+   files when compiling PORTAGEshared.  These two variables may also be
+   required if your sys admin installed boost in a non-standard location.
 
    Boost home page: http://www.boost.org or http://boost.sourceforge.net
    This procedure worked for us, and may help you install it yourself, if your

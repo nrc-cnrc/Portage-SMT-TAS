@@ -1,4 +1,4 @@
-# PORTAGEshared setup file for bash users.
+# PORTAGEshared setup file for tcsh users.
 # Source this file in tcsh to set all Portage environment variables
 #
 # Eric Joanis
