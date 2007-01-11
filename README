@@ -1,0 +1,58 @@
+                               PORTAGEshared
+
+Groupe de technologies langagières interactives / Interactive Language Technologies Group
+Institut de technologie de l'information / Institute for Information Technology
+Conseil national de recherches Canada / National Research Council Canada
+Copyright 2004-2006, Conseil national de recherches Canada / National Research Council Canada
+
+Distributed under specific licensing terms.  Please refer to the LICENCE file
+included in this package for details.
+
+
+                             Brief Description
+
+Portage is a project to explore new techniques in Statistical Machine
+Translation (SMT), and to develop state-of-the-art SMT technology that can be
+used to support other projects at NRC and elsewhere.
+
+The SMT system developed under the Portage project is also called "Portage",
+and this distribution for Canadian universities is called PORTAGEshared.
+PORTAGEshared includes a complete suite of software tools required for
+phrase-based statistical machine translation, including:
+ - preprocessing of French and English (tokenization, lowercasing, aligning);
+ - training lexical translation models (IBM models 1 and 2) from aligned
+   corpora;
+ - training phrase-based translation models from aligned corpora and lexical
+   models;
+ - decoding (doing the actual translation, producing n-best lists or lattices);
+ - rescoring (choosing the best hypothesis from an n-best list) using sources
+   of information that are external to the decoder;
+ - optimizing weights, both for decoding and for rescoring;
+ - evaluation using BLEU, WER or PER.
+
+
+                         Contents of this directory
+
+   doc/         documentation
+   src/         source code
+   test-suite/  three test suites
+   README       this file
+   INSTALL      installation instructions
+   LICENCE      notes about your PORTAGEshared licence agreement
+   SETUP.bash   config file for bash users
+   SETUP.tcsh   config file for tcsh users
+
+
+                              Getting started
+
+Once you've installed PORTAGEshared, have a look at the toy example in
+test-suite/toy, which can be a useful tutorial.
+
+For full documentation, see doc/user-manual.html.
+
+
+                               Contacting us
+
+If you have any question about PORTAGEshared, be it technical, legal or
+otherwise, you can contact us by e-mail at PORTAGEshared@nrc-cnrc.gc.ca.
+

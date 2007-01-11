@@ -1,0 +1,61 @@
+#!/usr/bin/perl -sw
+#
+# split-listed.pl
+# 
+# PROGRAMMER: George Foster
+# 
+# COMMENTS: 
+#
+# Groupe de technologies langagières interactives / Interactive Language Technologies Group
+# Institut de technologie de l'information / Institute for Information Technology
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2006, Conseil national de recherches du Canada / 
+# Copyright 2006, National Research Council of Canada
+
+print STDERR "split-listed.pl, Copyright (c) 2006, Conseil national de recherches Canada / National Research Council Canada\n";
+
+$HELP = "
+split-listed.pl [-d=outdir] listfile [infile]
+
+Like unix split, but split into a given list of output files, contained in
+listfile. Each line in listfile is in the format 'numlines outfile', and
+directs that the next numlines lines from infile are written to outfile.
+If numlines is < 0, all remaining lines are written to outfile.
+
+Options:
+
+-d Write output files in directory outdir [current dir]
+
+";
+
+our ($help, $h, $outdir);
+
+if ($help || $h) {
+    print $HELP;
+    exit 0;
+}
+
+$d = "." unless defined $d;
+
+my $listfile = shift || die "Missing <listfile> arg\n$HELP";
+my $in = shift || "-";
+
+open(SF, "<$listfile") or die "Can't open $listfile for reading\n";
+open(IN, "<$in") or die "Can't open $in for reading\n";
+
+while (<SF>) {
+    my ($nl, $out) = split;
+    open(OUT, ">$d/$out") or die "Can't open $d/$out for writing\n";
+    
+    for (my $i = 0; $i < $nl || $nl < 0; ++$i) {
+	if (!($line = <IN>)) {
+           if ($nl >= 0) {die "No more lines left in input $in!\n";}
+           else {last;}
+        }
+	print OUT $line;
+    }
+    
+    close OUT;
+}
+
+if (<IN>) {die "No more lines left in listfile $listfile!\n";}

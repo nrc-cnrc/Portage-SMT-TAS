@@ -1,0 +1,40 @@
+Och's Algorithm (pseudo-code)
+
+// Pre-computations:
+// Create K x M matrices H[s]:
+for s=1..S, k=1..K, m=1..M
+    H[s][k][m] = h_m(e_{s,k},f_s)
+
+// Create statistics used for BLEU score
+for s=1..S, k=1..K
+    for n=1..N (=4)
+	match[s][k][n] = # n-gram matches in e_{s,k}
+	total[s][k][n] = total # n-gram matches in e_{s,k}
+    length[s][k] = number of words in e_{s,k}
+    bmlength[s][k] = best-match length for e_{s,k}
+
+// Let lambda_1, .. , lambda_I be initial parameter values to try
+// Alternatively, could randomly pick lambda's and stop at some point depending on how much or how often the BLEU score increases
+
+for i=1..I
+    lambda_opt = powell(lambda_i)	// Uses line_opt(init, dir)
+    Compare lambda_opt with previous best lambda and keep the better one
+
+--------------------
+line_opt(init, dir):
+    for s=1..S
+	// Compute coefficients a, b in lines ax + b for each candidate sentence
+	A = H[s] * dir
+	B = H[s] * init
+	
+	Compute intersections of lines (x_{i,j} = (b_i - b_j) / (a_j - a_i))
+	At each intersection, determine whether the maximum changes; keep list of x values at each point where the maximum changes.  This gives a list gamma_{s, 1} < .. < gamma_{s, N_s}.  Store associated change in values related to BLEU score (specifically, total n-grams, matching n-grams, best-match length, candidate length).
+    
+    Go through all gamma's, computing BLEU score at each stage and finding the maximum BLEU score.
+    Return x (or x * dir)
+
+--------------------
+Considerations:
+- Probably will use GSL for vectors and matrices.
+- Take Numerical Recipes' Powell algorithm, but modify to use my own line_opt.  (Make vectors actual vectors; make vectors copy themselves, for readability).
+- gsl_vector_max may come in handy in line_opt.

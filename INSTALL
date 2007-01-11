@@ -1,0 +1,204 @@
+                               PORTAGEshared
+
+Groupe de technologies langagières interactives / Interactive Language Technologies Group
+Institut de technologie de l'information / Institute for Information Technology
+Conseil national de recherches Canada / National Research Council Canada
+Copyright 2004-2006, Conseil national de recherches Canada / National Research Council Canada
+
+Distributed under specific licensing terms.  Please refer to the LICENSE file
+included in this package for details.
+
+
+                          Installing PORTAGEshared
+
+We don't use autoconf, so the installation is done manually.
+
+Copy the full contents of the CD to a directory of your choice, say
+$HOME/PORTAGEshared.
+   cp -prd /CDlocation/PORTAGEshared $HOME/PORTAGEshared
+
+If you chose a location other than $HOME/PORTAGEshared, edit SETUP.tcsh and
+SETUP.bash and change the value of the PORTAGE variable to the actual location
+where your installed PORTAGEshared and adjust the next instruction accordingly.
+
+Add $HOME/PORTAGEshared/{bin,lib,include} to the appripriate environment
+variables by sourcing $HOME/PORTAGEshared/SETUP.bash or SETUP.tcsh
+(depending on your preferred shell - if you use a different shell, you may have
+to adapt one of those two files):
+   source $HOME/PORTAGEshared/SETUP.bash
+or
+   source $HOME/PORTAGEshared/SETUP.tcsh
+
+Compile and install PORTAGEshared (you may need to resolve dependencies first,
+see below):
+   cd src
+   gmake -j 5
+   gmake -j 5 install
+We typically use -j N for parallel compiling.  N = 1 + the number of CPUs on
+the machine seems to be near optimal.  If you're sharing the machine with many
+users, however, you probably don't want to use the -j switch.
+                                      
+
+                              Getting Started
+
+Now you're ready to run the PORTAGEshared suite of programs.
+
+We have a toy example you can use as a tutorial in test-suite/toy.
+
+For full documentation, see doc/user-manual.html.
+
+
+                           External dependencies
+
+Before installing PORTAGEshared itself, you need to make sure you have the
+following dependencies installed.
+
+Mandatory dependencies:
+
+ - Linux - we have tested PORTAGEshared on various Linux distributions and it
+   runs without problems, as long as the rest of the dependencies are
+   installed.  We have also tested PORTAGEshared on PC-BSD and Mac OS X.  It
+   seems to work reasonably well on those platforms too, but these are not our
+   regular working platforms so we make no guarantees everything will work
+   correctly.  We have not tested on Solaris yet, but we plan to do so at a
+   later date.
+
+ - GNU g++ - PORTAGEshared compilation has only been tested with g++, and makes
+   use of some g++ extensions to C++.  It compiles fine with all versions we've
+   tested between 3.3.3 and 4.x.
+
+ - GNU make - our makefile makes use of GNU extensions to make, so you must use
+   gmake (which can be invoked using "make" on most Linux distributions).
+
+ - Standard utilities: bash, perl, grep, egrep, sort, gzip, tail, head, sed,
+   awk, etc.
+
+ - boost - PORTAGEshared makes use of some libraries in the boost C++ libraries
+   collection, including the Boost Graph Library, uBLAS, and smart pointers.
+   Some recent distributions of Linux may already install them, otherwise you
+   can download them for free from their home page.
+
+   It is recommended you have your sys admin install boost, but you can also
+   install it in your own user space.  In that case, make sure you set your
+   LD_LIBRARY_PATH and CPLUS_INCLUDE_PATH environment variables to point to the
+   appropriate locations, so that g++ can find the boost include and library
+   files when compiling PORTAGEshared.
+
+   Boost home page: http://www.boost.org or http://boost.sourceforge.net
+   This procedure worked for us, and may help you install it yourself, if your
+   sys admins can't do it globally for you:
+      # Download the boost tarball, currently boost_1_33_1.tar.bz2, by
+      # following the download links from the home page.  PORTAGEshared does
+      # not require the latest version.
+      # Extract it
+      tar -xjf boost_1_33_1.tar.bz2
+      # Go into it
+      cd boost_1_33_1/
+      # Run autoconf, with overridden install destination - replace $HOME/pkgs
+      # with your preferred destination (many simply use $HOME), making sure
+      # that your environment variable $LD_LIBRARY_PATH includes
+      # $HOME/pkgs/lib, and $CPLUS_INCLUDE_PATH includes $HOME/pkgs/include.
+      ./configure --prefix=$HOME/pkgs
+      # Build - you may have compiling problems, but proceed to the next step
+      # anyway, since you will probably have all we depend on.  Boost is a
+      # large collection of libraries, of which we only use a few.  This step
+      # will take a long time.
+      make -k
+      # Install to $HOME/pkgs/{include,lib}
+      make -k install
+      # Create a soft link so that the include files have their standard names:
+      ln -s $HOME/pkgs/include/boost_1_33_1/boost $HOME/pkgs/include
+      # Make boost visible (this is best done in your .bashrc - or use setenv
+      # in your .tcshrc - preferably after sourcing SETUP.bash/tcsh).
+      export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:$HOME/pkgs/include
+      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/pkgs/lib
+
+Optional dependencies:
+
+ - etags and/or ctags - recommended if you program with emacs or vi or related
+   programs.  These programs will build the databases needed to enable
+   cross-links in these editors.  See your editor's manual for details.
+
+   PORTAGEshared uses both ctags and etags by default, but you can disable
+   their use by defining PORTAGE_NO_CTAGS and/or PORTAGE_NO_ETAGS to 1 in your
+   .<shell>rc file, or by uncommenting the lines "#PORTAGE_NO_CTAGS=1" and/or
+   "#PORTAGE_NO_ETAGS=1" in src/build/Makefile.incl.  (See section "USER
+   CONFIGURABLE VARTIABLES" at the beginning of that file.)
+
+ - netcat and faucet - highly recommended if you use a computing cluster with
+   job management (i.e., you submit your jobs using qsub).  Many programs are
+   PORTAGEshared are configured to take advantage of parallel computing, and
+   require netcat and faucet to work across multiple machines and to work
+   optimally on a single machine.
+
+   Even if you work on only one machine, you will usually benefit by setting
+   the parallelism parameters to the number of CPUs you have at your disposal
+   on your machine.  Without netcat and faucet, if you set the parallelism
+   level to N (some programs automatically set N to the number of CPUs on the
+   machine), jobs will simply be run N at a time, with the next batch starting
+   when all N jobs of a batch are done.  This will already be faster than if
+   you don't use parellelism, but with netcat and faucet, the N CPUs will be
+   kept continuously busy until all jobs in a batch have completed.
+
+   Netcat home page: http://netcat.sourceforge.net/
+   Faucet documentation: http://web.purplefrog.com/~thoth/netpipes/faucet.html
+   Faucet is part of the netpipes package:
+   http://web.purplefrog.com/~thoth/netpipes/netpipes.html
+
+ - ACE - PORTAGEshared includes an API you can use to embed the decoder in your
+   application, as well as a demo that can be placed on a web page.  This demo
+   requires ACE.
+
+   By default, the Makefile will not build the demo, but if you have ACE you
+   can enable its compilation by commenting out the line "ACE=NONE" in
+   src/api/Makefile.
+
+   ACE home page: http://www.cs.wustl.edu/~schmidt/ACE.html
+   This procedure worked for us, and may help you install it yourself, if your
+   sys admins can't do it globally for you:
+      # Download the ACE-5.5 tarball (but older versions should work too).
+      wget http://deuce.doc.wustl.edu/ACE-5.5.tar.gz
+      # Untar it
+      tar -xzf ACE-5.5.tar.gz
+      # Go into the directory tar just created
+      cd ACE_wrappers
+      # At this point, useful help can be found by typing:
+      #   "links ACE-INSTALL.html#unix_autoconf"
+      # The following more or less follows the instructions found there.
+      # Create a platform specific build directory and go there
+      mkdir -p build/i686
+      cd build/i686
+      # Run autoconf - see notes about $HOME/pkgs in the boost section above.
+      ../../configure --prefix=$HOME/pkgs
+      # Compile in bash (in (t)csh, add "env" in front of this command)
+      ACE_ROOT=`pwd` make
+      # Install to $HOME/pkgs/{include,lib} in bash (in (t)csh, add
+      # "env" in front of this command)
+      ACE_ROOT=`pwd` make install
+
+ - log4cxx - some programs in PORTAGEshared use log4cxx to produce debugging
+   information.  By default, the use of logging is disabled in PORTAGEshared.
+   To enable logging, make sure you have log4cxx installed, comment out the
+   line "LOGGING=NONE" in src/build/Makefile.incl, and compile again.  The
+   logging facilities are not well documented, so you would probably only do
+   this in communication with ILT staff, who will explain how to use it as
+   necessary.
+
+   log4cxx home: http://logging.apache.org/log4cxx/.
+   This procedure worked for us, and may help you install it yourself, if your
+   sys admins can't do it globally for you:
+      # Download log4cxx-0.9.7.tar.gz by following the download links from the
+      # log4cxx home page
+      # Untar the package
+      tar -xzf log4cxx-0.9.7.tar.gz
+      # Go into the package
+      cd log4cxx-0.9.7
+      # Run autoconf - see notes about $HOME/pkgs in the boost section above.
+      ./autogen.sh
+      ./configure -with-XML=no --prefix=$HOME/pkgs
+      # Compile
+      make
+      # Install to $HOME/pkgs/{include,lib}
+      make install
+
+

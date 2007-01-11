@@ -1,0 +1,568 @@
+\documentclass[11pt]{article}
+\usepackage{isolatin1}
+
+\newcommand{\phs}{\tild{s}}   % source phrase
+\newcommand{\pht}{\tild{t}}   % target phrase
+
+\title{Running Portage: A Toy Example}
+\date{}
+\author{George Foster\\
+{~}\\
+\tiny
+Groupe de technologies langagières interactives /
+   Interactive Language Technologies Group\\
+\tiny
+Institut de technologie de l'information /
+   Institute for Information Technology\\
+\tiny
+Conseil national de recherches Canada / National Research Council Canada\\
+\tiny
+Copyright \copyright 2006, Conseil national de recherches Canada /
+   National Research Council Canada
+}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+Portage can be viewed as a set of programs for turning a bilingual corpus into
+a translation system. This document describes this process using a simple
+example distributed with the Portage source code (in {\tt
+  Portage/test-suite/ toy}). The example is for French to English translation,
+using text from the Hansard corpus. It is too small for good translation, but
+large enough to give the flavour of a more realistic setup. Running time is
+about half an hour.
+
+\subsection{Running the Example}
+
+To begin, you must build or obtain the Portage executables and ensure that they
+are in your path. Then {\tt cd} to the {\tt Portage/test-suite/toy} directory. All
+commands described below are issued from this directory, and all files are
+located there (including this document).
+
+As you work through the example, the commands that you are supposed to type are
+preceded by a prompt ({\tt >}), and the system's response is not. For instance,
+the following indicates that you should type {\tt ls}, and shows the directory
+listing that results:
+\begin{verbatim}
+   > ls
+   canoe.ini          hans3_en.txt       toy.pdf
+   hans1_en.txt       hans3_fr.txt       toy.tex
+   hans1_fr.txt       Makefile           train_en.lm
+   hans2_en.txt       rescore-model.ini  hans2_fr.txt       
+\end{verbatim}
+For the sake of brevity, the system's output is not always reproduced in full
+in the examples. Also, results (especially numbers) may vary a little from the
+ones shown, due to platform differences.
+
+Many of the commands are expressed as {\tt make} targets. This has the
+advantage of requiring less typing, while still allowing you to see the actual
+commands executed by the system, which are always echoed by {\tt make} (and
+which of course you could also type directly). {\tt make} also lets you skip
+steps. For example, if you are not interested in any steps before decoder weight
+optimization, you can go to section~\ref{COW} and type {\tt make cow} to begin
+at that point (although you will have to wait until the system executes the
+necessary commands to catch up). Here are some other useful make commands:
+\begin{itemize}
+\item {\tt make all} runs all remaining steps at any point.\footnote{Doing this
+    at the beginning and comparing the results with the ones printed in
+    section~\ref{TranslatingTesting} is a good way to check if your
+    installation is correct.}
+\item {\tt make clean} cleans up and returns the directory to its initial state
+
+\item {\tt make -j} {\em anything} builds the target {\em anything} by running
+      commands in parallel whenever possible. This can be much faster if you
+      have a multiprocessor machine.
+\end{itemize}
+
+\subsection{Overview of the Process}
+
+Here is an overview of the Portage process, as described in the following
+sections (section numbers are in brackets):
+\begin{enumerate}
+\item Corpus preparation (\ref{CorpusPreparation}): includes tokenization
+      (\ref{Tokenization}), alignment (\ref{Alignment}), lowercasing
+      (\ref{Lowercasing}), and splitting (\ref{Splitting}).
+\item Model training (\ref{Training}): includes language model (\ref{LM}),
+      translation model (\ref{TM}), decoder weight optimization (\ref{COW}),
+      and rescoring model training (\ref{RAT}).
+    \item Translating and testing (\ref{TranslatingTesting}): includes
+      translating (\ref{Translating}) and testing (\ref{Testing}).
+\end{enumerate}
+These steps are fairly standard, but of course there are many variants on the
+simple process illustrated here. For more information, see the Portage HTML
+user documentation. For detailed information on a particular program, run it
+with the {\tt -h} flag.
+
+\section{Corpus Preparation} \label{CorpusPreparation}
+
+Corpus preparation involves converting raw document pairs into tokenized,
+sentence-aligned files in the format expected by Portage. Once this done,
+the corpus is split into different parts used for training and testing.
+
+The input to this process is a set of bilingual file pairs in plain text
+format, like the example files {\tt hans*.txt}.\footnote{Although
+  this directory contains a set of Hansard text files, these are not hardcoded
+  into the examples. Any other English/French parallel corpus can be
+  substituted, provided the file pairs are named {\em file}{\tt\_en.txt}, {\em
+    file}{\tt\_fr.txt}, and provided they contain only plain text or allowed
+  markup as described below.}
+ To help the alignment process,
+it can be beneficial to leave some matching markup in these files to identify
+section boundaries and other important structure. This markup should be
+enclosed in angle brackets, like the markup codes {\tt <sect>}, {\tt <time
+  1400>}, etc that appear in the {\tt hans*.txt} files. It is filtered out
+during alignment and is not used in subsequent steps.
+
+\subsection{Tokenization} \label{Tokenization}
+
+The first step is to tokenize and sentence-split the plain text files. This
+is done with the program {\tt tokenize.pl}, which needs to be told which
+language to expect as input (currently either English or French):
+\begin{verbatim}
+   > make tokenize
+   tokenize.pl -lang=en hans1_en.txt hans1_en.tok
+   tokenize.pl -lang=fr hans1_fr.txt hans1_fr.tok
+   tokenize.pl -lang=en hans2_en.txt hans2_en.tok
+   tokenize.pl -lang=fr hans2_fr.txt hans2_fr.tok
+   tokenize.pl -lang=en hans3_en.txt hans3_en.tok
+   tokenize.pl -lang=fr hans3_fr.txt hans3_fr.tok
+\end{verbatim}
+Notice that the output (.tok) files now contain one sentence (or sentence-like
+unit) per line, with individual tokens separated by blanks.
+
+\subsection{Alignment} \label{Alignment}
+
+Once the files are tokenized, they can be aligned to the sentence level using
+the {\tt ssal} program. The -f flag filters out angle-bracket markup that
+appears in either input file, which is not needed after it has been used to aid
+alignment:
+\begin{verbatim}
+   > make align
+   ssal -f hans1_en.tok hans1_fr.tok
+   mv hans1_en.tok.al hans1_en.al
+   mv hans1_fr.tok.al hans1_fr.al
+   ssal -f hans2_en.tok hans2_fr.tok
+   mv hans2_en.tok.al hans2_en.al
+   mv hans2_fr.tok.al hans2_fr.al
+   ssal -f hans3_en.tok hans3_fr.tok
+   mv hans3_en.tok.al hans3_en.al
+   mv hans3_fr.tok.al hans3_fr.al
+\end{verbatim}
+This produces an output (.al) file for each input file. Alignment is
+represented by line-for-line correspondence, so the corresponding .al files
+should have exactly the same number of lines:
+\begin{verbatim}
+   > wc -l *.al
+   2031 hans1_en.al
+   2031 hans1_fr.al
+   3659 hans2_en.al
+   3659 hans2_fr.al
+   3584 hans3_en.al
+   3584 hans3_fr.al
+   18548 total
+\end{verbatim}
+
+\subsection{Lowercasing} \label{Lowercasing}
+
+The last text-transformation step is to convert all files to lowercase, in
+order to reduce data sparseness:
+\begin{verbatim}
+   > make lowercase
+   lc-latin.pl hans1_en.al hans1_en.lc
+   lc-latin.pl hans1_fr.al hans1_fr.lc
+   lc-latin.pl hans2_en.al hans2_en.lc
+   lc-latin.pl hans2_fr.al hans2_fr.lc
+   lc-latin.pl hans3_en.al hans3_en.lc
+   lc-latin.pl hans3_fr.al hans3_fr.lc
+\end{verbatim}
+
+\subsection{Splitting the Corpus} \label{Splitting}
+
+The corpus must now be split into separate portions in order to run
+experiments. Distinct, non-overlapping sub-corpora are required for model
+training (see section~\ref{Training}), for optimizing decoder weights
+(section~\ref{COW}), for training a rescoring model (section~\ref{RAT}), and
+for testing (section~\ref{Testing}). Typically the latter three corpora are
+around 1000 segments each, although in the example below we use 100 segments to
+reduce running time. Also, if the corpus is chronological, then it is a good
+idea to choose the test corpus from the most recent material, which is
+likely to resemble future text more closely.
+
+In this example, the files for training, optimizing decoder weights, rescoring
+model training, and testing are called {\tt train}, {\tt dev1}, {\tt dev2}, and
+{\tt test}.\footnote{{\em dev} stands for {\em development}---the name
+often given to training steps that involve relatively few parameters.}
+Splitting is performed by the script {\tt split-listed.pl}:
+\begin{verbatim}
+   > make split
+   rm -f lines.en; touch lines.en
+   echo "8974  train_en.al" >> lines.en
+   echo "100 dev1_en.al" >> lines.en
+   echo "100 dev2_en.al" >> lines.en
+   echo "100 test_en.al" >> lines.en
+   cat hans*_en.lc | split-listed.pl lines.en
+   rm -f lines.fr; touch lines.fr
+   echo "8974  train_fr.al" >> lines.fr
+   echo "100 dev1_fr.al" >> lines.fr
+   echo "100 dev2_fr.al" >> lines.fr
+   echo "100 test_fr.al" >> lines.fr
+   cat hans*_fr.lc | split-listed.pl lines.fr
+\end{verbatim}
+This creates files {\tt \{train,dev1,dev2,test\}\_\{en,fr\}.al}:
+\begin{verbatim}
+   > wc -l {train,dev1,dev2,test}_{en,fr}.al
+   8974 train_en.al
+   8974 train_fr.al
+    100 dev1_en.al
+    100 dev1_fr.al
+    100 dev2_en.al
+    100 dev2_fr.al
+    100 test_en.al
+    100 test_fr.al
+  18548 total
+
+\end{verbatim}
+
+\section{Training} \label{Training}
+
+This step creates various models and parameter files that are required for
+translation. There are four steps in training: creating a language model,
+creating translation models, optimizing decoder weights, and creating a
+rescoring model.
+
+\subsection{Creating a Language Model} \label{LM}
+
+Portage does not come with programs for language model training. However,
+it accepts models in the widely-used ``DARPA'' format which is produced by popular
+toolkits such as CMU SLM (www.speech.cs.cmu.edu/ SLM\_info.html) or SRILM
+(www.speech.sri.com/projects/srilm). Here is the SRILM command used to produce
+the model {\tt train\_en.lm} supplied with this example:
+\begin{verbatim}
+   > make lm
+   ngram-count -interpolate -kndiscount1 -kndiscount2 -kndiscount3 \
+      -order 3 -text train_en.al -lm train_en.lm
+\end{verbatim}
+This assumes that the target language is English; for English to French
+translation, a similar command could be used with {\tt train\_fr.al} to create
+a French language model.
+
+\subsection{Creating a Translation Model} \label{TM}
+
+Creating a translation model involves two main steps: training IBM models in
+both directions, then using them to extract phrase pairs from the corpus. These
+steps are automated by the script {\tt train-phrases.sh}.  Because this script
+expects its input to be isolated in a single directory, a preliminary step is
+to create a temporary directory containing only the training corpus, as shown:
+\footnote{If you have a multiprocessor machine, you can use {\tt
+    train-phrases.sh -p} to run bidirectional IBM model training in parallel.}
+
+\begin{verbatim}
+   > make tm
+   rm -rf tmp; mkdir tmp
+   ln -s ../train_en.al tmp/train_en.al
+   ln -s ../train_fr.al tmp/train_fr.al
+   train-phrases.sh tmp
+   train_ibm -v -s ibm1.fr_given_en ibm2.fr_given_en \
+      tmp/train_en.al tmp/train_fr.al
+   train_ibm -vr -s ibm1.en_given_fr ibm2.en_given_fr \
+      tmp/train_en.al tmp/train_fr.al
+   gen_phrase_tables -v -w1 -m8 -1 en -2 fr -ibm 2 \
+      ibm2.fr_given_en ibm2.en_given_fr tmp/train_en.al tmp/train_fr.al
+\end{verbatim}
+The script writes log files containing information about IBM and
+phrase training. For example, the IBM log files show convergence and pruning
+statistics for each iteration:
+\begin{verbatim}
+   > egrep ppx log.train_ibm.en_given_fr
+   Iter 1 (IBM1): prev ppx = 356.169, size = 1476280 word pairs
+   iter 2 (IBM1): prev ppx = 109.36, size = 1355987 word pairs
+   iter 3 (IBM1): prev ppx = 66.7163, size = 1191090 word pairs
+   iter 4 (IBM1): prev ppx = 53.1018, size = 1026382 word pairs
+   iter 5 (IBM1): prev ppx = 48.1907, size = 885809 word pairs
+   iter 6 (IBM2): prev ppx = 46.0251, size = 885809 word pairs
+   iter 7 (IBM2): prev ppx = 18.8685, size = 885809 word pairs
+   iter 8 (IBM2): prev ppx = 13.7175, size = 885809 word pairs
+   iter 9 (IBM2): prev ppx = 11.8744, size = 885809 word pairs
+   iter 10 (IBM2): prev ppx = 11.071, size = 885809 word pairs
+\end{verbatim}
+
+The IBM models and phrasetables are written to files {\tt ibm[12].*} and {\tt
+  phrases.*} respectively. The phrasetable {\tt phrases.fr2en} is the main
+source of information for French to English translation. Each of its lines is
+of the form:
+\begin{verbatim}
+   fr ||| en ||| p(fr|en) p(en|fr)
+\end{verbatim}
+where {\tt fr} is a French source phrase, {\tt en} is an English target phrase,
+{\tt p(fr|en)} is the probability that {\tt fr} is the translation of {\tt en}, and
+{\tt p(en|fr)} is the probability that {\tt en} is the translation of {\tt fr}. The
+reverse phrasetable {\tt phrases.en2fr}, used for English to French
+translation, contains the same information but with {\tt en} and {\tt fr}
+reversed. Here is a sample line from these files:
+\begin{verbatim}
+   > select-line 89 < phrases.fr2en
+   règlements proposés ||| proposed regulations ||| 0.5 1
+   > select-line 89 < phrases.en2fr
+   proposed regulations ||| règlements proposés ||| 1 0.5
+\end{verbatim}
+(This example is carefully chosen; because of the small size of the training
+corpus, many other entries in the phrase table are incorrect.)
+
+\subsection{Optimizing Decoder Weights} \label{COW}
+
+The language and translation models are the main sources of information used
+for translation, which is performed by the {\tt canoe} decoder. In order to get
+reasonable translation quality, the weights on these (and other) sources of
+information need to be tuned. The tuning process is carried out by a script
+called {\tt cow.sh}, which runs {\tt canoe} several times. {\tt cow.sh}
+requires a configuration file for {\tt canoe}, called {\tt canoe.ini} by
+default:
+\begin{verbatim}
+   > cat canoe.ini
+   [ttable-multi-prob] phrases.fr2en
+   [lmodel-file] train_en.lm
+   [ttable-limit] 30
+   [ttable-threshold] 0.000
+   [stack] 70
+   [beam-threshold] 0.01
+   [distortion-limit] 7
+\end{verbatim}
+This indicates that the phrasetable to be used for translation is \\ {\tt
+  phrases.fr2en} and that the language model is {\tt train\_en.lm}. The other
+parameters control the search strategy---they have been set so as to favour
+speed over quality for the purposes of this example.
+
+Besides the configuration file, the other main arguments required by {\tt
+  cow.sh} are a directory in which to store temporary files, a source file, and
+  one or more correct (ie human) translations of the source
+  file.\footnote{This example uses only one translation, but when multiple
+  alternative translations are available, it can be advantageous to use them.}
+Here we call the temporary
+directory {\tt foos}, and use the {\tt dev1} files for weight tuning:
+\begin{verbatim}
+   > make cow
+   rm -rf foos; mkdir foos
+   cow.sh -nbest-list-size 100 -maxiter 10 -filt -floor 2 \
+      -workdir foos dev1_fr.al dev1_en.al >& log.cow
+\end{verbatim}
+Because {\tt cow.sh} takes a long time to run 
+(about 25 minutes for this
+example on a single machine at NRC)\footnote{Running time for {\tt cow.sh} can be
+  reduced by executing it in parallel. Do {\tt cow.sh -h} to see documentation on
+  this option.}
+and writes large amounts of logging
+information, it is usually a good idea to redirect all of its output to a log
+file, as shown here; and also to run it in the background (not done here, for
+compatibility with the {\tt make} procedure).  Progress can be monitored by
+looking at the file {\tt rescore-results}, which
+shows the translation quality (measured by BLEU score---see
+section~\ref{Testing} for a description), as well as the current weights, for
+each iteration. Note that the BLEU score does not necessarily increase
+monotonically, as can be seen in several places in the {\tt rescore-results}
+file obtained with this example:
+\begin{verbatim}
+> cat rescore-results
+BLEU score: 0.157469   -d 1 -w 0 -lm 1 -tm 1
+BLEU score: 0.166618   -d 0.1260017157 -w 0.4231236577 -lm 1 -tm 0.591891706
+BLEU score: 0.134856   -d 0.3837988973 -w 0.6390675902 -lm 1 -tm 0.05515978858
+BLEU score: 0.184703   -d 0.1502487957 -w 0.436016798 -lm 1 -tm 0.3171886504
+BLEU score: 0.182674   -d 0.1501607597 -w -0.1386783123 -lm 1 -tm 0.2572171986
+BLEU score: 0.185179   -d 0.1486719251 -w 0.4118739367 -lm 1 -tm 0.3253635168
+BLEU score: 0.185113   -d 0.1496432126 -w 0.4299308062 -lm 1 -tm 0.3257338107
+BLEU score: 0.185113   -d 0.1496805698 -w 0.4292495847 -lm 1 -tm 0.3257473707
+BLEU score: 0.185113   -d 0.1493744254 -w 0.4283171892 -lm 1 -tm 0.3256304562
+BLEU score: 0.185113   -d 0.1496380866 -w 0.4294756055 -lm 1 -tm 0.3257317543
+\end{verbatim}
+
+The output from {\tt cow.sh} is written to the file {\tt canoe.ini.cow}
+(assuming the original configuration file was called {\tt canoe.ini}). This
+duplicates the contents of {\tt canoe.ini}, but adds the optimal weights
+learned on the development corpus:
+\begin{verbatim}
+   > cat canoe.ini.cow
+   [ttable-file-t2s] phrases.en_given_fr
+   [ttable-file-s2t] phrases.fr_given_en
+   [lmodel-file] train_en.lm
+   [weight-d] 0.1486719251
+   [weight-w] 0.4118739367
+   [weight-l] 1
+   [weight-t] 0.3253635168
+   [ttable-limit] 30
+   [ttable-threshold] 0
+   [stack] 70
+   [beam-threshold] 0.01
+   [distortion-limit] 7
+\end{verbatim}
+where the {\tt weight-} parameters pertain to, respectively, the distortion
+model, the word-length penalty, the language model, and the translation
+model. The language model usually obtains the highest weight, as in this case. 
+
+\subsection{Training a Rescoring Model} \label{RAT}
+
+The final training step is to create a model for rescoring nbest
+lists. Rescoring means having {\tt canoe} generate a list of $n$ (typically
+1000) translation hypotheses for each source sentence, then choosing the best
+translations from among these. The advantage of this procedure is that the
+choice can be made on the basis of information that is too expensive for {\tt
+canoe} to use during search. This step usually gives a modest improvement over
+the results obtained using {\tt canoe} alone.
+
+Training a rescoring model involves generating nbest lists, then calculating
+the values of selected {\em features} for each hypothesis in each list. A
+feature is any real-valued function that is intended to capture the relation
+between a source sentence and a translation hypothesis. A rescoring model
+consists of a vector of feature weights set so as to optimize translation
+performance when a weighted combination of feature values is used to reorder
+the nbest lists.
+
+Training is carried out by the {\tt rat.sh} script. This takes as input a
+rescoring model that specifies which features to use, and it returns optimal
+weights for these features. The model supplied with this example contains a
+small set of useful features:
+\begin{verbatim}
+   > cat rescore-model.ini
+   FileFF:ffvals,1
+   FileFF:ffvals,2
+   FileFF:ffvals,3
+   FileFF:ffvals,4
+   FileFF:ff.IBM2TgtGivenSrc.ibm2.en_given_fr
+   FileFF:ff.IBM2SrcGivenTgt.ibm2.fr_given_en
+   FileFF:ff.IBM1WTransTgtGivenSrc.ibm2.en_given_fr
+   FileFF:ff.IBM1WTransSrcGivenTgt.ibm2.fr_given_en
+   LengthFF
+\end{verbatim}
+Notice that most of the feature specifications begin with {\tt FileFF}; this
+indicates that they are to be pre-calculated and stored in files, rather than
+being calculated on the fly from the contents of the nbest lists. There are two
+kinds of {\tt FileFF} features:
+\begin{itemize}
+\item Those that end with {\tt ffvals,}$i$ tell {\tt rat.sh} to use the
+$i$\/th feature generated by the {\tt canoe} decoder itself. It is standard
+practice to use all decoder features when rescoring, as is done
+here.\footnote{Of course, it is is possible to use more than 4 features when
+decoding. For large sets of decoder features, the command {\tt configtool
+rescore-model:ffvals canoe.ini} is handy: it automatically extracts
+features from {\tt canoe.ini}, and produces rescore-model entries for them.}
+
+\item Those that end with {\tt ff.}{\em fname.args} tell {\tt
+rat.sh} to generate values for the feature {\em fname} using arguments {\em
+args}. For example,\\ {\tt FileFF:ff.IBM2TgtGivenSrc.ibm2.en\_given\_ch} says to
+calculate the feature {\tt IBM2TgtGivenSrc} using the IBM model {\tt
+ibm2.en\_given\_ch} which we trained earlier. To see a list of all
+available features, type {\tt rescore\_train -H}.
+\end{itemize}
+
+Apart from the rescoring model, {\tt rat.sh} needs a source file and one or
+more alternative translations for it (same as {\tt cow.sh}). These may be the
+same files used for {\tt cow.sh}, but it is generally better to use different
+ones, so here we use {\tt dev2}:
+\begin{verbatim}
+   > make rat
+   cp -f rescore-model.ini rescore-model
+   rat.sh -n 1 train -n 1 -f canoe.ini.cow -K 100 rescore-model \
+      dev2_fr.al dev2_en.al >& log.rat
+\end{verbatim}
+As with {\tt cow.sh}, it is usually preferable to run {\tt rat.sh} in the
+background, unlike what is shown here. The {\tt -n 1} options cause {\tt
+rat.sh} to run on only one processor; to run in parallel, simply omit these.
+
+The output from {\tt rat.sh} is written to the file {\tt rescore-model}:
+\begin{verbatim}
+   > cat rescore-model
+   FileFF:ffvals,1 0.8429076672
+   FileFF:ffvals,2 -0.5938655734
+   FileFF:ffvals,3 1
+   FileFF:ffvals,4 0.3042182028
+   FileFF:ff.IBM2TgtGivenSrc.ibm2.en_given_fr 0.1957350224
+   FileFF:ff.IBM2SrcGivenTgt.ibm2.fr_given_en -0.02397140861
+   FileFF:ff.IBM1WTransTgtGivenSrc.ibm2.en_given_fr 0.03992729634
+   FileFF:ff.IBM1WTransSrcGivenTgt.ibm2.fr_given_en 0.0126716774
+   LengthFF 0.1795582324
+\end{verbatim}
+This is identical to {\tt rescore-model.ini}, except that each feature is now
+assigned a weight. Other by-products created by {\tt rat.sh} include the nbest
+lists {\tt dev2\_fr.al.nbest.gz}, and the corresponding decoder features \\{\tt
+  dev2\_fr.al.ffvals.gz} and additional features {\tt dev2\_fr.al.ff.*}. All of
+these files are compressed to save space---this generates some harmless
+warnings later in the process.
+
+\section{Translating and Testing} \label{TranslatingTesting}
+
+\subsection{Translating} \label{Translating}
+
+Once training is complete, the system can be used to translate.  As mentioned
+above, there are two options for translating. The simplest is to decode using
+the configuration file produced by {\tt cow.sh}:
+\begin{verbatim}
+   > make translate
+   canoe -f canoe.ini.cow < test_fr.al > canoe_ON_test_fr.out
+\end{verbatim}
+This produces the output file {\tt canoe\_ON\_test\_fr.out}, containing one
+line for each source line in {\tt test\_fr.al}.
+
+The other option for translating is to generate nbest lists and rescore them
+using the model generated in section~\ref{RAT}. To do this, we use the {\tt
+rat.sh} script again, but this time in translation mode:
+\begin{verbatim}
+   > make rescore
+   rat.sh -n 1 trans -n 1 -f canoe.ini.cow -K 100 rescore-model test_fr.al
+   mv test_fr.al.rat rescore_ON_test_fr.out
+\end{verbatim}
+This produces the output file {\tt rescore\_ON\_test\_fr.out}.
+
+Notice that the output files contain only lowercase, tokenized text. A
+postprocessing step is required to restore normal letter case and to undo the
+tokenization. Postprocessing is beyond the scope of this example, since case
+restoration software is not supplied with Portage.
+
+\subsection{Testing} \label{Testing}
+
+Translation quality can be evaluated using BLEU score, which is a measure of
+how well the translation matches an alternative translation that is known to be
+correct. It is based on the number of short word sequences that the two
+translations have in common, and varies between 0 for no matches to 1 for a
+perfect match. BLEU is calculated by the program {\tt bleumain}:
+\begin{verbatim}
+   > make test
+   bleumain canoe_ON_test_fr.out test_en.al > canoe_ON_test_fr.bleu
+   bleumain rescore_ON_test_fr.out test_en.al > rescore_ON_test_fr.bleu
+\end{verbatim}
+
+The output from {\tt bleumain} contains match statistics of various orders,
+followed by the global BLEU score:
+\begin{verbatim}
+   > cat canoe_ON_test_fr.bleu
+   1-gram (match/total) 1211/2360 0.513136
+   2-gram (match/total) 453/2260 0.200442
+   3-gram (match/total) 204/2161 0.0944007
+   4-gram (match/total) 113/2062 0.0548012
+   Sentence length: 2360; Best-match sentence length: 2378
+   Score: -1.8923
+   BLEU score: 0.150725
+
+   > cat rescore_ON_test_fr.bleu
+   1-gram (match/total) 1225/2373 0.516224
+   2-gram (match/total) 463/2273 0.203696
+   3-gram (match/total) 215/2174 0.098896
+   4-gram (match/total) 114/2075 0.0549398
+   Sentence length: 2373; Best-match sentence length: 2378
+   Score: -1.86899
+   BLEU score: 0.154279
+\end{verbatim}
+These results indicate that the translation produced by rescoring is slightly
+better than the one produced by plain decoding. Given the small size of the
+test set, it seems unlikely that the difference is statistically
+significant. To test this hypothesis, we can use {\tt bleucompare}, which does
+a comparison using pairwise bootstrap resampling:
+\begin{verbatim}
+   > bleucompare rescore_ON_test_fr.out canoe_ON_test_fr.out \
+      REFS test_en.al
+   rescore_ON_test_fr.out got max bleu score in 81.5% of samples
+   canoe_ON_test_fr.out got max bleu score in 18.5% of samples
+\end{verbatim}
+This indicates that the difference is only significant at the 80\% level, which
+is too low to be acceptable.
+
+\end{document}

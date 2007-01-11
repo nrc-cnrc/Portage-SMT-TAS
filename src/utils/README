@@ -1,0 +1,85 @@
+Catalog of files in this directory
+----------------------------------
+
+File name             Programmer  Description
+---------             ----------  -----------
+
+alignment-stats.pl            EJ  Alignment statistics to diagnose misaligned corpora.
+append-uniq.pl                SL  Append parallel non duplicate lines.
+arg_reader.{cc,h}             GF  Argument processing for C++ programs.
+bc_stats.{cc,h}               GF  Statistics over binary classification results.
+bin_class_stats.cc            GF  Statistics over binary classification results (program).
+bloater.cc                    GF  Allocate memory until death occurs.
+bootstrap.h                   GF  Bootstrap resampling for confidence intervals.
+build_devfiles.pl             FS  Randomly extract a dev file from a corpus.
+combine.pl                    AT  Combine files by interleaving lines.
+cvs-status-summary.pl         EJ  Compact summary of cvs status making stuff stand out.
+diff-round.pl                 EJ  Compare ff. files, ignoring rounding differences.
+errors.{cc,h}                 GF  Simple exception and error-message class.
+exception_dump.h              SL  Macro for printing a message when dying on an exception
+faucet_launcher.sh            PP  Launch faucet/faucet.pl on an available port
+faucet.pl                     PP  Provide tasks to workers distributed on various hosts
+file_utils.{cc,h}             GF  File utility routines and classes (add to me!).
+filter-latin.pl               GF  Filter invalid characters from an iso-latin1 encoded file.
+filter-for-giza.pl            MS  Filter training corpus for use with GIZA++
+getcolumn.sh                  AT  Get a column from a file, similar to cut.
+get_voc.cc                    GF  Extract a vocabulary from a tokenized file.
+gfmath.{cc,h}                 GF  log2 and exp2, and that's all!
+gfstats.h                     GF  Mean, var, sdev on anything you can iterate over.
+good_turing.{cc,h}            GF  Good-Turing adjustment on event counts.
+good_turing_estm.cc           GF  Good-Turing adjustment on event counts (program).
+iroc_exp.cc                   GF  You will never need to use this program.
+lc-latin.pl                   GF  Map iso-latin text to lowercase, in any locale (it hopes).
+ls_poly_fit.{cc,h}            GF  Least-squares polynomial curve fitting.
+matrix_solver.{cc,h}          GF  Solve simple matrix equations.
+meanvar.cc                    GF  Mean & variance of a set of numbers, with confidence.
+monitor-process.sh            EJ  Monitor a process's memory and CPU usage.
+mteval2ospl.pl                GF  Convert NIST MT text to one-sent-per-line, documentwise.
+mteval2ospl.sed               AT  Convert NIST MT text to one-sent-per-line.
+ngrams.pl                     GF  Write ngram tokens in tokenized text.
+ospl2mteval.pl                GF  Convert one-sent-per-line text to NIST MT format.
+outpipe.sh                    AT  A switchable tee?
+parallel-uniq.pl              EJ  Like uniq, but take into consideration parallel files.
+parse-monitor.sh              EJ  Summarize monitor-process.sh's output.
+perm_iterator.{cc,h}          AT  Iterate over permutations.
+portage_defs.h                GF  Some idiosyncratic definitions.
+prog.cc                       GF  C++ program template.
+prog.gnuplot                  GF  Gnuplot program template.
+prog.pl                       EJ  Perl program template.
+prog.sh                       EJ  Bash program template.
+psub                          EJ  Replacement for bsub: simple qsub wrapper
+quick_set.{cc,h}              GF  Integer sets, with nice properties.
+randomly-choose-n-args.pl     GF  Yes, that's all it does!
+remove_stop.pl                MA  Remove words in a given list from tokenized text.
+removewords.pl                AT  Remove words in a given list from tokenized text.
+reverseffvals.pl              MA  Reverse something to do with ffvals.
+run-after.sh                  EJ  Run a job once another job has finished.
+run-parallel.sh               EJ  Run a job suite using the faucet/worker system.
+sample_parallel_text.cc       GF  Extract a subsample from a parallel text.
+sloth.sh                      GF  Script to Lower Overhead when Testing Hypotheses
+sort-by-length.pl             EJ  Sort a text file by line length.
+split-listed.pl		      GF  Split a file according to list of subfiles.
+stableuniqffvals.pl           MA  Removes duplicates without sorting.
+stableuniq.pl                 AT  Removes duplicates without sorting.
+strip-markup.pl               GF  Strips <markup like this> from a text.
+str_utils.{cc,h}              GF  String utility routines and classes (add to me!).
+sum.pl                        GF  Sum a column of numbers.
+tester.cc                     GF  Test some GF modules, sort of.
+test_trie.cc                  EJ  Test the trie implementation.
+trans-search.pl               GF  Grep for an expression in parallel Hansard.
+trie*.h                       EJ  A fast and compact trie representation.
+try.cc                        GF  A program shell for trying things out.
+uc-first.pl                   GF  Map line-initial character to uppercase in iso-latin text.
+uncombine.pl                  GF  Pull apart an interleaved file created by combine.pl.
+vcb.h                         GF  Simple virtual constructor mechanism.
+vector_map.h                  AT  Associative map built on STL vectors.
+voc.{cc,h}                    GF  Map words <-> indexes.
+worker.pl                     PP  Execute tasks obtained from faucet.pl
+
+Memory pools:
+block_mem_pool.h              EJ  Allocates objects in large blocks to reduce malloc overhead
+index_block_mem_pool.h        EJ  Block pool with small index type as pointer replacement
+simple_mem_pool.h             SL  delete() puts objects on a free-list for faster re-use
+simple_block_mem_pool.h       EJ  Combines block_mem_pool and simple_mem_pool
+array_mem_pool.h              EJ  Pool for arrays of varying sizes, e.g., growing arrays
+array_mem_pool-cc.h           EJ  Implementation of array_mem_pool.h

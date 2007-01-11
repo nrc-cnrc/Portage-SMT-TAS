@@ -1,0 +1,172 @@
+$Id$
+
+K-Best Rescoring Module
+Aaron Tikuisis / George Foster / Samuel Larkin / Eric Joanis / Nicola Ueffing
+Groupe de technologies langagières interactives /
+   Interactive Language Technologies Group
+Institut de technologie de l.information / Institute for Information Technology
+Conseil national de recherches Canada / National Research Council Canada
+Copyright 2005, Conseil national de recherches du Canada / Copyright 2005,
+National Research Council of Canada
+
+This file must be kept in synch with the code.  Please take resposibility for
+changing documentation like this when you modify the code!!
+
+
+README for K-best Rescoring Module
+==================================
+
+This document contains information about how to build and run the K-best
+rescoring programs.  For information about the implementation, please see
+overview.pdf.  See the end of this file for a todo list.
+
+Overview
+========
+
+Given a source text, a list of nbest translation hypotheses for each sentence
+in the source text, and a set of reference translations for each sentence in
+the source text, the goal is to re-order the nbest lists so that the first
+entry in each is the best.  Given a vector of feature values for each
+translation hypothesis, re-ordering is accomplished by calculating a global
+score from a weighted combination of the feature values, then ranking the
+hypotheses for each source sentence according to their global score.
+
+The main function of this module is to learn optimal feature weights, ie the
+ones that produce the best translation when used as a ranking criterion.  The
+best translation is defined as the one which maximizes BLEU score between the
+produced translation (for the entire source text) and the reference
+translations.  Och's algorithm is used to find the optimal weights.
+
+Here are the main steps for using this module:
+
+1. Compile a source text, a list of nbest translations for each sentence in it,
+   and a set of reference translations for each sentence in it.  See below for
+   the formats for these three files.
+
+2. Decide on a set of features to use, eg language model, translation model,
+   etc.  For each feature, generate a score for each nbest list entry.  There
+   are three ways to generate feature values: 1) using an external program; 2)
+   using the program gen_feature_values; and 3) dynamically during model
+   training.  The 2nd and 3rd methods use a canned set of features known to the
+   rescoring module - see below for info on how to add new ones to this set.
+   The 3rd method is useful mainly for simple features that can be calculated
+   quickly, eg sentence length.  If you want to use an external program, see
+   the format for feature value files below.
+
+3. Train a model using the program rescore_train.  This takes a model as input
+   and produces a new one as output.  The input model lists the set of features
+   to use and supplies an optional initial weight for each; the output model
+   gives final weights for each feature.  See below for model file format.  The
+   other parameters to rescore_train are source, nbest, and reference files.
+   Use rescore_train -h for more info.
+
+4. Test a model using the program rescore_test.  This takes a trained model as
+   input, and generates a BLEU score for a given source, nbest, reference
+   triple (which should be different from that used to produce the model).  Use
+   rescore_test -h for more info.
+
+5. Translate, using the program rescore_translate.  This takes a trained model
+   as input and produces a best translation for a given source text and nbest
+   list.  Use rescore_translate -h for more info.
+
+File Formats
+============
+
+- Source, nbest, and refs files.  All of these contain one segment per line,
+  with tokens separated by whitespace.  Each source line corresponds to a block
+  of lines in the nbest file, and a block of lines in the refs file.  Blocks
+  are in order, so that the ith source sentence corresponds to the ith block.
+  They are also fixed size and contiguous, so for example if there are S source
+  sentences and K entries in each nbest list, then there will be SK lines in
+  the nbest file.  Similarly if there are R reference translations per source
+  sentence, there will be SR lines in the refs file.  If your data has
+  variable-sized blocks, pad short blocks with blank lines.
+
+- Model file.  This contains a set of entries, one per line, in the form:
+
+     feature_name[:arg] [weight]
+
+  For example, an IBM1-based feature correspond to the line:
+
+     IBM1SrcGivenTarget:ttable-file-location   2.345
+
+  An important feature is FileFF, which designates a set of feature values
+  stored in a feature file.  For example, to use the contents of a file named
+  very-important-feature, you would include this line:
+
+     FileFF:very-important-feature [weight]
+
+  The exact list of features known to the module is in the create() function in
+  featurefunction.cpp.  As long as the documentation is up-to-date,
+  rescore_train -H will also produce this list.
+
+- Feature value file.  This is simply a column of numbers that matches 1-1 with
+  the nbest file it pertains to.  Individual features are scalar-valued, so
+  there can only be one number per line.
+
+- Multi-column feature value file for the rescore programs (for FileFF:<file>,i
+  features):
+  Suppose that we have
+  I feature functions: f_1, .. , f_I in the file (multiple files can be used.)
+  S source sentences: src_1, .. , src_S
+  K candidate translations per source sentence src_s: tgt_{s,1}, .. , tgt_{s,K}
+
+  Then the feature function file looks as follows:
+  f_1(src_1, tgt_{1,1}) f_2(src_1, tgt_{1,1})   ..   f_I(src_1, tgt_{1,1})
+  f_1(src_1, tgt_{1,2})            ..                f_I(src_1, tgt_{1,2})
+    ..                                                 ..
+  f_1(src_1, tgt_{1,K})            ..                f_I(src_1, tgt_{1,K})
+
+  f_1(src_2, tgt_{2,1})            ..                f_I(src_2, tgt_{2,1})
+    ..                                                 ..
+  f_1(src_2, tgt_{2,K})            ..                f_I(src_2, tgt_{2,K})
+
+    ..
+
+  f_1(src_S, tgt_{S,1})            ..                f_I(src_S, tgt_{S,1})
+    ..                                                 ..
+  f_1(src_S, tgt_{S,K})            ..                f_I(src_S, tgt_{S,K})
+
+  Note: there is only partial error-detection when reading the file, so it is
+  up to you to make sure that the file actually does correspond to the data
+  being provided when FileFF features are used.
+
+
+Adding New Features
+===================
+
+To add to the set of known features:
+
+1. Write a class derived from the FeatureFunction interface in
+   featurefunction.h.  The command
+      grep 'public FeatureFunction' *.h
+   yields several examples of derived classes.  The main thing feature
+   functions have to do is return a value when called with a source/target
+   segment pair.  There are also functions to inform them of the wider context
+   (the whole source text under translation, and the whole current nbest list),
+   but these don't have to be instantiated.
+
+2. Add a clause to the FeatureFunctionSet::create() function, defined in
+   featurefunction.cpp.  This should just check for a match with your feature's
+   name and call the corresponding constructor.  Note that you must be able to
+   construct your class from a single string argument - this is the "arg"
+   string that is specified in the model file.  If you need complex parameters,
+   you must parse this string argument in your constructor.
+
+3. Modify the Makefile to link with any necessary module-external libraries.
+
+4. Test using gen_feature_values, please!
+
+Notes on building and running:
+==============================
+
+The standard make targets can be used to rebuild and install.  The dependencies
+are listed under the MODULE_DEPENDS variable in the Makefile.
+
+TODO
+====
+
+- incorporate Aaron's alg to calculate the "true" bleu oracle
+- incorporate other error metrics besides BLEU - add mechanism to save error
+  scores for repeated testing
+- add NULL words to IBM calculation

@@ -1,0 +1,26 @@
+Groupe de technologies langagières interactives / Interactive Language Technologies Group
+Institut de technologie de l'information / Institute for Information Technology
+Conseil national de recherches Canada / National Research Council Canada
+Copyright 2004-2006, Conseil national de recherches Canada / National Research Council Canada
+
+Distributed under specific licensing terms.  Please refer to the LICENCE file
+included in this package for details.
+
+
+                  PORTAGEshared toy example and tutorial 
+
+This is a toy example of a complete Portage run, documented in the file
+toy.tex in this directory. Do "make doc" to generate a pdf file. Do "make
+clean" to remove non-essential files.
+
+Contents of this directory:
+
+canoe.ini           Sample canoe configuration file used with the example
+hans*.txt           Three days of preprocessed Canadian Hansard proceedings:
+                    House of Commons Debates, Oct 8, 9 and 20, 2003.
+                    These were originally downloaded from the website of the
+                    Parliament of Canada, http://www.parl.gc.ca/.
+Makefile            Makefile for running all commands
+rescore-model.ini   Sample rescoring model file used with the example
+toy.tex             Documentation
+train_en.lm         ARPA format language model trained on hans*_en.txt

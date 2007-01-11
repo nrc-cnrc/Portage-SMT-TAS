@@ -1,0 +1,70 @@
+/**
+ * @author George Foster
+ * @file postprocessor.h  Helper that does truecasing on a translation.
+ * 
+ * 
+ * COMMENTS: 
+ *
+ * Groupe de technologies langagières interactives / Interactive Language Technologies Group
+ * Institut de technologie de l'information / Institute for Information Technology
+ * Conseil national de recherches Canada / National Research Council Canada
+ * Copyright 2005, Conseil national de recherches du Canada / 
+ * Copyright 2005, National Research Council of Canada
+ */
+
+#ifndef POSTPROCESSOR_H
+#define POSTPROCESSOR_H
+
+#include <string>
+#include <vector>
+#include <portage_defs.h>
+#include <errors.h>
+
+namespace Portage {
+
+/// Prepares a translation for output (truecasing)
+class Postprocessor
+{
+   // For licensing reasons, the truecasing engine cannot be supplied with this
+   // distribution.  To integrate your truecasing engine with this demo, add it
+   // to Postprocessor::proc().
+   //TrueCaseEngine tc;
+   
+   bool verbose;  ///< Are we required to print verbose.
+
+   /// A temporary file to put the tokenized and lowercased version of the source sentences.
+   string tempfile;
+   /// Command string for a system call to tokenize and lowercase the source sentences.
+   string cmd;
+
+   /// Joined tokens of split sentences.
+   vector<string> sents;
+
+   /// try to make output a bit prettier: remove single quotes and parens
+   /// @param sent  sentence to twiddle
+   void twiddle(vector<string>& sent);
+
+public:
+
+   /**
+    * Construct.
+    * @param tgtlang target language code, one of "en", "fr"
+    * @param verbose Indicates if we should display verbose
+    */       
+   Postprocessor(const string& tgtlang, bool verbose = false);
+
+   /// Destructor.
+   ~Postprocessor() {}
+   
+   /**
+    * Postprocess an output text.
+    * @param mt_out MT output in the form of tokenized sentences.
+    * @param processed_text Upper-case, detokenized version of raw_text.
+    * @return Returns processed_text
+    */
+   string& proc(vector<vector<string> >& mt_out, string& processed_text);
+}; // ends Postprocessor
+
+} // ends namespace Portage
+
+#endif

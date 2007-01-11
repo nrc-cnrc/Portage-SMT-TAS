@@ -1,0 +1,78 @@
+pair<vector<vector<string> >, vector<vector<MarkedTranslation> > > DOCUMENT
+pair<vector<string>, vector<MarkedTranslation> > MARKEDSENT
+vector<string> PHRASE
+vector<vector<string> > MARKPHRASES
+
+
+
+<DOCUMENT> -> <MARKEDSENT>
+{
+    DOCUMENT.first.push_back(MARKEDSENT.first);
+    DOCUMENT.second.push_back(MARKEDSENT.second);
+};
+ | <DOCUMENT>\n<MARKEDSENT>
+{
+    DOCUMENT_0 = DOCUMENT_1;
+    DOCUMENT_0.first.push_back(MARKEDSENT.first);
+    DOCUMENT_0.second.push_back(MARKEDSENT.second);
+};
+
+<MARKEDSENT> -> ([^<\n ]*)
+{
+    MARKEDSENT.first.push_back($1);
+};
+ | <MARKEDSENT> ([^<\n ]*)
+{
+    MARKEDSENT_0 = MARKEDSENT_1;
+    MARKEDSENT_1.first.push_back($1);
+};
+ | <MARKEDSENT> <([^>\n ]*) (target|english)="<MARKPHRASES>" prob="<MARKPROBS>"><PHRASE><\[^>\n ]*>
+{
+    assert($1 == $2);
+    assert(MARKPHRASES.size() == MARKPROBS.size());
+    
+    MARKEDSENT_0 = MARKEDSENT_1;
+    
+    Range curRange;
+    curRange.first = MARKPHRASE_1.size();
+    curRange.second = MARKPHRASE_1.size() + PHRASE.size();
+    
+    for (Uint i = 0; i < MARKPHRASES.size(); i++)
+    {
+	MARKEDSENT_0.second.push_back(MarkedTranslation());
+	MARKEDSENT_0.second.back().src_words = curRange;
+	MARKEDSENT_0.second.back().markString = MARKPHRASES[i];
+	MARKEDSENT_0.second.back().log_prob = log(MARKPROBS[i]);
+    } // for
+    MARKEDSENT_0.first.insert(MARKEDSENT_0.first.end(), PHRASE.begin(), PHRASE.end());
+};
+
+<MARKPHRASES> -> <PHRASE>
+{
+    MARKPHRASES.push_back(PHRASE);
+};
+ | <MARKPHRASES>|<PHRASE>
+{
+    MARKPHRASES_0 = MARKPHRASES_1;
+    MARKPHRASES_0.push_back(PHRASE);
+};
+
+<PHRASE> -> ([^<\n ]*)
+{
+    PHRASE.push_back($1);
+};
+ | <PHRASE> ([^<\n ]*)
+{
+    PHRASE_0 = PHRASE_1;
+    PHRASE_0.push_back($1);
+};
+
+<MARKPROBS> -> <DOUBLE>
+{
+    MARKPROBS.push_back(DOUBLE);
+};
+ | <MARKPROBS>|<DOUBLE>
+{
+    MARKPROBS_0 = MARKPROBS_1;
+    MARKPROBS_0.push_back(DOUBLE);
+};

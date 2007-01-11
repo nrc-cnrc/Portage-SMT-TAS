@@ -1,0 +1,23 @@
+Groupe de technologies langagières interactives / Interactive Language Technologies Group
+Institut de technologie de l'information / Institute for Information Technology
+Conseil national de recherches Canada / National Research Council Canada
+Copyright 2004-2006, Conseil national de recherches Canada / National Research Council Canada
+
+Distributed under specific licensing terms.  Please refer to the LICENCE file
+included in this package for details.
+
+
+                          PORTAGEshared test-suite
+
+Contents of this directory:
+
+ - toy/                 toy example: complete use of the PORTAGEshared software
+                        suite on a tiny corpus, as an example and tutorial
+
+ - regress-small-voc/   regression test suite on a small corpus
+
+ - rescoring-example/   example prepared for a previous release of the
+                        rescoring code only
+
+
+

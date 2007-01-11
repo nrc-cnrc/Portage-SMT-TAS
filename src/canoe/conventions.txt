@@ -1,0 +1,8 @@
+Conventions in Documentation and Code
+=====================================
+
+ - The translation input is the source text, the output is the target text.
+ - The first word in a sentence is considered to be at position 0; (hence, the last word is
+   at position numWords - 1)
+ - A range of words is specified by [i, j), where i is the first word in the range and j is
+   the first word NOT in the range.

@@ -1,0 +1,7 @@
+1-gram (match/total) 1971/2702 0.72946
+2-gram (match/total) 990/2602 0.380477
+3-gram (match/total) 485/2502 0.193845
+4-gram (match/total) 235/2402 0.0978351
+Sentence length: 2702; Best-match sentence length: 2675
+Score: -1.31174
+BLEU score: 0.269352

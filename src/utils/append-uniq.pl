@@ -1,0 +1,135 @@
+#!/usr/bin/perl
+# $Id$
+
+# append-uniq.pl - Appends non duplicate lines from addnbest and addffvals files to nbest and ffvals,
+#                  where a duplicate is a line which is identical to another in *both* files at the same time.
+#
+# PROGRAMMER: Samuel Larkin
+#
+# COMMENTS:
+#
+# Samuel Larkin
+# Groupe de technologies langagières interactives / Interactive Language Technologies Group
+# Institut de technologie de l'information / Institute for Information Technology
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2005, Conseil national de recherches du Canada / Copyright 2005, National Research Council of Canada
+
+use strict;
+use warnings;
+
+sub usage {
+   local $, = "\n";
+   print STDERR @_, "";
+   $0 =~ s#.*/##;
+   print STDERR "
+   append-uniq.pl, Copyright (c) 2005 - 2006, Conseil national de recherches Canada / National Research Council Canada
+
+   Usage: $0 [-h(elp)] [-v(erbose)] -nbest=file -ffvals=file -addnbest=file -addffvals=file
+
+   Appends non duplicate lines from addnbest and addffvals files to nbest and ffvals,
+   where a duplicate is a line which is identical to another in *both* files at the same time.
+
+   Warning: nbest and ffvals must be duplicate free, if not use use this program to remove duplicates as follow:
+      append-uniq.pl -nbest=<emptyfile> -ffvals=<emptyfile> -addnbest=nbest -addffvals=ffvals
+
+   Options:
+
+   -h(elp):      print this help message
+   -v(erbose):   increment the verbosity level by 1 (may be repeated)
+   -d(ebug):     print debugging information
+
+   ";
+   exit 1;
+}
+
+use Getopt::Long;
+# Note to programmer: Getopt::Long automatically accepts unambiguous
+# abbreviations for all options.
+my $verbose = 1;
+GetOptions(
+   "nbest=s"     => \my $nbest,
+   "addnbest=s"  => \my $addnbest,
+   "ffvals=s"    => \my $ffvals,
+   "addffvals=s" => \my $addffvals,
+   help          => sub { usage },
+   verbose       => sub { ++$verbose },
+   quiet         => sub { $verbose = 0 },
+   debug         => \my $debug,
+) or usage;
+
+# This script is called once per sentence by cow.sh, don't pollute the log!
+print STDERR "append-uniq.pl, Copyright (c) 2004 - 2006, Conseil national de recherches Canada / National Research Council Canada\n"
+   if ($verbose > 1);
+
+if ( $debug ) {
+   no warnings;
+   print STDERR "
+   nbest       = $nbest
+   ffvals      = $ffvals
+   addnbest    = $addnbest
+   addffvals   = $addffvals
+   verbose     = $verbose
+   debug       = $debug
+
+";
+}
+                        
+                                                
+open(NBEST, "<$nbest") or die "Can't open $nbest for reading: $!\n";
+open(FFVALS, "<$ffvals") or die "Can't open $ffvals for reading: $!\n";
+
+# hash of hashes: $seen{$line1}{$line2} exists if $line1 exists in $file1 at
+# the same position as $line2 in $file2.
+my %seen;
+my $iniLine = 0;
+my $iniDup = 0;
+my $n;
+my $f;
+while (defined($n = <NBEST>) and defined($f = <FFVALS>)) {
+   chomp($n);
+   chomp($f);
+   if ( length($n) )
+   {
+      if ( ! exists($seen{$n}{$f}) ) {
+         ++$iniLine;
+         # This is not a duplicate line
+         $seen{$n}{$f} = 1;
+      } else {
+         ++$iniDup;
+         print(STDERR "WARNING: The following sentence was found to be a duplicate $f $n\n") if ($verbose > 1);
+      }
+   }
+}
+die "FATAL ERROR: $nbest is not of the same length as $ffvals\n" if (defined(<NBEST>) or defined(<FFVALS>)); 
+
+close(NBEST);
+close(FFVALS);
+
+
+
+open(NBESTDF, ">>$nbest") or die "cannot open to append to $nbest\n";
+open(FFVALSDF, ">>$ffvals") or die "cannot open to append to $ffvals\n";
+open(ADDNBEST, "<$addnbest") or die "cannot open $addnbest to read\n";
+open(ADDFFVALS, "<$addffvals") or die "cannot open $addffvals to read\n";
+
+my $addedLine = 0;
+while (defined($n = <ADDNBEST>) and defined($f = <ADDFFVALS>)) {
+   chomp($n);
+   chomp($f);
+   if ( length($n) and ! exists $seen{$n}{$f} ) {
+       ++$addedLine;
+       $seen{$n}{$f} = 1;
+       print(NBESTDF "$n\n");
+       print(FFVALSDF "$f\n");
+   }
+}
+die "FATAL ERROR: $addnbest is not of the same length as $addffvals\n" if (defined(<ADDNBEST>) or defined(<ADDFFVALS>)); 
+
+close(NBEST);
+close(FFVALS);
+close(ADDNBEST);
+close(ADDFFVALS);
+
+
+
+print(STDERR "iniLine: $iniLine iniDup: $iniDup addedLine: $addedLine\n") if ($verbose > 1);

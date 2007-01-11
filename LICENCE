@@ -1,0 +1,96 @@
+                               PORTAGEshared
+
+Groupe de technologies langagières interactives / Interactive Language Technologies Group
+Institut de technologie de l'information / Institute for Information Technology
+Conseil national de recherches Canada / National Research Council Canada
+Copyright 2004-2006, Conseil national de recherches Canada / National Research Council Canada
+
+
+SUMMARY OF LICENCE TERMS FOR THE PRACTITIONER
+
+The terms and conditions under which this software is licensed are those
+expressed in the licence itself, so please refer to the text of the licence
+for reference.  The points below are provided only as a quick overview of what
+is expected from you as a licensee of the PORTAGEshared software, and do not
+replace the terms of the licence.  Numbers in brackets refer to a licence
+clause.
+
+DEFINITIONS
+
+The following definitions are particularly important:
+
+"Software" means the computer code, as well as the documentation and computer
+data that you received (1.1).
+
+"Modifications" means any addition to or deletion from the contents of a file
+containing software or previous Modifications, and any new file that contains
+any part of the Software or previous Modifications (1.4).
+
+"Covered Code" means the Software or Modifications or the combination of the
+Software and Modifications, in each case including portions thereof (1.5).
+
+"Territory" means Canada (1.8).
+ 
+CONFIDENTIALITY
+
+The Software, including the source code, is confidential to NRC except for
+published elements and elements which NRC states in writing to be not
+confidential (7.1).
+
+LICENCE GRANTS
+
+The PORTAGEshared software cannot be sub-licensed: please contact NRC if
+licensing is required for parties other than yourself or your colleagues
+covered by your institution under the PORTAGEshared licence agreement signed
+(2.3).
+
+The PORTAGEshared software is provided to Canadian universities for research
+and education purposes only (2.1a);
+
+The PORTAGEshared software can be modified, provided you send to NRC all
+available information about the Modifications including source code in a form
+acceptable to NRC, within 180 days from the time of additions or changes
+having been made (3.1); for details, please contact NRC.
+
+SHARING MODIFICATIONS WITHIN THE PORTAGEshared COMMUNITY
+
+In return for having access to PORTAGEshared, you and your institution grant
+back Modifications to NRC in such a way that NRC may license them back to the
+PORTAGEshared community, of which you are an active part (3.1).
+
+COPYRIGHT AND ATTRIBUTION
+
+You are required (5.1) to insert appropriate attribution to NRC for the
+PORTAGEshared software by ensuring that presentation of PORTAGEshared on a
+computer screen whenever it is accessed contains a copyright statement as
+follows: 
+	Copyright 2004-2006, National Research Council Canada
+
+You must also ensure that you have properly identified your contribution when
+making Modifications (5.1);
+
+You agree to acknowledge NRC as the source of PORTAGEshared in conference
+presentations, scientific publications, and similar opportunities; however,
+any such acknowledgement shall not imply that NRC endorses or approves
+modified code (i.e., Covered Code) (8.1).
+
+LICENCE DURATION AND POSSIBLE RENEWAL
+
+As the diffusion of PORTAGEshared by NRC to Canadian universities is a new
+initiative, the licence expires on December 31st, 2008, providing sufficient
+time to establish a PORTAGEshared community (11.1).
+
+Terms of renewal will be determined based on, among other factors, activities
+during the licensing period and on the state of the PORTAGEshared community at
+that time, aiming at furthering the Canadian capacity in machine translation
+based on machine learning (11.2).
+
+In order not to unduly terminate research by students as part of their
+Master's or PhD work that was underway when the licence terminates, a licensee
+retains the right to use Covered Code in order to fulfill such educational
+commitments that have been made before termination of the licence.  Such
+arrangement must be specifically negotiated by the licensee and NRC (11.5b).
+
+
+
+

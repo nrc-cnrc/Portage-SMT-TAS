@@ -1,0 +1,23 @@
+Groupe de technologies langagières interactives / Interactive Language Technologies Group
+Institut de technologie de l'information / Institute for Information Technology
+Conseil national de recherches Canada / National Research Council Canada
+Copyright 2004-2006, Conseil national de recherches Canada / National Research Council Canada
+
+Distributed under specific licensing terms.  Please refer to the LICENCE file
+included in this package for details.
+
+
+                        PORTAGEshared source code
+
+Contents of this directory:
+
+   build/           tools for making and installing
+   canoe/           decoder code, including code for using translation models
+   eval/            code for automatic evaluation of MT output
+   preprocessing/   markup, tokenization, etc.
+   rescoring/       nbest list reordering
+   lm/              code for using language models
+   tm/              code for creating translation models (lexical and phrase based)
+   api/             API to the decoder, for including in other applications
+   utils/           basic tools for other modules to use
+   logging/         logging facility for debugging 

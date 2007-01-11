@@ -1,0 +1,396 @@
+# =============================================================================
+# MODULE: Makefile.incl - include file for lower-level Makefiles
+#
+# PROGRAMMER: George Foster, Aaron Tikuisis, Eric Joanis, Patrick Paul
+#
+# This defines a bunch of standard targets in terms of variables that list
+# files, directories, commands, etc. All the local make has to do is list local
+# contents, then include this file afterwards. See "Content variables" below
+# for types of things that can be listed, and "Targets" for how things get
+# made.  Detailed comments are at the end.
+#
+# Groupe de technologies langagières interactives / Interactive Language Technologies Group
+# Institut de technologie de l'information / Institute for Information Technology
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2005 - 2006, Conseil national de recherches Canada /
+#       National Research Council Canada
+# =============================================================================
+
+# =============================================================================
+# USER CONFIGURABLE VARIABLES
+#
+# This Makefile is intended to be used as is, expect for the following
+# variables
+
+# Variable:        LOGGING
+# Possible values: defined to "NONE" disables logging, any other value or
+#                  undefined enables logging.
+# Notes:           Comment out this line to enable logging - requires log4cxx
+LOGGING=NONE
+
+# Variable:        ACE
+# Location:        This variable is not defined here, but in api/Makefile.
+#                  It is documented here for information purposes only.
+# Possible values: defined to "NONE" disables the use of ACE (and the
+#                  compilation of paddle_server and paddle_client, the web
+#                  demo), any other value or undefined enables the use of ACE.
+# Notes:           Comment out the "ACE=NONE" line in api/Makefile to compile
+#                  the web demo - requires ACE
+
+# Variable:        PORTAGE_NO_CTAGS
+# Possible values: defined to any non-blank value turns off the use of ctags
+# Notes:           Uncomment this line if you don't have the ctags program or
+#                  if you don't use vi or a related editor.  Equivalently, you
+#                  can export/setenv PORTAGE_NO_CTAGS to 1 in your .<shell>rc
+#                  file to disable the use of etags.
+#PORTAGE_NO_CTAGS=1
+
+# Variable:        PORTAGE_NO_ETAGS
+# Possible values: defined to any non-blank value turns off the use of etags
+# Notes:           Uncomment this line if you don't have the etags program or
+#                  if you don't use emacs or a related editor.  Equivalently,
+#                  you can export/setenv PORTAGE_NO_ETAGS to 1 in your
+#                  .<shell>rc file to disable the use of etags.
+#PORTAGE_NO_ETAGS=1
+
+# Variable:        TEX
+# Possible values: the command line for invoking latex, or "NONE" to disable
+#                  the compilation of documents
+# Notes:           Uncomment the "TEX = NONE" line if you don't have latex.
+TEX = latex -interaction=batchmode
+#TEX = NONE
+
+# END OF USER CONFIGURABLE VARIABLES
+# =============================================================================
+
+INSTALL_DIR = ../..
+
+OSTYPE = $(shell uname -s)
+
+# -----------------------------------------------------------------------------
+# Static variable definitions (don't usually need to be modified)
+# -----------------------------------------------------------------------------
+
+# places to put things
+INC_DIR := $(INSTALL_DIR)/include
+DOC_DIR := $(INSTALL_DIR)/doc/software
+LIB_DIR := $(INSTALL_DIR)/lib
+BIN_DIR := $(INSTALL_DIR)/bin
+DATA_DIR := $(INSTALL_DIR)/data
+PERL_LIB_DIR := $(INSTALL_DIR)/lib
+
+# places to find things; include the -L flag, eg -L/my-other-lib-dir
+ifdef PORTAGE
+    OTHER_INC_DIRS = -I$(PORTAGE)/include
+    OTHER_LIB_DIRS = -L$(PORTAGE)/lib
+else
+    OTHER_INC_DIRS = -I/export/projets/portage/include
+    OTHER_LIB_DIRS = -L/export/projets/portage/lib
+endif
+
+# lib and include directories due to MODULE_DEPENDS
+MODULE_LIB_DIR = $(foreach DIR, $(MODULE_DEPENDS), -L../$(DIR))
+MODULE_INCLUDE = $(foreach DIR, $(MODULE_DEPENDS), -I../$(DIR))
+# Automatically add to LIBS all libraries resulting from dependencies in
+# MODULE_DEPENDS, adding utils unless we're in utils.
+ifeq ($(NO_UTILS_LIB), true)
+    LIB_LIST = $(MODULE_DEPENDS)
+else
+    LIB_LIST = $(MODULE_DEPENDS) utils
+endif
+LIBS = $(foreach DIR, $(LIB_LIST), -lportage_$(DIR)) $(EXTRA_LIBS)
+
+# Beginnings of a (not yet completed) port to MacOS - without logging for now
+ifeq ($(OSTYPE),Darwin)
+   LOGGING = NONE
+endif
+
+# If the variable LOGGING is defined to the value NONE, turn off the
+# compilation and linking with LOG4CXX
+ifeq ($(LOGGING), NONE)
+    CFLAG_LOGGING = -DNO_LOGGING
+    LOGGING_LIB =
+else
+    CFLAG_LOGGING =
+    LOGGING_LIB = -llog4cxx
+endif
+
+# flags and commands (CF contains options from the environment, like -g; to
+# have these be read, use "make -e". Eg: setenv CF -g; make -e buggy_prog.
+# MODULE_CF contains module/directory specific compile flags).
+CC = gcc
+CXX = g++
+OPTS = -O3 -fPIC -Wall -Wsign-promo -Woverloaded-virtual $(MODULE_CF) $(CF)
+LFLAGS = -L. -L../utils $(MODULE_LIB_DIR) $(OTHER_LIB_DIRS)
+IFLAGS = -I. -I../utils $(MODULE_INCLUDE) $(OTHER_INC_DIRS)
+CFLAGS =  $(IFLAGS) $(LFLAGS) -D$(OSTYPE) $(OPTS) $(CFLAG_LOGGING)
+CXXFLAGS = $(CFLAGS)
+
+ifeq ($(OSTYPE),Darwin)
+   LINKWITH = $(LIBS)
+else
+   LINKWITH = -Wl,-Bstatic $(LIBS) -Wl,-Bdynamic
+endif
+
+# -----------------------------------------------------------------------------
+# Content variables (set these in local Makefile to describe what local dir has
+# to offer)
+# -----------------------------------------------------------------------------
+
+# C/C++ source files
+# SOURCES =
+
+# All .h files to be installed in the include dir
+# INCLUDES =
+
+# All objects for library inclusion and/or program linking
+# OBJECTS =
+
+# Name of library, minus extension, eg libhorrible
+# LIBRARY =
+
+# Name of perl modules to install in LIB_DIR
+# PERL_LIBS =
+
+# Programs for static linking with local libs. Each must have a corresponding
+# program.c or program.cc.
+# PROGRAMS =
+
+# Programs for dynamic linking with local libs. Each must have a corresponding
+# program.c or program.cc. LD_LIBRARY_PATH needs to be set to $(LIB_DIR) in
+# order to run these.
+# DYNPROGS =
+
+# Programs you don't want installed in bin; should be a subset of PROGRAMS
+# and DYNPROGS
+# TESTPROGS =
+
+# Scripts to install by copying into the bin dir without compiling or
+# stripping.
+# BINSCRIPTS =
+
+# Info doc files. This is a list of .info files, each of which must have a
+# corresponding .texinfo file.
+# INFOFILES =
+
+# PDF documents generated from LaTeX source. A list of .pdf files, each of
+# which must have a corresponding .tex (latex) source file.
+# DOCUMENTS =
+
+# External non-standard libs to link against, for instance ones in LIB_DIR.
+# DYNLIBS link to shared libraries, when these exist.
+# LIBS =
+# DYNLIBS =
+
+# Doxygen params file.
+# DOXYFILE =
+
+# Dependencies of this module on other modules in the same project.  Adding,
+# e.g., "MODULE_DEPENDS = foo bar", will add ../foo and ../bar to the
+# include and lib directories, and add -llibportage_foo and -llibportage_bar to
+# libraries to link with.  The order of these dependencies affects the order of
+# linking of the libraries and is therefore significant.
+# MODULE_DEPENDS =
+
+# -----------------------------------------------------------------------------
+# Targets
+# -----------------------------------------------------------------------------
+
+
+.PHONY: new all clean lib bin depend lib bin TAGS tags info doxy docs \
+	install export install_inc install_dyn_lib install_static_lib \
+	install_perl_lib install_bin install_doc
+
+# Override the default suffix list, to remove .sh.  (The make manual says .sh
+# is a cludge for the SCCS revision control system, which we don't use.)
+.SUFFIXES:
+.SUFFIXES: .out .a .ln .o .c .cc .C .p .f .F .r .y .l .s .S .mod .sym .def \
+           .info .dvi .tex .texinfo .texi .txinfo .w .ch .web .elc .el .cpp
+
+# make everything that can be made, except doxy, which spews too many messages
+all: depend lib bin TAGS tags info .cvsignore
+
+# make everything from scratch
+new: clean
+	$(MAKE) all
+
+# put everything where it belongs, as needed for using the software
+install: all install_dyn_lib install_perl_lib install_bin
+
+# put the include files and static libraries where they belong, as needed for
+# an external program using Portage libraries.
+export: all install_inc install_static_lib install_dyn_lib
+
+# compose for top-level makefile
+new_install: clean
+	$(MAKE) install
+
+# remove everything that can be remade
+clean:
+	\rm -f $(OBJECTS) $(LIBRARY).{a,so} $(PROGRAMS) $(DYNPROGS) \
+	$(INFOFILES) $(DOCUMENTS) Makefile.depend *.aux *.bbl *.blg *.dvi *.log \
+	TAGS tags *~ *.o *.info-* core .cvsignore
+
+# make the .cvsignore file, used by CVS to ignore certain files when updating
+.cvsignore: Makefile
+	echo $(PROGRAMS) Makefile.depend .cvsignore *.pdf *.dvi *.aux *.bbl *.blg *.log *.eps | tr ' ' '\n' > .cvsignore
+
+# make static and dynamic libraries
+lib: $(LIBRARY).a $(LIBRARY).so
+ifneq ($(OSTYPE),Darwin)
+$(LIBRARY).a: $(OBJECTS)
+ifdef LIBRARY
+	ar r $(LIBRARY).a $(OBJECTS)
+endif
+$(LIBRARY).so: $(OBJECTS)
+ifdef LIBRARY
+	$(CXX) -shared -o $(LIBRARY).so $(OBJECTS) $(LFLAGS) $(LIBS) $(DYNLIBS)
+endif
+else
+$(LIBRARY).a: $(OBJECTS)
+ifdef LIBRARY
+	libtool -static -o $(LIBRARY).a $(OBJECTS)
+endif
+$(LIBRARY).so:
+endif
+
+
+# make programs, linking to library if there is one, else to all object files
+bin: $(PROGRAMS) $(DYNPROGS)
+ifdef LIBRARY
+$(PROGRAMS): %: %.o $(LIBRARY).a $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).a)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LIBRARY).a $(LINKWITH) $(DYNLIBS)
+$(DYNPROGS): %: %.o $(LIBRARY).so $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).so)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LIBRARY).so $(LIBS) $(DYNLIBS)
+else
+$(PROGRAMS): %: %.o $(OBJECTS) $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).a)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJECTS) $< $(LINKWITH) $(DYNLIBS)
+$(DYNPROGS): %: %.o $(OBJECTS) $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).so)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJECTS) $< $(LIBS) $(DYNLIBS)
+endif
+
+# make tags for finding various definitions in vi and related editors
+tags:
+ifdef SOURCES
+    ifndef PORTAGE_NO_CTAGS
+        # Can be niced in the background - compilation need not wait for this
+	nice ctags $(INCLUDES) $(SOURCES) &
+    endif
+endif
+
+# make tags for finding various definitions in emacs and related editors
+TAGS:
+ifdef SOURCES
+    ifndef PORTAGE_NO_ETAGS
+        # Can be niced in the background - compilation need not wait for this
+	nice etags -C $(INCLUDES) $(SOURCES) &
+    endif
+endif
+
+# make info doc files
+info: $(INFOFILES)
+$(INFOFILES): %.info: %.texinfo
+	makeinfo --fill-column=70 $<
+
+# make doxygen documentation
+doxy:
+ifdef DOXYFILE
+ifneq ($(OSTYPE),Darwin)
+	doxygen $(DOXYFILE)
+endif
+endif
+
+# latex stuff
+ifeq ($(TEX),NONE)
+docs:
+else
+docs: $(DOCUMENTS)
+
+$(DOCUMENTS): %.pdf: %.dvi
+	dvipdf $^ $@
+
+%.dvi: %.tex
+	$(TEX) $*
+	-bibtex $*
+	$(TEX) $*
+	$(TEX) $*
+endif
+
+# make a dependencies file for explicit inclusion at end of local Makefile
+# NB local make should do a "-include Makefile.depend" to get this stuff.
+depend:
+ifdef SOURCES
+	$(CXX) -MM $(CXXFLAGS) $(SOURCES) > Makefile.depend
+endif
+
+install_inc: $(INCLUDES)
+ifdef INCLUDES
+	install -d -m0750 $(INC_DIR)
+	install -p -m0640 $(INCLUDES) $(INC_DIR)
+endif
+
+install_dyn_lib: $(LIBRARY).so
+ifdef LIBRARY
+ifneq ($(OSTYPE),Darwin)
+	install -d -m0750 $(LIB_DIR)
+	install -p -m0750 $(LIBRARY).so $(LIB_DIR)
+endif
+endif
+
+install_static_lib: $(LIBRARY).a
+ifdef LIBRARY
+	install -d -m0750 $(LIB_DIR)
+	install -p -m0640 $(LIBRARY).a $(LIB_DIR)
+endif
+
+install_bin: $(PROGRAMS) $(DYNPROGS) $(BINSCRIPTS)
+ifdef PROGRAMS
+    # only call install if PROGRAMS\TESTPROGS is non-empty
+    ifneq ($(strip $(filter-out $(TESTPROGS), $(PROGRAMS))),)
+	install -d -m0750 $(BIN_DIR)
+	install -ps -m0750 $(filter-out $(TESTPROGS), $(PROGRAMS)) $(BIN_DIR)
+    endif
+endif
+ifdef DYNPROGS
+	install -d -m0750 $(BIN_DIR)
+	install -ps -m0750 $(filter-out $(TESTPROGS), $(DYNPROGS)) $(BIN_DIR)
+endif
+ifdef BINSCRIPTS
+	install -d -m0750 $(BIN_DIR)
+	install -p -m0750 $(BINSCRIPTS) $(BIN_DIR)
+endif
+
+install_doc: $(INFOFILES) $(DOCUMENTS)
+ifdef INFOFILES
+	install -d -m0750 $(DOC_DIR)
+	install -p -m0640 $(INFOFILES) $(DOC_DIR)
+endif
+ifdef DOCUMENTS
+	install -d -m0750 $(DOC_DIR)
+	install -p -m0640 $(DOCUMENTS) $(DOC_DIR)
+endif
+
+install_perl_lib: $(PERL_LIBS)
+ifdef PERL_LIBS
+	install -d -m0750 $(PERL_LIB_DIR)
+	install -p -m0640 $(PERL_LIBS) $(PERL_LIB_DIR)
+endif
+
+# -----------------------------------------------------------------------------
+# This is not very sophisticated. Some (of the many) assumptions and
+# limitations:
+# - It's mostly for C++. Plain C files are compiled to object as C source, but
+#   are linked into programs as C++; this doesn't seem to cause problems.
+# - All programs are assumed to depend on ALL object files, and are linked to a
+#   library if one is being built, otherwise to all objects. This can cause
+#   make all's to be slower than necessary, and, if no library is being built,
+#   can cause programs to be bigger than necessary.
+# - If some targets need special treatment, you can override the rules here
+#   with ones given later in the local file. This will provoke warnings from
+#   make, but they're harmless. If that bugs you, you have two options:
+#   follow the baroque instructions for overriding makefiles in make's info
+#   doc (node  Makefiles/Overriding Makefiles); or just remove the target
+#   from the general list and duplicate any targets you need from here.
+# -----------------------------------------------------------------------------
+
+# vim:sw=4:

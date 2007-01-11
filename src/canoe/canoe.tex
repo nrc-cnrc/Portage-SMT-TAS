@@ -1,0 +1,581 @@
+\documentclass[12pt]{amsart} \usepackage{epsfig} \usepackage{rotating}
+
+\newcommand{\file}{\textbf} \newcommand{\url}{\underline}
+\newcommand{\code}{\small\texttt}
+
+\begin{document}
+
+\title{Canoe} \maketitle
+
+{\tiny
+\noindent
+Canoe\\ Aaron Tikuisis\\ Groupe de technologies langagi{\`e}res interactives /
+Interactive Language Technologies Group\\ Institut de technologie de
+l'information / Institute for Information Technology\\ Conseil national de
+recherches Canada / National Research Council Canada\\ Copyright 2005/2006,
+Conseil national de recherches Canada / National Research Council Canada }
+\\
+
+\noindent
+Please keep this document up to date whenever you make changes to the code!
+
+{\tiny
+\noindent
+Version info: \verb+$Id$+
+}
+\\
+
+Canoe is a phrase-based decoder, replicating and extending the
+algorithm described by Koehn \cite{koehn03}.  This document
+describes the modular organization of Canoe and goes into some detail on
+certail parts of the algorithm.  A general convention used here and throughout
+the code and documentation is that the ``source" text refers to the input to
+the translator while the ``target" text refers to the output.
+
+It may be noticed that I often use abstract classes to represent parts used in
+the decoder, even when there is only one conceivable reasonably implementation.
+This is out of caution, since limits on what is conceivable can change.  As a
+case in point, specialized implementations of some of these classes are often
+used to test other classes, allowing more specialized component testing.
+
+\begin{sidewaysfigure}
+\centerline{\epsfig{figure=uml.eps}}
+\caption{Interactions between Canoe Modules\label{fig:uml}}
+\end{sidewaysfigure}
+
+\section{Decoding Algorithm}
+The core of the decoding algorithm is found in \file{decoder.cc}.  In
+pseudo-code, it is as follows: \\ {\noindent \code{
+\noindent
+Let $F = $ length of the source sentence\\ Initialize $(F + 1)$ hypothesis
+stacks, $H[0], \dots H[F]$\\ Put the initial state (an empty partial
+translation) into $H[0]$\\ For $i = 0$ to $F - 1$\\ \indent For $state \in
+H[i]$\\ \indent \indent Let $P = $ the set of phrase options that may be added
+to $state$\\ \indent \indent For $phrase \in P$\\ \indent \indent \indent Let
+$state' = state + phrase$\\ \indent \indent \indent Let $n = $ the number of
+source words covered by $state'$\\ \indent \indent \indent Add $state'$ to
+$H[n]$, recombining and pruning as necessary } }
+
+Many details are abstracted away in this presentation of the algorithm.  More
+explicitly, the following objects are required by the algorithm (some of which
+are obviously needed, others are more implicit):
+
+\begin{itemize}
+
+\item
+Hypothesis stacks.
+
+\item
+States, representing partial translations.
+
+\item
+Phrase options.
+
+\item
+Something to find the set of phrase options that may be added to a state
+(Phrase Finder).
+
+\item
+Something to compute the probability and estimated future probability of a
+partial translation (Phrase Decoder Model).
+
+\end{itemize}
+
+Classes for these objects make up the core of Canoe.  Each one is described in
+detail below; first is a description of some basic structures used by these
+more complex classes.
+
+
+\section{Basic Structures}
+These basic structures, except for \code{Uint}, are defined in
+\file{canoe\_general.h}.
+
+\begin{itemize}
+
+\item {\bf Target words} \par A words in the target vocabulary are stored as
+\code{Uint}.  The Phrase Decoder Model implemented (described below) uses
+the \code{Voc} class in \code{utils} to convert these to and from the string
+representation as necessary.
+
+\item {\bf Target phrases} \par A target phrase (\code{Phrase}) is represented
+by a \code{vector} of target words.
+
+\item {\bf Source words} \par Since the decoder algorithm works on one source
+sentence at a time, the source sentence is generally considered to be fixed.
+Source words are thus referred to by their index (a \code{Uint}) in the source
+sentence, beginning at 0.
+
+For most purposes, a source word is thought of as a source word in context, so
+there is no cause for concern if a word appears multiple times in the same
+source sentence.
+
+\item {\bf Source phrases} \par Again, since the source sentence is fixed,
+source phrases are limited to subphrases of this sentence.  A source phrase is
+represented by a range (\code{Range}) $[a, b)$, where $a$ is the index of the
+first word in the phrase and $b$ is the index of the last word in the phrase
+plus one.  The notation $[a, b)$ used to represent a range is meant to be
+suggestive of the underlying semantics.
+
+\item {\bf Sets of source words} \par A set of source words (\code{UintSet}) is
+represented as a \code{vector} containing source phrases that cover the set,
+with the following conditions on the \code{vector}:
+
+\begin{itemize}
+\item
+The \textbf{number} of source phrases is required to be minimal (equivalently,
+the ranges should not overlap or touch; eg. $[1, 2), [2, 3)$ is not allowed,
+instead $[1, 3)$ should be used).
+\item
+The ranges are required to be in increasing order (due to the first condition,
+this statement means the same thing regardless of whether the ordering is by
+left end-point or right end-point).
+\end{itemize}
+
+\end{itemize}
+
+
+\section{Phrase Options}
+The \code{PhraseInfo} structure, defined in \file{phrasedecoder\_model.h},
+represents a phrase option, which is a pair (source phrase, target phrase)
+along with an associated score.
+
+\code{MultiTransPhraseInfo}, in \file{basicmodel.\{h,cc\}}, is a subclass of
+\code{PhraseInfo}, used to allow multiple scores from different translation
+models.
+
+
+\section{Phrase Decoder Model}
+
+\subsection{PhraseDecoderModel Abstract Class}
+The \code{PhraseDecoderModel} object represents the model describing the
+probability space of target sentences, with the source sentence considered
+fixed.  Additional related information about the source sentence and the space
+of target sentences is also available through this object.
+
+In particular, the following functions are provided:
+
+\begin{itemize}
+\item
+Conversion from a source phrase represented by a \code{vector} of \code{Uint}'s
+to a \code{string}.
+
+\item
+Getting the number of words in the source sentence.
+
+\item
+Getting all the phrase options.
+
+\item
+Computing the marginal score of a partial translation, ``marginal" meaning the
+difference between the score of the partial translation and its back reference.
+
+\item
+Computing the future score of a partial translation.
+
+\item
+Determining whether two partial translations may be recombined.
+
+\item
+Computing a hash value for partial translations, such that two partial
+translations that may be recombined will have the same hash value.
+\end{itemize}
+
+The class \code{PhraseDecoderModel}, defined in \file{phrasedecoder\_model.h},
+is entirely abstract.  \code{BasicModel}, in \file{basicmodel.\{h,cc\}}, is the
+implementation of \code{PhraseDecoderModel} used by Canoe.
+
+\subsection{BasicModel Class}
+The class \code{BasicModel} represents a log-linear model, using the following
+as feature functions:
+
+\begin{itemize}
+
+\item
+Some number (at least one) phrase translation model.
+
+\item
+Some number of language models.  Although it is
+permissible to use no language models, it is not recommended, especially in
+light of the fact that if zero language models are used, an optimal translation
+can be found using a much simpler and efficient algorithm.
+
+\item
+Distortion, a non-negative integer-valued feature defined as follows: \\ Let
+$s_1, \dots , s_n$ be the source phrases, arranged in order as the
+corresponding target phrases appear in the target sentence. \\ Let $b_i$ be the
+beginning index of the source phrase $s_i$, $b_0 = 0$. \\ Let $e_i$ be the end
+index of the source phrase $s_i$ (the last index in the phrase plus $1$),
+$e_{n+1} = $ the total number of words in the source sentence. \\ Then
+distortion is $-\sum_{i = 0}^n |b_{i+1} - e_i|$. Note that this differs from
+Koehn's definition of distortion, since Koehn's distortion doesn't include
+the distortion from the last phrase to the end of the sentence ($|b_{n+1} -
+e_n|$).\\[.2cm]
+Note (GF): Distortion is now calculated by the \code{DistortionModel} abstract
+class, which is passed as a parameter to \code{BasicModel}. The default
+behaviour described here is implemented in the  \code{WordDisplacement}
+model. For a list of alternative models, see \code{DistortionModel::create()}
+in \file{distortionmodel.cc}.
+\\[.2cm]
+
+\item
+Number of words in the target sentence, calculated by the \code{LengthFeature}
+class.
+
+\item
+Segmentation model, calculated by one of the subclasses of
+\code{SegmentationModel} found in \file{segmentmodel.h}.
+
+\item
+Any new feature you write.  You can subclass DecoderFeature to add your new
+experimental features.  Make sure you read the interface documentation in
+\file{decoder\_feature.h} carefully and implement all necessary virtual
+functions.  Doing this incorrectly will likely make your experiments invalid,
+so take time to understand this interface and the functionning of the decoder
+well before you implement your own features.
+
+\end{itemize}
+
+\subsection{Future Score Computation}
+
+Based on the A* search and the beam search concepts\footnote{Technically, our
+future score is not an admissible heuristic, but it works reasonably well
+anyway.}, the future score is used to
+try to reduce the chance of pruning partial translations that shouldn't be
+pruned because they lead to optimal final translations.  An attempt is made to
+incorporate as much information as possible into the future score computation
+while allowing it to be computed reasonably quickly and avoiding any artificial
+bias.
+
+The future score is thus defined as the maximum possible $($translation model
+score $+$ unigram language model score $+$ length score $+$ distortion score
+$+$ segmentation score $)$
+for translating the rest of the source words (where each score is already
+weighted).  Hence, the future score takes into account everything except the
+complete language model score.  I avoided using the trigram language model
+score for phrases, out of caution that it may unfairly score phrases; however,
+this has not been thoroughly considered and it may be beneficial to change.
+
+The translation model score, unigram language model score, and length score can
+be computed on a phrase-by-phrase basis, and using dynamic programming, the
+maximum of this combined score is computed at the outset for each source phrase
+(as Koehn does).
+
+It is not difficult to see that the best possible distortion score is
+achievable by translating the remaining source phrases from first (least index)
+to last(greatest index).
+
+In the future score computation function, it is also checked if it is possible
+to complete the translation without violating a hard limit on distortion
+distance between two phrases.  While I am confident that an if-and-only-if
+condition exists that can be checked in $O($number of source ranges not
+covered$)$ time, I have not put enough thought into this to determine exactly
+what such a condition would be.
+
+Instead, the following condition is checked which may err on the side of being
+too conservative: The distance from the last (most recent) source word
+translated to the first (least index) source word not translated must be at
+most the distortion limit AND the distance between any two consecutive ranges
+of source words not covered must be at most the distortion limit.
+
+While it is easy to see that the second part of this condition is necessary,
+the following example shows how the first part of this condition is too
+cautious.  Suppose a distortion limit of $3$ and consider a partial hypothesis
+in which only the fourth source word (of $5$) has been translated.  Using $-$
+to represent untranslated words, $*$ to represent translated words, and $.$ to
+represent the current position, this state is written $---*.-$.  Since the
+distance from the current position to the start of the sentence is $4$, this
+partial translation fails the above condition.  However, the following is a
+valid sequence of translations without violating the distortion limit:
+\begin{align*}
+-*.-*- \; &\text{(distortion $3$)} \\ *.*-*- \; &\text{(distortion $2$)} \\
+***.*- \; &\text{(distortion $1$)} \\ *****. \; &\text{(distortion $1$)}
+\end{align*}
+
+Finding a tighter condition does not seem to be an important priority, since
+the only exceptions involve very unusual translation sequences.
+
+\subsection{Creating a BasicModel}
+\code{BasicModelGenerator} is a class used in order to create a
+\code{BasicModel}.  By having a seperate class that creates the model objects,
+the translation model(s) and language model(s) can be loaded once and reused
+for multiple sentences.  Different forms of the constructor allow the model
+files to be loaded with the source sentences known in advance or not.  If the
+source sentences are known in advance, only the relevent parts of the
+translation model(s) are loaded, thus potentially saving time and space.
+However, this is given as an option since in some circumstances the source
+sentences are not known in advance.
+
+Many of the functions of \code{BasicModel} are implemented by deferring to an
+appropriate function of \code{BasicModelGenerator}.
+
+\subsection{Finding (All) Phrase Options}
+When the \code{BasicModelGenerator} creates a \code{BasicModel}, it must find
+applicable phrase translation options.  The class \code{PhraseTable}, in
+\file{phrasetable.\{h,cc\}}, picks phrase options from the phrase table(s)
+given and does pruning using weighted scores.
+
+When multiple phrase tables are given, the pool of phrase options is the union
+of the options over all the tables.  However, when a phrase translation is not
+given in some table, it is assigned a very low probability
+(\code{LOG\_ALMOST\_0}) for that model; thus, depending on the pruning
+threshold, the phrase options used may actually be closer to the intersection.
+
+Under two different circumstances, \code{BasicModelGenerator} may add
+additional phrase translation options:
+
+\begin{itemize}
+\item
+First, marked translations may be specified to the model.  The score for marked
+translations is multiplied by the sum of the translation model weights; for
+example, if a mark is given with log probability of $-1.0$, and two translation
+models are given with weights $0.5$ and $0.7$ respectively, then the mark is
+used as a translation option with score $-1.2$, not $-1.0$.
+
+\item
+Second, after all other phrase options have been added, provisions are made for
+source words that have no translation options.
+
+Supposing that no translation options exist for some given source word; then
+unless a translation option exists and can be used for a phrase containing that
+word, the decoder algorithm will result in an empty final hypothesis stack.  To
+avoid this situation, any source word that has no phrase translation option is
+given itself as a translation option, but with very low score
+(\code{LOG\_ALMOST\_0}).  The low score allows that if a phrase containing the
+given word can be translated, it probably will be instead of using this default
+translation.
+\end{itemize}
+
+\subsection{Language Model Smoothing}
+After finding all phrase translation options, it is checked that every word of
+every option is in the language model.  Words that are not in the language
+model are considered to have a very low unigram probability
+(\code{LOG\_ALMOST\_0}) and (by mathematical necessity), a back-off weight of
+$0$.
+
+\subsection{Backwards Model}
+\code{BackwardsModelGenerator} is a subclass of \code{BasicModelGenerator} used
+to create models that make the decoder build the target sentence backwards
+instead of forwards.  In terms of the implementation, the difference between a
+backwards model and a forwards model is very superficial; thus, the entire
+\code{BasicModel} class is reused here, and few functions in
+\code{BasicModelGenerator} are overridden by \code{BackwardsModelGenerator}.
+
+The backwards model is meant to be used with a language model(s) trained on a
+corpus of backwards sentences, but a normal translation model.
+
+
+\section{Partial Translations and Decoder States}
+The \code{DecoderState} class represents an intermediary stage of the decoding
+process, akin to what Koehn calls an hypothesis or search state.  The pieces of
+information required to be in the decoder state are divided into ones that seem
+essentially part of the partial translation and ones that are auxiliary and
+necessary only for the decoding.
+
+Specifically, a decoder state consists of:
+
+\begin{itemize}
+\item A partial translation
+\item A score
+\item An estimated future score
+\item Recombined states
+\item A reference to the previous state
+\end{itemize}
+
+Whereas the partial translation consists of:
+
+\begin{itemize}
+\item The last (most recent) phrase option
+\item The set of source words not covered
+\item The number of source words covered
+\item A reference to the previous partial translation
+\end{itemize}
+
+The recombined states in \code{DecoderState} is stored of a \code{vector} of
+\code{DecoderState}'s; however, the \code{DecoderState}'s in this vector should
+not have any recombined states of their own.
+
+\code{DecoderState} is declared in \file{decoder.h} and implemented in
+\file{decoderstate.cc}; this implementation includes a function to create new
+\code{DecoderState}'s by building on existing ones.  \code{PartialTranslation}
+is declared in \file{phrasedecoder\_model.h} and implemented in
+\file{partialtranslation.cc}.
+
+\section{Hypothesis Stack}
+\code{HypothesisStack} is an abstract class responsible for, at the least,
+storing decoder states.
+
+The \code{RecombHypStack} subclass uses a hash table to track recombinable
+states, using \code{PhraseDecoderModel::computeRecombHash()} as the hash
+function.  When two states are recombinable, the one with the higher estimated
+future score is kept directly in the hypothesis stack and the one with the
+lower score is added to the recombined states of the one with the higher score.
+
+\code{HistogramThresholdHypStack}, a subclass of \code{RecombHypStack}, also
+does histogram- and relative-threshold-pruning.
+
+All of these classes are found in \file{hypothesisstack.\{h,cc\}}.
+
+\section{Phrase Finder}
+\code{PhraseFinder} is a class used to select from all the phrase options the
+subset of options that may be added to a given partial translation.  Again it
+is an abstract class, with only one subclass implemented:
+\code{RangePhraseFinder}.
+
+Two factors limit which options are selected:
+
+\begin{itemize}
+\item The source words in a phrase to be added must be a subset of the source
+words not yet translated.
+\item A hard limit may be set on the distortion distance from the end of the
+last source phrase to the beginning of ones to be added.
+\end{itemize}
+
+
+\section{Source Sentence Input}
+Since the source text has a non-trivial format (namely due to the XML mark-up),
+the class \code{DocumentReader} was created to handle input text reading and
+parsing.  It can be found in \file{inputparser.\{h,cc\}}.
+
+\subsection{Mark-up Format}
+A mark-up in the input must have the following format:\\ $<$\textit{MARKNAME}
+target = ``\textit{TGTPHRASE}$(|$\textit{TGTPHRASE}$)$*'' $[$prob =
+``\textit{PROB}$(|$\textit{PROB}$)$*''$]$ $>$ \textit{SRCPHRASE} $<$/
+\textit{MARKNAME} $>$, \\ with the following exceptions and constraints:
+\begin{itemize}
+\item Each space may be replaced with any amount of whitespace.
+\item \textbf{target} may be replaced by \textbf{english} (for compatibility
+with Koehn's format).
+\item If \textbf{prob} occurs, there must be as many \textit{PROB}'s as there
+are \textit{TGTPHRASE}'s.
+\item The \textit{MARKNAME}'s must match.
+\item If the mark is not the first thing on the line, there must be a space
+between the preceeding word and the opening $<$.
+\item There may be no space between the opening $<$ and \textit{MARKNAME} or
+between $<$ and / in the closing tag.
+\end{itemize}
+
+Instances of $<$ and $>$ that occur in the text (not as part of a mark) must be
+escaped by $\backslash$.  If they occur in the text followed by whitespace or
+not preceeded by whitespace, they will be accepted as regular characters, but
+with a warning.
+
+\section{N-Best Output}
+The files \file{nbesttranslation.\{h,cc\}} contain our implementation, written
+by Howard Johnson, of the Mohri and Riley algorithm for finding the N best
+paths through a lattice \cite{mohri02}.   This code is invoked when the
+\code{-nbest} option is used.  The best documentation for this code is the
+paper itself.  The main function is written to mimic very closely the
+pseudo-code there, and won't make sense if you don't read the paper first.
+
+\section{Word Graph Output}
+NB: we typically no longer use this functionality, since the n-best lists are
+now directly extracted from Canoe's internal representation of the lattice (see
+above).  Lattice output is still available in case you wish to do your own
+lattice analysis.  The lattices are typically huge, though, so this is a very
+inefficient process.  If you can add your analysis tools to canoe itself, using
+our internal representation, you will get code that is much faster.
+
+The files \file{wordgraph.\{h,cc\}} contain definitions and implementations of
+functions to produce output representing the word graph produced by a decoding
+run. Essentially this converts the internal state graph into a lattice that can
+be processed by external programs (to produce analysis not supported directly
+in canoe).
+
+The internal state graph is a DAG in which states represent scored partial
+translations. Each normal state has a back-link to a previous state
+(representing some prefix of its partial translation), plus a list of
+``recombined'' states representing partial translations that the model cannot
+distinguish from the current one (same last two target words, set of covered
+source words, and end position for most-recent source phrase).  Recombined
+states always have lower scores than the normal states they are associated
+with. Their back links point only to normal states, and they have no recombined
+state list of their own.
+
+The algorithm for printing the word graph as a lattice does a post-order
+traversal of the graph, starting at the end states but outputting earlier
+states first. The actual output takes the form of arcs connecting pairs of
+states, which are labelled with the phrase associated with the destination
+state. For normal states, the score on an arc is (the exponential of) the
+difference between the log probability of the destination state and the source
+state. For recombined source states, the arc score is (the exponential of) the
+difference between the log probability of the destination state and the normal
+source state they are associated with; this is because the destination state is
+an extension of the normal state (only), and its probability reflects this.
+
+An optional parameter to the word graph printing function is a reference to an
+object of type \code{PrintFunc}.  This abstract functor class is used to
+produce a string representation of an arc incident on a given decoder state.
+There are three concrete implementations of \code{PrintFunc}:
+
+\begin{itemize}
+\item
+\code{PrintPhraseOnly} is used to produce only the target phrase,
+surrounded with double quotes, with any existing
+double quotes escaped. For example, the phrase 
+\verb/the " baddest " actor/ would would be converted to \\
+\verb/"the \" baddest \" actor"/. Existing backquotes are escaped the same
+way, so \verb/x \ y/ would become \verb/"x \\ y"/.
+
+\item
+Warning: this format has changed slightly.
+
+\code{PrintTrace} produces trace output: the target phrase, the phrase
+translation probability, and the source range (0-based start and end
+indexes). For example, if the phrase above were the translation of the 3rd
+to the 5th source word, inclusive, with probability 0.5, the resulting
+representation would be:
+\begin{verbatim}
+"the \" baddest \" actor" |0.5|2|4|
+\end{verbatim}
+Encoding all of this information on a single arc requires surrounding
+everything with quotes, and escaping the ``internal'' phrase quotes and their
+existing backslashes, giving:
+\begin{verbatim}
+"\"the \\\" baddest \\\" actor\" |0.5|2|4|"
+\end{verbatim}
+
+\item
+Warning: this format has changed slightly.
+
+\code{PrintFFVals} produces output containing the target phrase and the values
+of each feature function (this works only when the \code{PhraseDecoderModel}
+used is of type \code{BasicModel}). For example (assuming only one language and
+one translation model):
+\begin{verbatim}
+"\"the \\\" baddest \\\" actor\" (-1, -1, -5.95, -0.69)"
+\end{verbatim}
+where the scores are, respectively: distortion, word penalty, language model,
+and translation model (the number of significant digits has been shortened for
+to make it fit the page better). If more than one LM and TM are being used, all
+LM scores are written before all TM scores.
+\end{itemize}
+\code{PrintFunc} and its subclasses just mentioned are also found in
+\file{wordgraph.\{h,cc\}}.
+
+The word graph used to have an option for pruning out states that are not on
+some path having probability greater than a given threshold.  The algorithm
+basically kept track of the score of the current path to the final state
+(during a postorder traversal), and combined this with the score of the current
+state to see if a complete path with a high enough probability existed. If it
+did, it would print out the main transition to the state, along with
+transitions from any recombined states that had high enough probabilities.
+
+The problem with this is that including states on some path that exceeds the
+probability threshold will in general also permit paths that {\em don't} exceed
+the probability threshold. So although some low-probability paths can be weeded
+out by this technique (ie, ones that don't share states with high-probability
+paths), many (probably most) can't. In practice, the small reduction in the
+size of the lattice didn't seem worth the extra complexity and the unprinicpled
+discrimination among paths. The pruning feature was therefore disabled (by GF,
+Oct 2005); however, due to a bug in the way the algorithm had been previously
+implemented, there was no observed change in lattice or nbest output.
+
+\section{Main Function}
+The main method of the Canoe program is implemented in \file{canoe.cc}.  The
+command-line interface to Canoe is fairly similar to that described by Koehn;
+for a detailed description of the command-line interface, use the -h option
+with Canoe.
+
+\bibliographystyle{plain} \bibliography{canoe}
+
+\end{document}

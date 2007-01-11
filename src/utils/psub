@@ -1,0 +1,260 @@
+#!/bin/bash
+# $Id$
+
+# psub - wrapper for qsub intended to do, by default, what we usually want,
+#        and to simplify options we often use.
+#        This script is intended to contain all the local peculiarities of the
+#        clusters we use.  Other sites using Portage or PORTAGEshared may need
+#        to adapt this script to their own cluster environment.
+#
+# PROGRAMMER: Eric Joanis
+# COMMENTS:
+#
+# Groupe de technologies langagières interactives / Interactive Language Technologies Group
+# Institut de technologie de l'information / Institute for Information Technology
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2006, Conseil national de recherches du Canada / Copyright 2006, National Research Council of Canada
+
+usage() {
+   for msg in "$@"; do
+      echo $msg >&2
+   done
+   cat <<==EOF== >&2
+
+Usage: psub [options] <command line>
+
+   Wrap <command line> into a PBS script and qsub it.
+
+Options:
+
+   -h(elp)        print this help message
+   -v(erbose)     print the qsub script before submitting it
+   -N <job name>  specify job name
+   -2             use both CPUs on a node
+   -bmem          use the larger memory (16GB) node (Balzac only)
+   -e <filename>  stderr destination
+   -o <filename>  stdout destination
+   -noscript      don't write out the script
+   -l <resources> resources for job (man pbs_resources) (may be repeated)
+   -qsparams <qsub parameters>  additional qsub parameters
+   -n             "not really" (dump the PBS script, but don't submit it)
+   -f             force submission even if errors are detected
+   -I             enter interactive mode thus getting a prompt to a node
+
+Further notes:
+
+   -on Venus, to enable node borrowing, use "-l ckpt=1".
+   -on Venus, to request a minimum amount of memory, use, e.g., "-l mem=1800m"
+
+==EOF==
+
+   exit 1
+}
+
+error_exit() {
+   for msg in "$@"; do
+      echo $msg >&2
+   done
+   echo "Use -h for help." >&2
+   exit 1
+}
+
+arg_check() {
+   if [ $2 -le $1 ]; then
+      error_exit "Missing argument to $3 option."
+   fi
+}
+
+if which qsub >& /dev/null; then
+   true # qsub found - we're running on a cluster
+else
+   error_exit "Can't find qsub, we don't seem to be running on a cluster."
+fi
+
+if uname -n | egrep -q 'balzac|blz'; then
+   BALZAC=1
+elif uname -n | egrep -q 'venus|vns'; then
+   VENUS=1
+else
+   echo Running on an unknown cluster, I hope things are compatible... >&2
+fi
+
+PSUB_CMD="$0 $*"
+
+while [ $# -gt 0 ]; do
+   case "$1" in
+   -h|-help)            usage;;
+   -v|-verbose)         VERBOSE=1;;
+   -N)                  arg_check 1 $# $!; NAME=$2; shift;;
+   -2)                  BOTHCPUS=1;;
+   -I)                  BOTHCPUS=1; INTMODE=1; NOSCRIPT=1;;
+   -bmem)               BIGMEM=1;;
+   -e)                  arg_check 1 $# $!; ERR_FILE=$2; shift;;
+   -o)                  arg_check 1 $# $!; OUT_FILE=$2; shift;;
+   -noscript)           NOSCRIPT=1;;
+   -l)                  arg_check 1 $# $!
+                        if [ -n "$RESOURCES" ]; then RESOURCES="$RESOURCES,$2"
+                                                else RESOURCES="$2"
+                        fi
+                        shift;;
+   -qsparams)           arg_check 1 $# $!; QSPARAMS=$2; shift;;
+   -n)                  NOT_REALLY=1;;
+   -f)                  FORCE=1;;
+   --)                  shift; break;;
+   -*)                  error_exit "Unknown options $1.";;
+   *)                   break;;
+   esac
+   shift
+done
+
+COMMAND="$*"
+
+# Verifies that we are not trying to open an interactive mode session from an
+# interactive session
+if [ -n "$INTMODE" -a `uname -n | egrep -q 'balzac|venus'; echo $?` -eq 1 ]; then
+   error_exit "STOP: you shouldn't start a new interactive session from a node"
+fi
+
+if [ -z "$COMMAND" -a ! -n "$INTMODE" ]; then
+   error_exit "Missing command, nothing to run!"
+fi
+
+# Guess the executable program or script name
+PROG_NAME=`echo "$COMMAND" | perl -e '
+   $_ = <>;
+   chomp;
+   # Use STDIN as the job name of the command seems empty
+   $_ or $_ = "STDIN";
+   @tokens = split;
+   print $tokens[0];
+'`
+
+# If the command is a script but doesn't have its x permission bit set,
+# call it with its interpreter
+if [ -f $PROG_NAME -a ! -x $PROG_NAME -a ! "$FORCE" ]; then
+   if file $PROG_NAME | grep -q "script text"; then
+      # file is a script
+      HASH_BANG_LINE=`head -1 $PROG_NAME`
+      INTERPRETER=${HASH_BANG_LINE/#\#\!}
+      if which "$INTERPRETER" >& /dev/null; then
+         echo Calling your script with "$INTERPRETER"
+         COMMAND="$INTERPRETER $COMMAND"
+      else
+         echo "\"$PROG_NAME\" seems to be a $INTERPRETER script, but \"which\" can't find $INTERPRETER."
+         echo "Make your script executable, fix it, or use -f to submit your command as is"
+         exit 1
+      fi
+   else
+      echo "\"$PROG_NAME\" is neither executable nor a script."
+      echo "Use -f if you really mean to submit your command as is."
+      exit 1
+   fi
+fi
+
+# Determine the default job name if -N is not specified on the command line.
+if [ ! $NAME ]; then
+   NAME=`basename $PROG_NAME`
+fi
+
+# Make sure $NAME is not longer that 15 characters, and starts with a letter
+NAME=`echo $NAME | perl -e '
+   $_ = <>;
+   chomp;
+   s/^([^a-z])/J$1/i;
+   print substr($_, 0, 15);
+'`
+
+if [ $RESOURCES ]; then
+   OLDRESOURCES="$RESOURCES,"
+else
+   OLDRESOURCES=""
+fi
+
+VMEM_LIMIT_GB=10;
+VMEM_HARD_LIMIT_GB=11
+if [ -n "$BOTHCPUS" -a -n "$BIGMEM" ]; then
+   RESOURCES="${OLDRESOURCES}nodes=1:ppn=2:bmem"
+   VMEM_LIMIT_GB=44
+   VMEM_HARD_LIMIT_GB=47
+elif [ $BOTHCPUS ]; then
+   RESOURCES="${OLDRESOURCES}nodes=1:ppn=2"
+   VMEM_LIMIT_GB=21
+   VMEM_HARD_LIMIT_GB=23
+elif [ $BIGMEM ]; then
+   RESOURCES="${OLDRESOURCES}nodes=bmem"
+   VMEM_LIMIT_GB=21
+   VMEM_HARD_LIMIT_GB=23
+fi
+
+if [ $BALZAC ]; then
+   if echo $RESOURCES | grep -q vmem=; then
+      # User manually specified vmem, don't alter it
+      true
+   else
+      VMEM_HARD_LIMIT_KB=$((VMEM_HARD_LIMIT_GB * 1024 * 1024))
+      if [ $RESOURCES ]; then
+         RESOURCES="${RESOURCES},vmem=${VMEM_LIMIT_GB}g"
+      else
+         RESOURCES="vmem=${VMEM_LIMIT_GB}g"
+      fi
+   fi
+fi
+
+QSUB_CMD="qsub -N $NAME"
+test -n "$QSPARAMS" && QSUB_CMD="$QSUB_CMD $QSPARAMS"
+test -n "$RESOURCES" && QSUB_CMD="$QSUB_CMD -l$RESOURCES"
+if [ -n "$INTMODE" ]; then
+   test -n "$INTMODE" && QSUB_CMD="$QSUB_CMD -I"
+   echo "Entering interactive mode"
+   $QSUB_CMD
+   exit
+fi
+
+test -n "$ERR_FILE" && QSUB_CMD="$QSUB_CMD -e $ERR_FILE"
+test -n "$OUT_FILE" && QSUB_CMD="$QSUB_CMD -o $OUT_FILE"
+
+TMPSCRIPT=/tmp/psub.`whoami`.`date +%s`.$$
+trap "rm -f $TMPSCRIPT $TMPSCRIPT.jobid; exit" 0 2 3 13 14 15
+
+cat <<==EOF== > $TMPSCRIPT
+#!/bin/bash
+export PATH=\$PBS_O_PATH
+cd \$PBS_O_WORKDIR
+
+# Memory use limited to $VMEM_LIMIT_GB GB (see -lvmem on qsub cmd below), with
+# hard limit of $VMEM_HARD_LIMIT_GB GB set here to avoid system crashes.
+# Use -2 and/or -bmem if these limits don't leave enough memory for your job.
+ulimit -v $VMEM_HARD_LIMIT_KB
+
+# User command
+$COMMAND
+
+# Display resources used on stderr when the user command has completed
+qstat -f \$PBS_JOBID | egrep '\b(Job Id|resources_used|comment)\b' >&2
+
+# qsub command as submitted
+# $QSUB_CMD $TMPSCRIPT
+
+# user's original psub command (without quotes)
+# $PSUB_CMD
+==EOF==
+
+if [ $VERBOSE ]; then
+   cat $TMPSCRIPT
+   echo ""
+fi
+
+if [ $NOT_REALLY ]; then
+   cat $TMPSCRIPT
+   echo ""
+   exit
+fi
+
+$QSUB_CMD $TMPSCRIPT > $TMPSCRIPT.jobid
+JOBID=`cat $TMPSCRIPT.jobid`
+SHORTJOBID=${JOBID%%.*}
+echo $JOBID
+
+if [ ! $NOSCRIPT ]; then
+   cp $TMPSCRIPT $NAME.j${SHORTJOBID:-0}
+fi

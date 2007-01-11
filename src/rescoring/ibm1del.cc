@@ -1,0 +1,45 @@
+/**
+ * @author Nicola Ueffing
+ * @file ibm1del.cc  Implementation of IBM1DeletionBase
+ *
+ * $Id$
+ * 
+ * N-best Rescoring Module
+ * 
+ * Contains the implementation of IBM1Deletion, which is a feature function
+ * defined as follows:
+ * \f$ \frac{1}{J} \sum\limits_{j=1}^{J} \delta ( \max\limits_{e\in \mbox{tgt\_vocab}} p(e|f_j)) \f$
+ * 
+ * Groupe de technologies langagières interactives / Interactive Language Technologies Group 
+ * Institut de technologie de l'information / Institute for Information Technology 
+ * Conseil national de recherches Canada / National Research Council Canada 
+ * Copyright 2006, Conseil national de recherches du Canada / Copyright 2006, National Research Council of Canada 
+ */
+
+#include "featurefunction.h"
+#include "ibm1del.h"
+#include <ttablewithmax.h>
+#include <vector>
+#include <string>
+
+using namespace std;
+using namespace Portage;
+
+IBM1DeletionBase::IBM1DeletionBase(const string& args): table( args.substr(0,args.find("#")) ), thr (atof(args.substr(args.find("#")+1,args.size()-args.find("#")).c_str())) {
+    if (args.find("#") >= args.size() )
+	thr = 0.1;
+}
+
+double 
+IBM1DeletionBase::computeValue(const Tokens& src, const Tokens& tgt) {
+  double ratioDel = 0;
+
+  for (Uint j = 0; j < src.size(); j++) {
+    double curMax = 0;
+    for (Uint i = 0; i < tgt.size(); i++) 
+      curMax = max( curMax, table.getProb(src[j], tgt[i]) );
+    if (curMax < thr)
+      ratioDel++;
+  } // for j
+  return ratioDel/double(src.size());
+} // IBM1DeletionBase

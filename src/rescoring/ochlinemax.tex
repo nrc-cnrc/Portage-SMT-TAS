@@ -1,0 +1,124 @@
+\documentclass[12pt]{amsart}
+
+\newcommand{\argmax}{\mathop{\rm argmax}}
+\newcommand{\qm}{{\rm qm}}
+
+\newcommand{\file}{\textbf}
+\newcommand{\url}{\underline}
+\newcommand{\code}{\small\texttt}
+
+
+\begin{document}
+
+\title{Och's Line Maximization Algorithm Explained}
+\maketitle
+
+{\tiny
+\noindent
+K-Best Rescoring Module\\
+Aaron Tikuisis\\
+Groupe de technologies langagi{\`e}res interactives / Interactive Language Technologies Group\\
+Institut de technologie de l'information / Institute for Information Technology\\
+Conseil national de recherches Canada / National Research Council Canada\\
+Copyright 2005, Conseil national de recherches du Canada / Copyright 2005, National Research Council of Canada
+}
+
+{\tiny
+\noindent
+Version info: \verb+$Id$+
+}
+\\
+
+\section{Introduction\label{sec:intro}}
+In my own experience going about understanding and implementing the line maximization algorithm described here, I found the explanation of this algorithm in Och's paper to be a bit lacking.
+Hence, to aid in understanding both the algorithm and the implementation here, I attempt to provide a more comprehensive explanation of the algorithm in this document.
+
+\section{The Statistical Model\label{sec:model}}
+We use the standard log-linear model with a predetermined set of feature functions $\{h_1, \dots , h_m\}$, and parameterized by the vector $\boldsymbol{\lambda} = (\lambda_1, \dots , \lambda_M)$, so that the probability assigned to a translation is:
+\[ p(e|f) = \frac
+{\exp \left( \sum_{m=1}^M \lambda_m \cdot h_m(e,f) \right)}
+{\sum_{e'} \exp \left( \sum_{m=1}^M \lambda_m \cdot h_m(e',f) \right)}. \]
+In the denominator, the sum is taken over \textbf{all} sentences and it is assumed that this sum converges\footnote{It seems that this assumption is in fact often incorrect}.
+In using the model to rescore the $K$-best translations, we may skirt this problem entirely by pretending these $K$ sentences are the only sentences:
+\[ p(e_k|f \land e \in \{e_1, \cdots , e_K\}) = \frac
+{\exp \left( \sum_{m=1}^M \lambda_m \cdot h_m(e_k,f) \right)}
+{\sum_{k'=1}^K \exp \left( \sum_{m=1}^M \lambda_m \cdot h_m(e_{k'},f) \right)}. \]
+
+Based on this model, the most probable translation of a sentence $f$ is:
+\begin{align}
+\hat{e}(f) = \hat{e}(f, \boldsymbol{\lambda}) &= \argmax_{e} p(e|f) \notag \\
+&= \argmax_{e} \exp \left( \sum_{m=1}^M \lambda_m \cdot h_m(e,f) \right) \notag \\
+&= \argmax_{e} \sum_{m=1}^M \lambda_m \cdot h_m(e,f) \label{eq:e(f)}
+\end{align}
+Again, in the general case, the argmax ranges over all possible sentences, and in practice, it ranges only over the $K$-best translations.
+
+\section{Input and Purpose\label{sec:input}}
+We are given a set $\{f_1, \dots , f_S\}$ of source sentences, called the source corpus, and for each source sentence $f_s$, a set $\{e_{s,1}, \dots , e_{s,K}\}$ of candidate translations (for simplicity, we assume that for each different source sentence, the number of candidate translations is the same).
+Generally, these candidate translations should be the $K$ best, as found by some other model/decoder.
+
+We have a function to evaluate the quality of a candidate translation $\{e_{s,k_1}, \dots , e_{s,k_S}\}$, where $e_s$ is a translation of $f_s$ for all $s$.
+We write the quality metric $\qm(e_1, \dots e_S)$; using this notation, it is taken for granted that the quality metric may be a function of additional data (eg. reference translations).
+BLEU is an example of such a metric.%; in fact, BLEU and all other metrics I've seen have additional properties which make their computation faster; this is discussed in section \ref{sec:scorefunc}.
+
+Finally, we are given a line in the $M$-dimensional parameter space, specified by a point $\boldsymbol{p} \in \mathbb{R}^M$ and a direction vector $\boldsymbol{d} \in \mathbb{R}^M$.
+The purpose of Och's line maximization algorithm is to find the point $\boldsymbol{\lambda}^\star = \boldsymbol{p} + \gamma^\star \boldsymbol{d}$ (where $\gamma^\star \in \mathbb{R}$) along this line that maximizes the value of the quality metric $\qm(\hat{e}(f_1, \boldsymbol{\lambda}), \dots , \hat{e}(f_S, \boldsymbol{\lambda})$. 
+For convenience, we abuse notation and write $\qm(\gamma) := \qm(\hat{e}(f_1, \boldsymbol{p} + \gamma \boldsymbol{d}), \dots , \hat{e}(f_S, \boldsymbol{p} + \gamma \boldsymbol{d}))$.
+
+\section{The Algorithm\label{sec:algo}}
+It may be observed that the value of the quality metric, $\qm(\gamma)$, depends only on the choices of the most probable translation, $\hat{e}(f_s, \boldsymbol{p} + \gamma \boldsymbol{d})$ for $s = 1 , \dots , S$.
+Hence, as a function of $\gamma$, the quality metric is piecewise constant\footnote{In fact, as a function of $\boldsymbol{\lambda}$, $\qm(\hat{e}(f_1, \boldsymbol{\lambda}), \dots , \hat{e}(f_S, \boldsymbol{\lambda}))$ is piecewise constant with linear discontinuities}; so as a step towards maximizing the quality metric, the real line $\mathbb{R}$ is partitioned into intervals $I_0 = (-\infty, \gamma_1), I_1 = (\gamma_1, \gamma_2), \dots , I_{N-1} = (\gamma_{N-1}, \gamma_N), I_N = (\gamma_N, \infty)$ such that $\qm(\gamma)$ is constant on each interval $I_n$.
+
+The natural approach to finding this partition is to consider each most-probable-translation function separately.
+For each $s$, the function $\hat{e}(f_s, \boldsymbol{p} + \gamma \boldsymbol{d})$ is piecewise constant.
+In fact, observe that the most probable translation given in \eqref{eq:e(f)} is determined by maximizing a sort of score assigned to each candidate translation, $\sum_{m=1}^M \lambda_m \cdot h_m(e,f)$.
+This score is linear as a function of $\boldsymbol{\lambda}$.
+In particular, in restricting $\boldsymbol{\lambda}$ to a line, $\boldsymbol{\lambda} = \boldsymbol{p} + \gamma \boldsymbol{d}$, this score is itself a line parameterized by $\gamma$.
+Thus, the problem of finding the points at which $\hat{e}(f_s, \boldsymbol{p} + \gamma \boldsymbol{d})$ changes reduces to a problem of finding the intersections of these score lines.
+
+So, for each source sentence, $f_s$, a sequence $\gamma_{s,1} < \cdots < \gamma_{s,N_s}$ may be found such that $\hat{e}(f_s, \boldsymbol{p} + \gamma \boldsymbol{d})$ is constant for $\gamma$ in each interval $(-\infty, \gamma_{s,1}), (\gamma_{s,1}, \gamma_{s,2}), \dots , (\gamma_{s,N_s-1}, \gamma_{s,N_s}), (\gamma_{s,N_s}, \infty)$.
+It is straightforward to merge these ordered sequences into a single ordered sequence $\gamma_1 < \cdots < \gamma_N$ as required.
+
+The value of the quality metric $\qm(\gamma)$ is then computed at one point in each interval (of course, the choice of point doesn't matter, since $\qm(\gamma)$ is constant on each interval) and the interval producing the best quality metric value is found.
+For an arbitrary quality metric function, its value could be computed by scratch at each interval.
+However, as quality metrics, the BLEU score, the NIST score, and scores given by error-counts all have certain abelian group-theoretic underpinnings which allow the sequence of their values to be computed more efficiently.
+
+\section{A Useful Property of Score Functions\label{sec:scorefunc}}
+Suppose that the function $\qm(e_1, \dots , e_S)$ is the count of the number of errors\footnote{The error-count of course should be minimized, but in practice this can be done by using its negative instead}.
+In this case, we can compute the number of errors on each sentence, $\text{Error count}(e_s)$, and we get
+\[ \qm(e_1, \dots , e_s) = \text{Error count}(e_1) + \cdots + \text{Error count}(e_S) \]
+In the last step of the algorithm described, where the value of the quality metric is determined on each interval, this property may be exploited.
+
+When a point $\gamma_{s, n}$ is found at which $\hat{e}(f_s, \boldsymbol{p} + \gamma \boldsymbol{d})$ changes at this point, it takes almost very little to find additionally the associated change $\Delta \qm_{s, n}$ in error count.
+When merging the sequences $\{\gamma_{s, n}\}_{s=1}^{N_s}$ into the single sequence $\{\gamma_n\}_{n=1}^N$, whenever we set $\gamma_n = \gamma_{s_n, m_n}$, we correspondingly set $\Delta \qm_n = \Delta \qm_{s_n, m_n}$.
+Then, since the error count for the entire translated corpus is additive in the error counts for each translated sentence, when iterating through the intervals $I_n$ in the last step, we get
+\[ \qm(I_{n+1}) = \qm(I_n) + \Delta \qm_n. \]
+By this method, the error-count computation at the new interval takes $O(1)$ steps instead of $O(S)$.
+
+The BLEU and NIST scores are not additive like an error-count.
+These two stores are similar, and only the BLEU score will be considered in depth here.
+The BLEU score is defined on a candidate corpus as follows:
+\begin{align*}
+\text{BLEU} = & \min(1, e^{1-\frac{\text{best match length}}{\text{candidate corpus length}}}) \cdot \\
+&\exp \left( \sum_{n=1}^N \frac{1}{N} \log \left( \frac{\text{\tiny{clipped count of $n$-gram matches}}}{\text{\tiny{number of $n$-grams in candidate corpus}}}\right) \right).
+\end{align*}
+
+The BLEU score is a function of a number of variables: the best match length, the candidate corpus length, the clipped count of $n$-gram matches for $n=1, \dots N$, and the total count of $n$-grams in the candidate corpus.
+Fortunately, each of these variables is an additive; their value on the entire corpus is equal to the sum of their values on each sentence of the corpus.
+The ability to decompose the BLEU score into such variables is precisely the important property that makes quality metric computations efficient.
+
+It is assumed that the only type of quality metric function $\qm(\cdot)$ is one with the following property:
+\[ \qm(e_1, \dots , e_S) = f(a(e_1) + \cdots + a(e_n)), \text{where $a(e) \in \mathbb{R}^L$} \]
+As just demonstrated, this property holds for the BLEU score and error counts; it also holds for the NIST score.
+In this case, let $A(\gamma) = a(\hat{e}(f_1, \boldsymbol{p} + \gamma \boldsymbol{d})) + \cdots + a(\hat{e}(f_S, \boldsymbol{p} + \gamma \boldsymbol{d}))$.
+$A(\gamma)$ is constant on each interval $I_n$, for the same reason that $\qm(\gamma)$ is.
+
+In the algorithm, when a point $\gamma_{s, n}$ is found at which $\hat{e}(f_s, \boldsymbol{p} + \gamma \boldsymbol{d})$ changes at this point, we find $\Delta A_{s, n} = a(\hat{e}(f_s, \boldsymbol{p} + \gamma^+ \boldsymbol{d}) - a(\hat{e}(f_s, \boldsymbol{p} + \gamma^- \boldsymbol{d})$, where $\gamma^-$ and $\gamma^+$ are in the intervals immediately to the left and right of $\gamma_{s, n}$ respectively.
+Incindentally, so long as $\hat{e}(f_{s'}, \boldsymbol{p} + \gamma \boldsymbol{d})$ do not change at $\gamma_{s, n}$ for $s' \neq s$, then $\Delta A_{s, n} = A(\gamma^+) - A(\gamma^-)$\footnote{In the rare occurrance that $\hat{e}(f_{s})$ does change at $\gamma$ for more than one $s'$, the change in $A$ is the sum of the $\Delta A_{s, n_s}$ over all such $s$}.
+
+When merging the sequences $\{\gamma_{s, n}\}_{s=1}^{N_s}$ into the single sequence $\{\gamma_n\}_{n=1}^N$, whenever we set $\gamma_n = \gamma_{s_n, m_n}$, we correspondingly set $\Delta A_n = \Delta A_{s_n, m_n}$.
+Finally, when iterating through all the intervals $I_n$ in the last step, we get
+\[ A(I_{n+1}) = A(I_n) + \Delta A_n. \]
+and $\qm(I_{n+1})$ is subsequently computed as $f(A(I_{n+1}))$.
+Again, this allows the quality metric computation to be reduced from $O(S)$ steps for each new interval to $O(1)$ steps.
+
+\end{document}

@@ -1,0 +1,301 @@
+\documentclass[12pt]{amsart}
+                                %\usepackage{astron}
+
+\newcommand{\argmax}{\mathop{\rm argmax}}
+                                %\newcommand{\score}{\mathop{\rm score}}
+
+\newcommand{\file}{\textbf} \newcommand{\url}{\underline}
+\newcommand{\code}[1]{{\small \texttt{#1}}}
+
+\begin{document}
+
+\title{Overview of Code} \maketitle
+
+{\tiny
+  \noindent K-Best Rescoring Module\\ Aaron Tikuisis\\ Groupe de technologies
+  langagi{\`e}res interactives / Interactive Language Technologies Group\\ Institut
+  de technologie de l'information / Institute for Information Technology\\
+  Conseil national de recherches Canada / National Research Council Canada\\
+  Copyright \copyright 2005, 2006, Conseil national de recherches du Canada / 
+     National Research Council of Canada
+}
+
+\noindent
+Please keep this document up to date whenever you make changes to the code!
+
+{\tiny
+\noindent
+Version info: \verb+$Id$+
+}
+\\
+
+\section*{Powell's Algorithm}
+
+Originally, I got Powell's algorithm from \cite{NR-C++}.  I have made minor
+modifications to the code (obviously, with no change to the actual algorithm),
+and my version is in \file{powell.cpp}.  The changes made to the code are
+as follows:
+
+\begin{enumerate}
+\item Instead of using the NR implementation of arrays and vectors, we use the
+      uBLAS implementation in boost \cite{uBLAS}.
+
+\item The original code performed minimization, which was changed to
+      maximization.
+
+\item The call to a generic line maximization method (also in the NR code
+      library) is replaced by a call to the line maximization method specific
+      to this problem (which I call Och's algorithm).
+\end{enumerate}
+
+The function signature for Powell's algorithm, \code{powell()}, can be found in
+the header file \file{powell.h}, where the parameters are explained thoroughly.
+
+The implementation of this function depends only on Och's algorithm (below),
+and naturally on the class used as ScoreStats in the template.  A simple
+program to test this function is contained in \file{testpowell.cpp}.
+
+A comprehensive explanation of Powell's algorithm can be found at
+\url{http://www.library.cornell.edu/nr/bookcpdf/c10-5.pdf} (sample pages from
+\cite{NR-C}).
+
+\section*{Och's Line Maximization Algorithm}
+
+I implemented the line maximization method described in \cite{och-linemin}, in
+order to be used by Powell's algorithm.  This code is found in
+\file{linemax.cpp}
+
+The function signature for Och's line maximization, \code{linemax()}, can be found in the header file \file{linemax.h}, where the parameters are explained thoroughly.
+
+The implementation of this function does not depend on any other code here
+except naturally on the class used as ScoreStats in the template.  A simple
+program to test this function is contained in \file{testlinemax.cpp}.
+
+A thorough explanation of the algorithm can be found in the file
+\file{ochlinemax.pdf}.
+
+\section*{Translation Quality Metrics}
+
+Och's algorithm requires a class representing values used to compute a metric
+for translation quality.  The function signatures for Powell's algorithm and
+Och's algorithm use a template for this class; however, the following interface
+is required: \\ \code{
+  class ScoreStats {\indent ScoreStats(); \\
+    \indent score(); \\ \indent output(ostream \&out); \\
+  } \\ ScoreStats operator-(const ScoreStats \&s1, const ScoreStats \&s2); \\
+  ScoreStats operator+(const ScoreStats \&s1, const ScoreStats \&s2);
+}
+
+A couple classes have been designed to be used in place of \code{ScoreStats}:
+\begin{itemize}
+\item A simple, all-purpose, additive metric is found in the class
+      \code{LinearMetric}, in \file{linearmetric.cpp}.
+  The score is provided as a parameter to the constructor.
+\item A \code{BLEUstats} object represents the collection of BLEU-related
+      statistics for one or a set of candidate translation sentences.
+  Given a candidate translation and a set of reference translations (as
+  strings), the statistics are computed in the BLEUstats constructor.  This
+  class is defined in \file{bleu.h}, in the eval module.  The details of the
+  BLEU metric for evaluating translation quality is described in detail in
+  \cite{bleu}.  The program only does training using the BLEU score as a
+  metric.
+\end{itemize}
+
+\section*{Feature Functions}
+
+A number of feature functions (evaluated on a source-target sentence pair) are
+an intrinsic part of the statistical model used here.  A fairly simple abstract
+class was created to represent a feature function, and a few relevent feature
+functions have been implemented so far.
+
+The abstract class is, for obvious reasons, called \code{FeatureFunction}, and
+is defined in the header file \file{featurefunction.h}.
+
+Also provided:
+\begin{itemize}
+\item A function \code{computeFFMatrix()} which evaluates feature functions on
+      all the source-target pairs and fills an array of matrices with the
+      results, so that the array of matrices may be used as an argument to
+      \code{powell()} or \code{linemax()}.
+\item A function \code{writeFFMatrix()} used to write the values from an array
+      of matrices to a file (no longer used - \code{FileFF} is better).
+\item A function \code{readFFMatrix()} that will read the values from a file
+      and fill in an array of matrices with the values (this function is the
+      inverse of the previous function) (no longer used - \code{FileFF} is
+      better).
+  As certain feature function take a while to load and/or evaluate, these two
+  functions are useful when running the program multiple times with the same
+  data.
+\item The class \code{FeatureFunctionSet}, representing an ordered set of
+      feature functions.
+\end{itemize}
+
+The implementation of these functions is found in \file{featurefunction.cpp}.
+They do not depend on any other code here.
+
+The following feature functions have been implemented:
+\begin{itemize}
+\item \code{FileFF} takes values from a file; it is found in
+      \file{featurefunction.\{h,cpp\}}.
+\item \code{multiColumnFileFF} efficiently takes values in multiple columns
+      from a file; it is found in \file{multiColumnFileFF.\{h,cc\}}.
+\item \code{LengthFF} uses the number of words in the target sentence as its
+      value; it is found in \file{featurefunction.\{h,cpp\}}.
+\item In \file{ibm\_ff.h}, there are feature functions for the IBM Models 1 and
+      2 log probabilities.  They are aptly named \code{IBM1TgtGivenSrc},
+      \code{IBM1SrcGivenTgt}, \code{IBM2TgtGivenSrc} and
+      \code{IBM2SrcGivenTgt}.  They use the respective IBM model forward and
+      reverse translation log probabilities.
+\item In \file{lm\_ff.\{h,cpp\}}, there is a feature function,
+      \code{NgramFF}, that makes use of our language model module; in
+      particular, the feature function's value is the N-gram language model
+      score.
+\item In \file{ibm1aaron.\{h,cc\}} is \code{IBM1WTransTgtGivenSrc}, defined as:
+  \[ \argmax_{f:S \hookrightarrow T} \sum_{s \in S} \frac{P(f(s)|s)}{\max_{t
+  \in \mathcal{T}} P(t|s)}, \] where $S$ is the set of source tokens, $T$ is
+  the set of target tokens, and $\mathcal{T}$ is the set of all words in the
+  target language.  The intention here is to estimate the number of source
+  words that have good translations.  \code{IBM1WTransSrcGivenTgt} (found in
+  the same files) computes the same thing but with source and target reversed.
+\end{itemize}
+
+Note that in the tm module there is a program that computes a phrase-based
+translation model score.  This has not been implemented as a feature function
+here because it produces two values (distortion and translation model score).
+
+\section*{\file{rescoring\_general.h}}
+
+General constants and useful macros and functions are defined here, and used by
+all other code files.
+
+\section*{Main Programs}
+
+The rescoring module consists of four programs:
+\begin{itemize}
+\item \textbf{rescore\_train} is used to train a model of rescoring weights
+      using Powell's algorithm.
+\item \textbf{rescore\_translate} is used to perform rescoring with an existing
+      model.
+\item \textbf{rescore\_test} uses an existing model to rescore a test corpus
+      and determine the BLEU score attained.
+\item \textbf{gen\_feature\_values} can be used to generate all the values for
+      a given feature function.
+\end{itemize}
+
+Naturally, the main function for each program is found in the respective
+\file{.cc} file.
+
+\section*{Running the Programs}
+
+Here are the main steps for using this module:
+
+\begin{enumerate}
+\item
+  Compile a source text, a list of nbest translations for each sentence in it,
+  and a set of reference translations for each sentence in it. See below for
+  the formats for these three files.
+
+\item
+  Decide on a set of features to use, eg language model, translation model,
+  etc. For each feature, generate a score for each nbest list entry.  There are
+  three ways to generate feature values: (1) using an external program; (2)
+  using the program \textbf{gen\_feature\_values}; and (3) dynamically during
+  model training.  The $2^{nd}$ and $3^{rd}$ methods use a canned set of
+  features known to the rescoring module - see below for info on how to add new
+  ones to this set.  The $3^{rd}$ method is useful mainly for simple features
+  that can be calculated quickly, eg sentence length.  If you want to use an
+  external program, see the format for feature value files below.
+
+\item
+  Train a model using the program \textbf{rescore\_train}.  This takes a model
+  as input and produces a new one as output.  The input model lists the set of
+  features to use and supplies an optional initial weight for each; the output
+  model gives final weights for each feature. See below for model file format.
+  The other parameters to \textbf{rescore\_train} are source, nbest, and
+  reference files.  Use rescore\_train -h for more specific info.
+
+\item
+  Test a model using the program \textbf{rescore\_test}.  This takes a trained
+  model as input, and generates a BLEU score for a given source, nbest,
+  reference triple (which should be different from that used to produce the
+  model).  Use rescore\_train -h for more specific info.
+
+\item
+  Translate, using the program \textbf{rescore\_translate}.  This takes a
+  trained model as input and produces a best translation for a given source
+  text and nbest list.  Use rescore\_translate -h for more specific info.
+
+\end{enumerate}
+
+\section*{File Formats}
+
+\begin{itemize}
+
+\item \textbf{Source, nbest, and refs files}\\
+  All of these contain one segment per line, with tokens separated by
+  whitespace.  Each source line corresponds to a block of lines in the nbest
+  file, and a block of lines in the refs file.  Blocks are in order, so that
+  the ith source sentence corresponds to the ith block.  They are also fixed
+  size and contiguous, so for example if there are S source sentences and K
+  entries in each nbest list, then there will be SK lines in the nbest file.
+  Similarly if there are R reference translations per source sentence, there
+  will be SR lines in the refs file.  If your data has variable-sized blocks,
+  pad short blocks with blank lines.
+
+\item \textbf{Model file}\\
+  This contains a set of entries, one per line, in the form:\\
+  feature\_name[:arg] [weight]\\ For example, an IBM1-based feature correspond
+  to the line:\\ IBM1SrcGivenTarget:ttable-file-location 2.345 An important
+  feature is FileFF, which designates a set of feature values stored in a
+  feature file.
+
+  For example, to use the contents of a file named very-important-feature, you
+  would include this line:\\ FileFF:very-important-feature [weight] A list of
+  all features known to the module is in the create() function in
+  \file{featurefunction.cpp}.
+
+\item \textbf{Feature value file}\\
+  This is simply a column of numbers that matches 1-1 with the nbest file it
+  pertains to.  Individual features are scalar-valued, so there can only be one
+  number per line.
+
+\item \textbf{Multi-column value file}\\
+  Just like a feature value file, except each line should contains exactly N
+  numbers if the file encode N features.
+
+\end{itemize}
+
+\section*{Adding New Features}
+To add to the set of known features:
+
+\begin{enumerate}
+  
+\item Write a class derived from the \code{FeatureFunction} interface in
+  \file{featurefunction.h}.  There are some examples of derived classes in
+  \file{featurefunction.h} (but yours doesn't have to be put there, of course).
+  The only thing feature functions have to do is return a value when called
+  with a source/target segment pair.  There are also functions to inform them
+  of the wider context (the whole source text under translation, and the whole
+  current nbest list), but these don't have to be instantiated.
+  
+\item Add a clause to the \code{FeatureFunctionSet::create()} function, defined
+  in \file{featurefunction.cpp}.  This should just check for a match with your
+  feature's name and call the corresponding constructor.  Note that you must be
+  able to construct your class from a single string argument - this is the
+  "arg" string that is specified in the model file.
+
+\item
+  Modify the Makefile to link with any necessary module-external libraries.
+
+\item
+  Test using \textbf{gen\_feature\_values}, please!
+
+\end{enumerate}
+
+If you just want to try out a feature function, note that it may be easier to
+write the values to a file and use FileFF rather than adding the function to
+the known set.
+
+\bibliographystyle{plain} \bibliography{rescoring_overview}
+
+\end{document}
