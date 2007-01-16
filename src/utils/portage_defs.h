@@ -33,6 +33,14 @@ typedef unsigned int Uint;
 typedef unsigned long Ulong;
 //@}
 
+#if __WORDSIZE == 64
+typedef unsigned long       Uint64;
+typedef long                Int64;
+#else
+typedef unsigned long long  Uint64;
+typedef long long           Int64;
+#endif
+
 /// constant that represents infinity for Portage.
 extern const double INFINITY;  
 

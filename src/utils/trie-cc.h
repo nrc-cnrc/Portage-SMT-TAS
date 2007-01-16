@@ -27,6 +27,10 @@ Uint PTrie<LeafDataT, InternalDataT, NeedDtor>::hash(TrieKeyT key_elem) const {
 }
 
 template<class LeafDataT, class InternalDataT, bool NeedDtor>
+const Uint PTrie<LeafDataT, InternalDataT, NeedDtor>::MaxKey = 
+   TrieNode<LeafDataT, InternalDataT, NeedDtor>::NoKey - 1;
+
+template<class LeafDataT, class InternalDataT, bool NeedDtor>
 void PTrie<LeafDataT, InternalDataT, NeedDtor>::insert(
    const TrieKeyT key[], Uint key_size, const LeafDataT& val, LeafDataT** p_val
 ) {
@@ -312,6 +316,38 @@ InternalDataT PTrie<LeafDataT, InternalDataT, NeedDtor> ::sum_internal_node_valu
 }
 
 template<class LeafDataT, class InternalDataT, bool NeedDtor>
+Uint PTrie<LeafDataT, InternalDataT, NeedDtor>::find_path(
+      const TrieKeyT key[], Uint key_size, LeafDataT* values[]
+) {
+   //cerr << "find ";
+   if (key_size == 0) return 0;
+   Uint bucket = hash(key[0]);
+   const TrieNode<LeafDataT, InternalDataT, NeedDtor> *node = &(roots[bucket]);
+   TrieDatum<LeafDataT, InternalDataT, NeedDtor> *datum;
+   Uint depth = 0;
+   for (Uint i = 0; i < key_size; ++i) {
+      values[i] = NULL;
+      Uint find_pos;
+      if ( node->find(key[i], datum, find_pos) ) {
+         depth = i+1;
+         if ( datum->isLeaf() ) {
+            values[i] = datum->getModifiableValue();
+         }
+         if ( datum->hasChildren() && i < key_size - 1 ) {
+            node = nodePool.get_ptr(node->get_children(find_pos));
+         } else {
+            for ( ++i; i < key_size; ++i ) values[i] = NULL;
+            break;
+         }
+      } else {
+         for ( ++i; i < key_size; ++i ) values[i] = NULL;
+         break;
+      }
+   }
+   return depth;
+}
+
+template<class LeafDataT, class InternalDataT, bool NeedDtor>
 PTrie<LeafDataT, InternalDataT, NeedDtor>::PTrie(Uint root_hash_bits)
    : roots(1<<root_hash_bits)
    , root_hash_bits(root_hash_bits)
@@ -341,16 +377,16 @@ void PTrie<LeafDataT, InternalDataT, NeedDtor>::getStats(
       it->addStats(intl_nodes, trieDataUsed, trieDataAlloc, childrenAlloc,
                    nodePool);
 
-   unsigned long long mem_used =
-      static_cast<unsigned long long>(
+   Uint64 mem_used =
+      static_cast<Uint64>(
          sizeof(PTrie<LeafDataT, InternalDataT, NeedDtor>))
       + intl_nodes * sizeof(TrieNode<LeafDataT, InternalDataT, NeedDtor>)
       + (intl_nodes - roots.size()) * sizeof(Uint)
       + trieDataUsed * sizeof(TrieDatum<LeafDataT, InternalDataT, NeedDtor>);
    memoryUsed = Uint(mem_used / 1024 / 1024);
 
-   unsigned long long mem_alloc =
-      static_cast<unsigned long long>(
+   Uint64 mem_alloc =
+      static_cast<Uint64>(
          sizeof(PTrie<LeafDataT, InternalDataT, NeedDtor>))
       + intl_nodes * sizeof(TrieNode<LeafDataT, InternalDataT, NeedDtor>)
       + childrenAlloc * sizeof(Uint)
@@ -409,15 +445,49 @@ string PTrie<LeafDataT, InternalDataT, NeedDtor>::getSizeOfs() {
 } // PTrie::getSizeOfs
 
 template<class LeafDataT, class InternalDataT, bool NeedDtor>
+Uint PTrie<LeafDataT, InternalDataT, NeedDtor>::write_binary(
+   ofstream& ofs
+) const {
+   assert(!NeedDtor);
+   assert(sizeof(Uint64) == 8);
+   ofs.write((char*)&root_hash_bits, sizeof(root_hash_bits));
+   Uint nodes_written(0);
+   for ( Uint bucket = 0; bucket < roots.size(); ++bucket )
+      nodes_written += roots[bucket].write_binary(ofs, nodePool);
+   return nodes_written;
+} // PTrie::write_binary
+
+template<class LeafDataT, class InternalDataT, bool NeedDtor>
+   template<class Filter>
+Uint PTrie<LeafDataT, InternalDataT, NeedDtor>
+   ::read_binary(istream& is, Filter& filter)
+{
+   clear();
+   assert(!NeedDtor);
+   assert(sizeof(Uint64) == 8);
+   is.read((char*)&root_hash_bits, sizeof(root_hash_bits));
+   roots.resize(1<<root_hash_bits);
+   vector<Uint> key_stack;
+   Uint nodes_kept(0);
+   for ( Uint bucket = 0; bucket < roots.size(); ++bucket ) {
+      nodes_kept +=
+         roots[bucket].read_binary(is, filter, key_stack, nodePool,
+                                   datumArrayPool, nodePtrArrayPool);
+      if ( (bucket+1) % (roots.size()/8) == 0 ) cerr << ".";
+   }
+   return nodes_kept;
+}
+
+template<class LeafDataT, class InternalDataT, bool NeedDtor>
 typename PTrie<LeafDataT, InternalDataT, NeedDtor>::iterator 
-   PTrie<LeafDataT, InternalDataT, NeedDtor>::begin() const
+   PTrie<LeafDataT, InternalDataT, NeedDtor>::begin_children() const
 {
    // Since we need the full logic of ++ to get to the first valid node, start
    // before the first possible node and let ++ do the rest of the work.
    iterator it(*this, &(roots[0]), true, false, 0, -1);
    ++it;
    return it;
-} // PTrie::begin()
+} // PTrie::begin_children()
 
 template<class LeafDataT, class InternalDataT, bool NeedDtor>
 typename PTrie<LeafDataT, InternalDataT, NeedDtor>::iterator
@@ -476,7 +546,7 @@ typename PTrie<LeafDataT, InternalDataT, NeedDtor>::iterator &
 template<class LeafDataT, class InternalDataT, bool NeedDtor>
    template<class Visitor>
 void PTrie<LeafDataT, InternalDataT, NeedDtor>
-   ::traverse(Visitor & visitor) const
+   ::traverse(Visitor& visitor) const
 {
    vector<Uint> key_stack;
    vector<TrieNode<LeafDataT, InternalDataT, NeedDtor> *> node_stack;

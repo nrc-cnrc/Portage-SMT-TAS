@@ -73,6 +73,18 @@ inline bool isPrefix(const char* s1, const char* s2)
 }
 
 /**
+ * Determine whether s1 is a suffix (not necessarily proper) of s2.
+ * @param s1 suffix string to search for
+ * @param s2 string to search in
+ * @return true iff s1 is a suffix of s2
+ */
+inline bool isSuffix(const string& s1, const string& s2)
+{
+   return s1.size() <= s2.size() &&
+          0 == s2.compare(s2.size()-s1.size(), s1.size(), s1);
+}
+
+/**
  * Return the last character of a string (0 if string is empty).
  * 
  * @param str string in which to get the last caracter
@@ -228,11 +240,24 @@ template <class T> T conv(const char* s)
  * @param end end iterator
  * @param s   result of the join operation
  * @param sep separator to put between each word
- * @return returns the result of the join operation
+ * @return the result of the join operation (ref to s)
  */
 string& join(vector<string>::const_iterator beg,
              vector<string>::const_iterator end, 
              string& s, const string& sep=" ");
+
+/**
+ * Join a vector of strings into a single string.
+ *
+ * @param v   whole vector to join
+ * @param s   result of the join operation
+ * @param sep separator to put between each word
+ * @return the result of the join operation (ref to s)
+ */
+inline string& join(const vector<string>& v, string& s, const string& sep=" ")
+{
+   return join(v.begin(), v.end(), s, sep);
+}
 
 /**
  * Joins a sequence of arbitrary type into a string.
@@ -244,7 +269,7 @@ string& join(vector<string>::const_iterator beg,
  * @param end end iterator
  * @param sep separator to put between each word
  * @param precision stream precision
- * @return returns the result of the join operation
+ * @return the result of the join operation
  */
 template <class T> 
 string join(typename vector<T>::const_iterator beg, 
@@ -260,6 +285,22 @@ string join(typename vector<T>::const_iterator beg,
       ++beg;
    }
    return ss.str();
+}
+
+/**
+ * Join a vector of arbitrary type into a string.  See join<T> above for
+ * details.
+ *
+ * @param v   whole vector to join
+ * @param sep separator to put between each word
+ * @param precision stream precision
+ * @return the result of the join operation
+ */
+template <class T>
+inline string join(const vector<T>& v, const string& sep=" ",
+                   Uint precision = 8)
+{
+   return join<T>(v.begin(), v.end(), sep, precision);
 }
 
 

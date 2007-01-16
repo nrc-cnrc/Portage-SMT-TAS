@@ -26,10 +26,11 @@ namespace Portage {
  */
 class LMText : public PLM
 {
-private:
+protected:
    /// The LM is stored internally in a trie
    PTrie<float, Wrap<float>, false> trie;
 
+private:
    /**
     * Read a language model from disk
     * @param lm_file_name name of the LM file
@@ -70,6 +71,9 @@ protected:
    Uint getGramOrder() { return gram_order; }
    void clearCache() {}
 
+   /// Protected constructor for use by subclasses
+   LMText(Voc *vocab, bool unk_tag, double oov_unigram_prob);
+
 public:
    // Particular interface for this class
    
@@ -77,6 +81,12 @@ public:
    LMText(const string& lm_file_name, Voc *vocab, bool unk_tag,
           bool limit_vocab, Uint limit_order, double oov_unigram_prob,
           ostream *const os_filtered);
+
+   /**
+    * Write the LM out in the Portage binary language model format
+    * @param binlm_file_name BinLM file name to use.
+    */
+   void write_binary(const string& binlm_file_name) const;
 
 }; // class LMText
 

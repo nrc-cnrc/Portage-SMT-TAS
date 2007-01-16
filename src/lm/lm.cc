@@ -11,6 +11,7 @@
 
 #include <lm.h>
 #include <lmtext.h>
+#include <lmbin.h>
 #include <string>
 #include <assert.h>
 #include <str_utils.h>
@@ -52,14 +53,21 @@ PLM* PLM::Create(const string& lm_filename, Voc* vocab, bool UNK_tag,
 
    // Insert here the code to open any new LM format you write support for.
 
-   if ( 0 == lm_physical_filename.compare(lm_physical_filename.size()-5, 5, ".lmdb") ) {
+   if ( isSuffix(".lmdb", lm_physical_filename) ) {
       // The LMDB format depends on Berkeley_DB, which has an expensive license
       // fee for projects that are not fully open source.  It has therefore
       // been removed from this distribution.
       lm = NULL;
       error(ETFatal, "LMDB format not supported, can't open %s",
                      lm_physical_filename.c_str());
+   } else if ( isSuffix(".binlm", lm_physical_filename) ||
+               isSuffix(".binlm.gz", lm_physical_filename) ) {
+      //cerr << ".binlm" << endl;
+      assert(vocab);
+      lm = new LMBin(lm_physical_filename, *vocab, UNK_tag, limit_vocab,
+                     limit_order, oov_unigram_prob);
    } else {
+      //cerr << ".lmtext" << endl;
       lm = new LMText(lm_physical_filename, vocab, UNK_tag, limit_vocab,
                       limit_order, oov_unigram_prob, os_filtered);
    }

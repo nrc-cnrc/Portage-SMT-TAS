@@ -8,26 +8,30 @@
 
 SOURCES = \
 	lm.cc \
+        lmbin.cc \
 	lmtext.cc \
+        lmtext2binlm.cc \
 	testlm.cc
 
 INCLUDES = \
 	lm.h \
+        lmbin.h \
 	lmtext.h
 
 OBJECTS = \
 	lm.o \
+        lmbin.o \
 	lmtext.o
 
-PROGRAMS = testlm
+PROGRAMS = lmtext2binlm testlm
 
 TESTPROGS = testlm
 
-LIBRARY=libportage_lm
+LIBRARY = libportage_lm
 
-DOXYFILE=../build/Doxyfile
+DOXYFILE = ../build/Doxyfile
 
-MODULE_CF=
+MODULE_CF =
 
 BINSCRIPTS = ngram-count-big.sh
 

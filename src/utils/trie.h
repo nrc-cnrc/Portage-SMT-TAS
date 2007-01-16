@@ -1,6 +1,7 @@
 /**
  * @author Eric Joanis
  * @file trie.h Compact and fast implementation of a trie of Uints.
+ *
  * $Id$
  *
  * COMMENTS:
@@ -22,6 +23,7 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
+#include <fstream>
 
 //#define DEBUG_PORTAGE_TRIE
 #ifdef DEBUG_PORTAGE_TRIE
@@ -41,7 +43,7 @@ namespace Portage {
  */
 typedef Uint TrieKeyT;
 
-}  //ends Portage namespace
+};  //ends Portage namespace
 
 #include "trie_datum.h"
 #include "trie_node.h"
@@ -140,7 +142,8 @@ Wrap<PrimitiveT> operator+(
  * leaf data type, of size 4 or 8.
  *
  * NeedDtor can be set to false if LeafDataT and InternalDataT can be safely
- * freed without calling their destructors, e.g., if they contain no pointers.
+ * freed or moved without calling their destructors or constructors, such as
+ * primitive types or simple classes without auxiliary structures.
  */
 template <class LeafDataT, class InternalDataT = Empty, bool NeedDtor = true>
 class PTrie {
@@ -188,12 +191,20 @@ class PTrie {
     */
    vector<pair<Uint, TrieNode<LeafDataT, InternalDataT, NeedDtor> *> > insert_cache;
 
+   /**
+    * Dummy FilterFunctor for read_binary when filtering is not required
+    */
+   static bool keep_all(const vector<Uint>& key_stack) { return true; }
+
  public:
    class iterator;
  private:
    const iterator end_iter;
 
  public:
+   /// Largest allowable value for a TrieKeyT parameter in any public method.
+   static const TrieKeyT MaxKey;
+
    /**
     * Insert <key, val> into the trie.
     * @param key      Key to be inserted
@@ -313,6 +324,25 @@ class PTrie {
       Uint max_len) const;
 
    /**
+    * Look up a whole path in the trie.
+    * Equivalent to calling find on every prefix of key, at only the cost of
+    * looking up key itself once.
+    * 
+    * @param key        Key to be looked up
+    * @param key_size   Length of key
+    * @param values     Will be filled with a pointer to the leaf value for
+    *                   each prefix of key found, with NULL for each prefix of
+    *                   key not found.  These pointers are modifiable, but are
+    *                   only guaranteed to be valid until the next non-const
+    *                   operation on the trie.
+    * @return           The lenght of the longest prefix of key that exists in 
+    *                   the trie, disregarding whether it is a leaf or not;
+    *                   0 if no prefix of key exists in the trie.
+    * @pre value and key must be arrays of size key_size.
+    */
+   Uint find_path(const TrieKeyT key[], Uint key_size, LeafDataT* values[]);
+
+   /**
     * Constructor.
     * @param root_hash_bits determines how many hashing bits the root of the
     * trie will use.  The default should be suitable for most applications.
@@ -365,6 +395,49 @@ class PTrie {
    static string getSizeOfs();
 
    /**
+    * Write out the trie in binary format.
+    * Can only be used if the leaf and internal node data types can be
+    * correctly copied with a simple memcpy and require not constructor or
+    * destructor.  Includes seek pointers so that sub-tries can be efficiently
+    * skipped at reading time.
+    * @param ofs output file stream to use - must be seekable
+    * @return the number of internal nodes written
+    */
+   Uint write_binary(ofstream& ofs) const;
+
+   /**
+    * Load the trie from the binary format written by write_binary().
+    * @param ifs input file stream located at the position where write_binary
+    * started writing.
+    * @return the number of internal nodes read and loaded
+    */
+   Uint read_binary(istream& ifs) { return read_binary(ifs, PTrie::keep_all); }
+
+   /**
+    * Load the trie from the binary format written by write_binary(), with on
+    * the fly filtering of the contents.
+    *
+    * @param is input stream to read from
+    *
+    * @param filter This functor will be called for each key to determine if it
+    * should be filtered out during reading.  
+    * Filter should be a function or a function object, either way implementing
+    *
+    *    bool operator()(const vector<Uint>& key_stack)
+    *
+    * which should return true if key_stack should be kept, false otherwise.
+    * When false is returned, the leaf and sub-tree rooted at key_stack are
+    * skipped.
+    *
+    * Guarantees:
+    * filter was already called and returned true for each prefix of key_stack.
+    * key_stack.size() >= 1.
+    *
+    * @return the number of internal nodes kept.
+    */
+   template <typename Filter> Uint read_binary(istream& is, Filter& filter);
+
+   /**
     * Traverse the whole trie, calling the Visitor functor for every leaf node.
     *
     * Class Visitor must implement this functor method:
@@ -380,21 +453,23 @@ class PTrie {
     *
     * @param visitor visitor that will explore every nodes
     */
-   template <class Visitor> void traverse(Visitor & visitor) const;
+   template <class Visitor> void traverse(Visitor& visitor) const;
 
 
    /**
-    * Get an iterator to the beginning of the trie's root node.
+    * Get an iterator to the beginning of the root node's children.
     * See rec_dump_trie in test_trie.cc for a sample use.
     * @return an iterator which can be used to traverse the root in a
     * non-specified order, through which the whole trie can be traversed
+    * recursively (using the iterator's begin_children() and end_children()
+    * methods)
     */
-   iterator begin() const;
+   iterator begin_children() const;
    /**
-    * Get an iterator to the end of the trie's root node.
+    * Get an iterator to the end of the root node's children.
     * @return iterator on end position
     */
-   const iterator& end() const { return end_iter; }
+   const iterator& end_children() const { return end_iter; }
 
    friend class iterator;
    /**

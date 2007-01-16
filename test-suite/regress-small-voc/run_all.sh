@@ -75,7 +75,7 @@ echo '"tail -f times.txt"' if you want to monitor it.
       02_train_ibm \
       03_gen_phr   \
       04_canoe     \
-      10_cow       \
+      11_cow_mp    \
       28_rat_train \
       29_rat_test  \
       30_summary   \

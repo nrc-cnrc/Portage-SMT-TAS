@@ -101,6 +101,10 @@ float LMText::wordProb(Uint word, const Uint context[], Uint context_length)
    }
 } // LMText::wordProb
 
+LMText::LMText(Voc *vocab, bool unk_tag, double oov_unigram_prob)
+   : PLM(vocab, unk_tag, oov_unigram_prob)
+{}
+
 LMText::LMText(const string& lm_file_name, Voc *vocab, bool unk_tag,
                bool limit_vocab, Uint limit_order, double oov_unigram_prob,
                ostream *const os_filtered)
@@ -334,3 +338,36 @@ void LMText::readLine(
    cerr << endl;
    */
 } // LMText::readLine
+
+
+void LMText::write_binary(const string& binlm_file_name) const
+{
+   cerr << trie.getStats() << endl;
+
+   // We use a regular output file stream because we need a seekable output
+   // stream.  Can be compressed separately, after, if desired.
+   ofstream ofs(binlm_file_name.c_str());
+   if (!ofs)
+      error(ETFatal, "unable to open %s for writing", binlm_file_name.c_str());
+
+   // Write the "magic number" (or string...)
+   ofs << "Portage BinLM file, format v1.0" << endl;
+
+   // Write out the order of the model
+   ofs << "Order = " << gram_order << endl;
+
+   // Write out the vocabulary in plain text
+   ofs << "Vocab size = " << vocab->size() << endl;
+   vocab->write(ofs);
+   ofs << endl;
+
+   // Write out the trie itself - this part of the file is binary
+   Uint nodes_written = trie.write_binary(ofs);
+
+   ofs << endl << "End of Portage BinLM file.  Internal node count="
+       << nodes_written << endl;
+
+   cerr << "Wrote out " << nodes_written << " internal nodes" << endl;
+
+} // LMText::write_binary
+

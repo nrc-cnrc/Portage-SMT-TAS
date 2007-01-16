@@ -32,7 +32,8 @@ SOURCES = \
         test_trie.cc \
         testleven.cc \
         try.cc \
-        voc.cc
+        voc.cc \
+        voc_map.cc
 
 INCLUDES = \
         arg_reader.h \
@@ -63,7 +64,8 @@ INCLUDES = \
         trie-cc.h \
         vector_map.h \
         vcb.h \
-        voc.h
+        voc.h \
+        voc_map.h
 
 OBJECTS = \
         arg_reader.o \
@@ -81,7 +83,8 @@ OBJECTS = \
         portage_defs.o \
         quick_set.o \
         str_utils.o \
-        voc.o
+        voc.o \
+        voc_map.o
 
 LIBRARY = libportage_utils
 

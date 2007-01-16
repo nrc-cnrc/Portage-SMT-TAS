@@ -3,6 +3,7 @@
  * @file trie_datum.h  Datum structure for PTrie.
  * $Id$
  *
+ *
  * COMMENTS:
  *
  * Groupe de technologies langagières interactives / Interactive Language Technologies Group
@@ -34,6 +35,10 @@ class TrieDatum {
    /// Constructor.
    TrieDatum(TrieKeyT key_elem = 0) : /*child(NULL),*/ key_elem(key_elem),
       is_leaf(false), has_children(false) {}
+   /// Reset key_elem to given value, and is_lead and has_children to false.
+   void reset(TrieKeyT key_elem = 0) {
+      this->key_elem = key_elem; is_leaf = has_children = false;
+   }
 
    /**
     * Dumps the datum to a human readable string.  << must be defined for

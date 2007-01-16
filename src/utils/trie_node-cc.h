@@ -3,6 +3,7 @@
  * @file trie_node-cc.h  Implementation of template methods for trie_node.h.
  * $Id$
  *
+ *
  * COMMENTS:
  *
  * Groupe de technologies langagières interactives / Interactive Language Technologies Group
@@ -333,22 +334,286 @@ void TrieNode<LeafDataT, InternalDataT, NeedDtor>::addStats(
    }
 }
 
-template<class LeafDataT, class InternalDataT, bool NeedDtor> template<class Visitor>
+template<class LeafDataT, class InternalDataT, bool NeedDtor>
+   template<class Visitor>
 void TrieNode<LeafDataT, InternalDataT, NeedDtor>::traverse(
    Visitor& visitor, vector<Uint> &key_stack, const TrieNodePool& node_pool
 ) const {
    for ( Uint i = 0; i < list_alloc; ++i ) {
-      if (list[i].getKey() == NoKey) break;
-      key_stack.push_back(list[i].getKey());
-      if ( list[i].isLeaf() )
-         visitor(key_stack, list[i].getValue());
-      if ( list[i].hasChildren() )
+      if (list[i].key_elem == NoKey) break;
+      key_stack.push_back(list[i].key_elem);
+      if ( list[i].is_leaf )
+         visitor(key_stack, *list[i].getModifiableValue());
+      if ( list[i].has_children )
          node_pool.get_ptr(children[i])->traverse(visitor, key_stack, node_pool);
       key_stack.pop_back();
    }
 }
 
+template<class LeafDataT, class InternalDataT, bool NeedDtor>
+Uint TrieNode<LeafDataT, InternalDataT, NeedDtor>::write_binary(
+   ofstream& ofs, const TrieNodePool& node_pool
+) const {
+   // Put a dummy skip offset in place
+   iostream::pos_type start_pos(ofs.tellp());
+   Int64 skip_offset(0);
+   ofs.write((char*)&skip_offset, sizeof(skip_offset));
 
+   // Leaf data: to write it out as compactly as possible, find the last used
+   // leaf index and only write that many.
+   Uint true_list_size(list_alloc);
+   while ( true_list_size > 0 &&
+           list[true_list_size-1].key_elem == NoKey )
+      --true_list_size;
+   ofs.write((char*)&true_list_size, sizeof(true_list_size));
+   ofs.write((char*)list, sizeof(list[0]) * true_list_size);
+
+   // Internal data and size of children array: again, make a tight estimate of
+   // true length of children pointer array.
+   Uint true_children_size(min(children_size(), true_list_size));
+   while ( true_children_size > 0 &&
+           ! list[true_children_size-1].has_children )
+      --true_children_size;
+   OptionalClassWrapper<InternalDataT, Uint> intl_data_true_children_size(
+      intl_data_children_size);
+   intl_data_true_children_size.second = true_children_size;
+   ofs.write((char*)&intl_data_true_children_size,
+             sizeof(intl_data_true_children_size));
+
+   // Recursively write the children out
+   Uint nodes_written(1);
+   Uint actual_children_count(0);
+   for ( Uint i(0); i < true_children_size; ++i ) {
+      if ( list[i].has_children ) {
+         //cerr << "Child " << i << " key " << list[i].key_elem;
+         //cerr << " " << dump_info();
+         ofs.write((char*)&i, sizeof(i));
+         nodes_written +=
+            node_pool.get_ptr(children[i])->write_binary(ofs, node_pool);
+         ++actual_children_count;
+      }
+   }
+   // Sanity check: count the number of children actually written out
+   ofs.write((char*)&actual_children_count, sizeof(actual_children_count));
+
+   // Seek back and write the correct skip offset now that we know it
+   iostream::pos_type end_pos(ofs.tellp());
+   skip_offset = (end_pos - start_pos) -
+                 static_cast<iostream::pos_type>(sizeof(skip_offset));
+   ofs.seekp(start_pos);
+   ofs.write((char*)&skip_offset, sizeof(skip_offset));
+   ofs.seekp(end_pos);
+
+   //cerr << "start_pos " << start_pos << " end_pos " << end_pos;
+   //cerr << " " << dump_info();
+
+   return nodes_written;
+}
+
+template<class LeafDataT, class InternalDataT, bool NeedDtor>
+   template<class Filter>
+Uint TrieNode<LeafDataT, InternalDataT, NeedDtor>::read_binary(
+   istream& is, Filter& filter, vector<Uint>& key_stack,
+   TrieNodePool& node_pool, DatumArrayPool& da_pool, NodePtrArrayPool& npa_pool
+) {
+   assert(list_alloc == 0);
+   assert(children_size() == 0);
+   is.ignore(sizeof(Int64)); // Ignore skip offset - this nodes was kept!
+
+   // Read the leaf data
+   Uint true_list_size;
+   is.read((char*)&true_list_size, sizeof(true_list_size));
+   if ( true_list_size > 0 ) {
+      list = da_pool.alloc_array_no_ctor(true_list_size, list_alloc);
+      is.read((char*)list, sizeof(list[0]) * true_list_size);
+      for ( Uint i(true_list_size); i < list_alloc; ++i )
+         list[i].reset(NoKey);
+   }
+
+   // Read the internaldata and the size of the children array.
+   OptionalClassWrapper<InternalDataT, Uint> intl_data_true_children_size(
+      intl_data_children_size);
+   is.read((char*)&intl_data_true_children_size,
+           sizeof(intl_data_true_children_size));
+   internal_data(intl_data_true_children_size.first());
+   Uint true_children_size = intl_data_true_children_size.second;
+   Uint allocated_children_size;
+   if ( true_children_size > 0 ) {
+      children = npa_pool.alloc_array_no_ctor(true_children_size,
+                                              allocated_children_size);
+      children_size(allocated_children_size); // set new actual children size
+   } else {
+      children = NULL;
+      allocated_children_size = 0;
+   }
+
+   vector<Uint> keys_kept;
+
+   // Apply the filter to each datum and recursively read the children
+   Uint number_of_children_found(0);
+   Uint nodes_kept(1);
+   Uint required_list_size(0);
+   Uint required_children_size(0);
+   assert(true_children_size <= true_list_size);
+   for ( Uint i(0); i < true_list_size; ++i ) {
+      if ( list[i].has_children ) {
+         ++number_of_children_found;
+         Uint j;
+         is.read((char*)&j, sizeof(j));
+         if ( i != j ) error(ETFatal,
+            "Corrupt BinLM stream.  Expected child %d, got %d", i, j);
+      } else if ( i < allocated_children_size ) {
+         children[i] = ~(Uint(0));
+      }
+      key_stack.push_back(list[i].key_elem);
+      //cerr << "Key " << join<Uint>(key_stack);
+      if ( filter(key_stack) ) { // Keep this key
+         //cerr << " keeping it" << endl;
+         keys_kept.push_back(key_stack.back());
+         ++required_list_size;
+         if ( list[i].has_children ) {
+            required_children_size = required_list_size;
+            TrieNode<LeafDataT, InternalDataT, NeedDtor>* pre_alloc_node =
+               node_pool.alloc(children[i]);
+            Uint rec_nodes_kept =
+               pre_alloc_node->read_binary(is, filter, key_stack,
+                                           node_pool, da_pool, npa_pool);
+            if ( rec_nodes_kept == 0 ) {
+               // All information in that child node got pruned, discard it
+               // (but keep the key, since that didn't get pruned by filter()).
+               list[i].has_children = false;
+               node_pool.release(children[i]);
+               children[i] = ~(Uint(0));
+            } else {
+               nodes_kept += rec_nodes_kept;
+            }
+         }
+      } else { // Throw away this key and its sub-trie
+         //cerr << " discarding it" << endl;
+         if ( list[i].has_children ) {
+            Int64 skip_offset;
+            is.read((char*)&skip_offset, sizeof(skip_offset));
+            is.ignore(skip_offset);
+         }
+         // Reset this datum, thus marking it for later removal.
+         list[i].reset(NoKey);
+      }
+      key_stack.pop_back();
+   }
+
+   // Sanity check: verify we got the number of children we expected.
+   Uint expected_children_count;
+   is.read((char*)&expected_children_count, sizeof(expected_children_count));
+   if ( expected_children_count != number_of_children_found )
+      error(ETFatal, "Corrupt BinLM stream.  Expected %d children, got %d",
+            expected_children_count, number_of_children_found);
+
+   /*
+   cerr << dump_info();
+   cerr << "Before removing discarded entries";
+   for ( Uint i(0); i < list_alloc; ++i )
+      cerr << " " << list[i].key_elem;
+   cerr << endl;
+   */
+
+   if ( required_list_size != true_list_size ) {
+      // The above condition is true iff at least one key was filtered out:
+      if ( required_list_size == 0 ) {
+         // No children remain
+         assert(list_alloc > 0);
+         da_pool.free_array_no_dtor(list, list_alloc);
+         list = NULL;
+         list_alloc = 0;
+         if ( children_size() > 0 ) {
+            npa_pool.free_array_no_dtor(children, children_size());
+            children = NULL;
+            children_size(0);
+         }
+         if ( internal_data() == InternalDataT() ) {
+            //cerr << "Useless node" << endl;
+            nodes_kept = 0;
+         }
+      } else {
+         // Compress list and children by individually removing elements marked
+         // for deletion.
+
+         Uint new_list_alloc;
+         TrieDatum<LeafDataT, InternalDataT, NeedDtor> *new_list;
+         if ( required_list_size * GrowthFactor < true_list_size ) {
+            new_list =
+               da_pool.alloc_array_no_ctor(required_list_size, new_list_alloc);
+         } else {
+            new_list = list;
+            new_list_alloc = list_alloc;
+         }
+
+         Uint new_children_alloc;
+         Uint* new_children;
+         if ( required_children_size * GrowthFactor < true_children_size ) {
+            new_children = npa_pool.alloc_array_no_ctor(required_children_size,
+                                                        new_children_alloc);
+         } else {
+            new_children = children;
+            new_children_alloc = allocated_children_size;
+         }
+
+         Uint new_pos(0);
+         for ( Uint pos(0); pos < true_list_size; ++pos ) {
+            if ( list[pos].key_elem != NoKey ) {
+               assert(new_pos < required_list_size);
+               memcpy(new_list+new_pos, list+pos, sizeof(list[pos]));
+               //new_list[new_pos] = list[pos];
+               if ( list[pos].has_children ) {
+                  assert(new_pos < required_children_size);
+                  new_children[new_pos] = children[pos];
+               }
+               ++new_pos;
+            }
+         }
+         for ( ; new_pos < new_list_alloc; ++new_pos )
+            new_list[new_pos].reset(NoKey);
+
+         if ( new_list != list ) {
+            da_pool.free_array_no_dtor(list, list_alloc);
+            list = new_list;
+            list_alloc = new_list_alloc;
+         }
+
+         if ( new_children != children ) {
+            npa_pool.free_array_no_dtor(children, children_size());
+            children = new_children;
+            children_size(new_children_alloc);
+         }
+
+      }
+      //cerr << dump_info();
+   } else {
+      if ( list_alloc == 0 && children_size() == 0 &&
+           internal_data() == InternalDataT() ) {
+         //cerr << "Unexpected useless node" << endl;
+         nodes_kept = 0;
+      }
+   }
+
+   /*
+   // Check that the list has the same keys as the keys_kept vector.
+   bool ok(true);
+   for ( Uint i(0); i < list_alloc; ++i ) {
+      if ( i < keys_kept.size() && list[i].key_elem != keys_kept[i] ||
+           i >= keys_kept.size() && list[i].key_elem != NoKey )
+         ok = false;
+   }
+   if ( !ok ) {
+      cerr << "Corrupt list should be " << join<Uint>(keys_kept)
+           << " but is";
+      for ( Uint i(0); i < list_alloc; ++i )
+         cerr << " " << list[i].key_elem;
+      cerr << endl;
+   }
+   */
+
+   return nodes_kept;
+}
 
 
 #endif // __TRIE_NODE_CC_H__

@@ -133,6 +133,19 @@ int main(int argc, char** argv)
          cout << " internal data = " << internal_val;
 
       cout << endl;
+      float * values[tokens.size()];
+      Uint depth = trie.find_path(key, tokens.size(), values);
+      cout << "find_path(" << line << ") returned depth " << depth 
+           << " and values ";
+      for ( Uint i(0); i < tokens.size(); ++i ) {
+         if ( values[i] )
+            cout << *(values[i]) << " ";
+         else
+            cout << "NULL ";
+      }
+      cout << ".";
+
+      cout << endl;
    }
 
    cout << endl << "Trie dump with traverse:" << endl;
@@ -142,7 +155,7 @@ int main(int argc, char** argv)
 
    cout << endl << "Trie dump with iterators:" << endl;
    vector<Uint> key_prefix;
-   rec_dump_trie(key_prefix, trie.begin(), trie.end());
+   rec_dump_trie(key_prefix, trie.begin_children(), trie.end_children());
 
    //cout << "num entries = " << trie.size() << ", num bytes = " << trie.numBytes() << endl;
 }

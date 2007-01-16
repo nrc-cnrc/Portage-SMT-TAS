@@ -3,6 +3,7 @@
  * @file trie_node.h  Node structure for trie.h.
  * $Id$
  *
+ *
  * COMMENTS:
  *
  * Groupe de technologies langagières interactives / Interactive Language Technologies Group
@@ -18,29 +19,30 @@ namespace Portage {
 
 template <class LeafDataT, class InternalDataT, bool NeedDtor> struct PTrie;
 
-/// Zero-overhead optional class wrapper.  In struct { A; B }, A will always
-/// occupy at least 1 byte even if it has no members.  If you use struct {
-/// OptionalClassWrapper<A, B> }, A will not occupy any memory unless it
-/// actually contains elements.
-/// OptionalClass (i.e., A) must support operator=() and copy construction.
-/// MandatoryClass (i.e., B) must support copy construction.
+/// Zero-overhead optional class wrapper.  In struct { First; Second }, First
+/// will always / occupy at least 1 byte even if it has no members.  If you use
+/// struct { OptionalClassWrapper<First, Second> }, First will not occupy any
+/// memory unless it actually contains elements.
+/// OptionalClass (i.e., First) must support operator=() and copy construction.
+/// MandatoryClass (i.e., Second) must support copy construction.
 template <class OptionalClass, class MandatoryClass>
 struct OptionalClassWrapper : OptionalClass {
    /// Member element of type MandatoryClass.  Can be assigned or read
    /// directly.
-   MandatoryClass mc;   
+   MandatoryClass second;
 
    /// Constructor.
-   /// @param oc initial value for "member" of type OptionalClass
-   /// @param mc initial value for member of type MandatoryClass
-   OptionalClassWrapper(const OptionalClass& oc, const MandatoryClass& mc) 
-     : OptionalClass(oc), mc(mc) {}
+   /// @param first initial value for "member" of type OptionalClass
+   /// @param second initial value for member of type MandatoryClass
+   OptionalClassWrapper(const OptionalClass& first,
+                        const MandatoryClass& second)
+     : OptionalClass(first), second(second) {}
 
-   /// Change the value of the "member" of type OptionalClass
-   /// @param oc new value for "member" of type OptionalClass
-   void set_base_value(const OptionalClass& oc) {
-      OptionalClass::operator=(oc);
-   }
+   /// Change the value of First (the "member" of type OptionalClass)
+   /// @param first new value
+   void first(const OptionalClass& first) { OptionalClass::operator=(first); }
+   /// Get the value of First (the "member" of type OptionalClass)
+   OptionalClass first() const { return OptionalClass(*this); };
 };
 
 /// Node for the trie.
@@ -99,10 +101,10 @@ class TrieNode {
 
    /// Get the number of children allocated.
    /// @return the size of the children array
-   Uint children_size() const { return intl_data_children_size.mc; }
+   Uint children_size() const { return intl_data_children_size.second; }
    /// Set the number of children allocated.
    /// @param size the new size of the children array
-   void children_size(Uint size) { intl_data_children_size.mc = size; }
+   void children_size(Uint size) { intl_data_children_size.second = size; }
 
    /**
     * Returns the position where key_elem either is or should be inserted to
@@ -233,12 +235,12 @@ public:
    /// Get the internal node value for this node.
    /// @return the current internal node value
    InternalDataT internal_data() const {
-      return InternalDataT(intl_data_children_size);
+      return InternalDataT(intl_data_children_size.first());
    }
    /// Set the internal node value for this node.
    /// @param value the new internal node value
    void internal_data(const InternalDataT& value) {
-      intl_data_children_size.set_base_value(value);
+      intl_data_children_size.first(value);
    }
 
    /// Dump some useful info about this trie node.
@@ -264,7 +266,7 @@ public:
     */
    void clear(TrieNodePool& node_pool, DatumArrayPool& da_pool,
       NodePtrArrayPool& npa_pool);
-      
+
    /**
     * Equivalent to clear() if NeedDtor is false.
     * When using memory pools and data type that don't have mandatory
@@ -309,6 +311,33 @@ public:
    template <class Visitor>
    void traverse(Visitor& visitor, vector<Uint>& key_stack,
       const TrieNodePool& node_pool) const;
+
+   /**
+    * Write the sub-trie rooted at this node in binary format.
+    * @param ofs        output file stream - must be seekable
+    * @param node_pool  Parent PTrie's TrieNodePool
+    * @return the number of internal nodes written
+    */
+   Uint write_binary(ofstream& ofs, const TrieNodePool& node_pool) const;
+
+   /**
+    * Recursively deserialize the sub-trie written out but write_binary,
+    * starting at the current location in is.
+    * @param is         stream to read from
+    * @param filter     filter which determines subtrees to prune (see
+    *                   PTrie::read_binary() for details).
+    * @param key_stack  complete key to the node about to be read
+    * @param node_pool  Parent PTrie's TrieNodePool
+    * @param da_pool    Parent PTrie's DatumArrayPool
+    * @param npa_pool   Parent PTrie's NodePtrArrayPool
+    * @return           The number of nodes kept.  When the return value is
+    *                   zero, even the node itself contains no information, and
+    *                   can safely be discarded.
+    */
+   template <typename Filter>
+   Uint read_binary(istream& is, Filter& filter, vector<Uint>& key_stack,
+                    TrieNodePool& node_pool, DatumArrayPool& da_pool,
+                    NodePtrArrayPool& npa_pool);
 
 }; // TrieNode
 

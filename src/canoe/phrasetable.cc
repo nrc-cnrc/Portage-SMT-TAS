@@ -393,7 +393,7 @@ void PhraseTable::write(ostream* src_given_tgt_out, ostream* tgt_given_src_out)
    if ( tgt_given_src_out ) tgt_given_src_out->precision(9);
    vector<string> prefix;
    write(src_given_tgt_out, tgt_given_src_out,
-         textTable.begin(), textTable.end(), prefix);
+         textTable.begin_children(), textTable.end_children(), prefix);
 } // write (public method)
 
 void PhraseTable::write(ostream* src_given_tgt_out, ostream* tgt_given_src_out,
