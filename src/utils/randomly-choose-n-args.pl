@@ -7,15 +7,16 @@
 # COMMENTS: 
 #
 # George Foster
-# Groupe de technologies langagières interactives / Interactive Language Technologies Group
+# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2005, Conseil national de recherches du Canada / Copyright 2005, National Research Council of Canada
+# Copyright 2005, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2005, Her Majesty in Right of Canada
 
 use strict;
 use warnings;
 
-print STDERR "randomly-choose-n-args.pl, Copyright (c) 2005 - 2006, Conseil national de recherches Canada / National Research Council Canada\n";
+print STDERR "randomly-choose-n-args.pl, Copyright (c) 2005 - 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada\n";
 
 my $HELP = "
 randomly-choose-n-args.pl -with-replacement n arg1 arg2 ... argm

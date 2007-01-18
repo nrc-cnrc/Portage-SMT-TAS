@@ -7,7 +7,7 @@
 #
 # Programmers: SongQiang Fang and George Foster.
 #
-# Copyright (c) 2004 - 2006, Conseil national de recherches Canada / National Research Council Canada
+# Copyright (c) 2004 - 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada
 #
 # For further information, please contact :
 # Groupe de technologies langagieres interactives / Interactive Language Technologies Group
@@ -20,7 +20,7 @@
 use strict ;
 use LexiTools ;
 
-print STDERR "detokenize.pl, Copyright (c) 2004 - 2006, Conseil national de recherches Canada / National Research Council Canada\n";
+print STDERR "detokenize.pl, Copyright (c) 2004 - 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada\n";
 
 my $HELP = "
 Usage: detokenize.pl [-lang=l] [input file] [output file]

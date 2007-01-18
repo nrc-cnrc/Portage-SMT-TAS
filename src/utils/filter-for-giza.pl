@@ -14,12 +14,13 @@
 # COMMENTS:
 #
 # Michel Simard
-# Groupe de technologies langagières interactives / Interactive Language Technologies Group
+# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2006, Conseil national de recherches du Canada / Copyright 2006, National Research Council of Canada
+# Copyright 2006, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2006, Her Majesty in Right of Canada
 
-print STDERR "filter-for-giza.pl, Copyright (c) 2006, Conseil national de recherches Canada / National Research Council Canada\n";
+print STDERR "filter-for-giza.pl, Copyright (c) 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada\n";
 
 my $HELP = "
 Usage: filter-for-giza.pl {options} src_file tgt_file

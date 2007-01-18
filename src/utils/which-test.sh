@@ -5,10 +5,11 @@
 #
 # Eric Joanis
 #
-# Groupe de technologies langagières interactives / Interactive Language Technologies Group
+# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2005, Conseil national de recherches du Canada / Copyright 2005, National Research Council of Canada
+# Copyright 2005, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2005, Her Majesty in Right of Canada
 
 # Usage: which-test.sh prog
 # Exists with status code 0 if prog is on the path and executable, 1 otherwise.

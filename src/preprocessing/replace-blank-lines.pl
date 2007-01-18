@@ -2,12 +2,13 @@
 
 # Programmer: George Foster.
 #
-# Copyright (c) 2006 Conseil national de recherches Canada / National Research Council Canada
+# Copyright (c) 2006, Sa Majeste la Reine du Chef du Canada /
+# Copyright (c) 2006, Her Majesty in Right of Canada
 
 use strict;
 use warnings;
 
-print STDERR "replace-blank-lines.pl, Copyright (c) 2006, Conseil national de recherches Canada / National Research Council Canada\n";
+print STDERR "replace-blank-lines.pl, Copyright (c) 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada\n";
 
 my $HELP =
 "Usage: $0 main-trans backup-trans

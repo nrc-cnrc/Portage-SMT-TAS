@@ -14,12 +14,12 @@
  * parameter.
  *
  *
- * Groupe de technologies langagières interactives /
+ * Groupe de technologies langagieres interactives /
  *    Interactive Language Technologies Group
  * Institut de technologie de l'information /
  *    Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2006, Conseil national de recherches du Canada /
+ * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
  *    National Research Council of Canada
  */
 

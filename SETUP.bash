@@ -3,10 +3,11 @@
 #
 # Eric Joanis
 #
-# Groupe de technologies langagières interactives / Interactive Language Technologies Group
+# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2006, Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2006, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2006, Her Majesty in Right of Canada
 
 
 # =======================================================================
@@ -20,7 +21,7 @@ export PORTAGE=$HOME/PORTAGEshared
 # END OF USER CONFIGURABLE VARIABLE
 # =======================================================================
 
-echo 'PORTAGEshared, Copyright (c) 2004 - 2006, Conseil national de recherches Canada / National Research Council Canada'
+echo 'PORTAGEshared, Copyright (c) 2004 - 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada'
 
 if [ ${PATH:-UNDEF} = "UNDEF" ] ; then
     export PATH=$PORTAGE/bin

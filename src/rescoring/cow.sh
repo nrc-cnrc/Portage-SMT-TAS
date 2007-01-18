@@ -5,7 +5,7 @@
 # renamed from rescoreloop.sh
 #
 # Aaron Tikuisis / George Foster / Eric Joanis
-# Groupe de technologies langagières interactives / Interactive Language Technologies Group
+# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 
@@ -104,7 +104,7 @@ FFVALPARSER_OPTS="-canoe"
 ##     echo STOP_AFTER=0 > COW_DYNAMIC_OPTIONS
 ##
 
-echo 'cow.sh, Copyright (c) 2004 - 2006, Conseil national de recherches Canada / National Research Council Canada'
+echo 'cow.sh, Copyright (c) 2004 - 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada'
 
 #------------------------------------------------------------------------------
 # Argument processing & checking

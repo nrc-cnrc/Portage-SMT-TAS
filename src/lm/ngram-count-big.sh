@@ -8,13 +8,13 @@
 #
 # PROGRAMMER: Eric Joanis
 #
-# Groupe de technologies langagières interactives / Interactive Language Technologies Group
+# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2006, Conseil national de recherches Canada
-# Copyright 2006, National Research Council Canada
+# Copyright 2006, Sa Majeste la Reine du Chef du Canada
+# Copyright 2006, Her Majesty in Right of Canada
 
-echo 'ngram-count-big.sh, Copyright (c) 2006, Conseil national de recherches Canada / National Research Council Canada'
+echo 'ngram-count-big.sh, Copyright (c) 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada'
 
 usage() {
    for msg in "$@"; do

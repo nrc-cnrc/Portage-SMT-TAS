@@ -8,10 +8,11 @@
  * Convert a joint-frequency phrase table (as output by gen_phrase_tables -i or -j)
  * into 2 conditional probability tables (as required by canoe).
  *
- * Groupe de technologies langagières interactives / Interactive Language Technologies Group
+ * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2005, Conseil national de recherches du Canada / Copyright 2005, National Research Council of Canada
+ * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
+ * Copyright 2005, Her Majesty in Right of Canada
  */
 
 #include <unistd.h>

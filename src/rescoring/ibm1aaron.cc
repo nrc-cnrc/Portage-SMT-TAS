@@ -11,10 +11,11 @@
  * \f$ \max_{f:\mbox{src\_toks} \rightarrow \mbox{tgt\_toks} (1-1)} \sum_{s \in \mbox{src\_toks}}
  *	( \frac{P(f(s)|s)}{max_{t \in \mbox{tgt\_vocab}} P(t|s)} ) \f$
  * 
- * Groupe de technologies langagières interactives / Interactive Language Technologies Group 
+ * Groupe de technologies langagieres interactives / Interactive Language Technologies Group 
  * Institut de technologie de l'information / Institute for Information Technology 
  * Conseil national de recherches Canada / National Research Council Canada 
- * Copyright 2004, Conseil national de recherches du Canada / Copyright 2004, National Research Council of Canada 
+ * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
+ * Copyright 2004, Her Majesty in Right of Canada 
  */
 
 #include "featurefunction.h"

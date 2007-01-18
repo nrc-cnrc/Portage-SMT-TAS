@@ -2,9 +2,10 @@
 # $Id$
 
 # George Foster
-# Groupe de technologies langagières interactives / Interactive Language Technologies Group
+# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
 # Institut de technologie de l'information / Institute for Information Technology
-# Copyright 2006, Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2006, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2006, Her Majesty in Right of Canada
 
 segFF=0
 distFF=1
@@ -23,7 +24,7 @@ numLM=1
 ## -l  Assume L language models (1 or more) [1]
 ##
 
-echo 'rescoremodel2canoearg.sh, Copyright (c) 2006, Conseil national de recherches Canada / National Research Council Canada' >&2
+echo 'rescoremodel2canoearg.sh, Copyright (c) 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada' >&2
 
 while getopts "l:d:s:t:h" flag; do
    case $flag in 

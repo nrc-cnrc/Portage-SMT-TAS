@@ -1,10 +1,11 @@
 #!/bin/bash
 
 # Aaron Tikuisis
-# Groupe de technologies langagières interactives / Interactive Language Technologies Group
+# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2005, Conseil national de recherches du Canada / Copyright 2005, National Research Council of Canada
+# Copyright 2005, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2005, Her Majesty in Right of Canada
 
 ## 
 ## Usage: getcolumn.sh COLNUM [FILE]
@@ -17,7 +18,7 @@
 ## FILE	The file, or - for standard input.  [-]
 ##
 
-echo 'getcolumn.sh, Copyright (c) 2004 - 2006, Conseil national de recherches Canada / National Research Council Canada' >&2
+echo 'getcolumn.sh, Copyright (c) 2004 - 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada' >&2
 
 if [ $# -lt 1 -o $# -gt 2 -o "$1" == "-h" ]; then
     cat $0 | grep "^##" | cut -c4-

@@ -12,10 +12,11 @@
  *
  * The idea is to have a sort of measure of how many source words have not been translated (or been translated badly).
  * 
- * Groupe de technologies langagières interactives / Interactive Language Technologies Group 
+ * Groupe de technologies langagieres interactives / Interactive Language Technologies Group 
  * Institut de technologie de l'information / Institute for Information Technology 
  * Conseil national de recherches Canada / National Research Council Canada 
- * Copyright 2006, Conseil national de recherches du Canada / Copyright 2006, National Research Council of Canada 
+ * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
+ * Copyright 2006, Her Majesty in Right of Canada 
  */
 
 #ifndef IBM1DEL_FF_H

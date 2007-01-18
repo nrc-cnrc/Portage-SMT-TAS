@@ -10,7 +10,7 @@
 # Bigger example test, using 55813 input lines:
 # masstesting.sh $PORTAGE/test-suite/regress-small-voc/europarl.en.srilm $PORTAGE/test-suite/regress-small-voc/lc/europarl.fr-en.en.lowercase
 
-echo 'masstesting.sh, Copyright (c) 2006, Conseil national de recherches Canada / National Research Council Canada'
+echo 'masstesting.sh, Copyright (c) 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada'
 
 LM=$1
 TEST=$2

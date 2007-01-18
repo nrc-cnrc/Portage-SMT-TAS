@@ -12,7 +12,7 @@ use Exporter;
 # just a dumb comment
 # ----------------------------------------------------------------------------
 
-print STDERR "parser.en.pl, Copyright (c) 2005 - 2006, Conseil national de recherches Canada / National Research Council Canada\n";
+print STDERR "parser.en.pl, Copyright (c) 2005 - 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada\n";
 
 $direng = "/export/projets/portage/models/parsing-dictionaries/English/";
 #$dirf= "/export/projets/portage/corpora/NIST-05/processed-v1/";

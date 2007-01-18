@@ -10,10 +10,11 @@
 #
 # COMMENTS:
 #
-# Groupe de technologies langagières interactives / Interactive Language Techno ogies Group
+# Groupe de technologies langagieres interactives / Interactive Language Techno ogies Group
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2005, Conseil national de recherches du Canada / Copyright 2005, National Research Council of Canada
+# Copyright 2005, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2005, Her Majesty in Right of Canada
 
 use strict;
 
@@ -218,7 +219,7 @@ sub GetFirstLine {
 
 sub PrintHelp {
 print <<'EOF';
-  faucet.pl, Copyright (c) 2005 - 2006, Conseil national de recherches Canada / National Research Council Canada
+  faucet.pl, Copyright (c) 2005 - 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada
 
   NAME: faucet.pl
 
