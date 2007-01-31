@@ -11,10 +11,11 @@
 
 all: test
 
-doc:
-	pdflatex toy.tex
-	pdflatex toy.tex
+toy.pdf: toy.tex
+	pdflatex -interaction=batchmode toy.tex
+	pdflatex -interaction=batchmode toy.tex
 
+doc: toy.pdf
 
 .PHONY: clean tokenize align lowercase split lm tm cow rat translate rescore test all
 
@@ -24,7 +25,7 @@ clean:
 	rm -f canoe.ini.* powellweights.* rescore-results* *.FILT log.*
 	rm -rf foos tmp
 	rm -f *.tmp* dev*.al.* test*.al.* rat rescore-model
-	rm -f *.out *.bleu 
+	rm -f *.out *.bleu
 
 txtfiles := $(wildcard *.txt)
 
