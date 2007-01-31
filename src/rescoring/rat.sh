@@ -38,7 +38,6 @@ MODEL    The rescoring model. Any features of the form FileFF:ff.FNAME[.ARGS]
          generated ffvals file (contents of columns depend on canoe.ini). If
          training, the final model is written back to the MODEL file. Run
          "rescore_train -H" for the list of supported features.
-         MODEL.train will be written in train mode, and used in translate mode.
 SRC      Source file, in standard format.
 REFS     One or more reference translations, in standard format.
 
@@ -107,7 +106,7 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-if [ "$MODE" == "" ]; then
+if [ "$MODE" = "" ]; then
     error_exit "Missing MODE keyword"
 fi
 shift
@@ -158,20 +157,20 @@ SRC=$2
 shift; shift
 
 REFS=$*
-if [ "$MODE" == "train" ] && (( $# == 0 )); then
+if [ "$MODE" = "train" ] && (( $# == 0 )); then
     error_exit "Need reference texts for training."
 fi
 
 # In trans mode, run bleumain if references are passed.
-#if [ "$MODE" == "trans" ] && (( $# != 0 )); then
+#if [ "$MODE" = "trans" ] && (( $# != 0 )); then
 #    error_exit "Too many arguments for translation mode."
 #fi
 
 
 # default values for some args
 
-if [ "$MSRC" == "" ]; then MSRC=$SRC; fi
-if [ "$PFX" == "" ]; then PFX="`basename $MSRC`."; fi
+if [ "$MSRC" = "" ]; then MSRC=$SRC; fi
+if [ "$PFX" = "" ]; then PFX="`basename $MSRC`."; fi
 if (( $VERBOSE )); then DASHV="-v"; fi
 
 # arg checking
@@ -185,12 +184,12 @@ fi
 if [ ! -e $MODEL ]; then
     error_exit "Error: Model file $MODEL does not exist."
 fi
-if [ "$MODE" == "train" ]; then
+if [ "$MODE" = "train" ]; then
     if [ \( -e $TRAINED_MODEL -a ! -w $TRAINED_MODEL \) -o ! -w `dirname $TRAINED_MODEL` ]; then
         error_exit "Error: File $TRAINED_MODEL is not writable."
     fi
 fi
-if [ "$MODE" == "trans" ]; then
+if [ "$MODE" = "trans" ]; then
     if [ ! -e $TRAINED_MODEL ]; then
         error_exit "Error: Model file $TRAINED_MODEL does not exist."
     fi
@@ -306,7 +305,7 @@ if (( $VERBOSE )); then
     echo ""
 fi
 
-if [ "$N" == 1 ]; then
+if [ "$N" = 1 ]; then
     gen-features-parallel.sh $DASHV -c $CANOE_CONFIG -a $PAL -p $PFX $MODEL $SRC $NBEST 2>&1
 else
     if [ "$N" = 0 ]; then
@@ -332,12 +331,12 @@ fi
 
 if (( $VERBOSE )); then
     echo ""
-    if [ "$MODE" == "train" ]; then echo "Training rescoring model:"; fi
-    if [ "$MODE" == "trans" ]; then echo "Translating with rescoring model:"; fi
+    if [ "$MODE" = "train" ]; then echo "Training rescoring model:"; fi
+    if [ "$MODE" = "trans" ]; then echo "Translating with rescoring model:"; fi
     echo ""
 fi
 
-if [ "$MODE" == "train" ]; then
+if [ "$MODE" = "train" ]; then
     if [ $TRAINED_MODEL != $MODEL ]; then
         perl -pe 's#/#_#g' < $MODEL > $TRAINED_MODEL
     fi
