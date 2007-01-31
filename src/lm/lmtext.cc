@@ -112,10 +112,7 @@ LMText::LMText(const string& lm_file_name, Voc *vocab, bool unk_tag,
    : PLM(vocab, unk_tag, oov_unigram_prob)
    , trie(12)
 {
-   // Avoid filtering the UNK_Symbol if we need it
-   if ( unk_tag && vocab )
-      vocab->add(UNK_Symbol);
-
+   assert(vocab);
    read(lm_file_name, limit_vocab, limit_order, os_filtered);
 }
 
@@ -145,11 +142,17 @@ void LMText::read(const string& lm_file_name, bool limit_vocab, Uint limit_order
 
    // read the blocks showing how many lines to expect for each order
    while (getline(in, line)) {
-      if ( line == "" ) break;
+      line = trim(line);
+      if ( line.substr(0,1) == "\\" )
+         break;
+      if ( line == "" )
+         continue;
       Uint order;
       Uint count;
-      int res = sscanf(line.c_str(), "ngram %u=%u", &order, &count);
-      if ( res != 2 )
+      vector<string> tokens;
+      split(line, tokens);
+      if ( tokens.size() != 2 || tokens[0] != "ngram" ||
+           2 != sscanf(tokens[1].c_str(), "%u=%u", &order, &count) )
          error(ETFatal, "Bad \\data\\ section in %s: %s not in 'ngram N=M' format",
             lm_file_name.c_str(), line.c_str());
       if ( order != ngram_counts.size() + 1 )
@@ -178,9 +181,12 @@ void LMText::read(const string& lm_file_name, bool limit_vocab, Uint limit_order
       stringstream ss;
       ss << "\\" << order << "-grams:";
       string ngram_line = ss.str();
-      while (getline(in, line)) {
+
+      do {
+         line = trim(line);
          if ( line == ngram_line ) break;
-      }
+      } while (getline(in, line));
+
       if ( in.eof() )
          error(ETFatal, "EOF before \\%u-grams: sections in %s",
             lm_file_name.c_str(), order);
@@ -221,14 +227,14 @@ void LMText::read(const string& lm_file_name, bool limit_vocab, Uint limit_order
       //cerr << trie.getStats() << endl;
    }
 
-   // If we are filtering the LM we must cat the proper header with the proper stats
-   // with the tmp_file containing the kept lines.
+   // If we are filtering the LM we must cat the proper header with the proper
+   // stats with the tmp_file containing the kept lines.
    if (os_filtered != NULL)
    {
       if (tmp_os_filtered) delete tmp_os_filtered;
 
       // Building the Header
-      *os_filtered << "\\data\\" << endl << endl;
+      *os_filtered << "\\data\\" << endl;
 
       for (Uint i(0); i<sentenceCount.size(); ++i)
          *os_filtered << "ngram " << i+1 << "=" << sentenceCount[i] << endl;
@@ -298,7 +304,8 @@ void LMText::readLine(
          while (s_tok != NULL) {
             ++tok_count;
             if ( tok_count > order )
-               error(ETFatal, "N-gram of greater order in %d-gram section: %s ,%d, %d",
+               error(ETFatal,
+                  "N-gram of greater order in %d-gram section: %s ,%d, %d",
                   order, line.c_str(), tok_count, order);
             if ( limit_vocab ) {
                phrase[order-tok_count] = vocab->index(s_tok);
@@ -319,7 +326,7 @@ void LMText::readLine(
             assert (limit_vocab);
             continue;
          } 
-            
+
          if (os_filtered != 0) *os_filtered << line << endl;
 
          if ( tok_count != order )

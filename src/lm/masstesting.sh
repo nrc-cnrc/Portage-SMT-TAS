@@ -2,23 +2,23 @@
 
 # Compare the output of our LM implementation with that of SRILM on identical
 # input.
-
-#masstesting.sh lmfile testset
+# Usage: masstesting.sh lm_for_srilm lm_for_portage testset
 
 # example test from the test suite, using 96 input lines:
-# masstesting.sh $PORTAGE/test-suite/regress-small-voc/europarl.en.srilm $PORTAGE/test-suite/regress-small-voc/lc/test2000.en.lowercase
+# masstesting.sh $PORTAGE/test-suite/regress-small-voc/europarl.en.srilm{,} $PORTAGE/test-suite/regress-small-voc/lc/test2000.en.lowercase
 # Bigger example test, using 55813 input lines:
-# masstesting.sh $PORTAGE/test-suite/regress-small-voc/europarl.en.srilm $PORTAGE/test-suite/regress-small-voc/lc/europarl.fr-en.en.lowercase
+# masstesting.sh $PORTAGE/test-suite/regress-small-voc/europarl.en.srilm{,} $PORTAGE/test-suite/regress-small-voc/lc/europarl.fr-en.en.lowercase
 
 echo 'masstesting.sh, Copyright (c) 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada'
 
-LM=$1
-TEST=$2
+LM_FOR_SRILM=$1
+LM_FOR_PORTAGE=$2
+TEST=$3
 
 #we first do the ngram SRILM way of doing things, egrep logs and put that in a file
 
-echo cat $TEST \| time ngram -lm $LM -ppl - -debug 2 '| egrep -e"^	p" |  sed "s/.*] //" |' " cut -f3 -d' ' > srilmtestfile"
-cat $TEST | time ngram -lm $LM -ppl - -debug 2 2 | egrep -e"^	p" |  sed "s/.*] //" | cut -f3 -d' ' > srilmtestfile
+echo time ngram -lm $LM_FOR_SRILM -ppl $TEST -debug 2 '| egrep -e"^	p" |  sed "s/.*] //" |' " cut -f3 -d' ' > srilmtestfile"
+time ngram -lm $LM_FOR_SRILM -ppl $TEST -debug 2 2 | egrep -e"^	p" |  sed "s/.*] //" | cut -f3 -d' ' > srilmtestfile
 
 # then we do the same thing with our various implementations and compare the
 # results
@@ -28,9 +28,9 @@ ALL_GOOD=1
 echo ""
 echo "=================== LMText -limit =================="
 echo ""
-echo time testlm -limit $LM $TEST \> lmtexttestfile
+echo time ./testlm -limit $LM_FOR_PORTAGE $TEST \> lmtexttestfile
 echo ""
-time testlm -limit $LM $TEST > lmtexttestfile
+time ./testlm -limit $LM_FOR_PORTAGE $TEST > lmtexttestfile
 
 echo ""
 echo diff -q srilmtestfile lmtexttestfile
@@ -45,9 +45,9 @@ fi
 echo ""
 echo "====================== LMText ======================"
 echo ""
-echo time testlm $LM $TEST \> lmtexttestfile-no-limit
+echo time ./testlm $LM_FOR_PORTAGE $TEST \> lmtexttestfile-no-limit
 echo ""
-time testlm $LM $TEST > lmtexttestfile-no-limit
+time ./testlm $LM_FOR_PORTAGE $TEST > lmtexttestfile-no-limit
 
 echo ""
 echo diff -q srilmtestfile lmtexttestfile-no-limit

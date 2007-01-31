@@ -94,7 +94,7 @@ public:
     *                      [typical value: 0]
     * @param oov_unigram_prob  the unigram prob of OOVs (if !UNK_tag)
     *                      [typical value: -INFINITY]
-    * @param os_filtered  Opened stream to output the filtered LM.
+    * @param os_filtered   Opened stream to output the filtered LM.
     */
    static PLM* Create(const string& lm_filename, Voc* vocab, bool UNK_tag,
                       bool limit_vocab, Uint limit_order,

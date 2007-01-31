@@ -10,9 +10,9 @@
  * Copyright 2006, Her Majesty in Right of Canada
  */
 
-#include <lm.h>
-#include <lmtext.h>
-#include <lmbin.h>
+#include "lm.h"
+#include "lmbin.h"
+#include "lmtext.h"
 #include <string>
 #include <assert.h>
 #include <str_utils.h>
@@ -44,10 +44,11 @@ PLM* PLM::Create(const string& lm_filename, Voc* vocab, bool UNK_tag,
       lm_physical_filename.resize(hash_pos);
    }
 
-   // Make sure SentStart and SentEnd are in the vocab
    if ( vocab ) {
+      // Make sure SentStart and SentEnd and UNK_Symbol are in the vocab
       vocab->add(SentStart);
       vocab->add(SentEnd);
+      vocab->add(UNK_Symbol);
    }
 
    PLM* lm;
