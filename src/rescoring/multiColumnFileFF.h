@@ -49,6 +49,12 @@ class multiColumnFileFF
        */
       float get(const Uint colIdx, const int k);
 
+      /**
+       * Verifies if this unit is at the end of the file.
+       * @return true if unit is at end of file.
+       */
+      bool eof() { return m_file.peek() == EOF; }
+
    private:
       /// Disabled constructor.
       multiColumnFileFF();

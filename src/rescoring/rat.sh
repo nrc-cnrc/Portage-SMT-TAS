@@ -20,7 +20,8 @@ usage() {
     done
     cat <<==EOF==
 
-rat.sh [cp-opts] MODE [-v][-f cfg][-K nb][-n jobs][-p pfx][-msrc MSRC] MODEL SRC [REFS]
+rat.sh [cp-opts] MODE [-v][-f cfg][-K nb][-n jobs][-p pfx][-msrc MSRC]
+       [-o MODEL_OUT] MODEL SRC [REFS]
 
 Train or translate with a rescoring model: first generate nbest lists & ffvals
 for a given source file, then generate external feature files required for
@@ -59,9 +60,9 @@ cp-opts  Options to canoe-parallel.sh - just the initial block, before the
 Note: if any intermediate files already exist, this script currently overwrites
 them. To add extra features to an existing model, make sure you remove write
 permission from existing feature files (pending a better solution!).
-To add externally-generated features, eg FileFF:my-feature (NOT FileFF:ff.my-feature!),
-call the associated feature files <pfx>my-feature, where pfx is the argument to the -p
-option.
+To add externally-generated features, eg FileFF:my-feature (NOT
+FileFF:ff.my-feature!), call the associated feature files <pfx>my-feature,
+where pfx is the argument to the -p option.
 
 ==EOF==
 
@@ -121,6 +122,7 @@ K=1000
 N=0
 PFX=
 MSRC=
+MODEL_OUT=
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -133,6 +135,7 @@ while [ $# -gt 0 ]; do
     -n)          arg_check 1 $# $1; N=$2; shift;;
     -p)          arg_check 1 $# $1; PFX=$2; shift;;
     -msrc)       arg_check 1 $# $1; MSRC=$2; shift;;
+    -o)          arg_check 1 $# $1; MODEL_OUT=$2; shift;;
 
     --)          shift; break;;
     -*)          error_exit "Unknown option $1.";;
@@ -143,18 +146,12 @@ done
 
 if [ $# -lt 2 ]; then error_exit "Expected at least 2 arguments."; fi
 MODEL=$1
-if [ "$MODE" = "trans" ]; then
-    # in translate mode, accept the model with or without the .w suffix
-    MODEL=${MODEL%.w}
-fi
-# The trained model file need only be different from $MODEL if it contains /
-if grep / $MODEL >& /dev/null; then
-    TRAINED_MODEL=$MODEL.w
-else
-    TRAINED_MODEL=$MODEL
-fi
 SRC=$2
 shift; shift
+
+if [ "$MODE" = train -a -z "$MODEL_OUT" ]; then
+   MODEL_OUT=$MODEL
+fi
 
 REFS=$*
 if [ "$MODE" = "train" ] && (( $# == 0 )); then
@@ -185,13 +182,14 @@ if [ ! -e $MODEL ]; then
     error_exit "Error: Model file $MODEL does not exist."
 fi
 if [ "$MODE" = "train" ]; then
-    if [ \( -e $TRAINED_MODEL -a ! -w $TRAINED_MODEL \) -o ! -w `dirname $TRAINED_MODEL` ]; then
-        error_exit "Error: File $TRAINED_MODEL is not writable."
+    if [ \( -e $MODEL_OUT -a ! -w $MODEL_OUT \) -o ! -w `dirname $MODEL_OUT` ]
+    then
+        error_exit "Error: File $MODEL_OUT is not writable."
     fi
 fi
 if [ "$MODE" = "trans" ]; then
-    if [ ! -e $TRAINED_MODEL ]; then
-        error_exit "Error: Model file $TRAINED_MODEL does not exist."
+    if [ ! -e $MODEL ]; then
+        error_exit "Error: Model file $MODEL does not exist."
     fi
 fi
 if [ ! -r $MSRC ]; then
@@ -310,7 +308,7 @@ if [ "$N" = 1 ]; then
 else
     if [ "$N" = 0 ]; then
         if [ "$CLUSTER" = 1 ]; then
-            N=`gen-features-parallel.sh -n $MODEL $SRC $NBEST | wc -l`
+            N=`gen-features-parallel.sh -n $MODEL $SRC $NBEST 2>/dev/null | wc -l`
         else
             N=3
         fi
@@ -337,18 +335,15 @@ if (( $VERBOSE )); then
 fi
 
 if [ "$MODE" = "train" ]; then
-    if [ $TRAINED_MODEL != $MODEL ]; then
-        perl -pe 's#/#_#g' < $MODEL > $TRAINED_MODEL
-    fi
     if (( $VERBOSE )); then
-        echo rescore_train $DASHV -n -p $PFX $TRAINED_MODEL $TRAINED_MODEL $SRC $NBEST $REFS
+        echo rescore_train $DASHV -n -p $PFX $MODEL $MODEL_OUT $SRC $NBEST $REFS
     fi
-    rescore_train $DASHV -n -p $PFX $TRAINED_MODEL $TRAINED_MODEL $SRC $NBEST $REFS
+    rescore_train $DASHV -n -p $PFX $MODEL $MODEL_OUT $SRC $NBEST $REFS
 else
     if (( $VERBOSE )); then
-        echo rescore_translate $DASHV -p $PFX $TRAINED_MODEL $SRC ${NBEST} \> ${PFX}rat
+        echo rescore_translate $DASHV -p $PFX $MODEL $SRC ${NBEST} \> ${PFX}rat
     fi
-    rescore_translate $DASHV -p $PFX $TRAINED_MODEL $SRC ${NBEST} > ${PFX}rat
+    rescore_translate $DASHV -p $PFX $MODEL $SRC ${NBEST} > ${PFX}rat
 fi
 
 if (( $? != 0 )); then

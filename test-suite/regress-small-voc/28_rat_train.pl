@@ -68,13 +68,13 @@ if ( -r "${wfr_r}/canoe.ini.cow" ) {
 
 my $model1 = << "END";
 FileFF:ff.LengthFF
-FileFF:ff.NgramFF.${corp0}/europarl.en.srilm
-FileFF:ff.IBM1TgtGivenSrc.../ibm1.en_given_${fr}
-FileFF:ff.IBM1SrcGivenTgt.../ibm1.${fr}_given_en
-FileFF:ff.IBM2TgtGivenSrc.../ibm2.en_given_${fr}
-FileFF:ff.IBM2SrcGivenTgt.../ibm2.${fr}_given_en
-FileFF:ff.IBM1WTransTgtGivenSrc.../ibm1.en_given_${fr}
-FileFF:ff.IBM1WTransSrcGivenTgt.../ibm1.${fr}_given_en
+VFileFF:ff.NgramFF.${corp0}/europarl.en.srilm
+VFileFF:ff.IBM1TgtGivenSrc.../ibm1.en_given_${fr}
+VFileFF:ff.IBM1SrcGivenTgt.../ibm1.${fr}_given_en
+VFileFF:ff.IBM2TgtGivenSrc.../ibm2.en_given_${fr}
+VFileFF:ff.IBM2SrcGivenTgt.../ibm2.${fr}_given_en
+VFileFF:ff.IBM1WTransTgtGivenSrc.../ibm1.en_given_${fr}
+VFileFF:ff.IBM1WTransSrcGivenTgt.../ibm1.${fr}_given_en
 END
 
 my $number_of_features = `cd ${wfr_t}; configtool nf canoe.ini`;

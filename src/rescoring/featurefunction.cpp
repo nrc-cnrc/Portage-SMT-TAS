@@ -97,7 +97,7 @@ FileFF::FileFF(const string& filespec)
 {
    string::size_type idx = filespec.rfind(',');
    m_filename = filespec.substr(0, idx);
-   
+
    if (idx != string::npos) {
       string coldesc = filespec.substr(idx+1);
       if (!conv(coldesc, m_column))
@@ -108,6 +108,29 @@ FileFF::FileFF(const string& filespec)
    m_info = multiColumnFileFFManager::getManager().getUnit(m_filename);
    assert(m_info != 0);
 }
+
+
+//---------------------------------------------------------------------------------------
+// VFileFF
+//---------------------------------------------------------------------------------------
+
+VFileFF::VFileFF(const string& arg)
+: FileFF(convert2file(arg))
+{}
+
+string VFileFF::convert2file(const string& arg)
+{
+   string filename(arg);
+   // Converts the slashes of the arguments to underscores
+   // based on the rat.sh script
+   string::size_type slash = filename.find('/', filename.find("ff."));
+   while (slash != string::npos) {
+      filename[slash] = '_';
+      slash = filename.find('/', slash);
+   }
+   return filename;
+}
+
 
 //---------------------------------------------------------------------------------------
 // FileDFF
@@ -141,6 +164,7 @@ FileDFF::FileDFF(const string& filespec)
          {
             fields.clear();
             split(gc[k], fields, " \t\n\r");
+            assert(fields.size() >= col);
             convertme = &fields[col-1];
          }
 
@@ -221,11 +245,18 @@ void FeatureFunctionSet::computeFFMatrix(uMatrix& H, const Uint s, Nbest &nbest)
          ++l;
       }
    }
+   // Unfortunately if the last set of nbest contains empty lines we must read
+   // them because there is a check for consistency that will later fail if not
+   // read.
+   for (Uint m = 0; m < M(); ++m)
+      ff_infos[m].function->value(K-1);
+
 
    Nbest::iterator last = remove_if(nbest.begin(), nbest.end(), isEmpty);
    assert(Uint(nbest.end()-last) == empty);
    assert(Uint(last-nbest.begin()) == K-empty);
    nbest.resize(K-empty);
+   assert(l==nbest.size());
 }
 
 // Read description of a feature set from a file.
@@ -306,6 +337,19 @@ void FeatureFunctionSet::write(const string& filename)
    for (Uint i(0); i < ff_infos.size(); ++i)
       ostr << ff_infos[i].fullDescription << " " << ff_infos[i].weight << endl;
 }
+   
+bool FeatureFunctionSet::complete()
+{
+   bool bRetour(true);
+
+   typedef FF_INFO::iterator IT;
+   for (IT it(ff_infos.begin()); it!=ff_infos.end(); ++it)
+   {
+      bRetour &= it->function->done();
+   }
+
+   return bRetour;
+}
 
 template<typename T>
 struct null_deleter
@@ -323,11 +367,24 @@ ptr_FF FeatureFunctionSet::create(const string& name, const string& arg,
    //cerr << "create(name = " << name << ", arg = " << arg << endl;
 
    if (name == "FileFF") {
-      string fileff_arg = fileff_prefix ? fileff_prefix + arg : arg;
+      const string fileff_arg = fileff_prefix ? fileff_prefix + arg : arg;
+      // TODO what happens when we have /path/ff.file.arg, where does the prefix fit?
+      // now it will yield fileff_prefix/path/ff.file.arg
+
       if (isDynamic)
          ff = new FileDFF(fileff_arg);
       else
          ff = new FileFF(fileff_arg);
+   } else if (name == "VFileFF") {
+      string fileff_arg(arg);
+      if (fileff_prefix) {
+         string::size_type i = arg.find("ff.");
+         if (i != string::npos)
+            fileff_arg.insert(i, fileff_prefix);
+         else
+            fileff_arg = fileff_prefix + arg;
+      }
+      ff = new VFileFF(fileff_arg);  
    } else if (name == "LengthFF") {
       ff = new LengthFF();
    } else if (name == "NgramFF") {
@@ -371,6 +428,7 @@ Features available:\n\
  IBM1WTransTgtGivenSrc:ibm1.tgt_given_src - IBM1 check if all words translated\n\
  IBM1WTransSrcGivenTgt:ibm1.src_given_tgt - IBM1 check if no words inserted\n\
  FileFF:file[,column] - pre-computed feature\n\
+ VfileFF:file[,column] - like FileFF, but substitutes any / by _ in file\n\
 \n\
 The <FileFF> feature reads from a file of pre-computed values, optionally\n\
 picking out a particular column; the program gen_feature_values can be used to\n\

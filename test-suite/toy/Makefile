@@ -95,9 +95,8 @@ canoe.ini.cow: phrases.fr2en train_en.lm
 
 rat: rescore-model
 rescore-model: canoe.ini.cow
-	cp -f rescore-model.ini rescore-model
-	rat.sh -n 1 train -n 1 -f canoe.ini.cow -K 100 rescore-model \
-           dev2_fr.al dev2_en.al &> log.rat
+	rat.sh -n 1 train -n 1 -f canoe.ini.cow -K 100 -o rescore-model \
+           rescore-model.ini dev2_fr.al dev2_en.al &> log.rat
 
 translate: canoe_ON_test_fr.out
 canoe_ON_test_fr.out: canoe.ini.cow

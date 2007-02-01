@@ -37,7 +37,9 @@ float multiColumnFileFF::get(const Uint colIdx, const int k)
       std::string line;
       std::vector<std::string> fields;
       
-      std::getline(m_file, line);
+      if (std::getline(m_file, line).eof())
+         error(ETFatal, "Premature end of file while reading ffval");
+
       ++m_line;
       split(line, fields, " \t\n\r");
       // assert(fields.size() > 0);
@@ -68,8 +70,6 @@ float multiColumnFileFF::get(const Uint colIdx, const int k)
 // multiCOlumnFFolumnFFfileManager
 multiColumnFileFFManager::~multiColumnFileFFManager()
 {
-   //for (MIT mit(m_map.begin()); mit!=m_map.end(); ++mit)
-   //   delete mit->second;
    m_map.clear();
 }
 
@@ -84,4 +84,4 @@ multiColumnUnit multiColumnFileFFManager::getUnit(const std::string& filename)
       return mit->second;
    }
 }
-                                                                                       
+

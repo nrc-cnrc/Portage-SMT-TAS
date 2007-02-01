@@ -96,6 +96,13 @@ public:
     */
    virtual double value(Uint k) = 0;
 
+   /**
+    * Makes sure the feature is done doing what it was supposed to do.  Mainly
+    * used to know if the file feature was done reading the input file.
+    * @return Returns true if feature was done completely.
+    */
+   virtual bool done() { return true; }
+
 protected:
 
    /// Source sentences
@@ -148,8 +155,10 @@ private:
 
 public:
 
+   /// Definition of feature function infos.
+   typedef vector<ff_info> FF_INFO;
    /// Information for each feature function in this set.
-   vector<ff_info>  ff_infos;
+   FF_INFO ff_infos;
 
    /// Constructor.
    /// You must call read(const string& filename, bool verbose, const char* fileff_prefix, bool isDynamic, bool useNullDeleter)
@@ -216,6 +225,12 @@ public:
     * empty hypotheses).
     */
    void computeFFMatrix(uMatrix& H, const Uint s, Nbest &nbest);
+
+   /**
+    * Makes sure all feature are done.  Mainly the reading file feature.
+    * @return Returns false if at least one feature was not done.
+    */
+   bool complete();
 
    /**
     * Create a new feature function from its name and argument
@@ -290,6 +305,38 @@ public:
    virtual double value(Uint k) {
       return m_info->get(m_column, s*K + k);
    }
+
+   virtual bool done() {
+      return m_info->eof();
+   }
+};
+
+
+//------------------------------------------------------------------------------
+/**
+ * Read-from-file feature function which contains arguments that are containing a path.
+ * Historical facts: this feature function was added because of rat.sh that
+ * would have to create a separate rescoring-model to allows feature function
+ * file name with ff that would contain filepath in their arguments.
+ */
+class VFileFF : public  FileFF 
+{
+public:
+   /**
+    * Construct.
+    * @param filespec spec of form filename.arg[,i] - if "<i>" specified, use the ith
+    * column in file "<filename>", otherwise there must only be one value per line.
+    * Where arg can contain a file path that must be converted to a unix file
+    * name by replacing slashes for underscores.
+    */
+   VFileFF(const string& filespec);
+
+   /**
+    * Replaces the slashes found after the left most occurrence of "ff." by underscores.
+    * @param arg  feature function file name containing a path in its argument.
+    * @return Returns the transformed function feature file name.
+    */
+   static string convert2file(const string& arg);
 };
 
 
