@@ -72,7 +72,7 @@ Options:\n\
        languages. Has to be at least 1. [1,1]\n\
 -d     Max permissible difference in number of words between source and\n\
        target phrases. [4]\n\
--ibm   Use IBM model <n>: 1 or 2 [1]\n\
+-ibm   Use IBM model <n>: 1 or 2 [2]\n\
 -twist With IBM1, assume one language has reverse word order.\n\
        No effect with IBM2.\n\
 -addsw Add single-word phrase pairs for each alignment link [don't] \n\
@@ -139,7 +139,7 @@ static string lang2("fr");
 static string name("phrases");
 static string freqs1;
 static string freqs2;
-static Uint ibm_num = 1;
+static Uint ibm_num = 2;
 static bool tmtext_output = false;
 static string multipr_output = "";
 static bool compress_output = false;
