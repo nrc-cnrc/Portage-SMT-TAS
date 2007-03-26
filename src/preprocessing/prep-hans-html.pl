@@ -15,7 +15,7 @@
 use HTML::TokeParser();
 use locale;
 
-print STDERR "prep-hans-html.pl, Copyright (c) 2005 - 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada\n";
+print STDERR "prep-hans-html.pl, NRC-CNRC, (c) 2005 - 2007, Her Majesty in Right of Canada\n";
 
 $HELP = "
 prep-hans-html.pl [in [out]]

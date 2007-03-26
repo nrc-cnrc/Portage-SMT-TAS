@@ -13,7 +13,7 @@
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2006, Her Majesty in Right of Canada
 
-echo 'prog.sh, Copyright (c) 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada' >&2
+echo 'prog.sh, NRC-CNRC, (c) 2006 - 2007, Her Majesty in Right of Canada' >&2
 
 usage() {
    for msg in "$@"; do

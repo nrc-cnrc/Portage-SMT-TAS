@@ -24,10 +24,10 @@ namespace Portage {
     */
    inline void printCopyright(const unsigned int startDate, const char* progName)
    {
-      if ( startDate < 2006 ) {
-         fprintf(stderr, "\n%s, Copyright (c) %d - 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada\n", progName, startDate);
+      if ( startDate < 2007 ) {
+         fprintf(stderr, "\n%s, NRC-CNRC, (c) %d - 2007, Her Majesty in Right of Canada\n", progName, startDate);
       } else {
-         fprintf(stderr, "\n%s, Copyright (c) 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada\n", progName, startDate);
+         fprintf(stderr, "\n%s, NRC-CNRC, (c) 2007, Her Majesty in Right of Canada\n", progName, startDate);
       }
    }
 }

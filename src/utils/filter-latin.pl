@@ -17,7 +17,7 @@
 use strict;
 use warnings;
 
-print STDERR "filter-latin.pl, Copyright (c) 2005 - 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada\n";
+print STDERR "filter-latin.pl, NRC-CNRC, (c) 2005 - 2007, Her Majesty in Right of Canada\n";
 
 sub usage {
     local $, = "\n";

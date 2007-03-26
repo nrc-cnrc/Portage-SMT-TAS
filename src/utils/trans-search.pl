@@ -16,7 +16,7 @@
 use strict;
 use warnings;
 
-print STDERR "trans-search.pl, Copyright (c) 2005 - 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada\n";
+print STDERR "trans-search.pl, NRC-CNRC, (c) 2005 - 2007, Her Majesty in Right of Canada\n";
 
 my $HELP = "
 trans-search.pl expr

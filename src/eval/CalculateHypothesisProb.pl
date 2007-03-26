@@ -12,7 +12,7 @@ our($h, $help, $nbest, $ffvals, $f);
 
 ####################
 # COPYRIGHT
-print(STDERR "\nCalculateHypothesisProb.pl, Copyright (c) 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada\n\n");
+print(STDERR "\nCalculateHypothesisProb.pl, NRC-CNRC, (c) 2006 - 2007, Her Majesty in Right of Canada\n\n");
 
 
 ################################################################################

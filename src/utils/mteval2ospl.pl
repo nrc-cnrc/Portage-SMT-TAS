@@ -16,7 +16,7 @@
 use strict;
 use warnings;
 
-print STDERR "mteval2ospl.pl, Copyright (c) 2005 - 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada\n";
+print STDERR "mteval2ospl.pl, NRC-CNRC, (c) 2005 - 2007, Her Majesty in Right of Canada\n";
 
 my $HELP = "
 mteval2ospl.pl [-G][-g genre] file

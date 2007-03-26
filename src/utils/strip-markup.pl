@@ -16,7 +16,7 @@
 use strict;
 use warnings;
 
-print STDERR "strip-markup.pl, Copyright (c) 2005 - 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada\n";
+print STDERR "strip-markup.pl, NRC-CNRC, (c) 2005 - 2007, Her Majesty in Right of Canada\n";
 
 my $HELP = "
 strip-markup.pl [in [out]]

@@ -267,6 +267,8 @@ int MAIN(argc, argv)
     // Do this here until such a time as we might use argProcessor for canoe.
     Logging::init();
 
+    printCopyright(2004, "canoe");
+
     CanoeConfig c;
     static vector<string> args = c.getParamList();
 
@@ -277,8 +279,6 @@ int MAIN(argc, argv)
     sprintf(help, HELP, argv[0]);
     ArgReader argReader(ARRAY_SIZE(switches), switches, 0, 0, help, "-h", false);
     argReader.read(argc - 1, argv + 1);
-
-    printCopyright(2004, "canoe");
 
     if (!argReader.getSwitch("f", &c.configFile) && 
 	!argReader.getSwitch("config", &c.configFile))

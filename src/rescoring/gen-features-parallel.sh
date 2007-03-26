@@ -64,7 +64,7 @@ set -o noclobber
 ## - FileFF:extern is ignored because it does not begin with "ff.".
 ##
 
-echo 'gen-feature-parallel.sh, Copyright (c) 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada' >&2
+echo 'gen-feature-parallel.sh, NRC-CNRC, (c) 2006 - 2007, Her Majesty in Right of Canada' >&2
 
 error_exit() {
     for msg in "$@"; do

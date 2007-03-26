@@ -17,7 +17,7 @@
 use strict;
 use warnings;
 
-print STDERR "prog.pl, Copyright (c) 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada\n";
+print STDERR "prog.pl, NRC-CNRC, (c) 2006 - 2007, Her Majesty in Right of Canada\n";
 
 sub usage {
    local $, = "\n";

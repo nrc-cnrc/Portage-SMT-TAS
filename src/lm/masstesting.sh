@@ -9,7 +9,7 @@
 # Bigger example test, using 55813 input lines:
 # masstesting.sh $PORTAGE/test-suite/regress-small-voc/europarl.en.srilm{,} $PORTAGE/test-suite/regress-small-voc/lc/europarl.fr-en.en.lowercase
 
-echo 'masstesting.sh, Copyright (c) 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada'
+echo 'masstesting.sh, NRC-CNRC, Copyright (c) 2006 - 2007, Her Majesty in Right of Canada'
 
 LM_FOR_SRILM=$1
 LM_FOR_PORTAGE=$2

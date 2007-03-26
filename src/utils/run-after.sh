@@ -13,7 +13,7 @@
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
 
-echo 'run-after.sh, Copyright (c) 2005 - 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada' >&2
+echo 'run-after.sh, NRC-CNRC, (c) 2005 - 2007, Her Majesty in Right of Canada' >&2
 
 usage() {
     for msg in "$@"; do

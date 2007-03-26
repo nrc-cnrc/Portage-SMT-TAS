@@ -17,7 +17,7 @@ use locale;
 use POSIX qw(locale_h);
 setlocale(LC_CTYPE, "fr_CA.iso88591");
 
-print STDERR "uc-first.pl, Copyright (c) 2005 - 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada\n";
+print STDERR "uc-first.pl, NRC-CNRC, (c) 2005 - 2007, Her Majesty in Right of Canada\n";
 
 $HELP = "
 uc-first.pl [in [out]]

@@ -14,7 +14,7 @@
 
 use locale;
 
-print STDERR "prep-europarl.pl, Copyright (c) 2005 - 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada\n";
+print STDERR "prep-europarl.pl, NRC-CNRC, (c) 2005 - 2007, Her Majesty in Right of Canada\n";
 
 $HELP = "
 prep-and-tok-europarl.pl [in [out]]

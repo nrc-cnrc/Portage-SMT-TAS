@@ -104,7 +104,7 @@ FFVALPARSER_OPTS="-canoe"
 ##     echo STOP_AFTER=0 > COW_DYNAMIC_OPTIONS
 ##
 
-echo 'cow.sh, Copyright (c) 2004 - 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada'
+echo 'cow.sh, NRC-CNRC, (c) 2004 - 2007, Her Majesty in Right of Canada'
 
 #------------------------------------------------------------------------------
 # Argument processing & checking

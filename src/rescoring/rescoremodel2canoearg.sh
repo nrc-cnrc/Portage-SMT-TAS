@@ -24,7 +24,7 @@ numLM=1
 ## -l  Assume L language models (1 or more) [1]
 ##
 
-echo 'rescoremodel2canoearg.sh, Copyright (c) 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada' >&2
+echo 'rescoremodel2canoearg.sh, NRC-CNRC, (c) 2006 - 2007, Her Majesty in Right of Canada' >&2
 
 while getopts "l:d:s:t:h" flag; do
    case $flag in 

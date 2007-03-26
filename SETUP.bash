@@ -21,7 +21,7 @@ export PORTAGE=$HOME/PORTAGEshared
 # END OF USER CONFIGURABLE VARIABLE
 # =======================================================================
 
-echo 'PORTAGEshared, Copyright (c) 2004 - 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada'
+echo 'PORTAGEshared, NRC-CNRC, (c) 2004 - 2007, Her Majesty in Right of Canada'
 
 if [ ${PATH:-UNDEF} = "UNDEF" ] ; then
     export PATH=$PORTAGE/bin

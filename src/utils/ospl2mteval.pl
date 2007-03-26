@@ -16,7 +16,7 @@
 use strict;
 use warnings;
 
-print STDERR "ospl2mteval.pl, Copyright (c) 2005 - 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada\n";
+print STDERR "ospl2mteval.pl, NRC-CNRC, (c) 2005 - 2007, Her Majesty in Right of Canada\n";
 
 my $HELP = "
 ospl2mteval.pl [-srclang l][-tgtlang l][-setid id][-sysid id] src tst ref1 ref2 ...
