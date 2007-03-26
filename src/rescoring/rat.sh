@@ -12,7 +12,7 @@
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
 
-echo 'rat.sh, Copyright (c) 2005 - 2006, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada'
+echo 'rat.sh, NRC-CNRC, (c) 2005 - 2007, Her Majesty in Right of Canada'
 
 usage() {
     for msg in "$@"; do
@@ -56,6 +56,7 @@ cp-opts  Options to canoe-parallel.sh - just the initial block, before the
          files). If a directory, must already exist. [MSRC.]
 -msrc    A version of the source file marked up with rule-based translations,
          used for canoe input but not for feature generation [SRC]
+-o       In train mode, write the final model to MODEL_OUT [MODEL]
 
 Note: if any intermediate files already exist, this script currently overwrites
 them. To add extra features to an existing model, make sure you remove write
