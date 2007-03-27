@@ -274,8 +274,8 @@ void iMagicStream::open(const string& s)
          // If it fails to open a file we will try its gzip version
          const string filename(s + ".gz");
          if (tmp->open(filename.c_str(), bufferMode())) {
-            error(ETWarn, "Unable to open file: %s.  Opening its .gz form instead.",
-                  s.c_str(), s.c_str());
+            //error(ETWarn, "Unable to open file: %s.  Opening its .gz form instead.",
+            //      s.c_str(), s.c_str());
             tmp->close(); // File exists we must close it to now use it with gzip
             makePipe("gzip -cqdf " + filename);
          }
