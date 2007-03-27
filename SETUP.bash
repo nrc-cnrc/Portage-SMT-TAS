@@ -3,22 +3,26 @@
 #
 # Eric Joanis
 #
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2006, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2006, Her Majesty in Right of Canada
+# Copyright 2006 - 2007, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2006 - 2007, Her Majesty in Right of Canada
 
 
 # =======================================================================
-# USER CONFIGURABLE VARIABLE
+# USER CONFIGURABLE VARIABLES
 
 # The PORTAGE environment variable points the the root of the PORTAGEshared
 # package.
 # Change this variable to indicate where this package is actually located.
 export PORTAGE=$HOME/PORTAGEshared
 
-# END OF USER CONFIGURABLE VARIABLE
+# If your boost installation is in a non-standard location, fix and uncomment
+# the following line:
+#export CPLUS_INCLUDE_PATH=/full/path/to/boost/include
+
+# END OF USER CONFIGURABLE VARIABLES
 # =======================================================================
 
 echo 'PORTAGEshared, NRC-CNRC, (c) 2004 - 2007, Her Majesty in Right of Canada'

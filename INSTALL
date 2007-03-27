@@ -1,23 +1,30 @@
                                PORTAGEshared
 
-Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+Technologies langagieres interactives / Interactive Language Technologies
 Institut de technologie de l'information / Institute for Information Technology
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2004-2007, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada
+Copyright 2004-2007, Sa Majeste la Reine du Chef du Canada
+Copyright 2004-2007, Her Majesty in Right of Canada
 
-Distributed under specific licensing terms.  Please refer to the LICENSE file
-included in this package for details.
+Distributed under specific licensing terms.  Please refer to your signed
+license agreement for details.  A summary is provided for your convenience in
+the LICENSE file included in this package.
 
 
                           Installing PORTAGEshared
 
-We don't use autoconf, so the installation is done manually.
+We don't use autoconf, so the installation is done manually, but we tried to
+keep it as simple as possible.
 
 Copy the full contents of the CD to a directory of your choice, say
 $HOME/PORTAGEshared.
    cp -prd /CDlocation/PORTAGEshared $HOME/PORTAGEshared
 or
    rsync -av /CDlocation/PORTAGEshared $HOME/PORTAGEshared
+
+Some users have reported needing to run "chmod +w" on some files or directories
+after the cp or rsync above.  Running "chmod -R +w $HOME/PORTAGEshared" might
+solve this problem.
 
 If you chose a location other than $HOME/PORTAGEshared, edit SETUP.tcsh and
 SETUP.bash and change the value of the PORTAGE variable to the actual location
@@ -31,15 +38,17 @@ to adapt one of those two files):
 or
    source $HOME/PORTAGEshared/SETUP.tcsh
 
-Compile and install PORTAGEshared (you may need to resolve dependencies first,
-see below):
-   cd src
-   gmake -j 5
-   gmake -j 5 install
-We typically use -j N for parallel compiling.  N = 1 + the number of CPUs on
-the machine seems to be near optimal.  If you're sharing the machine with many
-users, however, you probably don't want to use the -j switch.
-                                      
+For source code distributions :
+
+   Compile and install PORTAGEshared (you may need to resolve dependencies
+   first, see below):
+      cd src
+      gmake -j 5
+      gmake -j 5 install
+   We typically use -j N for parallel compiling.  N = 1 + the number of CPUs on
+   the machine seems to be optimal.  If you're sharing the machine with many
+   users, however, you may not want to use the -j switch.
+
 
                               Getting Started
 
@@ -55,7 +64,7 @@ For full documentation, see doc/user-manual.html.
 Before installing PORTAGEshared itself, you need to make sure you have the
 following dependencies installed.
 
-Mandatory dependencies:
+Mandatory dependencies for all distributions:
 
  - Linux - we have tested PORTAGEshared on various Linux distributions and it
    runs without problems, as long as the rest of the dependencies are
@@ -65,15 +74,39 @@ Mandatory dependencies:
    correctly.  We have not tested on Solaris yet, but we plan to do so at a
    later date.
 
+ - Standard utilities: bash, perl, grep, egrep, sort, gzip, tail, head, sed,
+   awk, etc.
+
+Optional dependencies for all distributions:
+
+ - netcat and faucet - highly recommended if you use a computing cluster with
+   job management (i.e., you submit your jobs using qsub).  Many programs in
+   PORTAGEshared are configured to take advantage of parallel computing, and
+   require netcat and faucet to work across multiple machines and to work
+   optimally on a single machine.
+
+   Even if you work on only one machine, you will usually benefit by setting
+   the parallelism parameters to the number of CPUs you have at your disposal
+   on your machine.  Without netcat and faucet, if you set the parallelism
+   level to N (some programs automatically set N to the number of CPUs on the
+   machine), jobs will simply be run N at a time, with the next batch starting
+   when all N jobs of a batch are done.  This will already be faster than if
+   you don't use parellelism, but with netcat and faucet, the N CPUs will be
+   kept continuously busy until all jobs in a batch have completed.
+
+   Netcat home page: http://netcat.sourceforge.net/
+   Faucet documentation: http://web.purplefrog.com/~thoth/netpipes/faucet.html
+   Faucet is part of the netpipes package:
+   http://web.purplefrog.com/~thoth/netpipes/netpipes.html
+
+Mandatory dependencies for source code distributions:
+
  - GNU g++ - PORTAGEshared compilation has only been tested with g++, and makes
    use of some g++ extensions to C++.  It compiles fine with all versions we've
    tested between 3.3.3 and 4.x.
 
  - GNU make - our makefile makes use of GNU extensions to make, so you must use
    gmake (which can be invoked using "make" on most Linux distributions).
-
- - Standard utilities: bash, perl, grep, egrep, sort, gzip, tail, head, sed,
-   awk, etc.
 
  - boost - PORTAGEshared makes use of some libraries in the boost C++ libraries
    collection, including the Boost Graph Library, uBLAS, and smart pointers.
@@ -116,7 +149,7 @@ Mandatory dependencies:
       export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:$HOME/pkgs/include
       export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/pkgs/lib
 
-Optional dependencies:
+Optional dependencies for source code distributions:
 
  - etags and/or ctags - recommended if you program with emacs or vi or related
    programs.  These programs will build the databases needed to enable
@@ -127,26 +160,6 @@ Optional dependencies:
    .<shell>rc file, or by uncommenting the lines "#PORTAGE_NO_CTAGS=1" and/or
    "#PORTAGE_NO_ETAGS=1" in src/build/Makefile.incl.  (See section "USER
    CONFIGURABLE VARTIABLES" at the beginning of that file.)
-
- - netcat and faucet - highly recommended if you use a computing cluster with
-   job management (i.e., you submit your jobs using qsub).  Many programs are
-   PORTAGEshared are configured to take advantage of parallel computing, and
-   require netcat and faucet to work across multiple machines and to work
-   optimally on a single machine.
-
-   Even if you work on only one machine, you will usually benefit by setting
-   the parallelism parameters to the number of CPUs you have at your disposal
-   on your machine.  Without netcat and faucet, if you set the parallelism
-   level to N (some programs automatically set N to the number of CPUs on the
-   machine), jobs will simply be run N at a time, with the next batch starting
-   when all N jobs of a batch are done.  This will already be faster than if
-   you don't use parellelism, but with netcat and faucet, the N CPUs will be
-   kept continuously busy until all jobs in a batch have completed.
-
-   Netcat home page: http://netcat.sourceforge.net/
-   Faucet documentation: http://web.purplefrog.com/~thoth/netpipes/faucet.html
-   Faucet is part of the netpipes package:
-   http://web.purplefrog.com/~thoth/netpipes/netpipes.html
 
  - ACE - PORTAGEshared includes an API you can use to embed the decoder in your
    application, as well as a demo that can be placed on a web page.  This demo
