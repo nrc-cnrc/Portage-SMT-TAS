@@ -26,10 +26,10 @@ using namespace std;
 
 // Debug helper :D
 // To activate use -DMAGIC_STREAM_DEBUG flag at compile time
-void log(const string& msg)
+inline void log(const string& msg)
 {
 #ifdef MAGIC_STREAM_DEBUG
-   cerr << "\t" << msg << endl;
+   cerr << "\tLOG:\t" << msg << endl;
 #endif
 }
 
@@ -160,10 +160,13 @@ MagicStreamBase::MagicStreamBase(const PipeMode  _p, const OpenMode _b, FILE* _f
 }
 
 MagicStreamBase::~MagicStreamBase()
-{}
+{
+   log("MagicStreamBase::~MagicStreamBase");
+}
 
 void MagicStreamBase::close()
 {
+   log("MagicStreamBase::close");
    buffer.reset();
 }
 
@@ -183,8 +186,9 @@ const MagicStreamBase::OpenMode MagicStreamBase::bufferMode() const
 }
 
 // A unified way of opening a pipe
-void MagicStreamBase::makePipe(const string& cmd)
+void MagicStreamBase::makePipe(const string& _cmd)
 {
+   const string cmd(_cmd + (Quiet ? " 2> /dev/null" : ""));
    log("using following command for pipe: " + cmd);
    FILE* c_pipe = popen(cmd.c_str(), pipeMode());
    if ( !c_pipe ) {
@@ -217,14 +221,22 @@ bool MagicStreamBase::isZip(const string& cmd) const
               || cmd.substr(cmd.rfind(".")) == ".Z");
 }
 
+void MagicStreamBase::setQuiet(bool bQuiet)
+{
+   Quiet = bQuiet;
+}
 
+
+//////////////////////////////////////////////////////////////////////////////
+// iMagicStream
 iMagicStream::iMagicStream()
 : MagicStreamBase("r", ios_base::in), istream(0)
 {}
 
-iMagicStream::iMagicStream(const string& s)
+iMagicStream::iMagicStream(const string& s, bool bQuiet)
 : MagicStreamBase("r", ios_base::in), istream(0)
 {
+   setQuiet(bQuiet);
    open(s);
 }
 
@@ -286,13 +298,16 @@ void iMagicStream::open(const string& s)
 }
 
 
+//////////////////////////////////////////////////////////////////////////////
+// oMagicStream
 oMagicStream::oMagicStream()
 : MagicStreamBase("w", ios_base::out), ostream(0)
 {}
 
-oMagicStream::oMagicStream(const string& s)
+oMagicStream::oMagicStream(const string& s, bool bQuiet)
 : MagicStreamBase("w", ios_base::out), ostream(0)
 {
+   setQuiet(bQuiet);
    open(s);
 }
 
@@ -310,7 +325,8 @@ oMagicStream::oMagicStream(FILE* f, bool closeAtEnd)
 
 oMagicStream::~oMagicStream()
 {
-   flush();
+   log("oMagicStream::~oMagicStream");
+   if (buffer.get() != NULL) flush();
 }
 
 void oMagicStream::open(const string& s)

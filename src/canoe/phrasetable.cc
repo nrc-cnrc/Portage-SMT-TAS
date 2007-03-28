@@ -333,16 +333,19 @@ Uint PhraseTable::countProbColumns(const char* multi_prob_TM_filename)
 {
    string physical_filename;
    isReversed(multi_prob_TM_filename, &physical_filename);
-   IMagicStream in(physical_filename);
+   iMagicStream in(physical_filename, true);  // make this a silent stream
+   if ( in.bad() ) return 0;
    string ph1, ph2, prob_str;
    bool blank = true;
    Uint lineNo;
    // This reads one line and returns the list of probs into prob
    while ( blank && !in.eof() )
       readLine(in, ph1, ph2, prob_str, blank, multi_prob_TM_filename, lineNo);
-   if ( blank )
-      error(ETFatal, "No data lines found in multi-prob phrase table %s",
+   if ( blank ) {
+      error(ETWarn, "No data lines found in multi-prob phrase table %s",
             multi_prob_TM_filename);
+      return 0;
+   }
    vector<string> probs;
    split(prob_str, probs);
    return probs.size();

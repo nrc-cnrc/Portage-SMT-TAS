@@ -211,7 +211,9 @@ public:
     * models is contains.
     * @param multi_prob_TM_filename file name; a "#REVERSED" suffix will be
     *                               removed if present.
-    * @return the number of probabilities per row, i.e., the number of models.
+    * @return the number of probabilities per row, i.e., the number of models;
+    *         0 if multi_prob_TM_filename can't be opened or if its first line
+    *         is not valid.
     */
    static Uint countProbColumns(const char* multi_prob_TM_filename);
 

@@ -56,6 +56,8 @@ class MagicStreamBase : private boost::noncopyable
       const PipeMode  m_pipeMode;
       /// open stream mode (ios_base::in | ios_base::out)
       const OpenMode  m_bufferMode;  
+      /// Quiet mode status
+      bool Quiet;
       
       
    protected:
@@ -126,6 +128,12 @@ class MagicStreamBase : private boost::noncopyable
       /// Checks if stream is open.
       /// @return Returns true if stream is open
       virtual bool is_open() const;
+
+      /**
+       * Turn quiet mode on or off.
+       * @param bQuiet  quiet or not
+       */
+      void setQuiet(bool bQuiet);
 };
 
 /// Input Magic Stream.
@@ -138,7 +146,8 @@ class iMagicStream : public MagicStreamBase, public std::istream
 
       /// Constructor that opens the stream.
       /// @param s command to open
-      iMagicStream(const std::string& s);
+      /// @param bQuiet makes the stream quiet for Broken Pipes
+      iMagicStream(const std::string& s, bool bQuiet = false);
 
       /// Constructor that opens the stream from an opened file descriptor.
       /// @param fd file descriptor.
@@ -168,7 +177,8 @@ class oMagicStream : public MagicStreamBase, public std::ostream
 
       /// Constructor that opens the stream.
       /// @param s command to open
-      oMagicStream(const std::string& s);
+      /// @param bQuiet makes the stream quiet for Broken Pipes
+      oMagicStream(const std::string& s, bool bQuiet = false);
 
       /// Constructor that opens the stream from an opened file descriptor.
       /// @param fd file descriptor.

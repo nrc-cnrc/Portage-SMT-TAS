@@ -35,8 +35,13 @@ using namespace boost;
 class IMagicStream : public iMagicStream
 {
 public:
-   /// Default constructor, opens and checks the stream.
-   IMagicStream(const string& fname) : iMagicStream(fname) {
+   /**
+    * Default constructor, opens and checks the stream.
+    * @param fname  file name
+    * @param bQuiet suppresses the Broken pipe message from gz/pipe fname
+    */
+   IMagicStream(const string& fname, bool bQuiet = false)
+   : iMagicStream(fname, bQuiet) {
       if (this->fail())
 	 error(ETFatal, "unable to open %s for reading", fname.c_str());
    }
@@ -46,8 +51,13 @@ public:
 class OMagicStream : public oMagicStream
 {
 public:
-   /// Default constructor, opens and checks the stream.
-   OMagicStream(const string& fname) : oMagicStream(fname) {
+   /**
+    * Default constructor, opens and checks the stream.
+    * @param fname  file name
+    * @param bQuiet suppresses the Broken pipe message from gz/pipe fname
+    */
+   OMagicStream(const string& fname, bool bQuiet = false)
+   : oMagicStream(fname, bQuiet) {
       if (this->fail())
 	 error(ETFatal, "unable to open %s for writing", fname.c_str());
    }
