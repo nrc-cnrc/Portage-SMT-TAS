@@ -557,7 +557,7 @@ while [ 1 ]; do
     # RUNSTR="$RTRAIN -dyn -n -f $FLOOR $MODEL $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
 
     if [ $RESUME ]; then
-	if [ `ls pow*|wc` -ge 1 ]; then
+	if [ `ls pow*|wc -l` -ge 1 ]; then
 	    WEIGHTINFILE=`ls -tr1 $POWELLFILE.* | tail -1`
 	    ITER=`echo $WEIGHTINFILE | cut -d"." -f3`
 	    ITER_CHECK=`wc -l < $HISTFILE`
