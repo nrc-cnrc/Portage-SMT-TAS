@@ -437,7 +437,7 @@ void BasicModelGenerator::addMarkedPhraseInfos(const vector<MarkedTranslation> &
         for (vector<string>::const_iterator jt = it->markString.begin(); jt !=
                 it->markString.end(); jt++)
         {
-            newPI->phrase.push_back(tgt_vocab.index(jt->c_str()));
+            newPI->phrase.push_back(tgt_vocab.add(jt->c_str()));
         } // for
 
         // Store it in the appropriate location in the triangular array
