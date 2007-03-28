@@ -7,7 +7,7 @@ Copyright 2004-2007, Sa Majeste la Reine du Chef du Canada
 Copyright 2004-2007, Her Majesty in Right of Canada
 
 
-SUMMARY OF LICENCE TERMS FOR THE PRACTITIONER
+SUMMARY OF LICENCE TERMS for SMART Research Program participants
 
 The terms and conditions under which this software is licensed are those
 expressed in the licence itself, so please refer to the text of the licence
@@ -30,8 +30,17 @@ any part of the Software or previous Modifications (1.4).
 "Covered Code" means the Software or Modifications or the combination of the
 Software and Modifications, in each case including portions thereof (1.5).
 
-"Territory" means Canada (1.8).
- 
+"SMART Agreement" means the European Sixth Framework Program Research
+Consortium Agreement IST-FP6-033917, signed on June 9, 2006, for the SMART
+(Statistical Multilingual Analysis for Retrieval and Translation) research
+project (1.9)
+
+"SMART Research Program" means the research program as defined in the SMART
+Agreement (1.10)
+
+"Territory" means Finland, France, Italy, Slovenia, Spain, and the United
+Kingdom (1.8).
+
 CONFIDENTIALITY
 
 The Software, including the source code, is confidential to NRC except for
@@ -45,19 +54,19 @@ licensing is required for parties other than yourself or your colleagues
 covered by your institution under the PORTAGEshared licence agreement signed
 (2.3).
 
-The PORTAGEshared software is provided to Canadian universities for research
-and education purposes only (2.1a);
+The PORTAGEshared software is provided to participants in the SMART Research
+Program for research purposes within the SMART Research Program (2.1a);
 
 The PORTAGEshared software can be modified, provided you send to NRC all
 available information about the Modifications including source code in a form
 acceptable to NRC, within 180 days from the time of additions or changes
 having been made (3.1); for details, please contact NRC.
 
-SHARING MODIFICATIONS WITHIN THE PORTAGEshared COMMUNITY
+SHARING MODIFICATIONS WITHIN THE SMART RESEARCH COMMUNITY
 
 In return for having access to PORTAGEshared, you and your institution grant
 back Modifications to NRC in such a way that NRC may license them back to the
-PORTAGEshared community, of which you are an active part (3.1).
+PORTAGEshared SMART research community, of which you are an active part (3.1).
 
 COPYRIGHT AND ATTRIBUTION
 
@@ -77,17 +86,12 @@ modified code (i.e., Covered Code) (8.1).
 
 LICENCE DURATION AND POSSIBLE RENEWAL
 
-As the diffusion of PORTAGEshared by NRC to Canadian universities is a new
-initiative, the licence expires on December 31st, 2008, providing sufficient
-time to establish a PORTAGEshared community (11.1).
+The licence expires on December 31st, 2009, following the end of the SMART
+Research Program (11.1).
 
-Terms of renewal will be determined based on, among other factors, activities
-during the licensing period and on the state of the PORTAGEshared community at
-that time, aiming at furthering the Canadian capacity in machine translation
-based on machine learning (11.2).
-
-In order not to unduly terminate research by students as part of their
-Master's or PhD work that was underway when the licence terminates, a licensee
+If, in the course of the SMART Research Program, a student has engaged in
+Master's or PhD work and has not completed his(her) thesis work, and in order
+not to unduly terminate such thesis efforts on December 31st, 2009, a licensee
 retains the right to use Covered Code in order to fulfill such educational
 commitments that have been made before termination of the licence.  Such
 arrangement must be specifically negotiated by the licensee and NRC (11.5b).
