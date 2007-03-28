@@ -310,9 +310,9 @@ bool DocumentReader::readString(string &s, char &c, char stopFor1, char
 	{
             if ( allowAngleBraces )
             {
-                error(ETWarn, "Format warning in input line %d: interpreting '<' as regular character "
+                error(ETWarn, "Format warning in input line %d: interpreting '%c' as regular character "
                     "(use '\\%c' to suppress this warning).",
-                    c, lineNum, c);
+                    lineNum, c, c);
             } else
             {
                 error(ETWarn, "Format error in input line %d: unexpected '%c' after '%s' (use \\%c).", 
