@@ -22,32 +22,41 @@ export PORTAGE=$HOME/PORTAGEshared
 # the following line:
 #export CPLUS_INCLUDE_PATH=/full/path/to/boost/include
 
+# Binary distributions only: PRE_COMPILED_PORTAGE_ARCH must be i686 or x86_64,
+# depending on your architecture.  We only provide pre-compilied executables
+# for those two architectures.
+#PRE_COMPILED_PORTAGE_ARCH=`arch`
+
 # END OF USER CONFIGURABLE VARIABLES
 # =======================================================================
 
 echo 'PORTAGEshared, NRC-CNRC, (c) 2004 - 2007, Her Majesty in Right of Canada'
 
 if [ ${PATH:-UNDEF} = "UNDEF" ] ; then
-    export PATH=$PORTAGE/bin
+   export PATH=$PORTAGE/bin
 else
-    export PATH=$PATH:$PORTAGE/bin
+   export PATH=$PATH:$PORTAGE/bin
 fi
 
 if [ ${LD_LIBRARY_PATH:-UNDEF} = "UNDEF" ] ; then
-    export LD_LIBRARY_PATH=$PORTAGE/lib
+   export LD_LIBRARY_PATH=$PORTAGE/lib
 else
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PORTAGE/lib
+   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PORTAGE/lib
 fi
 
 if [ ${PERL5LIB:-UNDEF} = "UNDEF" ] ; then
-    export PERL5LIB=$PORTAGE/lib:$PORTAGE/lib/perl5/site_perl
+   export PERL5LIB=$PORTAGE/lib:$PORTAGE/lib/perl5/site_perl
 else
-    export PERL5LIB=$PERL5LIB:$PORTAGE/lib:$PORTAGE/lib/perl5/site_perl
+   export PERL5LIB=$PERL5LIB:$PORTAGE/lib:$PORTAGE/lib/perl5/site_perl
 fi
 
 if [ ${CPLUS_INCLUDE_PATH:-UNDEF} = "UNDEF" ] ; then
-    export CPLUS_INCLUDE_PATH=$PORTAGE/include
+   export CPLUS_INCLUDE_PATH=$PORTAGE/include
 else
-    export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:$PORTAGE/include
+   export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:$PORTAGE/include
 fi
 
+if [ ${PRE_COMPILED_PORTAGE_ARCH:-UNDEF} != "UNDEF" ]; then
+   export PATH=$PATH:$PORTAGE/bin/$PRE_COMPILED_PORTAGE_ARCH
+   unset PRE_COMPILED_PORTAGE_ARCH
+fi
