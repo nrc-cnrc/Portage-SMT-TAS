@@ -28,7 +28,7 @@ using namespace Portage;
 using namespace std;
 
 static char help_message[] = "\n\
-joint2cond_phrase_tables [-Hvi][-1 l1][-2 l2][-o name][-s 'meth args']\n\
+joint2cond_phrase_tables [-Hviz][-1 l1][-2 l2][-o name][-s 'meth args']\n\
                          [-ibm n][-ibm_l2_given_l1 m][-ibm_l1_given_l2 m]\n\
                          [-tmtext][-multipr d][jtable]\n\
 \n\
@@ -43,6 +43,7 @@ Options:\n\
 -H    List available smoothing methods and quit.\n\
 -v    Write progress reports to cerr.\n\
 -i    Counts are integers [counts are floating point]\n\
+-z    Compress the output files[don't]\n\
 -1    Name of language 1 (one in left column of <jtable>) [en]\n\
 -2    Name of language 2 (one in right column of <jtable>) [fr]\n\
 -o    Set base name for output tables [phrases]\n\
@@ -78,6 +79,8 @@ static bool tmtext_output = false;
 static string multipr_output = "";
 static bool force = false;
 static string in_file;
+static bool compress_output = false;
+static string extension(".gz");
 
 static void getArgs(int argc, char* argv[]);
 void delete_or_error_if_exists(const string& filename);
@@ -98,19 +101,25 @@ int main(int argc, char* argv[])
       doEverything<float>(argv[0]);
 }
 
+static string makeFinalFileName(string orignal_filename)
+{
+   if (compress_output) orignal_filename += extension;
+   return orignal_filename;
+}
+      
 template<class T>
 void doEverything(const char* prog_name)
 {
    // Early error checking
 
    if ( tmtext_output ) {
-      delete_or_error_if_exists(name + "." + lang1 + "given" + lang2);
-      delete_or_error_if_exists(name + "." + lang2 + "given" + lang1);
+      delete_or_error_if_exists(makeFinalFileName(name + "." + lang1 + "_given_" + lang2));
+      delete_or_error_if_exists(makeFinalFileName(name + "." + lang2 + "_given_" + lang1));
    }
    if ( multipr_output == "fwd" || multipr_output == "both" )
-      delete_or_error_if_exists(name + "." + lang1 + "2" + lang2);
+      delete_or_error_if_exists(makeFinalFileName(name + "." + lang1 + "2" + lang2));
    if ( multipr_output == "rev" || multipr_output == "both" )
-      delete_or_error_if_exists(name + "." + lang2 + "2" + lang1);
+      delete_or_error_if_exists(makeFinalFileName(name + "." + lang2 + "2" + lang1));
 
    IMagicStream in(in_file.size() ? in_file : "-");
    PhraseTableGen<T> pt;
@@ -144,13 +153,13 @@ void doEverything(const char* prog_name)
    string filename;
 
    if ( tmtext_output ) {
-      filename = name + "." + lang2 + "_given_" + lang1;
+      filename = makeFinalFileName(name + "." + lang2 + "_given_" + lang1);
       {
          OMagicStream ofs(filename);
          dumpCondDistn<T>(ofs, 1, pt, *smoothers[0], verbose);
       }
 
-      filename = name + "." + lang1 + "_given_" + lang2;
+      filename = makeFinalFileName(name + "." + lang1 + "_given_" + lang2);
       {
          OMagicStream ofs(filename);
          dumpCondDistn<T>(ofs, 2, pt, *smoothers[0], verbose);
@@ -158,18 +167,17 @@ void doEverything(const char* prog_name)
    }
 
    if (multipr_output == "fwd" || multipr_output == "both") {
-      string filename = name + "." + lang1 + "2" + lang2;
+      string filename = makeFinalFileName(name + "." + lang1 + "2" + lang2);
       if (verbose) cerr << "Writing " << filename << endl;
       OMagicStream ofs(filename);
       dumpMultiProb(ofs, 1, pt, smoothers, verbose);
    }
    if (multipr_output == "rev" || multipr_output == "both") {
-      string filename = name + "." + lang2 + "2" + lang1;
+      string filename = makeFinalFileName(name + "." + lang2 + "2" + lang1);
       if (verbose) cerr << "Writing " << filename << endl;
       OMagicStream ofs(filename);
       dumpMultiProb(ofs, 2, pt, smoothers, verbose);
    }
-   
 }
 
 // arg processing
@@ -177,7 +185,7 @@ void doEverything(const char* prog_name)
 void getArgs(int argc, char* argv[])
 {
    string alt_help = PhraseSmootherFactory<Uint>::help();
-   char* switches[] = {"v", "i", "s:", "1:", "2:", "o:", "force", 
+   char* switches[] = {"v", "i", "z", "s:", "1:", "2:", "o:", "force", 
 		       "ibm:", "ibm_l1_given_l2:", "ibm_l2_given_l1:",
                        "tmtext", "multipr:"};
 
@@ -187,6 +195,7 @@ void getArgs(int argc, char* argv[])
 
    arg_reader.testAndSet("v", verbose);
    arg_reader.testAndSet("i", int_counts);
+   arg_reader.testAndSet("z", compress_output);
    arg_reader.testAndSet("1", lang1);
    arg_reader.testAndSet("2", lang2);
    arg_reader.testAndSet("o", name);
