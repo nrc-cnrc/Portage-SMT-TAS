@@ -22,10 +22,10 @@ export PORTAGE=$HOME/PORTAGEshared
 # the following line:
 #export CPLUS_INCLUDE_PATH=/full/path/to/boost/include
 
-# Binary distributions only: PRE_COMPILED_PORTAGE_ARCH must be i686 or x86_64,
+# Binary distributions only: PRECOMP_PORTAGE_ARCH must be i686 or x86_64,
 # depending on your architecture.  We only provide pre-compilied executables
 # for those two architectures.
-#PRE_COMPILED_PORTAGE_ARCH=`arch`
+#PRECOMP_PORTAGE_ARCH=`arch`
 
 # END OF USER CONFIGURABLE VARIABLES
 # =======================================================================
@@ -56,7 +56,8 @@ else
    export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:$PORTAGE/include
 fi
 
-if [ ${PRE_COMPILED_PORTAGE_ARCH:-UNDEF} != "UNDEF" ]; then
-   export PATH=$PATH:$PORTAGE/bin/$PRE_COMPILED_PORTAGE_ARCH
-   unset PRE_COMPILED_PORTAGE_ARCH
+if [ ${PRECOMP_PORTAGE_ARCH:-UNDEF} != "UNDEF" ]; then
+   export PATH=$PATH:$PORTAGE/bin/$PRECOMP_PORTAGE_ARCH
+   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PORTAGE/lib/$PRECOMP_PORTAGE_ARCH
+   unset PRECOMP_PORTAGE_ARCH
 fi

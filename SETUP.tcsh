@@ -22,10 +22,10 @@ setenv PORTAGE $HOME/PORTAGEshared
 # the following line:
 #setenv CPLUS_INCLUDE_PATH /full/path/to/boost/include
 
-# Binary distributions only: PRE_COMPILED_ARCH must be i686 or x86_64,
+# Binary distributions only: PRECOMP_PORTAGE_ARCH must be i686 or x86_64,
 # depending on your architecture.  We only provide pre-compilied executables
 # for those two architectures.
-#set PRE_COMPILED_PORTAGE_ARCH=`arch`
+#set PRECOMP_PORTAGE_ARCH=`arch`
 
 # END OF USER CONFIGURABLE VARIABLES
 # =======================================================================
@@ -56,7 +56,8 @@ else
    setenv CPLUS_INCLUDE_PATH ${CPLUS_INCLUDE_PATH}:${PORTAGE}/include
 endif
 
-if ($?PRE_COMPILED_PORTAGE_ARCH) then
-   setenv PATH "${PATH}:${PORTAGE}/bin/$PRE_COMPILED_PORTAGE_ARCH"
-   unset PRE_COMPILED_PORTAGE_ARCH
+if ($?PRECOMP_PORTAGE_ARCH) then
+   setenv PATH "${PATH}:${PORTAGE}/bin/$PRECOMP_PORTAGE_ARCH"
+   setenv LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:${PORTAGE}/lib/$PRECOMP_PORTAGE_ARCH"
+   unset PRECOMP_PORTAGE_ARCH
 endif
