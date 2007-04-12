@@ -35,7 +35,9 @@ phrase-based statistical machine translation, including:
                          Contents of this directory
 
    doc/         documentation
-   src/         source code
+   src/         source code (if included in your distribution)
+   bin/         executable code (if included in your distribution)
+   lib/         run-time libraries (if included in your distribution)
    test-suite/  three test suites
    README       this file
    INSTALL      installation instructions
