@@ -1,4 +1,4 @@
-                               PORTAGEshared
+                             PORTAGEshared_v1.1
 
 Technologies langagieres interactives / Interactive Language Technologies
 Institut de technologie de l'information / Institute for Information Technology
@@ -56,6 +56,21 @@ Now you're ready to run the PORTAGEshared suite of programs.
 We have a toy example you can use as a tutorial in test-suite/toy.
 
 For full documentation, see doc/user-manual.html.
+
+
+                              Applying a patch
+
+If you have already installed PORTAGEshared before and wish to upgrade to this
+version, you can apply a patch instead of making a fresh copy, if a suitable
+one is provided with your distribution:
+   cd $HOME/PORTAGEshared
+   patch -p2 < /CDlocation/OLD_REV_to_NEW_REV.patch
+
+Use patches with care if you have made any changes to PORTAGEshared!  Any
+changes you made *should* be merged with changes we made between releases, but
+such merging might lead to problems and/or conflicts, so it is strongly advised
+that you work on a backup, and carefully read the patch man page to see how
+conflicts are handled and how you can resolve them.
 
 
                            External dependencies
