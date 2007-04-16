@@ -1,0 +1,25 @@
+                             PORTAGEshared v1.1
+
+Technologies langagieres interactives / Interactive Language Technologies
+Institut de technologie de l'information / Institute for Information Technology
+Conseil national de recherches Canada / National Research Council Canada
+Copyright 2004-2007, Sa Majeste la Reine du Chef du Canada
+Copyright 2004-2007, Her Majesty in Right of Canada
+
+Distributed under specific licensing terms.  Please refer to your signed
+license agreement for details.
+
+
+                              Release History
+                   (with a summary of important changes)
+
+v1.1 01.04.2007
+ - Added the BinLM format for fast loading of LMs, supported by all
+   programs loading LMs, with utility lmtext2binlm to generate them.
+ - Made ibm model 2 the default in gen_phrase_tables.
+ - Added the VFileFF rescoring "function" to rescore_* / rat.sh /
+   gen_feature_values; now used in regress-small-voc/28_rat_train.pl.
+ - Added -o option to rat.sh, which no longer generates .w files.
+
+v1.0 31.10.2006
+   Initial release.
