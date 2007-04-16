@@ -318,3 +318,5 @@ if [ -z "$COMPILE_ONLY" ]; then
    make_iso_and_tar
 fi
 
+echo $0 $* > $OUTPUT_DIR/make-distro-cmd-used
+
