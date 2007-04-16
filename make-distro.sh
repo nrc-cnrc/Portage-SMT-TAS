@@ -54,6 +54,7 @@ Options:
                 or BinOnly (which means no LICENCE* file is copied).
                 [CanUniv, or BinOnly if -nosrc is specified]
   -n            Not Really: just show what will be done.
+  -no-doxy      Don't generate the doxy files (use for faster testing) [do]
   -archive-name Infix to insert in .tar and .iso filenames. []
   -patch-from   Create patch OLD_CD_DIR_to_OUTPUT_DIR.patch for users who want
                 to patch existing installations instead of doing a fresh
@@ -112,6 +113,7 @@ arg_check() {
    fi
 }
 
+SAVED_COMMAND_LINE="$*"
 
 while [ $# -gt 0 ]; do
    case "$1" in
@@ -131,6 +133,7 @@ while [ $# -gt 0 ]; do
    -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ));;
    -debug)              DEBUG=1;;
    -n)                  NOT_REALLY=1;;
+   -no-doxy)            NO_DOXY=2;;
    -h|-help)            usage;;
    -*)                  error_exit "Unknown option $1.";;
    *)                   error_exit "Extraneous command line argument $1.";;
@@ -267,8 +270,8 @@ if [ -z "$COMPILE_ONLY" ]; then
    do_checkout
    get_user_manual
    make_pdfs
-   if [ -z "$NO_SOURCE" ]; then
-      echo Including source code
+   if [ -z "$NO_SOURCE" -a -z "$NO_DOXY" ]; then
+      echo Including source code documentation
       make_doxy
    fi
 fi
@@ -318,5 +321,5 @@ if [ -z "$COMPILE_ONLY" ]; then
    make_iso_and_tar
 fi
 
-echo $0 $* > $OUTPUT_DIR/make-distro-cmd-used
+run_cmd echo "$0 $SAVED_COMMAND_LINE" \> $OUTPUT_DIR/make-distro-cmd-used
 
