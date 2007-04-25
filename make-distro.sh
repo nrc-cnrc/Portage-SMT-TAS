@@ -117,6 +117,7 @@ SAVED_COMMAND_LINE="$*"
 
 while [ $# -gt 0 ]; do
    case "$1" in
+   -d)                  arg_check 1 $# $1; CVS_DIR="-d $2"; shift;;
    -bin)                INCLUDE_BIN=1;;
    -compile-only)       COMPILE_ONLY=1;;
    -compile-host)       arg_check 1 $# $1; COMPILE_HOST=$2; shift;;
@@ -168,7 +169,7 @@ do_checkout() {
 
    run_cmd mkdir $OUTPUT_DIR
    run_cmd pushd ./$OUTPUT_DIR
-      run_cmd cvs co $VERSION_TAG PORTAGEshared '>&' cvs.log
+      run_cmd cvs $CVS_DIR co $VERSION_TAG PORTAGEshared '>&' cvs.log
       run_cmd find PORTAGEshared -name CVS \| xargs rm -rf
 
       if [ "$LICENCE" = SMART ]; then
