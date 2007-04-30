@@ -24,6 +24,7 @@ Usage: make-distro.sh [-h(elp)] [-bin] [-nosrc] [-licence PROJECT] [-n]
        [-patch-from OLD_CD_DIR:PREREQ_TOKEN
           [-patch-from OLD_CD_DIR2:PREREQ_TOKEN2 [...]]]
        [-aachen] [-smart-bin] [-smart-src] [-can-univ]
+       [-d cvs_dir]
        -dir OUTPUT_DIR
 
   Make a PORTAGEshared distribution folder, ready to burn on CD or copy to a
@@ -44,6 +45,7 @@ Options:
 
   -h(elp):      print this help message
   -bin:         include compiled code [don't, unless -nosrc is specified]
+  -d            cvs root repository
   -compile-only use this to compile code on a different architecture, with an
                 OUTPUT_DIR where -bin has already been used.  All other options
                 are ignored, except -dir.
