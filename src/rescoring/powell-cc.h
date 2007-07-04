@@ -1,6 +1,6 @@
 /**
  * @author Aaron Tikuisis
- * @file powell.cpp  Implementation of Powell's algorithm.
+ * @file powell-cc.h  Implementation of Powell's algorithm.
  * $Id$
  * 
  * K-Best Rescoring Module

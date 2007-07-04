@@ -1,6 +1,6 @@
 /**
  * @author Aaron Tikuisis / George Foster
- * @file featurefunction.cpp
+ * @file featurefunction.cc
  * $Id$
  *
  * K-Best Rescoring Module

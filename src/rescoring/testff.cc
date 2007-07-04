@@ -1,6 +1,6 @@
 /**
  * @author Aaron Tikuisis
- * @file testff.cpp  Program that tests the feature function interface.
+ * @file testff.cc  Program that tests the feature function interface.
  * $Id$
  * 
  * K-Best Rescoring Module

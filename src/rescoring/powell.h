@@ -94,6 +94,6 @@ namespace Portage
       const vector< vector<ScoreStats> >& bleu);
 }
 
-#include <powell.cpp>
+#include <powell-cc.h>
 
 #endif // _POWELL_H_

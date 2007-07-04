@@ -1,6 +1,6 @@
 /**
  * @author Aaron Tikuisis
- * @file testpowell.cpp  Program to test the Powell's algorithm.
+ * @file testpowell.cc  Program to test the Powell's algorithm.
  * $Id$
  *
  * K-Best Rescoring Module

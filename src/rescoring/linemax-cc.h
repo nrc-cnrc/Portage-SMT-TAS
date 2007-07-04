@@ -1,6 +1,6 @@
 /**
  * @author Aaron Tikuisis,  modified by Matthew Arnold
- * @file linemax.cpp  Implementation of line max
+ * @file linemax-cc.h  Implementation of line max
  *
  * $Id$
  *

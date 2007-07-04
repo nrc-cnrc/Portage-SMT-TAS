@@ -1,6 +1,6 @@
 /**
  * @author Aaron Tikuisis
- * @file testlinemax.cpp  Program to test the linemax algorithm.
+ * @file testlinemax.cc  Program to test the linemax algorithm.
  * $Id$
  *
  * K-Best Rescoring Module

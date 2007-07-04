@@ -1,6 +1,6 @@
 /**
  * @author Aaron Tikuisis
- * @file lm_ff.cpp  Implementation of feature function ngramFF.
+ * @file lm_ff.cc  Implementation of feature function ngramFF.
  *
  * $Id$
  *

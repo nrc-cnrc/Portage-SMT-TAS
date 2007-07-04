@@ -8,37 +8,37 @@
 # Copyright 2005, Her Majesty in Right of Canada
 
 SOURCES = \
-   featurefunction.cpp \
+   featurefunction.cc \
    fmax.cc \
    gen_feature_values.cc \
-   ibm1aaron.cc \
    ibm_ff.cc \
+   ibm1aaron.cc \
    ibm1del.cc \
-   linemax.cpp \
+   lm_ff.cc \
    multiColumnFileFF.cc \
    rescore_io.cc \
    rescore_test.cc \
    rescore_train.cc \
    rescore_translate.cc \
-   lm_ff.cpp \
-   testff.cpp \
+   testff.cc \
    testfileReader.cc \
    testfmax.cc \
-   testlinemax.cpp \
-   testpowell.cpp
+   testlinemax.cc \
+   testpowell.cc
 
 INCLUDES = \
    featurefunction.h \
    fmax.h \
-   rescore_io.h \
-   rescoring_general.h \
-   ibm1aaron.h \
    ibm_ff.h \
+   ibm1aaron.h \
    ibm1del.h \
    linemax.h \
-   powell.h \
+   linemax-cc.h \
    lm_ff.h \
-   featurefunction.h
+   powell.h \
+   powell-cc.h \
+   rescore_io.h \
+   rescoring_general.h
 
 OBJECTS = \
    featurefunction.o \

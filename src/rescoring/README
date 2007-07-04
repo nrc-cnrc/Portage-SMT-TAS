@@ -1,3 +1,4 @@
+
 $Id$
 
 K-Best Rescoring Module
@@ -96,7 +97,7 @@ File Formats
      FileFF:very-important-feature [weight]
 
   The exact list of features known to the module is in the create() function in
-  featurefunction.cpp.  As long as the documentation is up-to-date,
+  featurefunction.cc.  As long as the documentation is up-to-date,
   rescore_train -H will also produce this list.
 
 - Feature value file.  This is simply a column of numbers that matches 1-1 with
@@ -146,7 +147,7 @@ To add to the set of known features:
    but these don't have to be instantiated.
 
 2. Add a clause to the FeatureFunctionSet::create() function, defined in
-   featurefunction.cpp.  This should just check for a match with your feature's
+   featurefunction.cc.  This should just check for a match with your feature's
    name and call the corresponding constructor.  Note that you must be able to
    construct your class from a single string argument - this is the "arg"
    string that is specified in the model file.  If you need complex parameters,

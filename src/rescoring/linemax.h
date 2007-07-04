@@ -25,7 +25,7 @@ namespace Portage
     /**
     Perform's line maximization as sketched in "Minimum Error Rate Training in Statistical Machine
     Translation" by Franz Och.
-    For the details of this line maximization algorithm, see the documentation in linemax.cpp.
+    For the details of this line maximization algorithm, see the documentation in linemax-cc.h.
     We have an initial parameter vector, p, and a direction dir along which to maximize.  This algorithm
     determines the point on the line \f$p + \gamma * dir\f$ which maximizes the score.  No heuristic is used;
     the global maximum (along the line) is found.
@@ -81,6 +81,6 @@ namespace Portage
        const std::vector< std::vector<ScoreStats> >& bleu);
 }
 
-#include <linemax.cpp>
+#include <linemax-cc.h>
 
 #endif // LINEMAX_H
