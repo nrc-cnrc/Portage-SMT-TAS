@@ -53,7 +53,7 @@ Options:
                 again - must be on the same file system as the local machine.
   -nosrc        do not include src code [do]
   -licence      Copy the LICENCE file for PROJECT.  Can be CanUniv, SMART,
-                or BinOnly (which means no LICENCE* file is copied).
+                Altera, or BinOnly (which means no LICENCE* file is copied).
                 [CanUniv, or BinOnly if -nosrc is specified]
   -n            Not Really: just show what will be done.
   -no-doxy      Don't generate the doxy files (use for faster testing) [do]
@@ -76,6 +76,7 @@ Canned options for specific licensees:
                          -archive-name BinOnly
   -smart-bin    Same as: -aachen
   -smart-src    Same as: -licence SMART -archive-name SMART
+  -altera       Same as: -licence ALTERA -archive-name Altera
 
 ==EOF==
 
@@ -133,6 +134,7 @@ while [ $# -gt 0 ]; do
    -smart-src)          LICENCE=SMART; ARCHIVE_NAME=SMART;;
    -aachen|-smart-bin)  INCLUDE_BIN=1; NO_SOURCE=1; LICENCE=BinOnly
                         COMPILE_HOST=leclerc; ARCHIVE_NAME=BinOnly;;
+   -altera)             LICENCE=ALTERA; ARCHIVE_NAME=Altera;;
    -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ));;
    -debug)              DEBUG=1;;
    -n)                  NOT_REALLY=1;;
@@ -185,6 +187,10 @@ do_checkout() {
       elif [ "$LICENCE" = BinOnly -o -n "$NO_SOURCE" ]; then
          echo No source: removing all LICENCE files.
          run_cmd find PORTAGEshared -name LICENCE\* -maxdepth 1 \| xargs rm -f
+      elif [ "$LICENCE" = ALTERA ]; then
+         echo Keeping only the Altera licence info.
+         run_cmd find PORTAGEshared -name LICENCE\* -maxdepth 1 \| \
+                 grep -v -x PORTAGEshared/LICENCE_ALTERA \| xargs rm -f
       else
          error_exit "Invalid -licence specfication"
       fi
