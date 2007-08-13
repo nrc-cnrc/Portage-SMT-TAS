@@ -1,10 +1,10 @@
 /**
  * @author George Foster
  * @file find_sentence_phrases.cc  Find matching phrase pairs for input sentences.
- * 
- * COMMENTS: 
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * COMMENTS:
+ *
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -13,8 +13,9 @@
 #include <file_utils.h>
 #include <cmath>
 #include <arg_reader.h>
-#include <tm_io.h>
 #include <basicmodel.h>
+#include <tm_io.h>
+#include "inputparser.h"
 #include <printCopyright.h>
 
 using namespace Portage;
@@ -89,11 +90,14 @@ int main(int argc, char* argv[])
    OMagicStream fwd(forwardfile.size() ? forwardfile : "-");
 
    vector<vector<string> > sents;
-   string line;
-   while (getline(is, line)) {
-      sents.resize(sents.size()+1);
-      TMIO::getTokens(line, sents.back(), 2);
+   InputParser reader(is);
+   vector<MarkedTranslation> dummy; // Required to call readMarkedSent()
+   while (!reader.eof()) {
+      sents.push_back(vector<string>());
+      reader.readMarkedSent(sents.back(), dummy);
    }
+   reader.reportWarningCounts();
+   if ( !sents.empty() && sents.back().empty() ) sents.pop_back();
 
    CanoeConfig c;
    c.loadFirst = false;
@@ -112,48 +116,50 @@ int main(int argc, char* argv[])
 
    vector<MarkedTranslation> mark;
    TScore tscore;
+   string buffer;
    for (Uint s = 0; s < sents.size(); ++s) {
-      if (writeseps) 
-	 os << TMIO::joinTokens(sents[s], line, true) << endl;
-      line.clear();
+      if (writeseps) {
+         buffer.clear();
+         os << TMIO::joinTokens(sents[s], buffer, true) << endl;
+      }
       PhraseDecoderModel* pdm = bmg.createModel(sents[s], mark);
       vector<PhraseInfo*> **phrases = pdm->getPhraseInfo();
 
       Uint len = sents[s].size();
       for (Uint i = 0; i < len; ++i) {
-	 for (Uint j = 0; j < len-i; ++j) {
-	    for (Uint k = 0; k < phrases[i][j].size(); ++k) {
+         for (Uint j = 0; j < len-i; ++j) {
+            for (Uint k = 0; k < phrases[i][j].size(); ++k) {
                string src, tgt;
-	       PhraseInfo* pi = phrases[i][j][k];
+               PhraseInfo* pi = phrases[i][j][k];
                join(sents[s].begin()+pi->src_words.start,
                     sents[s].begin()+pi->src_words.end, src);
                pdm->getStringPhrase(tgt, pi->phrase);
-	
-	       bool trans = true;
-	       if (forwardfile.size()) {
-		  if (!phrasetable.getPhrasePair(src, tgt, tscore)) {
-		     trans = false;
-		     if (warn_untrans)
-			error(ETWarn, "can't find phrase pair in phrasetable: %s ||| %s",
-			      src.c_str(), tgt.c_str());
+
+               bool trans = true;
+               if (forwardfile.size()) {
+                  if (!phrasetable.getPhrasePair(src, tgt, tscore)) {
+                     trans = false;
+                     if (warn_untrans)
+                        error(ETWarn, "can't find phrase pair in phrasetable: %s ||| %s",
+                              src.c_str(), tgt.c_str());
                   }
-		  if (trans && tscore.forward.size() == 0)
-		     error(ETFatal, "no forward probabilities for phrase pair: %s ||| %s",
-			   src.c_str(), tgt.c_str());
-		  if (trans)
-		     fwd << tgt << " ||| " << src << " ||| " << 
-			(logprobs ? tscore.forward[0] : exp(tscore.forward[0])) << endl;
-	       }
-	       if (trans)
-		  os << src << " ||| " << tgt << " ||| " << 
-		     (logprobs ? pi->phrase_trans_prob : exp(pi->phrase_trans_prob)) << 
-		     endl;
-	    }
-	 }
+                  if (trans && tscore.forward.size() == 0)
+                     error(ETFatal, "no forward probabilities for phrase pair: %s ||| %s",
+                           src.c_str(), tgt.c_str());
+                  if (trans)
+                     fwd << tgt << " ||| " << src << " ||| " <<
+                        (logprobs ? tscore.forward[0] : exp(tscore.forward[0])) << endl;
+               }
+               if (trans)
+                  os << src << " ||| " << tgt << " ||| " <<
+                     (logprobs ? pi->phrase_trans_prob : exp(pi->phrase_trans_prob)) <<
+                     endl;
+            }
+         }
       }
-      if (writeseps) { 
-	 os << endl;
-	 if (forwardfile.size())  fwd << endl;
+      if (writeseps) {
+         os << endl;
+         if (forwardfile.size())  fwd << endl;
       }
       delete pdm;
    }
@@ -163,7 +169,7 @@ int main(int argc, char* argv[])
 
 void getArgs(int argc, char* argv[])
 {
-   char* switches[] = {"v", "w", "l", "s", "g",  "n:", "forward:"};
+   const char* switches[] = {"v", "w", "l", "s", "g",  "n:", "forward:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 2, 4, help_message);
    arg_reader.read(argc-1, argv+1);
 
@@ -173,9 +179,9 @@ void getArgs(int argc, char* argv[])
    arg_reader.testAndSet("n", num_trans);
    arg_reader.testAndSet("g", global);
    arg_reader.testAndSet("forward", forwardfile);
-   
+
    arg_reader.testAndSet(0, "src_given_tgt", src_given_tgt);
    arg_reader.testAndSet(1, "tgt_given_src", tgt_given_src);
    arg_reader.testAndSet(2, "infile", in_file);
    arg_reader.testAndSet(3, "outfile", out_file);
-}   
+}

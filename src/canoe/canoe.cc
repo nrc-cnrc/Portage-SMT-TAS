@@ -101,8 +101,8 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
    } // if
 
    // Print the results from the stack using the print function
-   for (vector<DecoderState *>::reverse_iterator it = stack.rbegin();
-        it != stack.rend(); it++)
+   for ( vector<DecoderState *>::reverse_iterator it = stack.rbegin();
+         it != stack.rend(); it++)
    {
       s.append(print(*it));
       s.append(" ");
@@ -264,175 +264,200 @@ static void writeSrc(bool del, const vector<string>& src_sent, const vector<bool
  */
 int MAIN(argc, argv)
 {
-    // Do this here until such a time as we might use argProcessor for canoe.
-    Logging::init();
+   // Do this here until such a time as we might use argProcessor for canoe.
+   Logging::init();
 
-    printCopyright(2004, "canoe");
+   printCopyright(2004, "canoe");
 
-    CanoeConfig c;
-    static vector<string> args = c.getParamList();
+   CanoeConfig c;
+   static vector<string> args = c.getParamList();
 
-    const char* switches[args.size()];
-    for (Uint i = 0; i < args.size(); ++i)
-       switches[i] = args[i].c_str();
-    char help[strlen(HELP) + strlen(argv[0])];
-    sprintf(help, HELP, argv[0]);
-    ArgReader argReader(ARRAY_SIZE(switches), switches, 0, 0, help, "-h", false);
-    argReader.read(argc - 1, argv + 1);
+   const char* switches[args.size()];
+   for (Uint i = 0; i < args.size(); ++i)
+      switches[i] = args[i].c_str();
+   char help[strlen(HELP) + strlen(argv[0])];
+   sprintf(help, HELP, argv[0]);
+   ArgReader argReader(ARRAY_SIZE(switches), switches, 0, 0, help, "-h", false);
+   argReader.read(argc - 1, argv + 1);
 
-    if (!argReader.getSwitch("f", &c.configFile) && 
-	!argReader.getSwitch("config", &c.configFile))
-       error(ETFatal, "No config file given.  Use -h for help.");
+   if (!argReader.getSwitch("f", &c.configFile) && 
+         !argReader.getSwitch("config", &c.configFile))
+      error(ETFatal, "No config file given.  Use -h for help.");
 
-    c.read(c.configFile.c_str()); // set parameters from config file
-    c.setFromArgReader(argReader); // override from cmd line
-    c.check();
+   c.read(c.configFile.c_str()); // set parameters from config file
+   c.setFromArgReader(argReader); // override from cmd line
+   c.check();
 
-    if (c.verbosity >= 2)
-       c.write(cerr, 2);
+   if (c.verbosity >= 2)
+      c.write(cerr, 2);
 
 
-    // Set random number seed
-    srand(time(NULL));
+   // Set random number seed
+   srand(time(NULL));
 
-    BasicModelGenerator *gen;
-    vector<vector<string> > sents;
-    vector<vector<MarkedTranslation> > marks;
-    DocumentReader reader(cin);
-    if (!c.loadFirst)
-    {
-        cerr << "reading input sentences" << endl;
-        while (true)
-        {
-            sents.push_back(vector<string>());
-            marks.push_back(vector<MarkedTranslation>());
-            if ( ! reader.readMarkedSent(sents.back(), marks.back()) )
-            {
-                if ( c.tolerateMarkupErrors )
-                {
-                    error(ETWarn, "Tolerating ill-formed markup, but part of the last input line has been discarded");
-                } else
-                {
-                    error(ETFatal, "Aborting because of ill-formed markup");
-                }
-            }
+   BasicModelGenerator *gen;
+   vector<vector<string> > sents;
+   vector<vector<MarkedTranslation> > marks;
+   InputParser reader(cin);
+   if (c.checkInputOnly) {
+      cerr << "Checking input sentences for markup errors." << endl;
+      Uint error_count(0);
+      do {
+         vector<string> sent;
+         vector<MarkedTranslation> marks;
+         if ( ! reader.readMarkedSent(sent, marks) )
+            ++error_count;
+      } while (!reader.eof());
+      reader.reportWarningCounts();
+      if ( error_count )
+         cerr << "Found a total of " << error_count << " fatal format errors." << endl;
+      else
+         cerr << "No fatal format errors found." << endl;
+      cerr << "Total line count: " << reader.getLineNum() - 1 << endl;
+      exit(error_count ? 1 : 0);
+   }
+   if (!c.loadFirst)
+   {
+      cerr << "reading input sentences" << endl;
+      while (true)
+      {
+         sents.push_back(vector<string>());
+         marks.push_back(vector<MarkedTranslation>());
+         if ( ! reader.readMarkedSent(sents.back(), marks.back()) )
+         {
+            if ( c.tolerateMarkupErrors )
+               error(ETWarn, "Tolerating ill-formed markup.  Source sentence "
+                     "%d will be interpreted as having %d valid mark%s and "
+                     "this token sequence: %s",
+                     sents.size()-1+c.firstSentNum, marks.back().size(),
+                     (marks.back().size() == 1 ? "" : "s"),
+                     joini(sents.back().begin(), sents.back().end()).c_str());
+            else
+               error(ETFatal, "Aborting because of ill-formed markup");
+         }
 
-            // EJJ 12JUL2005 debugging output - might be useful again later.
-            //cerr << "INPUT SENTENCE:" << sents.back().size() << " tokens, "
-            //     << marks.back().size() << " marks:";
-            //for (int i = 0; i < sents.back().size(); i++)
-            //{
-            //    cerr << sents.back().at(i) << "|";
-            //}
-            //cerr << "\n";
+         // EJJ 12JUL2005 debugging output - might be useful again later.
+         //cerr << "INPUT SENTENCE:" << sents.back().size() << " tokens, "
+         //     << marks.back().size() << " marks:";
+         //for (int i = 0; i < sents.back().size(); i++)
+         //{
+         //    cerr << sents.back().at(i) << "|";
+         //}
+         //cerr << "\n";
 
-            if (reader.eof() && sents.back().size() == 0)
-            {
-                sents.pop_back();
-                marks.pop_back();
-                break;
-            } // if
-        } // while
-    } // if
+         if (reader.eof() && sents.back().size() == 0)
+         {
+            sents.pop_back();
+            marks.pop_back();
+            break;
+         }
+      }
+      reader.reportWarningCounts();
+   }
 
-    time_t start;
-    time(&start);
-    gen = BasicModelGenerator::create(c, &sents, &marks);
-    cerr << "loaded data structures in " << difftime(time(NULL), start)
-         << " seconds" << endl;
+   time_t start;
+   time(&start);
+   gen = BasicModelGenerator::create(c, &sents, &marks);
+   cerr << "loaded data structures in " << difftime(time(NULL), start)
+      << " seconds" << endl;
 
-    // If verbose >= 2, each run gets the full model printout.
-    // If verbose == 1, we print the model too, but not if the first sent num
-    // is non-zero, so that only the first job in a canoe-parallel.sh batch
-    // gets the model.
-    if ( c.verbosity >= 2 || c.verbosity >= 1 && c.firstSentNum == 0 )
-        cerr << endl << "Features of the log-linear model used, in order:"
-             << endl << gen->describeModel() << endl;
+   // If verbose >= 2, each run gets the full model printout.
+   // If verbose == 1, we print the model too, but not if the first sent num
+   // is non-zero, so that only the first job in a canoe-parallel.sh batch
+   // gets the model.
+   if ( c.verbosity >= 2 || c.verbosity >= 1 && c.firstSentNum == 0 )
+      cerr << endl << "Features of the log-linear model used, in order:"
+           << endl << gen->describeModel() << endl;
 
-    if (c.randomWeights)
+   if (c.randomWeights)
       cerr << "NOTE: using random weights (ignoring given weights); init seed="
            << (c.randomSeed + 1) * (Uint)c.firstSentNum << endl;
 
-    if (!c.loadFirst)
-    {
-        cerr << "translating " << sents.size() << " sentences" << flush;
-    } else
-    {
-        cerr << "reading and translating sentences" << endl;
-    } // if
-    time(&start);
-    Uint i = 0;
-    Uint lastCanoe = 1000;
-    while (true)
-    {
-        vector<string> sent;
-        vector<MarkedTranslation> curMarks;
-        if (c.loadFirst)
-        {
-            if ( ! reader.readMarkedSent(sent, curMarks) )
-            {
-                if ( c.tolerateMarkupErrors )
-                {
-                    error(ETWarn, "Tolerating ill-formed markup, but part of the last input line has been discarded");
-                } else
-                {
-                    error(ETFatal, "Aborting because of ill-formed markup");
-                }
+   if (!c.loadFirst) {
+      cerr << "translating " << sents.size() << " sentences" << flush;
+   } else {
+      cerr << "reading and translating sentences" << endl;
+   } // if
+   time(&start);
+   Uint i = 0;
+   Uint lastCanoe = 1000;
+   while (true)
+   {
+      vector<string> sent;
+      vector<MarkedTranslation> curMarks;
+      if (c.loadFirst)
+      {
+         if ( ! reader.readMarkedSent(sent, curMarks) )
+         {
+            if ( c.tolerateMarkupErrors ) {
+               error(ETWarn, "Tolerating ill-formed markup.  Source sentence "
+                     "%d will be interpreted as having %d valid mark%s and "
+                     "this token sequence: %s",
+                     i+c.firstSentNum, curMarks.size(),
+                     (curMarks.size() == 1 ? "" : "s"),
+                     joini(sent.begin(), sent.end()).c_str());
+            } else {
+               error(ETFatal, "Aborting because of ill-formed markup");
             }
-            if (reader.eof()) break;
-        } else
-        {
-            if (i == sents.size()) break;
-            sent = sents[i];
-            curMarks = marks[i];
-        } // if
+         }
+         if (reader.eof()) break;
+      } else
+      {
+         if (i == sents.size()) break;
+         sent = sents[i];
+         curMarks = marks[i];
+      } // if
 
-        if (c.randomWeights)
-           gen->setRandomWeights((c.randomSeed + 1) * (Uint)(i+c.firstSentNum));
-        vector<bool> oovs;
-        PhraseDecoderModel *model = gen->createModel(sent, curMarks, false, &oovs);
+      if (c.randomWeights)
+         gen->setRandomWeights((c.randomSeed + 1) * (Uint)(i+c.firstSentNum));
+      vector<bool> oovs;
+      PhraseDecoderModel *model = gen->createModel(sent, curMarks, false, &oovs);
 
-	if (c.oov != "pass") {	// skip translation; just write back source, with oov handling
-	   writeSrc(c.oov == "write-src-deleted", sent, oovs);
-	   delete model;
-	   i++;
-	   continue;
-	}
-	
-        HypothesisStack *h = runDecoder(*model, c.maxStackSize,
-                                        log(c.pruneThreshold),
-                                        c.covLimit, log(c.covThreshold),
-                                        c.distLimit, c.verbosity);
+      if (c.oov != "pass") {	// skip translation; just write back source, with oov handling
+         writeSrc(c.oov == "write-src-deleted", sent, oovs);
+         delete model;
+         i++;
+         continue;
+      }
 
-        switch (i - lastCanoe)
-        {
-            case 0:
-                cerr << '\\' << flush;
-                break;
-            case 1: case 2: case 3:
-                cerr << '_' << flush;
-                break;
-            case 4:
-                cerr << '/' << flush;
-                break;
-            default:
-                cerr << '.' << flush;
-                if (((double)rand() / (double)RAND_MAX) < 0.01)
-                {
-                    lastCanoe = i + 1;
-                } // if
-                break;
-        } // switch
+      HypothesisStack *h = runDecoder(*model, c.maxStackSize,
+                                      log(c.pruneThreshold),
+                                      c.covLimit, log(c.covThreshold),
+                                      c.distLimit, c.verbosity);
 
-        assert(!h->isEmpty());
-        doOutput(*h, *model, i+c.firstSentNum, &oovs, c);
+      switch (i - lastCanoe)
+      {
+         case 0:
+            cerr << '\\' << flush;
+            break;
+         case 1: case 2: case 3:
+            cerr << '_' << flush;
+            break;
+         case 4:
+            cerr << '/' << flush;
+            break;
+         default:
+            cerr << '.' << flush;
+            if (((double)rand() / (double)RAND_MAX) < 0.01)
+               lastCanoe = i + 1;
+            break;
+      } // switch
 
-        delete h;
-        delete model;
-        i++;
-    } // while
-    cerr << "translated " << i << " sentences in " << difftime(time(NULL),
-                                                               start) << " seconds" << endl;
-    return 0;
+      if (!h->isEmpty()) {
+         doOutput(*h, *model, i+c.firstSentNum, &oovs, c);
+      } else {
+         // Insert an empty line
+         cout << endl;
+         error(ETWarn, "No translation found for sentence %d with the current settings.", i+c.firstSentNum);
+      }
+
+      delete h;
+      delete model;
+      i++;
+   } // while
+   if ( c.loadFirst ) reader.reportWarningCounts();
+   cerr << "translated " << i << " sentences in "
+        << difftime(time(NULL), start) << " seconds" << endl;
+   return 0;
 }
 END_MAIN

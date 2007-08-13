@@ -2,10 +2,9 @@
  * @author George Foster
  * @file str_utils.h String utilities.
  * 
- * 
  * COMMENTS: 
  * 
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -280,10 +279,34 @@ string join(typename vector<T>::const_iterator beg,
    ostringstream ss;
    ss << setprecision(precision);
 
-   while (beg < end) {
+   while (beg != end) {
       ss << *beg;
       if (beg+1 != end) ss << sep;
       ++beg;
+   }
+   return ss.str();
+}
+
+/**
+ * Joins a sequence of arbitrary type into a string.
+ * Join any container of T's into a single string. 
+ * @param beg begin iterator
+ * @param end end iterator
+ * @param sep separator to put between each word
+ * @param precision stream precision
+ * @return the result of the join operation
+ */
+template <class T_const_iterator> 
+string joini(T_const_iterator beg, T_const_iterator end, 
+             const string& sep=" ", Uint precision = 8)
+{
+   ostringstream ss;
+   ss << setprecision(precision);
+
+   while (beg != end) {
+      ss << *beg;
+      ++beg;
+      if ( beg != end ) ss << sep;
    }
    return ss.str();
 }

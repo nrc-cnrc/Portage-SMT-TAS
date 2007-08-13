@@ -5,7 +5,7 @@
  * $Id$ * 
  * Read and write canoe config files
  * 
- * Groupe de technologies langagiÅËres interactives / Interactive Language Technologies Group 
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology 
  * Conseil national de recherches Canada / National Research Council Canada 
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -57,7 +57,8 @@ CanoeConfig::CanoeConfig() {
    bypassMarked           = false;
    weightMarked           = 1;
    oov                    = "pass";
-   tolerateMarkupErrors   = 0;
+   tolerateMarkupErrors   = false;
+   checkInputOnly         = false;
    trace                  = false;
    ffvals                 = false;
    masse                  = false;
@@ -104,6 +105,7 @@ CanoeConfig::CanoeConfig() {
    param_infos.push_back(ParamInfo("weight-marked", "double", &weightMarked));
    param_infos.push_back(ParamInfo("oov", "string", &oov));
    param_infos.push_back(ParamInfo("tolerate-markup-errors", "bool", &tolerateMarkupErrors));
+   param_infos.push_back(ParamInfo("check-input-only", "bool", &checkInputOnly));
    param_infos.push_back(ParamInfo("trace t palign", "bool", &trace));
    param_infos.push_back(ParamInfo("ffvals", "bool", &ffvals));
    param_infos.push_back(ParamInfo("masse", "bool", &masse));

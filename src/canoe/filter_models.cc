@@ -6,7 +6,7 @@
  *
  * LMs & TMs filtering
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -18,7 +18,7 @@
 #include <printCopyright.h>
 #include <config_io.h>
 #include <basicmodel.h>
-#include <tm_io.h>
+#include <inputparser.h>
 
 
 using namespace std;
@@ -45,10 +45,15 @@ int MAIN(argc, argv)
       string line;
       //IMagicStream is(in_file.size() ? in_file : "-");
       IMagicStream is("-");
-      while (getline(is, line)) {
-         sents.resize(sents.size()+1);
-         TMIO::getTokens(line, sents.back(), 2);
+      InputParser reader(is);
+      vector<MarkedTranslation> dummy; // Required to call readMarkedSent()
+      while (!reader.eof()) {
+         sents.push_back(vector<string>());
+         reader.readMarkedSent(sents.back(), dummy);
       }
+      reader.reportWarningCounts();
+      if ( !sents.empty() && sents.back().empty() )
+         sents.pop_back();
    }
                         
    // Create the model generator
@@ -96,8 +101,7 @@ int MAIN(argc, argv)
    }
 
    // Print out the vocab if necessary
-   if (arg.vocab_file.size() > 0)
-   {
+   if (arg.vocab_file.size() > 0) {
       cerr << "Dumping Vocab" << endl;
       OMagicStream os_vocab(arg.vocab_file);
       bmg.DumpVocab(os_vocab);

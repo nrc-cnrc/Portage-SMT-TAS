@@ -5,7 +5,7 @@
  *
  * $Id$
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, 2006, Sa Majeste la Reine du Chef du Canada /
@@ -101,6 +101,7 @@ public:
    double weightMarked;             ///< Constant discount for marked probs
    string oov;                      ///< OOV handling method
    bool tolerateMarkupErrors;       ///< Whether to proceed despite markup err
+   bool checkInputOnly;             ///< If true, only check the input for markup errors
    bool trace;                      ///< Whether to output alignment info
    bool ffvals;                     ///< Whether to output feature fn values
    bool masse;                      ///< Whether to output total lattice weight

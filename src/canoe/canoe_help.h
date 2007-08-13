@@ -5,7 +5,7 @@
  * $Id$ *
  * Canoe Decoder
  *
- * Groupe de technologies langagières interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -14,7 +14,7 @@
 
 /// Help message for canoe program.
 static const char *HELP =
-"Usage: %s -f config [options]\n\
+"Usage: %s -f config [options] < marked_up_src\n\
 \n\
 Translate text, reading from standard input and writing to standard output.\n\
 Translation is controlled by the options listed below, which may be specified\n\
@@ -26,6 +26,10 @@ followed by an argument. Options are surrounded by square brackets:\n\
 Arguments in <config> may be zero or more strings separated by whitespace or by\n\
 colons. The special sequence '--' is used to indicate an empty string. Any part\n\
 of a line that begins with a hash mark (#) is interpreted as a comment.\n\
+\n\
+The input source text must be in marked-up format: \\, < and > are special\n\
+characters and must be escaped with \\ to be interpreted literally.  See the\n\
+user manual for a full description of the markup language.\n\
 \n\
 Options (in command-line format):\n\
 \n\
@@ -183,8 +187,14 @@ Options (in command-line format):\n\
         [pass]\n\
 \n\
  -tolerate-markup-errors\n\
-        When invalid markup is found, skip the rest of the line but don't\n\
-        abort.  [abort on invalid markup]\n\
+        When invalid markup is found, attempt to interpret it as literal text.\n\
+        This does a minimal effort only, so parts of the invalid input will\n\
+        typically be lost.  [abort on invalid markup]\n\
+\n\
+ -check-input-only\n\
+        Just check the input for markup errors, don't read any models or decode\n\
+        anything.  With this option, a non-zero exit status indicates fatal\n\
+        format errors were found.\n\
 \n\
  -backwards\n\
         Forms the translation from end to start instead of start to end.\n\

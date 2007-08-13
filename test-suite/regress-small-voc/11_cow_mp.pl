@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# 10_cow.pl - run COW - optimize weights for canoe
+# 11_cow.pl - run COW - optimize weights for canoe
 #
 # PROGRAMMER: Howard Johnson / Eric Joanis
 #
@@ -56,7 +56,7 @@ cow.sh -v -filt -floor 2               \\
   &> log.cow
 END
 
-open( J1, "> ${wfr_r}/${fr}_10_rescore" );
+open( J1, "> ${wfr_r}/${fr}_11_rescore" );
 print J1 $job1;
 close( J1 );
 
@@ -89,6 +89,6 @@ open( J1, "> ${wfr_r}/canoe.ini" );
 print J1 $ini1;
 close( J1 );
 
-system( "cd ${wfr_r}; bash ${fr}_10_rescore" );
+system( "cd ${wfr_r}; bash ${fr}_11_rescore" );
 
 };

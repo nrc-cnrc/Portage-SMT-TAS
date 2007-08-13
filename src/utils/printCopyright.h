@@ -27,7 +27,7 @@ namespace Portage {
       if ( startDate < 2007 ) {
          fprintf(stderr, "\n%s, NRC-CNRC, (c) %d - 2007, Her Majesty in Right of Canada\n", progName, startDate);
       } else {
-         fprintf(stderr, "\n%s, NRC-CNRC, (c) 2007, Her Majesty in Right of Canada\n", progName, startDate);
+         fprintf(stderr, "\n%s, NRC-CNRC, (c) 2007, Her Majesty in Right of Canada\n", progName);
       }
    }
 }
