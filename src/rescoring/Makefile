@@ -12,7 +12,7 @@ SOURCES = \
    fmax.cc \
    gen_feature_values.cc \
    ibm_ff.cc \
-   ibm1aaron.cc \
+   ibm1wtrans.cc \
    ibm1del.cc \
    lm_ff.cc \
    multiColumnFileFF.cc \
@@ -30,7 +30,7 @@ INCLUDES = \
    featurefunction.h \
    fmax.h \
    ibm_ff.h \
-   ibm1aaron.h \
+   ibm1wtrans.h \
    ibm1del.h \
    linemax.h \
    linemax-cc.h \
@@ -43,7 +43,7 @@ INCLUDES = \
 OBJECTS = \
    featurefunction.o \
    fmax.o \
-   ibm1aaron.o \
+   ibm1wtrans.o \
    ibm_ff.o \
    ibm1del.o \
    multiColumnFileFF.o \

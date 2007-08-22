@@ -14,7 +14,7 @@
 
 #include <featurefunction.h>
 #include <rescoring_general.h>
-#include <ibm1aaron.h>
+#include <ibm1wtrans.h>
 #include <rescore_io.h>
 #include <errors.h>
 #include <str_utils.h>
