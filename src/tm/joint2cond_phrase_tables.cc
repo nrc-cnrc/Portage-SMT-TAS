@@ -184,8 +184,8 @@ void doEverything(const char* prog_name)
 
 void getArgs(int argc, char* argv[])
 {
-   string alt_help = PhraseSmootherFactory<Uint>::help();
-   char* switches[] = {"v", "i", "z", "s:", "1:", "2:", "o:", "force", 
+   const string alt_help = PhraseSmootherFactory<Uint>::help();
+   const char* const switches[] = {"v", "i", "z", "s:", "1:", "2:", "o:", "force", 
 		       "ibm:", "ibm_l1_given_l2:", "ibm_l2_given_l1:",
                        "tmtext", "multipr:"};
 

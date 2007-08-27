@@ -98,7 +98,7 @@ int MAIN(argc,argv)
 // arg processing
 void getArgs(int argc, const char* const argv[])
 {
-   char* switches[] = {"v", "vocab:", "order:"};
+   const char* const switches[] = {"v", "vocab:", "order:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 1, 2, help_message);
    arg_reader.read(argc-1, argv+1);
 

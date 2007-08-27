@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
 
 void getArgs(int argc, char* argv[])
 {
-   char* switches[] = {"v", "p", "maxw:", "max:"};
+   const char* const switches[] = {"v", "p", "maxw:", "max:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 1, 3, help_message);
    arg_reader.read(argc-1, argv+1);
 

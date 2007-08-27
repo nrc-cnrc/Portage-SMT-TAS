@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
 
 // arg processing
 
-static char* switches[] = {"v"};
+static const char* const switches[] = {"v"};
 static ArgReader arg_reader(ARRAY_SIZE(switches), switches, 0, -1, help_message, "-h", true);
 
 void getArgs(int argc, char* argv[])

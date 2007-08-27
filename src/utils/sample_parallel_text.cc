@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
 
 void getArgs(int argc, char* argv[])
 {
-   char* switches[] = {"r", "n:", "s:", "l:"};
+   const char* const switches[] = {"r", "n:", "s:", "l:"};
 
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 2, -1, help_message, "-h", true);
    arg_reader.read(argc-1, argv+1);

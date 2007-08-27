@@ -100,7 +100,7 @@ void test() {
    ";
    cerr << "[" << in << "]" << endl;
    string ref;
-   if (escapes == "\\")
+   if (string(escapes) == string("\\"))
       ref = "[some] [tokenized] [<noun>] [,] [in] [a] [good] [format] [,] [with] [<escaped] [markup>] [and] [multi word tokens]";
    else
       ref = "";			// need to work this out - no time now! GF
@@ -109,7 +109,7 @@ void test() {
    string out = joinTokens(getTokens(in, tokens), lout, true);
    
    cerr << out << endl;
-   if (escapes == "\\")
+   if (string(escapes) == string("\\"))
       cerr << (ref == out ? "looks ok" : "problem") << endl;
 }
 

@@ -57,7 +57,7 @@ Options:\n\
 
 // globals
 
-static char* switches[] = {"v", "r", "-m", "n1:", "n2:", "i:", "s:", "p:",
+static const char* const switches[] = {"v", "r", "-m", "n1:", "n2:", "i:", "s:", "p:",
 			   "slen:", "tlen:", "bksize:", "speed:", "beg:", "end:"};
 static ArgReader arg_reader(ARRAY_SIZE(switches), switches, 
 			    1, -1, help_message, "-h", true);

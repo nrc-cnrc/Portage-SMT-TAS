@@ -124,7 +124,7 @@ int main(int argc, char** argv)
          conv(tokens[i], key[i]);
       }
 
-      float val;
+      float val = 0.0f;
       bool result = trie.find(key, tokens.size(), val);
       cout << "find(" << line << ") returned " << result;
       if ( result ) cout << " val = " << val;
@@ -165,7 +165,7 @@ int main(int argc, char** argv)
 
 void getArgs(int argc, const char* const argv[])
 {
-   char* switches[] = {"v"};
+   const char* const switches[] = {"v"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 0, 2, help_message);
    arg_reader.read(argc-1, argv+1);
 

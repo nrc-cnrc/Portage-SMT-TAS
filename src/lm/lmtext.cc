@@ -74,7 +74,7 @@ float LMText::wordProb(Uint word, const Uint context[], Uint context_length)
 
    // The above formula is what is implemented below.
 
-   float prob;
+   float prob = 0.0f;
    Uint depth;
    if ( trie.find(query, context_length+1, prob, &depth) ) {
       return prob;

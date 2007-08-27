@@ -120,7 +120,7 @@ CanoeConfig::CanoeConfig() {
    // and must match the order in BasicModelGenerator::InitDecoderFeatures().
    // New entries should be added immediately before "lm".
 
-   char* weight_names[] = {"d", "w", "sm", "lm", "tm", "ftm"};
+   const char* const weight_names[] = {"d", "w", "sm", "lm", "tm", "ftm"};
    weight_params.assign(weight_names, weight_names + ARRAY_SIZE(weight_names));
 
    for (Uint i = 0; i < param_infos.size(); ++i) {

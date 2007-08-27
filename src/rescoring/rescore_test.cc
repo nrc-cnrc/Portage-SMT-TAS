@@ -53,7 +53,7 @@ int MAIN(argc, argv)
 
    LOG_VERBOSE2(verboseLogger, "Creating references reader");
    referencesReader  rReader(arg.refs_file);
-   const Uint R = rReader.getR();
+   //const Uint R = rReader.getR();
 
 
    LOG_VERBOSE2(verboseLogger, "Rescoring with S=%d, R=%d, M=%d", S, R, M);

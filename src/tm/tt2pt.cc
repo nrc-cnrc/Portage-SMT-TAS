@@ -117,7 +117,7 @@ void addJointDistn(_CountingVoc<double>& voc, TTable& tt, double wt, bool voc_is
 
 void getArgs(int argc, char* argv[])
 {
-   char* switches[] = {"v", "t:", "wt1:", "u:"};
+   const char* const switches[] = {"v", "t:", "wt1:", "u:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 4, 4, help_message, "-h", true);
    arg_reader.read(argc-1, argv+1);
 

@@ -195,10 +195,10 @@ int main(int argc, char* argv[])
 
 void getArgs(int argc, char* argv[])
 {
-  char* switches[] = {"v", "vv", "x", "c:", "a:", "ibm:", "m:", "min:", "d:", "p:"};
+   const char* const switches[] = {"v", "vv", "x", "c:", "a:", "ibm:", "m:", "min:", "d:", "p:"};
 
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 4, -1, help_message, "-h", true,
-			WordAlignerFactory::help().c_str(), "-H");
+         WordAlignerFactory::help().c_str(), "-H");
    arg_reader.read(argc-1, argv+1);
 
    if (arg_reader.getSwitch("v")) verbose = 1;

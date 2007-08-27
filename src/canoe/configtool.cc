@@ -312,7 +312,7 @@ RescoreResult parseRescoreResultsLine(const string& line)
 
 void getArgs(int argc, char* argv[])
 {
-   char* switches[] = {"v", "n:"};
+   const char* const switches[] = {"v", "n:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 1, 3, help_message);
    arg_reader.read(argc-1, argv+1);
 

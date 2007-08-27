@@ -47,7 +47,7 @@ static double smooth = 1e-06;
 static string model;
 
 
-char* switches[] = {"v", "r", "m:", "s:"};
+const char* const switches[] = {"v", "r", "m:", "s:"};
 static ArgReader arg_reader(ARRAY_SIZE(switches), switches, 
 			    1, -1, help_message, "-h", true);
 

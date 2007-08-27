@@ -112,7 +112,7 @@ Output selection options (specify as many as you need):\n\
 
 typedef PhraseTableGen<Uint> PhraseTable;
 
-static char* switches[] = {"v", "vv", "vs", "n", "i", "j", "z", "a:", "s:",
+static const char* const switches[] = {"v", "vv", "vs", "n", "i", "j", "z", "a:", "s:",
                            "m:", "min:", "d:", "w:", "1:", "2:", "ibm:",
                            "twist", "addsw", "o:", "f1:", "f2:",
                            "multipr:", "tmtext", "giza"};

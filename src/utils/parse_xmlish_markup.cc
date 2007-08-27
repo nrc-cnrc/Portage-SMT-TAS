@@ -130,7 +130,7 @@ static const char* parseAttrVals(const char* p, const char* bufp, vector <pair<s
    return p;
 }
 
-static bool parseEnd(const char* p, const char* bufp, Uint* end, char* err_msg)
+static bool parseEnd(const char* p, const char* bufp, Uint* end, const char* err_msg)
 {
    if (*p == '>') {
       if (end) *end = p+1-bufp;

@@ -82,7 +82,7 @@ static double alignScore(const vector<string>& lines1, const vector<string>& lin
 static bool keep(const vector<string>& lines1, const vector<string>& lines2, 
                  Uint beg1, Uint end1, Uint beg2, Uint end2)
 {
-   static char* white = " \r\t\n";
+   static const char* const white = " \r\t\n";
 
    string::size_type b1 = string::npos;
    string::size_type e1 = string::npos;
@@ -145,8 +145,8 @@ int main(int argc, char* argv[])
       for (Uint j = 0; j <= lines2.size(); ++j) {
          if (verbose && 100 * it / size != 100 * ++it / size) cerr << '.';
          if (i != 0 || j != 0) score_matrix[i][j] = -DBL_MAX;
-         for (Uint ibeg = i > maxsegs1 ? i-maxsegs1 : 0; ibeg <= i; ++ibeg) {
-            for (Uint jbeg = j > maxsegs2 ? j-maxsegs2 : 0; jbeg <= j; ++jbeg) {
+         for (Uint ibeg = (i > maxsegs1 ? i-maxsegs1 : 0); ibeg <= i; ++ibeg) {
+            for (Uint jbeg = (j > maxsegs2 ? j-maxsegs2 : 0); jbeg <= j; ++jbeg) {
                if (jbeg == j && ibeg == i) continue;
                double score = score_matrix[ibeg][jbeg] + 
                   alignScore(lines1, lines2, ibeg, i, jbeg, j, lenratio);
@@ -224,7 +224,7 @@ static double alignScore(const vector<string>& lines1, const vector<string>& lin
 
 static void getArgs(int argc, char* argv[])
 {
-   char* switches[] = {"v", "f", "a:"};
+   const char* const switches[] = {"v", "f", "a:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 2, 2, help_message);
    arg_reader.read(argc-1, argv+1);
 

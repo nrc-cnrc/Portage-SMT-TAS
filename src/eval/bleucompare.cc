@@ -138,7 +138,7 @@ int MAIN(argc, argv)
 
 void Portage::bleuCompare::getArgs(int argc, const char* const argv[])
 {
-   char* switches[] = {"v", "n:"};
+   const char* const switches[] = {"v", "n:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 3, -1, help_message);
    arg_reader.read(argc-1, argv+1);
 

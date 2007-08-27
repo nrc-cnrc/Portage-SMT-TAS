@@ -49,7 +49,7 @@ class MagicStreamBase : private boost::noncopyable
       typedef std::ios_base::openmode  OpenMode;
 
       /// Opening pipe mode's definition (r|w)
-      typedef char* PipeMode;
+      typedef const char* const PipeMode;
       
    private:
       /// open pipe mode ("r" | "w")

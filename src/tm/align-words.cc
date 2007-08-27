@@ -77,7 +77,7 @@ Options:\n\
 
 typedef PhraseTableGen<Uint> PhraseTable;
 
-static char* switches[] = {"v", "vv", "n", "i", "z", "a:", "o:", 
+static const char* const switches[] = {"v", "vv", "n", "i", "z", "a:", "o:", 
                            "ibm:", "twist", "giza"};
 
 static Uint verbose = 0;

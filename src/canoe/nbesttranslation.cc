@@ -146,8 +146,8 @@ void print_nbest( lattice_overlay const &  g,
         state_weight_t_compare
     >  S;
     my_weight_map_t  w( g );
-    DecoderState * const  src = g.get_initial_state();
-    DecoderState *        sink;
+    DecoderState * const  src  = g.get_initial_state();
+    DecoderState *        sink = NULL;
     S.push( make_state_weight_t( src, ++Uid_maker, (double) 0.0 ) );
     while ( ! S.empty() ) {
         state_weight_t  p_c = S.top();
