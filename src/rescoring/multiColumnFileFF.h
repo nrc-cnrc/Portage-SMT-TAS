@@ -95,10 +95,16 @@ class multiColumnFileFFManager : private noncopyable
        * @return Returns the only existing Manager for multiple column unit.
        */
       static multiColumnFileFFManager& getManager() {
-         if (m_singleton == 0)
+         if (m_singleton == 0) {
             m_singleton = new multiColumnFileFFManager;
-         
+            atexit(cleanup);
+         }
+
          return *m_singleton;
+      }
+      static void cleanup()
+      {
+         if (m_singleton) delete m_singleton;
       }
 };
 } // ends namespace Portage

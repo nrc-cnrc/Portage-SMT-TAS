@@ -23,7 +23,8 @@ using namespace Portage;
 void Voc::deleteWords() 
 {
    for (Uint i = 0; i < words.size(); ++i)
-      delete[] words[i];
+      if (words[i])
+         delete [] words[i];
 }
 
 Uint Voc::add(const char* word) {
@@ -34,7 +35,7 @@ Uint Voc::add(const char* word) {
    // makes the Voc class fastest overall.
    MapIter p = map.find(word);
    if ( p == map.end() ) {
-      const char* w = strdup(word);
+      const char* w = strdup_new(word);
       pair<MapIter,bool> res = map.insert(make_pair(w, size()));
       assert(res.second);
       words.push_back(w);

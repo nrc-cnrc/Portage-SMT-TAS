@@ -289,6 +289,7 @@ void iMagicStream::open(const string& s)
             //error(ETWarn, "Unable to open file: %s.  Opening its .gz form instead.",
             //      s.c_str(), s.c_str());
             tmp->close(); // File exists we must close it to now use it with gzip
+            delete tmp; tmp = NULL;
             makePipe("gzip -cqdf " + filename);
          }
       }

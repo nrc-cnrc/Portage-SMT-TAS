@@ -692,5 +692,13 @@ struct NullDeleter
     void operator()(void const *) const {}
 };
 
+/**
+ * C++ compliant strdup, using new[] instead of malloc.
+ * @param in char string to copy
+ * @return NULL if in is NULL, else a freshly new[]'d copy; delete with
+ *         delete[] when no longer needed
+ */
+char* strdup_new(const char* in);
+
 } // ends Portage namespace
 #endif /*STR_UTILS_H*/

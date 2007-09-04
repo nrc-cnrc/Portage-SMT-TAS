@@ -274,3 +274,11 @@ Uint Portage::split(char* s, char* tokens[], Uint max_tokens, const char* sep)
    return tok_count;
 }
 
+char* Portage::strdup_new(const char* in) {
+   if ( in ) {
+      char* copy = new char[strlen(in)+1];
+      return strcpy(copy, in);
+   }
+   return NULL;
+}
+

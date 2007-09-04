@@ -45,7 +45,7 @@ int MAIN(argc, argv)
 
    LOG_VERBOSE2(verboseLogger, "Reading Feature Functions Set");
    FeatureFunctionSet ffset;
-   const Uint M = ffset.read(arg.model_in, arg.bVerbose, arg.ff_pref.c_str(), arg.bIsDynamic);
+   const Uint M = ffset.read(arg.model_in, arg.bVerbose, arg.ff_pref.c_str(), arg.bIsDynamic, false);
 
    LOG_VERBOSE2(verboseLogger, "Reading source sentences");
    Sentences  sources;
