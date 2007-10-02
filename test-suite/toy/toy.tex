@@ -301,9 +301,9 @@ reverse phrasetable {\tt phrases.en2fr}, used for English to French
 translation, contains the same information but with {\tt en} and {\tt fr}
 reversed. Here is a sample line from these files:
 \begin{verbatim}
-   > select-line 89 < phrases.fr2en
+   > egrep "r.glements propos.s" phrases.fr2en
    règlements proposés ||| proposed regulations ||| 0.5 1
-   > select-line 89 < phrases.en2fr
+   > egrep "r.glements propos.s" < phrases.en2fr
    proposed regulations ||| règlements proposés ||| 1 0.5
 \end{verbatim}
 (This example is carefully chosen; because of the small size of the training
@@ -563,5 +563,8 @@ a comparison using pairwise bootstrap resampling:
 \end{verbatim}
 This indicates that the difference is only significant at the 80\% level, which
 is too low to be acceptable.
+
+\section{Final Note}
+Because of differences in rounding and optimization between systems, results may vary on your platform and are shown in this document only as a reference for the user.
 
 \end{document}
