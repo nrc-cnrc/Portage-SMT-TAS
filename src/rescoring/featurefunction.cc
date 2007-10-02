@@ -1,6 +1,6 @@
 /**
  * @author Aaron Tikuisis / George Foster
- * @file featurefunction.cc
+ * @file featurefunction.cpp
  * $Id$
  *
  * K-Best Rescoring Module
@@ -14,7 +14,7 @@
 
 #include <featurefunction.h>
 #include <rescoring_general.h>
-#include <ibm1wtrans.h>
+#include <ibm1aaron.h>
 #include <rescore_io.h>
 #include <errors.h>
 #include <str_utils.h>
@@ -27,40 +27,6 @@
 #include <ibm1del.h>
 
 namespace Portage {
-
-/// Callable entity that helps managing empty hypotheses.
-class isEmptyLine
-{
-   private:
-      Uint nEmpty;       ///< Number of empty hypotheses found.
-      Uint nContiguous;  ///< last number of contiguous empty hypotheses.
-  
-   public:
-      /// Constructor.
-      isEmptyLine() : nEmpty(0), nContiguous(0) {}
-      
-      /// Checks if the empty line were all contiguous and at the end.
-      /// @return Returns true if all contiguous empty hypotheses are at the end.
-      bool allContiguous() const { return nEmpty == nContiguous; }
-      /// Getsthe number of empty hypotheses found.
-      /// @return Returns the number of empty hypotheses found.
-      Uint numberOfEmpty() const { return nEmpty; }
-      
-      /// Counts the empty translations and the contiguous one.
-      /// @param t  hypothesis / empty hypothesis.
-      /// @return Returns true if t is empty.
-      bool operator()(const Translation& t) {
-         const bool isEmpty = t.empty();
-         if (isEmpty) {
-            ++nEmpty;
-            ++nContiguous;
-         }
-         else
-            nContiguous = 0;
-
-         return isEmpty;
-      }
-};
 
 void writeFFMatrix(ostream &out, const vector<uMatrix>& vH)
 {
@@ -210,9 +176,17 @@ void FeatureFunctionSet::computeFFMatrix(uMatrix& H, const Uint s, Nbest &nbest)
 {
    const Uint K(nbest.size());
 
-   typedef Nbest::const_iterator NIT;
-   isEmptyLine isEmpty = std::for_each(nbest.begin(), nbest.end(), isEmptyLine());
-   const Uint empty = isEmpty.numberOfEmpty();
+   Uint nEmpty(0);
+   Uint nContiguous(0);
+   for (Uint i(0); i<nbest.size(); ++i) {
+      if (nbest[i].empty()) {
+	 ++nEmpty;
+	 ++nContiguous;
+      }
+      else
+	 nContiguous = 0;
+   }
+   const Uint empty = nEmpty;
 
    if (empty == K) {
        // error(ETFatal, "The Nbest list for %d only contains empty lines", s);
@@ -222,7 +196,7 @@ void FeatureFunctionSet::computeFFMatrix(uMatrix& H, const Uint s, Nbest &nbest)
        return;
    }
 
-   if (!isEmpty.allContiguous())
+   if (nContiguous != nEmpty)
       error(ETFatal, "The Nbest list for %d contains some non-contiguous empty lines", s);
    
    H.resize(K-empty, M(), false);
@@ -235,7 +209,7 @@ void FeatureFunctionSet::computeFFMatrix(uMatrix& H, const Uint s, Nbest &nbest)
 
    Uint l(0);
    for (Uint k = 0; k < K; ++k) {
-      if (!isEmpty(nbest[k])) {
+      if (!nbest[k].empty()) {
          if (required & FF_NEEDS_TGT_TOKENS ) // Target tokenization
             nbest[k].getTokens();
          if ((required & FF_NEEDS_ALIGNMENT) && !nbest[k].alignment) // Alignment
@@ -252,7 +226,7 @@ void FeatureFunctionSet::computeFFMatrix(uMatrix& H, const Uint s, Nbest &nbest)
       ff_infos[m].function->value(K-1);
 
 
-   Nbest::iterator last = remove_if(nbest.begin(), nbest.end(), isEmpty);
+   Nbest::iterator last = remove_if(nbest.begin(), nbest.end(), mem_fun_ref(&Translation::empty));
    assert(Uint(nbest.end()-last) == empty);
    assert(Uint(last-nbest.begin()) == K-empty);
    nbest.resize(K-empty);
