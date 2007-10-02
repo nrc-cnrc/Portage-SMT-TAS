@@ -95,18 +95,21 @@ canoe.ini.cow: phrases.fr2en train_en.lm
 
 rat: rescore-model
 rescore-model: canoe.ini.cow
-	rat.sh -n 1 train -n 1 -f canoe.ini.cow -K 100 -o rescore-model \
-           rescore-model.ini dev2_fr.al dev2_en.al &> log.rat
+	rat.sh -n 1 train -n 1 -f $< -K 100 -o $@ \
+		rescore-model.ini dev2_fr.al dev2_en.al &> log.rat
 
 translate: canoe_ON_test_fr.out
 canoe_ON_test_fr.out: canoe.ini.cow
-	canoe -f canoe.ini.cow < test_fr.al > canoe_ON_test_fr.out
+	canoe -f $< < test_fr.al > $@
 
 rescore: rescore_ON_test_fr.out
 rescore_ON_test_fr.out: rescore-model
-	rat.sh -n 1 trans -n 1 -f canoe.ini.cow -K 100 rescore-model test_fr.al
-	mv test_fr.al.rat rescore_ON_test_fr.out
+	rat.sh -n 1 trans -n 1 -f canoe.ini.cow -K 100 $< test_fr.al
+	mv test_fr.al.rat $@
 
 test: rescore_ON_test_fr.bleu canoe_ON_test_fr.bleu
 %.bleu: %.out
 	bleumain $< test_en.al > $@
+
+bootstrap: rescore_ON_test_fr.out canoe_ON_test_fr.out
+	bleucompare $^ REFS test_en.al
