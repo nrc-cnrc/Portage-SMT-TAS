@@ -1,7 +1,7 @@
 <BR><HR><BR>
 <CENTER>
-Groupe de technologies langagieres interactives / Interactive Language Technologies Group<BR>
+Groupe de technologies langagi&egrave;res interactives / Interactive Language Technologies Group<BR>
 Institut de technologie de l'information / Institute for Information Technology<BR>
 Conseil national de recherches Canada / National Research Council Canada<BR>
-Copyright 2004-2007, Sa Majeste la Reine du Chef du Canada / Copyright 2004-2007, Her Majesty in Right of Canada
+Copyright 2004-2007, Sa Majest&eacute; la Reine du Chef du Canada / Copyright 2004-2007, Her Majesty in Right of Canada
 </CENTER>
