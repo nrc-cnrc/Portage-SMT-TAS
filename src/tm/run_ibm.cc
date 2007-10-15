@@ -1,7 +1,7 @@
 /**
  * @author George Foster
  * @file run_ibm.cc  Program that calculates perplexity of given IBM model for
- * p(lang2|lang2) on list of line-aligned files.
+ * p(lang2|lang1) on list of line-aligned files.
  * 
  * 
  * COMMENTS: 
@@ -23,10 +23,10 @@ using namespace Portage;
 using namespace std;
 
 static char help_message[] = "\n\
-run_ibm [-vr][-m i][-s smooth] model\n\
+run_ibm [-vr][-m i][-s smooth] model.lang2_given_lang1\n\
    file1_lang1 file1_lang2 ... fileN_lang1 fileN_lang2\n\
 \n\
-Calculate perplexity of given IBM model for p(lang2|lang2) on list of\n\
+Calculate perplexity of given IBM model for p(lang2|lang1) on list of\n\
 line-aligned files.\n\
 \n\
 Options:\n\
