@@ -103,6 +103,7 @@ int main(int argc, char* argv[])
       ibm2 = new IBM2(init_model);
    IBM1* ibm1 = (IBM1*)ibm2;
 
+   ibm1->useImplicitNulls = false;
    ibm1->getTTable().setSpeed(speed);
    
    if (verbose) 

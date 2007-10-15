@@ -204,6 +204,8 @@ double IBM1::pr(const vector<string>& src_toks, const string& tgt_tok,
    return num_src == 0 ? 0.0 : p / num_src;
 }
 
+static const bool debug_logpr = false;
+
 double IBM1::logpr(const vector<string>& src_toks, const vector<string>& tgt_toks, double smooth)
 {
    double lp = 0, logsmooth = log(smooth);
@@ -211,6 +213,12 @@ double IBM1::logpr(const vector<string>& src_toks, const vector<string>& tgt_tok
       double tp = pr(src_toks, tgt_toks[i]);
       lp += tp == 0 ? logsmooth : log(tp);
    }
+   if ( debug_logpr )
+      cerr << "SRC: " << join(src_toks, "|") << endl
+           << "TGT: " << join(tgt_toks, "|") << endl
+           << "IBM1 - Imp Null: " << useImplicitNulls
+           << " smooth: " << smooth
+           << " logprob: " << lp << endl;
    return lp;
 }
 
@@ -495,6 +503,12 @@ double IBM2::logpr(const vector<string>& src_toks, const vector<string>& tgt_tok
       double tp = pr(src_toks, tgt_toks[i], i, tgt_toks.size());
       lp += tp == 0 ? logsmooth : log(tp);
    }
+   if ( debug_logpr )
+      cerr << "SRC: " << join(src_toks, "|") << endl
+           << "TGT: " << join(tgt_toks, "|") << endl
+           << "IBM2 - Imp Null: " << useImplicitNulls
+           << " smooth: " << smooth
+           << " logprob: " << lp << endl;
    return lp;
 }
 

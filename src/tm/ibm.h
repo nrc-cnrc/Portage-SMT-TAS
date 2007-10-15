@@ -118,7 +118,9 @@ namespace Portage {
      * Construct using an existing ttable file.
      * @param ttable_file  file containing the ttable.
      */
-    IBM1(const string& ttable_file) : tt(ttable_file) {useImplicitNulls = false;}
+    IBM1(const string& ttable_file) : tt(ttable_file) {
+        useImplicitNulls = trainedWithNulls();
+    }
 
     /**
      * Construct an empty model. Use add() to populate.
@@ -138,7 +140,9 @@ namespace Portage {
    
     /// Verifies if the ttable contains the nullWord().
     /// @return Returns if the ttable contains the nullWord().
-    bool trainedWithNulls() {return tt.sourceIndex((string)nullWord()) != tt.numSourceWords();}
+    bool trainedWithNulls() {
+        return tt.sourceIndex((string)nullWord()) != tt.numSourceWords();
+    }
 
     /**
      * Set this variable to true to have pr(), logpr(), and align() take NULLs
