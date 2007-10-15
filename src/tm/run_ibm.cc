@@ -36,7 +36,7 @@ Options:\n\
     file1_lang2 file1_lang1 ... fileN_lang2 fileN_lang1\n\
 -m  Use model <i>, 1 or 2 [2]\n\
 -s  Replace 0 probabilities for target tokens with <smooth> [1e-50]\n\
--prob  Display the probability for each sentence pair [don't]\n\
+-logprob  Display the log probability for each sentence pair [don't]\n\
 ";
 
 // globals
@@ -46,10 +46,10 @@ static bool reverse_dir = false;
 static Uint modelno = 2;
 static double smooth = 1e-50;
 static string model;
-static bool prob = false;
+static bool logprob = false;
 
 
-const char* const switches[] = {"v", "r", "m:", "s:", "prob"};
+const char* const switches[] = {"v", "r", "m:", "s:", "logprob"};
 static ArgReader arg_reader(ARRAY_SIZE(switches), switches, 
 			    1, -1, help_message, "-h", true);
 
@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
 	 TMIO::getTokens(line2,toks2);
 
          double ibm_logpr = ibm->logpr(toks1, toks2, smooth);
-         if ( prob ) cout << ibm_logpr << endl;
+         if ( logprob ) cout << ibm_logpr << endl;
 	 logpr += ibm_logpr;
 	 ++num_segments;
 	 num_toks += toks2.size();
@@ -124,7 +124,7 @@ void getArgs(int argc, char* argv[])
    arg_reader.testAndSet("r", reverse_dir);
    arg_reader.testAndSet("m", modelno);
    arg_reader.testAndSet("s", smooth);
-   arg_reader.testAndSet("prob", prob);
+   arg_reader.testAndSet("logprob", logprob);
 
    arg_reader.testAndSet(0, "model", model);
 }   
