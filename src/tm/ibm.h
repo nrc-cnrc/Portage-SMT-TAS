@@ -218,7 +218,7 @@ namespace Portage {
      * @param smooth used in place of 0 probs when calculating logpr()
      */
     virtual double logpr(const vector<string>& src_toks, const vector<string>& tgt_toks,
-                         double smooth = 1e-50);
+                         double smooth = 1e-07);
 
     virtual void align(const vector<string>& src, const vector<string>& tgt, 
                        vector<Uint>& tgt_al, bool twist = false, 
@@ -395,7 +395,7 @@ namespace Portage {
      * @param smooth used in place of 0 probs when calculating logpr()
      */
     double logpr(const vector<string>& src_toks, const vector<string>& tgt_toks,
-                 double smooth = 1e-50);
+                 double smooth = 1e-07);
 
     void align(const vector<string>& src, const vector<string>& tgt, 
                vector<Uint>& tgt_al, bool twist = false,

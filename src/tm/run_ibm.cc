@@ -35,7 +35,7 @@ Options:\n\
 -r  Do a pairwise reversal of the input file list, turning it into:\n\
     file1_lang2 file1_lang1 ... fileN_lang2 fileN_lang1\n\
 -m  Use model <i>, 1 or 2 [2]\n\
--s  Replace 0 probabilities for target tokens with <smooth> [1e-50]\n\
+-s  Replace 0 probabilities for target tokens with <smooth> [1e-07]\n\
 -logprob  Display the log probability for each sentence pair [don't]\n\
 ";
 
@@ -44,7 +44,7 @@ Options:\n\
 static bool verbose = false;
 static bool reverse_dir = false;
 static Uint modelno = 2;
-static double smooth = 1e-50;
+static double smooth = 1e-07;
 static string model;
 static bool logprob = false;
 
