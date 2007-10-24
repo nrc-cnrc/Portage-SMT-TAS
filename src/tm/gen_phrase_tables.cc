@@ -6,7 +6,7 @@
  *
  * COMMENTS:
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -34,7 +34,7 @@ using namespace Portage;
 using namespace __gnu_cxx;
 
 static char help_message[] = "\n\
-gen_phrase_tables [-hHvijnz][-a 'meth args'][-s 'meth args'][-w nw]\n\
+gen_phrase_tables [-hHvijz][-a 'meth args'][-s 'meth args'][-w nw]\n\
                   [-m max][-min min][-ibm n][-twist][-addsw][-d ldiff]\n\
                   [-1 lang1][-2 lang2][-o name][-f1 freqs1][-f2 freqs2]\n\
                   [-tmtext][-multipr d][-giza]\n\
@@ -55,7 +55,6 @@ Options:\n\
 -h     Display this help message and quit.\n\
 -H     List available word-alignment and smoothing methods and quit.\n\
 -v     Write progress reports to cerr. Use -vv to get more (-vs for smoothing).\n\
--n     Suppress special interpretation of <> characters.\n\
 -z     Add .gz to all generated file names (and compress those files).\n\
 -a     Word-alignment method and optional args. Use -H for list of methods.\n\
        Multiple methods may be specified by using -a repeatedly. [IBMOchAligner]\n\
@@ -119,7 +118,6 @@ static const char* const switches[] = {"v", "vv", "vs", "n", "i", "j", "z", "a:"
 
 static Uint verbose = 0;
 static Uint smoothing_verbose = 0; // ugly ugly ugly ugly ugly ugly ugly ugly 
-static bool ignore_markup = false;
 static vector<string> align_methods;
 static vector<string> smoothing_methods;
 static bool indiv_tables = false;
@@ -183,7 +181,6 @@ public:
       if (mp_arg_reader->getSwitch("vv")) verbose = 2;
       if (mp_arg_reader->getSwitch("vs")) smoothing_verbose = 2;
       
-      mp_arg_reader->testAndSet("n", ignore_markup);
       mp_arg_reader->testAndSet("a", align_methods);
       mp_arg_reader->testAndSet("s", smoothing_methods);
       mp_arg_reader->testAndSet("i", indiv_tables);
@@ -377,8 +374,8 @@ int MAIN(argc, argv)
          if (verbose > 1) cerr << "--- " << line_no << " ---" << endl;
 
          toks1.clear(); toks2.clear();
-         TMIO::getTokens(line1, toks1, ignore_markup ? 1 : 0);
-         TMIO::getTokens(line2, toks2, ignore_markup ? 1 : 0);
+         split(line1, toks1);
+         split(line2, toks2);
 
          for (Uint i = 0; i < toks1.size(); ++i)
             word_voc_1.add(toks1[i].c_str());

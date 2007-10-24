@@ -6,7 +6,7 @@
  *
  * COMMENTS:
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -53,7 +53,6 @@ Options:\n\
 -h     Display this help message and quit.\n\
 -H     List available word-alignment methods and quit.\n\
 -v     Write progress reports to cerr. Use -vv to get more.\n\
--n     Suppress special interpretation of <> characters.\n\
 -i     Ignore case (actually: lowercase everything).\n\
 -o     Specify output format, one of aachen, hwa, matrix, compact or ugly [aachen]\n\
 -a     Word-alignment method and optional args. Use -H for list of methods.\n\
@@ -81,7 +80,6 @@ static const char* const switches[] = {"v", "vv", "n", "i", "z", "a:", "o:",
                            "ibm:", "twist", "giza"};
 
 static Uint verbose = 0;
-static bool ignore_markup = false;
 static bool lowercase = false;
 static string align_method;
 static bool twist = false;
@@ -312,7 +310,6 @@ public:
       if (mp_arg_reader->getSwitch("v")) {verbose = 1;}
       if (mp_arg_reader->getSwitch("vv")) verbose = 2;
       
-      mp_arg_reader->testAndSet("n", ignore_markup);
       mp_arg_reader->testAndSet("i", lowercase);
       mp_arg_reader->testAndSet("a", align_method);
       mp_arg_reader->testAndSet("z", compress_output);
@@ -442,8 +439,8 @@ int MAIN(argc, argv)
          }
 
          toks1.clear(); toks2.clear();
-         TMIO::getTokens(line1, toks1, ignore_markup ? 1 : 0);
-         TMIO::getTokens(line2, toks2, ignore_markup ? 1 : 0);
+         split(line1, toks1);
+         split(line2, toks2);
 
          if (verbose > 1)
             cerr << line1 << endl << line2 << endl;

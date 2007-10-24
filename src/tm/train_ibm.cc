@@ -7,7 +7,7 @@
  *
  * TODO: add ppx-based break condition
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -37,7 +37,6 @@ Options:\n\
 -v  Write progress reports to cerr.\n\
 -r  Do a pairwise reversal of the input file list, turning it into:\n\
     file1_lang2 file1_lang1 ... fileN_lang2 fileN_lang1\n\
--m  Ignore markup: treat all whitespace-separated strings as tokens\n\
 -i  Initialize ttable from <init_model>, rather than compiling it from corpus.\n\
     This means that only the word pairs in <init_model> will be considered as\n\
     potential translations, and their starting probs will come from <init_model>.\n\
@@ -64,7 +63,6 @@ static ArgReader arg_reader(ARRAY_SIZE(switches), switches,
 
 static bool verbose = false;
 static bool reverse_dir = false;
-static bool ignore_markup = false;
 static Uint num_iters1 = 5;
 static Uint num_iters2 = 5;
 static string init_model;
@@ -151,8 +149,8 @@ int main(int argc, char* argv[])
 	    toks1.clear(); toks2.clear();
 	    toks1.push_back(ibm2->nullWord());
 
-	    TMIO::getTokens(line1, toks1, ignore_markup);
-	    TMIO::getTokens(line2, toks2, ignore_markup);
+	    split(line1, toks1);
+	    split(line2, toks2);
 
 	    if (iter == 0)
 	       ibm2->add(toks1, toks2);
@@ -194,7 +192,6 @@ void getArgs(int argc, char* argv[])
 
    arg_reader.testAndSet("v", verbose);
    arg_reader.testAndSet("r", reverse_dir);
-   arg_reader.testAndSet("m", ignore_markup);
    arg_reader.testAndSet("i", init_model);
    arg_reader.testAndSet("s", ibm1_model);
    arg_reader.testAndSet("n1", num_iters1);

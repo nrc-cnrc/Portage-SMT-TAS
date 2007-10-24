@@ -7,7 +7,7 @@
  *
  * Run all tests for this module.
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -35,12 +35,12 @@ int main(int argc, char* argv[])
 {
    getArgs(argc, argv);
 
-   TMIO::test();
+   //TMIO::test();
 }
 
 // arg processing
 
-static const char* const switches[] = {"v"};
+static const char* switches[] = {"v"};
 static ArgReader arg_reader(ARRAY_SIZE(switches), switches, 0, -1, help_message, "-h", true);
 
 void getArgs(int argc, char* argv[])

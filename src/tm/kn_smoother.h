@@ -9,7 +9,7 @@
  *
  * Kneser-Ney and IBM-based bag-of-words smoothing for phrase table
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -286,8 +286,6 @@ class KNSmoother
       assert(ibm_sgt);
       vector<string> srctoks, tgttoks;
 
-      // TMIO::getTokens(srcIt->first, srctoks);
-      // TMIO::getTokens(lang2_voc.word(tgtIt->first), tgttoks);
       decodePhrase(srcIt->first, srctoks, wvoc1);
       decodePhrase(lang2_voc.word(tgtIt->first), tgttoks, wvoc2);
 
@@ -313,8 +311,6 @@ class KNSmoother
       assert(ibm_tgs);
       vector<string> srctoks, tgttoks;
 
-      // TMIO::getTokens(srcIt->first, srctoks);
-      // TMIO::getTokens(lang2_voc.word(tgtIt->first), tgttoks);
       decodePhrase(srcIt->first, srctoks, wvoc1);
       decodePhrase(lang2_voc.word(tgtIt->first), tgttoks, wvoc2);
 

@@ -6,7 +6,7 @@
  * 
  * COMMENTS: 
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -90,8 +90,8 @@ int main(int argc, char* argv[])
 	 }
 	 
 	 toks1.clear(); toks2.clear();
-	 TMIO::getTokens(line1,toks1);
-	 TMIO::getTokens(line2,toks2);
+	 split(line1,toks1);
+	 split(line2,toks2);
 
          double ibm_logpr = ibm->logpr(toks1, toks2, smooth);
          if ( logprob ) cout << ibm_logpr << endl;
