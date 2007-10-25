@@ -1,6 +1,7 @@
 /**
  * @author Samuel Larkin
- * @file MagicStream.h A stream that can be transparently used for cin/cout, .txt, .{Z,z,gz} and pipes.
+ * @file MagicStream.h A stream that can be transparently used for cin/cout,
+ *                     .txt, .{Z,z,gz} and pipes.
  *
  *
  * COMMENTS: These classes we permit easy integration of a stream that can be used in the following ways:
@@ -9,7 +10,7 @@
  *           - to read/write to a plain text file
  *           - to read/write from a pipe
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -31,7 +32,7 @@
 namespace Portage {
 
 /**
- * Abstract base class for MagicStreams.  Not intended to be instanciate as a
+ * Abstract base class for MagicStreams.  Not intended to be instanciated as a
  * concrete object but rather as a placeholder of common MagicStream
  * funcion/members.
  */
@@ -39,17 +40,17 @@ class MagicStreamBase : private boost::noncopyable
 {
    protected:
       /// Internal buffer's definition
-      typedef boost::shared_ptr<std::streambuf> buffer_type;
+      typedef boost::shared_ptr<std::streambuf> stream_type;
       
       /// Internal buffer.  A shared pointer will hold our reference to our
-      /// buffer with the porper deleter will automagically close the buffer
-      buffer_type buffer;
+      /// buffer with the proper deleter will automagically close the buffer
+      stream_type stream;
 
       /// Opening mode's definition (in | out)
       typedef std::ios_base::openmode  OpenMode;
 
       /// Opening pipe mode's definition (r|w)
-      typedef const char* const PipeMode;
+      typedef const char* PipeMode;
       
    private:
       /// open pipe mode ("r" | "w")
@@ -86,7 +87,7 @@ class MagicStreamBase : private boost::noncopyable
        */
       MagicStreamBase(const PipeMode _p, const OpenMode _b, FILE* f, bool closeAtEnd = false);
 
-      /// Destructor.  All the magic happens in the buffer_type which will
+      /// Destructor.  All the magic happens in the stream_type which will
       /// automagically properly close the internal buffer.
       virtual ~MagicStreamBase();
       
@@ -136,12 +137,13 @@ class MagicStreamBase : private boost::noncopyable
       void setQuiet(bool bQuiet);
 };
 
-/// Input Magic Stream.
+/// Input Magic Stream.  Transparently read from regular files, compressed
+/// files, pipes, stdin.
 class iMagicStream : public MagicStreamBase, public std::istream
 {
    public:
       /// Default constructor.
-      /// You should probably use oMagicStream(const std::string& s).
+      /// You should probably use iMagicStream(const std::string& s).
       iMagicStream();
 
       /// Constructor that opens the stream.
@@ -167,7 +169,8 @@ class iMagicStream : public MagicStreamBase, public std::istream
       virtual void open(const std::string& s);
 };
 
-/// Output Magic Stream.
+/// Output Magic Stream.  Transparently create - and write to - regular files,
+/// compressed files, pipes and stdout.
 class oMagicStream : public MagicStreamBase, public std::ostream
 {
    public:

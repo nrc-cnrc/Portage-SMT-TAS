@@ -22,7 +22,7 @@
 namespace Portage
 {
    using namespace std;
-    /*
+    /**
     Perform's Powell's algorithm, using Och's line maximization algorithm, in order to find parameters
     p that maximize the score on the training corpus.
     For the details of Powell's algorithm, see "Numerical Recipes in C", section 10.5.

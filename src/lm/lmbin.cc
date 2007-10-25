@@ -5,7 +5,7 @@
  *
  * COMMENTS:
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2007, Sa Majeste la Reine du Chef du Canada /
@@ -58,7 +58,7 @@ class VocMapBasedLMFilter {
    virtual bool operator()(const vector<Uint>& key_stack) {
       return
          (limit_order == 0 || key_stack.size() <= limit_order) &&
-         voc_map.local_to_global(key_stack.back()) != voc_map.NoMap;
+         voc_map.global_index(key_stack.back()) != voc_map.NoMap;
    }
 }; // VocMapBasedLMFilter
 
@@ -135,12 +135,12 @@ void LMBin::read_binary(const string& binlm_filename, bool limit_vocab,
 
 float LMBin::wordProb(Uint word, const Uint context[], Uint context_length)
 {
-   Uint mapped_word = voc_map.global_to_local(word);
+   Uint mapped_word = voc_map.local_index(word);
    if ( mapped_word == voc_map.NoMap )
       mapped_word = trie.MaxKey;
    Uint mapped_context[context_length];
    for ( Uint i(0); i < context_length; ++i ) {
-      mapped_context[i] = voc_map.global_to_local(context[i]);
+      mapped_context[i] = voc_map.local_index(context[i]);
       if ( mapped_context[i] == voc_map.NoMap )
          mapped_context[i] = trie.MaxKey;
    }

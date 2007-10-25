@@ -1,11 +1,12 @@
 /**
  * @author Samuel Larkin 
- * @file fileReader.h  File reader allows to read fix/dinamic size blocks(lines) from a file.
+ * @file fileReader.h  File reader allows to read fix/dinamic size
+ *                     blocks(lines) from a file.
  *
  * $Id$
  *
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -24,26 +25,11 @@
 #include <boost/noncopyable.hpp>
 
 namespace Portage {
-   /// All relevant code for file reader which transparently reader fix or dynamic nbest list.
+   /// All relevant code for file reader which transparently reader fix or
+   /// dynamic nbest list.
    /// Prevents global namespace pollution in doxygen.
    namespace FileReader {
       using namespace std;
-
-      /// Exception to be thrown if we can't open the file.
-      class InvalidFileName : public std::exception
-      {
-         private:
-            const string   m_fn;   ///< error message
-         public:
-            /// Constructor
-            /// @param fn  file name or error message
-            explicit InvalidFileName(const string& fn) : m_fn(fn) {}
-            /// Destructor.
-            ~InvalidFileName() throw() {}
-            /// Get the error message.
-            /// @return Returns the error message.
-            virtual const char* what() const throw () { return m_fn.c_str(); }
-      };
 
       /// Base class for fix / dynamic file reading for nbest files.
       template<class T>
@@ -68,9 +54,8 @@ namespace Portage {
              * @param[in] szFileName  file name
              * @param[in] S           number of source
              * @param[in] K           number of hypotheses per source or 0 for dynamic size.
-             * @exception InvalidFileName  exception is thrown if the file can't be opened
              */
-            explicit FileReaderBase(const string& szFileName, const Uint& S, const Uint& K) throw(InvalidFileName);
+            explicit FileReaderBase(const string& szFileName, const Uint& S, const Uint& K);
 
          public:
             /// Destructor.

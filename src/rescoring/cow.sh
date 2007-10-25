@@ -5,9 +5,11 @@
 # renamed from rescoreloop.sh
 #
 # Aaron Tikuisis / George Foster / Eric Joanis
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2004-2007, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2004-2007, Her Majesty in Right of Canada
 
 VERBOSE=
 FILTER=
@@ -49,24 +51,24 @@ FFVALPARSER_OPTS="-canoe"
 ##           model and results files]
 ## -nbest-list-size The size of the n-best lists to create.  [200]
 ## -maxiter Do at most MAX iterations.
-## -filt    Filter the phrase-tables based on SFILE for faster operation. 
+## -filt    Filter the phrase tables based on SFILE for faster operation.
 ##          -filt does soft filtering: creates smaller phrase tables (forward &
 ##          backward) containing ALL entries that match SFILE, and uses them
-##          afterwards in place of the original tables. 
-## -floor   Index of parameter at which to start zero-flooring. 
+##          afterwards in place of the original tables.
+## -floor   Index of parameter at which to start zero-flooring.
 ##          NB, this is NOT the floor threshold. [0].
 ## -model   The name of the model file to use.  If this model file already
 ##          exists, it should have only entries FileFF:allffvalsNUM, where
-##          NUM = 1, .. , number of base ff + number of tms + number of lms.  [curmodel]
+##          NUM = 1, .. , number of base ff + number of tms + number of lms.
 ##          To avoid accidental reuse of an old model file, an existing model
 ##          file with the default name will only be reused if the -model option
-##          was explicitly specified.
-## -mad [SEED] "Mad cow mode": Call canoe with -random-weights -seed SEED
+##          was explicitly specified. [curmodel]
+## -mad     "Mad cow mode": Call canoe with -random-weights -seed SEED
 ##          when doing the initial translation of the training corpus;
 ##          this uses a different random set of weights for each
-##          sentence. [SEED=0 means don't] 
+##          sentence. [don't; note that SEED=0 also means don't]
 ## -path    Prepend path P to existing path for locating programs []
-## -f       The configuration file to pass to the decoder.  [canoe.ini]
+## -f       The configuration file to pass to the decoder. [canoe.ini]
 ## -canoe-options  Provide additional options to the decoder. []
 ## -parallel or -parallel:"PARALLEL_OPTIONS":  Use canoe-parallel.sh to
 ##          parallelize decoding.  Any option to canoe-parallel.sh, such as
@@ -355,10 +357,10 @@ if [ ! $RESUME ]; then
     if [ ! -e $MODEL ]; then
         configtool rescore-model:$WORKDIR/allffvals $CFILE > $MODEL
     else
-	if [ `cat $MODEL | wc -l` -ne `configtool nf $CFILE` ]; then
-	    echo "Error: Bad model file"
-	    exit 1
-	fi
+      if [ `cat $MODEL | wc -l` -ne `configtool nf $CFILE` ]; then
+          echo "Error: Bad model file"
+          exit 1
+      fi
     fi
 
     numTMText=`configtool nt-text $CFILE`
@@ -366,11 +368,11 @@ if [ ! $RESUME ]; then
     # build filtered phrase tables
     if [ "$FILTER" = "-filt" ] ; then
         # soft filtering: keep all matching translations, and subsequently use
-	# forward and backward tables 
-	configtool rep-ttable-files-local:.FILT $CFILE > $CFILE.FILT
+        # forward and backward tables
+        configtool rep-ttable-files-local:.FILT $CFILE > $CFILE.FILT
         echo "filter_models -f $CFILE -suffix .FILT < $SFILE"
               filter_models -f $CFILE -suffix .FILT < $SFILE
-	CFILE=$CFILE.FILT
+        CFILE=$CFILE.FILT
     else
        echo "Warning: Not filtering"
     fi
@@ -385,7 +387,7 @@ write_models() {
         \rm -f $CFILE.cow
         exit 1
     fi
-    
+
     if [ "$CFILE" != "$ORIGCFILE" ]; then
         echo configtool set-weights:$HISTFILE $ORIGCFILE $ORIGCFILE.cow
         configtool set-weights:$HISTFILE $ORIGCFILE $ORIGCFILE.cow
@@ -424,7 +426,7 @@ while [ 1 ]; do
     fi
     echo "$RUNSTR < $SFILE > $TRANSFILE.ff"
     time  $RUNSTR < $SFILE > $TRANSFILE.ff
-    
+
     # Check return value
     RVAL=$?
     if [ $RVAL -ne 0 ]; then
@@ -434,19 +436,20 @@ while [ 1 ]; do
 
     # From here on, use given weights (not random weights)
     RANDOM_WEIGHTS=
-	
+
     $FFVALPARSER $FFVALPARSER_OPTS -in=$TRANSFILE.ff > $TRANSFILE
     echo `bleumain $TRANSFILE $RFILES | egrep BLEU` " $wtvec" >> $HISTFILE
 
     # For debugging, also put the whole output of bleumain in the output
     # stream
     echo Current weight vector: $wtvec
+    echo bleumain $TRANSFILE $RFILES
     bleumain $TRANSFILE $RFILES
 
     if [ -n "$MAXITER" ]; then
         MAXITER=$((MAXITER - 1))
     fi
-    
+
     # Read the dynamic options file for any updates to MAXITER or
     # PARALLEL_OPTS
     if [ -r COW_DYNAMIC_OPTIONS ]; then
@@ -500,7 +503,7 @@ while [ 1 ]; do
     # Create all N-best lists and check if any of them have anything new to add
     echo ""
     echo "Producing n-best lists"
-    
+
     FOO_FILES=$WORKDIR/foo.????."$N"best
     totalPrevK=0
     totalNewK=0
@@ -513,18 +516,18 @@ while [ 1 ]; do
         append-uniq.pl -nbest=$f.duplicateFree -addnbest=$x -ffvals=$f.duplicateFree.ffvals -addffvals=$x.ffvals
         newK=`wc -l < $f.duplicateFree`
         totalNewK=$((totalNewK + newK))
-        
+
         # Check if there was anything new
         if [ $prevK -ne $newK ]; then
            new=1
         fi
-            
+
         echo -n ".";
     done
     echo
     echo "Total size of n-best list -- previous: $totalPrevK; current: $totalNewK."
     echo
-        
+
     # If nothing new, then we're done, unless we just resumed, in which case we
     # do at least one iteration.
     if [ -z "$new" ]; then
@@ -534,7 +537,7 @@ while [ 1 ]; do
             echo -n But this is the first iteration after a resume, ""
             echo so running rescore_train anyway.
             echo
-        else 
+        else
             write_models
             echo Done on `date`
             exit
@@ -557,44 +560,44 @@ while [ 1 ]; do
     # RUNSTR="$RTRAIN -dyn -n -f $FLOOR $MODEL $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
 
     if [ $RESUME ]; then
-	if [ `ls pow*|wc -l` -ge 1 ]; then
-	    WEIGHTINFILE=`ls -tr1 $POWELLFILE.* | tail -1`
-	    ITER=`echo $WEIGHTINFILE | cut -d"." -f3`
-	    ITER_CHECK=`wc -l < $HISTFILE`
+      if [ `ls pow*|wc -l` -ge 1 ]; then
+         WEIGHTINFILE=`ls -tr1 $POWELLFILE.* | tail -1`
+         ITER=`echo $WEIGHTINFILE | cut -d"." -f3`
+         ITER_CHECK=`wc -l < $HISTFILE`
          echo "$ITER / $ITER_CHECK iterations have been done already."
-	    if [ $ITER -gt $ITER_CHECK ]; then
+         if [ $ITER -gt $ITER_CHECK ]; then
             echo "Inconsistency between number of iterations according to $WEIGHTINFILE and $HISTFILE:"
             echo "   $ITER vs. $ITER_CHECK iterations have been done already."
-            if [ -e $POWELLFILE.$ITER_CHECK ]; then            
-                ITER=$ITER_CHECK
+            if [ -e $POWELLFILE.$ITER_CHECK ]; then
+               ITER=$ITER_CHECK
             else
-                echo "   File $POWELLFILE.$ITER_CHECK does not exist => stick with $WEIGHTINFILE and"
+               echo "   File $POWELLFILE.$ITER_CHECK does not exist => stick with $WEIGHTINFILE and"
             fi
             echo "   assume that $ITER have been done"
-	    fi
-	    MAXITER=$((MAXITER - $ITER))
-	    ITER=$((ITER + 1))
-	    WEIGHTOUTFILE=$POWELLFILE.$ITER
-	    echo "Resuming from $WEIGHTINFILE"
+         fi
+         MAXITER=$((MAXITER - $ITER))
+         ITER=$((ITER + 1))
+         WEIGHTOUTFILE=$POWELLFILE.$ITER
+         echo "Resuming from $WEIGHTINFILE"
          echo "   ==> $MAXITER iteration\(s\) remaining."
-	fi
+      fi
     else
-	WEIGHTINFILE=$POWELLFILE.$ITER
-	ITER=$((ITER + 1))
-	WEIGHTOUTFILE=$POWELLFILE.$ITER
+      WEIGHTINFILE=$POWELLFILE.$ITER
+      ITER=$((ITER + 1))
+      WEIGHTOUTFILE=$POWELLFILE.$ITER
     fi
+
     if [ -e $WEIGHTOUTFILE ]; then
-	rename_old $WEIGHTOUTFILE
+      rename_old $WEIGHTOUTFILE
     fi
     if [ $ITER -ge 2 ]; then
-
         RUNSTR="$RTRAIN -wi $WEIGHTINFILE -wo $WEIGHTOUTFILE -dyn -n -f $FLOOR $MODEL $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
     else
         RUNSTR="$RTRAIN -wo $WEIGHTOUTFILE -dyn -n -f $FLOOR $MODEL $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
     fi
     echo "$RUNSTR"
     time $RUNSTR
-    
+
     # Check return value
     RVAL=$?
     if [ $RVAL -ne 0 ]; then
@@ -615,9 +618,10 @@ while [ 1 ]; do
         echo Done on `date`
         exit
     fi
-    
+
     # Replace the old model with the new one
     mv $TMPMODELFILE $MODEL
-    
+
     RESUME=
+
 done

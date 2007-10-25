@@ -5,7 +5,7 @@
  * 
  * COMMENTS: 
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2007, Sa Majeste la Reine du Chef du Canada /
@@ -32,31 +32,35 @@ class VocMap {
    /// Global vocabulary is shared with the rest of the application
    Voc& global_vocab;
 
-   /// Map from global vocab indices to local ones.
-   /// Once a value is looked up, it can never change since local_vocab is
-   /// static.  All entries have the value NotLookedUp until looked up once.
+   /**
+    * Map from global vocab indices to local ones.
+    * Once a value is looked up, it can never change since local_vocab is
+    * static.  All entries have the value NotLookedUp until looked up once.
+    */
    vector<Uint> global2local;
 
    /// NotLookedUp means the global word was not looked up in the local vocab.
    static const Uint NotLookedUp; // = (~(Uint(0)) - 1);
 
-   /// Map from local vocab indices top local ones.
-   /// Entry i is valid if
-   ///     local_looked_up[i] is true and
-   ///     last_global_vocab_size == global_vocab.size()
-   /// or if
-   ///     local2global[i] is neither NoMap nor NotLookedUp
+   /**
+    * Map from local vocab indices top global ones.
+    * Entry i is valid if
+    *     local_looked_up[i] is true and
+    *     last_global_vocab_size == global_vocab.size()
+    * or if
+    *     local2global[i] is neither NoMap nor NotLookedUp
+    */
    vector<Uint> local2global;
 
    /// Bit vector indicating which local2global entries are valid
    boost::dynamic_bitset<> local_looked_up;
 
-   /// Size of the global vocabulary last time local_to_global() was called.
+   /// Size of the global vocabulary last time global_index() was called.
    Uint last_global_vocab_size;
 
  public:
    /// NoMap means "not in the other vocab".
-   static const Uint NoMap = ~(Uint(0));
+   static const Uint NoMap; // = ~(Uint(0));
 
    /**
     * Constructor.
@@ -77,7 +81,7 @@ class VocMap {
     * input line in their order of appearance.
     *
     * This method may only be called once, and must be called before
-    * global_to_local() or local_to_global() are ever called.
+    * local_index() or global_index() are ever called.
     *
     * @param in input stream to read from
     * @return the size of the local vocab when done
@@ -89,23 +93,19 @@ class VocMap {
     * @param global_index global index to lookup
     * @return the matching local index if found, NoMap otherwise
     */
-   Uint global_to_local(Uint global_index);
+   Uint local_index(Uint global_index);
 
    /**
     * Convert from a local vocab index to a global one.
     * @param local_index local index to lookup
     * @return the matching global index if found, NoMap otherwise
     */
-   Uint local_to_global(Uint local_index);
+   Uint global_index(Uint local_index);
 
    /**
     * Free the memory used by the lookup caches
     */
-   void clear_caches() {
-      global2local.clear();
-      local2global.clear();
-      local_looked_up.clear();
-   }
+   void clear_caches();
 
 }; // VocMap
 

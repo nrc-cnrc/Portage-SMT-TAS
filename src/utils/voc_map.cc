@@ -5,7 +5,7 @@
  * 
  * COMMENTS: 
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2007, Sa Majeste la Reine du Chef du Canada /
@@ -16,9 +16,9 @@
 
 using namespace Portage;
 
-const Uint VocMap::NotLookedUp = ~(Uint(0)) - 1;
-
-//const Uint VocMap::NoMap = ~(Uint(0));
+// Older compilers don't allow these definitions in the .h, so leave it here.
+const Uint VocMap::NotLookedUp = (~(Uint(0)) - 1);
+const Uint VocMap::NoMap = ~(Uint(0));
 
 Uint VocMap::read_local_vocab(istream& in) {
    assert(!local_vocab_read);
@@ -37,7 +37,7 @@ Uint VocMap::read_local_vocab(istream& in) {
    return lineno;
 }
 
-Uint VocMap::global_to_local(Uint global_index) {
+Uint VocMap::local_index(Uint global_index) {
    assert(local_vocab_read);
    assert(global_index < global_vocab.size());
 
@@ -54,7 +54,7 @@ Uint VocMap::global_to_local(Uint global_index) {
    return local_index;
 }
 
-Uint VocMap::local_to_global(Uint local_index) {
+Uint VocMap::global_index(Uint local_index) {
    assert(local_vocab_read);
    assert(local_index < local_vocab.size());
 
@@ -84,3 +84,10 @@ Uint VocMap::local_to_global(Uint local_index) {
    local_looked_up.set(local_index);
    return global_index;
 }
+
+void VocMap::clear_caches() {
+   global2local.clear();
+   local2global.clear();
+   local_looked_up.clear();
+}
+

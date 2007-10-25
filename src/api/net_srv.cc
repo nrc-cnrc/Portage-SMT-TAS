@@ -5,7 +5,7 @@
  *
  * COMMENTS:
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -120,7 +120,7 @@ void Net_srv::HandleRequest (ACE_HANDLE handle) throw(){
       break;
     }
     else{
-      //Réception partielle.
+      //Reception partielle.
       //ACE_DEBUG ((LM_DEBUG,"(%P|%t) RCVD:%s", buf));
       src += buf;
       total_len_rcvd += r_bytes;

@@ -10,7 +10,7 @@
  *             - to read/write to a plain text file
  *             - to read/write from a pipe
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -138,10 +138,10 @@ MagicStreamBase::MagicStreamBase(const PipeMode  _p, const OpenMode _b, int fd, 
    assert(tmp != NULL);
    assert(tmp->is_open());
 
-   buffer = closeAtEnd
-      //? buffer_type(tmp, FILE_DESCRIPTOR_deleter())
-      ? buffer_type(tmp, FILE_HANDLE_deleter(F))
-      : buffer_type(tmp, null_deleter());
+   stream = closeAtEnd
+      //? stream_type(tmp, FILE_DESCRIPTOR_deleter())
+      ? stream_type(tmp, FILE_HANDLE_deleter(F))
+      : stream_type(tmp, null_deleter());
 }
 
 MagicStreamBase::MagicStreamBase(const PipeMode  _p, const OpenMode _b, FILE* _f, bool closeAtEnd)
@@ -154,9 +154,9 @@ MagicStreamBase::MagicStreamBase(const PipeMode  _p, const OpenMode _b, FILE* _f
    assert(tmp != NULL);
    assert(tmp->is_open());
 
-   buffer = closeAtEnd
-      ? buffer_type(tmp, FILE_HANDLE_deleter(_f))
-      : buffer_type(tmp, null_deleter());
+   stream = closeAtEnd
+      ? stream_type(tmp, FILE_HANDLE_deleter(_f))
+      : stream_type(tmp, null_deleter());
 }
 
 MagicStreamBase::~MagicStreamBase()
@@ -167,12 +167,12 @@ MagicStreamBase::~MagicStreamBase()
 void MagicStreamBase::close()
 {
    log("MagicStreamBase::close");
-   buffer.reset();
+   stream.reset();
 }
 
 bool MagicStreamBase::is_open() const
 {
-   return buffer.use_count() != 0;
+   return stream.use_count() != 0;
 }
 
 const MagicStreamBase::PipeMode MagicStreamBase::pipeMode() const
@@ -200,7 +200,7 @@ void MagicStreamBase::makePipe(const string& _cmd)
    std_buffer* tmp = new std_buffer(c_pipe, bufferMode());
    assert(tmp != NULL);
 
-   buffer = buffer_type(tmp, PIPE_deleter(c_pipe));
+   stream = stream_type(tmp, PIPE_deleter(c_pipe));
 }
 
 // A unified way of opening file
@@ -210,7 +210,7 @@ void MagicStreamBase::makeFile(const string& filename)
    std::filebuf* tmp = new std::filebuf;
    assert(tmp);
    tmp->open(filename.c_str(), bufferMode());
-   buffer = buffer_type(tmp, close_deleter());
+   stream = stream_type(tmp, close_deleter());
 }
 
 bool MagicStreamBase::isZip(const string& cmd) const
@@ -243,13 +243,13 @@ iMagicStream::iMagicStream(const string& s, bool bQuiet)
 iMagicStream::iMagicStream(int fd, bool closeAtEnd)
 : MagicStreamBase("r", ios_base::in, fd, closeAtEnd), istream(0)
 {
-   init(buffer.get());
+   init(stream.get());
 }
 
 iMagicStream::iMagicStream(FILE* f, bool closeAtEnd)
 : MagicStreamBase("r", ios_base::in, f, closeAtEnd), istream(0)
 {
-   init(buffer.get());
+   init(stream.get());
 }
 
 iMagicStream::~iMagicStream()
@@ -264,15 +264,19 @@ void iMagicStream::open(const string& s)
    log("iMagicStream::open with: " + s);
    if (s == "-") {
       log("Using stdin");
-      buffer = buffer_type(cin.rdbuf(), null_deleter());
+      stream = stream_type(cin.rdbuf(), null_deleter());
    }
    else if (s.length()>0 && *s.rbegin() == '|') {
       makePipe(s.substr(0, s.length()-1));
    }
    else if (isZip(s)) {
-      string command("gzip -cqdf ");
-      command += s;
-      makePipe(command);
+      std::filebuf* tmp = new std::filebuf;
+      assert(tmp);
+      if (tmp->open(s.c_str(), bufferMode())) {
+         tmp->close(); // File exists we must close it to now use it with gzip
+         delete tmp; tmp = NULL;
+         makePipe("gzip -cqdf " + s);
+      }
    }
    else {
       //makeFile(s);
@@ -280,7 +284,7 @@ void iMagicStream::open(const string& s)
       std::filebuf* tmp = new std::filebuf;
       assert(tmp);
       if (tmp->open(s.c_str(), bufferMode())) {
-         buffer = buffer_type(tmp, close_deleter());
+         stream = stream_type(tmp, close_deleter());
       }
       else {
          // If it fails to open a file we will try its gzip version
@@ -295,7 +299,7 @@ void iMagicStream::open(const string& s)
       }
    }
       
-   init(buffer.get());
+   init(stream.get());
 }
 
 
@@ -315,19 +319,19 @@ oMagicStream::oMagicStream(const string& s, bool bQuiet)
 oMagicStream::oMagicStream(int fd, bool closeAtEnd)
 : MagicStreamBase("w", ios_base::out, fd, closeAtEnd), ostream(0)
 {
-   init(buffer.get());
+   init(stream.get());
 }
 
 oMagicStream::oMagicStream(FILE* f, bool closeAtEnd)
 : MagicStreamBase("w", ios_base::out, f, closeAtEnd), ostream(0)
 {
-   init(buffer.get());
+   init(stream.get());
 }
 
 oMagicStream::~oMagicStream()
 {
    log("oMagicStream::~oMagicStream");
-   if (buffer.get() != NULL) flush();
+   if (stream.get() != NULL) flush();
 }
 
 void oMagicStream::open(const string& s)
@@ -338,7 +342,7 @@ void oMagicStream::open(const string& s)
    log("oMagicStream::open with: " + s);
    if (s == "-") {
       log("Using stdout");
-      buffer = buffer_type(cout.rdbuf(), null_deleter());
+      stream = stream_type(cout.rdbuf(), null_deleter());
    }
    else if (s.length()>0 && s[0] == '|') {
       makePipe(s.substr(1));
@@ -351,8 +355,8 @@ void oMagicStream::open(const string& s)
    else {
       makeFile(s);
       // A one-liner way of creating the filebuf
-      //buffer = buffer_type((new std::filebuf)->open(s.c_str(), std::ios::out));
+      //stream = stream_type((new std::filebuf)->open(s.c_str(), std::ios::out));
    }
       
-   init(buffer.get());
+   init(stream.get());
 }

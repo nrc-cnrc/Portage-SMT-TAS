@@ -4,7 +4,7 @@
  * $Id$
  * 
  * K-Best Rescoring Module
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l.information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -87,7 +87,7 @@ namespace Portage
       uVector xit(M);
 
       for (iter=0; ; ++iter) {
-         double fp = fret;
+         const double fp = fret;
          int ibig = 0;
          double del = 0.0;               // Will be the biggest function decrease
          for (Uint i=0; i<M; ++i) {       // In each iteration, loop over all directions in the set
@@ -101,8 +101,7 @@ namespace Portage
             }
          }
 
-         if (fret == -numeric_limits<double>::infinity())
-         {
+         if (fret == -numeric_limits<double>::infinity()) {
             error(ETWarn, "It is likely that you do not have 4-gram match thus powell will loop forever");
             break;
          }
@@ -117,9 +116,9 @@ namespace Portage
          xit = p - pt;
          pt  = p;
 
-         double fptt = computeScore(ptt, vH, bleu);       // Function value at extrapolated point
+         const double fptt = computeScore(ptt, vH, bleu);       // Function value at extrapolated point
          if (fptt > fp) {
-            double t = 2.0*(-fp+2.0*fret-fptt)*SQR(fabs(fp-fret)-del)-del*SQR(fp-fptt);
+            const double t = 2.0*(-fp+2.0*fret-fptt)*SQR(fabs(fp-fret)-del)-del*SQR(fp-fptt);
             if (t < 0.0) {
                linemax(p, xit, vH, bleu);   // Move to the minimum of the new direction,
                fret = computeScore(p, vH, bleu);

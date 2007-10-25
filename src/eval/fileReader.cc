@@ -1,12 +1,13 @@
 /**
  * @author Aaron Tikuisis
- * @file fileReader.cc  Implementation of objects that transparently allow reading in fix block size or in dynamic sized blocks.
+ * @file fileReader.cc  Implementation of objects that transparently allow
+ *                      reading in fix block size or in dynamic sized blocks.
  *
  * $Id$
  *
  * Evaluation Module
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -26,7 +27,7 @@ static Logging::logger myLogger(Logging::getLogger("verbose.dynamicsizereader"))
 ////////////////////////////////////////
 // BASE CLASS
 template<class T>
-FileReaderBase<T>::FileReaderBase(const string& szFileName, const Uint& S, const Uint& K) throw(InvalidFileName)
+FileReaderBase<T>::FileReaderBase(const string& szFileName, const Uint& S, const Uint& K)
 : m_file(szFileName)
 , m_S(S)
 , m_K(K)
@@ -34,7 +35,7 @@ FileReaderBase<T>::FileReaderBase(const string& szFileName, const Uint& S, const
 {
    if (!m_file)
    {
-      throw InvalidFileName(szFileName);
+      error(ETFatal, "Can't open %s", szFileName.c_str());
    }
 }
 
