@@ -1,7 +1,7 @@
 # =============================================================================
 # MODULE: Makefile.incl - include file for lower-level Makefiles
 #
-# PROGRAMMER: George Foster, Aaron Tikuisis, Eric Joanis, Patrick Paul
+# PROGRAMMERS: George Foster, Aaron Tikuisis, Eric Joanis, Patrick Paul
 #
 # This defines a bunch of standard targets in terms of variables that list
 # files, directories, commands, etc. All the local make has to do is list local
@@ -12,7 +12,8 @@
 # Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2005 - 2007, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada
+# Copyright 2005, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2005, Her Majesty in Right of Canada
 # =============================================================================
 
 # =============================================================================
@@ -62,6 +63,19 @@ TEX = latex -interaction=batchmode
 # END OF USER CONFIGURABLE VARIABLES
 # =============================================================================
 
+# Default values
+DOXYFILE ?= ../build/Doxyfile
+ifndef SOURCES
+   ifneq ($(wildcard *.cc),)
+      SOURCES = $(wildcard *.cc)
+   endif
+endif
+ifndef INCLUDES
+   ifneq ($(wildcard *.h),)
+      INCLUDES = $(wildcard *.h)
+   endif
+endif
+
 INSTALL_DIR = ../..
 
 OSTYPE = $(shell uname -s)
@@ -83,8 +97,8 @@ ifdef PORTAGE
     OTHER_INC_DIRS = -I$(PORTAGE)/include
     OTHER_LIB_DIRS = -L$(PORTAGE)/lib
 else
-    OTHER_INC_DIRS = -I/export/projets/portage/include
-    OTHER_LIB_DIRS = -L/export/projets/portage/lib
+    OTHER_INC_DIRS = -I/home/portage/include
+    OTHER_LIB_DIRS = -L/home/portage/lib
 endif
 
 # lib and include directories due to MODULE_DEPENDS
@@ -114,15 +128,32 @@ else
     LOGGING_LIB = -llog4cxx
 endif
 
-# flags and commands (CF contains options from the environment, like -g; to
-# have these be read, use "make -e". Eg: setenv CF -g; make -e buggy_prog.
-# MODULE_CF contains module/directory specific compile flags).
+# Disable all checking in boost::ublas, since they're very expensive, unless
+# UBLAS_DEBUG is defined.
+ifndef UBLAS_DEBUG
+    BOOST_CF = -DBOOST_UBLAS_INLINE=inline -DBOOST_UBLAS_USE_FAST_SAME \
+               -DBOOST_UBLAS_CHECK_ENABLE=0 -DBOOST_UBLAS_TYPE_CHECK=0
+else
+    BOOST_CF =
+endif
+
+# flags and commands
+#
+# The variables CF and FIRST_CF can be used to specify additional compiler
+# flags.  Flags in CF are added at the end of the flags, while flags in
+# FIRST_CF are added at the beginning.
+# You can specify their value on the make command line, .e.g:
+#    make CF=-g buggy_prog          # keep debugging info
+#    make CF='-g -O0' buggy_prog    # also turn off all optimizations
+# FIRST_CF is useful if you want specify a custom library location:
+#    make FIRST_CF='-L/my/custom/lib -I/my/custom/include'
+
 CC = gcc
 CXX = g++
 OPTS = -O3 -fPIC -Wall -Wsign-promo -Woverloaded-virtual $(MODULE_CF) $(CF)
 LFLAGS = -L. -L../utils $(MODULE_LIB_DIR) $(OTHER_LIB_DIRS)
 IFLAGS = -I. -I../utils $(MODULE_INCLUDE) $(OTHER_INC_DIRS)
-CFLAGS =  $(IFLAGS) $(LFLAGS) -D$(OSTYPE) $(OPTS) $(CFLAG_LOGGING)
+CFLAGS =  $(IFLAGS) $(LFLAGS) -D$(OSTYPE) $(OPTS) $(BOOST_CF) $(CFLAG_LOGGING)
 CXXFLAGS = $(CFLAGS)
 
 ifeq ($(OSTYPE),Darwin)
@@ -191,12 +222,15 @@ endif
 # linking of the libraries and is therefore significant.
 # MODULE_DEPENDS =
 
+# Additional compile-time flags required for this library
+# MODULE_CF =
+
 # -----------------------------------------------------------------------------
 # Targets
 # -----------------------------------------------------------------------------
 
 
-.PHONY: new all clean lib bin depend lib bin TAGS tags info doxy docs \
+.PHONY: new all clean lib bin depend TAGS tags info doxy docs \
 	install export install_inc install_dyn_lib install_static_lib \
 	install_perl_lib install_bin install_doc
 
@@ -231,15 +265,15 @@ clean:
 	TAGS tags *~ *.o *.info-* core .cvsignore
 
 # make the .cvsignore file, used by CVS to ignore certain files when updating
-.cvsignore: Makefile
-	echo $(PROGRAMS) Makefile.depend .cvsignore *.pdf *.dvi *.aux *.bbl *.blg *.log *.eps | tr ' ' '\n' > .cvsignore
+.cvsignore: Makefile ../build/Makefile.incl
+	echo $(PROGRAMS) Makefile.depend .cvsignore *.pdf *.dvi *.aux *.bbl *.blg *.log *.eps | tr ' ' '\n' > $@
 
 # make static and dynamic libraries
 lib: $(LIBRARY).a $(LIBRARY).so
 ifneq ($(OSTYPE),Darwin)
 $(LIBRARY).a: $(OBJECTS)
 ifdef LIBRARY
-	ar r $(LIBRARY).a $(OBJECTS)
+	$(AR) r $@ $?
 endif
 $(LIBRARY).so: $(OBJECTS)
 ifdef LIBRARY
@@ -292,10 +326,10 @@ $(INFOFILES): %.info: %.texinfo
 	makeinfo --fill-column=70 $<
 
 # make doxygen documentation
-doxy:
+doxy: $(DOXYFILE)
 ifdef DOXYFILE
 ifneq ($(OSTYPE),Darwin)
-	doxygen $(DOXYFILE)
+	doxygen $^
 endif
 endif
 

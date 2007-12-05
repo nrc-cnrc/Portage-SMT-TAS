@@ -6,7 +6,7 @@
 # 
 # COMMENTS: 
 #
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada / 
@@ -19,7 +19,7 @@ split-listed.pl [-d=outdir] listfile [infile]
 
 Like unix split, but split into a given list of output files, contained in
 listfile. Each line in listfile is in the format 'numlines outfile', and
-directs that the next numlines lines from infile are written to outfile.
+directs that the next numlines lines from infile are appended to outfile.
 If numlines is < 0, all remaining lines are written to outfile.
 
 Options:
@@ -45,7 +45,7 @@ open(IN, "<$in") or die "Can't open $in for reading\n";
 
 while (<SF>) {
     my ($nl, $out) = split;
-    open(OUT, ">$d/$out") or die "Can't open $d/$out for writing\n";
+    open(OUT, ">>$d/$out") or die "Can't open $d/$out for writing\n";
     
     for (my $i = 0; $i < $nl || $nl < 0; ++$i) {
 	if (!($line = <IN>)) {

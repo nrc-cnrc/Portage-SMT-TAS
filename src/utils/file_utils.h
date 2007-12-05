@@ -5,7 +5,7 @@
  * 
  * COMMENTS: 
  * 
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -31,7 +31,8 @@ namespace Portage {
 using std::string;
 using namespace boost;
 
-/// An iMagicStream class with a failsafe constructor.
+/// An iMagicStream class with a constructor that does a fatal error when the
+/// file can't be opened.
 class IMagicStream : public iMagicStream
 {
 public:
@@ -47,7 +48,8 @@ public:
    }
 };
 
-/// An oMagicStream class with a failsafe constructor.
+/// An oMagicStream class with a constructor that does a fatal error when the
+/// file can't be opened.
 class OMagicStream : public oMagicStream
 {
 public:
@@ -184,6 +186,38 @@ string DirName(const string& filename);
  * @return  the name of file
  */
 string BaseName(const string& filename);
+
+/**
+ * Verifies that the file has .Z, .z or .gz extension.
+ * @param filename filename to check if it's a gzip file
+ * @return Returns true if filename contains .Z, .z or .gz
+ */
+bool isZipFile(const string& filename);
+
+/**
+ * Removes the .Z, .z or .gz extension from filename, if any
+ * @param filename file name to remove gzip extension
+ * @return Returns filename without the gzip extension
+ */
+string removeZipExtension(const string& filename);
+
+/**
+ * Adds an extension to a file name and takes care of gzip files.
+ * filename + toBeAdded
+ * filename%(.gz|.z|.Z) + toBeAdded + .gz
+ * @param filename  file name to extended
+ * @param toBeAdded extension to add (should include the . if one is desired)
+ * @return Returns the extended file name
+ */
+string addExtension(const string& filename, const string& toBeAdded);
+
+/**
+ * Extracts the file name from a path
+ * @param path  path from which to extract the filename
+ * @return Return the file name
+ */
+string extractFilename(const string& path);
+
 
 /// Read the contents of a tokenized file, line by line.
 class TokReader 

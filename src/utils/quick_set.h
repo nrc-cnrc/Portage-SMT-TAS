@@ -2,9 +2,9 @@
  * @author George Foster
  * @file quick_set.h  Sets of integers with constant-time insert (amortized),
  * find, and clear operations
- * 
- * 
- * COMMENTS: 
+ *
+ *
+ * COMMENTS:
  *
  * Use this instead of a hash table when you need constant-time clear(), ie
  * when you will be re-using it over and over. Its main drawback is that it
@@ -13,7 +13,7 @@
  * To use as a map, use the offsets returned by insert() and find(), which are
  * unique and contiguous.
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -38,7 +38,10 @@ public:
 
    /// Get the number of elements in the hash table.
    /// @return Returns the number of elements in the hash table.
-   Uint size() {return list.size();}
+   Uint size() { return list.size(); }
+
+   /// Determine if the hash table is empty
+   bool empty() { return list.empty(); }
 
    /**
     * Inserts an element in the hash table.
@@ -47,9 +50,9 @@ public:
     */
    Uint insert(Uint elem) {
       if (find(elem) == size()) {
-	 if (elem >= map.size()) map.resize(2*(elem+1));
-	 map[elem] = list.size();
-	 list.push_back(elem);
+         if (elem >= map.size()) map.resize(2*(elem+1));
+         map[elem] = list.size();
+         list.push_back(elem);
       }
       return map[elem];
    }
@@ -61,7 +64,7 @@ public:
     */
    Uint find(Uint elem) {
       return elem < map.size() && map[elem] < list.size() && list[map[elem]] == elem  ?
-	 map[elem] : list.size();
+         map[elem] : list.size();
    }
 
    /// Clears the hash table.
@@ -76,6 +79,6 @@ public:
    static bool test();
 };
 
-  
+
 }
 #endif

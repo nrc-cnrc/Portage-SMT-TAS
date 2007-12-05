@@ -6,7 +6,7 @@
  *
  * Evaluation Module
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -50,7 +50,7 @@ namespace Portage
       for (Uint s = 0; s < S; ++s)
       {
          assert(bestIndex[s] < K);
-         result = result + begin[s][bestIndex[s]];
+         result += begin[s][bestIndex[s]];
       } // for
 
 
@@ -72,7 +72,7 @@ namespace Portage
          {
             double curBest(result.score());
             Uint oldIndex(bestIndex[s]);
-            result = result - begin[s][bestIndex[s]];
+            result -= begin[s][bestIndex[s]];
 
             // Looks for a better hypothesis for that sentence
             //
@@ -93,7 +93,7 @@ namespace Portage
                } // if
             } // for
 
-            result = result + begin[s][bestIndex[s]];
+            result += begin[s][bestIndex[s]];
             keepIterating = keepIterating || (bestIndex[s] != oldIndex);
          } // for
          ++numIts;

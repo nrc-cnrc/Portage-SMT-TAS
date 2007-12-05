@@ -13,20 +13,20 @@
 #ifndef STR_UTILS_H
 #define STR_UTILS_H
 
+#include "errors.h"
 #include <algorithm>
 #include <iterator>
 #include <string>
 #include <vector>
 #include <sstream>
 #include <iomanip>
-#include "errors.h"
 
 namespace Portage {
 
 /**
  * Removes beginning and trailing whitespace from the given string.
  * Whitespace is considered to include all characters in rmChars.
- * @param str           The string to trim.
+ * @param str           The string to trim - gets modified.
  * @param rmChars       Characters considered whitespace, to be trimmed.
  * @return returns str trimmed
  */
@@ -36,7 +36,7 @@ string& trim(string &str, const char *rmChars = " \t");
  * Same as trim, but over a char*.  Returns a char* to the first non-trimmed
  * character, and overwrites the end of str with "\0"s when trimming happens.
  * The pointer returned always points to an offset within str.
- * @param str           The string to trim.
+ * @param str           The string to trim - gets modified.
  * @param rmChars       Characters considered whitespace, to be trimmed.
  * @return returns str trimmed
  */
@@ -134,11 +134,9 @@ template<> inline string typeName<Uint>() {return "Uint";}
  * @param val returned Uint value of s
  * @return true iff conv successful.
  */
+extern bool conv(const char* s, Uint& val);
+/// Same as conv(const char* s, Uint& val);
 extern bool conv(const string& s, Uint& val);
-
-// For some reason this pair of signatures causes ambiguity and won't compile.
-//extern bool conv(const char* s, Uint& val);
-//inline bool conv(const string& s, Uint& val) { return conv(s.c_str(), val); }
 
 /**
  * Convert string to int.
@@ -223,7 +221,6 @@ template <class T> T conv(const string& s)
       error(ETFatal, "can't convert <%s> to %s", s.c_str(), typeName<T>().c_str());
    return val;
 }
-
 /// Same as conv(const string& s).
 template <class T> T conv(const char* s)
 {
@@ -232,6 +229,28 @@ template <class T> T conv(const char* s)
       error(ETFatal, "can't convert <%s> to %s", s, typeName<T>().c_str());
    return val;
 }
+
+// This overload mustn't exist
+// Makes compilation of convT<T>  ambiguous
+// Explicitly deactivate the string version to spare copies
+//template <class T> bool convT(const string& s, T& val)
+template <class T> bool convT(const char* s, T& val)
+{
+   return conv(s, val);
+}
+
+
+// This overload mustn't exist
+// Makes compilation of convT<T>  ambiguous
+// Explicitly deactivate the string version to spare copies
+//template <class T> bool convCheck(const string& s, T& val)
+template <class T> bool convCheck(const char* s, T& val)
+{
+   if (!conv(s, val))
+      error(ETFatal, "can't convert <%s> to %s", s, typeName<T>().c_str());
+   return true;
+}
+
 
 /**
  * Join a vector of strings into a single string.
@@ -371,121 +390,105 @@ extern string decodeRFC2396(const string& s);
 
 /**
  * Split an input string into a sequence of whitespace-delimited tokens.
- * There's also a non-template version of this function.
- * @param s input string
- * @param dest output iterator for resulting tokens: for instance, the begin()
- * position for a string container known to be big enough (risky), or an insert
- * iterator positioned at the end of a string container (safer).  
- * @param sep the set of characters that are considered to be whitespace.  
- * @param max_toks the maximum number of tokens to extract; if > 0, then 
- * only the 1st max_toks-1 delimited tokens will be extracted, and the 
- * remainder of the string will be the last token.
- * @return the number of tokens found
- */
-template <class StringOutputIter> 
-size_t split(const string& s, StringOutputIter dest, const string& sep=" \t\n",
-             Uint max_toks=0)
-{
-   size_t n = 0;
-   size_t pos = 0, endpos = 0;
-   while (pos < s.size() && (max_toks == 0 || n+1 < max_toks)) {
-      pos = s.find_first_not_of(sep, pos);
-      endpos = s.find_first_of(sep, pos);
-      if (endpos > pos) {
-	 *dest++ = s.substr(pos, endpos - pos);
-	 ++n;
-      }
-      pos = endpos;
-   }
-   if (n < max_toks && pos < s.size()) {
-      pos = s.find_first_not_of(sep, pos);
-      if (pos < s.size()) {
-	 *dest++ = s.substr(pos, s.size()-pos);
-	 ++n;
-      }
-   }
-   return n;
-}
-
-/**
- * Split an input string into a sequence of whitespace-delimited tokens. The
- * splitZ() version clears the output vector first.
+ * The * splitZ() version clears the output vector first.
  *
- * @see size_t split(const string& s, StringOutputIter dest, 
- *                   const string& sep, Uint max_toks)
- * @param s        input string
- * @param dest     vector that tokens get appended to
- * @param sep the  set of characters that are considered to be whitespace
- * @param max_toks the maximum number of tokens to extract; if > 0, then
- * only the 1st max_toks-1 delimited tokens will be extracted, and the
- * remainder of the string will be the last token.
+ * @see Uint split(const char* s, vector<T>& dest, Converter converter, const char* sep, const Uint max_toks)
+ * @param s          input string
+ * @param dest       vector that tokens get appended to
+ * @param converter  a mapper from a string to desire T type (Applied to every token found)
+ * @param sep        the set of characters that are considered to be whitespace
+ * @param max_toks   the maximum number of tokens to extract; if > 0, then
+ *                   only the 1st max_toks-1 delimited tokens will be
+ *                   extracted, and the remainder of the string will be the
+ *                   last token.
  * @return the number of tokens found
  */
-inline size_t
-split(const string& s, vector<string>& dest, const string& sep = " \t\n", 
-      Uint max_toks=0) {
-   return split(s, inserter(dest, dest.end()), sep, max_toks);
+template<class T, class Converter>
+Uint split(const char* s, vector<T>& dest, Converter converter, const char* sep = " \t\n", const Uint max_toks = 0)
+{
+   const Uint init_size(dest.size());
+   // Make a copy to work on
+   const Uint len = strlen(s);
+   char work[len+1];
+   strncpy(work, s, len);
+   work[len] = '\0';
+
+   char* strtok_state;
+   const char* tok = strtok_r(work, sep, &strtok_state);
+   while (tok != NULL && (!max_toks || dest.size()-init_size+1 < max_toks)) {
+      dest.push_back(T());
+      converter(tok, dest.back());
+      tok = strtok_r(NULL, sep, &strtok_state);
+   }
+   // Last token will contain the remainder of the string
+   if (max_toks && tok != NULL && dest.size()-init_size < max_toks) {
+      dest.push_back(T());
+      converter(&s[tok-work], dest.back());
+   }
+
+   return dest.size() - init_size;
 }
 
 /**
- * Same as split(const string& s, vector<string>& dest, const string& sep, Uint
- * max_toks), but clears the output vector first.
- */
-inline size_t
-splitZ(const string& s, vector<string>& dest, const string& sep = " \t\n", 
-       Uint max_toks=0) {
-   dest.clear();
-   return split(s, inserter(dest, dest.end()), sep, max_toks);
-}
-
-/**
- * @brief Split with conversion.
- * @param s    string to convert
- * @param dest destination vector which holds the conversion of s
- * @param sep  character on which to split s
- * @return Return true on success.
+ * Split an input string into a sequence of whitespace-delimited tokens.
+ * The * splitZ() version clears the output vector first.
+ *
+ * @see Uint split(const char* s, vector<T>& dest, Converter converter, const char* sep, const Uint max_toks)
+ * @param s          input string
+ * @param dest       vector that tokens get appended to
+ * @param sep        the set of characters that are considered to be whitespace
+ * @param max_toks   the maximum number of tokens to extract; if > 0, then
+ *                   extract everything
+ * @return the number of tokens found
  */
 template<class T>
-bool split(const string &s, vector<T> &dest, const string& sep = " \t\n")
+Uint split(const char* s, vector<T>& dest, const char* sep = " \t\n", const Uint max_toks = 0)
 {
-   vector<string> notConverted;
-   split(s, notConverted, sep);
-   bool success = true;
-   for (vector<string>::const_iterator it = notConverted.begin(); it < notConverted.end();
-	it++) {
-      dest.push_back(T());
-      success = success & conv(*it, dest.back());
-   } // for
-   return success;
-} // split
+   return split(s, dest, convT<T>, sep, max_toks);
+}
+
+/**
+ * Split an input string into a sequence of whitespace-delimited tokens.
+ * The * splitZ() version clears the output vector first.
+ *
+ * @see Uint split(const char* s, vector<T>& dest, Converter converter, const char* sep, const Uint max_toks)
+ * @param s          input string
+ * @param dest       vector that tokens get appended to
+ * @param sep        the set of characters that are considered to be whitespace
+ * @param max_toks   the maximum number of tokens to extract; if > 0, then
+ *                   extract everything
+ * @return the number of tokens found
+ */
+template<class T>
+Uint split(const string& s, vector<T>& dest, const char* sep = " \t\n", const Uint max_toks = 0) 
+{
+   return split(s.c_str(), dest, convT<T>, sep, max_toks);
+}
 
 /// Same as split(const string& s, vector<T> &dest, const string& sep),
 /// but clears the output vector first.
 template<class T>
-inline bool splitZ(const string &s, vector<T> &dest, const string& sep = " \t\n")
+Uint splitZ(const string &s, vector<T> &dest, const char* sep = " \t\n", const Uint max_toks = 0)
 {
    dest.clear();
-   return split(s, dest, sep);
+   return split(s.c_str(), dest, sep, max_toks);
 }
 
 /// Same as split(const string& s, vector<T> &dest, const string& sep),
 /// but die on error.
 template<class T>
-void splitCheck(const string &s, vector<T> &dest, const string& sep = " \t\n")
+Uint splitCheck(const string &s, vector<T> &dest, const char* sep = " \t\n", const Uint max_toks = 0)
 {
-   vector<string> notConverted;
-   split(s, notConverted, sep);
-   for (vector<string>::const_iterator it = notConverted.begin(); it < notConverted.end(); it++)
-      dest.push_back(conv<T>(*it));
+   return split(s.c_str(), dest, convCheck<T>, sep, max_toks);
 }
 
 /// Same as split(const string& s, vector<T> &dest, const string& sep),
 /// but clears the output vector first and die on error.
 template<class T>
-inline void splitCheckZ(const string &s, vector<T> &dest, const string& sep = " \t\n")
+Uint splitCheckZ(const string &s, vector<T> &dest, const char* sep = " \t\n", const Uint max_toks = 0)
 {
    dest.clear();
-   return splitCheck(s, dest, sep);
+   return splitCheck(s, dest, sep, max_toks);
 }
 
 /**
@@ -607,75 +610,6 @@ splitQuoted(const string& s, vector<string>& dest,
 {
    splitQuoted(s, inserter(dest, dest.end()), seps, backslashes, lquotes,
 	       rquotes, punc, retain_quotes, omit_quoted_tokens);
-}
-
-/**
- * Verifies that the file has .Z, .z or .gz extension.
- * @param filename filename to check if it's a gzip file
- * @return Returns true if filename contains .Z, .z or .gz
- */
-inline bool
-isZipFile(const string& filename)
-{
-   const size_t dot = filename.rfind(".");
-   return dot != string::npos
-             && (filename.substr(dot) == ".gz"
-                 || filename.substr(dot) == ".z"
-                 || filename.substr(dot) == ".Z");
-}
-
-/**
- * Removes the .Z, .z or .gz extension from filename
- * @param filename file name to remove gzip extension
- * @return Returns filename without the gzip extension
- */
-inline string
-removeZipExtension(const string& filename)
-{
-   const size_t dot = filename.rfind(".");
-   if (dot != string::npos
-       && (filename.substr(dot) == ".gz"
-           || filename.substr(dot) == ".z"
-           || filename.substr(dot) == ".Z"))
-   {
-      return filename.substr(0, dot);
-   }
-   else
-   {
-      return filename;
-   }
-}
-
-/**
- * Adds an extension to a file name and takes care of gzip files.
- * filename + toBeAdded
- * filename%(.gz|.z|.Z) + toBeAdded + .gz
- * @param filename  file name to extended
- * @param toBeAdded extension to add
- * @return Returns the extended file name
- */
-inline string
-addExtension(const string& filename, const string& toBeAdded)
-{
-   if (isZipFile(filename))
-      return removeZipExtension(filename) + toBeAdded + ".gz";
-   else
-      return filename + toBeAdded;
-}
-
-/**
- * Strips the file name from the path
- * @param path  path from which to extract the filename
- * @return Return the file name
- */
-inline string
-extractFilename(const string& path)
-{
-   size_t pos = path.rfind("/");
-   if (pos == string::npos)
-      return path;
-   else
-      return path.substr(pos+1);
 }
 
 /**

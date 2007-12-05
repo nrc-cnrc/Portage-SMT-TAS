@@ -5,7 +5,7 @@
  * 
  * COMMENTS: 
  * 
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -78,6 +78,11 @@ void Portage::error_if_exists(const char* filename, const char* error_msg) {
 
 bool Portage::check_if_exists(const string& filename)
 {
+   if (filename.empty()) return false;
+   if (filename == "-") return true;
+   if (*filename.begin()  == '|') return true;
+   if (*filename.rbegin() == '|') return true;
+
    ifstream ifs(filename.c_str());
    if (!ifs) {
       const string fz = filename + ".gz";
@@ -129,5 +134,47 @@ string Portage::BaseName(const string& filename)
    string r;
    DecomposePath(filename, NULL, &r);
    return r;
+}
+
+bool Portage::isZipFile(const string& filename)
+{
+   const size_t dot = filename.rfind(".");
+   return dot != string::npos
+             && (filename.substr(dot) == ".gz"
+                 || filename.substr(dot) == ".z"
+                 || filename.substr(dot) == ".Z");
+}
+
+string Portage::removeZipExtension(const string& filename)
+{
+   const size_t dot = filename.rfind(".");
+   if (dot != string::npos
+       && (filename.substr(dot) == ".gz"
+           || filename.substr(dot) == ".z"
+           || filename.substr(dot) == ".Z"))
+   {
+      return filename.substr(0, dot);
+   }
+   else
+   {
+      return filename;
+   }
+}
+
+string Portage::addExtension(const string& filename, const string& toBeAdded)
+{
+   if (isZipFile(filename))
+      return removeZipExtension(filename) + toBeAdded + ".gz";
+   else
+      return filename + toBeAdded;
+}
+
+string Portage::extractFilename(const string& path)
+{
+   size_t pos = path.rfind("/");
+   if (pos == string::npos)
+      return path;
+   else
+      return path.substr(pos+1);
 }
 

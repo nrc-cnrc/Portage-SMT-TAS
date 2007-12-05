@@ -20,7 +20,7 @@
  * - No <!DOCTYPE...> tags
  * + lots of unknowns...
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada / 
@@ -38,8 +38,8 @@ namespace Portage {
 /// One XML "ish" Tag.
 struct XMLishTag 
 {
-   /// tag types: <...>  <?...?> <!--...--> <![CDATA[...]]>:
-   enum {isElement, isDecl, isComment, isCDATA} tag_type;
+   /// tag types: <...>  <?...?> <!--...--> <![CDATA[...]]> <!DOCTYPE ...>:
+   enum {isElement, isDecl, isComment, isCDATA, isDoctype} tag_type;
 
    string name;                ///< the tags's name (or its content if comment or cdata).
    vector< pair<string,string> > attr_vals; ///< list of attribute/value pairs.
@@ -52,6 +52,10 @@ struct XMLishTag
    /// @param s string to which to append the attributs.
    /// @return Returns s
    string& attrValsString(string& s);
+   /// Checks value of an XML tag attribute
+   /// @param s attribute name
+   /// @returns value as string (empty if this attribute is not existant
+   string attrVal(const string &s);
    /// Format the XML Tag to a string.
    /// @param s string in which to format the XML tag
    /// @return Returns s.

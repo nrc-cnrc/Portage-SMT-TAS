@@ -6,7 +6,7 @@
 #
 # Eric Joanis
 #
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -44,9 +44,10 @@ Options:
   -xgraph       produce xgraph data and runs xgraph on it
   -only <pid> or -only <pid>:<pid>:<pid>:...
                 only print information about specified pid's.
+  -period <p>   assume the polling period was every <p> seconds [5]
   -quiet        don't print summaries (only useful with -graph)
   -mb           display the memory in megabytes instead of gigabytes
-  -cpu-window <N> smoothing window for the CPU figure in number of 5
+  -cpu-window <N> smoothing window for the CPU figure in number of <p>
                 second periods [120]
 
   -h(elp):      print this help message
@@ -61,6 +62,7 @@ use Getopt::Long;
 # Note to programmer: Getopt::Long automatically accepts unambiguous
 # abbreviations for all options.
 my $verbose = 1;
+my $period = 5;
 my $smoothing_window = 120;
 GetOptions(
     help        => sub { usage },
@@ -71,6 +73,7 @@ GetOptions(
     graph       => \my $graph,
     xgraph      => \my $xgraph,
     "only=s"    => \my @only,
+    "period=i"  => \$period,
     "cpu-window=i" => \$smoothing_window,
 ) or usage;
 
@@ -84,6 +87,7 @@ if ( $debug ) {
     xgraph      = $xgraph
     only        = @only
     cpu-window  = $smoothing_window
+    period      = $period
 
 ";
 }
@@ -182,14 +186,18 @@ while (<>) {
                      - $start_hour * 60 - $start_minute;
     $time_elapsed = $time_elapsed * 60 + $cur_sec;      # convert to seconds
 
-    # On the first line for a given pid, try to detect any clock skew by
-    # making the simplifying assumption that the process started at most 5
-    # seconds ago, based on the assumption that we're running monitor.sh
-    # with the default 5 second period.
+    # Process the CPU time used (turn it into a number of seconds)
+    my ($cpu_min, $cpu_sec) = $fields[9] =~ /(\d+):(\d+)/
+        or warn "Discarding line with invalid CPU time at $.\n" and next;
+    my $cpu_time = $cpu_min * 60 + $cpu_sec;
+
     if ( $first_line ) {
-        $clock_skew = 5 - $time_elapsed;
+        # Assume we're running at 100% CPU until the first reading, and that
+        # the clock skew is equal to the CPU time used until then, rounded up;
+        # this is the most reliable estimator of the real start time we have.
+        $clock_skew = $cpu_time - $time_elapsed;
     }
-    $time_elapsed += $clock_skew;    # always = 5 on the first line.
+    $time_elapsed += $clock_skew;    # always = $cpu_time on the first line.
 
     # Check if we rolled over midnight since the process started
     #if ( $time_elapsed < 0 ) { $time_elapsed += 24 * 60 * 60 }
@@ -206,12 +214,15 @@ while (<>) {
         $max_ram = $fields[5];
     }
 
-    # Process the CPU time used (turn it into a number of seconds)
-    my ($cpu_min, $cpu_sec) = $fields[9] =~ /(\d+):(\d+)/
-        or warn "Discarding line with invalid CPU time at $.\n" and next;
-    my $cpu_time = $cpu_min * 60 + $cpu_sec;
+    # The %CPU field ($fields[2]) is sometimes above 100%, but since we don't
+    # do multi-threaded programming, this is not believable, so assume >100
+    # means =100.
+    if ( $fields[2] > 100 ) {
+        $fields[2] = 100
+    }
 
-    # Store the time elapsed, CPU time used, memory, and RAM usage in the graph data.
+    # Store the time elapsed, CPU time used, memory, and RAM usage in the graph
+    # data.
     push @graph_data, [ $time_elapsed, $cpu_time, $fields[2], $fields[4], $fields[5] ];
 }
 print_process_info if @graph_data;
@@ -258,7 +269,7 @@ sub print_process_info () {
     }
 
     if ( $graph ) {
-        print "Elasped  CPU sec  %CPU  %CPU  RAM (KB)\n";
+        print "Elapsed  CPU sec  %CPU  %CPU  RAM (KB)\n";
         for (my $i = 0; $i <= $#graph_data; $i++) {
             my $current_CPU;
             if ( $i < $smoothing_window ) {
@@ -286,14 +297,29 @@ sub print_process_info () {
             #open XGRAPH, ">&STDOUT" 
             #    or die "Can't even print to STDOUT - giving up: $!";
         };
+
+        my $time_unit = "min";
+        my $seconds_per_time_unit = 60;
+        if ( scalar @graph_data > 0 ) {
+            if ( $graph_data[-1][0] < 600 ) {
+                # total time less than 10 minutes, show time in seconds
+                $time_unit = "sec";
+                $seconds_per_time_unit = 1;
+            } elsif ( $graph_data[-1][0] > 10 * 60 * 60 ) {
+                # total time above 10 hours, show time in hours
+                $time_unit = "hour";
+                $seconds_per_time_unit = 60 * 60;
+            }
+        }
+
         my ($K) = $command_line =~ /(-K\s+\d+)/;
         defined $K or $K = "????";
         print XGRAPH
             "TitleText: $pid: $K\n\n",
-            "XUnitText: Time (min)\n",
+            "XUnitText: Time ($time_unit)\n",
             "YUnitText: GB / scaled %\n";
         # Curve 1: current CPU usage data
-        print XGRAPH "\n\"CPU (", ($smoothing_window * 5 / 60), " min avg)\n";
+        print XGRAPH "\n\"CPU (", ($smoothing_window * $period / 60), " min avg)\n";
         for (my $i = 0; $i <= $#graph_data; $i++) {
             my $current_CPU;
             if ( $i < $smoothing_window ) {
@@ -305,27 +331,27 @@ sub print_process_info () {
                                ($graph_data[$i][0] - $graph_data[$j][0]);
                 $current_CPU = 100 if $current_CPU > 100;
             }
-            print XGRAPH ($graph_data[$i][0]/60), " ",
+            print XGRAPH ($graph_data[$i][0]/$seconds_per_time_unit), " ",
                          ($current_CPU / 100 * $max_memory / 1024 / 1024), "\n";
         }
         # Curve 2: total memory usage data
         print XGRAPH "\n\"Memory (GB)\n";
         foreach my $graph_line_data (@graph_data) {
-            print XGRAPH ($graph_line_data->[0] / 60), " ",
+            print XGRAPH ($graph_line_data->[0] / $seconds_per_time_unit), " ",
                          ($graph_line_data->[3] / 1024 / 1024),
                          "\n";
         }
         # Curve 3: RAM memory (i.e., resident memory) usage data
         print XGRAPH "\n\"RAM (GB)\n";
         foreach my $graph_line_data (@graph_data) {
-            print XGRAPH ($graph_line_data->[0] / 60), " ",
+            print XGRAPH ($graph_line_data->[0] / $seconds_per_time_unit), " ",
                          ($graph_line_data->[4] / 1024 / 1024),
                          "\n";
         }
         # Curve 4: cumulative CPU usage data
         print XGRAPH "\n\"CPU (cumul)\n";
         foreach my $graph_line_data (@graph_data) {
-            print XGRAPH ($graph_line_data->[0] / 60), " ",
+            print XGRAPH ($graph_line_data->[0] / $seconds_per_time_unit), " ",
                          ($graph_line_data->[2] / 100 * $max_memory / 1024 / 1024),
                          "\n";
         }

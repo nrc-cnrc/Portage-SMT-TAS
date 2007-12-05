@@ -3,7 +3,7 @@
  * @file Prog.h  This file servers as a guide on how to use the argProcessor class.
  *
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -16,8 +16,8 @@
 #ifndef YOUR_APPLICATION_GUARD_H
 #define YOUR_APPLICATION_GUARD_H
 
-#include <portage_defs.h>  ///< Most likely you will need the portage definitions
-#include <argProcessor.h>  ///< Must be included since we are going to derive argProcessor
+#include <portage_defs.h>  // Most likely you will need the portage definitions
+#include <argProcessor.h>  // Must be included since we are going to derive argProcessor
 
 
 namespace Portage
@@ -149,7 +149,7 @@ namespace Portage
             }
          }
       }; // ends ARG
-   }; // ends the YourApplication namespace
+   } // ends the YourApplication namespace
 
    /// Any declaration of functions related to your main goes here.
    Uint function1(bool verbose = false);

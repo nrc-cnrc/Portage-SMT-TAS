@@ -7,7 +7,7 @@
 #
 # COMMENTS:
 #
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -33,13 +33,9 @@ canoe-parallel.sh, NRC-CNRC, (c) 2005 - 2007, Her Majesty in Right of Canada
 
 Usage: canoe-parallel.sh [options] canoe [canoe options] < <input>
 
-  Divides the input into several blocks and runs canoe in parallel on each
-  of them.
-
-  The input file is divided in equal sized blocks which are each given to a
-  separate instance of canoe with the same options, and the final output of
-  each block is merged together so that the output of canoe-parallel.sh is
-  identical to the output of canoe with the same options.
+  Divides the input into several blocks and runs canoe (one instance per block)
+  in parallel on them; the final output is reassembled to be identical to what
+  a single canoe would have output with the same options and input.
 
 Options:
 
@@ -48,11 +44,10 @@ Options:
                 in cluster mode, not on the cluster, run each block in the
                 background, assuming a multi-CPU machine]
 
-  -noc(luster): turns off cluster mode [default: see -cluster option]
+  -noc(luster): background all jobs with & [default if not on a cluster]
 
-  -n(um) N:     split the input into N blocks.  [default: number of CPUs in
-                single multi-CPU machine mode; # input sentences / $HIGH_SENT_PER_BLOCK,
-                but >= $MIN_DEFAULT_NUM and <= $MAX_DEFAULT_NUM in cluster mode]
+  -n(um) N:     split the input into N blocks. [# input sentences / $HIGH_SENT_PER_BLOCK, 
+                but in [$MIN_DEFAULT_NUM,$MAX_DEFAULT_NUM] in cluster mode; otherwise number of CPUs]
 
   -h(elp):      print this help message
 
@@ -68,20 +63,12 @@ Options:
   canoe <canoe options>: this mandatory argument must occur after all
                 options to this script and before all regular canoe options.
 
-Cluster mode options:
+Cluster mode options (ignored on non-clustered machines):
 
-  -nolowpri:    do not use the "low priority queue".  Needed if your
-                resource requirements will only be met on our nodes.
-                [default: use the "low priority queue".]
+  -highmem:     use 2 cpus per job, for extra memory.
 
-  -highmem:     allocate 2 cpus per job, for extra extra memory.
-                (Implies -nolowpri.)
-
-  -nolocal:     by default, one of the blocks will be executed directly
-                rather than submitted, so that the node this script is
-                running on is not left idle waiting for the other blocks to
-                finish.  -nolocal forces the use of the queues for all
-                blocks.
+  -nolocal:     don't run any jobs locally; instead use psub for all of them
+                [run one worker locally]
 
   -psub|psub-opts|psub-options <psub options>: specific options to pass to
                 psub, such as specific resource requirements.  To specify
@@ -135,7 +122,6 @@ while [ $# -gt 0 ]; do
     -c|-cluster)    CLUSTER=1;;
     -noc|-nocluster)CLUSTER=0;;
     -n|-num)        arg_check 1 $# $1; NUM=$2; shift;;
-    -nolowpri)      RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
     -highmem)       RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
     -nolocal)       RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
     -psub|-psub-opts|-psub-options)
@@ -146,7 +132,7 @@ while [ $# -gt 0 ]; do
                     RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
     -q|-quiet)      VERBOSE=0
                     RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
-    -d|-debug)      DEBUG=1;;
+    -d|-debug)      DEBUG=1; RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS -d";;
     -h|-help)       usage;;
     canoe)          shift; GOTCANOE=1; CANOEOPTS=("$@"); break;;
     *)              error_exit "Unknown option $1." \

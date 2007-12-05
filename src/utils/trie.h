@@ -6,7 +6,7 @@
  *
  * COMMENTS:
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
@@ -43,6 +43,28 @@ namespace Portage {
  * the TrieDatum structure's ": 30" is a parameterized way.
  */
 typedef Uint TrieKeyT;
+
+/**
+ * Dummy MapperFunctor for read_binary when mapping is not required
+ */
+class PTrieNullMapper {
+ public:
+   /// no-op: just copy back the input.
+   Uint operator()(Uint key) { return key; }
+   /// The unique instance of this class, anywhere, so that it can be
+   /// recognized by mere pointer comparison
+   static PTrieNullMapper m;
+ private:
+   // disable all possible ways to create new instances
+   PTrieNullMapper();
+   PTrieNullMapper(const PTrieNullMapper&);
+   PTrieNullMapper& operator=(const PTrieNullMapper&);
+};
+
+/**
+ * Dummy FilterFunctor for read_binary when filtering is not required
+ */
+inline bool PTrieKeepAll(const vector<Uint>& key_stack) { return true; }
 
 };  //ends Portage namespace
 
@@ -101,7 +123,7 @@ template <> inline string typeName<Wrap<float> >() { return "Wrap<float>"; }
 
 /**
  * "make_pair"-like Wrap creator.
- * @relates Wrap<PrimitiveT> 
+ * @relates Wrap\<PrimitiveT\> 
  * @param value value to wrap
  */
 template <class PrimitiveT>
@@ -111,7 +133,7 @@ Wrap<PrimitiveT> wrap(PrimitiveT value) {
 
 /**
  * Addition of Wraps.
- * @relates Wrap<PrimitiveT> 
+ * @relates Wrap\<PrimitiveT\> 
  * @param x operand 1
  * @param y operand 2
  * @return x + y using PrimitiveT's + operator.
@@ -136,7 +158,7 @@ Wrap<PrimitiveT> operator+(
  * not necessarily exclusively) on internal nodes of the trie.  It must be a
  * class, and its default constructor should initialize it to the equivalent of
  * NULL/0/unassigned.  The utility template Wrap is provided for encapsulating
- * primitive types, e.g., you can set InternalDataT to Wrap<float>.  The
+ * primitive types, e.g., you can set InternalDataT to Wrap\<float\>.  The
  * utility class Empty is provided in case you don't need InternalDataT.
  *
  * LeafDataT can be anything, but the structure is optimized for a small
@@ -145,6 +167,9 @@ Wrap<PrimitiveT> operator+(
  * NeedDtor can be set to false if LeafDataT and InternalDataT can be safely
  * freed or moved without calling their destructors or constructors, such as
  * primitive types or simple classes without auxiliary structures.
+ * Caveat: when NeedDtor is true, constructors are always carefully called, but
+ * destructors may sometimes be missed, leading to potential memory leaks,
+ * especially when calling clear().
  */
 template <class LeafDataT, class InternalDataT = Empty, bool NeedDtor = true>
 class PTrie {
@@ -190,12 +215,16 @@ class PTrie {
     * have changed.  The cache is immediately reset if it can't be used, since
     * it's only valid as long as no intervening insert happens.
     */
-   vector<pair<Uint, TrieNode<LeafDataT, InternalDataT, NeedDtor> *> > insert_cache;
+   vector<pair<Uint, TrieNode<LeafDataT, InternalDataT, NeedDtor> *> >
+      insert_cache;
 
    /**
-    * Dummy FilterFunctor for read_binary when filtering is not required
+    * Helper for read_binary(): if a mapper is used, the direct children of the
+    * root are no longer in the right buckets.  This method moves them all to
+    * the right buckets, assuming they are sorted in the buckets where they are
+    * found, but just not in the right bucket.
     */
-   static bool keep_all(const vector<Uint>& key_stack) { return true; }
+   void fix_root_buckets();
 
  public:
    class iterator;
@@ -408,35 +437,53 @@ class PTrie {
 
    /**
     * Load the trie from the binary format written by write_binary().
-    * @param ifs input file stream located at the position where write_binary
-    * started writing.
+    * @param is  input stream located at the position where write_binary
+    *            started writing.
     * @return the number of internal nodes read and loaded
     */
-   Uint read_binary(istream& ifs) { return read_binary(ifs, PTrie::keep_all); }
+   Uint read_binary(istream& is) {
+      return read_binary(is, PTrieKeepAll, PTrieNullMapper::m);
+   }
 
+   //@{
    /**
     * Load the trie from the binary format written by write_binary(), with on
     * the fly filtering of the contents.
     *
-    * @param is input stream to read from
+    * @param is  input stream located at the position where write_binary
+    *            started writing.
     *
-    * @param filter This functor will be called for each key to determine if it
-    * should be filtered out during reading.  
-    * Filter should be a function or a function object, either way implementing
-    *
+    * @param filter  This functor will be called for each key, as it is found
+    * in the input stream, to determine if it should be filtered out during
+    * reading.  
+    * Filter should be a function or a function object implementing
     *    bool operator()(const vector<Uint>& key_stack)
-    *
     * which should return true if key_stack should be kept, false otherwise.
     * When false is returned, the leaf and sub-tree rooted at key_stack are
     * skipped.
     *
-    * Guarantees:
-    * filter was already called and returned true for each prefix of key_stack.
-    * key_stack.size() >= 1.
+    * Guarantees about key_stack, when calling filter():
+    * 1) When key_stack.size() > 1, filter was already called and returned true
+    * for each prefix of key_stack.
+    * 2) key_stack.size() >= 1.
+    *
+    * @param mapper  (optional) This functor will be called for each key after
+    * filter() has been applied, to remap the keys on disk to new keys.
+    * Filter must be a function object (a regular function will not work)
+    * implementing
+    *    Uint operator()(Uint key)
+    * which should map each possible 30 bit key to another, unique 30 bit key.
+    * No mapping is done when mapper is left out.
     *
     * @return the number of internal nodes kept.
     */
-   template <typename Filter> Uint read_binary(istream& is, Filter& filter);
+   template <typename Filter, typename Mapper>
+      Uint read_binary(istream& is, Filter filter, Mapper& mapper);
+
+   template <typename Filter> Uint read_binary(istream& is, Filter& filter) {
+      return read_binary(is, filter, PTrieNullMapper::m);
+   }
+   //@}
 
    /**
     * Traverse the whole trie, calling the Visitor functor for every leaf node.
@@ -465,7 +512,7 @@ class PTrie {
     * recursively (using the iterator's begin_children() and end_children()
     * methods)
     */
-   iterator begin_children() const;
+   iterator begin_children();
    /**
     * Get an iterator to the end of the root node's children.
     * @return iterator on end position
@@ -478,8 +525,8 @@ class PTrie {
     * possibly one of its children.
     */
    class iterator {
-      const PTrie& parent;     ///< Parent PTrie object
-      const TrieNode<LeafDataT, InternalDataT, NeedDtor>* node;  ///< Current TrieNode
+      PTrie& parent;           ///< Parent PTrie object
+      TrieNode<LeafDataT, InternalDataT, NeedDtor>* node; ///< Current TrieNode
       bool is_root;            ///< Whether this is a root iterator
       bool is_end;             ///< Whether this iter is on the end position
       Uint root_bucket;        ///< For a root iterator, which bucket we're in
@@ -496,8 +543,8 @@ class PTrie {
        * @param position     Start position.  Use -1 and call ++ to correctly
        *                     get the beginning of a node.
        */
-      iterator(const PTrie& parent,
-               const TrieNode<LeafDataT, InternalDataT, NeedDtor>* node,
+      iterator(PTrie& parent,
+               TrieNode<LeafDataT, InternalDataT, NeedDtor>* node,
                bool is_root, bool is_end, Uint root_bucket, Uint position)
          : parent(parent), node(node), is_root(is_root), is_end(is_end)
          , root_bucket(root_bucket), position(position) {}
@@ -547,7 +594,7 @@ class PTrie {
        * @pre self != end()
        * @return the key for this node
        */
-      TrieKeyT get_key() {
+      TrieKeyT get_key() const {
          return node->get_datum(position)->getKey();
       }
 
@@ -572,6 +619,12 @@ class PTrie {
       }
 
       /**
+       * Get the internal node value for the current node.
+       * @return the internal node value if set, InternalDataT() otherwise.
+       */
+      InternalDataT get_internal_node_value() const;
+
+      /**
        * Check if the current node has children.
        * @pre self != end()
        * @return true iff the current node has children
@@ -586,7 +639,7 @@ class PTrie {
        * @pre self != end()
        * @return an iterator to this node's children.
        */
-      iterator begin_children() const;
+      iterator begin_children();
 
       /**
        * Get an end iterator for this node's children.
@@ -594,6 +647,24 @@ class PTrie {
        * @return end iterator
        */
       const iterator& end_children() const { return parent.end_iter; }
+
+      /**
+       * Insert a child for this node.
+       * If that child already exists, replaces its value.
+       * Invalidates any iterator to this node's children.
+       * @param leaf_key last element of the new child's key, added as a
+       *                 suffix to this iterator's full key.
+       * @param val      Value to be inserted
+       */
+      void insert(const TrieKeyT leaf_key, const LeafDataT& val);
+
+      /**
+       * Delete the leaf value for a child of this node, if it exists,
+       * do nothing otherwise.
+       * @param leaf_key last element of the child's key, added as a
+       *                 suffix to this iterator's full key.
+       */
+      void delete_leaf(const TrieKeyT leaf_key);
 
    }; // class iterator
 

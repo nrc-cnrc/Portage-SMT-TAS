@@ -5,14 +5,15 @@
  * 
  * COMMENTS: 
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
- * Copyright 2006, Her Majesty in Right of Canada
+ * Copyright 2007, Sa Majeste la Reine du Chef du Canada /
+ * Copyright 2007, Her Majesty in Right of Canada
  */
 #include <iostream>
 #include <fstream>
+#include <file_utils.h>
 #include "arg_reader.h"
 
 using namespace Portage;
@@ -33,10 +34,8 @@ Options:\n\
 
 static bool verbose = false;
 static Uint num_lines = 0;
-static ifstream ifs;
-static ofstream ofs;
-static istream* isp = &cin;
-static ostream* osp = &cout;
+static string infile("-");
+static string outfile("-");
 static void getArgs(int argc, char* argv[]);
 
 // main
@@ -44,26 +43,27 @@ static void getArgs(int argc, char* argv[]);
 int main(int argc, char* argv[])
 {
    getArgs(argc, argv);
-   istream& is = *isp;
-   ostream& os = *osp;
+
+   IMagicStream istr(infile);
+   OMagicStream ostr(outfile);
 
    Uint lineno = 0;
    string line;
-   while (getline(is, line) && (lineno++ < num_lines || num_lines == 0))
-      os << line << endl;
+   while (getline(istr, line) && (lineno++ < num_lines || num_lines == 0))
+      ostr << line << endl;
 }
 
 // arg processing
 
 void getArgs(int argc, char* argv[])
 {
-   const char* const switches[] = {"v", "n:"};
+   const char* switches[] = {"v", "n:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 0, 2, help_message);
    arg_reader.read(argc-1, argv+1);
 
    arg_reader.testAndSet("v", verbose);
    arg_reader.testAndSet("n", num_lines);
 
-   arg_reader.testAndSet(0, "infile", &isp, ifs);
-   arg_reader.testAndSet(1, "outfile", &osp, ofs);
+   arg_reader.testAndSet(0, "infile", infile);
+   arg_reader.testAndSet(1, "outfile", outfile);
 }

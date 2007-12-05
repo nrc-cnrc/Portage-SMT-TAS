@@ -7,7 +7,7 @@
 # COMMENTS: 
 #
 # George Foster
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -19,13 +19,17 @@ use warnings;
 print STDERR "sum.pl, NRC-CNRC, (c) 2005 - 2007, Her Majesty in Right of Canada\n";
 
 my $HELP = "
-sum.pl [in [out]]
+sum.pl [-nr] [in [out]]
 
 Sum a column of numbers.
 
+Options:
+-n  Normalize numbers by dividing by their sum, and print results.
+-r  Use reciprocals of numbers.
+
 ";
 
-our ($help, $h);
+our ($help, $h, $n, $r);
 
 if ($help || $h) {
     print $HELP;
@@ -34,13 +38,22 @@ if ($help || $h) {
  
 my $in = shift || "-";
 my $out = shift || "-";
- 
+
 open(IN, "<$in") or die "Can't open $in for reading";
 open(OUT, ">$out") or die "Can't open $out for writing";
 
+my @vals;
+
 my $sum = 0.0;
 while (<IN>) {
-    $sum += $_;
+    my $x = $r ? 1.0 / $_ : $_;
+
+    $sum += $x;
+    if ($n) {push @vals, ($x);}
 }
 
-print OUT "$sum\n";
+if ($n) {
+   while (my $x = shift @vals) {print OUT $x/$sum, "\n";}
+} else {
+   print OUT "$sum\n";
+}

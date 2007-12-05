@@ -1,4 +1,4 @@
-                             PORTAGEshared_v1.1
+                             PORTAGEshared_v1.2
 
 Technologies langagieres interactives / Interactive Language Technologies
 Institut de technologie de l'information / Institute for Information Technology
@@ -12,6 +12,87 @@ license agreement for details.
 
                               Release History
                    (with a summary of important changes)
+
+Done: utils logging eval preprocessing
+To do: lm tm canoe rescoring build api
+(for dir in lm; do
+    cd $dir
+    for x in *
+      do echo ====================================================
+      echo gvimdiff $dir/$x ~/sandboxes/PortageTrunk/src/$dir/$x
+      diff -w $x ~/sandboxes/PortageTrunk/src/$dir/$x
+    done
+    cd ..
+ done) | gvim -
+
+v1.2 ??.??.200?
+ Major changes:
+ - Significantly optimized string splitting routines (src/utils/str_utils.h)
+   and consequently the loading of many type of input and data files, including
+   the new Voc::addConverter functor to directly convert a sentence or a phrase
+   from a string to a vector<Uint> with no intermediate storage.
+
+ Minor changes:
+ - The new script process-memory-usage.pl to monitor resource usage by a job,
+   especially in a cluster setting.
+ - Made the code compile mostly cleanly with g++ 4.2.0.
+ - Formatting changes in many files to improve consistency.
+ - canoe:
+   - added markup syntax documentation to -help message;
+   - new -check-input-only option to validate an input file, not decode;
+   - improved error messages when invalid markup is encountered;
+   - improved error recovery in -tolerate-markup-errors mode.
+ - filter_models and find_sentence_phrases:
+   - use the same InputParser class as canoe for consistent handling of markup.
+ - removed the broken markup handling from train_ibm, align-words and run_ibm:
+   they now only accept tokenized, line-aligned plain text, as one would expect.
+ - normalized file names in src/rescoring: C++ code files are .cc, not .cpp,
+   C++ template code are -cc.h, not .cpp.
+ - renamed ibm1aaron.{h,cc} ibm1wtrans.{h,cc} and the classes it contains to
+   reflect the name of the feature implemented.
+ - IBM 1 and 2 models: changed the default smoothing value from 1e-50 to 1e-07.
+ - run_ibm now optionally shows the log prob of each individual sentence pair
+   and/or the perplexity for each input file pair.
+ - Friendlier error message when trying to open a .gz file that doesn't exit.
+ - get_voc: new -s option to sort results by reverse counts.
+ - monitor-process.sh: now supports a polling frequency in 10ths of seconds.
+ - run-parallel.sh:
+   - removed the dependency on faucet;
+   - reduced the per job overhead from about one second to about 10ms, making
+     it feasible to distribute thousands of tiny jobs accross several hosts;
+   - dynamic options let the user add or remove workers, and kill the whole job
+     easily.
+ - psub:
+   - support for up to 4 CPUs per node, specification of job priority,
+     specification of node properties and monitoring of memory usage;
+   - cleaned up to remove options that are clearly NRC specific.
+ - PTrie class (utils/trie.h):
+   - read_binary now supports a mapper that remaps the keys while loading;
+   - PTrie::iterator now allows insertion and deletion during traversal;
+   - now supports an internal node value on the root;
+ - VocMap (utils/voc_map.h):
+   - new add() operation to insert a new word in both local and global vocab;
+   - new operator() so it can be used as a functor in a split() call;
+   - new local index<->word conversion methods.
+ - bestbleu: new -bi option to display the best translation index.
+ - bleumain, bestbleu, and all modules using bleu:
+   - smoothing value 0 means no smoothing,
+   - new options -y and -u to control the size of the ngrams considered,
+   - many code optimizations.
+
+ Major bug fixes:
+ - When canoe was used with -weight-f (weights on the forward translation
+   models), the forward score did not get added to the total score, so that the
+   forward score was in fact ignored during search.
+
+ Minor bug fixes:
+ - rescoring/featurefunction.cc: on some systems, what appears like a compiler
+   bug generates broken code with std::for_each, so we stopped using it.
+ - IBM features in rescoring: did not correctly allow NULL alignments.
+ - block_mem_pool.h and index_block_mem_pool.h: in some cases, the destructor
+   was called twice on the same object.
+ - voc.cc: fixed mismatched malloc/free new/delete use.
+
 
 v1.1 01.04.2007
  - Added the BinLM format for fast loading of LMs, supported by all

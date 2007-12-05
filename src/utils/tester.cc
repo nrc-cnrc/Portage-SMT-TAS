@@ -5,7 +5,7 @@
  * 
  * COMMENTS: 
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -21,6 +21,7 @@
 using namespace Portage;
 using namespace std;
 
+/*
 static char help_message[] = "\n\
 tester\n\
 \n\
@@ -29,10 +30,11 @@ Run class tests.\n\
 Options:\n\
 \n\
 ";
+*/
 
 // globals
 
-static bool verbose = false;
+//static bool verbose = false;
 //static void getArgs(int argc, char* argv[]);
 
 // main

@@ -5,7 +5,7 @@
  *
  * $Id$
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l.information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -83,7 +83,7 @@ public:
     * @param s      index of sent within src_sents arg to init().
     * @param nbest  list of target sentences for this source sentence.
     */
-   virtual void source(Uint s, Nbest * const nbest) {
+   virtual void source(Uint s, const Nbest * const nbest) {
       this->s = s;
       this->nbest = nbest;
    }
@@ -366,7 +366,7 @@ public:
 
    virtual inline Uint requires() { return FF_NEEDS_NOTHING; }
    virtual void init(const Sentences * const src_sents, Uint K) {}
-   virtual void source(Uint s, Nbest * const nbest);
+   virtual void source(Uint s, const Nbest * const nbest);
    virtual double value(Uint k);
 };
 

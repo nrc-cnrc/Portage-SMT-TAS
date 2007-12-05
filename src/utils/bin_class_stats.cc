@@ -5,7 +5,7 @@
  * 
  * COMMENTS: 
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
       toks.clear();
    }
 
-   if (results.size() == 0)
+   if (results.empty())
       return 0;
 
    // calculate stats
@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
 
 void getArgs(int argc, char* argv[])
 {
-   const char* const switches[] = {"v", "r", "c:", "s:", "nce", "pr", "acc", "roc"};
+   const char* switches[] = {"v", "r", "c:", "s:", "nce", "pr", "acc", "roc"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 0, 2, help_message);
    arg_reader.read(argc-1, argv+1);
 

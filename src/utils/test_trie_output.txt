@@ -1,6 +1,10 @@
 Insert(2.4 1023 2 3)
 Insert(2.5 1023 3 2)
-Insert(2.6 1023 3 3)
+Insert(2.61234 1023 3 3)
+Insert(3.61234 2047 3 3)
+Insert(4.61234 2047 4 3)
+Insert(5.61234 2047 3 4)
+Insert(6.61234 3071 3 4)
 Insert(2.7 99 3 2)
 Insert(2.8 1 2 3)
 Insert(i123 1.2 1 2) (with internal node value)
@@ -15,10 +19,18 @@ Insert(i123 234 5 6 7 8) (with internal node value)
 Insert(5.3 10)
 Insert(6.3 10 11 12)
 Insert(7.4 10 11 13)
+Insert(6.4 10 1 2 3)
+Insert(6.3 10 11 1)
+Insert(6.2 10 11 1 2)
+Insert(100.123 100 1 2)
+Insert(1124.123 1124 3)
+Insert(2148.123 2148 5)
+Insert(101.123 101 3)
+Insert(102.123 102 5)
 
 Queries:
 find(1) returned 0
-find_path(1) returned depth 0 and values NULL .
+find_path(1) returned depth 1 and values NULL .
 find(1 2) returned 1 val = 1.2 internal data = 123
 find_path(1 2) returned depth 2 and values NULL 1.2 .
 find(1 2 3) returned 1 val = 432.123
@@ -30,19 +42,19 @@ find_path(1 2 4) returned depth 2 and values NULL 1.2 NULL .
 find(1 3 5) returned 0
 find_path(1 3 5) returned depth 2 and values NULL 5.3 NULL .
 find(257) returned 0
-find_path(257) returned depth 0 and values NULL .
+find_path(257) returned depth 1 and values NULL .
 find(257 4 3) returned 1 val = 432.123
 find_path(257 4 3) returned depth 3 and values NULL NULL 432.123 .
 find(257 8 3) returned 0
-find_path(257 8 3) returned depth 0 and values NULL NULL NULL .
+find_path(257 8 3) returned depth 1 and values NULL NULL NULL .
 find(257 12 3) returned 0
-find_path(257 12 3) returned depth 0 and values NULL NULL NULL .
+find_path(257 12 3) returned depth 1 and values NULL NULL NULL .
 find(5) returned 0
-find_path(5) returned depth 0 and values NULL .
+find_path(5) returned depth 1 and values NULL .
 find(5 6) returned 0
-find_path(5 6) returned depth 0 and values NULL NULL .
+find_path(5 6) returned depth 2 and values NULL NULL .
 find(5 6 7) returned 0
-find_path(5 6 7) returned depth 0 and values NULL NULL NULL .
+find_path(5 6 7) returned depth 3 and values NULL NULL NULL .
 find(5 6 7 8) returned 1 val = 234 internal data = 123
 find_path(5 6 7 8) returned depth 4 and values NULL NULL NULL 234 .
 find(5 6 7 8 9) returned 0
@@ -50,7 +62,7 @@ find_path(5 6 7 8 9) returned depth 4 and values NULL NULL NULL 234 NULL .
 find(10) returned 1 val = 5.3
 find_path(10) returned depth 1 and values 5.3 .
 find(10 11) returned 0
-find_path(10 11) returned depth 1 and values 5.3 NULL .
+find_path(10 11) returned depth 2 and values 5.3 NULL .
 find(10 11 12) returned 1 val = 6.3
 find_path(10 11 12) returned depth 3 and values 5.3 NULL 6.3 .
 find(10 11 12 13) returned 0
@@ -67,12 +79,24 @@ Trie dump with traverse:
 257 6 3 = 432.123
 5 6 7 8 = 234
 10 = 5.3
+10 1 2 3 = 6.4
+10 11 1 = 6.3
+10 11 1 2 = 6.2
 10 11 12 = 6.3
 10 11 13 = 7.4
 99 3 2 = 2.7
+100 1 2 = 100.123
+1124 3 = 1124.12
+2148 5 = 2148.12
+101 3 = 101.123
+102 5 = 102.123
 1023 2 3 = 2.4
 1023 3 2 = 2.5
-1023 3 3 = 2.6
+1023 3 3 = 2.61234
+2047 3 3 = 3.61234
+2047 3 4 = 5.61234
+2047 4 3 = 4.61234
+3071 3 4 = 6.61234
 
 Trie dump with iterators:
 1 2 = 1.2
@@ -85,9 +109,129 @@ Trie dump with iterators:
 257 6 3 = 432.123
 5 6 7 8 = 234
 10 = 5.3
+10 1 2 3 = 6.4
+10 11 1 = 6.3
+10 11 1 2 = 6.2
 10 11 12 = 6.3
 10 11 13 = 7.4
 99 3 2 = 2.7
+100 1 2 = 100.123
+1124 3 = 1124.12
+2148 5 = 2148.12
+101 3 = 101.123
+102 5 = 102.123
 1023 2 3 = 2.4
 1023 3 2 = 2.5
-1023 3 3 = 2.6
+1023 3 3 = 2.61234
+2047 3 3 = 3.61234
+2047 3 4 = 5.61234
+2047 4 3 = 4.61234
+3071 3 4 = 6.61234
+
+Write binary
+
+Read binary with no filter no map:
+1 2 = 1.2
+1 2 3 = 432.123
+1 3 = 5.3
+257 2 3 = 432.123
+257 4 3 = 432.123
+257 4 4 = 432.123
+257 4 5 = 432.123
+257 6 3 = 432.123
+5 6 7 8 = 234
+10 = 5.3
+10 1 2 3 = 6.4
+10 11 1 = 6.3
+10 11 1 2 = 6.2
+10 11 12 = 6.3
+10 11 13 = 7.4
+99 3 2 = 2.7
+100 1 2 = 100.123
+1124 3 = 1124.12
+2148 5 = 2148.12
+101 3 = 101.123
+102 5 = 102.123
+1023 2 3 = 2.4
+1023 3 2 = 2.5
+1023 3 3 = 2.61234
+2047 3 3 = 3.61234
+2047 3 4 = 5.61234
+2047 4 3 = 4.61234
+3071 3 4 = 6.61234
+
+Read binary with filter 1 no map:
+257 2 3 = 432.123
+257 4 3 = 432.123
+257 4 4 = 432.123
+257 4 5 = 432.123
+257 6 3 = 432.123
+5 6 7 8 = 234
+10 = 5.3
+10 11 12 = 6.3
+10 11 13 = 7.4
+99 3 2 = 2.7
+1124 3 = 1124.12
+2148 5 = 2148.12
+101 3 = 101.123
+102 5 = 102.123
+1023 2 3 = 2.4
+1023 3 2 = 2.5
+1023 3 3 = 2.61234
+2047 3 3 = 3.61234
+2047 3 4 = 5.61234
+2047 4 3 = 4.61234
+3071 3 4 = 6.61234
+
+Read binary with no filter and object map:
+1025 4093 4092 = 6.61234
+2049 4092 4093 = 4.61234
+2049 4093 4092 = 5.61234
+2049 4093 4093 = 3.61234
+3073 4093 4093 = 2.61234
+3073 4093 4094 = 2.5
+3073 4094 4093 = 2.4
+101 4093 = 1124.12
+102 4091 = 2148.12
+3997 4093 4094 = 2.7
+200 4095 4094 = 100.123
+1224 4093 = 101.123
+2248 4091 = 102.123
+4086 = 5.3
+4086 4085 4083 = 7.4
+4086 4085 4084 = 6.3
+4086 4085 4095 = 6.3
+4086 4085 4095 4094 = 6.2
+4086 4095 4094 4093 = 6.4
+4091 4090 4089 4088 = 234
+3839 4090 4093 = 432.123
+3839 4092 4091 = 432.123
+3839 4092 4092 = 432.123
+3839 4092 4093 = 432.123
+3839 4094 4093 = 432.123
+4095 4093 = 5.3
+4095 4094 = 1.2
+4095 4094 4093 = 432.123
+
+Read binary with filter 1 and object map:
+1025 4093 4092 = 6.61234
+2049 4092 4093 = 4.61234
+2049 4093 4092 = 5.61234
+2049 4093 4093 = 3.61234
+3073 4093 4093 = 2.61234
+3073 4093 4094 = 2.5
+3073 4094 4093 = 2.4
+101 4093 = 1124.12
+102 4091 = 2148.12
+3997 4093 4094 = 2.7
+1224 4093 = 101.123
+2248 4091 = 102.123
+4086 = 5.3
+4086 4085 4083 = 7.4
+4086 4085 4084 = 6.3
+4091 4090 4089 4088 = 234
+3839 4090 4093 = 432.123
+3839 4092 4091 = 432.123
+3839 4092 4092 = 432.123
+3839 4092 4093 = 432.123
+3839 4094 4093 = 432.123

@@ -23,7 +23,8 @@ namespace Portage {
 
 class VocMap {
 
-   /// Local vocabulary is private, and static once it's been read.
+   /// Local vocabulary is private.
+   /// Normally static after being read, but can be augmented using add()
    Voc local_vocab;
 
    /// Flag indicating if we already read the local vocabulary
@@ -34,8 +35,11 @@ class VocMap {
 
    /**
     * Map from global vocab indices to local ones.
-    * Once a value is looked up, it can never change since local_vocab is
-    * static.  All entries have the value NotLookedUp until looked up once.
+    * All methods, including add(), maintain the following invariant:
+    * Each entry has value:
+    *  1) NotLookedUp: which means not valid yet, need to look it up;
+    *  2) NoMap: does not exist in the local vocabulary; or
+    *  3) anything else: value of existing entry in the local vocabulary
     */
    vector<Uint> global2local;
 
@@ -84,9 +88,35 @@ class VocMap {
     * local_index() or global_index() are ever called.
     *
     * @param in input stream to read from
+    * @pre add() may not have been called before
     * @return the size of the local vocab when done
     */
    Uint read_local_vocab(istream& in);
+
+   /**
+    * Add a word to both the local and the global vocabularies, and return its
+    * local index.
+    * Maybe not be called before read_local_vocab() has been called.
+    * @param word  word to be added
+    * @return local index of word, possibly newly allocated
+    */
+   Uint add(const char* word);
+
+   /**
+    * Get the word associated with an index in the local vocabulary
+    * @param index index of the required word
+    * @return The word associated with index in the local vocabulary,
+    *         or "" if index >= size of local voc
+    */
+   const char* local_word(Uint index) const;
+
+
+   /**
+    * Lookup a word in the local vocabulary
+    * @param word to be looked up
+    * @return local index of word, or NoMap if not found.
+    */
+   Uint local_index(const char* word);
 
    /**
     * Convert from a global vocab index to a local one.
@@ -101,6 +131,18 @@ class VocMap {
     * @return the matching global index if found, NoMap otherwise
     */
    Uint global_index(Uint local_index);
+
+   /**
+    * Same as global_index(Uint), so that a VocMap can be used as a functor
+    * mapping local indices to global ones.
+    * @param local_index local index to lookup
+    * @return the matching global index if found, NoMap otherwise
+    */
+   Uint operator()(Uint local_index) {
+      Uint result(global_index(local_index));
+      assert(result != NoMap);
+      return result;
+   }
 
    /**
     * Free the memory used by the lookup caches

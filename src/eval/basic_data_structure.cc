@@ -5,7 +5,7 @@
  * $Id$
  *
  * 
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group 
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l.information / Institute for Information Technology 
  * Conseil national de recherches Canada / National Research Council Canada 
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -18,6 +18,13 @@
 
 using namespace Portage;
 
+void References::tokenize() const {
+   for (const_iterator it(begin()); it!=end(); ++it) {
+      it->getTokens();
+   }
+}
+
+
 Nbest::Nbest(const vector<string>& nbest) {
   reserve(nbest.size());
   typedef vector<string>::const_iterator IT;
@@ -25,6 +32,11 @@ Nbest::Nbest(const vector<string>& nbest) {
     push_back(Translation(it->c_str()));
 }
 
+void Nbest::tokenize() const {
+   for (const_iterator it(begin()); it!=end(); ++it) {
+      it->getTokens();
+   }
+}
 
 
 bool

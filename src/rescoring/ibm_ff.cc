@@ -30,7 +30,7 @@ IBM1DocTgtGivenSrc::IBM1DocTgtGivenSrc(const string& arg) :
    next_doc_start = 0;
 }
 
-void IBM1DocTgtGivenSrc::source(Uint s, Nbest * const nbest)
+void IBM1DocTgtGivenSrc::source(Uint s, const Nbest * const nbest)
 {
    if (s == next_doc_start) {
 

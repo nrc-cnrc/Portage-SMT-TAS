@@ -1,13 +1,13 @@
 /**
  * @author George Foster
  * @file voc.cc  Vocabulary associates an integer to every word.
- * 
- * 
- * COMMENTS: 
+ *
+ *
+ * COMMENTS:
  *
  * Map strings <-> unique indexes
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -20,11 +20,10 @@
 
 using namespace Portage;
 
-void Voc::deleteWords() 
+void Voc::deleteWords()
 {
    for (Uint i = 0; i < words.size(); ++i)
-      if (words[i])
-         delete [] words[i];
+      delete[] words[i];
 }
 
 Uint Voc::add(const char* word) {
@@ -58,40 +57,40 @@ bool Voc::test() {
    for (Uint iter = 0; ok && iter < 10; ++iter) {
 
       for (Uint i = 0; i < ARRAY_SIZE(testwords); ++i) {
-	 if (v.add(testwords[i]) != v.size()-1) {
-	    error(ETWarn, "init add test failed");
-	    ok = false;
-	    break;
-	 }
+         if (v.add(testwords[i]) != v.size()-1) {
+            error(ETWarn, "init add test failed");
+            ok = false;
+            break;
+         }
       }
       if (v.size() != ARRAY_SIZE(testwords)) {
-	 error(ETWarn, "init size check failed");
-	 ok = false;
+         error(ETWarn, "init size check failed");
+         ok = false;
       }
       for (Uint i = 0; i < v.size(); ++i) {
-	 if (strcmp(v.word(i),testwords[i]) != 0) {
-	    error(ETWarn, "index contents check failed");
-	    ok = false;
-	 }
+         if (strcmp(v.word(i),testwords[i]) != 0) {
+            error(ETWarn, "index contents check failed");
+            ok = false;
+         }
       }
       for (Uint i = 0; i < ARRAY_SIZE(testwords); ++i) {
-	 if (v.index(testwords[i]) != i) {
-	    error(ETWarn, "find test failed");
-	    ok = false;
-	    break;
-	 }
+         if (v.index(testwords[i]) != i) {
+            error(ETWarn, "find test failed");
+            ok = false;
+            break;
+         }
       }
       for (Uint i = 0; i < ARRAY_SIZE(testwords); ++i) {
-	 if (v.add(testwords[i]) != i) {
-	    error(ETWarn, "redundancy test failed");
-	    ok = false;
-	    break;
-	 }
+         if (v.add(testwords[i]) != i) {
+            error(ETWarn, "redundancy test failed");
+            ok = false;
+            break;
+         }
       }
       v.write("-", ", "); cout << endl;
       v.clear();
    }
-      
+
    return ok;
 }
 
@@ -101,9 +100,9 @@ bool Portage::testCountingVoc()
    bool ok = true;
 
    const char* testwords[] = {
-      "what", "is", "the", "price", "of", "experience", "?", 
-      "do", "men", "buy", "it", "for", "a", "song", ",", "or", "wisdom", 
-      "for", "a", "dance", "in", "the", "street", "?", 
+      "what", "is", "the", "price", "of", "experience", "?",
+      "do", "men", "buy", "it", "for", "a", "song", ",", "or", "wisdom",
+      "for", "a", "dance", "in", "the", "street", "?",
       "no", ",", "it", "is", "bought", "with", "the", "cost", "of", "all",
       "that", "man", "has", ",", "his", "house", ",", "his", "wife", ",",
       "his", "children"

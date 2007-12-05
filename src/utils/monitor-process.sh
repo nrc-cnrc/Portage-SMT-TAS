@@ -5,7 +5,7 @@
 #
 # Eric Joanis
 #
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -14,10 +14,10 @@
 echo 'monitor-process.sh, NRC-CNRC, (c) 2005 - 2007, Her Majesty in Right of Canada' >&2
 
 usage() {
-    for msg in "$@"; do
-        echo $msg >&2
-    done
-    cat <<==EOF== >&2
+   for msg in "$@"; do
+      echo $msg >&2
+   done
+   cat <<==EOF== >&2
 
 Usage: monitor-process.sh [-h(elp)] [-v(erbose)] <process_name>
 
@@ -26,24 +26,25 @@ Usage: monitor-process.sh [-h(elp)] [-v(erbose)] <process_name>
 Options:
 
   -p(eriod) <p>:  run every <p> seconds [5]
+  -p10 <p>        same as -p, but specified in tenths of a second
   -h(elp):        print this help message
   -v(erbose):     increment the verbosity level by 1 (may be repeated)
   -d(ebug):       print debugging information
 
 ==EOF==
 
-    exit 1
+   exit 1
 }
 
 # error_exit "some error message" "optionnally a second line of error message"
 # will exit with an error status, print the specified error message(s) on
 # STDERR.
 error_exit() {
-    for msg in "$@"; do
-        echo $msg >&2
-    done
-    echo "Use -h for help." >&2
-    exit 1
+   for msg in "$@"; do
+      echo $msg >&2
+   done
+   echo "Use -h for help." >&2
+   exit 1
 }
 
 # Verify that enough args remain on the command line
@@ -62,20 +63,21 @@ PERIOD=5
 DEBUG=
 VERBOSE=0
 while [ $# -gt 0 ]; do
-    case "$1" in
-    -p|-period)     arg_check 1 $# $1; PERIOD=$2; shift;;
-    -v|-verbose)    VERBOSE=$(( $VERBOSE + 1 ));;
-    -d|-debug)      DEBUG=1;;
-    -h|-help)       usage;;
-    --)             shift; break;;
-    -*)             error_exit "Unknown option $1.";;
-    *)              break;;
-    esac
-    shift
+   case "$1" in
+   -p|-period)     arg_check 1 $# $1; PERIOD=$2; shift;;
+   -p10)           arg_check 1 $# $1; PERIOD_TENTH=$(($2 * 100000)); shift;;
+   -v|-verbose)    VERBOSE=$(( $VERBOSE + 1 ));;
+   -d|-debug)      DEBUG=1;;
+   -h|-help)       usage;;
+   --)             shift; break;;
+   -*)             error_exit "Unknown option $1.";;
+   *)              break;;
+   esac
+   shift
 done
 
 if [ $# -ne 1 ]; then
-    error_exit "Missing process name or superfluous arguments."
+   error_exit "Missing process name or superfluous arguments."
 fi
 
 PROCESS_NAME=$1
@@ -83,16 +85,21 @@ PROCESS_NAME=$1
 # [Update this block with your variables, or simply delete it, when you use
 # this template]
 if [ $DEBUG ]; then
-    echo "
-    PERIOD=$PERIOD
-    PROCESS_NAME=$PROCESS_NAME
-    DEBUG=$DEBUG
-    VERBOSE=$VERBOSE
+   echo "
+   PERIOD=$PERIOD
+   PERIOD_TENTH=$PERIOD_TENTH
+   PROCESS_NAME=$PROCESS_NAME
+   DEBUG=$DEBUG
+   VERBOSE=$VERBOSE
 " >&2
 fi
 
 while true; do
-    ps ugxf | grep $PROCESS_NAME | grep -v "grep.*$PROCESS_NAME" | grep -v monitor
-    date
-    sleep $PERIOD 
+   ps ugxf | grep $PROCESS_NAME | grep -v "grep.*$PROCESS_NAME" | grep -v monitor
+   date
+   if [ $PERIOD_TENTH ]; then
+      usleep $PERIOD_TENTH
+   else
+      sleep $PERIOD 
+   fi
 done

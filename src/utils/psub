@@ -10,7 +10,7 @@
 # PROGRAMMER: Eric Joanis
 # COMMENTS:
 #
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada /
@@ -31,16 +31,22 @@ Options:
    -h(elp)        print this help message
    -v(erbose)     print the qsub script before submitting it
    -N <job name>  specify job name
-   -2             use both CPUs on a node
-   -bmem          use the larger memory (16GB) node (Balzac only)
+   -1, -2, -3 or -4  use # CPUs on a node (nodes with # CPUs must exist)
+                  thus getting access to more memory.
    -e <filename>  stderr destination
    -o <filename>  stdout destination
    -noscript      don't write out the script
    -l <resources> resources for job (man pbs_resources) (may be repeated)
+   -nodes <properties>  properties the node should have; separate multiple
+                  properties with ":", e.g., -nodes c2:blz0:big
    -qsparams <qsub parameters>  additional qsub parameters
+   -p <priority>  set the job priority; on some systems, queued jobs with
+                  higher priority start first. 0 = normal, >0 = high, <0 = low.
+                  Only use > 0 for short, urgent jobs. [0]
    -n             "not really" (dump the PBS script, but don't submit it)
    -f             force submission even if errors are detected
    -I             enter interactive mode thus getting a prompt to a node
+   -P <mins>      Log memory usage of process tree every <mins> minutes. [10]
 
 Further notes:
 
@@ -87,18 +93,23 @@ while [ $# -gt 0 ]; do
    -h|-help)            usage;;
    -v|-verbose)         VERBOSE=1;;
    -N)                  arg_check 1 $# $!; NAME=$2; shift;;
-   -2)                  BOTHCPUS=1;;
-   -I)                  BOTHCPUS=1; INTMODE=1; NOSCRIPT=1;;
-   -bmem)               BIGMEM=1;;
+   -1)                  CPU_COUNT=1;;
+   -2)                  CPU_COUNT=2;;
+   -3)                  CPU_COUNT=3;;
+   -4)                  CPU_COUNT=4;;
+   -I)                  INTMODE=1; NOSCRIPT=1;;
    -e)                  arg_check 1 $# $!; ERR_FILE=$2; shift;;
    -o)                  arg_check 1 $# $!; OUT_FILE=$2; shift;;
+   -P)                  arg_check 1 $# $!; MEMORY_POLLING_DELAY=$2; shift;;
    -noscript)           NOSCRIPT=1;;
    -l)                  arg_check 1 $# $!
                         if [ -n "$RESOURCES" ]; then RESOURCES="$RESOURCES,$2"
                                                 else RESOURCES="$2"
                         fi
                         shift;;
+   -nodes)              arg_check 1 $# $!; NODES=$2; shift;;
    -qsparams)           arg_check 1 $# $!; QSPARAMS=$2; shift;;
+   -p)                  arg_check 1 $# $!; PRIORITY=$2; shift;;
    -n)                  NOT_REALLY=1;;
    -f)                  FORCE=1;;
    --)                  shift; break;;
@@ -110,10 +121,13 @@ done
 
 COMMAND="$*"
 
-# Verifies that we are not trying to open an interactive mode session from an
-# interactive session
-if [ -n "$INTMODE" -a `uname -n | egrep -q 'balzac|venus'; echo $?` -eq 1 ]; then
-   error_exit "STOP: you shouldn't start a new interactive session from a node"
+# We are in interactive mode thus we need to reserve the entire node
+if [ -n "$INTMODE" ]; then
+   if [ $CPU_COUNT -gt 2 ]; then
+      CPU_COUNT=4; 
+   else
+      CPU_COUNT=2; 
+   fi
 fi
 
 if [ -z "$COMMAND" -a ! -n "$INTMODE" ]; then
@@ -137,6 +151,7 @@ if [ -f $PROG_NAME -a ! -x $PROG_NAME -a ! "$FORCE" ]; then
       # file is a script
       HASH_BANG_LINE=`head -1 $PROG_NAME`
       INTERPRETER=${HASH_BANG_LINE/#\#\!}
+      INTERPRETER=${INTERPRETER%% *}
       if which "$INTERPRETER" >& /dev/null; then
          echo Calling your script with "$INTERPRETER"
          COMMAND="$INTERPRETER $COMMAND"
@@ -171,43 +186,36 @@ else
    OLDRESOURCES=""
 fi
 
-VMEM_LIMIT_GB=10;
-VMEM_HARD_LIMIT_GB=11
-if [ -n "$BOTHCPUS" -a -n "$BIGMEM" ]; then
-   RESOURCES="${OLDRESOURCES}nodes=1:ppn=2:bmem"
-   VMEM_LIMIT_GB=44
-   VMEM_HARD_LIMIT_GB=47
-elif [ $BOTHCPUS ]; then
-   RESOURCES="${OLDRESOURCES}nodes=1:ppn=2"
-   VMEM_LIMIT_GB=21
-   VMEM_HARD_LIMIT_GB=23
-elif [ $BIGMEM ]; then
-   RESOURCES="${OLDRESOURCES}nodes=bmem"
-   VMEM_LIMIT_GB=21
-   VMEM_HARD_LIMIT_GB=23
+if [ $CPU_COUNT -gt 1 ]; then
+   RESOURCES="${OLDRESOURCES}nodes=1:ppn=$CPU_COUNT"
 fi
 
-if [ $BALZAC ]; then
-   if echo $RESOURCES | grep -q vmem=; then
-      # User manually specified vmem, don't alter it
-      true
+# Allow one thread per CPU for OpenMP.
+PORTAGE_OPENMP_NUMBER_THREADS=$CPU_COUNT
+
+if [ -n "$NODES" ]; then
+   if [ -n "`echo $RESOURCES | grep nodes= 2> /dev/null`" ]; then
+      RESOURCES=$RESOURCES:$NODES
+   elif [ -n "$RESOURCES" ]; then
+      RESOURCES=$RESOURCES,nodes=$NODES
    else
-      VMEM_HARD_LIMIT_KB=$((VMEM_HARD_LIMIT_GB * 1024 * 1024))
-      if [ $RESOURCES ]; then
-         RESOURCES="${RESOURCES},vmem=${VMEM_LIMIT_GB}g"
-      else
-         RESOURCES="vmem=${VMEM_LIMIT_GB}g"
-      fi
+      RESOURCES=nodes=$NODES
    fi
 fi
 
-QSUB_CMD="qsub -N $NAME"
+# qsub options we always use: -r n: not rerunable; -N $NAME: name the job
+QSUB_CMD="qsub -r n -N $NAME"
 test -n "$QSPARAMS" && QSUB_CMD="$QSUB_CMD $QSPARAMS"
 test -n "$RESOURCES" && QSUB_CMD="$QSUB_CMD -l$RESOURCES"
+test -n "$PRIORITY" && QSUB_CMD="$QSUB_CMD -p $PRIORITY"
 if [ -n "$INTMODE" ]; then
    test -n "$INTMODE" && QSUB_CMD="$QSUB_CMD -I"
    echo "Entering interactive mode"
-   $QSUB_CMD
+   if [ $NOT_REALLY ]; then
+      echo $QSUB_CMD
+   else
+      $QSUB_CMD
+   fi
    exit
 fi
 
@@ -219,24 +227,41 @@ trap "rm -f $TMPSCRIPT $TMPSCRIPT.jobid; exit" 0 2 3 13 14 15
 
 cat <<==EOF== > $TMPSCRIPT
 #!/bin/bash
+
+# Preserve important parts of the calling environment
 export PATH=\$PBS_O_PATH
+==EOF==
+
+for var in PORTAGE LD_LIBRARY_PATH PERL5LIB PYTHONPATH MANPATH \
+           MY_PORTAGE_INSTALL; do
+   if [ "`env | grep ^$var=`" != "" ]; then
+      echo "export "`env | grep ^$var=` >> $TMPSCRIPT
+   fi
+done
+
+cat <<==EOF== >> $TMPSCRIPT
+
+# Preserve the calling working directory
 cd \$PBS_O_WORKDIR
 
-# Memory use limited to $VMEM_LIMIT_GB GB (see -lvmem on qsub cmd below), with
-# hard limit of $VMEM_HARD_LIMIT_GB GB set here to avoid system crashes.
-# Use -2 and/or -bmem if these limits don't leave enough memory for your job.
-ulimit -v $VMEM_HARD_LIMIT_KB
+# Display the exact start time
+echo Starting on \`date\` on node \`hostname\` >&2
+
+# Periodically monitor the memory usage of the process tree, since PBS does not
+# do so reliably.
+process-memory-usage.pl $(($MEMORY_POLLING_DELAY*60)) \$\$ >&2 &
 
 # User command
 $COMMAND
 
 # Display resources used on stderr when the user command has completed
+echo Finished on \`date\` >&2
 qstat -f \$PBS_JOBID | egrep '\b(Job Id|resources_used|comment)\b' >&2
 
-# qsub command as submitted
+# qsub command executed
 # $QSUB_CMD $TMPSCRIPT
 
-# user's original psub command (without quotes)
+# original psub command given by user (with quotes and \\ removed)
 # $PSUB_CMD
 ==EOF==
 
@@ -253,7 +278,7 @@ fi
 
 $QSUB_CMD $TMPSCRIPT > $TMPSCRIPT.jobid
 JOBID=`cat $TMPSCRIPT.jobid`
-SHORTJOBID=${JOBID%%.*}
+SHORTJOBID=${JOBID%%[ ./]*}
 echo $JOBID
 
 if [ ! $NOSCRIPT ]; then

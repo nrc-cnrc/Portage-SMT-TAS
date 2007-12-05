@@ -13,7 +13,7 @@
  * just let the OS clean up.
  *
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
@@ -56,16 +56,21 @@ class BlockMemPool {
    /// Destructor
    ~BlockMemPool() { clear(); }
 
-   /// Allocate a new T object
+   /**
+    * Allocate a new T object.
+    * The object will already have been constructed with T's default
+    * constructor.
+    */
    T* alloc();
 
    /**
     * Clear all previously allocated objects.  Make sure you are no longer
-    * using them!!!
+    * using them!!!  Destroys each allocated T object.
     */
    void clear();
 
    /**
+    * Destroy and release t.
     * Use this only if you plan to release a few objects and reuse them later.
     * These will not really be released until you call clear().
     */
@@ -131,6 +136,13 @@ T* BlockMemPool<T>::alloc() {
 
 template <class T>
 void BlockMemPool<T>::clear() {
+   // Problem: if there are elements on the free list, they already had their
+   // destructor called, so this will destroy them a second time, resulting in
+   // unpredictable behaviour.  To avoid this, we must re-allocate all the
+   // freed elements (thus calling their constructors), before clearing the
+   // blocks.
+   while ( free_list ) alloc();
+
    if ( first ) delete first;
    first = NULL;
 }
@@ -144,7 +156,7 @@ void BlockMemPool<T>::release(T* t) {
 }
 
 
-}; // Portage
+} // Portage
 
 #endif //  __BLOCK_MEM_POOL_H__
 

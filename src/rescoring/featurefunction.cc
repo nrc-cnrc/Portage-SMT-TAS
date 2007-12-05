@@ -1,11 +1,11 @@
 /**
  * @author Aaron Tikuisis / George Foster
- * @file featurefunction.cpp
+ * @file featurefunction.cc
  * $Id$
  *
  * K-Best Rescoring Module
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -116,7 +116,7 @@ FileDFF::FileDFF(const string& filespec)
    }
 
    vector<string> fields;
-   FileReader::DynamicReader<string> dr(m_filename, 1, 1);
+   FileReader::DynamicReader<string> dr(m_filename, 1);
    vector<string> gc;
    while (dr.pollable())
    {
@@ -140,7 +140,7 @@ FileDFF::FileDFF(const string& filespec)
    }
 }
 
-void FileDFF::source(Uint s, Nbest * const nbest)
+void FileDFF::source(Uint s, const Nbest * const nbest)
 {
    if (s >= m_vals.size())
       error(ETFatal, "Too many source sentences %d/%d", s, m_vals.size());
@@ -240,9 +240,7 @@ Uint FeatureFunctionSet::read(const string& filename, bool verbose,
 {
    ff_infos.clear();
 
-   ifstream istr(filename.c_str());
-   if (!istr)
-      error(ETFatal, "unable to open file %s", filename.c_str());
+   IMagicStream istr(filename.c_str());
 
    string line;
    vector<string> toks;
@@ -317,8 +315,7 @@ bool FeatureFunctionSet::complete()
    bool bRetour(true);
 
    typedef FF_INFO::iterator IT;
-   for (IT it(ff_infos.begin()); it!=ff_infos.end(); ++it)
-   {
+   for (IT it(ff_infos.begin()); it!=ff_infos.end(); ++it) {
       bRetour &= it->function->done();
    }
 
@@ -332,9 +329,11 @@ struct null_deleter
 };
 
                     
-ptr_FF FeatureFunctionSet::create(const string& name, const string& arg, 
+ptr_FF FeatureFunctionSet::create(const string& name,
+                                  const string& arg, 
                                   const char* fileff_prefix,
-                                  bool isDynamic, bool useNullDeleter)
+                                  bool isDynamic,
+                                  bool useNullDeleter)
 {
    FeatureFunction* ff;
 
@@ -371,10 +370,10 @@ ptr_FF FeatureFunctionSet::create(const string& name, const string& arg,
       ff = new IBM2TgtGivenSrc(arg);
    } else if (name == "IBM2SrcGivenTgt") {
       ff = new IBM2SrcGivenTgt(arg);
-   } else if (name == "IBM1AaronSrcGivenTgt" || name == "IBM1WTransSrcGivenTgt") {
-      ff = new IBM1WTransSrcGivenTgt(arg);
    } else if (name == "IBM1AaronTgtGivenSrc" || name == "IBM1WTransTgtGivenSrc") {
       ff = new IBM1WTransTgtGivenSrc(arg);
+   } else if (name == "IBM1AaronSrcGivenTgt" || name == "IBM1WTransSrcGivenTgt") {
+      ff = new IBM1WTransSrcGivenTgt(arg);
    } else {
       error(ETFatal, "Invalid feature function: %s:%s", name.c_str(), arg.c_str());
       return ptr_FF(static_cast<FeatureFunction*>(0), null_deleter<FeatureFunction>());

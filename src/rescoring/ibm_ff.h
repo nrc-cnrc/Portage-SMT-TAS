@@ -147,7 +147,7 @@ public:
        error(ETFatal, "docfile contents don't match number of source sentences");
    }
 
-   virtual void source(Uint s, Nbest * const nbest);
+   virtual void source(Uint s, const Nbest * const nbest);
 
    virtual double value(Uint k) {
       return ibm1.logpr(src_doc, (*nbest)[k].getTokens());

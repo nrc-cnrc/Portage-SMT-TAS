@@ -3,7 +3,7 @@
 # Canoe Decoder
 # Aaron Tikuisis
 # 
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group 
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology 
 # Conseil national de recherches Canada / National Research Council Canada 
 # Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -11,71 +11,15 @@
 # 
 # This is the Makefile for this module.
 
-# Note: you need the Portage dependency libraries to be available in the library
-# and include search paths.  These paths should be given by Makefile.incl.  As a
-# sidenote, if you want to specify these paths via environment variables, type
-# the following (in bash):
+# Note: you need the Portage dependency libraries to be available in the
+# library and include search paths.  These paths should be given by
+# Makefile.incl.  As a sidenote, if you want to specify these paths via
+# environment variables, type the following (in bash):
 #  export LIBRARY_PATH=$LIBRARY_PATH:/export/projets/portage/lib
 #  export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/export/projets/portage/include
 
-SOURCES= \
-    alignedphrase.cc \
-    backwardsmodel.cc \
-    basicmodel.cc \
-    canoe.cc \
-    canoe_general.cc \
-    canoe_constants.cc \
-    config_io.cc \
-    configtool.cc \
-    decoder.cc \
-    decoder_feature.cc \
-    decoderstate.cc \
-    distortionmodel.cc \
-    filter_models.cc \
-    find_sentence_phrases.cc \
-    forced_phrase_finder.cc \
-    forced_target_model.cc \
-    forced_target_phrasetable.cc \
-    hypothesisstack.cc \
-    inputparser.cc \
-    partialtranslation.cc \
-    phrasefinder.cc \
-    phrasetable.cc \
-    phrase_tm_align.cc \
-    phrase_tm_align_compute.cc \
-    segmentmodel.cc \
-    testconfig.cc \
-    testdecoder.cc \
-    testhypstack.cc \
-    testphrasefinder.cc \
-    translationProb.cc \
-    wordgraph.cc \
-    nbesttranslation.cc
-
-INCLUDES= \
-    alignedphrase.h \
-    backwardsmodel.h \
-    basicmodel.h \
-    decoder.h \
-    decoder_feature.h \
-    canoe_general.h \
-    canoe_help.h \
-    config_io.h \
-    distortionmodel.h \
-    filter_models.h \
-    forced_phrase_finder.h \
-    forced_target_model.h \
-    forced_target_phrasetable.h \
-    inputparser.h \
-    hypothesisstack.h \
-    length_feature.h \
-    nbesttranslation.h \
-    phrasedecoder_model.h \
-    phrasefinder.h \
-    phrasetable.h \
-    phrase_tm_align.h \
-    segmentmodel.h \
-    wordgraph.h
+INCLUDES=$(filter-out canoe_help.h filter_models.h phrase_tm_align.h, \
+           $(wildcard *.h))
 
 OBJECTS= \
     alignedphrase.o \
@@ -122,8 +66,6 @@ DOCUMENTS=canoe.pdf
 EXTRA_LIBS=$(LOGGING_LIB)
 
 DYNLIBS=
-
-DOXYFILE=../build/Doxyfile
 
 # Module/directory specific compile flags
 MODULE_CF=-Wno-non-virtual-dtor

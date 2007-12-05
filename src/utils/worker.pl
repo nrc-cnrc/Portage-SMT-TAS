@@ -4,11 +4,11 @@
 # \file worker.pl - This is a generic worker program that requests a command
 #                   and executes it when done exits
 #
-# PROGRAMMER: Patrick Paul
+# PROGRAMMER: Patrick Paul and Eric Joanis
 #
 # COMMENTS:
 #
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -16,9 +16,9 @@
 
 use strict;
 
-use Fcntl qw(:DEFAULT :flock);
 use Getopt::Long;
-
+require 5.002;
+use Socket;
 
 # validate parameters
 my $host = '';
@@ -44,6 +44,25 @@ if($help ne ''){
 exit_with_error("Missing mandatory argument 'host' see --help\n") unless $host ne '';
 exit_with_error("Missing mandatory argument 'port' see --help\n") unless $port ne '';
 
+# Replace netcat by a regular Perl socket
+my $iaddr = inet_aton($host) or exit_with_error("No such host: $host");
+my $paddr = sockaddr_in($port, $iaddr);
+my $proto = getprotobyname('tcp');
+# send_recv($message) send $message to the faucet.  Faucet's reply is returned
+# by send_recv.
+sub send_recv($) {
+   my $message = shift;
+   socket(SOCK, PF_INET, SOCK_STREAM, $proto)
+      or exit_with_error("Can't create socket: $!");
+   connect(SOCK, $paddr) or exit_with_error("Can't connect to socket: $!");
+   select SOCK; $| = 1; select STDOUT; # set autoflush on SOCK
+   print SOCK $message, "\n";
+   local $/; undef $/;
+   my $reply = <SOCK>;
+   close SOCK;
+   return $reply;
+}
+
 #
 # Algorithm: Until we receive "***EMPTY***" request a command, run it,
 #            acknowledge completion
@@ -56,19 +75,34 @@ $me .= ":" . ($ENV{PBS_JOBID} || "");
 if ( $primary ) { $me = "PRIMARY $me"; }
 
 my $start_time = time;
-my $reply_rcvd = `echo 'GET ($me)' | netcat $host $port`;
+my $reply_rcvd = send_recv "GET ($me)";
 
 while($reply_rcvd !~ /^\*\*\*EMPTY\*\*\*/i and $reply_rcvd ne ""){
     print STDERR "[" . localtime() . "] ($me) Executing: $reply_rcvd";
     my $rc = system($reply_rcvd);
-    print STDERR "[" . localtime() . "] ($me) Exit status $rc\n";
+    my $exit_status;
+    if ( $rc == -1 ) {
+        print STDERR "[" . localtime() . "] ($me) System return code = $rc, " .
+                     "means couldn't start job: $!\n";
+        $exit_status = -1;
+    } elsif ( $rc & 127 ) {
+        print STDERR "[" . localtime() . "] ($me) System return code = $rc, " .
+                     "means job died with signal " . ($rc & 127) . ", " .
+                     ($rc & 128 ? 'with' : 'without') . " coredump\n";
+        $exit_status = -1;
+    } else {
+        # regular exit status from program is $rc >> 8, as documented in
+        # "perldoc -f system"
+        $exit_status = $rc >> 8;
+        print STDERR "[" . localtime() . "] ($me) Exit status $exit_status\n";
+    }
     if ( $quota > 0 and (time - $start_time) > $quota*60 ) {
         # Done my share of work, request a relaunch
-        system("echo 'DONE-STOPPING ($me) $reply_rcvd' | netcat $host $port");
+        send_recv "DONE-STOPPING ($me) (rc=$exit_status) $reply_rcvd";
         last;
     } else {
-        system("echo 'DONE ($me) $reply_rcvd' | netcat $host $port");
-        $reply_rcvd = `echo 'GET ($me)' | netcat $host $port`;
+        send_recv "DONE ($me) (rc=$exit_status) $reply_rcvd";
+        $reply_rcvd = send_recv "GET ($me)";
     }
 }
 print STDERR "[" . localtime() . "] ($me) Done.\n";
@@ -112,7 +146,7 @@ print <<'EOF';
              has nothing else to dispatch so we gracefully exits.
 
  syntax:
-    perl worker.pl [options] --host=SomeHost --port=SomePort
+    worker.pl [options] --host=SomeHost --port=SomePort
  arguments:
     host=SomeHost: hostname to contact to get an instruction
     port=SomePort: The port on which to send requests

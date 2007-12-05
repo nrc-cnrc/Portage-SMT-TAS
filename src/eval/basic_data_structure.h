@@ -7,7 +7,7 @@
  *
  * This module implements a number of data structures for rescoring
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l.information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <portage_defs.h>
 #include <str_utils.h>
+#include <voc.h>
 
 
 namespace Portage {
@@ -41,6 +42,40 @@ typedef MatrixBLEUstats::const_iterator mbIT;
 typedef string        Token;   ///< One token = one word.
 typedef vector<Token> Tokens;  ///< More then one token.
 
+
+/**
+ * Tokenize to words a vector of Sentences.
+ * @param v  vector of Sentences to tokenize
+ */
+template<class T>
+void tokenize(vector<T>& v)
+{
+   typedef typename vector<T>::iterator IT;
+   for (IT it(v.begin()); it!=v.end(); ++it)
+      it->getTokens();
+}
+
+/**
+ * Tokenize to Uint a vector of Sentences based on a vocabulary.
+ * @param src  vector of Sentences to tokenize
+ * @param voc  vocabulary to used to tokenize.
+ * @param tgt  a vector of the same length as src containing the tokenized
+ *             Sentences.
+ */
+template<class T>
+void tokenize(const vector<T>& src, Voc& voc, vector<vector<Uint> >& tgt)
+{
+   tgt.clear();
+   tgt.resize(src.size());
+   Voc::addConverter aConverter(voc);
+
+   for (Uint i(0); i<src.size(); ++i) {
+      tgt[i].reserve(src[i].size());
+      split(src[i].c_str(), tgt[i], aConverter);
+   }
+}
+
+
 /// string of chars + vector<string> of toks.
 class Sentence : public string
 {
@@ -56,7 +91,7 @@ public:
     */
    const Tokens& getTokens() const
    {
-      if (size() && m_tokens.size() == 0) {
+      if (size() && m_tokens.empty()) {
          split(string(*this), m_tokens);
       }
       return m_tokens;
@@ -65,13 +100,21 @@ public:
 /// A set of sentences.
 typedef vector<Sentence>  Sentences;
 
+
 /// A reference is a sentence.
-typedef Sentence           Reference;
+typedef Sentence Reference;
 /// A set of references for a source.
 /// Most of the time a source sentence has more then one references.
-typedef vector<Reference>  References;
+class References : public vector<Reference> {
+public:
+   References() : vector<Reference>() {}
+   explicit References(size_type __n) : vector<Reference>(__n) {}
+   /// Tokenize to words each Reference
+   void tokenize() const;
+};
 /// A set of references for a set of sources.
 typedef vector<References> AllReferences;
+
 
 /// A Translation is just a (target-language) Sentence with an
 /// alignment (to a source-language Sentence)
@@ -90,9 +133,12 @@ public:
    Nbest() {}
    /// Constructor from a vector of sentences.
    Nbest(const vector<string>& nbest);
+   /// Tokenize to words each Translation
+   void tokenize() const;
 };
 /// List of nbest lists for more then one source.
 typedef vector<Nbest> AllNbests;
+
 
 /// A PhraseRange is pair of positions, initial and final (inclusive)
 /// determining the location of a phrase in a sentence.

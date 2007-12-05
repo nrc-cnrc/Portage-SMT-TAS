@@ -17,7 +17,7 @@
  * full-size pointers.  Useful on 64 bit machines in particular.
  *
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
@@ -70,10 +70,13 @@ class IndexBlockMemPool {
    ~IndexBlockMemPool() { clear(); }
 
    /**
-    * Allocate a new T object.  index will contain a value that can be used to
-    * recover the pointer again using get_ptr().  These indices are
-    * consecutive, starting at 0, so if you know you have fewer than 2^16
-    * T objects, you can safely store them in an unsigned short.
+    * Allocate a new T object.
+    * The object will already have been constructed with T's default
+    * constructor.
+    * index will contain a value that can be used to recover the pointer again
+    * using get_ptr().  These indices are consecutive, starting at 0, so if you
+    * know you have fewer than 2^16 T objects, you can safely store them in an
+    * unsigned short.
     */
    T* alloc(Uint& index);
 
@@ -85,18 +88,18 @@ class IndexBlockMemPool {
 
    /**
     * Clear all previously allocated objects.  Make sure you are no longer
-    * using them!!!
+    * using them!!!  Destroys each allocated T object.
     */
    void clear();
 
    /**
+    * Destroy and release object at index.
     * Use this only if you plan to release a few objects and reuse them later.
     * These will not really be released until you call clear().
-    * Releases object at index.
     */
    void release(Uint index);
 
-   static const Uint NoIndex; ///< largest value - assumed to never get used.
+   static const Uint NoIndex; ///< largest value - may never get used.
 
  private:
 
@@ -188,6 +191,15 @@ T* IndexBlockMemPool<T>::get_ptr(Uint index) const {
 
 template <class T>
 void IndexBlockMemPool<T>::clear() {
+   // Problem: if there are elements on the free list, they already had their
+   // destructor called, so this will destroy them a second time, resulting in
+   // unpredictable behaviour.  To avoid this, we must re-allocate all the
+   // freed elements (thus calling their constructors), before clearing the
+   // blocks.
+   Uint dummy_index;
+   while ( free_list ) alloc(dummy_index);
+
+   // Now we can safely delete all the blocks.
    for ( typename vector<Block *>::iterator it = blocks.begin();
          it != blocks.end(); ++it )
       delete *it;

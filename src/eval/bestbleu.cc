@@ -5,7 +5,7 @@
  * $Id$ *
  * Evaluation Module
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -70,12 +70,15 @@ int MAIN(argc, argv)
     printCopyright(2004, "bestbleu");
     ARG arg(argc, argv);
 
+    BLEUstats::setMaxNgrams(arg.maxNgrams);
+    BLEUstats::setMaxNgramsScore(arg.maxNgramsScore);
+
     LOG_VERBOSE3(verboseLogger, "Allocating values placeholders");
     MatrixBLEUstats  bleu(arg.S);
     AllNbests        nbests(arg.S);
 
     LOG_VERBOSE3(verboseLogger, "Creating file readers");
-    NbestReader  pfr(FileReader::create<Translation>(arg.sNBestFile, arg.S, arg.bDyn ? 0 : arg.K));
+    NbestReader  pfr(FileReader::create<Translation>(arg.sNBestFile, arg.bDyn ? 0 : arg.K));
     referencesReader  rReader(arg.sRefFiles);
 
     LOG_VERBOSE3(verboseLogger, "Reading files");
@@ -116,7 +119,9 @@ int MAIN(argc, argv)
             worse = Oracle::computeBestBLEU(bleu.begin(), bleu.end(), *it, &worseIndex, arg.bVerbose, false);
 
         char szFilename[256];
-        for (Uint s(0); (arg.bVerbose || arg.bBestSentence || arg.bWorseScore || arg.bDistribution) && s < arg.S; ++s) {
+        for (Uint s(0); (arg.bBestIndex || arg.bVerbose || arg.bBestSentence || arg.bWorseScore || arg.bDistribution) && s < arg.S; ++s) {
+            if (arg.bBestIndex)
+               cerr << bestIndex[s] << endl;
             if (arg.bBestSentence)
                fprintf(stderr, "Best Sentence index : %d : %s\n", bestIndex[s], nbests.at(s)[bestIndex[s]].c_str());
             if (arg.bWorseSentence)

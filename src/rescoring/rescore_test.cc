@@ -6,11 +6,11 @@
  *
  * COMMENTS:
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
- * Copyright 2005, Her Majesty in Right of Canada
+ * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
+ * Copyright 2004, Her Majesty in Right of Canada
  */
 
 #include <rescore_test.h>
@@ -63,7 +63,7 @@ int MAIN(argc, argv)
 
 
    LOG_VERBOSE2(verboseLogger, "Processing Nbest lists");
-   NbestReader  pfr(FileReader::create<Translation>(arg.nbest_file, S, arg.K));
+   NbestReader  pfr(FileReader::create<Translation>(arg.nbest_file, arg.K));
    Uint s(0);
    for (; pfr->pollable(); ++s)
    {
@@ -97,7 +97,7 @@ int MAIN(argc, argv)
       // BLEU score.
       int bestIndex(0);
       for (k = 1; k<bleu[s].size(); ++k) {
-         for (int n = MAX_NGRAMS-1; n >= 0; --n) {
+         for (int n = BLEUstats::getMaxNgrams()-1; n >= 0; --n) {
             if (bleu[s][bestIndex].match[n] > bleu[s][k].match[n]) {
                break;
             } else if (bleu[s][k].match[n] > bleu[s][bestIndex].match[n]) {

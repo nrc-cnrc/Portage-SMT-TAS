@@ -43,7 +43,6 @@ namespace Portage {
 
          protected:
             mutable iMagicStream   m_file;     ///< file from which to read.
-            const Uint             m_S;        ///< number of sources.
             const Uint             m_K;        ///< number of hypotheses per source.
             Uint                   m_nSentNo;  ///< keep track of hypothesis number.
 
@@ -52,10 +51,10 @@ namespace Portage {
             /**
              * Constructor.
              * @param[in] szFileName  file name
-             * @param[in] S           number of source
-             * @param[in] K           number of hypotheses per source or 0 for dynamic size.
+             * @param[in] K           number of hypotheses per source or 0 for
+             *                        dynamic size.
              */
-            explicit FileReaderBase(const string& szFileName, const Uint& S, const Uint& K);
+            explicit FileReaderBase(const string& szFileName, const Uint& K);
 
          public:
             /// Destructor.
@@ -74,7 +73,7 @@ namespace Portage {
              * @param[out] s      hypothesis
              * @return  Returns true if there is some hypothesis still available in the stream.
              */
-            virtual bool poll(Uint& index, string& s) = 0;
+            virtual bool poll(string& s, Uint* index = NULL) = 0;
             /**
              * Reads a group of sentence AKA a nBest list.
              * @param[out] g  returned read group aka nbest list.
@@ -103,11 +102,11 @@ namespace Portage {
             typedef typename Parent::Everything  Everything;
             
             /// See FileReaderBase<T>::FileReaderBase(const string& szFileName, const Uint& S, const Uint& K)
-            explicit FixReader(const string& szFileName, const Uint& S, const Uint& K);
+            explicit FixReader(const string& szFileName, const Uint& K);
             /// Destructor.
             virtual ~FixReader();
 
-            virtual bool poll(Uint& index, string& s);
+            virtual bool poll(string& s, Uint* index = NULL);
             virtual bool poll(Group& g);
       };
 
@@ -127,23 +126,22 @@ namespace Portage {
             typedef typename Parent::Everything  Everything;
             
             /// See FileReaderBase<T>::FileReaderBase(const string& szFileName, const Uint& S, const Uint& K)
-            explicit DynamicReader(const string& szFileName, const Uint& S, const Uint& K);
+            explicit DynamicReader(const string& szFileName, const Uint& K=1000);
             /// Destructor.
             virtual ~DynamicReader();
 
-            virtual bool poll(Uint& index, string& s);
+            virtual bool poll(string& s, Uint* index = NULL);
             virtual bool poll(Group& g);
       };
 
       /**
        * Creational factory for fix / dynamic reader based on the value of K.
        * @param[in] szFileName  file name
-       * @param[in] S           expected number of source in file
        * @param[in] K           number of hypotheses per source => file contains K x S lines.
        * @return Returns a new fix/dynamic reader based on the value of K.
        */
       template<class T>
-      std::auto_ptr<FileReaderBase<T> > create(const string& szFileName, const Uint& S, const Uint& K);
+      std::auto_ptr<FileReaderBase<T> > create(const string& szFileName, const Uint& K);
    } // ends FileReader
 
    /// Since these classes were intended to facilitate nbest reading, here is the definition for a nBest reader.

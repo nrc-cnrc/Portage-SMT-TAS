@@ -93,25 +93,22 @@ Mandatory dependencies for all distributions:
 
 Optional dependencies for all distributions:
 
- - netcat and faucet - highly recommended if you use a computing cluster with
-   job management (i.e., you submit your jobs using qsub).  Many programs in
+ - netcat - highly recommended if you use a computing cluster with job
+   management (i.e., you submit your jobs using qsub).  Many programs in
    PORTAGEshared are configured to take advantage of parallel computing, and
-   require netcat and faucet to work across multiple machines and to work
-   optimally on a single machine.
+   require netcat to work across multiple machines and to work optimally on a
+   single machine.
 
    Even if you work on only one machine, you will usually benefit by setting
    the parallelism parameters to the number of CPUs you have at your disposal
-   on your machine.  Without netcat and faucet, if you set the parallelism
-   level to N (some programs automatically set N to the number of CPUs on the
-   machine), jobs will simply be run N at a time, with the next batch starting
-   when all N jobs of a batch are done.  This will already be faster than if
-   you don't use parellelism, but with netcat and faucet, the N CPUs will be
-   kept continuously busy until all jobs in a batch have completed.
+   on your machine.  Without netcat, if you set the parallelism level to N
+   (some programs automatically set N to the number of CPUs on the machine),
+   jobs will simply be run N at a time, with the next batch starting when all N
+   jobs of a batch are done.  This will already be faster than if you don't use
+   parellelism, but with netcat, the N CPUs will be kept continuously busy
+   until all jobs in a batch have completed.
 
    Netcat home page: http://netcat.sourceforge.net/
-   Faucet documentation: http://web.purplefrog.com/~thoth/netpipes/faucet.html
-   Faucet is part of the netpipes package:
-   http://web.purplefrog.com/~thoth/netpipes/netpipes.html
 
 Mandatory dependencies for source code distributions:
 

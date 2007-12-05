@@ -5,7 +5,7 @@
  *
  * COMMENTS:
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
@@ -69,6 +69,18 @@ void rec_dump_trie(
    }
 }
 
+bool filter_1(const vector<Uint>& key_stack) {
+   return key_stack.back() != 1;
+}
+
+struct InvertMap {
+   Uint operator()(Uint key) {
+      if ( 100 <= key && key <= 103 ) return (200 + 1024 * (key % 100));
+      if ( key % 1024 == 100 ) return (100 + key / 1024);
+      return 4*1024 - key;
+   }
+};
+
 int main(int argc, char** argv)
 {
    getArgs(argc, argv);
@@ -124,7 +136,7 @@ int main(int argc, char** argv)
          conv(tokens[i], key[i]);
       }
 
-      float val = 0.0f;
+      float val(0.0);
       bool result = trie.find(key, tokens.size(), val);
       cout << "find(" << line << ") returned " << result;
       if ( result ) cout << " val = " << val;
@@ -158,6 +170,46 @@ int main(int argc, char** argv)
    vector<Uint> key_prefix;
    rec_dump_trie(key_prefix, trie.begin_children(), trie.end_children());
 
+   cout << endl << "Write binary" << endl;
+   {
+      ofstream ofs("test_trie.binary");
+      trie.write_binary(ofs);
+   }
+
+   cout << endl << "Read binary with no filter no map:" << endl;
+   {
+      IMagicStream ifs("test_trie.binary");
+      PTrie<float, Wrap<float>, false> new_trie;
+      new_trie.read_binary(ifs);
+      new_trie.traverse(v);
+   }
+
+   cout << endl << "Read binary with filter 1 no map:" << endl;
+   {
+      IMagicStream ifs("test_trie.binary");
+      PTrie<float, Wrap<float>, false> new_trie;
+      new_trie.read_binary(ifs, filter_1);
+      new_trie.traverse(v);
+   }
+
+   cout << endl << "Read binary with no filter and object map:" << endl;
+   {
+      IMagicStream ifs("test_trie.binary");
+      PTrie<float, Wrap<float>, false> new_trie;
+      InvertMap m;
+      new_trie.read_binary(ifs, PTrieKeepAll, m);
+      new_trie.traverse(v);
+   }
+
+   cout << endl << "Read binary with filter 1 and object map:" << endl;
+   {
+      IMagicStream ifs("test_trie.binary");
+      PTrie<float, Wrap<float>, false> new_trie;
+      InvertMap m;
+      new_trie.read_binary(ifs, filter_1, m);
+      new_trie.traverse(v);
+   }
+
    //cout << "num entries = " << trie.size() << ", num bytes = " << trie.numBytes() << endl;
 }
 
@@ -165,7 +217,7 @@ int main(int argc, char** argv)
 
 void getArgs(int argc, const char* const argv[])
 {
-   const char* const switches[] = {"v"};
+   const char* switches[] = {"v"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 0, 2, help_message);
    arg_reader.read(argc-1, argv+1);
 

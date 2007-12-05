@@ -7,7 +7,7 @@
  *
  * Get vocabulary (unique words) from tokenized text on stdin.
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -22,7 +22,7 @@ using namespace Portage;
 using namespace std;
 
 static char help_message[] = "\n\
-get_voc [-vc] [infile [outfile]]\n\
+get_voc [-vcs] [infile [outfile]]\n\
 \n\
 Get vocabulary (unique words) from tokenized text on stdin.\n\
 This is the same as piping through:\n\
@@ -33,14 +33,16 @@ except that it's faster and not locale dependent (except for blanks and newlines
 \n\
 Options:\n\
 \n\
--v  Write progress reports to cerr.\n\
--c  Write count for each word\n\
+-v   Write progress reports to cerr.\n\
+-c   Write count for each word\n\
+-s   Sort output by counts (implies -c)\n\
 ";
 
 // globals
 
 static bool verbose = false;
 static bool countwords = false;
+static bool sortcnt = false;       // sort output by counts?
 static Uint num_lines = 0;
 static iMagicStream ifs;
 static oMagicStream ofs;
@@ -76,24 +78,38 @@ int main(int argc, char* argv[])
       }
    }
 
-   for (Uint i = 0; i < voc.size(); ++i) {
-      os << voc.word(i);
-      if (countwords) os << " " << voc.freq(i);
-      os << endl;
+   if (!sortcnt) {
+     for (Uint i = 0; i < voc.size(); ++i) {
+       os << voc.word(i);
+       if (countwords) os << " " << voc.freq(i);
+       os << endl;
+     }
    }
+   else {
+     map<int, set<const char*> > c2w;
+     for (Uint i = 0; i < voc.size(); ++i) {
+       if (c2w.find(voc.freq(i)) == c2w.end())
+         c2w[voc.freq(i)] = set<const char*>();
+       c2w[voc.freq(i)].insert(voc.word(i));
+     } // for i
+     for (map<int, set<const char*> >::reverse_iterator itr=c2w.rbegin(); itr!=c2w.rend(); itr++)
+       for (set<const char*>::const_iterator witr=itr->second.begin(); witr!=itr->second.end(); witr++)
+         os << *witr << " " << itr->first << endl;
+   } // else
 }
 
 // arg processing
 
 void getArgs(int argc, char* argv[])
 {
-   const char* const switches[] = {"v", "c"};
+   const char* switches[] = {"v", "c", "s"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 0, 2, help_message);
    arg_reader.read(argc-1, argv+1);
 
    arg_reader.testAndSet("v", verbose);
    arg_reader.testAndSet("c", countwords);
-   
+   arg_reader.testAndSet("s", sortcnt);
+
    arg_reader.testAndSet(0, "infile", &isp, ifs);
    arg_reader.testAndSet(1, "outfile", &osp, ofs);
 }   

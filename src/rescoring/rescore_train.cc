@@ -6,11 +6,11 @@
  *
  * COMMENTS:
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
- * Copyright 2005, Her Majesty in Right of Canada
+ * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
+ * Copyright 2004, Her Majesty in Right of Canada
  */
 
 #include <rescore_train.h>
@@ -70,34 +70,34 @@ int MAIN(argc, argv)
    vector< uVector > powellWeightsIn, powellWeightsOut;
    ifstream wstr;
    if (arg.weight_infile != "") {
-     LOG_VERBOSE2(verboseLogger, "Reading Powell weights from %s", arg.weight_infile.c_str());
-     wstr.open(arg.weight_infile.c_str());
-     if (!wstr) error(ETFatal, "unable to open Powell weight file %s", arg.weight_infile.c_str());
-     
-     string tmpsco;
-     uVector weights(M);
-     uint m=0;
-     while (wstr >> tmpsco) {
-       if (tmpsco=="BLEU") {
-	 wstr >> tmpsco; wstr >> tmpsco; wstr >> tmpsco;
-       }
-       weights(m) = atof(tmpsco.c_str());
-       if (++m==M) {
-         powellWeightsIn.push_back(weights);
-         weights.clear();
-         m=0;
-       }
-     }
-     if (m > 0)
-       error(ETFatal, "Error in Powell weight file %s, wrong number of weights: %i instead of zero after reading %i sets of feature weights!", arg.weight_infile.c_str(), m, powellWeightsIn.size());
-     // powellWeightsIn
+      LOG_VERBOSE2(verboseLogger, "Reading Powell weights from %s", arg.weight_infile.c_str());
+      wstr.open(arg.weight_infile.c_str());
+      if (!wstr) error(ETFatal, "unable to open Powell weight file %s", arg.weight_infile.c_str());
+
+      string tmpsco;
+      uVector weights(M);
+      uint m=0;
+      while (wstr >> tmpsco) {
+         if (tmpsco=="BLEU") {
+            wstr >> tmpsco; wstr >> tmpsco; wstr >> tmpsco;
+         }
+         weights(m) = atof(tmpsco.c_str());
+         if (++m==M) {
+            powellWeightsIn.push_back(weights);
+            weights.clear();
+            m=0;
+         }
+      }
+      if (m > 0)
+         error(ETFatal, "Error in Powell weight file %s, wrong number of weights: %i instead of zero after reading %i sets of feature weights!", arg.weight_infile.c_str(), m, powellWeightsIn.size());
+      // powellWeightsIn
    }
    
 
    // Read and process the N-bests file of candidate target sentences
 
    LOG_VERBOSE2(verboseLogger, "Processing nbests lists (computing feature values and BLEU scores)");
-   NbestReader  pfr(FileReader::create<Translation>(arg.nbest_file, S, arg.K));
+   NbestReader  pfr(FileReader::create<Translation>(arg.nbest_file, arg.K));
    Uint s(0);
    Progress progress(S, arg.bVerbose); // Must be last statement before for loop => pretty display
    progress.displayBar();

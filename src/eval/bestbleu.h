@@ -6,7 +6,7 @@
  *
  * Evaluation Module
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -31,7 +31,7 @@ namespace Portage
    {
       /// Program bestbleu usage.
       static char help_message[] = "\n\
-bestbleu [-v][-ci][-bs][-ws][-distrib][-r][-dyn]\n\
+bestbleu [-v][-ci][-bs][-bi][-ws][-distrib][-r][-dyn]\n\
          [-S <number of sentences>][-K <N-Best List Size>]\n\
          [-n nbest [-n nbest [ .. ]]]\n\
          nbest-file ref1 ... refR\n\
@@ -42,8 +42,9 @@ sentence, and each ref1 ... refR should contain S reference translations, such\n
 that the n-th line corresponds to the n-th source sentence.\n\
 \n\
 Options:\n\
--v       Display verbose progress messages.\n\
+-v       Write progress reports to cerr (repeatable) [don't].\n\
 -ci      Compute confidence intervals using bootstrap resampling.\n\
+-bi      Displays best translation index.\n\
 -bs      Displays best translation sentence.\n\
 -ws      Displays worst translation sentence.\n\
 -r       Calculates the worst score possible with the given translations.\n\
@@ -55,11 +56,14 @@ Options:\n\
          You must specify your maximum N Best List size with -K\n\
 -K:      Sets the maximum N-Best List size in Dynamic mode\n\
 -S:      depricated number of sentences\n\
+-y       maximum NGRAMS for calculating BLEUstats matches [4]\n\
+-u       maximum NGRAMS for calculating BLEUstats score [y]\n\
+         where 1 <= y, 1 <= u <= y\n\
 ";
 
       /// Program bestbleu command line switches.
-      const char* const switches[] = {"v", "bs", "ws", "r", "ci",
-                                      "K:", "S:", "n:", "distrib", "dyn"};
+      const char* const switches[] = {"v", "bs", "ws", "r", "ci", "bi",
+                                      "K:", "S:", "n:", "distrib", "dyn", "y:", "u:"};
       /// Specific argument processing class for bestbleu program.
       class ARG : public argProcessor
       {
@@ -69,6 +73,7 @@ Options:\n\
 
          public:
             bool bVerbose;        ///< is verbose activated
+            bool bBestIndex;      ///< do we need to output the best index
             bool bBestSentence;   ///< do we need to output the best sentence
             bool bWorseSentence;  ///< do we need to output the worse sentence
             bool bWorseScore;     ///< do we need to output the worse score
@@ -88,6 +93,9 @@ Options:\n\
 
             bool bDyn;  ///< dynamic sized nbest list provided.
 
+            Uint           maxNgrams;         ///< holds the max ngrams size for the BLEUstats
+            Uint           maxNgramsScore;    ///< holds the max ngrams size when BLEUstats::score
+
          public:
          /**
           * Default constructor.
@@ -99,6 +107,7 @@ Options:\n\
             , m_vLogger(Logging::getLogger("verbose.main.arg"))
             , m_dLogger(Logging::getLogger("debug.main.arg"))
             , bVerbose(false)
+            , bBestIndex(false)
             , bBestSentence(false)
             , bWorseSentence(false)
             , bWorseScore(false)
@@ -107,6 +116,8 @@ Options:\n\
             , maxNumBest(0)
             , S(0), R(0), K(0)
             , bDyn(false)
+            , maxNgrams(4)
+            , maxNgramsScore(0)
          {
             argProcessor::processArgs(argc, argv);
          }
@@ -118,6 +129,7 @@ Options:\n\
             if (m_dLogger->isDebugEnabled())
             {
                LOG_DEBUG(m_dLogger, "Verbose: %s", (bVerbose ? "ON" : "OFF"));
+               LOG_DEBUG(m_dLogger, "Best Index: %s", (bBestIndex ? "ON" : "OFF"));
                LOG_DEBUG(m_dLogger, "Best Sentence: %s", (bBestSentence ? "ON" : "OFF"));
                LOG_DEBUG(m_dLogger, "Worse Sentence: %s", (bWorseSentence ? "ON" : "OFF"));
                LOG_DEBUG(m_dLogger, "Worse Score: %s", (bWorseScore ? "ON" : "OFF"));
@@ -126,6 +138,8 @@ Options:\n\
                LOG_DEBUG(m_dLogger, "R: %d", R);
                LOG_DEBUG(m_dLogger, "K: %d", K);
                LOG_DEBUG(m_dLogger, "Best Translation file name: %s", sNBestFile.c_str());
+               LOG_DEBUG(m_dLogger, "Maximum Ngrams size: %d", maxNgrams);
+               LOG_DEBUG(m_dLogger, "Maximum Ngrams size for scoring BLEU: %d", maxNgramsScore);
 
                LOG_DEBUG(m_dLogger, "Number of reference files: %d", sRefFiles.size());
                std::stringstream oss1;
@@ -156,6 +170,7 @@ Options:\n\
             if ( getVerboseLevel() > 0 ) bVerbose = true;
             if ( bVerbose && getVerboseLevel() < 1 ) setVerboseLevel(1);
             mp_arg_reader->testAndSet("ci", bCi);
+            mp_arg_reader->testAndSet("bi", bBestIndex);
             mp_arg_reader->testAndSet("bs", bBestSentence);
             mp_arg_reader->testAndSet("ws", bWorseSentence);
             mp_arg_reader->testAndSet("r", bWorseScore);
@@ -165,6 +180,17 @@ Options:\n\
                bWorseScore = true;
             }
 
+            // Taking care of the maximum values for BLEUSTATS
+            //
+            mp_arg_reader->testAndSet("y", maxNgrams);
+            mp_arg_reader->testAndSet("u", maxNgramsScore);
+            // Make sure we are not trying to compute the BLEU::score on some
+            // higher ngrams than what was calculated.
+            if (maxNgramsScore == 0) maxNgramsScore = maxNgrams;
+            if (maxNgramsScore > maxNgrams) maxNgramsScore = maxNgrams;
+            if (!(maxNgrams > 0) || !(maxNgramsScore))
+               error(ETFatal, "You must specify value for y and u greater then 0!");
+               
             // Taking care of the mandatory arguments
             //
             mp_arg_reader->testAndSet("S", S);

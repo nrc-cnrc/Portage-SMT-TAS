@@ -6,7 +6,7 @@
  * SimpleBlockMemPool for same size and same type objects allocated in blocks.
  *
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -113,7 +113,7 @@ class SimpleBlockMemPool
 template <class T>
 const Uint SimpleBlockMemPool<T>::BlockSize = 1024;
 
-}; // end namespace Portage
+} // end namespace Portage
 
 /// Macro to convert class_name to use SimpleBlockMemPool as class_name memory
 /// allocator.

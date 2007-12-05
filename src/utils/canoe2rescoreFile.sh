@@ -2,7 +2,7 @@
 
 if [ $# -ne 1 ]; then
     echo "Usage: $0  <canoe file>"
-    echo "ffvals with weigths are written to stdout"
+    echo "ffvals with weights are written to stdout"
 else
      grep weight $1 | \
 	awk '{if ($1=="[weight-d]") wd = $2; \

@@ -37,6 +37,39 @@ Uint VocMap::read_local_vocab(istream& in) {
    return lineno;
 }
 
+Uint VocMap::add(const char* word) {
+   Uint local_index = local_vocab.add(word);
+   Uint global_index = global_vocab.add(word);
+
+   // Fix global to local map, if it already goes this far
+   if ( global2local.size() > global_index ) 
+      global2local[global_index] = local_index;
+
+   // Fix local to global map, if it already goes this far
+   if ( local2global.size() > local_index ) {
+      local2global[local_index] = global_index;
+      assert(local_looked_up.size() == local2global.size());
+      local_looked_up.set(local_index);
+   }
+
+   return local_index;
+}
+
+const char* VocMap::local_word(Uint index) const {
+   if ( index < local_vocab.size() )
+      return local_vocab.word(index);
+   else
+      return "";
+}
+
+Uint VocMap::local_index(const char* word) {
+   Uint index = local_vocab.index(word);
+   if ( index == local_vocab.size() )
+      return NoMap;
+   else
+      return index;
+}
+
 Uint VocMap::local_index(Uint global_index) {
    assert(local_vocab_read);
    assert(global_index < global_vocab.size());

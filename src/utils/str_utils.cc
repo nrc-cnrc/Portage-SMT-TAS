@@ -5,7 +5,7 @@
  * 
  * COMMENTS: 
  * 
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -112,7 +112,6 @@ bool Portage::conv(const string& str, Uint& val)
    return v >= 0 && end != s && *end == 0;
 }
 
-/*
 bool Portage::conv(const char* s, Uint& val)
 {
    char* end;
@@ -120,7 +119,6 @@ bool Portage::conv(const char* s, Uint& val)
    val = (Uint)v;
    return v >= 0 && end != s && *end == 0;
 }
-*/
 
 bool Portage::conv(const char* s, int& val)
 {

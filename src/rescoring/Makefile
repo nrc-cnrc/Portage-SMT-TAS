@@ -1,44 +1,14 @@
 # $Id$
 # K-Best Rescoring Module
 # Aaron Tikuisis
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l.information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
 
-SOURCES = \
-   featurefunction.cc \
-   fmax.cc \
-   gen_feature_values.cc \
-   ibm_ff.cc \
-   ibm1wtrans.cc \
-   ibm1del.cc \
-   lm_ff.cc \
-   multiColumnFileFF.cc \
-   rescore_io.cc \
-   rescore_test.cc \
-   rescore_train.cc \
-   rescore_translate.cc \
-   testff.cc \
-   testfileReader.cc \
-   testfmax.cc \
-   testlinemax.cc \
-   testpowell.cc
-
-INCLUDES = \
-   featurefunction.h \
-   fmax.h \
-   ibm_ff.h \
-   ibm1wtrans.h \
-   ibm1del.h \
-   linemax.h \
-   linemax-cc.h \
-   lm_ff.h \
-   powell.h \
-   powell-cc.h \
-   rescore_io.h \
-   rescoring_general.h
+INCLUDES = $(filter-out rescore_train.h rescore_translate.h \
+                        rescore_test.h, $(wildcard *.h))
 
 OBJECTS = \
    featurefunction.o \
@@ -49,7 +19,6 @@ OBJECTS = \
    multiColumnFileFF.o \
    rescore_io.o \
    lm_ff.o
-
 
 LIBRARY=libportage_rescoring
 
@@ -68,8 +37,6 @@ DOCUMENTS=rescoring_overview.pdf ochlinemax.pdf
 EXTRA_LIBS=$(LOGGING_LIB)
 
 DYNLIBS=-lpthread
-
-DOXYFILE = ../build/Doxyfile
 
 MODULE_CF=-Wno-non-virtual-dtor
 

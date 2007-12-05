@@ -1,15 +1,16 @@
 #!/usr/bin/perl
 # $Id$
 
-# append-uniq.pl - Appends non duplicate lines from addnbest and addffvals files to nbest and ffvals,
-#                  where a duplicate is a line which is identical to another in *both* files at the same time.
+# append-uniq.pl - Appends non duplicate lines from addnbest and addffvals
+#                  files to nbest and ffvals, where a duplicate is a line which
+#                  is identical to another in *both* files at the same time.
 #
 # PROGRAMMER: Samuel Larkin
 #
 # COMMENTS:
 #
 # Samuel Larkin
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -25,13 +26,17 @@ sub usage {
    print STDERR "
    append-uniq.pl, NRC-CNRC, (c) 2005 - 2007, Her Majesty in Right of Canada
 
-   Usage: $0 [-h(elp)] [-v(erbose)] -nbest=file -ffvals=file -addnbest=file -addffvals=file
+   Usage: $0 [-h(elp)] [-v(erbose)] -nbest=file -ffvals=file
+          -addnbest=file -addffvals=file
 
-   Appends non duplicate lines from addnbest and addffvals files to nbest and ffvals,
-   where a duplicate is a line which is identical to another in *both* files at the same time.
+   Appends non duplicate lines from addnbest and addffvals files to nbest and
+   ffvals, where a duplicate is a line which is identical to another in *both*
+   files at the same time.
 
-   Warning: nbest and ffvals must be duplicate free, if not use use this program to remove duplicates as follow:
-      append-uniq.pl -nbest=<emptyfile> -ffvals=<emptyfile> -addnbest=nbest -addffvals=ffvals
+   Warning: nbest and ffvals must be duplicate free, if not use use this
+   program to remove duplicates as follow:
+      append-uniq.pl -nbest=<emptyfile> -ffvals=<emptyfile>
+         -addnbest=nbest -addffvals=ffvals
 
    Options:
 
@@ -74,10 +79,10 @@ if ( $debug ) {
 
 ";
 }
-                        
-                                                
-open(NBEST, "<$nbest") or die "Can't open $nbest for reading: $!\n";
-open(FFVALS, "<$ffvals") or die "Can't open $ffvals for reading: $!\n";
+
+
+open(NBEST, "gzip -cqfd $nbest |") or die "Can't open $nbest for reading: $!\n";
+open(FFVALS, "gzip -cqfd $ffvals |") or die "Can't open $ffvals for reading: $!\n";
 
 # hash of hashes: $seen{$line1}{$line2} exists if $line1 exists in $file1 at
 # the same position as $line2 in $file2.
@@ -97,21 +102,41 @@ while (defined($n = <NBEST>) and defined($f = <FFVALS>)) {
          $seen{$n}{$f} = 1;
       } else {
          ++$iniDup;
-         print(STDERR "WARNING: The following sentence was found to be a duplicate $f $n\n") if ($verbose > 1);
+         print(STDERR "WARNING: The following sentence was found to be a duplicate $f $n\n")
+            if ($verbose > 1);
       }
    }
 }
-die "FATAL ERROR: $nbest is not of the same length as $ffvals\n" if (defined(<NBEST>) or defined(<FFVALS>)); 
+die "FATAL ERROR: $nbest is not of the same length as $ffvals\n"
+   if (defined(<NBEST>) or defined(<FFVALS>));
 
 close(NBEST);
 close(FFVALS);
 
 
 
-open(NBESTDF, ">>$nbest") or die "cannot open to append to $nbest\n";
-open(FFVALSDF, ">>$ffvals") or die "cannot open to append to $ffvals\n";
-open(ADDNBEST, "<$addnbest") or die "cannot open $addnbest to read\n";
-open(ADDFFVALS, "<$addffvals") or die "cannot open $addffvals to read\n";
+my $NBESTDF;
+if ($nbest =~ /.gz/) {
+   $nbest =~ s/(.*\.gz)\s*$/| gzip -cqf >> $1/;
+   open($NBESTDF, $nbest)
+      or die "Can't open output file $nbest\n";
+}
+else {
+   open($NBESTDF, ">>$nbest")
+      or die "Can't open output file $nbest\n";
+}
+my $FFVALSDF;
+if ($ffvals =~ /.gz/) {
+   $ffvals =~ s/(.*\.gz)\s*$/| gzip -cqf >> $1/;
+   open($FFVALSDF, $ffvals)
+      or die "Can't open output file $ffvals\n";
+}
+else {
+   open($FFVALSDF, ">>$ffvals")
+      or die "Can't open output file $ffvals\n";
+}
+open(ADDNBEST, "gzip -cqfd $addnbest |") or die "cannot open $addnbest to read\n";
+open(ADDFFVALS, "gzip -cqfd $addffvals |") or die "cannot open $addffvals to read\n";
 
 my $addedLine = 0;
 while (defined($n = <ADDNBEST>) and defined($f = <ADDFFVALS>)) {
@@ -120,17 +145,20 @@ while (defined($n = <ADDNBEST>) and defined($f = <ADDFFVALS>)) {
    if ( length($n) and ! exists $seen{$n}{$f} ) {
        ++$addedLine;
        $seen{$n}{$f} = 1;
-       print(NBESTDF "$n\n");
-       print(FFVALSDF "$f\n");
+       print($NBESTDF "$n\n");
+       print($FFVALSDF "$f\n");
    }
 }
-die "FATAL ERROR: $addnbest is not of the same length as $addffvals\n" if (defined(<ADDNBEST>) or defined(<ADDFFVALS>)); 
+die "FATAL ERROR: $addnbest is not of the same length as $addffvals\n"
+   if (defined(<ADDNBEST>) or defined(<ADDFFVALS>));
 
-close(NBEST);
-close(FFVALS);
+close($NBESTDF);
+close($FFVALSDF);
 close(ADDNBEST);
 close(ADDFFVALS);
 
 
 
-print(STDERR "iniLine: $iniLine iniDup: $iniDup addedLine: $addedLine\n") if ($verbose > 1);
+print(STDERR "iniLine: $iniLine iniDup: $iniDup addedLine: $addedLine\n")
+   if ($verbose > 1);
+

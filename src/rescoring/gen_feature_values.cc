@@ -52,8 +52,8 @@ static string argument;
 static string src_file;
 static string nbest_file;
 static string alignment_file;
-static string out_file;
-static Uint   printN=0;
+static string out_file = "-";
+static Uint   printN = 0;
 
 static void getArgs(int argc, const char *const argv[]);
 
@@ -90,20 +90,19 @@ int MAIN(argc, argv)
       astr.open(alignment_file.c_str());
       if (!astr) error(ETFatal, "unable to open alignment file %s", alignment_file.c_str());
    }
-       
-   oMagicStream outstr("-");
-   if (!out_file.empty())
-     outstr.open(out_file.c_str());
+
+   // Prepare the output stream
+   oMagicStream outstr(out_file);
 
    outstr << setprecision(10);
-   NbestReader  pfr(FileReader::create<Translation>(nbest_file, S, K));
+   NbestReader  pfr(FileReader::create<Translation>(nbest_file, K));
    Uint s(0);
    for (; pfr->pollable(); ++s) {
       // READING NBEST
       Nbest nbest;
       pfr->poll(nbest);
       const Uint K(nbest.size());
-      
+
       // READING ALIGNMENT
       vector<Alignment> alignments(K);
       Uint k(0);
@@ -111,10 +110,10 @@ int MAIN(argc, argv)
           nbest[k].alignment = &alignments[k];
       }
       if (!alignment_file.empty() && (k != K )) error(ETFatal, "unexpected end of nbests file after %d lines (expected %dx%d=%d lines)", s*K+k, S, K, S*K);
-                                                         
+
       ff->init(&src_sents, K);   // Give the whole thing to the ff
-                              
-    
+
+
      // Specify source and nbest to the ff and print values.
      ff->source(s, &nbest);
      Uint maxPrintN = K;
@@ -130,7 +129,7 @@ int MAIN(argc, argv)
 
 void getArgs(int argc, const char* const argv[])
 {
-   const char* const switches[] = {"v", "a:", "n:", "o:"};
+   const char* switches[] = {"v", "a:", "n:", "o:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 4, 4, help_message, "-h", true);
    arg_reader.read(argc-1, argv+1);
 
@@ -143,5 +142,4 @@ void getArgs(int argc, const char* const argv[])
    arg_reader.testAndSet(1, "arg", argument);
    arg_reader.testAndSet(2, "src", src_file);
    arg_reader.testAndSet(3, "nbest", nbest_file);
-
 }

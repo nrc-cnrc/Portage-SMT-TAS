@@ -1,7 +1,8 @@
-Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+Technologies langagieres interactives / Interactive Language Technologies
 Institut de technologie de l'information / Institute for Information Technology
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2004-2007, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada
+Copyright 2004-2007, Sa Majeste la Reine du Chef du Canada /
+Copyright 2004-2007, Her Majesty in Right of Canada
 
 Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
@@ -17,7 +18,8 @@ Contents of this directory:
    preprocessing/   markup, tokenization, etc.
    rescoring/       nbest list reordering
    lm/              code for using language models
-   tm/              code for creating translation models (lexical and phrase based)
+   tm/              code for creating translation models (lexical and phrase
+                    based)
    api/             API to the decoder, for including in other applications
    utils/           basic tools for other modules to use
    logging/         logging facility for debugging 

@@ -8,7 +8,7 @@
  *
  * This file contains some stuff needed for WER computation.
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -30,7 +30,7 @@ namespace Portage
   {
     /// Program wermain usage.
     static char help_message[] = "\n\
-wermain [-c][-detail d] testfile ref1 ref2 ... refn\n \
+wermain [-v][-c][-detail d] testfile ref1 ref2 ... refn\n \
 \n\
 Computes the mWER / mPER score for the set of translations in testfile, using the\n\
 reference files ref1, ... , refn. Each file should have one sentence per line,\n\
@@ -42,7 +42,7 @@ Options:\n\
 -c         Compute a 95% confidence interval around the score using bootstrap\n\
            resampling.\n\
 -per       Calculate mPER instead of mWER.\n\
--detail    Print the mWER/mPER for each single sentence.\n\n\
+-detail    Print the mWER/mPER for each single sentence.\n\
 ";
 
     /// Program wermain command line switches.
@@ -97,16 +97,16 @@ Options:\n\
       /// See argProcessor::processArgs()
       virtual void processArgs()
       {
-        LOG_INFO(m_vLogger, "Processing arguments");
-        
-        // Taking care of general flags
-        //
-        mp_arg_reader->testAndSet("c", bDoConf);
-        mp_arg_reader->testAndSet("per", bDoPer);
-        mp_arg_reader->testAndSet("detail", bDetail);
-        
-        mp_arg_reader->testAndSet(0, "testfile", sTestFile);
-        mp_arg_reader->getVars(1, sRefFiles);
+         LOG_INFO(m_vLogger, "Processing arguments");
+
+         // Taking care of general flags
+         //
+         mp_arg_reader->testAndSet("c", bDoConf);
+         mp_arg_reader->testAndSet("per", bDoPer);
+         mp_arg_reader->testAndSet("detail", bDetail);
+
+         mp_arg_reader->testAndSet(0, "testfile", sTestFile);
+         mp_arg_reader->getVars(1, sRefFiles);
       }
     };  // ends class ARG
     

@@ -3,9 +3,10 @@
  * @file simple_mem_pool.h  A memory pool for same size and same type objects.
  * $Id$
  *
- * Memory pool that keeps a list of freed object and allocated one object at a time.
+ * Memory pool that keeps a list of freed object and allocated one object at a
+ * time.
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -117,7 +118,7 @@ class SimpleMemPool
          }
       }
 }; // ends class memPool
-}; // end namespace Portage
+} // end namespace Portage
 
 /**
  * Definition to convert class to manage its creation with a simple memory pool.

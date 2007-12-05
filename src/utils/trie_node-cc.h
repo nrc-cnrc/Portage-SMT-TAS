@@ -6,7 +6,7 @@
  *
  * COMMENTS:
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
@@ -69,6 +69,7 @@ TrieDatum<LeafDataT, InternalDataT, NeedDtor>*
       // key_elem not already in, add it
 
       if ( position == list_alloc || list[list_alloc-1].key_elem != NoKey) {
+         // No more space, need to grow
          Uint old_size = list_alloc;
          list_alloc = Uint((list_alloc + 1) * GrowthFactor);
          TrieDatum<LeafDataT, InternalDataT, NeedDtor> *new_list =
@@ -79,7 +80,7 @@ TrieDatum<LeafDataT, InternalDataT, NeedDtor>*
          //for ( Uint i = 0; i < position; ++i ) new_list[i] = list[i];
          memcpy(new_list, list, position * sizeof(*new_list));
 
-         // Need to directly call the contructor, in case mandatory
+         // Need to directly call the contructor, in case it's mandatory
          //new_list[position] = TrieDatum<LeafDataT, InternalDataT, NeedDtor>(key_elem);
          new(new_list+position) TrieDatum<LeafDataT, InternalDataT, NeedDtor>(key_elem);
 
@@ -90,7 +91,7 @@ TrieDatum<LeafDataT, InternalDataT, NeedDtor>*
          memcpy(new_list+position+1, list+position,
                 (old_size-position) * sizeof(*new_list));
 
-         // Newly allocated by still unused element must be set to NoKey to
+         // Newly allocated but still unused element must be set to NoKey to
          // mark them as unused.
          for ( Uint i = old_size+1; i < list_alloc; ++i )
             //new_list[i] = TrieDatum<LeafDataT, InternalDataT, NeedDtor>(NoKey);
@@ -295,13 +296,11 @@ void TrieNode<LeafDataT, InternalDataT, NeedDtor>::clear(
       da_pool.free_array_no_dtor(list, list_alloc);
    if ( children )
       npa_pool.free_array_no_dtor(children, children_size());
-   non_recursive_clear(da_pool, npa_pool);
+   non_recursive_clear();
 }
 
 template<class LeafDataT, class InternalDataT, bool NeedDtor>
-void TrieNode<LeafDataT, InternalDataT, NeedDtor>::non_recursive_clear(
-   DatumArrayPool& da_pool, NodePtrArrayPool& npa_pool
-) {
+void TrieNode<LeafDataT, InternalDataT, NeedDtor>::non_recursive_clear() {
    list = NULL;
    children = NULL;
    //list_size = 0;
@@ -412,11 +411,12 @@ Uint TrieNode<LeafDataT, InternalDataT, NeedDtor>::write_binary(
 }
 
 template<class LeafDataT, class InternalDataT, bool NeedDtor>
-   template<class Filter>
+   template<typename Filter, typename Mapper>
 Uint TrieNode<LeafDataT, InternalDataT, NeedDtor>::read_binary(
-   istream& is, Filter& filter, vector<Uint>& key_stack,
+   istream& is, Filter& filter, Mapper& mapper, vector<Uint>& key_stack,
    TrieNodePool& node_pool, DatumArrayPool& da_pool, NodePtrArrayPool& npa_pool
 ) {
+   assert(!NeedDtor);
    assert(list_alloc == 0);
    assert(children_size() == 0);
    is.ignore(sizeof(Int64)); // Ignore skip offset - this nodes was kept!
@@ -473,11 +473,10 @@ Uint TrieNode<LeafDataT, InternalDataT, NeedDtor>::read_binary(
          keys_kept.push_back(key_stack.back());
          ++required_list_size;
          if ( list[i].has_children ) {
-            required_children_size = required_list_size;
             TrieNode<LeafDataT, InternalDataT, NeedDtor>* pre_alloc_node =
                node_pool.alloc(children[i]);
             Uint rec_nodes_kept =
-               pre_alloc_node->read_binary(is, filter, key_stack,
+               pre_alloc_node->read_binary(is, filter, mapper, key_stack,
                                            node_pool, da_pool, npa_pool);
             if ( rec_nodes_kept == 0 ) {
                // All information in that child node got pruned, discard it
@@ -486,6 +485,7 @@ Uint TrieNode<LeafDataT, InternalDataT, NeedDtor>::read_binary(
                node_pool.release(children[i]);
                children[i] = ~(Uint(0));
             } else {
+               required_children_size = required_list_size;
                nodes_kept += rec_nodes_kept;
             }
          }
@@ -540,7 +540,7 @@ Uint TrieNode<LeafDataT, InternalDataT, NeedDtor>::read_binary(
 
          Uint new_list_alloc;
          TrieDatum<LeafDataT, InternalDataT, NeedDtor> *new_list;
-         if ( required_list_size * GrowthFactor < true_list_size ) {
+         if ( (required_list_size+1) * GrowthFactor < true_list_size ) {
             new_list =
                da_pool.alloc_array_no_ctor(required_list_size, new_list_alloc);
          } else {
@@ -550,7 +550,10 @@ Uint TrieNode<LeafDataT, InternalDataT, NeedDtor>::read_binary(
 
          Uint new_children_alloc;
          Uint* new_children;
-         if ( required_children_size * GrowthFactor < true_children_size ) {
+         if ( required_children_size == 0 ) {
+            new_children = NULL;
+            new_children_alloc = 0;
+         } else if ( (required_children_size+1) * GrowthFactor < true_children_size ) {
             new_children = npa_pool.alloc_array_no_ctor(required_children_size,
                                                         new_children_alloc);
          } else {
@@ -589,12 +592,35 @@ Uint TrieNode<LeafDataT, InternalDataT, NeedDtor>::read_binary(
       }
       //cerr << dump_info();
    } else {
-      if ( list_alloc == 0 && children_size() == 0 &&
-           internal_data() == InternalDataT() ) {
-         //cerr << "Unexpected useless node" << endl;
-         nodes_kept = 0;
+      // No keys were filtered out, but maybe some children or subtrees were -
+      // compress them if we have many more allocated than we need.
+      if ( required_children_size == 0 && children_size() > 0 ) {
+         npa_pool.free_array_no_dtor(children, children_size());
+         children = NULL;
+         children_size(0);
+      } else if ( (required_children_size+1) * GrowthFactor < true_children_size ) {
+         Uint new_children_alloc;
+         Uint* new_children = npa_pool.alloc_array_no_ctor(
+               required_children_size, new_children_alloc);
+         assert(required_children_size <= new_children_alloc);
+         memcpy(new_children, children,
+                sizeof(children[0]) * required_children_size);
+         npa_pool.free_array_no_dtor(children, children_size());
+         children = new_children;
+         children_size(new_children_alloc);
       }
    }
+
+   if ( list_alloc == 0 && children_size() == 0 &&
+        internal_data() == InternalDataT() ) {
+      //cerr << "Unexpected useless node" << endl;
+      nodes_kept = 0;
+   }
+
+   if ( required_list_size > 0 &&
+        static_cast<void*>(&mapper) != &(PTrieNullMapper::m) )
+      apply_mapper(mapper, required_list_size, node_pool, da_pool, npa_pool);
+
 
    /*
    // Check that the list has the same keys as the keys_kept vector.
@@ -605,7 +631,7 @@ Uint TrieNode<LeafDataT, InternalDataT, NeedDtor>::read_binary(
          ok = false;
    }
    if ( !ok ) {
-      cerr << "Corrupt list should be " << join<Uint>(keys_kept)
+      cerr << "Corrupted list should be " << join<Uint>(keys_kept)
            << " but is";
       for ( Uint i(0); i < list_alloc; ++i )
          cerr << " " << list[i].key_elem;
@@ -616,5 +642,70 @@ Uint TrieNode<LeafDataT, InternalDataT, NeedDtor>::read_binary(
    return nodes_kept;
 }
 
+template<class LeafDataT, class InternalDataT, bool NeedDtor>
+   template<typename Mapper>
+void TrieNode<LeafDataT, InternalDataT, NeedDtor>::apply_mapper(
+   Mapper& mapper, Uint required_list_size,
+   TrieNodePool& node_pool, DatumArrayPool& da_pool, NodePtrArrayPool& npa_pool
+) {
+   // The user specified a real mapper, not the dummy one, so we need to
+   // change all the key values using this mapper, and resort the elements
+   // in this node.
+
+   // Step 1: remap all the keys - as a result, list may be out of order.
+   for ( Uint i(0); i < required_list_size; ++i )
+      list[i].key_elem = mapper(list[i].key_elem);
+
+   // Step 2: sort an array of list indices according to the new keys
+   Uint positions[required_list_size];
+   for ( Uint i(0); i < required_list_size; ++i )
+      positions[i] = i;
+   sort(&(positions[0]), &(positions[0])+required_list_size, KeyLessThan(this));
+
+   // Step 3: Reorder list according to this new order.
+   Uint new_list_alloc;
+   TrieDatum<LeafDataT, InternalDataT, NeedDtor> *new_list
+      = da_pool.alloc_array_no_ctor(required_list_size, new_list_alloc);
+   for ( Uint i(0); i < required_list_size; ++i ) {
+      memcpy(new_list+i, list+positions[i], sizeof(list[0]));
+      //new_list[i] = list[positions[i]];
+   }
+   for ( Uint i(required_list_size); i < new_list_alloc; ++i )
+      new_list[i].reset(NoKey);
+   da_pool.free_array_no_dtor(list, list_alloc);
+   list = new_list;
+   list_alloc = new_list_alloc;
+
+   // Step 4: Reorder children according to this new order.
+   if ( children_size() > 0 ) {
+      int last_child_pos(-1);
+      for ( int i(required_list_size-1); i >= 0; --i ) {
+         if ( new_list[i].has_children ) {
+            last_child_pos = i;
+            break;
+         }
+      }
+      if ( last_child_pos >= 0 ) {
+         Uint new_children_alloc;
+         Uint* new_children = npa_pool.alloc_array_no_ctor(
+               last_child_pos + 1, new_children_alloc);
+         for ( Uint i(0); i <= Uint(last_child_pos); ++i )
+            if ( new_list[i].has_children )
+               new_children[i] = children[positions[i]];
+
+         npa_pool.free_array_no_dtor(children, children_size());
+         children = new_children;
+         children_size(new_children_alloc);
+      } else {
+         /*
+         error(ETWarn, "children_size() was %d, but last_child_pos is %d",
+               children_size(), last_child_pos);
+         npa_pool.free_array_no_dtor(children, children_size());
+         children = NULL;
+         children_size(0);
+         */
+      }
+   }
+}
 
 #endif // __TRIE_NODE_CC_H__

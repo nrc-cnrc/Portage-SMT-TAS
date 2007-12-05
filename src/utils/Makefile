@@ -1,72 +1,11 @@
 # Makefile for Portage utils
 
 # George Foster
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
-
-SOURCES = \
-        arg_reader.cc \
-        bc_stats.cc \
-        bin_class_stats.cc \
-        errors.cc \
-        file_utils.cc \
-        get_voc.cc \
-        gfmath.cc \
-        good_turing.cc \
-        good_turing_estm.cc \
-        histogram_fit.cc \
-        iroc_exp.cc \
-        ls_poly_fit.cc \
-        MagicStream.cc \
-        matrix_solver.cc \
-        meanvar.cc \
-        perm_iterator.cc \
-        portage_defs.cc \
-        prog.cc \
-        quick_set.cc \
-        sample_parallel_text.cc \
-        str_utils.cc \
-        test_MagicStream.cc \
-        test_trie.cc \
-        testleven.cc \
-        try.cc \
-        voc.cc \
-        voc_map.cc
-
-INCLUDES = \
-        arg_reader.h \
-        array_mem_pool.h \
-        array_mem_pool-cc.h \
-        bc_stats.h \
-        block_mem_pool.h \
-        bootstrap.h \
-        errors.h \
-        exception_dump.h \
-        file_utils.h \
-        gfstats.h \
-        gfmath.h \
-        good_turing.h \
-        histogram_fit.h \
-        index_block_mem_pool.h \
-        levenshtein.h \
-        ls_poly_fit.h \
-        MagicStream.h \
-        matrix_solver.h \
-        parse_xmlish_markup.h \
-        perm_iterator.h \
-        portage_defs.h \
-        progress.h \
-        quick_set.h \
-        str_utils.h \
-        trie.h \
-        trie-cc.h \
-        vector_map.h \
-        vcb.h \
-        voc.h \
-        voc_map.h
 
 OBJECTS = \
         arg_reader.o \
@@ -84,27 +23,29 @@ OBJECTS = \
         portage_defs.o \
         quick_set.o \
         str_utils.o \
+        trie.o \
         voc.o \
         voc_map.o
 
 LIBRARY = libportage_utils
 
-PROGRAMS = \
+TESTPROGS =  \
+        prog \
+        test_MagicStream \
+        test_trie \
+        tester \
+        testleven \
+        try
+
+PROGRAMS = $(TESTPROGS) \
         bin_class_stats \
         bloater \
         get_voc \
         good_turing_estm \
         iroc_exp \
         meanvar \
-        prog \
-        sample_parallel_text \
-        test_MagicStream \
-        test_trie \
-        testleven \
-        tester \
-        try
+        sample_parallel_text
 
-TESTPROGS =  bloater prog try tester test_trie test_MagicStream testleven
 
 BINSCRIPTS = \
         alignment-stats.pl \
@@ -113,8 +54,6 @@ BINSCRIPTS = \
         combine.pl \
         cvs-status-summary.pl \
         diff-round.pl \
-        faucet.pl \
-        faucet_launcher.sh \
         filter-for-giza.pl \
         filter-latin.pl \
         getcolumn.sh \
@@ -134,6 +73,7 @@ BINSCRIPTS = \
         reverseffvals.pl \
         run-after.sh \
         run-parallel.sh \
+        run-parallel-d.pl \
         sort-by-length.pl \
         split-listed.pl \
         stableuniq.pl \
@@ -157,8 +97,6 @@ DOCUMENTS =
 
 # Module/directory specific compile flags
 MODULE_CF=
-
-DOXYFILE = ../build/Doxyfile
 
 include ../build/Makefile.incl
 -include Makefile.depend

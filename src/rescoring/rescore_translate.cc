@@ -10,8 +10,8 @@
  * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
- * Copyright 2005, Her Majesty in Right of Canada
+ * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
+ * Copyright 2004, Her Majesty in Right of Canada
  */
 
 
@@ -19,12 +19,12 @@
 #include <boostDef.h>
 #include <featurefunction.h>
 #include <rescore_io.h>
-#include <bleu.h>
 #include <basic_data_structure.h>
 #include <exception_dump.h>
 #include <fileReader.h>
 #include <rescoring_general.h>
 #include <printCopyright.h>
+#include <bleu.h>
 
 
 using namespace Portage;
@@ -39,19 +39,21 @@ int MAIN(argc, argv)
    using namespace rescore_translate;
    ARG arg(argc, argv);
 
-   LOG_VERBOSE2(verboseLogger, "Reading ffset");
-   FeatureFunctionSet ffset;
-   ffset.read(arg.model, arg.bVerbose, arg.ff_pref.c_str(), arg.bIsDynamic);
-   uVector ModelP(ffset.M());
-   ffset.getWeights(ModelP);
-
-
    ////////////////////////////////////////
    // SOURCE
    LOG_VERBOSE2(verboseLogger, "Reading source file");
    Sentences  sources;
    const Uint S(RescoreIO::readSource(arg.src_file, sources));
    if (S == 0) error(ETFatal, "empty source file: %s", arg.src_file.c_str());
+
+
+   ////////////////////////////////////////
+   // FEATURE FUNCTION SET
+   LOG_VERBOSE2(verboseLogger, "Reading ffset");
+   FeatureFunctionSet ffset;
+   ffset.read(arg.model, arg.bVerbose, arg.ff_pref.c_str(), arg.bIsDynamic);
+   uVector ModelP(ffset.M());
+   ffset.getWeights(ModelP);
 
 
    ////////////////////////////////////////
@@ -64,7 +66,7 @@ int MAIN(argc, argv)
    }
 
    LOG_VERBOSE2(verboseLogger, "Processing Nbest lists");
-   NbestReader  pfrN(FileReader::create<Translation>(arg.nbest_file, S, arg.K));
+   NbestReader  pfrN(FileReader::create<Translation>(arg.nbest_file, arg.K));
    Uint s(0);
    for (; pfrN->pollable(); ++s)
    {
@@ -89,13 +91,13 @@ int MAIN(argc, argv)
       K = nbest.size();  // IMPORTANT K might change if computeFFMatrix detects empty lines
 
       if (K==0) {
-	  cout << endl;
+         cout << endl;
       } 
       else {
 
-	  const uVector Scores = boost::numeric::ublas::prec_prod(H, ModelP);
-	  const Uint bestIndex = my_vector_max_index(Scores);         // k = sentence which is scored highest
-	  cout << nbest.at(bestIndex) << endl;  // DISPLAY best hypothesis
+         const uVector Scores = boost::numeric::ublas::prec_prod(H, ModelP);
+         const Uint bestIndex = my_vector_max_index(Scores);         // k = sentence which is scored highest
+         cout << nbest.at(bestIndex) << endl;  // DISPLAY best hypothesis
       }
    }
 

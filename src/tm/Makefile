@@ -1,45 +1,11 @@
 # Makefile for translation models.
 #
 # George Foster
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
-
-SOURCES = \
-	align-words.cc \
-	bag_trans.cc \
-	gen_phrase_tables.cc \
-	ibm.cc \
-	ibm_entropy.cc \
-	joint2cond_phrase_tables.cc \
-	merge_ttables.cc \
-	phrase_align_stats.cc \
-	phrase_oracle.cc \
-	phrase_table.cc \
-	phrase_table_reader.cc \
-	run_ibm.cc \
-	tester.cc \
-	tm_io.cc \
-	train_ibm.cc \
-	tt2pt.cc \
-	tt_pt_merge.cc \
-	ttable.cc \
-	ttablewithmax.cc \
-	word_align.cc
-
-INCLUDES = \
-	ibm.h \
-	length.h \
-	phrase_smoother.h \
-	phrase_smoother_cc.h \
-	phrase_table.h \
-	phrase_table_reader.h \
-	tm_io.h \
-	ttable.h \
-	ttablewithmax.h \
-	word_align.h
 
 OBJECTS = \
 	ibm.o \
@@ -82,8 +48,6 @@ DYNLIBS = -lpthread
 MODULE_CF = -Wno-non-virtual-dtor
 
 MODULE_DEPENDS = logging
-
-DOXYFILE = ../build/Doxyfile
 
 include ../build/Makefile.incl
 -include Makefile.depend

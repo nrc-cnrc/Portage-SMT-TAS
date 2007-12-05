@@ -5,7 +5,7 @@
  * 
  * COMMENTS: 
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada / 
@@ -25,6 +25,18 @@ string& XMLishTag::attrValsString(string& s)
    for (Uint i = 0; i < attr_vals.size(); ++i)
       s += " " + attr_vals[i].first + "=\"" + XMLescape(attr_vals[i].second.c_str(), tmp) + "\"";
    return s;
+}
+
+string XMLishTag::attrVal(const string& s)
+{
+  string val="";
+  for (vector< pair<string,string> >::const_iterator itr=attr_vals.begin(); 
+       itr!=attr_vals.end(); itr++)
+    if (itr->first==s) {
+      val = itr->second;
+      break;
+    }
+  return val;
 }
 
 string& XMLishTag::toString(string& s)
@@ -47,6 +59,9 @@ string& XMLishTag::toString(string& s)
       break;
    case isCDATA:
       s += "![CDATA[" + name + "]]";
+      break;
+   case isDoctype:
+      s += "!DOCTYPE " + name;
       break;
    }
    s += ">";
@@ -145,6 +160,7 @@ bool Portage::parseXMLishTag(const char buf[], XMLishTag& tag, Uint *beg, Uint* 
    // find initial < or eob
    const char* p;
    for (p = buf; *p && *p != '<'; ++p) ;
+
    if (beg) *beg = Uint(p-buf);
 
    // parse various types of tags depending on 1st character
@@ -157,7 +173,7 @@ bool Portage::parseXMLishTag(const char buf[], XMLishTag& tag, Uint *beg, Uint* 
          error(ETFatal, "expected '?' at end of declaration, got: " + showContext(buf, p));
       if (*p) ++p;
       return parseEnd(p, buf, end, "bad character after declaration: ");
-   } else if (*p == '!') {	// <!--...--> or <![CDATA[...]]>
+   } else if (*p == '!') {	// <!--...--> or <![CDATA[...]]> or <!DOCTYPE ...>
       ++p;
       if (isPrefix("--", p)) {
          tag.tag_type = XMLishTag::isComment;
@@ -169,6 +185,16 @@ bool Portage::parseXMLishTag(const char buf[], XMLishTag& tag, Uint *beg, Uint* 
             p += 2;
          }
          return parseEnd(p, buf, end, "bad character after comment: ");
+      } else if (isPrefix("DOCTYPE", p)) {
+         tag.tag_type = XMLishTag::isDoctype;
+         const char* b = p + strlen("DOCTYPE");
+         for (p = b; *p; ++p)
+           if (isPrefix(">", p)) {
+             tag.name = string(b, p-b);
+             if (end) *end = p+strlen(">")-buf;
+             return true;
+           }
+         return false;
       } else if (isPrefix("[CDATA[", p)) {
          tag.tag_type = XMLishTag::isCDATA;
          const char* b = p + strlen("[CDATA[");
@@ -180,7 +206,7 @@ bool Portage::parseXMLishTag(const char buf[], XMLishTag& tag, Uint *beg, Uint* 
             }
          return false;
       } else if (*p) {
-         error(ETFatal, "expected '--' or '[CDATA[' after '!', got: " + showContext(buf, p));
+         error(ETFatal, "expected '--' or '[CDATA[' or 'DOCTYPE' after '!', got: " + showContext(buf, p));
       } else
          return false;
    } else if (*p == '/') {	// </...>

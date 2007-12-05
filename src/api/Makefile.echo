@@ -4,7 +4,7 @@
 # Portage API
 # George Foster
 # 
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group 
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology 
 # Conseil national de recherches Canada / National Research Council Canada 
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -12,10 +12,11 @@
 # 
 # This is the Makefile for this module.
 
-# Note: you need the the SRILM libraries and the TCL library to be available in the
-# library and include search paths.  TCL should be found in /usr/lib and /usr/include, and
-# the other paths should be given by Makefile.incl.  As a sidenote, if you want to specify
-# these paths via environment variables, type the following (in bash):
+# Note: you need the the SRILM libraries and the TCL library to be available in
+# the library and include search paths.  TCL should be found in /usr/lib and
+# /usr/include, and the other paths should be given by Makefile.incl.  As a
+# sidenote, if you want to specify these paths via environment variables, type
+# the following (in bash):
 #  export LIBRARY_PATH=$LIBRARY_PATH:/export/projets/portage/lib
 #  export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/export/projets/portage/include
 

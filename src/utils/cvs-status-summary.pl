@@ -6,7 +6,7 @@
 #
 # PROGRAMMER: Eric Joanis
 #
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -40,7 +40,7 @@ while (<>) {
     next if $newonly && $status =~ /Up-to-date/;
     $status =~ s/Up-to-date//;
     my ($working) = /Working revision:\s+(\S+)/;
-    my ($date) = /Working revision:\s+\S+\s+(.*)/;
+    my ($date) = /Working revision:\s+\S+[ \t]+(.*)/;
     my ($repository, $filename) = 
         /Repository revision:\s+(\S+)\s+\S+Portage\/(.*)/;
     if ( ! defined $repository ) {
@@ -63,6 +63,15 @@ while (<>) {
     if ($sticky_tag || $sticky_date || $sticky_opts) {
         $sticky = "Sticky: $sticky_tag $sticky_date $sticky_opts";
     }
-    printf "%-8s %-24s   %-8s %-16s %s   %s\n",
-        $working, $date, $repository, $status, $sticky, $filename;
+    if ( defined $date ) {
+        printf "%-8s %-24s   %-8s %-16s %s   %s\n",
+            $working, $date, $repository, $status, $sticky, $filename;
+    } else {
+        printf "%-8s %-8s %-16s %s   %s\n",
+            $working, $repository, $status, $sticky, $filename;
+    }
+    if ( 0 ) {
+        print "working: $working\ndate: $date\nrepository: $repository\n";
+        print "status: $status\nsticky: $sticky\nfilename: $filename\n";
+    }
 }

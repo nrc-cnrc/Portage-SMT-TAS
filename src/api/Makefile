@@ -3,7 +3,7 @@
 # Portage API
 # George Foster
 # 
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group 
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology 
 # Conseil national de recherches Canada / National Research Council Canada 
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -33,7 +33,7 @@ ACE=NONE
 #  export LIBRARY_PATH=$LIBRARY_PATH:/export/projets/portage/lib
 #  export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/export/projets/portage/include
 
-# This Makefile's SOURCES, INCLUDES and OBJECTS variables are more complex that
+# This Makefile's SOURCES, INCLUDES and OBJECTS variables are more complex than
 # for other Makefiles, since we conditionally disable the compilation of
 # anything that depends on ACE if it's not available.
 
@@ -80,8 +80,6 @@ EXTRA_LIBS=$(LOGGING_LIB)
 ifneq ($(ACE), NONE)
    DYNLIBS=-lACE
 endif
-
-DOXYFILE= ../build/Doxyfile
 
 MODULE_CF= -Wno-non-virtual-dtor
    #-Wno-deprecated -Wno-sign-compare -Wno-reorder

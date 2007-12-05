@@ -1,11 +1,11 @@
 /**
  * @author Samuel Larkin
- * @file printCopyright.h GTLI/ILTG copyright notice.
+ * @file printCopyright.h GTLI/ILT copyright notice.
  *
  *
  * COMMENTS:
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -21,14 +21,29 @@ namespace Portage {
    /**
     * Prints the GTLI/ILT copyright notice on the standard err.
     * @param startDate the creation date of the application.
+    * @param progName  Program's name
     */
-   inline void printCopyright(const unsigned int startDate, const char* progName)
+   inline void printCopyright(const unsigned int startDate,
+                              const char* progName = NULL)
    {
-      if ( startDate < 2007 ) {
-         fprintf(stderr, "\n%s, NRC-CNRC, (c) %d - 2007, Her Majesty in Right of Canada\n", progName, startDate);
+      if ( progName ) {
+         fprintf(stderr, "\n%s, ", progName);
       } else {
-         fprintf(stderr, "\n%s, NRC-CNRC, (c) 2007, Her Majesty in Right of Canada\n", progName);
+         fprintf(stderr, "\n");
       }
+
+      const unsigned int thisYear(2007);
+      if ( startDate < thisYear ) {
+         fprintf(stderr,
+            "NRC-CNRC, (c) %d - %d, Her Majesty in Right of Canada\n",
+            startDate, thisYear);
+      } else {
+         fprintf(stderr,
+            "NRC-CNRC, (c) %d, Her Majesty in Right of Canada\n",
+            startDate);
+      }
+
+      fprintf(stderr, "\n");
    }
 }
 

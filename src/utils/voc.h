@@ -1,15 +1,15 @@
 /**
  * @author George Foster
  * @file voc.h Vocabulary associates an integer to every word.
- * 
- * 
- * COMMENTS: 
+ *
+ *
+ * COMMENTS:
  *
  * Two classes:
  *    - Voc maps strings <-> unique indexes
  *    - CountingVoc is like voc, but counts occurrences as it goes
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -40,11 +40,11 @@ class Voc {
        * @param x,y strings to compare
        * @return Returns true if x == y
        */
-      bool operator()(const char* const &x, const char* const& y) const { 
-	 return strcmp(x,y) == 0;
+      bool operator()(const char* const &x, const char* const& y) const {
+         return strcmp(x,y) == 0;
       }
    };
-   
+
    /// When you have the index and you want to convert it back to a word.
    vector<const char*> words;
    /// When you have a word and you want to find its index.
@@ -56,6 +56,26 @@ class Voc {
    void deleteWords();
 
 public:
+
+   /// Functor to split string to a vector of uint using a vocab.
+   struct addConverter
+   {
+      Voc& voc;   ///< Vocabulary used
+      /// Default constructor.
+      /// @param voc vocabulary to use
+      addConverter(Voc& voc) : voc(voc) {}
+
+      /**
+       * Make the object a functor to map a string its uint representation.
+       * @param s   source word
+       * @param val uint representation of s
+       * @return  Always return true
+       */
+      bool operator()(const char* s, Uint& val) {
+         val = voc.add(s);
+         return true;
+      }
+   };
 
    /// Destructor.
    ~Voc() {deleteWords();}
@@ -79,7 +99,7 @@ public:
       string line;
       while (getline(istr, line)) {add(line.c_str());}
    }
-   
+
    /**
     * Write contents to a file in which words are listed one per line.
     * @param filename  file name to output vocabulary
@@ -89,7 +109,7 @@ public:
       OMagicStream ostr(filename);
       write(ostr, delim);
    }
-   
+
    /**
     * Write contents to a stream in which words are listed one per line.
     * @param os     stream to output vocabulary
@@ -138,14 +158,15 @@ public:
     * @return true if test successful
     */
    static bool test();
+
 };
 
 /// A vocabulary with frequency of tokens.
 template<class T>
 class _CountingVoc : public Voc
 {
-   vector<T> counts;		///< index -> freq
-   
+   vector<T> counts;            ///< index -> freq
+
 public:
 
    /**
@@ -167,33 +188,33 @@ public:
       string line;
       Uint n = 1;
       while (getline(istr, line)) {
-	 string::size_type end = line.find_last_not_of(" ");
-	 if (end == string::npos)
-	    error(ETWarn, "blank line (%d) in voc stream", n);
-	 
-	 string::size_type beg = line.find_last_of(" ", end);
-	 if (beg == string::npos)
-	    error(ETWarn, "badly-formed (%d) line in voc stream", n);
+         string::size_type end = line.find_last_not_of(" ");
+         if (end == string::npos)
+            error(ETWarn, "blank line (%d) in voc stream", n);
 
-	 string count = line.substr(beg+1, end-beg);
-	 end = line.find_last_not_of(" ", beg);
-	 if (end == string::npos)
-	    error(ETWarn, "badly-formed (%d) line in voc stream", n);
+         string::size_type beg = line.find_last_of(" ", end);
+         if (beg == string::npos)
+            error(ETWarn, "badly-formed (%d) line in voc stream", n);
 
-	 string word = line.substr(0, end+1);
-	 
-	 if (word == "" || count == "") {
-	    error(ETWarn, "badly-formed (%d) line in voc stream", n);
-	    continue;
-	 }
-	 add(word.c_str(), conv<T>(count));
+         string count = line.substr(beg+1, end-beg);
+         end = line.find_last_not_of(" ", beg);
+         if (end == string::npos)
+            error(ETWarn, "badly-formed (%d) line in voc stream", n);
+
+         string word = line.substr(0, end+1);
+
+         if (word == "" || count == "") {
+            error(ETWarn, "badly-formed (%d) line in voc stream", n);
+            continue;
+         }
+         add(word.c_str(), conv<T>(count));
          ++n;
       }
    }
 
    /**
     * Add a word to the vocab, and increase its count.
-    * @param word 
+    * @param word
     * @param inc amount by which to increment count
     * @return index of word
     */
@@ -229,7 +250,7 @@ public:
    void normalize() {
       T sum = accumulate(counts.begin(), counts.end(), 0.0);
       for (Uint i = 0; i < counts.size(); ++i)
-	counts[i] /= sum;
+         counts[i] /= sum;
    }
 
 };
@@ -240,6 +261,6 @@ typedef _CountingVoc<Uint> CountingVoc;
 /// Unit testing of counting vocabulary.
 bool testCountingVoc();
 
-}
+} // Portage
 
 #endif

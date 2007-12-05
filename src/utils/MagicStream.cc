@@ -1,6 +1,7 @@
 /**
  * @author Samuel Larkin
- * @file MagicStream.cc  A stream that can be transparently used for cin/cout, .txt, .{Z,z,gz} and pipes.
+ * @file MagicStream.cc  A stream that can be transparently used for cin/cout,
+ *                       .txt, .{Z,z,gz} and pipes.
  *
  *
  * COMMENTS: These classes we permit easy integration of a stream that
@@ -13,8 +14,8 @@
  * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
- * Copyright 2005, Her Majesty in Right of Canada
+ * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
+ * Copyright 2006, Her Majesty in Right of Canada
  */
                
 #include <MagicStream.h>

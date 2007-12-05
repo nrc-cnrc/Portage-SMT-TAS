@@ -5,7 +5,7 @@
  *
  * COMMENTS:
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
@@ -15,6 +15,7 @@
 #ifndef __TRIE_CC_H__
 #define __TRIE_CC_H__
 
+// ============================= PTrie implementation ===================
 
 template<class LeafDataT, class InternalDataT, bool NeedDtor>
 Uint PTrie<LeafDataT, InternalDataT, NeedDtor>::hash(TrieKeyT key_elem) const {
@@ -221,7 +222,12 @@ template<class LeafDataT, class InternalDataT, bool NeedDtor>
 void PTrie<LeafDataT, InternalDataT, NeedDtor>::set_internal_node_value(
    const TrieKeyT key[], Uint key_size, const InternalDataT& intl_val
 ) {
-   assert(key_size > 0);
+   // The root's internal node value is stored in bucket 0
+   if ( key_size == 0 ) {
+      roots[0].internal_data(intl_val);
+      return;
+   }
+
    TrieNode<LeafDataT, InternalDataT, NeedDtor> *node;
    Uint start_i;
    if ( insert_cache.size() > 0 && insert_cache[0].first == key[0] ) {
@@ -270,7 +276,10 @@ template<class LeafDataT, class InternalDataT, bool NeedDtor>
 InternalDataT PTrie<LeafDataT, InternalDataT, NeedDtor>::get_internal_node_value(
    const TrieKeyT key[], Uint key_size
 ) const {
-   if (key_size == 0) return InternalDataT();
+   // The root's internal node value is stored in bucket 0
+   if ( key_size == 0 )
+      return roots[0].internal_data();
+
    Uint bucket = hash(key[0]);
    const TrieNode<LeafDataT, InternalDataT, NeedDtor> *node = &(roots[bucket]);
    TrieDatum<LeafDataT, InternalDataT, NeedDtor> *datum;
@@ -361,7 +370,7 @@ void PTrie<LeafDataT, InternalDataT, NeedDtor>::clear() {
       if ( NeedDtor ) {
          it->clear(nodePool, datumArrayPool, nodePtrArrayPool);
       } else {
-         it->non_recursive_clear(datumArrayPool, nodePtrArrayPool);
+         it->non_recursive_clear();
       }
    datumArrayPool.clear();
    nodePtrArrayPool.clear();
@@ -459,9 +468,9 @@ Uint PTrie<LeafDataT, InternalDataT, NeedDtor>::write_binary(
 } // PTrie::write_binary
 
 template<class LeafDataT, class InternalDataT, bool NeedDtor>
-   template<class Filter>
+   template<typename Filter, typename Mapper>
 Uint PTrie<LeafDataT, InternalDataT, NeedDtor>
-   ::read_binary(istream& is, Filter& filter)
+   ::read_binary(istream& is, Filter filter, Mapper& mapper)
 {
    clear();
    assert(!NeedDtor);
@@ -472,16 +481,170 @@ Uint PTrie<LeafDataT, InternalDataT, NeedDtor>
    Uint nodes_kept(0);
    for ( Uint bucket = 0; bucket < roots.size(); ++bucket ) {
       nodes_kept +=
-         roots[bucket].read_binary(is, filter, key_stack, nodePool,
+         roots[bucket].read_binary(is, filter, mapper, key_stack, nodePool,
                                    datumArrayPool, nodePtrArrayPool);
       if ( (bucket+1) % (roots.size()/8) == 0 ) cerr << ".";
    }
+
+   // If Mapper is a non-trivial one, we need to move nodes into the right
+   // buckets, matching their new keys, rather than the old ones.
+   if ( static_cast<void*>(&mapper) != &(PTrieNullMapper::m) )
+      fix_root_buckets();
+
    return nodes_kept;
+}
+
+namespace PTrieHelper {
+   /**
+    * Structure to hold data about new and old bucket information needed by
+    * PTrie::fix_root_buckets().  This should be a local structure within that
+    * method, but the compiler won't let me put a local struct into a vector.
+    * The tuple template in boost would have been another option, but it didn't
+    * work at first try, so it seemed easier (and more self-documenting) to
+    * just write this struct.
+    */
+   struct BucketTuple {
+      Uint new_bucket;
+      TrieKeyT new_key;
+      Uint old_bucket;
+      Uint old_pos;
+      BucketTuple(Uint new_bucket, TrieKeyT new_key,
+                  Uint old_bucket, Uint old_pos)
+         : new_bucket(new_bucket), new_key(new_key)
+         , old_bucket(old_bucket), old_pos(old_pos) {}
+      /// Less than, defined for sorting on new_bucket first, then new_key.
+      bool operator<(const BucketTuple &x) const {
+         if ( new_bucket < x.new_bucket ) return true;
+         else if ( new_bucket > x.new_bucket ) return false;
+         else return new_key < x.new_key;
+      }
+   };
+}
+
+template<class LeafDataT, class InternalDataT, bool NeedDtor>
+void PTrie<LeafDataT, InternalDataT, NeedDtor>::fix_root_buckets()
+{
+   assert(!NeedDtor);
+   // Create new roots from scratch, to be swapped in place when all is done.
+   vector<TrieNode<LeafDataT, InternalDataT, NeedDtor> >
+      new_roots(1<<root_hash_bits);
+   assert(roots.size() == new_roots.size());
+   // Copy the internal node value of the root
+   new_roots[0].internal_data(roots[0].internal_data());
+   // Count how many keys we have in total
+   Uint key_count(0);
+   for ( Uint old_bucket(0); old_bucket < roots.size(); ++old_bucket )
+      key_count += roots[old_bucket].size();
+
+
+   // Vector of <new bucket, new key, old bucket, old position> tuples, so that
+   // we can pre-sort them and then insert them into the new roots in the right
+   // order, thus minimizing unecessary movements.
+   //vector<tuple<Uint, TrieKeyT, Uint, Uint> > all_keys; // doesn't work
+   using namespace PTrieHelper;
+   vector<BucketTuple> all_keys;
+   all_keys.reserve(key_count);
+   for ( Uint old_bucket(0); old_bucket < roots.size(); ++old_bucket ) {
+      for ( Uint old_pos(0); old_pos < roots[old_bucket].size(); ++old_pos) {
+         TrieKeyT new_key = roots[old_bucket].list[old_pos].getKey();
+         if ( new_key != roots[0].NoKey )
+            all_keys.push_back(BucketTuple(
+               hash(new_key),   // new bucket
+               new_key,         // new key
+               old_bucket,      // old bucket
+               old_pos          // old old_pos
+            ));
+      }
+   }
+
+   // Default sort is lexicographic, so bucket first, in increasing order, key
+   // next, also in increasing order.
+   sort(all_keys.begin(), all_keys.end());
+
+   Uint start_index(0);
+   for ( Uint new_bucket(0); new_bucket < new_roots.size(); ++new_bucket ) {
+      // Find the last element in all_keys that goes into this bucket
+      Uint end_index(start_index);
+      while ( end_index < all_keys.size() &&
+              all_keys[end_index].new_bucket == new_bucket )
+         ++end_index;
+      if ( end_index == start_index ) continue; // nothing to do!
+
+      // The following requires that TrieNode have PTrie as a friend class,
+      // since we play with its structures directly.
+
+      int last_pos_with_children(-1);
+      // Allocate the right number of trie datums, and fill them in from the
+      // old ones.
+      assert(new_roots[new_bucket].list == NULL);
+      Uint new_bucket_size = end_index - start_index;
+      new_roots[new_bucket].list = datumArrayPool.alloc_array_no_ctor(
+            new_bucket_size, new_roots[new_bucket].list_alloc);
+      Uint new_pos(0), i(start_index);
+      for ( ; new_pos < new_bucket_size; ++new_pos, ++i ) {
+         const Uint old_bucket(all_keys[i].old_bucket);
+         const Uint old_pos(all_keys[i].old_pos);
+         new_roots[new_bucket].list[new_pos] = roots[old_bucket].list[old_pos];
+         if ( new_roots[new_bucket].list[new_pos].hasChildren() )
+            last_pos_with_children = new_pos;
+      }
+      for ( ; new_pos < new_roots[new_bucket].list_alloc; ++new_pos )
+         new(new_roots[new_bucket].list + new_pos)
+            TrieDatum<LeafDataT, InternalDataT, NeedDtor>(roots[0].NoKey);
+
+      // Allocate the right number of children pointers, and copy them
+      if ( last_pos_with_children >= 0 ) {
+         assert(new_roots[new_bucket].children == NULL);
+         Uint actual_new_children_size(0);
+         new_roots[new_bucket].children = nodePtrArrayPool.alloc_array_no_ctor(
+               last_pos_with_children + 1, actual_new_children_size);
+         new_roots[new_bucket].children_size(actual_new_children_size);
+         for ( Uint new_pos(0), i(start_index);
+               int(new_pos) <= last_pos_with_children;
+               ++new_pos, ++i ) {
+            if ( new_roots[new_bucket].list[new_pos].hasChildren() ) {
+               const Uint old_bucket(all_keys[i].old_bucket);
+               const Uint old_pos(all_keys[i].old_pos);
+               new_roots[new_bucket].children[new_pos] =
+                  roots[old_bucket].children[old_pos];
+            } else {
+               new_roots[new_bucket].children[new_pos] = nodePool.NoIndex;
+            }
+         }
+      }
+
+      // Update start_index to begin at the start of the next block
+      start_index = end_index;
+   }
+
+   // Now that the new root buckets are filled, swap them with the old ones
+   roots.swap(new_roots);
+   // and then delete the old ones, now found in the new_roots vector.
+   for ( Uint old_bucket(0); old_bucket < new_roots.size(); ++old_bucket ) {
+      if ( new_roots[old_bucket].list )
+         datumArrayPool.free_array_no_dtor(new_roots[old_bucket].list,
+               new_roots[old_bucket].list_alloc);
+      if ( new_roots[old_bucket].children )
+         nodePtrArrayPool.free_array_no_dtor(new_roots[old_bucket].children,
+               new_roots[old_bucket].children_size());
+      new_roots[old_bucket].non_recursive_clear();
+   }
+}
+
+template<class LeafDataT, class InternalDataT, bool NeedDtor>
+   template<class Visitor>
+void PTrie<LeafDataT, InternalDataT, NeedDtor>
+   ::traverse(Visitor& visitor) const
+{
+   vector<Uint> key_stack;
+   vector<TrieNode<LeafDataT, InternalDataT, NeedDtor> *> node_stack;
+   for ( Uint bucket = 0; bucket < roots.size(); ++bucket )
+      roots[bucket].traverse(visitor, key_stack, nodePool);
 }
 
 template<class LeafDataT, class InternalDataT, bool NeedDtor>
 typename PTrie<LeafDataT, InternalDataT, NeedDtor>::iterator 
-   PTrie<LeafDataT, InternalDataT, NeedDtor>::begin_children() const
+   PTrie<LeafDataT, InternalDataT, NeedDtor>::begin_children()
 {
    // Since we need the full logic of ++ to get to the first valid node, start
    // before the first possible node and let ++ do the rest of the work.
@@ -490,21 +653,9 @@ typename PTrie<LeafDataT, InternalDataT, NeedDtor>::iterator
    return it;
 } // PTrie::begin_children()
 
-template<class LeafDataT, class InternalDataT, bool NeedDtor>
-typename PTrie<LeafDataT, InternalDataT, NeedDtor>::iterator
-   PTrie<LeafDataT, InternalDataT, NeedDtor>::iterator::begin_children() const
-{
-   if ( has_children() ) {
-      iterator it(parent, 
-         parent.nodePool.get_ptr(node->get_children(position)),
-         false, false, 0, -1);
-      ++it;
-      return it;
-   } else {
-      return parent.end_iter;
-   }
-} // PTrie::iterator::begin_children()
-   
+
+// ============================= PTrie::iterator implementation ===========
+
 template<class LeafDataT, class InternalDataT, bool NeedDtor>
 bool PTrie<LeafDataT, InternalDataT, NeedDtor>::iterator::operator== (
    const iterator& other
@@ -542,19 +693,64 @@ typename PTrie<LeafDataT, InternalDataT, NeedDtor>::iterator &
    return *this;
 } // PTrie::iterator::operator++
 
-
+template<class LeafDataT, class InternalDataT, bool NeedDtor>
+typename PTrie<LeafDataT, InternalDataT, NeedDtor>::iterator
+   PTrie<LeafDataT, InternalDataT, NeedDtor>::iterator::begin_children()
+{
+   if ( has_children() ) {
+      iterator it(parent, 
+         parent.nodePool.get_ptr(node->get_children(position)),
+         false, false, 0, -1);
+      ++it;
+      return it;
+   } else {
+      return parent.end_iter;
+   }
+} // PTrie::iterator::begin_children()
 
 template<class LeafDataT, class InternalDataT, bool NeedDtor>
-   template<class Visitor>
-void PTrie<LeafDataT, InternalDataT, NeedDtor>
-   ::traverse(Visitor& visitor) const
+InternalDataT PTrie<LeafDataT, InternalDataT, NeedDtor>::iterator
+      ::get_internal_node_value() const
 {
-   vector<Uint> key_stack;
-   vector<TrieNode<LeafDataT, InternalDataT, NeedDtor> *> node_stack;
-   for ( Uint bucket = 0; bucket < roots.size(); ++bucket )
-      roots[bucket].traverse(visitor, key_stack, nodePool);
+   if (has_children())
+      return parent.nodePool.get_ptr(node->get_children(position))
+             ->internal_data();
+   else
+      return InternalDataT();
 }
 
+template<class LeafDataT, class InternalDataT, bool NeedDtor>
+void PTrie<LeafDataT, InternalDataT, NeedDtor>::iterator
+      ::insert(const TrieKeyT leaf_key, const LeafDataT& val)
+{
+   TrieNode<LeafDataT, InternalDataT, NeedDtor> *child_node;
+   if (has_children()) {
+      child_node = parent.nodePool.get_ptr(node->get_children(position));
+   } else {
+      Uint pre_alloc_node_index;
+      child_node = parent.nodePool.alloc(pre_alloc_node_index);
+      node->create_children(position, pre_alloc_node_index, parent.nodePool,
+                            parent.datumArrayPool, parent.nodePtrArrayPool);
+   }
+   Uint leaf_pos;
+   child_node->insert(leaf_key, leaf_pos, parent.nodePool,
+                      parent.datumArrayPool, parent.nodePtrArrayPool);
+   child_node->set_leaf_value(leaf_pos, val);
+}
+
+template<class LeafDataT, class InternalDataT, bool NeedDtor>
+void PTrie<LeafDataT, InternalDataT, NeedDtor>::iterator
+      ::delete_leaf(const TrieKeyT leaf_key)
+{
+   if (has_children()) {
+      TrieNode<LeafDataT, InternalDataT, NeedDtor> *child_node
+         = parent.nodePool.get_ptr(node->get_children(position));
+      Uint leaf_pos;
+      TrieDatum<LeafDataT, InternalDataT, NeedDtor>* datum;
+      if ( child_node->find(leaf_key, datum, leaf_pos) )
+         datum->clearLeaf();
+   }
+}
 
 #endif // __TRIE_CC_H__
 

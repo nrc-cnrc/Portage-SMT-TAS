@@ -6,7 +6,7 @@
  *
  * COMMENTS:
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
@@ -142,7 +142,7 @@ public:
 
    /**
     * Find an element, and insert it if not found.
-    * @param key_elem   key element to look up
+    * @param key_elem   key element to look up and/or insert
     * @param position   will be set to position of found or inserted element.
     *                   (This value can be passed to get_children and
     *                   create_children, but is only valid until the next
@@ -274,11 +274,8 @@ public:
     * destructors, recursive clear() is wasteful, we can just clear the root
     * (non-recursively) and then clear the memory pools (the parent PTrie must
     * do that step).
-    * @param da_pool    Parent PTrie's DatumArrayPool
-    * @param npa_pool   Parent PTrie's NodePtrArrayPool
     */
-   void non_recursive_clear(DatumArrayPool& da_pool,
-      NodePtrArrayPool& npa_pool);
+   void non_recursive_clear();
 
    /**
     * Add cumulative stats about this node and its children nodes.
@@ -327,6 +324,8 @@ public:
     * @param is         stream to read from
     * @param filter     filter which determines subtrees to prune (see
     *                   PTrie::read_binary() for details).
+    * @param mapper     mapper to remap keys while loading (see
+    *                   PTrie::read_binary() for details).
     * @param key_stack  complete key to the node about to be read
     * @param node_pool  Parent PTrie's TrieNodePool
     * @param da_pool    Parent PTrie's DatumArrayPool
@@ -335,10 +334,37 @@ public:
     *                   zero, even the node itself contains no information, and
     *                   can safely be discarded.
     */
-   template <typename Filter>
-   Uint read_binary(istream& is, Filter& filter, vector<Uint>& key_stack,
+   template <typename Filter, typename Mapper>
+   Uint read_binary(istream& is, Filter& filter, Mapper& mapper,
+                    vector<Uint>& key_stack,
                     TrieNodePool& node_pool, DatumArrayPool& da_pool,
                     NodePtrArrayPool& npa_pool);
+
+ private:
+
+   /// When read_binary is called with a non-trivial mapper, does the real work
+   /// of mapping old keys to new keys are resorting.
+   template <typename Mapper>
+   void apply_mapper(Mapper& mapper, Uint required_list_size,
+                     TrieNodePool& node_pool, DatumArrayPool& da_pool,
+                     NodePtrArrayPool& npa_pool);
+
+   /// For resorting the node keys in apply_mapper()
+   class KeyLessThan {
+      TrieNode<LeafDataT, InternalDataT, NeedDtor>* node;
+    public:
+      KeyLessThan(TrieNode<LeafDataT, InternalDataT, NeedDtor>* node)
+         : node(node) {}
+      /// Returns true iff the element at position x in node has a key which
+      /// smaller than that at y
+      bool operator()(Uint x, Uint y) {
+         return node->list[x].getKey() < node->list[y].getKey();
+      }
+   };
+   friend class KeyLessThan;
+
+   // for PTrie::fix_root_buckets().
+   friend class PTrie<LeafDataT, InternalDataT, NeedDtor>;
 
 }; // TrieNode
 

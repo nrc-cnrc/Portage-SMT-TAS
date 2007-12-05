@@ -27,9 +27,8 @@ static Logging::logger myLogger(Logging::getLogger("verbose.dynamicsizereader"))
 ////////////////////////////////////////
 // BASE CLASS
 template<class T>
-FileReaderBase<T>::FileReaderBase(const string& szFileName, const Uint& S, const Uint& K)
+FileReaderBase<T>::FileReaderBase(const string& szFileName, const Uint& K)
 : m_file(szFileName)
-, m_S(S)
 , m_K(K)
 , m_nSentNo(0)
 {
@@ -50,8 +49,8 @@ FileReaderBase<T>::~FileReaderBase()
 ////////////////////////////////////////
 // FIX CLASS
 template<class T>
-FixReader<T>::FixReader(const string& szFileName, const Uint& S, const Uint& K)
-: Parent(szFileName, S, K)
+FixReader<T>::FixReader(const string& szFileName, const Uint& K)
+: Parent(szFileName, K)
 {}
 
 
@@ -61,9 +60,10 @@ FixReader<T>::~FixReader()
 
 
 template<class T>
-bool FixReader<T>::poll(Uint& index, string& s)
+bool FixReader<T>::poll(string& s, Uint* index)
 {
-   index = Parent::m_nSentNo++;
+   if (index != NULL) *index = Parent::m_nSentNo;
+   ++Parent::m_nSentNo;
    if (Parent::m_nSentNo == Parent::m_K) Parent::m_nSentNo = 0;
 
    getline(Parent::m_file, s);
@@ -77,40 +77,23 @@ bool FixReader<T>::poll(Group& g)
 {
    g.clear();
    g.reserve(Parent::m_K);
-   Uint bidon(0);
    for (Uint k(0); k<Parent::m_K; ++k)
    {
       g.push_back(T());
-      poll(bidon, g.back());
+      poll(g.back());
    }
 
    return Parent::pollable();
 }
 
 
-/*template<class T>
-bool FixReader<T>::poll(matrixCandidate& m)
-{
-   m.clear();
-   m.reserve(m_S);
-   for (Uint s(0); s<m_S; ++s)
-   {
-      m.push_back(groupCandidate());
-      poll(m.back());
-   }
-
-   return pollable();
-}*/
-
-
 ////////////////////////////////////////
 // DYNAMIC CLASS
 template<class T>
-DynamicReader<T>::DynamicReader(const string& szFileName, const Uint& S, const Uint& K)
-: Parent(szFileName, S, 1000)
+DynamicReader<T>::DynamicReader(const string& szFileName, const Uint& K)
+: Parent(szFileName, K)
 {
    Parent::m_file >> Parent::m_nSentNo;
-   --Parent::m_nSentNo;
 }
 
 
@@ -120,14 +103,14 @@ DynamicReader<T>::~DynamicReader()
 
 
 template<class T>
-bool DynamicReader<T>::poll(Uint& index, string& s)
+bool DynamicReader<T>::poll(string& s, Uint* index)
 {
-   index = Parent::m_nSentNo;
+   if (index != NULL) *index = Parent::m_nSentNo;
+   const Uint previous = Parent::m_nSentNo;
 
    bool bRetour((Parent::m_file.get() == '\t') && (getline(Parent::m_file, s)) && (Parent::m_file >> Parent::m_nSentNo));
-   --Parent::m_nSentNo;
 
-   return bRetour && (Parent::m_nSentNo == index);
+   return bRetour && (Parent::m_nSentNo == previous);
 }
 
 
@@ -136,12 +119,11 @@ bool DynamicReader<T>::poll(Group& g)
 {
    g.clear();
    g.reserve(Parent::m_K);
-   Uint bidon(0);
    do
    {
       g.push_back(T());
    }
-   while (poll(bidon, g.back()));
+   while (poll(g.back()));
 
    g.resize(g.size());
 
@@ -149,36 +131,19 @@ bool DynamicReader<T>::poll(Group& g)
 }
 
 
-/*template<class T>
-bool DynamicReader<T>::poll(matrixCandidate& m)
-{
-   m.clear();
-   m.reserve(m_S);
-   do
-   {
-      m.push_back(groupCandidate());
-   }
-   while (poll(m.back()));
-
-   m.resize(m.size());
-
-   return true;
-}*/
-
-
 ////////////////////////////////////////
 // FACTORY FOR FILE READER
 template<class T>
-std::auto_ptr<FileReaderBase<T> > FileReader::create(const string& szFileName, const Uint& S, const Uint& K)
+std::auto_ptr<FileReaderBase<T> > FileReader::create(const string& szFileName, const Uint& K)
 {
    if (K == 0)
    {
       LOG_VERBOSE3(myLogger, "Using Dynamic File Reader");
-      return std::auto_ptr<FileReaderBase<T> >(new DynamicReader<T>(szFileName, S, K));
+      return std::auto_ptr<FileReaderBase<T> >(new DynamicReader<T>(szFileName, K));
    }
    else
    {
       LOG_VERBOSE3(myLogger, "Using Fix File Reader");
-      return std::auto_ptr<FileReaderBase<T> >(new FixReader<T>(szFileName, S, K));
+      return std::auto_ptr<FileReaderBase<T> >(new FixReader<T>(szFileName, K));
    }
 }

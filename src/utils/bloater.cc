@@ -5,7 +5,7 @@
  * 
  * COMMENTS: 
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -20,21 +20,22 @@ using namespace Portage;
 using namespace std;
 
 static char help_message[] = "\n\
-bloater blocksize\n\
+bloater [-maxiter <MAXITER>] blocksize\n\
 \n\
-Copy <infile> to <outfile> (default stdin to stdout).\n\
+Creates memory blocks of size blocksize every second.\n\
 \n\
 Options:\n\
 \n\
--v  Write progress reports to cerr.\n\
--n  Copy only first <nl> lines [0 = all]\n\
+-v       Write progress reports to cerr.\n\
+-maxiter Will perform <MAXITER> iteration thus create <MAXITER> block in memory\n\
+         [Uint::max].\n\
 ";
 
 // globals
 
 static bool verbose = false;
-static Uint num_lines = 0;
 static Uint blocksize = 0;
+static Uint maxIter = numeric_limits<Uint>::max();
 static void getArgs(int argc, char* argv[]);
 
 // main
@@ -43,12 +44,12 @@ int main(int argc, char* argv[])
 {
    getArgs(argc, argv);
 
-   Uint tot_size = 0;
-   //Uint output_interval = 1000000;
-   char* bloat_vect;
-   Uint num_blocks = 0;
+   Uint  tot_size   = 0;
+   char* bloat_vect = NULL;
+   Uint  num_blocks = 0;
 
-   while (1) {
+   Uint round(0);
+   while (round++ < maxIter) {
 
       bloat_vect = new char[blocksize];
       bloat_vect[0] = 1;
@@ -56,29 +57,24 @@ int main(int argc, char* argv[])
          bloat_vect[i*256] = i;
 
       tot_size += blocksize;
-      // if (tot_size / output_interval != (tot_size+blocksize) / output_interval) {
-         if (verbose)
-            cerr << ++num_blocks << " total size = " << tot_size << endl;
-         sleep(1);
-      // }
-
+      if (verbose)
+         cerr << ++num_blocks << " total size = " << tot_size << endl;
+      sleep(1);
    }
 
    cout << bloat_vect[0] << endl;
-   
-   
 }
 
 // arg processing
 
 void getArgs(int argc, char* argv[])
 {
-   const char* const switches[] = {"v", "n:"};
+   const char* switches[] = {"v", "maxiter:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 1, 1, help_message);
    arg_reader.read(argc-1, argv+1);
 
    arg_reader.testAndSet("v", verbose);
-   arg_reader.testAndSet("n", num_lines);
+   arg_reader.testAndSet("maxiter", maxIter);
   
    arg_reader.testAndSet(0, "blocksize", blocksize);
 }   

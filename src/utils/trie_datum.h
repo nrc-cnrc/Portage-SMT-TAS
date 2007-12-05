@@ -6,7 +6,7 @@
  *
  * COMMENTS:
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
@@ -36,7 +36,7 @@ class TrieDatum {
    /// Constructor.
    TrieDatum(TrieKeyT key_elem = 0) : /*child(NULL),*/ key_elem(key_elem),
       is_leaf(false), has_children(false) {}
-   /// Reset key_elem to given value, and is_lead and has_children to false.
+   /// Reset key_elem to given value, and is_leaf and has_children to false.
    void reset(TrieKeyT key_elem = 0) {
       this->key_elem = key_elem; is_leaf = has_children = false;
    }
@@ -59,6 +59,8 @@ class TrieDatum {
    /// Checks if it is a leaf.
    /// @return Returns true if this TrieDatum is a leaf.
    bool isLeaf() const { return is_leaf; }
+   /// Make this node no longer have a leaf value, if it did
+   void clearLeaf() { is_leaf = false; }
    /// Checks if it has children.
    /// @return Returns true if this TrieDatum has children
    bool hasChildren() const { return has_children; }

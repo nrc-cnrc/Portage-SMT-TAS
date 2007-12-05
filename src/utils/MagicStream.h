@@ -4,7 +4,8 @@
  *                     .txt, .{Z,z,gz} and pipes.
  *
  *
- * COMMENTS: These classes we permit easy integration of a stream that can be used in the following ways:
+ * COMMENTS: These classes we permit easy integration of a stream that can be
+ *           used in the following ways:
  *           - to read from standard in or to write to standard out
  *           - to read/write to a compress gzip file
  *           - to read/write to a plain text file
@@ -13,8 +14,8 @@
  * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
- * Copyright 2005, Her Majesty in Right of Canada
+ * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
+ * Copyright 2006, Her Majesty in Right of Canada
  */
            
 #ifndef __MAGIC_STREAM_H__
