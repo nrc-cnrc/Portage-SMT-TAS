@@ -5,7 +5,7 @@
  *
  * COMMENTS:
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
@@ -44,13 +44,19 @@ float LMText::wordProb(Uint word, const Uint context[], Uint context_length)
       query[i+1] = context[i];
 
    // For open-vocabulary language models, map unknown words to UNK_Symbol
-   if ( isUNK_tagged && vocab ) {
+   if ( complex_open_voc_lm && vocab ) {
       Uint UNK_index = vocab->index(UNK_Symbol);
       float dummy;
       for (Uint i = 0; i < context_length + 1; ++i)
          if ( ! trie.find(query+i, 1, dummy) )
             query[i] = UNK_index;
    }
+
+   return wordProbQuery(query, context_length+1);
+} // LMText::wordProb()
+
+float LMText::wordProbQuery(const Uint query[], Uint query_length) {
+   assert(query_length > 0);
 
    // p(w|context) is defined recursively as follows:
    // p(w|w1,..,wn) =
@@ -74,9 +80,9 @@ float LMText::wordProb(Uint word, const Uint context[], Uint context_length)
 
    // The above formula is what is implemented below.
 
-   float prob = 0.0f;
+   float prob(0);
    Uint depth;
-   if ( trie.find(query, context_length+1, prob, &depth) ) {
+   if ( trie.find(query, query_length, prob, &depth) ) {
       return prob;
    } else {
       // if depth==0, we need to handle oov_unigram_prob here
@@ -92,7 +98,7 @@ float LMText::wordProb(Uint word, const Uint context[], Uint context_length)
       // expressed as bo_depth = context_length down to depth
 
       Uint bo_min_depth = depth;
-      Uint bo_max_depth = context_length;
+      Uint bo_max_depth = query_length - 1;
       float bo_sum_value = trie.sum_internal_node_values(
          query+1, bo_min_depth, bo_max_depth);
 
@@ -100,36 +106,53 @@ float LMText::wordProb(Uint word, const Uint context[], Uint context_length)
          prob +          // prob("wi,..,w")
          bo_sum_value;   // sum j=1..i-1 (bo("wj,..,wn"))
    }
-} // LMText::wordProb
+} // LMText::wordProbQuery
 
-LMText::LMText(Voc *vocab, bool unk_tag, double oov_unigram_prob)
-   : PLM(vocab, unk_tag, oov_unigram_prob)
-{}
+LMText::LMText(Voc *vocab, OOVHandling oov_handling,
+               double oov_unigram_prob)
+   : PLM(vocab, oov_handling, oov_unigram_prob)
+{ }
 
-LMText::LMText(const string& lm_file_name, Voc *vocab, bool unk_tag,
-               bool limit_vocab, Uint limit_order, double oov_unigram_prob,
-               ostream *const os_filtered)
-   : PLM(vocab, unk_tag, oov_unigram_prob)
+Uint LMText::global_index(Uint local_index) {
+   return local_index;
+}
+
+
+LMText::LMText(const string& lm_file_name, Voc *vocab,
+               OOVHandling oov_handling, double oov_unigram_prob,
+               bool limit_vocab, Uint limit_order,
+               ostream *const os_filtered, bool quiet)
+   : PLM(vocab, oov_handling, oov_unigram_prob)
    , trie(12)
 {
    assert(vocab);
-   read(lm_file_name, limit_vocab, limit_order, os_filtered);
+   read(lm_file_name, limit_vocab, limit_order, os_filtered, quiet);
 }
 
-void LMText::read(const string& lm_file_name, bool limit_vocab, Uint limit_order,
-   ostream *const os_filtered)
+void LMText::read(const string& lm_file_name, bool limit_vocab,
+                  Uint limit_order, ostream *const os_filtered, bool quiet)
 {
    OMagicStream* tmp_os_filtered = NULL;
    string tmp_fileN;
    if (os_filtered != NULL)
    {
-      cerr << "Filtering LM " << lm_file_name << endl;
+      if (!quiet) cerr << "Filtering LM " << lm_file_name << endl;
       tmp_fileN = extractFilename(lm_file_name) + ".tmp.filtering";
+      const char* const portage = getenv("TMPDIR");
+      if (portage != NULL) {
+         tmp_fileN = string(portage) + string("/") + tmp_fileN;
+      }
+      else {
+         tmp_fileN = string("/tmp/") + tmp_fileN;
+      }
+      ostringstream pid;
+      pid << "." << getpid();
+      tmp_fileN += pid.str();
       tmp_os_filtered = new OMagicStream(tmp_fileN);
       assert(tmp_os_filtered != NULL);
    }
-      
-   time_t start = time(NULL);
+
+   time_t start_overall = time(NULL);
    vector<Uint> ngram_counts;
    IMagicStream in(lm_file_name);
    string line;
@@ -160,7 +183,7 @@ void LMText::read(const string& lm_file_name, bool limit_vocab, Uint limit_order
             lm_file_name.c_str(), line.c_str(), (ngram_counts.size() + 1));
       ngram_counts.push_back(count);
    }
-      
+
    gram_order = ngram_counts.size();
    if ( limit_order && limit_order < gram_order ) {
       error(ETWarn, "Treating order %d LM %s as order %d",
@@ -174,7 +197,8 @@ void LMText::read(const string& lm_file_name, bool limit_vocab, Uint limit_order
    // Now for each order N we expect, go down to the \N-grams: section and read
    // it
    for (Uint order = 1; order <= ngram_counts.size(); ++order) {
-      cerr << "Reading " << ngram_counts[order-1] << " " << order << "-grams.";
+      time_t start = time(NULL);
+      if (!quiet) cerr << "Reading " << ngram_counts[order-1] << " " << order << "-grams.";
       if ( in.eof() )
          error(ETFatal, "EOF before \\%u-grams: sections in %s",
             lm_file_name.c_str(), order);
@@ -190,7 +214,7 @@ void LMText::read(const string& lm_file_name, bool limit_vocab, Uint limit_order
       if ( in.eof() )
          error(ETFatal, "EOF before \\%u-grams: sections in %s",
             lm_file_name.c_str(), order);
-            
+
       if (os_filtered != NULL && tmp_os_filtered != NULL)
          *tmp_os_filtered << endl << line << endl;
 
@@ -219,13 +243,14 @@ void LMText::read(const string& lm_file_name, bool limit_vocab, Uint limit_order
          }
          ++sentenceCount[order-1];  // Counting the number of kept lines
       }
-      
-      cerr << " ... kept: " << sentenceCount[order-1] << " in " << (time(NULL) - start) << "s." << endl;
+
+      if (!quiet) cerr << " ... kept: " << sentenceCount[order-1] << " in " << (time(NULL) - start) << "s." << endl;
 
       // Useful statistics, but expensive to calculate - do only for optimizing
       // memory structures!  Or maybe it could be included in verbose 2 output.
       //cerr << trie.getStats() << endl;
    }
+   if (!quiet) cerr << "LM loading completed in: " << (time(NULL) - start_overall) << "s." << endl;
 
    // If we are filtering the LM we must cat the proper header with the proper
    // stats with the tmp_file containing the kept lines.
@@ -239,7 +264,7 @@ void LMText::read(const string& lm_file_name, bool limit_vocab, Uint limit_order
       for (Uint i(0); i<sentenceCount.size(); ++i)
          *os_filtered << "ngram " << i+1 << "=" << sentenceCount[i] << endl;
       *os_filtered << endl;
-         
+
       // Quickly copies the header + temp file in the final output
       IMagicStream  tmp_is_filtered(tmp_fileN);
       *os_filtered << tmp_is_filtered.rdbuf();
@@ -314,7 +339,8 @@ void LMText::readLine(
                   oov_found = true;
                   break;
                }
-            } else {
+            }
+            else {
                phrase[order-tok_count] = vocab->add(s_tok);
             }
 
@@ -325,7 +351,7 @@ void LMText::readLine(
          if ( oov_found ) {
             assert (limit_vocab);
             continue;
-         } 
+         }
 
          if (os_filtered != 0) *os_filtered << line << endl;
 

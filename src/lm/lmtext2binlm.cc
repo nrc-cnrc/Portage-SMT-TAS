@@ -3,7 +3,7 @@
  * @file lmtext2binlm.cc  Convert an ARPA LM file to the Portage BinLM format
  * $Id$
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
@@ -47,6 +47,7 @@ static void getArgs(int argc, const char* const argv[]);
 
 int MAIN(argc,argv)
 {
+   printCopyright(2006, "lmtext2binlm");
    getArgs(argc, argv);
 
    time_t start = time(NULL);
@@ -61,8 +62,8 @@ int MAIN(argc,argv)
       cerr << "Read vocab (... " << (time(NULL) - start) << " secs)" << endl;
    }
 
-   PLM* lm = PLM::Create(lm_filename, &vocab, true, limit_vocab, order,
-                         -INFINITY);
+   PLM* lm = PLM::Create(lm_filename, &vocab, PLM::ClosedVoc, -INFINITY,
+                         limit_vocab, order, NULL);
    order = lm->getOrder();
    cerr << "Loaded " << order << "-gram model (... "
         << (time(NULL) - start) << " secs)" << endl;
@@ -98,7 +99,7 @@ int MAIN(argc,argv)
 // arg processing
 void getArgs(int argc, const char* const argv[])
 {
-   const char* const switches[] = {"v", "vocab:", "order:"};
+   const char* switches[] = {"v", "vocab:", "order:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 1, 2, help_message);
    arg_reader.read(argc-1, argv+1);
 

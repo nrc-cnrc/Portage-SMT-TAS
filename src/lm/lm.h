@@ -35,12 +35,14 @@ protected:
    Voc* vocab;
 
    /**
-    * Whether the LM is open vocabulary.
-    *
-    * Is the LM tagged with "<unk>" or not?
-    * True iff "<unk>" is a special word for OOVs
+    * Whether the LM is of type OOVHandling::FullOpenVoc.
+    * When false, oov_unigram_prob can be used as the unigram probability of
+    * any unknown word.  When true, every unknown word in each wordProb() and
+    * heuristicWordProb() query must be mapped to <unk> before looking up the
+    * information in the language model.  (This is handled by those two methods
+    * in each LM subclass.)
     */
-   bool isUNK_tagged;
+   bool complex_open_voc_lm;
 
    /**
     * Lm order (e.g., 3 or 4 gram).
@@ -51,9 +53,16 @@ protected:
     */
    Uint gram_order;
 
-
-   /// value for unigram probability of out-of-vocabulary words
+   /**
+    * value for unigram probability of out-of-vocabulary words, for ClosedVoc,
+    * SimpleOpenVoc and SimpleAutoVoc LMs.  Initialize from the
+    * oov_unigram_prob parameter to Create() or by looking up p(<unk>) in the
+    * LM, depending on the oov_handling parameter to Create()
+    */
    float oov_unigram_prob;
+
+   /// Human-readable description of this LM
+   string description;
 
    /**
     * Ask sub class what is the gram order of the LM.  Must be overriden by
@@ -65,26 +74,90 @@ protected:
    virtual Uint getGramOrder() = 0;
 
    /**
-    * Contructor - only called by children classes' constructors
-    * @param vocab         shared vocab object for all models
-    * @param UNK_tag       whether LM is open-voc, with "<unk>" as OOV symbol
-    * @param oov_unigram_prob  the unigram prob of OOVs (if !UNK_tag)
+    * Get the word represented by index in this language model.
+    * Typically the same as going through the global vocab, but can be
+    * overriden by subclasses where this is not the case.
+    * @param index  index to look up.
+    * @return  the word index maps to, or "" if it is not in the vocabulary
     */
-   PLM(Voc* vocab, bool UNK_tag, float oov_unigram_prob);
+   virtual const char* word(Uint index) const;
+
+public:
+   /**
+    * Constants used to determine how this LM will handle OOVs.
+    * Defensive programming: Use a class instead of an enum so that primitive
+    * types are not castable to this type, nor vice-versa.
+    */
+   struct OOVHandling {
+      /// Return true iff this and that are the same type
+      bool operator==(const OOVHandling& that) const
+      { return type == that.type; }
+      /// Display the value of this variable in printable form
+      string toString() const;
+    private:
+      /// The actual enum we're wrapping, documented in the static consts in
+      /// PLM.
+      const enum Type {
+         ClosedVoc, SimpleOpenVoc, SimpleAutoVoc, FullOpenVoc
+      } type;
+      /// Private constructor - only to be used by PLM to initialize the
+      /// static consts.
+      OOVHandling(Type type) : type(type) {}
+      friend class PLM;
+   };
+   /**
+    * Simplest OOV handling: Assume LM is closed vocabulary, and assign OOVs
+    * the unigram probability passed to Create() through the oov_unigram_prob
+    * parameter.
+    */
+   static const OOVHandling ClosedVoc;
+   /**
+    * Better OOV handling: Assume the LM is open vocabulary, i.e., it assigns a
+    * unigram probability to <unk>, typically estimated by applying some
+    * discounting method during LM training.  This is appropriate for LMs
+    * generated using SRILM's ngram-count program with -unk, or CMU Toolkit's
+    * idngram2lm program with -vocab_type 2.
+    */
+   static const OOVHandling SimpleOpenVoc;
+   /**
+    * Automatically detect a SimpleOpenVoc by looking for p(<unk>).  If found
+    * in the LM, same as SimpleOpenVoc.  If not, same as ClosedVoc.
+    */
+   static const OOVHandling SimpleAutoVoc;
+   /**
+    * Full OOV handling: Assume the LM is open vocabulary and might provide
+    * probabilities for <unk> in various contexts, and can include <unk> in the
+    * context of other words.  As far as I (Eric Joanis) know, SRILM never
+    * generates such LMs, but I think CMU Toolkit's idngram2lm will do so with
+    * -vocab_type 1.  This method makes queries to the language model somewhat
+    * more expensive, so it should only be used if the LM really is of this
+    * type.
+    */
+   static const OOVHandling FullOpenVoc;
+
+protected:
+   /**
+    * Contructor - only called by children classes' constructors
+    * @param vocab              shared vocab object for all models
+    * @param oov_handling       type of vocabulary
+    * @param oov_unigram_prob   the unigram prob of OOVs (if oov_handling ==
+    *                           ClosedVoc)
+    */
+   PLM(Voc* vocab, OOVHandling oov_handling, float oov_unigram_prob);
    /**
     * Default contructor for subclasses that might need it.
     */
    PLM();
-
-   /// Human-readable description of this LM
-   string description;
 
 public:
    /**
     * Create a PLM.  The type will be determined by the file name.
     * @param lm_filename   The file where the LM is stored
     * @param vocab         shared vocab object for all models
-    * @param UNK_tag       whether LM is open-voc, with "<unk>" as OOV symbol
+    * @param oov_handling  whether the LM is open or closed voc.  See enum
+    *                      OOVHandling's documentation for details.
+    * @param oov_unigram_prob  The unigram log prob of OOVs (only used if
+    *                      oov_handling==ClosedVoc) [typical value: -INFINITY]
     * @param limit_vocab   whether to restrict the LM to words already in vocab
     * @param limit_order   if non-zero, will cause the LM to be treated as
     *                      order limit_order, even if it is actually of a
@@ -92,19 +165,23 @@ public:
     *                      If lm_filename ends in #N, that will also be
     *                      treated as if limit_order=N was specified.
     *                      [typical value: 0]
-    * @param oov_unigram_prob  the unigram prob of OOVs (if !UNK_tag)
-    *                      [typical value: -INFINITY]
     * @param os_filtered   Opened stream to output the filtered LM.
+    *                      [typical value: NULL]
+    * @param quiet         Suppresses verbose.
     */
-   static PLM* Create(const string& lm_filename, Voc* vocab, bool UNK_tag,
-                      bool limit_vocab, Uint limit_order,
+   static PLM* Create(const string& lm_filename,
+                      Voc* vocab,
+                      OOVHandling oov_handling,
                       float oov_unigram_prob,
-                      ostream *const os_filtered = NULL);
+                      bool limit_vocab,
+                      Uint limit_order,
+                      ostream *const os_filtered,
+                      bool quiet = false);
 
    /**
     * The main LM method: probability of a word in context.
     *
-    * Calculate p(word|context), where context is reversed, i.e., for
+    * Calculate log(p(word|context)), where context is reversed, i.e., for
     * p(w4|w1 w2 w3), you must pass word=w4, and context=(w3,w2,w1).
     * If w4 is not found, uses p(w4) = oov_unigram_prob in the back off
     * calculations, unless isUNK_tagged is true, in which case the LM's
@@ -112,7 +189,7 @@ public:
     * @param word               word whose prob is desired
     * @param context            context for word, in reverse order
     * @param context_length     length of context
-    * @return p(word|context)
+    * @return log(p(word|context))
     */
    virtual float wordProb(Uint word, const Uint context[], Uint context_length) = 0;
 
@@ -153,6 +230,13 @@ public:
    static const char* UNK_Symbol; ///< "<unk>";
    static const char* SentStart;  ///< "<s>";
    static const char* SentEnd;    ///< "</s>";
+
+   /**
+    * Checks if a language model's file exists
+    * @param  lm_filename  canoe.ini LM's filename
+    * @return Returns true if the file exists
+    */
+   static bool check_file_exists(const string& lm_filename);
 
    /// Destructor, virtual since we have subclasses
    virtual ~PLM() {}

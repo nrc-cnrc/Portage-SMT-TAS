@@ -10,11 +10,10 @@
 OBJECTS = \
 	lm.o \
         lmbin.o \
+        lmbin_vocfilt.o \
 	lmtext.o
 
-PROGRAMS = lmtext2binlm testlm
-
-TESTPROGS = testlm
+PROGRAMS = lmtext2binlm lm_eval
 
 LIBRARY = libportage_lm
 
@@ -22,7 +21,7 @@ MODULE_CF =
 
 BINSCRIPTS = ngram-count-big.sh
 
-EXTRA_LIBS = $(LOGGING_LIB)
+EXTRA_LIBS =
 
 DYNLIBS =
 

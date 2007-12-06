@@ -5,7 +5,7 @@
  *
  * COMMENTS:
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
@@ -28,7 +28,9 @@ namespace Portage {
 class LMText : public PLM
 {
 protected:
-   /// The LM is stored internally in a trie
+   /**
+    * The LM is stored internally in a trie.
+    */
    PTrie<float, Wrap<float>, false> trie;
 
 private:
@@ -38,8 +40,10 @@ private:
     * @param limit_vocab if set, retain only lines whose words are all in vocab
     * @param limit_order if non-zero, truncate the model to order limit_order
     * @param os_filtered Opened stream to output the filtered LM.
+    * @param quiet  Turn off verbose
     */
-   void read(const string& lm_file_name, bool limit_vocab, Uint limit_order, ostream *const os_filtered);
+   void read(const string& lm_file_name, bool limit_vocab, Uint limit_order,
+             ostream *const os_filtered, bool quiet);
 
    /**
     * Read a line from a language model file.
@@ -64,24 +68,49 @@ private:
     * @param os_filtered Opened stream to output the filtered LM.
     */
    void readLine(istream &in, float &prob, Uint order, Uint phrase[/*order*/],
-      float &bo_wt, bool &blank, bool &bo_present, bool limit_vocab, ostream *const os_filtered);
+      float &bo_wt, bool &blank, bool &bo_present, bool limit_vocab,
+      ostream *const os_filtered);
 
 protected:
-   // implementations of virtual methods from parent class
-   float wordProb(Uint word, const Uint context[], Uint context_length);
-   Uint getGramOrder() { return gram_order; }
-   void clearCache() {}
-
    /// Protected constructor for use by subclasses
-   LMText(Voc *vocab, bool unk_tag, double oov_unigram_prob);
+   LMText(Voc *vocab, OOVHandling oov_handling, double oov_unigram_prob);
+
+   // Implemented for parent.
+   virtual Uint getGramOrder() { return gram_order; }
+
+   /**
+    * Return the mapping from index in the vocab used in the trie to index in
+    * the global vocab.  Trivial copy in this class, but not in subclasses.
+    */
+   virtual Uint global_index(Uint local_index);
+
+   /**
+    * Runs the actual trie query and back-off calculations for wordProb() -
+    * intended to work for this class and for subclasses.
+    * @param query  LM query, with word in query[0] and context in the rest
+    * @param query_length  length of query == context_length + 1, must be > 0
+    * @return the fully calculated probability result for this query
+    */
+   float wordProbQuery(const Uint query[], Uint query_length);
 
 public:
+   // implementations of virtual methods from parent class
+   virtual float wordProb(Uint word, const Uint context[], Uint context_length);
+   virtual void clearCache() {}
+
+
+
    // Particular interface for this class
-   
+
    /// Constructor.  See PLM::Create() for a description of the parameters.
-   LMText(const string& lm_file_name, Voc *vocab, bool unk_tag,
-          bool limit_vocab, Uint limit_order, double oov_unigram_prob,
-          ostream *const os_filtered);
+   LMText(const string& lm_file_name,
+          Voc *vocab,
+          OOVHandling oov_handling,
+          double oov_unigram_prob,
+          bool limit_vocab,
+          Uint limit_order,
+          ostream *const os_filtered,
+          bool quiet = false);
 
    /**
     * Write the LM out in the Portage binary language model format

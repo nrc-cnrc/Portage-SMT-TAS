@@ -1,6 +1,6 @@
 /**
  * @author Eric Joanis
- * @file lmbin.cc - in memory language model from a binlm file
+ * @file lmbin.cc - LMBin implementation.
  * $Id$
  *
  * COMMENTS:
@@ -38,119 +38,64 @@ class OrderFilter {
    }
 }; // OrderFilter
 
-/// Filter functor for simple vocab based filtering through the VocMap.
-class VocMapBasedLMFilter {
- protected:
-   /// Global/local vocab map
-   VocMap& voc_map;
-   /// Limit the to LM order, (non-zero if requested)
-   Uint limit_order;
-
- public:
-   /// Destructor
-   virtual ~VocMapBasedLMFilter() {}
-   /// Constructor
-   VocMapBasedLMFilter(VocMap& voc_map, Uint limit_order)
-      : voc_map(voc_map), limit_order(limit_order) {}
-   /// Filter method.
-   /// Return true iff key_stack should be kept.
-   /// Looks only at the last key, since the other ones were already checked.
-   virtual bool operator()(const vector<Uint>& key_stack) {
-      return
-         (limit_order == 0 || key_stack.size() <= limit_order) &&
-         voc_map.global_index(key_stack.back()) != voc_map.NoMap;
-   }
-}; // VocMapBasedLMFilter
-
 } // Portage
 
-
-void LMBin::read_binary(const string& binlm_filename, bool limit_vocab,
-                        Uint limit_order)
+Uint LMBin::read_bin_trie(istream& ifs, Uint limit_order)
 {
-   IMagicStream ifs(binlm_filename);
-   string line;
-   time_t start = time(NULL);
-
-   // "Magic string" line
-   getline(ifs, line);
-   if ( line != "Portage BinLM file, format v1.0" )
-      error(ETFatal, "File %s not in Portage's BinLM format: bad first line",
-            binlm_filename.c_str());
-
-   // Order line
-   getline(ifs, line);
-   vector<string> tokens;
-   split(line, tokens);
-   if ( tokens.size() != 3 || tokens[0] != "Order" || tokens[1] != "=" ||
-        !conv(tokens[2], gram_order ) )
-      error(ETFatal, "File %s not in Portage's BinLM format: bad order line",
-            binlm_filename.c_str());
-
-   // Vocab size line
-   getline(ifs, line);
-   splitZ(line, tokens);
-   Uint voc_size;
-   if ( tokens.size() != 4 || tokens[0] != "Vocab" || tokens[1] != "size" ||
-        tokens[2] != "=" || !conv(tokens[3], voc_size) )
-      error(ETFatal, "File %s not in Portage's BinLM format: bad voc size line",
-            binlm_filename.c_str());
-
-   // The vocab itself
-   if ( voc_map.read_local_vocab(ifs) != voc_size )
-      error(ETFatal, "File %s not in Portage's BinLM format: voc size mismatch",
-            binlm_filename.c_str());
-
-   // And finally deserialize the trie, applying any caller requested filter
-   Uint nodes_kept;
-   if ( limit_vocab ) {
-      VocMapBasedLMFilter filter(voc_map, limit_order);
-      nodes_kept = trie.read_binary(ifs, filter);
-   } else if ( limit_order ) {
+   if ( limit_order ) {
       OrderFilter filter(limit_order);
-      nodes_kept = trie.read_binary(ifs, filter);
+      return trie.read_binary(ifs, filter);
    } else {
-      nodes_kept = trie.read_binary(ifs);
+      return trie.read_binary(ifs);
    }
-
-   getline(ifs, line);
-   if ( line != "" )
-      error(ETFatal, "File %s not in Portage's BinLM format: end corrupt",
-            binlm_filename.c_str());
-   getline(ifs, line);
-   splitZ(line,tokens,"=");
-   Uint internal_nodes_in_file;
-   if ( tokens.size() != 2 ||
-        tokens[0] != "End of Portage BinLM file.  Internal node count" ||
-        !conv(tokens[1], internal_nodes_in_file) )
-      error(ETFatal, "File %s not in Portage's BinLM format: bad node count",
-            binlm_filename.c_str());
-
-   // The local to global vocab cache will not be used again, clear it now.
-   voc_map.clear_caches();
-
-   cerr << "Kept " << nodes_kept << " of " << internal_nodes_in_file
-        << " nodes.  Done in " << (time(NULL) - start) << "s." << endl;
 }
+
+static const Uint debug_wp = false;
 
 float LMBin::wordProb(Uint word, const Uint context[], Uint context_length)
 {
-   Uint mapped_word = voc_map.local_index(word);
-   if ( mapped_word == voc_map.NoMap )
-      mapped_word = trie.MaxKey;
-   Uint mapped_context[context_length];
-   for ( Uint i(0); i < context_length; ++i ) {
-      mapped_context[i] = voc_map.local_index(context[i]);
-      if ( mapped_context[i] == voc_map.NoMap )
-         mapped_context[i] = trie.MaxKey;
+   Uint oov_index;
+   if ( complex_open_voc_lm ) {
+      // For complex open-vocabulary BinLM's, only words not in the local vocab
+      // are oov's.  We map them to the UNK_Symbol.
+      oov_index = voc_map.local_index(UNK_Symbol);
+      assert(oov_index != voc_map.NoMap);
+   } else {
+      // otherwise, we use the largest key supported by the trie, to make sure
+      // it's something not it the trie.  (voc_map.NoMap is too large, so we
+      // can't just use that.)
+      oov_index = trie.MaxKey;
    }
-   return LMText::wordProb(mapped_word, mapped_context, context_length);
+
+   TrieKeyT query[context_length+1];
+   query[0] = voc_map.local_index(word);
+   if ( query[0] == voc_map.NoMap )
+      query[0] = oov_index;
+   if ( debug_wp ) cerr << "Query " << word << "=>" << query[0] << " |";
+   for ( Uint i(0); i < context_length; ++i ) {
+      query[i+1] = voc_map.local_index(context[i]);
+      if ( query[i+1] == voc_map.NoMap )
+         query[i+1] = oov_index;
+      if ( debug_wp ) cerr << " " << context[i] << "=>" << query[i+1];
+   }
+   if ( debug_wp ) cerr << endl;
+
+   return wordProbQuery(query, context_length+1);
 }
 
-LMBin::LMBin(const string& binlm_filename, Voc &vocab, bool unk_tag,
-             bool limit_vocab, Uint limit_order, double oov_unigram_prob)
-   : LMText(&vocab, unk_tag, oov_unigram_prob)
-   , voc_map(vocab)
+const char* LMBin::word(Uint index) const
 {
-   read_binary(binlm_filename, limit_vocab, limit_order);
+   return voc_map.local_word(index);
+}
+
+Uint LMBin::global_index(Uint local_index) {
+   return voc_map.global_index(local_index);
+}
+
+LMBin::LMBin(const string& binlm_filename, Voc &vocab,
+             OOVHandling oov_handling, double oov_unigram_prob,
+             Uint limit_order)
+   : LMBinVocFilt(vocab, oov_handling, oov_unigram_prob)
+{
+   read_binary(binlm_filename, limit_order);
 }

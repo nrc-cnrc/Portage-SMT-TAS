@@ -27,7 +27,8 @@ NgramFF::NgramFF(const string &args)
    vocab = new Voc();
    // Ack, this is bad: we're not using limit_vocab!!!  Must do something
    // about this...
-   lm = PLM::Create(args, vocab, false, false, 0, LOG_ALMOST_0);
+   lm = PLM::Create(args, vocab, PLM::SimpleAutoVoc, LOG_ALMOST_0,
+                    false, 0, NULL);
 }
 
 NgramFF::~NgramFF()

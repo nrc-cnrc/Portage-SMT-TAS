@@ -11,6 +11,11 @@
 
 echo 'masstesting.sh, NRC-CNRC, Copyright (c) 2006 - 2007, Her Majesty in Right of Canada'
 
+if [ $# -ne 3 ]; then
+   echo Your are missing some arguments
+   exit 1;
+fi
+
 LM_FOR_SRILM=$1
 LM_FOR_PORTAGE=$2
 TEST=$3
@@ -28,9 +33,9 @@ ALL_GOOD=1
 echo ""
 echo "=================== LMText -limit =================="
 echo ""
-echo time ./testlm -limit $LM_FOR_PORTAGE $TEST \> lmtexttestfile
+echo time ./lm_eval -limit $LM_FOR_PORTAGE $TEST \> lmtexttestfile
 echo ""
-time ./testlm -limit $LM_FOR_PORTAGE $TEST > lmtexttestfile
+time ./lm_eval -limit $LM_FOR_PORTAGE $TEST > lmtexttestfile
 
 echo ""
 echo diff -q srilmtestfile lmtexttestfile
@@ -45,9 +50,9 @@ fi
 echo ""
 echo "====================== LMText ======================"
 echo ""
-echo time ./testlm $LM_FOR_PORTAGE $TEST \> lmtexttestfile-no-limit
+echo time ./lm_eval $LM_FOR_PORTAGE $TEST \> lmtexttestfile-no-limit
 echo ""
-time ./testlm $LM_FOR_PORTAGE $TEST > lmtexttestfile-no-limit
+time ./lm_eval $LM_FOR_PORTAGE $TEST > lmtexttestfile-no-limit
 
 echo ""
 echo diff -q srilmtestfile lmtexttestfile-no-limit
@@ -64,7 +69,7 @@ echo "====================== Summary ====================="
 echo ""
 
 if [ $ALL_GOOD = 0 ]; then
-   echo "Something went wrong! One or many tests are not accurate!"
+   echo "Something went wrong! One or more tests are not accurate!"
 else
    echo "OK! All tests look allright!"
 fi

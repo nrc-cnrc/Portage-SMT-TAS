@@ -313,12 +313,12 @@ void BasicModelGenerator::addMultiProbTransModel(
 void BasicModelGenerator::addLanguageModel(const char *lmFile, double weight,
     Uint limit_order, ostream *const os_filtered)
 {
-   if (!check_if_exists(lmFile))
+   if (!PLM::check_file_exists(lmFile))
       error(ETFatal, "Cannot read from language model file %s", lmFile);
    cerr << "loading language model from " << lmFile << endl;
    //time_t start_time = time(NULL);
-   PLM *lm = PLM::Create(lmFile, &tgt_vocab, false, limitPhrases,
-                         limit_order, LOG_ALMOST_0, os_filtered);
+   PLM *lm = PLM::Create(lmFile, &tgt_vocab, PLM::SimpleAutoVoc, LOG_ALMOST_0,
+                         limitPhrases, limit_order, os_filtered);
    //cerr << " ... done in " << (time(NULL) - start_time) << "s" << endl;
    lms.push_back(lm);
    lmWeightsV.push_back(weight);
