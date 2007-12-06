@@ -1,8 +1,9 @@
 /**
  * @author George Foster
- * @file ttable.h  A simple IBM1-style ttable, mapping src/tgt word pairs to probabilities.
- * 
- * 
+ * @file ttable.h  A simple IBM1-style ttable, mapping src/tgt word pairs to
+ *                 probabilities.
+ *
+ *
  * COMMENTS:
  *
  * A simple IBM1-style ttable, mapping src/tgt word pairs to probabilities. It
@@ -13,7 +14,7 @@
  *
  * TODO: add read-from-stream constructor.
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -32,7 +33,7 @@
 #include <quick_set.h>
 
 namespace Portage {
- 
+
 using namespace __gnu_cxx;
 
 /// Callable entity that returns and index for a string.
@@ -63,7 +64,7 @@ private:
 
    /// Token that separes fields in GIZA++ files
    static const string sep_str;
-   Uint speed;			///< controls initial pass algorithm
+   Uint speed;                  ///< controls initial pass algorithm
 
    typedef hash_map<string,Uint,StringHash>::const_iterator WordMapIter;
    /// Definition of a source distribution iterator.
@@ -72,32 +73,32 @@ private:
    /// Callable entity to sort on Probs in decreasing order.
    struct CompareProbs {
       /**
-       * Compares x and y based on there probs and will sort them in decreasing order.
+       * Compares x and y based on their probs (for decreasing order sort)
        * @param x,y TIndexAndProb objects to compare.
        * @return Returns true if x > y
        */
-      bool operator()(const TIndexAndProb& x, const TIndexAndProb& y) const 
+      bool operator()(const TIndexAndProb& x, const TIndexAndProb& y) const
       {return x.second > y.second;}
    };
    /// Callable entity to sort on indexes in increasing order.
    struct CompareTIndexes {
       /**
-       * Compares x and y based on there indexes and will sort them in increasing order.
+       * Compares x and y based on their indexes
        * @param x,y TIndexAndProb objects to compare.
        * @return Returns true if x < y
        */
-      bool operator()(const TIndexAndProb& x, const TIndexAndProb& y) const 
+      bool operator()(const TIndexAndProb& x, const TIndexAndProb& y) const
       {return x.first < y.first;}
    };
    /// Callabale entity that finds TIndexAndProb with an index lower then y.
    struct CmpTIndex {
       /**
-       * Compares x and y based on there indexes and will sort them in increasing order.
+       * Compares x and y based on their indexes
        * @param x  TIndexAndProb object to compare.
        * @param y  maximum index we are looking for.
        * @return Returns true if x < y
        */
-      bool operator()(const TIndexAndProb& x, const Uint& y) const 
+      bool operator()(const TIndexAndProb& x, const Uint& y) const
       {return x.first < y;}
    };
 
@@ -106,11 +107,11 @@ private:
    vector<string> twords;
    vector<SrcDistn> src_distns;
    vector<vector<bool>*> src_distns_quick;
-   QuickSet src_inds;
-   QuickSet tgt_inds;
+   QuickSet src_inds; ///< local variable to add(), kept persistent for speed
+   QuickSet tgt_inds; ///< local variable to add(), kept persistent for speed
 
    SrcDistn empty_distn;  ///< Empty source distribution.
-   
+
    void add(Uint src_index, Uint tgt_index);
 
 public:
@@ -119,7 +120,7 @@ public:
     * Constructor. GIZA++ format: src_word tgt_word p(tgt_word|src_word).
     * @param filename  file containing the GIZA++ info.
     */
-   TTable(const string& filename); 
+   TTable(const string& filename);
 
    /// Constructor that creates an empty ttable. Use add() to populate, then
    /// makeDistnsUniform().
@@ -136,8 +137,10 @@ public:
     */
    Uint prune(double thresh);
 
-   /// Writes the ttable to a stream.
-   /// @param os  An opened stream to output the ttable.
+   /**
+    * Writes the ttable to a stream.
+    * @param os  An opened stream to output the ttable.
+    */
    void write(ostream& os) const;
 
    /**
@@ -155,7 +158,7 @@ public:
    void add(const vector<string>& src_sent, const vector<string>& tgt_sent);
 
    /// Makes the distributions uniform. Call after add()'s are done.
-   void makeDistnsUniform();	
+   void makeDistnsUniform();
 
    /// @name Get the number of source/target words.
    /// @return Returns the number of source/target words.
@@ -168,11 +171,7 @@ public:
     * Fetches the internal source vocabulary.
     * @param src_words  will be cleared and filled with the source vocabulary.
     */
-   void getSourceVoc(vector<string>& src_words) const {
-      src_words.clear();
-      for (WordMapIter p = sword_map.begin(); p != sword_map.end(); ++p)
-	 src_words.push_back(p->first);
-   }
+   void getSourceVoc(vector<string>& src_words) const;
 
    /**
     * Converts an index to its target string representation.
@@ -186,7 +185,7 @@ public:
     * @param tgt_word  string to convert into an index.
     * @return Returns tgt_word index or  numTargetWords() if unknown.
     */
-   Uint targetIndex(const string& tgt_word) { 
+   Uint targetIndex(const string& tgt_word) {
       WordMapIter p = tword_map.find(tgt_word);
       return p == tword_map.end() ? numTargetWords() : p->second;
    }
@@ -198,7 +197,7 @@ public:
     * @return Returns the index of src_word in the source vocabulary or
     * numSourceWords() if unknown
     */
-   Uint sourceIndex(const string& src_word) { 
+   Uint sourceIndex(const string& src_word) {
       WordMapIter p = sword_map.find(src_word);
       return p == sword_map.end() ? numSourceWords() : p->second;
    }
@@ -231,22 +230,14 @@ public:
     * @return  Returns the offset of given target index within src_dist, or
     * return -1 if not there.
     */
-   int targetOffset(Uint target_index, const SrcDistn& src_distn) {
-      SrcDistnIter sp = lower_bound(src_distn.begin(), src_distn.end(), 
-				    make_pair(target_index,0.0), CompareTIndexes());
-      return (sp == src_distn.end() || sp->first != target_index) ? 
-	 -1  : (int) (sp - src_distn.begin());
-   }
+   int targetOffset(Uint target_index, const SrcDistn& src_distn);
 
    /**
     * Get the source distribution in decreasing order of probabilities.
     * @param src_word  source word to find.
     * @param distn     will contain the source distribution in decreasing order of probabilities.
     */
-   const void getSourceDistnByDecrProb(const string& src_word, SrcDistn& distn) const {
-      distn = getSourceDistn(src_word);
-      sort(distn.begin(), distn.end(), CompareProbs());
-   }
+   void getSourceDistnByDecrProb(const string& src_word, SrcDistn& distn) const;
 
    /**
     * A sugary & inefficient version of the above
@@ -255,8 +246,9 @@ public:
     * @param tgt_words
     * @param tgt_probs
     */
-   const void getSourceDistnByDecrProb(const string& src_word, 
-				       vector<string>& tgt_words, vector<float>& tgt_probs) const;
+   void getSourceDistnByDecrProb(const string& src_word,
+                                 vector<string>& tgt_words,
+                                 vector<float>& tgt_probs) const;
 
    /**
     * Gets the best translation for a given source word.
@@ -272,14 +264,7 @@ public:
     * @param tgt_word
     * @return Returns p(tgt_word|src_word), or -1 if no such pair exists in the table.
     */
-   const double getProb(const string& src_word, const string& tgt_word) const {
-      WordMapIter p = tword_map.find(tgt_word);
-      if (p == tword_map.end()) {return -1.0;}
-      const SrcDistn& distn = getSourceDistn(src_word);
-      SrcDistnIter sp = lower_bound(distn.begin(), distn.end(), 
-				    make_pair(p->second,0.0), CompareTIndexes());
-      return (sp == distn.end() || sp->first != p->second) ? -1.0 : sp->second;
-   }
+   double getProb(const string& src_word, const string& tgt_word) const;
 
    /**
     * Get the probability of src_index and target_offset been aligned.
@@ -291,7 +276,7 @@ public:
       return src_distns[src_index][target_offset].second;
    }
 
-   /** 
+   /**
     * Set speed used for initial add() operations; valid values are 1 (slower,
     * less mem) or 2 (faster, more mem)
     * @param sp  speed value.

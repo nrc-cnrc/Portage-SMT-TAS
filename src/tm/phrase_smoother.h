@@ -12,7 +12,7 @@
  * PhraseTable being a template class, but the alternatives seem even clunkier
  * to me.
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -27,7 +27,7 @@
 
 namespace Portage {
 
-//-------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 /**
  * Abstract smoother. T is the type used to represent phrase-table frequencies.
  */
@@ -36,7 +36,8 @@ class PhraseSmoother
 {
 public:
 
-   // probabilities are represented as floats in canoe, so don't go below FLT_MIN!
+   // probabilities are represented as floats in canoe, so don't go below
+   // FLT_MIN!
    static const double VERY_SMALL_PROB; // = FLT_MIN;
 
 
@@ -49,18 +50,20 @@ public:
     * @param it  
     * @return Returns  P(phrase1|phrase2)
     */
-   virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it) = 0;
+   virtual double probLang1GivenLang2(
+      const typename PhraseTableGen<T>::iterator& it) = 0;
    /**
     * Given a phrase pair (phrase1, phrase2), return smoothed estimates for
     * P(phrase2|phrase1).
     * @param it  
     * @return Returns  P(phrase2|phrase1)
     */
-   virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it) = 0;
+   virtual double probLang2GivenLang1(
+      const typename PhraseTableGen<T>::iterator& it) = 0;
 };
 
 
-//-------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 /**
  * Factory class for creating smoothers from text descriptions. T is the type
  * used to represent phrase-table frequencies. To add new classes derived from
@@ -81,20 +84,22 @@ class PhraseSmootherFactory
    /// Generic object allocator for PhraseSmoothers<T>.
    template<class S> struct DCon {
       ///  Allocates a new object of type T constructed with S(factory, s). 
-      static PhraseSmoother<T>* create(PhraseSmootherFactory<T>& factory, const string& s)
+      static PhraseSmoother<T>*
+         create(PhraseSmootherFactory<T>& factory, const string& s)
       {
 	 return new S(factory, s);
       }
    };
 
    /// PhraseSmoother<T> creation function definition.
-   typedef PhraseSmoother<T>* (*PF)(PhraseSmootherFactory<T>& factory, const string& s);
+   typedef PhraseSmoother<T>*
+      (*PF)(PhraseSmootherFactory<T>& factory, const string& s);
 
    /// Creational information for PhraseSmoother<T>
    struct TInfo {
       PF pf;			///< pointer to create() function
       string tname;		///< name of derived class
-      string help;		///< describes args for derived class constructor
+      string help;		///< describes args for derived class ctor
    };
    static TInfo tinfos[];	///< array containing all known smoothers
 
@@ -109,7 +114,8 @@ public:
     * @param verbose level: 0 for no messages, 1 for basic, 2 for detail
     */
    PhraseSmootherFactory(PhraseTableGen<T>* pt, 
-                         IBM1* ibm_lang2_given_lang1, IBM1* ibm_lang1_given_lang2,
+                         IBM1* ibm_lang2_given_lang1,
+                         IBM1* ibm_lang1_given_lang2,
 			 Uint verbose);
 
    /**
@@ -162,7 +168,7 @@ public:
 
 
 
-//-------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 /**
  * Plain relative-frequency estimates - no smoothing.
  */
@@ -188,7 +194,7 @@ public:
 };
 
 
-//-------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 /**
  * Simulated leave-one-out.
  */
@@ -213,7 +219,7 @@ public:
 };
 
 
-//-------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 /**
  * Good-Turing. The float/double implementation currently maps frequencies to
  * their integer ceilings in order to come up with smoothed counts. This may
@@ -243,7 +249,7 @@ public:
 };
 
 
-//-------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 /**
  * Kneser-Ney. Similar comment applies to the above for G-T. Consider this a
  * very crude workaround for float counts.
@@ -302,7 +308,7 @@ public:
 };
 
 
-//-------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 /**
  * Zens-Ney lexical smoothing. This differs from the above approaches in that
  * it ignores joint counts and derives conditional distributions strictly from
@@ -335,10 +341,39 @@ public:
 };
 
 
-//-------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 /**
- * IBM lexical smoothing. Like Zens-Ney, but use the standard IBM1 formula to
- * calculate p(phrase1|phrase2).
+ * IBM1 lexical smoothing. Like Zens-Ney, but use the standard IBM1
+ * formula to calculate p(phrase1|phrase2).
+ */
+template<class T>
+class IBM1Smoother : public PhraseSmoother<T>
+{
+   IBM1* ibm_lang2_given_lang1;
+   IBM1* ibm_lang1_given_lang2;
+
+   vector<string> l1_phrase;
+   vector<string> l2_phrase;
+
+public:
+   
+   /**
+    * Constructor.
+    * @param factory
+    * @param args
+    */
+   IBM1Smoother(PhraseSmootherFactory<T>& factory, const string& args);
+   /// Destructor.
+   ~IBM1Smoother() {}
+   
+   virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it);
+   virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
+};
+
+//-----------------------------------------------------------------------------
+/**
+ * IBM lexical smoothing. Like Zens-Ney, but use the standard IBM1/2
+ * formula to calculate p(phrase1|phrase2).
  */
 template<class T>
 class IBMSmoother : public PhraseSmoother<T>
@@ -364,6 +399,27 @@ public:
    virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
 };
 
+//-----------------------------------------------------------------------------
+/**
+ * Constant indicator values.
+ */
+template<class T>
+class IndicatorSmoother : public PhraseSmoother<T>
+{
+   static const double ind_val = 2.7183;
+
+public:
+
+   /**
+    * Constructor.
+    * @param factory
+    * @param args - ignored
+    */
+   IndicatorSmoother(PhraseSmootherFactory<T>& factory, const string& args) {}
+
+   virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it) {return ind_val;}
+   virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it) {return ind_val;}
+};
 
 }
 

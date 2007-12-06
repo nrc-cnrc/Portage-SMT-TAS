@@ -8,8 +8,8 @@
  * IBM models 1 and 2. See train_ibm.cc and run_ibm.cc for examples on how to
  * use this API.
  *
- * - To incorporate the null word in calculations, prepend nullWord() to src_toks
- *   in all functions that take a src_toks argument. 
+ * - To incorporate the null word in calculations, prepend nullWord() to
+ *   src_toks in all functions that take a src_toks argument. 
  * - During training, UNK target tokens are just skipped; UNK source tokens
  *   count only as placeholders for position probabilities.
  * - Use getTTable() (see ttable.h) for low-level access to IBM1 parameters.
@@ -24,7 +24,15 @@
  *   normal IBM2 parameters, and are used in place of the normal parameters for
  *   any sentence pair longer than slen,tlen (during both training and test).
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * WARNING: This model is based on p(tgt|src), with tgt being the observed
+ *          sequence and tgt_al = sequence of src positions being the hidden
+ *          state sequence.  This is the opposite of the convention found in
+ *          SOME OF the literature.
+ *          So in Och+Ney 2003, as well as Brown et al 1993,
+ *          f is tgt here, and e is src here.  And in hmm-alignment.tex, s is
+ *          tgt here, and t is src here.
+ *
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -34,7 +42,7 @@
 #ifndef IBM_H
 #define IBM_H
 
-#include "MagicStream.h"
+#include "file_utils.h"
 #include "ttable.h"
 
 namespace Portage {
@@ -125,7 +133,7 @@ namespace Portage {
     /**
      * Construct an empty model. Use add() to populate.
      */
-    IBM1() {useImplicitNulls = false;}
+    IBM1() { useImplicitNulls = false; }
 
     /// Destructor.
     virtual ~IBM1() {}
@@ -145,46 +153,49 @@ namespace Portage {
     }
 
     /**
-     * Set this variable to true to have pr(), logpr(), and align() take NULLs
-     * into account implicitly (ie, without a prepended NULL token). For align(),
-     * this is equivalent to prepending a NULL token, aligning, then removing
-     * the NULL token, setting all 0 indices to src_toks.size(), and subtracting
-     * 1 from all other indices. By default this is false; it should not be set
-     * to true unless the model was trained with NULL's. NB: this affects IBM2
-     * too.
+     * If this variable is set to false, pr(), logpr(), and align()
+     * expect an explicit prepended NULL word; otherwise, they take
+     * NULLs into account implicitly (ie, without a prepended NULL
+     * token). For align(), useImplicitNulls==true is equivalent to
+     * prepending a NULL token, aligning, then removing the NULL
+     * token, setting all 0 indices to src_toks.size(), and
+     * subtracting 1 from all other indices. By default this is true;
+     * it should be set to false if the model was **not** trained with
+     * NULL's (not something you want to do anyway).  
+     * NB: this affects IBM2 too.
      */
     bool useImplicitNulls;
 
     /**
      * Add all word pairs in given sequences to the model. compile() MUST be
      * called when add()'s are finished.
-     * @param src_toks
-     * @param tgt_toks
+     * @param src_toks source sentence
+     * @param tgt_toks target sentence
      */
-    void add(const vector<string>& src_toks, const vector<string>& tgt_toks);
+    virtual void add(const vector<string>& src_toks, const vector<string>& tgt_toks);
 
     /// Makes the ttable distances uniform.
-    void compile() {tt.makeDistnsUniform();}
+    virtual void compile() {tt.makeDistnsUniform();}
 
     /**
      * Training functions. Call initCounts(), then count() for each segment
      * pair, then estimate() for one complete EM cycle.
      */
-    void initCounts();
+    virtual void initCounts();
 
     /**
-     * Needs description
-     * @param src_toks
-     * @param tgt_toks
+     * Count the expected alignment occurrences in one sentence pair.
+     * @param src_toks source sentence
+     * @param tgt_toks target sentence
      */
-    void count(const vector<string>& src_toks, const vector<string>& tgt_toks);
+    virtual void count(const vector<string>& src_toks, const vector<string>& tgt_toks);
 
     /** 
      * Estimate new parameters from counts.
      * @param pruning_threshold remove all probabilities less than this
      * @return "<prev-ppx,new-size>"
      */
-    pair<double,Uint> estimate(double pruning_threshold = 0.0);
+    virtual pair<double,Uint> estimate(double pruning_threshold = 0.0);
    
     /**
      * Virtual p(tgt-tok|src_seg).
@@ -199,17 +210,17 @@ namespace Portage {
      * @return Returns p(tgt-tok|src_seg).
      */
     virtual double pr(const vector<string>& src_toks, const string& tgt_tok, 
-                      Uint tpos, Uint tlen,
-                      vector<double>* probs = NULL) {
-      return pr(src_toks, tgt_tok, probs);
+                      Uint tpos, Uint tlen, vector<double>* probs = NULL) {
+       return IBM1::pr(src_toks, tgt_tok, probs);
     }
    
     /**
      * p(tok|src_seg) 
-     * See double pr(const vector<string>& src_toks, const string& tgt_tok, Uint tpos, Uint tlen, vector<double>* probs)
+     * See double pr(const vector<string>& src_toks, const string& tgt_tok,
+     * Uint tpos, Uint tlen, vector<double>* probs)
      */
-    double pr(const vector<string>& src_toks, const string& tgt_tok, 
-              vector<double>* probs = NULL);
+    virtual double pr(const vector<string>& src_toks, const string& tgt_tok, 
+                      vector<double>* probs = NULL);
 
     /**
      * p(tgt_seg|src_seg).
@@ -217,7 +228,8 @@ namespace Portage {
      * @param tgt_toks
      * @param smooth used in place of 0 probs when calculating logpr()
      */
-    virtual double logpr(const vector<string>& src_toks, const vector<string>& tgt_toks,
+    virtual double logpr(const vector<string>& src_toks,
+                         const vector<string>& tgt_toks,
                          double smooth = 1e-07);
 
     virtual void align(const vector<string>& src, const vector<string>& tgt, 
@@ -296,13 +308,18 @@ namespace Portage {
     }
 
   public:
+   
+    // Avoid hiding base class overriden functions.
+    using IBM1::pr;
 
     /**
      * Get the .pos filename from the base ttable filename.
      * @param ttable_name  
-     * @return 
+     * @return ttable_name with .pos added, before a .gz extension if any
      */
-    static const string posParamFileName(const string& ttable_name);
+    static const string posParamFileName(const string& ttable_name) {
+      return addExtension(ttable_name, ".pos");
+    }
 
     /**
      * Construct an empty model; use add() to populate. The parameters specify
@@ -346,60 +363,56 @@ namespace Portage {
      * posParamFileName(ttable_file).
      * @param ttable_file  file name to output the IBM1 and IBM2 values.
      */
-    void write(const string& ttable_file) const;
-
-    /**
-     * Add all word pairs in given sequences to the model. compile() MUST be
-     * called when add()'s are finished.
-     * @param src_toks
-     * @param tgt_toks
-     */
-    void add(const vector<string>& src_toks, const vector<string>& tgt_toks) {
-      IBM1::add(src_toks, tgt_toks);
-    }
-
-    /// Makes the ttable distances uniform.
-    void compile() {IBM1::compile();}
+    virtual void write(const string& ttable_file) const;
 
     /**
      * Training functions. Call initCounts(), then count() for each segment
      * pair, then estimate() for one complete EM cycle.
      */
-    void initCounts();
+    virtual void initCounts();
 
     /**
-     * Needs description
-     * @param src_toks
-     * @param tgt_toks
+     * Count the expected alignment occurrences in one sentence pair.
+     * @param src_toks source sentence
+     * @param tgt_toks target sentence
      */
-    void count(const vector<string>& src_toks, const vector<string>& tgt_toks);
+    virtual void count(const vector<string>& src_toks,
+                       const vector<string>& tgt_toks);
 
     /** 
      * Estimate new parameters from counts.
      * @param pruning_threshold remove all probabilities less than this
      * @return "<prev-ppx,new-size>"
      */
-    pair<double,Uint> estimate(double pruning_threshold = 0.0);
+    virtual pair<double,Uint> estimate(double pruning_threshold = 0.0);
 
     /**
      * p(tok|src_seg) 
-     * See double pr(const vector<string>& src_toks, const string& tgt_tok, Uint tpos, Uint tlen, vector<double>* probs)
+     * See IBM1::pr()
      */
-    double pr(const vector<string>& src_toks, const string& tgt_tok, 
-              Uint tpos, Uint tlen, vector<double>* probs = NULL);
+    virtual double pr(const vector<string>& src_toks, const string& tgt_tok, 
+                      Uint tpos, Uint tlen, vector<double>* probs = NULL);
    
+    /**
+     * Not implemented for IBM2 models; missing required parameters.
+     * Causes fatal error if called, to avoid calling it by mistake.
+     */
+    virtual double pr(const vector<string>& src_toks, const string& tgt_tok, 
+                      vector<double>* probs = NULL);
+
     /**
      * p(tgt_seg|src_seg).
      * @param src_toks
      * @param tgt_toks
      * @param smooth used in place of 0 probs when calculating logpr()
      */
-    double logpr(const vector<string>& src_toks, const vector<string>& tgt_toks,
-                 double smooth = 1e-07);
+    virtual double logpr(const vector<string>& src_toks,
+                         const vector<string>& tgt_toks,
+                         double smooth = 1e-07);
 
-    void align(const vector<string>& src, const vector<string>& tgt, 
-               vector<Uint>& tgt_al, bool twist = false,
-               vector<double>* tgt_al_probs = NULL);
+    virtual void align(const vector<string>& src, const vector<string>& tgt, 
+                       vector<Uint>& tgt_al, bool twist = false,
+                       vector<double>* tgt_al_probs = NULL);
   };
 
 }

@@ -19,6 +19,7 @@
 #ifndef KN_SMOOTHER_H
 #define KN_SMOOTHER_H
 
+namespace Portage {
 
 namespace {
 const double EPSILON = 1e-3;
@@ -628,6 +629,8 @@ public:
 
 
 };
+
+} // Portage
 
 
 #endif

@@ -74,7 +74,7 @@ typename PhraseSmootherFactory<T>::TInfo PhraseSmootherFactory<T>::tinfos[] = {
       "RFSmoother", "- unsmoothed relative-frequency estimates"
    },{
       DCon< LeaveOneOut<T> >::create, 
-      "LeaveOneOut", "s - simulated leave-one-out; decr joint & marge freqs if s=1, drop singletons if s=2"
+      "LeaveOneOut", "s - simulated leave-one-out;\n                decr joint & marge freqs if s=1, drop singletons if s=2"
    },{
       DCon< GTSmoother<T> >::create, 
       "GTSmoother", "- Good-Turing smoothing on joint distn",
@@ -85,14 +85,20 @@ typename PhraseSmootherFactory<T>::TInfo PhraseSmootherFactory<T>::tinfos[] = {
       DCon< ZNSmoother<T> >::create, 
       "ZNSmoother", "- Zens-Ney noisy-or lexical smoothing, using IBM1 params",
    },{
+      DCon< IBM1Smoother<T> >::create, 
+      "IBM1Smoother", "- IBM1 lexical smoothing, using IBM1 parameters only",
+   },{
       DCon< IBMSmoother<T> >::create, 
-      "IBMSmoother", "- IBM1 lexical smoothing, using IBM1 params",
+      "IBMSmoother", "- lexical smoothing, using full IBM2/1 model, as provided\n              (or IBM1 if -ibm 1 is specified)",
+   },{
+      DCon< IndicatorSmoother<T> >::create, 
+      "IndicatorSmoother", "- Constant indicator values",
    },{
       NULL, "", ""
    }
 };
 
-/*-------------------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * RFSmoother
  */
 template<class T>
@@ -120,7 +126,7 @@ double RFSmoother<T>::probLang2GivenLang1(const typename PhraseTableGen<T>::iter
    return it.getJointFreq() / (double) lang1_marginals[it.getPhraseIndex(1)];
 }
 
-/*-------------------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * LeaveOneOut
  */
 template<class T>
@@ -160,7 +166,7 @@ double LeaveOneOut<T>::probLang2GivenLang1(const typename PhraseTableGen<T>::ite
    return estm(it.getJointFreq(), RFSmoother<T>::lang1_marginals[it.getPhraseIndex(1)]);
 }
 
-/*-------------------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Good-turing.
  */
 template<class T>
@@ -222,7 +228,7 @@ double GTSmoother<T>::probLang2GivenLang1(const typename PhraseTableGen<T>::iter
    return gt->smoothedFreq(it.getJointFreq()) / (double) lang1_marginals[it.getPhraseIndex(1)];
 }
 
-/*-------------------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
  * Kneser-Ney. 
  */
 template<class T>
@@ -347,8 +353,8 @@ double KNSmoother<T>::probLang2GivenLang1(const typename PhraseTableGen<T>::iter
       lang1_marginals[it.getPhraseIndex(1)];
 }
 
-/*-------------------------------------------------------------------------------------
- * Zens-Ney. 
+/*-----------------------------------------------------------------------------
+ * Zens-Ney using IBM1 parameters. 
  */
 template<class T>
 ZNSmoother<T>::ZNSmoother(PhraseSmootherFactory<T>& factory, const string& args)
@@ -369,7 +375,7 @@ double ZNSmoother<T>::probLang1GivenLang2(const typename PhraseTableGen<T>::iter
    for (Uint j = 0; j < l1_phrase.size(); ++j) {
 
       // get p(l1_pharase[j]|x) for all x in l2_phrase
-      ibm_lang1_given_lang2->pr(l2_phrase, l1_phrase[j], j, l1_phrase.size(), &phrase_probs);
+      ibm_lang1_given_lang2->IBM1::pr(l2_phrase, l1_phrase[j], &phrase_probs);
 
       double pr_local = 1.0;
       for (Uint i = 0; i < phrase_probs.size(); ++i)
@@ -391,7 +397,7 @@ double ZNSmoother<T>::probLang2GivenLang1(const typename PhraseTableGen<T>::iter
    for (Uint j = 0; j < l2_phrase.size(); ++j) {
 
       // get p(l2_pharase[j]|x) for all x in l1_phrase
-      ibm_lang2_given_lang1->pr(l1_phrase, l2_phrase[j], j, l2_phrase.size(), &phrase_probs);
+      ibm_lang2_given_lang1->IBM1::pr(l1_phrase, l2_phrase[j], &phrase_probs);
 
       double pr_local = 1.0;
       for (Uint i = 0; i < phrase_probs.size(); ++i)
@@ -403,7 +409,38 @@ double ZNSmoother<T>::probLang2GivenLang1(const typename PhraseTableGen<T>::iter
    return pr_global == 0.0 ? PhraseSmoother<T>::VERY_SMALL_PROB : pr_global;
 }
 
-/*-------------------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
+ * IBM1Smoother. 
+ */
+template<class T>
+IBM1Smoother<T>::IBM1Smoother(PhraseSmootherFactory<T>& factory, const string& args)
+{
+   ibm_lang2_given_lang1 = factory.getIBMLang2GivenLang1();
+   ibm_lang1_given_lang2 = factory.getIBMLang1GivenLang2();
+   if (!(ibm_lang2_given_lang1 && ibm_lang1_given_lang2))
+     error(ETFatal, "Can't create IBM1 smoother without IBM models");
+}
+
+template<class T>
+double IBM1Smoother<T>::probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it)
+{
+   it.getPhrase(1, l1_phrase);
+   it.getPhrase(2, l2_phrase);
+
+   return exp(ibm_lang1_given_lang2->IBM1::logpr(l2_phrase, l1_phrase, 1e-20));
+}
+
+template<class T>
+double IBM1Smoother<T>::probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it)
+{
+   it.getPhrase(1, l1_phrase);
+   it.getPhrase(2, l2_phrase);
+
+   return exp(ibm_lang2_given_lang1->IBM1::logpr(l1_phrase, l2_phrase, 1e-20));
+}
+
+
+/*-----------------------------------------------------------------------------
  * IBMSmoother. 
  */
 template<class T>
@@ -421,13 +458,7 @@ double IBMSmoother<T>::probLang1GivenLang2(const typename PhraseTableGen<T>::ite
    it.getPhrase(1, l1_phrase);
    it.getPhrase(2, l2_phrase);
 
-   double pr_global = 1.0;
-   for (Uint j = 0; j < l1_phrase.size(); ++j) {
-      // get p(l1_pharase[j]|x) for all x in l2_phrase
-      double pr = ibm_lang1_given_lang2->pr(l2_phrase, l1_phrase[j], j, l1_phrase.size());
-      pr_global *= (pr + 1e-20);
-   }
-   return pr_global;
+   return exp(ibm_lang1_given_lang2->logpr(l2_phrase, l1_phrase, 1e-20));
 }
 
 template<class T>
@@ -436,13 +467,7 @@ double IBMSmoother<T>::probLang2GivenLang1(const typename PhraseTableGen<T>::ite
    it.getPhrase(1, l1_phrase);
    it.getPhrase(2, l2_phrase);
 
-   double pr_global = 1.0;
-   for (Uint j = 0; j < l2_phrase.size(); ++j) {
-      // get p(l2_pharase[j]|x) for all x in l1_phrase
-      double pr = ibm_lang2_given_lang1->pr(l1_phrase, l2_phrase[j], j, l2_phrase.size());
-      pr_global *= (pr + 1e-20);
-   }
-   return pr_global;
+   return exp(ibm_lang2_given_lang1->logpr(l1_phrase, l2_phrase, 1e-20));
 }
 
 

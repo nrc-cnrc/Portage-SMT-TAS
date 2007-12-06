@@ -37,7 +37,7 @@ PROGRAMS = \
 
 TESTPROGS = tester try
 
-BINSCRIPTS = train-phrases.sh maxphrase.pl tmtext_sort.sh
+BINSCRIPTS = train-phrases.sh maxphrase.pl tmtext_sort.sh gen-jpt-parallel.sh
 
 DOCUMENTS =
 

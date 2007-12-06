@@ -1,6 +1,7 @@
 /**
  * @author George Foster
- * @file joint2cond_phrase_tables.cc  Program that converts joint-frequency phrase table.
+ * @file joint2cond_phrase_tables.cc  Program that converts joint-frequency
+ *                                    phrase table.
  *
  *
  * COMMENTS:
@@ -8,7 +9,7 @@
  * Convert a joint-frequency phrase table (as output by gen_phrase_tables -i or -j)
  * into 2 conditional probability tables (as required by canoe).
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -28,7 +29,7 @@ using namespace Portage;
 using namespace std;
 
 static char help_message[] = "\n\
-joint2cond_phrase_tables [-Hviz][-1 l1][-2 l2][-o name][-s 'meth args']\n\
+joint2cond_phrase_tables [-Hvijz][-1 l1][-2 l2][-o name][-s 'meth args']\n\
                          [-ibm n][-ibm_l2_given_l1 m][-ibm_l1_given_l2 m]\n\
                          [-tmtext][-multipr d][jtable]\n\
 \n\
@@ -43,24 +44,27 @@ Options:\n\
 -H    List available smoothing methods and quit.\n\
 -v    Write progress reports to cerr.\n\
 -i    Counts are integers [counts are floating point]\n\
+-j    Write global joint frequency phrase table to stdout (useful for combining\n\
+      multiple tables cat'd to <jtable>).\n\
 -z    Compress the output files[don't]\n\
 -1    Name of language 1 (one in left column of <jtable>) [en]\n\
 -2    Name of language 2 (one in right column of <jtable>) [fr]\n\
 -o    Set base name for output tables [phrases]\n\
 -s    Smoothing method for conditional probs. Use -H for list of methods.\n\
-      Multiple methods may be specified by using -s repeatedly, but these are only\n\
-      useful if -multipr output is selected. [RFSmoother]\n\
--ibm  Use IBM model <n>: 1 or 2 [1]\n\
+      Multiple methods may be specified by using -s repeatedly, but these are\n\
+      only useful if -multipr output is selected. [RFSmoother]\n\
+-ibm  Use IBM model <n>: 1 or 2 [2]\n\
 -ibm_l2_given_l1  Name of IBM model for language 2 given language 1 [none]\n\
 -ibm_l1_given_l2  Name of IBM model for language 1 given language 2 [none]\n\
 -tmtext     Write TMText format phrase tables (delimited text files)\n\
             <name>.<lang1>_given_<lang2> and <name>.<lang2>_given_<lang1>.\n\
-            [default if neither -tmtext nor -multipr is given]\n\
+            [default if none of -j, -tmtext nor -multipr is given]\n\
 -multipr d  Write text phrase table(s) with multiple probabilities: for each\n\
             phrase pair, one or more 'backward' probabilities followed by one\n\
-            or more 'forward' probabilities (more than one when multiple smoothing\n\
-            methods are selected). d may be one of 'fwd', 'rev', or 'both', to select:\n\
-            output <name>.<lang1>2<lang2>, the reverse, or both directions.\n\
+            or more 'forward' probabilities (more than one when multiple\n\
+            smoothing methods are selected). d may be one of 'fwd', 'rev', or\n\
+            'both', to select: output <name>.<lang1>2<lang2>, the reverse, or\n\
+            both directions.\n\
 -force  Overwrite any existing files\n\
 ";
 
@@ -68,11 +72,12 @@ Options:\n\
 
 static bool verbose = false;
 static bool int_counts = false;
+static bool joint = false;
 static string lang1("en");
 static string lang2("fr");
 static string name("phrases");
 static vector<string> smoothing_methods;
-static Uint ibm_num = 1;
+static Uint ibm_num = 2;
 static string ibm_l2_given_l1;
 static string ibm_l1_given_l2;
 static bool tmtext_output = false;
@@ -106,12 +111,11 @@ static string makeFinalFileName(string orignal_filename)
    if (compress_output) orignal_filename += extension;
    return orignal_filename;
 }
-      
+
 template<class T>
 void doEverything(const char* prog_name)
 {
    // Early error checking
-
    if ( tmtext_output ) {
       delete_or_error_if_exists(makeFinalFileName(name + "." + lang1 + "_given_" + lang2));
       delete_or_error_if_exists(makeFinalFileName(name + "." + lang2 + "_given_" + lang1));
@@ -140,8 +144,6 @@ void doEverything(const char* prog_name)
       if (ibm_l2_given_l1 != "") ibm_1 = new IBM2(ibm_l2_given_l1);
       if (ibm_l1_given_l2 != "") ibm_2 = new IBM2(ibm_l1_given_l2);
    }
-   if (ibm_1 && ibm_1->trainedWithNulls()) ibm_1->useImplicitNulls = true;
-   if (ibm_2 && ibm_2->trainedWithNulls()) ibm_2->useImplicitNulls = true;
 
    PhraseSmootherFactory<T> smoother_factory(&pt, ibm_1, ibm_2, verbose);
    vector< PhraseSmoother<T>* > smoothers;
@@ -151,7 +153,6 @@ void doEverything(const char* prog_name)
    if (verbose) cerr << "created smoother(s)" << endl;
 
    string filename;
-
    if ( tmtext_output ) {
       filename = makeFinalFileName(name + "." + lang2 + "_given_" + lang1);
       {
@@ -185,16 +186,17 @@ void doEverything(const char* prog_name)
 void getArgs(int argc, char* argv[])
 {
    const string alt_help = PhraseSmootherFactory<Uint>::help();
-   const char* const switches[] = {"v", "i", "z", "s:", "1:", "2:", "o:", "force", 
+   const char* switches[] = {"v", "i", "j", "z", "s:", "1:", "2:", "o:", "force", 
 		       "ibm:", "ibm_l1_given_l2:", "ibm_l2_given_l1:",
                        "tmtext", "multipr:"};
 
-   ArgReader arg_reader(ARRAY_SIZE(switches), switches, 0, 1, help_message, "-h", true,
-                        alt_help.c_str(), "-H");
+   ArgReader arg_reader(ARRAY_SIZE(switches), switches, 0, 1, help_message,
+                        "-h", true, alt_help.c_str(), "-H");
    arg_reader.read(argc-1, argv+1);
 
    arg_reader.testAndSet("v", verbose);
    arg_reader.testAndSet("i", int_counts);
+   arg_reader.testAndSet("j", joint);
    arg_reader.testAndSet("z", compress_output);
    arg_reader.testAndSet("1", lang1);
    arg_reader.testAndSet("2", lang2);
@@ -212,7 +214,7 @@ void getArgs(int argc, char* argv[])
    if (smoothing_methods.size() == 0)
       smoothing_methods.push_back("RFSmoother");
 
-   if ( !tmtext_output && multipr_output == "" )
+   if ( !joint && !tmtext_output && multipr_output == "" )
       tmtext_output = true;
 
    if (multipr_output != "" && multipr_output != "fwd" && multipr_output != "rev" && 
