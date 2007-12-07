@@ -8,7 +8,7 @@
  * 
  * Canoe Decoder
  * 
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group 
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology 
  * Conseil national de recherches Canada / National Research Council Canada 
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -25,50 +25,53 @@ using namespace Portage;
 
 RangePhraseFinder::RangePhraseFinder(vector<PhraseInfo *> **phrases,
    Uint sentLength,
-   int	maxDistortion)
+   int	distLimit)
 : phrases(phrases)
 , sentLength(sentLength)
-, maxDistortion(maxDistortion)
+, distLimit(distLimit)
 {
-    assert(maxDistortion >= 0 || maxDistortion == NO_MAX_DISTORTION);
+   assert(distLimit >= 0 || distLimit == NO_MAX_DISTORTION);
 }
 
 void RangePhraseFinder::findPhrases(vector<PhraseInfo *> &p, PartialTranslation &t)
 {
-    UintSet eSet;
-    if (maxDistortion != NO_MAX_DISTORTION)
-    {
-	Range limit(max(0, (int)t.lastPhrase->src_words.end - maxDistortion),
-		sentLength);
-	intersectRange(eSet, t.sourceWordsNotCovered, limit);
-    } // if
-    UintSet &set(maxDistortion == NO_MAX_DISTORTION ? t.sourceWordsNotCovered : eSet);
-    
-    vector<vector<PhraseInfo *> > picks;
-    pickItemsByRange(picks, phrases, set);
-    
-    // EJJ Count how many PhraseInfo's we might keep, so that we can
-    // pre-allocate the memory for  p, the result vector
-    Uint phraseCount = 0;
-    for (vector< vector<PhraseInfo *> >::const_iterator it = picks.begin(); 
-         it < picks.end(); it++)
-    {
-        phraseCount += it->size();
-    }
-    p.reserve(phraseCount);
+   UintSet eSet;
+   if (distLimit != NO_MAX_DISTORTION)
+   {
+      Range limit(max(0, (int)t.lastPhrase->src_words.end - distLimit),
+                  sentLength);
+      intersectRange(eSet, t.sourceWordsNotCovered, limit);
+   } // if
+   UintSet &set(distLimit == NO_MAX_DISTORTION ? t.sourceWordsNotCovered : eSet);
 
-    // Put all the PhraseInfo's into a single vector, results
-    for (vector< vector<PhraseInfo *> >::const_iterator it = picks.begin();
+   vector<vector<PhraseInfo *> > picks;
+   pickItemsByRange(picks, phrases, set);
+
+   // EJJ Count how many PhraseInfo's we might keep, so that we can
+   // pre-allocate the memory for p, the result vector
+   Uint phraseCount = 0;
+   for (vector< vector<PhraseInfo *> >::const_iterator it = picks.begin(); 
          it < picks.end(); it++)
-    {
-	for (vector<PhraseInfo *>::const_iterator jt = it->begin(); jt < it->end(); jt++)
-	{
-	    if (maxDistortion == NO_MAX_DISTORTION || (*jt)->src_words.start <=
-		    t.lastPhrase->src_words.end + maxDistortion)
-	    {
-		p.push_back(*jt);
-	    } // if
-	} // for
-    } // for
+      phraseCount += it->size();
+   p.reserve(phraseCount);
+
+   // Put all the PhraseInfo's into a single vector, results
+   for ( vector< vector<PhraseInfo *> >::const_iterator it = picks.begin();
+         it < picks.end(); ++it)
+   {
+      // Do the distortion limit test outside the jt loop, since we know that
+      // all phrases in a given "pick" share the same source range.
+      if ( ! it->empty() &&
+           ( distLimit == NO_MAX_DISTORTION ||
+             it->front()->src_words.start <= t.lastPhrase->src_words.end + distLimit )
+         )
+      {
+         for ( vector<PhraseInfo *>::const_iterator jt = it->begin();
+               jt < it->end(); ++jt)
+         {
+            p.push_back(*jt);
+         }
+      }
+   }
 } // findPhrases
 

@@ -8,7 +8,7 @@
  * 
  * Canoe Decoder
  * 
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group 
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology 
  * Conseil national de recherches Canada / National Research Council Canada 
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -38,7 +38,7 @@ namespace TestDecoder {
  */
 class TestPDM: public PhraseDecoderModel
 {
-    virtual void getStringPhrase(string &s, const vector<Uint> &uPhrase) {}
+    virtual void getStringPhrase(string &s, const Phrase &uPhrase) {}
     virtual Uint getUintWord(const string &word) { return 0; }
     virtual Uint getSourceLength() { return 0; }
     virtual vector<PhraseInfo *> **getPhraseInfo() { return NULL; }

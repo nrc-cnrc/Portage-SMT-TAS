@@ -7,7 +7,7 @@
  * 
  * Canoe Decoder
  * 
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group 
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology 
  * Conseil national de recherches Canada / National Research Council Canada 
  * Copyright 2004-2005, Sa Majeste la Reine du Chef du Canada /
@@ -94,7 +94,7 @@ typedef map< state_weight_t, state_weight_t >  Paths;
  * @param pi
  * @param g          the lattice itself.
  */
-void print_path(
+static void print_path(
     ostream &  file,
     PrintFunc &  print,
     bool  backwards,
@@ -133,7 +133,7 @@ void print_path(
     file << " " << endl;
 }
 
-void print_nbest( lattice_overlay const &  g,
+void Portage::print_nbest( lattice_overlay const &  g,
                   ostream &  file,  const int  n,
                   PrintFunc &  print, bool  backwards
   ) {
@@ -146,8 +146,8 @@ void print_nbest( lattice_overlay const &  g,
         state_weight_t_compare
     >  S;
     my_weight_map_t  w( g );
-    DecoderState * const  src  = g.get_initial_state();
-    DecoderState *        sink = NULL;
+    DecoderState * const  src = g.get_initial_state();
+    DecoderState *        sink(NULL);
     S.push( make_state_weight_t( src, ++Uid_maker, (double) 0.0 ) );
     while ( ! S.empty() ) {
         state_weight_t  p_c = S.top();

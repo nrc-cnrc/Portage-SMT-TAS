@@ -5,13 +5,13 @@
  *
  * $Id$
  *
- * A note about the DecoderState graph created: all paths (translations) begin with a
- * common "empty" state (created by makeEmptyState()), because this makes the decoder code
- * less messy.
+ * A note about the DecoderState graph created: all paths (translations) begin
+ * with a common "empty" state (created by makeEmptyState()), because this
+ * makes the decoder code less messy.
  *
  * Canoe Decoder
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -22,91 +22,54 @@
 #include "hypothesisstack.h"
 #include "phrasedecoder_model.h"
 #include "phrasefinder.h"
+#include "config_io.h"
 #include <vector>
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 using namespace Portage;
 
 namespace Portage
 {
-    // Only one * to prevent double documentation in doxygen
-    /*
-     * Runs the decoder algorithm using the given model, with a pruning model
-     * that keeps only the pruneSize best states on each hypothesis stack, and
-     * only keeps states whose score is greater than the best score plus
-     * threshold.  Returns the last hypothesis stack; that is, an hypothesis
-     * stack containing the best complete translations.
-     * @param model     The PhraseDecoderModel to be used by the decoder.
-     * @param pruneSize The number of states to keep on each hypothesis stack.
-     * @param threshold The relative threshold that states must be above to be
-     *                  kept on each hypothesis stack.
-     *         (must be in log space, and negative)
-     * @param covLimit   The max number of states to keep with the same
-     *                   coverage
-     * @param covThreshold The relative threshold that states must be above to
-     *         be kept when they have the exact same coverage
-     *         (must be in log space, and negative, or log(0.0), i.e.,
-     *         -INFINITY, for no threshold)
-     * @param distLimit The maximum distortion distance allowed between two
-     *                  words.
-     * @param verbosity Indicates the vervosity level
-     * @return          A pointer to the final hypothesis stack, which contains
-     *                  the best complete translations.  While this
-     *                  HypothesisStack is created by this function, it must be
-     *                  deleted externally.
-     */
-    HypothesisStack *runDecoder(PhraseDecoderModel &model,
-            Uint pruneSize, double threshold,
-            Uint covLimit, double covThreshold, int distLimit, Uint verbosity)
-    {
-        // Get all the phrase translation options from the model
-        Uint sourceLength = model.getSourceLength();
-        vector<PhraseInfo *> **phrases = model.getPhraseInfo();
+   HypothesisStack *runDecoder(PhraseDecoderModel &model, const CanoeConfig& c)
+   {
+      // Get all the phrase translation options from the model
+      Uint sourceLength = model.getSourceLength();
+      vector<PhraseInfo *> **phrases = model.getPhraseInfo();
 
-        // Create the phrase finder
-        RangePhraseFinder finder(phrases, sourceLength, distLimit);
+      // Create the phrase finder
+      RangePhraseFinder finder(phrases, sourceLength, c.distLimit);
 
-        // Create the hypothesis stacks
-        HypothesisStack *hStacks[sourceLength + 1];
-        for (Uint i = 0; i < sourceLength + 1; i++)
-        {
-            hStacks[i] = new HistogramThresholdHypStack(model,
-                pruneSize, threshold, covLimit, covThreshold);
-        } // for
+      // Create the hypothesis stacks
+      HypothesisStack *hStacks[sourceLength + 1];
+      for (Uint i = 0; i < sourceLength + 1; i++)
+      {
+         hStacks[i] = new HistogramThresholdHypStack(model, c.maxStackSize,
+               log(c.pruneThreshold), c.covLimit, log(c.covThreshold));
+      } // for
 
-        // Run the decoder algorithm
-        runDecoder(model, hStacks, sourceLength, finder, verbosity);
+      // Run the decoder algorithm
+      runDecoder(model, hStacks, sourceLength, finder, c.verbosity);
 
-        // Keep the final hypothesis stack
-        HypothesisStack *result = hStacks[sourceLength];
+      // Keep the final hypothesis stack
+      HypothesisStack *result = hStacks[sourceLength];
 
-        /* - do this while popping the stacks.
-        // Delete all the other hypothesis stacks
-        for (Uint i = 0; i < sourceLength; i++)
-        {
-            assert(hStacks[i]->isEmpty());
-            delete hStacks[i];
-        } // for
-        */
+      /* - we do this while popping the stacks.
+      // Delete all the other hypothesis stacks
+      for (Uint i = 0; i < sourceLength; i++)
+      {
+         assert(hStacks[i]->isEmpty());
+         delete hStacks[i];
+      } // for
+      */
 
-        return result;
-    } // runDecoder
+      return result;
+   } // runDecoder
 
-    // Only one * to prevent double documentation in doxygen
-    /*
-     * Runs the decoder algorithm.  Uses the hypothesis stacks given, emptying
-     * all but the last one.
-     * @param model     The PhraseDecoderModel to be used to score phrases.
-     * @param hStacks   An array of length (sourceLength + 1) containing
-     *                  pointers to hypothesis stacks.  Each stack should
-     *                  initially be empty, and all but the final stack will be
-     *                  empty at the end.
-     * @param sourceLength      The length of the source sentence being
-     *                          translated.
-     */
     void runDecoder(PhraseDecoderModel &model, HypothesisStack **hStacks,
-            Uint sourceLength, PhraseFinder &finder, Uint verbosity)
+            Uint sourceLength, PhraseFinder &finder,
+            Uint verbosity)
     {
         // Put the empty hypothesis on the first stack
         //assert(hStacks[0]->isEmpty());

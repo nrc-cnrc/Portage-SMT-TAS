@@ -7,7 +7,7 @@
  *
  * Translation Probability Calculator
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -28,8 +28,6 @@ namespace Portage {
 
 using namespace std;
 
-/// Definition for a set of Tokens.
-typedef vector<unsigned int> TOKENS;
 /// Definition for a set of DecoderStates.
 typedef vector<DecoderState*> VDS;
 
@@ -134,14 +132,14 @@ class translationProb
        * @param[in] sl    suffix length coverted so far.
        * @return Returns the sublattice weight for the node at DecoderState.
        */
-      double recursion(TOKENS sent, const DecoderState * const ds, Parcouru& vu, const SuffixLength& sl = 0) const;
+      double recursion(vector<Uint> sent, const DecoderState * const ds, Parcouru& vu, const SuffixLength& sl = 0) const;
       
       /**
        * Transforms a strings translation into a uint translation (speed-up hack).
        * @param[in]  hypothese  input string translation.
        * @param[out] tokens     transformed output uint translation.
        */
-      void getTokens(const string& hypothese, TOKENS& tokens) const;
+      void getTokens(const string& hypothese, vector<Uint>& tokens) const;
 }; // ends class translationProb
 
 } // ends namespace Portage

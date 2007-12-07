@@ -6,7 +6,7 @@
  *
  * Canoe Decoder
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -101,8 +101,8 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
    } // if
 
    // Print the results from the stack using the print function
-   for ( vector<DecoderState *>::reverse_iterator it = stack.rbegin();
-         it != stack.rend(); it++)
+   for (vector<DecoderState *>::reverse_iterator it = stack.rbegin();
+        it != stack.rend(); it++)
    {
       s.append(print(*it));
       s.append(" ");
@@ -176,7 +176,7 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
             fprintf(stderr, "Weight for sentence(%4.4d): %32.32g\n", num, dMasse);
             masse = false;
          }
-      } // if
+      }
    } // if
 
    if (c.nbestOut) {
@@ -243,15 +243,15 @@ static void writeSrc(bool del, const vector<string>& src_sent, const vector<bool
    bool first = true;
    for (Uint i = 0; i < src_sent.size(); ++i) {
       if (oovs[i]) {
-	 if (!del) {
-	    if (first) {first = false;}
-	    else cout << ' ';
-	    cout << "<oov>" << src_sent[i] << "</oov>";
-	 }
+         if (!del) {
+            if (first) {first = false;}
+            else cout << ' ';
+            cout << "<oov>" << src_sent[i] << "</oov>";
+         }
       } else {
-	 if (first) {first = false;}
-	 else cout << ' ';
-	 cout << src_sent[i];
+         if (first) {first = false;}
+         else cout << ' ';
+         cout << src_sent[i];
       }
    }
    cout << endl;
@@ -264,10 +264,10 @@ static void writeSrc(bool del, const vector<string>& src_sent, const vector<bool
  */
 int MAIN(argc, argv)
 {
+   printCopyright(2004, "canoe");
+
    // Do this here until such a time as we might use argProcessor for canoe.
    Logging::init();
-
-   printCopyright(2004, "canoe");
 
    CanoeConfig c;
    static vector<string> args = c.getParamList();
@@ -280,8 +280,8 @@ int MAIN(argc, argv)
    ArgReader argReader(ARRAY_SIZE(switches), switches, 0, 0, help, "-h", false);
    argReader.read(argc - 1, argv + 1);
 
-   if (!argReader.getSwitch("f", &c.configFile) && 
-         !argReader.getSwitch("config", &c.configFile))
+   if (!argReader.getSwitch("f", &c.configFile) &&
+       !argReader.getSwitch("config", &c.configFile))
       error(ETFatal, "No config file given.  Use -h for help.");
 
    c.read(c.configFile.c_str()); // set parameters from config file
@@ -318,7 +318,7 @@ int MAIN(argc, argv)
    }
    if (!c.loadFirst)
    {
-      cerr << "reading input sentences" << endl;
+      cerr << "Reading input sentences." << endl;
       while (true)
       {
          sents.push_back(vector<string>());
@@ -341,11 +341,11 @@ int MAIN(argc, argv)
          //     << marks.back().size() << " marks:";
          //for (int i = 0; i < sents.back().size(); i++)
          //{
-         //    cerr << sents.back().at(i) << "|";
+         //   cerr << sents.back().at(i) << "|";
          //}
          //cerr << "\n";
 
-         if (reader.eof() && sents.back().size() == 0)
+         if (reader.eof() && sents.back().empty())
          {
             sents.pop_back();
             marks.pop_back();
@@ -358,8 +358,8 @@ int MAIN(argc, argv)
    time_t start;
    time(&start);
    gen = BasicModelGenerator::create(c, &sents, &marks);
-   cerr << "loaded data structures in " << difftime(time(NULL), start)
-      << " seconds" << endl;
+   cerr << "Loaded data structures in " << difftime(time(NULL), start)
+        << " seconds." << endl;
 
    // If verbose >= 2, each run gets the full model printout.
    // If verbose == 1, we print the model too, but not if the first sent num
@@ -374,10 +374,10 @@ int MAIN(argc, argv)
            << (c.randomSeed + 1) * (Uint)c.firstSentNum << endl;
 
    if (!c.loadFirst) {
-      cerr << "translating " << sents.size() << " sentences" << flush;
+      cerr << "Translating " << sents.size() << " sentences." << flush;
    } else {
-      cerr << "reading and translating sentences" << endl;
-   } // if
+      cerr << "Reading and translating sentences." << endl;
+   }
    time(&start);
    Uint i = 0;
    Uint lastCanoe = 1000;
@@ -401,29 +401,25 @@ int MAIN(argc, argv)
             }
          }
          if (reader.eof()) break;
-      } else
-      {
+      } else {
          if (i == sents.size()) break;
          sent = sents[i];
          curMarks = marks[i];
-      } // if
+      }
 
       if (c.randomWeights)
          gen->setRandomWeights((c.randomSeed + 1) * (Uint)(i+c.firstSentNum));
       vector<bool> oovs;
       PhraseDecoderModel *model = gen->createModel(sent, curMarks, false, &oovs);
 
-      if (c.oov != "pass") {	// skip translation; just write back source, with oov handling
+      if (c.oov != "pass") {  // skip translation; just write back source, with oov handling
          writeSrc(c.oov == "write-src-deleted", sent, oovs);
          delete model;
-         i++;
+         ++i;
          continue;
       }
 
-      HypothesisStack *h = runDecoder(*model, c.maxStackSize,
-                                      log(c.pruneThreshold),
-                                      c.covLimit, log(c.covThreshold),
-                                      c.distLimit, c.verbosity);
+      HypothesisStack *h = runDecoder(*model, c);
 
       switch (i - lastCanoe)
       {
@@ -453,11 +449,11 @@ int MAIN(argc, argv)
 
       delete h;
       delete model;
-      i++;
+      ++i;
    } // while
    if ( c.loadFirst ) reader.reportWarningCounts();
-   cerr << "translated " << i << " sentences in "
-        << difftime(time(NULL), start) << " seconds" << endl;
+   cerr << "Translated " << i << " sentences in "
+        << difftime(time(NULL), start) << " seconds." << endl;
    return 0;
 }
 END_MAIN

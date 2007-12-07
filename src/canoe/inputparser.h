@@ -142,8 +142,8 @@ namespace Portage
        * @param marks     A vector containing the marks in the sentence.
        * @return  true iff no error was encountered
        */
-      bool readMarkedSent(vector<string> &sent, vector<MarkedTranslation>
-            &marks);
+      bool readMarkedSent(vector<string> &sent,
+            vector<MarkedTranslation> &marks);
 
       /**
        * Report occurrence counts for warnings that are only reported a limited

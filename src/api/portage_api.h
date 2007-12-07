@@ -17,7 +17,6 @@
 
 #include <string>
 #include "basicmodel.h"
-#include "inputparser.h"
 #include "translator_if.h"
 #include "preprocessor.h"
 #include "postprocessor.h"
@@ -50,13 +49,13 @@ public:
     * @param tgtlang target language
     * @param config base name for canoe configuration; the file
     * "<config>.<srclang>2<tgtlang>" must exist at $PORTAGE/models/demo.
-    * @param models_in_demo_dir if true, all models in config file are assumed
-    * to exist in demo dir; otherwise, model names must be valid paths (either
-    * absolute or relative to cwd).
+    * @param config_in_demo_dir if true, the config file and all models it
+    * refers to are assumed to exist in demo dir; otherwise, config file and
+    * model names must be valid paths (either absolute or relative to cwd).
     * @param verbose  Should we display verbose as we go?
     */       
    PortageAPI(const string& srclang, const string& tgtlang, const string& config, 
-	      bool models_in_demo_dir, bool verbose = false);
+	      bool config_in_demo_dir, bool verbose = false);
 
    /// Destructor
    virtual ~PortageAPI() {delete bmg;}

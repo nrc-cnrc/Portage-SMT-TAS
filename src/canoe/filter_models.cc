@@ -1,6 +1,6 @@
 /**
  * @author Samuel Larkin
- * @file filter_models.cc  Program that filters TMs and Lms.
+ * @file filter_models.cc  Program that filters TMs and LMs.
  *
  * $Id$
  *

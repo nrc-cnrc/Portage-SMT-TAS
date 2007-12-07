@@ -1,14 +1,14 @@
 # $Id$# @file Makefile
-# 
+#
 # Canoe Decoder
 # Aaron Tikuisis
-# 
+#
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology 
-# Conseil national de recherches Canada / National Research Council Canada 
+# Institut de technologie de l'information / Institute for Information Technology
+# Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2004, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2004, Her Majesty in Right of Canada 
-# 
+# Copyright 2004, Her Majesty in Right of Canada
+#
 # This is the Makefile for this module.
 
 # Note: you need the Portage dependency libraries to be available in the
@@ -50,14 +50,20 @@ LIBRARY=libportage_canoe
 
 PERL_LIBS=
 
-TESTPROGS=testhypstack testphrasefinder testdecoder testconfig
+TESTPROGS= \
+	testconfig \
+	testdecoder \
+	testhypstack \
+	testphrasefinder
 
-PROGRAMS=$(TESTPROGS) canoe configtool \
-        filter_models \
+PROGRAMS=$(TESTPROGS) \
+	canoe \
+	configtool \
+	filter_models \
 	find_sentence_phrases \
 	phrase_tm_align
 
-BINSCRIPTS=nbest2rescore.pl canoe-parallel.sh 
+BINSCRIPTS=nbest2rescore.pl canoe-parallel.sh
 
 INFOFILES=
 

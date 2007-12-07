@@ -6,7 +6,7 @@
 # 
 # COMMENTS:
 # 
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -47,6 +47,7 @@ Options:
   -nbest=N	Only print N best translations for each source [0 means all]
   -format=F	Specify output format: rescore, phrase or xml [rescore]
 
+  -append       Append to all output files [overwrite all output files]
   -legacy	Expect ancient canoe output (emulate parse_ffvals.pl) [don't]
   -canoe	Expect direct output from canoe, i.e. not a N-best list,
 		and therefore with only one level of backslash's [don't]
@@ -56,7 +57,7 @@ file; each translation then produces up to three lines of output:
 translation, alignment info, and ff values info (in that order).
 ";
 
-our ($h, $help, $in, $out, $ff, $ffout, $pal, $palout, $nbest, $format, $legacy, $canoe, $oov, $tagoov);
+our ($h, $help, $in, $out, $ff, $ffout, $pal, $palout, $nbest, $format, $legacy, $canoe, $oov, $tagoov, $append);
 
 if (defined($h) or defined($help)) {
     print STDERR $HELP;
@@ -74,6 +75,8 @@ $legacy = 0 unless defined $legacy;
 $canoe = 0 unless defined $canoe;
 $oov = 0 unless defined $oov;
 $tagoov = 0 unless defined $tagoov;
+my $mode = ">";
+$mode = ">>" if (defined($append));
 
 die "Don't know what to do with all these arguments."
     if @ARGV;
@@ -82,17 +85,39 @@ die "Don't know what to do with all these arguments."
 # Do it.
 open(my $in_stream, "<$in") 
     or die "Can't open input nbest file $in\n";
-open(my $out_stream, ">$out")
-    or die "Can't open output file $out\n";
+my $out_stream;
+if ($out =~ /.gz/) {
+   $out =~ s/(.*\.gz)\s*$/| gzip -cqf $mode $1/;
+   open($out_stream, $out) 
+      or die "Can't open output file $out\n";
+}
+else {
+   open($out_stream, "$mode$out")
+      or die "Can't open output file $out\n";
+}
 
 my ($ff_stream, $pal_stream);
 if ($ff && $ffout) {
-    open($ff_stream, ">$ffout") 
-	or die "Can't open output ff file $ffout\n";
+    if ($ffout =~ /.gz/) {
+       $ffout =~ s/(.*\.gz)\s*$/| gzip -cqf $mode $1/;
+       open($ff_stream, $ffout) 
+          or die "Can't open output ff file $ffout\n";
+    }
+    else {
+       open($ff_stream, "$mode$ffout") 
+          or die "Can't open output ff file $ffout\n";
+    }
 }
 if ($pal && $palout) {
-    open($pal_stream, ">$palout") 
-	or die "Can't open output phrase alignment file $palout\n";
+    if ($palout =~ /.gz/) { 
+       $palout =~ s/(.*\.gz)\s*$/| gzip -cqf $mode $1/; 
+       open($pal_stream, $palout)
+	   or die "Can't open output phrase alignment file $palout\n";
+    }
+    else {
+       open($pal_stream, "$mode$palout")
+ 	  or die "Can't open output phrase alignment file $palout\n";
+    }
 }
 
 my $count = 0;

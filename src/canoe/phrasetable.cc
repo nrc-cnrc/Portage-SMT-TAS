@@ -8,7 +8,7 @@
  *
  * Canoe Decoder
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -31,14 +31,18 @@
 #include <voc.h>
 #include <boost/shared_ptr.hpp>
 
+
 using namespace std;
 using namespace Portage;
 using namespace __gnu_cxx;
 
 const char *Portage::PHRASE_TABLE_SEP = " ||| ";
+double PhraseTable::log_almost_0 = LOG_ALMOST_0;
 
 PhraseTable::PhraseTable(Voc &tgtVocab, const char* pruningTypeStr) :
-   tgtVocab(tgtVocab), numTransModels(0), forwardsProbsAvailable(true)
+   tgtVocab(tgtVocab),
+   numTransModels(0),
+   forwardsProbsAvailable(true)
 {
    if (pruningTypeStr == NULL) {
       pruningType = FORWARD_WEIGHTS;
@@ -54,6 +58,7 @@ PhraseTable::PhraseTable(Voc &tgtVocab, const char* pruningTypeStr) :
    }
 }
 
+
 PhraseTable::~PhraseTable() {}
 
 void PhraseTable::read(const char *src_given_tgt_file,
@@ -68,22 +73,21 @@ void PhraseTable::read(const char *src_given_tgt_file,
    description << "TranslationModel:" << src_given_tgt_file << endl;
    backwardDescription += description.str();
 
-   if (tgt_given_src_file != NULL)
-   {
+   if (tgt_given_src_file != NULL) {
       readFile(tgt_given_src_file, tgt_given_src, limitPhrases, tgt_filtered);
 
       ostringstream description;
       description << "ForwardTranslationModel:" << tgt_given_src_file << endl;
       forwardDescription += description.str();
-   } else
-   {
+   }
+   else {
       forwardsProbsAvailable = false;
-   } // if
+   }
    numTransModels++;
 } // read
 
-// Optimized implementation of readFile() - though uglier, it is almost twice as
-// fast as the implementation above.
+// Optimized implementation of readFile() - though uglier, it is almost twice
+// as fast as the previous implementation.
 Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases, ostream * const filtered_output)
 {
    IMagicStream in(file);
@@ -119,15 +123,14 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases, ostream *
    {
       getline(in, line);
       if (line == "") continue;
-      lineNum++;
+      ++lineNum;
 
       // Look for two occurrences of |||.
-      string::size_type index1 = line.find(PHRASE_TABLE_SEP, 0);
-      string::size_type index2 = line.find(PHRASE_TABLE_SEP, index1 + sep_len);
-      if (index2 == string::npos)
-      {
+      const string::size_type index1 = line.find(PHRASE_TABLE_SEP, 0);
+      const string::size_type index2 = line.find(PHRASE_TABLE_SEP, index1 + sep_len);
+      if (index2 == string::npos) {
          error(ETFatal, "Bad format in %s at line %d", file, lineNum);
-      } // if
+      }
 
       // Copy line into a buffer we can safely parse destructively.
       char line_buffer[line.size()+1];
@@ -142,8 +145,8 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases, ostream *
       {
          cerr << '.' << flush;
       }
-      if (d == tgt_given_src || d == multi_prob_reversed)
-      {
+
+      if (d == tgt_given_src || d == multi_prob_reversed) {
          // Account for the order of phrases in the table
          std::swap(src, tgt);
       }
@@ -151,7 +154,8 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases, ostream *
       TargetPhraseTable *tgtTable = NULL;
       if ( src == prev_src ) {
          tgtTable = prev_tgtTable;
-      } else {
+      }
+      else {
          prev_src = src;
 
          // Tokenize source
@@ -214,10 +218,10 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases, ostream *
                   numKept++;
 
                   //assert(curProbs->size() <= numTransModels);
-                  curProbs->resize(numTransModels, LOG_ALMOST_0);
+                  curProbs->resize(numTransModels, log_almost_0);
                   if ( prob <= 0 ) {
                      zero_prob_err_count++;
-                     curProbs->push_back(LOG_ALMOST_0);
+                     curProbs->push_back(log_almost_0);
                   } else {
                      curProbs->push_back(log(prob));
                   }
@@ -256,7 +260,7 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases, ostream *
 
                   if ( probs[i] <= 0 ) {
                      zero_prob_err_count++;
-                     probs[i] = LOG_ALMOST_0;
+                     probs[i] = log_almost_0;
                   } else {
                      probs[i] = log(probs[i]);
                   }
@@ -286,8 +290,8 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases, ostream *
 
                   curBackProbs->reserve(numTransModels + multi_prob_model_count);
                   curForProbs->reserve(numTransModels + multi_prob_model_count);
-                  curBackProbs->resize(numTransModels, LOG_ALMOST_0);
-                  curForProbs->resize(numTransModels, LOG_ALMOST_0);
+                  curBackProbs->resize(numTransModels, log_almost_0);
+                  curForProbs->resize(numTransModels, log_almost_0);
                   curBackProbs->insert(curBackProbs->end(), backward_probs,
                                        backward_probs + multi_prob_model_count);
                   curForProbs->insert(curForProbs->end(), forward_probs,
@@ -329,6 +333,7 @@ bool PhraseTable::isReversed(const string& multi_prob_TM_filename,
    }
 } // PhraseTable::isReversed()
 
+
 Uint PhraseTable::countProbColumns(const char* multi_prob_TM_filename)
 {
    string physical_filename;
@@ -356,7 +361,14 @@ Uint PhraseTable::readMultiProb(const char* multi_prob_TM_filename,
 {
    string physical_filename;
    bool reversed = isReversed(multi_prob_TM_filename, &physical_filename);
-   Uint model_count = countProbColumns(multi_prob_TM_filename) / 2;
+
+   const Uint col_count = readFile(physical_filename.c_str(),
+                           (reversed ? multi_prob_reversed : multi_prob ),
+                           limitPhrases, filtered);
+
+   const Uint model_count = col_count / 2;
+   assert(col_count>0);
+   assert(model_count>0);
 
    ostringstream back_description;
    ostringstream for_description;
@@ -367,16 +379,13 @@ Uint PhraseTable::readMultiProb(const char* multi_prob_TM_filename,
          << "(col=" << (reversed ? i : i + model_count) << ")" << endl;
    }
    backwardDescription += back_description.str();
-   forwardDescription += for_description.str();
-
-   Uint col_count = readFile(physical_filename.c_str(),
-                             (reversed ? multi_prob_reversed : multi_prob ),
-                             limitPhrases, filtered);
+   forwardDescription  += for_description.str();
 
    numTransModels += model_count;
 
    return col_count;
 }
+
 
 void PhraseTable::tgtStringToPhrase(Phrase& tgtPhrase, const char* tgtString)
 {
@@ -389,6 +398,7 @@ void PhraseTable::tgtStringToPhrase(Phrase& tgtPhrase, const char* tgtString)
       tok = strtok_r(NULL, " ", &strtok_state);
    }
 }
+
 
 void PhraseTable::write(ostream* src_given_tgt_out, ostream* tgt_given_src_out)
 {
@@ -422,12 +432,7 @@ void PhraseTable::write(ostream* src_given_tgt_out, ostream* tgt_given_src_out,
                ++tgt_p) {
 
             // construct tgt phrase
-            string tgt;
-            const Phrase& phrase = tgt_p->first;
-            for (Uint i = 0; i < phrase.size(); ++i) {
-               tgt += tgtVocab.word(phrase[i]);
-               if (i + 1 < phrase.size()) tgt += " ";
-            }
+            string tgt(getStringPhrase(tgt_p->first));
 
             // output
             if (src_given_tgt_out) {
@@ -439,9 +444,9 @@ void PhraseTable::write(ostream* src_given_tgt_out, ostream* tgt_given_src_out,
                // EJJ: Output "ALMOST_0" for missing entries
                for (Uint i = tgt_p->second.backward.size(); i < numTransModels; ++i) {
                   if (i > 0) (*src_given_tgt_out) << ":";
-                  (*src_given_tgt_out) << exp(LOG_ALMOST_0);
+                  (*src_given_tgt_out) << 0.0f;
                   error(ETWarn, "Entry %s ||| %s missing from backward table",
-                     src.c_str(), tgt.c_str());
+                        src.c_str(), tgt.c_str());
                }
                (*src_given_tgt_out) << endl;
             }
@@ -454,7 +459,7 @@ void PhraseTable::write(ostream* src_given_tgt_out, ostream* tgt_given_src_out,
                // EJJ: Output "ALMOST_0" for missing entries
                for (Uint i = tgt_p->second.forward.size(); i < numTransModels; ++i) {
                   if (i > 0) (*tgt_given_src_out) << ":";
-                  (*tgt_given_src_out) << exp(LOG_ALMOST_0);
+                  (*tgt_given_src_out) << 0.0f;
                   error(ETWarn, "Entry %s ||| %s missing from forward table",
                      tgt.c_str(), src.c_str());
                }
@@ -489,8 +494,8 @@ void PhraseTable::readLine(istream &in, string &ph1, string &ph2, string &prob,
    {
       // Look for (at least) two occurrences of |||.
       lineNum++;
-      string::size_type index1 = line.find(PHRASE_TABLE_SEP, 0);
-      string::size_type index2 = line.find(PHRASE_TABLE_SEP, index1 + strlen(PHRASE_TABLE_SEP));
+      const string::size_type index1 = line.find(PHRASE_TABLE_SEP, 0);
+      const string::size_type index2 = line.find(PHRASE_TABLE_SEP, index1 + strlen(PHRASE_TABLE_SEP));
       if (index2 == string::npos)
       {
          error(ETFatal, "Bad format in %s at line %d", fileName, lineNum);
@@ -541,21 +546,19 @@ void PhraseTable::getPhraseInfos(vector<PhraseInfo *> **phraseInfos, const
    Range curRange;
    for (curRange.end = sent.size(); curRange.end > 0; curRange.end--)
    {
-      // Mark the end of the key
-      //Map_noKey(curKey[curRange.end]);
-
       // Proceed to the next applicable range
       while (rangeIt != rangesToSkip.rend() && rangeIt->start >= curRange.end)
       {
          rangeIt++;
-      } // while
+      }
 
       for (curRange.start = (rangeIt == rangesToSkip.rend()) ? 0 : rangeIt->end;
            curRange.start < curRange.end; curRange.start++)
       {
+         // get all possible phrases for current range form all tables
          shared_ptr<TargetPhraseTable> tgtTable =
             findInAllTables(s_curKey, i_curKey, curRange);
-         //TargetPhraseTable *tgtTable = textTable.find(curKey + curRange.start);
+
          if (tgtTable.get() != NULL)
          {
             if ( verbosity >= 4 ) {
@@ -563,11 +566,13 @@ void PhraseTable::getPhraseInfos(vector<PhraseInfo *> **phraseInfos, const
                     << curRange.toString() << endl;
             }
 
-            // Store all phrases into a vector, along with their weight
+            // Store all phrases into a vector, along with their weight.
+            // Pruning based on the [ttable-threshold] parameter is done here.
             vector<pair<double, PhraseInfo *> > phrases;
             getPhrases(phrases, *tgtTable, curRange, numPrunedThreshold,
                        weights, logPruneThreshold, verbosity, forward_weights);
 
+            // Do phrase table pruning based on the [ttable-limit] parameter
             vector<PhraseInfo *> &target =
                phraseInfos[curRange.start][curRange.end - curRange.start - 1];
             if (pruneSize == NO_SIZE_LIMIT || phrases.size() <= pruneSize)
@@ -578,8 +583,7 @@ void PhraseTable::getPhraseInfos(vector<PhraseInfo *> **phraseInfos, const
                {
                   target.push_back(it->second);
                } // for
-            } else
-            {
+            } else {
                if ( verbosity >= 4 ) {
                   cerr << "Pruning table entries (keeping only "
                        << pruneSize << ")" << endl;
@@ -610,20 +614,10 @@ void PhraseTable::getPhraseInfos(vector<PhraseInfo *> **phraseInfos, const
             cerr << "No phrase table entries for "
                  << curRange.toString() << endl;
          }
-
       } // for
    } // for
    // TODO: something with numPrunedThreshold, numPrunedHist
 } // getPhraseInfos
-
-
-// returns log(x) unless x <= 0, in which case returns LOG_ALMOST_0
-namespace Portage{
-   inline double shielded_log (double x) {
-      if ( x <= 0 ) return LOG_ALMOST_0;
-      else return log(x);
-   }
-}
 
 shared_ptr<TargetPhraseTable> PhraseTable::findInAllTables(
    const char* s_key[], const Uint i_key[], Range range
@@ -645,11 +639,11 @@ void PhraseTable::getPhrases(vector<pair<double, PhraseInfo *> > &phrases,
       // Compute the forwards probability for the given translation option
       TScore &tScores(it->second);
       assert(numTransModels >= tScores.backward.size());
-      tScores.backward.resize(numTransModels, LOG_ALMOST_0);
+      tScores.backward.resize(numTransModels, log_almost_0);
       double pruningScore;
       if (forwardsProbsAvailable) {
          assert(numTransModels >= tScores.forward.size());
-         tScores.forward.resize(numTransModels, LOG_ALMOST_0);
+         tScores.forward.resize(numTransModels, log_almost_0);
 
          if (forward_weights && pruningType == FORWARD_WEIGHTS) {
             pruningScore = dotProduct(*forward_weights, tScores.forward, forward_weights->size());
@@ -740,9 +734,9 @@ bool PhraseTable::getPhrasePair(const string& src, const string& tgt, TScore& sc
 } // getPhrasePair
 
 bool PhraseTable::PhraseScorePairLessThan::operator()(
-   pair<double, PhraseInfo *> ph1, pair<double, PhraseInfo *> ph2
-) {
-   // First comparison criterion: the score
+   const pair<double, PhraseInfo *>& ph1, const pair<double, PhraseInfo *>& ph2
+) const {
+   // First comparison criterion: the score (forward probs)
    if ( ph1.first < ph2.first ) return true;
    else if ( ph1.first > ph2.first ) return false;
    else {
@@ -760,22 +754,15 @@ bool PhraseTable::PhraseScorePairLessThan::operator()(
    }
 } // phraseScorePairLessThan
 
-string PhraseTable::getStringPhrase(const Phrase &uPhrase)
+string PhraseTable::getStringPhrase(const Phrase &uPhrase) const
 {
    ostringstream s;
-   if (uPhrase.size() == 0) return s.str();
-   Uint i = 0;
-   while (true)
-   {
-      assert(uPhrase[i] < tgtVocab.size());
-      s << tgtVocab.word(uPhrase[i]);
-      ++i;
-      if (i == uPhrase.size())
-      {
-         break;
-      } // if
-      s << " ";
-   } // while
+   bool first(true);
+   for ( Phrase::const_iterator it(uPhrase.begin());
+         it != uPhrase.end(); ++it ) {
+      if ( first ) first = false; else s << " ";
+      s << tgtVocab.word(*it);
+   }
    return s.str();
 } // getStringPhrase
 

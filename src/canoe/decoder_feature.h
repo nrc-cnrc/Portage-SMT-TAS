@@ -5,7 +5,7 @@
  *
  * $Id$
  * 
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada / 
@@ -126,7 +126,7 @@ class BasicModelGenerator;
       virtual double precomputeFutureScore(const PhraseInfo& phrase_info) = 0;
 
       /**
-       * @brief Compute this feature's future score for a partial translation.
+       * Compute this feature's future score for a partial translation.
        *
        * Compute the future score based on a current partial translation
        * Any aspects of the future score that apply to contiguous

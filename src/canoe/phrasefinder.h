@@ -5,14 +5,14 @@
  * a partial translation.  It also contains the declaration of
  * RangePhraseFinder, which in practice is the only PhraseFinder we should be
  * using.
- * 
+ *
  * $Id$
- * 
+ *
  * Canoe Decoder
- * 
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group 
- * Institut de technologie de l'information / Institute for Information Technology 
- * Conseil national de recherches Canada / National Research Council Canada 
+ *
+ * Technologies langagieres interactives / Interactive Language Technologies
+ * Institut de technologie de l'information / Institute for Information Technology
+ * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
  */
@@ -27,75 +27,79 @@ using namespace std;
 
 namespace Portage
 {
-    class PhraseDecoderModel;
-    class PhraseInfo;
-    class PartialTranslation;
-    
-    /**
-     * An abstraction of the finding of phrases that can be added to a partial
-     * translation.
-     */
-    class PhraseFinder
-    {
-	public:
-	    /**
-	     * Destructor.
-	     */
-	    virtual ~PhraseFinder() {};
-	    
-	    /**
-	     * Finds all the phrase options that may be added to the given partial
-	     * translation.
-	     * @param p  A vector into which all the pointers to phrases that can be added
-	     *           to t are placed.
-	     * @param t  The partial translation to find phrase options for.
-	     */
-	    virtual void findPhrases(vector<PhraseInfo *> &p, PartialTranslation &t) = 0;
-    }; // PhraseFinder
-    
-    /**
-     * Finds phrases using a set of available ranges; this is the only PhraseFinder that
-     * we should be using in practice.
-     */
-    class RangePhraseFinder: public PhraseFinder
-    {
-	private:
-	    
-	    /**
-	     * The phrases, organized by the range that they cover.  The (i, j)-th entry
-	     * of phrases should contain all the phrases whose range is [i, i + j + 1).
-	     */
-	    vector<PhraseInfo *> **phrases;
-	    
-	    /**
-	     * The length of the source sentence.
-	     */
-	    Uint sentLength;
-	    
-	    /**
-	     * The maximum distortion distance.
-	     */
-	    int maxDistortion;
-	public:
-	    
-	    /**
-	     * Creates a new RangePhraseFinder using the given phrases.
-	     * @param phrases	A triangular array of all the phrase options available
-	     * 			organized by source range covered.  The (i, j)-th entry of
-	     * 			the array contains all the translation options for the
-	     * 			source range [i, i + j + 1).
-	     * @param sentLength	The length of the source sentence that phrases are
-	     * 				coming from.
-	     * @param maxDistortion	The maximum distortion distance allowed between
-	     * 				two phrases.  NO_MAX_DISTORTION (default)
-	     * 				indicates no limit.
-	     */
-	    RangePhraseFinder(vector<PhraseInfo *> **phrases, Uint sentLength, int
-		    maxDistortion = NO_MAX_DISTORTION);
-	    
-	    virtual void findPhrases(vector<PhraseInfo *> &p, PartialTranslation &t);
-    }; // RangePhraseFinder
-    
+   class PhraseDecoderModel;
+   class PhraseInfo;
+   class PartialTranslation;
+
+   /**
+    * An abstraction of the finding of phrases that can be added to a partial
+    * translation.
+    */
+   class PhraseFinder
+   {
+      public:
+         /**
+          * Destructor.
+          */
+         virtual ~PhraseFinder() {};
+
+         /**
+          * Finds all the phrase options that may be added to the given
+          * partial translation.
+          * @param p  A vector into which all the pointers to phrases that
+          *           can be added to t are placed.
+          * @param t  The partial translation to find phrase options for.
+          */
+         virtual void findPhrases(vector<PhraseInfo *> &p,
+                                  PartialTranslation &t) = 0;
+   }; // PhraseFinder
+
+   /**
+    * Finds phrases using a set of available ranges; this is the only
+    * PhraseFinder that we should be using in practice.
+    */
+   class RangePhraseFinder: public PhraseFinder
+   {
+      private:
+
+         /**
+          * The phrases, organized by the range that they cover.
+          * The (i, j)-th entry of phrases should contain all the phrases
+          * whose range is [i, i + j + 1).
+          */
+         vector<PhraseInfo *> **phrases;
+
+         /**
+          * The length of the source sentence.
+          */
+         Uint sentLength;
+
+         /**
+          * The maximum distortion distance.
+          */
+         int distLimit;
+      public:
+
+         /**
+          * Creates a new RangePhraseFinder using the given phrases.
+          * @param phrases       A triangular array of all the phrase
+          *                      options available organized by source range
+          *                      covered.  The (i, j)-th entry of the array
+          *                      contains all the translation options for
+          *                      the source range [i, i + j + 1).
+          * @param sentLength    The length of the source sentence that
+          *                      phrases are coming from.
+          * @param distLimit     The maximum distortion distance allowed
+          *                      between two phrases.  NO_MAX_DISTORTION
+          *                      (default) indicates no limit.
+          */
+         RangePhraseFinder(vector<PhraseInfo *> **phrases, Uint sentLength,
+               int distLimit = NO_MAX_DISTORTION);
+
+         virtual void findPhrases(vector<PhraseInfo *> &p,
+                                  PartialTranslation &t);
+   }; // RangePhraseFinder
+
 } // Portage
 
 #endif // PHRASEFINDER_H

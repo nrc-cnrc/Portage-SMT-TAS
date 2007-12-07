@@ -4,7 +4,7 @@
  *
  * COMMENTS:
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -20,16 +20,22 @@ using namespace Portage;
 
 /************************** DistortionModel **********************************/
 
-DistortionModel* DistortionModel::create(const string& name, const string& arg, bool fail)
+DistortionModel* DistortionModel::create(const string& name_and_arg, bool fail)
 {
    DistortionModel* m = NULL;
+
+   // Separate the model name and argument, introduced by # if present.
+   vector<string> arg_split;
+   split(name_and_arg, arg_split, "#", 2);
+   string name(arg_split.empty() ? "" : arg_split[0]);
+   string arg(arg_split.size() < 2 ? "" : arg_split[1]);
 
    if (name == "WordDisplacement") {
       m = new WordDisplacement();
    } else if (name == "ZeroInfo") {
       m = new ZeroInfoDistortion();
    } else if (name == "none") {
-      m = 0;
+      m = NULL;
    } else if (fail) {
       error(ETFatal, "unknown distortion model: " + name);
    }
@@ -46,11 +52,11 @@ double WordDisplacement::score(const PartialTranslation& trans)
           (int)trans.back->lastPhrase->src_words.end);
 
    // Add distortion cost to end of sentence
-   // Note: Other decoders don't do this (I think) but I decided to for symmetry, as this is
-   // done for the first word in the sentence.
-   // eg. 0 1 2 -> 0 2 1 and 0 1 2 -> 1 0 2 should have the same distortion cost, which
-   // it doesn't the way other decoders do things.
-   if (trans.sourceWordsNotCovered.size() == 0)
+   // Note: Other decoders don't do this (I think) but I decided to for
+   // symmetry, as this is done for the first word in the sentence.
+   // eg. 0 1 2 -> 0 2 1 and 0 1 2 -> 1 0 2 should have the same distortion
+   // cost, which it doesn't the way other decoders do things.
+   if (trans.sourceWordsNotCovered.empty())
       {
          assert(trans.lastPhrase->src_words.end <= sentLength);
          result -= (double)(sentLength - trans.lastPhrase->src_words.end);
@@ -63,10 +69,13 @@ double WordDisplacement::score(const PartialTranslation& trans)
 // Technically, this should capture the end of the source phrase aligned with
 // the rightmost target phrase, but it doesn't have to be perfct, so I'm going
 // with the way Aaron originally defined it.
+// EJJ Nov 2007: it's trivial to do a bit better, so why not!?  I removed
+// "return 0" for the hash, and used pt.lastPhrase->src_words.end instead.
 
 Uint WordDisplacement::computeRecombHash(const PartialTranslation &pt)
 {
-   return 0;
+   //return 0;
+   return pt.lastPhrase->src_words.end;
 }
 
 bool WordDisplacement::isRecombinable(const PartialTranslation &pt1, const PartialTranslation &pt2)

@@ -8,7 +8,7 @@
  *
  * Canoe Decoder
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -259,7 +259,7 @@ bool HistogramThresholdHypStack::isEmpty()
       beginPop();
    } // if
    return (pruneSize != NO_SIZE_LIMIT && numKept == pruneSize) ||
-           heap.size() == 0 ||
+           heap.empty() ||
            heap.front()->futureScore <= bestScore + threshold;
 } // isEmpty
 

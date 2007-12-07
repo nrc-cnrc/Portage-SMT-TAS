@@ -108,6 +108,12 @@ arg_check() {
     fi
 }
 
+debug()
+{
+   test -n "$DEBUG" && echo "<D> $*" >&2
+}
+
+
 # Command line processing ; "declare -a" declares array variables
 declare -a CANOEOPTS
 RUN_PARALLEL_OPTS=
@@ -190,9 +196,7 @@ else
     if [ -n "$QSUBOPTS" ]; then
         RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS -qsub \"$QSUBOPTS\""
     fi
-    if [ $DEBUG ]; then
-        echo "    RUN_PARALLEL_OPTS=$RUN_PARALLEL_OPTS" >&2
-    fi
+    debug "RUN_PARALLEL_OPTS=$RUN_PARALLEL_OPTS"
 fi
 
 if [ ! $GOTCANOE ]; then
@@ -222,10 +226,10 @@ cat > $INPUT
 # remaining of the code.
 INPUT_LINES=$(echo `wc -l < $INPUT`)
 
-test $DEBUG && echo "    INPUT_LINES=$INPUT_LINES" >&2
+debug "INPUT_LINES=$INPUT_LINES"
 if [ $INPUT_LINES -eq 0 ]; then
-    echo No input data from STDIN, nothing to do\! >&2
-    exit 0
+   echo No input data from STDIN, nothing to do\! >&2
+   exit 0
 fi;
 
 # Calculate the number of nodes/CPUs to use
@@ -245,12 +249,12 @@ if [ ! $NUM ]; then
         if [ $NUM -lt 1 ]; then NUM=1; fi
     fi
 
-    test $DEBUG && echo "    NUM=$NUM" >&2
+    debug "NUM=$NUM"
 fi
 
 # Calculate the number of lines per block
 LINES_PER_BLOCK=$(( ( $INPUT_LINES + $NUM - 1 ) / $NUM ))
-test $DEBUG && echo "    LINES_PER_BLOCK=$LINES_PER_BLOCK" >&2
+debug "LINES_PER_BLOCK=$LINES_PER_BLOCK"
 
 # the .commands file will have the list of commands to execute
 CMDS_FILE=$OUTPUT_FILE_PATTERN.commands
@@ -266,7 +270,7 @@ for (( i = 0 ; i < $NUM ; ++i )); do
     fi
     FIRST_SENT_NUM=$(( $i * $LINES_PER_BLOCK ))
     CANOE_CMD="time $CANOE ${CANOEOPTS[*]} -first-sentnum $FIRST_SENT_NUM"
-    #test $DEBUG && echo "    CANOE_CMD $i=$CANOE_CMD" >&2
+    #debug "CANOE_CMD $i=$CANOE_CMD"
     OUT=$OUTPUT_FILE_PATTERN.out.$i
     ERR=$OUTPUT_FILE_PATTERN.err.$i
     if [ $i -lt $((NUM - 1)) ]; then

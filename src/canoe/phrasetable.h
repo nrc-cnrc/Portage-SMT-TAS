@@ -42,6 +42,7 @@ extern const char *PHRASE_TABLE_SEP;
 /// PhraseInfo with probabilities from multiple phrase tables
 struct MultiTransPhraseInfo : public PhraseInfo
 {
+   /// Backward probabilities for this phrase
    vector<float> phrase_trans_probs;
 }; // MultiTransPhraseInfo
 
@@ -49,7 +50,9 @@ struct MultiTransPhraseInfo : public PhraseInfo
 /// PhraseInfo with forward and backward probs from multiple phrase tables
 struct ForwardBackwardPhraseInfo : public MultiTransPhraseInfo
 {
+   /// forward probability score
    double         forward_trans_prob;
+   /// forward probabilities for this phrase
    vector<float>  forward_trans_probs;
 }; // ForwardBackwardPhraseInfo
 
@@ -77,7 +80,12 @@ typedef vector_map<Phrase, TScore> TargetPhraseTable;
 /// Phrase Table structure - holds together info from all phrase tables
 class PhraseTable
 {
+public:
+   /// Log value to use for missing or 0-prob entries (default is LOG_ALMOST_0)
+   static double log_almost_0;
+
 protected:
+
    /// The vocab for the target and source languages combined
    Voc &tgtVocab;
 
@@ -120,6 +128,9 @@ protected:
    /// Human readable description of all forward phrase tables
    string forwardDescription;
 
+   /// returns log(x) unless x <= 0, in which case returns log_almost_0
+   inline double shielded_log (double x) {return x <= 0 ? log_almost_0 : log(x);}
+   
 public:
 
    /**
@@ -158,7 +169,7 @@ public:
     * function may terminate the execution with an error.  Note that it is not
     * checked whether the same phrase mappings appear in the two files; if one
     * appears in one file but not the other, the missing probability is
-    * assigned the value exp(LOG_ALMOST_0).
+    * assigned the value exp(log_almost_0).
     * @param src_given_tgt_file The path of the phrase table file, with
     *                           source phrases in the leftmost column.
     *                           The probabilities here are what are
@@ -295,7 +306,6 @@ public:
                        const vector<Range> &rangesToSkip, Uint verbosity,
                        const vector<double> *forward_weights = NULL);
 
-
    /**
     * Look up a given phrase pair.
     * @param src Source half, encoded as a space separated token string.
@@ -319,7 +329,7 @@ public:
     * @param uPhrase    The phrase as a vector of Uint's.
     * @return           The string representation of uPhrase.
     */
-   string getStringPhrase(const Phrase &uPhrase);
+   string getStringPhrase(const Phrase &uPhrase) const;
 
 private:
    /**
@@ -462,7 +472,7 @@ private:
     */
    class PhraseScorePairLessThan {
       private:
-         PhraseTable &parent;   ///< parent PhraseTable object
+         const PhraseTable &parent;   ///< parent PhraseTable object
       public:
          /**
           * Constructor.
@@ -470,7 +480,7 @@ private:
           *                  function will be used to convert Uint sequence to
           *                  readable, and lexicographically comparable, text
           */
-         PhraseScorePairLessThan(PhraseTable &parent) : parent(parent) {}
+         PhraseScorePairLessThan(const PhraseTable &parent) : parent(parent) {}
 
          /**
           * Less ("smaller than") operator for phrases.
@@ -493,8 +503,8 @@ private:
           * @param ph2        right-hand side operand
           * @return           true iff ph1 < ph2
           */
-         bool operator() (pair<double, PhraseInfo *> ph1,
-                          pair<double, PhraseInfo *> ph2);
+         bool operator() (const pair<double, PhraseInfo *>& ph1,
+                          const pair<double, PhraseInfo *>& ph2) const;
    };
 }; // PhraseTable
 } // Portage

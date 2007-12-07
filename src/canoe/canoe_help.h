@@ -76,7 +76,7 @@ Options (in command-line format):\n\
         The order of each language model will be determined by inspection,\n\
         but you can restrict the order of a model by adding #N to its name.\n\
         E.g., if 4g.lm is a 4-gram model, specifying 4g.lm#3 will treat it as\n\
-        a 3-gram model\n\
+        a 3-gram model.\n\
 \n\
  -lmodel-order LMORDER\n\
         If non-zero, globally limits the order of all language models. [0]\n\
@@ -156,19 +156,16 @@ Options (in command-line format):\n\
 \n\
  -distortion-limit L\n\
         The maximum distortion distance between two source words, or -1 for\n\
-        no limit.  [-1]\n\
+        no limit.  Use 0 to do monotonic decoding.  [-1]\n\
 \n\
- -distortion-model model[:args]\n\
-        The distortion model and its arguments. One of:\n\
-        WordDisplacement, WordDisp_Prob:args, ZeroInfo, none [WordDisplacement]\n\
+ -distortion-model model\n\
+        The distortion model. One of:\n\
+        WordDisplacement, ZeroInfo, none [WordDisplacement]\n\
 \n\
- -segmentation-model model\n\
-        The segmentaion model: one of none, count, bernoulli. [count]\n\
-        Some models require an argument, via -segmentation-args:\n\
-        + bernoulli requires a numerical argument (Q parameter)\n\
-\n\
- -segmentation-args args\n\
-        The segmentation model arguments.\n\
+ -segmentation-model model[#args]\n\
+        The segmentaion model: one of none, count, bernoulli. [none]\n\
+        Some models require an argument, introduced by '#':\n\
+        - bernoulli requires a numerical argument (Q parameter)\n\
 \n\
  -bypass-marked\n\
         When marked translations are found in the source text, translation\n\
@@ -217,23 +214,33 @@ Options (in command-line format):\n\
         Produce feature function output. If -lattice or -nbest is given,\n\
         this info will also be written to the lattice or nbest list.\n\
 \n\
- -lattice LPREFIX\n\
-        Produces word graph output into files LPREFIX.SENTNUM, where SENTNUM\n\
-        is a 4+ digit representation of the sentence number, starting at\n\
-        0000 (or the value of -first-sentnum).  State coverage vectors are\n\
-        output into LPREFIX.SENTNUM.state.  If -trace or -ffvals is specified\n\
-        then this form of output is used in the wordgraph as well.  Even if\n\
-        -backwards is specified, the word graph gives forwards sentences.\n\
+ -lattice LPREFIX[.gz]\n\
+        Produces word graph output into files LPREFIX.SENTNUM[.gz], where\n\
+        SENTNUM is a 4+ digit representation of the sentence number, starting\n\
+        at 0000 (or the value of -first-sentnum).  State coverage vectors are\n\
+        output into LPREFIX.SENTNUM.state[.gz].  If -trace or -ffvals is\n\
+        specified then this form of output is used in the wordgraph as well.\n\
+        Even if -backwards is specified, the word graph gives forwards\n\
+        sentences.  If .gz is specified, the output will be gzipped.\n\
 \n\
- -nbest PREFIX[:N]\n\
-        Produces nbest output into files LPREFIX.SENTNUM.Nbest. If N is not\n\
-        specified, 100 is used. If -ffvals is also specified, feature function\n\
-        values are written to LPREFIX.SENTNUM.Nbest.ffvals.  With -trace,\n\
-        alignment information is written to LPREFIX.SENTNUM.Nbest.pal.\n\
+ -nbest NPREFIX[.gz][:N]\n\
+        Produces nbest output into files NPREFIX.SENTNUM.Nbest[.gz]. If N is\n\
+        not specified, 100 is used. If -ffvals is also specified, feature\n\
+        function values are written to NPREFIX.SENTNUM.Nbest.ffvals[.gz].  With\n\
+        -trace, alignment info is written to NPREFIX.SENTNUM.Nbest.pal[.gz].\n\
+        If .gz is specified, the outputs will be gzipped.\n\
 \n\
  -first-sentnum INDEX\n\
         Indicates the first SENTNUM to use in creating the file names for\n\
         the -lattice and -nbest output.  [0000]\n\
+\n\
+ -future-score-lm-heuristic FUT-LM-HEURISTIC\n\
+        Specify the LM heuristic to use for the future score.  One of:\n\
+           none - h = 1.0;\n\
+           unigram - h = unigram probabilities;\n\
+           simple - h = 1.0 if context is partial, h = prob otherwise;\n\
+           incremental - h = unigram for first word, bigram for next, etc.;\n\
+        [incremental]\n\
 \n\
  -verbose V\n\
  -v V\n\

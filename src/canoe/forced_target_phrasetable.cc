@@ -8,7 +8,7 @@
  * THIS FILE IS NOT USED ANYWHERE YET - PREPARED FOR A CHANGE TO
  * PHRASE_TM_ALIGN THAT WAS DEFERRED INDEFINITELY.
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group 
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology 
  * Conseil national de recherches Canada / National Research Council Canada 
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -51,12 +51,11 @@ void ForcedTargetPhraseTable::getPhrases(vector<pair<double, PhraseInfo *> > &ph
       {
          Phrase &phrase = (*phrase_it).first;
          bool match = (tgt_sent.size() - i >= phrase.size());
-         for (Uint j = 0; match && (j < phrase.size()); j++)
-         {
-            match = (phrase[j] == tgt_sent[i+j]);
-         } // for
-         if (match)
-         {
+         Phrase::const_iterator w_it = phrase.begin();
+         for (Uint j = 0; match && (w_it != phrase.end()); ++j, ++w_it) {
+            match = (*w_it == tgt_sent[i+j]);
+         }
+         if (match) {
             filteredTgtTable.push_back(*phrase_it);
             break;
          } // if

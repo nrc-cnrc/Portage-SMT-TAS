@@ -5,7 +5,7 @@
  *
  * COMMENTS:
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -21,10 +21,20 @@
 #include <decoder.h>
 #include <wordgraph.h>
 
+// These #defines in log4cxx conflict with variables named the same in ace, but
+// we don't use them, so we just undef them here before including ace stuff.
+#undef PACKAGE_VERSION
+#undef PACKAGE_BUGREPORT
+#undef PACKAGE_NAME
+#undef PACKAGE_STRING
+#undef PACKAGE_TARNAME
+
+#include <ace/Env_Value_T.h>
+
 using namespace Portage;
 
 PortageAPI::PortageAPI(const string& srclang, const string& tgtlang,
-                       const string& config, bool models_in_demo_dir,
+                       const string& config, bool config_in_demo_dir,
                        bool verbose) :
    prep(srclang), post(tgtlang, verbose)
 {
@@ -38,22 +48,14 @@ PortageAPI::PortageAPI(const string& srclang, const string& tgtlang,
 
    c.verbosity = 0;
 
-   string model_dir = getPortage() + "/models/demo";
-   string config_file = model_dir + "/" + config + "." + srclang + "2" + tgtlang;
+   string config_file = config + "." + srclang + "2" + tgtlang;
+   if ( config_in_demo_dir ) {
+      string model_dir = getPortage() + "/models/demo";
+      config_file = model_dir + "/" + config_file;
+   }
 
    c.read(config_file.c_str());
    c.check();
-
-   if (models_in_demo_dir) {
-      for (Uint i = 0; i < c.backPhraseFiles.size(); ++i) {
-         c.backPhraseFiles[i] = model_dir + "/" + c.backPhraseFiles[i];
-         c.forPhraseFiles[i] = model_dir + "/" + c.forPhraseFiles[i];
-      }
-      for (Uint i = 0; i < c.multiProbTMFiles.size(); ++i)
-         c.multiProbTMFiles[i] = model_dir + "/" + c.multiProbTMFiles[i];
-      for (Uint i = 0; i < c.lmFiles.size(); ++i)
-         c.lmFiles[i] = model_dir + "/" + c.lmFiles[i];
-   }
 
    c.loadFirst = true;
 
@@ -68,10 +70,7 @@ void PortageAPI::translate(const string& src_text, string& tgt_text)
    for (Uint i = 0; i < src_sents.size(); ++i) {
       // should read trans markup here, but assume none & use empty cur_mark
       PhraseDecoderModel* pdm = bmg->createModel(src_sents[i], cur_mark);
-      HypothesisStack* h = runDecoder(*pdm, c.maxStackSize,
-                                      log(c.pruneThreshold),
-                                      c.covLimit, log(c.covThreshold),
-                                      c.distLimit, c.verbosity);
+      HypothesisStack* h = runDecoder(*pdm, c);
       assert(!h->isEmpty());
       PrintPhraseOnly print(*pdm);
 

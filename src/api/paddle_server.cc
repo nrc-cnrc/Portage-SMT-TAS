@@ -5,7 +5,7 @@
  * 
  * COMMENTS: 
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -17,7 +17,6 @@
 #include "portage_api.h"
 #include "net_srv.h"
 #include <string>
-#include "logging.h"
 #include <printCopyright.h>
 
 using namespace Portage;
@@ -36,8 +35,8 @@ Options:\n\
 -v  Write progress reports to cerr.\n\
 -c  Use <config> as base name for canoe configuration file (complete filename\n\
     is <config>.<srclang>2<tgtlang>). [std-config]\n\
--r  Treat any model names mentioned in config file as valid pathnames relative\n\
-    to the current directory. [Treat them as names of files in demo directory.]\n\
+-r  Look for the config file and its models in (or relative to) the current\n\
+    directory. [Treat them as names of files in $PORTAGE/models/demo.]\n\
 -p  PortNum specify which TCP port number to start listening on for translation\n\
     requests\n\
 ";
@@ -99,7 +98,7 @@ int main(int argc, char* argv[])
 
 void getArgs(int argc, char* argv[])
 {
-   char* switches[] = {"v", "r", "c:", "p:"};
+   const char* switches[] = {"v", "r", "c:", "p:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 2, 4, help_message);
    arg_reader.read(argc-1, argv+1);
 

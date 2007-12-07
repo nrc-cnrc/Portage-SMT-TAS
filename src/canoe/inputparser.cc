@@ -23,7 +23,9 @@
 using namespace Portage;
 using namespace std;
 
-InputParser::InputParser(istream &in): in(in), lineNum(0)
+InputParser::InputParser(istream &in)
+   : in(in)
+   , lineNum(0)
 {
    in.unsetf(ios::skipws);
 }
@@ -84,7 +86,7 @@ bool InputParser::readMarkedSent(vector<string> &sent,
       skipSpaces(c);
    }
 
-   if ( sent.size() == 0 and !in.eof() )
+   if ( sent.empty() and !in.eof() )
    {
       error(ETWarn, "Empty input on line %d.", lineNum);
    }

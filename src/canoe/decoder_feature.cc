@@ -6,7 +6,7 @@
  * $Id$
  *
  * 
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada / 
@@ -28,9 +28,9 @@ DecoderFeature* DecoderFeature::create(BasicModelGenerator* bmg,
    DecoderFeature* f = NULL;
 
    if ( group == "SegmentationModel" ) {
-      f = SegmentationModel::create(name, args, fail);
+      f = SegmentationModel::create(name, fail);
    } else if ( group == "DistortionModel" ) {
-      f = DistortionModel::create(name, args, fail);
+      f = DistortionModel::create(name, fail);
    } else if ( group == "LengthFeature" ) {
       f = new LengthFeature();
    } else if ( fail ) {

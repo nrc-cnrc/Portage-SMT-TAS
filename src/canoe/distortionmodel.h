@@ -9,7 +9,7 @@
  * Any classes derived from this interface should be added to the create()
  * function, in distortionmodel.cc.
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada / 
@@ -32,13 +32,14 @@ public:
    /**
     * Virtual constructor: creates a designated derived class with given
     * arguments.
-    * @param name name of derived type
-    * @param args argument string for derived constructor.
+    * @param name_and_arg name of derived type, with optional argument
+    *                     introduced by # if appropriate.
     * @param fail die with error message if true and problems occur on
     * construction 
     * @return new model; free with delete
     */
-   static DistortionModel* create(const string& name, const string& args, bool fail = true);
+   static DistortionModel* create(const string& name_and_arg,
+         bool fail = true);
 };
 
 
@@ -69,7 +70,8 @@ public:
 };
 
 /**
- * Uninformative distortion model: returns 0 on partial translations, 1 on completed.
+ * Uninformative distortion model: returns 0 on partial translations, 1 on
+ * completed.
  * Here's the motivation for that choice.  We want a model that
  * essentially functions as a no-op, one that model optimization will
  * want to ignore (set weight to zero).
@@ -93,7 +95,7 @@ public:
    virtual void newSrcSent(const vector<string>& src_sent, vector<PhraseInfo *>** phrase_infos) {}
 
    virtual double score(const PartialTranslation& pt) {
-     return (pt.sourceWordsNotCovered.size() == 0) ? 1 : 0;
+     return pt.sourceWordsNotCovered.empty() ? 1.0 : 0.0;
    }
 
    virtual Uint computeRecombHash(const PartialTranslation &pt) {

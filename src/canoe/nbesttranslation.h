@@ -6,7 +6,7 @@
  * 
  * Canoe Decoder
  * 
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group 
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology 
  * Conseil national de recherches Canada / National Research Council Canada 
  * Copyright 2004-2005, Sa Majeste la Reine du Chef du Canada /
@@ -443,14 +443,13 @@ inline vector< double >  get( my_ffvals_map_t  fm, DecoderStatePair  e ) {
     return ffvals;
 }
 
-} // Portage
 
 /**
  * Prints the NBest List for the lattice.
  * @param g          the lattice itself.
  * @param file       output stream to receive the NBest List.
  * @param n          number of best hypotheses (n=100 => 100 best list).
- * @param print      a functor to format the content of the NBest List.
+ * @param print      a functor to format the content of the NBest List
  * @param backwards  
  */
 void  print_nbest( lattice_overlay const &  g, ostream &  file,
@@ -461,7 +460,7 @@ void  print_nbest( lattice_overlay const &  g, ostream &  file,
  * @param g          the lattice itself.
  * @param file_name  file to output the NBest List.
  * @param n          number of best hypotheses (n=100 => 100 best list).
- * @param print      a functor to format the content of the NBest List.
+ * @param print      a functor to format the content of the NBest List
  * @param backwards  
  */
 inline
@@ -498,5 +497,6 @@ void print_lattice( lattice_overlay const & g,
    print_lattice(g, file, print);
 }
 
+} // Portage
 
 #endif // NBESTTRANSLATION_H

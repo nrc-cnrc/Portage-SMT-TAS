@@ -8,7 +8,7 @@
  *
  * Canoe Decoder
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -51,7 +51,7 @@ namespace Portage
     {
         protected:
             /**
-             * Whether any states have been pop()ed
+             * Whether any states have been pop()ed yet
              */
             bool popStarted;
 
@@ -106,8 +106,8 @@ namespace Portage
             virtual Uint getNumPruned() const {
                 return getNumPrunedAtPush() + getNumPrunedAtPop();
             }
-            virtual Uint getNumPrunedAtPush() const = 0;
-            virtual Uint getNumPrunedAtPop() const = 0;
+            virtual Uint getNumPrunedAtPush() const { return 0; }
+            virtual Uint getNumPrunedAtPop() const { return 0; }
             //@}
 
             // The following shouldn't belong here, it should only be in the
@@ -119,8 +119,8 @@ namespace Portage
              * Determines the number of states that were recombined.
              * @return  The number of states that were recombined.
              */
-            virtual Uint getNumRecombined() const = 0;
-            virtual Uint getNumRecombKept() const = 0;
+            virtual Uint getNumRecombined() const { return 0; }
+            virtual Uint getNumRecombKept() const { return 0; }
             //@}
 
             //@{
@@ -130,8 +130,8 @@ namespace Portage
              * @return The number of states the were recombined but later
              * pruned.
              */
-            virtual Uint getNumUnrecombined() const = 0;
-            virtual Uint getNumRecombPrunedAtPop() const = 0;
+            virtual Uint getNumUnrecombined() const { return 0; }
+            virtual Uint getNumRecombPrunedAtPop() const { return 0; }
             //@}
 
             //@{
@@ -139,8 +139,8 @@ namespace Portage
              * Coverage pruning statistics.
              * @return Retunrs the number of states pruned during coverage.
              */
-            virtual Uint getNumCovPruned() const = 0;
-            virtual Uint getNumRecombCovPruned() const = 0;
+            virtual Uint getNumCovPruned() const { return 0; }
+            virtual Uint getNumRecombCovPruned() const { return 0; }
             //@}
     }; // HypothesisStack
 
@@ -212,7 +212,7 @@ namespace Portage
              * the least expensive (cost).
              */
             bool operator()(const DecoderState *s1, const DecoderState *s2) const;
-    }; // BetterScore
+    }; // WorseScore
 
 
     //--------------------------------------------------------------------------
@@ -261,7 +261,11 @@ namespace Portage
             virtual void push(DecoderState *s);
             virtual Uint getNumRecombined() const { return numRecombined; };
 
-        protected:
+            /// error to call this method on a RecombHypStack.
+            virtual DecoderState* pop() { assert(false); return NULL; }
+            /// Implemented only so class is not abstract.
+            virtual bool isEmpty() { return recombHash.empty(); }
+
             /**
              * Puts all the states into the given vector.
              * @param states  returned vector containing all states

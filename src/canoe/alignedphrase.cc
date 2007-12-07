@@ -6,7 +6,7 @@
  *
  * Translation-Model Utilities
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada / 
@@ -59,10 +59,10 @@ void AlignedPhrase::line(string &str, PhraseDecoderModel *model, const vector<do
         ss << "(" << str << ") ";
       }// if, for, if
   if (incScore) {
-    ss << "\tphrase scores: ";
+    ss << "\ttotal scores per phrase: ";
     for (vector<double>::const_iterator itr=myPhraseScores.begin()+1; itr!=myPhraseScores.end(); itr++)
       ss << " " << *itr;
-    ss << "\ttotal score: " << myScore << "\t submodel (feature) scores: ";
+    ss << "\ttotal sentence score: " << myScore << "\t ffvals: ";
     for (vector<double>::const_iterator itr=submodelScores.begin(); itr!=submodelScores.end(); itr++)
       ss << " " << *itr;
   }

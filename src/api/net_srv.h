@@ -6,7 +6,7 @@
  * 
  * Class that implements Portage basic interface
  * 
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group 
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology 
  * Conseil national de recherches Canada / National Research Council Canada 
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -84,5 +84,5 @@ class Net_srv
     ACE_SOCK_Acceptor  mAcceptor;    ///< Connections acceptor
     ACE_Handle_Set     mHandle_set;  ///< Keeps track of the active connections
 };// END CLASS DEFINITION Net_srv
-}; // ends namespace Portage
+} // ends namespace Portage
 #endif // __NET_SRV__

@@ -4,7 +4,7 @@
  *
  * COMMENTS:  Operations on canoe config files, for use with rescoreloop.
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada / 
@@ -38,14 +38,16 @@ configtool [-v] cmd [config [out]]\n\
 Read canoe config file <config> and write selected information to <out>,\n\
 depending on <cmd>, one of:\n\
 \n\
+  weights            - An argument-string specification of canoe weights\n\
+                       corresponding to the contents of config.\n\
   dump               - all parameter settings\n\
   nf                 - total number of features\n\
   nb                 - number of basic feature functions\n\
   nl                 - number of language models\n\
   nt                 - number of translation models\n\
   nt-text            - number of single-prob text translation model files\n\
+  nd                 - number of distortion models\n\
   segff              - does model contain a segmentation model ff?\n\
-  distff             - does model contain a distortion model ff?\n\
   ttable-file:i      - the ith pair of text phrase table names (backward\n\
                        forward)\n\
   ttable-limit       - value of the ttable-limit parameter\n\
@@ -76,9 +78,8 @@ depending on <cmd>, one of:\n\
 
 static bool verbose = false;
 static string cmd;
-static ifstream ifs;
+static string config_in = "-";
 static ofstream ofs;
-static istream* isp = &cin;
 static ostream* osp = &cout;
 
 
@@ -127,12 +128,11 @@ int main(int argc, char* argv[])
    printCopyright(2005,"configtool");
 
    getArgs(argc, argv);
-   istream& is = *isp;
    ostream& os = *osp;
    os << setprecision(10);
 
    CanoeConfig c;
-   c.read(is);
+   c.read(config_in.c_str());
    c.check();
 
    vector<string> toks;
@@ -144,15 +144,14 @@ int main(int argc, char* argv[])
       vector<double> wts;
       c.getFeatureWeights(wts);
       os << wts.size() << endl;
-   } else if (cmd == "distff") {
-      os << ((c.distModelName == "none") ? 0 : 1) << endl;
+   } else if (cmd == "nd") {
+      os << c.distWeight.size() << endl;
    } else if (cmd == "segff") {
-      os << ((c.segModelName.empty() || c.segModelName == "none") ? 0 : 1)
-         << endl;
+      os << c.segWeight.size() << endl;
    } else if (cmd == "nb") {
-      int n = 1; // length is always a basic feature
-      if (!c.segModelName.empty() && c.segModelName != "none") n++;
-      if (c.distModelName != "none") n++; // default is distortion penalty
+      int n = 1 // length is always a basic feature
+            + c.segWeight.size()
+            + c.distWeight.size();
       os << n << endl;
    } else if (cmd == "nl") {
       os << c.lmFiles.size() << endl;
@@ -183,16 +182,18 @@ int main(int argc, char* argv[])
          c.backPhraseFiles[i] = addExtension(c.backPhraseFiles[i], toks[1]);
       for (Uint i = 0; i < c.forPhraseFiles.size(); ++i)
          c.forPhraseFiles[i] = addExtension(c.forPhraseFiles[i], toks[1]);
+      for (Uint i = 0; i < c.multiProbTMFiles.size(); ++i)
+         c.multiProbTMFiles[i] = addExtension(c.multiProbTMFiles[i], toks[1]);
       c.write(os);
    } else if (isPrefix("rep-ttable-files-local:", cmd.c_str())) {
       if (split(cmd, toks, ":") != 2)
          error(ETFatal, "bad format for rep-ttable-files command");
-      for (Uint i = 0; i < c.backPhraseFiles.size(); ++i) {
+      for (Uint i = 0; i < c.backPhraseFiles.size(); ++i)
          c.backPhraseFiles[i] = addExtension(BaseName(c.backPhraseFiles[i].c_str()), toks[1]);
-      }
-      for (Uint i = 0; i < c.forPhraseFiles.size(); ++i) {
+      for (Uint i = 0; i < c.forPhraseFiles.size(); ++i)
          c.forPhraseFiles[i] = addExtension(BaseName(c.forPhraseFiles[i].c_str()), toks[1]);
-      }
+      for (Uint i = 0; i < c.multiProbTMFiles.size(); ++i)
+         c.multiProbTMFiles[i] = addExtension(BaseName(c.multiProbTMFiles[i].c_str()), toks[1]);
       c.write(os);
    } else if (isPrefix("filt-ttables:", cmd.c_str())) {
       if (split(cmd, toks, ":") != 2)
@@ -229,7 +230,6 @@ int main(int argc, char* argv[])
 
       c.setFeatureWeightsFromString(best_rr.wtvec);
       c.write(os);
-
    } else if (cmd == "check") {
       c.check_all_files(); // dies with error if any files is not readable
       os << "ok" << endl;
@@ -253,6 +253,9 @@ int main(int argc, char* argv[])
          wts.push_back(conv<double>(ltoks[1]));
       }
       c.setFeatureWeights(wts);
+      os << c.getFeatureWeightString(line) << endl;
+   } else if (cmd == "weights") {
+      string line;
       os << c.getFeatureWeightString(line) << endl;
    } else
       error(ETFatal, "unknown command: %s", cmd.c_str());
@@ -312,14 +315,14 @@ RescoreResult parseRescoreResultsLine(const string& line)
 
 void getArgs(int argc, char* argv[])
 {
-   const char* const switches[] = {"v", "n:"};
+   const char* switches[] = {"v"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 1, 3, help_message);
    arg_reader.read(argc-1, argv+1);
 
    arg_reader.testAndSet("v", verbose);
 
    arg_reader.testAndSet(0, "cmd", cmd);
-   arg_reader.testAndSet(1, "config", &isp, ifs);
+   arg_reader.testAndSet(1, "config", config_in);
    arg_reader.testAndSet(2, "out", &osp, ofs);
 }
 }

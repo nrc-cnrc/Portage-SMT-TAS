@@ -4,7 +4,7 @@
  * 
  * COMMENTS:
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada / 
@@ -22,9 +22,15 @@ using namespace Portage;
 
 /************************** SegmentModel ***********************************************************/
 
-SegmentationModel* SegmentationModel::create(const string& name, const string& arg, bool fail)
+SegmentationModel* SegmentationModel::create(const string& name_and_arg, bool fail)
 { 
    SegmentationModel* m = NULL;
+
+   // Separate the model name and argument, introduced by # if present.
+   vector<string> arg_split;
+   split(name_and_arg, arg_split, "#", 2);
+   const string name(arg_split.empty() ? "" : arg_split[0]);
+   const string arg(arg_split.size() < 2 ? "" : arg_split[1]);
 
    if (name == "count") {
       m = new SegmentCount();
@@ -86,8 +92,8 @@ BernoulliSegmentationModel::BernoulliSegmentationModel(const string &arg) {
 
 double BernoulliSegmentationModel::score(const PartialTranslation& pt)
 {
-  int words = pt.lastPhrase->src_words.end - pt.lastPhrase->src_words.start;
-  return boundary + (words - 1) * not_boundary;
+   int words = pt.lastPhrase->src_words.end - pt.lastPhrase->src_words.start;
+   return boundary + (words - 1) * not_boundary;
 }
 
 Uint BernoulliSegmentationModel::computeRecombHash(const PartialTranslation &pt)

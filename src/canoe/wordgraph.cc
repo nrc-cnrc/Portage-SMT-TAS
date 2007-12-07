@@ -8,7 +8,7 @@
  *
  * Canoe Decoder
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -303,7 +303,7 @@ static double addAndDoState(ostream *out, ostream *covout, PrintFunc &print,
 
       for ( VDSit it(state->recomb.begin()); it != state->recomb.end(); ++it) {
          assert(*it != NULL);
-         assert((*it)->recomb.size() == 0);
+         assert((*it)->recomb.empty());
          dMasse += addAndDoState(out, covout, print, stateMap, *it, backwards, mv);
       }
 

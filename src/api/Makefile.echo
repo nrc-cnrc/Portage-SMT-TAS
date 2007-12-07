@@ -37,7 +37,6 @@ INCLUDES= \
         preprocessor.h \
 	translator_if.h 
 	
-
 OBJECTS= \
 	net_srv.o \
 	echo_portage_api.o \
@@ -60,8 +59,6 @@ DOCUMENTS=
 EXTRA_LIBS=-loolm -ldstruct -lmisc -lgsl -lgslcblas -lACE
 
 DYNLIBS=-l$(TCLLIB)
-
-#DOXYFILE=
 
 MODULE_CF=-Wno-deprecated -Wno-sign-compare -Wno-sign-promo
 

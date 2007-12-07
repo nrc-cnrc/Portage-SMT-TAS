@@ -35,7 +35,11 @@ namespace Portage
  *    constructor.
  *
  * 3) Add a corresponding ParamInfo object to the param_infos list in the
- *    CanoeConfig constructor. See examples for existing parameters.
+ *    CanoeConfig constructor. See examples for existing parameters.  Be sure
+ *    to flag your new option in the proper group, for example the LMs and TMs
+ *    filename must be modified to be able to run canoe.relative thus they are
+ *    flagged with relative_path_modification so they can be modified later to
+ *    their correct path.
  *
  * 4) If the parameter is a loglinear weight, add its name (or an alias) to the
  *    weight_params list in the CanoeConfig constructor. Weights for features
@@ -93,10 +97,9 @@ public:
    Uint covLimit;                   ///< Coverage pruning limit
    double covThreshold;             ///< Coverage pruning prob threshold
    int distLimit;                   ///< Distortion limit
-   string distModelName;            ///< Distortion model name
-   string distModelArg;             ///< Distortion model argument string
-   string segModelName;             ///< Segmentation model name
-   string segModelArgs;             ///< Segmentation model argument string
+   vector<string> distortionModel;  ///< Distortion model name(s)
+   string segmentationModel;        ///< Segmentation model name
+   string obsoleteSegModelArgs;     ///< Kept around to issue a meaningful error message
    bool bypassMarked;               ///< Look in PT even for marked trans
    double weightMarked;             ///< Constant discount for marked probs
    string oov;                      ///< OOV handling method
@@ -114,12 +117,14 @@ public:
    Uint firstSentNum;               ///< Index of the first input sentence
    bool backwards;                  ///< Whether to translate backwards
    bool loadFirst;                  ///< Whether to load models before input
+   string futLMHeuristic;           ///< What LM heuristic to use when calculating future scores
 
    /**
     * Constructor, sets default parameter values.
     */
    CanoeConfig();
 
+   private:
    /**
     * Read parameters from a config stream.
     *
@@ -129,16 +134,14 @@ public:
     * @param configin  the input stream containing the configuration.
     */
    void read(istream& configin);
+   public:
    /**
     * Read parameters from a config file.
     *
     * See read(istream& configin) for details.
     * @param configFile  file name
     */
-   void read(const char* configFile) {
-      IMagicStream cfg(configFile);
-      read(cfg);
-   }
+   void read(const char* configFile);
 
    /**
     * Get a list of parameters in ArgReader format.
@@ -240,28 +243,49 @@ private:
    // No, this is not the most elegant way to handle generics...
    /// Generic structure for handling parameters of various types.
    struct ParamInfo {
+      /// These flags will associate parameters to groups which need special treatment.
+      /// A parameter can belong to more than one group.
+      enum GROUPING {
+         /// Default, parameters belong to no special groups
+         no_group                   = 0,
+         /// Apply to path/filename and corrects the path base on canoe.ini path (canoe.relative)
+         relative_path_modification = 1 << 0,
+         /// When check accessibility of file from configtool check
+         check_file_name            = relative_path_modification << 1,
+         /// Specific LM file name check because lms need a special treatment
+         lm_check_file_name         = check_file_name << 1,
+         /// Indicates the number of groupings
+         num_grous                  = lm_check_file_name << 1
+      };
+
       CanoeConfig* c;        ///< Pointer to parent CanoeConfig object
       vector<string> names;  ///< param name followed by 0 or more alternates
       string tconv;          ///< how to convert to/from string
       void* val;             ///< pointer to current value
       bool set_from_config;  ///< true if set from config file
       bool set_from_cmdline; ///< true if set from command line
+      Uint  groups;          ///< parameter belong to which groups
 
       /**
        * Constructor.
        * @param name_strings  name for the parameter
        * @param tconv         type for the parameter
        * @param val           value of the parameter
+       * @param g             group id
        */
-      ParamInfo(const string name_strings, const string& tconv, void* val) :
-         tconv(tconv), val(val),
-         set_from_config(false), set_from_cmdline(false) {
+      ParamInfo(const string name_strings, const string& tconv, void* val, Uint g = no_group) :
+         tconv(tconv),
+         val(val),
+         set_from_config(false),
+         set_from_cmdline(false),
+         groups(g) {
             split(name_strings, names);
          }
 
       /// Set value from string.
       /// @param s  new value
       void set(const string& s);
+
       /// Get string representation of current value
       /// @return Returns a string representation of current value.
       string get();

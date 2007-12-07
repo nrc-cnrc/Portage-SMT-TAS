@@ -26,6 +26,7 @@ Postprocessor::Postprocessor(const string& tgtlang, bool verbose) :
    if (close(mkstemp(tmp)))
       error(ETFatal, "Unable to create temp file in Postprocessor");
    tempfile = tmp;
+   
    if (tgtlang == "en") {
       cmd = "detokenize.pl -lang=en > " + tempfile;
    } else if (tgtlang == "fr") {

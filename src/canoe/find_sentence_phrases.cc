@@ -13,8 +13,8 @@
 #include <file_utils.h>
 #include <cmath>
 #include <arg_reader.h>
-#include <basicmodel.h>
 #include <tm_io.h>
+#include <basicmodel.h>
 #include "inputparser.h"
 #include <printCopyright.h>
 
@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
                         error(ETWarn, "can't find phrase pair in phrasetable: %s ||| %s",
                               src.c_str(), tgt.c_str());
                   }
-                  if (trans && tscore.forward.size() == 0)
+                  if (trans && tscore.forward.empty())
                      error(ETFatal, "no forward probabilities for phrase pair: %s ||| %s",
                            src.c_str(), tgt.c_str());
                   if (trans)
@@ -169,7 +169,7 @@ int main(int argc, char* argv[])
 
 void getArgs(int argc, char* argv[])
 {
-   const char* const switches[] = {"v", "w", "l", "s", "g",  "n:", "forward:"};
+   const char* switches[] = {"v", "w", "l", "s", "g",  "n:", "forward:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 2, 4, help_message);
    arg_reader.read(argc-1, argv+1);
 

@@ -15,7 +15,6 @@
  * Copyright 2004, Her Majesty in Right of Canada
  */
 
-#include "phrasedecoder_model.h"
 #include "basicmodel.h"
 #include "backwardsmodel.h"
 #include "phrasetable.h"
@@ -51,21 +50,23 @@ bool MarkedTranslation::operator==(const MarkedTranslation &b) const
 
 void BasicModelGenerator::InitDecoderFeatures(const CanoeConfig& c)
 {
-   if ( c.distModelName != "none" ) {
-      decoder_features.push_back(DecoderFeature::create(this, "DistortionModel",
-                                                        c.distModelName, c.distModelArg));
-      featureWeightsV.push_back(c.distWeight[0]);
-   } else {
+   if ( c.distortionModel.empty() )
       cerr << "Not using any distortion model" << endl;
+   for ( Uint i(0); i < c.distortionModel.size(); ++i ) {
+      if (c.distortionModel[i] != "none") {
+         decoder_features.push_back(DecoderFeature::create(this,
+            "DistortionModel", c.distortionModel[i], ""));
+         featureWeightsV.push_back(c.distWeight[i]);
+      }
    }
 
    decoder_features.push_back(DecoderFeature::create(this,
       "LengthFeature", "", ""));
    featureWeightsV.push_back(c.lengthWeight);
 
-   if ( c.segModelName != "none" ) {
+   if ( c.segmentationModel != "none" ) {
       decoder_features.push_back(DecoderFeature::create(this,
-         "SegmentationModel", c.segModelName, c.segModelArgs));
+         "SegmentationModel", c.segmentationModel, ""));
       featureWeightsV.push_back(c.segWeight[0]);
    } else {
       // This is the default - no need to warn!
@@ -143,16 +144,14 @@ BasicModelGenerator* BasicModelGenerator::create(
 
 BasicModelGenerator::BasicModelGenerator(const CanoeConfig& c,
                                          PhraseTable *phraseTable) :
+   c(&c),
    verbosity(c.verbosity),
    phraseTable(phraseTable),
    limitPhrases(false),
    numTextTransWeights(0),
    lm_numwords(1),
-   bypassMarked(c.bypassMarked),
-   addWeightMarked(log(c.weightMarked)),
-   phraseTableSizeLimit(c.phraseTableSizeLimit),
-   phraseTableThreshold(c.phraseTableThreshold),
-   distLimit(c.distLimit)
+   futureScoreLMHeuristic(lm_heuristic_type_from_string(c.futLMHeuristic)),
+   addWeightMarked(log(c.weightMarked))
 {
    if ( this->phraseTable == NULL ) {
       this->phraseTable = new PhraseTable(tgt_vocab, c.phraseTablePruneType.c_str());
@@ -164,40 +163,34 @@ BasicModelGenerator::BasicModelGenerator(
    const CanoeConfig &c,
    const vector<vector<string> > &src_sents,
    const vector<vector<MarkedTranslation> > &marks,
-   PhraseTable *phraseTable):
+   PhraseTable *_phraseTable
+) :
+   c(&c),
    verbosity(c.verbosity),
-   phraseTable(phraseTable),
+   phraseTable(_phraseTable),
    limitPhrases(!c.loadFirst),
    numTextTransWeights(0),
    lm_numwords(1),
-   bypassMarked(c.bypassMarked),
-   addWeightMarked(log(c.weightMarked)),
-   phraseTableSizeLimit(c.phraseTableSizeLimit),
-   phraseTableThreshold(c.phraseTableThreshold),
-   distLimit(c.distLimit)
+   addWeightMarked(log(c.weightMarked))
 {
    if ( this->phraseTable == NULL ) {
       this->phraseTable = new PhraseTable(tgt_vocab, c.phraseTablePruneType.c_str());
    }
-   InitDecoderFeatures(c);
    if (limitPhrases)
    {
       // Enter all source phrases into the phrase table, and into the vocab
       // in case they are OOVs we need to copy through to the output.
-      for ( vector<vector<string> >::const_iterator it = src_sents.begin(); it !=
-            src_sents.end(); ++it)
+      for ( vector<vector<string> >::const_iterator it = src_sents.begin();
+            it != src_sents.end(); ++it)
       {
          const char *s[it->size()];
-         for (Uint i = 0; i < it->size(); i++)
-         {
+         for (Uint i = 0; i < it->size(); i++) {
             s[i] = (*it)[i].c_str();
             tgt_vocab.add(s[i]);
          } // for
 
          for (Uint i = 0; i < it->size(); i++)
-         {
             this->phraseTable->addPhrase(s + i, it->size() - i);
-         }
       }
 
       // Add target words from marks to the vocab
@@ -215,6 +208,8 @@ BasicModelGenerator::BasicModelGenerator(
          }
       }
    }
+
+   InitDecoderFeatures(c);
 } // BasicModelGenerator::BasicModelGenerator()
 
 BasicModelGenerator::~BasicModelGenerator()
@@ -290,6 +285,7 @@ void BasicModelGenerator::addMultiProbTransModel(
 
    const Uint multi_prob_col_count =
       phraseTable->countProbColumns(multi_prob_tm_file);
+   assert(multi_prob_tm_file != NULL);
    if ( backward_weights.size() * 2 != multi_prob_col_count )
       error(ETFatal, "wrong number of backward weights (%d) for %s",
             backward_weights.size(), multi_prob_tm_file);
@@ -311,7 +307,7 @@ void BasicModelGenerator::addMultiProbTransModel(
 }
 
 void BasicModelGenerator::addLanguageModel(const char *lmFile, double weight,
-    Uint limit_order, ostream *const os_filtered)
+   Uint limit_order, ostream *const os_filtered)
 {
    if (!PLM::check_file_exists(lmFile))
       error(ETFatal, "Cannot read from language model file %s", lmFile);
@@ -355,7 +351,7 @@ PhraseDecoderModel *BasicModelGenerator::createModel(
          it != decoder_features.end(); ++it)
       (*it)->newSrcSent(src_sent, phrases);
 
-   for(Uint i=0;i<lms.size();++i)
+   for (Uint i=0;i<lms.size();++i)
       lms[i]->clearCache();
 
    double **futureScores = precomputeFutureScores(phrases, src_sent.size());
@@ -382,8 +378,8 @@ vector<PhraseInfo *> **BasicModelGenerator::createAllPhraseInfos(
    sort(rangesToSkip.begin(), rangesToSkip.end());
 
    phraseTable->getPhraseInfos(result, src_sent, transWeightsV,
-      phraseTableSizeLimit, log(phraseTableThreshold), rangesToSkip, verbosity,
-      (forwardWeightsV.empty() ? NULL : &forwardWeightsV));
+      c->phraseTableSizeLimit, log(c->phraseTableThreshold), rangesToSkip,
+      verbosity, (forwardWeightsV.empty() ? NULL : &forwardWeightsV));
 
    // Use an iterator to go through the ranges to skip, so that we avoid these
    // when creating default translations
@@ -394,7 +390,7 @@ vector<PhraseInfo *> **BasicModelGenerator::createAllPhraseInfos(
       while (rangeIt != rangesToSkip.end() && rangeIt->end <= i)
          rangeIt++;
 
-      if ( ( result[i][0].size() == 0 &&
+      if ( ( result[i][0].empty() &&
              (rangeIt == rangesToSkip.end() || i < rangeIt->start) )
            || alwaysTryDefault )
       {
@@ -452,10 +448,15 @@ void BasicModelGenerator::addMarkedPhraseInfos(
 
       // If bypassMarked option isn't being used, remember to skip this phrase
       // when looking for normal phrase options
-      if (!bypassMarked)
+      if (!c->bypassMarked)
          rangesToSkip.push_back(it->src_words);
    } // for
 } // addMarkedPhraseInfos
+
+// Note that we use LOG_ALMOST_0 here and not PhraseTable::log_almost_0, as the
+// latter is intended to be the value assigned by phrasetables to entries that
+// occur exlusively in other phrasetables. Here we are dealing with source
+// phrases that have no translations in any tables.
 
 PhraseInfo *BasicModelGenerator::makeNoTransPhraseInfo(
    const Range &range, const char *word)
@@ -510,12 +511,40 @@ double **BasicModelGenerator::precomputeFutureScores(
                transWeightsV, transWeightsV.size());
 
             // Add unigram LM score
-            for ( Phrase::const_iterator jt = (*it)->phrase.begin();
-                  jt != (*it)->phrase.end(); ++jt ) {
-               for (Uint k = 0; k < lmWeightsV.size(); k++) {
-                  newScore += lms[k]->wordProb(*jt, NULL, 0) * lmWeightsV[k];
+            if ( futureScoreLMHeuristic == LMH_UNIGRAM ) {
+               // Our old way: use the unigram LM score
+               for ( Phrase::const_iterator jt = (*it)->phrase.begin();
+                     jt != (*it)->phrase.end(); ++jt ) {
+                  for (Uint k = 0; k < lmWeightsV.size(); k++) {
+                     newScore += lms[k]->wordProb(*jt, NULL, 0) * lmWeightsV[k];
+                  }
                }
-            }
+            } else if ( futureScoreLMHeuristic == LMH_INCREMENTAL ) {
+               // The "incremental" heuristic does unigram prob for the first
+               // word, bigram prob for the second, etc, and LM-order-gram prob
+               // until the end.
+               Uint phrase_size((*it)->phrase.size());
+               Uint reversed_phrase[phrase_size];
+               for ( Uint i(0); i < phrase_size; ++i )
+                  reversed_phrase[i] = (*it)->phrase[phrase_size - i - 1];
+               for ( Uint j(0); j < lms.size(); ++j )
+                  for ( Uint i(0); i < phrase_size; ++i )
+                     newScore += lms[j]->wordProb(reversed_phrase[i],
+                                 &(reversed_phrase[i+1]), phrase_size-i-1)
+                               * lmWeightsV[j];
+            } else if ( futureScoreLMHeuristic == LMH_SIMPLE ) {
+               // The "simple" heuristic is admissible by ignoring words with
+               // insufficient context
+               Uint phrase_size((*it)->phrase.size());
+               Uint reversed_phrase[phrase_size];
+               for ( Uint i(0); i < phrase_size; ++i )
+                  reversed_phrase[i] = (*it)->phrase[phrase_size - i - 1];
+               for ( Uint j(0); j < lms.size(); ++j )
+                  for ( Uint i(0); i < phrase_size - (lms[j]->getOrder()-1); ++i )
+                     newScore += lms[j]->wordProb(reversed_phrase[i],
+                                 &(reversed_phrase[i+1]), phrase_size-i-1)
+                               * lmWeightsV[j];
+            } // else LMH==NONE: nothing to do!
 
             // Other feature scores
             for (Uint k = 0; k < decoder_features.size(); k++) {
@@ -566,6 +595,15 @@ double **BasicModelGenerator::precomputeFutureScores(
    }
    return result;
 } // precomputeFutureScores
+
+BasicModelGenerator::LMHeuristicType BasicModelGenerator::lm_heuristic_type_from_string(const string& s)
+{
+   if      ( s == "none" )          return LMH_NONE;
+   else if ( s == "unigram" )       return LMH_UNIGRAM;
+   else if ( s == "incremental" )   return LMH_INCREMENTAL;
+   else if ( s == "simple" )        return LMH_SIMPLE;
+   else { assert(false); return LMH_NONE; }
+}
 
 void BasicModelGenerator::getRawLM(
    vector<double> &lmVals,
@@ -737,9 +775,9 @@ BasicModel::BasicModel(const vector<string> &src_sent,
                        vector<PhraseInfo *> **phrases,
                        double **futureScore,
                        BasicModelGenerator &parent) :
-   src_sent(src_sent), lmWeights(parent.lmWeightsV),
+   c(parent.c), src_sent(src_sent), lmWeights(parent.lmWeightsV),
    transWeights(parent.transWeightsV), forwardWeights(parent.forwardWeightsV),
-   featureWeights(parent.featureWeightsV), distLimit(parent.distLimit),
+   featureWeights(parent.featureWeightsV),
    phrases(phrases), futureScore(futureScore), parent(parent) {}
 
 BasicModel::~BasicModel()
@@ -783,7 +821,8 @@ double BasicModel::scoreTranslation(const PartialTranslation &trans, Uint verbos
    if (verbosity >= 3) cerr << "\tforward trans score " << forwardScore << endl;
 
    // LM score
-   vector<double> lmVals;
+   static vector<double> lmVals;
+   lmVals.clear();
    parent.getRawLM(lmVals, trans);
    const double lmScore = dotProduct(lmVals, lmWeights, lmWeights.size());
    if (verbosity >= 3) cerr << "\tlanguage model score " << lmScore << endl;
@@ -805,8 +844,6 @@ double BasicModel::scoreTranslation(const PartialTranslation &trans, Uint verbos
  * are in ascending order.
  * @param trans   The translation to score
  * @return        The incremental log future-probability.
- *
- * TODO: incorporate new distortion model score into this
  */
 double BasicModel::computeFutureScore(const PartialTranslation &trans)
 {
@@ -819,6 +856,10 @@ double BasicModel::computeFutureScore(const PartialTranslation &trans)
    // distortion limit.  I am confident however that there is an iff condition
    // that could be checked in O(trans.sourceWordsNotCovered.size()).
 
+   // EJJ, Nov 2007:
+   // The distortion limit test is now done when considering candidate phrase,
+   // so it is no longer necessary to do it again here.
+
    double precomputedScore = 0;
    Uint lastEnd = trans.lastPhrase->src_words.end;
    for (UintSet::const_iterator it = trans.sourceWordsNotCovered.begin(); it !=
@@ -827,13 +868,6 @@ double BasicModel::computeFutureScore(const PartialTranslation &trans)
       assert(it->start < it->end);
       assert(it->end <= src_sent.size());
       precomputedScore += futureScore[it->start][it->end - it->start - 1];
-      if (distLimit != NO_MAX_DISTORTION &&
-            abs((int)lastEnd - (int)it->start) > distLimit)
-      {
-         // May not be possible to finish this translation without violating
-         // distortion limit, so return -INFINITY.
-         return -INFINITY;
-      } // if
       lastEnd = it->end;
    } // for
 
@@ -851,7 +885,10 @@ Uint BasicModel::computeRecombHash(const PartialTranslation &trans)
 {
    // This might overflow result, but who cares.
    Uint result = 0;
-   Phrase endPhrase;
+   // make this endPhrase static so we don't have to reallocate this vector
+   // millions of times.  (this method gets called ridiculously often...)
+   static Phrase endPhrase;
+   endPhrase.clear();
    trans.getLastWords(endPhrase, parent.lm_numwords - 1);
    for (Phrase::const_iterator it = endPhrase.begin();
          it != endPhrase.end(); it++)
@@ -911,7 +948,7 @@ void BasicModel::getFeatureFunctionVals(vector<double> &vals,
 void BasicModel::getTotalFeatureFunctionVals(vector<double> &vals,
         const PartialTranslation &trans)
 {
-   assert(vals.size() == 0);
+   assert(vals.empty());
    getFeatureFunctionVals(vals, trans);
    if (trans.back != NULL) {
       vector<double> last;

@@ -18,10 +18,12 @@
 #include <iomanip>
 #include <sstream>
 #include <logging.h>
+#include <lm.h>
 
 using namespace Portage;
 
-CanoeConfig::CanoeConfig() {
+CanoeConfig::CanoeConfig()
+{
 
    // Default parameter values. WARNING: changing these has impacts on
    // canoe.cc, phrase_tm_align.cc, and portage_api.cc.  Change with care, and
@@ -34,7 +36,7 @@ CanoeConfig::CanoeConfig() {
    //multiProbTMFiles;
    //lmFiles;
    lmOrder                = 0;
-   distWeight.push_back(1.0);
+   //distWeight.push_back(1.0);
    lengthWeight           = 0.0;
    // segWeight
    //lmWeights;
@@ -50,10 +52,9 @@ CanoeConfig::CanoeConfig() {
    covLimit               = 0;
    covThreshold           = 0.0;
    distLimit              = NO_MAX_DISTORTION;
-   distModelName          = "WordDisplacement";
-   distModelArg           = "";
-   segModelName           = "none";
-   segModelArgs           = "";
+   //distortionModel        = ("WordDisplacement");
+   segmentationModel      = "none";
+   obsoleteSegModelArgs   = "";
    bypassMarked           = false;
    weightMarked           = 1;
    oov                    = "pass";
@@ -71,16 +72,21 @@ CanoeConfig::CanoeConfig() {
    firstSentNum           = 0;
    backwards              = false;
    loadFirst              = false;
+   futLMHeuristic         = "incremental";
 
    // Parameter information, used for input and output. NB: doesn't necessarily
    // correspond 1-1 with actual parameters, as one ParamInfo can set several
    // parameters:
 
    param_infos.push_back(ParamInfo("config f", "string", &configFile));
-   param_infos.push_back(ParamInfo("ttable-file-t2s ttable-file-n2f", "stringVect", &forPhraseFiles));
-   param_infos.push_back(ParamInfo("ttable-file-s2t ttable-file ttable-file-f2n", "stringVect", &backPhraseFiles));
-   param_infos.push_back(ParamInfo("ttable-multi-prob", "stringVect", &multiProbTMFiles));
-   param_infos.push_back(ParamInfo("lmodel-file", "stringVect", &lmFiles));
+   param_infos.push_back(ParamInfo("ttable-file-t2s ttable-file-n2f", "stringVect", &forPhraseFiles,
+      ParamInfo::relative_path_modification | ParamInfo::check_file_name));
+   param_infos.push_back(ParamInfo("ttable-file-s2t ttable-file ttable-file-f2n", "stringVect", &backPhraseFiles,
+      ParamInfo::relative_path_modification | ParamInfo::check_file_name));
+   param_infos.push_back(ParamInfo("ttable-multi-prob", "stringVect", &multiProbTMFiles,
+      ParamInfo::relative_path_modification | ParamInfo::check_file_name));
+   param_infos.push_back(ParamInfo("lmodel-file", "stringVect", &lmFiles,
+      ParamInfo::relative_path_modification | ParamInfo::lm_check_file_name));
    param_infos.push_back(ParamInfo("lmodel-order", "Uint", &lmOrder));
    param_infos.push_back(ParamInfo("weight-d d", "doubleVect", &distWeight));
    param_infos.push_back(ParamInfo("weight-w w", "double", &lengthWeight));
@@ -98,9 +104,9 @@ CanoeConfig::CanoeConfig() {
    param_infos.push_back(ParamInfo("cov-limit", "Uint", &covLimit));
    param_infos.push_back(ParamInfo("cov-threshold", "double", &covThreshold));
    param_infos.push_back(ParamInfo("distortion-limit", "int", &distLimit));
-   param_infos.push_back(ParamInfo("distortion-model", "dm", &distModelName));
-   param_infos.push_back(ParamInfo("segmentation-model", "string", &segModelName));
-   param_infos.push_back(ParamInfo("segmentation-args", "string", &segModelArgs));
+   param_infos.push_back(ParamInfo("distortion-model", "stringVect", &distortionModel));
+   param_infos.push_back(ParamInfo("segmentation-model", "string", &segmentationModel));
+   param_infos.push_back(ParamInfo("segmentation-args", "string", &obsoleteSegModelArgs));
    param_infos.push_back(ParamInfo("bypass-marked", "bool", &bypassMarked));
    param_infos.push_back(ParamInfo("weight-marked", "double", &weightMarked));
    param_infos.push_back(ParamInfo("oov", "string", &oov));
@@ -115,12 +121,13 @@ CanoeConfig::CanoeConfig() {
    param_infos.push_back(ParamInfo("first-sentnum", "Uint", &firstSentNum));
    param_infos.push_back(ParamInfo("backwards", "bool", &backwards));
    param_infos.push_back(ParamInfo("load-first", "bool", &loadFirst));
+   param_infos.push_back(ParamInfo("future-score-lm-heuristic", "string", &futLMHeuristic));
 
    // List of all parameters that correspond to weights. ORDER IS SIGNIFICANT
    // and must match the order in BasicModelGenerator::InitDecoderFeatures().
    // New entries should be added immediately before "lm".
 
-   const char* const weight_names[] = {"d", "w", "sm", "lm", "tm", "ftm"};
+   const char* weight_names[] = {"d", "w", "sm", "lm", "tm", "ftm"};
    weight_params.assign(weight_names, weight_names + ARRAY_SIZE(weight_names));
 
    for (Uint i = 0; i < param_infos.size(); ++i) {
@@ -175,11 +182,6 @@ void CanoeConfig::ParamInfo::set(const string& str)
       splitCheckZ(s, *(vector<Uint>*)val, ":");
    } else if (tconv == "doubleVect") {
       splitCheckZ(s, *(vector<double>*)val, ":");
-   } else if (tconv == "dm") {	// distortion model params
-      vector<string> toks;
-      split(s, toks, ":", 2);
-      c->distModelName = toks[0];
-      if (toks.size() == 2) c->distModelArg = toks[1];
    } else if (tconv == "lat") {	// lattice params
       c->latticeFilePrefix = s;
       c->latticeOut = (c->latticeFilePrefix != "");
@@ -220,9 +222,6 @@ string CanoeConfig::ParamInfo::get() {
    } else if (tconv == "doubleVect") {
       vector<double>& v = *(vector<double>*)val;
       ss << join<double>(v.begin(), v.end(), ":", precision);
-   } else if (tconv == "dm") {	// distortion model params
-      ss << c->distModelName;
-      if (c->distModelArg != "") ss << ":" << c->distModelArg;
    } else if (tconv == "lat") {	// lattice params
       ss << c->latticeFilePrefix;
    } else if (tconv == "nb") {	// nbest list params
@@ -294,6 +293,56 @@ static bool getValue(istream& configin, string& val)
    return val.length() > 0;
 }
    
+/**
+ * Callable Entity used to modify the LMs and TMs file path according to the
+ * location of the canoe.ini file to which they belong.
+ */
+struct extendFileName
+{
+   const string remoteDirName;  ///< Path of the canoe.ini
+
+   /**
+    * Default constructor.
+    * @param d  path of the canoe.ini
+    */
+   extendFileName(const string& d) : remoteDirName(d) {}
+   
+   /**
+    * Transforms file name and path in accordance to the location of the
+    * canoe.ini to which they belong.  Allows us to run remote canoes.
+    * @param file LM or TM file name to modify
+    */
+   void operator()(string& file) {
+      // extends the path only if it's not an absolute path
+      if (!file.empty() && file[0] != '/')
+         file = remoteDirName + "/" + file;
+   }
+};
+
+void CanoeConfig::read(const char* configFile) {
+   IMagicStream cfg(configFile);
+   read(cfg);
+
+   char* tmp = strdup(configFile);
+   extendFileName efn(DirName(tmp));
+   free(tmp);
+   
+   // Modifying filepath for canoe.relative
+   if (efn.remoteDirName != ".") {
+      // Look through param_info and see which one needs their path modified
+      typedef vector<ParamInfo>::iterator  IT;
+      for (IT it(param_infos.begin()); it!=param_infos.end(); ++it) {
+         if (it->groups & ParamInfo::relative_path_modification) {
+            if (it->tconv == "stringVect") {
+               vector<string>& v = *((vector<string>*)(it->val));
+               for_each(v.begin(), v.end(), efn);
+               if (false) copy(v.begin(), v.end(), ostream_iterator<string>(cerr, "\n"));
+            }
+         }
+      }
+   }
+}
+
 void CanoeConfig::read(istream& configin)
 {
    while (true) {
@@ -335,12 +384,25 @@ void CanoeConfig::read(istream& configin)
 
 void CanoeConfig::check()
 {
+   // Before checking the integrity of the config, we must make sure all files
+   // are valid.
+   check_all_files();
+
    // Set defaults:
 
-   if (distWeight.empty() && distModelName != "none")
-      distWeight.push_back(1.0);
+   if (distortionModel.empty())
+      distortionModel.push_back("WordDisplacement");
+   else if (distortionModel[0] == "none")
+      distortionModel.clear();
 
-   if (segWeight.empty() && segModelName != "none")
+   if (distWeight.empty() && !distortionModel.empty())
+      distWeight.assign(distortionModel.size(), 1.0);
+
+   // Check if the user didn't write in his config none#somearg which is
+   // actually simply none
+   if (isPrefix("none#", segmentationModel.c_str()))
+      segmentationModel = "none";
+   if (segWeight.empty() && segmentationModel != "none")
       segWeight.push_back(1.0);
 
    if (lmWeights.empty())
@@ -361,14 +423,14 @@ void CanoeConfig::check()
    if (backPhraseFiles.empty() && multiProbTMFiles.empty())
       error(ETFatal, "No phrase table file specified.");
 
-   if (distWeight.size() > 0 && distModelName == "none") {
-      error(ETWarn, "You can't specify a distortion weight when using no distortion model - ignoring it");
-      distWeight.clear();
-   }
-   if (segWeight.size() > 0 && segModelName == "none") {
+   if (distWeight.size() != distortionModel.size())
+      error(ETFatal, "Number of distortion models does not match number of distortion model weights.");
+   if (segWeight.size() > 0 && segmentationModel == "none") {
       error(ETWarn, "You can't specify a segmentation weight when using no segmentation model - ignoring it");
       segWeight.clear();
    }
+   if (obsoleteSegModelArgs != "")
+      error(ETFatal, "-segmentation-model-args is an obsolete option - use -segmentation-model model#args instead.");
 
    if (lmWeights.size() != lmFiles.size())
       error(ETFatal, "Number of language model weights does not match number of language model files.");
@@ -389,22 +451,49 @@ void CanoeConfig::check()
    //   error(ETWarn, "Both -bypass-marked and -weight-marked found.  Only doing -bypass-marked");
    if (phraseTableSizeLimit != NO_SIZE_LIMIT && forPhraseFiles.empty() && multiProbTMFiles.empty())
       error(ETWarn, "Doing phrase table pruning without forward translation model.");
+
+   if ( futLMHeuristic != "none" && futLMHeuristic != "unigram" && futLMHeuristic != "incremental" && futLMHeuristic != "simple" )
+      error(ETFatal, "future-score-lm-heuristic must be one of: 'none', 'unigram', 'incremental', or 'simple'");
+
 }
 
 void CanoeConfig::check_all_files() const
 {
    bool ok = true;
-   vector<string> allfiles;
-   allfiles.insert(allfiles.end(), backPhraseFiles.begin(), backPhraseFiles.end());
-   allfiles.insert(allfiles.end(), forPhraseFiles.begin(), forPhraseFiles.end());
-   allfiles.insert(allfiles.end(), multiProbTMFiles.begin(), multiProbTMFiles.end());
-   allfiles.insert(allfiles.end(), lmFiles.begin(), lmFiles.end());
-   for (Uint i = 0; i < allfiles.size(); ++i) {
-      if (!check_if_exists(allfiles[i])) {
-         cerr << "can't access: " << allfiles[i] << endl;
-         ok = false;
+   
+   // Look through param_info and see which ones need their path modified
+   typedef vector<ParamInfo>::const_iterator  IT;
+   for (IT it(param_infos.begin()); it!=param_infos.end(); ++it) {
+      if (it->groups & ParamInfo::check_file_name) {
+         if (it->tconv == "stringVect") {
+            vector<string>& v = *((vector<string>*)(it->val));
+            for (vector<string>::const_iterator f(v.begin()); f!=v.end(); ++f) {
+               if (!check_if_exists(*f) && f->find("<src>")>=f->size()) {
+                  cerr << "can't access: " << *f << endl;
+                  ok = false;
+               }
+            }
+         }
+         else if (it->tconv == "string") {
+            const string& f = *(string*)(it->val);
+            if (!f.empty() && !check_if_exists(f) && f.find("<src>")>=f.size()) {
+               cerr << "can't access: " << f << endl;
+               ok = false;
+            }
+         }
+      }
+      else if (it->groups & ParamInfo::lm_check_file_name) {
+         assert(it->tconv == "stringVect");
+         vector<string>& v = *((vector<string>*)(it->val));
+         for (vector<string>::const_iterator f(v.begin()); f!=v.end(); ++f) {
+            if (!PLM::check_file_exists(*f)) {
+               cerr << "can't access lm: " << *f << endl;
+               ok = false;
+            }
+         }
       }
    }
+   
    // On error, exit with error status so this check can be used in scripts
    if (!ok) exit(1);
 }

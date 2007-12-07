@@ -7,7 +7,7 @@
  *
  * Translation Probability Calculator
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -29,9 +29,6 @@ const translationProb::Prob translationProb::Parcouru::NOT_SEEN(-1.0f);
 
 /// Definition for an iterator over a vector of DecoderStates.
 typedef VDS::const_iterator dsIT;
-/// Definition for an iterator over a vector of Token.
-typedef TOKENS::iterator Tit;
-
 
 
 /**
@@ -40,11 +37,10 @@ typedef TOKENS::iterator Tit;
  * @param[in] sub   the suffix we are looking for.
  * @return  Returns true if sub is a suffix of sent.
  */
-bool containsSubString(const TOKENS& sent, const TOKENS& sub)
+static bool containsSubString(const vector<Uint>& sent, const Phrase& sub)
 {
-   typedef TOKENS::const_reverse_iterator RIT;
-   RIT s(sent.rbegin());
-   RIT t(sub.rbegin());
+   vector<Uint>::const_reverse_iterator s(sent.rbegin());
+   Phrase::const_reverse_iterator t(sub.rbegin());
    unsigned int count(0);
    while (s!=sent.rend() && t!=sub.rend() && (*s) == (*t)) {
       ++s;
@@ -56,7 +52,7 @@ bool containsSubString(const TOKENS& sent, const TOKENS& sub)
 }
 
 
-double translationProb::recursion(TOKENS tokens, const DecoderState * const ds, Parcouru& vu, const SuffixLength& sl) const
+double translationProb::recursion(vector<Uint> tokens, const DecoderState * const ds, Parcouru& vu, const SuffixLength& sl) const
 {
    // We've not already seen this state
    const Prob dejaVu = vu.find(ds->id, sl);
@@ -86,7 +82,7 @@ double translationProb::recursion(TOKENS tokens, const DecoderState * const ds, 
    for (dsIT it(ds->recomb.begin()); it != ds->recomb.end(); ++it)
       prob += recursion(tokens, *it, vu, sl);
 
-   const TOKENS& lastPhrase(ds->trans->lastPhrase->phrase);
+   const Phrase& lastPhrase(ds->trans->lastPhrase->phrase);
    Length phraseLength(lastPhrase.size());
    Length sentenceLength(tokens.size());
    assert(phraseLength > 0);
@@ -126,7 +122,7 @@ void translationProb::find(const string& filename, const VDS& finalStates, const
       getline(input, hypothese);
       Prob probHypothese(0.0f);
       if (hypothese.size() > 0) {
-         TOKENS tokens;
+         vector<Uint> tokens;
          getTokens(hypothese, tokens);
          
          Parcouru vu;
@@ -147,7 +143,7 @@ void translationProb::find(const string& filename, const VDS& finalStates, const
 }
 
 
-void translationProb::getTokens(const string& hypothese, TOKENS& tokens) const
+void translationProb::getTokens(const string& hypothese, vector<Uint>& tokens) const
 {
    typedef vector<string> WORDS;
    typedef WORDS::const_iterator WIT;
