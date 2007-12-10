@@ -153,61 +153,48 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
    if (c.latticeOut)
    {
       // Create file names
-      int fileNameLen = c.latticeFilePrefix.length() + 1 + max(1+(int)log10((float)num), 4);
-      char curLatticeFile[fileNameLen + 1];
-      char curCoverageFile[fileNameLen + strlen(".state") + 1];
-      sprintf(curLatticeFile, "%s.%.4d", c.latticeFilePrefix.c_str(), num);
-      sprintf(curCoverageFile, "%s.%.4d.state", c.latticeFilePrefix.c_str(), num);
+      char  sent_num[7];
+      snprintf(sent_num, 7, ".%.4d", num);
+      const string curLatticeFile  = addExtension(c.latticeFilePrefix, sent_num);
+      const string curCoverageFile = addExtension(c.latticeFilePrefix, string(sent_num) + ".state");
 
       // Open files for output
-      ofstream latticeOut(curLatticeFile);
-      ofstream covOut(curCoverageFile);
-      if (!latticeOut.good())
-      {
-         error(ETWarn, "Could not open lattice file %s for writing.", curLatticeFile);
-      } else if (!covOut.good())
-      {
-         error(ETWarn, "Could not open state file %s for writing.", curCoverageFile);
-      } else
-      {
-         // Produce lattice output
-         const double dMasse = writeWordGraph(&latticeOut, &covOut, print, finalStates, c.backwards, masse);
-         if (masse) {
-            fprintf(stderr, "Weight for sentence(%4.4d): %32.32g\n", num, dMasse);
-            masse = false;
-         }
+      OMagicStream latticeOut(curLatticeFile);
+      OMagicStream covOut(curCoverageFile);
+      // Produce lattice output
+      const double dMasse = writeWordGraph(&latticeOut, &covOut, print, finalStates, c.backwards, masse);
+      if (masse) {
+         fprintf(stderr, "Weight for sentence(%4.4d): %32.32g\n", num, dMasse);
+         masse = false;
       }
    } // if
 
    if (c.nbestOut) {
-      const string nbsuff("best");
-      const string ffsuff(".ffvals");
-      const string palsuff(".pal");
+      const Uint buffer_size = 31;
+      char  sent_num[buffer_size+1];
+      snprintf(sent_num, buffer_size, ".%.4d.", num);
+      ostringstream ext;
+      ext << sent_num << c.nbestSize << "best";
+      const string curNbestFile  = addExtension(c.nbestFilePrefix, ext.str());
 
-      int fileNameLen = c.nbestFilePrefix.length() + 1
-         + max(1+(int)log10((float)num), 4) + 1
-         + max(1+(int)log10((float)c.nbestSize), 3)
-         + nbsuff.length();
+      string curFfvalsFile;
+      if (c.ffvals) curFfvalsFile = addExtension(curNbestFile, ".ffvals");
 
-      char curNbestFile[fileNameLen + 1];
-      char curFfvalsFile[fileNameLen + ffsuff.length() + 1];
-      char curPALFile[fileNameLen + palsuff.length() + 1];
-      sprintf(curNbestFile, "%s.%.4d.%d%s", c.nbestFilePrefix.c_str(), num, c.nbestSize, nbsuff.c_str());
-      sprintf(curFfvalsFile, "%s%s", curNbestFile, ffsuff.c_str());
-      sprintf(curPALFile, "%s%s", curNbestFile, palsuff.c_str());
+      string curPALFile;
+      if (c.trace) curPALFile = addExtension(curNbestFile, ".pal");
 
       lattice_overlay  theLatticeOverlay(
          finalStates.begin(), finalStates.end(), model );
       if (c.ffvals || c.trace) {
          std::string  cmd = "| nbest2rescore.pl";
-         if (c.ffvals) cmd += " -ffout=" + (string)curFfvalsFile;
-         if (c.trace) cmd += " -palout=" + (string)curPALFile;
-         cmd += " > " + (string)curNbestFile;
+         if (c.ffvals) cmd += " -ffout=" + curFfvalsFile;
+         if (c.trace) cmd += " -palout=" + curPALFile;
+         cmd += " > " + curNbestFile;
 
          OMagicStream pipe(cmd.c_str());
          print_nbest( theLatticeOverlay, pipe, c.nbestSize, print, c.backwards );
       } else {
-         print_nbest( theLatticeOverlay, ( string ) curNbestFile,
+         print_nbest( theLatticeOverlay, curNbestFile,
             c.nbestSize, print, c.backwards );
       }
    }
