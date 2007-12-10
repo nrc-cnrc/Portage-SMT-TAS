@@ -49,6 +49,6 @@ namespace Portage
          return -info.score();
       }
    };
-};
+}
 
 #endif   // __STRATEGY_BLEU_H__

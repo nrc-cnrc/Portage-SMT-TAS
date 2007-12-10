@@ -12,7 +12,7 @@
  *
  * The idea is to have a sort of measure of how many source words have not been translated (or been translated badly).
  * 
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group 
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology 
  * Conseil national de recherches Canada / National Research Council Canada 
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
@@ -32,7 +32,7 @@ using namespace Portage;
 namespace Portage
 {
   /// Interface for IBM1Deletion
-  class IBM1DeletionBase: public FeatureFunction {
+  class IBM1DeletionBase : public FeatureFunction {
     private:
       TTableWithMax table;
       double        thr;   ///< threshold for distinguishing between deletions/good translations.
@@ -72,7 +72,7 @@ namespace Portage
       IBM1DeletionSrcGivenTgt(const string &args) : IBM1DeletionBase(args) {}
       
       virtual inline double value(Uint k) {
-	return computeValue((*nbest)[k].getTokens(), (*src_sents)[s].getTokens());
+        return computeValue((*nbest)[k].getTokens(), (*src_sents)[s].getTokens());
       }
   }; // IBM1DeletionSrcGivenTgt
 } // Portage

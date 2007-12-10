@@ -5,7 +5,7 @@
  * $Id$
  *
  * K-Best Rescoring Module
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group 
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l.information / Institute for Information Technology 
  * Conseil national de recherches Canada / National Research Council Canada 
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -21,7 +21,7 @@
 
 using namespace Portage;
 
-NgramFF::NgramFF(const string &args)
+NgramFF::NgramFF(const string& args)
 {
    // The #N, formerly parsed here, is now handled by PLM::Create.
    vocab = new Voc();

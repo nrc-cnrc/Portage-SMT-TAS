@@ -5,7 +5,7 @@
  *
  * $Id$
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -30,33 +30,42 @@ multiColumnFileFF::~multiColumnFileFF()
 
 float multiColumnFileFF::get(const Uint colIdx, const int k)
 {
-   // Are we processing a new line, then fill the array with new values
-   // WHY a while and not an if => because we've hit some empty hypothesis and needs to skip some line to catch up.
+   using namespace std;
+   static bool hasBeenWarned = false;
+
+   // It is an error to ask for previous line
+   // A user can only ask the same last read line or the future ones.
+   assert(k >= m_line);
+
+   // Are we processing a new line, then fill the array with new values.
+   // WHY a while and not an if => because we've hit some empty hypothesis and
+   // needs to skip some line to catch up.
    // Reason: computeFFMatrix skip empty hypothesis.
    while (k > m_line) {
-      std::string line;
-      std::vector<std::string> fields;
+      string line;
       
-      if (std::getline(m_file, line).eof())
+      if (getline(m_file, line).eof())
          error(ETFatal, "Premature end of file while reading ffval");
 
       ++m_line;
-      split(line, fields, " \t\n\r");
-      // assert(fields.size() > 0);
+      if (splitCheckZ(line.c_str(), m_values) > 0) {
+         if (m_expected_size == 0) {
+            m_expected_size = m_values.size();
+         }
+         if (m_expected_size != m_values.size())
+            error(ETFatal, "Multi-column FFVals files with inconsistent number"
+                  " of columns at line %d: expected %d, got %d", 
+                  m_line, m_expected_size, m_values.size());
+      }
+      else {
+         if (!hasBeenWarned) {
+            error(ETWarn, "Suspicious ffvals values, they shouldn't be empty!!");
+            hasBeenWarned = true;
+         }
 
-      /**
-       * Lines can be empty if the whole N-best list is empty which happens for empty input (source) sentences
-       */
-      if (fields.size() == 0)
-        return 0;
-
-      // Should be the first time we read data thus allocate once and for all our vector
-      if (m_values.size() == 0) m_values.resize(fields.size());
-      assert(m_values.size() == fields.size());
-
-      for (unsigned int i(0); i<fields.size(); ++i)
-         if (!conv(fields[i], m_values[i]))
-            error(ETFatal, "can't convert value to a numerical value: %s", fields[i].c_str());
+         m_values.resize(m_expected_size);
+         fill(m_values.begin(), m_values.end(), 0.0f);
+      }
    }
 
    if (colIdx >= m_values.size())

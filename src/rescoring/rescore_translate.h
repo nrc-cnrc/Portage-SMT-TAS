@@ -6,7 +6,7 @@
  *
  * COMMENTS:
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -58,7 +58,6 @@ Options:\n\
       public:
          bool     bVerbose;         ///< Should we display progress
          bool     bIsDynamic;       ///< Are we in dynamic nbest list size
-         bool     bReadAlignments;  ///< Should we read the alignments
          Uint     K;                ///< Number of hypotheses per source
          Uint     S;                ///< Number of sources
          string   ff_pref;          ///< Feature function prefix
@@ -79,7 +78,6 @@ Options:\n\
          , m_dLogger(Logging::getLogger("debug.main.arg"))
          , bVerbose(false)
          , bIsDynamic(false)
-         , bReadAlignments(false)
          , K(0)
          , S(0)
          , ff_pref("")
@@ -94,7 +92,6 @@ Options:\n\
          {
             LOG_DEBUG(m_dLogger, "Verbose: %s", (bVerbose ? "ON" : "OFF"));
             LOG_DEBUG(m_dLogger, "Dynamic: %s", (bIsDynamic ? "ON" : "OFF"));
-            LOG_DEBUG(m_dLogger, "ReadAlignement: %s", (bReadAlignments ? "ON" : "OFF"));
             LOG_DEBUG(m_dLogger, "K: %d", K);
             LOG_DEBUG(m_dLogger, "S: %d", S);
             LOG_DEBUG(m_dLogger, "ff_pref: %s", ff_pref.c_str());
@@ -120,8 +117,6 @@ Options:\n\
          mp_arg_reader->testAndSet(1, "src", src_file);
          mp_arg_reader->testAndSet(2, "nbest", nbest_file);
 
-         bReadAlignments = !alignment_file.empty();
-         
          mp_arg_reader->testAndSet("dyn", bIsDynamic);
          if (!bIsDynamic) {
             const Uint SK = countFileLines(nbest_file);

@@ -61,14 +61,18 @@ void readFFMatrix(istream &in, vector<uMatrix>& vH)
 FileFF::FileFF(const string& filespec)
 : m_column(0)
 {
-   string::size_type idx = filespec.rfind(',');
+   const string::size_type idx = filespec.rfind(',');
    m_filename = filespec.substr(0, idx);
 
    if (idx != string::npos) {
-      string coldesc = filespec.substr(idx+1);
-      if (!conv(coldesc, m_column))
-         error(ETFatal, "can't convert column spec %s to a number", coldesc.c_str());
-      --m_column;  // Convert to 0 based index
+      const string coldesc = filespec.substr(idx+1);
+      if (!conv(coldesc, m_column)) {
+         error(ETWarn, "can't convert column spec %s to a number - %s", coldesc.c_str(),
+               "will assume this is part of the filename");
+         m_column = 0;
+         m_filename = filespec;
+      } else
+         --m_column;  // Convert to 0 based index
    }
 
    m_info = multiColumnFileFFManager::getManager().getUnit(m_filename);
@@ -214,6 +218,7 @@ void FeatureFunctionSet::computeFFMatrix(uMatrix& H, const Uint s, Nbest &nbest)
             nbest[k].getTokens();
          if ((required & FF_NEEDS_ALIGNMENT) && !nbest[k].alignment) // Alignment
             error(ETFatal, "Alignment needed and not found in nbest[%d][%d]\n", s, k);
+
          for (Uint m = 0; m < M(); ++m)
             H(l, m) = ff_infos[m].function->value(k);
          ++l;
@@ -224,7 +229,6 @@ void FeatureFunctionSet::computeFFMatrix(uMatrix& H, const Uint s, Nbest &nbest)
    // read.
    for (Uint m = 0; m < M(); ++m)
       ff_infos[m].function->value(K-1);
-
 
    Nbest::iterator last = remove_if(nbest.begin(), nbest.end(), mem_fun_ref(&Translation::empty));
    assert(Uint(nbest.end()-last) == empty);
@@ -247,9 +251,9 @@ Uint FeatureFunctionSet::read(const string& filename, bool verbose,
 
    // read contents of file
    while (getline(istr, line)) {
+      if (line.empty()) continue;
+      trim(line);
       split(line, toks);
-      if (toks.size() == 0)
-         continue;      // blank lines are ok
       if (toks.size() > 2)
          error(ETFatal, "lines in feature-set file must contain feature name and weight (only)");
 
@@ -314,9 +318,21 @@ bool FeatureFunctionSet::complete()
 {
    bool bRetour(true);
 
-   typedef FF_INFO::iterator IT;
+   typedef vector<ff_info>::iterator IT;
    for (IT it(ff_infos.begin()); it!=ff_infos.end(); ++it) {
       bRetour &= it->function->done();
+   }
+
+   return bRetour;
+}
+
+Uint FeatureFunctionSet::requires()
+{
+   Uint bRetour(0);
+
+   typedef vector<ff_info>::iterator IT;
+   for (IT it(ff_infos.begin()); it!=ff_infos.end(); ++it) {
+      bRetour |= it->function->requires();
    }
 
    return bRetour;
@@ -336,8 +352,6 @@ ptr_FF FeatureFunctionSet::create(const string& name,
                                   bool useNullDeleter)
 {
    FeatureFunction* ff;
-
-   //cerr << "create(name = " << name << ", arg = " << arg << endl;
 
    if (name == "FileFF") {
       const string fileff_arg = fileff_prefix ? fileff_prefix + arg : arg;
@@ -374,6 +388,10 @@ ptr_FF FeatureFunctionSet::create(const string& name,
       ff = new IBM1WTransTgtGivenSrc(arg);
    } else if (name == "IBM1AaronSrcGivenTgt" || name == "IBM1WTransSrcGivenTgt") {
       ff = new IBM1WTransSrcGivenTgt(arg);
+   } else if (name == "IBM1DeletionTgtGivenSrc") {
+      ff = new IBM1DeletionTgtGivenSrc(arg);
+   } else if (name == "IBM1DeletionSrcGivenTgt") {
+      ff = new IBM1DeletionSrcGivenTgt(arg);
    } else {
       error(ETFatal, "Invalid feature function: %s:%s", name.c_str(), arg.c_str());
       return ptr_FF(static_cast<FeatureFunction*>(0), null_deleter<FeatureFunction>());
@@ -385,7 +403,6 @@ ptr_FF FeatureFunctionSet::create(const string& name,
       return ptr_FF(ff);
    }
 }
-
 
 const string& FeatureFunctionSet::help() 
 {
@@ -400,6 +417,8 @@ Features available:\n\
  IBM2SrcGivenTgt:ibm2.src_given_tgt - IBM2 backward probability\n\
  IBM1WTransTgtGivenSrc:ibm1.tgt_given_src - IBM1 check if all words translated\n\
  IBM1WTransSrcGivenTgt:ibm1.src_given_tgt - IBM1 check if no words inserted\n\
+ IBM1DeletionTgtGivenSrc:ibm1.tgt_given_src[#thr] - ratio of del words (p<thr) [0.1]\n\
+ IBM1DeletionSrcGivenTgt:ibm1.src_given_tgt[#thr] - ratio of del words (p<thr) [0.1]\n\
  FileFF:file[,column] - pre-computed feature\n\
  VfileFF:file[,column] - like FileFF, but substitutes any / by _ in file\n\
 \n\

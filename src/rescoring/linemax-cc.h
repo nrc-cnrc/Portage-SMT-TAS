@@ -62,8 +62,8 @@ namespace Portage
    template <class ScoreStats>
    inline void findSentenceIntervals(Uint &numchanges,
          double *& gamma,
-         ScoreStats *&dBLEU,
-         ScoreStats &curBLEU,
+         ScoreStats *& dBLEU,
+         ScoreStats & curBLEU,
          linemaxpt *& myHeappoint,
          const int s,
          const uVector& p,
@@ -143,8 +143,7 @@ namespace Portage
       gamma = new double[K];
       dBLEU = new ScoreStats[K];
       bool found[K]; //array to track sentences we've seen
-      for (Uint i = 0; i < K; i++)
-         found[i] = false;
+      fill(found, found+K, false);
 
       // Find all the cusps along the curve max_{k} (A[k]*x + B[k])
 
@@ -159,7 +158,7 @@ namespace Portage
 
       for (Uint k(0); k<K-1; ++k) {
          if (finite(sortA[k]) && finite(sortA[k+1]) && sortA[k+1] != sortA[k]) {
-            minDA = MIN(minDA, sortA[k+1] - sortA[k]);
+            minDA = min(minDA, sortA[k+1] - sortA[k]);
          } // if
       } // for
 
@@ -172,8 +171,8 @@ namespace Portage
          for (Uint k(0); k<K; ++k) {
             const double x(B(k));
             if (finite(x)) {
-               minB = MIN(minB, x);
-               maxB = MAX(maxB, x);
+               minB = min(minB, x);
+               maxB = max(maxB, x);
             } // if
          } // for
 
@@ -211,7 +210,7 @@ namespace Portage
          }
       }
       // Subtract one here so that it's strictly less than any intersection point.
-      oldgamma = MIN(oldgamma, *std::min_element(pt.begin(), pt.end())) - 1;
+      oldgamma = min(oldgamma, *std::min_element(pt.begin(), pt.end())) - 1;
 
       // Determine argmax_{k} a[k]*oldgamma + b[k]:
 
@@ -242,7 +241,7 @@ namespace Portage
                if ((H(oldk, m) ==  INFINITY && dir(m) < 0) ||
                      (H(oldk, m) == -INFINITY && dir(m) > 0))
                {
-                  newgamma = MIN(newgamma, -p(m) / dir(m));
+                  newgamma = min(newgamma, -p(m) / dir(m));
                   // Find gamma s.t. p_m + dir_m * gamma = 0
                   // The first point where this occurs (under the
                   // conditions in that if statement above) should be
@@ -282,7 +281,7 @@ namespace Portage
                         if ((H(k, m) ==  INFINITY && dir(m) > 0) ||
                               (H(k, m) == -INFINITY && dir(m) < 0))
                         {
-                           curgamma = MAX(curgamma, -p(m) / dir(m));
+                           curgamma = max(curgamma, -p(m) / dir(m));
                            // Find gamma s.t. p_m + dir_m * gamma = 0
                            // The last point where this occurs (under
                            // the conditions in that if statement
@@ -366,9 +365,15 @@ namespace Portage
 
       for (Uint s(0); s<S; ++s) {
          findSentenceIntervals(numchanges[s],
-               gamma[s], dBLEU[s], curBLEU,
-               heappoints[heapsize],
-               s, p, dir, vH[s], bleu[s]);
+                               gamma[s],
+                               dBLEU[s],
+                               curBLEU,
+                               heappoints[heapsize],
+                               s,
+                               p,
+                               dir,
+                               vH[s],
+                               bleu[s]);
          if (heappoints[heapsize] != NULL)
          {
             ++heapsize;
@@ -439,8 +444,7 @@ namespace Portage
             heappoints[heapsize - 1]->i++;
             // Determine whether there is a new point to add to the heap
             // (same s, but i increases)
-            if (heappoints[heapsize - 1]->i < numchanges[heappoints[heapsize - 1]->s])
-            {
+            if (heappoints[heapsize - 1]->i < numchanges[heappoints[heapsize - 1]->s]) {
                // Add point (gamma[s][i], s, i) to the heap
                heappoints[heapsize - 1]->gamma =
                   gamma[heappoints[heapsize - 1]->s][heappoints[heapsize - 1]->i];

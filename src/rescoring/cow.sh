@@ -11,11 +11,14 @@
 # Copyright 2004-2007, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2004-2007, Her Majesty in Right of Canada
 
+COMPRESS_EXT=".gz"
 VERBOSE=
 FILTER=
 RANDOM_INIT=0
 RESUME=
-FLOOR=0
+FLOOR=-1
+NOFLOOR=
+FLOOR_ARG=
 N=200
 CFILE=canoe.ini
 CANOE=canoe
@@ -28,12 +31,12 @@ FFVALPARSER=nbest2rescore.pl
 FFVALPARSER_OPTS="-canoe"
 
 ##
-## Usage: cow.sh [-v] [-resume] [-nbest-list-size N] [-maxiter MAX]
-##        [-filt] [-floor index] [-model MODEL]  [-mad SEED] [-path P]
+## Usage: cow.sh [-v] [-Z] [-resume] [-nbest-list-size N] [-maxiter MAX]
+##        [-filt] [-floor index|-nofloor] [-model MODEL]  [-mad SEED] [-path P]
 ##        [-f CFILE] [-canoe-options CANOE_OPTS] [-parallel[:"PARALLEL_OPTS"]]
 ##        -workdir WORKDIR SFILE RFILE1 RFILE2 .. RFILEn
 ##
-## cow.sh: Canoe Optimize Weights - formerly known as rescoreloop.sh
+## cow.sh: Canoe Optimize Weights
 ##
 ## Does "outer-loop" learning of decoder parameters.  That is, it iteratively
 ## runs the canoe decoder to generate n-best lists with feature function
@@ -43,7 +46,8 @@ FFVALPARSER_OPTS="-canoe"
 ## "rescore-results" after each iteration.
 ##
 ## Options:
-## -v       Verbose output from Canoe (verbose level 1) and rescore_train.
+## -v       Verbose output from canoe (verbose level 1) and rescore_train.
+## -Z       Do not compress the large temporary files in WORKDIR [do].
 ## -resume  Resume a previously interupted run.  Will resume at the decoding
 ##          phase, regardless of where it had previous been interupted.  Results
 ##          are not guaranteed to be the same as if a fresh restart was done.
@@ -55,8 +59,10 @@ FFVALPARSER_OPTS="-canoe"
 ##          -filt does soft filtering: creates smaller phrase tables (forward &
 ##          backward) containing ALL entries that match SFILE, and uses them
 ##          afterwards in place of the original tables.
-## -floor   Index of parameter at which to start zero-flooring.
-##          NB, this is NOT the floor threshold. [0].
+## -floor   Index of parameter at which to start zero-flooring. (0 means all)
+##          NB, this is NOT the floor threshold and cannot be used with nofloor.
+## -nofloor None of the decoder features are floored.  Cannot be used with floor.
+##          One of -floor or -nofloor is required, as there is no good default.
 ## -model   The name of the model file to use.  If this model file already
 ##          exists, it should have only entries FileFF:allffvalsNUM, where
 ##          NUM = 1, .. , number of base ff + number of tms + number of lms.
@@ -168,6 +174,8 @@ while [ $# -gt 0 ]; do
     -path)          arg_check 1 $# $1; PATH="$2:$PATH"; shift;;
     -nbest-list-size) arg_check 1 $# $1; N="$2"; shift;;
     -f)             arg_check 1 $# $1; CFILE="$2"; shift;;
+    -z)             COMPRESS_EXT=".gz";;
+    -Z)             COMPRESS_EXT="";;
     -canoe)         arg_check 1 $# $1; CANOE="$2"; shift;;
     -canoe-options) arg_check 1 $# $1; CANOE_OPTS="$2"; shift;;
     -rescore-train) arg_check 1 $# $1; RTRAIN="$2"; shift;;
@@ -175,6 +183,7 @@ while [ $# -gt 0 ]; do
     -filt)          FILTER=$1;;
     -mad)           arg_check 1 $# $1; RANDOM_INIT="$2"; shift;;
     -floor)         arg_check 1 $# $1; FLOOR="$2"; shift;;
+    -nofloor)       NOFLOOR=1;;
     -parallel:*)    PARALLEL=1; PARALLEL_OPTS="${1/-parallel:/}";;
     -parallel)      PARALLEL=1;;
     -workdir)       arg_check 1 $# $1; WORKDIR="$2"; shift;;
@@ -185,6 +194,16 @@ while [ $# -gt 0 ]; do
     esac
     shift
 done
+
+if [ -n "$NOFLOOR" ] && [ $FLOOR -ge 0 ]; then
+    error_exit "Error: You cannot use floor and nofloor at the same time";
+fi
+if [ -z "$NOFLOOR" ] && [ $FLOOR -lt 0 ]; then
+    error_exit "Error: You must provide either floor or nofloor";
+fi
+if [ $FLOOR -ge 0 ]; then
+    FLOOR_ARG="-f $FLOOR"
+fi
 
 
 if [ -z "$MODEL" ]; then
@@ -205,6 +224,8 @@ if [ $DEBUG ]; then
 VERBOSE=$VERBOSE
 FILTER=$FILTER
 FLOOR=$FLOOR
+NOFLOOR=$NOFLOOR
+FLOOR_ARG=$FLOOR_ARG
 RESUME=$RESUME
 N=$N
 CFILE=$CFILE
@@ -252,7 +273,7 @@ TMPMODELFILE=$MODEL.tmp
 TMPFILE=$WORKDIR/tmp
 TRANSFILE=$WORKDIR/transfile
 HISTFILE="rescore-results"
-POWELLFILE="powellweights.tmp"
+POWELLFILE="$WORKDIR/powellweights.tmp"
 ORIGCFILE=$CFILE
 
 if [ ! $RESUME ]; then
@@ -329,7 +350,6 @@ if [ -n "$MAXITER" ]; then
     fi
 fi
 
-
 # Check paths of required programs
 if ! which-test.sh $FFVALPARSER; then
     echo "Error: $FFVALPARSER not found in path."
@@ -363,9 +383,7 @@ if [ ! $RESUME ]; then
       fi
     fi
 
-    numTMText=`configtool nt-text $CFILE`
-
-    # build filtered phrase tables
+    # Filter phrasetables to retain only matching source phrases.
     if [ "$FILTER" = "-filt" ] ; then
         # soft filtering: keep all matching translations, and subsequently use
         # forward and backward tables
@@ -420,7 +438,7 @@ while [ 1 ]; do
     # Run decoder
     echo ""
     echo Running decoder on `date`
-    RUNSTR="$CANOE $CANOE_OPTS $RANDOM_WEIGHTS -f $CFILE $wtvec -nbest $WORKDIR/foo:$N -ffvals"
+    RUNSTR="$CANOE $CANOE_OPTS $RANDOM_WEIGHTS -f $CFILE $wtvec -nbest $WORKDIR/foo$COMPRESS_EXT:$N -ffvals"
     if [ "$PARALLEL" == 1 ]; then
         RUNSTR="$CANOE_PARALLEL $PARALLEL_OPTS $RUNSTR"
     fi
@@ -504,17 +522,20 @@ while [ 1 ]; do
     echo ""
     echo "Producing n-best lists"
 
-    FOO_FILES=$WORKDIR/foo.????."$N"best
+    FOO_FILES=$WORKDIR/foo.????."$N"best$COMPRESS_EXT
     totalPrevK=0
     totalNewK=0
     for x in $FOO_FILES; do
+        x=${x%$COMPRESS_EXT}
         f=${x%."$N"best}
 
-        touch $f.duplicateFree $f.duplicateFree.ffvals
-        prevK=`wc -l < $f.duplicateFree`
+        # We use gzip in case the user requested compress foo files
+        touch $f.duplicateFree$COMPRESS_EXT $f.duplicateFree.ffvals$COMPRESS_EXT
+        prevK=`gzip -cqfd $f.duplicateFree$COMPRESS_EXT | wc -l`
         totalPrevK=$((totalPrevK + prevK))
-        append-uniq.pl -nbest=$f.duplicateFree -addnbest=$x -ffvals=$f.duplicateFree.ffvals -addffvals=$x.ffvals
-        newK=`wc -l < $f.duplicateFree`
+        append-uniq.pl -nbest=$f.duplicateFree$COMPRESS_EXT -addnbest=$x$COMPRESS_EXT \
+           -ffvals=$f.duplicateFree.ffvals$COMPRESS_EXT -addffvals=$x.ffvals$COMPRESS_EXT
+        newK=`gzip -cqfd $f.duplicateFree$COMPRESS_EXT | wc -l`
         totalNewK=$((totalNewK + newK))
 
         # Check if there was anything new
@@ -550,17 +571,18 @@ while [ 1 ]; do
     S=$((`wc -l < $SFILE`))
     for((n=0;n<$S;++n))
     {
-      m=`printf "%4.4d" $n`
-      perl -pe "s/^/$n\t/" < $WORKDIR/foo.${m}.duplicateFree        >> $WORKDIR/alltargets
-      perl -pe "s/^/$n\t/" < $WORKDIR/foo.${m}.duplicateFree.ffvals >> $WORKDIR/allffvals
+        m=`printf "%4.4d" $n`
+        # We use gzip in case the user requested compress foo files
+        gzip -cqfd $WORKDIR/foo.${m}.duplicateFree$COMPRESS_EXT        | perl -pe "s/^/$n\t/"  >> $WORKDIR/alltargets
+        gzip -cqfd $WORKDIR/foo.${m}.duplicateFree.ffvals$COMPRESS_EXT | perl -pe "s/^/$n\t/"  >> $WORKDIR/allffvals
     }
 
     # Find the parameters that optimize the BLEU score over the given set of all targets
     echo Running rescore_train on `date`
-    # RUNSTR="$RTRAIN -dyn -n -f $FLOOR $MODEL $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
+    # RUNSTR="$RTRAIN -dyn -n $FLOOR_ARG $MODEL $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
 
     if [ $RESUME ]; then
-      if [ `ls pow*|wc -l` -ge 1 ]; then
+      if [ `ls $POWELLFILE*|wc -l` -ge 1 ]; then
          WEIGHTINFILE=`ls -tr1 $POWELLFILE.* | tail -1`
          ITER=`echo $WEIGHTINFILE | cut -d"." -f3`
          ITER_CHECK=`wc -l < $HISTFILE`
@@ -591,9 +613,9 @@ while [ 1 ]; do
       rename_old $WEIGHTOUTFILE
     fi
     if [ $ITER -ge 2 ]; then
-        RUNSTR="$RTRAIN -wi $WEIGHTINFILE -wo $WEIGHTOUTFILE -dyn -n -f $FLOOR $MODEL $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
+        RUNSTR="$RTRAIN -wi $WEIGHTINFILE -wo $WEIGHTOUTFILE -dyn -n $FLOOR_ARG $MODEL $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
     else
-        RUNSTR="$RTRAIN -wo $WEIGHTOUTFILE -dyn -n -f $FLOOR $MODEL $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
+        RUNSTR="$RTRAIN -wo $WEIGHTOUTFILE -dyn -n $FLOOR_ARG $MODEL $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
     fi
     echo "$RUNSTR"
     time $RUNSTR

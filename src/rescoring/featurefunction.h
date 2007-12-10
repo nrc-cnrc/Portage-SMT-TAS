@@ -57,7 +57,12 @@ class FeatureFunction {
 public:
 
    /// Empty constructor.
-   FeatureFunction() : src_sents(0), nbest(0), s(0), K(0) {}
+   FeatureFunction()
+   : src_sents(NULL)
+   , nbest(NULL)
+   , s(0)
+   , K(0)
+   {}
    /// Destructor.
    virtual ~FeatureFunction() {};
 
@@ -69,7 +74,7 @@ public:
    virtual Uint requires() = 0;
 
    /**
-    * Initial info: the source sentences and nbest size.
+    * Initial info.
     * @param src_sents  source sentences.
     * @param K          number of target sentences per source sent.
     */
@@ -84,7 +89,7 @@ public:
     * @param nbest  list of target sentences for this source sentence.
     */
    virtual void source(Uint s, const Nbest * const nbest) {
-      this->s = s;
+      this->s     = s;
       this->nbest = nbest;
    }
 
@@ -155,10 +160,8 @@ private:
 
 public:
 
-   /// Definition of feature function infos.
-   typedef vector<ff_info> FF_INFO;
    /// Information for each feature function in this set.
-   FF_INFO ff_infos;
+   vector<ff_info> ff_infos;
 
    /// Constructor.
    /// You must call read(const string& filename, bool verbose, const char* fileff_prefix, bool isDynamic, bool useNullDeleter)
@@ -185,7 +188,7 @@ public:
     * @param verbose
     * @param fileff_prefix prefix to use for FileFF features (see create()'s
     *        fileff_prefix arg)
-    * @param isDynamic indicates the File features are dynamic (i.e. FileDFF's)
+    * @param isDynamic indicates that all File features are dynamic (i.e. FileDFF's)
     * @param useNullDeleter indicates to initialize the shared_ptr with a
     *        NullDeleter, which will cause the FeatureFunction not to be
     *        deleted when the ptr_FF is deleted.  Will cause a memory leak.
@@ -233,6 +236,13 @@ public:
    bool complete();
 
    /**
+    * Get the requirements for all the feature functions.  Indicates what the
+    * feature functions need in order for it to be calculated.
+    * @return Returns the requirements for all feature functions.
+    */
+   Uint requires();
+
+   /**
     * Create a new feature function from its name and argument
     * (Feature function factory).
     * @param name of feature function
@@ -270,9 +280,7 @@ class LengthFF: public FeatureFunction
 {
 public:
    virtual inline Uint requires() { return FF_NEEDS_TGT_TEXT; }
-   virtual double value(Uint k) {
-      return (*nbest)[k].size();
-   }
+   virtual double value(Uint k) { return nbest->at(k).size(); }
 };
 
 

@@ -6,7 +6,7 @@
 #
 # COMMENTS:
 #
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -27,7 +27,9 @@ Train or translate with a rescoring model: first generate nbest lists & ffvals
 for a given source file, then generate external feature files required for
 rescoring, then either train a model using reference texts, or use an existing
 model to translate the source text. All steps can be run in parallel except the
-final one.  Arguments are:
+final one.
+
+Arguments are:
 
 MODE     Required keyword, either 'train' or 'trans' to select training or
          translation mode. In training mode, one or more reference texts must
@@ -44,8 +46,8 @@ REFS     One or more reference translations, in standard format.
 
 Options:
 
-cp-opts  Options to canoe-parallel.sh - just the initial block, before the
-         'canoe' keyword. (To set canoe parameters, use the local -f option.)
+cp-opts  Options to canoe-parallel.sh. Only the options that come before canoe-
+         parallel.sh's 'canoe' keyword are legal here.
 -v       Verbose output.
 -f       Canoe's config file. [canoe.ini]
 -K       Size of nbest lists. [1000]
@@ -56,7 +58,7 @@ cp-opts  Options to canoe-parallel.sh - just the initial block, before the
          files). If a directory, must already exist. [MSRC.]
 -msrc    A version of the source file marked up with rule-based translations,
          used for canoe input but not for feature generation [SRC]
--o       In train mode, write the final model to MODEL_OUT [MODEL]
+-o       In train mode, write the final model to MODEL_OUT [MODEL.out]
 
 Note: if any intermediate files already exist, this script currently overwrites
 them. To add extra features to an existing model, make sure you remove write
@@ -103,7 +105,7 @@ while [ $# -gt 0 ]; do
     -h|-help)     usage;;
     train)        MODE="train"; break;;
     trans)        MODE="trans"; break;;
-    *)            CPOPTS="$CPOPTS$1 "
+    *)            CPOPTS="$CPOPTS $1"
     esac
     shift
 done
@@ -151,7 +153,7 @@ SRC=$2
 shift; shift
 
 if [ "$MODE" = train -a -z "$MODEL_OUT" ]; then
-   MODEL_OUT=$MODEL
+   MODEL_OUT=`basename $MODEL`.out
 fi
 
 REFS=$*
@@ -223,10 +225,10 @@ fi
 # 1. Run canoe to generate nbest lists and ffvals
 
 if (( $VERBOSE )); then
-    echo "Generating nbest lists:"
+    echo "Generating ${K}best lists:"
 fi
 
-if [ ! -e ${PFX}nbest -a ! -e ${PFX}nbest.gz ]; then
+if [ ! -e ${PFX}${K}best -a ! -e ${PFX}${K}best.gz ]; then
     set -o pipefail
     canoe-parallel.sh $CPOPTS \
         canoe -v $VERBOSE -f $CANOE_CONFIG -nbest ${PFX}nb:$K -ffvals -palign \
@@ -241,7 +243,7 @@ if [ ! -e ${PFX}nbest -a ! -e ${PFX}nbest.gz ]; then
         echo "problems with canoe-parallel.sh - quitting!"
         exit 5
     fi
-      
+
 
     ### concatenating separate N-best lists into one big file
     len=`wc -l < $MSRC`
@@ -264,7 +266,7 @@ if [ ! -e ${PFX}nbest -a ! -e ${PFX}nbest.gz ]; then
         elif [ $s -le 999 ]; then
             numstr=0$s
         fi
-        cat ${PFX}nb.${numstr}.${K}best >> ${PFX}nbest
+        cat ${PFX}nb.${numstr}.${K}best >> ${PFX}${K}best
         cat ${PFX}nb.${numstr}.${K}best.ffvals >> ${PFX}ffvals
         cat ${PFX}nb.${numstr}.${K}best.pal >> ${PFX}pal
 
@@ -275,19 +277,19 @@ if [ ! -e ${PFX}nbest -a ! -e ${PFX}nbest.gz ]; then
         s=$((s + 1));
     done
 
-    gzip -f ${PFX}nbest
+    gzip -f ${PFX}${K}best
     gzip -f ${PFX}ffvals
     gzip -f ${PFX}pal
 
-    NBEST=${PFX}nbest.gz
+    NBEST=${PFX}${K}best.gz
     PAL=${PFX}pal.gz
 
 else
-    echo "${PFX}nbest(.gz) exists - skipping nbest and ffvals generation"
-    if [ -e ${PFX}nbest.gz ]; then
-        NBEST=${PFX}nbest.gz
+    echo "${PFX}${K}best(.gz) exists - skipping ${K}best and ffvals generation"
+    if [ -e ${PFX}${K}best.gz ]; then
+        NBEST=${PFX}${K}best.gz
     else
-        NBEST=${PFX}nbest
+        NBEST=${PFX}${K}best
     fi
     if [ -e ${PFX}pal.gz ]; then
         PAL=${PFX}pal.gz
@@ -317,8 +319,8 @@ else
 
     if (( $VERBOSE )); then DASHQ= ; else DASHQ=-q ; fi
     gen-features-parallel.sh -c $CANOE_CONFIG -a $PAL -n -p $PFX $MODEL $SRC $NBEST |
-	run-parallel.sh $DASHQ - $N
-	#perl -n -e 'print "set -o noclobber; $_";' |
+        run-parallel.sh $DASHQ - $N
+        #perl -n -e 'print "set -o noclobber; $_";' |
 fi
 
 if (( $? != 0 )); then

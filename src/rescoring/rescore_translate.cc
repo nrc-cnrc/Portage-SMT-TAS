@@ -7,7 +7,7 @@
  *
  * COMMENTS:
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -59,7 +59,10 @@ int MAIN(argc, argv)
    ////////////////////////////////////////
    // ALIGNMENT
    ifstream astr;
-   if (arg.bReadAlignments) {
+   const bool bNeedsAlignment = ffset.requires() & FF_NEEDS_ALIGNMENT;
+   if (bNeedsAlignment) {
+      if (arg.alignment_file.empty())
+         error(ETFatal, "At least one of feature function requires the alignment");
       LOG_VERBOSE2(verboseLogger, "Reading alignments from %s", arg.alignment_file.c_str());
       astr.open(arg.alignment_file.c_str());
       if (!astr) error(ETFatal, "unable to open alignment file %s", arg.alignment_file.c_str());
@@ -76,11 +79,12 @@ int MAIN(argc, argv)
 
       vector<Alignment> alignments(K);
       Uint k(0);
-      for (; arg.bReadAlignments && k < K && alignments[k].read(astr); ++k)
+      for (; bNeedsAlignment && k < K && alignments[k].read(astr); ++k)
       {
          nbest[k].alignment = &alignments[k];
       }
-      if (arg.bReadAlignments && (k != K)) error(ETFatal, "unexpected end of nbests file after %d lines (expected %dx%d=%d lines)", s*K+k, S, K, S*K);
+      if (bNeedsAlignment && (k != K))
+         error(ETFatal, "unexpected end of nbests file after %d lines (expected %dx%d=%d lines)", s*K+k, S, K, S*K);
 
       LOG_VERBOSE3(verboseLogger, "Initializing FF matrix");
       ffset.initFFMatrix(sources, K);
@@ -92,7 +96,7 @@ int MAIN(argc, argv)
 
       if (K==0) {
          cout << endl;
-      } 
+      }
       else {
 
          const uVector Scores = boost::numeric::ublas::prec_prod(H, ModelP);

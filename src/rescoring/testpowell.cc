@@ -1,10 +1,10 @@
 /**
  * @author Aaron Tikuisis
- * @file testpowell.cc  Program to test the Powell's algorithm.
+ * @file testpowell.cc  Program to test Powell's algorithm.
  * $Id$
  *
  * K-Best Rescoring Module
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l.information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -16,7 +16,6 @@
 #include <bleu.h>
 #include <boostDef.h>
 #include <vector>
-
 
 using namespace Portage;
 using namespace std;
@@ -31,18 +30,18 @@ namespace TestPowell {
 /// Quick test class for Powell's algorithm
 class TestScore
 {
-   public:
-      int  val;
-      /// Default constructor.
-      TestScore(const int _val = 0) { val = _val; }
-      /// Get score value
-      /// @return Returns the score value.
-      double score() const { return val; }
-      /// Prints score's value for debug mode
-      void debugoutput() const { RSC_DEBUG(val); }
-      /// Prints score value to out
-      /// @param out  output stream to print score's value
-      void output(ostream &out) { out << val << endl; }
+public:
+   int  val;
+   /// Default constructor.
+   TestScore(const int _val = 0) { val = _val; }
+   /// Get score value
+   /// @return Returns the score value.
+   double score() const { return val; }
+   /// Prints score's value for debug mode
+   void debugoutput() const { RSC_DEBUG(val); }
+   /// Prints score value to out
+   /// @param out  output stream to print score's value
+   void output(ostream &out) { out << val << endl; }
 };
 
 /**
@@ -84,12 +83,14 @@ int main()
    const Uint M(3);
 
    /*
-   H[0] = [ 1  -1   0 ]
-          [ 3   1   0 ]
-          [ 3   0   1 ]
-   H[1] = [ 1  -1   0 ]
-          [ 5   1   0 ]
-          [ 0   0  -2 ]
+     H[0] = 
+     [ 1  -1   0 ]
+     [ 3   1   0 ]
+     [ 3   0   1 ]
+     H[1] = 
+     [ 1  -1   0 ]
+     [ 5   1   0 ]
+     [ 0   0  -2 ]
    */
 
    vector<uMatrix> vH;

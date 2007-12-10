@@ -5,7 +5,7 @@
  *
  * $Id$
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -32,6 +32,7 @@ class multiColumnFileFF
       IMagicStream         m_file;    ///< The stream associated with this unit.
       std::vector<float>   m_values;  ///< Contains the last line's values.
       int                  m_line;    ///< Current line number.
+      Uint                 m_expected_size;  ///< number of expected fields
       
    public:
       /// Constructor.
@@ -97,14 +98,14 @@ class multiColumnFileFFManager : private noncopyable
       static multiColumnFileFFManager& getManager() {
          if (m_singleton == 0) {
             m_singleton = new multiColumnFileFFManager;
-            atexit(cleanup);
+	    assert(m_singleton);
+	    atexit(multiColumnFileFFManager::cleanup);
          }
 
          return *m_singleton;
       }
-      static void cleanup()
-      {
-         if (m_singleton) delete m_singleton;
+      static void cleanup() {
+         if (m_singleton) delete m_singleton, m_singleton = NULL;
       }
 };
 } // ends namespace Portage

@@ -21,7 +21,6 @@
 #include <fileReader.h>
 #include <bleu.h>
 #include <basic_data_structure.h>
-#include <exception_dump.h>
 #include <referencesReader.h>
 #include <printCopyright.h>
 #include <progress.h>
@@ -37,15 +36,17 @@ using namespace std;
 
 ////////////////////////////////////////////////////////////////////////////////
 // MAIN
-int MAIN(argc, argv)
+int main(const Uint argc, const char* const argv[])
 {
    printCopyright(2004, "rescore_train");
    using namespace rescore_train;
-   ARG arg(argc, argv);
+   const ARG arg(argc, argv);
 
    LOG_VERBOSE2(verboseLogger, "Reading Feature Functions Set");
    FeatureFunctionSet ffset;
    const Uint M = ffset.read(arg.model_in, arg.bVerbose, arg.ff_pref.c_str(), arg.bIsDynamic, false);
+   // Start of loading
+   time_t start = time(NULL);             // time
 
    LOG_VERBOSE2(verboseLogger, "Reading source sentences");
    Sentences  sources;
@@ -61,17 +62,19 @@ int MAIN(argc, argv)
    MatrixBLEUstats  bleu(S);
 
    ifstream astr;
-   if (arg.bReadAlignments) {
+   const bool bNeedsAlignment = ffset.requires() & FF_NEEDS_ALIGNMENT;
+   if (bNeedsAlignment) {
+      if (arg.alignment_file.empty())
+         error(ETFatal, "At least one of feature function requires the alignment");
       LOG_VERBOSE2(verboseLogger, "Reading alignments from %s", arg.alignment_file.c_str());
       astr.open(arg.alignment_file.c_str());
       if (!astr) error(ETFatal, "unable to open alignment file %s", arg.alignment_file.c_str());
    }
 
    vector< uVector > powellWeightsIn, powellWeightsOut;
-   ifstream wstr;
    if (arg.weight_infile != "") {
       LOG_VERBOSE2(verboseLogger, "Reading Powell weights from %s", arg.weight_infile.c_str());
-      wstr.open(arg.weight_infile.c_str());
+      ifstream wstr(arg.weight_infile.c_str());
       if (!wstr) error(ETFatal, "unable to open Powell weight file %s", arg.weight_infile.c_str());
 
       string tmpsco;
@@ -92,15 +95,15 @@ int MAIN(argc, argv)
          error(ETFatal, "Error in Powell weight file %s, wrong number of weights: %i instead of zero after reading %i sets of feature weights!", arg.weight_infile.c_str(), m, powellWeightsIn.size());
       // powellWeightsIn
    }
-   
+
 
    // Read and process the N-bests file of candidate target sentences
-
    LOG_VERBOSE2(verboseLogger, "Processing nbests lists (computing feature values and BLEU scores)");
    NbestReader  pfr(FileReader::create<Translation>(arg.nbest_file, arg.K));
    Uint s(0);
    Progress progress(S, arg.bVerbose); // Must be last statement before for loop => pretty display
    progress.displayBar();
+
    for (; pfr->pollable(); ++s)
    {
       // READING NBEST
@@ -115,11 +118,11 @@ int MAIN(argc, argv)
       // READING ALIGNMENT
       vector<Alignment> alignments(K);
       Uint k(0);
-      for (; arg.bReadAlignments && k < K && alignments[k].read(astr); ++k)
+      for (; bNeedsAlignment && k < K && alignments[k].read(astr); ++k)
       {
          nbest[k].alignment = &alignments[k];
       }
-      if (arg.bReadAlignments && (k != K )) 
+      if (bNeedsAlignment && (k != K )) 
          error(ETFatal, "unexpected end of nbests file after %d lines (expected %dx%d=%d lines)", s*K+k, S, K, S*K);
 
       LOG_VERBOSE5(verboseLogger, "Init ff matrix for s=%d with K=%d", s, K);
@@ -143,6 +146,9 @@ int MAIN(argc, argv)
    // Free memory we no longer need
    astr.close();
 
+   cerr << "Done loading in " << (Uint)(time(NULL) - start) << " seconds" << endl;
+
+   start = time(NULL);
    LOG_VERBOSE2(verboseLogger, "Running Powell's algorithm");
 
    uVector modelP(M);
@@ -179,9 +185,9 @@ int MAIN(argc, argv)
        for (Uint m(0); m<M; ++m) {
          p(m) = rng();
        }
-     
+
      if (arg.bVerbose) cerr << "Calling Powell with initial p=" << p << endl;
-     
+
       xi = uIdentityMatrix(M);
       powell(p, xi, FTOL, iter, fret, vH, bleu);
 
@@ -202,7 +208,6 @@ int MAIN(argc, argv)
         }
       }
 
-      // if (fret > bestScore) {
       if (exp(fret) > exp(bestScore) + BLEUTOL) {
         numStable = 0;
         modelP = p;
@@ -218,10 +223,10 @@ int MAIN(argc, argv)
       }
    }
 
+   cerr << "Best weight vector found in " << (Uint)(time(NULL) - start) << " seconds" << endl;
+
    if (arg.bNormalize)
-   {
       modelP /= ublas::norm_inf(modelP);
-   }
 
    uVector vTemp(modelP);
    for (Uint m(0); m<M; ++m) {
@@ -235,19 +240,20 @@ int MAIN(argc, argv)
       cerr << "Using p=" << modelP << endl;
    }
 
-   if (arg.weight_outfile != "") {
-     ofstream woutstr;
-     woutstr.open(arg.weight_outfile.c_str(), ios_base::app);
-     LOG_VERBOSE2(verboseLogger, "Writing best powell weights to file");
-     for (Uint i=0; i<powellWeightsOut.size(); i++) {
-       woutstr << "BLEU score: " << exp(bestScores[i]);
-       for (uVector::const_iterator witr=powellWeightsOut[i].begin(); witr!=powellWeightsOut[i].end(); witr++)
-         woutstr << " " << *witr;
-       woutstr << endl;
-     }
-     woutstr.flush();
-     woutstr.close();
+   if (!arg.weight_outfile.empty()) {
+      ofstream woutstr;
+      woutstr.open(arg.weight_outfile.c_str(), ios_base::app);
+      LOG_VERBOSE2(verboseLogger, "Writing best powell weights to file");
+      for (Uint i=0; i<powellWeightsOut.size(); i++) {
+         woutstr << "BLEU score: " << exp(bestScores[i]);
+         for (uVector::const_iterator witr=powellWeightsOut[i].begin(); witr!=powellWeightsOut[i].end(); witr++)
+            woutstr << " " << *witr;
+         woutstr << endl;
+      }
+      woutstr.flush();
+      woutstr.close();
    }
+
    LOG_VERBOSE2(verboseLogger, "Writing model to file");
    ffset.write(arg.model_out);
-} END_MAIN
+}

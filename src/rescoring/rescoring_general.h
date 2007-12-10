@@ -6,7 +6,7 @@
  *
  * K-Best Rescoring Module
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l.information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -23,19 +23,19 @@
 
 using namespace std;
 
+namespace Portage {
+
 #define MAX_LINE_LENGTH 2000
 #define MAX_WORDS_PER_LINE 200
-
-#define MAX(A,B) (A < B) ? B : A
-#define MIN(A,B) (A < B) ? A : B
-
-#define SQR(A) (A)*(A)
 
 #ifdef DEBUG_ON
 #define RSC_DEBUG(A) cout << A << endl;
 #else
 #define RSC_DEBUG(A)
 #endif
+
+template <class T>
+inline T sqr(const T& x) { return x * x; }
 
 inline void lowercase(char *str)
 {
@@ -89,5 +89,6 @@ inline double my_vector_min(const uVector& v)
     return v(my_vector_min_index(v));
 }
 
+}
 
 #endif // RESCORING_GENERAL_H

@@ -6,7 +6,7 @@
  *
  * COMMENTS:
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -77,9 +77,9 @@ Use -H for more info on features.\n\
 Options:\n\
 \n\
 -v    Write progress reports to cerr.\n\
--n    Normalize weights so maximum is 1 (recommended).\n\
+-n    Normalize output weights so maximum is 1 (recommended).\n\
 -a    Also read in phrase alignment file F.\n\
--f    Floor weights at 0, beginning with zero-based index i. [don't]\n\
+-f    Floor output weights at 0, beginning with zero-based index i. [don't]\n\
 -wi   Read in feature weights for Powell from file F (e.g. from previous Powell run)\n\
 -wo   Print feature weights for best Powell runs to file F\n\
 -p    Prepend ff-pref to file names for FileFF features\n\
@@ -102,7 +102,6 @@ private:
 public:
    bool     bVerbose;           ///< is verbose set
    bool     bNormalize;         ///< should the returned weights vector be normalized
-   bool     bReadAlignments;    ///< do we need to read the alignments
    bool     bIsDynamic;         ///< are we running in dynamic mode => dynamic nbest list size => dynamic file reading
    Uint     flor;               ///< index of the first floored weight
    string   weight_infile;      ///< input config file
@@ -130,7 +129,6 @@ public:
       , m_dLogger(Logging::getLogger("debug.main.arg"))
       , bVerbose(false)
       , bNormalize(false)
-      , bReadAlignments(false)
       , bIsDynamic(false)
       , flor(10000000)
       , weight_infile(""), weight_outfile("")
@@ -149,7 +147,6 @@ public:
             LOG_DEBUG(m_dLogger, "Verbose: %s", (bVerbose ? "ON" : "OFF"));
             LOG_DEBUG(m_dLogger, "Dynamic: %s", (bIsDynamic ? "ON" : "OFF"));
             LOG_DEBUG(m_dLogger, "Normalize: %s", (bNormalize ? "ON" : "OFF"));
-            LOG_DEBUG(m_dLogger, "ReadAlignment: %s", (bReadAlignments ? "ON" : "OFF"));
             LOG_DEBUG(m_dLogger, "K: %d", K);
             LOG_DEBUG(m_dLogger, "S: %d", S);
             LOG_DEBUG(m_dLogger, "flor: %d", flor);
@@ -163,10 +160,9 @@ public:
             LOG_DEBUG(m_dLogger, "nbest file name: %s", nbest_file.c_str());
             LOG_DEBUG(m_dLogger, "Number of reference files: %d", refs_file.size());
             std::stringstream oss1;
-            for (Uint i(0); i<refs_file.size(); ++i)
-               {
-                  oss1 << "- " << refs_file[i].c_str() << " ";
-               }
+            for (Uint i(0); i<refs_file.size(); ++i) {
+               oss1 << "- " << refs_file[i].c_str() << " ";
+            }
             LOG_DEBUG(m_dLogger, oss1.str().c_str());
          }
    }
@@ -191,8 +187,6 @@ public:
       mp_arg_reader->testAndSet(3, "nbest", nbest_file);
       mp_arg_reader->getVars(4, refs_file);
 
-      bReadAlignments = !alignment_file.empty();
-         
       mp_arg_reader->testAndSet("dyn", bIsDynamic);
       if (!bIsDynamic) {
          const Uint SK = countFileLines(nbest_file);

@@ -6,7 +6,7 @@
  *
  * COMMENTS:
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -38,10 +38,10 @@ on features and file formats.\n\
 \n\
 Options:\n\
 \n\
--a  Read in phrase alignment file F.\n\
--o  Output feature file F.\n\
--n  Print features only for the N best sentences.\n\
--v  Write progress reports to cerr.\n\
+-a   Read in phrase alignment file F.\n\
+-o   Output feature file F.\n\
+-n   Print features only for the N best sentences.\n\
+-v   Write progress reports to cerr.\n\
 ";
 
 // globals
@@ -67,6 +67,16 @@ int MAIN(argc, argv)
 
    getArgs(argc, argv);
 
+   // Prepare the source sentences
+   Sentences  src_sents;
+   const Uint S  = RescoreIO::readSource(src_file, src_sents);
+   if (S == 0)
+      error(ETFatal, "empty source file: %s", src_file.c_str());
+   const Uint KS = countFileLines(nbest_file);
+   const Uint K = KS / S;
+
+
+   // Prepare the feature function set
    // EJJ 11Jul2006
    // Since the ff gets deleted right at the end of the program, when we're
    // about to exit and have the OS clean up for us anyway, it's much faster if
@@ -77,18 +87,18 @@ int MAIN(argc, argv)
       error(ETFatal, "unknown feature: %s", name.c_str());
 
 
-   Sentences  src_sents;
-   const Uint S  = RescoreIO::readSource(src_file, src_sents);
-   if (S == 0)
-      error(ETFatal, "empty source file: %s", src_file.c_str());
-   const Uint KS = countFileLines(nbest_file);
-   const Uint K = KS / S;
-
-
+   // Prepare the alignment file
    iMagicStream astr;
-   if (!alignment_file.empty()) {
-      astr.open(alignment_file.c_str());
-      if (!astr) error(ETFatal, "unable to open alignment file %s", alignment_file.c_str());
+   const bool bNeedAligment(ff->requires() & FF_NEEDS_ALIGNMENT);
+   if (bNeedAligment) {
+      if (verbose) cerr << "This feature requires alignment" << endl;
+      if (!alignment_file.empty()) {
+         astr.open(alignment_file.c_str());
+         if (!astr) error(ETFatal, "unable to open alignment file %s", alignment_file.c_str());
+      }
+      else {
+         error(ETFatal, "%s requires the alignment file", name.c_str());
+      }
    }
 
    // Prepare the output stream
@@ -106,21 +116,22 @@ int MAIN(argc, argv)
       // READING ALIGNMENT
       vector<Alignment> alignments(K);
       Uint k(0);
-      for (; !alignment_file.empty() && k < K && alignments[k].read(astr); ++k) {
-          nbest[k].alignment = &alignments[k];
+      for (; bNeedAligment && k < K && alignments[k].read(astr); ++k) {
+         nbest[k].alignment = &alignments[k];
       }
-      if (!alignment_file.empty() && (k != K )) error(ETFatal, "unexpected end of nbests file after %d lines (expected %dx%d=%d lines)", s*K+k, S, K, S*K);
+      if (bNeedAligment && (k != K ))
+         error(ETFatal, "unexpected end of nbests file after %d lines (expected %dx%d=%d lines)", s*K+k, S, K, S*K);
 
       ff->init(&src_sents, K);   // Give the whole thing to the ff
 
 
-     // Specify source and nbest to the ff and print values.
-     ff->source(s, &nbest);
-     Uint maxPrintN = K;
-     if (printN>0)
-       maxPrintN = min(printN, K);
-     for (Uint k = 0; k < maxPrintN; ++k)
-       outstr << ff->value(k) << endl;
+      // Specify source and nbest to the ff and print values.
+      ff->source(s, &nbest);
+      Uint maxPrintN = K;
+      if (printN>0)
+         maxPrintN = min(printN, K);
+      for (Uint k = 0; k < maxPrintN; ++k)
+         outstr << ff->value(k) << endl;
    }
    //cerr << "at end" << endl;
 } END_MAIN
