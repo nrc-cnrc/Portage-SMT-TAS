@@ -123,6 +123,8 @@ public:
    bool backwards;                  ///< Whether to translate backwards
    bool loadFirst;                  ///< Whether to load models before input
    string input;                    ///< Source sentences input file name
+   bool bAppendOutput;              ///< Flag to output one single file instead of multiple files.
+   bool bLoadBalancing;             ///< Running in load-balancing mode => parse source sentences ids
    string futLMHeuristic;           ///< What LM heuristic to use when calculating future scores
 
    /**
@@ -260,7 +262,7 @@ private:
          relative_path_modification = 1 << 0,
          /// When check accessibility of file from configtool check
          check_file_name            = relative_path_modification << 1,
-         /// Specific LM file name check because lms need a special treatment
+         /// Specific LM file name check because some LMs need a special treatment
          lm_check_file_name         = check_file_name << 1,
          /// Indicates the number of groupings
          num_grous                  = lm_check_file_name << 1

@@ -48,6 +48,60 @@
 using namespace Portage;
 using namespace std;
 
+/**
+ * This object keeps track of the File when the user wants to output one file
+ * instead of separate files.
+ */
+class OneFileInfo {
+   const bool append;              ///< Keeps track of the user request to make one file
+   OMagicStream* f_nbest;          ///< nbestlist Stream 
+   OMagicStream* f_ffvals;         ///< ffvals stream
+   OMagicStream* f_pal;            ///< pal stream
+   OMagicStream* f_lattice;        ///< lattice stream
+   OMagicStream* f_lattice_state;  ///< lattice state stream
+   public:
+      /**
+       * Default constructor.
+       * @param  c  canoe config to get the file names.
+       */
+      OneFileInfo(const CanoeConfig& c)
+      : append(c.bAppendOutput)
+      , f_nbest(NULL)
+      , f_ffvals(NULL)
+      , f_pal(NULL)
+      , f_lattice(NULL)
+      , f_lattice_state(NULL)
+      {
+         if (append && c.latticeOut) {
+            f_lattice       = new OMagicStream(c.latticeFilePrefix);
+            f_lattice_state = new OMagicStream(addExtension(c.latticeFilePrefix, ".state"));
+         }
+         if (append && c.nbestOut)
+         {
+            f_nbest                = new OMagicStream(addExtension(c.nbestFilePrefix, "nbest"));
+            if (c.ffvals) f_ffvals = new OMagicStream(addExtension(c.nbestFilePrefix, "ffvals"));
+            if (c.trace)  f_pal    = new OMagicStream(addExtension(c.nbestFilePrefix, "pal"));
+         }
+      }
+      /// Destructor.
+      ~OneFileInfo()
+      {
+         if (f_nbest) delete f_nbest; f_nbest = NULL;
+         if (f_ffvals) delete f_ffvals; f_ffvals = NULL;
+         if (f_pal) delete f_pal; f_pal = NULL;
+         if (f_lattice) delete f_lattice; f_lattice = NULL;
+         if (f_lattice_state) delete f_lattice_state; f_lattice_state = NULL;
+      }
+      /// Did the user request a single file
+      /// @return Returns true if the user requested one file
+      bool one() { return append; }
+      OMagicStream* nbest() const { return f_nbest; }
+      OMagicStream* ffvals() const { return f_ffvals; }
+      OMagicStream* pal() const { return f_pal; }
+      OMagicStream* lattice() const { assert(f_lattice); return f_lattice; }
+      OMagicStream* lattice_state() const { assert(f_lattice_state); return f_lattice_state; }
+};   
+
 
 /**
  * Once the hypotheses stacks are created in memory, this function outputs its
@@ -58,9 +112,11 @@ using namespace std;
  * @param num    current source index [0,S).
  * @param oovs   Source Out-of-Vocabulary.
  * @param c      Global canoe configuration object.
+ * @param one_file_info  Specifies to output just one nbest containing all nbests
  */
 static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
-                     Uint num, vector<bool>* oovs, const CanoeConfig& c)
+                     Uint num, vector<bool>* oovs, const CanoeConfig& c,
+                     OneFileInfo& one_file_info)
 {
    bool masse(c.masse); // MUST declare a new masse to be able to disable it only for this function
 
@@ -114,6 +170,7 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
    } // if
 
    // Output the best sentence to the primary output, cout
+   if (c.bLoadBalancing) cout << num << '\t';
    cout << s << endl;
 
    if ( c.verbosity >= 2 )
@@ -152,50 +209,78 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
 
    if (c.latticeOut)
    {
-      // Create file names
-      char  sent_num[7];
-      snprintf(sent_num, 7, ".%.4d", num);
-      const string curLatticeFile  = addExtension(c.latticeFilePrefix, sent_num);
-      const string curCoverageFile = addExtension(c.latticeFilePrefix, string(sent_num) + ".state");
-
-      // Open files for output
-      OMagicStream latticeOut(curLatticeFile);
-      OMagicStream covOut(curCoverageFile);
-      // Produce lattice output
-      const double dMasse = writeWordGraph(&latticeOut, &covOut, print, finalStates, c.backwards, masse);
-      if (masse) {
-         fprintf(stderr, "Weight for sentence(%4.4d): %32.32g\n", num, dMasse);
-         masse = false;
+      if (one_file_info.one()) {
+         const double dMasse = writeWordGraph(
+            one_file_info.lattice(), one_file_info.lattice_state(),
+            print, finalStates, c.backwards, masse);
+         if (masse) {
+            fprintf(stderr, "Weight for sentence(%4.4d): %32.32g\n", num, dMasse);
+            masse = false;
+         }
       }
-   } // if
+      else {
+         // Create file names
+         char  sent_num[7];
+         snprintf(sent_num, 7, ".%.4d", num);
+         const string curLatticeFile  = addExtension(c.latticeFilePrefix, sent_num);
+         const string curCoverageFile = addExtension(c.latticeFilePrefix, string(sent_num) + ".state");
+
+         // Open files for output
+         OMagicStream latticeOut(curLatticeFile);
+         OMagicStream covOut(curCoverageFile);
+         // Produce lattice output
+         const double dMasse = writeWordGraph(&latticeOut, &covOut, print, finalStates, c.backwards, masse);
+         if (masse) {
+            fprintf(stderr, "Weight for sentence(%4.4d): %32.32g\n", num, dMasse);
+            masse = false;
+         }
+      }
+   }
 
    if (c.nbestOut) {
-      const Uint buffer_size = 31;
-      char  sent_num[buffer_size+1];
-      snprintf(sent_num, buffer_size, ".%.4d.", num);
-      ostringstream ext;
-      ext << sent_num << c.nbestSize << "best";
-      const string curNbestFile  = addExtension(c.nbestFilePrefix, ext.str());
-
-      string curFfvalsFile;
-      if (c.ffvals) curFfvalsFile = addExtension(curNbestFile, ".ffvals");
-
-      string curPALFile;
-      if (c.trace) curPALFile = addExtension(curNbestFile, ".pal");
-
       lattice_overlay  theLatticeOverlay(
          finalStates.begin(), finalStates.end(), model );
-      if (c.ffvals || c.trace) {
-         std::string  cmd = "| nbest2rescore.pl";
-         if (c.ffvals) cmd += " -ffout=" + curFfvalsFile;
-         if (c.trace) cmd += " -palout=" + curPALFile;
-         cmd += " > " + curNbestFile;
 
-         OMagicStream pipe(cmd.c_str());
-         print_nbest( theLatticeOverlay, pipe, c.nbestSize, print, c.backwards );
-      } else {
-         print_nbest( theLatticeOverlay, curNbestFile,
-            c.nbestSize, print, c.backwards );
+      // Create the object that will output the Nbest list form the lattice.
+      NbestPrinter printer(model, oovs);
+
+      if (one_file_info.one()) {
+         // Attach the one file output stream
+         printer.attachNbestStream(one_file_info.nbest());
+         printer.attachFfvalsStream(one_file_info.ffvals());
+         printer.attachPalStream(one_file_info.pal());
+
+         print_nbest( theLatticeOverlay, c.nbestSize, printer, c.backwards );
+      }
+      else {
+         // Here we need to create some temp file stream just long enough to
+         // output the request data.
+         const Uint buffer_size = 31;
+         char  sent_num[buffer_size+1];
+         snprintf(sent_num, buffer_size, ".%.4d.", num);
+         ostringstream ext;
+         ext << sent_num << c.nbestSize << "best";
+         const string curNbestFile  = addExtension(c.nbestFilePrefix, ext.str());
+
+         oMagicStream  ffvals_stream;
+         if (c.ffvals) {
+            ffvals_stream.open(addExtension(curNbestFile, ".ffvals"));
+            assert(!ffvals_stream.fail());
+            printer.attachFfvalsStream(&ffvals_stream);
+         }
+
+         oMagicStream  pal_stream;
+         if (c.trace) {
+            pal_stream.open(addExtension(curNbestFile, ".pal"));
+            assert(!pal_stream.fail());
+            printer.attachPalStream(&pal_stream);
+         }
+
+         oMagicStream nbest_stream(curNbestFile);
+         printer.attachNbestStream(&nbest_stream);
+
+         // Must print here since the streams only exist in this scope on purpose
+         print_nbest( theLatticeOverlay, c.nbestSize, printer, c.backwards );
       }
    }
 
@@ -292,6 +377,10 @@ int MAIN(argc, argv)
    if (c.verbosity >= 2)
       c.write(cerr, 2);
 
+   // If the user request a single file, this object will keep track of the
+   // required files
+   OneFileInfo  one_file_info(c);
+
 
    // Set random number seed
    srand(time(NULL));
@@ -299,8 +388,9 @@ int MAIN(argc, argv)
    BasicModelGenerator *gen;
    vector<vector<string> > sents;
    vector<vector<MarkedTranslation> > marks;
+   vector<Uint> sourceSentenceIds;
    IMagicStream input(c.input);
-   InputParser reader(input);
+   InputParser reader(input, c.bLoadBalancing);
    if (c.checkInputOnly) {
       cerr << "Checking input sentences for markup errors." << endl;
       Uint error_count(0);
@@ -325,13 +415,14 @@ int MAIN(argc, argv)
       {
          sents.push_back(vector<string>());
          marks.push_back(vector<MarkedTranslation>());
-         if ( ! reader.readMarkedSent(sents.back(), marks.back()) )
+         sourceSentenceIds.push_back(Uint());
+         if ( ! reader.readMarkedSent(sents.back(), marks.back(), &sourceSentenceIds.back()) )
          {
             if ( c.tolerateMarkupErrors )
                error(ETWarn, "Tolerating ill-formed markup.  Source sentence "
                      "%d will be interpreted as having %d valid mark%s and "
                      "this token sequence: %s",
-                     sents.size()-1+c.firstSentNum, marks.back().size(),
+                     sourceSentenceIds.back(), marks.back().size(),
                      (marks.back().size() == 1 ? "" : "s"),
                      joini(sents.back().begin(), sents.back().end()).c_str());
             else
@@ -351,10 +442,13 @@ int MAIN(argc, argv)
          {
             sents.pop_back();
             marks.pop_back();
+            sourceSentenceIds.pop_back();
             break;
          }
       }
       reader.reportWarningCounts();
+      assert(sents.size() == marks.size());
+      assert(sents.size() == sourceSentenceIds.size());
    }
 
    time_t start;
@@ -387,10 +481,10 @@ int MAIN(argc, argv)
    {
       vector<string> sent;
       vector<MarkedTranslation> curMarks;
-      Uint sourceSentenceId(i+c.firstSentNum);
+      Uint sourceSentenceId(0);
       if (c.loadFirst)
       {
-         if ( ! reader.readMarkedSent(sent, curMarks) )
+         if ( ! reader.readMarkedSent(sent, curMarks, &sourceSentenceId) )
          {
             if ( c.tolerateMarkupErrors ) {
                error(ETWarn, "Tolerating ill-formed markup.  Source sentence "
@@ -408,7 +502,9 @@ int MAIN(argc, argv)
          if (i == sents.size()) break;
          sent = sents[i];
          curMarks = marks[i];
+         sourceSentenceId = sourceSentenceIds[i];
       }
+      if (!c.bLoadBalancing) sourceSentenceId += c.firstSentNum;
 
       if (c.randomWeights)
          gen->setRandomWeights((c.randomSeed + 1) * sourceSentenceId);
@@ -442,8 +538,9 @@ int MAIN(argc, argv)
             break;
       } // switch
 
+
       if (!h->isEmpty()) {
-         doOutput(*h, *model, sourceSentenceId, &oovs, c);
+         doOutput(*h, *model, sourceSentenceId, &oovs, c, one_file_info);
       } else {
          // No translation for the current sentence:
          // Insert an empty line
@@ -461,3 +558,4 @@ int MAIN(argc, argv)
    return 0;
 }
 END_MAIN
+

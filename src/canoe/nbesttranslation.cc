@@ -87,7 +87,6 @@ typedef map< state_weight_t, state_weight_t >  Paths;
 /**
  * Once a translation has been found, this function transforms a set of paths
  * composing the translation into a string and escapes the quotes and slashes.
- * @param file
  * @param print
  * @param backwards
  * @param p_c
@@ -95,8 +94,7 @@ typedef map< state_weight_t, state_weight_t >  Paths;
  * @param g          the lattice itself.
  */
 static void print_path(
-    ostream &  file,
-    PrintFunc &  print,
+    NbestPrinter &  print,
     bool  backwards,
     state_weight_t  p_c,
     Paths &  pi,
@@ -110,32 +108,24 @@ static void print_path(
     DecoderState * const  src = g.get_initial_state();
     Sequence  state_sequence;
     while ( p_1 != src ) {
-        if ( backwards ) {
-            state_sequence.push_front( p_1 );
-        } else {
-            state_sequence.push_back( p_1 );
-        }
-        p_c = pi[ p_c ];
-        p_1 = getState(p_c);
+       if ( backwards ) {
+          state_sequence.push_front( p_1 );
+       } else {
+          state_sequence.push_back( p_1 );
+       }
+       p_c = pi[ p_c ];
+       p_1 = getState(p_c);
     }
     for ( SequenceIterator vi = state_sequence.begin();
           vi != state_sequence.end();
           ++vi ) {
-        const string  print__p_1 = print( *vi );
-        for ( Uint i = 0; i < print__p_1.size(); ++ i ) {
-            const char  ch = print__p_1[ i ];
-            if ( ch == '"' ) { file << "\\\""; }
-            else if ( ch == '\\' ) { file << "\\\\"; }
-            else file.put( ch );
-        }
-        file.put( ' ' );
+       print( *vi );
     }
-    file << " " << endl;
+    print.sentenceEnd();
 }
 
 void Portage::print_nbest( lattice_overlay const &  g,
-                  ostream &  file,  const int  n,
-                  PrintFunc &  print, bool  backwards
+                  const int n, NbestPrinter & print, bool  backwards
   ) {
     static Uint Uid_maker(0);
     map< DecoderState *, int >  r;
@@ -157,7 +147,7 @@ void Portage::print_nbest( lattice_overlay const &  g,
         const int     r_p = ++r[ p ];
         if ( g.is_final_state( p ) ) {
             sink = p;
-            print_path( file, print, backwards, p_c, pi, g );
+            print_path( print, backwards, p_c, pi, g );
             if ( r_p == n ) {
                 break;
             }
@@ -176,12 +166,12 @@ void Portage::print_nbest( lattice_overlay const &  g,
     }
     while ( r[ sink ] < n ) {
         ++r[ sink ];
-        file << endl;
+        print.sentenceEnd();
     }
 }
 
 
-void print_lattice( lattice_overlay const & g,
+void Portage::print_lattice( lattice_overlay const & g,
                     ostream& file,
                     PrintFunc & print)
 {

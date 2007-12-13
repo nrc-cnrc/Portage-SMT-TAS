@@ -28,6 +28,7 @@
 #include "phrasedecoder_model.h"
 #include "basicmodel.h"
 #include "wordgraph.h"
+#include "lattice_overlay_visitor.h"
 
 
 //   How to use:
@@ -447,30 +448,13 @@ inline vector< double >  get( my_ffvals_map_t  fm, DecoderStatePair  e ) {
 /**
  * Prints the NBest List for the lattice.
  * @param g          the lattice itself.
- * @param file       output stream to receive the NBest List.
  * @param n          number of best hypotheses (n=100 => 100 best list).
  * @param print      a functor to format the content of the NBest List
+ *                   and print it.
  * @param backwards  
  */
-void  print_nbest( lattice_overlay const &  g, ostream &  file,
-          const int  n, PrintFunc &  print, bool  backwards );
-
-/**
- * Prints the NBest List for the lattice.
- * @param g          the lattice itself.
- * @param file_name  file to output the NBest List.
- * @param n          number of best hypotheses (n=100 => 100 best list).
- * @param print      a functor to format the content of the NBest List
- * @param backwards  
- */
-inline
-void  print_nbest( lattice_overlay const &  g, const std::string&  file_name,
-          const int  n, PrintFunc &  print, bool  backwards )
-{
-    OMagicStream  file( file_name );
-    print_nbest( g, file, n, print, backwards );
-}
-
+void  print_nbest( lattice_overlay const &  g,
+          const int  n, NbestPrinter &  print, bool  backwards );
 
 /**
  * Prints the entire lattice.

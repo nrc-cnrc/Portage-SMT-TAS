@@ -23,9 +23,10 @@
 using namespace Portage;
 using namespace std;
 
-InputParser::InputParser(istream &in)
+InputParser::InputParser(istream &in, const bool withId)
    : in(in)
    , lineNum(0)
+   , withId(withId)
 {
    in.unsetf(ios::skipws);
 }
@@ -36,8 +37,17 @@ bool InputParser::eof()
 }
 
 bool InputParser::readMarkedSent(vector<string> &sent,
-      vector<MarkedTranslation> &marks)
+      vector<MarkedTranslation> &marks,
+      Uint* sourceSentenceId)
 {
+   // Parse the source sentence id
+   // integer \t SourceSentence
+   if (withId && sourceSentenceId) {
+      in >> *sourceSentenceId;
+   }
+   else if (sourceSentenceId) {
+      *sourceSentenceId = lineNum;
+   }
    lineNum++;
    char c;
    in >> c;

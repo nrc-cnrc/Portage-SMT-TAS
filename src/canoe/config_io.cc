@@ -78,6 +78,8 @@ CanoeConfig::CanoeConfig()
    backwards              = false;
    loadFirst              = false;
    input                  = "-";
+   bAppendOutput          = false;
+   bLoadBalancing         = false;
    futLMHeuristic         = "incremental";
 
    // Parameter information, used for input and output. NB: doesn't necessarily
@@ -135,13 +137,17 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("backwards", "bool", &backwards));
    param_infos.push_back(ParamInfo("load-first", "bool", &loadFirst));
    param_infos.push_back(ParamInfo("input", "string", &input));
+   param_infos.push_back(ParamInfo("append", "bool", &bAppendOutput));
    param_infos.push_back(ParamInfo("future-score-lm-heuristic", "string", &futLMHeuristic));
+   param_infos.push_back(ParamInfo("lb", "bool", &bLoadBalancing));
 
    // List of all parameters that correspond to weights. ORDER IS SIGNIFICANT
    // and must match the order in BasicModelGenerator::InitDecoderFeatures().
    // New entries should be added immediately before "lm".
 
-   const char* weight_names[] = {"d", "w", "sm", "ibm1f", "lm", "tm", "ftm"};
+   const char* weight_names[] = {
+      "d", "w", "sm", "ibm1f", "lm", "tm", "ftm"
+   };
    weight_params.assign(weight_names, weight_names + ARRAY_SIZE(weight_names));
 
    for (Uint i = 0; i < param_infos.size(); ++i) {
@@ -435,6 +441,8 @@ void CanoeConfig::check()
       transWeights.assign(backPhraseFiles.size() + multi_prob_model_count, 1.0);
 
    // Errors:
+   if (bLoadBalancing && bAppendOutput)
+      error(ETFatal, "Load Balancing cannot run in append mode");
 
    //if (latticeOut && nbestOut)
    //   error(ETFatal, "Lattice and nbest output cannot be generated simultaneously.");

@@ -62,6 +62,11 @@ v1.2 ??.??.200?
    - -dist-limit-ext and -dist-phrase-swap modify the semantics of the
      distortion limit;
    - new -input option allows input from something other than stdin;
+   - new -append option concatenate nbest, ffvals and pal files on the fly;
+ - canoe-parallel.sh:
+   - new -lb option to perform load balancing;
+   - new -resume option to attempt to recover a job that died previously;
+   - support for all the new canoe options.
  - filter_models and find_sentence_phrases:
    - use the same InputParser class as canoe for consistent handling of markup.
  - removed the broken markup handling from train_ibm, align-words and run_ibm:

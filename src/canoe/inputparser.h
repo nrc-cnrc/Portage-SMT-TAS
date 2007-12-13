@@ -34,6 +34,9 @@ namespace Portage
 
       Uint lineNum;  ///< Current line number
 
+      /// Doing load balancing thus each source sentence has an id
+      const bool withId;
+
       /**
        * Counters for warnings that have been issued already and that should
        * be repeated too many times.
@@ -119,8 +122,10 @@ namespace Portage
       /**
        * Creates an InputParser to read from the given input stream.
        * @param in        The input stream to read from.
+       * @param withId    indicates that each source sentence is preceded
+       *                  by it source sentence id
        */
-      InputParser(istream &in);
+      InputParser(istream &in, const bool withId=false);
 
       /**
        * Tests whether the end of file has been reached.
@@ -140,10 +145,12 @@ namespace Portage
        * @param sent      A vector containing all the words in the
        *                  sentence in order.
        * @param marks     A vector containing the marks in the sentence.
+       * @param[out] sourceSentenceId  source senctence id
        * @return  true iff no error was encountered
        */
       bool readMarkedSent(vector<string> &sent,
-            vector<MarkedTranslation> &marks);
+            vector<MarkedTranslation> &marks,
+            Uint* sourceSentenceId=NULL);
 
       /**
        * Report occurrence counts for warnings that are only reported a limited

@@ -3,6 +3,7 @@
  * @file canoe_help.h  Contains the help message for canoe.
  *
  * $Id$ *
+ *
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -262,6 +263,15 @@ Options (in command-line format):\n\
 \n\
  -input FILE\n\
         The source sentences file.  [-]\n\
+\n\
+ -append\n\
+        The decoder will output its results in a single file instead of one\n\
+        file per source sentences.  This will automatically be applied to\n\
+        nbest, ffvals, pal, lattice and lattice_state\n\
+\n\
+ -lb\n\
+        Indicates that canoe is running in load-balancing mode thus the source\n\
+        sentences will be prepended with a source sentence id.\n\
 \n\
  -future-score-lm-heuristic FUT-LM-HEURISTIC\n\
         Specify the LM heuristic to use for the future score.  One of:\n\
