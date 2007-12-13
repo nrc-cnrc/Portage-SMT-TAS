@@ -94,11 +94,11 @@ PERL_LIB_DIR := $(INSTALL_DIR)/lib
 
 # places to find things; include the -L flag, eg -L/my-other-lib-dir
 ifdef PORTAGE
-    OTHER_INC_DIRS = -I$(PORTAGE)/include
-    OTHER_LIB_DIRS = -L$(PORTAGE)/lib
+   OTHER_INC_DIRS = -I$(PORTAGE)/include
+   OTHER_LIB_DIRS = -L$(PORTAGE)/lib
 else
-    OTHER_INC_DIRS = -I/home/portage/include
-    OTHER_LIB_DIRS = -L/home/portage/lib
+   OTHER_INC_DIRS = -I/home/portage/include
+   OTHER_LIB_DIRS = -L/home/portage/lib
 endif
 
 # lib and include directories due to MODULE_DEPENDS
@@ -107,9 +107,9 @@ MODULE_INCLUDE = $(foreach DIR, $(MODULE_DEPENDS), -I../$(DIR))
 # Automatically add to LIBS all libraries resulting from dependencies in
 # MODULE_DEPENDS, adding utils unless we're in utils.
 ifeq ($(NO_UTILS_LIB), true)
-    LIB_LIST = $(MODULE_DEPENDS)
+   LIB_LIST = $(MODULE_DEPENDS)
 else
-    LIB_LIST = $(MODULE_DEPENDS) utils
+   LIB_LIST = $(MODULE_DEPENDS) utils
 endif
 LIBS = $(foreach DIR, $(LIB_LIST), -lportage_$(DIR)) $(EXTRA_LIBS)
 
@@ -121,20 +121,20 @@ endif
 # If the variable LOGGING is defined to the value NONE, turn off the
 # compilation and linking with LOG4CXX
 ifeq ($(LOGGING), NONE)
-    CFLAG_LOGGING = -DNO_LOGGING
-    LOGGING_LIB =
+   CFLAG_LOGGING = -DNO_LOGGING
+   LOGGING_LIB =
 else
-    CFLAG_LOGGING =
-    LOGGING_LIB = -llog4cxx
+   CFLAG_LOGGING =
+   LOGGING_LIB = -llog4cxx
 endif
 
 # Disable all checking in boost::ublas, since they're very expensive, unless
 # UBLAS_DEBUG is defined.
 ifndef UBLAS_DEBUG
-    BOOST_CF = -DBOOST_UBLAS_INLINE=inline -DBOOST_UBLAS_USE_FAST_SAME \
-               -DBOOST_UBLAS_CHECK_ENABLE=0 -DBOOST_UBLAS_TYPE_CHECK=0
+   BOOST_CF = -DBOOST_UBLAS_INLINE=inline -DBOOST_UBLAS_USE_FAST_SAME \
+              -DBOOST_UBLAS_CHECK_ENABLE=0 -DBOOST_UBLAS_TYPE_CHECK=0
 else
-    BOOST_CF =
+   BOOST_CF =
 endif
 
 # flags and commands

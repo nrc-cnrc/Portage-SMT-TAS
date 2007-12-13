@@ -60,9 +60,11 @@ void BasicModelGenerator::InitDecoderFeatures(const CanoeConfig& c)
       }
    }
 
+
    decoder_features.push_back(DecoderFeature::create(this,
       "LengthFeature", "", ""));
    featureWeightsV.push_back(c.lengthWeight);
+
 
    if ( c.segmentationModel != "none" ) {
       decoder_features.push_back(DecoderFeature::create(this,
@@ -71,6 +73,13 @@ void BasicModelGenerator::InitDecoderFeatures(const CanoeConfig& c)
    } else {
       // This is the default - no need to warn!
       //cerr << "Not using any segmentation model" << endl;
+   }
+
+
+   for (Uint i = 0; i < c.ibm1FwdWeights.size(); ++i) {
+      decoder_features.push_back(DecoderFeature::create(this,
+         "IBM1FwdFeature", "", c.ibm1FwdFiles[i]));
+      featureWeightsV.push_back(c.ibm1FwdWeights[i]);
    }
 
 }
@@ -339,7 +348,7 @@ string BasicModelGenerator::describeModel() const
    return description.str();
 } // describeModel
 
-PhraseDecoderModel *BasicModelGenerator::createModel(
+BasicModel *BasicModelGenerator::createModel(
    const vector<string> &src_sent,
    const vector<MarkedTranslation> &marks,
    bool alwaysTryDefault,
@@ -510,7 +519,7 @@ double **BasicModelGenerator::precomputeFutureScores(
                ((MultiTransPhraseInfo *) *it)->phrase_trans_probs,
                transWeightsV, transWeightsV.size());
 
-            // Add unigram LM score
+            // Add heuristic LM score
             if ( futureScoreLMHeuristic == LMH_UNIGRAM ) {
                // Our old way: use the unigram LM score
                for ( Phrase::const_iterator jt = (*it)->phrase.begin();

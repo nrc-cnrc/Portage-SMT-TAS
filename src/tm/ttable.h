@@ -31,6 +31,7 @@
 #include <string>
 #include <errors.h>
 #include <quick_set.h>
+#include <voc.h>
 
 namespace Portage {
 
@@ -102,9 +103,9 @@ private:
       {return x.first < y;}
    };
 
-   hash_map<string,Uint,StringHash> tword_map;
-   hash_map<string,Uint,StringHash> sword_map;
-   vector<string> twords;
+   hash_map<string,Uint,StringHash> tword_map; ///< T-language vocab
+   hash_map<string,Uint,StringHash> sword_map; ///< S-language vocab
+   vector<string> twords; ///< T-language vocab (mapping index to word)
    vector<SrcDistn> src_distns;
    vector<vector<bool>*> src_distns_quick;
    QuickSet src_inds; ///< local variable to add(), kept persistent for speed
@@ -113,14 +114,18 @@ private:
    SrcDistn empty_distn;  ///< Empty source distribution.
 
    void add(Uint src_index, Uint tgt_index);
+   void read(const string& filename, const Voc* src_voc);
 
 public:
 
    /**
     * Constructor. GIZA++ format: src_word tgt_word p(tgt_word|src_word).
     * @param filename  file containing the GIZA++ info.
+    * @param src_voc   if not null, causes the ttable to be filtered while
+    *                  loading, keeping only lines where the source word exists
+    *                  in *src_voc.
     */
-   TTable(const string& filename);
+   TTable(const string& filename, const Voc* src_voc = NULL);
 
    /// Constructor that creates an empty ttable. Use add() to populate, then
    /// makeDistnsUniform().

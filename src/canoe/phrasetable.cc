@@ -733,6 +733,15 @@ bool PhraseTable::getPhrasePair(const string& src, const string& tgt, TScore& sc
    return found;
 } // getPhrasePair
 
+Uint PhraseTable::PhraseScorePairLessThan::mHash(const string& param) const
+{
+   Uint hash = 0;
+   const char* sz = param.c_str();
+   for ( ; *sz; ++sz)
+      hash = *sz + 5*hash;
+   return (hash>>16 + hash<<16);
+}
+
 bool PhraseTable::PhraseScorePairLessThan::operator()(
    const pair<double, PhraseInfo *>& ph1, const pair<double, PhraseInfo *>& ph2
 ) const {
@@ -743,16 +752,41 @@ bool PhraseTable::PhraseScorePairLessThan::operator()(
       // EJJ 2Feb2006: this code is replicated in tm/tmtext_filter.pl - if
       // you change it here, change it there too!!!
 
-      // Second comparison criterion, in case of tie: the phrase length
-      if ( ph1.second->phrase.size() < ph2.second->phrase.size() ) return true;
-      else if ( ph1.second->phrase.size() > ph2.second->phrase.size() ) return false;
+      // Second comparison criterion, in case of tie: the score backward probs
+      // At first, the inequality may seem reversed, but it seems that the best
+      // phrase is inversely correlated with its frequency as shown by empirical
+      // results.
+      if ( ph1.second->phrase_trans_prob > ph2.second->phrase_trans_prob ) return true;
+      else if ( ph1.second->phrase_trans_prob < ph2.second->phrase_trans_prob ) return false;
       else {
-         // Final tie breaker: ascii-betic sort
-         return parent.getStringPhrase(ph1.second->phrase) <
-                parent.getStringPhrase(ph2.second->phrase);
+         // For third criterion, hashing the phrase words to add some controlled randomness.
+         const string s1 = parent.getStringPhrase(ph1.second->phrase);
+         const string s2 = parent.getStringPhrase(ph2.second->phrase);
+         const unsigned int h1 = mHash(s1);
+         const unsigned int h2 = mHash(s2);
+         if (h1 > h2) {
+            return true;
+         } else if (h1 < h2) {
+            return false;
+         } else {
+            // Final tie breaker: ascii-betic sort
+            return s1 < s2;
+         }
       }
    }
 } // phraseScorePairLessThan
+
+bool PhraseTable::PhraseScorePairGreaterThan::operator()(
+   const pair<double, PhraseInfo *>& ph1, const pair<double, PhraseInfo *>& ph2
+) const {
+   if ( PhraseScorePairLessThan::operator()(ph1, ph2) )
+      return false; // < holds
+   else if ( ph1.first == ph2.first &&
+             ph1.second->phrase == ph2.second->phrase )
+      return false; // == holds
+   else
+      return true;  // > holds
+}
 
 string PhraseTable::getStringPhrase(const Phrase &uPhrase) const
 {

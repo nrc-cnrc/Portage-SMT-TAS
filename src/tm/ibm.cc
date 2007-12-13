@@ -206,11 +206,12 @@ double IBM1::pr(const vector<string>& src_toks, const string& tgt_tok,
 
 static const bool debug_logpr = false;
 
-double IBM1::logpr(const vector<string>& src_toks, const vector<string>& tgt_toks, double smooth)
+double IBM1::logpr(const vector<string>& src_toks, const vector<string>& tgt_toks,
+                   double smooth)
 {
    double lp = 0, logsmooth = log(smooth);
    for (Uint i = 0; i < tgt_toks.size(); ++i) {
-      double tp = pr(src_toks, tgt_toks[i]);
+      double tp = IBM1::pr(src_toks, tgt_toks[i]);
       lp += tp == 0 ? logsmooth : log(tp);
    }
    if ( debug_logpr )

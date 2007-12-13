@@ -42,7 +42,7 @@
 #ifndef IBM_H
 #define IBM_H
 
-#include "file_utils.h"
+#include "MagicStream.h"
 #include "ttable.h"
 
 namespace Portage {
@@ -125,8 +125,12 @@ namespace Portage {
     /**
      * Construct using an existing ttable file.
      * @param ttable_file  file containing the ttable.
+     * @param src_voc   if not null, causes the ttable to be filtered while
+     *                  loading, keeping only lines where the source word exists
+     *                  in *src_voc.
      */
-    IBM1(const string& ttable_file) : tt(ttable_file) {
+    IBM1(const string& ttable_file, const Voc* src_voc = NULL)
+      : tt(ttable_file, src_voc) {
         useImplicitNulls = trainedWithNulls();
     }
 

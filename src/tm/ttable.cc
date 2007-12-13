@@ -21,7 +21,7 @@ using namespace Portage;
 
 const string TTable::sep_str = "|||";
 
-TTable::TTable(const string& filename)
+TTable::TTable(const string& filename, const Voc* src_voc)
 {
    IMagicStream ifs(filename);
 
@@ -31,6 +31,10 @@ TTable::TTable(const string& filename)
       if (splitZ(line, toks) != 3)
          error(ETFatal, "line not in format <src tgt p(tgt|src)>: %s",
                line.c_str());
+
+      // If src_voc specified, ignore source words not in it.
+      if (src_voc && src_voc->index(toks[0].c_str()) == src_voc->size())
+         continue;
 
       pair<WordMapIter,bool> res;
 
@@ -222,11 +226,14 @@ double TTable::getProb(const string& src_word, const string& tgt_word) const {
 
 void TTable::write(ostream& os) const
 {
+   streamsize old_precision = os.precision();
+   os.precision(9);
    for (WordMapIter p = sword_map.begin(); p != sword_map.end(); ++p) {
       SrcDistnIter pe = src_distns[p->second].end();
       for (SrcDistnIter pt = src_distns[p->second].begin(); pt != pe; ++pt)
          os << p->first << ' ' << twords[pt->first] << ' ' << pt->second << endl;
    }
+   os.precision(old_precision);
 }
 
 Uint TTable::prune(double thresh)

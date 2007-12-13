@@ -371,17 +371,17 @@ fi
 if [ $HIGHMEM ]; then
    # For high memory, request two CPUs per worker with ncpus=2.
    PSUBOPTS="$PSUBOPTS -2"
-elif [ -z "$nohighmem" -a -n "$pbs_jobid" ]; then
+elif [ -z "$NOHIGHMEM" -a -n "$PBS_JOBID" ]; then
    if which qstat >& /dev/null; then
-      if qstat -f $pbs_jobid 2> /dev/null | grep -q 1:ppn=2 >& /dev/null; then
-         echo master was submitted with 2 cpus, propagating to workers >&2
-         psubopts="$psubopts -2"
-      elif qstat -f $pbs_jobid 2> /dev/null | grep -q 1:ppn=3 >& /dev/null; then
-         echo master was submitted with 3 cpus, propagating to workers >&2
-         psubopts="$psubopts -3"
-      elif qstat -f $pbs_jobid 2> /dev/null | grep -q 1:ppn=4 >& /dev/null; then
-         echo master was submitted with 4 cpus, propagating to workers >&2
-         psubopts="$psubopts -4"
+      if qstat -f $PBS_JOBID 2> /dev/null | grep -q 1:ppn=2 >& /dev/null; then
+         echo Master was submitted with 2 CPUs, propagating to workers >&2
+         PSUBOPTS="$PSUBOPTS -2"
+      elif qstat -f $PBS_JOBID 2> /dev/null | grep -q 1:ppn=3 >& /dev/null; then
+         echo Master was submitted with 3 CPUs, propagating to workers >&2
+         PSUBOPTS="$PSUBOPTS -3"
+      elif qstat -f $PBS_JOBID 2> /dev/null | grep -q 1:ppn=4 >& /dev/null; then
+         echo Master was submitted with 4 CPUs, propagating to workers >&2
+         PSUBOPTS="$PSUBOPTS -4"
       fi
    fi
 fi

@@ -18,15 +18,15 @@
  * Copyright 2004, Her Majesty in Right of Canada
  */
 
-#include "phrasedecoder_model.h"
+#include "basicmodel.h"
 #include "forced_phrase_finder.h"
 #include <cstdlib>
 #include <iostream>
 #include <math.h>
 
 
-ForcedTargetPhraseFinder::ForcedTargetPhraseFinder(PhraseDecoderModel &model,
-      const vector<string> &tgt_sent, int distLimit)
+ForcedTargetPhraseFinder::ForcedTargetPhraseFinder(BasicModel &model,
+      const vector<string> &tgt_sent)
    : srcLength(model.getSourceLength())
 {
    vector<PhraseInfo *> **phrases = model.getPhraseInfo();
@@ -70,7 +70,8 @@ ForcedTargetPhraseFinder::ForcedTargetPhraseFinder(PhraseDecoderModel &model,
          }
       }
       finderByTargetWord.push_back(RangePhraseFinder(curPhrases, srcLength,
-               distLimit));
+               model.c->distLimit, model.c->distLimitExt,
+               model.c->distPhraseSwap));
    }
 } // ForcedTargetPhraseFinder
 

@@ -258,6 +258,7 @@ int MAIN(argc, argv)
 
    CanoeConfig c;
    static vector<string> args = c.getParamList();
+   args.push_back("options");
 
    const char* switches[args.size()];
    for (Uint i = 0; i < args.size(); ++i)
@@ -267,6 +268,18 @@ int MAIN(argc, argv)
    ArgReader argReader(ARRAY_SIZE(switches), switches, 0, 0, help, "-h", false);
    argReader.read(argc - 1, argv + 1);
 
+
+   if ( argReader.getSwitch("options") ) {
+      vector<string> help_lines;
+      split(string(HELP), help_lines, "\n");
+      for ( Uint i(0); i < help_lines.size(); ++i ) {
+         if ( help_lines[i].size() >= 2 &&
+              help_lines[i].substr(0,2) == " -" )
+            cerr << help_lines[i] << endl;
+      }
+      exit(0);
+   }
+
    if (!argReader.getSwitch("f", &c.configFile) &&
        !argReader.getSwitch("config", &c.configFile))
       error(ETFatal, "No config file given.  Use -h for help.");
@@ -274,6 +287,7 @@ int MAIN(argc, argv)
    c.read(c.configFile.c_str()); // set parameters from config file
    c.setFromArgReader(argReader); // override from cmd line
    c.check();
+   PhraseTable::log_almost_0 = c.phraseTableLogZero;
 
    if (c.verbosity >= 2)
       c.write(cerr, 2);
@@ -285,7 +299,8 @@ int MAIN(argc, argv)
    BasicModelGenerator *gen;
    vector<vector<string> > sents;
    vector<vector<MarkedTranslation> > marks;
-   InputParser reader(cin);
+   IMagicStream input(c.input);
+   InputParser reader(input);
    if (c.checkInputOnly) {
       cerr << "Checking input sentences for markup errors." << endl;
       Uint error_count(0);
@@ -372,6 +387,7 @@ int MAIN(argc, argv)
    {
       vector<string> sent;
       vector<MarkedTranslation> curMarks;
+      Uint sourceSentenceId(i+c.firstSentNum);
       if (c.loadFirst)
       {
          if ( ! reader.readMarkedSent(sent, curMarks) )
@@ -380,7 +396,7 @@ int MAIN(argc, argv)
                error(ETWarn, "Tolerating ill-formed markup.  Source sentence "
                      "%d will be interpreted as having %d valid mark%s and "
                      "this token sequence: %s",
-                     i+c.firstSentNum, curMarks.size(),
+                     sourceSentenceId, curMarks.size(),
                      (curMarks.size() == 1 ? "" : "s"),
                      joini(sent.begin(), sent.end()).c_str());
             } else {
@@ -395,7 +411,7 @@ int MAIN(argc, argv)
       }
 
       if (c.randomWeights)
-         gen->setRandomWeights((c.randomSeed + 1) * (Uint)(i+c.firstSentNum));
+         gen->setRandomWeights((c.randomSeed + 1) * sourceSentenceId);
       vector<bool> oovs;
       PhraseDecoderModel *model = gen->createModel(sent, curMarks, false, &oovs);
 
@@ -427,11 +443,12 @@ int MAIN(argc, argv)
       } // switch
 
       if (!h->isEmpty()) {
-         doOutput(*h, *model, i+c.firstSentNum, &oovs, c);
+         doOutput(*h, *model, sourceSentenceId, &oovs, c);
       } else {
+         // No translation for the current sentence:
          // Insert an empty line
          cout << endl;
-         error(ETWarn, "No translation found for sentence %d with the current settings.", i+c.firstSentNum);
+         error(ETWarn, "No translation found for sentence %d with the current settings.", sourceSentenceId);
       }
 
       delete h;

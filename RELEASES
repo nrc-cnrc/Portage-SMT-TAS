@@ -13,13 +13,12 @@ license agreement for details.
                               Release History
                    (with a summary of important changes)
 
-Done: utils logging eval preprocessing
-To do: lm tm canoe rescoring build api
-(for dir in lm; do
+Done: utils build logging eval preprocessing lm tm canoe api rescoring
+(for dir in rescoring; do
     cd $dir
     for x in *
       do echo ====================================================
-      echo gvimdiff $dir/$x ~/sandboxes/PortageTrunk/src/$dir/$x
+      echo gvimdiff $x ~/sandboxes/PortageTrunk/src/$dir/$x
       diff -w $x ~/sandboxes/PortageTrunk/src/$dir/$x
     done
     cd ..
@@ -31,17 +30,38 @@ v1.2 ??.??.200?
    and consequently the loading of many type of input and data files, including
    the new Voc::addConverter functor to directly convert a sentence or a phrase
    from a string to a vector<Uint> with no intermediate storage.
+ - Optimization of various programs throughout the Portage suite, including
+   canoe.
+ - Implemented new language model heuristics for decoding, including
+   "incremental", the default in several other MT systems, and now also the
+   default in PORTAGEshared.
+ - Monotonic decoding with phrase swaps can now be done using canoe's
+   "-distortion-limit 0 -dist-phrase-swap" combination of options, optionally
+   using the new PhraseDisplacement distortion model instead of, or in
+   combination with, the standard distortion penalty (WordDisplacement).
+ - New IBM1Forward decoder feature.
 
  Minor changes:
  - The new script process-memory-usage.pl to monitor resource usage by a job,
    especially in a cluster setting.
  - Made the code compile mostly cleanly with g++ 4.2.0.
- - Formatting changes in many files to improve consistency.
+ - Formatting changes in many files to improve consistency: prefer 3-character
+   intentation, avoid the tab character, streamline documentation, etc.
  - canoe:
    - added markup syntax documentation to -help message;
    - new -check-input-only option to validate an input file, not decode;
    - improved error messages when invalid markup is encountered;
-   - improved error recovery in -tolerate-markup-errors mode.
+   - improved error recovery in -tolerate-markup-errors mode;
+   - option -segmentation-args is replaced by -segmentation-model model#args;
+   - compress nbest and ffvals files on the fly;
+   - the canoe.ini file format now allows lists to be separated by whitespace
+     or ':', and allows comments introduced by '#';
+   - new -ttable-log-zero option offers crude control of phrase table smoothing;
+   - new -options switch print a compact list of all canoe options;
+   - new decoder feature based on forward IBM1 probabilities;
+   - -dist-limit-ext and -dist-phrase-swap modify the semantics of the
+     distortion limit;
+   - new -input option allows input from something other than stdin;
  - filter_models and find_sentence_phrases:
    - use the same InputParser class as canoe for consistent handling of markup.
  - removed the broken markup handling from train_ibm, align-words and run_ibm:
@@ -79,6 +99,41 @@ v1.2 ??.??.200?
    - smoothing value 0 means no smoothing,
    - new options -y and -u to control the size of the ngrams considered,
    - many code optimizations.
+ - BinLMs now run about 10% faster
+ - lm/lm_eval replaces lm/testlm and can now calculate document perplexity
+ - The LM classes now properly support open-vocabulary language models.  As an
+   optimization, open-voc LMs are assumed to only contain a probability
+   P(<UNK>), and no other event involving <UNK>.  The LM classes also support
+   LMs assigning probabilities and back-off weights to other events involving
+   <UNK>, at the cost of some speed, so no program in PORTAGEshared enables
+   this feature.  Changes will be required to the code if it is required.
+ - tm/ibm.{h,cc}: cleaned up the inheritance structure between classes IBM1 and
+   IBM2 and filled in some missing documentation.
+ - tm/joint2cond_phrase_tables:
+   - new -j switch for merging joint freq PTs;
+   - by default, assume lexical model is IBM2, not the rarely used IBM1.
+ - added gen-jpt-parallel.sh: parallel joint frequency phrase table training;
+   the output can the be used by joint2cond_phrase_tables to estimate probs, as
+   gen_phrase_tables would have done in a single non-parallel step.
+ - gen_phrase_tables and joint2cond_phrase_tables: 
+   - new phrase smoother IBM1Smoother explicitely does IBM1 lexical smoothing,
+     while IBMSmoother does IBM2 if the model provided is IBM2, or IBM1
+     smoothing otherwise;
+   - new Indicator phrase smoother creates a constant column.
+ - canoe, api/paddle_server and api/portage_api.{h,cc}: model files in a
+   canoe.ini are now assumed to be relative to the path of that canoe.ini file.
+ - canoe/decoder.cc and canoe/basicmodel.cc: the CanoeConfig object is passed a
+   bit deeper instead of long parameter lists.
+ - cow.sh:
+   - one of -nofloor (new option) or -floor is required since there does not
+     exist an appropriate default for this option;
+   - temporary files are now compressed on the fly, unless -Z is specified;
+ - rat.sh:
+   - by default, the output is now MODEL.out, rather than overwriting the input;
+ - When modifying and testing a single program, say src/subdir/progname, one
+   can quickly rebuild it and its dependencies (and nothing else) by running
+   this command in src/:
+      gmake OT=progname subdir_progs
 
  Major bug fixes:
  - When canoe was used with -weight-f (weights on the forward translation
@@ -92,6 +147,7 @@ v1.2 ??.??.200?
  - block_mem_pool.h and index_block_mem_pool.h: in some cases, the destructor
    was called twice on the same object.
  - voc.cc: fixed mismatched malloc/free new/delete use.
+ - rescoring feature IBM1Deletion was not hooked in properly.
 
 
 v1.1 01.04.2007

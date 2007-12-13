@@ -20,9 +20,6 @@
 #include "phrase_tm_align.h"
 #include <decoder.h>
 #include <hypothesisstack.h>
-//#include <phrasedecoder_model.h>
-//#include <phrasefinder.h>
-//#include <phrasetable.h>
 #include <forced_phrase_finder.h>
 #include <canoe_general.h>
 #include <str_utils.h>
@@ -56,16 +53,11 @@ void PhraseTMAligner::computePhraseTM(const vector<string> &src_sent,
     const vector<string> &tgt_sent, stringstream &ss, Uint n, bool noscore, bool onlyscore,
     double threshold, Uint pruneSize, Uint covLimit, double covThreshold)
 {
-    // cerr << "START COMPUTE" << endl;
-    PhraseDecoderModel *model = gen.createModel(src_sent, vector<MarkedTranslation>(), true);
-    // for (int i = 0; i < src_sent.size(); ++i)
-    //     cerr << "/" << src_sent[i];
-    // cerr << endl;
-    // for (int i = 0; i < tgt_sent.size(); ++i)
-    //     cerr << "/" << tgt_sent[i];
-    // cerr << endl;
-    // Create the model/phrase finder to be used
-    ForcedTargetPhraseFinder finder(*model, tgt_sent, gen.c->distLimit);
+    BasicModel *model = gen.createModel(src_sent, vector<MarkedTranslation>(), true);
+
+    // Create the model/phrase finder to be used -- distortion parameters are
+    // directly taken from model.c, and taken into account.
+    ForcedTargetPhraseFinder finder(*model, tgt_sent);
 
     // Create the hypothesis stacks (do no pruning)
     HypothesisStack *stack[src_sent.size() + 1];

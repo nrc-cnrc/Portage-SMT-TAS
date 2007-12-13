@@ -37,6 +37,7 @@ using namespace __gnu_cxx;
 namespace Portage
 {
    class PLM;
+   class BasicModel;
 
    /**
     * translation marked in the decoder input.
@@ -95,7 +96,7 @@ namespace Portage
        *
        * Adds all the marked phrases to the triangular array result.  Ranges
        * that should be skipped (ranges that have marked translations when
-       * bypassMarked is false) are stored in rangesToSkip.
+       * c.bypassMarked is false) are stored in rangesToSkip.
        * @param marks     The marked translations to add.
        * @param result    The triangular array in which to enter the
        *                  PhraseInfo object pointers for the marked phrases.
@@ -189,12 +190,14 @@ namespace Portage
        */
       PhraseTable *phraseTable;
 
+   public:
       /**
        * Whether reading tables should be limited to vocab/phrases
        * already there.
        */
       const bool limitPhrases;
 
+   protected:
       /**
        * Language model weights, one entry per LM.
        */
@@ -572,9 +575,10 @@ namespace Portage
        *                  in src_sent that contains an out-of-vocabulary
        *                  word.
        */
-      virtual PhraseDecoderModel *createModel(const vector<string> &src_sent,
+      virtual BasicModel *createModel(const vector<string> &src_sent,
             const vector<MarkedTranslation> &marks,
-            bool alwaysTryDefault = false, vector<bool>* oovs = NULL);
+            bool alwaysTryDefault = false,
+            vector<bool>* oovs = NULL);
 
       /**
        * Gets a reference to the phrase table object of this model.
@@ -618,6 +622,12 @@ namespace Portage
       }
       /// Initialize all models weights randomly
       void setRandomWeights();
+
+      /// Get a read-only reference to the vocab, which is a source-language
+      /// vocab initially, until the phrase tables are loaded at which point
+      /// it contains the union of the source and target language
+      /// vocabularies.
+      const Voc& get_voc() const { return tgt_vocab; }
 
    private:
       /**

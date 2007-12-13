@@ -39,7 +39,8 @@ namespace Portage
       vector<PhraseInfo *> **phrases = model.getPhraseInfo();
 
       // Create the phrase finder
-      RangePhraseFinder finder(phrases, sourceLength, c.distLimit);
+      RangePhraseFinder finder(phrases, sourceLength, c.distLimit,
+            c.distLimitExt, c.distPhraseSwap);
 
       // Create the hypothesis stacks
       HypothesisStack *hStacks[sourceLength + 1];

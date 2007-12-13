@@ -36,6 +36,7 @@ OBJECTS= \
     forced_target_model.o \
     forced_target_phrasetable.o \
     hypothesisstack.o \
+    ibm_feature.o \
     inputparser.o \
     nbesttranslation.o \
     partialtranslation.o \

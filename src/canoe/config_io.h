@@ -84,6 +84,7 @@ public:
    vector<double> distWeight;       ///< Distortion model weight
    double lengthWeight;             ///< Length penalty weight
    vector<double> segWeight;        ///< Segmentation model weight
+   vector<double> ibm1FwdWeights;   ///< Forward IBM1 feature weights
    vector<double> lmWeights;        ///< Language model weights
    vector<double> transWeights;     ///< Translation model weights
    vector<double> forwardWeights;   ///< Forward translation model weights
@@ -92,14 +93,18 @@ public:
    Uint phraseTableSizeLimit;       ///< Num target phrases per source phrase
    double phraseTableThreshold;     ///< Prob threshold for pruning PTs.
    string phraseTablePruneType;     ///< Which probs to use for pruning PTs
+   double phraseTableLogZero;	    ///< Logprob for missing or 0-prob PT entries
    Uint maxStackSize;               ///< s = stack size limit
    double pruneThreshold;           ///< b = prob-based stack pruning threshold
    Uint covLimit;                   ///< Coverage pruning limit
    double covThreshold;             ///< Coverage pruning prob threshold
    int distLimit;                   ///< Distortion limit
+   bool distLimitExt;               ///< Allowed extended definition of dist limit
+   bool distPhraseSwap;             ///< Allow swapping contiguous phrases
    vector<string> distortionModel;  ///< Distortion model name(s)
    string segmentationModel;        ///< Segmentation model name
    string obsoleteSegModelArgs;     ///< Kept around to issue a meaningful error message
+   vector<string> ibm1FwdFiles;     ///< Forward IBM1 feature file names
    bool bypassMarked;               ///< Look in PT even for marked trans
    double weightMarked;             ///< Constant discount for marked probs
    string oov;                      ///< OOV handling method
@@ -117,6 +122,7 @@ public:
    Uint firstSentNum;               ///< Index of the first input sentence
    bool backwards;                  ///< Whether to translate backwards
    bool loadFirst;                  ///< Whether to load models before input
+   string input;                    ///< Source sentences input file name
    string futLMHeuristic;           ///< What LM heuristic to use when calculating future scores
 
    /**
@@ -213,8 +219,9 @@ public:
     * @param what specifies what gets written: 0 = only parameters set in
     * config file, 1 = parameters set in config file or on command line,
     * 2 = all params.
+    * @param pretty  Print pretty?
     */
-   void write(ostream& configout, Uint what=0);
+   void write(ostream& configout, Uint what=0, bool pretty=false);
    /**
     * Write parameters to file.
     *
@@ -223,10 +230,11 @@ public:
     * @param what specifies what gets written: 0 = only parameters set in
     * config file, 1 = parameters set in config file or on command line,
     * 2 = all params.
+    * @param pretty if true, write string vector elements one per line
     */
-   void write(const char *cfgFile, Uint what=0) {
+   void write(const char *cfgFile, Uint what=0, bool pretty=false) {
       OMagicStream cfg(cfgFile);
-      write(cfg, what);
+      write(cfg, what, pretty);
    }
 
    /**
@@ -287,8 +295,10 @@ private:
       void set(const string& s);
 
       /// Get string representation of current value
+      /// @param pretty make the string pretty (caution: not necessarily
+      ///    reversible using set())
       /// @return Returns a string representation of current value.
-      string get();
+      string get(bool pretty = false);
    };
 
    static const Uint precision = 10; ///< significant digits for weights

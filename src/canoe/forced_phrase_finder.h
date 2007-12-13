@@ -24,7 +24,7 @@
 
 namespace Portage {
 
-class PhraseDecoderModel;
+class BasicModel;
 
 /// Concrete implementation of PhraseFinder for use with known target sentence.
 class ForcedTargetPhraseFinder: public PhraseFinder
@@ -48,14 +48,11 @@ class ForcedTargetPhraseFinder: public PhraseFinder
    public:
       /**
        * Creates a new ForcedTargetPhraseFinder.
-       * @param model     The PhraseDecoderModel, used to get all phrases.
+       * @param model     The PhraseDecoderModel, used to get all phrases and to
+       *                  determine the distortion limit and options.
        * @param tgt_sent  The target sentence.
-       * @param distLimit The maximum distortion distance allowed between
-       *                  two phrases.  NO_MAX_DISTORTION (default)
-       *                  indicates no limit.
        */
-      ForcedTargetPhraseFinder(PhraseDecoderModel &model,
-            const vector<string> &tgt_sent, int distLimit);
+      ForcedTargetPhraseFinder(BasicModel &model, const vector<string> &tgt_sent);
 
       /**
        * Destructor.

@@ -464,15 +464,23 @@ protected:
       const vector<double> &weights, double logPruneThreshold, Uint verbosity,
       const vector<double> *forward_weights = NULL);
 
-private:
+public:
    /**
     * Callable entity ("Function object") to sort phrases for pruning.
     * Uses parent to access getStringPhrase and translate each phrase to its
     * string representation of phrases.
     */
-   class PhraseScorePairLessThan {
+   class PhraseScorePairLessThan
+   {
       private:
          const PhraseTable &parent;   ///< parent PhraseTable object
+
+         /**
+          * Hash function for strings which should be stable between 32/64 bits.
+          * @param  param the string to hash.
+          * @return Returns a stable hash of param.
+          */
+         Uint mHash(const string& param) const;
       public:
          /**
           * Constructor.
@@ -489,15 +497,18 @@ private:
           * these values in sequence, considering the next only in case of a
           * tie of the previous values:
           *
-          * 1) score (i.e., the first element of the pair)
+          * 1) score forward probs (i.e., the first element of the pair)
           *
-          * 2) phrase length (longer is "greater than" shorter)
+          * 2) score backward probs (which is inversely correlated to the
+          * frequency, as shown by empirical results)
           *
-          * 3) lexicographic (arbitrary but stable tie-breaker)
+          * 3) hash on phrase words (adds a controlled randomness)
           *
-          * The 2nd and 3rd criteria are somewhat arbitrary, and possibly
-          * questionable, but they guarantee a stable ordering which will not
-          * change when various options to canoe change.
+          * 4) lexicographic (arbitrary but stable tie-breaker)
+          *
+          * Criteria 2 to 4 are somewhat arbitrary, and possibly questionable,
+          * but they guarantee a stable ordering which will not change when
+          * various options to canoe change.
           *
           * @param ph1        left-hand side operand
           * @param ph2        right-hand side operand
@@ -506,6 +517,19 @@ private:
          bool operator() (const pair<double, PhraseInfo *>& ph1,
                           const pair<double, PhraseInfo *>& ph2) const;
    };
+
+   /// Same as PhraseScorePairLessThan but for sorting in descending order.
+   class PhraseScorePairGreaterThan : public PhraseScorePairLessThan {
+      public:
+         PhraseScorePairGreaterThan(const PhraseTable &parent)
+            : PhraseScorePairLessThan(parent) {}
+         /// Greater than operator for phrases.
+         /// See PhraseScorePairLessThan::operator()() for details.
+         /// @return true iff ph1 > ph2
+         bool operator() (const pair<double, PhraseInfo *>& ph1,
+                          const pair<double, PhraseInfo *>& ph2) const;
+   };
+
 }; // PhraseTable
 } // Portage
 

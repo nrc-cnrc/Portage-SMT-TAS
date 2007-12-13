@@ -78,6 +78,18 @@ namespace Portage
           * The maximum distortion distance.
           */
          int distLimit;
+
+         /**
+          * Whether to use the extended distortion limit definition
+          */
+         bool distLimitExt;
+
+         /**
+          * Whether to allow swapping continguous phrases, on top of whatever
+          * distLimit allows.
+          */
+         bool distPhraseSwap;
+
       public:
 
          /**
@@ -92,9 +104,13 @@ namespace Portage
           * @param distLimit     The maximum distortion distance allowed
           *                      between two phrases.  NO_MAX_DISTORTION
           *                      (default) indicates no limit.
+          * @param distLimitExt  Whether to use the extended distortion limit
+          *                      definition
+          * @param distPhraseSwap Whether to allow swapping continguous
+          *                      phrases, on top of whatever distLimit allows.
           */
          RangePhraseFinder(vector<PhraseInfo *> **phrases, Uint sentLength,
-               int distLimit = NO_MAX_DISTORTION);
+               int distLimit, bool distLimitExt, bool distPhraseSwap);
 
          virtual void findPhrases(vector<PhraseInfo *> &p,
                                   PartialTranslation &t);

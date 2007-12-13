@@ -23,6 +23,7 @@ multiColumnFileFFManager* multiColumnFileFFManager::m_singleton = 0;
 multiColumnFileFF::multiColumnFileFF(const std::string& filename)
 : m_file(filename)
 , m_line(-1)
+, m_expected_size(0)
 { }
 
 multiColumnFileFF::~multiColumnFileFF()

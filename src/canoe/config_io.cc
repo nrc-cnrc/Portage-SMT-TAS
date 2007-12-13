@@ -38,7 +38,8 @@ CanoeConfig::CanoeConfig()
    lmOrder                = 0;
    //distWeight.push_back(1.0);
    lengthWeight           = 0.0;
-   // segWeight
+   //segWeight
+   //ibm1FwdWeights
    //lmWeights;
    //transWeights;
    //forwardWeights;
@@ -47,14 +48,18 @@ CanoeConfig::CanoeConfig()
    phraseTableSizeLimit   = NO_SIZE_LIMIT;
    phraseTableThreshold   = 0;
    phraseTablePruneType   = "forward-weights";
+   phraseTableLogZero     = LOG_ALMOST_0;
    maxStackSize           = 100;
    pruneThreshold         = 0.0001;
    covLimit               = 0;
    covThreshold           = 0.0;
    distLimit              = NO_MAX_DISTORTION;
+   distLimitExt           = false;
+   distPhraseSwap         = false;
    //distortionModel        = ("WordDisplacement");
    segmentationModel      = "none";
    obsoleteSegModelArgs   = "";
+   //ibm1FwdFiles
    bypassMarked           = false;
    weightMarked           = 1;
    oov                    = "pass";
@@ -72,6 +77,7 @@ CanoeConfig::CanoeConfig()
    firstSentNum           = 0;
    backwards              = false;
    loadFirst              = false;
+   input                  = "-";
    futLMHeuristic         = "incremental";
 
    // Parameter information, used for input and output. NB: doesn't necessarily
@@ -88,9 +94,11 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("lmodel-file", "stringVect", &lmFiles,
       ParamInfo::relative_path_modification | ParamInfo::lm_check_file_name));
    param_infos.push_back(ParamInfo("lmodel-order", "Uint", &lmOrder));
+   // WEIGHTS
    param_infos.push_back(ParamInfo("weight-d d", "doubleVect", &distWeight));
    param_infos.push_back(ParamInfo("weight-w w", "double", &lengthWeight));
    param_infos.push_back(ParamInfo("weight-s sm", "doubleVect", &segWeight));
+   param_infos.push_back(ParamInfo("weight-ibm1-fwd ibm1f", "doubleVect", &ibm1FwdWeights));
    param_infos.push_back(ParamInfo("weight-l lm", "doubleVect", &lmWeights));
    param_infos.push_back(ParamInfo("weight-t tm", "doubleVect", &transWeights));
    param_infos.push_back(ParamInfo("weight-f ftm", "doubleVect", &forwardWeights));
@@ -99,14 +107,19 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("ttable-limit", "Uint", &phraseTableSizeLimit));
    param_infos.push_back(ParamInfo("ttable-threshold", "double", &phraseTableThreshold));
    param_infos.push_back(ParamInfo("ttable-prune-type", "string", &phraseTablePruneType)); 
+   param_infos.push_back(ParamInfo("ttable-log-zero", "double", &phraseTableLogZero));
    param_infos.push_back(ParamInfo("stack s", "Uint", &maxStackSize));
    param_infos.push_back(ParamInfo("beam-threshold b", "double", &pruneThreshold));
    param_infos.push_back(ParamInfo("cov-limit", "Uint", &covLimit));
    param_infos.push_back(ParamInfo("cov-threshold", "double", &covThreshold));
    param_infos.push_back(ParamInfo("distortion-limit", "int", &distLimit));
+   param_infos.push_back(ParamInfo("dist-limit-ext", "bool", &distLimitExt));
+   param_infos.push_back(ParamInfo("dist-phrase-swap", "bool", &distPhraseSwap));
    param_infos.push_back(ParamInfo("distortion-model", "stringVect", &distortionModel));
    param_infos.push_back(ParamInfo("segmentation-model", "string", &segmentationModel));
    param_infos.push_back(ParamInfo("segmentation-args", "string", &obsoleteSegModelArgs));
+   param_infos.push_back(ParamInfo("ibm1-fwd-file", "stringVect", &ibm1FwdFiles,
+      ParamInfo::relative_path_modification | ParamInfo::check_file_name));
    param_infos.push_back(ParamInfo("bypass-marked", "bool", &bypassMarked));
    param_infos.push_back(ParamInfo("weight-marked", "double", &weightMarked));
    param_infos.push_back(ParamInfo("oov", "string", &oov));
@@ -121,13 +134,14 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("first-sentnum", "Uint", &firstSentNum));
    param_infos.push_back(ParamInfo("backwards", "bool", &backwards));
    param_infos.push_back(ParamInfo("load-first", "bool", &loadFirst));
+   param_infos.push_back(ParamInfo("input", "string", &input));
    param_infos.push_back(ParamInfo("future-score-lm-heuristic", "string", &futLMHeuristic));
 
    // List of all parameters that correspond to weights. ORDER IS SIGNIFICANT
    // and must match the order in BasicModelGenerator::InitDecoderFeatures().
    // New entries should be added immediately before "lm".
 
-   const char* weight_names[] = {"d", "w", "sm", "lm", "tm", "ftm"};
+   const char* weight_names[] = {"d", "w", "sm", "ibm1f", "lm", "tm", "ftm"};
    weight_params.assign(weight_names, weight_names + ARRAY_SIZE(weight_names));
 
    for (Uint i = 0; i < param_infos.size(); ++i) {
@@ -198,7 +212,7 @@ void CanoeConfig::ParamInfo::set(const string& str)
 
 // Get string representation for parameter value.
 
-string CanoeConfig::ParamInfo::get() {
+string CanoeConfig::ParamInfo::get(bool pretty) {
    ostringstream ss;
    ss << setprecision(precision);
 
@@ -215,7 +229,11 @@ string CanoeConfig::ParamInfo::get() {
    } else if (tconv == "stringVect") {
       string s;
       vector<string>& v = *(vector<string>*)val;
-      ss << join(v.begin(), v.end(), s, ":");
+      if (pretty) {
+         for (vector<string>::iterator it = v.begin(); it != v.end(); ++it)
+            ss << "\n   " << *it;
+      } else
+         ss << join(v.begin(), v.end(), s, ":");
    } else if (tconv == "UintVect") {
       vector<Uint>& v = *(vector<Uint>*)val;
       ss << join<Uint>(v.begin(), v.end(), ":");
@@ -405,6 +423,9 @@ void CanoeConfig::check()
    if (segWeight.empty() && segmentationModel != "none")
       segWeight.push_back(1.0);
 
+   if (ibm1FwdWeights.empty())
+      ibm1FwdWeights.insert(ibm1FwdWeights.end(), ibm1FwdFiles.size(), 1.0);
+
    if (lmWeights.empty())
       lmWeights.insert(lmWeights.end(), lmFiles.size(), 1.0);
 
@@ -415,8 +436,8 @@ void CanoeConfig::check()
 
    // Errors:
 
-   if (latticeOut && nbestOut)
-      error(ETFatal, "Lattice and nbest output cannot be generated simultaneously.");
+   //if (latticeOut && nbestOut)
+   //   error(ETFatal, "Lattice and nbest output cannot be generated simultaneously.");
 
    if (lmFiles.empty())
       error(ETFatal, "No language model file specified.");
@@ -431,6 +452,9 @@ void CanoeConfig::check()
    }
    if (obsoleteSegModelArgs != "")
       error(ETFatal, "-segmentation-model-args is an obsolete option - use -segmentation-model model#args instead.");
+
+   if (ibm1FwdFiles.size() != ibm1FwdWeights.size())
+      error(ETFatal, "number of IBM1 forward weights does not match number of IBM forward model files");
 
    if (lmWeights.size() != lmFiles.size())
       error(ETFatal, "Number of language model weights does not match number of language model files.");
@@ -591,7 +615,7 @@ void CanoeConfig::setFeatureWeights(const vector<double>& weights)
    }
 }
 
-void CanoeConfig::write(ostream& configout, Uint what)
+void CanoeConfig::write(ostream& configout, Uint what, bool pretty)
 {
    configout << setprecision(precision);
    vector<ParamInfo>::iterator it;
@@ -602,7 +626,7 @@ void CanoeConfig::write(ostream& configout, Uint what)
       if (it->tconv == "bool") { // boolean params are special case
 	 if (*(bool*)it->val) configout << "[" << it->names[0] << "]" << endl;
       } else			// normal param
-	 configout << "[" << it->names[0] << "] " << it->get() << endl;
+	 configout << "[" << it->names[0] << "] " << it->get(pretty) << endl;
    }
 }
 

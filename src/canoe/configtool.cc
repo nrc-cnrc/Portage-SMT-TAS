@@ -33,7 +33,7 @@ namespace ConfigTool {
 
 /// Program config_tool's usage.
 static char help_message[] = "\n\
-configtool [-v] cmd [config [out]]\n\
+configtool [-vp] cmd [config [out]]\n\
 \n\
 Read canoe config file <config> and write selected information to <out>,\n\
 depending on <cmd>, one of:\n\
@@ -72,11 +72,16 @@ depending on <cmd>, one of:\n\
                        for i = 1..N (num features in configfile), and w is the\n\
                        weight associated with the ith feature. Features are written\n\
                        in the same order than canoe writes them to an ffvals file.\n\
+\n\
+Options:\n\
+\n\
+-p  Pretty-print output config files [don't]\n\
 ";
 
 // globals
 
 static bool verbose = false;
+static bool pretty = false;
 static string cmd;
 static string config_in = "-";
 static ofstream ofs;
@@ -139,7 +144,7 @@ int main(int argc, char* argv[])
    Uint vi;
 
    if (cmd == "dump") {
-      c.write(os,3);
+      c.write(os,3,pretty);
    } else if (cmd == "nf") {
       vector<double> wts;
       c.getFeatureWeights(wts);
@@ -174,7 +179,7 @@ int main(int argc, char* argv[])
       if (split(cmd, toks, ":") != 2 || !conv(toks[1], vi))
          error(ETFatal, "bad format for rep-ttable-limit command");
       c.phraseTableSizeLimit = vi;
-      c.write(os);
+      c.write(os,0,pretty);
    } else if (isPrefix("rep-ttable-files:", cmd.c_str())) {
       if (split(cmd, toks, ":") != 2)
          error(ETFatal, "bad format for rep-ttable-files command");
@@ -184,7 +189,7 @@ int main(int argc, char* argv[])
          c.forPhraseFiles[i] = addExtension(c.forPhraseFiles[i], toks[1]);
       for (Uint i = 0; i < c.multiProbTMFiles.size(); ++i)
          c.multiProbTMFiles[i] = addExtension(c.multiProbTMFiles[i], toks[1]);
-      c.write(os);
+      c.write(os,0,pretty);
    } else if (isPrefix("rep-ttable-files-local:", cmd.c_str())) {
       if (split(cmd, toks, ":") != 2)
          error(ETFatal, "bad format for rep-ttable-files command");
@@ -194,7 +199,7 @@ int main(int argc, char* argv[])
          c.forPhraseFiles[i] = addExtension(BaseName(c.forPhraseFiles[i].c_str()), toks[1]);
       for (Uint i = 0; i < c.multiProbTMFiles.size(); ++i)
          c.multiProbTMFiles[i] = addExtension(BaseName(c.multiProbTMFiles[i].c_str()), toks[1]);
-      c.write(os);
+      c.write(os,0,pretty);
    } else if (isPrefix("filt-ttables:", cmd.c_str())) {
       if (split(cmd, toks, ":") != 2)
          error(ETFatal, "bad format for filt-ttables command");
@@ -203,7 +208,7 @@ int main(int argc, char* argv[])
       c.readStatus("ttable-file-t2s") = false;
       c.readStatus("ttable-limit") = true;
       c.phraseTableSizeLimit = 0;
-      c.write(os);
+      c.write(os,0,pretty);
    } else if (isPrefix("filt-ttables-local:", cmd.c_str())) {
       if (split(cmd, toks, ":") != 2)
          error(ETFatal, "bad format for filt-ttables command");
@@ -213,7 +218,7 @@ int main(int argc, char* argv[])
       c.readStatus("ttable-file-t2s") = false;
       c.readStatus("ttable-limit") = true;
       c.phraseTableSizeLimit = 0;
-      c.write(os);
+      c.write(os,0,pretty);
    } else if (isPrefix("set-weights:", cmd.c_str())) {
       if (split(cmd, toks, ":") != 2)
          error(ETFatal, "bad format for set-weights command");
@@ -229,7 +234,7 @@ int main(int argc, char* argv[])
          error(ETFatal, "no bleu scores > -1 in rescore-results? I quit!");
 
       c.setFeatureWeightsFromString(best_rr.wtvec);
-      c.write(os);
+      c.write(os,0,pretty);
    } else if (cmd == "check") {
       c.check_all_files(); // dies with error if any files is not readable
       os << "ok" << endl;
@@ -315,11 +320,12 @@ RescoreResult parseRescoreResultsLine(const string& line)
 
 void getArgs(int argc, char* argv[])
 {
-   const char* switches[] = {"v"};
+   const char* switches[] = {"v", "p"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 1, 3, help_message);
    arg_reader.read(argc-1, argv+1);
 
    arg_reader.testAndSet("v", verbose);
+   arg_reader.testAndSet("p", pretty);
 
    arg_reader.testAndSet(0, "cmd", cmd);
    arg_reader.testAndSet(1, "config", config_in);

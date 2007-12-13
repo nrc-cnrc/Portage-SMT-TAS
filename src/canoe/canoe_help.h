@@ -113,6 +113,10 @@ Options (in command-line format):\n\
  -sm W\n\
         The segmentation model weight.  [0.0]\n\
 \n\
+ -weight-ibm1-fwd W\n\
+ -ibm1f W\n\
+        The forward IBM1 feature weight (see -ibm1-fwd-file). [0.0]\n\
+\n\
  -random-weights\n\
  -r\n\
         Ignore given weights, set weights randomly for each sentence instead\n\
@@ -154,18 +158,40 @@ Options (in command-line format):\n\
         respective weights.\n\
         [forward-weights if -weight-f is supplied, backward-weights otherwise]\n\
 \n\
+ -ttable-log-zero LZ\n\
+        The log probability assigned to phrase pairs that either don't occur\n\
+        within some phrasetable, or that have 0 probability. [-18]\n\
+\n\
  -distortion-limit L\n\
         The maximum distortion distance between two source words, or -1 for\n\
         no limit.  Use 0 to do monotonic decoding.  [-1]\n\
 \n\
- -distortion-model model\n\
-        The distortion model. One of:\n\
-        WordDisplacement, ZeroInfo, none [WordDisplacement]\n\
+ -dist-limit-ext\n\
+        'Extended' distortion limit:  By default, a new source phrase can't end\n\
+        more than L positions past the first non-covered word (1NCW) remaining\n\
+        after its addition.  With -dist-limit-ext, a source phrase can end past\n\
+        1NCW + L if it starts at or before 1NCW + L and a sequence of jumps\n\
+        each <= L can be used to finish covering the source sentence. [don't]\n\
+\n\
+ -dist-phrase-swap\n\
+        Allow swapping two contiguous source phrases of any length. [don't]\n\
+        Applied as an OR with the distortion limit:  meaningless if L = -1,\n\
+        yields quasi-monotonic decoding if L = 0, and a targetted relaxing of\n\
+        the distortion limit rule if L > 0.  Orthogonal with -dist-limit-ext.\n\
+\n\
+ -distortion-model model[:model2[:..]]\n\
+        The distortion model(s). Zero or more of of:\n\
+        WordDisplacement, PhraseDisplacement, ZeroInfo.\n\
+        To get no distortion model, use 'none'.  [WordDisplacement]\n\
 \n\
  -segmentation-model model[#args]\n\
         The segmentaion model: one of none, count, bernoulli. [none]\n\
         Some models require an argument, introduced by '#':\n\
         - bernoulli requires a numerical argument (Q parameter)\n\
+\n\
+ -ibm1-fwd-file file\n\
+        Use 'forward' IBM1 feature - file should be an IBM1 model trained for\n\
+        target language given source language. [none]\n\
 \n\
  -bypass-marked\n\
         When marked translations are found in the source text, translation\n\
@@ -234,6 +260,9 @@ Options (in command-line format):\n\
         Indicates the first SENTNUM to use in creating the file names for\n\
         the -lattice and -nbest output.  [0000]\n\
 \n\
+ -input FILE\n\
+        The source sentences file.  [-]\n\
+\n\
  -future-score-lm-heuristic FUT-LM-HEURISTIC\n\
         Specify the LM heuristic to use for the future score.  One of:\n\
            none - h = 1.0;\n\
@@ -246,4 +275,7 @@ Options (in command-line format):\n\
  -v V\n\
         The verbosity level (1, 2, 3, or 4).  All verbose output is written to\n\
         standard error.\n\
+\n\
+ -options\n\
+        Produce a shorter help message only listing the option names\n\
 ";

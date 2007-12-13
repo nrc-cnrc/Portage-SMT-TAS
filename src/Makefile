@@ -2,7 +2,7 @@
 #
 # George Foster, Eric Joanis
 #
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -35,14 +35,19 @@ ALL_SUBDIRS = $(SUBDIRS)
 
 subdirs: utils $(SUBDIRS)
 
-doxy:
-	sed -e 's/\.\.\/build/build/' < build/Doxyfile | doxygen -
+vpath Doxyfile build/
+doxy: Doxyfile
+	( cat $<; echo "HTML_FOOTER=build/footer.txt" ) | doxygen -
 
 utils:
 	$(MAKE) -C $@ $(OT)
 
 $(ALL_SUBDIRS): utils
 	$(MAKE) -C $@ $(OT)
+
+%_progs:
+	$(MAKE) OT=lib $*
+	$(MAKE) -C $* $(OT)
 
 # If you create a new subdirectory, add its dependencies here (except for
 # utils, which everything is assumed to depend on)

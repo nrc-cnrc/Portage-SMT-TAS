@@ -18,6 +18,7 @@
 #include "phrasefinder.h"
 #include "canoe_general.h"
 #include "phrasedecoder_model.h"
+#include "distortionmodel.h"
 
 #include <iostream>
 
@@ -25,10 +26,14 @@ using namespace Portage;
 
 RangePhraseFinder::RangePhraseFinder(vector<PhraseInfo *> **phrases,
    Uint sentLength,
-   int	distLimit)
+   int	distLimit,
+   bool distLimitExt,
+   bool distPhraseSwap)
 : phrases(phrases)
 , sentLength(sentLength)
 , distLimit(distLimit)
+, distLimitExt(distLimitExt)
+, distPhraseSwap(distPhraseSwap)
 {
    assert(distLimit >= 0 || distLimit == NO_MAX_DISTORTION);
 }
@@ -36,13 +41,15 @@ RangePhraseFinder::RangePhraseFinder(vector<PhraseInfo *> **phrases,
 void RangePhraseFinder::findPhrases(vector<PhraseInfo *> &p, PartialTranslation &t)
 {
    UintSet eSet;
-   if (distLimit != NO_MAX_DISTORTION)
+   if (distLimit != NO_MAX_DISTORTION && !distPhraseSwap)
    {
-      Range limit(max(0, (int)t.lastPhrase->src_words.end - distLimit),
+      Range limit(max(0, int(t.lastPhrase->src_words.end) - distLimit),
                   sentLength);
       intersectRange(eSet, t.sourceWordsNotCovered, limit);
    } // if
-   UintSet &set(distLimit == NO_MAX_DISTORTION ? t.sourceWordsNotCovered : eSet);
+   UintSet &set((distLimit != NO_MAX_DISTORTION && !distPhraseSwap)
+                 ? eSet : t.sourceWordsNotCovered);
+   if ( set.empty() ) return;
 
    vector<vector<PhraseInfo *> > picks;
    pickItemsByRange(picks, phrases, set);
@@ -59,11 +66,18 @@ void RangePhraseFinder::findPhrases(vector<PhraseInfo *> &p, PartialTranslation 
    for ( vector< vector<PhraseInfo *> >::const_iterator it = picks.begin();
          it < picks.end(); ++it)
    {
-      // Do the distortion limit test outside the jt loop, since we know that
+      // Do the distortion limit tests outside the jt loop, since we know that
       // all phrases in a given "pick" share the same source range.
       if ( ! it->empty() &&
-           ( distLimit == NO_MAX_DISTORTION ||
-             it->front()->src_words.start <= t.lastPhrase->src_words.end + distLimit )
+           (
+              DistortionModel::respectsDistLimit(t.sourceWordsNotCovered,
+                 t.lastPhrase->src_words, it->front()->src_words, distLimit,
+                 sentLength, distLimitExt)
+            ||
+              distPhraseSwap && DistortionModel::isPhraseSwap(
+                 t.sourceWordsNotCovered, t.lastPhrase->src_words,
+                 it->front()->src_words, sentLength, phrases)
+           )
          )
       {
          for ( vector<PhraseInfo *>::const_iterator jt = it->begin();

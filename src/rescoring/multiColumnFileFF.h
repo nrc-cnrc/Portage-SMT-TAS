@@ -36,7 +36,6 @@ class multiColumnFileFF
       
    public:
       /// Constructor.
-      /// 
       multiColumnFileFF(const std::string& filename);
       /// Destructor.
       ~multiColumnFileFF();
