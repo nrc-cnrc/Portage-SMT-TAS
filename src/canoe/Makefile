@@ -62,6 +62,7 @@ PROGRAMS=$(TESTPROGS) \
 	configtool \
 	filter_models \
 	find_sentence_phrases \
+        join_phrasetables \
 	phrase_tm_align
 
 BINSCRIPTS=nbest2rescore.pl canoe-parallel.sh
