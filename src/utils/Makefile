@@ -18,6 +18,7 @@ OBJECTS = \
         ls_poly_fit.o \
         MagicStream.o \
         matrix_solver.o \
+        multi_voc.o \
         parse_xmlish_markup.o \
         perm_iterator.o \
         portage_defs.o \
@@ -25,6 +26,7 @@ OBJECTS = \
         str_utils.o \
         trie.o \
         voc.o \
+        vocab_filter.o \
         voc_map.o
 
 LIBRARY = libportage_utils
