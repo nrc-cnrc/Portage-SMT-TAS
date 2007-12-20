@@ -220,7 +220,7 @@ int main(Uint argc, const char * const * argv)
          split(line, src_sent, " ");
       }
       else {
-         if (i == (int)src_sents.size())
+         if (i == src_sents.size())
             break;
          src_sent = src_sents[i];
       }

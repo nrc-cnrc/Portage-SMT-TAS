@@ -103,6 +103,7 @@ int main(int argc, char* argv[])
    c.loadFirst = false;
    c.verbosity = 1;
    c.phraseTableSizeLimit = num_trans;
+   PhraseTable::log_almost_0 = c.phraseTableLogZero;
 
    vector<vector<MarkedTranslation> > marks;
    BasicModelGenerator bmg(c, sents, marks);

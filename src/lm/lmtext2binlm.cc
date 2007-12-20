@@ -55,7 +55,7 @@ int MAIN(argc,argv)
    cerr << "Converting LMText " << lm_filename
         << " to BinLM " << binlm_filename << endl;
 
-   Voc vocab;
+   VocabFilter vocab(0);
    bool limit_vocab = (vocab_file != "");
    if ( limit_vocab ) {
       vocab.read(vocab_file);

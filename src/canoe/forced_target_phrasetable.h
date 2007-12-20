@@ -12,7 +12,7 @@
  * THIS FILE IS NOT USED ANYWHERE YET - PREPARED FOR A CHANGE TO
  * PHRASE_TM_ALIGN THAT WAS DEFERRED INDEFINITELY.
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group 
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology 
  * Conseil national de recherches Canada / National Research Council Canada 
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
@@ -46,7 +46,7 @@ namespace Portage
       /**
        * Creates a new ForcedTargetPhraseTable using the given vocab.
        */
-      ForcedTargetPhraseTable(Voc &tgtVocab) : PhraseTable(tgtVocab) {};
+      ForcedTargetPhraseTable(VocabFilter &tgtVocab) : PhraseTable(tgtVocab) {};
 
       //@{
       /**

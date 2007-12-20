@@ -35,6 +35,7 @@ OBJECTS= \
     forced_phrase_finder.o \
     forced_target_model.o \
     forced_target_phrasetable.o \
+    hard_filter_tm_visitor.o \
     hypothesisstack.o \
     ibm_feature.o \
     inputparser.o \
@@ -42,8 +43,12 @@ OBJECTS= \
     partialtranslation.o \
     phrasefinder.o \
     phrasetable.o \
+    phrasetable_filter_grep.o \
+    phrasetable_filter_lm.o \
+    phrasetable_filter_joint.o \
     phrase_tm_align_compute.o \
     segmentmodel.o \
+    soft_filter_tm_visitor.o \
     translationProb.o \
     wordgraph.o
 

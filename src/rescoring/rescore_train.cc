@@ -19,6 +19,7 @@
 #include <powell.h>
 #include <rescore_io.h>
 #include <fileReader.h>
+#include <gfstats.h>
 #include <bleu.h>
 #include <basic_data_structure.h>
 #include <referencesReader.h>
@@ -27,11 +28,23 @@
 #include <iostream>
 #include <typeinfo>
 #include <iostream>
+#include <algorithm>
 #include <assert.h>
+#include <time.h>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 
 using namespace Portage;
 using namespace std;
+
+template<class Stats>
+double runPowell(const vector<uMatrix>& vH, const vector< vector<Stats> >& bleu,
+                 const vector<uVector>& init_wts,
+                 const FeatureFunctionSet& ffset,
+                 const rescore_train::ARG& args, // oi, vy, vy?
+                 uVector& best_wts, vector< vector<double> >&  history);
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -39,12 +52,20 @@ using namespace std;
 int main(const Uint argc, const char* const argv[])
 {
    printCopyright(2004, "rescore_train");
+#ifdef _OPENMP
+   cerr << "Compiled openmp" << endl;
+#pragma omp parallel
+#pragma omp master
+   fprintf(stderr, "Using %d threads.\nSet OMP_NUM_THREADS=N to change to N threads.\n",
+           omp_get_num_threads());
+#endif
+
    using namespace rescore_train;
    const ARG arg(argc, argv);
 
-   LOG_VERBOSE2(verboseLogger, "Reading Feature Functions Set");
-   FeatureFunctionSet ffset;
-   const Uint M = ffset.read(arg.model_in, arg.bVerbose, arg.ff_pref.c_str(), arg.bIsDynamic, false);
+   BLEUstats::setMaxNgrams(arg.maxNgrams);
+   BLEUstats::setMaxNgramsScore(arg.maxNgramsScore);
+
    // Start of loading
    time_t start = time(NULL);             // time
 
@@ -53,13 +74,21 @@ int main(const Uint argc, const char* const argv[])
    const Uint S = RescoreIO::readSource(arg.src_file, sources);
    if (S == 0) error(ETFatal, "empty source file: %s", arg.src_file.c_str());
 
+   LOG_VERBOSE2(verboseLogger, "Reading Feature Functions Set");
+   FeatureFunctionSet ffset(true, arg.seed);
+   const Uint M = ffset.read(arg.model_in, arg.bVerbose, arg.ff_pref.c_str(), arg.bIsDynamic);
+   ffset.createTgtVocab(sources, FileReader::create<Translation>(arg.nbest_file, arg.K));
+
+   LOG_VERBOSE2(verboseLogger, "Init ff matrix with %d source sentences", S);
+   ffset.initFFMatrix(sources);
+
    LOG_VERBOSE2(verboseLogger, "Creating references reader");
    referencesReader  rReader(arg.refs_file);
    const Uint R(rReader.getR());
 
    LOG_VERBOSE2(verboseLogger, "Rescoring with S = %d, K = %d, R = %d, M = %d", S, arg.K, R, M);
    vector<uMatrix>  vH(S);
-   MatrixBLEUstats  bleu(S);
+   vector< vector<BLEUstats> >  bleu(S);
 
    ifstream astr;
    const bool bNeedsAlignment = ffset.requires() & FF_NEEDS_ALIGNMENT;
@@ -71,29 +100,25 @@ int main(const Uint argc, const char* const argv[])
       if (!astr) error(ETFatal, "unable to open alignment file %s", arg.alignment_file.c_str());
    }
 
-   vector< uVector > powellWeightsIn, powellWeightsOut;
+   vector< uVector > powellWeightsIn;
    if (arg.weight_infile != "") {
       LOG_VERBOSE2(verboseLogger, "Reading Powell weights from %s", arg.weight_infile.c_str());
       ifstream wstr(arg.weight_infile.c_str());
       if (!wstr) error(ETFatal, "unable to open Powell weight file %s", arg.weight_infile.c_str());
 
-      string tmpsco;
-      uVector weights(M);
-      uint m=0;
-      while (wstr >> tmpsco) {
-         if (tmpsco=="BLEU") {
-            wstr >> tmpsco; wstr >> tmpsco; wstr >> tmpsco;
-         }
-         weights(m) = atof(tmpsco.c_str());
-         if (++m==M) {
-            powellWeightsIn.push_back(weights);
-            weights.clear();
-            m=0;
-         }
+      string line;
+      Uint num_lines = 0;
+      while (getline(wstr, line) && num_lines++ < arg.weight_infile_nl) {
+         vector<string> toks;
+         split(line, toks);
+         Uint beg = toks.size() > 0 && toks[0] == "BLEU" ? 3 : 0;
+         if (toks.size() - beg != M)
+            error(ETFatal, "wrong number of features in weight file %s: found %i, expected %i",
+                  arg.weight_infile.c_str(), toks.size() - beg, M);
+         powellWeightsIn.push_back(uVector(M));
+         for (Uint i = 0; i < M; ++i) 
+            powellWeightsIn.back()[i] = conv<double>(toks[beg+i]);
       }
-      if (m > 0)
-         error(ETFatal, "Error in Powell weight file %s, wrong number of weights: %i instead of zero after reading %i sets of feature weights!", arg.weight_infile.c_str(), m, powellWeightsIn.size());
-      // powellWeightsIn
    }
 
 
@@ -125,21 +150,20 @@ int main(const Uint argc, const char* const argv[])
       if (bNeedsAlignment && (k != K )) 
          error(ETFatal, "unexpected end of nbests file after %d lines (expected %dx%d=%d lines)", s*K+k, S, K, S*K);
 
-      LOG_VERBOSE5(verboseLogger, "Init ff matrix for s=%d with K=%d", s, K);
-      ffset.initFFMatrix(sources, K);
-
       LOG_VERBOSE5(verboseLogger, "computing ff matrix for s=%d with K=%d and M=%d", s, K, M);
       ffset.computeFFMatrix(vH[s], s, nbest);
       K = nbest.size();  // IMPORTANT K might change if computeFFMatrix detects empty lines
 
       LOG_VERBOSE5(verboseLogger, "computing a bleu row for s=%d with K=%d, R=%d", s, K, R);
-      computeBLEUArrayRow(bleu[s], nbest, refs);
+      computeBLEUArrayRow(bleu[s], nbest, refs, numeric_limits<Uint>::max(), arg.sm);
 
       progress.step();
    } // for
 
    if (s != S) error(ETFatal, "File inconsistency s=%d, S=%d", s, S);
    rReader.integrityCheck();
+   if (!ffset.complete())
+      error(ETFatal, "It seems there is still some ffvals but we've exhausted the NBests.");
 
 
    ////////////////////////////////////////////////////////////////////////////////
@@ -150,104 +174,37 @@ int main(const Uint argc, const char* const argv[])
 
    start = time(NULL);
    LOG_VERBOSE2(verboseLogger, "Running Powell's algorithm");
-
-   uVector modelP(M);
-   uVector p(M);
-   uMatrix xi(M, M);
-
-   int iter(0);
-   double fret(0.0f);
-   double bestScore(-INFINITY);
-   vector<double> bestScores(NUM_INIT_RUNS, -INFINITY);
-   Uint numStable(0);
-   Uint totalRuns(0);
-
-   RNG_gen   rg;
-   RNG_dist  rd(0, 3);
-   RNG_type  rng(rg, rd);
-
-   while (true) {
-
-      // Run Powell's algorithm with different start parameters until a global
-      // maximum appears to be found.  If the number of runs in which the
-      // current maximum hasn't changed is at least half the total number of
-      // runs, and the total number of runs is at least NUM_INIT_RUNS, then
-      // that's when we're done.  Since there are only finitely many possible
-      // scores, this will definitely terminate.
-
-     // for the first half of the runs, re-use the old weights from the 
-     // previous iteration
-     if (totalRuns < min(powellWeightsIn.size(), NUM_INIT_RUNS/2))
-       for (Uint m(0); m<M; ++m) {
-         p = powellWeightsIn[totalRuns];
-       }
-     else
-       for (Uint m(0); m<M; ++m) {
-         p(m) = rng();
-       }
-
-     if (arg.bVerbose) cerr << "Calling Powell with initial p=" << p << endl;
-
-      xi = uIdentityMatrix(M);
-      powell(p, xi, FTOL, iter, fret, vH, bleu);
-
-      if (arg.bVerbose)
-         cerr << "Powell returned p=" << p << endl
-              << "Score: " << fret << " <=> " << exp(fret) << endl;
-
-      ++totalRuns;
-
-      // check if this is among the best scores
-      if (fret > bestScores.back()) {
-        for (int i=0; bestScores.begin()+i != bestScores.end(); i++) {
-          if (*(bestScores.begin()+i) < fret ) {
-            bestScores.insert(bestScores.begin()+i,fret);
-            powellWeightsOut.insert(powellWeightsOut.begin()+i,p);
-            break;
-          }
-        }
-      }
-
-      if (exp(fret) > exp(bestScore) + BLEUTOL) {
-        numStable = 0;
-        modelP = p;
-        bestScore = fret;
-      } else {
-        ++numStable;
-        if (numStable > NUM_INIT_RUNS && numStable * 2 >= totalRuns)
-          {
-            if (fret == -numeric_limits<double>::infinity())
-              error(ETFatal, "Powell returned %g, maybe your files are bad!", fret);
-            break;
-          }
-      }
-   }
-
+   uVector best_wts(M);
+   vector< vector<double> >  history; // list of -score,wts vectors
+   double best_score = runPowell<BLEUstats>(vH, bleu, powellWeightsIn, ffset, arg, best_wts, history);
    cerr << "Best weight vector found in " << (Uint)(time(NULL) - start) << " seconds" << endl;
 
-   if (arg.bNormalize)
-      modelP /= ublas::norm_inf(modelP);
+   // Normalize and write weights
 
-   uVector vTemp(modelP);
-   for (Uint m(0); m<M; ++m) {
-      if (m >= arg.flor && vTemp(m) < 0)
-         vTemp(m) = 0;
-   }
-   ffset.setWeights(vTemp);
+   if (best_score == -INFINITY)
+      error(ETWarn, "No global maximum found! Setting all weights to 1");
+
+   if (arg.bNormalize)
+      best_wts /= ublas::norm_inf(best_wts);
+   for (Uint m = 0; m < M; ++m)
+      if (m >= arg.flor && best_wts(m) < 0.0)
+         best_wts(m) = 0.0;
+   ffset.setWeights(best_wts);
 
    if (arg.bVerbose) {
-      cerr << "Best score: " << bestScore << " <=> " << exp(bestScore) << endl;
-      cerr << "Using p=" << modelP << endl;
+      cerr << "Best score: " << best_score << " <=> " << exp(best_score) << endl;
+      cerr << "Using floored & normalized wts=" << best_wts << endl;
    }
 
    if (!arg.weight_outfile.empty()) {
+      sort(history.begin(), history.end());
       ofstream woutstr;
       woutstr.open(arg.weight_outfile.c_str(), ios_base::app);
       LOG_VERBOSE2(verboseLogger, "Writing best powell weights to file");
-      for (Uint i=0; i<powellWeightsOut.size(); i++) {
-         woutstr << "BLEU score: " << exp(bestScores[i]);
-         for (uVector::const_iterator witr=powellWeightsOut[i].begin(); witr!=powellWeightsOut[i].end(); witr++)
-            woutstr << " " << *witr;
+      for (Uint i = 0;  i < history.size(); i++) {
+         woutstr << "BLEU score: " << exp(-history[i][0]);
+         for (Uint j = 1; j < history[i].size(); ++j)
+            woutstr << " " << history[i][j];
          woutstr << endl;
       }
       woutstr.flush();
@@ -256,4 +213,82 @@ int main(const Uint argc, const char* const argv[])
 
    LOG_VERBOSE2(verboseLogger, "Writing model to file");
    ffset.write(arg.model_out);
+}
+
+/**
+ * Run Powell's algorithm with different start parameters until a global
+ * maximum appears to be found.
+ * @param vH vector of S KxM matrices of feature values
+ * @param bleu vector of S vectors of K hypothesis scores
+ * @param init_wts starting wts for initial iterations
+ * @param ffset used only for random wt generation, honest
+ * @param args user-specified arguments
+ * @param best_wts place to put the best wts. Assumed to be initialized to the
+ * proper size.
+ * @param history on will be set to a list of -score,wts vectors for each iter
+ * @return best score found
+ */
+template<class Stats>
+double runPowell(const vector<uMatrix>& vH, const vector< vector<Stats> >& bleu,
+                 const vector<uVector>& init_wts,
+                 const FeatureFunctionSet& ffset,
+                 const rescore_train::ARG& args, // oi, vy, vy?
+                 uVector& best_wts, vector< vector<double> >&  history)
+{
+   fill(best_wts.begin(), best_wts.end(), 1.0f);
+   double best_score(-INFINITY);
+   double extend_thresh(0.0);   // bleu threshold for extending total_runs
+   Uint num_runs(0);
+   Uint total_runs = args.num_powell_runs == 0 ? 
+      (rescore_train::NUM_INIT_RUNS+2) :  // +2 for backward compatibility (!)
+      args.num_powell_runs;
+   vector<double> bleu_history; // list of bleu scores, for approx-expect stopping
+
+   Uint M = best_wts.size();
+   uMatrix xi(M, M);
+
+   while (num_runs < total_runs) {
+
+      uVector wts(M);
+      if (num_runs < init_wts.size())
+         wts = init_wts[num_runs];
+      else
+         ffset.getRandomWeights(wts);
+
+      if (args.bVerbose) cerr << "Calling Powell with initial wts=" << wts << endl;
+
+      int iter = 0;
+      double fret = 0.0;
+      time_t powell_start = time(NULL);             // time
+      powell(wts, xi, rescore_train::FTOL, iter, fret, vH, bleu);
+      ++num_runs;
+
+      if (args.bVerbose) {
+         cerr << "Powell returned wts=" << wts << endl;
+         fprintf(stderr, "Score: %f <=> %f in %d seconds\n", fret, exp(fret), (Uint)(time(NULL)- powell_start));
+      }
+
+      history.push_back(vector<double>(1, -fret));
+      history.back().resize(1+M);
+      copy(wts.begin(), wts.end(), history.back().begin()+1);
+      bleu_history.push_back(exp(fret));
+
+      if (fret > best_score) {
+         best_wts = wts;
+         best_score = fret;
+      }
+      if (!args.approx_expect && args.num_powell_runs == 0 && exp(fret) > extend_thresh) {
+         // 'normal' stopping criterion
+         total_runs = max(num_runs+rescore_train::NUM_INIT_RUNS+2, 2 * num_runs); // bizarre for bkw compat
+         extend_thresh = exp(fret) + rescore_train::BLEUTOL;
+      } else if (args.approx_expect && num_runs > rescore_train::NUM_INIT_RUNS+2) {
+         // approx-expect stopping
+         double m = mean(bleu_history.begin(), bleu_history.end());
+         double s = sdev(bleu_history.begin(), bleu_history.end(), m);
+         Uint expected_iters = Uint(1.0 / (1.0 - normalCDF(exp(best_score), m, s)));
+         if (num_runs + expected_iters > total_runs)
+            break;
+      }
+   }
+   return best_score;
 }

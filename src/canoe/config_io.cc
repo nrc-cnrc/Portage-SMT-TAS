@@ -18,9 +18,72 @@
 #include <iomanip>
 #include <sstream>
 #include <logging.h>
+#include <randomDistribution.h>
 #include <lm.h>
+#include <boost/spirit.hpp>
+#include <boost/spirit/actor/assign_actor.hpp>
+#include <boost/bind.hpp>
 
 using namespace Portage;
+using namespace boost::spirit;
+
+/**
+ * Grammar to parse and create the proper random distribution from a canoe.ini file.
+ * Valid:  U(real,real) | N(real,real) | real
+ */
+struct distribution_grammar : public grammar<distribution_grammar>
+{
+   mutable rnd_distribution*  rnd;  ///< Holds the rand_dist parsed from the string representation
+   mutable double       first;      ///< Temp placeholder for random distribution parameters
+   mutable double       second;     ///< Temp placeholder for random distribution parameters
+
+   /// Default constructor.
+   distribution_grammar()
+   : rnd(NULL)
+   , first(0.0f)
+   , second(0.0f)
+   {}
+
+   /// Creates a uniform distribution.
+   void make_uniform(char const*, char const*) const{
+      //cerr << "Creating uniform" << endl;   // For DEBUGGING
+      rnd = new uniform(first, second);
+   }
+
+   /// Creates a normal distribution
+   void make_normal(char const*, char const*) const{
+      //cerr << "Creating normal" << endl;    // For DEBUGGING
+      rnd = new normal(first, second);
+   }
+
+   /// Creates a constant distribution
+   void make_constant(double value) const{
+      //cerr << "Creating fix" << endl;     // For DEBUGGING
+      rnd = new constant_distribution(value);
+   }
+
+   /// Actual grammar's definition
+   template <typename ScannerT>
+   struct definition
+   {    
+      /// Default constructor.
+      /// @param self  grammar object to be able to refere to it if needs be.
+      definition(distribution_grammar const& self)  
+      {
+         random   = normal | uniform | fix;
+         fix      = real_p[bind(&distribution_grammar::make_constant, &self, _1)];
+         normal   = ('N' >> values)[bind(&distribution_grammar::make_normal, &self, _1, _2)];
+         uniform  = ('U' >> values)[bind(&distribution_grammar::make_uniform, &self, _1, _2)];
+         values   = '(' >> real_p[assign_a(self.first)] >> ',' >> real_p[assign_a(self.second)] >> ')';
+      }
+      /// Some rules placeholders
+      rule<ScannerT>  random, normal, uniform, values, fix;
+      /// Default starting point.
+      rule<ScannerT> const& start() const { return random; };
+   };
+};
+
+
 
 CanoeConfig::CanoeConfig()
 {
@@ -98,12 +161,19 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("lmodel-order", "Uint", &lmOrder));
    // WEIGHTS
    param_infos.push_back(ParamInfo("weight-d d", "doubleVect", &distWeight));
+   param_infos.push_back(ParamInfo("random-d rd", "stringVect", &rnd_distWeight));
    param_infos.push_back(ParamInfo("weight-w w", "double", &lengthWeight));
+   param_infos.push_back(ParamInfo("random-w rw", "stringVect", &rnd_lengthWeight));
    param_infos.push_back(ParamInfo("weight-s sm", "doubleVect", &segWeight));
+   param_infos.push_back(ParamInfo("random-s rsm", "stringVect", &rnd_segWeight));
    param_infos.push_back(ParamInfo("weight-ibm1-fwd ibm1f", "doubleVect", &ibm1FwdWeights));
+   param_infos.push_back(ParamInfo("random-ibm1-fwd ribm1f", "stringVect", &rnd_ibm1FwdWeights));
    param_infos.push_back(ParamInfo("weight-l lm", "doubleVect", &lmWeights));
+   param_infos.push_back(ParamInfo("random-l rlm", "stringVect", &rnd_lmWeights));
    param_infos.push_back(ParamInfo("weight-t tm", "doubleVect", &transWeights));
+   param_infos.push_back(ParamInfo("random-t rtm", "stringVect", &rnd_transWeights));
    param_infos.push_back(ParamInfo("weight-f ftm", "doubleVect", &forwardWeights));
+   param_infos.push_back(ParamInfo("random-f rftm", "stringVect", &rnd_forwardWeights));
    param_infos.push_back(ParamInfo("random-weights r", "bool", &randomWeights));
    param_infos.push_back(ParamInfo("seed", "Uint", &randomSeed));
    param_infos.push_back(ParamInfo("ttable-limit", "Uint", &phraseTableSizeLimit));
@@ -644,5 +714,25 @@ bool& CanoeConfig::readStatus(const string& param)
    if (it == param_map.end())
       error(ETFatal, "no such parameter: %s", param.c_str());
    return it->second->set_from_config;
+}
+
+
+rnd_distribution* CanoeConfig::random_param::get(const Uint index) const
+{
+   // if the index is greater than the vector size => the user didn't give
+   // enough distribution and we are going to fallback on the default one.
+   //if (index >= size()) error(ETWarn, "decoder feature missing random distribution");
+   const string s(index < size() ? (*this)[index] : default_value);
+
+   // An empty string representation of a distribution is replaced by the default value.
+   if (s.empty()) return new uniform(-1.0, 1.0);
+
+   // Parse and create the random distribution
+   distribution_grammar  gram;
+   if (!parse(s.c_str(), gram, space_p).full) {
+      error(ETFatal, "Unable to parse the following distribution: %s", s.c_str());
+   }
+
+   return gram.rnd;
 }
 

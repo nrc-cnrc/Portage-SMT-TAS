@@ -20,6 +20,7 @@
 #include <canoe_general.h>
 #include <errors.h>
 #include <file_utils.h>
+#include <randomDistribution.h>
 
 namespace Portage
 {
@@ -70,6 +71,32 @@ namespace Portage
  * type "canoe -h" for more details on the meaning of most of these parameters.
  */
 class CanoeConfig {
+private:
+   /**
+    * This keeps track of the string representation of the random distribution.
+    * It also creates the proper random distribution from the string
+    * representation.  If no string is available for an index, automagically
+    * this object will create a default random distribution.
+    */
+   class random_param : public vector<string>
+   {
+      private:
+         /// Default random distribution's string representation
+         const string default_value;
+      public:
+         /// Default constructor.
+         random_param() : default_value("U(-1.0,1.0)") {}
+         /**
+          * Converts the internal string representation to the proper random
+          * distribution.  If user didn't specify all random distribution, then
+          * this will return a default predefined random distribution.
+          * Note that for better randomness each returned distribution should be seed.
+          * Note that this returns a new object each time that needs to be deleted.
+          * @param  index of random distriubtion's string to convert.
+          * @return  Returns a random distribution object.
+          */
+         rnd_distribution* get(const Uint index) const;
+   };
 
 public:
 
@@ -82,12 +109,19 @@ public:
    vector<string> lmFiles;          ///< Language model file names
    Uint lmOrder;                    ///< Maximum LM order (0 == no limit)
    vector<double> distWeight;       ///< Distortion model weight
+   random_param rnd_distWeight;     ///< Distortion model weight
    double lengthWeight;             ///< Length penalty weight
+   random_param rnd_lengthWeight;   ///< Length penalty weight
    vector<double> segWeight;        ///< Segmentation model weight
+   random_param rnd_segWeight;      ///< Segmentation model weight
    vector<double> ibm1FwdWeights;   ///< Forward IBM1 feature weights
+   random_param rnd_ibm1FwdWeights; ///< Forward IBM1 feature weights
    vector<double> lmWeights;        ///< Language model weights
+   random_param rnd_lmWeights;      ///< Language model weights
    vector<double> transWeights;     ///< Translation model weights
+   random_param rnd_transWeights;   ///< Translation model weights
    vector<double> forwardWeights;   ///< Forward translation model weights
+   random_param rnd_forwardWeights; ///< Forward translation model weights
    bool randomWeights;              ///< true == use rnd weights for each sent.
    Uint randomSeed;                 ///< Seed for randomWeights
    Uint phraseTableSizeLimit;       ///< Num target phrases per source phrase

@@ -6,7 +6,7 @@
  *
  * COMMENTS:
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -17,49 +17,68 @@
 #include <fileReader.h>
 
 using namespace std;
-int main(const int argc, const char * const argv[])
-{
-   typedef unsigned int Uint;
-   if (argc < 3)
-   {
-      return -1;
-   }
    
-   /*if (true)
-   {
+void sentenceBased(Portage::FileReader::FileReaderBase<string>& reader)
+{
       cout << "SENTENCE BASED" << endl;
       unsigned int n(0);
       string s;
-      Portage::FileReader::DynamicReader dr(argv[1], 10, 10);
-      while (dr.pollable())
+   while (reader.pollable())
       {
          cout << "LOOP" << endl;
-         while (dr.poll(n, s))
+      while (reader.poll(s, &n))
          {
             cout << n << " : " << s << endl;
          }
          cout << n << " : " << s << endl;
       }
+   cout << endl;
+}
+   
+void nbestListBased(Portage::FileReader::FileReaderBase<string>& reader)
+{
+      cout << "NBESTLIST BASED" << endl;
+   Portage::FileReader::FileReaderBase<string>::Group s;
+   while (reader.pollable())
+      {
+         cout << "LOOP" << endl;
+      reader.poll(s);
+         cout << s.size() << endl;
+      }
+   cout << endl;
+}
+
+int main(const int argc, const char * const argv[])
+{
+   typedef unsigned int Uint;
+   if (argc < 3) return -1;
+   
+   if (true) {
+      Portage::FileReader::DynamicReader<string> reader(argv[1], 10);
+      sentenceBased(reader);
+   }
+   
+   if (true) {
+      Portage::FileReader::DynamicReader<string> reader(argv[1], 10);
+      nbestListBased(reader);
    }
    
    if (true)
    {
-      cout << "NBESTLIST BASED" << endl;
-      Portage::FileReader::groupCandidate s;
-      Portage::FileReader::DynamicReader dr(argv[1], 10, 10);
-      while (dr.pollable())
-      {
-         cout << "LOOP" << endl;
-         dr.poll(s);
-         cout << s.size() << endl;
-      }
+      Portage::FileReader::FixReader<string> reader(argv[2], 3);
+      sentenceBased(reader);
    }
    
-   if (true)
+   if (true) {
+      Portage::FileReader::FixReader<string> reader(argv[2], 3);
+      nbestListBased(reader);
+   }
+   
+   /*if (true)
    {
       cout << "CORPUS BASED" << endl;
       Portage::FileReader::matrixCandidate s;
-      Portage::FileReader::DynamicReader dr(argv[1], 10, 10);
+      Portage::FileReader::DynamicReader<string> dr(argv[1], 10);
       dr.poll(s);
       cout << s.size() << endl;
       for (Uint i(0); i<s.size(); ++i)
@@ -77,7 +96,7 @@ int main(const int argc, const char * const argv[])
    {
       cout << "CORPUS BASED" << endl;
       Portage::FileReader::matrixCandidate s;
-      Portage::FileReader::FixReader dr(argv[2], 3, 3);
+      Portage::FileReader::FixReader<string> dr(argv[2], 3);
       dr.poll(s);
       cout << s.size() << endl;
       for (Uint i(0); i<s.size(); ++i)
@@ -89,7 +108,7 @@ int main(const int argc, const char * const argv[])
          cout << "OUI" << endl;
       else
          cout << "NON" << endl;
-   }
+   }*/
    
-   return 0;*/
+   return 0;
 }

@@ -34,12 +34,34 @@ v1.2 ??.??.200?
    canoe.
  - Implemented new language model heuristics for decoding, including
    "incremental", the default in several other MT systems, and now also the
-   default in PORTAGEshared.
+   default in Portage and PORTAGEshared.
  - Monotonic decoding with phrase swaps can now be done using canoe's
    "-distortion-limit 0 -dist-phrase-swap" combination of options, optionally
    using the new PhraseDisplacement distortion model instead of, or in
    combination with, the standard distortion penalty (WordDisplacement).
  - New IBM1Forward decoder feature.
+ - LM filtering based on per-sentence-vocabulary, as described in Ghada Badr,
+   Eric Joanis, Samuel Larkin and Roland Kuhn, CORES 2007: in short, keeps an
+   n-gram only if all the words it contains can occur together in the
+   translation of at least one source sentence.  Typical LM filtering uses one
+   global vocab; this technique efficiently keeps track of a separate
+   vocabulary for each input sentence to translate.  In decoding, this approach
+   can save some 25% of the memory required for large LMs.  In lm_eval and the
+   LM rescoring function, significantly higher savings are common.  Works with
+   both the text (ARPA) and our BinLM file formats.
+   - Automatically used by canoe while loading language models;
+   - automatically used by the rescoring module for the NgramFF feature;
+   - used by lm_eval when the -per-sent-limit is specified.
+ - Soft TM filtering: joint filtering of several phrase tables in such a way
+   that, not matter what weights are used, the top L hypotheses will have been
+   kept, i.e., discards entries that can never make it to the top L, under any
+   set of non-negative weights.  Also described in our CORES 2007 paper.
+   - Used by cow.sh when the -filt option is specified (recommended).
+
+ Major bug fixes:
+ - When canoe was used with -weight-f (weights on the forward translation
+   models), the forward score did not get added to the total score, so that the
+   forward score was in fact ignored during search.
 
  Minor changes:
  - The new script process-memory-usage.pl to monitor resource usage by a job,
@@ -63,6 +85,8 @@ v1.2 ??.??.200?
      distortion limit;
    - new -input option allows input from something other than stdin;
    - new -append option concatenate nbest, ffvals and pal files on the fly;
+   - when using random-weights (for cow.sh -mad), a specific distribution can
+     be specified for each feature;
  - canoe-parallel.sh:
    - new -lb option to perform load balancing;
    - new -resume option to attempt to recover a job that died previously;
@@ -71,6 +95,8 @@ v1.2 ??.??.200?
    - use the same InputParser class as canoe for consistent handling of markup.
  - removed the broken markup handling from train_ibm, align-words and run_ibm:
    they now only accept tokenized, line-aligned plain text, as one would expect.
+ - new program join_phrasetables generates a multi-prob (i.e., multi-column)
+   phrase table from from tables in the older format
  - normalized file names in src/rescoring: C++ code files are .cc, not .cpp,
    C++ template code are -cc.h, not .cpp.
  - renamed ibm1aaron.{h,cc} ibm1wtrans.{h,cc} and the classes it contains to
@@ -112,6 +138,8 @@ v1.2 ??.??.200?
    LMs assigning probabilities and back-off weights to other events involving
    <UNK>, at the cost of some speed, so no program in PORTAGEshared enables
    this feature.  Changes will be required to the code if it is required.
+ - ngram-count-big.sh, our alternative to SRILM's make-batch-counts and
+   merge-batch-counts, can now takes advantage of parallel computing resources.
  - tm/ibm.{h,cc}: cleaned up the inheritance structure between classes IBM1 and
    IBM2 and filled in some missing documentation.
  - tm/joint2cond_phrase_tables:
@@ -133,17 +161,40 @@ v1.2 ??.??.200?
    - one of -nofloor (new option) or -floor is required since there does not
      exist an appropriate default for this option;
    - temporary files are now compressed on the fly, unless -Z is specified;
- - rat.sh:
-   - by default, the output is now MODEL.out, rather than overwriting the input;
  - When modifying and testing a single program, say src/subdir/progname, one
    can quickly rebuild it and its dependencies (and nothing else) by running
    this command in src/:
       gmake OT=progname subdir_progs
-
- Major bug fixes:
- - When canoe was used with -weight-f (weights on the forward translation
-   models), the forward score did not get added to the total score, so that the
-   forward score was in fact ignored during search.
+ - rat.sh:
+   - by default, the output is now MODEL.out, rather than overwriting the input;
+ - gen-features-parallel.sh now supports horizontal parallelism: besides
+   running each feature in a different process (on a different machine, if
+   using a cluster), expensive features are split in several small blocks.
+ - rescore_train:
+   - can now specify the distribution to use for randomly generating starting
+     points in the search for an optimum (run rescore_train -h for details);
+   - significantly optimized, runs 40% faster than before;
+   - when compiled with OpenMP (edit build/Makefile.incl to enable this), runs
+     in multi-thread mode, gaining another near two-fold speed up;
+   - new -e switch implements a stopping criterion based on the statistical
+     expectation of finding a better local optimum, given the distribution of
+     previous ones found;
+   - other new switches: -win, -r, -s, -y, -u, -sm;
+ - rescore_translate:
+   - new options: -s, -c, -kout (run rescore_translate -h for details);
+ - rescoring in general:
+   - new -y and -u switches control n-gram length for BLEU calculations;
+   - the nebulous VFileFF feature has been removed; a much cleaner solution to
+     the problem it solved is now implemented in rat.sh itself;
+   - sets of n-best lists no longer need to have the same number of candidate
+     translations for each source sentence;
+   - new IBM1DocTgtGivenSrc feature calculates p(tgt-sent|src-doc), using a
+     file of docids to determine what parts of the source file constitute
+     documents (the docids file should have one line for each line in the
+     source text, containing an ID in any format (no whitespace allowed); lines
+     with identical IDs are considered to come from the same document).
+   - features can now depend on the target language vocabulary (e.g., NgramFF
+     uses this for filtering, as mentioned in Major Changes above);
 
  Minor bug fixes:
  - rescoring/featurefunction.cc: on some systems, what appears like a compiler
@@ -152,7 +203,7 @@ v1.2 ??.??.200?
  - block_mem_pool.h and index_block_mem_pool.h: in some cases, the destructor
    was called twice on the same object.
  - voc.cc: fixed mismatched malloc/free new/delete use.
- - rescoring feature IBM1Deletion was not hooked in properly.
+ - rescoring feature IBM1Deletion was available but not hooked in properly.
 
 
 v1.1 01.04.2007

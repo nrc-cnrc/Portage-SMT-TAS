@@ -1,4 +1,5 @@
 # $Id$
+
 # K-Best Rescoring Module
 # Aaron Tikuisis
 # Technologies langagieres interactives / Interactive Language Technologies
@@ -28,8 +29,6 @@ BINSCRIPTS = \
 
 LIBRARY=libportage_rescoring
 
-PERL_LIBS=
-
 TESTPROGS = \
 	testff \
 	testfileReader \
@@ -38,12 +37,11 @@ TESTPROGS = \
 	testpowell
 
 PROGRAMS=$(TESTPROGS) \
+        feature_function_tool \
 	gen_feature_values \
 	rescore_test \
 	rescore_train \
 	rescore_translate
-
-INFOFILES=
 
 DOCUMENTS=rescoring_overview.pdf ochlinemax.pdf
 
@@ -51,7 +49,7 @@ EXTRA_LIBS=$(LOGGING_LIB)
 
 DYNLIBS=-lpthread
 
-MODULE_CF=-Wno-non-virtual-dtor -Wno-uninitialized
+MODULE_CF=-Wno-non-virtual-dtor -fno-strict-aliasing -Wno-uninitialized $(PORTAGE_OPENMP)
 
 MODULE_DEPENDS=canoe tm lm eval logging
 

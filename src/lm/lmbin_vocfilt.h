@@ -58,7 +58,7 @@ protected:
    void read_binary(const string& binlm_filename, Uint limit_order);
 
    /// Constructor for use by the subclass.
-   LMBinVocFilt(Voc& vocab, OOVHandling oov_handling,
+   LMBinVocFilt(VocabFilter& vocab, OOVHandling oov_handling,
                 double oov_unigram_prob);
 
 public:
@@ -66,7 +66,7 @@ public:
    /// vocab is a Voc& instead of a Voc* because it is mandatory for this
    /// sub-class of PLM.
    /// In this class, we retain only n-grams whose words are all in vocab.
-   LMBinVocFilt(const string& binlm_filename, Voc& vocab,
+   LMBinVocFilt(const string& binlm_filename, VocabFilter& vocab,
                 OOVHandling oov_handling, double oov_unigram_prob,
                 Uint limit_order);
 

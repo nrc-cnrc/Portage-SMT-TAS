@@ -108,7 +108,7 @@ float LMText::wordProbQuery(const Uint query[], Uint query_length) {
    }
 } // LMText::wordProbQuery
 
-LMText::LMText(Voc *vocab, OOVHandling oov_handling,
+LMText::LMText(VocabFilter *vocab, OOVHandling oov_handling,
                double oov_unigram_prob)
    : PLM(vocab, oov_handling, oov_unigram_prob)
 { }
@@ -118,7 +118,7 @@ Uint LMText::global_index(Uint local_index) {
 }
 
 
-LMText::LMText(const string& lm_file_name, Voc *vocab,
+LMText::LMText(const string& lm_file_name, VocabFilter *vocab,
                OOVHandling oov_handling, double oov_unigram_prob,
                bool limit_vocab, Uint limit_order,
                ostream *const os_filtered, bool quiet)
@@ -190,6 +190,8 @@ void LMText::read(const string& lm_file_name, bool limit_vocab,
          gram_order, lm_file_name.c_str(), limit_order);
       gram_order = limit_order;
    }
+   vocab->setMaxNgram(gram_order);
+   vocab->resetDiscardingCount();
 
    //cerr << trie.getSizeOfs() << endl;
 
@@ -251,6 +253,9 @@ void LMText::read(const string& lm_file_name, bool limit_vocab,
       //cerr << trie.getStats() << endl;
    }
    if (!quiet) cerr << "LM loading completed in: " << (time(NULL) - start_overall) << "s." << endl;
+   // This following is good for knowing how much is pruned during loading.
+   // Manages per ngrams per technic pruning of lm_phrases.
+   //vocab->printDiscardingCount();  // MAINLY FOR DEBUGGING
 
    // If we are filtering the LM we must cat the proper header with the proper
    // stats with the tmp_file containing the kept lines.
@@ -284,7 +289,8 @@ void LMText::readLine(
 ) {
    static string line;
    // Loop until a line with all known vocab is found (only once unless
-   // limit_vocab is set)
+   // limit_vocab is set).  If limit_vocab and per_sentence_vocab != NULL, the
+   // intersection of sentence sets for each word must also be non empty.
    for(;;) {
       bool eof = ! getline(in, line);
       //cerr << "READ: " << line << endl;
@@ -325,7 +331,6 @@ void LMText::readLine(
          char* strtok_state; // state variable for strtok_r
          Uint tok_count = 0;
          char* s_tok = strtok_r(phrase_pos, " ", &strtok_state);
-         bool oov_found = false;
          while (s_tok != NULL) {
             ++tok_count;
             if ( tok_count > order )
@@ -334,11 +339,6 @@ void LMText::readLine(
                   order, line.c_str(), tok_count, order);
             if ( limit_vocab ) {
                phrase[order-tok_count] = vocab->index(s_tok);
-               if ( phrase[order-tok_count] == vocab->size() ) {
-                  // OOV found - skip this line
-                  oov_found = true;
-                  break;
-               }
             }
             else {
                phrase[order-tok_count] = vocab->add(s_tok);
@@ -347,9 +347,9 @@ void LMText::readLine(
             s_tok = strtok_r(NULL, " ", &strtok_state);
          } // while
 
-         // If we found an OOV, we have to try again
-         if ( oov_found ) {
-            assert (limit_vocab);
+         // If we found an OOV or fair another filtering test, we skip this
+         // entry and read another line
+         if ( limit_vocab && !vocab->keepLMentry(phrase, tok_count, order) ) {
             continue;
          }
 

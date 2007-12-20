@@ -288,4 +288,14 @@ Options (in command-line format):\n\
 \n\
  -options\n\
         Produce a shorter help message only listing the option names\n\
+\n\
+\n\
+  NOTE:\n\
+    All options of the form weight-X where X is a decoder feature can be\n\
+    replaced by random-X with a value of U(min, max) or N(mean, sigma).  This\n\
+    allows canoe to use Uniform or Normal distribution to determine the\n\
+    weights of the decoder feature for each source sentence.  Intended for use\n\
+    with -random-weights.  If no distribution is specified, U(-1.0, 1.0) is\n\
+    used as a default value.  Example:\n\
+       [random-t] U(0,3):N(2,0.1):...\n\
 ";

@@ -73,7 +73,7 @@ private:
 
 protected:
    /// Protected constructor for use by subclasses
-   LMText(Voc *vocab, OOVHandling oov_handling, double oov_unigram_prob);
+   LMText(VocabFilter *vocab, OOVHandling oov_handling, double oov_unigram_prob);
 
    // Implemented for parent.
    virtual Uint getGramOrder() { return gram_order; }
@@ -104,7 +104,7 @@ public:
 
    /// Constructor.  See PLM::Create() for a description of the parameters.
    LMText(const string& lm_file_name,
-          Voc *vocab,
+          VocabFilter *vocab,
           OOVHandling oov_handling,
           double oov_unigram_prob,
           bool limit_vocab,

@@ -25,7 +25,8 @@
 #include "distortionmodel.h"
 #include "segmentmodel.h"
 #include "config_io.h"
-#include <voc.h>
+#include <vocab_filter.h>
+#include <randomDistribution.h>
 #include <vector>
 #include <string>
 #include <ext/hash_map>
@@ -172,7 +173,7 @@ namespace Portage
        * The vocabulary for the target language.  (Also includes words from
        * the source language, for various purposes.)
        */
-      Voc tgt_vocab;
+      VocabFilter tgt_vocab;
 
       /**
        * All decoder features other than LMs and TMs (e.g., distortion,
@@ -189,6 +190,11 @@ namespace Portage
        * The phrase table.
        */
       PhraseTable *phraseTable;
+
+      vector<rnd_distribution*> random_feature_weight;
+      vector<rnd_distribution*> random_trans_weight;
+      vector<rnd_distribution*> random_forward_weight;
+      vector<rnd_distribution*> random_lm_weight;
 
    public:
       /**
@@ -346,11 +352,13 @@ namespace Portage
        *                      false).  (Can be NULL if c.loadFirst is true)
        * @param marks         All the marked translations. (Can be NULL if
        *                      c.loadFirst is true)
+       * @param phrasetable   A user supplied phrase table
        * @pre c.loadFirst || sents != NULL && marks != NULL
        */
       static BasicModelGenerator* create(const CanoeConfig& c,
             const vector<vector<string> > *sents = NULL,
-            const vector<vector<MarkedTranslation> > *marks = NULL);
+            const vector<vector<MarkedTranslation> > *marks = NULL,
+            PhraseTable* phrasetable = NULL);
 
       /**
        * Constructor, creates a new BasicModelGenerator.
@@ -436,32 +444,6 @@ namespace Portage
        * Destructor.
        */
       virtual ~BasicModelGenerator();
-
-      /**
-       * Filters the translation model.  This function will filter the
-       * translation models but not create them in memory and also it will
-       * add the vocab so we can filter the LMs.
-       * @param src_to_tgt_file  file name of src to tgt.
-       * @param oSrc2tgt         output file name for src to tgt
-       * @param tgt_to_src_file  file name of tgt to src.
-       * @param oTgt2src         output file name for tgt to src
-       */
-      virtual void filterTranslationModel(const char *const src_to_tgt_file,
-            const string& oSrc2tgt,
-            const char *const tgt_to_src_file = NULL,
-            const string& oTgt2src = "");
-
-      /**
-       * Filter a multi-prob translation model.  See
-       * filterTranslationModel() for details.
-       * @param multi_prob_tm_file    input file name; if the file name ends
-       *                              with "#REVERSED", it will be considered
-       *                              a reversed phrase table.  See
-       *                              PhraseTable::isReversed() for details.
-       * @param oFiltered             output file name
-       */
-      virtual void filterMultiProbTransModel(const char* multi_prob_tm_file,
-            const string& oFiltered);
 
       /**
        * Add a text-based TM, with its forward probs used for pruning only.
@@ -616,10 +598,7 @@ namespace Portage
        * @param seed Seed for the random number generator, for reproducible
        * results.
        */
-      void setRandomWeights(unsigned int seed) {
-         srand(seed);
-         setRandomWeights();
-      }
+      void setRandomWeights(unsigned int seed);
       /// Initialize all models weights randomly
       void setRandomWeights();
 
@@ -628,13 +607,6 @@ namespace Portage
       /// it contains the union of the source and target language
       /// vocabularies.
       const Voc& get_voc() const { return tgt_vocab; }
-
-   private:
-      /**
-       * Generates a random weight uniformly distributed in [0,1].
-       * @return a random weight
-       */
-      double uniformWeight();
 
    }; // BasicModelGenerator
 

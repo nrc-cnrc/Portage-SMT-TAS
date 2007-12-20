@@ -27,22 +27,46 @@ using namespace std;
 using namespace Portage;
 
 IBM1DeletionBase::IBM1DeletionBase(const string& args)
-: table( args.substr(0,args.find("#")) )
+: FeatureFunction(args)
+, table(NULL)
 , thr(0.1f)
+, ttable_file(args.substr(0, args.find("#")))
+{}
+
+bool IBM1DeletionBase::loadModelsImpl()
 {
-   const string::size_type pos = args.find("#");
+   table = new TTableWithMax(ttable_file); 
+   assert(table);
+   return table != NULL;
+}
+
+bool IBM1DeletionBase::parseAndCheckArgs()
+{
+   if (ttable_file.empty()) {
+      error(ETWarn, "You must provide a ttable file name to IBM1DeletionBase");
+      return false;
+   }
+   if (!check_if_exists(ttable_file)){
+      error(ETWarn, "File is not accessible: %s", ttable_file.c_str());
+      return false;
+   }
+
+   const string::size_type pos = argument.find("#");
    if (pos != string::npos)
-      thr = atof(args.substr(pos+1,args.size()-pos).c_str());
+      thr = atof(argument.substr(pos+1, argument.size()-pos).c_str());
+
+   return true;
 }
 
 double 
 IBM1DeletionBase::computeValue(const Tokens& src, const Tokens& tgt) {
+   assert(table);
    double ratioDel = 0.0f;
 
    for (Uint j = 0; j < src.size(); j++) {
       double curMax = 0;
       for (Uint i = 0; i < tgt.size(); i++) 
-         curMax = max( curMax, table.getProb(src[j], tgt[i]) );
+         curMax = max( curMax, table->getProb(src[j], tgt[i]) );
       if (curMax < thr)
          ratioDel++;
    } // for j

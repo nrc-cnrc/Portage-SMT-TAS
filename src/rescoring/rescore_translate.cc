@@ -25,11 +25,26 @@
 #include <rescoring_general.h>
 #include <printCopyright.h>
 #include <bleu.h>
+#include <queue>
+#include <stack>
+#include <sstream>
 
 
 using namespace Portage;
 using namespace std;
 
+// Assuming v is a vector of logprobs, return log of the sum of the
+// probabilities in the vector.
+static double logNorm(const uVector& v)
+{
+   double sum = 0.0;
+   double max = 0.0;
+   for (Uint i = 0; i < v.size(); ++i)
+      if (v[i] < max) max = v[i];
+   for (Uint i = 0; i < v.size(); ++i)
+      sum += exp(v[i] - max);
+   return log(sum) + max;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // main
@@ -52,8 +67,17 @@ int MAIN(argc, argv)
    LOG_VERBOSE2(verboseLogger, "Reading ffset");
    FeatureFunctionSet ffset;
    ffset.read(arg.model, arg.bVerbose, arg.ff_pref.c_str(), arg.bIsDynamic);
-   uVector ModelP(ffset.M());
-   ffset.getWeights(ModelP);
+   ffset.createTgtVocab(sources, FileReader::create<Translation>(arg.nbest_file, arg.K));
+   uVector wts(ffset.M());
+   ffset.getWeights(wts);
+   {
+      ostringstream oss;
+      oss << wts;
+      LOG_VERBOSE2(verboseLogger, "Rescoring using weights: %s", oss.str().c_str());
+   }
+
+   LOG_VERBOSE2(verboseLogger, "Initializing FF matrix with %d source sentences", S);
+   ffset.initFFMatrix(sources);
 
 
    ////////////////////////////////////////
@@ -86,22 +110,45 @@ int MAIN(argc, argv)
       if (bNeedsAlignment && (k != K))
          error(ETFatal, "unexpected end of nbests file after %d lines (expected %dx%d=%d lines)", s*K+k, S, K, S*K);
 
-      LOG_VERBOSE3(verboseLogger, "Initializing FF matrix");
-      ffset.initFFMatrix(sources, K);
-
       LOG_VERBOSE3(verboseLogger, "Computing FF matrix");
       uMatrix H;
       ffset.computeFFMatrix(H, s, nbest);
       K = nbest.size();  // IMPORTANT K might change if computeFFMatrix detects empty lines
 
-      if (K==0) {
-         cout << endl;
-      }
-      else {
-
-         const uVector Scores = boost::numeric::ublas::prec_prod(H, ModelP);
-         const Uint bestIndex = my_vector_max_index(Scores);         // k = sentence which is scored highest
-         cout << nbest.at(bestIndex) << endl;  // DISPLAY best hypothesis
+      if (arg.kout == 1) {      // output single best hypothesis
+         if (K==0) {
+            cout << endl;
+         } else {
+            const uVector Scores = boost::numeric::ublas::prec_prod(H, wts);
+            double logz = arg.conf_scores ? logNorm(Scores) : 0.0;
+            const Uint bestIndex = my_vector_max_index(Scores);         // k = sentence which is scored highest
+            if (arg.bPrintRank)cout << bestIndex+1 << " ";
+            if (arg.print_scores) cout << Scores[bestIndex] - logz << " ";
+            cout << nbest.at(bestIndex) << endl;  // DISPLAY best hypothesis
+         }
+      } else {                  // ouptput k best hypotheses
+         const uVector Scores = boost::numeric::ublas::prec_prod(H, wts);
+         double logz = arg.conf_scores ? logNorm(Scores) : 0.0;
+         priority_queue< pair<float, Uint> > best_scores;
+         Uint kout = (arg.kout == 0) ? K : min(arg.kout, K);
+         for (Uint i = 0; i < Scores.size(); ++i) { // put best kout into pq
+            best_scores.push(make_pair(-Scores[i], i));
+            if (best_scores.size() > kout) best_scores.pop();
+         }
+         stack < pair<float, Uint> > best_scores_stack;
+         while (!best_scores.empty()) { // reverse order of queue
+            best_scores_stack.push(best_scores.top());
+            best_scores.pop();
+         }
+         while (!best_scores_stack.empty()) { // output
+            pair<float, Uint>& p = best_scores_stack.top();
+            if (arg.bPrintRank) cout << p.second+1 << " ";
+            if (arg.print_scores) cout << Scores[p.second] - logz << " ";
+            cout << nbest.at(p.second) << endl;  // DISPLAY best hypothesis
+            best_scores_stack.pop();
+         }
+         if (arg.K)             // pad with blank lines if necessary
+            for (; kout < arg.kout; ++kout)  cout << endl;
       }
    }
 

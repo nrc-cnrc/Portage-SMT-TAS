@@ -3,8 +3,12 @@
  * @file lm.h  Abstract class for a language model.
  * $Id$
  *
- *
  * Superclass LM to do abstracts / concrete implementation of language models
+ *
+ * Note: the convention throughout this module is to use "probability"
+ * in place of "log probability". For example, wordProb() actually returns a
+ * logprob, the documentation on backoffs in LMText::wordProb() talks about
+ * p(w|...) when it means log p(w|...), etc. 
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
@@ -17,7 +21,7 @@
 #define __PLM_H__
 
 #include <portage_defs.h>
-#include <voc.h>
+#include <vocab_filter.h>
 #include <vector>
 #include <map>
 
@@ -32,7 +36,7 @@ class PLM
 {
 protected:
    /// Vocabulary for this model, possibly shared with other models
-   Voc* vocab;
+   VocabFilter* vocab;
 
    /**
     * Whether the LM is of type OOVHandling::FullOpenVoc.
@@ -143,7 +147,8 @@ protected:
     * @param oov_unigram_prob   the unigram prob of OOVs (if oov_handling ==
     *                           ClosedVoc)
     */
-   PLM(Voc* vocab, OOVHandling oov_handling, float oov_unigram_prob);
+   PLM(VocabFilter* vocab, OOVHandling oov_handling, float oov_unigram_prob);
+
    /**
     * Default contructor for subclasses that might need it.
     */
@@ -170,7 +175,7 @@ public:
     * @param quiet         Suppresses verbose.
     */
    static PLM* Create(const string& lm_filename,
-                      Voc* vocab,
+                      VocabFilter* vocab,
                       OOVHandling oov_handling,
                       float oov_unigram_prob,
                       bool limit_vocab,

@@ -1,4 +1,5 @@
 # $Id$# @file Makefile
+# @file Makefile
 # 
 # Evaluation Module
 # Aaron Tikuisis
@@ -33,12 +34,11 @@ EXTRA_LIBS=$(LOGGING_LIB)
 DYNLIBS=-lpthread
 
 # Module/directory specific compile flags
-MODULE_CF= -Wno-non-virtual-dtor
+MODULE_CF=-Wno-non-virtual-dtor $(PORTAGE_OPENMP)
 
 MODULE_DEPENDS=logging
 
 LIBRARY=libportage_eval
 
 include ../build/Makefile.incl
-
 -include Makefile.depend

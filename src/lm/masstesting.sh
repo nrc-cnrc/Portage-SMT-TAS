@@ -9,6 +9,12 @@
 # Bigger example test, using 55813 input lines:
 # masstesting.sh $PORTAGE/test-suite/regress-small-voc/europarl.en.srilm{,} $PORTAGE/test-suite/regress-small-voc/lc/europarl.fr-en.en.lowercase
 
+# Technologies langagieres interactives / Interactive Language Technologies
+# Institut de technologie de l'information / Institute for Information Technology
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2006, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2006, Her Majesty in Right of Canada
+
 echo 'masstesting.sh, NRC-CNRC, Copyright (c) 2006 - 2007, Her Majesty in Right of Canada'
 
 if [ $# -ne 3 ]; then
@@ -29,6 +35,23 @@ time ngram -lm $LM_FOR_SRILM -ppl $TEST -debug 2 2 | egrep -e"^	p" |  sed "s/.*]
 # results
 
 ALL_GOOD=1
+
+echo ""
+echo "=================== LMText -limit -per-sent-limit =================="
+echo ""
+echo time ./lm_eval -limit -per-sent-limit $LM_FOR_PORTAGE $TEST \> lmtexttestfile-per-sent
+echo ""
+time ./lm_eval -limit -per-sent-limit $LM_FOR_PORTAGE $TEST > lmtexttestfile-per-sent
+
+echo ""
+echo diff -q srilmtestfile lmtexttestfile-per-sent
+if ! diff -q srilmtestfile lmtexttestfile-per-sent; then
+   echo 'Differences found between SRILM and LMText with -limit and -per-sent-limit.'
+   echo Of those, `diff-round.pl srilmtestfile lmtexttestfile-per-sent 2> /dev/null | wc -l` are not just rounding errors
+   diff-round.pl srilmtestfile lmtexttestfile-per-sent | head
+   ALL_GOOD=0
+fi
+
 
 echo ""
 echo "=================== LMText -limit =================="

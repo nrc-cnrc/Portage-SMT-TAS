@@ -23,7 +23,7 @@ using namespace Portage;
 
 //----------------------------------------------------------------------------
 // Constructors
-PLM::PLM(Voc* vocab, OOVHandling oov_handling, float oov_unigram_prob) :
+PLM::PLM(VocabFilter* vocab, OOVHandling oov_handling, float oov_unigram_prob) :
    vocab(vocab), complex_open_voc_lm(oov_handling == FullOpenVoc),
    gram_order(0), oov_unigram_prob(oov_unigram_prob) {}
 
@@ -33,7 +33,7 @@ PLM::PLM() :
 
 //----------------------------------------------------------------------------
 PLM* PLM::Create(const string& lm_filename, 
-                 Voc* vocab,
+                 VocabFilter* vocab,
                  OOVHandling oov_handling,
                  float oov_unigram_prob,
                  bool limit_vocab,
@@ -51,10 +51,10 @@ PLM* PLM::Create(const string& lm_filename,
    }
 
    if ( vocab ) {
-      // Make sure SentStart and SentEnd and UNK_Symbol are in the vocab
-      vocab->add(SentStart);
-      vocab->add(SentEnd);
-      vocab->add(UNK_Symbol);
+      // Make sure SentStart and SentEnd and UNK_Symbol are always in the vocab
+      vocab->addSpecialSymbol(SentStart);
+      vocab->addSpecialSymbol(SentEnd);
+      vocab->addSpecialSymbol(UNK_Symbol);
    }
 
    PLM* lm;

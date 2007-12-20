@@ -29,8 +29,11 @@ namespace Portage
  class NgramFF: public FeatureFunction
  {
    private:
-      Voc *vocab;  ///< vocabulary.
       PLM *lm;     ///< Language model.
+
+   protected:
+      virtual bool parseAndCheckArgs();
+
    public:
       /// Constructor.
       /// @param args  arguments to construct a language model.
@@ -38,7 +41,8 @@ namespace Portage
       /// Destructor.
       ~NgramFF();
 
-      virtual inline Uint requires() { return FF_NEEDS_TGT_TOKENS; }
+      virtual void init(const Sentences * const src_sents);
+      virtual inline Uint requires() { return FF_NEEDS_TGT_TOKENS | FF_NEEDS_TGT_VOCAB; }
       virtual double value(Uint k);
 };
 }

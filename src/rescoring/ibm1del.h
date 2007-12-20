@@ -34,8 +34,10 @@ namespace Portage
   /// Interface for IBM1Deletion
   class IBM1DeletionBase : public FeatureFunction {
     private:
-      TTableWithMax table;
+      TTableWithMax*  table;
       double        thr;   ///< threshold for distinguishing between deletions/good translations.
+      string          ttable_file;
+
     protected:
       /**
        *
@@ -44,10 +46,15 @@ namespace Portage
        * @return Returns Needs description
        */
       double computeValue(const Tokens& src, const Tokens& tgt);
+      virtual bool parseAndCheckArgs();
+      virtual bool loadModelsImpl();
     public:
       /// Constructor.
       /// @param args  arguments.
       IBM1DeletionBase(const string& args); 
+      virtual ~IBM1DeletionBase() {
+         if (table) delete table, table = NULL;
+      }
    
       virtual inline Uint requires() { return  FF_NEEDS_SRC_TOKENS | FF_NEEDS_TGT_TOKENS; }
   };

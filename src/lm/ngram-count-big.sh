@@ -6,9 +6,9 @@
 #                      the bookkeeping automatically, and splitting very large
 #                      files automatically.
 #
-# PROGRAMMER: Eric Joanis
+# PROGRAMMER: Eric Joanis and Samuel Larkin
 #
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada
@@ -30,6 +30,7 @@ Usage: ngram-count-big.sh [options] output-ngrams text1[.gz] text2[.gz] ...
 Options:
 
   -h[elp]         Print this help message.
+  -N nodes        Number of nodes for run-parallel.sh [3].
   -order N        Order of n-grams to count. [3]
   -c[hunk-size] S Amount of text to process in each chunk, in a format so that
                   "split -C S" is legal, e.g., 1500k, 500m. [250m]
@@ -62,10 +63,12 @@ echo $0 $*
 
 ORDER=3
 CHUNK_SIZE=250m
+N=3
 while [ $# -gt 0 ]; do
    case "$1" in
    -c|-chunk-size)      arg_check 1 $# $1; CHUNK_SIZE=$2; shift;;
    -order)              arg_check 1 $# $1; ORDER=$2; shift;;
+   -N)                  arg_check 1 $# $1; N=$2; shift;;
    -n)                  NOT_REALLY=1;;
    -h|-help)            usage;;
    -merge-only)         MERGE_ONLY=1;;
@@ -76,6 +79,14 @@ while [ $# -gt 0 ]; do
    esac
    shift
 done
+
+if [ "`expr $ORDER + 0 2> /dev/null`" != "$ORDER" ]; then
+   error_exit "$ORDER is not an integer."
+fi
+
+WORK_DIR=ngram-count-big.$$
+COUNT_CMDS_FILE=$WORK_DIR/cmds.count
+MERGE_CMDS_FILE=$WORK_DIR/cmds.merge
 
 # Echo a command and then run it
 run () {
@@ -95,6 +106,9 @@ merge_ngrams() {
    out_file=$1
    shift
    temp_prefix="$out_file.partial-counts"
+   if [ -n "$TMPDIR" ]; then
+      temp_prefix=$TMPDIR/$temp_prefix
+   fi
    temp_index=0
    declare -a next_list
    #echo initial arg list: "$@"
@@ -175,52 +189,59 @@ count_ngrams() {
    out_file=$1
    text=$2
    out_prefix=`basename $text`
-   run gzip -cdqf < $text \| split -C $CHUNK_SIZE - $out_prefix.$CHUNK_SIZE.
+   chunk=$WORK_DIR/$out_prefix.$CHUNK_SIZE
+   run gzip -cdqf < $text \| split -C $CHUNK_SIZE - $chunk.
    if [ $? != 0 ]; then
       error_exit "split failed - bailing out"
    fi
-   ls -l $out_prefix.$CHUNK_SIZE.??
-   for file in $out_prefix.$CHUNK_SIZE.?? ; do
-      run ngram-count -order $ORDER \
-                      -sort \
-                      -text $file \
-                      -write $file.${ORDER}grams
-      if [ $? = 0 ]; then
-         if [ ! $DEBUG ]; then
-            run rm $file
-         fi
-      else
-         error_exit "ngram-count failed - bailing out"
-      fi
+   ls -l $chunk.??
+   for file in $chunk.?? ; do
+      # By adding the test guard this allows the user to run-parallel.sh
+      # $COUNT_CMDS_FILE N if something fail, thus resuming only the failed
+      # jobs.  Remember that we automatically delete the input chunks as a
+      # success marker.
+      CMD="ngram-count -order $ORDER -sort -text $file -write $file.${ORDER}grams"
+      echo "test ! -f $file || ($CMD && rm $file)" >> $COUNT_CMDS_FILE
    done
 
-   merge_ngrams $out_file $out_prefix.$CHUNK_SIZE.??.${ORDER}grams
-   if [ $? = 0 ]; then
-      if [ ! $DEBUG ]; then
-         run rm $out_prefix.$CHUNK_SIZE.??.${ORDER}grams
-      fi
-   else
-      error_exit "error in merge_ngrams - bailing out"
-   fi
+   sub_merge="$chunk.??.${ORDER}grams"
+   CMD="ngram-count-big.sh -merge-only -order $ORDER $out_file $sub_merge"
+   echo "test -f $out_file || ($CMD && rm $sub_merge)" >> $MERGE_CMDS_FILE
 }
 
 echo ""
 echo Starting
 
-global_counts_out=$1
-shift
+global_counts_out=$1; shift
 input_files=$@
-output_files=
-for in_file in $input_files; do
-   out_file=`basename $in_file`
-   out_file=${out_file%.gz}.${ORDER}grams.gz
-   if [ ! $MERGE_ONLY ]; then
+merge_files=
+if [ ! $MERGE_ONLY ]; then
+   test -d $WORK_DIR || mkdir $WORK_DIR
+   for in_file in $input_files; do
+      out_file=`basename $in_file`
+      out_file=${out_file%.gz}.${ORDER}grams.gz
       count_ngrams $out_file $in_file
-   fi
-   output_files="$output_files $out_file"
-done
+      merge_files="$merge_files $out_file"
+   done
 
-merge_ngrams $global_counts_out $output_files
+   # if we need to calculate the count, do it
+   if [ -e $COUNT_CMDS_FILE ]; then
+      run run-parallel.sh $COUNT_CMDS_FILE $N \|\| error_exit "failed some count"
+   fi
+
+   # is we need to merge the counts of individual input files
+   if [ -e $MERGE_CMDS_FILE ]; then
+      run run-parallel.sh $MERGE_CMDS_FILE $N \|\| error_exit "failed some merge"
+   fi
+else
+   merge_files=$input_files
+fi
+
+# Merge all into one file
+merge_ngrams $global_counts_out $merge_files
+
+# We are done, do some clean up
+test ! $DEBUG && test -d $WORK_DIR && rm -rf $WORK_DIR
 
 echo ""
 echo "Done"

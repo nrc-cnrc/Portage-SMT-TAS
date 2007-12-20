@@ -92,7 +92,7 @@ Uint LMBin::global_index(Uint local_index) {
    return voc_map.global_index(local_index);
 }
 
-LMBin::LMBin(const string& binlm_filename, Voc &vocab,
+LMBin::LMBin(const string& binlm_filename, VocabFilter &vocab,
              OOVHandling oov_handling, double oov_unigram_prob,
              Uint limit_order)
    : LMBinVocFilt(vocab, oov_handling, oov_unigram_prob)

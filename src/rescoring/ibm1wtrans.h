@@ -47,20 +47,25 @@ namespace Portage
   /// Interface for IBM1 WTrans.
   class IBM1WTransBase: public FeatureFunction {
     private:
-      TTableWithMax table;
+      TTableWithMax*  table;
     protected:
       /**
        *
        * @param src  source tokens
        * @param tgt  target tokens
+       * @param sprobs source probs
        * @return Returns
        */
       double computeValue(const Tokens& src, const Tokens& tgt);
+      virtual bool parseAndCheckArgs();
+      virtual bool loadModelsImpl();
     
     public:
       /// Constructor.
       /// @param file  file and arguments
       IBM1WTransBase(const string &file);
+      /// Destructor
+      virtual ~IBM1WTransBase();
     
       virtual inline Uint requires() { return  FF_NEEDS_SRC_TOKENS | FF_NEEDS_TGT_TOKENS; }
   };

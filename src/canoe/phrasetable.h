@@ -22,10 +22,12 @@
 #include "phrasedecoder_model.h"
 #include <vector_map.h>
 #include <trie.h>
+#include <vocab_filter.h>
 #include <vector>
 #include <string>
 #include <iostream>
 #include <boost/shared_ptr.hpp>
+#include <boost/dynamic_bitset.hpp>
 
 using namespace std;
 using namespace boost;
@@ -73,9 +75,13 @@ struct TScore
 }; // TScore
 
 /// Leaf structure for phrase tables: map target phrase to probs.
-typedef vector_map<Phrase, TScore> TargetPhraseTable;
-
-
+class TargetPhraseTable : public vector_map<Phrase, TScore> {
+  public:
+   /// Set of input sentences in which the source phrase occurs.
+   /// Only relevant in limitPhrases mode, will be empty otherwise.
+   boost::dynamic_bitset<> input_sent_set;
+};
+//typedef vector_map<Phrase, TScore> TargetPhraseTable;
 
 /// Phrase Table structure - holds together info from all phrase tables
 class PhraseTable
@@ -87,7 +93,7 @@ public:
 protected:
 
    /// The vocab for the target and source languages combined
-   Voc &tgtVocab;
+   VocabFilter &tgtVocab;
 
    /**
     * The mapping from source phrases to target phrases.
@@ -122,6 +128,10 @@ protected:
    /// Type of pruning to use
    PruningType pruningType;
 
+   /// For limitPhrases mode, the number of input sentences.  Used to determine
+   /// the size of the input_sent_set bit vector for each TargetPhraseTable.
+   const Uint num_sents;
+
    /// Human readable description of all backward phrase tables
    string backwardDescription;
 
@@ -129,8 +139,18 @@ protected:
    string forwardDescription;
 
    /// returns log(x) unless x <= 0, in which case returns log_almost_0
-   inline double shielded_log (double x) {return x <= 0 ? log_almost_0 : log(x);}
+   template <class FLOAT_TYPE>
+   inline FLOAT_TYPE shielded_log (FLOAT_TYPE x) {
+      return x <= 0 ? log_almost_0 : log(x);
+   }
    
+   /// inverts the shielded_log operation (for original x == 0)
+   template <class FLOAT_TYPE>
+   inline FLOAT_TYPE shielded_exp(FLOAT_TYPE x) {
+      return x == log_almost_0 ? 0 : exp(x);
+   }
+
+
 public:
 
    /**
@@ -140,13 +160,18 @@ public:
     *                    or "combined" - see PruningType enum documentation for
     *                    details.
     */
-   PhraseTable(Voc &tgtVocab, const char* pruningTypeStr = NULL);
+   PhraseTable(VocabFilter &tgtVocab, const char* pruningTypeStr = NULL);
 
    /**
     * Destructor.
     */
    virtual ~PhraseTable();
 
+   /**
+    * Set the log value to use for missing or 0-prob entries (default is LOG_ALMOST_0)
+    */
+   void setLogAlmostZero(double val) {log_almost_0 = val;}
+   
    /**
     * Get a human readable description of the phrase table model.
     * Unlike PLM::describeFeature() and DecoderFeature::describeFeature(),
@@ -183,17 +208,9 @@ public:
     * @param limitPhrases       Whether to store all phrase translations or
     *                           only those for source phrases that are already
     *                           in the table.
-    * @param src_filtered       if not NULL, will filter the backward phrase
-    *                           table to this stream instead of loading it in
-    *                           memory.
-    * @param tgt_filtered       if not NULL, will filter the forward phrase
-    *                           table to this stream instead of loading it in
-    *                           memory.
     */
-   void read(const char *src_given_tgt_file, const char *tgt_given_src_file,
-             bool limitPhrases,
-             ostream *const src_filtered = NULL,
-             ostream *const tgt_filtered = NULL);
+   virtual void read(const char *src_given_tgt_file, const char *tgt_given_src_file,
+             bool limitPhrases);
 
    /**
     * Determine if a multi-prob file name says it's reversed.
@@ -247,11 +264,18 @@ public:
     * @param limitPhrases   Whether to store all phrase translations or only
     *                       those for source phrases that are already in the
     *                       table.
-    * @param filtered  Opened stream to prints the kept entries went filtering
     * @return The number of probability colums in the file.
     */
-   Uint readMultiProb(const char* multi_prob_TM_filename, bool limitPhrases,
-                      ostream *const filtered = NULL);
+   virtual Uint readMultiProb(const char* multi_prob_TM_filename, bool limitPhrases);
+
+   /**
+    * Read a phrase table (single or multi-column) from a given input stream,
+    * and write a filtered version to a given output stream.
+    * @param input file to read from ("-" for standard input)
+    * @param output stream to write to ("-" for standard output)
+    * @param reversed table is reversed - see isReversed() for details.
+    */
+   void readAndFilter(const string& input, const string& output, bool reversed);
 
    /**
     * Write the contents to backward and/or forward streams.
@@ -262,16 +286,31 @@ public:
    void write(ostream* src_given_tgt_out, ostream* tgt_given_src_out);
 
    /**
+    * Write a multiprob translation table from the trie
+    * @param  multi_src_given_tgt_out  opened stream to output multiprob TM
+    */
+   void write(ostream& multi_src_given_tgt_out);
+
+   /**
     * Adds the given phrase and all its prefixes to the table.
     * This may be used to populate the table with phrases ahead of calling read
     * with limitPhrases = true.
     * @param phrase     The phrase, stored as an array of words.
     * @param phrase_len The number of words in phrase.
+    * @param sent_no    The index of the sentence for which this phrase is
+    *                   being added.
     */
-   void addPhrase(const char * const *phrase, Uint phrase_len);
+   void addPhrase(const char * const *phrase, Uint phrase_len, Uint sent_no);
 
    /**
-    * Get phrase translations from the phrase table for a given sentence.
+    * Adds all sentences to the VocabFilter object which will take care of
+    * building structures needed for LM filtering based on per sentence vocab.
+    * @param  sentences  tokeninzed sentences to be added to the vocab.
+    */
+   void addSourceSentences(const vector<vector<string> >& sentences);
+
+   /**
+    * Get all phrase translations from all phrase tables for a given sentence.
     * Creates PhraseInfo objects for them, storing the results in the
     * triangular array phraseInfos.
     * @param phraseInfos  A triangular array into which the PhraseInfo's
@@ -331,7 +370,77 @@ public:
     */
    string getStringPhrase(const Phrase &uPhrase) const;
 
-private:
+protected:
+   /// Direction of phrase table to load
+   enum dir {
+      src_given_tgt,        ///< src ||| tgt ||| p(src|tgt)
+      tgt_given_src,        ///< tgt ||| src ||| p(tgt|src)
+      multi_prob,           ///< src ||| tgt ||| backward probs forward probs
+      multi_prob_reversed   ///< tgt ||| src ||| forward probs backward probs
+   };
+
+   /**
+    * Container for holding one entry when reading a either a single or multi probs.
+    */
+   struct Entry
+   {
+      const dir d;                ///< direction of the prob file
+      const char* const file;     ///< entry is from file
+      string* line;               ///< raw entry
+      char* src;                  ///< source string in line
+      char* tgt;                  ///< target string in line
+      char* probString;           ///< prob string in line
+      Uint  lineNum;              ///< entry number
+      Phrase tgtPhrase;           ///< phrase representation of the target string (vector<Uint>)
+
+      /// Keeps count of the erroneous or zero prob entries
+      Uint zero_prob_err_count;
+
+      /// Current number of columns in the multi probs file
+      Uint multi_prob_col_count;
+
+      /**
+       * Default constructor.
+       * @param _d     direction of _file
+       * @param _file  current file we are processing
+       */
+      Entry(const dir& _d, const char* const _file)
+      : d(_d)
+      , file(_file)
+      , line(NULL)
+      , src(NULL)
+      , tgt(NULL)
+      , probString(NULL)
+      , lineNum(0)
+      , zero_prob_err_count(0)
+      , multi_prob_col_count(0)
+      {}
+      void print() const {
+         cerr << endl << "ENTRY: " << src << ", " << tgt << ", " << probString << ", " << tgtPhrase.size() << endl;
+      }
+   };
+
+   /**
+    * Helper for readFile, with changing behaviour in filtering subclasses.
+    * When doing a hard filtering, this will process one block of entries at a
+    * time and then flush the ptrie to keep the memory footprint low.
+    * The online processing can only be done if there is only one multiprob TM.
+    * @param src
+    * @param tgtTable
+    * @return Returns the number of entries in tgtTable
+    */
+   virtual Uint processTargetPhraseTable(const string& src, TargetPhraseTable* tgtTable);
+
+   /**
+    * Helper for readFile, with changing behaviour in filtering subclasses.
+    * In this class, get the TargetPhraseTable object from the trie for the
+    * phrase in Entry, creating it if limitPhrases is false.
+    * @param entry information about phrase table line being processed
+    * @param limitPhrases whether to restrict the processing to phrases
+    *                     pre-entered into the trie.
+    */
+   virtual TargetPhraseTable* getTargetPhraseTable(const Entry& entry, bool limitPhrases);
+
    /**
     * Search for a src phrase in all phrase tables.
     * @param s_key      the key in character strings
@@ -344,30 +453,18 @@ private:
    shared_ptr<TargetPhraseTable> findInAllTables(
       const char* s_key[], const Uint i_key[], Range range);
 
-   /// Direction of phrase table to load
-   enum dir {
-      src_given_tgt,        ///< src ||| tgt ||| p(src|tgt)
-      tgt_given_src,        ///< tgt ||| src ||| p(tgt|src)
-      multi_prob,           ///< src ||| tgt ||| backward probs forward probs
-      multi_prob_reversed   ///< tgt ||| src ||| forward probs backward probs
-   };
-
    /**
     * Reads all phrase mappings from the given file.
-    * @param file       The file to read from.
+    * @param file       The file to read from ("-" for stdin).
     * @param d          The direction of the probabilities in the file (this
     *                   determines the order of the phrases as well).
     * @param limitPhrases  Whether to store only the phrases already in the
     *                   table (as opposed to storing everything).
-    * @param filtered_output  if not NULL, we filter phrases based on vocab and
-    *                   write to this stream, instead of actually loading the
-    *                   phrase table.
     * @return The number of probability columns in the file: 1 for traditional
     *         1 figure ones, the number of actual prob figures for multi-prob
     *         files.
     */
-   Uint readFile(const char *file, dir d, bool limitPhrases,
-                 ostream *const filtered_output);
+   Uint readFile(const char *file, dir d, bool limitPhrases);
 
    /**
     * Recursively write out all source phrases stored below a given trie node.
@@ -383,11 +480,37 @@ private:
               vector<string>& prefix_stack);
 
    /**
-    * Convert a string to a Phrase (Uint vector)
+    * Recursively write out all source phrases stored below a given trie node.
+    * @param multi_src_given_tgt_out  output stream for multi probs
+    * @param it         iterator at the beginning of the current node to explore
+    * @param end        iterator at the end of the current node to explore
+    * @param prefix_stack  the strouce words of the parent nodes in trie
+    */
+   void write(ostream& multi_src_given_tgt_out,
+              PTrie<TargetPhraseTable>::iterator it,
+              const PTrie<TargetPhraseTable>::iterator& end,
+              vector<string>& prefix_stack);
+
+   /**
+    */
+   void write(ostream& multi_src_given_tgt_out, const string& src,
+              const TargetPhraseTable& tgt_phrase_table);
+
+   /**
+    * Convert a string to a Phrase (Uint vector).
     * @param tgtPhrase  Destination Phrase for the conversion.
     * @param tgtString  String to convert.
     */
    void tgtStringToPhrase(Phrase& tgtPhrase, const char* tgtString);
+
+protected:
+   /**
+    * When reading a file containing a phrase table, process one entry.
+    * Depending on normal mode or filtering mode, we handle entries differently.
+    * @param tgtTable  target Table (trie leaf) to which entry belongs.
+    * @param entry  current entry we are processing.
+    */
+   virtual bool processEntry(TargetPhraseTable* tgtTable, Entry& entry);
 
 public:
    /**
@@ -471,6 +594,7 @@ public:
     * string representation of phrases.
     */
    class PhraseScorePairLessThan
+   : public binary_function<pair<double, PhraseInfo *>, pair<double, PhraseInfo *>, bool>
    {
       private:
          const PhraseTable &parent;   ///< parent PhraseTable object

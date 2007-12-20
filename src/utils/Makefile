@@ -10,9 +10,11 @@
 OBJECTS = \
         arg_reader.o \
         bc_stats.o \
+        docid.o \
         errors.o \
         file_utils.o \
         gfmath.o \
+        gfstats.o \
         good_turing.o \
         histogram_fit.o \
         ls_poly_fit.o \

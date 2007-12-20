@@ -28,26 +28,56 @@
 using namespace std;
 using namespace Portage;
 
-IBM1WTransBase::IBM1WTransBase(const string &file): table(file) {}
+IBM1WTransBase::IBM1WTransBase(const string &file)
+: FeatureFunction(file)
+, table(NULL)
+{}
+
+IBM1WTransBase::~IBM1WTransBase()
+{
+   if (table) delete table, table = NULL;
+}
+
+bool IBM1WTransBase:: parseAndCheckArgs()
+{
+   if (argument.empty()) {
+      error(ETWarn, "You must provide a IBM1 probability file to IBM1WTransBase");
+      return false;
+   }
+   if (!check_if_exists(argument)){
+      error(ETWarn, "File is not accessible: %s", argument.c_str());
+      return false;
+   }
+   return true;
+}
+
+bool IBM1WTransBase::loadModelsImpl()
+{
+   table = new TTableWithMax(argument);
+   assert(table);
+   return table != NULL;
+}
 
 double 
 IBM1WTransBase::computeValue(const Tokens& src, const Tokens& tgt) {
-  double probs[src.size()][tgt.size()];
-  double *probsP[src.size()];
+   assert(table);
 
-  for (Uint i = 0; i < src.size(); i++) {
-    probsP[i] = probs[i];
-    double curMax = table.maxSourceProb(src[i]);
-    if (curMax == 0) {
-      // Clearly, not in the table at all, but we want still to avoid dividing by 0.
-      curMax = 1;
-    } // if
-    for (Uint j = 0; j < tgt.size(); j++) {
-      probsP[i][j] = max(table.getProb(src[i], tgt[j]), 0) / curMax;
-      //cerr << probsP[i][j] << '\t';
-    } // for
+   double probs[src.size()][tgt.size()];
+   double *probsP[src.size()];
+
+   for (Uint i = 0; i < src.size(); i++) {
+      probsP[i] = probs[i];
+      double curMax = table->maxSourceProb(src[i]);
+      if (curMax == 0) {
+         // Clearly, not in the table at all, but we want still to avoid dividing by 0.
+         curMax = 1;
+      } // if
+      for (Uint j = 0; j < tgt.size(); j++) {
+         probsP[i][j] = max(table->getProb(src[i], tgt[j]), 0) / curMax;
+         //cerr << probsP[i][j] << '\t';
+      } // for
       //cerr << endl;
-  } // for
+   } // for
 
-  return max_1to1_func(probsP, src.size(), tgt.size());
+   return max_1to1_func(probsP, src.size(), tgt.size());
 } // IBM1WTransTgtGivenSrc

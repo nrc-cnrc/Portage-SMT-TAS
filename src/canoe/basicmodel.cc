@@ -57,6 +57,8 @@ void BasicModelGenerator::InitDecoderFeatures(const CanoeConfig& c)
          decoder_features.push_back(DecoderFeature::create(this,
             "DistortionModel", c.distortionModel[i], ""));
          featureWeightsV.push_back(c.distWeight[i]);
+         if (c.randomWeights)
+            random_feature_weight.push_back(c.rnd_distWeight.get(i));
       }
    }
 
@@ -64,12 +66,16 @@ void BasicModelGenerator::InitDecoderFeatures(const CanoeConfig& c)
    decoder_features.push_back(DecoderFeature::create(this,
       "LengthFeature", "", ""));
    featureWeightsV.push_back(c.lengthWeight);
+   if (c.randomWeights)
+      random_feature_weight.push_back(c.rnd_lengthWeight.get(0));
 
 
    if ( c.segmentationModel != "none" ) {
       decoder_features.push_back(DecoderFeature::create(this,
          "SegmentationModel", c.segmentationModel, ""));
       featureWeightsV.push_back(c.segWeight[0]);
+      if (c.randomWeights)
+         random_feature_weight.push_back(c.rnd_segWeight.get(0));
    } else {
       // This is the default - no need to warn!
       //cerr << "Not using any segmentation model" << endl;
@@ -80,6 +86,8 @@ void BasicModelGenerator::InitDecoderFeatures(const CanoeConfig& c)
       decoder_features.push_back(DecoderFeature::create(this,
          "IBM1FwdFeature", "", c.ibm1FwdFiles[i]));
       featureWeightsV.push_back(c.ibm1FwdWeights[i]);
+      if (c.randomWeights)
+         random_feature_weight.push_back(c.rnd_ibm1FwdWeights.get(i));
    }
 
 }
@@ -88,7 +96,8 @@ void BasicModelGenerator::InitDecoderFeatures(const CanoeConfig& c)
 BasicModelGenerator* BasicModelGenerator::create(
       const CanoeConfig& c,
       const vector<vector<string> > *sents,
-      const vector<vector<MarkedTranslation> > *marks)
+      const vector<vector<MarkedTranslation> > *marks,
+      PhraseTable* phrasetable)
 {
    BasicModelGenerator *result;
 
@@ -102,7 +111,7 @@ BasicModelGenerator* BasicModelGenerator::create(
          result = new BackwardsModelGenerator(c);
    } else {
       if (sents && marks)
-         result = new BasicModelGenerator(c, *sents, *marks);
+         result = new BasicModelGenerator(c, *sents, *marks, phrasetable);
       else
          result = new BasicModelGenerator(c);
    }
@@ -113,14 +122,24 @@ BasicModelGenerator* BasicModelGenerator::create(
             result->addTranslationModel(c.backPhraseFiles[i].c_str(),
                   c.forPhraseFiles[i].c_str(),
                   c.transWeights[i], c.forwardWeights[i]);
+            if (c.randomWeights) {
+               result->random_forward_weight.push_back(c.rnd_forwardWeights.get(i));
+               result->random_trans_weight.push_back(c.rnd_transWeights.get(i));
+            }
          } else {
             result->addTranslationModel(c.backPhraseFiles[i].c_str(),
                   c.forPhraseFiles[i].c_str(),
                   c.transWeights[i]);
+            if (c.randomWeights) {
+               result->random_trans_weight.push_back(c.rnd_transWeights.get(i));
+            }
          }
       } else {
          result->addTranslationModel(c.backPhraseFiles[i].c_str(),
                c.transWeights[i]);
+         if (c.randomWeights) {
+            result->random_trans_weight.push_back(c.rnd_transWeights.get(i));
+         }
       }
    }
 
@@ -137,16 +156,32 @@ BasicModelGenerator* BasicModelGenerator::create(
          forward_weights.assign(
                c.forwardWeights.begin() + weights_already_used,
                c.forwardWeights.begin() + weights_already_used + model_count);
+         for (Uint i(0); c.randomWeights && i<model_count; ++i) {
+            const Uint index = weights_already_used + i;
+            result->random_forward_weight.push_back(c.rnd_forwardWeights.get(index));
+         }
       }
       result->addMultiProbTransModel(c.multiProbTMFiles[i].c_str(),
             backward_weights, forward_weights);
+      for (Uint i(0); c.randomWeights && i<model_count; ++i) {
+         const Uint index = weights_already_used + i;
+         result->random_trans_weight.push_back(c.rnd_transWeights.get(index));
+      }
       weights_already_used += model_count;
    }
 
    assert ( weights_already_used == c.transWeights.size() );
+   // load language models
    for (Uint i = 0; i < c.lmFiles.size(); i++) {
       result->addLanguageModel(c.lmFiles[i].c_str(), c.lmWeights[i], c.lmOrder);
+
+      if (c.randomWeights)
+         result->random_lm_weight.push_back(c.rnd_lmWeights.get(i));
+
    }
+
+   // HMM no need for all that filtering data, might as well get rid of it.
+   result->tgt_vocab.freePerSentenceData();
 
    return result;
 } // BasicModelGenerator::create()
@@ -155,6 +190,7 @@ BasicModelGenerator::BasicModelGenerator(const CanoeConfig& c,
                                          PhraseTable *phraseTable) :
    c(&c),
    verbosity(c.verbosity),
+   tgt_vocab(0),
    phraseTable(phraseTable),
    limitPhrases(false),
    numTextTransWeights(0),
@@ -176,10 +212,12 @@ BasicModelGenerator::BasicModelGenerator(
 ) :
    c(&c),
    verbosity(c.verbosity),
+   tgt_vocab(src_sents.size()),
    phraseTable(_phraseTable),
    limitPhrases(!c.loadFirst),
    numTextTransWeights(0),
    lm_numwords(1),
+   futureScoreLMHeuristic(lm_heuristic_type_from_string(c.futLMHeuristic)),
    addWeightMarked(log(c.weightMarked))
 {
    if ( this->phraseTable == NULL ) {
@@ -189,30 +227,25 @@ BasicModelGenerator::BasicModelGenerator(
    {
       // Enter all source phrases into the phrase table, and into the vocab
       // in case they are OOVs we need to copy through to the output.
-      for ( vector<vector<string> >::const_iterator it = src_sents.begin();
-            it != src_sents.end(); ++it)
-      {
-         const char *s[it->size()];
-         for (Uint i = 0; i < it->size(); i++) {
-            s[i] = (*it)[i].c_str();
-            tgt_vocab.add(s[i]);
-         } // for
-
-         for (Uint i = 0; i < it->size(); i++)
-            this->phraseTable->addPhrase(s + i, it->size() - i);
+      phraseTable->addSourceSentences(src_sents);
+      if (!src_sents.empty()) {
+         assert(tgt_vocab.size() > 0);
+         assert(tgt_vocab.getNumSourceSents() == src_sents.size() ||
+                tgt_vocab.getNumSourceSents() == VocabFilter::maxSourceSentence4filtering);
       }
 
       // Add target words from marks to the vocab
       for ( vector< vector<MarkedTranslation> >::const_iterator it = marks.begin();
             it != marks.end(); ++it)
       {
+         const Uint sent_no = (it - marks.begin());
          for ( vector<MarkedTranslation>::const_iterator jt = it->begin();
                jt != it->end(); ++jt)
          {
             for ( vector<string>::const_iterator kt = jt->markString.begin();
                   kt != jt->markString.end(); ++kt)
             {
-               tgt_vocab.add(kt->c_str());
+               tgt_vocab.addWord(*kt, sent_no);
             }
          }
       }
@@ -236,34 +269,6 @@ BasicModelGenerator::~BasicModelGenerator()
       delete *it;
 
 } // ~BasicModelGenerator
-
-void BasicModelGenerator::filterTranslationModel(const char *const src_to_tgt_file
-   , const string& oSrc2tgt
-   , const char *const tgt_to_src_file
-   , const string& oTgt2src)
-{
-   OMagicStream src_filtered(oSrc2tgt);
-
-   if (tgt_to_src_file != NULL)
-   {
-      OMagicStream tgt_filtered(oTgt2src);
-
-      phraseTable->read(src_to_tgt_file, tgt_to_src_file, limitPhrases,
-         &src_filtered, &tgt_filtered);
-   }
-   else
-   {
-      phraseTable->read(src_to_tgt_file, tgt_to_src_file, limitPhrases,
-         &src_filtered, NULL);
-   }
-}
-
-void BasicModelGenerator::filterMultiProbTransModel(
-   const char * multi_prob_tm_file, const string& oFiltered)
-{
-   OMagicStream filtered(oFiltered);
-   phraseTable->readMultiProb(multi_prob_tm_file, limitPhrases, &filtered);
-}
 
 void BasicModelGenerator::addTranslationModel(const char *src_to_tgt_file,
         const char *tgt_to_src_file, double weight)
@@ -618,49 +623,48 @@ void BasicModelGenerator::getRawLM(
    vector<double> &lmVals,
    const PartialTranslation &trans)
 {
-   Phrase endPhrase;
-   trans.getLastWords(endPhrase, trans.lastPhrase->phrase.size() + lm_numwords - 1);
-   Uint context_len;
+   // this method is called millions of times, so keep this endPhrase buffer
+   // static, to avoid reallocating it constantly for nothing.
+   static Phrase endPhrase;
+   endPhrase.clear();
 
-   // Put the phrase into an array backwards (because context works backwards)
-   Uint reverseArray[endPhrase.size() + 1];
-   for (Uint i = 0; i < endPhrase.size(); i++)
-   {
-      reverseArray[endPhrase.size() - i - 1] = endPhrase[i];
-   }
+   const Uint last_phrase_size = trans.lastPhrase->phrase.size();
+   const Uint num_words(last_phrase_size + lm_numwords - 1);
+   // Get the missing context words in the previous phrase(s);
+   trans.getLastWords(endPhrase, num_words, true);
 
-   if (endPhrase.size() < trans.lastPhrase->phrase.size() + lm_numwords - 1)
+   if (endPhrase.size() < num_words)
    {
       // Start of sentence
-      reverseArray[endPhrase.size()] = tgt_vocab.index(PLM::SentStart);
-      context_len = endPhrase.size();
-   } else
-   {
-      context_len = endPhrase.size()-1;
+      endPhrase.push_back(tgt_vocab.index(PLM::SentStart));
    }
+   assert(endPhrase.size() > last_phrase_size);
+   assert(endPhrase.size() <= num_words);
+
+   const Uint context_len = endPhrase.size()-1;
 
    // Make room for results in vector
    lmVals.insert(lmVals.end(), lmWeightsV.size(), 0);
    // Create an iterator at the start of the results for convenience
    vector<double>::iterator results = lmVals.end() - lmWeightsV.size();
 
-   for (int i = trans.lastPhrase->phrase.size() - 1; i >= 0; i--)
+   for (int i = last_phrase_size - 1; i >= 0; i--)
    {
       for (Uint j = 0; j < lmWeightsV.size(); j++)
       {
          // Compute score for j-th language model for word reverseArray[i]
-         results[j] += lms[j]->wordProb(reverseArray[i], reverseArray + i + 1,
+         results[j] += lms[j]->wordProb(endPhrase[i], &(endPhrase[i + 1]),
                                         context_len-i);
       }
    }
 
-   if (trans.sourceWordsNotCovered.size() == 0)
+   if (trans.sourceWordsNotCovered.empty())
    {
       for (Uint j = 0; j < lmWeightsV.size(); j++)
       {
          // Compute score for j-th language model for end-of-sentence
          results[j] += lms[j]->wordProb(tgt_vocab.index(PLM::SentEnd),
-            reverseArray, context_len+1);
+            &(endPhrase[0]), context_len+1);
       }
    }
 } // getRawLM
@@ -763,20 +767,54 @@ Uint BasicModelGenerator::getUintWord(const string &word)
    else return index;
 } // getUintWord
 
-double
-BasicModelGenerator::uniformWeight() {
-    return (double)rand() / RAND_MAX;
+
+/**
+ * Help seed a vector of random distribution while changing the seed between
+ * each seeding.
+ * @param v  vector of random distribution to seed
+ * @param seed  seed to use and increment
+ */
+static void seed_helper(vector<rnd_distribution*>& v, unsigned int& seed)
+{
+   typedef vector<rnd_distribution*>::iterator IT;
+   for (IT it(v.begin()); it!=v.end(); ++it) {
+      assert(*it);
+      (*it)->seed(seed);
+      seed += 5879;
+   }
+   //for_each(v.begin(), v.end(),
+   //   bind2nd(mem_fun(&rnd_distribution::seed), seed));
 }
 
+void BasicModelGenerator::setRandomWeights(unsigned int seed) {
+   seed_helper(random_feature_weight, seed);
+   seed_helper(random_trans_weight, seed);
+   seed_helper(random_forward_weight, seed);
+   seed_helper(random_lm_weight, seed);
+
+   setRandomWeights();
+}
+
+
 void BasicModelGenerator::setRandomWeights() {
-    for (vector<double>::iterator w=featureWeightsV.begin(); w!=featureWeightsV.end(); w++)
-        (*w) = uniformWeight();
-    for (vector<double>::iterator w=transWeightsV.begin(); w!=transWeightsV.end(); w++)
-        (*w) = uniformWeight();
-    for (vector<double>::iterator w=forwardWeightsV.begin(); w!=forwardWeightsV.end(); w++)
-        (*w) = uniformWeight();
-    for (vector<double>::iterator w=lmWeightsV.begin(); w!=lmWeightsV.end(); w++)
-        (*w) = uniformWeight();
+   // For each feature weights in the vector, take the corresponding random
+   // weight distribution and ask it for a random weight by using the class's
+   // funcion "operator()"
+   assert(random_feature_weight.size() == featureWeightsV.size());
+   transform(random_feature_weight.begin(), random_feature_weight.end(),
+         featureWeightsV.begin(), mem_fun(&rnd_distribution::operator()));
+
+   assert(random_trans_weight.size() == transWeightsV.size());
+   transform(random_trans_weight.begin(), random_trans_weight.end(),
+         transWeightsV.begin(), mem_fun(&rnd_distribution::operator()));
+
+   assert(random_forward_weight.size() == forwardWeightsV.size());
+   transform(random_forward_weight.begin(), random_forward_weight.end(),
+         forwardWeightsV.begin(), mem_fun(&rnd_distribution::operator()));
+
+   assert(random_lm_weight.size() == lmWeightsV.size());
+   transform(random_lm_weight.begin(), random_lm_weight.end(),
+         lmWeightsV.begin(), mem_fun(&rnd_distribution::operator()));
 }
 
 
@@ -856,15 +894,6 @@ double BasicModel::scoreTranslation(const PartialTranslation &trans, Uint verbos
  */
 double BasicModel::computeFutureScore(const PartialTranslation &trans)
 {
-   // To prevent distortion limit violations later, it is checked that the
-   // distance from the current position to the first untranslated word is at
-   // most the distortion limit and that the distance between ranges of
-   // untranslated words is at most the distortion limit.  This is not an iff
-   // condition - I am being more conservative and penalizing some partial
-   // translations for which it is possible to complete without violating the
-   // distortion limit.  I am confident however that there is an iff condition
-   // that could be checked in O(trans.sourceWordsNotCovered.size()).
-
    // EJJ, Nov 2007:
    // The distortion limit test is now done when considering candidate phrase,
    // so it is no longer necessary to do it again here.

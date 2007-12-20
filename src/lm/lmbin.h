@@ -62,7 +62,7 @@ public:
    /// vocab is a Voc& instead of a Voc* because it is mandatory for this
    /// sub-class of PLM.
    /// In this class, no vocab filtering is applied.
-   LMBin(const string& binlm_filename, Voc& vocab,
+   LMBin(const string& binlm_filename, VocabFilter& vocab,
          OOVHandling oov_handling, double oov_unigram_prob,
          Uint limit_order);
 

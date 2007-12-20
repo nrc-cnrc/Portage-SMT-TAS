@@ -18,7 +18,9 @@
 #include <rescore_io.h>
 #include <errors.h>
 #include <str_utils.h>
+#include <file_utils.h>
 #include <fileReader.h>
+#include <feature_function_grammar.h>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -59,46 +61,38 @@ void readFFMatrix(istream &in, vector<uMatrix>& vH)
 //---------------------------------------------------------------------------------------
 
 FileFF::FileFF(const string& filespec)
-: m_column(0)
-{
-   const string::size_type idx = filespec.rfind(',');
-   m_filename = filespec.substr(0, idx);
+: FeatureFunction(filespec)
+, m_column(0)
+{}
 
+bool FileFF::parseAndCheckArgs()
+{
+   const string::size_type idx = argument.rfind(',');
+   m_filename = argument.substr(0, idx);
    if (idx != string::npos) {
-      const string coldesc = filespec.substr(idx+1);
+      const string coldesc = argument.substr(idx+1);
       if (!conv(coldesc, m_column)) {
          error(ETWarn, "can't convert column spec %s to a number - %s", coldesc.c_str(),
                "will assume this is part of the filename");
          m_column = 0;
-         m_filename = filespec;
+         m_filename = argument;
       } else
          --m_column;  // Convert to 0 based index
    }
 
-   m_info = multiColumnFileFFManager::getManager().getUnit(m_filename);
-   assert(m_info != 0);
+   if (m_filename.empty()) {
+      error(ETWarn, "You must provide a filename to FileFF");
+      return false;
+   }   
+
+   return true;
 }
 
-
-//---------------------------------------------------------------------------------------
-// VFileFF
-//---------------------------------------------------------------------------------------
-
-VFileFF::VFileFF(const string& arg)
-: FileFF(convert2file(arg))
-{}
-
-string VFileFF::convert2file(const string& arg)
+bool FileFF::loadModelsImpl()
 {
-   string filename(arg);
-   // Converts the slashes of the arguments to underscores
-   // based on the rat.sh script
-   string::size_type slash = filename.find('/', filename.find("ff."));
-   while (slash != string::npos) {
-      filename[slash] = '_';
-      slash = filename.find('/', slash);
-   }
-   return filename;
+   m_info = multiColumnFileFFManager::getManager().getUnit(m_filename);
+   assert(m_info != 0);
+   return m_info != 0;
 }
 
 
@@ -107,18 +101,32 @@ string VFileFF::convert2file(const string& arg)
 //---------------------------------------------------------------------------------------
 
 FileDFF::FileDFF(const string& filespec)
-{
-   string::size_type idx = filespec.rfind(',');
-   m_filename = filespec.substr(0, idx);
+: FeatureFunction(filespec)
+, m_column(0)
+{}
 
-   Uint col(0);
-   if (idx != string::npos)
-   {
-      string coldesc = filespec.substr(idx+1);
-      if (!conv(coldesc, col))
-         error(ETFatal, "can't convert column spec %s to a number", coldesc.c_str());
+bool FileDFF::parseAndCheckArgs()
+{
+   const string::size_type idx = argument.rfind(',');
+   m_filename = argument.substr(0, idx);
+   if (m_filename.empty()) {
+      error(ETWarn, "You must provide a filename to FileFF");
+      return false;
    }
 
+   if (idx != string::npos) {
+      const string coldesc = argument.substr(idx+1);
+      if (!conv(coldesc, m_column)) {
+         error(ETWarn, "can't convert column spec %s to a number", coldesc.c_str());
+         return false;
+      }
+   }
+
+   return true;
+}
+
+bool FileDFF::loadModelsImpl()
+{
    vector<string> fields;
    FileReader::DynamicReader<string> dr(m_filename, 1);
    vector<string> gc;
@@ -130,18 +138,19 @@ FileDFF::FileDFF(const string& filespec)
       for (Uint k(0); k<K; ++k)
       {
          string* convertme = &gc[k];
-         if (col)
+         if (m_column)
          {
             fields.clear();
             split(gc[k], fields, " \t\n\r");
-            assert(fields.size() >= col);
-            convertme = &fields[col-1];
+            assert(fields.size() >= m_column);
+            convertme = &fields[m_column-1];
          }
 
          if (!conv(*convertme, m_vals.back()[k]))
             error(ETFatal, "can't convert value to double: %s", (*convertme).c_str());
       }
    }
+   return !m_vals.empty();
 }
 
 void FileDFF::source(Uint s, const Nbest * const nbest)
@@ -169,10 +178,67 @@ double FileDFF::value(Uint k)
 // FeatureFunctionSet
 //---------------------------------------------------------------------------------------
 
-void FeatureFunctionSet::initFFMatrix(const Sentences& src_sents, const int K)
+Logging::logger Logger_FeatureFunctionSet(Logging::getLogger("debug.rescoring.FeatureFunctionSet"));
+
+FeatureFunctionSet::FeatureFunctionSet(bool training, Uint seed) :
+   training(training),
+   seed(seed),
+   tgt_vocab(NULL)
 {
+}
+
+FeatureFunctionSet::~FeatureFunctionSet()
+{
+   if (tgt_vocab) delete tgt_vocab;
+   ff_infos.clear();
+}
+
+//   NbestReader  pfr(FileReader::create<Translation>(arg.nbest_file, S, arg.K));
+void FeatureFunctionSet::createTgtVocab(const Sentences& source_sentences, NbestReader nbReader)
+{
+   LOG_VERBOSE1(Logger_FeatureFunctionSet, "Initializing FeatureFunctionSet");
+   // Make sure there is at least a feature
+   // Init should be called after read
+   assert(!source_sentences.empty());
+   assert(!ff_infos.empty());
+   assert(nbReader.get()!=NULL);
+
+   Uint required = FF_NEEDS_NOTHING;
    for (Uint m(0); m < M(); ++m) {
-      ff_infos[m].function->init(&src_sents, K);
+      required |= ff_infos[m].function->requires();    // Check what feature functions need
+   }
+
+   if (required & FF_NEEDS_TGT_VOCAB) {
+      LOG_VERBOSE1(Logger_FeatureFunctionSet, "Creating target vocabulary");
+      tgt_vocab = new VocabFilter(source_sentences.size());
+
+      for (Uint s(0); s<source_sentences.size(); ++s)
+         tgt_vocab->addSentence(source_sentences[s].getTokens(), s);
+
+      Uint s(0);
+      for (; nbReader->pollable(); ++s) {
+         Nbest nbest;
+         nbReader->poll(nbest);
+         // Here we limit the number of per sentence voacb since they can be quite big
+         const Uint sent_no(s % VocabFilter::maxSourceSentence4filtering);
+         typedef Nbest::const_iterator SIT;
+         for (SIT sent(nbest.begin()); sent!=nbest.end(); ++sent) {
+            tgt_vocab->addSentence(sent->getTokens(), sent_no);
+         }
+      }
+      assert(s==source_sentences.size());
+   }
+}
+
+void FeatureFunctionSet::initFFMatrix(const Sentences& src_sents)
+{
+   LOG_VERBOSE1(Logger_FeatureFunctionSet, "Initializing Feature Function Matrix");
+   for (Uint m(0); m < M(); ++m) {
+      if (ff_infos[m].function->requires() & FF_NEEDS_TGT_VOCAB) {
+         assert(tgt_vocab != NULL);
+         ff_infos[m].function->addTgtVocab(tgt_vocab);
+      }
+      ff_infos[m].function->init(&src_sents);
    }
 }
 
@@ -240,8 +306,10 @@ void FeatureFunctionSet::computeFFMatrix(uMatrix& H, const Uint s, Nbest &nbest)
 // Read description of a feature set from a file.
 Uint FeatureFunctionSet::read(const string& filename, bool verbose, 
                               const char* fileff_prefix,
-                              bool isDynamic, bool useNullDeleter)
+                              bool isDynamic, bool useNullDeleter, bool loadModels)
 {
+   using namespace boost::spirit;
+
    ff_infos.clear();
 
    IMagicStream istr(filename.c_str());
@@ -250,41 +318,45 @@ Uint FeatureFunctionSet::read(const string& filename, bool verbose,
    vector<string> toks;
 
    // read contents of file
+   Uint index(0);
+   feature_function_grammar  gram(training);
    while (getline(istr, line)) {
       if (line.empty()) continue;
       trim(line);
-      split(line, toks);
-      if (toks.size() > 2)
-         error(ETFatal, "lines in feature-set file must contain feature name and weight (only)");
-
-      double w(0.0f);
-      if (toks.size() == 2) {
-         if (!conv(toks[1], w))
-            error(ETFatal, "can't convert %s to a weight value", toks[1].c_str());
+      // Commented out feature function
+      if (line[0] == '#') {
+         ff_infos.push_back(line);
+         error(ETWarn, "Not loading %s", line.c_str());
+         continue;
       }
 
-      string name, arg;
-      string::size_type sep = toks[0].find(":");
-      if (sep == string::npos)
-         name = toks[0];
-      else
-      {
-         name = toks[0].substr(0, sep);
-         arg  = toks[0].substr(sep+1);
+      if (!parse(line.c_str(), gram, space_p).full) {
+         error(ETFatal, "Unable to parse the following feature: %s", line.c_str());
       }
 
       if (verbose)
-         cerr << "initializing feature " << name << " with arg: [" << arg << "]" << endl;
+         cerr << "initializing feature " << gram.name << " with arg: [" << gram.arg << "]" << endl;
 
-      ptr_FF  function(create(name, arg, fileff_prefix, isDynamic, useNullDeleter));
+      ptr_FF  function(create(gram.name, gram.arg, fileff_prefix, isDynamic, useNullDeleter, loadModels));
       if (!(function))
-         error(ETFatal, "unknown feature: %s", name.c_str());
+         error(ETFatal, "unknown feature: %s", gram.name.c_str());
 
-      ff_infos.push_back(ff_info(toks[0], name, w, function));
-      toks.clear();
+      gram.rnd->seed(++index*17600951 + seed); // Make sure they are not seeded identically
+      ff_infos.push_back(ff_info(gram.ff, gram.name, function, gram.weight, gram.rnd));
+      gram.clear();  // Get ready for the next one
    }
 
    return ff_infos.size();
+}
+
+void FeatureFunctionSet::getRandomWeights(uVector& v) const
+{
+   assert(v.size() == M());
+   assert(training);
+   for (Uint m(0); m<M(); ++m) {
+      assert(ff_infos[m].rnd_gen.get() != NULL);
+      v(m) = ff_infos[m].rnd_gen->get();
+   }
 }
 
 void FeatureFunctionSet::getWeights(uVector& v) const
@@ -310,8 +382,7 @@ void FeatureFunctionSet::write(const string& filename)
       error(ETFatal, "unable to open file %s", filename.c_str());
    ostr << setprecision(10);
 
-   for (Uint i(0); i < ff_infos.size(); ++i)
-      ostr << ff_infos[i].fullDescription << " " << ff_infos[i].weight << endl;
+   ff_infos.write(ostr);
 }
    
 bool FeatureFunctionSet::complete()
@@ -338,6 +409,23 @@ Uint FeatureFunctionSet::requires()
    return bRetour;
 }
 
+bool FeatureFunctionSet::check()
+{
+   bool bRetour(true);
+
+   typedef vector<ff_info>::iterator IT;
+   for (IT it(ff_infos.begin()); it!=ff_infos.end(); ++it) {
+      const bool v = it->function->parseAndCheckArgs();
+      bRetour = bRetour && v;
+      if (!v) {
+         cerr << "Bad ff syntax or invalid filename for " << it->name;
+         cerr << " with: " << it->fullDescription << endl;
+      }
+   }
+
+   return bRetour;
+}
+
 template<typename T>
 struct null_deleter
 {
@@ -349,7 +437,8 @@ ptr_FF FeatureFunctionSet::create(const string& name,
                                   const string& arg, 
                                   const char* fileff_prefix,
                                   bool isDynamic,
-                                  bool useNullDeleter)
+                                  bool useNullDeleter,
+                                  bool loadModels)
 {
    FeatureFunction* ff;
 
@@ -362,16 +451,6 @@ ptr_FF FeatureFunctionSet::create(const string& name,
          ff = new FileDFF(fileff_arg);
       else
          ff = new FileFF(fileff_arg);
-   } else if (name == "VFileFF") {
-      string fileff_arg(arg);
-      if (fileff_prefix) {
-         string::size_type i = arg.find("ff.");
-         if (i != string::npos)
-            fileff_arg.insert(i, fileff_prefix);
-         else
-            fileff_arg = fileff_prefix + arg;
-      }
-      ff = new VFileFF(fileff_arg);  
    } else if (name == "LengthFF") {
       ff = new LengthFF();
    } else if (name == "NgramFF") {
@@ -392,10 +471,15 @@ ptr_FF FeatureFunctionSet::create(const string& name,
       ff = new IBM1DeletionTgtGivenSrc(arg);
    } else if (name == "IBM1DeletionSrcGivenTgt") {
       ff = new IBM1DeletionSrcGivenTgt(arg);
+   } else if (name == "IBM1DocTgtGivenSrc") {
+      ff = new IBM1DocTgtGivenSrc(arg);      
    } else {
       error(ETFatal, "Invalid feature function: %s:%s", name.c_str(), arg.c_str());
       return ptr_FF(static_cast<FeatureFunction*>(0), null_deleter<FeatureFunction>());
    }
+   assert(ff != NULL);
+
+   if (loadModels) ff->loadModels();
 
    if ( useNullDeleter ) {
       return ptr_FF(ff, null_deleter<FeatureFunction>());
@@ -419,12 +503,14 @@ Features available:\n\
  IBM1WTransSrcGivenTgt:ibm1.src_given_tgt - IBM1 check if no words inserted\n\
  IBM1DeletionTgtGivenSrc:ibm1.tgt_given_src[#thr] - ratio of del words (p<thr) [0.1]\n\
  IBM1DeletionSrcGivenTgt:ibm1.src_given_tgt[#thr] - ratio of del words (p<thr) [0.1]\n\
+ IBM1DocTgtGivenSrc:ibm1.tgt_given_src#docids - p(tgt-hyp|src-doc)\n\
  FileFF:file[,column] - pre-computed feature\n\
- VfileFF:file[,column] - like FileFF, but substitutes any / by _ in file\n\
 \n\
-The <FileFF> feature reads from a file of pre-computed values, optionally\n\
-picking out a particular column; the program gen_feature_values can be used to\n\
-create files like this.\n\
+More details:\n\
+\n\
+* The 'FileFF' feature reads from a file of pre-computed values, optionally\n\
+  picking out a particular column; the program gen_feature_values can be used\n\
+  to create files like this.\n\
 ";
    return help_str;
 }

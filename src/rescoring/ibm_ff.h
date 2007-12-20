@@ -8,7 +8,7 @@
  *
  * Feature functions based on IBM models 1 and 2, in both directions.
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -22,6 +22,7 @@
 #include <ibm.h>
 #include <str_utils.h>
 #include "featurefunction.h"
+#include "docid.h"
 
 using namespace Portage;
 
@@ -31,7 +32,14 @@ namespace Portage
 /// Forward IBM1
 class IBM1TgtGivenSrc : public FeatureFunction
 {
-   IBM1 ibm1;
+   IBM1* ibm1;
+
+protected:
+   virtual bool loadModelsImpl() {
+      ibm1 = new IBM1(argument);
+      assert(ibm1);
+      return ibm1 != NULL;
+   }
 
 public:
 
@@ -39,11 +47,28 @@ public:
     * Constructor, the model should have been trained for p(tgt|src).
     * @param ttable_file  file containing the ttable.
     */
-   IBM1TgtGivenSrc(const string& ttable_file) : ibm1(ttable_file) {}
+   IBM1TgtGivenSrc(const string& ttable_file) 
+   : FeatureFunction(ttable_file)
+   , ibm1(NULL)
+   {}
+   virtual ~IBM1TgtGivenSrc() {
+      if (ibm1) delete ibm1, ibm1 = NULL;
+   }
 
+   virtual bool parseAndCheckArgs() {
+      if (argument.empty()) {
+         error(ETWarn, "You must provide an IBM1 forward probability file to IBM1TgtGivenSrc");
+         return false;
+      }
+      if (!check_if_exists(argument)){
+         error(ETWarn, "File is not accessible: %s", argument.c_str());
+         return false;
+      }
+      return true;
+   }
    virtual inline Uint requires() { return FF_NEEDS_SRC_TOKENS | FF_NEEDS_TGT_TOKENS; }
    virtual double value(Uint k) {
-      return ibm1.logpr((*src_sents)[s].getTokens(), (*nbest)[k].getTokens());
+      return ibm1->logpr((*src_sents)[s].getTokens(), (*nbest)[k].getTokens());
    }
 };
 
@@ -51,7 +76,14 @@ public:
 /// Backward IBM1
 class IBM1SrcGivenTgt : public FeatureFunction
 {
-   IBM1 ibm1;
+   IBM1* ibm1;
+
+protected:
+   virtual bool loadModelsImpl() {
+      ibm1 = new IBM1(argument);
+      assert(ibm1);
+      return ibm1 != NULL;
+   }
 
 public:
 
@@ -59,11 +91,28 @@ public:
     * Constructor, the model should have been trained for p(src|tgt).
     * @param ttable_file  file containing the ttable.
     */
-   IBM1SrcGivenTgt(const string& ttable_file) : ibm1(ttable_file) {}
+   IBM1SrcGivenTgt(const string& ttable_file)
+   : FeatureFunction(ttable_file)
+   , ibm1(NULL)
+   {}
+   virtual ~IBM1SrcGivenTgt() {
+      if (ibm1) delete ibm1, ibm1 = NULL;
+   }
 
+   virtual bool parseAndCheckArgs() {
+      if (argument.empty()) {
+         error(ETFatal, "You must provide an IBM1 backward probability file to IBM1SrcGivenTgt");
+         return false;
+      }
+      if (!check_if_exists(argument)){
+         error(ETWarn, "File is not accessible: %s", argument.c_str());
+         return false;
+      }
+      return true;
+   }
    virtual inline Uint requires() { return FF_NEEDS_SRC_TOKENS | FF_NEEDS_TGT_TOKENS; }
    virtual double value(Uint k) {
-      return ibm1.logpr((*nbest)[k].getTokens(), (*src_sents)[s].getTokens());
+      return ibm1->logpr((*nbest)[k].getTokens(), (*src_sents)[s].getTokens());
    }
 };
 
@@ -71,7 +120,14 @@ public:
 /// Forward IBM2
 class IBM2TgtGivenSrc : public FeatureFunction
 {
-   IBM2 ibm2;
+   IBM2* ibm2;
+
+protected:
+   virtual bool loadModelsImpl() {
+      ibm2 = new IBM2(argument);
+      assert(ibm2);
+      return ibm2 != NULL;
+   }
 
 public:
 
@@ -79,11 +135,28 @@ public:
     * Constructor, the model should have been trained for p(tgt|src).
     * @param ttable_file  file containing the ttable.
     */
-   IBM2TgtGivenSrc(const string& ttable_file) : ibm2(ttable_file) {}
+   IBM2TgtGivenSrc(const string& ttable_file)
+   : FeatureFunction(ttable_file)
+   , ibm2(NULL)
+   {}
+   virtual ~IBM2TgtGivenSrc() {
+      if (ibm2) delete ibm2, ibm2 = NULL;
+   }
 
+   virtual bool parseAndCheckArgs() {
+      if (argument.empty()) {
+         error(ETFatal, "You must provide an IBM2 forward probability file to IBM2TgtGivenSrc");
+         return false;
+      }
+      if (!check_if_exists(argument)){
+         error(ETWarn, "File is not accessible: %s", argument.c_str());
+         return false;
+      }
+      return true;
+   }
    virtual inline Uint requires() { return FF_NEEDS_SRC_TOKENS | FF_NEEDS_TGT_TOKENS; }
    virtual double value(Uint k) {
-      return ibm2.logpr((*src_sents)[s].getTokens(), (*nbest)[k].getTokens());
+      return ibm2->logpr((*src_sents)[s].getTokens(), (*nbest)[k].getTokens());
    }
 };
 
@@ -91,7 +164,14 @@ public:
 /// Backward IBM2
 class IBM2SrcGivenTgt : public FeatureFunction
 {
-   IBM2 ibm2;
+   IBM2* ibm2;
+
+protected:
+   virtual bool loadModelsImpl() {
+      ibm2 = new IBM2(argument);
+      assert(ibm2);
+      return ibm2 != NULL;
+   }
 
 public:
 
@@ -99,58 +179,74 @@ public:
     * Constructor, the model should have been trained for p(src|tgt).
     * @param ttable_file  file containing the ttable.
     */
-   IBM2SrcGivenTgt(const string& ttable_file) : ibm2(ttable_file) {}
+   IBM2SrcGivenTgt(const string& ttable_file)
+   : FeatureFunction(ttable_file)
+   , ibm2(NULL)
+   {}
+   virtual ~IBM2SrcGivenTgt() {
+      if (ibm2) delete ibm2, ibm2 = NULL;
+   }
 
+   virtual bool parseAndCheckArgs() {
+      if (argument.empty()) {
+         error(ETFatal, "You must provide an IBM2 backwark probability file to IBM2SrcGivenTgt");
+         return false;
+      }
+      if (!check_if_exists(argument)){
+         error(ETWarn, "File is not accessible: %s", argument.c_str());
+         return false;
+      }
+      return true;
+   }
    virtual inline Uint requires() { return FF_NEEDS_SRC_TOKENS | FF_NEEDS_TGT_TOKENS; }
    virtual double value(Uint k) {
-      return ibm2.logpr((*nbest)[k].getTokens(), (*src_sents)[s].getTokens());
+      return ibm2->logpr((*nbest)[k].getTokens(), (*src_sents)[s].getTokens());
    }
 };
 
 /// Calculate p(tgt-sent|src-doc) according to IBM1.
 class IBM1DocTgtGivenSrc : public FeatureFunction
 {
-   /// Quick arguments processor.
-   struct DoArgs {
-      vector<string> args;  ///< arguments
-      /// Extracts the arguments from arg.
-      /// @param arg  arguments to parse.
-      DoArgs(const string& arg) {
-	 if (split(arg, args, ", ") != 2)
-	    error(ETFatal, "bad argument to IBM1DocTgtGivenSrc: should be in format ibmfile,docfile");
-      };
-   } do_args;
-
-   IBM1 ibm1;
-   vector<Uint> doc_sizes;	///<ist of document sizes (# segs per doc)
-
-   Uint curr_doc;
-   Uint next_doc_start;
+   IBM1* ibm1;
+   DocID* docids;
 
    vector<string> src_doc;
+   vector<string> do_args;
+
+protected:
+   virtual bool parseAndCheckArgs();
+   virtual bool loadModelsImpl();
 
 public:
 
    /**
     * Calculate p(tgt-sent|src-doc) according to IBM1.
-    * @param arg format: "ibmfile,docfile", where ibmfile contains an ibm1
-    * model and docfile specifies the sizes of consecutive documents within the
-    * source file (separated by blanks).
+    * @param arg format: "ibmfile#docid_file", where ibmfile contains an ibm1
+    * model and docid_file specifies the consecutive documents within the
+    * source file (see docid.h for format description).
     */
    IBM1DocTgtGivenSrc(const string& arg);
+   virtual ~IBM1DocTgtGivenSrc() {
+      if (ibm1) delete ibm1, ibm1 = NULL;
+      if (docids) delete docids, docids = NULL;
+   }
 
    virtual inline Uint requires() { return FF_NEEDS_SRC_TOKENS | FF_NEEDS_TGT_TOKENS; }
-   /// See FeatureFunction::init(const Sentences * const src_sents, Uint K)
-   virtual void init(const Sentences * const src_sents, Uint K) {
-     FeatureFunction::init(src_sents, K);
-     if ((*src_sents).size() != accumulate(doc_sizes.begin(), doc_sizes.end(), (Uint)0))
-       error(ETFatal, "docfile contents don't match number of source sentences");
+
+   virtual FF_COMPLEXITY cost() const {return HIGH;}
+
+   virtual void init(const Sentences * const src_sents) {
+      assert(docids);
+      FeatureFunction::init(src_sents);
+      assert(src_sents != NULL);
+      if (src_sents->size() != docids->numSrcLines())
+         error(ETFatal, "docids contents don't match number of source sentences");
    }
 
    virtual void source(Uint s, const Nbest * const nbest);
 
    virtual double value(Uint k) {
-      return ibm1.logpr(src_doc, (*nbest)[k].getTokens());
+      return ibm1->logpr(src_doc, (*nbest)[k].getTokens());
    }
 };
 

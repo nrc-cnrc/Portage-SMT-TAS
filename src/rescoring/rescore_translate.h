@@ -28,7 +28,7 @@ namespace rescore_translate {
 
    /// Program rescore_translate usage.
    static char help_message[] = "\n\
-rescore_translate [-v][-a F][-p ff-pref][-dyn] model src nbest\n\
+rescore_translate [-vnsc][-p ff-pref][-a F][-dyn][-kout k] model src nbest\n\
 \n\
 Translate a src text using a rescoring model to choose the best candidate\n\
 translation from the given nbest list.  Output is written to stdout, one\n\
@@ -38,16 +38,25 @@ features and file formats.\n\
 Options:\n\
 \n\
 -v    Write progress reports to cerr.\n\
--a    Also read in phrase alignment file F.\n\
+-n    Print rank of the hypothesis within the N-best list too (index starting\n\
+      at 1).\n\
+-s    Print the logprob of each hypothesis prior to the hypothesis.\n\
+-c    With -s, print out logprobs normalized over each nbest list.\n\
 -p    Prepend ff-pref to file names for FileFF features\n\
+-a    Also read in phrase alignment file F.\n\
 -dyn  Indicates that the nbest list is in variable-size format, with\n\
       lines of the form: <source#>\\t<CandidateTranslation>\n\
+-kout Print <k> best hypotheses per source sent, or all if k is 0. Unless -dyn\n\
+      is specified, this will pad with blank lines if necessary to write\n\
+      exactly <k> lines per source sentence. [1]\n\
 ";
 
    ////////////////////////////////////////////////////////////////////////////////
    // ARGUMENTS PROCESSING CLASS
    /// Program rescore_translate allowed command line switches.
-   const char* const switches[] = {"dyn", "max:", "p:", "a:", "v", "K:"};
+   const char* const switches[] = {
+      "dyn", "max:", "p:", "a:", "v", "K:", "n", "s", "c", "kout:"
+   };
    /// Specific argument processing class for rescore_translate program
    class ARG : public argProcessor
    {
@@ -58,6 +67,10 @@ Options:\n\
       public:
          bool     bVerbose;         ///< Should we display progress
          bool     bIsDynamic;       ///< Are we in dynamic nbest list size
+         bool     bPrintRank;       ///< Should we print the rank of the best sentence
+         bool     print_scores;     ///< Output hyp score(s)
+         bool     conf_scores;      ///< Normalize hyp score(s) before printing
+         Uint     kout;             ///< Number of output hyps per source
          Uint     K;                ///< Number of hypotheses per source
          Uint     S;                ///< Number of sources
          string   ff_pref;          ///< Feature function prefix
@@ -78,6 +91,10 @@ Options:\n\
          , m_dLogger(Logging::getLogger("debug.main.arg"))
          , bVerbose(false)
          , bIsDynamic(false)
+         , bPrintRank(false)
+         , print_scores(false)
+         , conf_scores(false)
+         , kout(1)
          , K(0)
          , S(0)
          , ff_pref("")
@@ -92,6 +109,7 @@ Options:\n\
          {
             LOG_DEBUG(m_dLogger, "Verbose: %s", (bVerbose ? "ON" : "OFF"));
             LOG_DEBUG(m_dLogger, "Dynamic: %s", (bIsDynamic ? "ON" : "OFF"));
+            LOG_DEBUG(m_dLogger, "PrintRank: %s", (bPrintRank ? "ON" : "OFF"));
             LOG_DEBUG(m_dLogger, "K: %d", K);
             LOG_DEBUG(m_dLogger, "S: %d", S);
             LOG_DEBUG(m_dLogger, "ff_pref: %s", ff_pref.c_str());
@@ -112,10 +130,17 @@ Options:\n\
          if ( bVerbose && getVerboseLevel() < 1 ) setVerboseLevel(1);
          mp_arg_reader->testAndSet("a", alignment_file);
          mp_arg_reader->testAndSet("p", ff_pref);
+         mp_arg_reader->testAndSet("n", bPrintRank);
+         mp_arg_reader->testAndSet("s", print_scores);
+         mp_arg_reader->testAndSet("c", conf_scores);
+         mp_arg_reader->testAndSet("kout", kout);
 
          mp_arg_reader->testAndSet(0, "model", model);
          mp_arg_reader->testAndSet(1, "src", src_file);
          mp_arg_reader->testAndSet(2, "nbest", nbest_file);
+
+         if (conf_scores && !print_scores)
+            error(ETWarn, "Ignoring -c, because -s has not been specified");
 
          mp_arg_reader->testAndSet("dyn", bIsDynamic);
          if (!bIsDynamic) {
@@ -124,6 +149,11 @@ Options:\n\
             K = SK / S;
             if (K == 0 || SK != S*K)
                error(ETFatal, "Inconsistency between nbest and src number of lines\n\tnbest: %d, src: %d => K: %d", SK, S, K);
+            if (kout > K) {
+               error(ETWarn, "-kout %d requests more hypotheses than are available: changing to -kout %d",
+                     kout, K);
+               kout = K;
+            }
          }
 
          // K switch is depricated but if user pass a K option 

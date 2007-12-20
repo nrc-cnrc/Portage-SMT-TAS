@@ -26,7 +26,15 @@
 # Possible values: defined to "NONE" disables logging, any other value or
 #                  undefined enables logging.
 # Notes:           Comment out this line to enable logging - requires log4cxx
-LOGGING=NONE
+LOGGING?=NONE
+
+# Variable:        PORTAGE_OPENMP
+# Possible values: specifies the compiler flag to enable OpenMP 
+#                  (requires g++ 4.2 or more recent)
+# Notes:           Comment out this line to enable multi-threading, currently
+#                  only used by rescore_train.  (Other programs are
+#                  parallelized via our various *-parallel.sh scripts).
+#PORTAGE_OPENMP?=-fopenmp
 
 # Variable:        ACE
 # Location:        This variable is not defined here, but in api/Makefile.
@@ -43,7 +51,7 @@ LOGGING=NONE
 #                  if you don't use vi or a related editor.  Equivalently, you
 #                  can export/setenv PORTAGE_NO_CTAGS to 1 in your .<shell>rc
 #                  file to disable the use of etags.
-#PORTAGE_NO_CTAGS=1
+#PORTAGE_NO_CTAGS?=1
 
 # Variable:        PORTAGE_NO_ETAGS
 # Possible values: defined to any non-blank value turns off the use of etags
@@ -51,13 +59,13 @@ LOGGING=NONE
 #                  if you don't use emacs or a related editor.  Equivalently,
 #                  you can export/setenv PORTAGE_NO_ETAGS to 1 in your
 #                  .<shell>rc file to disable the use of etags.
-#PORTAGE_NO_ETAGS=1
+#PORTAGE_NO_ETAGS?=1
 
 # Variable:        TEX
 # Possible values: the command line for invoking latex, or "NONE" to disable
 #                  the compilation of documents
 # Notes:           Uncomment the "TEX = NONE" line if you don't have latex.
-TEX = latex -interaction=batchmode
+TEX ?= latex -interaction=batchmode
 #TEX = NONE
 
 # END OF USER CONFIGURABLE VARIABLES

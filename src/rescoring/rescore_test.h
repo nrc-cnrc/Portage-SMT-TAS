@@ -39,12 +39,15 @@ Options:\n\
 -p    Prepend ff-pref to file names for FileFF features\n\
 -dyn  Indicates that the nbest list is in variable-size format, with\n\
       lines of the form: <source#>\\t<CandidateTranslation>\n\
+-y    maximum NGRAMS for calculating BLEUstats matches [4]\n\
+-u    maximum NGRAMS for calculating BLEUstats score [y]\n\
+      where 1 <= y, 1 <= u <= y\n\
 ";
 
    ////////////////////////////////////////////////////////////////////////////////
    // ARGUMENTS PROCESSING CLASS
    /// Program rescore_test allowed command line arguments
-   const char* const switches[] = {"dyn", "p:", "v", "K:"};
+   const char* const switches[] = {"dyn", "p:", "v", "K:", "y:", "u:"};
 
    /// Specific argument processing class for rescore_test program
    class ARG : public argProcessor
@@ -63,6 +66,8 @@ Options:\n\
          string   src_file;           ///< file containing source sentences
          string   nbest_file;         ///< file containing nbest lists
          vector<string>   refs_file;  ///< List of reference files
+         Uint     maxNgrams;          ///< holds the max ngrams size for the BLEUstats
+         Uint     maxNgramsScore;     ///< holds the max ngrams size when BLEUstats::score
 
       public:
       /**
@@ -79,7 +84,8 @@ Options:\n\
          , K(0)
          , S(0)
          , ff_pref("")
-
+         , maxNgrams(4)
+         , maxNgramsScore(0)
       {
          argProcessor::processArgs(argc, argv);
       }
@@ -98,6 +104,8 @@ Options:\n\
             LOG_DEBUG(m_dLogger, "source file name: %s", src_file.c_str());
             LOG_DEBUG(m_dLogger, "nbest file name: %s", nbest_file.c_str());
             LOG_DEBUG(m_dLogger, "Number of reference files: %d", refs_file.size());
+            LOG_DEBUG(m_dLogger, "Maximum Ngrams size: %d", maxNgrams);
+            LOG_DEBUG(m_dLogger, "Maximum Ngrams size for scoring BLEU: %d", maxNgramsScore);
             std::stringstream oss1;
             for (Uint i(0); i<refs_file.size(); ++i)
             {
@@ -116,6 +124,14 @@ Options:\n\
          if ( getVerboseLevel() > 0 ) bVerbose = true;
          if ( bVerbose && getVerboseLevel() < 1 ) setVerboseLevel(1);
          mp_arg_reader->testAndSet("p", ff_pref);
+         mp_arg_reader->testAndSet("y", maxNgrams);
+         mp_arg_reader->testAndSet("u", maxNgramsScore);
+         // Make sure we are not trying to compute the BLEU::score on some
+         // higher ngrams than what was calculated.
+         if (maxNgramsScore == 0) maxNgramsScore = maxNgrams;
+         if (maxNgramsScore > maxNgrams) maxNgramsScore = maxNgrams;
+         if (!(maxNgrams > 0) || !(maxNgramsScore))
+            error(ETFatal, "You must specify value for y and u greater then 0!");
 
          mp_arg_reader->testAndSet(0, "model_in", model);
          mp_arg_reader->testAndSet(1, "src", src_file);

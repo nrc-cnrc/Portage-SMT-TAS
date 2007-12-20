@@ -62,12 +62,52 @@ class VocMapBasedLMFilter {
    }
 }; // VocMapBasedLMFilter
 
+/// Filter functor for Ghada's phrase I LM filtering: per sentence vocabulary
+class PerSentVocLMFilter : private VocMapBasedLMFilter {
+   /// Per sentence vocabulary
+   MultiVoc& per_sentence_vocab;
+
+ public:
+   /// Constructor
+   PerSentVocLMFilter(MultiVoc& per_sentence_vocab, VocMap& voc_map,
+                      Uint limit_order)
+      : VocMapBasedLMFilter(voc_map, limit_order)
+      , per_sentence_vocab(per_sentence_vocab) {}
+
+   /// Filter method.
+   /// Return true iff key_stack should be kept.
+   /// If the base class filter passes, do the per-sentence check.
+   bool operator()(const vector<Uint>& key_stack) {
+      //cerr << "Key: " << join<Uint>(key_stack) << endl;
+      if ( ! VocMapBasedLMFilter::operator()(key_stack) ) return false;
+      if ( key_stack.size() == 1 ) return true;
+      boost::dynamic_bitset<>
+         intersection(per_sentence_vocab.get_vocs(
+                                       voc_map.global_index(key_stack[0])));
+      //cerr << "0: " << intersection << endl;
+      for ( Uint i = 1; i < key_stack.size(); ++i ) {
+         intersection &= per_sentence_vocab.get_vocs(
+                                       voc_map.global_index(key_stack[i]));
+         //cerr << i << ": " << per_sentence_vocab.get_vocs(
+         //                     voc_map.global_index(key_stack[i])) << endl;
+      }
+      //cerr << "I: " << intersection << endl;
+      return intersection.any();
+   }
+}; // PerSentVocLMFilter
+
 } // Portage
 
 Uint LMBinVocFilt::read_bin_trie(istream& ifs, Uint limit_order)
 {
+   if ( vocab->per_sentence_vocab ) {
+      PerSentVocLMFilter filter(*(vocab->per_sentence_vocab), voc_map,
+                                limit_order);
+      return trie.read_binary(ifs, filter, voc_map);
+   } else {
    VocMapBasedLMFilter filter(voc_map, limit_order);
    return trie.read_binary(ifs, filter, voc_map);
+   }
 }
 
 void LMBinVocFilt::read_binary(const string& binlm_filename, Uint limit_order)
@@ -128,13 +168,13 @@ void LMBinVocFilt::read_binary(const string& binlm_filename, Uint limit_order)
         << " nodes.  Done in " << (time(NULL) - start) << "s." << endl;
 }
 
-LMBinVocFilt::LMBinVocFilt(Voc &vocab, OOVHandling oov_handling,
+LMBinVocFilt::LMBinVocFilt(VocabFilter &vocab, OOVHandling oov_handling,
                            double oov_unigram_prob)
    : LMText(&vocab, oov_handling, oov_unigram_prob)
    , voc_map(vocab)
 {}
 
-LMBinVocFilt::LMBinVocFilt(const string& binlm_filename, Voc &vocab,
+LMBinVocFilt::LMBinVocFilt(const string& binlm_filename, VocabFilter &vocab,
                            OOVHandling oov_handling, double oov_unigram_prob,
                            Uint limit_order)
    : LMText(&vocab, oov_handling, oov_unigram_prob)

@@ -1,5 +1,5 @@
 /**
- * @author Bruno Laferriere and Samuel Larkin
+ * @author Samuel Larkin based on Bruno Laferriere
  * @file lm_eval.cc  Program for testing language model implementations and
  *                   their funtionalities.
  * $Id$
@@ -38,6 +38,7 @@ Options:\n\
  -v     verbose output\n\
  -q     quiet output (only print global prob)\n\
  -limit limit vocab (load all input sentences before processing)\n\
+ -per-sent-limit  limit vocab on a per input sentence basis (implies -limit)\n\
 \n\
 ";
 
@@ -48,6 +49,7 @@ static string test_filename;
 static bool verbose;
 static bool quiet;
 static bool limit_vocab = false;
+static bool per_sent_limit = false;
 static const float LOG_ALMOST_0 = -18;
 static Uint order = 3;
 
@@ -77,12 +79,20 @@ int MAIN(argc,argv)
 
    const Uint precision = cout.precision();
    cout.precision(6);
+   if (per_sent_limit) limit_vocab = true;
 
    time_t start = time(NULL);             //Time count
 
-   Voc vocab;
-   if ( limit_vocab ) {
-      Voc::addConverter  aConverter(vocab);
+   const Uint line_count = countFileLines(test_filename);
+   if (verbose) fprintf(stderr, "the test file contains %d lines\n", line_count);
+
+   // Creating the vocabulary filter
+   VocabFilter vocab(per_sent_limit ? line_count : 0);
+   if ( limit_vocab || per_sent_limit) {
+      if (per_sent_limit) cerr << "Filtering on per sentence vocab" << endl;
+      else cerr << "Filtering on vocab" << endl;
+
+      VocabFilter::addConverter  aConverter(vocab, per_sent_limit);
 
       string line;
       IMagicStream in(test_filename);
@@ -91,6 +101,7 @@ int MAIN(argc,argv)
 
          vector<Uint> dummy;
          split(line.c_str(), dummy, aConverter);
+         aConverter.next();  // Tells the converter we are processing the next line
       }
       cerr << "Read input (cumul time: "
            << (time(NULL) - start) << " secs)" << endl;
@@ -103,6 +114,8 @@ int MAIN(argc,argv)
    if (lm == NULL) {
       error(ETFatal, "Unable to instanciate lm");
    }
+
+   vocab.freePerSentenceData();
    order = lm->getOrder();
    cerr << "Loaded " << order << "-gram model in "
       << (time(NULL) - start_lm) << "s (cumul time: "
@@ -152,7 +165,7 @@ int MAIN(argc,argv)
 
 void getArgs(int argc, const char* const argv[])
 {
-   const char* switches[] = {"v", "limit", "q"};
+   const char* switches[] = {"v", "limit", "q", "per-sent-limit"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 2, -1, help_message);
    arg_reader.read(argc-1, argv+1);
 
@@ -160,6 +173,7 @@ void getArgs(int argc, const char* const argv[])
    arg_reader.testAndSet("q", quiet);
    if ( quiet ) verbose = false;
    arg_reader.testAndSet("limit", limit_vocab);
+   arg_reader.testAndSet("per-sent-limit", per_sent_limit);
    arg_reader.testAndSet(0, "lm_filename", lm_filename);
    arg_reader.testAndSet(1, "test_filename", test_filename);
 }

@@ -30,7 +30,8 @@ using namespace std;
 
 /// Program gen_feature_values usage.
 static char help_message[] = "\n\
-gen_feature_values [-v][-a F][-o F][-n N] feature arg src nbest\n\
+gen_feature_values [-v][-a F][-o F][-n N][-min Sindex][-max Sindex]\n\
+                   feature arg src nbest\n\
 \n\
 Generate values for a feature on a given source text and nbest lists.\n\
 Values are written to stdout. Use rescore_train -H and -h for information\n\
@@ -42,6 +43,8 @@ Options:\n\
 -o   Output feature file F.\n\
 -n   Print features only for the N best sentences.\n\
 -v   Write progress reports to cerr.\n\
+-min Start index to process\n\
+-max End index to process\n\
 ";
 
 // globals
@@ -54,6 +57,8 @@ static string nbest_file;
 static string alignment_file;
 static string out_file = "-";
 static Uint   printN = 0;
+static Uint   minSindex = numeric_limits<Uint>::min();
+static Uint   maxSindex = numeric_limits<Uint>::max();
 
 static void getArgs(int argc, const char *const argv[]);
 
@@ -76,7 +81,7 @@ int MAIN(argc, argv)
    const Uint K = KS / S;
 
 
-   // Prepare the feature function set
+   // Prepare the feature function
    // EJJ 11Jul2006
    // Since the ff gets deleted right at the end of the program, when we're
    // about to exit and have the OS clean up for us anyway, it's much faster if
@@ -85,6 +90,18 @@ int MAIN(argc, argv)
    ptr_FF  ff(FeatureFunctionSet::create(name, argument, NULL, false, true));
    if (!ff)
       error(ETFatal, "unknown feature: %s", name.c_str());
+
+   // If we need the tgtVocab, insert ff into an ffset, so that we can call
+   // FeatureFunctionSet::createTgtVocab().
+   FeatureFunctionSet ffset;
+   if (ff->requires() & FF_NEEDS_TGT_VOCAB) {
+      ffset.ff_infos.push_back(FeatureFunctionSet::ff_info(name+":"+argument, name, ff));
+      ffset.createTgtVocab(src_sents, FileReader::create<Translation>(nbest_file, K));
+      ff->addTgtVocab(ffset.tgt_vocab);
+   }
+
+   // Give the whole thing to the ff
+   ff->init(&src_sents);
 
 
    // Prepare the alignment file
@@ -122,16 +139,15 @@ int MAIN(argc, argv)
       if (bNeedAligment && (k != K ))
          error(ETFatal, "unexpected end of nbests file after %d lines (expected %dx%d=%d lines)", s*K+k, S, K, S*K);
 
-      ff->init(&src_sents, K);   // Give the whole thing to the ff
-
-
-      // Specify source and nbest to the ff and print values.
-      ff->source(s, &nbest);
-      Uint maxPrintN = K;
-      if (printN>0)
-         maxPrintN = min(printN, K);
-      for (Uint k = 0; k < maxPrintN; ++k)
-         outstr << ff->value(k) << endl;
+      if (minSindex <= s && s < maxSindex) {
+         // Specify source and nbest to the ff and print values.
+         ff->source(s, &nbest);
+         Uint maxPrintN = K;
+         if (printN>0)
+            maxPrintN = min(printN, K);
+         for (Uint k = 0; k < maxPrintN; ++k)
+            outstr << ff->value(k) << endl;
+      }
    }
    //cerr << "at end" << endl;
 } END_MAIN
@@ -140,7 +156,7 @@ int MAIN(argc, argv)
 
 void getArgs(int argc, const char* const argv[])
 {
-   const char* switches[] = {"v", "a:", "n:", "o:"};
+   const char* switches[] = {"v", "a:", "n:", "o:", "min:", "max:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 4, 4, help_message, "-h", true);
    arg_reader.read(argc-1, argv+1);
 
@@ -148,6 +164,8 @@ void getArgs(int argc, const char* const argv[])
    arg_reader.testAndSet("a", alignment_file);
    arg_reader.testAndSet("n", printN);
    arg_reader.testAndSet("o", out_file);
+   arg_reader.testAndSet("min", minSindex);
+   arg_reader.testAndSet("max", maxSindex);
 
    arg_reader.testAndSet(0, "feature", name);
    arg_reader.testAndSet(1, "arg", argument);

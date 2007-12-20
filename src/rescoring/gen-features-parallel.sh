@@ -3,7 +3,7 @@
 # gen-features-parallel.sh
 #
 # George Foster
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada /
@@ -22,7 +22,7 @@ NBEST=
 set -o noclobber
 
 ##
-## Usage: gen-features-parallel.sh [-v][-n][-p pref] [-a pal-file]
+## Usage: gen-features-parallel.sh [-v][-n][-p pref][-a pal-file]
 ##        [-c canoe-file-with-weights] MODEL SFILE NBEST
 ##
 ## Generate a set of feature-value files in parallel, as required by the
@@ -75,6 +75,17 @@ error_exit() {
    exit 1
 }
 
+warn()
+{
+   echo "WARNING: $*" >&2
+}
+
+debug()
+{
+   test -n "$DEBUG" && echo "<D> $*" >&2
+}
+
+
 # Verify that enough args remain on the command line
 # syntax: one_arg_check <args needed> $# <arg name>
 # Note that this function expects to be in a while/case structure for
@@ -86,9 +97,19 @@ arg_check() {
    fi
 }
 
+min ()
+{
+   if [ $1 -lt $2 ]; then
+      echo $1;
+   else
+      echo $2;
+   fi
+}
+
 # Command-line processing
 while [ $# -gt 0 ]; do
    case "$1" in
+   -d)        DEBUG="-d";;
    -v)        VERBOSE="-v";;
    -n)        NOEXEC="-n";;
    -h)        cat $0 | egrep '^##' | cut -c4-; exit 1;;

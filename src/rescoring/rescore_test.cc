@@ -37,12 +37,8 @@ int MAIN(argc, argv)
    const Uint TESTS_FOR_AVG(100);
    RescoreTest::ARG arg(argc, argv);
 
-
-   LOG_VERBOSE2(verboseLogger, "Creating feature functions set");
-   FeatureFunctionSet ffset;
-   const Uint M = ffset.read(arg.model, arg.bVerbose, arg.ff_pref.c_str(), arg.bIsDynamic);
-   uVector modelP(M);
-   ffset.getWeights(modelP);
+   BLEUstats::setMaxNgrams(arg.maxNgrams);
+   BLEUstats::setMaxNgramsScore(arg.maxNgramsScore);
 
 
    LOG_VERBOSE2(verboseLogger, "Reading source sentences");
@@ -51,12 +47,23 @@ int MAIN(argc, argv)
    if (S == 0) error(ETFatal, "empty source file: %s", arg.src_file.c_str());
    
 
+   LOG_VERBOSE2(verboseLogger, "Creating feature functions set");
+   FeatureFunctionSet ffset;
+   const Uint M = ffset.read(arg.model, arg.bVerbose, arg.ff_pref.c_str(), arg.bIsDynamic);
+   ffset.createTgtVocab(sources, FileReader::create<Translation>(arg.nbest_file, arg.K));
+   uVector modelP(M);
+   ffset.getWeights(modelP);
+
+
+   LOG_VERBOSE2(verboseLogger, "Initializing FF matrix with %d source sentences", S);
+   ffset.initFFMatrix(sources);
+   
+
    LOG_VERBOSE2(verboseLogger, "Creating references reader");
    referencesReader  rReader(arg.refs_file);
-   //const Uint R = rReader.getR();
 
 
-   LOG_VERBOSE2(verboseLogger, "Rescoring with S=%d, R=%d, M=%d", S, R, M);
+   LOG_VERBOSE2(verboseLogger, "Rescoring with S=%d, R=%d, M=%d", S, rReader.getR(), M);
    MatrixBLEUstats  bleu(S);
    BLEUstats total;
    BLEUstats best;
@@ -76,15 +83,12 @@ int MAIN(argc, argv)
       References refs;
       rReader.poll(refs);
       
-      LOG_VERBOSE3(verboseLogger, "Initializing FF matrix (s=%d, K=%d, R=%d)", s, K, R);
-      ffset.initFFMatrix(sources, K);
-
-      LOG_VERBOSE3(verboseLogger, "Computing FF matrix (s=%d, K=%d, R=%d)", s, K, R);
+      LOG_VERBOSE3(verboseLogger, "Computing FF matrix (s=%d, K=%d, R=%d)", s, K, rReader.getR());
       uMatrix H;
       ffset.computeFFMatrix(H, s, nbest);
       K = nbest.size();    // IMPORTANT K might change if computeFFMatrix finds empty lines
 
-      LOG_VERBOSE3(verboseLogger, "Computing BLEU (s=%d, K=%d, R=%d)", s, K, R);
+      LOG_VERBOSE3(verboseLogger, "Computing BLEU (s=%d, K=%d, R=%d)", s, K, rReader.getR());
       computeBLEUArrayRow(bleu[s], nbest, refs);
 
       // Determine which translation is chosen by the model, and add its stats to total
