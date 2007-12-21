@@ -14,12 +14,16 @@ license agreement for details.
                    (with a summary of important changes)
 
 Done: utils build logging eval preprocessing lm tm canoe api rescoring
-(for dir in rescoring; do
+(for dir in canoe; do
     cd $dir
-    for x in *
+    for x in `\ls ~/sandboxes/PortageTrunk/src/$dir | grep -v '\.o$'`
       do echo ====================================================
       echo gvimdiff $x ~/sandboxes/PortageTrunk/src/$dir/$x
-      diff -w $x ~/sandboxes/PortageTrunk/src/$dir/$x
+      if [ -f $x ]; then
+         diff -w $x ~/sandboxes/PortageTrunk/src/$dir/$x
+      else
+         echo File missing
+      fi
     done
     cd ..
  done) | gvim -
@@ -57,6 +61,13 @@ v1.2 ??.??.200?
    kept, i.e., discards entries that can never make it to the top L, under any
    set of non-negative weights.  Also described in our CORES 2007 paper.
    - Used by cow.sh when the -filt option is specified (recommended).
+ - The main rescoring script, rat.sh, was completely overhauled to be easier to
+   use.  The model is now specified with the same syntax as documented in
+   rescore_train -H: rat.sh transparently handles generating the features,
+   managing temporary files (now all in a working sub-directory) and giving
+   rescore_train an appropriately modified model file.  See rat.sh -h for
+   details, and test-suite/regress-small-voc/28_rat_train.pl for an example
+   rescoring model in this new syntax.
 
  Major bug fixes:
  - When canoe was used with -weight-f (weights on the forward translation
@@ -161,6 +172,10 @@ v1.2 ??.??.200?
    - one of -nofloor (new option) or -floor is required since there does not
      exist an appropriate default for this option;
    - temporary files are now compressed on the fly, unless -Z is specified;
+   - -filt now uses the joint TM filtering describe in Major changes; the old
+     grep-like filtering behaviour is preserved (via -filt-no-ttable-limit),
+     but its use is not recommended;
+   - other new options: -e, -lb.
  - When modifying and testing a single program, say src/subdir/progname, one
    can quickly rebuild it and its dependencies (and nothing else) by running
    this command in src/:
