@@ -344,8 +344,9 @@ bool InputParser::readString(string &s, char &c, char stopFor1, char
    {
       if (c == '\\')
       {
-         char next_c = in.peek();
-         if ( next_c == '\\' || next_c == '<' || next_c == '>' ) {
+         int next_c = in.peek();
+         if ( next_c == '\\' || next_c == '<' || next_c == '>' ||
+              next_c == stopFor1 || next_c == stopFor2 ) {
             // Here we have a \ correctly escaping a special character, skip
             // the backslash and read the special character in, to be
             // interpreted literally as itself.
