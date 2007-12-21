@@ -19,6 +19,7 @@ RESUME=
 FLOOR=-1
 NOFLOOR=
 FLOOR_ARG=
+ESTOP=
 N=200
 CFILE=canoe.ini
 CANOE=canoe
@@ -26,14 +27,17 @@ CANOE_PARALLEL=canoe-parallel.sh
 PARALLEL=
 RTRAIN=rescore_train
 DEFAULT_MODEL=curmodel
+LOAD_BALANCING=
 
 FFVALPARSER=nbest2rescore.pl
 FFVALPARSER_OPTS="-canoe"
 
 ##
 ## Usage: cow.sh [-v] [-Z] [-resume] [-nbest-list-size N] [-maxiter MAX]
-##        [-filt] [-floor index|-nofloor] [-model MODEL]  [-mad SEED] [-path P]
-##        [-f CFILE] [-canoe-options CANOE_OPTS] [-parallel[:"PARALLEL_OPTS"]]
+##        [-filt] [-filt-no-ttable-limit] [-lb]
+##        [-floor index|-nofloor] [-model MODEL] [-mad SEED] [-e] [-path P]
+##        [-f CFILE] [-canoe-options CANOE_OPTS]
+##        [-parallel[:"PARALLEL_OPTS"]]
 ##        -workdir WORKDIR SFILE RFILE1 RFILE2 .. RFILEn
 ##
 ## cow.sh: Canoe Optimize Weights
@@ -51,14 +55,28 @@ FFVALPARSER_OPTS="-canoe"
 ## -resume  Resume a previously interupted run.  Will resume at the decoding
 ##          phase, regardless of where it had previous been interupted.  Results
 ##          are not guaranteed to be the same as if a fresh restart was done.
+##          WARNING: When using resume and maxiter, maxiter must be greater than
+##                   the number of previously completed iterations.
 ##          [Fresh start: delete any existing n-best lists, rename any existing
 ##           model and results files]
 ## -nbest-list-size The size of the n-best lists to create.  [200]
 ## -maxiter Do at most MAX iterations.
 ## -filt    Filter the phrase tables based on SFILE for faster operation.
-##          -filt does soft filtering: creates smaller phrase tables (forward &
-##          backward) containing ALL entries that match SFILE, and uses them
-##          afterwards in place of the original tables.
+##          Should not change your results in a significant way (some changes
+##          may be observed due to rounding differences).  Creates a single
+##          multi-prob table containing only entries from the phrase tables that
+##          match SFILE and meet the ttable-limit criterion in CFILE, if any.
+##          Uses this table afterwards in place of the original tables.
+##          (Recommended option) [don't filter]
+## -filt-no-ttable-limit  Similar to -filt, with a somewhat faster filtering
+##          phase but less effective filtering for canoe.  Creates individual
+##          filtered tables containing only entries that match SFILE (without
+##          applying any ttable-limit) and uses them afterwards in place of
+##          the original tables.  Unlike -filt, this option does not introduce
+##          rounding differences, the output should therefore be identical to
+##          that obtained with unfiltered tables.  [don't filter]
+## -lb      Run canoe-parallel.sh in load balancing mode to help even out the 
+##          translation's load distribution [don't].
 ## -floor   Index of parameter at which to start zero-flooring. (0 means all)
 ##          NB, this is NOT the floor threshold and cannot be used with nofloor.
 ## -nofloor None of the decoder features are floored.  Cannot be used with floor.
@@ -73,6 +91,7 @@ FFVALPARSER_OPTS="-canoe"
 ##          when doing the initial translation of the training corpus;
 ##          this uses a different random set of weights for each
 ##          sentence. [don't; note that SEED=0 also means don't]
+## -e       Use expectation to determine rescore_train stopping point [don't]
 ## -path    Prepend path P to existing path for locating programs []
 ## -f       The configuration file to pass to the decoder. [canoe.ini]
 ## -canoe-options  Provide additional options to the decoder. []
@@ -119,11 +138,11 @@ echo 'cow.sh, NRC-CNRC, (c) 2004 - 2007, Her Majesty in Right of Canada'
 #------------------------------------------------------------------------------
 
 error_exit() {
-    for msg in "$@"; do
-        echo $msg
-    done
-    echo "Use -h for help."
-    exit 1
+   for msg in "$@"; do
+      echo $msg
+   done
+   echo "Use -h for help."
+   exit 1
 }
 
 # Verify that enough args remain on the command line
@@ -132,31 +151,40 @@ error_exit() {
 # handling parameters, so that $# still includes the option itself.
 # exits with error message if the check fails.
 arg_check() {
-    if [ $2 -le $1 ]; then
-        error_exit "Missing argument to $3 option."
-    fi
+   if [ $2 -le $1 ]; then
+      error_exit "Missing argument to $3 option."
+   fi
 }
 
 # Rename an existing file to avoid accidentally re-using old data from an
 # aborted or completed previous run.
 rename_old() {
-    __FILENAME=$1
-    __SUFFIX=${2-old}
-    if [ -e $__FILENAME ]; then
-        __BACKUP_SUFFIX=${__SUFFIX}01
-        __BACKUP_FILENAME=$__FILENAME.$__BACKUP_SUFFIX
-        #echo first $__BACKUP_FILENAME >&2
-        while [ -e $__BACKUP_FILENAME ]; do
-            __BACKUP_SUFFIX=`
-                echo $__BACKUP_SUFFIX |
-                perl -e '$name = <STDIN>; chomp $name; $name++; print $name'`
-            __BACKUP_FILENAME=$__FILENAME.$__BACKUP_SUFFIX
-            #echo while $__BACKUP_FILENAME >&2
-        done
-        echo Moving existing file $__FILENAME to $__BACKUP_FILENAME
-        mv $__FILENAME $__BACKUP_FILENAME
-    fi
-    unset __FILENAME __BACKUP_SUFFIX __BACKUP_FILENAME __SUFFIX
+   __FILENAME=$1
+   __SUFFIX=${2-old}
+   if [ -e $__FILENAME ]; then
+      __BACKUP_SUFFIX=${__SUFFIX}01
+      __BACKUP_FILENAME=$__FILENAME.$__BACKUP_SUFFIX
+      #echo first $__BACKUP_FILENAME >&2
+      while [ -e $__BACKUP_FILENAME ]; do
+         __BACKUP_SUFFIX=`
+            echo $__BACKUP_SUFFIX |
+            perl -e '$name = <STDIN>; chomp $name; $name++; print $name'`
+         __BACKUP_FILENAME=$__FILENAME.$__BACKUP_SUFFIX
+         #echo while $__BACKUP_FILENAME >&2
+      done
+      echo Moving existing file $__FILENAME to $__BACKUP_FILENAME
+      mv $__FILENAME $__BACKUP_FILENAME
+   fi
+   unset __FILENAME __BACKUP_SUFFIX __BACKUP_FILENAME __SUFFIX
+}
+
+check_ttable_limit() {
+   f=$1
+   TTABLE_LIMIT=`configtool ttable-limit $f`
+   if [ ! $TTABLE_LIMIT -gt 0 ] ; then
+      echo "Please set your ttable-limit in your $f";
+      exit 1;
+   fi
 }
 
 # Make it easy to recover the command line from saved logs.
@@ -166,67 +194,75 @@ echo ""
 
 # Command-line processing
 while [ $# -gt 0 ]; do
-    case "$1" in
-    -v|-verbose)    VERBOSE="-v";;
-    -d|-debug)      DEBUG=1;;
-    -h|-help)       cat $0 | egrep '^##' | cut -c4-; exit 1;;
-    -resume)        RESUME=1;;
-    -path)          arg_check 1 $# $1; PATH="$2:$PATH"; shift;;
-    -nbest-list-size) arg_check 1 $# $1; N="$2"; shift;;
-    -f)             arg_check 1 $# $1; CFILE="$2"; shift;;
-    -z)             COMPRESS_EXT=".gz";;
-    -Z)             COMPRESS_EXT="";;
-    -canoe)         arg_check 1 $# $1; CANOE="$2"; shift;;
-    -canoe-options) arg_check 1 $# $1; CANOE_OPTS="$2"; shift;;
-    -rescore-train) arg_check 1 $# $1; RTRAIN="$2"; shift;;
-    -model)         arg_check 1 $# $1; MODEL="$2"; shift;;
-    -filt)          FILTER=$1;;
-    -mad)           arg_check 1 $# $1; RANDOM_INIT="$2"; shift;;
-    -floor)         arg_check 1 $# $1; FLOOR="$2"; shift;;
-    -nofloor)       NOFLOOR=1;;
-    -parallel:*)    PARALLEL=1; PARALLEL_OPTS="${1/-parallel:/}";;
-    -parallel)      PARALLEL=1;;
-    -workdir)       arg_check 1 $# $1; WORKDIR="$2"; shift;;
-    -maxiter)       arg_check 1 $# $1; MAXITER="$2"; shift;;
-    --)             shift; break;;
-    -*)             error_exit "Unknown parameter: $1.";;
-    *)              break;;
-    esac
-    shift
+   case "$1" in
+   -v|-verbose)    VERBOSE="-v";;
+   -d|-debug)      DEBUG=1;;
+   -h|-help)       cat $0 | egrep '^##' | cut -c4-; exit 1;;
+   -resume)        RESUME=1;;
+   -path)          arg_check 1 $# $1; PATH="$2:$PATH"; shift;;
+   -nbest-list-size) arg_check 1 $# $1; N="$2"; shift;;
+   -f)             arg_check 1 $# $1; CFILE="$2"; shift;;
+   -z)             COMPRESS_EXT=".gz";;
+   -Z)             COMPRESS_EXT="";;
+   -canoe)         arg_check 1 $# $1; CANOE="$2"; shift;;
+   -canoe-options) arg_check 1 $# $1; CANOE_OPTS="$2"; shift;;
+   -rescore-train) arg_check 1 $# $1; RTRAIN="$2"; shift;;
+   -model)         arg_check 1 $# $1; MODEL="$2"; shift;;
+   -filt)          FILTER=$1;;
+   -lb)            LOAD_BALANCING=1;;
+   -filt-no-ttable-limit)   FILTER=$1;;
+   -mad)           arg_check 1 $# $1; RANDOM_INIT="$2"; shift;;
+   -e)             ESTOP="-e -r50";;
+   -floor)         arg_check 1 $# $1; FLOOR="$2"; shift;;
+   -nofloor)       NOFLOOR=1;;
+   -parallel:*)    PARALLEL=1; PARALLEL_OPTS="${1/-parallel:/}";;
+   -parallel)      PARALLEL=1;;
+   -workdir)       arg_check 1 $# $1; WORKDIR="$2"; shift;;
+   -maxiter)       arg_check 1 $# $1; MAXITER="$2"; shift;;
+   --)             shift; break;;
+   -*)             error_exit "Unknown parameter: $1.";;
+   *)              break;;
+   esac
+   shift
 done
 
 if [ -n "$NOFLOOR" ] && [ $FLOOR -ge 0 ]; then
-    error_exit "Error: You cannot use floor and nofloor at the same time";
+   error_exit "Error: You cannot use floor and nofloor at the same time";
 fi
 if [ -z "$NOFLOOR" ] && [ $FLOOR -lt 0 ]; then
-    error_exit "Error: You must provide either floor or nofloor";
+   error_exit "Error: You must provide either floor or nofloor";
 fi
 if [ $FLOOR -ge 0 ]; then
-    FLOOR_ARG="-f $FLOOR"
+   FLOOR_ARG="-f $FLOOR"
 fi
 
 
 if [ -z "$MODEL" ]; then
-    MODEL=$WORKDIR/$DEFAULT_MODEL
-    if [ ! $RESUME ]; then
-        rename_old $MODEL
-    fi
+   MODEL=$WORKDIR/$DEFAULT_MODEL
+   if [ ! $RESUME ]; then
+      rename_old $MODEL
+   fi
 fi
 
 if [ $# -lt 1 ]; then
-    error_exit "Error: Source and reference file not specified."
+   error_exit "Error: Source and reference file not specified."
 elif [ $# -lt 2 ]; then
-    error_exit "Error: Reference file(s) not specified."
+   error_exit "Error: Reference file(s) not specified."
+fi
+
+if [ -n "$LOAD_BALANCING" ]; then
+  PARALLEL_OPTS="-lb $PARALLEL_OPTS"
 fi
 
 if [ $DEBUG ]; then
-    echo "
+   echo "
 VERBOSE=$VERBOSE
 FILTER=$FILTER
 FLOOR=$FLOOR
 NOFLOOR=$NOFLOOR
 FLOOR_ARG=$FLOOR_ARG
 RESUME=$RESUME
+LOAD_BALANCING=$LOAD_BALANCING
 N=$N
 CFILE=$CFILE
 CANOE=$CANOE
@@ -243,124 +279,125 @@ fi
 SFILE=$1
 shift
 if [ $# -eq 1 -a `cat $1 | wc -l` -gt `cat $SFILE | wc -l` ]; then
-    echo "Warning: Old style combined RFILE supplied - uncombining it";
-    RFILE=$1
-    echo uncombine.pl `cat $SFILE | wc -l` $RFILE
-    uncombine.pl `cat $SFILE | wc -l` $RFILE
-    RVAL=$?
-    if [ $RVAL -ne 0 ]; then
-        echo "Error: can't uncombine ref file";
-        exit 1
-    fi
-    RFILES=`ls $RFILE.[0-9]* | tr '\n' ' '`
+   echo "Warning: Old style combined RFILE supplied - uncombining it";
+   RFILE=$1
+   echo uncombine.pl `cat $SFILE | wc -l` $RFILE
+   uncombine.pl `cat $SFILE | wc -l` $RFILE
+   RVAL=$?
+   if [ $RVAL -ne 0 ]; then
+      echo "Error: can't uncombine ref file";
+      exit 1
+   fi
+   RFILES=`ls $RFILE.[0-9]* | tr '\n' ' '`
 else
-    RFILES=$*
+   RFILES=$*
 fi
 for x in $RFILES; do
-    if [ `cat $x | wc -l` -ne `cat $SFILE | wc -l` ]; then
-        echo "Error: ref file $x has a different number of lines" \
-             "as source file $SFILE"
-        exit 1
-    fi
+   if [ `cat $x | wc -l` -ne `cat $SFILE | wc -l` ]; then
+      echo "Error: ref file $x has a different number of lines" \
+           "as source file $SFILE"
+      exit 1
+   fi
 done
 
 if [ $DEBUG ]; then
-    echo "SFILE=$SFILE
+   echo "SFILE=$SFILE
 RFILES=$RFILES"
 fi
+
+ORIGCFILE=$CFILE
 
 TMPMODELFILE=$MODEL.tmp
 TMPFILE=$WORKDIR/tmp
 TRANSFILE=$WORKDIR/transfile
 HISTFILE="rescore-results"
 POWELLFILE="$WORKDIR/powellweights.tmp"
-ORIGCFILE=$CFILE
+MODEL_ORIG=$MODEL.orig
 
 if [ ! $RESUME ]; then
-    rename_old $HISTFILE
+   rename_old $HISTFILE
 fi
 
 # Check validity of command-line arguments
 if [ $(($N)) -eq 0 ]; then
-    echo "Error: Bad n-best list size ($N).  Use -h for help."
-    exit 1
+   echo "Error: Bad n-best list size ($N).  Use -h for help."
+   exit 1
 fi
 
 if [ ! -x $CANOE ]; then
-  if ! which-test.sh $CANOE; then
-    echo "Error: Executable canoe not found at $CANOE.  Use -h for help."
-    exit 1
-  fi
+   if ! which-test.sh $CANOE; then
+      echo "Error: Executable canoe not found at $CANOE.  Use -h for help."
+      exit 1
+   fi
 fi
 if [ "$PARALLEL" == 1 -a "$CANOE" != canoe ]; then
-    echo "Error: cannot specify alternative decoder $CANOE with -parallel option."
-    echo "Use -h for help."
-    exit 1
+   echo "Error: cannot specify alternative decoder $CANOE with -parallel option."
+   echo "Use -h for help."
+   exit 1
 fi
 if [ ! -x $RTRAIN ]; then
-  if ! which-test.sh $RTRAIN; then
-    echo "Error: Executable rescore train program not found at $RTRAIN.  Use -h for help."
-    exit 1
-  fi
+   if ! which-test.sh $RTRAIN; then
+      echo "Error: Executable rescore train program not found at $RTRAIN.  Use -h for help."
+      exit 1
+   fi
 fi
 if [ -e $MODEL -a ! -w $MODEL ]; then
-    echo "Error: Model file $MODEL is not writable.  Use -h for help."
-    exit 1
+   echo "Error: Model file $MODEL is not writable.  Use -h for help."
+   exit 1
 fi
 
 if [ ! -r $CFILE ]; then
-    echo "Error: Cannot read config file $CFILE.  Use -h for help."
-    exit 1
+   echo "Error: Cannot read config file $CFILE.  Use -h for help."
+   exit 1
 fi
-
 if configtool check $CFILE; then true; else
-    echo "Error: problem with config file $CFILE.  Use -h for help."
-    exit 1
+   echo "Error: problem with config file $CFILE.  Use -h for help."
+   exit 1
 fi
 
 if [ ! -r $SFILE ]; then
-    echo "Error: Cannot read source file $SFILE.  Use -h for help."
-    exit 1
+   echo "Error: Cannot read source file $SFILE.  Use -h for help."
+   exit 1
 fi
 if [ ! -r $RFILE ]; then
-    echo "Error: Cannot read reference file $RFILE.  Use -h for help."
-    exit 1
+   echo "Error: Cannot read reference file $RFILE.  Use -h for help."
+   exit 1
 fi
 
 if [ -z "$WORKDIR" ]; then
-    echo "Error: -workdir <dir> is now a mandatory argument, and should ideally
-    point to a directory on un-backed up medium, like exp or scratch_iit, or a
-    soft link to such a directory.  Ask Eric or Patrick for an explanation of
-    why you have to do this."
-    exit 1
+   echo "Error: -workdir <dir> is now a mandatory argument, and should ideally
+   point to a directory on un-backed up medium, like exp or scratch_iit, or a
+   soft link to such a directory.  Ask Eric or Patrick for an explanation of
+   why you have to do this."
+   exit 1
 fi
 
 if [ ! -d $WORKDIR ]; then
-    echo "Error: workdir $WORKDIR is not a directory."
-    exit 1
+   echo "Error: workdir $WORKDIR is not a directory."
+   exit 1
 fi
 
 if [ -n "$MAXITER" ]; then
-    if [ "`expr $MAXITER + 0 2> /dev/null`" != "$MAXITER" ]; then
-        echo "Error: max iter $MAXITER is not a valid number."
-        exit 1
-    elif [ "$MAXITER" -lt 1 ]; then
-        echo "Max iter $MAXITER is less than 1: no work to do!"
-        exit 1
-    fi
+   if [ "`expr $MAXITER + 0 2> /dev/null`" != "$MAXITER" ]; then
+      echo "Error: max iter $MAXITER is not a valid number."
+      exit 1
+   elif [ "$MAXITER" -lt 1 ]; then
+      echo "Max iter $MAXITER is less than 1: no work to do!"
+      exit 1
+   fi
 fi
 
 # Check paths of required programs
 if ! which-test.sh $FFVALPARSER; then
-    echo "Error: $FFVALPARSER not found in path."
-    exit 1
+   echo "Error: $FFVALPARSER not found in path."
+   exit 1
 fi
 
 # Handle verbose
 if [ "$VERBOSE" = "-v" ]; then
-#    CANOE="$CANOE -v 2"
-    CANOE_OPTS="$CANOE_OPTS -v 1"
-    RTRAIN="$RTRAIN -v"
+   #CANOE="$CANOE -v 2"
+   CANOE_OPTS="$CANOE_OPTS -v 1"
+   RTRAIN="$RTRAIN -v"
 fi
 
 #------------------------------------------------------------------------------
@@ -370,50 +407,61 @@ fi
 export LC_ALL=C
 
 if [ ! $RESUME ]; then
-    for FILE in $WORKDIR/foo.* $WORKDIR/alltargets $WORKDIR/allffvals; do
-        \rm -f $FILE
-    done
+   for FILE in $WORKDIR/foo.* $WORKDIR/alltargets $WORKDIR/allffvals; do
+      \rm -f $FILE
+   done
 
-    if [ ! -e $MODEL ]; then
-        configtool rescore-model:$WORKDIR/allffvals $CFILE > $MODEL
-    else
+   if [ ! -e $MODEL ]; then
+      configtool rescore-model:$WORKDIR/allffvals $CFILE > $MODEL
+      # For the random ranges
+      MODEL_ORIG=$MODEL.orig
+      cut -d' ' -f1 $MODEL > $MODEL_ORIG
+   else
       if [ `cat $MODEL | wc -l` -ne `configtool nf $CFILE` ]; then
-          echo "Error: Bad model file"
-          exit 1
+         echo "Error: Bad model file"
+         exit 1
       fi
-    fi
+      # For the random ranges
+      cp $MODEL $MODEL_ORIG
+   fi
 
-    # Filter phrasetables to retain only matching source phrases.
-    if [ "$FILTER" = "-filt" ] ; then
-        # soft filtering: keep all matching translations, and subsequently use
-        # forward and backward tables
-        configtool rep-ttable-files-local:.FILT $CFILE > $CFILE.FILT
-        echo "filter_models -f $CFILE -suffix .FILT < $SFILE"
-              filter_models -f $CFILE -suffix .FILT < $SFILE
-        CFILE=$CFILE.FILT
-    else
-       echo "Warning: Not filtering"
-    fi
+   # Filter phrasetables to retain only matching source phrases.
+   if [ "$FILTER" = "-filt" ] ; then
+      # Filter-joint, apply -L limit
+      check_ttable_limit $CFILE;
+      TTABLE_LIMIT=`configtool ttable-limit $f`
+      echo "filter_models -z -r -f $CFILE -suffix .FILT -soft-limit multi.probs.`basename ${SFILE}`.${TTABLE_LIMIT} < $SFILE"
+            filter_models -z -r -f $CFILE -suffix .FILT -soft-limit multi.probs.`basename ${SFILE}`.${TTABLE_LIMIT} < $SFILE
+      CFILE=$CFILE.FILT
+   elif [ "$FILTER" = "-filt-no-ttable-limit" ] ; then
+      # filter-grep only, keep all translations for matching source phrases
+      configtool rep-ttable-files-local:.FILT $CFILE > $CFILE.FILT
+      echo "filter_models -f $CFILE -suffix .FILT < $SFILE"
+            filter_models -f $CFILE -suffix .FILT < $SFILE
+      CFILE=$CFILE.FILT
+   else
+      echo "Warning: Not filtering"
+   fi
 elif [ "$FILTER" = "-filt" ]; then
    CFILE=$CFILE.FILT
 fi
 
 write_models() {
-    echo configtool set-weights:$HISTFILE $CFILE $CFILE.cow
-    configtool set-weights:$HISTFILE $CFILE $CFILE.cow
-    if (( $? != 0 )); then
-        \rm -f $CFILE.cow
-        exit 1
-    fi
+   echo configtool -p set-weights:$HISTFILE $CFILE $CFILE.cow
+   configtool -p set-weights:$HISTFILE $CFILE $CFILE.cow
+   if (( $? != 0 )); then
+      \rm -f $CFILE.cow
+      exit 1
+   fi
 
-    if [ "$CFILE" != "$ORIGCFILE" ]; then
-        echo configtool set-weights:$HISTFILE $ORIGCFILE $ORIGCFILE.cow
-        configtool set-weights:$HISTFILE $ORIGCFILE $ORIGCFILE.cow
-        if (( $? != 0 )); then
-            \rm -f $ORIGCFILE.cow
-            exit 1
-        fi
-    fi
+   if [ "$CFILE" != "$ORIGCFILE" ]; then
+         echo configtool -p set-weights:$HISTFILE $ORIGCFILE $ORIGCFILE.cow
+         configtool -p set-weights:$HISTFILE $ORIGCFILE $ORIGCFILE.cow
+      if (( $? != 0 )); then
+         \rm -f $ORIGCFILE.cow
+         exit 1
+      fi
+   fi
 }
 
 #------------------------------------------------------------------------------
@@ -421,8 +469,8 @@ write_models() {
 #------------------------------------------------------------------------------
 
 if [ $RESUME ]; then
-    echo Resuming where a previous iteration stopped - reusing existing $MODEL,
-    echo "   " $HISTFILE, $POWELLFILE, and $WORKDIR/foo.\* files.
+   echo Resuming where a previous iteration stopped - reusing existing $MODEL,
+   echo "   " $HISTFILE, $POWELLFILE, and $WORKDIR/foo.\* files.
 fi
 
 RANDOM_WEIGHTS=
@@ -432,156 +480,156 @@ ITER=0
 
 while [ 1 ]; do
 
-    if [ $DEBUG ]; then echo "configtool arg-weights:$MODEL $CFILE" ; fi
-    wtvec=`configtool arg-weights:$MODEL $CFILE`
+   if [ $DEBUG ]; then echo "configtool arg-weights:$MODEL $CFILE" ; fi
+   wtvec=`configtool arg-weights:$MODEL $CFILE`
 
-    # Run decoder
-    echo ""
-    echo Running decoder on `date`
-    RUNSTR="$CANOE $CANOE_OPTS $RANDOM_WEIGHTS -f $CFILE $wtvec -nbest $WORKDIR/foo$COMPRESS_EXT:$N -ffvals"
-    if [ "$PARALLEL" == 1 ]; then
-        RUNSTR="$CANOE_PARALLEL $PARALLEL_OPTS $RUNSTR"
-    fi
-    echo "$RUNSTR < $SFILE > $TRANSFILE.ff"
-    time  $RUNSTR < $SFILE > $TRANSFILE.ff
+   # Run decoder
+   echo ""
+   echo Running decoder on `date`
+   RUNSTR="$CANOE $CANOE_OPTS $RANDOM_WEIGHTS -f $CFILE $wtvec -nbest $WORKDIR/foo$COMPRESS_EXT:$N -ffvals"
+   if [ "$PARALLEL" == 1 ]; then
+      RUNSTR="$CANOE_PARALLEL $PARALLEL_OPTS $RUNSTR"
+   fi
+   echo "$RUNSTR < $SFILE > $TRANSFILE.ff"
+   time  $RUNSTR < $SFILE > $TRANSFILE.ff
 
-    # Check return value
-    RVAL=$?
-    if [ $RVAL -ne 0 ]; then
-        echo "Error: Decoder returned $RVAL";
-        exit 1
-    fi
+   # Check return value
+   RVAL=$?
+   if [ $RVAL -ne 0 ]; then
+      echo "Error: Decoder returned $RVAL";
+      exit 1
+   fi
 
-    # From here on, use given weights (not random weights)
-    RANDOM_WEIGHTS=
+   # From here on, use given weights (not random weights)
+   RANDOM_WEIGHTS=
 
-    $FFVALPARSER $FFVALPARSER_OPTS -in=$TRANSFILE.ff > $TRANSFILE
-    echo `bleumain $TRANSFILE $RFILES | egrep BLEU` " $wtvec" >> $HISTFILE
+   $FFVALPARSER $FFVALPARSER_OPTS -in=$TRANSFILE.ff > $TRANSFILE
+   echo `bleumain $TRANSFILE $RFILES | egrep BLEU` " $wtvec" >> $HISTFILE
 
-    # For debugging, also put the whole output of bleumain in the output
-    # stream
-    echo Current weight vector: $wtvec
-    echo bleumain $TRANSFILE $RFILES
-    bleumain $TRANSFILE $RFILES
+   # For debugging, also put the whole output of bleumain in the output
+   # stream
+   echo Current weight vector: $wtvec
+   echo bleumain $TRANSFILE $RFILES
+   bleumain $TRANSFILE $RFILES
 
-    if [ -n "$MAXITER" ]; then
-        MAXITER=$((MAXITER - 1))
-    fi
+   if [ -n "$MAXITER" ]; then
+      MAXITER=$((MAXITER - 1))
+   fi
 
-    # Read the dynamic options file for any updates to MAXITER or
-    # PARALLEL_OPTS
-    if [ -r COW_DYNAMIC_OPTIONS ]; then
-        echo ""
-        echo File COW_DYNAMIC_OPTIONS found, processing dynamic options.
-        while read; do
-            echo -n "   Opt $REPLY => "
-            case $REPLY in
-            PARALLEL=OFF)
-                PARALLEL=""
-                echo Turning parallel decoding off
-                ;;
-            PARALLEL=*)
-                PARALLEL=1
-                PARALLEL_OPTS="${REPLY#PARALLEL=}"
-                PARALLEL_OPTS="${PARALLEL_OPTS//\"/}"
-                echo Setting parallel option\(s\) to $PARALLEL_OPTS
-                ;;
-            STOP_AFTER=*)
-                STOP_AFTER="${REPLY#STOP_AFTER=}"
-                STOP_AFTER="${STOP_AFTER// /}"
-                if [ "`expr $STOP_AFTER + 0 2> /dev/null`" != "$STOP_AFTER" ]
-                then
-                    echo Ignoring non integer STOP_AFTER parameter $STOP_AFTER
-                else
-                    MAXITER=$STOP_AFTER
-                    echo Doing $STOP_AFTER more iteration\(s\) and then stopping.
-                fi
-                ;;
-            *)  Ignoring unknown dynamic option: "$REPLY"
-            esac
-        done < COW_DYNAMIC_OPTIONS
-        \rm COW_DYNAMIC_OPTIONS
-    fi
+   # Read the dynamic options file for any updates to MAXITER or
+   # PARALLEL_OPTS
+   if [ -r COW_DYNAMIC_OPTIONS ]; then
+      echo ""
+      echo File COW_DYNAMIC_OPTIONS found, processing dynamic options.
+      while read; do
+         echo -n "   Opt $REPLY => "
+         case $REPLY in
+         PARALLEL=OFF)
+            PARALLEL=""
+            echo Turning parallel decoding off
+            ;;
+         PARALLEL=*)
+            PARALLEL=1
+            PARALLEL_OPTS="${REPLY#PARALLEL=}"
+            PARALLEL_OPTS="${PARALLEL_OPTS//\"/}"
+            echo Setting parallel option\(s\) to $PARALLEL_OPTS
+            ;;
+         STOP_AFTER=*)
+            STOP_AFTER="${REPLY#STOP_AFTER=}"
+            STOP_AFTER="${STOP_AFTER// /}"
+            if [ "`expr $STOP_AFTER + 0 2> /dev/null`" != "$STOP_AFTER" ]
+            then
+               echo Ignoring non integer STOP_AFTER parameter $STOP_AFTER
+            else
+               MAXITER=$STOP_AFTER
+               echo Doing $STOP_AFTER more iteration\(s\) and then stopping.
+            fi
+            ;;
+         *)  Ignoring unknown dynamic option: "$REPLY"
+         esac
+      done < COW_DYNAMIC_OPTIONS
+      \rm COW_DYNAMIC_OPTIONS
+   fi
 
-    new=
+   new=
 
-    if [ -n "$MAXITER" ]; then
-        if [ $MAXITER -lt 1 ]; then
-            echo
-            echo Reached maximum number of iterations.  Stopping.
-            write_models
-            echo Done on `date`
-            exit
-        else
-            echo
-            echo $MAXITER iteration\(s\) remaining.
-        fi
-    fi
+   if [ -n "$MAXITER" ]; then
+      if [ $MAXITER -lt 1 ]; then
+         echo
+         echo Reached maximum number of iterations.  Stopping.
+         write_models
+         echo Done on `date`
+         exit
+      else
+         echo
+         echo $MAXITER iteration\(s\) remaining.
+      fi
+   fi
 
-    # Create all N-best lists and check if any of them have anything new to add
-    echo ""
-    echo "Producing n-best lists"
+   # Create all N-best lists and check if any of them have anything new to add
+   echo ""
+   echo "Producing n-best lists"
 
-    FOO_FILES=$WORKDIR/foo.????."$N"best$COMPRESS_EXT
-    totalPrevK=0
-    totalNewK=0
-    for x in $FOO_FILES; do
-        x=${x%$COMPRESS_EXT}
-        f=${x%."$N"best}
+   FOO_FILES=$WORKDIR/foo.????."$N"best$COMPRESS_EXT
+   totalPrevK=0
+   totalNewK=0
+   for x in $FOO_FILES; do
+      x=${x%$COMPRESS_EXT}
+      f=${x%."$N"best}
 
-        # We use gzip in case the user requested compress foo files
-        touch $f.duplicateFree$COMPRESS_EXT $f.duplicateFree.ffvals$COMPRESS_EXT
-        prevK=`gzip -cqfd $f.duplicateFree$COMPRESS_EXT | wc -l`
-        totalPrevK=$((totalPrevK + prevK))
-        append-uniq.pl -nbest=$f.duplicateFree$COMPRESS_EXT -addnbest=$x$COMPRESS_EXT \
-           -ffvals=$f.duplicateFree.ffvals$COMPRESS_EXT -addffvals=$x.ffvals$COMPRESS_EXT
-        newK=`gzip -cqfd $f.duplicateFree$COMPRESS_EXT | wc -l`
-        totalNewK=$((totalNewK + newK))
+      # We use gzip in case the user requested compress foo files
+      touch $f.duplicateFree$COMPRESS_EXT $f.duplicateFree.ffvals$COMPRESS_EXT
+      prevK=`gzip -cqfd $f.duplicateFree$COMPRESS_EXT | wc -l`
+      totalPrevK=$((totalPrevK + prevK))
+      append-uniq.pl -nbest=$f.duplicateFree$COMPRESS_EXT -addnbest=$x$COMPRESS_EXT \
+         -ffvals=$f.duplicateFree.ffvals$COMPRESS_EXT -addffvals=$x.ffvals$COMPRESS_EXT
+      newK=`gzip -cqfd $f.duplicateFree$COMPRESS_EXT | wc -l`
+      totalNewK=$((totalNewK + newK))
 
-        # Check if there was anything new
-        if [ $prevK -ne $newK ]; then
-           new=1
-        fi
+      # Check if there was anything new
+      if [ $prevK -ne $newK ]; then
+         new=1
+      fi
 
-        echo -n ".";
-    done
-    echo
-    echo "Total size of n-best list -- previous: $totalPrevK; current: $totalNewK."
-    echo
+      echo -n ".";
+   done
+   echo
+   echo "Total size of n-best list -- previous: $totalPrevK; current: $totalNewK."
+   echo
 
-    # If nothing new, then we're done, unless we just resumed, in which case we
-    # do at least one iteration.
-    if [ -z "$new" ]; then
-        echo
-        echo No new sentences in the N-best lists.
-        if [ $RESUME ]; then
-            echo -n But this is the first iteration after a resume, ""
-            echo so running rescore_train anyway.
-            echo
-        else
-            write_models
-            echo Done on `date`
-            exit
-        fi
-    fi
+   # If nothing new, then we're done, unless we just resumed, in which case we
+   # do at least one iteration.
+   if [ -z "$new" ]; then
+      echo
+      echo No new sentences in the N-best lists.
+      if [ $RESUME ]; then
+         echo -n But this is the first iteration after a resume, ""
+         echo so running rescore_train anyway.
+         echo
+      else
+         write_models
+         echo Done on `date`
+         exit
+      fi
+   fi
 
-    echo "Preparing to run rescore_train"
+   echo "Preparing to run rescore_train"
 
-    \rm $WORKDIR/alltargets $WORKDIR/allffvals >& /dev/null
-    S=$((`wc -l < $SFILE`))
-    for((n=0;n<$S;++n))
-    {
-        m=`printf "%4.4d" $n`
-        # We use gzip in case the user requested compress foo files
-        gzip -cqfd $WORKDIR/foo.${m}.duplicateFree$COMPRESS_EXT        | perl -pe "s/^/$n\t/"  >> $WORKDIR/alltargets
-        gzip -cqfd $WORKDIR/foo.${m}.duplicateFree.ffvals$COMPRESS_EXT | perl -pe "s/^/$n\t/"  >> $WORKDIR/allffvals
-    }
+   \rm $WORKDIR/alltargets $WORKDIR/allffvals >& /dev/null
+   S=$((`wc -l < $SFILE`))
+   for((n=0;n<$S;++n))
+   {
+      m=`printf "%4.4d" $n`
+      # We use gzip in case the user requested compress foo files
+      gzip -cqfd $WORKDIR/foo.${m}.duplicateFree$COMPRESS_EXT        | perl -pe "s/^/$n\t/"  >> $WORKDIR/alltargets
+      gzip -cqfd $WORKDIR/foo.${m}.duplicateFree.ffvals$COMPRESS_EXT | perl -pe "s/^/$n\t/"  >> $WORKDIR/allffvals
+   }
 
-    # Find the parameters that optimize the BLEU score over the given set of all targets
-    echo Running rescore_train on `date`
-    # RUNSTR="$RTRAIN -dyn -n $FLOOR_ARG $MODEL $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
+   # Find the parameters that optimize the BLEU score over the given set of all targets
+   echo Running rescore_train on `date`
+   # RUNSTR="$RTRAIN -dyn -n $FLOOR_ARG $MODEL $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
 
-    if [ $RESUME ]; then
+   if [ $RESUME ]; then
       if [ `ls $POWELLFILE*|wc -l` -ge 1 ]; then
          WEIGHTINFILE=`ls -tr1 $POWELLFILE.* | tail -1`
          ITER=`echo $WEIGHTINFILE | cut -d"." -f3`
@@ -603,47 +651,47 @@ while [ 1 ]; do
          echo "Resuming from $WEIGHTINFILE"
          echo "   ==> $MAXITER iteration\(s\) remaining."
       fi
-    else
+   else
       WEIGHTINFILE=$POWELLFILE.$ITER
       ITER=$((ITER + 1))
       WEIGHTOUTFILE=$POWELLFILE.$ITER
-    fi
+   fi
 
-    if [ -e $WEIGHTOUTFILE ]; then
+   if [ -e $WEIGHTOUTFILE ]; then
       rename_old $WEIGHTOUTFILE
-    fi
-    if [ $ITER -ge 2 ]; then
-        RUNSTR="$RTRAIN -wi $WEIGHTINFILE -wo $WEIGHTOUTFILE -dyn -n $FLOOR_ARG $MODEL $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
-    else
-        RUNSTR="$RTRAIN -wo $WEIGHTOUTFILE -dyn -n $FLOOR_ARG $MODEL $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
-    fi
-    echo "$RUNSTR"
-    time $RUNSTR
+   fi
+   if [ $ITER -ge 2 ]; then
+      RUNSTR="$RTRAIN $ESTOP -wi $WEIGHTINFILE -wo $WEIGHTOUTFILE -dyn -n $FLOOR_ARG $MODEL_ORIG $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
+   else
+      RUNSTR="$RTRAIN $ESTOP -wo $WEIGHTOUTFILE -dyn -n $FLOOR_ARG $MODEL_ORIG $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
+   fi
+   echo "$RUNSTR"
+   time $RUNSTR
 
-    # Check return value
-    RVAL=$?
-    if [ $RVAL -ne 0 ]; then
+   # Check return value
+   RVAL=$?
+   if [ $RVAL -ne 0 ]; then
       echo "Error: rescore_train returned $RVAL"
       exit 1
-    fi
+   fi
 
-    # If the new model file is identical to the old one, we're done, since the
-    # next iteration will produce exactly the same output as the last one.
-    if diff -q $MODEL $TMPMODELFILE; then
-        # We repeat the last line in rescore-results, since that tells the
-        # experimenter that a stable point has been reached.
-        echo `bleumain $TRANSFILE $RFILES | egrep BLEU` " $wtvec" >> $HISTFILE
+   # If the new model file is identical to the old one, we're done, since the
+   # next iteration will produce exactly the same output as the last one.
+   if diff -q $MODEL $TMPMODELFILE; then
+      # We repeat the last line in rescore-results, since that tells the
+      # experimenter that a stable point has been reached.
+      echo `bleumain $TRANSFILE $RFILES | egrep BLEU` " $wtvec" >> $HISTFILE
 
-        echo
-        echo New model identical to previous one.
-        write_models
-        echo Done on `date`
-        exit
-    fi
+      echo
+      echo New model identical to previous one.
+      write_models
+      echo Done on `date`
+      exit
+   fi
 
-    # Replace the old model with the new one
-    mv $TMPMODELFILE $MODEL
+   # Replace the old model with the new one
+   mv $TMPMODELFILE $MODEL
 
-    RESUME=
+   RESUME=
 
 done
