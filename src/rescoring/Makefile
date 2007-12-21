@@ -30,6 +30,8 @@ BINSCRIPTS = \
 LIBRARY=libportage_rescoring
 
 TESTPROGS = \
+	test_feature_function_grammar \
+	test_rescoring_stop \
 	testff \
 	testfileReader \
 	testfmax \
