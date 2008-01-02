@@ -23,6 +23,7 @@
 #include <boost/spirit.hpp>
 #include <boost/spirit/actor/assign_actor.hpp>
 #include <boost/bind.hpp>
+#include <cmath>
 
 using namespace Portage;
 using namespace boost::spirit;
@@ -557,6 +558,12 @@ void CanoeConfig::check()
    if ( futLMHeuristic != "none" && futLMHeuristic != "unigram" && futLMHeuristic != "incremental" && futLMHeuristic != "simple" )
       error(ETFatal, "future-score-lm-heuristic must be one of: 'none', 'unigram', 'incremental', or 'simple'");
 
+    // Checking weights' value for valid numerical values
+    vector<double> wts;
+    getFeatureWeights(wts);
+    for (Uint i(0); i<wts.size(); ++i)
+       if (!isfinite(wts[i]))
+          error(ETFatal, "Some of the weights are not numerical values (id:%d)", i);
 }
 
 void CanoeConfig::check_all_files() const
