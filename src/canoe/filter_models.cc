@@ -102,7 +102,7 @@ int MAIN(argc, argv)
    typedef FileList::iterator FL_iterator;
 
    printCopyright(2006, "filter_models");
-   ARG arg(argc, argv);
+   const ARG arg(argc, argv);
 
    CanoeConfig c;
    c.read(arg.config.c_str());
@@ -134,8 +134,7 @@ int MAIN(argc, argv)
    {
       LOG_VERBOSE1(filter_models_Logger, "Loading source sentences");
       string line;
-      //IMagicStream is(in_file.size() ? in_file : "-");
-      IMagicStream is("-");
+      IMagicStream is(arg.input);
       InputParser reader(is);
       vector<MarkedTranslation> dummy; // Required to call readMarkedSent()
       while (!reader.eof()) {

@@ -110,7 +110,8 @@ Options:\n\
        /// Program filter_models' allowed command line arguments
        const char* const switches[] = {
           "z", "s", "r", "L", "no-src-grep", "tm-online", "c",
-          "hard-limit:", "soft-limit:", "f:", "suffix:", "vocab:"
+          "hard-limit:", "soft-limit:", "f:", "suffix:", "vocab:",
+          "input:"
        };
 
        /// Command line arguments processing for filter_models.
@@ -130,6 +131,7 @@ Options:\n\
              bool   no_src_grep;  ///< process all entries disregarding the source sentences.
              bool   tm_online;    ///< indicates to process source tm in a streaming mode
              bool   output_config; ///< indicates to output the modified canoe.ini
+             string input;         ///< Input sentences to filter on
 
           public:
              /// Default constructor.
@@ -149,6 +151,7 @@ Options:\n\
              , no_src_grep(false)
              , tm_online(false)
              , output_config(true)
+             , input("-")
              {
                 argProcessor::processArgs(argc, argv);
              }
@@ -171,6 +174,7 @@ Options:\n\
                 mp_arg_reader->testAndSet("z", compress);
                 mp_arg_reader->testAndSet("no-src-grep", no_src_grep);
                 mp_arg_reader->testAndSet("tm-online", tm_online);
+                mp_arg_reader->testAndSet("input", input);
                 // if the option is set we don't want to strip.
                 strip = !mp_arg_reader->getSwitch("s");
                 output_config = !mp_arg_reader->getSwitch("c");
