@@ -158,6 +158,29 @@ class BasicModelGenerator;
       virtual double score(const PartialTranslation& pt) = 0;
 
       /**
+       * Partial score based only on the source range, not the target phrase.
+       *
+       * Compute as much of this feature's marginal score as can be inferred
+       * taking into consideration trans.lastPhrase's src_words, but *ignoring*
+       * the target words in trans.lastPhrase!
+       *
+       * The sum partialScore(trans) + precomputeFutureScore(trans.lastPhrase)
+       * is used as a heuristic for score(trans), so those two methods should
+       * not take into account the same information.
+       *
+       * In the base class, we return 0, because it is expected that most
+       * features can't do anything with only the last source range.  Should be
+       * overriden in subclasses where this is not the case, like distortion.
+       *
+       * @param trans           previous partial translation
+       * @param next_src_words  the source range for phrases we might add to
+       *                        trans
+       * @return inferrable part of score()
+       */
+      virtual double partialScore(const PartialTranslation &trans)
+      { return 0.0; }
+
+      /**
        * Compute a recombining hash value.
        *
        * The hash value returned should capture information that is only

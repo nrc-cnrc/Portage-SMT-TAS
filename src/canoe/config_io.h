@@ -159,6 +159,8 @@ public:
    string input;                    ///< Source sentences input file name
    bool bAppendOutput;              ///< Flag to output one single file instead of multiple files.
    bool bLoadBalancing;             ///< Running in load-balancing mode => parse source sentences ids
+   bool bCubePruning;               ///< Run the cube pruning decoder
+   string cubeLMHeuristic;          ///< What LM heuristic to use in cube pruning
    string futLMHeuristic;           ///< What LM heuristic to use when calculating future scores
 
    /**

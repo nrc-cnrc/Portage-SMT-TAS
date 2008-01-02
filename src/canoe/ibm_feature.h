@@ -62,6 +62,7 @@ public:
       return phraseLogProb(pt.lastPhrase->phrase);
    }
 
+   virtual double partialScore(const PartialTranslation &trans) {return 0.0;}
    virtual double futureScore(const PartialTranslation &trans) {return 0.0;}
    virtual Uint computeRecombHash(const PartialTranslation &pt) {return 0;}
    virtual bool isRecombinable(const PartialTranslation &pt1,

@@ -130,7 +130,7 @@ namespace Portage
    } // makeEmptyState
 
    DecoderState *extendDecoderState(DecoderState *state0, PhraseInfo *phrase,
-         Uint &numStates)
+         Uint &numStates, const UintSet* preCalcSourceWordsCovered)
    {
       assert(state0 != NULL);
       assert(phrase != NULL);
@@ -141,7 +141,7 @@ namespace Portage
 
       // Create the new partial translation, extending trans0
       PartialTranslation *trans =
-         new PartialTranslation(trans0, phrase);
+         new PartialTranslation(trans0, phrase, preCalcSourceWordsCovered);
 
       // Create the new decoder state
       DecoderState *state = new DecoderState;

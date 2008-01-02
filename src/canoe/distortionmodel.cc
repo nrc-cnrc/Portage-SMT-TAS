@@ -196,6 +196,17 @@ double WordDisplacement::score(const PartialTranslation& trans)
 
 }
 
+// Note: PhraseDisplacement relies on this implementation of partialScore(),
+// so if any changed is made here, class PhraseDisplacement will need to
+// overridden partialScore().
+double WordDisplacement::partialScore(const PartialTranslation& trans)
+{
+   // score() only uses the source range of the last phrase, so it does what
+   // this function should do.
+   return score(trans);
+}
+
+
 // Technically, this should capture the end of the source phrase aligned with
 // the rightmost target phrase, but it doesn't have to be perfct, so I'm going
 // with the way Aaron originally defined it.

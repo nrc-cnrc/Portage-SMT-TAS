@@ -144,6 +144,8 @@ CanoeConfig::CanoeConfig()
    input                  = "-";
    bAppendOutput          = false;
    bLoadBalancing         = false;
+   bCubePruning           = false;
+   cubeLMHeuristic        = "incremental";
    futLMHeuristic         = "incremental";
 
    // Parameter information, used for input and output. NB: doesn't necessarily
@@ -209,6 +211,8 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("load-first", "bool", &loadFirst));
    param_infos.push_back(ParamInfo("input", "string", &input));
    param_infos.push_back(ParamInfo("append", "bool", &bAppendOutput));
+   param_infos.push_back(ParamInfo("cube-pruning", "bool", &bCubePruning));
+   param_infos.push_back(ParamInfo("cube-lm-heuristic", "string", &cubeLMHeuristic));
    param_infos.push_back(ParamInfo("future-score-lm-heuristic", "string", &futLMHeuristic));
    param_infos.push_back(ParamInfo("lb", "bool", &bLoadBalancing));
 
@@ -555,8 +559,16 @@ void CanoeConfig::check()
    if (phraseTableSizeLimit != NO_SIZE_LIMIT && forPhraseFiles.empty() && multiProbTMFiles.empty())
       error(ETWarn, "Doing phrase table pruning without forward translation model.");
 
+   if ( bCubePruning )
+      if ( covLimit != 0 || covThreshold != 0.0 )
+         error(ETWarn, "Coverage pruning is not implemented yet in the cube pruning decoder, ignoring -cov-* options.");
+
+   if ( cubeLMHeuristic != "none" && cubeLMHeuristic != "unigram" && cubeLMHeuristic != "incremental" && cubeLMHeuristic != "simple" )
+      error(ETFatal, "cube-lm-heuristic must be one of: 'none', 'unigram', 'incremental', or 'simple'");
+
    if ( futLMHeuristic != "none" && futLMHeuristic != "unigram" && futLMHeuristic != "incremental" && futLMHeuristic != "simple" )
       error(ETFatal, "future-score-lm-heuristic must be one of: 'none', 'unigram', 'incremental', or 'simple'");
+
 
    // Checking weights' value for valid numerical values
    vector<double> wts;

@@ -28,6 +28,7 @@ namespace Portage
    class PartialTranslation;
    class PhraseInfo;
    class PhraseDecoderModel;
+   class BasicModel;
    class HypothesisStack;
    class PhraseFinder;
    class CanoeConfig;
@@ -141,10 +142,13 @@ namespace Portage
     * @param phrase A pointer to the phrase being added to state0 (cannot be
     *               NULL).
     * @param numStates  counter to assign unique ids
+    * @param preCalcSourceWordsCovered (optional) if specified, indicates that
+    *               the coverage set of the resulting state has already been
+    *               calculated, and provides it.
     * @return    The extended state.
     */
    DecoderState *extendDecoderState(DecoderState *state0, PhraseInfo *phrase,
-         Uint &numStates);
+         Uint &numStates, const UintSet* preCalcSourceWordsCovered = NULL);
 
    /**
     * Runs the decoder algorithm using the given model, with a pruning model
@@ -171,12 +175,14 @@ namespace Portage
     *         threshold)
     * @param c.distLimit  The maximum distortion distance allowed between two
     *         words. NO_MAX_DISTORTION means none.
+    * @param c.bCubePruning Run the cube pruning decoder rather than the
+    *         standard stack-based one.
     * @param c.verbosity  Indicates the level of verbosity
     * @return  A pointer to the final hypothesis stack, which contains the
     *         best complete translations.  While this HypothesisStack is
     *         created by this function, it must be deleted externally.
     */
-   HypothesisStack *runDecoder(PhraseDecoderModel &model, const CanoeConfig& c);
+   HypothesisStack *runDecoder(BasicModel &model, const CanoeConfig& c);
 
    /**
     * Runs the decoder algorithm.  Uses the hypothesis stacks given, emptying

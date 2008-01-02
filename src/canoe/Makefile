@@ -28,6 +28,8 @@ OBJECTS= \
     canoe_general.o \
     canoe_constants.o \
     config_io.o \
+    cube_pruning_decoder.o \
+    cube_pruning_hyp_stack.o \
     decoder.o \
     decoder_feature.o \
     decoderstate.o \
@@ -44,8 +46,8 @@ OBJECTS= \
     phrasefinder.o \
     phrasetable.o \
     phrasetable_filter_grep.o \
-    phrasetable_filter_lm.o \
     phrasetable_filter_joint.o \
+    phrasetable_filter_lm.o \
     phrase_tm_align_compute.o \
     segmentmodel.o \
     soft_filter_tm_visitor.o \

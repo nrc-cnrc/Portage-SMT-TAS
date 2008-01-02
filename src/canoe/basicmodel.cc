@@ -180,7 +180,7 @@ BasicModelGenerator* BasicModelGenerator::create(
 
    }
 
-   // HMM no need for all that filtering data, might as well get rid of it.
+   // HUMM no need for all that filtering data, might as well get rid of it.
    result->tgt_vocab.freePerSentenceData();
 
    return result;
@@ -196,6 +196,7 @@ BasicModelGenerator::BasicModelGenerator(const CanoeConfig& c,
    numTextTransWeights(0),
    lm_numwords(1),
    futureScoreLMHeuristic(lm_heuristic_type_from_string(c.futLMHeuristic)),
+   cubePruningLMHeuristic(lm_heuristic_type_from_string(c.cubeLMHeuristic)),
    addWeightMarked(log(c.weightMarked))
 {
    if ( this->phraseTable == NULL ) {
@@ -218,6 +219,7 @@ BasicModelGenerator::BasicModelGenerator(
    numTextTransWeights(0),
    lm_numwords(1),
    futureScoreLMHeuristic(lm_heuristic_type_from_string(c.futLMHeuristic)),
+   cubePruningLMHeuristic(lm_heuristic_type_from_string(c.cubeLMHeuristic)),
    addWeightMarked(log(c.weightMarked))
 {
    if ( this->phraseTable == NULL ) {
@@ -919,6 +921,65 @@ double BasicModel::computeFutureScore(const PartialTranslation &trans)
 
    return precomputedScore + ffScore;
 } // computeFutureScore
+
+double BasicModel::rangePartialScore(const PartialTranslation& trans)
+{
+   // Only "other features" come into play for this partial score.
+   double result = 0.0;
+   for (Uint k = 0; k < parent.decoder_features.size(); ++k) {
+      result += parent.decoder_features[k]->partialScore(trans)
+                * featureWeights[k];
+   }
+   return result;
+}
+
+double BasicModel::phrasePartialScore(const PhraseInfo* phrase)
+{
+   // Backward translation socre - the main information source used here.
+   double score = phrase->phrase_trans_prob;
+
+   // Forward translation score (if used)
+   if ( ! forwardWeights.empty() )
+      score += ((const ForwardBackwardPhraseInfo*)phrase)->forward_trans_prob;
+
+   // LM score: use a heuristic LM score, as specified by the user
+   if ( parent.cubePruningLMHeuristic == parent.LMH_UNIGRAM ) {
+      // Our old future score LM heuristic: use the unigram LM score
+      for ( Phrase::const_iterator jt = phrase->phrase.begin();
+            jt != phrase->phrase.end(); ++jt )
+         for (Uint k = 0; k < lmWeights.size(); k++)
+            score += parent.lms[k]->wordProb(*jt, NULL, 0) * lmWeights[k];
+   } else if ( parent.cubePruningLMHeuristic == parent.LMH_INCREMENTAL ) {
+      Uint phrase_size(phrase->phrase.size());
+      Uint reversed_phrase[phrase_size];
+      for ( Uint i(0); i < phrase_size; ++i )
+         reversed_phrase[i] = phrase->phrase[phrase_size - i - 1];
+      for ( Uint j(0); j < parent.lms.size(); ++j )
+         for ( Uint i(0); i < phrase_size; ++i )
+            score += parent.lms[j]->wordProb(reversed_phrase[i],
+                     &(reversed_phrase[i+1]), phrase_size-i-1)
+                   * lmWeights[j];
+   } else if ( parent.cubePruningLMHeuristic == parent.LMH_SIMPLE ) {
+      // The "simple" heuristic is admissible by ignoring words with
+      // insufficient context
+      Uint phrase_size(phrase->phrase.size());
+      Uint reversed_phrase[phrase_size];
+      for ( Uint i(0); i < phrase_size; ++i )
+         reversed_phrase[i] = phrase->phrase[phrase_size - i - 1];
+      for ( Uint j(0); j < parent.lms.size(); ++j )
+         for ( Uint i(0); i < phrase_size - (parent.lms[j]->getOrder()-1); ++i )
+            score += parent.lms[j]->wordProb(reversed_phrase[i],
+                     &(reversed_phrase[i+1]), phrase_size-i-1)
+                   * lmWeights[j];
+   } // else LMH==NONE: nothing to do!
+
+   // Other feature scores are available through precomputeFutureScore().
+   for ( Uint k(0); k < parent.decoder_features.size(); ++k )
+      score += parent.decoder_features[k]->precomputeFutureScore(*phrase)
+               * featureWeights[k];
+
+   return score;
+} // phrasePartialScore
 
 Uint BasicModel::computeRecombHash(const PartialTranslation &trans)
 {

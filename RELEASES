@@ -68,6 +68,11 @@ v1.2 ??.??.200?
    rescore_train an appropriately modified model file.  See rat.sh -h for
    details, and test-suite/regress-small-voc/28_rat_train.pl for an example
    rescoring model in this new syntax.
+ - Implemented Huang and Chiang's (ACL 2007) cube pruning algorithm.  See their
+   paper for details.  Can yield an order-of-magnitude speed up in decoding in
+   most circumstances.  Requires careful retuning of some decoding parameters,
+   however, especially S since its meaning is not the same as with regular
+   decoding.  Run canoe -h for details on enabling this feature.
 
  Major bug fixes:
  - When canoe was used with -weight-f (weights on the forward translation

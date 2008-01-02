@@ -253,6 +253,9 @@ namespace Portage
 
       /// LM heuristic to use to compute future scores
       LMHeuristicType futureScoreLMHeuristic;
+      /// LM heuristic to use in cube pruning
+      LMHeuristicType cubePruningLMHeuristic;
+
       // These compute the raw feature function values of different sorts.
       /**
        * @brief Get raw language models probabilities
@@ -688,6 +691,12 @@ namespace Portage
       }
 
       /**
+       * Gets a reference to the phrase table object of this model.
+       * @return the phrase table.
+       */
+      PhraseTable& getPhraseTable() { return *(parent.phraseTable); }
+
+      /**
        * Get the length of the source sentence being translated.
        * @return          The number of words in the source sentence.
        */
@@ -737,6 +746,31 @@ namespace Portage
        */
       virtual double computeFutureScore(const PartialTranslation &trans);
 
+      /**
+       * Partial scoring function based on range, for cube pruning.
+       *
+       * Estimates the incremental score, in so far as can be calculated if one
+       * only takes into account the source range of the last phrase in trans.  
+       * Does not consider TMs and LMs - only considers features that override
+       * DecoderFeature::partialScore(), e.g., distortion.
+       *
+       * The sum rangePartialScore(trans) + phrasePartialScore(trans.src_words)
+       * is used as a heuristic for scoreTranslation(trans).
+       * @param trans           The previous partial translation
+       * @param next_src_words  The range for phrases to consider adding
+       * @return  the part of the incremental score than can be estimated
+       */
+      virtual double rangePartialScore(const PartialTranslation& trans);
+
+      /**
+       * Partial scoring function based on the phrase, for cube pruning.
+       * Only considers the TM and other features that implement
+       * precomputeFutureScore().
+       * @param phrase  The phrase to score
+       * @return the future score for phrase_info, taking into account all
+       *         models except the LMs.
+       */
+      virtual double phrasePartialScore(const PhraseInfo* phrase);
 
       /** -- Functions to manage recombining hypotheses. -- */
 

@@ -273,6 +273,14 @@ Options (in command-line format):\n\
         Indicates that canoe is running in load-balancing mode thus the source\n\
         sentences will be prepended with a source sentence id.\n\
 \n\
+ -cube-pruning\n\
+        Run the cube pruning decoder, a la Huang+Chiang (ACL 2007), instead of\n\
+        the regular stack decoder.  (Not compatible yet with coverage pruning).\n\
+        Note that with regular decoding, each stack gets up to S elements, not\n\
+        counting recombined states, whereas with cube pruning recombined states\n\
+        are counted.  Recomemded S values are therefore around 10000-30000 with\n\
+        cube pruning, rather than 100-300.\n\
+\n\
  -future-score-lm-heuristic FUT-LM-HEURISTIC\n\
         Specify the LM heuristic to use for the future score.  One of:\n\
            none - h = 1.0;\n\
@@ -280,6 +288,12 @@ Options (in command-line format):\n\
            simple - h = 1.0 if context is partial, h = prob otherwise;\n\
            incremental - h = unigram for first word, bigram for next, etc.;\n\
         [incremental]\n\
+\n\
+ -cube-lm-heuristic CUBE-LM-HEURISTIC\n\
+        Specify the LM heuristic to use for cube pruning.  Same choices as\n\
+        above.  Affects the order in which the cube pruning decoder considers\n\
+        candidate phrases, whereas FUT-LM-HEURISTIC is used to calculate the\n\
+        global future score [incremental]\n\
 \n\
  -verbose V\n\
  -v V\n\

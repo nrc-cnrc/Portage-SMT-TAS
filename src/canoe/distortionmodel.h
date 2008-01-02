@@ -177,6 +177,8 @@ public:
 
    virtual double score(const PartialTranslation& pt);
 
+   virtual double partialScore(const PartialTranslation& trans);
+
    virtual Uint computeRecombHash(const PartialTranslation &pt);
 
    virtual bool isRecombinable(const PartialTranslation &pt1, const PartialTranslation &pt2);
@@ -251,6 +253,7 @@ public:
    virtual double futureScore(const PartialTranslation &trans);
 
    // same implementation as WordDisplacement
+   //virtual double partialScore(const PartialTranslation& trans);
    //virtual Uint computeRecombHash(const PartialTranslation &pt);
    //virtual bool isRecombinable(const PartialTranslation &pt1, const PartialTranslation &pt2);
    //virtual double precomputeFutureScore(const PhraseInfo& phrase_info);

@@ -56,6 +56,7 @@ namespace Portage {
   public:
 
     virtual double score(const PartialTranslation& pt);
+    virtual double partialScore(const PartialTranslation& trans);
     virtual Uint computeRecombHash(const PartialTranslation &pt);
     virtual bool isRecombinable(const PartialTranslation &pt1, const PartialTranslation &pt2);
     virtual double precomputeFutureScore(const PhraseInfo& phrase_info);
@@ -78,6 +79,7 @@ namespace Portage {
      */
     BernoulliSegmentationModel(const string &arg);
     virtual double score(const PartialTranslation& pt);
+    virtual double partialScore(const PartialTranslation& trans);
     virtual Uint computeRecombHash(const PartialTranslation &pt);
     virtual bool isRecombinable(const PartialTranslation &pt1, const PartialTranslation &pt2);
     virtual double precomputeFutureScore(const PhraseInfo& phrase_info);

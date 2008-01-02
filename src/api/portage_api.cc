@@ -69,7 +69,7 @@ void PortageAPI::translate(const string& src_text, string& tgt_text)
 
    for (Uint i = 0; i < src_sents.size(); ++i) {
       // should read trans markup here, but assume none & use empty cur_mark
-      PhraseDecoderModel* pdm = bmg->createModel(src_sents[i], cur_mark);
+      BasicModel* pdm = bmg->createModel(src_sents[i], cur_mark);
       HypothesisStack* h = runDecoder(*pdm, c);
       assert(!h->isEmpty());
       PrintPhraseOnly print(*pdm);

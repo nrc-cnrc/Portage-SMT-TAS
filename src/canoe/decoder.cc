@@ -20,20 +20,22 @@
 
 #include "decoder.h"
 #include "hypothesisstack.h"
-#include "phrasedecoder_model.h"
+#include "basicmodel.h"
 #include "phrasefinder.h"
-#include "config_io.h"
+#include "cube_pruning_decoder.h"
 #include <vector>
 #include <iostream>
-#include <cmath>
 
 using namespace std;
 using namespace Portage;
 
 namespace Portage
 {
-   HypothesisStack *runDecoder(PhraseDecoderModel &model, const CanoeConfig& c)
+   HypothesisStack *runDecoder(BasicModel &model, const CanoeConfig& c)
    {
+      if ( c.bCubePruning )
+         return runCubePruningDecoder(model, c);
+
       // Get all the phrase translation options from the model
       Uint sourceLength = model.getSourceLength();
       vector<PhraseInfo *> **phrases = model.getPhraseInfo();

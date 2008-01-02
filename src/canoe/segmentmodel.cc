@@ -60,6 +60,11 @@ double SegmentCount::score(const PartialTranslation& trans)
    return -1;
 }
 
+double SegmentCount::partialScore(const PartialTranslation& trans)
+{
+   return 0;
+}
+
 Uint SegmentCount::computeRecombHash(const PartialTranslation &pt)
 {
    return 0;
@@ -94,6 +99,11 @@ double BernoulliSegmentationModel::score(const PartialTranslation& pt)
 {
    int words = pt.lastPhrase->src_words.end - pt.lastPhrase->src_words.start;
    return boundary + (words - 1) * not_boundary;
+}
+
+double BernoulliSegmentationModel::partialScore(const PartialTranslation& trans)
+{
+   return 0;
 }
 
 Uint BernoulliSegmentationModel::computeRecombHash(const PartialTranslation &pt)

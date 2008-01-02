@@ -509,7 +509,7 @@ int MAIN(argc, argv)
       if (c.randomWeights)
          gen->setRandomWeights((c.randomSeed + 1) * sourceSentenceId);
       vector<bool> oovs;
-      PhraseDecoderModel *model = gen->createModel(sent, curMarks, false, &oovs);
+      BasicModel *model = gen->createModel(sent, curMarks, false, &oovs);
 
       if (c.oov != "pass") {  // skip translation; just write back source, with oov handling
          writeSrc(c.oov == "write-src-deleted", sent, oovs);
