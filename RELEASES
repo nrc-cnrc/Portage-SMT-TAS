@@ -16,7 +16,7 @@ license agreement for details.
 Done: utils build logging eval preprocessing lm tm canoe api rescoring
 (for dir in canoe; do
     cd $dir
-    for x in `\ls ~/sandboxes/PortageTrunk/src/$dir | grep -v '\.o$'`
+    for x in `\ls ~/sandboxes/PortageTrunk/src/$dir | egrep -v '\.(a|o|so)$'`
       do echo ====================================================
       echo gvimdiff $x ~/sandboxes/PortageTrunk/src/$dir/$x
       if [ -f $x ]; then
@@ -85,6 +85,9 @@ v1.2 ??.??.200?
    - new -check-input-only option to validate an input file, not decode;
    - improved error messages when invalid markup is encountered;
    - improved error recovery in -tolerate-markup-errors mode;
+   - modified the markup language rules to "do what the user probably meant" by
+     default when possible: an unescaped <, > or \ is treated literally (with a
+     warning) if it can't be interpreted as markup.
    - option -segmentation-args is replaced by -segmentation-model model#args;
    - compress nbest and ffvals files on the fly;
    - the canoe.ini file format now allows lists to be separated by whitespace
@@ -98,6 +101,11 @@ v1.2 ??.??.200?
    - new -append option concatenate nbest, ffvals and pal files on the fly;
    - when using random-weights (for cow.sh -mad), a specific distribution can
      be specified for each feature;
+ - phrase_tm_align overhaul:
+   - now reads a canoe.ini file and combines multiple models as canoe does,
+     instead of accepting only one phrase table;
+   - prints ffvals for all models in the canoe.ini file, even those that have
+     no impact on alignment (e.g., lm).
  - canoe-parallel.sh:
    - new -lb option to perform load balancing;
    - new -resume option to attempt to recover a job that died previously;

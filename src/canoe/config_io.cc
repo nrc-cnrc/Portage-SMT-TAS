@@ -558,12 +558,13 @@ void CanoeConfig::check()
    if ( futLMHeuristic != "none" && futLMHeuristic != "unigram" && futLMHeuristic != "incremental" && futLMHeuristic != "simple" )
       error(ETFatal, "future-score-lm-heuristic must be one of: 'none', 'unigram', 'incremental', or 'simple'");
 
-    // Checking weights' value for valid numerical values
-    vector<double> wts;
-    getFeatureWeights(wts);
-    for (Uint i(0); i<wts.size(); ++i)
-       if (!isfinite(wts[i]))
-          error(ETFatal, "Some of the weights are not numerical values (id:%d)", i);
+   // Checking weights' value for valid numerical values
+   vector<double> wts;
+   getFeatureWeights(wts);
+   for (Uint i(0); i<wts.size(); ++i)
+      if (!isfinite(wts[i]))
+         error(ETFatal, "A weight has a non-finite value (id:%d, value:%f).",
+               i, wts[i]);
 }
 
 void CanoeConfig::check_all_files() const

@@ -282,8 +282,9 @@ void BasicModelGenerator::addTranslationModel(const char *src_to_tgt_file,
 void BasicModelGenerator::addTranslationModel(const char *src_to_tgt_file,
         const char *tgt_to_src_file, double weight, double forward_weight)
 {
+   forwardWeightsV.insert(forwardWeightsV.begin() + numTextTransWeights,
+                          forward_weight);
    addTranslationModel(src_to_tgt_file, tgt_to_src_file, weight);
-   forwardWeightsV.insert(forwardWeightsV.begin() + numTextTransWeights, forward_weight);
 } // addTranslationModel
 
 void BasicModelGenerator::addTranslationModel(const char *src_to_tgt_file, double weight)

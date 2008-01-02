@@ -1,8 +1,8 @@
 /**
  * @author Aaron Tikuisis
  *     **this copied+modified by Matthew Arnold for alignment purposes
- * @file phrase_tm_align.cc  This file contains what used to be for
- * phrase_tm_score which is now being re-used for alignment training purposes
+ *  **Modified by Nicola Ueffing to use all decoder models
+ * @file phrase_tm_align.cc  Use the decoder to phrase align source and target text.
  *
  * $Id$
  *
@@ -16,6 +16,7 @@
  */
 
 #include "phrase_tm_align.h"
+#include "inputparser.h"
 #include <canoe_general.h>
 #include <phrasetable.h>
 #include <str_utils.h>
@@ -34,13 +35,11 @@ using namespace Portage;
 
 /// Program phrase_tm_align's usage.
 const char *HELP =
-"Usage: phrase_tm_align [-v V][-noscore][-onlyscore][-noannoy][-n N][-load-first -K K]\n\
-                       [-distortion-limit D][-distortion-model M][-weight-d W]\n\
-                       [-segmentation-model M][-weight-s W]\n\
-                       [-s S][-b T]\n\
-                       phrases.source_given_target source targets [outfile]\n\
+"Usage: phrase_tm_align [-noscore][-onlyscore][-n N][-K K][-out file]\n\
+        -f canoefile -ref targetfile < [sourcefile]\n\
 \n\
-Use a phrase table to find phrase alignments for given source and target files.\n\
+Specify phrase tables and search settings in canoefile.\n\
+Use the phrase tables to find phrase alignments for given source and target files.\n\
 Each source sentence may have a fixed number K of contiguous translations in the\n\
 target file. For each source/target pair, output consists of the source\n\
 sentence followed by N alignments (blank lines if alignments can't be found).\n\
@@ -49,31 +48,23 @@ by the corresponding target phrase in parentheses.\n\
 \n\
 By default the algorithm is exhaustive and slow; to speed it up, use switch\n\
 settings of -s 100 -b 0.0001 (canoe defaults), and optionally a distortion\n\
-limit of 10-15.\n\
+limit of 10 to 15.\n\
 \n\
 Options:\n\
- -v V                  The verbosity level (1 to 4).  Similar to canoe's verbose output\n\
  -noscore              Do not output scores with sentences\n\
  -onlyscore            Do not output sentences, only scores\n\
- -noannoy              Suppress annoying info line at beginning of output.\n\
  -n N                  The number N of output alignments to print [1]\n\
- -load-first           Loads the phrase table first (so that not all sentences are stored\n\
-                       in memory at once).  If this option is used, the value K must be\n\
-                       specified.\n\
  -K K                  The number of target translations per source sentence.  This must\n\
                        be specified if -load-first is used.  Otherwise, this value is\n\
                        determined automatically.\n\
- -distortion-model model[#args]\n\
-                       The distortion model (see canoe for choices and default).]\n\
- -distortion-limit D   The maximum distortion allowed. [NO_MAX_DISTORTION]\n\
- -weight-d W           The weight given to the distortion cost, relative to the weight\n\
-                       given to the translation score.  [1.0]\n\
- -segmentation-model model[#args]\n\
-                       The segmentation model (see canoe for choices and default).]\n\
- -weight-s W           The weight given to the segmentation model, relative to the weight\n\
-                       given to the translation score.  [1.0]\n\
- -s S                  The hypothesis stack size. [1000]\n\
- -b T                  The hypothesis stack relative threshold [10e-9]\n\
+ -out file             Output file\n\
+ -ref file             Target corpus, to align with sourcefile\n\
+\n\
+  For more options, see canoe -help message.\n\
+  Note: Since the target sentence is fixed, not all decoder features are\n\
+        relevant, although their scores can still be calculated and displayed\n\
+        if -ffvals is specified.\n\
+\n\
 ";
 
 /**
@@ -103,89 +94,107 @@ void readSentences(istream &in, vector< vector<string> > &sents)
 int main(Uint argc, const char * const * argv)
 {
    printCopyright(2005, "phrase_tm_align");
-   const char *switches[] = {"n:", "distortion-limit:", "distortion-model:","weight-d:",
-                             "segmentation-model:", "segmentation-args:", "weight-s:",
-                             "noscore", "onlyscore", "noannoy", "load-first", "K:","s:","b:","v:"};
-   ArgReader argReader(ARRAY_SIZE(switches), switches, 3, 4, HELP);
-   argReader.read(argc - 1, argv + 1);
-
-   const string &phraseFile = argReader.getVar(0);
-   const string &srcFile = argReader.getVar(1);
-   const string &tgtFile = argReader.getVar(2);
-   string outFile = (argReader.numVars() == 4 ? argReader.getVar(3) : "-");
-   Uint N = 1;//
-
-   string distModel="", segModel="", segArgs="";
 
    CanoeConfig c;
-   c.segWeight.resize(1);
-   c.segWeight[0] = 1.0;
-   c.distWeight.resize(1);
-   c.verbosity = 1;
+   static vector<string> args = c.getParamList();
 
-   Uint K;
-   bool noscore   = false;
-   bool onlyscore = false;
-   bool noannoy   = false;
+   const char* switches[args.size() + 6];
+   for (Uint i = 0; i < args.size(); ++i)
+      switches[i] = args[i].c_str();
+   switches[args.size()] = ("n:");
+   switches[args.size()+1] = ("k:");
+   switches[args.size()+2] = ("noscore");
+   switches[args.size()+3] = ("onlyscore");
+   switches[args.size()+4] = ("out:");
+   switches[args.size()+5] = ("ref:");
 
-   // Denis: modifications to reduce running time, grabbing hypothesis
-   // restrictions from canoe
-   // EJJ: to change these defaults for your experiments, use the -b and -s
-   // options!
-   c.maxStackSize     = 1000;  // NO_SIZE_LIMIT;  // Denis: 100
-   c.pruneThreshold   = 10e-9; // 0               // Denis: 0.0001
-   argReader.testAndSet("s", c.maxStackSize);
-   argReader.testAndSet("b", c.pruneThreshold);
+   char help[strlen(HELP) + strlen(argv[0])];
+   sprintf(help, HELP, argv[0]);
+   ArgReader argReader(ARRAY_SIZE(switches), switches, 0, 0, help, "-h", false);
+   argReader.read(argc - 1, argv + 1);
 
+   if (!argReader.getSwitch("f", &c.configFile) &&
+       !argReader.getSwitch("config", &c.configFile))
+      error(ETFatal, "No config file given.  Use -h for help.");
+
+   c.read(c.configFile.c_str());  // set parameters from config file
+   c.setFromArgReader(argReader); // override from cmd line
+   c.check();
+   PhraseTable::log_almost_0 = c.phraseTableLogZero;
+
+   if (c.verbosity >= 2)
+      c.write(cerr, 2);
+
+   bool noscore=false, onlyscore=false;
+   Uint N=1, K=1;
+   string outFile = "-";
+   string refFile;
    argReader.testAndSet("noscore", noscore);
    argReader.testAndSet("onlyscore", onlyscore);
    argReader.testAndSet("n", N);
-   argReader.testAndSet("load-first", c.loadFirst);
-   argReader.testAndSet("distortion-limit", c.distLimit);
-   argReader.testAndSet("distortion-model", c.distortionModel);
-   argReader.testAndSet("weight-d", c.distWeight[0]);
-   argReader.testAndSet("segmentation-model", c.segmentationModel);
-   argReader.testAndSet("weight-s", c.segWeight[0]);
-   argReader.testAndSet("K", K);
-   argReader.testAndSet("v", c.verbosity);
-   argReader.testAndSet("v", c.verbosity);
-   argReader.testAndSet("noannoy", noannoy);
-
-   if (c.distortionModel.empty())
-      c.distWeight.clear();
-   else
-      cerr << "Distortion model: " << c.distortionModel[0] << " with weight " << c.distWeight[0] << endl;
-   if (c.segmentationModel != "")
-      cerr << "Segmentation model: " << c.segmentationModel << " with weight " << c.segWeight[0] << endl;
+   argReader.testAndSet("k", K);
+   argReader.testAndSet("out", outFile);
+   argReader.testAndSet("ref", refFile);
 
    if (noscore && onlyscore) {
       cerr << "Your parameter choices do not make sense! Choose either noscore or onlyscore!" << endl;
       exit(1);
    }
 
-   // Open output file
-   cerr << N << " best alignments will be written to '" << outFile << "'" << endl;
-   OMagicStream out(outFile);
-   // cerr << " opened" << endl;
+   // Since we are decoding to a fixed target sentence, the LM, IBM1 and length
+   // features cannot be relevant, so we give them a weight of 0.
+   string weightstr;
+   c.getFeatureWeightString(weightstr);
+   cerr << "Using only phrase table, distortion and segmentation features." << endl
+        << "   Changing feature weights accordingly" << endl
+        << "   Original weights were " << weightstr << endl;
+   c.lmWeights.assign(c.lmWeights.size(), 0.0);
+   c.ibm1FwdWeights.assign(c.ibm1FwdWeights.size(), 0.0);
+   c.lengthWeight = 0.0;
 
+   c.getFeatureWeightString(weightstr);
+   cerr << "   Changed weights are    " << weightstr << endl;
+
+   // Read source sentences.
    vector<vector<string> > src_sents;
-   vector<vector<string> > tgt_sents;
-   // cerr << "opened" << endl;
-   // Open input files
-   IMagicStream sin(srcFile);
-   IMagicStream tin(tgtFile);
+   vector<vector<MarkedTranslation> > marked_src_sents;
+   IMagicStream input(c.input);
+   InputParser reader(input);
+   if ( ! c.loadFirst) {
+      cerr << "Reading input source sentences..." << endl;
+      while (true) {
+         src_sents.push_back(vector<string>());
+         marked_src_sents.push_back(vector<MarkedTranslation>());
+         if ( ! reader.readMarkedSent(src_sents.back(), marked_src_sents.back()) ) {
+            if ( c.tolerateMarkupErrors )
+               error(ETWarn, "Tolerating ill-formed markup, but part of the last input line has been discarded.");
+            else
+               error(ETFatal, "Aborting because of ill-formed markup.");
+         } // if
 
-   // cerr << "input" << endl;
+         if (reader.eof() && src_sents.back().empty()) {
+            src_sents.pop_back();
+            marked_src_sents.pop_back();
+            break;
+         } // if
+      } // while
+      reader.reportWarningCounts();
+      cerr << "... done reading input source sentences." << endl;
+   } // if
+
+   // Read reference (target) sentences.
+   if (refFile=="")
+      error(ETFatal, "You have to provide a reference file!\n");
+   IMagicStream ref(refFile);
+   vector<vector<string> > tgt_sents;
+   readSentences(ref, tgt_sents);
+
+   // Check if numbers of source and target sentences match
    if ( ! c.loadFirst ) {
-      // Read sentences.
-      // cerr << "load" << endl;
-      readSentences(sin, src_sents);
-      readSentences(tin, tgt_sents);
-      // cerr << "read" << endl;
       if (tgt_sents.size() % src_sents.size() != 0)
-         error(ETFatal, "Number of lines in %s is not a multiple of the number of lines in %s",
-               tgtFile.c_str(), srcFile.c_str());
-      if (argReader.getSwitch("K")) {
+         error(ETFatal, "Number of target lines (%d) in %s is not a multiple of the number of source lines (%d) in %s",
+               tgt_sents.size(), refFile.c_str(), src_sents.size(), c.input.c_str());
+      if (K>0) {
          if (tgt_sents.size() / src_sents.size() != K) {
             error(ETWarn, "K specified on command-line (%d) does not match computed K.  Using K=%d.",
                   K, min(K, tgt_sents.size() / src_sents.size()));
@@ -195,56 +204,63 @@ int main(Uint argc, const char * const * argv)
       else
          K = tgt_sents.size() / src_sents.size();
    }
-   else if (!argReader.getSwitch("K")) {
-      error(ETFatal, "Missing -K switch");
-   } // if
-   PhraseTMAligner aligner(c, phraseFile, src_sents);
+   cerr << "Determining alignments for " << K << " target sentences per source sentence."
+      << endl;
+
+   time_t start;
+   time(&start);
+
+   PhraseTMAligner aligner(c, src_sents, marked_src_sents);
+   cerr << "Loaded data structures in " << difftime(time(NULL), start)
+        << " seconds." << endl;
+
+   if (!c.loadFirst)
+      cerr << "Aligning " << src_sents.size() << " source sentences." << endl;
+   else
+      cerr << "Reading and aligning sentences..." << endl;
+
+   time(&start);
+
+   // Open output file
+   cerr << N << " best alignments per sentence pair will be written to '" << outFile << "'" << endl;
+   OMagicStream out(outFile);
+
    Uint i = 0;
-   string line;
-   if (!noannoy)
-      out << "#" << N << " alignments per source sentence" << endl;
-   cerr << "Scoring";
    while (true) {
       cerr << ".";
 
       // source sentence
       vector<string> src_sent;
+      vector<MarkedTranslation> marked_src_sent;
       if ( c.loadFirst ) {
-         line.clear();
-         getline(sin, line);
-         if (line != "" && tin.eof()) {
-            error(ETWarn, "Ran out of target sentences prematurely.");
-            break;
+         if ( ! reader.readMarkedSent(src_sent, marked_src_sent) ) {
+            if ( c.tolerateMarkupErrors )
+               error(ETWarn, "Tolerating ill-formed markup, but part of the last input line has been discarded.");
+            else
+               error(ETFatal, "Aborting because of ill-formed markup.");
          }
-         if (sin.eof() && line == "") break;
-         split(line, src_sent, " ");
+         else {
+            cerr << "Read src sentence of length " << src_sent.size() << "." << endl;
+         }
+         if (reader.eof()) break;
       }
       else {
          if (i == src_sents.size())
             break;
          src_sent = src_sents[i];
+         marked_src_sent = marked_src_sents[i];
       }
-      for (Uint k = 0; k < K; k++)
-      {
-         vector<string> tgt_sent;
-         if (c.loadFirst)
-         {
-            line.clear();
-            getline(tin, line);
-            if (tin.eof() && line == "")
-            {
-               error(ETWarn, "Ran out of target sentences prematurely.");
-               break;
-            } // if
-            split(line, tgt_sent, " ");
-         } else
-         {
-            tgt_sent = tgt_sents[i * K + k];
-         } // if
+
+      // target sentence
+      for (Uint k = 0; k < K; k++) {
+
+         vector<string> tgt_sent = tgt_sents[i * K + k];
 
          stringstream ss;
-         aligner.computePhraseTM(src_sent, tgt_sent, ss, N, noscore, onlyscore,
-               c.pruneThreshold, c.maxStackSize, c.covLimit, c.covThreshold);
+         aligner.computePhraseTM(src_sent, marked_src_sent, tgt_sent, ss, N,
+                                 noscore, onlyscore,
+                                 c.pruneThreshold, c.maxStackSize,
+                                 c.covLimit, c.covThreshold);
          string s = ss.str();    //s contains the alignments
 
          // print source sentence
@@ -258,4 +274,5 @@ int main(Uint argc, const char * const * argv)
       } // for
       i++;
    } // while
+   if ( !c.loadFirst ) reader.reportWarningCounts();
 } // main
