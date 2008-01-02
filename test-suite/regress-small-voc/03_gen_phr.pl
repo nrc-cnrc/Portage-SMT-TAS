@@ -41,6 +41,7 @@ LANG=en_US.ISO-8859-1
 
 # This script generates many redundant phrase tables, for testing purposes.
 
+echo "Creating a GTSmoother tmtext phrase table"
 gen_phrase_tables -v -w1 -m8 -1 ${fr} -2 en -ibm 2 -z \\
   -s "GTSmoother"               \\
   -tmtext                       \\
@@ -49,8 +50,10 @@ gen_phrase_tables -v -w1 -m8 -1 ${fr} -2 en -ibm 2 -z \\
   ibm2.${fr}_given_en.gz        \\
   ${corp}/europarl.${fr}-en.${fr}.lowercase \\
   ${corp}/europarl.${fr}-en.en.lowercase    \\
-  &> log.gen_gt_phrase_tables
+  &> log.gen_gt_phrase_tables   \\
+|| echo "FAILED gen_phrase_tables GTSmoother"
 
+echo "Creating a KNSmoother tmtext phrase table"
 gen_phrase_tables -v -w1 -m8 -1 ${fr} -2 en -ibm 2 -z \\
   -s "KNSmoother"               \\
   -tmtext                       \\
@@ -59,18 +62,22 @@ gen_phrase_tables -v -w1 -m8 -1 ${fr} -2 en -ibm 2 -z \\
   ibm2.${fr}_given_en.gz        \\
   ${corp}/europarl.${fr}-en.${fr}.lowercase \\
   ${corp}/europarl.${fr}-en.en.lowercase    \\
-  &> log.gen_kn_phrase_tables
+  &> log.gen_kn_phrase_tables   \\
+|| echo "FAILED gen_phrase_tables KNSmoother"
 
+echo "Creating a GTSmoother and KNSmoother multiprob both direction phrase table"
 gen_phrase_tables -v -w1 -m8 -1 ${fr} -2 en -ibm 2 -z \\
   -s GTSmoother -s KNSmoother   \\
-  -multipr fwd                  \\
+  -multipr both                 \\
   -o phrases-GT-KN              \\
   ibm2.en_given_${fr}.gz        \\
   ibm2.${fr}_given_en.gz        \\
   ${corp}/europarl.${fr}-en.${fr}.lowercase \\
   ${corp}/europarl.${fr}-en.en.lowercase    \\
-  &> log.gen_multi_prob_phrase_tables
+  &> log.gen_multi_prob_phrase_tables       \\
+|| echo "FAILED gen_phrase_tables GTSmoother KNSmoother"
 
+echo "Creating a LeaveOneOut tmtext phrase table"
 gen_phrase_tables -v -w1 -m8 -1 ${fr} -2 en -ibm 2 -z \\
   -s "LeaveOneOut 1"            \\
   -tmtext                       \\
@@ -79,7 +86,19 @@ gen_phrase_tables -v -w1 -m8 -1 ${fr} -2 en -ibm 2 -z \\
   ibm2.${fr}_given_en.gz        \\
   ${corp}/europarl.${fr}-en.${fr}.lowercase \\
   ${corp}/europarl.${fr}-en.en.lowercase    \\
-  &> log.gen_l1o_tables
+  &> log.gen_l1o_tables         \\
+|| echo "FAILED gen_phrase_tables LeaveOneOut"
+
+RC=0
+echo "Joining to phrase tables into one"
+join_phrasetables phrases-GT.en_given_fr.gz phrases-KN.en_given_fr.gz | gzip > phrases-GT-KN.en2fr.gz || RC=1
+join_phrasetables phrases-GT.fr_given_en.gz phrases-KN.fr_given_en.gz | gzip > phrases-GT-KN.fr2en.joined.gz || RC=1
+
+#TODO echo "Checking the joined phrase table against a generated one"
+#diff-phrasetable.pl notonline.hard.complete   online.hard.complete || RC=1
+
+echo \$RC
+
 END
 
 open( J1, "> ${wfr}/${fr}_03_gphr" );

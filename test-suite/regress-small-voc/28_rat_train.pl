@@ -46,7 +46,7 @@ LANG=en_US.ISO-8859-1
 
 rat.sh -n 3 train                       \\
     -f canoe.ini                        \\
-       -K 200 -n 3                      \\
+    -K 200 -n 3                         \\
     rescoring_model                     \\
     ${corp}/test2000.${fr}.lowercase    \\
     ${corp}/test2000.en.lowercase       \\
@@ -67,23 +67,34 @@ if ( -r "${wfr_r}/canoe.ini.cow" ) {
 }
 
 my $model1 = << "END";
-FileFF:ff.LengthFF
-VFileFF:ff.NgramFF.${corp0}/europarl.en.srilm
-VFileFF:ff.IBM1TgtGivenSrc.../ibm1.en_given_${fr}
-VFileFF:ff.IBM1SrcGivenTgt.../ibm1.${fr}_given_en
-VFileFF:ff.IBM2TgtGivenSrc.../ibm2.en_given_${fr}
-VFileFF:ff.IBM2SrcGivenTgt.../ibm2.${fr}_given_en
-VFileFF:ff.IBM1WTransTgtGivenSrc.../ibm1.en_given_${fr}
-VFileFF:ff.IBM1WTransSrcGivenTgt.../ibm1.${fr}_given_en
+LengthFF
+ParMismatch
+QuotMismatch:fe
+Consensus
+ConsensusWin
+NgramFF:${corp0}/europarl.en.srilm
+IBM1TgtGivenSrc:../ibm1.en_given_${fr}.gz
+IBM1SrcGivenTgt:../ibm1.${fr}_given_en.gz
+IBM2TgtGivenSrc:../ibm2.en_given_${fr}
+IBM2SrcGivenTgt:../ibm2.${fr}_given_en
+IBM1WTransTgtGivenSrc:../ibm1.en_given_${fr}.gz
+IBM1WTransSrcGivenTgt:../ibm1.${fr}_given_en.gz
+IBM1DeletionTgtGivenSrc:../ibm1.en_given_${fr}.gz#0.2
+IBM1DeletionSrcGivenTgt:../ibm1.${fr}_given_en.gz#0.2
+nbestWordPostLev:1#<ffval-wts>#<pfx>
+nbestWordPostTrg:1#<ffval-wts>#<pfx>
+nbestNgramPost:3#1#<ffval-wts>#<pfx>
+nbestSentLenPost:1#<ffval-wts>#<pfx>
+nbestWordPostSrc:1#<ffval-wts>#<pfx>
+nbestPhrasePostSrc:1#<ffval-wts>#<pfx>
+nbestPhrasePostTrg:1#<ffval-wts>#<pfx>
 END
 
-my $number_of_features = `cd ${wfr_t}; configtool nf canoe.ini`;
-chomp $number_of_features;
+# Use configtool to get the list of basic decoder features
+my $basic_features = `cd ${wfr_t}; configtool rescore-model:ff.vals canoe.ini`;
 
 open( MODEL, "> ${wfr_t}/rescoring_model" );
-foreach my $i ( 1 .. $number_of_features ) {
-    print MODEL "FileFF:ffvals,$i\n";
-}
+print MODEL $basic_features;
 print MODEL $model1;
 close( MODEL );
 

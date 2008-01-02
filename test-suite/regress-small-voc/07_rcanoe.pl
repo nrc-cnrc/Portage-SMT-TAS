@@ -39,7 +39,6 @@ my $wfr_t = "${wfr}/rtrain";
 my $wfr_r = "${wfr}/cow";
 
 mkdir $wfr_t;
-mkdir "$wfr_t/workdir";
 
 # Will be run in directory $wfr_t
 my $job1 = << "END";
@@ -47,13 +46,13 @@ my $job1 = << "END";
 LANG=en_US.ISO-8859-1
 
 canoe               \\
+  -append           \\
   -f canoe.ini      \\
   -ffvals           \\
-  -nbest workdir/foo:200  \\
-  < ${corp}/test2000.${fr}.lowercase > rcanoe.out
-cat workdir/foo.????.200best > text_en.nbest
-cat workdir/foo.????.200best.ffvals > ffout
-rm -rf workdir
+  -nbest text_en.:200  \\
+  -input ${corp}/test2000.${fr}.lowercase \\
+  > rcanoe.out
+mv text_en.ffvals ffout
 cut -f1 ffout > ff.distortion
 cut -f2 ffout > ff.wordpenalty
 cut -f3 ffout > ff.segmentation
@@ -98,6 +97,6 @@ if ( -r "${wfr_r}/canoe.ini.cow" ) {
     exit 1;
 }
 
-system( "cd ${wfr_t}; bash ${fr}_07_rcanoe" );
+system( "cd ${wfr_t}; bash ${fr}_07_rcanoe >& log.${fr}_07_rcanoe" );
 
 };

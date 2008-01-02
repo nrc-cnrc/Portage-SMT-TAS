@@ -45,6 +45,7 @@ my $job1 = << "END";
 LANG=en_US.ISO-8859-1
 
 cow.sh -v -filt -floor 2               \\
+  -lb                                  \\
   -mad 1                               \\
   -parallel:"-n 4"                     \\
   -workdir workdir                     \\
@@ -56,7 +57,7 @@ cow.sh -v -filt -floor 2               \\
   &> log.cow
 END
 
-open( J1, "> ${wfr_r}/${fr}_10_rescore" );
+open( J1, "> ${wfr_r}/${fr}_10_cow" );
 print J1 $job1;
 close( J1 );
 
@@ -81,8 +82,7 @@ my $ini1 = << "END";
 [ttable-file-s2t] ../phrases-GT.${fr}_given_en.gz:../phrases-KN.${fr}_given_en.gz
 [ttable-file-t2s] ../phrases-GT.en_given_${fr}.gz:../phrases-KN.en_given_${fr}.gz
 [lmodel-file] ${corp0}/europarl.en.srilm
-[segmentation-model] ${seg_model}
-[segmentation-args] ${seg_arg}
+[segmentation-model] ${seg_model}#${seg_arg}
 [distortion-model] ${dist_model}
 END
 

@@ -55,9 +55,9 @@ LANG=en_US.ISO-8859-1
 Q=0.5
 if [ -r corpus.${fr}-en.bernoulli ]; then Q=`cat corpus.${fr}-en.bernoulli`; fi
 
-seg_model="-segmentation-model bernoulli -segmentation-args 0.2"
-# seg_model="-segmentation-model bernoulli -segmentation-args \$Q"
-# seg_model="-segmentation-model context -segmentation-args segmentation.left-right.freq"
+seg_model="-segmentation-model bernoulli#0.2"
+# seg_model="-segmentation-model bernoulli#\$Q"
+# seg_model="-segmentation-model context#segmentation.left-right.freq"
 # seg_model="-segmentation-model count"
 
 canoe               \\
@@ -67,9 +67,10 @@ canoe               \\
   -weight-w $w_wp   \\
   -weight-l $w_lm   \\
   -weight-t $w_tm   \\
-  -weight-s $w_seg   \\
-  \$seg_model \\
-  < ${corp}/test2000.${fr}.lowercase 2> log.canoe > test.out
+  -weight-s $w_seg  \\
+  \$seg_model       \\
+  -input ${corp}/test2000.${fr}.lowercase \\
+  2> log.canoe > test.out
 bleumain test.out ${corp}/test2000.en.lowercase 
 END
 

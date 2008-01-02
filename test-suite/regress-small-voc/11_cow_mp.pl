@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# 11_cow.pl - run COW - optimize weights for canoe
+# 11_cow.pl - run COW - optimize weights for canoe with multi probs phrase tables
 #
 # PROGRAMMER: Howard Johnson / Eric Joanis
 #
@@ -34,7 +34,7 @@ if ( @ARGV ) { @fr = @ARGV }
 foreach my $fr ( @fr ) {
 
 my $wfr   = "${work}/wk_${fr}";
-my $wfr_r = "${wfr}/cow";
+my $wfr_r = "${wfr}/cow_mp";
 
 mkdir $wfr_r;
 mkdir "$wfr_r/workdir";
@@ -56,7 +56,7 @@ cow.sh -v -filt -floor 2               \\
   &> log.cow
 END
 
-open( J1, "> ${wfr_r}/${fr}_11_rescore" );
+open( J1, "> ${wfr_r}/${fr}_11_cow_mp" );
 print J1 $job1;
 close( J1 );
 
@@ -80,8 +80,7 @@ my $ini1 = << "END";
 [distortion-limit] 7
 [ttable-multi-prob] ../phrases-GT-KN.${fr}2en.gz
 [lmodel-file] ${corp0}/europarl.en.srilm
-[segmentation-model] ${seg_model}
-[segmentation-args] ${seg_arg}
+[segmentation-model] ${seg_model}#${seg_arg}
 [distortion-model] ${dist_model}
 END
 
@@ -89,6 +88,6 @@ open( J1, "> ${wfr_r}/canoe.ini" );
 print J1 $ini1;
 close( J1 );
 
-system( "cd ${wfr_r}; bash ${fr}_11_rescore" );
+system( "cd ${wfr_r}; bash ${fr}_11_cow_mp" );
 
 };
