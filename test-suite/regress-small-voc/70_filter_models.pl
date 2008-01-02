@@ -57,71 +57,29 @@ run() {
    || echo "Failed filtering \$NAME"
 }
 
+# Reducing source sentence vocabulary
 head ${corp}/test2000.${fr}.lowercase > src
 
-(time \$FILT_CMD -L < src \
-   && mv europarl.en.srilm.NEW LM.filtered) >& log.filter_models.lm \
+# LM filtering
+(time \$FILT_CMD -L < src \\
+   && mv europarl.en.srilm.NEW LM.filtered) >& log.filter_models.lm \\
 || echo "Failed filtering LM"
-(time \$FILT_CMD -L -phaseIIb < src \
-   && mv europarl.en.srilm.NEW LM.filtered.phaseIIb) >& log.filter_models.lm.phaseIIb \
+
+(time \$FILT_CMD -L -phaseIIb < src \\
+   && mv europarl.en.srilm.NEW LM.filtered.phaseIIb) >& log.filter_models.lm.phaseIIb \\
 || echo "Failed filtering LM phaseIIb"
+
+
+# TM filtering
 run online.hard.complete "-no-src-grep -tm-online -hard-limit tmp"
-exit
+run online.hard.incomplete "-tm-online -hard-limit tmp < src"
+run online.soft.complete "-no-src-grep -tm-online -soft-limit tmp"
+run online.soft.incomplete "-tm-online -soft-limit tmp < src"
 
-NAME=online.hard.complete
-(time \
-   \$FILT_CMD -no-src-grep -tm-online -hard-limit tmp.\$NAME \\
-   && mv tmp.\$NAME.NEW \$NAME \\
-   && wc \$NAME) &> log.\$NAME \\
-|| echo "Failed filtering \$NAME"
-
-NAME=online.hard.incomplete
-(time \
-   \$FILT_CMD -tm-online -hard-limit tmp.\$NAME < src \\
-   && mv tmp.\$NAME.NEW \$NAME \\
-   && wc \$NAME) &> log.\$NAME \\
-|| echo "Failed filtering \$NAME"
-
-NAME=online.soft.complete
-(time \
-   \$FILT_CMD -no-src-grep -tm-online -soft-limit tmp.\$NAME \\
-   && mv tmp.\$NAME.NEW \$NAME \\
-   && wc \$NAME) &> log.\$NAME \\
-|| echo "Failed filtering \$NAME"
-
-NAME=online.soft.incomplete
-(time \
-   \$FILT_CMD -tm-online -soft-limit tmp.\$NAME < src \\
-   && mv tmp.\$NAME.NEW \$NAME \\
-   && wc \$NAME) &> log.\$NAME \\
-|| echo "Failed filtering \$NAME"
-
-
-NAME=notonline.hard.complete
-(time \
-   \$FILT_CMD -no-src-grep -hard-limit tmp.\$NAME \\
-   && mv tmp.\$NAME.NEW \$NAME \\
-   && wc \$NAME) &> log.\$NAME \\
-|| echo "Failed filtering \$NAME"
-
-NAME=notonline.hard.incomplete
-(time \
-   \$FILT_CMD -hard-limit tmp.\$NAME < src \\
-   && mv tmp.\$NAME.NEW \$NAME \\
-   && wc \$NAME) &> log.\$NAME \\
-|| echo "Failed filtering \$NAME"
-
-NAME=notonline.soft.complete
-(time \$FILT_CMD -no-src-grep -soft-limit tmp.\$NAME \\
-   && mv tmp.\$NAME.NEW \$NAME \\
-   && wc \$NAME) &> log.\$NAME \\
-|| echo "Failed filtering \$NAME"
-
-NAME=notonline.soft.incomplete
-(time \$FILT_CMD -soft-limit tmp.\$NAME < src \\
-   && mv tmp.\$NAME.NEW \$NAME \\
-   && wc \$NAME) &> log.\$NAME \\
-|| echo "Failed filtering \$NAME"
+run notonline.hard.complete "-no-src-grep -hard-limit tmp"
+run notonline.hard.incomplete "-hard-limit tmp < src"
+run notonline.soft.complete "-no-src-grep -soft-limit tmp"
+run notonline.soft.incomplete "-soft-limit tmp < src"
 
 
 RC=0
