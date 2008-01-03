@@ -4,7 +4,7 @@
  * $Id$
  * 
  * K-Best Rescoring Module
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l.information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -24,8 +24,6 @@ using namespace boost::numeric;
 
 
 
-////////////////////////////////////////
-// COMPUTESTATS
 namespace Portage
 {
    // This has been modified from the original Numerical Recipes in C++ version in 3 ways:

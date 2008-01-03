@@ -6,11 +6,11 @@
  *
  * COMMENTS:
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
- * Copyright 2005, Her Majesty in Right of Canada
+ * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
+ * Copyright 2004, Her Majesty in Right of Canada
  */
 
 #include <rescore_train.h>
@@ -22,7 +22,6 @@
 #include <gfstats.h>
 #include <bleu.h>
 #include <basic_data_structure.h>
-#include <exception_dump.h>
 #include <referencesReader.h>
 #include <printCopyright.h>
 #include <progress.h>
@@ -45,7 +44,7 @@ using namespace std;
 // MAIN
 int main(const Uint argc, const char* const argv[])
 {
-   printCopyright(2005, "rescore_train");
+   printCopyright(2004, "rescore_train");
 #ifdef _OPENMP
    cerr << "Compiled openmp" << endl;
 #pragma omp parallel
