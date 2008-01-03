@@ -6,11 +6,11 @@
  *
  * COMMENTS:
  *
- * Technologies langagieres interactives / Interactive Language Technologies
+ * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
- * Copyright 2004, Her Majesty in Right of Canada
+ * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
+ * Copyright 2005, Her Majesty in Right of Canada
  */
 
 #include <rescore_train.h>
@@ -22,6 +22,7 @@
 #include <gfstats.h>
 #include <bleu.h>
 #include <basic_data_structure.h>
+#include <exception_dump.h>
 #include <referencesReader.h>
 #include <printCopyright.h>
 #include <progress.h>
@@ -39,19 +40,12 @@
 using namespace Portage;
 using namespace std;
 
-template<class Stats>
-double runPowell(const vector<uMatrix>& vH, const vector< vector<Stats> >& bleu,
-                 const vector<uVector>& init_wts,
-                 const FeatureFunctionSet& ffset,
-                 const rescore_train::ARG& args, // oi, vy, vy?
-                 uVector& best_wts, vector< vector<double> >&  history);
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // MAIN
 int main(const Uint argc, const char* const argv[])
 {
-   printCopyright(2004, "rescore_train");
+   printCopyright(2005, "rescore_train");
 #ifdef _OPENMP
    cerr << "Compiled openmp" << endl;
 #pragma omp parallel
@@ -88,7 +82,7 @@ int main(const Uint argc, const char* const argv[])
 
    LOG_VERBOSE2(verboseLogger, "Rescoring with S = %d, K = %d, R = %d, M = %d", S, arg.K, R, M);
    vector<uMatrix>  vH(S);
-   vector< vector<BLEUstats> >  bleu(S);
+   MatrixBLEUstats  bleu(S);
 
    ifstream astr;
    const bool bNeedsAlignment = ffset.requires() & FF_NEEDS_ALIGNMENT;
@@ -170,14 +164,78 @@ int main(const Uint argc, const char* const argv[])
    // Free memory we no longer need
    astr.close();
 
+   // How long was it to load.
    cerr << "Done loading in " << (Uint)(time(NULL) - start) << " seconds" << endl;
 
-   start = time(NULL);
+
+   // Start timer for powell
+   start = time(NULL);             // time
+
    LOG_VERBOSE2(verboseLogger, "Running Powell's algorithm");
+
    uVector best_wts(M);
+   fill(best_wts.begin(), best_wts.end(), 1.0f);
+   double best_score(-INFINITY);
+   double extend_thresh(0.0);   // bleu threshold for extending total_runs
+   Uint num_runs(0);
+   Uint total_runs = arg.num_powell_runs == 0 ? 
+      (NUM_INIT_RUNS+2) :  // +2 for backward compatibility (!)
+      arg.num_powell_runs;
    vector< vector<double> >  history; // list of -score,wts vectors
-   double best_score = runPowell<BLEUstats>(vH, bleu, powellWeightsIn, ffset, arg, best_wts, history);
+   vector<double> bleu_history; // list of bleu scores, for approx-expect stopping
+
+   // Run Powell's algorithm with different start parameters until a global
+   // maximum appears to be found.
+   Powell<BLEUstats> powell(vH, bleu);
+   while (num_runs < total_runs) {
+
+      uVector wts(M);
+      if (num_runs < powellWeightsIn.size())
+         wts = powellWeightsIn[num_runs];
+      else
+         ffset.getRandomWeights(wts);
+
+      if (arg.bVerbose) cerr << "Calling Powell with initial wts=" << wts << endl;
+
+      uMatrix xi(M, M);
+      xi = uIdentityMatrix(M);
+      int iter = 0;
+      double fret = 0.0;
+      time_t powell_start = time(NULL);             // time
+      powell(wts, xi, FTOL, iter, fret);
+      ++num_runs;
+
+      if (arg.bVerbose) {
+         cerr << "Powell returned wts=" << wts << endl;
+         fprintf(stderr, "Score: %f <=> %f in %d seconds\n", fret, exp(fret), (Uint)(time(NULL)- powell_start));
+      }
+
+      history.push_back(vector<double>(1, -fret));
+      history.back().resize(1+M);
+      copy(wts.begin(), wts.end(), history.back().begin()+1);
+      bleu_history.push_back(exp(fret));
+
+      if (fret > best_score) {
+         best_wts = wts;
+         best_score = fret;
+      }
+      if (!arg.approx_expect && arg.num_powell_runs == 0 && exp(fret) > extend_thresh) {
+         // normal stopping criterion
+         total_runs = max(num_runs+NUM_INIT_RUNS+2, 2 * num_runs); // bizarre for bkw compat
+         extend_thresh = exp(fret) + BLEUTOL;
+      } else if (arg.approx_expect && num_runs > NUM_INIT_RUNS+2) {
+         // approx-expect stopping
+         const double m = mean(bleu_history.begin(), bleu_history.end());
+         const double s = sdev(bleu_history.begin(), bleu_history.end(), m);
+         const Uint expected_iters = Uint(1.0 / (1.0 - normalCDF(exp(best_score), m, s)));
+         if (num_runs + expected_iters > total_runs)
+            break;
+      }
+   }
+
+   // How long it took to run powell
    cerr << "Best weight vector found in " << (Uint)(time(NULL) - start) << " seconds" << endl;
+
 
    // Normalize and write weights
 
@@ -213,82 +271,4 @@ int main(const Uint argc, const char* const argv[])
 
    LOG_VERBOSE2(verboseLogger, "Writing model to file");
    ffset.write(arg.model_out);
-}
-
-/**
- * Run Powell's algorithm with different start parameters until a global
- * maximum appears to be found.
- * @param vH vector of S KxM matrices of feature values
- * @param bleu vector of S vectors of K hypothesis scores
- * @param init_wts starting wts for initial iterations
- * @param ffset used only for random wt generation, honest
- * @param args user-specified arguments
- * @param best_wts place to put the best wts. Assumed to be initialized to the
- * proper size.
- * @param history on will be set to a list of -score,wts vectors for each iter
- * @return best score found
- */
-template<class Stats>
-double runPowell(const vector<uMatrix>& vH, const vector< vector<Stats> >& bleu,
-                 const vector<uVector>& init_wts,
-                 const FeatureFunctionSet& ffset,
-                 const rescore_train::ARG& args, // oi, vy, vy?
-                 uVector& best_wts, vector< vector<double> >&  history)
-{
-   fill(best_wts.begin(), best_wts.end(), 1.0f);
-   double best_score(-INFINITY);
-   double extend_thresh(0.0);   // bleu threshold for extending total_runs
-   Uint num_runs(0);
-   Uint total_runs = args.num_powell_runs == 0 ? 
-      (rescore_train::NUM_INIT_RUNS+2) :  // +2 for backward compatibility (!)
-      args.num_powell_runs;
-   vector<double> bleu_history; // list of bleu scores, for approx-expect stopping
-
-   Uint M = best_wts.size();
-   uMatrix xi(M, M);
-
-   while (num_runs < total_runs) {
-
-      uVector wts(M);
-      if (num_runs < init_wts.size())
-         wts = init_wts[num_runs];
-      else
-         ffset.getRandomWeights(wts);
-
-      if (args.bVerbose) cerr << "Calling Powell with initial wts=" << wts << endl;
-
-      int iter = 0;
-      double fret = 0.0;
-      time_t powell_start = time(NULL);             // time
-      powell(wts, xi, rescore_train::FTOL, iter, fret, vH, bleu);
-      ++num_runs;
-
-      if (args.bVerbose) {
-         cerr << "Powell returned wts=" << wts << endl;
-         fprintf(stderr, "Score: %f <=> %f in %d seconds\n", fret, exp(fret), (Uint)(time(NULL)- powell_start));
-      }
-
-      history.push_back(vector<double>(1, -fret));
-      history.back().resize(1+M);
-      copy(wts.begin(), wts.end(), history.back().begin()+1);
-      bleu_history.push_back(exp(fret));
-
-      if (fret > best_score) {
-         best_wts = wts;
-         best_score = fret;
-      }
-      if (!args.approx_expect && args.num_powell_runs == 0 && exp(fret) > extend_thresh) {
-         // 'normal' stopping criterion
-         total_runs = max(num_runs+rescore_train::NUM_INIT_RUNS+2, 2 * num_runs); // bizarre for bkw compat
-         extend_thresh = exp(fret) + rescore_train::BLEUTOL;
-      } else if (args.approx_expect && num_runs > rescore_train::NUM_INIT_RUNS+2) {
-         // approx-expect stopping
-         double m = mean(bleu_history.begin(), bleu_history.end());
-         double s = sdev(bleu_history.begin(), bleu_history.end(), m);
-         Uint expected_iters = Uint(1.0 / (1.0 - normalCDF(exp(best_score), m, s)));
-         if (num_runs + expected_iters > total_runs)
-            break;
-      }
-   }
-   return best_score;
 }

@@ -6,7 +6,7 @@
  *
  * COMMENTS:
  *
- * Technologies langagieres interactives / Interactive Language Technologies
+ * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -26,7 +26,7 @@
 #include <boost/random/variate_generator.hpp>
 
 
-namespace Portage {
+namespace Portage { 
 /// Program rescore_train's namespace.
 /// Prevents pollution in global namespace.
 namespace rescore_train {
@@ -42,8 +42,8 @@ static const double BLEUTOL(0.0001);
 // HELP MESSAGE
 /// Program rescore_train's usage.
 static char help_message[] = "\n\
-rescore_train [-vn][-sm smoothing][-a F][-f floor][-p ff-pref][-dyn][-s seed]\n\
-              [-r n][-e][-win nl][-wi powell-wt-file][-wo powell-wt-file]\n\
+rescore_train [-vn][-sm smoothing][-a F][-f floor][-p ff-pref][-dyn]\n\
+              [-r n][-e][-win nl][-wi powell-wt-file][-wo powell-wt-file][-s seed]\n\
               model_in model_out src nbest ref1 .. refN\n\
 \n\
 Train a rescoring model on given src, nbest, and ref1 .. refN texts. All text\n\
@@ -56,21 +56,41 @@ lines if necessary).\n\
 The model_in file specifies a set of features and optional initial weight\n\
 distributions. Each line is in the format:\n\
 \n\
-   feature_name[:arg] [U(min,max)|N(mean,sigma)]\n\
+"
+
+#ifndef NO_COMPUTED_FF
+
+"   feature_name[:arg] [U(min,max)|N(mean,sigma)]\n\
 \n\
 where <arg> is an optional argument to the feature, and U() or N() means to\n\
 choose initial weights for Powell's algorithm from uniform or normal distns\n\
 with the given parameters [N(0,1)]. The model_out file is in the same format\n\
-as model_in, but with the distribution replaced by an optimal weight.\n\
-Comments may be included by placing # at the beginning of a line.\n\
+as model_in, but with the distribution replaced by an optimal weight. Comments\n\
+may be included by placing # at the beginning of a line.\n\
 \n\
 Use -H for more info on features.\n\
+"
+
+#else
+
+"   FileFF:file[,column] [U(min,max)|N(mean,sigma)]\n\
 \n\
+where <file> is a file of pre-computed feature values, and <column> is the\n\
+desired column in this file. Each feature file should have the same number of\n\
+lines as the nbest file.  U() or N() means to choose initial weights for\n\
+Powell's algorithm from uniform or normal distns with the given parameters\n\
+[N(0,1)]. The model_out file is in the same format as model_in, but with the\n\
+distribution replaced by an optimal weight.\n\
+"
+
+#endif
+
+"\n\
 Options:\n\
 \n\
--v    Write progress reports to cerr [don't].\n\
+-v    Write progress reports to cerr (repeatable) [don't].\n\
 -n    Normalize output weights so maximum is 1 (recommended).\n\
--sm   bleu smoothing formula 1 2 (see bleumain -h for details) [1]\n\
+-sm   bleu smoothing number 1 2 3 [1]\n\
 -a    Also read in phrase alignment file F.\n\
 -f    Floor output weights at 0, beginning with zero-based index i. [don't]\n\
 -p    Prepend ff-pref to file names for FileFF features\n\
@@ -78,7 +98,6 @@ Options:\n\
       format, with lines prefixed by: \"<source#>\\t\" (starting at 0)\n\
 -r    Use <n> runs of Powell's alg [0 = determine number of runs automatically]\n\
 -e    Use approx expectation to determine stopping pt, with max given by -r [don't]\n\
-      (Note that -r should be set to a value >> 0 with this option, eg 50)\n\
 -win  Use only the first <nl> lines from feature file read by -wi (0 for all) [3]\n\
 -wi   Read initial feature wt vectors for Powell from file F (one vect per line)\n\
       NB: the number of vectors actually used depends on the -r and -e settings.\n\
@@ -92,10 +111,7 @@ Options:\n\
 ////////////////////////////////////////////////////////////////////////////////
 // ARGUMENTS PROCESSING CLASS
 /// Program rescore_train's allowed command line arguments.
-const char* const switches[] = {
-   "n", "f:", "dyn", "p:", "a:", "v", "K:", "r:", "e",
-   "win:", "wi:", "wo:", "s:", "y:", "u:", "sm:"
-};
+const char* const switches[] = {"n", "f:", "dyn", "p:", "a:", "v", "K:", "r:", "e", "win:", "wi:", "wo:", "s:", "y:", "u:", "sm:"};
 
 /// Specific argument processing class for rescore_train program
 class ARG : public argProcessor

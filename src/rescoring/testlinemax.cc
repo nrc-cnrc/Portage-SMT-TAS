@@ -57,15 +57,16 @@ int main()
    dir(0) = 0;
    dir(1) = 1;
 
-   vector< vector<LinearMetric> > bleu;
-   bleu.push_back(vector<LinearMetric>());
-   bleu.back().push_back(1);
-   bleu.back().push_back(2);
-   bleu.push_back(vector<LinearMetric>());
-   bleu.back().push_back(1);
-   bleu.back().push_back(2);
+   vector< vector<LinearMetric> > translationScore;
+   translationScore.push_back(vector<LinearMetric>());
+   translationScore.back().push_back(1);
+   translationScore.back().push_back(2);
+   translationScore.push_back(vector<LinearMetric>());
+   translationScore.back().push_back(1);
+   translationScore.back().push_back(2);
 
-   linemax(p, dir, vH, bleu);
+   LineMax<LinearMetric> linemax(vH, translationScore);
+   linemax(p, dir);
 
    cout << dir << endl;
 }

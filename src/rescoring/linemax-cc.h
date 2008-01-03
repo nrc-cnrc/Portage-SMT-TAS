@@ -6,7 +6,7 @@
  *
  * K-Best Rescoring Module
  * 
- * Technologies langagieres interactives / Interactive Language Technologies
+ * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -21,25 +21,6 @@
 
 namespace Portage
 {
-   /// A structure used to allow gamma values to be sorted, while maintaining
-   /// reference to the associated source sentence (s) and index (i).
-   struct linemaxpt
-   {
-       double gamma;   ///< Gamma value
-       Uint s;         ///< index of source sentence.
-       Uint i;         ///< index.
-   };
-
-   /**
-    * Sorts in decreasing order p1 and p2
-    * @param p1  left-hand side operand
-    * @param p2  right-hand side operand
-    * @return Returns p1 > p2
-    */
-   bool linemaxpt_comp(const linemaxpt *p1, const linemaxpt *p2)
-   {
-       return p1->gamma > p2->gamma;
-   }
    /*Comment on fix:
      The bug fixed was in findSentenceIntervals.  In some occasions it was
      returning values out of range for gammas (inf, nan) so a fix was added
@@ -60,30 +41,30 @@ namespace Portage
    }
 
    template <class ScoreStats>
-   inline void findSentenceIntervals(Uint &numchanges,
+   void LineMax<ScoreStats>::findSentenceIntervals(Uint &numchanges,
          double *& gamma,
          ScoreStats *& dBLEU,
-         ScoreStats & curBLEU,
+         ScoreStats & curScore,
          linemaxpt *& myHeappoint,
          const int s,
          const uVector& p,
          const uVector& dir,
          const uMatrix& H,
-         const vector<ScoreStats>& bleu)
+         const vector<ScoreStats>& scoreStats)
    // If a heap-point is not added, myHeappoint will be NULL.
    // All arrays indexed by s are replaced here by their s-th entry, ie..
    // numChanges = numChanges[s],
    // gamma = gamma[s],
    // dBLEU = dBLEU[s],
    // H = H[s],
-   // bleu = bleu[s]
+   // scoreStats = scoreStats[s]
    {
       using namespace boost::numeric;
       /* For the given source sentence (f_s):
          The estimation function, \hat{e}(f_s, \lambda) is defined as follows:
          \hat{e}(f_s, \lambda)       = argmax_{0 <= k < K}
-                                        ( \sum_{m=1}^M \lambda_m h_m(e_k, f_s) )
-                                     = max_index (H * \lambda)
+         ( \sum_{m=1}^M \lambda_m h_m(e_k, f_s) )
+         = max_index (H * \lambda)
 
          (H is the K x M matrix whose (k,m)-th entry is h_m(e_k, f_s).)
 
@@ -99,35 +80,35 @@ namespace Portage
          different lines, l_i(\gamma) and l_j(\gamma) intersect.
 
          We do the following to completely determine the function \hat{e}(\gamma):
-          i)         Determine some point \gamma_0 such that no lines intersect for
-                     any \gamma <= \gamma_0
-          ii)        Determine oldk = max_index L(\gamma_0).  Let oldgamma = \gamma_0.
-          iii)       Determine newgamma = min (\gamma coordinate of intersection
-                                               between l_k and l_oldk),
-                                   newk = argmin (\gamma coordinate of intersection
-                                                  between l_k and l_oldk),
-                     where min, argmin range over all k which are different from
-                     newk and for which the intersection happens after oldgamma.
-                     If there is no such newgamma, go to step (v).
-          iv)        It has been determined that \hat{e} takes the value oldk on
-                     (oldgamma, newgamma),
-                     (or (-\infty, newgamma) if oldgamma = \gamma_0).
-                     Set oldk = newk, oldgamma = newgamma, and go to step (iii)
-          v)          It has been determined that \hat{e} takes the value oldk on
-                     (oldgamma, \infty),
-                     (or (-\infty, \infty) if oldgamma = \gamma_0).
-                     \hat{e} has been determined piecewise, so done.
+         i)         Determine some point \gamma_0 such that no lines intersect for
+         any \gamma <= \gamma_0
+         ii)        Determine oldk = max_index L(\gamma_0).  Let oldgamma = \gamma_0.
+         iii)       Determine newgamma = min (\gamma coordinate of intersection
+         between l_k and l_oldk),
+         newk = argmin (\gamma coordinate of intersection
+         between l_k and l_oldk),
+         where min, argmin range over all k which are different from
+         newk and for which the intersection happens after oldgamma.
+         If there is no such newgamma, go to step (v).
+         iv)        It has been determined that \hat{e} takes the value oldk on
+         (oldgamma, newgamma),
+         (or (-\infty, newgamma) if oldgamma = \gamma_0).
+         Set oldk = newk, oldgamma = newgamma, and go to step (iii)
+         v)          It has been determined that \hat{e} takes the value oldk on
+         (oldgamma, \infty),
+         (or (-\infty, \infty) if oldgamma = \gamma_0).
+         \hat{e} has been determined piecewise, so done.
 
          We store each newgamma (in ascending order) in gamma (an array), and the
          number of newgamma's in numchanges.  Since there are K different lines, we
          know a priori that there are at most (K-1) newgamma's to store.
          In practice here, we can forget the specific values of \hat{e} but remember
          their contribution to the BLEU score.  Thus, we tally up the total
-         statistics for the BLEU score at \gamma_0 in curBLEU, and for the change in
+         statistics for the BLEU score at \gamma_0 in curScore, and for the change in
          \hat{e} at gamma[i], we store the change in BLEU statistics in dBLEU[i].
          */
 
-      assert(H.size1() == bleu.size());
+      assert(H.size1() == scoreStats.size());
 
       const Uint K(H.size1());
       const Uint M(H.size2());
@@ -140,8 +121,6 @@ namespace Portage
 
       numchanges = 0;
 
-      gamma = new double[K];
-      dBLEU = new ScoreStats[K];
       bool found[K]; //array to track sentences we've seen
       fill(found, found+K, false);
 
@@ -165,7 +144,8 @@ namespace Portage
       double oldgamma(0.0f);
       if (minDA == INFINITY) {
          oldgamma = INFINITY;
-      } else {
+      }
+      else {
          double minB = INFINITY;
          double maxB = -INFINITY;
          for (Uint k(0); k<K; ++k) {
@@ -223,7 +203,10 @@ namespace Portage
 
       // Initially, oldk = index of maximum element in C
       Uint oldk(my_vector_max_index(C));
-      curBLEU = curBLEU + bleu[oldk];
+#pragma omp critical (findSentenceIntervals_curBLEU)
+{
+      curScore += scoreStats[oldk];
+} // ends omp critical section
 
       numchanges = 0;
       while (true) {
@@ -315,7 +298,7 @@ namespace Portage
          // Remember stuff for this intersection
          assert(numchanges < K);
          gamma[numchanges] = newgamma;
-         dBLEU[numchanges] = bleu[newk] - bleu[oldk];
+         dBLEU[numchanges] = scoreStats[newk] - scoreStats[oldk];
          numchanges++;
 
          oldk = newk;
@@ -328,22 +311,19 @@ namespace Portage
          myHeappoint->gamma = gamma[0];
          myHeappoint->s = s;
          myHeappoint->i = 0;
-      }
+      } 
       else {
          myHeappoint = NULL;
       } // if
-   }
+   } // ends LineMax<ScoreStats>::findSentenceIntervals
 
 
    ////////////////////////////////////////
    // LINEMAX
    template <class ScoreStats>
-   inline void linemax(uVector& p,
-       uVector& dir,
-       const vector<uMatrix>& vH,
-       const vector< vector<ScoreStats> >& bleu)
+   void LineMax<ScoreStats>::operator()(uVector& p, uVector& dir)
    {
-      assert(vH.size() == bleu.size());
+      assert(vH.size() == allScoreStats.size());
 
       const Uint S(vH.size());
 
@@ -353,32 +333,30 @@ namespace Portage
 
       Uint numchanges[S];
 
-      double *gamma[S];       // S by K matrix of doubles
-      ScoreStats *dBLEU[S];   // S by K matrix of ScoreStats objects
+      ScoreStats curScoreStats;     // Accumulate the current BLEU statistics.
 
       // Store the linemaxpt values for the least gamma in each partition;
       // will subsequently become a heap.
       linemaxpt *heappoints[S];
 
-      ScoreStats curBLEU;     // Accumulate the current BLEU statistics.
-      int heapsize(0);       // Number of members in heappoints
-
-      for (Uint s(0); s<S; ++s) {
+      int s;
+#pragma omp parallel for private(s)
+      for (s=0; s<(int)S; ++s) {
          findSentenceIntervals(numchanges[s],
-                               gamma[s],
-                               dBLEU[s],
-                               curBLEU,
-                               heappoints[heapsize],
-                               s,
-                               p,
-                               dir,
-                               vH[s],
-                               bleu[s]);
-         if (heappoints[heapsize] != NULL)
-         {
-            ++heapsize;
-         } // if
+               gammaWorkSpace[s],
+               scoreWorkSpace[s],
+               curScoreStats,  // Needs a one time lock
+               heappoints[s],  // clean up null pointers
+               s,        // const
+               p,        // const
+               dir,      // const
+               vH[s],    // const
+               allScoreStats[s]); // const
       } // for
+
+      // Remove the empty heap points and recalculate the heap size
+      linemaxpt** last_heappoint = remove_if(heappoints, heappoints+S, linemaxpt::isNull);
+      int heapsize(last_heappoint - heappoints);       // Number of members in heappoints
 
       /*
          Using the previous computations, we now determine the intervals on which
@@ -390,7 +368,7 @@ namespace Portage
          for all n.
 
          The BLEU stats for (-\infty, gamma[s_1][i_1]) are already stored in
-         curBLEU.  For each (s,i), we have recorded (in dBLEU) the change in the
+         curScore.  For each (s,i), we have recorded (in scoreWorkSpace) the change in the
          BLEU stats from the interval just before gamma[s][i] to the interval just
          after gamma[s][i].  By iterating through the (s, i)'s in order by
          gamma[s][i] (ie.  iterating through the (s_n, i_n)'s in order by n), the
@@ -414,30 +392,30 @@ namespace Portage
          (gamma[s][i+1], s, i+1) to the heap.
          iii)  Repeat (ii) until the heap is empty.
          Our heap is contained in the array heappoints.
-      */
+         */
       double maxscore(0.0f);  // Will hold the best BLEU score
       double maxgamma(0.0f);  // Will hold the gamma which produces the best BLEU score
 
       if (heapsize == 0) {
          // Special situation: no matter what gamma is, the BLEU score is
          // the same.
-         maxscore = curBLEU.score();
+         maxscore = curScoreStats.score();
          maxgamma = 0;  // TODO: is 0 appropriate? I think so
-         // cerr << "score at \\gamma = 0: " << curBLEU.score() << endl;
-      }
+         // cerr << "score at \\gamma = 0: " << curScoreStats.score() << endl;
+      } 
       else {
          // Create the heap
-         make_heap(heappoints, heappoints + heapsize, linemaxpt_comp);
+         make_heap(heappoints, heappoints + heapsize, linemaxpt::greater);
 
-         maxscore = curBLEU.score();
+         maxscore = curScoreStats.score();
          maxgamma = heappoints[0]->gamma - SMALL;
 
-         double oldgamma(0.0f);  // Holds the left endpoint of the interval whose stats are in curBLEU
+         double oldgamma(0.0f);  // Holds the left endpoint of the interval whose stats are in curScoreStats
          while (true) {
             // Put max element at end of heap
-            pop_heap(heappoints, heappoints + heapsize, linemaxpt_comp);
+            pop_heap(heappoints, heappoints + heapsize, linemaxpt::greater);
             // Update BLEU statistics
-            curBLEU = curBLEU + dBLEU[heappoints[heapsize - 1]->s][heappoints[heapsize - 1]->i];
+            curScoreStats += scoreWorkSpace[heappoints[heapsize - 1]->s][heappoints[heapsize - 1]->i];
             // Save left endpoint of the new interval
             oldgamma = heappoints[heapsize - 1]->gamma;
 
@@ -447,9 +425,9 @@ namespace Portage
             if (heappoints[heapsize - 1]->i < numchanges[heappoints[heapsize - 1]->s]) {
                // Add point (gamma[s][i], s, i) to the heap
                heappoints[heapsize - 1]->gamma =
-                  gamma[heappoints[heapsize - 1]->s][heappoints[heapsize - 1]->i];
-               push_heap(heappoints, heappoints + heapsize, linemaxpt_comp);
-            }
+                  gammaWorkSpace[heappoints[heapsize - 1]->s][heappoints[heapsize - 1]->i];
+               push_heap(heappoints, heappoints + heapsize, linemaxpt::greater);
+            } 
             else {
                // Decrease heap size
                delete heappoints[heapsize - 1];
@@ -462,7 +440,7 @@ namespace Portage
             } // for
 
             // Determine the BLEU score for the interval (oldgamma, heappoints[0]->gamma).
-            const double curscore = curBLEU.score();
+            const double curscore = curScoreStats.score();
             // Determine if this is the new best score AND if the interval is non-empty
             if (curscore > maxscore && heappoints[0]->gamma != oldgamma) {
                // New best score
@@ -475,7 +453,7 @@ namespace Portage
 
          // Consider final score
 
-         const double curscore = curBLEU.score();
+         const double curscore = curScoreStats.score();
          if (curscore > maxscore) {
             // New best score
             maxscore = curscore;
@@ -487,11 +465,5 @@ namespace Portage
       dir *= maxgamma;  // dir = (maxgamma - 1) *  dir + dir = maxgamma * dir
       p += dir;
 
-      // Clean up
-      for (Uint s(0); s<S; ++s)
-      {
-         delete [] gamma[s];
-         delete [] dBLEU[s];
-      }
-   }
-}
+   } // ends LineMax<ScoreStats>::operator()
+} // ends namespace Portage
