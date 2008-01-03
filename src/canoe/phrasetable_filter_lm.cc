@@ -35,5 +35,5 @@ PhraseTableFilterLM::~PhraseTableFilterLM()
 
 bool PhraseTableFilterLM::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
 {
-   return true;
+   return false;
 }

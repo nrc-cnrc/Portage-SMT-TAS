@@ -509,6 +509,7 @@ protected:
     * Depending on normal mode or filtering mode, we handle entries differently.
     * @param tgtTable  target Table (trie leaf) to which entry belongs.
     * @param entry  current entry we are processing.
+    * @return Returns true if the entry was added to the TargetPhraseTable.
     */
    virtual bool processEntry(TargetPhraseTable* tgtTable, Entry& entry);
 
