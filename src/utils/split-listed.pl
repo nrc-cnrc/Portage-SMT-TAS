@@ -12,7 +12,7 @@
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada / 
 # Copyright 2006, Her Majesty in Right of Canada
 
-print STDERR "split-listed.pl, NRC-CNRC, (c) 2006 - 2007, Her Majesty in Right of Canada\n";
+print STDERR "split-listed.pl, NRC-CNRC, (c) 2006 - 2008, Her Majesty in Right of Canada\n";
 
 $HELP = "
 split-listed.pl [-d=outdir] listfile [infile]

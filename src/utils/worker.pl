@@ -110,7 +110,7 @@ print STDERR "[" . localtime() . "] ($me) Done.\n";
 
 sub PrintHelp{
 print <<'EOF';
-  worker.pl, NRC-CNRC, (c) 2005 - 2007, Her Majesty in Right of Canada
+  worker.pl, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada
 
   This script is a generic worker script. It is meant to be used in
   conjunction with:

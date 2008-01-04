@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-print STDERR "replace-blank-lines.pl, NRC-CNRC, (c) 2006 - 2007, Her Majesty in Right of Canada\n";
+print STDERR "replace-blank-lines.pl, NRC-CNRC, (c) 2006 - 2008, Her Majesty in Right of Canada\n";
 
 my $HELP =
 "Usage: $0 main-trans backup-trans

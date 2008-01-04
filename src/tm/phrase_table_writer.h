@@ -9,7 +9,7 @@
  * phrase_table.h, but can't be there because of the cross dependencies it
  * would create between phrase_table.h and phrase_table_smoother.h.
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /

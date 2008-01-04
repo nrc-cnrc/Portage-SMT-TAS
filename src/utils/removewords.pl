@@ -15,7 +15,7 @@
 use strict;
 use warnings;
 
-print STDERR "removewords.pl, NRC-CNRC, (c) 2005 - 2007, Her Majesty in Right of Canada\n";
+print STDERR "removewords.pl, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada\n";
 
 my $HELP =
 "Usage: removewords.pl WORDLISTFILE [INFILE [OUTFILE]]

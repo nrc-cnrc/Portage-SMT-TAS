@@ -11,7 +11,7 @@
 # Copyright 2007, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2007, Her Majesty in Right of Canada
 
-echo 'make-distro.sh, NRC-CNRC, (c) 2007, Her Majesty in Right of Canada'
+echo 'make-distro.sh, NRC-CNRC, (c) 2007 - 2008, Her Majesty in Right of Canada'
 
 usage() {
    for msg in "$@"; do

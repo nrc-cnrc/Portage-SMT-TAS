@@ -8,8 +8,8 @@
  * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2007, Sa Majeste la Reine du Chef du Canada /
- * Copyright 2007, Her Majesty in Right of Canada
+ * Copyright 2008, Sa Majeste la Reine du Chef du Canada /
+ * Copyright 2008, Her Majesty in Right of Canada
  */
 #include <iostream>
 #include <fstream>

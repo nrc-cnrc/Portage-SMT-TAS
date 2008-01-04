@@ -8,8 +8,8 @@
  * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
- * Copyright 2005, Her Majesty in Right of Canada
+ * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
+ * Copyright 2006, Her Majesty in Right of Canada
 */
            
 #ifndef __PRINT_COPYRIGHT_H__
@@ -32,7 +32,7 @@ namespace Portage {
          fprintf(stderr, "\n");
       }
 
-      const unsigned int thisYear(2007);
+      const unsigned int thisYear(2008);
       if ( startDate < thisYear ) {
          fprintf(stderr,
             "NRC-CNRC, (c) %d - %d, Her Majesty in Right of Canada\n",

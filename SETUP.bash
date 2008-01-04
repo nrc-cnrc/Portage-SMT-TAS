@@ -6,8 +6,8 @@
 # Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2006 - 2007, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2006 - 2007, Her Majesty in Right of Canada
+# Copyright 2006 - 2008, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2006 - 2008, Her Majesty in Right of Canada
 
 
 # =======================================================================
@@ -31,7 +31,7 @@ export PORTAGE=$HOME/PORTAGEshared
 # END OF USER CONFIGURABLE VARIABLES
 # =======================================================================
 
-echo 'PORTAGEshared, NRC-CNRC, (c) 2004 - 2007, Her Majesty in Right of Canada'
+echo 'PORTAGEshared, NRC-CNRC, (c) 2004 - 2008, Her Majesty in Right of Canada'
 
 if [ ${PATH:-UNDEF} = "UNDEF" ] ; then
    export PATH=$PORTAGE/bin

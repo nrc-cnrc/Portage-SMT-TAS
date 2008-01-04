@@ -1,7 +1,7 @@
-# Copyright (c) 2004 - 2007, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada
+# Copyright (c) 2004 - 2008, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada
 #
 # For further information, please contact :
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # See http://iit-iti.nrc-cnrc.gc.ca/locations-bureaux/gatineau_e.html
@@ -526,11 +526,11 @@ paragraph delimiter (just like a blank line).
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004, 2005, Sa Majeste la Reine du Chef du Canada /
-Copyright (c) 2004, 2005, Her Majesty in Right of Canada
+Copyright (c) 2004 - 2008, Sa Majeste la Reine du Chef du Canada /
+Copyright (c) 2004 - 2008, Her Majesty in Right of Canada
 
  For further information, please contact :
- Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+ Technologies langagieres interactives / Interactive Language Technologies
  Institut de technologie de l'information / Institute for Information Technology
  Conseil national de recherches Canada / National Research Council Canada
  See http://iit-iti.nrc-cnrc.gc.ca/locations-bureaux/gatineau_e.html

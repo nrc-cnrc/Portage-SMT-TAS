@@ -12,7 +12,7 @@ use Exporter;
 # just a dumb comment
 # ----------------------------------------------------------------------------
 
-print STDERR "parser.en.pl, NRC-CNRC, (c) 2005 - 2007, Her Majesty in Right of Canada\n";
+print STDERR "parser.en.pl, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada\n";
 
 $direng = "/export/projets/portage/models/parsing-dictionaries/English/";
 #$dirf= "/export/projets/portage/corpora/NIST-05/processed-v1/";

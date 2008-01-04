@@ -10,10 +10,10 @@
 # Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2007, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2007, Her Majesty in Right of Canada
+# Copyright 2008, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2008, Her Majesty in Right of Canada
 
-echo 'prog.sh, NRC-CNRC, (c) 2006 - 2007, Her Majesty in Right of Canada' >&2
+echo 'prog.sh, NRC-CNRC, (c) 2006 - 2008, Her Majesty in Right of Canada' >&2
 
 usage() {
    for msg in "$@"; do

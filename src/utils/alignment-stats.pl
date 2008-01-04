@@ -9,7 +9,7 @@
 # COMMENTS:
 #
 # Eric Joanis
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -18,7 +18,7 @@
 use strict;
 use warnings;
 
-print STDERR "alignment-stats.pl, NRC-CNRC, (c) 2005 - 2007, Her Majesty in Right of Canada\n";
+print STDERR "alignment-stats.pl, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada\n";
 
 sub usage {
     local $, = "\n";

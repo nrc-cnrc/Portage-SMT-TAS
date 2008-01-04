@@ -15,7 +15,7 @@
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2006, Her Majesty in Right of Canada
 
-echo 'masstesting.sh, NRC-CNRC, Copyright (c) 2006 - 2007, Her Majesty in Right of Canada'
+echo 'masstesting.sh, NRC-CNRC, Copyright (c) 2006 - 2008, Her Majesty in Right of Canada'
 
 if [ $# -ne 3 ]; then
    echo Your are missing some arguments

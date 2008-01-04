@@ -94,7 +94,7 @@ set -o noclobber
 ##   constructed by rat.sh
 ##
 
-echo 'gen-feature-parallel.sh, NRC-CNRC, (c) 2006 - 2007, Her Majesty in Right of Canada' >&2
+echo 'gen-feature-parallel.sh, NRC-CNRC, (c) 2006 - 2008, Her Majesty in Right of Canada' >&2
 
 error_exit() {
    for msg in "$@"; do

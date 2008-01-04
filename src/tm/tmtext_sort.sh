@@ -7,7 +7,7 @@
 # 
 # COMMENTS:
 #
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada /
@@ -28,7 +28,7 @@ Usage: tmtext_sort.sh [-h(elp)] [-1st] tmtext-file > sorted-tmtext-file
     exit 1
 }
 
-echo 'tmtext_sort.sh, NRC-CNRC, (c) 2006 - 2007, Her Majesty in Right of Canada' >&2
+echo 'tmtext_sort.sh, NRC-CNRC, (c) 2006 - 2008, Her Majesty in Right of Canada' >&2
 
 while [ $# -gt 0 ]; do
     case "$1" in

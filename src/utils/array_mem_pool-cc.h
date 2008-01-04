@@ -3,13 +3,11 @@
  * @file array_mem_pool-cc.h  Implementation of simple memory pool for arrays.
  * $Id$
  *
- * Groupe de technologies langagieres interactives /
- *    Interactive Language Technologies Group
- * Institut de technologie de l'information /
- *    Institute for Information Technology
+ * Technologies langagieres interactives / Interactive Language Technologies
+ * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
- *    National Research Council of Canada
+ * Copyright 2006, Her Majesty in Right of Canada
  */
 
 #ifndef __ARRAY_MEM_POOL_CC_H__

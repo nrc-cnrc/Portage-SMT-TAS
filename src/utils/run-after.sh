@@ -7,13 +7,13 @@
 # 
 # COMMENTS:
 #
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
 
-echo 'run-after.sh, NRC-CNRC, (c) 2005 - 2007, Her Majesty in Right of Canada' >&2
+echo 'run-after.sh, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada' >&2
 
 usage() {
     for msg in "$@"; do

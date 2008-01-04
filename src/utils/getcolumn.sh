@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Aaron Tikuisis
-# Groupe de technologies langagieres interactives / Interactive Language Technologies Group
+# Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
@@ -18,7 +18,7 @@
 ## FILE	The file, or - for standard input.  [-]
 ##
 
-echo 'getcolumn.sh, NRC-CNRC, (c) 2004 - 2007, Her Majesty in Right of Canada' >&2
+echo 'getcolumn.sh, NRC-CNRC, (c) 2004 - 2008, Her Majesty in Right of Canada' >&2
 
 if [ $# -lt 1 -o $# -gt 2 -o "$1" == "-h" ]; then
     cat $0 | grep "^##" | cut -c4-

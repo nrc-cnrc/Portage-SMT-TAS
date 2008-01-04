@@ -14,7 +14,7 @@
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada
 # Copyright 2006, Her Majesty in Right of Canada
 
-echo 'ngram-count-big.sh, NRC-CNRC, (c) 2006 - 2007, Her Majesty in Right of Canada'
+echo 'ngram-count-big.sh, NRC-CNRC, (c) 2006 - 2008, Her Majesty in Right of Canada'
 
 usage() {
    for msg in "$@"; do
