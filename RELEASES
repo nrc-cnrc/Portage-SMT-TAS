@@ -13,8 +13,8 @@ license agreement for details.
                               Release History
                    (with a summary of important changes)
 
-Done: utils build logging eval preprocessing lm tm canoe api rescoring
-(for dir in rescoring; do
+utils build logging eval preprocessing lm tm adaptation canoe api rescoring
+(for dir in lm; do
     cd $dir
     for x in `\ls ~/sandboxes/PortageTrunk/src/$dir | egrep -v '\.(a|o|so)$'`
       do echo ====================================================
@@ -28,7 +28,10 @@ Done: utils build logging eval preprocessing lm tm canoe api rescoring
     cd ..
  done) | gvim -
 
-v1.2 ??.??.200?
+v1.2 ??.01.2008
+ This is a significant update to PORTAGEshared, incorporating most of the
+ changes we have made to Portage since the initial release of PORTAGEshared.
+
  Major changes:
  - Significantly optimized string splitting routines (src/utils/str_utils.h)
    and consequently the loading of many type of input and data files, including
@@ -68,6 +71,10 @@ v1.2 ??.??.200?
    decoding in most circumstances.  Requires careful re-tuning of some decoding
    parameters, however, especially S since its meaning is not the same as with
    regular decoding.  Run canoe -h for details on enabling cube pruning.
+ - New module implementing George Foster's LM and TM adaptation work, with
+   integration of the resulting mixture models in the decoder - details in
+   Foster and Kuhn (2007). Mixture-Model Adaptation for SMT. In Proceedings of
+   WMT (at ACL 2007).
  - The main rescoring script, rat.sh, was completely overhauled to be easier to
    use.  The model is now specified with the same syntax as documented in
    rescore_train -H: rat.sh transparently handles generating the features,

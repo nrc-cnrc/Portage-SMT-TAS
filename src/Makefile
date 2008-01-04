@@ -24,7 +24,7 @@ new_install:
 	$(MAKE) OT=install subdirs
 
 # These directories will be compiled by default
-SUBDIRS = logging preprocessing eval lm tm canoe rescoring api
+SUBDIRS = logging preprocessing eval lm tm adaptation canoe rescoring api
 
 # Additional directories listed here are only compiled if explicitly
 # specified.  Use this for modules in development that are not ready to be

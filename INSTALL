@@ -1,4 +1,4 @@
-                             PORTAGEshared_v1.1
+                             PORTAGEshared_v1.2
 
 Technologies langagieres interactives / Interactive Language Technologies
 Institut de technologie de l'information / Institute for Information Technology
@@ -105,10 +105,14 @@ Optional dependencies for all distributions:
    (some programs automatically set N to the number of CPUs on the machine),
    jobs will simply be run N at a time, with the next batch starting when all N
    jobs of a batch are done.  This will already be faster than if you don't use
-   parellelism, but with netcat, the N CPUs will be kept continuously busy
-   until all jobs in a batch have completed.
+   parellelism, but if netcat is available, the N CPUs will be kept
+   continuously busy until all jobs in a batch have completed.
 
+   Netcat is a standard utility in some Linux distributions.
    Netcat home page: http://netcat.sourceforge.net/
+
+ - SRILM's ngram and compute-best-mix programs, if you want to use the
+   adaptation module.
 
 Mandatory dependencies for source code distributions:
 
@@ -134,13 +138,13 @@ Mandatory dependencies for source code distributions:
    Boost home page: http://www.boost.org or http://boost.sourceforge.net
    This procedure worked for us, and may help you install it yourself, if your
    sys admins can't do it globally for you:
-      # Download the boost tarball, currently boost_1_33_1.tar.bz2, by
+      # Download the boost tarball, currently boost_1_34_1.tar.bz2, by
       # following the download links from the home page.  PORTAGEshared does
       # not require the latest version.
       # Extract it
-      tar -xjf boost_1_33_1.tar.bz2
+      tar -xjf boost_1_34_1.tar.bz2
       # Go into it
-      cd boost_1_33_1/
+      cd boost_1_34_1/
       # Run autoconf, with overridden install destination - replace $HOME/pkgs
       # with your preferred destination (many simply use $HOME), making sure
       # that your environment variable $LD_LIBRARY_PATH includes
@@ -154,7 +158,7 @@ Mandatory dependencies for source code distributions:
       # Install to $HOME/pkgs/{include,lib}
       make -k install
       # Create a soft link so that the include files have their standard names:
-      ln -s $HOME/pkgs/include/boost_1_33_1/boost $HOME/pkgs/include
+      ln -s $HOME/pkgs/include/boost_1_34_1/boost $HOME/pkgs/include
       # Make boost visible (this is best done in your .bashrc - or use setenv
       # in your .tcshrc - preferably after sourcing SETUP.bash/tcsh).
       export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:$HOME/pkgs/include

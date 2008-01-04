@@ -14,6 +14,7 @@
 #include "lmbin.h"
 #include "lmbin_vocfilt.h"
 #include "lmtext.h"
+#include "lmmix.h"
 #include <string>
 #include <assert.h>
 #include <str_utils.h>
@@ -68,6 +69,10 @@ PLM* PLM::Create(const string& lm_filename,
       lm = NULL;
       error(ETFatal, "LMDB format not supported, can't open %s",
                      lm_physical_filename.c_str());
+   }
+   else if ( isSuffix(".mixlm", lm_physical_filename)) {
+      lm = new LMMix(lm_physical_filename, vocab, oov_handling,
+               oov_unigram_prob, limit_vocab, limit_order);
    }
    else {
       string line;
@@ -221,6 +226,11 @@ bool PLM::check_file_exists(const string& lm_filename)
    const size_t hash_pos = lm_filename.rfind("#");
    if ( hash_pos != string::npos ) {
       lm_physical_filename.resize(hash_pos);
+   }
+
+   // Special case
+   if ( isSuffix(".mixlm", lm_physical_filename)) {
+      return LMMix::check_file_exists(lm_physical_filename);
    }
    return check_if_exists(lm_physical_filename);
 }

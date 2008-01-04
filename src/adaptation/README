@@ -1,0 +1,69 @@
+Technologies langagieres interactives / Interactive Language Technologies
+Institut de technologie de l'information / Institute for Information Technology
+Conseil national de recherches Canada / National Research Council Canada
+Copyright 2005-2008, Sa Majeste la Reine du Chef du Canada /
+Copyright 2005-2008, Her Majesty in Right of Canada
+
+Distributed under specific licensing terms.  Please refer to your signed
+license agreement for details.
+
+
+                          Mixture Model Adaptation
+                          ------------------------
+
+Overview: train LMs or TMs (phrase tables) on different parts of the corpus,
+then assign weights to models as a function of the current source text under
+translation.
+
+The first step in mixture-model adaptation is to split up your corpus somehow.
+This must be done manually. After the corpus is split, LMs and TMs need to be
+trained on each component.
+
+Next steps are a function of the current source text:
+
+1. Calculate distances to each component using mx-calc-distances.sh. This
+   supplies a bunch of different metrics, all of which make use of models of
+   various types that represent the corpus components, eg LMs or voc files.
+   (These need to have been trained ahead of time.) NB: distance means
+   proximity, so higher values are better.
+
+2. Transform distances into weights using mx-dist2weights.sh. This does either
+   basic normalization, or a fancier sigmoid transformation then weighted
+   combination of multiple distance metrics.
+
+3. Combine a set of component models into a global model using the desired
+   weights, via mx-mix-models.sh. This can mix either LMs or TMs, and can
+   optionally filter the mixed TM for a given source file.
+
+Once the adapted models are produced, they can be used with canoe. The mixed
+TMs are just regular models; the mixed LMs need to be called ".mixlm" to get
+interpreted properly.
+
+Here is a summary of the programs used in the process just described:
+
+cosine_distances      - Calculate cosine distances for TF/IDF metrics.
+multi-ngram-ppx       - Calculate perplexities for multiple corpus components.
+mx-calc-distances.sh  - Calculate all distance metrics for a given source file
+                        and set of corpus components.
+mx-dist2weights       - Convert raw distances into weights.
+mx-mix-models.sh      - Produce a mixture model from given components and
+                        weights.
+train-lm-mixture      - Calculate weights for the EM metric.
+
+Note that the language-model related distances in the scripts multi-ngram-ppx,
+mx-calc-distances.sh, and train-lm-mixture assume that programs from the SRILM
+package are available on your PATH.
+
+Relevant publication:
+@InProceedings{foster-kuhn:2007:WMT,
+  author    = {Foster, George  and  Kuhn, Roland},
+  title     = {Mixture-Model Adaptation for {SMT}},
+  booktitle = {Proceedings of the Second Workshop on Statistical Machine Translation},
+  month     = {June},
+  year      = {2007},
+  address   = {Prague, Czech Republic},
+  publisher = {Association for Computational Linguistics},
+  pages     = {128--135},
+  url       = {http://www.aclweb.org/anthology/W/W07/W07-0717}
+}
+

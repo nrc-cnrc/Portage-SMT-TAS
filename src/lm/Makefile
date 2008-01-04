@@ -11,6 +11,7 @@ OBJECTS = \
 	lm.o \
         lmbin.o \
         lmbin_vocfilt.o \
+        lmmix.o \
 	lmtext.o
 
 PROGRAMS = lmtext2binlm lm_eval

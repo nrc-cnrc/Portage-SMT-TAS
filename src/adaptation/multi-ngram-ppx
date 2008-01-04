@@ -1,0 +1,72 @@
+#!/bin/bash
+# $Id$
+
+# multi-ngram-ppx
+# 
+# PROGRAMMER: George Foster
+# 
+# COMMENTS:
+#
+# Technologies langagieres interactives / Interactive Language Technologies
+# Institut de technologie de l'information / Institute for Information Technology
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2006, Sa Majeste la Reine du Chef du Canada / 
+# Copyright 2006, Her Majesty in Right of Canada
+
+usage() {
+   for msg in "$@"; do
+      echo $msg >&2
+   done
+   cat <<==EOF== >&2
+
+multi-ngram-ppx [-ng "ngopts"] ngram-models testfile
+
+Run each ngram model listed in file <ngram-models> on text file <testfile>, and
+write the resulting perplexities to standard output, one per line.
+
+Options:
+-ng   Pass <ngopts> options to ngram (these must be enclosed in quotes). Eg:
+      -ng "-order 4"
+
+==EOF==
+
+    exit 1
+}
+
+error_exit() {
+   for msg in "$@"; do
+      echo $msg >&2
+   done
+   echo "Use -h for help." >&2
+   exit 1
+}
+
+arg_check() {
+   if [ $2 -le $1 ]; then
+      error_exit "Missing argument to $3 option."
+   fi
+}
+
+
+# Command line processing
+ngopts=
+
+while [ $# -gt 0 ]; do
+   case "$1" in
+   -h|-help)            usage;;
+   -ng)                 arg_check 1 $# $1; ngopts=$2; shift;;
+   --)                  shift; break;;
+   -*)                  error_exit "Unknown option $1.";;
+   *)                   break;;
+   esac
+   shift
+done
+
+if [ $# -ne 2 ]; then error_exit "Expecting 2 arguments!"; fi
+
+modelfile=$1
+textfile=$2
+
+for model in `cat $modelfile`; do
+   ngram $ngopts -lm $model -ppl $textfile | egrep ppl
+done

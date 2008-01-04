@@ -41,6 +41,7 @@ phrase-based statistical machine translation, including:
    test-suite/  three test suites
    README       this file
    INSTALL      installation instructions
+   RELEASES     release history
    LICENCE      notes about your PORTAGEshared licence agreement
    SETUP.bash   config file for bash users
    SETUP.tcsh   config file for tcsh users
