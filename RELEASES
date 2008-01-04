@@ -14,7 +14,7 @@ license agreement for details.
                    (with a summary of important changes)
 
 Done: utils build logging eval preprocessing lm tm canoe api rescoring
-(for dir in canoe; do
+(for dir in rescoring; do
     cd $dir
     for x in `\ls ~/sandboxes/PortageTrunk/src/$dir | egrep -v '\.(a|o|so)$'`
       do echo ====================================================
@@ -44,11 +44,12 @@ v1.2 ??.??.200?
    using the new PhraseDisplacement distortion model instead of, or in
    combination with, the standard distortion penalty (WordDisplacement).
  - New IBM1Forward decoder feature.
- - LM filtering based on per-sentence-vocabulary, as described in Ghada Badr,
-   Eric Joanis, Samuel Larkin and Roland Kuhn, CORES 2007: in short, keeps an
-   n-gram only if all the words it contains can occur together in the
-   translation of at least one source sentence.  Typical LM filtering uses one
-   global vocab; this technique efficiently keeps track of a separate
+ - LM filtering based on per-sentence-vocabulary, as described in Badr,
+   Joanis, Larkin and Kuhn (2007).  Manageable Phrase-based Statistical Machine
+   Translation Models.  In Computer Recognition Systems 2 (CORES 2007).  In
+   short, keeps an n-gram only if all the words it contains can occur together
+   in the translation of at least one source sentence.  Typical LM filtering
+   uses one global vocab; this technique efficiently keeps track of a separate
    vocabulary for each input sentence to translate.  In decoding, this approach
    can save some 25% of the memory required for large LMs.  In lm_eval and the
    LM rescoring function, significantly higher savings are common.  Works with
@@ -61,6 +62,12 @@ v1.2 ??.??.200?
    kept, i.e., discards entries that can never make it to the top L, under any
    set of non-negative weights.  Also described in our CORES 2007 paper.
    - Used by cow.sh when the -filt option is specified (recommended).
+ - Implemented Huang and Chiang's cube pruning algorithm.  See Huang and Chiang
+   (2007).  Forest rescoring: faster decoding with integrated language models.
+   In Proceedings of ACL 2007.  Can yield an order-of-magnitude speed up in
+   decoding in most circumstances.  Requires careful re-tuning of some decoding
+   parameters, however, especially S since its meaning is not the same as with
+   regular decoding.  Run canoe -h for details on enabling cube pruning.
  - The main rescoring script, rat.sh, was completely overhauled to be easier to
    use.  The model is now specified with the same syntax as documented in
    rescore_train -H: rat.sh transparently handles generating the features,
@@ -68,11 +75,27 @@ v1.2 ??.??.200?
    rescore_train an appropriately modified model file.  See rat.sh -h for
    details, and test-suite/regress-small-voc/28_rat_train.pl for an example
    rescoring model in this new syntax.
- - Implemented Huang and Chiang's (ACL 2007) cube pruning algorithm.  See their
-   paper for details.  Can yield an order-of-magnitude speed up in decoding in
-   most circumstances.  Requires careful retuning of some decoding parameters,
-   however, especially S since its meaning is not the same as with regular
-   decoding.  Run canoe -h for details on enabling this feature.
+ - New rescoring features (run rescore_train -H for the full list):
+   - IBM1DocTgtGivenSrc calculates p(tgt-sent|src-doc), using a file of docids
+     to determine what parts of the source file constitute documents (the
+     docids file should have one line for each line in the source text,
+     containing an ID in any format (no whitespace allowed); lines with
+     identical IDs are considered to come from the same document).
+   - nbest*Post* - posterior probability features for confidence estimation
+     rescoring - see Ueffing and Ney (2005).  Word-Level Confidence Estimation
+     for Machine Translation using Phrase-Based Translation Models.  In
+     Proceedings of HLT/EMNLP 2005.
+   - Consensus and ConsensusWin - WER-based consensus over N-best list (very
+     expensive features - not recommended for general use) - see Ueffing (YYYY).
+   - BLEUrisk - Minimum Bayes Risk using BLEU loss function - see Kumar and
+     Byrne (2004).  Minimum Bayes-Risk Decoding for Statistical Machine
+     Translation.  In Proceedings of HLT-NAACL 2004.
+   - ParMismatch and QuotMismatch - count mismatched parentheses and quotes.
+   - CacheLM - cache LM over docs defined in docids files (see above) - see
+     Kuhn and De Mori (1990).  A Cache-Based Natural Language Model for Speech
+     Recognition.  In IEEE Trans. Pattern Analysis and Machine Intelligence
+     (PAMI), 12(6), June, pp. 570-583 (see also corrections to this article in
+     14(6), June 1992, pp. 691-692).
 
  Major bug fixes:
  - When canoe was used with -weight-f (weights on the forward translation
@@ -216,11 +239,6 @@ v1.2 ??.??.200?
      the problem it solved is now implemented in rat.sh itself;
    - sets of n-best lists no longer need to have the same number of candidate
      translations for each source sentence;
-   - new IBM1DocTgtGivenSrc feature calculates p(tgt-sent|src-doc), using a
-     file of docids to determine what parts of the source file constitute
-     documents (the docids file should have one line for each line in the
-     source text, containing an ID in any format (no whitespace allowed); lines
-     with identical IDs are considered to come from the same document).
    - features can now depend on the target language vocabulary (e.g., NgramFF
      uses this for filtering, as mentioned in Major Changes above);
 

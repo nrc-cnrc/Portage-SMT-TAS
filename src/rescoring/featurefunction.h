@@ -187,6 +187,18 @@ public:
    /////////////////////////////////////////////////////////////////
 
    /**
+    * This function is called for all features, provided at least one feature
+    * says that it needs the tgt vocab (FF_NEEDS_TGT_VOCAB). It is called for
+    * every nbest list, during tgt_vocab compilation, in order to give features
+    * the chance to process the ENTIRE set of nbest lists. Yup, this function
+    * is insane. See CacheLM (the only feature that uses it at this point).
+    * @param tgt_vocab the current partial tgt_vocab, after processing nb
+    * @param src_index index of current source sentence 
+    * @param nb nbest list for src_index
+    */
+   virtual void preprocess(VocabFilter* tgt_vocab, Uint src_index, const Nbest& nb) {}
+
+   /**
     * Initial info.
     * @param src_sents  source sentences.
     */
@@ -221,7 +233,21 @@ public:
     * @return the feature value.
     */
    virtual double value(Uint k) = 0;
-};
+
+   /**
+    * Compute feature values for each target word in the current hypothesis.
+    * The default, implemented in the base class, is to return the global value
+    * averaged over number of tokens. 
+    * @param k index of tgt_sent within nbest arg to source().
+    * @param vals vector to fill in with one value per token - will be initialized
+    * empty
+    */
+   virtual void values(Uint k, vector<double>& vals) {
+      const double v = value(k);
+      const Uint ntoks = (*nbest)[k].getTokens().size();
+      vals.assign(ntoks, v / ntoks);
+   }
+}; // class FeatureFunction
 
 void writeFFMatrix(ostream &out, const vector<uMatrix>& vH);
 void readFFMatrix(istream &in, vector<uMatrix>& vH);
@@ -333,7 +359,7 @@ public:
     * Get the number of features.
     * @return Return the number of features.
     */
-   inline Uint M() const { return ff_infos.size(); } 
+   Uint M() const { return ff_infos.size(); } 
       
    /// Get the random weights vector.
    /// @param v  returned weights vector.
@@ -457,7 +483,7 @@ class LengthFF: public FeatureFunction
 {
 public:
    LengthFF() : FeatureFunction("") {}
-   virtual inline Uint requires() { return FF_NEEDS_TGT_TEXT; }
+   virtual Uint requires() { return FF_NEEDS_TGT_TEXT; }
    virtual FeatureFunction::FF_COMPLEXITY cost() const { return LOW; }
    virtual double value(Uint k) { return nbest->at(k).size(); }
 };
@@ -485,7 +511,7 @@ public:
     */
    FileFF(const string& filespec);
 
-   virtual inline Uint requires() { return FF_NEEDS_NOTHING; }
+   virtual Uint requires() { return FF_NEEDS_NOTHING; }
    virtual bool parseAndCheckArgs();
 
    virtual double value(Uint k) {
@@ -529,7 +555,7 @@ public:
     */
    FileDFF(const string& filespec);
 
-   virtual inline Uint requires() { return FF_NEEDS_NOTHING; }
+   virtual Uint requires() { return FF_NEEDS_NOTHING; }
    virtual bool parseAndCheckArgs();
    virtual void source(Uint s, const Nbest * const nbest);
    virtual double value(Uint k);

@@ -7,7 +7,7 @@
  * COMMENTS: class for storing word confidence measures calculated over N-best lists
  * contains word posterior probability, rank weighted frequency, and relative frequency
  *
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group 
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology 
  * Conseil national de recherches Canada / National Research Council Canada 
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /

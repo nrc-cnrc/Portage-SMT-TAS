@@ -67,7 +67,7 @@ namespace Portage
       /// Destructor
       virtual ~IBM1WTransBase();
     
-      virtual inline Uint requires() { return  FF_NEEDS_SRC_TOKENS | FF_NEEDS_TGT_TOKENS; }
+      virtual Uint requires() { return  FF_NEEDS_SRC_TOKENS | FF_NEEDS_TGT_TOKENS; }
   };
 
   /// Forward IBM1WTrans.
@@ -77,7 +77,7 @@ namespace Portage
       /// @param file  file and arguments
       IBM1WTransTgtGivenSrc(const string &file) : IBM1WTransBase(file) {}
 
-      virtual inline double value(Uint k) {
+      virtual double value(Uint k) {
         return computeValue((*src_sents)[s].getTokens(), (*nbest)[k].getTokens());
       }
   }; // IBM1WTransTgtGivenSrc
@@ -89,7 +89,7 @@ namespace Portage
       /// @param file  file and arguments
       IBM1WTransSrcGivenTgt(const string &file) : IBM1WTransBase(file) {}
 	    
-      virtual inline double value(Uint k) {
+      virtual double value(Uint k) {
         return computeValue((*nbest)[k].getTokens(), (*src_sents)[s].getTokens());
       }
   }; // IBM1WTransSrcGivenTgt

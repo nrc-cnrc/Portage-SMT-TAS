@@ -12,13 +12,28 @@ INCLUDES = $(filter-out rescore_train.h rescore_translate.h \
                         rescore_test.h, $(wildcard *.h))
 
 OBJECTS = \
+	bleurisk.o \
+	cache_lm_ff.o \
+	confidence_score.o \
+	consensus.o \
 	featurefunction.o \
 	fmax.o \
 	ibm1wtrans.o \
 	ibm1del.o \
 	ibm_ff.o \
 	lm_ff.o \
+	mismatch_ff.o \
 	multiColumnFileFF.o \
+	nbest_ngrampost.o \
+	nbest_phrasepost_src.o \
+	nbest_phrasepost_trg.o \
+	nbest_posterior.o \
+	nbest_posterior_ff.o \
+	nbest_sentlenpost.o \
+	nbest_wordpost_lev.o \
+	nbest_wordpost_src.o \
+	nbest_wordpost_trg.o \
+	ngram_tree.o \
 	rescore_io.o
 
 BINSCRIPTS = \

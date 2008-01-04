@@ -204,8 +204,6 @@ double IBM1::pr(const vector<string>& src_toks, const string& tgt_tok,
    return num_src == 0 ? 0.0 : p / num_src;
 }
 
-static const bool debug_logpr = false;
-
 double IBM1::logpr(const vector<string>& src_toks, const vector<string>& tgt_toks,
                    double smooth)
 {
@@ -214,13 +212,28 @@ double IBM1::logpr(const vector<string>& src_toks, const vector<string>& tgt_tok
       double tp = IBM1::pr(src_toks, tgt_toks[i]);
       lp += tp == 0 ? logsmooth : log(tp);
    }
-   if ( debug_logpr )
-      cerr << "SRC: " << join(src_toks, "|") << endl
-           << "TGT: " << join(tgt_toks, "|") << endl
-           << "IBM1 - Imp Null: " << useImplicitNulls
-           << " smooth: " << smooth
-           << " logprob: " << lp << endl;
    return lp;
+}
+
+double IBM1::minlogpr(const vector<string>& src_toks, const string& tgt_tok,
+                      double smooth)
+{
+  vector<double> probs;
+  IBM1::pr(src_toks, tgt_tok, &probs);
+  double tp = *max_element(probs.begin(), probs.end());
+  double lp = tp == 0 ? log(smooth) : log(tp);
+  return lp;
+}
+
+double IBM1::minlogpr(const string& src_tok, const vector<string>& tgt_toks,
+                      double smooth)
+{
+  vector<double> probs;
+  for (vector<string>::const_iterator itr=tgt_toks.begin(); itr!=tgt_toks.end(); itr++)
+    probs.push_back( IBM1::pr(vector<string>(1,src_tok), *itr) );
+  double tp = *max_element(probs.begin(), probs.end());
+  double lp = tp == 0 ? log(smooth) : log(tp);
+  return lp;
 }
 
 void IBM1::align(const vector<string>& src, const vector<string>& tgt, vector<Uint>& tgt_al, bool twist,
@@ -506,14 +519,29 @@ double IBM2::logpr(const vector<string>& src_toks, const vector<string>& tgt_tok
       double tp = pr(src_toks, tgt_toks[i], i, tgt_toks.size());
       lp += tp == 0 ? logsmooth : log(tp);
    }
-   if ( debug_logpr )
-      cerr << "SRC: " << join(src_toks, "|") << endl
-           << "TGT: " << join(tgt_toks, "|") << endl
-           << "IBM2 - Imp Null: " << useImplicitNulls
-           << " smooth: " << smooth
-           << " logprob: " << lp << endl;
    return lp;
 }
+
+double IBM2::minlogpr(const vector<string>& src_toks, const vector<string>& tgt_toks,
+                      const int i, bool inv, double smooth)
+{
+  vector<double> probs;
+  double lp = 0;
+  if (!inv) {
+    pr(src_toks, tgt_toks[i], i, tgt_toks.size(), &probs);
+    double tp = *max_element(probs.begin(), probs.end());
+    lp = tp == 0 ? log(smooth) : log(tp);
+  }
+  else {
+    string src_tok = src_toks[i];
+    for (vector<string>::const_iterator itr=tgt_toks.begin(); itr!=tgt_toks.end(); itr++)
+      probs.push_back( pr(vector<string>(1,src_tok), *itr, i, tgt_toks.size()) );
+    double tp = *max_element(probs.begin(), probs.end());
+    lp = tp == 0 ? log(smooth) : log(tp);
+  }
+  return lp;
+}
+
 
 void IBM2::align(const vector<string>& src, const vector<string>& tgt, vector<Uint>& tgt_al, bool twist,
                  vector<double>* tgt_al_probs)

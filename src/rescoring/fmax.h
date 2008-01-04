@@ -12,7 +12,7 @@
  * max_1to1_func requires \f$v\f$ to be non-negative and maximizes over the set of all \f$(1-1)\f$
  * functions, with special circumstances for when \f$|T| < |S|\f$.
  * 
- * Groupe de technologies langagieres interactives / Interactive Language Technologies Group 
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology 
  * Conseil national de recherches Canada / National Research Council Canada 
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /

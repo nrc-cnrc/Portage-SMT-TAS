@@ -66,9 +66,15 @@ public:
       }
       return true;
    }
-   virtual inline Uint requires() { return FF_NEEDS_SRC_TOKENS | FF_NEEDS_TGT_TOKENS; }
+   virtual Uint requires() { return FF_NEEDS_SRC_TOKENS | FF_NEEDS_TGT_TOKENS; }
    virtual double value(Uint k) {
       return ibm1->logpr((*src_sents)[s].getTokens(), (*nbest)[k].getTokens());
+   }
+   virtual void values(Uint k, vector<double>& vals) {
+      const vector<string>& src = (*src_sents)[s].getTokens();
+      const vector<string>& tgt = (*nbest)[k].getTokens();
+      for (vector<string>::const_iterator itr=tgt.begin(); itr!=tgt.end(); ++itr)
+         vals.push_back(ibm1->minlogpr(src,*itr));
    }
 };
 
@@ -110,9 +116,15 @@ public:
       }
       return true;
    }
-   virtual inline Uint requires() { return FF_NEEDS_SRC_TOKENS | FF_NEEDS_TGT_TOKENS; }
+   virtual Uint requires() { return FF_NEEDS_SRC_TOKENS | FF_NEEDS_TGT_TOKENS; }
    virtual double value(Uint k) {
       return ibm1->logpr((*nbest)[k].getTokens(), (*src_sents)[s].getTokens());
+   }
+   virtual void values(Uint k, vector<double>& vals) {
+      const vector<string>& src = (*src_sents)[s].getTokens();
+      const vector<string>& tgt = (*nbest)[k].getTokens();
+      for (vector<string>::const_iterator itr=tgt.begin(); itr!=tgt.end(); ++itr)
+         vals.push_back(ibm1->minlogpr(*itr,src));
    }
 };
 
@@ -154,9 +166,15 @@ public:
       }
       return true;
    }
-   virtual inline Uint requires() { return FF_NEEDS_SRC_TOKENS | FF_NEEDS_TGT_TOKENS; }
+   virtual Uint requires() { return FF_NEEDS_SRC_TOKENS | FF_NEEDS_TGT_TOKENS; }
    virtual double value(Uint k) {
       return ibm2->logpr((*src_sents)[s].getTokens(), (*nbest)[k].getTokens());
+   }
+   virtual void values(Uint k, vector<double>& vals) {
+      const vector<string>& src = (*src_sents)[s].getTokens();
+      const vector<string>& tgt = (*nbest)[k].getTokens();
+      for (Uint i=0; i<tgt.size(); ++i)
+         vals.push_back(ibm2->minlogpr(src,tgt,i));
    }
 };
 
@@ -198,9 +216,15 @@ public:
       }
       return true;
    }
-   virtual inline Uint requires() { return FF_NEEDS_SRC_TOKENS | FF_NEEDS_TGT_TOKENS; }
+   virtual Uint requires() { return FF_NEEDS_SRC_TOKENS | FF_NEEDS_TGT_TOKENS; }
    virtual double value(Uint k) {
       return ibm2->logpr((*nbest)[k].getTokens(), (*src_sents)[s].getTokens());
+   }
+   virtual void values(Uint k, vector<double>& vals) {
+      const vector<string>& src = (*src_sents)[s].getTokens();
+      const vector<string>& tgt = (*nbest)[k].getTokens();
+      for (Uint i=0; i<tgt.size(); ++i)
+         vals.push_back(ibm2->minlogpr(tgt,src,i,true));
    }
 };
 
@@ -231,7 +255,7 @@ public:
       if (docids) delete docids, docids = NULL;
    }
 
-   virtual inline Uint requires() { return FF_NEEDS_SRC_TOKENS | FF_NEEDS_TGT_TOKENS; }
+   virtual Uint requires() { return FF_NEEDS_SRC_TOKENS | FF_NEEDS_TGT_TOKENS; }
 
    virtual FF_COMPLEXITY cost() const {return HIGH;}
 
@@ -247,6 +271,12 @@ public:
 
    virtual double value(Uint k) {
       return ibm1->logpr(src_doc, (*nbest)[k].getTokens());
+   }
+   
+   virtual void values(Uint k, vector<double>& vals) {
+      const vector<string>& tgt = (*nbest)[k].getTokens();
+      for (vector<string>::const_iterator itr=tgt.begin(); itr!=tgt.end(); ++itr)
+         vals.push_back(ibm1->minlogpr(src_doc,*itr));
    }
 };
 

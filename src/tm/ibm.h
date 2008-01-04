@@ -236,6 +236,26 @@ namespace Portage {
                          const vector<string>& tgt_toks,
                          double smooth = 1e-07);
 
+    /**
+     * max_{s in src_seq} p(tgt_tok|s).
+     * @param src_toks
+     * @param tgt_tok
+     * @param smooth used in place of 0 probs when calculating logpr()
+     */
+    virtual double minlogpr(const vector<string>& src_toks,
+                            const string& tgt_tok,
+                            double smooth = 1e-07);
+
+    /**
+     * max_{s in src_seq} p(s|tgt_tok).
+     * @param src_toks
+     * @param tgt_toks
+     * @param smooth used in place of 0 probs when calculating logpr()
+     */
+    virtual double minlogpr(const string& src_toks,
+                            const vector<string>& tgt_toks,
+                            double smooth = 1e-07);
+
     virtual void align(const vector<string>& src, const vector<string>& tgt, 
                        vector<Uint>& tgt_al, bool twist = false, 
                        vector<double>* tgt_al_probs = NULL);
@@ -315,6 +335,7 @@ namespace Portage {
    
     // Avoid hiding base class overriden functions.
     using IBM1::pr;
+    using IBM1::minlogpr;
 
     /**
      * Get the .pos filename from the base ttable filename.
@@ -413,6 +434,19 @@ namespace Portage {
     virtual double logpr(const vector<string>& src_toks,
                          const vector<string>& tgt_toks,
                          double smooth = 1e-07);
+
+    /**
+     * max_{s in src_seq} p(tgt_toks[i]|s) 
+     * (or max_{t in tgt_seq} p(t|src_toks[i]) if inv is true).
+     * @param src_toks
+     * @param tgt_toks
+     * @param i
+     * @param inv is true if calculating minlogpr of src_toks[i] over tgt_toks
+     * @param smooth used in place of 0 probs when calculating logpr()
+     */
+    virtual double minlogpr(const vector<string>& src_toks,
+                            const vector<string>& tgt_toks, 
+                            const int i, bool inv=false, double smooth = 1e-07);
 
     virtual void align(const vector<string>& src, const vector<string>& tgt, 
                        vector<Uint>& tgt_al, bool twist = false,

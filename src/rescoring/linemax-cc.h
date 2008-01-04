@@ -144,8 +144,7 @@ namespace Portage
       double oldgamma(0.0f);
       if (minDA == INFINITY) {
          oldgamma = INFINITY;
-      }
-      else {
+      } else {
          double minB = INFINITY;
          double maxB = -INFINITY;
          for (Uint k(0); k<K; ++k) {
@@ -341,7 +340,7 @@ namespace Portage
 
       int s;
 #pragma omp parallel for private(s)
-      for (s=0; s<(int)S; ++s) {
+      for (s=0; s<int(S); ++s) {
          findSentenceIntervals(numchanges[s],
                gammaWorkSpace[s],
                scoreWorkSpace[s],
@@ -464,6 +463,5 @@ namespace Portage
       // Return values appropriately.
       dir *= maxgamma;  // dir = (maxgamma - 1) *  dir + dir = maxgamma * dir
       p += dir;
-
    } // ends LineMax<ScoreStats>::operator()
 } // ends namespace Portage

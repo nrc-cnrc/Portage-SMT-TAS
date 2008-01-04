@@ -21,30 +21,31 @@
 
 namespace Portage
 {
- class PLM;
- class Voc;
+   class PLM;
+   class Voc;
 
- /// Feature function that scores a hypothesis based on the language model
- /// word probability.
- class NgramFF: public FeatureFunction
- {
-   private:
-      PLM *lm;     ///< Language model.
+   /// Feature function that scores a hypothesis based on the language model
+   /// word probability.
+   class NgramFF: public FeatureFunction
+   {
+      private:
+         PLM *lm;     ///< Language model.
 
-   protected:
-      virtual bool parseAndCheckArgs();
+      protected:
+         virtual bool parseAndCheckArgs();
 
-   public:
-      /// Constructor.
-      /// @param args  arguments to construct a language model.
-      NgramFF(const string &args);
-      /// Destructor.
-      ~NgramFF();
+      public:
+         /// Constructor.
+         /// @param args  arguments to construct a language model.
+         NgramFF(const string &args);
+         /// Destructor.
+         ~NgramFF();
 
-      virtual void init(const Sentences * const src_sents);
-      virtual inline Uint requires() { return FF_NEEDS_TGT_TOKENS | FF_NEEDS_TGT_VOCAB; }
-      virtual double value(Uint k);
-};
+         virtual void init(const Sentences * const src_sents);
+         virtual Uint requires() { return FF_NEEDS_TGT_TOKENS | FF_NEEDS_TGT_VOCAB; }
+         virtual double value(Uint k);
+         virtual void values(Uint k, vector<double>& vals);
+   };
 }
 
 #endif // LM_FF_H

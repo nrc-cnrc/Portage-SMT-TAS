@@ -14,7 +14,6 @@
 
 #include <featurefunction.h>
 #include <rescoring_general.h>
-#include <ibm1wtrans.h>
 #include <rescore_io.h>
 #include <errors.h>
 #include <str_utils.h>
@@ -24,9 +23,17 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+
+// Include files for feature functions
 #include <lm_ff.h>
 #include <ibm_ff.h>
 #include <ibm1del.h>
+#include <cache_lm_ff.h>
+#include <ibm1wtrans.h>
+#include <nbest_posterior_ff.h>
+#include <consensus.h>
+#include <bleurisk.h>
+#include <mismatch_ff.h>
 
 namespace Portage {
 
@@ -225,6 +232,8 @@ void FeatureFunctionSet::createTgtVocab(const Sentences& source_sentences, Nbest
          for (SIT sent(nbest.begin()); sent!=nbest.end(); ++sent) {
             tgt_vocab->addSentence(sent->getTokens(), sent_no);
          }
+         for (Uint m(0); m < M(); ++m)
+            ff_infos[m].function->preprocess(tgt_vocab, s, nbest);
       }
       assert(s==source_sentences.size());
    }
@@ -473,6 +482,32 @@ ptr_FF FeatureFunctionSet::create(const string& name,
       ff = new IBM1DeletionSrcGivenTgt(arg);
    } else if (name == "IBM1DocTgtGivenSrc") {
       ff = new IBM1DocTgtGivenSrc(arg);      
+   } else if (name == "nbestWordPostLev") {
+      ff = new nbestWordPostLev_ff(arg);
+   } else if (name == "nbestWordPostSrc") {
+      ff = new nbestWordPostSrc_ff(arg); 
+   } else if (name == "nbestWordPostTrg") {
+      ff = new nbestWordPostTrg_ff(arg);
+   } else if (name == "nbestPhrasePostSrc") {
+      ff = new nbestPhrasePostSrc_ff(arg); 
+   } else if (name == "nbestPhrasePostTrg") {
+      ff = new nbestPhrasePostTrg_ff(arg); 
+   } else if (name == "nbestNgramPost") {
+      ff = new nbestNgramPost_ff(arg); 
+   } else if (name == "nbestSentLenPost") {
+      ff = new nbestSentLenPost_ff(arg); 
+   } else if (name == "Consensus") {
+      ff = new ConsensusWer(arg);
+   } else if (name == "ConsensusWin") {
+      ff = new ConsensusWin(arg);
+   } else if (name == "BLEUrisk") {
+      ff = new RiskBleu(arg);
+   } else if (name == "ParMismatch") {
+      ff = new ParMismatchFF(arg);
+   } else if (name == "QuotMismatch") {
+      ff = new QuotMismatchFF(arg);
+   } else if (name == "CacheLM") {
+      ff = new CacheLM(arg);
    } else {
       error(ETFatal, "Invalid feature function: %s:%s", name.c_str(), arg.c_str());
       return ptr_FF(static_cast<FeatureFunction*>(0), null_deleter<FeatureFunction>());
@@ -504,13 +539,52 @@ Features available:\n\
  IBM1DeletionTgtGivenSrc:ibm1.tgt_given_src[#thr] - ratio of del words (p<thr) [0.1]\n\
  IBM1DeletionSrcGivenTgt:ibm1.src_given_tgt[#thr] - ratio of del words (p<thr) [0.1]\n\
  IBM1DocTgtGivenSrc:ibm1.tgt_given_src#docids - p(tgt-hyp|src-doc)\n\
+ nbestWordPostLev:scale#<ffval-wts>[#<pfx>] - Levenshtein-based word posteriors\n\
+ nbestWordPostSrc:scale#<ffval-wts>[#<pfx>] - source-pos-based word posteriors\n\
+ nbestWordPostTrg:scale#<ffval-wts>[#<pfx>] - target-pos-based word posteriors\n\
+ nbestPhrasePostSrc:scale#<ffval-wts>[#<pfx>] - source-pos-based phrase post.\n\
+ nbestPhrasePostTrg:scale#<ffval-wts>[#<pfx>] - target-pos-based phrase post.\n\
+ nbestNgramPost:N#scale#<ffval-wts>[#<pfx>] - N-gram posteriors\n\
+ nbestSentLenPost:scale#<ffval-wts>[#<pfx>] - sentence length posteriors\n\
+ Consensus - WER-based consensus over N-best list *VERY EXPENSIVE FEATURE*\n\
+ ConsensusWin - approx. WER in Consensus by window over position *VERY EXPENSIVE*\n\
+ BLEUrisk:len#smoothBLEU#scale#<ffval-wts>[#<pfx>] - risk using BLEU loss function\n\
+ ParMismatch - number of mismatched parentheses within the hypothesis\n\
+ QuotMismatch:st - mismatched quotes, for src/tgt lang <s>/<t> (eg 'ce')\n\
+ CacheLM:docids - cache LM over docs defined in docids file\n\
  FileFF:file[,column] - pre-computed feature\n\
 \n\
 More details:\n\
 \n\
+* The features called 'nbest...Post...' are posterior probabilities for words,\n\
+  phrases, etc. Their <ffval-wts> argument is a file specifying the features\n\
+  determined by the decoder (ffvals) and their weights. Given cow.sh output\n\
+  canoe.ini.cow, this can be produced as follows:\n\
+     > configtool rescore-model:ffvals canoe.ini.cow\n\
+     FileFF:ffvals,1 0.1\n\
+     FileFF:ffvals,2 -0.15\n\
+     FileFF:ffvals,3 0.05\n\
+     FileFF:ffvals,4 0.2\n\
+  Here the actual decoder feature values must be in the file <pfx>ffvals, where\n\
+  <pfx> is the optional last argument to the nbest...Post... feature.\n\
+\n\
+* The BLEUrisk feature calculates the risk of the current hypothesis using BLEUK\n\
+  as loss function (see Kumar & Byrne, HLT/NAACL 2004).\n\
+  It has up to 5 arguments:\n\
+  - no. of hyps. to consider in risk calculation (recommendation: 100 -> speed up)\n\
+  - BLEU smoothing technique, (recommendation:1 or 2, see bleumain -h for help)\n\
+  - scaling factor for sentence probabilities\n\
+  - <ffval-wts> and <pfx>, see posterior probabilities above\n\
+\n\
 * The 'FileFF' feature reads from a file of pre-computed values, optionally\n\
   picking out a particular column; the program gen_feature_values can be used\n\
   to create files like this.\n\
+\n\
+* To create a template model for rescoring output produced using canoe config\n\
+  file canoe.ini.cow, do:\n\
+     configtool rescore-model:ffvals canoe.ini.cow > rescore-model\n\
+     rescore_train -H 2>&1 | egrep '^ [A-Za-z]' | cut -c2- >> rescore-model\n\
+  then edit rescore-model to select desired features and initial weights.\n\
 ";
    return help_str;
 }

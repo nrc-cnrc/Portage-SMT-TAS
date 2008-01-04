@@ -30,7 +30,7 @@ using namespace std;
 
 /// Program gen_feature_values usage.
 static char help_message[] = "\n\
-gen_feature_values [-v][-a F][-o F][-n N][-min Sindex][-max Sindex]\n\
+gen_feature_values [-v][-w][-a F][-o F][-n N][-min Sindex][-max Sindex]\n\
                    feature arg src nbest\n\
 \n\
 Generate values for a feature on a given source text and nbest lists.\n\
@@ -42,6 +42,9 @@ Options:\n\
 -a   Read in phrase alignment file F.\n\
 -o   Output feature file F.\n\
 -n   Print features only for the N best sentences.\n\
+-w   Print feature value for each target word instead of only one value\n\
+     for sentence.\n\
+     NOTE: This works only for features like word and phrase posterior probs.\n\
 -v   Write progress reports to cerr.\n\
 -min Start index to process\n\
 -max End index to process\n\
@@ -57,6 +60,7 @@ static string nbest_file;
 static string alignment_file;
 static string out_file = "-";
 static Uint   printN = 0;
+static bool   printWordVals = false;
 static Uint   minSindex = numeric_limits<Uint>::min();
 static Uint   maxSindex = numeric_limits<Uint>::max();
 
@@ -123,6 +127,8 @@ int MAIN(argc, argv)
 
    outstr << setprecision(10);
    NbestReader  pfr(FileReader::create<Translation>(nbest_file, K));
+   vector<double> vals;
+   vals.reserve(K);
    Uint s(0);
    for (; pfr->pollable(); ++s) {
       // READING NBEST
@@ -145,8 +151,16 @@ int MAIN(argc, argv)
          Uint maxPrintN = K;
          if (printN>0)
             maxPrintN = min(printN, K);
-         for (Uint k = 0; k < maxPrintN; ++k)
-            outstr << ff->value(k) << endl;
+         if (! printWordVals)
+            for (Uint k = 0; k < maxPrintN; ++k)
+               outstr << ff->value(k) << endl;
+         else
+            for (Uint k = 0; k < maxPrintN; ++k) {
+               vals.clear();
+               ff->values(k, vals);
+               copy(vals.begin(), vals.end(), ostream_iterator<double>(outstr, " "));
+               outstr << endl;
+            }
       }
    }
    //cerr << "at end" << endl;
@@ -156,13 +170,14 @@ int MAIN(argc, argv)
 
 void getArgs(int argc, const char* const argv[])
 {
-   const char* switches[] = {"v", "a:", "n:", "o:", "min:", "max:"};
+   const char* switches[] = {"v", "a:", "n:", "o:", "w", "min:", "max:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 4, 4, help_message, "-h", true);
    arg_reader.read(argc-1, argv+1);
 
    arg_reader.testAndSet("v", verbose);
    arg_reader.testAndSet("a", alignment_file);
    arg_reader.testAndSet("n", printN);
+   arg_reader.testAndSet("w", printWordVals);
    arg_reader.testAndSet("o", out_file);
    arg_reader.testAndSet("min", minSindex);
    arg_reader.testAndSet("max", maxSindex);

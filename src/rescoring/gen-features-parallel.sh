@@ -17,6 +17,7 @@ SPROXY=""
 PREF=""
 ALIGFILE=""
 CANOEFILE=""
+WORDFEAT=""
 N=3
 JOBS_PER_FF=
 RESCORING_MODEL_OUT=
@@ -58,6 +59,8 @@ set -o noclobber
 ## -p  Generate feature files with prefix <pref>. [none]
 ## -a  Load phrase alignment from file <filename>. [none]
 ## -c  Get canoe weights from file <filename>. [none]
+## -w  Write one feature for each target word instead of one per sentence.
+##     [sentence]
 ## -o  Produces a rescore_{train,translate} compatible model to RESCORING-MODEL.
 ## -N  Number of nodes to run job on. [3]
 ## -J  Number of jobs per feature function when running in parallel {expert mode}.
@@ -139,6 +142,7 @@ while [ $# -gt 0 ]; do
    -v)        VERBOSE="-v";;
    -n)        NOEXEC="-n";;
    -F)        FORCE_OVERWRITE=1;;
+   -w)        WORDFEAT="-w";;
 
    -h)        cat $0 | egrep '^##' | cut -c4-; exit 1;;
    -s)        arg_check 1 $# $1; SPROXY="$2"; shift;;
@@ -381,7 +385,7 @@ while [ $I -le `cat $MODEL | wc -l` ]; do
       debug "COMPLEXITY: $COMPLEXITY"
       case "$COMPLEXITY" in
          0)
-            CMD[0]="gen_feature_values $ALIGN_OPT -o $FF_FILE $VERBOSE $FEATURE $ARGS $SFILE $NBEST";;
+            CMD[0]="gen_feature_values $WORDFEAT $ALIGN_OPT -o $FF_FILE $VERBOSE $FEATURE $ARGS $SFILE $NBEST";;
          [1-2])
             # Add to a list of features that need their chunk files merged
             PARALLEL_FILE=("${PARALLEL_FILE[@]}" $FF_FILE)
@@ -394,7 +398,7 @@ while [ $I -le `cat $MODEL | wc -l` ]; do
                INDEX=`printf ".gfv%3.3d" $r`
                MIN=$(($r*$LINES_PER_BLOCK))
                RANGE="-min $MIN -max $(min $(($MIN+$LINES_PER_BLOCK)) $NUM_SRC_SENT)"
-               CMD[$r]="gen_feature_values $ALIGN_OPT $RANGE -o ${FF_FILE%.gz}$INDEX.gz $VERBOSE $FEATURE $ARGS $SFILE $NBEST"
+               CMD[$r]="gen_feature_values $WORDFEAT $ALIGN_OPT $RANGE -o ${FF_FILE%.gz}$INDEX.gz $VERBOSE $FEATURE $ARGS $SFILE $NBEST"
             done
             ;;
       esac

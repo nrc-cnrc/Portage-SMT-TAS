@@ -56,7 +56,7 @@ namespace Portage
          if (table) delete table, table = NULL;
       }
    
-      virtual inline Uint requires() { return  FF_NEEDS_SRC_TOKENS | FF_NEEDS_TGT_TOKENS; }
+      virtual Uint requires() { return  FF_NEEDS_SRC_TOKENS | FF_NEEDS_TGT_TOKENS; }
   };
 
   /// Forward IBM1Deletion
@@ -66,7 +66,7 @@ namespace Portage
       /// @param args  arguments.
       IBM1DeletionTgtGivenSrc(const string &args) : IBM1DeletionBase(args) {}
       
-      virtual inline double value(Uint k) {
+      virtual double value(Uint k) {
         return computeValue((*src_sents)[s].getTokens(), (*nbest)[k].getTokens());
       }
   }; // IBM1DeletionTgtGivenSrc
@@ -78,7 +78,7 @@ namespace Portage
       /// @param args  arguments.
       IBM1DeletionSrcGivenTgt(const string &args) : IBM1DeletionBase(args) {}
       
-      virtual inline double value(Uint k) {
+      virtual double value(Uint k) {
         return computeValue((*nbest)[k].getTokens(), (*src_sents)[s].getTokens());
       }
   }; // IBM1DeletionSrcGivenTgt
