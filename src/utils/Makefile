@@ -62,6 +62,7 @@ BINSCRIPTS = \
         filter-latin.pl \
         getcolumn.sh \
         lc-latin.pl \
+        li-sort.sh \
         load-balancing.pl \
         monitor-process.sh \
         mteval2ospl.pl \
