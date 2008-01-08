@@ -5,6 +5,7 @@
 # tokenize.pl Tokenize and sent-split text.
 # 
 # PROGRAMMER: George Foster, with minor modifications by Aaron Tikuisis
+#             UTF-8 adaptation by Michel Simard.
 #
 # Copyright (c) 2004 - 2008, Sa Majeste la Reine du Chef du Canada /
 # Copyright (c) 2004 - 2008, Her Majesty in Right of Canada
@@ -15,16 +16,19 @@
 # Conseil national de recherches Canada / National Research Council Canada
 # See http://iit-iti.nrc-cnrc.gc.ca/locations-bureaux/gatineau_e.html
 
+use utf8;
 
 use strict;
-use LexiTools;
+use ULexiTools;
+use locale;
+use open IO  => ':locale';
 
-print STDERR "tokenize.pl, NRC-CNRC, (c) 2004 - 2008, Her Majesty in Right of Canada\n";
+print STDERR "utokenize.pl, NRC-CNRC, (c) 2004 - 2008, Her Majesty in Right of Canada\n";
 
 my $HELP = "
 Usage: tokenize.pl [-v] [-p] [-noss] [-lang=l] [in [out]]
 
-Tokenize and sentence-split text in ISO-8859-1 (iso latin 1).
+Tokenize and sentence-split text in UTF-8.
 
 Options:
 
@@ -34,10 +38,12 @@ Options:
 -p    Print an extra newline after each paragraph (has no effect if -v)
 -noss Don't do sentence-splitting.
 -lang Specify two-letter language code: en or fr [en]
+-paraline
+      File is in one-paragraph-per-line format [no]
 
 ";
 
-our ($help, $h, $lang, $v, $p, $noss);
+our ($help, $h, $lang, $v, $p, $noss, $paraline);
 
 if ($help || $h) {
     print $HELP;
@@ -47,6 +53,7 @@ $lang = "en" unless defined $lang;
 $v = 0 unless defined $v;
 $p = 0 unless defined $p;
 $noss = 0 unless defined $noss;
+$paraline = 0 unless defined $paraline;
  
 my $in = shift || "-";
 my $out = shift || "-";
@@ -70,7 +77,7 @@ while (1)
 	}
     } else
     {
-	unless ($para = get_para(\*IN))
+	unless ($para = get_para(\*IN, $paraline))
 	{
 	    last;
 	}
