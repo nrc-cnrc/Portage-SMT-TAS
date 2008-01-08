@@ -76,6 +76,9 @@ while (1)
 	}
     }
 
+   # Replace non-breaking spaces by spaces
+   $para =~ s/\xA0/ /g;
+
     my @token_positions = tokenize($para, $lang);
     my @sent_positions = split_sentences($para, @token_positions) unless ($noss);
 
