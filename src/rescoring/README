@@ -1,4 +1,3 @@
-
 $Id$
 
 K-Best Rescoring Module
@@ -44,8 +43,9 @@ Here are the main steps for using this module:
    the formats for these three files.
 
 2. Decide on a set of features to use, eg language model, translation model,
-   etc.  For each feature, generate a score for each nbest list entry.  There
-   are three ways to generate feature values: 1) using an external program; 2)
+   etc (run rescore_train -H to see the list of features implemented so far).
+   For each feature, generate a score for each nbest list entry.  There are
+   three ways to generate feature values: 1) using an external program; 2)
    using the program gen_feature_values; and 3) dynamically during model
    training.  The 2nd and 3rd methods use a canned set of features known to the
    rescoring module - see below for info on how to add new ones to this set.
@@ -68,6 +68,16 @@ Here are the main steps for using this module:
 5. Translate, using the program rescore_translate.  This takes a trained model
    as input and produces a best translation for a given source text and nbest
    list.  Use rescore_translate -h for more info.
+
+rat.sh - Rescore And Translate script
+=====================================
+
+This script encapsulates steps 2 to 5 above in a single interface, and manages
+temporary files, generation of feature values, and calls all the programs
+appropriate for you.  Steps 2 and 3 are done when you call rat.sh in "train"
+mode, while the "trans" mode does step 4 or 5, depending on whether you
+provide references or not.  This script also manages parallelism for you.  See
+rat.sh -h for more details.
 
 File Formats
 ============
@@ -131,6 +141,10 @@ File Formats
   up to you to make sure that the file actually does correspond to the data
   being provided when FileFF features are used.
 
+If you use the rat.sh script, the decoder features are stored in a multi-column
+feature value file, while all other features are generated into single-column
+feature value files.  All these files are managed by rat.sh itself - all you
+need to create is your model file.  See rat.sh -h for details.
 
 Adding New Features
 ===================
@@ -144,7 +158,10 @@ To add to the set of known features:
    functions have to do is return a value when called with a source/target
    segment pair.  There are also functions to inform them of the wider context
    (the whole source text under translation, and the whole current nbest list),
-   but these don't have to be instantiated.
+   but these don't have to be instantiate unless they matter for your function.
+   Note that your constructor should be fast and cheap - any expensive
+   initialization, such as loading model files from disk, should be done in
+   loadModelsImpl().
 
 2. Add a clause to the FeatureFunctionSet::create() function, defined in
    featurefunction.cc.  This should just check for a match with your feature's
@@ -153,9 +170,10 @@ To add to the set of known features:
    string that is specified in the model file.  If you need complex parameters,
    you must parse this string argument in your constructor.
 
-3. Modify the Makefile to link with any necessary module-external libraries.
+3. Modify the Makefile to add your .o file to the OBJECTS variable and link
+   with any necessary module-external libraries.
 
-4. Test using gen_feature_values, please!
+4. Test using gen_feature_values, since that's what rat.sh will call!
 
 Notes on building and running:
 ==============================
@@ -169,4 +187,3 @@ TODO
 - incorporate Aaron's alg to calculate the "true" bleu oracle
 - incorporate other error metrics besides BLEU - add mechanism to save error
   scores for repeated testing
-- add NULL words to IBM calculation

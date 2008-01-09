@@ -130,7 +130,8 @@ public:
    /**
     * Get the requirements for this feature function.  Indicates what the
     * feature function needs in order for it to be calculated.
-    * @return Returns the requirements for this feature function.
+    * @return Returns the requirements for this feature function, as zero or
+    *         more FFRequires values bitwise-or'd together (using | ).
     */
    virtual Uint requires() = 0;
 
@@ -247,6 +248,7 @@ public:
       const Uint ntoks = (*nbest)[k].getTokens().size();
       vals.assign(ntoks, v / ntoks);
    }
+
 }; // class FeatureFunction
 
 void writeFFMatrix(ostream &out, const vector<uMatrix>& vH);
@@ -472,7 +474,8 @@ public:
     * @return Returns a help string describing all available features.
     */
    static const string& help();
-};
+
+}; // class FeatureFunctionSet
 
 
 //------------------------------------------------------------------------------

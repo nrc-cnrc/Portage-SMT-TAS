@@ -534,7 +534,7 @@ void CanoeConfig::check()
       segWeight.clear();
    }
    if (obsoleteSegModelArgs != "")
-      error(ETFatal, "-segmentation-model-args is an obsolete option - use -segmentation-model model#args instead.");
+      error(ETFatal, "-segmentation-args is an obsolete option - use -segmentation-model model#args instead.");
 
    if (ibm1FwdFiles.size() != ibm1FwdWeights.size())
       error(ETFatal, "number of IBM1 forward weights does not match number of IBM forward model files");
