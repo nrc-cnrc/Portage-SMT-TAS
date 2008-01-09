@@ -33,6 +33,8 @@ Options:
 
   -p     Train IBM models in both directions in parallel. Don't do this for big
          corpora!
+  -a     Produce individual phrase tables, voc files, and ngram files for
+         adaptation.
   -mN    Override the phrase length parameter to gen_phrase_tables [-m8]
   -no-z  Don't compress output phrase tables [do]
   -h     Print this help message.
@@ -58,11 +60,13 @@ arg_check() {
 
 set -o noclobber
 parallel=
+adapt=
 m_opt=-m8
 zflag="-z"
 while [ $# -gt 0 ]; do
     case "$1" in
     -p)             parallel=1;;
+    -a)             adapt=-i;;
     -m*)            m_opt=$1;;
     -no-z)          zflag="";;
     -h|-help)       usage;;
@@ -114,9 +118,16 @@ fi
 
 echo
 
-run "gen_phrase_tables -v -multipr both -w1 $m_opt -1 $l1 -2 $l2 -ibm 2 $zflag \
+run "gen_phrase_tables -v $adapt -multipr both -w1 $m_opt -1 $l1 -2 $l2 $zflag \
    ibm2.${l2}_given_${l1} ibm2.${l1}_given_${l2} $dir/*.al \
    >& log.gen_phrase_tables"
 
 echo
+
+if [ $adapt ]; then
+   for f in $dir/*.al; do
+      run "get_voc -c $f > `basename $f .al`.voc"
+      run "ngram-count -text $f -write `basename $f .al`.ng"
+   done
+fi
 
