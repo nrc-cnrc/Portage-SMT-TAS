@@ -8,7 +8,7 @@ Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
 
 
-                          Mixture Model Adaptation
+                          Mixture-Model Adaptation
                           ------------------------
 
 Overview: train LMs or TMs (phrase tables) on different parts of the corpus,
