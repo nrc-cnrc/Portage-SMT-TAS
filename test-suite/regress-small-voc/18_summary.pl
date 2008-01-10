@@ -54,7 +54,7 @@ rescore_translate                                                        \\
   workdir-test2000.${src_lang}.lowercase-200best/rescoring_model.rat.out \\
   ${corp}/test2000.${src_lang}.lowercase                                 \\
   workdir-test2000.${src_lang}.lowercase-200best/*best.gz                \\
-  2> /dev/null                                                           \\
+  2> log.rescore_translate                                               \\
   | bleumain - ${corp}/test2000.en.lowercase
 
 cd ../$wfr_u

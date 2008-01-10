@@ -35,6 +35,7 @@ foreach my $src_lang ( @src_lang ) {
 
 my $workdir0 = "${base_work}/wk_${src_lang}";
 my $workdir  =  "${workdir0}/rtrain_ebsc";
+my $trans_dir = "${workdir0}/rat_train/workdir-test2000.${src_lang}.lowercase-200best";
 mkdir $workdir; 
 
 my $job1 = << "END";
@@ -45,10 +46,10 @@ ln -sf ../rat_train/workdir-test2000.${src_lang}.lowercase-200best workdir
 
 echo -n "Training a rescoring-model with expectation based stopping criterion "
 rescore_train -vn        \\
-  -e -r 50               \\
+  -e -r 5                \\
   -p workdir/            \\
   rescoring_model.ini    \\
-  rescoring_model        \\
+  rescoring_model.ebsc   \\
   ${corp}/test2000.${src_lang}.lowercase  \\
   workdir/200best                \\
   ${corp}/test2000.en.lowercase  \\
@@ -64,19 +65,15 @@ open( J1, "> $script" );
 print J1 $job1;
 close( J1 );
 
-my $ini1 = << "END";
-FileFF:ffvals,1
-FileFF:ffvals,2
-FileFF:ffvals,3
-FileFF:ffvals,4
-FileFF:ffvals,5
-FileFF:ff.LengthFF.gz
-FileFF:ff.ParMismatch.gz
-END
-
-open( J1, "> ${workdir}/rescoring_model.ini" );
-print J1 $ini1;
-close( J1 );
+if ( -r "${trans_dir}/rescoring_model.rat.out" ) {
+    print "Using coring_model.rat.out found in ${trans_dir}\n";
+    #system( "cp ${trans_dir}/rescoring_model.rat.out ${workdir}/rescoring_model.ini" );
+    system( "cut -f1 -d' ' ${trans_dir}/rescoring_model.rat.out > ${workdir}/rescoring_model.ini" );
+} else {
+    print "No rescoring_model.rat.out found in ${trans_dir}.\n";
+    print "Run 10_rat_train.pl before this script!\n";
+    exit 1;
+}
 
 system( "cd ${workdir}; bash $script" );
 

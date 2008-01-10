@@ -45,7 +45,9 @@ my $job1 = << "END";
 LANG=en_US.ISO-8859-1
 
 echo -n "Training decoder model with cube pruning "
-cow.sh -v -filt -floor 2               \\
+cow.sh                                 \\
+  -e                                   \\
+  -v -filt -floor 2                    \\
   -mad 1                               \\
   -parallel:"-n 2"                     \\
   -workdir workdir                     \\
