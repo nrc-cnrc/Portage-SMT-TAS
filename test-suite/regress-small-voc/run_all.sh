@@ -47,10 +47,10 @@ fi
 
 # Echo this here and in the parens, so it's on stdout as well as in the log.
 echo $LANG_MSG
-echo Saving log to times.txt.  Put this script in the background and use
-echo '"tail -f times.txt"' if you want to monitor it.
+echo Saving log to times_all.txt.  Put this script in the background and use
+echo '"tail -f times_all.txt"' if you want to monitor it.
 
-# The rest of this script's output goes to times.txt, so we place it in
+# The rest of this script's output goes to times_all.txt, so we place it in
 # parenthese so we don't have to rewrite the redirection on each line.
 (
    echo $LANG_MSG
