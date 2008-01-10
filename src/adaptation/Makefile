@@ -18,6 +18,7 @@ PROGRAMS = $(TESTPROGS) \
 
 BINSCRIPTS = \
         mx-calc-distances.sh \
+        mx-mix-models.sh \
 	multi-ngram-ppx \
 	train-lm-mixture
 
