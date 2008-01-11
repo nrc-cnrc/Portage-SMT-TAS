@@ -58,9 +58,9 @@ run() {
 
 diff() {
    echo -n "Comparing \$1 \$2 "
-   diff-round.pl 'LC_ALL=C gzip -cqfd \$1 | sort |' 'LC_ALL=C gzip -cqfd \$2 | sort |' \\
+   diff-round.pl -prec 4 "LC_ALL=C gzip -cqfd \$1 | sort |" "LC_ALL=C gzip -cqfd \$2 | sort |" \\
    2> /dev/null \\
-   && echo "OK" || echo "FAILED"
+   | wc
 }
 
 # Reducing source sentence vocabulary
