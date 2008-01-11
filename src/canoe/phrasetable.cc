@@ -220,9 +220,8 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
 
    cerr << endl << entry.lineNum << " lines read, " << numKept << " entries kept.";
    if ( numFiltered > 0 )
-      cerr << endl << (numKept - numFiltered) << "entries remaining after filtering";
-   cerr << "Done in " << (time(NULL) - start_time) << "s" << endl
-        << (time(NULL) - start_time) << "s" << endl;
+      cerr << endl << (numKept - numFiltered) << "entries remaining after filtering.";
+   cerr << endl << "Done in " << (time(NULL) - start_time) << "s" << endl;
 
    if ( entry.zero_prob_err_count ) {
       error(ETWarn, "%d 0 or negative probabilities found in %s - treated as missing entries",
