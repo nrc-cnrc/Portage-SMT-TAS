@@ -39,17 +39,22 @@ Data source:
 
 Usage:
 
-To run this test suite, type "run_all.sh <languages>", where <languages> may be
-one or more of fr, de, es, and fi.  This will call all the core scripts of the
-test suite in the correct order, for all the languages you selected.  You can
-also run individual scripts by invoking them directly with your <languages>
-choice.
+This test script can be run in two ways: 1) type "run_all.sh <languages>" or 2)
+"run_minimum.sh <languages>", where <languages> may be one or more of fr, de,
+es, and fi.  run_minimum will call the core scripts of the test suite in the
+correct order, for all the languages you selected, while run_all.sh will
+execute all scripts.  You can also run individual scripts by invoking them
+directly with your <languages> choice.  Scripts numbered below 20 (those called
+by run_minimum) are sequentially dependent on each other, and therefore must be
+run in order.  Those numbered 20 and up only depend on those below 20 and can
+be run in any order once run_minimum.sh has been run.
 
 Since these scripts are more intended for testing that demonstrating the code,
 they are not very well documented.  It is recommended that you read the main
 PORTAGEshared documentation first.  The output of these scripts ends up in many
-logs and files in subdirectories called wk_<language>, and in times.txt.  When
-we want to do regression testing for some code change, we typically run the
-test suite twice, and do a recursive diff on the resulting wk_<language>
-directories.  This usually yields many differences, so manual analysis is
-unfortunately required to determine if they are desirable differences or not.
+logs and files in subdirectories called wk_<language>, and in times_minimum.txt
+or times_all.txt.  When we want to do regression testing for some code change,
+we typically run the test suite twice, and do a recursive diff on the resulting
+wk_<language> directories.  This usually yields many differences, so manual
+analysis is unfortunately required to determine if they are desirable
+differences or not.

@@ -55,20 +55,20 @@ echo '"tail -f times_all.txt"' if you want to monitor it.
 (
    echo $LANG_MSG
 
-   # removed/obsolete:
-   #   10_cow       \   # COW with multiple phrase tables
-   #   21_rtrain    \   # rescore_train on dev - replaced by 28_rat_train
-   #   22_sanity    \   # "test" on dev, to make sure things work ok
-   #   23_translate \   # rescore_translate on test - replaced by 29_rat_test
-
-   # main suite:
-   #   02_train_ibm \   # build IBM translation tables
-   #   03_gen_phr   \   # build phrase tables
-   #   04_canoe     \   # simple decoding run
-   #   11_cow_mp    \   # COW, optimize canoe weights, with a multi-prob table
-   #   28_rat_train \   # train the rescoring model
-   #   29_rat_test  \   # test using the rescording model
-   #   30_summary   \   # summarize bleu scores on dev/test, 1-best/rescore.
+   # More extensive test suite - run every test script in the suite
+   # See run_minimum.sh for a description of the basic suite
+   # Additional scripts are:
+   #   20_canoe.pl           - simple decoding run
+   #   21_sanity.pl          - "test" on dev, to make sure things work ok
+   #   22_gen_phr.pl         - variants on phrase table building
+   #   25_cow_ext.pl         - variants on cow
+   #   30_rtrain_ebsc.pl     - train the rescoring model with the
+   #                           expectation-based stopping criterion
+   #   31_rtrain_rnd_w.pl    - test the random weight distribution specs
+   #   40_phrase_tm_align.pl - test phrase_tm_align
+   #   50_filter_models.pl   - test the various modes of filter_models
+   #   61_canoe_cube.pl      - test the cube pruning decoder
+   #   62_cow_cube.pl        - test COW with cube pruning
 
    for script in [0-9][0-9]_*.pl;
    do

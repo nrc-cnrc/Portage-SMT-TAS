@@ -55,20 +55,13 @@ echo '"tail -f times_minimum.txt"' if you want to monitor it.
 (
    echo $LANG_MSG
 
-   # removed/obsolete:
-   #   10_cow       \   # COW with multiple phrase tables
-   #   21_rtrain    \   # rescore_train on dev - replaced by 28_rat_train
-   #   22_sanity    \   # "test" on dev, to make sure things work ok
-   #   23_translate \   # rescore_translate on test - replaced by 29_rat_test
-
-   # main suite:
-   #   02_train_ibm \   # build IBM translation tables
-   #   03_gen_phr   \   # build phrase tables
-   #   04_canoe     \   # simple decoding run
-   #   11_cow_mp    \   # COW, optimize canoe weights, with a multi-prob table
-   #   28_rat_train \   # train the rescoring model
-   #   29_rat_test  \   # test using the rescording model
-   #   30_summary   \   # summarize bleu scores on dev/test, 1-best/rescore.
+   # Minimal test suite - run the basics from start to finish
+   #   02_train_ibm.pl  - build IBM translation tables
+   #   03_gen_phr.pl    - build phrase tables
+   #   05_cow.pl        - COW, optimize canoe weights
+   #   10_rat_train.pl  - train the rescoring model
+   #   11_rat_test.pl   - test using the rescording model
+   #   18_summary.pl    - summarize bleu scores on dev/test, 1-best/rescore.
 
    for script in [01][0-9]_*.pl;
    do
