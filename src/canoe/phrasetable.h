@@ -138,19 +138,6 @@ protected:
    /// Human readable description of all forward phrase tables
    string forwardDescription;
 
-   /// returns log(x) unless x <= 0, in which case returns log_almost_0
-   template <class FLOAT_TYPE>
-   inline FLOAT_TYPE shielded_log (FLOAT_TYPE x) {
-      return x <= 0 ? log_almost_0 : log(x);
-   }
-   
-   /// inverts the shielded_log operation (for original x == 0)
-   template <class FLOAT_TYPE>
-   inline FLOAT_TYPE shielded_exp(FLOAT_TYPE x) {
-      return x == log_almost_0 ? 0 : exp(x);
-   }
-
-
 public:
 
    /**
@@ -512,6 +499,31 @@ protected:
     * @return Returns true if the entry was added to the TargetPhraseTable.
     */
    virtual bool processEntry(TargetPhraseTable* tgtTable, Entry& entry);
+
+   /**
+    * Converts a float value to its value in log prob if needed.
+    * This method is overriden in filtering subclasses as appropriate.
+    * @param value value to process
+    * @return Returns value appropriately converted for in-memory storage.
+    */
+   virtual float convertFromRead(const float& value) const;
+
+   /**
+    * Converts a float to a prob before writing to a file.
+    * This method is overriden in filtering subclasses as appropriate.
+    * @param value  value to convert.
+    * @return Returns value appropriately converted for writing, i.e., always a
+    *         prob, reversing whatever convertFromRead() did.
+    */
+   virtual float convertToWrite(const float& value) const;
+
+private:
+   /// Returns log(x) unless x <= 0, in which case returns log_almost_0.
+   /// Use this if you know you need to take the log, convertFromRead() for
+   /// sub-class dependent behaviour.
+   inline float shielded_log (float x) const {
+      return x <= 0 ? log_almost_0 : log(x);
+   }
 
 public:
    /**

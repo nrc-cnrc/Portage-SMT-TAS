@@ -238,12 +238,11 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
       break;
       case multi_prob:
       case multi_prob_reversed:
-         // In the case that all entries are discarded
-         if (entry.multi_prob_col_count == 0) {
-            assert(numKept==0);
+         // Sometimes processing won't have counted columns - in that case we
+         // do it here.
+         if (entry.multi_prob_col_count == 0)
             return countProbColumns(file);
-         }
-   else
+         else
             return entry.multi_prob_col_count;
       break;
       default:
@@ -253,8 +252,22 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
 } // readFile
 
 
+float PhraseTable::convertFromRead(const float& value) const
+{
+   // In this class, we take the log
+   return shielded_log(value);
+}
+
+float PhraseTable::convertToWrite(const float& value) const
+{
+   return (value == log_almost_0) ? 0.0f : exp(value);
+}
+
+
 bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
 {
+   // ZERO's value depends on the subclass's implementation of convertFromRead
+   const float ZERO(convertFromRead(0.0f));
    if ( entry.d == src_given_tgt || entry.d == tgt_given_src ) {
       // Determine probability for single-prob phrase table
       float prob;
@@ -278,12 +291,13 @@ bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
       }
       else {
          //assert(curProbs->size() <= numTransModels);
-         curProbs->resize(numTransModels, log_almost_0);
+         curProbs->resize(numTransModels, ZERO);
          if ( prob <= 0 ) {
-            curProbs->push_back(log_almost_0);
+            curProbs->push_back(ZERO);
             ++entry.zero_prob_err_count;
-         } else {
-            curProbs->push_back(log(prob));
+         }
+         else {
+            curProbs->push_back(convertFromRead(prob));
          }
       }
    }
@@ -320,10 +334,11 @@ bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
                   prob_tokens[i], entry.file, entry.lineNum);
 
          if ( probs[i] <= 0 ) {
-            probs[i] = log_almost_0;
+            probs[i] = ZERO;
             ++entry.zero_prob_err_count;
-         } else {
-            probs[i] = log(probs[i]);
+         }
+         else {
+            probs[i] = convertFromRead(probs[i]);
          }
       }
 
@@ -331,7 +346,8 @@ bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
       if ( entry.d == multi_prob_reversed ) {
          backward_probs = &(probs[multi_prob_model_count]);
          forward_probs = &(probs[0]);
-      } else {
+      }
+      else {
          backward_probs = &(probs[0]);
          forward_probs = &(probs[multi_prob_model_count]);
       }
@@ -344,11 +360,12 @@ bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
       {
          error(ETWarn, "Entry %s ||| %s appears more than once in %s; new occurrence on line %d",
                entry.src, entry.tgt, entry.file, entry.lineNum);
-      } else {
+      }
+      else {
          curProbs->backward.reserve(numTransModels + multi_prob_model_count);
          curProbs->forward.reserve(numTransModels + multi_prob_model_count);
-         curProbs->backward.resize(numTransModels, log_almost_0);
-         curProbs->forward.resize(numTransModels, log_almost_0);
+         curProbs->backward.resize(numTransModels, ZERO);
+         curProbs->forward.resize(numTransModels, ZERO);
          curProbs->backward.insert(curProbs->backward.end(), backward_probs,
                backward_probs + multi_prob_model_count);
          curProbs->forward.insert(curProbs->forward.end(), forward_probs,
@@ -356,6 +373,7 @@ bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
       }
    } // if ; end deal with multi-prob line
 
+   // In this class, the entry is always added to the TargetPhraseTable.
    return true;
 }
 
@@ -480,13 +498,13 @@ void PhraseTable::write(ostream& multi_src_given_tgt_out, const string& src,
       // output
       multi_src_given_tgt_out << src << PHRASE_TABLE_SEP << tgt << PHRASE_TABLE_SEP;
       for (Uint i = 0; i < tgt_p->second.backward.size(); ++i) {
-         multi_src_given_tgt_out << " " << shielded_exp(tgt_p->second.backward[i]);
+         multi_src_given_tgt_out << " " << convertToWrite(tgt_p->second.backward[i]);
       }
       for (Uint i(tgt_p->second.backward.size()); i<numTransModels; ++i) {
          multi_src_given_tgt_out << " " << 0.0f;
       }
       for (Uint i = 0; i < tgt_p->second.forward.size(); ++i) {
-         multi_src_given_tgt_out << " " << shielded_exp(tgt_p->second.forward[i]);
+         multi_src_given_tgt_out << " " << convertToWrite(tgt_p->second.forward[i]);
       }
       for (Uint i(tgt_p->second.forward.size()); i<numTransModels; ++i) {
          multi_src_given_tgt_out << " " << 0.0f;
@@ -551,7 +569,7 @@ void PhraseTable::write(ostream* src_given_tgt_out, ostream* tgt_given_src_out,
             if (src_given_tgt_out) {
                (*src_given_tgt_out) << src << PHRASE_TABLE_SEP << tgt << PHRASE_TABLE_SEP;
                for (Uint i = 0; i < tgt_p->second.backward.size(); ++i) {
-                  (*src_given_tgt_out) << shielded_exp(tgt_p->second.backward[i]);
+                  (*src_given_tgt_out) << convertToWrite(tgt_p->second.backward[i]);
                   if (i+1 < tgt_p->second.backward.size()) (*src_given_tgt_out) << ":";
                }
                for (Uint i = tgt_p->second.backward.size(); i < numTransModels; ++i) {
@@ -565,7 +583,7 @@ void PhraseTable::write(ostream* src_given_tgt_out, ostream* tgt_given_src_out,
             if (tgt_given_src_out && forwardsProbsAvailable) {
                (*tgt_given_src_out) << tgt << PHRASE_TABLE_SEP << src << PHRASE_TABLE_SEP;
                for (Uint i = 0; i < tgt_p->second.forward.size(); ++i) {
-                  (*tgt_given_src_out) << shielded_exp(tgt_p->second.forward[i]);
+                  (*tgt_given_src_out) << convertToWrite(tgt_p->second.forward[i]);
                   if (i+1 < tgt_p->second.forward.size()) (*tgt_given_src_out) << ":";
                }
                for (Uint i = tgt_p->second.forward.size(); i < numTransModels; ++i) {
@@ -899,10 +917,12 @@ bool PhraseTable::PhraseScorePairLessThan::operator()(
 
       // Second comparison criterion, in case of tie: the score backward probs
       // At first, the inequality may seem reversed, but it seems that the best
-      // phrase is inversely correlated with its frequency as shown by empirical
-      // results.
-      if ( ph1.second->phrase_trans_prob > ph2.second->phrase_trans_prob ) return true;
-      else if ( ph1.second->phrase_trans_prob < ph2.second->phrase_trans_prob ) return false;
+      // phrase is inversely correlated with its frequency as shown by
+      // empirical results.
+      if ( ph1.second->phrase_trans_prob > ph2.second->phrase_trans_prob )
+         return true;
+      else if ( ph1.second->phrase_trans_prob < ph2.second->phrase_trans_prob )
+         return false;
       else {
          // For third criterion, hashing the phrase words to add some controlled randomness.
          const string s1 = parent.getStringPhrase(ph1.second->phrase);
