@@ -110,8 +110,7 @@ Options:\n\
        /// Program filter_models' allowed command line arguments
        const char* const switches[] = {
           "z", "s", "r", "L", "no-src-grep", "tm-online", "c",
-          "hard-limit:", "soft-limit:", "f:", "suffix:", "vocab:",
-          "input:"
+          "hard-limit:", "soft-limit:", "f:", "suffix:", "vocab:", "input:"
        };
 
        /// Command line arguments processing for filter_models.
@@ -131,7 +130,7 @@ Options:\n\
              bool   no_src_grep;  ///< process all entries disregarding the source sentences.
              bool   tm_online;    ///< indicates to process source tm in a streaming mode
              bool   output_config; ///< indicates to output the modified canoe.ini
-             string input;         ///< Input sentences to filter on
+             string input;         ///< Source sentences to filter on
 
           public:
              /// Default constructor.
