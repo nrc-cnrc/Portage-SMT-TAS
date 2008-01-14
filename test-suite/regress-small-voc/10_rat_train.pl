@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# 28_rat_train.pl - train a rescoring model using rat.sh, which combines
+# 10_rat_train.pl - train a rescoring model using rat.sh, which combines
 #                   generating the n-best list, all the features, and doing the
 #                   actual training
 #

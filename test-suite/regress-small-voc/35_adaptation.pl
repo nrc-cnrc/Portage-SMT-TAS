@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# 35_lm_adaptation.pl - Language model adaptaion
+# 35_adaptation.pl - Language model & phrase table adaptation
 #
 # PROGRAMMER: Samuel Larkin
 #

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# 30_summary.pl - display a summary of evaluation results of the test suite
+# 18_summary.pl - display a summary of evaluation results of the test suite
 #
 # PROGRAMMER: Eric Joanis / Samuel Larkin
 #

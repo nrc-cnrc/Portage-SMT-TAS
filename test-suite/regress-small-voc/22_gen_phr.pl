@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# 41_gen_phr.pl - generate phrase based translation tables
+# 22_gen_phr.pl - generate phrase based translation tables with different smoothing methods
 #
 # PROGRAMMER: Howard Johnson / Eric Joanis / Samuel Larkin
 #

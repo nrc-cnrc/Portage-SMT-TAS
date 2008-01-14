@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# 22_sanity.pl - "test" on dev, just to make sure things went OK
+# 21_sanity.pl - "test" on dev, just to make sure things went OK
 #
 # PROGRAMMER: Howard Johnson / Eric Joanis / Samuel Larkin
 #

@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 
 # 03_gen_phr.pl - generate phrase based translation tables
+# Using Good-Turing and Kneser-Ney
 #
 # PROGRAMMER: Howard Johnson / Eric Joanis / Samuel Larkin
 #

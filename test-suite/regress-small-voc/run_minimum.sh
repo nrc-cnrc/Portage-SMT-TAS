@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# run_all.sh - run the minimum required to get rescored translations
+# run_minimum.sh - run the minimum required to get rescored translations
 #
 # PROGRAMMER: Samuel Larkin
 #

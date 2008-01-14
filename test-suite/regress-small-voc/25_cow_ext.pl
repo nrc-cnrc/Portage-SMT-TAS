@@ -1,6 +1,11 @@
 #!/usr/bin/perl -w
 
-# 25_cow_ext.pl - run COW - optimize weights for canoe with multi probs phrase tables
+# 25_cow_ext.pl - run COW - optimize weights for canoe with
+#                 multi probs phrase tables
+#                 expectation-based stopping criterion
+#                 dist-limit-ext
+#                 dist-phrase-swap
+#                 ibm1-fwd-file
 #                 Exercizing more complexe features.
 #
 # PROGRAMMER: Howard Johnson / Eric Joanis / Samuel Larkin

@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 
-# 40_phrase_tm_align.pl - 
+# 40_phrase_tm_align.pl - Finds phrase alignments.
+# Use the phrase tables to find phrase alignments for given source and target files.
 #
 # PROGRAMMER: Samuel Larkin
 #

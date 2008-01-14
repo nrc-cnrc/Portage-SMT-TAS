@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 
-# 21_rtrain.pl - train a rescoring model with expectation-based stopping criterion
+# 30_rtrain_ebsc.pl - train a rescoring model with expectation-based stopping
+# criterion and load-balancing
 #
 # PROGRAMMER: Howard Johnson / Eric Joanis / Samuel Larkin
 #
@@ -46,6 +47,7 @@ ln -sf ../rat_train/workdir-test2000.${src_lang}.lowercase-200best workdir
 
 echo -n "Training a rescoring-model with expectation based stopping criterion "
 rescore_train -vn        \\
+  -lb                    \\
   -e -r 5                \\
   -p workdir/            \\
   rescoring_model.ini    \\

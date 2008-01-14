@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# 70_filter_models - Exercises the phrase tables and language model filtering
+# 50_filter_models.pl - Exercises the phrase tables and language model filtering
 #
 # PROGRAMMER: Samuel Larkin
 #

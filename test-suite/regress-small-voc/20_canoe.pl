@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# 04_canoe.pl - simple canoe run with default weights
+# 20_canoe.pl - simple canoe run with default weights
 #
 # PROGRAMMER: Howard Johnson / Eric Joanis / Samuel Larkin
 #

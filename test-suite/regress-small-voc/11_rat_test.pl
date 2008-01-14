@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# 29_rat_test.pl - test a rescoring model using rat.sh, which combines
+# 11_rat_test.pl - test a rescoring model using rat.sh, which combines
 #                  generating the n-best list, all the features, and doing the
 #                  actual translation and evaluation
 #
