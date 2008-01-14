@@ -14,7 +14,7 @@ license agreement for details.
                    (with a summary of important changes)
 
 utils build logging eval preprocessing lm tm adaptation canoe api rescoring
-(for dir in lm; do
+(for dir in preprocessing; do
     cd $dir
     for x in `\ls ~/sandboxes/PortageTrunk/src/$dir | egrep -v '\.(a|o|so)$'`
       do echo ====================================================
@@ -67,14 +67,14 @@ v1.2 ??.01.2008
    - Used by cow.sh when the -filt option is specified (recommended).
  - Implemented Huang and Chiang's cube pruning algorithm.  See Huang and Chiang
    (2007).  Forest rescoring: faster decoding with integrated language models.
-   In Proceedings of ACL 2007.  Can yield an order-of-magnitude speed up in
-   decoding in most circumstances.  Requires careful re-tuning of some decoding
-   parameters, however, especially S since its meaning is not the same as with
-   regular decoding.  Run canoe -h for details on enabling cube pruning.
+   In Proc. ACL.  Can yield an order-of-magnitude speed up in decoding in most
+   circumstances.  Requires careful re-tuning of some decoding parameters,
+   however, especially S since its meaning is not the same as with regular
+   decoding.  Run canoe -h for details on enabling cube pruning.
  - New module implementing George Foster's LM and TM adaptation work, with
    integration of the resulting mixture models in the decoder - details in
-   Foster and Kuhn (2007). Mixture-Model Adaptation for SMT. In Proceedings of
-   WMT (at ACL 2007).
+   Foster and Kuhn (2007). Mixture-Model Adaptation for SMT. In Proc. WMT (at
+   ACL).
  - The main rescoring script, rat.sh, was completely overhauled to be easier to
    use.  The model is now specified with the same syntax as documented in
    rescore_train -H: rat.sh transparently handles generating the features,
@@ -90,13 +90,19 @@ v1.2 ??.01.2008
      identical IDs are considered to come from the same document).
    - nbest*Post* - posterior probability features for confidence estimation
      rescoring - see Ueffing and Ney (2005).  Word-Level Confidence Estimation
-     for Machine Translation using Phrase-Based Translation Models.  In
-     Proceedings of HLT/EMNLP 2005.
+     for Machine Translation using Phrase-Based Translation Models.  In Proc.
+     HLT/EMNLP.  Zens and Ney (2006).  N-gram Posterior Probabilities for
+     Statistical Machine Translation.  In Proc. WMT (at HLT/NAACL).  Blatz et
+     al. (2003).  Confidence Estimation for Machine Translation.  JHU/CLSP
+     Summer Workshop.  Ueffing (2006).  Word Confidence Measures for Machine
+     Translation.  Ph.D. thesis.
    - Consensus and ConsensusWin - WER-based consensus over N-best list (very
-     expensive features - not recommended for general use) - see Ueffing (YYYY).
+     expensive features - not recommended for general use) - features based on
+     Mangu, Brill, and Stolcke (1999).  Finding Consensus Among Words:
+     Lattice-Based Word Error Minimization.  In Proc. Eurospeech.
    - BLEUrisk - Minimum Bayes Risk using BLEU loss function - see Kumar and
      Byrne (2004).  Minimum Bayes-Risk Decoding for Statistical Machine
-     Translation.  In Proceedings of HLT-NAACL 2004.
+     Translation.  In Proc. HLT-NAACL.
    - ParMismatch and QuotMismatch - count mismatched parentheses and quotes.
    - CacheLM - cache LM over docs defined in docids files (see above) - see
      Kuhn and De Mori (1990).  A Cache-Based Natural Language Model for Speech
@@ -115,6 +121,7 @@ v1.2 ??.01.2008
  - Made the code compile mostly cleanly with g++ 4.2.0.
  - Formatting changes in many files to improve consistency: prefer 3-character
    intentation, avoid the tab character, streamline documentation, etc.
+ - New utf8-adaptation of our English and French tokenizer script.
  - canoe:
    - added markup syntax documentation to -help message;
    - new -check-input-only option to validate an input file, not decode;
