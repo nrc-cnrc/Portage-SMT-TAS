@@ -357,6 +357,14 @@ public:
     */
    string getStringPhrase(const Phrase &uPhrase) const;
 
+   /**
+    * Determine if the table contains a given source phrase.
+    * @param num_tokens number of tokens in the phrase
+    * @param tokens the phrase
+    * @return true if phrase is a source phrase in the table
+    */
+   bool containsSrcPhrase(Uint num_tokens, char* tokens[]);
+
 protected:
    /// Direction of phrase table to load
    enum dir {

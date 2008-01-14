@@ -77,8 +77,6 @@ static string getTempName();
 
 int main(int argc, char* argv[])
 {
-   Logging::init();		// @#$$%%^&**^%$#
-
    seplen = strlen(sep);
    assert(sep[0] == ' ');	// assumed in line !!! of parseSourcePhrase()
    assert(sep[seplen-1] == ' '); // assumed in line !! below
@@ -151,7 +149,7 @@ int main(int argc, char* argv[])
    // normalized if called for
    
    vector<string> tmp_pt_list;
-   const Uint linebufsize = 5000;
+   const Uint linebufsize = 10000;
    char linebuf[linebufsize];
    vector<char*> srctoks;
    vector<double> probs;

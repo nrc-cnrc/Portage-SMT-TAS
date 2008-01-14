@@ -965,6 +965,18 @@ string PhraseTable::getStringPhrase(const Phrase &uPhrase) const
 } // getStringPhrase
 
 
+// partially redundant with some code in readFile(), but kept separate to avoid
+// de-optimizing that method.
+bool PhraseTable::containsSrcPhrase(Uint num_tokens, char* tokens[])
+{
+   Uint srcWords[num_tokens];
+   for (Uint i = 0; i < num_tokens; ++i)
+      if ((srcWords[i] = tgtVocab.index(tokens[i])) == tgtVocab.size())
+         return false;
+   TargetPhraseTable *tgtTable = NULL;
+   return textTable.find(srcWords, num_tokens, tgtTable);
+}
+
 
 Uint PhraseTable::processTargetPhraseTable(const string& src, TargetPhraseTable* tgtTable)
 {
