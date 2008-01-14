@@ -69,12 +69,10 @@ if (open(B,"<${workdir0}/corpus.${src_lang}-en.bernoulli")) {
     $Q = <B>;
     close B;
 }; 
-#    my ($seg_model, $seg_arg) = ("bernoulli", $Q);
-#    my ($seg_model, $seg_arg) = ("bernoulli", 0.2);
-    my ($seg_model, $seg_arg) = ("none", "whatever");
-#    my ($seg_model, $seg_arg) = ("count", "whatever");
-#    my ($seg_model, $seg_arg) = ("context", "../segmentation.left-right.freq");
-# my $dist_model = "WordDisp_Prob:../dst_temp/corpus.${src_lang}-en.distortion_a";
+#    my $seg_model = "bernouilli#$Q";
+#    my $seg_model = "bernouilli#0.2";
+    my $seg_model = "none";
+#    my $seg_model = "count";
 
 my $dist_model = "WordDisplacement";
 # my $dist_model = "none";
@@ -83,7 +81,7 @@ my $ini1 = << "END";
 [ttable-limit] 30
 [ttable-multi-prob] ../phrases-GT-KN.${src_lang}2en.gz
 [lmodel-file] ${corp0}/europarl.en.srilm
-[segmentation-model] ${seg_model}#${seg_arg}
+[segmentation-model] ${seg_model}
 [distortion-model] ${dist_model}
 [distortion-limit] 7
 END
