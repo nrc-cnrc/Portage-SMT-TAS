@@ -1,6 +1,9 @@
 #!/usr/bin/perl -w
 
-# 31_rtrain_rnd_w.pl - train a rescoring model with user specific random distribution.
+# 31_rtrain_rnd_w.pl - train a rescoring model with user specific random
+#                      distribution.  Also testing the support of , in a
+#                      feature file name, and that comments can be inserted in
+#                      a rescoring_model file.
 #
 # PROGRAMMER: Howard Johnson / Eric Joanis / Samuel Larkin
 #
@@ -42,6 +45,7 @@ my $job1 = << "END";
 LANG=en_US.ISO-8859-1
 
 ln -sf ../rat_train/workdir-test2000.${src_lang}.lowercase-200best workdir
+ln -sf ff.ParMismatch.gz workdir/ff.Par,Mismatch.gz
 
 echo -n "Using rescore_train with users' random distributions "
 rescore_train -vn        \\
@@ -58,6 +62,7 @@ rescore_train -vn        \\
 
 END
 
+
 my $script = "${workdir}/${src_lang}_31_rtrain_rnd_w";
 open( J1, "> $script" );
 print J1 $job1;
@@ -71,6 +76,8 @@ FileFF:ffvals,4 N(2.3,.8)
 FileFF:ffvals,5 1
 FileFF:ff.LengthFF.gz 1
 FileFF:ff.ParMismatch.gz 1
+# testing that , is allowed in file name
+FileFF:ff.Par,Mismatch.gz 1
 END
 
 open( J1, "> ${workdir}/rescoring_model.ini" );

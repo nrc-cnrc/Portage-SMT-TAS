@@ -65,6 +65,7 @@ echo '"tail -f times_all.txt"' if you want to monitor it.
    #   30_rtrain_ebsc.pl     - train the rescoring model with the
    #                           expectation-based stopping criterion
    #   31_rtrain_rnd_w.pl    - test the random weight distribution specs
+   #   35_adaptation.pl      - test the LM and TM adaptation training
    #   40_phrase_tm_align.pl - test phrase_tm_align
    #   50_filter_models.pl   - test the various modes of filter_models
    #   61_canoe_cube.pl      - test the cube pruning decoder

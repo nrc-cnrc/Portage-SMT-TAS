@@ -66,7 +66,7 @@ print J1 $job1;
 close( J1 );
 
 if ( -r "${trans_dir}/rescoring_model.rat.out" ) {
-    print "Using coring_model.rat.out found in ${trans_dir}\n";
+    print "Using rescoring_model.rat.out found in ${trans_dir}\n";
     #system( "cp ${trans_dir}/rescoring_model.rat.out ${workdir}/rescoring_model.ini" );
     system( "cut -f1 -d' ' ${trans_dir}/rescoring_model.rat.out > ${workdir}/rescoring_model.ini" );
 } else {
