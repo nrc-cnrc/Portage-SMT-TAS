@@ -17,31 +17,32 @@
 #include <stdexcept>
 
 /// Replaces the normal main and adds a try block.
-#ifdef NO_EDUMP
-#define MAIN(argc, argv) main(int argc, const char* const argv[])
-#else
 #define MAIN(argc, argv) main(int argc, const char* const argv[]) try
-#endif
 
-/// The actual default catch all exception block.
 #ifdef NO_EDUMP
-#define END_MAIN
-#else
+/// Here, we still catch the bad_alloc since the core dump is of no use and
+/// this will allow us to have a fix return code.
+/// Retruning 42 as a return code will indicate a memory problem and we will be
+/// able to retry with more resources on the cluster.
 #define END_MAIN  \
-   catch(std::length_error& e)     {cerr << "std::length_error: " << e.what() << endl;}\
-   catch(std::domain_error& e)     {cerr << "std::domain_error: " << e.what() << endl;}\
-   catch(std::out_of_range& e)     {cerr << "std::out_of_range: " << e.what() << endl;}\
-   catch(std::invalid_argument& e) {cerr << "std::invalid_argument: " << e.what() << endl;}\
-   catch(std::range_error& e)      {cerr << "std::range_error: " << e.what() << endl;}\
-   catch(std::overflow_error& e)   {cerr << "std::overflow_error: " << e.what() << endl;}\
-   catch(std::underflow_error& e)  {cerr << "std::underflow_error: " << e.what() << endl;}\
-   catch(std::bad_alloc& e)        {cerr << e.what() << "Most likely, you ran out of memory" << endl;}\
-   catch(std::bad_cast& e)         {cerr << "std::bad_cast: " << e.what() << endl;}\
-   catch(std::bad_typeid& e)       {cerr << "std::bad_typeid: " << e.what() << endl;}\
-   catch(std::bad_exception& e)    {cerr << "std::bad_exception: " << e.what() << endl;}\
-   catch(std::ios_base::failure& e){cerr << "std::ios_base::failure: " << e.what() << endl;}\
-   catch(std::exception& e)        {cerr << "std::exception: " << e.what() <<endl;}\
-   catch(...)                      {cerr << "Unknown general exception" << endl;}
+   catch(std::bad_alloc& e)        {cerr << e.what() << " Most likely, you ran out of memory" << endl; exit(42);}
+#else
+/// The actual default catch all exception block.
+#define END_MAIN  \
+   catch(std::length_error& e)     {cerr << "std::length_error: " << e.what() << endl; exit(24);}\
+   catch(std::domain_error& e)     {cerr << "std::domain_error: " << e.what() << endl; exit(24);}\
+   catch(std::out_of_range& e)     {cerr << "std::out_of_range: " << e.what() << endl; exit(24);}\
+   catch(std::invalid_argument& e) {cerr << "std::invalid_argument: " << e.what() << endl; exit(24);}\
+   catch(std::range_error& e)      {cerr << "std::range_error: " << e.what() << endl; exit(24);}\
+   catch(std::overflow_error& e)   {cerr << "std::overflow_error: " << e.what() << endl; exit(24);}\
+   catch(std::underflow_error& e)  {cerr << "std::underflow_error: " << e.what() << endl; exit(24);}\
+   catch(std::bad_alloc& e)        {cerr << e.what() << " Most likely, you ran out of memory" << endl; exit(42);}\
+   catch(std::bad_cast& e)         {cerr << "std::bad_cast: " << e.what() << endl; exit(24);}\
+   catch(std::bad_typeid& e)       {cerr << "std::bad_typeid: " << e.what() << endl; exit(24);}\
+   catch(std::bad_exception& e)    {cerr << "std::bad_exception: " << e.what() << endl; exit(24);}\
+   catch(std::ios_base::failure& e){cerr << "std::ios_base::failure: " << e.what() << endl; exit(24);}\
+   catch(std::exception& e)        {cerr << "std::exception: " << e.what() <<endl; exit(24);}\
+   catch(...)                      {cerr << "Unknown general exception" << endl; exit(24);}
 #endif
 
 

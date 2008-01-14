@@ -15,6 +15,7 @@
 #include <fstream>
 #include <unistd.h>
 #include "arg_reader.h"
+#include "exception_dump.h"
 
 using namespace Portage;
 using namespace std;
@@ -36,11 +37,11 @@ Options:\n\
 static bool verbose = false;
 static Uint blocksize = 0;
 static Uint maxIter = numeric_limits<Uint>::max();
-static void getArgs(int argc, char* argv[]);
+static void getArgs(int argc, const char* const argv[]);
 
 // main
 
-int main(int argc, char* argv[])
+int MAIN(argc, argv)
 {
    getArgs(argc, argv);
 
@@ -63,11 +64,11 @@ int main(int argc, char* argv[])
    }
 
    cout << bloat_vect[0] << endl;
-}
+} END_MAIN
 
 // arg processing
 
-void getArgs(int argc, char* argv[])
+void getArgs(int argc, const char* const argv[])
 {
    const char* switches[] = {"v", "maxiter:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 1, 1, help_message);
