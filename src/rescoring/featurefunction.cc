@@ -66,6 +66,7 @@ void readFFMatrix(istream &in, vector<uMatrix>& vH)
 //---------------------------------------------------------------------------------------
 // FileFF
 //---------------------------------------------------------------------------------------
+const char FileFF::separator = ',';
 
 FileFF::FileFF(const string& filespec)
 : FeatureFunction(filespec)
@@ -74,13 +75,14 @@ FileFF::FileFF(const string& filespec)
 
 bool FileFF::parseAndCheckArgs()
 {
-   const string::size_type idx = argument.rfind(',');
+   const string::size_type idx = argument.rfind(separator);
    m_filename = argument.substr(0, idx);
    if (idx != string::npos) {
       const string coldesc = argument.substr(idx+1);
       if (!conv(coldesc, m_column)) {
-         error(ETWarn, "can't convert column spec %s to a number - %s", coldesc.c_str(),
-               "will assume this is part of the filename");
+         // If we can't convert coldesc to a number, we assume the user simply
+         // has a comma within the filename - an error message will be produced
+         // later if that file doesn't exist, but it's not a syntax error.
          m_column = 0;
          m_filename = argument;
       } else
@@ -106,6 +108,7 @@ bool FileFF::loadModelsImpl()
 //---------------------------------------------------------------------------------------
 // FileDFF
 //---------------------------------------------------------------------------------------
+const char FileDFF::separator = ',';
 
 FileDFF::FileDFF(const string& filespec)
 : FeatureFunction(filespec)
@@ -114,19 +117,23 @@ FileDFF::FileDFF(const string& filespec)
 
 bool FileDFF::parseAndCheckArgs()
 {
-   const string::size_type idx = argument.rfind(',');
+   const string::size_type idx = argument.rfind(separator);
    m_filename = argument.substr(0, idx);
-   if (m_filename.empty()) {
-      error(ETWarn, "You must provide a filename to FileFF");
-      return false;
-   }
-
    if (idx != string::npos) {
       const string coldesc = argument.substr(idx+1);
       if (!conv(coldesc, m_column)) {
-         error(ETWarn, "can't convert column spec %s to a number", coldesc.c_str());
-         return false;
-      }
+         // If we can't convert coldesc to a number, we assume the user simply
+         // has a comma within the filename - an error message will be produced
+         // later if that file doesn't exist, but it's not a syntax error.
+         m_column = 0;
+         m_filename = argument;
+      } else
+         --m_column;  // Convert to 0 based index
+   }
+
+   if (m_filename.empty()) {
+      error(ETWarn, "You must provide a filename to FileFF");
+      return false;
    }
 
    return true;
@@ -180,6 +187,8 @@ double FileDFF::value(Uint k)
       
    return m_vals[s][k];
 }
+
+
 
 //---------------------------------------------------------------------------------------
 // FeatureFunctionSet

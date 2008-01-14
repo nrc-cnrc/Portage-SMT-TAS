@@ -507,6 +507,8 @@ protected:
    virtual bool loadModelsImpl();
 public:
 
+   static const char separator;   ///< Column separator token: ,
+
    /**
     * Construct.
     * @param filespec spec of form filename[,i] - if "<i>" specified, use the ith
@@ -550,6 +552,8 @@ class FileDFF : public FeatureFunction
 protected:
    virtual bool loadModelsImpl();
 public:
+
+   static const char separator;   ///< Column separator token: ,
 
    /**
     * Construct.
