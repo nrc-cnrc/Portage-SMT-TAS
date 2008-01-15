@@ -63,9 +63,9 @@ void readFFMatrix(istream &in, vector<uMatrix>& vH)
 }
 
 
-//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // FileFF
-//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 const char FileFF::separator = ',';
 
 FileFF::FileFF(const string& filespec)
@@ -105,9 +105,9 @@ bool FileFF::loadModelsImpl()
 }
 
 
-//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // FileDFF
-//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 const char FileDFF::separator = ',';
 
 FileDFF::FileDFF(const string& filespec)
@@ -127,8 +127,9 @@ bool FileDFF::parseAndCheckArgs()
          // later if that file doesn't exist, but it's not a syntax error.
          m_column = 0;
          m_filename = argument;
-      } else
-         --m_column;  // Convert to 0 based index
+      }
+      // no need to decrement m_column here: in FileDFF m_column is 1-based,
+      // not 0-based. -- 0 means no columns.
    }
 
    if (m_filename.empty()) {
@@ -190,9 +191,9 @@ double FileDFF::value(Uint k)
 
 
 
-//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // FeatureFunctionSet
-//---------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 
 Logging::logger Logger_FeatureFunctionSet(Logging::getLogger("debug.rescoring.FeatureFunctionSet"));
 
