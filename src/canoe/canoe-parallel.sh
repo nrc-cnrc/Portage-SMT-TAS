@@ -197,7 +197,7 @@ if [ $VERBOSE -gt 0 ]; then
     echo "" >&2
     echo Starting $$ on `hostname` on `date` >&2
     echo $0 $SAVE_ARGS >&2
-    echo Using `which $CANOE nbest2rescore.pl` >&2
+    echo Using `which $CANOE` >&2
     echo "" >&2
 fi
 
