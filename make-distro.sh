@@ -208,7 +208,7 @@ do_checkout() {
 
 get_user_manual() {
    run_cmd pushd ./$OUTPUT_DIR
-      run_cmd rsync -arz /export/projets/Lizzy/PORTAGEshared/snapshot/ \
+      run_cmd rsync -arz ilt.iit:/export/projets/Lizzy/PORTAGEshared/snapshot/ \
                          PORTAGEshared/doc/user-manual
       run_cmd find PORTAGEshared/doc/user-manual/uploads -name Layout* \| xargs rm -f
       run_cmd rm PORTAGEshared/doc/user-manual/uploads/{cameleon_07.gif,images,notices,styles}
