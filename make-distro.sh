@@ -23,7 +23,7 @@ Usage: make-distro.sh [-h(elp)] [-bin] [-nosrc] [-licence PROJECT] [-n]
        [-compile-only] [-compile-host HOST] [-rCVS_TAG|-DCVS_DATE]
        [-patch-from OLD_CD_DIR:PREREQ_TOKEN
           [-patch-from OLD_CD_DIR2:PREREQ_TOKEN2 [...]]]
-       [-aachen] [-smart-bin] [-smart-src] [-can-univ]
+       [-aachen] [-smart-bin] [-smart-src] [-can-univ] [-can-biz]
        [-d cvs_dir]
        -dir OUTPUT_DIR
 
@@ -53,8 +53,8 @@ Options:
                 again - must be on the same file system as the local machine.
   -nosrc        do not include src code [do]
   -licence      Copy the LICENCE file for PROJECT.  Can be CanUniv, SMART,
-                Altera, or BinOnly (which means no LICENCE* file is copied).
-                [CanUniv, or BinOnly if -nosrc is specified]
+		Altera, CanBiz, or BinOnly (which means no LICENCE* file is
+		copied).  [CanUniv, or BinOnly if -nosrc is specified]
   -n            Not Really: just show what will be done.
   -no-doxy      Don't generate the doxy files (use for faster testing) [do]
   -archive-name Infix to insert in .tar and .iso filenames. []
@@ -77,6 +77,7 @@ Canned options for specific licensees:
   -smart-bin    Same as: -aachen
   -smart-src    Same as: -licence SMART -archive-name SMART
   -altera       Same as: -licence ALTERA -archive-name Altera
+  -can-biz	Same as: -licence CanBiz -archive-name CanBiz
 
 ==EOF==
 
@@ -135,6 +136,7 @@ while [ $# -gt 0 ]; do
    -aachen|-smart-bin)  INCLUDE_BIN=1; NO_SOURCE=1; LICENCE=BinOnly
                         COMPILE_HOST=leclerc; ARCHIVE_NAME=BinOnly;;
    -altera)             LICENCE=ALTERA; ARCHIVE_NAME=Altera;;
+   -can-biz)		LICENCE=CanBiz; ARCHIVE_NAME=CanBiz;;
    -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ));;
    -debug)              DEBUG=1;;
    -n)                  NOT_REALLY=1;;
@@ -191,6 +193,10 @@ do_checkout() {
          echo Keeping only the Altera licence info.
          run_cmd find PORTAGEshared -name LICENCE\* -maxdepth 1 \| \
                  grep -v -x PORTAGEshared/LICENCE_ALTERA \| xargs rm -f
+      elif [ "$LICENCE" = CanBiz ]; then
+         echo Keeping only the Canadian companies licence info.
+         run_cmd find PORTAGEshared -name LICENCE\* -maxdepth 1 \| \
+                 grep -v -x PORTAGEshared/LICENCE_CANBIZ \| xargs rm -f
       else
          error_exit "Invalid -licence specfication"
       fi
@@ -202,7 +208,7 @@ do_checkout() {
 
 get_user_manual() {
    run_cmd pushd ./$OUTPUT_DIR
-      run_cmd rsync -arz ilt.iit.nrc.ca:/opt/Lizzy/PORTAGEshared/snapshot/ \
+      run_cmd rsync -arz /export/projets/Lizzy/PORTAGEshared/snapshot/ \
                          PORTAGEshared/doc/user-manual
       run_cmd find PORTAGEshared/doc/user-manual/uploads -name Layout* \| xargs rm -f
       run_cmd rm PORTAGEshared/doc/user-manual/uploads/{cameleon_07.gif,images,notices,styles}
