@@ -61,12 +61,12 @@ LOGGING?=NONE
 #                  .<shell>rc file to disable the use of etags.
 #PORTAGE_NO_ETAGS?=1
 
-# Variable:        TEX
+# Variable:        MYLATEX
 # Possible values: the command line for invoking latex, or "NONE" to disable
 #                  the compilation of documents
-# Notes:           Uncomment the "TEX = NONE" line if you don't have latex.
-TEX ?= latex -interaction=batchmode
-#TEX = NONE
+# Notes:           Uncomment the "MYLATEX = NONE" line if you don't have latex.
+MYLATEX ?= latex -interaction=batchmode
+#MYLATEX = NONE
 
 # END OF USER CONFIGURABLE VARIABLES
 # =============================================================================
@@ -342,7 +342,7 @@ endif
 endif
 
 # latex stuff
-ifeq ($(TEX),NONE)
+ifeq ($(MYLATEX),NONE)
 docs:
 else
 docs: $(DOCUMENTS)
@@ -351,10 +351,10 @@ $(DOCUMENTS): %.pdf: %.dvi
 	dvipdf $^ $@
 
 %.dvi: %.tex
-	$(TEX) $*
+	$(MYLATEX) $*
 	-bibtex $*
-	$(TEX) $*
-	$(TEX) $*
+	$(MYLATEX) $*
+	$(MYLATEX) $*
 endif
 
 # make a dependencies file for explicit inclusion at end of local Makefile
