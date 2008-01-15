@@ -39,9 +39,10 @@ Options:\n\
     file1_lang2 file1_lang1 ... fileN_lang2 fileN_lang1\n\
 -i  Initialize ttable from <init_model>, rather than compiling it from corpus.\n\
     This means that only the word pairs in <init_model> will be considered as\n\
-    potential translations, and their starting probs will come from <init_model>.\n\
-    If <init_model>.pos exists, IBM2 params will also be read in from this,\n\
-    otherwise they will be initialized from the slen, tlen, and bksize params.\n\
+    potential translations, and their starting probs will come from\n\
+    <init_model>.   If <init_model>.pos exists, IBM2 params will also be read\n\
+    in from this, otherwise they will be initialized from the slen, tlen, and\n\
+    bksize params.\n\
 -s  Save IBM1 model to <ibm_model> before IBM2 training starts\n\
 -n1 Number of initial IBM1 iterations [5]\n\
 -n2 Number of final IBM2 iterations [5]\n\
@@ -56,8 +57,11 @@ Options:\n\
 
 // globals
 
-static const char* const switches[] = {"v", "r", "-m", "n1:", "n2:", "i:", "s:", "p:",
-			   "slen:", "tlen:", "bksize:", "speed:", "beg:", "end:"};
+static const char* switches[] = {
+   "v", "r", "-m", "n1:", "n2:", "i:", "s:", "p:",
+   "slen:", "tlen:", "bksize:", "speed:",
+   "beg:", "end:"
+};
 static ArgReader arg_reader(ARRAY_SIZE(switches), switches, 
 			    1, -1, help_message, "-h", true);
 
@@ -92,17 +96,16 @@ int main(int argc, char* argv[])
    if (access(model_pos.c_str(), F_OK) == 0)
       error(ETFatal, "pos file <%s> exists - won't overwrite", model_pos.c_str());
 
-   IBM2* ibm2;
+   IBM1* aligner(NULL);
    if (init_model == "")	// completely new model
-      ibm2 = new IBM2(slen, tlen, bksize);
+      aligner = new IBM2(slen, tlen, bksize);
    else if (access(model_pos.c_str(), F_OK) != 0) // read IBM1 but not IBM2
-      ibm2 = new IBM2(init_model, 0, slen, tlen, bksize);
+      aligner = new IBM2(init_model, 0, slen, tlen, bksize);
    else				// read both IBM1 and IBM2
-      ibm2 = new IBM2(init_model);
-   IBM1* ibm1 = (IBM1*)ibm2;
+      aligner = new IBM2(init_model);
 
-   ibm1->useImplicitNulls = false;
-   ibm1->getTTable().setSpeed(speed);
+   aligner->useImplicitNulls = false;
+   aligner->getTTable().setSpeed(speed);
    
    if (verbose) 
       cerr << "initializing from " << 
@@ -119,7 +122,10 @@ int main(int argc, char* argv[])
 	 if (verbose) cerr << "beginning training:" << endl;
 
       if (iter > 0)
-	 ibm2->initCounts();
+         if ( iter < num_iters1)
+            aligner->IBM1::initCounts();
+         else
+            aligner->initCounts();
 
       for (Uint arg = 1; arg+1 < arg_reader.numVars(); arg += 2) {
 	 
@@ -147,17 +153,17 @@ int main(int argc, char* argv[])
 	    if (endline != 0 && lineno > endline) break;
 	 
 	    toks1.clear(); toks2.clear();
-	    toks1.push_back(ibm2->nullWord());
+	    toks1.push_back(aligner->nullWord());
 
 	    split(line1, toks1);
 	    split(line2, toks2);
 
 	    if (iter == 0)
-	       ibm2->add(toks1, toks2);
+	       aligner->add(toks1, toks2);
 	    else if (iter <= num_iters1)
-	       ibm1->count(toks1, toks2);
+               aligner->IBM1::count(toks1, toks2);
 	    else
-	       ibm2->count(toks1, toks2);
+	       aligner->count(toks1, toks2);
 
 	    if (verbose && lineno % 100000 == 0) 
 	       cerr << "line " << lineno << " in " << file1 << "/" << file2 << endl;
@@ -168,20 +174,26 @@ int main(int argc, char* argv[])
 		  file1.c_str(), file2.c_str());
       }
       if (iter == 0) {
-	 ibm2->compile();
+	 aligner->compile();
       } else {
 	 pair<double,Uint> r = iter <= num_iters1 ? 
-	    ibm1->estimate(pruning_thresh) : ibm2->estimate(0.0);
+	    aligner->IBM1::estimate(pruning_thresh) :
+	    aligner->estimate(0.0);
 	 if (verbose) 
-	    cerr << "iter " << iter << (iter <= num_iters1 ? " (IBM1)" : " (IBM2)") <<
-	       ": prev ppx = " << r.first << ", size = " << r.second << " word pairs" << endl;
+	    cerr << "iter " << iter
+	         << (iter <= num_iters1
+		      ? " (IBM1)"
+		      : " (IBM2)")
+		 << ": prev ppx = " << r.first
+		 << ", size = " << r.second << " word pairs"
+		 << endl;
 	 if (ibm1_model != "" && iter == num_iters1)
-	    ibm1->write(ibm1_model);
+	    aligner->IBM1::write(ibm1_model);
 
 	 // test for break condition here
       }
    }
-   ibm2->write(model);
+   aligner->write(model);
 }
 
 // arg processing

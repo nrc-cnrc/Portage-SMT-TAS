@@ -144,7 +144,7 @@ namespace Portage {
 
     /// Writes the ttable to a file.
     /// @param ttable_file  file name to output ttable
-    void write(const string& ttable_file) const;
+    virtual void write(const string& ttable_file) const;
 
     /// Simply returns the string "NULL"
     /// @return Returns the string "NULL"
