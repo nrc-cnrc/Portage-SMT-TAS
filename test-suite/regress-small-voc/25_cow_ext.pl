@@ -84,7 +84,7 @@ my $seg_model = "bernoulli#0.2";
 #my $seg_model = "none";
 #my $seg_model = "count";
 
-my $dist_model = "WordDisplacement";
+my $dist_model = "WordDisplacement:PhraseDisplacement";
 # my $dist_model = "WordDisp_Prob:../dst_temp/corpus.${src_lang}-en.distortion_a";
 # my $dist_model = "none";
 

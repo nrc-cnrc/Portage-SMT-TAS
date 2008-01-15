@@ -47,7 +47,6 @@ ln -sf ../rat_train/workdir-test2000.${src_lang}.lowercase-200best workdir
 
 echo -n "Training a rescoring-model with expectation based stopping criterion "
 rescore_train -vn        \\
-  -lb                    \\
   -e -r 5                \\
   -p workdir/            \\
   rescoring_model.ini    \\

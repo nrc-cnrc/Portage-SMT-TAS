@@ -34,7 +34,7 @@ if ( @ARGV ) { @src_lang = @ARGV }
 foreach my $src_lang ( @src_lang ) {
 
 my $workdir0 = "${base_work}/wk_${src_lang}";
-my $workdir = "${workdir0}/lm_adaptation";
+my $workdir = "${workdir0}/adaptation";
 mkdir $workdir;
 
 my $lm_type = "";
@@ -152,7 +152,7 @@ cow.sh -v -filt -floor 2               \\
 && echo "OK" || echo "FAILED"
 END
 
-my $script = "${workdir}/${src_lang}_35_lm_adaptation";
+my $script = "${workdir}/${src_lang}_35_adaptation";
 open( J1, "> $script" );
 print J1 $job1;
 close( J1 );

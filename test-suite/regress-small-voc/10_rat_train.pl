@@ -3,6 +3,7 @@
 # 10_rat_train.pl - train a rescoring model using rat.sh, which combines
 #                   generating the n-best list, all the features, and doing the
 #                   actual training
+#  Exercices canoe in append mode.
 #
 # PROGRAMMER: Eric Joanis / Samuel Larkin
 #

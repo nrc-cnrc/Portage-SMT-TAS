@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 
 # 05_cow.pl - run COW - optimize weights for canoe
+#  Exercices canoe's load-balancing mode.
 #
 # PROGRAMMER: Howard Johnson / Eric Joanis / Samuel Larkin
 #
@@ -57,6 +58,11 @@ cow.sh -v -filt -floor 2               \\
   ${corp}/test2000.en.lowercase        \\
   &> log.cow                           \\
 && echo "OK" || echo "FAILED"
+
+# Recording trained canoe.ini in log file
+# Testing pretty printing.
+configtool -p dump canoe.ini.cow >> log.cow
+
 END
 
 my $script  = "${workdir}/${src_lang}_05_cow";
