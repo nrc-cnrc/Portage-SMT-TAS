@@ -58,7 +58,7 @@ run() {
 
 diff() {
    echo -n "Comparing \$1 \$2 "
-   diff-round.pl -prec 4 "LC_ALL=C gzip -cqfd \$1 | sort |" "LC_ALL=C gzip -cqfd \$2 | sort |" \\
+   diff-round.pl -prec 4 "gzip -cqfd \$1 | LC_ALL=C sort |" "gzip -cqfd \$2 | LC_ALL=C sort |" \\
    2> /dev/null \\
    | wc
 }
