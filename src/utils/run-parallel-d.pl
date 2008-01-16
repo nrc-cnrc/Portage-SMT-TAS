@@ -110,8 +110,9 @@ for ( ; $paddr = accept(Client, Server); close Client) {
    }
 
    my ($port, $iaddr) = sockaddr_in($paddr);
-   my $name = gethostbyaddr($iaddr, AF_INET);
-   log_msg "rcvd conn from $name [" . inet_ntoa($iaddr) . ":$port]";
+   my $name = gethostbyaddr($iaddr, AF_INET) || "localhost";
+   my $string_address = inet_ntoa($iaddr) || "LOCAL";
+   log_msg "rcvd conn from $name [" . $string_address . ":$port]";
 
    my $cmd_rcvd = <Client>;
    select Client; # Make the socket the default "file" to write to.
