@@ -54,7 +54,6 @@ PROGRAMS = $(TESTPROGS) \
 BINSCRIPTS = \
         alignment-stats.pl \
         append-uniq.pl \
-        canoe2rescoreFile.sh \
         combine.pl \
         cvs-status-summary.pl \
         diff-round.pl \
