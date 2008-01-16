@@ -17,6 +17,7 @@ Contents of this directory:
    build/           tools for compiling and installing
    canoe/           decoder, including code for using translation models
    eval/            code for automatic evaluation of MT output
+   htmldoc/         generated code documentation (start at htmldoc/index.html)
    lm/              library for using various types of language models
    logging/         logging facility for debugging 
    preprocessing/   markup, tokenization, etc.
