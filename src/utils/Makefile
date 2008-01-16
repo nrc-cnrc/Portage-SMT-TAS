@@ -72,6 +72,7 @@ BINSCRIPTS = \
         outpipe.sh \
         parallel-uniq.pl \
         parse-monitor.sh \
+	process-memory-usage.pl \
         psub \
         randomly-choose-n-args.pl \
         remove_stop.pl \

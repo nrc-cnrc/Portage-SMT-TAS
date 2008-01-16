@@ -1,0 +1,23 @@
+#!/bin/tcsh -f
+
+# George Foster
+# Technologies langagieres interactives / Interactive Language Technologies
+# Institut de technologie de l'information / Institute for Information Technology
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2007, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2007, Her Majesty in Right of Canada
+
+##
+## best-rr-val rescore-results
+##
+## Pick out the best line in a rescore-results file
+##
+
+if ($#argv != 1) then
+   cat $0 | egrep '^##' | cut -c4-
+   exit 1
+endif
+
+set bleu = `sort -k3,3 -gr $1 | head -1 | cut -d' ' -f3`
+set nl = `wc -l < $1`
+echo "$bleu $1 ($nl iters)"

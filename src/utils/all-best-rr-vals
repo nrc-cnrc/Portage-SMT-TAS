@@ -1,0 +1,20 @@
+#!/bin/tcsh
+
+# George Foster
+# Technologies langagieres interactives / Interactive Language Technologies
+# Institut de technologie de l'information / Institute for Information Technology
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2005, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2005, Her Majesty in Right of Canada
+
+# Summarize a set of rescore results files in directories below current one
+
+if ($#argv == 1) then
+   set pref = "$1"
+else
+   set pref = "*"
+endif
+
+foreach f (`ls -t1 $pref/rescore-results`)
+   best-rr-val $f
+end
