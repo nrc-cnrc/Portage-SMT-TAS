@@ -77,7 +77,8 @@ if ( $primary ) { $me = "PRIMARY $me"; }
 my $start_time = time;
 my $reply_rcvd = send_recv "GET ($me)";
 
-while($reply_rcvd !~ /^\*\*\*EMPTY\*\*\*/i and $reply_rcvd ne ""){
+while(defined $reply_rcvd and $reply_rcvd !~ /^\*\*\*EMPTY\*\*\*/i
+         and $reply_rcvd ne ""){
     print STDERR "[" . localtime() . "] ($me) Executing: $reply_rcvd";
     my $rc = system($reply_rcvd);
     my $exit_status;
