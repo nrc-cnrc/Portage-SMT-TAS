@@ -1,4 +1,5 @@
 # This makefile runs the toy example
+# vim:ts=3:noet
 #
 # George Foster
 #
@@ -22,8 +23,11 @@ doc: toy.pdf
 clean:
 	rm -f *.aux *.log *.tok *.al *.lc lines.*
 	rm -f ibm[12].* phrases.*
+	rm -f train_en.lm
 	rm -f canoe.ini.* powellweights.* rescore-results* *.FILT log.*
+	rm -f multi.probs.dev1_fr.al.30.FILT.gz
 	rm -rf foos tmp
+	rm -rf workdir-dev2_fr.al-100best workdir-test_fr.al-100best
 	rm -f *.tmp* dev*.al.* test*.al.* rat rescore-model
 	rm -f *.out *.bleu
 
@@ -88,7 +92,7 @@ phrases.fr2en: train_en.al train_fr.al
 	train-phrases.sh -no-z tmp
 
 cow: canoe.ini.cow
-canoe.ini.cow: phrases.fr2en train_en.lm
+canoe.ini.cow: phrases.fr2en train_en.lm canoe.ini
 	rm -rf foos; mkdir foos
 	cow.sh -nbest-list-size 100 -maxiter 10 -filt -floor 2 \
 		-workdir foos dev1_fr.al dev1_en.al &> log.cow
@@ -104,7 +108,7 @@ canoe_ON_test_fr.out: canoe.ini.cow
 
 rescore: rescore_ON_test_fr.out
 rescore_ON_test_fr.out: rescore-model
-	rat.sh -n 1 trans -n 1 -f canoe.ini.cow -K 100 $< test_fr.al
+	rat.sh -n 1 trans -v -n 1 -f canoe.ini.cow -K 100 $< test_fr.al
 	mv test_fr.al.rat $@
 
 test: rescore_ON_test_fr.bleu canoe_ON_test_fr.bleu
