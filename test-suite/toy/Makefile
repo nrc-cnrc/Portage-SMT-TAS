@@ -23,7 +23,6 @@ doc: toy.pdf
 clean:
 	rm -f *.aux *.log *.tok *.al *.lc lines.*
 	rm -f ibm[12].* phrases.*
-	rm -f train_en.lm
 	rm -f canoe.ini.* powellweights.* rescore-results* *.FILT log.*
 	rm -f multi.probs.dev1_fr.al.30.FILT.gz
 	rm -rf foos tmp
