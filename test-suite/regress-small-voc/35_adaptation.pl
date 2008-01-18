@@ -159,7 +159,7 @@ close( J1 );
 
 my $ini1 = << "END";
 [ttable-limit] 30
-[ttable-multi-prob] ../phrases-GT-KN.${src_lang}2en.gz:${MODELS_DIR}/test2000.fr.lowercase.ibm2.phrases-GT-KN.fr2en.gz
+[ttable-multi-prob] ../phrases-GT-KN.${src_lang}2en.gz:${MODELS_DIR}/test2000.${src_lang}.lowercase.ibm2.phrases-GT-KN.${src_lang}2en.gz
 [lmodel-file] ${corp0}/europarl.en.srilm:${MODELS_DIR}/test2000.${src_lang}.lowercase.wts.mixlm
 [segmentation-model] none#whatever
 [distortion-model] WordDisplacement

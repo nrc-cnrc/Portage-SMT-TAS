@@ -44,7 +44,7 @@ LANG=en_US.ISO-8859-1
 
 echo -n "Simple rescoring of the dev set "
 rescore_translate        \\
-  -p /${rescore_training}/workdir-test2000.fr.lowercase-200best/ \\
+  -p /${rescore_training}/workdir-test2000.${src_lang}.lowercase-200best/ \\
   ${rescore_training}/workdir-test2000.${src_lang}.lowercase-200best/rescoring_model.rat.out        \\
   ${corp}/test2000.${src_lang}.lowercase \\
   ${rescore_training}/workdir-test2000.${src_lang}.lowercase-200best/200best.gz \\

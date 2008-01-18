@@ -97,7 +97,7 @@ my $ini1 = << "END";
 [distortion-limit] 7
 [dist-limit-ext]
 [dist-phrase-swap]
-[ibm1-fwd-file] ../ibm1.en_given_fr.gz
+[ibm1-fwd-file] ../ibm1.en_given_${src_lang}.gz
 END
 
 open( J1, "> ${workdir}/canoe.ini" );
