@@ -52,25 +52,20 @@ echo '"tail -f times_minimum.txt"' if you want to monitor it.
 
 # The rest of this script's output goes to times_minimum.txt, so we place it in
 # parenthese so we don't have to rewrite the redirection on each line.
+for lang in $LANGUAGES;
+do
 (
    echo $LANG_MSG
-
-   # Minimal test suite - run the basics from start to finish
-   #   02_train_ibm.pl  - build IBM translation tables
-   #   03_gen_phr.pl    - build phrase tables
-   #   05_cow.pl        - COW, optimize canoe weights
-   #   10_rat_train.pl  - train the rescoring model
-   #   11_rat_test.pl   - test using the rescording model
-   #   18_summary.pl    - summarize bleu scores on dev/test, 1-best/rescore.
 
    for script in [01][0-9]_*.pl;
    do
       echo
       date
-      echo ./$script $LANGUAGES
-      time ./$script $LANGUAGES
+      echo ./$script $lang
+      time ./$script $lang
    done
 
    echo
    date
-) >& times_minimum.txt
+) >& times_minimum.$lang.txt
+done
