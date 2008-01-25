@@ -130,7 +130,7 @@ int MAIN(argc, argv)
 
             if (arg.bDistribution) {
                snprintf(szFilename, 256-2, "output/Sentence%4.4d.dist", s+1);
-               OMagicStream of(szFilename);
+               oSafeMagicStream of(szFilename);
                for (Uint k(0); k<arg.maxNumBest; ++k) {
                    of << k << ": " << nbests[s][k] << endl;
                    bleu[s][k].output(of);

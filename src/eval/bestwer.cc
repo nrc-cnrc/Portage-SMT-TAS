@@ -117,7 +117,7 @@ int MAIN(argc, argv)
    // Count the number of lines
    string buf;
    {
-      IMagicStream in(transFiles[0]);
+      iSafeMagicStream in(transFiles[0]);
       getline(in, buf);
       while (!in.eof())
       {
@@ -157,7 +157,7 @@ int MAIN(argc, argv)
    {
       tgt_sents[s] = new string[maxNumBest];
       ref_sents[s] = new string[R];
-      IMagicStream in(transFiles[s]);
+      iSafeMagicStream in(transFiles[s]);
       for (Uint k = 0; k < maxNumBest; k++)
       {
          getline(in, tgt_sents[s][k]);
@@ -175,7 +175,7 @@ int MAIN(argc, argv)
    if (verbose) cout << "Reading reference sentences" << endl;
    for (Uint r = 0; r < R; r++)
    {
-      IMagicStream in(refFiles[r]);
+      iSafeMagicStream in(refFiles[r]);
       for (Uint s = 0; s < S; s++)
       {
          getline(in, ref_sents[s][r]);

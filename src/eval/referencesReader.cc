@@ -23,7 +23,7 @@ referencesReader::referencesReader(const vector<string>& sRefFiles)
    m_ifRefs.resize(m_R);
    for (unsigned int r(0); r<m_R; ++r)
    {
-      m_ifRefs[r] = new IMagicStream(sRefFiles[r].c_str());
+      m_ifRefs[r] = new iSafeMagicStream(sRefFiles[r].c_str());
       assert(m_ifRefs[r]);
       if (m_ifRefs[r]->fail())
          error(ETFatal, "Unable to open reference file: %s", sRefFiles[r].c_str());

@@ -134,7 +134,7 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
    Uint numKept(0);
    Uint numFiltered(0);
    Entry entry(d, file);
-   IMagicStream in(file);
+   iSafeMagicStream in(file);
 
    cerr << "loading phrase table from " << file << ": " << flush;
    time_t start_time = time(NULL);

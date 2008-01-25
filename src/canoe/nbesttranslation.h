@@ -477,7 +477,7 @@ void print_lattice( lattice_overlay const & g,
                     const std::string& filename,
                     PrintFunc & print)
 {
-   OMagicStream file( filename );
+   oSafeMagicStream file( filename );
    print_lattice(g, file, print);
 }
 

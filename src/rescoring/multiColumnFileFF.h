@@ -15,7 +15,7 @@
 #ifndef __MULTI_COLUMN_FILE_FF_H_
 #define __MULTI_COLUMN_FILE_FF_H_
 
-#include <file_utils.h>  // IMagicStream
+#include <file_utils.h>  // iSafeMagicStream
 #include <boostDef.h>
 #include <str_utils.h>
 #include <errors.h>
@@ -29,7 +29,7 @@ namespace Portage {
 class multiColumnFileFF
 {
    private:
-      IMagicStream         m_file;    ///< The stream associated with this unit.
+      iSafeMagicStream         m_file;    ///< The stream associated with this unit.
       std::vector<float>   m_values;  ///< Contains the last line's values.
       int                  m_line;    ///< Current line number.
       Uint                 m_expected_size;  ///< number of expected fields

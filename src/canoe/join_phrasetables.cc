@@ -82,9 +82,9 @@ int main(int argc, char* argv[])
    vector<string> tmp_pt_list;
    for (Uint i = 0; i < pts.size(); ++i) {
 
-      IMagicStream ifs(pts[i]);
+      iSafeMagicStream ifs(pts[i]);
       tmp_pt_list.push_back(getTempName());
-      OMagicStream ofs(tmp_pt_list.back());
+      oSafeMagicStream ofs(tmp_pt_list.back());
       
       Uint linenum = 0;
       while (getline(ifs, line)) {
@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
 
    // aggregate probabilities associated with each phrase pair, and write to stdout
 
-   IMagicStream ifs(tmp);
+   iSafeMagicStream ifs(tmp);
    string prev_phrase_pair;
    vector<string> tot_probs(tot_cols, zero);
    Uint linenum = 0;

@@ -46,7 +46,7 @@ void Preprocessor::proc(const string& raw_text, vector<vector<string> >& prep_te
    pclose(file);
 
    prep_text.clear();
-   IMagicStream ifstr(tempfile);
+   iSafeMagicStream ifstr(tempfile);
    string line;
    vector<string> empty;
    while (getline(ifstr, line)) {

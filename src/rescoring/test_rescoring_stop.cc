@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
 
    vector<double> bleu_history;
 
-   IMagicStream instr(infile);
+   iSafeMagicStream instr(infile);
 
    while (num_runs < total_runs) {
 

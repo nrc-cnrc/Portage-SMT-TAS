@@ -61,7 +61,7 @@ Uint DocVectSet::getFeature(const string& name)
 
 void DocVectSet::addDocVect(const string& dv_file, Uint pos)
 {
-   IMagicStream in(dv_file);
+   iSafeMagicStream in(dv_file);
 
    DocVect* dv;
    if (pos < numDocs()) {
@@ -121,7 +121,7 @@ void DocVectSet::dump()
 {
    for (Uint i = 0; i < doc_names.size(); ++i) {
       string newname = doc_names[i] + ".dump";
-      OMagicStream out(newname);
+      oSafeMagicStream out(newname);
       writeDocVect(vals[i], out);
    }
 }
@@ -288,7 +288,7 @@ void DocVectSet::writeClusterMeans(const vector<DocVect>& means, const string& p
    for (Uint k = 0; k < means.size(); ++k) {
       ostringstream fname;
       fname << pref << "cluster" << k+1 << suff;
-      OMagicStream out(fname.str());
+      oSafeMagicStream out(fname.str());
       writeDocVect(means[k], out);
    }
 }

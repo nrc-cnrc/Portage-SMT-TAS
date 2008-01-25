@@ -33,7 +33,7 @@ class PhraseTableFilterJoint : public PhraseTableFilter {
       /// Performs either hard or soft filtering
       Joint_Filtering::filterTMVisitor*   visitor;
       TargetPhraseTable* tgtTable;                 ///< Use for complete online filtering (save trie's query)
-      OMagicStream*      online_filter_output;     ///< output file name when processing online
+      oSafeMagicStream*      online_filter_output;     ///< output file name when processing online
       Uint               L;                        ///< number of entries, limit for filtering
 
    public:

@@ -158,7 +158,7 @@ int main(Uint argc, const char * const * argv)
    // Read source sentences.
    vector<vector<string> > src_sents;
    vector<vector<MarkedTranslation> > marked_src_sents;
-   IMagicStream input(c.input);
+   iSafeMagicStream input(c.input);
    InputParser reader(input);
    if ( ! c.loadFirst) {
       cerr << "Reading input source sentences..." << endl;
@@ -185,7 +185,7 @@ int main(Uint argc, const char * const * argv)
    // Read reference (target) sentences.
    if (refFile=="")
       error(ETFatal, "You have to provide a reference file!\n");
-   IMagicStream ref(refFile);
+   iSafeMagicStream ref(refFile);
    vector<vector<string> > tgt_sents;
    readSentences(ref, tgt_sents);
 
@@ -223,7 +223,7 @@ int main(Uint argc, const char * const * argv)
 
    // Open output file
    cerr << N << " best alignments per sentence pair will be written to '" << outFile << "'" << endl;
-   OMagicStream out(outFile);
+   oSafeMagicStream out(outFile);
 
    Uint i = 0;
    while (true) {

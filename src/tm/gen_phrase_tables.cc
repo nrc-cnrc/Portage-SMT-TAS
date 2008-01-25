@@ -335,8 +335,8 @@ int MAIN(argc, argv)
 
       args.testAndSet(arg, "file1", in_f1);
       args.testAndSet(arg+1, "file2", in_f2);
-      IMagicStream in1(in_f1);
-      IMagicStream in2(in_f2);
+      iSafeMagicStream in1(in_f1);
+      iSafeMagicStream in2(in_f2);
 
       if (giza_alignment) {
         arg+=2;
@@ -423,7 +423,7 @@ int MAIN(argc, argv)
          ostringstream fname;
          fname << name << "-" << std::setw(4) << setfill('0') << fpair
                << ".pt" << z_ext;
-         OMagicStream ofs(fname.str());
+         oSafeMagicStream ofs(fname.str());
          pt.dump_joint_freqs(ofs);
          pt.clear();
       }
@@ -453,13 +453,13 @@ int MAIN(argc, argv)
             filename = name + "." + lang2 + "_given_" + lang1 + z_ext;
             {
                if (verbose) cerr << "Writing " << filename << endl;
-               OMagicStream ofs(filename);
+               oSafeMagicStream ofs(filename);
                dumpCondDistn(ofs, 1, pt, *smoothers[0], verbose);
             }
             filename = name + "." + lang1 + "_given_" + lang2 + z_ext;
             {
                if (verbose) cerr << "Writing " << filename << endl;
-               OMagicStream ofs(filename);
+               oSafeMagicStream ofs(filename);
                dumpCondDistn(ofs, 2, pt, *smoothers[0], verbose);
             }
          }
@@ -467,13 +467,13 @@ int MAIN(argc, argv)
          if (multipr_output == "fwd" || multipr_output == "both") {
             string filename = name + "." + lang1 + "2" + lang2 + z_ext;
             if (verbose) cerr << "Writing " << filename << endl;
-            OMagicStream ofs(filename);
+            oSafeMagicStream ofs(filename);
             dumpMultiProb(ofs, 1, pt, smoothers, verbose);
          }
          if (multipr_output == "rev" || multipr_output == "both") {
             string filename = name + "." + lang2 + "2" + lang1 + z_ext;
             if (verbose) cerr << "Writing " << filename << endl;
-            OMagicStream ofs(filename);
+            oSafeMagicStream ofs(filename);
             dumpMultiProb(ofs, 2, pt, smoothers, verbose);
          }
 
@@ -481,11 +481,11 @@ int MAIN(argc, argv)
       if (joint)
          pt.dump_joint_freqs(cout);
       if (freqs1 != "") {
-         OMagicStream ofs(freqs1);
+         oSafeMagicStream ofs(freqs1);
          pt.dump_freqs_lang1(ofs);
       }
       if (freqs2 != "") {
-         OMagicStream ofs(freqs2);
+         oSafeMagicStream ofs(freqs2);
          pt.dump_freqs_lang2(ofs);
       }
    }

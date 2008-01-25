@@ -132,7 +132,7 @@ LMText::LMText(const string& lm_file_name, VocabFilter *vocab,
 void LMText::read(const string& lm_file_name, bool limit_vocab,
                   Uint limit_order, ostream *const os_filtered, bool quiet)
 {
-   OMagicStream* tmp_os_filtered = NULL;
+   oSafeMagicStream* tmp_os_filtered = NULL;
    string tmp_fileN;
    if (os_filtered != NULL)
    {
@@ -148,13 +148,13 @@ void LMText::read(const string& lm_file_name, bool limit_vocab,
       ostringstream pid;
       pid << "." << getpid();
       tmp_fileN += pid.str();
-      tmp_os_filtered = new OMagicStream(tmp_fileN);
+      tmp_os_filtered = new oSafeMagicStream(tmp_fileN);
       assert(tmp_os_filtered != NULL);
    }
 
    time_t start_overall = time(NULL);
    vector<Uint> ngram_counts;
-   IMagicStream in(lm_file_name);
+   iSafeMagicStream in(lm_file_name);
    string line;
    // Look for \data\ line
    while (getline(in, line)) {
@@ -271,7 +271,7 @@ void LMText::read(const string& lm_file_name, bool limit_vocab,
       *os_filtered << endl;
 
       // Quickly copies the header + temp file in the final output
-      IMagicStream  tmp_is_filtered(tmp_fileN);
+      iSafeMagicStream  tmp_is_filtered(tmp_fileN);
       *os_filtered << tmp_is_filtered.rdbuf();
       delete_if_exists(tmp_fileN.c_str(), "Deleting tmp file used during filtering (NORMAL message)");
 

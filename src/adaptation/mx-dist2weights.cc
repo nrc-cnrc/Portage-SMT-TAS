@@ -89,7 +89,7 @@ int main(int argc, char* argv[])
       for (Uint i = 0; i < wts.size(); ++i) // average
 	 wts[i] /= distvects.size();
    } else {
-      IMagicStream istr(method);
+      iSafeMagicStream istr(method);
       string line;
       vector<string> toks;
       for (Uint i = 0; i < distvects.size(); ++i) {

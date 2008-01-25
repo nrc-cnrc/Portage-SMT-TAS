@@ -396,8 +396,8 @@ int MAIN(argc, argv)
       args.testAndSet(arg+1, "file2", in_f2);
       if (verbose)
          cerr << "reading " << in_f1 << "/" << in_f2 << endl;
-      IMagicStream in1(in_f1);
-      IMagicStream in2(in_f2);
+      iSafeMagicStream in1(in_f1);
+      iSafeMagicStream in2(in_f2);
 
       if (giza_alignment) {
         arg+=2;

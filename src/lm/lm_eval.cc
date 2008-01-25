@@ -95,7 +95,7 @@ int MAIN(argc,argv)
       VocabFilter::addConverter  aConverter(vocab, per_sent_limit);
 
       string line;
-      IMagicStream in(test_filename);
+      iSafeMagicStream in(test_filename);
       while (getline(in, line)) {
          if(line.empty()) continue;
 
@@ -123,7 +123,7 @@ int MAIN(argc,argv)
 
    string line;
 
-   IMagicStream testfile(test_filename);
+   iSafeMagicStream testfile(test_filename);
    float docProb = 0.0;
    Uint num_toks = 0;
    Uint processed = 0;

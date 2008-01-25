@@ -331,7 +331,7 @@ Uint FeatureFunctionSet::read(const string& filename, bool verbose,
 
    ff_infos.clear();
 
-   IMagicStream istr(filename.c_str());
+   iSafeMagicStream istr(filename.c_str());
 
    string line;
    vector<string> toks;

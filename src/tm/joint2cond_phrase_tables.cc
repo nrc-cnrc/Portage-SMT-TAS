@@ -125,7 +125,7 @@ void doEverything(const char* prog_name)
    if ( multipr_output == "rev" || multipr_output == "both" )
       delete_or_error_if_exists(makeFinalFileName(name + "." + lang2 + "2" + lang1));
 
-   IMagicStream in(in_file.size() ? in_file : "-");
+   iSafeMagicStream in(in_file.size() ? in_file : "-");
    PhraseTableGen<T> pt;
    pt.readJointTable(in);
 
@@ -156,13 +156,13 @@ void doEverything(const char* prog_name)
    if ( tmtext_output ) {
       filename = makeFinalFileName(name + "." + lang2 + "_given_" + lang1);
       {
-         OMagicStream ofs(filename);
+         oSafeMagicStream ofs(filename);
          dumpCondDistn<T>(ofs, 1, pt, *smoothers[0], verbose);
       }
 
       filename = makeFinalFileName(name + "." + lang1 + "_given_" + lang2);
       {
-         OMagicStream ofs(filename);
+         oSafeMagicStream ofs(filename);
          dumpCondDistn<T>(ofs, 2, pt, *smoothers[0], verbose);
       }
    }
@@ -170,13 +170,13 @@ void doEverything(const char* prog_name)
    if (multipr_output == "fwd" || multipr_output == "both") {
       string filename = makeFinalFileName(name + "." + lang1 + "2" + lang2);
       if (verbose) cerr << "Writing " << filename << endl;
-      OMagicStream ofs(filename);
+      oSafeMagicStream ofs(filename);
       dumpMultiProb(ofs, 1, pt, smoothers, verbose);
    }
    if (multipr_output == "rev" || multipr_output == "both") {
       string filename = makeFinalFileName(name + "." + lang2 + "2" + lang1);
       if (verbose) cerr << "Writing " << filename << endl;
-      OMagicStream ofs(filename);
+      oSafeMagicStream ofs(filename);
       dumpMultiProb(ofs, 2, pt, smoothers, verbose);
    }
 }

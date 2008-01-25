@@ -112,7 +112,7 @@ Uint LMBinVocFilt::read_bin_trie(istream& ifs, Uint limit_order)
 
 void LMBinVocFilt::read_binary(const string& binlm_filename, Uint limit_order)
 {
-   IMagicStream ifs(binlm_filename);
+   iSafeMagicStream ifs(binlm_filename);
    string line;
    time_t start = time(NULL);
 

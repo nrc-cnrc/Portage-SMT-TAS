@@ -78,8 +78,8 @@ int main(int argc, char* argv[])
          cerr << "reading " << file1 << "/" << file2 << endl;
       arg_reader.testAndSet(arg+a1, "file1", in_f1);
       arg_reader.testAndSet(arg+a2, "file2", in_f2);
-      IMagicStream in1(in_f1);
-      IMagicStream in2(in_f2);
+      iSafeMagicStream in1(in_f1);
+      iSafeMagicStream in2(in_f2);
 
       string line1, line2;
       vector<string> toks1, toks2;

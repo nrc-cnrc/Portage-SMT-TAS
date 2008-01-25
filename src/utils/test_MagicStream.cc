@@ -465,7 +465,7 @@ void fileExist()
    cout << "-: " << (check_if_exists("-") ? "TRUE" : "FALSE") << endl;
    cout << "ls |: " << (check_if_exists("ls |") ? "TRUE" : "FALSE") << endl;
    cout << "| echo" << (check_if_exists("| echo") ? "TRUE" : "FALSE") << endl;
-   IMagicStream is("unexisting.file");
+   iSafeMagicStream is("unexisting.file");
 }
 
 /**
@@ -481,14 +481,14 @@ void fileSeek()
    const string file_gz("fileSeek.gz");
    const string file_txt("fileSeek.txt");
    {
-      OMagicStream ms(file_gz);
+      oSafeMagicStream ms(file_gz);
       ofstream os(file_txt.c_str());
       printMatrice(ms, msg, maxI, maxJ);
       printMatrice(os, msg, maxI, maxJ);
    }
 
    cout << "gz format" << endl;
-   IMagicStream ms(file_gz);
+   iSafeMagicStream ms(file_gz);
    if (!ms.seekg(ios_base::beg+msg.size())) {
       cout << "Seeking gz failed" << endl;
       cout << ms.rdbuf();
@@ -522,14 +522,14 @@ void fileIgnore()
    const string file_gz("fileIgnore.gz");
    const string file_txt("fileIgnore.txt");
    {
-      OMagicStream ms(file_gz);
+      oSafeMagicStream ms(file_gz);
       ofstream os(file_txt.c_str());
       printMatrice(ms, msg, maxI, maxJ);
       printMatrice(os, msg, maxI, maxJ);
    }
 
    cout << "gz format" << endl;
-   IMagicStream ms(file_gz);
+   iSafeMagicStream ms(file_gz);
    if (!ms.ignore(msg.size()))
       cout << "Ignoring gz failed" << endl;
    else

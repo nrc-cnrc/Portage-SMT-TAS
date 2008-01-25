@@ -23,7 +23,7 @@ const string TTable::sep_str = "|||";
 
 TTable::TTable(const string& filename, const Voc* src_voc)
 {
-   IMagicStream ifs(filename);
+   iSafeMagicStream ifs(filename);
 
    vector<string> toks;
    string line;

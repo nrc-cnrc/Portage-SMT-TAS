@@ -271,7 +271,7 @@ public:
     * @param pretty if true, write string vector elements one per line
     */
    void write(const char *cfgFile, Uint what=0, bool pretty=false) {
-      OMagicStream cfg(cfgFile);
+      oSafeMagicStream cfg(cfgFile);
       write(cfg, what, pretty);
    }
 

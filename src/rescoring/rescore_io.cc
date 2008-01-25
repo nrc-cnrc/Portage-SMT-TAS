@@ -20,7 +20,7 @@ namespace Portage {
 namespace RescoreIO {
 
 Uint readAlignments(const string &filename, vector<Alignment> &alignments) {
-  IMagicStream in(filename);
+  iSafeMagicStream in(filename);
   Alignment a;
   while (a.read(in))
     alignments.push_back(a);
@@ -36,7 +36,7 @@ void tokenize(const char* sent, vector<string>& toks)
 
 Uint readSource(const string& filename, Sentences& sentences)
 {
-   IMagicStream istr(filename);
+   iSafeMagicStream istr(filename);
 
    string line;
    while (getline(istr, line)) {

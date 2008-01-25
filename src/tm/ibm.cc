@@ -91,7 +91,7 @@ IBM1
 
 void IBM1::write(const string& ttable_file) const
 {
-   OMagicStream out(ttable_file);
+   oSafeMagicStream out(ttable_file);
    tt.write(out);
 }
 
@@ -336,7 +336,7 @@ IBM2::IBM2(const string& ttable_file) : IBM1(ttable_file)
 
    string pos_file = posParamFileName(ttable_file);
 
-   IMagicStream ifs(pos_file);
+   iSafeMagicStream ifs(pos_file);
 
    ifs >> max_slen;
    ifs >> max_tlen;
@@ -374,7 +374,7 @@ void IBM2::write(const string& ttable_file) const
    IBM1::write(ttable_file);
 
    string pos_file = posParamFileName(ttable_file);
-   OMagicStream out(pos_file);
+   oSafeMagicStream out(pos_file);
 
    out << max_slen << " " << max_tlen << " " << backoff_size << endl;
    for (Uint tlen = 1; tlen <= max_tlen; ++tlen)

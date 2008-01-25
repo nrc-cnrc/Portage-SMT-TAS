@@ -419,7 +419,7 @@ struct extendFileName
 };
 
 void CanoeConfig::read(const char* configFile) {
-   IMagicStream cfg(configFile);
+   iSafeMagicStream cfg(configFile);
    read(cfg);
 
    char* tmp = strdup(configFile);

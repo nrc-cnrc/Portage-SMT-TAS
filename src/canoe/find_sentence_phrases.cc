@@ -85,9 +85,9 @@ int main(int argc, char* argv[])
 {
    printCopyright(2005, "find_sentence_phrases");
    getArgs(argc, argv);
-   IMagicStream is(in_file.size() ? in_file : "-");
-   OMagicStream os(out_file.size() ? out_file : "-");
-   OMagicStream fwd(forwardfile.size() ? forwardfile : "-");
+   iSafeMagicStream is(in_file.size() ? in_file : "-");
+   oSafeMagicStream os(out_file.size() ? out_file : "-");
+   oSafeMagicStream fwd(forwardfile.size() ? forwardfile : "-");
 
    vector<vector<string> > sents;
    InputParser reader(is);

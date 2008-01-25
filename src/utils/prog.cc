@@ -44,8 +44,8 @@ int main(int argc, char* argv[])
 {
    getArgs(argc, argv);
 
-   IMagicStream istr(infile);
-   OMagicStream ostr(outfile);
+   iSafeMagicStream istr(infile);
+   oSafeMagicStream ostr(outfile);
 
    Uint lineno = 0;
    string line;

@@ -404,7 +404,7 @@ public:
     * @param file file name.
    */
    void smooth(const string &file) {
-      IMagicStream in(file);
+      iSafeMagicStream in(file);
       double ct, d, r, rmean; //order of values in file
       while (in >> ct) {
 	 if (! (in >> d >>  r >> rmean)) {

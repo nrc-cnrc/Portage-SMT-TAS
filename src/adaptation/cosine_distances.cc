@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
    getArgs(argc, argv);
 
    vector<string> model_list;
-   IMagicStream ifs(models);
+   iSafeMagicStream ifs(models);
    string line;
    while (getline(ifs, line))
       model_list.push_back(trim(line));

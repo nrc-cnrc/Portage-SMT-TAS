@@ -86,7 +86,7 @@ public:
     * @param filename file name to input the vocabulary
     */
    void read(const string& filename) {
-      IMagicStream istr(filename.c_str());
+      iSafeMagicStream istr(filename.c_str());
       read(istr);
    }
 
@@ -106,7 +106,7 @@ public:
     * @param delim     delimiter between each word of the vocabulary
     */
    void write(const string& filename, const char* delim = "\n") const {
-      OMagicStream ostr(filename);
+      oSafeMagicStream ostr(filename);
       write(ostr, delim);
    }
 
@@ -175,7 +175,7 @@ public:
     * @param filename file name from which to get the vocabulary
     */
    void read(const string& filename) {
-      IMagicStream istr(filename.c_str());
+      iSafeMagicStream istr(filename.c_str());
       read(istr);
    }
 

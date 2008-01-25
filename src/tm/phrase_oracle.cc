@@ -122,8 +122,8 @@ int main(int argc, char* argv[])
    PhraseTableGen<float> pt;
    for (Uint i = 0; i < refnames.size(); ++i) {
 
-      IMagicStream src(srcfname);
-      IMagicStream ref(refnames[i]);
+      iSafeMagicStream src(srcfname);
+      iSafeMagicStream ref(refnames[i]);
 
       Uint line_no = 0;
       string src_line, ref_line;
@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
    PhraseTableGen<float> pt_filt;
 
    if (extern_phrasetable_fname != "") {
-      IMagicStream ifs(extern_phrasetable_fname);
+      iSafeMagicStream ifs(extern_phrasetable_fname);
 
       vector<string>::const_iterator b1, e1, b2, e2, v;
       vector<string> toks;

@@ -150,9 +150,9 @@ void Portage::bleuCompare::getArgs(int argc, const char* const argv[])
    for (Uint i = 0; i < filenames.size(); ++i)
       if (!got_refs) {
 	 if (filenames[i] == "REFS") {got_refs = true; continue;}
-	 testfiles.push_back(new IMagicStream(filenames[i]));
+	 testfiles.push_back(new iSafeMagicStream(filenames[i]));
       } else 
-	 reffiles.push_back(new IMagicStream(filenames[i]));
+	 reffiles.push_back(new iSafeMagicStream(filenames[i]));
    if (!testfiles.size())
       error(ETFatal, "no test files specified");
    if (!reffiles.size())

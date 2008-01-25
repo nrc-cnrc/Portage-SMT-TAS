@@ -224,7 +224,7 @@ int main(int argc, char* argv[])
          error(ETFatal, "bad format for set-weights command");
 
       // get best line in rescore-results file
-      IMagicStream ifs(toks[1].c_str());
+      iSafeMagicStream ifs(toks[1].c_str());
       string line;
       RescoreResult best_rr(-1);
       while (getline(ifs, line))
@@ -249,7 +249,7 @@ int main(int argc, char* argv[])
       if (split(cmd, toks, ":") != 2)
          error(ETFatal, "bad format for arg-weights command");
       vector<double> wts;
-      IMagicStream ifs(toks[1].c_str());
+      iSafeMagicStream ifs(toks[1].c_str());
       string line;
       vector<string> ltoks;
       while (getline(ifs,line)) {

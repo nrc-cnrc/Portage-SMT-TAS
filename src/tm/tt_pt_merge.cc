@@ -269,11 +269,11 @@ int main(Uint argc, const char * const * argv)
     argReader.testAndSet("no-clean", no_clean);
     
     // Open input files
-    IMagicStream ibm_in(ibmFile);
-    IMagicStream pt_in(ptFile);
+    iSafeMagicStream ibm_in(ibmFile);
+    iSafeMagicStream pt_in(ptFile);
 
     // open temporary file 
-    OMagicStream t_out(tempFile);
+    oSafeMagicStream t_out(tempFile);
     
     // read and filter ibm model based on type and type_modifier
     if (type == 'f') // filter based on a fixed threshold
@@ -287,7 +287,7 @@ int main(Uint argc, const char * const * argv)
     system(command.c_str());
     
     // go through line by line and merge duplicates based on weight
-    IMagicStream sorted_in(sortedFile);
+    iSafeMagicStream sorted_in(sortedFile);
 
     int cleared = clearDups(sorted_in, weight);
     cerr << "Duplicates merged: " << cleared << endl;

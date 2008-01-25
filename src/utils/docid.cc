@@ -21,7 +21,7 @@ DocID::DocID(const string& docid_filename)
    if (docid_filename.empty())
       error(ETFatal, "You must provide a docid file");
 
-   IMagicStream is(docid_filename);
+   iSafeMagicStream is(docid_filename);
    string line;
    while (getline(is, line))
       doclines.push_back(line);

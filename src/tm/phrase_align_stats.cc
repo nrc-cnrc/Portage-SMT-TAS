@@ -153,7 +153,7 @@ int main(int argc, char* argv[])
 {
    printCopyright(2005, "phrase_align_stats");
    getArgs(argc, argv);
-   IMagicStream is(in_file.size() ? in_file : "-");
+   iSafeMagicStream is(in_file.size() ? in_file : "-");
 
    // collect stats
    

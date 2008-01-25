@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
 
    Uint num_lines = 0;
    { // extra scope so sfile is closed when it falls out of scope
-      IMagicStream sfile(srcfilename);
+      iSafeMagicStream sfile(srcfilename);
       string line;
       vector<string> toks;
       while (getline(sfile, line)) {
@@ -95,16 +95,16 @@ int main(int argc, char* argv[])
    // read input files and write sample files
    
    string srcsamplefilename = srcfilename + suffix;
-   IMagicStream srcfile(srcfilename);
-   OMagicStream srcsamplefile(srcsamplefilename);
+   iSafeMagicStream srcfile(srcfilename);
+   oSafeMagicStream srcsamplefile(srcsamplefilename);
 
    vector<string> tgtsamplefilenames(tgtfilenames.size());
    vector<istream*> tgtfiles(tgtfilenames.size());
    vector<ostream*> tgtsamplefiles(tgtfilenames.size());
    for (Uint i = 0; i < tgtfilenames.size(); ++i) {
       tgtsamplefilenames[i] = tgtfilenames[i] + suffix;
-      tgtfiles[i] = new IMagicStream(tgtfilenames[i]);
-      tgtsamplefiles[i] = new OMagicStream(tgtsamplefilenames[i]);
+      tgtfiles[i] = new iSafeMagicStream(tgtfilenames[i]);
+      tgtsamplefiles[i] = new oSafeMagicStream(tgtsamplefilenames[i]);
    }
 
    num_lines = 0;

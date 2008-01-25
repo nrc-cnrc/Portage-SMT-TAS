@@ -29,7 +29,7 @@ string& Portage::gulpFile(istream& istr, string& dst) {
 }
 
 string& Portage::gulpFile(const char* filename, string& dst) {
-   IMagicStream file(filename);
+   iSafeMagicStream file(filename);
    return gulpFile(file, dst);
 }
 

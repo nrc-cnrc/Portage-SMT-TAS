@@ -56,7 +56,7 @@ PhraseTableFilterJoint::~PhraseTableFilterJoint()
 void PhraseTableFilterJoint::outputForOnlineProcessing(const string& filename, Uint limitsize)
 {
    L = limitsize;
-   online_filter_output = new OMagicStream(filename);
+   online_filter_output = new oSafeMagicStream(filename);
    assert(online_filter_output);
    tgtTable = new TargetPhraseTable;
    assert(tgtTable);
@@ -92,7 +92,7 @@ void PhraseTableFilterJoint::filter_joint(const string& filename, Uint L)
    visitor->numKeptEntry = 0;
    textTable.traverse(*visitor);
 
-   OMagicStream multi(filename);
+   oSafeMagicStream multi(filename);
    write(multi);
    fprintf(stderr, "There are %d entries left after applying %s filtering\n", visitor->numKeptEntry, visitor->style);
 

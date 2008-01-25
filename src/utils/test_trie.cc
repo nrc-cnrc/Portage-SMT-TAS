@@ -178,7 +178,7 @@ int main(int argc, char** argv)
 
    cout << endl << "Read binary with no filter no map:" << endl;
    {
-      IMagicStream ifs("test_trie.binary");
+      iSafeMagicStream ifs("test_trie.binary");
       PTrie<float, Wrap<float>, false> new_trie;
       new_trie.read_binary(ifs);
       new_trie.traverse(v);
@@ -186,7 +186,7 @@ int main(int argc, char** argv)
 
    cout << endl << "Read binary with filter 1 no map:" << endl;
    {
-      IMagicStream ifs("test_trie.binary");
+      iSafeMagicStream ifs("test_trie.binary");
       PTrie<float, Wrap<float>, false> new_trie;
       new_trie.read_binary(ifs, filter_1);
       new_trie.traverse(v);
@@ -194,7 +194,7 @@ int main(int argc, char** argv)
 
    cout << endl << "Read binary with no filter and object map:" << endl;
    {
-      IMagicStream ifs("test_trie.binary");
+      iSafeMagicStream ifs("test_trie.binary");
       PTrie<float, Wrap<float>, false> new_trie;
       InvertMap m;
       new_trie.read_binary(ifs, PTrieKeepAll, m);
@@ -203,7 +203,7 @@ int main(int argc, char** argv)
 
    cout << endl << "Read binary with filter 1 and object map:" << endl;
    {
-      IMagicStream ifs("test_trie.binary");
+      iSafeMagicStream ifs("test_trie.binary");
       PTrie<float, Wrap<float>, false> new_trie;
       InvertMap m;
       new_trie.read_binary(ifs, filter_1, m);

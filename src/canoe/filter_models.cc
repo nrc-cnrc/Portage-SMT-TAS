@@ -134,7 +134,7 @@ int MAIN(argc, argv)
    {
       LOG_VERBOSE1(filter_models_Logger, "Loading source sentences");
       string line;
-      IMagicStream is(arg.input);
+      iSafeMagicStream is(arg.input);
       InputParser reader(is);
       vector<MarkedTranslation> dummy; // Required to call readMarkedSent()
       while (!reader.eof()) {
@@ -256,7 +256,7 @@ int MAIN(argc, argv)
 
             cerr << "loading language model from " << lm << endl;
             time_t start_time = time(NULL);
-            OMagicStream  os_filtered(flm);
+            oSafeMagicStream  os_filtered(flm);
             PLM *lm_model = PLM::Create(lm, &tgt_vocab, PLM::ClosedVoc,
                   LOG_ALMOST_0, limitPhrases, c.lmOrder, &os_filtered);
             cerr << " ... done in " << (time(NULL) - start_time) << "s" << endl;
@@ -277,7 +277,7 @@ int MAIN(argc, argv)
          fprintf(stderr, "Average vocabulary size per source sentences: %f\n",
             tgt_vocab.per_sentence_vocab->averageVocabSizePerSentence());
       }
-      OMagicStream os_vocab(arg.vocab_file);
+      oSafeMagicStream os_vocab(arg.vocab_file);
       tgt_vocab.write(os_vocab);
    }
 

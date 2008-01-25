@@ -114,8 +114,8 @@ int main(int argc, char* argv[])
 
    // read and init
 
-   IMagicStream file1(filename1);
-   IMagicStream file2(filename2);
+   iSafeMagicStream file1(filename1);
+   iSafeMagicStream file2(filename2);
 
    vector<string> lines1, lines2;
    string line;
@@ -172,9 +172,9 @@ int main(int argc, char* argv[])
    // output
 
    if (verbose) cerr << "writing" << (filt ? " filtered " : " ") << "output" << endl;
-   OMagicStream ofile1(filename1 + ".al");
-   OMagicStream ofile2(filename2 + ".al");
-   OMagicStream* alfile = alfilename != "" ? new OMagicStream(alfilename) : NULL;
+   oSafeMagicStream ofile1(filename1 + ".al");
+   oSafeMagicStream ofile2(filename2 + ".al");
+   oSafeMagicStream* alfile = alfilename != "" ? new oSafeMagicStream(alfilename) : NULL;
 
    Uint ibeg = 0, jbeg = 0;
    double begscore = 0.0;

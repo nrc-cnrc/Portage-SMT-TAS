@@ -54,11 +54,11 @@ using namespace std;
  */
 class OneFileInfo {
    const bool append;              ///< Keeps track of the user request to make one file
-   OMagicStream* f_nbest;          ///< nbestlist Stream 
-   OMagicStream* f_ffvals;         ///< ffvals stream
-   OMagicStream* f_pal;            ///< pal stream
-   OMagicStream* f_lattice;        ///< lattice stream
-   OMagicStream* f_lattice_state;  ///< lattice state stream
+   oSafeMagicStream* f_nbest;          ///< nbestlist Stream 
+   oSafeMagicStream* f_ffvals;         ///< ffvals stream
+   oSafeMagicStream* f_pal;            ///< pal stream
+   oSafeMagicStream* f_lattice;        ///< lattice stream
+   oSafeMagicStream* f_lattice_state;  ///< lattice state stream
    public:
       /**
        * Default constructor.
@@ -73,14 +73,14 @@ class OneFileInfo {
       , f_lattice_state(NULL)
       {
          if (append && c.latticeOut) {
-            f_lattice       = new OMagicStream(c.latticeFilePrefix);
-            f_lattice_state = new OMagicStream(addExtension(c.latticeFilePrefix, ".state"));
+            f_lattice       = new oSafeMagicStream(c.latticeFilePrefix);
+            f_lattice_state = new oSafeMagicStream(addExtension(c.latticeFilePrefix, ".state"));
          }
          if (append && c.nbestOut)
          {
-            f_nbest                = new OMagicStream(addExtension(c.nbestFilePrefix, "nbest"));
-            if (c.ffvals) f_ffvals = new OMagicStream(addExtension(c.nbestFilePrefix, "ffvals"));
-            if (c.trace)  f_pal    = new OMagicStream(addExtension(c.nbestFilePrefix, "pal"));
+            f_nbest                = new oSafeMagicStream(addExtension(c.nbestFilePrefix, "nbest"));
+            if (c.ffvals) f_ffvals = new oSafeMagicStream(addExtension(c.nbestFilePrefix, "ffvals"));
+            if (c.trace)  f_pal    = new oSafeMagicStream(addExtension(c.nbestFilePrefix, "pal"));
          }
       }
       /// Destructor.
@@ -95,11 +95,11 @@ class OneFileInfo {
       /// Did the user request a single file
       /// @return Returns true if the user requested one file
       bool one() { return append; }
-      OMagicStream* nbest() const { return f_nbest; }
-      OMagicStream* ffvals() const { return f_ffvals; }
-      OMagicStream* pal() const { return f_pal; }
-      OMagicStream* lattice() const { assert(f_lattice); return f_lattice; }
-      OMagicStream* lattice_state() const { assert(f_lattice_state); return f_lattice_state; }
+      oSafeMagicStream* nbest() const { return f_nbest; }
+      oSafeMagicStream* ffvals() const { return f_ffvals; }
+      oSafeMagicStream* pal() const { return f_pal; }
+      oSafeMagicStream* lattice() const { assert(f_lattice); return f_lattice; }
+      oSafeMagicStream* lattice_state() const { assert(f_lattice_state); return f_lattice_state; }
 };   
 
 
@@ -226,8 +226,8 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
          const string curCoverageFile = addExtension(c.latticeFilePrefix, string(sent_num) + ".state");
 
          // Open files for output
-         OMagicStream latticeOut(curLatticeFile);
-         OMagicStream covOut(curCoverageFile);
+         oSafeMagicStream latticeOut(curLatticeFile);
+         oSafeMagicStream covOut(curCoverageFile);
          // Produce lattice output
          const double dMasse = writeWordGraph(&latticeOut, &covOut, print, finalStates, c.backwards, masse);
          if (masse) {
@@ -389,7 +389,7 @@ int MAIN(argc, argv)
    vector<vector<string> > sents;
    vector<vector<MarkedTranslation> > marks;
    vector<Uint> sourceSentenceIds;
-   IMagicStream input(c.input);
+   iSafeMagicStream input(c.input);
    InputParser reader(input, c.bLoadBalancing);
    if (c.checkInputOnly) {
       cerr << "Checking input sentences for markup errors." << endl;

@@ -398,7 +398,7 @@ void PhraseTableGen<T>::readJointTable(istream& in)
 template<class T>
 void PhraseTableGen<T>::readJointTable(const string& infile)
 {
-   IMagicStream in(infile);
+   iSafeMagicStream in(infile);
    readJointTable(in);
 }
 

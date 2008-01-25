@@ -77,7 +77,7 @@ PLM* PLM::Create(const string& lm_filename,
    else {
       string line;
       {
-         IMagicStream is(lm_physical_filename, true);
+         iSafeMagicStream is(lm_physical_filename, true);
          getline(is, line);
       }
       if ( line == "Portage BinLM file, format v1.0" ) {

@@ -33,7 +33,7 @@ using namespace boost;
 
 /// An iMagicStream class with a constructor that does a fatal error when the
 /// file can't be opened.
-class IMagicStream : public iMagicStream
+class iSafeMagicStream : public iMagicStream
 {
 public:
    /**
@@ -41,7 +41,7 @@ public:
     * @param fname  file name
     * @param bQuiet suppresses the Broken pipe message from gz/pipe fname
     */
-   IMagicStream(const string& fname, bool bQuiet = false)
+   iSafeMagicStream(const string& fname, bool bQuiet = false)
    : iMagicStream(fname, bQuiet) {
       if (this->fail())
 	 error(ETFatal, "unable to open %s for reading", fname.c_str());
@@ -50,7 +50,7 @@ public:
 
 /// An oMagicStream class with a constructor that does a fatal error when the
 /// file can't be opened.
-class OMagicStream : public oMagicStream
+class oSafeMagicStream : public oMagicStream
 {
 public:
    /**
@@ -58,7 +58,7 @@ public:
     * @param fname  file name
     * @param bQuiet suppresses the Broken pipe message from gz/pipe fname
     */
-   OMagicStream(const string& fname, bool bQuiet = false)
+   oSafeMagicStream(const string& fname, bool bQuiet = false)
    : oMagicStream(fname, bQuiet) {
       if (this->fail())
 	 error(ETFatal, "unable to open %s for writing", fname.c_str());
@@ -96,7 +96,7 @@ void readFileLines(std::istream& istr, vector<string>& lines);
  * @param lines     returned read lines
  */
 inline void readFileLines(const char* filename, vector<string>& lines) {
-   IMagicStream istr(filename);
+   iSafeMagicStream istr(filename);
    readFileLines(istr, lines);
 }
 
@@ -129,7 +129,7 @@ Uint countFileLines(std::istream& istr);
  * @return Returns the number of line in istr
  */
 inline Uint countFileLines(const char* filename) {
-   IMagicStream istr(filename);
+   iSafeMagicStream istr(filename);
    return countFileLines(istr);
 }
 
@@ -222,7 +222,7 @@ string extractFilename(const string& path);
 /// Read the contents of a tokenized file, line by line.
 class TokReader 
 {
-   IMagicStream* istr;
+   iSafeMagicStream* istr;
    string fname;
    string line;
    Uint lineno;
@@ -243,7 +243,7 @@ public:
     */
    void open(const char* filename) {
       if (istr) delete istr;
-      istr = new IMagicStream(filename);
+      istr = new iSafeMagicStream(filename);
       fname = filename;
       lineno = 0;
    }

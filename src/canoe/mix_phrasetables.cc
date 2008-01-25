@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
    vector< vector<Uint> > norm_sums(pts.size()); // phrasetable,column -> sum of vals in column
    if (norm) {
       for (Uint i = 0; i < pts.size(); ++i) {
-	 IMagicStream ifs(pts[i]);
+	 iSafeMagicStream ifs(pts[i]);
 	 norm_sums[i].assign(num_probs, norm_smooth);
 	 Uint linenum = 0;
 	 while (getline(ifs, line)) {
@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
       vector<vector<MarkedTranslation> > marks;
       CanoeConfig c;
       c.loadFirst = false;
-      IMagicStream input(srcname);
+      iSafeMagicStream input(srcname);
       InputParser reader(input);
       while (true) {
 	 sents.push_back(vector<string>());
@@ -156,9 +156,9 @@ int main(int argc, char* argv[])
 
    for (Uint i = 0; i < pts.size(); ++i) {
 
-      IMagicStream ifs(pts[i]);
+      iSafeMagicStream ifs(pts[i]);
       tmp_pt_list.push_back(getTempName());
-      OMagicStream ofs(tmp_pt_list.back());
+      oSafeMagicStream ofs(tmp_pt_list.back());
       ofs.precision(9);
       
       Uint linenum = 0;
@@ -209,7 +209,7 @@ int main(int argc, char* argv[])
    // sum up the probabilities associated with each phrase pair, and write
    // result to stdout
 
-   IMagicStream ifs(tmp);
+   iSafeMagicStream ifs(tmp);
    string prev_phrase_pair;
    vector<double> tot_probs(probs.size(), 0.0);
    Uint linenum = 0;

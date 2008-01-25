@@ -41,7 +41,7 @@ int MAIN(argc, argv)
    ARG arg(argc, argv);
 
    LOG_VERBOSE2(verboseLogger, "Opening test file");
-   IMagicStream tst(arg.sTestFile);
+   iSafeMagicStream tst(arg.sTestFile);
 
    LOG_VERBOSE2(verboseLogger, "Creating references Reader");
    referencesReader  rReader(arg.sRefFiles);
