@@ -43,6 +43,7 @@ if [ -n "$LANGUAGES" ]; then
    LANG_MSG="Processing languages: $LANGUAGES"
 else
    LANG_MSG="Processing default languages"
+   LANGUAGES=fr
 fi
 
 # Echo this here and in the parens, so it's on stdout as well as in the log.
@@ -55,7 +56,7 @@ echo '"tail -f times_minimum.txt"' if you want to monitor it.
 for lang in $LANGUAGES;
 do
 (
-   echo $LANG_MSG
+   echo Processing language: $lang
 
    for script in [01][0-9]_*.pl;
    do

@@ -43,6 +43,7 @@ if [ -n "$LANGUAGES" ]; then
    LANG_MSG="Processing languages: $LANGUAGES"
 else
    LANG_MSG="Processing default languages"
+   LANGUAGES=fr;
 fi
 
 # Echo this here and in the parens, so it's on stdout as well as in the log.
@@ -54,7 +55,7 @@ echo '"tail -f times_all.txt"' if you want to monitor it.
 # parenthese so we don't have to rewrite the redirection on each line.
 for lang in $LANGUAGES; do
 (
-   echo $LANG_MSG
+   echo Processing language: $lang
 
    for script in [0-9][0-9]_*.pl;
    do
