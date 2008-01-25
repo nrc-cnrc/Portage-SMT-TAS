@@ -13,75 +13,70 @@ license agreement for details.
                               Release History
                    (with a summary of important changes)
 
-utils build logging eval preprocessing lm tm adaptation canoe api rescoring
-(for dir in preprocessing; do
-    cd $dir
-    for x in `\ls ~/sandboxes/PortageTrunk/src/$dir | egrep -v '\.(a|o|so)$'`
-      do echo ====================================================
-      echo gvimdiff $x ~/sandboxes/PortageTrunk/src/$dir/$x
-      if [ -f $x ]; then
-         diff -w $x ~/sandboxes/PortageTrunk/src/$dir/$x
-      else
-         echo File missing
-      fi
-    done
-    cd ..
- done) | gvim -
-
-v1.2 ??.01.2008
+v1.2 25.01.2008
  This is a significant update to PORTAGEshared, incorporating most of the
  changes we have made to Portage since the initial release of PORTAGEshared.
 
  Major changes:
- - Significantly optimized string splitting routines (src/utils/str_utils.h)
-   and consequently the loading of many type of input and data files, including
-   the new Voc::addConverter functor to directly convert a sentence or a phrase
-   from a string to a vector<Uint> with no intermediate storage.
+
+ - Soft TM filtering: joint filtering of several phrase tables in such a way
+   that, no matter what weights are used, the top L hypotheses will have been
+   kept, i.e., discards entries that can never make it to the top L, under any
+   set of non-negative weights.  Also described in Badr et al (2007).
+   - Used by cow.sh when the -filt option is specified (recommended).
+
+ - LM filtering based on per-sentence-vocabulary, as described in Badr et al
+   (2007) (see the annotated bibliography in the user manual for all paper
+   references).  In short, keeps an n-gram only if all the words it contains
+   can occur together in the translation of at least one source sentence.
+   Typical LM filtering uses one global vocabulary; this technique efficiently
+   keeps track of a separate vocabulary for each input sentence to translate.
+   In decoding, this approach can save some 25% of the memory required for
+   large LMs, or as much as 50% when combined with soft TM filtering.  In
+   lm_eval and the LM rescoring function, significantly higher savings are
+   possible.  Works with both the text (ARPA) and our BinLM file formats.
+   - Automatically used by canoe while loading language models;
+   - automatically used by the rescoring module for the NgramFF feature;
+   - used by lm_eval when the -per-sent-limit option is specified.
+
+ - Implemented Huang and Chiang's (2007) cube pruning algorithm.  Can yield an
+   order-of-magnitude speed up in decoding in most circumstances.  Requires
+   careful re-tuning of some decoding parameters, however, especially S (stack
+   size) since its meaning is not the same as with regular decoding.  Run canoe
+   -h for details on enabling cube pruning.
+
+ - New module implementing George Foster's LM and TM adaptation work, with
+   integration of the resulting mixture models in the decoder - details in
+   Foster and Kuhn (2007).
+
  - Optimization of various programs throughout the Portage suite, including
    canoe.
+
+ - Significantly optimized string splitting routines (src/utils/str_utils.h)
+   and consequently the loading of many types of input and data files.
+   In particular, the new Voc::addConverter functor directly converts a
+   sentence or a phrase from a string to a vector<Uint> with no intermediate
+   storage, yield a noticeable speed up in several programs.
+
  - Implemented new language model heuristics for decoding, including
    "incremental", the default in several other MT systems, and now also the
-   default in Portage and PORTAGEshared.
+   default in PORTAGEshared.
+
  - Monotonic decoding with phrase swaps can now be done using canoe's
    "-distortion-limit 0 -dist-phrase-swap" combination of options, optionally
    using the new PhraseDisplacement distortion model instead of, or in
    combination with, the standard distortion penalty (WordDisplacement).
+
  - New IBM1Forward decoder feature.
- - LM filtering based on per-sentence-vocabulary, as described in Badr,
-   Joanis, Larkin and Kuhn (2007).  Manageable Phrase-based Statistical Machine
-   Translation Models.  In Computer Recognition Systems 2 (CORES 2007).  In
-   short, keeps an n-gram only if all the words it contains can occur together
-   in the translation of at least one source sentence.  Typical LM filtering
-   uses one global vocab; this technique efficiently keeps track of a separate
-   vocabulary for each input sentence to translate.  In decoding, this approach
-   can save some 25% of the memory required for large LMs.  In lm_eval and the
-   LM rescoring function, significantly higher savings are common.  Works with
-   both the text (ARPA) and our BinLM file formats.
-   - Automatically used by canoe while loading language models;
-   - automatically used by the rescoring module for the NgramFF feature;
-   - used by lm_eval when the -per-sent-limit is specified.
- - Soft TM filtering: joint filtering of several phrase tables in such a way
-   that, not matter what weights are used, the top L hypotheses will have been
-   kept, i.e., discards entries that can never make it to the top L, under any
-   set of non-negative weights.  Also described in our CORES 2007 paper.
-   - Used by cow.sh when the -filt option is specified (recommended).
- - Implemented Huang and Chiang's cube pruning algorithm.  See Huang and Chiang
-   (2007).  Forest rescoring: faster decoding with integrated language models.
-   In Proc. ACL.  Can yield an order-of-magnitude speed up in decoding in most
-   circumstances.  Requires careful re-tuning of some decoding parameters,
-   however, especially S since its meaning is not the same as with regular
-   decoding.  Run canoe -h for details on enabling cube pruning.
- - New module implementing George Foster's LM and TM adaptation work, with
-   integration of the resulting mixture models in the decoder - details in
-   Foster and Kuhn (2007). Mixture-Model Adaptation for SMT. In Proc. WMT (at
-   ACL).
- - The main rescoring script, rat.sh, was completely overhauled to be easier to
-   use.  The model is now specified with the same syntax as documented in
-   rescore_train -H: rat.sh transparently handles generating the features,
-   managing temporary files (now all in a working sub-directory) and giving
-   rescore_train an appropriately modified model file.  See rat.sh -h for
-   details, and test-suite/regress-small-voc/28_rat_train.pl for an example
-   rescoring model in this new syntax.
+
+ - The main rescoring script, rat.sh, was overhauled to be easier to use.  The
+   model is now specified with the same syntax as for rescore_train (documented
+   in rescore_train -H): rat.sh transparently handles generating the features,
+   managing temporary files (now all tucked away in a working sub-directory)
+   and giving rescore_train an appropriately transformed model file.  See
+   rat.sh -h for details and test-suite/regress-small-voc/28_rat_train.pl for
+   an example rescoring model in this simplified syntax.
+
  - New rescoring features (run rescore_train -H for the full list):
    - IBM1DocTgtGivenSrc calculates p(tgt-sent|src-doc), using a file of docids
      to determine what parts of the source file constitute documents (the
@@ -89,41 +84,45 @@ v1.2 ??.01.2008
      containing an ID in any format (no whitespace allowed); lines with
      identical IDs are considered to come from the same document).
    - nbest*Post* - posterior probability features for confidence estimation
-     rescoring - see Ueffing and Ney (2005).  Word-Level Confidence Estimation
-     for Machine Translation using Phrase-Based Translation Models.  In Proc.
-     HLT/EMNLP.  Zens and Ney (2006).  N-gram Posterior Probabilities for
-     Statistical Machine Translation.  In Proc. WMT (at HLT/NAACL).  Blatz et
-     al. (2003).  Confidence Estimation for Machine Translation.  JHU/CLSP
-     Summer Workshop.  Ueffing (2006).  Word Confidence Measures for Machine
-     Translation.  Ph.D. thesis.
+     rescoring - see Ueffing and Ney (2005), Zens and Ney (2006).  These papers
+     not included in our annotated bibliography provide even more background
+     and depth:
+      - Blatz et al. (2003).  Confidence Estimation for Machine Translation.
+        JHU/CLSP Summer Workshop.
+      - Ueffing (2006).  Word Confidence Measures for Machine Translation.
+        Ph.D. thesis.
    - Consensus and ConsensusWin - WER-based consensus over N-best list (very
      expensive features - not recommended for general use) - features based on
-     Mangu, Brill, and Stolcke (1999).  Finding Consensus Among Words:
-     Lattice-Based Word Error Minimization.  In Proc. Eurospeech.
+     Mangu et al (1999). 
    - BLEUrisk - Minimum Bayes Risk using BLEU loss function - see Kumar and
-     Byrne (2004).  Minimum Bayes-Risk Decoding for Statistical Machine
-     Translation.  In Proc. HLT-NAACL.
+     Byrne (2004).
    - ParMismatch and QuotMismatch - count mismatched parentheses and quotes.
-   - CacheLM - cache LM over docs defined in docids files (see above) - see
-     Kuhn and De Mori (1990).  A Cache-Based Natural Language Model for Speech
-     Recognition.  In IEEE Trans. Pattern Analysis and Machine Intelligence
-     (PAMI), 12(6), June, pp. 570-583 (see also corrections to this article in
-     14(6), June 1992, pp. 691-692).
+   - CacheLM - cache LM over docs defined in docid files (see above) - see
+     Kuhn and De Mori (1990-2).
+
+ - Overhauled the regress-small-voc test suite:
+   - exercices more aspects of the code;
+   - includes two top-level scripts, one to run a minimal end-to-end suite, and
+     a second one that also runs various extensions;
+   - renumbered scripts so that they can be run in numerical sequence, as was
+     originally the intention.
 
  Major bug fixes:
  - When canoe was used with -weight-f (weights on the forward translation
    models), the forward score did not get added to the total score, so that the
-   forward score was in fact ignored during search.
+   forward score was in fact ignored during search.  Any experiments using
+   -weight-f should be redone, as the result might be drastically different
+   now.  Our own such experiments now have better results.
 
  Minor changes:
- - The new script process-memory-usage.pl to monitor resource usage by a job,
+ - The new script process-memory-usage.pl monitors resource usage by a job,
    especially in a cluster setting.
  - Made the code compile mostly cleanly with g++ 4.2.0.
  - Formatting changes in many files to improve consistency: prefer 3-character
    intentation, avoid the tab character, streamline documentation, etc.
  - New utf8-adaptation of our English and French tokenizer script.
  - canoe:
-   - added markup syntax documentation to -help message;
+   - added markup syntax documentation to the -help message;
    - new -check-input-only option to validate an input file, not decode;
    - improved error messages when invalid markup is encountered;
    - improved error recovery in -tolerate-markup-errors mode;
@@ -135,56 +134,59 @@ v1.2 ??.01.2008
    - the canoe.ini file format now allows lists to be separated by whitespace
      or ':', and allows comments introduced by '#';
    - new -ttable-log-zero option offers crude control of phrase table smoothing;
-   - new -options switch print a compact list of all canoe options;
+   - new -options switch prints a compact list of all canoe options;
    - new decoder feature based on forward IBM1 probabilities;
    - -dist-limit-ext and -dist-phrase-swap modify the semantics of the
      distortion limit;
-   - new -input option allows input from something other than stdin;
-   - new -append option concatenate nbest, ffvals and pal files on the fly;
-   - when using random-weights (for cow.sh -mad), a specific distribution can
-     be specified for each feature;
+   - new -input option allows input from any file, not just stdin;
+   - new -append mode concatenates nbest, ffvals and pal files on the fly;
+   - when using -random-weights (for cow.sh -mad), a specific distribution can
+     be specified for each feature.
  - phrase_tm_align overhaul:
    - now reads a canoe.ini file and combines multiple models as canoe does,
      instead of accepting only one phrase table;
    - prints ffvals for all models in the canoe.ini file, even those that have
      no impact on alignment (e.g., lm).
  - canoe-parallel.sh:
-   - new -lb option to perform load balancing;
-   - new -resume option to attempt to recover a job that died previously;
+   - new -lb option performs load balancing;
+   - new -resume option attempts to recover a job that died previously, keeping
+     the parts of the job that had been successful;
    - support for all the new canoe options.
  - filter_models and find_sentence_phrases:
    - use the same InputParser class as canoe for consistent handling of markup.
  - removed the broken markup handling from train_ibm, align-words and run_ibm:
    they now only accept tokenized, line-aligned plain text, as one would expect.
  - new program join_phrasetables generates a multi-prob (i.e., multi-column)
-   phrase table from from tables in the older format
+   phrase table from individual tables in the older single-column format.
  - normalized file names in src/rescoring: C++ code files are .cc, not .cpp,
-   C++ template code are -cc.h, not .cpp.
+   C++ template code files are -cc.h, not .cpp.
  - renamed ibm1aaron.{h,cc} ibm1wtrans.{h,cc} and the classes it contains to
    reflect the name of the feature implemented.
- - IBM 1 and 2 models: changed the default smoothing value from 1e-50 to 1e-07.
+ - IBM 1 and 2 models: changed the default smoothing value from 1e-50 to the
+   more appropriate value 1e-07.
  - run_ibm now optionally shows the log prob of each individual sentence pair
    and/or the perplexity for each input file pair.
  - Friendlier error message when trying to open a .gz file that doesn't exit.
- - get_voc: new -s option to sort results by reverse counts.
- - monitor-process.sh: now supports a polling frequency in 10ths of seconds.
+ - get_voc: new -s option sorts results by reverse counts.
+ - monitor-process.sh: now supports a polling frequency in 10ths of a second.
  - run-parallel.sh:
-   - removed the dependency on faucet;
-   - reduced the per job overhead from about one second to about 10ms, making
-     it feasible to distribute thousands of tiny jobs accross several hosts;
+   - removed the dependency on faucet, using sockets directly instead;
+   - using sockets reduced the per job overhead from about one second to about
+     10ms, making it feasible to distribute thousands of tiny jobs accross
+     several hosts;
    - dynamic options let the user add or remove workers, and kill the whole job
      easily.
  - psub:
-   - support for up to 4 CPUs per node, specification of job priority,
+   - support for any number of CPUs per node, specification of job priority,
      specification of node properties and monitoring of memory usage;
-   - cleaned up to remove options that are clearly NRC specific.
+   - cleaned up to remove options that were clearly NRC specific.
  - PTrie class (utils/trie.h):
-   - read_binary now supports a mapper that remaps the keys while loading;
+   - read_binary() now supports a mapper that remaps the keys while loading;
    - PTrie::iterator now allows insertion and deletion during traversal;
    - now supports an internal node value on the root;
  - VocMap (utils/voc_map.h):
    - new add() operation to insert a new word in both local and global vocab;
-   - new operator() so it can be used as a functor in a split() call;
+   - new operator() so it can be used as a functor in a fast split() call;
    - new local index<->word conversion methods.
  - bestbleu: new -bi option to display the best translation index.
  - bleumain, bestbleu, and all modules using bleu:
@@ -192,59 +194,61 @@ v1.2 ??.01.2008
    - new options -y and -u to control the size of the ngrams considered,
    - many code optimizations.
  - BinLMs now run about 10% faster
- - lm/lm_eval replaces lm/testlm and can now calculate document perplexity
+ - lm/lm_eval replaces lm/testlm and can now calculate document perplexity.
  - The LM classes now properly support open-vocabulary language models.  As an
    optimization, open-voc LMs are assumed to only contain a probability
-   P(<UNK>), and no other event involving <UNK>.  The LM classes also support
+   P(<UNK>), and no other events involving <UNK>.  The LM classes also support
    LMs assigning probabilities and back-off weights to other events involving
    <UNK>, at the cost of some speed, so no program in PORTAGEshared enables
-   this feature.  Changes will be required to the code if it is required.
+   this feature.  Changes will be required to the code to use general
+   open-vocabulary LMs.
  - ngram-count-big.sh, our alternative to SRILM's make-batch-counts and
-   merge-batch-counts, can now takes advantage of parallel computing resources.
+   merge-batch-counts, can now take advantage of parallel computing resources.
  - tm/ibm.{h,cc}: cleaned up the inheritance structure between classes IBM1 and
    IBM2 and filled in some missing documentation.
  - tm/joint2cond_phrase_tables:
-   - new -j switch for merging joint freq PTs;
+   - new -j switch for merging joint frequency phrase tables;
    - by default, assume lexical model is IBM2, not the rarely used IBM1.
  - added gen-jpt-parallel.sh: parallel joint frequency phrase table training;
    the output can the be used by joint2cond_phrase_tables to estimate probs, as
    gen_phrase_tables would have done in a single non-parallel step.
  - gen_phrase_tables and joint2cond_phrase_tables: 
    - new phrase smoother IBM1Smoother explicitely does IBM1 lexical smoothing,
-     while IBMSmoother does IBM2 if the model provided is IBM2, or IBM1
-     smoothing otherwise;
+     while IBMSmoother does IBM2 lexical smoothing if the model provided is
+     IBM2, or IBM1 smoothing otherwise;
    - new Indicator phrase smoother creates a constant column.
  - canoe, api/paddle_server and api/portage_api.{h,cc}: model files in a
    canoe.ini are now assumed to be relative to the path of that canoe.ini file.
- - canoe/decoder.cc and canoe/basicmodel.cc: the CanoeConfig object is passed a
-   bit deeper instead of long parameter lists.
+ - canoe/decoder.cc and canoe/basicmodel.cc: the CanoeConfig object is passed
+   deeper instead of long parameter lists.
  - cow.sh:
    - one of -nofloor (new option) or -floor is required since there does not
      exist an appropriate default for this option;
    - temporary files are now compressed on the fly, unless -Z is specified;
-   - -filt now uses the joint TM filtering describe in Major changes; the old
-     grep-like filtering behaviour is preserved (via -filt-no-ttable-limit),
-     but its use is not recommended;
+   - -filt now uses the Soft TM filtering describe in Major changes above; the
+     old grep-like filtering mode is preserved (via -filt-no-ttable-limit), but
+     its use is not recommended;
    - other new options: -e, -lb.
- - When modifying and testing a single program, say src/subdir/progname, one
-   can quickly rebuild it and its dependencies (and nothing else) by running
-   this command in src/:
-      gmake OT=progname subdir_progs
+ - When modifying and testing a single program, say src/<subdir>/<progname>,
+   one can quickly rebuild it and its dependencies (and nothing else) by
+   running this command in src/:
+      gmake OT=<progname> <subdir>_progs
  - rat.sh:
    - by default, the output is now MODEL.out, rather than overwriting the input;
  - gen-features-parallel.sh now supports horizontal parallelism: besides
-   running each feature in a different process (on a different machine, if
-   using a cluster), expensive features are split in several small blocks.
+   running features in different processes (on different machines, if using a
+   cluster), expensive features are split in several small blocks for better
+   load balancing among available machines.
  - rescore_train:
    - can now specify the distribution to use for randomly generating starting
      points in the search for an optimum (run rescore_train -h for details);
-   - significantly optimized, runs 40% faster than before;
+   - significantly optimized, runs some 40% faster than before;
    - when compiled with OpenMP (edit build/Makefile.incl to enable this), runs
      in multi-thread mode, gaining another near two-fold speed up;
    - new -e switch implements a stopping criterion based on the statistical
      expectation of finding a better local optimum, given the distribution of
      previous ones found;
-   - other new switches: -win, -r, -s, -y, -u, -sm;
+   - other new switches: -win, -r, -s, -y, -u, -sm.
  - rescore_translate:
    - new options: -s, -c, -kout (run rescore_translate -h for details);
  - rescoring in general:
@@ -252,9 +256,10 @@ v1.2 ??.01.2008
    - the nebulous VFileFF feature has been removed; a much cleaner solution to
      the problem it solved is now implemented in rat.sh itself;
    - sets of n-best lists no longer need to have the same number of candidate
-     translations for each source sentence;
+     translations for each source sentence, a feature that makes cow.sh more
+     efficient;
    - features can now depend on the target language vocabulary (e.g., NgramFF
-     uses this for filtering, as mentioned in Major Changes above);
+     uses this for filtering, as mentioned in Major Changes above).
 
  Minor bug fixes:
  - rescoring/featurefunction.cc: on some systems, what appears like a compiler
@@ -273,6 +278,7 @@ v1.1 01.04.2007
  - Added the VFileFF rescoring "function" to rescore_* / rat.sh /
    gen_feature_values; now used in regress-small-voc/28_rat_train.pl.
  - Added -o option to rat.sh, which no longer generates .w files.
+
 
 v1.0 31.10.2006
    Initial release.
