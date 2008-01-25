@@ -231,7 +231,7 @@ cat <<==EOF== > $TMPSCRIPT
 export PATH=\$PBS_O_PATH
 ==EOF==
 
-env | grep PORTAGE | sed 's/^/export /' >> $TMPSCRIPT
+env | grep ^PORTAGE | sed 's/^/export /' >> $TMPSCRIPT
 for var in LD_LIBRARY_PATH PERL5LIB PYTHONPATH MANPATH; do
    if [ "`env | grep ^$var=`" != "" ]; then
       echo "export "`env | grep ^$var=` >> $TMPSCRIPT
