@@ -89,6 +89,7 @@ my $ini1 = << "END";
 [segmentation-model] ${seg_model}
 [distortion-model] ${dist_model}
 [cube-pruning]
+[stack] 10000
 END
 
 open( J1, "> ${workdir}/canoe.ini" );
