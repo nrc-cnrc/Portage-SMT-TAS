@@ -58,3 +58,27 @@ we typically run the test suite twice, and do a recursive diff on the resulting
 wk_<language> directories.  This usually yields many differences, so manual
 analysis is unfortunately required to determine if they are desirable
 differences or not.
+
+List of scripts:
+  Basic test suite executed by run_minimum.sh:
+    02_train_ibm.pl       - build IBM translation tables
+    03_gen_phr.pl         - build phrase tables
+    05_cow.pl             - COW, optimize canoe weights
+    10_rat_train.pl       - train the rescoring model
+    11_rat_test.pl        - test using the rescording model
+    18_summary.pl         - summarize bleu scores on dev/test, 1-best/rescore.
+ 
+  More extensive test suite: run_all.sh executes the above plus:
+    20_canoe.pl           - simple decoding run
+    21_sanity.pl          - "test" on dev, to make sure things work ok
+    22_gen_phr.pl         - variants on phrase table building
+    25_cow_ext.pl         - variants on cow
+    30_rtrain_ebsc.pl     - train the rescoring model with the
+                            expectation-based stopping criterion
+    31_rtrain_rnd_w.pl    - test the random weight distribution specs
+    35_adaptation.pl      - test the LM and TM adaptation training
+    40_phrase_tm_align.pl - test phrase_tm_align
+    50_filter_models.pl   - test the various modes of filter_models
+    61_canoe_cube.pl      - test the cube pruning decoder
+    62_cow_cube.pl        - test COW with cube pruning
+ 
