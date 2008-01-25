@@ -31,7 +31,7 @@ Options:
    -h(elp)        print this help message
    -v(erbose)     print the qsub script before submitting it
    -N <job name>  specify job name
-   -1, -2, -3 or -4  use # CPUs on a node (nodes with # CPUs must exist)
+   -#             use # CPUs on a node (nodes with # CPUs must exist)
                   thus getting access to more memory.
    -e <filename>  stderr destination
    -o <filename>  stdout destination
@@ -46,7 +46,7 @@ Options:
    -n             "not really" (dump the PBS script, but don't submit it)
    -f             force submission even if errors are detected
    -I             enter interactive mode thus getting a prompt to a node
-   -P <mins>      Log memory usage of process tree every <mins> minutes. [10]
+   -P <mins>      Log memory usage of process tree every <mins> minutes. [6]
 
 Further notes:
 
@@ -87,16 +87,15 @@ else
 fi
 
 PSUB_CMD="$0 $*"
+CPU_COUNT=1
+MEMORY_POLLING_DELAY=6
 
 while [ $# -gt 0 ]; do
    case "$1" in
    -h|-help)            usage;;
    -v|-verbose)         VERBOSE=1;;
    -N)                  arg_check 1 $# $!; NAME=$2; shift;;
-   -1)                  CPU_COUNT=1;;
-   -2)                  CPU_COUNT=2;;
-   -3)                  CPU_COUNT=3;;
-   -4)                  CPU_COUNT=4;;
+   -[1-9]|-[1-9][0-9])  CPU_COUNT=$((0 - $1));;
    -I)                  INTMODE=1; NOSCRIPT=1;;
    -e)                  arg_check 1 $# $!; ERR_FILE=$2; shift;;
    -o)                  arg_check 1 $# $!; OUT_FILE=$2; shift;;
@@ -124,9 +123,9 @@ COMMAND="$*"
 # We are in interactive mode thus we need to reserve the entire node
 if [ -n "$INTMODE" ]; then
    if [ $CPU_COUNT -gt 2 ]; then
-      CPU_COUNT=4; 
+      CPU_COUNT=4
    else
-      CPU_COUNT=2; 
+      CPU_COUNT=2
    fi
 fi
 
@@ -232,8 +231,8 @@ cat <<==EOF== > $TMPSCRIPT
 export PATH=\$PBS_O_PATH
 ==EOF==
 
-for var in PORTAGE LD_LIBRARY_PATH PERL5LIB PYTHONPATH MANPATH \
-           MY_PORTAGE_INSTALL; do
+env | grep PORTAGE | sed 's/^/export /' >> $TMPSCRIPT
+for var in LD_LIBRARY_PATH PERL5LIB PYTHONPATH MANPATH; do
    if [ "`env | grep ^$var=`" != "" ]; then
       echo "export "`env | grep ^$var=` >> $TMPSCRIPT
    fi
@@ -243,6 +242,9 @@ cat <<==EOF== >> $TMPSCRIPT
 
 # Preserve the calling working directory
 cd \$PBS_O_WORKDIR
+
+# Set the number of allowed openmp threads based on the number of cpus.
+export OMP_NUM_THREADS=$PORTAGE_OPENMP_NUMBER_THREADS
 
 # Display the exact start time
 echo Starting on \`date\` on node \`hostname\` >&2
