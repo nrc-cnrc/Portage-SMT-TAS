@@ -36,8 +36,8 @@ about half an hour.
 \subsection{Running the Example}
 
 To begin, you must build or obtain the Portage executables and ensure that they
-are in your path. Then {\tt cd} to the {\tt Portage/test-suite/toy} directory. All
-commands described below are issued from this directory, and all files are
+are in your path. Then {\tt cd} to the {\tt Portage/test-suite/toy} directory.
+All commands described below are issued from this directory, and all files are
 located there (including this document).
 
 As you work through the example, the commands that you are supposed to type are
@@ -275,16 +275,16 @@ phrase training. For example, the IBM log files show convergence and pruning
 statistics for each iteration:
 \begin{verbatim}
    > egrep ppx log.train_ibm.en_given_fr
-   Iter 1 (IBM1): prev ppx = 356.169, size = 1476280 word pairs
-   iter 2 (IBM1): prev ppx = 109.36, size = 1355987 word pairs
-   iter 3 (IBM1): prev ppx = 66.7163, size = 1191090 word pairs
-   iter 4 (IBM1): prev ppx = 53.1018, size = 1026382 word pairs
-   iter 5 (IBM1): prev ppx = 48.1907, size = 885809 word pairs
-   iter 6 (IBM2): prev ppx = 46.0251, size = 885809 word pairs
-   iter 7 (IBM2): prev ppx = 18.8685, size = 885809 word pairs
-   iter 8 (IBM2): prev ppx = 13.7175, size = 885809 word pairs
-   iter 9 (IBM2): prev ppx = 11.8744, size = 885809 word pairs
-   iter 10 (IBM2): prev ppx = 11.071, size = 885809 word pairs
+   iter 1 (IBM1): prev ppx = 361.272, size = 1475241 word pairs
+   iter 2 (IBM1): prev ppx = 110.081, size = 1355759 word pairs
+   iter 3 (IBM1): prev ppx = 66.9111, size = 1190034 word pairs
+   iter 4 (IBM1): prev ppx = 53.1736, size = 1023824 word pairs
+   iter 5 (IBM1): prev ppx = 48.2443, size = 881854 word pairs
+   iter 6 (IBM2): prev ppx = 46.0769, size = 881854 word pairs
+   iter 7 (IBM2): prev ppx = 18.8284, size = 881854 word pairs
+   iter 8 (IBM2): prev ppx = 13.7022, size = 881854 word pairs
+   iter 9 (IBM2): prev ppx = 11.8735, size = 881854 word pairs
+   iter 10 (IBM2): prev ppx = 11.0783, size = 881854 word pairs
 \end{verbatim}
 
 The IBM models and phrasetables are written to files {\tt ibm[12].*} and {\tt
@@ -303,7 +303,7 @@ reversed. Here is a sample line from these files:
 \begin{verbatim}
    > egrep "r.glements propos.s" phrases.fr2en
    règlements proposés ||| proposed regulations ||| 0.5 1
-   > egrep "r.glements propos.s" < phrases.en2fr
+   > egrep "r.glements propos.s" phrases.en2fr
    proposed regulations ||| règlements proposés ||| 1 0.5
 \end{verbatim}
 (This example is carefully chosen; because of the small size of the training
@@ -346,8 +346,8 @@ directory {\tt foos}, and use the {\tt dev1} files for weight tuning:
    cow.sh -nbest-list-size 100 -maxiter 10 -filt -floor 2 \
       -workdir foos dev1_fr.al dev1_en.al >& log.cow
 \end{verbatim}
-Because {\tt cow.sh} takes a long time to run 
-(about 25 minutes for this
+Because {\tt cow.sh} takes a while to run 
+(about 10 minutes for this
 example on a single machine at NRC)\footnote{Running time for {\tt cow.sh} can be
   reduced by executing it in parallel. Do {\tt cow.sh -h} to see documentation on
   this option.}
@@ -363,16 +363,16 @@ monotonically, as can be seen in several places in the {\tt rescore-results}
 file obtained with this example:
 \begin{verbatim}
 > cat rescore-results
-BLEU score: 0.157469   -d 1 -w 0 -lm 1 -tm 1
-BLEU score: 0.166618   -d 0.1260017157 -w 0.4231236577 -lm 1 -tm 0.591891706
-BLEU score: 0.134856   -d 0.3837988973 -w 0.6390675902 -lm 1 -tm 0.05515978858
-BLEU score: 0.184703   -d 0.1502487957 -w 0.436016798 -lm 1 -tm 0.3171886504
-BLEU score: 0.182674   -d 0.1501607597 -w -0.1386783123 -lm 1 -tm 0.2572171986
-BLEU score: 0.185179   -d 0.1486719251 -w 0.4118739367 -lm 1 -tm 0.3253635168
-BLEU score: 0.185113   -d 0.1496432126 -w 0.4299308062 -lm 1 -tm 0.3257338107
-BLEU score: 0.185113   -d 0.1496805698 -w 0.4292495847 -lm 1 -tm 0.3257473707
-BLEU score: 0.185113   -d 0.1493744254 -w 0.4283171892 -lm 1 -tm 0.3256304562
-BLEU score: 0.185113   -d 0.1496380866 -w 0.4294756055 -lm 1 -tm 0.3257317543
+BLEU score: 0.150287   -d 1 -w 0 -lm 1 -tm 1
+BLEU score: 0.143134   -d 0.06480688602 -w 0.5284356475 -lm 1 -tm 0.2079020292
+BLEU score: 0.170728   -d 0.3667459488 -w -0.1605897695 -lm 1 -tm 0.2079665065
+BLEU score: 0.171331   -d 0.3577741385 -w -0.3087016344 -lm 1 -tm 0.3970235288
+BLEU score: 0.17679   -d 0.235918507 -w 0.5183472633 -lm 1 -tm 0.4066033959
+BLEU score: 0.180717   -d 0.2096749693 -w -0.2578931153 -lm 1 -tm 0.3163704872
+BLEU score: 0.181251   -d 0.1498632878 -w -0.2101311088 -lm 1 -tm 0.3264293671
+BLEU score: 0.182437   -d 0.1492354572 -w -0.1831414253 -lm 1 -tm 0.3265672922
+BLEU score: 0.182487   -d 0.1503619701 -w -0.1829487085 -lm 1 -tm 0.3267130852
+BLEU score: 0.182527   -d 0.1503464431 -w -0.1827470064 -lm 1 -tm 0.326862812
 \end{verbatim}
 
 The output from {\tt cow.sh} is written to the file {\tt canoe.ini.cow}
@@ -381,13 +381,14 @@ duplicates the contents of {\tt canoe.ini}, but adds the optimal weights
 learned on the development corpus:
 \begin{verbatim}
    > cat canoe.ini.cow
-   [ttable-file-t2s] phrases.en_given_fr
-   [ttable-file-s2t] phrases.fr_given_en
-   [lmodel-file] train_en.lm
-   [weight-d] 0.1486719251
-   [weight-w] 0.4118739367
+   [ttable-multi-prob] 
+      phrases.fr2en
+   [lmodel-file] 
+      train_en.lm
+   [weight-d] 0.1503464431
+   [weight-w] -0.1827470064
    [weight-l] 1
-   [weight-t] 0.3253635168
+   [weight-t] 0.326862812
    [ttable-limit] 30
    [ttable-threshold] 0
    [stack] 70
@@ -426,11 +427,24 @@ small set of useful features:
    FileFF:ffvals,2
    FileFF:ffvals,3
    FileFF:ffvals,4
-   FileFF:ff.IBM2TgtGivenSrc.ibm2.en_given_fr
-   FileFF:ff.IBM2SrcGivenTgt.ibm2.fr_given_en
-   FileFF:ff.IBM1WTransTgtGivenSrc.ibm2.en_given_fr
-   FileFF:ff.IBM1WTransSrcGivenTgt.ibm2.fr_given_en
+   IBM1DeletionSrcGivenTgt:ibm1.fr_given_en#0.2
+   IBM1DeletionTgtGivenSrc:ibm1.en_given_fr#0.2
+   IBM1SrcGivenTgt:ibm1.fr_given_en
+   IBM1TgtGivenSrc:ibm1.en_given_fr
+   IBM1WTransSrcGivenTgt:ibm2.fr_given_en
+   IBM1WTransTgtGivenSrc:ibm2.en_given_fr
+   IBM2SrcGivenTgt:ibm2.fr_given_en
+   IBM2TgtGivenSrc:ibm2.en_given_fr
    LengthFF
+   ParMismatch
+   QuotMismatch:fe
+   nbestWordPostLev:1#<ffval-wts>#<pfx>
+   nbestWordPostTrg:1#<ffval-wts>#<pfx>
+   nbestNgramPost:3#1#<ffval-wts>#<pfx>
+   nbestSentLenPost:1#<ffval-wts>#<pfx>
+   nbestWordPostSrc:1#<ffval-wts>#<pfx>
+   nbestPhrasePostSrc:1#<ffval-wts>#<pfx>
+   nbestPhrasePostTrg:1#<ffval-wts>#<pfx>
 \end{verbatim}
 Notice that most of the feature specifications begin with {\tt FileFF}; this
 indicates that they are to be pre-calculated and stored in files, rather than
@@ -459,9 +473,8 @@ same files used for {\tt cow.sh}, but it is generally better to use different
 ones, so here we use {\tt dev2}:
 \begin{verbatim}
    > make rat
-   cp -f rescore-model.ini rescore-model
-   rat.sh -n 1 train -n 1 -f canoe.ini.cow -K 100 rescore-model \
-      dev2_fr.al dev2_en.al >& log.rat
+   rat.sh -n 1 train -n 1 -f canoe.ini.cow -K 100 -o rescore-model \
+      rescore-model.ini dev2_fr.al dev2_en.al >& log.rat
 \end{verbatim}
 As with {\tt cow.sh}, it is usually preferable to run {\tt rat.sh} in the
 background, unlike what is shown here. The {\tt -n 1} options cause {\tt
@@ -470,15 +483,28 @@ rat.sh} to run on only one processor; to run in parallel, simply omit these.
 The output from {\tt rat.sh} is written to the file {\tt rescore-model}:
 \begin{verbatim}
    > cat rescore-model
-   FileFF:ffvals,1 0.8429076672
-   FileFF:ffvals,2 -0.5938655734
-   FileFF:ffvals,3 1
-   FileFF:ffvals,4 0.3042182028
-   FileFF:ff.IBM2TgtGivenSrc.ibm2.en_given_fr 0.1957350224
-   FileFF:ff.IBM2SrcGivenTgt.ibm2.fr_given_en -0.02397140861
-   FileFF:ff.IBM1WTransTgtGivenSrc.ibm2.en_given_fr 0.03992729634
-   FileFF:ff.IBM1WTransSrcGivenTgt.ibm2.fr_given_en 0.0126716774
-   LengthFF 0.1795582324
+   FileFF:ffvals,1 -0.003783507505
+   FileFF:ffvals,2 0.3445616663
+   FileFF:ffvals,3 0.08784665167
+   FileFF:ffvals,4 -0.09055882692
+   IBM1DeletionSrcGivenTgt:ibm1.fr_given_en#0.2 -1
+   IBM1DeletionTgtGivenSrc:ibm1.en_given_fr#0.2 -0.8841565847
+   IBM1SrcGivenTgt:ibm1.fr_given_en 0.04878311604
+   IBM1TgtGivenSrc:ibm1.en_given_fr 0.02931640856
+   IBM1WTransSrcGivenTgt:ibm2.fr_given_en 0.1698772758
+   IBM1WTransTgtGivenSrc:ibm2.en_given_fr -0.02751414105
+   IBM2SrcGivenTgt:ibm2.fr_given_en 0.04585150257
+   IBM2TgtGivenSrc:ibm2.en_given_fr 0.0115873497
+   LengthFF -0.003218274098
+   ParMismatch -0.000226232456
+   QuotMismatch:fe -0.0001012128414
+   nbestWordPostLev:1#<ffval-wts>#<pfx> 0.07364283502
+   nbestWordPostTrg:1#<ffval-wts>#<pfx> -0.06716682762
+   nbestNgramPost:3#1#<ffval-wts>#<pfx> 0.03377242759
+   nbestSentLenPost:1#<ffval-wts>#<pfx> 0.2534472048
+   nbestWordPostSrc:1#<ffval-wts>#<pfx> -0.01870227791
+   nbestPhrasePostSrc:1#<ffval-wts>#<pfx> 0.07295864075
+   nbestPhrasePostTrg:1#<ffval-wts>#<pfx> 0.003113330575
 \end{verbatim}
 This is identical to {\tt rescore-model.ini}, except that each feature is now
 assigned a weight. Other by-products created by {\tt rat.sh} include the nbest
@@ -506,7 +532,7 @@ using the model generated in section~\ref{RAT}. To do this, we use the {\tt
 rat.sh} script again, but this time in translation mode:
 \begin{verbatim}
    > make rescore
-   rat.sh -n 1 trans -n 1 -f canoe.ini.cow -K 100 rescore-model test_fr.al
+   rat.sh -n 1 trans -v -n 1 -f canoe.ini.cow -K 100 rescore-model test_fr.al
    mv test_fr.al.rat rescore_ON_test_fr.out
 \end{verbatim}
 This produces the output file {\tt rescore\_ON\_test\_fr.out}.
@@ -533,38 +559,42 @@ The output from {\tt bleumain} contains match statistics of various orders,
 followed by the global BLEU score:
 \begin{verbatim}
    > cat canoe_ON_test_fr.bleu
-   1-gram (match/total) 1211/2360 0.513136
-   2-gram (match/total) 453/2260 0.200442
-   3-gram (match/total) 204/2161 0.0944007
-   4-gram (match/total) 113/2062 0.0548012
-   Sentence length: 2360; Best-match sentence length: 2378
-   Score: -1.8923
-   BLEU score: 0.150725
+   1-gram (match/total) 1272/2486 0.511665
+   2-gram (match/total) 500/2386 0.209556
+   3-gram (match/total) 245/2287 0.107127
+   4-gram (match/total) 133/2188 0.0607861
+   Sentence length: 2486; Best-match sentence length: 2379
+   Score: -1.81675
+   BLEU score: 0.162554
 
    > cat rescore_ON_test_fr.bleu
-   1-gram (match/total) 1225/2373 0.516224
-   2-gram (match/total) 463/2273 0.203696
-   3-gram (match/total) 215/2174 0.098896
-   4-gram (match/total) 114/2075 0.0549398
-   Sentence length: 2373; Best-match sentence length: 2378
-   Score: -1.86899
-   BLEU score: 0.154279
+   1-gram (match/total) 1255/2439 0.514555
+   2-gram (match/total) 484/2339 0.206926
+   3-gram (match/total) 232/2240 0.103571
+   4-gram (match/total) 128/2141 0.0597851
+   Sentence length: 2439; Best-match sentence length: 2379
+   Score: -1.83108
+   BLEU score: 0.16024
 \end{verbatim}
 These results indicate that the translation produced by rescoring is slightly
-better than the one produced by plain decoding. Given the small size of the
+worse than the one produced by plain decoding. Given the small size of the
 test set, it seems unlikely that the difference is statistically
 significant. To test this hypothesis, we can use {\tt bleucompare}, which does
 a comparison using pairwise bootstrap resampling:
 \begin{verbatim}
    > bleucompare rescore_ON_test_fr.out canoe_ON_test_fr.out \
       REFS test_en.al
-   rescore_ON_test_fr.out got max bleu score in 81.5% of samples
-   canoe_ON_test_fr.out got max bleu score in 18.5% of samples
+   rescore_ON_test_fr.out got max bleu score in 31.8% of samples
+   canoe_ON_test_fr.out got max bleu score in 68.2% of samples
 \end{verbatim}
-This indicates that the difference is only significant at the 80\% level, which
-is too low to be acceptable.
+This indicates that the difference is only significant at the 68\% level, which
+is too low to be acceptable.  (Note that you may get completely different
+results here, since the training corpus used is much too small to produce
+reliable results.)
 
 \section{Final Note}
-Because of differences in rounding and optimization between systems, results may vary on your platform and are shown in this document only as a reference for the user.
+Because of differences in rounding, optimization, random number generation,
+etc. between systems, results may vary on your platform and are shown in this
+document only as a reference for the user.
 
 \end{document}
