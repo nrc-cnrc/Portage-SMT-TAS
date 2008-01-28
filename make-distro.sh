@@ -65,9 +65,6 @@ Options:
                 INSTALL but in no other distributed versions of INSTALL, past
                 or future.  For v1.0, it should be "2004-2006,", for v1.1 (and
                 subsequent) it should be PORTAGEshared_v1.1 (or vX.Y)
-                For cutting and pasting for the -can-univ distro:
-                  -patch-from v1.0:2004-2006,
-                  -patch-from v1.1:PORTAGEshared_v1.1
 
 Canned options for specific licensees:
 
@@ -199,7 +196,7 @@ do_checkout() {
       elif [ "$LICENCE" = CanBiz ]; then
          echo Keeping only the Canadian companies licence info.
          run_cmd find PORTAGEshared -name LICENCE\* -maxdepth 1 \| \
-                 grep -v -x PORTAGEshared/LICENCE_COMPANY \| xargs rm -f
+                 grep -v -x PORTAGEshared/LICENCE_CANBIZ \| xargs rm -f
       else
          error_exit "Invalid -licence specfication"
       fi
@@ -211,7 +208,7 @@ do_checkout() {
 
 get_user_manual() {
    run_cmd pushd ./$OUTPUT_DIR
-      run_cmd rsync -arz ilt.iit-iti.priv:/export/projets/Lizzy/PORTAGEshared/snapshot/ \
+      run_cmd rsync -arz ilt.iit.nrc.ca:/export/projets/Lizzy/PORTAGEshared/snapshot/ \
                          PORTAGEshared/doc/user-manual
       run_cmd find PORTAGEshared/doc/user-manual/uploads -name Layout* \| xargs rm -f
       run_cmd rm PORTAGEshared/doc/user-manual/uploads/{cameleon_07.gif,images,notices,styles}
