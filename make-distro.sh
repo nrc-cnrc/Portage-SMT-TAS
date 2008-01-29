@@ -261,7 +261,7 @@ make_bin() {
 
 make_iso_and_tar() {
    VERSION=${VERSION_TAG#-r}
-   VERSION=`echo $VERSION | sed 's/\.//g'`
+   VERSION=`echo $VERSION | sed 's/_//g'`
    VOLID=PORTAGEshared${VERSION}
    if [ -n "$ARCHIVE_NAME" ]; then
       ARCHIVE_FILE=${VOLID}_${ARCHIVE_NAME}
