@@ -261,8 +261,8 @@ make_bin() {
 
 make_iso_and_tar() {
    VERSION=${VERSION_TAG#-r}
-   VERSION=`echo $VERSION | sed 's/_//g'`
-   VOLID=PORTAGEshared${VERSION}
+   VOLID=PORTAGEshared_${VERSION}
+   ISO_VOLID=PORTAGEshared`echo $VERSION | sed -e 's/v//g' -e 's/_/./'`
    if [ -n "$ARCHIVE_NAME" ]; then
       ARCHIVE_FILE=${VOLID}_${ARCHIVE_NAME}
    else
@@ -274,7 +274,7 @@ make_iso_and_tar() {
       else
          PATCH_FILES=
       fi
-      run_cmd mkisofs -V $VOLID -joliet-long -o $ARCHIVE_FILE.iso \
+      run_cmd mkisofs -V $ISO_VOLID -joliet-long -o $ARCHIVE_FILE.iso \
               PORTAGEshared $PATCH_FILES '&>' iso.log
       run_cmd tar -cvzf $ARCHIVE_FILE.tar.gz PORTAGEshared '>&' tar.log
    run_cmd popd
