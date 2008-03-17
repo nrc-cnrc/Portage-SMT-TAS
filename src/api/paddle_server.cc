@@ -14,6 +14,7 @@
 #include <iostream>
 #include <fstream>
 #include <arg_reader.h>
+#include <logging.h>
 #include "portage_api.h"
 #include "net_srv.h"
 #include <string>

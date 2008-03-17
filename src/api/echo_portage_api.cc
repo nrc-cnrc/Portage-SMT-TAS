@@ -13,22 +13,6 @@
  */
 #define PORTAGE_ECHO_PADDLE
 #include "portage_api.h"
-#include <basicmodel.h>
-#include <str_utils.h>
-#include <phrasedecoder_model.h>
-#include <hypothesisstack.h>
-#include <decoder.h>
-#include <wordgraph.h>
-
-// These #defines in log4cxx conflict with variables named the same in ace, but
-// we don't use them, so we just undef them here before including ace stuff.
-#undef PACKAGE_VERSION
-#undef PACKAGE_BUGREPORT
-#undef PACKAGE_NAME
-#undef PACKAGE_STRING
-#undef PACKAGE_TARNAME
-
-#include <ace/Env_Value_T.h>
 
 using namespace Portage;
 
