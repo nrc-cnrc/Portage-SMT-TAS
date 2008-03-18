@@ -16,6 +16,7 @@
 #include "ace/SOCK_Stream.h"
 #include "ace/Message_Block.h"
 #include <sstream>
+#include <cassert>
 
 using namespace Portage;
 

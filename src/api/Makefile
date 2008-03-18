@@ -34,23 +34,12 @@ ACE=NONE
 #  export LIBRARY_PATH=$LIBRARY_PATH:/export/projets/portage/lib
 #  export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/export/projets/portage/include
 
-# This Makefile's SOURCES, INCLUDES and OBJECTS variables are more complex than
-# for other Makefiles, since we conditionally disable the compilation of
-# anything that depends on ACE if it's not available.
-
-NON_ACE_SOURCES=postprocessor.cc portage_api.cc preprocessor.cc
-ifneq ($(ACE), NONE)
-   SOURCES= $(NON_ACE_SOURCES) net_srv.cc paddle_server.cc paddle_client.cc
-else
-   SOURCES= $(NON_ACE_SOURCES)
-endif
-
-NON_ACE_INCLUDES=portage_api.h portage_env.h postprocessor.h preprocessor.h \
-                 translator_if.h
-ifneq ($(ACE), NONE)
-   INCLUDES= $(NON_ACE_INCLUDES) net_srv.h
-else
-   INCLUDES= $(NON_ACE_INCLUDES)
+ifeq ($(ACE), NONE)
+   # When ACE is not available, we don't use the default INCLUDE and SOURCES,
+   # since we remove thos files that depend on ACE.
+   SOURCES=$(filter-out net_srv.cc paddle_server.cc paddle_client.cc, \
+             $(wildcard *.cc))
+   INCLUDES=$(filter-out net_srv.h, $(wildcard *.h))
 endif
 
 NON_ACE_OBJECTS=portage_api.o postprocessor.o preprocessor.o
