@@ -21,7 +21,9 @@
 
 namespace Portage {
 
+#ifndef log2
 extern double log2(double x);
+#endif
 extern double exp2(double x);
 
 /**

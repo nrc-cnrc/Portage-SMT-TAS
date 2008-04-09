@@ -17,10 +17,12 @@ using namespace Portage;
 
 static const double l2 = log(2.0);
 
+#ifndef log2
 double Portage::log2(double x) 
 {
    return log(x) / l2;
 }
+#endif
 
 double Portage::exp2(double x) 
 {
