@@ -29,7 +29,7 @@ If you chose a location other than $HOME/PORTAGEshared, edit SETUP.tcsh and
 SETUP.bash and change the value of the PORTAGE variable to the actual location
 where your installed PORTAGEshared and adjust the next instruction accordingly.
 
-Add $HOME/PORTAGEshared/{bin,lib,include} to the appripriate environment
+Add $HOME/PORTAGEshared/{bin,lib,include} to the appropriate environment
 variables by sourcing $HOME/PORTAGEshared/SETUP.bash or SETUP.tcsh
 (depending on your preferred shell - if you use a different shell, you may have
 to adapt one of those two files):
