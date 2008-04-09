@@ -233,3 +233,15 @@ Optional dependencies for source code distributions:
       make install
 
 
+Using PORTAGEshared on Cygwin:
+
+We don't officially support Cygwin, nor do we recommend using it, since the
+programs in PORTAGEshared will run much more slowly than on Linux, but here
+are some known issues in case you really want to use it:
+ - Programs will typically run more slowly on Cygwin than on Linux.
+ - In file PORTAGEshared/src/build/Makefile.incl:
+   - The -p option to "install" doesn't work correctly for .exe files on Cygwin.
+     As a work-around, the two lines starting with "install -ps -m0750 ..."
+     should be changed to "install -s -m0750 ...".
+ - A lot of warnings are produced during compilation that don't show up under
+   Linux.  We think it is safe to ignore them, but we can't guarantee it.
