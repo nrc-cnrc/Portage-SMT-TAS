@@ -63,6 +63,7 @@ void dumpCondDistn(ostream& ofs, Portage::Uint lang, PhraseTableGen<T>& pt,
          }
          ++total;
       }
+   ofs.flush();
    if (verbose) {
       cerr << "dumped conditional distn " << lang << ": "
            << non_zero << " non-zero probs, "
@@ -115,6 +116,7 @@ void dumpMultiProb(ostream& ofs, Uint left_lang, PhraseTableGen<T>& pt,
          PhraseTableBase::writePhrasePair(ofs, p1.c_str(), p2.c_str(), vals);
       ++total;
    }
+   ofs.flush();
    if (verbose) {
       cerr << "dumped multi-prob distn: "
            << total << " phrase pairs" << endl;

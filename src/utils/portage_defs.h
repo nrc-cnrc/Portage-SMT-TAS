@@ -45,6 +45,9 @@ typedef long long           Int64;
 /// constant that represents infinity for Portage.
 extern const double INFINITY;  
 
+/// endl that doesn't do a flush, but that can be easy to change in one place
+/// only if we do a port to a different platform.
+static const char* const pendl = "\n";
 
 #ifndef ARRAY_SIZE
 /// Return the number of elements in array a.
