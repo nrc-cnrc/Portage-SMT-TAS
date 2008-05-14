@@ -52,14 +52,14 @@ public:
       FeatureFunction::source(s, nbest);
       assert(s < docids.numSrcLines());
       curr_doc = docids.docID(s);
-      curr_log_total_freq = log(total_freqs[curr_doc]);
+      curr_log_total_freq = log(double(total_freqs[curr_doc]));
    }
 
    virtual double value(Uint k) {
       double logprob = 0.0;
       const vector<string>& tgt = (*nbest)[k].getTokens();
       for (vector<string>::const_iterator itr=tgt.begin(); itr!=tgt.end(); ++itr)
-         logprob += log(freqs[curr_doc][tgt_vocab->index(itr->c_str())]) - curr_log_total_freq;
+         logprob += log(double(freqs[curr_doc][tgt_vocab->index(itr->c_str())])) - curr_log_total_freq;
       return logprob;
    }
 };
