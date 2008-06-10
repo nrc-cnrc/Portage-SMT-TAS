@@ -383,13 +383,13 @@ void IBM2::write(const string& ttable_file) const
             Uint os = posOffset(tpos, tlen, slen);
             for (Uint j = 0; j < slen; ++j)
                out << pos_probs[os+j] << " ";
-            out << pendl;
+            out << nf_endl;
          }
 
    for (Uint i = 0; i < backoff_size; ++i) {
       for (Uint j = 0; j < backoff_size; ++j)
          out << backoff_probs[i * backoff_size + j] << " ";
-      out << pendl;
+      out << nf_endl;
    }
 }
 

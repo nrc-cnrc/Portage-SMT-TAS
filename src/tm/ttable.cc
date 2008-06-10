@@ -231,7 +231,7 @@ void TTable::write(ostream& os) const
    for (WordMapIter p = sword_map.begin(); p != sword_map.end(); ++p) {
       SrcDistnIter pe = src_distns[p->second].end();
       for (SrcDistnIter pt = src_distns[p->second].begin(); pt != pe; ++pt)
-         os << p->first << ' ' << twords[pt->first] << ' ' << pt->second << pendl;
+         os << p->first << ' ' << twords[pt->first] << ' ' << pt->second << nf_endl;
    }
    os.precision(old_precision);
 }

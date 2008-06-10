@@ -440,13 +440,13 @@ void PhraseTableBase::writePhrasePair(ostream& os, const char* p1, const char* p
    join(toks.begin(), toks.end(), s2, sep);
 
 
-   os << s1 << " " << psep << " " << s2 << " " << psep << " " << val << pendl;
+   os << s1 << " " << psep << " " << s2 << " " << psep << " " << val << nf_endl;
 }
 
 template<class T>
 void PhraseTableBase::writePhrasePair(ostream& os, const char* p1, const char* p2, T val)
 {
-   os << p1 << " " << psep << " " << p2 << " " << psep << " " << val << pendl;
+   os << p1 << " " << psep << " " << p2 << " " << psep << " " << val << nf_endl;
 }
 
 template<class T>
@@ -455,7 +455,7 @@ void PhraseTableBase::writePhrasePair(ostream& os, const char* p1, const char* p
    os << p1 << " " << psep << " " << p2 << " " << psep;
    for (Uint i = 0; i < vals.size(); ++i)
       os << " " << vals[i];
-   os << pendl;
+   os << nf_endl;
 }
 
 
