@@ -12,17 +12,17 @@
  */
 
 #include "lm.h"
-#include <cmath>
-#include <arg_reader.h>
-#include <exception_dump.h>
-#include <printCopyright.h>
-#include <str_utils.h>
+#include "arg_reader.h"
+#include "exception_dump.h"
+#include "printCopyright.h"
+#include "str_utils.h"
+#include "file_utils.h"
+#include "portage_defs.h"
+//#include <dmalloc.h>
 #include <fstream>
-#include <file_utils.h>
 #include <vector>
 #include <time.h>
-#include <portage_defs.h>
-//#include <dmalloc.h>
+#include <cmath>
 
 using namespace std;
 using namespace Portage;
@@ -66,16 +66,16 @@ static void getArgs(int argc, const char* const argv[]);
  * @param lm        language model object
  * @param voc       vocabulairy index
  * @param num_toks  total number of tokens found in line
+ * @param Noov      number of oovs.
  * @return Returns the logprob for line
  */
-static float processOneLine_fast(const string& line, PLM* lm, Voc& voc, Uint& num_toks);
+static float processOneLine_fast(const string& line, PLM* lm, Voc& voc, Uint& num_toks, Uint& Noov);
 
 int MAIN(argc,argv)
 {
    printCopyright(2006, "lm_eval");
 
    getArgs(argc, argv);
-
 
    const Uint precision = cout.precision();
    cout.precision(6);
@@ -124,12 +124,13 @@ int MAIN(argc,argv)
    string line;
 
    iSafeMagicStream testfile(test_filename);
-   float docProb = 0.0;
+   float docLogProb = 0.0;
    Uint num_toks = 0;
    Uint processed = 0;
+   Uint Noov = 0;
    while(getline(testfile, line)) {
       if(line.empty()) continue;
-      docProb += processOneLine_fast(line, lm, vocab, num_toks);
+      docLogProb += processOneLine_fast(line, lm, vocab, num_toks, Noov);
       //vector<string> words;
       //split(line,words," ");
       //cout << "----------------------"<< endl << "\x1b[31m" << line << "\x1b[0m\n" << endl;
@@ -137,8 +138,18 @@ int MAIN(argc,argv)
       ++processed;
    }
 
-   if ( quiet || verbose )
-      cout << "Document logProb = " << docProb << ", ppx = " << exp(-docProb / num_toks) << endl << endl;
+   if ( quiet || verbose ) {
+      //cout << "Document logProb = " << docLogProb << ", ppx = " << exp(-docLogProb / num_toks) << endl << endl;
+      // WARNING: since our lm models are using log_10 instead of ln for probs,
+      // we must make sure to use 10^H(p) when calculating the perplexity.
+      cout << "Document contains " 
+           << line_count << " sentences, " 
+           << num_toks << " words, " 
+           << Noov << " words ignored" << endl;
+      cout << "Document logProb=" << docLogProb 
+           << " ppl=" << pow(10, (-docLogProb / (num_toks+line_count-Noov)))
+           << " ppl1=" << pow(10, (-docLogProb / (num_toks-Noov))) << endl << endl;
+   }
 
    cerr << "End (Total time: " << (time(NULL) - start) << " secs)" << endl;
 
@@ -190,18 +201,18 @@ void getArgs(int argc, const char* const argv[])
  */
 inline float getProb(Uint word, Uint context[], PLM* lm, const Voc& voc)
 {
-   const float wordProb = lm->wordProb(word, context, order-1);
+   const float wordLogProb = lm->wordProb(word, context, order-1);
    if (verbose) cout << "p( " << voc.word(word) << " | "
                      << voc.word(context[0]) << " ...)\t= ";
-   if ( !quiet ) cout << wordProb << endl;
+   if ( !quiet ) cout << wordLogProb << endl;
 
-   return  (( wordProb != -INFINITY ) ? wordProb : 0.0f);
+   return  (( wordLogProb != -INFINITY ) ? wordLogProb : 0.0f);
 }   
 
 
-float processOneLine_fast(const string& line, PLM* lm, Voc& voc, Uint& num_toks)
+float processOneLine_fast(const string& line, PLM* lm, Voc& voc, Uint& num_toks, Uint& Noov)
 {
-   float sentProb = 0.0;
+   float sentLogProb = 0.0;
    char buf[line.length() + 1];
    Uint context[order - 1];
    for ( Uint i = 0; i < order - 1; ++i ) context[i] = voc.index(PLM::SentStart);
@@ -211,7 +222,10 @@ float processOneLine_fast(const string& line, PLM* lm, Voc& voc, Uint& num_toks)
    while (tok != NULL) {
       ++num_toks;
       const Uint word = limit_vocab ? voc.index(tok) : voc.add(tok);
-      sentProb += getProb(word, context, lm, voc);
+      const float wordLogProb = getProb(word, context, lm, voc);
+      sentLogProb += wordLogProb;
+      if (wordLogProb == 0.0f)
+         ++Noov;
 
       // Shift the context
       for ( Uint i = order - 1; i > 0; --i ) context[i] = context[i-1];
@@ -220,10 +234,10 @@ float processOneLine_fast(const string& line, PLM* lm, Voc& voc, Uint& num_toks)
       tok = strtok_r(NULL, " ", &strtok_state);
    }
    // Do the end of sentence
-   sentProb += getProb(voc.index(PLM::SentEnd), context, lm, voc);
+   sentLogProb += getProb(voc.index(PLM::SentEnd), context, lm, voc);
 
    if (verbose)
-      cout << "logProb = " << sentProb << endl << endl;
+      cout << "logProb = " << sentLogProb << endl << endl;
 
-   return sentProb;
+   return sentLogProb;
 }
