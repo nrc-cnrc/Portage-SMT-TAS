@@ -32,5 +32,5 @@ double Portage::exp2(double x)
 Uint Portage::next_power_of_2(Uint x)
 {
    if ( x < 3 ) return x;
-   return (Uint)pow(2.0, 1+int(floor(log2(x-1))));
+   return (Uint)pow(2.0, 1+int(floor(log2(double(x)-.5))));
 }
