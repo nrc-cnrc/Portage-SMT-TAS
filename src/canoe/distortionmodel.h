@@ -125,10 +125,8 @@ public:
          // can cover all non-covered words before new_phrase
          assert(new_phrase.start > cov[0].start);
          assert(new_phrase.start < sourceLength);
-         if ( ! phrases[cov[0].start][new_phrase.start-cov[0].start].empty() )
-            return true;
-         else
-            return false;
+         return ! phrases[cov[0].start][new_phrase.start-cov[0].start-1]
+                  .empty();
       }
 
       // Case 2: cov is two blocks or one block not extending to the end of the
