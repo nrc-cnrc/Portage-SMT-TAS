@@ -16,16 +16,16 @@
  * Copyright 2005, Her Majesty in Right of Canada
  */
 
-#include "wer.h"
+//#include "wer.h"
 #include "wermain.h"
 #include "bootstrap.h"
-#include <referencesReader.h>
-#include <exception_dump.h>
-#include <str_utils.h>
-#include <file_utils.h>
-#include <errors.h>
-#include <portage_defs.h>
-#include <printCopyright.h>
+#include "referencesReader.h"
+#include "exception_dump.h"
+#include "str_utils.h"
+#include "file_utils.h"
+#include "errors.h"
+#include "portage_defs.h"
+#include "printCopyright.h"
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -35,11 +35,25 @@ using namespace Portage;
 using namespace Portage::wermain;
 
 
+template<class ScoreStats>
+void score(const ARG& arg);
+
 int MAIN(argc, argv)
 {
    printCopyright(2004, "wermain");
    ARG arg(argc, argv);
 
+   if (arg.bDoPer) {
+      score<PERstats>(arg);
+   }
+   else {
+      score<WERstats>(arg);
+   }
+} END_MAIN
+
+template<class ScoreStats>
+void score(const ARG& arg)
+{
    LOG_VERBOSE2(verboseLogger, "Opening test file");
    iSafeMagicStream tst(arg.sTestFile);
 
@@ -47,50 +61,36 @@ int MAIN(argc, argv)
    referencesReader  rReader(arg.sRefFiles);
    const Uint numRefs(arg.sRefFiles.size());
 
-   vector< pair<int,double> > indiv;    // distance and reference length per sentence
-   Uint   total  = 0;
-   int    n      = 0;
-   double reflen = 0; // total avg. ref. length
+   vector<ScoreStats> indiv;    // distance and reference length per sentence
+   ScoreStats total;
+   int n(0);
    while (!tst.eof())
-     {
-       string tstSentence;
-       getline(tst, tstSentence);
-       vector<string> tstWords;
-       split(tstSentence, tstWords);
+   {
+      string tstSentence;
+      getline(tst, tstSentence);
+      vector<string> tstWords;
+      split(tstSentence, tstWords);
 
-       References refSentences(numRefs);
-       rReader.poll(refSentences);
+      References refSentences(numRefs);
+      rReader.poll(refSentences);
 
-       Uint   least = 0;
-       double rflen = 0;  // avg. ref. length
-       for (uint i = 0; i < numRefs; i++)
-         {
-           Tokens refWords = refSentences[i].getTokens();
-           rflen += refWords.size();
-
-           Uint cur = (arg.bDoPer ? find_mPER(tstWords, refWords) : find_mWER(tstWords,refWords));
-
-           if (i == 0 || cur < least)
-             least = cur;
-         } // for
-       n++;
-       rflen /= numRefs;
-       if (arg.bDetail && rflen>0)
+      ScoreStats stats(tstWords, refSentences);
+      ++n;
+      if (arg.bDetail && stats._reflen>0)
          cout << "Sentence " << n << (arg.bDoPer ? " mPER" : " mWER") << " score: "
-              << 100.0*least/rflen << " % (total dist: " << least
-              << ", hyp. length: " << tstWords.size() << ", avg. ref. length: "
-              << rflen << ")" << endl;
-       if (arg.bDoConf)
-         indiv.push_back( pair<int,double>(least,rflen) );
+            << 100.0*stats.ratio() << " % (total dist: " << stats._changes
+            << ", hyp. length: " << tstWords.size() << ", avg. ref. length: "
+            << stats._reflen << ")" << endl;
+      if (arg.bDoConf && stats._reflen>0.0f)
+         indiv.push_back(stats);
 
-       total   = total + least;
-       reflen += rflen;
-     } // while
+      total += stats;
+   } // while
 
-   cout << (arg.bDoPer ? "mPER" : "mWER") << " score: " << total << " (" << 100.0*total/reflen << " %)";
+   cout << (arg.bDoPer ? "mPER" : "mWER") << " score: " << total._changes << " (" << 100.0*total.ratio() << " %)";
    if (arg.bDoConf) {
-     ERcomputer wc;
-     cout << " +/- " << bootstrapConfInterval(indiv.begin(), indiv.end(), wc, 0.95, 1000);
+      typename ScoreStats::CIcomputer wc;
+      cout << " +/- " << bootstrapConfInterval(indiv.begin(), indiv.end(), wc, 0.95, 1000);
    }
    cout << endl;
-} END_MAIN
+}

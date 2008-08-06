@@ -61,8 +61,8 @@ namespace Portage
 	    for (Uint j = 1; j <= m; ++j)
 	    {
 		Uint above = wer_matrix[i-1][j].cost + 1;	// Insertion
-		Uint left = wer_matrix[i][j-1].cost + 1;	// Removal
-		Uint best = wer_matrix[i-1][j-1].cost + (tst[i-1] == ref[j-1] ? 0 : 1);
+		Uint left  = wer_matrix[i][j-1].cost + 1;	// Removal
+		Uint best  = wer_matrix[i-1][j-1].cost + (tst[i-1] == ref[j-1] ? 0 : 1);
 		// Match or substitution
 		
 		Uint len = wer_matrix[i-1][j-1].len + 1;
@@ -102,15 +102,15 @@ namespace Portage
 	{
 	    if (*tstIt == *refIt)
 	    {
-		numMatches++;
-		tstIt++;
-		refIt++;
+		++numMatches;
+		++tstIt;
+		++refIt;
 	    } else if (*tstIt < *refIt)
 	    {
-		tstIt++;
+		++tstIt;
 	    } else // (*tstIt > *refIt)
 	    {
-		refIt++;
+		++refIt;
 	    } // if
 	} // while
 	return max(tst.size(), ref.size()) - numMatches;

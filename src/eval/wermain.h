@@ -18,9 +18,12 @@
 #ifndef __WERMAIN_H__
 #define __WERMAIN_H__
 
-#include <portage_defs.h>
-#include <argProcessor.h>
+#include "portage_defs.h"
+#include "argProcessor.h"
+#include "PERstats.h"
+#include "WERstats.h"
 #include <vector>
+#include <numeric>
 
 namespace Portage
 {
@@ -110,27 +113,6 @@ Options:\n\
       }
     };  // ends class ARG
     
-    /// Callable entity for booststrap confidence interval
-    struct ERcomputer
-    {
-      /**
-       *
-       * @param begin
-       * @param end
-       * @return Returns total least modifications / total reference length.
-       */
-      double operator()(vector< pair<int,double> >::const_iterator begin,
-                        vector< pair<int,double> >::const_iterator end)
-      {
-        double dist=0, reflen=0;
-        for (vector< pair<int,double> >::const_iterator itr=begin; itr!=end; ++itr) 
-        {
-          dist   += itr->first;
-          reflen += itr->second;
-        }
-        return dist/reflen;
-      }
-    }; // ends struct ERcomputer
   } // ends namespace wermain
 } // Portage
 

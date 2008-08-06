@@ -14,10 +14,10 @@
 
 // TODO: redocument
 
-#include <bleu.h>
-#include <errors.h>
+#include "bleu.h"
+#include "errors.h"
 #include <assert.h>
-#include <str_utils.h>
+#include "str_utils.h"
 #include <cmath>
 #include <voc.h>
 #include <string>

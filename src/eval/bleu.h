@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 #include <limits>
+#include <math.h>   // exp
 
 /// add this flag at compile to change DEFAULT_SMOOTHING_VALUE
 /// -DDEFAULT_SMOOTHING_VALUE=2
@@ -162,6 +163,14 @@ namespace Portage
           * @return Returns
           */
          double score(const Uint maxN = MAX_NGRAMS_SCORE, const double epsilon = 1e-30) const;
+
+         static const char* const name() {
+            return "BLEU";
+         }
+
+         static double convertToDisplay(double value) {
+            return exp(value);
+         }
 
          /**
           * Prints the ngram count and match length in a humain readable format to out.
