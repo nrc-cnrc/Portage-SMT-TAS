@@ -77,7 +77,7 @@ void score(const ARG& arg)
       ScoreStats stats(tstWords, refSentences);
       ++n;
       if (arg.bDetail && stats._reflen>0)
-         cout << "Sentence " << n << (arg.bDoPer ? " mPER" : " mWER") << " score: "
+         cout << "Sentence " << n << " m" << ScoreStats::name() << " score: "
             << 100.0*stats.ratio() << " % (total dist: " << stats._changes
             << ", hyp. length: " << tstWords.size() << ", avg. ref. length: "
             << stats._reflen << ")" << endl;
@@ -87,7 +87,7 @@ void score(const ARG& arg)
       total += stats;
    } // while
 
-   cout << (arg.bDoPer ? "mPER" : "mWER") << " score: " << total._changes << " (" << 100.0*total.ratio() << " %)";
+   cout << "m" << ScoreStats::name() << " score: " << total._changes << " (" << 100.0*total.ratio() << " %)";
    if (arg.bDoConf) {
       typename ScoreStats::CIcomputer wc;
       cout << " +/- " << bootstrapConfInterval(indiv.begin(), indiv.end(), wc, 0.95, 1000);
