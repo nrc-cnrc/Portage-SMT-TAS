@@ -23,6 +23,7 @@ usage() {
 rat.sh [cp-opts] MODE [-v][-F]
        [-f cfg][-K nb][-n #nodes][-J #jobs_per_ff]
        [-s SPROXY][-p pfx][-msrc MSRC][-o MODEL_OUT]
+       [-bleu | -per | -wer]
        MODEL SRC [REFS]
 
 Train or translate with a rescoring model: first generate nbest lists & ffvals
@@ -79,6 +80,9 @@ cp-opts  Options to canoe-parallel.sh (e.g., -n). Only the options that come
 -msrc    A version of the source file marked up with rule-based translations,
          used for canoe input but not for feature generation [SRC]
 -o       In train mode, write the final model to MODEL_OUT [MODEL.out]
+-bleu    Perform training using BLEU as the metric [do]
+-per     Perform training using PER as the metric [don't]
+-wer     Perform training using WER as the metric [don't]
 
 Note: if any intermediate files already exist, this script will not overwrite
 them (unles -F is specified), so that when you add extra features to an
@@ -150,6 +154,7 @@ MODEL_OUT=
 WORKDIR="workdir"
 FORCE_OVERWRITE=
 JOBS_PER_FF=
+TRAINING_TYPE="-bleu"
 
 while [ $# -gt 0 ]; do
    case "$1" in
@@ -165,6 +170,10 @@ while [ $# -gt 0 ]; do
    -p)          arg_check 1 $# $1; PFX=$2; shift;;
    -msrc)       arg_check 1 $# $1; MSRC=$2; shift;;
    -o)          arg_check 1 $# $1; MODEL_OUT=$2; shift;;
+   
+   -bleu)       TRAINING_TYPE="-bleu";;
+   -per)        TRAINING_TYPE="-per";;
+   -wer)        TRAINING_TYPE="-wer";;
 
    -F)          FORCE_OVERWRITE="-F";;
 
@@ -380,9 +389,9 @@ fi
 
 if [ "$MODE" = "train" ]; then
    if (( $VERBOSE )); then
-      echo rescore_train $DASHV -n -p $PFX $MODEL_RAT_IN $MODEL_RAT_OUT $SRC $NBEST $REFS
+      echo rescore_train $DASHV -n -p $TRAINING_TYPE $PFX $MODEL_RAT_IN $MODEL_RAT_OUT $SRC $NBEST $REFS
    fi
-   rescore_train $DASHV -n -p $PFX $MODEL_RAT_IN $MODEL_RAT_OUT $SRC $NBEST $REFS
+   rescore_train $DASHV -n -p $TRAINING_TYPE $PFX $MODEL_RAT_IN $MODEL_RAT_OUT $SRC $NBEST $REFS
 else
    if (( $VERBOSE )); then
       echo rescore_translate $DASHV -p $PFX $MODEL_RAT_IN $SRC ${NBEST} \> ${ORIG_PFX}rat

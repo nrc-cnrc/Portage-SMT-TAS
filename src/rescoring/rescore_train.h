@@ -17,9 +17,9 @@
 #define __RESCORE_TRAIN_H__
 
 
-#include <argProcessor.h>
-#include <errors.h>
-#include <file_utils.h>
+#include "argProcessor.h"
+#include "errors.h"
+#include "file_utils.h"
 #include "rescore_io.h"
 #include "featurefunction.h"
 #include <boost/random.hpp>
@@ -35,7 +35,7 @@ namespace rescore_train {
 // CONSTANTS USED IN TRAINING/TESTING
 static const unsigned int NUM_INIT_RUNS(7);
 static const double FTOL(0.01);
-static const double BLEUTOL(0.0001);
+static const double SCORETOL(0.0001);
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -44,6 +44,7 @@ static const double BLEUTOL(0.0001);
 static char help_message[] = "\n\
 rescore_train [-vn][-sm smoothing][-a F][-f floor][-p ff-pref][-dyn]\n\
               [-r n][-e][-win nl][-wi powell-wt-file][-wo powell-wt-file][-s seed]\n\
+              [-bleu | -wer | -per] \n\
               model_in model_out src nbest ref1 .. refN\n\
 \n\
 Train a rescoring model on given src, nbest, and ref1 .. refN texts. All text\n\
@@ -101,17 +102,21 @@ Options:\n\
 -win  Use only the first <nl> lines from feature file read by -wi (0 for all) [3]\n\
 -wi   Read initial feature wt vectors for Powell from file F (one vect per line)\n\
       NB: the number of vectors actually used depends on the -r and -e settings.\n\
--wo   Append final feature wts from Powell runs to file F, ordered by decr BLEU\n\
+-wo   Append final feature wts from Powell runs to file F, ordered by decr Score\n\
+      i.e. from best score to worse score.\n\
 -s    Use <seed> as initial random seed [0 = use fixed seed for repeatability]\n\
 -y    maximum NGRAMS for calculating BLEUstats matches [4]\n\
 -u    maximum NGRAMS for calculating BLEUstats score [y]\n\
       where 1 <= y, 1 <= u <= y\n\
+-bleu train using bleu as the scoring metric [do]\n\
+-wer  train using wer as the scoring metric [don't]\n\
+-per  train using per as the scoring metric [don't]\n\
 ";
 
 ////////////////////////////////////////////////////////////////////////////////
 // ARGUMENTS PROCESSING CLASS
 /// Program rescore_train's allowed command line arguments.
-const char* const switches[] = {"n", "f:", "dyn", "p:", "a:", "v", "K:", "r:", "e", "win:", "wi:", "wo:", "s:", "y:", "u:", "sm:"};
+const char* const switches[] = {"n", "f:", "dyn", "p:", "a:", "v", "K:", "r:", "e", "win:", "wi:", "wo:", "s:", "y:", "u:", "sm:", "bleu", "per", "wer"};
 
 /// Specific argument processing class for rescore_train program
 class ARG : public argProcessor
@@ -119,6 +124,13 @@ class ARG : public argProcessor
 private:
    Logging::logger  m_vLogger;
    Logging::logger  m_dLogger;
+
+public:
+   enum TRAINING_TYPE {
+      BLEU,
+      WER,
+      PER
+   };
 
 public:
    bool     bVerbose;           ///< is verbose set
@@ -143,6 +155,7 @@ public:
    Uint     maxNgrams;          ///< holds the max ngrams size for the BLEUstats
    Uint     maxNgramsScore;     ///< holds the max ngrams size when BLEUstats::score
    Uint     sm;                 ///< bleu smoothing
+   TRAINING_TYPE training_type; ///< indicate to train with either bleu, wer or per
 
 public:
    /**
@@ -171,6 +184,7 @@ public:
       , maxNgrams(4)
       , maxNgramsScore(0)
       , sm(1)
+      , training_type(BLEU)
    {
       argProcessor::processArgs(argc, argv);
    }
@@ -202,6 +216,7 @@ public:
             LOG_DEBUG(m_dLogger, "Maximum Ngrams size: %d", maxNgrams);
             LOG_DEBUG(m_dLogger, "Maximum Ngrams size for scoring BLEU: %d", maxNgramsScore);
             LOG_DEBUG(m_dLogger, "Bleu smoothing", sm);
+            LOG_DEBUG(m_dLogger, "training type", training_type);
             std::stringstream oss1;
             for (Uint i(0); i<refs_file.size(); ++i) {
                oss1 << "- " << refs_file[i].c_str() << " ";
@@ -229,6 +244,10 @@ public:
       mp_arg_reader->testAndSet("p", ff_pref);
       mp_arg_reader->testAndSet("a", alignment_file);
       mp_arg_reader->testAndSet("sm", sm);
+
+      if (mp_arg_reader->getSwitch("bleu")) training_type = BLEU;
+      if (mp_arg_reader->getSwitch("wer"))  training_type = WER;
+      if (mp_arg_reader->getSwitch("per"))  training_type = PER;
 
       mp_arg_reader->testAndSet("y", maxNgrams);
       mp_arg_reader->testAndSet("u", maxNgramsScore);

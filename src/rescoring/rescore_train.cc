@@ -13,18 +13,20 @@
  * Copyright 2004, Her Majesty in Right of Canada
  */
 
-#include <rescore_train.h>
-#include <boostDef.h>
-#include <featurefunction.h>
-#include <powell.h>
-#include <rescore_io.h>
-#include <fileReader.h>
-#include <gfstats.h>
-#include <bleu.h>
-#include <basic_data_structure.h>
-#include <referencesReader.h>
-#include <printCopyright.h>
-#include <progress.h>
+#include "rescore_train.h"
+#include "boostDef.h"
+#include "featurefunction.h"
+#include "powell.h"
+#include "rescore_io.h"
+#include "fileReader.h"
+#include "gfstats.h"
+#include "basic_data_structure.h"
+#include "referencesReader.h"
+#include "printCopyright.h"
+#include "progress.h"
+#include "bleu.h"
+#include "PERstats.h"
+#include "WERstats.h"
 #include <iostream>
 #include <typeinfo>
 #include <iostream>
@@ -38,6 +40,96 @@
 
 using namespace Portage;
 using namespace std;
+using namespace rescore_train;
+
+
+/// history datum.
+template<class ScoreStats>
+struct history_datum {
+   double score;   ///< a score.
+   uVector wts;    ///< associated weights.
+   /// Constructor.
+   /// @param score  score
+   /// @param wts    associated weigths.
+   history_datum(double score, const uVector& wts)
+   : score(score)
+   , wts(wts)
+   {}
+
+   /**
+    * Defines ordering (greater) for two datum.
+    * @param other  right-side operand
+    * @return Returns true if score > other.score.
+    */
+   bool operator>(const history_datum& other) const {
+      return score > other.score;
+   }
+};
+
+/**
+ * Defines how to print an history_datum.
+ * @param out  where to output the history_datum.
+ * @param o    history_datum to output
+ * @return Returns out + history_datum.
+ */
+template<class ScoreStats>
+ostream& operator<<(ostream& out, const history_datum<ScoreStats>& o) {
+   out << ScoreStats::name() << " score: ";
+   out << ScoreStats::convertToDisplay(o.score) << " ";
+   copy(o.wts.begin(), o.wts.end(), ostream_iterator<double>(out, " "));
+   out << endl;
+   return out;
+}
+
+
+/**
+ * Calculates the BLEU stats for a given nbest list.
+ * @param scores [out] BLEU stats for each hypotheses in the nbest
+ * @param nbest  [in] hypotheses for a source sentence.
+ * @param refs   [in] references for a source sentence.
+ * @param arg    [in] user's arguments.
+ */
+void computeScore(vector<BLEUstats>& scores, const Nbest& nbest, const References& refs, const ARG& arg)
+{
+   computeBLEUArrayRow(scores, nbest, refs, numeric_limits<Uint>::max(), arg.sm);
+}
+
+/**
+ * Calculates the PER stats for a given nbest list.
+ * @param scores [out] PER stats for each hypotheses in the nbest
+ * @param nbest  [in] hypotheses for a source sentence.
+ * @param refs   [in] references for a source sentence.
+ * @param arg    [in] user's arguments.
+ */
+void computeScore(vector<PERstats>& scores, const Nbest& nbest, const References& refs, const ARG& arg)
+{
+   scores.clear();
+   scores.reserve(nbest.size());
+   for (Uint i(0); i<nbest.size(); ++i) {
+      scores.push_back(PERstats(nbest[i], refs));
+   }
+}
+
+/**
+ * Calculates the WER stats for a given nbest list.
+ * @param scores [out] WER stats for each hypotheses in the nbest
+ * @param nbest  [in] hypotheses for a source sentence.
+ * @param refs   [in] references for a source sentence.
+ * @param arg    [in] user's arguments.
+ */
+void computeScore(vector<WERstats>& scores, const Nbest& nbest, const References& refs, const ARG& arg)
+{
+   scores.clear();
+   scores.reserve(nbest.size());
+   for (Uint i(0); i<nbest.size(); ++i) {
+      scores.push_back(WERstats(nbest[i], refs));
+   }
+}
+
+
+/// Forward declaration.
+template<class ScoreStats>
+void train(const ARG& arg);
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -53,11 +145,37 @@ int main(const Uint argc, const char* const argv[])
            omp_get_num_threads());
 #endif
 
-   using namespace rescore_train;
    const ARG arg(argc, argv);
 
-   BLEUstats::setMaxNgrams(arg.maxNgrams);
-   BLEUstats::setMaxNgramsScore(arg.maxNgramsScore);
+   switch (arg.training_type) {
+   case ARG::BLEU:
+      LOG_VERBOSE2(verboseLogger, "Training using bleu");
+      cerr << "Training using bleu" << endl;
+      BLEUstats::setMaxNgrams(arg.maxNgrams);
+      BLEUstats::setMaxNgramsScore(arg.maxNgramsScore);
+
+      train<BLEUstats>(arg);
+      break;
+   case ARG::PER:
+      LOG_VERBOSE2(verboseLogger, "Training using per");
+      cerr << "Training using per" << endl;
+      train<PERstats>(arg);
+      break;
+   case ARG::WER:
+      LOG_VERBOSE2(verboseLogger, "Training using wer");
+      cerr << "Training using wer" << endl;
+      train<WERstats>(arg);
+      break;
+   default:
+      cerr << "Not implemented yet" << endl;
+   }
+}
+
+// Apply powell using either BLEU/PER/WER.
+template<class ScoreStats>
+void train(const ARG& arg)
+{
+   cerr << "SCORE TYPE: " << ScoreStats::name() << endl;  // SAM DEBUG
 
    // Start of loading
    time_t start = time(NULL);             // time
@@ -81,7 +199,7 @@ int main(const Uint argc, const char* const argv[])
 
    LOG_VERBOSE2(verboseLogger, "Rescoring with S = %d, K = %d, R = %d, M = %d", S, arg.K, R, M);
    vector<uMatrix>  vH(S);
-   MatrixBLEUstats  bleu(S);
+   vector< vector<ScoreStats> >  scores(S);
 
    ifstream astr;
    const bool bNeedsAlignment = ffset.requires() & FF_NEEDS_ALIGNMENT;
@@ -104,7 +222,7 @@ int main(const Uint argc, const char* const argv[])
       while (getline(wstr, line) && num_lines++ < arg.weight_infile_nl) {
          vector<string> toks;
          split(line, toks);
-         Uint beg = toks.size() > 0 && toks[0] == "BLEU" ? 3 : 0;
+         const Uint beg = toks.size() > 0 && toks[1] == "score:" ? 3 : 0;
          if (toks.size() - beg != M)
             error(ETFatal, "wrong number of features in weight file %s: found %i, expected %i",
                   arg.weight_infile.c_str(), toks.size() - beg, M);
@@ -116,7 +234,7 @@ int main(const Uint argc, const char* const argv[])
 
 
    // Read and process the N-bests file of candidate target sentences
-   LOG_VERBOSE2(verboseLogger, "Processing nbests lists (computing feature values and BLEU scores)");
+   LOG_VERBOSE2(verboseLogger, "Processing nbests lists (computing feature values and %s scores)", ScoreStats::name());
    NbestReader  pfr(FileReader::create<Translation>(arg.nbest_file, arg.K));
    Uint s(0);
    Progress progress(S, arg.bVerbose); // Must be last statement before for loop => pretty display
@@ -147,8 +265,8 @@ int main(const Uint argc, const char* const argv[])
       ffset.computeFFMatrix(vH[s], s, nbest);
       K = nbest.size();  // IMPORTANT K might change if computeFFMatrix detects empty lines
 
-      LOG_VERBOSE5(verboseLogger, "computing a bleu row for s=%d with K=%d, R=%d", s, K, R);
-      computeBLEUArrayRow(bleu[s], nbest, refs, numeric_limits<Uint>::max(), arg.sm);
+      LOG_VERBOSE5(verboseLogger, "computing a score row for s=%d with K=%d, R=%d", s, K, R);
+      computeScore(scores[s], nbest, refs, arg);
 
       progress.step();
    } // for
@@ -175,17 +293,19 @@ int main(const Uint argc, const char* const argv[])
    uVector best_wts(M);
    fill(best_wts.begin(), best_wts.end(), 1.0f);
    double best_score(-INFINITY);
-   double extend_thresh(0.0);   // bleu threshold for extending total_runs
+   double extend_thresh(0.0);   // score threshold for extending total_runs
    Uint num_runs(0);
    Uint total_runs = arg.num_powell_runs == 0 ? 
       (NUM_INIT_RUNS+2) :  // +2 for backward compatibility (!)
       arg.num_powell_runs;
-   vector< vector<double> >  history; // list of -score,wts vectors
-   vector<double> bleu_history; // list of bleu scores, for approx-expect stopping
+
+   typedef history_datum<ScoreStats> Datum;
+   vector<Datum>  history;
+   vector<double> score_history; // list of scores, for approx-expect stopping
 
    // Run Powell's algorithm with different start parameters until a global
    // maximum appears to be found.
-   Powell<BLEUstats> powell(vH, bleu);
+   Powell<ScoreStats> powell(vH, scores);
    while (num_runs < total_runs) {
 
       uVector wts(M);
@@ -206,27 +326,25 @@ int main(const Uint argc, const char* const argv[])
 
       if (arg.bVerbose) {
          cerr << "Powell returned wts=" << wts << endl;
-         fprintf(stderr, "Score: %f <=> %f in %d seconds\n", fret, exp(fret), (Uint)(time(NULL)- powell_start));
+         fprintf(stderr, "Score: %f in %d seconds\n", ScoreStats::convertToDisplay(fret), (Uint)(time(NULL)- powell_start));
       }
 
-      history.push_back(vector<double>(1, -fret));
-      history.back().resize(1+M);
-      copy(wts.begin(), wts.end(), history.back().begin()+1);
-      bleu_history.push_back(exp(fret));
+      history.push_back(Datum(fret, wts));
+      score_history.push_back(ScoreStats::convertToDisplay(fret));
 
       if (fret > best_score) {
          best_wts = wts;
          best_score = fret;
       }
-      if (!arg.approx_expect && arg.num_powell_runs == 0 && exp(fret) > extend_thresh) {
+      if (!arg.approx_expect && arg.num_powell_runs == 0 && ScoreStats::convertToDisplay(fret) > extend_thresh) {
          // normal stopping criterion
          total_runs = max(num_runs+NUM_INIT_RUNS+2, 2 * num_runs); // bizarre for bkw compat
-         extend_thresh = exp(fret) + BLEUTOL;
+         extend_thresh = ScoreStats::convertToDisplay(fret) + SCORETOL;
       } else if (arg.approx_expect && num_runs > NUM_INIT_RUNS+2) {
          // approx-expect stopping
-         const double m = mean(bleu_history.begin(), bleu_history.end());
-         const double s = sdev(bleu_history.begin(), bleu_history.end(), m);
-         const Uint expected_iters = Uint(1.0 / (1.0 - normalCDF(exp(best_score), m, s)));
+         const double m = mean(score_history.begin(), score_history.end());
+         const double s = sdev(score_history.begin(), score_history.end(), m);
+         const Uint expected_iters = Uint(1.0 / (1.0 - normalCDF(ScoreStats::convertToDisplay(best_score), m, s)));
          if (num_runs + expected_iters > total_runs)
             break;
       }
@@ -249,21 +367,15 @@ int main(const Uint argc, const char* const argv[])
    ffset.setWeights(best_wts);
 
    if (arg.bVerbose) {
-      cerr << "Best score: " << best_score << " <=> " << exp(best_score) << endl;
+      cerr << "Best score: " << best_score << " <=> " << ScoreStats::convertToDisplay(best_score) << endl;
       cerr << "Using floored & normalized wts=" << best_wts << endl;
    }
 
    if (!arg.weight_outfile.empty()) {
-      sort(history.begin(), history.end());
-      ofstream woutstr;
-      woutstr.open(arg.weight_outfile.c_str(), ios_base::app);
       LOG_VERBOSE2(verboseLogger, "Writing best powell weights to file");
-      for (Uint i = 0;  i < history.size(); i++) {
-         woutstr << "BLEU score: " << exp(-history[i][0]);
-         for (Uint j = 1; j < history[i].size(); ++j)
-            woutstr << " " << history[i][j];
-         woutstr << endl;
-      }
+      sort(history.begin(), history.end(), greater<Datum>());
+      ofstream woutstr(arg.weight_outfile.c_str(), ios_base::app);
+      copy(history.begin(), history.end(), ostream_iterator<Datum>(woutstr));
       woutstr.flush();
       woutstr.close();
    }
