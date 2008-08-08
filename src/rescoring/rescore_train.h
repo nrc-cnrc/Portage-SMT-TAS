@@ -246,8 +246,8 @@ public:
       mp_arg_reader->testAndSet("sm", sm);
 
       if (mp_arg_reader->getSwitch("bleu")) training_type = BLEU;
-      if (mp_arg_reader->getSwitch("wer"))  training_type = WER;
       if (mp_arg_reader->getSwitch("per"))  training_type = PER;
+      if (mp_arg_reader->getSwitch("wer"))  training_type = WER;
 
       mp_arg_reader->testAndSet("y", maxNgrams);
       mp_arg_reader->testAndSet("u", maxNgramsScore);

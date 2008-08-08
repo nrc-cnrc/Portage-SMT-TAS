@@ -22,6 +22,7 @@
 #include "argProcessor.h"
 #include "PERstats.h"
 #include "WERstats.h"
+#include "scoremain.h"
 #include <vector>
 #include <numeric>
 
@@ -49,20 +50,17 @@ Options:\n\
 ";
 
     /// Program wermain command line switches.
-    const char* const switches[] = {"c", "detail", "per"};
+    const char* const switches[] = {"c", "detail:", "per"};
+
     /// Specific argument processing class for wermain program.
-    class ARG : public argProcessor
+    class ARG : public argProcessor, public scoremain::ARG
     {
     private:
       Logging::logger  m_vLogger;
       Logging::logger  m_dLogger;
       
     public:
-      string         sTestFile;  ///< source file.
-      vector<string> sRefFiles;  ///< list of reference files.
-      bool           bDoPer;     ///< true = use PER, false = use WER
-      bool           bDoConf;    ///< calculate bootstrap confidence interval
-      bool           bDetail;    ///< display per source details.
+      bool bDoPer;     ///< true = use PER, false = use WER
       
     public:
       ARG(const int argc, const char* const argv[])
@@ -70,8 +68,6 @@ Options:\n\
         , m_vLogger(Logging::getLogger("verbose.main.arg"))
         , m_dLogger(Logging::getLogger("debug.main.arg"))
         , bDoPer(false)
-        , bDoConf(false)
-        , bDetail(false)
       {
         argProcessor::processArgs(argc, argv);
       }
@@ -79,22 +75,22 @@ Options:\n\
       /// See argProcessor::printSwitchesValue()
       virtual void printSwitchesValue()
       {
-        LOG_INFO(m_vLogger, "Printing arguments");
-        if (m_dLogger->isDebugEnabled())
-          {
+         LOG_INFO(m_vLogger, "Printing arguments");
+         if (m_dLogger->isDebugEnabled())
+         {
             LOG_DEBUG(m_dLogger, "Do conf: %s", (bDoConf? "ON" : "OFF"));
             LOG_DEBUG(m_dLogger, "Calculate %s", (bDoPer? "mPER" : "mWER"));
             LOG_DEBUG(m_dLogger, "Detailed output: %s", (bDetail? "ON" : "OFF"));
             LOG_DEBUG(m_dLogger, "Test file name: %s", sTestFile.c_str());
-            
+
             LOG_DEBUG(m_dLogger, "Number of reference files: %d", sRefFiles.size());
             std::stringstream oss1;
             for (Uint i(0); i<sRefFiles.size(); ++i)
-              {
-                oss1 << "- " << sRefFiles[i].c_str() << " ";
-              }
+            {
+               oss1 << "- " << sRefFiles[i].c_str() << " ";
+            }
             LOG_DEBUG(m_dLogger, oss1.str().c_str());
-          }
+         }
       }
       
       /// See argProcessor::processArgs()
@@ -106,7 +102,7 @@ Options:\n\
          //
          mp_arg_reader->testAndSet("c", bDoConf);
          mp_arg_reader->testAndSet("per", bDoPer);
-         mp_arg_reader->testAndSet("detail", bDetail);
+         mp_arg_reader->testAndSet("detail", iDetail);
 
          mp_arg_reader->testAndSet(0, "testfile", sTestFile);
          mp_arg_reader->getVars(1, sRefFiles);

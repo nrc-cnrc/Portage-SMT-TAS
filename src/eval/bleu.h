@@ -18,8 +18,8 @@
 
 //#define MAX_NGRAMS 4
 
-#include <portage_defs.h>
-#include <basic_data_structure.h>
+#include "portage_defs.h"
+#include "basic_data_structure.h"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -49,6 +49,7 @@ namespace Portage
    {
       private:
          typedef vector<BLEU_STAT_TYPE> BLEU_STATS;
+
       public:
          /**
           * Holds the maximum N value in Ngrams when creating a BLEUstats.
@@ -57,6 +58,15 @@ namespace Portage
           * 1 <= MAX_NGRAMS
           */
          static Uint MAX_NGRAMS;
+         /**
+          * Holds the maximum N value in Ngrams when using BLEUstats::score.
+          * The value should be 1 <= MAX_NGRAMS_SCORE <= MAX_NGRAMS.
+          */
+         static Uint MAX_NGRAMS_SCORE;
+         /// Defines the default smoothing type.
+         static Uint DEFAULT_SMOOTHING;
+
+      public:
          /**
           * Gets the Maximum value of N in Ngrams
           * @return Returns the maximum value of N.
@@ -70,11 +80,6 @@ namespace Portage
          static void setMaxNgrams(const Uint n);
 
          /**
-          * Holds the maximum N value in Ngrams when using BLEUstats::score.
-          * The value should be 1 <= MAX_NGRAMS_SCORE <= MAX_NGRAMS.
-          */
-         static Uint MAX_NGRAMS_SCORE;
-         /**
           * Gets the Maximum value of N in Ngrams when scoring
           * @return Returns the maximum value of N.
           */
@@ -85,6 +90,18 @@ namespace Portage
           * @param n  maximum value of N for scoring.
           */
          static void setMaxNgramsScore(const Uint n);
+
+         /**
+          * Gets the default smoothing type.
+          * @return Returns the default smoothing type.
+          */
+         static Uint getDefaultSmoothing() { return DEFAULT_SMOOTHING; }
+         /**
+          * Use this function to set the default smoothing type.
+          * This function prevents changing the value later during the execution of the pgm.
+          * @param n  default value smoothing type.
+          */
+         static void setDefaultSmoothing(const Uint n);
 
       public:
          BLEU_STATS match;                  ///< ngrams match for n = [1 4]
@@ -117,7 +134,7 @@ namespace Portage
           * @param refs   translation's references
           * @param sm     smoothing type
           */
-         BLEUstats(const Sentence& trans, const References& refs, const int sm);
+         BLEUstats(const Sentence& trans, const References& refs, const int sm = DEFAULT_SMOOTHING);
          /**
           * Initializes a new BLEUstats with values computed for the given
           * translation sentence.
@@ -125,7 +142,7 @@ namespace Portage
           * @param refs  translation's references.
           * @param sm    smoothing type
           */
-         BLEUstats(const string &tgt, const vector<string> &refs, const int sm);
+         BLEUstats(const string &tgt, const vector<string> &refs, const int sm = DEFAULT_SMOOTHING);
          /**
           * Initializes a new BLEUstats with values computed for the given
           * translation sentence.
@@ -164,10 +181,17 @@ namespace Portage
           */
          double score(const Uint maxN = MAX_NGRAMS_SCORE, const double epsilon = 1e-30) const;
 
+         /// What is this metric's name.
+         /// @return Returns this metric's name => BLEU.
          static const char* const name() {
             return "BLEU";
          }
 
+         /**
+          * Converts the score()'s value, which is log, to a humain readeble value [0,1).
+          * @param value  the value of score().
+          * @return Returns a humain readable value of this metric.
+          */
          static double convertToDisplay(double value) {
             return exp(value);
          }
@@ -206,6 +230,24 @@ namespace Portage
           * @return Returns a BLEUstats containing this + other
           */
          BLEUstats& operator+=(const BLEUstats& other);
+
+         /// Callable entity for booststrap confidence interval. 
+         struct CIcomputer
+         {
+            /// Define what is an iterator for a CIcomputer.
+            typedef vector<BLEUstats>::const_iterator iterator;
+
+            /**
+             * Cumulates all BLEUstats from the range.
+             * @param begin  start iterator
+             * @param end    end iterator
+             * @return Returns the BLEU score [0 1] once the BLEU stats are all cumulated for the range.
+             */
+            double operator()(iterator begin, iterator end) {
+               BLEUstats total;
+               return exp(std::accumulate(begin, end, total).score());
+            }
+         };
    };
 
    /**

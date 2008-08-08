@@ -21,8 +21,9 @@ namespace Portage {
 
 /// Base class for error rate stats.
 struct ErrorRateStats {
-   Uint _changes;   ///< number of changes required to change the hypothese into the reference.
-   double _reflen;  ///< cumulative references' length.
+   Uint _changes;        ///< number of changes required to change the hypothese into the reference.
+   double _reflen;       ///< cumulative references' length.
+   Uint _source_length;  ///< source sentence lenght.
 
    /// Default constructor.
    ErrorRateStats()
@@ -48,12 +49,20 @@ struct ErrorRateStats {
       //return -log(ratio()); 
    }
 
+   void output(ostream& out = cout) const {
+      out << "(total dist: " << _changes
+         << ", hyp. length: " << _source_length
+         << ", avg. ref. length: " << _reflen
+         << ")" << endl;
+      out << "Score: " << score() << endl;
+   }
+
    /**
     * Basic display.
     * @param out  Where to output the stats.
     */
-   void write(ostream &out) const {
-      out << "Changes: " << _changes << " RefLen: " << _reflen << endl;
+   void write(ostream& out) const {
+      out << _changes << '\t' << _reflen << endl;
    }
 
    static double convertToDisplay(double value) {
@@ -88,6 +97,8 @@ struct ErrorRateStats {
       void init(const Tokens& translation, const References& refs) {
          const Uint numRefs(refs.size());
          Uint least(0);
+
+         _source_length = translation.size();
 
          for (Uint i(0); i<numRefs; ++i) {
             const Tokens refWords = refs[i].getTokens();

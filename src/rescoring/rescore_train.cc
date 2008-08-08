@@ -149,21 +149,15 @@ int main(const Uint argc, const char* const argv[])
 
    switch (arg.training_type) {
    case ARG::BLEU:
-      LOG_VERBOSE2(verboseLogger, "Training using bleu");
-      cerr << "Training using bleu" << endl;
       BLEUstats::setMaxNgrams(arg.maxNgrams);
       BLEUstats::setMaxNgramsScore(arg.maxNgramsScore);
 
       train<BLEUstats>(arg);
       break;
    case ARG::PER:
-      LOG_VERBOSE2(verboseLogger, "Training using per");
-      cerr << "Training using per" << endl;
       train<PERstats>(arg);
       break;
    case ARG::WER:
-      LOG_VERBOSE2(verboseLogger, "Training using wer");
-      cerr << "Training using wer" << endl;
       train<WERstats>(arg);
       break;
    default:
@@ -175,6 +169,7 @@ int main(const Uint argc, const char* const argv[])
 template<class ScoreStats>
 void train(const ARG& arg)
 {
+   LOG_VERBOSE2(verboseLogger, "Training using %s", ScoreStats::name());
    cerr << "SCORE TYPE: " << ScoreStats::name() << endl;  // SAM DEBUG
 
    // Start of loading

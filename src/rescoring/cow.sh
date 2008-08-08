@@ -28,6 +28,8 @@ PARALLEL=
 RTRAIN=rescore_train
 DEFAULT_MODEL=curmodel
 LOAD_BALANCING=
+TRAINING_TYPE="-bleu"
+SCORE_MAIN=bleumain
 
 FFVALPARSER=nbest2rescore.pl
 FFVALPARSER_OPTS="-canoe"
@@ -38,6 +40,7 @@ FFVALPARSER_OPTS="-canoe"
 ##        [-floor index|-nofloor] [-model MODEL] [-mad SEED] [-e] [-path P]
 ##        [-f CFILE] [-canoe-options CANOE_OPTS]
 ##        [-parallel[:"PARALLEL_OPTS"]]
+##        [-bleu | -per | -wer]
 ##        -workdir WORKDIR SFILE RFILE1 RFILE2 .. RFILEn
 ##
 ## cow.sh: Canoe Optimize Weights
@@ -103,6 +106,10 @@ FFVALPARSER_OPTS="-canoe"
 ##          e.g.:   -parallel:"-n 4".
 ##                  -parallel:"-n 4 -nolowpri".
 ##                  -parallel:"-n 4 -highmem".
+##
+## -bleu    Perform training using BLEU as the metric [do]
+## -per     Perform training using PER as the metric [don't]
+## -wer     Perform training using WER as the metric [don't]
 ##
 ## -workdir Store large temporary files in WORKDIR.  WORKDIR should ideally be
 ##          on a medium which is not backed up, as these files tend to be
@@ -219,6 +226,11 @@ while [ $# -gt 0 ]; do
    -parallel)      PARALLEL=1;;
    -workdir)       arg_check 1 $# $1; WORKDIR="$2"; shift;;
    -maxiter)       arg_check 1 $# $1; MAXITER="$2"; shift;;
+
+   -bleu)          TRAINING_TYPE="-bleu"; SCORE_MAIN=bleumain;;
+   -per)           TRAINING_TYPE="-per"; SCORE_MAIN="wermain -per";;
+   -wer)           TRAINING_TYPE="-wer" SCORE_MAIN=wermain;;
+
    --)             shift; break;;
    -*)             error_exit "Unknown parameter: $1.";;
    *)              break;;
@@ -504,7 +516,7 @@ while [ 1 ]; do
    RANDOM_WEIGHTS=
 
    $FFVALPARSER $FFVALPARSER_OPTS -in=$TRANSFILE.ff > $TRANSFILE
-   echo `bleumain $TRANSFILE $RFILES | egrep BLEU` " $wtvec" >> $HISTFILE
+   echo `$SCORE_MAIN $TRANSFILE $RFILES | egrep score` " $wtvec" >> $HISTFILE
 
    # For debugging, also put the whole output of bleumain in the output
    # stream
@@ -661,9 +673,9 @@ while [ 1 ]; do
       rename_old $WEIGHTOUTFILE
    fi
    if [ $ITER -ge 2 ]; then
-      RUNSTR="$RTRAIN $ESTOP -wi $WEIGHTINFILE -wo $WEIGHTOUTFILE -dyn -n $FLOOR_ARG $MODEL_ORIG $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
+      RUNSTR="$RTRAIN $TRAINING_TYPE $ESTOP -wi $WEIGHTINFILE -wo $WEIGHTOUTFILE -dyn -n $FLOOR_ARG $MODEL_ORIG $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
    else
-      RUNSTR="$RTRAIN $ESTOP -wo $WEIGHTOUTFILE -dyn -n $FLOOR_ARG $MODEL_ORIG $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
+      RUNSTR="$RTRAIN $TRAINING_TYPE $ESTOP -wo $WEIGHTOUTFILE -dyn -n $FLOOR_ARG $MODEL_ORIG $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
    fi
    echo "$RUNSTR"
    time $RUNSTR
@@ -680,7 +692,7 @@ while [ 1 ]; do
    if diff -q $MODEL $TMPMODELFILE; then
       # We repeat the last line in rescore-results, since that tells the
       # experimenter that a stable point has been reached.
-      echo `bleumain $TRANSFILE $RFILES | egrep BLEU` " $wtvec" >> $HISTFILE
+      echo `$SCORE_MAIN $TRANSFILE $RFILES | egrep score` " $wtvec" >> $HISTFILE
 
       echo
       echo New model identical to previous one.

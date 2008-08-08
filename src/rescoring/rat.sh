@@ -391,7 +391,7 @@ if [ "$MODE" = "train" ]; then
    if (( $VERBOSE )); then
       echo rescore_train $DASHV -n -p $TRAINING_TYPE $PFX $MODEL_RAT_IN $MODEL_RAT_OUT $SRC $NBEST $REFS
    fi
-   rescore_train $DASHV -n -p $TRAINING_TYPE $PFX $MODEL_RAT_IN $MODEL_RAT_OUT $SRC $NBEST $REFS
+   rescore_train $DASHV -n $TRAINING_TYPE -p $PFX $MODEL_RAT_IN $MODEL_RAT_OUT $SRC $NBEST $REFS
 else
    if (( $VERBOSE )); then
       echo rescore_translate $DASHV -p $PFX $MODEL_RAT_IN $SRC ${NBEST} \> ${ORIG_PFX}rat

@@ -45,6 +45,15 @@ void BLEUstats::setMaxNgramsScore(const Uint n) {
    bHasBeenInitialized = true;
 }
 
+Uint BLEUstats::DEFAULT_SMOOTHING = DEFAULT_SMOOTHING_VALUE;
+void BLEUstats::setDefaultSmoothing(const Uint n) {
+   static bool bHasBeenInitialized(false);
+   assert(bHasBeenInitialized == false);
+   
+   DEFAULT_SMOOTHING = n;
+   bHasBeenInitialized = true;
+}
+
 
 /*
 Initializes a new BLEUstats with values of 0, the stats for an empty set of translations.
@@ -146,24 +155,10 @@ void BLEUstats::init(const Sentence& trans, const References& refs, const int sm
     vector<Uint> tgt_Uints;
     tgt_Uints.reserve(trans.size());
     split(trans.c_str(), tgt_Uints, aConverter);
-/*    const Tokens& transTokens(trans.getTokens());
-    tgt_Uints.reserve(transTokens.size());
-    for (SIT itTokens(transTokens.begin()); itTokens != transTokens.end(); ++itTokens) {
-        tgt_Uints.push_back(vocab.add(itTokens->c_str()));
-    }*/
 
     // Tokenizing the references
     vector< vector<Uint> > refs_Uints;
-    refs_Uints.reserve(refs.size());
-    for (RIT itRefs(refs.begin()); itRefs != refs.end(); ++itRefs) {
-        refs_Uints.push_back(vector<Uint>());
-        refs_Uints.back().reserve(itRefs->size());
-//        split(itRefs->c_str(), refs_Uints.back(), aConverter);
-        const Tokens& refTokens(itRefs->getTokens());
-        for (SIT itTokens(refTokens.begin()); itTokens != refTokens.end(); ++itTokens) {
-            refs_Uints.back().push_back(vocab.add(itTokens->c_str()));
-        }
-    }
+    tokenize(refs, vocab, refs_Uints);
 
     init(tgt_Uints, refs_Uints, sm);
 }

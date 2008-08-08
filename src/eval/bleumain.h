@@ -16,9 +16,10 @@
 #ifndef __BLEUMAIN_H__
 #define __BLEUMAIN_H__
 
-#include <portage_defs.h>
-#include <argProcessor.h>
-#include <bleu.h>
+#include "portage_defs.h"
+#include "argProcessor.h"
+#include "bleu.h"
+#include "scoremain.h"
 #include <vector>
 #include <string>
 #include <assert.h>
@@ -59,19 +60,15 @@ Options:\n\
 
       /// Program bleumain command line switches.
       const char* const switches[] = {"c", "detail:", "smooth:", "y:", "u:", "v"};
+
       /// Specific argument processing class for bleumain program.
-      class ARG : public argProcessor
+      class ARG : public argProcessor, public scoremain::ARG
       {
          private:
             Logging::logger  m_vLogger;
             Logging::logger  m_dLogger;
 
          public:
-            bool           bVerbose;
-            string         sTestFile;
-            vector<string> sRefFiles;
-            bool           bDoConf;
-            int            iDetail;
             int            iSmooth;
             Uint           maxNgrams;         ///< holds the max ngrams size for the BLEUstats
             Uint           maxNgramsScore;    ///< holds the max ngrams size when BLEUstats::score
@@ -86,10 +83,7 @@ Options:\n\
             : argProcessor(ARRAY_SIZE(switches), switches, 2, -1, help_message, "-h", true)
             , m_vLogger(Logging::getLogger("verbose.main.arg"))
             , m_dLogger(Logging::getLogger("debug.main.arg"))
-            , bVerbose(false)
-            , bDoConf(false)
-            , iDetail(0)
-            , iSmooth(1)
+            , iSmooth(DEFAULT_SMOOTHING_VALUE)
             , maxNgrams(4)
             , maxNgramsScore(0)
          {
@@ -145,32 +139,15 @@ Options:\n\
 
             mp_arg_reader->testAndSet(0, "testfile", sTestFile);
             mp_arg_reader->getVars(1, sRefFiles);
-            
+
             if (iSmooth<0 || iSmooth>2)
-              {
-                cerr << "Invalid smoothing type: " << iSmooth << endl;
-                exit(1);
-              }
+            {
+               cerr << "Invalid smoothing type: " << iSmooth << endl;
+               exit(1);
+            }
          }
 
-      };
-
-      /// Callable entity for booststrap confidence interval. 
-      struct BLEUcomputer
-      {
-         /**
-          * Cumulates all BLEUstats from the range.
-          * @param begin  start iterator
-          * @param end    end iterator
-          * @return Returns the BLEU score [0 1] once the BLEU stats are all cumulated for the range.
-          */
-         double operator()(vector<BLEUstats>::const_iterator begin,
-      		     vector<BLEUstats>::const_iterator end)
-         {
-            BLEUstats bs;
-            return exp(std::accumulate(begin, end, bs).score());
-         }
-      };
+      }; // ends class ARG
    } // ends namespace bleumain
 } // Portage
 
