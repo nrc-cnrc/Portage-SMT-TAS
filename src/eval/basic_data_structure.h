@@ -19,8 +19,8 @@
 
 #include <vector>
 #include <algorithm>
-#include <portage_defs.h>
-#include <str_utils.h>
+#include "portage_defs.h"
+#include "str_utils.h"
 #include <voc.h>
 
 
@@ -95,6 +95,12 @@ public:
          split(string(*this), m_tokens);
       }
       return m_tokens;
+   }
+   /**
+    * Clear the token list.
+    */
+   void clearTokens() {
+      m_tokens.clear();
    }
 };
 /// A set of sentences.
