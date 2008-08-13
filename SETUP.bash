@@ -33,31 +33,31 @@ export PORTAGE=$HOME/PORTAGEshared
 
 echo 'PORTAGEshared, NRC-CNRC, (c) 2004 - 2008, Her Majesty in Right of Canada'
 
-if [ ${PATH:-UNDEF} = "UNDEF" ] ; then
+if [ "${PATH:-UNDEF}" = "UNDEF" ] ; then
    export PATH=$PORTAGE/bin
 else
-   export PATH=$PATH:$PORTAGE/bin
+   export PATH="$PATH:$PORTAGE/bin"
 fi
 
-if [ ${LD_LIBRARY_PATH:-UNDEF} = "UNDEF" ] ; then
+if [ "${LD_LIBRARY_PATH:-UNDEF}" = "UNDEF" ] ; then
    export LD_LIBRARY_PATH=$PORTAGE/lib
 else
    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PORTAGE/lib
 fi
 
-if [ ${PERL5LIB:-UNDEF} = "UNDEF" ] ; then
+if [ "${PERL5LIB:-UNDEF}" = "UNDEF" ] ; then
    export PERL5LIB=$PORTAGE/lib:$PORTAGE/lib/perl5/site_perl
 else
    export PERL5LIB=$PERL5LIB:$PORTAGE/lib:$PORTAGE/lib/perl5/site_perl
 fi
 
-if [ ${CPLUS_INCLUDE_PATH:-UNDEF} = "UNDEF" ] ; then
+if [ "${CPLUS_INCLUDE_PATH:-UNDEF}" = "UNDEF" ] ; then
    export CPLUS_INCLUDE_PATH=$PORTAGE/include
 else
    export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:$PORTAGE/include
 fi
 
-if [ ${PRECOMP_PORTAGE_ARCH:-UNDEF} != "UNDEF" ]; then
+if [ "${PRECOMP_PORTAGE_ARCH:-UNDEF}" != "UNDEF" ]; then
    export PATH=$PATH:$PORTAGE/bin/$PRECOMP_PORTAGE_ARCH
    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PORTAGE/lib/$PRECOMP_PORTAGE_ARCH
    unset PRECOMP_PORTAGE_ARCH
