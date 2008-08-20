@@ -389,7 +389,7 @@ fi
 
 if [ "$MODE" = "train" ]; then
    if (( $VERBOSE )); then
-      echo rescore_train $DASHV -n -p $TRAINING_TYPE $PFX $MODEL_RAT_IN $MODEL_RAT_OUT $SRC $NBEST $REFS
+      echo rescore_train $DASHV -n $TRAINING_TYPE -p $PFX $MODEL_RAT_IN $MODEL_RAT_OUT $SRC $NBEST $REFS
    fi
    rescore_train $DASHV -n $TRAINING_TYPE -p $PFX $MODEL_RAT_IN $MODEL_RAT_OUT $SRC $NBEST $REFS
 else
