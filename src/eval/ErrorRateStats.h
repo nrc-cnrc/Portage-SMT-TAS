@@ -1,7 +1,8 @@
 /**
  * @author Samuel Larkin
- * @file ErrorRateStats.h
+ * @file ErrorRateStats.h  Base class for PER/WER stats.
  * 
+ * $Id$
  * 
  * COMMENTS: Base class for wer/per stats.  Equivalent to BLEUstats
  *

@@ -1,7 +1,8 @@
 /**
  * @author Samuel Larkin
- * @file WERstats.h
+ * @file WERstats.h  WER stats object for powell's training.
  * 
+ * $Id$
  * 
  * COMMENTS: wer stats for powell.  Equivalent to BLEUstats
  *
