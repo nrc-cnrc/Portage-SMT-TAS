@@ -18,7 +18,7 @@ usage() {
    done
    cat <<==EOF== >&2
 
-Usage: gen-jpt-parallel.sh [-n N][-rp RUNPARALLELOPTS]
+Usage: gen-jpt-parallel.sh [-n N][-rp RUNPARALLELOPTS][-o outfile]
           GPT GPTARGS file1_lang1 file1_lang2
 
 Generate a joint phrase table for a single (large) file pair in parallel, by
@@ -28,31 +28,22 @@ concatenating the results, which are written to stdout (uncompressed).
 Options:
 
   -n        Number of chunks in which to split the file pair. [4]
+            Warning: if GPTARGS contains the -w option, the output will depend
+            on the setting of this option: higher values of N will yield 
+            slightly larger phrase tables!
   -rp       Provide custom run-parallel.sh options (enclose in quotes!).
+  -o        Send output to outfile (compressed). This runs on a separate node
+            with 4 cpus.
   GPT       Keyword to signal beginning of gen_phrase_tables options and args.
   GPTARGS   Arguments and options for gen_phrase_tables: these must include
             the two IBM model arguments, but should NOT include any output
             selection options (this is not checked), nor the names of text
-            files (input is limited to file1_lang1 and file1_lang2).
+            files (input is limited to file1_lang1 and file1_lang2). Any
+            quotes in GPTARGS must be escaped.
 
 ==EOF==
 
    exit 1
-}
-
-run_cmd() {
-   if [ "$1" = "-no-error" ]; then
-      shift
-      RUN_CMD_NO_ERROR=1
-   fi
-   if [ $VERBOSE ]; then
-      echo "$*" >&2
-   fi
-   if [ -z "$RUN_CMD_NO_ERROR" -a "$rc" != 0 ]; then
-      echo "Exit status: $rc is not zero - aborting."
-      exit 1
-   fi
-   RUN_CMD_NO_ERROR=
 }
 
 error_exit() {
@@ -76,6 +67,7 @@ is_int() {
 }
 
 NUM_JOBS=4
+OUTFILE=
 RP_OPTS=
 VERBOSE=
 
@@ -83,8 +75,10 @@ while [ $# -gt 0 ]; do
    case "$1" in
    -n)         arg_check 1 $# $1; is_int $2 $1; NUM_JOBS=$2; shift;;
    -rp)        arg_check 1 $# $1; RP_OPTS="$RP_OPTS $2"; shift;;
+   -o)         arg_check 1 $# $1; OUTFILE=$2; shift;;
    -v)         VERBOSE="-v";;
    -d|-debug)  DEBUG=1;;
+   -notreally) NOTREALLY=1; DEBUG=1;;
    -h|-help)   usage;;
    --)         shift; break;;
    -*)         error_exit "Unknown option $1.";;
@@ -104,7 +98,8 @@ file2=${GPTARGS[$#-1]}
 unset GPTARGS[$#-2]
 unset GPTARGS[$#-1]
 
-TMP=JPTPAR$$
+WORKDIR=JPTPAR$$
+test -d $WORKDIR || mkdir $WORKDIR
 
 if [ ! -e $file1 ]; then
    error_exit "Input file $file1 doesn't exist"
@@ -119,8 +114,8 @@ if [ -n $(($NL%$NUM_JOBS)) ]; then
    SPLITLINES=$(($SPLITLINES+1))
 fi
 
-zcat -f $file1 | split -l $SPLITLINES - $TMP.L1.
-zcat -f $file2 | split -l $SPLITLINES - $TMP.L2.
+zcat -f $file1 | split -l $SPLITLINES - $WORKDIR/L1.
+zcat -f $file2 | split -l $SPLITLINES - $WORKDIR/L2.
 
 if [ $DEBUG ]; then
     echo "NUM_JOBS = $NUM_JOBS" >&2
@@ -128,33 +123,51 @@ if [ $DEBUG ]; then
     echo "GPTARGS = <${GPTARGS[@]}>" >&2
     echo $file1 >&2
     echo $file2 >&2
-    echo $TMP >&2
+    echo $WORKDIR >&2
     echo $NL >&2
     echo $SPLITLINES >&2
 fi
 
-if [ ! $DEBUG ]; then
-    trap 'rm -f ${TMP}.*' 0 2 3 13 14 15
-fi
+# if [ ! $DEBUG ]; then
+#    trap 'rm -rf ${WORKDIR}.*' 0 2 3 13 14 15
+# fi
 
-CMDS_FILE=$TMP.cmds
+CMDS_FILE=$WORKDIR/cmds
 test -f $CMDS_FILE && \rm -f $CMDS_FILE
 
-for src in `ls $TMP.L1.*`; do
-   tgt=`echo $src | perl -pe 's/[.]L1[.]/.L2./o;'`
-   suff=`echo $src | perl -pe 's/.*[.]L1[.]//o;'`
-   echo "gen_phrase_tables -j ${GPTARGS[@]} $src $tgt | gzip > $TMP.$suff.jpt.gz " >> $CMDS_FILE
+for src in `ls $WORKDIR/L1.*`; do
+   tgt=${src/\/L1./\/L2.}
+   suff=${src##*/L1.}
+   echo "set -o pipefail; gen_phrase_tables -j ${GPTARGS[@]} $src $tgt | gzip > $WORKDIR/$suff.jpt.gz " >> $CMDS_FILE
 done
+
+if [ $DEBUG ]; then
+   cat $CMDS_FILE
+fi
 
 if [ -n $VERBOSE ]; then
     echo "run-parallel.sh $VERBOSE $RP_OPTS $CMDS_FILE $NUM_JOBS" >&2
 fi
 
-eval "run-parallel.sh $VERBOSE $RP_OPTS $CMDS_FILE $NUM_JOBS"
+test $NOTREALLY ||
+   eval "run-parallel.sh $VERBOSE $RP_OPTS $CMDS_FILE $NUM_JOBS"
 RC=$?
 if (( $RC != 0 )); then
    echo "problems with run-parallel.sh (status=$RC) - quitting!" >&2
    exit $RC
 fi
 
-zcat $TMP.*.jpt.gz | joint2cond_phrase_tables -ij
+if [ $DEBUG ]; then
+   echo zcat $WORKDIR/*.jpt.gz \| joint2cond_phrase_tables -ij 
+fi
+
+if [ $NOTREALLY ]; then
+   :
+elif [ -n "$OUTFILE" ]; then
+   run-parallel.sh -nolocal -psub "-4" \
+       -e "zcat $WORKDIR/*.jpt.gz | joint2cond_phrase_tables -ij | gzip > $OUTFILE" 1
+else
+   zcat $WORKDIR/*.jpt.gz | joint2cond_phrase_tables -ij
+fi
+
+rm -rf ${WORKDIR}
