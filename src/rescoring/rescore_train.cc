@@ -134,7 +134,7 @@ void train(const ARG& arg);
 
 ////////////////////////////////////////////////////////////////////////////////
 // MAIN
-int main(const Uint argc, const char* const argv[])
+int main(int argc, const char* const argv[])
 {
    printCopyright(2004, "rescore_train");
 #ifdef _OPENMP
@@ -222,7 +222,7 @@ void train(const ARG& arg)
             error(ETFatal, "wrong number of features in weight file %s: found %i, expected %i",
                   arg.weight_infile.c_str(), toks.size() - beg, M);
          powellWeightsIn.push_back(uVector(M));
-         for (Uint i = 0; i < M; ++i) 
+         for (Uint i = 0; i < M; ++i)
             powellWeightsIn.back()[i] = conv<double>(toks[beg+i]);
       }
    }
@@ -253,7 +253,7 @@ void train(const ARG& arg)
       {
          nbest[k].alignment = &alignments[k];
       }
-      if (bNeedsAlignment && (k != K )) 
+      if (bNeedsAlignment && (k != K ))
          error(ETFatal, "unexpected end of nbests file after %d lines (expected %dx%d=%d lines)", s*K+k, S, K, S*K);
 
       LOG_VERBOSE5(verboseLogger, "computing ff matrix for s=%d with K=%d and M=%d", s, K, M);

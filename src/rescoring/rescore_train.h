@@ -12,7 +12,7 @@
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
 */
-            
+
 #ifndef __RESCORE_TRAIN_H__
 #define __RESCORE_TRAIN_H__
 
@@ -26,7 +26,7 @@
 #include <boost/random/variate_generator.hpp>
 
 
-namespace Portage { 
+namespace Portage {
 /// Program rescore_train's namespace.
 /// Prevents pollution in global namespace.
 namespace rescore_train {
@@ -257,7 +257,7 @@ public:
       if (maxNgramsScore > maxNgrams) maxNgramsScore = maxNgrams;
       if (!(maxNgrams > 0) || !(maxNgramsScore))
          error(ETFatal, "You must specify value for y and u greater then 0!");
-               
+
       mp_arg_reader->testAndSet(0, "model_in", model_in);
       mp_arg_reader->testAndSet(1, "model_out", model_out);
       mp_arg_reader->testAndSet(2, "src", src_file);
@@ -273,7 +273,7 @@ public:
             error(ETFatal, "Inconsistency between nbest and src number of lines\n\tnbest: %d, src: %d => K: %d", SK, S, K);
       }
 
-      // K switch is depricated but if user pass a K option 
+      // K switch is depricated but if user pass a K option
       // we check for misusage and validity of K value
       if (mp_arg_reader->getSwitch("K:")) {
          error(ETWarn, "K argument will be ignored, obsolete argument");
