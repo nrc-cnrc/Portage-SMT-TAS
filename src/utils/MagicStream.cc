@@ -124,11 +124,13 @@ using namespace Portage::MagicStream;
 MagicStreamBase::MagicStreamBase(const PipeMode  _p, const OpenMode _b)
 : m_pipeMode(_p)
 , m_bufferMode(_b)
+, Quiet(true)
 {}
 
 MagicStreamBase::MagicStreamBase(const PipeMode  _p, const OpenMode _b, int fd, bool closeAtEnd)
 : m_pipeMode(_p)
 , m_bufferMode(_b)
+, Quiet(true)
 {
    log("Opening from a file descriptor");
    assert(fd != -1);
@@ -148,6 +150,7 @@ MagicStreamBase::MagicStreamBase(const PipeMode  _p, const OpenMode _b, int fd, 
 MagicStreamBase::MagicStreamBase(const PipeMode  _p, const OpenMode _b, FILE* _f, bool closeAtEnd)
 : m_pipeMode(_p)
 , m_bufferMode(_b)
+, Quiet(true)
 {
    log("Opening from a file handle");
    assert(_f != NULL);
