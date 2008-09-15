@@ -362,7 +362,7 @@ void train(const ARG& arg)
    ffset.setWeights(best_wts);
 
    if (arg.bVerbose) {
-      cerr << "Best score: " << best_score << " <=> " << ScoreStats::convertToDisplay(best_score) << endl;
+      cerr << "Best score: " << ScoreStats::convertToDisplay(best_score) << endl;
       cerr << "Using floored & normalized wts=" << best_wts << endl;
    }
 

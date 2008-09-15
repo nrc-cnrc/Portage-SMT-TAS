@@ -122,8 +122,8 @@ struct ErrorRateStats {
     * @return Returns a ErrorRateStats containing this - other
     */
    ErrorRateStats& operator-=(const ErrorRateStats& other) {
-      _changes += other._changes;
-      _reflen  += other._reflen;
+      _changes -= other._changes;
+      _reflen  -= other._reflen;
       return *this;
    }
 
