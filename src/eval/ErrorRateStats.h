@@ -30,6 +30,7 @@ struct ErrorRateStats {
    ErrorRateStats()
    : _changes(0)
    , _reflen(0.0f)
+   , _source_length(0)
    { }
 
    /**
@@ -124,6 +125,7 @@ struct ErrorRateStats {
    ErrorRateStats& operator-=(const ErrorRateStats& other) {
       _changes -= other._changes;
       _reflen  -= other._reflen;
+      _source_length -= _source_length;
       return *this;
    }
 
@@ -137,6 +139,7 @@ struct ErrorRateStats {
    ErrorRateStats& operator+=(const ErrorRateStats& other) {
       _changes += other._changes;
       _reflen  += other._reflen;
+      _source_length += _source_length;
       return *this;
    }
 
