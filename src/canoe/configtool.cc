@@ -13,15 +13,15 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include <file_utils.h>
-#include <arg_reader.h>
+#include "file_utils.h"
+#include "arg_reader.h"
 #ifdef Darwin
 #include <libgen.h>
 #endif
 #include <string.h>
 #include "config_io.h"
-#include <logging.h>
-#include <printCopyright.h>
+#include "logging.h"
+#include "printCopyright.h"
 
 using namespace Portage;
 using namespace std;
@@ -278,13 +278,17 @@ RescoreResult parseRescoreResultsLine(const string& line)
 
    vector<string> ltoks;
    split(line, ltoks, " \n\t", 4);
-   if ( ltoks.size() < 4 || ltoks[0] != "BLEU" || ltoks[1] != "score:" ) {
+   if ( ltoks.size() < 4 || !(ltoks[0] == "BLEU" || ltoks[0] == "PER" || ltoks[0] == "WER") || ltoks[1] != "score:" ) {
       error(ETWarn, "Ignoring ill-formatted rescore result line: %s",
          line.c_str());
       return RescoreResult(0, "");
    } else {
-      RescoreResult rr(conv<double>(ltoks[2]), ltoks[3]);
-      return rr;
+      if (ltoks[0] == "BLEU") {
+         return RescoreResult(conv<double>(ltoks[2]), ltoks[3]);
+      }
+      else {
+         return RescoreResult(-conv<double>(ltoks[2]), ltoks[3]);
+      }
    }
    
 //    int word_wts_count = 0;
