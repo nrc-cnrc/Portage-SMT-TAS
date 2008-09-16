@@ -1,0 +1,303 @@
+(total dist: 21, hyp. length: 37, avg. ref. length: 35.6667)
+Score: -0.588785
+Sentence 1 WER score: 0.588785
+(total dist: 17, hyp. length: 36, avg. ref. length: 30)
+Score: -0.566667
+Sentence 2 WER score: 0.566667
+(total dist: 7, hyp. length: 10, avg. ref. length: 22.3333)
+Score: -0.313433
+Sentence 3 WER score: 0.313433
+(total dist: 12, hyp. length: 13, avg. ref. length: 23.3333)
+Score: -0.514286
+Sentence 4 WER score: 0.514286
+(total dist: 25, hyp. length: 34, avg. ref. length: 28)
+Score: -0.892857
+Sentence 5 WER score: 0.892857
+(total dist: 13, hyp. length: 17, avg. ref. length: 23.6667)
+Score: -0.549296
+Sentence 6 WER score: 0.549296
+(total dist: 24, hyp. length: 42, avg. ref. length: 29.6667)
+Score: -0.808989
+Sentence 7 WER score: 0.808989
+(total dist: 40, hyp. length: 54, avg. ref. length: 33.6667)
+Score: -1.18812
+Sentence 8 WER score: 1.18812
+(total dist: 28, hyp. length: 38, avg. ref. length: 31.3333)
+Score: -0.893617
+Sentence 9 WER score: 0.893617
+(total dist: 15, hyp. length: 18, avg. ref. length: 22.6667)
+Score: -0.661765
+Sentence 10 WER score: 0.661765
+(total dist: 30, hyp. length: 31, avg. ref. length: 28.6667)
+Score: -1.04651
+Sentence 11 WER score: 1.04651
+(total dist: 15, hyp. length: 19, avg. ref. length: 21)
+Score: -0.714286
+Sentence 12 WER score: 0.714286
+(total dist: 26, hyp. length: 29, avg. ref. length: 26.6667)
+Score: -0.975
+Sentence 13 WER score: 0.975
+(total dist: 11, hyp. length: 13, avg. ref. length: 20)
+Score: -0.55
+Sentence 14 WER score: 0.55
+(total dist: 37, hyp. length: 41, avg. ref. length: 28)
+Score: -1.32143
+Sentence 15 WER score: 1.32143
+(total dist: 29, hyp. length: 32, avg. ref. length: 30)
+Score: -0.966667
+Sentence 16 WER score: 0.966667
+(total dist: 0, hyp. length: 4, avg. ref. length: 17.6667)
+Score: -0
+Sentence 17 WER score: 0
+(total dist: 3, hyp. length: 8, avg. ref. length: 19.3333)
+Score: -0.155172
+Sentence 18 WER score: 0.155172
+(total dist: 29, hyp. length: 33, avg. ref. length: 26)
+Score: -1.11538
+Sentence 19 WER score: 1.11538
+(total dist: 7, hyp. length: 4, avg. ref. length: 18.3333)
+Score: -0.381818
+Sentence 20 WER score: 0.381818
+(total dist: 35, hyp. length: 43, avg. ref. length: 29.6667)
+Score: -1.17978
+Sentence 21 WER score: 1.17978
+(total dist: 29, hyp. length: 33, avg. ref. length: 27.3333)
+Score: -1.06098
+Sentence 22 WER score: 1.06098
+(total dist: 12, hyp. length: 14, avg. ref. length: 21)
+Score: -0.571429
+Sentence 23 WER score: 0.571429
+(total dist: 16, hyp. length: 17, avg. ref. length: 22.6667)
+Score: -0.705882
+Sentence 24 WER score: 0.705882
+(total dist: 27, hyp. length: 28, avg. ref. length: 25.3333)
+Score: -1.06579
+Sentence 25 WER score: 1.06579
+(total dist: 1, hyp. length: 4, avg. ref. length: 16)
+Score: -0.0625
+Sentence 26 WER score: 0.0625
+(total dist: 31, hyp. length: 37, avg. ref. length: 31.3333)
+Score: -0.989362
+Sentence 27 WER score: 0.989362
+(total dist: 16, hyp. length: 22, avg. ref. length: 22.6667)
+Score: -0.705882
+Sentence 28 WER score: 0.705882
+(total dist: 0, hyp. length: 1, avg. ref. length: 15)
+Score: -0
+Sentence 29 WER score: 0
+(total dist: 0, hyp. length: 11, avg. ref. length: 18.3333)
+Score: -0
+Sentence 30 WER score: 0
+(total dist: 15, hyp. length: 24, avg. ref. length: 21.6667)
+Score: -0.692308
+Sentence 31 WER score: 0.692308
+(total dist: 62, hyp. length: 86, avg. ref. length: 39.3333)
+Score: -1.57627
+Sentence 32 WER score: 1.57627
+(total dist: 36, hyp. length: 45, avg. ref. length: 30.3333)
+Score: -1.18681
+Sentence 33 WER score: 1.18681
+(total dist: 7, hyp. length: 15, avg. ref. length: 20)
+Score: -0.35
+Sentence 34 WER score: 0.35
+(total dist: 11, hyp. length: 13, avg. ref. length: 19.3333)
+Score: -0.568966
+Sentence 35 WER score: 0.568966
+(total dist: 7, hyp. length: 9, avg. ref. length: 17)
+Score: -0.411765
+Sentence 36 WER score: 0.411765
+(total dist: 5, hyp. length: 10, avg. ref. length: 17.6667)
+Score: -0.283019
+Sentence 37 WER score: 0.283019
+(total dist: 36, hyp. length: 56, avg. ref. length: 33.3333)
+Score: -1.08
+Sentence 38 WER score: 1.08
+(total dist: 14, hyp. length: 19, avg. ref. length: 22)
+Score: -0.636364
+Sentence 39 WER score: 0.636364
+(total dist: 23, hyp. length: 25, avg. ref. length: 23.3333)
+Score: -0.985714
+Sentence 40 WER score: 0.985714
+(total dist: 2, hyp. length: 5, avg. ref. length: 16.3333)
+Score: -0.122449
+Sentence 41 WER score: 0.122449
+(total dist: 13, hyp. length: 11, avg. ref. length: 20.6667)
+Score: -0.629032
+Sentence 42 WER score: 0.629032
+(total dist: 17, hyp. length: 20, avg. ref. length: 23.6667)
+Score: -0.71831
+Sentence 43 WER score: 0.71831
+(total dist: 4, hyp. length: 10, avg. ref. length: 17.3333)
+Score: -0.230769
+Sentence 44 WER score: 0.230769
+(total dist: 11, hyp. length: 14, avg. ref. length: 19)
+Score: -0.578947
+Sentence 45 WER score: 0.578947
+(total dist: 25, hyp. length: 27, avg. ref. length: 24.3333)
+Score: -1.0274
+Sentence 46 WER score: 1.0274
+(total dist: 22, hyp. length: 22, avg. ref. length: 25.6667)
+Score: -0.857143
+Sentence 47 WER score: 0.857143
+(total dist: 33, hyp. length: 38, avg. ref. length: 30)
+Score: -1.1
+Sentence 48 WER score: 1.1
+(total dist: 37, hyp. length: 41, avg. ref. length: 31.3333)
+Score: -1.18085
+Sentence 49 WER score: 1.18085
+(total dist: 14, hyp. length: 14, avg. ref. length: 22)
+Score: -0.636364
+Sentence 50 WER score: 0.636364
+(total dist: 11, hyp. length: 13, avg. ref. length: 18.3333)
+Score: -0.6
+Sentence 51 WER score: 0.6
+(total dist: 16, hyp. length: 22, avg. ref. length: 19.6667)
+Score: -0.813559
+Sentence 52 WER score: 0.813559
+(total dist: 31, hyp. length: 34, avg. ref. length: 28.6667)
+Score: -1.0814
+Sentence 53 WER score: 1.0814
+(total dist: 29, hyp. length: 34, avg. ref. length: 29.3333)
+Score: -0.988636
+Sentence 54 WER score: 0.988636
+(total dist: 0, hyp. length: 15, avg. ref. length: 20.3333)
+Score: -0
+Sentence 55 WER score: 0
+(total dist: 23, hyp. length: 39, avg. ref. length: 25.3333)
+Score: -0.907895
+Sentence 56 WER score: 0.907895
+(total dist: 21, hyp. length: 36, avg. ref. length: 24.3333)
+Score: -0.863014
+Sentence 57 WER score: 0.863014
+(total dist: 27, hyp. length: 33, avg. ref. length: 23.6667)
+Score: -1.14085
+Sentence 58 WER score: 1.14085
+(total dist: 21, hyp. length: 25, avg. ref. length: 20)
+Score: -1.05
+Sentence 59 WER score: 1.05
+(total dist: 7, hyp. length: 11, avg. ref. length: 18.6667)
+Score: -0.375
+Sentence 60 WER score: 0.375
+(total dist: 18, hyp. length: 26, avg. ref. length: 21)
+Score: -0.857143
+Sentence 61 WER score: 0.857143
+(total dist: 42, hyp. length: 60, avg. ref. length: 30.6667)
+Score: -1.36957
+Sentence 62 WER score: 1.36957
+(total dist: 33, hyp. length: 55, avg. ref. length: 32)
+Score: -1.03125
+Sentence 63 WER score: 1.03125
+(total dist: 12, hyp. length: 20, avg. ref. length: 22)
+Score: -0.545455
+Sentence 64 WER score: 0.545455
+(total dist: 18, hyp. length: 26, avg. ref. length: 23.3333)
+Score: -0.771429
+Sentence 65 WER score: 0.771429
+(total dist: 10, hyp. length: 16, avg. ref. length: 19.3333)
+Score: -0.517241
+Sentence 66 WER score: 0.517241
+(total dist: 23, hyp. length: 32, avg. ref. length: 24.3333)
+Score: -0.945205
+Sentence 67 WER score: 0.945205
+(total dist: 45, hyp. length: 62, avg. ref. length: 29.3333)
+Score: -1.53409
+Sentence 68 WER score: 1.53409
+(total dist: 22, hyp. length: 37, avg. ref. length: 23.3333)
+Score: -0.942857
+Sentence 69 WER score: 0.942857
+(total dist: 15, hyp. length: 32, avg. ref. length: 23.3333)
+Score: -0.642857
+Sentence 70 WER score: 0.642857
+(total dist: 14, hyp. length: 24, avg. ref. length: 23.3333)
+Score: -0.6
+Sentence 71 WER score: 0.6
+(total dist: 21, hyp. length: 29, avg. ref. length: 23)
+Score: -0.913043
+Sentence 72 WER score: 0.913043
+(total dist: 13, hyp. length: 21, avg. ref. length: 24)
+Score: -0.541667
+Sentence 73 WER score: 0.541667
+(total dist: 23, hyp. length: 40, avg. ref. length: 28.6667)
+Score: -0.802326
+Sentence 74 WER score: 0.802326
+(total dist: 23, hyp. length: 32, avg. ref. length: 23.3333)
+Score: -0.985714
+Sentence 75 WER score: 0.985714
+(total dist: 11, hyp. length: 22, avg. ref. length: 21.3333)
+Score: -0.515625
+Sentence 76 WER score: 0.515625
+(total dist: 20, hyp. length: 27, avg. ref. length: 23.3333)
+Score: -0.857143
+Sentence 77 WER score: 0.857143
+(total dist: 26, hyp. length: 35, avg. ref. length: 24)
+Score: -1.08333
+Sentence 78 WER score: 1.08333
+(total dist: 16, hyp. length: 32, avg. ref. length: 24)
+Score: -0.666667
+Sentence 79 WER score: 0.666667
+(total dist: 0, hyp. length: 4, avg. ref. length: 16.3333)
+Score: -0
+Sentence 80 WER score: 0
+(total dist: 3, hyp. length: 10, avg. ref. length: 19)
+Score: -0.157895
+Sentence 81 WER score: 0.157895
+(total dist: 12, hyp. length: 20, avg. ref. length: 21.3333)
+Score: -0.5625
+Sentence 82 WER score: 0.5625
+(total dist: 3, hyp. length: 7, avg. ref. length: 18.3333)
+Score: -0.163636
+Sentence 83 WER score: 0.163636
+(total dist: 33, hyp. length: 45, avg. ref. length: 30)
+Score: -1.1
+Sentence 84 WER score: 1.1
+(total dist: 20, hyp. length: 30, avg. ref. length: 27.3333)
+Score: -0.731707
+Sentence 85 WER score: 0.731707
+(total dist: 7, hyp. length: 22, avg. ref. length: 23)
+Score: -0.304348
+Sentence 86 WER score: 0.304348
+(total dist: 3, hyp. length: 6, avg. ref. length: 18.6667)
+Score: -0.160714
+Sentence 87 WER score: 0.160714
+(total dist: 5, hyp. length: 6, avg. ref. length: 19.3333)
+Score: -0.258621
+Sentence 88 WER score: 0.258621
+(total dist: 10, hyp. length: 12, avg. ref. length: 21.3333)
+Score: -0.46875
+Sentence 89 WER score: 0.46875
+(total dist: 11, hyp. length: 13, avg. ref. length: 20.6667)
+Score: -0.532258
+Sentence 90 WER score: 0.532258
+(total dist: 4, hyp. length: 5, avg. ref. length: 19)
+Score: -0.210526
+Sentence 91 WER score: 0.210526
+(total dist: 14, hyp. length: 20, avg. ref. length: 23.3333)
+Score: -0.6
+Sentence 92 WER score: 0.6
+(total dist: 0, hyp. length: 4, avg. ref. length: 19)
+Score: -0
+Sentence 93 WER score: 0
+(total dist: 7, hyp. length: 14, avg. ref. length: 23)
+Score: -0.304348
+Sentence 94 WER score: 0.304348
+(total dist: 6, hyp. length: 16, avg. ref. length: 22.3333)
+Score: -0.268657
+Sentence 95 WER score: 0.268657
+(total dist: 27, hyp. length: 36, avg. ref. length: 27.6667)
+Score: -0.975904
+Sentence 96 WER score: 0.975904
+(total dist: 0, hyp. length: 4, avg. ref. length: 19.3333)
+Score: -0
+Sentence 97 WER score: 0
+(total dist: 1, hyp. length: 13, avg. ref. length: 23.6667)
+Score: -0.0422535
+Sentence 98 WER score: 0.0422535
+(total dist: 6, hyp. length: 17, avg. ref. length: 26.3333)
+Score: -0.227848
+Sentence 99 WER score: 0.227848
+(total dist: 3, hyp. length: 10, avg. ref. length: 27.6667)
+Score: -0.108434
+Sentence 100 WER score: 0.108434
+(total dist: 1716, hyp. length: 0, avg. ref. length: 2378.33)
+Score: -0.721514
+WER score: 0.721514 +/- 0.0765569
