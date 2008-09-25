@@ -80,6 +80,8 @@ BINSCRIPTS = \
         reverseffvals.pl \
         run-after.sh \
         run-parallel.sh \
+        r-parallel-d.pl  \
+        r-parallel-worker.pl \
         run-parallel-d.pl \
         sort-by-length.pl \
         split-listed.pl \
@@ -90,8 +92,7 @@ BINSCRIPTS = \
         trans-search.pl \
         uc-first.pl \
         uncombine.pl \
-        which-test.sh \
-        worker.pl
+        which-test.sh
 
 INFOFILES =
 

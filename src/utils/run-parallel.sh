@@ -1,20 +1,20 @@
-#!/bin/bash
+#!/bin/bash -k
 # $Id$
 
 # run-parallel.sh - runs a series of jobs provided as STDIN on parallel
-#                   distributed workers managed by faucet.pl / worker.pl.
+#                   distributed workers managed by r-parallel-d.pl and
+#                   r-parallel-worker.pl.
 #
 # PROGRAMMER: Eric Joanis
 #
 # COMMENTS:
 #
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
 
-echo 'run-parallel.sh, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada' >&2
 
 usage() {
    for msg in "$@"; do
@@ -22,14 +22,14 @@ usage() {
    done
    cat <<==EOF== >&2
 
-Usage: run-parallel.sh [options] <file_of_commands> <N>
-       run-parallel.sh [options] -e <cmd1> [-e <cmd2> ...] <N>
-       run-parallel.sh add <M> <JOB_ID>
-       run-parallel.sh quench <M> <JOB_ID>
+Usage: run-parallel.sh [options] FILE_OF_COMMANDS N
+       run-parallel.sh [options] -e CMD1 [-e CMD2 ...] N
+       run-parallel.sh [options] -c CMD CMD_OPTS
+       run-parallel.sh {add M,quench M,kill} JOB_ID
 
-  Execute commands on <N> parallel workers, each submitted with psub on a
-  cluster, or run as background tasks otherwise.  Except in -basic mode,
-  keeps the CPUs constantly busy until all jobs are completed.
+  Execute commands on N parallel workers, each submitted with psub on a
+  cluster, or run as background tasks otherwise.  Keeps the CPUs constantly
+  busy until all jobs are completed.
 
 Exit status:
   0: all OK
@@ -39,50 +39,80 @@ Exit status:
 
 Arguments:
 
-  <file_of_commands>  A file with exactly one command per line, in valid
-      bash syntax.  (Use - for STDIN.)  Each command may include redirections
-      and pipes, will run in the current directory, and will be aware of the
-      current value of PATH.  Commands will run in an arbitrary order.  Each
-      command should explicitly redirect its output, or risk losing it.
+  FILE_OF_COMMANDS  A file with one command per line (escape the newline with
+      \ to insert multi-line commands), in valid bash syntax.  Use - for
+      stdin.  Each command may include redirections and pipes, will run in the
+      current directory, and will be aware of the current value of PATH.
+      Commands may run in an arbitrary order.  Each command should explicitly
+      redirect its output, otherwise it goes in the bit bucket by default.
 
-  <cmd#> A command, properly quoted.  Specifying -e once or more is equivalent
-      to specifying a <file_of_commands> with one or more lines.  This option
-      is provided so that run-parallel.sh can be used as a "blocking" psub.
-          run-parallel.sh -nolocal -e <cmd>
-      is equivalent to "psub <cmd>" except that, unlike psub, it only returns
-      when <cmd> has finished running, and the exit status of run-parallel.sh
-      will be 0 iff the exit status of <cmd> was 0.
+  or
 
-  <N> Number of workers to launch (may differ from the number of commands).
+  -e CMD#  A command, properly quoted.  Specifying -e once or more is
+      equivalent to specifying a FILE_OF_COMMANDS with one or more lines.
+      This option is provided so that run-parallel.sh can be used as a
+      "blocking" psub:
+          run-parallel.sh -nolocal -e "CMD CMD_OPTS" 1
+      is equivalent to "psub CMD CMD_OPTS" except that, unlike psub, it
+      only returns when CMD has finished running, and the exit status of
+      run-parallel.sh will be 0 iff the exit status of CMD was 0.
+ 
+  or
+
+  -c CMD CMD_OPTS is equivalent to -e "CMD CMD_OPTS" 1.  When -c is
+      found, the rest of the command line is the command to execute.  Implies
+      -q -nolocal and N = 1.  Special characters must still be escaped:
+          run-parallel -c CMD CMD_OPTS \> OUTPUT_FILE
+      is a more convenient solution to the blocking psub problem.
+      Note: set SHELL=run-parallel.sh in a Makefile to run all commands on the
+      cluster.  Parallelize with make -j N.  The Makefile should not need any
+      further modifications since make handles pipes and redirection correctly.
+      With -c, run-parallel.sh works as much as possible as sh -c: the exit
+      status, stderr and stdout are that of the command itself.
+      Use RP_PSUB_OPTS="any psub opts" in from of a command in a Makefile to
+      change the behavior of psub.
+
+  N Number of workers to launch (may differ from the number of commands).
 
 General options:
 
+  -p PFX        Work dir prefix [].
+                It's the user responsability to delete <PFX> as it may contain
+                other useful file from other scripts.
   -h(elp)       Print this help message.
   -d(ebug)      Print debugging information.
   -q(uiet)      Quiet mode only prints commands executed.
+  -v(erbose)    Increase verbosity level.  If specified once, show the deamon's
+                logs, each worker's logs, etc.  Yet more output is produced if
+                specified twice.
+  -on-error ACTION  Specifies how to proceed when a command is reported to
+                have failed (i.e., its exit code is not 0); ACTION may be:
+       continue Ignore return codes and execute all commands anyway [default]
+       stop     Let commands that have started end, but don't launch any more
+       killall  Kill all workers immediately and exit
 
 Cluster mode options:
 
-  -highmem      Use 2 CPUs per worker, for extra extra memory.  [default is
-                to propagate the number of CPUs requested by master job]
+  -N            adds a user defined name to the workers. []
+                Useful when using run-parallel.sh -nolocal -e "job" 1
+  -nolowpri     Do not use the "low priority queue" (useful if you need
+                extra memory on Venus)
+  -highmem      Use 2 CPUs per worker, for extra extra memory.  (Implies
+                -nolowpri.) [propagate the number of CPUs of master job]
   -nohighmem    Use only 1 CPU per worker, even if master job had more.
-  -nolocal      psub all workers (by default, one worker is run locally)
-  -nocluster    force non-cluster mode
+  -nolocal      psub all workers [run one worker locally, unless on head node] 
+  -nocluster    force non-cluster mode [auto-detect if we're on a cluster]
   -quota T      When workers have done T minutes of work, re-psub them [60]
   -psub         Provide custom psub options.
   -qsub         Provide custom qsub options.
-  -basic        force basic mode (without socket/deamon); implies -nocluster.
-                runs jobs in the background locally - for fast jobs (lasting a
-                few seconds or less), this will be faster than the regular
-                mode, which incurs an overhead of a few seconds for each job.
 
 Dynamic options:
 
-  To add M new workers on the fly, identify the PBS job id of the master, or
-  the <long_prefix>.psub_cmd file where it is running, and run:
-     run-parallel.sh add M <PBS job id>
+  To add M new workers on the fly, identify the PBS_JOBID of the master, or
+  the run-p.SUFFIX/psub_cmd file where it is running, and run:
+     run-parallel.sh add M PBS_JOBID
   or
-     run-parallel.sh add M <long_prefix>.psub_cmd
+     run-parallel.sh add M run-p.SUFFIX/psub_cmd
 
   To quench the process and remove M workers, replace "add" by "quench".
 
@@ -107,29 +137,73 @@ arg_check() {
    fi
 }
 
+# Print a warning message
+warn()
+{
+   echo "WARNING: $*" >&2
+}
+
+MY_HOST=`hostname`
+
+# Return 0 (true) if we're running on a head node, 1 (false) otherwise
+on_head_node()
+{
+   if [[ $MY_HOST == balzac || $MY_HOST == venus ]]; then
+      return 0
+   else
+      return 1
+   fi
+}
+
 NUM=
+NOLOWPRI=
 HIGHMEM=
 NOHIGHMEM=
 NOLOCAL=
+if on_head_node; then NOLOCAL=1; fi
 NOCLUSTER=
 VERBOSE=1
 DEBUG=
 SAVE_ARGS="$@"
 CMD_FILE=
 CMD_LIST=
+EXEC=
 QUOTA=
-MY_HOST=`hostname`
-TMP_FILE_NAME=`/usr/bin/uuidgen -t`.${PBS_JOBID-local};
-JOBSET_FILENAME=$TMP_FILE_NAME.jobs
+PREFIX=""
+JOB_NAME=
+JOBSET_FILENAME=`/usr/bin/uuidgen`.jobs
+ON_ERROR=continue
+#TODO: run-parallel.sh -c RP_ARGS -... -... {-exec | -c} cmd args
+# This would allow a job in a Makefile, which uses SHELL = run-parallel.sh, to
+# specify some parameters other than the default.
 while [ $# -gt 0 ]; do
    case "$1" in
-   -e)             CMD_LIST="$CMD_LIST:$2"; echo "$2">>$JOBSET_FILENAME
-                   shift;;
-   -highmem)       HIGHMEM=1;;
+   -p)             arg_check 1 $# $1; PREFIX="$2"; shift;;
+   -e)             arg_check 1 $# $1; CMD_LIST=1
+                   echo "$2" >> $JOBSET_FILENAME; shift;;
+   -exec|-c)       arg_check 1 $# $1; shift; NOLOCAL=1; EXEC=1
+                   VERBOSE=$(( $VERBOSE - 1 ))
+                   # Special case for make's sake - make invokes uname -s twice
+                   # before executing each and every command!
+                   test "$*" = "uname -s" && exec $*
+
+                   # Thanks germannu for the following regex :D
+                   #echo $* | perl -ne '/RP_PSUB_OPTS=(([\x22\x27]).*?[^\\]\2|[^ \x22\x27\n]+)/; print "$1\n";'
+                   # Needs some extra escaping for \ and we also remove extra quoting.
+                   RP_PSUB_OPTS=`echo $* | perl -ne '/RP_PSUB_OPTS=(([\x22\x27]).*?[^\\\\]\2|[^ \x22\x27\n]+)/; print "$1\n";' | sed -e 's/^[\x22\x27]//' -e 's/[\x22\x27]$//'`
+
+                   test -n "$DEBUG" && echo "  <D> RP_PSUB_OPTS: $RP_PSUB_OPTS";
+                   test -n "$DEBUG" && echo "  <D> all: $*"
+                   PSUBOPTS="$PSUBOPTS $RP_PSUB_OPTS";
+                   echo "$*" >> $JOBSET_FILENAME;
+                   break;;
+   -nolowpri)      NOLOWPRI=1;;
+   -highmem)       NOLOWPRI=1; HIGHMEM=1;;
    -nohighmem)     NOHIGHMEM=1;;
    -nolocal)       NOLOCAL=1;;
    -nocluster)     NOCLUSTER=1;;
-   -basic)         BASIC_MODE=1;;
+   -on-error)      arg_check 1 $# $1; ON_ERROR="$2"; shift;;
+   -N)             arg_check 1 $# $1; JOB_NAME="$2-"; shift;;
    -quota)         arg_check 1 $# $1; QUOTA="$2"; shift;;
    -psub|-psub-opts|-psub-options)
                    arg_check 1 $# $1; PSUBOPTS="$PSUBOPTS $2"; shift;;
@@ -144,6 +218,7 @@ while [ $# -gt 0 ]; do
    shift
 done
 
+# Special commands pre-empt normal operation
 if [ "$1" = add -o "$1" = quench -o "$1" = kill ]; then
    # Special command to dynamically add or remove worders to/from a job in
    # progress
@@ -180,7 +255,7 @@ if [ "$1" = add -o "$1" = quench -o "$1" = kill ]; then
       '`
       echo Job ID: $JOB_ID
       echo Job Path: $JOB_PATH
-      CMD_FILE=`\ls $JOB_PATH/*.$JOB_ID*.psub_cmd 2> /dev/null`
+      CMD_FILE=`\ls $JOB_PATH/*.$JOB_ID*/psub_cmd 2> /dev/null`
       if [ ! -f "$CMD_FILE" ]; then
          error_exit "Can't find command file for job $JOB_ID"
       fi
@@ -194,26 +269,28 @@ if [ "$1" = add -o "$1" = quench -o "$1" = kill ]; then
    echo Host: $HOST:$PORT
 
    if [ $REQUEST_TYPE = add ]; then
-      RESPONSE=`echo ADD $NUM | netcat "$HOST" "$PORT"`
+      RESPONSE=`echo ADD $NUM | r-parallel-worker.pl -netcat -host $HOST -port $PORT`
       if [ "$RESPONSE" != ADDED ]; then
-         error_exit "Faucet error (response=$RESPONSE), add request failed."
+         error_exit "Deamon error (response=$RESPONSE), add request failed."
       fi
-      if [ "`echo PING | netcat \"$HOST\" \"$PORT\"`" != "PONG" ]; then
-         echo "Faucet does not appear to be running, request completed" \
-              "but likely won't work."
+      # Ping the deamon to make it launch the first extra worker requested;
+      # the rest will get added as the extra workers request their jobs.
+      if [ "`echo PING | r-parallel-worker.pl -netcat -host $HOST -port $PORT`" != "PONG" ]; then
+         echo "Deamon does not appear to be running; request completed" \
+              "but likely won't do anything."
          exit 1
       fi
    elif [ $REQUEST_TYPE = quench ]; then
-      RESPONSE=`echo QUENCH $NUM | netcat "$HOST" "$PORT"`
+      RESPONSE=`echo QUENCH $NUM | r-parallel-worker.pl -netcat -host $HOST -port $PORT`
       if [ "$RESPONSE" != QUENCHED ]; then
-         error_exit "Faucet error (response=$RESPONSE), quench request failed."
+         error_exit "Deamon error (response=$RESPONSE), quench request failed."
       fi
    elif [ $REQUEST_TYPE = kill ]; then
-      RESPONSE=`echo KILL | netcat "$HOST" "$PORT"`
+      RESPONSE=`echo KILL | r-parallel-worker.pl -netcat -host $HOST -port $PORT`
       if [ "$RESPONSE" != KILLED ]; then
-         error_exit "Faucet error (response=$RESPONSE), kill request failed."
+         error_exit "Deamon error (response=$RESPONSE), kill request failed."
       fi
-      echo "Killing faucet and all workers (will take several seconds)."
+      echo "Killing deamon and all workers (will take several seconds)."
       exit 0
    else
       error_exit "Internal script error - invalid request type: $REQUEST_TYPE."
@@ -224,6 +301,53 @@ if [ "$1" = add -o "$1" = quench -o "$1" = kill ]; then
    exit 0
 fi
 
+# Process clean up at exit or kill - set this trap early enough that we 
+# clean up no matter what happens.
+trap '
+   if [ -n "$WORKER_JOBIDS" ]; then
+      qdel `cat $WORKER_JOBIDS` >& /dev/null
+   fi
+   if ps -p $DEAMON_PID >& /dev/null; then
+      kill $DEAMON_PID
+   fi
+   for x in $WORKDIR/log.worker-*; do
+      if [ -f $x ]; then
+         echo $x >> run-parallel-logs-${PBS_JOBID-local}
+         echo "" >> run-parallel-logs-${PBS_JOBID-local}
+         cat $x >> run-parallel-logs-${PBS_JOBID-local}
+         echo "" >> run-parallel-logs-${PBS_JOBID-local}
+      fi
+   done
+   rm -rf psub-dummy-output* $WORKDIR
+   exit
+' 0 2 3 13 14 15
+
+# Create a temp directory for all temp files to go into.
+WORKDIR=""
+for attempt in 1 2 3; do
+   if [ $PBS_JOBID ]; then
+      SHORT_JOB_ID=${PBS_JOBID:0:13}
+   else
+      SHORT_JOB_ID=$$.local
+   fi
+   SHORT_RANDOM_STR=`/usr/bin/uuidgen | md5sum | cut -c1-6`
+   TMP_DIR_NAME=${PREFIX}run-p.$SHORT_RANDOM_STR.$SHORT_JOB_ID
+   if mkdir -p $TMP_DIR_NAME; then
+      WORKDIR=$TMP_DIR_NAME
+      break
+   else
+      echo "Could not create temp dir - trying a different name" >&2
+   fi
+done
+if [ ! $WORKDIR ]; then
+   error_exit "Giving up after three failed attemps to create a temp dir."
+fi
+if [ ! -d $WORKDIR ]; then
+   error_exit "Created temp dir $WORKDIR, but somehow it doesn't exist!"
+fi
+test -f $JOBSET_FILENAME && mv $JOBSET_FILENAME $WORKDIR/jobs
+JOBSET_FILENAME=$WORKDIR/jobs
+
 if which-test.sh qsub; then
    CLUSTER=1
 else
@@ -233,29 +357,47 @@ if [ $NOCLUSTER ]; then
    CLUSTER=
 fi
 
+if [ "$ON_ERROR" != continue -a \
+     "$ON_ERROR" != stop -a \
+     "$ON_ERROR" != killall ]; then
+   error_exit "Invalid -on-error specification: $ON_ERROR"
+fi
+
 # save instructions from STDIN into instruction set
-if [ -n "$CMD_LIST" ]; then
-   test $# -eq 0   && error_exit "Missing <N> argument"
+if [ $EXEC ]; then
+   test -n "$CMD_LIST" && error_exit "Can't use -e and -exec together"
+   NUM=1
+elif [ -n "$CMD_LIST" ]; then
+   test $# -eq 0       && error_exit "Missing mandatory N argument"
+   test $# -gt 1       && error_exit "Can't use command file ($1) and -e together"
    NUM=$1;      shift
-   test -n "$CMD_FILE" && error_exit "Can't use a file when using -e option $CMD_FILE as a file"
 else
-   test $# -eq 0   && error_exit "Missing commands file and <N> arguments"
-   test $# -eq 1   && error_exit "Missing <N> argument"
+   test $# -eq 0       && error_exit "Missing command file and <N> arguments"
+   test $# -eq 1       && error_exit "Missing mandatory N argument"
 
    CMD_FILE=$1; shift
    NUM=$1;      shift
+
+   test $# -gt 0       && error_exit "Superfluous argument(s): $*"
 
    test X"$CMD_FILE" \!= X- -a \! -r "$CMD_FILE" &&
       error_exit "Can't read $CMD_FILE"
    cat $CMD_FILE > $JOBSET_FILENAME
 fi
+
+# Replace escaped newlines by spaces, to allow commands to occur on multiple
+# lines, and also remove & since it doesn't make sense and would cause the
+# process to be killed before it can run to completion.
+perl -pe 'if ( s/\\$/ / ) { chop } else { s/ *\& *$// }' \
+   < $JOBSET_FILENAME > $JOBSET_FILENAME.tmp
+mv $JOBSET_FILENAME.tmp $JOBSET_FILENAME ||
+   error_exit "Can't move $JOBSET_FILENAME.tmp to $JOBSET_FILENAME"
+
 NUM_OF_INSTR=$(wc -l < $JOBSET_FILENAME)
 
 
-test $# -gt 0   && error_exit "Superfluous arguments $*"
-test -z "$NUM"  && error_exit "Mandatory N argument is missing"
 test $((NUM + 0)) != $NUM &&
-   error_exit "Mandatory N argument must be numerical"
+   error_exit "Invalid N argument: $NUM; must be numerical"
 if [ -n "$QUOTA" ]; then
    test $((QUOTA + 0)) != $QUOTA &&
       error_exit "Value for -quota option must be numerical"
@@ -267,35 +409,36 @@ if [ $VERBOSE -gt 1 ]; then
    echo Starting run-parallel.sh \(pid $$\) on `hostname` on `date` >&2
    echo $0 $SAVE_ARGS >&2
    echo Using: >&2
-   which run-parallel-d.pl worker.pl psub >&2
+   which r-parallel-d.pl r-parallel-worker.pl psub >&2
    echo "" >&2
 fi
 
 if [ $DEBUG ]; then
    echo "
-   NUM=$NUM
-   HIGHMEM=$HIGHMEM
-   NOHIGHMEM=$NOHIGHMEM
-   PSUBOPTS=$PSUBOPTS
-   QSUBOPTS=$QSUBOPTS
-   VERBOSE=$VERBOSE
-   DEBUG=$DEBUG
-   CMD_FILE=$CMD_FILE
-   CMD_LIST=$CMD_LIST
+   NUM       = $NUM
+   NOLOWPRI  = $NOLOWPRI
+   HIGHMEM   = $HIGHMEM
+   NOHIGHMEM = $NOHIGHMEM
+   NOLOCAL   = $NOLOCAL
+   NOCLUSTER = $NOCLUSTER
+   SAVE_ARGS = $SAVE_ARGS
+   PSUBOPTS  = $PSUBOPTS
+   QSUBOPTS  = $QSUBOPTS
+   VERBOSE   = $VERBOSE
+   DEBUG     = $DEBUG
+   EXEC      = $EXEC
+   QUOTA     = $QUOTA
+   PREFIX    = $PREFIX
+   JOB_NAME  = $JOB_NAME
+   ON_ERROR  = $ON_ERROR
+   CMD_FILE  = $CMD_FILE
+   CMD_LIST  = $CMD_LIST
+   JOBSET_FILENAME = $JOBSET_FILENAME
 " >&2
 fi
 
 # Enable job control
 #set -m
-
-# Process clean up on exit or kill
-trap '
-   if [ -n "$WORKER_JOBIDS" ]; then
-      qdel `cat $WORKER_JOBIDS` >& /dev/null
-   fi
-   rm -f psub-dummy-output $TMP_FILE_NAME.*
-   exit
-' 0 2 3 13 14 15
 
 
 if [ $NUM_OF_INSTR = 0 ]; then
@@ -308,80 +451,77 @@ if [ $NUM_OF_INSTR -lt $NUM ]; then
    NUM=$NUM_OF_INSTR
 fi
 
-# Fall-back mode in case netcat is not installed
-NO_NETCAT=0
-if ! which-test.sh netcat; then
-   NO_NETCAT=1
-fi
-
-if [ $NO_NETCAT = 1 -o -n "$BASIC_MODE" ]; then
-   # We don't have the full facilities, run in basic mode: all jobs in the
-   # background.
-   if [ $NUM -lt $NUM_OF_INSTR -a -z "$BASIC_MODE" ]; then
-      echo \
-"Run-parallel warning:  netcat not found - running in basic mode.
-        Install netcat for optimal performance.
-" >&2
-   fi
-
-   perl -e '
-      my $num = shift;
-      my @cmds = <>; chomp @cmds;
-      my $script = "";
-      foreach my $i (0 .. $#cmds) {
-         $script .= "wait\n" if ($i > 0 && $i % $num == 0);
-         $script .= "($cmds[$i]) &\n";
-      }
-      $script .= "wait";
-      print $script, "\n";
-      system($script);
-   ' $NUM $JOBSET_FILENAME >&2
-   exit
-fi
-
-
 if [ $VERBOSE -gt 1 ]; then
-   run-parallel-d.pl $TMP_FILE_NAME &
+   r-parallel-d.pl -on-error $ON_ERROR $WORKDIR &
    DEAMON_PID=$!
 elif [ $VERBOSE -gt 0 ]; then
-   run-parallel-d.pl $TMP_FILE_NAME 2>&1 | egrep '\] ([0-9/]* DONE.*|starting) \(' 1>&2 &
+   r-parallel-d.pl -on-error $ON_ERROR $WORKDIR 2>&1 | 
+      egrep --line-buffered 'FATAL ERROR|\] ([0-9/]* DONE|starting|Non-zero)' 1>&2 &
    DEAMON_PID=$!
 else
-   run-parallel-d.pl $TMP_FILE_NAME >& /dev/null &
+   r-parallel-d.pl -on-error $ON_ERROR $WORKDIR 2>&1 | 
+      egrep --line-buffered 'FATAL ERROR' 1>&2 &
    DEAMON_PID=$!
 fi
 
 # make sure we have a server listening, by sending a ping
+connect_delay=0
 while true; do
    sleep 1
-   MY_PORT=`cat $TMP_FILE_NAME.port`
-   if [ $VERBOSE -gt 1 ]; then
-      echo Pinging $MY_HOST:$MY_PORT >&2
+   if [[ -f $WORKDIR/port ]]; then
+      MY_PORT=`cat $WORKDIR/port 2> /dev/null`
+   else
+      MY_PORT=
    fi
-   if [ "`echo PING | netcat $MY_HOST $MY_PORT`" = PONG ]; then
-      # faucet responded correctly, we're good to go now.
-      break
+   connect_delay=$((connect_delay + 1))
+   if [ -z "$MY_PORT" ]; then
+      if [[ $connect_delay -ge 10 ]]; then
+         echo No deamon yet after $connect_delay seconds - still trying >&2
+      fi
+      if [[ $connect_delay -ge 15 ]]; then
+         # after 15 seconds, slow down to trying every 5 seconds
+         sleep 4;
+         connect_delay=$((connect_delay + 4))
+      fi
+      if [[ $connect_delay -ge 60 ]]; then
+         # after 60 seconds, slow down to trying every 15 seconds
+         sleep 10; 
+         connect_delay=$((connect_delay + 10))
+      fi
+      if [[ $connect_delay -ge 1200 ]]; then
+         error_exit "Can't get a deamon, giving up"
+      fi
+   else
+      if [[ $VERBOSE -gt 1 ]]; then
+         echo Pinging $MY_HOST:$MY_PORT >&2
+      fi
+      if [ "`echo PING | r-parallel-worker.pl -netcat -host $MY_HOST -port $MY_PORT`" = PONG ]; then
+         if [ $connect_delay -gt 10 ]; then
+            echo Finally got a deamon after $connect_delay seconds >&2
+         fi
+         # deamon responded correctly, we're good to go now.
+         break
+      fi
    fi
 done
 
 if [ $VERBOSE -gt 1 ]; then
-   echo faucet launched successfully on $MY_HOST:$MY_PORT >&2
+   echo Deamon launched successfully on $MY_HOST:$MY_PORT >&2
 fi
 
 if [ $HIGHMEM ]; then
    # For high memory, request two CPUs per worker with ncpus=2.
-   PSUBOPTS="$PSUBOPTS -2"
+   PSUBOPTS="-2 $PSUBOPTS"
 elif [ -z "$NOHIGHMEM" -a -n "$PBS_JOBID" ]; then
-   if which qstat >& /dev/null; then
-      if qstat -f $PBS_JOBID 2> /dev/null | grep -q 1:ppn=2 >& /dev/null; then
-         echo Master was submitted with 2 CPUs, propagating to workers >&2
-         PSUBOPTS="$PSUBOPTS -2"
-      elif qstat -f $PBS_JOBID 2> /dev/null | grep -q 1:ppn=3 >& /dev/null; then
-         echo Master was submitted with 3 CPUs, propagating to workers >&2
-         PSUBOPTS="$PSUBOPTS -3"
-      elif qstat -f $PBS_JOBID 2> /dev/null | grep -q 1:ppn=4 >& /dev/null; then
-         echo Master was submitted with 4 CPUs, propagating to workers >&2
-         PSUBOPTS="$PSUBOPTS -4"
+   if which-test.sh qstat; then
+      PARENT_NCPUS=` \
+         qstat -f $PBS_JOBID 2> /dev/null |
+         perl -nle 'if ( /1:ppn=(\d+)/ ) { print $1; exit }'`
+      if [ $PARENT_NCPUS ]; then
+         echo Master was submitted with $PARENT_NCPUS CPUs, \
+              propagating to workers >&2
+         PSUBOPTS="-$PARENT_NCPUS $PSUBOPTS"
+         NOLOWPRI=1
       fi
    fi
 fi
@@ -393,8 +533,16 @@ if [ -z "$MASTER_PRIORITY" ]; then
    MASTER_PRIORITY=0
 fi
 #echo MASTER_PRIORITY $MASTER_PRIORITY
-PSUBOPTS="$PSUBOPTS -p $((MASTER_PRIORITY - 1))"
+PSUBOPTS="-p $((MASTER_PRIORITY - 1)) $PSUBOPTS"
 #echo PSUBOPTS $PSUBOPTS
+
+if [ ! $NOLOWPRI ]; then
+   # By default specify ckpt=1, which means the job can run on borrowed nodes
+   # Do this only on venus
+   if pbsnodes -a 2> /dev/null | grep -q vns ; then
+      PSUBOPTS="-l cpkt=1 $PSUBOPTS"
+   fi
+fi
 
 
 # The psub command is fairly complex, so here it is documented in
@@ -402,9 +550,11 @@ PSUBOPTS="$PSUBOPTS -p $((MASTER_PRIORITY - 1))"
 #
 # Elements specified through SUBMIT_CMD:
 #
-#  - -e psub-dummy-output -o psub-dummy-output: overrides defaut .o and .e
-#    output files generated by PBS/qsub, since we explicitely redirect
-#    STDERR and STDOUT using > and 2>
+#  - -o psub-dummy-output: overrides defaut .o output files generated by
+#    PBS/qsub, since we explicitely redirect STDERR and STDOUT using > and 2>
+#  - -e: even if the job redirects STDERR, the memory monitoring logs are in
+#    the .e file, so keep them all and summarize them when run-parallel.sh is
+#    done
 #  - -noscript: don't save the .j script file generated by psub
 #  - $PSUBOPTS: pass on any user-specified psub options
 #  - qsparams "$QSUBOPTS": pass on any user-specified qsub options, as well as
@@ -419,7 +569,6 @@ PSUBOPTS="$PSUBOPTS -p $((MASTER_PRIORITY - 1))"
 #  - >&2 (not escaped) sends psub's output to STDERR of this script.
 
 SUBMIT_CMD=(psub
-            -e psub-dummy-output
             -o psub-dummy-output
             -noscript
             $PSUBOPTS)
@@ -435,80 +584,116 @@ else
 fi
 
 # This file will contain the PBS job IDs of each worker
-WORKER_JOBIDS=$TMP_FILE_NAME.worker_jobids
+WORKER_JOBIDS=$WORKDIR/worker_jobids
 cat /dev/null > $WORKER_JOBIDS
 
+if [[ -n "${PBS_JOBID%%.*}" ]]; then
+   WORKER_NAME=${PBS_JOBID%%.*}-${JOB_NAME}w
+else
+   WORKER_NAME=${JOB_NAME}w
+fi
+
 # Command for launching more workers when some send a STOPPING-DONE message.
-PSUB_CMD_FILE=$TMP_FILE_NAME.psub_cmd
+PSUB_CMD_FILE=$WORKDIR/psub_cmd
 if [ $CLUSTER ]; then
    cat /dev/null > $PSUB_CMD_FILE
    for word in "${SUBMIT_CMD[@]}"; do
       if echo "$word" | grep -q ' '; then
          echo -n "" \"$word\" >> $PSUB_CMD_FILE
       else
-         # The "" must come before $word, otherwise -e is interpreted as an opt.
          echo -n "" $word >> $PSUB_CMD_FILE
       fi
    done
-   echo -n "" -N w__WORKER__ID__-${PBS_JOBID%%.*} >> $PSUB_CMD_FILE
-   echo -n "" worker.pl -host=$MY_HOST -port=$MY_PORT $QUOTA \\\> $TMP_FILE_NAME.out.worker-__WORKER__ID__ 2\\\> $TMP_FILE_NAME.err.worker-__WORKER__ID__ \>\> $WORKER_JOBIDS >> $PSUB_CMD_FILE
+   echo -n "" -N $WORKER_NAME-__WORKER__ID__ >> $PSUB_CMD_FILE
+   echo -n "" -e $WORKDIR/log.worker-__WORKER__ID__ >> $PSUB_CMD_FILE
+   echo -n "" r-parallel-worker.pl -host=$MY_HOST -port=$MY_PORT $QUOTA \\\> $WORKDIR/out.worker-__WORKER__ID__ 2\\\> $WORKDIR/err.worker-__WORKER__ID__ \>\> $WORKER_JOBIDS >> $PSUB_CMD_FILE
 else
-   echo worker.pl -host=$MY_HOST -port=$MY_PORT \> $TMP_FILE_NAME.out.worker-__WORKER__ID__ 2\> $TMP_FILE_NAME.err.worker-__WORKER__ID__ \& > $PSUB_CMD_FILE
+   echo r-parallel-worker.pl -host=$MY_HOST -port=$MY_PORT \> $WORKDIR/out.worker-__WORKER__ID__ 2\> $WORKDIR/err.worker-__WORKER__ID__ \& > $PSUB_CMD_FILE
 fi
-echo $NUM > $TMP_FILE_NAME.next_worker_id
+echo $NUM > $WORKDIR/next_worker_id
 
 # Provide (almost) cut and paste commands for doing quenches or adds
 if [ $VERBOSE -gt 1 ]; then
-   echo "To add N workers, do \"echo N > $TMP_FILE_NAME.add\"" >&2
-   echo "To stop N workers, do \"echo N > $TMP_FILE_NAME.quench\"" >&2
+   echo "To add N workers, do \"echo N > $WORKDIR/add\"" >&2
+   echo "To stop N workers, do \"echo N > $WORKDIR/quench\"" >&2
 fi
 
 # start worker 0 locally, if not disabled.
 if [ ! $NOLOCAL ]; then
-   # start first worker locally (hostname of faucet process, number of
+   # start first worker locally (hostname of deamon process, number of
    # initial jobs in current call parameter n)
-   OUT=$TMP_FILE_NAME.out.worker-0
-   ERR=$TMP_FILE_NAME.err.worker-0
+   OUT=$WORKDIR/out.worker-0
+   ERR=$WORKDIR/err.worker-0
    if [ $VERBOSE -gt 2 ]; then
-      echo worker.pl -host=$MY_HOST -port=$MY_PORT -primary \> $OUT 2\> $ERR \& >&2
+      echo r-parallel-worker.pl -host=$MY_HOST -port=$MY_PORT -primary \> $OUT 2\> $ERR \& >&2
    fi
-   worker.pl -host=$MY_HOST -port=$MY_PORT -primary > $OUT 2> $ERR &
+   r-parallel-worker.pl -host=$MY_HOST -port=$MY_PORT -primary > $OUT 2> $ERR &
 fi
 
-# start workers 0 (or 1) to n-1 using psub, noting their PID
-for (( i = $FIRST_PSUB ; i < $NUM ; ++i )); do
-   # These should not end up being used by the commands, only by the
-   # worker scripts themselves
-   OUT=$TMP_FILE_NAME.out.worker-$i
-   ERR=$TMP_FILE_NAME.err.worker-$i
-
-   if [ $CLUSTER ]; then
-      if [ $VERBOSE -gt 2 ]; then
-         echo ${SUBMIT_CMD[@]} -N w$i-${PBS_JOBID%%.*} worker.pl -host=$MY_HOST -port=$MY_PORT $QUOTA \> $OUT 2\> $ERR >&2
-      fi
-      "${SUBMIT_CMD[@]}" -N w$i-${PBS_JOBID%%.*} worker.pl -host=$MY_HOST -port=$MY_PORT $QUOTA \> $OUT 2\> $ERR >> $WORKER_JOBIDS
-      # PBS doesn't like having too many qsubs at once, let's give it a chance
-      # to breathe between each worker submission
-      sleep 1
-   else
-      if [ $VERBOSE -gt 2 ]; then
-         echo worker.pl -host=$MY_HOST -port=$MY_PORT $QUOTA \> $OUT 2\> $ERR \& >&2
-      fi
-      worker.pl -host=$MY_HOST -port=$MY_PORT $QUOTA > $OUT 2> $ERR &
+# start workers 0 (or 1) to n-1 using psub, noting their PID/PBS_JOBID
+if [[ $CLUSTER ]] && qsub -t 2>&1 | grep -q 'option requires an argument'; then
+   # Friendlier behaviour on clusters that support it: use the -t option to
+   # submit all workers in a single request
+   OUT=$WORKDIR/out.worker-
+   ERR=$WORKDIR/err.worker-
+   LOG=$WORKDIR/log.worker
+   ID='$PBS_ARRAYID'
+   if [[ $VERBOSE -gt 2 ]]; then
+      echo "${SUBMIT_CMD[@]}" -t $FIRST_PSUB-$(($NUM-1)) -N $WORKER_NAME -e $LOG r-parallel-worker.pl -host=$MY_HOST -port=$MY_PORT $QUOTA \> $OUT$ID 2\> $ERR$ID >&2
    fi
-done
+   "${SUBMIT_CMD[@]}" -t $FIRST_PSUB-$(($NUM-1)) -N $WORKER_NAME -e $LOG r-parallel-worker.pl -host=$MY_HOST -port=$MY_PORT $QUOTA \> $OUT$ID 2\> $ERR$ID >> $WORKER_JOBIDS
+else
+   for (( i = $FIRST_PSUB ; i < $NUM ; ++i )); do
+      # These should not end up being used by the commands, only by the
+      # worker scripts themselves
+      OUT=$WORKDIR/out.worker-$i
+      ERR=$WORKDIR/err.worker-$i
+      LOG=$WORKDIR/log.worker-$i
+
+      if [ $CLUSTER ]; then
+         if [ $VERBOSE -gt 2 ]; then
+            echo ${SUBMIT_CMD[@]} -N $WORKER_NAME-$i -e $LOG r-parallel-worker.pl -host=$MY_HOST -port=$MY_PORT $QUOTA \> $OUT 2\> $ERR >&2
+         fi
+         "${SUBMIT_CMD[@]}" -N $WORKER_NAME-$i -e $LOG r-parallel-worker.pl -host=$MY_HOST -port=$MY_PORT $QUOTA \> $OUT 2\> $ERR >> $WORKER_JOBIDS
+         # PBS doesn't like having too many qsubs at once, let's give it a
+         # chance to breathe between each worker submission
+         sleep 1
+      else
+         if [ $VERBOSE -gt 2 ]; then
+            echo r-parallel-worker.pl -host=$MY_HOST -port=$MY_PORT $QUOTA \> $OUT 2\> $ERR \& >&2
+         fi
+         r-parallel-worker.pl -host=$MY_HOST -port=$MY_PORT $QUOTA > $OUT 2> $ERR &
+      fi
+   done
+fi
 
 if [ $CLUSTER ]; then
-   # wait on deamon pid (run-parallel-d.pl, the deamon, will exit when the last
+   # wait on deamon pid (r-parallel-d.pl, the deamon, will exit when the last
    # worker reports the last task is done)
    wait $DEAMON_PID
 
-   # Give PBS time to finish cleaning up worker jobs that have just finished
-   sleep 5
+   # Give PBS up to 20 seconds to finish cleaning up worker jobs that have just
+   # finished
+   WORKERS=`cat $WORKER_JOBIDS 2> /dev/null`
+   if [ -n "$WORKERS" ]; then
+      for (( i = 0; i < 20; ++i )); do
+         if qstat $WORKERS 2> /dev/null | grep . > /dev/null ; then
+            #echo Some workers are still running >&2
+            sleep 1
+         else
+            #echo Workers are done, we can safely exit >&2
+            break
+         fi
 
-   # kill all remaining psubed workers (which may not have been launched yet)
-   # to clean things up.  (Ignore errors)
-   qdel `cat $WORKER_JOBIDS` >& /dev/null
+         if [ $i = 8 ]; then
+            # After 8 seconds, kill remaining psubed workers (which may not
+            # have been launched yet) to clean things up.  (Ignore errors)
+            qdel $WORKERS >& /dev/null
+         fi
+      done
+   fi
+
+   WORKERS=""
    WORKER_JOBIDS="/dev/null"
 else
    # In non-cluster mode, just wait after everything, it gives us the exact
@@ -516,21 +701,17 @@ else
    wait
 fi
 
-if [ $VERBOSE -gt 0 ]; then
-   # show the exit status of each worker
-   echo -n 'Exit status(es) from all jobs (in the order they finished): ' >&2
-   cat $TMP_FILE_NAME.rc 2> /dev/null | tr '\n' ' ' >&2
-   echo "" >&2
-fi
-
 if [ $VERBOSE -gt 1 ]; then
    # Send all worker STDOUT and STDERR to STDERR for logging purposes.
-   for x in $TMP_FILE_NAME.{out,err}.worker-*; do
+   for x in $WORKDIR/{out,err}.worker-*; do
       if [ -s $x ]; then
-         echo ========== $x ========== | sed "s/$TMP_FILE_NAME.//" >&2
+         echo >&2
+         echo ========== $x ========== | sed "s/$WORKDIR\///" >&2
          cat $x >&2
       fi
    done
+   echo >&2
+   echo ========== End ========== >&2
 fi
 
 if [ $VERBOSE -gt 1 ]; then
@@ -540,10 +721,37 @@ if [ $VERBOSE -gt 1 ]; then
    echo "" >&2
 fi
 
-if [ `wc -l < $TMP_FILE_NAME.rc` -ne "$NUM_OF_INSTR" ]; then
-   echo 'Wrong number of job return statuses: got' `wc $TMP_FILE_NAME.rc` "expected $NUM_OF_INSTR." >&2
+if [ $VERBOSE -gt 0 ]; then
+   # show the exit status of each worker
+   echo -n 'Exit status(es) from all jobs (in the order they finished): ' >&2
+   cat $WORKDIR/rc 2> /dev/null | tr '\n' ' ' >&2
+   echo "" >&2
+fi
+
+if [ `wc -l < $WORKDIR/rc` -ne "$NUM_OF_INSTR" ]; then
+   echo 'Wrong number of job return statuses: got' `wc -l < $WORKDIR/rc` "expected $NUM_OF_INSTR." >&2
    exit -1
-elif grep -q -v '^0$' $TMP_FILE_NAME.rc >& /dev/null; then
+elif [ $EXEC ]; then
+   # With -c, we work like the shell's -c: connect stdout and stderr from the
+   # job to the this script's, and exit with the job's exit status
+   cat $WORKDIR/out.worker-0
+   cat $WORKDIR/err.worker-0 |
+      perl -e '
+         while (<>) {
+            if ( /\[.*\] \((\S+)\) Executing \(1\) / ) {
+               $jobid=$1;
+               last;
+            }
+         }
+         while (<>) {
+            if ( s/\[.*?\] \(\Q$jobid\E\) Exit status.*//s ) {
+               print;
+               last;
+            }
+            print;
+         }' >&2
+   exit `cat $WORKDIR/rc`
+elif grep -q -v '^0$' $WORKDIR/rc >& /dev/null; then
    # At least one job got a non-zero return code
    exit 2
 else
