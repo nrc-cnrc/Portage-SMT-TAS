@@ -11,10 +11,10 @@
  * Copyright 2005, Her Majesty in Right of Canada
  */
 
-#include <powell.h>
-#include <rescoring_general.h>
-#include <bleu.h>
-#include <boostDef.h>
+#include "powell.h"
+#include "rescoring_general.h"
+//#include "bleu.h"
+#include "boostDef.h"
 #include <vector>
 
 
@@ -97,21 +97,26 @@ int main()
 {
    typedef unsigned int Uint;
    //const Uint S(2);
-   const Uint K(3);
+   const Uint K(5);
    const Uint M(3);
 
    /*
    H[0] = [ 1  -1   0 ]
           [ 3   1   0 ]
           [ 3   0   1 ]
+          [ 4   1  -2 ]
+          [-2   -1 -2 ]
    H[1] = [ 1  -1   0 ]
           [ 5   1   0 ]
           [ 0   0  -2 ]
+          [ 0   0   7 ]
+          [ 1   3   1 ]
    */
 
    vector<uMatrix> vH;
    vH.push_back(uMatrix(K, M));
    vH.push_back(uMatrix(K, M));
+
    vH[0](0,0) = 1;
    vH[0](0,1) = -1;
    vH[0](0,2) = 0;
@@ -121,6 +126,13 @@ int main()
    vH[0](2,0) = 3;
    vH[0](2,1) = 0;
    vH[0](2,2) = 1;
+   vH[0](3,0) = 4;
+   vH[0](3,1) = 1;
+   vH[0](3,2) = -2;
+   vH[0](4,0) = -2;
+   vH[0](4,1) = -1;
+   vH[0](4,2) = -2;
+
    vH[1](0,0) = 1;
    vH[1](0,1) = -1;
    vH[1](0,2) = 0;
@@ -130,6 +142,12 @@ int main()
    vH[1](2,0) = 0;
    vH[1](2,1) = 0;
    vH[1](2,2) = -2;
+   vH[1](3,0) = 0;
+   vH[1](3,1) = 0;
+   vH[1](3,2) = 7;
+   vH[1](4,0) = 1;
+   vH[1](4,1) = 3;
+   vH[1](4,2) = 1;
 
    /*
    p = (1, 1, 1)^T
@@ -147,10 +165,14 @@ int main()
    translationScore.back().push_back(1);
    translationScore.back().push_back(2);
    translationScore.back().push_back(3);
+   translationScore.back().push_back(2);
+   translationScore.back().push_back(1);
    translationScore.push_back(vector<TestScore>());
    translationScore.back().push_back(1);
    translationScore.back().push_back(3);
    translationScore.back().push_back(2);
+   translationScore.back().push_back(1);
+   translationScore.back().push_back(4);
 
    int iter(0);
    double score(0.0f);
@@ -158,5 +180,12 @@ int main()
    Powell<TestScore> powell(vH, translationScore);
    powell(p, dirs, 0.01, iter, score);
 
-   cout << p << endl;
+   cout << "p: " << p << p / ublas::norm_inf(p) << endl;
+   cout << "vH[0]: " << vH[0] << endl;
+   cout << "vH[1]: " << vH[1] << endl;
+   cout << "U: " << dirs << endl;
+   cout << "iter: " << iter << endl;
+   cout << "score: " << score << endl;
+   cout << "vH[0]*p: " << prod(p, vH[0]) << endl;
+   cout << "vH[1]*p: " << prod(p, vH[1]) << endl;
 }

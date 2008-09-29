@@ -35,7 +35,7 @@ namespace Portage {
 #endif
 
 template <class T>
-inline T sqr(const T& x) { return x * x; }
+inline T square(const T& x) { return x * x; }
 
 inline void lowercase(char *str)
 {

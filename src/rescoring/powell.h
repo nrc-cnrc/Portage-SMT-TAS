@@ -34,11 +34,11 @@ namespace Portage
 
       public:
          /**
-         * Default constructor.
-         * @param vH      feature function values for all translations of all nbest
-         * @param allScoreStats  score for all translations of all nbest. 
-         *                Note that score must exists for all the life time of Powell.
-         */
+          * Default constructor.
+          * @param vH      feature function values for all translations of all nbest
+          * @param allScoreStats  score for all translations of all nbest. 
+          *                Note that score must exists for all the life time of Powell.
+          */
          Powell(const vector<uMatrix>& vH, const vector< vector<ScoreStats> >& allScoreStats)
          : vH(vH)
          , allScoreStats(allScoreStats)

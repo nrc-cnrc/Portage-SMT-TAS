@@ -34,65 +34,102 @@ namespace Portage
    //   call to Portage::linemax, which uses Och's algorithm.
    template <class ScoreStats>
    void Powell<ScoreStats>::operator()(uVector& p,
-      uMatrix& xi,
-      const double ftol,
+      uMatrix& U,
+      const double tolerance,
       int &iter,
-      double &fret)
+      double &score)
    {
-      assert(vH.size() == allScoreStats.size());
+      /////////////////////////////////////
+      // external calls formerly present here:
+      //  - computeScore(1 arg), defined in powell.h
+      //  - linemax(2 args), a functor call to Powell::linemax, declared in
+      //    powell.h and defined in linemax.h, ultimately resolved to
+      //   LinaMax<Stats>::operator()(2 args).
+      /////////////////////////////////////
+
+      // NOTES:
+      // score == f_P_N == score(P_i)
+
       assert(p.size() == vH[0].size2());
+      score = 0.0f;
+      iter  = 0;
 
-      const double TINY(1.0e-25);
+      const Uint N(p.size());
 
-      fret = computeScore(p);
-      const Uint M(p.size());
-      uVector pt(p);     // Save initial point
-      uVector ptt(M);
-      uVector xit(M);
+      double f_0(0.0f);    // Keep track of initial score before exploring all dimensions.
+      score = computeScore(p);
+      do {
+         uVector origine(p);  // Saving the starting point.
+         f_0 = score;         // Saving the original starting point's score.
+         cerr << "\tf_0: " << f_0 << endl;
 
-      for (iter=0; ; ++iter) {
-         const double fp = fret;
-         int ibig = 0;
-         double del = 0.0;               // Will be the biggest function decrease
-         for (Uint i=0; i<M; ++i) {       // In each iteration, loop over all directions in the set
-            xit = ublas::column(xi, i);
-            linemax(p, xit);    // Maximize along it
-            const double fptt = fret;     // Make a copy of previous value
-            fret = computeScore(p);
-            if (fabs(fret-fptt) > del) {        // Record whether it is the largest decrease so far
-               del = fabs(fret-fptt);
-               ibig = i+1;
+         // Keep track of the index of the largest decrease.
+         double delta_f(0.0f);
+         int    best_index(-1);
+
+         for (Uint k(0); k<N; ++k) {
+            uVector U_k(uColumn(U, k));
+            cout << "\t\tP_k: " << p << endl;
+            cout << "\t\tU_k: " << U_k << U_k / ublas::norm_inf(U_k) << endl;
+            linemax(p, U_k);
+            cout << "\t\tP_k: " << p << endl;
+            cout << "\t\tU_k: " << U_k << U_k / ublas::norm_inf(U_k) << endl;
+
+            const double f_P_k     = computeScore(p);
+            const double delta_f_k = fabs(f_P_k - score);
+            score                  = f_P_k;
+            cerr << "\t\tdelta_f_k: " << delta_f_k << endl;
+            if (delta_f_k > delta_f) {
+               best_index = k;
+               delta_f    = delta_f_k;
+            }
+         }
+         ++iter;
+
+         cerr << "\tP: " << p << endl;
+         cerr << "\tU: " << U << endl;
+         cerr << "\tdelta_f: " << delta_f << endl;
+         cerr << "\tbest_index: " << best_index << endl;
+         //if (2*fabs(f_0 - score) <= ((fabs(f_0) + fabs(score) * tolerance))) break;
+
+         // From this point on:
+         //   p == P_N
+         //   score == f_P_N == best_score == f(P_N)
+
+         const double f_E = computeScore(2*p - origine);
+         cout << "\tf_E: " << f_E << endl;
+         cout << "\tf_0: " << f_0 << endl;
+         // MAXIMIZATION
+         if (f_E > f_0) {
+            const double f_N = score;  // == f(P_N)
+            const double left_hand_side = 2.0f * (-f_0 + 2.0*f_N - f_E) * square(fabs(f_0 - f_N) - delta_f);
+            const double right_hand_side = delta_f * square(f_0 - f_E);
+            cout << "\tf_N: " << f_N << endl;
+            cout << "\tleft_hand_side: " << left_hand_side << endl;
+            cout << "\tright_hand_side: " << right_hand_side << endl;
+            if (left_hand_side < right_hand_side) {
+               assert(best_index >= 0);  // Make sure we have found a best index.
+               uVector final_dir = p - origine;
+
+               // Replace the best/biggest decrease direction by the new average direction.
+               uColumn U_r(U, best_index);
+               uColumn U_N(U, N-1);
+               U_r.swap(U_N);
+               U_N = final_dir;// / ublas::norm_inf(final_dir);
+
+               cout << "\t\tp: " << p << endl;
+               cout << "\t\tfinal_dir: " << final_dir << final_dir / ublas::norm_inf(final_dir)  << endl;
+               linemax(p, final_dir);
+               cout << "\t\tp: " << p << endl;
+               cout << "\t\tfinal_dir: " << final_dir << final_dir / ublas::norm_inf(final_dir)  << endl;
+               score = computeScore(p);
+               cerr << "\t\tU: " << U << endl;
             }
          }
 
-         if (fret == -numeric_limits<double>::infinity()) {
-            error(ETWarn, "It is likely that you do not have 4-gram match thus powell will loop forever");
-            break;
-         }
-         if (2.0*fabs(fret-fp) <= ftol*(fabs(fp)+fabs(fret))+TINY) {
-            // Termination criterion
-            break;
-         }
-         //if (iter == ITMAX) nrerror("powell exceeding maximum iterations.");
-         // TODO: (maybe) put some error termination condition here.
-
-         ptt = 2*p - pt;
-         xit = p - pt;
-         pt  = p;
-
-         const double fptt = computeScore(ptt);       // Function value at extrapolated point
-         if (fptt > fp) {
-            const double t = 2.0*(-fp+2.0*fret-fptt)*sqr(fabs(fp-fret)-del)-del*sqr(fp-fptt);
-            if (t < 0.0) {
-               linemax(p, xit);   // Move to the minimum of the new direction,
-               fret = computeScore(p);
-               uColumn col1(xi, ibig-1);
-               uColumn col2(xi, M-1);
-               col1.swap(col2);
-               col2 = xit;
-            }
-         }
-      }
+         cerr << "\t" << iter << ", score: " << score << " " << p << endl;  // SAM DEBUG
+         cerr << endl;
+      } while (2*fabs(f_0 - score) > ((fabs(f_0) + fabs(score) * tolerance)));
    } // ends Powell<ScoreStats>::operator()
 
 
@@ -125,5 +162,5 @@ namespace Portage
       }
 
       return total;
-   } //  ends Powell<ScoreStats>::computeStats
+} //  ends Powell<ScoreStats>::computeStats
 } // ends namespace Portage
