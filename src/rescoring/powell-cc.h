@@ -61,7 +61,7 @@ namespace Portage
       do {
          uVector origine(p);  // Saving the starting point.
          f_0 = score;         // Saving the original starting point's score.
-         cerr << "\tf_0: " << f_0 << endl;
+         cout << "\tf_0: " << f_0 << endl;
 
          // Keep track of the index of the largest decrease.
          double delta_f(0.0f);
@@ -78,7 +78,7 @@ namespace Portage
             const double f_P_k     = computeScore(p);
             const double delta_f_k = fabs(f_P_k - score);
             score                  = f_P_k;
-            cerr << "\t\tdelta_f_k: " << delta_f_k << endl;
+            cout << "\t\tdelta_f_k: " << delta_f_k << endl;
             if (delta_f_k > delta_f) {
                best_index = k;
                delta_f    = delta_f_k;
@@ -86,10 +86,10 @@ namespace Portage
          }
          ++iter;
 
-         cerr << "\tP: " << p << endl;
-         cerr << "\tU: " << U << endl;
-         cerr << "\tdelta_f: " << delta_f << endl;
-         cerr << "\tbest_index: " << best_index << endl;
+         cout << "\tP: " << p << endl;
+         cout << "\tU: " << U << endl;
+         cout << "\tdelta_f: " << delta_f << endl;
+         cout << "\tbest_index: " << best_index << endl;
          //if (2*fabs(f_0 - score) <= ((fabs(f_0) + fabs(score) * tolerance))) break;
 
          // From this point on:
@@ -123,12 +123,12 @@ namespace Portage
                cout << "\t\tp: " << p << endl;
                cout << "\t\tfinal_dir: " << final_dir << final_dir / ublas::norm_inf(final_dir)  << endl;
                score = computeScore(p);
-               cerr << "\t\tU: " << U << endl;
+               cout << "\t\tU: " << U << endl;
             }
          }
 
-         cerr << "\t" << iter << ", score: " << score << " " << p << endl;  // SAM DEBUG
-         cerr << endl;
+         cout << "\t" << iter << ", score: " << score << " " << p << endl;  // SAM DEBUG
+         cout << endl;
       } while (2*fabs(f_0 - score) > ((fabs(f_0) + fabs(score) * tolerance)));
    } // ends Powell<ScoreStats>::operator()
 
