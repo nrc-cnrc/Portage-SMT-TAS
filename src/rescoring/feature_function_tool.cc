@@ -12,16 +12,10 @@
  * Copyright 2005, Her Majesty in Right of Canada
  */
 
-#include <exception_dump.h>
-#include <arg_reader.h>
-#include <file_utils.h>
-#include <featurefunction.h>
-#include <rescore_io.h>
-#include <basic_data_structure.h>
-#include <fileReader.h>
-#include <iostream>
-#include <fstream>
-#include <iomanip>
+#include "exception_dump.h"
+#include "arg_reader.h"
+#include "file_utils.h"
+#include "featurefunction_set.h"
 #include <printCopyright.h>
 
 using namespace Portage;

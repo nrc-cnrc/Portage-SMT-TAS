@@ -31,15 +31,15 @@ SUBDIRS = logging preprocessing eval lm tm adaptation canoe rescoring api
 # generally used yet.
 ALL_SUBDIRS = $(SUBDIRS)
 
-.PHONY: subdirs utils $(ALL_SUBDIRS)
+.PHONY: subdirs utils $(ALL_SUBDIRS) validate_subdir_dependencies
 
-subdirs: utils $(SUBDIRS)
+subdirs: validate_subdir_dependencies utils $(SUBDIRS)
 
 vpath Doxyfile build/
 doxy: Doxyfile
 	( cat $<; echo "HTML_FOOTER=build/footer.txt" ) | doxygen -
 
-utils:
+utils: validate_subdir_dependencies
 	$(MAKE) -C $@ $(OT)
 
 $(ALL_SUBDIRS): utils
@@ -61,5 +61,18 @@ rescoring: canoe tm lm eval logging
 tm: logging
 
 eval: logging
+
+validate_subdir_dependencies:
+	@if [ "`grep 'MODULE_DEPENDS.*[^ =]' */Makefile | perl -ple 's/\/Makefile//; s/MODULE_DEPENDS\s*=/ /; s/\s+/ /' | wc`" \
+	     != \
+	     "`grep 'MODULE_DEPENDS.*[^ =]' */Makefile | perl -ple 's/\/Makefile//; s/MODULE_DEPENDS\s*=/ /; s/\s+/ /' | grep -x -f - Makefile  | wc`" \
+	   ]; then \
+	   echo There is an error in the module dependency block in src/Makefile. ; \
+	   echo Please update it as follows '(you can cut and paste the following lines)': ; \
+	   grep 'MODULE_DEPENDS.*[^ =]' */Makefile | \
+	      perl -ple 's/\/Makefile//; s/MODULE_DEPENDS\s*=/ /; s/\s+/ /' | \
+	      diff - Makefile | grep '^<' | sed 's/^< //' ; \
+	   exit 1 ; \
+	fi
 
 

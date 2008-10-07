@@ -48,18 +48,22 @@ struct XMLishTag
 
    /// Clears the XML tag.
    void clear() {name.clear(); attr_vals.clear(); is_beg_tag = is_beg_tag = false;}
+
    /// Appends the XML tag attributs to s.
    /// @param s string to which to append the attributs.
    /// @return Returns s
    string& attrValsString(string& s);
+
    /// Checks value of an XML tag attribute
    /// @param s attribute name
    /// @returns value as string (empty if this attribute is not existant
    string attrVal(const string &s);
+
    /// Format the XML Tag to a string.
    /// @param s string in which to format the XML tag
    /// @return Returns s.
    string& toString(string& s);
+
    /// Format the XML Tag to a string.
    /// @return Returns a string containing the XML tag.
    string toString() {string s; return toString(s);}
@@ -85,17 +89,19 @@ bool parseXMLishTag(const char buf[], XMLishTag& tag, Uint *beg, Uint* end);
  * Replace XML special characters with escape codes.
  * @param buf string containined XML special characters
  * @param dest string with special characters escaped
+ * @param buflen length of buf (0 means buf is nil terminated).
  * @return dest
  */
-string& XMLescape(const char buf[], string& dest);
+string& XMLescape(const char buf[], string& dest, Uint buflen=0);
 
 /**
  * Replace XML escape codes with the characters they designate.
  * @param buf string containing XML escapes
  * @param dest string with escapes replaced
+ * @param buflen length of buf (0 means buf is nil terminated).
  * @return dest
  */
-string& XMLunescape(const char buf[], string& dest);
+string& XMLunescape(const char buf[], string& dest, Uint buflen=0);
 
 }
 #endif

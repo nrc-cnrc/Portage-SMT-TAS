@@ -17,34 +17,34 @@
 #include <fileReader.h>
 
 using namespace std;
-   
+
 void sentenceBased(Portage::FileReader::FileReaderBase<string>& reader)
 {
-      cout << "SENTENCE BASED" << endl;
-      unsigned int n(0);
-      string s;
+   cout << "SENTENCE BASED" << endl;
+   unsigned int n(0);
+   string s;
    while (reader.pollable())
-      {
-         cout << "LOOP" << endl;
+   {
+      cout << "LOOP" << endl;
       while (reader.poll(s, &n))
-         {
-            cout << n << " : " << s << endl;
-         }
+      {
          cout << n << " : " << s << endl;
       }
+      cout << n << " : " << s << endl;
+   }
    cout << endl;
 }
-   
+
 void nbestListBased(Portage::FileReader::FileReaderBase<string>& reader)
 {
-      cout << "NBESTLIST BASED" << endl;
+   cout << "NBESTLIST BASED" << endl;
    Portage::FileReader::FileReaderBase<string>::Group s;
    while (reader.pollable())
-      {
-         cout << "LOOP" << endl;
+   {
+      cout << "LOOP" << endl;
       reader.poll(s);
-         cout << s.size() << endl;
-      }
+      cout << s.size() << endl;
+   }
    cout << endl;
 }
 

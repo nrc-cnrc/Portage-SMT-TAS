@@ -15,9 +15,10 @@
 #ifndef __ARG_PROCESSOR_H__
 #define __ARG_PROCESSOR_H__
 
-#include <arg_reader.h>
-#include <portage_defs.h>
-#include <logging.h>
+#include "arg_reader.h"
+#include "portage_defs.h"
+#include "logging.h"
+#include <iostream>
 #include <boost/noncopyable.hpp>
 
 namespace Portage
@@ -88,10 +89,10 @@ namespace Portage
           * @param alt_help_msg an alternative help message
           * @param alt_help_switch switch to display alternative help message
           */
-         argProcessor(const Uint nNumberSwitches,
+         argProcessor(Uint nNumberSwitches,
             const char* const switchesList[],
-            const int min,
-            const int max,
+            int min,
+            int max,
             const char* helpMsg,
             const char* helpSwitch = "-h",
             bool print_help_on_error = false,
@@ -104,21 +105,21 @@ namespace Portage
           * @param argc  number of arguments in vector
           * @param argv  vector of arguments
           */
-         void processArgs(const Uint argc, const char* const argv[]);
+         void processArgs(Uint argc, const char* const argv[]);
 
          /**
           * Get the number of variable arguments.
           * @return the number of variable arguments
           */
          Uint numVars() const { return mp_arg_reader->numVars(); }
-         
+
          /**
           * Get the variable argument i.
           * @param i index of the variable argument to retrieve
           * @return the variable argument at index i
           */
          const string& getVar(Uint i) const { return mp_arg_reader->getVar(i); }
-         
+
          /**
           * Get all variable arguments from a certain index.
           * @param start_index starting index
@@ -137,6 +138,24 @@ namespace Portage
          template<class T>
          void testAndSet(const char* sw, T& val)
             { mp_arg_reader->testAndSet(sw, val); }
+
+         /**
+          * Test for a dual -x/-nox switch, with the results in a "tribool".
+          * Use with BOOL_TYPE=bool if a default is desired, or
+          * BOOL_TYPE=optional<bool> if you want to be able to know neither
+          * switch was found on the command line.
+          * @param set_sw   on switch
+          * @param reset_sw off switch
+          * @param val      will be set to true if set_sw is found, false if
+          *                 reset_sw is found, and left untouched if neither is
+          *                 found.  In particular, if val was formally
+          *                 uninitialized before calling this method, it will
+          *                 still be uninitialized after.
+          */
+         template <class BOOL_TYPE>
+         void testAndSetOrReset(const char* set_sw, const char* reset_sw,
+                                BOOL_TYPE& val)
+            { mp_arg_reader->testAndSetOrReset(set_sw, reset_sw, val); }
 
          /**
           * Display all available loggers.
@@ -162,13 +181,20 @@ namespace Portage
           */
          void setVerboseLevel(Uint level);
 
+         /**
+          * If the user specified is own verbose switch, use this function to properly parse and set the log level.
+          * @param _switch  user's specific verbose switch
+          * @return Returns if the verbose is enalbed
+          */
+         bool checkVerbose(const char* const _switch = "v");
+
       protected:
          /**
           * Child arguments parsing.
           * This method must be declared by every subclass since it's the core processing of the command line arguments
           */
          virtual void processArgs() = 0;
-         
+
          /// child arguments displaying (child's responsability not to display).
          virtual void printSwitchesValue();
 

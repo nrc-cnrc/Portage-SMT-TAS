@@ -12,6 +12,7 @@
  * Copyright 2005, Her Majesty in Right of Canada
  */
 #include "arg_reader.h"
+#include "MagicStream.h"
 
 using namespace Portage;
 
@@ -170,7 +171,8 @@ bool ArgReader::getSwitch(const char* s, string* val) const
 void ArgReader::testAndSet(const char* sw, bool& val)
 {
    string str;
-   val = getSwitch(sw, &str);
+   // Should not reset val if switch not found and val was already true.
+   if ( getSwitch(sw, &str) ) val = true;
 }
 
 void ArgReader::testAndSet(const char* sw, ifstream& ifs)

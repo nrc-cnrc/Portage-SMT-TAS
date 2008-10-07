@@ -19,7 +19,7 @@
 using namespace Portage;
 using namespace Portage::Joint_Filtering;
 
-// Phrase Table filter joint logger
+/// Phrase Table filter joint logger
 //Logging::logger ptLogger_hardFilterTMVisitor(Logging::getLogger("debug.canoe.hardFilterTMVisitor"));
 
 

@@ -3,14 +3,14 @@
  * @file nbest_wordpost_src.h
  *
  * $Id$
- * 
+ *
  *
  * COMMENTS: derived class for calculating word posterior probabilities over N-best lists
  * based on the source phrase to which the target word is aligned
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology 
- * Conseil national de recherches Canada / National Research Council Canada 
+ * Institut de technologie de l'information / Institute for Information Technology
+ * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2006, Her Majesty in Right of Canada
 */
@@ -37,13 +37,13 @@ namespace Portage {
    * Elements of class NBestWordPostSrc:
    * - WordSrcPhrase2Posterior maps pairs of target words and their aligned source phrase to word posterior probabitlities
    * - alig is the phrase alignment of the target sentence
-   */ 
+   */
   class NBestWordPostSrc : public NBestPosterior {
 
   private:
     map< pair<Token,PhraseRange>, ConfScore, wordSrcPhraseLessThan > WordSrcPhrase2Posterior;
     Alignment alig;
-    
+
   public:
     /// Constructor.
     NBestWordPostSrc() {}
@@ -55,12 +55,12 @@ namespace Portage {
 
     virtual void   setAlig(Alignment &al);
 
-    virtual void   computePosterior(const Uint src_sent_id);
+    virtual void   computePosterior(Uint src_sent_id);
     virtual void   normalizePosterior();
     virtual double sentPosteriorOne();
     virtual vector<double> wordPosteriorsOne();
-    virtual void   tagPosteriorOne(ostream &out, const int &format=0);
-    virtual void   tagPosteriorAll(ostream &out, const int &format=0);
+    virtual void   tagPosteriorOne(ostream &out, int format=0);
+    virtual void   tagPosteriorAll(ostream &out, int format=0);
     virtual void   tagSentPosteriorAll(ostream &out);
   };
 

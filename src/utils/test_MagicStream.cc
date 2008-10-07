@@ -15,7 +15,8 @@
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2006, Her Majesty in Right of Canada
  */
-               
+
+#include <MagicStream.h>
 #include <file_utils.h>
 #include <printCopyright.h>
 
@@ -50,7 +51,7 @@ int main(int argc, char* argv[])
       cout << "arguments[" << i << "]: " << argv[i] << endl;
    }
    cout << endl;
-   
+
    //coutModificationTest();
    //magicStreamTest();
    //(argc <= 1) ? linkTest():  linkTest(argv[1]);

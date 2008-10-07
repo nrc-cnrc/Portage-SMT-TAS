@@ -14,10 +14,9 @@
 
 #include <map>
 #include <vector>
-#include <iostream>
-#include <algorithm>
 #include "errors.h"
 #include "good_turing.h"
+#include <algorithm>
 
 using namespace std;
 using namespace Portage;

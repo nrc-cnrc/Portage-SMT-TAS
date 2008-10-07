@@ -12,8 +12,6 @@
  * Copyright 2005, Her Majesty in Right of Canada
  */
 #include <iostream>
-#include <fstream>
-#include <algorithm>
 #include <gfstats.h>
 #include "arg_reader.h"
 #include "printCopyright.h"

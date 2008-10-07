@@ -22,6 +22,7 @@
 #define LEVENSHTEIN_H
 
 #include "portage_defs.h"
+#include <boost/dynamic_bitset.hpp>
 #include <vector>
 #include <iostream>
 
@@ -50,7 +51,7 @@ class bkp {
   /// Copy constructor.
   bkp(const bkp &b) : j(b.j), i(b.i), c(b.c) {}
   /// Constructor from components.
-  bkp(const int &_j, const int &_i, const char &_c) : j(_j), i(_i), c(_c) {}
+  bkp(int _j, int _i, char _c) : j(_j), i(_i), c(_c) {}
   /// Destructor.
   ~bkp() {};
 
@@ -96,23 +97,30 @@ public:
   void clear();
 
   /// Sets verbosity.
-  void setVerbosity(const int &v) {verbose=v;}
+  void setVerbosity(int v) {verbose=v;}
   /// Sets the subcost.
   void setSubCost(int c) {subcost = c;}
 
   void        LevenAlign(const Tv &hyp, const Tv &ref,
+                         const int incompleteRef=0,
                          const vector<int>* ins_costs=NULL,
                          const vector<int>* del_costs=NULL);
 
   vector<int> LevenAlig (const Tv &hyp, const Tv &ref,
+                         const int incompleteRef=0,
                          const vector<int>* ins_costs=NULL,
                          const vector<int>* del_costs=NULL);
 
   int         LevenDist(const Tv &hyp, const Tv &ref,
+                        const int incompleteRef=0,
                         const vector<int>* ins_costs=NULL,
                         const vector<int>* del_costs=NULL);
 
+  int         getLevenDist() { return costs; }
+
   int         LevenDistIncompleteRef(const Tv &hyp, const Tv &ref,
+                                     const int incompleteRef=1,
+                                     boost::dynamic_bitset<>* min_positions=NULL,
                                      const vector<int>* ins_costs=NULL,
                                      const vector<int>* del_costs=NULL);
 
@@ -145,6 +153,11 @@ void Levenshtein<T>::clear() {
  *
  * @param hyp        a vector representing the tokens in the hypothesis
  * @param ref        a vector representing the tokens in the reference
+ * @param incompleteRef  indicates how much of the reference has to be covered
+ *                   by Lev. alignment:
+ *                   0 : complete ref.
+ *                   1 : start from beginning, end anywhere
+ *                   2 : start anywhere, end anywhere
  * @param ins_costs  if non-null, (*ins_costs)[i] contains insertion cost for
  *                   hyp[i], i in 0..hyp.size()-1
  * @param del_costs  if non-null, (*del_costs)[i] contains deletion cost for
@@ -152,6 +165,7 @@ void Levenshtein<T>::clear() {
  */
 template<class T>
 void Levenshtein<T>::LevenAlign(const Tv &hyp, const Tv &ref,
+                                const int incompleteRef,
                                 const vector<int>* ins_costs,
                                 const vector<int>* del_costs)
 {
@@ -177,7 +191,7 @@ void Levenshtein<T>::LevenAlign(const Tv &hyp, const Tv &ref,
   vector<bkp> dummyvec(ref.size()+1,dummy);
   Book.resize(hyp.size()+1,dummyvec);
   /**
-   * backpointers for deleting/inserting all words
+   * Backpointers for deleting/inserting all ref/hyp words.
    */
   for (uint i=1; i<=ref.size(); i++)
     Book[0][i] = bkp(0,i-1,del);
@@ -190,12 +204,17 @@ void Levenshtein<T>::LevenAlign(const Tv &hyp, const Tv &ref,
    * Q is initialized with costs 'i' for position 'i' (deletions), unless
    * del_costs specified
    */
-  for (uint i=0; i<ref.size()+1; i++) {
-     if (del_costs) {
+  if (incompleteRef==2)
+    for (uint i=0; i<ref.size()+1; i++)
+      Q.push_back(0);
+  else {
+    for (uint i=0; i<ref.size()+1; i++) {
+      if (del_costs) {
         if (i == 0) Q.push_back(0);
         else Q.push_back(Q[i-1] + (*del_costs)[i-1]);
-     }
-     else Q.push_back(i);
+      }
+      else Q.push_back(i);
+    }
   }
   Q_old.resize(ref.size()+1);
 
@@ -287,7 +306,21 @@ void Levenshtein<T>::LevenAlign(const Tv &hyp, const Tv &ref,
       cerr << endl;
     } // for i
   }
-  costs = Q[ref.size()];
+  if (incompleteRef==0) {
+    costs = Q[ref.size()];
+    if (verbose>0)
+      cerr << "minimal costs: " << costs << " " << endl;
+  }
+  else {
+    costs = *min_element(Q.begin(), Q.end());
+    if (verbose>0) {
+      cerr << "minimal costs: " << costs << " in ref.positions ";
+      for (uint i=0;i<Q.size();i++)
+        if (Q[i]==costs)
+          cerr << i << " ";
+      cerr << endl;
+    }
+  }
 }
 
 /**
@@ -308,6 +341,11 @@ void Levenshtein<T>::LevenAlign(const Tv &hyp, const Tv &ref,
  *
  * @param hyp        a vector representing the tokens in the hypothesis
  * @param ref        a vector representing the tokens in the reference
+ * @param incompleteRef  indicates how much of the reference has to be covered
+ *                   by Lev. alignment:
+ *                   0 : complete ref.
+ *                   1 : start from beginning, end anywhere
+ *                   2 : start anywhere, end anywhere
  * @param ins_costs  if non-null, (*ins_costs)[i] contains insertion cost for
  *                   hyp[i], i in 0..hyp.size()-1
  * @param del_costs  if non-null, (*del_costs)[i] contains deletion cost for
@@ -317,12 +355,13 @@ void Levenshtein<T>::LevenAlign(const Tv &hyp, const Tv &ref,
  */
 template<class T>
 vector<int> Levenshtein<T>::LevenAlig(const Tv &hyp, const Tv &ref,
+                                      const int incompleteRef,
                                       const vector<int>* ins_costs,
                                       const vector<int>* del_costs)
 {
   vector<int> result(hyp.size(),-1);
 
-  LevenAlign(hyp, ref, ins_costs, del_costs);
+  LevenAlign(hyp, ref, incompleteRef, ins_costs, del_costs);
 
   if (verbose>0)
     cerr << "minimal costs: " << costs << " " << endl;
@@ -375,6 +414,11 @@ vector<int> Levenshtein<T>::LevenAlig(const Tv &hyp, const Tv &ref,
  * Levenshtein distance only.
  * @param hyp        a vector representing the tokens in the hypothesis
  * @param ref        a vector representing the tokens in the reference
+ * @param incompleteRef  indicates how much of the reference has to be covered
+ *                   by Lev. alignment:
+ *                   0 : complete ref.
+ *                   1 : start from beginning, end anywhere
+ *                   2 : start anywhere, end anywhere
  * @param ins_costs  if non-null, (*ins_costs)[i] contains insertion cost for
  *                   hyp[i], i in 0..hyp.size()-1
  * @param del_costs  if non-null, (*del_costs)[i] contains deletion cost for
@@ -383,10 +427,11 @@ vector<int> Levenshtein<T>::LevenAlig(const Tv &hyp, const Tv &ref,
  */
 template<class T>
   int Levenshtein<T>::LevenDist(const Tv &hyp, const Tv &ref,
+                                const int incompleteRef,
                                 const vector<int>* ins_costs,
                                 const vector<int>* del_costs) {
 
-  LevenAlign(hyp, ref, ins_costs, del_costs);
+  LevenAlign(hyp, ref, incompleteRef, ins_costs, del_costs);
 
   return costs;
 }
@@ -397,6 +442,14 @@ template<class T>
  * parts of the reference (complete coverage of hyp. is required)
  * @param hyp             a vector representing the tokens in the hypothesis
  * @param ref             a vector representing the tokens in the reference
+ * @param incompleteRef   indicates how much of the reference has to be covered
+ *                        by Lev. alignment:
+ *                        0 : complete ref.
+ *                        1 : start from beginning, end anywhere
+ *                        2 : start anywhere, end anywhere
+ * @param min_positions   a set of reference positions in which the minimal
+ *                        distance is obtained (needed for recombination in
+ *                        canoe)
  * @param ins_costs       if non-null, (*ins_costs)[i] contains insertion cost
  *                         for hyp[i], i in 0..hyp.size()-1
  * @param del_costs       if non-null, (*del_costs)[i] contains deletion cost
@@ -406,9 +459,11 @@ template<class T>
 template<class T>
   int Levenshtein<T>::LevenDistIncompleteRef(
         const Tv &hyp, const Tv &ref,
+        const int incompleteRef,
+        boost::dynamic_bitset<>* min_positions,
         const vector<int>* ins_costs, const vector<int>* del_costs) {
 
-  LevenAlign(hyp, ref, ins_costs, del_costs);
+  LevenAlign(hyp, ref, incompleteRef, ins_costs, del_costs);
 
 
   if (verbose>1) {
@@ -419,7 +474,20 @@ template<class T>
     cerr << endl;
   }
 
-  return *min_element(Q.begin(), Q.end());
+  /** Find minimal distance for partial coverage of ref.
+   * and the set of ref. positions where this is obtained
+   **/
+  int mindist = *min_element(Q.begin(), Q.end());
+  if (min_positions!=NULL && min_positions->empty()) {
+    // not valid any more, it may be calculated before, example: while
+    // generating n-best lists.
+    //assert(min_positions->size()==0);
+    min_positions->resize(Q.size());
+    for (uint i=0; i<Q.size(); ++i)
+      if (Q[i]==mindist)
+        min_positions->set(i);
+  }
+  return mindist;
  }
 
 /**

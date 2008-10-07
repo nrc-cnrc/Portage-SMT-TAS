@@ -11,7 +11,7 @@
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
  */
-                    
+
 #ifndef __MULTI_COLUMN_FILE_FF_H_
 #define __MULTI_COLUMN_FILE_FF_H_
 
@@ -33,7 +33,7 @@ class multiColumnFileFF
       std::vector<float>   m_values;  ///< Contains the last line's values.
       int                  m_line;    ///< Current line number.
       Uint                 m_expected_size;  ///< number of expected fields
-      
+
    public:
       /// Constructor.
       multiColumnFileFF(const std::string& filename);
@@ -47,7 +47,7 @@ class multiColumnFileFF
        * @return Returns the feature function value for line k and column
        * colIdx.
        */
-      float get(const Uint colIdx, const int k);
+      float get(Uint colIdx, int k);
 
       /**
        * Verifies if this unit is at the end of the file.

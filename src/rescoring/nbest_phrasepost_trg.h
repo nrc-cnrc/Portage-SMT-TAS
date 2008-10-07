@@ -3,14 +3,14 @@
  * @file nbest_phrasepost_trg.h
  *
  * $Id$
- * 
+ *
  *
  * COMMENTS: derived class for calculating phrase posterior probabilities over N-best lists
  * based on the fixed target position (of the phrase in the sentence)
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology 
- * Conseil national de recherches Canada / National Research Council Canada 
+ * Institut de technologie de l'information / Institute for Information Technology
+ * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2006, Her Majesty in Right of Canada
 */
@@ -22,7 +22,7 @@
 
 namespace Portage {
 
-  /** 
+  /**
    * Compare two pairs of Tokens (target phrase) and int (sentence position in which the phrase occurs)
    */
   struct phrasePosLessThan {
@@ -49,7 +49,7 @@ namespace Portage {
   private:
     map<pair<Tokens,int>, ConfScore, phrasePosLessThan> PhrasePos2Posterior;
     Alignment alig;
-    
+
   public:
     /// Constructor.
     NBestPhrasePostTrg() {}
@@ -61,12 +61,12 @@ namespace Portage {
 
     virtual void   setAlig(Alignment &al);
 
-    virtual void   computePosterior(const Uint src_sent_id);
+    virtual void   computePosterior(Uint src_sent_id);
     virtual void   normalizePosterior();
     virtual double sentPosteriorOne();
     virtual vector<double> wordPosteriorsOne();
-    virtual void   tagPosteriorOne(ostream &out, const int &format=0);
-    virtual void   tagPosteriorAll(ostream &out, const int &format=0);
+    virtual void   tagPosteriorOne(ostream &out, int format=0);
+    virtual void   tagPosteriorAll(ostream &out, int format=0);
     virtual void   tagSentPosteriorAll(ostream &out);
   };
 }

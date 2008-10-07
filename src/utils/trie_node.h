@@ -16,6 +16,8 @@
 #ifndef __TRIE_NODE_H__
 #define __TRIE_NODE_H__
 
+#include "simple_histogram.h"
+
 namespace Portage {
 
 template <class LeafDataT, class InternalDataT, bool NeedDtor> struct PTrie;
@@ -125,14 +127,14 @@ public:
    /// Pool for more efficient allocation of TrieDatum arrays.
    /// Typedef'd here, but has to be owned by the parent PTrie class and passed
    /// as parameter whenever needed.
-   typedef ArrayMemPool<TrieDatum<LeafDataT, InternalDataT, NeedDtor>, 10>
+   typedef ArrayMemPool<TrieDatum<LeafDataT, InternalDataT, NeedDtor>, 32>
       DatumArrayPool;
 
    /// Pool for more efficient allocation of TrieNode index (indirect pointers)
    /// arrays.
    /// Typedef'd here, but has to be owned by the parent PTrie class and passed
    /// as parameter whenever needed.
-   typedef ArrayMemPool<Uint, 10> NodePtrArrayPool;
+   typedef ArrayMemPool<Uint, 32> NodePtrArrayPool;
 
    /// Pool for efficient of allocation of TrieNodes
    /// Typedef'd here, but has to be owned by the parent PTrie class and passed
@@ -270,8 +272,8 @@ public:
 
    /**
     * Equivalent to clear() if NeedDtor is false.
-    * When using memory pools and data type that don't have mandatory
-    * destructors, recursive clear() is wasteful, we can just clear the root
+    * When using memory pools and a LeafDataT that doesn't have a mandatory
+    * destructor, recursive clear() is wasteful, we can just clear the root
     * (non-recursively) and then clear the memory pools (the parent PTrie must
     * do that step).
     */
@@ -289,9 +291,9 @@ public:
     */
    void addStats(
       Uint &intl_nodes,
-      Uint &trieDataUsed,
-      Uint &trieDataAlloc,
-      Uint &childrenAlloc,
+      SimpleHistogram<Uint>& trieDataUsed,
+      SimpleHistogram<Uint>& trieDataAlloc,
+      SimpleHistogram<Uint>& childrenAlloc,
       const TrieNodePool& node_pool
    ) const;
 

@@ -7,7 +7,7 @@
  * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
@@ -15,7 +15,7 @@
 
 #include "rescore_train.h"
 #include "boostDef.h"
-#include "featurefunction.h"
+#include "featurefunction_set.h"
 #include "powell.h"
 #include "rescore_io.h"
 #include "fileReader.h"
@@ -27,12 +27,6 @@
 #include "bleu.h"
 #include "PERstats.h"
 #include "WERstats.h"
-#include <iostream>
-#include <typeinfo>
-#include <iostream>
-#include <algorithm>
-#include <assert.h>
-#include <time.h>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -180,7 +174,7 @@ void train(const ARG& arg)
    const Uint S = RescoreIO::readSource(arg.src_file, sources);
    if (S == 0) error(ETFatal, "empty source file: %s", arg.src_file.c_str());
 
-   LOG_VERBOSE2(verboseLogger, "Reading Feature Functions Set");
+   LOG_VERBOSE2(verboseLogger, "Reading Feature Function Set");
    FeatureFunctionSet ffset(true, arg.seed);
    const Uint M = ffset.read(arg.model_in, arg.bVerbose, arg.ff_pref.c_str(), arg.bIsDynamic);
    ffset.createTgtVocab(sources, FileReader::create<Translation>(arg.nbest_file, arg.K));
@@ -311,30 +305,30 @@ void train(const ARG& arg)
 
       if (arg.bVerbose) cerr << "Calling Powell with initial wts=" << wts << endl;
 
-      uMatrix xi(M, M);
-      xi = uIdentityMatrix(M);
+      uMatrix U(M, M);
+      U = uIdentityMatrix(M);
       int iter = 0;
-      double fret = 0.0;
+      double score = 0.0;
       time_t powell_start = time(NULL);             // time
-      powell(wts, xi, FTOL, iter, fret);
+      powell(wts, U, POWELL_TOLERANCE, iter, score);
       ++num_runs;
 
       if (arg.bVerbose) {
          cerr << "Powell returned wts=" << wts << endl;
-         fprintf(stderr, "Score: %f in %d seconds\n", ScoreStats::convertToDisplay(fret), (Uint)(time(NULL)- powell_start));
+         fprintf(stderr, "Score: %f in %d seconds\n", ScoreStats::convertToDisplay(score), (Uint)(time(NULL)- powell_start));
       }
 
-      history.push_back(Datum(fret, wts));
-      score_history.push_back(ScoreStats::convertToDisplay(fret));
+      history.push_back(Datum(score, wts));
+      score_history.push_back(ScoreStats::convertToDisplay(score));
 
-      if (fret > best_score) {
+      if (score > best_score) {
          best_wts = wts;
-         best_score = fret;
+         best_score = score;
       }
-      if (!arg.approx_expect && arg.num_powell_runs == 0 && ScoreStats::convertToDisplay(fret) > extend_thresh) {
+      if (!arg.approx_expect && arg.num_powell_runs == 0 && ScoreStats::convertToDisplay(score) > extend_thresh) {
          // normal stopping criterion
          total_runs = max(num_runs+NUM_INIT_RUNS+2, 2 * num_runs); // bizarre for bkw compat
-         extend_thresh = ScoreStats::convertToDisplay(fret) + SCORETOL;
+         extend_thresh = ScoreStats::convertToDisplay(score) + SCORETOL;
       } else if (arg.approx_expect && num_runs > NUM_INIT_RUNS+2) {
          // approx-expect stopping
          const double m = mean(score_history.begin(), score_history.end());

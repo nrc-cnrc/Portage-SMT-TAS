@@ -25,13 +25,13 @@ void NBestWordPostSrc::setAlig(Alignment &al) {
 
 /**
  * Compute word posterior probabilities for all target words occurring in the N-best list
- */ 
-void NBestWordPostSrc::computePosterior(const Uint src_sent_id) {
+ */
+void NBestWordPostSrc::computePosterior(Uint src_sent_id) {
 
    WordSrcPhrase2Posterior.clear();
    NBestPosterior::computePosterior(src_sent_id);
 
-   for (uint n=0; n<min(Nbasis,nbest.size()); n++) {    
+   for (uint n=0; n<min(Nbasis,nbest.size()); n++) {
 
       totalProb.update(scores[n],n);
 
@@ -49,9 +49,9 @@ void NBestWordPostSrc::computePosterior(const Uint src_sent_id) {
 
             pair<Token,PhraseRange> p(*titr,align[k].source);
 
-            if (WordSrcPhrase2Posterior.find(p) != WordSrcPhrase2Posterior.end()) 
+            if (WordSrcPhrase2Posterior.find(p) != WordSrcPhrase2Posterior.end())
                WordSrcPhrase2Posterior[p].update(scores[n],n);
-            else 
+            else
                WordSrcPhrase2Posterior[p] = ConfScore(scores[n],n,1);
          } // for titr
       } // for k
@@ -68,10 +68,10 @@ void NBestWordPostSrc::computePosterior(const Uint src_sent_id) {
 
 /**
  * Normalize word posterior probabilities for all target words occurring in the N-best list
- */ 
+ */
 void NBestWordPostSrc::normalizePosterior() {
    typedef map< pair<Token,PhraseRange>, ConfScore, wordSrcPhraseLessThan >::iterator ITERATOR;
-   for (ITERATOR itr=WordSrcPhrase2Posterior.begin(); itr!=WordSrcPhrase2Posterior.end(); itr++) 
+   for (ITERATOR itr=WordSrcPhrase2Posterior.begin(); itr!=WordSrcPhrase2Posterior.end(); itr++)
       itr->second.normalize(totalProb);
 }
 
@@ -119,7 +119,7 @@ vector<double> NBestWordPostSrc::wordPosteriorsOne() {
 /**
  * Output the word posterior probabilities for all words in the given hypothesis 'trg'
  */
-void NBestWordPostSrc::tagPosteriorOne(ostream &out, const int &format) {
+void NBestWordPostSrc::tagPosteriorOne(ostream &out, int format) {
 
    assert(WordSrcPhrase2Posterior.size());
 
@@ -138,7 +138,7 @@ void NBestWordPostSrc::tagPosteriorOne(ostream &out, const int &format) {
 /**
  * Output the word posterior probabilities for all words of all hypotheses in 'nbest'
  */
-void NBestWordPostSrc::tagPosteriorAll(ostream &out, const int &format) {
+void NBestWordPostSrc::tagPosteriorAll(ostream &out, int format) {
 
    assert(WordSrcPhrase2Posterior.size());
 

@@ -1,12 +1,12 @@
 /**
  * @author George Foster
  * @file gfstats.h Simple stats algorithms.
- * 
- * 
- * COMMENTS: 
+ *
+ *
+ * COMMENTS:
  *
  * Template-haters beware.
- * 
+ *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
@@ -17,12 +17,10 @@
 #ifndef GFSTATS_H
 #define GFSTATS_H
 
-#include <stdlib.h>
-#include <utility>
 #include <cmath>
-#include <map>
 #include <vector>
 #include "portage_defs.h"
+#include <cstdlib>
 
 namespace Portage {
 
@@ -32,7 +30,7 @@ namespace Portage {
  * @param num  number of items
  * @return Returns mean
  */
-inline double _mean(const double sum, const Uint num)
+inline double _mean(double sum, Uint num)
 {
    return num ? sum / num : 0.0;
 }
@@ -59,7 +57,7 @@ template<class Iterator> double mean(Iterator beg, Iterator end)
  * @param num  number of items.
  * @return Returns variance
  */
-inline double _var(const double sum, const double sum2, const Uint num)
+inline double _var(double sum, double sum2, Uint num)
 {
    return num > 1 ? (sum2 - sum*sum/num) / (num-1) : 0.0;
 }
@@ -87,7 +85,7 @@ template<class Iterator> double var(Iterator beg, Iterator end)
  * @param end  end iterator.
  * @return Returns variance over [beg .. end)
  */
-template<class Iterator> double varp(Iterator beg, Iterator end) 
+template<class Iterator> double varp(Iterator beg, Iterator end)
 {return var(beg, end);}
 
 /**
@@ -115,7 +113,7 @@ template<class Iterator> double var(Iterator beg, Iterator end, double mean)
  * @param num  number of items.
  * @return Returns standard deviation.
  */
-inline double _sdev(const double sum, const double sum2, const Uint num)
+inline double _sdev(double sum, double sum2, Uint num)
 {
    return sqrt(_var(sum, sum2, num));
 }

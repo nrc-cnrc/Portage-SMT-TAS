@@ -19,19 +19,9 @@ OBJECTS = \
 
 LIBRARY=libportage_logging
 
-PROGRAMS= 
-
-TESTPROGS=  
-
-BINSCRIPTS= 
-
-INFOFILES=
-
 EXTRA_LIBS=$(LOGGING_LIB)
 
 DYNLIBS=-lpthread
-
-DOCUMENTS= 
 
 # Module/directory specific compile flags
 MODULE_CF=-Wno-non-virtual-dtor

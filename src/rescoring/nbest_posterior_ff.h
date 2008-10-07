@@ -12,7 +12,7 @@
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2006, Her Majesty in Right of Canada
  *
- * Contains the declaration of all NBest Posterior feature functions:
+ * Contains the declaration of all NBest Posterior feature functions
  *   nbestWordPostLev_ff, nbestWordPostSrc_ff, nbestWordPostTrg_ff
  *   nbestPhrasePostSrc_ff, nbestPhrasePostTrg_ff
  *   nbestNgramPost_ff, nbestSentLenPost_ff
@@ -153,7 +153,7 @@ namespace Portage
          nbestSentLenPost_ff(const string &args);
 
       virtual FeatureFunction::FF_COMPLEXITY cost() const {
-        return LOW;
+         return LOW;
       }
 
    }; // nbestSentLenPost_ff

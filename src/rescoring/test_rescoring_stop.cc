@@ -8,7 +8,7 @@
  * Test rescoring stop condition strategy
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2007, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2007, Her Majesty in Right of Canada
@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
    Uint total_runs = NUM_INIT_RUNS+2;
    Uint best_run = 0;
 
-   if (isPrefix("norm", strategy.c_str())) {
+   if (isPrefix("norm", strategy)) {
       vector<string> toks;
       if (split(strategy, toks, " :") != 2)
          error(ETFatal, "expecting norm strategy in format norm:n, where n is max iters");
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
             total_runs = max(num_runs+NUM_INIT_RUNS+2, 2 * num_runs); // bizarre for bkw compat
             extend_thresh = exp(fret) + BLEUTOL;
          }
-      } else if (isPrefix("norm", strategy.c_str())) {
+      } else if (isPrefix("norm", strategy)) {
          if (bleu_history.size() > NUM_INIT_RUNS+2) {
             double m = mean(bleu_history.begin(), bleu_history.end());
             double s = sdev(bleu_history.begin(), bleu_history.end(), m);

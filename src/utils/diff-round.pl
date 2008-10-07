@@ -1,15 +1,13 @@
 #!/usr/bin/perl
 # $Id$
 #
-# diff-round.pl - diff two ff files, i.e., files of floating point numbers, where
-#                 rounding differences are not real differences
+# diff-round.pl - diff two ff files, i.e., files of floating point numbers,
+#                 where rounding differences are not real differences
 #
 # PROGRAMMER: Eric Joanis
 #
-# COMMENTS:
-#
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2006, Her Majesty in Right of Canada

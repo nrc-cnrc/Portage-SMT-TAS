@@ -35,7 +35,7 @@ namespace Portage
   class IBM1DeletionBase : public FeatureFunction {
     private:
       TTableWithMax*  table;
-      double        thr;   ///< threshold for distinguishing between deletions/good translations.
+      double          thr;   ///< threshold for distinguishing between deletions/good translations.
       string          ttable_file;
 
     protected:

@@ -25,6 +25,7 @@ Usage: monitor-process.sh [-h(elp)] [-v(erbose)] <process_name>
 
 Options:
 
+  -s <#>:         stop if the process is not present after # time. [infinite]
   -p(eriod) <p>:  run every <p> seconds [5]
   -p10 <p>        same as -p, but specified in tenths of a second
   -h(elp):        print this help message
@@ -62,8 +63,10 @@ arg_check() {
 PERIOD=5
 DEBUG=
 VERBOSE=0
+STOP_AFTER=
 while [ $# -gt 0 ]; do
    case "$1" in
+   -s)             arg_check 1 $# $1; STOP_AFTER=$2; shift;;
    -p|-period)     arg_check 1 $# $1; PERIOD=$2; shift;;
    -p10)           arg_check 1 $# $1; PERIOD_TENTH=$(($2 * 100000)); shift;;
    -v|-verbose)    VERBOSE=$(( $VERBOSE + 1 ));;
@@ -94,8 +97,17 @@ if [ $DEBUG ]; then
 " >&2
 fi
 
+not_running=0
 while true; do
    ps ugxf | grep $PROCESS_NAME | grep -v "grep.*$PROCESS_NAME" | grep -v monitor
+   RUNNING=$?
+   if [ -n "$STOP_AFTER" ]; then
+      echo "Running: $RUNNING"
+      if [ $RUNNING -gt 0 ]; then 
+         not_running=$((not_running + 1))
+         [ $not_running -gt $STOP_AFTER ] && exit 0;
+      fi
+   fi
    date
    if [ $PERIOD_TENTH ]; then
       usleep $PERIOD_TENTH

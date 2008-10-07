@@ -12,12 +12,11 @@
  * Copyright 2005, Her Majesty in Right of Canada
  */
 
-#include <algorithm>
 #include <numeric>
 #include <vector>
-#include <iostream>
 #include <cmath>
 #include "histogram_fit.h"
+#include <algorithm>
 
 using namespace Portage;
 

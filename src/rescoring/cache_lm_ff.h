@@ -14,6 +14,8 @@
 
 #include "featurefunction.h"
 #include "docid.h"
+#include "vocab_filter.h"
+#include <math.h>
 
 namespace Portage
 {

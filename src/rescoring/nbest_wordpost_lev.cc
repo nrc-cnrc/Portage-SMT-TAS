@@ -18,7 +18,7 @@
 
 using namespace Portage;
 
-void NBestWordPostLev::computePosterior(const Uint src_sent_id) {
+void NBestWordPostLev::computePosterior(Uint src_sent_id) {
    NBestPosterior::computePosterior(src_sent_id);
 }
 
@@ -40,7 +40,7 @@ void NBestWordPostLev::init(const Tokens &t) {
       const Tokens& hypn = nbest[n].getTokens();
       const vector<int> levAlig = leven.LevenAlig(trg,hypn);
 
-      for (uint i=0; i<trg.size(); i++) 
+      for (uint i=0; i<trg.size(); i++)
          if (levAlig[i] > -1)
             if (hypn[levAlig[i]] == trg[i])
                conf[i].update(scores[n],n);
@@ -51,7 +51,7 @@ void NBestWordPostLev::init(const Tokens &t) {
 
 /**
  * Normalize word posterior probabilities for all target words occurring in the current sentence
- */ 
+ */
 void NBestWordPostLev::normalizePosterior() {
    for (vector<ConfScore>::iterator itr=conf.begin(); itr!=conf.end(); itr++)
       itr->normalize(totalProb);
@@ -67,7 +67,7 @@ double NBestWordPostLev::sentPosteriorOne() {
    if (getNBsize()==0)
       return INFINITY;
    else {
-      assert(conf.size()==trg.size());  
+      assert(conf.size()==trg.size());
       return sentPosteriorScores(conf);
    }
 }
@@ -81,7 +81,7 @@ vector<double> NBestWordPostLev::wordPosteriorsOne() {
    if (getNBsize()==0)
       return vector<double>(1,INFINITY);
    else {
-      assert(conf.size()==trg.size());  
+      assert(conf.size()==trg.size());
       return wordPosteriorProbs(conf);
    }
 }
@@ -89,9 +89,9 @@ vector<double> NBestWordPostLev::wordPosteriorsOne() {
 /**
  * Compute and output the word posterior probabilities for all words in the given hypothesis 'trg'
  */
-void NBestWordPostLev::tagPosteriorOne(ostream &out, const int &format) {
+void NBestWordPostLev::tagPosteriorOne(ostream &out, int format) {
 
-   assert(conf.size()==trg.size());  
+   assert(conf.size()==trg.size());
    printPosteriorScores(out,conf,trg,format);
 }
 
@@ -99,7 +99,7 @@ void NBestWordPostLev::tagPosteriorOne(ostream &out, const int &format) {
 /**
  * Compute and output the word posterior probabilities for all words of all hypotheses in 'nbest'
  */
-void NBestWordPostLev::tagPosteriorAll(ostream &out, const int &format) {
+void NBestWordPostLev::tagPosteriorAll(ostream &out, int format) {
 
    for (uint n=0; n<min(N,Ntag); n++) {
       trg = nbest[n].getTokens();
@@ -114,7 +114,7 @@ void NBestWordPostLev::tagPosteriorAll(ostream &out, const int &format) {
  */
 void NBestWordPostLev::tagSentPosteriorAll(ostream &out) {
 
-   for (uint n=0; n<min(N,Ntag); n++) {    
+   for (uint n=0; n<min(N,Ntag); n++) {
       trg = nbest[n].getTokens();
       printSentPosteriorScores(out,conf);
    } // for n

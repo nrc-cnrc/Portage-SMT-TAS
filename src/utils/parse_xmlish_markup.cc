@@ -6,13 +6,12 @@
  * COMMENTS: 
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada / 
  * Copyright 2006, Her Majesty in Right of Canada
  */
 
-#include "assert.h"
 #include "errors.h"
 #include "parse_xmlish_markup.h"
 #include "str_utils.h"
@@ -234,10 +233,10 @@ bool Portage::parseXMLishTag(const char buf[], XMLishTag& tag, Uint *beg, Uint* 
 static const char xml_specials[] = {'<', '>', '&', '\'', '"'};
 static const char* xml_escapes[]  = {"lt", "gt", "amp", "apos", "quot"};
 
-string& Portage::XMLescape(const char buf[], string& dest)
+string& Portage::XMLescape(const char buf[], string& dest, Uint buflen)
 {
    dest.clear();
-   for (const char* p = buf; *p; ++p) {
+   for (const char* p = buf; *p && (buflen == 0 || p-buf < int(buflen)); ++p) {
       Uint i = 0;
       for (i = 0; i < ARRAY_SIZE(xml_specials); ++i)
          if (*p == xml_specials[i]) {
@@ -250,10 +249,10 @@ string& Portage::XMLescape(const char buf[], string& dest)
    return dest;
 }
 
-string& Portage::XMLunescape(const char buf[], string& dest)
+string& Portage::XMLunescape(const char buf[], string& dest, Uint buflen)
 {
    dest.clear();
-   for (const char* p = buf; *p; ++p) {
+   for (const char* p = buf; *p && (buflen == 0 || p-buf < int(buflen)); ++p) {
       if (*p == '&') {
          Uint i;
          for (i = 0; i < ARRAY_SIZE(xml_escapes); ++i)

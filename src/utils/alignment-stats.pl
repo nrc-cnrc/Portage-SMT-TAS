@@ -34,6 +34,7 @@ Options:
 
   -r(atio) <r>  print lines where one is more than <r> times longer than the
                 other
+  -0            omit any lines containing 0 words from output
   -h(elp):      print this help message
   -v(erbose):   increment the verbosity level by 1 (may be repeated)
   -d(ebug):     print debugging information
@@ -50,6 +51,7 @@ GetOptions(
     quiet       => sub { $verbose = 0 },
     debug       => \my $debug,
     "ratio=f"   => \my $ratio,
+    0           => \my $nozeros,
 ) or usage;
 
 my $file1 = shift || "-";
@@ -89,7 +91,7 @@ while (<FILE1>) {
 
     $counts{"$line1_count $line2_count"}++;
 
-    if ( defined $ratio ) {
+    if ( defined $ratio && (! defined $nozeros || $line1_count && $line2_count)) {
         if ( $line1_count * $ratio < $line2_count or
              $line2_count * $ratio < $line1_count ) {
             print "$file1:$line($line1_count words):$line1";
@@ -113,5 +115,7 @@ foreach (
 )
 {
     # Here, $_ points to triples ["12 15", 12, 15], sorted.
-    printf "%-8d %-3d %-3d\n", $counts{$_->[0]}, $_->[1], $_->[2];
+    if (! defined $nozeros || $_->[1] && $_->[2]) {
+        printf "%-8d %-3d %-3d\n", $counts{$_->[0]}, $_->[1], $_->[2];
+    }
 }

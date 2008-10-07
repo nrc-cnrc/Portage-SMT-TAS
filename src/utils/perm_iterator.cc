@@ -3,7 +3,8 @@
  * @file perm_iterator.cc  Permutation iterator over all permutations of a given length.
  * $Id$
  * 
- * Technologies langagieres interactives / Interactive Language Technologies 
+ * 
+ * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology 
  * Conseil national de recherches Canada / National Research Council Canada 
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /

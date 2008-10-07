@@ -15,16 +15,15 @@
  */
 
 
-#include <rescore_translate.h>
-#include <boostDef.h>
-#include <featurefunction.h>
-#include <rescore_io.h>
-#include <basic_data_structure.h>
-#include <exception_dump.h>
-#include <fileReader.h>
-#include <rescoring_general.h>
-#include <printCopyright.h>
-#include <bleu.h>
+#include "rescore_translate.h"
+#include "featurefunction_set.h"
+#include "rescore_io.h"
+
+#include "exception_dump.h"
+#include "rescoring_general.h"
+#include "printCopyright.h"
+#include "bleu.h"
+
 #include <queue>
 #include <stack>
 #include <sstream>

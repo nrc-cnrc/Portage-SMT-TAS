@@ -59,7 +59,7 @@ void IBM1DocTgtGivenSrc::source(Uint s, const Nbest * const nbest)
       src_doc.clear();
       for (Uint i = s; i < s+docids->docSize(docids->docID(s)); ++i) {
          const string& ss((*src_sents)[i]);
-	split(ss, src_doc);
+         split(ss, src_doc);
       }
    }
 }

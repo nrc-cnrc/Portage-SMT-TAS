@@ -16,10 +16,8 @@
 #include <exception_dump.h>
 #include <arg_reader.h>
 #include <file_utils.h>
-#include <featurefunction.h>
+#include <featurefunction_set.h>
 #include <rescore_io.h>
-#include <basic_data_structure.h>
-#include <fileReader.h>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -30,24 +28,23 @@ using namespace std;
 
 /// Program gen_feature_values usage.
 static char help_message[] = "\n\
-gen_feature_values [-v][-w][-a F][-o F][-n N][-min Sindex][-max Sindex]\n\
-                   feature arg src nbest\n\
+gen_feature_values [-v][-w][-a AF][-o OF][-n N][-min SINDEX][-max EINDEX]\n\
+                   FEATURE ARG SRC NBEST\n\
 \n\
-Generate values for a feature on a given source text and nbest lists.\n\
-Values are written to stdout. Use rescore_train -H and -h for information\n\
-on features and file formats.\n\
+  Generate values for FEATURE on a given SRC text and NBEST lists.\n\
+  Values are written to stdout. Use rescore_train -H and -h for information\n\
+  on features and file formats.\n\
 \n\
 Options:\n\
 \n\
--a   Read in phrase alignment file F.\n\
--o   Output feature file F.\n\
--n   Print features only for the N best sentences.\n\
--w   Print feature value for each target word instead of only one value\n\
-     for sentence.\n\
-     NOTE: This works only for features like word and phrase posterior probs.\n\
--v   Write progress reports to cerr.\n\
--min Start index to process\n\
--max End index to process\n\
+  -a   Read in phrase alignment file AF.\n\
+  -o   Output feature file OF.\n\
+  -n   Print features only for the N best sentences.\n\
+  -w   Print feature values for each target word rather than one per sentence.\n\
+       NOTE: Works only for features like word and phrase posterior probs.\n\
+  -v   Write progress reports to cerr.\n\
+  -min Start index to process\n\
+  -max End index to process\n\
 ";
 
 // globals

@@ -5,7 +5,7 @@
  *
  * $Id$
  *
- * 
+ *
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
@@ -58,8 +58,8 @@ struct filterTMVisitor
       *   and/or backward).
       * @param log_almost_0  user defined 0
       */
-      void MakeLogProbs(vector<float>& convertedProbs, const vector<float>& originalProbs, 
-                        const Uint numTextTransModels, double log_almost_0) const
+      void MakeLogProbs(vector<float>& convertedProbs, const vector<float>& originalProbs,
+                        Uint numTextTransModels, double log_almost_0) const
       {
          assert(originalProbs.size() > 0);  // SAM DEBUG
          convertedProbs.resize(numTextTransModels, log_almost_0);
@@ -75,7 +75,7 @@ struct filterTMVisitor
       * Prints the content of this for debugging purpose.
       * @param index  since this refers to one entry in the target table, we print its index
       */
-      void print(const Uint& index) const {
+      void print(Uint index) const {
          cerr << index << " | ";
          copy(forward_trans_probs.begin(), forward_trans_probs.end(), ostream_iterator<double>(cerr, " "));
          cerr << "| ";
@@ -94,8 +94,11 @@ struct filterTMVisitor
    const double log_almost_0;            ///< log(0), almost
    const char* const style;              ///< Should indicate hard or soft filtering
    Uint numKeptEntry;                    ///< Keeps track of how many entries were kept
-   SimpleHistogram<Uint>* stats_unfiltered;    ///< Gathers stats on number leaves and number of entries per leaves.
-   SimpleHistogram<Uint>* stats_filtered;      ///< Gathers stats on number leaves and number of entries per leaves.
+
+   /// Gathers stats on number leaves and number of entries per leaves.
+   SimpleHistogram<Uint>* stats_unfiltered;
+   /// Gathers stats on number leaves and number of entries per leaves.
+   SimpleHistogram<Uint>* stats_filtered;
 
    /**
     * Default constructor.
@@ -121,22 +124,22 @@ struct filterTMVisitor
       if (stats_filtered) delete stats_filtered;
    }
 
-   /** 
+   /**
     * Simply sets the limit and the number of text translation models.
     * @param Limit  filtering length
     * @param n      number of text translation models.  We need
     */
-   void set(const Uint Limit, const Uint n)
-   { 
+   void set(Uint Limit, Uint n)
+   {
       L = Limit;
       numTextTransModels = n;
 
       if (stats_unfiltered) delete stats_unfiltered;
-      stats_unfiltered = new SimpleHistogram<Uint>(L*10);
+      stats_unfiltered = new SimpleHistogram<Uint>(new fixBinner(10*L));
       assert(stats_unfiltered);
 
       if (stats_filtered) delete stats_filtered;
-      stats_filtered = new SimpleHistogram<Uint>(L);
+      stats_filtered = new SimpleHistogram<Uint>(new fixBinner(L));
       assert(stats_filtered);
    };
 
@@ -161,10 +164,10 @@ struct filterTMVisitor
    {
       // DEBUGGING
       //copy(key_stack.begin(), key_stack.end(), ostream_iterator<Uint>(cerr, " ")); cerr << endl;
-      
+
       // Gather stats of unfiltered leaves
       if (tgtTable.size() > 0) stats_unfiltered->add(tgtTable.size());
-      
+
       operator()(tgtTable);
       numKeptEntry += tgtTable.size();
 

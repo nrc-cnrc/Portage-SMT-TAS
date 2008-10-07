@@ -16,18 +16,16 @@
 #ifndef NBEST_POSTERIOR_H
 #define NBEST_POSTERIOR_H
 
+#include "confidence_score.h"
+#include "featurefunction_set.h"
 #include <map>
 #include <iostream>
 #include <cmath>
-#include "portage_defs.h"
-#include "basic_data_structure.h"
-#include "confidence_score.h"
-#include "featurefunction.h"
-
-const Uint MAXSIZE=100000;
 
 namespace Portage
 {
+
+   const Uint MAXSIZE=100000;
 
    struct trgPhraseLessThan {
       bool operator()(const Tokens &p1, const Tokens &p2) {
@@ -74,12 +72,12 @@ namespace Portage
          void init();
          virtual void init(const Tokens &t);
          void init(const Sentence &t);
-         void setFFProperties(const string& ffval_wts_file, const string& prefix, const double scale);
+         void setFFProperties(const string& ffval_wts_file, const string& prefix, double scale);
          void clear();
          void clearAll();
          void setNB(const Nbest &nb);
          int  getNBsize() {return nbest.size(); }
-         void setScale(const double &s);
+         void setScale(double s);
          void setFFSet(const string &args);
 
          /**
@@ -92,18 +90,18 @@ namespace Portage
           * Sets a new maximum N for Ngram
           * @param m   maximum N
           */
-         virtual void   setMaxN(const Uint &m) {}
+         virtual void   setMaxN(Uint m) {}
 
          /// @param src_sent_id  source sentence index
-         virtual void   computePosterior(const Uint src_sent_id) =0;
+         virtual void   computePosterior(Uint src_sent_id) =0;
          virtual void   normalizePosterior() =0;
          virtual double sentPosteriorOne() =0;
          virtual vector<double> wordPosteriorsOne() =0;
-         virtual void   tagPosteriorOne(ostream &out, const int &format) =0;
-         virtual void   tagPosteriorAll(ostream &out, const int &format) =0;
+         virtual void   tagPosteriorOne(ostream &out, int format) =0;
+         virtual void   tagPosteriorAll(ostream &out, int format) =0;
          virtual void   tagSentPosteriorAll(ostream &out) =0;
 
-         void   printPosteriorScores(ostream &out, const vector<ConfScore> &v, const Tokens &trg, const int format=0);
+         void   printPosteriorScores(ostream &out, const vector<ConfScore> &v, const Tokens &trg, int format=0);
 
          /**
           * Output the min, max, sum, product, arithmetic mean and geometric

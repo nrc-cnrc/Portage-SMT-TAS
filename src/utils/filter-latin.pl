@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # $Id$
 
-# filter-latin.pl Program template
+# filter-latin.pl - Filter out invalid characters from an iso-latin1 encoded file.
 #
 # PROGRAMMER: George Foster
 #

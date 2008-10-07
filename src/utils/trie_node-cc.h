@@ -73,7 +73,7 @@ TrieDatum<LeafDataT, InternalDataT, NeedDtor>*
          Uint old_size = list_alloc;
          list_alloc = Uint((list_alloc + 1) * GrowthFactor);
          TrieDatum<LeafDataT, InternalDataT, NeedDtor> *new_list =
-            da_pool.alloc_array_no_ctor(list_alloc, list_alloc);
+            da_pool.alloc_array_no_ctor(list_alloc, &list_alloc);
          // This for loop won't work for LeafDataT with mandatory ctor/dtor - 
          // we need to memcpy the elements we keep and call the ctor on the new
          // ones.
@@ -119,7 +119,7 @@ TrieDatum<LeafDataT, InternalDataT, NeedDtor>*
             children_size(Uint((children_size()+1) * GrowthFactor));
             Uint actual_new_children_size;
             Uint* new_children = npa_pool.alloc_array_no_ctor(children_size(),
-               actual_new_children_size);
+               &actual_new_children_size);
             children_size(actual_new_children_size);
             for ( Uint i = 0; i < position; ++i )
                new_children[i] = children[i];
@@ -205,7 +205,7 @@ void TrieNode<LeafDataT, InternalDataT, NeedDtor>::create_children(
       children_size(Uint((position+1) * GrowthFactor));
       Uint actual_new_children_size;
       Uint* new_children = npa_pool.alloc_array_no_ctor(children_size(),
-         actual_new_children_size);
+         &actual_new_children_size);
       children_size(actual_new_children_size);
 
       for ( Uint i = 0; i < prev_size; ++i ) {
@@ -287,13 +287,17 @@ template<class LeafDataT, class InternalDataT, bool NeedDtor>
 void TrieNode<LeafDataT, InternalDataT, NeedDtor>::clear(
    TrieNodePool& node_pool, DatumArrayPool& da_pool, NodePtrArrayPool& npa_pool
 ) {
-   for (Uint i = 0; i < list_alloc; ++i)
+   for (Uint i = 0; i < list_alloc; ++i) {
       if ( list[i].has_children ) {
          node_pool.get_ptr(children[i])->clear(node_pool, da_pool, npa_pool);
          if ( NeedDtor ) node_pool.get_ptr(children[i])->~TrieNode();
       }
+   }
    if ( list )
-      da_pool.free_array_no_dtor(list, list_alloc);
+      if ( NeedDtor )
+         da_pool.free_array(list, list_alloc);
+      else
+         da_pool.free_array_no_dtor(list, list_alloc);
    if ( children )
       npa_pool.free_array_no_dtor(children, children_size());
    non_recursive_clear();
@@ -311,20 +315,21 @@ void TrieNode<LeafDataT, InternalDataT, NeedDtor>::non_recursive_clear() {
 
 template<class LeafDataT, class InternalDataT, bool NeedDtor>
 void TrieNode<LeafDataT, InternalDataT, NeedDtor>::addStats(
-   Uint &intl_nodes, Uint &trieDataUsed,
-   Uint &trieDataAlloc, Uint &childrenAlloc,
+   Uint &intl_nodes, SimpleHistogram<Uint>& trieDataUsed,
+   SimpleHistogram<Uint>& trieDataAlloc, SimpleHistogram<Uint>& childrenAlloc,
    const TrieNodePool& node_pool
 ) const {
    ++intl_nodes;
-   trieDataUsed += list_alloc;
+   Uint cptTrieDataUsed = list_alloc;
    for ( Uint i = list_alloc; i > 0; --i ) {
       if ( list[i-1].key_elem != NoKey )
          break;
       else
-         trieDataUsed--;
+         cptTrieDataUsed--;
    }
-   trieDataAlloc += list_alloc;
-   childrenAlloc += children_size();
+   trieDataUsed.add(cptTrieDataUsed);
+   trieDataAlloc.add(list_alloc);
+   childrenAlloc.add(children_size());
    for (Uint i = 0; i < list_alloc; ++i) {
       if ( list[i].has_children ) {
          assert(i < children_size());
@@ -425,7 +430,7 @@ Uint TrieNode<LeafDataT, InternalDataT, NeedDtor>::read_binary(
    Uint true_list_size;
    is.read((char*)&true_list_size, sizeof(true_list_size));
    if ( true_list_size > 0 ) {
-      list = da_pool.alloc_array_no_ctor(true_list_size, list_alloc);
+      list = da_pool.alloc_array_no_ctor(true_list_size, &list_alloc);
       is.read((char*)list, sizeof(list[0]) * true_list_size);
       for ( Uint i(true_list_size); i < list_alloc; ++i )
          list[i].reset(NoKey);
@@ -441,7 +446,7 @@ Uint TrieNode<LeafDataT, InternalDataT, NeedDtor>::read_binary(
    Uint allocated_children_size;
    if ( true_children_size > 0 ) {
       children = npa_pool.alloc_array_no_ctor(true_children_size,
-                                              allocated_children_size);
+                                              &allocated_children_size);
       children_size(allocated_children_size); // set new actual children size
    } else {
       children = NULL;
@@ -542,7 +547,7 @@ Uint TrieNode<LeafDataT, InternalDataT, NeedDtor>::read_binary(
          TrieDatum<LeafDataT, InternalDataT, NeedDtor> *new_list;
          if ( (required_list_size+1) * GrowthFactor < true_list_size ) {
             new_list =
-               da_pool.alloc_array_no_ctor(required_list_size, new_list_alloc);
+               da_pool.alloc_array_no_ctor(required_list_size, &new_list_alloc);
          } else {
             new_list = list;
             new_list_alloc = list_alloc;
@@ -555,7 +560,7 @@ Uint TrieNode<LeafDataT, InternalDataT, NeedDtor>::read_binary(
             new_children_alloc = 0;
          } else if ( (required_children_size+1) * GrowthFactor < true_children_size ) {
             new_children = npa_pool.alloc_array_no_ctor(required_children_size,
-                                                        new_children_alloc);
+                                                        &new_children_alloc);
          } else {
             new_children = children;
             new_children_alloc = allocated_children_size;
@@ -601,7 +606,7 @@ Uint TrieNode<LeafDataT, InternalDataT, NeedDtor>::read_binary(
       } else if ( (required_children_size+1) * GrowthFactor < true_children_size ) {
          Uint new_children_alloc;
          Uint* new_children = npa_pool.alloc_array_no_ctor(
-               required_children_size, new_children_alloc);
+               required_children_size, &new_children_alloc);
          assert(required_children_size <= new_children_alloc);
          memcpy(new_children, children,
                 sizeof(children[0]) * required_children_size);
@@ -665,7 +670,7 @@ void TrieNode<LeafDataT, InternalDataT, NeedDtor>::apply_mapper(
    // Step 3: Reorder list according to this new order.
    Uint new_list_alloc;
    TrieDatum<LeafDataT, InternalDataT, NeedDtor> *new_list
-      = da_pool.alloc_array_no_ctor(required_list_size, new_list_alloc);
+      = da_pool.alloc_array_no_ctor(required_list_size, &new_list_alloc);
    for ( Uint i(0); i < required_list_size; ++i ) {
       memcpy(new_list+i, list+positions[i], sizeof(list[0]));
       //new_list[i] = list[positions[i]];
@@ -688,7 +693,7 @@ void TrieNode<LeafDataT, InternalDataT, NeedDtor>::apply_mapper(
       if ( last_child_pos >= 0 ) {
          Uint new_children_alloc;
          Uint* new_children = npa_pool.alloc_array_no_ctor(
-               last_child_pos + 1, new_children_alloc);
+               last_child_pos + 1, &new_children_alloc);
          for ( Uint i(0); i <= Uint(last_child_pos); ++i )
             if ( new_list[i].has_children )
                new_children[i] = children[positions[i]];

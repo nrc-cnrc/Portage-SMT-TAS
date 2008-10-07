@@ -1,14 +1,12 @@
 #!/bin/bash
 # $Id$
 
-# prog.sh - bash script template [Update this line when you use this template]
+# prog.sh Briefly describe your script here
 # 
-# PROGRAMMER: Eric Joanis [Update this line when you use this template]
+# PROGRAMMER: Write your name here
 # 
-# COMMENTS:
-#
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2008, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2008, Her Majesty in Right of Canada
@@ -21,24 +19,20 @@ usage() {
    done
    cat <<==EOF== >&2
 
-Usage: prog.sh [-h(elp)] [-v(erbose)] [-flag] [-option_with_1arg <arg>]
-       [-option_with_2_args <arg1> <arg2>] prog_arguments
+Usage: prog.sh PROG_ARGUMENT1 PROG_ARGUMENT2
 
   Brief description
 
 Options:
 
-  -flag:        turn on <insert behaviour>
-
-  -option_with_1arg <arg>: ...
-
-  -option_with_2args <arg1> <arg2>: ...
-
-  -h(elp):      print this help message
-
-  -v(erbose):   increment the verbosity level by 1 (may be repeated)
-
-  -d(ebug):     print debugging information
+  -flag       turn on <insert behaviour>
+  -option-with-1arg ARG         ...
+  -option-with-2args ARG1 ARG2  ...
+  -int-opt INT                  ...
+  -pos-int-opt POS_INT          ...
+  -h(elp)     print this help message
+  -v(erbose)  increment the verbosity level by 1 (may be repeated)
+  -d(ebug)    print debugging information
 
 ==EOF==
 
@@ -67,22 +61,55 @@ arg_check() {
    fi
 }
 
+# arg_check_int $value $arg_name exits with an error if $value does not
+# represent an integer, using $arg_name to provide a meaningful error message.
+arg_check_int() {
+   expr $1 + 0 &> /dev/null
+   RC=$?
+   if [ $RC != 0 -a $RC != 1 ]; then
+      error_exit "Invalid argument to $2 option: $1; integer expected."
+   fi
+}
 
-# Command line processing [Remove irrelevant parts of this code when you use this template]
-FLAG=
-OPTION_WITH_1ARG_VALUE=
-OPTION_WITH_2ARGS_ARG1=
-OPTION_WITH_2ARGS_ARG2=
-DEBUG=
+# arg_check_pos_int $value $arg_name exits with an error if $value does not
+# represent a positive integer, using $arg_name to provide a meaningful error
+# message.
+arg_check_pos_int() {
+   expr $1 + 0 &> /dev/null
+   RC=$?
+   if [ $RC != 0 -a $RC != 1 ] || [ $1 -le 0 ]; then
+      error_exit "Invalid argument to $2 option: $1; positive integer expected."
+   fi
+}
+
+# Print a warning message
+warn()
+{
+   echo "WARNING: $*" >&2
+}
+
+# Print a debug message
+debug()
+{
+   test -n "$DEBUG" && echo "<D> $*" >&2
+}
+
+
+# Command line processing [Remove irrelevant parts of this code when you use
+# this template]
 VERBOSE=0
 while [ $# -gt 0 ]; do
    case "$1" in
    -flag)               FLAG=1;;
-   -option_with_1arg)   arg_check 1 $# $1; OPTION_WITH_1ARG_VALUE=$2; shift;;
-   -option_with_2args)  arg_check 2 $# $1
+   -option-with-1arg)   arg_check 1 $# $1; OPTION_WITH_1ARG_VALUE=$2; shift;;
+   -option-with-2args)  arg_check 2 $# $1
                         OPTION_WITH_2ARGS_ARG1=$2;
                         OPTION_WITH_2ARGS_ARG2=$3;
                         shift; shift;;
+   -int-opt)            arg_check 1 $# $1; arg_check_int $2 $1
+                        INT_ARG=$2; shift;;
+   -pos-int-opt)        arg_check 1 $# $1; arg_check_pos_int $2 $1
+                        POS_INT_ARG=$2; shift;;
    -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ));;
    -d|-debug)           DEBUG=1;;
    -h|-help)            usage;;
@@ -93,6 +120,12 @@ while [ $# -gt 0 ]; do
    shift
 done
 
+test $# -eq 0   && error_exit "Missing first argument argument"
+PROG_ARGUMENT1=$1; shift
+test $# -eq 0   && error_exit "Missing second argument argument"
+PROG_ARGUMENT2=$1; shift
+test $# -gt 0   && error_exit "Superfluous arguments $*"
+
 # [Update this block with your variables, or simply delete it, when you use
 # this template]
 if [ $DEBUG ]; then
@@ -101,6 +134,8 @@ if [ $DEBUG ]; then
    OPTION_WITH_1ARG_VALUE=$OPTION_WITH_1ARG_VALUE
    OPTION_WITH_2ARGS_ARG1=$OPTION_WITH_2ARGS_ARG1
    OPTION_WITH_2ARGS_ARG2=$OPTION_WITH_2ARGS_ARG2
+   INT_ARG=$INT_ARG
+   POS_INT_ARG=$POS_INT_ARG
    DEBUG=$DEBUG
    VERBOSE=$VERBOSE
    REMAINING ARGS=$*

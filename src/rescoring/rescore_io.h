@@ -13,32 +13,14 @@
 #ifndef RESCORE_IO_H
 #define RESCORE_IO_H
 
-#include <portage_defs.h>
-#include <basic_data_structure.h>
-#include <string>
-#include <vector>
-
+#include "basic_data_structure.h"
 
 namespace Portage {
 
 /// Grouping all related functions in a namespace.
 /// Prevents pollution of the global namespace.
+/// Most methods have been removed from here because they were obsolete.
 namespace RescoreIO {
-
-   /**
-    * Reads all alignments in a file.
-    * @param filename  file containing the alignments to read.
-    * @param a         returned alignments.
-    * @return Returns the number of read alignments.
-    */
-   Uint readAlignments(const string &filename, vector<Alignment> &a);
-
-   /**
-    * Tokenizes a sentence.
-    * @param sent  sentence to tokenize.
-    * @param toks  returned tokenized sent.
-    */
-   void tokenize(const char* sent, vector<string>& toks);
 
    /**
     * Reads all sentences in a file.

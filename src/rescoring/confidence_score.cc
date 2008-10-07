@@ -4,12 +4,13 @@
  *
  * $Id$
  *
+ *
  * COMMENTS: class for storing word confidence measures calculated over N-best lists
  * contains word posterior probability, rank weighted frequency, and relative frequency
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology 
- * Conseil national de recherches Canada / National Research Council Canada 
+ * Institut de technologie de l'information / Institute for Information Technology
+ * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2006, Her Majesty in Right of Canada
 */
@@ -27,7 +28,7 @@ void ConfScore::reset() {
   relf  = 0;
 }
 
-void ConfScore::update(const double &p, const uint &n) {
+void ConfScore::update(double p, Uint n) {
   if (wpp == INFINITY) wpp = p;
   //  else wpp   = log(exp(wpp) + exp(p));
   else wpp  += log(1 + exp(p-wpp));
@@ -45,7 +46,7 @@ void ConfScore::update(const ConfScore &conf) {
 //  cerr << "update with prob. " << conf.wpp << "/" << exp(conf.wpp) << " leads to " << wpp << "/" << exp(wpp) << endl;
 }
 
-void ConfScore::normalize(const double &t, const uint &N) {
+void ConfScore::normalize(double t, Uint N) {
   wpp     -= t;
   rankf    = 2.0*(relf*double(N)-rankf)/(double)(N*(N+1));
   relf    /= (double)N;

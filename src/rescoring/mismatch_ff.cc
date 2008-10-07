@@ -16,7 +16,6 @@
  * Copyright 2007, Her Majesty in Right of Canada
  */
 
-#include "rescore_io.h"
 #include "mismatch_ff.h"
 
 using namespace Portage;

@@ -53,6 +53,16 @@ namespace MagicStream
    };
 
    /// A callable entity to properly close a pipe.
+   struct std_buffer_deleter {
+      /// Deletes a std_buffer
+      /// @param p buffer to be closed.
+      void operator()(std_buffer* p) {
+         log("Deleting std_buffer");
+         if (p) delete p;
+      }
+   };
+
+   /// A callable entity to properly close a pipe.
    struct PIPE_deleter {
       FILE* m_pFILE; ///< the file handle to be closed.
       /**
@@ -144,7 +154,7 @@ MagicStreamBase::MagicStreamBase(const PipeMode  _p, const OpenMode _b, int fd, 
    stream = closeAtEnd
       //? stream_type(tmp, FILE_DESCRIPTOR_deleter())
       ? stream_type(tmp, FILE_HANDLE_deleter(F))
-      : stream_type(tmp, null_deleter());
+      : stream_type(tmp, std_buffer_deleter());
 }
 
 MagicStreamBase::MagicStreamBase(const PipeMode  _p, const OpenMode _b, FILE* _f, bool closeAtEnd)
@@ -160,7 +170,7 @@ MagicStreamBase::MagicStreamBase(const PipeMode  _p, const OpenMode _b, FILE* _f
 
    stream = closeAtEnd
       ? stream_type(tmp, FILE_HANDLE_deleter(_f))
-      : stream_type(tmp, null_deleter());
+      : stream_type(tmp, std_buffer_deleter());
 }
 
 MagicStreamBase::~MagicStreamBase()
@@ -217,8 +227,17 @@ void MagicStreamBase::makeFile(const string& filename)
    stream = stream_type(tmp, close_deleter());
 }
 
-bool MagicStreamBase::isZip(const string& cmd) const
+bool MagicStreamBase::isBzip2(const string& cmd)
 {
+   return cmd.rfind(".") != string::npos
+          && (cmd.substr(cmd.rfind(".")) == ".bz"
+              || cmd.substr(cmd.rfind(".")) == ".bzip2"
+              || cmd.substr(cmd.rfind(".")) == ".bz2");
+}
+
+bool MagicStreamBase::isZip(const string& cmd)
+{
+   // Unsupported extensions are: -gz, -z, _z
    return cmd.rfind(".") != string::npos
           && (cmd.substr(cmd.rfind(".")) == ".gz"
               || cmd.substr(cmd.rfind(".")) == ".z"
@@ -272,6 +291,15 @@ void iMagicStream::open(const string& s)
    }
    else if (s.length()>0 && *s.rbegin() == '|') {
       makePipe(s.substr(0, s.length()-1));
+   }
+   else if (isBzip2(s)) {
+      std::filebuf* tmp = new std::filebuf;
+      assert(tmp);
+      if (tmp->open(s.c_str(), bufferMode())) {
+         tmp->close(); // File exists we must close it to now use it with gzip
+         delete tmp; tmp = NULL;
+         makePipe("bzip2 -cqdf " + s);
+      }
    }
    else if (isZip(s)) {
       std::filebuf* tmp = new std::filebuf;
@@ -350,6 +378,11 @@ void oMagicStream::open(const string& s)
    }
    else if (s.length()>0 && s[0] == '|') {
       makePipe(s.substr(1));
+   }
+   else if (isBzip2(s)) {
+      string command("bzip2 -cqf > ");
+      command += s;
+      makePipe(command);
    }
    else if (isZip(s)) {
       string command("gzip -cqf > ");

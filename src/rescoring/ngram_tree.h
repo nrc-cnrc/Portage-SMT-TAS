@@ -3,22 +3,20 @@
  * @file ngram_tree.h Tree class for ngrams with their posterior probabilities
  *
  * $Id$
- * 
- * 
+ *
+ *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology 
- * Conseil national de recherches Canada / National Research Council Canada 
- * Copyright 2006, Sa Majeste la Reine du Chef du Canada / 
- * Copyright 2006, Her Majesty in Right of Canada 
- * 
+ * Inst. de technologie de l'information / Institute for Information Technology
+ * Conseil national de recherches Canada / National Research Council Canada
+ * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
+ * Copyright 2006, Her Majesty in Right of Canada
+ *
  * Contains the declaration of NgramTree
  */
 
 #ifndef NGRAMTREE_H
 #define NGRAMTREE_H
 
-#include <stdio.h>
-#include <assert.h>
 #include <vector>
 #include <set>
 #include "confidence_score.h"
@@ -31,7 +29,7 @@ namespace Portage {
       ConfScore       c;
       string          w;
       set<NgramNode*> kids;
-    
+
    public:
       NgramNode() : c(ConfScore()), w("</s>"), kids(set<NgramNode*>()) {}
       NgramNode(const string &word) : c(ConfScore()), w(word), kids(set<NgramNode*>()) {}
@@ -39,7 +37,7 @@ namespace Portage {
 
       /**
        * recursively delete all successors
-       */    
+       */
       void clear();
 
       /**
@@ -61,7 +59,7 @@ namespace Portage {
       /**
        * Update the confidence value at a node (by given prob d and rank n)
        */
-      void       update(const double &d, const int &n);
+      void       update(double d, int n);
 
       /**
        * Return the confidence of a node
@@ -74,12 +72,12 @@ namespace Portage {
       void       normalize(const ConfScore &c);
 
    };
-    
+
    class NgramTree {
    private:
       NgramNode* root;
       int        numNodes;
-    
+
    public:
       NgramTree() : root(new NgramNode()),numNodes(0) {}
       NgramTree(const NgramTree &t) : root(t.root),numNodes(t.numNodes) {}
@@ -100,12 +98,12 @@ namespace Portage {
        *  Check whether all nodes for the words exists and insert new ones if
        *  necessary Update posterior probs. accordingly
        */
-      void       update(const vector<string> &ngram, const double &d, const int &n);
+      void       update(const vector<string> &ngram, double d, int n);
 
       /**
        * Look for n-gram in tree and return success
        */
-      bool       find(const vector<string> &ngram, const int &len);
+      bool       find(const vector<string> &ngram, int len);
 
       /**
        * Return number of nodes in the tree

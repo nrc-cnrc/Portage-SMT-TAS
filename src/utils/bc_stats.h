@@ -15,9 +15,7 @@
 #ifndef BCSTATS_H
 #define BCSTATS_H
 
-#include <utility>
 #include <cmath>
-#include <map>
 #include <vector>
 #include <iostream>
 #include "gfstats.h"

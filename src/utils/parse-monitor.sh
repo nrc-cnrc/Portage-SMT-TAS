@@ -265,7 +265,7 @@ sub print_process_info () {
         printf "Total CPU / Clock Time: %s / %s (%.1f%%)\n\n",
             hms_time($graph_data[-1][1]),
             hms_time($graph_data[-1][0]),
-            (100 * $graph_data[-1][1] / $graph_data[-1][0]);
+            (100 * $graph_data[-1][1] / ($graph_data[-1][0]||1));
     }
 
     if ( $graph ) {

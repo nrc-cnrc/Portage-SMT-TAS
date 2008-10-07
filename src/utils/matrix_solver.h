@@ -17,7 +17,6 @@
 #ifndef MATRIX_SOLVER_H
 #define MATRIX_SOLVER_H
 
-#include <string>
 #include <portage_defs.h>
 
 namespace Portage {

@@ -20,8 +20,8 @@ using namespace Portage;
 
 /**
  * Compute word posterior probabilities for all target words occurring in the N-best list
- */ 
-void NBestWordPostTrg::computePosterior(const Uint src_sent_id) {
+ */
+void NBestWordPostTrg::computePosterior(Uint src_sent_id) {
 
    WordPos2Posterior.clear();
    NBestPosterior::computePosterior(src_sent_id);
@@ -44,7 +44,7 @@ void NBestWordPostTrg::computePosterior(const Uint src_sent_id) {
 
    /*
       for (map< pair<Token,int>, ConfScore >::const_iterator itr=WordPos2Posterior.begin(); itr!=WordPos2Posterior.end(); itr++)
-      cerr << itr->first.first << " in pos " << itr->first.second << " : rel.freq " << itr->second.relfreq() << " , rank weighted freq. " << itr->second.rank() << " , prob " << itr->second.prob() << endl;  
+      cerr << itr->first.first << " in pos " << itr->first.second << " : rel.freq " << itr->second.relfreq() << " , rank weighted freq. " << itr->second.rank() << " , prob " << itr->second.prob() << endl;
     */
 
    normalizePosterior();
@@ -53,9 +53,9 @@ void NBestWordPostTrg::computePosterior(const Uint src_sent_id) {
 
 /**
  * Normalize word posterior probabilities for all target words occurring in the N-best list
- */ 
+ */
 void NBestWordPostTrg::normalizePosterior() {
-   for (map< pair<Token,int>, ConfScore >::iterator itr=WordPos2Posterior.begin(); itr!=WordPos2Posterior.end(); itr++) 
+   for (map< pair<Token,int>, ConfScore >::iterator itr=WordPos2Posterior.begin(); itr!=WordPos2Posterior.end(); itr++)
       itr->second.normalize(totalProb);
 }
 
@@ -100,7 +100,7 @@ vector<double> NBestWordPostTrg::wordPosteriorsOne() {
 /**
  * Output the word posterior probabilities for all words in the given hypothesis 'trg'
  */
-void NBestWordPostTrg::tagPosteriorOne(ostream &out, const int &format) {
+void NBestWordPostTrg::tagPosteriorOne(ostream &out, int format) {
 
    assert(WordPos2Posterior.size());
 
@@ -117,7 +117,7 @@ void NBestWordPostTrg::tagPosteriorOne(ostream &out, const int &format) {
 /**
  * Output the word posterior probabilities for all words of all hypotheses in 'nbest'
  */
-void NBestWordPostTrg::tagPosteriorAll(ostream &out, const int &format) {
+void NBestWordPostTrg::tagPosteriorAll(ostream &out, int format) {
 
    assert(WordPos2Posterior.size());
 

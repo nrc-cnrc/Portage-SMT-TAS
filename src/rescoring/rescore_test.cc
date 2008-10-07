@@ -13,17 +13,14 @@
  * Copyright 2004, Her Majesty in Right of Canada
  */
 
-#include <rescore_test.h>
-#include <exception_dump.h>
-#include <boostDef.h>
-#include <bleu.h>
-#include <featurefunction.h>
-#include <powell.h>
-#include <rescore_io.h>
-#include <fileReader.h>
-#include <referencesReader.h>
-#include <printCopyright.h>
-#include <iostream>
+#include "rescore_test.h"
+#include "exception_dump.h"
+#include "bleu.h"
+#include "featurefunction_set.h"
+#include "powell.h"
+#include "rescore_io.h"
+#include "referencesReader.h"
+#include "printCopyright.h"
 
 using namespace Portage;
 using namespace std;
@@ -57,7 +54,7 @@ int MAIN(argc, argv)
 
    LOG_VERBOSE2(verboseLogger, "Initializing FF matrix with %d source sentences", S);
    ffset.initFFMatrix(sources);
-   
+
 
    LOG_VERBOSE2(verboseLogger, "Creating references reader");
    referencesReader  rReader(arg.refs_file);

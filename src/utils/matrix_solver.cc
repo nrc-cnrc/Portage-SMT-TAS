@@ -17,8 +17,6 @@
 #include "matrix_solver.h"
 #include "str_utils.h"
 #include <cmath>
-#include <algorithm>
-#include <iostream>
 
 namespace Portage {
 

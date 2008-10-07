@@ -3,6 +3,7 @@
  * @file vector_map.h A replacement for hash_map in particular cases.
  * $Id$
  *
+ *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada

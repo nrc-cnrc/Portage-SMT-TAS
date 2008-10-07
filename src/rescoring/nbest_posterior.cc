@@ -27,9 +27,9 @@ void NBestPosterior::init(const Sentence &t) {
    init(t.getTokens());
 }
 
-void NBestPosterior::setFFProperties(const string& ffval_wts_file, const string& prefix, const double scale) {
+void NBestPosterior::setFFProperties(const string& ffval_wts_file, const string& prefix, double scale) {
    assert(!ffval_wts_file.empty());
-   ffset.read(ffval_wts_file, true, prefix.c_str(), false); 
+   ffset.read(ffval_wts_file, true, prefix.c_str(), false);
    ffset.getWeights(weights);
    weights *= scale;
 }
@@ -43,7 +43,7 @@ void NBestPosterior::setNB(const Nbest &nb) {
    N = nbest.size();
 }
 
-void NBestPosterior::computePosterior(const Uint src_sent_id) {
+void NBestPosterior::computePosterior(Uint src_sent_id) {
 
    // Guarding against multiple calls to computePosterior for a particular
    // source sentence.
@@ -62,14 +62,14 @@ void NBestPosterior::computePosterior(const Uint src_sent_id) {
    totalProb.reset();
 }
 
-void NBestPosterior::printPosteriorScores(ostream &out, const vector<ConfScore> &v, const Tokens &trg, const int format) {
+void NBestPosterior::printPosteriorScores(ostream &out, const vector<ConfScore> &v, const Tokens &trg, int format) {
    if (format==0)
       for (vector<ConfScore>::const_iterator itr=v.begin(); itr!=v.end(); itr++)
          out << itr->prob() << " " << itr->rank() << " " << itr->relfreq() << " / ";
    else if (format==1)
-      for (uint i=0; i<trg.size(); i++) 
-         out << trg[i] << "_{" << v[i].prob() << "}_{" << v[i].rank() << "}_{" << v[i].relfreq() << "} ";  
-   out << endl; 
+      for (uint i=0; i<trg.size(); i++)
+         out << trg[i] << "_{" << v[i].prob() << "}_{" << v[i].rank() << "}_{" << v[i].relfreq() << "} ";
+   out << endl;
    out.flush();
 }
 
@@ -85,18 +85,18 @@ void NBestPosterior::printSentPosteriorScores(ostream &out, const vector<ConfSco
 
    out << logprod << " " << minp << " " <<  maxp << " " << geop << endl;
    out.flush();
-} 
+}
 
 double NBestPosterior::sentPosteriorScores(const vector<ConfScore> &v) {
    double logprod=0;
-   for (vector<ConfScore>::const_iterator itr=v.begin(); itr!=v.end(); itr++) 
+   for (vector<ConfScore>::const_iterator itr=v.begin(); itr!=v.end(); itr++)
       logprod += itr->prob();
    return logprod;
-} 
+}
 
 vector<double> NBestPosterior::wordPosteriorProbs(const vector<ConfScore> &v) {
    vector<double> result;
-   for (vector<ConfScore>::const_iterator itr=v.begin(); itr!=v.end(); itr++) 
+   for (vector<ConfScore>::const_iterator itr=v.begin(); itr!=v.end(); itr++)
       result.push_back(itr->prob());
    return result;
-} 
+}

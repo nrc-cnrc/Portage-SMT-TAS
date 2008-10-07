@@ -21,6 +21,7 @@
 #include "str_utils.h"
 #include "array_mem_pool.h"
 #include "index_block_mem_pool.h"
+#include "simple_histogram.h"
 #include <vector>
 #include <sstream>
 #include <iostream>
@@ -167,9 +168,10 @@ Wrap<PrimitiveT> operator+(
  * NeedDtor can be set to false if LeafDataT and InternalDataT can be safely
  * freed or moved without calling their destructors or constructors, such as
  * primitive types or simple classes without auxiliary structures.
- * Caveat: when NeedDtor is true, constructors are always carefully called, but
- * destructors may sometimes be missed, leading to potential memory leaks,
- * especially when calling clear().
+ * Caveat: when NeedDtor is true, LeafDataT should still not use internal
+ * pointers, because LeafDataT objects will be moved around using memcpy for
+ * efficiency reasons.
+ * TODO: test whether this optimisation is effective, and remove it if not.
  */
 template <class LeafDataT, class InternalDataT = Empty, bool NeedDtor = true>
 class PTrie {
@@ -402,9 +404,9 @@ class PTrie {
     */
    void getStats(
       Uint &intl_nodes,
-      Uint &trieDataUsed,
-      Uint &trieDataAlloc,
-      Uint &childrenAlloc,
+      SimpleHistogram<Uint>& trieDataUsed,
+      SimpleHistogram<Uint>& trieDataAlloc,
+      SimpleHistogram<Uint>& childrenAlloc,
       Uint &memoryUsed,
       Uint &memoryAlloc
    ) const;

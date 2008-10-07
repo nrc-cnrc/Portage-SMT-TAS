@@ -35,7 +35,7 @@ class Progress
        * @param bVerbose  indicates if the progress bar should be display
        * @param BarSize   on screen progress bar size
        */
-      Progress(const Uint max, const bool bVerbose = false, const Uint BarSize = 75)
+      Progress(Uint max, bool bVerbose = false, Uint BarSize = 75)
       : m_max(max)
       , m_bVerbose(bVerbose)
       , m_barSize(BarSize)

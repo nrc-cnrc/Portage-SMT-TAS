@@ -18,8 +18,8 @@ using namespace Portage;
 
 /**
  * Compute n-gram posterior probabilities for all target n-grams occurring in the N-best list
- */ 
-void NBestNgramPost::computePosterior(const Uint src_sent_id) {
+ */
+void NBestNgramPost::computePosterior(Uint src_sent_id) {
 
    Ngram2Posterior.clear();
    Ngram2Posterior.init();
@@ -69,7 +69,7 @@ void NBestNgramPost::computePosterior(const Uint src_sent_id) {
              */
 
          } // for i
-         /* 
+         /*
           * last hyp. words with </s> ???
 
           for (uint i=hypn.size()-maxN+1; i<hypn.size(); i++) {
@@ -92,7 +92,7 @@ void NBestNgramPost::computePosterior(const Uint src_sent_id) {
 
 /**
  * Normalize word posterior probabilities for all target words occurring in the N-best list
- */ 
+ */
 void NBestNgramPost::normalizePosterior() {
    /*
     * Note: totalProb is not needed here because the tree stores the total prob. mass in the root
@@ -161,7 +161,7 @@ vector<double> NBestNgramPost::wordPosteriorsOne() {
 /**
  * Output the word posterior probabilities for all words in the given hypothesis 'trg'
  */
-void NBestNgramPost::tagPosteriorOne(ostream &out, const int &format) {
+void NBestNgramPost::tagPosteriorOne(ostream &out, int format) {
 
    assert(Ngram2Posterior.size());
 
@@ -178,7 +178,7 @@ void NBestNgramPost::tagPosteriorOne(ostream &out, const int &format) {
 /**
  * Output the word posterior probabilities for all words of all hypotheses in 'nbest'
  */
-void NBestNgramPost::tagPosteriorAll(ostream &out, const int &format) {
+void NBestNgramPost::tagPosteriorAll(ostream &out, int format) {
 
    assert(Ngram2Posterior.size());
 
@@ -205,7 +205,7 @@ void NBestNgramPost::tagSentPosteriorAll(ostream &out) {
       conf.reserve(trg.size());
 
       for (uint i=0; i<trg.size(); i++) {
-         /*    
+         /*
          pair<Token,int> p(trg[i],i);
          assert(Ngram2Posterior.find(p) != Ngram2Posterior.end());
          conf.push_back(Ngram2Posterior[p]);

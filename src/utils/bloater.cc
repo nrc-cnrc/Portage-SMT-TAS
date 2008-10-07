@@ -1,6 +1,6 @@
 /**
  * @author George Foster
- * @file bloater.cc Program template.
+ * @file bloater.cc Bloat up memory usage until death ensues
  * 
  * 
  * COMMENTS: 
@@ -16,20 +16,23 @@
 #include <unistd.h>
 #include "arg_reader.h"
 #include "exception_dump.h"
+#include "show_mem_usage.h"
+#include <cstdlib>
+#include <limits>
 
 using namespace Portage;
 using namespace std;
 
 static char help_message[] = "\n\
-bloater [-maxiter <MAXITER>] blocksize\n\
+bloater [-v] [-maxiter <MAXITER>] blocksize\n\
 \n\
-Creates memory blocks of size blocksize every second.\n\
+Creates a memory block of blocksize bytes every second.\n\
 \n\
 Options:\n\
 \n\
 -v       Write progress reports to cerr.\n\
--maxiter Will perform <MAXITER> iteration thus create <MAXITER> block in memory\n\
-         [Uint::max].\n\
+-maxiter Will perform <MAXITER> iterations thus creating <MAXITER> blocks in\n\
+         memory [Uint::max].\n\
 ";
 
 // globals
@@ -53,13 +56,16 @@ int MAIN(argc, argv)
    while (round++ < maxIter) {
 
       bloat_vect = new char[blocksize];
-      bloat_vect[0] = 1;
+      //if ( round % 10 == 0 )
       for (size_t i = 0; i * 256 < blocksize; ++i)
          bloat_vect[i*256] = i;
+      bloat_vect[0] = 32;
 
       tot_size += blocksize;
-      if (verbose)
+      if (verbose) {
          cerr << ++num_blocks << " total size = " << tot_size << endl;
+         showMemoryUsage();
+      }
       sleep(1);
    }
 

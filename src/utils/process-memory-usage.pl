@@ -22,15 +22,16 @@ sub usage {
    print STDERR @_, "";
    $0 =~ s#.*/##;
    print STDERR "
-Usage: $0 [-h(elp)] [-v(erbose)] SLEEP PID
+Usage: $0 [-h(elp)] [-v(erbose)] [-s stop_after] SLEEP PID
 
   Sums the virtual memory usage and resident set size of the tree rooted in PID
   every SLEEP seconds.
 
 Options:
 
+  -s stop_after Stop monitoring if process is not found after stop_after
+                iterations [unlimited].
   -h(elp):      print this help message
-
   -v(erbose):   increment the verbosity level by 1 (may be repeated)
 
 ";
@@ -43,6 +44,7 @@ use Getopt::Long;
 # abbreviations for all options.
 my $verbose = 1;
 GetOptions(
+   "s=i"           => \my $stop_after,
    "help|h"        => sub { usage },
    "verbose|v"     => sub { ++$verbose },
    "debug|d"       => \my $debug,
@@ -56,34 +58,43 @@ my $mainpid    = shift || die "Missing PID";
 
 
 my $i = 0;
-#while (++$i < 2) {
+my $not_present = 0;
 while (1) {
-   sleep $sleep_time;
    my %PIDS = ();
    my $total_vsz = 0;
    my $total_rss = 0;
-   foreach my $process_info (split /\n/, `ps xo ppid,pid,vsz,rss,comm`) {
+   my $total_pcpu = 0;
+   foreach my $process_info (split /\n/, `ps xo ppid,pid,vsz,rss,pcpu,comm`) {
       print "<V> $process_info\n" if ($verbose > 1);
 
       next if ($process_info =~ /PPID/);  # Skip the header
 
       chomp($process_info);        # Remove newline
       $process_info =~ s/^\s+//;   # Remove leading spaces
-      my ($ppid, $pid, $vsz, $rss, $comm) = split(/\s+/, $process_info);
+      my ($ppid, $pid, $vsz, $rss, $pcpu, $comm) = split(/\s+/, $process_info);
 
-      print "<D> $ppid $pid $vsz $rss $comm\n" if(defined($debug));
+      print "<D> $ppid $pid $vsz $rss $pcpu $comm\n" if(defined($debug));
 
       # Is this process part of the process tree
       if (exists $PIDS{$ppid} or $pid == $mainpid) {
          $PIDS{$pid} = 1;
-         $total_vsz += $vsz;
-         $total_rss += $rss;
+         $total_vsz  += $vsz;
+         $total_rss  += $rss;
+         $total_pcpu += $pcpu;
       }
    }
-   my $date = `date`;
+   printf("<D> num sub p: %d\n", scalar(keys %PIDS)) if (defined($debug));
+   if ($stop_after and scalar(keys %PIDS) == 0) {
+      ++$not_present;
+      exit 0 if ($not_present > $stop_after);
+   }
+
+   my $date = `date "+%F %T"`;
    chomp($date);
    $total_vsz = $total_vsz / $Gigabytes;
    $total_rss = $total_rss / $Gigabytes;
-   printf "$date Process tree for $mainpid uses vsz: %.3fG rss: %.3fG ", $total_vsz , $total_rss;
-   print "Processes: " . join(" ",keys (%PIDS)) . "\n";
+   printf "$date Total vsz: %.3fG rss: %.3fG pcpu: %.1f%% ", $total_vsz , $total_rss, $total_pcpu;
+   printf "%d Processes\n", scalar (keys (%PIDS));
+
+   sleep $sleep_time;
 }

@@ -14,9 +14,10 @@
  * Copyright 2007, Her Majesty in Right of Canada
  */
 
-#include <bleu.h>
-#include "rescore_io.h"
+#include "bleu.h"
 #include "bleurisk.h"
+#include "featurefunction_set.h"
+#include <map>
 
 using namespace Portage;
 

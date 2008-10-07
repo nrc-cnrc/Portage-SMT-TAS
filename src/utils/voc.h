@@ -10,7 +10,7 @@
  *    - CountingVoc is like voc, but counts occurrences as it goes
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
@@ -19,38 +19,20 @@
 #ifndef VOC_H
 #define VOC_H
 
-#include <iostream>
-#include <numeric>
-#include <string.h>
-#include <ext/hash_map>
-#include <file_utils.h>
-#include <str_utils.h>
+#include "string_hash.h"
+#include "file_utils.h"
+#include <numeric> // for accumulate
 
 namespace Portage {
 
-using namespace __gnu_cxx;
-
 /// Used to convert string tokens to integer value.
 class Voc {
-
-   /// Callable entity to compare two strings.
-   struct equal_to {
-      /**
-       * Compares to strings for equality.
-       * @param x,y strings to compare
-       * @return Returns true if x == y
-       */
-      bool operator()(const char* const &x, const char* const& y) const {
-         return strcmp(x,y) == 0;
-      }
-   };
-
    /// When you have the index and you want to convert it back to a word.
    vector<const char*> words;
    /// When you have a word and you want to find its index.
-   hash_map<const char*, Uint, hash<const char*>, equal_to> map;
+   hash_map<const char*, Uint, hash<const char*>, str_equal> map;
    /// Iterator to traverse all the map by words
-   typedef hash_map<const char*, Uint, hash<const char*>, equal_to>::const_iterator MapIter;
+   typedef hash_map<const char*, Uint, hash<const char*>, str_equal>::const_iterator MapIter;
 
    /// Clears the content of the vocabulary.
    void deleteWords();
@@ -73,6 +55,33 @@ public:
        */
       bool operator()(const char* s, Uint& val) {
          val = voc.add(s);
+         return true;
+      }
+   };
+   struct indexConverter
+   {
+      Voc& voc;   ///< Vocabulary used
+      /// Default constructor.
+      /// @param voc vocabulary to use
+      indexConverter(Voc& voc) : voc(voc) {}
+
+      /**
+       * Make the object a functor to map a string its uint representation.
+       * @param s   source word
+       * @return Returns the uint representation of s
+       */
+      Uint operator()(const string& s) {
+         return voc.index(s.c_str());
+      }
+
+      /**
+       * Make the object a functor to map a string its uint representation.
+       * @param s   source word
+       * @param val uint representation of s
+       * @return  Always return true
+       */
+      bool operator()(const char* s, Uint& val) {
+         val = voc.index(s);
          return true;
       }
    };
@@ -136,6 +145,14 @@ public:
       MapIter p = map.find(word);
       return p == map.end() ? size() : p->second;
    };
+
+   /**
+    * Get the index of all words.
+    * This function appends the src words' uint values to dest.
+    * @param src  words to convert to indexes
+    * @param dest translation results from string to Uint
+    */
+   void index(const vector<string>& src, vector<Uint>& dest) const; 
 
    /**
     * Get the word associated with an index in [0,size()-1].

@@ -47,5 +47,19 @@ template<class T> T logsum(double logx, double logy)
    return logx + eps - eps * eps / 2.0;
 }
 
+/**
+ * Fast calculation for log sum_i (exp(log_i)), based on 2-argument version of
+ * logsum. 
+ * Warning: this is not as fast as hoped.
+ */
+template<class T> T logsum(vector<T>& v)
+{
+   sort(v.begin(), v.end());
+   T sum = v.size() ? v[0] : 0.0;
+   for (Uint i = 1; i < v.size(); ++i)
+      sum = logsum<T>(sum, v[i]);
+   return sum;
+}
+
 } // Portage
 #endif

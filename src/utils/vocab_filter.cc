@@ -21,10 +21,10 @@ using namespace Portage;
 
 
 // Yes a prime number, just for fun :D
-const Uint VocabFilter::maxSourceSentence4filtering = 2011;
+Uint VocabFilter::maxSourceSentence4filtering = 2011;
 
 
-VocabFilter::VocabFilter(const Uint number_source_sents) : 
+VocabFilter::VocabFilter(Uint number_source_sents) : 
    per_sentence_vocab(number_source_sents > 0 ? 
 		      new MultiVoc(*this, min(number_source_sents, maxSourceSentence4filtering)) : 
 		      NULL)
@@ -78,15 +78,15 @@ void VocabFilter::addSpecialSymbol(const char* symbol)
    }
 }
 
-bool VocabFilter::keepLMentry(Uint phrase[/*order*/], const Uint tok_count, const Uint order)
+bool VocabFilter::keepLMentry(const Uint phrase[/*order*/], Uint tok_count, Uint order)
 {
-   for (Uint w(0); w<tok_count; ++w) {   
+   for (Uint w(0); w<tok_count; ++w) {
       if ( phrase[w] == size() ) {
          // OOV found - skip this line
          ++discarding.oov[order-1];
          return false;
       }
-   }   
+   }
 
    // If per_sentence_vocab is specified, check that their intersection
    // is non empty.
@@ -107,7 +107,7 @@ bool VocabFilter::keepLMentry(Uint phrase[/*order*/], const Uint tok_count, cons
 void VocabFilter::addPerSentenceVocab(vector<Uint>& tgtPhrase, const boost::dynamic_bitset<>* const input_sent_set)
 {
    if (input_sent_set == NULL) return;
-   
+
    // In limitPhrases mode, we need to add for each word in tgtPhrase to
    // the per_sentence_vocab for each sentence the source phrase
    // occurs in.

@@ -10,7 +10,6 @@
  * Copyright 2005, Her Majesty in Right of Canada
  */
 #include <algorithm>
-#include <utility>
 #include "bc_stats.h"
 
 using namespace Portage;
@@ -41,8 +40,8 @@ void BCStats::doSort()
 }
 
 double BCStats::nll() {return nll_;}
-double BCStats::nllBase() {return -(p1*log2(p1) + p0*log2(p0));}
-double BCStats::ppx() {return exp2(nll_);}
+double BCStats::nllBase() {return -(p1*Portage::log2(p1) + p0*Portage::log2(p0));}
+double BCStats::ppx() {return Portage::exp2(nll_);}
 double BCStats::nce() {return (nllBase() - nll_) / nllBase();}
 
 double BCStats::maxAcc() {doSort(); return max_acc;}

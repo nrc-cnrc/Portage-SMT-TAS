@@ -17,13 +17,9 @@
 #define __RESCORE_TRAIN_H__
 
 
+#include "featurefunction_set.h"
 #include "argProcessor.h"
-#include "errors.h"
 #include "file_utils.h"
-#include "rescore_io.h"
-#include "featurefunction.h"
-#include <boost/random.hpp>
-#include <boost/random/variate_generator.hpp>
 
 
 namespace Portage {
@@ -34,7 +30,7 @@ namespace rescore_train {
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTANTS USED IN TRAINING/TESTING
 static const unsigned int NUM_INIT_RUNS(7);
-static const double FTOL(0.01);
+static const double POWELL_TOLERANCE(0.01);
 static const double SCORETOL(0.0001);
 
 
@@ -42,7 +38,7 @@ static const double SCORETOL(0.0001);
 // HELP MESSAGE
 /// Program rescore_train's usage.
 static char help_message[] = "\n\
-rescore_train [-vn][-sm smoothing][-a F][-f floor][-p ff-pref][-dyn]\n\
+rescore_train [-vn][-rf][-sm smoothing][-a F][-f floor][-p ff-pref][-dyn]\n\
               [-r n][-e][-win nl][-wi powell-wt-file][-wo powell-wt-file][-s seed]\n\
               [-bleu | -wer | -per] \n\
               model_in model_out src nbest ref1 .. refN\n\
@@ -66,8 +62,8 @@ distributions. Each line is in the format:\n\
 where <arg> is an optional argument to the feature, and U() or N() means to\n\
 choose initial weights for Powell's algorithm from uniform or normal distns\n\
 with the given parameters [N(0,1)]. The model_out file is in the same format\n\
-as model_in, but with the distribution replaced by an optimal weight. Comments\n\
-may be included by placing # at the beginning of a line.\n\
+as model_in, but with the distribution replaced by an optimal weight.\n\
+Comments may be included by placing # at the beginning of a line.\n\
 \n\
 Use -H for more info on features.\n\
 "
@@ -92,11 +88,14 @@ Options:\n\
 -v    Write progress reports to cerr (repeatable) [don't].\n\
 -n    Normalize output weights so maximum is 1 (recommended).\n\
 -sm   bleu smoothing number 1 2 3 [1]\n\
+-rf   Randomize the order in which features are optimized by each call to\n\
+      Powell's alg [always optimize in fixed order 1,2,3...].\n\
 -a    Also read in phrase alignment file F.\n\
 -f    Floor output weights at 0, beginning with zero-based index i. [don't]\n\
 -p    Prepend ff-pref to file names for FileFF features\n\
 -dyn  Indicates that the nbest list and FileFF files are in variable-size\n\
       format, with lines prefixed by: \"<source#>\\t\" (starting at 0)\n\
+-s    Use <seed> as initial random seed [0 = use fixed seed for repeatability]\n\
 -r    Use <n> runs of Powell's alg [0 = determine number of runs automatically]\n\
 -e    Use approx expectation to determine stopping pt, with max given by -r [don't]\n\
 -win  Use only the first <nl> lines from feature file read by -wi (0 for all) [3]\n\
@@ -104,7 +103,6 @@ Options:\n\
       NB: the number of vectors actually used depends on the -r and -e settings.\n\
 -wo   Append final feature wts from Powell runs to file F, ordered by decr Score\n\
       i.e. from best score to worse score.\n\
--s    Use <seed> as initial random seed [0 = use fixed seed for repeatability]\n\
 -y    maximum NGRAMS for calculating BLEUstats matches [4]\n\
 -u    maximum NGRAMS for calculating BLEUstats score [y]\n\
       where 1 <= y, 1 <= u <= y\n\
@@ -116,7 +114,10 @@ Options:\n\
 ////////////////////////////////////////////////////////////////////////////////
 // ARGUMENTS PROCESSING CLASS
 /// Program rescore_train's allowed command line arguments.
-const char* const switches[] = {"n", "f:", "dyn", "p:", "a:", "v", "K:", "r:", "e", "win:", "wi:", "wo:", "s:", "y:", "u:", "sm:", "bleu", "per", "wer"};
+const char* const switches[] = {
+      "n", "f:", "dyn", "p:", "a:", "v", "rf", "K:", "r:", "e",
+      "win:", "wi:", "wo:", "s:", "y:", "u:", "sm:",
+      "bleu", "per", "wer"};
 
 /// Specific argument processing class for rescore_train program
 class ARG : public argProcessor
@@ -134,8 +135,9 @@ public:
 
 public:
    bool     bVerbose;           ///< is verbose set
-   bool     bNormalize;         ///< should the returned weights vector be normalized
+   bool     bNormalize;         ///< normalize output wts so largest element is 1
    bool     bIsDynamic;         ///< are we running in dynamic mode => dynamic nbest list size => dynamic file reading
+   bool     random_feature_order; ///< randomize feature-visit order in Powell's alg
    Uint     flor;               ///< index of the first floored weight
    Uint     num_powell_runs;    ///< number of runs of Powell's alg
    bool     approx_expect;      ///< use approx. expectation alg to determine stopping pt
@@ -163,7 +165,7 @@ public:
     * @param argc  same as the main argc
     * @param argv  same as the main argv
     */
-   ARG(const int argc, const char* const argv[])
+   ARG(int argc, const char* const argv[])
       : argProcessor(ARRAY_SIZE(switches), switches, 5, -1, help_message, "-h", true,
                      FeatureFunctionSet::help().c_str(), "-H")
       , m_vLogger(Logging::getLogger("verbose.main.arg"))
@@ -171,6 +173,7 @@ public:
       , bVerbose(false)
       , bNormalize(false)
       , bIsDynamic(false)
+      , random_feature_order(false)
       , flor(10000000)
       , num_powell_runs(0)
       , approx_expect(false)
@@ -196,6 +199,7 @@ public:
          {
             LOG_DEBUG(m_dLogger, "Verbose: %s", (bVerbose ? "ON" : "OFF"));
             LOG_DEBUG(m_dLogger, "Dynamic: %s", (bIsDynamic ? "ON" : "OFF"));
+            LOG_DEBUG(m_dLogger, "random feature order: %s", (random_feature_order ? "ON" : "OFF"));
             LOG_DEBUG(m_dLogger, "Normalize: %s", (bNormalize ? "ON" : "OFF"));
             LOG_DEBUG(m_dLogger, "K: %d", K);
             LOG_DEBUG(m_dLogger, "S: %d", S);
@@ -205,9 +209,9 @@ public:
             LOG_DEBUG(m_dLogger, "num feature weights to read in: %d", weight_infile_nl);
             LOG_DEBUG(m_dLogger, "feature weights read from file: %s", weight_infile.c_str());
             LOG_DEBUG(m_dLogger, "feature weights written to file: %s", weight_outfile.c_str());
-            LOG_DEBUG(m_dLogger, "random seed: %d", seed);
             LOG_DEBUG(m_dLogger, "ff_pref: %s", ff_pref.c_str());
             LOG_DEBUG(m_dLogger, "alignment file name: %s", alignment_file.c_str());
+            LOG_DEBUG(m_dLogger, "random seed: %d", seed);
             LOG_DEBUG(m_dLogger, "model in file name: %s", model_in.c_str());
             LOG_DEBUG(m_dLogger, "model out file name: %s", model_out.c_str());
             LOG_DEBUG(m_dLogger, "source file name: %s", src_file.c_str());
@@ -230,10 +234,9 @@ public:
    {
       LOG_INFO(m_vLogger, "Processing arguments");
 
-      mp_arg_reader->testAndSet("v", bVerbose);
-      if ( getVerboseLevel() > 0 ) bVerbose = true;
-      if ( bVerbose && getVerboseLevel() < 1 ) setVerboseLevel(1);
+      bVerbose = checkVerbose("v");
       mp_arg_reader->testAndSet("n", bNormalize);
+      mp_arg_reader->testAndSet("rf", random_feature_order);
       mp_arg_reader->testAndSet("f", flor);
       mp_arg_reader->testAndSet("r", num_powell_runs);
       mp_arg_reader->testAndSet("e", approx_expect);

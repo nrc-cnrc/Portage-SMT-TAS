@@ -6,17 +6,16 @@
  *
  * K-Best Rescoring Module
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l.information / Institute for Information Technology 
- * Conseil national de recherches Canada / National Research Council Canada 
+ * Institut de technologie de l.information / Institute for Information Technology
+ * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
  */
 
-#include "rescoring_general.h"
 #include "lm_ff.h"
-#include <canoe_general.h>
-#include <lm.h>
-#include <file_utils.h>
+#include "canoe_general.h"
+#include "lm.h"
+#include "file_utils.h"
 
 using namespace Portage;
 
@@ -72,7 +71,7 @@ double NgramFF::value(Uint k)
    // end-sentence tags.
    const Tokens& tokens = (*nbest)[k].getTokens();
 
-   Uint uSent_size = tokens.size() + 2;
+   const Uint uSent_size = tokens.size() + 2;
    Uint uSent[uSent_size];
    for (Uint i = 0; i < tokens.size(); i++)
       uSent[tokens.size() - i] = tgt_vocab->add(tokens[i].c_str());
@@ -99,7 +98,7 @@ void NgramFF::values(Uint k, vector<double>& vals)
    uSent[0] = tgt_vocab->index(PLM::SentEnd);
    uSent[tokens.size() + 1] = tgt_vocab->index(PLM::SentStart);
 
-   for (Uint i = uSent_size-2; i>0; i--) 
+   for (Uint i = uSent_size-2; i>0; i--)
      vals.push_back(lm->wordProb(uSent[i], uSent + i + 1, uSent_size - i - 1));
 
    assert(vals.size() == tokens.size());

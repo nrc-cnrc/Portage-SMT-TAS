@@ -1,6 +1,6 @@
 /**
  * @author Samuel Larkin
- * @file randomDistribution.h  Contains three random distributions: normal, uniform and fix 
+ * @file randomDistribution.h  Contains three random distributions: normal, uniform and fix
  *
  * $Id$
  *
@@ -60,7 +60,7 @@ class rnd_distribution
       virtual double get() = 0;
       /// Set a fix value for the distribution. Only valid for weight_distribution.
       /// @param v  new fix value
-      virtual void set(const double& v) {}
+      virtual void set(double v) {}
 };
 
 /// A normal distribution.
@@ -143,7 +143,7 @@ class weight_distribution : public rnd_distribution
       {}
       virtual boost::taus88* getGen() { return NULL; };
       virtual double get() { return value; }
-      virtual void set(const double& v) { value = v; }
+      virtual void set(double v) { value = v; }
 };
 
 /// Definition for a shared_pointed random number generator.

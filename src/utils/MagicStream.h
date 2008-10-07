@@ -108,14 +108,21 @@ class MagicStreamBase : private boost::noncopyable
       /// @param filename filename to open.
       void makeFile(const std::string& filename);
 
+   public:
       /**
        * Determines if the cmd has a \.gz or \.Z  extension.
        * @param cmd command to check if it ends in .gz or .Z
        * @return Returns true if cmd ends with .gz or .Z
        */
-      inline bool isZip(const std::string& cmd) const;
-      
-   public:
+      static bool isZip(const std::string& cmd);
+
+      /**
+       * Determines if the cmd is a bzip operation.
+       * @param cmd command to check if it ends in .gz or .Z
+       * @return Returns true if cmd ends with .gz or .Z
+       */
+      static bool isBzip2(const std::string& cmd);
+
       /**
        * Opens the proper stream.  This virtual function must be declared by
        * oMagicStream and iMagicStream since opening is different in both

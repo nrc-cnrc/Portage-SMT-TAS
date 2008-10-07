@@ -1,15 +1,12 @@
 #!/usr/bin/perl
 # $Id$
 
-# prog.pl Program template
+# prog.pl Briefly describe your program here
 #
-# PROGRAMMER: George Foster
+# PROGRAMMER: Write your name here
 #
-# COMMENTS:
-#
-# George Foster
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2008, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2008, Her Majesty in Right of Canada
@@ -24,28 +21,19 @@ sub usage {
    print STDERR @_, "";
    $0 =~ s#.*/##;
    print STDERR "
-Usage: $0 [-f(lag)] [-opt_with_string_arg <arg>]
-       [-opt_with_integer_arg <arg>] [-opt_with_float_arg <arg>] [-h(elp)]
-       [-v(erbose)] [in [out]]
+Usage: $0 [options] [IN [OUT]]
 
-  Do something...
+  Briefly describe what your program does here
 
 Options:
 
-  -f(lag):      ...
-
-  -opt_with_string_arg <arg>: set ... to ...
-
-  -opt_with_integer_arg <N>: set ... to ...
-
-  -opt_with_float_arg <Value>: set ... to ...
-
-  -h(elp):      print this help message
-
-  -v(erbose):   increment the verbosity level by 1 (may be repeated)
-
-  -d(ebug):     print debugging information
-
+  -f(lag)       set some flag
+  -opt_with_string_arg ARG  set ... to ...
+  -opt_with_integer_arg N   set ... to ...
+  -opt_with_float_arg VAL   set ... to ...
+  -h(elp)       print this help message
+  -v(erbose)    increment the verbosity level by 1 (may be repeated)
+  -d(ebug)      print debugging information
 ";
    exit 1;
 }

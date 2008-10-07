@@ -3,7 +3,7 @@
  * @file nbest_sentlenpost.cc
  *
  *
- * COMMENTS: derived class for calculating sentence length posterior probabilities 
+ * COMMENTS: derived class for calculating sentence length posterior probabilities
  * over N-best lists.
  * The terms 'posterior probability' and 'confidence value/measure' are used synonymously.
  *
@@ -19,10 +19,10 @@
 using namespace Portage;
 
 /**
- * Compute sentence length posterior probabilities for all sentence lengths 
+ * Compute sentence length posterior probabilities for all sentence lengths
  * occurring in the N-best list
- */ 
-void NBestSentLenPost::computePosterior(const Uint src_sent_id) {
+ */
+void NBestSentLenPost::computePosterior(Uint src_sent_id) {
 
    Len2Posterior.clear();
    NBestPosterior::computePosterior(src_sent_id);
@@ -33,9 +33,9 @@ void NBestSentLenPost::computePosterior(const Uint src_sent_id) {
 
       const int hyplen = nbest[n].getTokens().size();
 
-      if (Len2Posterior.find(hyplen) != Len2Posterior.end()) 
+      if (Len2Posterior.find(hyplen) != Len2Posterior.end())
          Len2Posterior[hyplen].update(scores[n],n);
-      else 
+      else
          Len2Posterior[hyplen] = ConfScore(scores[n],n,1);
 
    } // for n
@@ -52,9 +52,9 @@ void NBestSentLenPost::computePosterior(const Uint src_sent_id) {
 /**
  * Normalize sentence length posterior probabilities for all target sentence lengths
  * occurring in the N-best list
- */ 
+ */
 void NBestSentLenPost::normalizePosterior() {
-   for (map<int, ConfScore>::iterator itr=Len2Posterior.begin(); itr!=Len2Posterior.end(); itr++) 
+   for (map<int, ConfScore>::iterator itr=Len2Posterior.begin(); itr!=Len2Posterior.end(); itr++)
       itr->second.normalize(totalProb);
 }
 
@@ -90,7 +90,7 @@ vector<double> NBestSentLenPost::wordPosteriorsOne() {
 /**
  * Output the sentence length posterior probabilities for the given hypothesis 'trg'
  */
-void NBestSentLenPost::tagPosteriorOne(ostream &out, const int &format) {
+void NBestSentLenPost::tagPosteriorOne(ostream &out, int format) {
 
    assert(Len2Posterior.size());
 
@@ -104,7 +104,7 @@ void NBestSentLenPost::tagPosteriorOne(ostream &out, const int &format) {
 /**
  * Output the sentence length posterior probabilities for all hypotheses in 'nbest'
  */
-void NBestSentLenPost::tagPosteriorAll(ostream &out, const int &format) {
+void NBestSentLenPost::tagPosteriorAll(ostream &out, int format) {
 
    assert(Len2Posterior.size());
 
@@ -124,7 +124,7 @@ void NBestSentLenPost::tagSentPosteriorAll(ostream &out) {
 
    for (uint n=0; n<min(N,Ntag); n++) {
 
-      trg = nbest[n].getTokens();   
+      trg = nbest[n].getTokens();
       const vector<ConfScore> conf(1, Len2Posterior[trg.size()]);
       assert(conf.size() == 1);
       printSentPosteriorScores(out,conf);

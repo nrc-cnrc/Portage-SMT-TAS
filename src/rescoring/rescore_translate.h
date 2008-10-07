@@ -16,10 +16,8 @@
 #ifndef __RESCORE_TRANSLATE_H__
 #define __RESCORE_TRANSLATE_H__
 
-#include <argProcessor.h>
-#include <errors.h>
-#include <file_utils.h>
-#include "rescore_io.h"
+#include "argProcessor.h"
+#include "file_utils.h"
 
 namespace Portage {
 /// Program rescore_translate's namespace
@@ -37,7 +35,7 @@ features and file formats.\n\
 \n\
 Options:\n\
 \n\
--v    Write progress reports to cerr.\n\
+-v    Write progress reports to cerr (repeatable) [don't].\n\
 -n    Print rank of the hypothesis within the N-best list too (index starting\n\
       at 1).\n\
 -s    Print the logprob of each hypothesis prior to the hypothesis.\n\
@@ -125,9 +123,7 @@ Options:\n\
       {
          LOG_INFO(m_vLogger, "Processing arguments");
 
-         mp_arg_reader->testAndSet("v", bVerbose);
-         if ( getVerboseLevel() > 0 ) bVerbose = true;
-         if ( bVerbose && getVerboseLevel() < 1 ) setVerboseLevel(1);
+         bVerbose = checkVerbose("v");
          mp_arg_reader->testAndSet("a", alignment_file);
          mp_arg_reader->testAndSet("p", ff_pref);
          mp_arg_reader->testAndSet("n", bPrintRank);
@@ -156,7 +152,7 @@ Options:\n\
             }
          }
 
-         // K switch is depricated but if user pass a K option 
+         // K switch is depricated but if user pass a K option
          // we check for misusage and validity of K value
          if (mp_arg_reader->getSwitch("K:")) {
             error(ETWarn, "K argument will be ignored, obsolete argument");

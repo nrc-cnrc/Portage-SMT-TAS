@@ -15,9 +15,9 @@
 #ifndef __FEATURE_FUNCTION_GRAMMAR_H__
 #define __FEATURE_FUNCTION_GRAMMAR_H__
 
-#include <portage_defs.h>
-#include <randomDistribution.h>
-#include <errors.h>
+#include "portage_defs.h"
+#include "randomDistribution.h"
+#include "errors.h"
 #include <boost/spirit.hpp>
 #include <boost/spirit/actor/assign_actor.hpp>
 #include <boost/bind.hpp>

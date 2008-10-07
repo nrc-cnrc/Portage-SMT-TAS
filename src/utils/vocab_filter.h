@@ -17,8 +17,8 @@
 #ifndef __VOCAB_FILTER_H__
 #define __VOCAB_FILTER_H__
 
-#include <voc.h>
-#include <multi_voc.h>
+#include "voc.h"
+#include "multi_voc.h"
 #include <vector>
 #include <string>
 
@@ -28,7 +28,7 @@ namespace Portage {
   * This class regroups all that is related to filtering and the vocab.
   */
  class VocabFilter : public Voc {
- private:   
+ private:
 
     /// Keeps track of how many entries are discarded in the LMs and by which technique.
     struct discardingCounter {
@@ -39,13 +39,13 @@ namespace Portage {
        {}
        /// Prepares the counters for a specific N in ngram.
        /// @param  ngram  maximum value of N in ngram
-       void setMaxNgram(const Uint ngram) {
+       void setMaxNgram(Uint ngram) {
 	  if (ngram>oov.size())              oov.resize(ngram, 0);
 	  if (ngram>perSentenceVocab.size()) perSentenceVocab.resize(ngram, 0);
        }
        /// Resets the counters.
        void reset() {
-	  for (Uint i(0); i<oov.size(); ++i) 
+	  for (Uint i(0); i<oov.size(); ++i)
 	     oov[i] = perSentenceVocab[i] = 0;
        }
        /// Displays to stderr the gathered stats on entries filtering.
@@ -64,15 +64,15 @@ namespace Portage {
        }
     } discarding;
 
- public:   
+ public:
 
     /// To keep the per sentence components small, we limit them to mod
     /// maxSourceSentence4filtering
-    static const Uint maxSourceSentence4filtering;
+    static Uint maxSourceSentence4filtering;
 
     MultiVoc*  per_sentence_vocab;   ///< vocabulary for each source sentences
 
- private:   
+ private:
 
     /// Deactivated constructor.
     VocabFilter();
@@ -121,7 +121,7 @@ namespace Portage {
      *        per_sentence_vocab is to operate, or 0 for no per-sentence
      *        filtering.
      */
-    VocabFilter(const Uint number_source_sents);
+    VocabFilter(Uint number_source_sents);
 
     /**
      * Construct from an existing object, converting the vocabulary by applying
@@ -131,7 +131,7 @@ namespace Portage {
      * @param vmap functor to map vf strings, eg:
      *        struct VMap {string& operator()(const string& s){...}};
      * @param index_map for each index i in vf, index_map[i] will be set to the
-     *        corresponding index in the new VocabFilter. 
+     *        corresponding index in the new VocabFilter.
      */
     template<typename VMap>
     VocabFilter(const VocabFilter& vf, VMap& vmap, vector<Uint>& index_map);
@@ -186,13 +186,13 @@ namespace Portage {
      * @param order
      * @return  true if phrase should be kept or false otherwise
      */
-    bool keepLMentry(Uint phrase[/*order*/], const Uint tok_count, const Uint order);
+    bool keepLMentry(const Uint phrase[/*order*/], Uint tok_count, Uint order);
 
     /**
      * When using the discading counters, sets the maximum N in ngram
      * @param ngram  maximum value of N in ngram
      */
-    void setMaxNgram(const Uint ngram) { discarding.setMaxNgram(ngram); }
+    void setMaxNgram(Uint ngram) { discarding.setMaxNgram(ngram); }
     /**
      * Reset the counters when processing a new LM
      */
@@ -210,7 +210,7 @@ namespace Portage {
      * @param input_sent_set  source sentence to which tgtPhrase belongs to
      */
     void addPerSentenceVocab(vector<Uint>& tgtPhrase,
-          const boost::dynamic_bitset<>* const input_sent_set = NULL);
+                             const boost::dynamic_bitset<>* const input_sent_set = NULL);
 
  }; //ends class VocabFilter
 

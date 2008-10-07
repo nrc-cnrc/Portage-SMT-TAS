@@ -15,12 +15,6 @@
 #ifndef FILE_UTILS_H
 #define FILE_UTILS_H
 
-#include <sstream>
-#include <fstream>
-#include <string>
-#include <vector>
-#include <ext/stdio_filebuf.h>
-#include <boost/shared_ptr.hpp>
 #include <errors.h>
 #include "str_utils.h"
 #include "portage_defs.h"
@@ -154,7 +148,7 @@ void delete_if_exists(const char* filename, const char* warning_msg);
 /**
  * Test if a file exists, and if so, terminate with error.
  * @param filename   file name to check existence
- * @param error_msg  error message must contain exactly one %x, which will be replace by filename.
+ * @param error_msg  error message must contain exactly one %s, which will be replace by filename.
  */
 void error_if_exists(const char* filename, const char* error_msg);
 
@@ -166,7 +160,8 @@ void error_if_exists(const char* filename, const char* error_msg);
 bool check_if_exists(const string& filename);
 
 /**
- * Like basename and dirname, will decompose the original filename into its path and file
+ * Like basename and dirname, will decompose the original filename into its
+ * path and file
  * @param[in]  filename  original file name to decompose.
  * @param[out] path      returned path if path not NULL
  * @param[out] file      returned file if file not NULL
@@ -218,6 +213,30 @@ string addExtension(const string& filename, const string& toBeAdded);
  */
 string extractFilename(const string& path);
 
+/*
+ * Parse s, typically a file name, and swap its two languages.
+ *
+ * Works by looking for pattern
+ * (^|[^[:alnum:]])[[:alnum:]]+separator[[:alnum:]]+($|[^[:alnum:]])
+ *
+ * Also produces a full parse of s that can be used to generate other derived
+ * patterns than just swapping the two languages.  Note that all out parameters
+ * are optional, pass NULL if you don't care about a component.
+ *
+ * @param s name in which to reverse the languages
+ * @param separator the string between l1 and l2, e.g., "_given_" or "2"
+ * @param[out] l1 the alpha-numeric sequence found immediately before separator
+ * @param[out] l2 the alpha-numeric sequence found immediately after separator
+ * @param[out] prefix the part of s before l1
+ * @param[out] suffix the part of s after l2
+ *
+ * @return prefix+l2+separator+l1+suffix, or an empty string if filename can't
+ *         be parsed correctly, in which case none of the out parameters will
+ *         have been modified.
+ */
+string swap_languages(const string& s, const string& separator,
+      string* l1 = NULL, string* l2 = NULL,
+      string* prefix = NULL, string* suffix = NULL);
 
 /// Read the contents of a tokenized file, line by line.
 class TokReader 
@@ -331,6 +350,36 @@ struct TokReaderPair
    bool hasMarkup() {return tr1.hasMarkup() || tr2.hasMarkup();}
 };
 
+/// Namespace to contain generic binary IO operators
+namespace BinIOStream
+{
+   // Write a vector in Binary mode.  Warning: T must be safe to copy, allocate
+   // and free without calling constructors and/or destructors.
+   template<typename T>
+   std::ostream& operator<<(std::ostream& os, const vector<T>& v) {
+      unsigned int s(v.size());
+      os.write((char*)&s, sizeof(unsigned int));
+      if (s>0)
+         os.write((char*)&v[0], s*sizeof(T));
+      return os;
+   }
+
+   // Read a vector in Binary mode.  Warning: T must be safe to copy, allocate
+   // and free without calling constructors and/or destructors.
+   template<typename T>
+   std::istream& operator>>(std::istream& is, vector<T>& v) {
+      Uint s(0);
+      is.read((char*)&s, sizeof(unsigned int));
+      if (s>0) {
+         v.resize(s);
+         is.read((char*)&v[0], s*sizeof(T));
+      }
+      else {
+         v.clear();
+      }
+      return is;
+   }
+}
 
 } //ends Portage namespace
 #endif

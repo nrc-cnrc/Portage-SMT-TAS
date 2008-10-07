@@ -29,7 +29,7 @@ multiColumnFileFF::multiColumnFileFF(const std::string& filename)
 multiColumnFileFF::~multiColumnFileFF()
 { }
 
-float multiColumnFileFF::get(const Uint colIdx, const int k)
+float multiColumnFileFF::get(Uint colIdx, int k)
 {
    using namespace std;
    static bool hasBeenWarned = false;
@@ -44,7 +44,7 @@ float multiColumnFileFF::get(const Uint colIdx, const int k)
    // Reason: computeFFMatrix skip empty hypothesis.
    while (k > m_line) {
       string line;
-      
+
       if (getline(m_file, line).eof())
          error(ETFatal, "Premature end of file while reading ffval");
 
@@ -55,7 +55,7 @@ float multiColumnFileFF::get(const Uint colIdx, const int k)
          }
          if (m_expected_size != m_values.size())
             error(ETFatal, "Multi-column FFVals files with inconsistent number"
-                  " of columns at line %d: expected %d, got %d", 
+                  " of columns at line %d: expected %d, got %d",
                   m_line, m_expected_size, m_values.size());
       }
       else {

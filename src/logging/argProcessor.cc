@@ -25,10 +25,10 @@ Portage::argProcessor::SWITCHES_DESC Portage::argProcessor::m_switches[] = {
    {"wtime:", "Watch File Delay"}};
 
 
-argProcessor::argProcessor(const Uint nNumberSwitches,
+argProcessor::argProcessor(Uint nNumberSwitches,
    const char* const switchesList[],
-   const int min,
-   const int max,
+   int min,
+   int max,
    const char* helpMsg,
    const char* helpSwitch,
    bool print_help_on_error,
@@ -75,7 +75,7 @@ argProcessor::~argProcessor()
 }
 
 
-void argProcessor::processArgs(const Uint argc, const char* const argv[])
+void argProcessor::processArgs(Uint argc, const char* const argv[])
 {
    LOG_INFO(m_logger, "Entering ProcessArg");
 
@@ -108,7 +108,7 @@ void argProcessor::processArgs(const Uint argc, const char* const argv[])
 
       mp_arg_reader->testAndSet(m_switches[WFILE].name, sFileName);
       mp_arg_reader->testAndSet(m_switches[WTIME].name, lWatchTime);
-      
+
 #ifndef NO_LOGGING
       log4cxx::PropertyConfigurator::configureAndWatch(sFileName, lWatchTime);
 #endif
@@ -204,6 +204,40 @@ void argProcessor::displayLoggers(ostream& os) const
    // DISPLAYS LOGLEVEL
    os << "# Custom log level are verbose1 to verbose9:" << endl;
    os << "# " << getLevelString(Logging::LogLevel::VERBOSE1) << endl;
+   os << endl;
+
+   // EXAMPLE OF SIMPLE FILE APPENDER
+   os << "# How to setup a file appender" << endl;
+   os << "# log4j.appender.F=org.apache.log4j.FileAppender" << endl;
+   os << "# log4j.appender.F.File=file.log" << endl;
+   os << "# log4j.appender.F.layout = org.apache.log4j.SimpleLayout" << endl;
+   os << "# log4j.logger.debug = DEBUG, F" << endl;
+   os << endl;
+
+   // EXAMPLE OF ROLLING FILE APPENDER
+   os << "# How to setup a rolling appender 100k file with one backup file" << endl;
+   os << "# log4j.appender.R=org.apache.log4j.RollingFileAppender" << endl;
+   os << "# log4j.appender.R.File=rollingFile.log" << endl;
+   os << "# log4j.appender.R.MaxFileSize=100KB" << endl;
+   os << "# Keep one backup file" << endl;
+   os << "# log4j.appender.R.MaxBackupIndex=1" << endl;
+   os << "# log4j.appender.R.layout=org.apache.log4j.PatternLayout#" << endl;
+   os << "# log4j.appender.R.layout.ConversionPattern=%p %t %c - %m%n" << endl;
+   os << "# log4j.logger.debug = DEBUG, R, F" << endl;
+   os << endl;
+
+   // LOGGING CHILD TO MULTIPLE FILES
+   os << "# Example parent logs in F1 and child in F1 and F2" << endl;
+   os << "# log4j.logger.parent    = DEBUG, F1" << endl;
+   os << "# log4j.logger.child     = INFO, F2" << endl;
+   os << endl;
+
+   // BREAKING LINK BETWEEN PARENT AND CHILDREN
+   os << "# Example parent logs in F1 and child in F2 only" << endl;
+   os << "# log4j.logger.parent    = DEBUG, F1" << endl;
+   os << "# log4j.logger.child     = INFO, F2" << endl;
+   os << "# log4j.additivity.child = FALSE"<< endl;
+   os << endl;
 #endif
 }
 
@@ -253,3 +287,12 @@ string getLevelString(const Logging::level& level)
    return "INHERITED";
 }
 
+
+bool argProcessor::checkVerbose(const char* const _switch)
+{
+   vector<string> allVerbose;
+   mp_arg_reader->testAndSet(_switch, allVerbose);
+   setVerboseLevel(allVerbose.size());
+
+   return getVerboseLevel() > 0;
+}

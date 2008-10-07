@@ -1,6 +1,6 @@
 /**
  * @author Aaron Tikuisis
- * @file testpowell.cc  Program to test the Powell's algorithm.
+ * @file testpowell.cc  Program to test Powell's algorithm.
  * $Id$
  *
  * K-Best Rescoring Module
@@ -13,7 +13,6 @@
 
 #include "powell.h"
 #include "rescoring_general.h"
-//#include "bleu.h"
 #include "boostDef.h"
 #include <vector>
 
@@ -21,20 +20,13 @@
 using namespace Portage;
 using namespace std;
 
-
-namespace Portage {
-
-/// Program test powell's namespace.
-/// Prevents pollution of the global namespace
-namespace TestPowell {
-
 /// Quick test class for Powell's algorithm
 class TestScore
 {
    public:
       int  val;
       /// Default constructor.
-      TestScore(const int _val = 0) { val = _val; }
+      TestScore(int val = 0) : val(val) {}
       /// Get score value
       /// @return Returns the score value.
       double score() const { return val; }
@@ -87,10 +79,6 @@ TestScore operator+(const TestScore &s1, const TestScore &s2)
 {
    return TestScore(s1.val + s2.val);
 }
-}; // ends namespace TestPowell
-}; // ends namespace Portage
-using namespace Portage::TestPowell;
-
 
 
 int main()

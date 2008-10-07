@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <sstream>
 #include "str_utils.h"
+#include <cstdlib>
 
 using namespace Portage;
 

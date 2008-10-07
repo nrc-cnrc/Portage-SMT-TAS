@@ -8,7 +8,7 @@
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
@@ -19,11 +19,10 @@
 
 #include <portage_defs.h>
 #include <utility>
-#include <ext/hash_map>
 #include <string>
 #include <vector>
 #include <sstream>
-#include <assert.h>
+#include <cassert>
 
 using namespace std;
 using namespace Portage;
@@ -154,7 +153,7 @@ namespace Portage
     * subset of the Uint set.
     * @param result    All the items picked out are appended to this vector.
     * @param triangArray A triangular array whose (i, j)-th entry is the item
-    *                  associated with the range [i, i + j - 1).
+    *                  associated with the range [i, i + j + 1).
     * @param set       The set of Uint's.
     */
    template <class T>
@@ -242,24 +241,6 @@ inline string UINTSETOUT(const UintSet &s)
    return sout.str();
 } // UINTSETOUT
 
-
-namespace __gnu_cxx
-{
-   /// Callable entity to create hash values for string.
-   template<>
-   class hash<string>
-   {
-    public:
-      /**
-       * Generates a hash value for a string
-       * @param s  string to hash
-       * @return Returns a hash value for s
-       */
-      Uint operator()(const string &s) const {
-         return hash<const char *>()(s.c_str());
-      } // operator()
-   }; // hash<string>
-} // __gnu_cxx
 
 /**
  * Calculates the partial/total dot product between two vectors.

@@ -38,8 +38,8 @@
 #ifndef GOOD_TURING_H
 #define GOOD_TURING_H
 
+#include <cmath>
 #include <portage_defs.h>
-#include <math.h>
 #include "ls_poly_fit.h"
 
 namespace Portage {

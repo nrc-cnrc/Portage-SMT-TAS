@@ -15,7 +15,7 @@
 #ifndef __PRINT_COPYRIGHT_H__
 #define __PRINT_COPYRIGHT_H__
 
-#include <stdio.h>
+#include <cstdio>
 
 namespace Portage {
    /**

@@ -17,6 +17,7 @@
 #include "voc.h"
 #include <errors.h>
 #include <iostream>
+#include <iterator>
 
 using namespace Portage;
 
@@ -42,6 +43,18 @@ Uint Voc::add(const char* word) {
    } else {
       return p->second;
    }
+}
+
+void Voc::index(const vector<string>& src, vector<Uint>& dest) const
+{
+   // Operates on the basis of append mode
+   dest.reserve(dest.size() + src.size());
+
+   //transform(src.begin(), src.end(), back_insert_iterator< vector<Uint> >(dest), indexConverter(*this));
+   //return;
+   typedef vector<string>::const_iterator SRC_IT;
+   for (SRC_IT it(src.begin()); it!=src.end(); ++it)
+      dest.push_back(index(it->c_str()));
 }
 
 bool Voc::test() {

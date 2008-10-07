@@ -12,11 +12,14 @@ INCLUDES = $(filter-out rescore_train.h rescore_translate.h \
                         rescore_test.h, $(wildcard *.h))
 
 OBJECTS = \
+	bleu_postedit_ff.o \
+        backward_lm_ff.o \
 	bleurisk.o \
 	cache_lm_ff.o \
 	confidence_score.o \
 	consensus.o \
-	featurefunction.o \
+	featurefunction_set.o \
+        file_ff.o \
 	fmax.o \
 	ibm1wtrans.o \
 	ibm1del.o \
@@ -34,11 +37,13 @@ OBJECTS = \
 	nbest_wordpost_src.o \
 	nbest_wordpost_trg.o \
 	ngram_tree.o \
-	rescore_io.o
+	per_postedit_ff.o \
+	rescore_io.o \
+	wer_postedit_ff.o
 
 BINSCRIPTS = \
 	cow.sh \
-	gen-features-parallel.sh \
+	gen-features-parallel.pl \
 	rat.sh \
 	rescoremodel2canoearg.sh
 
@@ -66,7 +71,12 @@ EXTRA_LIBS=$(LOGGING_LIB)
 
 DYNLIBS=-lpthread
 
-MODULE_CF=-Wno-non-virtual-dtor -fno-strict-aliasing -Wno-uninitialized $(PORTAGE_OPENMP)
+ifdef NO_PORTAGE_OPENMP
+MODULE_CF=-Wno-non-virtual-dtor -fno-strict-aliasing -Wno-uninitialized
+else
+MODULE_CF=-Wno-non-virtual-dtor -fno-strict-aliasing -Wno-uninitialized -fopenmp
+MODULE_LF=-fopenmp
+endif
 
 MODULE_DEPENDS=canoe tm lm eval logging
 

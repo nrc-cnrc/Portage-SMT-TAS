@@ -25,11 +25,12 @@ Sum a column of numbers.
 
 Options:
 -n  Normalize numbers by dividing by their sum, and print results.
+-a  Print average of instead of sum.
 -r  Use reciprocals of numbers.
 
 ";
 
-our ($help, $h, $n, $r);
+our ($help, $h, $n, $r, $a);
 
 if ($help || $h) {
     print $HELP;
@@ -45,15 +46,18 @@ open(OUT, ">$out") or die "Can't open $out for writing";
 my @vals;
 
 my $sum = 0.0;
+my $count = 0;
 while (<IN>) {
     my $x = $r ? 1.0 / $_ : $_;
 
     $sum += $x;
     if ($n) {push @vals, ($x);}
+    ++$count;
 }
 
 if ($n) {
    while (my $x = shift @vals) {print OUT $x/$sum, "\n";}
 } else {
+   if ($a && $count) {$sum /= $count}
    print OUT "$sum\n";
 }

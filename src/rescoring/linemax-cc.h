@@ -5,19 +5,19 @@
  * $Id$
  *
  * K-Best Rescoring Module
- * 
+ *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
  */
 
-#include <rescoring_general.h>
-#include <bleu.h>
+#include "rescoring_general.h"
+#include "bleu.h"
 #include <algorithm>
-#include <assert.h>
-#include <portage_defs.h>
+#include <cassert>
+#include "portage_defs.h"
 
 namespace Portage
 {
@@ -36,7 +36,7 @@ namespace Portage
     * @param x  operand
     * @return Returns true if x is finite
     */
-   inline bool finite(const double x) {
+   inline bool finite(double x) {
       return (x != INFINITY && x != -INFINITY);
    }
 
@@ -46,7 +46,7 @@ namespace Portage
          ScoreStats *& dBLEU,
          ScoreStats & curScore,
          linemaxpt *& myHeappoint,
-         const int s,
+         int s,
          const uVector& p,
          const uVector& dir,
          const uMatrix& H,
@@ -63,8 +63,8 @@ namespace Portage
       /* For the given source sentence (f_s):
          The estimation function, \hat{e}(f_s, \lambda) is defined as follows:
          \hat{e}(f_s, \lambda)       = argmax_{0 <= k < K}
-         ( \sum_{m=1}^M \lambda_m h_m(e_k, f_s) )
-         = max_index (H * \lambda)
+                                        ( \sum_{m=1}^M \lambda_m h_m(e_k, f_s) )
+                                     = max_index (H * \lambda)
 
          (H is the K x M matrix whose (k,m)-th entry is h_m(e_k, f_s).)
 
@@ -80,24 +80,24 @@ namespace Portage
          different lines, l_i(\gamma) and l_j(\gamma) intersect.
 
          We do the following to completely determine the function \hat{e}(\gamma):
-         i)         Determine some point \gamma_0 such that no lines intersect for
-         any \gamma <= \gamma_0
-         ii)        Determine oldk = max_index L(\gamma_0).  Let oldgamma = \gamma_0.
-         iii)       Determine newgamma = min (\gamma coordinate of intersection
-         between l_k and l_oldk),
-         newk = argmin (\gamma coordinate of intersection
-         between l_k and l_oldk),
-         where min, argmin range over all k which are different from
-         newk and for which the intersection happens after oldgamma.
-         If there is no such newgamma, go to step (v).
-         iv)        It has been determined that \hat{e} takes the value oldk on
-         (oldgamma, newgamma),
-         (or (-\infty, newgamma) if oldgamma = \gamma_0).
-         Set oldk = newk, oldgamma = newgamma, and go to step (iii)
-         v)          It has been determined that \hat{e} takes the value oldk on
-         (oldgamma, \infty),
-         (or (-\infty, \infty) if oldgamma = \gamma_0).
-         \hat{e} has been determined piecewise, so done.
+          i)         Determine some point \gamma_0 such that no lines intersect for
+                     any \gamma <= \gamma_0
+          ii)        Determine oldk = max_index L(\gamma_0).  Let oldgamma = \gamma_0.
+          iii)       Determine newgamma = min (\gamma coordinate of intersection
+                                               between l_k and l_oldk),
+                                   newk = argmin (\gamma coordinate of intersection
+                                                  between l_k and l_oldk),
+                     where min, argmin range over all k which are different from
+                     newk and for which the intersection happens after oldgamma.
+                     If there is no such newgamma, go to step (v).
+          iv)        It has been determined that \hat{e} takes the value oldk on
+                     (oldgamma, newgamma),
+                     (or (-\infty, newgamma) if oldgamma = \gamma_0).
+                     Set oldk = newk, oldgamma = newgamma, and go to step (iii)
+          v)          It has been determined that \hat{e} takes the value oldk on
+                     (oldgamma, \infty),
+                     (or (-\infty, \infty) if oldgamma = \gamma_0).
+                     \hat{e} has been determined piecewise, so done.
 
          We store each newgamma (in ascending order) in gamma (an array), and the
          number of newgamma's in numchanges.  Since there are K different lines, we
@@ -215,7 +215,7 @@ namespace Portage
          if (A(oldk) == INFINITY) {
             // Not going to do any better as gamma gets bigger
             break;
-         } 
+         }
          else if (A(oldk) == -INFINITY || isnan(A(oldk))) {
             newgamma = INFINITY;
             // Find if/when this "line" changes from +INFINITY to -INFINITY or NaN
@@ -310,7 +310,7 @@ namespace Portage
          myHeappoint->gamma = gamma[0];
          myHeappoint->s = s;
          myHeappoint->i = 0;
-      } 
+      }
       else {
          myHeappoint = NULL;
       } // if
@@ -336,21 +336,21 @@ namespace Portage
 
       // Store the linemaxpt values for the least gamma in each partition;
       // will subsequently become a heap.
-      linemaxpt *heappoints[S];
+      linemaxpt* heappoints[S];
 
       int s;
 #pragma omp parallel for private(s)
       for (s=0; s<int(S); ++s) {
          findSentenceIntervals(numchanges[s],
-               gammaWorkSpace[s],
-               scoreWorkSpace[s],
-               curScoreStats,  // Needs a one time lock
-               heappoints[s],  // clean up null pointers
-               s,        // const
-               p,        // const
-               dir,      // const
-               vH[s],    // const
-               allScoreStats[s]); // const
+                               gammaWorkSpace[s],
+                               scoreWorkSpace[s],
+                               curScoreStats,  // Needs a one time lock
+                               heappoints[s],  // clean up null pointers
+                               s,        // const
+                               p,        // const
+                               dir,      // const
+                               vH[s],    // const
+                               allScoreStats[s]); // const
       } // for
 
       // Remove the empty heap points and recalculate the heap size
@@ -391,7 +391,7 @@ namespace Portage
          (gamma[s][i+1], s, i+1) to the heap.
          iii)  Repeat (ii) until the heap is empty.
          Our heap is contained in the array heappoints.
-         */
+      */
       double maxscore(0.0f);  // Will hold the best BLEU score
       double maxgamma(0.0f);  // Will hold the gamma which produces the best BLEU score
 
@@ -401,7 +401,7 @@ namespace Portage
          maxscore = curScoreStats.score();
          maxgamma = 0;  // TODO: is 0 appropriate? I think so
          // cerr << "score at \\gamma = 0: " << curScoreStats.score() << endl;
-      } 
+      }
       else {
          // Create the heap
          make_heap(heappoints, heappoints + heapsize, linemaxpt::greater);
@@ -426,7 +426,7 @@ namespace Portage
                heappoints[heapsize - 1]->gamma =
                   gammaWorkSpace[heappoints[heapsize - 1]->s][heappoints[heapsize - 1]->i];
                push_heap(heappoints, heappoints + heapsize, linemaxpt::greater);
-            } 
+            }
             else {
                // Decrease heap size
                delete heappoints[heapsize - 1];

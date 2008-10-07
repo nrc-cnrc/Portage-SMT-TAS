@@ -15,7 +15,7 @@
 #include "multi_voc.h"
 #include "errors.h"
 #include "file_utils.h"
-#include <algorithm>
+#include <numeric>
 
 using namespace Portage;
 

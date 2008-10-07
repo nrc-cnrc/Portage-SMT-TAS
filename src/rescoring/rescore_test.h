@@ -12,14 +12,12 @@
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
 */
-            
+
 #ifndef __RESCORE_TEST_H__
 #define __RESCORE_TEST_H__
 
-#include <argProcessor.h>
-#include <errors.h>
-#include <rescore_io.h>
-#include <file_utils.h>
+#include "argProcessor.h"
+#include "file_utils.h"
 
 namespace Portage {
 /// Program rescore_test's namespace
@@ -35,7 +33,7 @@ rescore_train -h for information on features and file formats.\n\
 \n\
 Options:\n\
 \n\
--v    Write progress reports to cerr.\n\
+-v    Write progress reports to cerr (repeatable) [don't].\n\
 -p    Prepend ff-pref to file names for FileFF features\n\
 -dyn  Indicates that the nbest list is in variable-size format, with\n\
       lines of the form: <source#>\\t<CandidateTranslation>\n\
@@ -75,7 +73,7 @@ Options:\n\
        * @param argc  same as the main argc
        * @param argv  same as the main argv
        */
-      ARG(const int argc, const char* const argv[])
+      ARG(int argc, const char* const argv[])
          : argProcessor(ARRAY_SIZE(switches), switches, 4, -1, help_message, "-h", true)
          , m_vLogger(Logging::getLogger("verbose.main.arg"))
          , m_dLogger(Logging::getLogger("debug.main.arg"))
@@ -120,9 +118,7 @@ Options:\n\
       {
          LOG_INFO(m_vLogger, "Processing arguments");
 
-         mp_arg_reader->testAndSet("v", bVerbose);
-         if ( getVerboseLevel() > 0 ) bVerbose = true;
-         if ( bVerbose && getVerboseLevel() < 1 ) setVerboseLevel(1);
+         bVerbose = checkVerbose("v");
          mp_arg_reader->testAndSet("p", ff_pref);
          mp_arg_reader->testAndSet("y", maxNgrams);
          mp_arg_reader->testAndSet("u", maxNgramsScore);
@@ -137,7 +133,7 @@ Options:\n\
          mp_arg_reader->testAndSet(1, "src", src_file);
          mp_arg_reader->testAndSet(2, "nbest", nbest_file);
          mp_arg_reader->getVars(3, refs_file);
-         
+
          mp_arg_reader->testAndSet("dyn", bIsDynamic);
          if (!bIsDynamic) {
             const Uint SK = countFileLines(nbest_file);
@@ -147,7 +143,7 @@ Options:\n\
                error(ETFatal, "Inconsistency between nbest and src number of lines\n\tnbest: %d, src: %d => K: %d", SK, S, K);
          }
 
-         // K switch is depricated but if user pass a K option 
+         // K switch is depricated but if user pass a K option
          // we check for misusage and validity of K value
          if (mp_arg_reader->getSwitch("K:")) {
             error(ETWarn, "K argument will be ignored, obsolete argument");

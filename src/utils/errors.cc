@@ -12,10 +12,11 @@
  * Copyright 2005, Her Majesty in Right of Canada
  */
 
-#include <stdarg.h>
-#include <stdio.h>
-#include <iostream>
 #include "errors.h"
+#include <vector>
+#include <stdarg.h>
+#include <iostream>
+#include <cstdlib>
 
 using namespace Portage;
 using namespace std;

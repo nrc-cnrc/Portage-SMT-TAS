@@ -19,12 +19,18 @@
 #include <vector>
 #include <map>
 #include <set>
-#include <iostream>
-#include <fstream>
 #include "str_utils.h"
-#include "MagicStream.h"
+
+// Forward declaration instead of include speeds up compilation of files that
+// don't use optional.
+// Use #include <boost/optional/optional.hpp> in your .cc file if you need it.
+namespace boost {
+   template <class T> class optional;
+}
 
 namespace Portage {
+   class iMagicStream;
+   class oMagicStream;
 
 /**
  * A command line reader.
@@ -151,42 +157,87 @@ public:
       string str;
       if (getSwitch(sw, &str) && !conv(str, val))
       {
-        error(ETFatal, "can't convert -%s value (%s) to %s", sw, str.c_str(), typeName<T>().c_str());
+         error(ETFatal, "can't convert -%s value (%s) to %s", sw, str.c_str(), typeName<T>().c_str());
       }
    }
 
    /**
-   * Checks if sw has a value.
-   * @param sw  switch to get its values
-   * @param val return value
-   */
+    * Get value for switch sw.
+    * Use this version when you don't want a default value, but rather you want
+    * to be able to tell that it wasn't specified at all on the command line.
+    * To use this method, you must #include <boost/optional/optional.hpp>.
+    * Note that this method should not be used with T=bool - use
+    * testAndSetOrReset() with optional<bool> instead.
+    * @param sw switch to test
+    * @param val place to store resulting value - not touched if sw isn't set,
+    *        which means if val was uninitialied, it will remain uninitialized
+    */
+   template<class T>
+   void testAndSet(const char* sw, boost::optional<T>& val)
+   {
+      string str;
+      if (getSwitch(sw, &str)) {
+         T tmp_val;
+         if ( conv(str, tmp_val) )
+            val = tmp_val;
+         else
+            error(ETFatal, "can't convert -%s value (%s) to %s", sw, str.c_str(), typeName<T>().c_str());
+      }
+   }
+
+   /**
+    * Checks if sw has a value.
+    * @param sw  switch to get its values
+    * @param val return value
+    */
    void testAndSet(const char* sw, bool& val);
 
    /**
-   * Returns all values for switch sw.
-   * @param sw        switch to get its values
-   * @param arg_list  returned values
-   * @see void testAndSet(const char* sw, T& val)
-   * @see bool getSwitch(const char* sw, string* val = NULL)
-   */
+    * Test for a dual -x/-nox switch.
+    * Use with BOOL_TYPE=bool if a default is desired, or
+    * BOOL_TYPE=optional<bool> if you want to be able to know neither switch
+    * was found on the command line.
+    * @param set_sw   on switch
+    * @param reset_sw off switch
+    * @param val      will be set to true if set_sw is found, false if reset_sw
+    *                 is found, and left untouched if neither is found.
+    */
+   template <class BOOL_TYPE>
+   void testAndSetOrReset(const char* set_sw, const char* reset_sw,
+                          BOOL_TYPE& val)
+   {
+      string str;
+      if ( getSwitch(set_sw, &str) )
+         val = true;
+      else if ( getSwitch(reset_sw, &str) )
+         val = false;
+   }
+
+   /**
+    * Returns all values for switch sw.
+    * @param sw        switch to get its values
+    * @param arg_list  returned values
+    * @see void testAndSet(const char* sw, T& val)
+    * @see bool getSwitch(const char* sw, string* val = NULL)
+    */
    void testAndSet(const char* sw, vector<string>& arg_list);
    
    //@{
    /**
-   * Opens a stream according to the value of sw.
-   * @param sw  stream's name to open
-   * @param ifs returned stream
-   */
+    * Opens a stream according to the value of sw.
+    * @param sw  stream's name to open
+    * @param ifs returned stream
+    */
    void testAndSet(const char* sw, ifstream& ifs);
    void testAndSet(const char* sw, iMagicStream& ifs);
    //@}
 
    //@{
    /**
-   * Opens a stream according to the value of sw.
-   * @param sw  stream's name to open
-   * @param ofs returned stream
-   */
+    * Opens a stream according to the value of sw.
+    * @param sw  stream's name to open
+    * @param ofs returned stream
+    */
    void testAndSet(const char* sw, ofstream& ofs);
    void testAndSet(const char* sw, oMagicStream& ofs);
    //@}

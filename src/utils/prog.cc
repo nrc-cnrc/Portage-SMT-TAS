@@ -6,7 +6,7 @@
  * COMMENTS: 
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2008, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2008, Her Majesty in Right of Canada
@@ -20,14 +20,14 @@ using namespace Portage;
 using namespace std;
 
 static char help_message[] = "\n\
-prog [-v][-n nl] [infile [outfile]]\n\
+prog [options] [INFILE [OUTFILE]]\n\
 \n\
-Copy <infile> to <outfile> (default stdin to stdout).\n\
+  Copy INFILE to OUTFILE (default stdin to stdout).\n\
 \n\
 Options:\n\
 \n\
--v  Write progress reports to cerr.\n\
--n  Copy only first <nl> lines [0 = all]\n\
+  -v    Write progress reports to cerr.\n\
+  -n NL Copy only first NL lines [0 = all]\n\
 ";
 
 // globals

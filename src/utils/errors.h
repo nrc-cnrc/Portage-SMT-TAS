@@ -20,13 +20,11 @@
 #define ERRORS_H
 
 #include <string>
-#include <vector>
 #include "portage_defs.h"
 
 namespace Portage {
 
 using std::string;
-using std::vector;
 
 /**
  * Basic exception class.

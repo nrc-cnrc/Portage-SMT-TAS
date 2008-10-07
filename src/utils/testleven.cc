@@ -13,77 +13,74 @@
  */
 
 #include "levenshtein.h"
+#include "str_utils.h"
+#include "file_utils.h"
 
 using namespace Portage;
 
-int main() {
+int main(int argc, const char* const argv[]) {
 
-  Levenshtein<char> lev;
+  if (argc!=3) {
+    cerr << "Usage: " << argv[0] << "  <hypfile>  <reffile>" << endl << endl;
+    exit(1);
+  }
+  
+  string hypfilename = argv[1];
+  string reffilename = argv[2];
 
-  vector<char> a,b;
+  iSafeMagicStream hypfile(hypfilename);
+  iSafeMagicStream reffile(reffilename);
 
-  a.push_back('a');
-  a.push_back('b');
-  a.push_back('c');
-  a.push_back('d');
-  a.push_back('e');
+  Levenshtein<string> lev;
 
-  b.push_back('a');
-  b.push_back('c');
-  b.push_back('f');
-  b.push_back('e');
-  b.push_back('g');
-  b.push_back('h');
+  vector<string> hyp, ref;
 
-  vector<int> ins_costs(a.size());
-  for (Uint i = 0; i < a.size(); ++i)
-     ins_costs[i] = 1;
+  string hypline, refline;
+  while ( getline(hypfile, hypline) && getline(reffile, refline) ) {
+    
+    hyp.clear(); ref.clear();
+    
+    split(hypline, hyp, " \n");
+    split(refline, ref, " \n");
 
-  vector<int> del_costs(b.size());
-  for (Uint i = 0; i < b.size(); ++i)
-     del_costs[i] = 1;
-     // del_costs[i] = b[i] == 'g' || b[i] == 'h' ? 2 : 1;
+    vector<int> ins_costs(hyp.size());
+    for (Uint i = 0; i < hyp.size(); ++i)
+      ins_costs[i] = 1;
 
-  lev.setSubCost(3);
+    vector<int> del_costs(ref.size());
+    for (Uint i = 0; i < ref.size(); ++i)
+      del_costs[i] = 1;
+    // del_costs[i] = ref[i] == 'g' || ref[i] == 'h' ? 2 : 1;
 
-  // lev.setVerbosity(4);
+    int incomplRef = 2;
+    
+    lev.setSubCost(1);
+    
+    lev.setVerbosity(1);
 
-  vector<int> res = lev.LevenAlig(a,b, &ins_costs, &del_costs);
+    vector<int> res = lev.LevenAlig(hyp, ref, incomplRef, &ins_costs, &del_costs);
 
-  for (Uint i = 0; i < a.size(); ++i)
-     cerr << a[i] << " ";
-  cerr << endl;
+    /*
+      for (Uint i = 0; i < hyp.size(); ++i)
+      cerr << hyp[i] << " ";
+      cerr << endl;    
+      for (Uint i = 0; i < ref.size(); ++i)
+      cerr << ref[i] << " ";
+      cerr << endl;
+    */
 
-  for (Uint i = 0; i < b.size(); ++i)
-     cerr << b[i] << " ";
-  cerr << endl;
+    cerr << "Distance: " << lev.getLevenDist() << endl;
+    lev.dumpAlign(hyp, ref, res, cerr);
 
-  lev.dumpAlign(a, b, res, cerr);
+  }
+  
+  if (getline(reffile, refline)) {
+    cerr << "ERROR: less hypotheses than references!" << endl;
+  }
 
+  if (getline(hypfile, hypline)) { 
+    cerr << "ERROR: more hypotheses than references!" << endl;
+  }
 
-//  cerr << lev.LevenDist(a,b) << endl;
-
-  /***/
-
-//   b.clear();
-//   b.push_back('c');
-
-//   lev.LevenAlig(a,b);
-//   cerr << lev.LevenDist(a,b) << endl;
-
-  /***/
-
-//   a.clear(); b.clear();
-//   a.push_back('h');
-
-//   b.push_back('a');
-//   b.push_back('c');
-//   b.push_back('f');
-//   b.push_back('e');
-//   b.push_back('g');
-//   b.push_back('h');
-
-//   lev.LevenAlig(a,b);
-//   cerr << lev.LevenDist(a,b) << endl;
 }
 

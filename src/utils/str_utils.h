@@ -1,11 +1,11 @@
 /**
  * @author George Foster
  * @file str_utils.h String utilities.
- * 
- * COMMENTS: 
- * 
+ *
+ * COMMENTS:
+ *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
@@ -14,12 +14,11 @@
 #define STR_UTILS_H
 
 #include "errors.h"
-#include <algorithm>
-#include <iterator>
 #include <string>
 #include <vector>
 #include <sstream>
 #include <iomanip>
+#include <cstring>
 
 namespace Portage {
 
@@ -49,7 +48,7 @@ char* trim(char* str, const char *rmChars = " \t");
  * @param s2 strings to search
  * @return length of longest common prefix
  */
-inline size_t longestPrefix(const char* s1, const char* s2) 
+inline size_t longestPrefix(const char* s1, const char* s2)
 {
    const char* s = s1;
    while (*s1 == *s2 && *s1)
@@ -64,12 +63,16 @@ inline size_t longestPrefix(const char* s1, const char* s2)
  * @param s2 string to search
  * @return results of test
  */
-inline bool isPrefix(const char* s1, const char* s2) 
+inline bool isPrefix(const char* s1, const char* s2)
 {
    while (*s1)
       if (*s1++ != *s2++)
 	 return false;
    return true;
+}
+inline bool isPrefix(const char* s1, const string& s2)
+{
+   return isPrefix(s1, s2.c_str());
 }
 
 /**
@@ -86,11 +89,11 @@ inline bool isSuffix(const string& s1, const string& s2)
 
 /**
  * Return the last character of a string (0 if string is empty).
- * 
+ *
  * @param str string in which to get the last caracter
  * @return Returns the last caracter of str or 0
  */
-inline char last(const string& str) 
+inline char last(const string& str)
 {
    return str.length() ? str[str.length()-1] : 0;
 }
@@ -101,11 +104,54 @@ inline char last(const string& str)
  * @param str string that we want to remove its last charater.
  * @return returns the choped string
  */
-inline string& chop(string& str) 
+inline string& chop(string& str)
 {
-   if (str.length()) 
+   if (str.length())
       str.erase(str.length()-1);
    return str;
+}
+
+/**
+ * Does a string consist solely of lowercase chars? BEWARE: this uses C
+ * character classification, so it's at the mercy of the locale!
+ * @param str string to classify
+ * @param start_char starting char for this classification
+ */
+inline bool isLower(const string& str, Uint start_char = 0)
+{
+   for (Uint i = start_char; i < str.size(); ++i)
+      if (!islower(str[i]))
+         return false;
+   return true;
+}
+
+/**
+ * Is a string capitalized: does it consist of an uppercase character followed
+ * solely by lowercase characters? BEWARE: this uses C character
+ * classification, so it's at the mercy of the locale!
+ * @param str string to classify
+ */
+inline bool isCapitalized(const string& str)
+{
+   return str.size() > 0 && isupper(str[0]) && isLower(str, 1);
+}
+
+/**
+ * Convert a string to lowercase. BEWARE: this uses C character
+ * classification, so it's at the mercy of the locale!
+ * @param in string to convert
+ * @param out place to put conversion (may be same as in)
+ * @return out
+ */
+inline string& toLower(const string& in, string& out)
+{
+   for (Uint i = 0; i < in.size(); ++i) {
+      int ch = tolower(in[i]);
+      if (i < out.size()) out[i] = ch;
+      else out += ch;
+   }
+   out.erase(in.size());
+   return out;
 }
 
 /// Return the name for basic types as a string.
@@ -208,7 +254,7 @@ inline bool conv(const char* s, bool& val) { return conv(string(s), val); }
  * string conversion to a arbitrary type.
  *
  * Conversion with error checking. Call this with an explicit template param,
- * for example: 
+ * for example:
  *    float good_float = conv<float>(possible_float_string);
  *
  * @param s string to convert to arbitrary type
@@ -262,7 +308,7 @@ template <class T> bool convCheck(const char* s, T& val)
  * @return the result of the join operation (ref to s)
  */
 string& join(vector<string>::const_iterator beg,
-             vector<string>::const_iterator end, 
+             vector<string>::const_iterator end,
              string& s, const string& sep=" ");
 
 /**
@@ -290,9 +336,9 @@ inline string& join(const vector<string>& v, string& s, const string& sep=" ")
  * @param precision stream precision
  * @return the result of the join operation
  */
-template <class T> 
-string join(typename vector<T>::const_iterator beg, 
-            typename vector<T>::const_iterator end, 
+template <class T>
+string join(typename vector<T>::const_iterator beg,
+            typename vector<T>::const_iterator end,
             const string& sep=" ", Uint precision = 8)
 {
    ostringstream ss;
@@ -308,15 +354,15 @@ string join(typename vector<T>::const_iterator beg,
 
 /**
  * Joins a sequence of arbitrary type into a string.
- * Join any container of T's into a single string. 
+ * Join any container of T's into a single string.
  * @param beg begin iterator
  * @param end end iterator
  * @param sep separator to put between each word
  * @param precision stream precision
  * @return the result of the join operation
  */
-template <class T_const_iterator> 
-string joini(T_const_iterator beg, T_const_iterator end, 
+template <class T_const_iterator>
+string joini(T_const_iterator beg, T_const_iterator end,
              const string& sep=" ", Uint precision = 8)
 {
    ostringstream ss;
@@ -392,7 +438,7 @@ extern string decodeRFC2396(const string& s);
  * Split an input string into a sequence of whitespace-delimited tokens.
  * The * splitZ() version clears the output vector first.
  *
- * @see Uint split(const char* s, vector<T>& dest, Converter converter, const char* sep, const Uint max_toks)
+ * @see Uint split(const char* s, vector<T>& dest, Converter converter, const char* sep, Uint max_toks)
  * @param s          input string
  * @param dest       vector that tokens get appended to
  * @param converter  a mapper from a string to desire T type (Applied to every token found)
@@ -405,7 +451,7 @@ extern string decodeRFC2396(const string& s);
  * @return the number of tokens found
  */
 template<class T, class Converter>
-Uint split(const char* s, vector<T>& dest, Converter converter, const char* sep = " \t\n", const Uint max_toks = 0)
+Uint split(const char* s, vector<T>& dest, Converter converter, const char* sep = " \t\n", Uint max_toks = 0)
 {
    const Uint init_size(dest.size());
    // Make a copy to work on
@@ -434,7 +480,7 @@ Uint split(const char* s, vector<T>& dest, Converter converter, const char* sep 
  * Split an input string into a sequence of whitespace-delimited tokens.
  * The * splitZ() version clears the output vector first.
  *
- * @see Uint split(const char* s, vector<T>& dest, Converter converter, const char* sep, const Uint max_toks)
+ * @see Uint split(const char* s, vector<T>& dest, Converter converter, const char* sep, Uint max_toks)
  * @param s          input string
  * @param dest       vector that tokens get appended to
  * @param sep        the set of characters that are considered to be whitespace
@@ -443,7 +489,7 @@ Uint split(const char* s, vector<T>& dest, Converter converter, const char* sep 
  * @return the number of tokens found
  */
 template<class T>
-Uint split(const char* s, vector<T>& dest, const char* sep = " \t\n", const Uint max_toks = 0)
+Uint split(const char* s, vector<T>& dest, const char* sep = " \t\n", Uint max_toks = 0)
 {
    return split(s, dest, convT<T>, sep, max_toks);
 }
@@ -452,7 +498,7 @@ Uint split(const char* s, vector<T>& dest, const char* sep = " \t\n", const Uint
  * Split an input string into a sequence of whitespace-delimited tokens.
  * The * splitZ() version clears the output vector first.
  *
- * @see Uint split(const char* s, vector<T>& dest, Converter converter, const char* sep, const Uint max_toks)
+ * @see Uint split(const char* s, vector<T>& dest, Converter converter, const char* sep, Uint max_toks)
  * @param s          input string
  * @param dest       vector that tokens get appended to
  * @param sep        the set of characters that are considered to be whitespace
@@ -461,7 +507,7 @@ Uint split(const char* s, vector<T>& dest, const char* sep = " \t\n", const Uint
  * @return the number of tokens found
  */
 template<class T>
-Uint split(const string& s, vector<T>& dest, const char* sep = " \t\n", const Uint max_toks = 0) 
+Uint split(const string& s, vector<T>& dest, const char* sep = " \t\n", Uint max_toks = 0)
 {
    return split(s.c_str(), dest, convT<T>, sep, max_toks);
 }
@@ -469,7 +515,7 @@ Uint split(const string& s, vector<T>& dest, const char* sep = " \t\n", const Ui
 /// Same as split(const string& s, vector<T> &dest, const string& sep),
 /// but clears the output vector first.
 template<class T>
-Uint splitZ(const string &s, vector<T> &dest, const char* sep = " \t\n", const Uint max_toks = 0)
+Uint splitZ(const string &s, vector<T> &dest, const char* sep = " \t\n", Uint max_toks = 0)
 {
    dest.clear();
    return split(s.c_str(), dest, sep, max_toks);
@@ -478,7 +524,7 @@ Uint splitZ(const string &s, vector<T> &dest, const char* sep = " \t\n", const U
 /// Same as split(const string& s, vector<T> &dest, const string& sep),
 /// but die on error.
 template<class T>
-Uint splitCheck(const string &s, vector<T> &dest, const char* sep = " \t\n", const Uint max_toks = 0)
+Uint splitCheck(const string &s, vector<T> &dest, const char* sep = " \t\n", Uint max_toks = 0)
 {
    return split(s.c_str(), dest, convCheck<T>, sep, max_toks);
 }
@@ -486,7 +532,7 @@ Uint splitCheck(const string &s, vector<T> &dest, const char* sep = " \t\n", con
 /// Same as split(const string& s, vector<T> &dest, const string& sep),
 /// but clears the output vector first and die on error.
 template<class T>
-Uint splitCheckZ(const string &s, vector<T> &dest, const char* sep = " \t\n", const Uint max_toks = 0)
+Uint splitCheckZ(const string &s, vector<T> &dest, const char* sep = " \t\n", Uint max_toks = 0)
 {
    dest.clear();
    return splitCheck(s, dest, sep, max_toks);
@@ -542,15 +588,15 @@ Uint split(char* s, char* tokens[], Uint max_tokens, const char* sep = " \t\n");
  * before the end of the string).
  */
 extern size_t getNextTok(const string& s, size_t pos, string& tok,
-			 const string& seps = " \t\n", 
+			 const string& seps = " \t\n",
 			 const string& backslashes = "\\",
-			 const string& lquotes = "\"'", 
+			 const string& lquotes = "\"'",
 			 const string& rquotes = "\"'",
 			 const string& punc = "",
 			 bool* was_quoted = NULL,
 			 bool quotes_break = false);
 
-/** 
+/**
  * Split an input string into a sequence of whitespace-delimited and possibly
  * quoted tokens.
  * @param s input string
@@ -566,7 +612,7 @@ extern size_t getNextTok(const string& s, size_t pos, string& tok,
  * @param omit_quoted_tokens
  */
 template <class StringOutputIter>
-void splitQuoted(const string& s, StringOutputIter dest, 
+void splitQuoted(const string& s, StringOutputIter dest,
 		 const string& seps = " \t\n", const string& backslashes = "\\",
 		 const string& lquotes = "\"'", const string& rquotes = "\"'",
 		 const string& punc = "", bool retain_quotes = false,
@@ -576,7 +622,7 @@ void splitQuoted(const string& s, StringOutputIter dest,
    size_t pos = 0;
    bool was_quoted;
    do {
-      pos = getNextTok(s, pos, tok, seps, backslashes, lquotes, rquotes, punc, 
+      pos = getNextTok(s, pos, tok, seps, backslashes, lquotes, rquotes, punc,
 		       &was_quoted);
       if (pos == string::npos) break;
       else {
@@ -589,7 +635,7 @@ void splitQuoted(const string& s, StringOutputIter dest,
    } while (pos < s.size());
 }
 
-/** 
+/**
  * Split an input string into a sequence of whitespace-delimited and possibly
  * quoted tokens.
  * @param s input string
@@ -603,10 +649,10 @@ void splitQuoted(const string& s, StringOutputIter dest,
  * @param omit_quoted_tokens should we omit quoted tokens?
  */
 inline void
-splitQuoted(const string& s, vector<string>& dest, 
+splitQuoted(const string& s, vector<string>& dest,
 	    const string& seps = " \t\n", const string& backslashes = "\\",
 	    const string& lquotes = "\"'", const string& rquotes = "\"'",
-	    const string& punc = "", bool retain_quotes = false, 
+	    const string& punc = "", bool retain_quotes = false,
 	    bool omit_quoted_tokens = false)
 {
    splitQuoted(s, inserter(dest, dest.end()), seps, backslashes, lquotes,
@@ -614,7 +660,7 @@ splitQuoted(const string& s, vector<string>& dest,
 }
 
 /**
- * Do not delete point in boost::shared_ptr. 
+ * Do not delete point in boost::shared_ptr.
  *
  * Utility class for using boost::shared_ptr: the null deleter says don't
  * delete anything when the object is released.

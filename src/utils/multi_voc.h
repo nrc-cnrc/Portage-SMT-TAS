@@ -17,7 +17,6 @@
 
 #include "portage_defs.h"
 #include "voc.h"
-#include "errors.h"
 #include <boost/dynamic_bitset.hpp>
 
 namespace Portage {

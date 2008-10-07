@@ -6,18 +6,16 @@
  * COMMENTS: 
  * 
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
  */
 
-#include <iostream>
 #include <cerrno>
 #include "portage_defs.h"
 #include "file_utils.h"
 #include "errors.h"
-#include <ext/stdio_filebuf.h>
 
 using namespace std;
 using namespace Portage;
@@ -176,5 +174,60 @@ string Portage::extractFilename(const string& path)
       return path;
    else
       return path.substr(pos+1);
+}
+
+string Portage::swap_languages(
+      const string& s, const string& separator,
+      string* out_l1, string* out_l2, string* out_prefix, string* out_suffix
+) {
+   string prefix, l1, l2, suffix;
+   const size_t len = s.length();
+   const size_t sep_len = separator.length();
+   const size_t sep_pos = s.rfind(separator);
+   const size_t sep_end = sep_pos + sep_len;
+   if ( sep_pos == string::npos ||      // separator not found
+        sep_end + 1 > len ||            // no room for l2
+        !isalnum(s[sep_end]) ||         // l2 doesn't start with an alnum
+        sep_pos < 1 ||                  // no room for l1
+        !isalnum(s[sep_pos-1]) )        // l1 doesn't end with an alnum
+      return string();
+
+   Uint l2_len = 1;
+   while ( true ) {
+      assert( sep_end + l2_len <= len);
+      if ( sep_end + l2_len == len ) {
+         l2 = s.substr(sep_end);
+         suffix = "";
+         break;
+      } else if ( !isalnum(s[sep_end + l2_len]) ) {
+         l2 = s.substr(sep_end, l2_len);
+         suffix = s.substr(sep_end + l2_len);
+         break;
+      }
+      ++l2_len;
+   }
+   assert(l2.length() == l2_len);
+
+   Uint l1_len = 1;
+   while ( true ) {
+      assert(sep_pos >= l1_len);
+      if ( sep_pos == l1_len ) {
+         l1 = s.substr(0, l1_len);
+         prefix = "";
+         break;
+      } else if ( !isalnum(s[sep_pos - l1_len - 1]) ) {
+         l1 = s.substr(sep_pos - l1_len, l1_len);
+         prefix = s.substr(0, sep_pos - l1_len);
+         break;
+      }
+      ++l1_len;
+   }
+   assert(l1.length() == l1_len);
+
+   if ( out_suffix ) *out_prefix = prefix;
+   if ( out_l1 )     *out_l1     = l1;
+   if ( out_l2 )     *out_l2     = l2;
+   if ( out_suffix ) *out_suffix = suffix;
+   return prefix + l2 + separator + l1 + suffix;
 }
 

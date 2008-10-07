@@ -1,14 +1,14 @@
 /**
  * @author Nicola Ueffing
  * @file ngram_tree.cc   Abstract interface and a few simple instantiations
- * 
- * 
+ *
+ *
  * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2006, Sa Majeste la Reine du Chef du Canada / 
+ * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2006, Her Majesty in Right of Canada
  */
 #include "ngram_tree.h"
@@ -33,17 +33,17 @@ void NgramNode::resetPost() {
 
 NgramNode* NgramNode::getKid(const string &word) {
    for (set<NgramNode*>::const_iterator itr=kids.begin(); itr!=kids.end(); itr++)
-      if ((*itr)->w == word) 
+      if ((*itr)->w == word)
          return *itr;
    return NULL;
 }
 
-void NgramNode::addKid(NgramNode* n) { 
-   kids.insert(n); 
+void NgramNode::addKid(NgramNode* n) {
+   kids.insert(n);
 }
 
-void NgramNode::update(const double &d, const int &n) { 
-   c.update(d,n); 
+void NgramNode::update(double d, int n) {
+   c.update(d,n);
 }
 
 ConfScore NgramNode::getPost() {
@@ -57,7 +57,7 @@ void NgramNode::normalize(const ConfScore &cnf) {
 }
 
 //---------------------------------------------------------------------------------------
-// NgramTree 
+// NgramTree
 //---------------------------------------------------------------------------------------
 void NgramTree::init() {
    if (root == NULL)
@@ -67,11 +67,11 @@ void NgramTree::init() {
    numNodes = 0;
 }
 
-void NgramTree::clear() { 
-   root->clear(); 
+void NgramTree::clear() {
+   root->clear();
 }
 
-void NgramTree::update(const vector<string> &ngram, const double &d, const int &n){
+void NgramTree::update(const vector<string> &ngram, double d, int n){
    // Unigram
    const string& lastword = ngram.back();
    assert(root != NULL);
@@ -88,7 +88,7 @@ void NgramTree::update(const vector<string> &ngram, const double &d, const int &
    // 2- to n-gram
    for (Uint i=0; i<ngram.size()-1; i++) {
       NgramNode* node = root->getKid(ngram[i]);
-      for (Uint j=i+1; j<ngram.size()-1; j++) { 
+      for (Uint j=i+1; j<ngram.size()-1; j++) {
          assert(node != NULL);
          node = node->getKid(ngram[j]);
       }
@@ -105,7 +105,7 @@ void NgramTree::update(const vector<string> &ngram, const double &d, const int &
    } // for i
 }
 
-bool NgramTree::find(const vector<string> &ngram, const int &len) {
+bool NgramTree::find(const vector<string> &ngram, int len) {
 
    int i = ngram.size()-len;
    vector<string>::const_iterator itr=ngram.begin() + i;
@@ -122,12 +122,12 @@ bool NgramTree::find(const vector<string> &ngram, const int &len) {
    return true;
 }
 
-int NgramTree::size() { 
-   return numNodes; 
+int NgramTree::size() {
+   return numNodes;
 }
 
-NgramNode* NgramTree::getRoot() { 
-   return root; 
+NgramNode* NgramTree::getRoot() {
+   return root;
 }
 
 void NgramTree::normalize() {

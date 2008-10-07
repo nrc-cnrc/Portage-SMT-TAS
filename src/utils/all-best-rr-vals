@@ -4,10 +4,21 @@
 # Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2005, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2005, Her Majesty in Right of Canada
+# Copyright 2007, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2007, Her Majesty in Right of Canada
 
-# Summarize a set of rescore results files in directories below current one
+
+##
+## all-best-rr-vals [DIR_PATTERN]
+##
+## Summarize a set of rescore-results files in directories below current one
+## DIR_PATTERN should expand to the desired directories [*]
+##
+
+if ($#argv > 1 || $1 == -h || $1 == -help) then
+   cat $0 | egrep '^##' | cut -c4-
+   exit 1
+endif
 
 if ($#argv == 1) then
    set pref = "$1"

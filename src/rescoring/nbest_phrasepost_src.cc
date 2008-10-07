@@ -25,13 +25,13 @@ void NBestPhrasePostSrc::setAlig(Alignment &al) {
 
 /**
  * Compute phrase posterior probabilities for all target phrases occurring in the N-best list
- */ 
-void NBestPhrasePostSrc::computePosterior(const Uint src_sent_id) {
+ */
+void NBestPhrasePostSrc::computePosterior(Uint src_sent_id) {
 
    PhrasePair2Posterior.clear();
    NBestPosterior::computePosterior(src_sent_id);
 
-   for (uint n=0; n<min(Nbasis,nbest.size()); n++) {    
+   for (uint n=0; n<min(Nbasis,nbest.size()); n++) {
 
       totalProb.update(scores[n],n);
 
@@ -44,9 +44,9 @@ void NBestPhrasePostSrc::computePosterior(const Uint src_sent_id) {
          Tokens trgp(hypn.begin() + align[k].target.first, hypn.begin() + align[k].target.last + 1);
          pair<Tokens,PhraseRange> p(trgp,align[k].source);
 
-         if (PhrasePair2Posterior.find(p) != PhrasePair2Posterior.end()) 
+         if (PhrasePair2Posterior.find(p) != PhrasePair2Posterior.end())
             PhrasePair2Posterior[p].update(scores[n],n);
-         else 
+         else
             PhrasePair2Posterior[p] = ConfScore(scores[n],n,1);
       } // for k
    } // for n
@@ -62,10 +62,10 @@ void NBestPhrasePostSrc::computePosterior(const Uint src_sent_id) {
 
 /**
  * Normalize phrase posterior probabilities for all target phrases occurring in the N-best list
- */ 
+ */
 void NBestPhrasePostSrc::normalizePosterior() {
    typedef map< pair<Tokens,PhraseRange>, ConfScore, phrasePairLessThan >::iterator ITERATOR;
-   for (ITERATOR itr=PhrasePair2Posterior.begin(); itr!=PhrasePair2Posterior.end(); itr++) 
+   for (ITERATOR itr=PhrasePair2Posterior.begin(); itr!=PhrasePair2Posterior.end(); itr++)
       itr->second.normalize(totalProb);
 }
 
@@ -102,7 +102,7 @@ vector<double> NBestPhrasePostSrc::wordPosteriorsOne() {
    for (uint k=0; k<alig.size(); k++) {
       Tokens trgp(trg.begin() + alig[k].target.first, trg.begin() + alig[k].target.last + 1);
       const double c = PhrasePair2Posterior[make_pair(trgp,alig[k].source)].prob() / (double)(alig[k].target.last+1 - alig[k].target.first);
-      for (uint i=alig[k].target.first; i<=alig[k].target.last; i++) 
+      for (uint i=alig[k].target.first; i<=alig[k].target.last; i++)
          conf.push_back(c);
    } // for k
    assert(conf.size() == trg.size());
@@ -112,7 +112,7 @@ vector<double> NBestPhrasePostSrc::wordPosteriorsOne() {
 /**
  * Output the phrase posterior probabilities for all phrases in the target sentence
  */
-void NBestPhrasePostSrc::tagPosteriorOne(ostream &out, const int &format) {
+void NBestPhrasePostSrc::tagPosteriorOne(ostream &out, int format) {
 
    assert(PhrasePair2Posterior.size());
 
@@ -131,7 +131,7 @@ void NBestPhrasePostSrc::tagPosteriorOne(ostream &out, const int &format) {
 /**
  * Output the phrase posterior probabilities for all phrases of all hypotheses in 'nbest'
  */
-void NBestPhrasePostSrc::tagPosteriorAll(ostream &out, const int &format) {
+void NBestPhrasePostSrc::tagPosteriorAll(ostream &out, int format) {
 
    assert(PhrasePair2Posterior.size());
 

@@ -366,12 +366,12 @@ PTrie<LeafDataT, InternalDataT, NeedDtor>::PTrie(Uint root_hash_bits)
 
 template<class LeafDataT, class InternalDataT, bool NeedDtor>
 void PTrie<LeafDataT, InternalDataT, NeedDtor>::clear() {
-   for ( root_iter it = roots.begin(); it != roots.end(); ++it )
-      if ( NeedDtor ) {
+   for ( root_iter it = roots.begin(); it != roots.end(); ++it ) {
+      if ( NeedDtor )
          it->clear(nodePool, datumArrayPool, nodePtrArrayPool);
-      } else {
+      else
          it->non_recursive_clear();
-      }
+   }
    datumArrayPool.clear();
    nodePtrArrayPool.clear();
    nodePool.clear();
@@ -379,10 +379,13 @@ void PTrie<LeafDataT, InternalDataT, NeedDtor>::clear() {
 
 template<class LeafDataT, class InternalDataT, bool NeedDtor>
 void PTrie<LeafDataT, InternalDataT, NeedDtor>::getStats(
-   Uint &intl_nodes, Uint &trieDataUsed, Uint &trieDataAlloc,
-   Uint &childrenAlloc, Uint &memoryUsed, Uint &memoryAlloc
+   Uint &intl_nodes, SimpleHistogram<Uint>& trieDataUsed, SimpleHistogram<Uint>& trieDataAlloc,
+   SimpleHistogram<Uint>& childrenAlloc, Uint &memoryUsed, Uint &memoryAlloc
 ) const {
-   intl_nodes = trieDataUsed = trieDataAlloc = childrenAlloc = 0;
+   intl_nodes = 0;
+   trieDataUsed.clear();
+   trieDataAlloc.clear();
+   childrenAlloc.clear();
    for ( root_c_iter it = roots.begin(); it != roots.end(); ++it )
       it->addStats(intl_nodes, trieDataUsed, trieDataAlloc, childrenAlloc,
                    nodePool);
@@ -392,42 +395,54 @@ void PTrie<LeafDataT, InternalDataT, NeedDtor>::getStats(
          sizeof(PTrie<LeafDataT, InternalDataT, NeedDtor>))
       + intl_nodes * sizeof(TrieNode<LeafDataT, InternalDataT, NeedDtor>)
       + (intl_nodes - roots.size()) * sizeof(Uint)
-      + trieDataUsed * sizeof(TrieDatum<LeafDataT, InternalDataT, NeedDtor>);
+      + trieDataUsed.getSum() * sizeof(TrieDatum<LeafDataT, InternalDataT, NeedDtor>);
    memoryUsed = Uint(mem_used / 1024 / 1024);
 
    Uint64 mem_alloc =
       static_cast<Uint64>(
          sizeof(PTrie<LeafDataT, InternalDataT, NeedDtor>))
       + intl_nodes * sizeof(TrieNode<LeafDataT, InternalDataT, NeedDtor>)
-      + childrenAlloc * sizeof(Uint)
-      + trieDataAlloc * sizeof(TrieDatum<LeafDataT, InternalDataT, NeedDtor>);
+      + childrenAlloc.getSum() * sizeof(Uint)
+      + trieDataAlloc.getSum() * sizeof(TrieDatum<LeafDataT, InternalDataT, NeedDtor>);
    memoryAlloc = Uint(mem_alloc / 1024 / 1024);
 }
 
 template<class LeafDataT, class InternalDataT, bool NeedDtor>
 string PTrie<LeafDataT, InternalDataT, NeedDtor>::getStats() const {
    Uint intl_nodes = 0;
-   Uint trieDataUsed = 0;
-   Uint trieDataAlloc = 0;
-   Uint childrenAlloc = 0;
+   SimpleHistogram<Uint>  trieDataUsed(new logBinner(2, 10));
+   SimpleHistogram<Uint>  trieDataAlloc(new logBinner(2, 10));
+   SimpleHistogram<Uint>  childrenAlloc(new logBinner(2, 10));
    Uint memoryUsed = 0;
    Uint memoryAlloc = 0;
    getStats(intl_nodes, trieDataUsed, trieDataAlloc, childrenAlloc,
             memoryUsed, memoryAlloc);
    ostringstream ss;
    ss.precision(4);
+   const Uint tDA = trieDataAlloc.getSum();
+   const Uint cA = childrenAlloc.getSum();
    ss << "Nodes: " << intl_nodes 
       // << " Vectors: " << vectors
       // << "(" << (1.0 * vectors / intl_nodes) << ":1)"
-      << " Data used: " << trieDataUsed
-      << " / " << trieDataAlloc
-      << " (" << (100.0 * trieDataUsed / trieDataAlloc) << "%)"
+      << " Data used: " << trieDataUsed.getSum()
+      << " / " << tDA
+      << " (" << (100.0 * trieDataUsed.getSum() / (tDA == 0 ? 1.0f : tDA)) << "%)"
       << " Children used: " << (intl_nodes - roots.size())
-      << " / " << childrenAlloc
-      << " (" << (100.0 * (intl_nodes - roots.size()) / childrenAlloc) << "%)"
+      << " / " << cA
+      << " (" << (100.0 * (intl_nodes - roots.size()) / (cA == 0 ? 1.0f : cA)) << "%)"
       << " Memory: " << memoryUsed << "MB / " << memoryAlloc << "MB"
-      << " (" << (100.0 * memoryUsed / memoryAlloc) << "%)"
-      ;
+      << " (" << (100.0 * memoryUsed / (memoryAlloc == 0 ? 1.0f : memoryAlloc)) << "%)"
+      << endl;
+
+   ss << "Statistics of Trie Data used per node:" << endl;
+   trieDataUsed.display(ss);
+
+   ss << "Statistics of Trie data allocated per node:" << endl;
+   trieDataAlloc.display(ss);
+
+   ss << "Statistics of Children allocated per node:" << endl;
+   childrenAlloc.display(ss);
+
    return ss.str();
 }
 
@@ -579,7 +594,7 @@ void PTrie<LeafDataT, InternalDataT, NeedDtor>::fix_root_buckets()
       assert(new_roots[new_bucket].list == NULL);
       Uint new_bucket_size = end_index - start_index;
       new_roots[new_bucket].list = datumArrayPool.alloc_array_no_ctor(
-            new_bucket_size, new_roots[new_bucket].list_alloc);
+            new_bucket_size, &(new_roots[new_bucket].list_alloc));
       Uint new_pos(0), i(start_index);
       for ( ; new_pos < new_bucket_size; ++new_pos, ++i ) {
          const Uint old_bucket(all_keys[i].old_bucket);
@@ -597,7 +612,7 @@ void PTrie<LeafDataT, InternalDataT, NeedDtor>::fix_root_buckets()
          assert(new_roots[new_bucket].children == NULL);
          Uint actual_new_children_size(0);
          new_roots[new_bucket].children = nodePtrArrayPool.alloc_array_no_ctor(
-               last_pos_with_children + 1, actual_new_children_size);
+               last_pos_with_children + 1, &actual_new_children_size);
          new_roots[new_bucket].children_size(actual_new_children_size);
          for ( Uint new_pos(0), i(start_index);
                int(new_pos) <= last_pos_with_children;
@@ -637,7 +652,7 @@ void PTrie<LeafDataT, InternalDataT, NeedDtor>
    ::traverse(Visitor& visitor) const
 {
    vector<Uint> key_stack;
-   vector<TrieNode<LeafDataT, InternalDataT, NeedDtor> *> node_stack;
+   //vector<TrieNode<LeafDataT, InternalDataT, NeedDtor> *> node_stack;
    for ( Uint bucket = 0; bucket < roots.size(); ++bucket )
       roots[bucket].traverse(visitor, key_stack, nodePool);
 }

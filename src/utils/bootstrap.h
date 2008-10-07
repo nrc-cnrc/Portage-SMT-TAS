@@ -15,11 +15,9 @@
 #ifndef BOOTSTRAP_H
 #define BOOTSTRAP_H
 
-#include <utility>
-#include <cmath>
-#include <map>
 #include <vector>
 #include "gfstats.h"
+#include <algorithm>
 
 namespace Portage {
 

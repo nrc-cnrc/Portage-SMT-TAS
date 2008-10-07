@@ -19,7 +19,6 @@
  */
 
 #include <wer.h>
-#include "rescore_io.h"
 #include "consensus.h"
 
 using namespace Portage;

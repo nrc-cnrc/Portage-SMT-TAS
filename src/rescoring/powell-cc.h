@@ -2,7 +2,7 @@
  * @author Aaron Tikuisis
  * @file powell-cc.h  Implementation of Powell's algorithm.
  * $Id$
- * 
+ *
  * K-Best Rescoring Module
  * Technologies langagieres interactives / Interactive Language Technologies
  * Institut de technologie de l.information / Institute for Information Technology
@@ -11,11 +11,12 @@
  * Copyright 2005, Her Majesty in Right of Canada
  */
 
-#include <rescoring_general.h>
-#include <errors.h>
+#include "rescoring_general.h"
+#include "errors.h"
 #include <limits>
 #include <cmath>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
+#include <boost/detail/algorithm.hpp>
 
 using namespace Portage;
 using namespace std;
@@ -47,6 +48,12 @@ namespace Portage
       iter  = 0;
 
       const Uint M(p.size());
+      const double epsilon(1.0e-25);
+
+      vector<Uint> feature_order(M);
+      boost::iota(feature_order, 0);
+      if (randomize_feature_order)
+         random_shuffle(feature_order.begin(), feature_order.end());
 
       double f_0(0.0f);    // Keep track of initial score before exploring all dimensions.
       score = computeScore(p);
@@ -59,19 +66,23 @@ namespace Portage
          int    best_index(-1);
 
          for (Uint k(0); k<M; ++k) {
-            uVector U_k(uColumn(U, k));
+            uVector U_k(uColumn(U, feature_order[k]));
             linemax(p, U_k);
 
             const double f_P_k     = computeScore(p);
             const double delta_f_k = fabs(f_P_k - score);
             score                  = f_P_k;
             if (delta_f_k > delta_f) {
-               best_index = k;
+               best_index = feature_order[k];
                delta_f    = delta_f_k;
             }
          }
          ++iter;
 
+         if (!isfinite(score)) {
+            error(ETWarn, "powell encountered infinitely small score - quitting!");
+            break;
+         }
          // From this point on:
          //   p == P_N == final point
          //   score == f_P_N == best_score == f(P_N)
@@ -96,38 +107,6 @@ namespace Portage
                U_N = final_dir;
             }
          }
-      } while (2*fabs(f_0 - score) > ((fabs(f_0) + fabs(score) * tolerance)));
+      } while (2*fabs(f_0 - score) > ((fabs(f_0) + fabs(score) * tolerance)) + epsilon);
    } // ends Powell<ScoreStats>::operator()
-
-
-   template <class ScoreStats>
-   ScoreStats Powell<ScoreStats>::computeStats(const uVector& p)
-   {
-      // Since openmp doesn't allow to reduce struct, we do it in two phases.
-
-      // Phase 1:
-      // Get the indices of best translation for every source sentences
-      const int S(vH.size());  // Number of source sentences
-      assert(S>0);
-      Uint best_k[S];          // Keep track of the best hypothesis for each source sentences
-      int s;
-#pragma omp parallel for private(s)   
-      for (s=0; s<S; ++s) {
-         uVector scores(vH[s].size1());
-
-         scores = ublas::prec_prod(vH[s], p);
-
-         best_k[s] = my_vector_max_index(scores);         // k = sentence which is scored highest
-      }
-
-      // Phase 2:
-      // Equivalent to the reduce phase
-      ScoreStats total;
-      for (s=0; s<S; ++s) {
-         const Uint k = best_k[s];
-         total += allScoreStats[s][k];
-      }
-
-      return total;
-} //  ends Powell<ScoreStats>::computeStats
 } // ends namespace Portage
