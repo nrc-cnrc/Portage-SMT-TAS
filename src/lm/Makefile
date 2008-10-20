@@ -20,7 +20,7 @@ LIBRARY = libportage_lm
 
 MODULE_CF =
 
-BINSCRIPTS = ngram-count-big.sh
+BINSCRIPTS = lm_sort_filter.sh ngram-count-big.sh
 
 EXTRA_LIBS =
 
