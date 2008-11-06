@@ -51,6 +51,14 @@ void nbestListBased(Portage::FileReader::FileReaderBase<string>& reader)
 int main(const int argc, const char * const argv[])
 {
    typedef unsigned int Uint;
+	if (argc > 1 && !strcmp(argv[1], "-h")) {
+		cerr << "Usage: testfileReader <F1> <F2>" << endl;
+	   cerr << "Unit test for file reader." << endl;
+		cerr << "<F1> dynamic nbest list file." << endl;
+		cerr << "<F2> fix nbest list file." << endl;
+		exit(1);
+	}
+
    if (argc < 3) return -1;
    
    if (true) {

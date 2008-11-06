@@ -87,20 +87,6 @@ arg_check() {
    fi
 }
 
-if which qsub >& /dev/null; then
-   true # qsub found - we're running on a cluster
-else
-   error_exit "Can't find qsub, we don't seem to be running on a cluster."
-fi
-
-if uname -n | egrep -q 'balzac|blz'; then
-   BALZAC=1
-elif uname -n | egrep -q 'venus|vns'; then
-   VENUS=1
-else
-   echo Running on an unknown cluster, I hope things are compatible... >&2
-fi
-
 PSUB_CMD=`echo "$0 $*" | perl -pe 'print "# " if $. > 1'`
 CPU_COUNT=1
 MEMORY_POLLING_DELAY=6
@@ -136,6 +122,20 @@ while [ $# -gt 0 ]; do
 done
 
 COMMAND="$*"
+
+if which qsub >& /dev/null; then
+   true # qsub found - we're running on a cluster
+else
+   error_exit "Can't find qsub, we don't seem to be running on a cluster."
+fi
+
+if uname -n | egrep -q 'balzac|blz'; then
+   BALZAC=1
+elif uname -n | egrep -q 'venus|vns'; then
+   VENUS=1
+else
+   echo Running on an unknown cluster, I hope things are compatible... >&2
+fi
 
 # In interactive mode we need to reserve an entire node
 if [ -n "$INTMODE" ]; then

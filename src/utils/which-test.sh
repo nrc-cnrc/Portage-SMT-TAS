@@ -11,19 +11,31 @@
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
 
-# Usage: which-test.sh prog
-# Exists with status code 0 if prog is on the path and executable, 1 otherwise.
-# Example use in a bash or sh script:
-#    if which-test.sh prog; then
-#       # prog is available; you can use it
-#    else
-#       # prog doesn't exist, isn't on the path, or isn't executable;
-#       # work around it or give up
-#    fi
+## Usage: which-test.sh <prog> prog
+## Exists with status code 0 if prog is on the path and executable, 1 otherwise.
+## Example use in a bash or sh script:
+##    if which-test.sh prog; then
+##       # prog is available; you can use it
+##    else
+##       # prog doesn't exist, isn't on the path, or isn't executable;
+##       # work around it or give up
+##    fi
+##
+## Options:
+##
+##  -h(elp)        print this help message
+##
+## Motivation for this script: on some Solaris and Mac installations, "which"
+## does not return a fail status code when the program doesn't exist.  This test
+## here has been tested on Solaris, Mac OS X, and various Linux distros.
 
-# Motivation for this script: on some Solaris and Mac installations, "which"
-# does not return a fail status code when the program doesn't exist.  This test
-# here has been tested on Solaris, Mac OS X, and various Linux distros.
+
+usage() {
+	cat $0 | grep "^##" | cut -c4-
+}
+
+[ "$1" == "-h" ] && usage
+[ $# -eq 0 ] && usage
 
 if [ -x "`which $1 2> /dev/null`" ]; then
    exit 0

@@ -47,8 +47,13 @@ void printString(char const* str, char const* end)
    cout << "\t" << s << endl;
 }
 
-int main ()
+int main (int argc, char* argv[])
 {
+   if (argc > 1) {
+	   cerr << "Prgram that tests the grammar used for parsing the feature functions." << endl;
+		exit(1);
+	}
+
    // Different syntaxes for a feature function in a rescoring-model
    const char* const src [] = {
       "File2FF" ,

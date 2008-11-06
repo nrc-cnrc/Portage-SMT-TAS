@@ -1,6 +1,6 @@
 # Portage top-level Makefile
 #
-# George Foster, Eric Joanis
+# George Foster, Eric Joanis, Samuel Larkin
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
@@ -8,6 +8,7 @@
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
 
+.PHONY: all clean install export docs
 all clean install export docs:
 	$(MAKE) OT=$@ subdirs
 
@@ -76,3 +77,31 @@ validate_subdir_dependencies:
 	fi
 
 
+# This next section is to generate web pages from the programs help message.
+
+# Indicates where the web pages should reside.
+USAGE_DIR ?= ../doc/usage
+#export USAGE_DIR := $(eval $(abspath ${USAGE_DIR}))
+
+# Main alias to create the web pages.
+.PHONY: usage
+usage: index.html
+index.html: make_module_usage
+	find ${USAGE_DIR} -name index.html -maxdepth 2 -mindepth 2 \
+	| xargs -i dirname {} \
+	| sed 's#.*/##' \
+	| tr " " "\n" \
+	| sort \
+	| ./utils/pgm_usage_2_html.pl -main "Program's help" \
+	> ${USAGE_DIR}/$@
+	rsync -arz ilt.iit-iti.priv:/export/projets/Lizzy/PORTAGEshared/snapshot/uploads/NRC_banner_e.jpg ${USAGE_DIR}
+
+# Asks all modules to generate its own index and web pages.
+.PHONY: make_module_usage
+make_module_usage:
+	${MAKE} USAGE_DIR=../${USAGE_DIR} OT=usage ${ALL_SUBDIRS}
+
+.PHONY: clean_usage
+clean_usage:
+	${MAKE} USAGE_DIR=../${USAGE_DIR} OT=$@ ${ALL_SUBDIRS}
+	${RM} ${USAGE_DIR}/index.html

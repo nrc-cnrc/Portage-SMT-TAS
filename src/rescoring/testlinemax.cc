@@ -20,8 +20,13 @@
 using namespace Portage;
 using namespace std;
 
-int main()
+int main(int argc, char* argv[])
 {
+	 if (argc > 1) {
+	    cerr << "Program to test the linemax algorithm." << endl;
+		 exit(1);
+	 }
+
    typedef unsigned int Uint;
 
    //const Uint S(2);

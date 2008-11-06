@@ -3,8 +3,9 @@
 use vars qw($VERSION @ISA @EXPORT);
 use Exporter;
 
-#Description:	The following is a portion of a perl program that detects dates and numbers in an English 
-#text corpus, converts them to a standard format and marks them up 
+# Description:	The following is a portion of a perl program that detects dates
+# and numbers in an English #text corpus, converts them to a standard format and
+# marks them up 
 
 #Author:	Fatiha Sadat, LTRC-NRC
 #Usage:		perl detectmarkup-eng2fr.date-number.NIST05.pl $infile $outfile 
@@ -13,6 +14,31 @@ use Exporter;
 # ----------------------------------------------------------------------------
 
 print STDERR "parser.en.pl, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada\n";
+
+sub usage {
+   local $, = "\n";
+   print STDERR @_, "";
+   $0 =~ s#.*/##;
+   print STDERR "
+Usage: $0 [options] [IN [OUT]]
+
+  This program detects dates and numbers in an English #text corpus, converts
+  them to a standard format and marks them up. 
+
+Options:
+
+  -h(elp)       print this help message
+";
+   exit 1;
+}
+
+use Getopt::Long;
+# Note to programmer: Getopt::Long automatically accepts unambiguous
+# abbreviations for all options.
+my $verbose = 1;
+GetOptions(
+   help        => sub { usage },
+) or usage;
 
 $direng = "/export/projets/portage/models/parsing-dictionaries/English/";
 #$dirf= "/export/projets/portage/corpora/NIST-05/processed-v1/";

@@ -1,7 +1,8 @@
 # =============================================================================
 # MODULE: Makefile.incl - include file for lower-level Makefiles
 #
-# PROGRAMMERS: George Foster, Aaron Tikuisis, Eric Joanis, Patrick Paul
+# PROGRAMMERS: George Foster, Aaron Tikuisis, Eric Joanis,
+#              Patrick Paul, Samuel Larkin
 #
 # This defines a bunch of standard targets in terms of variables that list
 # files, directories, commands, etc. All the local make has to do is list local
@@ -428,6 +429,53 @@ ifdef PERL_LIBS
 	install -d -m0750 $(PERL_LIB_DIR)
 	install -p -m0640 $(PERL_LIBS) $(PERL_LIB_DIR)
 endif
+
+
+# This next section is to generate web pages from the programs help message.
+
+# Indicates where the web pages should reside.
+USAGE_DIR ?= ../../doc/usage
+
+# Since we are building pages for a particular module, it would make sense to
+# put those pages together in a directory.
+MODULE_USAGE_DIR = ${USAGE_DIR}/$(notdir ${CURDIR})
+
+# Main alias to create the web pages.
+.PHONY: usage
+
+USAGE_PROGRAMS = $(filter-out $(TESTPROGS), $(PROGRAMS))
+
+# Let's make a index per module of all available programs
+ifneq ($(strip ${BINSCRIPTS}),)
+index.html: $(addsuffix .html,$(shell ls ${BINSCRIPTS}))
+endif
+ifneq ($(strip $(USAGE_PROGRAMS)),)
+index.html: $(addsuffix .html,$(USAGE_PROGRAMS))
+endif
+
+ifeq ($(strip ${BINSCRIPTS} $(USAGE_PROGRAMS)),)
+usage:
+else
+usage: index.html
+index.html:
+	ls ${MODULE_USAGE_DIR}/*.html \
+	| sed 's#.*/##' \
+	| sort \
+	| ../utils/pgm_usage_2_html.pl -module $(notdir ${CURDIR}) \
+	> ${MODULE_USAGE_DIR}/$@
+endif
+
+# Generic target to create each program's web page.
+vpath %.html ${MODULE_USAGE_DIR}
+%.html: %
+	install -d -m0750 ${MODULE_USAGE_DIR}
+	./$* -h 2>&1 | ../utils/pgm_usage_2_html.pl -pgm $* > ${MODULE_USAGE_DIR}/$@
+
+# How to clean the web pages.
+.PHONY: clean_usage
+clean_usage:
+	${RM} ${MODULE_USAGE_DIR}/*.html
+
 
 # -----------------------------------------------------------------------------
 # This is not very sophisticated. Some (of the many) assumptions and

@@ -1,6 +1,6 @@
 /**
  * @author Aaron Tikuisis
- * @file testfmax.cc  Program test unit for fmax
+ * @file testfmax.cc  Program test unit for fmax.
  *
  *
  * COMMENTS:
@@ -18,8 +18,13 @@
 using namespace std;
 using namespace Portage;
 
-int main()
+int main(int argc, char* argv[])
 {
+	 if (argc > 1) {
+	    cerr << "Program test unit for fmax." << endl;
+		 exit(1);
+	 }
+
    double *f[3];
    f[0] = new double[3];
    f[1] = new double[3];

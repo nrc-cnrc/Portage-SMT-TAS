@@ -199,8 +199,12 @@ using namespace Portage::TestDecoder;
  * Program testdecoder's entry point.  Sets up and runs the test.
  * @return Returns 0 if successful.
  */
-int main()
+int main(int argc, char* argv[])
 {
+   if (argc > 1) {
+	   cerr << "This test the runDecoder." << endl;
+		exit(1);
+	}
 
 /*
 The graph we're going for (along the top is the number source words covered):

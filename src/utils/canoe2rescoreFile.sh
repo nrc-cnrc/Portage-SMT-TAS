@@ -1,6 +1,20 @@
 #!/bin/bash
+# $Id$
 
-if [ $# -ne 1 ]; then
+# canoe2rescoreFile.sh ffvals with weigths are written to stdout.
+# 
+# PROGRAMMER: Eric Joanis
+# 
+# Technologies langagieres interactives / Interactive Language Technologies
+# Inst. de technologie de l'information / Institute for Information Technology
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2008, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2008, Her Majesty in Right of Canada
+
+
+echo 'canoe2rescoreFile.sh, NRC-CNRC, (c) 2006 - 2008, Her Majesty in Right of Canada' >&2
+
+if [ $# -ne 1 ] || [ "$1" == "-h" ]; then
     echo "Usage: $0  <canoe file>"
     echo "ffvals with weigths are written to stdout"
 else

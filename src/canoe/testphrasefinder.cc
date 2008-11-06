@@ -54,8 +54,13 @@ void print(const vector<PhraseInfo *> &v)
  * Sets up and runs the test.
  * @return Returns 0 if successful.
  */
-int main()
+int main(int argc, char* argv[])
 {
+	if (argc > 1) {
+	   cerr << "This is used to test RangePhraseFinder class." << endl;
+		exit(1);
+	}
+
    const Uint NUMPHRASES = 10;
    const Uint SENTLENGTH = 5;
    const Uint NUMFINDSETS = 3;
