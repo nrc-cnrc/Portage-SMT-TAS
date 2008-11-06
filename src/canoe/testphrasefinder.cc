@@ -56,10 +56,10 @@ void print(const vector<PhraseInfo *> &v)
  */
 int main(int argc, char* argv[])
 {
-	if (argc > 1) {
-	   cerr << "This is used to test RangePhraseFinder class." << endl;
-		exit(1);
-	}
+   if (argc > 1) {
+      cerr << "This is used to test RangePhraseFinder class." << endl;
+      exit(1);
+   }
 
    const Uint NUMPHRASES = 10;
    const Uint SENTLENGTH = 5;

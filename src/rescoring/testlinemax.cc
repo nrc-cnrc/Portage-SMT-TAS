@@ -22,10 +22,10 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-	 if (argc > 1) {
-	    cerr << "Program to test the linemax algorithm." << endl;
-		 exit(1);
-	 }
+   if (argc > 1) {
+      cerr << "Program to test the linemax algorithm." << endl;
+      exit(1);
+   }
 
    typedef unsigned int Uint;
 
@@ -34,11 +34,11 @@ int main(int argc, char* argv[])
    const Uint M(2);
 
    /*
-   H[0] = [ 1  0 ]
-          [ 0  1 ]
-   H[1] = [ 1  0 ]
-          [ 3 -1 ]
-   */
+      H[0] = [ 1  0 ]
+      [ 0  1 ]
+      H[1] = [ 1  0 ]
+      [ 3 -1 ]
+    */
    vector<uMatrix> vH;
    vH.push_back(uMatrix(K, M));
    vH.back()(0,0) = 1;
@@ -52,9 +52,9 @@ int main(int argc, char* argv[])
    vH.back()(1,1) = -1;
 
    /*
-   p = (1, 0)^T
-   dir = (0, 1)^T
-   */
+      p = (1, 0)^T
+      dir = (0, 1)^T
+    */
    uVector p(M);
    p(0) = 1;
    p(1) = 0;

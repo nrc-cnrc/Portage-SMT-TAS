@@ -38,24 +38,24 @@ namespace TestDecoder {
  */
 class TestPDM: public PhraseDecoderModel
 {
-    virtual void getStringPhrase(string &s, const Phrase &uPhrase) {}
-    virtual Uint getUintWord(const string &word) { return 0; }
-    virtual Uint getSourceLength() { return 0; }
-    virtual vector<PhraseInfo *> **getPhraseInfo() { return NULL; }
-    virtual double scoreTranslation(const PartialTranslation &trans, Uint verbosity = 1)
-    {
-	return trans.lastPhrase->phrase.front();
-    } // scoreTranslation
-    virtual double computeFutureScore(const PartialTranslation &trans)
-    {
-	return trans.lastPhrase->phrase.front();
-    } // computeFutureScores
-    virtual Uint computeRecombHash(const PartialTranslation &trans) { return 0; }
-    virtual bool isRecombinable(const PartialTranslation &trans1, const PartialTranslation &trans2)
-    {
-	return 0;
-    } // isRecombinable
-    virtual void getFeatureFunctionVals(vector<double> &vals, const PartialTranslation &trans) {}
+   virtual void getStringPhrase(string &s, const Phrase &uPhrase) {}
+   virtual Uint getUintWord(const string &word) { return 0; }
+   virtual Uint getSourceLength() { return 0; }
+   virtual vector<PhraseInfo *> **getPhraseInfo() { return NULL; }
+   virtual double scoreTranslation(const PartialTranslation &trans, Uint verbosity = 1)
+   {
+      return trans.lastPhrase->phrase.front();
+   } // scoreTranslation
+   virtual double computeFutureScore(const PartialTranslation &trans)
+   {
+      return trans.lastPhrase->phrase.front();
+   } // computeFutureScores
+   virtual Uint computeRecombHash(const PartialTranslation &trans) { return 0; }
+   virtual bool isRecombinable(const PartialTranslation &trans1, const PartialTranslation &trans2)
+   {
+      return 0;
+   } // isRecombinable
+   virtual void getFeatureFunctionVals(vector<double> &vals, const PartialTranslation &trans) {}
 }; // TestPDM
 
 /**
@@ -202,9 +202,9 @@ using namespace Portage::TestDecoder;
 int main(int argc, char* argv[])
 {
    if (argc > 1) {
-	   cerr << "This test the runDecoder." << endl;
-		exit(1);
-	}
+      cerr << "This test the runDecoder." << endl;
+      exit(1);
+   }
 
 /*
 The graph we're going for (along the top is the number source words covered):

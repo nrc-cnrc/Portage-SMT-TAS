@@ -51,72 +51,72 @@ void nbestListBased(Portage::FileReader::FileReaderBase<string>& reader)
 int main(const int argc, const char * const argv[])
 {
    typedef unsigned int Uint;
-	if (argc > 1 && !strcmp(argv[1], "-h")) {
-		cerr << "Usage: testfileReader <F1> <F2>" << endl;
-	   cerr << "Unit test for file reader." << endl;
-		cerr << "<F1> dynamic nbest list file." << endl;
-		cerr << "<F2> fix nbest list file." << endl;
-		exit(1);
-	}
+   if (argc > 1 && !strcmp(argv[1], "-h")) {
+      cerr << "Usage: testfileReader <F1> <F2>" << endl;
+      cerr << "Unit test for file reader." << endl;
+      cerr << "<F1> dynamic nbest list file." << endl;
+      cerr << "<F2> fix nbest list file." << endl;
+      exit(1);
+   }
 
    if (argc < 3) return -1;
-   
+
    if (true) {
       Portage::FileReader::DynamicReader<string> reader(argv[1], 10);
       sentenceBased(reader);
    }
-   
+
    if (true) {
       Portage::FileReader::DynamicReader<string> reader(argv[1], 10);
       nbestListBased(reader);
    }
-   
+
    if (true)
    {
       Portage::FileReader::FixReader<string> reader(argv[2], 3);
       sentenceBased(reader);
    }
-   
+
    if (true) {
       Portage::FileReader::FixReader<string> reader(argv[2], 3);
       nbestListBased(reader);
    }
-   
+
    /*if (true)
-   {
-      cout << "CORPUS BASED" << endl;
-      Portage::FileReader::matrixCandidate s;
-      Portage::FileReader::DynamicReader<string> dr(argv[1], 10);
-      dr.poll(s);
-      cout << s.size() << endl;
-      for (Uint i(0); i<s.size(); ++i)
-      {
-         cout << i << "->" << s[i].size() << endl;
-      }
-      
-      if (dr.pollable())
-         cout << "OUI" << endl;
-      else
-         cout << "NON" << endl;
-   }
- 
-   if (true)  
-   {
-      cout << "CORPUS BASED" << endl;
-      Portage::FileReader::matrixCandidate s;
-      Portage::FileReader::FixReader<string> dr(argv[2], 3);
-      dr.poll(s);
-      cout << s.size() << endl;
-      for (Uint i(0); i<s.size(); ++i)
-      {
-         cout << i << "->" << s[i].size() << endl;
-      }
-      
-      if (dr.pollable())
-         cout << "OUI" << endl;
-      else
-         cout << "NON" << endl;
-   }*/
-   
+     {
+     cout << "CORPUS BASED" << endl;
+     Portage::FileReader::matrixCandidate s;
+     Portage::FileReader::DynamicReader<string> dr(argv[1], 10);
+     dr.poll(s);
+     cout << s.size() << endl;
+     for (Uint i(0); i<s.size(); ++i)
+     {
+     cout << i << "->" << s[i].size() << endl;
+     }
+
+     if (dr.pollable())
+     cout << "OUI" << endl;
+     else
+     cout << "NON" << endl;
+     }
+
+     if (true)  
+     {
+     cout << "CORPUS BASED" << endl;
+     Portage::FileReader::matrixCandidate s;
+     Portage::FileReader::FixReader<string> dr(argv[2], 3);
+     dr.poll(s);
+     cout << s.size() << endl;
+     for (Uint i(0); i<s.size(); ++i)
+     {
+     cout << i << "->" << s[i].size() << endl;
+     }
+
+     if (dr.pollable())
+     cout << "OUI" << endl;
+     else
+     cout << "NON" << endl;
+     }*/
+
    return 0;
 }
