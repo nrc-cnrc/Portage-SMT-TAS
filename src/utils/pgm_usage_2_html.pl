@@ -1,9 +1,9 @@
 #!/usr/bin/perl
 # $Id$
 
-# pgm_usage_2_html.pl Creates html page from a program's help message.
+# @file pgm_usage_2_html.pl - Creates html page from a program's help message.
 #
-# PROGRAMMER: Samuel Larkin
+# @author Samuel Larkin
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -27,7 +27,7 @@ Usage: $0 [options] [<in> [<out>]]
 
 Options:
 
-  -pgm <NAME>    Creates a web page with the content of a program called <NAME>
+  -pgm <MODULE>/<NAME>    Creates a web page with the content of a program called <NAME>
                  with it's help description given by <in>.
   -module <NAME> Creates list of available program in a module.  Expects a list
                  of all available programs as <in>.
@@ -84,17 +84,23 @@ if ( $debug ) {
 open(IN, "<$in") or die "Can't open $in for reading: $!\n";
 open(OUT, ">$out") or die "Can't open $out for writing: $!\n";
 
-my $NRC_logo;
+my $NRC_logo_path;
+my $hierarchy;
 if (defined($main_index)) {
    $title = $main_index;
-   $NRC_logo = "NRC_banner_e.jpg";
+   $NRC_logo_path = "./";
 }
 else {
-   $NRC_logo = "../NRC_banner_e.jpg";
+   $NRC_logo_path = "../";
+   $hierarchy = "<A HREF=\"../index.html\">PORTAGEshared</A> /";
    if (defined($module_index)) {
       $title = $module_index;
+      $hierarchy .= " $module_index /";
    }
    else {
+      my @names = split(/\//, $name);
+      $hierarchy .= " <A HREF=\"index.html\">$names[0]</A> / $names[1]";
+      $name = $names[1];
       $title = $name;
    }
 }
@@ -107,21 +113,39 @@ my $header = <<HEADER;
   </HEAD>
   <BODY BGCOLOR="#FFFFFF" LINK="#0000ff" VLINK="#006600">
 
-  <H1 id="logo"><img alt="Science at work for Canada" height="90" width="450" src="$NRC_logo" /></H1>
+  <CENTER>
+  <H1 id="logo"><img alt="Science at work for Canada" height="90" width="450" src="$NRC_logo_path/NRC_banner_e.jpg" /></H1>
+  </CENTER>
   <H1>$title</H1>
+  <H5>$hierarchy</H5>
 HEADER
 
 my $footer = <<FOOTER;
   <BR><HR><BR>
-  <CENTER>
-  Technologies langagi&egrave;res interactives / Interactive Language Technologies<BR>
-
-  Institut de technologie de l'information / Institute for Information Technology<BR>
-  Conseil national de recherches Canada / National Research Council Canada<BR>
-  Copyright 2004-2008, Sa Majest&eacute; la Reine du Chef du Canada / Her Majesty in Right of Canada
-  </CENTER>
-
-  </BODY></HTML>
+<table width="100%" border="0" cellpadding="0" cellspacing="0"> 
+<tr>
+  <td width="20%" valign="bottom" align="right">
+    <img src="$NRC_logo_path/iit_sidenav_graphictop_e.gif" height="54" alt="NRC-IIT - Institute for Information Technology" />
+  </td>
+  <td width="60%" valign="bottom" align="center" class="imgcell">
+     <img src="$NRC_logo_path/mainf1.gif" alt="National Research Council Canada" width="286" height="44" />
+  </td>
+  <td valign="center" align="left" width="20%">
+    <img src="$NRC_logo_path/mainWordmark.gif" alt="Government of Canada" width="93" height="44" />
+  </td>
+</tr>
+<tr>
+  <td valign="top" align="right">
+    <img src="$NRC_logo_path/iit_sidenav_graphicbottom_e.gif" alt="NRC-IIT - Institute for Information Technology" />
+  </td>
+  <td valign="top" align="center">
+Technologies langagi&egrave;res interactives / Interactive Language Technologies<BR>
+Inst. de technologie de l'information / Institute for Information Technology<BR>
+Conseil national de recherches Canada / National Research Council Canada<BR>
+Copyright 2004-2008, Sa Majest&eacute; la Reine du Chef du Canada / Her Majesty in Right of Canada
+  </td>
+</tr>
+</table> 
 FOOTER
 
 print OUT $header;
@@ -131,10 +155,26 @@ if (defined($module_index)) {
    ";
    while (<IN>) {
       chomp;
-      my $pgm_web_page = $_;
-      s/.html//;
-      my $pgm_name     = $_;
-      print OUT "<LI><A HREF=\"$pgm_web_page\">$pgm_name</A>\n";
+      my $pgm_name = $_;
+      print OUT "<LI><A HREF=\"$pgm_name.html\">$pgm_name</A>\n";
+
+      my $code;
+      {
+         if ( -e "$pgm_name.cc" ) {
+            $pgm_name .= ".cc";
+         }
+         local( $/, *CODE ) ;
+         open( CODE, "head -10 $pgm_name | egrep '^[ ]*(#|\\*)' |" ) or die "sudden flaming death\n";
+         $code = <CODE>;
+         print STDERR "head -10 $pgm_name | egrep '^[ ]*(#|\\*)' |\n" if ($debug);
+      }
+
+      print STDERR $code if ($debug);
+      if ($code =~ /[#\*] \@file .* - (.*?)^\s*[#\*]\s*$/ms) {
+         my $oneliner = $1;
+         $oneliner =~ s/#//g;
+         print OUT "$oneliner\n";
+      }
    }
    print OUT "</UL><BR>
    <A HREF=../index.html>back</A>
@@ -157,7 +197,10 @@ else {
       print OUT;
    }
    print OUT "</PRE>
-   <A HREF=index.html>back</A>
+   <TABLE width=\"400\">
+   <TD><A HREF=index.html>back</A></TD>
+   <TD><A HREF=../index.html>top</A></TD>
+   </TABLE>
    ";
 }
 print OUT $footer;
