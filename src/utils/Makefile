@@ -94,7 +94,6 @@ BINSCRIPTS = \
         split-listed.pl \
         stableuniq.pl \
         stableuniqffvals.pl \
-        strip-markup.pl \
         sum.pl \
         trans-search.pl \
         uc-first.pl \
