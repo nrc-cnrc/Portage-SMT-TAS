@@ -10,7 +10,7 @@
  * interface, factory class, and aligner classes.
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
@@ -48,13 +48,26 @@ public:
     * if they are in toks2. This final element in sets1 is optional; sets1 may
     * be of size toks1.size() if no words in toks2 are considered untranslated.
     * @return a score that indicates how reliable the alignment is, used to
-    * weight the extracted phrase pairs.
+    * weight the extracted phrase pairs. (in reality, we always return 1.0)
     */
-   virtual double align(const vector<string>& toks1, const vector<string>& toks2,
+   virtual double align(const vector<string>& toks1,
+                        const vector<string>& toks2,
                         vector< vector<Uint> >& sets1) = 0;
 
    /// Destructor.
    virtual ~WordAligner() {}
+
+   /// Indicates whether the constructor encountered any problems.
+   /// @return true if there were not problems at construction time
+   bool bad() { return bad_constructor_argument; }
+
+protected:
+   // An subclass constructor should not fail when passed an invalid argument;
+   // instead, it should set this flag and use a valid default value instead.
+   bool bad_constructor_argument;
+
+   /// Default constructor initializes bad_constructor_argument to false.
+   WordAligner() : bad_constructor_argument(false) {}
 
 };
 
@@ -142,15 +155,19 @@ public:
     * Create a new aligner according to specifications.
     * @param tname class of aligner
     * @param args args to pass to aligner's constructor
-    * @param fail fail with error in case of problems, rather than returning NULL
+    * @param fail fail with error if tname is not known, rather than returning
+    *             NULL
     * @return Returns a pointer to a new WordAligner.
     */
-   WordAligner* createAligner(const string& tname, const string& args, bool fail = true);
+   WordAligner* createAligner(const string& tname, const string& args,  
+                              bool fail = true);
 
    /**
     * Create a new aligner according to specifications.
-    * @param tname_and_args  class of aligner and args to pass to aligner's constructor.
-    * @param fail fail with error in case of problems, rather than returning NULL
+    * @param tname_and_args  class of aligner and args to pass to aligner's
+    *                        constructor.
+    * @param fail            fail with error if tname is not known, rather than
+    *                        returning NULL
     * @return Returns a pointer to a new WordAligner.
     */
    WordAligner* createAligner(const string& tname_and_args, bool fail = true) {
@@ -216,7 +233,7 @@ public:
    }
    //@}
 
-   /// @name self explanatory named get methods.
+   /// @name self explanatorily named get methods.
    //@{
    Uint getVerbose() {return verbose;}
    bool getTwist() {return twist;}
@@ -224,11 +241,41 @@ public:
    //@}
 
    /**
+    * Structure to represent a phrase pair by indexes into a sentence
+    * pair. Used for the optional phrase_pairs argument to addPhrases.
+    */
+   struct PhrasePair {
+      Uint beg1;                // start index in language 1 sentence
+      Uint end1;                // end+1 index in language 1 sentence
+      Uint beg2;                // start index in language 2 sentence
+      Uint end2;                // end+1 index in language 2 sentence
+
+      PhrasePair() {}
+      PhrasePair(Uint beg1, Uint end1, Uint beg2, Uint end2) :
+         beg1(beg1), end1(end1), beg2(beg2), end2(end2) {}
+
+      bool overlap(PhrasePair& pp) {
+         return
+            (pp.beg1 < end1 && beg1 < pp.end1) ||
+            (pp.beg2 < end2 && beg2 < pp.end2);
+      }
+
+      void dump(ostream& os) {
+         os << "[" << beg1 << "," << end1 << ")[" << beg2 << "," << end2 << ")";
+      }
+      void dump(ostream& os, const vector<string>& toks1, const vector<string>& toks2) {
+         string s1, s2;
+         os << join(toks1.begin()+beg1, toks1.begin()+end1, s1, "_") << "/"
+            << join(toks2.begin()+beg2, toks2.begin()+end2, s2, "_");
+      }
+
+   };
+
+   /**
     * Add all phrases licensed by a given alignment to a phrase table.
     * NB: This probably isn't the best place for this fcn, but it will squat
     * here until it gets a better home. Implementation is at the end of this
     * file.
-    *
     * @param toks1 sentence in language 1
     * @param toks2 sentence in language 2
     * @param sets1 For each token position in toks1, a set of corresponding
@@ -240,14 +287,55 @@ public:
     * @param min_phrase_len2 minimum allowable phrase length from toks2
     * @param pt destination phrase table
     * @param ct count each pair as having occurred this many times
+    * @param phrase_pairs if non-null, output goes here INSTEAD of pt
     */
    template<class T>
    void addPhrases(const vector<string>& toks1, const vector<string>& toks2,
                    const vector< vector<Uint> >& sets1,
                    Uint max_phrase_len1, Uint max_phrase_len2, Uint max_phraselen_diff,
                    Uint min_phrase_len1, Uint min_phrase_len2,
-                   PhraseTableGen<T>& pt, T ct=1);
+                   PhraseTableGen<T>& pt, T ct=1,
+                   vector<PhrasePair>* phrase_pairs = NULL);
 };
+
+/**
+ * Tallying object to display alignment statistics.
+ */
+class WordAlignerStats {
+   Uint total_count;             ///< number of sentence pairs processed
+   double link_ratio_sum;        ///< sum of link ratios
+   double link_ratio_sum2;       ///< sum of squares of link ratios
+   double exclude_ratio_l1_sum;  ///< sum of l1 exclude ratios
+   double exclude_ratio_l1_sum2; ///< sum squares of l1 exclude ratios
+   double exclude_ratio_l2_sum;  ///< sum of l2 exclude ratios
+   double exclude_ratio_l2_sum2; ///< sum squares of l2 exclude ratios
+   double null_ratio_l1_sum;     ///< sum of l1 null ratios
+   double null_ratio_l1_sum2;    ///< sum squares of l1 null ratios
+   double null_ratio_l2_sum;     ///< sum of l2 null ratios
+   double null_ratio_l2_sum2;    ///< sum squares of l2 null ratios
+
+public:
+   /// Constructor.
+   WordAlignerStats() { reset(); }
+
+   /// Reset all counters.
+   void reset();
+
+   /// Tally all relevant statistics from sets1.
+   /// @param sets1 alignment calculated by WordAligner::align() or a subclass.
+   /// @param l1_length size of l1 sentence
+   /// @param l2_length size of l2 sentence
+   void tally(const vector<vector<Uint> >& sets1,
+              Uint l1_length, Uint l2_length);
+
+   /// Print all statistics.
+   /// @param l1 short name for L1
+   /// @param l2 short name for L2
+   /// @param os where to output the statistics
+   void display(const string& l1 = "l1", const string& l2 = "l2",
+                ostream& os = cerr);
+
+}; // class WordAlignerStats
 
 /**
  * Basic Och-style symmetric alignment.
@@ -309,10 +397,11 @@ public:
     * @param[out] sets1  for each token position in toks1, a set of
     *   corresponding token positions in toks 2.
     * @return a score that indicates how reliable the alignment is, used to
-    * weight the extracted phrase pairs.
+    * weight the extracted phrase pairs. (in reality, we always return 1.0)
     */
-   double align(const vector<string>& toks1, const vector<string>& toks2,
-                vector< vector<Uint> >& sets1);
+   virtual double align(const vector<string>& toks1,
+                        const vector<string>& toks2,
+                        vector< vector<Uint> >& sets1);
 };
 
 /**
@@ -371,10 +460,11 @@ public:
     * @param[out] sets1  for each token position in toks1, will contain a set
     *   of corresponding token positions in toks 2.
     * @return a score that indicates how reliable the alignment is, used to
-    * weight the extracted phrase pairs.
+    * weight the extracted phrase pairs. (in reality, we always return 1.0)
     */
-    double align(const vector<string>& toks1, const vector<string>& toks2,
-                 vector< vector<Uint> >& sets1);
+   virtual double align(const vector<string>& toks1,
+                        const vector<string>& toks2,
+                        vector< vector<Uint> >& sets1);
 };
 
 /**
@@ -399,10 +489,58 @@ public:
     * @param[out] sets1  for each token position in toks1, will contain a set
     *   of corresponding token positions in toks 2.
     * @return a score that indicates how reliable the alignment is, used to
-    * weight the extracted phrase pairs.
+    * weight the extracted phrase pairs. (in reality, we always return 1.0)
     */
-   double align(const vector<string>& toks1, const vector<string>& toks2,
-                vector< vector<Uint> >& sets1);
+   virtual double align(const vector<string>& toks1,
+                        const vector<string>& toks2,
+                        vector< vector<Uint> >& sets1);
+};
+
+/**
+ * Aligner using posterior "decoding" with a delta threshold.
+ * Based on Liang, Taskar and Klein (HLT 2006), this method uses the product of
+ * posterior probabilities in each direction for each link, instead of using
+ * the Viterbi alignment from each directional model.  They claim a reduced AER
+ * using this method, we have to experiment to see if it increases BLEU.
+ */
+class PosteriorAligner : public WordAligner
+{
+   IBM1* ibm_lang1_given_lang2;
+   IBM1* ibm_lang2_given_lang1;
+
+   /// Posterior alignment threshold - keep links with posterior prod >= delta.
+   double delta;
+   /// Mark words that have no links with posterior above exclude_threshold as
+   /// non-translated, therefore to be excluded from phrases.
+   double exclude_threshold;
+
+   /// verbose parameter copied from factory
+   Uint verbose;
+
+   vector<vector<double> > posteriors_lang1_given_lang2;
+   vector<vector<double> > posteriors_lang2_given_lang1;
+
+public:
+   /**
+    * Construct with ref to factory and arg string.
+    * @param factory
+    * @param args see tinfos[] in word_align.cc for interpretation; must be
+    *             convertible to a float
+    */
+   PosteriorAligner(WordAlignerFactory& factory, const string& args);
+
+   /**
+    * Calculate a posterior alignment.
+    * @param toks1  sentence in language 1
+    * @param toks2  sentence in language 2
+    * @param[out] sets1  for each token position in toks1, will contain a set
+    *   of corresponding token positions in toks 2.
+    * @return a score that indicates how reliable the alignment is, used to
+    * weight the extracted phrase pairs. (in reality, we always return 1.0)
+    */
+   virtual double align(const vector<string>& toks1,
+                        const vector<string>& toks2,
+                        vector< vector<Uint> >& sets1);
 };
 
 /*---------------------------------------------------------------------------
@@ -427,8 +565,11 @@ void WordAlignerFactory::addPhrases(const vector<string>& toks1, const vector<st
                                     const vector< vector<Uint> >& sets1,
                                     Uint max_phrase_len1, Uint max_phrase_len2, Uint max_phraselen_diff,
                                     Uint min_phrase_len1, Uint min_phrase_len2,
-                                    PhraseTableGen<T>& pt, T ct)
+                                    PhraseTableGen<T>& pt, T ct, vector<PhrasePair>* phrase_pairs)
 {
+   if (phrase_pairs)
+      phrase_pairs->clear();
+
    // initialize all words with empty range
    earliest1.assign(toks1.size(), toks2.size()); latest1.assign(toks1.size(), 0);
    earliest2.assign(toks2.size(), toks1.size()); latest2.assign(toks2.size(), 0);
@@ -444,9 +585,13 @@ void WordAlignerFactory::addPhrases(const vector<string>& toks1, const vector<st
             earliest2[jj] = min(earliest2[jj], i);
             latest2[jj] = max(latest2[jj], i);
 
-            if (addSingleWords)
-               pt.addPhrasePair(toks1.begin()+i, toks1.begin()+i+1,
-                                toks2.begin()+jj, toks2.begin()+jj+1, ct);
+            if (addSingleWords) {
+               if (phrase_pairs)
+                  phrase_pairs->push_back(PhrasePair(i, i+1, jj, jj+1));
+               else
+                  pt.addPhrasePair(toks1.begin()+i, toks1.begin()+i+1,
+                                   toks2.begin()+jj, toks2.begin()+jj+1, ct);
+            }
          }
       }
    }
@@ -469,8 +614,11 @@ void WordAlignerFactory::addPhrases(const vector<string>& toks1, const vector<st
                    (ea2 > la2 || (ea2 >= b1 && la2 < e1)) &&
                    Uint(abs((int)e1 - (int)b1 - (int)e2 + (int)b2)) <= max_phraselen_diff) {
 
-                  pt.addPhrasePair(toks1.begin()+b1, toks1.begin()+e1,
-                                   toks2.begin()+b2, toks2.begin()+e2, ct);
+                  if (phrase_pairs)
+                     phrase_pairs->push_back(PhrasePair(b1,e1,b2,e2));
+                  else
+                     pt.addPhrasePair(toks1.begin()+b1, toks1.begin()+e1,
+                                      toks2.begin()+b2, toks2.begin()+e2, ct);
 
                   if (verbose > 1) {
                      string p1, p2;
@@ -487,6 +635,6 @@ void WordAlignerFactory::addPhrases(const vector<string>& toks1, const vector<st
 }
 
 
-}
+} // namespace Portage
 
 #endif

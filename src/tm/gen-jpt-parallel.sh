@@ -1,11 +1,10 @@
 #!/bin/bash
-
 # gen-jpt-parallel.sh - generate a joint probability table in parallel
 #
 # PROGRAMMER: George Foster
 #
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2007, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2007, Her Majesty in Right of Canada
@@ -67,7 +66,7 @@ is_int() {
 }
 
 NUM_JOBS=4
-OUTFILE=
+OUTFILE="-"
 RP_OPTS=
 VERBOSE=
 
@@ -93,6 +92,10 @@ if [ $# -lt 4 ]; then
 fi
 
 GPTARGS=($@)
+if [[ "$GPTARGS" =~ -v ]]; then
+   VERBOSE="-v"
+fi
+
 file1=${GPTARGS[$#-2]}
 file2=${GPTARGS[$#-1]}
 unset GPTARGS[$#-2]
@@ -126,6 +129,7 @@ if [ $DEBUG ]; then
     echo $WORKDIR >&2
     echo $NL >&2
     echo $SPLITLINES >&2
+    echo Verbose: $VERBOSE >&2
 fi
 
 # if [ ! $DEBUG ]; then
@@ -138,12 +142,10 @@ test -f $CMDS_FILE && \rm -f $CMDS_FILE
 for src in `ls $WORKDIR/L1.*`; do
    tgt=${src/\/L1./\/L2.}
    suff=${src##*/L1.}
-   echo "set -o pipefail; gen_phrase_tables -j ${GPTARGS[@]} $src $tgt | gzip > $WORKDIR/$suff.jpt.gz " >> $CMDS_FILE
+   echo "test ! -f $src || ((set -o pipefail; gen_phrase_tables -j ${GPTARGS[@]} $src $tgt | LC_ALL=C $SORT_DIR sort | gzip > $WORKDIR/$suff.jpt.gz) && mv $src $src.done)" >> $CMDS_FILE
 done
 
-if [ $DEBUG ]; then
-   cat $CMDS_FILE
-fi
+test $DEBUG && cat $CMDS_FILE
 
 if [ -n $VERBOSE ]; then
     echo "run-parallel.sh $VERBOSE $RP_OPTS $CMDS_FILE $NUM_JOBS" >&2
@@ -153,21 +155,20 @@ test $NOTREALLY ||
    eval "run-parallel.sh $VERBOSE $RP_OPTS $CMDS_FILE $NUM_JOBS"
 RC=$?
 if (( $RC != 0 )); then
-   echo "problems with run-parallel.sh (status=$RC) - quitting!" >&2
+   echo "problem calculating the joint frequencies (status=$RC) - quitting!" >&2
    exit $RC
 fi
 
-if [ $DEBUG ]; then
-   echo zcat $WORKDIR/*.jpt.gz \| joint2cond_phrase_tables -ij 
-fi
 
-if [ $NOTREALLY ]; then
-   :
-elif [ -n "$OUTFILE" ]; then
-   run-parallel.sh -nolocal -psub "-4" \
-       -e "zcat $WORKDIR/*.jpt.gz | joint2cond_phrase_tables -ij | gzip > $OUTFILE" 1
-else
-   zcat $WORKDIR/*.jpt.gz | joint2cond_phrase_tables -ij
+# Merging parts
+test $DEBUG && echo merge_counts -jpt $OUTFILE $WORKDIR/*.jpt.gz
+
+test $NOTREALLY ||
+   eval "merge_counts -jpt $OUTFILE $WORKDIR/*.jpt.gz"
+RC=$?
+if (( $RC != 0 )); then
+   echo "problems merging the joint frequencies (status=$RC) - quitting!" >&2
+   exit $RC
 fi
 
 rm -rf ${WORKDIR}

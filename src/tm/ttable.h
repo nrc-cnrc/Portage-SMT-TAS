@@ -15,7 +15,7 @@
  * TODO: add read-from-stream constructor.
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
@@ -24,9 +24,8 @@
 #ifndef TTABLE_H
 #define TTABLE_H
 
-#include <portage_defs.h>
-#include <ext/hash_map>
-#include <map>
+#include "portage_defs.h"
+#include "string_hash.h"
 #include <algorithm>
 #include <string>
 #include <errors.h>
@@ -34,24 +33,6 @@
 #include <voc.h>
 
 namespace Portage {
-
-using namespace __gnu_cxx;
-
-/// Callable entity that returns and index for a string.
-class StringHash : public unary_function<string, size_t>
-{
-public:
-   /**
-    * Calculates the hash value of key.
-    * @param key  string that we want to hash.
-    * @return Returns the hash value of key.
-    */
-   size_t operator() (const string& key) const {
-      hash<const char*> h;
-      return h(key.c_str());
-   }
-};
-
 
 /// TTable
 class TTable {
@@ -61,13 +42,20 @@ public:
    typedef pair<Uint,float> TIndexAndProb;  ///< target-word index & cond prob.
    typedef vector<TIndexAndProb> SrcDistn;  ///< Source distribution.
 
+   /// Iterator over a TTable's source or target vocabulary
+   typedef unordered_map<string,Uint>::const_iterator WordMapIter;
+
+   /// Get an iterator to the beginning of the source vocabulary
+   WordMapIter beginSrcVoc() const { return sword_map.begin(); }
+   /// Get an iterator to the end of the source vocabulary
+   WordMapIter endSrcVoc() const { return sword_map.end(); }
+
 private:
 
    /// Token that separes fields in GIZA++ files
    static const string sep_str;
    Uint speed;                  ///< controls initial pass algorithm
 
-   typedef hash_map<string,Uint,StringHash>::const_iterator WordMapIter;
    /// Definition of a source distribution iterator.
    typedef SrcDistn::const_iterator SrcDistnIter;
 
@@ -76,7 +64,7 @@ private:
       /**
        * Compares x and y based on their probs (for decreasing order sort)
        * @param x,y TIndexAndProb objects to compare.
-       * @return Returns true if x > y
+       * @return true iff x > y
        */
       bool operator()(const TIndexAndProb& x, const TIndexAndProb& y) const
       {return x.second > y.second;}
@@ -86,7 +74,7 @@ private:
       /**
        * Compares x and y based on their indexes
        * @param x,y TIndexAndProb objects to compare.
-       * @return Returns true if x < y
+       * @return true iff x < y
        */
       bool operator()(const TIndexAndProb& x, const TIndexAndProb& y) const
       {return x.first < y.first;}
@@ -97,14 +85,14 @@ private:
        * Compares x and y based on their indexes
        * @param x  TIndexAndProb object to compare.
        * @param y  maximum index we are looking for.
-       * @return Returns true if x < y
+       * @return true iff x < y
        */
-      bool operator()(const TIndexAndProb& x, const Uint& y) const
+      bool operator()(const TIndexAndProb& x, Uint y) const
       {return x.first < y;}
    };
 
-   hash_map<string,Uint,StringHash> tword_map; ///< T-language vocab
-   hash_map<string,Uint,StringHash> sword_map; ///< S-language vocab
+   unordered_map<string,Uint> tword_map; ///< T-language vocab
+   unordered_map<string,Uint> sword_map; ///< S-language vocab
    vector<string> twords; ///< T-language vocab (mapping index to word)
    vector<SrcDistn> src_distns;
    vector<vector<bool>*> src_distns_quick;
@@ -116,11 +104,15 @@ private:
    void add(Uint src_index, Uint tgt_index);
    void read(const string& filename, const Voc* src_voc);
 
+   void init();
+
 public:
 
    /**
     * Constructor. GIZA++ format: src_word tgt_word p(tgt_word|src_word).
-    * @param filename  file containing the GIZA++ info.
+    * The file can also be in PORTAGE Bin TTable format as written by
+    * write_bin().
+    * @param filename  file containing the GIZA++ info or binary TTable.
     * @param src_voc   if not null, causes the ttable to be filtered while
     *                  loading, keeping only lines where the source word exists
     *                  in *src_voc.
@@ -129,24 +121,41 @@ public:
 
    /// Constructor that creates an empty ttable. Use add() to populate, then
    /// makeDistnsUniform().
-   TTable() {speed = 2;}
+   TTable();
 
    /// Destructor.
-   ~TTable() {}
+   ~TTable();
 
    /**
     * Remove all pairs with probability < thresh, and renormalize afterwards
     * return size.
     * @param thresh  Threshold value to prune.
-    * @return Returns the number of pruned entries.
+    * @param null_thresh  Threshold value to use for pruning NULL
+    * @param null_word    The null word string, typically "NULL"
+    * @return the number of pruned entries.
     */
-   Uint prune(double thresh);
+   Uint prune(double thresh, double null_thresh, const string& null_word);
 
    /**
     * Writes the ttable to a stream.
     * @param os  An opened stream to output the ttable.
     */
    void write(ostream& os) const;
+
+   /**
+    * Writes the TTable in binary format to a stream
+    * @param os  An opened stream to output the binary TTable to.
+    */
+   void write_bin(ostream& os) const;
+
+   /**
+    * Reads the TTable in binary format from a stream
+    * @param filename File to read the binary TTable from.
+    * @param src_voc  if not null, causes the ttable to be filtered while
+    *                 loading, keeping only entries where the source word
+    *                 exists in *src_voc.
+    */
+   void read_bin(const string& filename, const Voc* src_voc = NULL);
 
    /**
     * if src_word/tgt_word not in table, add it & set prob to 0
@@ -166,7 +175,7 @@ public:
    void makeDistnsUniform();
 
    /// @name Get the number of source/target words.
-   /// @return Returns the number of source/target words.
+   /// @return the number of source/target words.
    //@{
    Uint numSourceWords() const {return src_distns.size();}
    Uint numTargetWords() const {return twords.size();}
@@ -188,7 +197,7 @@ public:
    /**
     * Convert a string to its index value in the target vocabulary.
     * @param tgt_word  string to convert into an index.
-    * @return Returns tgt_word index or  numTargetWords() if unknown.
+    * @return tgt_word index or  numTargetWords() if unknown.
     */
    Uint targetIndex(const string& tgt_word) {
       WordMapIter p = tword_map.find(tgt_word);
@@ -199,7 +208,7 @@ public:
     * Converts src_word to its index value in the source vocabulary.
     * @param src_word  String to convert to its index value in the source
     * vocabulary.
-    * @return Returns the index of src_word in the source vocabulary or
+    * @return the index of src_word in the source vocabulary or
     * numSourceWords() if unknown
     */
    Uint sourceIndex(const string& src_word) {
@@ -210,7 +219,7 @@ public:
    /**
     * Get the source distribution from an index.
     * @param src_index  index to retrieve.
-    * @return Returns the source distribution associated with src_index or the
+    * @return the source distribution associated with src_index or the
     * empty distribution if not found.
     */
    const SrcDistn& getSourceDistn(Uint src_index) const {
@@ -220,7 +229,7 @@ public:
    /**
     * Get the source distribution from a word.
     * @param src_word  source string to retrieve.
-    * @return Returns the source distribution associated with src_index or the
+    * @return the source distribution associated with src_index or the
     * empty distribution if not found.
     */
    const SrcDistn& getSourceDistn(const string& src_word) const {
@@ -229,10 +238,10 @@ public:
    }
 
    /**
-    * Find offset of given target index within src_dist.
+    * Find offset of given target index within src_distn.
     * @param target_index  target index
     * @param src_distn     source distribution
-    * @return  Returns the offset of given target index within src_dist, or
+    * @return the offset of given target index within src_distn, or
     * return -1 if not there.
     */
    int targetOffset(Uint target_index, const SrcDistn& src_distn);
@@ -240,14 +249,15 @@ public:
    /**
     * Get the source distribution in decreasing order of probabilities.
     * @param src_word  source word to find.
-    * @param distn     will contain the source distribution in decreasing order of probabilities.
+    * @param distn     will contain the source distribution in decreasing order
+    *                  of probabilities.
     */
    void getSourceDistnByDecrProb(const string& src_word, SrcDistn& distn) const;
 
    /**
-    * A sugary & inefficient version of the above
-    * void getSourceDistnByDecrProb(const string& src_word, SrcDistn& distn) const
-    * @param src_word
+    * A sugary & inefficient version of
+    * void getSourceDistnByDecrProb(const string& src_word, SrcDistn& distn)
+    * @param src_word  source word to find
     * @param tgt_words
     * @param tgt_probs
     */
@@ -258,18 +268,19 @@ public:
    /**
     * Gets the best translation for a given source word.
     * @param src_word
-    * @param best_trans
-    * @return Returns the probability for the best translation for a given source word.
+    * @param[out] best_trans
+    * @return the probability for the best translation for a given source word.
+    *         or -1 if src_word has no translations.
     */
    double getBestTrans(const string& src_word, string& best_trans);
 
    /**
     * p(tgt_word|src_word).
-    * @param src_word
-    * @param tgt_word
-    * @return Returns p(tgt_word|src_word), or -1 if no such pair exists in the table.
+    * @return p(tgt_word|src_word), or smooth if no such pair exists in the
+    * table.
     */
-   double getProb(const string& src_word, const string& tgt_word) const;
+   double getProb(const string& src_word, const string& tgt_word,
+                  double smooth = -1) const;
 
    /**
     * Get the probability of src_index and target_offset been aligned.
@@ -288,6 +299,12 @@ public:
     */
    void setSpeed(Uint sp) {speed = sp;}
 
+   /**
+    * Test write_bin() and read_bin() by writing self to filename and reading
+    * the result in another TTable, then making sure the two are identical.
+    * @param filename Filename for test bin file.
+    */
+   void test_read_write_bin(const string& filename);
 };
 }
 

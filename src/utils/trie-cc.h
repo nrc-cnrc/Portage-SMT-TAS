@@ -6,7 +6,7 @@
  * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2006, Her Majesty in Right of Canada
@@ -14,6 +14,9 @@
 
 #ifndef __TRIE_CC_H__
 #define __TRIE_CC_H__
+#include <algorithm> // sort()
+
+using namespace Portage;
 
 // ============================= PTrie implementation ===================
 
@@ -574,7 +577,7 @@ void PTrie<LeafDataT, InternalDataT, NeedDtor>::fix_root_buckets()
 
    // Default sort is lexicographic, so bucket first, in increasing order, key
    // next, also in increasing order.
-   sort(all_keys.begin(), all_keys.end());
+   std::sort(all_keys.begin(), all_keys.end());
 
    Uint start_index(0);
    for ( Uint new_bucket(0); new_bucket < new_roots.size(); ++new_bucket ) {

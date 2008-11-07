@@ -7,46 +7,37 @@
  * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
  */
-#include <iostream>
-#include <iomanip>
-#include <ext/hash_map>
-#include <map>
-#include <cctype>
-#include <algorithm>
 #include <argProcessor.h>
 #include <str_utils.h>
 #include <exception_dump.h>
 #include <file_utils.h>
 #include <printCopyright.h>
-#include "tm_io.h"
 #include "ibm.h"
-#include "phrase_table.h"
+#include "hmm_aligner.h"
 #include "word_align.h"
-#include "phrase_smoother.h"
-#include "phrase_smoother_cc.h"
-#include "phrase_table_writer.h"
+#include "word_align_io.h"
 
 using namespace Portage;
-using namespace __gnu_cxx;
 
 static char help_message[] = "\n\
-align-words [-hHvni][-o 'format'][-a 'meth args'][-ibm n][-twist][-giza]\n\
-                  ibm-model_lang2_given_lang1 ibm-model_lang1_given_lang2 \n\
-                  file1_lang1 file1_lang2 ... fileN_lang1 fileN_lang2\n\
+align-words [-hHvni][-o 'format'][-a 'meth args'][-ibm n][-hmm][-twist][-giza]\n\
+            [-post] ibm-model_lang2_given_lang1 ibm-model_lang1_given_lang2\n\
+            file1_lang1 file1_lang2 ... fileN_lang1 fileN_lang2\n\
 \n\
-Align words in a set of line-aligned files using IBM models. The models\n\
+Align words in a set of line-aligned files using IBM or HMM models. The models\n\
 should be for p(lang2|lang1) and p(lang1|lang2) respectively (see train_ibm);\n\
 <model1> should contain entries of the form 'lang1 lang2 prob', and <model2>\n\
 the reverse. Either model argument can be \"no-model\", in which case no model\n\
-will be loaded; this may be useful with an alignment method that does not require\n\
-models or that requires only one.\n\
+will be loaded; this may be useful with an alignment method that does not\n\
+require models or that requires only one.\n\
 \n\
-The output format is determined by the output selection options (see below).\n\
+Output is written to stdout. The format is determined by the output selection\n\
+options (see below).\n\
 \n\
 Options:\n\
 \n\
@@ -54,12 +45,17 @@ Options:\n\
 -H     List available word-alignment methods and quit.\n\
 -v     Write progress reports to cerr. Use -vv to get more.\n\
 -i     Ignore case (actually: lowercase everything).\n\
--o     Specify output format, one of aachen, hwa, matrix, compact or ugly [aachen]\n\
+-o     Specify output format, one of: \n\
+       "WORD_ALIGNMENT_WRITER_FORMATS" [aachen]\n\
 -a     Word-alignment method and optional args. Use -H for list of methods.\n\
        [IBMOchAligner]\n\
--ibm   Use IBM model <n>: 1 or 2 [1]\n\
+-post  Also print link posterior probabilities according to each model.\n\
+-ibm   Use IBM model <n>: 1 or 2\n\
+-hmm   Use an HMM model instead of an IBM model (only works with IBMOchAligner).\n\
+       [if, for both models, <model>.pos doesn't exist and <model>.dist does,\n\
+       -hmm is assumed, otherwise -ibm 2 is the default]\n\
 -twist With IBM1, assume one language has reverse word order.\n\
-       No effect with IBM2.\n\
+       No effect with IBM2 or HMM.\n\
 -giza  IBM-style alignments are to be read from files in GIZA++ format,\n\
        rather than computed at run-time; corresponding alignment files \n\
        should be specified after each pair of text files, like this: \n\
@@ -76,206 +72,38 @@ Options:\n\
 
 typedef PhraseTableGen<Uint> PhraseTable;
 
-static const char* const switches[] = {"v", "vv", "n", "i", "z", "a:", "o:", 
-                           "ibm:", "twist", "giza"};
+static const char* const switches[] = {
+   "v", "vv", "i", "z", "a:", "o:", "hmm", "ibm:", "twist", "giza", "post",
+   "p0:", "up0:", "alpha:", "lambda:", "max-jump:",
+   "anchor", "noanchor", "end-dist", "noend-dist",
+};
 
 static Uint verbose = 0;
 static bool lowercase = false;
 static string align_method;
 static bool twist = false;
 static bool giza_alignment = false;
+static bool posteriors = false;
 static string model1, model2;
-static Uint ibm_num = 1;
+static Uint ibm_num = 42; // 42 means not initialized - ARG will set its value
+static bool use_hmm = false;
 static bool compress_output = false;
 static Uint first_file_arg = 2;
 static string output_format = "aachen";
 
+// The optional<T> variables are intentionally left uninitialized.
+// These options are also intentionally left undocumented because they should
+// not be used.
+static optional<double> p0;
+static optional<double> up0;
+static optional<double> alpha;
+static optional<double> lambda;
+static optional<bool> anchor;
+static optional<bool> end_dist;
+static optional<Uint> max_jump;
+
+
 static inline char ToLower(char c) { return tolower(c); }
-
-// Alignment printers
-
-/// Base class for different alignment output styles.
-class AlignmentPrinter {
-public:
-  /**
-   * Make the class a callable entity that will output alignment to a stream.
-   * @param out    output stream
-   * @param toks1  sentence in language 1
-   * @param toks2  sentence in language 2
-   * @param sets   For each token position in toks1, a set of corresponding
-   * token positions in toks 2. Tokens that have no direct correspondence (eg
-   * "le" in "m. le president / mr. president") should be left out of the
-   * alignment, ie by giving them an empty set if they are in toks1, or not
-   * including their position in any set if they are in toks2. Tokens for which
-   * a translation is missing (eg "she" and "ils" in "she said / ils ont dit")
-   * should be explicitly aligned to the end position in the other language, ie
-   * by putting toks2.size() in corresponding set if they are in toks1, or by
-   * including their position in sets1[toks1.size()] if they are in toks2. This
-   * final element in sets1 is optional; sets1 may be of size toks1.size() if
-   * no words in toks2 are considered untranslated.
-   * @return Returns the modified out.
-   */
-  virtual ostream& operator()(ostream &out, 
-                              const vector<string>& toks1, const vector<string>& toks2,
-                              const vector< vector<Uint> >& sets) = 0;
-};
-
-/// Full alignment output style.
-class UglyPrinter : public AlignmentPrinter {
-public:
-  virtual ostream& operator()(ostream &out, 
-                      const vector<string>& toks1, const vector<string>& toks2,
-                      const vector< vector<Uint> >& sets) {
-   bool exclusions_exist = false;
-   for (Uint i = 0; i < toks1.size(); ++i)
-      for (Uint j = 0; j < sets[i].size(); ++j)
-	 if (sets[i][j] < toks2.size())
-	    out << toks1[i] << "/" << toks2[sets[i][j]] << " ";
-	 else
-	    exclusions_exist = true;
-   out << endl;
-
-   if (exclusions_exist || sets.size() > toks1.size()) {
-      out << "EXCLUDED: ";
-      for (Uint i = 0; i < toks1.size(); ++i)
-	 for (Uint j = 0; j < sets[i].size(); ++j)
-	    if (sets[i][j] == toks2.size())
-	       out << i << " ";
-      out << "/ ";
-      if (sets.size() > toks1.size())
-	 for (Uint i = 0; i < sets.back().size(); ++i)
-	    out << sets.back()[i] << " ";
-      out << endl;
-   }
-
-   return out;
-  }
-};
-
-
-/// Aachen alignment output style.
-class AachenPrinter : public AlignmentPrinter {
-public:
-  int sentence_id;  ///< Keeps track of sentence number.
-  /// Constructor.
-  AachenPrinter() : sentence_id(0) {}
-
-  virtual ostream& operator()(ostream &out, 
-                      const vector<string>& toks1, const vector<string>& toks2,
-                      const vector< vector<Uint> >& sets) {
-    out << "SENT: " << sentence_id++ << endl;
-    
-    for (Uint i = 0; i < toks1.size(); ++i)
-      for (Uint j = 0; j < sets[i].size(); ++j)
-        if (sets[i][j] < toks2.size())
-          out << "S " << i << ' ' << sets[i][j] << endl;
-    out << endl;
-
-    return out;
-  }
-};
-
-
-/// Compact alignment output style.
-class CompactPrinter : public AlignmentPrinter {
-public:
-  int sentence_id;
-  /// Constructor.
-  CompactPrinter() : sentence_id(0) {}
-
-  virtual ostream& operator()(ostream &out, 
-                      const vector<string>& toks1, const vector<string>& toks2,
-                      const vector< vector<Uint> >& sets) {
-    out << sentence_id++ << '\t';
-    for (Uint i = 0; i < toks1.size(); ++i) {
-      Uint count = 0;
-      for (Uint j = 0; j < sets[i].size(); ++j)
-        if (sets[i][j] < toks2.size()) {
-          if (count++) out << ',';
-          out << sets[i][j]+1;
-        }
-      out << ';';
-    }
-    out << endl;
-
-    return out;
-  }
-};
-
-
-///  Hwa alignment output style in files named "aligned.<sentence_id>".
-class HwaPrinter : public AlignmentPrinter {
-public:
-  int sentence_id;
-  /// Constructor.
-  HwaPrinter() : sentence_id(0) {}
-
-  virtual ostream& operator()(ostream &out, 
-                      const vector<string>& toks1, const vector<string>& toks2,
-                      const vector< vector<Uint> >& sets) {
-    ostringstream fname;
-    fname << "aligned." << ++sentence_id;
-    ofstream fout(fname.str().c_str());
-
-    for (Uint i = 0; i < toks1.size(); ++i)
-      for (Uint j = 0; j < sets[i].size(); ++j)
-        if (sets[i][j] < toks2.size())
-          fout << i << "  " << sets[i][j] 
-              << "  (" << toks1[i] << ", " << toks2[sets[i][j]] << ")" 
-              << endl;
-
-    fout.close();
-
-    return out;
-  }
-};
-
-
-/// Matrix alignment output style.
-class MatrixPrinter : public AlignmentPrinter {
-public:
-  virtual ostream& operator()(ostream &out, 
-                      const vector<string>& toks1, const vector<string>& toks2,
-                      const vector< vector<Uint> >& sets) {
-    // Write out column names
-    Uint more = toks2.size(); // any non-zero value would do actually
-    for (Uint k = 0; more > 0; ++k) {
-      more = 0;
-      for (Uint j = 0; j < toks2.size(); ++j) {
-        out << '|' << ((k < toks2[j].size()) ? toks2[j][k] : ' ');
-        if (k+1 < toks2[j].size()) ++more;
-      }
-      out << '|' << endl;
-    }
-    
-    //top ruler
-    for (Uint j = 0; j < toks2.size(); ++j) 
-      out << "+-";
-    out << "+" << endl;
-
-    // write out rows
-    vector<char> xs(toks2.size());
-    for (Uint i = 0; i < toks1.size(); ++i) {
-      xs.assign(toks2.size(), ' ');
-      for (Uint k = 0; k < sets[i].size(); ++k)
-        if (sets[i][k] < toks2.size())
-          xs[sets[i][k]] = 'x';
-      for (Uint j = 0; j < toks2.size(); ++j)
-        out << '|' << xs[j];
-      out << "|" << toks1[i] << endl;
-    }
-    
-    // bottom ruler
-    for (Uint j = 0; j < toks2.size(); ++j) 
-      out << "+-";
-    out << "+" << endl << endl;
-
-    return out;
-  }
-};
-
-
-
 
 // arg processing
 
@@ -315,20 +143,44 @@ public:
       mp_arg_reader->testAndSet("z", compress_output);
       mp_arg_reader->testAndSet("o", output_format);
       mp_arg_reader->testAndSet("ibm", ibm_num);
+      mp_arg_reader->testAndSet("hmm", use_hmm);
       mp_arg_reader->testAndSet("twist", twist);
       mp_arg_reader->testAndSet("giza", giza_alignment);
+      mp_arg_reader->testAndSet("post", posteriors);
+
+      mp_arg_reader->testAndSet("p0", p0);
+      mp_arg_reader->testAndSet("up0", up0);
+      mp_arg_reader->testAndSet("alpha", alpha);
+      mp_arg_reader->testAndSet("lambda", lambda);
+      mp_arg_reader->testAndSet("max-jump", max_jump);
+      mp_arg_reader->testAndSetOrReset("anchor", "noanchor", anchor);
+      mp_arg_reader->testAndSetOrReset("end-dist", "noend-dist", end_dist);
 
       if (ibm_num == 0) {
-        if (!giza_alignment)
-          error(ETFatal, "Can't use -ibm=0 trick unless -giza is used");
-        first_file_arg = 0;
+         if (!giza_alignment)
+            error(ETFatal, "Can't use -ibm=0 trick unless -giza is used");
+         first_file_arg = 0;
       } else {
-        mp_arg_reader->testAndSet(0, "model1", model1);
-        mp_arg_reader->testAndSet(1, "model2", model2);
+         mp_arg_reader->testAndSet(0, "model1", model1);
+         mp_arg_reader->testAndSet(1, "model2", model2);
+         if ( ibm_num == 42 && !use_hmm ) {
+            // neither -hmm nor -ibm specified; default is IBM2 if .pos files
+            // exist, or else HMM if .dist files exist, or error otherwise: we
+            // never assume IBM1, because it is so seldom used, it's probably
+            // an error; we want the user to assert its use explicitly.
+            if ( check_if_exists(IBM2::posParamFileName(model1)) &&
+                 check_if_exists(IBM2::posParamFileName(model2)) )
+               ibm_num = 2;
+            else if ( check_if_exists(HMMAligner::distParamFileName(model1)) &&
+                      check_if_exists(HMMAligner::distParamFileName(model2)) )
+               use_hmm = true;
+            else
+               error(ETFatal, "Models are neither IBM2 nor HMM, specify -ibm N or -hmm explicitly.");
+         }
       }
    }
 };
-} // ends namespace alignWords.
+}; // ends namespace alignWords.
 
 
 using namespace alignWords;
@@ -349,15 +201,21 @@ int MAIN(argc, argv)
    if (ibm_num == 0) {
      if (verbose) cerr << "**Not** loading IBM models" << endl;
    } else {
-     if (ibm_num == 1) {
+     if (use_hmm) {
+       if (verbose) cerr << "Loading HMM models" << endl;
+       if (model1 != "no-model") 
+          ibm_1 = new HMMAligner(model1, p0, up0, alpha, lambda, anchor, end_dist, max_jump);
+       if (model2 != "no-model") 
+          ibm_2 = new HMMAligner(model2, p0, up0, alpha, lambda, anchor, end_dist, max_jump);
+     } else if (ibm_num == 1) {
+       if (verbose) cerr << "Loading IBM1 models" << endl;
        if (model1 != "no-model") ibm_1 = new IBM1(model1);
        if (model2 != "no-model") ibm_2 = new IBM1(model2);
-     } else {
+     } else if (ibm_num == 2) {
+       if (verbose) cerr << "Loading IBM2 models" << endl;
        if (model1 != "no-model") ibm_1 = new IBM2(model1);
        if (model2 != "no-model") ibm_2 = new IBM2(model2);
-     }
-     if (ibm_1 && ibm_1->trainedWithNulls()) ibm_1->useImplicitNulls = true;
-     if (ibm_2 && ibm_2->trainedWithNulls()) ibm_2->useImplicitNulls = true;
+     } else assert(false);
      if (verbose) cerr << "models loaded" << endl;
    }
 
@@ -365,7 +223,8 @@ int MAIN(argc, argv)
    WordAligner* aligner = 0;
 
    if (!giza_alignment) {
-     aligner_factory = new WordAlignerFactory(ibm_1, ibm_2, verbose, twist, false);
+     aligner_factory =
+       new WordAlignerFactory(ibm_1, ibm_2, verbose, twist, false);
      aligner = aligner_factory->createAligner(align_method);
    }
 
@@ -376,19 +235,9 @@ int MAIN(argc, argv)
    GizaAlignmentFile* al_1=0;
    GizaAlignmentFile* al_2=0;
 
-   AlignmentPrinter *print = 0;
-   if (output_format == "aachen")
-     print = new AachenPrinter();
-   else if (output_format == "compact")
-     print = new CompactPrinter();
-   else if (output_format == "ugly")
-     print = new UglyPrinter();
-   else if (output_format == "matrix")
-     print = new MatrixPrinter();
-   else if (output_format == "hwa")
-     print = new HwaPrinter();
-   else 
-     error(ETFatal, "Unknown output format: " + output_format);
+   WordAlignerStats stats;
+
+   WordAlignmentWriter *print = WordAlignmentWriter::create(output_format);
 
    for (Uint arg = first_file_arg; arg+1 < args.numVars(); arg += 2) {
 
@@ -447,8 +296,55 @@ int MAIN(argc, argv)
 
          sets1.clear();
          aligner->align(toks1, toks2, sets1);
+         if (verbose) stats.tally(sets1, toks1.size(), toks2.size());
+
+         if (verbose > 1) {
+            cerr << "---" << endl;
+            aligner_factory->showAlignment(toks1, toks2, sets1);
+            cerr << "---" << endl;
+         }
 
          (*print)(cout, toks1, toks2, sets1);
+         cout.flush();
+
+         if (posteriors) {
+            vector<vector<double> > postProbs;
+            if (ibm_1) {
+               ibm_1->linkPosteriors(toks1, toks2, postProbs);
+               assert(postProbs.size() == toks2.size());
+               if ( !postProbs.empty() )
+                  assert(postProbs[0].size() == toks1.size() + 1);
+               cout << "Posterior probs for " << model1 << endl;
+               for ( Uint i = 0; i < toks2.size(); ++i )
+                  printf("%-8s ", toks2[i].substr(0,8).c_str());
+               cout << endl;
+               for ( Uint i = 0; i <= toks1.size(); ++i ) {
+                  for ( Uint j = 0; j < toks2.size(); ++j )
+                     printf((postProbs[j][i] >= 0.0001 ? "%7.5f  " : "%7.2g  "),
+                            postProbs[j][i]);
+                  cout << (i == toks1.size() ? "NULL" : toks1[i]) << endl;
+               }
+               cout << endl;
+            }
+            if (ibm_2) {
+               ibm_2->linkPosteriors(toks2, toks1, postProbs);
+               assert(postProbs.size() == toks1.size());
+               if ( !postProbs.empty() )
+               cout << "Posterior probs for " << model2 << endl;
+               for ( Uint i = 0; i < toks2.size(); ++i )
+                  printf("%-8s ", toks2[i].substr(0,8).c_str());
+               cout << "NULL" << endl;
+               for ( Uint i = 0; i < toks1.size(); ++i ) {
+                  assert(postProbs[i].size() == toks2.size() + 1);
+                  for ( Uint j = 0; j <= toks2.size(); ++j )
+                     printf((postProbs[i][j] >= 0.0001 ? "%7.5f  " : "%7.2g  "),
+                            postProbs[i][j]);
+                  cout << toks1[i] << endl;
+               }
+               cout << endl;
+            }
+            //cout << "\x0C";
+         }
 
          if (verbose > 1) cerr << endl; // end of block
          if (verbose == 1 && line_no % 1000 == 0)
@@ -463,5 +359,22 @@ int MAIN(argc, argv)
    }
 
    if (verbose) cerr << "done" << endl;
+   if (verbose) stats.display();
+
+   // Clean up - we typically skip this step as an optimization, since the OS
+   // cleans things up much faster, and just as effectively on Linux hosts.
+   if ( 0 ) {
+      time_t start = time(NULL);
+      delete aligner;
+      delete aligner_factory;
+      delete al_1;
+      delete al_2;
+      delete print;
+      delete ibm_1;
+      delete ibm_2;
+      cerr << "Spent " << (time(NULL)-start) << " seconds cleaning up";
+   }
+
 }
 END_MAIN
+

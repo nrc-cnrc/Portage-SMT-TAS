@@ -7,20 +7,19 @@
  * Translation-Model Utilities
  * 
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology 
+ * Inst. de technologie de l'information / Institute for Information Technology 
  * Conseil national de recherches Canada / National Research Council Canada 
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada 
  * 
- * This file contains the implementation of the PhraseTableReader class, which
- * is used to read a conditional phrase table with the standard format
+ * This file contains the implementation of the PhraseTableReader class, which is used to
+ * read a conditional phrase table with the standard format
  * src_phrase ||| tgt_phrase ||| p(src|tgt).
  */
 
 #include "phrase_table_reader.h"
 #include <str_utils.h>
 #include <errors.h>
-#include <assert.h>
 
 using namespace std;
 using namespace Portage;

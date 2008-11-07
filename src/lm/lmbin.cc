@@ -6,96 +6,87 @@
  * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2007, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2007, Her Majesty in Right of Canada
  */
 
 #include "lmbin.h"
-#include <file_utils.h>
-#include <str_utils.h>
+#include "file_utils.h"
+#include "str_utils.h"
 
 using namespace Portage;
 using namespace std;
 
-namespace Portage {
 
-/// Filter functor for just filtering based on the order of the LM.
-class OrderFilter {
-   /// Limit the to LM order, (non-zero if requested)
-   Uint limit_order;
-
- public:
-   /// Constructor
-   OrderFilter(Uint limit_order) : limit_order(limit_order) {
-      assert(limit_order > 0);
-   }
-   /// Filter method.
-   /// Return true iff key_stack should be kept.
-   bool operator()(const vector<Uint>& key_stack) {
-      return key_stack.size() <= limit_order;
-   }
-}; // OrderFilter
-
-} // Portage
-
-Uint LMBin::read_bin_trie(istream& ifs, Uint limit_order)
+void LMBin::read_binary(const string& binlm_filename, Uint limit_order)
 {
-   if ( limit_order ) {
-      OrderFilter filter(limit_order);
-      return trie.read_binary(ifs, filter);
-   } else {
-      return trie.read_binary(ifs);
-   }
+   iSafeMagicStream ifs(binlm_filename);
+   string line;
+   time_t start = time(NULL);
+
+   // "Magic string" line
+   getline(ifs, line);
+   if ( line != "Portage BinLM file, format v1.0" )
+      error(ETFatal, "File %s not in Portage's BinLM format: bad first line",
+            binlm_filename.c_str());
+
+   // Order line
+   getline(ifs, line);
+   vector<string> tokens;
+   split(line, tokens);
+   if ( tokens.size() != 3 || tokens[0] != "Order" || tokens[1] != "=" ||
+        !conv(tokens[2], gram_order ) )
+      error(ETFatal, "File %s not in Portage's BinLM format: bad order line",
+            binlm_filename.c_str());
+   hits.init(getOrder());
+
+   // Vocab size line
+   getline(ifs, line);
+   splitZ(line, tokens);
+   Uint voc_size;
+   if ( tokens.size() != 4 || tokens[0] != "Vocab" || tokens[1] != "size" ||
+        tokens[2] != "=" || !conv(tokens[3], voc_size) )
+      error(ETFatal, "File %s not in Portage's BinLM format: bad voc size line",
+            binlm_filename.c_str());
+
+   // The vocab itself
+   if ( voc_map.read_local_vocab(ifs) != voc_size )
+      error(ETFatal, "File %s not in Portage's BinLM format: voc size mismatch",
+            binlm_filename.c_str());
+
+   // And finally deserialize the trie, applying any caller requested filter
+   const Uint nodes_kept = read_bin_trie(ifs, limit_order);
+
+   getline(ifs, line);
+   if ( line != "" )
+      error(ETFatal, "File %s not in Portage's BinLM format: end corrupt",
+            binlm_filename.c_str());
+   getline(ifs, line);
+   splitZ(line,tokens,"=");
+   Uint internal_nodes_in_file;
+   if ( tokens.size() != 2 ||
+        tokens[0] != "End of Portage BinLM file.  Internal node count" ||
+        !conv(tokens[1], internal_nodes_in_file) )
+      error(ETFatal, "File %s not in Portage's BinLM format: bad node count",
+            binlm_filename.c_str());
+
+   // The local to global vocab cache will not be used again, clear it now.
+   voc_map.clear_caches();
+
+   cerr << "Kept " << nodes_kept << " of " << internal_nodes_in_file
+        << " nodes.  Done in " << (time(NULL) - start) << "s." << endl;
 }
 
-static const Uint debug_wp = false;
 
-float LMBin::wordProb(Uint word, const Uint context[], Uint context_length)
+LMBin::LMBin(VocabFilter *vocab, OOVHandling oov_handling, double oov_unigram_prob)
+: LMTrie(vocab, oov_handling, oov_unigram_prob)
+, voc_map(*vocab)
 {
-   Uint oov_index;
-   if ( complex_open_voc_lm ) {
-      // For complex open-vocabulary BinLM's, only words not in the local vocab
-      // are oov's.  We map them to the UNK_Symbol.
-      oov_index = voc_map.local_index(UNK_Symbol);
-      assert(oov_index != voc_map.NoMap);
-   } else {
-      // otherwise, we use the largest key supported by the trie, to make sure
-      // it's something not it the trie.  (voc_map.NoMap is too large, so we
-      // can't just use that.)
-      oov_index = trie.MaxKey;
-   }
-
-   TrieKeyT query[context_length+1];
-   query[0] = voc_map.local_index(word);
-   if ( query[0] == voc_map.NoMap )
-      query[0] = oov_index;
-   if ( debug_wp ) cerr << "Query " << word << "=>" << query[0] << " |";
-   for ( Uint i(0); i < context_length; ++i ) {
-      query[i+1] = voc_map.local_index(context[i]);
-      if ( query[i+1] == voc_map.NoMap )
-         query[i+1] = oov_index;
-      if ( debug_wp ) cerr << " " << context[i] << "=>" << query[i+1];
-   }
-   if ( debug_wp ) cerr << endl;
-
-   return wordProbQuery(query, context_length+1);
 }
 
-const char* LMBin::word(Uint index) const
-{
-   return voc_map.local_word(index);
-}
 
-Uint LMBin::global_index(Uint local_index) {
-   return voc_map.global_index(local_index);
-}
-
-LMBin::LMBin(const string& binlm_filename, VocabFilter &vocab,
-             OOVHandling oov_handling, double oov_unigram_prob,
-             Uint limit_order)
-   : LMBinVocFilt(vocab, oov_handling, oov_unigram_prob)
+LMBin::~LMBin()
 {
-   read_binary(binlm_filename, limit_order);
 }

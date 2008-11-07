@@ -3,27 +3,20 @@
  * @file gen_phrase_tables.cc  Program that generates phrase translation tables
  * from IBM models and a set of line-aligned files.
  *
- *
- * COMMENTS:
- *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
  */
-#include <iostream>
-#include <iomanip>
-#include <ext/hash_map>
-#include <map>
-#include <algorithm>
+
+
 #include <argProcessor.h>
-#include <str_utils.h>
 #include <exception_dump.h>
-#include <file_utils.h>
 #include <printCopyright.h>
 #include "tm_io.h"
 #include "ibm.h"
+#include "hmm_aligner.h"
 #include "phrase_table.h"
 #include "word_align.h"
 #include "phrase_smoother.h"
@@ -31,20 +24,21 @@
 #include "phrase_table_writer.h"
 
 using namespace Portage;
-using namespace __gnu_cxx;
 
 static char help_message[] = "\n\
-gen_phrase_tables [-hHvijz][-a 'meth args'][-s 'meth args'][-w nw]\n\
-                  [-m max][-min min][-ibm n][-twist][-addsw][-d ldiff]\n\
+gen_phrase_tables [-hHvijz][-a 'meth args'][-s 'meth args'][-w nw][-addsw]\n\
+                  [-prune1 n][-m max][-min min][-d ldiff][-twist]\n\
+                  [-ibm n][-hmm][-p0 p0][-up0 up0][-alpha a][-lambda l]\n\
+                  [-anchor|-noanchor][-max-jump max_j][-end-dist|-noend-dist]\n\
                   [-1 lang1][-2 lang2][-o name][-f1 freqs1][-f2 freqs2]\n\
                   [-tmtext][-multipr d][-giza]\n\
                   ibm-model_lang2_given_lang1 ibm-model_lang1_given_lang2 \n\
                   file1_lang1 file1_lang2 ... fileN_lang1 fileN_lang2\n\
 \n\
-Generate phrase translation tables from IBM models and a set of line-aligned\n\
-files. The models should be for p(lang2|lang1) and p(lang1|lang2) respectively:\n\
-<model1> should contain entries of the form 'lang1 lang2 prob', and <model2>\n\
-the reverse.\n\
+Generate phrase translation tables from IBM or HMM models and a set of\n\
+line-aligned files. The models should be for p(lang2|lang1) and p(lang1|lang2)\n\
+respectively: <model1> should contain entries of the form 'lang1 lang2 prob',\n\
+and <model2> the reverse.\n\
 \n\
 The output format is determined by the output selection options (see below).\n\
 Multiple formats (TMText, multipr) are written if multiple format options are\n\
@@ -56,6 +50,8 @@ Options:\n\
 -H     List available word-alignment and smoothing methods and quit.\n\
 -v     Write progress reports to cerr. Use -vv to get more (-vs for smoothing).\n\
 -z     Add .gz to all generated file names (and compress those files).\n\
+-prune1  Prune so that each language1 phrase has at most n translations. This\n\
+       is based on joint frequencies, and is done before smoothing.\n\
 -a     Word-alignment method and optional args. Use -H for list of methods.\n\
        Multiple methods may be specified by using -a repeatedly. [IBMOchAligner]\n\
 -s     Smoothing method for conditional probs. Use -H for list of methods.\n\
@@ -63,6 +59,7 @@ Options:\n\
        only useful if -multipr output is selected. [RFSmoother]\n\
 -w     Add <nw> best IBM1 translations for src and tgt words that occur in the\n\
        given files but don't have translations in phrase table [don't].\n\
+-addsw Add single-word phrase pairs for each alignment link [don't] \n\
 -m     Maximum phrase length. <max> can be in the form 'len1,len2' to specify\n\
        lengths for each language, or 'len' to use one length for both\n\
        languages. 0 means no limit. [4,4]\n\
@@ -71,10 +68,12 @@ Options:\n\
        languages. Has to be at least 1. [1,1]\n\
 -d     Max permissible difference in number of words between source and\n\
        target phrases. [4]\n\
--ibm   Use IBM model <n>: 1 or 2 [2]\n\
+-ibm   Use IBM model <n>: 1 or 2\n\
+-hmm   Use an HMM model instead of an IBM model (only works with IBMOchAligner).\n\
+       [if, for both models, <model>.pos doesn't exist and <model>.dist does,\n\
+       -hmm is assumed, otherwise -ibm 2 is the default]\n\
 -twist With IBM1, assume one language has reverse word order.\n\
-       No effect with IBM2.\n\
--addsw Add single-word phrase pairs for each alignment link [don't] \n\
+       No effect with IBM2 or HMM.\n\
 -1     Name of language 1 (one in left column in model1) [en]\n\
 -2     Name of language 2 (one in right col of model1) [fr]\n\
 -o     The base name of the generated tables [phrases]\n\
@@ -111,13 +110,18 @@ Output selection options (specify as many as you need):\n\
 
 typedef PhraseTableGen<Uint> PhraseTable;
 
-static const char* const switches[] = {"v", "vv", "vs", "n", "i", "j", "z", "a:", "s:",
-                           "m:", "min:", "d:", "w:", "1:", "2:", "ibm:",
-                           "twist", "addsw", "o:", "f1:", "f2:",
-                           "multipr:", "tmtext", "giza"};
+static const char* const switches[] = {
+   "v", "vv", "vs", "i", "j", "z", "prune1:", "a:", "s:",
+   "m:", "min:", "d:", "w:", "1:", "2:", "ibm:",
+   "hmm", "p0:", "up0:", "alpha:", "lambda:", "max-jump:",
+   "anchor", "noanchor", "end-dist", "noend-dist",
+   "twist", "addsw", "o:", "f1:", "f2:",
+   "multipr:", "tmtext", "giza"
+};
 
 static Uint verbose = 0;
 static Uint smoothing_verbose = 0; // ugly ugly ugly ugly ugly ugly ugly ugly 
+static Uint prune1 = 0;
 static vector<string> align_methods;
 static vector<string> smoothing_methods;
 static bool indiv_tables = false;
@@ -137,11 +141,23 @@ static string lang2("fr");
 static string name("phrases");
 static string freqs1;
 static string freqs2;
-static Uint ibm_num = 2;
+static Uint ibm_num = 42; // 42 means uninitialized - ARG will set its value.
+static bool use_hmm = false;
 static bool tmtext_output = false;
 static string multipr_output = "";
 static bool compress_output = false;
 static Uint first_file_arg = 2;
+
+// The optional<T> variables are intentionally left uninitialized.
+// These options are also intentionally left undocumented because they should
+// not be used.
+static optional<double> p0;
+static optional<double> up0;
+static optional<double> alpha;
+static optional<double> lambda;
+static optional<bool> anchor;
+static optional<bool> end_dist;
+static optional<Uint> max_jump;
 
 static void add_ibm1_translations(Uint lang, const TTable& tt, PhraseTable& pt, 
 				  Voc& src_word_voc, Voc& tgt_word_voc);
@@ -151,6 +167,7 @@ static void add_ibm1_translations(Uint lang, const TTable& tt, PhraseTable& pt,
 /// gen_phrase_table namespace.
 /// Prevents global namespace polution in doxygen.
 namespace genPhraseTable {
+
 /// Specific argument processing class for gen_phrase_table program.
 class ARG : public argProcessor {
 private:
@@ -183,6 +200,7 @@ public:
       
       mp_arg_reader->testAndSet("a", align_methods);
       mp_arg_reader->testAndSet("s", smoothing_methods);
+      mp_arg_reader->testAndSet("prune1", prune1);
       mp_arg_reader->testAndSet("i", indiv_tables);
       mp_arg_reader->testAndSet("j", joint);
       mp_arg_reader->testAndSet("z", compress_output);
@@ -193,6 +211,14 @@ public:
       mp_arg_reader->testAndSet("1", lang1);
       mp_arg_reader->testAndSet("2", lang2);
       mp_arg_reader->testAndSet("ibm", ibm_num);
+      mp_arg_reader->testAndSet("hmm", use_hmm);
+      mp_arg_reader->testAndSet("p0", p0);
+      mp_arg_reader->testAndSet("up0", up0);
+      mp_arg_reader->testAndSet("alpha", alpha);
+      mp_arg_reader->testAndSet("lambda", lambda);
+      mp_arg_reader->testAndSet("max-jump", max_jump);
+      mp_arg_reader->testAndSetOrReset("anchor", "noanchor", anchor);
+      mp_arg_reader->testAndSetOrReset("end-dist", "noend-dist", end_dist);
       mp_arg_reader->testAndSet("twist", twist);
       mp_arg_reader->testAndSet("addsw", add_single_word_phrases);
       mp_arg_reader->testAndSet("giza", giza_alignment);
@@ -209,12 +235,26 @@ public:
       } else {
         mp_arg_reader->testAndSet(0, "model1", model1);
         mp_arg_reader->testAndSet(1, "model2", model2);
+         if ( ibm_num == 42 && !use_hmm ) {
+            // neither -hmm nor -ibm specified; default is IBM2 if .pos files
+            // exist, or else HMM if .dist files exist, or error otherwise: we
+            // never assume IBM1, because it is so seldom used, it's probably
+            // an error; we want the user to assert its use explicitly.
+            if ( check_if_exists(IBM2::posParamFileName(model1)) &&
+                 check_if_exists(IBM2::posParamFileName(model2)) )
+               ibm_num = 2;
+            else if ( check_if_exists(HMMAligner::distParamFileName(model1)) &&
+                      check_if_exists(HMMAligner::distParamFileName(model2)) )
+               use_hmm = true;
+            else
+               error(ETFatal, "Models are neither IBM2 nor HMM, specify -ibm N or -hmm explicitly.");
+         }
       }
 
       if (max_phrase_string.length()) {
          vector<Uint> max_phrase_len;
          if (!split(max_phrase_string, max_phrase_len, ",") ||
-             max_phrase_len.size() == 0 || max_phrase_len.size() > 2)
+             max_phrase_len.empty() || max_phrase_len.size() > 2)
             error(ETFatal, "bad argument for -m switch");
          max_phrase_len1 = max_phrase_len[0];
          max_phrase_len2 = max_phrase_len.size() == 2 ? max_phrase_len[1] : max_phrase_len[0];
@@ -223,7 +263,7 @@ public:
       if (min_phrase_string.length()) {
          vector<Uint> min_phrase_len;
          if (!split(min_phrase_string, min_phrase_len, ",") ||
-             min_phrase_len.size() == 0 || min_phrase_len.size() > 2)
+             min_phrase_len.empty() || min_phrase_len.size() > 2)
             error(ETFatal, "bad argument for -min switch");
          min_phrase_len1 = min_phrase_len[0];
          min_phrase_len2 = min_phrase_len.size() == 2 ? min_phrase_len[1] : min_phrase_len[0];
@@ -248,9 +288,19 @@ public:
         error(ETFatal, "Can't use -giza with multiple alignment methods");
    }
 };
-} // ends namespace genPhraseTable
-using namespace genPhraseTable;
 
+template <class T>
+std::ostream& operator<<(std::ostream& os, const optional<T>& val) {
+   if ( val )
+      os << *val;
+   else
+      os << "default";
+   return os;
+}
+
+}; // ends namespace genPhraseTable
+
+using namespace genPhraseTable;
 
 int MAIN(argc, argv)
 {
@@ -267,9 +317,9 @@ int MAIN(argc, argv)
          "lexicographically earlier name goes in left column. Fix by giving",
          "this language as the -1 argument.");
 
-   if (align_methods.size() == 0)
+   if (align_methods.empty())
       align_methods.push_back("IBMOchAligner");
-   if (smoothing_methods.size() == 0)
+   if (smoothing_methods.empty())
       smoothing_methods.push_back("RFSmoother");
 
    if (max_phrase_len1 == 0) max_phrase_len1 = 10000000;
@@ -283,7 +333,7 @@ int MAIN(argc, argv)
       cerr << "minimal phrase length has to be at least 1 -> changing this!" << endl;
    }
    if ( min_phrase_len1 > max_phrase_len1 || min_phrase_len2 > max_phrase_len2 ) {
-      cerr << "Minimal phrase length is greater than the maximal one! This doesn't make sense -> exit!!!" << endl
+      cerr << "Minimal phrase length is greater than the maximal one!" << endl
            << "lang1 : " << min_phrase_len1 << " " << max_phrase_len1 << endl
            << "lang2 : " << min_phrase_len2 << " " << max_phrase_len2 << endl;
       exit(1);
@@ -296,15 +346,20 @@ int MAIN(argc, argv)
    if (ibm_num == 0) {
      if (verbose) cerr << "**Not** loading IBM models" << endl;
    } else {
-     if (ibm_num == 1) {
+     if (use_hmm) {
+	 if (verbose) cerr << "Loading HMM models" << endl;
+       ibm_1 = new HMMAligner(model1, p0, up0, alpha, lambda, anchor, end_dist, max_jump);
+       ibm_2 = new HMMAligner(model2, p0, up0, alpha, lambda, anchor, end_dist, max_jump);
+     } else if (ibm_num == 1) {
+       if (verbose) cerr << "Loading IBM1 models" << endl;
        ibm_1 = new IBM1(model1);
        ibm_2 = new IBM1(model2);
-     } else {
+     } else if (ibm_num == 2) {
+       if (verbose) cerr << "Loading IBM2 models" << endl;
        ibm_1 = new IBM2(model1);
        ibm_2 = new IBM2(model2);
-     }
-     if (ibm_1->trainedWithNulls()) ibm_1->useImplicitNulls = true;
-     if (ibm_2->trainedWithNulls()) ibm_2->useImplicitNulls = true;
+     } else
+       error(ETFatal, "Invalid option: -ibm %d", ibm_num);
      if (verbose) cerr << "models loaded" << endl;
    }
 
@@ -326,6 +381,8 @@ int MAIN(argc, argv)
 
    GizaAlignmentFile* al_1=0;
    GizaAlignmentFile* al_2=0;
+
+   WordAlignerStats stats;
 
    for (Uint arg = first_file_arg; arg+1 < args.numVars(); arg += 2) {
 
@@ -389,6 +446,7 @@ int MAIN(argc, argv)
 
             if (verbose > 1) cerr << "---" << align_methods[i] << "---" << endl;
             aligners[i]->align(toks1, toks2, sets1);
+            if (verbose) stats.tally(sets1, toks1.size(), toks2.size());
 
             if (verbose > 1) {
                cerr << "---" << endl;
@@ -431,10 +489,18 @@ int MAIN(argc, argv)
       ++fpair;
    }
 
+   if (verbose) stats.display(lang1, lang2, cerr);
+
    if (add_word_translations && ibm_1 && ibm_2) {
       if (verbose) cerr << "ADDING IBM1 translations for untranslated words:" << endl;
       add_ibm1_translations(1, ibm_1->getTTable(), pt, word_voc_1, word_voc_2);
       add_ibm1_translations(2, ibm_2->getTTable(), pt, word_voc_2, word_voc_1);
+   }
+
+   if (prune1) {
+      if (verbose)
+         cerr << "pruning to best " << prune1 << "translations" << endl;
+      pt.pruneLang2GivenLang1(prune1);
    }
 
    if ( !indiv_tables ) {

@@ -6,7 +6,7 @@
  * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
@@ -14,7 +14,6 @@
 
 
 #include <vector>
-#include <ext/hash_map>
 #include <string>
 
 namespace Portage {
@@ -135,11 +134,11 @@ public:
 
 /*   //calculates the number of permutations of the words in toks
    Uint perm(const vector<string> & toks) {
-      hash_map<string, Uint, StringHash> myToks;
+      unordered_map<string, Uint> myToks;
       for (Uint i = 0; i < toks.size(); ++i)	
          myToks[toks[i]]++;
       Uint total = fact[toks.size()];
-      for (hash_map<string, Uint, StringHash>::iterator it = myToks.begin(); it != myToks.end(); ++it)
+      for (unordered_map<string, Uint>::iterator it = myToks.begin(); it != myToks.end(); ++it)
          total /= fact[it->second];
       return total;
    }*/

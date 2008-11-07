@@ -27,24 +27,36 @@ Usage: diff-round.pl [-h(elp)] [-prec P] infile1 infile2
   Assuming infile1 and infile2 are files of numbers with the same layout,
   compare them ignoring differences past the P'th significant digit.
   More precisely, ignore differences where |a-b| < max(|a|,|b|) / 10^P.
-
-Notes:
-  To compare two phrase tables that contain the same phrase pairs:
-     LC_ALL=C diff-round.pl 'sort pt1 |' 'sort pt2 |'
-     LC_ALL=C diff-round.pl 'gzip -cqfd pt1 | sort |' 'gzip -cqfd pt2 | sort |'
+  Compressed files are decompressed automatically as necessary.
 
 Options:
-  -prec P       precision to retain before comparing [6]
-  -h(elp):      print this help message
+  -prec P    number of identical digits required for equality [6]
+  -h(elp):   print this help message
+  -sort:     sort the files before doing the diff, e.g., to compare two
+             phrase tables or ttables containing the same phrase/word pairs
+  -q:        don't print individual differences, just a global summary
+  -min:      use min(|a|,|b|) instead of max when calculating rel diffs
+
+Exit status:
+   0 if no differences were found (within P)
+   1 if a difference was found
+   2 if the files don't have the same length
+   3 if there was some problem running the program.
 ";
-   exit 1;
+   exit 3;
 }
 
 use Getopt::Long;
 my $prec = 6;
 GetOptions(
-   help         => sub { usage },
-   "prec=i"     => \$prec,
+   help     => sub { usage },
+   "prec=f" => \$prec,
+   z        => sub { print STDERR
+                  "-z no longer required: automatically enabled as needed\n";
+               },
+   sort     => \my $sort,
+   quiet    => \my $quiet,
+   min      => \my $use_min,
 ) or usage;
 my $pow_prec = 1/(10**$prec);
 
@@ -52,38 +64,90 @@ my $pow_prec = 1/(10**$prec);
 
 # Will hold the maximum numerical difference found
 my $max_diff = 0;
+# Will be true if an infinite numerical difference was found (i.e., one value
+# was 0 and the other wasn't)
+my $inf_max_diff = 0;
 
-open F1, $ARGV[0] or die "Can't open $ARGV[0]: $!";
-open F2, $ARGV[1] or die "Can't open $ARGV[1]: $!";
+# make_open_cmd($file) returns a command to unzip $file, if it is a file, or
+# leaves it alone if it already is a piped command.
+# If $sort is true, also adds a sort command to the pipe.
+sub make_open_cmd($) {
+   my $file = $_[0];
+   if ( $file !~ /\|$/ ) {
+      $file = "gzip -cqdf $file |";
+   }
+   if ( $sort ) {
+      $file = "$file LC_ALL=C sort |";
+   }
+   return $file;
+}
 
-sub max($$) {
-   $_[0] < $_[1] ? $_[1] : $_[0];
+open F1, make_open_cmd($ARGV[0])
+   or die "Can't create pipe for sorting and/or decompressing $ARGV[0]: $!";
+open F2, make_open_cmd($ARGV[1])
+   or die "Can't create pipe for sorting and/or decompressing $ARGV[1]: $!";
+
+sub max($$) { $_[0] < $_[1] ? $_[1] : $_[0]; }
+sub min($$) { $_[0] > $_[1] ? $_[1] : $_[0]; }
+
+# is_num($token) returns whether $token is a valid C number
+# Precondition: $token is already stripped of leading and trailing whitespace
+sub is_num($) {
+   use POSIX;
+   local $! = 0;
+   my ($value, $n_unparsed) = POSIX::strtod($_[0]);
+   return !(($_[0] eq '') || ($n_unparsed != 0) || $!);
+}
+
+# display($val) displays $val in reasonably few characters.
+sub display($) {
+   my ($val) = @_;
+   if ( $val > 0.999 and $val < 1 ) {
+      my $res = sprintf "%.40g", $val;
+      my ($nines) = $res =~ /(0\.9+)/;
+      if ( defined $nines ) {
+         my $nine_count = length($nines)-2;
+         #print "$res nines $nines nine_count $nine_count\n";
+         return sprintf "%.".($nine_count+3)."g", $val;
+      } else {
+         return sprintf "%7g", $val;
+      }
+   }
+   if ( abs($val) >= 0.001 and abs($val) < 1000000 ) {
+      return sprintf "%7g", $val;
+   } else {
+      return sprintf "%.4g", $val;
+   }
 }
 
 # diff_epsilon($a, $b) returns true iff $a and $b differ by more than their
 # $prec'th significant digit.
 sub diff_epsilon ($$) {
-   return 0 if $_[0] eq $_[1];
-   {
-      no warnings;
-      return 1 if $_[0] + 0 ne $_[0];
-      return 1 if $_[1] + 0 ne $_[1];
-   }
-   my $max = max(abs($_[0]), abs($_[1]));
-   if ( $max > 0 ) {
-      my $rel_diff = abs($_[0] - $_[1]) / $max;
+   return (0,0) if $_[0] eq $_[1];
+   return (1,"n/a") if (!is_num($_[0]) || !is_num($_[1]));
+   return (0,0) if $_[0] == $_[1];
+   my $denom = $use_min ? min(abs($_[0]), abs($_[1]))
+                        : max(abs($_[0]), abs($_[1]));
+   if ( $denom > 0 ) {
+      my $rel_diff = abs($_[0] - $_[1]) / $denom;
       $max_diff = $rel_diff if ($rel_diff > $max_diff);
-      return ($rel_diff > $pow_prec);
+      return (($rel_diff > $pow_prec), display($rel_diff));
+   } elsif ( $use_min ) {
+      $inf_max_diff = 1;
+      return (1,"inf");
    } else {
-      return 0;
+      return (0,0);
    }
 }
 
+my $found_diff = 0;
 while (<F1>) {
    my $L1 = $_; chomp $L1;
    my $L2 = <F2>; chomp $L2 if defined $L2;
-   die "Unexpected end of $ARGV[1] before end of $ARGV[0] at line $.\n"
-      unless defined $L2;
+   if ( ! defined $L2 ) {
+      warn "Unexpected end of $ARGV[1] before end of $ARGV[0] at line $.\n";
+      exit 2;
+   }
 
    # Optimization: don't do the fancy (and expensive) math if the lines are
    # identical
@@ -94,20 +158,35 @@ while (<F1>) {
    my @L2 = split /\s+/, $L2;
 
    if ( $#L1 != $#L2 ) {
-      print "$. << $L1   >> $L2\n";
+      print "$. << $L1   >> $L2\n" unless $quiet;
+      $found_diff = 1;
    } else {
       for my $i (0 .. $#L1) {
-         if ( diff_epsilon($L1[$i], $L2[$i]) ) {
-            print $., ($#L1 > 0 ? "($i)" : ""), " < $L1[$i]   > $L2[$i]\n";
+         my ($is_diff, $rel_diff) = diff_epsilon($L1[$i], $L2[$i]);
+         if ( $is_diff ) {
+            print $., ($#L1 > 0 ? "($i)" : ""), " < $L1[$i]   > $L2[$i]   rel diff: $rel_diff\n"
+               unless $quiet;
+            $found_diff = 1;
          }
       }
    }
 
-   #if ( abs($L1 - $L2) * 10**$prec > max(abs($L1), abs($L2)) ) {
+   #if ( abs($L1 - $L2) * 10**$prec > min(abs($L1), abs($L2)) ) {
    #   print "$.	< $L1	> $L2\n"
    #}
 }
-die "Unexpected end of $ARGV[0] before end of $ARGV[1] at line $.\n"
-   unless eof(F2);
+if ( ! eof(F2) ) {
+   warn "Unexpected end of $ARGV[0] before end of $ARGV[1] at line $.\n";
+   exit 2;
+}
 
-print STDERR "Maximum relative numerical difference: $max_diff\n";
+print STDERR "$ARGV[0] and $ARGV[1] differ\n"
+   if $quiet and $found_diff;
+print STDERR "Maximum relative numerical difference: $max_diff\n"
+   unless $quiet && !$max_diff;
+print STDERR "At least one infinite (zero vs non-zero) difference\n"
+   if $inf_max_diff;
+print STDERR "Threshold used: $pow_prec\n"
+   unless $quiet;
+
+exit ($found_diff ? 1 : 0);

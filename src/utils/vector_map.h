@@ -1,17 +1,17 @@
 /**
  * @author Aaron Tikuisis
- * @file vector_map.h A replacement for hash_map in particular cases.
+ * @file vector_map.h A replacement for hash map in particular cases.
  * $Id$
  *
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
  *
  * An extension of stl's vector, with part of the Associative Container
- * interface implemented.  This may be preferable to a hash_map when the table
+ * interface implemented.  This may be preferable to a hash map when the table
  * won't be very big and space is a concern.  Note that the find() function
  * returns a normal vector iterator that iterates through ALL elements in the
  * vector following the one found.
@@ -28,9 +28,9 @@ using namespace std;
 namespace Portage
 {
    /**
-    * A replacement for hash_map in particular cases.  An extension of stl's
+    * A replacement for hash map in particular cases.  An extension of stl's
     * vector, with part of the Associative Container interface implemented.
-    * This may be preferable to a hash_map when the table won't be very big
+    * This may be preferable to a hash map when the table won't be very big
     * and space is a concern.  Note that the find() function returns a normal
     * vector iterator that iterates through ALL elements in the vector
     * following the one found.

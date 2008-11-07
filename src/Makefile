@@ -3,13 +3,13 @@
 # George Foster, Eric Joanis, Samuel Larkin
 #
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
 
-.PHONY: all clean install export docs
-all clean install export docs:
+.PHONY: all clean install export docs test
+all clean install export docs test:
 	$(MAKE) OT=$@ subdirs
 
 # Targets new and new_install need to be custom defined here, because
@@ -25,7 +25,8 @@ new_install:
 	$(MAKE) OT=install subdirs
 
 # These directories will be compiled by default
-SUBDIRS = logging preprocessing eval lm tm adaptation canoe rescoring api
+SUBDIRS = logging preprocessing eval lm tm adaptation canoe rescoring api \
+          truecasing
 
 # Additional directories listed here are only compiled if explicitly
 # specified.  Use this for modules in development that are not ready to be
@@ -53,15 +54,11 @@ $(ALL_SUBDIRS): utils
 # If you create a new subdirectory, add its dependencies here (except for
 # utils, which everything is assumed to depend on)
 
-canoe: logging tm lm
-
 api: canoe tm lm logging
-
-rescoring: canoe tm lm eval logging
-
-tm: logging
-
+canoe: logging tm lm
 eval: logging
+rescoring: canoe tm lm eval logging
+tm: logging
 
 validate_subdir_dependencies:
 	@if [ "`grep 'MODULE_DEPENDS.*[^ =]' */Makefile | perl -ple 's/\/Makefile//; s/MODULE_DEPENDS\s*=/ /; s/\s+/ /' | wc`" \

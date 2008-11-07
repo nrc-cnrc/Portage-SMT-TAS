@@ -9,12 +9,13 @@
 # PROGRAMMER: Eric Joanis and Samuel Larkin
 #
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada
 # Copyright 2006, Her Majesty in Right of Canada
 
 echo 'ngram-count-big.sh, NRC-CNRC, (c) 2006 - 2008, Her Majesty in Right of Canada'
+echo 'Wrapper around SRILM software - use only if you have a valid SRILM license'
 
 usage() {
    for msg in "$@"; do
@@ -61,6 +62,8 @@ arg_check() {
 echo ""
 echo $0 $*
 
+echo "Using $TMPDIR as TMPDIR"
+
 ORDER=3
 CHUNK_SIZE=250m
 N=3
@@ -95,7 +98,7 @@ run () {
    echo '#' `date`
    echo "$cmd"
    if [ ! $NOT_REALLY ]; then
-      eval $cmd
+      eval $cmd || exit 3
    fi
 }
 
@@ -105,17 +108,14 @@ run () {
 merge_ngrams() {
    out_file=$1
    shift
-   temp_prefix="$out_file.partial-counts"
-   if [ -n "$TMPDIR" ]; then
-      temp_prefix=$TMPDIR/$temp_prefix
-   fi
-   temp_index=0
-   declare -a next_list
    #echo initial arg list: "$@"
 
    # With only one file to merge, copy it, preserving the correctness of the
    # assumption that .gz files are gzipped and others aren't.
    if [ $# = 1 ]; then
+      # The input has the same name as the output
+      test "$1" = "$out_file" && return
+      
       if [ ${1%.gz}.gz = $1 ]; then
          if [ ${out_file%.gz}.gz = $out_file ]; then
             run cp $1 $out_file
@@ -131,56 +131,9 @@ merge_ngrams() {
       fi
       return
    fi
-
-   # Normal case - merge the count files in a binary tree way (taking 3 files
-   # at once at the end of odd-length lists)
-   last_iter=
-   while [ $# -gt 1 ]; do
-      if [ $# -lt 4 ]; then
-         last_iter=1
-      fi
-      next_list=()
-      while [ $# -gt 3 -o $# = 2 ]; do
-         a=$1; b=$2; shift; shift;
-         if [ $last_iter ]; then
-            out=$out_file
-         else
-            temp_index=$((temp_index + 1))
-            out=$temp_prefix.$temp_index
-         fi
-         #echo merging $a and $b into $out
-         run ngram-merge -write $out $a $b
-         if [ $? != 0 ]; then
-            echo error in ngram-merge
-         fi
-         next_list=("${next_list[@]}" "$out")
-      done
-      if [ $# = 3 ]; then
-         a=$1 b=$2 c=$3; shift; shift; shift;
-         if [ $last_iter ]; then
-            out=$out_file
-         else
-            temp_index=$((temp_index + 1))
-            out=$temp_prefix.$temp_index
-         fi
-         #echo merging $a, $b and $c into $out
-         run ngram-merge -write $out $a $b $c
-         if [ $? != 0 ]; then
-            echo error in ngram-merge
-         fi
-         next_list=("${next_list[@]}" "$out")
-      elif [ $# = 1 ]; then
-         echo This should never happen.
-         next_list=("${next_list[@]}" "$1")
-         shift
-      fi
-
-      set - "${next_list[@]}"
-      #echo new arg list: "$@"
-   done
-   if [ ! $DEBUG ]; then
-      run rm -f $temp_prefix.*
-   fi
+   # Turns out it's better to call only once ngram-merge with all files instead
+   # of making a pyramid shape merging.
+   run ngram-merge -write $out_file $@
 }
 
 # count_ngrams outfile infile
@@ -204,6 +157,9 @@ count_ngrams() {
       echo "test ! -f $file || ($CMD && rm $file)" >> $COUNT_CMDS_FILE
    done
 
+   # Best to call ngram-count-big.sh instead of ngram-merge because if there is
+   # only one file to merge ngram-merge is not smart enough to handle it
+   # properly.
    sub_merge="$chunk.??.${ORDER}grams"
    CMD="ngram-count-big.sh -merge-only -order $ORDER $out_file $sub_merge"
    echo "test -f $out_file || ($CMD && rm $sub_merge)" >> $MERGE_CMDS_FILE
@@ -226,12 +182,12 @@ if [ ! $MERGE_ONLY ]; then
 
    # if we need to calculate the count, do it
    if [ -e $COUNT_CMDS_FILE ]; then
-      run run-parallel.sh $COUNT_CMDS_FILE $N \|\| error_exit "failed some count"
+      run run-parallel.sh $COUNT_CMDS_FILE $N
    fi
 
    # is we need to merge the counts of individual input files
    if [ -e $MERGE_CMDS_FILE ]; then
-      run run-parallel.sh $MERGE_CMDS_FILE $N \|\| error_exit "failed some merge"
+      run run-parallel.sh $MERGE_CMDS_FILE $N
    fi
 else
    merge_files=$input_files

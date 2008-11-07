@@ -1,10 +1,10 @@
 /**
  * @author Eric Joanis
- * @file lmtext2binlm.cc  Convert an ARPA LM file to the Portage BinLM format
+ * @file arpalm2binlm.cc  Convert an ARPA LM file to the Portage BinLM format
  * $Id$
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2006, Her Majesty in Right of Canada
@@ -21,7 +21,7 @@ using namespace std;
 using namespace Portage;
 
 static char help_message[] = "\n\
-lmtext2binlm [-vocab VOC] [-order ORDER] lm_file [binlm_file]\n\
+arpalm2binlm [-vocab VOC] [-order ORDER] lm_file [binlm_file]\n\
 \n\
  Convert language model file lm_file from Doug Paul's ARPA file format to\n\
  NRC Portage's binary language model file format.\n\
@@ -47,12 +47,13 @@ static void getArgs(int argc, const char* const argv[]);
 
 int MAIN(argc,argv)
 {
-   printCopyright(2006, "lmtext2binlm");
+   printCopyright(2006, "arpalm2binlm");
+
    getArgs(argc, argv);
 
    time_t start = time(NULL);
 
-   cerr << "Converting LMText " << lm_filename
+   cerr << "Converting ArpaLM " << lm_filename
         << " to BinLM " << binlm_filename << endl;
 
    VocabFilter vocab(0);
@@ -75,8 +76,9 @@ int MAIN(argc,argv)
    if ( isSuffix(".gz", binlm_filename) ) {
       string binlm_tempfile = binlm_filename.substr(0, binlm_filename.size()-3);
       lmtext->write_binary(binlm_tempfile);
+      delete lmtext;
       cerr << "Wrote binlm (... " << (time(NULL) - start) << " secs)" << endl;
-      system(("gzip -9q " + binlm_tempfile).c_str());
+      system(("gzip -9fq " + binlm_tempfile).c_str());
       cerr << "Compressed binlm (... " << (time(NULL) - start) << " secs)"
            << endl;
    } else {

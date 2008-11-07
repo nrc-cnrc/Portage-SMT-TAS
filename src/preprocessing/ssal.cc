@@ -6,7 +6,7 @@
  * COMMENTS: 
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2006, Her Majesty in Right of Canada
@@ -99,10 +99,10 @@ static bool keep(const vector<string>& lines1, const vector<string>& lines2,
    }
 
    return !
-      (b1 != string::npos && lines1[beg1][b1] == '<' && 
-       e1 != string::npos && lines1[end1-1][e1] == '>' ||
-       b2 != string::npos && lines2[beg2][b2] == '<' && 
-       e2 != string::npos && lines2[end2-1][e2] == '>');
+      ( ( b1 != string::npos && lines1[beg1][b1] == '<' && 
+          e1 != string::npos && lines1[end1-1][e1] == '>' ) ||
+        ( b2 != string::npos && lines2[beg2][b2] == '<' && 
+          e2 != string::npos && lines2[end2-1][e2] == '>' ) );
 }
 
 // main

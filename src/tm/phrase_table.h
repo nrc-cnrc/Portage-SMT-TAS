@@ -8,7 +8,7 @@
  * Represent a phrase table with joint frequencies.
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
@@ -17,11 +17,9 @@
 #ifndef PHRASE_TABLE_H
 #define PHRASE_TABLE_H
 
-#include <ext/hash_map>
-#include <ext/hash_set>
+#include "string_hash.h"
 #include <map>
 #include <algorithm>
-#include <string>
 #include <ostream>
 #include <cmath>
 #include <voc.h>
@@ -34,8 +32,6 @@
 #include "length.h"
 
 namespace Portage {
-
-using namespace __gnu_cxx;
 
 /**
  * Helper base class to factor out some things from the PhraseTable template
@@ -128,7 +124,7 @@ struct PhraseTableBase
 template<class T> class PhraseTableGen : public PhraseTableBase
 {
    typedef vector_map<Uint,T> PhraseFreqs; // l2-index -> frequency
-   typedef hash_map<string,PhraseFreqs,StringHash> PhraseTable;
+   typedef unordered_map<string,PhraseFreqs> PhraseTable;
 
    PhraseTable phrase_table;    // l1compressedphrase -> (l2index,freq), (l2index,freq), ...
    _CountingVoc<T> lang2_voc;   // l2compressedphrase <-> (index, freq)
@@ -170,6 +166,22 @@ public:
       void getPhrase(Uint lang, vector<string>& toks) const; // lang is 1 or 2
       Uint getPhraseIndex(Uint lang) const; // unique contiguous index for L1 or L2 phrase
       T getJointFreq() const;
+      T& getJointFreqRef();
+   };
+
+   /**
+    * For sorting phrases by decreasing frequency
+    */
+   struct ComparePhrasesByJointFreq
+   {
+      bool operator()(const pair<Uint,T>& p1, const pair<Uint,T>& p2) {
+         if (p1.second > p2.second) 
+            return true;
+         else if (p1.second == p2.second)
+            return p1.first > p2.first;
+         else 
+            return false;
+      }
    };
 
    PhraseTableGen() {}
@@ -199,6 +211,12 @@ public:
     */
    void dump_freqs_lang1(ostream& ostr);
    void dump_freqs_lang2(ostream& ostr);
+
+   /**
+    * Discard all but the best (most frequent) n translations for each lang1 phrase.
+    * This may remove some lang2 phrases from the table.
+    */
+   void pruneLang2GivenLang1(Uint n);
 
    /**
     * Completely clear contents.
@@ -337,6 +355,22 @@ void PhraseTableGen<T>::dump_prob_lang1_given_lang2(ostream& ostr)
 }
 
 template<class T>
+void PhraseTableGen<T>::pruneLang2GivenLang1(Uint n)
+{
+   typename PhraseTable::iterator p;
+   for (p = phrase_table.begin(); p != phrase_table.end(); ++p) {
+      if (n >= p->second.size())
+         continue;
+      partial_sort(p->second.begin(), p->second.begin()+n, p->second.end(), 
+                   ComparePhrasesByJointFreq());
+      typename PhraseFreqs::iterator pf;
+      for (pf = p->second.begin()+n; pf < p->second.end(); ++pf)
+         lang2_voc.freq(pf->first) -= pf->second;
+      p->second.resize(n);
+   }
+}
+
+template<class T>
 void PhraseTableGen<T>::dump_freqs_lang1(ostream& ostr) {
    vector<string> toks;
    string ph;
@@ -349,8 +383,9 @@ void PhraseTableGen<T>::dump_freqs_lang1(ostream& ostr) {
          sum += pf->second;
       decompressPhrase(p->first, toks, wvoc1);
       codePhrase(toks.begin(), toks.end(), ph);
-      ostr << ph << " " << sum << endl;
+      ostr << ph << " " << sum << nf_endl;
    }
+   ostr.flush();
 }
 
 template<class T>
@@ -362,8 +397,9 @@ void PhraseTableGen<T>::dump_freqs_lang2(ostream& ostr) {
       ph = lang2_voc.word(i);
       decompressPhrase(ph, toks, wvoc2);
       codePhrase(toks.begin(), toks.end(), ph);
-      ostr << ph << " " << lang2_voc.freq(i) << endl;
+      ostr << ph << " " << lang2_voc.freq(i) << nf_endl;
    }
+   ostr.flush();
 }
 
 template<class T>
@@ -524,6 +560,12 @@ Uint PhraseTableGen<T>::iterator::getPhraseIndex(Uint lang) const
 
 template<class T>
 T PhraseTableGen<T>::iterator::getJointFreq() const
+{
+   return elem_iter->second;
+}
+
+template<class T>
+T& PhraseTableGen<T>::iterator::getJointFreqRef()
 {
    return elem_iter->second;
 }

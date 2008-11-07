@@ -8,11 +8,12 @@
 # COMMENTS: Rewritten from Bruno Laferriere's version
 #
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2006, Her Majesty in Right of Canada
 
+echo 'lm_sort_filter.sh, NRC-CNRC, Copyright (c) 2006 - 2008, Her Majesty in Right of Canada' >&2
 
 usage() {
    for msg in "$@"; do
@@ -25,6 +26,8 @@ Usage: lm_sort_filter.sh [-h(elp)] [-v(erbose)] [-d(ebug)] [-lm]
 
   Takes an LM in ARPA format and outputs the ngram entries sorted regardless
   of their N.  This is the optimal input for lmtext2lmdb.
+
+  Define TMPDIR if you want to change where sort stores its temp files.
 
 Options:
   -lm:          Rebuild a valid, sorted lm as output, in ARPA format.
@@ -42,6 +45,7 @@ Options:
 # will exit with an error status, print the specified error message(s) on
 # STDERR.
 error_exit() {
+   echo -n `basename $0`: "" >&2
    for msg in "$@"; do
       echo $msg >&2
    done
@@ -91,26 +95,31 @@ while [ $# -gt 0 ]; do
    shift
 done
 
+# Reading positional arguments
 test $# -eq 0   && error_exit "Missing input LM"
 INPUT=$1; shift
-test $# -eq 0   && error_exit "Missing output"
-OUTPUT=$1; shift
+
+if [ -n "$REBUILD_VALID_LM" ]; then
+   test $# -eq 0   && error_exit "Missing output"
+   OUTPUT=$1; shift
+fi
+
 test $# -gt 0   && error_exit "Superfluous arguments $*"
 
-if [[ $OUTPUT =~ ".gz$" ]]; then
-   debug "Producing a compressed output"
-   CAT="gzip"
-else
-   debug "Producing a uncompressed output"
-   CAT="cat"
+
+# If the user was kind enough to provide a TMPDIR, use it.
+if [ -n "$TMPDIR" ]; then
+   SORT_DIR="TMPDIR=$TMPDIR"
 fi
+
+
+# Calculate the header's size
+START_LINE=$(gzip -cdqf $INPUT | egrep -n '^\\1-gram' | head -1 | cut -f1 -d':')
+
 
 # ALWAYS work in a work directory
 WORKDIR=lm_sort_filter.$$
 test -d $WORKDIR || mkdir $WORKDIR
-
-# Calculate the header's size
-START_LINE=$(gzip -cdqf $INPUT | egrep -n '^\\1-gram' | head -1 | cut -f1 -d':')
 
 # Split the input in parts based on Ngram size.
 gzip -cqfd $INPUT \
@@ -124,12 +133,21 @@ for p in $WORKDIR/part*; do
    if [ ! `sort -c -t'	' -k2,2 < $p 2> /dev/null` ]; then
       [[ $p =~ "./(part[0-9]+)$" ]]
       warn "${BASH_REMATCH[1]} not sorted"
-      echo "sort -t'	' -k2,2 $p > $p.sorted; mv $p.sorted $p"
+      echo "(LC_ALL=C $SORT_DIR sort -t'	' -k2,2 $p > $p.sorted) && mv $p.sorted $p"
    fi
 done \
 | run-parallel.sh - `ls $WORKDIR/ | \wc -l`
 
+
 if [ -n "$REBUILD_VALID_LM" ]; then
+   if [[ $OUTPUT =~ ".gz$" ]]; then
+      debug "Producing a compressed output"
+      CAT="gzip"
+   else
+      debug "Producing uncompressed output"
+      CAT="cat"
+   fi
+
    # Create the final sorted lm.
    (
    echo
@@ -151,20 +169,17 @@ if [ -n "$REBUILD_VALID_LM" ]; then
    ) | $CAT > $OUTPUT
 
    TOTAL_ENTRIES=$(gzip -cqfd $INPUT | \wc -l)
-else
-   # Tab-separated fields
-   sort -m -t'	' -k2,2 $WORKDIR/part* | $CAT > $OUTPUT
 
-   # Calcualte the total number of Ngram entries
-   TOTAL_ENTRIES=$(gzip -cqfd $INPUT | head -$START_LINE | egrep '^ngram' | cut -f2 -d= | sum.pl)
-fi
-
-# Make sure all entries are still present
-OUTPUT_ENTRIES=`gzip -cqfd $OUTPUT | wc -l`
-if (( $OUTPUT_ENTRIES != $TOTAL_ENTRIES )); then
+   # Make sure all entries are still present
+   OUTPUT_ENTRIES=`gzip -cqfd $OUTPUT | wc -l`
+   if (( $OUTPUT_ENTRIES != $TOTAL_ENTRIES )); then
    warn "Check your output, it's incomplete"
    warn "new: $OUTPUT_ENTRIES   old: $TOTAL_ENTRIES"
    exit 1;
+   else
+      rm -fr $WORKDIR
+   fi
 else
-   rm -fr $WORKDIR
+   # Tab-separated fields
+   LC_ALL=C $SORT_DIR sort -t'	' -k2,2 -m $WORKDIR/part* && rm -rf $WORKDIR
 fi

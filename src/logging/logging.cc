@@ -4,13 +4,14 @@
  *
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
  */
         
 #include "logging.h"
+#include <fstream>
 
 using namespace Portage;
 
@@ -20,6 +21,19 @@ Logging::logger Portage::Logging::rootLogger        = Logging::getLogger("Some.r
 Logging::logger Portage::Logging::verboseRootLogger = Logging::getLogger("verbose");
 Logging::logger Portage::Logging::debugRootLogger   = Logging::getLogger("debug");
 Logging::logger Portage::Logging::outputRootLogger  = Logging::getLogger("output");
+
+const int Logging::LogLevel::VERBOSE1 = 1;
+const int Logging::LogLevel::VERBOSE2 = 2;
+const int Logging::LogLevel::VERBOSE3 = 3;
+const int Logging::LogLevel::VERBOSE4 = 4;
+const int Logging::LogLevel::VERBOSE5 = 5;
+const int Logging::LogLevel::VERBOSE6 = 6;
+const int Logging::LogLevel::VERBOSE7 = 7;
+const int Logging::LogLevel::VERBOSE8 = 8;
+const int Logging::LogLevel::VERBOSE9 = 9;
+
+const int Logging::Level::ON  = 0;
+const int Logging::Level::OFF = 1;
 
 void Logging::init()
 { }
@@ -69,6 +83,14 @@ void Logging::init()
       BlankLayout bl;
       SimpleLayout sl;
       PatternLayout pl;
+
+#ifndef NO_LOGGING
+      std::ifstream is;
+      if (is.open(".log4cxx.properties.automatic"), is) {
+         log4cxx::PropertyConfigurator::configure(".log4cxx.properties.automatic");
+         is.close();
+      } 
+#endif
 
       bHasBeenInit = true;
    }

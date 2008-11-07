@@ -5,7 +5,7 @@
 # Aaron Tikuisis
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology 
+# Inst. de technologie de l'information / Institute for Information Technology 
 # Conseil national de recherches Canada / National Research Council Canada 
 # Copyright 2004, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2004, Her Majesty in Right of Canada 
@@ -34,7 +34,12 @@ EXTRA_LIBS=$(LOGGING_LIB)
 DYNLIBS=-lpthread
 
 # Module/directory specific compile flags
-MODULE_CF=-Wno-non-virtual-dtor $(PORTAGE_OPENMP)
+ifdef PORTAGE_OPENMP
+MODULE_CF=$(PORTAGE_OPENMP)
+MODULE_LF=$(PORTAGE_OPENMP)
+#else
+MODULE_CF=-Wno-unknown-pragmas
+endif
 
 MODULE_DEPENDS=logging
 

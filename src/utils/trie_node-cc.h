@@ -7,7 +7,7 @@
  * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2006, Her Majesty in Right of Canada
@@ -293,11 +293,12 @@ void TrieNode<LeafDataT, InternalDataT, NeedDtor>::clear(
          if ( NeedDtor ) node_pool.get_ptr(children[i])->~TrieNode();
       }
    }
-   if ( list )
+   if ( list ) {
       if ( NeedDtor )
          da_pool.free_array(list, list_alloc);
       else
          da_pool.free_array_no_dtor(list, list_alloc);
+   }
    if ( children )
       npa_pool.free_array_no_dtor(children, children_size());
    non_recursive_clear();

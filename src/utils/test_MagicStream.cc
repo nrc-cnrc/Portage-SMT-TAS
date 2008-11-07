@@ -10,7 +10,7 @@
  *           - to read/write from a pipe
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2006, Her Majesty in Right of Canada
@@ -18,6 +18,7 @@
 
 #include <MagicStream.h>
 #include <file_utils.h>
+#include <iostream>
 #include <printCopyright.h>
 
 
@@ -70,12 +71,12 @@ int main(int argc, char* argv[])
 
 ////////////////////////////////////////////////////////////////////////////////
 // FUNCTIONS
-void endOfTestMarker(const bool success = true) {
+void endOfTestMarker(bool success = true) {
    cout << "TEST " << (success ? "SUCCESSFUL" : "FAILED") << endl;
    cout << "====================" << endl << endl;
 }
-void printMatrice(ostream& out, const string& msg, const unsigned mI = maxI, const unsigned mJ = maxJ);
-void checkMatrice(istream& in, const string& msg, const unsigned mI = maxI, const unsigned mJ = maxJ);
+void printMatrice(ostream& out, const string& msg, unsigned mI = maxI, unsigned mJ = maxJ);
+void checkMatrice(istream& in, const string& msg, unsigned mI = maxI, unsigned mJ = maxJ);
 
 
 /**
@@ -85,7 +86,7 @@ void checkMatrice(istream& in, const string& msg, const unsigned mI = maxI, cons
  * @param mI   maximum number of lines
  * @param mJ   maximum number of columns
  */
-void printMatrice(ostream& out, const string& msg, const unsigned mI, const unsigned mJ)
+void printMatrice(ostream& out, const string& msg, unsigned mI, unsigned mJ)
 {
    for (unsigned i(0); i<mI; ++i)
       for (unsigned j(0); j<mJ; ++j)
@@ -99,7 +100,7 @@ void printMatrice(ostream& out, const string& msg, const unsigned mI, const unsi
  * @param mI   maximum number of lines
  * @param mJ   maximum number of columns
  */
-void checkMatrice(istream& in, const string& msg, const unsigned mI, const unsigned mJ)
+void checkMatrice(istream& in, const string& msg, unsigned mI, unsigned mJ)
 {
    string mot;
    unsigned a;

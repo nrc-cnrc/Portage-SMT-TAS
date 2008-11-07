@@ -9,7 +9,7 @@
 # COMMENTS:
 #
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
@@ -19,6 +19,12 @@ use strict;
 use Getopt::Long;
 require 5.002;
 use Socket;
+
+sub exit_with_error{
+    my $error_string = shift;
+    print STDERR $error_string, "\n";
+    exit(-1);
+}
 
 # validate parameters
 my $host = '';
@@ -46,6 +52,17 @@ if($help ne ''){
 
 exit_with_error("Missing mandatory argument 'host' see --help") unless $host ne '';
 exit_with_error("Missing mandatory argument 'port' see --help") unless $port ne '';
+
+my $me = `uname -n`;
+chomp $me;
+$me .= ":" . ($ENV{PBS_JOBID} || "");
+$me =~ s/balzac.iit.nrc.ca/balzac/;
+
+if ( $primary ) { $me = "Primary $me"; }
+
+sub log_msg(@) {
+   print STDERR "[" . localtime() . "] ($me) ", @_, "\n";
+}
 
 # Replace netcat by a regular Perl socket
 my $iaddr = inet_aton($host) or exit_with_error("No such host: $host");
@@ -84,41 +101,33 @@ if ( $netcat_mode ) {
 #            acknowledge completion
 #
 
-my $me = `uname -n`;
-chomp $me;
-$me .= ":" . ($ENV{PBS_JOBID} || "");
-$me =~ s/balzac.iit.nrc.ca/balzac/;
-
-if ( $primary ) { $me = "Primary $me"; }
-
 my $start_time = time;
 my $reply_rcvd = send_recv "GET ($me)";
+chomp $reply_rcvd;
 
 while(defined $reply_rcvd and $reply_rcvd !~ /^\*\*\*EMPTY\*\*\*/i
          and $reply_rcvd ne ""){
-    print STDERR "[", localtime(), "] ($me) Executing $reply_rcvd";
+    log_msg "Executing $reply_rcvd";
     my ($job_id, $job_command) = split / /, $reply_rcvd, 2;
     my $exit_status;
     if (!defined $job_id or $job_id !~ /^\(\d+\)$/ or !defined $job_command) {
-        print STDERR "[", localtime(), "] ($me) Received ill-formatted " .
-                     "command: $reply_rcvd\n";
+        log_msg "Received ill-formatted command: $reply_rcvd";
         $exit_status = -2;
     } else {
         my $rc = system($job_command);
         if ( $rc == -1 ) {
-            print STDERR "[", localtime(), "] ($me) System return code = $rc, ",
-                         "means couldn't start job: $!\n";
+            log_msg "System return code = $rc, means couldn't start job: $!";
             $exit_status = -1;
         } elsif ( $rc & 127 ) {
-            print STDERR "[", localtime(), "] ($me) System return code = $rc, ",
-                         "means job died with signal ", ($rc & 127), ", ",
-                         ($rc & 128 ? 'with' : 'without'), " coredump\n";
+            log_msg "System return code = $rc, ",
+                    "means job died with signal ", ($rc & 127), ". ",
+                    ($rc & 128 ? 'with' : 'without'), " coredump";
             $exit_status = -1;
         } else {
             # regular exit status from program is $rc >> 8, as documented in
             # "perldoc -f system"
             $exit_status = $rc >> 8;
-            print STDERR "[", localtime(), "] ($me) Exit status $exit_status\n";
+            log_msg "Exit status $exit_status";
         }
     }
     if ( $quota > 0 and (time - $start_time) > $quota*60 ) {
@@ -130,7 +139,7 @@ while(defined $reply_rcvd and $reply_rcvd !~ /^\*\*\*EMPTY\*\*\*/i
         $reply_rcvd = send_recv "GET ($me)";
     }
 }
-print STDERR "[", localtime(), "] ($me) Done.\n";
+log_msg "Done.";
 
 
 sub PrintHelp{
@@ -177,11 +186,5 @@ print <<'EOF';
               to host:port and printing the response to STDOUT.
 
 EOF
-}
-
-sub exit_with_error{
-    my $error_string = shift;
-    print STDERR $error_string, "\n";
-    exit(-1);
 }
 

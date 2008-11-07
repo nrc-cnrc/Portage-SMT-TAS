@@ -6,7 +6,7 @@
  * COMMENT: Argument processor is base class that takes care of loggers also and is intended to be used in Portage Application.
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
@@ -18,8 +18,8 @@
 #include "arg_reader.h"
 #include "portage_defs.h"
 #include "logging.h"
-#include <iostream>
 #include <boost/noncopyable.hpp>
+#include <iostream>
 
 namespace Portage
 {

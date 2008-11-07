@@ -4,23 +4,25 @@
  * $Id$
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2006, Her Majesty in Right of Canada
  */
 
 #include "lm.h"
-#include "lmbin.h"
+#include "lmbin_novocfilt.h"
 #include "lmbin_vocfilt.h"
 #include "lmtext.h"
 #include "lmmix.h"
-#include <string>
-#include <assert.h>
-#include <str_utils.h>
+#include "lmdynmap.h"
+//#include "tplm.h"
+#include "str_utils.h"
 
 using namespace std;
 using namespace Portage;
+
+const char* PLM::lm_order_separator = "#";
 
 //----------------------------------------------------------------------------
 // Constructors
@@ -33,6 +35,47 @@ PLM::PLM() :
    oov_unigram_prob(-INFINITY) {}
 
 //----------------------------------------------------------------------------
+PLM::Creator::Creator(const string& lm_physical_filename,
+                      Uint naming_limit_order)
+   : lm_physical_filename(lm_physical_filename)
+   , naming_limit_order(naming_limit_order)
+{}
+
+bool PLM::Creator::checkFileExists()
+{
+   return check_if_exists(lm_physical_filename);
+}
+
+Uint64 PLM::Creator::totalMemmapSize()
+{
+   return 0;
+}
+
+//----------------------------------------------------------------------------
+shared_ptr<PLM::Creator> PLM::getCreator(const string& lm_filename)
+{
+   string lm_physical_filename(lm_filename);
+   const size_t hash_pos = lm_filename.rfind(lm_order_separator);
+   Uint naming_limit_order = 0;
+   if ( hash_pos != string::npos ) {
+      naming_limit_order = conv<Uint>(lm_filename.substr(hash_pos+1));
+      lm_physical_filename.resize(hash_pos);
+   }
+
+   Creator* cr;
+   if ( isPrefix(LMDynMap::header, lm_physical_filename) ) {
+      cr = new LMDynMap::Creator(lm_physical_filename, naming_limit_order);
+   } else if ( isSuffix(".mixlm", lm_physical_filename) ) {
+      cr = new LMMix::Creator(lm_physical_filename, naming_limit_order);
+   //} else if ( isSuffix(".tplm", lm_physical_filename) ) {
+   //   cr = new TPLM::Creator(lm_physical_filename, naming_limit_order);
+   } else {
+      cr = new LMTrie::Creator(lm_physical_filename, naming_limit_order);
+   }
+   assert(cr);
+   return shared_ptr<PLM::Creator>(cr);
+}
+
 PLM* PLM::Create(const string& lm_filename, 
                  VocabFilter* vocab,
                  OOVHandling oov_handling,
@@ -42,60 +85,21 @@ PLM* PLM::Create(const string& lm_filename,
                  ostream *const os_filtered,
                  bool quiet)
 {
-   string lm_physical_filename(lm_filename);
-   const size_t hash_pos = lm_filename.rfind("#");
-   if ( hash_pos != string::npos ) {
-      Uint naming_limit_order = conv<Uint>(lm_filename.substr(hash_pos+1));
-      if ( limit_order && naming_limit_order < limit_order )
-         limit_order = naming_limit_order;
-      lm_physical_filename.resize(hash_pos);
-   }
+   shared_ptr<Creator> creator(getCreator(lm_filename));
+   if ( creator->naming_limit_order )
+      if ( limit_order == 0 || creator->naming_limit_order < limit_order )
+         limit_order = creator->naming_limit_order;
 
    if ( vocab ) {
-      // Make sure SentStart and SentEnd and UNK_Symbol are always in the vocab
+      // Make sure SentStart and SentEnd and UNK_Symbol are always in the
+      // vocab, to prevent them from being filtered out while loading the LM.
       vocab->addSpecialSymbol(SentStart);
       vocab->addSpecialSymbol(SentEnd);
       vocab->addSpecialSymbol(UNK_Symbol);
    }
 
-   PLM* lm;
-
-   // Insert here the code to open any new LM format you write support for.
-
-   if ( isSuffix(".lmdb", lm_physical_filename) ) {
-      // The LMDB format depends on Berkeley_DB, which has an expensive license
-      // fee for projects that are not fully open source.  It has therefore
-      // been removed from this distribution.
-      lm = NULL;
-      error(ETFatal, "LMDB format not supported, can't open %s",
-                     lm_physical_filename.c_str());
-   }
-   else if ( isSuffix(".mixlm", lm_physical_filename)) {
-      lm = new LMMix(lm_physical_filename, vocab, oov_handling,
-               oov_unigram_prob, limit_vocab, limit_order);
-   }
-   else {
-      string line;
-      {
-         iSafeMagicStream is(lm_physical_filename, true);
-         getline(is, line);
-      }
-      if ( line == "Portage BinLM file, format v1.0" ) {
-         //cerr << "BinLM v1.0" << endl;
-         assert(vocab);
-         if ( limit_vocab )
-            lm = new LMBinVocFilt(lm_physical_filename, *vocab, oov_handling,
-                     oov_unigram_prob, limit_order);
-         else
-            lm = new LMBin(lm_physical_filename, *vocab, oov_handling,
-                     oov_unigram_prob, limit_order);
-      }
-      else {
-         //cerr << ".lmtext" << endl;
-         lm = new LMText(lm_physical_filename, vocab, oov_handling,
-                  oov_unigram_prob, limit_vocab, limit_order, os_filtered, quiet);
-      }
-   }
+   PLM* lm = creator->Create(vocab, oov_handling, oov_unigram_prob, limit_vocab,
+                             limit_order, os_filtered, quiet);
 
    static const bool debug_auto_voc = false;
 
@@ -112,18 +116,18 @@ PLM* PLM::Create(const string& lm_filename,
       if ( oov_handling == SimpleOpenVoc ) {
          error(ETWarn, "Language model %s opened as SimpleOpenVoc but does not "
                "contain a unigram probability for <unk>.",
-               lm_physical_filename.c_str());
+               creator->lm_physical_filename.c_str());
       } else if ( oov_handling == FullOpenVoc ) {
          error(ETWarn, "Language model %s opened as FullOpenVoc but does not "
                "contain a unigram probability for <unk>.",
-               lm_physical_filename.c_str());
+               creator->lm_physical_filename.c_str());
       }
       lm->oov_unigram_prob = save_oov_unigram_prob;
    } else {
       if ( oov_handling == ClosedVoc ) {
          error(ETWarn, "Language model %s opened as ClosedVoc but "
                "contains a unigram probability for <unk>.",
-               lm_physical_filename.c_str());
+               creator->lm_physical_filename.c_str());
          lm->oov_unigram_prob = save_oov_unigram_prob;
       }
    }
@@ -133,8 +137,8 @@ PLM* PLM::Create(const string& lm_filename,
    assert(lm != NULL);
    if ( lm->description.empty() ) {
       ostringstream description;
-      description << "LanguageModel:" << lm_physical_filename;
-      if ( limit_order ) description << "#" << limit_order;
+      description << "LanguageModel:" << creator->lm_physical_filename;
+      if ( limit_order ) description << lm_order_separator << limit_order;
       switch ( oov_handling.type ) { 
          case OOVHandling::ClosedVoc: break;
          case OOVHandling::SimpleOpenVoc  : description << ";SimpleOpenVoc";  break;
@@ -148,6 +152,11 @@ PLM* PLM::Create(const string& lm_filename,
 
    return lm;
 } // PLM::Create
+
+Uint64 PLM::totalMemmapSize(const string& lm_filename)
+{
+   return getCreator(lm_filename)->totalMemmapSize();
+}
 
 //----------------------------------------------------------------------------
 // Get the variable content, if its 0, initialize it from lowerclass
@@ -219,23 +228,39 @@ void PLM::readLine(istream &in, float &prob, string &ph, float &bo_wt,
 } // readLine
 
 
-bool PLM::check_file_exists(const string& lm_filename)
+bool PLM::checkFileExists(const string& lm_filename)
 {
-   // Remove the limit_order parameter
-   string lm_physical_filename(lm_filename);
-   const size_t hash_pos = lm_filename.rfind("#");
-   if ( hash_pos != string::npos ) {
-      lm_physical_filename.resize(hash_pos);
-   }
-
-   // Special case
-   if ( isSuffix(".mixlm", lm_physical_filename)) {
-      return LMMix::check_file_exists(lm_physical_filename);
-   }
-   return check_if_exists(lm_physical_filename);
+   return getCreator(lm_filename)->checkFileExists();
 }
 
 
 const char* PLM::UNK_Symbol = "<unk>";
 const char* PLM::SentStart  = "<s>";
 const char* PLM::SentEnd    = "</s>";
+
+
+void PLM::Hits::init(Uint gram_order) {
+   values.clear();
+   values.resize(gram_order+1, 0);
+   latest_hit = 0;
+}
+
+PLM::Hits& PLM::Hits::operator+=(const Hits& other) {
+   if (values.size() < other.values.size()) values.resize(other.values.size(), 0);
+   for (Uint i(0); i<values.size(); ++i)
+      values[i] += other.values[i];
+   if ( other.latest_hit > latest_hit ) latest_hit = other.latest_hit;
+   return *this;
+}
+
+void PLM::Hits::display(ostream& out) const {
+   char buffer[128];
+   const double total_hits = accumulate(values.begin(), values.end(), 0.0f);
+   out << "Found k-grams: ";
+   for (Uint i(0); i<values.size(); ++i) {
+      snprintf(buffer, 126, "%d:%d(%2.0f", i, values[i], values[i]/total_hits*100.0f);
+      out << buffer << "%) ";
+   }
+   out << "Total: " << total_hits << endl;
+}
+

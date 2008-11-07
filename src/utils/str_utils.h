@@ -67,7 +67,7 @@ inline bool isPrefix(const char* s1, const char* s2)
 {
    while (*s1)
       if (*s1++ != *s2++)
-	 return false;
+         return false;
    return true;
 }
 inline bool isPrefix(const char* s1, const string& s2)
@@ -588,13 +588,13 @@ Uint split(char* s, char* tokens[], Uint max_tokens, const char* sep = " \t\n");
  * before the end of the string).
  */
 extern size_t getNextTok(const string& s, size_t pos, string& tok,
-			 const string& seps = " \t\n",
-			 const string& backslashes = "\\",
-			 const string& lquotes = "\"'",
-			 const string& rquotes = "\"'",
-			 const string& punc = "",
-			 bool* was_quoted = NULL,
-			 bool quotes_break = false);
+                         const string& seps = " \t\n",
+                         const string& backslashes = "\\",
+                         const string& lquotes = "\"'",
+                         const string& rquotes = "\"'",
+                         const string& punc = "",
+                         bool* was_quoted = NULL,
+                         bool quotes_break = false);
 
 /**
  * Split an input string into a sequence of whitespace-delimited and possibly
@@ -613,24 +613,24 @@ extern size_t getNextTok(const string& s, size_t pos, string& tok,
  */
 template <class StringOutputIter>
 void splitQuoted(const string& s, StringOutputIter dest,
-		 const string& seps = " \t\n", const string& backslashes = "\\",
-		 const string& lquotes = "\"'", const string& rquotes = "\"'",
-		 const string& punc = "", bool retain_quotes = false,
-		 bool omit_quoted_tokens = false)
+                 const string& seps = " \t\n", const string& backslashes = "\\",
+                 const string& lquotes = "\"'", const string& rquotes = "\"'",
+                 const string& punc = "", bool retain_quotes = false,
+                 bool omit_quoted_tokens = false)
 {
    string tok;
    size_t pos = 0;
    bool was_quoted;
    do {
       pos = getNextTok(s, pos, tok, seps, backslashes, lquotes, rquotes, punc,
-		       &was_quoted);
+                       &was_quoted);
       if (pos == string::npos) break;
       else {
-	 if (was_quoted) {
-	    if (!omit_quoted_tokens)
-	       *dest++ = retain_quotes ? lquotes[0] + tok + rquotes[0] : tok;
-	 } else
-	    *dest++ = tok;
+         if (was_quoted) {
+            if (!omit_quoted_tokens)
+               *dest++ = retain_quotes ? lquotes[0] + tok + rquotes[0] : tok;
+         } else
+            *dest++ = tok;
       }
    } while (pos < s.size());
 }
@@ -650,13 +650,13 @@ void splitQuoted(const string& s, StringOutputIter dest,
  */
 inline void
 splitQuoted(const string& s, vector<string>& dest,
-	    const string& seps = " \t\n", const string& backslashes = "\\",
-	    const string& lquotes = "\"'", const string& rquotes = "\"'",
-	    const string& punc = "", bool retain_quotes = false,
-	    bool omit_quoted_tokens = false)
+            const string& seps = " \t\n", const string& backslashes = "\\",
+            const string& lquotes = "\"'", const string& rquotes = "\"'",
+            const string& punc = "", bool retain_quotes = false,
+            bool omit_quoted_tokens = false)
 {
    splitQuoted(s, inserter(dest, dest.end()), seps, backslashes, lquotes,
-	       rquotes, punc, retain_quotes, omit_quoted_tokens);
+               rquotes, punc, retain_quotes, omit_quoted_tokens);
 }
 
 /**

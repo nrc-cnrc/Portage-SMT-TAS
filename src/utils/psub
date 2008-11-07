@@ -24,6 +24,8 @@ usage() {
 Usage: psub [options] <command line>
 
   Wrap <command line> into a PBS script and qsub it.
+  Caveat: <command line> will be interpreted again in the resulting script,
+  so quote or escape any dollar signs or backslash you need preserved.
 
 Options:
 
@@ -121,7 +123,14 @@ while [ $# -gt 0 ]; do
    shift
 done
 
-COMMAND="$*"
+while [[ $# > 0 ]]; do
+   if [[ $1 =~ " |	" ]]; then
+      COMMAND="$COMMAND\"$1\" "
+   else
+      COMMAND="$COMMAND$1 "
+   fi
+   shift
+done
 
 if which qsub >& /dev/null; then
    true # qsub found - we're running on a cluster
@@ -298,7 +307,7 @@ QSUB_CMD="qsub -r n -N $NAME $QSUB_OPTS $QSPARAMS"
 test -n "$RESOURCES" && QSUB_CMD="$QSUB_CMD -l$RESOURCES"
 if [ -n "$INTMODE" ]; then
    QSUB_CMD="$QSUB_CMD -I"
-   test -n "$BALZAC" && QSUB_CMD="$QSUB_CMD -X"
+   test -n "$BALZAC" && QSUB_CMD="$QSUB_CMD -X -d `pwd` -v TMOUT=3600"
    echo "Entering interactive mode."
    echo "Warning: you will get a fresh login environment.  Any variables set in the"
    echo "parent shell will not be propagated, only those in your login scripts."

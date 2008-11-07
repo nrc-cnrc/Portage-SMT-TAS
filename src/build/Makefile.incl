@@ -29,10 +29,27 @@
 # Notes:           Comment out this line to enable logging - requires log4cxx
 LOGGING?=NONE
 
+# Variable:        BOOST_ROOT
+# Possible values: path to the directory where boost is installed.
+#                  $BOOST_ROOT/lib will be added to the library search path
+#                  for linking, and $BOOST_ROOT/include/boost-<version>
+#                  will be added to the include search path for compiling.
+# Notes:           Uncomment and edit this line to tell the compiler where
+#                  to find boost, or define it in your shell's init script.
+#BOOST_ROOT=/full/path/to/boost
+
+# Variable:        ICU_ROOT
+# Possible values: path to the directory where the ICU libraries are installed.
+#                  $ICU_ROOT/lib will be added to the library search path for
+#                  linking, and $ICU_ROOT/include will be added to the include
+#                  search path for compiling.
+# Notes:           Uncomment and edit this line to enable Unicode-compliant
+#                  casemapping in PORTAGEshared.
+
 # Variable:        PORTAGE_OPENMP
 # Possible values: specifies the compiler flag to enable OpenMP 
 #                  (requires g++ 4.2 or more recent)
-# Notes:           Comment out this line to enable multi-threading, currently
+# Notes:           Uncomment this line to enable multi-threading, currently
 #                  only used by rescore_train.  (Other programs are
 #                  parallelized via our various *-parallel.sh scripts).
 #PORTAGE_OPENMP?=-fopenmp
@@ -101,13 +118,22 @@ BIN_DIR := $(INSTALL_DIR)/bin
 DATA_DIR := $(INSTALL_DIR)/data
 PERL_LIB_DIR := $(INSTALL_DIR)/lib
 
+# If BOOST_ROOT is defined, pull boost from there
+ifdef BOOST_ROOT
+   BOOST_LIB_DIR = -L$(BOOST_ROOT)/lib
+   BOOST_INC_DIR = -isystem$(patsubst %/boost,%,$(wildcard $(BOOST_ROOT)/include/*/boost))
+   ifeq ($(strip $(BOOST_INC_DIR)),-I)
+      $(error Cannot find boost include directory under BOOST_ROOT=$(BOOST_ROOT).  Please set BOOST_ROOT to the directory where boost is installed)
+   endif
+endif
+
 # places to find things; include the -L flag, eg -L/my-other-lib-dir
 ifdef PORTAGE
-   OTHER_INC_DIRS = -I$(PORTAGE)/include
-   OTHER_LIB_DIRS = -L$(PORTAGE)/lib
+   OTHER_INC_DIRS = $(BOOST_INC_DIR) -isystem$(PORTAGE)/include
+   OTHER_LIB_DIRS = $(BOOST_LIB_DIR) -L$(PORTAGE)/lib
 else
-   OTHER_INC_DIRS = -I/home/portage/include
-   OTHER_LIB_DIRS = -L/home/portage/lib
+   OTHER_INC_DIRS = $(BOOST_INC_DIR) -isystem/home/portage/include
+   OTHER_LIB_DIRS = $(BOOST_LIB_DIR) -L/home/portage/lib
 endif
 
 # lib and include directories due to MODULE_DEPENDS
@@ -159,15 +185,26 @@ endif
 
 CC = gcc
 CXX = g++
+
+# OPTS is for compilation and linking options
 ifneq (,$(findstring CYGWIN,$(OSTYPE)))
-    OPTS = -O3 -Wall -Wsign-promo -Woverloaded-virtual $(MODULE_CF) $(CF)
+    OPTS = -O3 -fno-strict-aliasing -D$(OSTYPE) $(CF)
 else
-    OPTS = -O3 -fPIC -Wall -Wsign-promo -Woverloaded-virtual $(MODULE_CF) $(CF)
+    OPTS = -O3 -fPIC -fno-strict-aliasing -D$(OSTYPE) $(CF)
 endif
+# COPTS is for compilation only options
+COPTS = -Wall $(BOOST_CF) $(CFLAG_LOGGING) $(MODULE_CF)
+# LFLAGS is only for -L options: library search path for linking
 LFLAGS = -L. -L../utils $(MODULE_LIB_DIR) $(OTHER_LIB_DIRS)
+# IFLAGS is only for -I options: include search path
 IFLAGS = -I. -I../utils $(MODULE_INCLUDE) $(OTHER_INC_DIRS)
-CFLAGS =  $(IFLAGS) $(LFLAGS) -D$(OSTYPE) $(OPTS) $(BOOST_CF) $(CFLAG_LOGGING)
+
+# If you need to modify compiler options, do so in the above 4 variables, not
+# in the following 3!  CFLAGS is used by default to compile C source files,
+# CXXFLAGS for C++ source files, and LINKFLAGS for linking.
+CFLAGS = $(FIRST_CF) $(IFLAGS) $(COPTS) $(OPTS)
 CXXFLAGS = $(CFLAGS)
+LINKFLAGS = $(FIRST_CF) $(LFLAGS) $(MODULE_LF) $(OPTS)
 
 ifeq ($(OSTYPE),Darwin)
    LINKWITH = $(LIBS)
@@ -222,7 +259,7 @@ endif
 
 # External non-standard libs to link against, for instance ones in LIB_DIR.
 # DYNLIBS link to shared libraries, when these exist.
-# LIBS =
+# EXTRA_LIBS =
 # DYNLIBS =
 
 # Doxygen params file.
@@ -238,6 +275,12 @@ endif
 # Additional compile-time flags required for this library
 # MODULE_CF =
 
+# Additional link-time flags required for this library
+# MODULE_LF =
+
+# Additional files that make clean should delete
+# OTHER_GENERATED_FILES =
+
 # -----------------------------------------------------------------------------
 # Targets
 # -----------------------------------------------------------------------------
@@ -245,7 +288,7 @@ endif
 
 .PHONY: new all clean lib bin depend TAGS tags info doxy docs \
 	install export install_inc install_dyn_lib install_static_lib \
-	install_perl_lib install_bin install_doc
+	install_perl_lib install_bin install_doc test runcxxtest FORCE
 
 # Override the default suffix list, to remove .sh.  (The make manual says .sh
 # is a cludge for the SCCS revision control system, which we don't use.)
@@ -271,15 +314,22 @@ export: all install_inc install_static_lib install_dyn_lib
 new_install: clean
 	$(MAKE) install
 
+# Utility target
+FORCE::
+
 # remove everything that can be remade
 clean:
 	\rm -f $(OBJECTS) $(LIBRARY).{a,so} $(PROGRAMS) $(DYNPROGS) \
-	$(INFOFILES) $(DOCUMENTS) Makefile.depend *.aux *.bbl *.blg *.dvi *.log \
-	TAGS tags *~ *.o *.info-* core .cvsignore
+	$(INFOFILES) $(DOCUMENTS) Makefile.depend .cvsignore \
+        *.aux *.bbl *.blg *.dvi *.log TAGS tags *~ *.o *.info-* core core.* \
+        tests/cxxtestrunner.cc tests/cxxtestrunner $(OTHER_GENERATED_FILES) \
+	$(LEGACY_TESTS) $(foreach legacy_test, $(LEGACY_TESTS), $(legacy_test).o)
 
 # make the .cvsignore file, used by CVS to ignore certain files when updating
 .cvsignore: Makefile ../build/Makefile.incl
 	echo $(PROGRAMS) Makefile.depend .cvsignore *.pdf *.dvi *.aux *.bbl *.blg *.log *.eps | tr ' ' '\n' > $@
+	if [[ -d tests ]]; then echo .cvsignore cxxtestrunner{,.cc} | tr ' ' '\n' > tests/$@; fi
+	if [[ -d tests/legacy ]]; then echo .cvsignore $(foreach legacy_test, $(notdir $(LEGACY_TESTS)), $(legacy_test){,.o}) | tr ' ' '\n' > tests/legacy/$@; fi
 
 # make static and dynamic libraries
 lib: $(LIBRARY).a $(LIBRARY).so
@@ -300,19 +350,41 @@ endif
 $(LIBRARY).so:
 endif
 
+# Compile and execute unit test suites
+ifeq ($(strip $(wildcard tests/*.h)),)
+test:
+else
+CXXTEST_SOURCE=tests/cxxtestrunner.cc
+test: runcxxtest
+runcxxtest: tests/cxxtestrunner
+	tests/cxxtestrunner
+$(CXXTEST_SOURCE): tests/test*.h
+	cxxtestgen.pl --error-printer -o $@ $^
+tests/cxxtestrunner.o: tests/test*.h
+endif
+
+# Compile and execute legacy tests, if any
+run_%: % tests/data/%.out.txt FORCE
+	./$* 2>&1 | diff tests/data/$*.out.txt -
+legacy_%: tests/legacy/% tests/data/%.out.txt FORCE
+	$< 2>&1 | diff tests/data/$*.out.txt -
+LEGACY_TESTS_SOURCES=$(wildcard tests/legacy/*.cc)
+LEGACY_TESTS=$(basename $(LEGACY_TESTS_SOURCES))
+test: $(foreach legacy_test, $(notdir $(LEGACY_TESTS)), legacy_$(legacy_test))
+
 
 # make programs, linking to library if there is one, else to all object files
 bin: $(PROGRAMS) $(DYNPROGS)
 ifdef LIBRARY
-$(PROGRAMS): %: %.o $(LIBRARY).a $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).a)
-	$(CXX) $(CXXFLAGS) -o $@ $< $(LIBRARY).a $(LINKWITH) $(DYNLIBS)
+$(PROGRAMS) tests/cxxtestrunner $(LEGACY_TESTS): %: %.o $(LIBRARY).a $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).a)
+	$(CXX) $(LINKFLAGS) -o $@ $< $(LIBRARY).a $(LINKWITH) $(DYNLIBS)
 $(DYNPROGS): %: %.o $(LIBRARY).so $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).so)
-	$(CXX) $(CXXFLAGS) -o $@ $< $(LIBRARY).so $(LIBS) $(DYNLIBS)
+	$(CXX) $(LINKFLAGS) -o $@ $< $(LIBRARY).so $(LIBS) $(DYNLIBS)
 else
-$(PROGRAMS): %: %.o $(OBJECTS) $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).a)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJECTS) $< $(LINKWITH) $(DYNLIBS)
+$(PROGRAMS) tests/cxxtestrunner $(LEGACY_TESTS): %: %.o $(OBJECTS) $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).a)
+	$(CXX) $(LINKFLAGS) -o $@ $(OBJECTS) $< $(LINKWITH) $(DYNLIBS)
 $(DYNPROGS): %: %.o $(OBJECTS) $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).so)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJECTS) $< $(LIBS) $(DYNLIBS)
+	$(CXX) $(LINKFLAGS) -o $@ $(OBJECTS) $< $(LIBS) $(DYNLIBS)
 endif
 
 # make tags for finding various definitions in vi and related editors
@@ -364,9 +436,13 @@ endif
 
 # make a dependencies file for explicit inclusion at end of local Makefile
 # NB local make should do a "-include Makefile.depend" to get this stuff.
+# The perl filter is a work-around for a bad design in g++ -MM: it strips
+# the path of any c++ files in generating the .o name, which we don't want.
 depend:
 ifdef SOURCES
-	$(CXX) -MM $(CXXFLAGS) $(SOURCES) > Makefile.depend
+	$(CXX) -MM $(CXXFLAGS) $(SOURCES) $(CXXTEST_SOURCE) $(LEGACY_TESTS_SOURCES)| \
+	   perl -pe 'if ( /^(\S+)\.o: (\S+)\/\1\./ ) { print "$$2/" }' \
+	   > Makefile.depend &
 endif
 
 install_inc: $(INCLUDES)

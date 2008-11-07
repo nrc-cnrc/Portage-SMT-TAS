@@ -5,11 +5,12 @@
  * language models, and built-in distortion and length penalties.
  *
  * $Id$ *
+ *
  * Canoe Decoder
  *
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
@@ -17,15 +18,9 @@
 
 #include "basicmodel.h"
 #include "backwardsmodel.h"
-#include "phrasetable.h"
 #include "lm.h"
+#include "errors.h"
 #include <math.h>
-#include <vector>
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <ext/hash_map>
-#include <errors.h>
 
 using namespace Portage;
 using namespace std;
@@ -46,7 +41,7 @@ bool MarkedTranslation::operator==(const MarkedTranslation &b) const
 // needed for cow and elsewhere). Until a similar mechanism is developed for
 // models, it seems better to continue to do everything "manually" here, even
 // though this makes no use whatsoever of DecoderFeature's virtual
-// constructor...
+// constructor.
 
 void BasicModelGenerator::InitDecoderFeatures(const CanoeConfig& c)
 {
@@ -102,7 +97,7 @@ BasicModelGenerator* BasicModelGenerator::create(
    BasicModelGenerator *result;
 
    c.check_all_files();
-   assert (c.loadFirst || sents && marks);
+   assert (c.loadFirst || (sents && marks));
 
    if (c.backwards) {
       if (sents && marks)
@@ -116,7 +111,8 @@ BasicModelGenerator* BasicModelGenerator::create(
          result = new BasicModelGenerator(c);
    }
 
-   for (Uint i = 0; i < c.backPhraseFiles.size(); i++) {
+   // Load single prob phrase tables
+   for (Uint i = 0; i < c.backPhraseFiles.size(); ++i) {
       if (!c.forPhraseFiles.empty()) {
          if (!c.forwardWeights.empty()) {
             result->addTranslationModel(c.backPhraseFiles[i].c_str(),
@@ -143,8 +139,9 @@ BasicModelGenerator* BasicModelGenerator::create(
       }
    }
 
+   // Load multi prob phrase tables
    Uint weights_already_used = c.backPhraseFiles.size();
-   for (Uint i = 0; i < c.multiProbTMFiles.size(); i++) {
+   for ( Uint i = 0; i < c.multiProbTMFiles.size(); ++i ) {
       const Uint model_count =
          PhraseTable::countProbColumns(c.multiProbTMFiles[i].c_str()) / 2;
       vector<double> backward_weights, forward_weights;
@@ -172,7 +169,7 @@ BasicModelGenerator* BasicModelGenerator::create(
 
    assert ( weights_already_used == c.transWeights.size() );
    // load language models
-   for (Uint i = 0; i < c.lmFiles.size(); i++) {
+   for (Uint i = 0; i < c.lmFiles.size(); ++i) {
       result->addLanguageModel(c.lmFiles[i].c_str(), c.lmWeights[i], c.lmOrder);
 
       if (c.randomWeights)
@@ -326,13 +323,14 @@ void BasicModelGenerator::addMultiProbTransModel(
 void BasicModelGenerator::addLanguageModel(const char *lmFile, double weight,
    Uint limit_order, ostream *const os_filtered)
 {
-   if (!PLM::check_file_exists(lmFile))
+   if (!PLM::checkFileExists(lmFile))
       error(ETFatal, "Cannot read from language model file %s", lmFile);
    cerr << "loading language model from " << lmFile << endl;
    //time_t start_time = time(NULL);
    PLM *lm = PLM::Create(lmFile, &tgt_vocab, PLM::SimpleAutoVoc, LOG_ALMOST_0,
                          limitPhrases, limit_order, os_filtered);
    //cerr << " ... done in " << (time(NULL) - start_time) << "s" << endl;
+   assert(lm != NULL);
    lms.push_back(lm);
    lmWeightsV.push_back(weight);
 
@@ -368,8 +366,9 @@ BasicModel *BasicModelGenerator::createModel(
          it != decoder_features.end(); ++it)
       (*it)->newSrcSent(src_sent, phrases);
 
-   for (Uint i=0;i<lms.size();++i)
+   for (Uint i=0;i<lms.size();++i) {
       lms[i]->clearCache();
+   }
 
    double **futureScores = precomputeFutureScores(phrases, src_sent.size());
 
@@ -402,10 +401,10 @@ vector<PhraseInfo *> **BasicModelGenerator::createAllPhraseInfos(
    // when creating default translations
    vector<Range>::const_iterator rangeIt = rangesToSkip.begin();
 
-   for (Uint i = 0; i < src_sent.size(); i++)
+   for (Uint i = 0; i < src_sent.size(); ++i)
    {
       while (rangeIt != rangesToSkip.end() && rangeIt->end <= i)
-         rangeIt++;
+         ++rangeIt;
 
       if ( ( result[i][0].empty() &&
              (rangeIt == rangesToSkip.end() || i < rangeIt->start) )
@@ -502,7 +501,7 @@ double **BasicModelGenerator::precomputeFutureScores(
    vector<PhraseInfo *> **phrases, Uint sentLength)
 {
    double **result = CreateTriangularArray<double>()(sentLength);
-   for (Uint i = 0; i < sentLength; i++)
+   for (Uint i = 0; i < sentLength; ++i)
    {
       for (int j = i; j >= 0; j--)
       {
@@ -601,7 +600,7 @@ double **BasicModelGenerator::precomputeFutureScores(
 
    if (verbosity >= 3)
    {
-      for (Uint i = 0; i < sentLength; i++)
+      for (Uint i = 0; i < sentLength; ++i)
       {
          for (Uint j = 0; j < sentLength - i; j++)
          {
@@ -832,7 +831,7 @@ BasicModel::BasicModel(const vector<string> &src_sent,
 
 BasicModel::~BasicModel()
 {
-   for (Uint i = 0; i < src_sent.size(); i++) {
+   for (Uint i = 0; i < src_sent.size(); ++i) {
       for (Uint j = 0; j < src_sent.size() - i; j++) {
          for (vector<PhraseInfo *>::iterator it = phrases[i][j].begin(); it !=
                phrases[i][j].end(); it++) {
@@ -1054,7 +1053,7 @@ void BasicModel::getTotalFeatureFunctionVals(vector<double> &vals,
       vector<double> last;
       getTotalFeatureFunctionVals(last, *(trans.back));
       assert(vals.size() == last.size());
-      for (Uint i = 0; i < last.size(); i++) {
+      for (Uint i = 0; i < last.size(); ++i) {
          vals[i] += last[i];
       }
    }

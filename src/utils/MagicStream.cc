@@ -12,7 +12,7 @@
  *             - to read/write from a pipe
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2006, Her Majesty in Right of Canada
@@ -227,21 +227,34 @@ void MagicStreamBase::makeFile(const string& filename)
    stream = stream_type(tmp, close_deleter());
 }
 
+bool MagicStreamBase::isLzma(const string& cmd)
+{
+   const size_t dot_pos = cmd.rfind(".");
+   return dot_pos != string::npos
+          && cmd.substr(dot_pos) == ".lzma";
+}
+
 bool MagicStreamBase::isBzip2(const string& cmd)
 {
-   return cmd.rfind(".") != string::npos
-          && (cmd.substr(cmd.rfind(".")) == ".bz"
-              || cmd.substr(cmd.rfind(".")) == ".bzip2"
-              || cmd.substr(cmd.rfind(".")) == ".bz2");
+   const size_t dot_pos = cmd.rfind(".");
+   if ( dot_pos == string::npos ) {
+      return false;
+   } else {
+      const string suffix(cmd.substr(dot_pos));
+      return suffix == ".bz2" || suffix == ".bzip2" || suffix == ".bz";
+   }
 }
 
 bool MagicStreamBase::isZip(const string& cmd)
 {
    // Unsupported extensions are: -gz, -z, _z
-   return cmd.rfind(".") != string::npos
-          && (cmd.substr(cmd.rfind(".")) == ".gz"
-              || cmd.substr(cmd.rfind(".")) == ".z"
-              || cmd.substr(cmd.rfind(".")) == ".Z");
+   const size_t dot_pos = cmd.rfind(".");
+   if ( dot_pos == string::npos ) {
+      return false;
+   } else {
+      const string suffix(cmd.substr(dot_pos));
+      return suffix == ".gz" || suffix == ".z" || suffix == ".Z";
+   }
 }
 
 void MagicStreamBase::setQuiet(bool bQuiet)
@@ -291,6 +304,15 @@ void iMagicStream::open(const string& s)
    }
    else if (s.length()>0 && *s.rbegin() == '|') {
       makePipe(s.substr(0, s.length()-1));
+   }
+   else if (isLzma(s)) {
+      std::filebuf* tmp = new std::filebuf;
+      assert(tmp);
+      if (tmp->open(s.c_str(), bufferMode())) {
+         tmp->close(); // File exists we must close it to now use it with gzip
+         delete tmp; tmp = NULL;
+         makePipe("lzma -4 -cqdf " + s);
+      }
    }
    else if (isBzip2(s)) {
       std::filebuf* tmp = new std::filebuf;
@@ -378,6 +400,11 @@ void oMagicStream::open(const string& s)
    }
    else if (s.length()>0 && s[0] == '|') {
       makePipe(s.substr(1));
+   }
+   else if (isLzma(s)) {
+      string command("lzma -cqf > ");
+      command += s;
+      makePipe(command);
    }
    else if (isBzip2(s)) {
       string command("bzip2 -cqf > ");

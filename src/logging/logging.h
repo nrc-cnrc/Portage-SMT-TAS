@@ -45,38 +45,52 @@ namespace Portage
    //       Logging::log(__FILE__, __LNE__, mylogger, Logging:LogLevel::VERBOSE1, "message without ellipsis");
    //    and not the invalid version (compiler error):
    //       Logging::log(__FILE__, __LNE__, mylogger, Logging:LogLevel::VERBOSE1, "message without ellipsis", );
-   #define LOG(logger, msg, s...);
-   #define LOG_DEBUG(logger, msg, s...);
-   #define LOG_INFO(logger, msg, s...);
-   #define LOG_WARN(logger, msg, s...);
-   #define LOG_ERROR(logger, msg, s...);
-   #define LOG_FATAL(logger, msg, s...);
+   #define LOG(logger, msg, s...) Logging::log("BAD", -1, logger, 9, msg, ## s);
+   #define LOG_DEBUG(logger, msg, s...) Logging::log("BAD", -1, logger, 9, msg, ## s);
+   #define LOG_INFO(logger, msg, s...) Logging::log("BAD", -1, logger, 9, msg, ## s);
+   #define LOG_WARN(logger, msg, s...) Logging::log("BAD", -1, logger, 9, msg, ## s);
+   #define LOG_ERROR(logger, msg, s...) Logging::log("BAD", -1, logger, 9, msg, ## s);
+   #define LOG_FATAL(logger, msg, s...) Logging::log("BAD", -1, logger, 9, msg, ## s);
 
 
-   #define LOG_VERBOSE1(logger, msg, s...);
-   #define LOG_VERBOSE2(logger, msg, s...);
-   #define LOG_VERBOSE3(logger, msg, s...);
-   #define LOG_VERBOSE4(logger, msg, s...);
-   #define LOG_VERBOSE5(logger, msg, s...);
-   #define LOG_VERBOSE6(logger, msg, s...);
-   #define LOG_VERBOSE7(logger, msg, s...);
-   #define LOG_VERBOSE8(logger, msg, s...);
-   #define LOG_VERBOSE9(logger, msg, s...);
+   #define LOG_VERBOSE1(logger, msg, s...) Logging::log("BAD", -1, logger, 9, msg, ## s);
+   #define LOG_VERBOSE2(logger, msg, s...) Logging::log("BAD", -1, logger, 9, msg, ## s);
+   #define LOG_VERBOSE3(logger, msg, s...) Logging::log("BAD", -1, logger, 9, msg, ## s);
+   #define LOG_VERBOSE4(logger, msg, s...) Logging::log("BAD", -1, logger, 9, msg, ## s);
+   #define LOG_VERBOSE5(logger, msg, s...) Logging::log("BAD", -1, logger, 9, msg, ## s);
+   #define LOG_VERBOSE6(logger, msg, s...) Logging::log("BAD", -1, logger, 9, msg, ## s);
+   #define LOG_VERBOSE7(logger, msg, s...) Logging::log("BAD", -1, logger, 9, msg, ## s);
+   #define LOG_VERBOSE8(logger, msg, s...) Logging::log("BAD", -1, logger, 9, msg, ## s);
+   #define LOG_VERBOSE9(logger, msg, s...) Logging::log("BAD", -1, logger, 9, msg, ## s);
+
+   #define LOG_ARRAY(logger, level, name, begin, end);
 
    #define LOG_ASSERT(logger, assertion, pattern, s...) assert(#assertion);
 
 
    namespace Logging
    {
+      /// Stub class to replace LogLevel
+      struct LogLevel {
+         static const int VERBOSE1, VERBOSE2, VERBOSE3;   ///< STUBS
+         static const int VERBOSE4, VERBOSE5, VERBOSE6;   ///< STUBS
+         static const int VERBOSE7, VERBOSE8, VERBOSE9;   ///< STUBS
+      };
+      /// Stub class to replace Level
+      struct Level { 
+         static const int ON, OFF; ///< STUBS
+      };
+
       /// Stub when not using/compiling logging.
       class dumbLogger
       {
          public:
             /// Stub when not using/compiling logging.
             template <class T>
-            void setLevel(const T& t) {}
+            void setLevel(const T&) {}
             /// Stub when not using/compiling logging.
-            inline bool isDebugEnabled() {return false;}
+            inline bool isDebugEnabled() { return false; }
+            inline bool isEnabledFor(int) { return false; }
       };
       typedef unsigned    level;   ///< stub when not using/compiling logging
       typedef dumbLogger* logger;  ///< stub when not using/compiling logging
@@ -102,6 +116,17 @@ namespace Portage
          const char* const pattern,
          ...)
       { }
+
+      /// Stub when not using/compiling logging.
+      template <class Iterator>
+      inline void log_array(const char* const filename,
+         const int nline,
+         logger& aLogger,
+         const level& aLevel,
+         const char* const arrayName,
+         Iterator begin,
+         Iterator end)
+      {}
 
       /// Stub when not using/compiling logging.
       void init();
@@ -135,6 +160,8 @@ namespace Portage
    #define LOG_VERBOSE7(logger, msg, s...) Logging::log(__FILE__, __LINE__, logger, Logging::LogLevel::VERBOSE7, msg, ## s);
    #define LOG_VERBOSE8(logger, msg, s...) Logging::log(__FILE__, __LINE__, logger, Logging::LogLevel::VERBOSE8, msg, ## s);
    #define LOG_VERBOSE9(logger, msg, s...) Logging::log(__FILE__, __LINE__, logger, Logging::LogLevel::VERBOSE9, msg, ## s);
+
+   #define LOG_ARRAY(logger, level, name, begin, end) Logging::log_array(__FILE__, __LINE__, logger, level, name, begin, end);
 
    #define LOG_ASSERT(logger, assertion, pattern, s...) { \
       if (!(assertion)) { \
@@ -200,6 +227,33 @@ namespace Portage
                va_end(params);
                aLogger->forcedLog(aLevel, szBuffer, filename, nline);
             }
+         }
+      }
+
+      /**
+       * LOG an array.
+       * @param filename   file name from which the log is emitted
+       * @param nline      line number from which the log is emitted
+       * @param aLogger    a logger in which to log the event
+       * @param aLevel     severity of log event
+       * @param arrayName  Name of the array
+       * @param begin      start of the array
+       * @param end        one pass the end of the array
+       */
+      template <class Iterator>
+      inline void log_array(const char* const filename,
+         const int nline,
+         logger& aLogger,
+         const level& aLevel,
+         const char* const arrayName,
+         Iterator begin,
+         Iterator end)
+      {
+         if (aLogger->isEnabledFor(aLevel)) {
+            std::ostringstream oss;
+            oss << arrayName << ":";
+            for ( ; begin != end; ++begin ) oss << " " << *begin;
+            aLogger->forcedLog(aLevel, oss.str().c_str(), filename, nline);
          }
       }
 

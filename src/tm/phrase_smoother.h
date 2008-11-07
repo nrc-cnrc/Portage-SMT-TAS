@@ -13,7 +13,7 @@
  * to me.
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
@@ -38,7 +38,7 @@ public:
 
    // probabilities are represented as floats in canoe, so don't go below
    // FLT_MIN!
-   static const double VERY_SMALL_PROB; // = FLT_MIN;
+   static const double VERY_SMALL_PROB = FLT_MIN;
 
 
    /// Destructor.
@@ -60,6 +60,7 @@ public:
     */
    virtual double probLang2GivenLang1(
       const typename PhraseTableGen<T>::iterator& it) = 0;
+
 };
 
 
@@ -100,6 +101,7 @@ class PhraseSmootherFactory
       PF pf;			///< pointer to create() function
       string tname;		///< name of derived class
       string help;		///< describes args for derived class ctor
+      bool uses_counts;         ///< true iff smoother looks at jpt counts
    };
    static TInfo tinfos[];	///< array containing all known smoothers
 
@@ -109,7 +111,7 @@ public:
    /**
     * Construct with phrase table and IBM models in both directions.
     * @param pt
-    * @param ibm_lang2_given_lang1 May point to IBM1 or IBM2, or be NULL
+    * @param ibm_lang2_given_lang1 May point to IBM1, IBM2, HMM or be NULL
     * @param ibm_lang1_given_lang2 ""
     * @param verbose level: 0 for no messages, 1 for basic, 2 for detail
     */
@@ -154,6 +156,12 @@ public:
     * @return Returns help message describing a given smoother method.
     */
    static string help(const string& tname);
+
+   /**
+    * Return true if given smoother method looks at joint counts from the
+    * phrasetable (as opposed to just the phrases, like the IBM smoothers).
+    */
+   static bool usesCounts(const string& tname_and_args);
 
    /**
     * Info functions.  Self explanatory named functions.
@@ -372,7 +380,7 @@ public:
 
 //-----------------------------------------------------------------------------
 /**
- * IBM lexical smoothing. Like Zens-Ney, but use the standard IBM1/2
+ * IBM lexical smoothing. Like Zens-Ney, but use the standard IBM1/2/HMM
  * formula to calculate p(phrase1|phrase2).
  */
 template<class T>

@@ -2,22 +2,41 @@
 
 # George Foster
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2007, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2007, Her Majesty in Right of Canada
 
 ##
-## best-rr-val rescore-results
+## best-rr-val [-w] rescore-results
 ##
-## Pick out the best line in a rescore-results file
+## Pick out the best line in a rescore-results file.
+## Note: Use all-best-rr-vals to loop over multiple experiments.
+## 
+## Options:
+## -w  Print weights only, minus canoe switches [print bleu score only]
 ##
 
-if ($#argv != 1) then
+set wts = 0
+if ($#argv > 0 && "$1" == "-w") then
+    set wts = 1
+    shift
+endif
+
+if ($#argv == 0 || "$1" == -h || "$1" == -help) then
    cat $0 | egrep '^##' | cut -c4-
    exit 1
 endif
 
-set bleu = `sort -k3,3 -gr $1 | head -1 | cut -d' ' -f3`
-set nl = `wc -l < $1`
-echo "$bleu $1 ($nl iters)"
+if (! -f $1) then
+   echo $0\: $1\: No such file or directory
+   exit 2
+endif
+
+if ($wts == 0) then
+   set bleu = `sort -k3,3 -gr $1 | head -1 | cut -d' ' -f3`
+   set nl = `wc -l < $1`
+   echo "$bleu $1 ($nl iters)"
+else
+   sort -k3,3 -gr $1 | head -1 | cut -d' ' -f4- | perl -pe 's/-[a-zA-Z]+//go;s/:/ /go;'
+endif

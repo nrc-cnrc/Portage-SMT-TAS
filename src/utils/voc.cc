@@ -8,7 +8,7 @@
  * Map strings <-> unique indexes
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
@@ -25,6 +25,91 @@ void Voc::deleteWords()
 {
    for (Uint i = 0; i < words.size(); ++i)
       delete[] words[i];
+}
+
+Voc::Voc() {
+}
+
+Voc::~Voc() {
+   deleteWords();
+}
+
+void Voc::read(const string& filename) {
+   iSafeMagicStream istr(filename.c_str());
+   read(istr);
+}
+
+void Voc::read(istream& istr) {
+   string line;
+   while (getline(istr, line)) {add(line.c_str());}
+}
+
+void Voc::write(const string& filename, const char* delim) const {
+   oSafeMagicStream ostr(filename);
+   write(ostr, delim);
+}
+
+void Voc::write(ostream& os, const char* delim) const {
+   ostream_iterator<const char *> outStr(os, delim);
+   copy(words.begin(), words.end(), outStr);
+}
+
+static const char magic_string[] = "Portage Voc stream v1.0";
+
+void Voc::writeStream(ostream& os) const {
+   os << magic_string << nf_endl;
+   os << size() << nf_endl;
+   write(os);
+   os << "End of " << magic_string << endl;
+}
+
+void Voc::readStream(istream& is, const char* stream_name) {
+   clear();
+   string line;
+
+   // header
+   if ( !getline(is, line) )
+      error(ETFatal, "No input in stream %s; expected Voc magic line",
+            stream_name);
+   if ( line != magic_string )
+      error(ETFatal, "Magic line does not match Voc magic line in %s: %s",
+            stream_name, line.c_str());
+   Uint count;
+   is >> count;
+   if ( !getline(is, line) )
+      error(ETFatal, "Unexpected end of file right after Voc magic line in %s",
+            stream_name);
+   if ( line != "" ) 
+      error(ETFatal, "Unexpected content right after Voc magic line in %s: %s",
+            stream_name, line.c_str());
+
+   // Vocabulary itself
+   Uint line_no(1);
+   while ( count > 0 ) {
+      ++line_no;
+      if ( !getline(is, line) )
+         error(ETFatal, "Unexpected end of file in %s, %u lines after "
+               "Voc magic line; expected %u more words",
+               stream_name, line_no, count);
+      if ( line == "" )
+         error(ETFatal, "Unexpected blank line in %s, %u lines after "
+               "Voc magic line", stream_name, line_no);
+      if ( add(line.c_str()) != line_no-2 )
+         error(ETFatal, "Unexpected duplicate line (%s) in %s, %u lines after "
+               "Voc magic line; got index %d, expected %d",
+               line.c_str(), stream_name, line_no,
+               index(line.c_str()), (line_no-2));
+      --count;
+   }
+
+   // footer
+   if ( !getline(is, line) )
+      error(ETFatal, "Missing footer in Voc stream %s, %u lines after magic line",
+            stream_name, line_no);
+   if ( line != string("End of ") + magic_string )
+      error(ETFatal, "Bad footer in Voc stream %s, %u lines after magic line: %s",
+            stream_name, line_no, line.c_str());
+
 }
 
 Uint Voc::add(const char* word) {
@@ -55,6 +140,32 @@ void Voc::index(const vector<string>& src, vector<Uint>& dest) const
    typedef vector<string>::const_iterator SRC_IT;
    for (SRC_IT it(src.begin()); it!=src.end(); ++it)
       dest.push_back(index(it->c_str()));
+}
+
+void Voc::clear() {
+   deleteWords();
+   words.clear();
+   map.clear();
+}
+
+void Voc::swap(Voc& that) {
+   words.swap(that.words);
+   map.swap(that.map);
+}
+
+Voc::Voc(const Voc& that) {
+   *this = that;
+}
+
+Voc& Voc::operator=(const Voc& that) {
+   clear();
+   words.resize(that.words.size(), NULL);
+   for ( Uint i(0); i < words.size(); ++i ) {
+      words[i] = strdup_new(that.words[i]);
+      pair<MapIter,bool> res = map.insert(make_pair(words[i], i));
+      assert(res.second);
+   }
+   return *this;
 }
 
 bool Voc::test() {

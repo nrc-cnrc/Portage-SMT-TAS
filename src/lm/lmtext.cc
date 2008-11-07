@@ -6,7 +6,7 @@
  * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2006, Her Majesty in Right of Canada
@@ -14,120 +14,22 @@
 
 #include "lmtext.h"
 #include <file_utils.h>
-#include <stdio.h>
-#include <stdlib.h>
-//#include <dmalloc.h>
 
 using namespace Portage;
 using namespace std;
-
-//template<class F, class S>
-//pair<F,S> operator+(const pair<F,S> &x, const pair<F,S> &y) {
-//   return make_pair<F,S>(x.first + y.first, x.second + y.second);
-//}
-
-//template<class F, class S>
-//ostream& operator<<(ostream &os, const pair<F,S> &x) {
-//   os << "<" << x.first << "," << x.second << ">";
-//   return os;
-//}
-
-
-float LMText::wordProb(Uint word, const Uint context[], Uint context_length)
-{
-   // Reminder: context is backwards!
-   // This is desirable since we work backwards in the trie.
-
-   TrieKeyT query[context_length+1];
-   query[0] = word;
-   for (Uint i = 0; i < context_length; ++i)
-      query[i+1] = context[i];
-
-   // For open-vocabulary language models, map unknown words to UNK_Symbol
-   if ( complex_open_voc_lm && vocab ) {
-      Uint UNK_index = vocab->index(UNK_Symbol);
-      float dummy;
-      for (Uint i = 0; i < context_length + 1; ++i)
-         if ( ! trie.find(query+i, 1, dummy) )
-            query[i] = UNK_index;
-   }
-
-   return wordProbQuery(query, context_length+1);
-} // LMText::wordProb()
-
-float LMText::wordProbQuery(const Uint query[], Uint query_length) {
-   assert(query_length > 0);
-
-   // p(w|context) is defined recursively as follows:
-   // p(w|w1,..,wn) =
-   //    if (exists "w1,..,wn,w")    prob("w1,..,wn,w")
-   //    else if (exists "w1,..,wn") bo("w1,..,wn") + p(w|w2,..,wn)
-   //    else                        p(w|w2,..,wn)
-   // with bottom of the recursion defined as:
-   // p(w) = if (exists "w") prob(w) else oov_unigram_prob;
-
-   // We can simplify the recursive rule by definig bo("w1,..,wn") = 0 whenever
-   // "w1,..,wn" doesn't exist.  Then we get:
-   // p(w|w1,..,wn) =
-   //    if (exists "w1,..,wn,w")    prob("w1,..,wn,w")
-   //    else                        bo("w1,..,wn") + p(w|w2,..,wn)
-
-   // Let i be the largest value such that "wi,..,wn,w" exists (with i==n+1
-   // meaning either that only "w" exists or that even "w" doesn't exist).
-   // Let prob("wi,..,w") be p("w") as defined above when i==n+1.
-   // We can then unroll the recursion and obtain the following:
-   //    p(w|w1,..,wn) = prob("wi,..,w") + sum j=1..i-1 (bo("wj,..,wn"))
-
-   // The above formula is what is implemented below.
-
-   float prob(0);
-   Uint depth;
-   if ( trie.find(query, query_length, prob, &depth) ) {
-      return prob;
-   } else {
-      // if depth==0, we need to handle oov_unigram_prob here
-      if ( depth == 0 ) {
-         prob = oov_unigram_prob;
-         depth = 1;
-      }
-
-      // depth == length of longest found prefix, i.e., n+1 - (i-1) = n+2-i
-      // context_length == n
-      // so i = n+2-depth = context_length + 2 - depth
-      // but we don't need to calculate this, since j = 1 .. i-1 is more simply
-      // expressed as bo_depth = context_length down to depth
-
-      Uint bo_min_depth = depth;
-      Uint bo_max_depth = query_length - 1;
-      float bo_sum_value = trie.sum_internal_node_values(
-         query+1, bo_min_depth, bo_max_depth);
-
-      return
-         prob +          // prob("wi,..,w")
-         bo_sum_value;   // sum j=1..i-1 (bo("wj,..,wn"))
-   }
-} // LMText::wordProbQuery
-
-LMText::LMText(VocabFilter *vocab, OOVHandling oov_handling,
-               double oov_unigram_prob)
-   : PLM(vocab, oov_handling, oov_unigram_prob)
-{ }
-
-Uint LMText::global_index(Uint local_index) {
-   return local_index;
-}
 
 
 LMText::LMText(const string& lm_file_name, VocabFilter *vocab,
                OOVHandling oov_handling, double oov_unigram_prob,
                bool limit_vocab, Uint limit_order,
                ostream *const os_filtered, bool quiet)
-   : PLM(vocab, oov_handling, oov_unigram_prob)
-   , trie(12)
+   : LMTrie(vocab, oov_handling, oov_unigram_prob)
 {
    assert(vocab);
    read(lm_file_name, limit_vocab, limit_order, os_filtered, quiet);
+   //dump_trie_to_cerr();
 }
+
 
 void LMText::read(const string& lm_file_name, bool limit_vocab,
                   Uint limit_order, ostream *const os_filtered, bool quiet)
@@ -172,12 +74,10 @@ void LMText::read(const string& lm_file_name, bool limit_vocab,
          continue;
       Uint order;
       Uint count;
-      vector<string> tokens;
-      split(line, tokens);
-      if ( tokens.size() != 2 || tokens[0] != "ngram" ||
-           2 != sscanf(tokens[1].c_str(), "%u=%u", &order, &count) )
+      if ( sscanf(line.c_str(), "ngram %u=%u", &order, &count) != 2 )
          error(ETFatal, "Bad \\data\\ section in %s: %s not in 'ngram N=M' format",
             lm_file_name.c_str(), line.c_str());
+
       if ( order != ngram_counts.size() + 1 )
          error(ETFatal, "Bad \\data\\ section in %s: %s should have been %u-gram counts",
             lm_file_name.c_str(), line.c_str(), (ngram_counts.size() + 1));
@@ -192,6 +92,7 @@ void LMText::read(const string& lm_file_name, bool limit_vocab,
    }
    vocab->setMaxNgram(gram_order);
    vocab->resetDiscardingCount();
+   hits.init(getOrder());
 
    //cerr << trie.getSizeOfs() << endl;
 
@@ -206,7 +107,7 @@ void LMText::read(const string& lm_file_name, bool limit_vocab,
             lm_file_name.c_str(), order);
       stringstream ss;
       ss << "\\" << order << "-grams:";
-      string ngram_line = ss.str();
+      const string ngram_line = ss.str();
 
       do {
          line = trim(line);
@@ -224,12 +125,10 @@ void LMText::read(const string& lm_file_name, bool limit_vocab,
       float prob;
       Uint reversed_phrase[order];
       float bo_wt;
-      bool blank;
       bool bo_present;
-      while(!in.eof()) {
-         readLine(in, prob, order, reversed_phrase, bo_wt, blank, bo_present,
-                  limit_vocab, tmp_os_filtered);
-         if ( blank ) break;
+      while(!in.eof()
+         && readLine(in, prob, order, reversed_phrase, bo_wt, bo_present,
+                  limit_vocab, tmp_os_filtered)) {
          // if we are not filtering add to trie
          if (os_filtered == NULL)
          {
@@ -279,12 +178,13 @@ void LMText::read(const string& lm_file_name, bool limit_vocab,
    }
 } // LMText::read
 
+
 // Ugly, yes, but must be lightning fast, so too bad, that's the way it is!
 // This function gave me a 33% speed-up of LM load time over the PLM::readLine
 // alternative, which makes it well worth the ugly code.
-void LMText::readLine(
+bool LMText::readLine(
    istream &in, float &prob, Uint order, Uint phrase[/*order*/],
-   float &bo_wt, bool &blank, bool &bo_present, bool limit_vocab,
+   float &bo_wt, bool &bo_present, bool limit_vocab,
    ostream* const os_filtered
 ) {
    static string line;
@@ -292,18 +192,21 @@ void LMText::readLine(
    // limit_vocab is set).  If limit_vocab and per_sentence_vocab != NULL, the
    // intersection of sentence sets for each word must also be non empty.
    for(;;) {
-      bool eof = ! getline(in, line);
+      if (in.peek() == '\\') {
+         cerr << "Next n" << endl;  // SAM DEBUG
+         return false;
+      }
+
+      const bool eof = ! getline(in, line);
       //cerr << "READ: " << line << endl;
-      if (eof || line == "") {
-         blank = true;
-         return;
+      if (eof || line.empty()) {
+         continue;
       } else {
          // This was done using split, but that's way too slow -- so we do it
          // the old but fast C way instead.
          // WARNING: this code writes over the const char* returned by
          // line.c_str().  This is OK because we don't touch line again until
          // the next getline(), which resets it.
-         blank = false;
          char* phrase_pos;
 
          // read the prob at the beginning of the line
@@ -371,37 +274,6 @@ void LMText::readLine(
       cerr << " " << phrase[i] << "/" << vocab->word(phrase[i]) ;
    cerr << endl;
    */
+
+   return true;
 } // LMText::readLine
-
-
-void LMText::write_binary(const string& binlm_file_name) const
-{
-   cerr << trie.getStats() << endl;
-
-   // We use a regular output file stream because we need a seekable output
-   // stream.  Can be compressed separately, after, if desired.
-   ofstream ofs(binlm_file_name.c_str());
-   if (!ofs)
-      error(ETFatal, "unable to open %s for writing", binlm_file_name.c_str());
-
-   // Write the "magic number" (or string...)
-   ofs << "Portage BinLM file, format v1.0" << endl;
-
-   // Write out the order of the model
-   ofs << "Order = " << gram_order << endl;
-
-   // Write out the vocabulary in plain text
-   ofs << "Vocab size = " << vocab->size() << endl;
-   vocab->write(ofs);
-   ofs << endl;
-
-   // Write out the trie itself - this part of the file is binary
-   Uint nodes_written = trie.write_binary(ofs);
-
-   ofs << endl << "End of Portage BinLM file.  Internal node count="
-       << nodes_written << endl;
-
-   cerr << "Wrote out " << nodes_written << " internal nodes" << endl;
-
-} // LMText::write_binary
-

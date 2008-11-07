@@ -10,7 +10,7 @@
  * into 2 conditional probability tables (as required by canoe).
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
@@ -24,14 +24,15 @@
 #include "phrase_smoother.h"
 #include "phrase_smoother_cc.h"
 #include "phrase_table_writer.h"
+#include "hmm_aligner.h"
 
 using namespace Portage;
 using namespace std;
 
 static char help_message[] = "\n\
-joint2cond_phrase_tables [-Hvijz][-1 l1][-2 l2][-o name][-s 'meth args']\n\
-                         [-ibm n][-ibm_l2_given_l1 m][-ibm_l1_given_l2 m]\n\
-                         [-tmtext][-multipr d][jtable]\n\
+joint2cond_phrase_tables [-Hvijz][-[no-]sort][-1 l1][-2 l2][-o name][-s 'meth args']\n\
+                         [-ibm n][-hmm][-ibm_l2_given_l1 m][-ibm_l1_given_l2 m]\n\
+                         [-prune1 n][-tmtext][-multipr d][jtable]\n\
 \n\
 Convert joint-frequency phrase table <jtable> (stdin if no <jtable> parameter\n\
 given) into two standard conditional-probability phrase tables\n\
@@ -44,6 +45,8 @@ Options:\n\
 -H    List available smoothing methods and quit.\n\
 -v    Write progress reports to cerr.\n\
 -i    Counts are integers [counts are floating point]\n\
+-prune1  Prune so that each language1 phrase has at most n translations. This is\n\
+      based on joint frequencies, and is done right after reading in the table.\n\
 -j    Write global joint frequency phrase table to stdout (useful for combining\n\
       multiple tables cat'd to <jtable>).\n\
 -z    Compress the output files[don't]\n\
@@ -53,7 +56,12 @@ Options:\n\
 -s    Smoothing method for conditional probs. Use -H for list of methods.\n\
       Multiple methods may be specified by using -s repeatedly, but these are\n\
       only useful if -multipr output is selected. [RFSmoother]\n\
--ibm  Use IBM model <n>: 1 or 2 [2]\n\
+-[no-]sort Sort/don't sort phrase tables on the source phrase. [sort]\n\
+-ibm  Use IBM model <n> for lexical smoothing: 1 or 2\n\
+-hmm  Use HMM model for lexical smoothing\n\
+      [if, for both models provided with -ibm_l2_given_l1 and -ibm_l1_given_l2,\n\
+      <model>.pos doesn't exist and <model>.dist does, -hmm is assumed,\n\
+      otherwise -ibm 2 is the default]\n\
 -ibm_l2_given_l1  Name of IBM model for language 2 given language 1 [none]\n\
 -ibm_l1_given_l2  Name of IBM model for language 1 given language 2 [none]\n\
 -tmtext     Write TMText format phrase tables (delimited text files)\n\
@@ -73,11 +81,13 @@ Options:\n\
 static bool verbose = false;
 static bool int_counts = false;
 static bool joint = false;
+static Uint prune1 = 0;
 static string lang1("en");
 static string lang2("fr");
 static string name("phrases");
 static vector<string> smoothing_methods;
-static Uint ibm_num = 2;
+static Uint ibm_num = 42; // 42 means uninitialized-getArgs will set its value.
+static bool use_hmm = false;
 static string ibm_l2_given_l1;
 static string ibm_l1_given_l2;
 static bool tmtext_output = false;
@@ -86,6 +96,7 @@ static bool force = false;
 static string in_file;
 static bool compress_output = false;
 static string extension(".gz");
+static bool sorted(true);
 
 static void getArgs(int argc, char* argv[]);
 void delete_or_error_if_exists(const string& filename);
@@ -135,14 +146,32 @@ void doEverything(const char* prog_name)
            << pt.numLang2Phrases() << " " << lang2 << " phrases" << endl;
    }
 
+   if (prune1) {
+      if (verbose)
+         cerr << "pruning to best " << prune1 << "translations" << endl;
+      pt.pruneLang2GivenLang1(prune1);
+   }
+
+   if (joint)
+      pt.dump_joint_freqs(cout);
+
    IBM1* ibm_1 = NULL;
    IBM1* ibm_2 = NULL;
-   if (ibm_num == 1) {
-      if (ibm_l2_given_l1 != "") ibm_1 = new IBM1(ibm_l2_given_l1);
-      if (ibm_l1_given_l2 != "") ibm_2 = new IBM1(ibm_l1_given_l2);
-   } else {
-      if (ibm_l2_given_l1 != "") ibm_1 = new IBM2(ibm_l2_given_l1);
-      if (ibm_l1_given_l2 != "") ibm_2 = new IBM2(ibm_l1_given_l2);
+   if ( ibm_l2_given_l1 != "" || ibm_l1_given_l2 != "" ) {
+      if (use_hmm) {
+         if (verbose) cerr << "Loading HMM models" << endl;
+         if (ibm_l2_given_l1 != "") ibm_1 = new HMMAligner(ibm_l2_given_l1);
+         if (ibm_l1_given_l2 != "") ibm_2 = new HMMAligner(ibm_l1_given_l2);
+      } else if (ibm_num == 1) {
+         if (verbose) cerr << "Loading IBM1 models" << endl;
+         if (ibm_l2_given_l1 != "") ibm_1 = new IBM1(ibm_l2_given_l1);
+         if (ibm_l1_given_l2 != "") ibm_2 = new IBM1(ibm_l1_given_l2);
+      } else if (ibm_num == 2) {
+         if (verbose) cerr << "Loading IBM2 models" << endl;
+         if (ibm_l2_given_l1 != "") ibm_1 = new IBM2(ibm_l2_given_l1);
+         if (ibm_l1_given_l2 != "") ibm_2 = new IBM2(ibm_l1_given_l2);
+      } else
+         error(ETFatal, "Invalid option: -ibm %d", ibm_num);
    }
 
    PhraseSmootherFactory<T> smoother_factory(&pt, ibm_1, ibm_2, verbose);
@@ -169,12 +198,22 @@ void doEverything(const char* prog_name)
 
    if (multipr_output == "fwd" || multipr_output == "both") {
       string filename = makeFinalFileName(name + "." + lang1 + "2" + lang2);
+      if (sorted) {
+         filename = " > " + filename;
+         if (compress_output) filename = "| gzip" + filename;
+         filename = "| LC_ALL=C TMPDIR=. sort " + filename;
+      }
       if (verbose) cerr << "Writing " << filename << endl;
       oSafeMagicStream ofs(filename);
       dumpMultiProb(ofs, 1, pt, smoothers, verbose);
    }
    if (multipr_output == "rev" || multipr_output == "both") {
       string filename = makeFinalFileName(name + "." + lang2 + "2" + lang1);
+      if (sorted) {
+         filename = " > " + filename;
+         if (compress_output) filename = "| gzip" + filename;
+         filename = "| LC_ALL=C TMPDIR=. sort " + filename;
+      }
       if (verbose) cerr << "Writing " << filename << endl;
       oSafeMagicStream ofs(filename);
       dumpMultiProb(ofs, 2, pt, smoothers, verbose);
@@ -186,9 +225,11 @@ void doEverything(const char* prog_name)
 void getArgs(int argc, char* argv[])
 {
    const string alt_help = PhraseSmootherFactory<Uint>::help();
-   const char* switches[] = {"v", "i", "j", "z", "s:", "1:", "2:", "o:", "force", 
-		       "ibm:", "ibm_l1_given_l2:", "ibm_l2_given_l1:",
-                       "tmtext", "multipr:"};
+   const char* switches[] = {
+      "v", "i", "j", "z", "prune1:", "s:", "1:", "2:", "o:", "force", 
+      "ibm:", "hmm", "ibm_l1_given_l2:", "ibm_l2_given_l1:",
+      "tmtext", "multipr:", "sort", "no-sort"
+   };
 
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 0, 1, help_message,
                         "-h", true, alt_help.c_str(), "-H");
@@ -197,21 +238,41 @@ void getArgs(int argc, char* argv[])
    arg_reader.testAndSet("v", verbose);
    arg_reader.testAndSet("i", int_counts);
    arg_reader.testAndSet("j", joint);
+   arg_reader.testAndSet("prune1", prune1);
    arg_reader.testAndSet("z", compress_output);
    arg_reader.testAndSet("1", lang1);
    arg_reader.testAndSet("2", lang2);
    arg_reader.testAndSet("o", name);
    arg_reader.testAndSet("s", smoothing_methods);
    arg_reader.testAndSet("ibm", ibm_num);
+   arg_reader.testAndSet("hmm", use_hmm);
    arg_reader.testAndSet("ibm_l2_given_l1", ibm_l2_given_l1);
    arg_reader.testAndSet("ibm_l1_given_l2", ibm_l1_given_l2);
    arg_reader.testAndSet("tmtext", tmtext_output);
    arg_reader.testAndSet("multipr", multipr_output);
    arg_reader.testAndSet("force", force);
+   arg_reader.testAndSetOrReset("sort", "no-sort", sorted);
+   if (sorted && multipr_output != "") cerr << "Producing sorted cpt." << endl;
 
    arg_reader.testAndSet(0, "jtable", in_file);
 
-   if (smoothing_methods.size() == 0)
+   if ( (ibm_l2_given_l1 != "" || ibm_l1_given_l2 != "") &&
+        ibm_num == 42 && !use_hmm ) {
+      // neither -hmm nor -ibm specified; default is IBM2 if .pos files
+      // exist, or else HMM if .dist files exist, or error otherwise: we
+      // never assume IBM1, because it is so seldom used, it's probably
+      // an error; we want the user to assert its use explicitly.
+      if ( check_if_exists(IBM2::posParamFileName(ibm_l2_given_l1)) &&
+           check_if_exists(IBM2::posParamFileName(ibm_l1_given_l2)) )
+         ibm_num = 2;
+      else if ( check_if_exists(HMMAligner::distParamFileName(ibm_l2_given_l1)) &&
+                check_if_exists(HMMAligner::distParamFileName(ibm_l1_given_l2)) )
+         use_hmm = true;
+      else
+         error(ETFatal, "Models are neither IBM2 nor HMM, specify -ibm N or -hmm explicitly.");
+   }
+ 
+   if (smoothing_methods.empty())
       smoothing_methods.push_back("RFSmoother");
 
    if ( !joint && !tmtext_output && multipr_output == "" )

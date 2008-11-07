@@ -6,7 +6,7 @@
  * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2007, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2007, Her Majesty in Right of Canada
@@ -15,9 +15,9 @@
 #ifndef __LMBIN_VOCFILT_H__
 #define __LMBIN_VOCFILT_H__
 
-#include <portage_defs.h>
-#include "lmtext.h"
-#include <voc_map.h>
+#include "portage_defs.h"
+#include "lmbin.h"
+#include "voc_map.h"
 
 namespace Portage {
 
@@ -33,12 +33,9 @@ namespace Portage {
  * can be quite expensive in setups with many different BinLM's being used, so
  * it is well worthwhile doing it at load time.
  */
-class LMBinVocFilt : public LMText {
+class LMBinVocFilt : public LMBin {
 
 protected:
-   /// Vocab map to convert between global and local vocabularies.
-   VocMap voc_map;
-
    /**
     * Helper for read_binary(): read the trie part of the LMBin file.
     * In this class, retain only n-grams whose words are all in the global
@@ -48,18 +45,6 @@ protected:
     * @return number of nodes kept
     */
    virtual Uint read_bin_trie(istream& ifs, Uint limit_order);
-
-   /**
-    * Read a BinLM from disk.
-    * Vocab filtering is controlled by the virtual method read_bin_trie().
-    * @param binlm_filename name of the BinLM file
-    * @param limit_order if non-zero, truncate the model to order limit_order
-    */
-   void read_binary(const string& binlm_filename, Uint limit_order);
-
-   /// Constructor for use by the subclass.
-   LMBinVocFilt(VocabFilter& vocab, OOVHandling oov_handling,
-                double oov_unigram_prob);
 
 public:
    /// Constructor.  See PLM::Create() for a description of the parameters.

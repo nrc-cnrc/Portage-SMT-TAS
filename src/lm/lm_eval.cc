@@ -5,24 +5,22 @@
  * $Id$
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2006, Her Majesty in Right of Canada
  */
 
 #include "lm.h"
+#include "lmtrie.h"
 #include "arg_reader.h"
 #include "exception_dump.h"
 #include "printCopyright.h"
 #include "str_utils.h"
 #include "file_utils.h"
 #include "portage_defs.h"
-//#include <dmalloc.h>
-#include <fstream>
 #include <vector>
 #include <time.h>
-#include <cmath>
 
 using namespace std;
 using namespace Portage;
@@ -39,6 +37,7 @@ Options:\n\
  -q     quiet output (only print global prob)\n\
  -limit limit vocab (load all input sentences before processing)\n\
  -per-sent-limit  limit vocab on a per input sentence basis (implies -limit)\n\
+ -final-cleanup   Delete models at the end - use for leak detection.\n\
 \n\
 ";
 
@@ -52,6 +51,8 @@ static bool limit_vocab = false;
 static bool per_sent_limit = false;
 static const float LOG_ALMOST_0 = -18;
 static Uint order = 3;
+static bool final_cleanup = false;
+
 
 // Function declarations
 /**
@@ -77,7 +78,6 @@ int MAIN(argc,argv)
 
    getArgs(argc, argv);
 
-   const Uint precision = cout.precision();
    cout.precision(6);
    if (per_sent_limit) limit_vocab = true;
 
@@ -138,8 +138,9 @@ int MAIN(argc,argv)
       ++processed;
    }
 
+   cerr << "End (Total time: " << (time(NULL) - start) << " secs)" << endl;
+
    if ( quiet || verbose ) {
-      //cout << "Document logProb = " << docLogProb << ", ppx = " << exp(-docLogProb / num_toks) << endl << endl;
       // WARNING: since our lm models are using log_10 instead of ln for probs,
       // we must make sure to use 10^H(p) when calculating the perplexity.
       cout << "Document contains " 
@@ -148,25 +149,19 @@ int MAIN(argc,argv)
            << Noov << " words ignored" << endl;
       cout << "Document logProb=" << docLogProb 
            << " ppl=" << pow(10, (-docLogProb / (num_toks+line_count-Noov)))
-           << " ppl1=" << pow(10, (-docLogProb / (num_toks-Noov))) << endl << endl;
+           << " ppl1=" << pow(10, (-docLogProb / (num_toks-Noov))) << endl;
+      lm->getHits().display(cout);
+      cout << endl;
    }
 
-   cerr << "End (Total time: " << (time(NULL) - start) << " secs)" << endl;
-
-   Uint seconds =(Uint)difftime(time(NULL), start); //Number of seconds elapsed
-
-   Uint mins = seconds / 60;
-   Uint hours = mins/60;
-   mins = mins%60;
-   seconds = seconds % 60;
-
-   cerr << "Program done in " << hours << "h" << mins << "m" << seconds << "s" << endl;
-
-   cout.precision(precision);
-   testfile.close();
+   if ( verbose ) {
+      // Ugly to downcast but this is really a particularity of a subclass.
+      LMTrie* lmtrie = dynamic_cast<LMTrie*>(lm);
+      if (lmtrie != NULL) lmtrie->displayStats();
+   }
 
    // For debugging purposes, it's best to delete lm, but we don't normally do it.
-   //delete lm;
+   if ( final_cleanup ) delete lm;
 } END_MAIN
 
 
@@ -176,7 +171,10 @@ int MAIN(argc,argv)
 
 void getArgs(int argc, const char* const argv[])
 {
-   const char* switches[] = {"v", "limit", "q", "per-sent-limit"};
+   const char* const switches[] = {
+      "v", "limit", "q", "per-sent-limit",
+      "final-cleanup",
+   };
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 2, -1, help_message);
    arg_reader.read(argc-1, argv+1);
 
@@ -185,6 +183,7 @@ void getArgs(int argc, const char* const argv[])
    if ( quiet ) verbose = false;
    arg_reader.testAndSet("limit", limit_vocab);
    arg_reader.testAndSet("per-sent-limit", per_sent_limit);
+   arg_reader.testAndSet("final-cleanup", final_cleanup);
    arg_reader.testAndSet(0, "lm_filename", lm_filename);
    arg_reader.testAndSet(1, "test_filename", test_filename);
 }
@@ -202,9 +201,11 @@ void getArgs(int argc, const char* const argv[])
 inline float getProb(Uint word, Uint context[], PLM* lm, const Voc& voc)
 {
    const float wordLogProb = lm->wordProb(word, context, order-1);
-   if (verbose) cout << "p( " << voc.word(word) << " | "
+   if ( verbose) cout << "p( " << voc.word(word) << " | "
                      << voc.word(context[0]) << " ...)\t= ";
-   if ( !quiet ) cout << wordLogProb << endl;
+   if ( !quiet ) cout << wordLogProb;
+   if ( verbose) cout << " [" << lm->getHits().getLatestHit() << "-gram]";
+   if ( !quiet ) cout << endl;
 
    return  (( wordLogProb != -INFINITY ) ? wordLogProb : 0.0f);
 }   

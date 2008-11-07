@@ -10,7 +10,7 @@
  * Kneser-Ney and IBM-based bag-of-words smoothing for phrase table
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
@@ -268,7 +268,7 @@ class KNSmoother
    bool BWMeansmoothed;
    //floats to save space
    vector<float> normTgts;  ///< normalisation value for target sentences
-   hash_map<string, float, StringHash> normSrcs;  ///< for source sentences
+   unordered_map<string, float> normSrcs;  ///< for source sentences
 	 
    IBM1 *ibm_sgt;	///< ibm model
    IBM1 *ibm_tgs;	///< ibm model

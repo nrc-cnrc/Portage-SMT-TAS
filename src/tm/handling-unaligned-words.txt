@@ -1,0 +1,47 @@
+Here is how unaligned words are handled throughout the phrase-extraction
+process.
+
+1. During IBM training, NULL words are prepended explicitly to source
+   sentences. This isn't an option in train_ibm, so IBM1, IBM2, and HMM models
+   are always trained with NULLs.
+
+2. Asymmetrical alignment uses a single IBM model trained in one translation
+   direction to link each "source" word to either a single "target" word or
+   NULL. NULL links will only be made if the model has implicit NULL handling
+   enabled, which it will if it is detected to have been trained with NULLs in
+   the first place (which will always be the case, absent drastic measures like
+   grepping NULL lines out of the ttable).
+
+3. Symmetrization produces the final word alignment from two asymmetrical
+   alignments. Each word in the final symmetrized alignment (documented in
+   WordAligner::align()) must be in one of three different states:
+
+   1) It is linked to one or more other words
+   2) It is not linked
+   3) It is explicitly assigned a "no-translation" status.
+
+   These states are significant in phrase extraction, as described below. The
+   way they are assigned depends on the symmetrization algorithm used:
+
+   IBMOchAligner first makes all links in the intersection of the two input
+   alignments, then expands to diagonally-connected links in the union, then
+   links any remaining unaligned words from the union. The process can
+   optionally be stopped after any of these steps. In general the result is an
+   alignment in which some words are linked, some are not linked (if the
+   algorithm is stopped after the 1st or 2nd step), and some are linked to
+   NULL. These possibilities correspond to states 1, 2, and 3 above,
+   respectively. The "exclude" option can be used to assign all words in state
+   2 to state 3 after alignment.
+
+   PosteriorAligner first computes posterior probabilities for all possible
+   links using each of the input alignments. It then multiplies the posteriors
+   to get a final link score, and assigns status depending on two thresholds:
+   scores above a higher "delta" threshold result in links, those below do not,
+   and words whose links are ALL below a lower "exclude-threshold" are assigned
+   no-translation status (state 3).
+
+4. Phrase extraction (via the WordAligner::addPhrases() function) will extract
+   all phrase pairs that do not have an external link. Unlinked words (state 2)
+   act as "joiner" words in this algorithm, augmenting any phrase pair that is
+   legal for adjacent words. Untranslated words (state 3) are "splitter" words:
+   they never form part of a phrase.

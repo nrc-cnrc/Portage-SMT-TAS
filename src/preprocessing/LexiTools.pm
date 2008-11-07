@@ -1,8 +1,9 @@
-# Copyright (c) 2004 - 2008, Sa Majeste la Reine du Chef du Canada / Her Majesty in Right of Canada
+# Copyright (c) 2004 - 2008, Sa Majeste la Reine du Chef du Canada /
+# Copyright (c) 2004 - 2008, Her Majesty in Right of Canada
 #
 # For further information, please contact :
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # See http://iit-iti.nrc-cnrc.gc.ca/locations-bureaux/gatineau_e.html
 
@@ -10,7 +11,7 @@
 # $Id$
 #
 # LexiTools.pm
-# PROGRAMMER: George Foster
+# PROGRAMMER: George Foster / Michel Simard / Eric Joanis
 # 
 # COMMENTS: POD at end of file.
 
@@ -40,27 +41,47 @@ our (@ISA, @EXPORT);
 
 # Module global stuff.
 
-our $iso_alpha;
-our $iso_caps;
-our %known_abbr_hash_en;
-our %known_abbr_hash_fr;
-our %short_stops_hash_en;
-our %short_stops_hash_fr;
+my %known_abbr_hash_en;
+my %known_abbr_hash_fr;
+my %short_stops_hash_en;
+my %short_stops_hash_fr;
 
-$iso_alpha = "a-zA-Z\xC0-\xFF";
-$iso_caps = "A-Z\xC0-\xDF";
+# We add to these the CP-1252 characters: \x8C (OE) and \x9C (oe)
+my $iso_alpha = "a-zA-Z\x8C\x9C\xC0-\xFF";
+my $iso_caps = "A-Z\x8C\xC0-\xDF";
+my $alnum = "[a-zA-Z0-9]";
+
+
+# We nominally expect iso-8859-1 input, but \x80-\x9F are unasigned in that
+# encoding.  If we encounter them, it's probably because the input is really
+# Windows CP-1252, so we handle that too.
+
+# Single quotes: ascii ` and ', cp-1252 145/\x91 and 146/\x92,
+# cp-1252/iso-8859-1 180/\xB4
+my $apostrophes = quotemeta("\`\'\x91\x92\xB4");
+# Quotes: ascii ", cp-1252 147/\x93 and 148/\x94, cp-1252/iso-8859-1 171/\xAB
+# and 187/\xBB
+my $quotes = quotemeta("\"\x93\x94\xAB\xBB");
+# specifically left/right quotes and single quotes
+my $leftquotes = quotemeta("\x91\xAB\x93\`");
+my $rightquotes = quotemeta("\x94\xBB\x92\xB4");
+# Hyphens: n-dash (cp-1252 150/\x96), m-dash (cp-1252 151/\x97), hyphen (ascii -)
+my $hyphens = quotemeta("\x96\x97-");
+my $wide_dashes = quotemeta("\x96\x97");
+my $splitleft = qr/[\"\x93\xAB\$\#]|[$hyphens]+|\x91\x91?|\'\'?|\`\`?/;
+my $splitright = qr/\.{2,4}|[\"\x94\xBB!,:;\?%.]|[$hyphens]+|\x92\x92?|\'\'?|\xB4\xB4?|\x85/;
 
 my @known_abbrs_en = qw {
-    acad ad adm aka al am apr aug ba bc blvd bsc btw c ca capt cdn ceo cf 
+   acad adm aka al apr aug ba bc blvd bsc btw c ca capt cdn ceo cf
     cm cmdr c/o co col com comdr comdt corp dec deg dept depts desc dir dr
-    drs ed eds edt edu eg eng engr est et etc ext fax feb febr fig figs fri
-    ft fwd fyi g gb/s gmt hon hr hrs i ie ii iii inc info isbn iv ix jan
-    janu jul jun kb/s kg kgs km ko lb lbs lieut lt ltd m ma mar may max meg
+   drs ed eds edt edu eg eng engr est et ext fax feb febr fig figs fri
+   ft fwd fyi g gb/s gmt hon hr hrs i ie ii iii info isbn iv ix jan
+   janu jul jun kb/s kg kgs km ko lb lbs lib lieut lt m ma mar max meg
     messrs mg mhz min mins mlle mlles mme mmes mon mr mrs ms msec msecs msc
-    n/a natl no nov novem oct p phd pls pm pp pps pres prof profs ps pub re
-    rel rep rept rev revd revds rtfm rsvp sat sec secs secy sen sens sep
-    sept sgt st ste sun tbsp tbsps tech tel thu thur thurs tko tsp tsps tue
-    tues txt tv u univ usa v vi vii viii vol vols vs wed wk wks wrt www x
+   n/a natl nov novem oct p phd pls pp pps pres prof profs ps pub re
+   rel rep rept rev revd revds rtfm rsvp sec secs secy sen sens sep
+   sept sgt st ste tbsp tbsps tech tel thu thur thurs tko tsp tsps tue
+   tues txt u univ v vi vii viii vol vols vs wed wk wks wrt www x
     xi xii xiii xiv xv xx yr yrs 
     chas
 };
@@ -68,29 +89,30 @@ my @known_abbrs_en = qw {
 my @known_abbrs_fr = qw {
     acad ad adm aka al am appt ardt av avr ba bc bd blvd bsc cap cdn ceo cf
     c cial cm cmdr c/o co col com comdr comdt corp dec déc deg dept depts
-    desc dim dir dr drs ed eds edt edu eg eng engr est et etc ex ext f fax
-    fév févr fig figs fwd fyi g gb/s gmt ha hon hr hrs i ie ii iii inc ind
-    ing info isbn iv ix jan janv jeu juil kb/s kg kgs km ko lb lbs lieut lt
-    ltd lun m ma mar max me meg merc messrs mg mgr mhz min mins mlle mlles
+   desc dim dir dr drs ed eds edt edu eg eng engr et ex ext f fax
+   fév févr fig figs fwd fyi g gb/s gmt ha hon hr hrs i ie ii iii ind
+   ing isbn iv ix jan janv juil kb/s kg kgs km ko lb lbs lib lieut lt
+   lun m ma mar me meg merc messrs mg mgr mhz min mins mlle mlles
     mm mme mmes mr mrs ms msec msecs msc n/a natl nb no nov novem oct p pm
-    pp pps phd pl pres prés prof profs ps pub r re rech ref rel rep rept
-    rev revd revds rtfm rstp rsvp sam sec secs secy sen sens sep sept sgt
-    st ste sté stp svp tbsp tbsps tech tel tél tko tsp tsps txt tv u univ
-    usa v ven vend vi vii viii vol vols www x xi xii xiii xiv xv xx
+   pp pps phd pl pres prés prof profs ps r re rech ref rel rep rept
+   rev revd revds rtfm rstp rsvp sec secs secy sen sep sept sgt
+   st ste sté stp svp tbsp tbsps tech tél tko tsp tsps txt u univ
+   usa v ven vi vii viii www x xi xii xiii xiv xv xx
     chas
 };
 
-# short stop words that can end a sentence
+# short words and abbreviation-like words that can end a sentence
 my @short_stops_en = qw { 
     to in is be on it we as by an at or do my he if no am us so up me go
-    oh ye ox ho ab fa hi
+   oh ye ox ho ab fa hi se of
+   un tv ei ui mp ok cn ad uk cp sr eu pm bp id
 };
 
 my @short_stops_fr = qw { 
     de la le à et du en au un ce ne je il se ou y on si sa me où ma eu va là
     ni pu vu dû lu ça ai an su fi tu né eh te es ta os bu ri ô us nu ci if oh
-    çà pû mû na ès té ah dé
-
+   çà pû mû na ès té ah dé or
+   tv cn cp pm bp pq gm ae ue cd fm al mg ed pc fc dp
 };
 
 # funky hash initializations...
@@ -104,8 +126,7 @@ my @short_stops_fr = qw {
 
 sub get_para #(\*FILEHANDLE)
 {
-    local $/ = "\n";		# protect record separator against external
-				# meddling
+   local $/ = "\n";     # protect record separator against external meddling
     my $fh = shift;
     my ($line, $para) = ("", "");
     
@@ -198,7 +219,8 @@ sub split_sentences #(para_string, token_positions)
     for (my $i = 0; $i < $#_; $i += 2) {
 	my $tok = get_token($para, $i, @_);
 	if ($end_pending) {
-	    if ($tok !~ /^([\xBB\"\)\]]|\'\'?)$/o) {
+         if ($tok !~ /^([$quotes\)\]]|[$apostrophes]{1,2})$/o ||
+             $tok =~ /^[$leftquotes]{1,2}/ ) {
 		push(@sent_posits, $i);
 		$end_pending = 0;
 	    }
@@ -274,7 +296,7 @@ sub context_says_abbr #($para_string, index_of_dot, token_positions)
     # skip ambig punc
     for ($index += 2; $index < $#_; $index += 2) {
 	if (get_token($string, $index, @_) !~
-	    /^([\"\xAB\xBB\(\)\[\]\{\}]|\'\'?|\'\'?|-{1,3}|[.]{2,4})$/o) {last;}
+            /^([$quotes\(\)\[\]\{\}]|[$apostrophes]{1,2}|[$hyphens]{1,3}|[.]{2,4}|…)$/o) {last;}
     }
 
     if ($index > $#_) {return 0;} # end of para
@@ -337,11 +359,6 @@ sub looks_like_abbr # (lang, para_string, index_of_abbr, token_positions)
 
 sub split_punc #(string, offset[0])
 {
-    # NB: \xAB, \xBB are left and right angle quotes
-    my $splitleft = "[\"\$#\xAB]|\'\'?|\`\`?";
-    my $splitright = "[\"\xBB!,:;?%.]|\'\'?|\\.{2,4}";
-    my $alpha = "[a-zA-Z0-9]";
-    
 
     my $tok = shift;
     my $offset = shift || 0;
@@ -353,12 +370,12 @@ sub split_punc #(string, offset[0])
     my $first_char = substr($tok, 0, 1);
     my $last_char = substr($tok, $tok_len-1, 1);
 
-    # split internal --- or ....
-    if (($tok =~ /^(.*[^\-])?(-{2,4})([^\-].*)?$/o) ||
-        ($tok =~ /^(.*[^\.])?(\.{2,4})([^\.].*)?$/o)) {
+   # split internal --, ---, n-dash, m-dash, .., ..., etc.
+   if (($tok =~ /^(.*[^$hyphens])?([$hyphens]{2,4}|[$wide_dashes])([^$hyphens].*)?$/o) ||
+       ($tok =~ /^(.*[^\.])?(\.{2,4}|\x85)([^\.].*)?$/o)) {
 	my ($p1, $p2, $p3) = ($1, $2, $3);
 	push(@atoms, split_punc($p1, $offset));
-	push(@atoms, $offset+len($p1), 2);
+      push(@atoms, $offset+len($p1), length($p2) == 1 ? 1 : 2);
 	push(@atoms, split_punc($p3, $offset+len($p1)+len($p2)));
     }
 
@@ -386,22 +403,22 @@ sub split_punc #(string, offset[0])
     #                but this: ab(c) -> ab(c)
     #                but this: ab(c)) -> ab(c) )
     #                also, this (a) -> (a) and a) -> a)
-    elsif ($first_char eq "(" && $tok !~ /^(\($alpha\)|\([^()]+\).+)$/o) { 
+   elsif ($first_char eq "(" && $tok !~ /^(\($alnum\)|\([^()]+\).+)$/o) {
 	push(@atoms, $offset, 1);
 	push(@atoms, split_punc(substr($tok, 1), $offset+1));
-    } elsif ($first_char eq "[" && $tok !~ /^(\[$alpha\]|\[[^\[\]]+\].+)$/o) {
+   } elsif ($first_char eq "[" && $tok !~ /^(\[$alnum\]|\[[^\[\]]+\].+)$/o) {
 	push(@atoms, $offset, 1);
 	push(@atoms, split_punc(substr($tok, 1), $offset+1));
-    } elsif ($last_char eq ")" && $tok !~ /^(\(?$alpha\)|.+\([^()]+\))$/o) {
+   } elsif ($last_char eq ")" && $tok !~ /^(\(?$alnum\)|.+\([^()]+\))$/o) {
 	push(@atoms, split_punc(substr($tok, 0, $tok_len-1), $offset));
 	push(@atoms, $offset+$tok_len-1, 1);
-    } elsif ($last_char eq "]" && $tok !~ /^(\[$alpha\]|.+\[[^\[\]]+\])$/o) {
+   } elsif ($last_char eq "]" && $tok !~ /^(\[$alnum\]|.+\[[^\[\]]+\])$/o) {
 	push(@atoms, split_punc(substr($tok, 0, $tok_len-1), $offset));
 	push(@atoms, $offset+$tok_len-1, 1);
-# don't need this, because we now systematically split trailing .
-#     } elsif ($tok =~ /[^a-zA-Z\xC0-\xFF]\.$/o) { # thingy). -> thingy) .
-#  	push(@atoms, split_punc(substr($tok, 0, $tok_len-1), $offset));
-#  	push(@atoms, $offset+$tok_len-1, 1);
+   #don't need this, because we now systematically split trailing .
+   #} elsif ($tok =~ /[^a-zA-Z\xC0-\xFF]\.$/o) { # thingy). -> thingy) .
+   #   push(@atoms, split_punc(substr($tok, 0, $tok_len-1), $offset));
+   #   push(@atoms, $offset+$tok_len-1, 1);
     } else { # keep token as is
 	push(@atoms, $offset, $tok_len);
     }
@@ -418,7 +435,7 @@ sub split_word_en #(word, offset)
     my $os = shift || 0;
     my @atom_positions = ();
     
-    if ($word !~ /^it\'s/ && $word =~ /^([$iso_alpha]+)(\'[Ss])$/o) {
+   if ($word !~ /^it[$apostrophes]s/ && $word =~ /^([$iso_alpha]+)([$apostrophes][Ss])$/o) {
 	push(@atom_positions, $os, len($1), $os+len($1), len($2));
     } else {
 	push(@atom_positions, $os, len($word));
@@ -429,32 +446,40 @@ sub split_word_en #(word, offset)
 # Split a French word into parts, eg l'amour -> l' amour. Return list of
 # (start,len) atom positions.
 # TODO
-# - look into splitting forms like province-c'etait, ie you can assume the - is a
-#   dash if there's a legit apostr prefix in the middle of it...
+# - look into splitting forms like province-c'etait, ie you can assume the - is
+#   a dash if there's a legit apostr prefix in the middle of it...
+
+# exemples: ce jour-là, vas-y, y-a-t-il, y a-t-il, qu'est-ce
+my ($hyph_endings, $vowel_hyph_endings);
+BEGIN {
+   $hyph_endings =
+      "je|tu|ils?|elles?|on|nous|vous|moi|toi|lui|eux|en|y|ci|ce|les?|leurs?|la|l[àÀ]|donc";
+   $vowel_hyph_endings = "ils?|elles?|on|eux|en";
+}
 
 sub split_word_fr #(word, offset)
 {
-    my $hyph_endings = 
-	"je|tu|ils?|elles?|on|nous|vous|moi|toi|lui|eux|en|y|ci|ce|les?|leurs?|la|l[\xe0\xc0]|donc";
-    my $vowel_hyph_endings = "ils?|elles?|on|eux|en";
-    
     my $word = shift;
     my $os = shift || 0;
     my @atom_positions = ();
 
-    if ($word !~ /^(d\'ailleurs|d\'abord|d\'autant|quelqu\'un(e|s|es)?)$/oi && 
-	$word =~ /^([cdjlmnst]\'|[a-z]*qu\'|y-)(.+)/oi) {
+   if ($word !~ /^(d[$apostrophes]ailleurs|d[$apostrophes]abord|d[$apostrophes]autant|quelqu[$apostrophes]un(e|s|es)?)$/oi &&
+       $word =~ /^([cdjlmnst][$apostrophes]|[a-z]*qu[$apostrophes]|y-)(.+)/oi) {
+      # y-a-t-il is actually wrong, so we replace it by y a-t-il.
 	my $l1 = ($1 eq "y-" || $1 eq "Y-") ? 1 : len($1);
 	push(@atom_positions, $os, $l1);
 	push(@atom_positions, split_word_fr(substr($word, len($1)),$os+len($1)));
+   } elsif ($word =~ /^(?:a-t-il|est-ce)$/io) {
+      # special case for these very common combinations
+      push(@atom_positions, $os, len($word));
     } elsif ($word =~ /^(.+)-t-($vowel_hyph_endings)$/oi) {
 	my $l1 = len($1);
 	push(@atom_positions, split_word_fr(substr($word, 0, $l1), $os));
-	push(@atom_positions, $os + $l1 + 3, len($word)-$l1-3);
+      push(@atom_positions, $os + $l1, len($word)-$l1);
     } elsif ($word !~ /rendez-vous$/ && $word =~ /^(.+)-($hyph_endings)$/oi) {
 	my $l1 = len($1);
 	push(@atom_positions, split_word_fr(substr($word, 0, $l1), $os));
-	push(@atom_positions, $os + $l1 + 1, len($word)-$l1-1);
+      push(@atom_positions, $os + $l1, len($word)-$l1);
     } else {
 	push(@atom_positions, $os, len($word));
     }
@@ -540,6 +565,6 @@ Copyright (c) 2004 - 2008, Her Majesty in Right of Canada
 
 =head1 AUTHOR
 
-George Foster
+George Foster / Michel Simard / Eric Joanis
 
 =cut

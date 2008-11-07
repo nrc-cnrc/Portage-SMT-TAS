@@ -6,7 +6,7 @@
  * COMMENTS: 
  * 
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
@@ -38,7 +38,7 @@ public:
    iSafeMagicStream(const string& fname, bool bQuiet = false)
    : iMagicStream(fname, bQuiet) {
       if (this->fail())
-	 error(ETFatal, "unable to open %s for reading", fname.c_str());
+	 error(ETFatal, "Unable to open %s for reading", fname.c_str());
    }
 };
 
@@ -55,7 +55,7 @@ public:
    oSafeMagicStream(const string& fname, bool bQuiet = false)
    : oMagicStream(fname, bQuiet) {
       if (this->fail())
-	 error(ETFatal, "unable to open %s for writing", fname.c_str());
+	 error(ETFatal, "Unable to open %s for writing", fname.c_str());
    }
 };
 
@@ -137,6 +137,13 @@ inline Uint countFileLines(const string& filename) {
 }
 
 /**
+ * Determine the size of a file
+ * @param filename  name of file
+ * @return size in bytes of filename; 0 in case of error
+ */
+Uint64 fileSize(const string& filename);
+
+/**
  * Test if a file exists, and if so, delete it.  If warning != NULL, it will be
  * issued using error(ETWarn) before the file is deleted.  Issues a fatal error
  * if filename can't be deleted.
@@ -148,16 +155,18 @@ void delete_if_exists(const char* filename, const char* warning_msg);
 /**
  * Test if a file exists, and if so, terminate with error.
  * @param filename   file name to check existence
- * @param error_msg  error message must contain exactly one %s, which will be replace by filename.
+ * @param error_msg  error message must contain exactly one %s, which will be
+ *                   replaced by filename.
  */
 void error_if_exists(const char* filename, const char* error_msg);
 
 /**
- * Verifies if a file exists and if not check for its .gz version.
- * @param filename  file to check
- * @return Returns true if either the file or the its .gz version exists.
+ * Verifies if a file exists (or optionally its .gz version).
+ * @param filename           file to check
+ * @param accept_compressed  if true, consider the .gz version as equivalent
+ * @return Returns true if the file (or the its .gz version) exists.
  */
-bool check_if_exists(const string& filename);
+bool check_if_exists(const string& filename, bool accept_compressed = true);
 
 /**
  * Like basename and dirname, will decompose the original filename into its
@@ -353,8 +362,10 @@ struct TokReaderPair
 /// Namespace to contain generic binary IO operators
 namespace BinIOStream
 {
-   // Write a vector in Binary mode.  Warning: T must be safe to copy, allocate
-   // and free without calling constructors and/or destructors.
+   /** 
+    * Write a vector in Binary mode.  Warning: T must be safe to copy, allocate
+    * and free without calling constructors and/or destructors.
+    */
    template<typename T>
    std::ostream& operator<<(std::ostream& os, const vector<T>& v) {
       unsigned int s(v.size());
@@ -364,8 +375,10 @@ namespace BinIOStream
       return os;
    }
 
-   // Read a vector in Binary mode.  Warning: T must be safe to copy, allocate
-   // and free without calling constructors and/or destructors.
+   /**
+    * Read a vector in Binary mode.  Warning: T must be safe to copy, allocate
+    * and free without calling constructors and/or destructors.
+    */
    template<typename T>
    std::istream& operator>>(std::istream& is, vector<T>& v) {
       Uint s(0);
@@ -378,6 +391,59 @@ namespace BinIOStream
          v.clear();
       }
       return is;
+   }
+
+   /**
+    * Write a primitive or simple data type value in Binary mode.
+    * Warning: T must be safe to copy, allocate and free without calling
+    * constructors and/or destructors.
+    * @param os  stream to write to
+    * @param v   value to write in binary format
+    */
+   template<typename T>
+   void writebin(std::ostream& os, T v) {
+      os.write((char*)&v, sizeof(v));
+   }
+
+   /**
+    * Read a primitive or simple data type value in Binary mode.
+    * Warning: T must be safe to copy, allocate and free without calling
+    * constructors and/or destructors.
+    * @param is       stream to read from
+    * @param[out] v   value to read in binary format
+    * @return is itself, to allow cascading calls
+    */
+   template<typename T>
+   void readbin(std::istream& is, T& v) {
+      is.read((char*)&v, sizeof(v));
+   }
+
+   /**
+    * Write a primitive or simple data type array in Binary mode.
+    * Warning: T must be safe to copy, allocate and free without calling
+    * constructors and/or destructors.
+    * @param os   stream to write to
+    * @param a    pointer to array of values to write in binary format
+    * @param size size of a, i.e., number of elements to write
+    */
+   template<typename T>
+   void writebinarray(std::ostream& os, T* a, Uint size) {
+      os.write((char*)a, sizeof(T) * size);
+   }
+
+   /**
+    * Read a primitive or simple data type array in Binary mode.
+    * Warning: T must be safe to copy, allocate and free without calling
+    * constructors and/or destructors.
+    * @param is      stream to read from
+    * @param[out] a  pointer to array of values to read in binary format
+    *                a must point to enough allocated storage to hold the
+    *                results
+    * @param size    size of a, i.e., number of elements to read
+    */
+   template<typename T>
+   void readbinarray(std::istream& is, T* a, Uint size) {
+      is.read((char*)a, sizeof(T) * size);
    }
 }
 

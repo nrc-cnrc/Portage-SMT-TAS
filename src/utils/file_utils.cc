@@ -56,6 +56,18 @@ Uint Portage::countFileLines(std::istream& istr)
    return counter;
 }
 
+Uint64 Portage::fileSize(const string& filename)
+{
+   ifstream f(filename.c_str());
+   if ( !f ) return 0;
+   Uint64 start_pos = f.tellg();
+   f.seekg(0, ios_base::end);
+   if ( !f ) return 0;
+   Uint64 end_pos = f.tellg();
+   assert(end_pos >= start_pos);
+   return end_pos - start_pos;
+}
+
 void Portage::delete_if_exists(const char* filename, const char* warning_msg) {
    ifstream file(filename);
    if ( file ) {
@@ -74,7 +86,7 @@ void Portage::error_if_exists(const char* filename, const char* error_msg) {
    if ( file ) error(ETFatal, error_msg, filename);
 }
 
-bool Portage::check_if_exists(const string& filename)
+bool Portage::check_if_exists(const string& filename, bool accept_compressed)
 {
    if (filename.empty()) return false;
    if (filename == "-") return true;
@@ -83,9 +95,13 @@ bool Portage::check_if_exists(const string& filename)
 
    ifstream ifs(filename.c_str());
    if (!ifs) {
-      const string fz = filename + ".gz";
-      ifstream ifsz(fz.c_str());
-      return !!ifsz;
+      if ( accept_compressed ) {
+         const string fz = filename + ".gz";
+         ifstream ifsz(fz.c_str());
+         return !!ifsz;
+      } else {
+         return false;
+      }
    }
    return true;
 }

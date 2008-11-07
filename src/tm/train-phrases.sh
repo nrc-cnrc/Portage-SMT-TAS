@@ -8,7 +8,7 @@
 # COMMENTS:
 #
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2006, Her Majesty in Right of Canada
@@ -21,7 +21,7 @@ usage() {
     done
     cat <<==EOF== >&2
 
-Usage: train-phrases.sh [-h(elp)][-p][-a][-mN][-no-z] dir
+Usage: train-phrases.sh [-h(elp)][-p][-a][-mN][-no-z][-no-bin] dir
 
   Train a phrase-based model (+ IBM models) on a parallel corpus in directory
   <dir>. The corpus should consist of line-aligned files of the form
@@ -36,7 +36,9 @@ Options:
   -a     Produce individual phrase tables, voc files, and ngram files for
          adaptation.
   -mN    Override the phrase length parameter to gen_phrase_tables [-m8]
+  -hmm   Train HMM models for phrase extraction [IBM2]
   -no-z  Don't compress output phrase tables [do]
+  -no-bin  Generate IBM models in non-binary format [generate bin ttables]
   -h     Print this help message.
 
 ==EOF==
@@ -62,13 +64,18 @@ set -o noclobber
 parallel=
 adapt=
 m_opt=-m8
+hmm=""
 zflag="-z"
+bin="-bin"
+
 while [ $# -gt 0 ]; do
     case "$1" in
     -p)             parallel=1;;
     -a)             adapt=-i;;
     -m*)            m_opt=$1;;
+    -hmm)           hmm="-hmm";;
     -no-z)          zflag="";;
+    -no-bin)        bin="";;
     -h|-help)       usage;;
     --)             shift; break;;
     -*)             error_exit "Unknown option $1.";;
@@ -81,6 +88,9 @@ done
 #echo \$\#: $#
 test $# -gt 1 && error_exit "Error: Too many arguments"
 test $# -lt 1 && error_exit "Error: Missing argument: directory"
+
+echo "WARNING: train-phrases.sh is obsolete." >&2
+echo "Please use the methods shown in the sample framework instead." >&2
 
 dir=$1
 declare -a langs
@@ -105,21 +115,27 @@ run () {
    eval $cmd
 }
 
+if [ $hmm ]; then
+    model="hmm"
+else
+    model="ibm2"
+fi
+
 if [ $parallel ]; then
    echo training parallel
-   run "train_ibm -v  -s ibm1.${l2}_given_${l1} ibm2.${l2}_given_${l1} $dir/*.al >& log.train_ibm.${l2}_given_${l1} &"
-   run "train_ibm -vr -s ibm1.${l1}_given_${l2} ibm2.${l1}_given_${l2} $dir/*.al >& log.train_ibm.${l1}_given_${l2} &"
+   run "train_ibm -v  $bin $hmm -s ibm1.${l2}_given_${l1} ${model}.${l2}_given_${l1} $dir/*.al >& log.train_ibm.${l2}_given_${l1} &"
+   run "train_ibm -vr $bin $hmm -s ibm1.${l1}_given_${l2} ${model}.${l1}_given_${l2} $dir/*.al >& log.train_ibm.${l1}_given_${l2} &"
    wait
 else
    echo training not parallel
-   run "train_ibm -v  -s ibm1.${l2}_given_${l1} ibm2.${l2}_given_${l1} $dir/*.al >& log.train_ibm.${l2}_given_${l1}"
-   run "train_ibm -vr -s ibm1.${l1}_given_${l2} ibm2.${l1}_given_${l2} $dir/*.al >& log.train_ibm.${l1}_given_${l2}"
+   run "train_ibm -v  $bin $hmm -s ibm1.${l2}_given_${l1} ${model}.${l2}_given_${l1} $dir/*.al >& log.train_ibm.${l2}_given_${l1}"
+   run "train_ibm -vr $bin $hmm -s ibm1.${l1}_given_${l2} ${model}.${l1}_given_${l2} $dir/*.al >& log.train_ibm.${l1}_given_${l2}"
 fi
 
 echo
 
 run "gen_phrase_tables -v $adapt -multipr both -w1 $m_opt -1 $l1 -2 $l2 $zflag \
-   ibm2.${l2}_given_${l1} ibm2.${l1}_given_${l2} $dir/*.al \
+   ${model}.${l2}_given_${l1} ${model}.${l1}_given_${l2} $dir/*.al \
    >& log.gen_phrase_tables"
 
 echo

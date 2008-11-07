@@ -12,7 +12,7 @@
 #
 # For further information, please contact :
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # See http://iit-iti.nrc-cnrc.gc.ca/locations-bureaux/gatineau_e.html
 
@@ -25,6 +25,8 @@ use locale;
 # ref: http://search.cpan.org/~tty/kurila-1.7_0/lib/open.pm
 use open IO => ':utf8';
 use open ':std';  # <= indicates that STDIN and STDOUT are utf8
+
+print STDERR "utokenize.pl, NRC-CNRC, (c) 2004 - 2008, Her Majesty in Right of Canada\n";
 
 my $HELP = "
 Usage: tokenize.pl [-v] [-p] [-noss] [-lang=l] [in [out]]

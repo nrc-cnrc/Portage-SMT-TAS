@@ -30,9 +30,9 @@ class Voc {
    /// When you have the index and you want to convert it back to a word.
    vector<const char*> words;
    /// When you have a word and you want to find its index.
-   hash_map<const char*, Uint, hash<const char*>, str_equal> map;
+   unordered_map<const char*, Uint, hash<const char*>, str_equal> map;
    /// Iterator to traverse all the map by words
-   typedef hash_map<const char*, Uint, hash<const char*>, str_equal>::const_iterator MapIter;
+   typedef unordered_map<const char*, Uint, hash<const char*>, str_equal>::const_iterator MapIter;
 
    /// Clears the content of the vocabulary.
    void deleteWords();
@@ -86,48 +86,57 @@ public:
       }
    };
 
+   /// Default constructor
+   Voc();
+
    /// Destructor.
-   ~Voc() {deleteWords();}
+   ~Voc();
 
    /**
     * Read contents from a file in which words are listed one per line. These
     * add to current contents, if any.
     * @param filename file name to input the vocabulary
     */
-   void read(const string& filename) {
-      iSafeMagicStream istr(filename.c_str());
-      read(istr);
-   }
+   void read(const string& filename);
 
    /**
     * Read contents from a stream in which words are listed one per line. These
     * add to current contents, if any.
     * @param istr stream to input the vocabulary
     */
-   void read(istream& istr) {
-      string line;
-      while (getline(istr, line)) {add(line.c_str());}
-   }
+   void read(istream& istr);
 
    /**
     * Write contents to a file in which words are listed one per line.
     * @param filename  file name to output vocabulary
     * @param delim     delimiter between each word of the vocabulary
     */
-   void write(const string& filename, const char* delim = "\n") const {
-      oSafeMagicStream ostr(filename);
-      write(ostr, delim);
-   }
+   void write(const string& filename, const char* delim = "\n") const;
 
    /**
     * Write contents to a stream in which words are listed one per line.
     * @param os     stream to output vocabulary
     * @param delim  delimiter between each word of the vocabulary
     */
-   void write(ostream& os, const char* delim = "\n") const {
-      ostream_iterator<const char *> outStr(os, delim);
-      copy(words.begin(), words.end(), outStr);
-   }
+   void write(ostream& os, const char* delim = "\n") const;
+
+   /**
+    * Write the contents in format that can be incorporated in a stream
+    * and read back consistently, while still being human readable. 
+    * Format: header with word count, followed by all the words in the same
+    * format readStream() expects, and a footer.
+    * @param os           stream to write self to.
+    */
+   void writeStream(ostream& os) const;
+
+   /**
+    * Read vocabulary from a stream as written by writeStream().
+    * Clears any preexisting contents.
+    * @param is           stream to read self from.
+    * @param stream_name  name of stream is, or some description meaningful
+    *                     to the user when an error is found in the stream.
+    */
+   void readStream(istream& is, const char* stream_name);
 
    /**
     * Add a (possibly) new word.
@@ -159,16 +168,27 @@ public:
     * @param index index of the required word
     * @return Returns the word associated with index
     */
-   const char* word(Uint index) const {return words[index];}
+   const char* word(Uint index) const { return words[index]; }
 
-   /**
-    * Returns the vocabulary size.
-    * @return Returns the vocabulary size
-    */
-   Uint size() const {return words.size();}
+   /// Returns the vocabulary size.
+   Uint size() const { return words.size(); }
+
+   /// Returns whether the vocabulary is empty.
+   bool empty() const { return words.empty(); }
 
    /// Clear the vocabulary.
-   void clear() {deleteWords(); words.clear(); map.clear();}
+   void clear();
+
+   /// Swap the contents of two vocabularies.
+   void swap(Voc& that);
+
+   /// Copy constructor does a deep copy - expensive since it must reallocate
+   /// all the memory.
+   Voc(const Voc& that);
+
+   /// Assignment operator does a deep copy - expensive since it must
+   /// free all existing memory and reallocate all the memory for the result
+   Voc& operator=(const Voc& that);
 
    /**
     * Unit testing.

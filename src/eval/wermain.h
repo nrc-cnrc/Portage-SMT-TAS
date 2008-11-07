@@ -9,7 +9,7 @@
  * This file contains some stuff needed for WER computation.
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
@@ -80,7 +80,7 @@ Options:\n\
          {
             LOG_DEBUG(m_dLogger, "Do conf: %s", (bDoConf? "ON" : "OFF"));
             LOG_DEBUG(m_dLogger, "Calculate %s", (bDoPer? "mPER" : "mWER"));
-            LOG_DEBUG(m_dLogger, "Detailed output: %s", (bDetail? "ON" : "OFF"));
+            LOG_DEBUG(m_dLogger, "Detailed output: %s", (iDetail? "ON" : "OFF"));
             LOG_DEBUG(m_dLogger, "Test file name: %s", sTestFile.c_str());
 
             LOG_DEBUG(m_dLogger, "Number of reference files: %d", sRefFiles.size());

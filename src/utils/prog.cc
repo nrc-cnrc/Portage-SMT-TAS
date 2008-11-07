@@ -1,10 +1,8 @@
 /**
- * @author George Foster
- * @file prog.cc Program template.
+ * @author Write your name here
+ * @file prog.cc Briefly describe your program here
  * 
  * 
- * COMMENTS: 
- *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada

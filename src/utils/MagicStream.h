@@ -1,18 +1,20 @@
 /**
  * @author Samuel Larkin
  * @file MagicStream.h A stream that can be transparently used for cin/cout,
- *                     .txt, .{Z,z,gz} and pipes.
+ *                     .txt, .{Z,z,gz}, .bz2, .lzma and pipes.
  *
  *
  * COMMENTS: These classes we permit easy integration of a stream that can be
  *           used in the following ways:
  *           - to read from standard in or to write to standard out
  *           - to read/write to a compress gzip file
+ *           - to read/write to a compress bzip2 file
+ *           - to read/write to a compress lzma file
  *           - to read/write to a plain text file
  *           - to read/write from a pipe
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2006, Her Majesty in Right of Canada
@@ -117,11 +119,18 @@ class MagicStreamBase : private boost::noncopyable
       static bool isZip(const std::string& cmd);
 
       /**
-       * Determines if the cmd is a bzip operation.
-       * @param cmd command to check if it ends in .gz or .Z
-       * @return Returns true if cmd ends with .gz or .Z
+       * Determines if the cmd is a bzip2 operation.
+       * @param cmd command to check if it ends in .bz, .bz2 or .bzip2
+       * @return Returns true if cmd ends with .bz, .bz2 or .bzip2
        */
       static bool isBzip2(const std::string& cmd);
+
+      /**
+       * Determines if the cmd is a lzma operation.
+       * @param cmd command to check if it ends in .lzma
+       * @return Returns true if cmd ends with .lzma
+       */
+      static bool isLzma(const std::string& cmd);
 
       /**
        * Opens the proper stream.  This virtual function must be declared by

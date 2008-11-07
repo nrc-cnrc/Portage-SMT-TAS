@@ -8,7 +8,7 @@
 # COMMENTS:
 #
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2006, Her Majesty in Right of Canada
@@ -22,7 +22,6 @@ usage() {
 Usage: tmtext_sort.sh [-h(elp)] [-1st] tmtext-file > sorted-tmtext-file
 
   Sort tmtext-file by the 2nd field (1st if -1st is given) then 1st (2nd).
-  Use - for standard input
 
 ==EOF==
     exit 1
@@ -41,7 +40,7 @@ done
 
 TMTEXT_IN=$1;
 if [ -z "$TMTEXT_IN" ]; then
-    usage "No input tmtext file specified";
+    TMTEXT_IN=-
 fi
 
 if [ $TMTEXT_IN != "-" -a ! -r $TMTEXT_IN ]; then

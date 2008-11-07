@@ -6,7 +6,7 @@
  * COMMENTS: 
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
@@ -162,7 +162,7 @@ void getArgs(int argc, char* argv[])
    arg_reader.testAndSet("acc", acc);
    arg_reader.testAndSet("roc", roc);
 
-   if ((pr || acc || roc) && (pr && acc || pr && roc || acc && roc))
+   if ((pr || acc || roc) && ((pr && acc) || (pr && roc) || (acc && roc)))
       error(ETFatal, "only one of -pr, -acc, or -roc can be specified at a time");
    
    arg_reader.testAndSet(0, "raw_data", &isp, ifs);

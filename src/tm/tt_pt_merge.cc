@@ -4,20 +4,15 @@
  * 
  * 
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology 
+ * Inst. de technologie de l'information / Institute for Information Technology 
  * Conseil national de recherches Canada / National Research Council Canada 
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada 
  *
  */
 
-#include <stdlib.h>
-#include <vector>
 #include <queue>
-#include <map>
 #include <errors.h>
-#include <iostream>
-#include <sstream>
 #include <str_utils.h>
 #include <file_utils.h>
 #include <portage_defs.h>
@@ -27,7 +22,6 @@
 #include <printCopyright.h>
 
 using namespace Portage;
-using namespace __gnu_cxx; 
 
 static char help_message[] = "\n\
 tt_pt_merge  [-t X] [-x Y] [-w W] [-no-clean] phrase_table ibm_model \n\
@@ -138,7 +132,7 @@ void readIBM_fixed(istream& in, ostream& out, double type_mod)
  */
 void readIBM_targetted(istream& in, ostream& out, double type_mod)
 {
-    hash_map<string, priority_queue<WordProbPair> ,StringHash> storage;
+    unordered_map<string, priority_queue<WordProbPair> > storage;
     int count = 0;
     int i = 0;
     cerr << "Processing IBM model: ";
@@ -161,7 +155,7 @@ void readIBM_targetted(istream& in, ostream& out, double type_mod)
        if (storage[phrases[0]].size() > type_mod)
        { storage[phrases[0]].pop(); }
     }
-    for (hash_map<string, priority_queue<WordProbPair> ,StringHash>::iterator iter = storage.begin(); 
+    for (unordered_map<string, priority_queue<WordProbPair> >::iterator iter = storage.begin(); 
 	  iter != storage.end(); iter++)
     {
        while(!iter->second.empty())
@@ -234,7 +228,7 @@ int clearDups(istream& in, double weight)
    }
 }
 
-int main(Uint argc, const char * const * argv)
+int main(int argc, const char * const * argv)
 {
     printCopyright(2004, "tt_pt_merge");
     const char *switches[] = {"t:", "x:", "w:","no-clean"}; 

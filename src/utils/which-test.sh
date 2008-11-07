@@ -6,7 +6,7 @@
 # Eric Joanis
 #
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
@@ -37,7 +37,12 @@ usage() {
 [ "$1" == "-h" ] && usage
 [ $# -eq 0 ] && usage
 
-if [ -x "`which $1 2> /dev/null`" ]; then
+# Hack: we detect that we're running on a cluster by looking for qsub.
+# Defining the PORTAGE_NOCLUSTER environment variable to a non-empty string
+# hides qsub globally by altering what this script returns.
+if [ "$1" = qsub -a -n "$PORTAGE_NOCLUSTER" ]; then
+   exit 1
+elif [ -x "`which $1 2> /dev/null`" ]; then
    exit 0
 else
    exit 1

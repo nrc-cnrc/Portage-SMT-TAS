@@ -6,20 +6,20 @@
  * Read and write canoe config files
  * 
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology 
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada 
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
  */
 
 #include "config_io.h"
-#include <str_utils.h>
-#include <phrasetable.h>
+#include "str_utils.h"
+#include "phrasetable.h"
 #include <iomanip>
 #include <sstream>
-#include <logging.h>
-#include <randomDistribution.h>
-#include <lm.h>
+#include "logging.h"
+#include "randomDistribution.h"
+#include "lm.h"
 #include <boost/spirit.hpp>
 #include <boost/spirit/actor/assign_actor.hpp>
 #include <boost/bind.hpp>
@@ -608,7 +608,7 @@ void CanoeConfig::check_all_files() const
          assert(it->tconv == "stringVect");
          vector<string>& v = *((vector<string>*)(it->val));
          for (vector<string>::const_iterator f(v.begin()); f!=v.end(); ++f) {
-            if (!PLM::check_file_exists(*f)) {
+            if (!PLM::checkFileExists(*f)) {
                cerr << "can't access lm: " << *f << endl;
                ok = false;
             }

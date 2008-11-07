@@ -65,12 +65,12 @@ Arguments:
           run-parallel -c CMD CMD_OPTS \> OUTPUT_FILE
       is a more convenient solution to the blocking psub problem.
       Note: set SHELL=run-parallel.sh in a Makefile to run all commands on the
-      cluster.  Parallelize with make -j N.  The Makefile should not need any
-      further modifications since make handles pipes and redirection correctly.
-      With -c, run-parallel.sh works as much as possible as sh -c: the exit
-      status, stderr and stdout are that of the command itself.
-      Use RP_PSUB_OPTS="any psub opts" in from of a command in a Makefile to
-      change the behavior of psub.
+      cluster.  Parallelize with make -j N.  The Makefile does not need any
+      further modifications.  In particular, you need not escape pipes and
+      redirections, since make will already do so for you.
+      With -c, run-parallel.sh tries to mimic sh -c: the exit status, stderr
+      and stdout of the command are propagated through run-parallel.sh.
+      Add RP_PSUB_OPTS="psub opts" before the command to pass options to psub.
 
   N Number of workers to launch (may differ from the number of commands).
 
@@ -318,9 +318,18 @@ trap '
          echo "" >> run-parallel-logs-${PBS_JOBID-local}
       fi
    done
+   CLEAN_UP_MAX_DELAY=20
+   WORKER_COUNT=`ls $WORKDIR/err.worker-* 2> /dev/null | wc -l`
+   if [[ ! $NOLOCAL ]]; then WORKER_COUNT=$((WORKER_COUNT - 1)); fi
+   while (( $CLEAN_UP_MAX_DELAY > 0 && `ls $WORKDIR/log.worker-* 2> /dev/null | wc -l` < $WORKER_COUNT ))
+   do
+      sleep 1
+      CLEAN_UP_MAX_DELAY=$((CLEAN_UP_MAX_DELAY - 1))
+   done
+   sleep 1
    rm -rf psub-dummy-output* $WORKDIR
    exit
-' 0 2 3 13 14 15
+' 0 1 2 3 13 14 15
 
 # Create a temp directory for all temp files to go into.
 WORKDIR=""
@@ -532,8 +541,14 @@ fi
 if [ -z "$MASTER_PRIORITY" ]; then
    MASTER_PRIORITY=0
 fi
+if [[ $NUM == 1 ]]; then
+   WORKER_PRIORITY=$MASTER_PRIORITY
+else
+   WORKER_PRIORITY=$((MASTER_PRIORITY - 1))
+fi
+
 #echo MASTER_PRIORITY $MASTER_PRIORITY
-PSUBOPTS="-p $((MASTER_PRIORITY - 1)) $PSUBOPTS"
+PSUBOPTS="-p $WORKER_PRIORITY $PSUBOPTS"
 #echo PSUBOPTS $PSUBOPTS
 
 if [ ! $NOLOWPRI ]; then
