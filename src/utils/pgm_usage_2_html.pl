@@ -158,7 +158,7 @@ FOOTER
 print OUT $header;
 if (defined($module_index)) {
    print OUT "<H2>Available programs are:</H2><BR>
-   <TABLE CELLSPACING=\"10\">
+   <TABLE CELLPADDING=\"5\" BORDER=\"1\">
    ";
    while (<IN>) {
       chomp;
