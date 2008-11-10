@@ -5,7 +5,7 @@
 # @brief produce some statistics that might suggest the quality of alignment
 # sentence aligned files.
 #
-# PROGRAMMER: Eric Joanis
+# @author Eric Joanis
 #
 # COMMENTS:
 #

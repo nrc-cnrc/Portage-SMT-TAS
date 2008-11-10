@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # $Id$
-
+#
 # @file load-balancing.pl 
 # @brief Splits the input into blocks where the first block should be the
 # hardest to translate and the last block, the easiest.

@@ -12,7 +12,6 @@ PERL_LIBS= $(wildcard *.pm)
 PROGRAMS=compile_truecase_map
 
 BINSCRIPTS= $(wildcard *.pl)
-#BINSCRIPTS+= train-nc1.sh truecase-with-filtering.sh
 
 include ../build/Makefile.incl
 

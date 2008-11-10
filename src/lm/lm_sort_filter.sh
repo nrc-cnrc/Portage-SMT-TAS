@@ -5,6 +5,7 @@
 # @file lm_sort_filter.sh
 # @brief Sort and filter an LM optimally for lmtext2lmdb.
 # 
+# @author Samuel Larkin
 # 
 # COMMENTS: Rewritten from Bruno Laferriere's version
 #

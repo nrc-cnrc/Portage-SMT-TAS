@@ -1,5 +1,6 @@
 #!/bin/bash
 # $Id$
+#
 # @file canoe-parallel.sh 
 # @brief wrapper to run canoe on a parallel machine or on a cluster.
 #

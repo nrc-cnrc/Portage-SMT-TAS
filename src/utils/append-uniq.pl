@@ -6,7 +6,7 @@
 # and ffvals, where a duplicate is a line which is identical to another in
 # *both* files at the same time.
 #
-# PROGRAMMER: Samuel Larkin
+# @author Samuel Larkin
 #
 # COMMENTS:
 #
