@@ -1,6 +1,7 @@
 /**
  * @author George Foster
- * @file ssal.cc Simple sentence aligner
+ * @file ssal.cc 
+ * @brief Simple sentence aligner.
  * 
  * 
  * COMMENTS: 

@@ -1,14 +1,15 @@
 #!/usr/bin/perl -s
 
-# uncombine.pl
+# @file uncombine.pl 
+# @brief Split by stripping.
 # 
-# PROGRAMMER: George Foster
+# @author George Foster
 # 
 # COMMENTS: 
 #
 # George Foster
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada

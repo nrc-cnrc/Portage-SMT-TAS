@@ -1,7 +1,8 @@
 /**
  * @author George Foster, Eric Joanis, Michel Simard
- * @file align-words.cc  Program that aligns words in a set of line-aligned
- * files using IBM models.
+ * @file align-words.cc 
+ * @brief Program that aligns words in a set of line-aligned files using IBM
+ * models.
  *
  *
  * COMMENTS:

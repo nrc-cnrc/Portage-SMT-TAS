@@ -1,7 +1,9 @@
 #!/bin/bash
-# gen-jpt-parallel.sh - generate a joint probability table in parallel
+
+# @file gen-jpt-parallel.sh 
+# @brief generate a joint probability table in parallel.
 #
-# PROGRAMMER: George Foster
+# @author George Foster
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology

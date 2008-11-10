@@ -1,9 +1,10 @@
 #!/bin/bash
 # $Id$
 
-# tmtext_sort.sh - sort a text TM by src or tgt phrases, then other.
+# @file tmtext_sort.sh 
+# @brief sort a text TM by src or tgt phrases, then other.
 # 
-# PROGRAMMER: Eric Joanis
+# @author Eric Joanis
 # 
 # COMMENTS:
 #

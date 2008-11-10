@@ -1,8 +1,13 @@
 #!/bin/tcsh
 
-# George Foster
+# @file all-best-rr-vals 
+# @brief Summarize a set of rescore-results files in directories below current
+# one.
+#
+# @author George Foster
+#
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2007, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2007, Her Majesty in Right of Canada

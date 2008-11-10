@@ -1,8 +1,8 @@
 /**
  * @author George Foster
- * @file bag_trans.cc  Program that Bag-of-words translation, using GIZA M1
- * 'actual.ti' ttable, with lines of form src_word tgt_word
- * p(tgt_word|src_word).
+ * @file bag_trans.cc 
+ * @brief Program that Bag-of-words translation, using GIZA M1 'actual.ti'
+ * ttable, with lines of form src_word tgt_word p(tgt_word|src_word).
  * 
  * 
  * COMMENTS: 

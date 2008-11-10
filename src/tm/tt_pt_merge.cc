@@ -1,6 +1,8 @@
 /**
  * @author Denis Yuen
- * @file tt_pt_merge.cc  Program that merges phrase_table and ibm_model using a weight of W for the ibm_model. 
+ * @file tt_pt_merge.cc 
+ * @brief Program that merges phrase_table and ibm_model using a weight of W
+ * for the ibm_model. 
  * 
  * 
  * Technologies langagieres interactives / Interactive Language Technologies

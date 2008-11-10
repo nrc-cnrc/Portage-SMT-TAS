@@ -1,7 +1,8 @@
 #!/usr/bin/perl -w
 
-# Copyright (c) 2004, 2005, Sa Majeste la Reine du Chef du Canada /
-# Copyright (c) 2004, 2005, Her Majesty in Right of Canada
+# @file
+# @brief Truecaser.
+#
 #
 # This software is distributed to the GALE project participants under the terms
 # and conditions specified in GALE project agreements, and remains the sole
@@ -9,9 +10,10 @@
 #
 # For further information, please contact :
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# See http://iit-iti.nrc-cnrc.gc.ca/locations-bureaux/gatineau_e.html
+# Copyright 2008, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2008, Her Majesty in Right of Canada
 
 use strict;
 use warnings;

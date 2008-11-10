@@ -1,13 +1,13 @@
 #!/bin/bash
 # $Id$
 
-# psub - wrapper for qsub intended to do, by default, what we usually want,
-#        and to simplify options we often use.
-#        This script is intended to contain all the local peculiarities of the
-#        clusters we use.  Other sites using Portage or PORTAGEshared may need
-#        to adapt this script to their own cluster environment.
+# @file psub 
+# @brief wrapper for qsub intended to do, by default, what we usually want, and
+# to simplify options we often use.  This script is intended to contain all the
+# local peculiarities of the clusters we use.  Other sites using Portage or
+# PORTAGEshared may need to adapt this script to their own cluster environment.
 #
-# PROGRAMMER: Eric Joanis
+# @author Eric Joanis / Samuel Larkin
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology

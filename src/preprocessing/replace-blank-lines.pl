@@ -1,6 +1,10 @@
 #!/usr/bin/perl -sw
 
-# Programmer: George Foster.
+# @file reverse.pl 
+# @brief Write to stdout a copy of main-trans in which blank lines have been
+# replaced by corresponding lines in backup-trans.
+#
+# @author George Foster.
 #
 # Copyright (c) 2006, Sa Majeste la Reine du Chef du Canada /
 # Copyright (c) 2006, Her Majesty in Right of Canada

@@ -1,6 +1,8 @@
 /**
  * @author Eric Joanis
- * @file arpalm2binlm.cc  Convert an ARPA LM file to the Portage BinLM format
+ * @file arpalm2binlm.cc  
+ * @brief Convert an ARPA LM file to the Portage BinLM format.
+ *
  * $Id$
  *
  * Technologies langagieres interactives / Interactive Language Technologies

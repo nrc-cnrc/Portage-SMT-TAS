@@ -1,6 +1,10 @@
 #!/bin/tcsh -f
 
-# George Foster
+# @file best-rr-val 
+# @brief Pick out the best line in a rescore-results file.
+#
+# @author George Foster
+#
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada

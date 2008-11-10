@@ -1,13 +1,14 @@
 #!/usr/bin/perl -sw
 
-# combine.pl
+# @file combine.pl 
+# @brief Combines the contents of the files, one line at a time.
 # 
-# PROGRAMMER: Aaron Tikuisis
+# @author Aaron Tikuisis
 # 
 # COMMENTS:
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada

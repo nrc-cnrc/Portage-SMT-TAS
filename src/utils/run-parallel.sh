@@ -1,11 +1,11 @@
 #!/bin/bash -k
 # $Id$
 
-# run-parallel.sh - runs a series of jobs provided as STDIN on parallel
-#                   distributed workers managed by r-parallel-d.pl and
-#                   r-parallel-worker.pl.
+# @file run-parallel.sh 
+# @brief runs a series of jobs provided as STDIN on parallel distributed
+# workers managed by r-parallel-d.pl and r-parallel-worker.pl.
 #
-# PROGRAMMER: Eric Joanis
+# @author Eric Joanis
 #
 # COMMENTS:
 #

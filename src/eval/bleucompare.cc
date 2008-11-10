@@ -1,12 +1,13 @@
 /**
  * @author George Foster
- * @file bleucompare.cc  Program that compare BLEU scores of different test files.
+ * @file bleucompare.cc 
+ * @brief Program that compare BLEU scores of different test files.
  * 
  * 
  * COMMENTS: 
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2006, Her Majesty in Right of Canada

@@ -1,7 +1,8 @@
 /**
  * @author George Foster
- * @file phrase_align_stats.cc  Program that computes statistics on phrase
- * alignments produced by phrase_tm_align.
+ * @file phrase_align_stats.cc 
+ * @brief Program that computes statistics on phrase alignments produced by
+ * phrase_tm_align.
  * 
  * 
  * COMMENTS: 

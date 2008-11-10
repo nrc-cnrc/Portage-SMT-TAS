@@ -1,13 +1,14 @@
 #!/usr/bin/perl -s
 
-# prep-hans-html.pl Preprocess Hansard HTML format files
+# @file prep-hans-html.pl 
+# @brief Preprocess Hansard HTML format files.
 # 
-# PROGRAMMER: George Foster
+# @author George Foster
 # 
 # COMMENTS: 
 #
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada

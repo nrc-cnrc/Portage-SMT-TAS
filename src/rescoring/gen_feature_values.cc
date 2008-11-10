@@ -1,13 +1,14 @@
 /**
  * @author George Foster
- * @file gen_feature_values.cc  Program that generates and outputs the value
- * for a feature function given a source and its nbest.
+ * @file gen_feature_values.cc 
+ * @brief Program that generates and outputs the value for a feature function
+ * given a source and its nbest.
  *
  *
  * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada

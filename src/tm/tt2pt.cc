@@ -1,6 +1,7 @@
 /**
  * @author George Foster
- * @file tt2pt.cc  Program that generates a joint phrase table from a pair of
+ * @file tt2pt.cc 
+ * @brief Program that generates a joint phrase table from a pair of
  * ibm ttables and corresponding vocabulary files.
  * 
  * 

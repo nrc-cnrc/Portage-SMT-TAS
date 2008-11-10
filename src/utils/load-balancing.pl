@@ -1,14 +1,16 @@
 #!/usr/bin/perl -w
 # $Id$
-# load-balancing.pl - Splits the input into blocks where the first block should
-# be the hardest to translate and the last block, the easiest.
+
+# @file load-balancing.pl 
+# @brief Splits the input into blocks where the first block should be the
+# hardest to translate and the last block, the easiest.
 #
-# PROGRAMMER: Samuel Larkin
+# @author Samuel Larkin
 #
 # COMMENTS:
 #
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada

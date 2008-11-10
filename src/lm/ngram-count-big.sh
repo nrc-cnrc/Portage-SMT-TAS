@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# ngram-count-big.sh - wrapper around ngram-count to make large n-gram count
-#                      files using the sorted-count / merge process.  Intended
-#                      to replace srilm's make-big-lm script, dealing with all
-#                      the bookkeeping automatically, and splitting very large
-#                      files automatically.
+# @file ngram-count-big.sh 
+# @brief Wrapper around ngram-count to make large n-gram count files using the
+# sorted-count / merge process.  Intended to replace srilm's make-big-lm
+# script, dealing with all the bookkeeping automatically, and splitting very
+# large files automatically.
 #
-# PROGRAMMER: Eric Joanis and Samuel Larkin
+# @author Eric Joanis and Samuel Larkin
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology

@@ -1,9 +1,10 @@
 #!/bin/bash
 # $Id$
 
-# train-phrases.sh - Run the translation model training suite
+# @file train-phrases.sh 
+# @brief Run the translation model training suite.
 # 
-# PROGRAMMER: Eric Joanis, based on George Foster's similar tcsh script
+# @author Eric Joanis, based on George Foster's similar tcsh script
 # 
 # COMMENTS:
 #

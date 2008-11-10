@@ -1,12 +1,14 @@
 /**
  * @author George Foster
- * @file sample_parallel_text.cc  Application.
+ * @file sample_parallel_text.cc 
+ * @brief Produce a sub-sample of a parallel text, with one or more target
+ * texts.
  * 
  * 
  * COMMENTS: 
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada

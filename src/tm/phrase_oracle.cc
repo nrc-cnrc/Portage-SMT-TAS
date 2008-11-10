@@ -1,14 +1,15 @@
 /**
  * @author George Foster
- * @file phrase_oracle.cc  Program that derives an oracle joint phrase table
- * from a source text and its reference translations, using an Och-style phrase
- * induction algorithm.
+ * @file phrase_oracle.cc 
+ * @brief Program that derives an oracle joint phrase table from a source text
+ * and its reference translations, using an Och-style phrase induction
+ * algorithm.
  *
  *
  * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada

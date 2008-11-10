@@ -1,13 +1,14 @@
 /**
  * @author George Foster, based on "rescore" by Aaron Tikuisis
- * @file rescore_test.cc  Program rescore_test which tests a rescoring model
- * on given source, nbest and reference texts.
+ * @file rescore_test.cc 
+ * @brief Program rescore_test which tests a rescoring model on given source,
+ * nbest and reference texts.
  *
  *
  * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada

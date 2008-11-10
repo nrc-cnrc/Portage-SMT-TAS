@@ -1,6 +1,7 @@
 /**
  * @author George Foster
- * @file bin_class_stats.cc  Generate statistics for binary classification results.
+ * @file bin_class_stats.cc 
+ * @brief Generate statistics for binary classification results.
  * 
  * 
  * COMMENTS: 

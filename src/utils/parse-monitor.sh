@@ -1,13 +1,13 @@
 #!/usr/bin/perl 
 # $Id$
 #
-# parse-monitor.sh  Extract useful information from the output of
-#                   monitor-process.sh
+# @file parse-monitor.sh 
+# @brief Extract useful information from the output of monitor-process.sh
 #
-# Eric Joanis
+# @author Eric Joanis
 #
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada

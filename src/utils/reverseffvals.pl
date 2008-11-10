@@ -1,13 +1,14 @@
 #!/usr/bin/perl -sw
 
-# reverseff.pl Reverses the words in each line of input of -ffvals text
+# @file reverseff.pl 
+# @brief Reverses the words in each line of input of -ffvals text.
 #
-# PROGRAMMER: Matthew Arnold
+# @author Matthew Arnold
 #
 # COMMENTS:
 #
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada

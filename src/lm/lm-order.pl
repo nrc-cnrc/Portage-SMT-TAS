@@ -1,8 +1,9 @@
 #!/usr/bin/perl
 
-# lm-order.pl Determine the order of an ARPA format LM file.
+# @file lm-order.pl
+# @brief Determine the order of an ARPA format LM file.
 # 
-# PROGRAMMER: Eric Joanis
+# @author Eric Joanis
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology

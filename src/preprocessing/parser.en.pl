@@ -3,9 +3,11 @@
 use vars qw($VERSION @ISA @EXPORT);
 use Exporter;
 
-# Description:	The following is a portion of a perl program that detects dates
-# and numbers in an English #text corpus, converts them to a standard format and
-# marks them up 
+# @file parser.en.pl 
+# @brief The following is a portion of a perl program that
+# detects dates and numbers in an English #text corpus, converts them to a
+# standard format and marks them up. 
+#
 
 #Author:	Fatiha Sadat, LTRC-NRC
 #Usage:		perl detectmarkup-eng2fr.date-number.NIST05.pl $infile $outfile 

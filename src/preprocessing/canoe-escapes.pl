@@ -1,8 +1,9 @@
 #!/usr/bin/perl -s
 
-# add-standard-escapes.pl
+# @file add-standard-escapes.pl
+# @brief Escapes input text for canoe (\ < >).
 # 
-# PROGRAMMER: Eric Joanis
+# @author Eric Joanis
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology

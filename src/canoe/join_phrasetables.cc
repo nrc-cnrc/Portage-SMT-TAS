@@ -1,11 +1,12 @@
 /**
  * @author George Foster
- * @file join_phrasetables.cc
+ * @file join_phrasetables.cc 
+ * @brief Perform a unix join-like operation on a set of input phrasetables.
  * 
  * COMMENTS: 
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2007, Sa Majeste la Reine du Chef du Canada / 
  * Copyright 2007, Her Majesty in Right of Canada

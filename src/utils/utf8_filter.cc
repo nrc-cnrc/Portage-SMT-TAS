@@ -1,6 +1,7 @@
 /**
  * @author J Howard Johnson
- * @utf8_filter.cc Verify / Sanitize UTF8 very strictly
+ * @file utf8_filter.cc 
+ * @brief Verify / Sanitize UTF8 very strictly.
  * 
  * 
  * Technologies langagieres interactives / Interactive Language Technologies

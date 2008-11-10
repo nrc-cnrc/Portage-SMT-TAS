@@ -1,21 +1,24 @@
 #!/usr/bin/perl -s -w
 #
-# filter-for-giza.pl takes as input a line-aligned bilingual corpus in
-# the form of a pair of source and target files, and produces a
-# corresponding pair of files "f.giza" and "e.giza", in which the
-# following pairs of lines have been eliminated:
+# @file filter-for-giza.pl 
+# @brief Produces a pair of line-aligned files for giza.
+#
+# Takes as input a line-aligned bilingual corpus in the form of a pair
+# of source and target files, and produces a corresponding pair of files
+# "f.giza" and "e.giza", in which the following pairs of lines have been
+# eliminated:
 # - either line is empty
 # - one line exceeds 100 words
 # - one line is  at least twice as long as the other
 # - either line contains any of the forbidden characters "#", "{" or "}" 
 #
-# PROGRAMMER: Michel Simard but don't blame me
+# @author Michel Simard but don't blame me
 #
 # COMMENTS:
 #
 # Michel Simard
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2006, Her Majesty in Right of Canada

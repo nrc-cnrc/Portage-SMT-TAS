@@ -1,6 +1,7 @@
 /**
  * @author George Foster
  * @file compile_truecase_map.cc
+ * @brief Compile a truecase map in the format expected by truecase.pl.
  * 
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology

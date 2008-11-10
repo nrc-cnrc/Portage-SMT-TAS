@@ -1,6 +1,7 @@
 /**
  * @author George Foster
- * @file word_align_tool  Reformat and perform other operations on word alignments.
+ * @file word_align_tool 
+ * @brief Reformat and perform other operations on word alignments.
  * 
  * 
  * COMMENTS: 

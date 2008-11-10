@@ -1,6 +1,7 @@
 /**
  * @author Samuel Larkin
- * @file prog.cc Program template.
+ * @file merge_counts 
+ * @brief Merge sort files by talling counts.
  * 
  * 
  * COMMENTS: 

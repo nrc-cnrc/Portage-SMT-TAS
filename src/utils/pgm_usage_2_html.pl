@@ -1,7 +1,8 @@
 #!/usr/bin/perl
 # $Id$
 
-# @file pgm_usage_2_html.pl - Creates html page from a program's help message.
+# @file pgm_usage_2_html.pl 
+# @brief Creates html page from a program's help message.
 #
 # @author Samuel Larkin
 #
@@ -53,9 +54,10 @@ GetOptions(
    "pgm=s"     => \my $name,
    "module=s"  => \my $module_index,
    "main=s"    => \my $main_index,
+   "index=s"   => \my $full_index,
 ) or usage;
 
-die "You must provide either -pgm|-module|-main!" if (not(defined($name) or defined($module_index) or defined($main_index)));
+die "You must provide either -pgm|-module|-main|-index!" if (not(defined($name) or defined($module_index) or defined($main_index) or defined($full_index)));
 die "You cannot make both main_index and module_index at the same time." if (defined($module_index) and defined($main_index));
 
 my $in = shift || "-";
@@ -89,6 +91,11 @@ my $hierarchy;
 if (defined($main_index)) {
    $title = $main_index;
    $NRC_logo_path = "./";
+}
+elsif (defined($full_index)) {
+   $title = $full_index;
+   $NRC_logo_path = "./";
+   $hierarchy .= " <A HREF=\"index.html\">PORTAGEshared</A>";
 }
 else {
    $NRC_logo_path = "../";
@@ -151,12 +158,12 @@ FOOTER
 print OUT $header;
 if (defined($module_index)) {
    print OUT "<H2>Available programs are:</H2><BR>
-   <UL>
+   <TABLE CELLSPACING=\"10\">
    ";
    while (<IN>) {
       chomp;
       my $pgm_name = $_;
-      print OUT "<LI><A HREF=\"$pgm_name.html\">$pgm_name</A>\n";
+      print OUT "<TR ID=\"program brief description\"><TD ALIGN=\"left\" VALIGN=\"top\" NOWRAP><A ID=\"MODULE $module_index\" HREF=\"$pgm_name.html\">$pgm_name</A></TD>";
 
       my $code;
       {
@@ -170,13 +177,15 @@ if (defined($module_index)) {
       }
 
       print STDERR $code if ($debug);
-      if ($code =~ /[#\*] \@file .* - (.*?)^\s*[#\*]\s*$/ms) {
+      if ($code =~ /[#\*] \@brief\s+(.*?)^\s*[#\*]\s*$/ms) {
          my $oneliner = $1;
-         $oneliner =~ s/#//g;
-         print OUT "$oneliner\n";
+         $oneliner =~ s/[#\*\n]//g;
+         chomp($oneliner);
+         print OUT "<TD ALIGN=\"left\" VALIGN=\"top\">$oneliner</TD>";
       }
+      print OUT "</TR>\n";
    }
-   print OUT "</UL><BR>
+   print OUT "</TABLE><BR>
    <A HREF=../index.html>back</A>
    ";
 }
@@ -188,7 +197,45 @@ elsif (defined($main_index)) {
       chomp;
       print OUT "<LI><A HREF=\"$_/index.html\">$_</A>\n";
    }
-   print OUT "</UL><BR>\n";
+   print OUT "</UL>
+   <BR><BR>
+   <H4><A HREF=\"list.html\">List of all programs</A></H4>\n";
+}
+elsif (defined($full_index)) {
+   my %list = ();
+   print OUT "<TABLE CELLPADDING=\"5\" BORDER=\"1\">\n";
+   while (<IN>) {
+      # Extract the module's name.
+      my $module_name;
+      if (/ID="MODULE ([^"]+)"/) {
+         $module_name = $1;
+         print STDERR "$module_name\n" if ($debug);
+      }
+      else {
+         print STDERR "<WARN>: Where is the module's name.\n";
+      }
+      # Fix the link to point to the file in the module's directory.
+      if (not s/HREF="/HREF="$module_name\//) {
+         print STDERR "<WARN>: Couldn't fix the link.\n";
+      }
+      # Grag the link and store it memory.
+      if (/HREF="(.*html)"/) {
+         my $key = $1;
+         $key =~ s/.*\///;
+         $key = lc($key);
+         $list{$key} = $_;
+      }
+      else {
+         print STDERR "<WARN>: Couldn't detect a link.\n";
+      }
+   }
+   # Output the links in alphabetical order.
+   foreach my $key (sort (keys(%list))) {
+      print $list{$key};
+   }
+   print OUT "</TABLE>
+   <A HREF=index.html>back</A>
+   \n";
 }
 else {
    print OUT "<PRE>";

@@ -1,13 +1,14 @@
 #!/bin/bash
 
-# rat.sh
+# @file rat.sh 
+# @brief Train or translate with a rescoring model.
 #
-# PROGRAMMER: George Foster, Samuel Larkin
+# @author George Foster, Samuel Larkin
 #
 # COMMENTS:
 #
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2006, Her Majesty in Right of Canada

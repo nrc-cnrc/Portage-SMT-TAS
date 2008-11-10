@@ -1,6 +1,7 @@
 /**
  * @author George Foster, based on "rescore" by Aaron Tikuisis, plus many others...
- * @file rescore_train.cc  Program rescore_train which finds the best weights
+ * @file rescore_train.cc 
+ * @brief Program rescore_train which finds the best weights
  * for a set of feature functions given sources, references and nbest lists.
  *
  *

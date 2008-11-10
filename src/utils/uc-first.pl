@@ -1,13 +1,14 @@
 #!/usr/bin/perl -s
 
-# uc-first.pl 1st-letter per line uppercase mapping for iso-latin1
+# @file uc-first.pl 
+# @brief 1st-letter per line uppercase mapping for iso-latin1.
 # 
-# PROGRAMMER: George Foster
+# @author George Foster
 # 
 # COMMENTS: 
 #
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada

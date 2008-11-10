@@ -1,10 +1,12 @@
 #!/usr/bin/perl
 #
-# gen-features-parallel.pl
+# @file gen-features-parallel.pl 
+# @brief Generate a set of feature-value files in parallel, as required by the
+# rescoring model file MODEL.
 #
 # George Foster / Samuel Larkin
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2006, Her Majesty in Right of Canada

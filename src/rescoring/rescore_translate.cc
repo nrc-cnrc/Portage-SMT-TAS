@@ -1,14 +1,14 @@
 /**
  * @author Samuel Larkin based on George Foster, based on "rescore" by Aaron Tikuisis
- * @file rescore_translate.cc  Program rescore_translate which picks the best
- * translation for a source given an nbest list a feature functions weights
- * vector.
+ * @file rescore_translate.cc 
+ * @brief Program rescore_translate which picks the best translation for a
+ * source given an nbest list a feature functions weights vector.
  *
  *
  * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada

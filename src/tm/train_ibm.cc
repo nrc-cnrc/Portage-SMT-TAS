@@ -1,6 +1,7 @@
 /**
  * @author George Foster
- * @file train_ibm.cc  Program that trains IBM models 1 and 2.
+ * @file train_ibm.cc 
+ * @brief Program that trains IBM models 1 and 2.
  *
  * TODO: add ppx-based break condition
  *

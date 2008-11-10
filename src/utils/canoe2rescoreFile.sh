@@ -1,7 +1,8 @@
 #!/bin/bash
 # $Id$
 
-# canoe2rescoreFile.sh ffvals with weigths are written to stdout.
+# @file canoe2rescoreFile.sh 
+# @brief ffvals with weigths are written to stdout.
 # 
 # PROGRAMMER: Eric Joanis
 # 

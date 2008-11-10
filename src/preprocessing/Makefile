@@ -1,6 +1,6 @@
 # Makefile for preprocessing programs
 #
-# George Foster
+# @author George Foster
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
@@ -11,7 +11,7 @@ PROGRAMS = \
 	asciify \
 	ssal
 
-BINSCRIPTS = *.pl
+BINSCRIPTS = $(wildcard *.pl)
 
 PERL_LIBS = *.pm
 

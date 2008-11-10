@@ -1,7 +1,8 @@
 /**
  * @author George Foster, Eric Joanis
- * @file gen_phrase_tables.cc  Program that generates phrase translation tables
- * from IBM models and a set of line-aligned files.
+ * @file gen_phrase_tables.cc 
+ * @brief Program that generates phrase translation tables from IBM models and
+ * a set of line-aligned files.
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology

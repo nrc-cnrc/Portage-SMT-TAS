@@ -1,11 +1,13 @@
 /**
  * @author George Foster
- * @file configtool.cc  Program that reads canoe config file and writes selected information to out.
+ * @file configtool.cc 
+ * @brief Program that reads canoe config file and writes selected information
+ * to out.
  *
  * COMMENTS:  Operations on canoe config files, for use with rescoreloop.
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada / 
  * Copyright 2005, Her Majesty in Right of Canada

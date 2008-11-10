@@ -512,32 +512,28 @@ endif
 # Indicates where the web pages should reside.
 USAGE_DIR ?= ../../doc/usage
 
+MODULE_NAME = $(notdir ${CURDIR})
+
 # Since we are building pages for a particular module, it would make sense to
 # put those pages together in a directory.
-MODULE_USAGE_DIR = ${USAGE_DIR}/$(notdir ${CURDIR})
+MODULE_USAGE_DIR = ${USAGE_DIR}/${MODULE_NAME}
 
 # Main alias to create the web pages.
 .PHONY: usage
 
-USAGE_PROGRAMS = $(filter-out $(TESTPROGS), $(PROGRAMS))
+USAGE_PROGRAMS   = $(filter-out $(TESTPROGS), $(PROGRAMS)) ${BINSCRIPTS}
 
 # Let's make a index per module of all available programs
-ifneq ($(strip ${BINSCRIPTS}),)
-index.html: $(addsuffix .html,$(shell ls ${BINSCRIPTS}))
-endif
-ifneq ($(strip $(USAGE_PROGRAMS)),)
-index.html: $(addsuffix .html,$(USAGE_PROGRAMS))
-endif
-
-ifeq ($(strip ${BINSCRIPTS} $(USAGE_PROGRAMS)),)
+ifeq ($(strip $(USAGE_PROGRAMS)),)
 usage:
 else
+index.html: $(addsuffix .html,${USAGE_PROGRAMS})
 usage: index.html
 index.html:
-	ls ${MODULE_USAGE_DIR}/*.html \
-	| sed 's#.*/##' \
+	echo "$(USAGE_PROGRAMS)" \
+	| tr " " "\n" \
 	| sort \
-	| ../utils/pgm_usage_2_html.pl -module $(notdir ${CURDIR}) \
+	| ../utils/pgm_usage_2_html.pl -module ${MODULE_NAME} \
 	> ${MODULE_USAGE_DIR}/$@
 endif
 
@@ -545,7 +541,7 @@ endif
 vpath %.html ${MODULE_USAGE_DIR}
 %.html: %
 	install -d -m0750 ${MODULE_USAGE_DIR}
-	./$* -h 2>&1 | ../utils/pgm_usage_2_html.pl -pgm $* > ${MODULE_USAGE_DIR}/$@
+	./$* -h 2>&1 | ../utils/pgm_usage_2_html.pl -pgm ${MODULE_NAME}/$* > ${MODULE_USAGE_DIR}/$@
 
 # How to clean the web pages.
 .PHONY: clean_usage

@@ -1,7 +1,9 @@
 /**
  * @author Samuel Larkin based on Bruno Laferriere
- * @file lm_eval.cc  Program for testing language model implementations and
- *                   their funtionalities.
+ * @file lm_eval.cc 
+ * @brief Program for testing language model implementations and their
+ * funtionalities.
+ *
  * $Id$
  *
  * Technologies langagieres interactives / Interactive Language Technologies

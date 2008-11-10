@@ -1,10 +1,10 @@
 #!/usr/bin/perl -w
 # $Id$
 #
-# \file r-parallel-d.pl  This script is used in conjuction with netpipes'
-#               netcat program, used in r-parallel-worker.pl, and
-#               run-parallel.sh.  It accepts connections on a specific port and
-#               returns commands to executed when asked.
+# @file r-parallel-d.pl 
+# @brief This script is used in conjuction with netpipes' netcat program, used
+# in r-parallel-worker.pl, and run-parallel.sh.  It accepts connections on a
+# specific port and returns commands to executed when asked.
 #
 # This script replaces our former faucet/faucet.pl: r-parallel-d.pl is the
 # full deamon, receiving requests via a socket and handling them directly,
@@ -15,13 +15,13 @@
 # faucet.pl.  Turn around time for workers requesting jobs should now be
 # measures in milliseconds rather than in seconds.
 #
-# PROGRAMMER: Eric Joanis, based on faucet.pl and faucet_launcher.sh, written
+# @author Eric Joanis, based on faucet.pl and faucet_launcher.sh, written
 # by Patrick Paul and Eric Joanis
 #
 # COMMENTS:
 #
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005-2007, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005-2007, Her Majesty in Right of Canada

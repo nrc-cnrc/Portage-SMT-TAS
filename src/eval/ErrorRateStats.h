@@ -1,13 +1,14 @@
 /**
  * @author Samuel Larkin
- * @file ErrorRateStats.h  Base class for PER/WER stats.
+ * @file ErrorRateStats.h 
+ * @brief Base class for PER/WER stats.
  * 
  * $Id$
  * 
  * COMMENTS: Base class for wer/per stats.  Equivalent to BLEUstats
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2008, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2008, Her Majesty in Right of Canada
@@ -83,7 +84,7 @@ struct ErrorRateStats {
       /**
        * Calculates the distance between a translation and its references.
        * @param translation  a translation.
-       * @param ref          its references.
+       * @param refs         its references.
        * @return Returns some distance between the translation and its references.
        */
       void init(const Translation& translation, const References& refs) {
@@ -93,7 +94,7 @@ struct ErrorRateStats {
       /**
        * Calculates the distance between a translation and its references.
        * @param translation  words of the translation.
-       * @param ref          its references.
+       * @param refs         its references.
        * @return Returns some distance between the translation and its references.
        */
       void init(const Tokens& translation, const References& refs) {

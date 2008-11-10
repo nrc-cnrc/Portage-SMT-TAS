@@ -1,5 +1,8 @@
 #!/bin/sed -f
-# Sed script for converting from SGM format to one-sentence-per-line
+# @file mteval2ospl.sed 
+# @brief Convert from SGM format to one-sentence-per-line.
+#
+# @author George Foster
 
 # Used as follows:
 # mteval2ospl.sed myfile.sgm > myfile.ospl

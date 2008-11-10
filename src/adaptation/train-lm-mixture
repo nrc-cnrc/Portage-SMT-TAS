@@ -1,14 +1,16 @@
 #!/bin/bash
 # $Id$
 
-# train-lm-mixture
+# @file train-lm-mixture 
+# @brief Train a mixture of ngram language models using EM on a given text
+# file.
 # 
-# PROGRAMMER: GF
+# @author George Foster
 # 
 # COMMENTS:
 #
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2006, Her Majesty in Right of Canada

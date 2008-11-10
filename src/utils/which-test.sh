@@ -1,9 +1,10 @@
 #!/bin/sh
 # $Id$
 #
-# which-test.sh - portable wrapper for which, with reliable status code
+# @file which-test.sh 
+# @brief portable wrapper for which, with reliable status code.
 #
-# Eric Joanis
+# @author Eric Joanis
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology

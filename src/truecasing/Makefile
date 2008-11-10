@@ -7,11 +7,12 @@
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
 
-PERL_LIBS= *.pm
+PERL_LIBS= $(wildcard *.pm)
 
 PROGRAMS=compile_truecase_map
 
-BINSCRIPTS= *.pl train-nc1.sh truecase-with-filtering.sh
+BINSCRIPTS= $(wildcard *.pl)
+#BINSCRIPTS+= train-nc1.sh truecase-with-filtering.sh
 
 include ../build/Makefile.incl
 

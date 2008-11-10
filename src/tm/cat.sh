@@ -1,9 +1,10 @@
 #!/bin/bash
 # $Id$
 
-# cat.sh - Cool Alignment Training - run train_ibm in parallel mode.
+# @file cat.sh 
+# @brief Cool Alignment Training - run train_ibm in parallel mode.
 #
-# PROGRAMMER: Eric Joanis
+# @author Eric Joanis
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology

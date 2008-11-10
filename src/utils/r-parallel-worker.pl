@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
 # $Id$
 
-# \file r-parallel-worker.pl - This is a generic worker program that requests
-#                              a command and executes it when done exits
+# @file r-parallel-worker.pl 
+# @brief This is a generic worker program that requests a command and executes
+# it when done exits
 #
-# PROGRAMMER: Patrick Paul and Eric Joanis
+# @author Patrick Paul and Eric Joanis
 #
 # COMMENTS:
 #

@@ -1,6 +1,6 @@
 # Portage top-level Makefile
 #
-# George Foster, Eric Joanis, Samuel Larkin
+# @author George Foster, Eric Joanis, Samuel Larkin
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -82,7 +82,7 @@ USAGE_DIR ?= ../doc/usage
 
 # Main alias to create the web pages.
 .PHONY: usage
-usage: index.html
+usage: list.html
 index.html: make_module_usage
 	find ${USAGE_DIR} -name index.html -maxdepth 2 -mindepth 2 \
 	| xargs -i dirname {} \
@@ -91,7 +91,14 @@ index.html: make_module_usage
 	| sort \
 	| ./utils/pgm_usage_2_html.pl -main "Program's help" \
 	> ${USAGE_DIR}/$@
-	rsync -arz ilt.iit-iti.priv:/export/projets/Lizzy/PORTAGEshared/snapshot/uploads/NRC_banner_e.jpg ${USAGE_DIR}
+	cp build/*.gif build/*.jpg ${USAGE_DIR}
+
+list.html: index.html
+	find ${USAGE_DIR} -name index.html -maxdepth 2 -mindepth 2 \
+	| xargs cat \
+	| egrep '<TR ID="program brief description">' \
+	| ./utils/pgm_usage_2_html.pl -index "List of all programs" \
+	> ${USAGE_DIR}/$@
 
 # Asks all modules to generate its own index and web pages.
 .PHONY: make_module_usage

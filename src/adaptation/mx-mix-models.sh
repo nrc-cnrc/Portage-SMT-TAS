@@ -1,13 +1,15 @@
 #!/bin/bash
 
-# mx-mix-models.sh
+# @file mx-mix-models.sh 
+# @brief Generate a mixture model of a specified type, by applying given
+# weights to a set of components, for translating a given textfile.
 # 
-# PROGRAMMER: GF
+# @author George Foster
 # 
 # COMMENTS:
 #
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada / 
 # Copyright 2006, Her Majesty in Right of Canada

@@ -1,8 +1,10 @@
 #!/bin/bash
 
-# mx-calc-distances.sh
+# @file mx-calc-distances.sh 
+# @brief Calculate text distances, according to some metric, from a given list
+# of corpus components to a given text file.
 # 
-# PROGRAMMER: George Foster
+# @author George Foster
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology

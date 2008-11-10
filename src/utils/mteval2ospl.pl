@@ -1,14 +1,15 @@
 #!/usr/bin/perl -s
 
-# mteval2ospl.pl Convert NIST MT format to one-sentence-per-line
+# @file mteval2ospl.pl 
+# @brief Convert NIST MT format to one-sentence-per-line.
 # 
-# PROGRAMMER: George Foster
+# @author George Foster
 # 
 # COMMENTS: 
 #
 # George Foster
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada

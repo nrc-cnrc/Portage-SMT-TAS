@@ -1,10 +1,12 @@
 #!/usr/bin/perl -sw
 
-# * Technologies langagieres interactives / Interactive Language Technologies
-# * Institut de technologie de l'information / Institute for Information Technology
-# * Conseil national de recherches Canada / National Research Council Canada
-# * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
-# * Copyright 2006, Her Majesty in Right of Canada
+# @brief Calculates score for an nbest.
+#
+#  Technologies langagieres interactives / Interactive Language Technologies
+#  Inst. de technologie de l'information / Institute for Information Technology
+#  Conseil national de recherches Canada / National Research Council Canada
+#  Copyright 2006, Sa Majeste la Reine du Chef du Canada /
+#  Copyright 2006, Her Majesty in Right of Canada
 
 use strict;
 

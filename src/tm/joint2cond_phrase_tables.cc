@@ -1,7 +1,7 @@
 /**
  * @author George Foster
- * @file joint2cond_phrase_tables.cc  Program that converts joint-frequency
- *                                    phrase table.
+ * @file joint2cond_phrase_tables.cc 
+ * @brief Program that converts joint-frequency phrase table.
  *
  *
  * COMMENTS:

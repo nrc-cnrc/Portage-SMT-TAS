@@ -1,6 +1,7 @@
 /**
  * @author George Foster
- * @file get_voc.cc  Get vocabulary (unique words) from tokenized text on stdin.
+ * @file get_voc.cc 
+ * @brief Get vocabulary (unique words) from tokenized text on stdin.
  * 
  * 
  * COMMENTS: 
@@ -8,7 +9,7 @@
  * Get vocabulary (unique words) from tokenized text on stdin.
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
