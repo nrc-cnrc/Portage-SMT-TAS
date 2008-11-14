@@ -1,0 +1,21 @@
+/usr/test | /usr | test
+/usr/test | /usr | test
+
+/usr/ | / | usr
+/usr/ | / | usr
+
+/ | / | /
+/ | / | /
+
+. | . | .
+. | . | .
+
+.. | . | ..
+.. | . | ..
+
+usr | . | usr
+usr | . | usr
+
+./usr | . | usr
+./usr | . | usr
+

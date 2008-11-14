@@ -10,7 +10,7 @@
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
@@ -40,7 +40,8 @@ namespace Portage
       /// The source words that this is a translation of
       Range src_words;
 
-      /// The phrase.  The front of the vector should contain the leftmost
+      /// The target phrase.
+      /// The front of the vector should contain the leftmost
       /// word of the phrase.
       Phrase phrase;
 
@@ -173,7 +174,7 @@ namespace Portage
       virtual ~PhraseDecoderModel() {}
 
       /**
-       * Converts a phrase consisting of Uint "word"'s into a printable
+       * Converts a phrase consisting of Uint "word"s into a printable
        * phrase string.
        * @param[out] s         The string to put the phrase into.
        * @param[in]  uPhrase   The phrase using Uint's to represent words.

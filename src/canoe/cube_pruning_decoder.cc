@@ -5,7 +5,7 @@
  * $Id$
  *
  * Technologies langagieres interactives / Interactive Language Technoogies
- * Institut de technologie de l'information / Institute for Information Technoloy
+ * Inst. de technologie de l'information / Institute for Information Technoloy
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2007, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2007, Her Majesty in Right of Canada
@@ -13,6 +13,7 @@
 
 #include <portage_defs.h>
 #include "basicmodel.h"
+#include "distortionmodel.h"
 #include "decoder.h"
 #include "cube_pruning_decoder.h"
 #include "cube_pruning_hyp_stack.h"
@@ -115,10 +116,10 @@ static void MakeHyperedges(
                        src_words, model.c->distLimit, sourceLength,
                        model.c->distLimitExt, &out_cov)
                   ||
-                    model.c->distPhraseSwap &&
+                   (model.c->distPhraseSwap &&
                     DistortionModel::isPhraseSwap(cov, 
                        states[i]->trans->lastPhrase->src_words,
-                       src_words, sourceLength, scored_phrases)
+                       src_words, sourceLength, scored_phrases))
                  )
                )
                continue;
@@ -216,7 +217,7 @@ HypothesisStack* runCubePruningDecoder(BasicModel &model, const CanoeConfig& c)
    Uint sourceLength = model.getSourceLength();
    vector<PhraseInfo*> **phrases = model.getPhraseInfo();
    vector<pair<double, PhraseInfo*> > **scored_phrases =
-      CreateTriangularArray<vector<pair<double,PhraseInfo*> > >()(sourceLength);
+      TriangArray::Create<vector<pair<double,PhraseInfo*> > >()(sourceLength);
 
    // Pre-sort the PhraseInfos in decreasing order of their local future score.
    for ( Uint i(0); i < sourceLength; ++i ) {
@@ -295,7 +296,7 @@ HypothesisStack* runCubePruningDecoder(BasicModel &model, const CanoeConfig& c)
    }
 
    // Clean out the scored phrases
-   DeleteTriangularArray<vector<pair<double, PhraseInfo*> > >()(
+   TriangArray::Delete<vector<pair<double, PhraseInfo*> > >()(
       scored_phrases, sourceLength);
 
    // Clean out all the stacks, except the last one, which we return 

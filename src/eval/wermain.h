@@ -34,7 +34,7 @@ namespace Portage
   {
     /// Program wermain usage.
     static char help_message[] = "\n\
-wermain [-v][-c][-detail d] testfile ref1 ref2 ... refn\n \
+wermain [-v][-c][-detail d][-per] testfile ref1 ref2 ... refn\n \
 \n\
 Computes the mWER / mPER score for the set of translations in testfile, using the\n\
 reference files ref1, ... , refn. Each file should have one sentence per line,\n\

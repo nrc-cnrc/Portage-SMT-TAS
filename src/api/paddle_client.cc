@@ -3,10 +3,11 @@
  * @file paddle_client.cc  Program paddle_client
  *
  *
- * COMMENTS:  Utilise les fonctionalites des stream recoit comme argument un fichier, le # de port et l'addresse du serveur.
+ * COMMENTS:  Utilise les fonctionalites des stream recoit comme argument un
+ * fichier, le # de port et l'addresse du serveur.
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
@@ -18,7 +19,7 @@
 #include "ace/Mem_Map.h"
 #include <iostream>
 #include <sstream>
-#include <assert.h>
+#include <cassert>
 
 using namespace std;
 

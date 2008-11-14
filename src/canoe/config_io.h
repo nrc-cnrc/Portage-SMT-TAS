@@ -6,7 +6,7 @@
  * $Id$
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, 2006, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, 2006, Her Majesty in Right of Canada
@@ -95,7 +95,7 @@ private:
           * @param  index of random distriubtion's string to convert.
           * @return  Returns a random distribution object.
           */
-         rnd_distribution* get(const Uint index) const;
+         rnd_distribution* get(Uint index) const;
    };
 
 public:
@@ -122,8 +122,16 @@ public:
    random_param rnd_transWeights;   ///< Translation model weights
    vector<double> forwardWeights;   ///< Forward translation model weights
    random_param rnd_forwardWeights; ///< Forward translation model weights
+
+   // Rule decoder feature arguments
+   vector<string> rule_classes;       ///< Rule classes' name
+   vector<double> rule_weights;       ///< Rule classes' weights
+   random_param rnd_rule_weights;     ///< Rule classes' weights
+   vector<double> rule_log_zero;      ///< Rule classes' log zero value
+
    bool randomWeights;              ///< true == use rnd weights for each sent.
    Uint randomSeed;                 ///< Seed for randomWeights
+   string sentWeights;		    ///< Filename for sentence-specific weights.
    Uint phraseTableSizeLimit;       ///< Num target phrases per source phrase
    double phraseTableThreshold;     ///< Prob threshold for pruning PTs.
    string phraseTablePruneType;     ///< Which probs to use for pruning PTs
@@ -162,6 +170,7 @@ public:
    bool bCubePruning;               ///< Run the cube pruning decoder
    string cubeLMHeuristic;          ///< What LM heuristic to use in cube pruning
    string futLMHeuristic;           ///< What LM heuristic to use when calculating future scores
+   bool final_cleanup;              ///< Indicates if canoe should delete its bmg.
 
    /**
     * Constructor, sets default parameter values.
@@ -301,7 +310,7 @@ private:
          /// Specific LM file name check because some LMs need a special treatment
          lm_check_file_name         = check_file_name << 1,
          /// Indicates the number of groupings
-         num_grous                  = lm_check_file_name << 1
+         num_groups                 = lm_check_file_name << 1
       };
 
       CanoeConfig* c;        ///< Pointer to parent CanoeConfig object

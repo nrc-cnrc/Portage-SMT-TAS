@@ -8,7 +8,7 @@
  * Note: the convention throughout this module is to use "probability"
  * in place of "log probability". For example, wordProb() actually returns a
  * logprob, the documentation on backoffs in LMText::wordProb() talks about
- * p(w|...) when it means log p(w|...), etc. 
+ * p(w|...) when it means log p(w|...), etc.
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
@@ -30,6 +30,7 @@ using namespace std;
 namespace Portage
 {
 
+class LMCache;
 
 /// Abstract class for a language model
 class PLM
@@ -66,6 +67,10 @@ public:
          return latest_hit;
       }
    };
+
+private:
+   /// Cache results of queries to cachedWordProb().
+   LMCache* cache;
 
 protected:
    /// Keeps track of how many times each N is hit over all queries
@@ -308,7 +313,19 @@ public:
     * @param context_length     length of context
     * @return log(p(word|context))
     */
-   virtual float wordProb(Uint word, const Uint context[], Uint context_length) = 0;
+   virtual float wordProb(Uint word, const Uint context[],
+                          Uint context_length) = 0;
+
+   /**
+    * Same as wordProb(), but caching the results so subsequent identical
+    * queries are faster.
+    * Subclasses for which normal queries are as fast as cache lookups should
+    * override this method and have it simply call wordProb().
+    * Subclasses which override this method to do specialized caching should
+    * probably also override clearCache() to maintain consistency.
+    */
+   virtual float cachedWordProb(Uint word, const Uint context[],
+                                Uint context_length);
 
    /**
     * Get the order of the language model
@@ -317,17 +334,17 @@ public:
    Uint getOrder();
 
    /**
-    * Clear the read cache.
+    * Clear the cache of cachedWordProb queries.
     *
-    * A subclass may use a cache to speed up its queries.  If so, this function
-    * should clear that cache, else do nothing.
+    * Subclasses overriding cachedWordProb() should probably override this
+    * method as well.
     *
     * User classes of the LM should call this every now and then to avoid
     * letting the cache grow excessively and waste memory.  It is best to call
     * this method when the vocabulary of a set of consecutive queries changes,
     * e.g., when moving to a new source sentence in translation.
     */
-   virtual void clearCache() = 0;
+   virtual void clearCache();
 
    /**
     * Read a line from a language model file in Doug Paul's ARPA format.
@@ -356,7 +373,7 @@ public:
    static bool checkFileExists(const string& lm_filename);
 
    /// Destructor, virtual since we have subclasses
-   virtual ~PLM() {}
+   virtual ~PLM();
 
    /**
     * Get a human readable description of the model.  To override the default

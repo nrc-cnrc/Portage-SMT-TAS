@@ -79,7 +79,15 @@ void processOnline(const CanoeConfig& c, const ARG& arg,
    // The limitPhrase must be false if the user requested filter complete
    const bool limitPhrases(!arg.no_src_grep);
 
-   PhraseTableFilterJoint  phraseTable(limitPhrases, tgt_vocab, c.phraseTablePruneType.c_str(), arg.hard_limit ? &c.transWeights : NULL);
+   PhraseTableFilterJoint  phraseTable(limitPhrases, tgt_vocab, c.phraseTablePruneType.c_str(),
+      ( arg.hard_limit
+         ? ( (c.phraseTablePruneType == "forward-weights" && !c.forwardWeights.empty())
+              ? &c.forwardWeights
+              : &c.transWeights
+           )
+         : NULL
+      )
+   );
    phraseTable.outputForOnlineProcessing(arg.prepareFilename(arg.limit_file), c.phraseTableSizeLimit);
    // Parses the input source sentences
    if (limitPhrases) {
@@ -109,9 +117,18 @@ int MAIN(argc, argv)
    c.read(arg.config.c_str());
    c.check();   // Check that the canoe.ini file is coherent
    // Make sure we are running in backward-weights mode
-   if (arg.limit() && !c.forwardWeights.empty() && c.phraseTablePruneType != "backward-weights")
-      error(ETFatal, "Filter models only supports filtering with backward-weights (requested: %s)\n\
-           Add [ttable-prune-type] backward-weights to your canoe.ini", c.phraseTablePruneType.c_str());
+   if ( arg.limit() && !c.forwardWeights.empty() &&
+        c.phraseTablePruneType != "backward-weights" &&
+        c.phraseTablePruneType != "forward-weights" )
+      error(ETFatal, "Filter models only supports filtering with "
+            "[ttable-prune-type] backward-weights or forward-weigths "
+            "(requested: %s)",
+            c.phraseTablePruneType.c_str());
+
+   Uint ttable_limit_from_config = c.phraseTableSizeLimit; // save for write-back
+   if (arg.ttable_limit >= 0) // use ttable_limit for pruning, instead of config file value
+      c.phraseTableSizeLimit = Uint(arg.ttable_limit);
+
 
    // Print the requested running mode from user
    if (arg.tm_online)   cerr << "  Running in online / streaming mode" << endl;
@@ -166,6 +183,10 @@ int MAIN(argc, argv)
 
 
 
+   // hack - rely on a side effect of maxSourceSentence4filtering to disable
+   // per-sentence filtering
+   if ( arg.nopersent ) VocabFilter::maxSourceSentence4filtering = 1;
+
    VocabFilter  tgt_vocab(src_sents.size());
    if (arg.tm_online) {
       processOnline(c, arg, tgt_vocab, src_sents);
@@ -177,7 +198,10 @@ int MAIN(argc, argv)
       if (arg.soft_limit)
          phraseTable = new PhraseTableFilterJoint(limitPhrases, tgt_vocab, c.phraseTablePruneType.c_str());
       else if (arg.hard_limit)
-         phraseTable = new PhraseTableFilterJoint(limitPhrases, tgt_vocab, c.phraseTablePruneType.c_str(), &c.transWeights);
+         phraseTable = new PhraseTableFilterJoint(limitPhrases, tgt_vocab, c.phraseTablePruneType.c_str(), 
+            (c.phraseTablePruneType == "forward-weights" && !c.forwardWeights.empty())
+               ? &c.forwardWeights
+               : &c.transWeights);
       else
          if (arg.doLMs)
             phraseTable = new PhraseTableFilterLM(limitPhrases, tgt_vocab, c.phraseTablePruneType.c_str());
@@ -293,6 +317,9 @@ int MAIN(argc, argv)
       c.multiProbTMFiles.clear();  // We should end up with only one multi-prob
       c.multiProbTMFiles.push_back(arg.prepareFilename(arg.limit_file));
    }
+
+   if (arg.ttable_limit >= 0)      // restore original configfile limit
+      c.phraseTableSizeLimit = ttable_limit_from_config;
 
    if (arg.output_config) {
       cerr << "New config file is: " << configFile << endl;

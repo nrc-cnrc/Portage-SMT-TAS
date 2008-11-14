@@ -7,7 +7,7 @@
  * Implements the phrase table filter based on filter_joint algorithm
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2007, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2007, Her Majesty in Right of Canada
@@ -23,9 +23,9 @@ using namespace Portage;
 //Logging::logger ptLogger_filter_joint(Logging::getLogger("debug.canoe.phraseTable_filter_joint"));
 
 
-PhraseTableFilterJoint::PhraseTableFilterJoint(bool _limitPhrases, 
-   VocabFilter &tgtVocab, 
-   const char* pruningTypeStr, 
+PhraseTableFilterJoint::PhraseTableFilterJoint(bool _limitPhrases,
+   VocabFilter &tgtVocab,
+   const char* pruningTypeStr,
    const vector<double>* const hard_filter_weights)
 : Parent(_limitPhrases, tgtVocab, pruningTypeStr)
 , visitor(NULL)
@@ -33,7 +33,7 @@ PhraseTableFilterJoint::PhraseTableFilterJoint(bool _limitPhrases,
 , online_filter_output(NULL)
 , L(0)
 {
-   if (hard_filter_weights != NULL)   {   
+   if (hard_filter_weights != NULL)   {
       visitor = new Joint_Filtering::hardFilterTMVisitor(*this, log_almost_0, hard_filter_weights);
    }
    else {
@@ -51,7 +51,7 @@ PhraseTableFilterJoint::~PhraseTableFilterJoint()
    if (visitor)  delete visitor;  visitor = NULL;
    if (tgtTable) delete tgtTable; tgtTable = NULL;
 }
- 
+
 
 void PhraseTableFilterJoint::outputForOnlineProcessing(const string& filename, Uint limitsize)
 {
@@ -60,19 +60,19 @@ void PhraseTableFilterJoint::outputForOnlineProcessing(const string& filename, U
    assert(online_filter_output);
    tgtTable = new TargetPhraseTable;
    assert(tgtTable);
-   
+
    //LOG_VERBOSE2(ptLogger_filter_joint, "Setting output for online processing: %s, %d", filename.c_str(), L);
 }
 
 
-float PhraseTableFilterJoint::convertFromRead(const float& value) const
+float PhraseTableFilterJoint::convertFromRead(float value) const
 {
    // This class work in prob so no convertion here.
    return value;
 }
 
 
-float PhraseTableFilterJoint::convertToWrite(const float& value) const
+float PhraseTableFilterJoint::convertToWrite(float value) const
 {
    // This class work in prob so no convertion here.
    return value;
@@ -82,11 +82,6 @@ float PhraseTableFilterJoint::convertToWrite(const float& value) const
 void PhraseTableFilterJoint::filter_joint(const string& filename, Uint L)
 {
    assert(visitor);
-
-   /*
-   LOG_VERBOSE2(ptLogger_filter_joint, "Applying %s filter_joint to: %s, L=%d, n=%d",
-      visitor->style, filename.c_str(), L, numTransModels);
-   */
 
    visitor->set(L, numTransModels);
    visitor->numKeptEntry = 0;
@@ -114,13 +109,6 @@ Uint PhraseTableFilterJoint::processTargetPhraseTable(const string& src, TargetP
    if (!online_filter_output) return 0;
 
    // Processing TargetPhraseTable online
-   /*
-   LOG_VERBOSE3(ptLogger_filter_joint, 
-      "Online processing of one entry (%s) L=%d n=%d", 
-      visitor->style, 
-      L, 
-      tgtTable->front().second.backward.size()); // => numTransModels
-   */
 
    // The visitor holds the code to either do a soft or a hard filter on one leaf
    const Uint numBeforeFiltering(tgtTable->size());

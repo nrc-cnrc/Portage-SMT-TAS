@@ -5,7 +5,7 @@
  * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada / 
  * Copyright 2006, Her Majesty in Right of Canada
@@ -25,9 +25,11 @@ IBM1FwdFeature::IBM1FwdFeature(BasicModelGenerator* bmg, const string& modelfile
    cerr << "done in " << (time(NULL) - start_time) << "s" << endl;
 }
 
-void IBM1FwdFeature::newSrcSent(const vector<string>& src_sent,
-                                vector<PhraseInfo *>** phrase_infos) 
+void IBM1FwdFeature::newSrcSent(const newSrcSentInfo& info)
 {
+   const vector<string>& src_sent            = info.src_sent;
+   vector<PhraseInfo *>** const phrase_infos = info.potential_phrases;
+
    // set active voc
    active_voc.clear();
    for (Uint i = 0; i < src_sent.size(); ++i)
@@ -35,7 +37,7 @@ void IBM1FwdFeature::newSrcSent(const vector<string>& src_sent,
          for (Uint k = 0; k < phrase_infos[i][j].size(); ++k) {
             //for (Uint l = 0; l < phrase_infos[i][j][k]->phrase.size(); ++l)
             //   active_voc.insert(phrase_infos[i][j][k]->phrase[l]);
-            Phrase &phrase(phrase_infos[i][j][k]->phrase);
+            const Phrase &phrase(phrase_infos[i][j][k]->phrase);
             for ( Phrase::const_iterator w_it(phrase.begin());
                   w_it != phrase.end(); ++w_it )
                active_voc.insert(*w_it);

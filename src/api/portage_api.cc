@@ -6,7 +6,7 @@
  * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
@@ -25,8 +25,10 @@ using namespace Portage;
 
 PortageAPI::PortageAPI(const string& srclang, const string& tgtlang,
                        const string& config, bool config_in_demo_dir,
-                       bool verbose) :
-   prep(srclang), post(tgtlang, verbose)
+                       bool verbose)
+   : prep(srclang)
+   , post(tgtlang, verbose)
+   , processed(0)
 {
    // Default canoe parameters, overwritten by ones read in from config file.
    // For the demo, we never want NO_SIZE_LIMIT!
@@ -59,7 +61,12 @@ void PortageAPI::translate(const string& src_text, string& tgt_text)
 
    for (Uint i = 0; i < src_sents.size(); ++i) {
       // should read trans markup here, but assume none & use empty cur_mark
-      BasicModel* pdm = bmg->createModel(src_sents[i], cur_mark);
+      newSrcSentInfo info;
+      info.internal_src_sent_seq = processed++;
+      info.external_src_sent_id = i;
+      info.src_sent   = src_sents[i];
+      info.marks      = cur_mark;
+      BasicModel* pdm = bmg->createModel(info);
       HypothesisStack* h = runDecoder(*pdm, c);
       assert(!h->isEmpty());
       PrintPhraseOnly print(*pdm);

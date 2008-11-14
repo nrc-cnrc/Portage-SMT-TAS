@@ -7,12 +7,12 @@
  * LMs & TMs filtering
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
  */
-          
+
 #ifndef __FILTERED_MODELS_H__
 #define __FILTERED_MODELS_H__
 
@@ -28,16 +28,17 @@ namespace Portage
    {
        /// Program filter_models' usage.
        static char help_message[] = "\n\
-filter_models [-zsrcL] [-f CONFIG_FILE] [-suffix SUFFIX] [-vocab VOCAB_FILE]\n\
+filter_models [-czsr] [-f CONFIG_FILE] [-suffix SUFFIX] [-vocab VOCAB_FILE]\n\
               [-hard-limit OUTFILE | -soft-limit OUTFILE]\n\
+              [-L [-no-per-sent]] [-ttable-limit T]\n\
               [-tm-online] [-no-src-grep | < SRC]\n\
 \n\
    SWISS ARMY KNIFE OF FILTERING ;)\n\
 \n\
    Filter all models in CONFIG_FILE to contain only the lines needed by canoe\n\
    to translate the sentences in SRC.\n\
-   - filter_grep is filtering based on the source phrases only.\n\
-   - limit is filtering the target phrases based on the ttable-limit.\n\
+   - filter_grep filters based on the source phrases only.\n\
+   - limit filters target phrases based on the ttable-limit.\n\
      - hard limit reduces the phrasetable(s) to exactly what will be\n\
        used by canoe given a specific set of weights\n\
      - soft limit is Limit-TM, as described by Badr et al, (2007): it applies\n\
@@ -69,18 +70,21 @@ Options:\n\
 -f   canoe config file [canoe.ini]\n\
 -c   do not output a new canoe.ini [do]\n\
 -z   compress outputs [don't, unless filename in CONFIG_FILE is compressed]\n\
--s   indicates not to strip path from file name [do]\n\
+-s   indicates not to strip the path from file names [do]\n\
 -r   don't overwrite existing filtered files [do, unless they're readonly]\n\
 -L   filter language models [don't]\n\
+-ttable-limit Use T instead of the ttable-limit parameter in CONFIG_FILE. This\n\
+             value does not get written back to CONFIG_FILE.FILT.\n\
+-no-per-sent do global voc LM filtering only [do per sent LM filtering]\n\
 -suffix      SUFFIX of filtered models when no -*-limit option is used [.FILT]\n\
 -vocab       write the target language vocab for SRC to VOCAB_FILE [don't]\n\
--soft-limit  Chop the phrase tables' tails; CONFIG_FILE must define\n\
-             ttable-limit; write the result as a multi-prob file in OUTFILE.\n\
+-soft-limit  Chop the phrase tables' tails; CONFIG_FILE must set ttable-limit;\n\
+             write the result as a multi-prob file in OUTFILE.SUFFIX.\n\
              This is Limit-TM, as described by Badr et al, (2007). [don't]\n\
 -hard-limit  Apply the TM weights to the phrase table(s) and keep the\n\
              ttable-limit best tgt phrases for each SRC phrase, exactly as\n\
              canoe would with the same weights.  Output is also one multi-prob,\n\
-             OUTFILE. [don't]\n\
+             OUTFILE.SUFFIX. [don't]\n\
 -no-src-grep Process all source phrases, ignoring SRC (STDIN won't be read).\n\
              Warning: memory intensive unless used with -tm-online. [don't]\n\
 -tm-online   In -*-limit mode, process one source phrase at a time, deleting it\n\
@@ -109,8 +113,9 @@ Options:\n\
 
        /// Program filter_models' allowed command line arguments
        const char* const switches[] = {
-          "z", "s", "r", "L", "no-src-grep", "tm-online", "c",
-          "hard-limit:", "soft-limit:", "f:", "suffix:", "vocab:", "input:"
+          "z", "s", "r", "L", "no-per-sent", "no-src-grep",
+          "tm-online", "c", "hard-limit:", "soft-limit:", "f:", "suffix:",
+          "ttable-limit:", "vocab:", "input:"
        };
 
        /// Command line arguments processing for filter_models.
@@ -122,10 +127,12 @@ Options:\n\
              string vocab_file;   ///< vocabulary file name if requested.
              bool   compress;     ///< should we compress the outputs.
              bool   strip;        ///< should we strip the path from the models file name
-	     bool   readonly;	  ///< treat existing filt files as readonly
+             bool   readonly;     ///< treat existing filt files as readonly
              bool   doLMs;        ///< filter language models
              bool   soft_limit;   ///< soft filter limit the phrase table;
+             bool   nopersent;    ///< disables per-sentence vocab LM filt
              string limit_file;   ///< multi probs filename for filter30
+             int   ttable_limit;  ///< ttable limit override if >= 0
              bool   hard_limit;   ///< perform the hard limit filter
              bool   no_src_grep;  ///< process all entries disregarding the source sentences.
              bool   tm_online;    ///< indicates to process source tm in a streaming mode
@@ -143,9 +150,11 @@ Options:\n\
              , vocab_file("")
              , compress(false)
              , strip(false)
-	     , readonly(false)
+             , readonly(false)
              , doLMs(false)
              , soft_limit(false)
+             , nopersent(false)
+             , ttable_limit(-1.0)
              , hard_limit(false)
              , no_src_grep(false)
              , tm_online(false)
@@ -167,41 +176,45 @@ Options:\n\
                 mp_arg_reader->testAndSet("soft-limit", limit_file);
                 mp_arg_reader->testAndSet("hard-limit", hard_limit);
                 mp_arg_reader->testAndSet("hard-limit", limit_file);
+                mp_arg_reader->testAndSet("ttable-limit", ttable_limit);
                 mp_arg_reader->testAndSet("f", config);
                 mp_arg_reader->testAndSet("suffix", suffix);
                 mp_arg_reader->testAndSet("vocab", vocab_file);
                 mp_arg_reader->testAndSet("z", compress);
+                mp_arg_reader->testAndSet("no-per-sent", nopersent);
                 mp_arg_reader->testAndSet("no-src-grep", no_src_grep);
                 mp_arg_reader->testAndSet("tm-online", tm_online);
                 mp_arg_reader->testAndSet("input", input);
                 // if the option is set we don't want to strip.
-                strip = !mp_arg_reader->getSwitch("s");
+                strip         = !mp_arg_reader->getSwitch("s");
                 output_config = !mp_arg_reader->getSwitch("c");
                 mp_arg_reader->testAndSet("r", readonly);
                 doLMs =  mp_arg_reader->getSwitch("L");
 
                 // WARN user of potentiel problems
+                if (nopersent && !doLMs)
+                   error(ETWarn, "The -no-per-sent flag only takes effect if the L flag is active (process LMs).");
                 if (!tm_online && no_src_grep && (soft_limit || hard_limit))
                    error(ETWarn, "You better have gobs and gobs of RAM or fear the god of bus error!");
-                if (tm_online && !soft_limit && !hard_limit)   
+                if (tm_online && !soft_limit && !hard_limit)
                    error(ETWarn, "Superfluous tm-online since grepping is always online(Not loading in memory)");
 
                 // Check for user misuage of flags
                 if (suffix == "")
-                   error(ETFatal, "You must provide a none empty prefix");
+                   error(ETFatal, "You must provide a non empty suffix");
                 if (soft_limit && hard_limit)
                    error(ETFatal, "Cannot do soft_limit and hard_limit at the same time.");
                 if (no_src_grep && !soft_limit && !hard_limit)
                    error(ETFatal, "When using grep mode you must provide source sentences.");
              }
-             
+
              /// Checks if the user requested the vocab
              /// @return Returns if the user asked for the vocab
              inline bool vocab() const
              {
                 return vocab_file.size() > 0;
              }
-            
+
              /**
               * Helper function that strips the path from the file name, added
               * the suffix and the .gz extension.
@@ -210,6 +223,7 @@ Options:\n\
               */
              string prepareFilename(const string& source) const
              {
+                if ( source == "-" ) return source;
                 string filename(source);
                 if (strip) filename = extractFilename(filename);
                 if (compress && !isZipFile(filename)) filename += ".gz";
@@ -233,11 +247,11 @@ Options:\n\
                 out = prepareFilename(filename);
                 if (in == out)
                    error(ETFatal, "Your input and output file names are identical: i:%s o:%s", in.c_str(), out.c_str());
-                ofstream os;	// blunderbuss approach for portability?
-		ifstream is;	// two blunderbussi
+                ofstream os;    // blunderbuss approach for portability?
+                ifstream is;    // two blunderbussi
                 // Checks if the output file is read-only.
-                if (readonly && (is.open(out.c_str()), is) ||
-		    (is.open(out.c_str()), is) && !(os.open(out.c_str()), os))
+                if ((readonly && (is.open(out.c_str()), is)) ||
+                    ((is.open(out.c_str()), is) && !(os.open(out.c_str()), os)))
                 {
                    in  = out;
                    out = "/dev/null";

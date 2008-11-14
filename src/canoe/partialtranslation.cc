@@ -9,7 +9,7 @@
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology 
+ * Inst. de technologie de l'information / Institute for Information Technology 
  * Conseil national de recherches Canada / National Research Council Canada 
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
@@ -69,7 +69,7 @@ void PartialTranslation::getLastWords(Phrase &words, Uint num, bool backward)
 void PartialTranslation::_getLastWords(Phrase &words, Uint num) const
 {
    if (lastPhrase != NULL) {
-      Uint last_phrase_size(lastPhrase->phrase.size());
+      const Uint last_phrase_size(lastPhrase->phrase.size());
       if (num > last_phrase_size && back != NULL) {
          // Get tail of previous partial translation
          back->_getLastWords(words, num - last_phrase_size);

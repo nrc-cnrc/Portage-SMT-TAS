@@ -9,32 +9,23 @@
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
  */
 
 #include "phrasetable.h"
-#include "canoe_general.h"
-#include "phrasedecoder_model.h"
-#include <portage_defs.h>
-#include <str_utils.h>
-#include <file_utils.h>
-#include <math.h>
-#include <vector>
-#include <utility>
+#include "str_utils.h"
+#include "file_utils.h"
+#include "voc.h"
+#include <cmath>
 #include <algorithm>
 #include <map>
-#include <ext/hash_map>
-#include <string>
-#include <voc.h>
-#include <boost/shared_ptr.hpp>
 
 
 using namespace std;
 using namespace Portage;
-using namespace __gnu_cxx;
 
 const char *Portage::PHRASE_TABLE_SEP = " ||| ";
 double PhraseTable::log_almost_0 = LOG_ALMOST_0;
@@ -233,7 +224,7 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
    {
       case src_given_tgt:
       case tgt_given_src:
-      return 1;
+         return 1;
       break;
       case multi_prob:
       case multi_prob_reversed:
@@ -251,13 +242,13 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
 } // readFile
 
 
-float PhraseTable::convertFromRead(const float& value) const
+float PhraseTable::convertFromRead(float value) const
 {
    // In this class, we take the log
    return shielded_log(value);
 }
 
-float PhraseTable::convertToWrite(const float& value) const
+float PhraseTable::convertToWrite(float value) const
 {
    return (value == log_almost_0) ? 0.0f : exp(value);
 }
@@ -273,6 +264,13 @@ bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
       if (!conv(entry.probString, prob)) {
          error(ETFatal, "Invalid number format (%s) in %s at line %d",
                entry.probString, entry.file, entry.lineNum);
+      }
+
+      // Prevents against a bad phrase table.
+      if (!isfinite(prob)) {
+         error(ETWarn, "Invalid value of prob (%s) in %s at line %d",
+               entry.probString, entry.file, entry.lineNum);
+         prob = 0.0f;
       }
 
       // Get the vector of current probabilities
@@ -332,6 +330,13 @@ bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
             error(ETFatal, "Invalid number format (%s) in %s at line %d",
                   prob_tokens[i], entry.file, entry.lineNum);
 
+         // Prevents against a bad phrase table.
+         if (!isfinite(probs[i])) {
+            error(ETWarn, "Invalid value of prob (%s) in %s at line %d",
+                  prob_tokens[i], entry.file, entry.lineNum);
+            probs[i] = 0.0f;
+         }
+
          if ( probs[i] <= 0 ) {
             probs[i] = ZERO;
             ++entry.zero_prob_err_count;
@@ -355,7 +360,7 @@ bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
       TScore* curProbs = &( (*tgtTable)[entry.tgtPhrase] );
 
       if (curProbs->backward.size() > numTransModels ||
-            curProbs->forward.size() > numTransModels)
+          curProbs->forward.size() > numTransModels)
       {
          error(ETWarn, "Entry %s ||| %s appears more than once in %s; new occurrence on line %d",
                entry.src, entry.tgt, entry.file, entry.lineNum);
@@ -366,9 +371,9 @@ bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
          curProbs->backward.resize(numTransModels, ZERO);
          curProbs->forward.resize(numTransModels, ZERO);
          curProbs->backward.insert(curProbs->backward.end(), backward_probs,
-               backward_probs + multi_prob_model_count);
+                                   backward_probs + multi_prob_model_count);
          curProbs->forward.insert(curProbs->forward.end(), forward_probs,
-               forward_probs + multi_prob_model_count);
+                                  forward_probs + multi_prob_model_count);
       }
    } // if ; end deal with multi-prob line
 
@@ -798,7 +803,8 @@ void PhraseTable::getPhrases(vector<pair<double, PhraseInfo *> > &phrases,
 {
    for (TargetPhraseTable::iterator it = tgtTable.begin(); it != tgtTable.end(); it++)
    {
-      // Compute the forwards probability for the given translation option
+      // Compute the pruning score (formerly forward prob, but now depends on
+      // pruningType) for the given translation option
       TScore &tScores(it->second);
       assert(numTransModels >= tScores.backward.size());
       tScores.backward.resize(numTransModels, log_almost_0);
@@ -850,58 +856,13 @@ void PhraseTable::getPhrases(vector<pair<double, PhraseInfo *> > &phrases,
    } // for
 } // getPhrases
 
-
-bool PhraseTable::getPhrasePair(const string& src, const string& tgt, TScore& score)
-{
-   TargetPhraseTable *tgtTable = NULL;
-
-   vector<string> srcWordsV;
-   split(src, srcWordsV, " ");
-   /*
-   const char *srcWords[srcWordsV.size()];
-   for (Uint i = 0; i < srcWordsV.size(); i++)
-      srcWords[i] = srcWordsV[i].c_str();
-   */
-   Uint srcWords[srcWordsV.size()];
-   for (Uint i = 0; i < srcWordsV.size(); i++)
-      srcWords[i] = tgtVocab.index(srcWordsV[i].c_str());
-
-   bool found = false;
-
-   // Search for the phrase pair in the phrase tables
-   if ( textTable.find(srcWords, srcWordsV.size(), tgtTable) ) {
-      vector<string> tgtWordsV;
-      split(tgt, tgtWordsV, " ");
-      Phrase tgtPhrase(tgtWordsV.size());
-      bool hasOutOfVocab = false;
-      for (Uint i = 0; i < tgtWordsV.size(); i++) {
-         tgtPhrase[i] = tgtVocab.index(tgtWordsV[i].c_str());
-         if (tgtPhrase[i] == tgtVocab.size()) {
-            hasOutOfVocab = true;
-            break;
-         }
-      }
-      if ( !hasOutOfVocab ) {
-         TargetPhraseTable::iterator p = tgtTable->find(tgtPhrase);
-         if (p != tgtTable->end()) {
-            found = true;
-            score = p->second;
-         }
-      }
-   }
-
-   if ( !found ) score.clear();
-
-   return found;
-} // getPhrasePair
-
 Uint PhraseTable::PhraseScorePairLessThan::mHash(const string& param) const
 {
    Uint hash = 0;
    const char* sz = param.c_str();
    for ( ; *sz; ++sz)
       hash = *sz + 5*hash;
-   return (hash>>16 + hash<<16);
+   return ((hash>>16) + (hash<<16));
 }
 
 bool PhraseTable::PhraseScorePairLessThan::operator()(

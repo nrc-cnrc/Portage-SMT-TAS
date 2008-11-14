@@ -12,10 +12,7 @@
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2006, Her Majesty in Right of Canada
  */
-#include <iostream>
-#include <fstream>
-#include <ext/numeric>
-#include "file_utils.h"
+#include <ext/numeric> // iota
 #include "exception_dump.h"
 #include "arg_reader.h"
 #include "bootstrap.h"

@@ -1,5 +1,5 @@
 /**
- * @author Samuel Larkin 
+ * @author Samuel Larkin
  * @file fileReader.h  File reader allows to read fix/dinamic size
  *                     blocks(lines) from a file.
  *
@@ -7,7 +7,7 @@
  *
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
@@ -54,7 +54,7 @@ namespace Portage {
              * @param[in] K           number of hypotheses per source or 0 for
              *                        dynamic size.
              */
-            explicit FileReaderBase(const string& szFileName, const Uint& K);
+            explicit FileReaderBase(const string& szFileName, Uint K);
 
          public:
             /// Destructor.
@@ -66,7 +66,7 @@ namespace Portage {
              * @return Returns true if there is still some hypothesis left to be read.
              */
             bool pollable() const { return !!m_file && (m_file.peek() != EOF);}
-            
+
             /**
              * Reads one hypothesis and returns its index
              * @param[out] index  hypothesis's index
@@ -100,9 +100,9 @@ namespace Portage {
             typedef typename Parent::Group       Group;
             /// Inherited definition of Everything
             typedef typename Parent::Everything  Everything;
-            
-            /// See FileReaderBase<T>::FileReaderBase(const string& szFileName, const Uint& S, const Uint& K)
-            explicit FixReader(const string& szFileName, const Uint& K);
+
+            /// See FileReaderBase<T>::FileReaderBase(const string& szFileName, Uint S, Uint K)
+            explicit FixReader(const string& szFileName, Uint K);
             /// Destructor.
             virtual ~FixReader();
 
@@ -124,9 +124,9 @@ namespace Portage {
             typedef typename Parent::Group       Group;
             /// Inherited definition of Everything
             typedef typename Parent::Everything  Everything;
-            
-            /// See FileReaderBase<T>::FileReaderBase(const string& szFileName, const Uint& S, const Uint& K)
-            explicit DynamicReader(const string& szFileName, const Uint& K=1000);
+
+            /// See FileReaderBase<T>::FileReaderBase(const string& szFileName, Uint S, Uint K)
+            explicit DynamicReader(const string& szFileName, Uint K=1000);
             /// Destructor.
             virtual ~DynamicReader();
 
@@ -141,13 +141,13 @@ namespace Portage {
        * @return Returns a new fix/dynamic reader based on the value of K.
        */
       template<class T>
-      std::auto_ptr<FileReaderBase<T> > create(const string& szFileName, const Uint& K);
+      std::auto_ptr<FileReaderBase<T> > create(const string& szFileName, Uint K);
    } // ends FileReader
 
    /// Since these classes were intended to facilitate nbest reading, here is the definition for a nBest reader.
    typedef std::auto_ptr<FileReader::FileReaderBase<Translation> > NbestReader;
 } // ends Portage
 
-#include <fileReader.cc> 
+#include <fileReader.cc>
 
 #endif  // __FILE_READER_H__

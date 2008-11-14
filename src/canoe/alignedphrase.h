@@ -10,9 +10,9 @@
  * of alignments
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2005, Sa Majeste la Reine du Chef du Canada / 
+ * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
  */
 
@@ -35,7 +35,7 @@ struct AlignedPhrase {
    /// sequence of alignment pairs (Range refers to source, Phrase
    /// refers to target
    vector<pair<Range*, Phrase*> > myLine;
-	
+
    /**
     * Constructor: Initialise with nothing (not used).
     */
@@ -52,33 +52,33 @@ struct AlignedPhrase {
     * @param str: the return string
     * @param model: the decoding model to get the target words
     * @param submodelScores submodel scores
-    * @param incScore: whether to print out the score with this line or not (true)
-    * @param onlyScore: print only score and no sentence (false)
+    * @param incScore: whether to print out the score with this line or not
+    * @param onlyScore: print only score and no sentence
     */
    void line(string &str,
              PhraseDecoderModel *model,
-             const vector<double> &submodelScores, 
+             const vector<double> &submodelScores,
              bool incScore = true,
-             bool onlyScore = false); 	
-	
+             bool onlyScore = false);
+
    /**
     * Adds in a new translation to this alignment.
-    * @param pi: the new phrase associated with the next translation in the model
-    * @param score: the score associated with the new translation (scores are additive)
+    * @param pi: phrase associated with the next translation in the model
+    * @param score: score associated with pi (scores are additive)
     */
    void add(PhraseInfo *pi, const double score);
-	
+
 };//end struct AlignedPhrase
 
 /// Ordered linked list of alignments.
 struct alignList {
   /// current alignment sentence
   AlignedPhrase val;
-  /// scores of this translation according to the different submodels (feature vals)
+  /// scores of this translation according to the different submodels/features
   vector<double> submodelScores;
   /// next in list
   alignList *next;
-  
+
   /**
    * Constructor
    * @param a: current alignment
@@ -97,7 +97,7 @@ struct alignList {
     if (next)
       delete next;
   }
-  
+
   /**
    * Add partial score
    */
@@ -110,8 +110,8 @@ struct alignList {
 };
 
 /**
- * betterAlignment: returns true if list1 contains the better alignment than list 2,
- * false if list 2 is better or if both are null
+ * betterAlignment: returns true if list1 contains the better alignment than
+ * list 2, false if list 2 is better or if both are null
  * @param list1: first alignment option
  * @param list2: second alignment option
  * @return Returns the higher scoring alignment true for param1, false for
@@ -120,18 +120,20 @@ struct alignList {
 bool betterAlignment(alignList *list1, alignList *list2);
 
 /**
- * mergeAligned: Merge 2 alignment list choices into one list, with a maximum of n entries, 
- * and return it.
+ * mergeAligned: Merge 2 alignment list choices into one list, keeping a
+ * maximum of n entries, and return it.
  * @param list1,list2: the lists to compare
  * @param n: the max number of items to store in returned list
  * @return Returns a list containing the n best translations.
+ * @pre list1 and list2 must be sorted from best to worse
  */
 alignList* mergeAligned(alignList *list1, alignList *list2, Uint n);
 
 /**
- * mergeAligned: Merge 2 alignment list choices into one list, with a maximum of n entries, 
- * and return it.  This version also returns through parameters the number of items in
- * the list and the lowest score observed (for optimisation purposes)
+ * mergeAligned: Merge 2 alignment list choices into one list, with a maximum
+ * of n entries, and return it.  This version also returns through parameters
+ * the number of items in the list and the lowest score observed (for
+ * optimisation purposes)
  * @param list1,list2: the lists to compare
  * @param n: the max number of items to store in returned list
  * @param numCounts: the number of items in the list
@@ -139,8 +141,10 @@ alignList* mergeAligned(alignList *list1, alignList *list2, Uint n);
  * @return Returns a list containing the n best translations as well as
  * returning the number of translations and the lowest score, for optimization
  * reasons.
+ * @pre list1 and list2 must be sorted from best to worse
  */
-alignList* mergeAligned(alignList *list1, alignList *list2, Uint n, Uint &numCounts, double &minScore);
+alignList* mergeAligned(alignList *list1, alignList *list2, Uint n,
+                        Uint &numCounts, double &minScore);
 
 /**
  * printAlignedList: print a list of maximum n alignments of list1 to out
@@ -151,17 +155,19 @@ alignList* mergeAligned(alignList *list1, alignList *list2, Uint n, Uint &numCou
  * @param incScore: whether to include the score when printing or not (true)
  * @param onlyScore: print only score and no sentence (false)
  */
-void printAlignedList(ostream &out, alignList *list, PhraseDecoderModel *model, 
+void printAlignedList(ostream &out, alignList *list, PhraseDecoderModel *model,
                       Uint n, bool incScore = true, bool onlyScore = false);
 
 /**
- * makeAlignments: Given a DecoderState, produces the (max)n best alignment options with that decoder state and returns that list
+ * makeAlignments: Given a DecoderState, produces the (max)n best alignment
+ * options with that decoder state and returns that list
  * @param state: state to create alignments for (non-null)
  * @param model: model used to create the state
  * @param tlen: length of the given target sentence
- * @param n: number of alignments (greater than 0)
+ * @param n: number of alignments to keep (greater than 0)
  * @return Returns to the vector of alignments all of them in no order
  */
- alignList* makeAlignments(DecoderState *state, PhraseDecoderModel *model, Uint tlen, Uint n);
+alignList* makeAlignments(DecoderState *state, PhraseDecoderModel *model,
+                          Uint tlen, Uint n);
 
 } // ends namespace Portage

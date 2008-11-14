@@ -58,7 +58,6 @@ public:
          bool limit_vocab, Uint limit_order);
 
    virtual float wordProb(Uint word, const Uint context[], Uint context_length);
-   virtual void clearCache();
 
    /// Destructor.
    ~LMMix();

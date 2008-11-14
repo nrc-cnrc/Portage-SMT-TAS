@@ -1,0 +1,16 @@
+TESTING QuickSet: 
+ok
+TESTING Voc: 
+this, is, a, somewhat, redundant, test, of, one, small, class, not, entirely, superfluous, itself, however, 
+this, is, a, somewhat, redundant, test, of, one, small, class, not, entirely, superfluous, itself, however, 
+this, is, a, somewhat, redundant, test, of, one, small, class, not, entirely, superfluous, itself, however, 
+this, is, a, somewhat, redundant, test, of, one, small, class, not, entirely, superfluous, itself, however, 
+this, is, a, somewhat, redundant, test, of, one, small, class, not, entirely, superfluous, itself, however, 
+this, is, a, somewhat, redundant, test, of, one, small, class, not, entirely, superfluous, itself, however, 
+this, is, a, somewhat, redundant, test, of, one, small, class, not, entirely, superfluous, itself, however, 
+this, is, a, somewhat, redundant, test, of, one, small, class, not, entirely, superfluous, itself, however, 
+this, is, a, somewhat, redundant, test, of, one, small, class, not, entirely, superfluous, itself, however, 
+this, is, a, somewhat, redundant, test, of, one, small, class, not, entirely, superfluous, itself, however, 
+ok
+TESTING CountingVoc: 
+ok

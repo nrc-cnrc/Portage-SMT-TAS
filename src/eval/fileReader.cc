@@ -8,7 +8,7 @@
  * Evaluation Module
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
@@ -27,7 +27,7 @@ static Logging::logger myLogger(Logging::getLogger("verbose.dynamicsizereader"))
 ////////////////////////////////////////
 // BASE CLASS
 template<class T>
-FileReaderBase<T>::FileReaderBase(const string& szFileName, const Uint& K)
+FileReaderBase<T>::FileReaderBase(const string& szFileName, Uint K)
 : m_file(szFileName)
 , m_K(K)
 , m_nSentNo(0)
@@ -49,7 +49,7 @@ FileReaderBase<T>::~FileReaderBase()
 ////////////////////////////////////////
 // FIX CLASS
 template<class T>
-FixReader<T>::FixReader(const string& szFileName, const Uint& K)
+FixReader<T>::FixReader(const string& szFileName, Uint K)
 : Parent(szFileName, K)
 {}
 
@@ -90,7 +90,7 @@ bool FixReader<T>::poll(Group& g)
 ////////////////////////////////////////
 // DYNAMIC CLASS
 template<class T>
-DynamicReader<T>::DynamicReader(const string& szFileName, const Uint& K)
+DynamicReader<T>::DynamicReader(const string& szFileName, Uint K)
 : Parent(szFileName, K)
 {
    Parent::m_file >> Parent::m_nSentNo;
@@ -134,7 +134,7 @@ bool DynamicReader<T>::poll(Group& g)
 ////////////////////////////////////////
 // FACTORY FOR FILE READER
 template<class T>
-std::auto_ptr<FileReaderBase<T> > FileReader::create(const string& szFileName, const Uint& K)
+std::auto_ptr<FileReaderBase<T> > FileReader::create(const string& szFileName, Uint K)
 {
    if (K == 0)
    {

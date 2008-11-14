@@ -7,9 +7,9 @@
  * Translation-Model Utilities
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2005, Sa Majeste la Reine du Chef du Canada / 
+ * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
  */
 
@@ -45,12 +45,12 @@ AlignedPhrase::AlignedPhrase(PhraseInfo *pi, const double score)
 }
 
 //returns the line alignment
-void AlignedPhrase::line(string &str, PhraseDecoderModel *model, const vector<double> &submodelScores, 
+void AlignedPhrase::line(string &str, PhraseDecoderModel *model, const vector<double> &submodelScores,
                          bool incScore, bool onlyScore) {
   stringstream ss;//to optimize, pass ss by ref instead of copying string
-  			
+
   if (! onlyScore)
-    for (Uint i = 0; i < myLine.size(); ++i) 
+    for (Uint i = 0; i < myLine.size(); ++i)
       if (myLine[i].first->start != myLine[i].first->end) {
         //only print out non-empty ranges
         ss << RANGEOUT(*(myLine[i].first)) << " ";
@@ -84,7 +84,7 @@ void printAlignedList(ostream &out, alignList *list, PhraseDecoderModel *model,
 
   Uint count = 0;
   string s;
-  while (count < n && list) {    
+  while (count < n && list) {
     list->val.line(s, model, list->submodelScores, incScore, onlyScore);
     out << s << endl;
     count++;
@@ -98,7 +98,7 @@ void printAlignedList(ostream &out, alignList *list, PhraseDecoderModel *model,
 //returns the higher scoring alignment
 //true for param1, false for param 2
 bool betterAlignment(alignList *list1, alignList *list2) {
-  return (list1 && (!list2 || list1->val.myScore >= list2->val.myScore));    
+  return (list1 && (!list2 || list1->val.myScore >= list2->val.myScore));
 }
 
 //merges list1 and list2 and returns a list containing the n best translations
@@ -109,7 +109,7 @@ alignList* mergeAligned(alignList *list1, alignList *list2, Uint n) {
 }
 
 //merges list1 and list2 and returns a list containing the n best translations
-//as well as returning the number of translations and the lowest score, 
+//as well as returning the number of translations and the lowest score,
 //for optimization reasons
 alignList* mergeAligned(alignList *list1, alignList *list2, Uint n, Uint &numFinal, double &minScore) {
 //returns NULL if n <=0, or no L1 and no L2
@@ -139,30 +139,35 @@ alignList* mergeAligned(alignList *list1, alignList *list2, Uint n, Uint &numFin
     if (!list2)
       return 0;
     if (DEBUG)
-      cerr << "List 1: " << list1->val.myScore << " List 2: " << list2->val.myScore << endl
-        << " Selected list2" << endl;
+      cerr << "List 1: " << list1->val.myScore
+           << " List 2: " << list2->val.myScore << endl
+           << " Selected list2" << endl;
     //list 2 has the better first alignment
     final = list2;
     list2 = list2->next;
   }
   if (DEBUG)
-    cerr << " First added. Continuing " << (list1?1:0) << " " << (list2?1:0) << endl;
-  //now we add to the back of the list all the other translations (<=n of them in total)
+    cerr << " First added. Continuing " << (list1?1:0) << " "
+         << (list2?1:0) << endl;
+  //now we add to the back of the list all the other translations (<=n of them
+  //in total)
   alignList *back = final;
   for (Uint num = 1; num < n; num++) {
     if (DEBUG)
-      cerr << num << " added. Continuing " << (list1?1:0) << " " << (list2?1:0) << endl;
-        
+      cerr << num << " added. Continuing " << (list1?1:0) << " "
+           << (list2?1:0) << endl;
+
     if (betterAlignment(list1, list2)) {
       if (DEBUG)
-        cerr << "List 1: " << list1->val.myScore << " List 2: " << (list2?list2->val.myScore:1) << endl
+        cerr << "List 1: " << list1->val.myScore
+             << " List 2: " << (list2?list2->val.myScore:1) << endl
              << " Selected list1" << endl;
       //list 1 better
       back->next = list1;
       list1 = list1->next;
       back = back->next;
     } else {
-    
+
       if (DEBUG)
         cerr << " Selected list2" << endl;
       //list 2 better, or ran out of items
@@ -176,9 +181,10 @@ alignList* mergeAligned(alignList *list1, alignList *list2, Uint n, Uint &numFin
         return final;
         //ran out of both items so just quit here.
       }
-      
+
       if (DEBUG)
-        cerr << "List 1: " << (list1?list1->val.myScore:1) << " List 2: " << list2->val.myScore << endl
+        cerr << "List 1: " << (list1?list1->val.myScore:1)
+             << " List 2: " << list2->val.myScore << endl
              << " Selected list2" << endl;
       //list 2 is better
       back->next = list2;
@@ -186,7 +192,8 @@ alignList* mergeAligned(alignList *list1, alignList *list2, Uint n, Uint &numFin
       back = back->next;
     }//end if else
   }//end for
-  //finished reading items.  We now have n items in the list, and either list may ne non-empty
+  //finished reading items.  We now have n items in the list, and either list
+  //may ne non-empty
 
   //clean up unused items
   if (list1)
@@ -199,29 +206,32 @@ alignList* mergeAligned(alignList *list1, alignList *list2, Uint n, Uint &numFin
   minScore = back->val.myScore;
   back->next = 0;
   return final;
-} 
+}
 
-/*Given a state, calculates all possible alignments of it and returns to the vector of
-alignments all of them in no order*/
-alignList* makeAlignments(DecoderState *state, PhraseDecoderModel *model, Uint n, Uint tlen) {
+/*Given a state, calculates all possible alignments of it and returns to the
+ * vector of alignments all of them in no order*/
+alignList* makeAlignments(DecoderState *state, PhraseDecoderModel *model,
+                          Uint n, Uint tlen) {
   assert(state != NULL);
   assert(n > 0);
-  
+
   alignList *final;
 
   if (!state->back) {
     if (DEBUG)
       cerr << "Initial translation" << endl;
-      
+
     //no previous state -> first translation (empty translation)
     vector<double> submodelScores;
     model->getFeatureFunctionVals(submodelScores, *(state->trans));
-    final = new alignList(AlignedPhrase(state->trans->lastPhrase, state->score), submodelScores);
-    
+    final = new alignList(AlignedPhrase(state->trans->lastPhrase, state->score),
+                          submodelScores);
+
   } else {
     double scoreDiff = state->score - state->back->score;
     if (DEBUG)
-      cerr << "Score Diff: " << scoreDiff << " old: " << state->back->score << " new: " << state->score << endl;
+      cerr << "Score Diff: " << scoreDiff << " old: " << state->back->score
+           << " new: " << state->score << endl;
     vector<double> submodelScoreDiff;
     model->getFeatureFunctionVals(submodelScoreDiff, *(state->trans));
 
@@ -229,12 +239,12 @@ alignList* makeAlignments(DecoderState *state, PhraseDecoderModel *model, Uint n
 
     final = makeAlignments(state->back, model, n, tlen);
 
-    //now we have the list of all previous translations, must add current one to those
-    //previous ones in order to bring them all to the current stage
+    //now we have the list of all previous translations, must add current one
+    //to those previous ones in order to bring them all to the current stage
     double minscore = INFINITY;
     Uint count = 0;
     for (alignList *temp = final; temp; temp = temp->next) {
-      //iterate through list and add current in.  minscore and count act 
+      //iterate through list and add current in.  minscore and count act
       //as possible shortcuts for later
       temp->val.add(state->trans->lastPhrase, scoreDiff);
       temp->add(submodelScoreDiff);
@@ -242,22 +252,22 @@ alignList* makeAlignments(DecoderState *state, PhraseDecoderModel *model, Uint n
       count++;
     }
 
-    //short circuit: if we only want one translation, then we just take the direct 
-    //path back to the start only
+    //short circuit: if we only want one translation, then we just take the
+    //direct path back to the start only
     if (n == 1) {
       vector<double> submodelScores;
       return final;
-    } 
-      
+    }
+
     if (DEBUG)
       cerr << "Adding Recombined to list" << endl;
-    //iterate through recombined lists 
+    //iterate through recombined lists
     for (Uint i = 0; i < state->recomb.size(); i++) {
       if (DEBUG)
         cerr << "\trecomb " << i;
       if (count != n || minscore < state->recomb[i]->score) {
-      //if we already maxed on numbers, and this new one won't yield anything better
-      //we don't need to calculate all branches of it.
+        //if we already maxed on numbers, and this new one won't yield anything
+        //better we don't need to calculate all branches of it.
         if (DEBUG)
           cerr << "calculating";
 
@@ -270,7 +280,7 @@ alignList* makeAlignments(DecoderState *state, PhraseDecoderModel *model, Uint n
     if (DEBUG)
       cerr << "Done recombined" << endl;
   }//end if
-    
+
   return final;
 }//end makeAlignments
 

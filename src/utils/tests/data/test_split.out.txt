@@ -1,0 +1,26 @@
+Testing string
+char: 4
+[6]Samuel [6]Larkin [3]est [5]grand 
+string: 4
+[6]Samuel [6]Larkin [3]est [5]grand [6]Samuel [6]Larkin [3]est [5]grand 
+string: 4
+[6]Samuel [6]Larkin [3]est [5]grand 
+string: 4
+[6]Samuel [6]Larkin [3]est [5]grand 
+string: 4
+[6]Samuel [6]Larkin [3]est [5]grand 
+string: 3
+[6]Samuel [6]Larkin [9]est grand 
+
+Testing float
+float: 3
+12 4 -2.5 
+
+Testing vocabulary
+voc: 4
+0 1 2 3 
+voc.size: 4 => Samuel, Larkin, est, grand, 
+Voc2: 6
+0 1 2 3 0 4 5 6 7 8 
+voc.size: 9 => Samuel, Larkin, est, grand, mange, des, fruits, pour, dejeuner, 
+

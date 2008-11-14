@@ -5,15 +5,15 @@
  * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
  */
 
-#include <errors.h>
+#include "errors.h"
 #include "distortionmodel.h"
-#include <str_utils.h>
+#include "str_utils.h"
 #include <iostream>
 
 using namespace Portage;
@@ -162,8 +162,8 @@ bool DistortionModel::respectsDistLimitExt(const UintSet& cov,
       intersectRange(jump_back_space, *resulting_cov,
                      Range(new_phrase.end-distLimit-1, new_phrase.start));
       if ( jump_back_space.empty() ||
-           jump_back_space.size() == 1 && 
-              jump_back_space.front().end - jump_back_space.front().start < 2 )
+           (jump_back_space.size() == 1 && 
+              jump_back_space.front().end - jump_back_space.front().start < 2 ))
          return false;
    }
    if ( int(sourceLength) - int(last_end) > distLimit )

@@ -4,15 +4,15 @@
  *
  * $Id$
  *
- * 
+ *
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2007, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2007, Her Majesty in Right of Canada
  */
-          
+
 #ifndef __SOFT_FILTER_TM_VISITOR_H__
 #define __SOFT_FILTER_TM_VISITOR_H__
 
@@ -26,7 +26,7 @@ namespace Joint_Filtering {
 /**
  * Callable entity that implements the soft filter_joint per leaf of the trie.
  */
-struct softFilterTMVisitor : public filterTMVisitor 
+struct softFilterTMVisitor : public filterTMVisitor
 {
    /**
    * Yet another PhraseInfo which will be used for soft filter_joint.
@@ -47,13 +47,13 @@ struct softFilterTMVisitor : public filterTMVisitor
       * and/or backward).
       * @param log_almost_0  user defined 0
       */
-      PhraseInfo4SoftFiltering(const pair<Phrase, TScore>* ref, const Uint numTextTransModels, double log_almost_0);
+      PhraseInfo4SoftFiltering(const pair<Phrase, TScore>* ref, Uint numTextTransModels, double log_almost_0);
 
    };
 
    /// Definition of the inherited Parent
    typedef filterTMVisitor Parent;
-   
+
    /**
     * Constructor.
     * @param parent    The parent phrase table, whose getStringPhrase
@@ -67,7 +67,7 @@ struct softFilterTMVisitor : public filterTMVisitor
    softFilterTMVisitor(const PhraseTable &parent, double log_almost_0);
 
    virtual void operator()(TargetPhraseTable& tgtTable);
-   
+
    /**
     * Implements the lessdot from the paper.
     * @param in  left-hand side operand

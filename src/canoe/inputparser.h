@@ -8,7 +8,7 @@
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
@@ -77,10 +77,13 @@ namespace Portage
        * @param lastChar  The last character read; should initially be '<',
        *                  and at the end will be the first character after
        *                  the final >.
+       * @param class_names will contain the rule's class name.
        * @return  true iff no error was encountered
        */
-      bool readMark(vector<string> &sent, vector<MarkedTranslation> &marks,
-            char &lastChar);
+      bool readMark(vector<string> &sent,
+            vector<MarkedTranslation> &marks,
+            char &lastChar,
+            vector<string>* class_names = NULL);
 
       /**
        * Reads a string terminated by stopFor1, stopFor2, space or newline.
@@ -118,6 +121,15 @@ namespace Portage
        */
       void skipRestOfLine(char &c);
 
+      /**
+       * Reads the class attribute of a rule.
+       * class="XYZ"
+       * @param c           The last character read is stored here.
+       * @param class_name  will hold XYZ.
+       * @return Returns false if a parsing error occured.
+       */
+      bool readClassAttribute(char &lastChar, string& class_name);
+
    public:
       /**
        * Creates an InputParser to read from the given input stream.
@@ -125,7 +137,7 @@ namespace Portage
        * @param withId    indicates that each source sentence is preceded
        *                  by it source sentence id
        */
-      InputParser(istream &in, const bool withId=false);
+      InputParser(istream &in, bool withId=false);
 
       /**
        * Tests whether the end of file has been reached.
@@ -146,11 +158,13 @@ namespace Portage
        *                  sentence in order.
        * @param marks     A vector containing the marks in the sentence.
        * @param[out] sourceSentenceId  source senctence id
+       * @param class_names will contain the rule's class name.
        * @return  true iff no error was encountered
        */
       bool readMarkedSent(vector<string> &sent,
             vector<MarkedTranslation> &marks,
-            Uint* sourceSentenceId=NULL);
+            vector<string>* class_names = NULL,
+            Uint* sourceSentenceId = NULL);
 
       /**
        * Report occurrence counts for warnings that are only reported a limited

@@ -6,8 +6,8 @@
  * 
  * Evaluation Module
  * 
- * Technologies langagieres interactives / Interactive Language Technologies 
- * Institut de technologie de l'information / Institute for Information Technology 
+ * Technologies langagieres interactives / Interactive Language Technologies
+ * Inst. de technologie de l'information / Institute for Information Technology 
  * Conseil national de recherches Canada / National Research Council Canada 
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada 
@@ -61,8 +61,8 @@ namespace Portage
 	    for (Uint j = 1; j <= m; ++j)
 	    {
 		Uint above = wer_matrix[i-1][j].cost + 1;	// Insertion
-		Uint left  = wer_matrix[i][j-1].cost + 1;	// Removal
-		Uint best  = wer_matrix[i-1][j-1].cost + (tst[i-1] == ref[j-1] ? 0 : 1);
+		Uint left = wer_matrix[i][j-1].cost + 1;	// Removal
+		Uint best = wer_matrix[i-1][j-1].cost + (tst[i-1] == ref[j-1] ? 0 : 1);
 		// Match or substitution
 		
 		Uint len = wer_matrix[i-1][j-1].len + 1;

@@ -1,0 +1,142 @@
+Start HMM
+N = 2
+M = 3
+emission_type = 2 (state)
+Pi: 1 0
+A:
+ i=0: 0.7 0.3
+ i=1: 0.5 0.5
+B:
+  j=0: 0.6 0.1 0.3
+  j=1: 0.1 0.7 0.2
+End HMM
+
+delta_0(0) = 1
+delta_1(0) = 0
+delta_0(1) = 0.21 psi_0(1) = 0
+delta_1(1) = 0.09 psi_1(1) = 0
+delta_0(2) = 0.0315 psi_0(2) = 1
+delta_1(2) = 0.0315 psi_1(2) = 1
+delta_0(3) = 0.01323 psi_0(3) = 0
+delta_1(3) = 0.00567 psi_1(3) = 0
+X^_3 = 0
+X^_2 = 0
+X^_1 = 1
+X^_0 = 0
+probViterbi logprob -4.32527 prob 0.01323 sequence: 0 1 0 0
+
+Converting copy to log model
+Start HMM
+N = 2
+M = 3
+emission_type = 2 (state)
+Pi: 0 -inf
+A:
+ i=0: -0.356675 -1.20397
+ i=1: -0.693147 -0.693147
+B:
+  j=0: -0.510826 -2.30259 -1.20397
+  j=1: -2.30259 -0.356675 -1.60944
+End HMM
+log-delta_0(0) = 0 delta_0(0) = 1
+log-delta_1(0) = -inf delta_1(0) = 0
+log-delta_0(1) = -1.56065 delta_0(1) = 0.21 psi_0(1) = 0
+log-delta_1(1) = -2.40795 delta_1(1) = 0.09 psi_1(1) = 0
+log-delta_0(2) = -3.45777 delta_0(2) = 0.0315 psi_0(2) = 1
+log-delta_1(2) = -3.45777 delta_1(2) = 0.0315 psi_1(2) = 1
+log-delta_0(3) = -4.32527 delta_0(3) = 0.01323 psi_0(3) = 0
+log-delta_1(3) = -5.17257 delta_1(3) = 0.00567 psi_1(3) = 0
+X^_3 = 0
+X^_2 = 0
+X^_1 = 1
+X^_0 = 0
+logViterbi logprob -4.32527 prob 0.01323 sequence: 0 1 0 0
+
+c_1 = 3.33333
+alpha_0(1) = 0.21   alpha^_0(1) = 0.7
+alpha_1(1) = 0.09   alpha^_1(1) = 0.3
+c_2 = 3.57143
+alpha_0(2) = 0.154   alpha^_0(2) = 0.55
+alpha_1(2) = 0.126   alpha^_1(2) = 0.45
+c_3 = 2.66667
+alpha_0(3) = 0.2535   alpha^_0(3) = 0.676
+alpha_1(3) = 0.1215   alpha^_1(3) = 0.324
+Sum_{i=0..N-1}(alpha_hat_i(T)) = 1
+Prod_{t=0..T}(c) = 31.746
+Log_prob = -3.45777
+Forward Procedure says P(O|mu) = 0.0315
+
+beta_0(3) = 1.0   beta^_0(3) = 2.66667
+beta_1(3) = 1.0   beta^_1(3) = 2.66667
+beta_0(2) = 1.6   beta^_0(2) = 5.71429
+beta_1(2) = 0.266667   beta^_1(2) = 0.952381
+beta_0(1) = 0.428571   beta^_0(1) = 1.42857
+beta_1(1) = 2.33333   beta^_1(1) = 7.77778
+beta_0(0) = 1   beta^_0(0) = 1
+beta_1(0) = 0.920635   beta^_1(0) = 0.920635
+Sum_{i=0..N-1}(Pi_i*beta^_i(0)) = 1
+Backward Procedure says P(O|mu) = 0.0315
+
+CountExpectation results:
+Pi counts: 1 0
+A counts:
+ i=0: 1.196 0.984
+ i=1: 0.66 0.16
+B counts:
+  j=0: 0.88 0.3 1
+  j=1: 0.12 0.7 0
+
+c_1 = 3.33333
+alpha_0(1) = 0.21   alpha^_0(1) = 0.7
+alpha_1(1) = 0.09   alpha^_1(1) = 0.3
+c_2 = 3.57143
+alpha_0(2) = 0.154   alpha^_0(2) = 0.55
+alpha_1(2) = 0.126   alpha^_1(2) = 0.45
+c_3 = 2.66667
+alpha_0(3) = 0.2535   alpha^_0(3) = 0.676
+alpha_1(3) = 0.1215   alpha^_1(3) = 0.324
+Sum_{i=0..N-1}(alpha_hat_i(T)) = 1
+Prod_{t=0..T}(c) = 31.746
+Log_prob = -3.45777
+Forward Procedure says P(O|mu) = 0.0315
+beta_0(3) = 1.0   beta^_0(3) = 2.66667
+beta_1(3) = 1.0   beta^_1(3) = 2.66667
+beta_0(2) = 1.6   beta^_0(2) = 5.71429
+beta_1(2) = 0.266667   beta^_1(2) = 0.952381
+beta_0(1) = 0.428571   beta^_0(1) = 1.42857
+beta_1(1) = 2.33333   beta^_1(1) = 7.77778
+beta_0(0) = 1   beta^_0(0) = 1
+beta_1(0) = 0.920635   beta^_1(0) = 0.920635
+Sum_{i=0..N-1}(Pi_i*beta^_i(0)) = 1
+Backward Procedure says P(O|mu) = 0.0315
+ForwardBackward decoding results:
+  t = 0
+    gamma_0(0) = 1
+    gamma_1(0) = 0
+  t = 1
+    gamma_0(1) = 0.3
+    gamma_1(1) = 0.7
+  t = 2
+    gamma_0(2) = 0.88
+    gamma_1(2) = 0.12
+  t = 3
+    gamma_0(3) = 0.676
+    gamma_1(3) = 0.324
+Reestimating Pi
+Reestimating A
+Reestimating B
+b_0_sum = 2.18
+b_1_sum = 0.82
+Reestimated model:
+Start HMM
+N = 2
+M = 3
+emission_type = 2 (state)
+Pi: 1 0
+A:
+ i=0: 0.548624 0.451376
+ i=1: 0.804878 0.195122
+B:
+  j=0: 0.40367 0.137615 0.458716
+  j=1: 0.146341 0.853659 0
+End HMM

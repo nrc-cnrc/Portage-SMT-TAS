@@ -8,7 +8,7 @@
  * Implements the soft filtering of phrase table
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2007, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2007, Her Majesty in Right of Canada
@@ -68,7 +68,7 @@ void softFilterTMVisitor::operator()(TargetPhraseTable& tgtTable)
       }
 
       // Sorting for the dynamic algo to work
-      sort(phrases.begin(), phrases.end(), not2(cmp));
+      sort(phrases.begin(), phrases.end(), phraseGreaterThan);
       // DEBUGGING
       if (false) {
          cerr << "Ordered list: " << endl;
@@ -160,6 +160,10 @@ bool softFilterTMVisitor::lessdot(ForwardBackwardPhraseInfo& in, ForwardBackward
    copy(jn.phrase_trans_probs.begin(), jn.phrase_trans_probs.end(), ostream_iterator<float>(cerr, " "));
    cerr << endl;//*/
    
+   // First comparison criterion is forward score:
+   //  - false if any in.forward > jn.forward
+   //  - true if all in.forward < jn.forward 
+   //  - go on to next criterion if all in.forward <= jn.forward but not all <
    bool bX(true);
    for (Uint i(0); i<in.forward_trans_probs.size(); ++i) {
       if (in.forward_trans_probs[i] > jn.forward_trans_probs[i]) return false;
@@ -167,15 +171,23 @@ bool softFilterTMVisitor::lessdot(ForwardBackwardPhraseInfo& in, ForwardBackward
    }
    if (bX == true) return true;
 
+   // Second comparison criterion is backward score in reverse order:
+   //  - false if any in.backward < jn.backward
+   //  - true if all in.backward > jn.backward 
+   //  - go on to next criterion if all in.backward >= jn.backward but not all >
+   bool bY(true);
    for (Uint i(0); i<in.phrase_trans_probs.size(); ++i) {
-      in.phrase_trans_prob  = in.phrase_trans_probs[i];
-      in.forward_trans_prob = in.forward_trans_probs[i];
-      jn.phrase_trans_prob  = jn.phrase_trans_probs[i];
-      jn.forward_trans_prob = jn.forward_trans_probs[i];
-      if (!cmp(make_pair(in.forward_trans_prob, &in), make_pair(jn.forward_trans_prob, &jn)))
-         return false;
+      if (in.phrase_trans_probs[i] < jn.phrase_trans_probs[i]) return false;
+      bY = bY && (in.phrase_trans_probs[i] > jn.phrase_trans_probs[i]);
    }
+   if (bY == true) return true;
 
-   return true;
+   // Third criterion is hashed tie-breaking - invoke the same code canoe uses
+   // to make sure the hash is done the same way, with phrase_trans_probs and
+   // forward_trans_prob set to equality to make sure it goes down to its third
+   // criterion.
+   in.phrase_trans_prob  = jn.phrase_trans_prob  = 1;
+   in.forward_trans_prob = jn.forward_trans_prob = 1;
+   return phraseLessThan(make_pair(1,&in), make_pair(1,&jn));
 }
 

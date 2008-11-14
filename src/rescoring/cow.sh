@@ -27,7 +27,7 @@ CANOE_PARALLEL=canoe-parallel.sh
 PARALLEL=
 RTRAIN=rescore_train
 DEFAULT_MODEL=curmodel
-LOAD_BALANCING=
+LOAD_BALANCING=1
 TRAINING_TYPE="-bleu"
 SCORE_MAIN=bleumain
 
@@ -263,7 +263,7 @@ elif [ $# -lt 2 ]; then
 fi
 
 if [ -n "$LOAD_BALANCING" ]; then
-  PARALLEL_OPTS="-lb $PARALLEL_OPTS"
+   PARALLEL_OPTS="-lb $PARALLEL_OPTS"
 fi
 
 if [ $DEBUG ]; then
@@ -589,7 +589,7 @@ while [ 1 ]; do
       x=${x%$COMPRESS_EXT}
       f=${x%."$N"best}
 
-      # We use gzip in case the user requested compress foo files
+      # We use gzip in case the user requested compressed foo files
       touch $f.duplicateFree$COMPRESS_EXT $f.duplicateFree.ffvals$COMPRESS_EXT
       prevK=`gzip -cqfd $f.duplicateFree$COMPRESS_EXT | wc -l`
       totalPrevK=$((totalPrevK + prevK))

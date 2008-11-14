@@ -38,6 +38,9 @@ namespace Portage
    /// Indicates no limit on maximum distortion cost
    extern const int NO_MAX_DISTORTION;
 
+   /// Definition of a Phrase
+   typedef vector<Uint> Phrase;
+
    /**
     * A range of words in a sentence [start, end):
     * start = first word in the range
@@ -88,9 +91,6 @@ namespace Portage
          return s.str();
       }
    }; // Range
-
-   /// Definition of a Phrase
-   typedef vector<Uint> Phrase;
 
    /**
     * A set of Uint's is represented uniquely by a minimal set of Range's
@@ -169,97 +169,132 @@ namespace Portage
       }
    } // pickItemsByRange
 
-   /**
-    * Callable entity that creates a triangular array.
-    */
-   template <class T>
-   class CreateTriangularArray
-   {
-    public:
+   /// This namespace groups together all functions related to triangular
+   /// arrays.  We don't want to use a class, because triangular arrays are
+   /// double pointers, not a proper object.
+   /// Note: it is recommended you don't "use namespace TriangArray", but use
+   /// instead the qualified TriangArray::<fn>() syntax, so that your calls to
+   /// these methods remain self-documenting.
+   namespace TriangArray {
+
       /**
-       * Create a triangular array, a, of objects of type T.  The array has
-       * length size, and the i-th entry has (size - i) elements.  This is
-       * precisely the dimension needed for the return value of
-       * PhraseDecoderModel::getPhraseInfo() when size = source sentence
-       * length, for example.
-       * The result must be deleted by its user, possibly by calling
-       * DeleteTriangularArray<T>().
-       * @param size        The first-dimension size of the array created
-       * @return            The triangular array created.
+       * Get the element in triangArray for range [i,j).
+       * Arguably not very useful, this function is intended primarily as
+       * documentation, helping to clarify how to use a triangular array.
+       * @pre 0 <= i < j <= sent_size
        */
-      T** operator()(Uint size) {
-         T **result = new T *[size];
-         for (Uint i = 0; i < size; i++) {
-            result[i] = new T[size - i];
-         }
-         return result;
+      template <class T>
+      inline T& Elem(T ** triangArray, Uint i, Uint j) {
+         assert (i >= 0);
+         assert (j > i);
+         // also assert j <= sentSize, but this can't be checked
+         return triangArray[i][j - i - 1];
       }
-   }; // CreateTriangularArray
+
+      /**
+       * Get the element in triangArray for range r.
+       * Arguably not very useful, this function is intended primarily as
+       * documentation, helping to clarify how to use a triangular array.
+       * @pre 0 <= r.start < r.end <= sent_size
+       */
+      template <class T>
+      inline T& Elem(T ** triangArray, Range r) {
+         return Elem(triangArray, r.start, r.end);
+      }
+
+      /**
+       * Callable entity that creates a triangular array.
+       */
+      template <class T>
+      class Create
+      {
+       public:
+         /**
+          * Create a triangular array, a, of objects of type T.  The array has
+          * length size, and the i-th entry has (size - i) elements.  This is
+          * precisely the dimension needed for the return value of
+          * PhraseDecoderModel::getPhraseInfo() when size = source sentence
+          * length, for example.
+          * The result must be deleted by its user, possibly by calling
+          * DeleteTriangularArray<T>().
+          * @param size The first-dimension size of the array created
+          * @return     The triangular array created.
+          */
+         T** operator()(Uint size) {
+            T **result = new T *[size];
+            for (Uint i = 0; i < size; i++) {
+               result[i] = new T[size - i];
+            }
+            return result;
+         }
+      }; // TriangArray::Create()
+
+      /**
+       * Callable entity that deletes a triangular array.
+       */
+      template <class T>
+      class Delete
+      {
+       public:
+         /**
+          * Delete a triangular array created by TriangArray::Create<T>(size).
+          * @param a    The triangular array to delete
+          * @param size Must be the same value as was used to create a
+          */
+         void operator()(T** a, Uint size) {
+            for (Uint i = 0; i < size; ++i)
+               delete [] a[i];
+            delete [] a;
+         }
+      }; // TrianArray::Delete()
+
+   } // TriangArray
 
    /**
-    * Callable entity that deletes a triangular array.
+    * Output a range in a readable format (useful in debugging).
     */
-   template <class T>
-   class DeleteTriangularArray
+   #define RANGEOUT(range) '[' << (range).start << ", " << (range).end << ')'
+
+   /**
+    * Converts a UintSet to a readable string.
+    * @param s  what to convert to a readable format
+    * @return Returns a readable representation of s
+    */
+   inline string UINTSETOUT(const UintSet &s)
    {
-    public:
-      /**
-       * Delete a triangular array created by CreateTriangularArray<T>(size).
-       * @param a    The triangular array to delete
-       * @param size Must be the same value as was used to create a
-       */
-      void operator()(T** a, Uint size) {
-         for (Uint i = 0; i < size; ++i)
-            delete [] a[i];
-         delete [] a;
-      }
-   }; // DeleteTriangularArray
+      if (s.empty()) return "";
+      ostringstream sout;
+      UintSet::const_iterator it = s.begin();
+      while (true) {
+         sout << RANGEOUT(*it);
+         ++it;
+         if (it == s.end()) break;
+         sout << " ";
+      } // while
+      return sout.str();
+   } // UINTSETOUT
+
+   /**
+    * Calculates the partial/total dot product between two vectors.
+    * Note: If types T and U are not the same, T should be the type with higher
+    * precision, since it is also the return type.
+    * @param a     left-hand side operand
+    * @param b     right-hand side operand
+    * @param size  number of elements to use for the dot product
+    */
+   template<class T, class U>
+   T dotProduct(const vector<T> &a, const vector<U> &b, Uint size)
+   {
+      assert(size <= a.size());
+      assert(size <= b.size());
+      T result = (T)0;
+      for (Uint i = 0; i < size; i++) {
+         if (a[i] != (T)0 && b[i] != (T)0) result += a[i] * b[i];
+      } // for
+      return result;
+   } // dotProduct
 
 } // Portage
 
-/**
- * Output a range in a readable format (useful in debugging).
- */
-#define RANGEOUT(range) '[' << (range).start << ", " << (range).end << ')'
-
-/**
- * Converts a UintSet to a readable string.
- * @param s  what to convert to a readable format
- * @return Returns a readable representation of s
- */
-inline string UINTSETOUT(const UintSet &s)
-{
-   if (s.empty()) return "";
-   ostringstream sout;
-   UintSet::const_iterator it = s.begin();
-   while (true) {
-      sout << RANGEOUT(*it);
-      ++it;
-      if (it == s.end()) break;
-      sout << " ";
-   } // while
-   return sout.str();
-} // UINTSETOUT
-
-
-/**
- * Calculates the partial/total dot product between two vectors.
- * Note: If types T and U are not the same, T should be the type with higher
- * precision, since it is also the return type.
- * @param a     left-hand side operand
- * @param b     right-hand side operand
- * @param size  number of elements to use for the dot product
- */
-template<class T, class U>
-T dotProduct(const vector<T> &a, const vector<U> &b, Uint size)
-{
-   assert(size <= a.size());
-   assert(size <= b.size());
-   T result = (T)0;
-   for (Uint i = 0; i < size; i++) {
-      if (a[i] != (T)0 && b[i] != (T)0) result += a[i] * b[i];
-   } // for
-   return result;
-} // dotProduct
 
 #endif // CANOE_GENERAL_H

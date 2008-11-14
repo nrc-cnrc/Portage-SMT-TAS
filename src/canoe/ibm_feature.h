@@ -5,7 +5,7 @@
  * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada / 
  * Copyright 2006, Her Majesty in Right of Canada
@@ -52,7 +52,7 @@ public:
     */
    IBM1FwdFeature(BasicModelGenerator* bmg, const string& modelfile);
 
-   virtual void newSrcSent(const vector<string>& src_sent, vector<PhraseInfo *>** phrase_infos);
+   virtual void newSrcSent(const newSrcSentInfo& new_src_sent_info);
 
    virtual double precomputeFutureScore(const PhraseInfo& phrase_info) {
       return phraseLogProb(phrase_info.phrase);

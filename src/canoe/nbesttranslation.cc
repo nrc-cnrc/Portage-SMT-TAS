@@ -2,14 +2,14 @@
  * @author J Howard Johnson
  * @file nbesttranslation.cc  This file produces the N-Best translations
  * directly (using BGL algorithms).
- * 
+ *
  * $Id$
- * 
+ *
  * Canoe Decoder
- * 
+ *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology 
- * Conseil national de recherches Canada / National Research Council Canada 
+ * Inst. de technologie de l'information / Institute for Information Technology
+ * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004-2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004-2005, Her Majesty in Right of Canada
  */
@@ -26,7 +26,6 @@
 
 using namespace Portage;
 using namespace std;
-using namespace __gnu_cxx;
 
 /// Needs description
 typedef pair< Uint, pair< DecoderState *, double > >  state_weight_t;
@@ -38,9 +37,9 @@ typedef pair< Uint, pair< DecoderState *, double > >  state_weight_t;
  * @param state  the state
  * @param uid    state's id
  * @param prob   state's probability
- * @return Returns 
+ * @return Returns
  */
-inline state_weight_t make_state_weight_t(DecoderState* state, const Uint uid, const double& prob)
+inline state_weight_t make_state_weight_t(DecoderState* state, Uint uid, double prob)
 {
    return make_pair(uid, make_pair(state, prob));
 }
@@ -102,7 +101,7 @@ static void print_path(
   ) {
     typedef deque< DecoderState * > Sequence;
     typedef Sequence::const_iterator SequenceIterator;
-    
+
     p_c = pi[ p_c ];
     DecoderState *        p_1 = getState(p_c);
     DecoderState * const  src = g.get_initial_state();
@@ -157,7 +156,7 @@ void Portage::print_nbest( lattice_overlay const &  g,
             for ( tie( ei, ei_end ) = out_edges( p, g ); ei != ei_end; ++ei ) {
                 DecoderStatePair  e = *ei;
                 const double  c_prime = c + get( w, e );
-                state_weight_t  n_e__c_prime = 
+                state_weight_t  n_e__c_prime =
                     make_state_weight_t( e.second, ++Uid_maker, c_prime );
                 pi[ n_e__c_prime ] = p_c;
                 S.push( n_e__c_prime );
@@ -177,10 +176,10 @@ void Portage::print_lattice( lattice_overlay const & g,
 {
    cerr << "Entering print_lattice" << endl;
    DecoderState* src = g.get_initial_state();
-   
+
    deque<DecoderStatePair> myStack;
    myStack.push_back(make_pair(src, src));
-   
+
    file << "FINAL" << endl;
    for (DecoderStateIterator it = g.get_initial_states_begin();
          it != g.get_initial_states_end();
@@ -194,7 +193,7 @@ void Portage::print_lattice( lattice_overlay const & g,
          file << '(' << (*it2)->id << " (" << "FINAL" << " \"\" " << 1 << "))" << endl;
       }
    }
-   
+
    while (!myStack.empty()) {
       DecoderStatePair pair = myStack.front();
       myStack.pop_front();
@@ -204,7 +203,7 @@ void Portage::print_lattice( lattice_overlay const & g,
          const double score = exp(pair.first->score - pair.first->back->score);
          file << '(' << pair.second->id << " (" << pair.first->id << " \"" << print(pair.first) << "\" " << score << "))" << endl;
       }
-      
+
       lattice_overlay_out_edge_iterator  ei, ei_end;
       for ( tie( ei, ei_end ) = out_edges( p, g ); ei != ei_end; ++ei ) {
          DecoderStatePair  e = *ei;

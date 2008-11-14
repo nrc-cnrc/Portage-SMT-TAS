@@ -173,6 +173,13 @@ float LMTrie::wordProbQuery(const Uint query[], Uint query_length) {
    }
 } // LMTrie::wordProbQuery
 
+float LMTrie::cachedWordProb(Uint word, const Uint context[],
+                             Uint context_length)
+{
+   // LMTrie queries are fast enough that we don't want to cache their results.
+   return wordProb(word, context, context_length);
+}
+
 LMTrie::LMTrie(VocabFilter *vocab, OOVHandling oov_handling,
                double oov_unigram_prob)
    : PLM(vocab, oov_handling, oov_unigram_prob)

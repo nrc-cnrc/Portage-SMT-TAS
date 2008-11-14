@@ -8,7 +8,7 @@
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
@@ -23,7 +23,7 @@
 using namespace Portage;
 using namespace std;
 
-InputParser::InputParser(istream &in, const bool withId)
+InputParser::InputParser(istream &in, bool withId)
    : in(in)
    , lineNum(0)
    , withId(withId)
@@ -38,6 +38,7 @@ bool InputParser::eof()
 
 bool InputParser::readMarkedSent(vector<string> &sent,
       vector<MarkedTranslation> &marks,
+      vector<string>* class_names,
       Uint* sourceSentenceId)
 {
    // Parse the source sentence id
@@ -66,7 +67,7 @@ bool InputParser::readMarkedSent(vector<string> &sent,
             sent.push_back(string("<"));
          } else
          {
-            if ( ! readMark(sent, marks, c) )
+            if ( ! readMark(sent, marks, c, class_names) )
             {
                //skipRestOfLine(c);
                //return false;
@@ -104,8 +105,10 @@ bool InputParser::readMarkedSent(vector<string> &sent,
    return true;
 } // readMarkedSent
 
-bool InputParser::readMark(vector<string> &sent, vector<MarkedTranslation>
-      &marks, char &lastChar)
+bool InputParser::readMark(vector<string> &sent,
+      vector<MarkedTranslation> &marks,
+      char &lastChar,
+      vector<string>* class_names)
 {
    char &c = lastChar;
 
@@ -130,8 +133,25 @@ bool InputParser::readMark(vector<string> &sent, vector<MarkedTranslation>
 
    skipSpaces(c);
 
-   // Read "english" or "target"
+   // Temp buffer to read the attribute's name
    string buf;
+
+   // If the tag's name is rule there is an added attribute to be read.
+   // new attribute is the class name.
+   string class_name("");
+   if (toLower(tagName, buf) == "rule") {
+      readClassAttribute(c, class_name);
+
+      // If the user asked for the class name's list, add the class name to the list
+      if (class_names != NULL) {
+         if (find(class_names->begin(), class_names->end(), class_name) == class_names->end()) {
+            class_names->push_back(class_name);
+         }
+      }
+   }
+
+   // Read "english" or "target"
+   buf.clear();
    readString(buf, c, '=');
    skipSpaces(c);
    if (buf != "english" && buf != "target")
@@ -148,7 +168,7 @@ bool InputParser::readMark(vector<string> &sent, vector<MarkedTranslation>
             lineNum, buf.c_str());
       return false;
    }
-   in >> c;
+   in >> c; // eat "\""
    skipSpaces(c);
    if (in.eof() || c != '"')
    {
@@ -220,8 +240,7 @@ bool InputParser::readMark(vector<string> &sent, vector<MarkedTranslation>
          readString(buf, c, '|', '"');
          char *endPtr;
          probs.push_back(strtod(buf.c_str(), &endPtr));
-         if (probs.back() <= 0 || endPtr != buf.c_str() + buf.length())
-         {
+         if (probs.back() <= 0 || endPtr != buf.c_str() + buf.length()) {
             error(ETWarn, "Format error in input line %d: invalid mark format "
                   "('%s' is not a valid number).", lineNum, buf.c_str());
             return false;
@@ -238,6 +257,8 @@ bool InputParser::readMark(vector<string> &sent, vector<MarkedTranslation>
       skipSpaces(c);
    } else
    {
+      // The user did not provide any probs.
+      // Assign a uniform distribution of probs to those tgt phrases
       while (probs.size() < phrases.size())
       {
          probs.push_back((double)1 / (double)phrases.size());
@@ -260,17 +281,14 @@ bool InputParser::readMark(vector<string> &sent, vector<MarkedTranslation>
    // Read the source phrase
    in >> c;
    skipSpaces(c);
-   while (!(in.eof() || c == '\n'))
-   {
-      if (c == '<')
-      {
+   while (!(in.eof() || c == '\n')) {
+      if (c == '<') {
          in >> c;
-         if ( c == '/' )
-         {
+         if ( c == '/' ) {
             // "</" marks the start of the end of mark tag
             break;
-         } else
-         {
+         }
+         else {
             if ( inc_warning(LEFT_ANGLE_IN_MARK) <= max_warn )
                error(ETWarn, "Format warning in input line %d: "
                      "interpreting '<' as regular character inside mark "
@@ -279,8 +297,8 @@ bool InputParser::readMark(vector<string> &sent, vector<MarkedTranslation>
             readString(sent.back(), c, '<', (char)0, true);
             skipSpaces(c);
          }
-      } else
-      {
+      }
+      else {
          sent.push_back(string());
          readString(sent.back(), c, '<', (char)0, true);
          skipSpaces(c);
@@ -328,9 +346,10 @@ bool InputParser::readMark(vector<string> &sent, vector<MarkedTranslation>
    for (Uint i = 0; i < phrases.size(); i++)
    {
       marks.push_back(MarkedTranslation());
-      marks.back().src_words = sourceRange;
+      marks.back().src_words  = sourceRange;
       marks.back().markString = phrases[i];
-      marks.back().log_prob = log(probs[i]);
+      marks.back().log_prob   = log(probs[i]);  // natural logarithm of prob
+      marks.back().class_name = class_name;
    }
    in >> c;
    return true;
@@ -360,6 +379,8 @@ bool InputParser::readString(string &s, char &c, char stopFor1, char
                      "Interpreting '\\' not followed by '\\', '<' or '>' "
                      "as a regular character (replace with '\\\\' to suppress "
                      "this warning).", lineNum);
+            //cerr << "next_c=" << next_c << " stopFor1=" << stopFor1
+            //     << " stopFor2=" << stopFor2 << endl;
          }
       } else if (c == '>' || c == '<') {
          if ( allowAngleBraces )
@@ -422,4 +443,49 @@ void InputParser::reportWarningCounts() const
         && warning_counters[LITERAL_ANGLE] > max_warn )
       error(ETWarn, "Format warning summary: %d '<' and/or '>' within tokens "
             "were interpreted literally", warning_counters[LITERAL_ANGLE]);
+}
+
+
+bool InputParser::readClassAttribute(char& c, string& class_name)
+{
+   // Read the attribute's tag
+   string buf;
+   buf.clear();
+   readString(buf, c, '=');
+   skipSpaces(c);
+
+   if (buf != "class") {
+      error(ETWarn, "Format error in input line %d: invalid mark format "
+            "(expected 'class', got '%s'; perhaps < should be escaped).",
+            lineNum, buf.c_str());
+      return false;
+   }
+   else if (in.eof() || c != '=') {
+      error(ETWarn, "Format error in input line %d: invalid mark format "
+            "(expected '=' after '%s'; perhaps < should be escaped).",
+            lineNum, buf.c_str());
+      return false;
+   }
+
+   in >> c;  // eat the "="
+   skipSpaces(c);
+   if (in.eof() || c != '"') {
+      error(ETWarn, "Format error in input line %d: invalid mark format "
+            "('\"' expected after '%s=').",
+            lineNum, buf.c_str());
+      return false;
+   }
+   in >> c;  // eat "\""
+
+   readString(class_name, c, '"');
+   if (in.eof() || c != '"') {
+      error(ETWarn, "Format error in input line %d: invalid mark format "
+            "('\"' expected after '%s=').",
+            lineNum, class_name.c_str());
+      return false;
+   }
+   in >> c;  // consume "\""
+   skipSpaces(c);
+
+   return true;
 }

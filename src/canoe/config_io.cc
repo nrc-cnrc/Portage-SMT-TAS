@@ -2,12 +2,13 @@
  * @author George Foster
  * @file config_io.cc  Implementation of CanoeConfig.
  *
- * $Id$ * 
+ * $Id$ *
+ *
  * Read and write canoe config files
- * 
+ *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
- * Conseil national de recherches Canada / National Research Council Canada 
+ * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
  */
@@ -20,10 +21,10 @@
 #include "logging.h"
 #include "randomDistribution.h"
 #include "lm.h"
+#include "lmdynmap.h"
 #include <boost/spirit.hpp>
 #include <boost/spirit/actor/assign_actor.hpp>
 #include <boost/bind.hpp>
-#include <cmath>
 
 using namespace Portage;
 using namespace boost::spirit;
@@ -66,10 +67,10 @@ struct distribution_grammar : public grammar<distribution_grammar>
    /// Actual grammar's definition
    template <typename ScannerT>
    struct definition
-   {    
+   {
       /// Default constructor.
       /// @param self  grammar object to be able to refere to it if needs be.
-      definition(distribution_grammar const& self)  
+      definition(distribution_grammar const& self)
       {
          random   = normal | uniform | fix;
          fix      = real_p[bind(&distribution_grammar::make_constant, &self, _1)];
@@ -109,6 +110,7 @@ CanoeConfig::CanoeConfig()
    //forwardWeights;
    randomWeights          = false;
    randomSeed             = 0;
+   sentWeights            = "";
    phraseTableSizeLimit   = NO_SIZE_LIMIT;
    phraseTableThreshold   = 0;
    phraseTablePruneType   = "forward-weights";
@@ -147,6 +149,7 @@ CanoeConfig::CanoeConfig()
    bCubePruning           = false;
    cubeLMHeuristic        = "incremental";
    futLMHeuristic         = "incremental";
+   final_cleanup          = false;  // for speed reason we don't normally delete the bmg
 
    // Parameter information, used for input and output. NB: doesn't necessarily
    // correspond 1-1 with actual parameters, as one ParamInfo can set several
@@ -177,11 +180,20 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("random-t rtm", "stringVect", &rnd_transWeights));
    param_infos.push_back(ParamInfo("weight-f ftm", "doubleVect", &forwardWeights));
    param_infos.push_back(ParamInfo("random-f rftm", "stringVect", &rnd_forwardWeights));
+
+   param_infos.push_back(ParamInfo("rule-classes ruc", "stringVect", &rule_classes));
+   param_infos.push_back(ParamInfo("rule-weights ruw", "doubleVect", &rule_weights));
+   param_infos.push_back(ParamInfo("random-rule-weights rruw", "stringVect", &rnd_rule_weights));
+   param_infos.push_back(ParamInfo("rule-log-zero rulz", "doubleVect", &rule_log_zero));
+
    param_infos.push_back(ParamInfo("random-weights r", "bool", &randomWeights));
    param_infos.push_back(ParamInfo("seed", "Uint", &randomSeed));
+   param_infos.push_back(ParamInfo("sent-weights", "string", &sentWeights,
+      ParamInfo::relative_path_modification | ParamInfo::check_file_name));
+
    param_infos.push_back(ParamInfo("ttable-limit", "Uint", &phraseTableSizeLimit));
    param_infos.push_back(ParamInfo("ttable-threshold", "double", &phraseTableThreshold));
-   param_infos.push_back(ParamInfo("ttable-prune-type", "string", &phraseTablePruneType)); 
+   param_infos.push_back(ParamInfo("ttable-prune-type", "string", &phraseTablePruneType));
    param_infos.push_back(ParamInfo("ttable-log-zero", "double", &phraseTableLogZero));
    param_infos.push_back(ParamInfo("stack s", "Uint", &maxStackSize));
    param_infos.push_back(ParamInfo("beam-threshold b", "double", &pruneThreshold));
@@ -215,13 +227,15 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("cube-lm-heuristic", "string", &cubeLMHeuristic));
    param_infos.push_back(ParamInfo("future-score-lm-heuristic", "string", &futLMHeuristic));
    param_infos.push_back(ParamInfo("lb", "bool", &bLoadBalancing));
+   param_infos.push_back(ParamInfo("final-cleanup", "bool", &final_cleanup));
 
    // List of all parameters that correspond to weights. ORDER IS SIGNIFICANT
    // and must match the order in BasicModelGenerator::InitDecoderFeatures().
    // New entries should be added immediately before "lm".
 
    const char* weight_names[] = {
-      "d", "w", "sm", "ibm1f", "lm", "tm", "ftm"
+      "d", "w", "sm", "ibm1f", "ruw",
+      "lm", "tm", "ftm"
    };
    weight_params.assign(weight_names, weight_names + ARRAY_SIZE(weight_names));
 
@@ -287,7 +301,7 @@ void CanoeConfig::ParamInfo::set(const string& str)
       if (toks.size() == 2) c->nbestSize = conv<Uint>(toks[1]);
       c->nbestOut = (c->nbestFilePrefix != "");
    } else
-      error(ETFatal, "programmer error: cannot convert param %s - conversion method %s unknown", 
+      error(ETFatal, "programmer error: cannot convert param %s - conversion method %s unknown",
             names[0].c_str(), tconv.c_str());
 }
 
@@ -327,7 +341,7 @@ string CanoeConfig::ParamInfo::get(bool pretty) {
       ss << (c->nbestFilePrefix == "" ? ALT_EMPTY_STRING : c->nbestFilePrefix)
 	 << ":" << c->nbestSize;
    } else
-      error(ETFatal, "programmer error: cannot convert param %s - conversion method %s unknown", 
+      error(ETFatal, "programmer error: cannot convert param %s - conversion method %s unknown",
             names[0].c_str(), tconv.c_str());
 
       return ss.str() == "" ? ALT_EMPTY_STRING : ss.str();
@@ -343,7 +357,7 @@ void CanoeConfig::setFromArgReader(ArgReader& arg_reader)
 	    it->second->set(val);
 	    it->second->set_from_cmdline = true;
 	 } else
-	    error(ETWarn, "ignoring duplicate option -%s on command line", 
+	    error(ETWarn, "ignoring duplicate option -%s on command line",
 		  it->first.c_str());
       }
    }
@@ -353,7 +367,7 @@ void CanoeConfig::setFromArgReader(ArgReader& arg_reader)
  * Get next value from config file. Values consist of one or more
  * space-separated words not beginning with the [ character. If the comment
  * character (#) occurs at the beginning of a word, all text on the line will
- * be ignored. 
+ * be ignored.
  * @param configin stream
  * @param val all words found, concatenated with ':' separator
  * @return true if one or more words found
@@ -391,7 +405,7 @@ static bool getValue(istream& configin, string& val)
    }
    return val.length() > 0;
 }
-   
+
 /**
  * Callable Entity used to modify the LMs and TMs file path according to the
  * location of the canoe.ini file to which they belong.
@@ -405,7 +419,7 @@ struct extendFileName
     * @param d  path of the canoe.ini
     */
    extendFileName(const string& d) : remoteDirName(d) {}
-   
+
    /**
     * Transforms file name and path in accordance to the location of the
     * canoe.ini to which they belong.  Allows us to run remote canoes.
@@ -413,8 +427,12 @@ struct extendFileName
     */
    void operator()(string& file) {
       // extends the path only if it's not an absolute path
-      if (!file.empty() && file[0] != '/')
-         file = remoteDirName + "/" + file;
+      if (!file.empty() && file[0] != '/') {
+         if (isPrefix(LMDynMap::header, file))
+            file = LMDynMap::fix_relative_path(remoteDirName, file);
+         else
+            file = remoteDirName + "/" + file;
+      }
    }
 };
 
@@ -425,7 +443,7 @@ void CanoeConfig::read(const char* configFile) {
    char* tmp = strdup(configFile);
    extendFileName efn(DirName(tmp));
    free(tmp);
-   
+
    // Modifying filepath for canoe.relative
    if (efn.remoteDirName != ".") {
       // Look through param_info and see which one needs their path modified
@@ -459,11 +477,11 @@ void CanoeConfig::read(istream& configin)
       if (c == '#')             // discard to EOL
          while (!configin.eof() && c != '\n')
             configin.get(c);
-      
+
       if (s.length() > 1 && s[0] == '[' && s[s.length() - 1] == ']') {
          s.erase(0, 1);
          s.erase(s.length() - 1);
-         
+
          map<string,ParamInfo*>::iterator it = param_map.find(s);
          if (it != param_map.end()) {
             string arg;
@@ -476,7 +494,7 @@ void CanoeConfig::read(istream& configin)
 
          } else
             error(ETWarn, "ignoring unknown option [%s] in config file", s.c_str());
-      } else if (s != "") 
+      } else if (s != "")
          error(ETWarn, "ignoring unknown option %s in config file", s.c_str());
    }
 }
@@ -499,7 +517,7 @@ void CanoeConfig::check()
 
    // Check if the user didn't write in his config none#somearg which is
    // actually simply none
-   if (isPrefix("none#", segmentationModel.c_str()))
+   if (isPrefix("none#", segmentationModel))
       segmentationModel = "none";
    if (segWeight.empty() && segmentationModel != "none")
       segWeight.push_back(1.0);
@@ -515,7 +533,8 @@ void CanoeConfig::check()
    if (transWeights.empty())
       transWeights.assign(backPhraseFiles.size() + multi_prob_model_count, 1.0);
 
-   // Errors:
+   ////////////////////////////////////////////////////////
+   // ERRORS:
    if (bLoadBalancing && bAppendOutput)
       error(ETFatal, "Load Balancing cannot run in append mode");
 
@@ -539,6 +558,12 @@ void CanoeConfig::check()
    if (ibm1FwdFiles.size() != ibm1FwdWeights.size())
       error(ETFatal, "number of IBM1 forward weights does not match number of IBM forward model files");
 
+   // Rule decoder feature
+   if (rule_classes.size() != rule_weights.size())
+      error(ETFatal, "number of rule weights does not match number of rule classes");
+   if (rule_classes.size() != rule_log_zero.size())
+      error(ETFatal, "number of rule log zero does not match number of rule classes");
+
    if (lmWeights.size() != lmFiles.size())
       error(ETFatal, "Number of language model weights does not match number of language model files.");
    if (transWeights.size() != backPhraseFiles.size() + multi_prob_model_count)
@@ -546,27 +571,30 @@ void CanoeConfig::check()
    if (forPhraseFiles.size() > 0 && forPhraseFiles.size() != backPhraseFiles.size())
       error(ETFatal, "Number of forward translation models !=  number of backward translation model files.");
    if (forwardWeights.size() > 0 && forwardWeights.size() != forPhraseFiles.size() + multi_prob_model_count)
-      error(ETFatal, "Number for forward translation model weights != number of (forward) translation model files.");
+      error(ETFatal, "Number of forward translation model weights != number of (forward) translation model files.");
    if (oov != "pass" && oov != "write-src-marked" && oov != "write-src-deleted")
       error(ETFatal, "OOV handling method must be one: 'pass', 'write-src-marked', or 'write-src-deleted'");
    if (phraseTablePruneType != "forward-weights" &&
        phraseTablePruneType != "backward-weights" &&
        phraseTablePruneType != "combined")
       error(ETFatal, "ttable-prune-type must be one of: 'forward-weights', 'backward-weights', or 'combined'");
-   
+
    // if (bypassMarked && weightMarked)
    //   error(ETWarn, "Both -bypass-marked and -weight-marked found.  Only doing -bypass-marked");
-   if (phraseTableSizeLimit != NO_SIZE_LIMIT && forPhraseFiles.empty() && multiProbTMFiles.empty())
+   if ( phraseTableSizeLimit != NO_SIZE_LIMIT && forPhraseFiles.empty() &&
+        multiProbTMFiles.empty())
       error(ETWarn, "Doing phrase table pruning without forward translation model.");
 
    if ( bCubePruning )
       if ( covLimit != 0 || covThreshold != 0.0 )
          error(ETWarn, "Coverage pruning is not implemented yet in the cube pruning decoder, ignoring -cov-* options.");
 
-   if ( cubeLMHeuristic != "none" && cubeLMHeuristic != "unigram" && cubeLMHeuristic != "incremental" && cubeLMHeuristic != "simple" )
+   if ( cubeLMHeuristic != "none" && cubeLMHeuristic != "unigram" &&
+        cubeLMHeuristic != "incremental" && cubeLMHeuristic != "simple" )
       error(ETFatal, "cube-lm-heuristic must be one of: 'none', 'unigram', 'incremental', or 'simple'");
 
-   if ( futLMHeuristic != "none" && futLMHeuristic != "unigram" && futLMHeuristic != "incremental" && futLMHeuristic != "simple" )
+   if ( futLMHeuristic != "none" && futLMHeuristic != "unigram" &&
+        futLMHeuristic != "incremental" && futLMHeuristic != "simple" )
       error(ETFatal, "future-score-lm-heuristic must be one of: 'none', 'unigram', 'incremental', or 'simple'");
 
 
@@ -582,7 +610,7 @@ void CanoeConfig::check()
 void CanoeConfig::check_all_files() const
 {
    bool ok = true;
-   
+
    // Look through param_info and see which ones need their path modified
    typedef vector<ParamInfo>::const_iterator  IT;
    for (IT it(param_infos.begin()); it!=param_infos.end(); ++it) {
@@ -615,7 +643,7 @@ void CanoeConfig::check_all_files() const
          }
       }
    }
-   
+
    // On error, exit with error status so this check can be used in scripts
    if (!ok) exit(1);
 }
@@ -627,8 +655,8 @@ Uint CanoeConfig::getTotalMultiProbModelCount() const
       multi_prob_column_count +=
          PhraseTable::countProbColumns(multiProbTMFiles[i].c_str());
       if ( multi_prob_column_count % 2 != 0 )
-         error(ETFatal, "Uneven number of probability columns in ttable-multi-prob file %s.",
-               multiProbTMFiles[i].c_str());
+         error(ETFatal, "Uneven number of probability columns in "
+               "ttable-multi-prob file %s.", multiProbTMFiles[i].c_str());
    }
    return multi_prob_column_count / 2;
 }
@@ -718,8 +746,8 @@ void CanoeConfig::write(ostream& configout, Uint what, bool pretty)
    configout << setprecision(precision);
    vector<ParamInfo>::iterator it;
    for (it = param_infos.begin(); it != param_infos.end(); ++it) {
-      if (what == 0 && !it->set_from_config || 
-	  what == 1 && !it->set_from_config && !it->set_from_cmdline)
+      if ((what == 0 && !it->set_from_config) ||
+	  (what == 1 && !it->set_from_config && !it->set_from_cmdline))
 	 continue;
       if (it->tconv == "bool") { // boolean params are special case
 	 if (*(bool*)it->val) configout << "[" << it->names[0] << "]" << endl;
@@ -737,7 +765,7 @@ bool& CanoeConfig::readStatus(const string& param)
 }
 
 
-rnd_distribution* CanoeConfig::random_param::get(const Uint index) const
+rnd_distribution* CanoeConfig::random_param::get(Uint index) const
 {
    // if the index is greater than the vector size => the user didn't give
    // enough distribution and we are going to fallback on the default one.

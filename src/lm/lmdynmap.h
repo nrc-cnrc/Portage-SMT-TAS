@@ -170,7 +170,9 @@ public:
    ~LMDynMap();
 
    virtual float wordProb(Uint word, const Uint context[], Uint context_length);
-   virtual void clearCache() {return m->clearCache();}
+   virtual float cachedWordProb(Uint word, const Uint context[],
+                                Uint context_length);
+   virtual void clearCache() { m->clearCache(); }
 
    /**
     * Fixes the relative path for a dynmap.

@@ -40,6 +40,7 @@ OBJECTS= \
     hypothesisstack.o \
     ibm_feature.o \
     inputparser.o \
+    marked_translation.o \
     nbesttranslation.o \
     partialtranslation.o \
     phrasefinder.o \
@@ -48,6 +49,7 @@ OBJECTS= \
     phrasetable_filter_joint.o \
     phrasetable_filter_lm.o \
     phrase_tm_align_compute.o \
+    rule_feature.o \
     segmentmodel.o \
     soft_filter_tm_visitor.o \
     translationProb.o \
@@ -58,22 +60,17 @@ LIBRARY=libportage_canoe
 PERL_LIBS=
 
 TESTPROGS= \
-	testconfig \
-	testdecoder \
-	testhypstack \
-	testphrasefinder
+	testconfig
 
 PROGRAMS=$(TESTPROGS) \
 	canoe \
 	configtool \
 	filter_models \
-        join_phrasetables \
-        mix_phrasetables \
+	join_phrasetables \
+	mix_phrasetables \
 	phrase_tm_align
 
 BINSCRIPTS=nbest2rescore.pl canoe-parallel.sh
-
-INFOFILES=
 
 DOCUMENTS=canoe.pdf
 
@@ -81,8 +78,7 @@ EXTRA_LIBS=$(LOGGING_LIB)
 
 DYNLIBS=-licuuc
 
-# Module/directory specific compile flags
-MODULE_CF=-Wno-non-virtual-dtor
+MODULE_CF=
 
 MODULE_DEPENDS=logging tm lm
 
@@ -92,21 +88,5 @@ canoe.dvi: uml.eps canoe.bib
 
 uml.eps: uml.fig
 	fig2dev -L eps $^ $@
-
-# Override rules for programs:
-ifndef LIBRARY
-testdecoder:
-	$(CXX) $(CXXFLAGS) -o $@ testdecoder.o decoder.o decoderstate.o \
-	    partialtranslation.o hypothesisstack.o phrasefinder.o \
-	    canoe_constants.o $(LINKWITH) $(DYNLIBS)
-
-testhypstack:
-	$(CXX) $(CXXFLAGS) -o $@ testhypstack.o hypothesisstack.o partialtranslation.o \
-	    decoderstate.o canoe_constants.o $(LINKWITH) $(DYNLIBS)
-
-testphrasefinder:
-	$(CXX) $(CXXFLAGS) -o $@ testphrasefinder.o phrasefinder.o partialtranslation.o \
-	    canoe_constants.o $(LIBS) $(LINKWITH) $(DYNLIBS)
-endif
 
 -include Makefile.depend

@@ -1,7 +1,7 @@
 #!/bin/bash
 # $Id$
 #
-# @file canoe-parallel.sh 
+# @file canoe-parallel.sh
 # @brief wrapper to run canoe on a parallel machine or on a cluster.
 #
 # @author Eric Joanis
@@ -26,10 +26,10 @@ NBEST_COMPRESS=    # Will be use to merge chunks in append mode
 
 
 usage() {
-    for msg in "$@"; do
-        echo $msg >&2
-    done
-    cat <<==EOF== >&2
+   for msg in "$@"; do
+      echo $msg >&2
+   done
+   cat <<==EOF== >&2
 canoe-parallel.sh, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada
 
 Usage: canoe-parallel.sh [options] canoe [canoe options] < <input>
@@ -41,17 +41,20 @@ Usage: canoe-parallel.sh [options] canoe [canoe options] < <input>
 Options:
 
   -resume pid   Tries to rerun parts that failed aka parts that aren't the
-                expected size.
+                expected size.  You must reuse the same original command
+                that failed plus -resume <failed_PID>.
 
   -lb           run in load balancing mode: split input into J [=2N] blocks,
                 N roughly even "heavy" ones, and J-N lighter ones; run them in
-                heavy to light order. [don't]
+                heavy to light order. [do]
+
+  -no-lb        turns off load-balancing. [don't]
 
   -j(obs) J     Used with -lb to specify the number of jobs J >= N.  [2N]
-  
+
   -noc(luster): background all jobs with & [default if not on a cluster]
 
-  -n(um) N:     split the input into N blocks. [# input sentences / $HIGH_SENT_PER_BLOCK, 
+  -n(um) N:     split the input into N blocks. [# input sentences / $HIGH_SENT_PER_BLOCK,
                 but in [$MIN_DEFAULT_NUM,$MAX_DEFAULT_NUM] in cluster mode; otherwise number of CPUs]
 
   -h(elp):      print this help message
@@ -87,7 +90,7 @@ Cluster mode options (ignored on non-clustered machines):
 
 ==EOF==
 
-    exit 1
+   exit 1
 }
 
 
@@ -95,11 +98,12 @@ Cluster mode options (ignored on non-clustered machines):
 # will exit with an error status, print the specified error message(s) on
 # STDERR.
 error_exit() {
-    for msg in "$@"; do
-        echo $msg >&2
-    done
-    echo "Use -h for help." >&2
-    exit 1
+   echo -n "canoe-parallel.sh fatal error: " >&2
+   for msg in "$@"; do
+      echo $msg >&2
+   done
+   echo "Use -h for help." >&2
+   exit 1
 }
 
 # Verify that enough args remain on the command line
@@ -108,9 +112,9 @@ error_exit() {
 # handling parameters, so that $# still includes the option itself.
 # exits with error message if the check fails.
 arg_check() {
-    if [ $2 -le $1 ]; then
-        error_exit "Missing argument to $3 option."
-    fi
+   if [ $2 -le $1 ]; then
+      error_exit "Missing argument to $3 option."
+   fi
 }
 
 warn()
@@ -133,34 +137,35 @@ VERBOSE=1
 DEBUG=
 GOTCANOE=
 SAVE_ARGS="$@"
-LOAD_BALANCING=
+LOAD_BALANCING=1
 RESUME=
 PID=$$
 while [ $# -gt 0 ]; do
-    case "$1" in
-    -noc|-nocluster)RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS -nocluster";;
-    -resume)        arg_check 1 $# $1; RESUME=$2; shift;;
-    -lb)            LOAD_BALANCING=1;;
-    -n|-num)        arg_check 1 $# $1; NUM=$2; shift;;
-    -j|-job)        arg_check 1 $# $1; NUMBER_OF_JOBS=$2; shift;;
-    -highmem)       RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
-    -nolocal)       RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
-    -psub|-psub-opts|-psub-options)
-                    arg_check 1 $# $1; PSUBOPTS="$PSUBOPTS $2"; shift;;
-    -qsub|-qsub-opts|-qsub-options)
-                    arg_check 1 $# $1; QSUBOPTS="$QSUBOPTS $2"; shift;;
-    -v|-verbose)    VERBOSE=$(( $VERBOSE + 1 ))
-                    RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
-    -q|-quiet)      VERBOSE=0
-                    RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
-    -d|-debug)      DEBUG=1; RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS -d";;
-    -h|-help)       usage;;
-    canoe)          shift; GOTCANOE=1; CANOEOPTS=("$@"); break;;
-    *)              error_exit "Unknown option $1." \
-                    "Possibly missing the 'canoe' argument before regular canoe options?"
-                    ;;
-    esac
-    shift
+   case "$1" in
+   -noc|-nocluster)RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS -nocluster";;
+   -resume)        arg_check 1 $# $1; RESUME=$2; shift;;
+   -lb)            LOAD_BALANCING=1;;
+   -no-lb)         LOAD_BALANCING=;;
+   -n|-num)        arg_check 1 $# $1; NUM=$2; shift;;
+   -j|-job)        arg_check 1 $# $1; NUMBER_OF_JOBS=$2; shift;;
+   -highmem)       RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
+   -nolocal)       RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
+   -psub|-psub-opts|-psub-options)
+                   arg_check 1 $# $1; PSUBOPTS="$PSUBOPTS $2"; shift;;
+   -qsub|-qsub-opts|-qsub-options)
+                   arg_check 1 $# $1; QSUBOPTS="$QSUBOPTS $2"; shift;;
+   -v|-verbose)    VERBOSE=$(( $VERBOSE + 1 ))
+                   RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
+   -q|-quiet)      VERBOSE=0
+                   RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
+   -d|-debug)      DEBUG=1; RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS -d";;
+   -h|-help)       usage;;
+   canoe)          shift; GOTCANOE=1; CANOEOPTS=("$@"); break;;
+   *)              error_exit "Unknown option $1." \
+                   "Possibly missing the 'canoe' argument before regular canoe options?"
+                   ;;
+   esac
+   shift
 done
 
 
@@ -177,16 +182,15 @@ test -e $WORK_DIR || mkdir $WORK_DIR
 
 #
 if [ $NUMBER_OF_JOBS -ne 1 -a -z "$LOAD_BALANCING" ]; then
-   echo "-job option is only available for load-balancing" >&2
+   warn "-job option is only available for load-balancing"
 fi
 
 # Disable load balancing if using append mode
 APPEND=`echo $@ | egrep -oe '-append'`
 debug "APPEND: $APPEND"
-if [ -n "$APPEND" -a -n "$LOAD_BALANCING" ]; then
-   warn "using append model => deactivating load-balancing"
-   LOAD_BALANCING=
-fi
+# Note: we used to disable -lb when -append was present, but now the two
+# options are supported together - this script does the -append function at the
+# end; not efficient for very large amounts of data, though.
 
 
 # Make sure the path to self is on the PATH variable: if an explicit path to
@@ -195,24 +199,29 @@ fi
 export PATH=`dirname $0`:$PATH
 
 if [ $VERBOSE -gt 0 ]; then
-    echo "" >&2
-    echo Starting $$ on `hostname` on `date` >&2
-    echo $0 $SAVE_ARGS >&2
-    echo Using `which $CANOE` >&2
-    echo "" >&2
+   echo "" >&2
+   echo Starting $$ on `hostname` on `date` >&2
+   echo $0 $SAVE_ARGS >&2
+   echo Using `which $CANOE` >&2
+   echo "" >&2
+   if [ -n "$LOAD_BALANCING" ]; then
+      echo "Using load-balancing" >&2
+   else
+      echo "NOT using load-balancing" >&2
+   fi
 fi
 
 if [ $DEBUG ]; then
-    echo "
-    NUM=$NUM
-    PSUBOPTS=$PSUBOPTS
-    QSUBOPTS=$QSUBOPTS
-    RUN_PARALLEL_OPTS=$RUN_PARALLEL_OPTS
-    CANOEOPTS=${CANOEOPTS[*]} ("${#CANOEOPTS[*]}")
-    VERBOSE=$VERBOSE
-    DEBUG=$DEBUG
-    LOAD_BALANCING=$LOAD_BALANCING
-    RESUME=$RESUME
+   echo "
+   NUM=$NUM
+   PSUBOPTS=$PSUBOPTS
+   QSUBOPTS=$QSUBOPTS
+   RUN_PARALLEL_OPTS=$RUN_PARALLEL_OPTS
+   CANOEOPTS=${CANOEOPTS[*]} ("${#CANOEOPTS[*]}")
+   VERBOSE=$VERBOSE
+   DEBUG=$DEBUG
+   LOAD_BALANCING=$LOAD_BALANCING
+   RESUME=$RESUME
 " >&2
 fi
 
@@ -226,7 +235,7 @@ fi
 debug "RUN_PARALLEL_OPTS=$RUN_PARALLEL_OPTS"
 
 if [ ! $GOTCANOE ]; then
-    error_exit "The 'canoe' argument and the canoe options are missing"
+   error_exit "The 'canoe' argument and the canoe options are missing."
 fi
 
 function full_translation
@@ -274,7 +283,11 @@ function full_translation
          echo "Error spliting the input for load-balancing" >&2
          exit -7;
       fi
-      CONFIGARG=`echo "${CANOEOPTS[*]}"`
+
+      # Canoe cannot to load-balancing and append at the same time, so
+      # we remove -append here and post-process the output at the end of this
+      # script to perform the -append operation.
+      CONFIGARG=`echo "${CANOEOPTS[*]}" | sed "s/-append//g"`
 
       for (( i = 0 ; i < $NUMBER_OF_JOBS ; ++i )); do
          CANOE_INPUT=`printf "$INPUT.%4.4d" $i`
@@ -295,7 +308,7 @@ function full_translation
 
       # Run or prepare all job blocks
       for (( i = 0 ; i < $NUM ; ++i )); do
-         INDEX=`printf ".%3.3d" $i`   # Build the chunk's index
+         INDEX=`printf ".%4.4d" $i`   # Build the chunk's index
 
          if [ $INPUT_LINES -le $(( (i + 1) * LINES_PER_BLOCK)) ]; then
             # input file small - this block will cover all remaining lines
@@ -334,7 +347,7 @@ function full_translation
          CMD="cat $CANOE_INPUT | $CANOE_CMD $SELECT_LINES_CMD_R $SELECT_LINES_CMD_XV > $OUT 2> $ERR"
 
          # add to commands file or run
-         # NOTE that if the block is successful we flag it at is by deleteing its input
+         # NOTE that if the block is successful we flag it at is by deleting its input
          echo "test ! -f $CANOE_INPUT || ($CMD && rm $CANOE_INPUT)" >> $CMDS_FILE
       done
    fi
@@ -372,10 +385,11 @@ debug "NBEST_PREFIX:$NBEST_PREFIX"
 debug "NBEST_SIZE: $NBEST_SIZE"
 debug "NBEST_COMPRESS: $NBEST_COMPRESS"
 
+
 # Autoresume of failed jobs or to translation
 if [ -n "$RESUME" ]; then
    debug "Resuming job: $RESUME"
-   test -f "$CMDS_FILE" || error_exit "Cannot resume with file $CMDS_FILE"
+   test -f "$CMDS_FILE" || error_exit "Cannot resume with file $CMDS_FILE."
 
    if [ ! -s "$CMDS_FILE" ]; then
       warn "Every chunks seem complete will try to merge them"
@@ -385,8 +399,7 @@ else
 fi
 
 if [ ! -s $CMDS_FILE ]; then
-   warn "There is no command to run"
-   exit 1;
+   error_exit "There is no command to run."
 fi
 
 # Submit the jobs to run-parallel.sh, which will take care of parallizing them
@@ -401,42 +414,40 @@ if (( $RC != 0 )); then
 fi
 
 
-# Reassemble the program's STDOUT and STDERR
-TOTAL_LINES_OUTPUT=0
+# Reassemble the program's STDOUT
 if [ -n "$LOAD_BALANCING" ]; then
    # Sort translation by src sent id and then remove id
    cat $WORK_DIR/out.* | sort -g | cut -f2
    TOTAL_LINES_OUTPUT=`cat $WORK_DIR/out.* | wc -l`
-   if [ $VERBOSE -gt 0 ]; then
-      for f_err in $WORK_DIR/err.*;
-      do
-         i=`echo "$f_err" | egrep -o "[0-9]*$"`
-         echo "" >&2
-         echo "==> block $i output" `wc -l < ${f_err/$WORK_DIR\/err/$WORK_DIR\/out}` "lines <==" >&2
-         echo "==> STDERR from block $i <==" >&2
-         cat $f_err >&2
-      done
-   fi
-else   
+else
+   TOTAL_LINES_OUTPUT=0
    for (( i = 0; i < $NUM ; ++i )); do
       cat $WORK_DIR/out.$i
       TOTAL_LINES_OUTPUT=$(($TOTAL_LINES_OUTPUT + `wc -l < $WORK_DIR/out.$i`))
+   done
+fi
 
-      if [ $VERBOSE -gt 0 ]; then
-         echo "" >&2
-         echo "==> block $i output" `wc -l < $WORK_DIR/out.$i` "lines <==" >&2
-         echo "==> STDERR from block $i <==" >&2
-         cat $WORK_DIR/err.$i >&2
-      fi
+# Reassemble the program's STDERR
+if [ $VERBOSE -gt 0 ]; then
+   for f_err in `ls -v $WORK_DIR/err.*`;
+   do
+      i=`echo "$f_err" | egrep -o "[0-9]*$"`
+      echo "" >&2
+      echo "==> block $i output" `wc -l < ${f_err/$WORK_DIR\/err/$WORK_DIR\/out}` "lines <==" >&2
+      echo "==> STDERR from block $i <==" >&2
+      cat $f_err >&2
    done
 fi
 
 if [ $VERBOSE -gt 0 ]; then
-    echo "" >&2
-    echo Done $$ on `hostname` on `date` >&2
-    echo "" >&2
+   echo "" >&2
+   echo Done $$ on `hostname` on `date` >&2
+   echo "" >&2
 fi
 
+
+# Data consistency check.
+# Canoe must generate as many output translations as input sentences.
 if [ $TOTAL_LINES_OUTPUT -ne $INPUT_LINES ]; then
    echo "Missing some output lines: expected $INPUT_LINES," \
         "got $TOTAL_LINES_OUTPUT" >&2
@@ -445,27 +456,61 @@ if [ $TOTAL_LINES_OUTPUT -ne $INPUT_LINES ]; then
    exit 1
 fi
 
-# Merging output (nbest, ffvals & pal)
+
+# Merging output chunks (nbest, ffvals & pal)
 if [ -n "$APPEND" ]; then
+   FFVALS_CREATED=`echo ${CANOEOPTS[*]} | egrep -oe '-ffvals'`
+   PAL_CREATED=`echo ${CANOEOPTS[*]} | egrep -oe '-palign' -e '-t ' -e '-trace'`
+
+   K=${NBEST_SIZE#:}
+   if [ -n "$LOAD_BALANCING" ]; then
+      NUM_MERGE=$INPUT_LINES
+   else
+      NUM_MERGE=$NUM
+   fi
+
+   ### concatenating separate lists into one big file
+
    # merge ffvals files
-   echo ${CANOEOPTS[*]} | egrep -qe '-ffvals'
-   if (( $? == 0 )); then
-      LIST=$NBEST_PREFIX.???ffvals$NBEST_COMPRESS
-      cat $LIST > ${NBEST_PREFIX}ffvals$NBEST_COMPRESS
-      \rm $LIST
+   if [ -n "$FFVALS_CREATED" ]; then
+      OUTPUT="${NBEST_PREFIX}ffvals$NBEST_COMPRESS"
+      debug "LB FFVALS output: $OUTPUT"
+      test -f $OUTPUT && \rm $OUTPUT
+      s=0;
+      while [ $s -lt $NUM_MERGE ]; do
+         base_filename=`printf "${NBEST_PREFIX}.%4.4d.${K}best.ffvals$NBEST_COMPRESS" $s`
+         cat ${base_filename} >> $OUTPUT
+         \rm ${base_filename}
+         s=$((s + 1));
+      done
    fi
+
    # merge pal files
-   echo ${CANOEOPTS[*]} | egrep -qe '-palign' -e '-t ' -e '-trace'
-   if (( $? == 0 )); then
-      LIST=$NBEST_PREFIX.???pal$NBEST_COMPRESS 
-      cat $LIST > ${NBEST_PREFIX}pal$NBEST_COMPRESS
-      \rm $LIST
+   if [ -n "$PAL_CREATED" ]; then
+      OUTPUT="${NBEST_PREFIX}pal$NBEST_COMPRESS"
+      debug "LB PAL output: $OUTPUT"
+      test -f $OUTPUT && \rm $OUTPUT
+      s=0;
+      while [ $s -lt $NUM_MERGE ]; do
+         base_filename=`printf "${NBEST_PREFIX}.%4.4d.${K}best.pal$NBEST_COMPRESS" $s`
+         cat ${base_filename} >> $OUTPUT
+         \rm ${base_filename}
+         s=$((s + 1));
+      done
    fi
+
    # merge the nbest files
    if [ -n "$NBEST_PREFIX" ]; then
-      LIST=$NBEST_PREFIX.???nbest$NBEST_COMPRESS 
-      cat $LIST > ${NBEST_PREFIX}nbest$NBEST_COMPRESS
-      \rm $LIST
+      OUTPUT="${NBEST_PREFIX}nbest$NBEST_COMPRESS"
+      debug "LB NBEST output: $OUTPUT"
+      test -f $OUTPUT && \rm $OUTPUT
+      s=0;
+      while [ $s -lt $NUM_MERGE ]; do
+         base_filename=`printf "${NBEST_PREFIX}.%4.4d.${K}best$NBEST_COMPRESS" $s`
+         cat ${base_filename} >> $OUTPUT
+         \rm ${base_filename}
+         s=$((s + 1));
+      done
    fi
 fi
 

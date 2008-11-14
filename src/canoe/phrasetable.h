@@ -9,7 +9,7 @@
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
@@ -20,9 +20,9 @@
 
 #include "canoe_general.h"
 #include "phrasedecoder_model.h"
-#include <vector_map.h>
-#include <trie.h>
-#include <vocab_filter.h>
+#include "vector_map.h"
+#include "trie.h"
+#include "vocab_filter.h"
 #include <vector>
 #include <string>
 #include <iostream>
@@ -158,7 +158,7 @@ public:
     * Set the log value to use for missing or 0-prob entries (default is LOG_ALMOST_0)
     */
    void setLogAlmostZero(double val) {log_almost_0 = val;}
-   
+
    /**
     * Get a human readable description of the phrase table model.
     * Unlike PLM::describeFeature() and DecoderFeature::describeFeature(),
@@ -197,7 +197,7 @@ public:
     *                           in the table.
     */
    virtual void read(const char *src_given_tgt_file, const char *tgt_given_src_file,
-             bool limitPhrases);
+                     bool limitPhrases);
 
    /**
     * Determine if a multi-prob file name says it's reversed.
@@ -251,7 +251,7 @@ public:
     * @param limitPhrases   Whether to store all phrase translations or only
     *                       those for source phrases that are already in the
     *                       table.
-    * @return The number of probability colums in the file.
+    * @return The number of probability columns in the file.
     */
    virtual Uint readMultiProb(const char* multi_prob_TM_filename, bool limitPhrases);
 
@@ -333,17 +333,6 @@ public:
                        const vector<double> *forward_weights = NULL);
 
    /**
-    * Look up a given phrase pair.
-    * @param src Source half, encoded as a space separated token string.
-    * @param tgt Target half, encoded as a space separated token string.
-    * @param score will receive backward (i.e., p(src|tgt)) and forward
-    * conditional score(s); forward score vector will be empty if table
-    * contains only backward scores.
-    * @return true if phrase pair exists in table
-    */
-   bool getPhrasePair(const string& src, const string& tgt, TScore& score);
-
-   /**
     * Produces a string representing the given Uint-vector phrase.
     * EJJ This is redundant with BasicModel(Generator)::getStringPhrase, and
     * furthermore ignores the model's forward or backward word ordering, but
@@ -399,7 +388,7 @@ protected:
        * @param _d     direction of _file
        * @param _file  current file we are processing
        */
-      Entry(const dir& _d, const char* const _file)
+      Entry(dir _d, const char* _file)
       : d(_d)
       , file(_file)
       , line(NULL)
@@ -434,7 +423,8 @@ protected:
     * @param limitPhrases whether to restrict the processing to phrases
     *                     pre-entered into the trie.
     */
-   virtual TargetPhraseTable* getTargetPhraseTable(const Entry& entry, bool limitPhrases);
+   virtual TargetPhraseTable* getTargetPhraseTable(const Entry& entry,
+         bool limitPhrases);
 
    /**
     * Search for a src phrase in all phrase tables.
@@ -514,7 +504,7 @@ protected:
     * @param value value to process
     * @return Returns value appropriately converted for in-memory storage.
     */
-   virtual float convertFromRead(const float& value) const;
+   virtual float convertFromRead(float value) const;
 
    /**
     * Converts a float to a prob before writing to a file.
@@ -523,7 +513,7 @@ protected:
     * @return Returns value appropriately converted for writing, i.e., always a
     *         prob, reversing whatever convertFromRead() did.
     */
-   virtual float convertToWrite(const float& value) const;
+   virtual float convertToWrite(float value) const;
 
 private:
    /// Returns log(x) unless x <= 0, in which case returns log_almost_0.

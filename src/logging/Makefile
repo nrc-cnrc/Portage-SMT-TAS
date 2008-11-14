@@ -9,7 +9,7 @@
 
 INCLUDES = $(filter-out Prog.h, $(wildcard *.h))
 
-PROGRAMS = 
+PROGRAMS =
 
 OBJECTS = \
    argProcessor.o \

@@ -10,7 +10,7 @@
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
@@ -22,40 +22,21 @@
 #include "canoe_general.h"
 #include "phrasedecoder_model.h"
 #include "phrasetable.h"
-#include "distortionmodel.h"
-#include "segmentmodel.h"
+#include "decoder_feature.h"
 #include "config_io.h"
-#include <vocab_filter.h>
-#include <randomDistribution.h>
-#include <vector>
-#include <string>
-#include <ext/hash_map>
+#include "vocab_filter.h"
+#include "marked_translation.h"
+#include "new_src_sent_info.h"
 
 
 using namespace std;
-using namespace __gnu_cxx;
 
 namespace Portage
 {
    class PLM;
    class BasicModel;
+   class rnd_distribution;
 
-   /**
-    * translation marked in the decoder input.
-    */
-   struct MarkedTranslation
-   {
-      Range src_words;            ///< marked source range
-      vector<string> markString;  ///< translation provided on input
-      double log_prob;            ///< probability provided on input
-
-      /**
-       * Test equality of two MarkedTranslation objects.
-       * @param b other MarkedTranslation
-       * @return true iff *this and b and identical
-       */
-      bool operator==(const MarkedTranslation &b) const;
-   }; // MarkedTranslation
 
    /**
     * Core of the decoder model.
@@ -448,6 +429,7 @@ namespace Portage
        */
       virtual ~BasicModelGenerator();
 
+   private:
       /**
        * Add a text-based TM, with its forward probs used for pruning only.
        *
@@ -527,12 +509,7 @@ namespace Portage
       virtual void addLanguageModel(const char *file, double weight,
             Uint limit_order = 0, ostream *const os_filtered = 0);
 
-      /**
-       * Writes the vocabulary to an output stream (a file).
-       * @param os  output stream to write vocabulary.
-       */
-      inline void DumpVocab(ostream& os) const { tgt_vocab.write(os); }
-
+   public:
       /**
        * @brief describe the model in human readable format.
        *
@@ -549,21 +526,16 @@ namespace Portage
        * Creates a model with the current parameters.  Note: if the
        * parameters (below) are changed after this is called, they do not
        * change for the created model.
-       * @param src_sent  The source sentence.
-       * @param marks     Marked translation options available.
+       * @param new_src_sent_info  Contains all source/target sentence info.
+       *                           See newSrcSentInfo.
        * @param alwaysTryDefault  If true, the default translation (source
        *                  word translates as itself) will be included in the
        *                  phrase options for all phrases; if false, the
        *                  default translation is included only when there is
        *                  no other option.
-       * @param oovs      If not NULL, will be set to true for each position
-       *                  in src_sent that contains an out-of-vocabulary
-       *                  word.
        */
-      virtual BasicModel *createModel(const vector<string> &src_sent,
-            const vector<MarkedTranslation> &marks,
-            bool alwaysTryDefault = false,
-            vector<bool>* oovs = NULL);
+      virtual BasicModel *createModel(newSrcSentInfo& new_src_sent_info,
+            bool alwaysTryDefault = false);
 
       /**
        * Gets a reference to the phrase table object of this model.
@@ -605,11 +577,21 @@ namespace Portage
       /// Initialize all models weights randomly
       void setRandomWeights();
 
+      /// Set model weights from a string specification in the format defined
+      /// by CanoeConfig::setFeatureWeightsFromString(). The string need not
+      /// contain a weight for every feature - weights that are not specified
+      /// in the string will retain their current values.
+      void setWeightsFromString(const string& s);
+
       /// Get a read-only reference to the vocab, which is a source-language
       /// vocab initially, until the phrase tables are loaded at which point
       /// it contains the union of the source and target language
       /// vocabularies.
       const Voc& get_voc() const { return tgt_vocab; }
+
+      /// Prints how many times each N where hit with the lm queries.
+      /// @param out  where to display the hits
+      void displayLMHits(ostream& out = cerr);
 
    }; // BasicModelGenerator
 

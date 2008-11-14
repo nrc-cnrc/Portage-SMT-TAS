@@ -7,7 +7,7 @@
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
@@ -45,15 +45,16 @@ Options (in command-line format):\n\
  -ttable-file-n2f FILE1[:FILE2[:..]]\n\
         The phrase translation model file(s) in text format containing forward\n\
         probabilities.  That is, the left column of each table should contain\n\
-        target phrases and the probabilities should be p(target|source).  This\n\
-        file is used only for translation table pruning, and it is highly\n\
-        recommended if ttable-pruning is used.  If this option is used, the\n\
-        number of forward translation model files must match the number of\n\
-        backward translation model files.\n\
+        target phrases and the probabilities should be p(target|source).\n\
+        Used for translation table pruning if enabled, and as a feature if\n\
+        -weight-f is specified.  If this option is used, the number of forward\n\
+        translation model files must match the number of backward translation\n\
+        model files.\n\
 \n\
  -ttable-multi-prob FILE1[:FILE2[:..]]\n\
         The phrase translation model file(s) in multi-prob text format.  A\n\
-        multi-prob table combined the information of multiple forward/backward\n\
+        multi-prob table combines the information of multiple forward/backward\n\
+        ttable pairs, replacing one or more -ttable-file-s2t/-t2s arguments\n\
         pairs.  Each table must contain an even number of probability columns,\n\
         separated by spaces, starting with all the backward probabilities,\n\
         followed, in the same order, by all the forward probabilities.\n\
@@ -79,6 +80,14 @@ Options (in command-line format):\n\
         E.g., if 4g.lm is a 4-gram model, specifying 4g.lm#3 will treat it as\n\
         a 3-gram model.\n\
 \n\
+        Warning: all LM formats specify the use of base-10 log probs, but canoe\n\
+        interprets them as natural log.  This known bug has minimal impact;\n\
+        correcting it requires multiplying the desired -weight-l values by\n\
+        log(10), which cow/rat/rescore_train do implicitly.  We chose not to\n\
+        fix it to avoid having to adjust all previously tuned sets of weights.\n\
+        Note that throughout PORTAGEshared, logs are natural by default, not\n\
+        base 10.\n\
+\n\
  -lmodel-order LMORDER\n\
         If non-zero, globally limits the order of all language models. [0]\n\
 \n\
@@ -101,6 +110,8 @@ Options (in command-line format):\n\
  -lm W1[:W2[:..]]\n\
         The language model weight(s).  If this option is used, the number of\n\
         weights must match the number of language models specified.  [1.0]\n\
+        Note: see warning under -lmodel-file for details on the numerical\n\
+        interpretation of this parameter.\n\
 \n\
  -weight-d W\n\
  -d W\n\
@@ -144,12 +155,16 @@ Options (in command-line format):\n\
         (example value: 0.1) [0.0, i.e., no threshold]\n\
 \n\
  -ttable-limit L\n\
-        The translation table limit, or 0 for no limit.  If used, it is\n\
-        recommended that a ttable-file-t2s is specified, or quality may\n\
-        suffer severely.  [0]\n\
+        The number of target phrases to keep in translation table pruning; 0\n\
+        means no limit.  If used, forward probs should be provided (via\n\
+        -ttable-file-t2s or -ttable-multi-prob); ttable pruning is arbitrary\n\
+        otherwise. [0]\n\
 \n\
  -ttable-threshold T\n\
-        The translation table pruning threshold.  [0]\n\
+        The translation table pruning threshold; 0.0 means no threshold.  If\n\
+        non-0, target phrases with a score (defined via -ttable-prune-type\n\
+        below) less than log(T) are discarded.  Also has arbitrary effects if\n\
+        forward probs are not available.\n\
 \n\
  -ttable-prune-type PRUNE_TYPE\n\
         Semantics of the L and T parameters above.  Pruning is done using:\n\
@@ -295,6 +310,25 @@ Options (in command-line format):\n\
         candidate phrases, whereas FUT-LM-HEURISTIC is used to calculate the\n\
         global future score [incremental]\n\
 \n\
+ -rule-classes class1[:class2[:..]]\n\
+ -ruc class1[:class2[:..]]\n\
+        Lists allowed rule classes in source text.\n\
+\n\
+ -rule-weights W1[:W2[:..]]\n\
+ -ruw W1[:W2[:..]]\n\
+        Weights associated with each rule classes.\n\
+\n\
+ -rule-log-zero E1[:E2[:..]]\n\
+ -rulz E1[:E2[:..]]\n\
+        Log value of epsilon for each rule classes.  These values are used\n\
+        when a rule knows about the source phrase but the target phrase is not\n\
+        the one specified in the rule.\n\
+\n\
+ -final-cleanup\n\
+        Indicates to clear the bmg when canoe is done [false].\n\
+        For speed, we normally don't delete the bmg at the end of canoe, but\n\
+        for some debugging deleting the bmg might be appropriate.\n\
+\n\
  -verbose V\n\
  -v V\n\
         The verbosity level (1, 2, 3, or 4).  All verbose output is written to\n\
@@ -312,4 +346,9 @@ Options (in command-line format):\n\
     with -random-weights.  If no distribution is specified, U(-1.0, 1.0) is\n\
     used as a default value.  Example:\n\
        [random-t] U(0,3):N(2,0.1):...\n\
+\n\
+  NOTE:\n\
+    If you have a hard time reading this help message in your terminal, try\n\
+    bash: canoe -h 2>&1 | less\n\
+    tcsh: canoe -h |& less\n\
 ";

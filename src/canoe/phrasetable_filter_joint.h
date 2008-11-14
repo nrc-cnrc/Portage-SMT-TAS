@@ -7,12 +7,12 @@
  * Interface for filtering phrase table based on filter_joint
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2006, Her Majesty in Right of Canada
  */
-          
+
 #ifndef __PHRASE_TABLE_FILTER_JOINT_H__
 #define __PHRASE_TABLE_FILTER_JOINT_H__
 
@@ -25,7 +25,7 @@ namespace Portage {
  * Phrase table for filtering using the filter joint algorithm
  */
 class PhraseTableFilterJoint : public PhraseTableFilter {
-   private:   
+   private:
       /// Definition of PhraseTableFilterLM base class
       typedef PhraseTableFilter Parent;
 
@@ -39,18 +39,18 @@ class PhraseTableFilterJoint : public PhraseTableFilter {
    public:
       /**
        * Default constructor.
-       * @param limitPhrases        limiting 
+       * @param limitPhrases        limiting
        * @param tgtVocab            target vocaulary
        * @param pruningTypeStr      pruning type
        * @param hard_filter_weights             TM weights for hard filtering
        */
-      PhraseTableFilterJoint(bool limitPhrases, 
-         VocabFilter& tgtVocab, 
-         const char* pruningTypeStr = NULL, 
+      PhraseTableFilterJoint(bool limitPhrases,
+         VocabFilter& tgtVocab,
+         const char* pruningTypeStr = NULL,
          const vector<double>* const hard_filter_weights = NULL);
-                             
+
       /// Destructor.
-      ~PhraseTableFilterJoint();
+      virtual ~PhraseTableFilterJoint();
 
       /**
        * Sets the output filename for online processing.
@@ -59,8 +59,8 @@ class PhraseTableFilterJoint : public PhraseTableFilter {
        */
       void outputForOnlineProcessing(const string& filename, Uint L);
 
-      virtual float convertFromRead(const float& value) const;
-      virtual float convertToWrite(const float& value) const;
+      virtual float convertFromRead(float value) const;
+      virtual float convertToWrite(float value) const;
       virtual void  filter_joint(const string& filename, Uint L = 30);
       virtual Uint  processTargetPhraseTable(const string& src, TargetPhraseTable* tgtTable);
       virtual TargetPhraseTable* getTargetPhraseTable(const Entry& entry, bool limitPhrases);

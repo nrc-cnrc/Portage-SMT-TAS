@@ -85,6 +85,7 @@ protected:
 public:
    // implementations of virtual methods from parent class
    virtual float wordProb(Uint word, const Uint context[], Uint context_length);
+   virtual float cachedWordProb(Uint word, const Uint context[], Uint context_length);
    virtual void clearCache() {}
 
    // Particular interface for this class

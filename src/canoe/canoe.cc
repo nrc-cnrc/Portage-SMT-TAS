@@ -16,10 +16,7 @@
  * See config_io.h for info on adding parameters.
  */
 
-#include "phrasedecoder_model.h"
-#include "phrasefinder.h"
 #include "basicmodel.h"
-#include "backwardsmodel.h"
 #include "decoder.h"
 #include "hypothesisstack.h"
 #include "wordgraph.h"
@@ -27,24 +24,11 @@
 #include "canoe_help.h"
 #include "config_io.h"
 #include "nbesttranslation.h"
-#include <translationProb.h>
-
-#include <printCopyright.h>
-#include <file_utils.h>
-#include <exception_dump.h>
-#include <arg_reader.h>
-#include <logging.h>
-#include <errors.h>
-#include <stdio.h>
-
-#include <math.h>
-#include <time.h>
-#include <string.h>
-#include <vector>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <ext/stdio_filebuf.h>
+#include "translationProb.h"
+#include "exception_dump.h"
+#include "printCopyright.h"
+#include "logging.h"
+#include "errors.h"
 
 using namespace Portage;
 using namespace std;
@@ -77,11 +61,15 @@ class OneFileInfo {
             f_lattice       = new oSafeMagicStream(c.latticeFilePrefix);
             f_lattice_state = new oSafeMagicStream(addExtension(c.latticeFilePrefix, ".state"));
          }
+
+         ostringstream ext;
+         ext << "." << c.nbestSize << "best";
+         const string curNbestFile  = addExtension(c.nbestFilePrefix, ext.str());
          if (append && c.nbestOut)
          {
-            f_nbest                = new oSafeMagicStream(addExtension(c.nbestFilePrefix, "nbest"));
-            if (c.ffvals) f_ffvals = new oSafeMagicStream(addExtension(c.nbestFilePrefix, "ffvals"));
-            if (c.trace)  f_pal    = new oSafeMagicStream(addExtension(c.nbestFilePrefix, "pal"));
+            f_nbest                = new oSafeMagicStream(curNbestFile);
+            if (c.ffvals) f_ffvals = new oSafeMagicStream(addExtension(curNbestFile, ".ffvals"));
+            if (c.trace)  f_pal    = new oSafeMagicStream(addExtension(curNbestFile, ".pal"));
          }
       }
       /// Destructor.
@@ -147,7 +135,7 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
    {
       stack.push_back(travBack);
       travBack = travBack->back;
-   } // while
+   }
 
    // Reverse if necessary
    if (c.backwards)
@@ -155,7 +143,7 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
       vector<DecoderState *> tmp;
       tmp.insert(tmp.end(), stack.rbegin(), stack.rend());
       stack.swap(tmp);
-   } // if
+   }
 
    // Print the results from the stack using the print function
    for (vector<DecoderState *>::reverse_iterator it = stack.rbegin();
@@ -163,12 +151,12 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
    {
       s.append(print(*it));
       s.append(" ");
-   } // for
+   }
 
    if (s.length() > 0)
    {
       s.erase(s.length() - 1);
-   } // if
+   }
 
    // Output the best sentence to the primary output, cout
    if (c.bLoadBalancing) cout << num << '\t';
@@ -176,21 +164,23 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
 
    if ( c.verbosity >= 2 )
    {
-      // With verbosity >= 2, output the score assigned to the best translation as well.
+      // With verbosity >= 2, output the score assigned to the best translation
+      // as well.
       cerr << "BEST: " << s << " " << cur->score << endl;
-   } // if
+   }
 
    if (c.verbosity >= 3)
    {
-      // With verbosity >= 3, output the path taken for the best translation as well.
+      // With verbosity >= 3, output the path taken for the best translation as
+      // well.
       DecoderState *travBack = cur;
       while (travBack->back != NULL)
       {
          cerr << "[ " << travBack->id << " => ";
          travBack = travBack->back;
          cerr << travBack->id << " ]" << endl;
-      } // while
-   } // if
+      }
+   }
 
    // Put all the final states into a vector, which will then be used to
    // produce the lattice output
@@ -201,7 +191,7 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
          finalStates.push_back(cur);
          if (h.isEmpty()) break;
          cur = h.pop();
-      } // while
+      }
       if (c.verbosity >= 2) cerr << "FINAL " << finalStates.size() << " states "
          << " top score " << finalStates[0]->futureScore
          << " bottom score " << cur->futureScore
@@ -230,7 +220,8 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
          oSafeMagicStream latticeOut(curLatticeFile);
          oSafeMagicStream covOut(curCoverageFile);
          // Produce lattice output
-         const double dMasse = writeWordGraph(&latticeOut, &covOut, print, finalStates, c.backwards, masse);
+         const double dMasse = writeWordGraph(&latticeOut, &covOut, print,
+               finalStates, c.backwards, masse);
          if (masse) {
             fprintf(stderr, "Weight for sentence(%4.4d): %32.32g\n", num, dMasse);
             masse = false;
@@ -417,7 +408,7 @@ int MAIN(argc, argv)
          sents.push_back(vector<string>());
          marks.push_back(vector<MarkedTranslation>());
          sourceSentenceIds.push_back(Uint());
-         if ( ! reader.readMarkedSent(sents.back(), marks.back(), &sourceSentenceIds.back()) )
+         if ( ! reader.readMarkedSent(sents.back(), marks.back(), NULL, &sourceSentenceIds.back()) )
          {
             if ( c.tolerateMarkupErrors )
                error(ETWarn, "Tolerating ill-formed markup.  Source sentence "
@@ -458,17 +449,18 @@ int MAIN(argc, argv)
    cerr << "Loaded data structures in " << difftime(time(NULL), start)
         << " seconds." << endl;
 
-   // If verbose >= 2, each run gets the full model printout.
-   // If verbose == 1, we print the model too, but not if the first sent num
-   // is non-zero, so that only the first job in a canoe-parallel.sh batch
-   // gets the model.
-   if ( c.verbosity >= 2 || c.verbosity >= 1 && c.firstSentNum == 0 )
+   // If verbose >= 1, each run gets the full model printout.
+   if ( c.verbosity >= 1 )
       cerr << endl << "Features of the log-linear model used, in order:"
            << endl << gen->describeModel() << endl;
 
    if (c.randomWeights)
       cerr << "NOTE: using random weights (ignoring given weights); init seed="
            << (c.randomSeed + 1) * (Uint)c.firstSentNum << endl;
+
+   vector<string> sent_weights;
+   if (c.sentWeights != "")
+      readFileLines(c.sentWeights, sent_weights);
 
    if (!c.loadFirst) {
       cerr << "Translating " << sents.size() << " sentences." << flush;
@@ -480,20 +472,22 @@ int MAIN(argc, argv)
    Uint lastCanoe = 1000;
    while (true)
    {
-      vector<string> sent;
-      vector<MarkedTranslation> curMarks;
+      newSrcSentInfo nss_info;
+      nss_info.internal_src_sent_seq = i;
+
+      vector<bool> oovs;
+      nss_info.oovs = &oovs;
+
       Uint sourceSentenceId(0);
-      if (c.loadFirst)
-      {
-         if ( ! reader.readMarkedSent(sent, curMarks, &sourceSentenceId) )
-         {
+      if (c.loadFirst) {
+         if ( ! reader.readMarkedSent(nss_info.src_sent, nss_info.marks, NULL, &sourceSentenceId) ) {
             if ( c.tolerateMarkupErrors ) {
                error(ETWarn, "Tolerating ill-formed markup.  Source sentence "
                      "%d will be interpreted as having %d valid mark%s and "
                      "this token sequence: %s",
-                     sourceSentenceId, curMarks.size(),
-                     (curMarks.size() == 1 ? "" : "s"),
-                     joini(sent.begin(), sent.end()).c_str());
+                     sourceSentenceId, nss_info.marks.size(),
+                     (nss_info.marks.size() == 1 ? "" : "s"),
+                     joini(nss_info.src_sent.begin(), nss_info.src_sent.end()).c_str());
             } else {
                error(ETFatal, "Aborting because of ill-formed markup");
             }
@@ -501,19 +495,29 @@ int MAIN(argc, argv)
          if (reader.eof()) break;
       } else {
          if (i == sents.size()) break;
-         sent = sents[i];
-         curMarks = marks[i];
+         // Gather the proper information for the current sentence we want to process.
+         nss_info.src_sent = sents[i];
+         nss_info.marks    = marks[i];
          sourceSentenceId = sourceSentenceIds[i];
       }
       if (!c.bLoadBalancing) sourceSentenceId += c.firstSentNum;
 
       if (c.randomWeights)
          gen->setRandomWeights((c.randomSeed + 1) * sourceSentenceId);
-      vector<bool> oovs;
-      BasicModel *model = gen->createModel(sent, curMarks, false, &oovs);
+
+      if (c.sentWeights != "") {
+	 if (sourceSentenceId < sent_weights.size())
+	    gen->setWeightsFromString(sent_weights[sourceSentenceId]);
+	 else
+	    error(ETWarn, "source sentence index %d out of range for sentWeights file - %s", 
+		  sourceSentenceId, "using global weights");
+      }
+
+      nss_info.external_src_sent_id = sourceSentenceId;
+      BasicModel *model = gen->createModel(nss_info, false);
 
       if (c.oov != "pass") {  // skip translation; just write back source, with oov handling
-         writeSrc(c.oov == "write-src-deleted", sent, oovs);
+         writeSrc(c.oov == "write-src-deleted", nss_info.src_sent, oovs);
          delete model;
          ++i;
          continue;
@@ -546,7 +550,8 @@ int MAIN(argc, argv)
          // No translation for the current sentence:
          // Insert an empty line
          cout << endl;
-         error(ETWarn, "No translation found for sentence %d with the current settings.", sourceSentenceId);
+         error(ETWarn, "No translation found for sentence %d with the current settings.",
+               sourceSentenceId);
       }
 
       delete h;
@@ -556,6 +561,12 @@ int MAIN(argc, argv)
    if ( c.loadFirst ) reader.reportWarningCounts();
    cerr << "Translated " << i << " sentences in "
         << difftime(time(NULL), start) << " seconds." << endl;
+
+   //CompactPhrase::print_ref_count_stats();
+   if (c.verbosity >= 1) gen->displayLMHits(cerr);
+
+   delete gen;
+
    return 0;
 }
 END_MAIN

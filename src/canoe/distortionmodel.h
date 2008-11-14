@@ -10,7 +10,7 @@
  * function, in distortionmodel.cc.
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada / 
  * Copyright 2005, Her Majesty in Right of Canada
@@ -125,7 +125,7 @@ public:
          // can cover all non-covered words before new_phrase
          assert(new_phrase.start > cov[0].start);
          assert(new_phrase.start < sourceLength);
-         return ! phrases[cov[0].start][new_phrase.start-cov[0].start-1]
+         return ! TriangArray::Elem(phrases, cov[0].start, new_phrase.start)
                   .empty();
       }
 
@@ -142,7 +142,7 @@ public:
          else
             return false;
       }
-   }
+   } // isPhraseSwap()
 
 protected:
 
@@ -169,8 +169,8 @@ protected:
 
 public:
 
-   virtual void newSrcSent(const vector<string>& src_sent, vector<PhraseInfo *>** phrase_infos) {
-      sentLength = src_sent.size();
+   virtual void newSrcSent(const newSrcSentInfo& new_src_sent_info) {
+      sentLength = new_src_sent_info.src_sent.size();
    }
 
    virtual double score(const PartialTranslation& pt);
@@ -210,7 +210,7 @@ class ZeroInfoDistortion : public DistortionModel
 {
 public:
 
-   virtual void newSrcSent(const vector<string>& src_sent, vector<PhraseInfo *>** phrase_infos) {}
+   virtual void newSrcSent(const newSrcSentInfo& new_src_sent_info) {}
 
    virtual double score(const PartialTranslation& pt) {
      return pt.sourceWordsNotCovered.empty() ? 1.0 : 0.0;

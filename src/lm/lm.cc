@@ -16,7 +16,6 @@
 #include "lmtext.h"
 #include "lmmix.h"
 #include "lmdynmap.h"
-//#include "tplm.h"
 #include "str_utils.h"
 
 using namespace std;
@@ -24,15 +23,36 @@ using namespace Portage;
 
 const char* PLM::lm_order_separator = "#";
 
+
+namespace Portage {
+   // Like a typedef, but works for templates.
+   // We don't fully declare the type of cache in lm.h so that it only needs
+   // to be compiled when compiling lm.o and nothing else.  We care to limit
+   // the compiling of LMCache because compiling PTrie is expensive.
+   class LMCache : public PTrie<float, Empty, false> {};
+}
+
 //----------------------------------------------------------------------------
 // Constructors
-PLM::PLM(VocabFilter* vocab, OOVHandling oov_handling, float oov_unigram_prob) :
-   vocab(vocab), complex_open_voc_lm(oov_handling == FullOpenVoc),
-   gram_order(0), oov_unigram_prob(oov_unigram_prob) {}
+PLM::PLM(VocabFilter* vocab, OOVHandling oov_handling, float oov_unigram_prob)
+   : cache(NULL)
+   , vocab(vocab)
+   , complex_open_voc_lm(oov_handling == FullOpenVoc)
+   , gram_order(0)
+   , oov_unigram_prob(oov_unigram_prob)
+{}
 
-PLM::PLM() :
-   vocab(NULL), complex_open_voc_lm(false), gram_order(0),
-   oov_unigram_prob(-INFINITY) {}
+PLM::PLM()
+   : cache(NULL)
+   , vocab(NULL)
+   , complex_open_voc_lm(false)
+   , gram_order(0)
+   , oov_unigram_prob(-INFINITY)
+{}
+
+PLM::~PLM() {
+   delete cache;
+}
 
 //----------------------------------------------------------------------------
 PLM::Creator::Creator(const string& lm_physical_filename,
@@ -67,8 +87,6 @@ shared_ptr<PLM::Creator> PLM::getCreator(const string& lm_filename)
       cr = new LMDynMap::Creator(lm_physical_filename, naming_limit_order);
    } else if ( isSuffix(".mixlm", lm_physical_filename) ) {
       cr = new LMMix::Creator(lm_physical_filename, naming_limit_order);
-   //} else if ( isSuffix(".tplm", lm_physical_filename) ) {
-   //   cr = new TPLM::Creator(lm_physical_filename, naming_limit_order);
    } else {
       cr = new LMTrie::Creator(lm_physical_filename, naming_limit_order);
    }
@@ -76,7 +94,7 @@ shared_ptr<PLM::Creator> PLM::getCreator(const string& lm_filename)
    return shared_ptr<PLM::Creator>(cr);
 }
 
-PLM* PLM::Create(const string& lm_filename, 
+PLM* PLM::Create(const string& lm_filename,
                  VocabFilter* vocab,
                  OOVHandling oov_handling,
                  float oov_unigram_prob,
@@ -139,7 +157,7 @@ PLM* PLM::Create(const string& lm_filename,
       ostringstream description;
       description << "LanguageModel:" << creator->lm_physical_filename;
       if ( limit_order ) description << lm_order_separator << limit_order;
-      switch ( oov_handling.type ) { 
+      switch ( oov_handling.type ) {
          case OOVHandling::ClosedVoc: break;
          case OOVHandling::SimpleOpenVoc  : description << ";SimpleOpenVoc";  break;
          case OOVHandling::SimpleAutoVoc  : description << ";SimpleAutoVoc";  break;
@@ -166,6 +184,10 @@ Uint PLM::getOrder()
       gram_order = getGramOrder();
 
    return gram_order;
+}
+
+void PLM::clearCache() {
+   if ( cache ) cache->clear();
 }
 
 //----------------------------------------------------------------------------
@@ -231,6 +253,31 @@ void PLM::readLine(istream &in, float &prob, string &ph, float &bo_wt,
 bool PLM::checkFileExists(const string& lm_filename)
 {
    return getCreator(lm_filename)->checkFileExists();
+}
+
+float PLM::cachedWordProb(Uint word, const Uint context[],
+                          Uint context_length)
+{
+   if ( !cache ) cache = new LMCache;
+   
+   // If the query is too large for this model's order, truncate it up front.
+   if ( context_length >= getOrder() )
+      context_length = getOrder() - 1;
+
+   // Prepare cache query
+   Uint query[context_length+1];
+   query[0] = word;
+   for (Uint i=0;i<context_length;++i)
+      query[i+1] = context[i];
+
+   // Search in cache for matching Uint query
+   float query_result(0);
+   if ( cache->find(query, context_length+1, query_result) )
+      return query_result;
+
+   const float result = wordProb(word, context, context_length);
+   cache->insert(query, context_length+1, result);
+   return result;
 }
 
 

@@ -7,7 +7,7 @@
  *
  * 
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada / 
  * Copyright 2006, Her Majesty in Right of Canada
@@ -18,7 +18,8 @@
 #include "distortionmodel.h"
 #include "ibm_feature.h"
 #include "length_feature.h"
-#include <errors.h>
+#include "rule_feature.h"
+#include "errors.h"
 
 using namespace Portage;
 
@@ -36,6 +37,8 @@ DecoderFeature* DecoderFeature::create(BasicModelGenerator* bmg,
       f = new IBM1FwdFeature(bmg, args);
    } else if ( group == "LengthFeature" ) {
       f = new LengthFeature();
+   } else if ( group == RuleFeature::name ) {
+      f = new RuleFeature(bmg, args);
    } else if ( fail ) {
       error(ETFatal, "unknown decoder feature: " + group);
    }

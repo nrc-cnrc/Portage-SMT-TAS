@@ -26,8 +26,8 @@ Syntax for LMDynMap: DynMap;MAP;LMDESC, where:\n\
 <MAP> specifies the vocabulary mapping, one of:\n\
    - ident Map chars to themselves (for debugging)\n\
    - lower[-LOC] Map characters to lowercase using a CaseMapStrings\n\
-     object created with locale <LOC>, eg fr_CA.iso88591. If no <LOC> is\n\
-     supplied, en_US.UTF-8 is assumed.\n\
+     object created with locale <LOC>, eg lower-fr_CA.iso88591. If no <LOC> is\n\
+     supplied, lower-en_US.UTF-8 is assumed.\n\
    - simpleNumber Substitute @ for digits in words that only contains digits\n\
      and punctuation.\n\
    - prefixNumber Substitute @ for digits which are prefix of a word.\n\
@@ -157,6 +157,15 @@ float LMDynMap::wordProb(Uint word, const Uint context[], Uint context_length)
    for (Uint i = 0; i < context_length; ++i)
       local_context[i] = localIndex(context[i]);
    return m->wordProb(localIndex(word), local_context, context_length);
+}
+
+float LMDynMap::cachedWordProb(Uint word, const Uint context[],
+                               Uint context_length)
+{
+   Uint local_context[context_length];
+   for (Uint i = 0; i < context_length; ++i)
+      local_context[i] = localIndex(context[i]);
+   return m->cachedWordProb(localIndex(word), local_context, context_length);
 }
 
 string LMDynMap::fix_relative_path(const string& path, string file)

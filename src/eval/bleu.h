@@ -7,11 +7,11 @@
  * K-Best Rescoring Module
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
-*/
+ */
 
 #ifndef BLEU_H
 #define BLEU_H
@@ -42,7 +42,6 @@ namespace Portage
    // values are negative.
    //typedef Uint BLEU_STAT_TYPE;
    typedef signed int BLEU_STAT_TYPE;
-   const Ulong MAX_BLEU_STAT_TYPE = (Ulong)1 << (sizeof(BLEU_STAT_TYPE) * 8) - 1;
 
    /// A class which maintains statistics for the BLEU score.
    class BLEUstats
@@ -103,6 +102,7 @@ namespace Portage
           */
          static void setDefaultSmoothing(const Uint n);
 
+
       public:
          BLEU_STATS match;                  ///< ngrams match for n = [1 4]
          BLEU_STATS total;                  ///< maximum ngram match possible for n = [1 4]
@@ -121,7 +121,7 @@ namespace Portage
           * set of translations and sets the smoothing type.
           * @param sm  smoothing type
           */
-         BLEUstats(const int sm);
+         BLEUstats(int sm);
          /**
           * Copy constructor.
           * @param s  BLEUstats to copy.
@@ -134,7 +134,7 @@ namespace Portage
           * @param refs   translation's references
           * @param sm     smoothing type
           */
-         BLEUstats(const Sentence& trans, const References& refs, const int sm = DEFAULT_SMOOTHING);
+         BLEUstats(const Sentence& trans, const References& refs, int sm = DEFAULT_SMOOTHING);
          /**
           * Initializes a new BLEUstats with values computed for the given
           * translation sentence.
@@ -142,7 +142,7 @@ namespace Portage
           * @param refs  translation's references.
           * @param sm    smoothing type
           */
-         BLEUstats(const string &tgt, const vector<string> &refs, const int sm = DEFAULT_SMOOTHING);
+         BLEUstats(const string &tgt, const vector<string> &refs, int sm = DEFAULT_SMOOTHING);
          /**
           * Initializes a new BLEUstats with values computed for the given
           * translation sentence.
@@ -152,7 +152,7 @@ namespace Portage
           * element containing the words for a reference sentence.
           * @param sm          smoothing type
           */
-         BLEUstats(const Tokens &tgt_words, const vector<Tokens>& refs_words, const int sm);
+         BLEUstats(const Tokens &tgt_words, const vector<Tokens>& refs_words, int sm);
 
          //@{
          /**
@@ -161,9 +161,9 @@ namespace Portage
           * @param refs_words  reference sentences.
           * @param sm          smoothing type
           */
-         void init(const Sentence& trans, const References& refs, const int sm);
-         void init(const Tokens &tgt_words, const vector<Tokens>& refs_words, const int sm);
-         void init(const vector<Uint> &tgt_words, const vector< vector<Uint> >& refs_words, const int sm);
+         void init(const Sentence& trans, const References& refs, int sm);
+         void init(const Tokens &tgt_words, const vector<Tokens>& refs_words, int sm);
+         void init(const vector<Uint> &tgt_words, const vector< vector<Uint> >& refs_words, int sm);
          //@}
 
          /**
@@ -179,7 +179,7 @@ namespace Portage
           * @param epsilon  smoothing value used when there is no ngram match.
           * @return Returns
           */
-         double score(const Uint maxN = MAX_NGRAMS_SCORE, const double epsilon = 1e-30) const;
+         double score(Uint maxN = MAX_NGRAMS_SCORE, double epsilon = 1e-30) const;
 
          /// What is this metric's name.
          /// @return Returns this metric's name => BLEU.
@@ -313,8 +313,8 @@ namespace Portage
    void computeBLEUArrayRow(RowBLEUstats& bleu,
          const Nbest& nbest,
          const References& refs,
-         const Uint max = numeric_limits<Uint>::max(),
-         const int smooth = DEFAULT_SMOOTHING_VALUE);
+         Uint max = numeric_limits<Uint>::max(),
+         int smooth = BLEUstats::DEFAULT_SMOOTHING);
 
    /**
     * Calculates the BLEUstats for and nbest list and its references.
@@ -330,8 +330,8 @@ namespace Portage
    void computeBLEUArrayRow(RowBLEUstats& bleu,
          const vector<string>& tgt_sents,
          const vector<string>& ref_sents,
-         const Uint max = numeric_limits<Uint>::max(),
-         const int smooth = DEFAULT_SMOOTHING_VALUE);
+         Uint max = numeric_limits<Uint>::max(),
+         int smooth = BLEUstats::DEFAULT_SMOOTHING);
 
    /**
     * Writes to a stream a matrix of BLEUstats in a format that will be able to read.

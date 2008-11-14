@@ -12,7 +12,7 @@
  * Translation-Model Utilities
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
@@ -24,7 +24,7 @@
 #include "basicmodel.h"
 #include <string>
 #include <vector>
-#include <sstream>
+#include <ostream>
 
 
 using namespace std;
@@ -88,7 +88,7 @@ namespace Portage
           * @param src_sent   The source sentence
           * @param marked_src_sents Source sentence with mark-up.
           * @param tgt_sent   The target sentence
-          * @param ss         Outout stream
+          * @param out        Outout stream
           * @param n          Number of forced alignments per sentence pair to be determined
           * @param noscore    Do not print score of the found alignment
           * @param onlyscore  Print only score of the found alignment
@@ -97,10 +97,8 @@ namespace Portage
           * @param covLimit   coverage pruning limit
           * @param covThreshold coverage pruning threshold (ratio, not log!)
           */
-         void computePhraseTM(const vector<string> &src_sent,
-               const vector<MarkedTranslation> &marked_src_sents,
-               const vector<string> &tgt_sent,
-               stringstream &ss,
+         void computePhraseTM(newSrcSentInfo& new_src_sent_info,
+               ostream &out,
                Uint n,
                bool noscore,
                bool onlyscore,

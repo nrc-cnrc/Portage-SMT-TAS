@@ -17,7 +17,7 @@ OBJECTS = \
 	bestbleucompute.o \
 	bleu.o \
 	referencesReader.o \
-	wer.o 
+	wer.o
 
 PROGRAMS = \
 	bestbleu \
@@ -25,9 +25,6 @@ PROGRAMS = \
 	bleucompare \
 	bleumain \
 	wermain
-
-BINSCRIPTS = \
-	CalculateHypothesisProb.pl
 
 EXTRA_LIBS=$(LOGGING_LIB)
 

@@ -9,7 +9,7 @@
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
@@ -18,14 +18,9 @@
 #include "hypothesisstack.h"
 #include "decoder.h"
 #include "phrasedecoder_model.h"
-#include <errors.h>
-#include <ext/hash_set>
-#include <algorithm>
-
 #include <iostream>
 
 using namespace std;
-using namespace __gnu_cxx;
 using namespace Portage;
 
 HypHash::HypHash(PhraseDecoderModel &model): m(model) {}
@@ -208,7 +203,7 @@ DecoderState *HistogramThresholdHypStack::pop()
          }
          if (
             // covLimit set and exceeded:
-            covLimit != 0 && (*it).second.second >= covLimit      ||
+            (covLimit != 0 && (*it).second.second >= covLimit)      ||
             // covThreshold set and exceeded:
             heap.front()->futureScore <= (*it).second.first + covThreshold
          ) {

@@ -8,7 +8,7 @@
  * 
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2007, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2007, Her Majesty in Right of Canada
@@ -76,9 +76,9 @@ void hardFilterTMVisitor::operator()(TargetPhraseTable& tgtTable)
       reduceTgtTable.reserve(L);
 
       // Use a heap to extract the pruneSize best items
-      make_heap(phrases.begin(), phrases.end(), cmp);
+      make_heap(phrases.begin(), phrases.end(), phraseLessThan);
       for (Uint i(0); i<L; ++i) {
-         pop_heap(phrases.begin(), phrases.end(), cmp);
+         pop_heap(phrases.begin(), phrases.end(), phraseLessThan);
          pair<double, PhraseInfo4filtering*>& element = phrases.back();
          reduceTgtTable.push_back(*(element.second->ref));
          if (element.second) delete element.second;

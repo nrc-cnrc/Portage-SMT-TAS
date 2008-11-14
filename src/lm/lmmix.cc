@@ -124,12 +124,6 @@ float LMMix::wordProb(Uint word, const Uint context[], Uint context_length)
    return log(p);
 }
 
-void LMMix::clearCache()
-{
-   for (Uint i = 0; i < models.size(); ++i)
-      models[i]->clearCache();
-}
-
 LMMix::~LMMix()
 {
    for (Uint i = 0; i < models.size(); ++i)

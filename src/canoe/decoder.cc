@@ -12,7 +12,7 @@
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
@@ -37,7 +37,7 @@ namespace Portage
          return runCubePruningDecoder(model, c);
 
       // Get all the phrase translation options from the model
-      Uint sourceLength = model.getSourceLength();
+      const Uint sourceLength = model.getSourceLength();
       vector<PhraseInfo *> **phrases = model.getPhraseInfo();
 
       // Create the phrase finder
@@ -131,7 +131,7 @@ namespace Portage
                     // Score the new state
                     newState->score = state->score +
                         model.scoreTranslation(*(newState->trans), verbosity);
-                    double dFutureScore = model.computeFutureScore(*(newState->trans));
+                    const double dFutureScore = model.computeFutureScore(*(newState->trans));
                     newState->futureScore = newState->score + dFutureScore;
                     if (verbosity >= 3)
                         cerr << "\tscore " << newState->score << " + future score " <<

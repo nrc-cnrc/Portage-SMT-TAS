@@ -6,7 +6,7 @@
  * $Id$
  * 
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada / 
  * Copyright 2006, Her Majesty in Right of Canada
@@ -15,8 +15,9 @@
 #ifndef _DECODER_FEATURE_H_
 #define _DECODER_FEATURE_H_
 
-#include <portage_defs.h>
+#include "portage_defs.h"
 #include "phrasedecoder_model.h"
+#include "new_src_sent_info.h"
 
 namespace Portage {
 
@@ -63,6 +64,7 @@ class BasicModelGenerator;
       /**
        * @brief Virtual constructor: creates a designated derived class with
        *        given arguments.
+       *        The returned DecoderFeature* MUST be valid aka not NULL.
        * @param bmg   
        * @param group  name of derived type group (sub class)
        * @param name   name of derived type (sub sub class, if any)
@@ -81,13 +83,10 @@ class BasicModelGenerator;
        *
        * This function is called by the decoder before translating each source
        * sentence.  
-       * @param src_sent words in source sentence, with markup stripped
-       * @param phrase_infos A triangular array of all the phrase options for
-       * the source sentence. The (i, j)-th entry of the array contains all
-       * phrase translation options for the source range [i, i + j + 1).
+       * @param info All infos related to source/target sentence.
+       *             See newSrcSentInfo.
        */
-      virtual void newSrcSent(const vector<string>& src_sent,
-                              vector<PhraseInfo *>** phrase_infos) {}
+      virtual void newSrcSent(const newSrcSentInfo& info) {}
 
       /**
        * Set the current partial translation context.

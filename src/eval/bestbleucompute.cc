@@ -1,28 +1,29 @@
 /**
  * @author Aaron Tikuisis
- * @file bestbleucompute.cc  Implementation of the heuristic that finds the best possible score for a set of source and nbest.
+ * @file bestbleucompute.cc  Implementation of the heuristic that finds the
+ * best possible score for a set of source and nbest.
  *
  * $Id$
  *
  * Evaluation Module
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
  *
- * This file contains the implementation of the best BLEU score computation, finding the
- * (probable) best BLEU score obtainable by taking one sentence from each of a set of
- * K-best lists.  It finds the optimum by iteratively improvements, one sentence at a
- * time; this is a heuristic, so it may not be the true optimum, but for reasonable data
- * it's probably correct or at least close.
+ * This file contains the implementation of the best BLEU score computation,
+ * finding the (probable) best BLEU score obtainable by taking one sentence
+ * from each of a set of K-best lists.  It finds the optimum by iteratively
+ * improvements, one sentence at a time; this is a heuristic, so it may not be
+ * the true optimum, but for reasonable data it's probably correct or at least
+ * close.
  */
 
 #include <bestbleucompute.h>
 #include <portage_defs.h>
 #include <errors.h>
-#include <assert.h>
 
 namespace Portage
 {

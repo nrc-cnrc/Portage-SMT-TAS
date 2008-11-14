@@ -9,7 +9,7 @@
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
@@ -31,7 +31,6 @@
 
 using namespace Portage;
 using namespace std;
-using namespace __gnu_cxx;
 
 
 typedef boost::dynamic_bitset<> SEEN;
@@ -337,7 +336,7 @@ struct null_deleter
 };
    
 double writeWordGraph(ostream *out, ostream *covout, PrintFunc &print,
-                    const vector<DecoderState *> &finalStates, bool backwards, const bool bMasse)
+                    const vector<DecoderState *> &finalStates, bool backwards, bool bMasse)
 {
    assert(!finalStates.empty());
    double dMasseTotale(0.0f);

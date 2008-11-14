@@ -6,7 +6,7 @@
  *
  * Evaluation Module
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
@@ -16,31 +16,38 @@
 
 #include "bleu.h"
 #include "errors.h"
-#include <assert.h>
-#include "str_utils.h"
-#include <cmath>
 #include <voc.h>
-#include <string>
-#include <vector>
-#include <iostream>
+#include <limits>
+
+namespace Portage {
+   // ugly code - make the code behaviour depend on an environment variable
+   static const bool USE_NIST_STYLE_BLEU = getenv("PORTAGE_NIST_STYLE_BLEU");
+   // discusting code - use side effects of static const initialization to show
+   // a message on screen...
+   static const ostream& dummy =
+      (cerr << (USE_NIST_STYLE_BLEU
+                 ? "Using NIST style brevity penalty in all BLEU calculations\n"
+                 : ""));
+}
 
 using namespace Portage;
 
+static const Uint MAX_BLEU_STAT_TYPE = numeric_limits<signed int>::max();
 
 Uint BLEUstats::MAX_NGRAMS = 4;
-void BLEUstats::setMaxNgrams(const Uint n) {
+void BLEUstats::setMaxNgrams(Uint n) {
    static bool bHasBeenInitialized(false);
    assert(bHasBeenInitialized == false);
-   
+
    MAX_NGRAMS = n;
    bHasBeenInitialized = true;
 }
 
 Uint BLEUstats::MAX_NGRAMS_SCORE = 4;
-void BLEUstats::setMaxNgramsScore(const Uint n) {
+void BLEUstats::setMaxNgramsScore(Uint n) {
    static bool bHasBeenInitialized(false);
    assert(bHasBeenInitialized == false);
-   
+
    MAX_NGRAMS_SCORE = n;
    bHasBeenInitialized = true;
 }
@@ -63,7 +70,7 @@ BLEUstats::BLEUstats()
 , total(MAX_NGRAMS, 0)
 , length(0)
 , bmlength(0)
-, smooth(DEFAULT_SMOOTHING_VALUE)
+, smooth(DEFAULT_SMOOTHING)
 { }
 
 /*
@@ -199,26 +206,26 @@ void BLEUstats::init(const vector<Uint> &tgt_words, const vector< vector<Uint> >
    for (Uint n = 0; n < MAX_NGRAMS; n++)
    {
       /*
-         Initialize total number of n-grams and (temporary) detailed statistics
-         (count, clipCount) for each n-gram.
-         Since we have just one sentence, the total number of n-grams is
-         precisely the total number of words - (n-1).
-         When an n-gram appears more than once, it is necessary NOT to treat it
-         the same as multiple different n-grams (eg. if target = "the the the"
-         and reference = "the", this does not count as 3 matches).
-         Thus, isDuplicated[i] is true iff the n-gram starting at the i-th word
-         has already appeared in the target, starting BEFORE the i-th word.
-         count[n-1][i] contains the total number of occurrences in the target of
-         the n-gram starting at the i-th word, and clipCount[n-1][i] will hold
-         the "clipped match count" for the same n-gram (both of these apply only
-         when isDuplicated[n-1][i] are false).  The "clipped match count" for an
-         n-gram is defined as:
-         clippedCount = min(count, max_ref_count), where max_ref_count is the
-         maximum number of occurrences of the n-gram in a reference sentence.
-         eg. if the 2-gram "the car" appears twice in the target and once in each
-         of the 2 reference sentences, then the clipped count for "the car" would
-         be 1.
-       */
+       Initialize total number of n-grams and (temporary) detailed statistics
+       (count, clipCount) for each n-gram.
+       Since we have just one sentence, the total number of n-grams is
+       precisely the total number of words - (n-1).
+       When an n-gram appears more than once, it is necessary NOT to treat it
+       the same as multiple different n-grams (eg. if target = "the the the"
+       and reference = "the", this does not count as 3 matches).
+       Thus, isDuplicated[i] is true iff the n-gram starting at the i-th word
+       has already appeared in the target, starting BEFORE the i-th word.
+       count[n-1][i] contains the total number of occurrences in the target of
+       the n-gram starting at the i-th word, and clipCount[n-1][i] will hold
+       the "clipped match count" for the same n-gram (both of these apply only
+       when isDuplicated[n-1][i] are false).  The "clipped match count" for an
+       n-gram is defined as:
+       clippedCount = min(count, max_ref_count), where max_ref_count is the
+       maximum number of occurrences of the n-gram in a reference sentence.
+       eg. if the 2-gram "the car" appears twice in the target and once in each
+       of the 2 reference sentences, then the clipped count for "the car" would
+       be 1.
+      */
 
       total[n] = (Uint)max((int)length - (int)n, 0);
       vector<bool> isDuplicated(total[n], false);
@@ -280,21 +287,33 @@ void BLEUstats::init(const vector<Uint> &tgt_words, const vector< vector<Uint> >
       } // for
    } // for
 
-   Ulong curBMLength = refs_words.front().size();
-   for (vector< vector<Uint> >::const_iterator it = refs_words.begin() + 1;
-         it < refs_words.end(); it++)
-   {
-      // Determine if the length of this candidate is the new best length
-      // Notice: length - m is preferred to length + m (for m > 0)
-      if (abs((int)(it->size()) - (int)length) < abs((int)curBMLength - (int)length) ||
-            (abs((int)(it->size()) - (int)length) == abs((int)curBMLength - (int)length) &&
-             it->size() < curBMLength))
+   if ( USE_NIST_STYLE_BLEU ) {
+      // NIST uses the shortest reference length for each sentence, to
+      // calculate the brevity penalty, rather than the best match one.
+      bmlength = refs_words.front().size();
+      for (vector< vector<Uint> >::const_iterator it = refs_words.begin() + 1;
+            it < refs_words.end(); it++)
+         if ( int(it->size()) < bmlength )
+            bmlength = it->size();
+   } else {
+      // best-match reference length is consistent with what IBM and Koehn do
+      // (or at least did until Jan 2007, when I investigated the issue).
+      Ulong curBMLength = refs_words.front().size();
+      for (vector< vector<Uint> >::const_iterator it = refs_words.begin() + 1;
+            it < refs_words.end(); it++)
       {
-         curBMLength = it->size();
-      } // if
-   } // for
-   assert(curBMLength <= MAX_BLEU_STAT_TYPE);
-   bmlength = curBMLength;
+         // Determine if the length of this candidate is the new best length
+         // Notice: length - m is preferred to length + m (for m > 0)
+         if (abs((int)(it->size()) - (int)length) < abs((int)curBMLength - (int)length) ||
+               (abs((int)(it->size()) - (int)length) == abs((int)curBMLength - (int)length) &&
+                it->size() < curBMLength))
+         {
+            curBMLength = it->size();
+         } // if
+      } // for
+      assert(curBMLength <= MAX_BLEU_STAT_TYPE);
+      bmlength = curBMLength;
+   }
    smooth = sm;
 } // BLEUstats
 

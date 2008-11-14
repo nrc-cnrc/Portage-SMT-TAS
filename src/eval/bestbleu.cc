@@ -1,10 +1,11 @@
 /**
  * @author Aaron Tikuisis / Samuel Larkin
- * @file bestbleu.cc 
+ * @file bestbleu.cc
  * @brief Program that finds the highest achievable score with a given set of
  * source and nbest.
  *
- * $Id$ *
+ * $Id$
+ *
  * Evaluation Module
  *
  * Technologies langagieres interactives / Interactive Language Technologies

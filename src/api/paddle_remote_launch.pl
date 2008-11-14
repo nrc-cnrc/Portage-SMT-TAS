@@ -9,7 +9,7 @@
 # COMMENTS:
 #
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
@@ -94,7 +94,10 @@ while (<>) {
 # make_cmd($host, $port, $src_lang, $tgt_lang) returns the command to execute
 sub make_cmd ($$$$) {
    my ($host, $port, $src_lang, $tgt_lang) = @_;
-   my $cmd = "ssh $host \"export LC_ALL=C; $server_loc/$server_img_name";
+   my $cmd = "ssh $host \"export LC_ALL=C;";
+   $cmd .= " export PATH=$server_loc:\$PATH;";
+   $cmd .= " export PERL5LIB=$server_loc:\$PERL5LIB;";
+   $cmd .= " $server_loc/$server_img_name";
    if ( lc($host) eq "leclerc" or $host =~ /0575/ ) {
       $cmd .= "-32on64.sh";
    }

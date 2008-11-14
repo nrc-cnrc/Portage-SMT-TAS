@@ -7,7 +7,7 @@
  * Interface for filtering phrase table based on source phrases
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2006, Her Majesty in Right of Canada
@@ -47,7 +47,7 @@ class PhraseTableFilterGrep : public PhraseTableFilter {
        * @param output    file name of the filtered phrase table
        * @param reversed  indicates if the phrase table's direction is reversed
        */
-      void filterSingleProb(const string& input, const string& output, const bool reversed);
+      void filterSingleProb(const string& input, const string& output, bool reversed);
 
       virtual bool processEntry(TargetPhraseTable* tgtTable, Entry& entry);
       virtual void processSingleProb(const string& src_given_tgt_file, 

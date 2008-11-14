@@ -2,7 +2,7 @@
  * @author Aaron Tikuisis
  *     **this copied+modified by Matthew Arnold for alignment purposes
  *  **Modified by Nicola Ueffing to use all decoder models
- * @file phrase_tm_align.cc 
+ * @file phrase_tm_align.cc
  * @brief Use the decoder to phrase align source and target text.
  *
  * $Id$
@@ -20,51 +20,45 @@
 #include "inputparser.h"
 #include <canoe_general.h>
 #include <phrasetable.h>
-#include <str_utils.h>
-#include <file_utils.h>
 #include <portage_defs.h>
-#include <errors.h>
 #include <arg_reader.h>
-#include <printCopyright.h>
 #include <iostream>
-#include <ext/hash_map>
-#include <sstream>
+#include "printCopyright.h"
 
 using namespace std;
-using namespace __gnu_cxx;
 using namespace Portage;
 
 /// Program phrase_tm_align's usage.
 const char *HELP =
-"Usage: phrase_tm_align [-noscore][-onlyscore][-n N][-K K][-out file]\n\
-        -f canoefile -ref targetfile < [sourcefile]\n\
+"Usage: phrase_tm_align [-noscore][-onlyscore][-n N][-K K][-out FILE]\n\
+        -f CANOEFILE -ref TARGETFILE < [sourcefile]\n\
 \n\
-Specify phrase tables and search settings in canoefile.\n\
-Use the phrase tables to find phrase alignments for given source and target files.\n\
-Each source sentence may have a fixed number K of contiguous translations in the\n\
-target file. For each source/target pair, output consists of the source\n\
-sentence followed by N alignments (blank lines if alignments can't be found).\n\
-Alignments are represented by sequences of source ranges, with each range followed\n\
-by the corresponding target phrase in parentheses.\n\
+  Specify phrase tables and search settings in CANOEFILE.\n\
+  See canoe -h for details.\n\
 \n\
-By default the algorithm is exhaustive and slow; to speed it up, use switch\n\
-settings of -s 100 -b 0.0001 (canoe defaults), and optionally a distortion\n\
-limit of 10 to 15.\n\
+  Use the phrase tables to find phrase alignments for the source and target\n\
+  files given.  Each source sentence may have a fixed number K of contiguous\n\
+  translations in the target file. For each source/target pair, output consists\n\
+  of the source sentence followed by N alignments (blank lines if alignments\n\
+  can't be found).  Alignments are represented by sequences of source ranges,\n\
+  with each range followed by the corresponding target phrase in parentheses.\n\
+\n\
+  By default the algorithm is exhaustive and slow; to speed it up, use settings\n\
+  [s] 100 [b] 0.0001, and optionally a [distortion-limit] of 10 to 15.\n\
 \n\
 Options:\n\
- -noscore              Do not output scores with sentences\n\
- -onlyscore            Do not output sentences, only scores\n\
- -n N                  The number N of output alignments to print [1]\n\
- -K K                  The number of target translations per source sentence.  This must\n\
-                       be specified if -load-first is used.  Otherwise, this value is\n\
-                       determined automatically.\n\
- -out file             Output file\n\
- -ref file             Target corpus, to align with sourcefile\n\
+  -noscore     Do not output scores with sentences\n\
+  -onlyscore   Do not output sentences, only scores\n\
+  -n N         The number N of output alignments to print [1]\n\
+  -K K         The number of target translations per source sentence.  Required\n\
+               if [load-first] is used.  Determined automatically otherwise.\n\
+  -out FILE    Output file\n\
+  -ref TARGETFILE  Target corpus, to align with sourcefile\n\
 \n\
   For more options, see canoe -help message.\n\
   Note: Since the target sentence is fixed, not all decoder features are\n\
         relevant, although their scores can still be calculated and displayed\n\
-        if -ffvals is specified.\n\
+        if [ffvals] is specified.\n\
 \n\
 ";
 
@@ -92,7 +86,7 @@ void readSentences(istream &in, vector< vector<string> > &sents)
  * @param argv  vector containing the command line arguments.
  * @return Returns 0 if successful.
  */
-int main(Uint argc, const char * const * argv)
+int main(int argc, const char * const * argv)
 {
    printCopyright(2005, "phrase_tm_align");
 
@@ -231,47 +225,45 @@ int main(Uint argc, const char * const * argv)
       cerr << ".";
 
       // source sentence
-      vector<string> src_sent;
-      vector<MarkedTranslation> marked_src_sent;
+      newSrcSentInfo nss_info;
+      nss_info.internal_src_sent_seq = i;
       if ( c.loadFirst ) {
-         if ( ! reader.readMarkedSent(src_sent, marked_src_sent) ) {
+         if ( ! reader.readMarkedSent(nss_info.src_sent, nss_info.marks, NULL, &(nss_info.external_src_sent_id)) ) {
             if ( c.tolerateMarkupErrors )
                error(ETWarn, "Tolerating ill-formed markup, but part of the last input line has been discarded.");
             else
                error(ETFatal, "Aborting because of ill-formed markup.");
          }
          else {
-            cerr << "Read src sentence of length " << src_sent.size() << "." << endl;
+            cerr << "Read src sentence of length " << nss_info.src_sent.size() << "." << endl;
          }
          if (reader.eof()) break;
       }
       else {
          if (i == src_sents.size())
             break;
-         src_sent = src_sents[i];
-         marked_src_sent = marked_src_sents[i];
+         nss_info.src_sent = src_sents[i];
+         nss_info.marks    = marked_src_sents[i];
       }
 
       // target sentence
       for (Uint k = 0; k < K; k++) {
 
-         vector<string> tgt_sent = tgt_sents[i * K + k];
-
-         stringstream ss;
-         aligner.computePhraseTM(src_sent, marked_src_sent, tgt_sent, ss, N,
-                                 noscore, onlyscore,
-                                 c.pruneThreshold, c.maxStackSize,
-                                 c.covLimit, c.covThreshold);
-         string s = ss.str();    //s contains the alignments
+         nss_info.tgt_sent = &tgt_sents[i * K + k];
 
          // print source sentence
          if (!onlyscore) {
-            for (Uint ind = 0; ind < src_sent.size(); ind++)
-               out << " " << src_sent[ind];
+            for (Uint ind = 0; ind < nss_info.src_sent.size(); ind++)
+               out << " " << nss_info.src_sent[ind];
             out << endl;
          }
-         // print alignments
-         out << s << flush;
+
+         aligner.computePhraseTM(nss_info, out, N,
+                                 noscore, onlyscore,
+                                 c.pruneThreshold, c.maxStackSize,
+                                 c.covLimit, c.covThreshold);
+
+         out << flush;
       } // for
       i++;
    } // while

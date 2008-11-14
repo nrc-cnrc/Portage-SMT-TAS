@@ -8,7 +8,7 @@
  *
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2007, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2007, Her Majesty in Right of Canada
@@ -89,7 +89,8 @@ struct filterTMVisitor
 
    const PhraseTable &parent;          ///< parent PhraseTable object
    Uint L;                             ///< filtering length
-   const PhraseTable::PhraseScorePairLessThan cmp;  ///< to order item for dynamic filtering algo
+   const PhraseTable::PhraseScorePairLessThan phraseLessThan;  ///< to order item for dynamic filtering algo
+   const PhraseTable::PhraseScorePairGreaterThan phraseGreaterThan;  ///< to order item for dynamic filtering algo
    Uint numTextTransModels;              ///< number of text translation models, known after all models were loaded
    const double log_almost_0;            ///< log(0), almost
    const char* const style;              ///< Should indicate hard or soft filtering
@@ -109,7 +110,8 @@ struct filterTMVisitor
    filterTMVisitor(const PhraseTable &parent, double log_almost_0, const char* const style)
       : parent(parent)
       , L(0)
-      , cmp(parent)
+      , phraseLessThan(parent)
+      , phraseGreaterThan(parent)
       , numTextTransModels(0)
       , log_almost_0(log_almost_0)
       , style(style)

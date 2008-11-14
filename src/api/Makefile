@@ -5,7 +5,7 @@
 # George Foster
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology 
+# Inst. de technologie de l'information / Institute for Information Technology 
 # Conseil national de recherches Canada / National Research Council Canada 
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada 
@@ -71,8 +71,7 @@ ifneq ($(ACE), NONE)
    DYNLIBS=-lACE
 endif
 
-MODULE_CF= -Wno-non-virtual-dtor
-   #-Wno-deprecated -Wno-sign-compare -Wno-reorder
+MODULE_CF=
 
 MODULE_DEPENDS=canoe tm lm logging
 
@@ -85,11 +84,11 @@ echo_paddle_server.o:
 
 # Custom target to replace portage_api.o by the stub echo_portage_api.o.
 echo_paddle_server: paddle_server.o echo_portage_api.o
-	$(CXX) $(CXXFLAGS) -o $@ net_srv.o paddle_server.o echo_portage_api.o postprocessor.o preprocessor.o $(LINKWITH) $(DYNLIBS)
+	$(CXX) $(LINKFLAGS) -o $@ net_srv.o paddle_server.o echo_portage_api.o $(LINKWITH) $(DYNLIBS)
 
 # This custom target for paddle_client doesn't link with any superfluous
 # libraries so that it can be as light-weight as possible for the Web server.
 paddle_client: paddle_client.o
-	$(CXX) $(CXXFLAGS) -o $@ paddle_client.o -lACE
+	$(CXX) $(LINKFLAGS) -o $@ paddle_client.o -lACE
 
 -include Makefile.depend

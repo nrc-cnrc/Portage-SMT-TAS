@@ -7,7 +7,7 @@
  * Implement phrase table filtering based on source phrases
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2007, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2007, Her Majesty in Right of Canada
@@ -32,7 +32,7 @@ PhraseTableFilterGrep::~PhraseTableFilterGrep()
 }
 
 
-void PhraseTableFilterGrep::filterSingleProb(const string& input, const string& output, const bool reversed)
+void PhraseTableFilterGrep::filterSingleProb(const string& input, const string& output, bool reversed)
 {
    //LOG_VERBOSE2(ptLogger_filter_grep, "Processing probs from: %s", input.c_str());
    os_filter_output.open(output);

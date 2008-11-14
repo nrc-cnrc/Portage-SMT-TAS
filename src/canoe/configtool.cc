@@ -12,6 +12,9 @@
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada / 
  * Copyright 2005, Her Majesty in Right of Canada
  */
+
+#include "new_src_sent_info.h"
+#include "inputparser.h"
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -64,16 +67,19 @@ depending on <cmd>, one of:\n\
   filt-ttables-local:s - a copy of <config>, with: s appended to backwards\n\
                        phrasetable names; their path stripped; forward phrase-\n\
                        table parameters removed; and ttable-limit set to 0.\n\
-  check              - check that all feature files can be read: write ok if so,\n\
-                       otherwise list ones that can't\n\
+  check              - check that all feature files can be read: write ok if\n\
+                       so, otherwise list ones that can't\n\
   set-weights:rr     - A copy of <config>, with weights replaced by optimum\n\
                        (best BLEU) values from the 'rescore-results' file <rr>\n\
   arg-weights:rm     - An argument-string specification of canoe weights\n\
-                       corresponding to the contents of the rescore-model file rm.\n\
-  rescore-model:ff   - A rescoring model with entries of the form 'FileFF:ff,i w'\n\
-                       for i = 1..N (num features in configfile), and w is the\n\
-                       weight associated with the ith feature. Features are written\n\
-                       in the same order than canoe writes them to an ffvals file.\n\
+                       corresponding to the contents of the rescore-model file\n\
+                       rm.\n\
+  rescore-model:ff   - A rescoring model with entries of the form\n\
+                       'FileFF:ff,i w' for i = 1..N (num features in\n\
+                       configfile), and w is the weight associated with the\n\
+                       ith feature. Features are written in the same order\n\
+                       than canoe writes them to an ffvals file.\n\
+  rule:<file|->      - lists all rule classes from <file|->.\n\
 \n\
 Options:\n\
 \n\
@@ -167,7 +173,7 @@ int main(int argc, char* argv[])
          << endl;
    } else if (cmd == "nt-text") {
       os << c.backPhraseFiles.size() << endl;
-   } else if (isPrefix("ttable-file:", cmd.c_str())) {
+   } else if (isPrefix("ttable-file:", cmd)) {
       if (split(cmd, toks, ":") != 2 || !conv(toks[1], vi))
          error(ETFatal, "bad format for ttable-file command");
       if (vi > c.backPhraseFiles.size() || vi == 0)
@@ -177,12 +183,12 @@ int main(int argc, char* argv[])
       os << endl;
    } else if (cmd == "ttable-limit") {
       os << c.phraseTableSizeLimit << endl;
-   } else if (isPrefix("rep-ttable-limit:", cmd.c_str())) {
+   } else if (isPrefix("rep-ttable-limit:", cmd)) {
       if (split(cmd, toks, ":") != 2 || !conv(toks[1], vi))
          error(ETFatal, "bad format for rep-ttable-limit command");
       c.phraseTableSizeLimit = vi;
       c.write(os,0,pretty);
-   } else if (isPrefix("rep-ttable-files:", cmd.c_str())) {
+   } else if (isPrefix("rep-ttable-files:", cmd)) {
       if (split(cmd, toks, ":") != 2)
          error(ETFatal, "bad format for rep-ttable-files command");
       for (Uint i = 0; i < c.backPhraseFiles.size(); ++i)
@@ -192,7 +198,7 @@ int main(int argc, char* argv[])
       for (Uint i = 0; i < c.multiProbTMFiles.size(); ++i)
          c.multiProbTMFiles[i] = addExtension(c.multiProbTMFiles[i], toks[1]);
       c.write(os,0,pretty);
-   } else if (isPrefix("rep-ttable-files-local:", cmd.c_str())) {
+   } else if (isPrefix("rep-ttable-files-local:", cmd)) {
       if (split(cmd, toks, ":") != 2)
          error(ETFatal, "bad format for rep-ttable-files command");
       for (Uint i = 0; i < c.backPhraseFiles.size(); ++i)
@@ -202,7 +208,7 @@ int main(int argc, char* argv[])
       for (Uint i = 0; i < c.multiProbTMFiles.size(); ++i)
          c.multiProbTMFiles[i] = addExtension(BaseName(c.multiProbTMFiles[i].c_str()), toks[1]);
       c.write(os,0,pretty);
-   } else if (isPrefix("filt-ttables:", cmd.c_str())) {
+   } else if (isPrefix("filt-ttables:", cmd)) {
       if (split(cmd, toks, ":") != 2)
          error(ETFatal, "bad format for filt-ttables command");
       for (Uint i = 0; i < c.backPhraseFiles.size(); ++i)
@@ -211,7 +217,7 @@ int main(int argc, char* argv[])
       c.readStatus("ttable-limit") = true;
       c.phraseTableSizeLimit = 0;
       c.write(os,0,pretty);
-   } else if (isPrefix("filt-ttables-local:", cmd.c_str())) {
+   } else if (isPrefix("filt-ttables-local:", cmd)) {
       if (split(cmd, toks, ":") != 2)
          error(ETFatal, "bad format for filt-ttables command");
       for (Uint i = 0; i < c.backPhraseFiles.size(); ++i) {
@@ -221,7 +227,7 @@ int main(int argc, char* argv[])
       c.readStatus("ttable-limit") = true;
       c.phraseTableSizeLimit = 0;
       c.write(os,0,pretty);
-   } else if (isPrefix("set-weights:", cmd.c_str())) {
+   } else if (isPrefix("set-weights:", cmd)) {
       if (split(cmd, toks, ":") != 2)
          error(ETFatal, "bad format for set-weights command");
 
@@ -240,14 +246,14 @@ int main(int argc, char* argv[])
    } else if (cmd == "check") {
       c.check_all_files(); // dies with error if any files is not readable
       os << "ok" << endl;
-   } else if (isPrefix("rescore-model:", cmd.c_str())) {
+   } else if (isPrefix("rescore-model:", cmd)) {
       if (split(cmd, toks, ":") != 2)
          error(ETFatal, "bad format for rescore-model command");
       vector<double> wts;
       c.getFeatureWeights(wts);
       for (Uint i = 0; i < wts.size(); ++i)
          os << "FileFF:" << toks[1] << "," << i+1 << " " << wts[i] << endl;
-   } else if (isPrefix("arg-weights:", cmd.c_str())) {
+   } else if (isPrefix("arg-weights:", cmd)) {
       if (split(cmd, toks, ":") != 2)
          error(ETFatal, "bad format for arg-weights command");
       vector<double> wts;
@@ -264,6 +270,49 @@ int main(int argc, char* argv[])
    } else if (cmd == "weights") {
       string line;
       os << c.getFeatureWeightString(line) << endl;
+   } else if (isPrefix("rule:", cmd)) {
+      if (split(cmd, toks, ":") != 2)
+         error(ETFatal, "bad format for rule command");
+
+      newSrcSentInfo nss_info;
+      vector<string> rule_classes_names;
+      iSafeMagicStream input(toks[1]);
+      InputParser reader(input, c.bLoadBalancing);
+                     
+      // Process all input sentences
+      while (!(reader.eof() && nss_info.src_sent.empty())) {
+         // All we care about are the rule classes.
+         // We can reuse the same new source sentence info.
+         nss_info.clear();
+         if ( ! reader.readMarkedSent(nss_info.src_sent,
+               nss_info.marks,
+               &rule_classes_names,
+               &nss_info.external_src_sent_id) )
+         {
+            if ( c.tolerateMarkupErrors )
+               error(ETWarn, "Tolerating ill-formed markup.  Source sentence "
+                     "%d will be interpreted as having %d valid mark%s and "
+                     "this token sequence: %s",
+                     nss_info.external_src_sent_id, nss_info.marks.size(),
+                     (nss_info.marks.size() == 1 ? "" : "s"),
+                     joini(nss_info.src_sent.begin(), nss_info.src_sent.end()).c_str());
+            else
+               error(ETFatal, "Aborting because of ill-formed markup");
+         }
+      }
+
+      // Print the rule's info if any class was found
+      if (!rule_classes_names.empty()) {
+         // Create a default weight vector.
+         vector<float> weights(rule_classes_names.size(), 1.0f);
+
+         cout << "[rule-classes] ";
+         copy(rule_classes_names.begin(), rule_classes_names.end()-1, ostream_iterator<string>(cout, ":"));
+         cout << rule_classes_names.back() << endl;
+         cout << "[rule-weights] ";
+         copy(weights.begin(), weights.end()-1, ostream_iterator<float>(cout, ":"));
+         cout << weights.back() << endl;
+      }
    } else
       error(ETFatal, "unknown command: %s", cmd.c_str());
 }

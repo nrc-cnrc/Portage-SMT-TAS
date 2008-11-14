@@ -7,7 +7,7 @@
  * Evaluation Module
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
@@ -20,11 +20,6 @@
 #include "argProcessor.h"
 #include "bleu.h"
 #include "scoremain.h"
-#include <vector>
-#include <string>
-#include <assert.h>
-#include <numeric>
-#include <cmath>
 
 
 namespace Portage
@@ -56,6 +51,10 @@ Options:\n\
 -y         maximum NGRAMS for calculating BLEUstats matches [4]\n\
 -u         maximum NGRAMS for calculating BLEUstats score [y]\n\
            where 1 <= y, 1 <= u <= y\n\
+\n\
+Hack:\n\
+           To compute NIST-style BLEU scores, define the environment variable\n\
+           PORTAGE_NIST_STYLE_BLEU.\n\
 ";
 
       /// Program bleumain command line switches.
