@@ -31,11 +31,11 @@ EXTRA_LIBS=$(LOGGING_LIB)
 DYNLIBS=-lpthread
 
 # Module/directory specific compile flags
-ifdef PORTAGE_OPENMP
+ifndef PORTAGE_OPENMP
+MODULE_CF=-Wno-unknown-pragmas
+else
 MODULE_CF=$(PORTAGE_OPENMP)
 MODULE_LF=$(PORTAGE_OPENMP)
-#else
-MODULE_CF=-Wno-unknown-pragmas
 endif
 
 MODULE_DEPENDS=logging

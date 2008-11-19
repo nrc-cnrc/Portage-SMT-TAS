@@ -43,8 +43,10 @@ OBJECTS = \
 
 BINSCRIPTS = \
 	cow.sh \
+        cowpie.py \
 	gen-features-parallel.pl \
 	rat.sh \
+        rescore-train-micro.sh \
 	rescoremodel2canoearg.sh
 
 LIBRARY=libportage_rescoring
@@ -54,16 +56,16 @@ TESTPROGS = \
 	test_rescoring_stop \
 	testff \
 	testfileReader \
-	testfmax \
 	testlinemax \
 	testpowell
 
 PROGRAMS=$(TESTPROGS) \
-        feature_function_tool \
+	feature_function_tool \
 	gen_feature_values \
 	rescore_test \
 	rescore_train \
-	rescore_translate
+	rescore_translate \
+        uniq_nbest
 
 DOCUMENTS=rescoring_overview.pdf ochlinemax.pdf
 

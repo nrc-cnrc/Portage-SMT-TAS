@@ -8,7 +8,7 @@
  * K-Best Rescoring Module
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l.information / Institute for Information Technology
+ * Inst. de technologie de l.information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
@@ -66,12 +66,13 @@ private:
    const vector< vector<ScoreStats> >& allScoreStats;  ///< translations' score
    ScoreStats** scoreWorkSpace;                 ///< efficient ScoreStats workspace
    double** gammaWorkSpace;                     ///< efficient gamma workspae
+   bool record_history;
 
 public:
    /**
     * Constructor. Definitions: S = number of source sentences, K = nbest list
     * size, M = number of feature functions.
-    * @param vH  An array of length S, of K x M matrices containing the 
+    * @param vH  An array of length S, of K x M matrices containing the
     * evaluation of the feature functions at the candidate translations.
     * Specifically, the (k, m)-th entry of H[s] should contain the value
     * h_m(e_{s,k}, f_s), where f is a source sentence, and e is a target
@@ -110,6 +111,9 @@ public:
       checked_array_delete(gammaWorkSpace);
    }
 
+   /// Set of (gamma,score(gamma)) pairs
+   vector< pair<double,double> > history;
+
    /**
       Performs line maximization as sketched in "Minimum Error Rate Training in
       Statistical Machine Translation" by Franz Och.  For the details of this
@@ -135,8 +139,12 @@ public:
        @param dir The direction of the line along which to maximize.  When the
        function returns, contains the vector p_final - p_initial (which is a
        scalar multiple of the initial vector dir).
+
+       @param record_history Store all function evaluations in "history" vector
+       if true.
    */
-   void operator()(uVector& p, uVector& dir);
+   void operator()(uVector& p, uVector& dir, bool record_history=false);
+
 
 private:
    /**

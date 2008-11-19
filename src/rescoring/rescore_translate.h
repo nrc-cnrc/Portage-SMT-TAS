@@ -4,10 +4,8 @@
  * processing.
  *
  *
- * COMMENTS:
- *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
@@ -47,13 +45,20 @@ Options:\n\
 -kout Print <k> best hypotheses per source sent, or all if k is 0. Unless -dyn\n\
       is specified, this will pad with blank lines if necessary to write\n\
       exactly <k> lines per source sentence. [1]\n\
+-mbr  Minimum Bayes risk: Determine hypothesis with min. risk rather than max. score\n\
+      Note that this gives you 1-best output only! [don't]\n\
+-gf   Scale all sentence probabilities by global factor <f> in MBR calculation [1]\n\
+-bs   Use BLEU smoothing method <b> in MBR (see bleumain -h) [0 = no smoothing]\n\
+-l    Use only top <l> hypotheses for MBR, sort by rescored sentence scores [all]\n\
 ";
+
 
    ////////////////////////////////////////////////////////////////////////////////
    // ARGUMENTS PROCESSING CLASS
    /// Program rescore_translate allowed command line switches.
    const char* const switches[] = {
-      "dyn", "max:", "p:", "a:", "v", "K:", "n", "s", "c", "kout:"
+      "dyn", "max:", "p:", "a:", "v", "K:", "n", "s", "c", "kout:",
+      "mbr", "gf:", "bs:", "l:"
    };
    /// Specific argument processing class for rescore_translate program
    class ARG : public argProcessor
@@ -68,9 +73,13 @@ Options:\n\
          bool     bPrintRank;       ///< Should we print the rank of the best sentence
          bool     print_scores;     ///< Output hyp score(s)
          bool     conf_scores;      ///< Normalize hyp score(s) before printing
+         bool     bMbr;             ///< print Minimum Bayes risk hyp. rather than max. prob. one
          Uint     kout;             ///< Number of output hyps per source
+         Uint     kmbr;             ///< Number of hyps per source used in MBR
          Uint     K;                ///< Number of hypotheses per source
          Uint     S;                ///< Number of sources
+         Uint     smooth_bleu;      ///< Smoothing method for sentence-level BLEU
+         float    glob_scale;       ///< Global scaling factor for sentence probabilities
          string   ff_pref;          ///< Feature function prefix
          string   model;            ///< config file containing feature functions and their weights
          string   src_file;         ///< file containing source sentences
@@ -83,7 +92,7 @@ Options:\n\
        * @param argc  same as the main argc
        * @param argv  same as the main argv
        */
-      ARG(const int argc, const char* const argv[])
+      ARG(int argc, const char* const argv[])
          : argProcessor(ARRAY_SIZE(switches), switches, 3, 3, help_message, "-h", true)
          , m_vLogger(Logging::getLogger("verbose.main.arg"))
          , m_dLogger(Logging::getLogger("debug.main.arg"))
@@ -92,9 +101,13 @@ Options:\n\
          , bPrintRank(false)
          , print_scores(false)
          , conf_scores(false)
+         , bMbr(false)
          , kout(1)
+         , kmbr(0)
          , K(0)
          , S(0)
+         , smooth_bleu(0)
+         , glob_scale(1.0)
          , ff_pref("")
       {
          argProcessor::processArgs(argc, argv);
@@ -108,7 +121,11 @@ Options:\n\
             LOG_DEBUG(m_dLogger, "Verbose: %s", (bVerbose ? "ON" : "OFF"));
             LOG_DEBUG(m_dLogger, "Dynamic: %s", (bIsDynamic ? "ON" : "OFF"));
             LOG_DEBUG(m_dLogger, "PrintRank: %s", (bPrintRank ? "ON" : "OFF"));
+            LOG_DEBUG(m_dLogger, "Minimum Bayes Risk: %s", (bMbr ? "ON" : "OFF"));
+            LOG_DEBUG(m_dLogger, "Global scaling factor for MBR: %f", glob_scale);
+            LOG_DEBUG(m_dLogger, "BLEU smoothing method for MBR: %d", smooth_bleu);
             LOG_DEBUG(m_dLogger, "K: %d", K);
+            LOG_DEBUG(m_dLogger, "K for MBR: %d", kmbr);
             LOG_DEBUG(m_dLogger, "S: %d", S);
             LOG_DEBUG(m_dLogger, "ff_pref: %s", ff_pref.c_str());
             LOG_DEBUG(m_dLogger, "model file name: %s", model.c_str());
@@ -130,6 +147,10 @@ Options:\n\
          mp_arg_reader->testAndSet("s", print_scores);
          mp_arg_reader->testAndSet("c", conf_scores);
          mp_arg_reader->testAndSet("kout", kout);
+         mp_arg_reader->testAndSet("l", kmbr);
+         mp_arg_reader->testAndSet("mbr", bMbr);
+         mp_arg_reader->testAndSet("gf", glob_scale);
+         mp_arg_reader->testAndSet("bs", smooth_bleu);
 
          mp_arg_reader->testAndSet(0, "model", model);
          mp_arg_reader->testAndSet(1, "src", src_file);
@@ -160,6 +181,20 @@ Options:\n\
             mp_arg_reader->testAndSet("K:", falseK);
             if (K != falseK)
                error(ETFatal, "different values of k found, potential error");
+         }
+
+         // Some options are only valid for MBR rescoring, check them
+         if (!bMbr) {
+           if (smooth_bleu!=0)
+             error(ETWarn, "BLEU smoothing argument %d will be ignored, only needed for MBR rescoring", smooth_bleu);
+           if (glob_scale!=1.0)
+             error(ETWarn, "Global scaling factor %f will be ignored, only needed for MBR rescoring", glob_scale);
+           if (kmbr!=0)
+             error(ETWarn, "N-best length argument %d will be ignored, only needed for MBR rescoring", kmbr);
+         }
+         else {
+           if (kout!=1)
+             error(ETWarn, "N-best output length argument %d will be ignored, MBR rescoring generates 1-best only", kmbr);
          }
       }
    };

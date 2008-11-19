@@ -320,17 +320,16 @@ namespace Portage
    ////////////////////////////////////////
    // LINEMAX
    template <class ScoreStats>
-   void LineMax<ScoreStats>::operator()(uVector& p, uVector& dir)
+   void LineMax<ScoreStats>::operator()(uVector& p, uVector& dir, bool record_history)
    {
-      assert(vH.size() == allScoreStats.size());
-
-      const Uint S(vH.size());
-
       // If the best range found is (-\infty, t) or (t, \infty), we use
       // t - SMALL or t + SMALL respectively as the final gamma.
       const double SMALL(1.0f);
 
       Uint numchanges[S];
+
+      this->record_history = record_history;
+      if (record_history) history.clear();
 
       ScoreStats curScoreStats;     // Accumulate the current BLEU statistics.
 
@@ -447,6 +446,8 @@ namespace Portage
                // Use the midpoint of this range.
                maxgamma = (heappoints[0]->gamma + oldgamma) / 2;
             }
+            if (record_history)
+               history.push_back(make_pair((heappoints[0]->gamma + oldgamma) / 2, curscore));
          }
 
 

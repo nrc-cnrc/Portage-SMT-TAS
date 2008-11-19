@@ -7,12 +7,12 @@
  * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
 */
-            
+
 #include <iostream>
 #include <fileReader.h>
 
@@ -83,40 +83,40 @@ int main(const int argc, const char * const argv[])
    }
 
    /*if (true)
-     {
-     cout << "CORPUS BASED" << endl;
-     Portage::FileReader::matrixCandidate s;
-     Portage::FileReader::DynamicReader<string> dr(argv[1], 10);
-     dr.poll(s);
-     cout << s.size() << endl;
-     for (Uint i(0); i<s.size(); ++i)
-     {
-     cout << i << "->" << s[i].size() << endl;
-     }
+   {
+      cout << "CORPUS BASED" << endl;
+      Portage::FileReader::matrixCandidate s;
+      Portage::FileReader::DynamicReader<string> dr(argv[1], 10);
+      dr.poll(s);
+      cout << s.size() << endl;
+      for (Uint i(0); i<s.size(); ++i)
+      {
+         cout << i << "->" << s[i].size() << endl;
+      }
 
-     if (dr.pollable())
-     cout << "OUI" << endl;
-     else
-     cout << "NON" << endl;
-     }
+      if (dr.pollable())
+         cout << "OUI" << endl;
+      else
+         cout << "NON" << endl;
+   }
 
-     if (true)  
-     {
-     cout << "CORPUS BASED" << endl;
-     Portage::FileReader::matrixCandidate s;
-     Portage::FileReader::FixReader<string> dr(argv[2], 3);
-     dr.poll(s);
-     cout << s.size() << endl;
-     for (Uint i(0); i<s.size(); ++i)
-     {
-     cout << i << "->" << s[i].size() << endl;
-     }
+   if (true)
+   {
+      cout << "CORPUS BASED" << endl;
+      Portage::FileReader::matrixCandidate s;
+      Portage::FileReader::FixReader<string> dr(argv[2], 3);
+      dr.poll(s);
+      cout << s.size() << endl;
+      for (Uint i(0); i<s.size(); ++i)
+      {
+         cout << i << "->" << s[i].size() << endl;
+      }
 
-     if (dr.pollable())
-     cout << "OUI" << endl;
-     else
-     cout << "NON" << endl;
-     }*/
+      if (dr.pollable())
+         cout << "OUI" << endl;
+      else
+         cout << "NON" << endl;
+   }*/
 
    return 0;
 }

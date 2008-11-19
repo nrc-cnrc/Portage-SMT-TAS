@@ -8,11 +8,13 @@
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2006, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2006, Her Majesty in Right of Canada
+# Copyright 2008, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2008, Her Majesty in Right of Canada
 
 use strict;
 use warnings;
+
+print STDERR "gen-features-parallel.pl, NRC-CNRC, (c) 2008, Her Majesty in Right of Canada\n";
 
 my $SRC_TAG = "<src>";
 my $FFVAL_WTS_TAG = "<ffval-wts>";

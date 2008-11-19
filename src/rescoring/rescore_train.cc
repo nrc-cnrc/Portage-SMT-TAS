@@ -1,6 +1,6 @@
 /**
  * @author George Foster, based on "rescore" by Aaron Tikuisis, plus many others...
- * @file rescore_train.cc 
+ * @file rescore_train.cc
  * @brief Program rescore_train which finds the best weights
  * for a set of feature functions given sources, references and nbest lists.
  *
@@ -60,6 +60,16 @@ struct history_datum {
       return score > other.score;
    }
 };
+
+template<class ScoreStats>
+double runPowell(const vector<uMatrix>& vH,
+                 const vector< vector<ScoreStats> >& bleu,
+                 const vector<uVector>& init_wts,
+                 const FeatureFunctionSet& ffset,
+                 const rescore_train::ARG& arg, // oi, vy, vy?
+                 uVector& best_wts,
+                 vector< history_datum<ScoreStats> >&  history);
+
 
 /**
  * Defines how to print an history_datum.
@@ -144,6 +154,7 @@ int main(int argc, const char* const argv[])
 
    switch (arg.training_type) {
    case ARG::BLEU:
+      BLEUstats::setDefaultSmoothing(arg.sm);
       BLEUstats::setMaxNgrams(arg.maxNgrams);
       BLEUstats::setMaxNgramsScore(arg.maxNgramsScore);
 
@@ -177,7 +188,8 @@ void train(const ARG& arg)
 
    LOG_VERBOSE2(verboseLogger, "Reading Feature Function Set");
    FeatureFunctionSet ffset(true, arg.seed);
-   const Uint M = ffset.read(arg.model_in, arg.bVerbose, arg.ff_pref.c_str(), arg.bIsDynamic);
+   // When we want to do the final clean-up, we don't use the nullDeleter.
+   const Uint M = ffset.read(arg.model_in, arg.bVerbose, arg.ff_pref.c_str(), arg.bIsDynamic, !arg.do_clean_up);
    ffset.createTgtVocab(sources, FileReader::create<Translation>(arg.nbest_file, arg.K));
 
    LOG_VERBOSE2(verboseLogger, "Init ff matrix with %d source sentences", S);
@@ -209,7 +221,8 @@ void train(const ARG& arg)
 
       string line;
       Uint num_lines = 0;
-      while (getline(wstr, line) && num_lines++ < arg.weight_infile_nl) {
+      while (getline(wstr, line) &&
+             (arg.weight_infile_nl == 0 || num_lines++ < arg.weight_infile_nl)) {
          vector<string> toks;
          split(line, toks);
          const Uint beg = toks.size() > 0 && toks[1] == "score:" ? 3 : 0;
@@ -271,78 +284,16 @@ void train(const ARG& arg)
    // Free memory we no longer need
    astr.close();
 
-   // How long was it to load.
    cerr << "Done loading in " << (Uint)(time(NULL) - start) << " seconds" << endl;
 
-
-   // Start timer for powell
-   start = time(NULL);             // time
-
+   start = time(NULL);
    LOG_VERBOSE2(verboseLogger, "Running Powell's algorithm");
-
    uVector best_wts(M);
-   fill(best_wts.begin(), best_wts.end(), 1.0f);
-   double best_score(-INFINITY);
-   double extend_thresh(0.0);   // score threshold for extending total_runs
-   Uint num_runs(0);
-   Uint total_runs = arg.num_powell_runs == 0 ? 
-      (NUM_INIT_RUNS+2) :  // +2 for backward compatibility (!)
-      arg.num_powell_runs;
-
-   typedef history_datum<ScoreStats> Datum;
-   vector<Datum>  history;
-   vector<double> score_history; // list of scores, for approx-expect stopping
-
-   // Run Powell's algorithm with different start parameters until a global
-   // maximum appears to be found.
-   Powell<ScoreStats> powell(vH, scores);
-   while (num_runs < total_runs) {
-
-      uVector wts(M);
-      if (num_runs < powellWeightsIn.size())
-         wts = powellWeightsIn[num_runs];
-      else
-         ffset.getRandomWeights(wts);
-
-      if (arg.bVerbose) cerr << "Calling Powell with initial wts=" << wts << endl;
-
-      uMatrix U(M, M);
-      U = uIdentityMatrix(M);
-      int iter = 0;
-      double score = 0.0;
-      time_t powell_start = time(NULL);             // time
-      powell(wts, U, POWELL_TOLERANCE, iter, score);
-      ++num_runs;
-
-      if (arg.bVerbose) {
-         cerr << "Powell returned wts=" << wts << endl;
-         fprintf(stderr, "Score: %f in %d seconds\n", ScoreStats::convertToDisplay(score), (Uint)(time(NULL)- powell_start));
-      }
-
-      history.push_back(Datum(score, wts));
-      score_history.push_back(ScoreStats::convertToDisplay(score));
-
-      if (score > best_score) {
-         best_wts = wts;
-         best_score = score;
-      }
-      if (!arg.approx_expect && arg.num_powell_runs == 0 && ScoreStats::convertToDisplay(score) > extend_thresh) {
-         // normal stopping criterion
-         total_runs = max(num_runs+NUM_INIT_RUNS+2, 2 * num_runs); // bizarre for bkw compat
-         extend_thresh = ScoreStats::convertToDisplay(score) + SCORETOL;
-      } else if (arg.approx_expect && num_runs > NUM_INIT_RUNS+2) {
-         // approx-expect stopping
-         const double m = mean(score_history.begin(), score_history.end());
-         const double s = sdev(score_history.begin(), score_history.end(), m);
-         const Uint expected_iters = Uint(1.0 / (1.0 - normalCDF(ScoreStats::convertToDisplay(best_score), m, s)));
-         if (num_runs + expected_iters > total_runs)
-            break;
-      }
-   }
-
-   // How long it took to run powell
+   vector< history_datum<ScoreStats> >  history; // list of -score,wts vectors
+   const double best_score = runPowell<ScoreStats>(
+      vH, scores, powellWeightsIn, ffset,
+      arg, best_wts, history);
    cerr << "Best weight vector found in " << (Uint)(time(NULL) - start) << " seconds" << endl;
-
 
    // Normalize and write weights
 
@@ -358,18 +309,99 @@ void train(const ARG& arg)
 
    if (arg.bVerbose) {
       cerr << "Best score: " << ScoreStats::convertToDisplay(best_score) << endl;
-      cerr << "Using floored & normalized wts=" << best_wts << endl;
+      cerr << "Using normalized wts=" << best_wts << endl;
    }
 
    if (!arg.weight_outfile.empty()) {
       LOG_VERBOSE2(verboseLogger, "Writing best powell weights to file");
-      sort(history.begin(), history.end(), greater<Datum>());
+      sort(history.begin(), history.end(), greater< history_datum<ScoreStats> >());
       ofstream woutstr(arg.weight_outfile.c_str(), ios_base::app);
-      copy(history.begin(), history.end(), ostream_iterator<Datum>(woutstr));
+      copy(history.begin(), history.end(), ostream_iterator< history_datum<ScoreStats> >(woutstr));
       woutstr.flush();
       woutstr.close();
    }
 
    LOG_VERBOSE2(verboseLogger, "Writing model to file");
    ffset.write(arg.model_out);
+}
+
+/**
+ * Run Powell's algorithm with different start parameters until a global
+ * maximum appears to be found.
+ * @param vH vector of S KxM matrices of feature values
+ * @param bleu vector of S vectors of K hypothesis scores
+ * @param init_wts starting wts for initial iterations
+ * @param ffset used only for random wt generation, honest
+ * @param arg user-specified arguments
+ * @param best_wts place to put the best wts. Assumed to be initialized to the
+ * proper size.
+ * @param history on will be set to a list of -score,wts vectors for each iter
+ * @return best score found
+ */
+template<class ScoreStats>
+double runPowell(const vector<uMatrix>& vH,
+                 const vector< vector<ScoreStats> >& scores,
+                 const vector<uVector>& init_wts,
+                 const FeatureFunctionSet& ffset,
+                 const rescore_train::ARG& arg, // oi, vy, vy?
+                 uVector& best_wts,
+                 vector< history_datum<ScoreStats> >&  history)
+{
+   fill(best_wts.begin(), best_wts.end(), 1.0f);
+   double best_score(-INFINITY);
+   double extend_thresh(0.0);   // score threshold for extending total_runs
+   Uint num_runs(0);
+   Uint total_runs = arg.num_powell_runs == 0 ?
+      (rescore_train::NUM_INIT_RUNS+2) :  // +2 for backward compatibility (!)
+      arg.num_powell_runs;
+   vector<double> score_history; // list of bleu scores, for approx-expect stopping
+
+   Uint M = best_wts.size();
+
+   Powell<ScoreStats> powell(vH, scores);
+   while (num_runs < total_runs) {
+
+      uVector wts(M);
+      if (num_runs < init_wts.size())
+         wts = init_wts[num_runs];
+      else
+         ffset.getRandomWeights(wts);
+
+      if (arg.bVerbose) {
+         cerr << "Calling Powell with initial wts=" << wts << endl;
+      }
+
+      int iter = 0;
+      double score = 0.0;
+      time_t powell_start = time(NULL);             // time
+      powell(wts, POWELL_TOLERANCE, iter, score);
+      ++num_runs;
+
+      if (arg.bVerbose) {
+         cerr << "Powell returned wts=" << wts << endl;
+         fprintf(stderr, "Score: %f in %d seconds\n", ScoreStats::convertToDisplay(score), (Uint)(time(NULL)- powell_start));
+      }
+
+      history.push_back(history_datum<ScoreStats>(score, wts));
+      score_history.push_back(ScoreStats::convertToDisplay(score));
+
+      if (score > best_score) {
+         best_wts = wts;
+         best_score = score;
+      }
+      if (!arg.approx_expect && arg.num_powell_runs == 0 && ScoreStats::convertToDisplay(score) > extend_thresh) {
+         // 'normal' stopping criterion
+         total_runs = max(num_runs+rescore_train::NUM_INIT_RUNS+2, 2 * num_runs); // bizarre for bkw compat
+         extend_thresh = ScoreStats::convertToDisplay(score) + SCORETOL;
+      } else if (arg.approx_expect && num_runs > rescore_train::NUM_INIT_RUNS+2) {
+         // approx-expect stopping
+         const double m = mean(score_history.begin(), score_history.end());
+         const double s = sdev(score_history.begin(), score_history.end(), m);
+         const Uint expected_iters = Uint(1.0 / (1.0 - normalCDF(ScoreStats::convertToDisplay(best_score), m, s)));
+         if (num_runs + expected_iters > total_runs)
+            break;
+      }
+   }
+   
+   return best_score;
 }

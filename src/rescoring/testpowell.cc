@@ -5,7 +5,7 @@
  *
  * K-Best Rescoring Module
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l.information / Institute for Information Technology
+ * Inst. de technologie de l.information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
@@ -138,40 +138,36 @@ int main()
    vH[1](4,2) = 1;
 
    /*
-   p = (1, 1, 1)^T
-   dirs = identity
+     p = (1, 1, 1)^T
    */
    uVector p(M);
    p(0) = 1;
    p(1) = 1;
    p(2) = 1;
-   uMatrix dirs(M, M);
-   dirs = uIdentityMatrix(M);
 
-   vector< vector<TestScore> > translationScore;
-   translationScore.push_back(vector<TestScore>());
-   translationScore.back().push_back(1);
-   translationScore.back().push_back(2);
-   translationScore.back().push_back(3);
-   translationScore.back().push_back(2);
-   translationScore.back().push_back(1);
-   translationScore.push_back(vector<TestScore>());
-   translationScore.back().push_back(1);
-   translationScore.back().push_back(3);
-   translationScore.back().push_back(2);
-   translationScore.back().push_back(1);
-   translationScore.back().push_back(4);
+   vector< vector<TestScore> > translation_scores;
+   translation_scores.push_back(vector<TestScore>());
+   translation_scores.back().push_back(1);
+   translation_scores.back().push_back(2);
+   translation_scores.back().push_back(3);
+   translation_scores.back().push_back(2);
+   translation_scores.back().push_back(1);
+   translation_scores.push_back(vector<TestScore>());
+   translation_scores.back().push_back(1);
+   translation_scores.back().push_back(3);
+   translation_scores.back().push_back(2);
+   translation_scores.back().push_back(1);
+   translation_scores.back().push_back(4);
 
    int iter(0);
    double score(0.0f);
 
-   Powell<TestScore> powell(vH, translationScore);
-   powell(p, dirs, 0.01, iter, score);
+   Powell<TestScore> powell(vH, translation_scores);
+   powell(p, 0.01, iter, score);
 
    cout << "p: " << p << p / ublas::norm_inf(p) << endl;
    cout << "vH[0]: " << vH[0] << endl;
    cout << "vH[1]: " << vH[1] << endl;
-   cout << "U: " << dirs << endl;
    cout << "iter: " << iter << endl;
    cout << "score: " << score << endl;
    cout << "vH[0]*p: " << prod(p, vH[0]) << endl;

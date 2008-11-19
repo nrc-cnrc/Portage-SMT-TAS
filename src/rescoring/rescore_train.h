@@ -1,13 +1,13 @@
 /**
  * @author Samuel Larkin
- * @file rescore_train.h  Program rescore_train command line arguments
- * processing.
+ * @file rescore_train.h
+ * @brief Program rescore_train command line arguments processing.
  *
  *
  * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
@@ -38,9 +38,10 @@ static const double SCORETOL(0.0001);
 // HELP MESSAGE
 /// Program rescore_train's usage.
 static char help_message[] = "\n\
-rescore_train [-vn][-rf][-sm smoothing][-a F][-f floor][-p ff-pref][-dyn]\n\
-              [-r n][-e][-win nl][-wi powell-wt-file][-wo powell-wt-file][-s seed]\n\
-              [-bleu | -wer | -per] \n\
+rescore_train [-vn][-rf][-sm smooth][-a F][-f floor][-p ff-pref][-dyn][-s seed]\n\
+              [-r n][-e][-win nl][-wi powell-wt-file][-wo powell-wt-file]]\n\
+              [-l powell-log-file]\n\
+              [-bleu | -wer | -per] [-final-cleanup | -[no-]final-cleanup]\n\
               model_in model_out src nbest ref1 .. refN\n\
 \n\
 Train a rescoring model on given src, nbest, and ref1 .. refN texts. All text\n\
@@ -87,9 +88,9 @@ Options:\n\
 \n\
 -v    Write progress reports to cerr (repeatable) [don't].\n\
 -n    Normalize output weights so maximum is 1 (recommended).\n\
--sm   bleu smoothing number 1 2 3 [1]\n\
 -rf   Randomize the order in which features are optimized by each call to\n\
       Powell's alg [always optimize in fixed order 1,2,3...].\n\
+-sm   bleu smoothing formula 1 2 3 (see bleumain -h for details) [1]\n\
 -a    Also read in phrase alignment file F.\n\
 -f    Floor output weights at 0, beginning with zero-based index i. [don't]\n\
 -p    Prepend ff-pref to file names for FileFF features\n\
@@ -98,17 +99,23 @@ Options:\n\
 -s    Use <seed> as initial random seed [0 = use fixed seed for repeatability]\n\
 -r    Use <n> runs of Powell's alg [0 = determine number of runs automatically]\n\
 -e    Use approx expectation to determine stopping pt, with max given by -r [don't]\n\
+      (Note that -r should be set to a value >> 0 with this option, eg 50)\n\
 -win  Use only the first <nl> lines from feature file read by -wi (0 for all) [3]\n\
 -wi   Read initial feature wt vectors for Powell from file F (one vect per line)\n\
       NB: the number of vectors actually used depends on the -r and -e settings.\n\
--wo   Append final feature wts from Powell runs to file F, ordered by decr Score\n\
-      i.e. from best score to worse score.\n\
+-wo   Append final feature wts from Powell runs to file F, ordered by decr BLEU\n\
+-l    Write linemax data on each Powell run to <powell-log-file> [don't]\n\
 -y    maximum NGRAMS for calculating BLEUstats matches [4]\n\
 -u    maximum NGRAMS for calculating BLEUstats score [y]\n\
       where 1 <= y, 1 <= u <= y\n\
 -bleu train using bleu as the scoring metric [do]\n\
 -wer  train using wer as the scoring metric [don't]\n\
 -per  train using per as the scoring metric [don't]\n\
+-[no-]final-cleanup Indicates to clear the featurefunction_set when rescore_train\n\
+      is done [no-final-cleanup].\n\
+      For speed, we normally don't delete the featurefunction_set at the end\n\
+      of rescore_train, but for debugging or leak detection, deleting the\n\
+      featurefunction_set might be appropriate.\n\
 ";
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -116,8 +123,9 @@ Options:\n\
 /// Program rescore_train's allowed command line arguments.
 const char* const switches[] = {
       "n", "f:", "dyn", "p:", "a:", "v", "rf", "K:", "r:", "e",
-      "win:", "wi:", "wo:", "s:", "y:", "u:", "sm:",
-      "bleu", "per", "wer"};
+      "win:", "wi:", "wo:", "l:", "s:", "y:", "u:", "sm:",
+      "bleu", "per", "wer", "final-cleanup", "no-final-cleanup"
+};
 
 /// Specific argument processing class for rescore_train program
 class ARG : public argProcessor
@@ -133,7 +141,6 @@ public:
       PER
    };
 
-public:
    bool     bVerbose;           ///< is verbose set
    bool     bNormalize;         ///< normalize output wts so largest element is 1
    bool     bIsDynamic;         ///< are we running in dynamic mode => dynamic nbest list size => dynamic file reading
@@ -158,6 +165,7 @@ public:
    Uint     maxNgramsScore;     ///< holds the max ngrams size when BLEUstats::score
    Uint     sm;                 ///< bleu smoothing
    TRAINING_TYPE training_type; ///< indicate to train with either bleu, wer or per
+   bool     do_clean_up;        ///< Indicates to clean memory at the end.
 
 public:
    /**
@@ -188,6 +196,7 @@ public:
       , maxNgramsScore(0)
       , sm(1)
       , training_type(BLEU)
+      , do_clean_up(false)
    {
       argProcessor::processArgs(argc, argv);
    }
@@ -219,8 +228,9 @@ public:
             LOG_DEBUG(m_dLogger, "Number of reference files: %d", refs_file.size());
             LOG_DEBUG(m_dLogger, "Maximum Ngrams size: %d", maxNgrams);
             LOG_DEBUG(m_dLogger, "Maximum Ngrams size for scoring BLEU: %d", maxNgramsScore);
-            LOG_DEBUG(m_dLogger, "Bleu smoothing", sm);
-            LOG_DEBUG(m_dLogger, "training type", training_type);
+            LOG_DEBUG(m_dLogger, "Bleu smoothing: %d", sm);
+            LOG_DEBUG(m_dLogger, "training type: %d", training_type);
+            LOG_DEBUG(m_dLogger, "Do final clean-up: %s", (do_clean_up ? "TRUE" : "FALSE"));
             std::stringstream oss1;
             for (Uint i(0); i<refs_file.size(); ++i) {
                oss1 << "- " << refs_file[i].c_str() << " ";
@@ -251,6 +261,8 @@ public:
       if (mp_arg_reader->getSwitch("bleu")) training_type = BLEU;
       if (mp_arg_reader->getSwitch("per"))  training_type = PER;
       if (mp_arg_reader->getSwitch("wer"))  training_type = WER;
+
+      mp_arg_reader->testAndSetOrReset("final-cleanup", "no-final-cleanup", do_clean_up);
 
       mp_arg_reader->testAndSet("y", maxNgrams);
       mp_arg_reader->testAndSet("u", maxNgramsScore);

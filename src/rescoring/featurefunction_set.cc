@@ -9,7 +9,7 @@
  * dependencies that slowed down compiling.
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005 - 2008, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005 - 2008, Her Majesty in Right of Canada
@@ -31,6 +31,7 @@
 // Include files for feature functions
 #include "lm_ff.h"
 #include "ibm_ff.h"
+#include "hmm_ff.h"
 #include "ibm1del.h"
 #include "cache_lm_ff.h"
 #include "ibm1wtrans.h"
@@ -343,6 +344,14 @@ ptr_FF FeatureFunctionSet::create(const string& name,
       ff = new IBM2TgtGivenSrc(arg);
    } else if (name == "IBM2SrcGivenTgt") {
       ff = new IBM2SrcGivenTgt(arg);
+   } else if (name == "HMMTgtGivenSrc") {
+      ff = new HMMTgtGivenSrc(arg);
+   } else if (name == "HMMSrcGivenTgt") {
+      ff = new HMMSrcGivenTgt(arg);
+   } else if (name == "HMMVitTgtGivenSrc") {
+      ff = new HMMVitTgtGivenSrc(arg);
+   } else if (name == "HMMVitSrcGivenTgt") {
+      ff = new HMMVitSrcGivenTgt(arg);
    } else if (name == "IBM1AaronTgtGivenSrc" || name == "IBM1WTransTgtGivenSrc") {
       ff = new IBM1WTransTgtGivenSrc(arg);
    } else if (name == "IBM1AaronSrcGivenTgt" || name == "IBM1WTransSrcGivenTgt") {
@@ -420,6 +429,10 @@ Features available:\n\
  IBM1SrcGivenTgt:ibm1.src_given_tgt - IBM1 backward probability\n\
  IBM2TgtGivenSrc:ibm2.tgt_given_src - IBM2 forward probability\n\
  IBM2SrcGivenTgt:ibm2.src_given_tgt - IBM2 backward probability\n\
+ HMMTgtGivenSrc:hmm.tgt_given_src - HMM-aligner forward probability\n\
+ HMMSrcGivenTgt:hmm.src_given_tgt - HMM-aligner backward probability\n\
+ HMMVitTgtGivenSrc:hmm.tgt_given_src - Viterbi HMM-aligner forward probability\n\
+ HMMVitSrcGivenTgt:hmm.src_given_tgt - Viterbi HMM-aligner backward probability\n\
  IBM1WTransTgtGivenSrc:ibm1.tgt_given_src - IBM1 check if all words translated\n\
  IBM1WTransSrcGivenTgt:ibm1.src_given_tgt - IBM1 check if no words inserted\n\
  IBM1DeletionTgtGivenSrc:ibm1.tgt_given_src[#thr] - ratio of del words (p<thr) [0.1]\n\
@@ -474,7 +487,7 @@ More details:\n\
 * The SCRIPT ff allows the user to try a quick and dirty feature function.\n\
   Your script MUST output its values to standard out.\n\
   The script command line must be in quotes and you can use the five\n\
-  following tag:\n\
+  following tags:\n\
   <ffval-wts> <src> <nbest> <pfx> <NP>\n\
 \n\
 * To create a template model for rescoring output produced using canoe config\n\

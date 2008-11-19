@@ -16,6 +16,7 @@
 #define __RULE_FEATURE_H__
 
 #include "decoder_feature.h"
+#include <iterator> // for ostream_iterator
 
 namespace Portage {
 

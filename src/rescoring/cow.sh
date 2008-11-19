@@ -20,14 +20,18 @@ FLOOR=-1
 NOFLOOR=
 FLOOR_ARG=
 ESTOP=
+SEED=
 N=200
-CFILE=canoe.ini
+CFILE=
 CANOE=canoe
 CANOE_PARALLEL=canoe-parallel.sh
 PARALLEL=
 RTRAIN=rescore_train
 DEFAULT_MODEL=curmodel
 LOAD_BALANCING=1
+MICRO=0
+MICROSM=1
+MICROPAR=3
 TRAINING_TYPE="-bleu"
 SCORE_MAIN=bleumain
 
@@ -36,9 +40,10 @@ FFVALPARSER_OPTS="-canoe"
 
 ##
 ## Usage: cow.sh [-v] [-Z] [-resume] [-nbest-list-size N] [-maxiter MAX]
-##        [-filt] [-filt-no-ttable-limit] [-lb]
+##        [-filt] [-filt-no-ttable-limit] [-lb | -no-lb] [-s SEED]
 ##        [-floor index|-nofloor] [-model MODEL] [-mad SEED] [-e] [-path P]
-##        [-f CFILE] [-canoe-options CANOE_OPTS]
+##        [-micro M] [-microsm S] [-micropar N]
+##        [-f CFILE] [-canoe-options OPTS] [-rescore-options OPTS]
 ##        [-parallel[:"PARALLEL_OPTS"]]
 ##        [-bleu | -per | -wer]
 ##        -workdir WORKDIR SFILE RFILE1 RFILE2 .. RFILEn
@@ -55,15 +60,21 @@ FFVALPARSER_OPTS="-canoe"
 ## Options:
 ## -v       Verbose output from canoe (verbose level 1) and rescore_train.
 ## -Z       Do not compress the large temporary files in WORKDIR [do].
-## -resume  Resume a previously interupted run.  Will resume at the decoding
+## -resume  Resume a previously interrupted run.  Will resume at the decoding
 ##          phase, regardless of where it had previous been interupted.  Results
-##          are not guaranteed to be the same as if a fresh restart was done.
-##          WARNING: When using resume and maxiter, maxiter must be greater than
-##                   the number of previously completed iterations.
+##          are not guaranteed to be the same as if a fresh start was done.
+##          Normally, you should resume with parameter settings such as maxiter
+##          unchanged from the previously-interrupted run.
 ##          [Fresh start: delete any existing n-best lists, rename any existing
 ##           model and results files]
 ## -nbest-list-size The size of the n-best lists to create.  [200]
 ## -maxiter Do at most MAX iterations.
+## -micro   Do at most the first M iterations in micro mode (tuning weights
+##          for each sentence separately). [0]
+##          Not compatible with -mad.
+## -microsm The value of the -sm switch for rescore_train in micro mode [1]
+## -micropar The number of sentence-level rescore_trains to run in parallel
+##          in micro mode [3]
 ## -filt    Filter the phrase tables based on SFILE for faster operation.
 ##          Should not change your results in a significant way (some changes
 ##          may be observed due to rounding differences).  Creates a single
@@ -79,7 +90,8 @@ FFVALPARSER_OPTS="-canoe"
 ##          rounding differences, the output should therefore be identical to
 ##          that obtained with unfiltered tables.  [don't filter]
 ## -lb      Run canoe-parallel.sh in load balancing mode to help even out the 
-##          translation's load distribution [don't].
+##          translation's load distribution [do].
+## -no-lb   Disable load-balancing [don't].
 ## -floor   Index of parameter at which to start zero-flooring. (0 means all)
 ##          NB, this is NOT the floor threshold and cannot be used with nofloor.
 ## -nofloor None of the decoder features are floored.  Cannot be used with floor.
@@ -95,9 +107,11 @@ FFVALPARSER_OPTS="-canoe"
 ##          this uses a different random set of weights for each
 ##          sentence. [don't; note that SEED=0 also means don't]
 ## -e       Use expectation to determine rescore_train stopping point [don't]
+## -s       Use SEED as random seed for rescore_train [use default seed]
 ## -path    Prepend path P to existing path for locating programs []
 ## -f       The configuration file to pass to the decoder. [canoe.ini]
 ## -canoe-options  Provide additional options to the decoder. []
+## -rescore-options  Provide additional options to the rescore_train. []
 ## -parallel or -parallel:"PARALLEL_OPTIONS":  Use canoe-parallel.sh to
 ##          parallelize decoding.  Any option to canoe-parallel.sh, such as
 ##          -n <N> if you want to specify the number of parallel jobs to
@@ -106,11 +120,9 @@ FFVALPARSER_OPTS="-canoe"
 ##          e.g.:   -parallel:"-n 4".
 ##                  -parallel:"-n 4 -nolowpri".
 ##                  -parallel:"-n 4 -highmem".
-##
 ## -bleu    Perform training using BLEU as the metric [do]
 ## -per     Perform training using PER as the metric [don't]
 ## -wer     Perform training using WER as the metric [don't]
-##
 ## -workdir Store large temporary files in WORKDIR.  WORKDIR should ideally be
 ##          on a medium which is not backed up, as these files tend to be
 ##          enormous.
@@ -145,11 +157,19 @@ echo 'cow.sh, NRC-CNRC, (c) 2004 - 2008, Her Majesty in Right of Canada'
 #------------------------------------------------------------------------------
 
 error_exit() {
+   echo -n "cow.sh fatal error: "
    for msg in "$@"; do
       echo $msg
    done
    echo "Use -h for help."
    exit 1
+}
+
+warn() {
+   echo -n "cow.sh warning: "
+   for msg in "$@"; do
+      echo $msg
+   done
 }
 
 # Verify that enough args remain on the command line
@@ -189,8 +209,7 @@ check_ttable_limit() {
    f=$1
    TTABLE_LIMIT=`configtool ttable-limit $f`
    if [ ! $TTABLE_LIMIT -gt 0 ] ; then
-      echo "Please set your ttable-limit in your $f";
-      exit 1;
+      error_exit "Please set your ttable-limit in your $f, for use with -filt"
    fi
 }
 
@@ -213,24 +232,28 @@ while [ $# -gt 0 ]; do
    -Z)             COMPRESS_EXT="";;
    -canoe)         arg_check 1 $# $1; CANOE="$2"; shift;;
    -canoe-options) arg_check 1 $# $1; CANOE_OPTS="$2"; shift;;
+   -rescore-options) arg_check 1 $# $1; RESCORE_OPTS="$2"; shift;;
    -rescore-train) arg_check 1 $# $1; RTRAIN="$2"; shift;;
    -model)         arg_check 1 $# $1; MODEL="$2"; shift;;
    -filt)          FILTER=$1;;
    -lb)            LOAD_BALANCING=1;;
+   -no-lb)         LOAD_BALANCING=;;
    -filt-no-ttable-limit)   FILTER=$1;;
    -mad)           arg_check 1 $# $1; RANDOM_INIT="$2"; shift;;
    -e)             ESTOP="-e -r50";;
+   -s)             arg_check 1 $# $1; SEED="-s $2"; shift;;
    -floor)         arg_check 1 $# $1; FLOOR="$2"; shift;;
    -nofloor)       NOFLOOR=1;;
    -parallel:*)    PARALLEL=1; PARALLEL_OPTS="${1/-parallel:/}";;
    -parallel)      PARALLEL=1;;
    -workdir)       arg_check 1 $# $1; WORKDIR="$2"; shift;;
    -maxiter)       arg_check 1 $# $1; MAXITER="$2"; shift;;
-
+   -micro)         arg_check 1 $# $1; MICRO="$2"; shift;;
+   -microsm)       arg_check 1 $# $1; MICROSM="$2"; shift;;
+   -micropar)      arg_check 1 $# $1; MICROPAR="$2"; shift;;
    -bleu)          TRAINING_TYPE="-bleu"; SCORE_MAIN=bleumain;;
    -per)           TRAINING_TYPE="-per"; SCORE_MAIN="wermain -per";;
    -wer)           TRAINING_TYPE="-wer" SCORE_MAIN=wermain;;
-
    --)             shift; break;;
    -*)             error_exit "Unknown parameter: $1.";;
    *)              break;;
@@ -248,6 +271,9 @@ if [ $FLOOR -ge 0 ]; then
    FLOOR_ARG="-f $FLOOR"
 fi
 
+if [ -z "$CFILE" ]; then
+   CFILE=canoe.ini
+fi
 
 if [ -z "$MODEL" ]; then
    MODEL=$WORKDIR/$DEFAULT_MODEL
@@ -291,14 +317,13 @@ fi
 SFILE=$1
 shift
 if [ $# -eq 1 -a `cat $1 | wc -l` -gt `cat $SFILE | wc -l` ]; then
-   echo "Warning: Old style combined RFILE supplied - uncombining it";
+   warn "Old style combined RFILE supplied - uncombining it";
    RFILE=$1
    echo uncombine.pl `cat $SFILE | wc -l` $RFILE
    uncombine.pl `cat $SFILE | wc -l` $RFILE
    RVAL=$?
    if [ $RVAL -ne 0 ]; then
-      echo "Error: can't uncombine ref file";
-      exit 1
+      error_exit "can't uncombine ref file"
    fi
    RFILES=`ls $RFILE.[0-9]* | tr '\n' ' '`
 else
@@ -306,9 +331,7 @@ else
 fi
 for x in $RFILES; do
    if [ `cat $x | wc -l` -ne `cat $SFILE | wc -l` ]; then
-      echo "Error: ref file $x has a different number of lines" \
-           "as source file $SFILE"
-      exit 1
+      error_exit "ref file $x has a different number of lines as source file $SFILE"
    fi
 done
 
@@ -323,7 +346,9 @@ TMPMODELFILE=$MODEL.tmp
 TMPFILE=$WORKDIR/tmp
 TRANSFILE=$WORKDIR/transfile
 HISTFILE="rescore-results"
+# code below assumes that $POWELLFILE* and $POWELLMICRO* be disjoint:
 POWELLFILE="$WORKDIR/powellweights.tmp"
+POWELLMICRO="$WORKDIR/powellweights.micro" 
 MODEL_ORIG=$MODEL.orig
 
 if [ ! $RESUME ]; then
@@ -332,77 +357,65 @@ fi
 
 # Check validity of command-line arguments
 if [ $(($N)) -eq 0 ]; then
-   echo "Error: Bad n-best list size ($N).  Use -h for help."
-   exit 1
+   error_exit "Bad n-best list size ($N)."
 fi
 
 if [ ! -x $CANOE ]; then
    if ! which-test.sh $CANOE; then
-      echo "Error: Executable canoe not found at $CANOE.  Use -h for help."
-      exit 1
+      error_exit "Executable canoe not found at $CANOE."
    fi
 fi
 if [ "$PARALLEL" == 1 -a "$CANOE" != canoe ]; then
-   echo "Error: cannot specify alternative decoder $CANOE with -parallel option."
-   echo "Use -h for help."
-   exit 1
+   error_exit "cannot specify alternative decoder $CANOE with -parallel option."
 fi
 if [ ! -x $RTRAIN ]; then
    if ! which-test.sh $RTRAIN; then
-      echo "Error: Executable rescore train program not found at $RTRAIN.  Use -h for help."
-      exit 1
+      error_exit "Executable rescore train program not found at $RTRAIN."
    fi
 fi
 if [ -e $MODEL -a ! -w $MODEL ]; then
-   echo "Error: Model file $MODEL is not writable.  Use -h for help."
-   exit 1
+   error_exit "Model file $MODEL is not writable."
 fi
 
 if [ ! -r $CFILE ]; then
-   echo "Error: Cannot read config file $CFILE.  Use -h for help."
-   exit 1
+   error_exit "Cannot read config file $CFILE."
 fi
 if configtool check $CFILE; then true; else
-   echo "Error: problem with config file $CFILE.  Use -h for help."
-   exit 1
+   error_exit "problem with config file $CFILE."
+fi
+
+if [ $MICRO -gt 0 ]; then
+   if [ $RANDOM_INIT != 0 ]; then
+      error_exit "-micro and -mad are not compatible."
+   fi
 fi
 
 if [ ! -r $SFILE ]; then
-   echo "Error: Cannot read source file $SFILE.  Use -h for help."
-   exit 1
+   error_exit "Cannot read source file $SFILE."
 fi
 if [ ! -r $RFILE ]; then
-   echo "Error: Cannot read reference file $RFILE.  Use -h for help."
-   exit 1
+   error_exit "Cannot read reference file $RFILE."
 fi
 
 if [ -z "$WORKDIR" ]; then
-   echo "Error: -workdir <dir> is now a mandatory argument, and should ideally
-   point to a directory on un-backed up medium, like exp or scratch_iit, or a
-   soft link to such a directory.  Ask Eric or Patrick for an explanation of
-   why you have to do this."
-   exit 1
+   error_exit "-workdir <dir> is a mandatory argument."
 fi
 
 if [ ! -d $WORKDIR ]; then
-   echo "Error: workdir $WORKDIR is not a directory."
-   exit 1
+   error_exit "workdir $WORKDIR is not a directory."
 fi
 
 if [ -n "$MAXITER" ]; then
    if [ "`expr $MAXITER + 0 2> /dev/null`" != "$MAXITER" ]; then
-      echo "Error: max iter $MAXITER is not a valid number."
-      exit 1
+      error_exit "max iter $MAXITER is not a valid number."
    elif [ "$MAXITER" -lt 1 ]; then
-      echo "Max iter $MAXITER is less than 1: no work to do!"
-      exit 1
+      error_exit "Max iter $MAXITER is less than 1: no work to do!"
    fi
 fi
 
 # Check paths of required programs
 if ! which-test.sh $FFVALPARSER; then
-   echo "Error: $FFVALPARSER not found in path."
-   exit 1
+   error_exit "$FFVALPARSER not found in path."
 fi
 
 # Handle verbose
@@ -419,7 +432,8 @@ fi
 export LC_ALL=C
 
 if [ ! $RESUME ]; then
-   for FILE in $WORKDIR/foo.* $WORKDIR/alltargets $WORKDIR/allffvals; do
+   for FILE in $WORKDIR/foo.* $WORKDIR/alltargets $WORKDIR/allffvals \
+      $WORKDIR/$POWELLFILE* $WORKDIR/$POWELLMICRO*; do
       \rm -f $FILE
    done
 
@@ -430,11 +444,19 @@ if [ ! $RESUME ]; then
       cut -d' ' -f1 $MODEL > $MODEL_ORIG
    else
       if [ `cat $MODEL | wc -l` -ne `configtool nf $CFILE` ]; then
-         echo "Error: Bad model file"
-         exit 1
+         error_exit "Bad model file"
       fi
       # For the random ranges
       cp $MODEL $MODEL_ORIG
+   fi
+
+   # initialize micro rescoring models if needed
+   if [ $MICRO -gt 0 ]; then
+      configtool rescore-model:.duplicateFree.ffvals$COMPRESS_EXT $CFILE > $MODEL.micro.in
+      S=`wc -l < $SFILE`
+      for i in `seq -w 0 9999 | head -$S`; do
+         cp $MODEL.micro.in $MODEL.micro.$i
+      done
    fi
 
    # Filter phrasetables to retain only matching source phrases.
@@ -452,26 +474,35 @@ if [ ! $RESUME ]; then
             filter_models -f $CFILE -suffix .FILT < $SFILE
       CFILE=$CFILE.FILT
    else
-      echo "Warning: Not filtering"
+      warn "Not filtering"
    fi
-elif [ "$FILTER" = "-filt" ]; then
-   CFILE=$CFILE.FILT
+else
+   echo Resuming where a previous iteration stopped - reusing existing $MODEL,
+   echo "   " $HISTFILE, $POWELLFILE, and $WORKDIR/foo.\* files.
+
+   if [ "$FILTER" = "-filt" ]; then
+      CFILE=$CFILE.FILT
+   fi
 fi
 
+# Find the best (max bleu) line in rescore-results and generate canoe.ini.cow
+# and canoe.ini.FILT.cow from its weights. Called just before termination.
 write_models() {
    echo configtool -p set-weights:$HISTFILE $CFILE $CFILE.cow
    configtool -p set-weights:$HISTFILE $CFILE $CFILE.cow
-   if (( $? != 0 )); then
+   RC=$?
+   if (( $RC != 0 )); then
       \rm -f $CFILE.cow
-      exit 1
+      error_exit "configtool had non-zero return code: $RC."
    fi
 
    if [ "$CFILE" != "$ORIGCFILE" ]; then
-         echo configtool -p set-weights:$HISTFILE $ORIGCFILE $ORIGCFILE.cow
-         configtool -p set-weights:$HISTFILE $ORIGCFILE $ORIGCFILE.cow
-      if (( $? != 0 )); then
+      echo configtool -p set-weights:$HISTFILE $ORIGCFILE $ORIGCFILE.cow
+      configtool -p set-weights:$HISTFILE $ORIGCFILE $ORIGCFILE.cow
+      RC=$?
+      if (( $RC != 0 )); then
          \rm -f $ORIGCFILE.cow
-         exit 1
+         error_exit "configtool had non-zero return code: $RC."
       fi
    fi
 }
@@ -479,11 +510,6 @@ write_models() {
 #------------------------------------------------------------------------------
 # Main loop
 #------------------------------------------------------------------------------
-
-if [ $RESUME ]; then
-   echo Resuming where a previous iteration stopped - reusing existing $MODEL,
-   echo "   " $HISTFILE, $POWELLFILE, and $WORKDIR/foo.\* files.
-fi
 
 RANDOM_WEIGHTS=
 if [ $RANDOM_INIT != 0 ]; then RANDOM_WEIGHTS="-random-weights -seed $RANDOM_INIT"; fi
@@ -495,10 +521,20 @@ while [ 1 ]; do
    if [ $DEBUG ]; then echo "configtool arg-weights:$MODEL $CFILE" ; fi
    wtvec=`configtool arg-weights:$MODEL $CFILE`
 
+   if [ $MICRO -gt 0 ]; then
+      MICRO_WTS=$WORKDIR/micro-weights.$((ITER+1))
+      cat /dev/null > $MICRO_WTS
+      S=`wc -l < $SFILE`
+      for i in `seq -w 0 9999 | head -$S`; do
+         configtool arg-weights:$MODEL.micro.$i $CFILE >> $MICRO_WTS
+      done
+   fi
+
    # Run decoder
    echo ""
    echo Running decoder on `date`
    RUNSTR="$CANOE $CANOE_OPTS $RANDOM_WEIGHTS -f $CFILE $wtvec -nbest $WORKDIR/foo$COMPRESS_EXT:$N -ffvals"
+   if [ $MICRO -gt 0 ]; then RUNSTR="$RUNSTR -sent-weights $MICRO_WTS"; fi
    if [ "$PARALLEL" == 1 ]; then
       RUNSTR="$CANOE_PARALLEL $PARALLEL_OPTS $RUNSTR"
    fi
@@ -508,8 +544,7 @@ while [ 1 ]; do
    # Check return value
    RVAL=$?
    if [ $RVAL -ne 0 ]; then
-      echo "Error: Decoder returned $RVAL";
-      exit 1
+      error_exit "Decoder returned $RVAL";
    fi
 
    # From here on, use given weights (not random weights)
@@ -526,6 +561,9 @@ while [ 1 ]; do
 
    if [ -n "$MAXITER" ]; then
       MAXITER=$((MAXITER - 1))
+   fi
+   if [ $MICRO -gt 0 ]; then
+      MICRO=$((MICRO - 1))
    fi
 
    # Read the dynamic options file for any updates to MAXITER or
@@ -609,8 +647,8 @@ while [ 1 ]; do
    echo "Total size of n-best list -- previous: $totalPrevK; current: $totalNewK."
    echo
 
-   # If nothing new, then we're done, unless we just resumed, in which case we
-   # do at least one iteration.
+   # If nothing new, then we're done, unless we just resumed or we were running
+   # in micro mode, in which case we do at least one iteration.
    if [ -z "$new" ]; then
       echo
       echo No new sentences in the N-best lists.
@@ -618,6 +656,10 @@ while [ 1 ]; do
          echo -n But this is the first iteration after a resume, ""
          echo so running rescore_train anyway.
          echo
+         MICRO=0                # needs to be turned off
+      elif [ $MICRO -gt 0 ]; then
+         echo "So switching out of micro mode"
+         MICRO=0
       else
          write_models
          echo Done on `date`
@@ -639,10 +681,9 @@ while [ 1 ]; do
 
    # Find the parameters that optimize the BLEU score over the given set of all targets
    echo Running rescore_train on `date`
-   # RUNSTR="$RTRAIN -dyn -n $FLOOR_ARG $MODEL $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
 
    if [ $RESUME ]; then
-      if [ `ls $POWELLFILE*|wc -l` -ge 1 ]; then
+      if [ `ls $POWELLFILE.*|wc -l` -ge 1 ]; then
          WEIGHTINFILE=`ls -tr1 $POWELLFILE.* | tail -1`
          ITER=`echo $WEIGHTINFILE | cut -d"." -f3`
          ITER_CHECK=`wc -l < $HISTFILE`
@@ -658,6 +699,11 @@ while [ 1 ]; do
             echo "   assume that $ITER have been done"
          fi
          MAXITER=$((MAXITER - $ITER))
+         if [ $MICRO -gt $ITER ]; then
+            MICRO=$((MICRO - $ITER))
+         else
+            MICRO=0
+         fi
          ITER=$((ITER + 1))
          WEIGHTOUTFILE=$POWELLFILE.$ITER
          echo "Resuming from $WEIGHTINFILE"
@@ -668,42 +714,60 @@ while [ 1 ]; do
       ITER=$((ITER + 1))
       WEIGHTOUTFILE=$POWELLFILE.$ITER
    fi
+   touch $WEIGHTINFILE   # create powellweights.tmp.0
+
+   # ensure powellweights.micro.IIII files exist on first iteration
+   if [ $MICRO -ne 0 ]; then    
+      S=`wc -l < $SFILE`
+      for i in `seq -w 0 9999 | head -$S`; do
+         touch $POWELLMICRO.$i
+      done
+   fi
+
 
    if [ -e $WEIGHTOUTFILE ]; then
       rename_old $WEIGHTOUTFILE
    fi
-   if [ $ITER -ge 2 ]; then
-      RUNSTR="$RTRAIN $TRAINING_TYPE $ESTOP -wi $WEIGHTINFILE -wo $WEIGHTOUTFILE -dyn -n $FLOOR_ARG $MODEL_ORIG $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
+
+   
+   if [ $MICRO -gt 0 ]; then
+      WTS="$POWELLMICRO.IIII"
+      RT_OPTS="$RESCORE_OPTS $ESTOP $SEED -wi $WTS -wo $WTS -n -sm $MICROSM \
+         $FLOOR_ARG -p $WORKDIR/foo.IIII"
+      RUNSTR="rescore-train-micro.sh $VERBOSE -n $MICROPAR -rt-opts \"$RT_OPTS\" \
+         $MODEL.micro.in $MODEL.micro.IIII $SFILE \
+         $WORKDIR/foo.IIII.duplicateFree$COMPRESS_EXT $RFILES"
    else
-      RUNSTR="$RTRAIN $TRAINING_TYPE $ESTOP -wo $WEIGHTOUTFILE -dyn -n $FLOOR_ARG $MODEL_ORIG $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
+      RUNSTR="$RTRAIN $TRAINING_TYPE $RESCORE_OPTS \
+         $ESTOP $SEED -wi $WEIGHTINFILE -wo $WEIGHTOUTFILE -dyn -n $FLOOR_ARG \
+         $MODEL_ORIG $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
    fi
+
    echo "$RUNSTR"
-   time $RUNSTR
+   time eval $RUNSTR
 
    # Check return value
    RVAL=$?
    if [ $RVAL -ne 0 ]; then
-      echo "Error: rescore_train returned $RVAL"
-      exit 1
+      error_exit "rescore_train returned $RVAL"
    fi
 
-   # If the new model file is identical to the old one, we're done, since the
-   # next iteration will produce exactly the same output as the last one.
-   if diff -q $MODEL $TMPMODELFILE; then
-      # We repeat the last line in rescore-results, since that tells the
-      # experimenter that a stable point has been reached.
-      echo `$SCORE_MAIN $TRANSFILE $RFILES | egrep score` " $wtvec" >> $HISTFILE
-
-      echo
-      echo New model identical to previous one.
-      write_models
-      echo Done on `date`
-      exit
+   if [ $MICRO -eq 0 ]; then
+      # If the new model file is identical to the old one, we're done, since the
+      # next iteration will produce exactly the same output as the last one.
+      if diff -q $MODEL $TMPMODELFILE; then
+         # We repeat the last line in rescore-results, since that tells the
+         # experimenter that a stable point has been reached.
+         echo `$SCORE_MAIN $TRANSFILE $RFILES | egrep score` " $wtvec" >> $HISTFILE
+         echo
+         echo New model identical to previous one.
+         write_models
+         echo Done on `date`
+         exit
+      fi
+      # Replace the old model with the new one
+      mv $TMPMODELFILE $MODEL
    fi
-
-   # Replace the old model with the new one
-   mv $TMPMODELFILE $MODEL
-
    RESUME=
 
 done

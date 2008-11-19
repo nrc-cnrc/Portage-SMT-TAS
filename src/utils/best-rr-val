@@ -1,9 +1,9 @@
-#!/bin/tcsh -f
+#!/bin/bash
 
 # @file best-rr-val 
 # @brief Pick out the best line in a rescore-results file.
 #
-# @author George Foster
+# @author George Foster / converted to bash by Eric Joanis
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -21,26 +21,27 @@
 ## -w  Print weights only, minus canoe switches [print bleu score only]
 ##
 
-set wts = 0
-if ($#argv > 0 && "$1" == "-w") then
-    set wts = 1
-    shift
-endif
 
-if ($#argv == 0 || "$1" == -h || "$1" == -help) then
+wts=0
+if [[ $# > 0 && $1 = -w ]]; then
+   wts=1
+   shift
+fi
+
+if [[ $# = 0 || $1 =~ ^-h ]]; then
    cat $0 | egrep '^##' | cut -c4-
    exit 1
-endif
+fi
 
-if (! -f $1) then
-   echo $0\: $1\: No such file or directory
+if [[ ! -f $1 ]]; then
+   echo `basename $0`: $1: No such file or directory
    exit 2
-endif
+fi
 
-if ($wts == 0) then
-   set bleu = `sort -k3,3 -gr $1 | head -1 | cut -d' ' -f3`
-   set nl = `wc -l < $1`
+if [[ $wts = 0 ]]; then
+   bleu=`sort -k3,3 -gr $1 | head -1 | cut -d' ' -f3`
+   nl=`wc -l < $1`
    echo "$bleu $1 ($nl iters)"
 else
-   sort -k3,3 -gr $1 | head -1 | cut -d' ' -f4- | perl -pe 's/-[a-zA-Z]+//go;s/:/ /go;'
-endif
+   sort -k3,3 -gr $1 | head -1 | cut -d' ' -f4- | perl -pe 's/-[a-zA-Z]+//go; s/:/ /go;'
+fi

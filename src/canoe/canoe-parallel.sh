@@ -284,7 +284,7 @@ function full_translation
          exit -7;
       fi
 
-      # Canoe cannot to load-balancing and append at the same time, so
+      # Canoe cannot do load-balancing and append at the same time, so
       # we remove -append here and post-process the output at the end of this
       # script to perform the -append operation.
       CONFIGARG=`echo "${CANOEOPTS[*]}" | sed "s/-append//g"`

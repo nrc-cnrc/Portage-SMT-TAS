@@ -5,7 +5,7 @@
  *
  * K-Best Rescoring Module
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l.information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
@@ -34,11 +34,11 @@ int main(int argc, char* argv[])
    const Uint M(2);
 
    /*
-      H[0] = [ 1  0 ]
-      [ 0  1 ]
-      H[1] = [ 1  0 ]
-      [ 3 -1 ]
-    */
+   H[0] = [ 1  0 ]
+          [ 0  1 ]
+   H[1] = [ 1  0 ]
+          [ 3 -1 ]
+   */
    vector<uMatrix> vH;
    vH.push_back(uMatrix(K, M));
    vH.back()(0,0) = 1;
@@ -52,9 +52,9 @@ int main(int argc, char* argv[])
    vH.back()(1,1) = -1;
 
    /*
-      p = (1, 0)^T
-      dir = (0, 1)^T
-    */
+   p = (1, 0)^T
+   dir = (0, 1)^T
+   */
    uVector p(M);
    p(0) = 1;
    p(1) = 0;

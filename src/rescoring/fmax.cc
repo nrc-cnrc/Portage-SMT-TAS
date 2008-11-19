@@ -17,6 +17,7 @@
 #include <perm_iterator.h>
 #include <portage_defs.h>
 #include <algorithm> // sort()
+#include <cstring> // memset()
 
 using namespace std;
 using namespace Portage;

@@ -21,6 +21,7 @@
 #include "voc.h"
 #include <vector>
 #include <string>
+#include <iterator> // for ostream_iterator
 
 namespace Portage {
 

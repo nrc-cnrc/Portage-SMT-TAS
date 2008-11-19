@@ -1,0 +1,16 @@
+Phrase: 6 4
+Score: 10
+Phrase: 6 2
+Score: 8
+Phrase: 2 2 4
+Score: 8
+Phrase: 2 2 2
+Score: 6
+Phrase: 2 4 5
+Score: 11
+Phrase: 2 4 3
+Score: 9
+Phrase: 4 5
+Score: 9
+Phrase: 4 3
+Score: 7

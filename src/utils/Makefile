@@ -80,7 +80,7 @@ BINSCRIPTS = \
         outpipe.sh \
         parallel-uniq.pl \
         parse-monitor.sh \
-	process-memory-usage.pl \
+        process-memory-usage.pl \
         psub \
         randomly-choose-n-args.pl \
         remove_stop.pl \
@@ -88,8 +88,9 @@ BINSCRIPTS = \
         reverseffvals.pl \
         run-after.sh \
         run-parallel.sh \
-        r-parallel-d.pl  \
+        r-parallel-d.pl \
         r-parallel-worker.pl \
+        select-line \
         sort-by-length.pl \
         split-listed.pl \
         stableuniq.pl \
