@@ -273,7 +273,7 @@ class HMMAligner : public IBM1 {
                       const vector<string>& tgt_toks, bool use_null);
 
    /**
-    * @copydoc IBM1::count_symmetrized()
+    * @copydoc IBM1::count_symmetrized(const vector<string>&,const vector<string>&,bool,IBM1*)
     * @pre reverse_model must be an HMMAligner*
     *
     * This method's behaviour is affected by useLiangSymVariant: if false,

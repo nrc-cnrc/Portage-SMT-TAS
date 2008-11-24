@@ -177,7 +177,7 @@ if (defined($module_index)) {
       }
 
       print STDERR $code if ($debug);
-      if ($code =~ /[#\*] \@brief\s+(.*?)^\s*[#\*]\s*$/ms) {
+      if ($code =~ /[#\*] \@brief\s+(.*?)^\s*([#\*]\s*$|[#\*]\s*\@|\*\/)/ms) {
          my $oneliner = $1;
          $oneliner =~ s/[#\*\n]//g;
          chomp($oneliner);

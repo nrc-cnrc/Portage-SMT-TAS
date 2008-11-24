@@ -134,7 +134,7 @@ namespace Portage
           * @param refs   translation's references
           * @param sm     smoothing type
           */
-         BLEUstats(const Sentence& trans, const References& refs, int sm = DEFAULT_SMOOTHING);
+         BLEUstats(const Sentence &trans, const References& refs, int sm = DEFAULT_SMOOTHING);
          /**
           * Initializes a new BLEUstats with values computed for the given
           * translation sentence.
@@ -157,13 +157,13 @@ namespace Portage
          //@{
          /**
           * Calculates the ngram matches between the target and its references.
-          * @param tgt_words   target sentence
+          * @param tgt_words   translation
           * @param refs_words  reference sentences.
           * @param sm          smoothing type
           */
-         void init(const Sentence& trans, const References& refs, int sm);
-         void init(const Tokens &tgt_words, const vector<Tokens>& refs_words, int sm);
-         void init(const vector<Uint> &tgt_words, const vector< vector<Uint> >& refs_words, int sm);
+         void init(const Sentence &trans, const References& refs, int sm);
+         void init(const Tokens &trans, const vector<Tokens>& refs_words, int sm);
+         void init(const vector<Uint> &trans, const vector< vector<Uint> >& refs_words, int sm);
          //@}
 
          /**

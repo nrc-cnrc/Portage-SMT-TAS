@@ -172,8 +172,6 @@ class BasicModelGenerator;
        * overriden in subclasses where this is not the case, like distortion.
        *
        * @param trans           previous partial translation
-       * @param next_src_words  the source range for phrases we might add to
-       *                        trans
        * @return inferrable part of score()
        */
       virtual double partialScore(const PartialTranslation &trans)

@@ -142,7 +142,7 @@ namespace Portage
          /**
           * Test for a dual -x/-nox switch, with the results in a "tribool".
           * Use with BOOL_TYPE=bool if a default is desired, or
-          * BOOL_TYPE=optional<bool> if you want to be able to know neither
+          * BOOL_TYPE=optional\<bool\> if you want to be able to know neither
           * switch was found on the command line.
           * @param set_sw   on switch
           * @param reset_sw off switch

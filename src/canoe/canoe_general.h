@@ -173,7 +173,7 @@ namespace Portage
    /// arrays.  We don't want to use a class, because triangular arrays are
    /// double pointers, not a proper object.
    /// Note: it is recommended you don't "use namespace TriangArray", but use
-   /// instead the qualified TriangArray::<fn>() syntax, so that your calls to
+   /// instead the qualified TriangArray::\<fn\>() syntax, so that your calls to
    /// these methods remain self-documenting.
    namespace TriangArray {
 

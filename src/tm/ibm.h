@@ -303,7 +303,7 @@ namespace Portage {
     /**
      * max_{s in src_seq} log(p(tgt_tok|s)).
      * @param src_toks hidden token sequence
-     * @param tgt_toks observed token sequence
+     * @param tgt_tok  observed token sequence
      * @param smooth used in place of 0 probs when calculating logpr()
      */
     virtual double minlogpr(const vector<string>& src_toks,

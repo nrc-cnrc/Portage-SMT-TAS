@@ -206,13 +206,16 @@ protected:
     * and implement or override the virtual methods as described below.
     */
    struct Creator {
-      /// The physical file name of the LM, without any #N marker
+      /// The physical file name of the LM, without any \#N marker
       const string lm_physical_filename;
-      /// If the filename of the LM had a #N marker, N; 0 otherwise
+      /// If the filename of the LM had a \#N marker, N; 0 otherwise
       const Uint naming_limit_order;
 
       /**
-       * This constructor must be called by subclass constructors
+       * This constructor must be called by subclass constructors.
+       * @param lm_physical_filename     filename without any \#N marker
+       * @param[out] naming_limit_order  Set to N if lm_filename has a \#N
+       *                                 marker, 0 otherwise.
        */
       Creator(const string& lm_physical_filename, Uint naming_limit_order);
 
@@ -221,7 +224,6 @@ protected:
        * The base class implemention simply checks that lm_physical_filename
        * exists, and should be overridden in classes where that is not a
        * sufficient check.
-       * @param  lm_filename  name of the language model file
        * @return Returns true if the file exists (and associated files, if any)
        */
       virtual bool checkFileExists();
@@ -230,7 +232,6 @@ protected:
        * Calculate the total size of memory mapped files in lm_filename, if any.
        * The base class implementation returns 0, and should be overridden in
        * classes that use memory mapped IO or embed other PLMs.
-       * @param lm_filename  lm whose size is to be determined
        * @return total size of memory mapped files associated with lm_filename;
        *   0 in case of problems or if the model does not use memory mapped IO.
        */
@@ -256,9 +257,6 @@ private:
     * Get the appropriate Creator for lm_filename, and parse the filename to
     * extract any marker requesting to limit the order.
     * @param lm_filename          LM filename to analyse
-    * @param[out] lm_physical_filename  Set to filename without any #N marker
-    * @param[out] lm_limit_order  Set to N if lm_filename has a #N marker, 0
-    *                             otherwise.
     * @return a Creator of the appropriate subtype for lm_filename.
     */
    static shared_ptr<Creator> getCreator(const string& lm_filename);
@@ -276,7 +274,7 @@ public:
     * @param limit_order   if non-zero, will cause the LM to be treated as
     *                      order limit_order, even if it is actually of a
     *                      higher order.
-    *                      If lm_filename ends in #N, that will also be
+    *                      If lm_filename ends in \#N, that will also be
     *                      treated as if limit_order=N was specified.
     *                      [typical value: 0]
     * @param os_filtered   Opened stream to output the filtered LM.

@@ -393,7 +393,7 @@ public:
     * Set up smoothing: read in file in format:
     * bucket1 D1 R1 Rmean1
     * bucket2 D2 R2 Rmean2
-    * ...
+    * .....
     *
     * where bucket 1 refers to applying smoothing to all phrases 0 < ct(P) <= bucket1 for both forwards and
     * reverse

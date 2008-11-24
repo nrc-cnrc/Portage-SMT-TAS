@@ -150,7 +150,7 @@ BLEUstats::BLEUstats(const Sentence& trans, const References& refs, int sm)
    init(trans, refs, sm);
 }
 
-void BLEUstats::init(const Sentence& trans, const References& refs, int sm)
+void BLEUstats::init(const Sentence &trans, const References& refs, int sm)
 {
    typedef Tokens::const_iterator SIT;
    typedef References::const_iterator RIT;

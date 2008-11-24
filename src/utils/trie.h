@@ -463,7 +463,6 @@ class PTrie {
     * which should return true if key_stack should be kept, false otherwise.
     * When false is returned, the leaf and sub-tree rooted at key_stack are
     * skipped.
-    *
     * Guarantees about key_stack, when calling filter():
     * 1) When key_stack.size() > 1, filter was already called and returned true
     * for each prefix of key_stack.

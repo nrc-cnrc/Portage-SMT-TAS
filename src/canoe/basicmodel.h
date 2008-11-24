@@ -739,7 +739,6 @@ namespace Portage
        * The sum rangePartialScore(trans) + phrasePartialScore(trans.src_words)
        * is used as a heuristic for scoreTranslation(trans).
        * @param trans           The previous partial translation
-       * @param next_src_words  The range for phrases to consider adding
        * @return  the part of the incremental score than can be estimated
        */
       virtual double rangePartialScore(const PartialTranslation& trans);

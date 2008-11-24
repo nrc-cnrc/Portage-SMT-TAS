@@ -49,6 +49,17 @@ public:
     *
     * @param name    The name of a file containing a list of component LMs,
     *                each followed by its weight. 
+    * @param vocab              shared vocab object for all models
+    * @param oov_handling       type of vocabulary
+    * @param oov_unigram_prob   the unigram prob of OOVs (if oov_handling ==
+    *                           ClosedVoc)
+    * @param limit_vocab   whether to restrict the LM to words already in vocab
+    * @param limit_order   if non-zero, will cause the LM to be treated as
+    *                      order limit_order, even if it is actually of a
+    *                      higher order.
+    *                      If lm_filename ends in \#N, that will also be
+    *                      treated as if limit_order=N was specified.
+    *                      [typical value: 0]
     *
     * TODO: relativize the component LM names, like canoe now does with its
     * filenames.

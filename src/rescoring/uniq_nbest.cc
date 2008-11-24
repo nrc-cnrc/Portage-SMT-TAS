@@ -1,6 +1,6 @@
 /**
  * @author George Foster
- * @file uniq_nbest 
+ * @file uniq_nbest.cc
  * @brief Remove duplicates from an nbest list.
  * 
  * 

@@ -127,7 +127,7 @@ protected:
     * Apply alpha smoothing
     * @param num   unsmooted probability's numerator
     * @param denom unsmooted probability's denominator
-    * @param n     number of events over which to distribute alpha
+    * @param N     number of events over which to distribute alpha
     */
    double alpha_smooth(double num, double denom, Uint N) const {
       assert(N>0);

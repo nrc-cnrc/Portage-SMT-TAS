@@ -85,9 +85,7 @@ namespace Portage
           * model score over all alignments from src_sent to tgt_sent,
           * constrained by distLimit.
           * Only phrases matching tgt_sent will be considered.
-          * @param src_sent   The source sentence
-          * @param marked_src_sents Source sentence with mark-up.
-          * @param tgt_sent   The target sentence
+          * @param new_src_sent_info The source sentence and related info
           * @param out        Outout stream
           * @param n          Number of forced alignments per sentence pair to be determined
           * @param noscore    Do not print score of the found alignment

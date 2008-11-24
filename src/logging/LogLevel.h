@@ -77,14 +77,14 @@ namespace Portage
 
             /**
              * Convert the string passed as argument to a level. If the
-             * conversion fails, then this method returns #DEBUG.
+             * conversion fails, then this method returns \#DEBUG.
              * @param sArg string to convert to a LogLevel
              */
             static const log4cxx::LevelPtr& toLevel(const String& sArg);
 
             /**
              * Convert an integer passed as argument to a level. If the
-             * conversion fails, then this method returns #DEBUG.
+             * conversion fails, then this method returns \#DEBUG.
              * @param val numerical LogLevel value to convert to a LogLevel
              */
             static const log4cxx::LevelPtr& toLevel(int val);

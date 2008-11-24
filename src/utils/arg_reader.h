@@ -165,9 +165,9 @@ public:
     * Get value for switch sw.
     * Use this version when you don't want a default value, but rather you want
     * to be able to tell that it wasn't specified at all on the command line.
-    * To use this method, you must #include <boost/optional/optional.hpp>.
+    * To use this method, you must \#include <boost/optional/optional.hpp>.
     * Note that this method should not be used with T=bool - use
-    * testAndSetOrReset() with optional<bool> instead.
+    * testAndSetOrReset() with optional\<bool\> instead.
     * @param sw switch to test
     * @param val place to store resulting value - not touched if sw isn't set,
     *        which means if val was uninitialied, it will remain uninitialized
@@ -195,7 +195,7 @@ public:
    /**
     * Test for a dual -x/-nox switch.
     * Use with BOOL_TYPE=bool if a default is desired, or
-    * BOOL_TYPE=optional<bool> if you want to be able to know neither switch
+    * BOOL_TYPE=optional\<bool\> if you want to be able to know neither switch
     * was found on the command line.
     * @param set_sw   on switch
     * @param reset_sw off switch

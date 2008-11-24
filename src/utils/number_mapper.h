@@ -52,8 +52,7 @@ class baseNumberMapper {
          }
          /**
          * Default constructor.
-         * @param map_type  the number mapper type.
-         * @param token     token to replace digits.
+         * @param mapper  the number mapper.
          */
          functor(baseNumberMapper* const mapper)
          : mapper(mapper)

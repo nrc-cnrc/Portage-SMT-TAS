@@ -17,9 +17,9 @@
 
 #include <iostream>
 #include <numeric>
-#include <str_utils.h>
+#include "str_utils.h"
+#include "gfstats.h"
 #include "word_align.h"
-#include <gfstats.h>
 
 using namespace Portage;
 
@@ -312,7 +312,7 @@ IBMOchAligner::IBMOchAligner(WordAlignerFactory& factory,
          exclude = true;
       else {
          bad_constructor_argument = true;
-         error(ETWarn, "ignoring invalid argument to IBMOchAligner: ", toks[i].c_str());
+         error(ETFatal, "invalid argument to IBMOchAligner: %s", toks[i].c_str());
       }
    }
 }
@@ -364,7 +364,8 @@ double IBMOchAligner::align(const vector<string>& toks1, const vector<string>& t
                for (int i = -1; i <= 1; ++i) {
                   if (i == 0 && j == 0) continue;
                   if (addTest(ii+i, jj+j, sets1)) {
-                     new_pairs.push_back(ii+i); new_pairs.push_back(jj+j);
+                     new_pairs.push_back(ii+i);
+                     new_pairs.push_back(jj+j);
                   }
                }
             }
@@ -377,7 +378,8 @@ double IBMOchAligner::align(const vector<string>& toks1, const vector<string>& t
             if (sets1[i].empty() && al1[i] < al2.size()) {
                sets1[i].push_back(al1[i]);
                connected2[al1[i]] = true;
-               new_pairs.push_back(i); new_pairs.push_back(al1[i]);
+               new_pairs.push_back(i);
+               new_pairs.push_back(al1[i]);
             }
          }
          for (Uint j = 0; j < connected2.size(); ++j) {
@@ -386,7 +388,8 @@ double IBMOchAligner::align(const vector<string>& toks1, const vector<string>& t
                vector<Uint>::iterator p = lower_bound(sets1[i].begin(), sets1[i].end(), j);
                sets1[i].insert(p, j);
                connected2[j] = true;
-               new_pairs.push_back(al2[j]); new_pairs.push_back(j);
+               new_pairs.push_back(al2[j]);
+               new_pairs.push_back(j);
             }
          }
       }

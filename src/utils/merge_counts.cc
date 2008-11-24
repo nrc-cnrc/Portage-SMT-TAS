@@ -1,6 +1,6 @@
 /**
  * @author Samuel Larkin
- * @file merge_counts 
+ * @file merge_counts.cc
  * @brief Merge sort files by talling counts.
  * 
  * 

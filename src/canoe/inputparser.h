@@ -124,7 +124,7 @@ namespace Portage
       /**
        * Reads the class attribute of a rule.
        * class="XYZ"
-       * @param c           The last character read is stored here.
+       * @param lastChar    The last character read is stored here.
        * @param class_name  will hold XYZ.
        * @return Returns false if a parsing error occured.
        */

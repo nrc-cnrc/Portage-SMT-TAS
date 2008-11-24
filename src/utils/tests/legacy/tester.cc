@@ -1,6 +1,7 @@
 /**
  * @author George Foster
- * @file utils/tester.cc Program to run class tests.
+ * @file utils/tester.cc
+ * @brief Program to run class tests.
  * 
  * 
  * COMMENTS: 

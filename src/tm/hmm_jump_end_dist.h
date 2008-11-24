@@ -18,8 +18,8 @@
 
 namespace Portage {
 
-/// HMM jump strategy with distinct distributions for jumping from <s> or to
-/// </s>, but not other conditioning.  This strategy inherits from
+/// HMM jump strategy with distinct distributions for jumping from \<s\> or to
+/// \</s\>, but not other conditioning.  This strategy inherits from
 /// HMMJumpSimple because it is uses the parameters of that strategy and adds a
 /// few more to it.
 class HMMJumpEndDist : public HMMJumpSimple {

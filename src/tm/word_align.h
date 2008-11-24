@@ -1,13 +1,9 @@
 /**
  * @author George Foster
- * @file word_align.h  The word alignment module used in gen_phrase_tables:
+ * @file word_align.h
+ * @brief The word alignment module used in gen_phrase_tables:
  * includes abstract interface, factory class, and aligner classes.
  *
- *
- * COMMENTS:
- *
- * The word alignment module used in gen_phrase_tables: includes abstract
- * interface, factory class, and aligner classes.
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology

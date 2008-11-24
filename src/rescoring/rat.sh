@@ -90,9 +90,9 @@ cp-opts  Options to canoe-parallel.sh (e.g., -n). Only the options that come
 -bleu    Perform training using BLEU as the metric [do]
 -per     Perform training using PER as the metric [don't]
 -wer     Perform training using WER as the metric [don't]
--dep     Check that the nbest is more recent than the canoe.ini.  This mimic
+-dep     Check that the nbest is more recent than the canoe.ini, and regenerate
          it if not.  Similarly, feature functions are regenerated unless they
-         are more recent than the nbest list.  This mimic "make" because the
+         are more recent than the nbest list.  This mimics "make" because the
          nbest depends on the canoe.ini [don't regenerate existing files]
 -no-filt Do not perform hard-filter on the phrase tables. [do]
 

@@ -10,7 +10,7 @@
  *
  * Example:
  * 
- * #include "string_hash.h"
+ * \#include "string_hash.h"
  * hash_map<string, MyValType> my_map
  * hash_map<const char*, MyValType, hash<const char*>, str_equal> my_map2
  *

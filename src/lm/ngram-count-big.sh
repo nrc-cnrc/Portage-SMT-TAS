@@ -26,7 +26,11 @@ usage() {
 Usage: ngram-count-big.sh [options] output-ngrams text1[.gz] text2[.gz] ...
 
   Make ngram count files for each input text file, as well as a single count
-  file merging all of them, output-ngrams
+  file merging all of them, output-ngrams.
+
+NOTE:
+  Merging doesn't require a lot of memory, you need only plan enough memory
+  to hold the chunks in memory.
 
 Options:
 

@@ -195,7 +195,8 @@ class SimpleHistogram {
 
       /**
        * Displays the histogram.
-       * @param out      where to output the histogram
+       * @param out      where to output the histogram.
+       * @param identation a string of spaces for pretty printing the results.
        */
       void display(ostream& out, const char* identation = NULL) const
       {

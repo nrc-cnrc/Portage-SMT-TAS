@@ -1,6 +1,7 @@
 /**
  * @author George Foster
- * @file eval_word_alignment  Evaluate word alignment quality
+ * @file eval_word_alignment.cc
+ * @brief Evaluate word alignment quality
  * 
  * 
  * COMMENTS: 

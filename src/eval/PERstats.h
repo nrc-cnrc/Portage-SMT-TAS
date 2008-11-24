@@ -1,6 +1,6 @@
 /**
  * @author Samuel Larkin
- * @file PerStats.h  PER stats object for powell's training.
+ * @file PERstats.h  PER stats object for powell's training.
  * 
  * $Id$
  * 

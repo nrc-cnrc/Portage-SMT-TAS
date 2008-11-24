@@ -152,7 +152,7 @@ public:
     * @param limit_order   if non-zero, will cause the LM to be treated as
     *                      order limit_order, even if it is actually of a
     *                      higher order.
-    *                      If lm_filename ends in #N, that will also be
+    *                      If lm_filename ends in \#N, that will also be
     *                      treated as if limit_order=N was specified.
     *                      [typical value: 0]
     * @param os_filtered   Opened stream to output the filtered LM.

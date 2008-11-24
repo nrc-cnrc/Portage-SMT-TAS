@@ -1,6 +1,8 @@
+// $Id$
 /**
  * @author Write your name here
- * @file prog.cc Briefly describe your program here
+ * @file prog.cc
+ * @brief Briefly describe your program here
  * 
  * 
  * Technologies langagieres interactives / Interactive Language Technologies

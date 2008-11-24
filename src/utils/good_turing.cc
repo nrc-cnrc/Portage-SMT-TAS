@@ -1,7 +1,7 @@
 /**
- * @author George Foster
  * @file good_turing.cc 
  * @brief Good-Turing frequency smoothing.
+ * @author George Foster
  * 
  * 
  * COMMENTS: 

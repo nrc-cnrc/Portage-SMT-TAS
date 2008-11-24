@@ -107,7 +107,7 @@ public:
     * Get sum (L(tgt)| L(src)).
     * @param src source index
     * @param tgt target index
-    * @return Returns sum (L(tgt)| L(src)) = #lengths[src][tgt]
+    * @return Returns sum (L(tgt)| L(src)) = \#lengths[src][tgt]
     *	= probability that the pair (src, tgt) will occur.
     */
    inline virtual Uint sum(Uint src, Uint tgt) const {
@@ -117,7 +117,7 @@ public:
    /**
     * Get marginal sum (srcL == src).
     * @param src source index
-    * @return Returns marginal sum (srcL == src) = #src phrases of length src.
+    * @return Returns marginal sum (srcL == src) = \#src phrases of length src.
     */
    inline virtual Uint sum_src(Uint src) const {
       return srcMargins[src > MAX ? MAX-1 : src-1];
@@ -126,7 +126,7 @@ public:
    /**
     * Get marginal sum (tgtL == tgt).
     * @param tgt target index
-    * @return Returns marginal sum (tgtL == tgt) = #tgt phrases of length tgt.
+    * @return Returns marginal sum (tgtL == tgt) = \#tgt phrases of length tgt.
     */
    inline virtual Uint sum_tgt(Uint tgt) const {
       return tgtMargins[tgt > MAX ? MAX-1 : tgt-1];
