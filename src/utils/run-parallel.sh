@@ -305,29 +305,31 @@ fi
 # clean up no matter what happens.
 trap '
    if [ -n "$WORKER_JOBIDS" ]; then
-      qdel `cat $WORKER_JOBIDS` >& /dev/null
+      WORKERS=`cat $WORKER_JOBIDS`
+      qdel $WORKERS >& /dev/null
+   else
+      WORKERS=""
    fi
    if ps -p $DEAMON_PID >& /dev/null; then
       kill $DEAMON_PID
    fi
+   if [[ $WORKERS ]]; then
+      CLEAN_UP_MAX_DELAY=20
+      while qstat $WORKERS 2> /dev/null | grep " [RQE] " >& /dev/null; do
+         if [[ $CLEAN_UP_MAX_DELAY = 0 ]]; then break; fi
+         CLEAN_UP_MAX_DELAY=$((CLEAN_UP_MAX_DELAY - 1))
+         sleep 1
+      done
+   fi
    for x in $WORKDIR/log.worker-*; do
       if [ -f $x ]; then
-         echo $x >> run-parallel-logs-${PBS_JOBID-local}
-         echo "" >> run-parallel-logs-${PBS_JOBID-local}
-         cat $x >> run-parallel-logs-${PBS_JOBID-local}
-         echo "" >> run-parallel-logs-${PBS_JOBID-local}
+         echo $x
+         echo ""
+         cat $x
+         echo ""
       fi
-   done
-   CLEAN_UP_MAX_DELAY=20
-   WORKER_COUNT=`ls $WORKDIR/err.worker-* 2> /dev/null | wc -l`
-   if [[ ! $NOLOCAL ]]; then WORKER_COUNT=$((WORKER_COUNT - 1)); fi
-   while (( $CLEAN_UP_MAX_DELAY > 0 && `ls $WORKDIR/log.worker-* 2> /dev/null | wc -l` < $WORKER_COUNT ))
-   do
-      sleep 1
-      CLEAN_UP_MAX_DELAY=$((CLEAN_UP_MAX_DELAY - 1))
-   done
-   sleep 1
-   rm -rf psub-dummy-output* $WORKDIR
+   done > run-parallel-logs-${PBS_JOBID-local}
+   rm -rf $WORKDIR
    exit
 ' 0 1 2 3 13 14 15
 
@@ -584,7 +586,7 @@ fi
 #  - >&2 (not escaped) sends psub's output to STDERR of this script.
 
 SUBMIT_CMD=(psub
-            -o psub-dummy-output
+            -o $WORKDIR/psub-dummy-output
             -noscript
             $PSUBOPTS)
 
@@ -657,6 +659,17 @@ if [[ $CLUSTER ]] && qsub -t 2>&1 | grep -q 'option requires an argument'; then
       echo "${SUBMIT_CMD[@]}" -t $FIRST_PSUB-$(($NUM-1)) -N $WORKER_NAME -e $LOG r-parallel-worker.pl -host=$MY_HOST -port=$MY_PORT $QUOTA \> $OUT$ID 2\> $ERR$ID >&2
    fi
    "${SUBMIT_CMD[@]}" -t $FIRST_PSUB-$(($NUM-1)) -N $WORKER_NAME -e $LOG r-parallel-worker.pl -host=$MY_HOST -port=$MY_PORT $QUOTA \> $OUT$ID 2\> $ERR$ID >> $WORKER_JOBIDS
+   # qstat needs individual job ids, and fails when given the array id, so we
+   # need to expand them by hand into the $WORKER_JOBIDS file.
+   WORKER_BASE_JOBID=`cat $WORKER_JOBIDS`
+   if [[ $WORKER_BASE_JOBID =~ '([0-9][0-9]*)(.*)' ]]; then
+      WORKER_BASE_JOBID_NUM=${BASH_REMATCH[1]}
+      WORKER_BASE_JOBID_SUFFIX=${BASH_REMATCH[2]}
+      cat /dev/null > $WORKER_JOBIDS
+      for (( i = FIRST_PSUB; i < NUM; ++i )); do
+         echo $WORKER_BASE_JOBID_NUM-$i$WORKER_BASE_JOBID_SUFFIX >> $WORKER_JOBIDS
+      done
+   fi
 else
    for (( i = $FIRST_PSUB ; i < $NUM ; ++i )); do
       # These should not end up being used by the commands, only by the
@@ -692,7 +705,7 @@ if [ $CLUSTER ]; then
    WORKERS=`cat $WORKER_JOBIDS 2> /dev/null`
    if [ -n "$WORKERS" ]; then
       for (( i = 0; i < 20; ++i )); do
-         if qstat $WORKERS 2> /dev/null | grep . > /dev/null ; then
+         if qstat $WORKERS 2> /dev/null | grep ' [QRE] ' > /dev/null ; then
             #echo Some workers are still running >&2
             sleep 1
          else
@@ -709,7 +722,7 @@ if [ $CLUSTER ]; then
    fi
 
    WORKERS=""
-   WORKER_JOBIDS="/dev/null"
+   WORKER_JOBIDS=""
 else
    # In non-cluster mode, just wait after everything, it gives us the exact
    # time when things are completely done.
