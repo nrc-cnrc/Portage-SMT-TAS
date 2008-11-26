@@ -77,8 +77,8 @@ static bool isWhite(char ch)
 static bool isNameBegChar(char ch)
 {
    return 
-      ch >= 'a' && ch <= 'z' ||
-      ch >= 'A' && ch <= 'Z' ||
+      (ch >= 'a' && ch <= 'z') ||
+      (ch >= 'A' && ch <= 'Z') ||
       ch == ':' || ch == '_' ||
       ch & 0x80;
 }
@@ -88,7 +88,7 @@ static bool isNameChar(char ch)
 {
    return
       isNameBegChar(ch) ||
-      ch >= '0' && ch <= '9' ||
+      (ch >= '0' && ch <= '9') ||
       ch == '.' || ch == '-';
 }
 
