@@ -1,0 +1,118 @@
+# $Id$
+# @file Makefile.user-conf
+# @brief User-configurable building parameters for PORTAGEshared
+# @author Eric Joanis
+#
+# Technologies langagieres interactives / Interactive Language Technologies
+# Inst. de technologie de l'information / Institute for Information Technology 
+# Conseil national de recherches Canada / National Research Council Canada 
+# Copyright 2008, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2008, Her Majesty in Right of Canada 
+
+
+# This file contains all the user-configurable variables used to build
+# PORTAGEshared.  It needs to be modified to indicate where various packages
+# are located and, in the case of optinal dependencies, whether their use is
+# desired.
+
+
+# =============================================================================
+# REQUIRED PACKAGES - you need to install these dependencies and adjust the
+# following variables appropriately to build PORTAGEshared.
+
+# ------------------------------------
+# Variable:        BOOST_ROOT
+# Possible values: path to the directory where boost is installed.
+#                  $BOOST_ROOT/lib will be added to the library search path
+#                  for linking, and $BOOST_ROOT/include/boost-<version>
+#                  will be added to the include search path for compiling.
+# Notes:           Uncomment and edit this line to tell the compiler where
+#                  to find boost, or define it in your shell's init script.
+
+#BOOST_ROOT=/full/path/to/boost
+
+
+# =============================================================================
+# OPTIONAL PACKAGES - installing these dependencies enables some optional
+# functionalities in PORTAGEshared.
+
+# ------------------------------------
+# Variable:        LOGGING
+# Possible values: defined to "NONE" disables logging, any other value or
+#                  undefined enables logging.
+# Notes:           Comment out this line to enable logging - requires log4cxx
+
+LOGGING?=NONE
+
+# ------------------------------------
+# Variable:        ICU
+# Possible values: "NONE": Do not use ICU, or unicode-compliant casemapping.
+#                  Empty or undefined: Use ICU, which installed in a standard
+#                  location.
+#                  /full/path/to/icu: Use ICU, looking for its include files in
+#                  $(ICU)/include, and its libraries in $(ICU)/lib.  In this
+#                  case, you will also need to make sure the environment
+#                  variable $LD_LIBRARY_PATH includes $(ICU)/lib. 
+# Notes:           Comment out the ICU?=NONE line below to enable Unicode-
+#                  compliant casemapping in PORTAGEshared.  Requires ICU.  
+#                  Uncomment and edit the next line if needed.
+
+#ICU?=NONE
+ICU=$(HOME)/pkgs/icu-4.0
+
+# ------------------------------------
+# Variable:        PORTAGE_OPENMP
+# Possible values: specifies the compiler flag to enable OpenMP 
+#                  (requires g++ 4.2 or more recent)
+# Notes:           Uncomment this line to enable multi-threading, currently
+#                  only used by rescore_train.  (Other programs are
+#                  parallelized via our various *-parallel.sh scripts).
+
+#PORTAGE_OPENMP?=-fopenmp
+
+# ------------------------------------
+# Variable:        ACE
+# Possible values: defined to "NONE" disables the use of ACE (and the
+#                  compilation of paddle_server and paddle_client, the web
+#                  demo), any other value or undefined enables the use of ACE.
+#                  If the ACE variable is undefined or empty, it is assumed
+#                  that ACE can be found in standard include and library paths.
+#                  The ACE variable can also be set to the full path where ACE 
+#                  was installed, in which case the compile will look for ACE
+#                  include files in $ACE/include, and ACE libraries in
+#                  $ACE/lib.
+# Notes:           Comment out the ACE?=NONE line to compile the web demo.
+#                  Requires ACE.  Uncomment and edit the next line if needed.
+
+ACE?=NONE
+#ACE=/full/path/to/ace
+
+# ------------------------------------
+# Variable:        PORTAGE_NO_CTAGS
+# Possible values: defined to any non-blank value turns off the use of ctags
+# Notes:           Uncomment this line if you don't have the ctags program or
+#                  if you don't use vi or a related editor.  Equivalently, you
+#                  can export/setenv PORTAGE_NO_CTAGS to 1 in your .<shell>rc
+#                  file to disable the use of etags.
+
+#PORTAGE_NO_CTAGS?=1
+
+# ------------------------------------
+# Variable:        PORTAGE_NO_ETAGS
+# Possible values: defined to any non-blank value turns off the use of etags
+# Notes:           Uncomment this line if you don't have the etags program or
+#                  if you don't use emacs or a related editor.  Equivalently,
+#                  you can export/setenv PORTAGE_NO_ETAGS to 1 in your
+#                  .<shell>rc file to disable the use of etags.
+
+#PORTAGE_NO_ETAGS?=1
+
+# ------------------------------------
+# Variable:        MYLATEX
+# Possible values: the command line for invoking latex, or "NONE" to disable
+#                  the compilation of documents
+# Notes:           Uncomment the "MYLATEX = NONE" line if you don't have latex.
+MYLATEX ?= latex -interaction=batchmode
+#MYLATEX = NONE
+
+

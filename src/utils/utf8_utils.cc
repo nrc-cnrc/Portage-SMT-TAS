@@ -14,13 +14,23 @@
  * Copyright 2005, Her Majesty in Right of Canada
  */
 
-#include <iostream>
-#include <unicode/utypes.h>
-#include <unicode/uchriter.h>
 #include "utf8_utils.h"
+#include "errors.h"
 
 using namespace Portage;
 using namespace std;
+
+#ifndef NOICU
+
+#include <iostream>
+#include <unicode/utypes.h>
+#include <unicode/uchriter.h>
+
+UTF8Utils::UTF8Utils()
+   : u16(1)
+   , output(1)
+   , ecode(U_ZERO_ERROR)
+{}
 
 bool UTF8Utils::status(string* msg)
 {
@@ -134,3 +144,39 @@ string& UTF8Utils::decapitalize(const string& in, string& out)
 
    return out;
 }
+
+#else // if NOICU
+
+static void ICUNotCompiled() {
+   error(ETFatal,
+      "Compilation with ICU was disabled at build time.\n"
+      "To use casemapping on utf8 data, install ICU, edit the ICU variable in\n"
+      "PORTAGEshared/src/Makefile.user-conf and recompile.");
+}
+
+UTF8Utils::UTF8Utils() {}
+string& UTF8Utils::toUpper(const string& in, string& out)
+{
+   ICUNotCompiled();
+   return out;
+}
+
+string& UTF8Utils::toLower(const string& in, string& out)
+{
+   ICUNotCompiled();
+   return out;
+}
+
+string& UTF8Utils::capitalize(const string& in, string& out)
+{
+   ICUNotCompiled();
+   return out;
+}
+
+string& UTF8Utils::decapitalize(const string& in, string& out)
+{
+   ICUNotCompiled();
+   return out;
+}
+
+#endif // NOICU

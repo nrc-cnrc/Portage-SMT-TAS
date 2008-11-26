@@ -14,8 +14,10 @@
  */
 #include <iostream>
 #include <fstream>
-#include <file_utils.h>
+#include <cstdlib>
+#include "file_utils.h"
 #include "arg_reader.h"
+#include "printCopyright.h"
 #include "utf8_utils.h"
 
 using namespace Portage;
@@ -50,7 +52,17 @@ static void getArgs(int argc, char* argv[]);
 
 int main(int argc, char* argv[])
 {
+   printCopyright(2007, "utf8_casemap");
    getArgs(argc, argv);
+
+#ifdef NOICU
+
+   error(ETFatal,
+      "Compilation with ICU was disabled at build time.\n"
+      "To use this program, install ICU, edit the ICU variable in\n"
+      "PORTAGEshared/src/Makefile.user-conf and recompile.");
+
+#else
 
    iSafeMagicStream istr(infile);
    oSafeMagicStream ostr(outfile);
@@ -81,6 +93,9 @@ int main(int argc, char* argv[])
       if (verbose && !u8.status(&msg))
          error(ETWarn, "Line %d not converted, error code is %s", lineno, msg.c_str());
    }
+
+#endif // NOICU
+
 }
 
 // arg processing

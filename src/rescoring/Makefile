@@ -71,7 +71,7 @@ DOCUMENTS=rescoring_overview.pdf ochlinemax.pdf
 
 EXTRA_LIBS=$(LOGGING_LIB)
 
-DYNLIBS=-lpthread -licuuc
+DYNLIBS=-lpthread $(LIBICU)
 
 ifdef NO_PORTAGE_OPENMP
 MODULE_CF=-Wno-non-virtual-dtor -fno-strict-aliasing -Wno-uninitialized

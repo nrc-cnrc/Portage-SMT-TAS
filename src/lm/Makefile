@@ -31,7 +31,7 @@ MODULE_DEPENDS =
 
 EXTRA_LIBS = $(TPT_LIBS)
 
-DYNLIBS = -licuuc
+DYNLIBS = $(LIBICU)
 
 include ../build/Makefile.incl
 -include Makefile.depend

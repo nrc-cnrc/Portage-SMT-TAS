@@ -9,6 +9,7 @@
  * Copyright 2007, Her Majesty in Right of Canada
  */
 #include "casemap_strings.h"
+#include "errors.h"
 
 using namespace Portage;
 
@@ -17,8 +18,16 @@ void CaseMapStrings::init()
    if (loc.name().find("utf8", 0) != string::npos ||
        loc.name().find("utf-8", 0) != string::npos ||
        loc.name().find("UTF8", 0) != string::npos ||
-       loc.name().find("UTF-8", 0) != string::npos)
+       loc.name().find("UTF-8", 0) != string::npos) {
+#ifndef NOICU
       utf8 = new UTF8Utils();
+#else
+      error(ETFatal,
+         "Compilation with ICU was disabled at build time.\n"
+         "To use casemapping with a utf8 locale, install ICU, edit the ICU variable in\n"
+         "PORTAGEshared/src/Makefile.user-conf and recompile.");
+#endif
+   }
 }
 
 CaseMapStrings::CaseMapStrings(const char* loc_name) :

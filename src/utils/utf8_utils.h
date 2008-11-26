@@ -28,13 +28,16 @@
 
 #include <vector>
 #include <string>
+#ifndef NOICU
 #include <unicode/ustring.h>
+#endif
 #include "portage_defs.h"
 
 namespace Portage {
 
 class UTF8Utils {
 
+#ifndef NOICU
    vector<UChar> u16;
    vector<char> output;
    UErrorCode ecode;
@@ -42,13 +45,14 @@ class UTF8Utils {
    bool convToU16(const string& in); // in -> U16
    bool convFromU16(string& out); // U16 -> out
    void truncateU16AfterFirst(); // chop U16 after 1st codepoint
+#endif
 
 public:
 
    /**
-    * Construct.
+    * Constructor.
     */
-   UTF8Utils() : u16(1), output(1), ecode(U_ZERO_ERROR) {}
+   UTF8Utils();
 
    /**
     * Return the status of the most recent operation.

@@ -1,31 +1,14 @@
 # $Id$# @file Makefile
 # @file Makefile
-# 
-# Portage API
-# George Foster
+# @brief Portage API Makefile
+# @author George Foster
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology 
 # Conseil national de recherches Canada / National Research Council Canada 
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada 
-# 
-# This is the Makefile for this module.
 
-# =============================================================================
-# USER CONFIGURABLE VARIABLE
-
-# Variable:        ACE
-# Location:        This variable is not defined here, but in api/Makefile.
-#                  It is documented here for information purposes only.
-# Possible values: defined to "NONE" disables the use of ACE (and the
-#                  compilation of paddle_server and paddle_client, the web
-#                  demo), any other value or undefined enables the use of ACE.
-# Notes:           Comment out this line to compile the web demo - requires ACE
-ACE=NONE
-
-# END OF USER CONFIGURABLE VARIABLE
-# =============================================================================
 
 # Note: you need the Portage dependency libraries to be available in the
 # library and include search paths.  These paths should be given by
@@ -33,6 +16,10 @@ ACE=NONE
 # environment variables, type the following (in bash):
 #  export LIBRARY_PATH=$LIBRARY_PATH:/export/projets/portage/lib
 #  export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/export/projets/portage/include
+
+# Redundantly include user configuration variables - we need to know early what
+# ACE is set to in this makefile.
+include ../Makefile.user-conf
 
 ifeq ($(ACE), NONE)
    # When ACE is not available, we don't use the default INCLUDE and SOURCES,
@@ -68,10 +55,14 @@ DOCUMENTS=
 EXTRA_LIBS=$(LOGGING_LIB)
 
 ifneq ($(ACE), NONE)
-   DYNLIBS=-lACE
+   DYNLIBS=-lACE $(LIBICU)
+   ifneq ($(ACE),)
+      MODULE_CF=-I$(ACE)/include
+      MODULE_LF=-L$(ACE)/lib
+   endif
+else
+   DYNLIBS= $(LIBICU)
 endif
-
-MODULE_CF=
 
 MODULE_DEPENDS=canoe tm lm logging
 

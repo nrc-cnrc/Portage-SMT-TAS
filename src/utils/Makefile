@@ -119,4 +119,4 @@ legacy_test_trie: tests/legacy/test_trie tests/data/test_trie.in.txt \
            diff tests/data/test_trie.out.txt -
 
 # Some programs need extra dynamic libraries
-utf8_casemap: DYNLIBS += -licuuc
+utf8_casemap: DYNLIBS += $(LIBICU)

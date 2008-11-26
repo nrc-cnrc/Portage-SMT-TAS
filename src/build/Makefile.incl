@@ -17,77 +17,8 @@
 # Copyright 2005, Her Majesty in Right of Canada
 # =============================================================================
 
-# =============================================================================
-# USER CONFIGURABLE VARIABLES
-#
-# This Makefile is intended to be used as is, expect for the following
-# variables
-
-# Variable:        LOGGING
-# Possible values: defined to "NONE" disables logging, any other value or
-#                  undefined enables logging.
-# Notes:           Comment out this line to enable logging - requires log4cxx
-LOGGING?=NONE
-
-# Variable:        BOOST_ROOT
-# Possible values: path to the directory where boost is installed.
-#                  $BOOST_ROOT/lib will be added to the library search path
-#                  for linking, and $BOOST_ROOT/include/boost-<version>
-#                  will be added to the include search path for compiling.
-# Notes:           Uncomment and edit this line to tell the compiler where
-#                  to find boost, or define it in your shell's init script.
-#BOOST_ROOT=/full/path/to/boost
-
-# Variable:        ICU_ROOT
-# Possible values: path to the directory where the ICU libraries are installed.
-#                  $ICU_ROOT/lib will be added to the library search path for
-#                  linking, and $ICU_ROOT/include will be added to the include
-#                  search path for compiling.
-# Notes:           Uncomment and edit this line to enable Unicode-compliant
-#                  casemapping in PORTAGEshared.
-
-# Variable:        PORTAGE_OPENMP
-# Possible values: specifies the compiler flag to enable OpenMP 
-#                  (requires g++ 4.2 or more recent)
-# Notes:           Uncomment this line to enable multi-threading, currently
-#                  only used by rescore_train.  (Other programs are
-#                  parallelized via our various *-parallel.sh scripts).
-#PORTAGE_OPENMP?=-fopenmp
-
-# Variable:        ACE
-# Location:        This variable is not defined here, but in api/Makefile.
-#                  It is documented here for information purposes only.
-# Possible values: defined to "NONE" disables the use of ACE (and the
-#                  compilation of paddle_server and paddle_client, the web
-#                  demo), any other value or undefined enables the use of ACE.
-# Notes:           Comment out the "ACE=NONE" line in api/Makefile to compile
-#                  the web demo - requires ACE
-
-# Variable:        PORTAGE_NO_CTAGS
-# Possible values: defined to any non-blank value turns off the use of ctags
-# Notes:           Uncomment this line if you don't have the ctags program or
-#                  if you don't use vi or a related editor.  Equivalently, you
-#                  can export/setenv PORTAGE_NO_CTAGS to 1 in your .<shell>rc
-#                  file to disable the use of etags.
-#PORTAGE_NO_CTAGS?=1
-
-# Variable:        PORTAGE_NO_ETAGS
-# Possible values: defined to any non-blank value turns off the use of etags
-# Notes:           Uncomment this line if you don't have the etags program or
-#                  if you don't use emacs or a related editor.  Equivalently,
-#                  you can export/setenv PORTAGE_NO_ETAGS to 1 in your
-#                  .<shell>rc file to disable the use of etags.
-#PORTAGE_NO_ETAGS?=1
-
-# Variable:        MYLATEX
-# Possible values: the command line for invoking latex, or "NONE" to disable
-#                  the compilation of documents
-# Notes:           Uncomment the "MYLATEX = NONE" line if you don't have latex.
-MYLATEX ?= latex -interaction=batchmode
-#MYLATEX = NONE
-
-# END OF USER CONFIGURABLE VARIABLES
-# =============================================================================
+# Read in all user-configurable variables
+include ../Makefile.user-conf
 
 # Default values
 DOXYFILE ?= ../build/Doxyfile
@@ -127,14 +58,20 @@ ifdef BOOST_ROOT
    endif
 endif
 
-# places to find things; include the -L flag, eg -L/my-other-lib-dir
-ifdef PORTAGE
-   OTHER_INC_DIRS = $(BOOST_INC_DIR) -isystem$(PORTAGE)/include
-   OTHER_LIB_DIRS = $(BOOST_LIB_DIR) -L$(PORTAGE)/lib
+ifneq ($(ICU), NONE)
+   LIBICU=-licuuc
+   ifneq ($(ICU),)
+      ICU_INC_DIR=-isystem$(ICU)/include
+      ICU_LIB_DIR=-L$(ICU)/lib
+   endif
 else
-   OTHER_INC_DIRS = $(BOOST_INC_DIR) -isystem/home/portage/include
-   OTHER_LIB_DIRS = $(BOOST_LIB_DIR) -L/home/portage/lib
+   ICU_INC_DIR=-DNOICU
 endif
+
+# places to find things; include the -L flag, eg -L/my-other-lib-dir
+PORTAGE?=/home/portage
+OTHER_INC_DIRS = $(BOOST_INC_DIR) $(ICU_INC_DIR) -isystem$(PORTAGE)/include
+OTHER_LIB_DIRS = $(BOOST_LIB_DIR) $(ICU_LIB_DIR) -L$(PORTAGE)/lib
 
 # lib and include directories due to MODULE_DEPENDS
 MODULE_LIB_DIR = $(foreach DIR, $(MODULE_DEPENDS), -L../$(DIR))
