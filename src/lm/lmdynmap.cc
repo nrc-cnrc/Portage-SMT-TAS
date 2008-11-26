@@ -34,11 +34,11 @@ Syntax for LMDynMap: DynMap;MAP;LMDESC, where:\n\
 <LMDESC> is a normal LM filename.\n\
 \n\
 Examples:\n\
-   LMDynMap;ident;file.lm.gz\n\
-   LMDynMap;lower;file.lm.gz\n\
-   LMDynMap;lower-fr_CA.iso88591;file.lm.gz\n\
-   LMDynMap;simpleNumber;file.lm.gz\n\
-   LMDynMap;prefixNumber;file.lm.gz\n\
+   DynMap;ident;file.lm.gz\n\
+   DynMap;lower;file.lm.gz\n\
+   DynMap;lower-fr_CA.iso88591;file.lm.gz\n\
+   DynMap;simpleNumber;file.lm.gz\n\
+   DynMap;prefixNumber;file.lm.gz\n\
 ";
 
 LMDynMap::Creator::Creator(
