@@ -24,7 +24,7 @@ Usage: make-distro.sh [-h(elp)] [-bin] [-nosrc] [-licence PROJECT] [-n]
        [-patch-from OLD_CD_DIR:PREREQ_TOKEN
           [-patch-from OLD_CD_DIR2:PREREQ_TOKEN2 [...]]]
        [-aachen] [-smart-bin] [-smart-src] [-can-univ] [-can-biz]
-       [-d cvs_dir]
+       [-d cvs_dir] [-framwork FRAMEWORK]
        -dir OUTPUT_DIR
 
   Make a PORTAGEshared distribution folder, ready to burn on CD or copy to a
@@ -68,6 +68,7 @@ Options:
                 For cutting and pasting for the -can-univ distro:
                   -patch-from v1.0:2004-2006,
                   -patch-from v1.1:PORTAGEshared_v1.1
+  -framework    Include framework from CVS repository FRAMEWORK.
 
 Canned options for specific licensees:
 
@@ -140,6 +141,7 @@ while [ $# -gt 0 ]; do
                         COMPILE_HOST=leclerc; ARCHIVE_NAME=BinOnly;;
    -altera)             LICENCE=ALTERA; ARCHIVE_NAME=Altera;;
    -can-biz)		LICENCE=CanBiz; ARCHIVE_NAME=CanBiz;;
+   -framework)          arg_check 1 $# $1; FRAMEWORK=$2; shift;;
    -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ));;
    -debug)              DEBUG=1;;
    -n)                  NOT_REALLY=1;;
@@ -179,6 +181,9 @@ do_checkout() {
    run_cmd mkdir $OUTPUT_DIR
    run_cmd pushd ./$OUTPUT_DIR
       run_cmd cvs $CVS_DIR co $VERSION_TAG PORTAGEshared '>&' cvs.log
+      if [[ $FRAMEWORK ]]; then
+         run_cmd cvs $CVS_DIR co $VERSION_TAG $FRAMEWORK -d PORTAGEshared/framework '>&' cvs.framework.log
+      fi
       run_cmd find PORTAGEshared -name CVS \| xargs rm -rf
 
       if [ "$LICENCE" = SMART ]; then
@@ -205,7 +210,6 @@ do_checkout() {
       fi
 
       run_cmd rm -f PORTAGEshared/make-distro.sh
-
    run_cmd popd
 }
 

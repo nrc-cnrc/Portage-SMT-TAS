@@ -38,8 +38,8 @@
 
 # ------------------------------------
 # Variable:        LOGGING
-# Possible values: defined to "NONE" disables logging, any other value or
-#                  undefined enables logging.
+# Possible values: "NONE" disables logging.
+#                  Any other value or undefined enables logging.
 # Notes:           Comment out this line to enable logging - requires log4cxx
 
 LOGGING?=NONE
@@ -57,8 +57,8 @@ LOGGING?=NONE
 #                  compliant casemapping in PORTAGEshared.  Requires ICU.  
 #                  Uncomment and edit the next line if needed.
 
-#ICU?=NONE
-ICU=$(HOME)/pkgs/icu-4.0
+ICU?=NONE
+#ICU=$(HOME)/pkgs/icu
 
 # ------------------------------------
 # Variable:        PORTAGE_OPENMP
@@ -85,7 +85,7 @@ ICU=$(HOME)/pkgs/icu-4.0
 #                  Requires ACE.  Uncomment and edit the next line if needed.
 
 ACE?=NONE
-#ACE=/full/path/to/ace
+#ACE=$(HOME)/pkgs/ace
 
 # ------------------------------------
 # Variable:        PORTAGE_NO_CTAGS
@@ -112,6 +112,7 @@ ACE?=NONE
 # Possible values: the command line for invoking latex, or "NONE" to disable
 #                  the compilation of documents
 # Notes:           Uncomment the "MYLATEX = NONE" line if you don't have latex.
+
 MYLATEX ?= latex -interaction=batchmode
 #MYLATEX = NONE
 

@@ -1,4 +1,4 @@
-                             PORTAGEshared_v1.2
+                           PORTAGEshared_v1.3beta
 
 Technologies langagieres interactives / Interactive Language Technologies
 Institut de technologie de l'information / Institute for Information Technology
@@ -25,14 +25,15 @@ Some users have reported needing to run "chmod +w" on some files or directories
 after the cp or rsync above.  Running "chmod -R +w $HOME/PORTAGEshared" might
 solve this problem.
 
-If you chose a location other than $HOME/PORTAGEshared, edit SETUP.tcsh and
-SETUP.bash and change the value of the PORTAGE variable to the actual location
-where your installed PORTAGEshared and adjust the next instruction accordingly.
+If you chose a location other than $HOME/PORTAGEshared, edit SETUP.bash and
+SETUP.tcsh and change the value of the PORTAGE variable to the actual location
+where your installed PORTAGEshared, and adjust the next steps below
+accordingly.
 
 Add $HOME/PORTAGEshared/{bin,lib,include} to the appropriate environment
 variables by sourcing $HOME/PORTAGEshared/SETUP.bash or SETUP.tcsh
-(depending on your preferred shell - if you use a different shell, you may have
-to adapt one of those two files):
+(depending on your preferred shell - if you use shell other than bash or tcsh,
+you may have to adapt one of those two files):
    source $HOME/PORTAGEshared/SETUP.bash
 or
    source $HOME/PORTAGEshared/SETUP.tcsh
@@ -53,7 +54,13 @@ For source code distributions :
 
 Now you're ready to run the PORTAGEshared suite of programs.
 
-We have a toy example you can use as a tutorial in test-suite/toy.
+We have a toy example you can use as a tutorial in test-suite/toy.  This
+tutorial is only designed to get you familiar with Portage, and should not be
+used as a starting point for real experiments.
+
+We also provide a template experimental framework in framework.  This is
+intended as a reasonable out-of-the-box baseline system.  We recommend you use
+this framework as your starting point for real experiments.
 
 For full documentation, see doc/user-manual.html.
 
@@ -93,26 +100,9 @@ Mandatory dependencies for all distributions:
 
 Optional dependencies for all distributions:
 
- - netcat - highly recommended if you use a computing cluster with job
-   management (i.e., you submit your jobs using qsub).  Many programs in
-   PORTAGEshared are configured to take advantage of parallel computing, and
-   require netcat to work across multiple machines and to work optimally on a
-   single machine.
-
-   Even if you work on only one machine, you will usually benefit by setting
-   the parallelism parameters to the number of CPUs you have at your disposal
-   on your machine.  Without netcat, if you set the parallelism level to N
-   (some programs automatically set N to the number of CPUs on the machine),
-   jobs will simply be run N at a time, with the next batch starting when all N
-   jobs of a batch are done.  This will already be faster than if you don't use
-   parellelism, but if netcat is available, the N CPUs will be kept
-   continuously busy until all jobs in a batch have completed.
-
-   Netcat is a standard utility in some Linux distributions.
-   Netcat home page: http://netcat.sourceforge.net/
-
  - SRILM's ngram and compute-best-mix programs, if you want to use the
-   adaptation module.
+   adaptation module.  SRILM's ngram program, or another LM toolkit, if you
+   want to train language models for decoding or for truecasing.
 
 Mandatory dependencies for source code distributions:
 
@@ -124,45 +114,43 @@ Mandatory dependencies for source code distributions:
    gmake (which can be invoked using "make" on most Linux distributions).
 
  - boost - PORTAGEshared makes use of some libraries in the boost C++ libraries
-   collection, including the Boost Graph Library, uBLAS, and smart pointers.
+   collection, including the Boost Graph Library, uBLAS, smart pointers, etc.
+   Any version since 1.33 should do for this version of PORTAGEshared.
+
    Some recent distributions of Linux may already install them, otherwise you
-   can download them for free from their home page.
+   can download them for free from the boost home page.  Note, though, that
+   some Linux distributions include only parts of boost--some leave out the
+   Boost Graph Library, for example.  If you get errors about missing boost
+   includes while compiling Portage, do a complete installation of a recent
+   version of boost.
 
    It is recommended you have your sys admin install boost, but you can also
-   install it in your own user space.  In that case, make sure you set your
-   LD_LIBRARY_PATH and CPLUS_INCLUDE_PATH environment variables to point to the
-   appropriate locations, so that g++ can find the boost include and library
-   files when compiling PORTAGEshared.  These two variables may also be
-   required if your sys admin installed boost in a non-standard location.
+   install it in your own user space.  Either way, you need to edit
+   src/Makefile.user-conf and set BOOST_ROOT to the root directory of your
+   boost installation.  The PORTAGEshared makefiles are configured to look for
+   the boost include files in $BOOST_ROOT/include, and the boost libraries in
+   $BOOST_ROOT/lib.
 
    Boost home page: http://www.boost.org or http://boost.sourceforge.net
    This procedure worked for us, and may help you install it yourself, if your
    sys admins can't do it globally for you:
-      # Download the boost tarball, currently boost_1_34_1.tar.bz2, by
+      # Download the boost tarball, currently boost_1_36_0.tar.bz2, by
       # following the download links from the home page.  PORTAGEshared does
       # not require the latest version.
       # Extract it
-      tar -xjf boost_1_34_1.tar.bz2
+      tar -xjf boost_1_36_0.tar.bz2
       # Go into it
-      cd boost_1_34_1/
-      # Run autoconf, with overridden install destination - replace $HOME/pkgs
-      # with your preferred destination (many simply use $HOME), making sure
-      # that your environment variable $LD_LIBRARY_PATH includes
-      # $HOME/pkgs/lib, and $CPLUS_INCLUDE_PATH includes $HOME/pkgs/include.
-      ./configure --prefix=$HOME/pkgs
-      # Build - you may have compiling problems, but proceed to the next step
-      # anyway, since you will probably have all we depend on.  Boost is a
-      # large collection of libraries, of which we only use a few.  This step
-      # will take a long time.
+      cd boost_1_36_0/
+      # Run autoconf, with overridden install destination - replace $DEST
+      # with your preferred destination, e.g., $HOME, $HOME/pkgs or
+      # $HOME/boost, making sure that $BOOST_ROOT points to $DEST, either
+      # as en environment variable or in src/build/Makefile.incl.
+      ./configure --prefix=$DEST
+      # Build.  This step will take a long time.
       make -k
-      # Install to $HOME/pkgs/{include,lib}
+      # Install to $DEST/{include,lib}
       make -k install
-      # Create a soft link so that the include files have their standard names:
-      ln -s $HOME/pkgs/include/boost_1_34_1/boost $HOME/pkgs/include
-      # Make boost visible (this is best done in your .bashrc - or use setenv
-      # in your .tcshrc - preferably after sourcing SETUP.bash/tcsh).
-      export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:$HOME/pkgs/include
-      export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/pkgs/lib
+      # Edit src/Makefile.user-conf and set the BOOST_ROOT variable to $DEST.
 
 Optional dependencies for source code distributions:
 
@@ -173,8 +161,30 @@ Optional dependencies for source code distributions:
    PORTAGEshared uses both ctags and etags by default, but you can disable
    their use by defining PORTAGE_NO_CTAGS and/or PORTAGE_NO_ETAGS to 1 in your
    .<shell>rc file, or by uncommenting the lines "#PORTAGE_NO_CTAGS=1" and/or
-   "#PORTAGE_NO_ETAGS=1" in src/build/Makefile.incl.  (See section "USER
-   CONFIGURABLE VARTIABLES" at the beginning of that file.)
+   "#PORTAGE_NO_ETAGS=1" in src/Makefile.user-conf.
+
+ - ICU - PORTAGEshared includes a couple tools that use ICU to correctly do
+   case-mapping on utf8 data.  This functionality will be disabled if ICU is
+   not available.  If you install ICU, edit the ICU variable in
+   src/Makefile.user-conf to enable the compilation of the relevant code.
+   
+   If it is not already available via your Linux distro, ICU can be downloaded
+   from http://icu-project.org/download/.
+   This procedure worked for us:
+      # Download the ICU4C 4.0
+      wget http://download.icu-project.org/files/icu4c/4.0/icu4c-4_0-src.tgz
+      # Untar it
+      tar -xzf icu4c-4_0-src.tgz
+      # Go into the icu source code directory
+      cd icu/source
+      # Run the configuration program - replace $DEST with your preferred
+      # destination, e.g., $HOME, $HOME/pkgs or $HOME/icu.
+      ./runConfigureICU Linux --prefix=$DEST
+      # Compile and install (add -j 4 to speed up this process)
+      make install
+      # Edit src/Makefile.user-conf and set the ICU variable to $DEST.
+      # If necessary, edit SETUP.bash and SETUP.tcsh and add :$DEST/lib at the
+      # end of the two expressions setting LD_LIBRARY_PATH.
 
  - ACE - PORTAGEshared includes an API you can use to embed the decoder in your
    application, as well as a demo that can be placed on a web page.  This demo
@@ -199,13 +209,16 @@ Optional dependencies for source code distributions:
       # Create a platform specific build directory and go there
       mkdir -p build/i686
       cd build/i686
-      # Run autoconf - see notes about $HOME/pkgs in the boost section above.
-      ../../configure --prefix=$HOME/pkgs
-      # Compile in bash (in (t)csh, add "env" in front of this command)
+      # Run autoconf - replace $DEST with your preferred destination, e.g.,
+      # $HOME, $HOME/pkgs or $HOME/ace.  (This step takes a long time.)
+      ../../configure --prefix=$DEST
+      # Compile (if your are using (t)csh, add "env" in front of this command)
+      # (This step takes a long time.)
       ACE_ROOT=`pwd` make
-      # Install to $HOME/pkgs/{include,lib} in bash (in (t)csh, add
-      # "env" in front of this command)
+      # Install to $DEST/{include,lib} (if your are using (t)csh, add "env"
+      # in front of this command)
       ACE_ROOT=`pwd` make install
+      # Edit src/Makefile.user-conf and set the ACE variable to $DEST.
 
  - log4cxx - some programs in PORTAGEshared use log4cxx to produce debugging
    information.  By default, the use of logging is disabled in PORTAGEshared.
@@ -224,12 +237,12 @@ Optional dependencies for source code distributions:
       tar -xzf log4cxx-0.9.7.tar.gz
       # Go into the package
       cd log4cxx-0.9.7
-      # Run autoconf - see notes about $HOME/pkgs in the boost section above.
+      # Run autoconf - see notes about $DEST/log4cxx in the boost section above.
       ./autogen.sh
-      ./configure -with-XML=no --prefix=$HOME/pkgs
+      ./configure -with-XML=no --prefix=$DEST/log4cxx
       # Compile
       make
-      # Install to $HOME/pkgs/{include,lib}
+      # Install to $DEST/log4cxx/{include,lib}
       make install
 
 

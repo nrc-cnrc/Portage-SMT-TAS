@@ -18,10 +18,6 @@
 # Change this variable to indicate where this package is actually located.
 setenv PORTAGE $HOME/PORTAGEshared
 
-# If your boost installation is in a non-standard location, fix and uncomment
-# the following line:
-#setenv CPLUS_INCLUDE_PATH /full/path/to/boost/include
-
 # Binary distributions only: PRECOMP_PORTAGE_ARCH must be i686 (32 bits) or
 # x86_64 (64 bits), depending on your architecture.  We only provide
 # pre-compilied executables for those two architectures, though they may be

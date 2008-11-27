@@ -1,4 +1,4 @@
-                             PORTAGEshared_v1.2
+                           PORTAGEshared_v1.3beta
 
 Technologies langagieres interactives / Interactive Language Technologies
 Institut de technologie de l'information / Institute for Information Technology
@@ -12,6 +12,29 @@ license agreement for details.
 
                               Release History
                    (with a summary of important changes)
+
+v1.3beta 26.11.2008
+ As a beta version, the documentation is only partial
+ Highlights: 
+  - HMM word alignment models, including a number of variants
+  - cat.sh: new script to parallelize word alignment training, resulting in
+    significant speed ups on a cluster or multi-core machine.
+  - Binary format for TTables makes saving a loading word alignment models much
+    faster.
+  - symmetrized word alingment training
+  - get_phrase_tables -prune1 option to pre-prune phrase tables
+  - new LM class: LMDynMap.
+  - caching of LM results for expensive LM classes such as LMMix.
+  - new truecasing module (requires an external LM toolkit for training)
+  - new utf-8 casemapping functionality (requires ICU)
+  - cow.sh can now optimize WER or PER instead of BLEU
+  - new experimental framework as recommended baseline system
+  - easier user configuration of mandatory and optional packages we depend on,
+  - some unit testing
+  - g++ 4.3 compatibility
+  - various code refactorings to make maintenance easier, as well as speed ups
+    in various parts of the system.
+  - improved tokenizing and detokenizing
 
 v1.2 28.01.2008
  This is a significant update to PORTAGEshared, incorporating most of the

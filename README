@@ -16,8 +16,8 @@ Portage is a project to explore new techniques in Statistical Machine
 Translation (SMT), and to develop state-of-the-art SMT technology that can be
 used to support other projects at NRC and elsewhere.
 
-The SMT system developed under the Portage project is also called "Portage",
-and this distribution for Canadian universities is called PORTAGEshared.
+The SMT system developed under the Portage project is also called "Portage";
+this distribution for various partners is called PORTAGEshared.
 PORTAGEshared includes a complete suite of software tools required for
 phrase-based statistical machine translation, including:
  - preprocessing of French and English (tokenization, lowercasing, aligning);
@@ -29,6 +29,7 @@ phrase-based statistical machine translation, including:
  - rescoring (choosing the best hypothesis from an n-best list) using sources
    of information that are external to the decoder;
  - optimizing weights, both for decoding and for rescoring;
+ - truecasing (restoring upper case letters in the output of the translation);
  - evaluation using BLEU, WER or PER.
 
 
@@ -36,9 +37,10 @@ phrase-based statistical machine translation, including:
 
    doc/         documentation
    src/         source code (if included in your distribution)
+   framework/   sample experimental framework
    bin/         executable code (if included in your distribution)
    lib/         run-time libraries (if included in your distribution)
-   test-suite/  three test suites
+   test-suite/  various test suites
    README       this file
    INSTALL      installation instructions
    RELEASES     release history
@@ -52,7 +54,12 @@ phrase-based statistical machine translation, including:
                               Getting started
 
 Once you've installed PORTAGEshared, have a look at the toy example in
-test-suite/toy, which can be a useful tutorial.
+test-suite/toy, which can be a useful tutorial, though not a good starting point
+for your experiments! 
+
+The framework subdirectory provides a template experimental framework.  This is
+intended as a reasonable out-of-the-box baseline system.  We recommend you use
+this framework as your starting point for real experiments.
 
 For full documentation, see doc/user-manual.html.
 

@@ -10,7 +10,13 @@
 # Copyright 2006, Her Majesty in Right of Canada
 
 
-all: test
+all: caveat test
+
+.PHONY: caveat
+caveat:
+	@echo Running the toy example.
+	@echo Warning: do not use this example as a starting point for real experiments.
+	@echo Use the framework provided with PORTAGEshared instead.
 
 toy.pdf: toy.tex
 	pdflatex -interaction=batchmode toy.tex

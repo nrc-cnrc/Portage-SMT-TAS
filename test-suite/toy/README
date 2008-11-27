@@ -14,6 +14,9 @@ This is a toy example of a complete Portage run, documented in the file
 toy.tex in this directory. Do "make doc" to generate a pdf file. Do "make
 clean" to remove non-essential files.
 
+WARNING: this is only a toy example, and is not suitable as a starting point
+for real experiments.  Use the framework provided with PORTAGEshared instead.
+
 Contents of this directory:
 
 canoe.ini           Sample canoe configuration file used with the example
