@@ -182,7 +182,9 @@ do_checkout() {
    run_cmd pushd ./$OUTPUT_DIR
       run_cmd cvs $CVS_DIR co $VERSION_TAG PORTAGEshared '>&' cvs.log
       if [[ $FRAMEWORK ]]; then
-         run_cmd cvs $CVS_DIR co $VERSION_TAG $FRAMEWORK -d PORTAGEshared/framework '>&' cvs.framework.log
+         run_cmd pushd PORTAGEshared
+            run_cmd cvs $CVS_DIR co $VERSION_TAG -d framework $FRAMEWORK '>&' ../cvs.framework.log
+         run_cmd popd
       fi
       run_cmd find PORTAGEshared -name CVS \| xargs rm -rf
 
@@ -215,7 +217,7 @@ do_checkout() {
 
 get_user_manual() {
    run_cmd pushd ./$OUTPUT_DIR
-      run_cmd rsync -arz ilt.iit-iti.priv:/export/projets/Lizzy/PORTAGEshared/snapshot/ \
+      run_cmd rsync -arz ilt.iit.nrc.ca:/export/projets/Lizzy/PORTAGEshared/snapshot/ \
                          PORTAGEshared/doc/user-manual
       run_cmd find PORTAGEshared/doc/user-manual/uploads -name Layout* \| xargs rm -f
       run_cmd rm PORTAGEshared/doc/user-manual/uploads/{cameleon_07.gif,images,notices,styles}
