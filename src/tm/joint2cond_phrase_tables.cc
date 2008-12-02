@@ -18,7 +18,8 @@
 
 #include <unistd.h>
 #include <iostream>
-#include <arg_reader.h>
+#include "exception_dump.h"
+#include "arg_reader.h"
 #include <printCopyright.h>
 #include "phrase_table.h"
 #include "phrase_smoother.h"
@@ -98,7 +99,7 @@ static bool compress_output = false;
 static string extension(".gz");
 static bool sorted(true);
 
-static void getArgs(int argc, char* argv[]);
+static void getArgs(int argc, const char* const argv[]);
 void delete_or_error_if_exists(const string& filename);
 
 template<class T>
@@ -106,7 +107,7 @@ void doEverything(const char* prog_name);
 
 // main
 
-int main(int argc, char* argv[])
+int MAIN(argc,argv)
 {
    printCopyright(2005, "joint2cond_phrase_tables");
    getArgs(argc, argv);
@@ -116,6 +117,7 @@ int main(int argc, char* argv[])
    else
       doEverything<float>(argv[0]);
 }
+END_MAIN
 
 static string makeFinalFileName(string orignal_filename)
 {
@@ -222,7 +224,7 @@ void doEverything(const char* prog_name)
 
 // arg processing
 
-void getArgs(int argc, char* argv[])
+void getArgs(int argc, const char* const argv[])
 {
    const string alt_help = PhraseSmootherFactory<Uint>::help();
    const char* switches[] = {

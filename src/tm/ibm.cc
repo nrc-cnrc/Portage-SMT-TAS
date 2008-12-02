@@ -420,7 +420,7 @@ void IBM1::align(const vector<string>& src, const vector<string>& tgt,
 
       for (Uint j = 0; j < src.size(); ++j) {
          const double pr = tt.getProb(src[j], tgt[i],
-               (j==0 && src[j]==nullWord() ? 1e-09 : 1e-10));
+               (j==0 && src[j]==nullWord() ? 1e-10 : 1e-10));
          if ( pr > max_pr ||
               (pr == max_pr && pr != -1 &&
                  closer(j, tgt_al[i], src.size(), i, tgt.size(),twist))) {
@@ -429,7 +429,7 @@ void IBM1::align(const vector<string>& src, const vector<string>& tgt,
             if (tgt_al_probs) (*tgt_al_probs)[i] = max_pr;
          }
       }
-      if (useImplicitNulls && tt.getProb(nullWord(), tgt[i], 1e-09) > max_pr) {
+      if (useImplicitNulls && tt.getProb(nullWord(), tgt[i], 1e-10) > max_pr) {
          tgt_al[i] = src.size();
          if (tgt_al_probs) (*tgt_al_probs)[i] = max_pr;
       }
@@ -458,11 +458,11 @@ double IBM1::linkPosteriors(
       double sum(0);
       for (Uint j = 0; j < src.size(); ++j ) {
          const double lex_pr = tt.getProb(src[j], tgt[i],
-               (j==0 && src[j]==nullWord() ? 1e-09 : 1e-10));
+               (j==0 && src[j]==nullWord() ? 1e-10 : 1e-10));
          sum += numerators[j] = lex_pr;
       }
       if ( useImplicitNulls ) {
-         const double lex_pr = tt.getProb(nullWord(), tgt[i], 1e-09);
+         const double lex_pr = tt.getProb(nullWord(), tgt[i], 1e-10);
          sum += numerators[src.size()] = lex_pr;
       }
       if ( sum == 0 ) {
@@ -1026,7 +1026,7 @@ void IBM2::align(const vector<string>& src, const vector<string>& tgt,
       for (Uint j = 0; j < src.size(); ++j) {
          const double pos_pr = useImplicitNulls ? pos_distn[j+1] : pos_distn[j];
          const double pr = pos_pr * tt.getProb(src[j], tgt[i],
-               (j==0 && src[j]==nullWord() ? 1e-09 : 1e-10));
+               (j==0 && src[j]==nullWord() ? 1e-10 : 1e-10));
          if (pr > max_pr) {
             max_pr = pr;
             tgt_al[i] = j;
@@ -1034,7 +1034,7 @@ void IBM2::align(const vector<string>& src, const vector<string>& tgt,
          }
       }
       if ( useImplicitNulls ) {
-         const double pr = tt.getProb(nullWord(), tgt[i], 1e-09) * pos_distn[0];
+         const double pr = tt.getProb(nullWord(), tgt[i], 1e-10) * pos_distn[0];
          if ( pr > max_pr ) {
             max_pr = pr;
             tgt_al[i] = src.size();
@@ -1071,11 +1071,11 @@ double IBM2::linkPosteriors(
       for (Uint j = 0; j < src.size(); ++j ) {
          const double pos_pr = pos_distn[j+pos_distn_base];
          const double lex_pr = tt.getProb(src[j], tgt[i],
-               (j==0 && src[j]==nullWord() ? 1e-09 : 1e-10));
+               (j==0 && src[j]==nullWord() ? 1e-10 : 1e-10));
          sum += numerators[j] = lex_pr * pos_pr;
       }
       if ( useImplicitNulls ) {
-         const double lex_pr = tt.getProb(nullWord(), tgt[i], 1e-09);
+         const double lex_pr = tt.getProb(nullWord(), tgt[i], 1e-10);
          sum += numerators[src.size()] = lex_pr * pos_distn[0];
       }
       if ( sum > 0.0 )

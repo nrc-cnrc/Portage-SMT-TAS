@@ -237,7 +237,10 @@ shared_ptr<HMM> HMMAligner::makeHMM(const vector<string>& src_toks_arg,
          // Smoothing for NULL is 10 * smoothing for other words, so default
          // is 1e-09 for NULL smoothing, 1e-10 for regular smoothing, in
          // line with the default pruning parameters.
-         if ( b_i_k == 0.0 ) b_i_k = 10*smooth;
+         //EJJ changed 2 Dec 2008: not such a good idea to favour NULL so much;
+         //let the jump parameters determine NULL alignments for OOVs.
+         //if ( b_i_k == 0.0 ) b_i_k = 10*smooth;
+         if ( b_i_k == 0.0 ) b_i_k = smooth;
 
          for ( Uint i = 0; i <= I; ++i )
             hmm->B(i + I+1, k) = b_i_k;
