@@ -13,28 +13,189 @@ license agreement for details.
                               Release History
                    (with a summary of important changes)
 
-v1.3beta 26.11.2008
- As a beta version, the documentation is only partial
- Highlights: 
-  - HMM word alignment models, including a number of variants
-  - cat.sh: new script to parallelize word alignment training, resulting in
-    significant speed ups on a cluster or multi-core machine.
-  - Binary format for TTables makes saving a loading word alignment models much
-    faster.
-  - symmetrized word alingment training
-  - get_phrase_tables -prune1 option to pre-prune phrase tables
-  - new LM class: LMDynMap.
-  - caching of LM results for expensive LM classes such as LMMix.
-  - new truecasing module (requires an external LM toolkit for training)
-  - new utf-8 casemapping functionality (requires ICU)
-  - cow.sh can now optimize WER or PER instead of BLEU
-  - new experimental framework as recommended baseline system
-  - easier user configuration of mandatory and optional packages we depend on,
-  - some unit testing
-  - g++ 4.3 compatibility
-  - various code refactorings to make maintenance easier, as well as speed ups
-    in various parts of the system.
-  - improved tokenizing and detokenizing
+V1.3 12.12.2008
+ This update to PORTAGEshared is primarily intended to incorporate the new HMM
+ word alignment module, and related functionality.  We have also taken the
+ opportunity to migrate many improvements from Portage and add a new
+ experimental framework.
+
+ Major changes:
+
+ - HMM word alignment models, including a number of variants.  We have
+   implemented the base model described in Och and Ney (CL, 2003), a class
+   based variant also based on Och's work (though our implementation is based
+   on the baseline system description in He, ACL/WMT-2007), as well as the
+   variants described by Liang, Taskar and Klein (HLT-2006), including their
+   symmetrization method, and He's (WMT-2007) lexicalized MAP (Bayesian) model.
+   gen_phrase_tables also has a new PosteriorAligner based on Liang et al
+   (HLT-2006).
+
+   The HMM word alignment models are trained using train_ibm, they can be used
+   for word alignment directly via align-words, and gen_phrase_tables can use
+   them to generate phrase tables.  In our current state of the art, we
+   typically generate phrase tables using IBM2 as before, separate phrase
+   tables using HMM models, and give them as separate models to cow.sh, which
+   tries to find the weights that maximize BLEU, as it does for all other
+   models.
+
+ - Added a generic HMM toolkit, used by the HMM word alignment models,
+   supporting state or arc emitting HMMs, and implementing the Viterbi and
+   Baum-Welch algorithms.  (Optimized for densely connected HMMs.)
+
+ - Parallelized training of word alingment models via the new cat.sh script,
+   and a binary format for TTables and all intermediate count files, for fast
+   reading and writing of these model and count files.
+
+ - An experimental framework is now included with PORTAGEshared, as a potential
+   starting point for your experiments.  Besides demonstrating how to use
+   PORTAGEshared, this framework embeds choices of options which we think are a
+   reasonable starting point.
+
+   Previously, the only full usage examples we provided were not suitable for
+   this use.  The toy example was designed to run fast at all cost, regardless
+   of the quality fo the output, while the small-vocabulary regression test
+   suite was mostly intended to exercise the code.  The new framework is
+   specifically designed to be both a tutorial and a reasonable starting point.
+   Of course, you are still responsible for experimenting with various options
+   to find what works best with your setup.
+
+ - We've now included our truecasing module, which no longer requires external
+   software at truecasing time.  The Perl script truecase.pl performs
+   truecasing using canoe.  The program compile_truecase_map compiles the
+   truecase map for truecase.pl.  Training the Language Model itself requires
+   an external language modelling toolkit, e.g., SRILM, if your licensing
+   requirements permit it, or IRSTLM.
+
+ - Many improvements to run-parallel.sh, useful if you're working on a cluster:
+   - uses Perl sockets instead of netcat, resulting in a significant reduction
+     of overhead, from seconds down to hundredths of seconds per job, and one
+     fewer dependency on external software;
+   - now more stable, with more coherent behaviour in case of errors, which can
+     be controled by the user via the new -on-error switch;
+   - more thorough clean up at exit time or in case of errors;
+   - all temporary files are hidden away in a workdir instead of polluting the
+     directory run-parallel.sh is invoked from (most scripts using temporary
+     files now do the same too);
+   - new -c switch to run a single command via psub/qsub, acting as a blocking
+     qsub for clusters that don't support blocking qsub - this is useful to
+     have a Makefile run commands on a cluster via psub/qsub;
+   - number of CPUs requested by the master job is propagated to the workers;
+   - on clusters running Torque, take advantage of the job array feature to
+     speed up and reduce the overhead of worker submission via psub/qsub.
+
+ Minor changes:
+ - User configuration is now centralized in src/Makefile.user-conf.
+ - We've added some unit testing and a unit testing framework, using CxxTest,
+   run automatically by doing "make test" in src/.
+ - We've moved our legacy test programs into subdirectories of the source code,
+   run automatically by doing "make test" in src/.
+ - Make the code compile with g++ 4.3 without any warnings.
+ - Streamlined c++ includes, in part to speed up compilation.
+ - Use tr1::unordered_map instead of the soon to be deprecated
+   __gnu_ext::hash_map.
+ - Various code refactorings to make maintenance and documentation easier,
+   including improvements to the compilation mechanism, removal of doxygen
+   errors, and many more small details.
+ - New section in the documentation with the usage info from all programs.
+ - A few programs now have a -final-cleanup switch: for efficiency, we often
+   don't delete models just before exiting, since the OS does so immediately
+   after exiting.  In programs that support it, the -final-cleanup switch
+   delete all models; useful for memory leak detection and other debugging.
+ - Removed obsolete champollion.breakparts.pl, unsplit-sentence.pl,
+   merge_ttables, maxphrase.pl, CalculateHypothesisProb.pl, and
+   find_sentence_phrases.
+ - Utils modules:
+   - New utf8 casemapping functionality (requires ICU)
+   - Program utf8_filter performs strict validation of utf8 input.
+   - diff-round.pl now supports compressed files automatically, and has new
+     -sort, -q and -min options.
+   - New template class BiVector models a vector with positive and negatives
+     indices.
+   - Fixed memory leak in short array allocator ArrayMemPool.
+   - Added support for .lzma files in all C++ programs, via MagicStreams.
+ - Preprocessing module:
+   - Significantly improved the tokenizing and detokenizing for French;
+     slightly improved for English as well.  Better lists of abbreviations in
+     both languages.  Smart quotes and other characters from the cp-1252
+     repertoire are now recognized, and optionally replaced by the closest
+     iso-8859-1 characters.
+   - New udetokenize.pl script performs detokenization on French and English
+     text encoded in utf8.
+ - Language modelling module (src/lm):
+   - New caching mechanism for LM queries, intended for use with expensive LM
+     classes.  Currently only enabled for LMMix (Dynamic LM mixture model).
+   - Minor improvements to ngram-count-big.sh: reports errors more carefully and
+     removes the merge tree since we noticed a single multi-way merge is faster.
+   - Refactored the LM classes to make adding new ones easier; added a new
+     Factory Method creator object for each class.
+   - New LM class: LMDynMap.  Used for dynamic mapping of case or numbers.
+   - Tally statistics over LM queries, used by canoe in particular.
+   - Renamed lmtext2binlm to the more precise name arpalm2binlm.
+   - New script lm_sort_filter.sh sorts an ARPA-format LM in a way that
+     typically increases its compression ratio with gzip.
+   - New script lm-order.pl determines the order of an ARPA-format LM file.
+ - Word Alignment module (src/tm):
+   - New -prune1 option to gen_phrase_tables and joint2cond_phrase_tables
+     prunes long tails before calculating probabilities.  Especially useful for
+     phrase tables trained on noisy corpora.
+   - New program word_align_tool allows manipulation and conversion of word
+     alignment files.
+   - Support for more word alignment formats via a generic module,
+     word_align_io, which is easily extensible to support further formats.
+   - Use smoothing for OOVs consistently in all alignment model queries.
+   - New file handling-unaligned-words.txt explains how unaligned words are
+     handled in the phrase extraction process.
+   - New program eval_word_alignment calculates F-measure with respect to a
+     reference alignment, as suggested by Fraser and Marcu (CL, Sept 2008).
+   - New merge_counts program does fast merging of counts; used by
+     gen-jpt-parallel.sh to remove large memory requirement at the end.
+ - eval module:
+   - Refactored PER, WER and BLEU calculations to support PER and WER
+     optimisation in rescore_train.
+   - bleucompare can now perform PER or WER calculations instead.
+   - Support for NIST style BLEU computation by setting the environment
+     variable PORTAGE_NIST_STYLE_BLEU (has different brevity penalty
+     definition).
+ - Decoding module (src/canoe):
+   - canoe-parallel.sh now supports the use of load balancing in -append mode.
+   - New preprocessing script canoe-escapes.pl adds or removes escapes expected
+     by canoe as needed.
+   - Bug fix in -soft-limit mode for filter_models keeps phrases pairs that
+     were incorrectly deleted before.  This sometimes results in higher memory
+     requirements in canoe, which can be addressed via gen_phrase_tables's new
+     -prune1 switch.
+   - New filter_models options: -ttable-limit overrides the limit in the
+     canoe.ini file, -no-per-sent disables per-sentence LM filtering, using
+     the less effective global-vocabulary LM filtering instead.
+   - New rule decoder feature allows one to set weights for canoe markups via
+     -rule-weigths, and tune them in cow.sh, instead of using hard-coded
+     weights.  Supports multiple classes of rules with their separate weights.
+   - Robustness fix: canoe now accepts non-finite numbers in phrase tables,
+     issuing a warning and treating them as if they had been 0.
+ - Rescoring module:
+   - New rescoring features: RatioFF, HMMTgtGivenSrc, HMMSrcGivenTgt,
+     HMMVitTgtGivenSrc, HMMVitSrcGivenTgt, WerPostedit, PerPostedit,
+     BleuPostedit, BackwardLM.
+   - Generic rescoring feature SCRIPT invokes any script of your choice, for
+     easy creation and prototyping of new features, as well as integration
+     of features not part of PORTAGEshared.
+   - New program uniq_nbest removes duplicates in an n-best list.
+   - cow.sh and rescore_train now optionally optimize WER or PER instead of
+     BLEU.
+   - New micro tuning mode for cow.sh looks for per-sentence optimal weigths
+     for a few iterations before looking for globally optimal weights.
+   - Other new cow.sh options: -rescore-options, -no-lb, -s.
+   - rescore_train -l saves a log of Powell runs for tracing the optimisation
+     process; -ref randomizes the order in which features are considered by
+     Powell's algorithm.
+   - New script cowpie.py extracts useful statistics from a cow.sh log.
+   - rescore_translate now supports Minimum Bayes Risk rescoring.
+   - Rat.sh now uses hard phrase table filtering before translation, thus
+     reducing memory requirements in canoe (can be disabled with -no-filt).
+   - New rat.sh options: -rescore-opts, -per, -wer, -dep, -no-filt.
+   - gen-features-parallel.pl converted to Perl (from bash) and made more
+     stable.
+
 
 v1.2 28.01.2008
  This is a significant update to PORTAGEshared, incorporating most of the
@@ -116,7 +277,7 @@ v1.2 28.01.2008
         Ph.D. thesis.
    - Consensus and ConsensusWin - WER-based consensus over N-best list (very
      expensive features - not recommended for general use) - features based on
-     Mangu et al (1999). 
+     Mangu et al (1999).
    - BLEUrisk - Minimum Bayes Risk using BLEU loss function - see Kumar and
      Byrne (2004).
    - ParMismatch and QuotMismatch - count mismatched parentheses and quotes.
@@ -235,7 +396,7 @@ v1.2 28.01.2008
  - added gen-jpt-parallel.sh: parallel joint frequency phrase table training;
    the output can the be used by joint2cond_phrase_tables to estimate probs, as
    gen_phrase_tables would have done in a single non-parallel step.
- - gen_phrase_tables and joint2cond_phrase_tables: 
+ - gen_phrase_tables and joint2cond_phrase_tables:
    - new phrase smoother IBM1Smoother explicitely does IBM1 lexical smoothing,
      while IBMSmoother does IBM2 lexical smoothing if the model provided is
      IBM2, or IBM1 smoothing otherwise;

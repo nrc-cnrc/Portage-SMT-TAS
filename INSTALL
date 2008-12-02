@@ -31,23 +31,25 @@ where your installed PORTAGEshared, and adjust the next steps below
 accordingly.
 
 Add $HOME/PORTAGEshared/{bin,lib,include} to the appropriate environment
-variables by sourcing $HOME/PORTAGEshared/SETUP.bash or SETUP.tcsh
-(depending on your preferred shell - if you use shell other than bash or tcsh,
-you may have to adapt one of those two files):
+variables by sourcing $HOME/PORTAGEshared/SETUP.bash or SETUP.tcsh (depending
+on your preferred shell - if you use a shell other than bash or csh/tcsh,
+you're on your own):
    source $HOME/PORTAGEshared/SETUP.bash
 or
    source $HOME/PORTAGEshared/SETUP.tcsh
 
 For source code distributions :
 
-   Compile and install PORTAGEshared (you may need to resolve dependencies
-   first, see below):
+   Resolve any dependencies (see External dependencies, below).
+   Review src/Makefile.user-conf and make any changes needed to reflect your
+   system configuration and choices.
+   Compile and install PORTAGEshared:
       cd src
       gmake -j 5
       gmake -j 5 install
    We typically use -j N for parallel compiling.  N = 1 + the number of CPUs on
    the machine seems to be optimal.  If you're sharing the machine with many
-   users, however, you may not want to use the -j switch.
+   users, however, you may not want to use the -j switch at all.
 
 
                               Getting Started
@@ -95,34 +97,39 @@ Mandatory dependencies for all distributions:
    correctly.  We have not tested on Solaris yet, but we plan to do so at a
    later date.
 
- - Standard utilities: bash, perl, grep, egrep, sort, gzip, tail, head, sed,
-   awk, etc.
+ - Standard utilities: bash (3.0 or more recent), perl, grep, egrep, sort,
+   gzip, tail, head, sed, awk, etc.
+
+ - A language modelling toolkit to train language models.  Our code can read
+   and use language models, but we don't provide the training functionality,
+   since it is readily available.  If your licensing requirements allow it, we
+   recommend SRILM.  You can also use IRSTLM or any other package which
+   produces language models in Doug Paul's ARPA format.
 
 Optional dependencies for all distributions:
 
  - SRILM's ngram and compute-best-mix programs, if you want to use the
-   adaptation module.  SRILM's ngram program, or another LM toolkit, if you
-   want to train language models for decoding or for truecasing.
+   adaptation module (if your licensing requirements allow it).
 
 Mandatory dependencies for source code distributions:
 
  - GNU g++ - PORTAGEshared compilation has only been tested with g++, and makes
    use of some g++ extensions to C++.  It compiles fine with all versions we've
-   tested between 3.3.3 and 4.x.
+   tested between 3.3.3 and 4.3.2.
 
  - GNU make - our makefile makes use of GNU extensions to make, so you must use
    gmake (which can be invoked using "make" on most Linux distributions).
 
  - boost - PORTAGEshared makes use of some libraries in the boost C++ libraries
    collection, including the Boost Graph Library, uBLAS, smart pointers, etc.
-   Any version since 1.33 should do for this version of PORTAGEshared.
+   Any version since 1.33 should do.
 
-   Some recent distributions of Linux may already install them, otherwise you
-   can download them for free from the boost home page.  Note, though, that
-   some Linux distributions include only parts of boost--some leave out the
-   Boost Graph Library, for example.  If you get errors about missing boost
-   includes while compiling Portage, do a complete installation of a recent
-   version of boost.
+   Some recent distributions of Linux may already include the boost libraries,
+   otherwise you can download them free from the boost home page.  Note,
+   though, that some Linux distributions include only parts of boost--some
+   leave out the Boost Graph Library, for example.  If you get errors about
+   missing boost includes while compiling Portage, do a complete installation
+   of a recent version of boost.
 
    It is recommended you have your sys admin install boost, but you can also
    install it in your own user space.  Either way, you need to edit
@@ -153,15 +160,6 @@ Mandatory dependencies for source code distributions:
       # Edit src/Makefile.user-conf and set the BOOST_ROOT variable to $DEST.
 
 Optional dependencies for source code distributions:
-
- - etags and/or ctags - recommended if you program with emacs or vi or related
-   programs.  These programs will build the databases needed to enable
-   cross-links in these editors.  See your editor's manual for details.
-
-   PORTAGEshared uses both ctags and etags by default, but you can disable
-   their use by defining PORTAGE_NO_CTAGS and/or PORTAGE_NO_ETAGS to 1 in your
-   .<shell>rc file, or by uncommenting the lines "#PORTAGE_NO_CTAGS=1" and/or
-   "#PORTAGE_NO_ETAGS=1" in src/Makefile.user-conf.
 
  - ICU - PORTAGEshared includes a couple tools that use ICU to correctly do
    case-mapping on utf8 data.  This functionality will be disabled if ICU is
@@ -220,6 +218,8 @@ Optional dependencies for source code distributions:
       ACE_ROOT=`pwd` make install
       # Edit src/Makefile.user-conf and set the ACE variable to $DEST.
 
+ - CxxTest -
+
  - log4cxx - some programs in PORTAGEshared use log4cxx to produce debugging
    information.  By default, the use of logging is disabled in PORTAGEshared.
    To enable logging, make sure you have log4cxx installed, comment out the
@@ -245,6 +245,15 @@ Optional dependencies for source code distributions:
       # Install to $DEST/log4cxx/{include,lib}
       make install
 
+ - etags and/or ctags - recommended if you program with emacs or vi or related
+   programs.  These programs will build the databases needed to enable
+   cross-links in these editors.  See your editor's manual for details.
+
+   PORTAGEshared uses both ctags and etags by default, but you can disable
+   their use by defining PORTAGE_NO_CTAGS and/or PORTAGE_NO_ETAGS to 1 in your
+   .<shell>rc file, or by uncommenting the lines "#PORTAGE_NO_CTAGS=1" and/or
+   "#PORTAGE_NO_ETAGS=1" in src/Makefile.user-conf.
+
 
 Using PORTAGEshared on Cygwin:
 
@@ -252,9 +261,5 @@ We don't officially support Cygwin, nor do we recommend using it, since the
 programs in PORTAGEshared will run much more slowly than on Linux, but here
 are some known issues in case you really want to use it:
  - Programs will typically run more slowly on Cygwin than on Linux.
- - In file PORTAGEshared/src/build/Makefile.incl:
-   - The -p option to "install" doesn't work correctly for .exe files on Cygwin.
-     As a work-around, the two lines starting with "install -ps -m0750 ..."
-     should be changed to "install -s -m0750 ...".
  - A lot of warnings are produced during compilation that don't show up under
    Linux.  We think it is safe to ignore them, but we can't guarantee it.

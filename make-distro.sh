@@ -121,7 +121,13 @@ arg_check() {
    fi
 }
 
-SAVED_COMMAND_LINE="$*"
+for x in "$@"; do
+   if [[ $x =~ " " ]]; then
+      SAVED_COMMAND_LINE="$SAVED_COMMAND_LINE \\\"$x\\\""
+   else
+      SAVED_COMMAND_LINE="$SAVED_COMMAND_LINE $x"
+   fi
+done
 
 while [ $# -gt 0 ]; do
    case "$1" in
@@ -130,7 +136,7 @@ while [ $# -gt 0 ]; do
    -compile-only)       COMPILE_ONLY=1;;
    -compile-host)       arg_check 1 $# $1; COMPILE_HOST=$2; shift;;
    -nosrc)              NO_SOURCE=1;;
-   -r*|-D*)             VERSION_TAG=$1;;
+   -r*|-D*)             VERSION_TAG="$1";;
    -dir)                arg_check 1 $# $1; OUTPUT_DIR=$2; shift;;
    -licence|-license)   arg_check 1 $# $1; LICENCE=$2; shift;;
    -patch-from)         arg_check 1 $# $1; PATCH_FROM="$PATCH_FROM $2"; shift;;
@@ -179,11 +185,12 @@ do_checkout() {
    fi
 
    run_cmd mkdir $OUTPUT_DIR
+   run_cmd echo "$0 $SAVED_COMMAND_LINE" \> $OUTPUT_DIR/make-distro-cmd-used
    run_cmd pushd ./$OUTPUT_DIR
-      run_cmd cvs $CVS_DIR co $VERSION_TAG PORTAGEshared '>&' cvs.log
+      run_cmd cvs $CVS_DIR co \"$VERSION_TAG\" PORTAGEshared '>&' cvs.log
       if [[ $FRAMEWORK ]]; then
          run_cmd pushd PORTAGEshared
-            run_cmd cvs $CVS_DIR co $VERSION_TAG -d framework $FRAMEWORK '>&' ../cvs.framework.log
+            run_cmd cvs $CVS_DIR co \"$VERSION_TAG\" -d framework $FRAMEWORK '>&' ../cvs.framework.log
          run_cmd popd
       fi
       run_cmd find PORTAGEshared -name CVS \| xargs rm -rf
@@ -220,6 +227,15 @@ get_user_manual() {
       run_cmd rsync -arz ilt.iit.nrc.ca:/export/projets/Lizzy/PORTAGEshared/snapshot/ \
                          PORTAGEshared/doc/user-manual
       run_cmd find PORTAGEshared/doc/user-manual/uploads -name Layout* \| xargs rm -f
+      run_cmd pushd PORTAGEshared/doc/user-manual/pages
+         for x in *.html; do
+            echo Making images relative in $x
+            if [[ ! $NOT_REALLY ]]; then
+               perl -e 'print '"'"'%s/IMG SRC="http:\/\/wiki-ilt\/PORTAGEshared\/uploads/img src="..\/uploads/'"'"'."\nw\nq\n"' | ed $x
+               perl -e 'print '"'"'%s/img src="http:\/\/wiki-ilt\/PORTAGEshared\/uploads/img src="..\/uploads/'"'"'."\nw\nq\n"' | ed $x
+            fi
+         done
+      run_cmd popd
       run_cmd rm PORTAGEshared/doc/user-manual/uploads/{cameleon_07.gif,images,notices,styles}
    run_cmd popd
 }
@@ -266,9 +282,13 @@ make_bin() {
 }
 
 make_iso_and_tar() {
-   VERSION=${VERSION_TAG#-r}
+   VERSION="${VERSION_TAG#-r}"
+   VERSION="${VERSION// /.}"
    VOLID=PORTAGEshared_${VERSION}
+   VOLID=`echo "$VOLID" | perl -pe 's#[/:]#.#g'`
+   echo $VOLID
    ISO_VOLID=PORTAGEshared`echo $VERSION | sed -e 's/v//g' -e 's/_/./'`
+   ISO_VOLID=${ISO_VOLID:0:31}
    if [ -n "$ARCHIVE_NAME" ]; then
       ARCHIVE_FILE=${VOLID}_${ARCHIVE_NAME}
    else
@@ -288,32 +308,33 @@ make_iso_and_tar() {
 
 test $OUTPUT_DIR  || error_exit "Missing mandatory -dir argument"
 
-if [ -z "$COMPILE_ONLY" ]; then
-   test $VERSION_TAG ||
+if [[ ! $COMPILE_ONLY ]]; then
+   if [[ ! $VERSION_TAG ]]; then
       error_exit "Missing mandatory -rCVS_TAG or -DCVS_DATE argument"
+   fi
 
    do_checkout
    get_user_manual
    make_pdfs
-   if [ -z "$NO_SOURCE" -a -z "$NO_DOXY" ]; then
+   if [[ ! $NO_SOURCE && ! $NO_DOXY ]]; then
       echo Including source code documentation
       make_doxy
    fi
 fi
 
-if [ -n "$INCLUDE_BIN" -o -n "$COMPILE_ONLY" ]; then
+if [[ $INCLUDE_BIN || $COMPILE_ONLY ]]; then
    echo Including compiled code
    make_bin
 fi
 
-if [ -n "$COMPILE_HOST" ]; then
+if [[ $COMPILE_HOST ]]; then
    echo Logging on to $COMPILE_HOST to compile code
    run_cmd ssh $COMPILE_HOST cd `pwd` \\\; $0 -compile-only -dir $OUTPUT_DIR
 fi
 
-if [ -z "$COMPILE_ONLY" ]; then
+if [[ ! $COMPILE_ONLY ]]; then
 
-   if [ -n "$NO_SOURCE" ]; then
+   if [[ $NO_SOURCE ]]; then
       run_cmd pushd ./$OUTPUT_DIR/PORTAGEshared
          run_cmd mv ./doc/code-doc-binonly.html ./doc/code-documentation.html
          run_cmd rm -r src
@@ -322,7 +343,7 @@ if [ -z "$COMPILE_ONLY" ]; then
       run_cmd rm ./$OUTPUT_DIR/PORTAGEshared/doc/code-doc-binonly.html
    fi
 
-   if [ -n "PATCH_FROM" ]; then
+   if [[ $PATCH_FROM ]]; then
       for PATCH_ARG in $PATCH_FROM; do
          OLD_DIR=${PATCH_ARG%:*}
          PATCHLEVEL_TOKEN=${PATCH_ARG##*:}
@@ -346,5 +367,4 @@ if [ -z "$COMPILE_ONLY" ]; then
    make_iso_and_tar
 fi
 
-run_cmd echo "$0 $SAVED_COMMAND_LINE" \> $OUTPUT_DIR/make-distro-cmd-used
 
