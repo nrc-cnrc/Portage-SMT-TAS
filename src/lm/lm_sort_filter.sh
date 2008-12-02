@@ -3,7 +3,7 @@
 
 # @author Samuel Larkin
 # @file lm_sort_filter.sh
-# @brief Sort and filter an LM optimally for lmtext2lmdb.
+# @brief Sort and filter an LM optimally for maximal compression.
 # 
 # @author Samuel Larkin
 # 
@@ -27,12 +27,13 @@ Usage: lm_sort_filter.sh [-h(elp)] [-v(erbose)] [-d(ebug)] [-lm]
        input output
 
   Takes an LM in ARPA format and outputs the ngram entries sorted regardless
-  of their N.  This is the optimal input for lmtext2lmdb.
+  of their N.
 
   Define TMPDIR if you want to change where sort stores its temp files.
 
 Options:
   -lm:          Rebuild a valid, sorted lm as output, in ARPA format.
+                The output should have better compression ratio than the input.
 
   -h(elp):      print this help message
   -v(erbose):   increment the verbosity level by 1 (may be repeated)

@@ -1,10 +1,11 @@
 #!/bin/bash
 
 # @file ngram-count-big.sh 
-# @brief Wrapper around ngram-count to make large n-gram count files using the
-# sorted-count / merge process.  Intended to replace srilm's make-big-lm
-# script, dealing with all the bookkeeping automatically, and splitting very
-# large files automatically.
+# @brief Wrapper around SRILM's ngram-count to make large n-gram count files
+# using the sorted-count / merge process.  Intended to replace SRILM's
+# make-big-lm script, dealing with all the bookkeeping automatically, and
+# splitting very large files automatically.  Use only if you have a valid SRILM
+# license.
 #
 # @author Eric Joanis and Samuel Larkin
 #

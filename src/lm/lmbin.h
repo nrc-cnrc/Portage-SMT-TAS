@@ -22,8 +22,8 @@
 namespace Portage {
 
 /**
- * LM Implementation which loads a Portage LM language modelfile 
- * in memory.
+ * LM Implementation which loads an LM language modelfile in Portage's BinLM
+ * format in memory.
  */
 class LMBin : public LMTrie {
    /**
