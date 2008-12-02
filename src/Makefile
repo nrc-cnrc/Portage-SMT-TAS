@@ -61,13 +61,13 @@ rescoring: canoe tm lm eval logging
 tm: logging
 
 validate_subdir_dependencies:
-	@if [ "`grep 'MODULE_DEPENDS.*[^ =]' */Makefile | perl -ple 's/\/Makefile//; s/MODULE_DEPENDS\s*=/ /; s/\s+/ /' | wc`" \
-	     != \
-	     "`grep 'MODULE_DEPENDS.*[^ =]' */Makefile | perl -ple 's/\/Makefile//; s/MODULE_DEPENDS\s*=/ /; s/\s+/ /' | grep -x -f - Makefile  | wc`" \
-	   ]; then \
+	@if [[ "`grep '^ *MODULE_DEPENDS.*[^ =]' */Makefile | perl -ple 's/\/Makefile//; s/MODULE_DEPENDS\s*=/ /; s/\s+/ /' | wc`" \
+	      != \
+	      "`grep '^ *MODULE_DEPENDS.*[^ =]' */Makefile | perl -ple 's/\/Makefile//; s/MODULE_DEPENDS\s*=/ /; s/\s+/ /' | grep -x -f - Makefile  | wc`" \
+	   ]]; then \
 	   echo There is an error in the module dependency block in src/Makefile. ; \
 	   echo Please update it as follows '(you can cut and paste the following lines)': ; \
-	   grep 'MODULE_DEPENDS.*[^ =]' */Makefile | \
+	   grep '^ *MODULE_DEPENDS.*[^ =]' */Makefile | \
 	      perl -ple 's/\/Makefile//; s/MODULE_DEPENDS\s*=/ /; s/\s+/ /' | \
 	      diff - Makefile | grep '^<' | sed 's/^< //' ; \
 	   exit 1 ; \
