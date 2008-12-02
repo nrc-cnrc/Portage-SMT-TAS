@@ -30,7 +30,7 @@ my ($inputFile, $LMFile, $vocabCountFile, $vocabMapFile, $LMFileTitles,
     $vocabMapFileTitles, $vocabCountFileTitles,
     $unknownsMapFile, $lmOrder, $outputFile, $outputDir, $useLMOnlyFlag,
     $cleanMarkupFlag, $forceNISTTitlesFUFlag, $useNISTTitleModelsFlag,
-    $verbose, $useSRILM, $useViterbi, $uppercaseSentenceBeginFlag, $help);
+    $verbose, $uppercaseSentenceBeginFlag, $help);
 
 Getopt::Long::GetOptions(
 
@@ -51,8 +51,6 @@ Getopt::Long::GetOptions(
          'uppercaseTitlesBOW!' => \$forceNISTTitlesFUFlag,
          'useTitleModels!'     => \$useNISTTitleModelsFlag,
          'verbose!'   => \$verbose,
-         'srilm!'     => \$useSRILM,
-         'viterbi!'   => \$useViterbi,
 
       # Output arguments
          'out=s'      => \$outputFile,
@@ -154,11 +152,11 @@ if((defined $help) or (not defined $inputFile and (@ARGV < 1)))
    
    if(defined $unknownsMapFile or $useNISTTitleModelsFlag)
    {  print "truecase.pl: Truecasing with Unknown words resolution launched on \"$inputFile\"...\r\n" unless !$verbose;
-      portage_truecaselib::advancedTruecaseFile($inputFile, $LMFile, $vocabMapFile, $unknownsMapFile, $LMFileTitles, $vocabMapFileTitles, $outputFile, $lmOrder, $forceNISTTitlesFUFlag, $useLMOnlyFlag, $uppercaseSentenceBeginFlag, $cleanMarkupFlag, $verbose, $useSRILM, $useViterbi);
+      portage_truecaselib::advancedTruecaseFile($inputFile, $LMFile, $vocabMapFile, $unknownsMapFile, $LMFileTitles, $vocabMapFileTitles, $outputFile, $lmOrder, $forceNISTTitlesFUFlag, $useLMOnlyFlag, $uppercaseSentenceBeginFlag, $cleanMarkupFlag, $verbose);
       print "truecase.pl: Truecasing with Unknown words resolution done...\r\n" unless !$verbose;
    }else
    {  print "truecase.pl: Truecasing launched on \"$inputFile\" ...\r\n" unless !$verbose;
-      portage_truecaselib::truecaseFile($inputFile, $LMFile, $vocabMapFile, $lmOrder, $useLMOnlyFlag, $outputFile, $uppercaseSentenceBeginFlag, $cleanMarkupFlag, $verbose, $useSRILM, $useViterbi);
+      portage_truecaselib::truecaseFile($inputFile, $LMFile, $vocabMapFile, $lmOrder, $useLMOnlyFlag, $outputFile, $uppercaseSentenceBeginFlag, $cleanMarkupFlag, $verbose);
       print "truecaseengine.pl: Truecasing done...\r\n" unless !$verbose;
    } # End if
 
@@ -207,11 +205,6 @@ sub displayHelp
       --useTitleModels => If this flag is true, the input file is assumed to\r\
                   have the NIST04 format and titles are detected accordingly\r\
                   and uppercased.\r\
-      --useSRILM => If this flag is true, SRILM disambig is used.\r\
-                  Otherwise, canoe will be used.\r\
-      --useViterbi => If this flag is true and SRILM disambig is selected,\r\
-                  Viterbi matching will be used.\r\
-                  Otherwise, forward-backward will be used.\r\
       --verbose => print out some logs\r\n
    # Output argument\r\
       --out    => the file where to output the truecase results.\r\
@@ -233,11 +226,6 @@ sub displayHelp
  WARNING:\r\
     - You should set the values in portage_truecaselibconstantes.pm module\r\
       for default options.\r\n\
-    - You need SRILM libraries and Perl module File to run this TrueCasing\r\
-      package.  The SRILM libraries should be seen in your search paths and\r\
-      the Perl libraries in Perl lib path. In addition to setting your search\r\
-      paths, you should have a variable PORTAGE in your environment that\r\
-      points to Portage project location (for default options).\r\n\
     - You might have some errors related to malformed UTF.8.\r\
       The solution is to remove it from your Environment variable\r\
       \$LANG. Example: if LANG==en_CA.UTF.8, set it to LANG=en_CA\r\
@@ -293,11 +281,6 @@ B< =======================
      --useTitleModels => If this flag is true, the input file is assumed
                 to have the NIST04 format and titles are detected accordingly
                 and uppercased.
-      --useSRILM => If this flag is true, SRILM disambig is used.
-                Otherwise, canoe will be used.
-      --useViterbi => If this flag is true and SRILM disambig is selected,
-                Viterbi matching will be used.
-                Otherwise, forward-backward will be used.
      --verbose => print out some logs
 
    # Output argument
@@ -314,11 +297,8 @@ B< =======================
    - You should set the values in portage_truecaselibconstantes.pm module
      for default options.
 
-   - You need SRILM libraries and Perl module File to run this TrueCasing
-     package.  The SRILM libraries should be seen in your search paths and
-     the Perl libraries in Perl lib path. In addition to setting your search
-     paths, you should have a variable PORTAGE in your environment that
-     points to Portage project location (for default options).
+   - You should have a variable PORTAGE in your environment that points to
+     Portage project location (for default options).
 
    - You might have some errors related to malformed UTF.8.
      The solution is to remove it from your Environment variable

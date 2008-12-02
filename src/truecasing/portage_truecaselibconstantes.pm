@@ -1,17 +1,14 @@
 #!/usr/bin/perl -w
 
-# Copyright (c) 2004, 2005, Sa Majeste la Reine du Chef du Canada /
-# Copyright (c) 2004, 2005, Her Majesty in Right of Canada
+# @file portage_truecaselibconstantes.pm
+# @brief core functionality of the truecasing module
+# @author Akakpo Agbago supervised by George Foster
 #
-# This software is distributed to the GALE project participants under the terms
-# and conditions specified in GALE project agreements, and remains the sole
-# property of the National Research Council of Canada.
-#
-# For further information, please contact :
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# See http://iit-iti.nrc-cnrc.gc.ca/locations-bureaux/gatineau_e.html
+# Copyright 2004, 2005, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2004, 2005, Her Majesty in Right of Canada
 
 package portage_truecaselibconstantes;
 use strict;
@@ -41,14 +38,12 @@ B<portage_truecaselibconstantes.pm>
 
 =item B<Requirements>
 
-  You need SRILM libraries and Perl module File to run this TrueCasing package.
-  The SRILM libraries should be seen in your search paths and the Perl
-  libraries in Perl lib path. In addition to setting your search paths, you
-  should have a variable PORTAGE in your environment that points to Portage
-  project location (for default options).
+  To run this TrueCasing package, the Perl libraries should be in your Perl lib
+  path.  In addition, you should have a variable PORTAGE in your environment
+  that points to Portage project location (for default models).
 
   Example in bash:
-     export PORTAGE=/export/projets/portage
+     export PORTAGE=$HOME/PORTAGEshared
 
 =back
 
@@ -70,20 +65,13 @@ TrueCaseLibrary module>.
         MARKUP_PATTERNS => a regular expression matching the markup tags.
         DEFAULT_NGRAM_ORDER => the order of the NGrams to generate.
 
-=head1 B<LICENSE>
+=head1 B<COPYRIGHT>
 
- Copyright (c) 2004, 2005, Sa Majeste la Reine du Chef du Canada /
- Copyright (c) 2004, 2005, Her Majesty in Right of Canada
-
- This software is distributed to the GALE project participants under the terms
- and conditions specified in GALE project agreements, and remains the sole
- property of the National Research Council of Canada.
-
- For further information, please contact :
  Technologies langagieres interactives / Interactive Language Technologies
  Institut de technologie de l'information / Institute for Information Technology
  Conseil national de recherches Canada / National Research Council Canada
- See http://iit-iti.nrc-cnrc.gc.ca/locations-bureaux/gatineau_e.html
+ Copyright (c) 2004, 2005, Sa Majeste la Reine du Chef du Canada /
+ Copyright (c) 2004, 2005, Her Majesty in Right of Canada
 
 =cut
 
@@ -108,8 +96,6 @@ use constant DEFAULT_NGRAM_MODEL => $ENV{'PORTAGE'} . '/models/srilm/truecase/de
 # A default NGram model file
 use constant DEFAULT_UNKNOWN_V1V2MAP_MODEL => $ENV{'PORTAGE'} . '/models/srilm/truecase/default-unknownclasses.map';
 
-# The name of the file of the NGram Language Model of order DEFAULT_NGRAM_ORDER
-use constant LM_FILENAME => 'truecaseLM.lm';
 # The name of the vocabulary (words) statistiques
 use constant VOCABULARY_COUNT_FILENAME => 'vocabulary.count';
 # The name of the V1 to V2 words forms mapping
@@ -127,11 +113,6 @@ use constant TITLE_VOCABULARY_MAPPING_FILENAME_SUFFIX => '-title.map';
 
 # The order of the Language Model to train
 use constant DEFAULT_NGRAM_ORDER => 3;
-# Soothing constant value. Zero is the recommanded values.
-use constant SMOOTHING_CONSTANT => 0;
-
-#================== ALGORITHM FLAGS =================
-use constant USE_MODELS_MERGING_ALGORITHM => 0;   #0==false==Use pool buffer, 1==true
 
 #================== NIST TITLES PATTERN REGULAR EXPRESSION =================
 # In NIST newswire copora, title lines (Line1) lead lines (Line2) having the pattern matched by this regular expression
