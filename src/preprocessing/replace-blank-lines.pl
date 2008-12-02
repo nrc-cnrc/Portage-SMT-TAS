@@ -1,6 +1,6 @@
 #!/usr/bin/perl -sw
 
-# @file reverse.pl 
+# @file replace-blank-lines.pl 
 # @brief Write to stdout a copy of main-trans in which blank lines have been
 # replaced by corresponding lines in backup-trans.
 #
