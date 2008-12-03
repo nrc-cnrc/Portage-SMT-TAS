@@ -58,14 +58,14 @@ ifdef BOOST_ROOT
    endif
 endif
 
-ifneq ($(ICU), NONE)
+ifeq ($(ICU), NONE)
+   ICU_INC_DIR=-DNOICU
+else
    LIBICU=-licuuc
    ifneq ($(ICU),)
       ICU_INC_DIR=-isystem$(ICU)/include
       ICU_LIB_DIR=-L$(ICU)/lib
    endif
-else
-   ICU_INC_DIR=-DNOICU
 endif
 
 # places to find things; include the -L flag, eg -L/my-other-lib-dir
@@ -85,14 +85,15 @@ else
 endif
 LIBS = $(foreach DIR, $(LIB_LIST), -lportage_$(DIR)) $(EXTRA_LIBS)
 
-# Beginnings of a (not yet completed) port to MacOS - without logging for now
-ifeq ($(OSTYPE),Darwin)
-   LOGGING = NONE
+# We used to disable logging by defining LOGGING=NONE, now we do so by defining
+# LOG4CXX=NONE, but still look for LOGGING=NONE in case someone depends on it.
+ifeq ($(LOGGING), NONE)
+    LOG4CXX = NONE
 endif
 
 # If the variable LOGGING is defined to the value NONE, turn off the
 # compilation and linking with LOG4CXX
-ifeq ($(LOGGING), NONE)
+ifeq ($(LOG4CXX), NONE)
    CFLAG_LOGGING = -DNO_LOGGING
    LOGGING_LIB =
 else
@@ -234,7 +235,7 @@ endif
            .info .dvi .tex .texinfo .texi .txinfo .w .ch .web .elc .el .cpp
 
 # make everything that can be made, except doxy, which spews too many messages
-all: depend lib bin TAGS tags info .cvsignore
+all: depend lib bin TAGS tags info test .cvsignore
 
 # make everything from scratch
 new: clean
@@ -287,17 +288,24 @@ endif
 $(LIBRARY).so:
 endif
 
-# Compile and execute unit test suites
-ifeq ($(strip $(wildcard tests/*.h)),)
-test:
+# Compile and execute unit test suites, if any
+ifneq ($(strip $(wildcard tests/*.h)),)
+ifeq ($(CXXTEST),NONE)
+.PHONY: warn_no_cxxtest
+test: warn_no_cxxtest
+warn_no_cxxtest:
+	@echo Warning: Skipping unit testing since CxxTest is not installed.
 else
 CXXTEST_SOURCE=tests/cxxtestrunner.cc
 test: runcxxtest
 runcxxtest: tests/cxxtestrunner
 	tests/cxxtestrunner
 $(CXXTEST_SOURCE): tests/test*.h
-	cxxtestgen.pl --error-printer -o $@ $^
+	$(CXXTEST)/bin/cxxtestgen.pl --error-printer -o $@ $^
+
+tests/cxxtestrunner.o: OTHER_INC_DIRS += -isystem$(CXXTEST)/include
 tests/cxxtestrunner.o: tests/test*.h
+endif
 endif
 
 # Compile and execute legacy tests, if any

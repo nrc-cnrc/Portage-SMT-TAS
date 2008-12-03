@@ -149,9 +149,9 @@ Mandatory dependencies for source code distributions:
       # Go into it
       cd boost_1_36_0/
       # Run autoconf, with overridden install destination - replace $DEST
-      # with your preferred destination, e.g., $HOME, $HOME/pkgs or
-      # $HOME/boost, making sure that $BOOST_ROOT points to $DEST, either
-      # as en environment variable or in src/build/Makefile.incl.
+      # with your preferred destination, e.g., $PORTAGE, $HOME, $HOME/pkgs or
+      # $HOME/boost, making sure that $BOOST_ROOT points to $DEST, either as en
+      # environment variable or in src/build/Makefile.incl.
       ./configure --prefix=$DEST
       # Build.  This step will take a long time.
       make -k
@@ -169,16 +169,14 @@ Optional dependencies for source code distributions:
    If it is not already available via your Linux distro, ICU can be downloaded
    from http://icu-project.org/download/.
    This procedure worked for us:
-      # Download the ICU4C 4.0
+      # Download the ICU4C 4.0 and expand it
       wget http://download.icu-project.org/files/icu4c/4.0/icu4c-4_0-src.tgz
-      # Untar it
       tar -xzf icu4c-4_0-src.tgz
-      # Go into the icu source code directory
       cd icu/source
       # Run the configuration program - replace $DEST with your preferred
-      # destination, e.g., $HOME, $HOME/pkgs or $HOME/icu.
+      # destination, e.g., $PORTAGE, $HOME, $HOME/pkgs or $HOME/icu.
       ./runConfigureICU Linux --prefix=$DEST
-      # Compile and install (add -j 4 to speed up this process)
+      # Compile and install (add -j 5 to speed up this process)
       make install
       # Edit src/Makefile.user-conf and set the ICU variable to $DEST.
       # If necessary, edit SETUP.bash and SETUP.tcsh and add :$DEST/lib at the
@@ -195,11 +193,10 @@ Optional dependencies for source code distributions:
    ACE home page: http://www.cs.wustl.edu/~schmidt/ACE.html
    This procedure worked for us, and may help you install it yourself, if your
    sys admins can't do it globally for you:
-      # Download the ACE-5.5 tarball (but older versions should work too).
+      # Download and expand the ACE-5.5 tarball (but older versions should work
+      # too).
       wget http://deuce.doc.wustl.edu/ACE-5.5.tar.gz
-      # Untar it
       tar -xzf ACE-5.5.tar.gz
-      # Go into the directory tar just created
       cd ACE_wrappers
       # At this point, useful help can be found by typing:
       #   "links ACE-INSTALL.html#unix_autoconf"
@@ -208,17 +205,35 @@ Optional dependencies for source code distributions:
       mkdir -p build/i686
       cd build/i686
       # Run autoconf - replace $DEST with your preferred destination, e.g.,
-      # $HOME, $HOME/pkgs or $HOME/ace.  (This step takes a long time.)
+      # $PORTAGE, $HOME, $HOME/pkgs or $HOME/ace.
+      # (This step takes a long time.)
       ../../configure --prefix=$DEST
       # Compile (if your are using (t)csh, add "env" in front of this command)
-      # (This step takes a long time.)
+      # (This step takes a long time; add -j 5 to speed it up.)
       ACE_ROOT=`pwd` make
       # Install to $DEST/{include,lib} (if your are using (t)csh, add "env"
       # in front of this command)
       ACE_ROOT=`pwd` make install
       # Edit src/Makefile.user-conf and set the ACE variable to $DEST.
 
- - CxxTest -
+ - CxxTest - our unit testing framework depends on CxxTest, which can be
+   downloaded from http://cxxtest.tigris.org/.  CxxTest is a very small package
+   that is very easy to install, even though it needs to be installed manually.
+
+   This procedure worked for us:
+      # Download and expand the package
+      wget http://cxxtest.tigris.org/files/documents/6421/43281/cxxtest-3.10.1.tar.gz 
+      tar -xzf cxxtest-3.10.1.tar.gz
+      cd cxxtest
+      # Manual installation - replace $DEST with your preferred destination, e.g.
+      # $PORTAGE, $HOME, $HOME/pkgs or $HOME/cxxtest.
+      # Create $DEST/include if it doesn't already exist; install includes.
+      mkdir -p $DEST/include
+      cp -pr cxxtest $DEST/include/
+      # Create $DEST/bin if it doesn't already exist; install cxxtestgen.pl.
+      mkdir -p $DEST/bin
+      cp -p cxxtestgen.pl $DEST/bin/
+      # Edit src/Makefile.user-conf and set the CXXTEST variable to $DEST.
 
  - log4cxx - some programs in PORTAGEshared use log4cxx to produce debugging
    information.  By default, the use of logging is disabled in PORTAGEshared.
@@ -232,18 +247,18 @@ Optional dependencies for source code distributions:
    This procedure worked for us, and may help you install it yourself, if your
    sys admins can't do it globally for you:
       # Download log4cxx-0.9.7.tar.gz by following the download links from the
-      # log4cxx home page
-      # Untar the package
+      # log4cxx home page.
+      # Expand the package
       tar -xzf log4cxx-0.9.7.tar.gz
-      # Go into the package
       cd log4cxx-0.9.7
       # Run autoconf - see notes about $DEST/log4cxx in the boost section above.
       ./autogen.sh
       ./configure -with-XML=no --prefix=$DEST/log4cxx
-      # Compile
+      # Compile (add -j 5 to speed up this step)
       make
       # Install to $DEST/log4cxx/{include,lib}
       make install
+      # Edit src/Makefile.user-conf and set the LOG4CXX variable to $DEST.
 
  - etags and/or ctags - recommended if you program with emacs or vi or related
    programs.  These programs will build the databases needed to enable

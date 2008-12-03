@@ -13,7 +13,15 @@
 # This file contains all the user-configurable variables used to build
 # PORTAGEshared.  It needs to be modified to indicate where various packages
 # are located and, in the case of optinal dependencies, whether their use is
-# desired.
+# desired.  All variables in this file can also be exported as environment
+# variables or specified on the make command line, e.g., to override some
+# values temporarily.
+
+# If you haven't already done so, you should set the PORTAGE variable in
+# SETUP.bash/tcsh and source the appropriate file for your shell before trying
+# to compile or use PORTAGEshared.
+
+
 
 
 # =============================================================================
@@ -22,14 +30,16 @@
 
 # ------------------------------------
 # Variable:        BOOST_ROOT
-# Possible values: path to the directory where boost is installed.
+# Possible values: Full path to the directory where boost is installed.
 #                  $BOOST_ROOT/lib will be added to the library search path
 #                  for linking, and $BOOST_ROOT/include/boost-<version>
 #                  will be added to the include search path for compiling.
 # Notes:           Uncomment and edit this line to tell the compiler where
-#                  to find boost, or define it in your shell's init script.
+#                  to find boost if it is not in a standard location.
 
 #BOOST_ROOT=/full/path/to/boost
+
+
 
 
 # =============================================================================
@@ -37,18 +47,10 @@
 # functionalities in PORTAGEshared.
 
 # ------------------------------------
-# Variable:        LOGGING
-# Possible values: "NONE" disables logging.
-#                  Any other value or undefined enables logging.
-# Notes:           Comment out this line to enable logging - requires log4cxx
-
-LOGGING?=NONE
-
-# ------------------------------------
 # Variable:        ICU
 # Possible values: "NONE": Do not use ICU, or unicode-compliant casemapping.
-#                  Empty or undefined: Use ICU, which installed in a standard
-#                  location.
+#                  Empty or undefined: Use ICU, which is installed in a
+#                  standard location.
 #                  /full/path/to/icu: Use ICU, looking for its include files in
 #                  $(ICU)/include, and its libraries in $(ICU)/lib.  In this
 #                  case, you will also need to make sure the environment
@@ -58,7 +60,17 @@ LOGGING?=NONE
 #                  Uncomment and edit the next line if needed.
 
 ICU?=NONE
-#ICU=$(HOME)/pkgs/icu
+#ICU=$(PORTAGE)
+
+# ------------------------------------
+# Variable:        CXXTEST
+# Possible values: Specifies where CxxTest is installed.
+# Notes:           "make test" will fail unless CxxTest in installed, but
+#                  compilation of PORTAGEshared will not be affected.
+#                  Set this value so that $(CXXTEST)/bin/cxxtestgen.pl and
+#                  $(CXXTEST)/include/cxxtest/*.h exist.
+
+CXXTEST?=$(PORTAGE)
 
 # ------------------------------------
 # Variable:        PORTAGE_OPENMP
@@ -85,7 +97,22 @@ ICU?=NONE
 #                  Requires ACE.  Uncomment and edit the next line if needed.
 
 ACE?=NONE
-#ACE=$(HOME)/pkgs/ace
+#ACE=$(PORTAGE)
+
+# ------------------------------------
+# Variable:        LOG4CXX
+# Possible values: "NONE" disables logging.
+#                  Any other value or undefined enables logging.
+#                  Empty or undefined: enable logging, assuming log4cxx is
+#                  installed in a standard location.
+#                  /full/path/to/log4cxx: enable logging, looking for log4cxx
+#                  includes in $LOG4CXX/include/log4cxx and log4cxx libraries
+#                  in $LOG4CXX/lib.
+# Notes:           Comment out this line to enable logging.  Requires log4cxx.
+#                  Uncomment and edit the next line if needed.
+
+LOG4CXX?=NONE
+#LOG4CXX?=$(PORTAGE)
 
 # ------------------------------------
 # Variable:        PORTAGE_NO_CTAGS
