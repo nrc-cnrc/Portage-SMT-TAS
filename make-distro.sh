@@ -218,6 +218,12 @@ do_checkout() {
          error_exit "Invalid -licence specfication"
       fi
 
+      echo Removing -Werror from build/Makefile.incl
+      if [[ ! $NOT_REALLY ]]; then
+         perl -e 'print "%s/ -Werror / /\nw\nq\n"' |
+            ed PORTAGEshared/src/build/Makefile.incl
+      fi
+
       run_cmd rm -f PORTAGEshared/make-distro.sh
    run_cmd popd
 }
