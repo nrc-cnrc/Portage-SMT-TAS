@@ -1,0 +1,87 @@
+#!/usr/bin/make -f
+# vim:ts=3:noet
+
+# Makefile - Test (u)tokenize.pl and (u)detokenize.pl for various special cases.
+#
+# PROGRAMMER: Samuel Larkin / Eric Joanis
+#
+# COMMENTS:
+#
+# Technologies langagieres interactives / Interactive Language Technologies
+# Institut de technologie de l'information / Institute for Information Technology
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2008, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2008, Her Majesty in Right of Canada
+
+
+.PHONY: all clean french-hyphens ch-punc
+
+all: test
+
+test: display.accent \
+     $(addprefix compare., accent.tok accent.utf8 accent.utf8.tok) \
+     $(addprefix display., accent.tok accent.utf8 accent.utf8.tok) \
+     french-hyphens ch-punc
+
+
+french-hyphens: compare.hyphens.tok compare.hyphens.tok.utf8 \
+                compare.hyphens.detok compare.hyphens.detok.utf8
+
+ch-punc: $(foreach EXT, 000 001 010 011 100 101 110 111, compare.chinese-punc.detok.$(EXT))
+
+clean:
+	${RM} accent.tok accent.utf8 accent.utf8.tok hyphens.{tok,detok}{,.utf8}
+	${RM} chinese-punc.detok.[01][01][01]
+
+accent.utf8: accent
+	iconv -f iso-8859-1 -t UTF-8 < $< > $@
+
+accent.tok: accent
+	tokenize.pl $< $@
+
+accent.utf8.tok: accent.utf8
+	utokenize.pl $< $@
+
+display.%: %
+	file $*
+	hexdump -C $*
+
+compare.%: %
+	@echo -n "diff $* ref/$* "
+	@(diff $* ref/$* &> /dev/null) && echo "OK" || (echo "FAILED" && false)
+
+hyphens.tok: hyphens
+	tokenize.pl -lang=fr $< > $@
+
+hyphens.detok: hyphens.tok
+	detokenize.pl -lang=fr $< > $@
+
+hyphens.tok.utf8: hyphens
+	iconv -f cp1252 -t utf-8 $< | utokenize.pl -lang=fr > $@
+
+hyphens.detok.utf8: hyphens.tok.utf8
+	udetokenize.pl -lang=fr $< > $@
+
+chinese-punc.detok.000: chinese-punc
+	udetokenize.pl < $< > $@
+
+chinese-punc.detok.001: chinese-punc
+	udetokenize.pl -stripchinese < $< > $@
+
+chinese-punc.detok.010: chinese-punc
+	udetokenize.pl -chinesepunc < $< > $@
+
+chinese-punc.detok.011: chinese-punc
+	udetokenize.pl -chinesepunc -stripchinese < $< > $@
+
+chinese-punc.detok.100: chinese-punc
+	udetokenize.pl -latin1 < $< > $@
+
+chinese-punc.detok.101: chinese-punc
+	udetokenize.pl -latin1 -stripchinese < $< > $@
+
+chinese-punc.detok.110: chinese-punc
+	udetokenize.pl -latin1 -chinesepunc < $< > $@
+
+chinese-punc.detok.111: chinese-punc
+	udetokenize.pl -latin1 -chinesepunc -stripchinese < $< > $@
