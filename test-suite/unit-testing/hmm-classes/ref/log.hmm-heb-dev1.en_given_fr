@@ -1,0 +1,21 @@
+
+train_ibm, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada
+
+Created HMM model with existing IBM1 model and p0: 0.05 up0: 0 alpha: 0.01 lambda: 0 anchor: 1 end-dist: 1 max-jump: 7 using word classes from: ref/dev1_fr.cls
+initializing from ref/ibm1-dev1.en_given_fr:
+beginning training:
+reading ref/dev1_fr.al/ref/dev1_en.al
+Lines processed: 100
+iter 1 (HMM): prev ppx = 35.744, size = 30129 word pairs; took N second(s).
+reading ref/dev1_fr.al/ref/dev1_en.al................
+Lines processed: 100
+iter 2 (HMM): prev ppx = 31.154, size = 30129 word pairs; took N second(s).
+reading ref/dev1_fr.al/ref/dev1_en.al................
+Lines processed: 100
+iter 3 (HMM): prev ppx = 22.8935, size = 29937 word pairs; took N second(s).
+reading ref/dev1_fr.al/ref/dev1_en.al................
+Lines processed: 100
+iter 4 (HMM): prev ppx = 15.3763, size = 27033 word pairs; took N second(s).
+reading ref/dev1_fr.al/ref/dev1_en.al................
+Lines processed: 100
+iter 5 (HMM): prev ppx = 10.3736, size = 21260 word pairs; took N second(s).

@@ -1,0 +1,20 @@
+Read TTable in N seconds
+Created HMM model with existing IBM1 model and p0: 0.05 up0: 0 alpha: 0.01 lambda: 0 anchor: 1 end-dist: 1 max-jump: 7 using word classes from: ref/dev1_en.cls
+initializing from ref/ibm1-dev1.fr_given_en:
+beginning training:
+reading ref/dev1_en.al/ref/dev1_fr.al
+Lines processed: 100
+iter 1 (HMM): prev ppx = 43.4388, size = 29972 word pairs; took N second(s).
+reading ref/dev1_en.al/ref/dev1_fr.al................
+Lines processed: 100
+iter 2 (HMM): prev ppx = 38.0731, size = 29972 word pairs; took N second(s).
+reading ref/dev1_en.al/ref/dev1_fr.al................
+Lines processed: 100
+iter 3 (HMM): prev ppx = 28.629, size = 29972 word pairs; took N second(s).
+reading ref/dev1_en.al/ref/dev1_fr.al................
+Lines processed: 100
+iter 4 (HMM): prev ppx = 19.9615, size = 29972 word pairs; took N second(s).
+reading ref/dev1_en.al/ref/dev1_fr.al................
+Lines processed: 100
+iter 5 (HMM): prev ppx = 14.1309, size = 29972 word pairs; took N second(s).
+Wrote TTable in N seconds

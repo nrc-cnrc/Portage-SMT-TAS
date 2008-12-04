@@ -1,0 +1,6 @@
+Portage HMM Alignment data file v1.1: back_count for_count init_count final_count p0 up0 alpha lambda anchor end_dist max_jump \n backward jump parameters \n forward jump parameters \n initial jump parameters \n final jump parameters
+5 6 5 5 0 1 0 0 1 1 5
+105.64364 59.889043 44.534017 10.632891 58.859187
+493.03489 921.31955 223.96705 110.92083 51.724844 107.59072
+71.199248 3.3687629 3.4978997 10.826299 11.107791
+100 1.556903e-10 1.7486735e-11 5.559866e-12 3.0474342e-09

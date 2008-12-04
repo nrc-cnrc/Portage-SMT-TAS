@@ -1,0 +1,23 @@
+
+train_ibm, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada
+
+Warning: The -liang option has been replaced by -mimic liang. Please update your scripts.
+Warning: Proceeding as if you had typed -mimic liang.
+Created HMM model with existing IBM1 model and p0: 0 up0: 1 alpha: 0 lambda: 0 anchor: 1 end-dist: 1 max-jump: 5
+initializing from ref/ibm1-dev1.fr_given_en:
+beginning training:
+reading ref/dev1_en.al/ref/dev1_fr.al
+Lines processed: 100
+iter 1 (HMM): prev ppx = 43.2859, size = 29972 word pairs; took N second(s).
+reading ref/dev1_en.al/ref/dev1_fr.al................
+Lines processed: 100
+iter 2 (HMM): prev ppx = 39.5375, size = 29972 word pairs; took N second(s).
+reading ref/dev1_en.al/ref/dev1_fr.al................
+Lines processed: 100
+iter 3 (HMM): prev ppx = 31.3267, size = 29867 word pairs; took N second(s).
+reading ref/dev1_en.al/ref/dev1_fr.al................
+Lines processed: 100
+iter 4 (HMM): prev ppx = 23.3554, size = 28245 word pairs; took N second(s).
+reading ref/dev1_en.al/ref/dev1_fr.al................
+Lines processed: 100
+iter 5 (HMM): prev ppx = 16.5114, size = 24154 word pairs; took N second(s).
