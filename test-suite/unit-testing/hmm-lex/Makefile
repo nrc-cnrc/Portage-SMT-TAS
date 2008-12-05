@@ -29,7 +29,7 @@ cmp_%.fr_given_en: %.fr_given_en
 	fi
 
 do_cmp_%:
-	diff-round.pl -p 3 -sort $* ref/$*.gz -q
+	diff-round.pl -p 5 -sort $* ref/$*.gz -q
 
 map.fr_given_en: $(CORPUS)
 	$(RM) $@ $@.dist
