@@ -12,8 +12,8 @@ license agreement for details.
 
 Contents of this directory:
 
- - toy/                 toy example: complete use of the PORTAGEshared software
-                        suite on a tiny corpus, as an example and tutorial
+ - unit-testing/        unit test suites that are too slow or too complex to
+                        routinely run as part of compilation
 
  - regress-small-voc/   regression test suite on a small corpus
 

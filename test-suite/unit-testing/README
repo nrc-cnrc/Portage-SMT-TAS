@@ -36,4 +36,7 @@ Contents of this directory:
  - rescoring.metric/    Test suite for using PER or WER in cow.sh.
  - script.ff/           Test suite for the SCRIPT: rescoring feature.
  - tokenize.pl/         Test suite for recent enhancements to our tokenizer.
+ - toy/                 Complete use of the PORTAGEshared software suite on a
+                        tiny corpus, with parameters chosen to run very fast
+                        (not recommended as experimental strating point).
 
