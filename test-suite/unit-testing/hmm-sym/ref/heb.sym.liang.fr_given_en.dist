@@ -1,0 +1,26 @@
+Portage HMM Alignment data file with classes: p0 uniform_po alpha lambda anchor end_dist max_jump class_count \n global jump parameters \n init jump parameters \n loop{class jump parameters} \n loop{word classes}
+0.05 0 0.01 0 1 1 7 5
+5.99999997 -5 5 1.02196953e-21 3.73227399e-14 0.991851682 1 4.94979065 2.18641017e-07 6.99757985 4.94259329 1.02034392e-20 1 1
+1 6 3.99914718 1.3090272e-28 0.999999999 1.07483507e-11 1 1.15571925e-27
+0 0 0 -1
+1 0 0 -1
+2 5.99999997 -5 0 1.02196953e-21 1.10361198e-22 7.63021712e-25 6.82934436e-26 4.83981392e-27 1.73791848e-22
+3 1.37550511e-24 -4 4 6.38733353e-25 0.991851682 1 3.95026805 2.18640979e-07 2.99843267 1.95026741 3.23011791e-23 1
+4 2.34533348e-24 -4 5 3.73227398e-14 3.67513345e-11 5.97279258e-23 0.999522598 3.70351279e-14 3.99914718 2.99232588 1.0171138e-20 2.21142069e-24 1
+Portage WordClasses stream v1.0
+14
+noise	4
+.	2
+the	4
+is	3
+so-goes-life	4
+a	4
+arrives	3
+there	4
+not	3
+test	3
+empty	2
+this	4
+here	4
+small	3
+End of Portage WordClasses stream v1.0

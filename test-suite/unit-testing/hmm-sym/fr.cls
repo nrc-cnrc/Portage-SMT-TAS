@@ -1,0 +1,15 @@
+.	2
+ainsi-va-la-vie	3
+arrive	2
+bruit	2
+ceci	4
+est	4
+ici	3
+le	4
+là	3
+n'	2
+pas	4
+petit	2
+test	3
+un	4
+vide	2

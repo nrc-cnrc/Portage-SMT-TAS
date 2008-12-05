@@ -1,0 +1,14 @@
+.	2
+a	4
+arrives	3
+empty	2
+here	4
+is	3
+noise	4
+not	3
+small	3
+so-goes-life	4
+test	3
+the	4
+there	4
+this	4
