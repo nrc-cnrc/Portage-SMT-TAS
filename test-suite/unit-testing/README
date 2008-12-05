@@ -1,0 +1,39 @@
+Technologies langagieres interactives / Interactive Language Technologies
+Institut de technologie de l'information / Institute for Information Technology
+Conseil national de recherches Canada / National Research Council Canada
+Copyright 2008, Sa Majeste la Reine du Chef du Canada
+Copyright 2008, Her Majesty in Right of Canada
+
+Distributed under specific licensing terms.  Please refer to your signed
+license agreement for details.
+
+
+                          PORTAGEshared unit-testing
+
+This directory contains a collection of ad hoc unit test suites.  These suites
+typically take too long or are too complex to integrate them into the unit
+testing framework we use in the src/ subdirectory.  Some of these test suites
+are self verifying and automated via a run-test.sh script.  These get exercised
+if you run ./run-all-tests.sh.  Others are only partially automated and require
+manual analysis.
+
+After installing PORTAGEshared, you can run the automated test suites by
+invoking ./run-all-tests.sh.  If all tests pass, great.  If not, differences in
+floating point rounding between your architecture and ours is a likely cause,
+and might not indicate an real problem.
+
+Contents of this directory:
+
+ - run-all-tests.sh     Master script running all fully automated suites.
+ - hmm-classes/         Test suite for the class-conditioned variant of the HMM
+                        word alignment module.
+ - hmm-lex/             Test suite for the lexically conditioned variant of the
+                        HMM word alignment module.
+ - hmm-sym/             Test suite for symmetrized training of HMM word
+                        alignment models.
+ - lm/                  Test suite for using our various LM file formats and
+                        filtering options.
+ - rescoring.metric/    Test suite for using PER or WER in cow.sh.
+ - script.ff/           Test suite for the SCRIPT: rescoring feature.
+ - tokenize.pl/         Test suite for recent enhancements to our tokenizer.
+
