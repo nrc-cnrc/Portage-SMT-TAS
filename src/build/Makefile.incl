@@ -468,7 +468,9 @@ MODULE_USAGE_DIR = ${USAGE_DIR}/${MODULE_NAME}
 
 USAGE_PROGRAMS   = $(filter-out $(TESTPROGS), $(PROGRAMS)) ${BINSCRIPTS}
 
-# Let's make a index per module of all available programs
+# usage: index per module of all available programs
+# usage in each modules will require lib in dependent modules
+usage: lib
 ifeq ($(strip $(USAGE_PROGRAMS)),)
 usage:
 else
