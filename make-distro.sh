@@ -24,7 +24,7 @@ Usage: make-distro.sh [-h(elp)] [-bin] [-nosrc] [-licence PROJECT] [-n]
        [-patch-from OLD_CD_DIR:PREREQ_TOKEN
           [-patch-from OLD_CD_DIR2:PREREQ_TOKEN2 [...]]]
        [-aachen] [-smart-bin] [-smart-src] [-can-univ] [-can-biz]
-       [-d cvs_dir] [-framwork FRAMEWORK]
+       [-d cvs_dir] [-framework FRAMEWORK]
        -dir OUTPUT_DIR
 
   Make a PORTAGEshared distribution folder, ready to burn on CD or copy to a
@@ -57,6 +57,8 @@ Options:
 		copied).  [CanUniv, or BinOnly if -nosrc is specified]
   -n            Not Really: just show what will be done.
   -no-doxy      Don't generate the doxy files (use for faster testing) [do]
+  -no-usage     Don't generate the usage web page [do]
+  -no-archives  Don't generate the tar ball or iso files [do]
   -archive-name Infix to insert in .tar and .iso filenames. []
   -patch-from   Create patch OLD_CD_DIR_to_OUTPUT_DIR.patch for users who want
                 to patch existing installations instead of doing a fresh
@@ -152,6 +154,8 @@ while [ $# -gt 0 ]; do
    -debug)              DEBUG=1;;
    -n)                  NOT_REALLY=1;;
    -no-doxy)            NO_DOXY=2;;
+   -no-usage)           NO_USAGE=1;;
+   -no-archives)        NO_ARCHIVES=1;;
    -h|-help)            usage;;
    -*)                  error_exit "Unknown option $1.";;
    *)                   error_exit "Extraneous command line argument $1.";;
@@ -187,10 +191,10 @@ do_checkout() {
    run_cmd mkdir $OUTPUT_DIR
    run_cmd echo "$0 $SAVED_COMMAND_LINE" \> $OUTPUT_DIR/make-distro-cmd-used
    run_cmd pushd ./$OUTPUT_DIR
-      run_cmd cvs $CVS_DIR co \"$VERSION_TAG\" PORTAGEshared '>&' cvs.log
+      run_cmd cvs $CVS_DIR co -P \"$VERSION_TAG\" PORTAGEshared '>&' cvs.log
       if [[ $FRAMEWORK ]]; then
          run_cmd pushd PORTAGEshared
-            run_cmd cvs $CVS_DIR co \"$VERSION_TAG\" -d framework $FRAMEWORK '>&' ../cvs.framework.log
+            run_cmd cvs $CVS_DIR co -P \"$VERSION_TAG\" -d framework $FRAMEWORK '>&' ../cvs.framework.log
          run_cmd popd
       fi
       run_cmd find PORTAGEshared -name CVS \| xargs rm -rf
@@ -218,7 +222,7 @@ do_checkout() {
          error_exit "Invalid -licence specfication"
       fi
 
-      echo Removing -Werror from build/Makefile.incl
+      echo Removing -Werror from build/Makefile.incl.
       if [[ ! $NOT_REALLY ]]; then
          perl -e 'print "%s/ -Werror / /\nw\nq\n"' |
             ed PORTAGEshared/src/build/Makefile.incl
@@ -235,7 +239,7 @@ get_user_manual() {
       run_cmd find PORTAGEshared/doc/user-manual/uploads -name Layout* \| xargs rm -f
       run_cmd pushd PORTAGEshared/doc/user-manual/pages
          for x in *.html; do
-            echo Making images relative in $x
+            echo Making images relative in $x.
             if [[ ! $NOT_REALLY ]]; then
                perl -e 'print '"'"'%s/IMG SRC="http:\/\/wiki-ilt\/PORTAGEshared\/uploads/img src="..\/uploads/'"'"'."\nw\nq\n"' | ed $x
                perl -e 'print '"'"'%s/img src="http:\/\/wiki-ilt\/PORTAGEshared\/uploads/img src="..\/uploads/'"'"'."\nw\nq\n"' | ed $x
@@ -256,7 +260,7 @@ make_pdfs() {
          run_cmd rm -f canoe/uml.eps
       run_cmd popd
 
-      run_cmd pushd ./test-suite/toy
+      run_cmd pushd ./test-suite/unit-testing/toy
          run_cmd make doc
          run_cmd make clean
       run_cmd popd
@@ -267,6 +271,16 @@ make_pdfs() {
 make_doxy() {
    run_cmd pushd ./$OUTPUT_DIR/PORTAGEshared/src
       run_cmd make doxy '>&' ../../doxy.log
+   run_cmd popd
+}
+
+make_usage() {
+   run_cmd pushd ./$OUTPUT_DIR/PORTAGEshared
+      run_cmd cvs $CVS_DIR co -P \"$VERSION_TAG\" -d SRC_FOR_USAGE PORTAGEshared/src '>&' ../cvs_for_usage.log
+      run_cmd pushd ./SRC_FOR_USAGE
+         run_cmd make ICU= CF=-Wno-error -j 5 usage '>&' ../../make_usage.log
+      run_cmd popd
+      run_cmd rm -r SRC_FOR_USAGE
    run_cmd popd
 }
 
@@ -292,7 +306,7 @@ make_iso_and_tar() {
    VERSION="${VERSION// /.}"
    VOLID=PORTAGEshared_${VERSION}
    VOLID=`echo "$VOLID" | perl -pe 's#[/:]#.#g'`
-   echo $VOLID
+   #echo $VOLID
    ISO_VOLID=PORTAGEshared`echo $VERSION | sed -e 's/v//g' -e 's/_/./'`
    ISO_VOLID=${ISO_VOLID:0:31}
    if [ -n "$ARCHIVE_NAME" ]; then
@@ -323,18 +337,22 @@ if [[ ! $COMPILE_ONLY ]]; then
    get_user_manual
    make_pdfs
    if [[ ! $NO_SOURCE && ! $NO_DOXY ]]; then
-      echo Including source code documentation
+      echo Including source code documentation.
       make_doxy
+   fi
+   if [[ ! $NO_USAGE ]]; then
+      echo Generating usage information.
+      make_usage
    fi
 fi
 
 if [[ $INCLUDE_BIN || $COMPILE_ONLY ]]; then
-   echo Including compiled code
+   echo Including compiled code.
    make_bin
 fi
 
 if [[ $COMPILE_HOST ]]; then
-   echo Logging on to $COMPILE_HOST to compile code
+   echo Logging on to $COMPILE_HOST to compile code.
    run_cmd ssh $COMPILE_HOST cd `pwd` \\\; $0 -compile-only -dir $OUTPUT_DIR
 fi
 
@@ -370,7 +388,10 @@ if [[ ! $COMPILE_ONLY ]]; then
       done
    fi
 
-   make_iso_and_tar
+   if [[ ! $NO_ARCHIVES ]]; then
+      echo Generating tar ball and iso file.
+      make_iso_and_tar
+   fi
 fi
 
 
