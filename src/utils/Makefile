@@ -78,6 +78,7 @@ BINSCRIPTS = \
         ngrams.pl \
         ospl2mteval.pl \
         outpipe.sh \
+        parallelize.pl \
         parallel-uniq.pl \
         parse-monitor.sh \
         process-memory-usage.pl \
