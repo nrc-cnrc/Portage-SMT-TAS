@@ -46,6 +46,7 @@ BINSCRIPTS = \
         cowpie.py \
 	gen-features-parallel.pl \
 	rat.sh \
+        rescore-bwd-lm.sh \
         rescore-train-micro.sh \
 	rescoremodel2canoearg.sh
 
