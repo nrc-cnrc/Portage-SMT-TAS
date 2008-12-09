@@ -21,12 +21,6 @@ use Getopt::Long;
 require 5.002;
 use Socket;
 
-sub exit_with_error{
-    my $error_string = shift;
-    print STDERR $error_string, "\n";
-    exit(-1);
-}
-
 # validate parameters
 my $host = '';
 my $port = '';
@@ -34,11 +28,13 @@ my $help = '';
 my $quota = 60; # in minutes
 my $primary = 0;
 my $netcat_mode = 0;
+my $silent = 0;
 
 GetOptions ("host=s"   => \$host,
             "port=i"   => \$port,
             help       => \$help,
             h          => \$help,
+            silent     => \$silent,
             "quota=i"  => \$quota,
             primary    => \$primary,
             netcat     => \$netcat_mode,
@@ -51,9 +47,6 @@ if($help ne ''){
     exit (-1);
 }
 
-exit_with_error("Missing mandatory argument 'host' see --help") unless $host ne '';
-exit_with_error("Missing mandatory argument 'port' see --help") unless $port ne '';
-
 my $me = `uname -n`;
 chomp $me;
 $me .= ":" . ($ENV{PBS_JOBID} || "");
@@ -61,9 +54,20 @@ $me =~ s/balzac.iit.nrc.ca/balzac/;
 
 if ( $primary ) { $me = "Primary $me"; }
 
-sub log_msg(@) {
-   print STDERR "[" . localtime() . "] ($me) ", @_, "\n";
+sub exit_with_error{
+    my $error_string = shift;
+    print STDERR "[" . localtime() . "] ($me) ", $error_string, "\n";
+    exit(-1);
 }
+
+sub log_msg(@) {
+   if ( !$silent ) {
+      print STDERR "[" . localtime() . "] ($me) ", @_, "\n";
+   }
+}
+
+exit_with_error("Missing mandatory argument 'host' see --help") unless $host ne '';
+exit_with_error("Missing mandatory argument 'port' see --help") unless $port ne '';
 
 # Replace netcat by a regular Perl socket
 my $iaddr = inet_aton($host) or exit_with_error("No such host: $host");
@@ -178,6 +182,7 @@ print <<'EOF';
     port=SomePort: The port on which to send requests
  options:
     -help     print this help message
+    -silent   don't print log messages
     -quota T  The number of minutes this worker should work before
               requesting a relaunch from the deamon [60] (0 means never
               relaunch, i.e., work until there is no more work.)

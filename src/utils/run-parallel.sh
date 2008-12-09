@@ -267,26 +267,27 @@ if [ "$1" = add -o "$1" = quench -o "$1" = kill ]; then
    HOST=`perl -e 'undef $/; $_ = <>; ($host) = /-host=(.*?) /; print $host' < $CMD_FILE`
    PORT=`perl -e 'undef $/; $_ = <>; ($port) = /-port=(.*?) /; print $port' < $CMD_FILE`
    echo Host: $HOST:$PORT
+   NETCAT_COMMAND="r-parallel-worker.pl -netcat -host $HOST -port $PORT"
 
    if [ $REQUEST_TYPE = add ]; then
-      RESPONSE=`echo ADD $NUM | r-parallel-worker.pl -netcat -host $HOST -port $PORT`
+      RESPONSE=`echo ADD $NUM | $NETCAT_COMMAND`
       if [ "$RESPONSE" != ADDED ]; then
          error_exit "Deamon error (response=$RESPONSE), add request failed."
       fi
       # Ping the deamon to make it launch the first extra worker requested;
       # the rest will get added as the extra workers request their jobs.
-      if [ "`echo PING | r-parallel-worker.pl -netcat -host $HOST -port $PORT`" != "PONG" ]; then
+      if [ "`echo PING | $NETCAT_COMMAND`" != "PONG" ]; then
          echo "Deamon does not appear to be running; request completed" \
               "but likely won't do anything."
          exit 1
       fi
    elif [ $REQUEST_TYPE = quench ]; then
-      RESPONSE=`echo QUENCH $NUM | r-parallel-worker.pl -netcat -host $HOST -port $PORT`
+      RESPONSE=`echo QUENCH $NUM | $NETCAT_COMMAND`
       if [ "$RESPONSE" != QUENCHED ]; then
          error_exit "Deamon error (response=$RESPONSE), quench request failed."
       fi
    elif [ $REQUEST_TYPE = kill ]; then
-      RESPONSE=`echo KILL | r-parallel-worker.pl -netcat -host $HOST -port $PORT`
+      RESPONSE=`echo KILL | $NETCAT_COMMAND`
       if [ "$RESPONSE" != KILLED ]; then
          error_exit "Deamon error (response=$RESPONSE), kill request failed."
       fi
@@ -612,6 +613,12 @@ fi
 
 # Command for launching more workers when some send a STOPPING-DONE message.
 PSUB_CMD_FILE=$WORKDIR/psub_cmd
+SILENT_WORKER=
+if [[ $VERBOSE < 2 ]]; then
+   SILENT_WORKER=-silent
+fi
+WORKER_COMMAND="r-parallel-worker.pl $SILENT_WORKER -host=$MY_HOST -port=$MY_PORT"
+
 if [ $CLUSTER ]; then
    cat /dev/null > $PSUB_CMD_FILE
    for word in "${SUBMIT_CMD[@]}"; do
@@ -623,17 +630,11 @@ if [ $CLUSTER ]; then
    done
    echo -n "" -N $WORKER_NAME-__WORKER__ID__ >> $PSUB_CMD_FILE
    echo -n "" -e $WORKDIR/log.worker-__WORKER__ID__ >> $PSUB_CMD_FILE
-   echo -n "" r-parallel-worker.pl -host=$MY_HOST -port=$MY_PORT $QUOTA \\\> $WORKDIR/out.worker-__WORKER__ID__ 2\\\> $WORKDIR/err.worker-__WORKER__ID__ \>\> $WORKER_JOBIDS >> $PSUB_CMD_FILE
+   echo -n "" $WORKER_COMMAND $QUOTA \\\> $WORKDIR/out.worker-__WORKER__ID__ 2\\\> $WORKDIR/err.worker-__WORKER__ID__ \>\> $WORKER_JOBIDS >> $PSUB_CMD_FILE
 else
-   echo r-parallel-worker.pl -host=$MY_HOST -port=$MY_PORT \> $WORKDIR/out.worker-__WORKER__ID__ 2\> $WORKDIR/err.worker-__WORKER__ID__ \& > $PSUB_CMD_FILE
+   echo $WORKER_COMMAND \> $WORKDIR/out.worker-__WORKER__ID__ 2\> $WORKDIR/err.worker-__WORKER__ID__ \& > $PSUB_CMD_FILE
 fi
 echo $NUM > $WORKDIR/next_worker_id
-
-# Provide (almost) cut and paste commands for doing quenches or adds
-if [ $VERBOSE -gt 1 ]; then
-   echo "To add N workers, do \"echo N > $WORKDIR/add\"" >&2
-   echo "To stop N workers, do \"echo N > $WORKDIR/quench\"" >&2
-fi
 
 # start worker 0 locally, if not disabled.
 if [ ! $NOLOCAL ]; then
@@ -642,9 +643,9 @@ if [ ! $NOLOCAL ]; then
    OUT=$WORKDIR/out.worker-0
    ERR=$WORKDIR/err.worker-0
    if [ $VERBOSE -gt 2 ]; then
-      echo r-parallel-worker.pl -host=$MY_HOST -port=$MY_PORT -primary \> $OUT 2\> $ERR \& >&2
+      echo $WORKER_COMMAND -primary \> $OUT 2\> $ERR \& >&2
    fi
-   r-parallel-worker.pl -host=$MY_HOST -port=$MY_PORT -primary > $OUT 2> $ERR &
+   eval $WORKER_COMMAND -primary > $OUT 2> $ERR &
 fi
 
 # start workers 0 (or 1) to n-1 using psub, noting their PID/PBS_JOBID
@@ -656,9 +657,9 @@ if [[ $CLUSTER ]] && qsub -t 2>&1 | grep -q 'option requires an argument'; then
    LOG=$WORKDIR/log.worker
    ID='$PBS_ARRAYID'
    if [[ $VERBOSE -gt 2 ]]; then
-      echo "${SUBMIT_CMD[@]}" -t $FIRST_PSUB-$(($NUM-1)) -N $WORKER_NAME -e $LOG r-parallel-worker.pl -host=$MY_HOST -port=$MY_PORT $QUOTA \> $OUT$ID 2\> $ERR$ID >&2
+      echo "${SUBMIT_CMD[@]}" -t $FIRST_PSUB-$(($NUM-1)) -N $WORKER_NAME -e $LOG $WORKER_COMMAND $QUOTA \> $OUT$ID 2\> $ERR$ID >&2
    fi
-   "${SUBMIT_CMD[@]}" -t $FIRST_PSUB-$(($NUM-1)) -N $WORKER_NAME -e $LOG r-parallel-worker.pl -host=$MY_HOST -port=$MY_PORT $QUOTA \> $OUT$ID 2\> $ERR$ID >> $WORKER_JOBIDS
+   "${SUBMIT_CMD[@]}" -t $FIRST_PSUB-$(($NUM-1)) -N $WORKER_NAME -e $LOG $WORKER_COMMAND $QUOTA \> $OUT$ID 2\> $ERR$ID >> $WORKER_JOBIDS
    # qstat needs individual job ids, and fails when given the array id, so we
    # need to expand them by hand into the $WORKER_JOBIDS file.
    WORKER_BASE_JOBID=`cat $WORKER_JOBIDS`
@@ -680,17 +681,17 @@ else
 
       if [ $CLUSTER ]; then
          if [ $VERBOSE -gt 2 ]; then
-            echo ${SUBMIT_CMD[@]} -N $WORKER_NAME-$i -e $LOG r-parallel-worker.pl -host=$MY_HOST -port=$MY_PORT $QUOTA \> $OUT 2\> $ERR >&2
+            echo ${SUBMIT_CMD[@]} -N $WORKER_NAME-$i -e $LOG $WORKER_COMMAND $QUOTA \> $OUT 2\> $ERR >&2
          fi
-         "${SUBMIT_CMD[@]}" -N $WORKER_NAME-$i -e $LOG r-parallel-worker.pl -host=$MY_HOST -port=$MY_PORT $QUOTA \> $OUT 2\> $ERR >> $WORKER_JOBIDS
+         "${SUBMIT_CMD[@]}" -N $WORKER_NAME-$i -e $LOG $WORKER_COMMAND $QUOTA \> $OUT 2\> $ERR >> $WORKER_JOBIDS
          # PBS doesn't like having too many qsubs at once, let's give it a
          # chance to breathe between each worker submission
          sleep 1
       else
          if [ $VERBOSE -gt 2 ]; then
-            echo r-parallel-worker.pl -host=$MY_HOST -port=$MY_PORT $QUOTA \> $OUT 2\> $ERR \& >&2
+            echo $WORKER_COMMAND $QUOTA \> $OUT 2\> $ERR \& >&2
          fi
-         r-parallel-worker.pl -host=$MY_HOST -port=$MY_PORT $QUOTA > $OUT 2> $ERR &
+         eval $WORKER_COMMAND $QUOTA > $OUT 2> $ERR &
       fi
    done
 fi
@@ -729,13 +730,20 @@ else
    wait
 fi
 
-if [ $VERBOSE -gt 1 ]; then
+if [ $VERBOSE -ge 1 ]; then
    # Send all worker STDOUT and STDERR to STDERR for logging purposes.
    for x in $WORKDIR/{out,err}.worker-*; do
       if [ -s $x ]; then
-         echo >&2
-         echo ========== $x ========== | sed "s/$WORKDIR\///" >&2
-         cat $x >&2
+         if [[ $VERBOSE = 1 && `grep -v "Can't connect to socket: Connection refused" < $x | wc -c` = 0 ]]; then
+            # STDERR only containing workers that can't connect to a dead
+            # deamon - ignore in default verbosity mode
+            true
+            echo skipping $x
+         else
+            echo >&2
+            echo ========== $x ========== | sed "s/$WORKDIR\///" >&2
+            cat $x >&2
+         fi
       fi
    done
    echo >&2
