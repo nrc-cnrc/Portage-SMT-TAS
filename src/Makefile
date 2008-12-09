@@ -84,17 +84,17 @@ USAGE_DIR ?= ../doc/usage
 .PHONY: usage
 usage: list.html
 index.html: make_module_usage
-	find ${USAGE_DIR} -name index.html -maxdepth 2 -mindepth 2 \
+	find ${USAGE_DIR} -maxdepth 2 -mindepth 2 -name index.html \
 	| xargs -i dirname {} \
 	| sed 's#.*/##' \
 	| tr " " "\n" \
 	| sort \
-	| ./utils/pgm_usage_2_html.pl -main "Program's help" \
+	| ./utils/pgm_usage_2_html.pl -main "PORTAGEshared: Usage information by program" \
 	> ${USAGE_DIR}/$@
 	cp build/*.gif build/*.jpg ${USAGE_DIR}
 
 list.html: index.html
-	find ${USAGE_DIR} -name index.html -maxdepth 2 -mindepth 2 \
+	find ${USAGE_DIR} -maxdepth 2 -mindepth 2 -name index.html \
 	| xargs cat \
 	| egrep '<TR ID="program brief description">' \
 	| ./utils/pgm_usage_2_html.pl -index "List of all programs" \

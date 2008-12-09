@@ -25,11 +25,13 @@ sub usage {
 Usage: $0 [options] [<in> [<out>]]
 
   Outputs to <out> an html page with the content given by <in>.
+  This script is normally invoked by running \"make usage\" in the src/
+  directory.
 
 Options:
 
-  -pgm <MODULE>/<NAME>    Creates a web page with the content of a program called <NAME>
-                 with it's help description given by <in>.
+  -pgm <MODULE>/<NAME>    Creates a web page with the content of a program
+                 called <NAME> with it's help description given by <in>.
   -module <NAME> Creates list of available program in a module.  Expects a list
                  of all available programs as <in>.
   -main <TITLE>  Creates a web page with the list of all modules given by <in>.
@@ -90,18 +92,19 @@ my $NRC_logo_path;
 my $hierarchy;
 if (defined($main_index)) {
    $title = $main_index;
-   $NRC_logo_path = "./";
+   $NRC_logo_path = ".";
+   $hierarchy = "";
 }
 elsif (defined($full_index)) {
    $title = $full_index;
-   $NRC_logo_path = "./";
-   $hierarchy .= " <A HREF=\"index.html\">PORTAGEshared</A>";
+   $NRC_logo_path = ".";
+   $hierarchy = " <A HREF=\"index.html\">PORTAGEshared</A>";
 }
 else {
-   $NRC_logo_path = "../";
+   $NRC_logo_path = "..";
    $hierarchy = "<A HREF=\"../index.html\">PORTAGEshared</A> /";
    if (defined($module_index)) {
-      $title = $module_index;
+      $title = "Module: $module_index";
       $hierarchy .= " $module_index /";
    }
    else {
@@ -111,6 +114,10 @@ else {
       $title = $name;
    }
 }
+
+#print STDERR "\$title: $title\n";
+#print STDERR "\$NRC_logo_path: $NRC_logo_path\n";
+#print STDERR "\$hierarchy: $hierarchy\n";
 
 my $header = <<HEADER;
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
@@ -147,9 +154,9 @@ my $footer = <<FOOTER;
   </td>
   <td valign="top" align="center">
 Technologies langagi&egrave;res interactives / Interactive Language Technologies<BR>
-Inst. de technologie de l'information / Institute for Information Technology<BR>
+Institut de technologie de l'information / Institute for Information Technology<BR>
 Conseil national de recherches Canada / National Research Council Canada<BR>
-Copyright 2004-2008, Sa Majest&eacute; la Reine du Chef du Canada / Her Majesty in Right of Canada
+Copyright &copy; 2004-2008, Sa Majest&eacute; la Reine du Chef du Canada / Her Majesty in Right of Canada
   </td>
 </tr>
 </table> 
@@ -157,12 +164,13 @@ FOOTER
 
 print OUT $header;
 if (defined($module_index)) {
-   print OUT "<H2>Available programs are:</H2><BR>
+   print OUT "<H2>Available programs in $module_index:</H2><BR>
    <TABLE CELLPADDING=\"5\" BORDER=\"1\">
    ";
    while (<IN>) {
       chomp;
       my $pgm_name = $_;
+      next unless $pgm_name;
       print OUT "<TR ID=\"program brief description\"><TD ALIGN=\"left\" VALIGN=\"top\" NOWRAP><A ID=\"MODULE $module_index\" HREF=\"$pgm_name.html\">$pgm_name</A></TD>";
 
       my $code;
@@ -190,7 +198,7 @@ if (defined($module_index)) {
    ";
 }
 elsif (defined($main_index)) {
-   print OUT "<H2>Available modules are:</H2><BR>
+   print OUT "<H2>PORTAGEshared programs by module:</H2><BR>
    <UL>
    ";
    while (<IN>) {
@@ -199,7 +207,7 @@ elsif (defined($main_index)) {
    }
    print OUT "</UL>
    <BR><BR>
-   <H4><A HREF=\"list.html\">List of all programs</A></H4>\n";
+   <H4><A HREF=\"list.html\">Alphabetical list of all programs</A></H4>\n";
 }
 elsif (defined($full_index)) {
    my %list = ();
