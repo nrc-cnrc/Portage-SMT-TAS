@@ -58,7 +58,7 @@ public:
    static WordAlignmentWriter* create(const string& format);
 };
 
-#define WORD_ALIGNMENT_WRITER_FORMATS "aachen, hwa, matrix, compact, ugly, green sri"
+#define WORD_ALIGNMENT_WRITER_FORMATS "aachen, hwa, matrix, compact, ugly, green, or sri"
 
 /// Full alignment output style.
 class UglyWriter : public WordAlignmentWriter {

@@ -112,8 +112,6 @@ Advanced HMM parameters (overrides what the -mimic option sets):\n\
 Options for symmetrized training:\n\
   -symmetrized METHOD   Perform symmetrized training []. METHOD can be:\n\
     indep - train non-symmetrized models in both directions at the same time.\n\
-    zens  - symmetrized ttable updates following Zens et al (COLING-2004).\n\
-            (zens is not implemented yet, currently does same as indep.)\n\
     liang - fully symmetrized counting following Liang et al (HLT-2006).\n\
     liang-variant - variant implementation of liang - see tech report.\n\
   -rev-i INIT_REV_MODEL Initial reverse model [inferred from INIT_MODEL]\n\

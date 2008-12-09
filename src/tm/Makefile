@@ -32,6 +32,7 @@ TESTPROGS = \
 PROGRAMS = $(TESTPROGS) \
 	align-words \
 	bag_trans \
+        eval_word_alignment \
 	gen_phrase_tables \
 	ibm_entropy \
 	joint2cond_phrase_tables \

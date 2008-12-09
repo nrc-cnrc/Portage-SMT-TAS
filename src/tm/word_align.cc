@@ -19,9 +19,66 @@
 #include <numeric>
 #include "str_utils.h"
 #include "gfstats.h"
+#include "quick_set.h"
 #include "word_align.h"
 
 using namespace Portage;
+
+// is intersection between two sets of integers non-empty?
+
+static bool intersectionNotNull(QuickSet& qs, vector<Uint>& vs)
+{
+   for (Uint i = 0; i < vs.size(); ++i)
+      if (qs.find(vs[i]) != qs.size())
+         return true;
+   return false;
+}
+
+void WordAligner::close(vector< vector<Uint> >& sets1, vector< vector<Uint> >& csets)
+{
+   csets.clear();
+
+   // a list of the L1 words that still need to be processed
+   vector<Uint> todo(sets1.size());
+   for (Uint i = 0; i < sets1.size(); ++i)
+      todo[i] = i;
+
+   QuickSet s1, s2;             // current L1, L2 merged sets
+
+   // Do until all L1 words have been merged
+
+   while (!todo.empty()) {
+
+      s1.clear();
+      s2.clear();
+      Uint orig_s1_size;
+
+      // Pick up the first set of L2 words that is left and grow it by
+      // repeatedly sweeping over the other sets until no further merges are
+      // possible.
+      do {
+         orig_s1_size = s1.size();
+         for (Uint i = 0; i < todo.size();) {
+            Uint w1 = todo[i];
+            if (s1.empty() || intersectionNotNull(s2, sets1[w1])) {
+               for (Uint j = 0; j < sets1[w1].size(); ++j)
+                  s2.insert(sets1[w1][j]);
+               s1.insert(w1);
+               todo.erase(todo.begin()+i);
+            } else
+               ++i;
+         }
+      } while(s1.size() > orig_s1_size);
+
+      // Remember current L1 cset, and put closure into all corresponding L2
+      // sets. 
+
+      csets.push_back(s1.contents());
+      for (Uint i = 0; i < s1.contents().size(); ++i)
+         sets1[s1.contents()[i]] = s2.contents();
+   }
+
+}
 
 /*----------------------------------------------------------------------------
   WordAlignerFactory

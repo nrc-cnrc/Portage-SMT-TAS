@@ -57,6 +57,32 @@ public:
    /// @return true if there were not problems at construction time
    bool bad() { return bad_constructor_argument; }
 
+   /**
+    * Determine the closure of the given word alignment: whenever there is an
+    * alignment path between a source word and a target word, add a direct link
+    * connecting the two. The algorithm exploits the standard representation that
+    * maintains a set of connected L2 words for each L1 word. If the sets for two
+    * different L1 words have at least one element in common, that means that a
+    * path exists between each of these L1 words and any element in either of
+    * their sets of connected words (from an L2 word to the directly-connected L1
+    * word, then to the common L2 word, then to other L1 word). Therefore the
+    * connections for both L1 words are the union of their original sets of
+    * connections. So the algorithm boils down to: given some sets of integers,
+    * merge any two sets that have at least one element in common. Repeat until no
+    * further merging is possible. Plus some bookkeeping to keep track of the L1
+    * words that go with the merged sets.
+    *
+    * Words that are unaligned, or that are explicitly aligned to the end position
+    * in the other language (and to no other words), are not affected by this
+    * operation.
+    * 
+    * @param sets1 word alignments in std WordAligner format. These are modified
+    * by adding links for closure.
+    * @param csets sets of L1 words that share the same set of L2 connections.
+    * These are disjoint and cover all L1 words.
+    */
+   static void close(vector< vector<Uint> >& sets1, vector< vector<Uint> >& csets);
+
 protected:
    // An subclass constructor should not fail when passed an invalid argument;
    // instead, it should set this flag and use a valid default value instead.
