@@ -36,10 +36,7 @@ if ($help || $h) {
 $in = shift || "-";
 $out = shift || "-";
  
-if (!open(IN, "<$in")) {die "Can't open $in for writing";}
-if (!open(OUT, ">$out")) {die "Can't open $out for reading";}
-
-# Enable immediate flush when piping
-select(OUT); $| = 1;
+if (!open(IN, "<$in")) {die "Can't open $in for reading";}
+if (!open(OUT, ">$out")) {die "Can't open $out for writing";}
 
 while (<IN>) {print OUT lc;}

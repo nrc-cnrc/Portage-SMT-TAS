@@ -70,6 +70,7 @@ BINSCRIPTS = \
         filter-latin.pl \
         getcolumn.sh \
         lc-latin.pl \
+        lc-utf8.pl \
         li-sort.sh \
         load-balancing.pl \
         monitor-process.sh \
