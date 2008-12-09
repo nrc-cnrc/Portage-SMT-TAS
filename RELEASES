@@ -33,18 +33,17 @@ V1.3 12.12.2008
    The HMM word alignment models are trained using train_ibm, they can be used
    for word alignment directly via align-words, and gen_phrase_tables can use
    them to generate phrase tables.  In our current state of the art, we
-   typically generate phrase tables using IBM2 as before, separate phrase
-   tables using HMM models, and give them as separate models to cow.sh, which
-   tries to find the weights that maximize BLEU, as it does for all other
-   models.
+   typically perform word alignment using IBM2 and HMM models separately, then
+   use the resulting phrase tables with cow.sh for maximum BLEU training,
+   either separately or merged together into one table. 
 
  - Added a generic HMM toolkit, used by the HMM word alignment models,
    supporting state or arc emitting HMMs, and implementing the Viterbi and
    Baum-Welch algorithms.  (Optimized for densely connected HMMs.)
 
- - Parallelized training of word alingment models via the new cat.sh script,
-   and a binary format for TTables and all intermediate count files, for fast
-   reading and writing of these model and count files.
+ - Parallelized training of IBM1/2/HMM word alignment models via the new cat.sh
+   script, and a binary format for TTables and all intermediate count files,
+   for fast reading and writing of these model and count files.
 
  - An experimental framework is now included with PORTAGEshared, as a potential
    starting point for your experiments.  Besides demonstrating how to use
@@ -56,8 +55,8 @@ V1.3 12.12.2008
    of the quality fo the output, while the small-vocabulary regression test
    suite was mostly intended to exercise the code.  The new framework is
    specifically designed to be both a tutorial and a reasonable starting point.
-   Of course, you are still responsible for experimenting with various options
-   to find what works best with your setup.
+   Of course, you will still need to experiment in order to optimize
+   performance for your setting.
 
  - We've now included our truecasing module, which no longer requires external
    software at truecasing time.  The Perl script truecase.pl performs
@@ -104,7 +103,7 @@ V1.3 12.12.2008
  - Removed obsolete champollion.breakparts.pl, unsplit-sentence.pl,
    merge_ttables, maxphrase.pl, CalculateHypothesisProb.pl, and
    find_sentence_phrases.
- - Utils modules:
+ - Utils modules (src/utils):
    - New utf8 casemapping functionality (requires ICU)
    - Program utf8_filter performs strict validation of utf8 input.
    - diff-round.pl now supports compressed files automatically, and has new
@@ -113,7 +112,7 @@ V1.3 12.12.2008
      indices.
    - Fixed memory leak in short array allocator ArrayMemPool.
    - Added support for .lzma files in all C++ programs, via MagicStreams.
- - Preprocessing module:
+ - Preprocessing module (src/preprocessing):
    - Significantly improved the tokenizing and detokenizing for French;
      slightly improved for English as well.  Better lists of abbreviations in
      both languages.  Smart quotes and other characters from the cp-1252
@@ -121,7 +120,7 @@ V1.3 12.12.2008
      iso-8859-1 characters.
    - New udetokenize.pl script performs detokenization on French and English
      text encoded in utf8.
- - Language modelling module (src/lm):
+ - Language Modelling module (src/lm):
    - New caching mechanism for LM queries, intended for use with expensive LM
      classes.  Currently only enabled for LMMix (Dynamic LM mixture model).
    - Minor improvements to ngram-count-big.sh: reports errors more carefully and
@@ -134,7 +133,7 @@ V1.3 12.12.2008
    - New script lm_sort_filter.sh sorts an ARPA-format LM in a way that
      typically increases its compression ratio with gzip.
    - New script lm-order.pl determines the order of an ARPA-format LM file.
- - Word Alignment module (src/tm):
+ - Translation Modelling and Word Alignment module (src/tm):
    - New -prune1 option to gen_phrase_tables and joint2cond_phrase_tables
      prunes long tails before calculating probabilities.  Especially useful for
      phrase tables trained on noisy corpora.
@@ -149,7 +148,7 @@ V1.3 12.12.2008
      reference alignment, as suggested by Fraser and Marcu (CL, Sept 2008).
    - New merge_counts program does fast merging of counts; used by
      gen-jpt-parallel.sh to remove large memory requirement at the end.
- - eval module:
+ - Eval module (src/eval):
    - Refactored PER, WER and BLEU calculations to support PER and WER
      optimisation in rescore_train.
    - bleucompare can now perform PER or WER calculations instead.
@@ -172,7 +171,7 @@ V1.3 12.12.2008
      weights.  Supports multiple classes of rules with their separate weights.
    - Robustness fix: canoe now accepts non-finite numbers in phrase tables,
      issuing a warning and treating them as if they had been 0.
- - Rescoring module:
+ - Rescoring module (src/rescoring):
    - New rescoring features: RatioFF, HMMTgtGivenSrc, HMMSrcGivenTgt,
      HMMVitTgtGivenSrc, HMMVitSrcGivenTgt, WerPostedit, PerPostedit,
      BleuPostedit, BackwardLM.
@@ -186,7 +185,7 @@ V1.3 12.12.2008
      for a few iterations before looking for globally optimal weights.
    - Other new cow.sh options: -rescore-options, -no-lb, -s.
    - rescore_train -l saves a log of Powell runs for tracing the optimisation
-     process; -ref randomizes the order in which features are considered by
+     process; -rf randomizes the order in which features are considered by
      Powell's algorithm.
    - New script cowpie.py extracts useful statistics from a cow.sh log.
    - rescore_translate now supports Minimum Bayes Risk rescoring.

@@ -103,8 +103,9 @@ Mandatory dependencies for all distributions:
  - A language modelling toolkit to train language models.  Our code can read
    and use language models, but we don't provide the training functionality,
    since it is readily available.  If your licensing requirements allow it, we
-   recommend SRILM.  You can also use IRSTLM or any other package which
-   produces language models in Doug Paul's ARPA format.
+   recommend SRILM (http://www.speech.sri.com/projects/srilm/).  You can also
+   use IRSTLM (http://sourceforge.net/projects/irstlm) or any other package
+   which produces language models in Doug Paul's ARPA format.
 
 Optional dependencies for all distributions:
 
