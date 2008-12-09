@@ -70,7 +70,8 @@ ICU?=NONE
 #                  Set this value so that $(CXXTEST)/bin/cxxtestgen.pl and
 #                  $(CXXTEST)/include/cxxtest/*.h exist.
 
-CXXTEST?=$(PORTAGE)
+CXXTEST?=NONE
+#CXXTEST?=$(PORTAGE)
 
 # ------------------------------------
 # Variable:        PORTAGE_OPENMP
