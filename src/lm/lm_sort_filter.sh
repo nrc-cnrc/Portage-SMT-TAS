@@ -171,14 +171,14 @@ if [ -n "$REBUILD_VALID_LM" ]; then
    echo "\\end\\"
    ) | $CAT > $OUTPUT
 
-   TOTAL_ENTRIES=$(gzip -cqfd $INPUT | \wc -l)
+   TOTAL_ENTRIES=$(gzip -cqfd $INPUT | egrep -v '^$' | \wc -l)
 
    # Make sure all entries are still present
-   OUTPUT_ENTRIES=`gzip -cqfd $OUTPUT | wc -l`
+   OUTPUT_ENTRIES=$(gzip -cqfd $OUTPUT | egrep -v '^$' | \wc -l)
    if (( $OUTPUT_ENTRIES != $TOTAL_ENTRIES )); then
-   warn "Check your output, it's incomplete"
-   warn "new: $OUTPUT_ENTRIES   old: $TOTAL_ENTRIES"
-   exit 1;
+      warn "Check your output, it's incomplete"
+      warn "new: $OUTPUT_ENTRIES   old: $TOTAL_ENTRIES"
+      exit 1;
    else
       rm -fr $WORKDIR
    fi
