@@ -163,10 +163,10 @@ fi
 
 
 # Merging parts
-test $DEBUG && echo merge_counts -jpt $OUTFILE $WORKDIR/*.jpt.gz
+test $DEBUG && echo merge_counts $OUTFILE $WORKDIR/*.jpt.gz
 
 test $NOTREALLY ||
-   eval "merge_counts -jpt $OUTFILE $WORKDIR/*.jpt.gz"
+   eval "merge_counts $OUTFILE $WORKDIR/*.jpt.gz"
 RC=$?
 if (( $RC != 0 )); then
    echo "problems merging the joint frequencies (status=$RC) - quitting!" >&2
