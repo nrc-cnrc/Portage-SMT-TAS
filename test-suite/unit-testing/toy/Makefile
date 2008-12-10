@@ -19,8 +19,8 @@ caveat:
 	@echo Use the framework provided with PORTAGEshared instead.
 
 toy.pdf: toy.tex
-	pdflatex -interaction=batchmode toy.tex
-	pdflatex -interaction=batchmode toy.tex
+	TEXINPUTS=${PORTAGE}/texmf: pdflatex -interaction=batchmode toy.tex
+	TEXINPUTS=${PORTAGE}/texmf: pdflatex -interaction=batchmode toy.tex
 
 doc: toy.pdf
 
