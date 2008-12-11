@@ -85,6 +85,7 @@ sub send_recv($) {
    local $/; undef $/;
    my $reply = <SOCK>;
    close SOCK;
+   defined $reply or $reply = "";
    return $reply;
 }
 

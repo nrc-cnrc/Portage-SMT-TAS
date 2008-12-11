@@ -132,7 +132,7 @@ error_exit() {
 }
 
 arg_check() {
-   if [ $2 -le $1 ]; then
+   if (( $2 <= $1 )); then
       error_exit "Missing argument to $3 option."
    fi
 }
@@ -176,7 +176,7 @@ ON_ERROR=continue
 #TODO: run-parallel.sh -c RP_ARGS -... -... {-exec | -c} cmd args
 # This would allow a job in a Makefile, which uses SHELL = run-parallel.sh, to
 # specify some parameters other than the default.
-while [ $# -gt 0 ]; do
+while (( $# > 0 )); do
    case "$1" in
    -p)             arg_check 1 $# $1; PREFIX="$2"; shift;;
    -e)             arg_check 1 $# $1; CMD_LIST=1
@@ -219,30 +219,30 @@ while [ $# -gt 0 ]; do
 done
 
 # Special commands pre-empt normal operation
-if [ "$1" = add -o "$1" = quench -o "$1" = kill ]; then
+if [[ "$1" = add || "$1" = quench || "$1" = kill ]]; then
    # Special command to dynamically add or remove worders to/from a job in
    # progress
-   if [ "$1" = kill ]; then
-      if [ $# != 2 ]; then
+   if [[ "$1" = kill ]]; then
+      if [[ $# != 2 ]]; then
          error_exit "Kill requests take exactly 2 parameters."
       fi
       REQUEST_TYPE=$1
       JOB_ID_OR_CMD_FILE=$2
    else
-      if [ $# != 3 ]; then
+      if [[ $# != 3 ]]; then
          error_exit "Dynamic add and quench requests take exactly 3 parameters."
       fi
       REQUEST_TYPE=$1
       NUM=$2
-      if [ "`expr $NUM + 0 2> /dev/null`" != "$NUM" ]; then
+      if [[ "`expr $NUM + 0 2> /dev/null`" != "$NUM" ]]; then
          error_exit "$NUM is not an integer."
       fi
-      if [ $NUM -lt 1 ]; then
+      if (( $NUM < 1 )); then
          error_exit "$NUM is not a positive integer."
       fi
       JOB_ID_OR_CMD_FILE=$3
    fi
-   if [ -f $JOB_ID_OR_CMD_FILE ]; then
+   if [[ -f $JOB_ID_OR_CMD_FILE ]]; then
       CMD_FILE=$JOB_ID_OR_CMD_FILE
    else
       JOB_ID=$JOB_ID_OR_CMD_FILE
@@ -256,12 +256,12 @@ if [ "$1" = add -o "$1" = quench -o "$1" = kill ]; then
       echo Job ID: $JOB_ID
       echo Job Path: $JOB_PATH
       CMD_FILE=`\ls $JOB_PATH/*.$JOB_ID*/psub_cmd 2> /dev/null`
-      if [ ! -f "$CMD_FILE" ]; then
+      if [[ ! -f "$CMD_FILE" ]]; then
          error_exit "Can't find command file for job $JOB_ID"
       fi
    fi
 
-   if [ $DEBUG ]; then
+   if [[ $DEBUG ]]; then
       echo Psub Cmd File: $CMD_FILE
    fi
    HOST=`perl -e 'undef $/; $_ = <>; ($host) = /-host=(.*?) /; print $host' < $CMD_FILE`
@@ -269,26 +269,26 @@ if [ "$1" = add -o "$1" = quench -o "$1" = kill ]; then
    echo Host: $HOST:$PORT
    NETCAT_COMMAND="r-parallel-worker.pl -netcat -host $HOST -port $PORT"
 
-   if [ $REQUEST_TYPE = add ]; then
+   if [[ $REQUEST_TYPE = add ]]; then
       RESPONSE=`echo ADD $NUM | $NETCAT_COMMAND`
-      if [ "$RESPONSE" != ADDED ]; then
+      if [[ "$RESPONSE" != ADDED ]]; then
          error_exit "Deamon error (response=$RESPONSE), add request failed."
       fi
       # Ping the deamon to make it launch the first extra worker requested;
       # the rest will get added as the extra workers request their jobs.
-      if [ "`echo PING | $NETCAT_COMMAND`" != "PONG" ]; then
+      if [[ "`echo PING | $NETCAT_COMMAND`" != PONG ]]; then
          echo "Deamon does not appear to be running; request completed" \
               "but likely won't do anything."
          exit 1
       fi
-   elif [ $REQUEST_TYPE = quench ]; then
+   elif [[ $REQUEST_TYPE = quench ]]; then
       RESPONSE=`echo QUENCH $NUM | $NETCAT_COMMAND`
-      if [ "$RESPONSE" != QUENCHED ]; then
+      if [[ "$RESPONSE" != QUENCHED ]]; then
          error_exit "Deamon error (response=$RESPONSE), quench request failed."
       fi
-   elif [ $REQUEST_TYPE = kill ]; then
+   elif [[ $REQUEST_TYPE = kill ]]; then
       RESPONSE=`echo KILL | $NETCAT_COMMAND`
-      if [ "$RESPONSE" != KILLED ]; then
+      if [[ "$RESPONSE" != KILLED ]]; then
          error_exit "Deamon error (response=$RESPONSE), kill request failed."
       fi
       echo "Killing deamon and all workers (will take several seconds)."
@@ -305,7 +305,7 @@ fi
 # Process clean up at exit or kill - set this trap early enough that we 
 # clean up no matter what happens.
 trap '
-   if [ -n "$WORKER_JOBIDS" ]; then
+   if [[ -n "$WORKER_JOBIDS" ]]; then
       WORKERS=`cat $WORKER_JOBIDS`
       qdel $WORKERS >& /dev/null
    else
@@ -323,7 +323,7 @@ trap '
       done
    fi
    for x in $WORKDIR/log.worker-*; do
-      if [ -f $x ]; then
+      if [[ -f $x ]]; then
          echo $x
          echo ""
          cat $x
@@ -337,7 +337,7 @@ trap '
 # Create a temp directory for all temp files to go into.
 WORKDIR=""
 for attempt in 1 2 3; do
-   if [ $PBS_JOBID ]; then
+   if [[ $PBS_JOBID ]]; then
       SHORT_JOB_ID=${PBS_JOBID:0:13}
    else
       SHORT_JOB_ID=$$.local
@@ -351,10 +351,10 @@ for attempt in 1 2 3; do
       echo "Could not create temp dir - trying a different name" >&2
    fi
 done
-if [ ! $WORKDIR ]; then
+if [[ ! $WORKDIR ]]; then
    error_exit "Giving up after three failed attemps to create a temp dir."
 fi
-if [ ! -d $WORKDIR ]; then
+if [[ ! -d $WORKDIR ]]; then
    error_exit "Created temp dir $WORKDIR, but somehow it doesn't exist!"
 fi
 test -f $JOBSET_FILENAME && mv $JOBSET_FILENAME $WORKDIR/jobs
@@ -365,21 +365,21 @@ if which-test.sh qsub; then
 else
    CLUSTER=
 fi
-if [ $NOCLUSTER ]; then
+if [[ $NOCLUSTER ]]; then
    CLUSTER=
 fi
 
-if [ "$ON_ERROR" != continue -a \
-     "$ON_ERROR" != stop -a \
-     "$ON_ERROR" != killall ]; then
+if [[ "$ON_ERROR" != continue &&
+      "$ON_ERROR" != stop &&
+      "$ON_ERROR" != killall ]]; then
    error_exit "Invalid -on-error specification: $ON_ERROR"
 fi
 
 # save instructions from STDIN into instruction set
-if [ $EXEC ]; then
+if [[ $EXEC ]]; then
    test -n "$CMD_LIST" && error_exit "Can't use -e and -exec together"
    NUM=1
-elif [ -n "$CMD_LIST" ]; then
+elif [[ -n "$CMD_LIST" ]]; then
    test $# -eq 0       && error_exit "Missing mandatory N argument"
    test $# -gt 1       && error_exit "Can't use command file ($1) and -e together"
    NUM=$1;      shift
@@ -410,13 +410,13 @@ NUM_OF_INSTR=$(wc -l < $JOBSET_FILENAME)
 
 test $((NUM + 0)) != $NUM &&
    error_exit "Invalid N argument: $NUM; must be numerical"
-if [ -n "$QUOTA" ]; then
+if [[ $QUOTA ]]; then
    test $((QUOTA + 0)) != $QUOTA &&
       error_exit "Value for -quota option must be numerical"
    QUOTA="-quota $QUOTA"
 fi
 
-if [ $VERBOSE -gt 1 ]; then
+if (( $VERBOSE > 1 )); then
    echo "" >&2
    echo Starting run-parallel.sh \(pid $$\) on `hostname` on `date` >&2
    echo $0 $SAVE_ARGS >&2
@@ -425,7 +425,7 @@ if [ $VERBOSE -gt 1 ]; then
    echo "" >&2
 fi
 
-if [ $DEBUG ]; then
+if [[ $DEBUG ]]; then
    echo "
    NUM       = $NUM
    NOLOWPRI  = $NOLOWPRI
@@ -453,20 +453,23 @@ fi
 #set -m
 
 
-if [ $NUM_OF_INSTR = 0 ]; then
+if [[ $NUM_OF_INSTR = 0 ]]; then
    echo "No commands to execute!  So I guess I'm done..." >&2
    exit
 fi
 
-if [ $NUM_OF_INSTR -lt $NUM ]; then
-   echo "Lowering number of CPUs (was $NUM) to number of instructions ($NUM_OF_INSTR)" >&2
+if (( $NUM_OF_INSTR < $NUM )); then
+   echo "Lowering number of workers (was $NUM) to number of instructions ($NUM_OF_INSTR)" >&2
    NUM=$NUM_OF_INSTR
+elif [[ $NUM = 0 ]]; then
+   echo "Need at least one worker (setting num workers to 1)" >&2
+   NUM=1
 fi
 
-if [ $VERBOSE -gt 1 ]; then
+if (( $VERBOSE > 1 )); then
    r-parallel-d.pl -on-error $ON_ERROR $WORKDIR &
    DEAMON_PID=$!
-elif [ $VERBOSE -gt 0 ]; then
+elif (( $VERBOSE > 0 )); then
    r-parallel-d.pl -on-error $ON_ERROR $WORKDIR 2>&1 | 
       egrep --line-buffered 'FATAL ERROR|\] ([0-9/]* DONE|starting|Non-zero)' 1>&2 &
    DEAMON_PID=$!
@@ -486,7 +489,7 @@ while true; do
       MY_PORT=
    fi
    connect_delay=$((connect_delay + 1))
-   if [ -z "$MY_PORT" ]; then
+   if [[ -z "$MY_PORT" ]]; then
       if [[ $connect_delay -ge 10 ]]; then
          echo No deamon yet after $connect_delay seconds - still trying >&2
       fi
@@ -504,11 +507,11 @@ while true; do
          error_exit "Can't get a deamon, giving up"
       fi
    else
-      if [[ $VERBOSE -gt 1 ]]; then
+      if (( $VERBOSE > 1 )); then
          echo Pinging $MY_HOST:$MY_PORT >&2
       fi
-      if [ "`echo PING | r-parallel-worker.pl -netcat -host $MY_HOST -port $MY_PORT`" = PONG ]; then
-         if [ $connect_delay -gt 10 ]; then
+      if [[ "`echo PING | r-parallel-worker.pl -netcat -host $MY_HOST -port $MY_PORT`" = PONG ]]; then
+         if (( $connect_delay > 10 )); then
             echo Finally got a deamon after $connect_delay seconds >&2
          fi
          # deamon responded correctly, we're good to go now.
@@ -517,19 +520,19 @@ while true; do
    fi
 done
 
-if [ $VERBOSE -gt 1 ]; then
+if (( $VERBOSE > 1 )); then
    echo Deamon launched successfully on $MY_HOST:$MY_PORT >&2
 fi
 
-if [ $HIGHMEM ]; then
+if [[ $HIGHMEM ]]; then
    # For high memory, request two CPUs per worker with ncpus=2.
    PSUBOPTS="-2 $PSUBOPTS"
-elif [ -z "$NOHIGHMEM" -a -n "$PBS_JOBID" ]; then
+elif [[ -z "$NOHIGHMEM" && -n "$PBS_JOBID" ]]; then
    if which-test.sh qstat; then
       PARENT_NCPUS=` \
          qstat -f $PBS_JOBID 2> /dev/null |
          perl -nle 'if ( /1:ppn=(\d+)/ ) { print $1; exit }'`
-      if [ $PARENT_NCPUS ]; then
+      if [[ $PARENT_NCPUS ]]; then
          echo Master was submitted with $PARENT_NCPUS CPUs, \
               propagating to workers >&2
          PSUBOPTS="-$PARENT_NCPUS $PSUBOPTS"
@@ -538,10 +541,10 @@ elif [ -z "$NOHIGHMEM" -a -n "$PBS_JOBID" ]; then
    fi
 fi
 
-if [ -n "$PBS_JOBID" ]; then
+if [[ -n "$PBS_JOBID" ]]; then
    MASTER_PRIORITY=`qstat -f $PBS_JOBID 2> /dev/null | egrep 'Priority = -?[0-9][0-9]*$' | sed 's/.*Priority = //'`
 fi
-if [ -z "$MASTER_PRIORITY" ]; then
+if [[ -z "$MASTER_PRIORITY" ]]; then
    MASTER_PRIORITY=0
 fi
 if [[ $NUM == 1 ]]; then
@@ -554,7 +557,7 @@ fi
 PSUBOPTS="-p $WORKER_PRIORITY $PSUBOPTS"
 #echo PSUBOPTS $PSUBOPTS
 
-if [ ! $NOLOWPRI ]; then
+if [[ ! $NOLOWPRI ]]; then
    # By default specify ckpt=1, which means the job can run on borrowed nodes
    # Do this only on venus
    if pbsnodes -a 2> /dev/null | grep -q vns ; then
@@ -591,11 +594,11 @@ SUBMIT_CMD=(psub
             -noscript
             $PSUBOPTS)
 
-if [ -n "$QSUBOPTS" ]; then
+if [[ $QSUBOPTS ]]; then
    SUBMIT_CMD=("${SUBMIT_CMD[@]}" -qsparams "$QSUBOPTS")
 fi
 
-if [ $NOLOCAL ]; then
+if [[ $NOLOCAL ]]; then
    FIRST_PSUB=0
 else
    FIRST_PSUB=1
@@ -619,7 +622,7 @@ if [[ $VERBOSE < 2 ]]; then
 fi
 WORKER_COMMAND="r-parallel-worker.pl $SILENT_WORKER -host=$MY_HOST -port=$MY_PORT"
 
-if [ $CLUSTER ]; then
+if [[ $CLUSTER ]]; then
    cat /dev/null > $PSUB_CMD_FILE
    for word in "${SUBMIT_CMD[@]}"; do
       if echo "$word" | grep -q ' '; then
@@ -637,66 +640,68 @@ fi
 echo $NUM > $WORKDIR/next_worker_id
 
 # start worker 0 locally, if not disabled.
-if [ ! $NOLOCAL ]; then
+if [[ ! $NOLOCAL ]]; then
    # start first worker locally (hostname of deamon process, number of
    # initial jobs in current call parameter n)
    OUT=$WORKDIR/out.worker-0
    ERR=$WORKDIR/err.worker-0
-   if [ $VERBOSE -gt 2 ]; then
+   if (( $VERBOSE > 2 )); then
       echo $WORKER_COMMAND -primary \> $OUT 2\> $ERR \& >&2
    fi
    eval $WORKER_COMMAND -primary > $OUT 2> $ERR &
 fi
 
-# start workers 0 (or 1) to n-1 using psub, noting their PID/PBS_JOBID
-if [[ $CLUSTER ]] && qsub -t 2>&1 | grep -q 'option requires an argument'; then
-   # Friendlier behaviour on clusters that support it: use the -t option to
-   # submit all workers in a single request
-   OUT=$WORKDIR/out.worker-
-   ERR=$WORKDIR/err.worker-
-   LOG=$WORKDIR/log.worker
-   ID='$PBS_ARRAYID'
-   if [[ $VERBOSE -gt 2 ]]; then
-      echo "${SUBMIT_CMD[@]}" -t $FIRST_PSUB-$(($NUM-1)) -N $WORKER_NAME -e $LOG $WORKER_COMMAND $QUOTA \> $OUT$ID 2\> $ERR$ID >&2
-   fi
-   "${SUBMIT_CMD[@]}" -t $FIRST_PSUB-$(($NUM-1)) -N $WORKER_NAME -e $LOG $WORKER_COMMAND $QUOTA \> $OUT$ID 2\> $ERR$ID >> $WORKER_JOBIDS
-   # qstat needs individual job ids, and fails when given the array id, so we
-   # need to expand them by hand into the $WORKER_JOBIDS file.
-   WORKER_BASE_JOBID=`cat $WORKER_JOBIDS`
-   if [[ $WORKER_BASE_JOBID =~ '([0-9][0-9]*)(.*)' ]]; then
-      WORKER_BASE_JOBID_NUM=${BASH_REMATCH[1]}
-      WORKER_BASE_JOBID_SUFFIX=${BASH_REMATCH[2]}
-      cat /dev/null > $WORKER_JOBIDS
-      for (( i = FIRST_PSUB; i < NUM; ++i )); do
-         echo $WORKER_BASE_JOBID_NUM-$i$WORKER_BASE_JOBID_SUFFIX >> $WORKER_JOBIDS
+if (( $NUM > $FIRST_PSUB )); then
+   # start workers 0 (or 1) to n-1 using psub, noting their PID/PBS_JOBID
+   if [[ $CLUSTER ]] && qsub -t 2>&1 | grep -q 'option requires an argument'; then
+      # Friendlier behaviour on clusters that support it: use the -t option to
+      # submit all workers in a single request
+      OUT=$WORKDIR/out.worker-
+      ERR=$WORKDIR/err.worker-
+      LOG=$WORKDIR/log.worker
+      ID='$PBS_ARRAYID'
+      if (( $VERBOSE > 2 )); then
+         echo "${SUBMIT_CMD[@]}" -t $FIRST_PSUB-$(($NUM-1)) -N $WORKER_NAME -e $LOG $WORKER_COMMAND $QUOTA \> $OUT$ID 2\> $ERR$ID >&2
+      fi
+      "${SUBMIT_CMD[@]}" -t $FIRST_PSUB-$(($NUM-1)) -N $WORKER_NAME -e $LOG $WORKER_COMMAND $QUOTA \> $OUT$ID 2\> $ERR$ID >> $WORKER_JOBIDS
+      # qstat needs individual job ids, and fails when given the array id, so we
+      # need to expand them by hand into the $WORKER_JOBIDS file.
+      WORKER_BASE_JOBID=`cat $WORKER_JOBIDS`
+      if [[ $WORKER_BASE_JOBID =~ '([0-9][0-9]*)(.*)' ]]; then
+         WORKER_BASE_JOBID_NUM=${BASH_REMATCH[1]}
+         WORKER_BASE_JOBID_SUFFIX=${BASH_REMATCH[2]}
+         cat /dev/null > $WORKER_JOBIDS
+         for (( i = FIRST_PSUB; i < NUM; ++i )); do
+            echo $WORKER_BASE_JOBID_NUM-$i$WORKER_BASE_JOBID_SUFFIX >> $WORKER_JOBIDS
+         done
+      fi
+   else
+      for (( i = $FIRST_PSUB ; i < $NUM ; ++i )); do
+         # These should not end up being used by the commands, only by the
+         # worker scripts themselves
+         OUT=$WORKDIR/out.worker-$i
+         ERR=$WORKDIR/err.worker-$i
+         LOG=$WORKDIR/log.worker-$i
+
+         if [[ $CLUSTER ]]; then
+            if (( $VERBOSE > 2 )); then
+               echo ${SUBMIT_CMD[@]} -N $WORKER_NAME-$i -e $LOG $WORKER_COMMAND $QUOTA \> $OUT 2\> $ERR >&2
+            fi
+            "${SUBMIT_CMD[@]}" -N $WORKER_NAME-$i -e $LOG $WORKER_COMMAND $QUOTA \> $OUT 2\> $ERR >> $WORKER_JOBIDS
+            # PBS doesn't like having too many qsubs at once, let's give it a
+            # chance to breathe between each worker submission
+            sleep 1
+         else
+            if (( $VERBOSE > 2 )); then
+               echo $WORKER_COMMAND $QUOTA \> $OUT 2\> $ERR \& >&2
+            fi
+            eval $WORKER_COMMAND $QUOTA > $OUT 2> $ERR &
+         fi
       done
    fi
-else
-   for (( i = $FIRST_PSUB ; i < $NUM ; ++i )); do
-      # These should not end up being used by the commands, only by the
-      # worker scripts themselves
-      OUT=$WORKDIR/out.worker-$i
-      ERR=$WORKDIR/err.worker-$i
-      LOG=$WORKDIR/log.worker-$i
-
-      if [ $CLUSTER ]; then
-         if [ $VERBOSE -gt 2 ]; then
-            echo ${SUBMIT_CMD[@]} -N $WORKER_NAME-$i -e $LOG $WORKER_COMMAND $QUOTA \> $OUT 2\> $ERR >&2
-         fi
-         "${SUBMIT_CMD[@]}" -N $WORKER_NAME-$i -e $LOG $WORKER_COMMAND $QUOTA \> $OUT 2\> $ERR >> $WORKER_JOBIDS
-         # PBS doesn't like having too many qsubs at once, let's give it a
-         # chance to breathe between each worker submission
-         sleep 1
-      else
-         if [ $VERBOSE -gt 2 ]; then
-            echo $WORKER_COMMAND $QUOTA \> $OUT 2\> $ERR \& >&2
-         fi
-         eval $WORKER_COMMAND $QUOTA > $OUT 2> $ERR &
-      fi
-   done
 fi
 
-if [ $CLUSTER ]; then
+if [[ $CLUSTER ]]; then
    # wait on deamon pid (r-parallel-d.pl, the deamon, will exit when the last
    # worker reports the last task is done)
    wait $DEAMON_PID
@@ -704,7 +709,7 @@ if [ $CLUSTER ]; then
    # Give PBS up to 20 seconds to finish cleaning up worker jobs that have just
    # finished
    WORKERS=`cat $WORKER_JOBIDS 2> /dev/null`
-   if [ -n "$WORKERS" ]; then
+   if [[ $WORKERS ]]; then
       for (( i = 0; i < 20; ++i )); do
          if qstat $WORKERS 2> /dev/null | grep ' [QRE] ' > /dev/null ; then
             #echo Some workers are still running >&2
@@ -714,7 +719,7 @@ if [ $CLUSTER ]; then
             break
          fi
 
-         if [ $i = 8 ]; then
+         if [[ $i = 8 ]]; then
             # After 8 seconds, kill remaining psubed workers (which may not
             # have been launched yet) to clean things up.  (Ignore errors)
             qdel $WORKERS >& /dev/null
@@ -730,15 +735,15 @@ else
    wait
 fi
 
-if [ $VERBOSE -ge 1 ]; then
+if (( $VERBOSE > 0 )); then
    # Send all worker STDOUT and STDERR to STDERR for logging purposes.
    for x in $WORKDIR/{out,err}.worker-*; do
-      if [ -s $x ]; then
+      if [[ -s $x ]]; then
          if [[ $VERBOSE = 1 && `grep -v "Can't connect to socket: Connection refused" < $x | wc -c` = 0 ]]; then
             # STDERR only containing workers that can't connect to a dead
             # deamon - ignore in default verbosity mode
             true
-            echo skipping $x
+            #echo skipping $x
          else
             echo >&2
             echo ========== $x ========== | sed "s/$WORKDIR\///" >&2
@@ -750,24 +755,24 @@ if [ $VERBOSE -ge 1 ]; then
    echo ========== End ========== >&2
 fi
 
-if [ $VERBOSE -gt 1 ]; then
+if (( $VERBOSE > 1 )); then
    echo "" >&2
    echo Done run-parallel.sh \(pid $$\) on `hostname` on `date` >&2
    echo $0 $SAVE_ARGS >&2
    echo "" >&2
 fi
 
-if [ $VERBOSE -gt 0 ]; then
+if (( $VERBOSE > 0 )); then
    # show the exit status of each worker
    echo -n 'Exit status(es) from all jobs (in the order they finished): ' >&2
    cat $WORKDIR/rc 2> /dev/null | tr '\n' ' ' >&2
    echo "" >&2
 fi
 
-if [ `wc -l < $WORKDIR/rc` -ne "$NUM_OF_INSTR" ]; then
+if [[ `wc -l < $WORKDIR/rc` -ne "$NUM_OF_INSTR" ]]; then
    echo 'Wrong number of job return statuses: got' `wc -l < $WORKDIR/rc` "expected $NUM_OF_INSTR." >&2
    exit -1
-elif [ $EXEC ]; then
+elif [[ $EXEC ]]; then
    # With -c, we work like the shell's -c: connect stdout and stderr from the
    # job to the this script's, and exit with the job's exit status
    cat $WORKDIR/out.worker-0
