@@ -71,6 +71,9 @@ Arguments:
       With -c, run-parallel.sh tries to mimic sh -c: the exit status, stderr
       and stdout of the command are propagated through run-parallel.sh.
       Add RP_PSUB_OPTS="psub opts" before the command to pass options to psub.
+      Since make cannot be recursely called accross nodes, it's safer to
+      disable recursive call to make using: _LOCAL=1 \${MAKE} or _NOPSUB=1
+      \${MAKE} when using run-parallel.sh as make's SHELL.
 
   N Number of workers to launch (may differ from the number of commands).
 
@@ -186,6 +189,20 @@ while (( $# > 0 )); do
                    # Special case for make's sake - make invokes uname -s twice
                    # before executing each and every command!
                    test "$*" = "uname -s" && exec $*
+
+                   # NOTE: Make cannot communicate accross machine.
+                   # If this invocation is for make, run it locally.
+                   if [[ $* =~ ^make ]]; then
+                      test -n "$DEBUG" && echo "  <D> Found a make command: $*" >&2
+                      exec $*;
+                   fi
+
+                   # If the user specifies local, run it locally.
+                   if [[ $* =~ '(_LOCAL|_NOPSUB)=[^ ]* (.*)' ]]; then
+                      test -n "$DEBUG" && echo "  <D> Found a local command: ${BASH_REMATCH[1]}" >&2
+                      test -n "$DEBUG" && echo "  <D> Running: ${BASH_REMATCH[2]}" >&2
+                      exec bash -c "${BASH_REMATCH[2]}"
+                   fi
 
                    # Thanks germannu for the following regex :D
                    #echo $* | perl -ne '/RP_PSUB_OPTS=(([\x22\x27]).*?[^\\]\2|[^ \x22\x27\n]+)/; print "$1\n";'
