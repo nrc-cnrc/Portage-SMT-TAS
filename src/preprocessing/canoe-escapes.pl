@@ -14,8 +14,11 @@
 use strict;
 use warnings;
 
-my $HELP = "
-canoe-escapes.pl [IN [IN2 [IN3 ...]]]
+sub usage {
+   local $, = "\n";
+   print STDERR @_, "";
+   print STDERR "
+Usage: canoe-escapes.pl [IN [OUT]]
 
   Canoe requires that \\, < and > be escaped using \\ in its input.  This is
   normally done by a parser for the source language for things like dates and
@@ -28,22 +31,28 @@ Options:
   -h(elp)    Print this help message
 
 ";
+   exit 1;
+}
 
 our ($help, $h, $add, $a, $remove, $r);
 
-if ($help || $h) {
-    print $HELP;
-    exit 1;
-}
+usage if ($help || $h);
+
+my $in = shift || "-";
+my $out = shift || "-";
+0 == @ARGV or usage "Superfluous parameter(s): @ARGV";
  
+open(IN, "<$in") or die "Can't open $in for reading: $!\n";
+open(OUT, ">$out") or die "Can't open $out for writing: $!\n";
+
 if ( $remove || $r ) {
-   while (<>) {
+   while (<IN>) {
       s/\\([\\<>])/$1/g;
-      print;
+      print OUT;
    }
 } else {
-   while (<>) {
+   while (<IN>) {
       s/([\\<>])/\\$1/g;
-      print;
+      print OUT;
    }
 }
