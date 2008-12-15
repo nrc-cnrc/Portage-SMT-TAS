@@ -129,7 +129,7 @@ test -d $WORKDIR || mkdir $WORKDIR
 
 # Split the input in parts based on Ngram size.
 gzip -cqfd $INPUT \
-| tail +$START_LINE \
+| tail -n +$START_LINE \
 | egrep -v '^\\end\\$' \
 | egrep -v '^$' \
 | perl -snle 'if(/^\\(\d)-grams:$/){close(FILE);open(FILE, ">'$WORKDIR'/part$1");} else{ print FILE $_;} END{close(FILE)}'
