@@ -102,22 +102,25 @@ done
 test $# -eq 0   && error_exit "Missing input LM"
 INPUT=$1; shift
 
-if [ -n "$REBUILD_VALID_LM" ]; then
+if [[ -n "$REBUILD_VALID_LM" ]]; then
    test $# -eq 0   && error_exit "Missing output"
    OUTPUT=$1; shift
+   if [[ $OUTPUT == "-" || $OUTPUT == "/dev/stdout" ]]; then
+      error_exit "You must provide a regular file for output.";
+   fi
 fi
 
 test $# -gt 0   && error_exit "Superfluous arguments $*"
 
 
 # If the user was kind enough to provide a TMPDIR, use it.
-if [ -n "$TMPDIR" ]; then
+if [[ -n "$TMPDIR" ]]; then
    SORT_DIR="TMPDIR=$TMPDIR"
 fi
 
 
 # Calculate the header's size
-START_LINE=$(gzip -cdqf $INPUT | egrep -n '^\\1-gram' | head -1 | cut -f1 -d':')
+START_LINE=$(gzip -cdqf $INPUT | egrep -m1 -n '^\\1-gram' | cut -f1 -d':')
 
 
 # ALWAYS work in a work directory
@@ -133,7 +136,7 @@ gzip -cqfd $INPUT \
 
 # Make sure all parts are sorted
 for p in $WORKDIR/part*; do
-   if [ ! `sort -c -t'	' -k2,2 < $p 2> /dev/null` ]; then
+   if [[ ! `sort -c -t'	' -k2,2 < $p 2> /dev/null` ]]; then
       [[ $p =~ "./(part[0-9]+)$" ]]
       warn "${BASH_REMATCH[1]} not sorted"
       echo "(LC_ALL=C $SORT_DIR sort -t'	' -k2,2 $p > $p.sorted) && mv $p.sorted $p"
@@ -142,7 +145,7 @@ done \
 | run-parallel.sh - `ls $WORKDIR/ | \wc -l`
 
 
-if [ -n "$REBUILD_VALID_LM" ]; then
+if [[ -n "$REBUILD_VALID_LM" ]]; then
    if [[ $OUTPUT =~ ".gz$" ]]; then
       debug "Producing a compressed output"
       CAT="gzip"
@@ -186,3 +189,4 @@ else
    # Tab-separated fields
    LC_ALL=C $SORT_DIR sort -t'	' -k2,2 -m $WORKDIR/part* && rm -rf $WORKDIR
 fi
+
