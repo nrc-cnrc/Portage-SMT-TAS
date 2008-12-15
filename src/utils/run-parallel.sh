@@ -347,7 +347,7 @@ trap '
          echo ""
       fi
    done > run-parallel-logs-${PBS_JOBID-local}
-   rm -rf $WORKDIR
+   test -n "$DEBUG" || rm -rf $WORKDIR
    exit
 ' 0 1 2 3 13 14 15
 
