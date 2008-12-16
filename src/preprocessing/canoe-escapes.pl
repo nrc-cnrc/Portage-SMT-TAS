@@ -1,6 +1,6 @@
 #!/usr/bin/perl -s
 
-# @file add-standard-escapes.pl
+# @file canoe-escapes.pl
 # @brief Escapes input text for canoe (\ < >).
 # 
 # @author Eric Joanis

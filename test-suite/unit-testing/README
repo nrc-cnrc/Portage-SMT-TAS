@@ -38,5 +38,7 @@ Contents of this directory:
  - tokenize.pl/         Test suite for recent enhancements to our tokenizer.
  - toy/                 Complete use of the PORTAGEshared software suite on a
                         tiny corpus, with parameters chosen to run very fast
-                        (not recommended as experimental strating point).
+                        (*not* recommended as an experimental starting point).
+ - framework-toy/       Data for a toy experiment using our experimental
+                        framework (recommended as your starting point).
 
