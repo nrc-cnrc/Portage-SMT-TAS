@@ -21,7 +21,7 @@ PROGRAMS = \
         arpalm2binlm \
         lm_eval
 
-BINSCRIPTS = lm_sort_filter.sh ngram-count-big.sh lm-order.pl
+BINSCRIPTS = lm_sort_filter.sh ngram-count-big.sh lm-order.pl lm_sort.pl
 
 LIBRARY = libportage_lm
 
