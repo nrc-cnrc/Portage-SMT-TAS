@@ -78,34 +78,37 @@ my $SORT_DIR = "";
 my $line;
 my %header = ();
 
-# Disabling support for gzip file since open seems to behave differently if one
-# of the streams was open has a pipe.
-#if ($in =~ /\.gz$/) {
-#   open(IN, "gzip -cqfd $in |") or die "Can't open $in for reading: $!\n";
-#}
-#else {
-#   open(IN, "<$in") or die "Can't open $in for reading: $!\n";
-#}
-#
-#if ($in =~ /\.gz$/) {
-#   open(OUT, "| gzip > $out") or die "Can't open $out for writing: $!\n";
-#}
-#else {
-#   open(OUT, ">$out") or die "Can't open $out for writing: $!\n";
-#}
+# TODO: replace all this with zin/zout in utils.pm
+if ($in =~ /\|\s*$/) {
+   open(IN, "$in") or die "Can't open $in for reading: $!\n";
+elsif ($in =~ /\.gz$/) {
+   open(IN, "gzip -cqfd $in |") or die "Can't open $in for reading: $!\n";
+}
+else {
+   open(IN, "<$in") or die "Can't open $in for reading: $!\n";
+}
 
-open(IN, "<$in") or die "Can't open $in for reading: $!\n";
-open(OUT, ">$out") or die "Can't open $out for writing: $!\n";
+if ($out =~ /^\s*\|/) {
+   open(OUT, "$out") or die "Can't open $out for writing: $!\n";
+elsif ($out =~ /\.gz$/) {
+   open(OUT, "| gzip > $out") or die "Can't open $out for writing: $!\n";
+}
+else {
+   open(OUT, ">$out") or die "Can't open $out for writing: $!\n";
+}
+
+#open(IN, "<$in") or die "Can't open $in for reading: $!\n";
+#open(OUT, ">$out") or die "Can't open $out for writing: $!\n";
 
 local $SIG{PIPE} = sub { die "sort pipe broke" };
 while (1) {
    print STDERR "." if ($debug);
    $line = <IN>;
-   print OUT $line;
    last if (eof(IN));
+   print OUT $line;
 
    # Saves the number of expected entries for each ngrams.
-   if ($line =~ /^ngram (\d+)=(\d+)/) {
+   if ($line =~ /^ngram (\d+)=\s*(\d+)/) {
       $header{$1} = $2;
    }
 
@@ -114,13 +117,15 @@ while (1) {
       my $number_input_entry  = 0;
       my $number_output_entry = 0;
 
+      warn "Couldn't find ${N}gram in the header" unless (defined($header{$N}));
+
       $line = <IN>;
 
       use IPC::Open2;
       local (*READ, *WRITE);                                                                      
       my $pid = open2(\*READ, \*WRITE, "LC_ALL=C $SORT_DIR sort -t'	' -k2,2" );
 
-      while ($line !~ /^$/) {
+      while ($line !~ /^(\\end\\)*$/) {
          print WRITE $line;
          ++$number_input_entry;
          #print STDERR "," if ($debug); # for extreme debugging ;)
@@ -137,13 +142,14 @@ while (1) {
       close(READ);
 
       if ($debug) {
-         print STDERR "announced: $header{$N}\n";
-         print STDERR "read:      $number_input_entry\n";
-         print STDERR "writen:    $number_output_entry\n";
+         print STDERR "expected $N-grams: $header{$N}\n";
+         print STDERR "read: $number_input_entry\n";
+         print STDERR "writen: $number_output_entry\n";
       }
       die "$N-gram counts doesn't match after sorting." unless ($number_input_entry == $number_output_entry);
       warn "$N-gram counts doesn't match the expected number of entries stated in the header" unless ($header{$N} == $number_output_entry);
    }
 }
+print OUT "\\end\\\n";
 close(IN);
 close(OUT);
