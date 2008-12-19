@@ -81,6 +81,7 @@ my %header = ();
 # TODO: replace all this with zin/zout in utils.pm
 if ($in =~ /\|\s*$/) {
    open(IN, "$in") or die "Can't open $in for reading: $!\n";
+}
 elsif ($in =~ /\.gz$/) {
    open(IN, "gzip -cqfd $in |") or die "Can't open $in for reading: $!\n";
 }
@@ -90,6 +91,7 @@ else {
 
 if ($out =~ /^\s*\|/) {
    open(OUT, "$out") or die "Can't open $out for writing: $!\n";
+}
 elsif ($out =~ /\.gz$/) {
    open(OUT, "| gzip > $out") or die "Can't open $out for writing: $!\n";
 }
