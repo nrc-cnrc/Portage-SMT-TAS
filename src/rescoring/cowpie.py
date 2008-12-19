@@ -24,17 +24,17 @@ cowpie.py [log.cow]
 
 Analyze a cow log file for Powell and other data, and print a report. Columns
 are, left to right:
-- iter        - iteration index
-- time        - total decoding time in seconds for this iter
-- bleu        - post-decoding bleu score
-- bleu-cal    - difference between decoding bleu and prev Powell bleu
-- wtdev       - std dev for weight vector, after normalizing by avg abs weight
-- wtdist      - squared distance between current weight vector and previous
-- nb size     - cumulative total size of nbest lists
-- time        - total Powell time in seconds for this iter
-- bleu        - Powell bleu score
-- best/ntries - index of best Powell try / number of tries
-- choice      - index of chosen Powell try - may differ from best if -chw is used
+  iter        - iteration index
+  time        - total decoding time in seconds for this iter
+  bleu        - post-decoding bleu score
+  bleu-cal    - difference between decoding bleu and prev Powell bleu
+  wtdev       - std dev for weight vector, after normalizing by avg abs weight
+  wtdist      - squared distance between current weight vector and previous
+  nb size     - cumulative total size of nbest lists
+  time        - total Powell time in seconds for this iter
+  bleu        - Powell bleu score
+  best/ntries - index of best Powell try / number of tries
+  choice      - index of chosen Powell try - may differ from best if -chw is used
 
 Options:
 
