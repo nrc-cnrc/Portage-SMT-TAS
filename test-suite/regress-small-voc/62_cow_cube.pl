@@ -84,7 +84,7 @@ my $dist_model = "WordDisplacement";
 my $ini1 = << "END";
 [ttable-limit] 30
 [distortion-limit] 7
-[ttable-multi-prob] ../phrases-GT-KN.${src_lang}2en.gz
+[ttable-multi-prob] ../phrases-GT-KN.${src_lang}2en.gz ../hmm.phrases-GT-KN.${src_lang}2en.gz
 [lmodel-file] ${corp0}/europarl.en.srilm
 [segmentation-model] ${seg_model}
 [distortion-model] ${dist_model}
