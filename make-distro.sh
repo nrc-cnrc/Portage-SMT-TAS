@@ -45,6 +45,7 @@ Options:
 
   -h(elp):      print this help message
   -bin:         include compiled code [don't, unless -nosrc is specified]
+  -icu:         link with ICU when compiling code [don't]
   -d            cvs root repository
   -compile-only use this to compile code on a different architecture, with an
                 OUTPUT_DIR where -bin has already been used.  All other options
@@ -135,6 +136,7 @@ while [ $# -gt 0 ]; do
    case "$1" in
    -d)                  arg_check 1 $# $1; CVS_DIR="-d $2"; shift;;
    -bin)                INCLUDE_BIN=1;;
+   -icu)                ICU_LIB="ICU=${PORTAGE}"; ICU_OPT=-icu;;
    -compile-only)       COMPILE_ONLY=1;;
    -compile-host)       arg_check 1 $# $1; COMPILE_HOST=$2; shift;;
    -nosrc)              NO_SOURCE=1;;
@@ -292,7 +294,7 @@ make_usage() {
 make_bin() {
    run_cmd pushd ./$OUTPUT_DIR/PORTAGEshared
       run_cmd pushd ./src
-         run_cmd MY_PORTAGE_INSTALL= make install -j 5 '>&' ../../make_`arch`.log
+         run_cmd MY_PORTAGE_INSTALL= make install -j 5 $ICU_LIB '>&' ../../make_`arch`.log
          run_cmd make clean '>&' /dev/null
       run_cmd popd
       run_cmd pushd ./bin
@@ -358,7 +360,7 @@ fi
 
 if [[ $COMPILE_HOST ]]; then
    echo Logging on to $COMPILE_HOST to compile code.
-   run_cmd ssh $COMPILE_HOST cd `pwd` \\\; $0 -compile-only -dir $OUTPUT_DIR
+   run_cmd ssh $COMPILE_HOST cd `pwd` \\\; $0 -compile-only -dir $OUTPUT_DIR $ICU_OPT
 fi
 
 if [[ ! $COMPILE_ONLY ]]; then
