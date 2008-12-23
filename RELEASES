@@ -1,4 +1,4 @@
-                           PORTAGEshared_v1.3beta
+                          PORTAGEshared_v1.3beta3
 
 Technologies langagieres interactives / Interactive Language Technologies
 Institut de technologie de l'information / Institute for Information Technology
@@ -13,7 +13,7 @@ license agreement for details.
                               Release History
                    (with a summary of important changes)
 
-V1.3 12.12.2008
+V1.3beta3 23.12.2008
  This update to PORTAGEshared is primarily intended to incorporate the new HMM
  word alignment module, and related functionality.  We have also taken the
  opportunity to migrate many improvements from Portage and add a new
@@ -49,7 +49,7 @@ V1.3 12.12.2008
    starting point for your experiments.  Besides demonstrating how to use
    PORTAGEshared, this framework embeds choices of options which we think are a
    reasonable starting point.
-
+   
    Previously, the only full usage examples we provided were not suitable for
    this use.  The toy example was designed to run fast at all cost, regardless
    of the quality fo the output, while the small-vocabulary regression test
@@ -58,12 +58,19 @@ V1.3 12.12.2008
    Of course, you will still need to experiment in order to optimize
    performance for your setting.
 
+   Even if you used PORTAGEshared before, we recommend you read
+   framework-toy.pdf in the framework directory, as it includes a full
+   description of how to use PORTAGEshared, including important features which
+   are not all highlighted elsewhere.  If you have built your own experimental
+   framework, you may find useful suggestions when following the toy example
+   described in this document.
+
  - We've now included our truecasing module, which no longer requires external
    software at truecasing time.  The Perl script truecase.pl performs
    truecasing using canoe.  The program compile_truecase_map compiles the
    truecase map for truecase.pl.  Training the Language Model itself requires
-   an external language modelling toolkit, e.g., SRILM, if your licensing
-   requirements permit it, or IRSTLM.
+   an external language modelling toolkit, e.g., SRILM (if your licensing
+   requirements permit it) or IRSTLM.
 
  - Many improvements to run-parallel.sh, useful if you're working on a cluster:
    - uses Perl sockets instead of netcat, resulting in a significant reduction

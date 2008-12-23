@@ -21,7 +21,7 @@ this distribution for various partners is called PORTAGEshared.
 PORTAGEshared includes a complete suite of software tools required for
 phrase-based statistical machine translation, including:
  - preprocessing of French and English (tokenization, lowercasing, aligning);
- - training lexical translation models (IBM models 1 and 2) from aligned
+ - training lexical translation models (IBM models 1 and 2, HMM) from aligned
    corpora;
  - training phrase-based translation models from aligned corpora and lexical
    models;
@@ -53,13 +53,15 @@ phrase-based statistical machine translation, including:
 
                               Getting started
 
-Once you've installed PORTAGEshared, have a look at the toy example in
-test-suite/toy, which can be a useful tutorial, though not a good starting point
-for your experiments! 
-
 The framework subdirectory provides a template experimental framework.  This is
-intended as a reasonable out-of-the-box baseline system.  We recommend you use
-this framework as your starting point for real experiments.
+intended as a reasonable experimental starting point.  We recommend you use
+this framework as your starting point for real experiments.  A document is
+included showing how to run a toy experiment with this framework:
+framework-toy.pdf.  Even if you used PORTAGEshared before, we recommend you
+read through this document, as it highlight the currently recommended
+procedures for using PORTAGEshared.  If you used our old toy example as a
+starting point previously, it may be worth starting again from the new
+framework instead.
 
 For full documentation, see doc/user-manual.html.
 
@@ -68,4 +70,11 @@ For full documentation, see doc/user-manual.html.
 
 If you have any question about PORTAGEshared, be it technical, legal or
 otherwise, you can contact us by e-mail at PORTAGEshared@nrc-cnrc.gc.ca.
+
+
+                      PORTAGEshared Users mailing list
+
+We have created a mailing list for PORTAGEshared users, where questions of
+general interest can be posted and answered publicly.  If you would like to be
+added to this list, please e-mail PORTAGEshared@nrc-cnrc.gc.ca.
 
