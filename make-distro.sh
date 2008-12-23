@@ -265,6 +265,11 @@ make_pdfs() {
          run_cmd make clean
       run_cmd popd
 
+      run_cmd pushd ./framework
+         run_cmd make doc
+         run_cmd make doc-clean
+      run_cmd popd
+
    run_cmd popd
 }
 
