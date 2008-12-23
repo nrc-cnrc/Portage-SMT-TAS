@@ -39,7 +39,8 @@ void print(const vector<string>& v)
 template<class T>
 void print(const vector<T>& v)
 {
-   copy(v.begin(), v.end(), ostream_iterator<T>(cout, " "));
+   for (Uint i(0); i<v.size(); ++i) 
+      cout << v[i] << " ";
    cout << endl;
 }
 
