@@ -47,7 +47,8 @@ Options:\n\
 -smooth s  Smoothing method: [1]\n\
            s=0: none\n\
            s=1: Replace 0 n-gram matches by fixed epsilon\n\
-           s=2: Increase the count by 1 for all n-grams with n>1 (cf. Lin and Och, Coling 2004)\n\
+           s=2: Increase the count by 1 for all n-grams with n>1\n\
+                (cf. Lin and Och, Coling 2004)\n\
 -y         maximum NGRAMS for calculating BLEUstats matches [4]\n\
 -u         maximum NGRAMS for calculating BLEUstats score [y]\n\
            where 1 <= y, 1 <= u <= y\n\
