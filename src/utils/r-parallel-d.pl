@@ -171,7 +171,7 @@ for ( ; $paddr = accept(Client, Server); close Client) {
                log_msg "returning: ***EMPTY***";
             }
          }
-      } elsif ($cmd_rcvd =~ /^DONE/i) {
+      } elsif ($cmd_rcvd =~ /^DONE|^SIGNALED/i) {
          ++$done_count;
          my $trimmed_cmd_rcvd = $cmd_rcvd;
          $trimmed_cmd_rcvd =~ s/\s+/ /g;

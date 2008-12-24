@@ -488,7 +488,7 @@ if (( $VERBOSE > 1 )); then
    DEAMON_PID=$!
 elif (( $VERBOSE > 0 )); then
    r-parallel-d.pl -on-error $ON_ERROR $WORKDIR 2>&1 | 
-      egrep --line-buffered 'FATAL ERROR|\] ([0-9/]* DONE|starting|Non-zero)' 1>&2 &
+      egrep --line-buffered 'FATAL ERROR|\] ([0-9/]* (DONE|SIGNALED)|starting|Non-zero)' 1>&2 &
    DEAMON_PID=$!
 else
    r-parallel-d.pl -on-error $ON_ERROR $WORKDIR 2>&1 | 

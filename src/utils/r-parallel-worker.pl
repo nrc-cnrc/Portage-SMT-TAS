@@ -55,9 +55,9 @@ $me =~ s/balzac.iit.nrc.ca/balzac/;
 if ( $primary ) { $me = "Primary $me"; }
 
 sub exit_with_error{
-    my $error_string = shift;
-    print STDERR "[" . localtime() . "] ($me) ", $error_string, "\n";
-    exit(-1);
+   my $error_string = shift;
+   print STDERR "[" . localtime() . "] ($me) ", $error_string, "\n";
+   exit(-1);
 }
 
 sub log_msg(@) {
@@ -111,39 +111,49 @@ my $start_time = time;
 my $reply_rcvd = send_recv "GET ($me)";
 chomp $reply_rcvd;
 
+sub report_signal($) {
+   log_msg "Caught signal $_[0], Aborting job";
+   send_recv "SIGNALED ($me) (rc=$_[0]) $reply_rcvd";
+   exit;
+}
+
 while(defined $reply_rcvd and $reply_rcvd !~ /^\*\*\*EMPTY\*\*\*/i
          and $reply_rcvd ne ""){
-    log_msg "Executing $reply_rcvd";
-    my ($job_id, $job_command) = split / /, $reply_rcvd, 2;
-    my $exit_status;
-    if (!defined $job_id or $job_id !~ /^\(\d+\)$/ or !defined $job_command) {
-        log_msg "Received ill-formatted command: $reply_rcvd";
-        $exit_status = -2;
-    } else {
-        my $rc = system($job_command);
-        if ( $rc == -1 ) {
-            log_msg "System return code = $rc, means couldn't start job: $!";
-            $exit_status = -1;
-        } elsif ( $rc & 127 ) {
-            log_msg "System return code = $rc, ",
-                    "means job died with signal ", ($rc & 127), ". ",
-                    ($rc & 128 ? 'with' : 'without'), " coredump";
-            $exit_status = -1;
-        } else {
-            # regular exit status from program is $rc >> 8, as documented in
-            # "perldoc -f system"
-            $exit_status = $rc >> 8;
-            log_msg "Exit status $exit_status";
-        }
-    }
-    if ( $quota > 0 and (time - $start_time) > $quota*60 ) {
-        # Done my share of work, request a relaunch
-        send_recv "DONE-STOPPING ($me) (rc=$exit_status) $reply_rcvd";
-        last;
-    } else {
-        send_recv "DONE ($me) (rc=$exit_status) $reply_rcvd";
-        $reply_rcvd = send_recv "GET ($me)";
-    }
+   log_msg "Executing $reply_rcvd";
+   my ($job_id, $job_command) = split / /, $reply_rcvd, 2;
+   my $exit_status;
+   if (!defined $job_id or $job_id !~ /^\(\d+\)$/ or !defined $job_command) {
+      log_msg "Received ill-formatted command: $reply_rcvd";
+      $exit_status = -2;
+   } else {
+      $SIG{INT} = sub { report_signal(2) };
+      $SIG{QUIT} = sub { report_signal(3) };
+      $SIG{TERM} = sub { report_signal(15) };
+      my $rc = system($job_command);
+      $SIG{INT} = $SIG{QUIT} = $SIG{TERM} = 'ignore_signal';
+      if ( $rc == -1 ) {
+         log_msg "System return code = $rc, means couldn't start job: $!";
+         $exit_status = -1;
+      } elsif ( $rc & 127 ) {
+         log_msg "System return code = $rc, ",
+                 "means job died with signal ", ($rc & 127), ". ",
+                 ($rc & 128 ? 'with' : 'without'), " coredump";
+         $exit_status = -1;
+      } else {
+         # regular exit status from program is $rc >> 8, as documented in
+         # "perldoc -f system"
+         $exit_status = $rc >> 8;
+         log_msg "Exit status $exit_status";
+      }
+   }
+   if ( $quota > 0 and (time - $start_time) > $quota*60 ) {
+      # Done my share of work, request a relaunch
+      send_recv "DONE-STOPPING ($me) (rc=$exit_status) $reply_rcvd";
+      last;
+   } else {
+      send_recv "DONE ($me) (rc=$exit_status) $reply_rcvd";
+      $reply_rcvd = send_recv "GET ($me)";
+   }
 }
 log_msg "Done.";
 
