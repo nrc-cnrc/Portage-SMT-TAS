@@ -60,7 +60,7 @@ print J1 $job1;
 close( J1 );
 
 print "Running gen_phrase_tables for $src_lang...\n";
-my $rc = system( "cd ${workdir}; bash $script" );
+my $rc = system( "cd ${workdir} && bash $script" );
 print "RC = $rc\n";
 
 };

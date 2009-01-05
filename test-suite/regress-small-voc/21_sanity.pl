@@ -61,6 +61,6 @@ open( J1, "> $script" );
 print J1 $job1;
 close( J1 );
 
-system( "cd ${workdir}; bash $script" );
+system( "cd ${workdir} && bash $script" );
 
 };

@@ -96,6 +96,6 @@ open( J1, "> ${workdir}/canoe-cube.ini" );
 print J1 $ini1;
 close( J1 );
 
-system( "cd ${workdir}; bash $script" );
+system( "cd ${workdir} && bash $script" );
 
 };

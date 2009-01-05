@@ -84,6 +84,6 @@ open( J1, "> ${workdir}/rescoring_model.ini" );
 print J1 $ini1;
 close( J1 );
 
-system( "cd ${workdir}; bash $script" );
+system( "cd ${workdir} && bash $script" );
 
 };

@@ -56,7 +56,7 @@ print J1 $job1;
 close( J1 );
 
 print "Generating forward HMM tables for $src_lang...\n";
-my $rc = system( "cd ${workdir}; bash $script_foward" );
+my $rc = system( "cd ${workdir} && bash $script_foward" );
 print "RC = $rc\n";
 
 my $job2 = << "END";
@@ -76,7 +76,7 @@ print J2 $job2;
 close( J2 );
 
 print "Generating backward HMM tables for $src_lang...\n";
-$rc = system( "cd ${workdir}; bash $script_bakward" );
+$rc = system( "cd ${workdir} && bash $script_bakward" );
 print "RC = $rc\n";
 
 my $job3 = << "END";
@@ -104,7 +104,7 @@ print J3 $job3;
 close( J3 );
 
 print "Running gen_phrase_tables HMM for $src_lang...\n";
-my $rc = system( "cd ${workdir}; bash $script" );
+my $rc = system( "cd ${workdir} && bash $script" );
 print "RC = $rc\n";
 
 };

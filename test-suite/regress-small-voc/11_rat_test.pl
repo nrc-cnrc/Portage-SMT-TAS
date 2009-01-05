@@ -73,7 +73,7 @@ if ( -r "${decoder_training}/canoe.ini.cow" ) {
     exit 1;
 }
 
-system( "cd ${workdir}; bash $script" );
+system( "cd ${workdir} && bash $script" );
 
 };
 

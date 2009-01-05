@@ -169,6 +169,6 @@ END
 open( J1, "> ${workdir}/canoe.ini" );
 print J1 $ini1;
 close( J1 );
-my $rc = system( "cd ${workdir}; bash $script" );
+my $rc = system( "cd ${workdir} && bash $script" );
 
 };

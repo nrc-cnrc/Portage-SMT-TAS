@@ -100,7 +100,7 @@ print MODEL $basic_features;
 print MODEL $model1;
 close( MODEL );
 
-system( "cd ${workdir}; bash $script" );
+system( "cd ${workdir} && bash $script" );
 
 };
 

@@ -13,6 +13,7 @@
 # Copyright 2005 - 2008, Her Majesty in Right of Canada
 
 use strict;
+use File::Basename;
 
 my $corp0 = "$ENV{PORTAGE}/test-suite/regress-small-voc";
 my $corp = "$ENV{PORTAGE}/test-suite/regress-small-voc/lc";
@@ -22,6 +23,7 @@ if ( $base_work =~ /^[^\/]/ ) {
   chomp $cwd;
   $base_work = "$cwd/$base_work";
 }
+my $me = basename $0 =~ s/(.*).pl$// ? $1 : $0;
 
 my @src_lang = (
   'fr',
@@ -37,14 +39,15 @@ my $workdir0 = "${base_work}/wk_${src_lang}";
 my $workdir  = "${workdir0}/cow-cube";
 
 mkdir $workdir;
-mkdir "$workdir/workdir";
 
 # Will be run in directory $workdir
 my $job1 = << "END";
 #!/bin/bash
 LANG=en_US.ISO-8859-1
 
-echo -n "Training decoder model with cube pruning "
+test -d workdir ||  mkdir workdir;
+
+echo -n "$me Training decoder model with cube pruning "
 cow.sh                                 \\
   -e                                   \\
   -v -filt -floor 2                    \\
@@ -61,7 +64,7 @@ cow.sh                                 \\
 
 END
 
-my $script = "${workdir}/${src_lang}_62_cow_cube";
+my $script = "${workdir}/${src_lang}_" . $me;
 open( J1, "> $script" );
 print J1 $job1;
 close( J1 );
@@ -96,6 +99,6 @@ open( J1, "> ${workdir}/canoe.ini" );
 print J1 $ini1;
 close( J1 );
 
-system( "cd ${workdir}; bash $script" );
+system( "cd ${workdir} && bash $script" );
 
 };

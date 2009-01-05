@@ -76,6 +76,6 @@ if ( -r "${trans_dir}/rescoring_model.rat.out" ) {
     exit 1;
 }
 
-system( "cd ${workdir}; bash $script" );
+system( "cd ${workdir} && bash $script" );
 
 };

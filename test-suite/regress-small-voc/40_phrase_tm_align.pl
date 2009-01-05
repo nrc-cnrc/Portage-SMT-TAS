@@ -78,6 +78,6 @@ if ( -r "${trans_dir}/realtest2000.${src_lang}.lowercase.rat" ) {
     exit 1;
 }
 
-system( "cd ${workdir}; bash $script" );
+system( "cd ${workdir} && bash $script" );
 
 };
