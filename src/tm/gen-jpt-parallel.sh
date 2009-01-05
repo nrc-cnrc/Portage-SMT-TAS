@@ -33,14 +33,17 @@ Options:
             on the setting of this option: higher values of N will yield 
             slightly larger phrase tables!
   -rp       Provide custom run-parallel.sh options (enclose in quotes!).
-  -o        Send output to outfile (compressed). This runs on a separate node
-            with 4 cpus.
+  -o        Send output to outfile (compressed).
   GPT       Keyword to signal beginning of gen_phrase_tables options and args.
   GPTARGS   Arguments and options for gen_phrase_tables: these must include
             the two IBM model arguments, but should NOT include any output
             selection options (this is not checked), nor the names of text
             files (input is limited to file1_lang1 and file1_lang2). Any
             quotes in GPTARGS must be escaped.
+            Warning: -w and -prune1 are applied to each chunk individually, so
+            their semantics are affected by N.  Provide -prune1 to
+            joint2cond_phrase_tables instead to preserve its normal semantics;
+            -w cannot be made to act as if given to gen_phrase_tables.
 
 ==EOF==
 
