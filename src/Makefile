@@ -84,7 +84,7 @@ USAGE_DIR ?= ../doc/usage
 .PHONY: usage
 usage: list.html
 index.html: make_module_usage
-	find ${USAGE_DIR} -maxdepth 2 -mindepth 2 -name index.html \
+	find ${USAGE_DIR} -mindepth 2 -maxdepth 2 -name index.html \
 	| xargs -i dirname {} \
 	| sed 's#.*/##' \
 	| tr " " "\n" \
@@ -94,7 +94,7 @@ index.html: make_module_usage
 	cp build/*.gif build/*.jpg ${USAGE_DIR}
 
 list.html: index.html
-	find ${USAGE_DIR} -maxdepth 2 -mindepth 2 -name index.html \
+	find ${USAGE_DIR} -mindepth 2 -maxdepth 2 -name index.html \
 	| xargs cat \
 	| egrep '<TR ID="program brief description">' \
 	| ./utils/pgm_usage_2_html.pl -index "List of all programs" \
@@ -109,3 +109,9 @@ make_module_usage:
 clean_usage:
 	${MAKE} USAGE_DIR=../${USAGE_DIR} OT=$@ ${ALL_SUBDIRS}
 	${RM} ${USAGE_DIR}/index.html
+
+.PHONY: new_usage
+new_usage:
+	${MAKE} clean_usage
+	${MAKE} usage
+
