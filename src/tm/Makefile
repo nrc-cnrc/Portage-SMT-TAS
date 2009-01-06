@@ -59,5 +59,13 @@ MODULE_CF = -DHAVE_CXX_STDHEADERS
 
 MODULE_DEPENDS = logging
 
+PGM_WITH_ALTERNATIVE_HELP = \
+        align-words \
+        extract_phrase_patterns \
+        gen_phrase_tables \
+        joint2cond_phrase_tables \
+        joint2multi_cpt \
+        phrase_oracle
+
 include ../build/Makefile.incl
 -include Makefile.depend

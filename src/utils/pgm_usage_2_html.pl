@@ -30,8 +30,8 @@ Usage: $0 [options] [<in> [<out>]]
 
 Options:
 
-  -pgm <MODULE>/<NAME>    Creates a web page with the content of a program
-                 called <NAME> with it's help description given by <in>.
+  -pgm <MODULE>/<NAME>    Creates a web page with the content of a program called <NAME>
+                 with it's help description given by <in>.
   -module <NAME> Creates list of available program in a module.  Expects a list
                  of all available programs as <in>.
   -main <TITLE>  Creates a web page with the list of all modules given by <in>.
@@ -119,6 +119,7 @@ else {
 #print STDERR "\$NRC_logo_path: $NRC_logo_path\n";
 #print STDERR "\$hierarchy: $hierarchy\n";
 
+# Here we define the header.
 my $header = <<HEADER;
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
@@ -134,6 +135,7 @@ my $header = <<HEADER;
   <H5>$hierarchy</H5>
 HEADER
 
+# Here we define the footer with the copyright.
 my $footer = <<FOOTER;
   <BR><HR><BR>
 <table width="100%" border="0" cellpadding="0" cellspacing="0"> 
@@ -163,6 +165,8 @@ Copyright &copy; 2004-2008, Sa Majest&eacute; la Reine du Chef du Canada / Her M
 FOOTER
 
 print OUT $header;
+# For a module we expect a list of files that we will format into a listing of
+# programs.
 if (defined($module_index)) {
    print OUT "<H2>Available programs in $module_index:</H2><BR>
    <TABLE CELLPADDING=\"5\" BORDER=\"1\">
@@ -197,6 +201,7 @@ if (defined($module_index)) {
    <A HREF=../index.html>back</A>
    ";
 }
+# Compile a list of all available module in Portage.
 elsif (defined($main_index)) {
    print OUT "<H2>PORTAGEshared programs by module:</H2><BR>
    <UL>
@@ -205,10 +210,12 @@ elsif (defined($main_index)) {
       chomp;
       print OUT "<LI><A HREF=\"$_/index.html\">$_</A>\n";
    }
+   # Add a link to the list of all available programs in portage.
    print OUT "</UL>
    <BR><BR>
    <H4><A HREF=\"list.html\">Alphabetical list of all programs</A></H4>\n";
 }
+# Compile an index of all the Portages' program into one list.
 elsif (defined($full_index)) {
    my %list = ();
    print OUT "<TABLE CELLPADDING=\"5\" BORDER=\"1\">\n";
@@ -222,11 +229,13 @@ elsif (defined($full_index)) {
       else {
          print STDERR "<WARN>: Where is the module's name.\n";
       }
+
       # Fix the link to point to the file in the module's directory.
       if (not s/HREF="/HREF="$module_name\//) {
          print STDERR "<WARN>: Couldn't fix the link.\n";
       }
-      # Grag the link and store it memory.
+
+      # Grab the link and store it memory.
       if (/HREF="(.*html)"/) {
          my $key = $1;
          $key =~ s/.*\///;
@@ -241,16 +250,25 @@ elsif (defined($full_index)) {
    foreach my $key (sort (keys(%list))) {
       print $list{$key};
    }
+
+   # Add a nice back button.
    print OUT "</TABLE>
    <A HREF=index.html>back</A>
    \n";
 }
+# We are processing the help message from a program.
 else {
+   # Make sure the help message is verbatim.
    print OUT "<PRE>";
    while (<IN>) {
+      # Replace all occurences of < by &lt which is required for html compatibility.
       s/</&lt;/g;
+      # Special replace for programs that have the alternative help message.
+      # Both help messages are separated by NRC_HELP_SEPARATOR_TAG. 
+      s#NRC_HELP_SEPARATOR_TAG#</PRE><HR><BR><H3>Alternative help message</H3><BR><PRE>#;
       print OUT;
    }
+   # Add the back and top button.
    print OUT "</PRE>
    <TABLE width=\"400\">
    <TD><A HREF=index.html>back</A></TD>
@@ -259,3 +277,4 @@ else {
    ";
 }
 print OUT $footer;
+

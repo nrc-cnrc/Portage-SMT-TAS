@@ -74,6 +74,8 @@ EXTRA_LIBS=$(LOGGING_LIB)
 
 DYNLIBS=-lpthread $(LIBICU)
 
+PGM_WITH_ALTERNATIVE_HELP = rescore_train
+
 ifdef NO_PORTAGE_OPENMP
 MODULE_CF=-Wno-non-virtual-dtor -fno-strict-aliasing -Wno-uninitialized
 else

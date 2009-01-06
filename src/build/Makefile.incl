@@ -485,10 +485,21 @@ index.html:
 endif
 
 # Generic target to create each program's web page.
+# This target only generate help for the "normal help" aka -h.
 vpath %.html ${MODULE_USAGE_DIR}
 %.html: %
 	install -d -m0750 ${MODULE_USAGE_DIR}
 	./$* -h 2>&1 | ../utils/pgm_usage_2_html.pl -pgm ${MODULE_NAME}/$* > ${MODULE_USAGE_DIR}/$@
+
+# This is a special target for programs that also have the alternative help
+# message aka -H.
+# Please list your programs with alternative help message into the varaible
+# PGM_WITH_EXTRA_HELP in each of the modules.
+ifdef PGM_WITH_ALTERNATIVE_HELP
+$(addsuffix .html,${PGM_WITH_ALTERNATIVE_HELP}): %.html: %
+	install -d -m0750 ${MODULE_USAGE_DIR}
+	(./$* -h; echo "NRC_HELP_SEPARATOR_TAG"; ./$* -H) 2>&1 | ../utils/pgm_usage_2_html.pl -pgm ${MODULE_NAME}/$* > ${MODULE_USAGE_DIR}/$@
+endif
 
 # How to clean the web pages.
 .PHONY: clean_usage
