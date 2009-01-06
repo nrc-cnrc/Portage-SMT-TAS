@@ -98,7 +98,8 @@ sub usage {
  - FileFF:extern is ignored because it does not begin with \"ff.\".
  - SCRIPT indicates that you want to call an external script called
    yourscript located in the experiment main directory.  This script requires
-   the nbest list and your SCRIPT MUST output the ff values to standard out.
+   the nbest list and your SCRIPT MUST output the ff values uncompressed to
+   standard out.
 
    Here are the tags available for the rescoring-model to make the
    model more generic which trigger some action in rat.sh.

@@ -485,10 +485,14 @@ More details:\n\
   to create files like this.\n\
 \n\
 * The SCRIPT ff allows the user to try a quick and dirty feature function.\n\
-  Your script MUST output its values to standard out.\n\
+  Your script MUST output its values uncompressed to standard out.\n\
   The script command line must be in quotes and you can use the five\n\
   following tags:\n\
   <ffval-wts> <src> <nbest> <pfx> <NP>\n\
+  SCRIPT:\"parallelize.pl -n 5 './gen-pos-feat < <nbest>'\"\n\
+  Takes the compressed nbest and generates pos-feat values 5-ways parallel.\n\
+  NOTE: When using gen-features-parallel.pl/rat.sh, the values will\n\
+  automatically be compressed.\n\
 \n\
 * To create a template model for rescoring output produced using canoe config\n\
   file canoe.ini.cow, do:\n\
