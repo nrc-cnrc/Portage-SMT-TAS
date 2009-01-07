@@ -45,7 +45,13 @@ Options:
 
   -h(elp):      print this help message
   -bin:         include compiled code [don't, unless -nosrc is specified]
-  -icu:         link with ICU when compiling code [don't]
+  -icu {yes|no|both} if "yes" link with ICU when compiling code; if "no", don't
+                link with ICU; if "both", compile and link twice, once with and
+                once without ICU. [yes]
+  -icu-root PATH_TO_ICU find ICU in PATH_TO_ICU/lib instead of $PORTAGE/lib
+                when compiling and linking with ICU.  If PATH_TO_ICU includes
+                the special token _ARCH_, that token will be replaced by the
+                output of calling arch.
   -d            cvs root repository
   -compile-only use this to compile code on a different architecture, with an
                 OUTPUT_DIR where -bin has already been used.  All other options
@@ -132,11 +138,14 @@ for x in "$@"; do
    fi
 done
 
+ICU=yes
+ICU_ROOT=$PORTAGE
 while [ $# -gt 0 ]; do
    case "$1" in
    -d)                  arg_check 1 $# $1; CVS_DIR="-d $2"; shift;;
    -bin)                INCLUDE_BIN=1;;
-   -icu)                ICU_LIB="ICU=${PORTAGE}"; ICU_OPT=-icu;;
+   -icu)                arg_check 1 $# $1; ICU=$2; ICU_OPT="$1 $2"; shift;;
+   -icu-root)           arg_check 1 $# $1; ICU_ROOT=$2; shift;;
    -compile-only)       COMPILE_ONLY=1;;
    -compile-host)       arg_check 1 $# $1; COMPILE_HOST=$2; shift;;
    -nosrc)              NO_SOURCE=1;;
@@ -164,6 +173,11 @@ while [ $# -gt 0 ]; do
    esac
    shift
 done
+
+if [[ $ICU_ROOT != $PORTAGE ]]; then
+   ICU_OPT="$ICU_OPT -icu-root $ICU_ROOT"
+   ICU_ROOT=${ICU_ROOT//_ARCH_/`arch`}
+fi
 
 if [ -n "$PATCH_FROM" ]; then
    for PATCH_ARG in $PATCH_FROM; do
@@ -292,18 +306,26 @@ make_usage() {
 }
 
 make_bin() {
+   ELFDIR=`arch`
+   if [[ $ICU = yes ]]; then
+      ICU_LIB="ICU=$ICU_ROOT"
+      ELFDIR=$ELFDIR-icu
+   else
+      ICU_LIB=""
+      ELFDIR=$ELFDIR
+   fi
    run_cmd pushd ./$OUTPUT_DIR/PORTAGEshared
       run_cmd pushd ./src
-         run_cmd MY_PORTAGE_INSTALL= make install -j 5 $ICU_LIB '>&' ../../make_`arch`.log
+         run_cmd make install -j 5 $ICU_LIB '>&' ../../make_$ELFDIR.log
          run_cmd make clean '>&' /dev/null
       run_cmd popd
       run_cmd pushd ./bin
-         run_cmd mkdir -p `arch`
-         run_cmd file \* \| grep ELF \| sed "'s/:.*//'" \| xargs -i{} mv {} `arch`
+         run_cmd mkdir -p $ELFDIR
+         run_cmd file \* \| grep ELF \| sed "'s/:.*//'" \| xargs -i{} mv {} $ELFDIR
       run_cmd popd
       run_cmd pushd ./lib
-         run_cmd mkdir -p `arch`
-         run_cmd file \* \| grep ELF \| sed "'s/:.*//'" \| xargs -i{} mv {} `arch`
+         run_cmd mkdir -p $ELFDIR
+         run_cmd file \* \| grep ELF \| sed "'s/:.*//'" \| xargs -i{} mv {} $ELFDIR
       run_cmd popd
    run_cmd popd
 }
@@ -330,6 +352,7 @@ make_iso_and_tar() {
       run_cmd mkisofs -V $ISO_VOLID -joliet-long -o $ARCHIVE_FILE.iso \
               PORTAGEshared $PATCH_FILES '&>' iso.log
       run_cmd tar -cvzf $ARCHIVE_FILE.tar.gz PORTAGEshared '>&' tar.log
+      run_cmd md5sum $ARCHIVE_FILE.* \> $ARCHIVE_FILE.md5
    run_cmd popd
 }
 
@@ -355,7 +378,14 @@ fi
 
 if [[ $INCLUDE_BIN || $COMPILE_ONLY ]]; then
    echo Including compiled code.
-   make_bin
+   if [[ $ICU = both ]]; then
+      ICU=yes
+      make_bin
+      ICU=no
+      make_bin
+   else
+      make_bin
+   fi
 fi
 
 if [[ $COMPILE_HOST ]]; then

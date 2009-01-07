@@ -4,7 +4,7 @@
 # Eric Joanis
 #
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2006 - 2008, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2006 - 2008, Her Majesty in Right of Canada
@@ -23,6 +23,12 @@ export PORTAGE=$HOME/PORTAGEshared
 # pre-compilied executables for those two architectures, though they may be
 # compatible with other Linux 32 and 64 bit architectures.
 #PRECOMP_PORTAGE_ARCH=`arch`
+
+# We also provide executables compiled with and without ICU, in order to make
+# that dependency be optional.  Uncomment the following line instead of the
+# previous one if you have installed and wish to use ICU.
+#PRECOMP_PORTAGE_ARCH=`arch`-icu
+
 
 # END OF USER CONFIGURABLE VARIABLES
 # =======================================================================

@@ -105,12 +105,55 @@ Mandatory dependencies for all distributions:
    since it is readily available.  If your licensing requirements allow it, we
    recommend SRILM (http://www.speech.sri.com/projects/srilm/).  You can also
    use IRSTLM (http://sourceforge.net/projects/irstlm) or any other package
-   which produces language models in Doug Paul's ARPA format.
+   which produces language models in Doug Paul's ARPA format, but we find SRILM
+   works best.
 
 Optional dependencies for all distributions:
 
  - SRILM's ngram and compute-best-mix programs, if you want to use the
    adaptation module (if your licensing requirements allow it).
+
+ - ICU - PORTAGEshared includes a few tools that use ICU to correctly do
+   case-mapping on utf8 data.  This functionality will be disabled if ICU is
+   not available.  ICU is only required to use the utf8 casemapping
+   functionality of DynMap LMs, so in most cases you will not need this
+   library, and can safely leave it out, at least to get started.
+
+   With binary only distributions, use programs and libraries in bin/<arch>-icu
+   and lib/<arch>-icu if you have ICU, or programs in libraries in bin/<arch>
+   and lib/<arch> if you don't.  The choice of which executables to use is best
+   done by editing the user configurable variables in SETUP.bash and
+   SETUP.tcsh.  Unfortunately, dynamic ICU libraries of different versions are
+   not interchangeable, so you must have the same version we compiled with to
+   use the ICU version.  If you run "ldd bin/<arch>/canoe", you should see a
+   line in the output reading "libicuuc.so.NN => ...".  The number after .so
+   tells you what version we compiled with, e.g., 40 means 4.0 (the minor
+   version number does not matter, e.g., 3.4.1 is OK for 34).  The text after
+   the arrow will either say "not found", in which case you have a problem, or
+   it will give the path to this file, in which case things should work.  If
+   you have installed the right version of ICU and this command still says "not
+   found", add the path where the libicuuc.so.NN file is found to your
+   LD_LIBRARY_PATH environment variable, e.g., by editing SETUP.bash and
+   SETUP.tcsh as described below.
+
+   With source code distributions, if you install ICU, edit the ICU variable in
+   src/Makefile.user-conf to enable the compilation of the relevant code.
+   
+   If it is not already available via your Linux distro, ICU can be downloaded
+   from http://icu-project.org/download/.
+   This procedure worked for us:
+      # Download the ICU4C 4.0 and expand it
+      wget http://download.icu-project.org/files/icu4c/4.0/icu4c-4_0-src.tgz
+      tar -xzf icu4c-4_0-src.tgz
+      cd icu/source
+      # Run the configuration program - replace $DEST with your preferred
+      # destination, e.g., $PORTAGE, $HOME, $HOME/pkgs or $HOME/icu.
+      ./runConfigureICU Linux --prefix=$DEST
+      # Compile and install
+      make install
+      # Edit src/Makefile.user-conf and set the ICU variable to $DEST.
+      # You may also need to edit SETUP.bash and SETUP.tcsh and add :$DEST/lib
+      # at the end of the two expressions setting LD_LIBRARY_PATH.
 
 Mandatory dependencies for source code distributions:
 
@@ -161,27 +204,6 @@ Mandatory dependencies for source code distributions:
       # Edit src/Makefile.user-conf and set the BOOST_ROOT variable to $DEST.
 
 Optional dependencies for source code distributions:
-
- - ICU - PORTAGEshared includes a couple tools that use ICU to correctly do
-   case-mapping on utf8 data.  This functionality will be disabled if ICU is
-   not available.  If you install ICU, edit the ICU variable in
-   src/Makefile.user-conf to enable the compilation of the relevant code.
-   
-   If it is not already available via your Linux distro, ICU can be downloaded
-   from http://icu-project.org/download/.
-   This procedure worked for us:
-      # Download the ICU4C 4.0 and expand it
-      wget http://download.icu-project.org/files/icu4c/4.0/icu4c-4_0-src.tgz
-      tar -xzf icu4c-4_0-src.tgz
-      cd icu/source
-      # Run the configuration program - replace $DEST with your preferred
-      # destination, e.g., $PORTAGE, $HOME, $HOME/pkgs or $HOME/icu.
-      ./runConfigureICU Linux --prefix=$DEST
-      # Compile and install (add -j 5 to speed up this process)
-      make install
-      # Edit src/Makefile.user-conf and set the ICU variable to $DEST.
-      # If necessary, edit SETUP.bash and SETUP.tcsh and add :$DEST/lib at the
-      # end of the two expressions setting LD_LIBRARY_PATH.
 
  - ACE - PORTAGEshared includes an API you can use to embed the decoder in your
    application, as well as a demo that can be placed on a web page.  This demo

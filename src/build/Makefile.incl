@@ -65,6 +65,11 @@ else
    ifneq ($(ICU),)
       ICU_INC_DIR=-isystem$(ICU)/include
       ICU_LIB_DIR=-L$(ICU)/lib
+      ifneq ($(LD_LIBRARY_PATH),)
+         export LD_LIBRARY_PATH:=$(LD_LIBRARY_PATH):$(ICU)/lib
+      else
+         export LD_LIBRARY_PATH=$(ICU)/lib
+      endif
    endif
 endif
 
