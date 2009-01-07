@@ -6,6 +6,8 @@
 # to simplify options we often use.  This script is intended to contain all the
 # local peculiarities of the clusters we use.  Other sites using Portage or
 # PORTAGEshared may need to adapt this script to their own cluster environment.
+# Look for "CUSTOMIZE HERE" below for spots where we expect you might need to
+# adapt things.
 #
 # @author Eric Joanis / Samuel Larkin
 #
@@ -25,7 +27,7 @@ Usage: psub [options] <command line>
 
   Wrap <command line> into a PBS script and qsub it.
   Caveat: <command line> will be interpreted again in the resulting script,
-  so quote or escape any dollar signs or backslash you need preserved.
+  so quote or escape any quotes, dollar sign or backslash you need preserved.
 
 Options:
 
@@ -41,9 +43,11 @@ Options:
   -e ERR_FILE    stderr destination
   -o OUT_FILE    stdout destination
   -noscript      don't write out the script
-  -l RESOURCES   resources for job (man pbs_resources) (may be repeated)
+  -l RES=VAL[,RES2=VAL2[,...]]  resources for job (see man pbs_resources)
+                 (separate multiple resources with commas, or repeat -l)
   -nodes PROPERTIES  properties the node should have; separate multiple
-                 properties with ":", e.g., -nodes c2:blz0:big
+                 properties with colons, e.g., -nodes c2:blz0:big
+                 (equivalent to -l nodes=PROPERTIES)
   -qsparams QSUB_PARAMETERS  additional qsub parameters
   -p PRIORITY    set the job priority; on Balzac, queued jobs with higher
                  priority will start first. 0 = normal, >0 = high, <0 = low.
@@ -108,10 +112,12 @@ while [ $# -gt 0 ]; do
    -noscript)       NOSCRIPT=1;;
    -l)              arg_check 1 $# $!
                     if [ -n "$RESOURCES" ]; then RESOURCES="$RESOURCES,$2"
-                                            else RESOURCES="$2"
-                    fi
+                                            else RESOURCES="$2"; fi
                     shift;;
-   -nodes)          arg_check 1 $# $!; NODES=$2; shift;;
+   -nodes)          arg_check 1 $# $!
+                    if [[ $NODES ]]; then NODES="$NODES:$2"
+                                     else NODES=$2; fi
+                    shift;;
    -qsparams)       arg_check 1 $# $!; QSPARAMS=$2; shift;;
    -p|-t)           arg_check 1 $# $!; QSUB_OPTS="$QSUB_OPTS $1 $2"; shift;;
    -n)              NOT_REALLY=1;;
@@ -123,14 +129,7 @@ while [ $# -gt 0 ]; do
    shift
 done
 
-while [[ $# > 0 ]]; do
-   if [[ $1 =~ " |	" ]]; then
-      COMMAND="$COMMAND\"$1\" "
-   else
-      COMMAND="$COMMAND$1 "
-   fi
-   shift
-done
+COMMAND="$*"
 
 if which qsub >& /dev/null; then
    true # qsub found - we're running on a cluster
@@ -143,7 +142,8 @@ if uname -n | egrep -q 'balzac|blz'; then
 elif uname -n | egrep -q 'venus|vns'; then
    VENUS=1
 else
-   echo Running on an unknown cluster, I hope things are compatible... >&2
+   # CUSTOMIZE HERE if you want to tune psub to your own cluster.
+   true
 fi
 
 # In interactive mode we need to reserve an entire node
@@ -157,6 +157,9 @@ if [ -n "$INTMODE" ]; then
       fi
    elif [ $VENUS ]; then
       CPU_COUNT=2
+   else
+      # CUSTOMIZE HERE if you want to tune psub to your own cluster.
+      true
    fi
 fi
 
@@ -233,7 +236,8 @@ fi
 
 if [ $BALZAC ]; then
    if [ $CPU_COUNT -gt 1 ]; then
-      RESOURCES="${OLDRESOURCES}nodes=1:ppn=$CPU_COUNT"
+      PPN_NODES="1:ppn=$CPU_COUNT"
+      #RESOURCES="${OLDRESOURCES}nodes=1:ppn=$CPU_COUNT"
    fi
    VMEM_LIMIT_GB=$((8 * $CPU_COUNT))
    VMEM_HARD_LIMIT_GB=$((7 * $CPU_COUNT))
@@ -248,11 +252,11 @@ if [ $BALZAC ]; then
       # We are in interactive mode thus we need to make sure we reserved the
       # entire node
       if [ $CPU_COUNT -gt 4 ]; then
-         true # > 4 CPUs must go to a fat node, no need for explicit request
+         true # >4 CPUs can only go to a fat node, no need for explicit request
       elif [ $CPU_COUNT -gt 2 ]; then
-         RESOURCES="${RESOURCES}:c4"
+         PPN_NODES="${PPN_NODES}:c4"
       else
-         RESOURCES="${RESOURCES}:c2"
+         PPN_NODES="${PPN_NODES}:c2"
       fi
    fi
    if echo $RESOURCES | grep -q vmem=; then
@@ -284,18 +288,27 @@ ulimit -s 100000
    PORTAGE_OPENMP_NUMBER_THREADS=$((2 * $CPU_COUNT))
 
 else
+   # CUSTOMIZE HERE if you want to tune psub to your own cluster.
+
    if [ $CPU_COUNT -gt 1 ]; then
-      RESOURCES="${OLDRESOURCES}nodes=1:ppn=$CPU_COUNT"
+      PPN_NODES="1:ppn=$CPU_COUNT"
+      #RESOURCES="${OLDRESOURCES}nodes=1:ppn=$CPU_COUNT"
    fi
 
    # Not on Balzac, we allow one thread per CPU for OpenMP.
    PORTAGE_OPENMP_NUMBER_THREADS=$CPU_COUNT
 fi
 
-if [ -n "$NODES" ]; then
-   if [ -n "`echo $RESOURCES | grep nodes= 2> /dev/null`" ]; then
-      RESOURCES=$RESOURCES:$NODES
-   elif [ -n "$RESOURCES" ]; then
+if [[ $PPN_NODES && $NODES ]]; then
+   NODES="$PPN_NODES:$NODES"
+elif [[ $PPN_NODES ]]; then
+   NODES="$PPN_NODES$NODES"
+fi
+
+if [[ $NODES ]]; then
+   if [[ $RESOURCES =~ "(.*nodes=)(.*)" ]]; then
+      RESOURCES=${BASH_REMATCH[1]}$NODES:${BASH_REMATCH[2]}
+   elif [[ $RESOURCES ]]; then
       RESOURCES=$RESOURCES,nodes=$NODES
    else
       RESOURCES=nodes=$NODES
@@ -311,6 +324,7 @@ if [ -n "$INTMODE" ]; then
    echo "Entering interactive mode."
    echo "Warning: you will get a fresh login environment.  Any variables set in the"
    echo "parent shell will not be propagated, only those in your login scripts."
+   echo "Will auto logout after 1 hour idle; change TMOUT to override."
 
    if [ $NOT_REALLY ]; then
       echo $QSUB_CMD
@@ -351,7 +365,7 @@ done
 cat <<==EOF== >> $TMPSCRIPT
 
 # Preserve the calling working directory
-cd \$PBS_O_WORKDIR
+cd \$PBS_O_WORKDIR || exit
 $VMEM_LIMIT_SCRIPT_BLOCK
 $SOFTSTACK_LIMIT_SCRIPT_BLOCK
 # Set the number of allowed openmp threads based on the number of cpus.
