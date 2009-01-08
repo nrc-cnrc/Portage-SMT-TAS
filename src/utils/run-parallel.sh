@@ -578,7 +578,7 @@ if [[ ! $NOLOWPRI ]]; then
    # By default specify ckpt=1, which means the job can run on borrowed nodes
    # Do this only on venus
    if pbsnodes -a 2> /dev/null | grep -q vns ; then
-      PSUBOPTS="-l cpkt=1 $PSUBOPTS"
+      PSUBOPTS="-l ckpt=1 $PSUBOPTS"
    fi
 fi
 
@@ -726,8 +726,11 @@ if [[ $CLUSTER ]]; then
    # Give PBS up to 20 seconds to finish cleaning up worker jobs that have just
    # finished
    WORKERS=`cat $WORKER_JOBIDS 2> /dev/null`
+   #echo run-parallel job_id: $PBS_JOBID workers: $WORKERS >&2
+   #qstat $WORKERS >&2
    if [[ $WORKERS ]]; then
       for (( i = 0; i < 20; ++i )); do
+         #qstat $WORKERS >&2
          if qstat $WORKERS 2> /dev/null | grep ' [QRE] ' > /dev/null ; then
             #echo Some workers are still running >&2
             sleep 1
