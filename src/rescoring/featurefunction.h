@@ -98,7 +98,7 @@ public:
       MAX
    } FF_COMPLEXITY;
 
-   /// Empty constructor.
+   /// Constructor for use by subclasses.
    FeatureFunction(const string& argument)
    : argument(argument)
    , src_sents(NULL)
