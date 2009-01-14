@@ -21,7 +21,7 @@ use ULexiTools;
 use locale;
 # This is a utf8 handling script => io should be in utf8 format
 # ref: http://search.cpan.org/~tty/kurila-1.7_0/lib/open.pm
-use open IO => ':utf8';
+use open IO => ':encoding(utf8)';
 use open ':std';  # <= indicates that STDIN and STDOUT are utf8
 
 print STDERR "utokenize.pl, NRC-CNRC, (c) 2004 - 2008, Her Majesty in Right of Canada\n";
