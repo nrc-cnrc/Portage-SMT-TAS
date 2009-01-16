@@ -1,6 +1,6 @@
 /**
  * @author Nicola Ueffing
- * @file nbestPosterior.h
+ * @file nbest_posterior_ff.h
  *
  * $Id$
  *
