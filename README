@@ -27,10 +27,13 @@ phrase-based statistical machine translation, including:
    models;
  - decoding (doing the actual translation, producing n-best lists or lattices);
  - rescoring (choosing the best hypothesis from an n-best list) using sources
-   of information that are external to the decoder;
+   of information that are external to the decoder; a collection of rescoring
+   features;
  - optimizing weights, both for decoding and for rescoring;
  - truecasing (restoring upper case letters in the output of the translation);
  - evaluation using BLEU, WER or PER.
+ - an API to incorporate the decoder into other applications; a web-ready demo;
+ - lots of general utility code needed for the above.
 
 
                          Contents of this directory
