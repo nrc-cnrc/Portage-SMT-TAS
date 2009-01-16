@@ -15,7 +15,7 @@
 #use strict;
 #use LexiTools;
 
-print STDERR "build_devfile.pl, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada\n";
+print STDERR "build_devfile.pl, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada\n";
 
 my $HELP = "
 build_devfile.pl num [in [out]]

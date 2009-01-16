@@ -12,7 +12,7 @@
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada / 
 # Copyright 2006, Her Majesty in Right of Canada
 
-echo 'mx-calc-distances.sh, NRC-CNRC, (c) 2006 - 2008, Her Majesty in Right of Canada' >&2
+echo 'mx-calc-distances.sh, NRC-CNRC, (c) 2006 - 2009, Her Majesty in Right of Canada' >&2
 
 usage() {
    for msg in "$@"; do

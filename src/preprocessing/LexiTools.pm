@@ -1,5 +1,5 @@
-# Copyright (c) 2004 - 2008, Sa Majeste la Reine du Chef du Canada /
-# Copyright (c) 2004 - 2008, Her Majesty in Right of Canada
+# Copyright (c) 2004 - 2009, Sa Majeste la Reine du Chef du Canada /
+# Copyright (c) 2004 - 2009, Her Majesty in Right of Canada
 #
 # For further information, please contact :
 # Technologies langagieres interactives / Interactive Language Technologies
@@ -554,8 +554,8 @@ paragraph delimiter (just like a blank line).
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004 - 2008, Sa Majeste la Reine du Chef du Canada /
-Copyright (c) 2004 - 2008, Her Majesty in Right of Canada
+Copyright (c) 2004 - 2009, Sa Majeste la Reine du Chef du Canada /
+Copyright (c) 2004 - 2009, Her Majesty in Right of Canada
 
  For further information, please contact :
  Technologies langagieres interactives / Interactive Language Technologies

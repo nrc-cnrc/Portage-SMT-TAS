@@ -18,7 +18,7 @@
 use strict;
 use warnings;
 
-print STDERR "ngrams.pl, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada\n";
+print STDERR "ngrams.pl, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada\n";
 
 my $HELP = "
 ngrams.pl n [in [out]]

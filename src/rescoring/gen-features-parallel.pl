@@ -14,7 +14,7 @@
 use strict;
 use warnings;
 
-print STDERR "gen-features-parallel.pl, NRC-CNRC, (c) 2008, Her Majesty in Right of Canada\n";
+print STDERR "gen-features-parallel.pl, NRC-CNRC, (c) 2009, Her Majesty in Right of Canada\n";
 
 my $SRC_TAG = "<src>";
 my $FFVAL_WTS_TAG = "<ffval-wts>";

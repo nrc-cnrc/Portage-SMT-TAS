@@ -14,14 +14,14 @@
 # Technologies langagieres interactives / Interactive Language Technologies
 # Institut de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright (c) 2004 - 2008, Sa Majeste la Reine du Chef du Canada /
-# Copyright (c) 2004 - 2008, Her Majesty in Right of Canada
+# Copyright (c) 2004 - 2009, Sa Majeste la Reine du Chef du Canada /
+# Copyright (c) 2004 - 2009, Her Majesty in Right of Canada
 
 
 use strict;
 use utf8;
 
-print STDERR "udetokenize.pl, NRC-CNRC, (c) 2004 - 2008, Her Majesty in Right of Canada\n";
+print STDERR "udetokenize.pl, NRC-CNRC, (c) 2004 - 2009, Her Majesty in Right of Canada\n";
 
 my $HELP = "
 Usage: udetokenize.pl [-lang=L] [-latin1] [-chinesepunc] [-stripchinese]

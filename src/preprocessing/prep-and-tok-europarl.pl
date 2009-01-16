@@ -15,7 +15,7 @@
 
 use locale;
 
-print STDERR "prep-europarl.pl, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada\n";
+print STDERR "prep-europarl.pl, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada\n";
 
 $HELP = "
 prep-and-tok-europarl.pl [in [out]]

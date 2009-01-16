@@ -19,7 +19,7 @@
 use strict;
 use warnings;
 
-print STDERR "normalize-unicode.pl, NRC-CNRC, (c) 2006 - 2008, Her Majesty in Right of Canada\n";
+print STDERR "normalize-unicode.pl, NRC-CNRC, (c) 2006 - 2009, Her Majesty in Right of Canada\n";
 
 sub usage {
     local $, = "\n";

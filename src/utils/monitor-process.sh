@@ -12,7 +12,7 @@
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
 
-echo 'monitor-process.sh, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada' >&2
+echo 'monitor-process.sh, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada' >&2
 
 usage() {
    for msg in "$@"; do

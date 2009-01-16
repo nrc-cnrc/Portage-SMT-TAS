@@ -12,7 +12,7 @@
 # Copyright 2007, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2007, Her Majesty in Right of Canada
 
-echo 'cat.sh, NRC-CNRC, (c) 2007 - 2008, Her Majesty in Right of Canada' >&2
+echo 'cat.sh, NRC-CNRC, (c) 2007 - 2009, Her Majesty in Right of Canada' >&2
 
 usage() {
    for msg in "$@"; do

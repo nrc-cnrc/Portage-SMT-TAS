@@ -13,7 +13,7 @@
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
 
-print STDERR "prep-hans.pl, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada\n";
+print STDERR "prep-hans.pl, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada\n";
 
 $HELP = "
 prep-hans.pl [in [out]]

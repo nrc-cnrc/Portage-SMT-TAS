@@ -16,7 +16,7 @@
 use strict;
 use IO::File;
 
-print STDERR "combine.pl, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada\n";
+print STDERR "combine.pl, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada\n";
 
 my $HELP =
 "Usage: $0 [-warn] [-force] [file1 [file2 ...]]

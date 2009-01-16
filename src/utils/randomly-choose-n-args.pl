@@ -17,7 +17,7 @@
 use strict;
 use warnings;
 
-print STDERR "randomly-choose-n-args.pl, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada\n";
+print STDERR "randomly-choose-n-args.pl, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada\n";
 
 my $HELP = "
 randomly-choose-n-args.pl -with-replacement n arg1 arg2 ... argm

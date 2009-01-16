@@ -16,7 +16,7 @@ use strict;
 use warnings;
 #use IPC::Open2;
 
-print STDERR "lm_sort.pl, NRC-CNRC, (c) 2006 - 2008, Her Majesty in Right of Canada\n";
+print STDERR "lm_sort.pl, NRC-CNRC, (c) 2008 - 2009, Her Majesty in Right of Canada\n";
 
 sub usage {
    local $, = "\n";

@@ -17,7 +17,7 @@ import math
 
 # Arg processing
 
-sys.stderr.write("cowpie.py, NRC-CNRC, (c) 2008, Her Majesty in Right of Canada\n")
+sys.stderr.write("cowpie.py, NRC-CNRC, (c) 2008 - 2009, Her Majesty in Right of Canada\n")
 
 help = """
 cowpie.py [log.cow]

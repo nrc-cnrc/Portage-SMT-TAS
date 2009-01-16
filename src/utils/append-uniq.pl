@@ -25,7 +25,7 @@ sub usage {
    print STDERR @_, "";
    $0 =~ s#.*/##;
    print STDERR "
-   append-uniq.pl, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada
+   append-uniq.pl, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada
 
    Usage: $0 [-h(elp)] [-v(erbose)] -nbest=file -ffvals=file
           -addnbest=file -addffvals=file
@@ -65,7 +65,7 @@ GetOptions(
 ) or usage;
 
 # This script is called once per sentence by cow.sh, don't pollute the log!
-print STDERR "append-uniq.pl, NRC-CNRC, (c) 2004 - 2008, Her Majesty in Right of Canada\n"
+print STDERR "append-uniq.pl, NRC-CNRC, (c) 2004 - 2009, Her Majesty in Right of Canada\n"
    if ($verbose > 1);
 
 if ( $debug ) {

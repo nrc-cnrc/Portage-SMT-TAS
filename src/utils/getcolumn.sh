@@ -22,7 +22,7 @@
 ## FILE	The file, or - for standard input.  [-]
 ##
 
-echo 'getcolumn.sh, NRC-CNRC, (c) 2004 - 2008, Her Majesty in Right of Canada' >&2
+echo 'getcolumn.sh, NRC-CNRC, (c) 2004 - 2009, Her Majesty in Right of Canada' >&2
 
 if [ $# -lt 1 -o $# -gt 2 -o "$1" == "-h" ]; then
     cat $0 | grep "^##" | cut -c4-

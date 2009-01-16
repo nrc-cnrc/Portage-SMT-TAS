@@ -11,8 +11,8 @@
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2004-2008, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2004-2008, Her Majesty in Right of Canada
+# Copyright 2004-2009, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2004-2009, Her Majesty in Right of Canada
 
 use utf8;
 
@@ -24,7 +24,7 @@ use locale;
 use open IO => ':encoding(utf8)';
 use open ':std';  # <= indicates that STDIN and STDOUT are utf8
 
-print STDERR "utokenize.pl, NRC-CNRC, (c) 2004 - 2008, Her Majesty in Right of Canada\n";
+print STDERR "utokenize.pl, NRC-CNRC, (c) 2004 - 2009, Her Majesty in Right of Canada\n";
 
 my $HELP = "
 Usage: tokenize.pl [-v] [-p] [-noss] [-lang=l] [in [out]]

@@ -18,7 +18,7 @@
 use strict;
 use warnings;
 
-print STDERR "filter-latin.pl, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada\n";
+print STDERR "filter-latin.pl, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada\n";
 
 sub usage {
     local $, = "\n";

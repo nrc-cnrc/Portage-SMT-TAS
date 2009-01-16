@@ -18,7 +18,7 @@
 use strict;
 use warnings;
 
-print STDERR "ospl2mteval.pl, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada\n";
+print STDERR "ospl2mteval.pl, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada\n";
 
 my $HELP = "
 ospl2mteval.pl [-srclang l][-tgtlang l][-setid id][-sysid id] src tst ref1 ref2 ...

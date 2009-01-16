@@ -16,7 +16,7 @@
 use strict;
 use warnings;
 
-print STDERR "diff-round.pl, NRC-CNRC, (c) 2006 - 2008, Her Majesty in Right of Canada\n";
+print STDERR "diff-round.pl, NRC-CNRC, (c) 2006 - 2009, Her Majesty in Right of Canada\n";
 
 sub usage {
    local $, = "\n";

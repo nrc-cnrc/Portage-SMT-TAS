@@ -17,7 +17,7 @@
 use strict;
 use warnings;
 
-print STDERR "mteval2ospl.pl, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada\n";
+print STDERR "mteval2ospl.pl, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada\n";
 
 my $HELP = "
 mteval2ospl.pl [-G][-g genre] file

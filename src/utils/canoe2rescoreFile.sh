@@ -9,11 +9,11 @@
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2008, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2008, Her Majesty in Right of Canada
+# Copyright 2006, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2006, Her Majesty in Right of Canada
 
 
-echo 'canoe2rescoreFile.sh, NRC-CNRC, (c) 2006 - 2008, Her Majesty in Right of Canada' >&2
+echo 'canoe2rescoreFile.sh, NRC-CNRC, (c) 2006 - 2009, Her Majesty in Right of Canada' >&2
 
 if [ $# -ne 1 ] || [ "$1" == "-h" ]; then
     echo "Usage: $0  <canoe file>"

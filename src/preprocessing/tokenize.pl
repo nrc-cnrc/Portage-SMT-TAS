@@ -10,14 +10,14 @@
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2004-2008, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2004-2008, Her Majesty in Right of Canada
+# Copyright 2004-2009, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2004-2009, Her Majesty in Right of Canada
 
 
 use strict;
 use LexiTools;
 
-print STDERR "tokenize.pl, NRC-CNRC, (c) 2004 - 2008, Her Majesty in Right of Canada\n";
+print STDERR "tokenize.pl, NRC-CNRC, (c) 2004 - 2009, Her Majesty in Right of Canada\n";
 
 my $HELP = "
 Usage: tokenize.pl [-v] [-p] [-noss] [-lang=l] [in [out]]

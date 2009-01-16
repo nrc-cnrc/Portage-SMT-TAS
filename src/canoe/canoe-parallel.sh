@@ -30,7 +30,7 @@ usage() {
       echo $msg >&2
    done
    cat <<==EOF== >&2
-canoe-parallel.sh, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada
+canoe-parallel.sh, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada
 
 Usage: canoe-parallel.sh [options] canoe [canoe options] < <input>
 

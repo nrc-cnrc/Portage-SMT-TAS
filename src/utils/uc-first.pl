@@ -18,7 +18,7 @@ use locale;
 use POSIX qw(locale_h);
 setlocale(LC_CTYPE, "fr_CA.iso88591");
 
-print STDERR "uc-first.pl, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada\n";
+print STDERR "uc-first.pl, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada\n";
 
 $HELP = "
 uc-first.pl [in [out]]

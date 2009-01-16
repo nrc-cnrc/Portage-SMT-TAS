@@ -18,7 +18,7 @@
 use strict;
 use warnings;
 
-print STDERR "strip-parallel-blank-lines.pl, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada\n";
+print STDERR "strip-parallel-blank-lines.pl, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada\n";
 
 my $HELP = "
 strip-parallel-blank-lines.pl file1 file2

@@ -28,7 +28,7 @@ Usage: tmtext_sort.sh [-h(elp)] [-1st] tmtext-file > sorted-tmtext-file
     exit 1
 }
 
-echo 'tmtext_sort.sh, NRC-CNRC, (c) 2006 - 2008, Her Majesty in Right of Canada' >&2
+echo 'tmtext_sort.sh, NRC-CNRC, (c) 2006 - 2009, Her Majesty in Right of Canada' >&2
 
 while [ $# -gt 0 ]; do
     case "$1" in
