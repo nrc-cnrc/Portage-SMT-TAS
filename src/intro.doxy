@@ -1,0 +1,106 @@
+/**
+ * \mainpage
+ *
+ * PORTAGEshared, version 1.3
+ *
+ * This is the programmer documentation for the components of PORTAGEshared
+ * which are written in C++.  Over time, the system has evolved to include
+ * a large number of modules, each of which creates its own library for
+ * potential use by other modules.
+ *
+ * Each module is stored in its own directory.
+ * The most intuitive point of entry into this documentation, therefore, is the
+ * list of directories, which you can access by clicking on "Directories" at
+ * the top of any page within this documentation.
+ *
+ * Here is a brief description of each module, in approximately logical order:
+ * - \a utils : General-purpose utilities.
+ * - \a logging : Logging facility for debugging.
+ * - \a preprocessing : Markup, tokenization, etc (perl scripts), sentence alignment.
+ * - \a lm : Library for using various types of language models.
+ * - \a tm : Translation model training.
+ * - \a adaptation : Mixture-model adaptation.
+ * - \a eval : Automatic evaluation of MT output.
+ * - \a canoe : Decoder, including code for using phrase tables.
+ * - \a rescoring : N-best list reordering using a variety of features.
+ * - \a truecasing : Restore natural case to text.
+ * - \a api : API to the decoder, for including in other applications.
+ */
+
+/**
+ * \dir adaptation
+ * \brief Mixture-model adaptation.
+ *
+ * Training of mixture LMs and TMs.
+ */
+
+/**
+ * \dir api
+ * \brief API to the decoder, for including in other applications.
+ */
+
+/**
+ * \dir canoe
+ * \brief Decoder, including code for using phrase tables.
+ */
+
+/**
+ * \dir eval
+ * \brief Automatic evaluation of MT output.
+ *
+ * Including BLEU, PER, WER, an oracle, etc.
+ */
+
+/**
+ * \dir lm
+ * \brief Library for using various types of language models.
+ */
+
+/**
+ * \dir logging
+ * \brief Logging facility for debugging.
+ */
+
+/**
+ * \dir preprocessing
+ * \brief Markup, tokenization, etc (perl scripts), sentence alignment.
+ *
+ * Most of this module's code is not in C++, but this documentation only lists
+ * C++ files.  Have a look at the files in this directory directly for the rest
+ * of the documentation.
+ */
+
+/**
+ * \dir rescoring
+ * \brief N-best list reordering using a variety of features.
+ */
+
+/**
+ * \dir tm
+ * \brief Translation model training.
+ *
+ * This module contains all the code relevant to train translation models,
+ * including the IBM1/2/HMM word alignment models and the phrase tables.
+ * It also includes the code relevant to using word alignment models.
+ */
+
+/**
+ * \dir truecasing
+ * \brief Restore natural case to text.
+ *
+ * The main programs in this directory are in Perl, so their documentation is
+ * not included here; it is found in the scripts themselves.
+ */
+
+/**
+ * \dir utils
+ * \brief General-purpose utilities.
+ *
+ * This directory contains a lot of general-purpose utilities providing all
+ * sorts of frequently used functions not already included in the STL or boost.
+ *
+ * A number of utilities in this directory are in bash, perl and python; this
+ * document only includes C++ code: documentation for the scripts can be found
+ * within the scripts themselves.
+ */
+
