@@ -19,9 +19,10 @@ Contents of this directory:
    eval/            code for automatic evaluation of MT output
    htmldoc/         generated code documentation (start at htmldoc/index.html)
    lm/              library for using various types of language models
-   logging/         logging facility for debugging 
+   logging/         logging facility for debugging
    preprocessing/   markup, tokenization, etc.
    rescoring/       nbest list reordering using a variety of features
    tm/              code for creating translation models (phrase based as well
                     as phrase based with lexical smoothing)
+   truecasing/      restore natural case to text
    utils/           basic tools for other modules to use
