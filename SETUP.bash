@@ -16,7 +16,14 @@
 # The PORTAGE environment variable points the the root of the PORTAGEshared
 # package.
 # Change this variable to indicate where this package is actually located.
-export PORTAGE=$HOME/PORTAGEshared
+PORTAGE=$HOME/PORTAGEshared
+
+# Extra dynamic libraries.  If you had to install dynamic libraries in custom
+# locations to get PORTAGEshared running, list the PATHs where the .so files
+# are located in this variable.  Multiple directories should be separated by
+# colons.  The sample value shown here would apply if you installed g++ 4.2.0
+# in /opt/gcc-4.2.0 on a 64 bit machine.
+#EXTRA_DYNLIB_PATH=/opt/gcc-4.2.0/lib64:/opt/gcc-4.2.0/lib
 
 # Binary distributions only: PRECOMP_PORTAGE_ARCH must be i686 (32 bits) or
 # x86_64 (64 bits), depending on your architecture.  We only provide
@@ -24,43 +31,32 @@ export PORTAGE=$HOME/PORTAGEshared
 # compatible with other Linux 32 and 64 bit architectures.
 #PRECOMP_PORTAGE_ARCH=`arch`
 
-# We also provide executables compiled with and without ICU, in order to make
-# that dependency be optional.  Uncomment the following line instead of the
-# previous one if you have installed and wish to use ICU.
+# Binary distributions only: we also provide executables compiled with and
+# without ICU, in order to make that dependency be optional.  Uncomment the
+# following line instead of the previous one if you have installed and wish to
+# use ICU.
 #PRECOMP_PORTAGE_ARCH=`arch`-icu
-
 
 # END OF USER CONFIGURABLE VARIABLES
 # =======================================================================
 
 echo 'PORTAGEshared, NRC-CNRC, (c) 2004 - 2008, Her Majesty in Right of Canada'
 
-if [ "${PATH:-UNDEF}" = "UNDEF" ] ; then
-   export PATH=$PORTAGE/bin
-else
-   export PATH="$PATH:$PORTAGE/bin"
-fi
+PATH=$PORTAGE/bin${PATH:+:$PATH}
 
-if [ "${LD_LIBRARY_PATH:-UNDEF}" = "UNDEF" ] ; then
-   export LD_LIBRARY_PATH=$PORTAGE/lib
-else
-   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PORTAGE/lib
-fi
+LD_LIBRARY_PATH=$PORTAGE/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
 
-if [ "${PERL5LIB:-UNDEF}" = "UNDEF" ] ; then
-   export PERL5LIB=$PORTAGE/lib:$PORTAGE/lib/perl5/site_perl
-else
-   export PERL5LIB=$PERL5LIB:$PORTAGE/lib:$PORTAGE/lib/perl5/site_perl
-fi
+PERL5LIB=$PORTAGE/lib${PERL5LIB:+:$PERL5LIB}
 
-if [ "${CPLUS_INCLUDE_PATH:-UNDEF}" = "UNDEF" ] ; then
-   export CPLUS_INCLUDE_PATH=$PORTAGE/include
-else
-   export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:$PORTAGE/include
-fi
-
-if [ "${PRECOMP_PORTAGE_ARCH:-UNDEF}" != "UNDEF" ]; then
-   export PATH=$PATH:$PORTAGE/bin/$PRECOMP_PORTAGE_ARCH
-   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PORTAGE/lib/$PRECOMP_PORTAGE_ARCH
+if [[ $PRECOMP_PORTAGE_ARCH ]]; then
+   PATH=$PORTAGE/bin/$PRECOMP_PORTAGE_ARCH:$PATH
+   LD_LIBRARY_PATH=$PORTAGE/lib/$PRECOMP_PORTAGE_ARCH:$LD_LIBRARY_PATH
    unset PRECOMP_PORTAGE_ARCH
 fi
+
+if [[ $EXTRA_DYNLIB_PATH ]]; then
+   LD_LIBRARY_PATH=$EXTRA_DYNLIB_PATH:$LD_LIBRARY_PATH
+   unset EXTRA_DYNLIB_PATH
+fi
+
+export PORTAGE PATH LD_LIBRARY_PATH PERL5LIB

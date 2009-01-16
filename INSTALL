@@ -52,19 +52,66 @@ For source code distributions :
    users, however, you may not want to use the -j switch at all.
 
 
+                        Verifying your installation
+
+Once PORTAGEshared is installed, execute these three commands to make sure you
+can run the software:
+   cow.sh -h
+   tokenize.pl -h
+   canoe -h
+These three commands invoke programs that are each installed differently, and
+exercise the key parts of PORTAGEshared installation.  If everything is OK,
+each will give you usage information about the command.
+
+If cow.sh -h or tokenize.pl -h says "command not found", your PATH is not
+correctly set or your installation failed.  Check your SETUP.bash/tcsh file and
+make sure you are sourcing it properly, ideally in your .<shell>rc file.  Your
+$PATH variable should include PORTAGEshard/bin.  Also check that
+PORTAGEshared/bin contains tokenize.pl.  If that's not the case, "gmake
+install" probably didn't complete successfully.
+
+If tokenize.pl -h says "Can't locate LexiTools.pm in @INC ...", then your
+PERL5LIB is not correctly set or your installation partially failed.  Check
+your SETUP.bash/tcsh file and make sure you are sourcing it properly, ideally
+in your .<shell>rc file.  Your $PERL5LIB variable should include
+PORTAGEshared/lib.  That directory should also contain LexiTools.pm.  If it
+doesn't, "gmake install" probably didn't complete successfully.
+
+If canoe -h says "command not found" but the other two commands work:
+ - with binary distributions, your $PATH variable must also include the
+   architecture specific folder PORTAGEshared/bin/<arch>.  Check your
+   SETUP.bash/tcsh file and make sure you have set the PRECOMP_PORTAGE_ARCH
+   appropriately.  The PORTAGEshared/bin/<arch> directory contains all the
+   compiled C++ executables.
+ - with source distributions, canoe is installed in the same directory as
+   cow.sh and tokenize.pl, so compilation probably failed if those scripts work
+   but canoe doesn't.
+
+Binary distributions only:
+ - If canoe -h complains about a lib*.so* file not being found, some external
+   dependency might be missing or you have the wrong version of a dynamic
+   library.  An error about libstdc++.so, GLIBCXX or libgomp.so probably means
+   your version of g++ is older than the one we used to compile PORTAGEshared.
+   You might need a newer version: you won't use the compiler, but you still
+   need its dynamic libraries.  See the ICU section below if your get an error
+   about libicu*.so.
+ - If canoe -h says "cannot execute binary file", then we might not have built
+   an executable compatible with your computing hardware.  Contact us.
+
+
                               Getting Started
 
 Now you're ready to run the PORTAGEshared suite of programs.
 
-We have a toy example you can use as a tutorial in test-suite/toy.  This
-tutorial is only designed to get you familiar with Portage, and should not be
-used as a starting point for real experiments.
+We also provide a template experimental framework in subdirectory framework.
+This is intended as a reasonable out-of-the-box baseline system.  We recommend
+you use this framework as your starting point for real experiments.
 
-We also provide a template experimental framework in framework.  This is
-intended as a reasonable out-of-the-box baseline system.  We recommend you use
-this framework as your starting point for real experiments.
+In framework, you will also find the document framework-toy.pdf.  This document
+walks you through a complete experiment using a toy corpus.  It is intended as
+a tutorial to get you started with PORTAGEshared.
 
-For full documentation, see doc/user-manual.html.
+For further documentation, see doc/user-manual.html.
 
 
                               Applying a patch
@@ -105,8 +152,8 @@ Mandatory dependencies for all distributions:
    since it is readily available.  If your licensing requirements allow it, we
    recommend SRILM (http://www.speech.sri.com/projects/srilm/).  You can also
    use IRSTLM (http://sourceforge.net/projects/irstlm) or any other package
-   which produces language models in Doug Paul's ARPA format, but we find SRILM
-   works best.
+   which produces language models in Doug Paul's ARPA format, but in our
+   experiments, we find that SRILM works best for us.
 
 Optional dependencies for all distributions:
 
