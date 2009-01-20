@@ -451,8 +451,8 @@ Features available:\n\
  ParMismatch - number of mismatched parentheses within the hypothesis\n\
  QuotMismatch:st - mismatched quotes, for src/tgt lang <s>/<t> (eg 'ce')\n\
  CacheLM:docids - cache LM over docs defined in docids file\n\
- WerPostedit - WER score over source sentence for statstitical post-editing\n\
- PerPostedit - PER score over source sentence for statstitical post-editing\n\
+ WerPostedit - WER score over source sentence for statistical post-editing\n\
+ PerPostedit - PER score over source sentence for statistical post-editing\n\
  BleuPostedit:smooth - BLEU score over source sentence for stat.post-editing\n\
  BackwardLM:lm-file[#order] - log prob according to a backward language model\n\
  FileFF:file[,column] - pre-computed feature\n\
