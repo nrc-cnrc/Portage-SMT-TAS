@@ -1,4 +1,4 @@
-                          PORTAGEshared_v1.3beta3
+                             PORTAGEshared_v1.3
 
 Technologies langagieres interactives / Interactive Language Technologies
 Institut de technologie de l'information / Institute for Information Technology
@@ -13,11 +13,11 @@ license agreement for details.
                               Release History
                    (with a summary of important changes)
 
-V1.3beta3 23.12.2008
+v1.3 21.01.2009
  This update to PORTAGEshared is primarily intended to incorporate the new HMM
  word alignment module, and related functionality.  We have also taken the
- opportunity to migrate many improvements from Portage and add a new
- experimental framework.
+ opportunity to migrate many improvements from Portage, add a new experimental
+ framework, and improve the documentation.
 
  Major changes:
 
