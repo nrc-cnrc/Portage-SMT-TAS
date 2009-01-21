@@ -1,15 +1,16 @@
 /**
  * \mainpage
  *
- * This is the programmer documentation for the components of PORTAGEshared
- * which are written in C++.  Over time, the system has evolved to include
- * a large number of modules, each of which creates its own library for
- * potential use by other modules.
+ * This is the programmer documentation for the C++ components of
+ * PORTAGEshared.  It is automatically generated from the source code.
+ * Programmer documentation for other components is found in the source code
+ * only.
  *
- * Each module is stored in its own directory.
- * The most intuitive point of entry into this documentation, therefore, is the
- * list of directories, which you can access by clicking on "Directories" tab
- * above.
+ * Over time, the system has evolved to include a large number of modules, each
+ * of which creates its own library for potential use by other modules.
+ * Each module is stored in its own directory.  The most intuitive point of
+ * entry into this documentation, therefore, is the list of directories, which
+ * you can consult by clicking on the "Directories" tab above.
  *
  * Here is a brief description of each module, in approximately logical order:
  * - \a utils : General-purpose utilities.
