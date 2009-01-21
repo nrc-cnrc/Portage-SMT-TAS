@@ -1,8 +1,6 @@
 /**
  * \mainpage
  *
- * PORTAGEshared, version 1.3
- *
  * This is the programmer documentation for the components of PORTAGEshared
  * which are written in C++.  Over time, the system has evolved to include
  * a large number of modules, each of which creates its own library for
@@ -10,8 +8,8 @@
  *
  * Each module is stored in its own directory.
  * The most intuitive point of entry into this documentation, therefore, is the
- * list of directories, which you can access by clicking on "Directories" at
- * the top of any page within this documentation.
+ * list of directories, which you can access by clicking on "Directories" tab
+ * above.
  *
  * Here is a brief description of each module, in approximately logical order:
  * - \a utils : General-purpose utilities.
