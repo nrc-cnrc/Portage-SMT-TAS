@@ -35,7 +35,7 @@ v1.3 21.01.2009
    them to generate phrase tables.  In our current state of the art, we
    typically perform word alignment using IBM2 and HMM models separately, then
    use the resulting phrase tables with cow.sh for maximum BLEU training,
-   either separately or merged together into one table. 
+   either separately or merged together into one table.
 
  - Added a generic HMM toolkit, used by the HMM word alignment models,
    supporting state or arc emitting HMMs, and implementing the Viterbi and
@@ -49,7 +49,7 @@ v1.3 21.01.2009
    starting point for your experiments.  Besides demonstrating how to use
    PORTAGEshared, this framework embeds choices of options which we think are a
    reasonable starting point.
-   
+
    Previously, the only full usage examples we provided were not suitable for
    this use.  The toy example was designed to run fast at all cost, regardless
    of the quality fo the output, while the small-vocabulary regression test
