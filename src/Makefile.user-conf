@@ -21,6 +21,11 @@
 # SETUP.bash/tcsh and source the appropriate file for your shell before trying
 # to compile or use PORTAGEshared.
 
+# AT NRC: lines with this commend are automatically removed when creating the
+# AT NRC: PORTAGEshared CD.  If you commit changes to this file, make sure you
+# AT NRC: mark NRC-specific lines with this comment, while leaving untouched
+# AT NRC: the (sometimes redundant) lines that are intended as defaults on the]
+# AT NRC: official CD.
 
 
 
@@ -61,6 +66,7 @@
 
 ICU?=NONE
 #ICU=$(PORTAGE)
+ICU=$(PORTAGE) # AT NRC
 
 # ------------------------------------
 # Variable:        CXXTEST
@@ -71,7 +77,8 @@ ICU?=NONE
 #                  $(CXXTEST)/include/cxxtest/*.h exist.
 
 CXXTEST?=NONE
-#CXXTEST?=$(PORTAGE)
+#CXXTEST=$(PORTAGE)
+CXXTEST=$(PORTAGE) # AT NRC
 
 # ------------------------------------
 # Variable:        PORTAGE_OPENMP
@@ -82,6 +89,7 @@ CXXTEST?=NONE
 #                  parallelized via our various *-parallel.sh scripts).
 
 #PORTAGE_OPENMP?=-fopenmp
+PORTAGE_OPENMP=-fopenmp # AT NRC
 
 # ------------------------------------
 # Variable:        ACE
@@ -99,6 +107,7 @@ CXXTEST?=NONE
 
 ACE?=NONE
 #ACE=$(PORTAGE)
+ACE=$(PORTAGE) # AT NRC
 
 # ------------------------------------
 # Variable:        LOG4CXX
@@ -113,7 +122,8 @@ ACE?=NONE
 #                  Uncomment and edit the next line if needed.
 
 LOG4CXX?=NONE
-#LOG4CXX?=$(PORTAGE)
+#LOG4CXX=$(PORTAGE)
+LOG4CXX=$(PORTAGE) # AT NRC
 
 # ------------------------------------
 # Variable:        PORTAGE_NO_CTAGS

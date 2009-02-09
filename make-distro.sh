@@ -238,10 +238,16 @@ do_checkout() {
          error_exit "Invalid -licence specfication"
       fi
 
-      echo Removing -Werror from build/Makefile.incl.
+      echo Removing -Werror from src/build/Makefile.incl.
       if [[ ! $NOT_REALLY ]]; then
          perl -e 'print "%s/ -Werror / /\nw\nq\n"' |
             ed PORTAGEshared/src/build/Makefile.incl
+      fi
+
+      echo Removing NRC specific config in src/Makefile.user-conf
+      if [[ ! $NOT_REALLY ]]; then
+         perl -e 'print "g/AT NRC/d\nw\nq\n"' |
+            ed PORTAGEshared/src/Makefile.user-conf
       fi
 
       run_cmd rm -f PORTAGEshared/make-distro.sh
