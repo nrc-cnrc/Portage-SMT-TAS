@@ -422,6 +422,9 @@ namespace Portage {
                           const vector<vector<double> >& posteriors,
                           const vector<vector<double> >& r_posteriors);
 
+    /// Assignment is not allowed
+    IBM2& operator=(const IBM2&);
+
   public:
 
     // Avoid hiding base class overriden functions.
@@ -467,13 +470,13 @@ namespace Portage {
      */
     IBM2(const string& ttable_file);
 
+    /// Copy constructor (slow, intended for testing purposes only)
+    /// Deep copy of the TTable and IBM1 counts, but not of IBM2 positional
+    /// probs or counts.
+    IBM2(const IBM2&);
+
     /// Destructor.
-    virtual ~IBM2() {
-      if (pos_probs) delete[] pos_probs;
-      if (pos_counts) delete[] pos_counts;
-      if (backoff_probs) delete[] backoff_probs;
-      if (backoff_counts) delete[] backoff_counts;
-    }
+    virtual ~IBM2();
 
     /**
      * Write IBM1 params to ttable_file and IBM2 params to

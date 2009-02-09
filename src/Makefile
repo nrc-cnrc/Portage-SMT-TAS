@@ -8,8 +8,8 @@
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
 
-.PHONY: all clean install export docs test
-all clean install export docs test:
+.PHONY: all clean install export docs test depend
+all clean install export docs test depend:
 	$(MAKE) OT=$@ subdirs
 
 # Targets new and new_install need to be custom defined here, because

@@ -61,6 +61,8 @@ int main(int argc, char* argv[])
    iSafeMagicStream al_file(al);
 
    WordAlignmentReader* wal_reader = WordAlignmentReader::create(fin);
+   if ( !wal_reader )
+      error(ETFatal, "Can't create WordAlignmentReader");
 
    string line1, line2;
    vector<string> toks1, toks2;
@@ -109,6 +111,7 @@ int main(int argc, char* argv[])
    cout << "rec =  " << corr_links << "/" << ref_links << " = " << rec << endl;
    cout << "f1(" << alpha << ") = " << f << endl;
 
+   delete wal_reader;
 }
 
 // arg processing

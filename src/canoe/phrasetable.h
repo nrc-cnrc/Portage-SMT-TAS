@@ -138,6 +138,12 @@ protected:
    /// Human readable description of all forward phrase tables
    string forwardDescription;
 
+private:
+   /// PhraseTables are not safely copyable
+   PhraseTable(const PhraseTable&);
+   /// PhraseTables are not safely copyable
+   PhraseTable& operator=(const PhraseTable&);
+
 public:
 
    /**

@@ -37,6 +37,9 @@ class HMMAligner : public IBM1 {
    /// Jump parameter and count strategy
    HMMJumpStrategy* jump_strategy;
 
+   /// Assignment not allowed (use copy constructor instead)
+   HMMAligner& operator=(const HMMAligner&);
+
    /**
     * Make the HMM model for the given sentence pair
     * @param src_toks  hidden states, src_toks[0]
@@ -230,6 +233,13 @@ class HMMAligner : public IBM1 {
               optional<bool>   anchor     = optional<bool>(),
               optional<bool>   end_dist   = optional<bool>(),
               optional<Uint>   max_jump   = optional<Uint>());
+
+   /// Partial copy constructor - copies model but not counts.
+   /// Call initCounts() before using counts.
+   HMMAligner(const HMMAligner&);
+
+   /// Destructor
+   ~HMMAligner();
 
    /**
     * Get the .dist filename from the base ttable filename.

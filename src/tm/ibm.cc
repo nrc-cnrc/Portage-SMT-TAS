@@ -130,14 +130,14 @@ void IBM1::readAddBinCounts(const string& count_file)
             count_file.c_str());
 
    // Global figures
-   Uint num_toks_read;
+   Uint num_toks_read(0);
    char c;
    is >> num_toks_read >> c;
    if ( c != ':' )
       error(ETFatal, "Bad bin IBM1 file format in %s at beginning",
             count_file.c_str());
    num_toks += num_toks_read;
-   double logprob_read;
+   double logprob_read(0);
    assert(sizeof(logprob_read) == sizeof(logprob));
    readbin(is, logprob_read);
    logprob += logprob_read;
@@ -145,7 +145,7 @@ void IBM1::readAddBinCounts(const string& count_file)
    // Counts
    vector<float> count_line;
    for ( Uint i(0); i < counts.size(); ++i ) {
-      Uint i_read;
+      Uint i_read(0);
       is >> i_read >> c;
       if ( i_read != i || c != ':' )
          error(ETFatal, "Bad bin IBM1 file format in %s at i=%d",
@@ -561,8 +561,11 @@ IBM2::IBM2(Uint max_slen, Uint max_tlen, Uint backoff_size)
    : max_slen(max_slen)
    , max_tlen(max_tlen)
    , backoff_size(backoff_size)
+   , pos_probs(NULL)
+   , pos_counts(NULL)
+   , backoff_probs(NULL)
+   , backoff_counts(NULL)
 {
-   pos_counts = backoff_counts = NULL;
    createProbTables();
    initProbTables();
 }
@@ -574,17 +577,22 @@ IBM2::IBM2(const string& ttable_file, Uint dummy, Uint max_slen, Uint max_tlen,
    , max_slen(max_slen)
    , max_tlen(max_tlen)
    , backoff_size(backoff_size)
+   , pos_probs(NULL)
+   , pos_counts(NULL)
+   , backoff_probs(NULL)
+   , backoff_counts(NULL)
 {
-   pos_counts = backoff_counts = NULL;
    createProbTables();
    initProbTables();
 }
 
 IBM2::IBM2(const string& ttable_file)
    : IBM1(ttable_file)
+   , pos_probs(NULL)
+   , pos_counts(NULL)
+   , backoff_probs(NULL)
+   , backoff_counts(NULL)
 {
-   pos_counts = backoff_counts = NULL;
-
    string pos_file = posParamFileName(ttable_file);
 
    iSafeMagicStream ifs(pos_file);
@@ -618,6 +626,20 @@ IBM2::IBM2(const string& ttable_file)
    for (Uint i = 0; i < backoff_size; ++i)
       for (Uint j = 0; j < backoff_size; ++j)
          ifs >> backoff_probs[i * backoff_size + j];
+}
+
+IBM2::IBM2(const IBM2& that)
+   : pos_probs(NULL)
+   , pos_counts(NULL)
+   , backoff_probs(NULL)
+   , backoff_counts(NULL)
+{}
+
+IBM2::~IBM2() {
+   if (pos_probs) delete[] pos_probs;
+   if (pos_counts) delete[] pos_counts;
+   if (backoff_probs) delete[] backoff_probs;
+   if (backoff_counts) delete[] backoff_counts;
 }
 
 void IBM2::write(const string& ttable_file, bool bin_ttable) const
@@ -685,8 +707,8 @@ void IBM2::readAddBinCounts(const string& count_file)
             ibm2_count_file.c_str());
 
    // parameters
-   Uint max_slen_read, max_tlen_read, backoff_size_read,
-        sblock_size_read, npos_params_read;
+   Uint max_slen_read(0), max_tlen_read(0), backoff_size_read(0),
+        sblock_size_read(0), npos_params_read(0);
    char c;
    is >> max_slen_read >> max_tlen_read >> backoff_size_read
       >> sblock_size_read >> npos_params_read >> c;
@@ -706,7 +728,7 @@ void IBM2::readAddBinCounts(const string& count_file)
 
    // pos counts
    assert(pos_counts);
-   Uint pos_counts_read_size;
+   Uint pos_counts_read_size(0);
    readbin(is, pos_counts_read_size);
    if ( pos_counts_read_size != npos_params )
       error(ETFatal, "Bad pos_counts size in IBM2 bin count file %s: got %d, expected %d",
@@ -721,7 +743,7 @@ void IBM2::readAddBinCounts(const string& count_file)
    // backoff counts
    assert(backoff_counts);
    Uint backoff_counts_size = backoff_size * backoff_size;
-   Uint backoff_counts_read_size;
+   Uint backoff_counts_read_size(0);
    readbin(is, backoff_counts_read_size);
    if ( backoff_counts_read_size != backoff_counts_size )
       error(ETFatal, "Bad backoff_counts size in IBM2 bin count file %s: got %d, expected %d",
@@ -1109,7 +1131,7 @@ void IBM2::testReadWriteBinCounts(const string& count_file) const
 
    cerr << "Checking IBM2 read/write bin_counts in " << count_file << endl;
    writeBinCounts(count_file);
-   // Do a deep copy of the model - slow but OK since this is just testing.
+   // Do a deep copy of the model - slow but OK since this is just for testing.
    IBM2 copy(*this);
    copy.pos_probs = copy.pos_counts = NULL;
    copy.backoff_probs = copy.backoff_counts = NULL;

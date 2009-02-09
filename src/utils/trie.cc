@@ -19,8 +19,4 @@ using namespace Portage;
 
 PTrieNullMapper PTrieNullMapper::m;
 PTrieNullMapper::PTrieNullMapper() {}
-PTrieNullMapper::PTrieNullMapper(const PTrieNullMapper&) { assert(false); }
-PTrieNullMapper& PTrieNullMapper::operator=(const PTrieNullMapper&) {
-   assert(false);
-}
 

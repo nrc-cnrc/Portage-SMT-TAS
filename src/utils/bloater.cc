@@ -54,8 +54,7 @@ int MAIN(argc, argv)
    Uint  num_blocks = 0;
 
    Uint round(0);
-   while (round++ < maxIter) {
-
+   do {
       bloat_vect = new char[blocksize];
       //if ( round % 10 == 0 )
       for (size_t i = 0; i * 256 < blocksize; ++i)
@@ -68,7 +67,7 @@ int MAIN(argc, argv)
          showMemoryUsage();
       }
       sleep(1);
-   }
+   } while (++round < maxIter);
 
    cout << bloat_vect[0] << endl;
 } END_MAIN

@@ -229,8 +229,8 @@ endif
 # -----------------------------------------------------------------------------
 
 
-.PHONY: new all clean lib bin depend TAGS tags info doxy docs \
-	install export install_inc install_dyn_lib install_static_lib \
+.PHONY: new all clean lib dyn_lib bin depend run_depend TAGS tags info doxy \
+	docs install export install_inc install_dyn_lib install_static_lib \
 	install_perl_lib install_bin install_doc test runcxxtest FORCE
 
 # Override the default suffix list, to remove .sh.  (The make manual says .sh
@@ -240,14 +240,14 @@ endif
            .info .dvi .tex .texinfo .texi .txinfo .w .ch .web .elc .el .cpp
 
 # make everything that can be made, except doxy, which spews too many messages
-all: depend lib bin TAGS tags info test .cvsignore
+all: run_depend lib bin TAGS tags info test .cvsignore
 
 # make everything from scratch
 new: clean
 	$(MAKE) all
 
 # put everything where it belongs, as needed for using the software
-install: all install_dyn_lib install_perl_lib install_bin
+install: all install_perl_lib install_bin
 
 # put the include files and static libraries where they belong, as needed for
 # an external program using Portage libraries.
@@ -275,7 +275,8 @@ clean:
 	if [[ -d tests/legacy ]]; then echo .cvsignore $(foreach legacy_test, $(notdir $(LEGACY_TESTS)), $(legacy_test){,.o}) | tr ' ' '\n' > tests/legacy/$@; fi
 
 # make static and dynamic libraries
-lib: $(LIBRARY).a $(LIBRARY).so
+lib: $(LIBRARY).a
+dyn_lib: $(LIBRARY).so
 ifneq ($(OSTYPE),Darwin)
 $(LIBRARY).a: $(OBJECTS)
 ifdef LIBRARY
@@ -384,12 +385,31 @@ $(DOCUMENTS): %.pdf: %.dvi
 	$(MYLATEX) $*
 endif
 
+# Optional optimization: if the caller defines NODEPEND=1 when invoking make,
+# the Makefile.depend file is only generated if it is absent, but it is not
+# automatically regenerated.
+ifdef NODEPEND
+define opt_do_depend
+	test -f Makefile.depend ||
+endef
+else
+define opt_do_depend
+	
+endef
+endif
+
+# Regardless of the NODEPEND variable, "make depend" will update all
+# Makefile.depend files
+depend: opt_do_depend=
+depend: run_depend
+
 # make a dependencies file for explicit inclusion at end of local Makefile
 # NB local make should do a "-include Makefile.depend" to get this stuff.
 # The perl filter is a work-around for a bad design in g++ -MM: it strips
 # the path of any c++ files in generating the .o name, which we don't want.
-depend:
+run_depend:
 ifdef SOURCES
+	$(opt_do_depend) \
 	$(CXX) -MM $(CXXFLAGS) $(SOURCES) $(CXXTEST_SOURCE) $(LEGACY_TESTS_SOURCES)| \
 	   perl -pe 'if ( /^(\S+)\.o: (\S+)\/\1\./ ) { print "$$2/" }' \
 	   > Makefile.depend &
@@ -401,7 +421,7 @@ ifdef INCLUDES
 	install -p -m0640 $(INCLUDES) $(INC_DIR)
 endif
 
-install_dyn_lib: $(LIBRARY).so
+install_dyn_lib: dyn_lib
 ifdef LIBRARY
 ifneq ($(OSTYPE),Darwin)
 	install -d -m0750 $(LIB_DIR)
@@ -409,7 +429,7 @@ ifneq ($(OSTYPE),Darwin)
 endif
 endif
 
-install_static_lib: $(LIBRARY).a
+install_static_lib: lib
 ifdef LIBRARY
 	install -d -m0750 $(LIB_DIR)
 	install -p -m0640 $(LIBRARY).a $(LIB_DIR)

@@ -12,9 +12,6 @@
  * Copyright 2007, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2007, Her Majesty in Right of Canada
  */
-#include <iostream>
-#include <fstream>
-#include <cstdlib>
 #include "file_utils.h"
 #include "arg_reader.h"
 #include "printCopyright.h"
@@ -48,8 +45,30 @@ static string infile("-");
 static string outfile("-");
 static void getArgs(int argc, char* argv[]);
 
-// main
+#ifndef NOICU
+/**
+ * Convert the casing for an input file.
+ * @arg convet  What UTF8Utils function to use to convert the casing.
+ */
+void process(string& (UTF8Utils::*convert)(const string&, string&)) {
+   iSafeMagicStream istr(infile);
+   oSafeMagicStream ostr(outfile);
 
+   UTF8Utils u8;
+
+   string line, msg;
+   Uint lineno = 0;
+   while (getline(istr, line)) {
+      ++lineno;
+      ostr << (u8.*convert)(line, line) << endl;
+
+      if (verbose && !u8.status(&msg))
+         error(ETWarn, "Line %d not converted, error code is %s", lineno, msg.c_str());
+   }
+}
+#endif
+
+// main
 int main(int argc, char* argv[])
 {
    printCopyright(2007, "utf8_casemap");
@@ -64,34 +83,22 @@ int main(int argc, char* argv[])
 
 #else
 
-   iSafeMagicStream istr(infile);
-   oSafeMagicStream ostr(outfile);
-
-   UTF8Utils u8;
-
-   string line, msg;
-   Uint lineno = 0;
-   while (getline(istr, line)) {
-      ++lineno;
-      switch (what) {
-      case 'l':
-         cout << u8.toLower(line, line) << endl;
-         break;
-      case 'u':
-         cout << u8.toUpper(line, line) << endl;
-         break;
-      case 'd':
-         cout << u8.decapitalize(line, line) << endl;
-         break;
-      case 'c':
-         cout << u8.capitalize(line, line) << endl;
-         break;
-      default:
-         assert(0);
-         break;
-      }
-      if (verbose && !u8.status(&msg))
-         error(ETWarn, "Line %d not converted, error code is %s", lineno, msg.c_str());
+   switch (what) {
+   case 'l':
+      process(&UTF8Utils::toLower);
+      break;
+   case 'u':
+      process(&UTF8Utils::toUpper);
+      break;
+   case 'd':
+      process(&UTF8Utils::decapitalize);
+      break;
+   case 'c':
+      process(&UTF8Utils::capitalize);
+      break;
+   default:
+      assert(0);
+      break;
    }
 
 #endif // NOICU

@@ -206,6 +206,8 @@ int main(int argc, char* argv[])
    }
 
    if (alfile) delete alfile;
+   delete [] score_matrix;
+   delete [] backlink_matrix;
 }
 
 static double alignScore(const vector<string>& lines1, const vector<string>& lines2, 

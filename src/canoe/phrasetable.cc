@@ -670,7 +670,7 @@ void PhraseTable::addPhrase(const char * const *phrase, Uint phrase_len,
    for ( Uint i = 0; i < phrase_len; ++i )
       uint_phrase[i] = tgtVocab.add(phrase[i]);
    for ( Uint len = phrase_len; len > 0; --len ) {
-      TargetPhraseTable * tgtTable;
+      TargetPhraseTable * tgtTable(NULL);
       textTable.find(uint_phrase, len, tgtTable);
       if ( tgtTable == NULL ) {
          TargetPhraseTable newTgtTable;
@@ -789,7 +789,7 @@ void PhraseTable::getPhraseInfos(vector<PhraseInfo *> **phraseInfos, const
 shared_ptr<TargetPhraseTable> PhraseTable::findInAllTables(
    const char* s_key[], const Uint i_key[], Range range
 ) {
-   TargetPhraseTable *textTgtTable;
+   TargetPhraseTable *textTgtTable(NULL);
    if ( ! textTable.find(i_key + range.start, range.end - range.start, textTgtTable) )
       textTgtTable = NULL;
    return shared_ptr<TargetPhraseTable>(textTgtTable, NullDeleter());

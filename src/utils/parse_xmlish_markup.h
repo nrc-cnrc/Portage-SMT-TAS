@@ -39,7 +39,7 @@ namespace Portage {
 struct XMLishTag 
 {
    /// tag types: <...>  <?...?> <!--...--> <![CDATA[...]]> <!DOCTYPE ...>:
-   enum {isElement, isDecl, isComment, isCDATA, isDoctype} tag_type;
+   enum {noType, isElement, isDecl, isComment, isCDATA, isDoctype} tag_type;
 
    string name;                ///< the tags's name (or its content if comment or cdata).
    vector< pair<string,string> > attr_vals; ///< list of attribute/value pairs.
@@ -47,7 +47,15 @@ struct XMLishTag
    bool is_end_tag;             ///< "<bla .../>" or "</bla>"
 
    /// Clears the XML tag.
-   void clear() {name.clear(); attr_vals.clear(); is_beg_tag = is_beg_tag = false;}
+   void clear() {
+      tag_type = noType;
+      name.clear();
+      attr_vals.clear();
+      is_beg_tag = is_end_tag = false;
+   }
+
+   /// Default constructur
+   XMLishTag() { clear(); }
 
    /// Appends the XML tag attributs to s.
    /// @param s string to which to append the attributs.

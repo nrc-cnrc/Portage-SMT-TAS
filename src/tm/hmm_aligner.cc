@@ -93,6 +93,16 @@ HMMAligner::HMMAligner(const string& ttable_file,
          p_zero, uniform_p0, alpha, lambda, anchor, end_dist, max_jump);
 }
 
+HMMAligner::HMMAligner(const HMMAligner& that)
+   : IBM1(*this)
+{
+   jump_strategy = that.jump_strategy->Clone();
+}
+
+HMMAligner::~HMMAligner() {
+   delete jump_strategy;
+}
+
 static const bool super_verbose_hmm = getenv("PORTAGE_SUPER_VERBOSE_HMM");
 
 shared_ptr<HMM> HMMAligner::makeHMM(const vector<string>& src_toks_arg,
@@ -821,7 +831,6 @@ void HMMAligner::testReadWriteBinCounts(const string& count_file) const {
    cerr << "Checking HMM read/writeBinCounts on " << count_file << endl;
    writeBinCounts(count_file);
    HMMAligner copy(*this);
-   copy.jump_strategy = copy.jump_strategy->Clone();
    copy.initCounts();
    copy.readAddBinCounts(count_file);
    if ( ! jump_strategy->hasSameCounts(copy.jump_strategy) )

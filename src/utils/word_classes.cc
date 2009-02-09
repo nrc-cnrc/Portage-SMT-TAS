@@ -107,7 +107,7 @@ void WordClasses::readStream(istream& is, const char* stream_name) {
    if ( line != magic_string )
       error(ETFatal, "Magic line does not match WordClasses magic line in %s: %s",
             stream_name, line.c_str());
-   Uint count;
+   Uint count = 0;
    is >> count;
    if ( !getline(is, line) )
       error(ETFatal, "Unexpected end of file right after WordClasses magic line in %s",

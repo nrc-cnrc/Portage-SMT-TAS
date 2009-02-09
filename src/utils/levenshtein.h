@@ -56,8 +56,9 @@ class bkp {
   ~bkp() {};
 
   /// Assignment operator.
-  inline void operator=(const bkp &b) {
+  inline bkp& operator=(const bkp &b) {
     j=b.j; i=b.i; c=b.c;
+    return *this;
   }
 
   /// Outputs a bkp instance to a ostream.

@@ -62,6 +62,9 @@ string& XMLishTag::toString(string& s)
    case isDoctype:
       s += "!DOCTYPE " + name;
       break;
+   case noType:
+      assert(false);
+      break;
    }
    s += ">";
    return s;

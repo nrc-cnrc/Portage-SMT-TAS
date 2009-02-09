@@ -261,6 +261,16 @@ private:
     */
    static shared_ptr<Creator> getCreator(const string& lm_filename);
 
+   /**
+    * PLMs are not safely assignable.
+    */
+   PLM& operator=(const PLM&);
+
+   /**
+    * PLMs are not safely copy-constructible
+    */
+   PLM(const PLM&);
+
 public:
    /**
     * Create a PLM.  The type will be determined by the file name.

@@ -118,6 +118,7 @@ PLM* PLM::Create(const string& lm_filename,
 
    PLM* lm = creator->Create(vocab, oov_handling, oov_unigram_prob, limit_vocab,
                              limit_order, os_filtered, quiet);
+   assert(lm != NULL);
 
    static const bool debug_auto_voc = false;
 
@@ -152,7 +153,6 @@ PLM* PLM::Create(const string& lm_filename,
    if ( debug_auto_voc )
       cerr << "final oov_unigram_prob " << lm->oov_unigram_prob << endl;
 
-   assert(lm != NULL);
    if ( lm->description.empty() ) {
       ostringstream description;
       description << "LanguageModel:" << creator->lm_physical_filename;
