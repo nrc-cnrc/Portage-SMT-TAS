@@ -484,14 +484,14 @@ elif [[ $NUM = 0 ]]; then
 fi
 
 if (( $VERBOSE > 1 )); then
-   r-parallel-d.pl -on-error $ON_ERROR $WORKDIR &
+   r-parallel-d.pl -on-error $ON_ERROR $NUM $WORKDIR &
    DEAMON_PID=$!
 elif (( $VERBOSE > 0 )); then
-   r-parallel-d.pl -on-error $ON_ERROR $WORKDIR 2>&1 | 
+   r-parallel-d.pl -on-error $ON_ERROR $NUM $WORKDIR 2>&1 | 
       egrep --line-buffered 'FATAL ERROR|\] ([0-9/]* (DONE|SIGNALED)|starting|Non-zero)' 1>&2 &
    DEAMON_PID=$!
 else
-   r-parallel-d.pl -on-error $ON_ERROR $WORKDIR 2>&1 | 
+   r-parallel-d.pl -on-error $ON_ERROR $NUM $WORKDIR 2>&1 | 
       egrep --line-buffered 'FATAL ERROR' 1>&2 &
    DEAMON_PID=$!
 fi
@@ -541,25 +541,40 @@ if (( $VERBOSE > 1 )); then
    echo Deamon launched successfully on $MY_HOST:$MY_PORT >&2
 fi
 
-if [[ $HIGHMEM ]]; then
+if [[ $PSUBOPTS =~ '(^| )-([0-9]+)($| )' ]]; then
+   NCPUS=${BASH_REMATCH[2]}
+   test -n $DEBUG && echo Requested $NCPUS CPUs per worker >&2
+elif [[ $HIGHMEM ]]; then
    # For high memory, request two CPUs per worker with ncpus=2.
    PSUBOPTS="-2 $PSUBOPTS"
-elif [[ -z "$NOHIGHMEM" && -n "$PBS_JOBID" ]]; then
+   NCPUS=2
+elif [[ $NOHIGHMEM ]]; then
+   NCPUS=1
+fi
+
+if [[ $PBS_JOBID ]]; then
    if which-test.sh qstat; then
       PARENT_NCPUS=` \
          qstat -f $PBS_JOBID 2> /dev/null |
          perl -nle 'if ( /1:ppn=(\d+)/ ) { print $1; exit }'`
-      if [[ $PARENT_NCPUS ]]; then
-         echo Master was submitted with $PARENT_NCPUS CPUs, \
-              propagating to workers >&2
-         PSUBOPTS="-$PARENT_NCPUS $PSUBOPTS"
-         NOLOWPRI=1
-      fi
+   fi
+   if [[ ! $PARENT_NCPUS ]]; then
+      PARENT_NCPUS=1
    fi
 fi
 
+if [[ $NCPUS && $PARENT_NCPUS && $NCPUS -gt $PARENT_NCPUS ]]; then
+   echo Requested more CPUs for workers than master has, setting -nolocal. >&2
+   NOLOCAL=1
+elif [[ $PARENT_NCPUS && ! $NCPUS ]]; then
+   echo Master was submitted with $PARENT_NCPUS CPUs, propagating to workers. >&2
+   PSUBOPTS="-$PARENT_NCPUS $PSUBOPTS"
+   NOLOWPRI=1
+fi
+
 if [[ -n "$PBS_JOBID" ]]; then
-   MASTER_PRIORITY=`qstat -f $PBS_JOBID 2> /dev/null | egrep 'Priority = -?[0-9][0-9]*$' | sed 's/.*Priority = //'`
+   MASTER_PRIORITY=`qstat -f $PBS_JOBID 2> /dev/null |
+      egrep 'Priority = -?[0-9][0-9]*$' | sed 's/.*Priority = //'`
 fi
 if [[ -z "$MASTER_PRIORITY" ]]; then
    MASTER_PRIORITY=0

@@ -54,11 +54,22 @@ GetOptions (
 my $stop_on_error = defined $on_error && $on_error eq "stop";
 my $killall_on_error = defined $on_error && $on_error eq "killall";
 
+# validation: number of command line arguments
+if ( @ARGV < 1 ) {
+   exit_with_error "Missing mandatory arguments InitNumWorkers and FilePrefix.";
+} elsif ( @ARGV < 2 ) {
+   exit_with_error "Missing mandatory argument InitNumWorkers or FilePrefix.";
+} elsif ( @ARGV > 2 ) {
+   exit_with_error "Extraneous arguments.";
+}
+
+my $num_workers = shift;
 my $file_prefix = shift;
 
-# initial validation
-exit_with_error("Missing mandatory argument 'FilePrefix' see -help")
-    unless $file_prefix ne '';
+# validation: num_workers must be a number > 0
+if ( ($num_workers + 0) ne $num_workers or $num_workers <= 0 ) {
+   exit_with_error "Invalid value for InitNumWorkers: $num_workers; must be a positive integer.";
+}
 
 # Return a random integer in the range [$min, $max).
 #srand(0); # predictable for testing
@@ -155,6 +166,7 @@ for ( ; $paddr = accept(Client, Server); close Client) {
             # dynamic quench in progress, stop this (non-primary) worker
             --$quench_count;
             log_msg "quenching ($quench_count)";
+            --$num_workers
          } else {
             # send the next command for execution
             if ( $job_no < $num ) {
@@ -169,9 +181,13 @@ for ( ; $paddr = accept(Client, Server); close Client) {
             } else {
                print "***EMPTY***\n";
                log_msg "returning: ***EMPTY***";
+               --$num_workers
             }
          }
       } elsif ($cmd_rcvd =~ /^DONE|^SIGNALED/i) {
+         if ( $cmd_rcvd =~ /^DONE-STOPPING|^SIGNALED/i ) {
+            --$num_workers;
+         }
          ++$done_count;
          my $trimmed_cmd_rcvd = $cmd_rcvd;
          $trimmed_cmd_rcvd =~ s/\s+/ /g;
@@ -205,6 +221,9 @@ for ( ; $paddr = accept(Client, Server); close Client) {
          if ( $done_count >= $num ) {
             # If all done, exit
             log_msg "ALL_DONE ($done_count/$num): Killing deamon";
+            if ( $num_workers > 0 ) {
+               log_msg "$num_workers remaining workers will be killed.";
+            }
             close Client;
             exit 0;
          } elsif ($cmd_rcvd =~ /^DONE-STOPPING/i and $job_no < $num) {
@@ -220,6 +239,20 @@ for ( ; $paddr = accept(Client, Server); close Client) {
    } else {
       print "NO COMMAND\n";
       log_msg "EMPTY: received nothing";
+   }
+
+   if ( $num_workers < 1 ) {
+      log_msg "No more workers, exiting.";
+      if ( $job_no < $num ) {
+         log_msg "Some jobs were not submitted for execution.";
+         exit 0;
+      } elsif ( $done_count < $num ) {
+         log_msg "Mysteriously, there are no workers left but some jobs are apparently still running.";
+         exit 1;
+      } else {
+         log_msg "Mysteriously, all jobs are done but we didn't exit yet.";
+         exit 1;
+      }
    }
 }
 
@@ -241,17 +274,23 @@ sub LaunchOneMoreWorker {
    $rc == 0 or log_msg "Error launching worker.  RC = $rc.  ",
                        "Command was:\n    $psub_cmd_copy";
    ++$worker_id;
+   ++$num_workers;
 }
 
 sub PrintHelp {
    print <<'EOF';
-Usage: r-parallel-d.pl [-on-error <action>] FilePrefix
+Usage: r-parallel-d.pl [-on-error <action>] InitNumWorkers FilePrefix
 
   This deamon accepts connections on a randomly selected port and hands
   out the jobs in FilePrefix.jobs one at a time when GET requests are
   received.
 
 Argument:
+
+  InitNumWorkers - numbers of workers to be launched by run-parallel.sh
+
+     Used to manage errors - if at some point there are still jobs to execute,
+     but all workers have died or have been killed, the deamon will exit.
 
   FilePrefix - prefix of various argument files:
 
