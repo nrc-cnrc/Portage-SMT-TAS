@@ -66,7 +66,7 @@
 
 ICU?=NONE
 #ICU=$(PORTAGE)
-ICU=$(PORTAGE) # AT NRC
+ICU=$(PORTAGE)# AT NRC
 
 # ------------------------------------
 # Variable:        CXXTEST
@@ -78,7 +78,7 @@ ICU=$(PORTAGE) # AT NRC
 
 CXXTEST?=NONE
 #CXXTEST=$(PORTAGE)
-CXXTEST=$(PORTAGE) # AT NRC
+CXXTEST=$(PORTAGE)# AT NRC
 
 # ------------------------------------
 # Variable:        PORTAGE_OPENMP
@@ -107,7 +107,7 @@ PORTAGE_OPENMP=-fopenmp # AT NRC
 
 ACE?=NONE
 #ACE=$(PORTAGE)
-ACE=$(PORTAGE) # AT NRC
+ACE=$(PORTAGE)# AT NRC
 
 # ------------------------------------
 # Variable:        LOG4CXX
@@ -123,7 +123,7 @@ ACE=$(PORTAGE) # AT NRC
 
 LOG4CXX?=NONE
 #LOG4CXX=$(PORTAGE)
-LOG4CXX=$(PORTAGE) # AT NRC
+LOG4CXX=$(PORTAGE)# AT NRC
 
 # ------------------------------------
 # Variable:        PORTAGE_NO_CTAGS
