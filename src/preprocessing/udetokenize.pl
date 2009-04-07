@@ -12,7 +12,7 @@
 #              UTF-8 adaptation and improved handling of French: Eric Joanis
 #
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright (c) 2004 - 2009, Sa Majeste la Reine du Chef du Canada /
 # Copyright (c) 2004 - 2009, Her Majesty in Right of Canada
@@ -22,6 +22,11 @@ use strict;
 use utf8;
 
 print STDERR "udetokenize.pl, NRC-CNRC, (c) 2004 - 2009, Her Majesty in Right of Canada\n";
+
+# This is a utf8 handling script => io should be in utf8 format
+# ref: http://search.cpan.org/~tty/kurila-1.7_0/lib/open.pm
+use open IO => ':encoding(utf-8)';
+use open ':std';  # <= indicates that STDIN and STDOUT are utf8
 
 my $HELP = "
 Usage: udetokenize.pl [-lang=L] [-latin1] [-chinesepunc] [-stripchinese]
@@ -48,8 +53,6 @@ Notes:
 
 my $in=shift || "-";
 my $out=shift || "-";
-$in = "/dev/stdin" if $in eq "-";
-$out = "/dev/stdout" if $out eq "-";
 
 our ($help, $h, $lang, $latin1, $chinesepunc, $stripchinese);
 $lang = "en" unless defined $lang;
@@ -60,8 +63,9 @@ if ($help || $h) {
 
 my $apos = qr/['´’]/;
 
-open IN, "< :encoding(utf8)", $in or die " Can not open $in for reading";
-open OUT,"> :encoding(utf8)", $out or die " Can not open $out for writing";
+open(IN,  "<$in")  or die " Can not open $in for reading";
+open(OUT, ">$out") or die " Can not open $out for writing";
+
 my $space=" ";
 my ($word_pre, $word_before, $word_after);
 my @double_quote=();

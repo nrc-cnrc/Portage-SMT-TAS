@@ -12,7 +12,7 @@
 #
 # LexiTools.pm
 # PROGRAMMER: George Foster / Michel Simard / Eric Joanis
-# 
+#
 # COMMENTS: POD at end of file.
 
 
@@ -33,11 +33,19 @@ our (@ISA, @EXPORT);
 
 @ISA = qw(Exporter);
 @EXPORT = (
-    "get_para", "tokenize", "split_sentences",
-    "get_tokens", "get_token",
-    "matches_known_abbr_en", "matches_known_abbr_fr",
-    "good_turing_estm"
+   "get_para", "tokenize", "split_sentences",
+   "get_tokens", "get_token",
+   "matches_known_abbr_en", "matches_known_abbr_fr",
+   "good_turing_estm"
 );
+
+# Signatures so the array refs work correctly everywhere
+sub get_token(\$$\@); #(para_string, index, token_positions)
+sub tok_abuts_prev($\@); #(index, token_positions)
+sub tok_is_dot(\$$\@); #(para_string, index, token_positions)
+sub context_says_abbr(\$$\@); #($para_string, index_of_dot, token_positions)
+sub looks_like_abbr($\$$\@); # (lang, para_string, index_of_abbr, token_positions)
+sub len(\$); #(string)
 
 # Module global stuff.
 
@@ -73,44 +81,44 @@ my $splitright = qr/\.{2,4}|[\"\x94\xBB!,:;\?%.]|[$hyphens]+|\x92\x92?|\'\'?|\xB
 
 my @known_abbrs_en = qw {
    acad adm aka al apr aug ba bc blvd bsc btw c ca capt cdn ceo cf
-    cm cmdr c/o co col com comdr comdt corp dec deg dept depts desc dir dr
+   cm cmdr c/o co col com comdr comdt corp dec deg dept depts desc dir dr
    drs ed eds edt edu eg eng engr est et ext fax feb febr fig figs fri
    ft fwd fyi g gb/s gmt hon hr hrs i ie ii iii info isbn iv ix jan
    janu jul jun kb/s kg kgs km ko lb lbs lib lieut lt m ma mar max meg
-    messrs mg mhz min mins mlle mlles mme mmes mon mr mrs ms msec msecs msc
+   messrs mg mhz min mins mlle mlles mme mmes mon mr mrs ms msec msecs msc
    n/a natl nov novem oct p phd pls pp pps pres prof profs ps pub re
    rel rep rept rev revd revds rtfm rsvp sec secs secy sen sens sep
    sept sgt st ste tbsp tbsps tech tel thu thur thurs tko tsp tsps tue
    tues txt u univ v vi vii viii vol vols vs wed wk wks wrt www x
-    xi xii xiii xiv xv xx yr yrs 
-    chas
+   xi xii xiii xiv xv xx yr yrs
+   chas
 };
 
 my @known_abbrs_fr = qw {
-    acad ad adm aka al am appt ardt av avr ba bc bd blvd bsc cap cdn ceo cf
-    c cial cm cmdr c/o co col com comdr comdt corp dec déc deg dept depts
+   acad ad adm aka al am appt ardt av avr ba bc bd blvd bsc cap cdn ceo cf
+   c cial cm cmdr c/o co col com comdr comdt corp dec déc deg dept depts
    desc dim dir dr drs ed eds edt edu eg eng engr et ex ext f fax
    fév févr fig figs fwd fyi g gb/s gmt ha hon hr hrs i ie ii iii ind
    ing isbn iv ix jan janv juil kb/s kg kgs km ko lb lbs lib lieut lt
    lun m ma mar me meg merc messrs mg mgr mhz min mins mlle mlles
-    mm mme mmes mr mrs ms msec msecs msc n/a natl nb no nov novem oct p pm
+   mm mme mmes mr mrs ms msec msecs msc n/a natl nb no nov novem oct p pm
    pp pps phd pl pres prés prof profs ps r re rech ref rel rep rept
    rev revd revds rtfm rstp rsvp sec secs secy sen sep sept sgt
    st ste sté stp svp tbsp tbsps tech tél tko tsp tsps txt u univ
    usa v ven vi vii viii www x xi xii xiii xiv xv xx
-    chas
+   chas
 };
 
 # short words and abbreviation-like words that can end a sentence
-my @short_stops_en = qw { 
-    to in is be on it we as by an at or do my he if no am us so up me go
+my @short_stops_en = qw {
+   to in is be on it we as by an at or do my he if no am us so up me go
    oh ye ox ho ab fa hi se of
    un tv ei ui mp ok cn ad uk cp sr eu pm bp id
 };
 
-my @short_stops_fr = qw { 
-    de la le à et du en au un ce ne je il se ou y on si sa me où ma eu va là
-    ni pu vu dû lu ça ai an su fi tu né eh te es ta os bu ri ô us nu ci if oh
+my @short_stops_fr = qw {
+   de la le à et du en au un ce ne je il se ou y on si sa me où ma eu va là
+   ni pu vu dû lu ça ai an su fi tu né eh te es ta os bu ri ô us nu ci if oh
    çà pû mû na ès té ah dé or
    tv cn cp pm bp pq gm ae ue cd fm al mg ed pc fc dp
 };
@@ -127,79 +135,79 @@ my @short_stops_fr = qw {
 sub get_para #(\*FILEHANDLE)
 {
    local $/ = "\n";     # protect record separator against external meddling
-    my $fh = shift;
-    my ($line, $para) = ("", "");
-    
-    # skip leading blank lines
+   my $fh = shift;
+   my ($line, $para) = ("", "");
 
-    while ($line = <$fh>) {
-	if ($line !~ /^\s*$/o) {
-	    $para .= $line;
-	    last;
-	}
-    }
-    if ($line && $line =~ /^\s*<[^>]+>\s*$/o) {return $para;}
+   # skip leading blank lines
 
-    while ($line = <$fh>) {
-	if ($line =~ /^\s*$/o) {last;}
-	$para .= $line;
-	if ($line =~ /^\s*<[^>]+>\s*$/o) {last;}
-    }
-    
-    return $para;
+   while ($line = <$fh>) {
+      if ($line !~ /^\s*$/o) {
+         $para .= $line;
+         last;
+      }
+   }
+   if ($line && $line =~ /^\s*<[^>]+>\s*$/o) {return $para;}
+
+   while ($line = <$fh>) {
+      if ($line =~ /^\s*$/o) {last;}
+      $para .= $line;
+      if ($line =~ /^\s*<[^>]+>\s*$/o) {last;}
+   }
+
+   return $para;
 }
 
 # Split a paragraph into tokens. Return list of (start,len) token positions.
 
 sub tokenize #(paragraph, lang)
 {
-    my $para = shift;
-    my $lang = shift || "en";
-    my @tok_posits = ();
+   my $para = shift;
+   my $lang = shift || "en";
+   my @tok_posits = ();
 
-    my ($split_word, $matches_known_abbr);
-    if ($lang eq "en") {
-	$split_word = \&split_word_en;
-	$matches_known_abbr = \&matches_known_abbr_en;
-    } elsif ($lang eq "fr") {
-	$split_word = \&split_word_fr;
-	$matches_known_abbr = \&matches_known_abbr_fr;
-    }
-    else {die "unknown lang in tokenizer: $lang";}
-    
-    # break up into whitespace-separated chunks, pull off punc, and break up
-    # words (don't switch order of subexps in main match expr!)
+   my ($split_word, $matches_known_abbr);
+   if ($lang eq "en") {
+      $split_word = \&split_word_en;
+      $matches_known_abbr = \&matches_known_abbr_en;
+   } elsif ($lang eq "fr") {
+      $split_word = \&split_word_fr;
+      $matches_known_abbr = \&matches_known_abbr_fr;
+   }
+   else {die "unknown lang in tokenizer: $lang";}
 
-    # Replace non-breaking spaces by spaces
-    $para =~ s/\xA0/ /g;
+   # break up into whitespace-separated chunks, pull off punc, and break up
+   # words (don't switch order of subexps in main match expr!)
 
-    while ($para =~ /(<[^>]+>)|(\S+)/go) {
-	if (defined $1) {
-	    push(@tok_posits, pos($para)-len($1), len($1)); # markup
-	} else {
-	    my @posits = split_punc($2, pos($para) - len($2)); # real token
-	    for (my $i = 0; $i < $#posits; $i += 2) {
-		push (@tok_posits, 
-		      &$split_word(substr($para, $posits[$i], $posits[$i+1]),
-				   $posits[$i]));
-	    }
-	}
-    }
+   # Replace non-breaking spaces by spaces
+   $para =~ s/\xA0/ /g;
 
-    # Merge trailing dots with previous tokens if called for
-    for (my $i = 0; $i < $#tok_posits; $i += 2) {
-      if (tok_is_dot($para, $i, @tok_posits) && tok_abuts_prev($i, @tok_posits)) {
-        if (context_says_abbr($para, $i, @tok_posits) ||
-            &$matches_known_abbr(get_token($para, $i-2, @tok_posits)) ||
-            looks_like_abbr($lang, $para, $i-2, @tok_posits)) {
-
-          $tok_posits[$i-1]++;
-          splice(@tok_posits, $i, 2);
-          $i -= 2;	# account for splice
-        }
+   while ($para =~ /(<[^>]+>)|(\S+)/go) {
+      if (defined $1) {
+         push(@tok_posits, pos($para)-len($1), len($1)); # markup
+      } else {
+         my @posits = split_punc($2, pos($para) - len($2)); # real token
+         for (my $i = 0; $i < $#posits; $i += 2) {
+            push (@tok_posits,
+                  &$split_word(substr($para, $posits[$i], $posits[$i+1]),
+                               $posits[$i]));
+         }
       }
-    }
-    return @tok_posits;
+   }
+
+   # Merge trailing dots with previous tokens if called for
+   for (my $i = 0; $i < $#tok_posits; $i += 2) {
+      if (tok_is_dot($para, $i, @tok_posits) && tok_abuts_prev($i, @tok_posits)) {
+         if (context_says_abbr($para, $i, @tok_posits) ||
+               &$matches_known_abbr(get_token($para, $i-2, @tok_posits)) ||
+               looks_like_abbr($lang, $para, $i-2, @tok_posits)) {
+
+            $tok_posits[$i-1]++;
+            splice(@tok_posits, $i, 2);
+            $i -= 2;    # account for splice
+         }
+      }
+   }
+   return @tok_posits;
 }
 
 
@@ -207,73 +215,82 @@ sub tokenize #(paragraph, lang)
 # @para_string, giving the start token of successive sentences (except the
 # 1st, incl last+1). This completely relies on the tokenizer for dot
 # disambiguation, and assumes that abbrev-ending dots are never full stops.
-# NB: add handling for "..." & pos "---"
+# TODO: add handling for "..." & pos "---"
 
-sub split_sentences #(para_string, token_positions)
+sub split_sentences(\$\@) #(para_string, token_positions)
 {
-    my $para = shift;
-    my @sent_posits;
+   my $para = shift;
+   my $token_positions = shift;
 
-    my $end_pending = 0;
+   my @sent_posits;
 
-    for (my $i = 0; $i < $#_; $i += 2) {
-	my $tok = get_token($para, $i, @_);
-	if ($end_pending) {
+   my $end_pending = 0;
+
+   for (my $i = 0; $i < $#$token_positions; $i += 2) {
+      my $tok = get_token($$para, $i, @$token_positions);
+      if ($end_pending) {
          if ($tok !~ /^([$quotes\)\]]|[$apostrophes]{1,2})$/o ||
              $tok =~ /^[$leftquotes]{1,2}/ ) {
-		push(@sent_posits, $i);
-		$end_pending = 0;
-	    }
-	} else {
-	    if ($tok =~ /^[.!?]$/o) {$end_pending = 1;}
-	}
-    }
-    push(@sent_posits, $#_+1);
+            push(@sent_posits, $i);
+            $end_pending = 0;
+         }
+      } else {
+         if ($tok =~ /^[.!?]$/o) {$end_pending = 1;}
+      }
+   }
+   push(@sent_posits, $#$token_positions+1);
 
-    return @sent_posits;
+   return @sent_posits;
 }
 
 # Convert token positions into actual tokens. Return a list of strings.
 
-sub get_tokens #(para_string, token_positions)
+sub get_tokens(\$\@) #(para_string, token_positions)
 {
-    my $string = shift;
-    my @tokens;
+   my $string = shift;
+   my $token_positions = shift;
+   my @tokens;
 
-    for (my $i = 0; $i < $#_; $i += 2) {
-	push @tokens, get_token($string, $i, @_);
-    }
-    
-    return @tokens;
+   for (my $i = 0; $i < $#$token_positions; $i += 2) {
+      push @tokens, get_token($$string, $i, @$token_positions);
+   }
+
+   return @tokens;
 }
 
 # Get the token corresponding to a given index value (0, 2, 4, ...). Return a
 # string.
 
-sub get_token #(para_string, index, token_positions)
+sub get_token(\$$\@) #(para_string, index, token_positions)
 {
-    my $string = shift;
-    my $index = shift;
-    return $index >= 0 && $index+1 <= $#_ ?
-	substr($string, $_[$index], $_[$index+1]) : "";
+   my $string = shift;
+   my $index = shift;
+   my $token_positions = shift;
+   return $index >= 0 && $index+1 <= $#$token_positions ?
+      substr($$string, $token_positions->[$index], $token_positions->[$index+1]) : "";
 }
 
 # Does token at given index immediately follow the preceding one (without
 # intervening chars)?
 
-sub tok_abuts_prev #(index, token_positions)
+sub tok_abuts_prev($\@) #(index, token_positions)
 {
-    my $index = shift;
-    return $index >= 2 && $_[$index-2] + $_[$index-1] == $_[$index];
+   my $index = shift;
+   my $token_positions = shift;
+   return $index >= 2 &&
+          $token_positions->[$index-2] + $token_positions->[$index-1]
+            == $token_positions->[$index];
 }
 
 # Is token at current index a plain dot?
 
-sub tok_is_dot #($para_string, index, token_positions)
+sub tok_is_dot(\$$\@) #($para_string, index, token_positions)
 {
-    my $string = shift;
-    my $index = shift;
-    return $_[$index+1] == 1 && get_token($string, $index, @_) eq ".";
+   my $string = shift;
+   my $index = shift;
+   my $token_positions = shift;
+   return $token_positions->[$index+1] == 1 &&
+          get_token($$string, $index, @$token_positions) eq ".";
 }
 
 # Is there hard evidence from upcoming tokens (ignoring the current one), that
@@ -288,71 +305,74 @@ sub tok_is_dot #($para_string, index, token_positions)
 # All of these examples work the same if there is intervening punctuation whose
 # status is ambiguous, eg ('Born in the US.'...), -> "US.", comma is what counts.
 
-sub context_says_abbr #($para_string, index_of_dot, token_positions)
+sub context_says_abbr(\$$\@) #($para_string, index_of_dot, token_positions)
 {
-    my $string = shift;
-    my $index = shift;
+   my $string = shift;
+   my $index = shift;
+   my $token_positions = shift;
 
-    # skip ambig punc
-    for ($index += 2; $index < $#_; $index += 2) {
-	if (get_token($string, $index, @_) !~
+   # skip ambig punc
+   for ($index += 2; $index < $#$token_positions; $index += 2) {
+      if (get_token($$string, $index, @$token_positions) !~
             /^([$quotes\(\)\[\]\{\}]|[$apostrophes]{1,2}|[$hyphens]{1,3}|[.]{2,4}|…)$/o) {last;}
-    }
+   }
 
-    if ($index > $#_) {return 0;} # end of para
+   if ($index > $#$token_positions) {return 0;} # end of para
 
-    my $tok = get_token($string, $index, @_);
-    if ($tok =~ /^[,:;]$/o) {
-	return 1;		# never begins a sentence
-    } elsif ($tok =~ /^[.!?]/) {
-	return 1;		# always ends a sentence
-    } else {
-	return $tok !~ /^[$iso_caps]/o;	# next real word not cap'd
-    }
+   my $tok = get_token($$string, $index, @$token_positions);
+   if ($tok =~ /^[,:;]$/o) {
+      return 1;         # never begins a sentence
+   } elsif ($tok =~ /^[.!?]/) {
+      return 1;         # always ends a sentence
+   } else {
+      return $tok !~ /^[$iso_caps]/o;   # next real word not cap'd
+   }
 }
 
 # Determine if a word matches an English known abbreviation.
 
 sub matches_known_abbr_en #(word)
 {
-    my $word = shift;
-    $word =~ s/[.]//go;
-    return $known_abbr_hash_en{lc($word)} ? 1 : 0;
+   my $word = shift;
+   $word =~ s/[.]//go;
+   return $known_abbr_hash_en{lc($word)} ? 1 : 0;
 }
 
 # Determine if a word matches a French known abbreviation.
 
 sub matches_known_abbr_fr #(word)
 {
-    my $word = shift;
-    $word =~ s/[.]//go;
-    return $known_abbr_hash_fr{lc($word)} ? 1 : 0;
+   my $word = shift;
+   $word =~ s/[.]//go;
+   return $known_abbr_hash_fr{lc($word)} ? 1 : 0;
 }
 
 # Does the current token look like it is an abbreviation?
 
-sub looks_like_abbr # (lang, para_string, index_of_abbr, token_positions)
+sub looks_like_abbr($\$$\@) # (lang, para_string, index_of_abbr, token_positions)
 {
-    my $lang = shift;
-    my $p = $_[1]+2;
-    my $word = substr($_[0], $_[$p], $_[$p+1]);
+   my $lang = shift;
+   my $para = shift;
+   my $p = shift;
+   my $token_positions = shift;
+   my $word = substr($$para, $token_positions->[$p], $token_positions->[$p+1]);
 
-    # abbr must match this pattern..
-    if ($word !~ /^[$iso_alpha][$iso_alpha]?([.][$iso_alpha])*$/o) {
-	return 0;
-    }
-    
-    # but if it matches one of these, then the context must REALLY look like a
-    # sentence boundary
+   # abbr must match this pattern..
+   if ($word !~ /^[$iso_alpha][$iso_alpha]?([.][$iso_alpha])*$/o) {
+      return 0;
+   }
 
-    if ($lang eq "en") {
- 	if (exists($short_stops_hash_en{lc($word)})) {return 0;}
-    } elsif ($lang eq "fr") {
-	if (exists($short_stops_hash_fr{lc($word)})) {return 0;}
-    }
-    return 1;
+   # but if it matches one of these, then the context must REALLY look like a
+   # sentence boundary
+
+   if ($lang eq "en") {
+      if (exists($short_stops_hash_en{lc($word)})) {return 0;}
+   } elsif ($lang eq "fr") {
+      if (exists($short_stops_hash_fr{lc($word)})) {return 0;}
+   }
+   return 1;
 }
-    
+
 
 # Split a whitespace-bounded token into constituents. Return list of
 # (start,len) atom positions.
@@ -360,70 +380,70 @@ sub looks_like_abbr # (lang, para_string, index_of_abbr, token_positions)
 sub split_punc #(string, offset[0])
 {
 
-    my $tok = shift;
-    my $offset = shift || 0;
-    my @atoms;
-    
-    if (!defined $tok) {return ();}
+   my $tok = shift;
+   my $offset = shift || 0;
+   my @atoms;
 
-    my $tok_len = len($tok);
-    my $first_char = substr($tok, 0, 1);
-    my $last_char = substr($tok, $tok_len-1, 1);
+   if (!defined $tok) {return ();}
+
+   my $tok_len = len($tok);
+   my $first_char = substr($tok, 0, 1);
+   my $last_char = substr($tok, $tok_len-1, 1);
 
    # split internal --, ---, n-dash, m-dash, .., ..., etc.
    if (($tok =~ /^(.*[^$hyphens])?([$hyphens]{2,4}|[$wide_dashes])([^$hyphens].*)?$/o) ||
        ($tok =~ /^(.*[^\.])?(\.{2,4}|\x85)([^\.].*)?$/o)) {
-	my ($p1, $p2, $p3) = ($1, $2, $3);
-	push(@atoms, split_punc($p1, $offset));
+      my ($p1, $p2, $p3) = ($1, $2, $3);
+      push(@atoms, split_punc($p1, $offset));
       push(@atoms, $offset+len($p1), length($p2) == 1 ? 1 : 2);
-	push(@atoms, split_punc($p3, $offset+len($p1)+len($p2)));
-    }
+      push(@atoms, split_punc($p3, $offset+len($p1)+len($p2)));
+   }
 
-    # split internal $ (as in 'US$30' -> 'US$ 30')
-    elsif ($tok =~ /^([$iso_alpha]*\$)([0-9,.-]+)$/o) {
+   # split internal $ (as in 'US$30' -> 'US$ 30')
+   elsif ($tok =~ /^([$iso_alpha]*\$)([0-9,.-]+)$/o) {
       my ($p1, $p2) = ($1, $2);
       push(@atoms, split_punc($p1, $offset));
       push(@atoms, split_punc($p2, $offset+len($p1)));
-    }
+   }
 
-    # pull off leading/trailing punc
-    elsif ($tok =~ /^($splitleft)/o) {
-	push(@atoms, $offset, len($1));
-	if (len($1) < len($tok)) {
-	    push(@atoms, split_punc(substr($tok, len($1)), $offset+len($1)));
-	}
-    } elsif ($tok =~ /($splitright)$/o) {
-	my $l1 = $tok_len - len($1);
-	if ($l1 > 0) {
-	    push(@atoms, split_punc(substr($tok, 0, $l1), $offset));
-	}
-	push(@atoms, $offset+$l1, $tok_len - $l1);
-    }
-    # next 4 clauses do this:  abc) -> abc )
-    #                but this: ab(c) -> ab(c)
-    #                but this: ab(c)) -> ab(c) )
-    #                also, this (a) -> (a) and a) -> a)
+   # pull off leading/trailing punc
+   elsif ($tok =~ /^($splitleft)/o) {
+      push(@atoms, $offset, len($1));
+      if (len($1) < len($tok)) {
+         push(@atoms, split_punc(substr($tok, len($1)), $offset+len($1)));
+      }
+   } elsif ($tok =~ /($splitright)$/o) {
+      my $l1 = $tok_len - len($1);
+      if ($l1 > 0) {
+         push(@atoms, split_punc(substr($tok, 0, $l1), $offset));
+      }
+      push(@atoms, $offset+$l1, $tok_len - $l1);
+   }
+   # next 4 clauses do this:  abc) -> abc )
+   #                but this: ab(c) -> ab(c)
+   #                but this: ab(c)) -> ab(c) )
+   #                also, this (a) -> (a) and a) -> a)
    elsif ($first_char eq "(" && $tok !~ /^(\($alnum\)|\([^()]+\).+)$/o) {
-	push(@atoms, $offset, 1);
-	push(@atoms, split_punc(substr($tok, 1), $offset+1));
+      push(@atoms, $offset, 1);
+      push(@atoms, split_punc(substr($tok, 1), $offset+1));
    } elsif ($first_char eq "[" && $tok !~ /^(\[$alnum\]|\[[^\[\]]+\].+)$/o) {
-	push(@atoms, $offset, 1);
-	push(@atoms, split_punc(substr($tok, 1), $offset+1));
+      push(@atoms, $offset, 1);
+      push(@atoms, split_punc(substr($tok, 1), $offset+1));
    } elsif ($last_char eq ")" && $tok !~ /^(\(?$alnum\)|.+\([^()]+\))$/o) {
-	push(@atoms, split_punc(substr($tok, 0, $tok_len-1), $offset));
-	push(@atoms, $offset+$tok_len-1, 1);
+      push(@atoms, split_punc(substr($tok, 0, $tok_len-1), $offset));
+      push(@atoms, $offset+$tok_len-1, 1);
    } elsif ($last_char eq "]" && $tok !~ /^(\[$alnum\]|.+\[[^\[\]]+\])$/o) {
-	push(@atoms, split_punc(substr($tok, 0, $tok_len-1), $offset));
-	push(@atoms, $offset+$tok_len-1, 1);
+      push(@atoms, split_punc(substr($tok, 0, $tok_len-1), $offset));
+      push(@atoms, $offset+$tok_len-1, 1);
    #don't need this, because we now systematically split trailing .
    #} elsif ($tok =~ /[^a-zA-Z\xC0-\xFF]\.$/o) { # thingy). -> thingy) .
    #   push(@atoms, split_punc(substr($tok, 0, $tok_len-1), $offset));
    #   push(@atoms, $offset+$tok_len-1, 1);
-    } else { # keep token as is
-	push(@atoms, $offset, $tok_len);
-    }
+   } else { # keep token as is
+      push(@atoms, $offset, $tok_len);
+   }
 
-    return @atoms;
+   return @atoms;
 }
 
 # Split an English word into parts, eg John's -> John 's. Return list of
@@ -431,16 +451,16 @@ sub split_punc #(string, offset[0])
 
 sub split_word_en #(word, offset)
 {
-    my $word = shift;
-    my $os = shift || 0;
-    my @atom_positions = ();
-    
+   my $word = shift;
+   my $os = shift || 0;
+   my @atom_positions = ();
+
    if ($word !~ /^it[$apostrophes]s/ && $word =~ /^([$iso_alpha]+)([$apostrophes][Ss])$/o) {
-	push(@atom_positions, $os, len($1), $os+len($1), len($2));
-    } else {
-	push(@atom_positions, $os, len($word));
-    }
-    return @atom_positions;
+      push(@atom_positions, $os, len($1), $os+len($1), len($2));
+   } else {
+      push(@atom_positions, $os, len($word));
+   }
+   return @atom_positions;
 }
 
 # Split a French word into parts, eg l'amour -> l' amour. Return list of
@@ -459,57 +479,57 @@ BEGIN {
 
 sub split_word_fr #(word, offset)
 {
-    my $word = shift;
-    my $os = shift || 0;
-    my @atom_positions = ();
+   my $word = shift;
+   my $os = shift || 0;
+   my @atom_positions = ();
 
    if ($word !~ /^(d[$apostrophes]ailleurs|d[$apostrophes]abord|d[$apostrophes]autant|quelqu[$apostrophes]un(e|s|es)?)$/oi &&
        $word =~ /^([cdjlmnst][$apostrophes]|[a-z]*qu[$apostrophes]|y-)(.+)/oi) {
       # y-a-t-il is actually wrong, so we replace it by y a-t-il.
-	my $l1 = ($1 eq "y-" || $1 eq "Y-") ? 1 : len($1);
-	push(@atom_positions, $os, $l1);
-	push(@atom_positions, split_word_fr(substr($word, len($1)),$os+len($1)));
+      my $l1 = ($1 eq "y-" || $1 eq "Y-") ? 1 : len($1);
+      push(@atom_positions, $os, $l1);
+      push(@atom_positions, split_word_fr(substr($word, len($1)),$os+len($1)));
    } elsif ($word =~ /^(?:a-t-il|est-ce)$/io) {
       # special case for these very common combinations
       push(@atom_positions, $os, len($word));
-    } elsif ($word =~ /^(.+)-t-($vowel_hyph_endings)$/oi) {
-	my $l1 = len($1);
-	push(@atom_positions, split_word_fr(substr($word, 0, $l1), $os));
+   } elsif ($word =~ /^(.+)-t-($vowel_hyph_endings)$/oi) {
+      my $l1 = len($1);
+      push(@atom_positions, split_word_fr(substr($word, 0, $l1), $os));
       push(@atom_positions, $os + $l1, len($word)-$l1);
-    } elsif ($word !~ /rendez-vous$/ && $word =~ /^(.+)-($hyph_endings)$/oi) {
-	my $l1 = len($1);
-	push(@atom_positions, split_word_fr(substr($word, 0, $l1), $os));
+   } elsif ($word !~ /rendez-vous$/ && $word =~ /^(.+)-($hyph_endings)$/oi) {
+      my $l1 = len($1);
+      push(@atom_positions, split_word_fr(substr($word, 0, $l1), $os));
       push(@atom_positions, $os + $l1, len($word)-$l1);
-    } else {
-	push(@atom_positions, $os, len($word));
-    }
+   } else {
+      push(@atom_positions, $os, len($word));
+   }
 
-    return @atom_positions;
+   return @atom_positions;
 }
 
 # Return length of a possibly-undefined string.
 
-sub len #(string)
+sub len(\$) #(string)
 {
-    my $string = shift;
-    return defined $string ? length($string) : 0;
+   my $string = shift;
+   return defined $$string ? length($$string) : 0;
 }
 
 # Do good-turing smoothing on a list of word frequencies.
 # Return a corresponding list of smoothed frequencies. This just wraps a call
 # to the good_turing_estm program.
 
-sub good_turing #(freq-list) 
+sub good_turing #(freq-list)
 {
-    my $tmpfile = "/tmp/TMP$$";
-    open(TMP, "| good_turing_estm > $tmpfile");
-    print TMP join("\n", @_), "\n";
-    close(TMP);
-    open(TMP, "< $tmpfile");
-    my @gt_freqs = <TMP>;
-    close(TMP);
-    unlink $tmpfile;
-    return @gt_freqs;
+   my $tmpfile = "/tmp/TMP$$";
+   open(TMP, "| good_turing_estm > $tmpfile");
+   print TMP join("\n", @_), "\n";
+   close(TMP);
+   open(TMP, "< $tmpfile");
+   my @gt_freqs = <TMP>;
+   close(TMP);
+   unlink $tmpfile;
+   return @gt_freqs;
 }
 
 
@@ -535,17 +555,17 @@ assumed to be plain iso-latin1, in the following format:
 
 =over
 
-=item * 
+=item *
 
 Paragraphs delimited by one or more blank lines. This doesn't mean that blank
 lines are essential, just that sentences are assumed never to span them.
 
-=item * 
+=item *
 
 Markup is enclosed in angle brackets <> spanning at most one line. Whatever is
 inside the brackets is not interpreted as text.
 
-=item * 
+=item *
 
 A piece of markup that that occupies a complete line is interpreted as a
 paragraph delimiter (just like a blank line).
