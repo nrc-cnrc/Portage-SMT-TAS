@@ -44,15 +44,16 @@ Options:
 
 Caveat:
 
-  The default behaviour is to split sentences, and the algorithm doing so has
-  quadratic cost in the lenght of each paragraph.  To speed up processing and
-  increase accuracy, make sure you preserve existing paragraph boundaries in
-  your text, separating them with a blank line (i.e., two newlines), or using
-  -paraline if your input contains one paragraph per line.
+  The default behaviour is to consider consecutive non-blank lines as a
+  paragraph: newlines within the paragraph are removed and sentence splitting
+  is performed.  To increase sentence splitting accuracy, make sure you
+  preserve existing paragraph boundaries in your text, separating them with a
+  blank line (i.e., two newlines), or using -paraline if your input contains
+  one paragraph per line.
 
-  If your input is already one-sentence-per-line, use -noss, otherwise the
-  running time will be quadratic in the length of your file and your sentence
-  breaks will be modified in that are almost certainly undesirable.
+  To preserve existing line breaks, e.g., if your input is already
+  one-sentence-per-line, use -noss, otherwise your sentence breaks will be
+  modified in ways that are almost certainly undesirable.
 
 ";
 
