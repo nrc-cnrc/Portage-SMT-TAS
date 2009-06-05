@@ -195,9 +195,6 @@ sub displayHelp
    # Flags\r\
       --useLMOnly => Requests that only a given NGram model be used;\r\
                   any given V1-to-V2 will be ignored.\r\
-      --cleanTags => request that the input training sample file be cleaned\r\
-                  from its markup tags before it's used for the training\r\
-                  process.\r\
       --uppercaseBOS => make sur that every sentence begins with uppercase.\r\
                   It overrides the models' judgment.\r\
       --uppercaseTitlesBOW => request that the first letter of all words in\r\
@@ -215,21 +212,21 @@ sub displayHelp
    # Help\r\
       --help   => print this help.\r\n\
  Examples:\r\n\
-   truecase.pl --text=inputfile.txt [--lm=ngram.lm] [--useLMOnly] [--cleanTags]\r\
+   truecase.pl --text=inputfile.txt [--lm=ngram.lm] [--useLMOnly]\r\
       [--map=mapping.map [--voc=words.count]] [--unkmap=unknows.map]\r\
       [--lmOrder=3] [--uppercaseBOS] [--out=text-tc[--outDir=outs]]\r\
       [--uppercaseTitlesBOW] [--useTitleModels] [--verbose]\r\
    truecase.pl inputfile.txt [--map=mapping.map [--voc=words.count]]\r\
       [--lm=ngram.lm] [--unkmap=unknows.map] [--lmOrder=3]\r\
-      [--uppercaseTitlesBOW] [--useTitleModels] [--useLMOnly] [--cleanTags]\r\
+      [--uppercaseTitlesBOW] [--useTitleModels] [--useLMOnly]\r\
       [--uppercaseBOS] [--out=text-tc[--outDir=outs]] [--verbose]\r\n\
  WARNING:\r\
     - You should set the values in portage_truecaselibconstantes.pm module\r\
       for default options.\r\n\
-    - You might have some errors related to malformed UTF.8.\r\
-      The solution is to remove it from your Environment variable\r\
-      \$LANG. Example: if LANG==en_CA.UTF.8, set it to LANG=en_CA\r\
-      and rehash or export it.\r\n\
+    - You might have some errors related to malformed UTF-8 if you're\r\
+      processing non-UTF-8 data.  The solution is to remove it from your\r\
+      Environment variable \$LANG. Example: if LANG==en_CA.UTF.8, set it to\r\
+      LANG=en_CA and export it.\r\n\
  LICENSE:\r\
   Copyright (c) 2004, 2005, Sa Majeste la Reine du Chef du Canada /\r\
   Copyright (c) 2004, 2005, Her Majesty in Right of Canada\r\n\
@@ -271,9 +268,6 @@ B< =======================
    # Flags
      --useLMOnly => Requests that only a given NGram model be used;
                 any given V1-to-V2 will be ignored.
-     --cleanTags => request that the input training sample file be cleaned
-                from its markup tags before it's used for the training
-                process.
      --uppercaseBOS => make sur that every sentence begins with uppercase.
                 It overrides the models' judgment.
      --uppercaseTitlesBOW => request that the first letter of all words in
@@ -300,20 +294,20 @@ B< =======================
    - You should have a variable PORTAGE in your environment that points to
      Portage project location (for default options).
 
-   - You might have some errors related to malformed UTF.8.
-     The solution is to remove it from your Environment variable
-     \$LANG. Example: if LANG==en_CA.UTF.8, set it to LANG=en_CA
-     and rehash or export it.
+   - You might have some errors related to malformed UTF-8 if you're
+     processing non-UTF-8 data.  The solution is to remove it from your
+     Environment variable \$LANG. Example: if LANG==en_CA.UTF.8, set it to
+     LANG=en_CA and export it.
 
 =head1 SYNOPSIS
 
-    truecase.pl --text=inputfile.txt [--lm=ngram.lm] [--useLMOnly] [--cleanTags]
+    truecase.pl --text=inputfile.txt [--lm=ngram.lm] [--useLMOnly]
            [--map=mapping.map [--voc=words.count]] [--unkmap=unknows.map]
            [--lmOrder=3] [--uppercaseBOS] [--out=text-tc[--outDir=outs]]
            [--uppercaseTitlesBOW] [--useTitleModels] [--verbose]
     truecase.pl inputfile.txt [--map=mapping.map [--voc=words.count]]
            [--lm=ngram.lm] [--unkmap=unknows.map] [--useLMOnly] [--lmOrder=3]
-           [--uppercaseTitlesBOW] [--useTitleModels] [--cleanTags]
+           [--uppercaseTitlesBOW] [--useTitleModels]
            [--uppercaseBOS] [--out=text-tc[--outDir=outs]] [--verbose]
 
 =head1 COPYRIGHT INFORMATION
