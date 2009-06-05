@@ -225,8 +225,8 @@ sub displayHelp
       for default options.\r\n\
     - You might have some errors related to malformed UTF-8 if you're\r\
       processing non-UTF-8 data.  The solution is to remove it from your\r\
-      Environment variable \$LANG. Example: if LANG==en_CA.UTF.8, set it to\r\
-      LANG=en_CA and export it.\r\n\
+      Environment variable \$LANG.  Example: if LANG==en_CA.UTF-8, set it to\r\
+      LANG=en_CA and export it.  If the problem remains, set LC_ALL instead.\r\n\
  LICENSE:\r\
   Copyright (c) 2004, 2005, Sa Majeste la Reine du Chef du Canada /\r\
   Copyright (c) 2004, 2005, Her Majesty in Right of Canada\r\n\
@@ -296,8 +296,8 @@ B< =======================
 
    - You might have some errors related to malformed UTF-8 if you're
      processing non-UTF-8 data.  The solution is to remove it from your
-     Environment variable \$LANG. Example: if LANG==en_CA.UTF.8, set it to
-     LANG=en_CA and export it.
+     Environment variable \$LANG.  Example: if LANG==en_CA.UTF-8, set it to
+     LANG=en_CA and export it.  If the problem remains, set LC_ALL instead.
 
 =head1 SYNOPSIS
 
