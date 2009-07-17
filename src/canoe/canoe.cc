@@ -29,9 +29,12 @@
 #include "printCopyright.h"
 #include "logging.h"
 #include "errors.h"
+#include "process_bind.h"
+#include <boost/optional/optional.hpp>
 
 using namespace Portage;
 using namespace std;
+using boost::optional;
 
 /**
  * This object keeps track of the File when the user wants to output one file
@@ -365,6 +368,11 @@ int MAIN(argc, argv)
    c.setFromArgReader(argReader); // override from cmd line
    c.check();
    PhraseTable::log_almost_0 = c.phraseTableLogZero;
+
+   // Binds the pid.
+   if (c.bind_pid > 0)
+      process_bind(c.bind_pid);
+
 
    if (c.verbosity >= 2)
       c.write(cerr, 2);

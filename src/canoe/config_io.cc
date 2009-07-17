@@ -150,6 +150,7 @@ CanoeConfig::CanoeConfig()
    cubeLMHeuristic        = "incremental";
    futLMHeuristic         = "incremental";
    final_cleanup          = false;  // for speed reason we don't normally delete the bmg
+   bind_pid               = -1;
 
    // Parameter information, used for input and output. NB: doesn't necessarily
    // correspond 1-1 with actual parameters, as one ParamInfo can set several
@@ -228,6 +229,7 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("future-score-lm-heuristic", "string", &futLMHeuristic));
    param_infos.push_back(ParamInfo("lb", "bool", &bLoadBalancing));
    param_infos.push_back(ParamInfo("final-cleanup", "bool", &final_cleanup));
+   param_infos.push_back(ParamInfo("bind", "int", &bind_pid));
 
    // List of all parameters that correspond to weights. ORDER IS SIGNIFICANT
    // and must match the order in BasicModelGenerator::InitDecoderFeatures().

@@ -337,6 +337,8 @@ Options (in command-line format):\n\
  -options\n\
         Produce a shorter help message only listing the option names\n\
 \n\
+ -bind PID\n\
+        Binds this instance of canoe to the existence of PID running.\n\
 \n\
   NOTE:\n\
     All options of the form weight-X where X is a decoder feature can be\n\

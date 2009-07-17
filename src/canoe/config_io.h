@@ -171,6 +171,7 @@ public:
    string cubeLMHeuristic;          ///< What LM heuristic to use in cube pruning
    string futLMHeuristic;           ///< What LM heuristic to use when calculating future scores
    bool final_cleanup;              ///< Indicates if canoe should delete its bmg.
+   int  bind_pid;                   ///< What pid to monitor.
 
    /**
     * Constructor, sets default parameter values.
