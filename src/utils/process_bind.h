@@ -15,41 +15,22 @@
 #ifndef __PROCESS_BIND_H__
 #define __PROCESS_BIND_H__
 
-#include <pthread.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>   // And sleep
-#include <stdio.h>
+#include <sys/types.h>  // for pid_t
 
-// enforce C-style linking (pthread is a C library, not a C++ library)
-extern "C" void* a_thread(void* ptr); 
+namespace Portage {
 
-void* process_bind_thread(void* ptr) {
-   const pid_t pid = *((pid_t*)ptr);
+/**
+ * Watches, in the background, for the presence of a pid, if not present, does a
+ * exit(45).
+ * NOTE: this function will start a thread and return immediately.
+ * WARNING: the variable containing the pid must exist long enough for the
+ * thread to start and read the value.  This is why the pid is passed as const
+ * reference to this function.
+ * @param pid  the pid to look for.
+ */
+void process_bind(const pid_t& pid);
 
-   struct stat buf;
-   char file[32];
-   snprintf(file, 31, "/proc/%d", pid);
-
-   printf("Waiting for %d\n", pid);
-   while(stat(file, &buf) == 0) sleep(10);
-
-   //perror("perror");  // which should be ENOENT.
-   fprintf(stderr, "Process %d is no longer running.\n", pid);
-   exit(45);
-
-   return NULL;
-}
-
-void process_bind(pid_t pid) {
-   using namespace std;
-
-   pthread_t thread;
-   if (pthread_create(&thread, NULL, process_bind_thread, (void*)&(pid)) != 0) {
-      printf("Unable to create watch me thread");
-      exit(45);
-   }
-}
+} // ends naspace Portage
 
 
 #endif  // __PROCESS_BIND_H__

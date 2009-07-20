@@ -18,11 +18,14 @@
 #include "arg_reader.h"
 #include "exception_dump.h"
 #include "show_mem_usage.h"
+#include "process_bind.h"
 #include <cstdlib>
 #include <limits>
+#include <boost/optional/optional.hpp>
 
 using namespace Portage;
 using namespace std;
+using boost::optional;
 
 static char help_message[] = "\n\
 bloater [-v] [-maxiter <MAXITER>] blocksize\n\
@@ -34,10 +37,12 @@ Options:\n\
 -v       Write progress reports to cerr.\n\
 -maxiter Will perform <MAXITER> iterations thus creating <MAXITER> blocks in\n\
          memory [Uint::max].\n\
+-bind PID  Binds your program to the presence of the running PID;\n\
 ";
 
 // globals
 
+static optional<int> pid;
 static bool verbose = false;
 static Uint blocksize = 0;
 static Uint maxIter = numeric_limits<Uint>::max();
@@ -48,6 +53,8 @@ static void getArgs(int argc, const char* const argv[]);
 int MAIN(argc, argv)
 {
    getArgs(argc, argv);
+
+   if (pid) process_bind(*pid);
 
    Uint  tot_size   = 0;
    char* bloat_vect = NULL;
@@ -76,12 +83,13 @@ int MAIN(argc, argv)
 
 void getArgs(int argc, const char* const argv[])
 {
-   const char* switches[] = {"v", "maxiter:"};
+   const char* switches[] = {"v", "maxiter:", "bind:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 1, 1, help_message);
    arg_reader.read(argc-1, argv+1);
 
    arg_reader.testAndSet("v", verbose);
    arg_reader.testAndSet("maxiter", maxIter);
+   arg_reader.testAndSet("bind:", pid);
   
    arg_reader.testAndSet(0, "blocksize", blocksize);
 }   

@@ -27,6 +27,7 @@ OBJECTS = \
         parse_xmlish_markup.o \
         perm_iterator.o \
         portage_defs.o \
+        process_bind.o \
         quick_set.o \
         str_utils.o \
         trie.o \
@@ -121,4 +122,5 @@ legacy_test_trie: tests/legacy/test_trie tests/data/test_trie.in.txt \
            diff tests/data/test_trie.out.txt -
 
 # Some programs need extra dynamic libraries
+bloater: DYNLIBS += -lpthread
 utf8_casemap: DYNLIBS += $(LIBICU)
