@@ -49,7 +49,7 @@ static void* process_bind_thread(void* ptr) {
    return NULL;
 }
 
-void process_bind(const pid_t& pid) {
+void process_bind(pid_t& pid) {
    using namespace std;
 
    pthread_t thread;

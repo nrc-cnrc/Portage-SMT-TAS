@@ -42,7 +42,7 @@ Options:\n\
 
 // globals
 
-static optional<int> pid;
+static optional<pid_t> pid;
 static bool verbose = false;
 static Uint blocksize = 0;
 static Uint maxIter = numeric_limits<Uint>::max();

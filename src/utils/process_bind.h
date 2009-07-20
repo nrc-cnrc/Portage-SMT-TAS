@@ -28,7 +28,7 @@ namespace Portage {
  * reference to this function.
  * @param pid  the pid to look for.
  */
-void process_bind(const pid_t& pid);
+void process_bind(pid_t& pid);
 
 } // ends naspace Portage
 
