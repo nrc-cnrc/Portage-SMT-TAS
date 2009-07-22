@@ -40,20 +40,19 @@ static void* process_bind_thread(void* ptr) {
    const pid_t pid = *((pid_t*)ptr);
 
    printf("Waiting for %d\n", pid);
-   while(kill(pid, 0) == 0) sleep(wait_time);
+   // We also want to be able to track, without sending any signal, a process
+   // that do not belong to the call's uid.
+   while(kill(pid, 0) == 0 || errno == EPERM) sleep(wait_time);
 
    //fprintf(stderr, "errno: %d => %s\n", errno, strerror(errno));
    if (errno == EINVAL) {
       fprintf(stderr, "Invalid signal sent to %d\n", pid);
    }
-   else if (errno == EPERM) {
-      fprintf(stderr, "You do not have enough permission to send a signal to pid: %d.\n", pid);
-   }
    else if (errno == ESRCH) {
    fprintf(stderr, "Process %d is no longer running.\n", pid);
    }
    else {
-      fprintf(stderr, "process_bind unknown error: %d\n", errno);
+      fprintf(stderr, "process_bind kill reported an unknown error: %d\n", errno);
    }
 
    exit(45);
