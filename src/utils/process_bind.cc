@@ -15,14 +15,18 @@
 #include "process_bind.h"
 #include <pthread.h>
 #include <sys/types.h>
-#include <sys/stat.h>
+#include <signal.h>
 #include <unistd.h>   // And sleep
-#include <stdio.h>
+#include <stdio.h>  // stderr, fprintf, printf & perror
 #include <cstdlib> // for exit
+#include <errno.h>  // errno
+//#include <string.h>  // strerror used for debugging.
 
 using namespace Portage;
 
 namespace Portage {
+
+static const unsigned int wait_time = 10;
 
 // enforce C-style linking (pthread is a C library, not a C++ library)
 extern "C" void* a_thread(void* ptr); 
@@ -35,15 +39,23 @@ extern "C" void* a_thread(void* ptr);
 static void* process_bind_thread(void* ptr) {
    const pid_t pid = *((pid_t*)ptr);
 
-   struct stat buf;
-   char file[32];
-   snprintf(file, 31, "/proc/%d", pid);
-
    printf("Waiting for %d\n", pid);
-   while(stat(file, &buf) == 0) sleep(10);
+   while(kill(pid, 0) == 0) sleep(wait_time);
 
-   //perror("perror");  // which should be ENOENT.
+   //fprintf(stderr, "errno: %d => %s\n", errno, strerror(errno));
+   if (errno == EINVAL) {
+      fprintf(stderr, "Invalid signal sent to %d\n", pid);
+   }
+   else if (errno == EPERM) {
+      fprintf(stderr, "You do not have enough permission to send a signal to pid: %d.\n", pid);
+   }
+   else if (errno == ESRCH) {
    fprintf(stderr, "Process %d is no longer running.\n", pid);
+   }
+   else {
+      fprintf(stderr, "process_bind unknown error: %d\n", errno);
+   }
+
    exit(45);
 
    return NULL;
