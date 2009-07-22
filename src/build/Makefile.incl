@@ -52,7 +52,7 @@ PERL_LIB_DIR := $(INSTALL_DIR)/lib
 # If BOOST_ROOT is defined, pull boost from there
 ifdef BOOST_ROOT
    BOOST_LIB_DIR = -L$(BOOST_ROOT)/lib
-   BOOST_INC_DIR = -isystem$(patsubst %/boost,%,$(wildcard $(BOOST_ROOT)/include/*/boost))
+   BOOST_INC_DIR = -isystem $(patsubst %/boost,%,$(wildcard $(BOOST_ROOT)/include/*/boost))
    ifeq ($(strip $(BOOST_INC_DIR)),-I)
       $(error Cannot find boost include directory under BOOST_ROOT=$(BOOST_ROOT).  Please set BOOST_ROOT to the directory where boost is installed)
    endif
@@ -229,7 +229,7 @@ endif
 # -----------------------------------------------------------------------------
 
 
-.PHONY: new all clean lib dyn_lib bin depend run_depend TAGS tags info doxy \
+.PHONY: new all clean lib dyn_lib bin TAGS tags info doxy \
 	docs install export install_inc install_dyn_lib install_static_lib \
 	install_perl_lib install_bin install_doc test runcxxtest FORCE
 
@@ -240,7 +240,7 @@ endif
            .info .dvi .tex .texinfo .texi .txinfo .w .ch .web .elc .el .cpp
 
 # make everything that can be made, except doxy, which spews too many messages
-all: run_depend lib bin TAGS tags info test .cvsignore
+all: lib bin TAGS tags info test .cvsignore
 
 # make everything from scratch
 new: clean
@@ -263,14 +263,15 @@ FORCE::
 # remove everything that can be remade
 clean:
 	\rm -f $(OBJECTS) $(LIBRARY).{a,so} $(PROGRAMS) $(DYNPROGS) \
-	$(INFOFILES) $(DOCUMENTS) Makefile.depend .cvsignore \
+	$(INFOFILES) $(DOCUMENTS) .cvsignore Makefile.depend \
         *.aux *.bbl *.blg *.dvi *.log TAGS tags *~ *.o *.info-* core core.* \
         tests/cxxtestrunner.cc tests/cxxtestrunner $(OTHER_GENERATED_FILES) \
 	$(LEGACY_TESTS) $(foreach legacy_test, $(LEGACY_TESTS), $(legacy_test).o)
+	\rm -rf .deps
 
 # make the .cvsignore file, used by CVS to ignore certain files when updating
 .cvsignore: Makefile ../build/Makefile.incl
-	echo $(PROGRAMS) Makefile.depend .cvsignore *.pdf *.dvi *.aux *.bbl *.blg *.log *.eps | tr ' ' '\n' > $@
+	echo $(PROGRAMS) Makefile.depend .cvsignore *.pdf *.dvi *.aux *.bbl *.blg *.log *.eps .deps | tr ' ' '\n' > $@
 	if [[ -d tests ]]; then echo .cvsignore cxxtestrunner{,.cc} | tr ' ' '\n' > tests/$@; fi
 	if [[ -d tests/legacy ]]; then echo .cvsignore $(foreach legacy_test, $(notdir $(LEGACY_TESTS)), $(legacy_test){,.o}) | tr ' ' '\n' > tests/legacy/$@; fi
 
@@ -323,6 +324,14 @@ LEGACY_TESTS_SOURCES=$(wildcard tests/legacy/*.cc)
 LEGACY_TESTS=$(basename $(LEGACY_TESTS_SOURCES))
 test: $(foreach legacy_test, $(notdir $(LEGACY_TESTS)), legacy_$(legacy_test))
 
+# Rules for compiling programs, saving inferred dependencies at the same time
+%.o: %.cc
+	@test -d .deps || mkdir -p .deps
+	$(COMPILE.cc) $(OUTPUT_OPTION) $< -MT $@ -MMD -MP -MF .deps/$(subst /,__,$*).Td
+	@mv -f .deps/$(subst /,__,$*).Td .deps/$(subst /,__,$*).d
+
+# Load up any dependencies thus previously saved.
+-include .deps/*.d
 
 # make programs, linking to library if there is one, else to all object files
 bin: $(PROGRAMS) $(DYNPROGS)
@@ -383,36 +392,6 @@ $(DOCUMENTS): %.pdf: %.dvi
 	-bibtex $*
 	$(MYLATEX) $*
 	$(MYLATEX) $*
-endif
-
-# Optional optimization: if the caller defines NODEPEND=1 when invoking make,
-# the Makefile.depend file is only generated if it is absent, but it is not
-# automatically regenerated.
-ifdef NODEPEND
-define opt_do_depend
-	test -f Makefile.depend ||
-endef
-else
-define opt_do_depend
-	
-endef
-endif
-
-# Regardless of the NODEPEND variable, "make depend" will update all
-# Makefile.depend files
-depend: opt_do_depend=
-depend: run_depend
-
-# make a dependencies file for explicit inclusion at end of local Makefile
-# NB local make should do a "-include Makefile.depend" to get this stuff.
-# The perl filter is a work-around for a bad design in g++ -MM: it strips
-# the path of any c++ files in generating the .o name, which we don't want.
-run_depend:
-ifdef SOURCES
-	$(opt_do_depend) \
-	$(CXX) -MM $(CXXFLAGS) $(SOURCES) $(CXXTEST_SOURCE) $(LEGACY_TESTS_SOURCES)| \
-	   perl -pe 'if ( /^(\S+)\.o: (\S+)\/\1\./ ) { print "$$2/" }' \
-	   > Makefile.depend &
 endif
 
 install_inc: $(INCLUDES)
