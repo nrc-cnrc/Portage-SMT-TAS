@@ -1,4 +1,4 @@
-                             PORTAGEshared_v1.3
+            PORTAGEshared - current development trunk (post 1.3)
 
 Technologies langagieres interactives / Interactive Language Technologies
 Institut de technologie de l'information / Institute for Information Technology
@@ -12,6 +12,21 @@ license agreement for details.
 
                               Release History
                    (with a summary of important changes)
+
+Current development trunk
+ This sections shows changes since the latest official release.
+
+ Minor changes:
+
+ - Canoe now supports the -bind PID option, exiting automatically when the
+   master process disappears.
+ - The tokenizer now takes linear time regardless of paragraph length (used to
+   be quadratic on the length of each paragraph).
+ - Minor improvements to run-parallel.sh.
+ - Save dependency information per source file during compilation instead of
+   re-processing each file to generate Makefile.depends.
+ - Some code clean-up using Klocwork Insight, fixing potential future problems.
+ - Some code documentation clean-up.
 
 v1.3 21.01.2009
  This update to PORTAGEshared is primarily intended to incorporate the new HMM
