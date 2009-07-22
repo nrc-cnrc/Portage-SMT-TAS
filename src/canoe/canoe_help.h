@@ -104,7 +104,7 @@ Options (in command-line format):\n\
  -ftm W1[:W2[:..]]\n\
         The weight(s) for the forward probabilities in the translation models.\n\
         If this option is used, it has the same requirements as -weight-t.\n\
-        [0.0]\n\
+        [none]\n\
 \n\
  -weight-l W1[:W2[:..]]\n\
  -lm W1[:W2[:..]]\n\
@@ -113,9 +113,9 @@ Options (in command-line format):\n\
         Note: see warning under -lmodel-file for details on the numerical\n\
         interpretation of this parameter.\n\
 \n\
- -weight-d W\n\
- -d W\n\
-        The distortion probability weight.  [1.0]\n\
+ -weight-d W1[:W2[:..]]\n\
+ -d W1[:W2[:..]]\n\
+        The distortion model weight(s).  [1.0]\n\
 \n\
  -weight-w W\n\
  -w W\n\
@@ -123,11 +123,11 @@ Options (in command-line format):\n\
 \n\
  -weight-s W\n\
  -sm W\n\
-        The segmentation model weight.  [0.0]\n\
+        The segmentation model weight.  [none]\n\
 \n\
  -weight-ibm1-fwd W\n\
  -ibm1f W\n\
-        The forward IBM1 feature weight (see -ibm1-fwd-file). [0.0]\n\
+        The forward IBM1 feature weight (see -ibm1-fwd-file). [none]\n\
 \n\
  -random-weights\n\
  -r\n\
@@ -196,12 +196,12 @@ Options (in command-line format):\n\
         the distortion limit rule if L > 0.  Orthogonal with -dist-limit-ext.\n\
 \n\
  -distortion-model model[:model2[:..]]\n\
-        The distortion model(s). Zero or more of of:\n\
+        The distortion model(s). Zero or more of:\n\
         WordDisplacement, PhraseDisplacement, ZeroInfo.\n\
         To get no distortion model, use 'none'.  [WordDisplacement]\n\
 \n\
  -segmentation-model model[#args]\n\
-        The segmentaion model: one of none, count, bernoulli. [none]\n\
+        The segmentation model: one of none, count, bernoulli. [none]\n\
         Some models require an argument, introduced by '#':\n\
         - bernoulli requires a numerical argument (Q parameter)\n\
 \n\
@@ -329,6 +329,10 @@ Options (in command-line format):\n\
         For speed, we normally don't delete the bmg at the end of canoe, but\n\
         for some debugging deleting the bmg might be appropriate.\n\
 \n\
+ -bind PID\n\
+        Binds this instance of canoe to the existence of PID running: when PID\n\
+        disappears, canoe will exit automatically with exit status 45.\n\
+\n\
  -verbose V\n\
  -v V\n\
         The verbosity level (1, 2, 3, or 4).  All verbose output is written to\n\
@@ -336,9 +340,6 @@ Options (in command-line format):\n\
 \n\
  -options\n\
         Produce a shorter help message only listing the option names\n\
-\n\
- -bind PID\n\
-        Binds this instance of canoe to the existence of PID running.\n\
 \n\
   NOTE:\n\
     All options of the form weight-X where X is a decoder feature can be\n\
