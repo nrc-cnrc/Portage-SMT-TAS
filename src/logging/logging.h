@@ -165,7 +165,7 @@ namespace Portage
 
    #define LOG_ASSERT(logger, assertion, pattern, s...) { \
       if (!(assertion)) { \
-         if (strlen(pattern) > 0) { \
+         if (pattern && pattern[0] != 0) { \
             char szBuffer[1024]; \
             snprintf(szBuffer, sizeof(szBuffer)-2, pattern, ## s); \
             szBuffer[1023] = '\0'; \
@@ -217,7 +217,7 @@ namespace Portage
       {
          if (aLogger->isEnabledFor(aLevel))
          {
-            if (strlen(pattern) > 0)
+            if (pattern && pattern[0] != 0)
             {
                char szBuffer[1024];
                va_list params;
