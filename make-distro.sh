@@ -305,7 +305,7 @@ make_usage() {
    run_cmd pushd ./$OUTPUT_DIR/PORTAGEshared
       run_cmd cvs $CVS_DIR co -P \"$VERSION_TAG\" -d SRC_FOR_USAGE PORTAGEshared/src '>&' ../cvs_for_usage.log
       run_cmd pushd ./SRC_FOR_USAGE
-         run_cmd make ICU= CF=-Wno-error -j 5 usage '>&' ../../make_usage.log
+         run_cmd make ICU= LOG4CXX=NONE CF=-Wno-error -j 5 usage '>&' ../../make_usage.log
       run_cmd popd
       run_cmd rm -r SRC_FOR_USAGE
    run_cmd popd
