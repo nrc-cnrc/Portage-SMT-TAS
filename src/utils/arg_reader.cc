@@ -57,6 +57,10 @@ ArgReader::ArgReader(Uint num_switches, const char* const switches[],
         error(ETFatal, "duplicate switch in ArgReader constructor: " + sw);
    }
 
+   // Disable print_help_on_error when the help message is too long.
+   if (print_help_on_error && help_message.size() > 2000)
+      print_help_on_error = this->print_help_on_error = false;
+
    if (print_help_on_error)
       message_to_print_after_error = help_message;
    else if (this->help_switch != string(""))
