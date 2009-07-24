@@ -28,7 +28,7 @@ using namespace Portage;
 
 static char help_message[] = "\n\
 gen_phrase_tables [-hHvijz][-a 'meth args'][-s 'meth args'][-w nw][-addsw]\n\
-                  [-prune1 n][-m max][-min min][-d ldiff][-twist]\n\
+                  [-prune1 n][-m max][-min min][-d ldiff][-ali][-twist]\n\
                   [-ibm n][-hmm][-p0 p0][-up0 up0][-alpha a][-lambda l]\n\
                   [-anchor|-noanchor][-max-jump max_j][-end-dist|-noend-dist]\n\
                   [-1 lang1][-2 lang2][-o name][-f1 freqs1][-f2 freqs2]\n\
@@ -69,6 +69,7 @@ Options:\n\
        languages. Has to be at least 1. [1,1]\n\
 -d     Max permissible difference in number of words between source and\n\
        target phrases. [4]\n\
+-ali   Allow phrase pairs consisting only of unaligned words in each lang [don't]\n\
 -ibm   Use IBM model <n>: 1 or 2\n\
 -hmm   Use an HMM model instead of an IBM model (only works with IBMOchAligner).\n\
        [if, for both models, <model>.pos doesn't exist and <model>.dist does,\n\
@@ -113,7 +114,7 @@ typedef PhraseTableGen<Uint> PhraseTable;
 
 static const char* const switches[] = {
    "v", "vv", "vs", "i", "j", "z", "prune1:", "a:", "s:",
-   "m:", "min:", "d:", "w:", "1:", "2:", "ibm:",
+   "m:", "min:", "d:", "ali", "w:", "1:", "2:", "ibm:",
    "hmm", "p0:", "up0:", "alpha:", "lambda:", "max-jump:",
    "anchor", "noanchor", "end-dist", "noend-dist",
    "twist", "addsw", "o:", "f1:", "f2:",
@@ -136,6 +137,7 @@ static Uint max_phrase_len2 = 4;
 static Uint max_phraselen_diff = 4;
 static Uint min_phrase_len1 = 1;
 static Uint min_phrase_len2 = 1;
+static bool allow_linkless_pairs = false;
 static string model1, model2;
 static string lang1("en");
 static string lang2("fr");
@@ -172,7 +174,7 @@ namespace genPhraseTable {
 /// Specific argument processing class for gen_phrase_table program.
 class ARG : public argProcessor {
 private:
-    Logging::logger m_logger;
+   Logging::logger m_logger;
 
 public:
    /**
@@ -208,11 +210,13 @@ public:
       mp_arg_reader->testAndSet("m", max_phrase_string);
       mp_arg_reader->testAndSet("min", min_phrase_string);
       mp_arg_reader->testAndSet("d", max_phraselen_diff);
+      mp_arg_reader->testAndSet("ali", allow_linkless_pairs);
       mp_arg_reader->testAndSet("w", add_word_translations);
       mp_arg_reader->testAndSet("1", lang1);
       mp_arg_reader->testAndSet("2", lang2);
       mp_arg_reader->testAndSet("ibm", ibm_num);
       mp_arg_reader->testAndSet("hmm", use_hmm);
+
       mp_arg_reader->testAndSet("p0", p0);
       mp_arg_reader->testAndSet("up0", up0);
       mp_arg_reader->testAndSet("alpha", alpha);
@@ -230,12 +234,12 @@ public:
       mp_arg_reader->testAndSet("multipr", multipr_output);
 
       if (ibm_num == 0) {
-        if (!giza_alignment)
-          error(ETFatal, "Can't use -ibm=0 trick unless -giza is used");
-        first_file_arg = 0;
+         if (!giza_alignment)
+            error(ETFatal, "Can't use -ibm=0 trick unless -giza is used");
+         first_file_arg = 0;
       } else {
-        mp_arg_reader->testAndSet(0, "model1", model1);
-        mp_arg_reader->testAndSet(1, "model2", model2);
+         mp_arg_reader->testAndSet(0, "model1", model1);
+         mp_arg_reader->testAndSet(1, "model2", model2);
          if ( ibm_num == 42 && !use_hmm ) {
             // neither -hmm nor -ibm specified; default is IBM2 if .pos files
             // exist, or else HMM if .dist files exist, or error otherwise: we
@@ -345,30 +349,31 @@ int MAIN(argc, argv)
    IBM1* ibm_2=0;
 
    if (ibm_num == 0) {
-     if (verbose) cerr << "**Not** loading IBM models" << endl;
+      if (verbose) cerr << "**Not** loading IBM models" << endl;
    } else {
-     if (use_hmm) {
-	 if (verbose) cerr << "Loading HMM models" << endl;
-       ibm_1 = new HMMAligner(model1, p0, up0, alpha, lambda, anchor, end_dist, max_jump);
-       ibm_2 = new HMMAligner(model2, p0, up0, alpha, lambda, anchor, end_dist, max_jump);
-     } else if (ibm_num == 1) {
-       if (verbose) cerr << "Loading IBM1 models" << endl;
-       ibm_1 = new IBM1(model1);
-       ibm_2 = new IBM1(model2);
-     } else if (ibm_num == 2) {
-       if (verbose) cerr << "Loading IBM2 models" << endl;
-       ibm_1 = new IBM2(model1);
-       ibm_2 = new IBM2(model2);
-     } else
-       error(ETFatal, "Invalid option: -ibm %d", ibm_num);
-     if (verbose) cerr << "models loaded" << endl;
+      if (use_hmm) {
+         if (verbose) cerr << "Loading HMM models" << endl;
+         ibm_1 = new HMMAligner(model1, p0, up0, alpha, lambda, anchor, end_dist, max_jump);
+         ibm_2 = new HMMAligner(model2, p0, up0, alpha, lambda, anchor, end_dist, max_jump);
+      } else if (ibm_num == 1) {
+         if (verbose) cerr << "Loading IBM1 models" << endl;
+         ibm_1 = new IBM1(model1);
+         ibm_2 = new IBM1(model2);
+      } else if (ibm_num == 2) {
+         if (verbose) cerr << "Loading IBM2 models" << endl;
+         ibm_1 = new IBM2(model1);
+         ibm_2 = new IBM2(model2);
+      } else
+         error(ETFatal, "Invalid option: -ibm %d", ibm_num);
+      if (verbose) cerr << "models loaded" << endl;
    }
 
    WordAlignerFactory* aligner_factory = 0;
    vector<WordAligner*> aligners;
 
    if (!giza_alignment) {
-     aligner_factory = new WordAlignerFactory(ibm_1, ibm_2, verbose, twist, add_single_word_phrases);
+     aligner_factory = new WordAlignerFactory(ibm_1, ibm_2, verbose, twist,
+                                              add_single_word_phrases, allow_linkless_pairs);
      for (Uint i = 0; i < align_methods.size(); ++i)
        aligners.push_back(aligner_factory->createAligner(align_methods[i]));
    }
@@ -473,8 +478,10 @@ int MAIN(argc, argv)
 
          if (add_word_translations && ibm_1 && ibm_2) {
             if (verbose) cerr << "ADDING IBM1 translations for untranslated words:" << endl;
-            add_ibm1_translations(1, ibm_1->getTTable(), pt, word_voc_1, word_voc_2);
-            add_ibm1_translations(2, ibm_2->getTTable(), pt, word_voc_2, word_voc_1);
+            add_ibm1_translations(1, ibm_1->getTTable(), pt, word_voc_1,
+                                  word_voc_2);
+            add_ibm1_translations(2, ibm_2->getTTable(), pt, word_voc_2,
+                                  word_voc_1);
             word_voc_1.clear();
             word_voc_2.clear();
          }
@@ -562,7 +569,7 @@ int MAIN(argc, argv)
 END_MAIN
 
 
-// lang is source language for tt: 1 or 2
+// Lang is source language for tt: 1 or 2.
 
 void add_ibm1_translations(Uint lang, const TTable& tt, PhraseTable& pt, 
                            Voc& src_word_voc, Voc& tgt_word_voc)

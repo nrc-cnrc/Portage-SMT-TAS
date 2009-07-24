@@ -84,12 +84,14 @@ depending on <cmd>, one of:\n\
 Options:\n\
 \n\
 -p  Pretty-print output config files [don't]\n\
+-c  Skip integrity check on input config file [check]\n\
 ";
 
 // globals
 
 static bool verbose = false;
 static bool pretty = false;
+static bool nocheck = false;
 static string cmd;
 static string config_in = "-";
 static ofstream ofs;
@@ -146,7 +148,7 @@ int main(int argc, char* argv[])
 
    CanoeConfig c;
    c.read(config_in.c_str());
-   c.check();
+   if (!nocheck) c.check();
 
    vector<string> toks;
    Uint vi;
@@ -375,7 +377,7 @@ RescoreResult parseRescoreResultsLine(const string& line)
 
 void getArgs(int argc, char* argv[])
 {
-   const char* switches[] = {"v", "p"};
+   const char* switches[] = {"v", "p", "c"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 1, 3, help_message);
    arg_reader.read(argc-1, argv+1);
 

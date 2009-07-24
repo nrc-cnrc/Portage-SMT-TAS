@@ -74,7 +74,7 @@ void Voc::readStream(istream& is, const char* stream_name) {
    if ( line != magic_string )
       error(ETFatal, "Magic line does not match Voc magic line in %s: %s",
             stream_name, line.c_str());
-   Uint count;
+   Uint count = 0;
    is >> count;
    if ( !getline(is, line) )
       error(ETFatal, "Unexpected end of file right after Voc magic line in %s",
@@ -166,6 +166,35 @@ Voc& Voc::operator=(const Voc& that) {
       assert(res.second);
    }
    return *this;
+}
+
+bool Voc::remap(Uint index, const char* newToken) {
+   // Obviously an invalid index.
+   if (index >= words.size()) return false;
+
+   // This new token is already part of the vocabulary.
+   MapIter it = map.find(newToken);
+   if (it != map.end()) return false;
+
+   // Get ride of the old token
+   map.erase(words[index]);
+   delete[] words[index];
+
+   // new token
+   const char* w = strdup_new(newToken);
+   pair<MapIter, bool> res = map.insert(make_pair(w, index));
+   assert(res.second);
+   words[index] = w;
+
+   return true;
+}
+
+bool Voc::remap(const char* oldToken, const char* newToken) {
+   // This old token is not part of the vocabulary.
+   MapIter it = map.find(oldToken);
+   if (it == map.end()) return false;
+
+   return remap(it->second, newToken);
 }
 
 bool Voc::test() {

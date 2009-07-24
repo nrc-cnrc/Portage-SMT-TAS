@@ -43,6 +43,7 @@ struct PhraseTableBase
 
    static const string sep;     // separate words in a phrase
    static const string psep;    // separate phrases in a pair
+   static const string psep_replacement;    // Portage's escaped psep
 
    // Constants for coding strategy: number of bytes used to code
    // words within phrases, radix for coding, and highest word count
@@ -405,6 +406,14 @@ void PhraseTableGen<T>::dump_freqs_lang2(ostream& ostr) {
 template<class T>
 void PhraseTableGen<T>::dump_joint_freqs(ostream& ostr, T thresh, bool reverse)
 {
+   // If for some ood reason the source corpora have ||| change it for ___|||___
+   if (wvoc1.index(psep.c_str()) != wvoc1.size()) {
+      wvoc1.remap(psep.c_str(), psep_replacement.c_str());
+   }
+   if (wvoc2.index(psep.c_str()) != wvoc2.size()) {
+      wvoc2.remap(psep.c_str(), psep_replacement.c_str());
+   }
+
    string p1, p2;
    for (iterator it = begin(); !it.equal(end()); it.incr())
       if (it.getJointFreq() >= thresh) {
@@ -523,6 +532,7 @@ bool PhraseTableGen<T>::iterator::equal(const iterator& it) const
 template<class T>
 typename PhraseTableGen<T>::iterator& PhraseTableGen<T>::iterator::operator=(const iterator& it)
 {
+   row_count = it.row_count;
    row_iter = it.row_iter;
    row_iter_end = it.row_iter_end;
    elem_iter = it.elem_iter;
@@ -573,4 +583,3 @@ T& PhraseTableGen<T>::iterator::getJointFreqRef()
 } // namespace Portage
 
 #endif
-// vim:sw=3:

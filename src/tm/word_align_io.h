@@ -167,7 +167,7 @@ public:
    static WordAlignmentReader* create(const string& format);
 };
 
-#define WORD_ALIGNMENT_READER_FORMATS "hwa, green"
+#define WORD_ALIGNMENT_READER_FORMATS "hwa, green, sri"
 
 /**
  * Hwa alignment format in files named "aligned-in.<sentence_id>". Any
@@ -197,6 +197,20 @@ public:
    int sentence_id;
    /// Constructor.
    GreenReader() : sentence_id(0) {}
+
+   virtual istream& operator()(istream &in, 
+                               const vector<string>& toks1, const vector<string>& toks2,
+                               vector< vector<Uint> >& sets);
+};
+
+/**
+ * SRI format: i-j for each link between word i and word j, 0-based. No null links.
+ */
+class SRIReader : public WordAlignmentReader {
+public:
+   int sentence_id;
+   /// Constructor.
+   SRIReader() : sentence_id(0) {}
 
    virtual istream& operator()(istream &in, 
                                const vector<string>& toks1, const vector<string>& toks2,

@@ -49,7 +49,7 @@ static void* process_bind_thread(void* ptr) {
       fprintf(stderr, "Invalid signal sent to %d\n", pid);
    }
    else if (errno == ESRCH) {
-   fprintf(stderr, "Process %d is no longer running.\n", pid);
+      fprintf(stderr, "Process %d is no longer running.\n", pid);
    }
    else {
       fprintf(stderr, "process_bind kill reported an unknown error: %d\n", errno);

@@ -1,4 +1,4 @@
- /**
+/**
  * @author George Foster
  * @file phrase_smoother_cc.h  Implementation for phrase_smoother.h.
  * 
@@ -225,7 +225,7 @@ GTSmoother<T>::GTSmoother(PhraseSmootherFactory<T>& factory, const string& args)
    for (Uint i = 0; i < pt.numLang2Phrases(); ++i)
       lang2_marginals[i] = lang2_marginals[i] * zero_mass / total_freq;
 
-   // pass 2: finish summing smoothed marginals
+   // pass 2: finish summing smoothed marginals.
 
    for (typename PhraseTableGen<T>::iterator it = pt.begin(); !it.equal(pt.end()); it.incr()) {
       const double gtfreq = gt->smoothedFreq(it.getJointFreq());

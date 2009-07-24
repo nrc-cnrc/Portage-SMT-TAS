@@ -5,7 +5,7 @@
  * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2007, Sa Majeste la Reine du Chef du Canada / 
  * Copyright 2007, Her Majesty in Right of Canada
@@ -179,10 +179,14 @@ ostream& SRIWriter::operator()(ostream &out,
                                const vector<string>& toks1, const vector<string>& toks2,
                                const vector< vector<Uint> >& sets) 
 {
+   bool first = true;
    for (Uint i = 0; i < toks1.size(); ++i)
       for (Uint j = 0; j < sets[i].size(); ++j)
-         if (sets[i][j] < toks2.size())
-            cout << i << '-' << sets[i][j] << ' ';
+         if (sets[i][j] < toks2.size()) {
+            if (!first) out << ' ';
+            else first = false;
+            out << i << '-' << sets[i][j];
+         }
    out << endl;
    return out;
 }
@@ -198,6 +202,8 @@ WordAlignmentReader* WordAlignmentReader::create(const string& format)
       writer = new HwaReader();
    else if (format == "green")
       writer = new GreenReader();
+   else if (format == "sri")
+      writer = new SRIReader();
    else 
       error(ETFatal, "Unknown alignment format: %s", format.c_str());
 
@@ -294,5 +300,31 @@ istream& GreenReader::operator()(istream &in,
             sets[i][j] = conv<Uint>(subtoks[j]);
       }
    }   
+   return in;
+}
+
+istream& SRIReader::operator()(istream &in, 
+                               const vector<string>& toks1, const vector<string>& toks2,
+                               vector< vector<Uint> >& sets)
+{
+   string line;
+   vector<string> toks, subtoks;
+
+   sets.clear();
+   sets.resize(toks1.size());
+
+   if (!getline(in, line))
+      error(ETFatal, "aligment file too short");
+   split(line, toks);
+   for (Uint i = 0; i < toks.size(); ++i) {
+      if (splitZ(toks[i], subtoks, "-") != 2)
+         error(ETFatal, "format error in SRI-style alignment: expecting tokens in format i-j");
+      Uint l1 = conv<Uint>(subtoks[0]);
+      Uint l2 = conv<Uint>(subtoks[1]);
+      assert(l1 < toks1.size()); // lazy; should be error
+      assert(l2 < toks2.size());
+      sets[l1].push_back(l2);
+   }
+
    return in;
 }

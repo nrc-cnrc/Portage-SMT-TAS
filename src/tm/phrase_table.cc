@@ -20,6 +20,7 @@ using namespace Portage;
 
 const string PhraseTableBase::sep = " ";
 const string PhraseTableBase::psep = "|||";
+const string PhraseTableBase::psep_replacement = "___|||___";
 
 void PhraseTableBase::codePhrase(ToksIter beg, ToksIter end, string& coded, const string& sep) 
 {

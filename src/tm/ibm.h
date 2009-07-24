@@ -335,7 +335,7 @@ namespace Portage {
      *             posteriors[j][useImplicitNulls ? src.size() : 0]
      *             will contain the probability of aligning tgt[j] to NULL.
      *             Note that for a 1-many alignment model, this always holds:
-     *                 sum_j(posteriors[j][i]) = 1.0 for all j.
+     *                 sum_i(posteriors[j][i]) = 1.0 for all j.
      * @return log(p(tgt|src)), the log of the global prob summed over all
      *         alignments - note: words causing p(tgt|src) to be 0.0 will be
      *         ignored in this calculation, and no smoothing is used, so the

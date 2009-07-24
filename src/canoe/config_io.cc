@@ -149,6 +149,7 @@ CanoeConfig::CanoeConfig()
    bCubePruning           = false;
    cubeLMHeuristic        = "incremental";
    futLMHeuristic         = "incremental";
+   futScoreUseFtm         = true;
    final_cleanup          = false;  // for speed reason we don't normally delete the bmg
    bind_pid               = -1;
 
@@ -227,6 +228,7 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("cube-pruning", "bool", &bCubePruning));
    param_infos.push_back(ParamInfo("cube-lm-heuristic", "string", &cubeLMHeuristic));
    param_infos.push_back(ParamInfo("future-score-lm-heuristic", "string", &futLMHeuristic));
+   param_infos.push_back(ParamInfo("future-score-use-ftm", "bool", &futScoreUseFtm));
    param_infos.push_back(ParamInfo("lb", "bool", &bLoadBalancing));
    param_infos.push_back(ParamInfo("final-cleanup", "bool", &final_cleanup));
    param_infos.push_back(ParamInfo("bind", "int", &bind_pid));
@@ -243,18 +245,23 @@ CanoeConfig::CanoeConfig()
 
    for (Uint i = 0; i < param_infos.size(); ++i) {
       param_infos[i].c = this;
-      string app(param_infos[i].tconv == "bool" ? "" : ":");
+      bool bool_param = (param_infos[i].tconv == "bool");
+      string app(bool_param ? "" : ":");
       for (Uint j = 0; j < param_infos[i].names.size(); ++j) {
          param_map[param_infos[i].names[j]] = &param_infos[0] + i;
-	 param_list.push_back(param_infos[i].names[j] + app);
+         param_list.push_back(param_infos[i].names[j] + app);
+         if ( bool_param ) {
+            param_map["no-" + param_infos[i].names[j]] = &param_infos[0] + i;
+            param_list.push_back("no-" + param_infos[i].names[j]);
+         }
       }
    }
 
    for (Uint i = 0; i < weight_params.size(); ++i) {
       map<string,ParamInfo*>::iterator it = param_map.find(weight_params[i]);
       if (it == param_map.end())
-	 error(ETFatal, "programmer error: weight parameter %s not found in param_infos list",
-	       weight_params[i].c_str());
+         error(ETFatal, "programmer error: weight parameter %s not found in param_infos list",
+               weight_params[i].c_str());
       if (it->second->tconv != "double" && it->second->tconv != "doubleVect")
          error(ETFatal, "programmer error: weight parameter %s is not double or doubleVect",
                weight_params[i].c_str());
@@ -293,10 +300,10 @@ void CanoeConfig::ParamInfo::set(const string& str)
       splitCheckZ(s, *(vector<Uint>*)val, ":");
    } else if (tconv == "doubleVect") {
       splitCheckZ(s, *(vector<double>*)val, ":");
-   } else if (tconv == "lat") {	// lattice params
+   } else if (tconv == "lat") {   // lattice params
       c->latticeFilePrefix = s;
       c->latticeOut = (c->latticeFilePrefix != "");
-   } else if (tconv == "nb") {	// nbest list params
+   } else if (tconv == "nb") {   // nbest list params
       vector<string> toks;
       split(s, toks, ":", 2);
       c->nbestFilePrefix = toks[0] == ALT_EMPTY_STRING ? "" : toks[0];
@@ -306,6 +313,15 @@ void CanoeConfig::ParamInfo::set(const string& str)
       error(ETFatal, "programmer error: cannot convert param %s - conversion method %s unknown",
             names[0].c_str(), tconv.c_str());
 }
+
+
+// Set bool parameter value directly from a bool argument
+
+void CanoeConfig::ParamInfo::set(bool value) {
+   assert(tconv == "bool");
+   *(bool*)val = value;
+}
+
 
 // Get string representation for parameter value.
 
@@ -337,11 +353,11 @@ string CanoeConfig::ParamInfo::get(bool pretty) {
    } else if (tconv == "doubleVect") {
       vector<double>& v = *(vector<double>*)val;
       ss << join<double>(v.begin(), v.end(), ":", precision);
-   } else if (tconv == "lat") {	// lattice params
+   } else if (tconv == "lat") {   // lattice params
       ss << c->latticeFilePrefix;
-   } else if (tconv == "nb") {	// nbest list params
+   } else if (tconv == "nb") {   // nbest list params
       ss << (c->nbestFilePrefix == "" ? ALT_EMPTY_STRING : c->nbestFilePrefix)
-	 << ":" << c->nbestSize;
+         << ":" << c->nbestSize;
    } else
       error(ETFatal, "programmer error: cannot convert param %s - conversion method %s unknown",
             names[0].c_str(), tconv.c_str());
@@ -355,12 +371,15 @@ void CanoeConfig::setFromArgReader(ArgReader& arg_reader)
    for (it = param_map.begin(); it != param_map.end(); ++it) {
       string val;
       if (arg_reader.getSwitch(it->first.c_str(), &val)) {
-	 if (!it->second->set_from_cmdline) {
-	    it->second->set(val);
-	    it->second->set_from_cmdline = true;
-	 } else
-	    error(ETWarn, "ignoring duplicate option -%s on command line",
-		  it->first.c_str());
+         if (!it->second->set_from_cmdline) {
+            if ( it->second->tconv == "bool" )
+               it->second->set(it->first.compare(0,3,"no-") != 0);
+            else
+               it->second->set(val);
+            it->second->set_from_cmdline = true;
+         } else
+            error(ETWarn, "ignoring duplicate option -%s on command line",
+                  it->first.c_str());
       }
    }
 }
@@ -386,23 +405,23 @@ static bool getValue(istream& configin, string& val)
       bool is_white = (c == ' ' || c == '\t' || c == '\r' || c == '\n');
       switch (state) {
       case in_white:
-	 if (c == '#') state = in_comment;
-	 else if (c == '[') {configin.putback(c); state = done;}
-	 else if (!is_white) {
-	    state = in_word;
-	    if (val.length() != 0) val.append(1, ':');
-	    val.append(1, c);
-	 }
-	 break;
+         if (c == '#') state = in_comment;
+         else if (c == '[') {configin.putback(c); state = done;}
+         else if (!is_white) {
+            state = in_word;
+            if (val.length() != 0) val.append(1, ':');
+            val.append(1, c);
+         }
+         break;
       case in_word:
-	 if (is_white) state = in_white;
-	 else val.append(1, c);
-	 break;
+         if (is_white) state = in_white;
+         else val.append(1, c);
+         break;
       case in_comment:
-	 if (c == '\n') state = in_white;
-	 break;
-      case done:		// keep compiler quiet
-	 break;
+         if (c == '\n') state = in_white;
+         break;
+      case done:      // keep compiler quiet
+         break;
       }
    }
    return val.length() > 0;
@@ -489,9 +508,12 @@ void CanoeConfig::read(istream& configin)
             string arg;
             if (it->second->tconv != "bool") getValue(configin, arg);
             if (!it->second->set_from_config) {
-               it->second->set(arg);
-	       it->second->set_from_config = true;
-	    } else
+               if ( it->second->tconv == "bool" )
+                  it->second->set(it->first.compare(0,3,"no-") != 0);
+               else
+                  it->second->set(arg);
+               it->second->set_from_config = true;
+            } else
                error(ETWarn, "ignoring duplicate option [%s] in config file", s.c_str());
 
          } else
@@ -607,7 +629,7 @@ void CanoeConfig::check()
       if (!isfinite(wts[i]))
          error(ETFatal, "A weight has a non-finite value (id:%d, value:%f).",
                i, wts[i]);
-}
+} //check()
 
 void CanoeConfig::check_all_files() const
 {
@@ -672,8 +694,8 @@ string& CanoeConfig::getFeatureWeightString(string& s) const
       assert (it != param_map.end());
       string val = it->second->get();
       if (val != ALT_EMPTY_STRING) {
-	 s += " -" + weight_params[i];
-	 s += " " + val;
+         s += " -" + weight_params[i];
+         s += " " + val;
       }
    }
    return s;
@@ -737,7 +759,7 @@ void CanoeConfig::setFeatureWeights(const vector<double>& weights)
          *(double*)it->second->val = *wp++;
       else if (it->second->tconv == "doubleVect") {
          vector<double>& v = *(vector<double>*)it->second->val;
-	 for (Uint j = 0; j < v.size(); ++j)  v[j] = *wp++;
+         for (Uint j = 0; j < v.size(); ++j)  v[j] = *wp++;
       } else
          assert(false);
    }
@@ -749,12 +771,13 @@ void CanoeConfig::write(ostream& configout, Uint what, bool pretty)
    vector<ParamInfo>::iterator it;
    for (it = param_infos.begin(); it != param_infos.end(); ++it) {
       if ((what == 0 && !it->set_from_config) ||
-	  (what == 1 && !it->set_from_config && !it->set_from_cmdline))
-	 continue;
+            (what == 1 && !it->set_from_config && !it->set_from_cmdline))
+         continue;
       if (it->tconv == "bool") { // boolean params are special case
-	 if (*(bool*)it->val) configout << "[" << it->names[0] << "]" << endl;
-      } else			// normal param
-	 configout << "[" << it->names[0] << "] " << it->get(pretty) << endl;
+         configout << "[" << (*(bool*)it->val ? "" : "no-")
+                   << it->names[0] << "]" << endl;
+      } else         // normal param
+         configout << "[" << it->names[0] << "] " << it->get(pretty) << endl;
    }
 }
 

@@ -122,7 +122,8 @@ WordAlignerFactory::TInfo WordAlignerFactory::tinfos[] = {
 
 WordAlignerFactory::WordAlignerFactory(IBM1* ibm_lang2_given_lang1,
                                        IBM1* ibm_lang1_given_lang2,
-                                       Uint verbose, bool twist, bool addSingleWords)
+                                       Uint verbose, bool twist, bool addSingleWords,
+                                       bool allow_linkless_pairs)
    : ibm_lang2_given_lang1(ibm_lang2_given_lang1)
    , ibm_lang1_given_lang2(ibm_lang1_given_lang2)
    , file_lang2_given_lang1(NULL)
@@ -130,12 +131,14 @@ WordAlignerFactory::WordAlignerFactory(IBM1* ibm_lang2_given_lang1,
    , verbose(verbose)
    , twist(twist)
    , addSingleWords(addSingleWords)
+   , allow_linkless_pairs(allow_linkless_pairs)
 {
 }
 
 WordAlignerFactory::WordAlignerFactory(GizaAlignmentFile* file_lang2_given_lang1,
                                        GizaAlignmentFile* file_lang1_given_lang2,
-                                       Uint verbose, bool twist, bool addSingleWords)
+                                       Uint verbose, bool twist, bool addSingleWords,
+                                       bool allow_linkless_pairs)
    : ibm_lang2_given_lang1(NULL)
    , ibm_lang1_given_lang2(NULL)
    , file_lang2_given_lang1(file_lang2_given_lang1)
@@ -143,6 +146,7 @@ WordAlignerFactory::WordAlignerFactory(GizaAlignmentFile* file_lang2_given_lang1
    , verbose(verbose)
    , twist(twist)
    , addSingleWords(addSingleWords)
+   , allow_linkless_pairs(allow_linkless_pairs)
 {
 }
 
@@ -471,7 +475,7 @@ bool IBMOchAligner::addTest(int ii, int jj, vector< vector<Uint> >& sets1)
 
    vector<Uint>::iterator p = lower_bound(sets1[i].begin(), sets1[i].end(), j);
    if (p != sets1[i].end() && *p == j)
-      return false;             // already in sets1
+      return false;             // already in sets1      if
 
    sets1[i].insert(p, jj);
    connected2[j] = true;

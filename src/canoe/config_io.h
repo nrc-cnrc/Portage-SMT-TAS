@@ -131,11 +131,11 @@ public:
 
    bool randomWeights;              ///< true == use rnd weights for each sent.
    Uint randomSeed;                 ///< Seed for randomWeights
-   string sentWeights;		    ///< Filename for sentence-specific weights.
+   string sentWeights;              ///< Filename for sentence-specific weights.
    Uint phraseTableSizeLimit;       ///< Num target phrases per source phrase
    double phraseTableThreshold;     ///< Prob threshold for pruning PTs.
    string phraseTablePruneType;     ///< Which probs to use for pruning PTs
-   double phraseTableLogZero;	    ///< Logprob for missing or 0-prob PT entries
+   double phraseTableLogZero;       ///< Logprob for missing or 0-prob PT entries
    Uint maxStackSize;               ///< s = stack size limit
    double pruneThreshold;           ///< b = prob-based stack pruning threshold
    Uint covLimit;                   ///< Coverage pruning limit
@@ -170,6 +170,7 @@ public:
    bool bCubePruning;               ///< Run the cube pruning decoder
    string cubeLMHeuristic;          ///< What LM heuristic to use in cube pruning
    string futLMHeuristic;           ///< What LM heuristic to use when calculating future scores
+   bool futScoreUseFtm;             ///< Whether to use forward translation probabilities to compute the future costs
    bool final_cleanup;              ///< Indicates if canoe should delete its bmg.
    int  bind_pid;                   ///< What pid to monitor.
 
@@ -341,6 +342,10 @@ private:
       /// Set value from string.
       /// @param s  new value
       void set(const string& s);
+      /// Set this bool parameter's value
+      /// @param value  new value
+      /// @pre tconv == "bool"
+      void set(bool value);
 
       /// Get string representation of current value
       /// @param pretty make the string pretty (caution: not necessarily

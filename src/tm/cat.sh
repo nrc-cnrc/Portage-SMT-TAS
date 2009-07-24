@@ -40,6 +40,7 @@ Options to control parallel processing:
   -v        Turn on verbose output of train_ibm.
   -vv       Turn on verbose output of cat.sh itself.
   -vvv      Turn on verbose output of run-parallel.sh and cat.sh.
+  -d(ebug)  Add some debugging output and don't cleanup temp files.
   -notreally Just print the commands to execute, don't run them.
 
 Model training options are documented in "train_ibm -h".
@@ -118,7 +119,7 @@ while [[ $# -gt 0 ]]; do
                error_exit "The $1 option is reserved for use by cat.sh.";;
    -tobin|-frombin)
                error_exit "Use train_ibm directly for model conversions.";;
-   -v|-r|-m|-vr|-rv|-anchor|-liang|-end-dist) 
+   -v|-r|-m|-vr|-rv)
                TRAIN_IBM_OPTS=("${TRAIN_IBM_OPTS[@]}" "$1");;
    -p|-p2|-speed|-beg|-end|-slen|-tlen|-bksize)
                arg_check 1 $# $1
@@ -128,6 +129,8 @@ while [[ $# -gt 0 ]]; do
    -rev-i)     arg_check 1 $# $1; REV_INIT_MODEL=$2; shift;;
    -rev-s)     arg_check 1 $# $1; REV_SAVE_IBM1=$2; shift;;
    -rev-model) arg_check 1 $# $!; REV_MODEL=$2; shift;;
+   -anchor|-liang|-end-dist) 
+               TRAIN_HMM_OPTS=("${TRAIN_HMM_OPTS[@]}" "$1");;
    -p0|-up0|-alpha|-lambda|-max-jump|-mimic|-word-classes-l1|-word-classes-l2|-map-tau|-lex-prune-ratio)
                test $1 = -mimic && DO_HMM=1
                arg_check 1 $# $1
@@ -215,7 +218,20 @@ for outputfile in $MODEL $REV_MODEL $SAVE_IBM1 $REV_SAVE_IBM1; do
    fi
 done
 
-TMPPFX=$MODEL.tmp$$/
+if [[ $PBS_JOBID ]]; then
+   if [[ $PBS_JOBID =~ "^[[:digit:]]+" ]]; then
+      TMPPFX=$MODEL.tmp"${BASH_REMATCH[0]}"
+   else
+      TMPPFX=$MODEL.tmp$PBS_JOBID
+   fi
+else
+   TMPPFX=$MODEL.tmp$$
+fi
+while [[ -d $TMPPFX ]]; do
+   TMPPFX=$TMPPFX.1
+done
+TMPPFX=$TMPPFX/
+
 mkdir $TMPPFX || error_exit "Can't create directory $TMPPFX - aborting."
 # We no longer want this trap: only clean up on successful run, at the end of
 # the script

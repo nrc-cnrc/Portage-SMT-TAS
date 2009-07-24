@@ -15,13 +15,13 @@ OBJECTS = \
         hmm_jump_end_dist.o \
         hmm_jump_classes.o \
         hmm_jump_map.o \
-	ibm.o \
-	phrase_table.o \
-	phrase_table_reader.o \
-	tm_io.o \
-	ttable.o \
-	ttablewithmax.o \
-	word_align.o \
+        ibm.o \
+        phrase_table.o \
+        phrase_table_reader.o \
+        tm_io.o \
+        ttable.o \
+        ttablewithmax.o \
+        word_align.o \
         word_align_io.o
 
 LIBRARY = libportage_tm
@@ -30,18 +30,18 @@ TESTPROGS = \
         try
 
 PROGRAMS = $(TESTPROGS) \
-	align-words \
-	bag_trans \
+        align-words \
+        bag_trans \
         eval_word_alignment \
-	gen_phrase_tables \
-	ibm_entropy \
-	joint2cond_phrase_tables \
-	phrase_align_stats \
-	phrase_oracle \
-	run_ibm \
-	train_ibm \
-	tt2pt \
-	tt_pt_merge \
+        gen_phrase_tables \
+        ibm_entropy \
+        joint2cond_phrase_tables \
+        phrase_align_stats \
+        phrase_oracle \
+        run_ibm \
+        train_ibm \
+        tt2pt \
+        tt_pt_merge \
         word_align_tool
 
 

@@ -30,15 +30,23 @@ align-words [-hHvni][-o 'format'][-a 'meth args'][-ibm n][-hmm][-twist][-giza]\n
             [-post] ibm-model_lang2_given_lang1 ibm-model_lang1_given_lang2\n\
             file1_lang1 file1_lang2 ... fileN_lang1 fileN_lang2\n\
 \n\
-Align words in a set of line-aligned files using IBM or HMM models. The models\n\
-should be for p(lang2|lang1) and p(lang1|lang2) respectively (see train_ibm);\n\
-<model1> should contain entries of the form 'lang1 lang2 prob', and <model2>\n\
-the reverse. Either model argument can be \"no-model\", in which case no model\n\
-will be loaded; this may be useful with an alignment method that does not\n\
-require models or that requires only one.\n\
+  Align words in a set of line-aligned files using IBM or HMM models. The models\n\
+  should be for p(lang2|lang1) and p(lang1|lang2) respectively (see train_ibm);\n\
+  <model1> should contain entries of the form 'lang1 lang2 prob', and <model2>\n\
+  the reverse. Either model argument can be \"no-model\", in which case no model\n\
+  will be loaded; this may be useful with an alignment method that does not\n\
+  require models or that requires only one.\n\
 \n\
-Output is written to stdout. The format is determined by the output selection\n\
-options (see below).\n\
+  Output is written to stdout. The format is determined by the output selection\n\
+  options (see below).\n\
+\n\
+Note:\n\
+\n\
+  To get probabilities per sentence pairs according to an individual word-\n\
+  model, it may be easier to use gen_feature_values instead.  E.g.:\n\
+    gen_feature_values IBM2SrcGivenTgt ibm2.src_given_tgt src.al tgt.al\n\
+  See gen_feature_values -h for details and rescore_train -H for the list of\n\
+  available feature functions.\n\
 \n\
 Options:\n\
 \n\

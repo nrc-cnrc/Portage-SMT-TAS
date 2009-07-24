@@ -45,10 +45,15 @@ public:
    /// Iterator over a TTable's source or target vocabulary
    typedef unordered_map<string,Uint>::const_iterator WordMapIter;
 
-   /// Get an iterator to the beginning of the source vocabulary
+   /// Get a const iterator to the beginning of the source vocabulary
    WordMapIter beginSrcVoc() const { return sword_map.begin(); }
-   /// Get an iterator to the end of the source vocabulary
+   /// Get a const iterator to the end of the source vocabulary
    WordMapIter endSrcVoc() const { return sword_map.end(); }
+
+   /// Get a const iterator to the beginning of the target vocabulary
+   WordMapIter beginTgtVoc() const { return tword_map.begin(); }
+   /// Get a const iterator to the end of the target vocabulary
+   WordMapIter endTgtVoc() const { return tword_map.end(); }
 
 private:
 
@@ -209,7 +214,7 @@ public:
     * @param src_word  String to convert to its index value in the source
     * vocabulary.
     * @return the index of src_word in the source vocabulary or
-    * numSourceWords() if unknown
+    *         numSourceWords() if unknown
     */
    Uint sourceIndex(const string& src_word) {
       WordMapIter p = sword_map.find(src_word);
@@ -230,7 +235,7 @@ public:
     * Get the source distribution from a word.
     * @param src_word  source string to retrieve.
     * @return the source distribution associated with src_index or the
-    * empty distribution if not found.
+    *         empty distribution if not found.
     */
    const SrcDistn& getSourceDistn(const string& src_word) const {
       WordMapIter p = sword_map.find(src_word);
@@ -242,7 +247,7 @@ public:
     * @param target_index  target index
     * @param src_distn     source distribution
     * @return the offset of given target index within src_distn, or
-    * return -1 if not there.
+    *         return -1 if not there.
     */
    int targetOffset(Uint target_index, const SrcDistn& src_distn);
 

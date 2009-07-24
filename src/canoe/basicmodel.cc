@@ -191,6 +191,7 @@ BasicModelGenerator::BasicModelGenerator(const CanoeConfig& c,
    lm_numwords(1),
    futureScoreLMHeuristic(lm_heuristic_type_from_string(c.futLMHeuristic)),
    cubePruningLMHeuristic(lm_heuristic_type_from_string(c.cubeLMHeuristic)),
+   futureScoreUseFtm(c.futScoreUseFtm),
    addWeightMarked(log(c.weightMarked))
 {
    if ( this->phraseTable == NULL ) {
@@ -214,6 +215,7 @@ BasicModelGenerator::BasicModelGenerator(
    lm_numwords(1),
    futureScoreLMHeuristic(lm_heuristic_type_from_string(c.futLMHeuristic)),
    cubePruningLMHeuristic(lm_heuristic_type_from_string(c.cubeLMHeuristic)),
+   futureScoreUseFtm(c.futScoreUseFtm),
    addWeightMarked(log(c.weightMarked))
 {
    if ( this->phraseTable == NULL ) {
@@ -556,6 +558,12 @@ double **BasicModelGenerator::precomputeFutureScores(
                ((MultiTransPhraseInfo *) *it)->phrase_trans_probs,
                transWeightsV, transWeightsV.size());
 
+            if (futureScoreUseFtm) {
+               newScore += dotProduct(
+                     ((ForwardBackwardPhraseInfo *) *it)->forward_trans_probs,
+                     forwardWeightsV, forwardWeightsV.size());
+            }
+
             // Add heuristic LM score
             if ( futureScoreLMHeuristic == LMH_UNIGRAM ) {
                // Our old way: use the unigram LM score
@@ -673,7 +681,7 @@ void BasicModelGenerator::getRawLM(
       // Start of sentence
       endPhrase.push_back(tgt_vocab.index(PLM::SentStart));
    }
-   assert(endPhrase.size() > last_phrase_size);
+   assert(endPhrase.size() >= last_phrase_size);
    assert(endPhrase.size() <= num_words);
 
    const Uint context_len = endPhrase.size()-1;
@@ -1006,7 +1014,7 @@ double BasicModel::rangePartialScore(const PartialTranslation& trans)
 
 double BasicModel::phrasePartialScore(const PhraseInfo* phrase)
 {
-   // Backward translation socre - the main information source used here.
+   // Backward translation score - the main information source used here.
    double score = phrase->phrase_trans_prob;
 
    // Forward translation score (if used)
@@ -1115,6 +1123,16 @@ void BasicModel::getFeatureFunctionVals(vector<double> &vals,
       parent.getRawForwardTrans(vals, trans);
    }
 } // getFeatureFunctionVals
+
+void BasicModel::getFeatureWeights( vector<double> &wts )
+{
+   // The order of the feature weights is the same as for getFeatureFunctionVals
+   wts.clear();
+   wts.insert( wts.end(), featureWeights.begin(), featureWeights.end() );
+   wts.insert( wts.end(), lmWeights.begin(), lmWeights.end() );
+   wts.insert( wts.end(), transWeights.begin(), transWeights.end() );
+   wts.insert( wts.end(), forwardWeights.begin(), forwardWeights.end() );
+} // getFeatureWeights
 
 void BasicModel::getTotalFeatureFunctionVals(vector<double> &vals,
         const PartialTranslation &trans)

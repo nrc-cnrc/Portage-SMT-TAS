@@ -236,6 +236,8 @@ namespace Portage
       LMHeuristicType futureScoreLMHeuristic;
       /// LM heuristic to use in cube pruning
       LMHeuristicType cubePruningLMHeuristic;
+      /// future Score Use Forward tm
+      bool futureScoreUseFtm;
 
       // These compute the raw feature function values of different sorts.
       /**
@@ -785,6 +787,14 @@ namespace Portage
        */
       virtual void getFeatureFunctionVals(vector<double> &vals,
             const PartialTranslation &trans);
+
+      /**
+       * @brief Get the feature weights in the conventional order
+       *
+       * Returns the feature weights
+       * @param wts      vector to receive the feature values
+       */
+      virtual void getFeatureWeights(vector<double> &wts);
 
       /**
        * @brief Get the total feature function values

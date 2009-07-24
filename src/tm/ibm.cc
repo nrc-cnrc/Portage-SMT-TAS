@@ -453,8 +453,8 @@ double IBM1::linkPosteriors(
 
    double log_pr = 0;
 
+   double numerators[J+1];
    for (Uint i = 0; i < I; ++i ) {
-      double numerators[J+1];
       double sum(0);
       for (Uint j = 0; j < src.size(); ++j ) {
          const double lex_pr = tt.getProb(src[j], tgt[i],

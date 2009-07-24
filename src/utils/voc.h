@@ -182,6 +182,22 @@ public:
    /// Swap the contents of two vocabularies.
    void swap(Voc& that);
 
+   /**
+    * Remap an index id to some new token.
+    * @param index  index to remap.
+    * @param newToken new token for index.
+    * @return Returns false if index is invalid.
+    */
+   bool remap(Uint index, const char* newToken);
+
+   /**
+    * Remap some old token for a new one.
+    * @param oldToken old token to change.
+    * @param newToken new token to use.
+    * @return Returns false if oldToken is not found.
+    */
+   bool remap(const char* oldToken, const char* newToken);
+
    /// Copy constructor does a deep copy - expensive since it must reallocate
    /// all the memory.
    Voc(const Voc& that);

@@ -224,7 +224,7 @@ void doEverything(const char* prog_name)
 
 // arg processing
 
-void getArgs(int argc, const char* const argv[])
+static void getArgs(int argc, const char* const argv[])
 {
    const string alt_help = PhraseSmootherFactory<Uint>::help();
    const char* switches[] = {

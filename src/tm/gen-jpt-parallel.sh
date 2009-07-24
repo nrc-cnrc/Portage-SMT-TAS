@@ -164,7 +164,6 @@ if (( $RC != 0 )); then
    exit $RC
 fi
 
-
 # Merging parts
 test $DEBUG && echo merge_counts $OUTFILE $WORKDIR/*.jpt.gz
 

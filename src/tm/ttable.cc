@@ -229,16 +229,16 @@ void TTable::getSourceDistnByDecrProb(const string& src_word,
 
 double TTable::getBestTrans(const string& src_word, string& best_trans)
 {
-  TIndexAndProb best = make_pair(numTargetWords(), -1.0);
+   TIndexAndProb best = make_pair(numTargetWords(), -1.0);
 
-  SrcDistn& sd = src_distns[sourceIndex(src_word)];
+   SrcDistn& sd = src_distns[sourceIndex(src_word)];
 
-  for (Uint i = 0; i < sd.size(); ++i)
-    if (sd[i].second > best.second)
-      best = sd[i];
+   for (Uint i = 0; i < sd.size(); ++i)
+      if (sd[i].second > best.second)
+         best = sd[i];
 
    if (best.first != numTargetWords())
-     best_trans = targetWord(best.first);
+      best_trans = targetWord(best.first);
 
    return best.second;
 }
@@ -464,7 +464,7 @@ Uint TTable::prune(double thresh, double null_thresh, const string& null_word)
             //src_distns[i].erase(src_distns[i].begin()+j);
             ++j;
          }
-         }
+      }
       if ( j > keep_j ) {
          src_distns[i].erase(src_distns[i].begin()+keep_j, src_distns[i].end());
          assert(src_distns[i].size() == keep_j);

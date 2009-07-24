@@ -75,7 +75,7 @@ public:
     * Words that are unaligned, or that are explicitly aligned to the end position
     * in the other language (and to no other words), are not affected by this
     * operation.
-    * 
+    *
     * @param sets1 word alignments in std WordAligner format. These are modified
     * by adding links for closure.
     * @param csets sets of L1 words that share the same set of L2 connections.
@@ -111,6 +111,7 @@ class WordAlignerFactory
    Uint verbose;
    bool twist;
    bool addSingleWords;
+   bool allow_linkless_pairs;
 
    /// Generic object to create various WordAligner.
    template<class T> struct DCon {
@@ -157,9 +158,12 @@ public:
     * @param twist With IBM1, assume one language has reverse word order. No
     * effect with IBM2
     * @param addSingleWords add single-word phrase pairs for each alignment link
+    * @param allow_linkless_pairs during phrase extraction, allow phrase pairs
+    *        that consist only of unaligned words in each language
     */
    WordAlignerFactory(IBM1* ibm_lang2_given_lang1, IBM1* ibm_lang1_given_lang2,
-                      Uint verbose, bool twist, bool addSingleWords);
+                      Uint verbose, bool twist, bool addSingleWords,
+                      bool allow_linkless_pairs = false);
 
    /**
     * Construct with GizaAlignmentFile in both directions.
@@ -168,10 +172,13 @@ public:
     * @param verbose level: 0 for no messages, 1 for basic, 2 for detail
     * @param twist no effect (currently)
     * @param addSingleWords add single-word phrase pairs for each alignment link
+    * @param allow_linkless_pairs during phrase extraction, allow phrase pairs
+    *        that consist only of unaligned words in each language
     */
    WordAlignerFactory(GizaAlignmentFile* file_lang2_given_lang1,
                       GizaAlignmentFile* file_lang1_given_lang2,
-                      Uint verbose, bool twist, bool addSingleWords);
+                      Uint verbose, bool twist, bool addSingleWords,
+                      bool allow_linkless_pairs = false);
 
    /**
     * Create a new aligner according to specifications.
@@ -181,7 +188,7 @@ public:
     *             NULL
     * @return Returns a pointer to a new WordAligner.
     */
-   WordAligner* createAligner(const string& tname, const string& args,  
+   WordAligner* createAligner(const string& tname, const string& args,
                               bool fail = true);
 
    /**
@@ -297,7 +304,9 @@ public:
     * Add all phrases licensed by a given alignment to a phrase table.
     * NB: This probably isn't the best place for this fcn, but it will squat
     * here until it gets a better home. Implementation is at the end of this
-    * file.
+    * file. Note that the behaviour of this function is also influenced by the
+    * class-level parameters addSingleWords and allow_linkless_pairs (these
+    * should be parameters, since they only pertain to this function).
     * @param toks1 sentence in language 1
     * @param toks2 sentence in language 2
     * @param sets1 For each token position in toks1, a set of corresponding
@@ -632,9 +641,9 @@ void WordAlignerFactory::addPhrases(const vector<string>& toks1, const vector<st
                   break;      // splitter word; no phrase possible for [b2,e2+)
                ea2 = min(ea2, earliest2[e2-1]); la2 = max(la2, latest2[e2-1]);
 
-               if ((ea1 > la1 || (ea1 >= b2 && la1 < e2)) &&
-                   (ea2 > la2 || (ea2 >= b1 && la2 < e1)) &&
-                   Uint(abs((int)e1 - (int)b1 - (int)e2 + (int)b2)) <= max_phraselen_diff) {
+               if ((ea1 >= b2 && la1 < e2 && ea2 >= b1 && la2 < e1) &&
+                   (allow_linkless_pairs || la1 >= ea1 || la2 >= ea2) &&
+                   (Uint(abs((int)e1 - (int)b1 - (int)e2 + (int)b2)) <= max_phraselen_diff)) {
 
                   if (phrase_pairs)
                      phrase_pairs->push_back(PhrasePair(b1,e1,b2,e2));
@@ -646,7 +655,7 @@ void WordAlignerFactory::addPhrases(const vector<string>& toks1, const vector<st
                      string p1, p2;
                      PhraseTableBase::codePhrase(toks1.begin()+b1, toks1.begin()+e1, p1, "_");
                      PhraseTableBase::codePhrase(toks2.begin()+b2, toks2.begin()+e2, p2, "_");
-                     cerr << p1 << "/" << p2 << " ";
+                     cerr << b1 << ':' << p1 << ':' << e1 << "/" << b2 << ':' << p2 << ':' << e2 << " ";
                   }
                }
             }
