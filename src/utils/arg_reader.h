@@ -195,8 +195,8 @@ public:
    /**
     * Test for a dual -x/-nox switch.
     * Use with BOOL_TYPE=bool if a default is desired, or
-    * BOOL_TYPE=optional\<bool\> if you want to be able to know neither switch
-    * was found on the command line.
+    * BOOL_TYPE=optional\<bool\> if you want to be able to know when neither
+    * switch was found on the command line.
     * @param set_sw   on switch
     * @param reset_sw off switch
     * @param val      will be set to true if set_sw is found, false if reset_sw
@@ -206,11 +206,14 @@ public:
    void testAndSetOrReset(const char* set_sw, const char* reset_sw,
                           BOOL_TYPE& val)
    {
-      string str;
-      if ( getSwitch(set_sw, &str) )
+      if ( getSwitch(set_sw) ) {
          val = true;
-      else if ( getSwitch(reset_sw, &str) )
+         if ( getSwitch(reset_sw) )
+            error(ETWarn, "contradictory switches -%s and -%s both specified; ignoring -%s",
+                  set_sw, reset_sw, reset_sw);
+      } else if ( getSwitch(reset_sw) ) {
          val = false;
+      }
    }
 
    /**
