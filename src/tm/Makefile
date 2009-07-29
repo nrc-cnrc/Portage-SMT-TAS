@@ -48,6 +48,7 @@ PROGRAMS = $(TESTPROGS) \
 BINSCRIPTS = \
         cat.sh \
         gen-jpt-parallel.sh \
+        tmtext-apply-weights.pl \
         tmtext_sort.sh \
         train-phrases.sh
 
