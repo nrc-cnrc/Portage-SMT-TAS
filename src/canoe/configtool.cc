@@ -80,6 +80,9 @@ depending on <cmd>, one of:\n\
                        ith feature. Features are written in the same order\n\
                        than canoe writes them to an ffvals file.\n\
   rule:<file|->      - lists all rule classes from <file|->.\n\
+  list-cpt           - list all multi-probs.\n\
+  applied-weights:tppt  - change the forward and backward weights to 1,\n\
+                          replaces multi-probs for tppt.\n\
 \n\
 Options:\n\
 \n\
@@ -315,6 +318,23 @@ int main(int argc, char* argv[])
          copy(weights.begin(), weights.end()-1, ostream_iterator<float>(cout, ":"));
          cout << weights.back() << endl;
       }
+   } else if (isPrefix("list-multi-probs", cmd)) {
+      copy(c.multiProbTMFiles.begin(), c.multiProbTMFiles.end(), ostream_iterator<string>(cout, " "));
+      cout << endl;
+   } else if (isPrefix("applied-weights", cmd)) {
+      if (split(cmd, toks, ":") != 4)
+         error(ETFatal, "bad format for applied-weights command");
+
+      const string& cpt = toks[1];
+      c.multiProbTMFiles.clear();
+      c.multiProbTMFiles.push_back(cpt);
+
+      c.transWeights.clear();
+      c.transWeights.push_back(conv<double>(toks[2]));
+      c.forwardWeights.clear();
+      c.forwardWeights.push_back(conv<double>(toks[3]));
+
+      c.write(os, 0, pretty);
    } else
       error(ETFatal, "unknown command: %s", cmd.c_str());
 }
