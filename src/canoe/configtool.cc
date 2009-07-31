@@ -81,8 +81,10 @@ depending on <cmd>, one of:\n\
                        than canoe writes them to an ffvals file.\n\
   rule:<file|->      - lists all rule classes from <file|->.\n\
   list-cpt           - list all multi-probs.\n\
-  applied-weights:tppt  - change the forward and backward weights to 1,\n\
-                          replaces multi-probs for tppt.\n\
+  rep-multi-prob:cpt - replace all multiprobs with cpt.\n\
+  applied-weights:tppt:w-tm:w-ftm\n\
+                     - change the forward and backward weights to w-tm and w-ftm\n\
+                       respectively and replaces multi-probs for tppt.\n\
 \n\
 Options:\n\
 \n\
@@ -321,6 +323,15 @@ int main(int argc, char* argv[])
    } else if (isPrefix("list-multi-probs", cmd)) {
       copy(c.multiProbTMFiles.begin(), c.multiProbTMFiles.end(), ostream_iterator<string>(cout, " "));
       cout << endl;
+   } else if (isPrefix("rep-multi-prob:", cmd)) {
+      if (split(cmd, toks, ":") != 2)
+         error(ETFatal, "bad format for rep-multi-prob command");
+
+      const string& cpt = toks[1];
+      c.multiProbTMFiles.clear();
+      c.multiProbTMFiles.push_back(cpt);
+
+      c.write(os, 0, pretty);
    } else if (isPrefix("applied-weights", cmd)) {
       if (split(cmd, toks, ":") != 4)
          error(ETFatal, "bad format for applied-weights command");
