@@ -106,7 +106,8 @@ namespace Portage
          rReader.integrityCheck();
 
          total.output();
-         printf("%s score: %f", ScoreStats::name(), ScoreStats::convertToDisplay(total.score()));
+         printf("%s score: %f\n", ScoreStats::name(), ScoreStats::convertToDisplay(total.score()));
+         printf("Human readable value: %2.2f", 100*ScoreStats::convertToDisplay(total.score()));
 
          if (arg.bDoConf) {
             typename ScoreStats::CIcomputer wc;
