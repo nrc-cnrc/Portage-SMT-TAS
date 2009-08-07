@@ -1,4 +1,4 @@
-                            PORTAGEshared_v1.3b
+                            PORTAGEshared_v1.3c
            (unofficial release of the current development trunk)
 
 Technologies langagieres interactives / Interactive Language Technologies
@@ -17,8 +17,19 @@ license agreement for details.
 Current development trunk
  This sections shows changes since the latest official release.
 
+ Major changes:
+
+ - New script tmtext-apply-weights.pl pre-applies log-linear weights learned
+   using cow.sh to create more compact models for use by a translation server.
+
+ - The phrase extraction process (gen_phrase_tables) has been modified to
+   require that a phrase pair have at least one actually linked word pair.
+   (Previously, unaligned words were allowed to be considered a phrase pair.)
+
  Minor changes:
 
+ - New "sri" word alignment reader (for word_align_tool, eval_word_alignment).
+ - The forward TM scores are now included in future score calculation.
  - Canoe now supports the -bind PID option, exiting automatically when the
    master process disappears.
  - The tokenizer now takes linear time regardless of paragraph length (used to
