@@ -69,7 +69,8 @@ Options:\n\
        languages. Has to be at least 1. [1,1]\n\
 -d     Max permissible difference in number of words between source and\n\
        target phrases. [4]\n\
--ali   Allow phrase pairs consisting only of unaligned words in each lang [don't]\n\
+-ali   Allow phrase pairs consisting only of unaligned words in each language\n\
+       [don't]\n\
 -ibm   Use IBM model <n>: 1 or 2\n\
 -hmm   Use an HMM model instead of an IBM model (only works with IBMOchAligner).\n\
        [if, for both models, <model>.pos doesn't exist and <model>.dist does,\n\
