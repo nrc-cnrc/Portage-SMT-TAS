@@ -110,6 +110,11 @@ for line in file:
       toks = line.split()
       decodetime += int(toks[6])
 
+   # without -filt, it looks like ..Translated n sentences in s seconds
+   elif line.find("Translated ") != -1:
+      toks = line.split()
+      decodetime += int(toks[4])
+
    # Current weight vector: -d 1 -w 0 -lm 1:1 -tm 1:1:1:1:1:1:1:1 -ftm 1:1:1:1:1:1:1:1
    elif line.startswith("Current weight vector:"):
       wts = []
@@ -174,7 +179,7 @@ for line in file:
       if not choosing: choice = powbestiter
       
       if no_format == 0: 
-         print "%4d %5d %7.4f %8.4f %6.3f %6.3f %8d %5d %7.4f %4d/%-6d %4d" % \
+         print "%4d %5d %7.4f %8.4f %6.3f %6.3f %8d %5d %7.4f %4d/%-5d %4d" % \
                    (iter, decodetime, decodebleu, decodebleu-oldpowbleu, wtdev, wtdist, nbsize, \
                    powtime, powbleu, powbestiter, len(score_stats), choice)
       else: 
