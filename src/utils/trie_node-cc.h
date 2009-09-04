@@ -315,6 +315,16 @@ void TrieNode<LeafDataT, InternalDataT, NeedDtor>::non_recursive_clear() {
 }
 
 template<class LeafDataT, class InternalDataT, bool NeedDtor>
+bool TrieNode<LeafDataT, InternalDataT, NeedDtor>::is_clear() {
+   return
+      list == NULL &&
+      children == NULL &&
+      list_alloc == 0 &&
+      children_size() == 0;
+      //internal_data() == InternalDataT();
+}
+
+template<class LeafDataT, class InternalDataT, bool NeedDtor>
 void TrieNode<LeafDataT, InternalDataT, NeedDtor>::addStats(
    Uint &intl_nodes, SimpleHistogram<Uint>& trieDataUsed,
    SimpleHistogram<Uint>& trieDataAlloc, SimpleHistogram<Uint>& childrenAlloc,

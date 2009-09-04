@@ -5,7 +5,7 @@
  *
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2006, Her Majesty in Right of Canada
@@ -93,6 +93,7 @@ template<class T, unsigned Max, unsigned BlockSize>
 void ArrayMemPool<T,Max,BlockSize>::free_array_no_dtor(T* to_free, Uint size)
 {
    if ( size > Max ) {
+      assert(first_individual_array);
       char* data(reinterpret_cast<char*>(to_free));
       char* storage(data - sizeof(IndividualArray));
       IndividualArray* header(reinterpret_cast<IndividualArray*>(storage));
@@ -143,12 +144,14 @@ void ArrayMemPool<T,Max,BlockSize>::clear()
       delete first_block;
       first_block = block;
    }
+   assert(first_block == NULL);
    for ( Uint i = 0; i < Max/AllocMultiple; ++i ) free_lists[i] = NULL;
    while ( first_individual_array ) {
       char* storage(reinterpret_cast<char*>(first_individual_array));
       first_individual_array = first_individual_array->next;
       delete [] storage;
    }
+   assert(first_individual_array == NULL);
 }
 
 template<class T, unsigned Max, unsigned BlockSize>

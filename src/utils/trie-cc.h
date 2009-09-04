@@ -48,7 +48,7 @@ void PTrie<LeafDataT, InternalDataT, NeedDtor>::insert(
       start_i = 1;
       TRIEDEBUG(cerr << "Got root node from cache" << endl);
    } else {
-      insert_cache.resize(0);
+      insert_cache.clear();
       Uint bucket = hash(key[0]);
       TRIEDEBUG(cerr << "Root bucket " << bucket << endl);
       node = &(roots[bucket]);
@@ -74,6 +74,7 @@ void PTrie<LeafDataT, InternalDataT, NeedDtor>::insert(
          Uint pre_alloc_node_index;
          TrieNode<LeafDataT, InternalDataT, NeedDtor>* pre_alloc_node =
             nodePool.alloc(pre_alloc_node_index);
+         assert(pre_alloc_node->is_clear());
          TRIEDEBUG(assert(nodePool.get_ptr(pre_alloc_node_index) == pre_alloc_node));
          node->create_children(new_pos, pre_alloc_node_index,
             nodePool, datumArrayPool, nodePtrArrayPool);
@@ -108,6 +109,7 @@ bool PTrie<LeafDataT, InternalDataT, NeedDtor>::find_or_insert(
    const TrieKeyT key[], Uint key_size, LeafDataT*& p_val
 ) {
    assert(key_size > 0);
+   insert_cache.clear(); // not used by this method, but invalidates it
    TrieNode<LeafDataT, InternalDataT, NeedDtor> *node = &(roots[hash(key[0])]);
    // This could be done recursively, but a loop is faster
    for (Uint i = 0; i < key_size - 1; ++i) {
@@ -119,6 +121,7 @@ bool PTrie<LeafDataT, InternalDataT, NeedDtor>::find_or_insert(
          Uint pre_alloc_node_index;
          TrieNode<LeafDataT, InternalDataT, NeedDtor>* pre_alloc_node =
             nodePool.alloc(pre_alloc_node_index);
+         assert(pre_alloc_node->is_clear());
          node->create_children(new_pos, pre_alloc_node_index,
             nodePool, datumArrayPool, nodePtrArrayPool);
          node = pre_alloc_node;
@@ -237,7 +240,7 @@ void PTrie<LeafDataT, InternalDataT, NeedDtor>::set_internal_node_value(
       node = insert_cache[0].second;
       start_i = 1;
    } else {
-      insert_cache.resize(0);
+      insert_cache.clear();
       Uint bucket = hash(key[0]);
       node = &(roots[bucket]);
       start_i = 0;
@@ -260,6 +263,7 @@ void PTrie<LeafDataT, InternalDataT, NeedDtor>::set_internal_node_value(
          Uint pre_alloc_node_index;
          TrieNode<LeafDataT, InternalDataT, NeedDtor>* pre_alloc_node =
             nodePool.alloc(pre_alloc_node_index);
+         assert(pre_alloc_node->is_clear());
          node->create_children(new_pos, pre_alloc_node_index,
             nodePool, datumArrayPool, nodePtrArrayPool);
          node = pre_alloc_node;
@@ -303,7 +307,8 @@ InternalDataT PTrie<LeafDataT, InternalDataT, NeedDtor>::get_internal_node_value
 }
 
 template<class LeafDataT, class InternalDataT, bool NeedDtor>
-InternalDataT PTrie<LeafDataT, InternalDataT, NeedDtor> ::sum_internal_node_values(
+InternalDataT PTrie<LeafDataT, InternalDataT, NeedDtor>
+   ::sum_internal_node_values(
       const TrieKeyT key[], Uint min_len, Uint max_len
 ) const {
    if (max_len == 0) return InternalDataT();
@@ -362,13 +367,14 @@ Uint PTrie<LeafDataT, InternalDataT, NeedDtor>::find_path(
 
 template<class LeafDataT, class InternalDataT, bool NeedDtor>
 PTrie<LeafDataT, InternalDataT, NeedDtor>::PTrie(Uint root_hash_bits)
-   : roots(1<<root_hash_bits)
+   : roots(1u<<root_hash_bits)
    , root_hash_bits(root_hash_bits)
    , end_iter(*this, NULL, false, true, 0, 0)
 { }
 
 template<class LeafDataT, class InternalDataT, bool NeedDtor>
 void PTrie<LeafDataT, InternalDataT, NeedDtor>::clear() {
+   insert_cache.clear();
    for ( root_iter it = roots.begin(); it != roots.end(); ++it ) {
       if ( NeedDtor )
          it->clear(nodePool, datumArrayPool, nodePtrArrayPool);
@@ -378,6 +384,8 @@ void PTrie<LeafDataT, InternalDataT, NeedDtor>::clear() {
    datumArrayPool.clear();
    nodePtrArrayPool.clear();
    nodePool.clear();
+
+   assert(roots.size() == 1u << root_hash_bits);
 }
 
 template<class LeafDataT, class InternalDataT, bool NeedDtor>
@@ -543,6 +551,7 @@ template<class LeafDataT, class InternalDataT, bool NeedDtor>
 void PTrie<LeafDataT, InternalDataT, NeedDtor>::fix_root_buckets()
 {
    assert(!NeedDtor);
+   insert_cache.clear();
    // Create new roots from scratch, to be swapped in place when all is done.
    vector<TrieNode<LeafDataT, InternalDataT, NeedDtor> >
       new_roots(1<<root_hash_bits);
@@ -741,12 +750,14 @@ template<class LeafDataT, class InternalDataT, bool NeedDtor>
 void PTrie<LeafDataT, InternalDataT, NeedDtor>::iterator
       ::insert(const TrieKeyT leaf_key, const LeafDataT& val)
 {
+   parent.insert_cache.clear();
    TrieNode<LeafDataT, InternalDataT, NeedDtor> *child_node;
    if (has_children()) {
       child_node = parent.nodePool.get_ptr(node->get_children(position));
    } else {
       Uint pre_alloc_node_index;
       child_node = parent.nodePool.alloc(pre_alloc_node_index);
+      assert(child_node->is_clear());
       node->create_children(position, pre_alloc_node_index, parent.nodePool,
                             parent.datumArrayPool, parent.nodePtrArrayPool);
    }
@@ -760,6 +771,7 @@ template<class LeafDataT, class InternalDataT, bool NeedDtor>
 void PTrie<LeafDataT, InternalDataT, NeedDtor>::iterator
       ::delete_leaf(const TrieKeyT leaf_key)
 {
+   parent.insert_cache.clear();
    if (has_children()) {
       TrieNode<LeafDataT, InternalDataT, NeedDtor> *child_node
          = parent.nodePool.get_ptr(node->get_children(position));

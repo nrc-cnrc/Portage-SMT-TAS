@@ -238,7 +238,7 @@ public:
    /// Get the internal node value for this node.
    /// @return the current internal node value
    InternalDataT internal_data() const {
-      return InternalDataT(intl_data_children_size.first());
+      return intl_data_children_size.first();
    }
    /// Set the internal node value for this node.
    /// @param value the new internal node value
@@ -278,6 +278,13 @@ public:
     * do that step).
     */
    void non_recursive_clear();
+
+   /**
+    * Check if this node is clear (for debugging purposes)
+    * Must hold after default construction and after calling clear() or
+    * non_recursive_clear()
+    */
+   bool is_clear();
 
    /**
     * Add cumulative stats about this node and its children nodes.
