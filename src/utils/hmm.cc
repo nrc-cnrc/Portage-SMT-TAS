@@ -12,7 +12,6 @@
 
 #include "portage_defs.h"
 #include "hmm.h"
-#include "error.h"
 #include "str_utils.h"
 #include <iostream>
 #include <cfloat>
@@ -475,7 +474,7 @@ void HMM::statePosteriors(const uintVector &O,
    assert(beta_hat.size2() == N);
    gamma.resize(T+1, N, false);
 
-   double numerators[N];
+   dVector numerators(N);
    for ( Uint t = 0; t <= T; ++t ) {
       double denom(0);
       for ( Uint i = 0; i < N; ++i )
