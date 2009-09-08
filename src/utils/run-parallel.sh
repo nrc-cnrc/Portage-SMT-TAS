@@ -109,6 +109,26 @@ Cluster mode options:
   -psub         Provide custom psub options.
   -qsub         Provide custom qsub options.
 
+Resource propagation from the master job to worker jobs (cluster mode only):
+
+  Priority: workers will be submitted with a priority 1 level below the master.
+
+  Number of CPUs: by default, this is inherited from the psub command used to
+  launch run-parallel.sh (or used to launch a script that launches
+  run-parallel.sh). It can be overridden by the -psub -<num-jobs> option to
+  run-parallel.sh. Resource requirements may necessitate an extra job in this
+  case. Here are some examples, with resulting job characteristics:
+
+    psub -2 run-parallel.sh jobfile 10           # 10 2-cpu jobs
+    psub -4 run-parallel.sh -psub -2 jobfile 10  # 1 4-cpu job + 9 2-cpu jobs
+    psub -1 run-parallel.sh -psub -2 jobfile 10  # 1 1-cpu job + 10 2-cpu jobs
+ 
+  The results would be exactly the same if "run-parallel.sh ..." were called
+  from inside a script, which is a more sensible usage. Eg, assuming "myscript"
+  calls "run-parallel.sh -psub -2 jobfile 10", then:
+
+    psub -1 myscript   # 1 1-cpu job + 10 2-cpu jobs  
+
 Dynamic options:
 
   To add M new workers on the fly, identify the PBS_JOBID of the master, or
@@ -131,6 +151,7 @@ error_exit() {
       echo $msg >&2
    done
    echo "Use -h for help." >&2
+   GLOBAL_RETURN_CODE=1
    exit 1
 }
 
@@ -148,15 +169,22 @@ warn()
 
 MY_HOST=`hostname`
 
-# Return 0 (true) if we're running on a head node, 1 (false) otherwise
+# Return 1 (false) if we're running a PBS job, and therefore are on a compute
+# node, 0 (true) otherwise, in which case we assume we're on a head/login node.
 on_head_node()
 {
-   if [[ $MY_HOST == balzac || $MY_HOST == venus ]]; then
-      return 0
-   else
+   if [[ $PBS_JOBID ]]; then
       return 1
+   else
+      return 0
    fi
 }
+
+if [[ $PBS_JOBID ]]; then
+   SHORT_JOB_ID=${PBS_JOBID:0:13}
+else
+   SHORT_JOB_ID=$$.local
+fi
 
 NUM=
 NOLOWPRI=
@@ -174,7 +202,7 @@ EXEC=
 QUOTA=
 PREFIX=""
 JOB_NAME=
-JOBSET_FILENAME=`/usr/bin/uuidgen`.jobs
+JOBSET_FILENAME=`mktemp -u run-p.tmpjobs.$SHORT_JOB_ID.XXX` || error_exit "Can't create temporary jobs file."
 ON_ERROR=continue
 #TODO: run-parallel.sh -c RP_ARGS -... -... {-exec | -c} cmd args
 # This would allow a job in a Makefile, which uses SHELL = run-parallel.sh, to
@@ -319,6 +347,9 @@ if [[ "$1" = add || "$1" = quench || "$1" = kill ]]; then
    exit 0
 fi
 
+# Assume there's a problem until we know things finished cleanly.
+GLOBAL_RETURN_CODE=2
+
 # Process clean up at exit or kill - set this trap early enough that we 
 # clean up no matter what happens.
 trap '
@@ -328,7 +359,7 @@ trap '
    else
       WORKERS=""
    fi
-   if ps -p $DEAMON_PID >& /dev/null; then
+   if [[ `ps -p $DEAMON_PID | wc -l` > 1 ]]; then
       kill $DEAMON_PID
    fi
    if [[ $WORKERS ]]; then
@@ -340,7 +371,7 @@ trap '
       done
    fi
    for x in $WORKDIR/log.worker-*; do
-      if [[ -f $x ]]; then
+      if [[ -s $x ]]; then
          echo $x
          echo ""
          cat $x
@@ -348,31 +379,17 @@ trap '
       fi
    done > run-parallel-logs-${PBS_JOBID-local}
    test -n "$DEBUG" || rm -rf $WORKDIR
-   exit
+   trap "" 0
+   exit $GLOBAL_RETURN_CODE
 ' 0 1 2 3 13 14 15
 
 # Create a temp directory for all temp files to go into.
-WORKDIR=""
-for attempt in 1 2 3; do
-   if [[ $PBS_JOBID ]]; then
-      SHORT_JOB_ID=${PBS_JOBID:0:13}
-   else
-      SHORT_JOB_ID=$$.local
-   fi
-   SHORT_RANDOM_STR=`/usr/bin/uuidgen | md5sum | cut -c1-6`
-   TMP_DIR_NAME=${PREFIX}run-p.$SHORT_RANDOM_STR.$SHORT_JOB_ID
-   if mkdir -p $TMP_DIR_NAME; then
-      WORKDIR=$TMP_DIR_NAME
-      break
-   else
-      echo "Could not create temp dir - trying a different name" >&2
-   fi
-done
-if [[ ! $WORKDIR ]]; then
-   error_exit "Giving up after three failed attemps to create a temp dir."
-fi
+WORKDIR=`mktemp -d ${PREFIX}run-p.$SHORT_JOB_ID.XXX` || error_exit "Can't create temp WORKDIR."
 if [[ ! -d $WORKDIR ]]; then
    error_exit "Created temp dir $WORKDIR, but somehow it doesn't exist!"
+fi
+if [[ $DEBUG ]]; then
+   echo "   Temp JOBSET_FILENAME = $JOBSET_FILENAME"
 fi
 test -f $JOBSET_FILENAME && mv $JOBSET_FILENAME $WORKDIR/jobs
 JOBSET_FILENAME=$WORKDIR/jobs
@@ -472,6 +489,7 @@ fi
 
 if [[ $NUM_OF_INSTR = 0 ]]; then
    echo "No commands to execute!  So I guess I'm done..." >&2
+   GLOBAL_RETURN_CODE=0
    exit
 fi
 
@@ -806,6 +824,7 @@ fi
 
 if [[ `wc -l < $WORKDIR/rc` -ne "$NUM_OF_INSTR" ]]; then
    echo 'Wrong number of job return statuses: got' `wc -l < $WORKDIR/rc` "expected $NUM_OF_INSTR." >&2
+   GLOBAL_RETURN_CODE=-1
    exit -1
 elif [[ $EXEC ]]; then
    # With -c, we work like the shell's -c: connect stdout and stderr from the
@@ -826,10 +845,13 @@ elif [[ $EXEC ]]; then
             }
             print;
          }' >&2
-   exit `cat $WORKDIR/rc`
+   GLOBAL_RETURN_CODE=`cat $WORKDIR/rc`
+   exit $GLOBAL_RETURN_CODE
 elif grep -q -v '^0$' $WORKDIR/rc >& /dev/null; then
    # At least one job got a non-zero return code
+   GLOBAL_RETURN_CODE=2
    exit 2
 else
+   GLOBAL_RETURN_CODE=0
    exit 0
 fi
