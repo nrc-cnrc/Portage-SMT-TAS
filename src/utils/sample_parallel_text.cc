@@ -1,9 +1,7 @@
 /**
  * @author George Foster
  * @file sample_parallel_text.cc 
- * @brief Produce a sub-sample of a parallel text, with one or more target
- * texts.
- * 
+ * @brief Sub-sample a parallel text (with one or more references).
  * 
  * COMMENTS: 
  *
@@ -33,12 +31,13 @@ files are written to <src>.<suffix> and <tgt_i>.<suffix>.\n\
 \n\
 Options:\n\
 \n\
--r  Sample randomly, without replacement [sample by choosing lines at fixed intervals]\n\
+-r  Sample randomly, without replacement [sample by choosing lines at fixed\n\
+    intervals]\n\
 -n  Produce a sample of size samplesize [min(100,input-size)]\n\
 -s  Use given suffix for output files [.sample]\n\
--l  Choose segments having between min and max tokens (inclusive). Max may be omitted\n\
-    to specify no limit. This is incompatible with -r, and -n, and always extracts all\n\
-    matching segments.\n\
+-l  Choose segments having between min and max tokens (inclusive). Max may be\n\
+    omitted to specify no limit. This is incompatible with -r, and -n, and\n\
+    always extracts all matching segments.\n\
 ";
 
 // globals
