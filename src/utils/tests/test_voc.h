@@ -20,13 +20,18 @@ namespace Portage {
 
 class TestVoc : public CxxTest::TestSuite 
 {
-public:
+private:
+   Voc v;
 
-   void test_copy_const() {
-      Voc v;
+public:
+   void setUp() {
       v.add("asdf");
       v.add("qwer");
       v.add("zxcv");
+   }
+   void tearDown() { v.clear(); }
+
+   void test_copy_const() {
       Voc v2(v);
       TS_ASSERT_DIFFERS(v.word(0),v2.word(0));
       TS_ASSERT_DIFFERS(v.word(1),v2.word(1));
@@ -45,11 +50,6 @@ public:
    }
 
    void test_read_write_stream() {
-      Voc v;
-      v.add("asdf");
-      v.add("qwer");
-      v.add("zxcv");
-
       char tmp_file_name[] = "VocTestReadWriteXXXXXX";
       int tmp_fd = mkstemp(tmp_file_name);
       oMagicStream os(tmp_fd, true);
@@ -76,6 +76,54 @@ public:
       TS_ASSERT_EQUALS(v2.add("bar"),3u);
       TS_ASSERT_EQUALS(v2.index("foo"),4u);
       TS_ASSERT_EQUALS(v2.index("bar"),3u);
+   }
+
+   // remapping old index.
+   void test_remap1() {
+      const char* const already  = "zxcv";
+      const char* const oldToken = "qwer";
+      const char* const newToken = "qaz";
+
+      TS_ASSERT_EQUALS(v.size(), 3u);
+      TS_ASSERT_EQUALS(v.index(oldToken), 1u);
+
+      // Invalid index.
+      TS_ASSERT(!v.remap(3u, "should fail"));
+      // new token already part of voc.
+      TS_ASSERT(!v.remap(0u, already));
+
+      // change the old token for the new token.
+      TS_ASSERT(v.remap(1u, newToken));
+      TS_ASSERT_EQUALS(v.index(newToken), 1u);
+      TS_ASSERT_RELATION(str_equal, v.word(1u), newToken);
+      // Make sure no new words were added.
+      TS_ASSERT_EQUALS(v.size(), 3u);
+      // Make sure old token doesn't exists anymore.
+      TS_ASSERT_EQUALS(v.index(oldToken), 3u);
+   }
+
+   // remapping old token.
+   void test_remap2() {
+      const char* const already  = "zxcv";
+      const char* const oldToken = "qwer";
+      const char* const newToken = "qaz";
+
+      TS_ASSERT_EQUALS(v.size(), 3u);
+      TS_ASSERT_EQUALS(v.index(oldToken), 1u);
+
+      // Remapping something that is not in voc.
+      TS_ASSERT(!v.remap(newToken, newToken));
+      // new token already part of voc.
+      TS_ASSERT(!v.remap(oldToken, already));
+
+      // change the old token for new token.
+      TS_ASSERT(v.remap(oldToken, newToken));
+      TS_ASSERT_EQUALS(v.index(newToken), 1u);
+      TS_ASSERT_RELATION(str_equal, v.word(1u), newToken);
+      // Make sure no new words were added.
+      TS_ASSERT_EQUALS(v.size(), 3u);
+      // Make sure old token doesn't exists anymore.
+      TS_ASSERT_EQUALS(v.index(oldToken), 3u);
    }
 }; // TestYourClass
 
