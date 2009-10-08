@@ -103,7 +103,7 @@ ifeq ($(LOG4CXX), NONE)
    LOGGING_LIB =
 else
    CFLAG_LOGGING =
-   LOGGING_LIB = -llog4cxx
+   LOGGING_LIB = -llog4cxx -Wl,-Bdynamic -lpthread -Wl,-Bstatic
 endif
 
 # Disable all checking in boost::ublas, since they're very expensive, unless
