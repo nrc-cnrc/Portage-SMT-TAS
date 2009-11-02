@@ -15,6 +15,7 @@
 
 #include "portage_defs.h"
 #include "bivector.h"
+#include "binio.h"
 
 namespace Portage {
 
@@ -48,15 +49,13 @@ struct HMMJumpSingleCountOrProb {
    }
    /// Write self in binary format
    void writeBin(ostream& os) const {
-      using namespace BinIOStream;
-      writebin(os, final);
-      os << jump;
+      BinIO::writebin(os, final);
+      BinIO::writebin(os, jump);
    }
    /// Read self from binary format. Replaces any preexisting values.
    void readBin(istream& is) {
-      using namespace BinIOStream;
-      readbin(is, final);
-      is >> jump;
+      BinIO::readbin(is, final);
+      BinIO::readbin(is, jump);
    }
    /// Write self in human-readable format
    void write(ostream& os) const {

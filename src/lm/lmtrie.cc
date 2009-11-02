@@ -216,7 +216,7 @@ void LMTrie::write_binary(const string& binlm_file_name) const
    ofs << endl;
 
    // Write out the trie itself - this part of the file is binary
-   Uint nodes_written = trie.write_binary(ofs);
+   const Uint nodes_written = trie.write_binary(ofs);
 
    ofs << endl << "End of Portage BinLM file.  Internal node count="
        << nodes_written << endl;
@@ -228,5 +228,68 @@ void LMTrie::write_binary(const string& binlm_file_name) const
 void LMTrie::displayStats() const
 {
    cerr << trie.getStats() << endl;
+}
+
+
+void LMTrie::rec_dump_trie_arpa(
+   ostream& os,
+   vector<Uint>& key_prefix,
+   PTrie<float, Wrap<float>, false>::iterator begin,
+   const PTrie<float, Wrap<float>, false>::iterator& end,
+   const Uint maxDepth
+) {
+   for ( ; begin != end; ++begin ) {
+      key_prefix.push_back(begin.get_key());
+      if ( begin.is_leaf() && maxDepth == 0) {
+         // Print probability.
+         os << begin.get_value();
+
+         // Print phrase.
+         vector<Uint>::const_reverse_iterator it = key_prefix.rbegin();
+         os << "\t" << word(*it);
+         ++it;
+         for ( ; it != key_prefix.rend(); ++it )
+            os << " " << word(*it);
+
+         // Print backoff.
+         const float backoff = begin.get_internal_node_value();
+         if (backoff != 0.0f)
+            os << "\t" << backoff;
+         os << endl;
+      }
+
+      // Process the children.
+      if ( begin.has_children() )
+         rec_dump_trie_arpa(os, key_prefix, begin.begin_children(), begin.end_children(), maxDepth - 1);
+      key_prefix.pop_back();
+   }
+}
+
+void LMTrie::write2arpalm(ostream& os, Uint maxNgram)
+{
+   const Uint depth = min(maxNgram, getOrder());
+
+   // Cumulate counts for each n-gram.
+   CountVisitor visitor(depth);
+   trie.traverse(visitor);
+
+   const streamsize saved_precision = os.precision();
+   os.precision(7);
+
+   os << "\n\\data\\" << "\n";
+   for (Uint i(0); i<visitor.counts.size(); ++i)
+      os << "ngram " << i+1 << "=" << visitor.counts[i] << "\n";
+   os << endl;
+
+   // Process each xgram separately in accordance with the arpa format.
+   vector<Uint> key_prefix;
+   for (Uint i(0); i<visitor.counts.size(); ++i) {
+      os << "\\" << i+1 << "-grams:" << endl;
+      rec_dump_trie_arpa(os, key_prefix, trie.begin_children(), trie.end_children(), i);
+      os << endl;
+   }
+   os << "\\end\\" << endl;
+
+   os.precision(saved_precision);
 }
 

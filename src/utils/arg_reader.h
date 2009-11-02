@@ -105,6 +105,12 @@ public:
    void read(Uint argc, const char* const argv[]);
 
    /**
+    * Reads a list of switches and arguments from a single string.
+    * @param args space-delimited list of arguments
+    */
+   void read(const string& args);
+
+   /**
     * Dumps switch and var values to os.
     * @param os the ostream where to dump argReader
     */

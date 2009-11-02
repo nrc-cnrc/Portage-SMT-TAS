@@ -28,16 +28,18 @@ ssal [-vf][-a alfile] file1 file2\n\
 \n\
 Sentence-align file1 with file2, writing the results to file1.al and file2.al.\n\
 Input files should have one segment per line, and output files are line-aligned.\n\
-No further further assumptions are made about the input, although an attempt is\n\
-made to align lines that are identical across file1 and file2.\n\
+No further assumptions are made about the input, although the model used has\n\
+a bias favouring the alignment of lines that are identical across file1 and\n\
+file2.  For example, you can insert markup to suggest known reliable boundaries\n\
+to ssal, and use -f to filter them from the output.\n\
 \n\
 Options:\n\
 \n\
 -v  Write progress reports to cerr.\n\
--a  Write alignment info to <alfile>. Format is: b1-e1 b2-e2 n1-n2 s, indicating\n\
-    that line numbers [b1,e1) from file1 align to lines [b2,e2) from file2, with\n\
-    alignment pattern n1-n2, and score s (total alignment score is sum over all\n\
-    sentences).\n\
+-a  Write alignment info to <alfile>. Format is: b1-e1 b2-e2 n1-n2 s,\n\
+    indicating that line numbers [b1,e1) from file1 align to lines [b2,e2)\n\
+    from file2, with alignment pattern n1-n2, and score s (the total alignment\n\
+    score is the sum over all sentences).\n\
 -f  Filter out alignment pairs in which at least one member is markup (first\n\
     and last non-white characters are < and > respectively).\n\
 ";

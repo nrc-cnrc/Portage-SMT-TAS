@@ -93,6 +93,8 @@ General options:
        continue Ignore return codes and execute all commands anyway [default]
        stop     Let commands that have started end, but don't launch any more
        killall  Kill all workers immediately and exit
+  -subst MATCH  Have workers substite MATCH in each command by their worker-id
+                before running it.
 
 Cluster mode options:
 
@@ -105,7 +107,7 @@ Cluster mode options:
   -nohighmem    Use only 1 CPU per worker, even if master job had more.
   -nolocal      psub all workers [run one worker locally, unless on head node] 
   -nocluster    force non-cluster mode [auto-detect if we're on a cluster]
-  -quota T      When workers have done T minutes of work, re-psub them [60]
+  -quota T      When workers have done T minutes of work, re-psub them [30]
   -psub         Provide custom psub options.
   -qsub         Provide custom qsub options.
 
@@ -186,6 +188,8 @@ else
    SHORT_JOB_ID=$$.local
 fi
 
+WORKER_CPU_STRING="Run-parallel-worker-CPU"
+START_TIME=`date +"%s"`
 NUM=
 NOLOWPRI=
 HIGHMEM=
@@ -204,6 +208,7 @@ PREFIX=""
 JOB_NAME=
 JOBSET_FILENAME=`mktemp -u run-p.tmpjobs.$SHORT_JOB_ID.XXX` || error_exit "Can't create temporary jobs file."
 ON_ERROR=continue
+SUBST=
 #TODO: run-parallel.sh -c RP_ARGS -... -... {-exec | -c} cmd args
 # This would allow a job in a Makefile, which uses SHELL = run-parallel.sh, to
 # specify some parameters other than the default.
@@ -254,6 +259,7 @@ while (( $# > 0 )); do
                    arg_check 1 $# $1; PSUBOPTS="$PSUBOPTS $2"; shift;;
    -qsub|-qsub-opts|-qsub-options)
                    arg_check 1 $# $1; QSUBOPTS="$QSUBOPTS $2"; shift;;
+   -subst)         arg_check 1 $# $1; WORKER_SUBST=$2; shift;;
    -v|-verbose)    VERBOSE=$(( $VERBOSE + 1 ));;
    -q|-quiet)      VERBOSE=0;;
    -d|-debug)      DEBUG=1;;
@@ -370,7 +376,7 @@ trap '
          sleep 1
       done
    fi
-   for x in $WORKDIR/log.worker-*; do
+   for x in $WORKDIR/log.worker-* $WORKDIR/mon.worker-*; do
       if [[ -s $x ]]; then
          echo $x
          echo ""
@@ -670,7 +676,12 @@ SILENT_WORKER=
 if [[ $VERBOSE < 2 ]]; then
    SILENT_WORKER=-silent
 fi
-WORKER_COMMAND="r-parallel-worker.pl $SILENT_WORKER -host=$MY_HOST -port=$MY_PORT"
+WORKER_COMMAND="/usr/bin/time -f $WORKER_CPU_STRING=user%Us+sys%Ss r-parallel-worker.pl $SILENT_WORKER -host=$MY_HOST -port=$MY_PORT"
+if [[ $WORKER_SUBST ]]; then
+   SUBST_OPT="-subst $WORKER_SUBST/__WORKER__ID__"
+else
+   SUBST_OPT=""
+fi
 
 if [[ $CLUSTER ]]; then
    cat /dev/null > $PSUB_CMD_FILE
@@ -683,9 +694,9 @@ if [[ $CLUSTER ]]; then
    done
    echo -n "" -N $WORKER_NAME-__WORKER__ID__ >> $PSUB_CMD_FILE
    echo -n "" -e $WORKDIR/log.worker-__WORKER__ID__ >> $PSUB_CMD_FILE
-   echo -n "" $WORKER_COMMAND $QUOTA \\\> $WORKDIR/out.worker-__WORKER__ID__ 2\\\> $WORKDIR/err.worker-__WORKER__ID__ \>\> $WORKER_JOBIDS >> $PSUB_CMD_FILE
+   echo -n "" $WORKER_COMMAND $SUBST_OPT $QUOTA -mon $WORKDIR/mon.worker-__WORKER__ID__ \\\> $WORKDIR/out.worker-__WORKER__ID__ 2\\\> $WORKDIR/err.worker-__WORKER__ID__ \>\> $WORKER_JOBIDS >> $PSUB_CMD_FILE
 else
-   echo $WORKER_COMMAND \> $WORKDIR/out.worker-__WORKER__ID__ 2\> $WORKDIR/err.worker-__WORKER__ID__ \& > $PSUB_CMD_FILE
+   echo $WORKER_COMMAND $SUBST_OPT -mon $WORKDIR/mon.worker-__WORKER__ID__ \> $WORKDIR/out.worker-__WORKER__ID__ 2\> $WORKDIR/err.worker-__WORKER__ID__ \& > $PSUB_CMD_FILE
 fi
 echo $NUM > $WORKDIR/next_worker_id
 
@@ -695,10 +706,16 @@ if [[ ! $NOLOCAL ]]; then
    # initial jobs in current call parameter n)
    OUT=$WORKDIR/out.worker-0
    ERR=$WORKDIR/err.worker-0
-   if (( $VERBOSE > 2 )); then
-      echo $WORKER_COMMAND -primary \> $OUT 2\> $ERR \& >&2
+   MON=$WORKDIR/mon.worker-0
+   if [[ $WORKER_SUBST ]]; then
+      SUBST_OPT="-subst $WORKER_SUBST/0"
+   else
+      SUBST_OPT=""
    fi
-   eval $WORKER_COMMAND -primary > $OUT 2> $ERR &
+   if (( $VERBOSE > 2 )); then
+      echo $WORKER_COMMAND $SUBST_OPT -primary -mon $MON \> $OUT 2\> $ERR \& >&2
+   fi
+   eval $WORKER_COMMAND $SUBST_OPT -primary -mon $MON > $OUT 2> $ERR &
 fi
 
 if (( $NUM > $FIRST_PSUB )); then
@@ -709,11 +726,12 @@ if (( $NUM > $FIRST_PSUB )); then
       OUT=$WORKDIR/out.worker-
       ERR=$WORKDIR/err.worker-
       LOG=$WORKDIR/log.worker
+      MON=$WORKDIR/mon.worker-
       ID='$PBS_ARRAYID'
       if (( $VERBOSE > 2 )); then
-         echo "${SUBMIT_CMD[@]}" -t $FIRST_PSUB-$(($NUM-1)) -N $WORKER_NAME -e $LOG $WORKER_COMMAND $QUOTA \> $OUT$ID 2\> $ERR$ID >&2
+         echo "${SUBMIT_CMD[@]}" -t $FIRST_PSUB-$(($NUM-1)) -N $WORKER_NAME -e $LOG $WORKER_COMMAND $QUOTA -mon $MON$ID \> $OUT$ID 2\> $ERR$ID >&2
       fi
-      "${SUBMIT_CMD[@]}" -t $FIRST_PSUB-$(($NUM-1)) -N $WORKER_NAME -e $LOG $WORKER_COMMAND $QUOTA \> $OUT$ID 2\> $ERR$ID >> $WORKER_JOBIDS
+      "${SUBMIT_CMD[@]}" -t $FIRST_PSUB-$(($NUM-1)) -N $WORKER_NAME -e $LOG $WORKER_COMMAND $QUOTA -mon $MON$ID \> $OUT$ID 2\> $ERR$ID >> $WORKER_JOBIDS
       # qstat needs individual job ids, and fails when given the array id, so we
       # need to expand them by hand into the $WORKER_JOBIDS file.
       WORKER_BASE_JOBID=`cat $WORKER_JOBIDS`
@@ -732,20 +750,26 @@ if (( $NUM > $FIRST_PSUB )); then
          OUT=$WORKDIR/out.worker-$i
          ERR=$WORKDIR/err.worker-$i
          LOG=$WORKDIR/log.worker-$i
+         MON=$WORKDIR/mon.worker-$i
+         if [[ $WORKER_SUBST ]]; then
+            SUBST_OPT="-subst $WORKER_SUBST/$i"
+         else
+            SUBST_OPT=""
+         fi
 
          if [[ $CLUSTER ]]; then
             if (( $VERBOSE > 2 )); then
-               echo ${SUBMIT_CMD[@]} -N $WORKER_NAME-$i -e $LOG $WORKER_COMMAND $QUOTA \> $OUT 2\> $ERR >&2
+               echo ${SUBMIT_CMD[@]} -N $WORKER_NAME-$i -e $LOG $WORKER_COMMAND $SUBST_OPT $QUOTA -mon $MON \> $OUT 2\> $ERR >&2
             fi
-            "${SUBMIT_CMD[@]}" -N $WORKER_NAME-$i -e $LOG $WORKER_COMMAND $QUOTA \> $OUT 2\> $ERR >> $WORKER_JOBIDS
+            "${SUBMIT_CMD[@]}" -N $WORKER_NAME-$i -e $LOG $WORKER_COMMAND $SUBST_OPT $QUOTA -mon $MON \> $OUT 2\> $ERR >> $WORKER_JOBIDS
             # PBS doesn't like having too many qsubs at once, let's give it a
             # chance to breathe between each worker submission
             sleep 1
          else
             if (( $VERBOSE > 2 )); then
-               echo $WORKER_COMMAND $QUOTA \> $OUT 2\> $ERR \& >&2
+               echo $WORKER_COMMAND $SUBST_OPT $QUOTA -mon $MON \> $OUT 2\> $ERR \& >&2
             fi
-            eval $WORKER_COMMAND $QUOTA > $OUT 2> $ERR &
+            eval $WORKER_COMMAND $SUBST_OPT $QUOTA -mon $MON > $OUT 2> $ERR &
          fi
       done
    fi
@@ -822,6 +846,19 @@ if (( $VERBOSE > 0 )); then
    echo "" >&2
 fi
 
+TOTAL_CPU=`grep -h $WORKER_CPU_STRING $WORKDIR/err.worker-* 2> /dev/null | 
+   egrep -o "[0-9.]+" | sum.pl`
+END_TIME=`date +%s`
+WALL_TIME=$((END_TIME - START_TIME))
+MAX_VSZ=`egrep -ho 'vsz: [0-9.]+G' $WORKDIR/mon.worker-* 2> /dev/null |
+   egrep -o "[0-9.]+" | sum.pl -m`
+MAX_RSS=`egrep -ho 'rss: [0-9.]+G' $WORKDIR/mon.worker-* 2> /dev/null |
+   egrep -o "[0-9.]+" | sum.pl -m`
+RPTOTALS="RP-Totals: Wall time ${WALL_TIME}s CPU time ${TOTAL_CPU}s Max VMEM ${MAX_VSZ}G Max RAM ${MAX_RSS}G"
+if [[ ! $EXEC ]]; then
+   echo $RPTOTALS >&2
+fi
+
 if [[ `wc -l < $WORKDIR/rc` -ne "$NUM_OF_INSTR" ]]; then
    echo 'Wrong number of job return statuses: got' `wc -l < $WORKDIR/rc` "expected $NUM_OF_INSTR." >&2
    GLOBAL_RETURN_CODE=-1
@@ -845,6 +882,7 @@ elif [[ $EXEC ]]; then
             }
             print;
          }' >&2
+   echo $RPTOTALS >&2
    GLOBAL_RETURN_CODE=`cat $WORKDIR/rc`
    exit $GLOBAL_RETURN_CODE
 elif grep -q -v '^0$' $WORKDIR/rc >& /dev/null; then

@@ -18,6 +18,8 @@
 #include "distortionmodel.h"
 #include "ibm_feature.h"
 #include "length_feature.h"
+#include "levenshtein_feature.h"
+#include "ngrammatch_feature.h"
 #include "rule_feature.h"
 #include "errors.h"
 
@@ -37,6 +39,10 @@ DecoderFeature* DecoderFeature::create(BasicModelGenerator* bmg,
       f = new IBM1FwdFeature(bmg, args);
    } else if ( group == "LengthFeature" ) {
       f = new LengthFeature();
+   } else if ( group == "LevFeature" ) {
+      f = new LevenshteinFeature(bmg);
+   } else if ( group == "NgramMatchFeature" ) {
+      f = new NgramMatchFeature(args);
    } else if ( group == RuleFeature::name ) {
       f = new RuleFeature(bmg, args);
    } else if ( fail ) {

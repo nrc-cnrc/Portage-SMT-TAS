@@ -45,11 +45,10 @@ struct ErrorRateStats {
 
    /**
     * Calculates a score for powell, i.e., with larger being better.
-    * @return Returns a score (-log(ratio)).
+    * @return Returns a score.
     */
    double score() const {
       return -ratio(); 
-      //return -log(ratio()); 
    }
 
    void output(ostream& out = cout) const {
@@ -68,8 +67,40 @@ struct ErrorRateStats {
       out << _changes << '\t' << _reflen << endl;
    }
 
+   /**
+    * Convert "internal" value to display format.
+    * @param value internal value (eg, from score()) 
+    * @return display value.
+    */
    static double convertToDisplay(double value) {
       return -value;
+   }
+   /**
+    * Convert display format to internal format.
+    * @param value display value
+    * @return internal value.
+    */
+   static double convertFromDisplay(double value) {
+      return -value;
+   }
+
+   /**
+    * Convert "internal" score value to pnorm format: in [0,1],
+    * higher scores are better. No op for WER/PER, but not for BLEU.
+    * @param value internal value (eg, from score()) 
+    * @return display value.
+    */
+   static double convertToPnorm(double value) {
+      return value;
+   }
+   /**
+    * Convert "internal" score from pnorm format: in [0,1],
+    * higher scores are better. No op for WER/PER, but not for BLEU.
+    * @param value pnorm value (eg, from score()) 
+    * @return internal value.
+    */
+   static double convertFromPnorm(double value) {
+      return value;
    }
 
    protected:

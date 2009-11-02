@@ -32,10 +32,13 @@ TESTPROGS = \
 PROGRAMS = $(TESTPROGS) \
         align-words \
         bag_trans \
+        count_phrasefreqs \
         eval_word_alignment \
         gen_phrase_tables \
+        gen_jpt_filter_tool \
         ibm_entropy \
         joint2cond_phrase_tables \
+        joint2multi_cpt \
         phrase_align_stats \
         phrase_oracle \
         run_ibm \
@@ -46,15 +49,19 @@ PROGRAMS = $(TESTPROGS) \
 
 
 BINSCRIPTS = \
+        add-indicator-to-multiprob-pt.pl \
         cat.sh \
         gen-jpt-parallel.sh \
         tmtext-apply-weights.pl \
         tmtext_sort.sh \
-        train-phrases.sh
+        train-phrases.sh \
+        tt2ptbest.pl
 
 DOCUMENTS =
 
 EXTRA_LIBS = $(LOGGING_LIB)
+
+DYNLIBS = $(LIBICU)
 
 MODULE_CF = -DHAVE_CXX_STDHEADERS
 

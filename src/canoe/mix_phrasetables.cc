@@ -14,9 +14,9 @@
  */
 #include <iostream>
 #include <fstream>
-#include <file_utils.h>
-#include <str_utils.h>
-#include <arg_reader.h>
+#include "file_utils.h"
+#include "str_utils.h"
+#include "arg_reader.h"
 #include "basicmodel.h"
 #include "inputparser.h"
 #include "phrase_table_reader.h"
@@ -283,9 +283,13 @@ static void parseSourcePhrase(const string& pt, Uint linenum, const string& line
 
 static string getTempName()
 {
-   char* tmp = tmpnam(NULL);
-   if (!tmp)
-      error(ETFatal, "Unable to get a temp file name using tmpnam");
+   static const char* tmpdir = getenv("TMPDIR");
+   static const string path = tmpdir ? tmpdir : "/tmp";
+   static const string name = "mix_phrasetables.XXXXXX";
+   char tmp[path.size()+name.size()+2];
+   strcpy(tmp,(path+"/"+name).c_str());
+   if ( close(mkstemp(tmp)) )
+      error(ETFatal, "Unable to get a temp file name using mkstemp(%s)", tmp);
    return tmp;
 }
 

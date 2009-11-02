@@ -144,7 +144,7 @@ class BasicModelGenerator;
       virtual double futureScore(const PartialTranslation &trans) = 0;
 
       /**
-       * Compute the marginal score a partial translation.
+       * Compute the marginal score for a partial translation.
        * The score returned should be the marginal cost of the last phrase
        * added, pt.lastPhrase, not the score of the whole partial translation.
        *

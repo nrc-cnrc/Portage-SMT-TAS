@@ -13,11 +13,11 @@
  */
 
 #include "lmtext.h"
-#include <arg_reader.h>
-#include <exception_dump.h>
-#include <printCopyright.h>
-#include <portage_defs.h>
-#include <file_utils.h>
+#include "arg_reader.h"
+#include "exception_dump.h"
+#include "printCopyright.h"
+#include "portage_defs.h"
+#include "file_utils.h"
 
 using namespace std;
 using namespace Portage;
@@ -59,7 +59,7 @@ int MAIN(argc,argv)
         << " to BinLM " << binlm_filename << endl;
 
    VocabFilter vocab(0);
-   bool limit_vocab = (vocab_file != "");
+   const bool limit_vocab = (vocab_file != "");
    if ( limit_vocab ) {
       vocab.read(vocab_file);
       cerr << "Read vocab (... " << (time(NULL) - start) << " secs)" << endl;
@@ -76,9 +76,8 @@ int MAIN(argc,argv)
                         lm_filename.c_str());
 
    if ( isSuffix(".gz", binlm_filename) ) {
-      string binlm_tempfile = binlm_filename.substr(0, binlm_filename.size()-3);
+      const string binlm_tempfile = binlm_filename.substr(0, binlm_filename.size()-3);
       lmtext->write_binary(binlm_tempfile);
-      delete lmtext;
       cerr << "Wrote binlm (... " << (time(NULL) - start) << " secs)" << endl;
       system(("gzip -9fq " + binlm_tempfile).c_str());
       cerr << "Compressed binlm (... " << (time(NULL) - start) << " secs)"
@@ -88,9 +87,13 @@ int MAIN(argc,argv)
       cerr << "Wrote binlm (... " << (time(NULL) - start) << " secs)" << endl;
    }
 
+   // Free-up the memory used by the lm.
+   delete lmtext;
+   lmtext = NULL;
+
    Uint seconds(time(NULL) - start);
    Uint mins = seconds / 60;
-   Uint hours = mins / 60;
+   const Uint hours = mins / 60;
    mins = mins % 60;
    seconds = seconds % 60;
 

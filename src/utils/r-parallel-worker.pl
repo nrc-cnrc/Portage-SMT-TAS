@@ -25,10 +25,12 @@ use Socket;
 my $host = '';
 my $port = '';
 my $help = '';
-my $quota = 60; # in minutes
+my $quota = 30; # in minutes
 my $primary = 0;
 my $netcat_mode = 0;
 my $silent = 0;
+my $subst;
+my $mon;
 
 GetOptions ("host=s"   => \$host,
             "port=i"   => \$port,
@@ -38,6 +40,8 @@ GetOptions ("host=s"   => \$host,
             "quota=i"  => \$quota,
             primary    => \$primary,
             netcat     => \$netcat_mode,
+            "subst=s"  => \$subst,
+            "mon=s"    => \$mon,
             );
 
 $primary and $quota = 0;
@@ -103,6 +107,17 @@ if ( $netcat_mode ) {
 }
 
 #
+# User requested a systematic substitution on commands before running them
+#
+my ($subst_match, $subst_replacement);
+if ( defined $subst ) {
+   ($subst_match, $subst_replacement) = split "/", $subst, 2;
+   if ( ! defined $subst_replacement ) {
+      exit_with_error("Illegal value for -subst option: $subst");
+   }
+}
+
+#
 # Algorithm: Until we receive "***EMPTY***" request a command, run it,
 #            acknowledge completion
 #
@@ -117,6 +132,12 @@ sub report_signal($) {
    exit;
 }
 
+my $mon_pid;
+if ( $mon ) {
+   $mon_pid = `set -m; process-memory-usage.pl -s 1 60 $$ > $mon & echo -n \$!`;
+   log_msg "Monitor PID $mon_pid";
+}
+
 while(defined $reply_rcvd and $reply_rcvd !~ /^\*\*\*EMPTY\*\*\*/i
          and $reply_rcvd ne ""){
    log_msg "Executing $reply_rcvd";
@@ -129,6 +150,10 @@ while(defined $reply_rcvd and $reply_rcvd !~ /^\*\*\*EMPTY\*\*\*/i
       $SIG{INT} = sub { report_signal(2) };
       $SIG{QUIT} = sub { report_signal(3) };
       $SIG{TERM} = sub { report_signal(15) };
+      if ( defined $subst ) {
+         $job_command =~ s/\Q$subst_match\E/\Q$subst_replacement\E/go;
+         log_msg "Substitued command: $job_command";
+      }
       my $rc = system($job_command);
       $SIG{INT} = $SIG{QUIT} = $SIG{TERM} = 'ignore_signal';
       if ( $rc == -1 ) {
@@ -155,7 +180,14 @@ while(defined $reply_rcvd and $reply_rcvd !~ /^\*\*\*EMPTY\*\*\*/i
       $reply_rcvd = send_recv "GET ($me)";
    }
 }
+
+if ( $mon_pid ) {
+   system("kill $mon_pid");
+   log_msg("Killed monitor process $mon_pid");
+}
+
 log_msg "Done.";
+
 
 
 sub PrintHelp{
@@ -195,12 +227,15 @@ print <<'EOF';
     -help     print this help message
     -silent   don't print log messages
     -quota T  The number of minutes this worker should work before
-              requesting a relaunch from the deamon [60] (0 means never
+              requesting a relaunch from the deamon [30] (0 means never
               relaunch, i.e., work until there is no more work.)
     -primary  Indicates this worker is the primary one and should not be
               stopped on a quench request (implies -quota 0)
     -netcat   Just act like a simple netcat, sending the first line from STDIN
               to host:port and printing the response to STDOUT.
+    -subst MATCH/REPLACEMENT replaces MATCH by REPLACEMENT in every command
+              received before executing it.
+    -mon FILE Run process-memory-usage.pl on self, saving output into FILE
 
 EOF
 }

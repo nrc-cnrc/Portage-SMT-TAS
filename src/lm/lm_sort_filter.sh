@@ -16,6 +16,8 @@
 # Copyright 2006, Her Majesty in Right of Canada
 
 echo 'lm_sort_filter.sh, NRC-CNRC, Copyright (c) 2006 - 2009, Her Majesty in Right of Canada' >&2
+# Includes NRC's bash library.
+source `dirname $0`/sh_utils.sh
 
 usage() {
    for msg in "$@"; do
@@ -44,41 +46,6 @@ Options:
     exit 1
 }
 
-# error_exit "some error message" "optionnally a second line of error message"
-# will exit with an error status, print the specified error message(s) on
-# STDERR.
-error_exit() {
-   echo -n `basename $0`: "" >&2
-   for msg in "$@"; do
-      echo $msg >&2
-   done
-   echo "Use -h for help." >&2
-   exit 1
-}
-
-# Verify that enough args remain on the command line
-# syntax: one_arg_check <args needed> $# <arg name>
-# Note that this function expects to be in a while/case structure for
-# handling parameters, so that $# still includes the option itself.
-# exits with error message if the check fails.
-arg_check() {
-   if [ $2 -le $1 ]; then
-      error_exit "Missing argument to $3 option."
-   fi
-}
-
-# Warning message
-warn()
-{
-   echo "WARNING: $*" >&2
-}
-
-# Debug message
-debug()
-{
-   test -n "$DEBUG" && echo "<D> $*" >&2
-}
-
 export LC_ALL=C
 
 # Command line processing
@@ -102,7 +69,7 @@ done
 test $# -eq 0   && error_exit "Missing input LM"
 INPUT=$1; shift
 
-if [[ -n "$REBUILD_VALID_LM" ]]; then
+if [ -n "$REBUILD_VALID_LM" ]; then
    test $# -eq 0   && error_exit "Missing output"
    OUTPUT=$1; shift
    if [[ $OUTPUT == "-" || $OUTPUT == "/dev/stdout" ]]; then
@@ -114,7 +81,7 @@ test $# -gt 0   && error_exit "Superfluous arguments $*"
 
 
 # If the user was kind enough to provide a TMPDIR, use it.
-if [[ -n "$TMPDIR" ]]; then
+if [ -n "$TMPDIR" ]; then
    SORT_DIR="TMPDIR=$TMPDIR"
 fi
 
@@ -125,27 +92,37 @@ START_LINE=$(gzip -cdqf $INPUT | egrep -m1 -n '^\\1-gram' | cut -f1 -d':')
 
 # ALWAYS work in a work directory
 WORKDIR=lm_sort_filter.$$
-test -d $WORKDIR || mkdir $WORKDIR
+test -d $WORKDIR || mkdir -p $WORKDIR
+verbose 1 "Created a tmp workdir: $WORKDIR"
 
 # Split the input in parts based on Ngram size.
+verbose 1 "Splitting input according to the ngram sections."
 gzip -cqfd $INPUT \
 | tail -n +$START_LINE \
 | egrep -v '^\\end\\$' \
 | egrep -v '^$' \
 | perl -snle 'if(/^\\(\d)-grams:$/){close(FILE);open(FILE, ">'$WORKDIR'/part$1");} else{ print FILE $_;} END{close(FILE)}'
 
+# Make sure splitting was done properly.
+if [[ `ls $WORKDIR/* | \wc -l` == 0 ]]; then
+   error_exit "Error splitting input lm.";
+fi
+
 # Make sure all parts are sorted
+verbose 1 "Sorting all parts."
 for p in $WORKDIR/part*; do
-   if [[ ! `sort -c -t'	' -k2,2 < $p 2> /dev/null` ]]; then
-      [[ $p =~ "./(part[0-9]+)$" ]]
-      warn "${BASH_REMATCH[1]} not sorted"
+   if [ ! `sort -c -t'	' -k2,2 < $p 2> /dev/null` ]; then
+      [[ $p =~ "part[0-9]+$" ]]
+      warn "${BASH_REMATCH[0]} not sorted"
       echo "(LC_ALL=C $SORT_DIR sort -t'	' -k2,2 $p > $p.sorted) && mv $p.sorted $p"
    fi
 done \
 | run-parallel.sh - `ls $WORKDIR/ | \wc -l`
 
 
+verbose 1 "Generating the output."
 if [[ -n "$REBUILD_VALID_LM" ]]; then
+   verbose 1 "Rebuilding a valid lm."
    if [[ $OUTPUT =~ ".gz$" ]]; then
       debug "Producing a compressed output"
       CAT="gzip"
@@ -159,14 +136,16 @@ if [[ -n "$REBUILD_VALID_LM" ]]; then
    echo
    echo "\\data\\"
    for p in $WORKDIR/part*; do
-      [[ $p =~ ".part([0-9]+)$" ]];
+      [[ $p =~ "part([0-9]+)$" ]];
       N=${BASH_REMATCH[1]};
+      test -n "$N" || error_exit "Unable to parse part number.";
       echo "ngram $N="`\wc -l < $p`;
    done
    echo
    for p in $WORKDIR/part*; do
-      [[ $p =~ ".part([0-9]+)$" ]];
+      [[ $p =~ "part([0-9]+)$" ]];
       N=${BASH_REMATCH[1]};
+      test -n "$N" || error_exit "Unable to parse part number.";
       echo "\\$N-grams:"
       cat $p;
       echo
@@ -177,6 +156,7 @@ if [[ -n "$REBUILD_VALID_LM" ]]; then
    TOTAL_ENTRIES=$(gzip -cqfd $INPUT | egrep -v '^$' | \wc -l)
 
    # Make sure all entries are still present
+   verbose 1 "Checking output integrity."
    OUTPUT_ENTRIES=$(gzip -cqfd $OUTPUT | egrep -v '^$' | \wc -l)
    if (( $OUTPUT_ENTRIES != $TOTAL_ENTRIES )); then
       warn "Check your output, it's incomplete"
@@ -187,6 +167,7 @@ if [[ -n "$REBUILD_VALID_LM" ]]; then
    fi
 else
    # Tab-separated fields
+   verbose 1 "Sorting all entries."
    LC_ALL=C $SORT_DIR sort -t'	' -k2,2 -m $WORKDIR/part* && rm -rf $WORKDIR
 fi
 

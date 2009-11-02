@@ -13,6 +13,7 @@
 
 #include <set>
 #include "word_align_io.h"
+#include "word_align.h"
 
 using namespace Portage;
 
@@ -25,6 +26,8 @@ WordAlignmentWriter* WordAlignmentWriter::create(const string& format)
    WordAlignmentWriter* writer = NULL;
    if (format == "aachen")
       writer = new AachenWriter();
+   else if (format == "gale")
+      writer = new GALEWriter();
    else if (format == "compact")
       writer = new CompactWriter();
    else if (format == "ugly")
@@ -37,6 +40,8 @@ WordAlignmentWriter* WordAlignmentWriter::create(const string& format)
       writer = new GreenWriter();
    else if (format == "sri")
       writer = new SRIWriter();
+   else if (format == "uli")
+      writer = new UliWriter();
    else 
       error(ETFatal, "Unknown alignment format: %s", format.c_str());
 
@@ -81,6 +86,32 @@ ostream& AachenWriter::operator()(ostream &out,
          if (sets[i][j] < toks2.size())
             out << "S " << i << ' ' << sets[i][j] << endl;
    out << endl;
+   return out;
+}
+
+// ID 0 # Source Sentence # Raw Hypothesis # Postprocessed Hypothesis @ Alignment # Scores
+ostream& GALEWriter::operator()(ostream &out, 
+                                const vector<string>& toks1, const vector<string>& toks2,
+                                const vector< vector<Uint> >& sets) {
+   const vector<string>& pptoks2(postproc_toks2 ? *postproc_toks2 : toks2);
+
+   out << sentence_id << "  0 #";
+
+   for (Uint i = 0; i < toks1.size(); ++i)
+      out << " " << toks1[i];
+   out << " #";
+   for (Uint i = 0; i < toks2.size(); ++i)
+      out << " " << toks2[i];
+   out << " #";
+   for (Uint i = 0; i < pptoks2.size(); ++i)
+      out << " " << pptoks2[i];
+   out << " @";
+   for (Uint i = 0; i < sets.size(); ++i) {
+      for (Uint j = 0; j < sets[i].size(); ++j)
+         out << " A " << i << " " << sets[i][j];
+   }
+   out << " # noscores" << endl;
+   
    return out;
 }
 
@@ -187,6 +218,32 @@ ostream& SRIWriter::operator()(ostream &out,
             else first = false;
             out << i << '-' << sets[i][j];
          }
+   out << endl;
+   return out;
+}
+
+ostream& UliWriter::operator()(ostream &out, 
+                               const vector<string>& toks1, const vector<string>& toks2,
+                               const vector< vector<Uint> >& sets)
+{
+   msets = sets;
+   WordAligner::close(msets, csets);
+
+   out << ++sentence_id << ' ';
+   for (Uint i = 0; i < csets.size(); ++i) {
+      if (csets[i].size() == 0 || 
+          csets[i][0] == toks1.size() || // tok1 side is null
+          msets[csets[i][0]].size() == 0 ||
+          msets[csets[i][0]][0] == toks2.size()) // tok2 side is null
+         continue;
+      for (Uint j = 0; j < csets[i].size(); ++j)
+         out << csets[i][j] << (j+1 < csets[i].size() ? "," : "");
+      out << ":";
+      vector<Uint>& mset = msets[csets[i][0]];
+      for (Uint j = 0; j < mset.size(); ++j)
+         out << mset[j] << (j+1 < mset.size() ? "," : "");
+      out << ":unspec ";
+   }
    out << endl;
    return out;
 }

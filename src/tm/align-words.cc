@@ -75,6 +75,16 @@ Options:\n\
           unless you use either of these tricks: specify models called\n\
           \"no-model\", or use the \"-ibm 0\", in which case the program\n\
           does not expect the 2 model arguments.\n\
+\n\
+HMM only options:\n\
+       By default, all HMM parameters are read from the model file. However,\n\
+       these options can be used to override the values in the model file:\n\
+          -p0 -up0 -alpha -lambda -anchor -end-dist -max-jump\n\
+       Boolean options -anchor and -end-dist can be reset using -no<option>.\n\
+       A parallel set of options -p0_2, -up0_2, etc, applies to the \n\
+       lang1_given_lang2 models. If these options are not present, the values\n\
+       for the original set are used for HMMs in both directions.\n\
+       See train_ibm -h for documentation of these HMM parameters.\n\
 ";
 
 // globals
@@ -85,6 +95,8 @@ static const char* const switches[] = {
    "v", "vv", "i", "z", "a:", "o:", "hmm", "ibm:", "twist", "giza", "post",
    "p0:", "up0:", "alpha:", "lambda:", "max-jump:",
    "anchor", "noanchor", "end-dist", "noend-dist",
+   "p0_2:", "up0_2:", "alpha_2:", "lambda_2:", "max-jump_2:",
+   "anchor_2", "noanchor_2", "end-dist_2", "noend-dist_2",
 };
 
 static Uint verbose = 0;
@@ -101,8 +113,6 @@ static Uint first_file_arg = 2;
 static string output_format = "aachen";
 
 // The optional<T> variables are intentionally left uninitialized.
-// These options are also intentionally left undocumented because they should
-// not be used.
 static optional<double> p0;
 static optional<double> up0;
 static optional<double> alpha;
@@ -110,6 +120,14 @@ static optional<double> lambda;
 static optional<bool> anchor;
 static optional<bool> end_dist;
 static optional<Uint> max_jump;
+
+static optional<double> p0_2;
+static optional<double> up0_2;
+static optional<double> alpha_2;
+static optional<double> lambda_2;
+static optional<bool> anchor_2;
+static optional<bool> end_dist_2;
+static optional<Uint> max_jump_2;
 
 
 static inline char ToLower(char c) { return tolower(c); }
@@ -165,6 +183,23 @@ public:
       mp_arg_reader->testAndSetOrReset("anchor", "noanchor", anchor);
       mp_arg_reader->testAndSetOrReset("end-dist", "noend-dist", end_dist);
 
+      mp_arg_reader->testAndSet("p0_2", p0_2);
+      mp_arg_reader->testAndSet("up0_2", up0_2);
+      mp_arg_reader->testAndSet("alpha_2", alpha_2);
+      mp_arg_reader->testAndSet("lambda_2", lambda_2);
+      mp_arg_reader->testAndSet("max-jump_2", max_jump_2);
+      mp_arg_reader->testAndSetOrReset("anchor_2", "noanchor_2", anchor_2);
+      mp_arg_reader->testAndSetOrReset("end-dist_2", "noend-dist_2", end_dist_2);
+
+      // initialize *_2 parameters from defaults if not explicitly set
+      if (!p0_2) p0_2 = p0;
+      if (!up0_2) up0_2 = up0;
+      if (!alpha_2) alpha_2 = alpha;
+      if (!lambda_2) lambda_2 = lambda;
+      if (!max_jump_2) max_jump_2 = max_jump;
+      if (!anchor_2) anchor_2 = anchor;
+      if (!end_dist_2) end_dist_2 = end_dist;
+
       if (ibm_num == 0) {
          if (!giza_alignment)
             error(ETFatal, "Can't use -ibm=0 trick unless -giza is used");
@@ -215,7 +250,7 @@ int MAIN(argc, argv)
        if (model1 != "no-model") 
           ibm_1 = new HMMAligner(model1, p0, up0, alpha, lambda, anchor, end_dist, max_jump);
        if (model2 != "no-model") 
-          ibm_2 = new HMMAligner(model2, p0, up0, alpha, lambda, anchor, end_dist, max_jump);
+          ibm_2 = new HMMAligner(model2, p0_2, up0_2, alpha_2, lambda_2, anchor_2, end_dist_2, max_jump_2);
      } else if (ibm_num == 1) {
        if (verbose) cerr << "Loading IBM1 models" << endl;
        if (model1 != "no-model") ibm_1 = new IBM1(model1);

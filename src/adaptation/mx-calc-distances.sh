@@ -110,12 +110,16 @@ models="models.$tmp"
 
 # Run
 
+export LC_ALL=C
+
 case $metric in
    uniform)
         cat $components | perl -ne 'print "1\n";' ;;
    ppx)
-        eval multi-ngram-ppx $args $models $textfile |\
-	    cut -d' ' -f8 | perl -ne '$x=1.0/(1e-10+$_);print "$x\n"' ;;
+        eval multi-ngram-ppx $args $models $textfile |
+            perl -ne 's/.*ppl1=\s*(\S+).*/$1/;
+	              $x=1.0/(1e-10+$_);
+                      print "$x\n"' ;;
    em)
         eval train-lm-mixture $args $models $textfile 2> /dev/null ;;
    tfidf)

@@ -17,8 +17,9 @@
 #ifndef __FILTER_TM_VISITOR_H__
 #define __FILTER_TM_VISITOR_H__
 
-#include <phrasetable.h>
+#include "phrasetable.h"
 #include "simple_histogram.h"
+#include "pruning_style.h"
 
 
 namespace Portage {
@@ -96,6 +97,9 @@ struct filterTMVisitor
    const char* const style;              ///< Should indicate hard or soft filtering
    Uint numKeptEntry;                    ///< Keeps track of how many entries were kept
 
+   /// reference on the pruning type.
+   const pruningStyle* pruning_type;
+
    /// Gathers stats on number leaves and number of entries per leaves.
    SimpleHistogram<Uint>* stats_unfiltered;
    /// Gathers stats on number leaves and number of entries per leaves.
@@ -116,6 +120,7 @@ struct filterTMVisitor
       , log_almost_0(log_almost_0)
       , style(style)
       , numKeptEntry(0)
+      , pruning_type(NULL)
       , stats_unfiltered(NULL)
       , stats_filtered(NULL)
    {}
@@ -127,9 +132,20 @@ struct filterTMVisitor
    }
 
    /**
+    * Simply sets the pruning style and the number of text translation models.
+    * @param _pruning_type  pruning style.
+    * @param n      number of text translation models.
+    */
+   void set(const pruningStyle* const _pruning_type, Uint n) 
+   {
+      pruning_type = _pruning_type;
+      set(Uint(0), n);
+   }
+
+   /**
     * Simply sets the limit and the number of text translation models.
     * @param Limit  filtering length
-    * @param n      number of text translation models.  We need
+    * @param n      number of text translation models.
     */
    void set(Uint Limit, Uint n)
    {
@@ -137,13 +153,13 @@ struct filterTMVisitor
       numTextTransModels = n;
 
       if (stats_unfiltered) delete stats_unfiltered;
-      stats_unfiltered = new SimpleHistogram<Uint>(new fixBinner(10*L));
+      stats_unfiltered = new SimpleHistogram<Uint>(new fixBinner(300));
       assert(stats_unfiltered);
 
       if (stats_filtered) delete stats_filtered;
-      stats_filtered = new SimpleHistogram<Uint>(new fixBinner(L));
+      stats_filtered = new SimpleHistogram<Uint>(new fixBinner(30));
       assert(stats_filtered);
-   };
+   }
 
    /**
     * Displays the histogram values of before filtering and after filtering.
@@ -159,22 +175,31 @@ struct filterTMVisitor
 
    /**
     * Transforms the phraseTable in a visitor to filter "30" the trie leaves.
+    * Gets called by trie_node.traverse.
     * @param key_stack  representation of the trie key
     * @param tgtTable   leaf of the trie to filter
     */
    void operator()(const vector<Uint>& key_stack, TargetPhraseTable& tgtTable)
    {
+      // There is no need to process an empty leaf.
+      if (tgtTable.empty()) return;
+
       // DEBUGGING
       //copy(key_stack.begin(), key_stack.end(), ostream_iterator<Uint>(cerr, " ")); cerr << endl;
 
       // Gather stats of unfiltered leaves
-      if (tgtTable.size() > 0) stats_unfiltered->add(tgtTable.size());
+      stats_unfiltered->add(tgtTable.size());
+
+      // Calculate the proper L for the given source phrase.
+      if (pruning_type != NULL) {
+         L = (*pruning_type)(key_stack.size());
+      }
 
       operator()(tgtTable);
       numKeptEntry += tgtTable.size();
 
       // Gather stats of filtered leaves
-      if (tgtTable.size() > 0) stats_filtered->add(tgtTable.size());
+      stats_filtered->add(tgtTable.size());
    }
 
    /**

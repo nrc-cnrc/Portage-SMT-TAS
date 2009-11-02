@@ -38,7 +38,10 @@ namespace Portage
    /// Indicates no limit on maximum distortion cost
    extern const int NO_MAX_DISTORTION;
 
-   /// Definition of a Phrase
+   /// Indicates no limit on maximum levenshtien cost
+   extern const int NO_MAX_LEVENSHTEIN;
+
+   /// Definition of a Phrase.
    typedef vector<Uint> Phrase;
 
    /**

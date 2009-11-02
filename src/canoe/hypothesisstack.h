@@ -111,7 +111,7 @@ namespace Portage
 
          // The following shouldn't belong here, it should only be in the
          // subclass, but since the decoder keeps only a pointer the this
-         // base class, we need these virtual functions here. 
+         // base class, we need these virtual functions here.
 
          //@{
          /**
@@ -176,17 +176,19 @@ namespace Portage
    class HypEquiv
    {
       private:
-         /// The model used to determine if two translations are equivalent (recombinable).
+         /// The model used to determine if two translations are equivalent
+         /// (recombinable).
          PhraseDecoderModel &m;
       public:
          /**
           * Creates a new HypEquiv using the given model.
-          * @param model   The model used to determine if two translations are equivalent
-          *       (recombinable).
+          * @param model   The model used to determine if two translations are
+          *                equivalent (recombinable).
           */
          HypEquiv(PhraseDecoderModel &model);
          /**
-          * Determines if two states are equivalent (the translations are recombinable)
+          * Determines if two states are equivalent (the translations are
+          * recombinable)
           * @param s1   The first state.
           * @param s2   The second state.
           * @return  true iff the two states have recombinable translations.
@@ -197,7 +199,7 @@ namespace Portage
 
    //--------------------------------------------------------------------------
    /**
-    * Callable entity to sort them based on their estimated cost. 
+    * Callable entity to sort decoder states based on their estimated cost.
     */
    class WorseScore
    {
@@ -243,6 +245,9 @@ namespace Portage
           */
          RecombinedSet recombHash;
 
+         /// If true, recombined states are discarded as they are added
+         bool discardRecombined;
+
       private:
          /// Keeps track of how many states were recombined.
          Uint numRecombined;
@@ -252,8 +257,12 @@ namespace Portage
           * Creates a new RecombHypStack.
           * @param model     The PhraseDecoderModel used to determine if two
           *                  translations are recombinable.
+          * @param discardRecombined If true, recombined states will be discarded
+          *                  as they are added, keeping only the higher scoring
+          *                  state.  Set only if you will not trying to extract
+          *                  lattices or n-best lists.
           */
-         RecombHypStack(PhraseDecoderModel &model);
+         RecombHypStack(PhraseDecoderModel &model, bool discardRecombined);
          /// Destructor.
          virtual ~RecombHypStack();
 
@@ -272,7 +281,7 @@ namespace Portage
          virtual void getAllStates(vector<DecoderState *> &states);
          /**
           * Gets the number of unique states once they are recombined.
-          * @copydoc HypothesisStack::size() const 
+          * @copydoc HypothesisStack::size() const
           */
          virtual Uint size() const { return recombHash.size(); };
    }; // RecombHypStack
@@ -322,7 +331,7 @@ namespace Portage
           * Definition of a map used to implement coverage pruning: for each
           * coverage, shows the best score and and the number of states
           * popped so far having this coverage.
-          * map : coverage set -> { best score, pop count } 
+          * map : coverage set -> { best score, pop count }
           */
          typedef std::map<UintSet, pair<double, Uint> > CoverageMap;
          CoverageMap covMap;  ///< Map used to implement coverage pruning
@@ -391,11 +400,17 @@ namespace Portage
           *                  above to be kept when they have the exact same
           *                  coverage (must be in log space, and negative,
           *                  or log(0.0), i.e., -INFINITY, for no threshold)
+          * @param discardRecombined If true, recombined states will be discarded
+          *                  as they are added, keeping only the higher scoring
+          *                  state.  Set only if you will not trying to extract
+          *                  lattices or n-best lists.
           */
          HistogramThresholdHypStack(PhraseDecoderModel &model,
                Uint pruneSize, double relativeThreshold,
-               Uint covLimit, double covThreshold);
+               Uint covLimit, double covThreshold,
+               bool discardRecombined);
 
+         // Methods overridden from parent classes
          virtual void push(DecoderState *s);
          virtual DecoderState *pop();
          virtual bool isEmpty();

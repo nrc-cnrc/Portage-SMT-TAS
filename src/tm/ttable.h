@@ -31,6 +31,7 @@
 #include <errors.h>
 #include <quick_set.h>
 #include <voc.h>
+#include <casemap_strings.h>
 
 namespace Portage {
 
@@ -96,6 +97,10 @@ private:
       {return x.first < y;}
    };
 
+   CaseMapStrings* tword_casemap; ///< Map t-words to lowercase if not null
+   CaseMapStrings* sword_casemap; ///< Map s-words to lowercase if not null
+   string case_null;  ///< don't lowercase this word
+
    unordered_map<string,Uint> tword_map; ///< T-language vocab
    unordered_map<string,Uint> sword_map; ///< S-language vocab
    vector<string> twords; ///< T-language vocab (mapping index to word)
@@ -108,6 +113,20 @@ private:
 
    void add(Uint src_index, Uint tgt_index);
    void read(const string& filename, const Voc* src_voc);
+
+   // non-reentrant!
+   const string& mapTgtCase(const string& tword) const {
+      static string tlower;
+      return tword_casemap == NULL || tword == case_null ?
+         tword : tword_casemap->toLower(tword, tlower);
+   }
+
+   // non-reentrant!
+   const string& mapSrcCase(const string& sword) const {
+      static string slower;
+      return sword_casemap == NULL || sword == case_null ?
+         sword : sword_casemap->toLower(sword, slower);
+   }
 
    void init();
 
@@ -130,6 +149,23 @@ public:
 
    /// Destructor.
    ~TTable();
+
+   /**
+    * Set case mapping. Use the given CaseMapStrings objects to map source or
+    * target words to lowercase before looking them up. Note that this only
+    * affects look-up - NOT words that are being added to the table.
+    * @param cms pointer to a case-mapping object that must remain valid; use
+    * NULL to turn off casemapping.
+    */
+   void setSrcCaseMapping(CaseMapStrings* cms) {sword_casemap = cms;}
+   void setTgtCaseMapping(CaseMapStrings* cms) {tword_casemap = cms;}
+
+   /**
+    * Set a 'null' word that is not subject to normal casemapping operations,
+    * for either source or target languages. NB: by default this is set to
+    * NULL.
+    */
+   void setCaseNullWord(const string& nw) {case_null = nw;}
 
    /**
     * Remove all pairs with probability < thresh, and renormalize afterwards
@@ -204,8 +240,8 @@ public:
     * @param tgt_word  string to convert into an index.
     * @return tgt_word index or  numTargetWords() if unknown.
     */
-   Uint targetIndex(const string& tgt_word) {
-      WordMapIter p = tword_map.find(tgt_word);
+   Uint targetIndex(const string& tgt_word) const {
+      WordMapIter p = tword_map.find(mapTgtCase(tgt_word));
       return p == tword_map.end() ? numTargetWords() : p->second;
    }
 
@@ -216,8 +252,8 @@ public:
     * @return the index of src_word in the source vocabulary or
     *         numSourceWords() if unknown
     */
-   Uint sourceIndex(const string& src_word) {
-      WordMapIter p = sword_map.find(src_word);
+   Uint sourceIndex(const string& src_word) const {
+      WordMapIter p = sword_map.find(mapSrcCase(src_word));
       return p == sword_map.end() ? numSourceWords() : p->second;
    }
 
@@ -225,7 +261,7 @@ public:
     * Get the source distribution from an index.
     * @param src_index  index to retrieve.
     * @return the source distribution associated with src_index or the
-    * empty distribution if not found.
+    *         empty distribution if not found.
     */
    const SrcDistn& getSourceDistn(Uint src_index) const {
       return src_index == numSourceWords() ? empty_distn : src_distns[src_index];
@@ -238,7 +274,7 @@ public:
     *         empty distribution if not found.
     */
    const SrcDistn& getSourceDistn(const string& src_word) const {
-      WordMapIter p = sword_map.find(src_word);
+      WordMapIter p = sword_map.find(mapSrcCase(src_word));
       return p == sword_map.end() ? empty_distn : src_distns[p->second];
    }
 

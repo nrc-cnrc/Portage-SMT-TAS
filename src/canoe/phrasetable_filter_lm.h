@@ -7,7 +7,7 @@
  * Interface for phrase table when filtering LMs.
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2007, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2007, Her Majesty in Right of Canada
@@ -16,7 +16,7 @@
 #ifndef __PHRASE_TABLE_FILTER_LM_H__
 #define __PHRASE_TABLE_FILTER_LM_H__
 
-#include <phrasetable_filter.h>
+#include "phrasetable_filter.h"
 
 namespace Portage {
 /**
@@ -36,8 +36,9 @@ class PhraseTableFilterLM : public PhraseTableFilter {
        * @param pruningTypeStr      pruning type
        */
       PhraseTableFilterLM(bool _limitPhrases, VocabFilter& tgtVocab, const char* pruningTypeStr = NULL);
+
       /// Destructor.
-      ~PhraseTableFilterLM();
+      virtual ~PhraseTableFilterLM();
 
       virtual bool processEntry(TargetPhraseTable* tgtTable, Entry& entry);
 

@@ -31,6 +31,7 @@ namespace Portage
 filter_models [-czsr] [-f CONFIG_FILE] [-suffix SUFFIX] [-vocab VOCAB_FILE]\n\
               [-hard-limit OUTFILE | -soft-limit OUTFILE]\n\
               [-L [-no-per-sent]] [-ttable-limit T]\n\
+              [-T <fix#limit|linear#limit>]\n\
               [-tm-online] [-no-src-grep | < SRC]\n\
 \n\
    SWISS ARMY KNIFE OF FILTERING ;)\n\
@@ -73,6 +74,10 @@ Options:\n\
 -s   indicates not to strip the path from file names [do]\n\
 -r   don't overwrite existing filtered files [do, unless they're readonly]\n\
 -L   filter language models [don't]\n\
+-T   pruning style with arguments style#arg\n\
+        i.e. fix#30 prunes every target phrase table with a limit of 30.\n\
+        or linear#10 prunes every target phrase table with a variable limit\n\
+           source word count x 10\n\
 -ttable-limit Use T instead of the ttable-limit parameter in CONFIG_FILE. This\n\
              value does not get written back to CONFIG_FILE.FILT.\n\
 -no-per-sent do global voc LM filtering only [do per sent LM filtering]\n\
@@ -96,16 +101,16 @@ Options:\n\
 \n\
   EXAMPLES:\n\
 \n\
-     Filter_grep all TMs in canoe.ini with source phrases from src:\n\
+     Filter-grep all TMs in canoe.ini with source phrases from src:\n\
 \n\
      filter_models -z -f canoe.ini < src\n\
 \n\
-     Soft limit filter all phrasetables in canoe.ini, applying filter_grep\n\
+     Soft-limit filter all phrasetables in canoe.ini, applying filter_grep\n\
      using src at the same time:\n\
 \n\
      filter_models -f canoe.ini -soft-limit SOFT.OUT.gz < src\n\
 \n\
-     Hard limit filter a complete multiprob TM, without filter_grep, with\n\
+     Hard-limit filter a complete multiprob TM, without filter_grep, with\n\
      minimal memory requirements:\n\
 \n\
      filter_models -f canoe.ini -no-src-grep -tm-online -hard-limit HARD.OUT.gz\n\
@@ -115,7 +120,7 @@ Options:\n\
        const char* const switches[] = {
           "z", "s", "r", "L", "no-per-sent", "no-src-grep",
           "tm-online", "c", "hard-limit:", "soft-limit:", "f:", "suffix:",
-          "ttable-limit:", "vocab:", "input:"
+          "ttable-limit:", "vocab:", "input:", "T:"
        };
 
        /// Command line arguments processing for filter_models.
@@ -138,6 +143,7 @@ Options:\n\
              bool   tm_online;    ///< indicates to process source tm in a streaming mode
              bool   output_config; ///< indicates to output the modified canoe.ini
              string input;         ///< Source sentences to filter on
+             string pruning_type_switch;  ///< What kind of pruning was specified by the user.
 
           public:
              /// Default constructor.
@@ -160,6 +166,7 @@ Options:\n\
              , tm_online(false)
              , output_config(true)
              , input("-")
+             , pruning_type_switch("fix")
              {
                 argProcessor::processArgs(argc, argv);
              }
@@ -185,6 +192,7 @@ Options:\n\
                 mp_arg_reader->testAndSet("no-src-grep", no_src_grep);
                 mp_arg_reader->testAndSet("tm-online", tm_online);
                 mp_arg_reader->testAndSet("input", input);
+                mp_arg_reader->testAndSet("T", pruning_type_switch);
                 // if the option is set we don't want to strip.
                 strip         = !mp_arg_reader->getSwitch("s");
                 output_config = !mp_arg_reader->getSwitch("c");
@@ -195,7 +203,7 @@ Options:\n\
                 if (nopersent && !doLMs)
                    error(ETWarn, "The -no-per-sent flag only takes effect if the L flag is active (process LMs).");
                 if (!tm_online && no_src_grep && (soft_limit || hard_limit))
-                   error(ETWarn, "You better have gobs and gobs of RAM or fear the god of bus error!");
+                   error(ETWarn, "You better have gobs and gobs of RAM or fear the god of bus errors!");
                 if (tm_online && !soft_limit && !hard_limit)
                    error(ETWarn, "Superfluous tm-online since grepping is always online(Not loading in memory)");
 

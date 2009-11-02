@@ -216,8 +216,10 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
          // Create file names
          char  sent_num[7];
          snprintf(sent_num, 7, ".%.4d", num);
-         const string curLatticeFile  = addExtension(c.latticeFilePrefix, sent_num);
-         const string curCoverageFile = addExtension(c.latticeFilePrefix, string(sent_num) + ".state");
+         const string curLatticeFile
+            = addExtension(c.latticeFilePrefix, sent_num);
+         const string curCoverageFile
+            = addExtension(c.latticeFilePrefix, string(sent_num) + ".state");
 
          // Open files for output
          oSafeMagicStream latticeOut(curLatticeFile);
@@ -298,6 +300,24 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
    delete printPtr;
 } // doOutput
 
+/**
+ * Reads and tokenizes sentences (not marked, just space separated tokens).
+ * This is not used to read src language sentences, only for target langauge
+ * references for the Levenshtein and Ngranmatch features.
+ * @param[in]  in     from what to read the sentences.
+ * @param[out] sents  returned tokenized sentences.
+ */
+void readRefSentences(istream &in, vector< vector<string> > &sents)
+{
+   while (true)
+   {
+      string line;
+      getline(in, line);
+      if (in.eof() && line == "") break;
+      sents.push_back(vector<string>());
+      split(line, sents.back(), " ");
+   } // while
+} // readRefSentences
 
 /**
  * Write the source sentence with OOVs either marked up or stripped.
@@ -451,6 +471,25 @@ int MAIN(argc, argv)
       assert(sents.size() == sourceSentenceIds.size());
    }
 
+   // get reference (target sentences) if levenshtein or n-gram is used
+   vector<vector<string> > tgt_sents;
+   tgt_sents.clear();  // just in case there is no ref
+   // test parameters for levenshtein or n-gram
+   const bool usingLev = !c.levWeight.empty() || !c.ngramMatchWeights.empty();
+   if ( usingLev ){
+      if (c.refFile.empty())
+         error(ETFatal, "You have to provide a reference file!\nLevenshtein and n-gram decoder features cannot be calculated without!");
+      iSafeMagicStream ref(c.refFile);
+      if (!c.loadFirst)
+      {
+         // Read reference (target) sentences.
+         readRefSentences(ref, tgt_sents);
+         if (tgt_sents.size() != sents.size())
+            error(ETFatal, "Number of lines (%d) in %s is not the same as the number of lines (%d) in %s",
+                  tgt_sents.size(), c.refFile.c_str(), sents.size(), c.input.c_str());
+      }
+   }
+
    time_t start;
    time(&start);
    gen = BasicModelGenerator::create(c, &sents, &marks);
@@ -500,12 +539,14 @@ int MAIN(argc, argv)
                error(ETFatal, "Aborting because of ill-formed markup");
             }
          }
+         //TODO: maybe some test here for tgt_sents like phrase alignment when k is used????
          if (reader.eof()) break;
       } else {
          if (i == sents.size()) break;
          // Gather the proper information for the current sentence we want to process.
          nss_info.src_sent = sents[i];
          nss_info.marks    = marks[i];
+         if (!tgt_sents.empty()) nss_info.tgt_sent = &tgt_sents[i];
          sourceSentenceId = sourceSentenceIds[i];
       }
       if (!c.bLoadBalancing) sourceSentenceId += c.firstSentNum;
@@ -531,7 +572,7 @@ int MAIN(argc, argv)
          continue;
       }
 
-      HypothesisStack *h = runDecoder(*model, c);
+      HypothesisStack *h = runDecoder(*model, c, usingLev);
 
       switch (i - lastCanoe)
       {

@@ -13,7 +13,7 @@
  */
 
 #include "lmtext.h"
-#include <file_utils.h>
+#include "file_utils.h"
 
 using namespace Portage;
 using namespace std;
@@ -90,7 +90,7 @@ void LMText::read(const string& lm_file_name, bool limit_vocab,
          gram_order, lm_file_name.c_str(), limit_order);
       gram_order = limit_order;
    }
-   vocab->setMaxNgram(gram_order);
+   vocab->setMaxNgram(getOrder());
    vocab->resetDiscardingCount();
    hits.init(getOrder());
 
@@ -99,7 +99,7 @@ void LMText::read(const string& lm_file_name, bool limit_vocab,
    vector<Uint> sentenceCount(ngram_counts.size());
    // Now for each order N we expect, go down to the \N-grams: section and read
    // it
-   for (Uint order = 1; order <= ngram_counts.size(); ++order) {
+   for (Uint order = 1; order <= getOrder(); ++order) {
       time_t start = time(NULL);
       if (!quiet) cerr << "Reading " << ngram_counts[order-1] << " " << order << "-grams.";
       if ( in.eof() )
@@ -193,7 +193,7 @@ bool LMText::readLine(
    // intersection of sentence sets for each word must also be non empty.
    for(;;) {
       if (in.peek() == '\\') {
-         cerr << "Next n" << endl;  // SAM DEBUG
+         //cerr << "Next n" << endl;  // SAM DEBUG
          return false;
       }
 

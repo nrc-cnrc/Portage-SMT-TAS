@@ -19,6 +19,7 @@
 #include "str_utils.h"
 #include "file_utils.h"
 #include "voc.h"
+#include "pruning_style.h"
 #include <cmath>
 #include <algorithm>
 #include <map>
@@ -28,11 +29,22 @@ using namespace std;
 using namespace Portage;
 
 const char *Portage::PHRASE_TABLE_SEP = " ||| ";
+
+/********************* TargetPhraseTable **********************/
+void TargetPhraseTable::swap(TargetPhraseTable& o) {
+   Parent::swap(o);
+   input_sent_set.swap(o.input_sent_set);
+}
+
+
+/********************* PhraseTable **********************/
 double PhraseTable::log_almost_0 = LOG_ALMOST_0;
 
 PhraseTable::PhraseTable(VocabFilter& _tgtVocab, const char* pruningTypeStr) :
    tgtVocab(_tgtVocab),
    numTransModels(0),
+   numAdirTransModels(0),
+   numLexDisModels(0),
    forwardsProbsAvailable(true),
    num_sents(tgtVocab.getNumSourceSents())
 {
@@ -77,14 +89,15 @@ void PhraseTable::read(const char *src_given_tgt_file,
 } // read
 
 
-TargetPhraseTable* PhraseTable::getTargetPhraseTable(const Entry& entry, bool limitPhrases)
+TargetPhraseTable* PhraseTable::getTargetPhraseTable(const Entry& entry, Uint& src_word_count, bool limitPhrases)
 {
    TargetPhraseTable *tgtTable = NULL;
    char* tokens[1000]; // 1000 word-long phrase is considered "infinite"
 
    // Tokenize source
    // Destructive split: src becomes the memory holder for tokens.
-   const Uint src_word_count = split(entry.src, tokens, 1000, " ");
+   src_word_count = split(entry.src, tokens, 1000, " ");
+
    if(!(src_word_count > 0)) {
       error(ETWarn, "\nSuspicious entry in %s, there is no source in: %s\n",
             entry.file, entry.line->c_str());
@@ -92,6 +105,7 @@ TargetPhraseTable* PhraseTable::getTargetPhraseTable(const Entry& entry, bool li
    }
    if ( src_word_count > 1000 )
       error(ETFatal, "Exceeded system limit of 1000-word long phrases");
+
    Uint srcWords[src_word_count];
 
    // Find in table
@@ -127,7 +141,11 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
    Entry entry(d, file);
    iSafeMagicStream in(file);
 
-   cerr << "loading phrase table from " << file << ": " << flush;
+   if (d == lexicalized_distortion){
+      cerr << "loading lexicalized distortion model from " << file << ": " << flush;
+   } else{
+      cerr << "loading phrase table from " << file << ": " << flush;
+   }
    time_t start_time = time(NULL);
 
    const Uint sep_len = strlen(PHRASE_TABLE_SEP);
@@ -138,14 +156,15 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
 
    // Don't look the tgtTable up again if src hasn't changed
    string prev_src;
-   TargetPhraseTable *prev_tgtTable = NULL;
+   Uint prev_src_word_count = 0;
+   TargetPhraseTable *tgtTable = NULL;
    while (!in.eof())
    {
       getline(in, line);
       if (line == "") continue;
       ++entry.lineNum;
 
-      // Look for two occurrences of |||.
+      // Look for two or three occurrences of |||.
       const string::size_type index1 = line.find(PHRASE_TABLE_SEP, 0);
       const string::size_type index2 = line.find(PHRASE_TABLE_SEP, index1 + sep_len);
       if (index2 == string::npos) {
@@ -159,9 +178,22 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
 
       line_buffer[index1] = '\0';
       entry.src        = trim(line_buffer, " ");
+      // Canoe can't do anything with an empty source thus skip it.
+      if (*entry.src == '\0') {
+         error(ETWarn, "SKIPPING empty source at line %d while loading tm: %s\n", entry.lineNum, line.c_str());
+         continue;
+      }
       line_buffer[index2] = '\0';
       entry.tgt        = trim(line_buffer + index1 + sep_len);
       entry.probString = trim(line_buffer + index2 + sep_len);
+
+      //boxing
+      const string::size_type index3 = line.find(PHRASE_TABLE_SEP, index2 + sep_len);
+
+      if (index3 != string::npos) {
+        line_buffer[index3] = '\0';
+        entry.ascoreString =  trim(line_buffer + index3 + sep_len);
+      }//boxing
 
       if (entry.lineNum % 10000 == 0) {
          cerr << '.' << flush;
@@ -172,34 +204,34 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
          std::swap(entry.src, entry.tgt);
       }
 
-      TargetPhraseTable *tgtTable = NULL;
-      if ( entry.src == prev_src ) {
-         tgtTable = prev_tgtTable;
-      }
-      else {
+      if ( entry.src != prev_src ) {
          //cerr << "NEW entry " << entry.src << " line " << entry.line << endl; //SAM DEBUG
-         numFiltered += processTargetPhraseTable(prev_src, prev_tgtTable);
+         // The source phrase has changed, process the previous target table.
+         numFiltered  += processTargetPhraseTable(prev_src, prev_src_word_count, tgtTable);
 
+         // Get the new target table.
          prev_src      = entry.src;
-         tgtTable      = getTargetPhraseTable(entry, limitPhrases);
-         prev_tgtTable = tgtTable;
+         tgtTable = getTargetPhraseTable(entry, prev_src_word_count, limitPhrases);
       }
 
       if (tgtTable != NULL) // i.e., if src in trie
       {
          // Tokenize target and add to tgt_vocab
          entry.tgtPhrase.clear();
-         tgtStringToPhrase(entry.tgtPhrase, entry.tgt);
+         if ( d == lexicalized_distortion )
+            tgtStringToPhraseIndex(entry.tgtPhrase, entry.tgt);
+         else
+            tgtStringToPhrase(entry.tgtPhrase, entry.tgt);
+
          if (entry.tgtPhrase.empty()) {
             error(ETWarn, "\nSuspicious entry in %s, there is no target in: %s\n",
-		  entry.file, entry.line->c_str());
+                  entry.file, entry.line->c_str());
             continue;
          }
-         if ( limitPhrases ) {
+         if ( limitPhrases && d != lexicalized_distortion ) {
             tgtVocab.addPerSentenceVocab(entry.tgtPhrase, &tgtTable->input_sent_set);
          }
-
-         // Adds entry to the trie's leaf
+         // Add entry to the trie's leaf
          if (processEntry(tgtTable, entry)) ++numKept;
       }
    }
@@ -207,7 +239,7 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
    // In online processing we process after all the entries for a particular
    // source phrase were read thus it is necessary to process the last source
    // phrase as a particular case.
-   numFiltered += processTargetPhraseTable(prev_src, prev_tgtTable);
+   numFiltered += processTargetPhraseTable(prev_src, prev_src_word_count, tgtTable);
 
    cerr << endl << entry.lineNum << " lines read, " << numKept << " entries kept.";
    if ( numFiltered > 0 )
@@ -235,6 +267,12 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
          else
             return entry.multi_prob_col_count;
       break;
+      case lexicalized_distortion:
+          if (entry.multi_prob_col_count == 0)
+            return countProbColumns(file);
+         else
+            return entry.multi_prob_col_count;
+         break;
       default:
          assert(false);
    }
@@ -258,7 +296,66 @@ bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
 {
    // ZERO's value depends on the subclass's implementation of convertFromRead
    const float ZERO(convertFromRead(0.0f));
-   if ( entry.d == src_given_tgt || entry.d == tgt_given_src ) {
+
+   if ( entry.d == lexicalized_distortion ) {
+      //boxing
+      //TScore* curProbs = &( (*tgtTable)[entry.tgtPhrase] );
+
+      TargetPhraseTable::iterator it = tgtTable->find(entry.tgtPhrase);
+      if ( it == tgtTable->end() ) {
+         return false;
+      }
+      else {
+         //TScore* curProbs = &( (*tgtTable)[entry.tgtPhrase] );
+         TScore* curProbs = &(it->second);
+
+         if (entry.lexicalized_distortion_prob_count == 0 && entry.probString != NULL) {
+            vector<string> lexdis_tokens;
+            split(entry.probString, lexdis_tokens);
+            entry.lexicalized_distortion_prob_count = lexdis_tokens.size();
+         }
+
+         if ( entry.lexicalized_distortion_prob_count > 0 ) {
+
+            char* lexdis_tokens[entry.lexicalized_distortion_prob_count];
+            // fast, destructive split
+            const Uint actual_lexdis_count = split(entry.probString,
+                                                   lexdis_tokens, entry.lexicalized_distortion_prob_count);
+            if ( actual_lexdis_count != entry.lexicalized_distortion_prob_count )
+               error(ETFatal, "Wrong number of lexicalized distortion probabilities (%d instead of %d) in %s at line %d",
+                     actual_lexdis_count, entry.lexicalized_distortion_prob_count, entry.file, entry.lineNum);
+
+            float lexdis_probs[entry.lexicalized_distortion_prob_count];
+            for ( Uint i = 0 ; i < entry.lexicalized_distortion_prob_count; ++i ) {
+               if ( ! conv(lexdis_tokens[i], lexdis_probs[i] ) )
+                  error(ETFatal, "Invalid number format (%s) in %s at line %d",
+                        lexdis_tokens[i], entry.file, entry.lineNum);
+
+               // Prevents against a bad phrase table.
+               if (!isfinite(lexdis_probs[i])) {
+                  error(ETWarn, "Invalid value of prob (%s) in %s at line %d",
+                        lexdis_tokens[i], entry.file, entry.lineNum);
+                  lexdis_probs[i] = 0.0f;
+               }
+
+               lexdis_probs[i] = convertFromRead(lexdis_probs[i]);
+            }
+
+            if (curProbs->lexdis.size() > numLexDisModels)
+            {
+               error(ETWarn, "Entry %s ||| %s appears more than once in %s; new occurrence on line %d",
+                     entry.src, entry.tgt, entry.file, entry.lineNum);
+            }
+            else {
+               curProbs->lexdis.resize(numLexDisModels, ZERO);
+               curProbs->lexdis.insert(curProbs->lexdis.end(), lexdis_probs,
+                                       lexdis_probs + entry.lexicalized_distortion_prob_count);
+            }
+         }
+       }//boxing
+
+   }
+   else if ( entry.d == src_given_tgt || entry.d == tgt_given_src ) {
       // Determine probability for single-prob phrase table
       float prob;
       if (!conv(entry.probString, prob)) {
@@ -299,7 +396,8 @@ bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
       }
    }
    else {
-      // Determine probabilities for multi-prob phrase table
+      // Determine probabilities for multi-prob phrase table, possibly with
+      // adirectional scores.
 
       // On the first line, we need to figure out the number of
       // probability figures
@@ -375,6 +473,54 @@ bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
          curProbs->forward.insert(curProbs->forward.end(), forward_probs,
                                   forward_probs + multi_prob_model_count);
       }
+
+      //boxing
+      if(entry.adirectional_prob_count == 0 && entry.ascoreString != NULL) {
+         // only done once, so slow is OK.
+         vector<string> ascore_tokens;
+         split(entry.ascoreString, ascore_tokens);
+         entry.adirectional_prob_count = ascore_tokens.size();
+      }
+
+
+      if ( entry.adirectional_prob_count > 0 ) {
+         char* ascore_tokens[entry.adirectional_prob_count];
+         // fast, destructive split
+         const Uint actual_ascore_count = split(entry.ascoreString,
+               ascore_tokens, entry.adirectional_prob_count);
+         if ( actual_ascore_count != entry.adirectional_prob_count )
+            error(ETFatal, "Wrong number of adirectional probabilities (%d instead of %d) in %s at line %d",
+                  actual_ascore_count, entry.adirectional_prob_count, entry.file, entry.lineNum);
+
+         float ascores[entry.adirectional_prob_count];
+         for ( Uint i = 0 ; i < entry.adirectional_prob_count; ++i ) {
+            if ( ! conv(ascore_tokens[i], ascores[i] ) )
+               error(ETFatal, "Invalid number format (%s) in %s at line %d",
+                     ascore_tokens[i], entry.file, entry.lineNum);
+
+            // Prevents against a bad phrase table.
+            if (!isfinite(ascores[i])) {
+               error(ETWarn, "Invalid value of prob (%s) in %s at line %d",
+                     ascore_tokens[i], entry.file, entry.lineNum);
+               ascores[i] = 0.0f;
+            }
+
+            ascores[i] = convertFromRead(ascores[i]);
+         }
+
+         if (curProbs->adir.size() > numAdirTransModels)
+         {
+            error(ETWarn, "Entry %s ||| %s appears more than once in %s; new occurrence on line %d",
+                  entry.src, entry.tgt, entry.file, entry.lineNum);
+         }
+         else {
+            curProbs->adir.reserve(numAdirTransModels + entry.adirectional_prob_count);
+            curProbs->adir.resize(numAdirTransModels, ZERO);
+            curProbs->adir.insert(curProbs->adir.end(), ascores,
+                  ascores + entry.adirectional_prob_count);
+         }
+      }
+      //boxing
    } // if ; end deal with multi-prob line
 
    // In this class, the entry is always added to the TargetPhraseTable.
@@ -407,12 +553,12 @@ Uint PhraseTable::countProbColumns(const char* multi_prob_TM_filename)
    isReversed(multi_prob_TM_filename, &physical_filename);
    iMagicStream in(physical_filename, true);  // make this a silent stream
    if ( in.bad() ) return 0;
-   string ph1, ph2, prob_str;
+   string ph1, ph2, prob_str, ascore_str;
    bool blank = true;
    Uint lineNo;
    // This reads one line and returns the list of probs into prob
    while ( blank && !in.eof() )
-      readLine(in, ph1, ph2, prob_str, blank, multi_prob_TM_filename, lineNo);
+      readLine(in, ph1, ph2, prob_str, ascore_str, blank, multi_prob_TM_filename, lineNo); //boxing
    if ( blank ) {
       error(ETWarn, "No data lines found in multi-prob phrase table %s",
             multi_prob_TM_filename);
@@ -421,6 +567,32 @@ Uint PhraseTable::countProbColumns(const char* multi_prob_TM_filename)
    vector<string> probs;
    split(prob_str, probs);
    return probs.size();
+}
+
+Uint PhraseTable::countAdirScoreColumns(const char* multi_prob_TM_filename)
+{
+   string physical_filename;
+   isReversed(multi_prob_TM_filename, &physical_filename);
+   iMagicStream in(physical_filename, true);  // make this a silent stream
+   if ( in.bad() ) return 0;
+   string ph1, ph2, prob_str, ascore_str; //boxing
+   bool blank = true;
+   Uint lineNo;
+   // This reads one line and returns the list of probs into prob
+   while ( blank && !in.eof() )      
+      readLine(in, ph1, ph2, prob_str, ascore_str, blank, multi_prob_TM_filename, lineNo); //boxing
+   if ( blank ) {
+      error(ETWarn, "No data lines found in multi-prob phrase table %s",
+            multi_prob_TM_filename);
+      return 0;
+   }
+   if (ascore_str == "")
+   {
+      return 0;
+   }
+   vector<string> ascores;
+   split(ascore_str, ascores);
+   return ascores.size();
 }
 
 
@@ -440,18 +612,55 @@ Uint PhraseTable::readMultiProb(const char* multi_prob_TM_filename,
 
    ostringstream back_description;
    ostringstream for_description;
+   ostringstream adir_description; //boxing
    for (Uint i = 0; i < model_count; ++i) {
       back_description << "TranslationModel:" << multi_prob_TM_filename
          << "(col=" << (reversed ? i + model_count : i) << ")" << endl;
       for_description << "ForwardTranslationModel:" << multi_prob_TM_filename
          << "(col=" << (reversed ? i : i + model_count) << ")" << endl;
    }
+   
+   //boxing
+   Uint adir_score_count = countAdirScoreColumns(physical_filename.c_str());
+   for (Uint i = 0; i < adir_score_count; ++i) {
+      adir_description << "AdirectionalModel:" << multi_prob_TM_filename
+                       << "(col=" << i << ")" << endl; //boxing
+   }//boxing
+   
    backwardDescription += back_description.str();
    forwardDescription  += for_description.str();
+   adirDescription += adir_description.str(); //boxing
 
    numTransModels += model_count;
+   numAdirTransModels += adir_score_count; //boxing   
 
    return col_count;
+}
+
+////
+Uint PhraseTable::readLexicalizedDist(const char* lexicalized_DM_filename,
+                                       bool limitPhrases)
+{
+
+   const Uint model_count = readFile(lexicalized_DM_filename,
+                                     lexicalized_distortion,
+                                     limitPhrases);
+   numLexDisModels += model_count;
+   return model_count;
+}
+////
+
+
+void PhraseTable::tgtStringToPhraseIndex(Phrase& tgtPhrase, const char* tgtString)
+{
+   char buffer[strlen(tgtString)+1];
+   strcpy(buffer, tgtString);
+   char* strtok_state;
+   char* tok = strtok_r(buffer, " ", &strtok_state);
+   while ( tok != NULL ) {
+      tgtPhrase.push_back(tgtVocab.index(tok));
+      tok = strtok_r(NULL, " ", &strtok_state);
+   }
 }
 
 
@@ -501,6 +710,7 @@ void PhraseTable::write(ostream& multi_src_given_tgt_out, const string& src,
 
       // output
       multi_src_given_tgt_out << src << PHRASE_TABLE_SEP << tgt << PHRASE_TABLE_SEP;
+
       for (Uint i = 0; i < tgt_p->second.backward.size(); ++i) {
          multi_src_given_tgt_out << " " << convertToWrite(tgt_p->second.backward[i]);
       }
@@ -513,6 +723,16 @@ void PhraseTable::write(ostream& multi_src_given_tgt_out, const string& src,
       for (Uint i(tgt_p->second.forward.size()); i<numTransModels; ++i) {
          multi_src_given_tgt_out << " " << 0.0f;
       }
+
+      //boxing
+      if (tgt_p->second.adir.size() > 0) {
+         multi_src_given_tgt_out << PHRASE_TABLE_SEP;
+
+         for (Uint i = 0; i < tgt_p->second.adir.size(); ++i) {
+            multi_src_given_tgt_out << " " << convertToWrite(tgt_p->second.adir[i]);
+         }
+      }//boxing
+
       multi_src_given_tgt_out << endl;
    }
 }
@@ -613,7 +833,7 @@ void PhraseTable::write(ostream* src_given_tgt_out, ostream* tgt_given_src_out,
 
 
 void PhraseTable::readLine(istream &in, string &ph1, string &ph2, string &prob,
-   bool &blank, const char *fileName, Uint &lineNum)
+   string &ascore, bool &blank, const char *fileName, Uint &lineNum)
 {
    string line;
    // EJJ Pre-allocation of memory results in a significant speed-up:
@@ -625,7 +845,7 @@ void PhraseTable::readLine(istream &in, string &ph1, string &ph2, string &prob,
       blank = true;
    } else
    {
-      // Look for (at least) two occurrences of |||.
+      // Look for two or three occurrences of |||. //boxing
       lineNum++;
       const string::size_type index1 = line.find(PHRASE_TABLE_SEP, 0);
       const string::size_type index2 = line.find(PHRASE_TABLE_SEP, index1 + strlen(PHRASE_TABLE_SEP));
@@ -633,17 +853,31 @@ void PhraseTable::readLine(istream &in, string &ph1, string &ph2, string &prob,
       {
          error(ETFatal, "Bad format in %s at line %d", fileName, lineNum);
       } // if
-
       ph1 = line.substr(0, index1);
       trim(ph1, " ");
       ph2 = line.substr(index1 + strlen(PHRASE_TABLE_SEP),
                         index2 - index1 - strlen(PHRASE_TABLE_SEP));
       trim(ph2, " ");
-      prob = line.substr(index2 + strlen(PHRASE_TABLE_SEP));
+
+      //boxing
+      const string::size_type index3 = line.find(PHRASE_TABLE_SEP, index2 + strlen(PHRASE_TABLE_SEP));
+      if (index3 == string::npos)
+      {
+         prob = line.substr(index2 + strlen(PHRASE_TABLE_SEP));
+         ascore = "";
+      } else
+      {
+         prob   = line.substr(index2 + strlen(PHRASE_TABLE_SEP),
+                              index3 - index2 - strlen(PHRASE_TABLE_SEP));
+         ascore = line.substr(index3 + strlen(PHRASE_TABLE_SEP));
+      }
       trim(prob, " ");
+      trim(ascore, " ");
+
       blank = false;
    } // if
 } // readLine
+
 
 void PhraseTable::addSourceSentences(const vector<vector<string> >& sentences)
 {
@@ -688,10 +922,15 @@ void PhraseTable::addPhrase(const char * const *phrase, Uint phrase_len,
    }
 } // addPhrase
 
-void PhraseTable::getPhraseInfos(vector<PhraseInfo *> **phraseInfos, const
-   vector<string> &sent, const vector<double> &weights, Uint pruneSize, double
-   logPruneThreshold, const vector<Range> &rangesToSkip, Uint verbosity,
-   const vector<double> *forward_weights)
+void PhraseTable::getPhraseInfos(vector<PhraseInfo *> **phraseInfos,
+      const vector<string> &sent,
+      const vector<double> &weights,
+      Uint pruneSize,
+      double logPruneThreshold,
+      const vector<Range> &rangesToSkip,
+      Uint verbosity,
+      const vector<double> *forward_weights,
+      const vector<double> *adir_weights)
 {
    // Create a key to find phrases in the trie
    const char *s_curKey[sent.size()];
@@ -737,7 +976,8 @@ void PhraseTable::getPhraseInfos(vector<PhraseInfo *> **phraseInfos, const
             // Pruning based on the [ttable-threshold] parameter is done here.
             vector<pair<double, PhraseInfo *> > phrases;
             getPhrases(phrases, *tgtTable, curRange, numPrunedThreshold,
-                       weights, logPruneThreshold, verbosity, forward_weights);
+                       weights, logPruneThreshold, verbosity, forward_weights,
+                       adir_weights); //boxing
 
             // Do phrase table pruning based on the [ttable-limit] parameter
             vector<PhraseInfo *> &target =
@@ -799,30 +1039,32 @@ shared_ptr<TargetPhraseTable> PhraseTable::findInAllTables(
 void PhraseTable::getPhrases(vector<pair<double, PhraseInfo *> > &phrases,
    TargetPhraseTable &tgtTable, const Range &src_words, Uint &numPruned,
    const vector<double> &weights, double logPruneThreshold, Uint verbosity,
-   const vector<double> *forward_weights)
+   const vector<double> *forward_weights, const vector<double> *adir_weights)
 {
    for (TargetPhraseTable::iterator it = tgtTable.begin(); it != tgtTable.end(); it++)
    {
       // Compute the pruning score (formerly forward prob, but now depends on
       // pruningType) for the given translation option
-      TScore &tScores(it->second);
-      assert(numTransModels >= tScores.backward.size());
-      tScores.backward.resize(numTransModels, log_almost_0);
+      TScore &tscore(it->second);
+      assert(numTransModels >= tscore.backward.size());
+      tscore.backward.resize(numTransModels, log_almost_0);
+      tscore.adir.resize(numAdirTransModels, log_almost_0); //boxing
+
       double pruningScore;
       if (forwardsProbsAvailable) {
-         assert(numTransModels >= tScores.forward.size());
-         tScores.forward.resize(numTransModels, log_almost_0);
+         assert(numTransModels >= tscore.forward.size());
+         tscore.forward.resize(numTransModels, log_almost_0);
 
          if (forward_weights && pruningType == FORWARD_WEIGHTS) {
-            pruningScore = dotProduct(*forward_weights, tScores.forward, forward_weights->size());
+            pruningScore = dotProduct(*forward_weights, tscore.forward, forward_weights->size());
          } else if (forward_weights && pruningType == COMBINED_SCORE) {
-            pruningScore = dotProduct(*forward_weights, tScores.forward, forward_weights->size())
-                         + dotProduct(weights, tScores.backward, weights.size());
+            pruningScore = dotProduct(*forward_weights, tscore.forward, forward_weights->size())
+                         + dotProduct(weights, tscore.backward, weights.size());
          } else {
-            pruningScore = dotProduct(weights, tScores.forward, weights.size());
+            pruningScore = dotProduct(weights, tscore.forward, weights.size());
          }
       } else {
-         pruningScore = dotProduct(weights, tScores.backward, weights.size());
+         pruningScore = dotProduct(weights, tscore.backward, weights.size());
       } // if
 
       if ( verbosity >= 4 ) {
@@ -833,19 +1075,28 @@ void PhraseTable::getPhrases(vector<pair<double, PhraseInfo *> > &phrases,
       {
          // If it passes threshold pruning, add it to the vector phrases.
          MultiTransPhraseInfo *newPI;
-         if (forward_weights) {
+         if (forward_weights || adir_weights || !tscore.lexdis.empty()) {
             ForwardBackwardPhraseInfo* newFBPI = new ForwardBackwardPhraseInfo;
-            newFBPI->forward_trans_probs = tScores.forward;
+            newFBPI->forward_trans_probs = tscore.forward;
             newFBPI->forward_trans_prob =
-               dotProduct(*forward_weights, tScores.forward, forward_weights->size());
+               dotProduct(*forward_weights, tscore.forward, forward_weights->size());
+
+            if (adir_weights != NULL) {
+               newFBPI->adir_probs = tscore.adir; //boxing
+               newFBPI->adir_prob =
+                  dotProduct(*adir_weights, tscore.adir, adir_weights->size());   //boxing
+            }
+            newFBPI->lexdis_probs = tscore.lexdis; //boxing
+
             newPI = newFBPI;
          } else {
             newPI = new MultiTransPhraseInfo;
          }
+
          newPI->src_words = src_words;
          newPI->phrase = it->first;
-         newPI->phrase_trans_probs = tScores.backward;
-         newPI->phrase_trans_prob = dotProduct(weights, tScores.backward, weights.size());
+         newPI->phrase_trans_probs = tscore.backward;
+         newPI->phrase_trans_prob = dotProduct(weights, tscore.backward, weights.size());
          phrases.push_back(make_pair(pruningScore, newPI));
          if ( verbosity >= 4 ) cerr << " Keeping it" << endl;
       } else
@@ -939,7 +1190,7 @@ bool PhraseTable::containsSrcPhrase(Uint num_tokens, char* tokens[])
 }
 
 
-Uint PhraseTable::processTargetPhraseTable(const string& src, TargetPhraseTable* tgtTable)
+Uint PhraseTable::processTargetPhraseTable(const string&, Uint, TargetPhraseTable*)
 {
    return 0;
 }

@@ -14,19 +14,13 @@
 #define BI_VECTOR_H
 
 #include "portage_defs.h"
-#include "file_utils.h"
+#include "binio.h"
+#include "errors.h"
 #include <boost/operators.hpp>
+#include <numeric>
+#include <vector>
 
 namespace Portage {
-
-// forward declarations so the friend declarations can work.
-template <class T> class BiVector;
-namespace BinIOStream {
-   template<typename T>
-   std::ostream& operator<<(std::ostream& os, const BiVector<T>& bv);
-   template<typename T>
-   std::istream& operator>>(std::istream& is, BiVector<T>& bv);
-}
 
 /// Vector abstraction with valid indices ranging from negative to positive
 /// values, with all values implicitely being T(0) until modified.
@@ -38,9 +32,6 @@ class BiVector {
    /// Storage offset: storage[0] contains this->[-offset], this->[0] is
    /// stored in storage[offset].
    int offset;
-
-   friend std::ostream& BinIOStream::operator<< <>(std::ostream& os, const BiVector<T>& bv);
-   friend std::istream& BinIOStream::operator>> <>(std::istream& is, BiVector<T>& bv);
 
  public:
 
@@ -118,6 +109,13 @@ class BiVector {
    int last() const { return -offset + storage.size() - 1; }
 
    /**
+    * Syntactic sugar - returns the sum of the elements in the vector
+    */
+   T sum() const {
+      return std::accumulate(begin(), end(), T());
+   }
+
+   /**
     * Test if *this and that have the same values.
     * first() and last() need not match, as long as operator[] will return the
     * same thing for all indices i, *this and that are considered equal.
@@ -165,6 +163,30 @@ class BiVector {
    }
 
    /**
+    * This reference class allows for an operator[] which only allocates memory
+    * if the result written to via operator=().
+    */
+   class reference {
+      BiVector<T>* parent;
+      int i;
+      reference(BiVector<T>* parent, int i) : parent(parent), i(i) {};
+      friend class BiVector<T>;
+     public:
+      /// Get the value of parent[i] without causing any allocation.
+      operator T() const { return (*const_cast<const BiVector<T>*>(parent))[i]; }
+      /// Set the value of parent[i], allocating memory as necessary
+      reference& operator=(const T& value) { parent->setAt(i) = value; return *this; }
+   };
+
+   /**
+    * Get a reference to the value at i; will only cause actual allocation if
+    * used as an lvalue in an assignment operation.
+    * @param i position to read
+    * @return reference to the value at i
+    */
+   reference operator[](int i) { return reference(this, i); }
+      
+   /**
     * Get a modifiable reference to the value at i.  Allocates it if it wasn't
     * already allocated.
     * @param i position to fetch
@@ -175,21 +197,20 @@ class BiVector {
       if ( i + offset < 0 ) {
          // need to insert space at the beginning of storage
          const int new_elements(-(i+offset));
-         assert(new_elements > 0);
+         //assert(new_elements > 0);
          storage.insert(storage.begin(), new_elements, T(0));
          offset += new_elements;
       } else if ( i + offset >= int(storage.size()) ) {
          // need to insert space at the end of storage
          const int new_elements(i+offset - int(storage.size()) + 1);
-         assert(new_elements > 0);
+         //assert(new_elements > 0);
          storage.insert(storage.end(), new_elements, T(0));
       }
-      assert( i + offset >= 0 && i + offset < int(storage.size()) );
+      //assert( i + offset >= 0 && i + offset < int(storage.size()) );
       return storage[i+offset];
    }
 
    /**
-
     * Write self to a human readable stream
     * @param os        stream to write self to
     * @param precision precision to use on the stream (leave untouched if 0)
@@ -208,7 +229,7 @@ class BiVector {
       os << first_non_zero << " " << last_non_zero;
       for ( int i(first_non_zero); i <= last_non_zero; ++i )
          os << " " << operator[](i);
-      os << endl;
+      os << nf_endl;
       os.precision(old_precision);
    }
 
@@ -238,6 +259,24 @@ class BiVector {
       return true;
    }
    
+   /**
+    * Write self to a binary stream
+    * @param os        stream to write self to
+    */
+   void writebin(ostream& os) const {
+      BinIO::writebin(os, offset);
+      BinIO::writebin(os, storage);
+   }
+
+   /**
+    * Read self from a binary stream
+    * @param is        stream to read self from
+    */
+   void readbin(istream& is) {
+      BinIO::readbin(is, offset);
+      BinIO::readbin(is, storage);
+   }
+
    class const_iterator;
 
    /// Return a const_iterator starting at the first allocated value
@@ -278,27 +317,6 @@ class BiVector {
    }; // class const_iterator
 
 }; // class BiVector<T>
-
-/// Binary IO operators
-namespace BinIOStream {
-   /// Write a BiVector in Binary mode.  Warning: T must be safe to copy,
-   /// allocate and free without calling constructors and/or destructors.
-   template<typename T>
-   std::ostream& operator<<(std::ostream& os, const BiVector<T>& bv) {
-      os.write((char*)&bv.offset, sizeof(bv.offset));
-      os << bv.storage;
-      return os;
-   }
-
-   /// Read a vector in Binary mode.  Warning: T must be safe to copy,
-   /// allocate and free without calling constructors and/or destructors.
-   template<typename T>
-   std::istream& operator>>(std::istream& is, BiVector<T>& bv) {
-      is.read((char*)&bv.offset, sizeof(bv.offset));
-      is >> bv.storage;
-      return is;
-   }
-} // BinIOStream
 
 } // Portage
 

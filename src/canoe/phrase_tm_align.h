@@ -1,6 +1,6 @@
 /**
  * @author Aaron Tikuisis
- *   **Modified by Nicola Ueffing to use all decoder models
+ * **Modified by Nicola Ueffing to use all decoder models and to do fuzzy match
  * @file phrase_tm_align.h  This file contains the declaration of
  * computePhraseTM(), which computes the phrase-based translation probability
  * for a given sentence.  It also contains a function to constrain and load a
@@ -49,6 +49,9 @@ namespace Portage
           */
          Uint verbosity;
 
+         /// Specifies if the decoder is using levenshtein info
+         bool usingLev;
+
       public:
          /**
           * Creates a new PhraseTMAligner.
@@ -96,6 +99,32 @@ namespace Portage
           * @param covThreshold coverage pruning threshold (ratio, not log!)
           */
          void computePhraseTM(newSrcSentInfo& new_src_sent_info,
+               ostream &out,
+               Uint n,
+               bool noscore,
+               bool onlyscore,
+               double threshold,
+               Uint pruneSize,
+               Uint covLimit,
+               double covThreshold);
+
+         /**
+          * Maximizes the weighted distortion + segmentation + language +
+          * translation model score over all alignments from src_sent to
+          * tgt_sent, constrained by distLimit.  Allows for fuzzy match:
+          * Levenshtein distance or n-gram match is part of the score, with
+          * weight assigned by user.
+          * @param new_src_sent_info The source sentence and related info
+          * @param out        Outout stream
+          * @param n          Number of forced alignments per sentence pair to be determined
+          * @param noscore    Do not print score of the found alignment
+          * @param onlyscore  Print only score of the found alignment
+          * @param threshold  Hypothesis stack relative threshold (ratio, not log!)
+          * @param pruneSize  Hypothesis stack size
+          * @param covLimit   Coverage pruning limit
+          * @param covThreshold Coverage pruning threshold (ratio, not log!)
+          */
+         void computeFuzzyPhraseTM(newSrcSentInfo& new_src_sent_info,
                ostream &out,
                Uint n,
                bool noscore,

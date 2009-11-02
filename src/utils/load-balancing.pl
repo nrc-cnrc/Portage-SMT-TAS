@@ -124,7 +124,11 @@ if (0) {
 # Silently reajust $head and $tail to some appropriate sizes that will fit in $index
 if ($node > $index) {
    $node = $index;
-   warn "You are asking for more blocks than there are lines => reajusting node=$job";
+   warn "You are asking for more blocks than there are lines => reajusting node=$node";
+}
+if ($job > $index) {
+   $job = $index;
+   warn "You are asking for more blocks than there are lines => reajusting job=$job";
 }
 $job=$node if ($job<$node);
 
@@ -209,5 +213,5 @@ if ($rest > 0) {
    }
 }
 
-die "OUPS: load-balancing pb: $processed $index" if ($processed != $index);
+die "OOPS: load-balancing problem: $processed $index" if ($processed != $index);
 

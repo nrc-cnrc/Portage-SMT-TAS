@@ -17,6 +17,7 @@
 
 use strict;
 use warnings;
+use portage_utils;
 
 print STDERR "strip-parallel-blank-lines.pl, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada\n";
 
@@ -41,10 +42,23 @@ if ($help || $h) {
 my $in1 = shift or die $HELP;
 my $in2 = shift or die $HELP;
  
-open(IN1, "<$in1") or die "Can't open $in1 for reading\n";
-open(IN2, "<$in2") or die "Can't open $in2 for reading\n";
-open(OUT1, ">$in1.no-blanks") or die "Can't open $in1.no-blanks for writing\n";
-open(OUT2, ">$in2.no-blanks") or die "Can't open $in2.no-blanks for writing\n";
+sub getOutputFilename($) {
+   my ($out) = @_;
+   if ($out =~ s/\.gz$//) {
+      $out .= ".no-blanks" . ".gz";
+   }
+   else {
+      $out .= ".no-blanks";
+   }
+   return $out;
+}
+
+zopen(*IN1, "$in1") or die "Can't open $in1 for reading\n";
+zopen(*IN2, "$in2") or die "Can't open $in2 for reading\n";
+my $out1 = getOutputFilename($in1);
+my $out2 = getOutputFilename($in2);
+zopen(*OUT1, ">$out1") or die "Can't open $out1 for writing\n";
+zopen(*OUT2, ">$out2") or die "Can't open $out2 for writing\n";
 
 my ($line1, $line2);
 while ($line1 = <IN1>) {

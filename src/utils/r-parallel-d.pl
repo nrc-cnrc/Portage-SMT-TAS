@@ -162,7 +162,7 @@ for ( ; $paddr = accept(Client, Server); close Client) {
          exit 2;
       } elsif ($cmd_rcvd =~ /^GET/i) {
          log_msg $cmd_rcvd;
-         if ( $cmd_rcvd !~ /GET \(PRIMARY/ and $quench_count > 0 ) {
+         if ( $cmd_rcvd !~ /GET \(PRIMARY/i and $quench_count > 0 ) {
             # dynamic quench in progress, stop this (non-primary) worker
             --$quench_count;
             log_msg "quenching ($quench_count)";
@@ -174,10 +174,12 @@ for ( ; $paddr = accept(Client, Server); close Client) {
                print "($job_no) $jobs[$job_no-1]";
                my $trimmed_job = $jobs[$job_no-1];
                $trimmed_job =~ s/\s+/ /g;
-               if ( length($trimmed_job) > 38 ) {
-                  $trimmed_job = substr($trimmed_job, 0, 35) . "...";
-               }
-               log_msg "starting ($job_no)", $trimmed_job;
+               #if ( length($trimmed_job) > 38 ) {
+               #   $trimmed_job = substr($trimmed_job, 0, 35) . "...";
+               #}
+               my $worker_id = $cmd_rcvd;
+               $worker_id =~ s/\s*GET\s*//i;
+               log_msg "starting $worker_id ($job_no) $trimmed_job";
             } else {
                print "***EMPTY***\n";
                log_msg "returning: ***EMPTY***";

@@ -31,10 +31,11 @@ using namespace Portage;
 
 namespace Portage
 {
-   HypothesisStack *runDecoder(BasicModel &model, const CanoeConfig& c)
+   HypothesisStack *runDecoder(BasicModel &model, const CanoeConfig& c,
+         bool usingLev)
    {
       if ( c.bCubePruning )
-         return runCubePruningDecoder(model, c);
+         return runCubePruningDecoder(model, c, usingLev);
 
       // Get all the phrase translation options from the model
       const Uint sourceLength = model.getSourceLength();
@@ -44,16 +45,29 @@ namespace Portage
       RangePhraseFinder finder(phrases, sourceLength, c.distLimit,
             c.distLimitExt, c.distPhraseSwap);
 
+      // If we only need to top hypothesis, there is no point in keeping
+      // recombined states, so we discard them on the fly.
+      const bool discardRecomb = (!c.masse && !c.latticeOut && !c.nbestOut);
+
+      // The size of the last stack can be reduced in some cases
+      Uint last_stack_size = c.maxStackSize;
+      if ( discardRecomb )
+         last_stack_size = 1;
+      else if ( !c.masse && !c.latticeOut && c.nbestSize < c.maxStackSize )
+         last_stack_size = c.nbestSize;
+
       // Create the hypothesis stacks
       HypothesisStack *hStacks[sourceLength + 1];
       for (Uint i = 0; i < sourceLength + 1; i++)
       {
-         hStacks[i] = new HistogramThresholdHypStack(model, c.maxStackSize,
-               log(c.pruneThreshold), c.covLimit, log(c.covThreshold));
+         hStacks[i] = new HistogramThresholdHypStack(model,
+               (i == sourceLength ? last_stack_size : c.maxStackSize),
+               log(c.pruneThreshold), c.covLimit, log(c.covThreshold),
+               discardRecomb);
       } // for
 
       // Run the decoder algorithm
-      runDecoder(model, hStacks, sourceLength, finder, c.verbosity);
+      runDecoder(model, hStacks, sourceLength, finder, usingLev, c.verbosity);
 
       // Keep the final hypothesis stack
       HypothesisStack *result = hStacks[sourceLength];
@@ -72,11 +86,11 @@ namespace Portage
 
     void runDecoder(PhraseDecoderModel &model, HypothesisStack **hStacks,
             Uint sourceLength, PhraseFinder &finder,
-            Uint verbosity)
+            bool usingLev, Uint verbosity)
     {
         // Put the empty hypothesis on the first stack
         //assert(hStacks[0]->isEmpty());
-        hStacks[0]->push(makeEmptyState(sourceLength));
+        hStacks[0]->push(makeEmptyState(sourceLength, usingLev));
         Uint numStates = 1;
         Uint numPrunedAtPush = 0;
         Uint numPrunedAtPop = 0;

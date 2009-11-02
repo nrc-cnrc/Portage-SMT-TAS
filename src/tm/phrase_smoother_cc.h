@@ -81,7 +81,11 @@ template<class T>
 typename PhraseSmootherFactory<T>::TInfo PhraseSmootherFactory<T>::tinfos[] = {
    {
       DCon< RFSmoother<T> >::create, 
-      "RFSmoother", "- unsmoothed relative-frequency estimates",
+      "RFSmoother", "[alpha] - relative-frequency estimates with add-alpha smoothing [0.0]",
+      true,
+   },{
+      DCon< JointFreqs<T> >::create, 
+      "JointFreqs", "- just write input joint frequencies",
       true,
    },{
       DCon< LeaveOneOut<T> >::create, 
@@ -109,8 +113,8 @@ typename PhraseSmootherFactory<T>::TInfo PhraseSmootherFactory<T>::tinfos[] = {
       false,
    },{
       DCon< IndicatorSmoother<T> >::create, 
-      "IndicatorSmoother", "- Constant indicator values",
-      false,
+      "IndicatorSmoother", "[alpha] - 1.0 if in table, <alpha> otherwise",
+      true,
    },{
       NULL, "", ""
    }
@@ -122,26 +126,69 @@ typename PhraseSmootherFactory<T>::TInfo PhraseSmootherFactory<T>::tinfos[] = {
 template<class T>
 RFSmoother<T>::RFSmoother(PhraseSmootherFactory<T>& factory, const string& args)
 {
+   alpha = args == "" ? 0.0 : conv<double>(args);
+
    PhraseTableGen<T>& pt = *factory.getPhraseTable();
    lang1_marginals.resize(pt.numLang1Phrases());
    lang2_marginals.resize(pt.numLang2Phrases());
+   lang1_numtrans.resize(pt.numLang1Phrases());
+   lang2_numtrans.resize(pt.numLang2Phrases());
 
    for (typename PhraseTableGen<T>::iterator it = pt.begin(); !it.equal(pt.end()); it.incr()) {
       lang1_marginals[it.getPhraseIndex(1)] += it.getJointFreq();
       lang2_marginals[it.getPhraseIndex(2)] += it.getJointFreq();
+      ++lang1_numtrans[it.getPhraseIndex(1)];
+      ++lang2_numtrans[it.getPhraseIndex(2)];
    }
 }
 
 template<class T>
 double RFSmoother<T>::probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it)
 {
-   return it.getJointFreq() / (double) lang2_marginals[it.getPhraseIndex(2)];
+   double d = lang2_marginals[it.getPhraseIndex(2)];
+   return d != 0.0 ? 
+      (it.getJointFreq() + alpha) / (d + lang2_numtrans[it.getPhraseIndex(2)] * alpha) :
+      1.0 / lang2_numtrans[it.getPhraseIndex(2)];
 }
 
 template<class T>
 double RFSmoother<T>::probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it)
 {
-   return it.getJointFreq() / (double) lang1_marginals[it.getPhraseIndex(1)];
+   double d = lang1_marginals[it.getPhraseIndex(1)];
+   return d != 0.0 ? 
+      (it.getJointFreq() + alpha) / (d + lang1_numtrans[it.getPhraseIndex(1)] * alpha) : 
+      1.0 / lang1_numtrans[it.getPhraseIndex(1)];
+}
+
+/*-----------------------------------------------------------------------------
+ * IndicatorSmoother
+ */
+template<class T>
+IndicatorSmoother<T>::IndicatorSmoother(PhraseSmootherFactory<T>& factory, const string& args) :
+   RFSmoother<T>(factory,args)
+{
+   if (args == "")
+      RFSmoother<T>::alpha = 1.0 / 2.718281828; // different default from RFSmoother
+}
+
+template<class T>
+double IndicatorSmoother<T>::probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it)
+{
+   double d = RFSmoother<T>::lang2_marginals[it.getPhraseIndex(2)];
+   if (d) 
+      return it.getJointFreq() ? 1.0 : RFSmoother<T>::alpha;
+   else
+      return 1.0 / RFSmoother<T>::lang2_numtrans[it.getPhraseIndex(2)];
+}
+
+template<class T>
+double IndicatorSmoother<T>::probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it)
+{
+   double d = RFSmoother<T>::lang1_marginals[it.getPhraseIndex(1)];
+   if (d) 
+      return it.getJointFreq() ? 1.0 : RFSmoother<T>::alpha;
+   else
+      return 1.0 / RFSmoother<T>::lang1_numtrans[it.getPhraseIndex(1)];
 }
 
 /*-----------------------------------------------------------------------------
@@ -193,14 +240,23 @@ GTSmoother<T>::GTSmoother(PhraseSmootherFactory<T>& factory, const string& args)
    PhraseTableGen<T>& pt = *factory.getPhraseTable();
    lang1_marginals.resize(pt.numLang1Phrases());
    lang2_marginals.resize(pt.numLang2Phrases());
+   lang1_numtrans.resize(pt.numLang1Phrases());
+   lang2_numtrans.resize(pt.numLang2Phrases());
+   lang1_num0trans.resize(pt.numLang1Phrases());
+   lang2_num0trans.resize(pt.numLang2Phrases());
 
-   // pass 1: count counts and sum original marginals
+   // pass 1: count counts, sum original marginals, and count types
 
    map<Uint,Uint> count_map;	// freq -> num phrases with this freq
    for (typename PhraseTableGen<T>::iterator it = pt.begin(); !it.equal(pt.end()); it.incr()) {
-      ++count_map[(Uint)ceil((double)it.getJointFreq())];
+      if (it.getJointFreq() != 0)
+         ++count_map[(Uint)ceil((double)it.getJointFreq())];
       lang1_marginals[it.getPhraseIndex(1)] += it.getJointFreq();
       lang2_marginals[it.getPhraseIndex(2)] += it.getJointFreq();
+      ++lang1_numtrans[it.getPhraseIndex(1)];
+      ++lang2_numtrans[it.getPhraseIndex(2)];
+      if (it.getJointFreq() == 0) ++lang1_num0trans[it.getPhraseIndex(1)]; // n_i(*,t,0)
+      if (it.getJointFreq() == 0) ++lang2_num0trans[it.getPhraseIndex(2)]; // n_i(s,*,0)
    }
 
    // estimate GT smoother over joint freqs
@@ -215,35 +271,64 @@ GTSmoother<T>::GTSmoother(PhraseSmootherFactory<T>& factory, const string& args)
    }
    gt = new GoodTuring(count_map.size(), &freqs[0], &freq_counts[0]);
 
-   // Divide 0-freq mass among contexts in proportion to each context's
-   // original non-zero mass; initialize each langX_marginals[i] with its
-   // share of the 0-freq mass.
+   // Divide 0-freq mass among seen contexts in proportion to each context's
+   // original non-zero mass; initialize each langX_marginals[i] with its share
+   // of the 0-freq mass. Also save this initializing value in langX_num0trans,
+   // for use in the final denominator for 0-freq translations of seen phrases.
 
    const double zero_mass = gt->zeroCountMass();
-   for (Uint i = 0; i < pt.numLang1Phrases(); ++i)
+   for (Uint i = 0; i < pt.numLang1Phrases(); ++i) {
       lang1_marginals[i] = lang1_marginals[i] * zero_mass / total_freq;
-   for (Uint i = 0; i < pt.numLang2Phrases(); ++i)
+      if (lang1_num0trans[i])   // in paper: z_i(t) / n_i(*,t,0)
+         lang1_num0trans[i] = lang1_marginals[i] / lang1_num0trans[i];
+   }
+   for (Uint i = 0; i < pt.numLang2Phrases(); ++i) {
       lang2_marginals[i] = lang2_marginals[i] * zero_mass / total_freq;
+      if (lang2_num0trans[i])   // in paper: z_i(t) / n_i(s,*,0)
+         lang2_num0trans[i] = lang2_marginals[i] / lang2_num0trans[i];
+   }
 
    // pass 2: finish summing smoothed marginals.
 
    for (typename PhraseTableGen<T>::iterator it = pt.begin(); !it.equal(pt.end()); it.incr()) {
       const double gtfreq = gt->smoothedFreq(it.getJointFreq());
-      lang1_marginals[it.getPhraseIndex(1)] += gtfreq;
-      lang2_marginals[it.getPhraseIndex(2)] += gtfreq;
+      if (lang1_marginals[it.getPhraseIndex(1)]) lang1_marginals[it.getPhraseIndex(1)] += gtfreq;
+      if (lang2_marginals[it.getPhraseIndex(2)]) lang2_marginals[it.getPhraseIndex(2)] += gtfreq;
    }
+
+   // finalize denominators for  for 0-freq translations of seen phrases.
+
+   for (Uint i = 0; i < pt.numLang1Phrases(); ++i)
+      if (lang1_marginals[i]) lang1_num0trans[i] /= lang1_marginals[i];
+
+   for (Uint i = 0; i < pt.numLang2Phrases(); ++i)
+      if (lang2_marginals[i]) lang2_num0trans[i] /= lang2_marginals[i];
 }
 
 template<class T>
 double GTSmoother<T>::probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it)
 {
-   return gt->smoothedFreq(it.getJointFreq()) / (double) lang2_marginals[it.getPhraseIndex(2)];
+   double d = lang2_marginals[it.getPhraseIndex(2)];
+   if (d == 0.0) 
+      return 1.0 / lang2_numtrans[it.getPhraseIndex(2)];
+   
+   double f = it.getJointFreq();
+   return f ? 
+      gt->smoothedFreq(it.getJointFreq()) / d :
+      lang2_num0trans[it.getPhraseIndex(2)];
 }
 
 template<class T>
 double GTSmoother<T>::probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it)
 {
-   return gt->smoothedFreq(it.getJointFreq()) / (double) lang1_marginals[it.getPhraseIndex(1)];
+   double d = lang1_marginals[it.getPhraseIndex(1)];
+   if (d == 0.0) 
+      return 1.0 / lang1_numtrans[it.getPhraseIndex(1)];
+   
+   double f = it.getJointFreq();
+   return f ? 
+      gt->smoothedFreq(it.getJointFreq()) / d :
+      lang1_num0trans[it.getPhraseIndex(1)];
 }
 
 /*-----------------------------------------------------------------------------
@@ -489,5 +574,5 @@ double IBMSmoother<T>::probLang2GivenLang1(const typename PhraseTableGen<T>::ite
 }
 
 
-}
+} // Portage
 #endif

@@ -96,11 +96,11 @@ Uint DecoderState::pruneRecombinedStates(double threshold)
 
 namespace Portage
 {
-   DecoderState *makeEmptyState(Uint sourceLength)
+   DecoderState *makeEmptyState(Uint sourceLength, bool usingLev)
    {
       // Create the objects
       DecoderState *state = new DecoderState;
-      PartialTranslation *trans = new PartialTranslation;
+      PartialTranslation *trans = new PartialTranslation(usingLev);
       trans->lastPhrase = new PhraseInfo;
       state->trans = trans;
 

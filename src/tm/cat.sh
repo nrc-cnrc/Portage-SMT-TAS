@@ -50,6 +50,8 @@ Model training options are documented in "train_ibm -h".
    exit 1
 }
 
+TIMEFORMAT="Single-job-total: Real %3lR User %3lU Sys %3lS PCPU %P%%"
+
 run_cmd() {
    if [[ "$1" = "-no-error" ]]; then
       shift
@@ -57,14 +59,10 @@ run_cmd() {
    else
       RUN_CMD_NO_ERROR=
    fi
-   if [[ $VERBOSE ]]; then
-      date
-   fi
-   if [[ -n "$VERBOSE" || -n "$NOTREALLY" ]]; then
-      echo "$*" >&2
-   fi
+   date >&2
+   echo "$*" >&2
    if [[ ! $NOTREALLY ]]; then
-      eval $*
+      eval time $*
       rc=$?
       if [[ -z "$RUN_CMD_NO_ERROR" && "$rc" != 0 ]]; then
          echo "Exit status: $rc is not zero - aborting." >&2
@@ -310,10 +308,8 @@ while [[ $NUM_ITERS1 -gt 0 ]]; do
       NUM_ITERS1=0
    else
       ITER=$((ITER + 1))
-      if [[ $VERBOSE ]]; then
-         echo >&2
-         echo Starting iteration $ITER at `date` >&2
-      fi
+      echo >&2
+      echo Starting iteration $ITER on `date` >&2
       CUR_INIT_MODEL="-i $CUR_MODEL"
       if [[ $CUR_REV_MODEL ]]; then
          CUR_INIT_MODEL="-rev-i $CUR_REV_MODEL $CUR_INIT_MODEL"
@@ -333,7 +329,7 @@ while [[ $NUM_ITERS1 -gt 0 ]]; do
       if [[ $NOTREALLY ]]; then
          cat $JOBFILE
       fi
-      if [[ "$VERBOSE" = 1 && -z "$NOTREALLY" ]]; then
+      if [[ "$VERBOSE" -ge 1 && -z "$NOTREALLY" ]]; then
          head -10000 ${TMPPFX}iter$ITER.counts*.log >&2
       fi
       if [[ $NUM_ITERS1 -eq 1 && -n "$SAVE_IBM1" ]]; then
@@ -364,10 +360,8 @@ fi
 while [[ $NUM_ITERS2 -gt 0 ]]; do
    CUR_REV_MODEL_OUT=""
    ITER=$((ITER + 1))
-   if [[ $VERBOSE ]]; then
-      echo >&2
-      echo Starting iteration $ITER at `date` >&2
-   fi
+   echo >&2
+   echo Starting iteration $ITER on `date` >&2
    CUR_INIT_MODEL="-i $CUR_MODEL"
    if [[ $CUR_REV_MODEL ]]; then
       CUR_INIT_MODEL="-rev-i $CUR_REV_MODEL $CUR_INIT_MODEL"
@@ -387,7 +381,7 @@ while [[ $NUM_ITERS2 -gt 0 ]]; do
    if [[ $NOTREALLY ]]; then
       cat $JOBFILE
    fi
-   if [[ "$VERBOSE" = 1 && -z "$NOTREALLY" ]]; then
+   if [[ "$VERBOSE" -ge 1 && -z "$NOTREALLY" ]]; then
       head -10000 ${TMPPFX}iter$ITER.counts*.log >&2
    fi
    if [[ $NUM_ITERS2 -eq 1 ]]; then
@@ -407,6 +401,9 @@ while [[ $NUM_ITERS2 -gt 0 ]]; do
    CUR_REV_MODEL=$CUR_REV_MODEL_OUT
    NUM_ITERS2=$((NUM_ITERS2 - 1))
 done
+
+echo >&2
+echo Done on `date` >&2
 
 # Things finished successfully, clean up.
 if [[ ! $DEBUG ]]; then

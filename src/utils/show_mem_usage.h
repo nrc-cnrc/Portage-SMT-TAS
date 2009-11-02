@@ -1,3 +1,17 @@
+// $Id$
+/**
+ * @author Samuel Larkin
+ * @file show_mem_usage.h
+ * @brief Prints the current memory usage.
+ *
+ *
+ * Technologies langagieres interactives / Interactive Language Technologies
+ * Inst. de technologie de l'information / Institute for Information Technology
+ * Conseil national de recherches Canada / National Research Council Canada
+ * Copyright 2009, Sa Majeste la Reine du Chef du Canada /
+ * Copyright 2009, Her Majesty in Right of Canada
+ */
+
 #ifndef __SHOW_MEM_USAGE_H__
 #define __SHOW_MEM_USAGE_H__
 

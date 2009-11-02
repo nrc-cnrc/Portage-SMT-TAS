@@ -129,9 +129,10 @@ namespace Portage
     * initial state in the decoder algorithm (and hence, the initial state in
     * all translations).
     * @param sourceLength The length of the source sentence.
+    * @param usingLev  Specifies if we need to create the info for levenshtein
     * @return    The empty state created.
     */
-   DecoderState *makeEmptyState(Uint sourceLength);
+   DecoderState *makeEmptyState(Uint sourceLength, bool usingLev);
 
    /**
     * Creates a DecoderState given by adding the given phrase to the end of
@@ -173,6 +174,7 @@ namespace Portage
     *         above to be kept when they have the exact same coverage (must be
     *         in log space, and negative, or log(0.0), i.e., -INFINITY, for no
     *         threshold)
+    * @param usingLev Specifies if the decoder is using levenshtein
     * @param c.distLimit  The maximum distortion distance allowed between two
     *         words. NO_MAX_DISTORTION means none.
     * @param c.bCubePruning Run the cube pruning decoder rather than the
@@ -182,7 +184,8 @@ namespace Portage
     *         best complete translations.  While this HypothesisStack is
     *         created by this function, it must be deleted externally.
     */
-   HypothesisStack *runDecoder(BasicModel &model, const CanoeConfig& c);
+   HypothesisStack *runDecoder(BasicModel &model, const CanoeConfig& c,
+         bool usingLev);
 
    /**
     * Runs the decoder algorithm.  Uses the hypothesis stacks given, emptying
@@ -193,11 +196,12 @@ namespace Portage
     *         empty, and all but the final stack will be empty at the end.
     * @param sourceLength The length of the source sentence being translated.
     * @param phraseFinder Phrases that can be added to the current source 
+    * @param usingLev Specifies if the decoder is using levenshtein
     * @param verbosity  Indicates the level of verbosity
     */
    void runDecoder(PhraseDecoderModel &model, HypothesisStack **hStacks,
          Uint sourceLength, PhraseFinder &phraseFinder,
-         Uint verbosity);
+         bool usingLev, Uint verbosity);
 
 } // Portage
 

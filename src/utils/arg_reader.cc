@@ -145,6 +145,16 @@ void ArgReader::read(Uint argc, const char* const argv[])
       error(ETFatal, "too few arguments\n%s", message_to_print_after_error.c_str());
 }
 
+void ArgReader::read(const string& args) {
+   vector<string> toks;
+   split(args, toks);
+   Uint argc = toks.size();
+   const char* argv[argc];
+   for (Uint i = 0; i < argc; i++) {
+      argv[i] = toks[i].c_str();
+   }
+   read(argc, argv);
+}
 
 void ArgReader::dump(ostream& os)
 {

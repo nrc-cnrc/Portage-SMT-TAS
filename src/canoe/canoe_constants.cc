@@ -35,4 +35,7 @@ namespace Portage
     
     // Indicates no limit on maximum distortion cost
     const int NO_MAX_DISTORTION = -1;
+    
+    // Indicates no limit on max levenshtien
+    const int NO_MAX_LEVENSHTEIN = -1;
 } // Portage

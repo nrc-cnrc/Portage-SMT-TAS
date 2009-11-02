@@ -59,6 +59,7 @@ canoe: logging tm lm
 eval: logging
 rescoring: canoe tm lm eval logging
 tm: logging
+distortion: tm
 
 validate_subdir_dependencies:
 	@if [[ "`grep '^ *MODULE_DEPENDS.*[^ =]' */Makefile | perl -ple 's/\/Makefile//; s/MODULE_DEPENDS\s*=/ /; s/\s+/ /' | wc`" \

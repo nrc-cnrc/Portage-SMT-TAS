@@ -199,6 +199,13 @@ string BaseName(const string& filename);
 bool isZipFile(const string& filename);
 
 /**
+ * Removes any extension of the form "\.[^\.]*".
+ * @param filename file name to remove extension.
+ * @return Returns filename without the extension.
+ */
+string removeExtension(const string& filename);
+
+/**
  * Removes the .Z, .z or .gz extension from filename, if any
  * @param filename file name to remove gzip extension
  * @return Returns filename without the gzip extension
@@ -222,7 +229,7 @@ string addExtension(const string& filename, const string& toBeAdded);
  */
 string extractFilename(const string& path);
 
-/*
+/**
  * Parse s, typically a file name, and swap its two languages.
  *
  * Works by looking for pattern
@@ -246,6 +253,15 @@ string extractFilename(const string& path);
 string swap_languages(const string& s, const string& separator,
       string* l1 = NULL, string* l2 = NULL,
       string* prefix = NULL, string* suffix = NULL);
+
+/**
+ * This declaration creates ambiguity with the standard tmpnam function, so
+ * that your code won't compile if you try to use tmpnam.  Intentionally, no
+ * implementation is provided either.
+ * As the g++ warns, tmpnam() is dangerous and should never be used.  Use
+ * mkstemp instead, there are several examples in Portage of how to do so.
+ */
+char *tmpnam(char *);
 
 /// Read the contents of a tokenized file, line by line.
 class TokReader 
@@ -359,93 +375,6 @@ struct TokReaderPair
    bool hasMarkup() {return tr1.hasMarkup() || tr2.hasMarkup();}
 };
 
-/// Namespace to contain generic binary IO operators
-namespace BinIOStream
-{
-   /** 
-    * Write a vector in Binary mode.  Warning: T must be safe to copy, allocate
-    * and free without calling constructors and/or destructors.
-    */
-   template<typename T>
-   std::ostream& operator<<(std::ostream& os, const vector<T>& v) {
-      unsigned int s(v.size());
-      os.write((char*)&s, sizeof(unsigned int));
-      if (s>0)
-         os.write((char*)&v[0], s*sizeof(T));
-      return os;
-   }
-
-   /**
-    * Read a vector in Binary mode.  Warning: T must be safe to copy, allocate
-    * and free without calling constructors and/or destructors.
-    */
-   template<typename T>
-   std::istream& operator>>(std::istream& is, vector<T>& v) {
-      Uint s(0);
-      is.read((char*)&s, sizeof(unsigned int));
-      if (s>0) {
-         v.resize(s);
-         is.read((char*)&v[0], s*sizeof(T));
-      }
-      else {
-         v.clear();
-      }
-      return is;
-   }
-
-   /**
-    * Write a primitive or simple data type value in Binary mode.
-    * Warning: T must be safe to copy, allocate and free without calling
-    * constructors and/or destructors.
-    * @param os  stream to write to
-    * @param v   value to write in binary format
-    */
-   template<typename T>
-   void writebin(std::ostream& os, T v) {
-      os.write((char*)&v, sizeof(v));
-   }
-
-   /**
-    * Read a primitive or simple data type value in Binary mode.
-    * Warning: T must be safe to copy, allocate and free without calling
-    * constructors and/or destructors.
-    * @param is       stream to read from
-    * @param[out] v   value to read in binary format
-    * @return is itself, to allow cascading calls
-    */
-   template<typename T>
-   void readbin(std::istream& is, T& v) {
-      is.read((char*)&v, sizeof(v));
-   }
-
-   /**
-    * Write a primitive or simple data type array in Binary mode.
-    * Warning: T must be safe to copy, allocate and free without calling
-    * constructors and/or destructors.
-    * @param os   stream to write to
-    * @param a    pointer to array of values to write in binary format
-    * @param size size of a, i.e., number of elements to write
-    */
-   template<typename T>
-   void writebinarray(std::ostream& os, T* a, Uint size) {
-      os.write((char*)a, sizeof(T) * size);
-   }
-
-   /**
-    * Read a primitive or simple data type array in Binary mode.
-    * Warning: T must be safe to copy, allocate and free without calling
-    * constructors and/or destructors.
-    * @param is      stream to read from
-    * @param[out] a  pointer to array of values to read in binary format
-    *                a must point to enough allocated storage to hold the
-    *                results
-    * @param size    size of a, i.e., number of elements to read
-    */
-   template<typename T>
-   void readbinarray(std::istream& is, T* a, Uint size) {
-      is.read((char*)a, sizeof(T) * size);
-   }
-}
 
 } //ends Portage namespace
 #endif

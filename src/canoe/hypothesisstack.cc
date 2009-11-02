@@ -57,8 +57,15 @@ bool WorseScore::operator()(const DecoderState *s1, const DecoderState *s2) cons
    return s1->futureScore < s2->futureScore;
 } // operator()
 
-RecombHypStack::RecombHypStack(PhraseDecoderModel &model): hh(model), he(model),
-   recombHash(1, hh, he), numRecombined(0) {}
+RecombHypStack::RecombHypStack(
+      PhraseDecoderModel &model, bool discardRecombined
+)
+   : hh(model)
+   , he(model)
+   , recombHash(1, hh, he)
+   , discardRecombined(discardRecombined)
+   , numRecombined(0)
+{}
 
 RecombHypStack::~RecombHypStack()
 {
@@ -112,8 +119,12 @@ void RecombHypStack::push(DecoderState *s)
       } // if
 
       s->refCount--;
-      rState->recomb.push_back(s);
+      assert(s->refCount == 0);
       assert(s->recomb.empty());
+      if ( discardRecombined )
+         delete s;
+      else
+         rState->recomb.push_back(s);
    } // if
 } // push
 
@@ -124,13 +135,21 @@ void RecombHypStack::getAllStates(vector<DecoderState *> &states)
 
 HistogramThresholdHypStack::HistogramThresholdHypStack(
    PhraseDecoderModel &model, Uint pruneSize,
-   double relativeThreshold, Uint covLimit, double covThreshold)
-:
-   RecombHypStack(model), pruneSize(pruneSize), threshold(relativeThreshold),
-   bestScore(-INFINITY),
-   covLimit(covLimit), covThreshold(covThreshold),
-   numKept(0), numPruned(0), numUnrecombined(0), numRecombKept(0),
-   numCovPruned(0), numRecombCovPruned(0)
+   double relativeThreshold, Uint covLimit, double covThreshold,
+   bool discardRecombined
+)
+   : RecombHypStack(model, discardRecombined)
+   , pruneSize(pruneSize)
+   , threshold(relativeThreshold)
+   , bestScore(-INFINITY)
+   , covLimit(covLimit)
+   , covThreshold(covThreshold)
+   , numKept(0)
+   , numPruned(0)
+   , numUnrecombined(0)
+   , numRecombKept(0)
+   , numCovPruned(0)
+   , numRecombCovPruned(0)
 {
    assert(relativeThreshold < 0);
 } // HistogramThresholdHypStack

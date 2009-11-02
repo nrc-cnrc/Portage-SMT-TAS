@@ -84,12 +84,13 @@ if((defined $help) or (not defined $inputFile and (@ARGV < 1)))
    {  die "\r\n!!! ERROR truecase.pl: a file to convert into truecase is required using the option \"--text=InputFile\"! \taborting...\r\n\r\n";
    } # End if
 
-   print "\r\ntruecase.pl: TRUECASING PROCESS START\r\n\r\n" unless !$verbose;
+   print STDERR "\r\ntruecase.pl: TRUECASING PROCESS START\r\n\r\n" unless !$verbose;
 
    my @tmpFiles = undef;
 
    if(not defined $vocabCountFile and not defined $vocabMapFile and not defined $LMFile)
-   {  print "truecase.pl: No model is given! Assessing PORTAGE default truecasing model names...\r\n" unless !$verbose;
+   {
+      print STDERR "truecase.pl: No model is given! Assessing PORTAGE default truecasing model names...\r\n" unless !$verbose;
       $LMFile = portage_truecaselibconstantes::DEFAULT_NGRAM_MODEL;
       $vocabMapFile = portage_truecaselibconstantes::DEFAULT_V1V2MAP_MODEL;
       $unknownsMapFile = portage_truecaselibconstantes::DEFAULT_UNKNOWN_V1V2MAP_MODEL unless defined $unknownsMapFile;
@@ -105,7 +106,7 @@ if((defined $help) or (not defined $inputFile and (@ARGV < 1)))
          $vocabMapFileTitles = undef unless (-e $vocabMapFileTitles);
       } # End if
 
-      print "truecase.pl: Assessing PORTAGE default truecasing model names done...\r\n" unless !$verbose;
+      print STDERR "truecase.pl: Assessing PORTAGE default truecasing model names done...\r\n" unless !$verbose;
 
    }elsif(defined $vocabCountFile and defined $vocabMapFile)
    {  die "\r\n!!! ERROR truecase.pl: only one vocabulary model can be used. It's either the option \"--voc=vocabCountFile\" or the option \"--map=vocabMapFile\"! \taborting...\r\n\r\n";
@@ -117,9 +118,9 @@ if((defined $help) or (not defined $inputFile and (@ARGV < 1)))
       push @tmpFiles, $vocabMapFile;
 
       # Generate the temporary V1V2 mapping from the vocabulary count file.
-      print "truecase.pl: Creating a temporary V1 to V2 vocabulary mapping model into \"$vocabMapFile\" ...\r\n" unless !$verbose;
+      print STDERR "truecase.pl: Creating a temporary V1 to V2 vocabulary mapping model into \"$vocabMapFile\" ...\r\n" unless !$verbose;
       portage_truecaselib::writeVocabularyMappingFileForVocabulary($vocabCountFile, $vocabMapFile);
-      print "truecase.pl: Temporary V1 to V2 vocabulary mapping model done...\r\n" unless !$verbose;
+      print STDERR "truecase.pl: Temporary V1 to V2 vocabulary mapping model done...\r\n" unless !$verbose;
 
       # Generate the temporary V1V2 mapping for titles
       if($useNISTTitleModelsFlag)
@@ -130,9 +131,9 @@ if((defined $help) or (not defined $inputFile and (@ARGV < 1)))
          if(-e $vocabCountFileTitles)
          {  # Generate the V1V2 mapping for NIST titiles.
             $vocabMapFileTitles = $vocabMapFile . portage_truecaselibconstantes::TITLE_VOCABULARY_MAPPING_FILENAME_SUFFIX;
-            print "truecase.pl: Creating a temporary titles V1 to V2 mapping model into \"$vocabMapFileTitles\" ...\r\n" unless !$verbose;
+            print STDERR "truecase.pl: Creating a temporary titles V1 to V2 mapping model into \"$vocabMapFileTitles\" ...\r\n" unless !$verbose;
             portage_truecaselib::writeVocabularyMappingFileForVocabulary($vocabCountFileTitles, $vocabMapFileTitles, undef);
-            print "truecase.pl: Temporary titles V1 to V2 mapping model done ...\r\n" unless !$verbose;
+            print STDERR "truecase.pl: Temporary titles V1 to V2 mapping model done ...\r\n" unless !$verbose;
          }else
          {  $vocabCountFileTitles = undef;
          } # End if
@@ -151,13 +152,13 @@ if((defined $help) or (not defined $inputFile and (@ARGV < 1)))
 
    
    if(defined $unknownsMapFile or $useNISTTitleModelsFlag)
-   {  print "truecase.pl: Truecasing with Unknown words resolution launched on \"$inputFile\"...\r\n" unless !$verbose;
+   {  print STDERR "truecase.pl: Truecasing with Unknown words resolution launched on \"$inputFile\"...\r\n" unless !$verbose;
       portage_truecaselib::advancedTruecaseFile($inputFile, $LMFile, $vocabMapFile, $unknownsMapFile, $LMFileTitles, $vocabMapFileTitles, $outputFile, $lmOrder, $forceNISTTitlesFUFlag, $useLMOnlyFlag, $uppercaseSentenceBeginFlag, $cleanMarkupFlag, $verbose);
-      print "truecase.pl: Truecasing with Unknown words resolution done...\r\n" unless !$verbose;
+      print STDERR "truecase.pl: Truecasing with Unknown words resolution done...\r\n" unless !$verbose;
    }else
-   {  print "truecase.pl: Truecasing launched on \"$inputFile\" ...\r\n" unless !$verbose;
+   {  print STDERR "truecase.pl: Truecasing launched on \"$inputFile\" ...\r\n" unless !$verbose;
       portage_truecaselib::truecaseFile($inputFile, $LMFile, $vocabMapFile, $lmOrder, $useLMOnlyFlag, $outputFile, $uppercaseSentenceBeginFlag, $cleanMarkupFlag, $verbose);
-      print "truecaseengine.pl: Truecasing done...\r\n" unless !$verbose;
+      print STDERR "truecaseengine.pl: Truecasing done...\r\n" unless !$verbose;
    } # End if
 
 
@@ -168,7 +169,7 @@ if((defined $help) or (not defined $inputFile and (@ARGV < 1)))
       } # End if
    } # End foreach
 
-   print "\r\ntruecase.pl: TRUECASING PROCESS END\r\n" unless !$verbose;
+   print STDERR "\r\ntruecase.pl: TRUECASING PROCESS END\r\n" unless !$verbose;
 
 } # End if
 

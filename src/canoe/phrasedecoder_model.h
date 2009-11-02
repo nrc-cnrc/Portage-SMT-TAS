@@ -21,6 +21,7 @@
 
 #include "canoe_general.h"
 #include <vector>
+#include <boost/dynamic_bitset.hpp>
 
 using namespace std;
 
@@ -56,6 +57,24 @@ namespace Portage
    class PartialTranslation
    {
    public:
+      ///  Placeholder for levenshtein
+      struct levenshteinInfo
+      {
+         /// The ngramDist so far. Used to optimize calculations 
+         vector <double> ngramDistance;
+
+         /// The levDist so far. Used to optimize calculations 
+         int levDistance;
+
+         /// Positions with minimum Levenshtein distance in ref so far. Used to
+         /// optimize calculations 
+         boost::dynamic_bitset<> min_positions;
+
+         /// Default constructor
+         levenshteinInfo() : levDistance(-1) {}
+      };
+
+   public:
       /**
        * The previous partial translation.
        */
@@ -80,9 +99,15 @@ namespace Portage
       Uint numSourceWordsCovered;
 
       /**
-       * Constructor, creates a new partial translation object.
+       * Info to calculate the levenshtein distance.
        */
-      PartialTranslation();
+      levenshteinInfo* levInfo;
+
+      /**
+       * Constructor, creates a new partial translation object.
+       * @param usingLev  Specifies if the levenshteinInfo is required
+       */
+      PartialTranslation(bool usingLev = false);
 
       /**
        * Constructor extends trans0 by adding pharse at the end of it.
@@ -95,6 +120,9 @@ namespace Portage
        */
       PartialTranslation(PartialTranslation* trans0, PhraseInfo* phrase,
             const UintSet* preCalcSourceWordsCovered = NULL);
+
+      /// Destructor.
+      ~PartialTranslation();
 
       /**
        * Get the last num words of partial translation hypothesis.
@@ -266,6 +294,12 @@ namespace Portage
        */
       virtual void getFeatureFunctionVals(vector<double> &vals,
             const PartialTranslation &trans) = 0;
+
+      /**
+       * Get the feature weights
+       * @param[out] wts      vector to receive the feature weights
+       */
+      virtual void getFeatureWeights(vector<double> &wts) = 0;
 
    }; // PhraseDecoderModel
 

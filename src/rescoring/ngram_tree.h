@@ -30,9 +30,12 @@ namespace Portage {
       string          w;
       set<NgramNode*> kids;
 
+      NgramNode(const NgramNode&);            ///< NgramNode is not copyable
+      NgramNode& operator=(const NgramNode&); ///< NgramNode is not copyable
+
    public:
-      NgramNode() : c(ConfScore()), w("</s>"), kids(set<NgramNode*>()) {}
-      NgramNode(const string &word) : c(ConfScore()), w(word), kids(set<NgramNode*>()) {}
+      NgramNode() : w("</s>") {}
+      NgramNode(const string &word) : w(word) {}
       ~NgramNode() {}
 
       /**
@@ -78,10 +81,12 @@ namespace Portage {
       NgramNode* root;
       int        numNodes;
 
+      NgramTree(const NgramTree &);            ///< NgramTree is not copyable
+      NgramTree& operator=(const NgramTree &); ///< NgramTree is not copyable
+
    public:
       NgramTree() : root(new NgramNode()),numNodes(0) {}
-      NgramTree(const NgramTree &t) : root(t.root),numNodes(t.numNodes) {}
-      ~NgramTree() { clear(); }
+      ~NgramTree() { clear(); delete root; root = NULL; }
 
       /**
        * Initialize the tree

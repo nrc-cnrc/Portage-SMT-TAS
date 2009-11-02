@@ -42,10 +42,16 @@ namespace Portage {
        * @param val temporary value for t
        */
       tmp_val(T& t, T val) : saved_value(t), t(t) { t = val; }
+
       /**
        * Destructor: reset t to its original value
        */
       ~tmp_val() { t = saved_value; }
+
+      /**
+       * Get the original value of t (without changing t)
+       */
+      T originalValue() const { return saved_value; }
    };
 
 }

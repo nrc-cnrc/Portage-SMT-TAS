@@ -9,7 +9,7 @@
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
@@ -53,6 +53,7 @@ class TestPDM: public PhraseDecoderModel
       return trans1.numSourceWordsCovered == trans2.numSourceWordsCovered;
    } // isRecombinable
    virtual void getFeatureFunctionVals(vector<double> &vals, const PartialTranslation &trans) {}
+   virtual void getFeatureWeights(vector<double> &wts) {}
 }; // TestPDM
 
 /**
@@ -140,7 +141,7 @@ words covered.  In brackets is the score given to the state.
       empty->refCount = 0;
 
       stack = new HistogramThresholdHypStack(pdm, NO_SIZE_LIMIT,
-                                             -3.5, 0, log(0.0));
+                                             -3.5, 0, log(0.0), false);
 
       // Add the first i states
       for (int j = 0; j <= i; j++)

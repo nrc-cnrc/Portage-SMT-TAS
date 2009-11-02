@@ -56,6 +56,7 @@ class TestPDM: public PhraseDecoderModel
       return 0;
    }
    virtual void getFeatureFunctionVals(vector<double> &vals, const PartialTranslation &trans) {}
+   virtual void getFeatureWeights(vector<double> &wts) {}
 }; // TestPDM
 
 /**
@@ -198,8 +199,12 @@ using namespace Portage::TestDecoder;
  * Program testdecoder's entry point.  Sets up and runs the test.
  * @return Returns 0 if successful.
  */
-int main()
+int main(int argc, char* argv[])
 {
+   if (argc > 1) {
+      cerr << "This tests runDecoder." << endl;
+      exit(1);
+   }
 
 /*
 The graph we're going for (along the top is the number source words covered):
@@ -370,7 +375,7 @@ Expected phrases (final state, path, phrase, score = sum of words in phrase):
    TestPDM model;
 
    // Run the decoder algorithm
-   runDecoder(model, hStacks, SRC_LENGTH, finder, 1);
+   runDecoder(model, hStacks, SRC_LENGTH, finder, false, 1);
 
    // Delete all stacks but the last one
    for (int i = 0; i < SRC_LENGTH; i++)

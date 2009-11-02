@@ -37,6 +37,7 @@ Options:
              phrase tables or ttables containing the same phrase/word pairs
   -q:        don't print individual differences, just a global summary
   -min:      use min(|a|,|b|) instead of max when calculating rel diffs
+  -abs:      use |a-b| instead of a relative difference
 
 Exit status:
    0 if no differences were found (within P)
@@ -58,6 +59,7 @@ GetOptions(
    sort     => \my $sort,
    quiet    => \my $quiet,
    min      => \my $use_min,
+   abs      => \my $use_abs,
 ) or usage;
 my $pow_prec = 1/(10**$prec);
 
@@ -127,8 +129,10 @@ sub diff_epsilon ($$) {
    return (0,0) if $_[0] eq $_[1];
    return (1,"n/a") if (!is_num($_[0]) || !is_num($_[1]));
    return (0,0) if $_[0] == $_[1];
-   my $denom = $use_min ? min(abs($_[0]), abs($_[1]))
-                        : max(abs($_[0]), abs($_[1]));
+   my $denom;
+   if ( $use_abs )    { $denom = 1; }
+   elsif ( $use_min ) { $denom = min(abs($_[0]), abs($_[1])); }
+   else               { $denom = max(abs($_[0]), abs($_[1])); }
    if ( $denom > 0 ) {
       my $rel_diff = abs($_[0] - $_[1]) / $denom;
       $max_diff = $rel_diff if ($rel_diff > $max_diff);
@@ -141,6 +145,7 @@ sub diff_epsilon ($$) {
    }
 }
 
+my $diff_type = $use_abs ? "abs diff" : "rel diff";
 my $found_diff = 0;
 while (<F1>) {
    my $L1 = $_; chomp $L1;
@@ -155,6 +160,8 @@ while (<F1>) {
    next if $L1 eq $L2;
 
    # Split each line into space separated tokens
+   $L1 =~ s/\s+$//; $L1 =~ s/^\s+//;
+   $L2 =~ s/\s+$//; $L2 =~ s/^\s+//;
    my @L1 = split /\s+/, $L1;
    my @L2 = split /\s+/, $L2;
 
@@ -165,8 +172,13 @@ while (<F1>) {
       for my $i (0 .. $#L1) {
          my ($is_diff, $rel_diff) = diff_epsilon($L1[$i], $L2[$i]);
          if ( $is_diff ) {
-            print $., ($#L1 > 0 ? "($i)" : ""), " < $L1[$i]   > $L2[$i]   rel diff: $rel_diff\n"
-               unless $quiet;
+            if ( ! $quiet ) {
+               if ( $rel_diff eq "n/a" ) {
+                  print $., ($#L1 > 0 ? "($i)" : ""), " < $L1[$i]   > $L2[$i]\n"
+               } else {
+                  print $., ($#L1 > 0 ? "($i)" : ""), " < $L1[$i]   > $L2[$i]   $diff_type: $rel_diff\n"
+               }
+            }
             $found_diff = 1;
          }
       }
@@ -183,7 +195,8 @@ if ( ! eof(F2) ) {
 
 print STDERR "$ARGV[0] and $ARGV[1] differ\n"
    if $quiet and $found_diff;
-print STDERR "Maximum relative numerical difference: $max_diff\n"
+my $relative = $use_abs ? "absolute" : "relative";
+print STDERR "Maximum $relative numerical difference: $max_diff\n"
    unless $quiet && !$max_diff;
 print STDERR "At least one infinite (zero vs non-zero) difference\n"
    if $inf_max_diff;

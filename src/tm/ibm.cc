@@ -13,7 +13,7 @@
 #include <cmath>
 #include <numeric>
 #include <iostream>
-#include "file_utils.h"
+#include "binio.h"
 #include "errors.h"
 #include "ibm.h"
 #include "tmp_val.h"
@@ -102,7 +102,7 @@ void IBM1::write(const string& ttable_file, bool bin_ttable) const
 
 void IBM1::writeBinCounts(const string& count_file) const
 {
-   using namespace BinIOStream;
+   using namespace BinIO;
    oSafeMagicStream os(count_file);
    // Header
    os << "NRC PORTAGE IBM1 count file v1.0" << endl;
@@ -110,15 +110,17 @@ void IBM1::writeBinCounts(const string& count_file) const
    os << num_toks << ":";
    writebin(os, logprob);
    // Counts
-   for ( Uint i(0); i < counts.size(); ++i )
-      os << i << ":" << counts[i];
+   for ( Uint i(0); i < counts.size(); ++i ) {
+      os << i << ":";
+      writebin(os, counts[i]);
+   }
    // Footer
    os << "End of NRC PORTAGE IBM1 count file v1.0" << endl;
 }
 
 void IBM1::readAddBinCounts(const string& count_file)
 {
-   using namespace BinIOStream;
+   using namespace BinIO;
    iSafeMagicStream is(count_file);
 
    // Header
@@ -150,7 +152,7 @@ void IBM1::readAddBinCounts(const string& count_file)
       if ( i_read != i || c != ':' )
          error(ETFatal, "Bad bin IBM1 file format in %s at i=%d",
                count_file.c_str(), i);
-      is >> count_line;
+      readbin(is, count_line);
       if ( count_line.size() != counts[i].size() )
          error(ETFatal, "Format error in IBM1 file %s at i=%d: expected %d counts, got %d",
                count_file.c_str(), i, counts[i].size(), count_line.size());
@@ -668,7 +670,7 @@ void IBM2::write(const string& ttable_file, bool bin_ttable) const
 
 void IBM2::writeBinCounts(const string& count_file) const
 {
-   using namespace BinIOStream;
+   using namespace BinIO;
    IBM1::writeBinCounts(count_file);
    string ibm2_count_file(addExtension(count_file, ".ibm2"));
    oSafeMagicStream os(ibm2_count_file);
@@ -680,19 +682,19 @@ void IBM2::writeBinCounts(const string& count_file) const
    // pos counts
    assert(pos_counts);
    writebin(os, npos_params);
-   writebinarray(os, pos_counts, npos_params);
+   writebin(os, pos_counts, npos_params);
    // backoff counts
    assert(backoff_counts);
    Uint backoff_counts_size = backoff_size * backoff_size;
    writebin(os, backoff_counts_size);
-   writebinarray(os, backoff_counts, backoff_counts_size);
+   writebin(os, backoff_counts, backoff_counts_size);
    // footer
    os << "End of NRC PORTAGE IBM2 count file v1.0" << endl;
 }
 
 void IBM2::readAddBinCounts(const string& count_file)
 {
-   using namespace BinIOStream;
+   using namespace BinIO;
    IBM1::readAddBinCounts(count_file);
    string ibm2_count_file(addExtension(count_file, ".ibm2"));
    iSafeMagicStream is(ibm2_count_file);
@@ -735,7 +737,7 @@ void IBM2::readAddBinCounts(const string& count_file)
             ibm2_count_file.c_str(), pos_counts_read_size, npos_params);
    float* pos_counts_read = new float[npos_params];
    assert(sizeof(pos_counts_read[0]) == sizeof(pos_counts[0]));
-   readbinarray(is, pos_counts_read, npos_params);
+   readbin(is, pos_counts_read, npos_params);
    for ( Uint i(0); i < npos_params; ++i )
       pos_counts[i] += pos_counts_read[i];
    delete [] pos_counts_read;
@@ -751,7 +753,7 @@ void IBM2::readAddBinCounts(const string& count_file)
             backoff_counts_size);
    float* backoff_counts_read = new float[backoff_counts_size];
    assert(sizeof(backoff_counts_read[0]) == sizeof(backoff_counts[0]));
-   readbinarray(is, backoff_counts_read, backoff_counts_size);
+   readbin(is, backoff_counts_read, backoff_counts_size);
    for ( Uint i(0); i < backoff_counts_size; ++i )
       backoff_counts[i] += backoff_counts_read[i];
    delete [] backoff_counts_read;

@@ -14,7 +14,8 @@
 
 #include "ttable.h"
 #include "str_utils.h"
-#include <file_utils.h>
+#include "file_utils.h"
+#include "binio.h"
 #include <cmath>
 
 using namespace Portage;
@@ -25,7 +26,10 @@ static const string TTable_Bin_Format_Header =
 
 void TTable::init()
 {
+   case_null = "NULL";
    speed = 2;
+   tword_casemap = NULL;
+   sword_casemap = NULL;
 }
 
 TTable::TTable(const string& filename, const Voc* src_voc)
@@ -51,6 +55,7 @@ TTable::~TTable() {}
 
 void TTable::read(const string& filename, const Voc* src_voc)
 {
+   time_t start_time(time(NULL));
    iSafeMagicStream ifs(filename);
 
    vector<string> toks;
@@ -95,6 +100,8 @@ void TTable::read(const string& filename, const Voc* src_voc)
    }
 
    src_distns_quick.resize(src_distns.size()); // in case we want to add later
+
+   cerr << "Read TTable in " << (time(NULL) - start_time) << " seconds" << endl;
 }
 
 void TTable::makeDistnsUniform()
@@ -244,7 +251,7 @@ double TTable::getBestTrans(const string& src_word, string& best_trans)
 }
 
 double TTable::getProb(const string& src_word, const string& tgt_word, double smooth) const {
-   WordMapIter p = tword_map.find(tgt_word);
+   WordMapIter p = tword_map.find(mapTgtCase(tgt_word));
    if (p == tword_map.end()) {return smooth;}
    const SrcDistn& distn = getSourceDistn(src_word);
    SrcDistnIter sp = lower_bound(distn.begin(), distn.end(),
@@ -254,6 +261,7 @@ double TTable::getProb(const string& src_word, const string& tgt_word, double sm
 
 void TTable::write(ostream& os) const
 {
+   time_t start_time(time(NULL));
    streamsize old_precision = os.precision();
    os.precision(9);
    for ( WordMapIter p(sword_map.begin()), p_end(sword_map.end());
@@ -264,6 +272,7 @@ void TTable::write(ostream& os) const
    }
    os.flush();
    os.precision(old_precision);
+   cerr << "Wrote TTable in " << (time(NULL) - start_time) << " seconds" << endl;
 }
 
 void TTable::write_bin(ostream& os) const
@@ -293,7 +302,7 @@ void TTable::write_bin(ostream& os) const
    os.flush();
 
    // src_distns
-   using namespace BinIOStream;
+   using namespace BinIO;
    if(sword_map.size() != src_distns.size())
       cerr << "twords.size() = " << twords.size()
            << " src_distns.size() = " << src_distns.size() << endl;
@@ -301,7 +310,8 @@ void TTable::write_bin(ostream& os) const
    os << "Source distributions" << endl;
    assert(sizeof(TIndexAndProb) == 8);
    for (Uint i(0); i < src_distns.size(); ++i) {
-      os << " " << i << ":" << src_distns[i];
+      os << " " << i << ":";
+      writebin(os, src_distns[i]);
    }
 
    // Footer
@@ -382,7 +392,7 @@ void TTable::read_bin(const string& filename, const Voc* src_voc)
             fname, tindex);
 
    // src_distns
-   using namespace BinIOStream;
+   using namespace BinIO;
    src_distns.resize(svoc_size);
    if ( !getline(is, line) )
       error(ETFatal, "Unexpected end of file in %s before src distns", fname);
@@ -399,7 +409,7 @@ void TTable::read_bin(const string& filename, const Voc* src_voc)
                i_read, fname, i);
       if ( c != ':' )
          error(ETFatal, "Invalid format in file %s src_distns %d", fname, i);
-      is >> src_distns[i];
+      readbin(is, src_distns[i]);
    }
 
    // Footer

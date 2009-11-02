@@ -99,10 +99,13 @@ CanoeConfig::CanoeConfig()
    //forPhraseFiles;
    //backPhraseFiles;
    //multiProbTMFiles;
+   //multiProbLDMFiles;
    //lmFiles;
    lmOrder                = 0;
    //distWeight.push_back(1.0);
    lengthWeight           = 0.0;
+   //levWeight
+   //ngramMatchWeights
    //segWeight
    //ibm1FwdWeights
    //lmWeights;
@@ -119,6 +122,7 @@ CanoeConfig::CanoeConfig()
    pruneThreshold         = 0.0001;
    covLimit               = 0;
    covThreshold           = 0.0;
+   levLimit               = NO_MAX_LEVENSHTEIN;
    distLimit              = NO_MAX_DISTORTION;
    distLimitExt           = false;
    distPhraseSwap         = false;
@@ -164,6 +168,8 @@ CanoeConfig::CanoeConfig()
       ParamInfo::relative_path_modification | ParamInfo::check_file_name));
    param_infos.push_back(ParamInfo("ttable-multi-prob", "stringVect", &multiProbTMFiles,
       ParamInfo::relative_path_modification | ParamInfo::check_file_name));
+   param_infos.push_back(ParamInfo("lex-dist-model-file", "stringVect", &multiProbLDMFiles,
+      ParamInfo::relative_path_modification | ParamInfo::check_file_name));
    param_infos.push_back(ParamInfo("lmodel-file", "stringVect", &lmFiles,
       ParamInfo::relative_path_modification | ParamInfo::lm_check_file_name));
    param_infos.push_back(ParamInfo("lmodel-order", "Uint", &lmOrder));
@@ -176,12 +182,19 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("random-s rsm", "stringVect", &rnd_segWeight));
    param_infos.push_back(ParamInfo("weight-ibm1-fwd ibm1f", "doubleVect", &ibm1FwdWeights));
    param_infos.push_back(ParamInfo("random-ibm1-fwd ribm1f", "stringVect", &rnd_ibm1FwdWeights));
+   param_infos.push_back(ParamInfo("weight-lev lev", "doubleVect", &levWeight));
+   param_infos.push_back(ParamInfo("random-lev rlev", "stringVect", &rnd_levWeight));
+   param_infos.push_back(ParamInfo("weight-ngrams ng", "doubleVect", &ngramMatchWeights));
+   param_infos.push_back(ParamInfo("random-ngrams rng", "stringVect", &rnd_ngramMatchWeights));
    param_infos.push_back(ParamInfo("weight-l lm", "doubleVect", &lmWeights));
    param_infos.push_back(ParamInfo("random-l rlm", "stringVect", &rnd_lmWeights));
    param_infos.push_back(ParamInfo("weight-t tm", "doubleVect", &transWeights));
    param_infos.push_back(ParamInfo("random-t rtm", "stringVect", &rnd_transWeights));
    param_infos.push_back(ParamInfo("weight-f ftm", "doubleVect", &forwardWeights));
    param_infos.push_back(ParamInfo("random-f rftm", "stringVect", &rnd_forwardWeights));
+
+   param_infos.push_back(ParamInfo("weight-a atm", "doubleVect", &adirTransWeights)); //boxing
+   param_infos.push_back(ParamInfo("random-a ratm", "stringVect", &rnd_adirTransWeights)); //boxing
 
    param_infos.push_back(ParamInfo("rule-classes ruc", "stringVect", &rule_classes));
    param_infos.push_back(ParamInfo("rule-weights ruw", "doubleVect", &rule_weights));
@@ -201,6 +214,7 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("beam-threshold b", "double", &pruneThreshold));
    param_infos.push_back(ParamInfo("cov-limit", "Uint", &covLimit));
    param_infos.push_back(ParamInfo("cov-threshold", "double", &covThreshold));
+   param_infos.push_back(ParamInfo("levenshtein-limit", "int", &levLimit));
    param_infos.push_back(ParamInfo("distortion-limit", "int", &distLimit));
    param_infos.push_back(ParamInfo("dist-limit-ext", "bool", &distLimitExt));
    param_infos.push_back(ParamInfo("dist-phrase-swap", "bool", &distPhraseSwap));
@@ -230,6 +244,8 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("future-score-lm-heuristic", "string", &futLMHeuristic));
    param_infos.push_back(ParamInfo("future-score-use-ftm", "bool", &futScoreUseFtm));
    param_infos.push_back(ParamInfo("lb", "bool", &bLoadBalancing));
+   param_infos.push_back(ParamInfo("ref", "string", &refFile,
+      ParamInfo::relative_path_modification | ParamInfo::check_file_name));
    param_infos.push_back(ParamInfo("final-cleanup", "bool", &final_cleanup));
    param_infos.push_back(ParamInfo("bind", "int", &bind_pid));
 
@@ -239,7 +255,8 @@ CanoeConfig::CanoeConfig()
 
    const char* weight_names[] = {
       "d", "w", "sm", "ibm1f", "ruw",
-      "lm", "tm", "ftm"
+      "lev", "ng",
+      "lm", "tm", "ftm", "atm"
    };
    weight_params.assign(weight_names, weight_names + ARRAY_SIZE(weight_names));
 
@@ -553,9 +570,18 @@ void CanoeConfig::check()
       lmWeights.insert(lmWeights.end(), lmFiles.size(), 1.0);
 
    const Uint multi_prob_model_count(getTotalMultiProbModelCount());
+   const Uint multi_adir_model_count(getTotalAdirectionalModelCount()); //boxing
 
    if (transWeights.empty())
       transWeights.assign(backPhraseFiles.size() + multi_prob_model_count, 1.0);
+
+   // Rule decoder feature
+   if (rule_weights.empty()) {
+      rule_weights.insert(rule_weights.end(), rule_classes.size(), 1.0f);
+   }
+   if (rule_log_zero.empty()) {
+      rule_log_zero.insert(rule_log_zero.end(), rule_classes.size(), phraseTableLogZero);
+   }
 
    ////////////////////////////////////////////////////////
    // ERRORS:
@@ -564,6 +590,25 @@ void CanoeConfig::check()
 
    //if (latticeOut && nbestOut)
    //   error(ETFatal, "Lattice and nbest output cannot be generated simultaneously.");
+
+   //boxing
+   bool existingFwdLex = false;
+   bool existingBackLex = false;
+
+   vector<string>::iterator it=distortionModel.begin();
+   for (;it != distortionModel.end(); ++it){
+      if ( isPrefix("fwd-lex",*it) )
+         existingFwdLex = true;
+      if ( isPrefix("back-lex",*it) )
+         existingBackLex = true;
+   }
+
+   if (multiProbLDMFiles.empty() && (existingFwdLex || existingBackLex)){
+      error(ETFatal, "No lexicalized distortion model file specified.");
+   }
+   if (!multiProbLDMFiles.empty() && (!existingFwdLex && !existingBackLex)){
+      error(ETFatal, "No lexicalized distortion model type [fwd-lex and|or back-lex] specified.");
+   }//boxing
 
    if (lmFiles.empty())
       error(ETFatal, "No language model file specified.");
@@ -596,6 +641,9 @@ void CanoeConfig::check()
       error(ETFatal, "Number of forward translation models !=  number of backward translation model files.");
    if (forwardWeights.size() > 0 && forwardWeights.size() != forPhraseFiles.size() + multi_prob_model_count)
       error(ETFatal, "Number of forward translation model weights != number of (forward) translation model files.");
+   if (adirTransWeights.size() != multi_adir_model_count) //boxing
+      error(ETFatal, "Number of adirectional translation model weights != number of (adirectional) translation model files."); //boxing
+
    if (oov != "pass" && oov != "write-src-marked" && oov != "write-src-deleted")
       error(ETFatal, "OOV handling method must be one: 'pass', 'write-src-marked', or 'write-src-deleted'");
    if (phraseTablePruneType != "forward-weights" &&
@@ -684,6 +732,18 @@ Uint CanoeConfig::getTotalMultiProbModelCount() const
    }
    return multi_prob_column_count / 2;
 }
+
+//boxing
+Uint CanoeConfig::getTotalAdirectionalModelCount() const
+{
+
+   Uint multi_adir_model_count = 0;
+   for (Uint i = 0; i < multiProbTMFiles.size(); ++i) {
+      multi_adir_model_count +=
+         PhraseTable::countAdirScoreColumns(multiProbTMFiles[i].c_str());
+   }
+   return multi_adir_model_count;
+} //boxing
 
 string& CanoeConfig::getFeatureWeightString(string& s) const
 {

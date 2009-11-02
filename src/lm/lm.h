@@ -59,8 +59,10 @@ public:
       /// Cumulates hits for a particular N.
       /// @param N  length of observed sequence.
       void hit(Uint N) {
-         ++values[N];
-         latest_hit = N;
+         if (N < values.size()) {
+            ++values[N];
+            latest_hit = N;
+         }
       }
       /// Get the value passed to hit() the most recent time it was called.
       Uint getLatestHit() {
@@ -128,6 +130,7 @@ protected:
 
 public:
    static const char* lm_order_separator;  /// #
+
    /**
     * Constants used to determine how this LM will handle OOVs.
     * Defensive programming: Use a class instead of an enum so that primitive
@@ -139,10 +142,14 @@ public:
       { return type == that.type; }
       /// Display the value of this variable in printable form
       string toString() const;
+      /// Construct self by converting from display value to enum value
+      /// If typestring does not describe a valid type, initialize self to
+      /// SimpleAutoVoc and set valid to false.
+      OOVHandling(const string& typestring, bool& valid);
     private:
       /// The actual enum we're wrapping, documented in the static consts in
       /// PLM.
-      const enum Type {
+      enum Type {
          ClosedVoc, SimpleOpenVoc, SimpleAutoVoc, FullOpenVoc
       } type;
       /// Private constructor - only to be used by PLM to initialize the

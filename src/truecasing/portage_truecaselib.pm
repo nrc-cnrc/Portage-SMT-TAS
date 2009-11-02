@@ -16,6 +16,7 @@ use strict;
 use warnings;
 use utf8;
 use portage_truecaselibconstantes;
+use portage_utils;
 use IO::File;
 use open IO=>qq{:locale};
 
@@ -101,7 +102,7 @@ sub advancedTruecaseFile
    my($inputFile, $LMFile, $vocabMapFile, $unknownsMapFile, $LMFileTitles, $vocabMapFileTitles, $outputFile, $lmOrder, $forceNISTTitlesFUFlag, $useLMOnlyFlag, $uppercaseSentenceBeginFlag, $cleanMarkupFlag, $verbose) = @_;
 
    my @tmpFiles = ();     # Temporary files collection
-   
+
    my $outTmpFile;
    if(defined $outputFile)
    {  $outTmpFile = $outputFile;
@@ -109,7 +110,7 @@ sub advancedTruecaseFile
    {  $outTmpFile = getTemporaryFile();
       push @tmpFiles, $outTmpFile;
    }
-   
+
    my $standardOuputFlag = (defined $outputFile) ? undef : 1;
 
    ############## CASE OF UNKNOW WORDS CLASSES RESOLUTION ###########
@@ -215,7 +216,7 @@ B< ===============================
  portage_truecaselib::truecaseFile($inputFile, $LMFile, $vocabMapFile,
    $lmOrder, $useLMOnlyFlag, $outputFile, $uppercaseSentenceBeginFlag,
    $cleanMarkupFlag, $verbose);
- 
+
  @PARAM $inputFile the file to be converted into truecase.
  @PARAM $LMFile the NGram Language Models file. The file should
     be in Doug Paul's ARPA ngram file format.  It can be undefined if not used.
@@ -797,7 +798,7 @@ sub getTemporaryFile()
    my $fh;
    my $maxLoop = 0;
    do
-   {  
+   {
       $filename = tmpnam() . '_agbagoa-tmp';
 #   my ($handle, $filename) = tempfile("plughXXXXXX", DIR => "/export/home/paulp/dev/perl/tmpnam", SUFFIX => '_agbagoa-tmp');
 
@@ -1143,7 +1144,7 @@ sub specialNISTTitleProcessing
    my @tmpFiles = ();     # Temporary files collection
    my @titleLines = ();
    my @titleLineNums;
-   
+
    print "portage_truecaselib::specialNISTTitleProcessing: Detecting titles in \"$inputFile\" ...\r\n" unless not $verbose;
    for(my $numLine=0; $numLine < @lines; $numLine++)
    {  # Detect title lignes (that aren't blank lines) and track them
@@ -1373,7 +1374,7 @@ sub resolveWordToClass
    #}elsif($word =~ /^\w{2,}(-\w{2,})*$/)   # detect Hiphened words but filtered by quantity and acronym tokens detection
    }elsif($word =~ /^\S{2,}(-\S{2,})*$/)    # detect Hiphened words but filtered by quantity and acronym tokens detection
    {  $class = (defined $1 ? 'crtl_portage_common_regular_hiphen_word_unknown_class' : 'crtl_portage_common_regular_uniform_word_unknown_class');
-   
+
    #}else return undef;
    } # End if
 

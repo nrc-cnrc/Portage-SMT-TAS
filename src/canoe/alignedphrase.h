@@ -20,6 +20,7 @@
 #include <phrasedecoder_model.h>
 #include <canoe_general.h>
 #include <utility>
+#include <boost/noncopyable.hpp>
 
 
 namespace Portage {
@@ -71,7 +72,7 @@ struct AlignedPhrase {
 };//end struct AlignedPhrase
 
 /// Ordered linked list of alignments.
-struct alignList {
+struct alignList : private boost::noncopyable {
   /// current alignment sentence
   AlignedPhrase val;
   /// scores of this translation according to the different submodels/features
@@ -94,8 +95,7 @@ struct alignList {
    * Destructor
    */
   virtual ~alignList() {
-    if (next)
-      delete next;
+    if (next) delete next;
   }
 
   /**

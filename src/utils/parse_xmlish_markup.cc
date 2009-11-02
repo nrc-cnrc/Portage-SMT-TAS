@@ -15,6 +15,7 @@
 #include "errors.h"
 #include "parse_xmlish_markup.h"
 #include "str_utils.h"
+#include <cstdlib>
 
 using namespace Portage;
 
@@ -231,6 +232,7 @@ bool Portage::parseXMLishTag(const char buf[], XMLishTag& tag, Uint *beg, Uint* 
       return parseEnd(p, buf, end, "bad character after XML name: ");
    }
    assert(0);
+   exit(EXIT_FAILURE);
 }
 
 static const char xml_specials[] = {'<', '>', '&', '\'', '"'};

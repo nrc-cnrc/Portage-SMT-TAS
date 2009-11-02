@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# @file select-lines
+# @brief Select all lines listed in linesfile from file.
+#
+# @author George Foster / converted to bash by Eric Joanis
+#
+# Technologies langagieres interactives / Interactive Language Technologies
+# Inst. de technologie de l'information / Institute for Information Technology
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2005, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2005, Her Majesty in Right of Canada
+
+##
+## Syntax: select-lines linesfile file
+##
+## Select all lines listed in linesfile from file (Very slow!)
+##
+
+if [[ $# != 2 ]]; then
+   cat $0 | egrep '^##' | cut -c4-
+   exit 1
+fi
+
+lf=$1
+file=$2
+
+for line in `cat $lf`; do
+   select-line $line < $file
+done

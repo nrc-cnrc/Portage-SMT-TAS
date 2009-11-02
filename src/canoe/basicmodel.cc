@@ -16,6 +16,7 @@
  * Copyright 2004, Her Majesty in Right of Canada
  */
 
+#include "logging.h"
 #include "basicmodel.h"
 #include "backwardsmodel.h"
 #include "lm.h"
@@ -23,14 +24,17 @@
 #include "randomDistribution.h"
 #include <math.h>
 
-
 using namespace Portage;
 using namespace std;
 
+Logging::logger bmgLogger(Logging::getLogger("debug.canoe.basicmodelgenerator"));
 
-// NB: The order in which these parameters are added to featureWeightsV should
+// NB1: The order in which these parameters are added to featureWeightsV should
 // not be changed - the conversion from/to rescoring models depends on this. If
 // you change it, you will break existing models stored on disk.
+//
+// NB2: If you (yes you!) make any changes to this function, you must update
+// setWeightsFromString() accordingly.
 //
 // Implementation note: it would be cleaner to initialize decoder_features and
 // featureWeightsV from declarative information in CanoeConfig. A mechanism
@@ -45,6 +49,8 @@ void BasicModelGenerator::InitDecoderFeatures(const CanoeConfig& c)
    if ( c.distortionModel.empty() )
       cerr << "Not using any distortion model" << endl;
    for ( Uint i(0); i < c.distortionModel.size(); ++i ) {
+      LOG_VERBOSE2(bmgLogger, "Creating a distortion model with >%s<",
+         c.distortionModel[i].c_str());
       if (c.distortionModel[i] != "none") {
          decoder_features.push_back(DecoderFeature::create(this,
             "DistortionModel", c.distortionModel[i], ""));
@@ -55,6 +61,7 @@ void BasicModelGenerator::InitDecoderFeatures(const CanoeConfig& c)
    }
 
 
+   LOG_VERBOSE2(bmgLogger, "Creating a length model");
    decoder_features.push_back(DecoderFeature::create(this,
       "LengthFeature", "", ""));
    featureWeightsV.push_back(c.lengthWeight);
@@ -63,6 +70,8 @@ void BasicModelGenerator::InitDecoderFeatures(const CanoeConfig& c)
 
 
    if ( c.segmentationModel != "none" ) {
+      LOG_VERBOSE2(bmgLogger, "Creating a segmentation model with >%s<",
+         c.segmentationModel.c_str());
       decoder_features.push_back(DecoderFeature::create(this,
          "SegmentationModel", c.segmentationModel, ""));
       featureWeightsV.push_back(c.segWeight[0]);
@@ -75,6 +84,8 @@ void BasicModelGenerator::InitDecoderFeatures(const CanoeConfig& c)
 
 
    for (Uint i = 0; i < c.ibm1FwdWeights.size(); ++i) {
+      LOG_VERBOSE2(bmgLogger, "Creating a ibm1fwd model with >%s<",
+         c.ibm1FwdFiles[i].c_str());
       decoder_features.push_back(DecoderFeature::create(this,
          "IBM1FwdFeature", "", c.ibm1FwdFiles[i]));
       featureWeightsV.push_back(c.ibm1FwdWeights[i]);
@@ -82,8 +93,48 @@ void BasicModelGenerator::InitDecoderFeatures(const CanoeConfig& c)
          random_feature_weight.push_back(c.rnd_ibm1FwdWeights.get(i));
    }
 
+
+   if (c.levWeight.size()) {
+      LOG_VERBOSE2(bmgLogger, "Creating a lev model");
+      decoder_features.push_back(DecoderFeature::create(this,
+         "LevFeature", "", ""));
+      featureWeightsV.push_back(c.levWeight[0]);
+      if (c.randomWeights)
+         random_feature_weight.push_back(c.rnd_levWeight.get(0));
+   }
+
+
+   for (Uint i = 0; i < c.ngramMatchWeights.size(); ++i) {
+      if (c.ngramMatchWeights[i] != 0) {
+         LOG_VERBOSE2(bmgLogger, "Creating a ngram model for %d-gram", i);
+         ostringstream tmpstr;
+         tmpstr << i+1;
+         decoder_features.push_back(DecoderFeature::create(this,
+            "NgramMatchFeature", "", tmpstr.str()));
+         featureWeightsV.push_back(c.ngramMatchWeights[i]);
+         if (c.randomWeights)
+            random_feature_weight.push_back(c.rnd_ngramMatchWeights.get(i));
+      }
+   }
+
+   assert(c.rule_classes.size() == c.rule_weights.size());
+   assert(c.rule_classes.size() == c.rule_log_zero.size());
+   for (Uint i(0); i<c.rule_classes.size(); ++i) {
+      LOG_VERBOSE2(bmgLogger, "Creating a rule model with >%s<",
+         c.rule_classes[i].c_str());
+      ostringstream args;
+      args << c.rule_classes[i] << ":" << c.rule_log_zero[i];
+      decoder_features.push_back(DecoderFeature::create(this,
+         "RuleFeature", "", args.str()));
+      featureWeightsV.push_back(c.rule_weights[i]);
+      if (c.randomWeights)
+         random_feature_weight.push_back(c.rnd_rule_weights.get(i));
+   }
 }
 
+
+// NB: If you (yes you!) make any changes to this NASTY UGLY function, you must
+// update setWeightsFromString() accordingly.
 
 BasicModelGenerator* BasicModelGenerator::create(
       const CanoeConfig& c,
@@ -107,6 +158,8 @@ BasicModelGenerator* BasicModelGenerator::create(
       else
          result = new BasicModelGenerator(c);
    }
+
+   LOG_VERBOSE1(bmgLogger, "Creating bmg - loading TMs");
 
    // Load single prob phrase tables
    for (Uint i = 0; i < c.backPhraseFiles.size(); ++i) {
@@ -141,7 +194,12 @@ BasicModelGenerator* BasicModelGenerator::create(
    for ( Uint i = 0; i < c.multiProbTMFiles.size(); ++i ) {
       const Uint model_count =
          PhraseTable::countProbColumns(c.multiProbTMFiles[i].c_str()) / 2;
-      vector<double> backward_weights, forward_weights;
+
+      const Uint adir_model_count =
+         PhraseTable::countAdirScoreColumns(c.multiProbTMFiles[i].c_str());  //boxing
+
+      vector<double> backward_weights, forward_weights, adir_weights; //boxing
+
       assert(c.transWeights.size() >= weights_already_used + model_count);
       backward_weights.assign(c.transWeights.begin() + weights_already_used,
             c.transWeights.begin() + weights_already_used + model_count);
@@ -155,8 +213,19 @@ BasicModelGenerator* BasicModelGenerator::create(
             result->random_forward_weight.push_back(c.rnd_forwardWeights.get(index));
          }
       }
+      //boxing
+      if ( c.adirTransWeights.size() > 0 ) {
+         adir_weights.assign(c.adirTransWeights.begin() + weights_already_used,
+                             c.adirTransWeights.end() + weights_already_used);
+         for (Uint i(0); c.randomWeights && i<adir_model_count; ++i) {
+            const Uint index = weights_already_used + i;
+            result->random_adir_weight.push_back(c.rnd_adirTransWeights.get(index));
+         }
+      }//boxing
+
       result->addMultiProbTransModel(c.multiProbTMFiles[i].c_str(),
-            backward_weights, forward_weights);
+                                     backward_weights, forward_weights, adir_weights); //boxing
+
       for (Uint i(0); c.randomWeights && i<model_count; ++i) {
          const Uint index = weights_already_used + i;
          result->random_trans_weight.push_back(c.rnd_transWeights.get(index));
@@ -165,14 +234,42 @@ BasicModelGenerator* BasicModelGenerator::create(
    }
 
    assert ( weights_already_used == c.transWeights.size() );
+
+   //////////// loading DM
+   for ( Uint i = 0; i < c.multiProbLDMFiles.size(); ++i ) {
+
+      result->addLexDistModel(c.multiProbLDMFiles[i].c_str());
+
+      for ( vector<DecoderFeature *>::iterator df_it = result->decoder_features.begin();
+            df_it != result->decoder_features.end(); ++df_it ){
+
+         LexicalizedDistortion *ldf = dynamic_cast<LexicalizedDistortion *>(*df_it);
+         if ( ldf ) {
+            string filename = c.multiProbLDMFiles[i];
+            string oldext=".gz";
+            string newext=".bkoff";
+            filename.erase(filename.end()-oldext.size(),filename.end());
+            filename+=newext;
+            ldf->readDefaults(filename.c_str());
+         }
+      }
+
+   }
+
+   //////////// loading LM
+
+   LOG_VERBOSE1(bmgLogger, "Creating bmg loading language models");
+
    // load language models
    for (Uint i = 0; i < c.lmFiles.size(); ++i) {
+      LOG_VERBOSE3(bmgLogger, "Loading lm: %s", c.lmFiles[i].c_str());
       result->addLanguageModel(c.lmFiles[i].c_str(), c.lmWeights[i], c.lmOrder);
 
       if (c.randomWeights)
          result->random_lm_weight.push_back(c.rnd_lmWeights.get(i));
 
    }
+   LOG_DEBUG(bmgLogger, "Finish loading language models");
 
    // HUMM no need for all that filtering data, might as well get rid of it.
    result->tgt_vocab.freePerSentenceData();
@@ -187,13 +284,14 @@ BasicModelGenerator::BasicModelGenerator(const CanoeConfig& c,
    tgt_vocab(0),
    phraseTable(phraseTable),
    limitPhrases(false),
-   numTextTransWeights(0),
    lm_numwords(1),
    futureScoreLMHeuristic(lm_heuristic_type_from_string(c.futLMHeuristic)),
    cubePruningLMHeuristic(lm_heuristic_type_from_string(c.cubeLMHeuristic)),
    futureScoreUseFtm(c.futScoreUseFtm),
    addWeightMarked(log(c.weightMarked))
 {
+   LOG_VERBOSE1(bmgLogger, "BasicModelGenerator constructor with 2 args");
+
    if ( this->phraseTable == NULL ) {
       this->phraseTable = new PhraseTable(tgt_vocab, c.phraseTablePruneType.c_str());
    }
@@ -211,13 +309,14 @@ BasicModelGenerator::BasicModelGenerator(
    tgt_vocab(src_sents.size()),
    phraseTable(_phraseTable),
    limitPhrases(!c.loadFirst),
-   numTextTransWeights(0),
    lm_numwords(1),
    futureScoreLMHeuristic(lm_heuristic_type_from_string(c.futLMHeuristic)),
    cubePruningLMHeuristic(lm_heuristic_type_from_string(c.cubeLMHeuristic)),
    futureScoreUseFtm(c.futScoreUseFtm),
    addWeightMarked(log(c.weightMarked))
 {
+   LOG_VERBOSE1(bmgLogger, "BasicModelGenerator construtor with 5 args");
+
    if ( this->phraseTable == NULL ) {
       this->phraseTable = new PhraseTable(tgt_vocab, c.phraseTablePruneType.c_str());
    }
@@ -225,6 +324,7 @@ BasicModelGenerator::BasicModelGenerator(
    {
       // Enter all source phrases into the phrase table, and into the vocab
       // in case they are OOVs we need to copy through to the output.
+      LOG_VERBOSE2(bmgLogger, "Adding source sentences vocab");
       phraseTable->addSourceSentences(src_sents);
       if (!src_sents.empty()) {
          assert(tgt_vocab.size() > 0);
@@ -233,6 +333,7 @@ BasicModelGenerator::BasicModelGenerator(
       }
 
       // Add target words from marks to the vocab
+      LOG_VERBOSE2(bmgLogger, "Adding source sentences marked vocab: %d", marks.size());
       for ( vector< vector<MarkedTranslation> >::const_iterator it = marks.begin();
             it != marks.end(); ++it)
       {
@@ -254,6 +355,8 @@ BasicModelGenerator::BasicModelGenerator(
 
 BasicModelGenerator::~BasicModelGenerator()
 {
+   LOG_VERBOSE1(bmgLogger, "Destroying a BasicModelGenerator");
+
    // if the user doesn't want so clean up, exit.
    if (c != NULL && c->final_cleanup) {
       for ( vector<DecoderFeature *>::iterator it = decoder_features.begin();
@@ -274,16 +377,13 @@ void BasicModelGenerator::addTranslationModel(const char *src_to_tgt_file,
         const char *tgt_to_src_file, double weight)
 {
    phraseTable->read(src_to_tgt_file, tgt_to_src_file, limitPhrases);
-   assert(transWeightsV.size() >= numTextTransWeights);
-   transWeightsV.insert(transWeightsV.begin() + numTextTransWeights, weight);
-   numTextTransWeights++;
+   transWeightsV.insert(transWeightsV.end(), weight);
 } // addTranslationModel
 
 void BasicModelGenerator::addTranslationModel(const char *src_to_tgt_file,
         const char *tgt_to_src_file, double weight, double forward_weight)
 {
-   forwardWeightsV.insert(forwardWeightsV.begin() + numTextTransWeights,
-                          forward_weight);
+   forwardWeightsV.insert(forwardWeightsV.end(), forward_weight);
    addTranslationModel(src_to_tgt_file, tgt_to_src_file, weight);
 } // addTranslationModel
 
@@ -292,14 +392,18 @@ void BasicModelGenerator::addTranslationModel(const char *src_to_tgt_file, doubl
    addTranslationModel(src_to_tgt_file, NULL, weight);
 } // addTranslationModel
 
+
 void BasicModelGenerator::addMultiProbTransModel(
    const char *multi_prob_tm_file, vector<double> backward_weights,
-   vector<double> forward_weights)
+   vector<double> forward_weights, vector<double> adir_weights)
 {
    phraseTable->readMultiProb(multi_prob_tm_file, limitPhrases);
 
    const Uint multi_prob_col_count =
       phraseTable->countProbColumns(multi_prob_tm_file);
+   const Uint multi_adir_prob_count =
+      phraseTable->countAdirScoreColumns(multi_prob_tm_file); //boxing
+
    assert(multi_prob_tm_file != NULL);
    if ( backward_weights.size() * 2 != multi_prob_col_count )
       error(ETFatal, "wrong number of backward weights (%d) for %s",
@@ -309,17 +413,29 @@ void BasicModelGenerator::addMultiProbTransModel(
       error(ETFatal, "wrong number of forward weights (%d) for %s",
             forward_weights.size(), multi_prob_tm_file);
 
-   assert(transWeightsV.size() >= numTextTransWeights);
-   transWeightsV.insert(transWeightsV.begin() + numTextTransWeights,
+   if ( adir_weights.size() != multi_adir_prob_count ) //boxing
+      error(ETFatal, "wrong number of adirectional weights (%d) for %s",
+            adir_weights.size(), multi_prob_tm_file); //boxing
+
+   transWeightsV.insert(transWeightsV.end(),
                         backward_weights.begin(), backward_weights.end());
    if ( ! forward_weights.empty() ) {
-      assert(forwardWeightsV.size() >= numTextTransWeights);
-      forwardWeightsV.insert(forwardWeightsV.begin() + numTextTransWeights,
+      forwardWeightsV.insert(forwardWeightsV.end(),
                              forward_weights.begin(), forward_weights.end());
    }
 
-   numTextTransWeights += backward_weights.size();
+   if ( ! adir_weights.empty() ) { //boxing
+      adirTransWeightsV.insert(adirTransWeightsV.end(),
+                          adir_weights.begin(), adir_weights.end());
+   } //boxing
 }
+
+////////////
+void BasicModelGenerator::addLexDistModel(const char *lexicalized_dm_file)
+{
+   phraseTable->readLexicalizedDist(lexicalized_dm_file, true);
+}
+////////////
 
 void BasicModelGenerator::addLanguageModel(const char *lmFile, double weight,
    Uint limit_order, ostream *const os_filtered)
@@ -358,6 +474,8 @@ string BasicModelGenerator::describeModel() const
 BasicModel *BasicModelGenerator::createModel(
    newSrcSentInfo& info, bool alwaysTryDefault)
 {
+   //LOG_VERBOSE2(bmgLogger, "Creating a model for: %s", join(src_sent, " ").c_str());
+
    // make sure all class names are valid.
    const vector<MarkedTranslation>& marks = info.marks;
    const vector<string>& rc = c->rule_classes;
@@ -419,7 +537,8 @@ vector<PhraseInfo *> **BasicModelGenerator::createAllPhraseInfos(
 
    phraseTable->getPhraseInfos(result, src_sent, transWeightsV,
       c->phraseTableSizeLimit, log(c->phraseTableThreshold), rangesToSkip,
-      verbosity, (forwardWeightsV.empty() ? NULL : &forwardWeightsV));
+      verbosity, (forwardWeightsV.empty() ? NULL : &forwardWeightsV),
+                  (adirTransWeightsV.empty() ? NULL : &adirTransWeightsV));
 
    // Use an iterator to go through the ranges to skip, so that we avoid these
    // when creating default translations
@@ -477,6 +596,14 @@ void BasicModelGenerator::addMarkedPhraseInfos(
             (it->log_prob + addWeightMarked) * totalWeight;
          newFBPI->forward_trans_probs.insert(newFBPI->forward_trans_probs.end(),
             forwardWeightsV.size(), it->log_prob + addWeightMarked);
+
+         //boxing
+         newFBPI->adir_prob =
+            (it->log_prob + addWeightMarked) * totalWeight;
+         newFBPI->adir_probs.insert(newFBPI->adir_probs.end(),
+            adirTransWeightsV.size(), it->log_prob + addWeightMarked);
+         //boxing
+
          newPI = newFBPI;
       } else {
          newPI = new MultiTransPhraseInfo;
@@ -516,6 +643,12 @@ PhraseInfo *BasicModelGenerator::makeNoTransPhraseInfo(
          forwardWeightsV.size(), LOG_ALMOST_0);
       newFBPI->forward_trans_prob = dotProduct(forwardWeightsV,
          newFBPI->forward_trans_probs, forwardWeightsV.size());
+
+      newFBPI->adir_probs.insert(newFBPI->adir_probs.end(),       //boxing
+                        adirTransWeightsV.size(), LOG_ALMOST_0);  //boxing
+      newFBPI->adir_prob = dotProduct(adirTransWeightsV,               //boxing
+                        newFBPI->adir_probs, adirTransWeightsV.size());//boxing
+
       newPI = newFBPI;
    } else {
       newPI = new MultiTransPhraseInfo;
@@ -558,11 +691,20 @@ double **BasicModelGenerator::precomputeFutureScores(
                ((MultiTransPhraseInfo *) *it)->phrase_trans_probs,
                transWeightsV, transWeightsV.size());
 
+            //boxing
+
             if (futureScoreUseFtm) {
                newScore += dotProduct(
                      ((ForwardBackwardPhraseInfo *) *it)->forward_trans_probs,
                      forwardWeightsV, forwardWeightsV.size());
             }
+            // Adirectional score
+            if (((ForwardBackwardPhraseInfo *) *it)->adir_probs.size() > 0
+               && adirTransWeightsV.size() > 0) {
+               assert(((ForwardBackwardPhraseInfo *) *it)->adir_probs.size() == adirTransWeightsV.size());
+               newScore += dotProduct(((ForwardBackwardPhraseInfo *) *it)->adir_probs,
+                     adirTransWeightsV, adirTransWeightsV.size());
+            }//boxing
 
             // Add heuristic LM score
             if ( futureScoreLMHeuristic == LMH_UNIGRAM ) {
@@ -668,6 +810,7 @@ void BasicModelGenerator::getRawLM(
 {
    // this method is called millions of times, so keep this endPhrase buffer
    // static, to avoid reallocating it constantly for nothing.
+   // caveat: as a consequence, this method is not re-entrant
    static Phrase endPhrase;
    endPhrase.clear();
 
@@ -767,6 +910,36 @@ double BasicModelGenerator::dotProductForwardTrans(const vector<double> &weights
    return phrase->forward_trans_prob;
 }
 
+//boxing getRawAdirTrans
+void BasicModelGenerator::getRawAdirTrans(vector<double> &adirVals,
+        const PartialTranslation &trans)
+{
+   if (adirTransWeightsV.empty()) return;
+
+   // This comes from the ForwardBackwardPhraseInfo object, assuming
+   // we have adirectional weights, as asserted above.
+   ForwardBackwardPhraseInfo *phrase =
+      dynamic_cast<ForwardBackwardPhraseInfo *>(trans.lastPhrase);
+   assert(phrase != NULL);
+   adirVals.insert(adirVals.end(), phrase->adir_probs.begin(),
+         phrase->adir_probs.end());
+
+}
+
+double BasicModelGenerator::dotProductAdirTrans(const vector<double> &weights,
+        const PartialTranslation &trans)
+{
+   if (weights.empty()) return 0.0;
+
+   // This comes from the ForwardBackwardPhraseInfo object, assuming
+   // we have forward weights, as checked above.
+   ForwardBackwardPhraseInfo *phrase =
+      dynamic_cast<ForwardBackwardPhraseInfo *>(trans.lastPhrase);
+   assert(phrase != NULL);
+   return phrase->adir_prob;
+}
+//boxing
+
 void BasicModelGenerator::getRawFeatures(vector<double> &ffVals,
         const PartialTranslation &trans)
 {
@@ -833,6 +1006,7 @@ void BasicModelGenerator::setRandomWeights(unsigned int seed) {
    seed_helper(random_feature_weight, seed);
    seed_helper(random_trans_weight, seed);
    seed_helper(random_forward_weight, seed);
+   seed_helper(random_adir_weight, seed);    //boxing
    seed_helper(random_lm_weight, seed);
 
    setRandomWeights();
@@ -854,6 +1028,12 @@ void BasicModelGenerator::setRandomWeights() {
    assert(random_forward_weight.size() == forwardWeightsV.size());
    transform(random_forward_weight.begin(), random_forward_weight.end(),
          forwardWeightsV.begin(), mem_fun(&rnd_distribution::operator()));
+
+   //boxing
+   assert(random_adir_weight.size() == adirTransWeightsV.size());
+   transform(random_adir_weight.begin(), random_adir_weight.end(),
+         adirTransWeightsV.begin(), mem_fun(&rnd_distribution::operator()));
+   //boxing
 
    assert(random_lm_weight.size() == lmWeightsV.size());
    transform(random_lm_weight.begin(), random_lm_weight.end(),
@@ -880,12 +1060,18 @@ void BasicModelGenerator::setWeightsFromString(const string& s)
       featureWeightsV.push_back(c->segWeight[0]);
    for (Uint i = 0; i < c->ibm1FwdWeights.size(); ++i)
       featureWeightsV.push_back(c->ibm1FwdWeights[i]);
+   if (c->levWeight.size())
+      featureWeightsV.push_back(c->levWeight[0]);
+   for (Uint i = 0; i < c->ngramMatchWeights.size(); ++i)
+      if (c->ngramMatchWeights[i] != 0)
+         featureWeightsV.push_back(c->ngramMatchWeights[i]);
    for (Uint i = 0; i < c->rule_classes.size(); ++i)
       featureWeightsV.push_back(c->rule_weights[i]);
 
    // TMs and LMs, on a wing and a prayer...
    transWeightsV.assign(c->transWeights.begin(), c->transWeights.end());
    forwardWeightsV.assign(c->forwardWeights.begin(), c->forwardWeights.end());
+   adirTransWeightsV.assign(c->adirTransWeights.begin(), c->adirTransWeights.end()); //boxing
    lmWeightsV.assign(c->lmWeights.begin(), c->lmWeights.end());
 }
 
@@ -949,6 +1135,11 @@ double BasicModel::scoreTranslation(const PartialTranslation &trans, Uint verbos
    const double forwardScore = parent.dotProductForwardTrans(forwardWeights, trans);
    if (verbosity >= 3) cerr << "\tforward trans score " << forwardScore << endl;
 
+   // Adirectional translation model score //boxing
+   const double adirScore = parent.dotProductAdirTrans(adirTransWeights, trans);
+   if (verbosity >= 3) cerr << "\tadirectional trans score " << adirScore << endl;
+   //boxing
+
    // LM score
    static vector<double> lmVals;
    lmVals.clear();
@@ -960,7 +1151,7 @@ double BasicModel::scoreTranslation(const PartialTranslation &trans, Uint verbos
    const double ffScore = parent.dotProductFeatures(featureWeights, trans);
    if (verbosity >= 3) cerr << "\tother features score " << ffScore << endl;
 
-   return transScore + forwardScore + lmScore + ffScore;
+   return transScore + forwardScore + adirScore + lmScore + ffScore;
 } // scoreTranslation
 
 /*
@@ -1020,6 +1211,10 @@ double BasicModel::phrasePartialScore(const PhraseInfo* phrase)
    // Forward translation score (if used)
    if ( ! forwardWeights.empty() )
       score += ((const ForwardBackwardPhraseInfo*)phrase)->forward_trans_prob;
+
+   // Adirectional translation score (if used)
+   if ( ! adirTransWeights.empty() )
+      score += ((const ForwardBackwardPhraseInfo*)phrase)->adir_prob;
 
    // LM score: use a heuristic LM score, as specified by the user
    if ( parent.cubePruningLMHeuristic == parent.LMH_UNIGRAM ) {
@@ -1114,13 +1309,16 @@ void BasicModel::getFeatureFunctionVals(vector<double> &vals,
    // BasicModelGenerator::describeModel().
    if (trans.back == NULL) {
       vals.insert(vals.end(),
-            parent.getNumFFs() + parent.getNumLMs() + parent.getNumTMs() + parent.getNumFTMs(),
+            parent.getNumFFs() + parent.getNumLMs() +
+            parent.getNumTMs() + parent.getNumFTMs() +
+            parent.getNumATMs(),
             0);
    } else {
       parent.getRawFeatures(vals, trans);
       parent.getRawLM(vals, trans);
       parent.getRawTrans(vals, trans);
       parent.getRawForwardTrans(vals, trans);
+      parent.getRawAdirTrans(vals, trans);
    }
 } // getFeatureFunctionVals
 
@@ -1132,6 +1330,7 @@ void BasicModel::getFeatureWeights( vector<double> &wts )
    wts.insert( wts.end(), lmWeights.begin(), lmWeights.end() );
    wts.insert( wts.end(), transWeights.begin(), transWeights.end() );
    wts.insert( wts.end(), forwardWeights.begin(), forwardWeights.end() );
+   wts.insert( wts.end(), adirTransWeights.begin(), adirTransWeights.end() );
 } // getFeatureWeights
 
 void BasicModel::getTotalFeatureFunctionVals(vector<double> &vals,

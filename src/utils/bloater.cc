@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include "arg_reader.h"
 #include "exception_dump.h"
+#include "MagicStream.h"
 #include "show_mem_usage.h"
 #include "process_bind.h"
 #include <cstdlib>
@@ -37,6 +38,9 @@ Options:\n\
 -v       Write progress reports to cerr.\n\
 -maxiter Will perform <MAXITER> iterations thus creating <MAXITER> blocks in\n\
          memory [Uint::max].\n\
+-open    After each iteration, open and close a gzip file.  This is done to\n\
+         test the memory duplication of fork used by popen used by\n\
+         MagicStream.gz. [don't]\n\
 -bind PID  Binds your program to the presence of the running PID;\n\
 ";
 
@@ -46,6 +50,7 @@ static optional<pid_t> pid;
 static bool verbose = false;
 static Uint blocksize = 0;
 static Uint maxIter = numeric_limits<Uint>::max();
+static bool do_open = false;
 static void getArgs(int argc, const char* const argv[]);
 
 // main
@@ -73,6 +78,10 @@ int MAIN(argc, argv)
          cerr << ++num_blocks << " total size = " << tot_size << endl;
          showMemoryUsage();
       }
+      if (do_open) {
+         static const char* const filename = "delme.from.bloater.gz";
+         oMagicStream out(filename);
+      }
       sleep(1);
    } while (++round < maxIter);
 
@@ -83,13 +92,17 @@ int MAIN(argc, argv)
 
 void getArgs(int argc, const char* const argv[])
 {
-   const char* switches[] = {"v", "maxiter:", "bind:"};
+   const char* switches[] = {"v", "maxiter:", "open", "bind:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 1, 1, help_message);
    arg_reader.read(argc-1, argv+1);
 
    arg_reader.testAndSet("v", verbose);
    arg_reader.testAndSet("maxiter", maxIter);
+   arg_reader.testAndSet("open", do_open);
    arg_reader.testAndSet("bind:", pid);
+
+   // Open requires verbose.
+   if (do_open) verbose = true;
   
    arg_reader.testAndSet(0, "blocksize", blocksize);
 }   

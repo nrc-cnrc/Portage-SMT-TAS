@@ -27,6 +27,30 @@ namespace Portage {
  */
 class LMTrie : public PLM
 {
+public:
+   /// Functor that cumulates how many xgram there are in the trie for each x=[1-N].
+   struct CountVisitor {
+      /// Keeps track of the N-gram counts.
+      vector<Uint> counts;
+
+      /// Default constructor.
+      /// @params size  value of N
+      CountVisitor(Uint size)
+      : counts(size, 0)
+      {}
+
+      /**
+       * Transform this class into a functor for trie.traverse.
+       * @param key    phrase for this visited trie leaf.
+       * @param value  value of the visited trie leaf.
+       */
+      void operator()(const vector<Uint> &key, float value) {
+         const Uint length = key.size() - 1;
+         if ( length < counts.size())
+            ++counts[length];
+      }
+   };
+
 protected:
    /**
     * The LM is stored internally in a trie.
@@ -42,6 +66,22 @@ protected:
    void rec_dump_trie_to_cerr(vector<Uint>& key_prefix,
          PTrie<float, Wrap<float>, false>::iterator begin,
          const PTrie<float, Wrap<float>, false>::iterator& end);
+
+   /**
+    * Recursively dump the trie's leaves.
+    * @param os  in which stream to dump the trie.
+    * @param key_prefix what is the key prefix that lead here.
+    * @param begin  start of children nodes.
+    * @param end  end of children nodes.
+    * @param maxDepth  maximum depth to dump.
+    */
+   void rec_dump_trie_arpa(
+      ostream& os,
+      vector<Uint>& key_prefix,
+      PTrie<float, Wrap<float>, false>::iterator begin,
+      const PTrie<float, Wrap<float>, false>::iterator& end,
+      const Uint maxDepth
+   );
 
 public:
    struct Creator : public PLM::Creator {
@@ -60,9 +100,6 @@ public:
 protected:
    /// Protected constructor for use by subclasses
    LMTrie(VocabFilter *vocab, OOVHandling oov_handling, double oov_unigram_prob);
-
-   /// Destructor.
-   virtual ~LMTrie();
 
    // Implemented for parent.
    virtual Uint getGramOrder() { return gram_order; }
@@ -83,6 +120,9 @@ protected:
    float wordProbQuery(const Uint query[], Uint query_length);
 
 public:
+   /// Destructor.
+   virtual ~LMTrie();
+
    // implementations of virtual methods from parent class
    virtual float wordProb(Uint word, const Uint context[], Uint context_length);
    virtual float cachedWordProb(Uint word, const Uint context[], Uint context_length);
@@ -95,6 +135,13 @@ public:
     * @param binlm_file_name BinLM file name to use.
     */
    void write_binary(const string& binlm_file_name) const;
+
+   /**
+    * Write the trie/LM to NRC Portage's binary format.
+    * @param os  stream where to dump the lm.
+    * @param maxNgram maximum order to dump.
+    */
+   void write2arpalm(ostream& os, Uint maxNgram = numeric_limits<Uint>::max());
 
    /// Displays the memory usage and some stats of the underlying trie structure.
    void displayStats() const;

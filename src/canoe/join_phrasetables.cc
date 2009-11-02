@@ -13,13 +13,13 @@
  */
 #include <iostream>
 #include <fstream>
-#include <file_utils.h>
-#include <str_utils.h>
-#include <arg_reader.h>
+#include "file_utils.h"
+#include "str_utils.h"
+#include "arg_reader.h"
 #include "basicmodel.h"
 #include "phrase_table_reader.h"
-#include <printCopyright.h>
-#include <logging.h>
+#include "printCopyright.h"
+#include "logging.h"
 
 using namespace Portage;
 using namespace std;
@@ -115,7 +115,10 @@ int main(int argc, char* argv[])
    join(tmp_pt_list.begin(), tmp_pt_list.end(), tmp_pts);
    string tmp = getTempName();
    string command = "zcat -f " + tmp_pts + "| li-sort.sh > " + tmp;
-   system(command.c_str());
+   if (system(command.c_str()) != 0) {
+      error(ETFatal, "Failed to run: %s", command.c_str());
+   }
+
    for (Uint i = 0; i < pts.size(); ++i)
       unlink(tmp_pt_list[i].c_str());
    if (verbose)
@@ -188,9 +191,13 @@ static void parseLine(const string& pt, Uint linenum, const string& line,
 
 static string getTempName()
 {
-   char* tmp = tmpnam(NULL);
-   if (!tmp)
-      error(ETFatal, "Unable to get a temp file name using tmpnam");
+   static const char* tmpdir = getenv("TMPDIR");
+   static const string path = tmpdir ? tmpdir : "/tmp";
+   static const string name = "join_phrasetables.XXXXXX";
+   char tmp[path.size()+name.size()+2];
+   strcpy(tmp,(path+"/"+name).c_str());
+   if ( close(mkstemp(tmp)) )
+      error(ETFatal, "Unable to get a temp file name using mkstemp(%s)", tmp);
    return tmp;
 }
 

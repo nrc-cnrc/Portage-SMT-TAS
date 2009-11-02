@@ -36,6 +36,10 @@ endif
 INSTALL_DIR = ../..
 
 OSTYPE = $(shell uname -s)
+ifneq (,$(findstring CYGWIN,$(OSTYPE)))
+   OSTYPE = CYGWIN
+   NO_PORTAGE_OPENMP = 1
+endif
 
 # -----------------------------------------------------------------------------
 # Static variable definitions (don't usually need to be modified)
@@ -130,7 +134,7 @@ CC = gcc
 CXX = g++
 
 # OPTS is for compilation and linking options
-ifneq (,$(findstring CYGWIN,$(OSTYPE)))
+ifeq ($(OSTYPE),CYGWIN)
     OPTS = -O3 -fno-strict-aliasing -D$(OSTYPE) $(CF)
 else
     OPTS = -O3 -fPIC -fno-strict-aliasing -D$(OSTYPE) $(CF)
@@ -147,7 +151,11 @@ IFLAGS = -I. -I../utils $(MODULE_INCLUDE) $(OTHER_INC_DIRS)
 # CXXFLAGS for C++ source files, and LINKFLAGS for linking.
 CFLAGS = $(FIRST_CF) $(IFLAGS) $(COPTS) $(OPTS)
 CXXFLAGS = $(CFLAGS)
-LINKFLAGS = $(FIRST_CF) $(LFLAGS) $(MODULE_LF) $(OPTS)
+ifeq ($(OSTYPE),CYGWIN)
+   LINKFLAGS = $(FIRST_CF) $(LFLAGS) $(MODULE_LF) -Wl,--enable-auto-import $(OPTS)
+else
+   LINKFLAGS = $(FIRST_CF) $(LFLAGS) $(MODULE_LF) $(OPTS)
+endif
 
 ifeq ($(OSTYPE),Darwin)
    LINKWITH = $(LIBS)
@@ -261,18 +269,18 @@ new_install: clean
 FORCE::
 
 # remove everything that can be remade
-clean:
+clean: clean_testrunners
 	\rm -f $(OBJECTS) $(LIBRARY).{a,so} $(PROGRAMS) $(DYNPROGS) \
 	$(INFOFILES) $(DOCUMENTS) .cvsignore Makefile.depend \
         *.aux *.bbl *.blg *.dvi *.log TAGS tags *~ *.o *.info-* core core.* \
-        tests/cxxtestrunner.cc tests/cxxtestrunner $(OTHER_GENERATED_FILES) \
+        $(OTHER_GENERATED_FILES) \
 	$(LEGACY_TESTS) $(foreach legacy_test, $(LEGACY_TESTS), $(legacy_test).o)
 	\rm -rf .deps
 
 # make the .cvsignore file, used by CVS to ignore certain files when updating
 .cvsignore: Makefile ../build/Makefile.incl
 	echo $(PROGRAMS) Makefile.depend .cvsignore *.pdf *.dvi *.aux *.bbl *.blg *.log *.eps .deps | tr ' ' '\n' > $@
-	if [[ -d tests ]]; then echo .cvsignore cxxtestrunner{,.cc} | tr ' ' '\n' > tests/$@; fi
+	if [[ -d tests ]]; then echo .cvsignore $(notdir $(CXXTEST_RUNNERS) $(CXXTEST_RUNNERS_O) $(CXXTEST_RUNNERS_CC)) | tr ' ' '\n' > tests/$@; fi
 	if [[ -d tests/legacy ]]; then echo .cvsignore $(foreach legacy_test, $(notdir $(LEGACY_TESTS)), $(legacy_test){,.o}) | tr ' ' '\n' > tests/legacy/$@; fi
 
 # make static and dynamic libraries
@@ -296,22 +304,29 @@ $(LIBRARY).so:
 endif
 
 # Compile and execute unit test suites, if any
-ifneq ($(strip $(wildcard tests/*.h)),)
+ifeq ($(strip $(wildcard tests/*.h)),)
+test:
+clean_testrunners:
+else
 ifeq ($(CXXTEST),NONE)
 .PHONY: warn_no_cxxtest
 test: warn_no_cxxtest
 warn_no_cxxtest:
 	@echo Warning: Skipping unit testing since CxxTest is not installed.
 else
-CXXTEST_SOURCE=tests/cxxtestrunner.cc
-test: runcxxtest
-runcxxtest: tests/cxxtestrunner
-	tests/cxxtestrunner
-$(CXXTEST_SOURCE): tests/test*.h
-	$(CXXTEST)/bin/cxxtestgen.pl --error-printer -o $@ $^
-
-tests/cxxtestrunner.o: OTHER_INC_DIRS += -isystem$(CXXTEST)/include
-tests/cxxtestrunner.o: tests/test*.h
+test: run_testsuites
+CXXTEST_SUITES=$(wildcard tests/*.h)
+CXXTEST_RUNNERS=$(patsubst %.h,%,$(CXXTEST_SUITES))
+CXXTEST_RUNNERS_CC=$(patsubst %.h,%.cc,$(CXXTEST_SUITES))
+CXXTEST_RUNNERS_O=$(patsubst %.h,%.o,$(CXXTEST_SUITES))
+run_testsuites: $(addprefix run_,$(CXXTEST_RUNNERS))
+clean_testrunners:
+	$(RM) $(CXXTEST_RUNNERS) $(CXXTEST_RUNNERS_O) $(CXXTEST_RUNNERS_CC) tests/cxxtestrunner{,.o,.cc}
+.PHONY: run_tests/%
+run_tests/%: tests/%
+	$<
+$(CXXTEST_RUNNERS_CC): %.cc: %.h
+	cxxtestgen.pl --error-printer -o $@ $<
 endif
 endif
 
@@ -336,12 +351,12 @@ test: $(foreach legacy_test, $(notdir $(LEGACY_TESTS)), legacy_$(legacy_test))
 # make programs, linking to library if there is one, else to all object files
 bin: $(PROGRAMS) $(DYNPROGS)
 ifdef LIBRARY
-$(PROGRAMS) tests/cxxtestrunner $(LEGACY_TESTS): %: %.o $(LIBRARY).a $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).a)
+$(PROGRAMS) $(CXXTEST_RUNNERS) $(LEGACY_TESTS): %: %.o $(LIBRARY).a $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).a)
 	$(CXX) $(LINKFLAGS) -o $@ $< $(LIBRARY).a $(LINKWITH) $(DYNLIBS)
 $(DYNPROGS): %: %.o $(LIBRARY).so $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).so)
 	$(CXX) $(LINKFLAGS) -o $@ $< $(LIBRARY).so $(LIBS) $(DYNLIBS)
 else
-$(PROGRAMS) tests/cxxtestrunner $(LEGACY_TESTS): %: %.o $(OBJECTS) $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).a)
+$(PROGRAMS) $(CXXTEST_RUNNERS) $(LEGACY_TESTS): %: %.o $(OBJECTS) $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).a)
 	$(CXX) $(LINKFLAGS) -o $@ $(OBJECTS) $< $(LINKWITH) $(DYNLIBS)
 $(DYNPROGS): %: %.o $(OBJECTS) $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).so)
 	$(CXX) $(LINKFLAGS) -o $@ $(OBJECTS) $< $(LIBS) $(DYNLIBS)
@@ -414,7 +429,7 @@ ifdef LIBRARY
 	install -p -m0640 $(LIBRARY).a $(LIB_DIR)
 endif
 
-ifneq (,$(findstring CYGWIN,$(OSTYPE)))
+ifeq ($(OSTYPE),CYGWIN)
     # Under Cygwin, the -p option to install to broken with files that
     # automagically get the .exe extension.
     INST_EX=install -s

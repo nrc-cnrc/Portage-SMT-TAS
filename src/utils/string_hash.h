@@ -115,7 +115,7 @@ namespace std
 } // std
 
 namespace Portage {
-   // Import hash_map and hash from __gnu_cxx namespace into Portage namespace
+   // Import unordered_map and hash from tr1 namespace into Portage namespace
    using std::tr1::unordered_map;
    using std::tr1::hash;
 

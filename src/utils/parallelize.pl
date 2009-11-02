@@ -72,17 +72,18 @@ Options:
   -m <Z>  merge additional output file Z where Z in cmd_args.
   -merge  merge command [cat]
   -nolocal  Run run-parallel.sh -nolocal
-  -psub <O> Passes specific commands to run-parallel.sh -psub.
+  -psub <O> Passes additional options to run-parallel.sh -psub.
+  -rp   <O> Passes additional options to run-parallel.sh.
 
 Good examples:
   Tokenize the test_en.txt using 12 nodes.
-  $0 -n 12 \"tokenize.pl -lang=en < test_en.txt > test_en.tok\"
+  $0 -n 12 \"utokenize.pl -noss -lang=en < test_en.txt > test_en.tok\"
 
   Tag dev1 using 2 nodes and using a tagger and keeping only the tags with the
   sed expression.
   $0 -debug -n 2 \"(./tagger | sed 's#[^ ]*/##g') < dev1 > dev1.tagged\"
 
-  Eventhough the syntax is not conform, for ease of use $0 handles gzip files
+  Even though the syntax is not standard, for ease of use $0 handles gzip files
   as input as if it was a regular file:
   $0 'cat < input.gz > output'
   $0 'cat < input.gz > output.gz'
@@ -90,6 +91,14 @@ Good examples:
   Handles outputing to stdout transparently.
   $0 'cat < input.gz'    > output
   
+  When you have multiple inputs & outputs:
+  $0 \\
+    -s src_in \\
+    -s tgt_in \\
+    -m src_out \\
+    -m tgt_out \\
+    'filter_training_corpus src_in tgt_in src_out tgt_out 100 9'
+
 BAD examples:
   $0 '(cat | gzip) < input > output.gz'
   Your output will be zipped twice.
@@ -111,17 +120,23 @@ my $N = 3;
 my $NP = undef;
 my $NOLOCAL = "";
 my $PSUB_OPTS = "";
+my $RP_OPTS = "";
 GetOptions(
    help        => sub { usage },
    "verbose+"  => \$verbose,
    quiet       => sub { $verbose = 0 },
    debug       => \my $debug,
-   "psub=s"    => \$PSUB_OPTS,
+
    "s=s"       => \@SPLITS,
    "m=s"       => \@MERGES,
+
+   "merge=s"   => \$MERGE_PGM,
+
    "n=i"       => \$N,
    "np=i"      => \$NP,
-   "merge=s"   => \$MERGE_PGM,
+
+   "psub=s"    => \$PSUB_OPTS,
+   "rp=s"      => \$RP_OPTS,
    "nolocal"   => sub {$NOLOCAL = "-nolocal"},
    "resume"    => sub {die "not implemented yet"},
 ) or usage;
@@ -188,6 +203,7 @@ if ( $debug ) {
    SPLITS=@SPLITS
    MERGES=@MERGES
    PSUB_OPTS=$PSUB_OPTS
+   RP_OPTS=$RP_OPTS
 ";
 }
 
@@ -198,10 +214,12 @@ die "You must provide an input file." unless(scalar(@SPLITS) gt 0);
 
 # Check if all SPLITS and all MERGES are arguments of the command.
 foreach my $s (@SPLITS) {
-   die "not an argument of command: $s" unless $CMD =~ /(^|\s|<)$s($|\s)/;
+   # Escape the input since it might have some control characters.
+   die "not an argument of command: $s" unless $CMD =~ /(^|\s|<)\Q$s\E($|\s)/;
 }
 foreach my $m (@MERGES) {
-   die "not an argument of command: $m" unless $CMD =~ /(^|\s|>)$m($|\s)/;
+   # Escape the input since it might have some control characters.
+   die "not an argument of command: $m" unless $CMD =~ /(^|\s|>)\Q$m\E($|\s)/;
 }
 
 
@@ -252,14 +270,14 @@ for (my $i=0; $i<$N; ++$i) {
    foreach my $s (@SPLITS) {
       my $file = "$workdir/" . $basename{$s} . "/$index";
       push(@delete, $file);
-      unless ($SUB_CMD =~ s/(^|\s|<)$s($|\s)/$1$file$2/) {
+      unless ($SUB_CMD =~ s/(^|\s|<)\Q$s\E($|\s)/$1$file$2/) {
          die "Unable to match $s and $file";
       }
    }
    # For each occurence of a file to merge, replace it by a chunk.
    foreach my $m (@MERGES) {
       my $file = "$workdir/" . $basename{$m} . "/$index";
-      unless ($SUB_CMD =~ s/(^|\s|>)$m($|\s)/$1$file$2/) {
+      unless ($SUB_CMD =~ s/(^|\s|>)\Q$m\E($|\s)/$1$file$2/) {
          die "Unable to match $m and $file";
       }
    }
@@ -283,7 +301,10 @@ foreach my $m (@MERGES) {
       $sub_cmd = "set -o pipefail; $MERGE_PGM $dir/* | gzip > $m";
    }
    else {   
-      if ($m =~ m#/dev/stderr#) {
+      if ($m =~ m#/dev/stdout#) {
+         $sub_cmd = "$MERGE_PGM $dir/*";
+      }
+      elsif ($m =~ m#/dev/stderr#) {
          $sub_cmd = "$MERGE_PGM $dir/* 1>&2";
       }
       else {
@@ -297,7 +318,7 @@ close(MERGE_CMD_FILE);
 
 # Run all the sub commands
 verbose(1, "Processing all chunks.");
-my $rc = system("$debug_cmd run-parallel.sh $PSUB_OPTS $NOLOCAL $cmd_file $NP");
+my $rc = system("$debug_cmd run-parallel.sh $RP_OPTS $PSUB_OPTS $NOLOCAL $cmd_file $NP");
 die "Error running run-parallel.sh" unless($rc eq 0);
 
 
@@ -315,7 +336,7 @@ if (0) {
       my $rc;
       if ( $NOLOCAL ) {
          verbose(1, "Using the cluster.");
-         $rc = system("run-parallel.sh $PSUB_OPTS -nolocal $merge_cmd_file 1");
+         $rc = system("run-parallel.sh $RP_OPTS $PSUB_OPTS -nolocal $merge_cmd_file 1");
       }
       else {
          verbose(1, "Using the current machine.");
@@ -325,7 +346,7 @@ if (0) {
    }
    else {
       verbose(1, "$number_item_2_merge outputs to merge.");
-      my $rc = system("run-parallel.sh $PSUB_OPTS $NOLOCAL $merge_cmd_file $number_item_2_merge");
+      my $rc = system("run-parallel.sh $RP_OPTS $PSUB_OPTS $NOLOCAL $merge_cmd_file $number_item_2_merge");
       die "Error running run-parallel.sh when merging outputs." unless($rc eq 0);
    }
 }

@@ -211,6 +211,15 @@ string PLM::OOVHandling::toString() const {
    return "";
 }
 
+PLM::OOVHandling::OOVHandling(const string& typestring, bool& valid) {
+   valid = true;
+   if      ( typestring == "ClosedVoc" )     type = ClosedVoc;
+   else if ( typestring == "SimpleAutoVoc" ) type = SimpleAutoVoc;
+   else if ( typestring == "SimpleOpenVoc" ) type = SimpleOpenVoc;
+   else if ( typestring == "FullOpenVoc" )   type = FullOpenVoc;
+   else { type = SimpleAutoVoc; valid = false; }
+}
+
 const PLM::OOVHandling PLM::ClosedVoc(OOVHandling::ClosedVoc);
 const PLM::OOVHandling PLM::SimpleOpenVoc(OOVHandling::SimpleOpenVoc);
 const PLM::OOVHandling PLM::SimpleAutoVoc(OOVHandling::SimpleAutoVoc);

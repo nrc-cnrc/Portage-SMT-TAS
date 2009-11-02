@@ -13,7 +13,9 @@
 
 #include "portage_defs.h"
 #include "hmm_jump_end_dist.h"
-#include "file_utils.h"
+#include "binio.h"
+#include "errors.h"
+#include "str_utils.h"
 
 using namespace Portage;
 
@@ -128,9 +130,11 @@ void HMMJumpEndDist::read(istream& in, const char* stream_name) {
       error(ETFatal, "Missing backward jump parameter line from %s",
             stream_name);
    if ( line == "Binary HMM jump parameters v1.1" ) {
-      using namespace BinIOStream;
-      in >> backward_jump_p >> forward_jump_p;
-      in >> init_jump_p >> final_jump_p;
+      using namespace BinIO;
+      readbin(in, backward_jump_p);
+      readbin(in, forward_jump_p);
+      readbin(in, init_jump_p);
+      readbin(in, final_jump_p);
       if ( !getline(in, line) )
          error(ETFatal, "Missing footer in %s after binary jump parameters",
                stream_name);
@@ -213,15 +217,15 @@ void HMMJumpEndDist::write(ostream& out, bool bin) const {
    // of them that the speed-up is trivial, and it's more convenient to be able
    // to read them in plain text.
    if ( false && bin ) {
-      using namespace BinIOStream;
+      using namespace BinIO;
       // v1.0 has the confusing line: "Bin HMM jump counts v1.0" - these are
       // not jump counts, but jump parameters, so we use a more intuitive line
       // for v1.1.
       out << "Binary HMM jump parameters v1.1" << endl;
-      out << backward_jump_p;
-      out << forward_jump_p;
-      out << init_jump_p; // new with v1.1
-      out << final_jump_p; // new with v1.1
+      writebin(out, backward_jump_p);
+      writebin(out, forward_jump_p);
+      writebin(out, init_jump_p); // new with v1.1
+      writebin(out, final_jump_p); // new with v1.1
       out << "End binary HMM jump parameters v1.1" << endl;
    } else {
       out << joini(backward_jump_p.begin(), backward_jump_p.begin()+max_back+1)
@@ -237,19 +241,19 @@ void HMMJumpEndDist::write(ostream& out, bool bin) const {
 }
 
 void HMMJumpEndDist::writeBinCountsImpl(ostream& os) const {
-   using namespace BinIOStream;
-   os << forward_jump_counts;
-   os << backward_jump_counts;
-   os << init_jump_counts; // new with v1.1
-   os << final_jump_counts; // new with v1.1
+   using namespace BinIO;
+   writebin(os, forward_jump_counts);
+   writebin(os, backward_jump_counts);
+   writebin(os, init_jump_counts); // new with v1.1
+   writebin(os, final_jump_counts); // new with v1.1
 }
 
 void HMMJumpEndDist::readAddBinCountsImpl(istream& is, const char* stream_name) {
-   using namespace BinIOStream;
+   using namespace BinIO;
 
    // Forward jump counts
    vector<double> forward_jump_counts_read;
-   is >> forward_jump_counts_read;
+   readbin(is, forward_jump_counts_read);
    if ( forward_jump_counts_read.size() > forward_jump_counts.size() )
       forward_jump_counts.resize(forward_jump_counts_read.size(), 0.0);
    for ( Uint i(0); i < forward_jump_counts_read.size(); ++i )
@@ -257,7 +261,7 @@ void HMMJumpEndDist::readAddBinCountsImpl(istream& is, const char* stream_name) 
 
    // Backward jump counts
    vector<double> backward_jump_counts_read;
-   is >> backward_jump_counts_read;
+   readbin(is, backward_jump_counts_read);
    if ( backward_jump_counts_read.size() > backward_jump_counts.size() )
       backward_jump_counts.resize(backward_jump_counts_read.size(), 0.0);
    for ( Uint i(0); i < backward_jump_counts_read.size(); ++i )
@@ -265,7 +269,7 @@ void HMMJumpEndDist::readAddBinCountsImpl(istream& is, const char* stream_name) 
 
    // Initial jump counts
    vector<double> init_jump_counts_read;
-   is >> init_jump_counts_read;
+   readbin(is, init_jump_counts_read);
    if ( init_jump_counts_read.size() > init_jump_counts.size() )
       init_jump_counts.resize(init_jump_counts_read.size(), 0.0);
    for ( Uint i(0); i < init_jump_counts_read.size(); ++i )
@@ -273,7 +277,7 @@ void HMMJumpEndDist::readAddBinCountsImpl(istream& is, const char* stream_name) 
 
    // Final jump counts
    vector<double> final_jump_counts_read;
-   is >> final_jump_counts_read;
+   readbin(is, final_jump_counts_read);
    if ( final_jump_counts_read.size() > final_jump_counts.size() )
       final_jump_counts.resize(final_jump_counts_read.size(), 0.0);
    for ( Uint i(0); i < final_jump_counts_read.size(); ++i )

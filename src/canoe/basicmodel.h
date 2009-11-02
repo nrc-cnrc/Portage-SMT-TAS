@@ -22,11 +22,13 @@
 #include "canoe_general.h"
 #include "phrasedecoder_model.h"
 #include "phrasetable.h"
+#include "distortionmodel.h"
 #include "decoder_feature.h"
 #include "config_io.h"
 #include "vocab_filter.h"
 #include "marked_translation.h"
 #include "new_src_sent_info.h"
+#include <boost/noncopyable.hpp>
 
 
 using namespace std;
@@ -175,6 +177,7 @@ namespace Portage
       vector<rnd_distribution*> random_feature_weight;
       vector<rnd_distribution*> random_trans_weight;
       vector<rnd_distribution*> random_forward_weight;
+      vector<rnd_distribution*> random_adir_weight; //boxing
       vector<rnd_distribution*> random_lm_weight;
 
    public:
@@ -203,18 +206,22 @@ namespace Portage
       vector<double> forwardWeightsV;
 
       /**
+       * adirectional translation weights.
+       */
+      vector<double> adirTransWeightsV; //boxing
+
+      /**
+       * lexicalized distortion model weights.
+       */
+      vector<double> lexdisWeightsV; //boxing
+
+      /**
        * Weight of the other decoder features, typically but not
        * necessarily distortion, length and segmentation, in that order.
        * This vector will always have the same number of element as the
        * decoder_features vector.
        */
       vector<double> featureWeightsV;
-
-      /**
-       * Number of text translation models, counting single and multi-prob
-       * together, so we know where to insert new weights in transWeightsV.
-       */
-      Uint numTextTransWeights;
 
       /**
        * The window size (number of words) used by the language model.
@@ -261,6 +268,17 @@ namespace Portage
        */
       virtual void getRawForwardTrans(vector<double> &forwardVals,
             const PartialTranslation &trans);
+
+      //boxing
+      /**
+       * @brief Get raw adirectinal translation models scores
+       * @param adirVals      vector to which will be appended the scores
+       * @param trans         partial translation to score
+       */
+      virtual void getRawAdirTrans(vector<double> &adirVals,
+            const PartialTranslation &trans);
+      //boxing
+
       /**
        * @brief Get raw forward scores from other features
        * @param ffVals        vector to which will be appended the scores
@@ -296,6 +314,18 @@ namespace Portage
        */
       virtual double dotProductForwardTrans(const vector<double> &weights,
             const PartialTranslation &trans);
+
+      //boxing
+      /**
+       * @brief Get weighted, combined adirectional translation model score.
+       * @param weights       individual model weights.
+       * @param trans         partial translation to score.
+       * @return              the combined score.
+       */
+      virtual double dotProductAdirTrans(const vector<double> &weights,
+            const PartialTranslation &trans);
+      //boxing
+
       /**
        * @brief Get weighted, combined score from all other features
        * @param weights       individual model weights.
@@ -381,6 +411,8 @@ namespace Portage
        *            between two phrases.  This is used to detect whether
        *            partial translations can be completed without violating
        *            this limit.<BR>
+       * c.levLimit The maximum levenshtein distance allowed for the current
+       *            translation.<BR>
        * c.distModelName   name of distortion model to use - see
        *            DistortionModel::create() in distortion.cc for choices.<BR>
        * c.distModelArg    argument to pass to distortion model.<BR>
@@ -481,23 +513,35 @@ namespace Portage
        * Add a multi-probability translation model.
        * As with other "add TM" methods, weights can be subsequently changed
        * using transWeights.
-       * @param multi_prob_tm_file    multi-prob phrase table file name;
+       * @param multi_prob_tm_file multi-prob phrase table file name;
+       *                           if the file name ends with "#REVERSED", it
+       *                           will be considered a reversed phrase table.
+       *                           See PhraseTable::isReversed() for details.
+       * @param backward_weights   weights for the backward models; there must
+       *                           be the same number as backward models in the
+       *                           file: half as many as columns in the file.
+       * @param forward_weights    weights for the forward models; there must
+       *                           be the same number as backward_weights, if
+       *                           forward probabilities are used, or none.
+       * @param adir_weights       weights for the adirectional models; there
+       *                           must be the same number as adirectional
+       *                           models in the file, or none
+       */
+      virtual void addMultiProbTransModel(const char *multi_prob_tm_file,
+            vector<double> backward_weights, vector<double> forward_weights,
+            vector<double> adir_weights); //boxing
+
+      /**
+       * Add a multi-probability lexicalized distortion model.
+       *
+       * @param lexicalized_dm_file   multi-prob distortion model file name;
        *                              if the file name ends with "#REVERSED",
        *                              it will be considered a reversed phrase
        *                              table.  See PhraseTable::isReversed()
        *                              for details.
-       * @param backward_weights      weights for the backward models; there
-       *                              must be the same number as backward
-       *                              models in the file, i.e., half as many
-       *                              as columns in the file.
-       * @param forward_weights       weights for the forward models; there
-       *                              must either be the same number as
-       *                              backward_weights, if forward
-       *                              probabilities are used, or none.
+       * @param lexdis_weights        weights for the distortion models;
        */
-      virtual void addMultiProbTransModel(const char *multi_prob_tm_file,
-            vector<double> backward_weights,
-            vector<double> forward_weights);
+      virtual void addLexDistModel(const char *lexicalized_dm_file); //boxing
 
       /**
        * Add a language model.  Adds a language model, loaded from the given
@@ -530,7 +574,7 @@ namespace Portage
        * change for the created model.
        * @param new_src_sent_info  Contains all source/target sentence info.
        *                           See newSrcSentInfo.
-       * @param alwaysTryDefault  If true, the default translation (source
+       * @param alwaysTryDefault   If true, the default translation (source
        *                  word translates as itself) will be included in the
        *                  phrase options for all phrases; if false, the
        *                  default translation is included only when there is
@@ -555,6 +599,8 @@ namespace Portage
       Uint getNumTMs() const { return transWeightsV.size(); }
       /// Get the number of forward translation models
       Uint getNumFTMs() const { return forwardWeightsV.size(); }
+      /// Get the number of forward translation models
+      Uint getNumATMs() const { return adirTransWeightsV.size(); } //boxing
       /// Get the number of other decoder features
       Uint getNumFFs() const { return featureWeightsV.size(); }
 
@@ -598,7 +644,7 @@ namespace Portage
    }; // BasicModelGenerator
 
    /// Decoder model for one sentence.
-   class BasicModel: public PhraseDecoderModel
+   class BasicModel: public PhraseDecoderModel, private boost::noncopyable
    {
    public:
       /// Glocal configuration object
@@ -614,6 +660,8 @@ namespace Portage
       const vector<double> transWeights;
       /// Forward translation model weights
       const vector<double> forwardWeights;
+      /// Adirectional translation model weights
+      const vector<double> adirTransWeights; //boxing
       /// Other feature weights
       const vector<double> featureWeights;
 
@@ -734,7 +782,7 @@ namespace Portage
        * Partial scoring function based on range, for cube pruning.
        *
        * Estimates the incremental score, in so far as can be calculated if one
-       * only takes into account the source range of the last phrase in trans.  
+       * only takes into account the source range of the last phrase in trans.
        * Does not consider TMs and LMs - only considers features that override
        * DecoderFeature::partialScore(), e.g., distortion.
        *

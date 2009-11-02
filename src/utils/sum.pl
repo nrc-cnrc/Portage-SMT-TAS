@@ -20,22 +20,23 @@ use warnings;
 print STDERR "sum.pl, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada\n";
 
 my $HELP = "
-sum.pl [-nr] [in [out]]
+sum.pl [-namr] [in [out]]
 
 Sum a column of numbers.
 
 Options:
 -n  Normalize numbers by dividing by their sum, and print results.
--a  Print average of instead of sum.
+-a  Print average instead of sum.
+-m  Print max instead of sum.
 -r  Use reciprocals of numbers.
 
 ";
 
-our ($help, $h, $n, $r, $a);
+our ($help, $h, $n, $r, $a, $m);
 
 if ($help || $h) {
-    print $HELP;
-    exit 0;
+   print $HELP;
+   exit 0;
 }
  
 my $in = shift || "-";
@@ -48,16 +49,26 @@ my @vals;
 
 my $sum = 0.0;
 my $count = 0;
+my $max;
 while (<IN>) {
-    my $x = $r ? 1.0 / $_ : $_;
+   no warnings; # Just do the best we can with the user input; don't complain!
+   my $x = $r ? 1.0 / $_ : $_;
 
-    $sum += $x;
-    if ($n) {push @vals, ($x);}
-    ++$count;
+   $sum += $x;
+   if ($n) {push @vals, ($x);}
+   if ($m) { if (!defined $max || $x > $max) { $max = $x; } }
+
+   ++$count;
 }
 
 if ($n) {
    while (my $x = shift @vals) {print OUT $x/$sum, "\n";}
+} elsif ($m) {
+   if ( defined $max ) {
+      print OUT "$max";
+   } else {
+      print OUT "0\n";
+   }
 } else {
    if ($a && $count) {$sum /= $count}
    print OUT "$sum\n";

@@ -125,10 +125,14 @@ int MAIN(argc, argv)
         for (Uint s(0); (arg.bBestIndex || arg.bVerbose || arg.bBestSentence || arg.bWorseScore || arg.bDistribution) && s < arg.S; ++s) {
             if (arg.bBestIndex)
                cerr << bestIndex[s] << endl;
-            if (arg.bBestSentence)
-               fprintf(stderr, "Best Sentence index : %d : %s\n", bestIndex[s], nbests.at(s)[bestIndex[s]].c_str());
-            if (arg.bWorseSentence)
-               fprintf(stderr, "Worse Sentence index : %d : %s\n", worseIndex[s], nbests[s][worseIndex[s]].c_str());
+            if (arg.bBestSentence) {
+               const char* sent = nbests.at(s)[bestIndex[s]].c_str();
+               fprintf(stderr, "Best Sentence index : %u : %s\n", bestIndex[s], sent);
+            }
+            if (arg.bWorseSentence) {
+               const char* sent = nbests[s][worseIndex[s]].c_str();
+               fprintf(stderr, "Worse Sentence index : %u : %s\n", worseIndex[s], sent);
+            }
             LOG_VERBOSE3(verboseLogger, "Best match for sentence %d (index=%d):\n\t%s", s, bestIndex[s], nbests[s][bestIndex[s]].c_str());
 
             if (arg.bDistribution) {

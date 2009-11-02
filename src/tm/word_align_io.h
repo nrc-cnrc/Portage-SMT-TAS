@@ -58,7 +58,7 @@ public:
    static WordAlignmentWriter* create(const string& format);
 };
 
-#define WORD_ALIGNMENT_WRITER_FORMATS "aachen, hwa, matrix, compact, ugly, green, or sri"
+#define WORD_ALIGNMENT_WRITER_FORMATS "aachen, gale, hwa, matrix, compact, ugly, green, sri, or uli"
 
 /// Full alignment output style.
 class UglyWriter : public WordAlignmentWriter {
@@ -74,6 +74,27 @@ public:
    int sentence_id;  ///< Keeps track of sentence number.
    /// Constructor.
    AachenWriter() : sentence_id(0) {}
+
+   virtual ostream& operator()(ostream &out, 
+                               const vector<string>& toks1, const vector<string>& toks2,
+                               const vector< vector<Uint> >& sets);
+};
+
+/// GALE (RWTH) alignment output style.
+/// ID 0 # Source Sentence # Raw Hypothesis # Postprocessed Hypothesis @ Alignment # Scores
+
+class GALEWriter : public WordAlignmentWriter {
+public:
+   // This needs to be set manually for current source sentence - doesn't
+   // change with different nbest hyps.
+   int sentence_id;
+
+   // Set this manually to a post-processed version of toks2. If not set, toks2
+   // will be used for this.
+   const vector<string>* postproc_toks2;
+
+   /// Constructor.
+   GALEWriter() : sentence_id(0), postproc_toks2(NULL) {}
 
    virtual ostream& operator()(ostream &out, 
                                const vector<string>& toks1, const vector<string>& toks2,
@@ -133,6 +154,27 @@ public:
  */
 class SRIWriter : public WordAlignmentWriter {
 public:
+   virtual ostream& operator()(ostream &out, 
+                               const vector<string>& toks1, const vector<string>& toks2,
+                               const vector< vector<Uint> >& sets);
+};
+
+/**
+ * Format for Uli Germann's Yawat alignment interface
+ *    sent-index (group)*
+ *       group = words1:words2:tag
+ *          words = pos(,pos)*
+ *          tag = "unspec" or other characterization of grp
+ */
+class UliWriter : public WordAlignmentWriter {
+   vector< vector<Uint> > msets;   // closed-format alignment
+   vector< vector<Uint> > csets;   // ""
+
+public:
+   int sentence_id;  ///< Keeps track of sentence number.
+
+   UliWriter() : sentence_id(0) {}
+
    virtual ostream& operator()(ostream &out, 
                                const vector<string>& toks1, const vector<string>& toks2,
                                const vector< vector<Uint> >& sets);

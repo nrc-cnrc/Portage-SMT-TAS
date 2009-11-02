@@ -58,11 +58,6 @@ Options:
   -I             enter interactive mode thus getting a prompt to a node
   -P PERIOD      Log memory usage of process tree every PERIOD minutes. [6]
 
-Further notes:
-
-  -on Venus, to enable node borrowing, use "-l ckpt=1".
-  -on Venus, to request a minimum amount of memory, use, e.g., "-l mem=1800m"
-
 ==EOF==
 
    exit 1
@@ -94,7 +89,7 @@ arg_check() {
 }
 
 PSUB_CMD=`echo "$0 $*" | perl -pe 'print "# " if $. > 1'`
-CPU_COUNT=1
+CPU_COUNT=
 MEMORY_POLLING_DELAY=6
 
 while [ $# -gt 0 ]; do
@@ -103,7 +98,7 @@ while [ $# -gt 0 ]; do
    -v|-verbose)     VERBOSE=1;;
    -N)              arg_check 1 $# $!; NAME=$2; shift;;
    -[1-9]|-[1-9][0-9]) CPU_COUNT=$((0 - $1));;
-   -I)              INTMODE=1; NOSCRIPT=1;;
+   -I)              INTMODE=1; NOSCRIPT=1; [[ $CPU_COUNT ]] || CPU_COUNT=4;;
    -memmap)         arg_check 1 $# $!; arg_check_pos_int $2 $1
                     MEMMAP=$2; shift;;
    -e)              arg_check 1 $# $!; ERR_FILE=$2; shift;;
@@ -128,6 +123,9 @@ while [ $# -gt 0 ]; do
    esac
    shift
 done
+
+# If, at this point there still no CPU_COUNT defined, we'll define the default value.
+[[ $CPU_COUNT ]] || CPU_COUNT=1
 
 COMMAND="$*"
 
@@ -283,9 +281,8 @@ ulimit -v $VMEM_HARD_LIMIT_KB
 ulimit -s 100000
 "
 
-   # To take avantage of openmp, on Balzac,
-   # we use twice the number of required cpus for the number of threads.
-   PORTAGE_OPENMP_NUMBER_THREADS=$((2 * $CPU_COUNT))
+   # Take avantage of openmp, on Balzac, now one thread per CPU:
+   PORTAGE_OPENMP_NUMBER_THREADS=$CPU_COUNT
 
 else
    # CUSTOMIZE HERE if you want to tune psub to your own cluster.
@@ -315,16 +312,20 @@ if [[ $NODES ]]; then
    fi
 fi
 
+# X forwarding doesn't work well with screen.
+if [[ $TERM != screen ]]; then
+   X_DISPLAY=-X
+fi 
+
 # qsub options we always use: -r n: not rerunable; -N $NAME: name the job
 QSUB_CMD="qsub -r n -N $NAME $QSUB_OPTS $QSPARAMS"
 test -n "$RESOURCES" && QSUB_CMD="$QSUB_CMD -l$RESOURCES"
 if [ -n "$INTMODE" ]; then
    QSUB_CMD="$QSUB_CMD -I"
-   test -n "$BALZAC" && QSUB_CMD="$QSUB_CMD -X -d `pwd` -v TMOUT=3600"
+   test -n "$BALZAC" && QSUB_CMD="$QSUB_CMD $X_DISPLAY -d `pwd`"
    echo "Entering interactive mode."
    echo "Warning: you will get a fresh login environment.  Any variables set in the"
    echo "parent shell will not be propagated, only those in your login scripts."
-   echo "Will auto logout after 1 hour idle; change TMOUT to override."
 
    if [ $NOT_REALLY ]; then
       echo $QSUB_CMD
@@ -338,7 +339,7 @@ test -n "$ERR_FILE" && QSUB_CMD="$QSUB_CMD -e $ERR_FILE"
 test -n "$OUT_FILE" && QSUB_CMD="$QSUB_CMD -o $OUT_FILE"
 
 if [ $BALZAC ]; then
-   TMPDIR_SETUP='# On Balzac, $TMPDIR typically has 9GB, use -l nodes=big to get more space.'
+   TMPDIR_SETUP='# On Balzac, $TMPDIR typically has 9GB, use -nodes bigtmp to get more space.'
 elif [ $VENUS ]; then
    TMPDIR_SETUP='# On Venus, $TMPDIR points to the PBS allocated scratch dir'
 else
@@ -380,6 +381,9 @@ process-memory-usage.pl $(($MEMORY_POLLING_DELAY*60)) \$\$ >&2 &
 
 # Display the exact start time
 echo ============ Starting job $PBS_JOBID on \`date\` on node \`hostname\` >&2
+
+# Trap kill signals
+trap 'echo psub-generated script \`basename \$0\` caught SIGTERM, aborting. >&2; exit 15' 15
 
 # User command
 $COMMAND

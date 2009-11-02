@@ -106,11 +106,12 @@ struct PhraseTableBase
     * @param b1, e1 beginning and end+1 markers for 1st phrase
     * @param b2, e2 beginning and end+1 markers for 2nd phrase
     * @param v position of value
+    * @param tolerate_multi_vals allow multiple value fields
     */
    static void extractTokens(const string& line, vector<string>& toks,
                              ToksIter& b1, ToksIter& e1,
                              ToksIter& b2, ToksIter& e2,
-                             ToksIter& v);
+                             ToksIter& v, bool tolerate_multi_vals = false);
 };
 
 /**
@@ -195,10 +196,12 @@ public:
    void readJointTable(const string& infile);
 
    /**
-    * Write contents to stream, filtering any pairs with freq < thresh.
-    * Order is lang1,lang2; or lang2,lang1 if reverse is true.
+    * Write contents to stream, filtering any pairs with freq < thresh (unless
+    * the filt flag is false). Order is lang1,lang2; or lang2,lang1 if reverse
+    * is true. 
     */
-   void dump_joint_freqs(ostream& ostr, T thresh = 0, bool reverse = false);
+   void dump_joint_freqs(ostream& ostr, T thresh = 0, bool reverse = false, 
+                         bool filt=true);
 
    /**
     * Write relative-frequency conditional distributions to stream, in TMText
@@ -214,10 +217,11 @@ public:
    void dump_freqs_lang2(ostream& ostr);
 
    /**
-    * Discard all but the best (most frequent) n translations for each lang1 phrase.
-    * This may remove some lang2 phrases from the table.
+    * Discard all but the best (most frequent) n translations for each lang1
+    * phrase.  This may remove some lang2 phrases from the table. If per_word,
+    * multiply n by the number of words in the lang1 phrase.
     */
-   void pruneLang2GivenLang1(Uint n);
+   void pruneLang2GivenLang1(Uint n, bool per_word = false);
 
    /**
     * Completely clear contents.
@@ -356,10 +360,14 @@ void PhraseTableGen<T>::dump_prob_lang1_given_lang2(ostream& ostr)
 }
 
 template<class T>
-void PhraseTableGen<T>::pruneLang2GivenLang1(Uint n)
+void PhraseTableGen<T>::pruneLang2GivenLang1(Uint nmax, bool per_word)
 {
    typename PhraseTable::iterator p;
    for (p = phrase_table.begin(); p != phrase_table.end(); ++p) {
+      
+      const Uint nwords = max(p->first.size(), 1);   // playing it safe..
+      const Uint n = per_word ? nmax * nwords / num_code_bytes : nmax;
+ 
       if (n >= p->second.size())
          continue;
       partial_sort(p->second.begin(), p->second.begin()+n, p->second.end(), 
@@ -404,7 +412,7 @@ void PhraseTableGen<T>::dump_freqs_lang2(ostream& ostr) {
 }
 
 template<class T>
-void PhraseTableGen<T>::dump_joint_freqs(ostream& ostr, T thresh, bool reverse)
+void PhraseTableGen<T>::dump_joint_freqs(ostream& ostr, T thresh, bool reverse, bool filt)
 {
    // If for some ood reason the source corpora have ||| change it for ___|||___
    if (wvoc1.index(psep.c_str()) != wvoc1.size()) {
@@ -416,7 +424,7 @@ void PhraseTableGen<T>::dump_joint_freqs(ostream& ostr, T thresh, bool reverse)
 
    string p1, p2;
    for (iterator it = begin(); !it.equal(end()); it.incr())
-      if (it.getJointFreq() >= thresh) {
+      if (!filt || it.getJointFreq() >= thresh) {
          it.getPhrase(1, p1);
          it.getPhrase(2, p2);
          if (!reverse)

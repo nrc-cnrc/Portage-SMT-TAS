@@ -14,7 +14,7 @@
  * Copyright 2007, Her Majesty in Right of Canada
  */
 
-#include <hard_filter_tm_visitor.h>
+#include "hard_filter_tm_visitor.h"
 
 using namespace Portage;
 using namespace Portage::Joint_Filtering;
@@ -42,11 +42,15 @@ hardFilterTMVisitor::PhraseInfo4HardFiltering::PhraseInfo4HardFiltering(const pa
 
 
 
-hardFilterTMVisitor::hardFilterTMVisitor(const PhraseTable &parent, double log_almost_0, const vector<double>* const hard_filter_weights)
+hardFilterTMVisitor::hardFilterTMVisitor(
+        const PhraseTable &parent,
+        double log_almost_0,
+        const vector<double>* const hard_filter_weights)
 : Parent(parent, log_almost_0, "HARD")
 , hard_filter_weights(hard_filter_weights)
 {
    //LOG_VERBOSE4(ptLogger_hardFilterTMVisitor, "hard filter_joint LOG probs with resized converted");
+   cerr << join(*hard_filter_weights) << endl;
 }
 
 

@@ -40,6 +40,9 @@ void LMBin::read_binary(const string& binlm_filename, Uint limit_order)
         !conv(tokens[2], gram_order ) )
       error(ETFatal, "File %s not in Portage's BinLM format: bad order line",
             binlm_filename.c_str());
+
+   if (limit_order > 0)
+      gram_order = min(gram_order, limit_order);
    hits.init(getOrder());
 
    // Vocab size line

@@ -5,7 +5,7 @@
  * $Id$
  *
  * Technologies langagieres interactives / Interactive Language Technoogies
- * Institut de technologie de l'information / Institute for Information Technoloy
+ * Inst. de technologie de l'information / Institute for Information Technoloy
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2007, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2007, Her Majesty in Right of Canada
@@ -224,7 +224,7 @@ void CubePruningHypStack::KBest(Uint K, double pruningThreshold,
                             hyperedges[i]->phrases.size();
    }
    make_heap(cand_heap.begin(), cand_heap.end(), heap_cmp);
-   RecombHypStack buffer(model);
+   RecombHypStack buffer(model, discardRecombined);
    double best_score = cand_heap.front()->ds->futureScore;
 
    // Get the K best items off the heap
@@ -245,8 +245,6 @@ void CubePruningHypStack::KBest(Uint K, double pruningThreshold,
       //NOT IMPLEMENTED YET
 
       // If we got this far, we're keeping this item
-      buffer.push(item->ds);
-
       if ( verbosity >= 3 ) {
          cerr << "Keeping hypothesis " << item->ds->id
               << " from " << item->ds->back->id << " ("
@@ -265,6 +263,10 @@ void CubePruningHypStack::KBest(Uint K, double pruningThreshold,
             item->ds->trans->lastPhrase->phrase);
          cerr << "\ttarget phrase " << stringPhrase << endl;
       }
+
+      // This line must follow the verbose 3 block above, since it might actually
+      // delete item->ds under some circumstances.
+      buffer.push(item->ds);
 
       // and we need to expand its neighbours and push them into the heap
       Uint old_size = cand_heap.size();

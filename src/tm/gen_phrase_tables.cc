@@ -27,10 +27,12 @@
 using namespace Portage;
 
 static char help_message[] = "\n\
-gen_phrase_tables [-hHvijz][-a 'meth args'][-s 'meth args'][-w nw][-addsw]\n\
+gen_phrase_tables [-hHvijz][-a 'meth args'][-s 'meth args'][-w nw]\n\
+                  [-wf file][-wfvoc voc][-addsw]\n\
                   [-prune1 n][-m max][-min min][-d ldiff][-ali][-twist]\n\
                   [-ibm n][-hmm][-p0 p0][-up0 up0][-alpha a][-lambda l]\n\
-                  [-anchor|-noanchor][-max-jump max_j][-end-dist|-noend-dist]\n\
+                  [-[no]anchor][-max-jump max_j][-[no]end-dist]\n\
+                  [-lc1 loc][-lc2 loc]\n\
                   [-1 lang1][-2 lang2][-o name][-f1 freqs1][-f2 freqs2]\n\
                   [-tmtext][-multipr d][-giza]\n\
                   ibm-model_lang2_given_lang1 ibm-model_lang1_given_lang2 \n\
@@ -60,6 +62,12 @@ Options:\n\
        only useful if -multipr output is selected. [RFSmoother]\n\
 -w     Add <nw> best IBM1 translations for src and tgt words that occur in the\n\
        given files but don't have translations in phrase table [don't].\n\
+-wf    If -w specified, write the corresponding entries to <file>.[12] instead\n\
+       of to the output phrasetable. This writes slightly more entries than\n\
+       would actually get added to the phrasetable, due to a better algorithm.\n\
+       It has no effect if -i is given.\n\
+-wfvoc With -w, use vocabulary files <voc>.1 and <voc>.2 to filter IBM1\n\
+       translations instead of vocabularies compiled from the input files.\n\
 -addsw Add single-word phrase pairs for each alignment link [don't] \n\
 -m     Maximum phrase length. <max> can be in the form 'len1,len2' to specify\n\
        lengths for each language, or 'len' to use one length for both\n\
@@ -77,6 +85,11 @@ Options:\n\
        -hmm is assumed, otherwise -ibm 2 is the default]\n\
 -twist With IBM1, assume one language has reverse word order.\n\
        No effect with IBM2 or HMM.\n\
+-lc1   Do lowercase mapping of lang 1 words to match IBM/HMM models, using\n\
+       locale <loc>, eg: C, en_US.UTF-8, fr_CA.88591 [don't map]\n\
+       (Compilation with ICU is required to use UTF-8 locales.)\n\
+-lc2   Do lowercase mapping of lang 2 words to match IBM/HMM models, using\n\
+       locale <loc>, eg: C, en_US.UTF-8, fr_CA.88591 [don't map]\n\
 -1     Name of language 1 (one in left column in model1) [en]\n\
 -2     Name of language 2 (one in right col of model1) [fr]\n\
 -o     The base name of the generated tables [phrases]\n\
@@ -88,6 +101,16 @@ Options:\n\
         - you still need to provide IBM models as arguments\n\
         - this currently only works with IBMOchAligner\n\
         - this won't work if you specify more than one aligner\n\
+\n\
+HMM only options:\n\
+       By default, all HMM parameters are read from the model file. However,\n\
+       these options can be used to override the values in the model file:\n\
+          -p0 -up0 -alpha -lambda -anchor -end-dist -max-jump\n\
+       Boolean options -anchor and -end-dist can be reset using -no<option>.\n\
+       A parallel set of options -p0_2, -up0_2, etc, applies to the \n\
+       lang1_given_lang2 models. If these options are not present, the values\n\
+       for the original set are used for HMMs in both directions.\n\
+       See train_ibm -h for documentation of these HMM parameters.\n\
 \n\
 Output selection options (specify as many as you need):\n\
 \n\
@@ -115,10 +138,13 @@ typedef PhraseTableGen<Uint> PhraseTable;
 
 static const char* const switches[] = {
    "v", "vv", "vs", "i", "j", "z", "prune1:", "a:", "s:",
-   "m:", "min:", "d:", "ali", "w:", "1:", "2:", "ibm:",
+   "m:", "min:", "d:", "ali", "w:", "wf:", "wfvoc:", "1:", "2:", "ibm:",
    "hmm", "p0:", "up0:", "alpha:", "lambda:", "max-jump:",
    "anchor", "noanchor", "end-dist", "noend-dist",
+   "p0_2:", "up0_2:", "alpha_2:", "lambda_2:", "max-jump_2:",
+   "anchor_2", "noanchor_2", "end-dist_2", "noend-dist_2",
    "twist", "addsw", "o:", "f1:", "f2:",
+   "lc1:", "lc2:",
    "multipr:", "tmtext", "giza"
 };
 
@@ -133,6 +159,8 @@ static bool add_single_word_phrases = false;
 static bool joint = false;
 static bool giza_alignment = false;
 static Uint add_word_translations = 0;
+static string add_word_trans_file = "";
+static string add_word_trans_voc = "";
 static Uint max_phrase_len1 = 4;
 static Uint max_phrase_len2 = 4;
 static Uint max_phraselen_diff = 4;
@@ -142,6 +170,8 @@ static bool allow_linkless_pairs = false;
 static string model1, model2;
 static string lang1("en");
 static string lang2("fr");
+static string lc1;
+static string lc2;
 static string name("phrases");
 static string freqs1;
 static string freqs2;
@@ -153,8 +183,6 @@ static bool compress_output = false;
 static Uint first_file_arg = 2;
 
 // The optional<T> variables are intentionally left uninitialized.
-// These options are also intentionally left undocumented because they should
-// not be used.
 static optional<double> p0;
 static optional<double> up0;
 static optional<double> alpha;
@@ -163,8 +191,18 @@ static optional<bool> anchor;
 static optional<bool> end_dist;
 static optional<Uint> max_jump;
 
+static optional<double> p0_2;
+static optional<double> up0_2;
+static optional<double> alpha_2;
+static optional<double> lambda_2;
+static optional<bool> anchor_2;
+static optional<bool> end_dist_2;
+static optional<Uint> max_jump_2;
+
 static void add_ibm1_translations(Uint lang, const TTable& tt, PhraseTable& pt, 
-				  Voc& src_word_voc, Voc& tgt_word_voc);
+				  Voc& src_word_voc, Voc& tgt_word_voc,
+                                  ostream* os);
+
 
 // arg processing
 
@@ -213,8 +251,12 @@ public:
       mp_arg_reader->testAndSet("d", max_phraselen_diff);
       mp_arg_reader->testAndSet("ali", allow_linkless_pairs);
       mp_arg_reader->testAndSet("w", add_word_translations);
+      mp_arg_reader->testAndSet("wf", add_word_trans_file);
+      mp_arg_reader->testAndSet("wfvoc", add_word_trans_voc);
       mp_arg_reader->testAndSet("1", lang1);
       mp_arg_reader->testAndSet("2", lang2);
+      mp_arg_reader->testAndSet("lc1", lc1);
+      mp_arg_reader->testAndSet("lc2", lc2);
       mp_arg_reader->testAndSet("ibm", ibm_num);
       mp_arg_reader->testAndSet("hmm", use_hmm);
 
@@ -225,6 +267,15 @@ public:
       mp_arg_reader->testAndSet("max-jump", max_jump);
       mp_arg_reader->testAndSetOrReset("anchor", "noanchor", anchor);
       mp_arg_reader->testAndSetOrReset("end-dist", "noend-dist", end_dist);
+
+      mp_arg_reader->testAndSet("p0_2", p0_2);
+      mp_arg_reader->testAndSet("up0_2", up0_2);
+      mp_arg_reader->testAndSet("alpha_2", alpha_2);
+      mp_arg_reader->testAndSet("lambda_2", lambda_2);
+      mp_arg_reader->testAndSet("max-jump_2", max_jump_2);
+      mp_arg_reader->testAndSetOrReset("anchor_2", "noanchor_2", anchor_2);
+      mp_arg_reader->testAndSetOrReset("end-dist_2", "noend-dist_2", end_dist_2);
+
       mp_arg_reader->testAndSet("twist", twist);
       mp_arg_reader->testAndSet("addsw", add_single_word_phrases);
       mp_arg_reader->testAndSet("giza", giza_alignment);
@@ -233,6 +284,15 @@ public:
       mp_arg_reader->testAndSet("f2", freqs2);
       mp_arg_reader->testAndSet("tmtext", tmtext_output);
       mp_arg_reader->testAndSet("multipr", multipr_output);
+
+      // initialize *_2 parameters from defaults if not explicitly set
+      if (!p0_2) p0_2 = p0;
+      if (!up0_2) up0_2 = up0;
+      if (!alpha_2) alpha_2 = alpha;
+      if (!lambda_2) lambda_2 = lambda;
+      if (!max_jump_2) max_jump_2 = max_jump;
+      if (!anchor_2) anchor_2 = anchor;
+      if (!end_dist_2) end_dist_2 = end_dist;
 
       if (ibm_num == 0) {
          if (!giza_alignment)
@@ -354,8 +414,10 @@ int MAIN(argc, argv)
    } else {
       if (use_hmm) {
          if (verbose) cerr << "Loading HMM models" << endl;
-         ibm_1 = new HMMAligner(model1, p0, up0, alpha, lambda, anchor, end_dist, max_jump);
-         ibm_2 = new HMMAligner(model2, p0, up0, alpha, lambda, anchor, end_dist, max_jump);
+         ibm_1 = new HMMAligner(model1, p0, up0, alpha, lambda, anchor,
+                                end_dist, max_jump);
+         ibm_2 = new HMMAligner(model2, p0_2, up0_2, alpha_2, lambda_2, anchor_2,
+                                end_dist_2, max_jump_2);
       } else if (ibm_num == 1) {
          if (verbose) cerr << "Loading IBM1 models" << endl;
          ibm_1 = new IBM1(model1);
@@ -369,6 +431,17 @@ int MAIN(argc, argv)
       if (verbose) cerr << "models loaded" << endl;
    }
 
+   CaseMapStrings cms1(lc1.c_str());
+   CaseMapStrings cms2(lc2.c_str());
+   if (lc1 != "") {
+      ibm_1->getTTable().setSrcCaseMapping(&cms1);
+      ibm_2->getTTable().setTgtCaseMapping(&cms1);
+   }
+   if (lc2 != "") {
+      ibm_1->getTTable().setTgtCaseMapping(&cms2);
+      ibm_2->getTTable().setSrcCaseMapping(&cms2);
+   }
+
    WordAlignerFactory* aligner_factory = 0;
    vector<WordAligner*> aligners;
 
@@ -377,6 +450,14 @@ int MAIN(argc, argv)
                                               add_single_word_phrases, allow_linkless_pairs);
      for (Uint i = 0; i < align_methods.size(); ++i)
        aligners.push_back(aligner_factory->createAligner(align_methods[i]));
+   }
+
+   Voc extern_word_voc_1, extern_word_voc_2;
+   if (add_word_trans_voc != "") {
+      iMagicStream is1(add_word_trans_voc + ".1");
+      extern_word_voc_1.read(is1);
+      iMagicStream is2(add_word_trans_voc + ".2");
+      extern_word_voc_2.read(is2);
    }
 
    PhraseTable pt;
@@ -480,9 +561,9 @@ int MAIN(argc, argv)
          if (add_word_translations && ibm_1 && ibm_2) {
             if (verbose) cerr << "ADDING IBM1 translations for untranslated words:" << endl;
             add_ibm1_translations(1, ibm_1->getTTable(), pt, word_voc_1,
-                                  word_voc_2);
+                                  add_word_trans_voc == "" ? word_voc_2 : extern_word_voc_2, NULL);
             add_ibm1_translations(2, ibm_2->getTTable(), pt, word_voc_2,
-                                  word_voc_1);
+                                  add_word_trans_voc == "" ? word_voc_1 : extern_word_voc_1, NULL);
             word_voc_1.clear();
             word_voc_2.clear();
          }
@@ -501,9 +582,23 @@ int MAIN(argc, argv)
    if (verbose) stats.display(lang1, lang2, cerr);
 
    if (add_word_translations && ibm_1 && ibm_2) {
-      if (verbose) cerr << "ADDING IBM1 translations for untranslated words:" << endl;
-      add_ibm1_translations(1, ibm_1->getTTable(), pt, word_voc_1, word_voc_2);
-      add_ibm1_translations(2, ibm_2->getTTable(), pt, word_voc_2, word_voc_1);
+      ostream* os1 = NULL;
+      ostream* os2 = NULL;
+      if (add_word_trans_file != "") {
+         os1 = new oSafeMagicStream(add_word_trans_file + ".1");
+         os2 = new oSafeMagicStream(add_word_trans_file + ".2");
+      }
+      if (verbose) {
+         cerr << "ADDING IBM1 translations for untranslated words";
+         if (os1) cerr << " (writing to " << add_word_trans_file << ".[12])";
+         cerr << endl;
+      }
+      add_ibm1_translations(1, ibm_1->getTTable(), pt, word_voc_1,
+                            add_word_trans_voc == "" ? word_voc_2 : extern_word_voc_2, os1);
+      add_ibm1_translations(2, ibm_2->getTTable(), pt, word_voc_2,
+                            add_word_trans_voc == "" ? word_voc_1 : extern_word_voc_1, os2);
+      if (os1) delete os1;
+      if (os2) delete os2;
    }
 
    if (prune1) {
@@ -571,9 +666,12 @@ END_MAIN
 
 
 // Lang is source language for tt: 1 or 2.
+// If os is non-NULL, the pairs get written to os instead of inserted into the
+// phrasetable.
 
 void add_ibm1_translations(Uint lang, const TTable& tt, PhraseTable& pt, 
-                           Voc& src_word_voc, Voc& tgt_word_voc)
+                           Voc& src_word_voc, Voc& tgt_word_voc,
+                           ostream* os)
 {
    vector<string> words, trans;
    vector<float> probs;
@@ -588,9 +686,11 @@ void add_ibm1_translations(Uint lang, const TTable& tt, PhraseTable& pt,
             if (tgt_word_voc.index(trans[i].c_str()) == tgt_word_voc.size())
                continue;
             if (lang == 1) {
-               pt.addPhrasePair(p, p+1, trans.begin()+i, trans.begin()+i+1);
+               if (os) (*os) << *p << " ||| " << trans[i] << " ||| " << 1 << endl;
+               else pt.addPhrasePair(p, p+1, trans.begin()+i, trans.begin()+i+1);
             } else {
-               pt.addPhrasePair(trans.begin()+i, trans.begin()+i+1, p, p+1);
+               if (os) (*os) << trans[i] << " ||| " << *p << " ||| " << 1 << endl;
+               else pt.addPhrasePair(trans.begin()+i, trans.begin()+i+1, p, p+1);
             }
             ++num_added;
             if (verbose > 1) cerr << *p << "/" << trans[i] << endl;

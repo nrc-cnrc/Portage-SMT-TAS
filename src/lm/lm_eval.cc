@@ -28,18 +28,50 @@ using namespace std;
 using namespace Portage;
 
 static char help_message[] = "\n\
-lm_eval lmfile testfile\n\
+lm_eval [options] LMFILE TESTFILE\n\
 \n\
-Test program for LMText, LMBin and any new LM type added.\n\
-The type of LM created depends on the file name <lmfile>.\n\
+  General program for using or testing LMs in any format supported by Portage.\n\
+  By default, outputs the log-prob of each word in TESTFILE.\n\
 \n\
 Options:\n\
 \n\
- -v     verbose output\n\
- -q     quiet output (only print global prob)\n\
- -limit limit vocab (load all input sentences before processing)\n\
- -per-sent-limit  limit vocab on a per input sentence basis (implies -limit)\n\
- -final-cleanup   Delete models at the end - use for leak detection.\n\
+  -v               verbose: output word, sentence and document log-prob, as\n\
+                   well as document perplexity and a trace of each word query\n\
+  -sent            sentence: only output sentence log-probs.\n\
+  -q|-ppl          quiet/ppl: only output document log-prob and perplexity\n\
+  -p-unk P_UNK     if LMFILE is a closed-vocabulary LM (i.e., P(<unk>) is not\n\
+                   defined), set P(<unk>) = P_UNK. [0]\n\
+  -log10-p-unk LOG10_P_UNK  equivalent to -p-unk 10 ** LOG10_P_UNK [-infinity]\n\
+\n\
+  -voc-type TYPE   specify the OOV handling method [SimpleAutoVoc]:\n\
+      ClosedVoc      OOVs get a unigram prob of 0 (or P_UNK if specified).\n\
+      SimpleOpenVoc  OOVs get the unigram prob P(<unk>) as indicated in LMFILE\n\
+                     (LMFILE must specify a probability for <unk>) but OOVs in\n\
+                     the context are not handled.  I.e., if LMFILE provides\n\
+                     probability estimates or back-off weights for n-grams with\n\
+                     <unk> in the context or for n-grams with n>1, they will be\n\
+                     ignored.\n\
+      SimpleAutoVoc  Use ClosedVoc or SimpleAutoVoc based on whether LMFILE has\n\
+                     a probability estimate for P(<unk>).\n\
+      FullOpenVoc    Fully handle OOVs, even in the context of a query. (Slower,\n\
+                     only use this if LMFILE provides more than just P(<unk>)).\n\
+\n\
+  -limit           limit vocab (load all input sentences before processing)\n\
+  -per-sent-limit  limit vocab on a per input sentence basis (implies -limit)\n\
+  -order ORDER     limit the LM order to ORDER [use LMFILE's true order]\n\
+  -final-cleanup   Delete models at the end - use for leak detection.\n\
+\n\
+Note:\n\
+\n\
+  To get per-sentence log probs, you can use -sent or gen_feature_values:\n\
+    lm_eval -sent LMFILE TESTFILE\n\
+  or\n\
+    gen_feature_values NgramFF LMFILE TESTFILE TESTFILE\n\
+  Caveat: lm_eval ignores OOVs, thus effectively giving them a prob of 1;\n\
+  gen_feature_values gives OOVs a very small probability (log prob = -18).\n\
+  Specify -p-unk or -log10-p-unk to override this behaviour in lm_eval.\n\
+  Both programs will handle OOVs correctly if your language model is\n\
+  open-vocabulary (i.e., if it has a probability estimate for <unk>).\n\
 \n\
 ";
 
@@ -47,12 +79,17 @@ Options:\n\
 
 static string lm_filename;
 static string test_filename;
-static bool verbose;
-static bool quiet;
+static bool verbose = false;
+static bool quiet = false;
+static bool sent = false;
+static double p_unk = 0;
+static double log10_p_unk = -INFINITY;
+static string voc_type = "";
 static bool limit_vocab = false;
 static bool per_sent_limit = false;
 static const float LOG_ALMOST_0 = -18;
 static Uint order = 3;
+static Uint limit_order = 0;
 static bool final_cleanup = false;
 
 
@@ -80,7 +117,7 @@ int MAIN(argc,argv)
 
    getArgs(argc, argv);
 
-   cout.precision(6);
+   //cout.precision(6);
    if (per_sent_limit) limit_vocab = true;
 
    time_t start = time(NULL);             //Time count
@@ -111,11 +148,13 @@ int MAIN(argc,argv)
 
    // Creating the language model object
    time_t start_lm(time(NULL));
-   PLM* lm = PLM::Create(lm_filename, &vocab, PLM::SimpleAutoVoc, -INFINITY,
-                         limit_vocab, 0, NULL);
-   if (lm == NULL) {
+   bool valid_voc_type = false;
+   PLM::OOVHandling VocType(voc_type, valid_voc_type);
+   assert(valid_voc_type);
+   PLM* lm = PLM::Create(lm_filename, &vocab, VocType, log10_p_unk,
+                         limit_vocab, limit_order, NULL);
+   if (!lm)
       error(ETFatal, "Unable to instanciate lm");
-   }
 
    vocab.freePerSentenceData();
    order = lm->getOrder();
@@ -174,7 +213,8 @@ int MAIN(argc,argv)
 void getArgs(int argc, const char* const argv[])
 {
    const char* const switches[] = {
-      "v", "limit", "q", "per-sent-limit",
+      "v", "q", "ppl", "sent", "limit", "per-sent-limit", "order:",
+      "log10-p-unk:", "p-unk:", "voc-type:",
       "final-cleanup",
    };
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 2, -1, help_message);
@@ -182,12 +222,38 @@ void getArgs(int argc, const char* const argv[])
 
    arg_reader.testAndSet("v", verbose);
    arg_reader.testAndSet("q", quiet);
+   arg_reader.testAndSet("ppl", quiet);
    if ( quiet ) verbose = false;
+   arg_reader.testAndSet("sent", sent);
+   arg_reader.testAndSet("log10-p-unk", log10_p_unk);
+   arg_reader.testAndSet("p-unk", p_unk);
+   arg_reader.testAndSet("order", limit_order);
+   arg_reader.testAndSet("voc-type", voc_type);
    arg_reader.testAndSet("limit", limit_vocab);
    arg_reader.testAndSet("per-sent-limit", per_sent_limit);
    arg_reader.testAndSet("final-cleanup", final_cleanup);
    arg_reader.testAndSet(0, "lm_filename", lm_filename);
    arg_reader.testAndSet(1, "test_filename", test_filename);
+
+   if ( p_unk < 0 || p_unk > 1 )
+      error(ETFatal, "P_UNK must be between 0 and 1.");
+   if ( log10_p_unk > 0 )
+      error(ETFatal, "LOG10_P_UNK must be <= 0.");
+
+   if ( p_unk > 0 )
+      log10_p_unk = log10(p_unk);
+
+   if ( test_filename == "-" || test_filename == "/dev/stdin" )
+      error(ETFatal, "TESTFILE cannot be stdin, since it is read multiple times.");
+
+   if ( !voc_type.empty() ) {
+      bool valid = false;
+      PLM::OOVHandling VocType(voc_type, valid);
+      if ( ! valid )
+         error(ETFatal, "%s is not a valid -voc-type value", voc_type.c_str());
+   } else {
+      voc_type = "SimpleAutoVoc";
+   }
 }
 
 
@@ -204,10 +270,10 @@ inline float getProb(Uint word, Uint context[], PLM* lm, const Voc& voc)
 {
    const float wordLogProb = lm->wordProb(word, context, order-1);
    if ( verbose) cout << "p( " << voc.word(word) << " | "
-                     << voc.word(context[0]) << " ...)\t= ";
-   if ( !quiet ) cout << wordLogProb;
+                      << voc.word(context[0]) << " ...)\t= ";
+   if ( !quiet && !sent ) cout << wordLogProb;
    if ( verbose) cout << " [" << lm->getHits().getLatestHit() << "-gram]";
-   if ( !quiet ) cout << endl;
+   if ( !quiet && !sent ) cout << endl;
 
    return  (( wordLogProb != -INFINITY ) ? wordLogProb : 0.0f);
 }   
@@ -241,6 +307,8 @@ float processOneLine_fast(const string& line, PLM* lm, Voc& voc, Uint& num_toks,
 
    if (verbose)
       cout << "logProb = " << sentLogProb << endl << endl;
+   else if ( sent )
+      cout << sentLogProb << endl;
 
    return sentLogProb;
 }

@@ -9,19 +9,25 @@
 
 OBJECTS = \
 	lm.o \
-        lmbin.o \
-        lmbin_vocfilt.o \
+	lmbin.o \
+	lmbin_vocfilt.o \
 	lmbin_novocfilt.o \
 	lmdynmap.o \
-        lmmix.o \
+	lmmix.o \
 	lmtext.o \
 	lmtrie.o
 
 PROGRAMS = \
-        arpalm2binlm \
-        lm_eval
+	arpalm2binlm \
+	binlm2arpalm \
+	lm_eval \
+	test_lm_order
 
-BINSCRIPTS = lm_sort_filter.sh ngram-count-big.sh lm-order.pl lm_sort.pl
+BINSCRIPTS = \
+	lm_sort.pl \
+	lm_sort_filter.sh \
+	ngram-count-big.sh \
+	lm-order.pl
 
 LIBRARY = libportage_lm
 

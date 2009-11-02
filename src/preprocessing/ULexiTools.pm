@@ -38,7 +38,7 @@ our (@ISA, @EXPORT);
    "get_para", "tokenize", "split_sentences",
    "get_tokens", "get_token",
    "matches_known_abbr_en", "matches_known_abbr_fr",
-   "good_turing_estm"
+   "good_turing_estm", "get_sentence"
 );
 
 # Signatures so the array refs work correctly everywhere
@@ -267,6 +267,18 @@ sub get_token(\$$\@) #(para_string, index, token_positions)
       substr($$string, $token_positions->[$index], $token_positions->[$index+1]) : "";
 }
 
+# Get the sentence corresponding to a given index value (0, 2, 4, ...). Return a
+# string.
+
+sub get_sentence(\$$$) #(para_string, start, end)
+{
+   my $string = shift;
+   my $start = shift;
+   my $end = shift;
+   return ($start >= 0 and $end > $start)
+        ? substr($$string, $start, $end - $start) : "";
+}
+
 # Does token at given index immediately follow the preceding one (without
 # intervening chars)?
 
@@ -487,8 +499,8 @@ sub split_word_fr #(word, offset)
       my $l1 = ($thing =~ /^y[$hyphens]$/i) ? 1 : len($thing);
       push(@atom_positions, $os, $l1);
       push(@atom_positions, split_word_fr(substr($word, len($thing)),$os+len($thing)));
-   } elsif ($word =~ /^(?:a-t-il|est-ce)$/io) {
-      # special case for these very common combinations
+   } elsif ($word =~ /^(?:est-ce)$/io) {
+      # special case for this very common combination
       push(@atom_positions, $os, len($word));
    } elsif ($word =~ /^(.+)-t-($vowel_hyph_endings)$/oi) {
       my $l1 = len($1);

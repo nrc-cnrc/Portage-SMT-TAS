@@ -10,7 +10,8 @@
 # Copyright 2004, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2004, Her Majesty in Right of Canada 
 
-INCLUDES=$(filter-out bestbleu.h bleumain.h wermain.h, $(wildcard *.h))
+INCLUDES=$(filter-out bestbleu.h bleumain.h wermain.h worderrors.h, \
+           $(wildcard *.h))
 
 OBJECTS = \
 	basic_data_structure.o \
@@ -24,23 +25,25 @@ PROGRAMS = \
 	bestwer \
 	bleucompare \
 	bleumain \
-	wermain
+	wermain \
+	worderrors
 
 EXTRA_LIBS=$(LOGGING_LIB)
 
 DYNLIBS=-lpthread
-
-# Module/directory specific compile flags
-ifndef PORTAGE_OPENMP
-MODULE_CF=-Wno-unknown-pragmas
-else
-MODULE_CF=$(PORTAGE_OPENMP)
-MODULE_LF=$(PORTAGE_OPENMP)
-endif
 
 MODULE_DEPENDS=logging
 
 LIBRARY=libportage_eval
 
 include ../build/Makefile.incl
+
+# Module/directory specific compile flags
+ifdef NO_PORTAGE_OPENMP
+MODULE_CF=-Wno-unknown-pragmas
+else
+MODULE_CF=-fopenmp
+MODULE_LF=-fopenmp
+endif
+
 -include Makefile.depend

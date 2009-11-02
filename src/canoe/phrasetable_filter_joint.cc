@@ -13,9 +13,9 @@
  * Copyright 2007, Her Majesty in Right of Canada
  */
 
-#include <phrasetable_filter_joint.h>
-#include <soft_filter_tm_visitor.h>
-#include <hard_filter_tm_visitor.h>
+#include "phrasetable_filter_joint.h"
+#include "soft_filter_tm_visitor.h"
+#include "hard_filter_tm_visitor.h"
 
 using namespace Portage;
 
@@ -31,7 +31,6 @@ PhraseTableFilterJoint::PhraseTableFilterJoint(bool _limitPhrases,
 , visitor(NULL)
 , tgtTable(NULL)
 , online_filter_output(NULL)
-, L(0)
 {
    if (hard_filter_weights != NULL)   {
       visitor = new Joint_Filtering::hardFilterTMVisitor(*this, log_almost_0, hard_filter_weights);
@@ -53,15 +52,23 @@ PhraseTableFilterJoint::~PhraseTableFilterJoint()
 }
 
 
-void PhraseTableFilterJoint::outputForOnlineProcessing(const string& filename, Uint limitsize)
+void PhraseTableFilterJoint::outputForOnlineProcessing(const string& filename, const pruningStyle* _pruning_type)
 {
-   L = limitsize;
+   // Keep a reference on the pruning style.
+   pruning_type = _pruning_type;
+   assert(pruning_type);
+
    online_filter_output = new oSafeMagicStream(filename);
    assert(online_filter_output);
    tgtTable = new TargetPhraseTable;
    assert(tgtTable);
 
-   //LOG_VERBOSE2(ptLogger_filter_joint, "Setting output for online processing: %s, %d", filename.c_str(), L);
+   /*
+   LOG_VERBOSE2(ptLogger_filter_joint,
+        "Setting output for online processing: %s, %s",
+        filename.c_str(),
+        pruning_type->description().c_str());
+   */
 }
 
 
@@ -79,11 +86,25 @@ float PhraseTableFilterJoint::convertToWrite(float value) const
 }
 
 
-void PhraseTableFilterJoint::filter_joint(const string& filename, Uint L)
+// When processing a trie in memory
+void PhraseTableFilterJoint::filter_joint(const string& filename, const pruningStyle* const _pruning_type)
 {
    assert(visitor);
 
-   visitor->set(L, numTransModels);
+   // Keep a reference on the pruning style.
+   pruning_type = _pruning_type;
+   assert(pruning_type);
+
+   /*
+   LOG_VERBOSE2(ptLogger_filter_joint,
+        "Applying %s filter_joint to: %s, pruningStyle=%s, n=%d",
+        visitor->style, 
+        filename.c_str(), 
+        pruning_type->description().c_str(), 
+        numTransModels);
+   */
+
+   visitor->set(pruning_type, numTransModels);
    visitor->numKeptEntry = 0;
    textTable.traverse(*visitor);
 
@@ -97,7 +118,10 @@ void PhraseTableFilterJoint::filter_joint(const string& filename, Uint L)
 }
 
 
-Uint PhraseTableFilterJoint::processTargetPhraseTable(const string& src, TargetPhraseTable* tgtTable)
+// When processing online or on the fly.
+Uint PhraseTableFilterJoint::processTargetPhraseTable(const string& src,
+      Uint src_word_count,
+      TargetPhraseTable* tgtTable)
 {
    // if output is null it means we are not processing online thus we need to
    // return the number on entries in the TargetPhraseTable
@@ -108,14 +132,26 @@ Uint PhraseTableFilterJoint::processTargetPhraseTable(const string& src, TargetP
    // Not processing online
    if (!online_filter_output) return 0;
 
-   // Processing TargetPhraseTable online
+   // Calculate the proper L for this source sentence.
+   assert(pruning_type);
+   const Uint L = (*pruning_type)(src_word_count);
 
-   // The visitor holds the code to either do a soft or a hard filter on one leaf
+   // Processing TargetPhraseTable online
+   /*
+   LOG_VERBOSE3(ptLogger_filter_joint,
+      "Online processing of one entry (%s) L=%d n=%d",
+      visitor->style,
+      L,
+      tgtTable->front().second.backward.size()); // => numTransModels
+   */
+
+   // The visitor holds the code to either do a soft or a hard filter on one
+   // leaf
    const Uint numBeforeFiltering(tgtTable->size());
    visitor->set(L, tgtTable->front().second.backward.size());
    (*visitor)(*tgtTable);
 
-   // Write de results to a file and clear the leaf to save memory
+   // Write the results to a file and clear the leaf to save memory
    write(*online_filter_output, src, *tgtTable);
    const Uint numKeptEntry(tgtTable->size());
    tgtTable->clear();
@@ -124,12 +160,12 @@ Uint PhraseTableFilterJoint::processTargetPhraseTable(const string& src, TargetP
 }
 
 
-TargetPhraseTable* PhraseTableFilterJoint::getTargetPhraseTable(const Entry& entry, bool limitPhrases)
+TargetPhraseTable* PhraseTableFilterJoint::getTargetPhraseTable(const Entry& entry, Uint src_word_count, bool limitPhrases)
 {
    // if we are in offline processing or online but not complete we need to
    // fill out the trie
    if (!online_filter_output || tgtVocab.getNumSourceSents() > 0) {
-      return PhraseTable::getTargetPhraseTable(entry, limitPhrases);
+      return PhraseTable::getTargetPhraseTable(entry, src_word_count, limitPhrases);
    }
    else {
       // When processing online, every TargetPhraseTable should be empty

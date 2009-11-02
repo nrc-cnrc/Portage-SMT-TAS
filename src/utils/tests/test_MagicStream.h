@@ -15,7 +15,8 @@
 #include <cxxtest/TestSuite.h>
 #include "portage_defs.h"
 #include "MagicStream.h"
-#include "file_utils.h"   // operator<< operator>> on vector
+#include "binio.h"
+#include "file_utils.h"
 //#include <bits/functexcept.h> // __throw_ios_failure
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -61,8 +62,8 @@ private:
       if (msg.find(" ") != string::npos) __throw_ios_failure("Message can't have spaces");
       if (!in.good()) __throw_ios_failure("Bad stream before reading");
       string mot;
-      unsigned a;
-      unsigned b;
+      unsigned a = 0xBAD;
+      unsigned b = 0XBAD;
       for (unsigned i(0); i<mI; ++i)
          for (unsigned j(0); j<mJ; ++j) {
             in >> mot >> a >> b;
@@ -85,6 +86,8 @@ public:
    , msg_gzip("Testing_gz_file_MagicStream")
    , filename_bzip2("MagicStreamTestFile.bz2")
    , msg_bzip2("Testing_bzip2_file_MagicStream")
+   , filename_lzma("MagicStreamTestFile.lzma")
+   , msg_lzma("Testing_lzma_file_MagicStream")
    , msg_fd("Testing_file_descriptor_MagicStream")
    , filename_fh(base_name_test + "FileHandle")
    , msg_fh("Testing_file_handle_MagicStream")
@@ -194,6 +197,27 @@ public:
       TS_ASSERT(getline(is, m_read_msg));
       TS_ASSERT_EQUALS(m_read_msg, msg_bzip2);
       TS_ASSERT_THROWS_NOTHING(checkMatrice(is, msg_bzip2, 3u, 5u));
+      is.close();
+      TS_ASSERT(is);
+   }
+
+   // Testing lzma File
+   const string filename_lzma;
+   const string msg_lzma;
+   void testWritingLzmaFile() {
+      oMagicStream os(filename_lzma);
+      TS_ASSERT(os);
+      TS_ASSERT(os << msg_lzma << endl);
+      TS_ASSERT_THROWS_NOTHING(printMatrice(os, msg_lzma, 3u, 5u));
+      os.close();
+      TS_ASSERT(os);
+   }
+   void testReadingLzmaFile() {
+      iMagicStream is(filename_lzma);
+      TS_ASSERT(is);
+      TS_ASSERT(getline(is, m_read_msg));
+      TS_ASSERT_EQUALS(m_read_msg, msg_lzma);
+      TS_ASSERT_THROWS_NOTHING(checkMatrice(is, msg_lzma, 3u, 5u));
       is.close();
       TS_ASSERT(is);
    }
@@ -311,24 +335,24 @@ public:
    const Uint vSize;
    const Uint vValue;
    void testBinaryWrite() {
-      using namespace BinIOStream;
       vector<Uint> vecteur(vSize, vValue);
       oMagicStream oms(filename_binary);
       TS_ASSERT(oms);
       TS_ASSERT(oms << msg_binary << endl);
-      TS_ASSERT(oms << vecteur);
+      BinIO::writebin(oms, vecteur);
+      TS_ASSERT(oms);
       bool last(false);
       oms.write((char*)&last, sizeof(last));
       TS_ASSERT(oms);
    }
    void testBinaryRead() {
-      using namespace BinIOStream;
       iMagicStream ims(filename_binary);
       TS_ASSERT(ims);
       vector<Uint> vecteur(1, 1);
       TS_ASSERT(getline(ims, m_read_msg));
       TS_ASSERT_EQUALS(m_read_msg, msg_binary);
-      TS_ASSERT(ims >> vecteur);
+      BinIO::readbin(ims,vecteur);
+      TS_ASSERT(ims);
       TS_ASSERT_EQUALS(vecteur.size(), vSize);
       for (vector<Uint>::const_iterator value(vecteur.begin()); value!=vecteur.end(); ++value) {
          TS_ASSERT_EQUALS(*value, vValue);
@@ -372,6 +396,16 @@ public:
       TS_ASSERT(is.ignore(msg_gzip.size()));
       TS_ASSERT_THROWS_NOTHING(checkMatrice(is, msg_gzip, 3u, 5u));
    }
+   void testFileIgnoreBzip2() {
+      iMagicStream is(filename_bzip2);
+      TS_ASSERT(is.ignore(msg_bzip2.size()));
+      TS_ASSERT_THROWS_NOTHING(checkMatrice(is, msg_bzip2, 3u, 5u));
+   }
+   void testFileIgnoreLzma() {
+      iMagicStream is(filename_lzma);
+      TS_ASSERT(is.ignore(msg_lzma.size()));
+      TS_ASSERT_THROWS_NOTHING(checkMatrice(is, msg_lzma, 3u, 5u));
+   }
 
    void testFileSeekPlainText() {
       iMagicStream is(filename_plain);
@@ -402,6 +436,11 @@ public:
       TS_ASSERT(MagicStreamBase::isBzip2("file.bz2"));
       TS_ASSERT(MagicStreamBase::isBzip2("file.bzip2"));
       TS_ASSERT(!MagicStreamBase::isBzip2("file.bzip2.txt"));
+   }
+   void testExtensionDetectionLzma() {
+      TS_ASSERT(MagicStreamBase::isLzma("file.lzma"));
+      TS_ASSERT(!MagicStreamBase::isLzma("file.LZMA"));
+      TS_ASSERT(!MagicStreamBase::isLzma("file.lzma.txt"));
    }
 
    // Test if a file exists

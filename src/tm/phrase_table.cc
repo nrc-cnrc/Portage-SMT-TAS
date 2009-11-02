@@ -72,14 +72,14 @@ string PhraseTableBase::recodePhrase(const string& coded, Voc& voc,
 void PhraseTableBase::extractTokens(const string& line, vector<string>& toks,
 				    ToksIter& b1, ToksIter& e1,
 				    ToksIter& b2, ToksIter& e2,
-				    ToksIter& v)
+				    ToksIter& v, bool tolerate_multi_vals)
 {
    toks.clear();
    vector<Uint> seps;
    split(line, toks);
    for (Uint i = 0; i < toks.size(); ++i)
       if (toks[i] == psep) seps.push_back(i);
-   if (seps.size() != 2 || seps[1]+2 != toks.size())
+   if (seps.size() != 2 || (!tolerate_multi_vals && seps[1]+2 != toks.size()))
       error(ETFatal, "incorrect format in phrase table: %s", line.c_str());
 
    b1 = toks.begin();

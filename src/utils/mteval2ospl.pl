@@ -26,24 +26,31 @@ Convert a NIST MT eval formatted into one-sentence-per line output, writing one
 file per document in the input file. (To just extract all segments in order,
 use mteval2ospl.sed).
 
-Options:
+Output options (mutually exclusive):
 
 -g  Write only documents identified by tags as being of a given genre.
 -G  Write a list of segment id's along with the genre of each segment to stdout.
-    This option is not compatible with -g.
+-m  Write a list mapping each line number to doc and genre names. (Line numbers
+    may differ from segment ids in that the latter may begin at 0.)
 
 ";
 
-our ($help, $h, $g, $G);
+our ($help, $h, $g, $G, $m);
 
 if ($help || $h) {
     print $HELP;
     exit 0;
 }
 
-$g = "" unless defined $g;
+my $numopts = 0;
+++$numopts if defined $g;
+++$numopts if defined $G;
+++$numopts if defined $m;
 
-if ($g ne "" && $G) {die "Can't specify both -g and -G\n";}
+if ($numopts > 1) {
+   die "At most one of -g, -G, or -m options can be specified\n$HELP";
+}
+
  
 my $in = shift || die "Missing file argument\n$HELP";
 my $out = shift || "-";
@@ -66,11 +73,11 @@ while ($content =~ /<doc([^>]*)>(.*?)<\/doc>/isgo) {
     if ($attrs =~ /sysid\s*=\s*\"([^\"]+)\"/io) {$sysid = $1;}
     if ($attrs =~ /genre\s*=\s*\"([^\"]+)\"/io) {$genre = $1;}
 
-    next if ($g ne "" && $genre ne $g);
+    next if ($g && $genre ne $g);
 
     if ($docid eq "") {die "Missing docid tag";}
 
-    if (!$G) {
+    if (!$G && !$m) {
        my $docname = "$docid$sysid";
        open(OUT, ">$docname") or die "Can't open $docname for writing\n";
     }
@@ -79,6 +86,7 @@ while ($content =~ /<doc([^>]*)>(.*?)<\/doc>/isgo) {
         my $result = $1;
         $result =~ s/\r\n/ /g;  # removes the accidental windows newline
 	if ($G) {print ($segno++, "\t", $genre, "\n");}
+        elsif ($m) {print (1+$segno++, " ", $docid, " ", $genre, "\n");}
         else {print OUT "$result\n";}
     }
     close(OUT);

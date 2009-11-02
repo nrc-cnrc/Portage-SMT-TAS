@@ -16,7 +16,7 @@
 #ifndef __PHRASE_TABLE_FILTER_GREP_H__
 #define __PHRASE_TABLE_FILTER_GREP_H__
 
-#include <phrasetable_filter.h>
+#include "phrasetable_filter.h"
 
 namespace Portage {
 /**
@@ -38,8 +38,9 @@ class PhraseTableFilterGrep : public PhraseTableFilter {
        * @param pruningTypeStr      pruning type
        */
       PhraseTableFilterGrep(bool _limitPhrases, VocabFilter& tgtVocab, const char* pruningTypeStr = NULL);
+
       /// Destructor.
-      ~PhraseTableFilterGrep();
+      virtual ~PhraseTableFilterGrep();
       
       /**
        * Given a phrase table in a file, filters it and output the filtered results to an another file.

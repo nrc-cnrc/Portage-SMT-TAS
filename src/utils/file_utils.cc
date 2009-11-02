@@ -159,6 +159,10 @@ bool Portage::isZipFile(const string& filename)
                  || filename.substr(dot) == ".Z");
 }
 
+string Portage::removeExtension(const string& filename) {
+   return filename.substr(0, filename.rfind("."));
+}
+
 string Portage::removeZipExtension(const string& filename)
 {
    const size_t dot = filename.rfind(".");

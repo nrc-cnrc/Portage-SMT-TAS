@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# @file randomly-choose-n-nums
+# @brief Choose n integers without replacement from the range min..max.
+#
+# @author George Foster / converted to bash by Eric Joanis
+#
+# Technologies langagieres interactives / Interactive Language Technologies
+# Inst. de technologie de l'information / Institute for Information Technology
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2005, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2005, Her Majesty in Right of Canada
+
+##
+## Syntax: randomly-choose-n-nums n min max
+##
+## Choose n integers without replacement from the range min..max.
+##
+
+if [[ $# != 3 ]]; then
+   cat $0 | egrep '^##' | cut -c4-
+   exit 1
+fi
+
+n=$1
+min=$2
+max=$3
+
+randomly-choose-n-args.pl $n `seq $min $max`
+

@@ -665,7 +665,6 @@ void HMMAligner::writeBinCounts(const string& count_file) const {
 }
 
 void HMMAligner::readAddBinCounts(const string& count_file) {
-   using namespace BinIOStream;
    IBM1::readAddBinCounts(count_file);
    string hmm_count_file (addExtension(removeZipExtension(count_file), ".hmm"));
    iSafeMagicStream is(hmm_count_file);

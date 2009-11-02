@@ -40,8 +40,10 @@ OBJECTS= \
     hypothesisstack.o \
     ibm_feature.o \
     inputparser.o \
+    levenshtein_feature.o \
     marked_translation.o \
     nbesttranslation.o \
+    ngrammatch_feature.o \
     partialtranslation.o \
     phrasefinder.o \
     phrasetable.o \
@@ -49,6 +51,7 @@ OBJECTS= \
     phrasetable_filter_joint.o \
     phrasetable_filter_lm.o \
     phrase_tm_align_compute.o \
+    pruning_style.o \
     rule_feature.o \
     segmentmodel.o \
     soft_filter_tm_visitor.o \
@@ -65,6 +68,7 @@ TESTPROGS= \
 PROGRAMS=$(TESTPROGS) \
 	canoe \
 	configtool \
+	count_multi_prob_columns \
 	filter_models \
 	join_phrasetables \
 	mix_phrasetables \

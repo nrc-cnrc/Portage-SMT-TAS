@@ -106,8 +106,11 @@ public:
    vector<string> forPhraseFiles;   ///< Forward phrase table file names
    vector<string> backPhraseFiles;  ///< Backward phrase table file names
    vector<string> multiProbTMFiles; ///< Multi-prob phrase table file names
+   vector<string> multiProbLDMFiles;///< Multi-prob lexicalized distortion model file names
    vector<string> lmFiles;          ///< Language model file names
    Uint lmOrder;                    ///< Maximum LM order (0 == no limit)
+
+   // WEIGHTS
    vector<double> distWeight;       ///< Distortion model weight
    random_param rnd_distWeight;     ///< Distortion model weight
    double lengthWeight;             ///< Length penalty weight
@@ -116,12 +119,18 @@ public:
    random_param rnd_segWeight;      ///< Segmentation model weight
    vector<double> ibm1FwdWeights;   ///< Forward IBM1 feature weights
    random_param rnd_ibm1FwdWeights; ///< Forward IBM1 feature weights
+   vector<double> levWeight;        ///< Weight for Levenshtein distance in forced alignment
+   random_param rnd_levWeight;      ///< Weight for Levenshtein distance in forced alignment
+   vector<double> ngramMatchWeights;///< Weight for n-gram precision in forced alignment
+   random_param rnd_ngramMatchWeights;///< Weight for n-gram precision in forced alignment
    vector<double> lmWeights;        ///< Language model weights
    random_param rnd_lmWeights;      ///< Language model weights
    vector<double> transWeights;     ///< Translation model weights
    random_param rnd_transWeights;   ///< Translation model weights
    vector<double> forwardWeights;   ///< Forward translation model weights
    random_param rnd_forwardWeights; ///< Forward translation model weights
+   vector<double> adirTransWeights;   ///< Adirectional translation model weights //boxing
+   random_param rnd_adirTransWeights; ///< Adirectional translation model weights //boxing
 
    // Rule decoder feature arguments
    vector<string> rule_classes;       ///< Rule classes' name
@@ -140,6 +149,7 @@ public:
    double pruneThreshold;           ///< b = prob-based stack pruning threshold
    Uint covLimit;                   ///< Coverage pruning limit
    double covThreshold;             ///< Coverage pruning prob threshold
+   int levLimit;                    ///< levenshtien limit
    int distLimit;                   ///< Distortion limit
    bool distLimitExt;               ///< Allowed extended definition of dist limit
    bool distPhraseSwap;             ///< Allow swapping contiguous phrases
@@ -165,6 +175,7 @@ public:
    bool backwards;                  ///< Whether to translate backwards
    bool loadFirst;                  ///< Whether to load models before input
    string input;                    ///< Source sentences input file name
+   string refFile;                  ///< Reference file name
    bool bAppendOutput;              ///< Flag to output one single file instead of multiple files.
    bool bLoadBalancing;             ///< Running in load-balancing mode => parse source sentences ids
    bool bCubePruning;               ///< Run the cube pruning decoder
@@ -230,6 +241,13 @@ public:
     * @return the number of models in files listed under ttable-multi-prob.
     */
    Uint getTotalMultiProbModelCount() const;
+
+   /**
+    * Count the total number of translation models in multi-prob tables.
+    * Dies if any table has an odd number of probability columns.
+    * @return the number of models in files listed under ttable-multi-prob.
+    */
+   Uint getTotalAdirectionalModelCount() const; //boxing
 
    /**
     * Get current feature weights in the form of an argument string, eg:

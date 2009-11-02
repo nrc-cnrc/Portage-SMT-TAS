@@ -11,7 +11,6 @@ OBJECTS = \
         arg_reader.o \
         bc_stats.o \
         casemap_strings.o \
-        docid.o \
         errors.o \
         file_utils.o \
         gfmath.o \
@@ -48,22 +47,21 @@ TESTPROGS =  \
 PROGRAMS = $(TESTPROGS) \
         bin_class_stats \
         bloater \
+        bloater_pthread \
         get_voc \
         good_turing_estm \
         iroc_exp \
         meanvar \
         merge_counts \
-        sample_parallel_text \
         utf8_casemap \
-        utf8_filter
-
+        utf8_filter \
+        wc_stats
 
 BINSCRIPTS = \
         alignment-stats.pl \
         all-best-rr-vals \
         append-uniq.pl \
         best-rr-val \
-        canoe2rescoreFile.sh \
         combine.pl \
         cvs-status-summary.pl \
         diff-round.pl \
@@ -80,12 +78,14 @@ BINSCRIPTS = \
         ngrams.pl \
         ospl2mteval.pl \
         outpipe.sh \
-        parallelize.pl \
         parallel-uniq.pl \
+        parallelize.pl \
         parse-monitor.sh \
+        process-bind.sh \
         process-memory-usage.pl \
         psub \
         randomly-choose-n-args.pl \
+        randomly-choose-n-nums \
         remove_stop.pl \
         removewords.pl \
         reverseffvals.pl \
@@ -94,6 +94,8 @@ BINSCRIPTS = \
         r-parallel-d.pl \
         r-parallel-worker.pl \
         select-line \
+        select-lines \
+        sh_utils.sh \
         sort-by-length.pl \
         split-listed.pl \
         stableuniq.pl \
@@ -103,6 +105,8 @@ BINSCRIPTS = \
         uc-first.pl \
         uncombine.pl \
         which-test.sh
+
+PERL_LIBS=portage_utils.pm
 
 # Tell Make to skip -lportage_utils, since we're building it here.
 NO_UTILS_LIB = true
@@ -123,4 +127,5 @@ legacy_test_trie: tests/legacy/test_trie tests/data/test_trie.in.txt \
 
 # Some programs need extra dynamic libraries
 bloater: DYNLIBS += -lpthread
+bloater_pthread: DYNLIBS += -lpthread
 utf8_casemap: DYNLIBS += $(LIBICU)

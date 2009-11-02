@@ -12,6 +12,7 @@
  */
 
 #include "hmm_jump_classes.h"
+#include "binio.h"
 #include "ibm.h"
 
 using namespace Portage;
@@ -84,21 +85,21 @@ void HMMJumpClasses::read(istream& in, const char* stream_name) {
 }
 
 void HMMJumpClasses::writeBinCountsImpl(ostream& os) const {
-   using namespace BinIOStream;
+   using namespace BinIO;
    global_count.writeBin(os);
-   os << init_count;
+   writebin(os, init_count);
    writebin(os, Uint(class_count.size()));
    for ( Uint i = 0; i < class_count.size(); ++i )
       class_count[i].writeBin(os);
 }
 
 void HMMJumpClasses::readAddBinCountsImpl(istream& is, const char* stream_name) {
-   using namespace BinIOStream;
+   using namespace BinIO;
    S tmp_s;
    tmp_s.readBin(is);
    global_count += tmp_s;
    BiVector<double> tmp_v;
-   is >> tmp_v;
+   readbin(is, tmp_v);
    init_count += tmp_v;
    Uint class_count_size(0);
    readbin(is, class_count_size);

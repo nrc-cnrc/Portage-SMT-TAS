@@ -16,8 +16,8 @@
 #ifndef __PHRASE_TABLE_FILTER_JOINT_H__
 #define __PHRASE_TABLE_FILTER_JOINT_H__
 
-#include <phrasetable_filter.h>
-#include <filter_tm_visitor.h>
+#include "phrasetable_filter.h"
+#include "filter_tm_visitor.h"
 
 
 namespace Portage {
@@ -31,10 +31,13 @@ class PhraseTableFilterJoint : public PhraseTableFilter {
 
    protected:
       /// Performs either hard or soft filtering
-      Joint_Filtering::filterTMVisitor*   visitor;
-      TargetPhraseTable* tgtTable;                 ///< Use for complete online filtering (save trie's query)
-      oSafeMagicStream*      online_filter_output;     ///< output file name when processing online
-      Uint               L;                        ///< number of entries, limit for filtering
+      Joint_Filtering::filterTMVisitor* visitor;
+
+      /// Use for complete online filtering (save trie's query)
+      TargetPhraseTable* tgtTable;
+
+      /// output file name when processing online
+      oSafeMagicStream* online_filter_output;
 
    public:
       /**
@@ -55,15 +58,15 @@ class PhraseTableFilterJoint : public PhraseTableFilter {
       /**
        * Sets the output filename for online processing.
        * @param  filename  output filename
-       * @param  L         limit
+       * @param  pruning_type
        */
-      void outputForOnlineProcessing(const string& filename, Uint L);
+      void outputForOnlineProcessing(const string& filename, const pruningStyle* pruning_type);
 
       virtual float convertFromRead(float value) const;
       virtual float convertToWrite(float value) const;
-      virtual void  filter_joint(const string& filename, Uint L = 30);
-      virtual Uint  processTargetPhraseTable(const string& src, TargetPhraseTable* tgtTable);
-      virtual TargetPhraseTable* getTargetPhraseTable(const Entry& entry, bool limitPhrases);
+      virtual void  filter_joint(const string& filename, const pruningStyle* const pruning_type);
+      virtual Uint  processTargetPhraseTable(const string& src, Uint src_word_count, TargetPhraseTable* tgtTable);
+      virtual TargetPhraseTable* getTargetPhraseTable(const Entry& entry, Uint src_word_count, bool limitPhrases);
 
 }; // ends class PhraseTableFilterJoint
 }; // ends namespace Portage

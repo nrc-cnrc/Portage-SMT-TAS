@@ -99,6 +99,13 @@ WordAlignerFactory::TInfo WordAlignerFactory::tinfos[] = {
      exclude = exclude unlinked words from phrases [include them]"
    },
    {
+      DCon<IBMDiagAligner>::create,
+      "IBMDiagAligner", "[2|3][exclude]\n\
+     Variant on standard Och algorithm (better to use exclude with 1 or 2):\n\
+     2 = expand to connected points in union, 3 = try to align all words [3].\n\
+     exclude = exclude unlinked words from phrases [include them]"
+   },
+   {
       DCon<IBMScoreAligner>::create,
       "IBMScoreAligner", "\n\
      experimental..."
@@ -117,6 +124,27 @@ WordAlignerFactory::TInfo WordAlignerFactory::tinfos[] = {
      Any word with all posterior prob products < Null-threshold is excluded\n\
      from phrases [0.0001]"
    },
+   {
+      DCon<HybridPostAligner>::create,
+      "HybridPostAligner", "[pct]\n\
+     Hybrid between IBMOchAligner and PosteriorAligner: start with intersection\n\
+     of one-way IBM alignments, then add connected links in order of decreasing\n\
+     posterior probabilities, stopping when all words are connected or the link\n\
+     score gets too low. Next assign remaining unlinked words their best\n\
+     translations, provided the posterior scores of these translations are high\n\
+     enough. Words without such translations are left unlinked (not explicitly\n\
+     null aligned). The number of top-scoring links to consider valid is \n\
+     <pct>*s, where s is the length of the longer of the two input sentences\n\
+     [1.0]"
+   },
+   {
+      DCon<ExternalAligner>::create,
+      "ExternalAligner", "file\n\
+     Read external symmetrized alignments in Moses (sri) format: a list of\n\
+     links on each line, with each link in the format srcpos-tgtpos, giving\n\
+     0-based word positions."
+   },
+
    {NULL, "", ""}
 };
 
@@ -493,6 +521,125 @@ void IBMOchAligner::showAlignment(const vector<string>& toks1,
 }
 
 /*----------------------------------------------------------------------------
+  IBMDiagAligner
+  --------------------------------------------------------------------------*/
+
+IBMDiagAligner::IBMDiagAligner(WordAlignerFactory& factory,
+                               const string& args) :
+   IBMOchAligner(factory, args)
+{
+   if (strategy < 1 || strategy > 3)
+      error(ETFatal, "strategy %d not valid for IBMDiagAligner", strategy);
+}
+
+double IBMDiagAligner::align(const vector<string>& toks1, const vector<string>& toks2,
+                            vector< vector<Uint> >& sets1) 
+{
+   al1.clear();
+   al2.clear();
+
+   if (aligner_lang2_given_lang1)
+      aligner_lang2_given_lang1->align(toks1, toks2, al2, factory.getTwist());
+   if (aligner_lang1_given_lang2)
+      aligner_lang1_given_lang2->align(toks2, toks1, al1, factory.getTwist());
+
+   if (factory.getVerbose() > 1) {
+      showAlignment(toks2, toks1, al1);
+      showAlignment(toks1, toks2, al2);
+   }
+
+   sets1.resize(toks1.size());
+   connected2.assign(toks2.size(), false);
+   new_pairs.clear();
+
+   // initialize to intersection, as in IBMOchAligner
+   for (Uint i = 0; i < al1.size(); ++i) {
+      sets1[i].clear();
+      if (al1[i] < al2.size() && al2[al1[i]] == i) {
+         sets1[i].push_back(al1[i]);
+         connected2[al1[i]] = true;
+         new_pairs.push_back(i); new_pairs.push_back(al1[i]);
+      }
+   }
+
+   // expand into union
+   if (strategy > 1) {
+
+      Uint start = 0;
+      do {
+
+	 // starting at link <start>, add strictly diagonal links, continuing
+	 // until no more can be added
+	 for (Uint pi = start; pi+1 < new_pairs.size(); pi += 2) {
+	    int ii(new_pairs[pi]), jj(new_pairs[pi+1]);
+	    if (addTest(ii-1, jj-1, sets1)) {
+	       new_pairs.push_back(ii-1); 
+               new_pairs.push_back(jj-1);
+            }
+	    if (addTest(ii+1, jj+1, sets1)) {
+	       new_pairs.push_back(ii+1); 
+               new_pairs.push_back(jj+1);
+            }
+	 }
+
+	 // add "v-connected points" wherever possible, but process existing
+	 // set of links only once (ie, don't operate on new links added by
+	 // the current pass, as is done for diagonal links)
+	 start = new_pairs.size();
+	 for (Uint pi = 0; pi+1 < start; pi += 2) {
+	    int ii(new_pairs[pi]), jj(new_pairs[pi+1]);
+	    if (addTest(ii, jj-1, sets1)) {
+	       new_pairs.push_back(ii); 
+               new_pairs.push_back(jj-1);
+            }
+	    if (addTest(ii-1, jj, sets1)) {
+	       new_pairs.push_back(ii-1); 
+               new_pairs.push_back(jj);
+            }
+	    if (addTest(ii+1, jj, sets1)) {
+	       new_pairs.push_back(ii+1); 
+               new_pairs.push_back(jj);
+            }
+	    if (addTest(ii, jj+1, sets1)) {
+	       new_pairs.push_back(ii); 
+               new_pairs.push_back(jj+1);
+            }
+	 }
+
+      } while (new_pairs.size() > start);
+   }
+
+   // link any remaining unlinked words that aren't null-aligned, as in IBMOchAligner
+   if (strategy > 2) {
+      for (Uint i = 0; i < sets1.size(); ++i) {
+         if (sets1[i].empty() && al1[i] < al2.size()) {
+            sets1[i].push_back(al1[i]);
+            connected2[al1[i]] = true;
+            new_pairs.push_back(i); 
+            new_pairs.push_back(al1[i]);
+         }
+      }
+      for (Uint j = 0; j < connected2.size(); ++j) {
+         if (!connected2[j] && al2[j] < al1.size()) {
+            Uint i = al2[j];
+            vector<Uint>::iterator p = lower_bound(sets1[i].begin(), sets1[i].end(), j);
+            sets1[i].insert(p, j);
+            connected2[j] = true;
+            new_pairs.push_back(al2[j]); 
+            new_pairs.push_back(j);
+         }
+      }
+   }
+
+   
+   // mark unlinked words for exclusion
+   if (exclude)
+      removeUnlinkedWords(sets1, connected2);
+
+   return 1.0;
+}
+
+/*----------------------------------------------------------------------------
   IBMScoreAligner
   --------------------------------------------------------------------------*/
 
@@ -735,5 +882,247 @@ double PosteriorAligner::align(const vector<string>& toks1,
    if ( !ex2.empty() )
       sets1.push_back(ex2);
 
+   return 1.0;
+}
+
+/*----------------------------------------------------------------------------
+  HybridPostAligner
+  --------------------------------------------------------------------------*/
+
+HybridPostAligner::HybridPostAligner(WordAlignerFactory& factory,
+                                   const string& args) : 
+   ibm_lang1_given_lang2(factory.getIBMLang1GivenLang2()),
+   ibm_lang2_given_lang1(factory.getIBMLang2GivenLang1()),
+   verbose(factory.getVerbose())
+{
+   if ( !ibm_lang1_given_lang2 || !ibm_lang2_given_lang1 )
+      error(ETFatal, "HybridPostAligner requires two IBM1 (or subtype) models");
+
+   pct = 1.0;
+
+   vector<string> toks;
+   split(args, toks);
+   if ( toks.size() > 1 ) {
+      bad_constructor_argument = 1;
+      error(ETWarn, "Too many arguments to HybridPostAligner - "
+                    "expected at most 1.");
+   } else if (toks.size() == 1) {
+      if (! conv(toks[0], pct) ) {
+         bad_constructor_argument = 1;
+         error(ETWarn, "Invalid pct for HybridPostAligner - "
+               "can't convert %s to a float - using %g.",
+               toks[0].c_str(), pct);
+      }
+   }
+}
+
+struct Cmp {
+
+   const vector< vector<double> >& post_matrix;
+   Cmp(vector< vector<double> >& post_matrix) : post_matrix(post_matrix) {}
+   
+   bool operator()(Uint ind1, Uint ind2) {
+      Uint s = post_matrix.size() ? post_matrix[0].size() : 0;
+      return s ? 
+         post_matrix[ind1/s][ind1%s] > post_matrix[ind2/s][ind2%s] :
+         false;
+   }
+};
+
+double HybridPostAligner::align(const vector<string>& toks1,
+                                const vector<string>& toks2,
+                                vector< vector<Uint> >& sets1)
+{
+   // start with intersection of two viterbi alignments, as in IBMOchAligner
+
+   al1.clear();
+   al2.clear();
+
+   ibm_lang2_given_lang1->align(toks1, toks2, al2, false);
+   ibm_lang1_given_lang2->align(toks2, toks1, al1, false);
+
+   connected1.assign(toks1.size(), false);
+   connected2.assign(toks2.size(), false);
+   
+   links.resize(toks1.size());
+   for (Uint i = 0; i < toks1.size(); ++i) {
+      links[i].assign(toks2.size(), false);
+      if (al1[i] < al2.size() && al2[al1[i]] == i)
+	 links[i][al1[i]] = connected1[i] = connected2[al1[i]] = true;
+   }
+
+   Uint num_connections1 = count(connected1.begin(), connected1.end(), true);
+   Uint num_connections2 = count(connected2.begin(), connected2.end(), true);
+
+   // construct matrix of posterior link probs, as in PosteriorAligner
+
+   bool imp_L12 = ibm_lang1_given_lang2->useImplicitNulls;
+   bool imp_L21 = ibm_lang2_given_lang1->useImplicitNulls;
+   ibm_lang1_given_lang2->useImplicitNulls = true;
+   ibm_lang2_given_lang1->useImplicitNulls = true;
+   ibm_lang1_given_lang2->linkPosteriors(toks2, toks1, posteriors_lang1_given_lang2);
+   ibm_lang2_given_lang1->linkPosteriors(toks1, toks2, posteriors_lang2_given_lang1);
+   ibm_lang1_given_lang2->useImplicitNulls = imp_L12;
+   ibm_lang2_given_lang1->useImplicitNulls = imp_L21;
+
+   posteriors.resize(toks1.size());
+   ranks.resize(toks1.size());
+   for (Uint i = 0; i < toks1.size(); ++i) {
+      posteriors[i].resize(toks2.size());
+      ranks[i].resize(toks2.size());
+      for (Uint j = 0; j < toks2.size(); ++j) {
+	 posteriors[i][j] = 
+	    posteriors_lang2_given_lang1[j][i] * posteriors_lang1_given_lang2[i][j];
+      }
+   }
+
+   // sort all link indexes by decreasing score (index = row * row_size + col),
+   // and put the rank of each link into the ranks matrix.
+
+   link_list.resize(toks1.size() * toks2.size());
+   for (Uint i = 0; i < link_list.size(); ++i)
+      link_list[i] = i;
+   sort(link_list.begin(), link_list.end(), Cmp(posteriors));
+   for (Uint i = 0; i < link_list.size(); ++i)
+      ranks[link_list[i]/toks2.size()][link_list[i]%toks2.size()] = i;
+
+   Uint low_rank = max(toks1.size(), toks2.size()) * pct;
+   if (low_rank > link_list.size())
+      low_rank = link_list.size();
+
+   if (verbose > 2) {
+      cerr << "RANKS:" << endl;
+      for (Uint i = 0; i < ranks.size(); ++i) {
+         for (Uint j = 0; j < ranks.size(); ++j)
+            cerr << ranks[i][j] << ' ';
+         cerr << endl;
+      }
+      cerr << "LINKS:" << endl;
+      for (Uint i = 0; i < links.size(); ++i) {
+         for (Uint j = 0; j < links.size(); ++j)
+            cerr << links[i][j] << ' ';
+         cerr << endl;
+      }
+   }
+
+   // Walk the list in descending order, adding links iff they are adjacent to
+   // an existing link. Stop when all words are connected, or we're out of links.
+
+   Uint next = 0;
+
+   for (Uint ind = 0; ind < low_rank; ind = next) {
+
+      Uint i = link_list[ind] / toks2.size();
+      Uint j = link_list[ind] % toks2.size();
+      next = ind + 1;
+
+      bool add = false;
+      Uint high_rank = next;
+
+      // try to add this link if needed and not already there
+
+      if (!links[i][j] && (!connected1[i] || !connected2[j])) { 
+
+         for (Uint ii = i == 0 ? 0 : i-1; ii < min(i+2, toks1.size()); ++ii) {
+            for (Uint jj = j == 0 ? 0 : j-1; jj < min(j+2, toks2.size()); ++jj) {
+               if (ii == i && jj == j) continue;
+               if (links[ii][jj]) 
+                  add = true;	// found a linked neighbour
+               else if (ranks[ii][jj] < high_rank && (!connected1[ii] || !connected2[jj]))
+                  high_rank = ranks[ii][jj]; // higher-ranking unlinked neighbour
+            }
+         }
+         if (add) {
+            if (!connected1[i]) ++num_connections1;
+            if (!connected2[j]) ++num_connections2;
+            connected1[i] = connected2[j] = true;
+            links[i][j] = true;
+            next = high_rank;   // try to link highest-ranking unlinked neighbour
+         }
+         
+         if (num_connections1 == toks1.size() && num_connections2 == toks2.size())
+            break;
+      }
+      if (verbose > 2) {
+         cerr << "rank " << ind << " (" << i << "," << j << ")" 
+              << " done, add=" << add << ", next=" << next 
+              << ", nc1=" << num_connections1
+              << ", nc2=" << num_connections2 
+              << endl;
+      }
+   }
+
+   // Now try to connect any remaining unlinked words. To preserve symmetry,
+   // this deliberately avoids recording links in the other dimension. For
+   // example, if w1 is assigned w2 as a translation, then w2 should be marked
+   // as connected if it isn't already. But we avoid this so that w2 can be
+   // assigned its best translation, which may not be w1.
+
+   for (Uint i = 0; i < connected1.size(); ++i)
+      if (!connected1[i]) {
+	 Uint best_j = toks2.size();
+	 for (Uint j = 0; j < toks2.size(); ++j)
+	    if (ranks[i][j] < low_rank)
+	       best_j = j;
+	 if (best_j != toks2.size()) {
+	    links[i][best_j] = true;
+	    connected1[i] = true;
+	    ++num_connections1;
+	 }
+      }
+   
+   for (Uint j = 0; j < connected2.size(); ++j) 
+      if (!connected2[j]) {
+	 Uint best_i = toks1.size();
+	 for (Uint i = 0; i < toks1.size(); ++i)
+	    if (ranks[i][j] < low_rank)
+	       best_i = i;
+	 if (best_i != toks1.size()) {
+	    links[best_i][j] = true;
+	    connected2[j] = true;
+	    ++num_connections2;
+	 }
+      }
+
+   if (verbose > 2) {
+      cerr << "DONE:" << endl;
+      cerr << "nc1=" << num_connections1 << ", nc2=" << num_connections2 << endl;
+      cerr << "LINKS:" << endl;
+      for (Uint i = 0; i < links.size(); ++i) {
+         for (Uint j = 0; j < links.size(); ++j)
+            cerr << links[i][j] << ' ';
+         cerr << endl;
+      }
+   }
+
+   // put the results into sets1 for return (no null connections)
+
+   sets1.assign(toks1.size(), vector<Uint>());
+   for (Uint i = 0; i < toks1.size(); ++i) {
+      for (Uint j = 0; j < toks2.size(); ++j) {
+         if (links[i][j])
+            sets1[i].push_back(j);
+      }
+   }
+
+   return 1.0;
+}
+
+ExternalAligner::ExternalAligner(WordAlignerFactory& factory, const string& args)
+{
+   external_alignments = new iSafeMagicStream(args);
+}
+
+ExternalAligner::~ExternalAligner()
+{
+   if (external_alignments)
+      delete external_alignments;
+}
+
+double ExternalAligner::align(const vector<string>& toks1,
+		              const vector<string>& toks2,
+                              vector< vector<Uint> >& sets1)
+{
+   reader(*external_alignments, toks1, toks2, sets1);
    return 1.0;
 }

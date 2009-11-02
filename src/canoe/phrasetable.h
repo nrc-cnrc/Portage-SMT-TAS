@@ -56,6 +56,17 @@ struct ForwardBackwardPhraseInfo : public MultiTransPhraseInfo
    double         forward_trans_prob;
    /// forward probabilities for this phrase
    vector<float>  forward_trans_probs;
+
+   /// adirectional probability score
+   double         adir_prob; //boxing
+   /// adirectional probabilities for this phrase
+   vector<float>  adir_probs; //boxing
+
+   /// lexicalized distortion probability score
+   double         lexdis_prob; //boxing
+   /// lexicalized distortion probabilities for this phrase
+   vector<float>  lexdis_probs; //boxing
+
 }; // ForwardBackwardPhraseInfo
 
 
@@ -67,19 +78,49 @@ struct TScore
    /// Backward probs from all TMText phrase tables
    vector<float> backward;
 
+   /// Adirectional scores from all TMText phrase tables
+   vector<float> adir; //boxing
+
+   /// lexicalized distortion scores from all DM tables
+   vector<float> lexdis; //boxing
+
    /// Constructor
    TScore() {}
 
+   /**
+    * Check if two TScore are equal.
+    * @param  rhs  right-hand side operand.
+    * @return  true if both TScore are equal
+    */
+   bool operator==(const TScore& rhs) const
+   {
+      return (forward == rhs.forward
+           && backward == rhs.backward
+           && adir == rhs.adir
+           && lexdis == rhs.lexdis); //boxing
+   }
+
    /// Resets all values.  Call clear() before re-using a TScore object.
-   void clear() { forward.clear(); backward.clear(); }
+   void clear() {
+      forward.clear();
+      backward.clear();
+      adir.clear();
+      lexdis.clear();
+   } //boxing
 }; // TScore
 
 /// Leaf structure for phrase tables: map target phrase to probs.
 class TargetPhraseTable : public vector_map<Phrase, TScore> {
+  private:
+     typedef vector_map<Phrase, TScore> Parent;
   public:
    /// Set of input sentences in which the source phrase occurs.
    /// Only relevant in limitPhrases mode, will be empty otherwise.
    boost::dynamic_bitset<> input_sent_set;
+
+   /// Swaps two TargetPhraseTables.
+   /// @param o  other TargetPhraseTables.
+   void swap(TargetPhraseTable& o);
 };
 //typedef vector_map<Phrase, TScore> TargetPhraseTable;
 
@@ -102,6 +143,12 @@ protected:
 
    /// The total number of translation models that have been loaded.
    Uint numTransModels;
+
+   /// The total number of adirectional translation models that have been loaded (not included in numTransModels)
+   Uint numAdirTransModels;
+
+   /// The total number of lexicalized distortion models that have been loaded.
+   Uint numLexDisModels;
 
    /// Whether forwards translation probabilities are available.
    bool forwardsProbsAvailable;
@@ -137,6 +184,12 @@ protected:
 
    /// Human readable description of all forward phrase tables
    string forwardDescription;
+
+   /// Human readable description of all adirectional phrase tables
+   string adirDescription;
+
+    /// Human readable description of all lexicalized distortion tables
+   string lexdisDescription;
 
 private:
    /// PhraseTables are not safely copyable
@@ -239,6 +292,20 @@ public:
    static Uint countProbColumns(const char* multi_prob_TM_filename);
 
    /**
+    * Count the number of adirectional scores in a multi-prob phrase table file.
+    * Reads the first line of a multi-prob phrase table file to determine the
+    * number of adirectional scores columns it contains, and therefore the number
+    * of models is contains.
+    * @param multi_prob_TM_filename file name; a "#REVERSED" suffix will be
+    *                               removed if present.
+    * @return the number of "4th column" scores per row, i.e., the number of
+    *         adirectional models;
+    *         0 if multi_prob_TM_filename can't be opened or if its first line
+    *         is not valid.
+    */
+   static Uint countAdirScoreColumns(const char* multi_prob_TM_filename); //boxing
+
+   /**
     * Read a multi-prob phrase table file.  The file must be formatted as for
     * read(), except that the probability section of each line must contain an
     * even number of probabilities, separated by whitespace.  All lines must
@@ -262,13 +329,21 @@ public:
    virtual Uint readMultiProb(const char* multi_prob_TM_filename, bool limitPhrases);
 
    /**
-    * Read a phrase table (single or multi-column) from a given input stream,
-    * and write a filtered version to a given output stream.
-    * @param input file to read from ("-" for standard input)
-    * @param output stream to write to ("-" for standard output)
-    * @param reversed table is reversed - see isReversed() for details.
+    * Read a lexicalized distortion model file.  The file must be formatted as for
+    * read().  All lines must have the same number of probabilities.
+    *
+    * Any probability value <= 0 is considered illegal (because you can't take
+    * its log), and will be replaced by ALMOST_0, with a warning to the user.
+    *
+    * @param lexicalized_DM_filename  file name; if the file name ends with
+    *                       "#REVERSED", it will be considered a reversed
+    *                       phrase table.  See isReversed() for details.
+    * @param limitPhrases   Whether to store all phrase translations or only
+    *                       those for source phrases that are already in the
+    *                       table.
+    * @return The number of probability columns in the file.
     */
-   void readAndFilter(const string& input, const string& output, bool reversed);
+   virtual Uint readLexicalizedDist(const char* lexicalized_DM_filename, bool limitPhrases);
 
    /**
     * Write the contents to backward and/or forward streams.
@@ -330,13 +405,16 @@ public:
     *                   causes lots of output about phrases being considered.
     * @param forward_weights  If forward translation probabilities are used,
     *                   the weight of each phrase table's forward probs.
+    * @param adir_weights  If adirectional models are used, the weight of each
+    *                   adirectional model.
     */
    void getPhraseInfos(vector<PhraseInfo *> **phraseInfos,
                        const vector<string> &sent,
                        const vector<double> &weights,
                        Uint pruneSize, double logPruneThreshold,
                        const vector<Range> &rangesToSkip, Uint verbosity,
-                       const vector<double> *forward_weights = NULL);
+                       const vector<double> *forward_weights = NULL,
+                       const vector<double> *adir_weights = NULL);
 
    /**
     * Produces a string representing the given Uint-vector phrase.
@@ -363,10 +441,11 @@ public:
 protected:
    /// Direction of phrase table to load
    enum dir {
-      src_given_tgt,        ///< src ||| tgt ||| p(src|tgt)
-      tgt_given_src,        ///< tgt ||| src ||| p(tgt|src)
-      multi_prob,           ///< src ||| tgt ||| backward probs forward probs
-      multi_prob_reversed   ///< tgt ||| src ||| forward probs backward probs
+      src_given_tgt,         ///< src ||| tgt ||| p(src|tgt)
+      tgt_given_src,         ///< tgt ||| src ||| p(tgt|src)
+      multi_prob,            ///< src ||| tgt ||| backward probs forward probs
+      multi_prob_reversed,   ///< tgt ||| src ||| forward probs backward probs
+      lexicalized_distortion ///< src ||| tgt ||| pm ps pd nm ns nd
    };
 
    /**
@@ -380,14 +459,21 @@ protected:
       char* src;                  ///< source string in line
       char* tgt;                  ///< target string in line
       char* probString;           ///< prob string in line
+      char* ascoreString;         ///< ascore string in line   //boxing
       Uint  lineNum;              ///< entry number
       Phrase tgtPhrase;           ///< phrase representation of the target string (vector<Uint>)
 
       /// Keeps count of the erroneous or zero prob entries
       Uint zero_prob_err_count;
 
-      /// Current number of columns in the multi probs file
+      /// Number of probability columns in the current multi probs file
       Uint multi_prob_col_count;
+
+      /// Number of adirectional columns in the current multi probs file
+      Uint adirectional_prob_count; //boxing
+
+      /// Number of lexicalized distortion columns in the current file
+      Uint lexicalized_distortion_prob_count; //boxing
 
       /**
        * Default constructor.
@@ -401,12 +487,15 @@ protected:
       , src(NULL)
       , tgt(NULL)
       , probString(NULL)
+      , ascoreString(NULL) //boxing
       , lineNum(0)
       , zero_prob_err_count(0)
       , multi_prob_col_count(0)
+      , adirectional_prob_count(0)
+      , lexicalized_distortion_prob_count(0)
       {}
       void print() const {
-         cerr << endl << "ENTRY: " << src << ", " << tgt << ", " << probString << ", " << tgtPhrase.size() << endl;
+         cerr << endl << "ENTRY: " << src << ", " << tgt << ", " << probString << ", " << ascoreString << ", " << tgtPhrase.size() << endl;
       }
    };
 
@@ -415,26 +504,31 @@ protected:
     * When doing a hard filtering, this will process one block of entries at a
     * time and then flush the ptrie to keep the memory footprint low.
     * The online processing can only be done if there is only one multiprob TM.
-    * @param src
-    * @param tgtTable
+    * @param src             The source phrase to process
+    * @param src_word_count  The number of tokens in src
+    * @param tgtTable        The TargetPhraseTable for src
     * @return Returns the number of entries in tgtTable
     */
-   virtual Uint processTargetPhraseTable(const string& src, TargetPhraseTable* tgtTable);
+   virtual Uint processTargetPhraseTable(const string& src,
+         Uint src_word_count,
+         TargetPhraseTable* tgtTable);
 
    /**
     * Helper for readFile, with changing behaviour in filtering subclasses.
     * In this class, get the TargetPhraseTable object from the trie for the
     * phrase in Entry, creating it if limitPhrases is false.
     * @param entry information about phrase table line being processed
+    * @param src_word_count  return the number of source words in entry.src.
     * @param limitPhrases whether to restrict the processing to phrases
     *                     pre-entered into the trie.
     */
    virtual TargetPhraseTable* getTargetPhraseTable(const Entry& entry,
+         Uint& src_word_count,
          bool limitPhrases);
 
    /**
     * Search for a src phrase in all phrase tables.
-    * @param s_key      the key in character strings
+    * @param s_key      the key in a c string array
     * @param i_key      the key in tgtVocab mapped Uints.  Must correspond to
     *                   the same tokens as s_key.
     * @param range      the subrange of s_key/i_key to query for
@@ -442,7 +536,7 @@ protected:
     * otherwise (test with ret_val.get() == NULL or ret_val.use_count() == 0).
     */
    shared_ptr<TargetPhraseTable> findInAllTables(
-      const char* s_key[], const Uint i_key[], Range range);
+         const char* s_key[], const Uint i_key[], Range range);
 
    /**
     * Reads all phrase mappings from the given file.
@@ -463,7 +557,7 @@ protected:
     * @param tgt_given_src_out  output stream for forward probs
     * @param it         iterator at the beginning of the current node to explore
     * @param end        iterator at the end of the current node to explore
-    * @param prefix_stack  the strouce words of the parent nodes in trie
+    * @param prefix_stack  the source words of the parent nodes in trie
     */
    void write(ostream* src_given_tgt_out, ostream* tgt_given_src_out,
               PTrie<TargetPhraseTable>::iterator it,
@@ -475,7 +569,7 @@ protected:
     * @param multi_src_given_tgt_out  output stream for multi probs
     * @param it         iterator at the beginning of the current node to explore
     * @param end        iterator at the end of the current node to explore
-    * @param prefix_stack  the strouce words of the parent nodes in trie
+    * @param prefix_stack  the source words of the parent nodes in trie
     */
    void write(ostream& multi_src_given_tgt_out,
               PTrie<TargetPhraseTable>::iterator it,
@@ -493,6 +587,10 @@ protected:
     * @param tgtString  String to convert.
     */
    void tgtStringToPhrase(Phrase& tgtPhrase, const char* tgtString);
+
+   /// Same as tgtStringToPhrase(), but does not add previously unseen words
+   /// to the vocabulary.  (Needed for loading lexicalized distortion models)
+   void tgtStringToPhraseIndex(Phrase& tgtPhrase, const char* tgtString);
 
 protected:
    /**
@@ -564,6 +662,7 @@ public:
     * @param ph1        The first phrase is stored here.
     * @param ph2        The second phrase is stored here.
     * @param prob       The probability string is stored here.
+    * @param ascore     The adirectional probability string is stored here.
     * @param blank      If the line is blank, this is set to true.
     * @param fileName   The name of the file that is being used (for a possible
     *                   error message).
@@ -571,7 +670,8 @@ public:
     *                   error message).
     */
    static void readLine(istream &in, string &ph1, string &ph2, string &prob,
-                        bool &blank, const char *fileName, Uint &lineNum);
+                        string &ascore, bool &blank, const char *fileName,
+                        Uint &lineNum);
 
 protected:
    /**
@@ -600,9 +700,10 @@ protected:
     *                   the weight of each phrase table's forward probs.
     */
    virtual void getPhrases(vector<pair<double, PhraseInfo *> > &phrases,
-      TargetPhraseTable &tgtTable, const Range &src_words, Uint &numPruned,
-      const vector<double> &weights, double logPruneThreshold, Uint verbosity,
-      const vector<double> *forward_weights = NULL);
+                           TargetPhraseTable &tgtTable, const Range &src_words, Uint &numPruned,
+                           const vector<double> &weights, double logPruneThreshold, Uint verbosity,
+                           const vector<double> *forward_weights = NULL,
+                           const vector<double> *adir_weights = NULL); //boxing
 
 public:
    /**
@@ -675,6 +776,3 @@ public:
 } // Portage
 
 #endif // PHRASETABLE_H
-
-
-

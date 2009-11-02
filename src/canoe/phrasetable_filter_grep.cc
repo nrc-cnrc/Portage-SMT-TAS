@@ -13,7 +13,7 @@
  * Copyright 2007, Her Majesty in Right of Canada
  */
           
-#include <phrasetable_filter_grep.h>
+#include "phrasetable_filter_grep.h"
 
 using namespace Portage;
 
@@ -90,16 +90,26 @@ Uint PhraseTableFilterGrep::processMultiProb(const string& multi_prob_TM_filenam
 
    ostringstream back_description;
    ostringstream for_description;
+   ostringstream adir_description;//boxing
+   
    for (Uint i = 0; i < model_count; ++i) {
       back_description << "TranslationModel:" << multi_prob_TM_filename
          << "(col=" << (reversed ? i + model_count : i) << ")" << endl;
       for_description << "ForwardTranslationModel:" << multi_prob_TM_filename
          << "(col=" << (reversed ? i : i + model_count) << ")" << endl;
    }
+
+   Uint adir_score_count = countAdirScoreColumns(physical_filename.c_str());
+   for (Uint i = 0; i < adir_score_count; ++i)
+      adir_description << "adirectionalModel:" << multi_prob_TM_filename
+         << "(col=" << i << ")" << endl; //boxing
+         
    backwardDescription += back_description.str();
    forwardDescription  += for_description.str();
+   adirDescription     += adir_description.str(); //boxing
 
    numTransModels += model_count;
+   numAdirTransModels += adir_score_count;
 
    return col_count;
 }

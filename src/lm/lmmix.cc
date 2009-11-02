@@ -104,7 +104,7 @@ LMMix::LMMix(const string& name, VocabFilter* vocab,
                                    limit_vocab, limit_order, NULL));
       if (models.back()->getOrder() > gram_order)
          gram_order = models.back()->getOrder();
-      
+
       const double wt = conv<double>(toks[1]);
       z += wt;
       wts.push_back(log(wt));

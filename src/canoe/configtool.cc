@@ -38,7 +38,7 @@ namespace ConfigTool {
 
 /// Program config_tool's usage.
 static char help_message[] = "\n\
-configtool [-vp] cmd [config [out]]\n\
+configtool [-vpc] cmd [config [out]]\n\
 \n\
 Read canoe config file <config> and write selected information to <out>,\n\
 depending on <cmd>, one of:\n\
@@ -50,6 +50,7 @@ depending on <cmd>, one of:\n\
   nb                 - number of basic feature functions\n\
   nl                 - number of language models\n\
   nt                 - number of translation models\n\
+  na                 - number of adirectional translation models\n\
   nt-text            - number of single-prob text translation model files\n\
   nd                 - number of distortion models\n\
   segff              - does model contain a segmentation model ff?\n\
@@ -85,6 +86,8 @@ depending on <cmd>, one of:\n\
   applied-weights:tppt:w-tm:w-ftm\n\
                      - change the forward and backward weights to w-tm and w-ftm\n\
                        respectively and replaces multi-probs for tppt.\n\
+  args:<args>        - Apply canoe command-line arguments <args> to <config>, and\n\
+                       write resulting new configuration.\n\
 \n\
 Options:\n\
 \n\
@@ -178,6 +181,8 @@ int main(int argc, char* argv[])
    } else if (cmd == "nt") {
       os << (c.backPhraseFiles.size() + c.getTotalMultiProbModelCount())
          << endl;
+   } else if (cmd == "na") {
+      os << c.getTotalAdirectionalModelCount() << endl;
    } else if (cmd == "nt-text") {
       os << c.backPhraseFiles.size() << endl;
    } else if (isPrefix("ttable-file:", cmd)) {
@@ -274,6 +279,17 @@ int main(int argc, char* argv[])
       }
       c.setFeatureWeights(wts);
       os << c.getFeatureWeightString(line) << endl;
+   } else if (isPrefix("args:", cmd)) {
+      if (split(cmd, toks, ":") != 2)
+         error(ETFatal, "bad format for args command");
+      vector<string> params = c.getParamList();
+      const char* switches[params.size()];
+      for (Uint i = 0; i < params.size(); ++i)
+         switches[i] = params[i].c_str();
+      ArgReader r(ARRAY_SIZE(switches), switches, 0, 0, "", "-h", false);
+      r.read(toks[1]);
+      c.setFromArgReader(r);
+      c.write(os,0,pretty);
    } else if (cmd == "weights") {
       string line;
       os << c.getFeatureWeightString(line) << endl;

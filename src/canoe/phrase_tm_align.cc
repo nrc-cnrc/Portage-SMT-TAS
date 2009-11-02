@@ -1,7 +1,7 @@
 /**
  * @author Aaron Tikuisis
  *     **this copied+modified by Matthew Arnold for alignment purposes
- *  **Modified by Nicola Ueffing to use all decoder models
+ *  **Modified by Nicola Ueffing to use all decoder models and to do fuzzy match
  * @file phrase_tm_align.cc
  * @brief Use the decoder to phrase align source and target text.
  *
@@ -18,10 +18,10 @@
 
 #include "phrase_tm_align.h"
 #include "inputparser.h"
-#include <canoe_general.h>
-#include <phrasetable.h>
-#include <portage_defs.h>
-#include <arg_reader.h>
+#include "canoe_general.h"
+#include "phrasetable.h"
+#include "portage_defs.h"
+#include "arg_reader.h"
 #include <iostream>
 #include "printCopyright.h"
 
@@ -31,10 +31,11 @@ using namespace Portage;
 /// Program phrase_tm_align's usage.
 const char *HELP =
 "Usage: phrase_tm_align [-noscore][-onlyscore][-n N][-K K][-out FILE]\n\
-        -f CANOEFILE -ref TARGETFILE < [sourcefile]\n\
+        -f CANOEFILE -ref TARGETFILE < [SOURCEFILE]\n\
 \n\
-  Specify phrase tables and search settings in CANOEFILE.\n\
-  See canoe -h for details.\n\
+  Most parameters are specified in CANOEFILE: the target corpus (using [ref] or\n\
+  -ref on the command line) the phrase tables and other search settings.  See\n\
+  canoe -h for details about the options that can be specified in CANOEFILE.\n\
 \n\
   Use the phrase tables to find phrase alignments for the source and target\n\
   files given.  Each source sentence may have a fixed number K of contiguous\n\
@@ -46,6 +47,8 @@ const char *HELP =
   By default the algorithm is exhaustive and slow; to speed it up, use settings\n\
   [s] 100 [b] 0.0001, and optionally a [distortion-limit] of 10 to 15.\n\
 \n\
+  Fuzzy alignment is performed if [weight-lev] or [weight-ngrams] is provided.\n\
+\n\
 Options:\n\
   -noscore     Do not output scores with sentences\n\
   -onlyscore   Do not output sentences, only scores\n\
@@ -56,9 +59,8 @@ Options:\n\
   -ref TARGETFILE  Target corpus, to align with sourcefile\n\
 \n\
   For more options, see canoe -help message.\n\
-  Note: Since the target sentence is fixed, not all decoder features are\n\
-        relevant, although their scores can still be calculated and displayed\n\
-        if [ffvals] is specified.\n\
+  Note: Some features are relevant only if fuzzy alignment is performed:\n\
+        Levenshtein, n-grams, length feature (=word penalty), LM, IBM1.\n\
 \n\
 ";
 
@@ -93,7 +95,7 @@ int main(int argc, const char * const * argv)
    CanoeConfig c;
    static vector<string> args = c.getParamList();
 
-   const char* switches[args.size() + 6];
+   const char* switches[args.size() + 5];
    for (Uint i = 0; i < args.size(); ++i)
       switches[i] = args[i].c_str();
    switches[args.size()] = ("n:");
@@ -101,7 +103,6 @@ int main(int argc, const char * const * argv)
    switches[args.size()+2] = ("noscore");
    switches[args.size()+3] = ("onlyscore");
    switches[args.size()+4] = ("out:");
-   switches[args.size()+5] = ("ref:");
 
    char help[strlen(HELP) + strlen(argv[0])];
    sprintf(help, HELP, argv[0]);
@@ -123,32 +124,38 @@ int main(int argc, const char * const * argv)
    bool noscore=false, onlyscore=false;
    Uint N=1, K=1;
    string outFile = "-";
-   string refFile;
    argReader.testAndSet("noscore", noscore);
    argReader.testAndSet("onlyscore", onlyscore);
    argReader.testAndSet("n", N);
    argReader.testAndSet("k", K);
    argReader.testAndSet("out", outFile);
-   argReader.testAndSet("ref", refFile);
 
    if (noscore && onlyscore) {
       cerr << "Your parameter choices do not make sense! Choose either noscore or onlyscore!" << endl;
       exit(1);
    }
 
-   // Since we are decoding to a fixed target sentence, the LM, IBM1 and length
-   // features cannot be relevant, so we give them a weight of 0.
-   string weightstr;
-   c.getFeatureWeightString(weightstr);
-   cerr << "Using only phrase table, distortion and segmentation features." << endl
-        << "   Changing feature weights accordingly" << endl
-        << "   Original weights were " << weightstr << endl;
-   c.lmWeights.assign(c.lmWeights.size(), 0.0);
-   c.ibm1FwdWeights.assign(c.ibm1FwdWeights.size(), 0.0);
-   c.lengthWeight = 0.0;
+   /*
+    * Find out whether to determine exact or fuzzy alignment and set weights
+    * accordingly:
+    *  - Keep all weights for fuzzy alignment.
+    *  - For exact alignment, set weights that are constant given the target
+    *    sentence to 0: lm, ibm1, length.
+    */
+   if ( c.levWeight.empty() && c.ngramMatchWeights.empty()) {
+      string weightstr;
+      c.getFeatureWeightString(weightstr);
+      cerr << "Exact phrase match is calculated using only the phrase table and" << endl
+         << "   those features that are not fixed given the target sentence." << endl
+         << "   Changing feature weights accordingly" << endl
+         << "   Original weights were " << weightstr << endl;
+      c.lmWeights.assign(c.lmWeights.size(), 0.0);
+      c.ibm1FwdWeights.assign(c.ibm1FwdWeights.size(), 0.0);
+      c.lengthWeight = 0.0;
 
-   c.getFeatureWeightString(weightstr);
-   cerr << "   Changed weights are    " << weightstr << endl;
+      c.getFeatureWeightString(weightstr);
+      cerr << "   Changed weights are    " << weightstr << endl;
+   }
 
    // Read source sentences.
    vector<vector<string> > src_sents;
@@ -178,9 +185,9 @@ int main(int argc, const char * const * argv)
    } // if
 
    // Read reference (target) sentences.
-   if (refFile=="")
+   if (c.refFile=="")
       error(ETFatal, "You have to provide a reference file!\n");
-   iSafeMagicStream ref(refFile);
+   iSafeMagicStream ref(c.refFile);
    vector<vector<string> > tgt_sents;
    readSentences(ref, tgt_sents);
 
@@ -188,7 +195,7 @@ int main(int argc, const char * const * argv)
    if ( ! c.loadFirst ) {
       if (tgt_sents.size() % src_sents.size() != 0)
          error(ETFatal, "Number of target lines (%d) in %s is not a multiple of the number of source lines (%d) in %s",
-               tgt_sents.size(), refFile.c_str(), src_sents.size(), c.input.c_str());
+               tgt_sents.size(), c.refFile.c_str(), src_sents.size(), c.input.c_str());
       if (K>0) {
          if (tgt_sents.size() / src_sents.size() != K) {
             error(ETWarn, "K specified on command-line (%d) does not match computed K.  Using K=%d.",
@@ -258,10 +265,16 @@ int main(int argc, const char * const * argv)
             out << endl;
          }
 
-         aligner.computePhraseTM(nss_info, out, N,
-                                 noscore, onlyscore,
-                                 c.pruneThreshold, c.maxStackSize,
-                                 c.covLimit, c.covThreshold);
+         if ( !c.levWeight.empty() || !c.ngramMatchWeights.empty())
+            aligner.computeFuzzyPhraseTM(nss_info, out, N,
+                                         noscore, onlyscore,
+                                         c.pruneThreshold, c.maxStackSize,
+                                         c.covLimit, c.covThreshold);
+         else
+            aligner.computePhraseTM(nss_info, out, N,
+                                    noscore, onlyscore,
+                                    c.pruneThreshold, c.maxStackSize,
+                                    c.covLimit, c.covThreshold);
 
          out << flush;
       } // for

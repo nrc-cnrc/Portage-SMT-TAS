@@ -39,4 +39,7 @@ $out = shift || "-";
 if (!open(IN, "<$in")) {die "Can't open $in for reading";}
 if (!open(OUT, ">$out")) {die "Can't open $out for writing";}
 
+# Enable immediate flush even when piping
+select(OUT); $| = 1;
+
 while (<IN>) {print OUT lc;}

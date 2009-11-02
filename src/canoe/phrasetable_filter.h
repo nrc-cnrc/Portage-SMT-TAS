@@ -16,7 +16,8 @@
 #ifndef __PHRASE_TABLE_FILTER_H__
 #define __PHRASE_TABLE_FILTER_H__
 
-#include <phrasetable.h>
+#include "phrasetable.h"
+#include "pruning_style.h"
 
 namespace Portage {
 /**
@@ -29,17 +30,21 @@ class PhraseTableFilter : public PhraseTable {
    protected:
       /// Are we limiting phrase table to the input phrase vocabulary?
       bool limitPhrases;
+      /// Keeps a reference to a pruning Style.
+      const pruningStyle* pruning_type;
    public:
       /**
        * Default constructor.
-       * @param _limitPhrases       limiting 
+       * @param limitPhrases        limiting 
        * @param tgtVocab            target vocaulary
        * @param pruningTypeStr      pruning type
        */
-      PhraseTableFilter(bool _limitPhrases, VocabFilter& tgtVocab, const char* pruningTypeStr = NULL)
+      PhraseTableFilter(bool limitPhrases, VocabFilter& tgtVocab, const char* pruningTypeStr = NULL)
       : Parent(tgtVocab, pruningTypeStr)
-      , limitPhrases(_limitPhrases)
+      , limitPhrases(limitPhrases)
+      , pruning_type(NULL)
       {}
+
       /// Destructor.
       virtual ~PhraseTableFilter()
       {}
@@ -51,7 +56,7 @@ class PhraseTableFilter : public PhraseTable {
        * @param filename  file name of the resulting multi probs
        * @param L  ttable-limit
        */
-      virtual void filter_joint(const string& filename, Uint L = 30)
+      virtual void filter_joint(const string& filename, const pruningStyle* const pruning_type)
       {}
 
       /**

@@ -5,7 +5,7 @@
  * $Id$
  *
  * Technologies langagieres interactives / Interactive Language Technoogies
- * Institut de technologie de l'information / Institute for Information Technoloy
+ * Inst. de technologie de l'information / Institute for Information Technoloy
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2007, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2007, Her Majesty in Right of Canada
@@ -204,6 +204,8 @@ class CubePruningHypStack : public HypothesisStack {
       map<UintSet, vector<DecoderState*> > best_states;
       /// When using pop(), index of the next state to pop
       Uint pop_position;
+      /// If true, recombined states are discarded as they are added
+      bool discardRecombined;
 
    public:
       /**
@@ -211,10 +213,15 @@ class CubePruningHypStack : public HypothesisStack {
        * @param model   The BasicModel used to determine if two
        *                translations are recombinable and to score new decoder
        *                states.
+       * @param discardRecombined If true, recombined states will be
+       *                discarded as they are added, keeping only the
+       *                higher scoring state.  Set only if you will not
+       *                trying to extract lattices or n-best lists.
        */
-      CubePruningHypStack(BasicModel& model)
+      CubePruningHypStack(BasicModel& model, bool discardRecombined)
          : model(model)
          , pop_position(0)
+         , discardRecombined(discardRecombined)
       {}
 
       /**

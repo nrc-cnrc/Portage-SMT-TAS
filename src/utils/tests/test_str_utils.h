@@ -29,6 +29,24 @@ public:
       char test_str3[] = "asdf";
       TS_ASSERT(strcmp(trim(test_str3), "asdf") == 0);
    }
+
+   void testSplitString() {
+      string s("a ||| b ||| c");
+      vector<string> toks;
+      string sep(" ||| ");
+      
+      splitString(s, toks, sep);
+      TS_ASSERT_EQUALS(toks.size(), 3);
+      TS_ASSERT_EQUALS(toks[0], "a");
+      TS_ASSERT_EQUALS(toks[1], "b");
+      TS_ASSERT_EQUALS(toks[2], "c");
+
+      splitStringZ(s, toks, sep);
+      TS_ASSERT_EQUALS(toks.size(), 3);
+      TS_ASSERT_EQUALS(toks[0], "a");
+      TS_ASSERT_EQUALS(toks[1], "b");
+      TS_ASSERT_EQUALS(toks[2], "c");
+   }
 }; // TestStrUtils
 
 } // Portage

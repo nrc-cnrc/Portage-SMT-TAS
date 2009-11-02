@@ -47,6 +47,7 @@ class CanoeConfig;
  *                      same coverage, rather than on the same stack.  This is
  *                      also for coverage pruning.
  *                      !!! COVERAGE PRUNING MAY NOT BE IMPLEMENTED YET !!!
+ * @param usingLev      Specifies of the decoder is using Levenshtein
  * @param c.distLimit   The maximum distortion distance allowed between two
  *                      words.  Use NO_MAX_DISTORTION to mean none.
  * @param c.verbosity   Indicates level of verbosity.
@@ -55,7 +56,8 @@ class CanoeConfig;
  *         This stack decoder state must be deleted externally; deleting it
  *         will result in the destruction of the whole lattice.
  */
-HypothesisStack* runCubePruningDecoder(BasicModel &model, const CanoeConfig& c);
+HypothesisStack* runCubePruningDecoder(BasicModel &model, const CanoeConfig& c,
+      bool usingLev);
 
 
 

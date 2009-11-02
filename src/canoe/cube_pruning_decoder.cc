@@ -211,7 +211,8 @@ static void MakeHyperedges(
            << endl;
 } // MakeHyperedges
 
-HypothesisStack* runCubePruningDecoder(BasicModel &model, const CanoeConfig& c)
+HypothesisStack* runCubePruningDecoder(BasicModel &model, const CanoeConfig& c,
+      bool usingLev)
 {
    // Get all the phrase translation options from the model
    Uint sourceLength = model.getSourceLength();
@@ -244,16 +245,20 @@ HypothesisStack* runCubePruningDecoder(BasicModel &model, const CanoeConfig& c)
       }
    }
 
+   // If we only need to top hypothesis, there is no point in keeping
+   // recombined states, so we discard them on the fly.
+   const bool discardRecomb = (!c.masse && !c.latticeOut && !c.nbestOut);
+
    // Create the cube pruning hypothesis stacks
    CubePruningHypStack *stacks[sourceLength + 1];
    for ( Uint i(0); i < sourceLength + 1; ++i )
-      stacks[i] = new CubePruningHypStack(model);
+      stacks[i] = new CubePruningHypStack(model, discardRecomb);
 
    // Calculate the log(c.pruneThreshold) only once
    double threshold = log(c.pruneThreshold);
 
    // Empty start state for all translations.
-   stacks[0]->push(makeEmptyState(sourceLength));
+   stacks[0]->push(makeEmptyState(sourceLength, usingLev));
    Uint nextDecoderStateId(1); // 0 is the empty state just created.
 
    for ( Uint s(1); s <= sourceLength; ++s ) {

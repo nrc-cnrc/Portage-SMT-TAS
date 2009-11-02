@@ -178,27 +178,57 @@ public:
 
 //-----------------------------------------------------------------------------
 /**
- * Plain relative-frequency estimates - no smoothing.
+ * Plain relative-frequency estimates - with optional add-alpha smoothing
  */
 template<class T>
 class RFSmoother : public PhraseSmoother<T>
 {
 protected:
 
-   vector<T> lang1_marginals;
-   vector<T> lang2_marginals;
+   double alpha;
+
+   vector<T> lang1_marginals;   // l1 phrase -> total frequency
+   vector<T> lang2_marginals;   // l2 phrase -> total frequency
+
+   vector<Uint> lang1_numtrans;	// l1 phrase -> num different translations
+   vector<Uint> lang2_numtrans;	// l2 phrase -> num different translations
 
 public:
 
    /**
     * Constructor.
     * @param factory
-    * @param args
+    * @param args [alpha]
     */
    RFSmoother(PhraseSmootherFactory<T>& factory, const string& args);
 
    virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it);
    virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
+};
+
+
+//-----------------------------------------------------------------------------
+/**
+ * Don't estimate conditional probabilities - just write joint frequencies.
+ */
+template<class T>
+class JointFreqs : public PhraseSmoother<T>
+{
+public:
+
+   /**
+    * Constructor does nothing.
+    * @param factory
+    * @param args
+    */
+   JointFreqs(PhraseSmootherFactory<T>& factory, const string& args) {}
+
+   virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it) {
+      return it.getJointFreq();
+   }
+   virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it) {
+      return it.getJointFreq();
+   }
 };
 
 
@@ -238,6 +268,16 @@ class GTSmoother : public PhraseSmoother<T>
 {
    vector<double> lang1_marginals;
    vector<double> lang2_marginals;
+
+   vector<Uint> lang1_numtrans;	// l1 phrase -> num different translations
+   vector<Uint> lang2_numtrans;	// l2 phrase -> num different translations
+
+   // the following are used initially for the number of translations with 0
+   // freq, then transformed into the probability assigned to each of those
+   // translations
+
+   vector<double> lang1_num0trans; // l1 phrase -> num translations with 0 freq
+   vector<double> lang2_num0trans; // l2 phrase -> num translations with 0 freq
 
    GoodTuring* gt;
 
@@ -409,26 +449,25 @@ public:
 
 //-----------------------------------------------------------------------------
 /**
- * Constant indicator values.
+ * For known conditioning phrases, a value of 1.0 if translation is also known,
+ * else alpha [1/e]. For unknown conditioning phrases, a uniform distribution.
  */
 template<class T>
-class IndicatorSmoother : public PhraseSmoother<T>
+class IndicatorSmoother : public RFSmoother<T>
 {
-   static const double ind_val = 2.7183;
-
 public:
 
    /**
     * Constructor.
     * @param factory
-    * @param args - ignored
+    * @param args [alpha]
     */
-   IndicatorSmoother(PhraseSmootherFactory<T>& factory, const string& args) {}
+   IndicatorSmoother(PhraseSmootherFactory<T>& factory, const string& args);
 
-   virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it) {return ind_val;}
-   virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it) {return ind_val;}
+   virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it);
+   virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
 };
 
-}
+} // Portage
 
 #endif

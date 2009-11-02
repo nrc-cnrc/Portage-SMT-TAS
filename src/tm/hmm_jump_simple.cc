@@ -12,7 +12,9 @@
 
 #include "portage_defs.h"
 #include "hmm_jump_simple.h"
-#include "file_utils.h"
+#include "binio.h"
+#include "errors.h"
+#include "str_utils.h"
 
 using namespace Portage;
 
@@ -124,8 +126,9 @@ void HMMJumpSimple::read(istream& in, const char* stream_name) {
 
    // This line says "jump counts", but really means "jump parameters".
    if ( line == "Binary HMM jump counts v1.0" ) {
-      using namespace BinIOStream;
-      in >> backward_jump_p >> forward_jump_p;
+      using namespace BinIO;
+      readbin(in, backward_jump_p);
+      readbin(in, forward_jump_p);
       if ( !getline(in, line) )
          error(ETFatal, "Missing footer in %s after binary jump parameters",
                stream_name);
@@ -175,9 +178,10 @@ void HMMJumpSimple::write(ostream& out, bool bin) const {
           << anchor << " "
           << max_jump << endl;
    if ( false && bin ) {
-      using namespace BinIOStream;
+      using namespace BinIO;
       out << "Binary HMM jump counts v1.0" << endl;
-      out << backward_jump_p << forward_jump_p;
+      writebin(out, backward_jump_p);
+      writebin(out, forward_jump_p);
       out << "End binary HMM jump counts v1.0" << endl;
    } else {
       out << joini(backward_jump_p.begin(), backward_jump_p.begin()+max_back+1)
@@ -188,17 +192,17 @@ void HMMJumpSimple::write(ostream& out, bool bin) const {
 } // write()
 
 void HMMJumpSimple::writeBinCountsImpl(ostream& os) const {
-   using namespace BinIOStream;
-   os << forward_jump_counts;
-   os << backward_jump_counts;
+   using namespace BinIO;
+   writebin(os, forward_jump_counts);
+   writebin(os, backward_jump_counts);
 }
 
 void HMMJumpSimple::readAddBinCountsImpl(istream& is, const char* stream_name) {
-   using namespace BinIOStream;
+   using namespace BinIO;
 
    // Forward jump counts
    vector<double> forward_jump_counts_read;
-   is >> forward_jump_counts_read;
+   readbin(is, forward_jump_counts_read);
    if ( forward_jump_counts_read.size() > forward_jump_counts.size() )
       forward_jump_counts.resize(forward_jump_counts_read.size(), 0.0);
    for ( Uint i(0); i < forward_jump_counts_read.size(); ++i )
@@ -206,7 +210,7 @@ void HMMJumpSimple::readAddBinCountsImpl(istream& is, const char* stream_name) {
 
    // Backward jump counts
    vector<double> backward_jump_counts_read;
-   is >> backward_jump_counts_read;
+   readbin(is, backward_jump_counts_read);
    if ( backward_jump_counts_read.size() > backward_jump_counts.size() )
       backward_jump_counts.resize(backward_jump_counts_read.size(), 0.0);
    for ( Uint i(0); i < backward_jump_counts_read.size(); ++i )

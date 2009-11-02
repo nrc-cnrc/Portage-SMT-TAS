@@ -71,5 +71,5 @@ modelfile=$1
 textfile=$2
 
 for model in `cat $modelfile`; do
-   ngram $ngopts -lm $model -ppl $textfile | egrep ppl
+   lm_eval -q $ngopts $model $textfile | egrep ppl
 done

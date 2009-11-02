@@ -55,6 +55,7 @@ Options:\n\
   -end ENDLINE  Last line to process in each file [0 = final]\n\
   -mod REM:DIV  Process only lines with (line_no\%DIV==REM) in each file. [0:1]\n\
   -final-cleanup Delete models before exiting (slow; use for leak detection)\n\
+  -max-len MAX  Truncate sentenences longer than MAX tokens; 0 = no limit [0]\n\
 \n\
 IBM2-only parameters:\n\
   -slen SLEN      Max source length for standard IBM2 pos table [50]\n\
@@ -148,8 +149,9 @@ static const char* switches[] = {
    "v", "r", "-m", "n1:", "n2:", "i:", "s:", "p:", "p2:",
    "slen:", "tlen:", "bksize:", "speed:", "bin",
    "beg:", "end:", "hmm", "alpha:", "lambda:", "p0:", "anchor", "noanchor",
-   "up0:", "max-jump:", "end-dist", "noend-dist", "word-classes-l1:",
-   "word-classes-l2:", "liang", "mimic:", "final-cleanup",
+   "up0:", "max-jump:", "end-dist", "noend-dist",
+   "word-classes-l1:", "word-classes-l2:", "max-len",
+   "liang", "mimic:", "final-cleanup",
    "tobin:", "frombin:", "count-only", "est-only",
    "ibm1", "ibm2", "mod:",
    "rev-i:", "rev-s:", "rev-model:", "symmetrized:",
@@ -168,6 +170,8 @@ static string ibm1_model;
 static string model;
 static double pruning_thresh = 1e-06;
 static double pruning_thresh2 = 1e-10; 
+static Uint max_len1 = 0; // max sent length during ibm1 training
+static Uint max_len2 = 0; // max sent length during ibm2/hmm training
 static Uint slen = 50;
 static Uint tlen = 50;
 static Uint bksize = 50;
@@ -206,6 +210,14 @@ static double lex_prune_ratio = 0.1;
 static bool final_cleanup = false;
 static bool debug_options = false;
 static void getArgs(int argc, char* argv[]);
+
+static void truncate(vector<string>& toks, Uint max_len) {
+   if ( max_len && toks.size() > max_len ) {
+      error(ETWarn, "Truncating long sentence from %u tokens to max: %u",
+            toks.size(), max_len);
+      toks.resize(max_len);
+   }
+}
 
 // main
 
@@ -411,7 +423,7 @@ int main(int argc, char* argv[])
          if (verbose) cerr << "beginning training:" << endl;
 
       if (iter > 0) {
-         if ( iter < num_iters1 ) {
+         if ( iter <= num_iters1 ) {
             aligner->IBM1::initCounts();
             if ( symmetrized ) rev_aligner->IBM1::initCounts();
          } else {
@@ -461,6 +473,8 @@ int main(int argc, char* argv[])
                if ( symmetrized )
                   rev_aligner->add(toks2, toks1, true);
             } else if (iter <= num_iters1) {
+               truncate(toks1, max_len1);
+               truncate(toks2, max_len1);
                if ( symmetrized && isPrefix("liang", symmetrized_method) ) {
                   aligner->IBM1::count_symmetrized(toks1, toks2, true,
                                                    rev_aligner);
@@ -470,6 +484,8 @@ int main(int argc, char* argv[])
                      rev_aligner->IBM1::count(toks2, toks1, true);
                }
             } else {
+               truncate(toks1, max_len2);
+               truncate(toks2, max_len2);
                if ( symmetrized && isPrefix("liang", symmetrized_method) ) {
                   aligner->count_symmetrized(toks1, toks2, true, rev_aligner);
                } else {
@@ -630,6 +646,8 @@ void getArgs(int argc, char* argv[])
          error(ETFatal, "Unknown -mimic value: %s", mimic.c_str());
    }
 
+   arg_reader.testAndSet("hmm", do_hmm);
+
    arg_reader.testAndSet("v", verbose);
    arg_reader.testAndSet("r", reverse_dir);
    arg_reader.testAndSet("i", init_model);
@@ -645,7 +663,8 @@ void getArgs(int argc, char* argv[])
    arg_reader.testAndSet("beg", begline);
    arg_reader.testAndSet("end", endline);
    arg_reader.testAndSet("bin", bin_ttables);
-   arg_reader.testAndSet("hmm", do_hmm);
+   arg_reader.testAndSet("max-len", max_len1);
+   arg_reader.testAndSet("max-len", max_len2);
    arg_reader.testAndSet("alpha", alpha);
    arg_reader.testAndSet("lambda", lambda);
    arg_reader.testAndSet("p0", p0);
@@ -682,12 +701,12 @@ void getArgs(int argc, char* argv[])
                      "negative arguments.");
 
    if ( (mimic == "he-baseline" || mimic == "he-baseline-mod") &&
-        word_classes_file_lang1 == "" )
+        word_classes_file_lang1.empty() )
       error(ETWarn, "Using He baseline without word classes.  Did you forget the -word-classes-l1 switch?");
 
-   if ( p0 >= .2 && up0 >= 1 )
-      error(ETFatal, "Combination of -p0 %f with -up0 %f is too high.",
-            p0, up0);
+   //if ( p0 >= .2 && up0 >= 1 )
+   //   error(ETFatal, "Combination of -p0 %f with -up0 %f is too high.",
+   //         p0, up0);
 
    // for bin <-> text model conversions, we use a side effect of the main
    // loop, which will load a model and rewrite it if n1 = n2 = 0 and an
@@ -802,51 +821,53 @@ void getArgs(int argc, char* argv[])
    }
 
    if ( debug_options ) {
-      cerr << "verbose \t"<< verbose << endl;
-      cerr << "reverse_dir\t"<< reverse_dir << endl;
-      cerr << "num_iters1\t"<< num_iters1 << endl;
-      cerr << "num_iters2\t"<< num_iters2 << endl;
-      cerr << "init_model\t"<< init_model << endl;
-      cerr << "ibm1_model\t"<< ibm1_model << endl;
-      cerr << "model   \t"<< model << endl;
-      cerr << "pruning_thresh\t"<< pruning_thresh << endl;
-      cerr << "pruning_thresh2\t"<< pruning_thresh2 << endl;
-      cerr << "slen    \t"<< slen << endl;
-      cerr << "tlen    \t"<< tlen << endl;
-      cerr << "bksize  \t"<< bksize << endl;
-      cerr << "speed   \t"<< speed << endl;
-      cerr << "begline \t"<< begline << endl;
-      cerr << "endline \t"<< endline << endl;
-      cerr << "bin_ttables\t"<< bin_ttables << endl;
-      cerr << "do_hmm  \t"<< do_hmm << endl;
-      cerr << "alpha   \t"<< alpha << endl;
-      cerr << "lambda  \t"<< lambda << endl;
-      cerr << "p0      \t"<< p0 << endl;
-      cerr << "up0     \t"<< up0 << endl;
-      cerr << "anchor  \t"<< anchor << endl;
-      cerr << "max_jump\t"<< max_jump << endl;
-      cerr << "end_dist\t"<< end_dist << endl;
-      cerr << "word_classes_file_lang1\t"<< word_classes_file_lang1 << endl;
-      cerr << "word_classes_file_lang2\t"<< word_classes_file_lang2 << endl;
-      cerr << "liang   \t"<< liang << endl;
-      cerr << "mimic   \t"<< mimic << endl;
-      cerr << "tobin   \t"<< tobin << endl;
-      cerr << "frombin \t"<< frombin << endl;
-      cerr << "count_only\t"<< count_only << endl;
-      cerr << "est_only\t"<< est_only << endl;
-      cerr << "do_ibm1 \t"<< do_ibm1 << endl;
-      cerr << "do_ibm2 \t"<< do_ibm2 << endl;
-      cerr << "modulo  \t"<< modulo << endl;
-      cerr << "mod_divisor\t"<< mod_divisor << endl;
-      cerr << "mod_remainder\t"<< mod_remainder << endl;
-      cerr << "rev_init_model\t"<< rev_init_model << endl;
-      cerr << "rev_ibm1_model\t"<< rev_ibm1_model << endl;
-      cerr << "rev_model\t"<< rev_model << endl;
-      cerr << "symmetrized_method\t"<< symmetrized_method << endl;
-      cerr << "symmetrized\t"<< symmetrized << endl;
-      cerr << "map_tau\t"<< map_tau << endl;
-      cerr << "lex_prune_ratio\t"<< lex_prune_ratio << endl;
-      cerr << "final_cleanup\t"<< final_cleanup << endl;
+      cerr << "verbose \t"<< verbose << nf_endl;
+      cerr << "reverse_dir\t"<< reverse_dir << nf_endl;
+      cerr << "num_iters1\t"<< num_iters1 << nf_endl;
+      cerr << "num_iters2\t"<< num_iters2 << nf_endl;
+      cerr << "init_model\t"<< init_model << nf_endl;
+      cerr << "ibm1_model\t"<< ibm1_model << nf_endl;
+      cerr << "model   \t"<< model << nf_endl;
+      cerr << "pruning_thresh\t"<< pruning_thresh << nf_endl;
+      cerr << "pruning_thresh2\t"<< pruning_thresh2 << nf_endl;
+      cerr << "max_len1\t"<< max_len1 << nf_endl;
+      cerr << "max_len2\t"<< max_len2 << nf_endl;
+      cerr << "slen    \t"<< slen << nf_endl;
+      cerr << "tlen    \t"<< tlen << nf_endl;
+      cerr << "bksize  \t"<< bksize << nf_endl;
+      cerr << "speed   \t"<< speed << nf_endl;
+      cerr << "begline \t"<< begline << nf_endl;
+      cerr << "nf_endline \t"<< endline << endl;
+      cerr << "bin_ttables\t"<< bin_ttables << nf_endl;
+      cerr << "do_hmm  \t"<< do_hmm << nf_endl;
+      cerr << "alpha   \t"<< alpha << nf_endl;
+      cerr << "lambda  \t"<< lambda << nf_endl;
+      cerr << "p0      \t"<< p0 << nf_endl;
+      cerr << "up0     \t"<< up0 << nf_endl;
+      cerr << "anchor  \t"<< anchor << nf_endl;
+      cerr << "max_jump\t"<< max_jump << nf_endl;
+      cerr << "end_dist\t"<< end_dist << nf_endl;
+      cerr << "word_classes_file_lang1\t"<< word_classes_file_lang1 << nf_endl;
+      cerr << "word_classes_file_lang2\t"<< word_classes_file_lang2 << nf_endl;
+      cerr << "liang   \t"<< liang << nf_endl;
+      cerr << "mimic   \t"<< mimic << nf_endl;
+      cerr << "tobin   \t"<< tobin << nf_endl;
+      cerr << "frombin \t"<< frombin << nf_endl;
+      cerr << "count_only\t"<< count_only << nf_endl;
+      cerr << "est_only\t"<< est_only << nf_endl;
+      cerr << "do_ibm1 \t"<< do_ibm1 << nf_endl;
+      cerr << "do_ibm2 \t"<< do_ibm2 << nf_endl;
+      cerr << "modulo  \t"<< modulo << nf_endl;
+      cerr << "mod_divisor\t"<< mod_divisor << nf_endl;
+      cerr << "mod_remainder\t"<< mod_remainder << nf_endl;
+      cerr << "rev_init_model\t"<< rev_init_model << nf_endl;
+      cerr << "rev_ibm1_model\t"<< rev_ibm1_model << nf_endl;
+      cerr << "rev_model\t"<< rev_model << nf_endl;
+      cerr << "symmetrized_method\t"<< symmetrized_method << nf_endl;
+      cerr << "symmetrized\t"<< symmetrized << nf_endl;
+      cerr << "map_tau\t"<< map_tau << nf_endl;
+      cerr << "lex_prune_ratio\t"<< lex_prune_ratio << nf_endl;
+      cerr << "final_cleanup\t"<< final_cleanup << nf_endl;
       cerr << "debug_options\t"<< debug_options << endl;
       exit(1);
    }

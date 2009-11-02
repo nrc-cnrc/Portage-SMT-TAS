@@ -14,8 +14,8 @@
  * Copyright 2007, Her Majesty in Right of Canada
  */
 
-#include <soft_filter_tm_visitor.h>
-#include <functional>  // not2
+#include "soft_filter_tm_visitor.h"
+#include <functional>  // for not2
 
 using namespace Portage;
 using namespace Portage::Joint_Filtering;
@@ -44,7 +44,9 @@ softFilterTMVisitor::PhraseInfo4SoftFiltering::PhraseInfo4SoftFiltering(const pa
 
 
 
-softFilterTMVisitor::softFilterTMVisitor(const PhraseTable &parent, double log_almost_0)
+softFilterTMVisitor::softFilterTMVisitor(
+      const PhraseTable &parent,
+      double log_almost_0)
 : Parent(parent, log_almost_0, "SOFT")
 {
    //LOG_VERBOSE4(ptLogger_softFilterTMVisitor, "soft filter_joint LOG probs with resized converted");

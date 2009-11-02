@@ -178,7 +178,7 @@ static void printTransition(ostream *out, const T& from, const S& to, const stri
                             &phrase, double score, bool backwards)
 {
    if (!out) return;
-   
+
    if (backwards)
       {
          printTransition(out, to, from, phrase, score, false);
@@ -285,7 +285,7 @@ static double addAndDoState(ostream *out, ostream *covout, PrintFunc &print,
                           bool backwards, MasseVu_ptr mv)
 {
    if (!stateMap[state->id]) {
-   
+
       double dMasse(0.0);
       if (state->back != NULL) {
          const double dDelta(exp(state->score - state->back->score));
@@ -334,7 +334,7 @@ struct null_deleter
    /// Fakes deletion of a pointer.
    void operator()(T const *) const {}
 };
-   
+
 double writeWordGraph(ostream *out, ostream *covout, PrintFunc &print,
                     const vector<DecoderState *> &finalStates, bool backwards, bool bMasse)
 {
@@ -385,7 +385,7 @@ double writeWordGraph(ostream *out, ostream *covout, PrintFunc &print,
          }
       } // if
    } // for
-   
+
    return dMasseTotale;
 } // writeWordGraph
 

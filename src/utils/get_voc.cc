@@ -37,6 +37,7 @@ Options:\n\
 -v   Write progress reports to cerr.\n\
 -c   Write count for each word\n\
 -s   Sort output by counts (implies -c)\n\
+-min MIN_COUNT Only output words with a frequency >= MIN_COUNT [1]\n\
 ";
 
 // globals
@@ -44,6 +45,7 @@ Options:\n\
 static bool verbose = false;
 static bool countwords = false;
 static bool sortcnt = false;       // sort output by counts?
+static Uint min_count = 0;
 static Uint num_lines = 0;
 static iMagicStream ifs;
 static oMagicStream ofs;
@@ -80,22 +82,26 @@ int main(int argc, char* argv[])
    }
 
    if (!sortcnt) {
-     for (Uint i = 0; i < voc.size(); ++i) {
-       os << voc.word(i);
-       if (countwords) os << " " << voc.freq(i);
-       os << endl;
-     }
+      for (Uint i = 0; i < voc.size(); ++i) {
+         if ( voc.freq(i) >= min_count ) {
+            os << voc.word(i);
+            if (countwords) os << " " << voc.freq(i);
+            os << nf_endl;
+         }
+      }
    }
    else {
-     map<int, set<const char*> > c2w;
-     for (Uint i = 0; i < voc.size(); ++i) {
-       if (c2w.find(voc.freq(i)) == c2w.end())
-         c2w[voc.freq(i)] = set<const char*>();
-       c2w[voc.freq(i)].insert(voc.word(i));
-     } // for i
-     for (map<int, set<const char*> >::reverse_iterator itr=c2w.rbegin(); itr!=c2w.rend(); itr++)
-       for (set<const char*>::const_iterator witr=itr->second.begin(); witr!=itr->second.end(); witr++)
-         os << *witr << " " << itr->first << endl;
+      map<Uint, set<const char*> > c2w;
+      for (Uint i = 0; i < voc.size(); ++i) {
+         if (c2w.find(voc.freq(i)) == c2w.end())
+            c2w[voc.freq(i)] = set<const char*>();
+         c2w[voc.freq(i)].insert(voc.word(i));
+      } // for i
+      for (map<Uint, set<const char*> >::reverse_iterator itr=c2w.rbegin(); itr!=c2w.rend(); itr++) {
+         if ( itr->first < min_count ) break;
+         for (set<const char*>::const_iterator witr=itr->second.begin(); witr!=itr->second.end(); witr++)
+            os << *witr << " " << itr->first << nf_endl;
+      }
    } // else
 }
 
@@ -103,13 +109,14 @@ int main(int argc, char* argv[])
 
 void getArgs(int argc, char* argv[])
 {
-   const char* switches[] = {"v", "c", "s"};
+   const char* switches[] = {"v", "c", "s", "min:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 0, 2, help_message);
    arg_reader.read(argc-1, argv+1);
 
    arg_reader.testAndSet("v", verbose);
    arg_reader.testAndSet("c", countwords);
    arg_reader.testAndSet("s", sortcnt);
+   arg_reader.testAndSet("min", min_count);
 
    arg_reader.testAndSet(0, "infile", &isp, ifs);
    arg_reader.testAndSet(1, "outfile", &osp, ofs);

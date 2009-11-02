@@ -3,7 +3,7 @@
  * @file test_bivector.h Test suite for BiVector.
  * 
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology
+ * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2008, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2008, Her Majesty in Right of Canada
@@ -11,6 +11,7 @@
 
 #include <cxxtest/TestSuite.h>
 #include "bivector.h"
+#include "file_utils.h"
 
 using namespace Portage;
 
@@ -213,18 +214,18 @@ public:
       b.setAt(10) = 0;
       FILE* f = tmpfile();
       oMagicStream os(f);
-      using namespace BinIOStream;
-      os << a << b;
+      a.writebin(os);
+      b.writebin(os);
       os << "Extra line" << endl;
       os.close();
       rewind(f);
       iMagicStream is(f);
       BiVector<int> a_copy;
       BiVector<int> b_copy;
-      is >> a_copy;
+      a_copy.readbin(is);
       TS_ASSERT(a == a_copy);
       TS_ASSERT_EQUALS(a_copy.first(), a.first());
-      is >> b_copy;
+      b_copy.readbin(is);
       TS_ASSERT(b == b_copy);
       TS_ASSERT_EQUALS(b_copy.last(), b.last());
       string line;
@@ -247,6 +248,23 @@ public:
       BiVector<int> c;
       a += c;
       TS_ASSERT_EQUALS(a.first(), 2);
+   }
+   void testNonConstBracketOp() {
+      BiVector<int> a(4,6,3);
+      int i = a[10];
+      TS_ASSERT_EQUALS(i, 0);
+      TS_ASSERT_EQUALS(a[20], 0);
+      TS_ASSERT_EQUALS(a.size(), 3u);
+      a[9] = 4;
+      TS_ASSERT_EQUALS(a[3], 0);
+      TS_ASSERT_EQUALS(a[4], 3);
+      TS_ASSERT_EQUALS(a[5], 3);
+      TS_ASSERT_EQUALS(a[6], 3);
+      TS_ASSERT_EQUALS(a[7], 0);
+      TS_ASSERT_EQUALS(a[8], 0);
+      TS_ASSERT_EQUALS(a[9], 4);
+      TS_ASSERT_EQUALS(a[10], 0);
+      TS_ASSERT_EQUALS(a.size(), 6u);
    }
 }; // TestBiVector
 

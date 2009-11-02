@@ -52,6 +52,10 @@ Options:
 
   -j(obs) J     Used with -lb to specify the number of jobs J >= N.  [2N]
 
+  -cleanup      Cleanup the run-parallel* logs after completion [don't]
+
+  -ref ref-file: reference file for canoe
+
   -noc(luster): background all jobs with & [default if not on a cluster]
 
   -n(um) N:     split the input into N blocks. [# input sentences / $HIGH_SENT_PER_BLOCK,
@@ -137,6 +141,7 @@ VERBOSE=1
 DEBUG=
 GOTCANOE=
 SAVE_ARGS="$@"
+ref=
 LOAD_BALANCING=1
 RESUME=
 PID=$$
@@ -146,8 +151,10 @@ while [ $# -gt 0 ]; do
    -resume)        arg_check 1 $# $1; RESUME=$2; shift;;
    -lb)            LOAD_BALANCING=1;;
    -no-lb)         LOAD_BALANCING=;;
+   -ref)           arg_check 1 $# $1; REF=$2; shift;;
    -n|-num)        arg_check 1 $# $1; NUM=$2; shift;;
    -j|-job)        arg_check 1 $# $1; NUMBER_OF_JOBS=$2; shift;;
+   -cleanup)       RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
    -highmem)       RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
    -nolocal)       RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
    -psub|-psub-opts|-psub-options)
@@ -196,7 +203,7 @@ debug "APPEND: $APPEND"
 # Make sure the path to self is on the PATH variable: if an explicit path to
 # canoe-parallel.sh is given, we want to look for canoe and other programs in
 # the same directory, rather than find it on the path.
-export PATH=`dirname $0`:$PATH
+export PATH=`dirname "$0"`:$PATH
 
 if [ $VERBOSE -gt 0 ]; then
    echo "" >&2
@@ -276,6 +283,7 @@ function full_translation
 
       # Load balancing command
       LB_CMD="cat $INPUT | load-balancing.pl -output="$INPUT" -node=$NUM -job=$NUMBER_OF_JOBS"
+      test -n "$REF" && LB_CMD="$LB_CMD -ref=$REF"
       debug "load-balancing: $LB_CMD"
       eval "$LB_CMD"
       RC=$?
@@ -294,6 +302,7 @@ function full_translation
          OUT=$WORK_DIR/out.$i
          ERR=$WORK_DIR/err.$i
          CMD="time $CANOE $CONFIGARG -lb"
+         test -n "$REF" && CMD="$CMD -ref "`printf "$INPUT.ref.%4.4d" $i`
          CMD="cat $CANOE_INPUT | $CMD > $OUT 2> $ERR"
 
          # add to commands file or run
@@ -339,9 +348,15 @@ function full_translation
          if [ $i -lt $((NUM - 1)) ]; then
             LAST_LINE=$(( (i + 1) * LINES_PER_BLOCK ))
             head -$LAST_LINE $INPUT | tail -$LINES_PER_BLOCK > $CANOE_INPUT
+            if [ $REF ]; then
+               SELECT_LINES_CMD_R="-ref \"head -$LAST_LINE $REF | tail -$LINES_PER_BLOCK |\""
+            fi
          else
             LINES_IN_LAST_BLOCK=$(( INPUT_LINES - i * LINES_PER_BLOCK ))
             tail -$LINES_IN_LAST_BLOCK $INPUT > $CANOE_INPUT
+            if [ $REF ]; then
+               SELECT_LINES_CMD_R="-ref \"tail -$LINES_IN_LAST_BLOCK $REF |\""
+            fi
          fi
 
          CMD="cat $CANOE_INPUT | $CANOE_CMD $SELECT_LINES_CMD_R $SELECT_LINES_CMD_XV > $OUT 2> $ERR"

@@ -78,7 +78,7 @@ if ($c) {
 
     if ($src_content =~ /<srcset\s+([^>]+)>/o) {
        my $attrs = $1;
-       if ($attrs =~ /setid\s*=\s*\"([^\"]+)\"/o) {$setid = $1;}
+       if ($attrs =~ /setid\s*=\s*\"([^\"]+)\"/o) { $setid = $1; }
        if ($attrs =~ /srclang\s*=\s*\"([^\"]+)\"/o) {$srclang = $1;}
     }
 
@@ -89,8 +89,9 @@ if ($c) {
           print "<tstset setid=\"$setid\" srclang=\"$srclang\" trglang=\"$tgtlang\">\n";
        } elsif ($tag eq "/srcset") {
           print "</tstset>\n";
-       } elsif ($tag eq "DOC") {
-          print "<DOC$guts sysid=\"$sysid\">\n";
+       } elsif ($tag eq "DOC" || $tag eq "doc") {
+          $guts =~ s/sysid="[^"]*"//;
+          print "<$tag$guts sysid=\"$sysid\">\n";
        } elsif ($tag eq "SEG" || $tag eq "seg") {
           print "<$tag$guts>";
           my $line = <TST>;
@@ -194,7 +195,7 @@ sub code_doc #(\*FROMFILE, \*TOFILE, docid, sysid)
     print $tofile "<doc docid=\"$docid\" sysid=\"$sysid\">\n";
     while (my $line = <$fromfile>) {
 	chomp $line;
-	print $tofile "<seg id=", $segid++, "> ";
+	print $tofile "<seg id=\"", $segid++, "\"> ";
 	print $tofile $line;
 	print $tofile " </seg>\n";
     }

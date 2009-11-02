@@ -14,16 +14,16 @@
  * Copyright 2004, Her Majesty in Right of Canada
  */
 
-#include <filter_models.h>
-#include <exception_dump.h>
-#include <printCopyright.h>
-#include <config_io.h>
-#include <phrasetable_filter_grep.h>
-#include <phrasetable_filter_joint.h>
-#include <phrasetable_filter_lm.h>
+#include "filter_models.h"
+#include "exception_dump.h"
+#include "printCopyright.h"
+#include "config_io.h"
+#include "phrasetable_filter_grep.h"
+#include "phrasetable_filter_joint.h"
+#include "phrasetable_filter_lm.h"
 #include "inputparser.h"
 #include "basicmodel.h"
-#include <lm.h>
+#include "lm.h"
 #include <sstream>
 
 
@@ -88,7 +88,14 @@ void processOnline(const CanoeConfig& c, const ARG& arg,
          : NULL
       )
    );
-   phraseTable.outputForOnlineProcessing(arg.prepareFilename(arg.limit_file), c.phraseTableSizeLimit);
+
+   // Instanciate the proper pruning style.
+   pruningStyle* pruning_type = pruningStyle::create(arg.pruning_type_switch, c.phraseTableSizeLimit);
+   assert(pruning_type);
+
+   // Set the output filename and the pruning style before proceeding with online filtering.
+   phraseTable.outputForOnlineProcessing(arg.prepareFilename(arg.limit_file), pruning_type);
+
    // Parses the input source sentences
    if (limitPhrases) {
       LOG_VERBOSE1(filter_models_Logger, "Creating vocabulary from source sentences");
@@ -97,7 +104,10 @@ void processOnline(const CanoeConfig& c, const ARG& arg,
       phraseTable.addSourceSentences(src_sents);
    }
 
+   // Do the actual online filtering.
    phraseTable.processMultiProb(c.multiProbTMFiles.front(), "");
+
+   delete pruning_type; pruning_type = NULL;
 }
 
 
@@ -125,7 +135,7 @@ int MAIN(argc, argv)
             "(requested: %s)",
             c.phraseTablePruneType.c_str());
 
-   Uint ttable_limit_from_config = c.phraseTableSizeLimit; // save for write-back
+   const Uint ttable_limit_from_config = c.phraseTableSizeLimit; // save for write-back
    if (arg.ttable_limit >= 0) // use ttable_limit for pruning, instead of config file value
       c.phraseTableSizeLimit = Uint(arg.ttable_limit);
 
@@ -260,7 +270,16 @@ int MAIN(argc, argv)
       if (arg.limit()) {
          LOG_VERBOSE1(filter_models_Logger, "Filtering with filter_joint with: %d", c.phraseTableSizeLimit);
          time_t start_time = time(NULL);
-         phraseTable->filter_joint(arg.prepareFilename(arg.limit_file), c.phraseTableSizeLimit);
+
+         // Get the proper pruning specifier.
+         pruningStyle* pruning_type = pruningStyle::create(arg.pruning_type_switch, c.phraseTableSizeLimit);
+         assert(pruning_type != NULL);
+
+         // Perform filtering on the in-memory trie strucutre.
+         phraseTable->filter_joint(arg.prepareFilename(arg.limit_file), pruning_type);
+
+         delete pruning_type; pruning_type = NULL;
+
          cerr << " ... done in " << (time(NULL) - start_time) << "s" << endl;
       }
 

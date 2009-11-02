@@ -26,15 +26,26 @@ using namespace Portage;
 /*
  * Creates a new partial translation object.
  */
-PartialTranslation::PartialTranslation()
+PartialTranslation::PartialTranslation(bool usingLev)
    : back(NULL)
    , lastPhrase(NULL)
-{}
+   , levInfo(usingLev ? new PartialTranslation::levenshteinInfo() : NULL)
+{ 
+   /*static bool hasBeen = false;
+   if (!hasBeen) {
+      hasBeen = true;
+      if (levInfo)
+         cerr << "Using lev info" << endl;
+      else   
+         cerr << "NOT Using lev info" << endl;
+   }*/
+}
 
 PartialTranslation::PartialTranslation(PartialTranslation* trans0,
       PhraseInfo* phrase, const UintSet* preCalcSourceWordsCovered)
    : back(trans0)
    , lastPhrase(phrase)
+   , levInfo(trans0->levInfo ? new PartialTranslation::levenshteinInfo() : NULL)
 {
    assert(trans0 != NULL);
    assert(phrase != NULL);
@@ -51,6 +62,10 @@ PartialTranslation::PartialTranslation(PartialTranslation* trans0,
       subRange(sourceWordsNotCovered, trans0->sourceWordsNotCovered, newWords);
 }
 
+PartialTranslation::~PartialTranslation()
+{
+   if (levInfo) delete levInfo, levInfo = NULL;
+}
 
 void PartialTranslation::getLastWords(Phrase &words, Uint num, bool backward)
    const

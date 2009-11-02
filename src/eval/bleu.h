@@ -188,16 +188,45 @@ namespace Portage
          }
 
          /**
-          * Converts the score()'s value, which is log, to a humain readeble value [0,1).
-          * @param value  the value of score().
-          * @return Returns a humain readable value of this metric.
+          * Convert "internal" (log) score value to display format.
+          * @param value internal value (eg, from score()) 
+          * @return display value.
           */
          static double convertToDisplay(double value) {
             return exp(value);
          }
+         /**
+          * Convert display format to internal (log) format.
+          * @param value display value
+          * @return internal value.
+          */
+         static double convertFromDisplay(double value) {
+            return log(value);
+         }
 
          /**
-          * Prints the ngram count and match length in a humain readable format to out.
+          * Convert "internal" (log) score value to pnorm format: in [0,1],
+          * higher scores are better. Identical to convertToDisplay() for BLEU,
+          * but not for WER/PER!
+          * @param value internal value (eg, from score()) 
+          * @return pnorm value
+          */
+         static double convertToPnorm(double value) {
+            return convertToDisplay(value);
+         }
+         /**
+          * Convert "internal" (log) score value from pnorm format: in [0,1],
+          * higher scores are better. Identical to convertFromDisplay() for BLEU,
+          * but not for WER/PER!
+          * @param value pnorm value 
+          * @return internal value
+          */
+         static double convertFromPnorm(double value) {
+            return convertFromDisplay(value);
+         }
+
+         /**
+          * Prints the ngram count and match length in a human readable format to out.
           * @param out  output stream defaults to cout.
           */
          void output(ostream &out = cout) const;

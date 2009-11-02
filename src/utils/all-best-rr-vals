@@ -39,5 +39,19 @@ if ! ls -t1 $pref/rescore-results >& /dev/null; then
 fi
 
 for f in `ls -t1 $pref/rescore-results`; do
-   best-rr-val $f
+   best=`best-rr-val $f`
+   log=`dirname $f`/log.cow
+   if [[ -r $log ]]; then
+      if grep -q "New model identical to previous one" $log; then
+         status="(converged)"
+      elif grep -q "No new sentences in the N-best lists" $log; then
+         status="(converged)"
+      elif grep -q "cow.sh fatal error" $log; then
+         status="(crashed)"
+      elif grep -q "Reached maximum number of iterations" $log; then
+         status="(reached max iter)"
+      fi
+   fi
+   echo "$best $status"
 done
+

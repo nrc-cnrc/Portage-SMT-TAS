@@ -18,6 +18,7 @@
 #include <vector>
 #include "phrase_table.h"
 #include "ibm.h"
+#include "word_align_io.h"
 
 namespace Portage {
 
@@ -373,6 +374,8 @@ public:
  */
 class IBMOchAligner : public WordAligner
 {
+protected:
+
    WordAlignerFactory& factory;
 
    IBMAligner* aligner_lang1_given_lang2;
@@ -434,6 +437,36 @@ public:
                         const vector<string>& toks2,
                         vector< vector<Uint> >& sets1);
 };
+
+/**
+ * Like IBMOchAligner but with stricter diagonalization heuristic. This differs
+ * from IBMOchAligner only in the strategy 2 and 3 methods used.
+ */
+class IBMDiagAligner : public IBMOchAligner
+{
+public:
+
+   /**
+    * Construct with ref to factory and arg string.
+    * @param factory
+    * @param args see tinfos[] in word_align.cc for interpretation
+    */
+   IBMDiagAligner(WordAlignerFactory& factory, const string& args);
+
+   /**
+    * Carry out word alignment.
+    * @param toks1  sentence in language 1
+    * @param toks2  sentence in language 2
+    * @param[out] sets1  for each token position in toks1, a set of
+    *   corresponding token positions in toks 2.
+    * @return a score that indicates how reliable the alignment is, used to
+    * weight the extracted phrase pairs. (in reality, we always return 1.0)
+    */
+   virtual double align(const vector<string>& toks1,
+                        const vector<string>& toks2,
+                        vector< vector<Uint> >& sets1);
+};
+
 
 /**
  * Symmetrized-score alignment
@@ -573,6 +606,92 @@ public:
                         const vector<string>& toks2,
                         vector< vector<Uint> >& sets1);
 };
+
+
+/**
+ * HybridPostAligner. This is a hybrid between IBMOchAligner and
+ * PosteriorAligner.  Start out with the intersection of two one-way
+ * alignments, which has a much higher precision than anything that can be
+ * easily generated from PosteriorAligner. Then add connected links, in
+ * decreasing order by posterior-prob score, but considering only the top pct%
+ * scoring links. Adding is a bit tricky, since a lower-scoring link may create
+ * a connection to a previously isolated higher-scoring link, so the list of
+ * links has to be traversed many times. Link adding stops when all words in
+ * each sentence have at least one connection, or when the list of links is
+ * exhausted. When this happens, all remaining unlinked words are assigned
+ * their top-scoring translation, provided the link probability of this
+ * translation is among the top pct%. Words without such a translation are left
+ * unlinked (but not explicitly null-aligned).
+ *
+ * Implementation note: this uses quite a large number of l1xl2 matrices,
+ * where l1 and l2 are the lengths of the input sentences. This space
+ * requirement could probably be reduced.
+ */
+class HybridPostAligner : public WordAligner
+{
+   IBM1* ibm_lang1_given_lang2;
+   IBM1* ibm_lang2_given_lang1;
+   Uint verbose;
+
+   double pct;			// proportion of top scoring links deemed valid
+
+   vector<Uint> al1;		// one-way alignment
+   vector<Uint> al2;		// other-way alignment
+   vector<bool> connected1;	// l1 pos -> word has link
+   vector<bool> connected2;	// l2 pos -> word has link
+   vector<vector<bool> > links;	// pos1,pos2 -> linked or not
+
+   vector<vector<double> > posteriors_lang1_given_lang2;
+   vector<vector<double> > posteriors_lang2_given_lang1;
+   vector<vector<double> > posteriors; // pos1,pos2 -> posterior prob
+   vector<vector<Uint> > ranks;	// pos1,pos2 -> rank within link_list
+   vector<Uint> link_list;	// rank -> index = pos1 * size1 + pos2, by decr score
+
+public:
+
+   /**
+    * Construct with ref to factory and arg string.
+    * @param factory
+    * @param args see tinfos[] in word_align.cc for interpretation
+    */
+   HybridPostAligner(WordAlignerFactory& factory, const string& args);
+
+   /**
+    * Calculate a posterior alignment.
+    * @param toks1  sentence in language 1
+    * @param toks2  sentence in language 2
+    * @param[out] sets1  for each token position in toks1, will contain a set
+    *   of corresponding token positions in toks 2.
+    * @return a score that indicates how reliable the alignment is, used to
+    * weight the extracted phrase pairs. (in reality, we always return 1.0)
+    */
+   virtual double align(const vector<string>& toks1,
+                        const vector<string>& toks2,
+                        vector< vector<Uint> >& sets1);
+};
+
+/**
+ * Test class to read in external symmetrized alignments in Moses (aka "sri") format.
+ * @param factory
+ * @param args name of a file containing alignments in Moses/SRI format (srcpos-tgtpos),
+ * one per line.
+ */
+class ExternalAligner : public WordAligner
+{
+   istream* external_alignments;
+   SRIReader reader;
+
+public:
+
+   ExternalAligner(WordAlignerFactory& factory, const string& args);
+
+   ~ExternalAligner();
+
+   virtual double align(const vector<string>& toks1,
+                        const vector<string>& toks2,
+                        vector< vector<Uint> >& sets1);
+};
+
 
 /*---------------------------------------------------------------------------
   Definitions only past this point; if you just want to use these classes,

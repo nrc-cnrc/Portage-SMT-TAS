@@ -258,6 +258,60 @@ public:
 
 };
 
+///////////boxing's implementation
+/**
+ * Basic distortion model: Lexicalized Distortion
+ */
+   
+class LexicalizedDistortion : public DistortionModel
+{
+   // variable to store default values  
+   vector<float> defaultValues;
+      
+protected:
+   typedef enum {
+      M,S,D,Combined
+   } ReorderingType;
+   ReorderingType type;
+   LexicalizedDistortion(const string& arg);
+   
+public:
+
+   //load default value
+   void readDefaults(const char* file_dflt);
+   
+   //determine the type of reordering( m s d)    
+   ReorderingType determineReorderingType(const PartialTranslation& pt);
+   vector<float> getLexDisProb(const PhraseInfo& phrase_info);
+};
+
+class FwdLexDistortion : public LexicalizedDistortion
+{
+
+public:  
+   FwdLexDistortion(const string& arg);
+   virtual double score(const PartialTranslation& pt);
+   virtual double partialScore(const PartialTranslation& trans);
+   virtual Uint computeRecombHash(const PartialTranslation &pt);
+   virtual bool isRecombinable(const PartialTranslation &pt1, const PartialTranslation &pt2);
+   virtual double precomputeFutureScore(const PhraseInfo& phrase_info);
+   virtual double futureScore(const PartialTranslation &trans);
+};
+
+class BackLexDistortion : public LexicalizedDistortion
+{
+
+public:  
+   BackLexDistortion(const string& arg);
+   virtual double score(const PartialTranslation& pt);
+   virtual double partialScore(const PartialTranslation& trans);
+   virtual Uint computeRecombHash(const PartialTranslation &pt);
+   virtual bool isRecombinable(const PartialTranslation &pt1, const PartialTranslation &pt2);
+   virtual double precomputeFutureScore(const PhraseInfo& phrase_info);
+   virtual double futureScore(const PartialTranslation &trans);
+};
+
+/////////////////////
 }
 
 #endif

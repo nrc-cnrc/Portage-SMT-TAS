@@ -11,6 +11,7 @@
  */
 
 #include "hmm_jump_map.h"
+#include "binio.h"
 #include "ibm.h"
 
 using namespace Portage;
@@ -139,7 +140,7 @@ void HMMJumpMAP::read(istream& in, const char* stream_name) {
 }
 
 void HMMJumpMAP::writeBinCountsImpl(ostream& os) const {
-   using namespace BinIOStream;
+   using namespace BinIO;
 
    writebin(os, Uint(word_count.size()));
    for ( Uint i(0); i < word_count.size(); ++i )
@@ -149,7 +150,7 @@ void HMMJumpMAP::writeBinCountsImpl(ostream& os) const {
 }
 
 void HMMJumpMAP::readAddBinCountsImpl(istream& is, const char* stream_name) {
-   using namespace BinIOStream;
+   using namespace BinIO;
 
    Uint word_count_size(0);
    readbin(is, word_count_size);

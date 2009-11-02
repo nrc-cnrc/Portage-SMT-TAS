@@ -19,7 +19,7 @@ usage() {
    done
    cat <<==EOF== >&2
 
-Usage: gen-jpt-parallel.sh [-n N][-rp RUNPARALLELOPTS][-o outfile]
+Usage: gen-jpt-parallel.sh [-n N][-w nw][-rp RUNPARALLELOPTS][-o outfile]
           GPT GPTARGS file1_lang1 file1_lang2
 
 Generate a joint phrase table for a single (large) file pair in parallel, by
@@ -29,9 +29,11 @@ concatenating the results, which are written to stdout (uncompressed).
 Options:
 
   -n        Number of chunks in which to split the file pair. [4]
-            Warning: if GPTARGS contains the -w option, the output will depend
-            on the setting of this option: higher values of N will yield 
-            slightly larger phrase tables!
+  -w nw     Add <nw> best IBM1 translations for src and tgt words that occur in
+            given files but have no have phrase translations. This is similar
+            to using -w for non-parallel phrase extraction from the given
+            files, but uses a slightly different (probably better) algorithm;
+            also, its results are independent of the number of parallel jobs N.
   -rp       Provide custom run-parallel.sh options (enclose in quotes!).
   -o        Send output to outfile (compressed).
   GPT       Keyword to signal beginning of gen_phrase_tables options and args.
@@ -43,7 +45,7 @@ Options:
             Warning: -w and -prune1 are applied to each chunk individually, so
             their semantics are affected by N.  Provide -prune1 to
             joint2cond_phrase_tables instead to preserve its normal semantics;
-            -w cannot be made to act as if given to gen_phrase_tables.
+            provide -w to gen-jpt-parallel.sh to get N-independent behaviour.
 
 ==EOF==
 
@@ -71,6 +73,7 @@ is_int() {
 }
 
 NUM_JOBS=4
+NW=
 OUTFILE="-"
 RP_OPTS=
 VERBOSE=
@@ -78,6 +81,7 @@ VERBOSE=
 while [ $# -gt 0 ]; do
    case "$1" in
    -n)         arg_check 1 $# $1; is_int $2 $1; NUM_JOBS=$2; shift;;
+   -w)         arg_check 1 $# $1; is_int $2 $1; NW=$2; shift;;
    -rp)        arg_check 1 $# $1; RP_OPTS="$RP_OPTS $2"; shift;;
    -o)         arg_check 1 $# $1; OUTFILE=$2; shift;;
    -v)         VERBOSE="-v";;
@@ -127,6 +131,7 @@ zcat -f $file2 | split -l $SPLITLINES - $WORKDIR/L2.
 
 if [ $DEBUG ]; then
     echo "NUM_JOBS = $NUM_JOBS" >&2
+    echo "NW = $NW" >&2
     echo "RP_OPTS = <$RP_OPTS>" >&2
     echo "GPTARGS = <${GPTARGS[@]}>" >&2
     echo $file1 >&2
@@ -144,10 +149,20 @@ fi
 CMDS_FILE=$WORKDIR/cmds
 test -f $CMDS_FILE && \rm -f $CMDS_FILE
 
+if [[ -n "$NW" ]]; then
+   get_voc $file1 > $WORKDIR/voc.1
+   get_voc $file2 > $WORKDIR/voc.2
+fi
+
 for src in `ls $WORKDIR/L1.*`; do
    tgt=${src/\/L1./\/L2.}
    suff=${src##*/L1.}
-   echo "test ! -f $src || ((set -o pipefail; gen_phrase_tables -j ${GPTARGS[@]} $src $tgt | LC_ALL=C $SORT_DIR sort | gzip > $WORKDIR/$suff.jpt.gz) && mv $src $src.done)" >> $CMDS_FILE
+   if [[ -n "$NW" ]]; then
+      WOPS="-w $NW -wf $WORKDIR/$suff.wp -wfvoc $WORKDIR/voc"
+      get_voc $src > $WORKDIR/$suff.voc.1
+      get_voc $tgt > $WORKDIR/$suff.voc.2
+   fi
+   echo "test ! -f $src || ((set -o pipefail; gen_phrase_tables $WOPS -j ${GPTARGS[@]} $src $tgt | LC_ALL=C $SORT_DIR sort | gzip > $WORKDIR/$suff.jpt.gz) && mv $src $src.done)" >> $CMDS_FILE
 done
 
 test $DEBUG && cat $CMDS_FILE
@@ -167,12 +182,28 @@ fi
 # Merging parts
 test $DEBUG && echo merge_counts $OUTFILE $WORKDIR/*.jpt.gz
 
-test $NOTREALLY ||
-   eval "merge_counts $OUTFILE $WORKDIR/*.jpt.gz"
-RC=$?
-if (( $RC != 0 )); then
-   echo "problems merging the joint frequencies (status=$RC) - quitting!" >&2
-   exit $RC
+if [[ ! $NOTREALLY ]]; then
+
+    if [[ -n "$NW" ]]; then
+
+       cat $WORKDIR/*.wp.1 | LC_ALL=C $SORT_DIR sort | LC_ALL=C uniq -c > $WORKDIR/wp-cnts.1
+       cat $WORKDIR/*.wp.2 | LC_ALL=C $SORT_DIR sort | LC_ALL=C uniq -c > $WORKDIR/wp-cnts.2
+
+       cat $WORKDIR/*.voc.1 | LC_ALL=C $SORT_DIR sort | LC_ALL=C uniq -c > $WORKDIR/voc-cnts.1
+       cat $WORKDIR/*.voc.2 | LC_ALL=C $SORT_DIR sort | LC_ALL=C uniq -c > $WORKDIR/voc-cnts.2
+
+       gen_jpt_filter_tool -l1 $WORKDIR/{voc-cnts,wp-cnts}.1 | LC_ALL=C $SORT_DIR sort | gzip > $WORKDIR/jpt.wp1.gz
+       gen_jpt_filter_tool -l2 $WORKDIR/{voc-cnts,wp-cnts}.2 | LC_ALL=C $SORT_DIR sort | gzip > $WORKDIR/jpt.wp2.gz
+        
+       WPFILES="$WORKDIR/jpt.wp1.gz $WORKDIR/jpt.wp2.gz"
+    fi
+
+    eval "merge_counts $OUTFILE $WORKDIR/*.jpt.gz $WPFILES"
+    RC=$?
+    if (( $RC != 0 )); then
+        echo "problems merging the joint frequencies (status=$RC) - quitting!" >&2
+        exit $RC
+    fi
 fi
 
 rm -rf ${WORKDIR}

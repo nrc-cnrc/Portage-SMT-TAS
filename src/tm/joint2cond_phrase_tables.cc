@@ -34,6 +34,7 @@ static char help_message[] = "\n\
 joint2cond_phrase_tables [-Hvijz][-[no-]sort][-1 l1][-2 l2][-o name][-s 'meth args']\n\
                          [-ibm n][-hmm][-ibm_l2_given_l1 m][-ibm_l1_given_l2 m]\n\
                          [-prune1 n][-tmtext][-multipr d][jtable]\n\
+                         [-lc1 loc][-lc2 loc]\n\
 \n\
 Convert joint-frequency phrase table <jtable> (stdin if no <jtable> parameter\n\
 given) into two standard conditional-probability phrase tables\n\
@@ -65,6 +66,11 @@ Options:\n\
       otherwise -ibm 2 is the default]\n\
 -ibm_l2_given_l1  Name of IBM model for language 2 given language 1 [none]\n\
 -ibm_l1_given_l2  Name of IBM model for language 1 given language 2 [none]\n\
+-lc1  Do lowercase mapping of lang 1 words to match IBM/HMM models, using\n\
+      locale <loc>, eg: C, en_US.UTF-8, fr_CA.88591 [don't map]\n\
+      (Compilation with ICU is required to use UTF-8 locales.)\n\
+-lc2  Do lowercase mapping of lang 2 words to match IBM/HMM models, using\n\
+      locale <loc>, eg: C, en_US.UTF-8, fr_CA.88591 [don't map]\n\
 -tmtext     Write TMText format phrase tables (delimited text files)\n\
             <name>.<lang1>_given_<lang2> and <name>.<lang2>_given_<lang1>.\n\
             [default if none of -j, -tmtext nor -multipr is given]\n\
@@ -91,6 +97,8 @@ static Uint ibm_num = 42; // 42 means uninitialized-getArgs will set its value.
 static bool use_hmm = false;
 static string ibm_l2_given_l1;
 static string ibm_l1_given_l2;
+static string lc1;
+static string lc2;
 static bool tmtext_output = false;
 static string multipr_output = "";
 static bool force = false;
@@ -176,6 +184,17 @@ void doEverything(const char* prog_name)
          error(ETFatal, "Invalid option: -ibm %d", ibm_num);
    }
 
+   CaseMapStrings cms1(lc1.c_str());
+   CaseMapStrings cms2(lc2.c_str());
+   if (lc1 != "" && ibm_1 && ibm_2) {
+      ibm_1->getTTable().setSrcCaseMapping(&cms1);
+      ibm_2->getTTable().setTgtCaseMapping(&cms1);
+   }
+   if (lc2 != "" && ibm_1 && ibm_2) {
+      ibm_1->getTTable().setTgtCaseMapping(&cms2);
+      ibm_2->getTTable().setSrcCaseMapping(&cms2);
+   }
+
    PhraseSmootherFactory<T> smoother_factory(&pt, ibm_1, ibm_2, verbose);
    vector< PhraseSmoother<T>* > smoothers;
    for (Uint i = 0; i < smoothing_methods.size(); ++i)
@@ -230,6 +249,7 @@ static void getArgs(int argc, const char* const argv[])
    const char* switches[] = {
       "v", "i", "j", "z", "prune1:", "s:", "1:", "2:", "o:", "force", 
       "ibm:", "hmm", "ibm_l1_given_l2:", "ibm_l2_given_l1:",
+      "lc1:", "lc2:",
       "tmtext", "multipr:", "sort", "no-sort"
    };
 
@@ -250,6 +270,8 @@ static void getArgs(int argc, const char* const argv[])
    arg_reader.testAndSet("hmm", use_hmm);
    arg_reader.testAndSet("ibm_l2_given_l1", ibm_l2_given_l1);
    arg_reader.testAndSet("ibm_l1_given_l2", ibm_l1_given_l2);
+   arg_reader.testAndSet("lc1", lc1);
+   arg_reader.testAndSet("lc2", lc2);
    arg_reader.testAndSet("tmtext", tmtext_output);
    arg_reader.testAndSet("multipr", multipr_output);
    arg_reader.testAndSet("force", force);

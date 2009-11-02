@@ -660,6 +660,36 @@ splitQuoted(const string& s, vector<string>& dest,
 }
 
 /**
+ * Split an input string into a sequence of tokens delimited by the (possibly
+ * multi-character) string in sep.
+ * Unlike the other split* functions, the delimiter is not just any character
+ * in sep, but the string sep used as a whole.
+ * @param s input string
+ * @param dest vector that tokens get appended to
+ * @param sep token separator
+ */
+inline void
+splitString(const string& s, vector<string>& dest, const string& sep = " ") {
+   size_t ppos = 0, pos = 0, sep_len = sep.length();
+   while (pos != string::npos) {
+      pos = s.find(sep, ppos);
+      dest.push_back(s.substr(ppos, pos-ppos));
+      ppos = pos + sep_len;
+   }
+}
+
+/**
+ * Like splitString(), but clears the output vector first.
+ * @param s input string
+ * @param dest vector that tokens get appended to (cleared by splitStringZ)
+ * @param sep token separator
+ */
+inline void
+splitStringZ(const string& s, vector<string>& dest, const string& sep = " ") {
+   dest.clear();
+   splitString(s, dest, sep);
+}
+/**
  * Do not delete point in boost::shared_ptr.
  *
  * Utility class for using boost::shared_ptr: the null deleter says don't

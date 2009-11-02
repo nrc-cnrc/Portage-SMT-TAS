@@ -14,7 +14,9 @@
 #include "errors.h"
 #include "distortionmodel.h"
 #include "str_utils.h"
+#include "phrasetable.h"
 #include <iostream>
+#include <cmath>
 
 using namespace Portage;
 
@@ -36,6 +38,10 @@ DistortionModel* DistortionModel::create(const string& name_and_arg, bool fail)
       m = new ZeroInfoDistortion();
    } else if (name == "PhraseDisplacement") {
       m = new PhraseDisplacement();
+   } else if (name == "fwd-lex") {
+      m = new FwdLexDistortion(arg);
+   } else if (name == "back-lex") {
+      m = new BackLexDistortion(arg);
    } else if (fail) {
       error(ETFatal, "unknown distortion model: " + name);
    }
@@ -197,8 +203,8 @@ double WordDisplacement::score(const PartialTranslation& trans)
 }
 
 // Note: PhraseDisplacement relies on this implementation of partialScore(),
-// so if any changed is made here, class PhraseDisplacement will need to
-// overridden partialScore().
+// so if any change is made here, class PhraseDisplacement will need to
+// override partialScore().
 double WordDisplacement::partialScore(const PartialTranslation& trans)
 {
    // score() only uses the source range of the last phrase, so it does what
@@ -287,3 +293,196 @@ double PhraseDisplacement::futureScore(const PartialTranslation &trans)
    return distScore;
 }
 
+/************************** LexicalizedDistortion ******************************/
+LexicalizedDistortion::LexicalizedDistortion(const string& arg)
+{
+   if ( arg == "m" )
+      type = M;
+   else if ( arg == "s" )
+      type = S;
+   else if ( arg == "d" )
+      type = D;
+   else
+      type = Combined;
+}
+
+void LexicalizedDistortion::readDefaults(const char* file_dflt)
+{  
+   iMagicStream in(file_dflt, true);
+   string line;
+   getline(in, line);
+
+   trim(line, " ");
+
+   vector<string> valueString;
+
+   if (line == "")
+      error(ETFatal, "lexicalized distortion model default value file: %s is empty!", file_dflt);      
+   else
+   {
+      split(line, valueString, " ");
+      if (valueString.size() != 6) {
+         error(ETFatal, "wrong number of lexicalized distortion model scores in %s.",file_dflt);
+      }
+      
+      float prob;
+      for ( vector<string>::iterator it=valueString.begin(); it != valueString.end(); ++it){
+         if ( ! conv((*it).c_str(), prob))
+            error(ETFatal, "Invalid number format (%s) in %s.",(*it).c_str(), file_dflt);
+   
+         defaultValues.push_back(log(prob));
+      }
+   }
+}
+
+LexicalizedDistortion::ReorderingType LexicalizedDistortion::determineReorderingType(const PartialTranslation& pt)
+{
+   ReorderingType type;
+   
+   if (pt.lastPhrase->src_words.start == pt.back->lastPhrase->src_words.end)
+      type = M;
+   else if (pt.lastPhrase->src_words.end == pt.back->lastPhrase->src_words.start)
+      type = S;
+   else
+      type = D;
+   
+   return type;
+}
+
+vector<float> LexicalizedDistortion::getLexDisProb(const PhraseInfo& phrase_info)
+{
+   const ForwardBackwardPhraseInfo* pi = dynamic_cast<const ForwardBackwardPhraseInfo *>(&phrase_info);
+   
+   vector<float> lexdis_probs;
+   
+   if ( pi && pi->lexdis_probs.size() == 6 ){
+      lexdis_probs = pi->lexdis_probs;
+   }
+   else
+      lexdis_probs = defaultValues;
+   
+   return lexdis_probs;     
+}
+
+/************************** FwdLexDistortion ******************************/
+
+FwdLexDistortion::FwdLexDistortion(const string& arg)
+   : LexicalizedDistortion(arg)
+{}
+
+double FwdLexDistortion::score(const PartialTranslation& pt)
+{
+   double result(0);
+   ReorderingType Rtype = determineReorderingType(pt);
+   
+   const PhraseInfo* ph = pt.back->lastPhrase;
+   
+   const vector<float> lexdis_probs = getLexDisProb(*ph);
+   
+   switch (Rtype){
+      case M:
+         result = (type == Combined || type == M) ? lexdis_probs[3] : 0;
+         break;
+      case S:
+         result = (type == Combined || type == S) ? lexdis_probs[4] : 0;
+         break;
+      case D:
+         result = (type == Combined || type == D) ? lexdis_probs[5] : 0;         
+         break;
+      default:
+         error(ETFatal, "wrong reordering type: %s",Rtype);         
+   }
+   
+   return result;   
+}
+
+double FwdLexDistortion::partialScore(const PartialTranslation& pt)
+{
+   const PhraseInfo *lastPhrase = pt.lastPhrase;
+   
+   return FwdLexDistortion::score(pt) -
+      FwdLexDistortion::precomputeFutureScore(*lastPhrase);
+}
+
+Uint FwdLexDistortion::computeRecombHash(const PartialTranslation& pt)
+{
+   return pt.lastPhrase->src_words.start;
+}
+
+bool FwdLexDistortion::isRecombinable(const PartialTranslation &pt1, const PartialTranslation &pt2)
+{
+   return pt1.lastPhrase == pt2.lastPhrase;  
+}
+
+double FwdLexDistortion::precomputeFutureScore(const PhraseInfo& phrase_info)
+{
+   if ( type != Combined ) return 0;
+
+   const vector<float> lexdis_probs = getLexDisProb(phrase_info);
+   return *max_element(lexdis_probs.begin()+3,lexdis_probs.end());
+}
+
+double FwdLexDistortion::futureScore(const PartialTranslation& pt)
+{
+   return FwdLexDistortion::precomputeFutureScore(*pt.lastPhrase);
+}
+
+/************************** BackLexDistortion ******************************/
+BackLexDistortion::BackLexDistortion(const string& arg)
+   : LexicalizedDistortion(arg)
+{}
+
+double BackLexDistortion::score(const PartialTranslation& pt)
+{
+   double result(0);
+   ReorderingType Rtype = determineReorderingType(pt);   
+   
+   const PhraseInfo* ph = pt.lastPhrase;
+   
+   const vector<float> lexdis_probs = getLexDisProb(*ph);
+   
+   switch (Rtype){
+      case M:
+         result = (type == Combined || type == M) ? lexdis_probs[0] : 0;
+         break;
+      case S:
+         result = (type == Combined || type == S) ? lexdis_probs[1] : 0;
+         break;
+      case D:
+         result = (type == Combined || type == D) ? lexdis_probs[2] : 0;         
+         break;
+      default:
+         error(ETFatal, "wrong reordering type: %s",Rtype);         
+   }
+   
+   return result;  
+}
+
+double BackLexDistortion::partialScore(const PartialTranslation& pt)
+{
+   return 0.0;
+}
+
+Uint BackLexDistortion::computeRecombHash(const PartialTranslation& pt)
+{
+   return pt.lastPhrase->src_words.start;
+}
+
+bool BackLexDistortion::isRecombinable(const PartialTranslation &pt1, const PartialTranslation &pt2)
+{
+   return pt1.lastPhrase->src_words == pt2.lastPhrase->src_words;
+}
+
+double BackLexDistortion::precomputeFutureScore(const PhraseInfo& phrase_info)
+{
+   if ( type != Combined ) return 0;
+      
+   const vector<float> lexdis_probs = getLexDisProb(phrase_info);
+   
+   return *max_element(lexdis_probs.begin(), lexdis_probs.begin()+3 );
+}
+
+double BackLexDistortion::futureScore(const PartialTranslation& pt)
+{
+   return 0.0;
+}
