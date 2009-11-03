@@ -74,6 +74,8 @@ void Powell<ScoreStats>::operator()(uVector& p,
    assert(p.size() == vH[0].size2());
    score = 0.0f;
    iter  = 0;
+   ++powell_count;
+   linemax_count = 0;
 
    const Uint M(p.size());
    const double epsilon(1.0e-25);

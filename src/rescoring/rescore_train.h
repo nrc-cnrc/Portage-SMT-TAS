@@ -151,6 +151,7 @@ public:
    Uint     weight_infile_nl;   ///< num lines read from beginning of weight_infile
    string   weight_infile;      ///< input weights file
    string   weight_outfile;     ///< output weights file
+   string   powell_log_file;    ///< log file for details on Powell runs
    Uint     seed;               ///< random seed
    string   model_in;           ///< input config file
    string   model_out;          ///< output config file
@@ -188,6 +189,7 @@ public:
       , weight_infile_nl(3)
       , weight_infile("")
       , weight_outfile("")
+      , powell_log_file("")
       , seed(0)
       , K(0)
       , S(0)
@@ -218,6 +220,7 @@ public:
             LOG_DEBUG(m_dLogger, "num feature weights to read in: %d", weight_infile_nl);
             LOG_DEBUG(m_dLogger, "feature weights read from file: %s", weight_infile.c_str());
             LOG_DEBUG(m_dLogger, "feature weights written to file: %s", weight_outfile.c_str());
+            LOG_DEBUG(m_dLogger, "powell log info written to file: %s", powell_log_file.c_str());
             LOG_DEBUG(m_dLogger, "ff_pref: %s", ff_pref.c_str());
             LOG_DEBUG(m_dLogger, "alignment file name: %s", alignment_file.c_str());
             LOG_DEBUG(m_dLogger, "random seed: %d", seed);
@@ -253,6 +256,7 @@ public:
       mp_arg_reader->testAndSet("win", weight_infile_nl);
       mp_arg_reader->testAndSet("wi", weight_infile);
       mp_arg_reader->testAndSet("wo", weight_outfile);
+      mp_arg_reader->testAndSet("l", powell_log_file);
       mp_arg_reader->testAndSet("s", seed);
       mp_arg_reader->testAndSet("p", ff_pref);
       mp_arg_reader->testAndSet("a", alignment_file);

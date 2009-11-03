@@ -69,12 +69,6 @@ FFVALPARSER_OPTS="-canoe"
 ##           model and results files]
 ## -nbest-list-size The size of the n-best lists to create.  [200]
 ## -maxiter Do at most MAX iterations.
-## -micro   Do at most the first M iterations in micro mode (tuning weights
-##          for each sentence separately). [0]
-##          Not compatible with -mad.
-## -microsm The value of the -sm switch for rescore_train in micro mode [1]
-## -micropar The number of sentence-level rescore_trains to run in parallel
-##          in micro mode [3]
 ## -filt    Filter the phrase tables based on SFILE for faster operation.
 ##          Should not change your results in a significant way (some changes
 ##          may be observed due to rounding differences).  Creates a single
@@ -107,8 +101,14 @@ FFVALPARSER_OPTS="-canoe"
 ##          this uses a different random set of weights for each
 ##          sentence. [don't; note that SEED=0 also means don't]
 ## -e       Use expectation to determine rescore_train stopping point [don't]
-## -s       Use SEED as random seed for rescore_train [use default seed]
 ## -path    Prepend path P to existing path for locating programs []
+## -s       Use SEED as random seed for rescore_train [use default seed]
+## -micro   Do at most the first M iterations in micro mode (tuning weights
+##          for each sentence separately). [0]
+##          Not compatible with -mad.
+## -microsm The value of the -sm switch for rescore_train in micro mode [1]
+## -micropar The number of sentence-level rescore_trains to run in parallel
+##          in micro mode [3]
 ## -f       The configuration file to pass to the decoder. [canoe.ini]
 ## -canoe-options  Provide additional options to the decoder. []
 ## -rescore-options  Provide additional options to the rescore_train. []

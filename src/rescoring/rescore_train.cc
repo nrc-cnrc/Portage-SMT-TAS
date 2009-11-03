@@ -356,9 +356,15 @@ double runPowell(const vector<uMatrix>& vH,
       arg.num_powell_runs;
    vector<double> score_history; // list of bleu scores, for approx-expect stopping
 
+   ostream* logfile = NULL;
+   if (arg.powell_log_file != "")
+      logfile = new oSafeMagicStream(arg.powell_log_file);
+
    Uint M = best_wts.size();
 
    Powell<ScoreStats> powell(vH, scores);
+   powell.logstream = logfile;
+
    while (num_runs < total_runs) {
 
       uVector wts(M);
@@ -370,6 +376,8 @@ double runPowell(const vector<uMatrix>& vH,
       if (arg.bVerbose) {
          cerr << "Calling Powell with initial wts=" << wts << endl;
       }
+
+      if (logfile) (*logfile) << "--- iter " << num_runs+1 << " ---" << endl;
 
       int iter = 0;
       double score = 0.0;
@@ -402,6 +410,8 @@ double runPowell(const vector<uMatrix>& vH,
             break;
       }
    }
-   
+
+   if (logfile) delete logfile;
+
    return best_score;
 }

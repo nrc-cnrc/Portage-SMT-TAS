@@ -83,7 +83,7 @@ MODULE_CF=-Wno-non-virtual-dtor -fno-strict-aliasing -Wno-uninitialized -fopenmp
 MODULE_LF=-fopenmp
 endif
 
-MODULE_DEPENDS=canoe tm lm eval logging
+MODULE_DEPENDS=canoe tm lm eval logging preprocessing
 
 include ../build/Makefile.incl
 

@@ -126,7 +126,7 @@ class Powell
        * improve the likelihood of finding the global maximum.
        *
        * @param p     A vector containing an initial set of feature weights.
-       *              The "optimal" weights will also be returned via p.
+       *              The "optimal" weights will be returned via p.
        * @param tolerance The fractional tolerance in the function value, such
        *                  that when one iteration does not increase the score by
        *                  at least this much, then the algorithm terminates.
@@ -135,11 +135,11 @@ class Powell
        *                  used.
        * @param iter  Will contain the number of iterations done in the algorithm.
        * @param score Will contain the maximum score achieved.
-      */
-         void operator()(uVector& p,
-               double tolerance,
-               int &iter,
-               double &score);
+       */
+      void operator()(uVector& p,
+            double tolerance,
+            int &iter,
+            double &score);
 
 };  // ends class Powell
 

@@ -13,7 +13,7 @@
  * The idea is to have a sort of measure of how many source words have not been translated (or been translated badly).
  * 
  * Technologies langagieres interactives / Interactive Language Technologies
- * Institut de technologie de l'information / Institute for Information Technology 
+ * Inst. de technologie de l'information / Institute for Information Technology 
  * Conseil national de recherches Canada / National Research Council Canada 
  * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2006, Her Majesty in Right of Canada 
