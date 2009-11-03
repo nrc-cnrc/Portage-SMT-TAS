@@ -44,7 +44,7 @@ define ("__SITE_J_VALUE__", "j");
 define ("__SITE_J_HREF__", "china.org.cn/chinese/index.htm");
 define ("__SITE_J_TEXT__", "China.org.cn");
 define ("__TRANSLATOR_ENGINE_NAME__", "Moteur de traduction Portage");
-define ("__COPYRIGHTS_NOTE__", "&copy; 2005-2006, Conseil national de recherches Canada");
+define ("__COPYRIGHTS_NOTE__", "&copy; 2005-2009, Conseil national de recherches Canada");
 define ("__NEW_TRANSLATION_BTN__", "Nouvelle traduction");
 define ("__TRANSLATION_RESULT_TITLE__", "Résultat de la traduction");
 define ("__TRANSLATION_RESULT_SRC_TITLE__", "Voici ce que vous avez entré :");

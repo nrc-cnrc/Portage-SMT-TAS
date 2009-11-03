@@ -67,7 +67,7 @@ void PortageAPI::translate(const string& src_text, string& tgt_text)
       info.src_sent   = src_sents[i];
       info.marks      = cur_mark;
       BasicModel* pdm = bmg->createModel(info);
-      HypothesisStack* h = runDecoder(*pdm, c);
+      HypothesisStack* h = runDecoder(*pdm, c, false);
       assert(!h->isEmpty());
       PrintPhraseOnly print(*pdm);
 

@@ -28,6 +28,9 @@ class Postprocessor
    // For licensing reasons, the truecasing engine cannot be supplied with this
    // distribution.  To integrate your truecasing engine with this demo, add it
    // to Postprocessor::proc().
+   // Nov 2009: we now have our own truecasing engine, but this API is pretty
+   // much obsolete, so we have no plans to integrate it.  The new methodology
+   // is based around the translate.sh script in the framework.
    //TrueCaseEngine tc;
    
    bool verbose;  ///< Are we required to print verbose.
