@@ -156,7 +156,7 @@ my $footer = <<FOOTER;
   </td>
   <td valign="top" align="center">
 Technologies langagi&egrave;res interactives / Interactive Language Technologies<BR>
-Institut de technologie de l'information / Institute for Information Technology<BR>
+Inst. de technologie de l'information / Institute for Information Technology<BR>
 Conseil national de recherches Canada / National Research Council Canada<BR>
 Copyright &copy; 2004-2009, Sa Majest&eacute; la Reine du Chef du Canada / Her Majesty in Right of Canada
   </td>

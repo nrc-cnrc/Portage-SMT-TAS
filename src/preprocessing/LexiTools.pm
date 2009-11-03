@@ -591,7 +591,7 @@ Copyright (c) 2004 - 2009, Her Majesty in Right of Canada
 
  For further information, please contact :
  Technologies langagieres interactives / Interactive Language Technologies
- Institut de technologie de l'information / Institute for Information Technology
+ Inst. de technologie de l'information / Institute for Information Technology
  Conseil national de recherches Canada / National Research Council Canada
  See http://iit-iti.nrc-cnrc.gc.ca/locations-bureaux/gatineau_e.html
 

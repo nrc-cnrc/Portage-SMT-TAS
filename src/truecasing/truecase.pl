@@ -236,7 +236,7 @@ sub displayHelp
   property of the National Research Council of Canada.\r\n\
   For further information, please contact :\r\
   Technologies langagieres interactives / Interactive Language Technologies\r\
-  Institut de technologie de l'information / Institute for Information Technology\r\
+  Inst. de technologie de l'information / Institute for Information Technology\r\
   Conseil national de recherches Canada / National Research Council Canada\r\
   See http://iit-iti.nrc-cnrc.gc.ca/locations-bureaux/gatineau_e.html\r\n";
 } # displayHelp
@@ -334,7 +334,7 @@ B< =======================
 
  For further information, please contact :
  Technologies langagieres interactives / Interactive Language Technologies
- Institut de technologie de l'information / Institute for Information Technology
+ Inst. de technologie de l'information / Institute for Information Technology
  Conseil national de recherches Canada / National Research Council Canada
  See http://iit-iti.nrc-cnrc.gc.ca/locations-bureaux/gatineau_e.html
 
