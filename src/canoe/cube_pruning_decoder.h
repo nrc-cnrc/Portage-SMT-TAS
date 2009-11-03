@@ -6,7 +6,7 @@
  * $Id$
  *
  * Technologies langagieres interactives / Interactive Language Technoogies
- * Institut de technologie de l'information / Institute for Information Technoloy
+ * Inst. de technologie de l'information / Institute for Information Technoloy
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2007, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2007, Her Majesty in Right of Canada
