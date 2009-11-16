@@ -14,13 +14,17 @@
 COMPRESS_EXT=".gz"
 VERBOSE=
 FILTER=
+TTABLE_LIMIT=
 RANDOM_INIT=0
 RESUME=
 FLOOR=-1
 NOFLOOR=
 FLOOR_ARG=
 ESTOP=
-SEED=
+SEED=0
+NR=0
+WACC=1
+WIN=3
 N=200
 CFILE=
 CANOE=canoe
@@ -40,9 +44,10 @@ FFVALPARSER_OPTS="-canoe"
 
 ##
 ## Usage: cow.sh [-v] [-Z] [-resume] [-nbest-list-size N] [-maxiter MAX]
-##        [-filt] [-filt-no-ttable-limit] [-lb | -no-lb] [-s SEED]
+##        [-filt] [-ttable-limit T] [-filt-no-ttable-limit] [-lb|-no-lb]
 ##        [-floor index|-nofloor] [-model MODEL] [-mad SEED] [-e] [-path P]
-##        [-micro M] [-microsm S] [-micropar N]
+##        [-s SEED] [-nr] [-micro M] [-microsm S] [-micropar N]
+##        [-wacc N] [-win WIN]
 ##        [-f CFILE] [-canoe-options OPTS] [-rescore-options OPTS]
 ##        [-parallel[:"PARALLEL_OPTS"]]
 ##        [-bleu | -per | -wer]
@@ -76,6 +81,9 @@ FFVALPARSER_OPTS="-canoe"
 ##          match SFILE and meet the ttable-limit criterion in CFILE, if any.
 ##          Uses this table afterwards in place of the original tables.
 ##          (Recommended option) [don't filter]
+## -ttable-limit Use T as the ttable-limit for -filt, instead of the value 
+##          specified in CFILE. T is not written back to filtered versions of
+##          CFILE.
 ## -filt-no-ttable-limit  Similar to -filt, with a somewhat faster filtering
 ##          phase but less effective filtering for canoe.  Creates individual
 ##          filtered tables containing only entries that match SFILE (without
@@ -102,13 +110,20 @@ FFVALPARSER_OPTS="-canoe"
 ##          sentence. [don't; note that SEED=0 also means don't]
 ## -e       Use expectation to determine rescore_train stopping point [don't]
 ## -path    Prepend path P to existing path for locating programs []
-## -s       Use SEED as random seed for rescore_train [use default seed]
+## -s       Use SEED to derive random seeds for rescore_train: SEED*10k,
+##          SEED*10k+1, SEED*10k+2, ..., for successive cow iterations. [0]
+## -nr      Don't re-randomize: use a fixed seed for all iterations [use a
+##          different seed as described above]
 ## -micro   Do at most the first M iterations in micro mode (tuning weights
 ##          for each sentence separately). [0]
 ##          Not compatible with -mad.
 ## -microsm The value of the -sm switch for rescore_train in micro mode [1]
 ## -micropar The number of sentence-level rescore_trains to run in parallel
 ##          in micro mode [3]
+## -wacc    Start Powell with the WIN best weights from each of the N iterations
+##          before the current one. [1]
+## -win     Use the WIN best weights from the previous iteration(s) as starting 
+##          points for Powell's algorithm. [3] 
 ## -f       The configuration file to pass to the decoder. [canoe.ini]
 ## -canoe-options  Provide additional options to the decoder. []
 ## -rescore-options  Provide additional options to the rescore_train. []
@@ -206,10 +221,9 @@ rename_old() {
 }
 
 check_ttable_limit() {
-   f=$1
-   TTABLE_LIMIT=`configtool ttable-limit $f`
-   if [ ! $TTABLE_LIMIT -gt 0 ] ; then
-      error_exit "Please set your ttable-limit in your $f, for use with -filt"
+   TTABLE_LIM=$1
+   if [ ! $TTABLE_LIM -gt 0 ] ; then
+      error_exit "Please set a ttable-limit for use with -filt."
    fi
 }
 
@@ -236,14 +250,18 @@ while [ $# -gt 0 ]; do
    -rescore-train) arg_check 1 $# $1; RTRAIN="$2"; shift;;
    -model)         arg_check 1 $# $1; MODEL="$2"; shift;;
    -filt)          FILTER=$1;;
+   -ttable-limit)  arg_check 1 $# $1; TTABLE_LIMIT="$2"; shift;;
    -lb)            LOAD_BALANCING=1;;
    -no-lb)         LOAD_BALANCING=;;
    -filt-no-ttable-limit)   FILTER=$1;;
    -mad)           arg_check 1 $# $1; RANDOM_INIT="$2"; shift;;
    -e)             ESTOP="-e -r50";;
-   -s)             arg_check 1 $# $1; SEED="-s $2"; shift;;
+   -s)             arg_check 1 $# $1; SEED="$2"; shift;;
+   -nr)            NR=1;;
    -floor)         arg_check 1 $# $1; FLOOR="$2"; shift;;
    -nofloor)       NOFLOOR=1;;
+   -wacc)          arg_check 1 $# $1; WACC="$2"; shift;;
+   -win)           arg_check 1 $# $1; WIN="$2"; shift;;
    -parallel:*)    PARALLEL=1; PARALLEL_OPTS="${1/-parallel:/}";;
    -parallel)      PARALLEL=1;;
    -workdir)       arg_check 1 $# $1; WORKDIR="$2"; shift;;
@@ -346,7 +364,7 @@ TMPMODELFILE=$MODEL.tmp
 TMPFILE=$WORKDIR/tmp
 TRANSFILE=$WORKDIR/transfile
 HISTFILE="rescore-results"
-# code below assumes that $POWELLFILE* and $POWELLMICRO* be disjoint:
+# code below assumes that $POWELLFILE* and $POWELLMICRO* are disjoint:
 POWELLFILE="$WORKDIR/powellweights.tmp"
 POWELLMICRO="$WORKDIR/powellweights.micro" 
 MODEL_ORIG=$MODEL.orig
@@ -462,10 +480,12 @@ if [ ! $RESUME ]; then
    # Filter phrasetables to retain only matching source phrases.
    if [ "$FILTER" = "-filt" ] ; then
       # Filter-joint, apply -L limit
-      check_ttable_limit $CFILE;
-      TTABLE_LIMIT=`configtool ttable-limit $f`
-      echo "filter_models -z -r -f $CFILE -suffix .FILT -soft-limit multi.probs.`basename ${SFILE}`.${TTABLE_LIMIT} < $SFILE"
-            filter_models -z -r -f $CFILE -suffix .FILT -soft-limit multi.probs.`basename ${SFILE}`.${TTABLE_LIMIT} < $SFILE
+      if [ -z "$TTABLE_LIMIT" ]; then
+          TTABLE_LIMIT=`configtool ttable-limit $CFILE`
+      fi
+      check_ttable_limit $TTABLE_LIMIT;
+      echo "filter_models -z -r -f $CFILE -ttable-limit $TTABLE_LIMIT -suffix .FILT -soft-limit multi.probs.`basename ${SFILE}`.${TTABLE_LIMIT} < $SFILE"
+            filter_models -z -r -f $CFILE -ttable-limit $TTABLE_LIMIT -suffix .FILT -soft-limit multi.probs.`basename ${SFILE}`.${TTABLE_LIMIT} < $SFILE
       CFILE=$CFILE.FILT
    elif [ "$FILTER" = "-filt-no-ttable-limit" ] ; then
       # filter-grep only, keep all translations for matching source phrases
@@ -511,6 +531,10 @@ write_models() {
 # Main loop
 #------------------------------------------------------------------------------
 
+if [ $NR == 0 ]; then    # re-randomize on each iter
+   SEED=$((SEED*10000))
+fi
+
 RANDOM_WEIGHTS=
 if [ $RANDOM_INIT != 0 ]; then RANDOM_WEIGHTS="-random-weights -seed $RANDOM_INIT"; fi
 
@@ -518,6 +542,7 @@ ITER=0
 
 while [ 1 ]; do
 
+   # convert rescoring model weights to canoe weights
    if [ $DEBUG ]; then echo "configtool arg-weights:$MODEL $CFILE" ; fi
    wtvec=`configtool arg-weights:$MODEL $CFILE`
 
@@ -618,12 +643,13 @@ while [ 1 ]; do
 
    # Create all N-best lists and check if any of them have anything new to add
    echo ""
-   echo "Producing n-best lists"
+   echo Producing n-best lists on `date`
 
    FOO_FILES=$WORKDIR/foo.????."$N"best$COMPRESS_EXT
    totalPrevK=0
    totalNewK=0
    for x in $FOO_FILES; do
+      #echo Append-uniq $x on `date`
       x=${x%$COMPRESS_EXT}
       f=${x%."$N"best}
 
@@ -633,6 +659,13 @@ while [ 1 ]; do
       totalPrevK=$((totalPrevK + prevK))
       append-uniq.pl -nbest=$f.duplicateFree$COMPRESS_EXT -addnbest=$x$COMPRESS_EXT \
          -ffvals=$f.duplicateFree.ffvals$COMPRESS_EXT -addffvals=$x.ffvals$COMPRESS_EXT
+
+      # Check return value
+      RVAL=$?
+      if [[ $RVAL -ne 0 ]]; then
+         error_exit "append-uniq.pl returned $RVAL"
+      fi
+
       newK=`gzip -cqfd $f.duplicateFree$COMPRESS_EXT | wc -l`
       totalNewK=$((totalNewK + newK))
 
@@ -667,7 +700,7 @@ while [ 1 ]; do
       fi
    fi
 
-   echo "Preparing to run rescore_train"
+   echo Preparing to run rescore_train on `date`
 
    \rm $WORKDIR/alltargets $WORKDIR/allffvals >& /dev/null
    S=$((`wc -l < $SFILE`))
@@ -710,11 +743,23 @@ while [ 1 ]; do
          echo "   ==> $MAXITER iteration\(s\) remaining."
       fi
    else
-      WEIGHTINFILE=$POWELLFILE.$ITER
+      ITERP=$ITER
       ITER=$((ITER + 1))
+      WEIGHTINFILE=$POWELLFILE.$ITERP
       WEIGHTOUTFILE=$POWELLFILE.$ITER
+      WINTMP=$WIN
+      if [ $WACC -ne 1 ]; then  # accumulate wts from WACC prev iters
+         WEIGHTINFILE=$WORKDIR/wacc-wts
+         cat /dev/null > $WEIGHTINFILE
+         WACCI=0
+         while [ $ITERP -gt 0 ] && [ $WACCI -lt $WACC ]; do
+            head -$WIN $POWELLFILE.$ITERP >> $WEIGHTINFILE
+            ITERP=$((ITERP - 1))
+            WACCI=$((WACCI + 1))
+         done
+         WINTMP=`wc -l < $WEIGHTINFILE`
    fi
-   touch $WEIGHTINFILE   # create powellweights.tmp.0
+   touch $WEIGHTINFILE   # create powellweights.tmp.0 if nec
 
    # ensure powellweights.micro.IIII files exist on first iteration
    if [ $MICRO -ne 0 ]; then    
@@ -730,17 +775,19 @@ while [ 1 ]; do
    fi
 
    
-   if [ $MICRO -gt 0 ]; then
+   if [ $MICRO -eq 0 ]; then
+      RUNSTR="$RTRAIN $TRAINING_TYPE $RESCORE_OPTS \
+         $ESTOP -s $SEED -wi $WEIGHTINFILE -wo $WEIGHTOUTFILE \
+         -win $WINTMP \
+         -dyn -n $FLOOR_ARG \
+         $MODEL_ORIG $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
+   else
       WTS="$POWELLMICRO.IIII"
-      RT_OPTS="$RESCORE_OPTS $ESTOP $SEED -wi $WTS -wo $WTS -n -sm $MICROSM \
+      RT_OPTS="$RESCORE_OPTS $ESTOP -s $SEED -wi $WTS -wo $WTS -n -sm $MICROSM \
          $FLOOR_ARG -p $WORKDIR/foo.IIII"
       RUNSTR="rescore-train-micro.sh $VERBOSE -n $MICROPAR -rt-opts \"$RT_OPTS\" \
          $MODEL.micro.in $MODEL.micro.IIII $SFILE \
          $WORKDIR/foo.IIII.duplicateFree$COMPRESS_EXT $RFILES"
-   else
-      RUNSTR="$RTRAIN $TRAINING_TYPE $RESCORE_OPTS \
-         $ESTOP $SEED -wi $WEIGHTINFILE -wo $WEIGHTOUTFILE -dyn -n $FLOOR_ARG \
-         $MODEL_ORIG $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
    fi
 
    echo "$RUNSTR"
@@ -769,5 +816,9 @@ while [ 1 ]; do
       mv $TMPMODELFILE $MODEL
    fi
    RESUME=
+
+   if [ $NR == 0 ]; then  # re-randomize on each iter
+      SEED=$((SEED+1))
+   fi
 
 done

@@ -24,6 +24,7 @@ OBJECTS = \
 	ibm1wtrans.o \
 	ibm1del.o \
 	ibm_ff.o \
+	levenshtein_ff.o \
 	lm_ff.o \
 	mismatch_ff.o \
 	multiColumnFileFF.o \
@@ -36,6 +37,7 @@ OBJECTS = \
 	nbest_wordpost_lev.o \
 	nbest_wordpost_src.o \
 	nbest_wordpost_trg.o \
+	ngramMatch_ff.o \
 	ngram_tree.o \
 	per_postedit_ff.o \
 	rescore_io.o \
@@ -57,7 +59,6 @@ TESTPROGS = \
 	test_rescoring_stop \
 	testff \
 	testfileReader \
-	testlinemax \
 	testpowell
 
 PROGRAMS=$(TESTPROGS) \
@@ -66,7 +67,8 @@ PROGRAMS=$(TESTPROGS) \
 	rescore_test \
 	rescore_train \
 	rescore_translate \
-        uniq_nbest
+        uniq_nbest \
+	word_align_phrasepairs
 
 DOCUMENTS=rescoring_overview.pdf ochlinemax.pdf
 
@@ -76,14 +78,14 @@ DYNLIBS=-lpthread $(LIBICU)
 
 PGM_WITH_ALTERNATIVE_HELP = rescore_train
 
+MODULE_DEPENDS=canoe tm lm eval logging preprocessing
+
 ifdef NO_PORTAGE_OPENMP
-MODULE_CF=-Wno-non-virtual-dtor -fno-strict-aliasing -Wno-uninitialized
+MODULE_CF=-Wno-unknown-pragmas
 else
-MODULE_CF=-Wno-non-virtual-dtor -fno-strict-aliasing -Wno-uninitialized -fopenmp
+MODULE_CF=-fopenmp
 MODULE_LF=-fopenmp
 endif
-
-MODULE_DEPENDS=canoe tm lm eval logging preprocessing
 
 include ../build/Makefile.incl
 
@@ -92,5 +94,3 @@ rescoring_overview.dvi: rescoring_overview.bib
 .PHONY: tests
 
 tests: $(TESTPROGS)
-
--include Makefile.depend

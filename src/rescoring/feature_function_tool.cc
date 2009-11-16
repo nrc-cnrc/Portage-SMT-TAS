@@ -42,7 +42,6 @@ Options:\n\
 -p   Feature function prefix.\n\
 ";
 
-
 // main
 int MAIN(argc, argv)
 {

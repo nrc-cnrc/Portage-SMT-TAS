@@ -122,9 +122,10 @@ Options:\n\
 // ARGUMENTS PROCESSING CLASS
 /// Program rescore_train's allowed command line arguments.
 const char* const switches[] = {
-      "n", "f:", "dyn", "p:", "a:", "v", "rf", "K:", "r:", "e",
-      "win:", "wi:", "wo:", "l:", "s:", "y:", "u:", "sm:",
-      "bleu", "per", "wer", "final-cleanup", "no-final-cleanup"
+   "n", "f:", "dyn", "p:", "a:", "v", "rf", "K:", "r:", "e",
+   "win:", "wi:", "wo:",
+   "l:", "s:", "y:", "u:", "sm:",
+   "bleu", "per", "wer", "final-cleanup", "no-final-cleanup"
 };
 
 /// Specific argument processing class for rescore_train program

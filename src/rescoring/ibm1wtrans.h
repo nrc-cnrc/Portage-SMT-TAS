@@ -53,7 +53,6 @@ namespace Portage
        *
        * @param src  source tokens
        * @param tgt  target tokens
-       * @param sprobs source probs
        * @return Returns
        */
       double computeValue(const Tokens& src, const Tokens& tgt);

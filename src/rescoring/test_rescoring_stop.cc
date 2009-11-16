@@ -54,7 +54,6 @@ static string infile = "-";
 static void getArgs(int argc, char* argv[]);
 
 static const unsigned int NUM_INIT_RUNS(7);
-static const double FTOL(0.01);
 static const double BLEUTOL(0.0001);
 
 // main

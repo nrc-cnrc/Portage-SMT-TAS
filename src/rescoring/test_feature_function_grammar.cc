@@ -50,7 +50,7 @@ void printString(char const* str, char const* end)
 int main (int argc, char* argv[])
 {
    if (argc > 1) {
-      cerr << "Prgram that tests the grammar used for parsing the feature functions." << endl;
+      cerr << "Program that tests the grammar used for parsing the feature functions." << endl;
       exit(1);
    }
 
@@ -79,7 +79,7 @@ int main (int argc, char* argv[])
       };
 
    for (unsigned int i(0); i<sizeof(src)/sizeof(const char* const); ++i) {
-      Portage::feature_function_grammar gram(false);
+      Portage::feature_function_grammar gram(true);
       parse_info<> pi = parse(src[i], gram, space_p);
       if (pi.full) {
          cout << "\033[1;32m=>Full src parsed successfully\033[0m" << endl;
@@ -100,7 +100,7 @@ int main (int argc, char* argv[])
 
       if (gram.rnd.get() != NULL) {
          cout << "Some Random values: " << endl;
-         for (unsigned int r(0); r<3; ++r)
+         for (unsigned int r(0); r<10; ++r)
             cout << (*gram.rnd)() << endl;
       }
 

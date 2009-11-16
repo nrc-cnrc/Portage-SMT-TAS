@@ -25,6 +25,7 @@
 #include <queue>
 #include <stack>
 #include <sstream>
+#include <boost/scoped_ptr.hpp>
 
 
 using namespace Portage;
@@ -89,6 +90,14 @@ int MAIN(argc, argv)
       if (!astr) error(ETFatal, "unable to open alignment file %s", arg.alignment_file.c_str());
    }
 
+   boost::scoped_ptr<istream> co_in;
+   boost::scoped_ptr<ostream> co_out;
+   if (arg.cofile != "") {
+      co_in.reset(new iSafeMagicStream(arg.cofile));
+      co_out.reset(new oSafeMagicStream(arg.cofile + ".resc"));
+   }
+   vector<string> colines(arg.K);
+
    LOG_VERBOSE2(verboseLogger, "Processing Nbest lists");
 
    if (arg.bVerbose) {
@@ -120,10 +129,17 @@ int MAIN(argc, argv)
       ffset.computeFFMatrix(H, s, nbest);
       K = nbest.size();  // IMPORTANT K might change if computeFFMatrix detects empty lines
 
+      if (co_in) {
+         for (Uint i = 0; i < colines.size(); ++i)
+            if (!getline(*co_in, colines[i]))
+               error(ETFatal, "file %s too short", arg.cofile.c_str());
+      }
+
       if (!arg.bMbr) { // maximum a-posteriori rescoring
          if (arg.kout == 1) {      // output single best hypothesis
             if (K==0) {
                cout << endl;
+               if (co_out) (*co_out) << endl;
             } else {
                const uVector Scores = boost::numeric::ublas::prec_prod(H, wts);
                double logz = arg.conf_scores ? logNorm(Scores) : 0.0;
@@ -131,6 +147,7 @@ int MAIN(argc, argv)
                if (arg.bPrintRank)cout << bestIndex+1 << " ";
                if (arg.print_scores) cout << Scores[bestIndex] - logz << " ";
                cout << nbest.at(bestIndex) << endl;  // DISPLAY best hypothesis
+               if (co_out) (*co_out) << colines[bestIndex] << endl;
             }
          } else {                  // ouptput k best hypotheses
             const uVector Scores = boost::numeric::ublas::prec_prod(H, wts);
@@ -151,10 +168,14 @@ int MAIN(argc, argv)
                if (arg.bPrintRank) cout << p.second+1 << " ";
                if (arg.print_scores) cout << Scores[p.second] - logz << " ";
                cout << nbest.at(p.second) << endl;  // DISPLAY best hypothesis
+               if (co_out) (*co_out) << colines[p.second] << endl;
                best_scores_stack.pop();
             }
             if (arg.K)             // pad with blank lines if necessary
-               for (; kout < arg.kout; ++kout)  cout << endl;
+               for (; kout < arg.kout; ++kout) {
+                  cout << endl;
+                  if (co_out) (*co_out) << endl;
+               }
          }
       } else { // Minimum Bayes risk rescoring using BLEU as loss function
 

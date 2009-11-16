@@ -34,6 +34,8 @@
 #include "hmm_ff.h"
 #include "ibm1del.h"
 #include "cache_lm_ff.h"
+#include "ngramMatch_ff.h"
+#include "levenshtein_ff.h"
 #include "ibm1wtrans.h"
 #include "nbest_posterior_ff.h"
 #include "consensus.h"
@@ -382,6 +384,10 @@ ptr_FF FeatureFunctionSet::create(const string& name,
       ff = new ConsensusWin(arg);
    } else if (name == "BLEUrisk") {
       ff = new RiskBleu(arg);
+   } else if (name == "NGramMatch") {
+      ff = new NGramMatchFF(arg);
+   } else if (name == "Levenshtein") {
+      ff = new LevenshteinFF(arg);
    } else if (name == "ParMismatch") {
       ff = new ParMismatchFF(arg);
    } else if (name == "QuotMismatch") {
@@ -425,6 +431,8 @@ Features available:\n\
  LengthFF - number of characters\n\
  RatioFF - ratio of words in the translation over words in the source\n\
  NgramFF:lm-file[#order] - log prob according to lm-file\n\
+ NGramMatch:ref-file#order - common ngrams with ref\n\
+ Levenshtein:ref-file - Levenshtein distance with ref\n\
  IBM1TgtGivenSrc:ibm1.tgt_given_src - IBM1 forward probability\n\
  IBM1SrcGivenTgt:ibm1.src_given_tgt - IBM1 backward probability\n\
  IBM2TgtGivenSrc:ibm2.tgt_given_src - IBM2 forward probability\n\

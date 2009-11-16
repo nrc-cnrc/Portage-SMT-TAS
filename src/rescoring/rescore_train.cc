@@ -144,11 +144,17 @@ int main(int argc, const char* const argv[])
    printCopyright(2004, "rescore_train");
 #ifdef _OPENMP
    cerr << "Compiled openmp" << endl;
+#ifdef CYGWIN
+   // On CYGWIN, master thread may hang in GOMP_parallel_start if more than one thread.
+   omp_set_num_threads(1);
+#endif
 #pragma omp parallel
 #pragma omp master
-   fprintf(stderr, "Using %d threads.\nSet OMP_NUM_THREADS=N to change to N threads.\n",
-           omp_get_num_threads());
+   fprintf(stderr, "Using %d threads.\n", omp_get_num_threads());
+#ifndef CYGWIN
+   fprintf(stderr, "Set OMP_NUM_THREADS=N to change to N threads.\n");
 #endif
+#endif //_OPENMP
 
    const ARG arg(argc, argv);
 
@@ -203,7 +209,7 @@ void train(const ARG& arg)
    vector<uMatrix>  vH(S);
    vector< vector<ScoreStats> >  scores(S);
 
-   ifstream astr;
+   iMagicStream astr;
    const bool bNeedsAlignment = ffset.requires() & FF_NEEDS_ALIGNMENT;
    if (bNeedsAlignment) {
       if (arg.alignment_file.empty())
@@ -216,9 +222,7 @@ void train(const ARG& arg)
    vector< uVector > powellWeightsIn;
    if (arg.weight_infile != "") {
       LOG_VERBOSE2(verboseLogger, "Reading Powell weights from %s", arg.weight_infile.c_str());
-      ifstream wstr(arg.weight_infile.c_str());
-      if (!wstr) error(ETFatal, "unable to open Powell weight file %s", arg.weight_infile.c_str());
-
+      iSafeMagicStream wstr(arg.weight_infile);
       string line;
       Uint num_lines = 0;
       while (getline(wstr, line) &&
@@ -308,7 +312,9 @@ void train(const ARG& arg)
    ffset.setWeights(best_wts);
 
    if (arg.bVerbose) {
-      cerr << "Best score: " << ScoreStats::convertToDisplay(best_score) << endl;
+      cerr << "Best score: "
+         << ScoreStats::convertToDisplay(best_score)
+         << endl;
       cerr << "Using normalized wts=" << best_wts << endl;
    }
 
@@ -329,7 +335,7 @@ void train(const ARG& arg)
  * Run Powell's algorithm with different start parameters until a global
  * maximum appears to be found.
  * @param vH vector of S KxM matrices of feature values
- * @param bleu vector of S vectors of K hypothesis scores
+ * @param scores vector of S vectors of K hypothesis scores
  * @param init_wts starting wts for initial iterations
  * @param ffset used only for random wt generation, honest
  * @param arg user-specified arguments
@@ -354,7 +360,7 @@ double runPowell(const vector<uMatrix>& vH,
    Uint total_runs = arg.num_powell_runs == 0 ?
       (rescore_train::NUM_INIT_RUNS+2) :  // +2 for backward compatibility (!)
       arg.num_powell_runs;
-   vector<double> score_history; // list of bleu scores, for approx-expect stopping
+   vector<double> score_history; // list of scores, for approx-expect stopping
 
    ostream* logfile = NULL;
    if (arg.powell_log_file != "")

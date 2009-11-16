@@ -24,7 +24,7 @@ namespace rescore_translate {
 
    /// Program rescore_translate usage.
    static char help_message[] = "\n\
-rescore_translate [-vnsc][-p ff-pref][-a F][-dyn][-kout k] model src nbest\n\
+rescore_translate [-vnsc][-p ff-pref][-a F][-dyn][-kout k][-co f] model src nbest\n\
 \n\
 Translate a src text using a rescoring model to choose the best candidate\n\
 translation from the given nbest list.  Output is written to stdout, one\n\
@@ -45,6 +45,9 @@ Options:\n\
 -kout Print <k> best hypotheses per source sent, or all if k is 0. Unless -dyn\n\
       is specified, this will pad with blank lines if necessary to write\n\
       exactly <k> lines per source sentence. [1]\n\
+-co   Read entries from file <f> that is line-aligned with nbest, and write \n\
+      corresponding rescored entries to <f>.resc. This doesn't work with -mbr,\n\
+      nor with variable-sized nbest lists.\n\
 -mbr  Minimum Bayes risk: Determine hypothesis with min. risk rather than max. score\n\
       Note that this gives you 1-best output only! [don't]\n\
 -gf   Scale all sentence probabilities by global factor <f> in MBR calculation [1]\n\
@@ -57,7 +60,7 @@ Options:\n\
    // ARGUMENTS PROCESSING CLASS
    /// Program rescore_translate allowed command line switches.
    const char* const switches[] = {
-      "dyn", "max:", "p:", "a:", "v", "K:", "n", "s", "c", "kout:",
+      "dyn", "max:", "p:", "a:", "v", "K:", "n", "s", "c", "kout:", "co:",
       "mbr", "gf:", "bs:", "l:"
    };
    /// Specific argument processing class for rescore_translate program
@@ -75,6 +78,7 @@ Options:\n\
          bool     conf_scores;      ///< Normalize hyp score(s) before printing
          bool     bMbr;             ///< print Minimum Bayes risk hyp. rather than max. prob. one
          Uint     kout;             ///< Number of output hyps per source
+         string   cofile;           ///< File that is line-aligned with nbest
          Uint     kmbr;             ///< Number of hyps per source used in MBR
          Uint     K;                ///< Number of hypotheses per source
          Uint     S;                ///< Number of sources
@@ -103,6 +107,7 @@ Options:\n\
          , conf_scores(false)
          , bMbr(false)
          , kout(1)
+         , cofile("")
          , kmbr(0)
          , K(0)
          , S(0)
@@ -147,6 +152,7 @@ Options:\n\
          mp_arg_reader->testAndSet("s", print_scores);
          mp_arg_reader->testAndSet("c", conf_scores);
          mp_arg_reader->testAndSet("kout", kout);
+         mp_arg_reader->testAndSet("co", cofile);
          mp_arg_reader->testAndSet("l", kmbr);
          mp_arg_reader->testAndSet("mbr", bMbr);
          mp_arg_reader->testAndSet("gf", glob_scale);

@@ -5,7 +5,7 @@
  * 
  * K-Best Rescoring Module
  * Technologies langagieres interactives / Interactive Language Technologies
- * Inst. de technologie de l.information / Institute for Information Technology 
+ * Inst. de technologie de l'information / Institute for Information Technology 
  * Conseil national de recherches Canada / National Research Council Canada 
  * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
@@ -14,6 +14,7 @@
 #include "featurefunction.h"
 #include "lm_ff.h"
 #include <iostream>
+#include "vocab_filter.h"
 
 using namespace std;
 using namespace Portage;
@@ -36,6 +37,11 @@ int main(int argc, char* argv[])
    targets.push_back(tgt);
    Nbest nbest(targets);
 
+   VocabFilter tgt_vocab(1);
+   tgt_vocab.addSentence(sources[0].getTokens(), 0);
+   tgt_vocab.addSentence(nbest.begin()->getTokens(), 0);
+
+   ff.addTgtVocab(&tgt_vocab);
    ff.init(&sources);
    ff.source(0, &nbest);
 
