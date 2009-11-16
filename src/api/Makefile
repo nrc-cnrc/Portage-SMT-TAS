@@ -81,5 +81,3 @@ echo_paddle_server: paddle_server.o echo_portage_api.o
 # libraries so that it can be as light-weight as possible for the Web server.
 paddle_client: paddle_client.o
 	$(CXX) $(LINKFLAGS) -o $@ paddle_client.o -lACE
-
--include Makefile.depend

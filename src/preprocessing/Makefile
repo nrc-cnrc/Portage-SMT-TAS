@@ -24,5 +24,3 @@ BINSCRIPTS = $(wildcard *.pl)
 PERL_LIBS = $(wildcard *.pm)
 
 include ../build/Makefile.incl
-
--include Makefile.depend

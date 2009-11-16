@@ -18,6 +18,3 @@ include ../build/Makefile.incl
 .PHONY: tests
 
 tests: $(TESTPROGS)
-
--include Makefile.depend
-

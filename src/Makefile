@@ -57,7 +57,7 @@ $(ALL_SUBDIRS): utils
 api: canoe tm lm logging
 canoe: logging tm lm
 eval: logging
-rescoring: canoe tm lm eval logging
+rescoring: canoe tm lm eval logging preprocessing
 tm: logging
 distortion: tm
 

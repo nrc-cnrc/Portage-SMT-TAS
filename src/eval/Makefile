@@ -45,5 +45,3 @@ else
 MODULE_CF=-fopenmp
 MODULE_LF=-fopenmp
 endif
-
--include Makefile.depend

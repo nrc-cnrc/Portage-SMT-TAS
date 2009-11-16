@@ -27,4 +27,3 @@ MODULE_CF=
 MODULE_DEPENDS = tm
 
 include ../build/Makefile.incl
--include Makefile.depend

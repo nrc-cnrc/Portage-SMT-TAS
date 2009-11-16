@@ -92,5 +92,3 @@ canoe.dvi: uml.eps canoe.bib
 
 uml.eps: uml.fig
 	fig2dev -L eps $^ $@
-
--include Makefile.depend

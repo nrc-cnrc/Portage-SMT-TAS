@@ -26,4 +26,3 @@ DYNLIBS=
 MODULE_CF=
 
 include ../build/Makefile.incl
--include Makefile.depend

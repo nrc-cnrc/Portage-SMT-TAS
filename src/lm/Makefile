@@ -40,4 +40,3 @@ EXTRA_LIBS = $(TPT_LIBS)
 DYNLIBS = $(LIBICU)
 
 include ../build/Makefile.incl
--include Makefile.depend

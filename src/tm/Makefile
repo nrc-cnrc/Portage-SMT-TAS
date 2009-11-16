@@ -76,4 +76,3 @@ PGM_WITH_ALTERNATIVE_HELP = \
         phrase_oracle
 
 include ../build/Makefile.incl
--include Makefile.depend

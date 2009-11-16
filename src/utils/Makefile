@@ -117,7 +117,6 @@ DOCUMENTS =
 MODULE_CF=
 
 include ../build/Makefile.incl
--include Makefile.depend
 
 # Special rule to run legacy_test_trie, because it requires an input data file
 legacy_test_trie: tests/legacy/test_trie tests/data/test_trie.in.txt \
