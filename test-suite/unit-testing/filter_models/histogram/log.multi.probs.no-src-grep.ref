@@ -1,0 +1,20 @@
+
+filter_models, NRC-CNRC, (c) 2006 - 2009, Her Majesty in Right of Canada
+
+Warning: Loading models in memory - make sure you have enough RAM to hold them all.
+  Running in load all in memory
+  Running without source sentences => processing all table entries
+  Running in SOFT mode using limit(30)
+loading phrase table from pt: 
+1261 lines read, 1261 entries kept.
+Done in 0s
+Using fixPruning with 30
+There are 90 entries left after applying SOFT filtering
+Histogram before filtering
+  Count:19 mean:66.3684 sdev: 280.59
+  0+: 18 1200+: 1 
+Histogram after filtering
+  Count:19 mean:4.73684 sdev: 12.2784
+  0+: 18 30+: 1 
+ ... done in 0s
+New config file is: canoe.ini.no-src-grep
