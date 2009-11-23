@@ -13,4 +13,4 @@ main:
 
 
 clean:
-	rm wts
+	${RM} wts
