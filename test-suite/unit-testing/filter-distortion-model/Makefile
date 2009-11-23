@@ -13,7 +13,7 @@
 
 FILTER_DISTORTION_MODEL = filter-distortion-model.pl -d
 
-.INTERMEDIATE:
+.SECONDARY:
 
 all: test
 all: test.1
