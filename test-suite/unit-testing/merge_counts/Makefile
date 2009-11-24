@@ -21,7 +21,5 @@ gen jpt freq:
 
 clean:
 	${MAKE} -C gen clean
-
-#${MAKE} -j 1 -C gen
-#${MAKE} -j 1 -C jpt
-#${MAKE} -j 1 -C freq
+	${MAKE} -C jpt clean
+	${MAKE} -C freq clean
