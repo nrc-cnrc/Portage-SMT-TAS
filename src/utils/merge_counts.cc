@@ -1,7 +1,7 @@
 /**
  * @author Samuel Larkin
  * @file merge_counts.cc
- * @brief Merge sorted files by talling counts.
+ * @brief Merge sorted files by tallying counts.
  * 
  * 
  * COMMENTS: 
@@ -36,6 +36,7 @@ IMPORTANT:\n\
 \n\
 Options:\n\
 \n\
+-t  Use a tab character instead of a space as delimiter.\n\
 -d  Write debugging info. [don't]\n\
 -v  Write progress reports to cerr. [don't]\n\
 ";
@@ -44,6 +45,7 @@ Options:\n\
 
 static bool bDebug = false;
 static bool verbose = false;
+static char delimiter = ' ';
 static vector<string> infiles;
 static string outfile("-");
 
@@ -136,12 +138,13 @@ class mergeStream
 
             Datum* get() {
                if (getline(input, buffer)) {
-                  const string::size_type pos = buffer.rfind(' ');
-                  if (pos == string::npos) error(ETFatal, "Invalid entry %s", buffer.c_str());
+                  string::size_type pos = buffer.rfind(delimiter);
+                  if (pos == string::npos)
+                     error(ETFatal, "Invalid entry %s", buffer.c_str());
                   if (_data == NULL) _data = new Datum;
                   _data->prefix = buffer.substr(0, pos+1);  // Keep the space
-                  if (!convT(buffer.substr(pos).c_str(), _data->count))
-                     error(ETWarn, "Count is not a number %s", buffer.c_str());
+                  if (!convT(buffer.substr(pos+1).c_str(), _data->count))
+                     error(ETWarn, "Count is not a number: %s", buffer.substr(pos).c_str());
                }
                else {
                   delete _data;
@@ -310,12 +313,15 @@ int main(int argc, char* argv[])
 
 void getArgs(int argc, char* argv[])
 {
-   const char* switches[] = {"v", "d"};
+   const char* switches[] = {"v", "d", "t"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 2, -1, help_message);
    arg_reader.read(argc-1, argv+1);
 
    arg_reader.testAndSet("v", verbose);
    arg_reader.testAndSet("d", bDebug);
+   bool tab_delim(false);
+   arg_reader.testAndSet("t", tab_delim);
+   if ( tab_delim ) delimiter = '\t';
 
    arg_reader.testAndSet(0, "outfile", outfile);
    arg_reader.getVars(1, infiles);
