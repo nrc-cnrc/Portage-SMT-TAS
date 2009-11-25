@@ -16,7 +16,6 @@ VERBOSE=
 FILTER=
 TTABLE_LIMIT=
 RANDOM_INIT=0
-RESUME=
 FLOOR=-1
 NOFLOOR=
 FLOOR_ARG=
@@ -43,7 +42,7 @@ FFVALPARSER=nbest2rescore.pl
 FFVALPARSER_OPTS="-canoe"
 
 ##
-## Usage: cow.sh [-v] [-Z] [-resume] [-nbest-list-size N] [-maxiter MAX]
+## Usage: cow.sh [-v] [-Z] [-nbest-list-size N] [-maxiter MAX]
 ##        [-filt] [-ttable-limit T] [-filt-no-ttable-limit] [-lb|-no-lb]
 ##        [-floor index|-nofloor] [-model MODEL] [-mad SEED] [-e] [-path P]
 ##        [-s SEED] [-nr] [-micro M] [-microsm S] [-micropar N]
@@ -62,16 +61,12 @@ FFVALPARSER_OPTS="-canoe"
 ## stage. The results (BLEU scores and weights) are appended to the file
 ## "rescore-results" after each iteration.
 ##
+## Note: cow.sh always does a fresh start: any existing n-best lists, models
+##       and results files are deleted or renamed.
+##
 ## Options:
 ## -v       Verbose output from canoe (verbose level 1) and rescore_train.
 ## -Z       Do not compress the large temporary files in WORKDIR [do].
-## -resume  Resume a previously interrupted run.  Will resume at the decoding
-##          phase, regardless of where it had previous been interupted.  Results
-##          are not guaranteed to be the same as if a fresh start was done.
-##          Normally, you should resume with parameter settings such as maxiter
-##          unchanged from the previously-interrupted run.
-##          [Fresh start: delete any existing n-best lists, rename any existing
-##           model and results files]
 ## -nbest-list-size The size of the n-best lists to create.  [200]
 ## -maxiter Do at most MAX iterations.
 ## -filt    Filter the phrase tables based on SFILE for faster operation.
@@ -238,7 +233,6 @@ while [ $# -gt 0 ]; do
    -v|-verbose)    VERBOSE="-v";;
    -d|-debug)      DEBUG=1;;
    -h|-help)       cat $0 | egrep '^##' | cut -c4-; exit 1;;
-   -resume)        RESUME=1;;
    -path)          arg_check 1 $# $1; PATH="$2:$PATH"; shift;;
    -nbest-list-size) arg_check 1 $# $1; N="$2"; shift;;
    -f)             arg_check 1 $# $1; CFILE="$2"; shift;;
@@ -295,9 +289,7 @@ fi
 
 if [ -z "$MODEL" ]; then
    MODEL=$WORKDIR/$DEFAULT_MODEL
-   if [ ! $RESUME ]; then
-      rename_old $MODEL
-   fi
+   rename_old $MODEL
 fi
 
 if [ $# -lt 1 ]; then
@@ -317,7 +309,6 @@ FILTER=$FILTER
 FLOOR=$FLOOR
 NOFLOOR=$NOFLOOR
 FLOOR_ARG=$FLOOR_ARG
-RESUME=$RESUME
 LOAD_BALANCING=$LOAD_BALANCING
 N=$N
 CFILE=$CFILE
@@ -369,9 +360,7 @@ POWELLFILE="$WORKDIR/powellweights.tmp"
 POWELLMICRO="$WORKDIR/powellweights.micro" 
 MODEL_ORIG=$MODEL.orig
 
-if [ ! $RESUME ]; then
-   rename_old $HISTFILE
-fi
+rename_old $HISTFILE
 
 # Check validity of command-line arguments
 if [ $(($N)) -eq 0 ]; then
@@ -449,60 +438,51 @@ fi
 
 export LC_ALL=C
 
-if [ ! $RESUME ]; then
-   for FILE in $WORKDIR/foo.* $WORKDIR/alltargets $WORKDIR/allffvals \
-      $WORKDIR/$POWELLFILE* $WORKDIR/$POWELLMICRO*; do
-      \rm -f $FILE
-   done
+for FILE in $WORKDIR/foo.* $WORKDIR/alltargets $WORKDIR/allffvals \
+   $WORKDIR/$POWELLFILE* $WORKDIR/$POWELLMICRO*; do
+   \rm -f $FILE
+done
 
-   if [ ! -e $MODEL ]; then
-      configtool rescore-model:$WORKDIR/allffvals $CFILE > $MODEL
-      # For the random ranges
-      MODEL_ORIG=$MODEL.orig
-      cut -d' ' -f1 $MODEL > $MODEL_ORIG
-   else
-      if [ `cat $MODEL | wc -l` -ne `configtool nf $CFILE` ]; then
-         error_exit "Bad model file"
-      fi
-      # For the random ranges
-      cp $MODEL $MODEL_ORIG
-   fi
-
-   # initialize micro rescoring models if needed
-   if [ $MICRO -gt 0 ]; then
-      configtool rescore-model:.duplicateFree.ffvals$COMPRESS_EXT $CFILE > $MODEL.micro.in
-      S=`wc -l < $SFILE`
-      for i in `seq -w 0 9999 | head -$S`; do
-         cp $MODEL.micro.in $MODEL.micro.$i
-      done
-   fi
-
-   # Filter phrasetables to retain only matching source phrases.
-   if [ "$FILTER" = "-filt" ] ; then
-      # Filter-joint, apply -L limit
-      if [ -z "$TTABLE_LIMIT" ]; then
-          TTABLE_LIMIT=`configtool ttable-limit $CFILE`
-      fi
-      check_ttable_limit $TTABLE_LIMIT;
-      echo "filter_models -z -r -f $CFILE -ttable-limit $TTABLE_LIMIT -suffix .FILT -soft-limit multi.probs.`basename ${SFILE}`.${TTABLE_LIMIT} < $SFILE"
-            filter_models -z -r -f $CFILE -ttable-limit $TTABLE_LIMIT -suffix .FILT -soft-limit multi.probs.`basename ${SFILE}`.${TTABLE_LIMIT} < $SFILE
-      CFILE=$CFILE.FILT
-   elif [ "$FILTER" = "-filt-no-ttable-limit" ] ; then
-      # filter-grep only, keep all translations for matching source phrases
-      configtool rep-ttable-files-local:.FILT $CFILE > $CFILE.FILT
-      echo "filter_models -f $CFILE -suffix .FILT < $SFILE"
-            filter_models -f $CFILE -suffix .FILT < $SFILE
-      CFILE=$CFILE.FILT
-   else
-      warn "Not filtering"
-   fi
+if [ ! -e $MODEL ]; then
+   configtool rescore-model:$WORKDIR/allffvals $CFILE > $MODEL
+   # For the random ranges
+   MODEL_ORIG=$MODEL.orig
+   cut -d' ' -f1 $MODEL > $MODEL_ORIG
 else
-   echo Resuming where a previous iteration stopped - reusing existing $MODEL,
-   echo "   " $HISTFILE, $POWELLFILE, and $WORKDIR/foo.\* files.
-
-   if [ "$FILTER" = "-filt" ]; then
-      CFILE=$CFILE.FILT
+   if [ `cat $MODEL | wc -l` -ne `configtool nf $CFILE` ]; then
+      error_exit "Bad model file"
    fi
+   # For the random ranges
+   cp $MODEL $MODEL_ORIG
+fi
+
+# initialize micro rescoring models if needed
+if [ $MICRO -gt 0 ]; then
+   configtool rescore-model:.duplicateFree.ffvals$COMPRESS_EXT $CFILE > $MODEL.micro.in
+   S=`wc -l < $SFILE`
+   for i in `seq -w 0 9999 | head -$S`; do
+      cp $MODEL.micro.in $MODEL.micro.$i
+   done
+fi
+
+# Filter phrasetables to retain only matching source phrases.
+if [ "$FILTER" = "-filt" ] ; then
+   # Filter-joint, apply -L limit
+   if [ -z "$TTABLE_LIMIT" ]; then
+       TTABLE_LIMIT=`configtool ttable-limit $CFILE`
+   fi
+   check_ttable_limit $TTABLE_LIMIT;
+   echo "filter_models -z -r -f $CFILE -ttable-limit $TTABLE_LIMIT -suffix .FILT -soft-limit multi.probs.`basename ${SFILE}`.${TTABLE_LIMIT} < $SFILE"
+         filter_models -z -r -f $CFILE -ttable-limit $TTABLE_LIMIT -suffix .FILT -soft-limit multi.probs.`basename ${SFILE}`.${TTABLE_LIMIT} < $SFILE
+   CFILE=$CFILE.FILT
+elif [ "$FILTER" = "-filt-no-ttable-limit" ] ; then
+   # filter-grep only, keep all translations for matching source phrases
+   configtool rep-ttable-files-local:.FILT $CFILE > $CFILE.FILT
+   echo "filter_models -f $CFILE -suffix .FILT < $SFILE"
+         filter_models -f $CFILE -suffix .FILT < $SFILE
+   CFILE=$CFILE.FILT
+else
+   warn "Not filtering"
 fi
 
 # Find the best (max bleu) line in rescore-results and generate canoe.ini.cow
@@ -680,17 +660,12 @@ while [ 1 ]; do
    echo "Total size of n-best list -- previous: $totalPrevK; current: $totalNewK."
    echo
 
-   # If nothing new, then we're done, unless we just resumed or we were running
+   # If nothing new, then we're done, unless we were running
    # in micro mode, in which case we do at least one iteration.
    if [ -z "$new" ]; then
       echo
       echo No new sentences in the N-best lists.
-      if [ $RESUME ]; then
-         echo -n But this is the first iteration after a resume, ""
-         echo so running rescore_train anyway.
-         echo
-         MICRO=0                # needs to be turned off
-      elif [ $MICRO -gt 0 ]; then
+      if [ $MICRO -gt 0 ]; then
          echo "So switching out of micro mode"
          MICRO=0
       else
@@ -715,49 +690,21 @@ while [ 1 ]; do
    # Find the parameters that optimize the BLEU score over the given set of all targets
    echo Running rescore_train on `date`
 
-   if [ $RESUME ]; then
-      if [ `ls $POWELLFILE.*|wc -l` -ge 1 ]; then
-         WEIGHTINFILE=`ls -tr1 $POWELLFILE.* | tail -1`
-         ITER=`echo $WEIGHTINFILE | cut -d"." -f3`
-         ITER_CHECK=`wc -l < $HISTFILE`
-         echo "$ITER / $ITER_CHECK iterations have been done already."
-         if [ $ITER -gt $ITER_CHECK ]; then
-            echo "Inconsistency between number of iterations according to $WEIGHTINFILE and $HISTFILE:"
-            echo "   $ITER vs. $ITER_CHECK iterations have been done already."
-            if [ -e $POWELLFILE.$ITER_CHECK ]; then
-               ITER=$ITER_CHECK
-            else
-               echo "   File $POWELLFILE.$ITER_CHECK does not exist => stick with $WEIGHTINFILE and"
-            fi
-            echo "   assume that $ITER have been done"
-         fi
-         MAXITER=$((MAXITER - $ITER))
-         if [ $MICRO -gt $ITER ]; then
-            MICRO=$((MICRO - $ITER))
-         else
-            MICRO=0
-         fi
-         ITER=$((ITER + 1))
-         WEIGHTOUTFILE=$POWELLFILE.$ITER
-         echo "Resuming from $WEIGHTINFILE"
-         echo "   ==> $MAXITER iteration\(s\) remaining."
-      fi
-   else
-      ITERP=$ITER
-      ITER=$((ITER + 1))
-      WEIGHTINFILE=$POWELLFILE.$ITERP
-      WEIGHTOUTFILE=$POWELLFILE.$ITER
-      WINTMP=$WIN
-      if [ $WACC -ne 1 ]; then  # accumulate wts from WACC prev iters
-         WEIGHTINFILE=$WORKDIR/wacc-wts
-         cat /dev/null > $WEIGHTINFILE
-         WACCI=0
-         while [ $ITERP -gt 0 ] && [ $WACCI -lt $WACC ]; do
-            head -$WIN $POWELLFILE.$ITERP >> $WEIGHTINFILE
-            ITERP=$((ITERP - 1))
-            WACCI=$((WACCI + 1))
-         done
-         WINTMP=`wc -l < $WEIGHTINFILE`
+   ITERP=$ITER
+   ITER=$((ITER + 1))
+   WEIGHTINFILE=$POWELLFILE.$ITERP
+   WEIGHTOUTFILE=$POWELLFILE.$ITER
+   WINTMP=$WIN
+   if [ $WACC -ne 1 ]; then  # accumulate wts from WACC prev iters
+      WEIGHTINFILE=$WORKDIR/wacc-wts
+      cat /dev/null > $WEIGHTINFILE
+      WACCI=0
+      while [ $ITERP -gt 0 ] && [ $WACCI -lt $WACC ]; do
+         head -$WIN $POWELLFILE.$ITERP >> $WEIGHTINFILE
+         ITERP=$((ITERP - 1))
+         WACCI=$((WACCI + 1))
+      done
+      WINTMP=`wc -l < $WEIGHTINFILE`
    fi
    touch $WEIGHTINFILE   # create powellweights.tmp.0 if nec
 
@@ -815,7 +762,6 @@ while [ 1 ]; do
       # Replace the old model with the new one
       mv $TMPMODELFILE $MODEL
    fi
-   RESUME=
 
    if [ $NR == 0 ]; then  # re-randomize on each iter
       SEED=$((SEED+1))
