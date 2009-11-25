@@ -166,7 +166,7 @@ Options:\n\
              , tm_online(false)
              , output_config(true)
              , input("-")
-             , pruning_type_switch("fix")
+             , pruning_type_switch("")
              {
                 argProcessor::processArgs(argc, argv);
              }
@@ -203,9 +203,9 @@ Options:\n\
                 if (nopersent && !doLMs)
                    error(ETWarn, "The -no-per-sent flag only takes effect if the L flag is active (process LMs).");
                 if (!tm_online && no_src_grep && (soft_limit || hard_limit))
-                   error(ETWarn, "You better have gobs and gobs of RAM or fear the god of bus errors!");
+                   error(ETWarn, "Loading models in memory - make sure you have enough RAM to hold them all.");
                 if (tm_online && !soft_limit && !hard_limit)
-                   error(ETWarn, "Superfluous tm-online since grepping is always online(Not loading in memory)");
+                   error(ETWarn, "Superfluous -tm-online since grepping is always online(Not loading in memory)");
 
                 // Check for user misuage of flags
                 if (suffix == "")

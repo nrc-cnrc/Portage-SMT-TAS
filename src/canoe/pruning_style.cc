@@ -23,7 +23,12 @@ using namespace std;
 
 // pruningStyle
 pruningStyle* pruningStyle::create(const string& type, Uint limit) {
-   if (isPrefix("fix", type)) {
+   if (type == "") {
+      // Default is fix#limit
+      cerr << "Using fixPruning with " << limit << endl;  // SAM DEBUG
+      return new fixPruning(limit);
+   }
+   else if (isPrefix("fix", type)) {
       const size_t hash_pos = type.rfind('#');
       if ( hash_pos != string::npos ) {
           if (!conv(type.substr(hash_pos+1), limit)) {
