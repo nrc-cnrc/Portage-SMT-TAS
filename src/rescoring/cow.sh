@@ -188,7 +188,7 @@ warn() {
 # handling parameters, so that $# still includes the option itself.
 # exits with error message if the check fails.
 arg_check() {
-   if [ $2 -le $1 ]; then
+   if [[ $2 -le $1 ]]; then
       error_exit "Missing argument to $3 option."
    fi
 }
@@ -198,16 +198,16 @@ arg_check() {
 rename_old() {
    __FILENAME=$1
    __SUFFIX=${2-old}
-   if [ -e $__FILENAME ]; then
+   if [[ -e $__FILENAME ]]; then
       __BACKUP_SUFFIX=${__SUFFIX}01
       __BACKUP_FILENAME=$__FILENAME.$__BACKUP_SUFFIX
-      #echo first $__BACKUP_FILENAME >&2
-      while [ -e $__BACKUP_FILENAME ]; do
+      #echo first $__BACKUP_FILENAME
+      while [[ -e $__BACKUP_FILENAME ]]; do
          __BACKUP_SUFFIX=`
             echo $__BACKUP_SUFFIX |
             perl -e '$name = <STDIN>; chomp $name; $name++; print $name'`
          __BACKUP_FILENAME=$__FILENAME.$__BACKUP_SUFFIX
-         #echo while $__BACKUP_FILENAME >&2
+         #echo while $__BACKUP_FILENAME
       done
       echo Moving existing file $__FILENAME to $__BACKUP_FILENAME
       mv $__FILENAME $__BACKUP_FILENAME
@@ -217,10 +217,41 @@ rename_old() {
 
 check_ttable_limit() {
    TTABLE_LIM=$1
-   if [ ! $TTABLE_LIM -gt 0 ] ; then
+   if [[ ! $TTABLE_LIM -gt 0 ]] ; then
       error_exit "Please set a ttable-limit for use with -filt."
    fi
 }
+
+TIMEFORMAT="Single-job-total: Real %3lR User %3lU Sys %3lS PCPU %P%%"
+run_cmd() {
+   if [[ "$1" = "-no-error" ]]; then
+      shift
+      RUN_CMD_NO_ERROR=1
+   else
+      RUN_CMD_NO_ERROR=
+   fi
+   date
+   echo "$*"
+   if [[ ! $NOTREALLY ]]; then
+      MON_FILE=`mktemp $WORKDIR/mon.run_cmd.XXXXXXXX`
+      process-memory-usage.pl -s 1 30 $$ > $MON_FILE &
+      MON_PID=$!
+      eval time "$*"
+      rc=$?
+      kill -10 $MON_PID
+      echo "run_cmd finished (rc=$rc): $*"
+      if (( `wc -l < $MON_FILE` > 1 )); then
+         MON_VSZ=`egrep -ho 'vsz: [0-9.]+G' $MON_FILE 2> /dev/null | egrep -o "[0-9.]+" | sum.pl -m`
+         MON_RSS=`egrep -ho 'rss: [0-9.]+G' $MON_FILE 2> /dev/null | egrep -o "[0-9.]+" | sum.pl -m`
+         echo "run_cmd rc=$rc Max VMEM ${MON_VSZ}G Max RAM ${MON_RSS}G"
+      fi
+      if [[ -z "$RUN_CMD_NO_ERROR" && "$rc" != 0 ]]; then
+         echo "Exit status: $rc is not zero - aborting."
+         exit 1
+      fi
+   fi
+}
+
 
 # Make it easy to recover the command line from saved logs.
 echo $0 $*
@@ -228,7 +259,7 @@ echo Starting on `date`
 echo ""
 
 # Command-line processing
-while [ $# -gt 0 ]; do
+while [[ $# -gt 0 ]]; do
    case "$1" in
    -v|-verbose)    VERBOSE="-v";;
    -d|-debug)      DEBUG=1;;
@@ -273,36 +304,36 @@ while [ $# -gt 0 ]; do
    shift
 done
 
-if [ -n "$NOFLOOR" ] && [ $FLOOR -ge 0 ]; then
+if [[ -n "$NOFLOOR" && $FLOOR -ge 0 ]]; then
    error_exit "Error: You cannot use floor and nofloor at the same time";
 fi
-if [ -z "$NOFLOOR" ] && [ $FLOOR -lt 0 ]; then
+if [[ -z "$NOFLOOR" && $FLOOR -lt 0 ]]; then
    error_exit "Error: You must provide either floor or nofloor";
 fi
-if [ $FLOOR -ge 0 ]; then
+if [[ $FLOOR -ge 0 ]]; then
    FLOOR_ARG="-f $FLOOR"
 fi
 
-if [ -z "$CFILE" ]; then
+if [[ -z "$CFILE" && -z "$CONFIGMAP" ]]; then
    CFILE=canoe.ini
 fi
 
-if [ -z "$MODEL" ]; then
+if [[ -z "$MODEL" ]]; then
    MODEL=$WORKDIR/$DEFAULT_MODEL
    rename_old $MODEL
 fi
 
-if [ $# -lt 1 ]; then
+if [[ $# -lt 1 ]]; then
    error_exit "Error: Source and reference file not specified."
-elif [ $# -lt 2 ]; then
+elif [[ $# -lt 2 ]]; then
    error_exit "Error: Reference file(s) not specified."
 fi
 
-if [ -n "$LOAD_BALANCING" ]; then
+if [[ -n "$LOAD_BALANCING" ]]; then
    PARALLEL_OPTS="-lb $PARALLEL_OPTS"
 fi
 
-if [ $DEBUG ]; then
+if [[ $DEBUG ]]; then
    echo "
 VERBOSE=$VERBOSE
 FILTER=$FILTER
@@ -325,13 +356,13 @@ fi
 
 SFILE=$1
 shift
-if [ $# -eq 1 -a `cat $1 | wc -l` -gt `cat $SFILE | wc -l` ]; then
+if [[ $# -eq 1 && `cat $1 | wc -l` -gt `cat $SFILE | wc -l` ]]; then
    warn "Old style combined RFILE supplied - uncombining it";
    RFILE=$1
    echo uncombine.pl `cat $SFILE | wc -l` $RFILE
    uncombine.pl `cat $SFILE | wc -l` $RFILE
    RVAL=$?
-   if [ $RVAL -ne 0 ]; then
+   if [[ $RVAL -ne 0 ]]; then
       error_exit "can't uncombine ref file"
    fi
    RFILES=`ls $RFILE.[0-9]* | tr '\n' ' '`
@@ -339,12 +370,12 @@ else
    RFILES=$*
 fi
 for x in $RFILES; do
-   if [ `cat $x | wc -l` -ne `cat $SFILE | wc -l` ]; then
+   if [[ `cat $x | wc -l` -ne `cat $SFILE | wc -l` ]]; then
       error_exit "ref file $x has a different number of lines as source file $SFILE"
    fi
 done
 
-if [ $DEBUG ]; then
+if [[ $DEBUG ]]; then
    echo "SFILE=$SFILE
 RFILES=$RFILES"
 fi
@@ -363,59 +394,61 @@ MODEL_ORIG=$MODEL.orig
 rename_old $HISTFILE
 
 # Check validity of command-line arguments
-if [ $(($N)) -eq 0 ]; then
+if (( $N == 0 )); then
    error_exit "Bad n-best list size ($N)."
 fi
 
-if [ ! -x $CANOE ]; then
+if [[ ! -x $CANOE ]]; then
    if ! which-test.sh $CANOE; then
       error_exit "Executable canoe not found at $CANOE."
    fi
 fi
-if [ "$PARALLEL" == 1 -a "$CANOE" != canoe ]; then
+if [[ "$PARALLEL" == 1 && "$CANOE" != canoe ]]; then
    error_exit "cannot specify alternative decoder $CANOE with -parallel option."
 fi
-if [ ! -x $RTRAIN ]; then
+if [[ ! -x $RTRAIN ]]; then
    if ! which-test.sh $RTRAIN; then
       error_exit "Executable rescore train program not found at $RTRAIN."
    fi
 fi
-if [ -e $MODEL -a ! -w $MODEL ]; then
+if [[ -e $MODEL && ! -w $MODEL ]]; then
    error_exit "Model file $MODEL is not writable."
 fi
 
-if [ ! -r $CFILE ]; then
+if [[ ! -r $CFILE ]]; then
    error_exit "Cannot read config file $CFILE."
 fi
 if configtool check $CFILE; then true; else
    error_exit "problem with config file $CFILE."
 fi
 
-if [ $MICRO -gt 0 ]; then
-   if [ $RANDOM_INIT != 0 ]; then
+if [[ $MICRO -gt 0 ]]; then
+   if [[ $RANDOM_INIT != 0 ]]; then
       error_exit "-micro and -mad are not compatible."
    fi
 fi
 
-if [ ! -r $SFILE ]; then
+if [[ ! -r $SFILE ]]; then
    error_exit "Cannot read source file $SFILE."
 fi
-if [ ! -r $RFILE ]; then
-   error_exit "Cannot read reference file $RFILE."
-fi
+for RFILE in $RFILES; do
+   if [[ ! -r $RFILE ]]; then
+      error_exit "Cannot read reference file $RFILE."
+   fi
+done
 
-if [ -z "$WORKDIR" ]; then
+if [[ -z "$WORKDIR" ]]; then
    error_exit "-workdir <dir> is a mandatory argument."
 fi
 
-if [ ! -d $WORKDIR ]; then
+if [[ ! -d $WORKDIR ]]; then
    error_exit "workdir $WORKDIR is not a directory."
 fi
 
-if [ -n "$MAXITER" ]; then
-   if [ "`expr $MAXITER + 0 2> /dev/null`" != "$MAXITER" ]; then
+if [[ -n "$MAXITER" ]]; then
+   if [[ "`expr $MAXITER + 0 2> /dev/null`" != "$MAXITER" ]]; then
       error_exit "max iter $MAXITER is not a valid number."
-   elif [ "$MAXITER" -lt 1 ]; then
+   elif [[ "$MAXITER" -lt 1 ]]; then
       error_exit "Max iter $MAXITER is less than 1: no work to do!"
    fi
 fi
@@ -426,7 +459,7 @@ if ! which-test.sh $FFVALPARSER; then
 fi
 
 # Handle verbose
-if [ "$VERBOSE" = "-v" ]; then
+if [[ "$VERBOSE" = "-v" ]]; then
    #CANOE="$CANOE -v 2"
    CANOE_OPTS="$CANOE_OPTS -v 1"
    RTRAIN="$RTRAIN -v"
@@ -443,13 +476,13 @@ for FILE in $WORKDIR/foo.* $WORKDIR/alltargets $WORKDIR/allffvals \
    \rm -f $FILE
 done
 
-if [ ! -e $MODEL ]; then
+if [[ ! -e $MODEL ]]; then
    configtool rescore-model:$WORKDIR/allffvals $CFILE > $MODEL
    # For the random ranges
    MODEL_ORIG=$MODEL.orig
    cut -d' ' -f1 $MODEL > $MODEL_ORIG
 else
-   if [ `cat $MODEL | wc -l` -ne `configtool nf $CFILE` ]; then
+   if [[ `cat $MODEL | wc -l` -ne `configtool nf $CFILE` ]]; then
       error_exit "Bad model file"
    fi
    # For the random ranges
@@ -457,7 +490,7 @@ else
 fi
 
 # initialize micro rescoring models if needed
-if [ $MICRO -gt 0 ]; then
+if [[ $MICRO -gt 0 ]]; then
    configtool rescore-model:.duplicateFree.ffvals$COMPRESS_EXT $CFILE > $MODEL.micro.in
    S=`wc -l < $SFILE`
    for i in `seq -w 0 9999 | head -$S`; do
@@ -466,20 +499,18 @@ if [ $MICRO -gt 0 ]; then
 fi
 
 # Filter phrasetables to retain only matching source phrases.
-if [ "$FILTER" = "-filt" ] ; then
+if [[ "$FILTER" = "-filt" ]]; then
    # Filter-joint, apply -L limit
-   if [ -z "$TTABLE_LIMIT" ]; then
+   if [[ -z "$TTABLE_LIMIT" ]]; then
        TTABLE_LIMIT=`configtool ttable-limit $CFILE`
    fi
    check_ttable_limit $TTABLE_LIMIT;
-   echo "filter_models -z -r -f $CFILE -ttable-limit $TTABLE_LIMIT -suffix .FILT -soft-limit multi.probs.`basename ${SFILE}`.${TTABLE_LIMIT} < $SFILE"
-         filter_models -z -r -f $CFILE -ttable-limit $TTABLE_LIMIT -suffix .FILT -soft-limit multi.probs.`basename ${SFILE}`.${TTABLE_LIMIT} < $SFILE
+   run_cmd "filter_models -z -r -f $CFILE -ttable-limit $TTABLE_LIMIT -suffix .FILT -soft-limit multi.probs.`basename ${SFILE}`.${TTABLE_LIMIT} < $SFILE"
    CFILE=$CFILE.FILT
-elif [ "$FILTER" = "-filt-no-ttable-limit" ] ; then
+elif [[ "$FILTER" = "-filt-no-ttable-limit" ]]; then
    # filter-grep only, keep all translations for matching source phrases
    configtool rep-ttable-files-local:.FILT $CFILE > $CFILE.FILT
-   echo "filter_models -f $CFILE -suffix .FILT < $SFILE"
-         filter_models -f $CFILE -suffix .FILT < $SFILE
+   run_cmd "filter_models -f $CFILE -suffix .FILT < $SFILE"
    CFILE=$CFILE.FILT
 else
    warn "Not filtering"
@@ -496,7 +527,7 @@ write_models() {
       error_exit "configtool had non-zero return code: $RC."
    fi
 
-   if [ "$CFILE" != "$ORIGCFILE" ]; then
+   if [[ "$CFILE" != "$ORIGCFILE" ]]; then
       echo configtool -p set-weights:$HISTFILE $ORIGCFILE $ORIGCFILE.cow
       configtool -p set-weights:$HISTFILE $ORIGCFILE $ORIGCFILE.cow
       RC=$?
@@ -511,22 +542,22 @@ write_models() {
 # Main loop
 #------------------------------------------------------------------------------
 
-if [ $NR == 0 ]; then    # re-randomize on each iter
+if [[ $NR == 0 ]]; then    # re-randomize on each iter
    SEED=$((SEED*10000))
 fi
 
 RANDOM_WEIGHTS=
-if [ $RANDOM_INIT != 0 ]; then RANDOM_WEIGHTS="-random-weights -seed $RANDOM_INIT"; fi
+if [[ $RANDOM_INIT != 0 ]]; then RANDOM_WEIGHTS="-random-weights -seed $RANDOM_INIT"; fi
 
 ITER=0
 
-while [ 1 ]; do
+while [[ 1 ]]; do
 
    # convert rescoring model weights to canoe weights
-   if [ $DEBUG ]; then echo "configtool arg-weights:$MODEL $CFILE" ; fi
+   if [[ $DEBUG ]]; then echo "configtool arg-weights:$MODEL $CFILE" ; fi
    wtvec=`configtool arg-weights:$MODEL $CFILE`
 
-   if [ $MICRO -gt 0 ]; then
+   if [[ $MICRO -gt 0 ]]; then
       MICRO_WTS=$WORKDIR/micro-weights.$((ITER+1))
       cat /dev/null > $MICRO_WTS
       S=`wc -l < $SFILE`
@@ -539,18 +570,11 @@ while [ 1 ]; do
    echo ""
    echo Running decoder on `date`
    RUNSTR="$CANOE $CANOE_OPTS $RANDOM_WEIGHTS -f $CFILE $wtvec -nbest $WORKDIR/foo$COMPRESS_EXT:$N -ffvals"
-   if [ $MICRO -gt 0 ]; then RUNSTR="$RUNSTR -sent-weights $MICRO_WTS"; fi
-   if [ "$PARALLEL" == 1 ]; then
+   if [[ $MICRO -gt 0 ]]; then RUNSTR="$RUNSTR -sent-weights $MICRO_WTS"; fi
+   if [[ "$PARALLEL" == 1 ]]; then
       RUNSTR="$CANOE_PARALLEL $PARALLEL_OPTS $RUNSTR"
    fi
-   echo "$RUNSTR < $SFILE > $TRANSFILE.ff"
-   time  $RUNSTR < $SFILE > $TRANSFILE.ff
-
-   # Check return value
-   RVAL=$?
-   if [ $RVAL -ne 0 ]; then
-      error_exit "Decoder returned $RVAL";
-   fi
+   run_cmd "$RUNSTR < $SFILE > $TRANSFILE.ff"
 
    # From here on, use given weights (not random weights)
    RANDOM_WEIGHTS=
@@ -564,16 +588,16 @@ while [ 1 ]; do
    echo bleumain $TRANSFILE $RFILES
    bleumain $TRANSFILE $RFILES
 
-   if [ -n "$MAXITER" ]; then
+   if [[ -n "$MAXITER" ]]; then
       MAXITER=$((MAXITER - 1))
    fi
-   if [ $MICRO -gt 0 ]; then
+   if [[ $MICRO -gt 0 ]]; then
       MICRO=$((MICRO - 1))
    fi
 
    # Read the dynamic options file for any updates to MAXITER or
    # PARALLEL_OPTS
-   if [ -r COW_DYNAMIC_OPTIONS ]; then
+   if [[ -r COW_DYNAMIC_OPTIONS ]]; then
       echo ""
       echo File COW_DYNAMIC_OPTIONS found, processing dynamic options.
       while read; do
@@ -592,7 +616,7 @@ while [ 1 ]; do
          STOP_AFTER=*)
             STOP_AFTER="${REPLY#STOP_AFTER=}"
             STOP_AFTER="${STOP_AFTER// /}"
-            if [ "`expr $STOP_AFTER + 0 2> /dev/null`" != "$STOP_AFTER" ]
+            if [[ "`expr $STOP_AFTER + 0 2> /dev/null`" != "$STOP_AFTER" ]]
             then
                echo Ignoring non integer STOP_AFTER parameter $STOP_AFTER
             else
@@ -608,8 +632,8 @@ while [ 1 ]; do
 
    new=
 
-   if [ -n "$MAXITER" ]; then
-      if [ $MAXITER -lt 1 ]; then
+   if [[ -n "$MAXITER" ]]; then
+      if [[ $MAXITER -lt 1 ]]; then
          echo
          echo Reached maximum number of iterations.  Stopping.
          write_models
@@ -628,6 +652,7 @@ while [ 1 ]; do
    FOO_FILES=$WORKDIR/foo.????."$N"best$COMPRESS_EXT
    totalPrevK=0
    totalNewK=0
+   time {
    for x in $FOO_FILES; do
       #echo Append-uniq $x on `date`
       x=${x%$COMPRESS_EXT}
@@ -650,22 +675,23 @@ while [ 1 ]; do
       totalNewK=$((totalNewK + newK))
 
       # Check if there was anything new
-      if [ $prevK -ne $newK ]; then
+         if [[ $prevK -ne $newK ]]; then
          new=1
       fi
 
       echo -n ".";
    done
    echo
+   }
    echo "Total size of n-best list -- previous: $totalPrevK; current: $totalNewK."
    echo
 
    # If nothing new, then we're done, unless we were running
    # in micro mode, in which case we do at least one iteration.
-   if [ -z "$new" ]; then
+   if [[ -z "$new" ]]; then
       echo
       echo No new sentences in the N-best lists.
-      if [ $MICRO -gt 0 ]; then
+      if [[ $MICRO -gt 0 ]]; then
          echo "So switching out of micro mode"
          MICRO=0
       else
@@ -679,7 +705,7 @@ while [ 1 ]; do
 
    \rm $WORKDIR/alltargets $WORKDIR/allffvals >& /dev/null
    S=$((`wc -l < $SFILE`))
-   for((n=0;n<$S;++n))
+   time for((n=0;n<$S;++n))
    {
       m=`printf "%4.4d" $n`
       # We use gzip in case the user requested compress foo files
@@ -695,11 +721,11 @@ while [ 1 ]; do
    WEIGHTINFILE=$POWELLFILE.$ITERP
    WEIGHTOUTFILE=$POWELLFILE.$ITER
    WINTMP=$WIN
-   if [ $WACC -ne 1 ]; then  # accumulate wts from WACC prev iters
+   if [[ $WACC -ne 1 ]]; then  # accumulate wts from WACC prev iters
       WEIGHTINFILE=$WORKDIR/wacc-wts
       cat /dev/null > $WEIGHTINFILE
       WACCI=0
-      while [ $ITERP -gt 0 ] && [ $WACCI -lt $WACC ]; do
+      while [[ $ITERP -gt 0 && $WACCI -lt $WACC ]]; do
          head -$WIN $POWELLFILE.$ITERP >> $WEIGHTINFILE
          ITERP=$((ITERP - 1))
          WACCI=$((WACCI + 1))
@@ -709,7 +735,7 @@ while [ 1 ]; do
    touch $WEIGHTINFILE   # create powellweights.tmp.0 if nec
 
    # ensure powellweights.micro.IIII files exist on first iteration
-   if [ $MICRO -ne 0 ]; then    
+   if [[ $MICRO -ne 0 ]]; then    
       S=`wc -l < $SFILE`
       for i in `seq -w 0 9999 | head -$S`; do
          touch $POWELLMICRO.$i
@@ -717,12 +743,12 @@ while [ 1 ]; do
    fi
 
 
-   if [ -e $WEIGHTOUTFILE ]; then
+   if [[ -e $WEIGHTOUTFILE ]]; then
       rename_old $WEIGHTOUTFILE
    fi
 
    
-   if [ $MICRO -eq 0 ]; then
+   if [[ $MICRO -eq 0 ]]; then
       RUNSTR="$RTRAIN $TRAINING_TYPE $RESCORE_OPTS \
          $ESTOP -s $SEED -wi $WEIGHTINFILE -wo $WEIGHTOUTFILE \
          -win $WINTMP \
@@ -737,16 +763,9 @@ while [ 1 ]; do
          $WORKDIR/foo.IIII.duplicateFree$COMPRESS_EXT $RFILES"
    fi
 
-   echo "$RUNSTR"
-   time eval $RUNSTR
+   run_cmd "$RUNSTR"
 
-   # Check return value
-   RVAL=$?
-   if [ $RVAL -ne 0 ]; then
-      error_exit "rescore_train returned $RVAL"
-   fi
-
-   if [ $MICRO -eq 0 ]; then
+   if [[ $MICRO -eq 0 ]]; then
       # If the new model file is identical to the old one, we're done, since the
       # next iteration will produce exactly the same output as the last one.
       if diff -q $MODEL $TMPMODELFILE; then
@@ -763,7 +782,7 @@ while [ 1 ]; do
       mv $TMPMODELFILE $MODEL
    fi
 
-   if [ $NR == 0 ]; then  # re-randomize on each iter
+   if [[ $NR == 0 ]]; then  # re-randomize on each iter
       SEED=$((SEED+1))
    fi
 
