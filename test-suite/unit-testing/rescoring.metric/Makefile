@@ -1,9 +1,9 @@
 #!/usr/bin/make -f
 # vim:noet:ts=3
 
-LIST_TARGETS ?= bleucompare main rat cow
-
 .SUFFIXES:
+
+LIST_TARGETS ?= bleucompare main rat cow
 
 all: $(addprefix do.,${LIST_TARGETS})
 

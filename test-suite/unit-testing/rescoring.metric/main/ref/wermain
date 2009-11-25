@@ -301,3 +301,4 @@ Sentence 100 WER score: 0.108434
 (total dist: 1716, hyp. length: 0, avg. ref. length: 2378.33)
 Score: -0.721514
 WER score: 0.721514 +/- 0.0765569
+Human readable value: 72.15 +/- 7.66

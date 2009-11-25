@@ -12,7 +12,7 @@ all: bleu per wer
 
 .PHONY: clean
 clean:
-	-${RM} scores.* rescore-model.*
+	-${RM} scores.* rescore-model.* log.*
 
 .PHONY: bleu per wer
 bleu: diff.bleu
@@ -28,8 +28,9 @@ rt.%: dev2_fr.al 100best.gz dev2_en.al
 		-p ${DATA_DIR}/workdir-dev2_fr.al-100best/ \
 		${DATA_DIR}/workdir-dev2_fr.al-100best/rescore-model.ini.rat \
 		rescore-model.$* \
-		$+
+		$+ \
+                >& log.$*
 
 diff.%: rt.%
-	diff -q rescore-model.$* ref/rescore-model.$*
-	diff -q scores.$* ref/scores.$*
+	diff rescore-model.$* ref/rescore-model.$* -q
+	diff scores.$* ref/scores.$* -q

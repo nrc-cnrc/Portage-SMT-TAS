@@ -705,3 +705,4 @@ Sentence 100 BLEU score: 1.40429e-08
 Sentence length: 2431; Best-match sentence length: 2368
 Score: -1.76655
 BLEU score: 0.170921 +/- 0.0304382
+Human readable value: 17.09 +/- 3.04

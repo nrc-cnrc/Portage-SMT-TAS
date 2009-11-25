@@ -4,9 +4,14 @@
 .NOTPARALLEL:
 DATA_DIR ?= ../data
 
-
 .PHONY: all
 all: cow
+
+.PHONY: help
+help:
+	@echo "Run cow using either bleu/per/wer"
+	@cat $(firstword $(MAKEFILE_LIST)) | egrep '^.PHONY:' | sed 's#^.PHONY: ##'
+
 
 .PHONY: clean
 clean:
@@ -37,5 +42,5 @@ cow.%: dev1_fr.al dev1_en.al
 	mv canoe.ini.cow canoe.ini.cow.$*
 
 diff.%: cow.%
-	diff -q rescore-results.$* ref/rescore-results.$*
-	diff -q canoe.ini.cow.$* ref/canoe.ini.cow.$*
+	diff ref/rescore-results.$* rescore-results.$* -q
+	diff ref/canoe.ini.cow.$* canoe.ini.cow.$* -q

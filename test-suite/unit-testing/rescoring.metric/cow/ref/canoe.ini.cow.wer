@@ -2,10 +2,10 @@
    ../data/phrases.fr2en
 [lmodel-file] 
    ../data/train_en.lm
-[weight-d] 0.09796469659
-[weight-w] 1
-[weight-l] 0.3563531637
-[weight-t] 0.1452063024
+[weight-d] 0.1227689832
+[weight-w] 0.4207436442
+[weight-l] 1
+[weight-t] 0.2461996675
 [ttable-limit] 30
 [ttable-threshold] 0.001
 [stack] 70

@@ -301,3 +301,4 @@ Sentence 100 PER score: 0.108434
 (total dist: 1313, hyp. length: 0, avg. ref. length: 2378.33)
 Score: -0.552067
 PER score: 0.552067 +/- 0.0606843
+Human readable value: 55.21 +/- 6.07
