@@ -26,7 +26,7 @@ new_install:
 
 # These directories will be compiled by default
 SUBDIRS = logging preprocessing eval lm tm adaptation canoe rescoring api \
-          truecasing
+          truecasing distortion
 
 # Additional directories listed here are only compiled if explicitly
 # specified.  Use this for modules in development that are not ready to be
