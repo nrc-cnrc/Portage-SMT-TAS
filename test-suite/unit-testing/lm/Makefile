@@ -17,6 +17,7 @@ LM = ${LMPREFIX}.${LMEXT}
 
 # runs the test suite over a variety of input files and lms.
 all: case1 case2 case3 case4 case5 case6 case7
+	@echo All tests PASSED \(assuming you ran with -B\)
 
 # case2 uses the same LMs as case1, prevent parallelism via a dependence.
 case1: case2
@@ -28,7 +29,7 @@ case2:
 case3:
 	${MAKE} LMPREFIX=test2 INPUT=test.in testsuite
 
-# case4 uses the same LMs as case2, prevent parallelism via a dependence.
+# case4 uses the same LMs as case3, prevent parallelism via a dependence.
 case4: case3
 	${MAKE} LMPREFIX=test2 INPUT=test.in2 testsuite
 
@@ -68,7 +69,7 @@ testsuite:
 	gzip -cdqf ref/$*.${ARPALMEXT}.ref | diff - $*.${LMEXT}.out -q
 	gzip -cdqf ref/$*.${ARPALMEXT}.ref | diff - $*.${LMEXT}.out-limit -q
 	gzip -cdqf ref/$*.${ARPALMEXT}.ref | diff - $*.${LMEXT}.out-per-sent-limit -q
-	@echo All tests for $@ with LMEXT=${LMEXT} PASSED
+	@echo Tests for $@ with LMEXT=${LMEXT} PASSED
 
 ${INPUT}.${LMPREFIX}.${LMEXT}.out: ${INPUT} ${LM}
 	time lm_eval ${LM} ${INPUT} > $@ 2> log.$@
@@ -83,6 +84,7 @@ ${INPUT}.${LMPREFIX}.${LMEXT}.out-per-sent-limit: ${INPUT} ${LM}
 	arpalm2binlm $< $@ >& log.$@
 
 clean:
-	${RM} *.out *.out-limit *.out-per-sent-limit log.*
-	${RM} *.cbk *.tdx *.binlm
+	${RM} *.out *.out-limit *.out-per-sent-limit
+	${RM} log.*
+	${RM} *.binlm
 	${RM} europarl.en.lm europarl.en.in
