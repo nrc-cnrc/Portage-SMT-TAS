@@ -21,7 +21,8 @@ PROGRAMS = \
 	arpalm2binlm \
 	binlm2arpalm \
 	lm_eval \
-	test_lm_order
+	test_lm_order \
+	train_lm_mixture
 
 BINSCRIPTS = \
 	lm_sort.pl \

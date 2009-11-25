@@ -16,7 +16,9 @@ then assign weights to models as a function of the current source text under
 translation.
 
 The first step in mixture-model adaptation is to split up your corpus somehow.
-This must be done manually. After the corpus is split, LMs and TMs need to be
+This must be done manually. Typically you would use natural splits in your
+corpus, such as different data sources or different domains. You could also use
+some kind of clustering.  After the corpus is split, LMs and TMs need to be
 trained on each component.
 
 Next steps are a function of the current source text:
@@ -24,8 +26,8 @@ Next steps are a function of the current source text:
 1. Calculate distances to each component using mx-calc-distances.sh. This
    supplies a bunch of different metrics, all of which make use of models of
    various types that represent the corpus components, eg LMs or voc files.
-   (These need to have been trained ahead of time.) NB: distance means
-   proximity, so higher values are better.
+   (These need to have been trained ahead of time.) NB: here, "distance" really
+   means proximity, so higher values are better.
 
 2. Transform distances into weights using mx-dist2weights.sh. This does either
    basic normalization, or a fancier sigmoid transformation then weighted

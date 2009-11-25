@@ -31,7 +31,10 @@ files whose complete paths are specified by -d and -e). <metric> is one of:
    ppx     - calculate perplexities according to LMs in components, using:
              multi-ngram-ppx <args> <models> <textfile>
    em      - calculate EM weights according to LMs in components, using:
-             train-lm-mixture <args> <models> <textfile>
+             train_lm_mixture <args> <models> <textfile>
+   em-sri  - calculate EM weights according to LMs in components, using:
+             train-lm-mixture <args> <models> <textfile> (SRILM-based script)
+             (use this option only if you have a valid SRILM licence)
    tfidf   - calculate tf/idf distances from vocs in components, using:
              get_voc -c <textfile> > vocfile
              cosine_distances <args> <models> vocfile
@@ -120,8 +123,10 @@ case $metric in
             perl -ne 's/.*ppl1=\s*(\S+).*/$1/;
 	              $x=1.0/(1e-10+$_);
                       print "$x\n"' ;;
+   em-sri)
+        eval train_lm_mixture $args $models $textfile 2> /dev/null ;;
    em)
-        eval train-lm-mixture $args $models $textfile 2> /dev/null ;;
+        eval train_lm_mixture $args $models $textfile 2> /dev/null ;;
    tfidf)
         get_voc -c $textfile > voc.$tmp
         eval cosine_distances $args $models voc.$tmp

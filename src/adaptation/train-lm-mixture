@@ -27,6 +27,9 @@ Train a mixture of ngram language models using EM on a given text file.
 <ngram-models> is a file containing a list of the ngram models to use, one per
 line. The results are a set of normalized weights written to stdout.
 
+Note: this script is a wrapper around SRILM software.  Use only if you have a
+valid SRILM licence.
+
 Options:
 -v        increment the verbosity level by 1 (may be repeated)
 -order    set max ngram order [4]

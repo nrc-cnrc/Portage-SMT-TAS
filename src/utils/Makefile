@@ -11,6 +11,7 @@ OBJECTS = \
         arg_reader.o \
         bc_stats.o \
         casemap_strings.o \
+        em.o \
         errors.o \
         file_utils.o \
         gfmath.o \
