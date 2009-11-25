@@ -21,7 +21,7 @@
 #include <exception>
 
 /// Replaces the normal main and adds a try block.
-#define MAIN(argc, argv) main(int argc, const char* const argv[]) try
+#define MAIN(argc, argv) main(int argc, const char* const argv[]) { try
 
 #ifdef NO_EDUMP
 /// Here, we still catch the bad_alloc since the core dump is of no use and
@@ -46,7 +46,8 @@
    catch(std::bad_exception& e)    {cerr << "std::bad_exception: " << e.what() << endl; exit(24);}\
    catch(std::ios_base::failure& e){cerr << "std::ios_base::failure: " << e.what() << endl; exit(24);}\
    catch(std::exception& e)        {cerr << "std::exception: " << e.what() <<endl; exit(24);}\
-   catch(...)                      {cerr << "Unknown general exception" << endl; exit(24);}
+   catch(...)                      {cerr << "Unknown general exception" << endl; exit(24);}\
+}
 #endif
 
 
