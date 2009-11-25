@@ -29,7 +29,7 @@
 /// Returning 42 as exit code will indicate a memory problem and we will be
 /// able to retry with more resources on the cluster.
 #define END_MAIN  \
-   catch(std::bad_alloc& e)        {cerr << e.what() << " Most likely, you ran out of memory" << endl; Portage::showMemoryUsage(); cerr << endl << "The above log should help you troubleshoot the cause of " << e.what() << endl; exit(42);}
+   catch(std::bad_alloc& e)        {cerr << e.what() << " Most likely, you ran out of memory" << endl; Portage::showMemoryUsage(); cerr << endl << "The above log should help you troubleshoot the cause of " << e.what() << endl; exit(42);} }
 #else
 /// The actual default catch all exception block.
 #define END_MAIN  \
