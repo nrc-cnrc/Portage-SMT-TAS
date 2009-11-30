@@ -17,6 +17,7 @@
 .PHONY: all clean french-hyphens ch-punc
 
 all: test
+	@echo All tests PASSED
 
 test: display.accent \
      $(addprefix compare., accent.tok accent.utf8 accent.utf8.tok) \
@@ -32,6 +33,8 @@ ch-punc: $(foreach EXT, 000 001 010 011 100 101 110 111, compare.chinese-punc.de
 clean:
 	${RM} accent.tok accent.utf8 accent.utf8.tok hyphens.{tok,detok}{,.utf8}
 	${RM} chinese-punc.detok.[01][01][01]
+	${RM} hyphens.noss hyphens.noss.notok hyphens.notok
+	${RM} $(addprefix utf8.,hyphens.noss hyphens.noss.notok hyphens.notok)
 
 accent.utf8: accent
 	iconv -f iso-8859-1 -t UTF-8 < $< > $@
@@ -50,6 +53,8 @@ compare.%: %
 	@echo -n "diff $* ref/$* "
 	@(diff $* ref/$* &> /dev/null) && echo "OK" || (echo "FAILED" && false)
 
+
+# hyphens specific.
 hyphens.tok: hyphens
 	tokenize.pl -lang=fr $< > $@
 
@@ -62,6 +67,45 @@ hyphens.tok.utf8: hyphens
 hyphens.detok.utf8: hyphens.tok.utf8
 	udetokenize.pl -lang=fr $< > $@
 
+
+# Short cut to execute all targets that test skipping sub-tasks in tokenize.pl.
+.PHONY: not_option
+not_option: hyphens.noss hyphens.notok hyphens.noss.notok
+not_option: $(addprefix utf8.,hyphens.noss hyphens.notok hyphens.noss.notok)
+
+# Verify that the not option targets match the reference.
+compare_not_option: $(addprefix compare.,hyphens.noss hyphens.notok hyphens.noss.notok)
+compare_not_option: $(addprefix compare.utf8.,hyphens.noss hyphens.notok hyphens.noss.notok)
+
+# Adding dependencies to french-hyphens.
+french-hyphens: compare_not_option
+
+# No sentence splitting.
+hyphens.noss: hyphens
+	tokenize.pl -lang=fr -noss < $< > $@
+
+# No tokenization.
+hyphens.notok: hyphens
+	tokenize.pl -lang=fr -noss < $< > $@
+
+# No sentence splitting & no tokenization.
+hyphens.noss.notok: hyphens
+	tokenize.pl -lang=fr -noss < $< > $@
+
+# No sentence splitting.
+utf8.hyphens.noss: hyphens
+	iconv -f cp1252 -t utf-8 $< | utokenize.pl -lang=fr -noss > $@
+
+# No tokenization.
+utf8.hyphens.notok: hyphens
+	iconv -f cp1252 -t utf-8 $< | utokenize.pl -lang=fr -notok > $@
+
+# No sentence splitting & no tokenization.
+utf8.hyphens.noss.notok: hyphens
+	iconv -f cp1252 -t utf-8 $< | utokenize.pl -lang=fr -noss -notok > $@
+
+
+# Chinese specific.
 chinese-punc.detok.000: chinese-punc
 	udetokenize.pl < $< > $@
 
