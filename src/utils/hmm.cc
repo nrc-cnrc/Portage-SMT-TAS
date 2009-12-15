@@ -40,7 +40,7 @@ void HMM::convertToLogModel()
    parm_type = log_probs;
 }
 
-bool HMM::checkTransitionDistributions() const
+bool HMM::checkTransitionDistributions(bool complete, bool may_exceed_1) const
 {
    bool result(true);
 
@@ -54,9 +54,22 @@ bool HMM::checkTransitionDistributions() const
       }
       sum += parm_type == log_probs ? exp(Pi(i)) : Pi(i);
    }
-   if ( abs(sum - 1.0) > 1e-6 ) {
-      error(ETWarn, "Sum_i(Pi(i)) = %f != 1.0", sum);
-      result = false;
+   if ( complete ) {
+      if ( !isfinite(sum) || abs(sum - 1.0) > 1e-6 ) {
+         error(ETWarn, "Sum_i(Pi(i)) = %f != 1.0", sum);
+         result = false;
+      }
+   } else {
+      if ( !isfinite(sum) ) {
+         error(ETWarn, "Sum_i(Pi(i)) = %f is not finite", sum);
+         result = false;
+      } else if ( !may_exceed_1 && sum > 1 + 1e-6 ) {
+         error(ETWarn, "Sum_i(Pi(i)) = %f > 1.0", sum);
+         result = false;
+      } else if ( sum <= 0.0 ) {
+         error(ETWarn, "Sum_i(Pi(i)) = %f <= 0.0", sum);
+         result = false;
+      }
    }
 
    // A
@@ -69,16 +82,29 @@ bool HMM::checkTransitionDistributions() const
          }
          sum += parm_type == log_probs ? exp(A(i,j)) : A(i,j);
       }
-      if ( abs(sum - 1.0) > 1e-6 ) {
-         error(ETWarn, "Sum_j(A(%d,j)) = %f != 1.0", i, sum);
-         result = false;
+      if ( complete ) {
+         if ( !isfinite(sum) || abs(sum - 1.0) > 1e-6 ) {
+            error(ETWarn, "Sum_j(A(%d,j)) = %f != 1.0", i, sum);
+            result = false;
+         }
+      } else {
+         if ( !isfinite(sum) ) {
+            error(ETWarn, "Sum_j(A(%d,j)) = %f is not finite", i, sum);
+            result = false;
+         } else if ( !may_exceed_1 && sum > 1 + 1e-6 ) {
+            error(ETWarn, "Sum_j(A(%d,j)) = %f > 1.0", i, sum);
+            result = false;
+         } else if ( sum < 0.0 ) {
+            error(ETWarn, "Sum_j(A(%d,j)) = %f < 0.0", i, sum);
+            result = false;
+         }
       }
    }
 
    return result;
 } // HMM::checkTransitionDistributions()
 
-bool HMM::checkEmissionDistributions(bool complete) const
+bool HMM::checkEmissionDistributions(bool complete, bool may_exceed_1) const
 {
    bool result(true);
 
@@ -97,14 +123,18 @@ bool HMM::checkEmissionDistributions(bool complete) const
             }
             if ( complete ) {
                if ( abs(sum - 1.0) > 1e-6 ) {
-                  error(ETWarn, "Sum_k(B(%d,%d,k)) = %f != 1.0",
-                        i, j, sum);
+                  error(ETWarn, "Sum_k(B(%d,%d,k)) = %f != 1.0", i, j, sum);
                   result = false;
                }
             } else {
-               if ( sum > 1.0 ) {
-                  error(ETWarn, "Sum_k(B(%d,%d,k)) = %f > 1.0",
-                        i, j, sum);
+               if ( !isfinite(sum) ) {
+                  error(ETWarn, "Sum_k(B(%d,%d,k)) = %f is not finite", i, j, sum);
+                  result = false;
+               } else if ( !may_exceed_1 && sum > 1.0 ) {
+                  error(ETWarn, "Sum_k(B(%d,%d,k)) = %f > 1.0", i, j, sum);
+                  result = false;
+               } else if ( sum < 0.0 ) {
+                  error(ETWarn, "Sum_k(B(%d,%d,k)) = %f < 0.0", i, j, sum);
                   result = false;
                }
             }
@@ -115,13 +145,17 @@ bool HMM::checkEmissionDistributions(bool complete) const
       assert(B_storage[0].size2() == M);
       for ( Uint i = 0; i < N; ++i ) {
          double sum(0.0);
-         for ( Uint k = 0; k < M; ++k ) {
-            if ( parm_type == regular_probs && B(i,k) < 0.0 ) {
-               error(ETWarn, "Negative probability B(%d,%d) = %f",
-                     i, k, B(i,k));
-               result = false;
+         if ( parm_type == regular_probs ) {
+            for ( Uint k = 0; k < M; ++k ) {
+               if ( B(i,k) < 0.0 ) {
+                  error(ETWarn, "Negative probability B(%d,%d) = %f", i, k, B(i,k));
+                  result = false;
+               }
+               sum += B(i,k);
             }
-            sum += parm_type == log_probs ? exp(B(i,k)) : B(i,k);
+         } else {
+            for ( Uint k = 0; k < M; ++k )
+               sum += exp(B(i,k));
          }
          if ( complete ) {
             if ( abs(sum - 1.0) > 1e-6 ) {
@@ -129,9 +163,12 @@ bool HMM::checkEmissionDistributions(bool complete) const
                result = false;
             }
          } else {
-            if ( sum > 1.0 ) {
-               //error(ETWarn, "Sum_k(B(%d,k)) = %f > 1.0", i, sum);
-               //result = false; // Tolerate this too.
+            if ( !isfinite(sum) ) {
+               error(ETWarn, "Sum_k(B(%d,k)) = %f is not finite", i, sum);
+               result = false;
+            } else if ( !may_exceed_1 && sum > 1.0 + 1e-6 ) {
+               error(ETWarn, "Sum_k(B(%d,k)) = %f > 1.0", i, sum);
+               result = false;
             } else if ( sum < 0.0 ) {
                error(ETWarn, "Sum_k(B(%d,k)) = %f < 0.0", i, sum);
                result = false;

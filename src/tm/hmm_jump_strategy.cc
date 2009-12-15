@@ -174,21 +174,36 @@ void HMMJumpStrategy::readAddBinCounts(istream& is, const char* stream_name) {
    
 }
 
+double HMMJumpStrategy::calc_p0(Uint length) const {
+   // Calculate p0 based on p_zero (Och style) and uniform_p0 (Liang style).
+   const double p0 = p_zero + uniform_p0/length;
+
+   // We now know that it's useful to set p0 and up0 very high, with the result
+   // that the calculated p0 can be above 1.  Cap it to a value "near" 1 but
+   // low enough that the resulting HMMs will still be coherent.  Do this
+   // silently because when it happens, it happens a lot.
+   if ( p0 > .999 ) {
+      static bool issued_high_p0_warning = false;
+      if (!issued_high_p0_warning) {
+         error(ETWarn, "p0 = %f > .999 when length=%u, capping at .999 for this and all future HMMAligners.", p0, length);
+         issued_high_p0_warning = true;
+      }
+      return .999;
+   }
+
+   if ( p0 < 0 ) {
+      error(ETWarn, "p0 = %f when length=%d, using 0 instead; consider "
+            "revising your P0 (%f) and UP0 (%f) parameters",
+            p0, length, p_zero, uniform_p0);
+      return 0.0;
+   }
+
+   return p0;
+}
+
 double HMMJumpStrategy::fillDefaultHMMJumpProbs(HMM* hmm, Uint I) const {
    // Calculate p0 based on p_zero (Och style) and uniform_p0 (Liang style).
-   double p0 = p_zero + uniform_p0/(I+1);
-   if ( p0 > .5 )
-      error(ETWarn, "p0 very high (%f) when I=(%d), consider revising your "
-            "P0 (%f) and UP0 (%f) parameters",
-            p0, I, p_zero, uniform_p0);
-   if ( p0 > 1 )
-      error(ETFatal, "p0 > 1, can't build coherent HMM");
-   if ( p0 <= 0 ) {
-      error(ETWarn, "p0 = %f when I=(%d), using 0 instead; consider revising "
-            "your P0 (%f) and UP0 (%f) parameters",
-            p0, I, p_zero, uniform_p0);
-      p0 = 0.0;
-   }
+   const double p0 = calc_p0(I+1);
 
    // Some jump probabilities don't depend on the strategy, fill them here
    for ( Uint i = 0; i <= I; ++i ) {

@@ -139,6 +139,14 @@ protected:
    }
 
    /**
+    * Calculate the effective p0 for a sentence pair, given p_zero (Och style)
+    * and uniform_p0 (Liang style) and the current sentence length.
+    * @param length current sentence length (including the anchor if any)
+    * @return effective p0 value
+    */
+   double calc_p0(Uint length) const;
+
+   /**
     * Fill in the parts of the jump probabilities that don't typically depend
     * on the strategy.  SubClass::fillHMMJumpProbs() should invoke this method
     * if these defaults are appropriate: jumps back to the start state are not
@@ -339,7 +347,6 @@ public:
 
    /**
     * Estimate the model parameters from the counts.
-    * @param ???
     */
    virtual void estimate() = 0;
 

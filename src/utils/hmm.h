@@ -182,9 +182,16 @@ class HMM {
    /**
     * Check if Pi and A are proper probability distributions.
     * The user may call this to make sure they initialized Pi and A correctly.
+    * @param complete  if true, assume the transition distributions are
+    *                  complete and must sum to 1; otherwise assume this HMM is
+    *                  a subset of a larger HMM and the sum may be less than 1.
+    * @param may_exceed_1  if true, allow a sum>1 from a state without
+    *                  complaint.  Intended for use with optimization tricks
+    *                  such as conflating states that have disjoint emission
+    *                  sets.  (implies !complete)
     * @return true iff Pi and A are all proper probability distributions.
     */
-   bool checkTransitionDistributions() const;
+   bool checkTransitionDistributions(bool complete = true, bool may_exceed_1 = false) const;
 
    /**
     * Symbol emission probabilities.
@@ -248,9 +255,13 @@ class HMM {
     * @param complete   if true, assume the emission distribution is complete
     *                   and must sum to 1; otherwise assume it is a subset of a
     *                   larger HMM and the sum may be less than 1.
+    * @param may_exceed_1  if true, allow a sum>1 from a state without
+    *                  complaint.  Intended for use with optimization tricks
+    *                  such as conflating states that have disjoint emission
+    *                  sets.  (implies !complete)
     * @return true iff B contains no invalid probability distributions.
     */
-   bool checkEmissionDistributions(bool complete) const;
+   bool checkEmissionDistributions(bool complete, bool may_exceed_1 = false) const;
 
    /**
     * Constructor.

@@ -170,7 +170,7 @@ shared_ptr<HMM> HMMAligner::makeHMM(const vector<string>& src_toks_arg,
    // Most of the jump parameters are handled by the HMMJumpStrategy in place.
    jump_strategy->fillHMMJumpProbs(hmm, src_toks, tgt_toks, I);
 
-   if ( ! hmm->checkTransitionDistributions() ) {
+   if ( ! hmm->checkTransitionDistributions(false, true) ) {
       cerr << "observed: " << join(tgt_toks) << endl;
       cerr << "hidden: " << join<string>(src_toks) << endl;
       hmm->write(cerr);
@@ -262,7 +262,7 @@ shared_ptr<HMM> HMMAligner::makeHMM(const vector<string>& src_toks_arg,
       */
    }
 
-   if ( ! hmm->checkEmissionDistributions(false) ) {
+   if ( ! hmm->checkEmissionDistributions(false, true) ) {
       cerr << "observed: " << join(tgt_toks) << endl;
       cerr << "hidden: " << join<string>(src_toks) << endl;
       hmm->write(cerr);

@@ -356,6 +356,18 @@ void HMMJumpEndDist::fillHMMJumpProbs(
 
          // Now we can calculate the distribution of the rest of the jumps, and
          // normalize it over the remainting probability mass.
+         /* EJJ Dec 2009: deducting the jump to anchor prob from
+            remaining_prob_mass causes problems in various ways.  1) In the first
+            iteration, sentences of length 1 get not probability mass left for
+            other jumps.  2) In general, this jump is restricted by the lexical
+            distributions, so it need not take away from the other jumps.
+            These problems have been fixed in the newhmm implementation, but
+            should also be fixed in this old implementation too, for more
+            reasonable behaviour.
+            -> not deducting the jump to anchor prob means the HMM will have a
+            total probability mass from some states > 1.  This is OK, because
+            the lexical constraints will make it so that jumps that can have
+            non-zero lexical emissions will have a total probability <= 1.
          remaining_prob_mass -= hmm->A(i,I);
          if ( remaining_prob_mass < 0.0 ) {
             cerr << "source: " << join(tgt_toks) << endl;
@@ -365,6 +377,7 @@ void HMMJumpEndDist::fillHMMJumpProbs(
                   "Remaining prob mass < 0.0: I=%d i=%d p0=%f A(i,I)=%f",
                   I, i, p0, hmm->A(i,I));
          }
+         */
       }
       assert (remaining_prob_mass >= 0.0);
       double sum(0.0);

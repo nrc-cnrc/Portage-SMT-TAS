@@ -308,8 +308,7 @@ void HMMJumpMAP::fillHMMJumpProbs(HMM* hmm,
    prior->fillHMMJumpProbs(hmm, src_toks, tgt_toks, I);
 
    // Used for validating assumptions mainly
-   double p0 = p_zero + uniform_p0/(I+1);
-   if ( p0 <= 0.0 ) p0 = 0.0;
+   double p0 = calc_p0(I+1);
 
    const double remaining_prob_mass = 1.0 - p0;
    const double inv_remaining_prob_mass = double(1.0) / remaining_prob_mass;
