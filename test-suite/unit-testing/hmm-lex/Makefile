@@ -20,7 +20,7 @@ all: \
    cmp_map-sym-cat.fr_given_en
 
 clean:
-	$(RM) map*_given_* log.map* run-parallel-logs*
+	$(RM) -r map*_given_* log.map* run-parallel-logs*
 
 cmp_%.fr_given_en: %.fr_given_en
 	$(MAKE) do_cmp_$*.fr_given_en{,.dist}
