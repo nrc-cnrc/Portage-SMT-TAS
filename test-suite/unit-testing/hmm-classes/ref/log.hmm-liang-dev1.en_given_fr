@@ -1,23 +1,25 @@
 
-train_ibm, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada
+train_ibm, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada
 
 Warning: The -liang option has been replaced by -mimic liang. Please update your scripts.
 Warning: Proceeding as if you had typed -mimic liang.
+Read TTable in N seconds
 Created HMM model with existing IBM1 model and p0: 0 up0: 1 alpha: 0 lambda: 0 anchor: 1 end-dist: 1 max-jump: 5
 initializing from ref/ibm1-dev1.en_given_fr:
 beginning training:
 reading ref/dev1_fr.al/ref/dev1_en.al
 Lines processed: 100
-iter 1 (HMM): prev ppx = 35.5519, size = 30129 word pairs; took N second(s).
+iter 1 (HMM): prev ppx = 34.1118, size = 30129 word pairs; took N second(s).
 reading ref/dev1_fr.al/ref/dev1_en.al................
 Lines processed: 100
-iter 2 (HMM): prev ppx = 32.1969, size = 30129 word pairs; took N second(s).
+iter 2 (HMM): prev ppx = 30.9905, size = 30129 word pairs; took N second(s).
 reading ref/dev1_fr.al/ref/dev1_en.al................
 Lines processed: 100
-iter 3 (HMM): prev ppx = 24.9427, size = 30030 word pairs; took N second(s).
+iter 3 (HMM): prev ppx = 24.5662, size = 30033 word pairs; took N second(s).
 reading ref/dev1_fr.al/ref/dev1_en.al................
 Lines processed: 100
-iter 4 (HMM): prev ppx = 17.9783, size = 27894 word pairs; took N second(s).
+iter 4 (HMM): prev ppx = 18.0199, size = 27961 word pairs; took N second(s).
 reading ref/dev1_fr.al/ref/dev1_en.al................
 Lines processed: 100
-iter 5 (HMM): prev ppx = 12.0172, size = 23340 word pairs; took N second(s).
+iter 5 (HMM): prev ppx = 12.064, size = 23479 word pairs; took N second(s).
+Wrote TTable in N seconds

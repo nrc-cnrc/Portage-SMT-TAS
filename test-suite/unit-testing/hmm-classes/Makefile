@@ -12,7 +12,7 @@
 # Eric Joanis, based on George Foster's toy example
 #
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2008, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2008, Her Majesty in Right of Canada
@@ -25,7 +25,7 @@ DIFF_IGNORE = --ignore-blank-lines --ignore-matching-lines=TTable --ignore-match
 
 clean:
 	rm -f ibm[12]* phrases* hmm-*
-	rm -f log.*
+	rm -f log.hmm* log.phrases*
 	rm -rf tmp
 
 .PHONY: run-test1 test1 run-test2 test2 run-test3 test3 \
@@ -46,8 +46,8 @@ run-test1:
 	   &> log.hmm-base-dev1.fr_given_en
 
 test1: run-test1
-	diff-round.pl -p 5 -sort ref/hmm-base-dev1.fr_given_en.gz hmm-base-dev1.fr_given_en -q && \
-	diff-round.pl -p 5 -sort ref/hmm-base-dev1.fr_given_en.dist hmm-base-dev1.fr_given_en.dist -q && \
+	diff-round.pl -p 5 -sort ref/hmm-base-dev1.fr_given_en.gz hmm-base-dev1.fr_given_en -q
+	diff-round.pl -p 5 -sort ref/hmm-base-dev1.fr_given_en.dist hmm-base-dev1.fr_given_en.dist -q
 	sed 's/ [0-9][0-9]* second/ N second/' < log.hmm-base-dev1.fr_given_en | \
 	   diff $(DIFF_IGNORE) ref/log.hmm-base-dev1.fr_given_en - -q
 
@@ -59,8 +59,8 @@ run-test2:
 	   &> log.hmm-base-dev1.en_given_fr
 
 test2: run-test2
-	diff-round.pl -sort ref/hmm-base-dev1.en_given_fr.gz hmm-base-dev1.en_given_fr -q && \
-	diff-round.pl -sort ref/hmm-base-dev1.en_given_fr.dist hmm-base-dev1.en_given_fr.dist -q && \
+	diff-round.pl -sort ref/hmm-base-dev1.en_given_fr.gz hmm-base-dev1.en_given_fr -q
+	diff-round.pl -sort ref/hmm-base-dev1.en_given_fr.dist hmm-base-dev1.en_given_fr.dist -q
 	sed 's/ [0-9][0-9]* second/ N second/' < log.hmm-base-dev1.en_given_fr | \
 	   diff $(DIFF_IGNORE) ref/log.hmm-base-dev1.en_given_fr - -q
 
@@ -72,7 +72,7 @@ run-test3:
 	   &> log.phrases-hmm-base-dev1.fr2en
 
 test3: run-test3
-	diff-round.pl -sort ref/phrases-hmm-base-dev1.fr2en.gz phrases-hmm-base-dev1.fr2en -q && \
+	diff-round.pl -sort ref/phrases-hmm-base-dev1.fr2en.gz phrases-hmm-base-dev1.fr2en -q
 	sed 's/ [0-9][0-9]* second/ N second/' < log.phrases-hmm-base-dev1.fr2en | \
 	   diff-round.pl -p 6 ref/log.phrases-hmm-base-dev1.fr2en.gz - -q
 
@@ -83,8 +83,8 @@ run-test4:
 	   &> log.hmm-liang-dev1.fr_given_en
 
 test4: run-test4
-	diff-round.pl -p 5 -sort ref/hmm-liang-dev1.fr_given_en.gz hmm-liang-dev1.fr_given_en -q && \
-	diff-round.pl -p 5 -sort ref/hmm-liang-dev1.fr_given_en.dist hmm-liang-dev1.fr_given_en.dist -q && \
+	diff-round.pl -p 5 -sort ref/hmm-liang-dev1.fr_given_en.gz hmm-liang-dev1.fr_given_en -q
+	diff-round.pl -p 5 -sort ref/hmm-liang-dev1.fr_given_en.dist hmm-liang-dev1.fr_given_en.dist -q
 	sed 's/ [0-9][0-9]* second/ N second/' < log.hmm-liang-dev1.fr_given_en | \
 	   diff $(DIFF_IGNORE) ref/log.hmm-liang-dev1.fr_given_en - -q
 
@@ -95,8 +95,8 @@ run-test5:
 	   &> log.hmm-liang-dev1.en_given_fr
 
 test5: run-test5
-	diff-round.pl -p 5 -sort ref/hmm-liang-dev1.en_given_fr.gz hmm-liang-dev1.en_given_fr -q && \
-	diff-round.pl -p 5 -sort ref/hmm-liang-dev1.en_given_fr.dist hmm-liang-dev1.en_given_fr.dist -q && \
+	diff-round.pl -p 5 -sort ref/hmm-liang-dev1.en_given_fr.gz hmm-liang-dev1.en_given_fr -q
+	diff-round.pl -p 5 -sort ref/hmm-liang-dev1.en_given_fr.dist hmm-liang-dev1.en_given_fr.dist -q
 	sed 's/ [0-9][0-9]* second/ N second/' < log.hmm-liang-dev1.en_given_fr | \
 	   diff $(DIFF_IGNORE) ref/log.hmm-liang-dev1.en_given_fr - -q
 
@@ -108,7 +108,7 @@ run-test6:
 	   &> log.phrases-hmm-liang-dev1.fr2en
 
 test6: run-test6
-	diff-round.pl -sort -p 4 ref/phrases-hmm-liang-dev1.fr2en.gz phrases-hmm-liang-dev1.fr2en -q && \
+	diff-round.pl -sort -p 4 ref/phrases-hmm-liang-dev1.fr2en.gz phrases-hmm-liang-dev1.fr2en -q
 	sed 's/ [0-9][0-9]* second/ N second/' < log.phrases-hmm-liang-dev1.fr2en | \
 	   diff-round.pl -p 6 ref/log.phrases-hmm-liang-dev1.fr2en.gz - -q
 
@@ -120,8 +120,8 @@ run-test7:
 	   &> log.hmm-heb-dev1.fr_given_en
 
 test7: run-test7
-	diff-round.pl -p 5 -sort ref/hmm-heb-dev1.fr_given_en.gz hmm-heb-dev1.fr_given_en -q && \
-	diff-round.pl -p 5 -sort ref/hmm-heb-dev1.fr_given_en.dist hmm-heb-dev1.fr_given_en.dist -q && \
+	diff-round.pl -p 5 -sort ref/hmm-heb-dev1.fr_given_en.gz hmm-heb-dev1.fr_given_en -q
+	diff-round.pl -p 5 -sort ref/hmm-heb-dev1.fr_given_en.dist hmm-heb-dev1.fr_given_en.dist -q
 	sed 's/ [0-9][0-9]* second/ N second/' < log.hmm-heb-dev1.fr_given_en | \
 	   diff $(DIFF_IGNORE) ref/log.hmm-heb-dev1.fr_given_en - -q
 
@@ -133,8 +133,8 @@ run-test8:
 	   &> log.hmm-heb-dev1.en_given_fr
 
 test8: run-test8
-	diff-round.pl -p 5 -sort ref/hmm-heb-dev1.en_given_fr.gz hmm-heb-dev1.en_given_fr -q && \
-	diff-round.pl -p 5 -sort ref/hmm-heb-dev1.en_given_fr.dist hmm-heb-dev1.en_given_fr.dist -q && \
+	diff-round.pl -p 5 -sort ref/hmm-heb-dev1.en_given_fr.gz hmm-heb-dev1.en_given_fr -q
+	diff-round.pl -p 5 -sort ref/hmm-heb-dev1.en_given_fr.dist hmm-heb-dev1.en_given_fr.dist -q
 	sed 's/ [0-9][0-9]* second/ N second/' < log.hmm-heb-dev1.en_given_fr | \
 	   diff $(DIFF_IGNORE) ref/log.hmm-heb-dev1.en_given_fr - -q
 
@@ -146,7 +146,7 @@ run-test9:
 	   &> log.phrases-hmm-heb-dev1.fr2en
 
 test9: run-test9
-	diff-round.pl -p 5 -sort ref/phrases-hmm-heb-dev1.fr2en.gz phrases-hmm-heb-dev1.fr2en -q && \
+	diff-round.pl -p 5 -sort ref/phrases-hmm-heb-dev1.fr2en.gz phrases-hmm-heb-dev1.fr2en -q
 	sed 's/ [0-9][0-9]* second/ N second/' < log.phrases-hmm-heb-dev1.fr2en | \
 	   diff-round.pl -p 6 ref/log.phrases-hmm-heb-dev1.fr2en.gz - -q
 
@@ -158,5 +158,5 @@ run-test10:
 	   &> log.hmm-heb-cat-dev1.fr_given_en
 
 test10: run-test10 run-test7
-	diff-round.pl -p 4 hmm-heb-dev1.fr_given_en hmm-heb-cat-dev1.fr_given_en -q && \
+	diff-round.pl -p 4 hmm-heb-dev1.fr_given_en hmm-heb-cat-dev1.fr_given_en -q
 	diff-round.pl -p 5 -sort hmm-heb-dev1.fr_given_en.dist hmm-heb-cat-dev1.fr_given_en.dist -q
