@@ -53,6 +53,26 @@ TTable::TTable()
 
 TTable::~TTable() {}
 
+void TTable::output_in_plain_text(ostream& os, const string& filename,
+                                  bool verbose)
+{
+   string line;
+   iSafeMagicStream is(filename, true);
+   getline(is, line);
+   if ( line == TTable_Bin_Format_Header ) {
+      // Binary TTables have to be loaded and interpreted correctly
+      if ( verbose ) cerr << "Loading binary TTable file." << endl;
+      TTable ttable(filename);
+      if ( verbose ) cerr << "Done loading binary TTable file." << endl;
+      ttable.write(os);
+   } else {
+      // Plain text TTables can just be output without any processing.
+      if ( verbose ) cerr << "TTable model file is not binary, using simple zcat." << endl;
+      os << line << endl;
+      os << is.rdbuf();
+   }
+}
+
 void TTable::read(const string& filename, const Voc* src_voc)
 {
    time_t start_time(time(NULL));
@@ -104,29 +124,93 @@ void TTable::read(const string& filename, const Voc* src_voc)
    cerr << "Read TTable in " << (time(NULL) - start_time) << " seconds" << endl;
 }
 
+void TTable::displayStructureSizes() const {
+   Uint64 src_distns_size = src_distns.size() * sizeof(SrcDistn);
+   Uint64 src_distns_capacity = src_distns.capacity() * sizeof(SrcDistn);
+   for (Uint i = 0; i < src_distns.size(); ++i) {
+      if (!src_distns_quick[i])
+         src_distns_size += src_distns[i].size() * sizeof(TIndexAndProb);
+      src_distns_capacity += src_distns[i].capacity() * sizeof(TIndexAndProb);
+   }
+   Uint64 src_distns_quick_size = src_distns_quick.size() * sizeof(void*);
+   Uint64 src_distns_quick_capacity = src_distns_quick.capacity() * sizeof(void*);
+   const Uint bytes_per_block = boost::dynamic_bitset<>::bits_per_block/8;
+   assert(boost::dynamic_bitset<>::bits_per_block % 8 == 0);
+   for (Uint i = 0; i < src_distns_quick.size(); ++i)
+      if (src_distns_quick[i]) {
+         src_distns_quick_size += sizeof(*src_distns_quick[i]);
+         src_distns_quick_capacity += sizeof(*src_distns_quick[i]);
+         src_distns_quick_size +=
+            src_distns_quick[i]->size() / 8;
+         src_distns_quick_capacity +=
+            src_distns_quick[i]->num_blocks() * bytes_per_block;
+            //src_distns_quick[i]->size() * 32; // gross estimate for hash_set
+      }
+
+   cerr << "TTable size     in bytes: " << src_distns_size << " regular + "
+        << src_distns_quick_size << " quick." << endl;
+   cerr << "TTable capacity in bytes: " << src_distns_capacity << " regular + "
+        << src_distns_quick_capacity << " quick." << endl;
+   cerr << "TTable overhead in bytes: " << (src_distns_capacity-src_distns_size) << " regular + "
+        << (src_distns_quick_capacity-src_distns_quick_size) << " quick." << endl;
+
+}
+
 void TTable::makeDistnsUniform()
 {
+   //displayStructureSizes();
+
+   // Compact non-quick structures to minimize memory overhead, now that all
+   // values have been inserted.
+   for (Uint i = 0; i < src_distns.size(); ++i) {
+      SrcDistn& distn = src_distns[i];
+      if (distn.capacity() > 0 && float(distn.size() / distn.capacity() < .9)) {
+         SrcDistn compact_copy(distn);
+         distn.swap(compact_copy);
+         assert(distn.capacity() == distn.size());
+      }
+   }
+
+   //displayStructureSizes();
+
    // Copy contents of src_distns_quick, if any, to src_distns, deallocating as
    // we go.
-
-   for (Uint i = 0; i < src_distns_quick.size(); ++i)
+   for (Uint i = 0; i < src_distns_quick.size(); ++i) {
       if (src_distns_quick[i]) {
          SrcDistn& distn = src_distns[i];
          distn.clear();         // anything already there got copied to quick
+
+         /* using vector<bool>
          for (Uint j = 0; j < src_distns_quick[i]->size(); ++j)
             if ((*src_distns_quick[i])[j])
                distn.push_back(make_pair(j,0.0));
+         */
+
+         /* using boost::dynamic_bitset. -- slightly better than vector<bool> */
+         distn.reserve(src_distns_quick[i]->count());
+         for ( boost::dynamic_bitset<>::size_type j = src_distns_quick[i]->find_first();
+               j != boost::dynamic_bitset<>::npos;
+               j = src_distns_quick[i]->find_next(j) )
+            distn.push_back(make_pair(Uint(j),0.0));
+
          delete src_distns_quick[i];
          src_distns_quick[i] = NULL;
       }
-   src_distns_quick.resize(src_distns.size()); // for future add()'s
+   }
+
+   assert(src_distns_quick.size() == src_distns.size());
+   //src_distns_quick.resize(src_distns.size(), NULL); // for future add()'s
+
+   //displayStructureSizes();
 
    // sort and do normalization on regular src_distns tables
 
    for (Uint i = 0; i < src_distns.size(); ++i) {
       sort(src_distns[i].begin(), src_distns[i].end(), CompareTIndexes());
+      // TODO: should probably use iterator here
+      float uniform_prob = 1.0 / (float) src_distns[i].size();
       for (Uint j = 0; j < src_distns[i].size(); ++j)
-         src_distns[i][j].second = 1.0 / (float) src_distns[i].size();
+         src_distns[i][j].second = uniform_prob;
    }
 }
 
@@ -136,7 +220,8 @@ void TTable::add(Uint sindex, Uint tindex)
    // (quick table entry will only be non-null if speed == 2)
 
    if (src_distns_quick[sindex]) {
-      if (src_distns_quick[sindex]->size() < tindex)
+      /* using boost::dynamic_bitset<> or vector<bool> */
+      if (src_distns_quick[sindex]->size() <= tindex)
          src_distns_quick[sindex]->resize(2 * tindex);
       (*src_distns_quick[sindex])[tindex] = true;
    } else {
@@ -147,9 +232,18 @@ void TTable::add(Uint sindex, Uint tindex)
          distn.insert(sp, make_pair(tindex,(float)0.0));
 
       if (speed == 2 && distn.size() > 2000) { // convert to quick table if warranted
-         src_distns_quick[sindex] = new vector<bool>(max(200000,tword_map.size()+1000));
+         /* using dynamic_bitset or vector<bool> */
+         src_distns_quick[sindex] = new SrcDistnQuick(max(50000,tword_map.size()+1000));
          for (sp = distn.begin(); sp != distn.end(); ++sp)
             (*src_distns_quick[sindex])[sp->first] = true;
+
+         // EJJ Nov 2009: release the memory of the regular set -- we'll need
+         // it again later, but it's expensive to keep both the quick and
+         // regular structures around at the same time, especially for very
+         // large corpora.
+         SrcDistn empty_src_distn;
+         distn.swap(empty_src_distn);
+         assert(distn.capacity() == 0);
       }
    }
 }

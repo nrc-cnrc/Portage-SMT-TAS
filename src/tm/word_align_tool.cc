@@ -26,7 +26,7 @@ using namespace Portage;
 using namespace std;
 
 static char help_message[] = "\n\
-word_align_tool  [-vct][-fin fmt][-fout fmt] text1 text2 al_in al_out\n\
+word_align_tool  [-vct][-fin fmt][-fout fmt][-crp file] text1 text2 al_in al_out\n\
 \n\
 Read two line-aligned text files and associated word alignments <al_in> in a\n\
 given format, perform specified operations, and write new alignment file\n\
@@ -48,6 +48,7 @@ Options:\n\
 -fin  Format for input alignment file, one of: "WORD_ALIGNMENT_READER_FORMATS" [hwa]\n\
 -fout Format for output alignment file, one of:\n\
       "WORD_ALIGNMENT_WRITER_FORMATS", or patterns [green]\n\
+-crp  Write Uli-style combined text file to <file>.\n\
 ";
 
 // globals
@@ -57,6 +58,7 @@ static bool do_closure = false;
 static bool do_transpose = false;
 static string fin = "hwa";
 static string fout = "green";
+static string crp;
 static string text1, text2, al_in, al_out;
 
 static void getArgs(int argc, char* argv[]);
@@ -79,6 +81,10 @@ int main(int argc, char* argv[])
    iSafeMagicStream al_in_file(al_in);
    oSafeMagicStream al_out_file(al_out);
 
+   ostream* crp_file = NULL;
+   if (crp != "")
+      crp_file = new oSafeMagicStream(crp);
+
    WordAlignmentReader* wal_reader = WordAlignmentReader::create(fin);
    WordAlignmentWriter* wal_writer = fout == "patterns" ? 
       NULL : WordAlignmentWriter::create(fout);
@@ -90,8 +96,11 @@ int main(int argc, char* argv[])
 
    vector< vector<Uint> > sets1;
    vector< vector<Uint> > csets;
+
+   Uint line_num = 0;
    
    while (getline(text1_file, line1)) {
+      ++line_num;
       if (!getline(text2_file, line2))
          error(ETFatal, "file %s too short", text2.c_str());
       splitZ(line1, toks1);
@@ -106,6 +115,12 @@ int main(int argc, char* argv[])
          (*wal_writer)(al_out_file, toks1, toks2, sets1);
       else
          writePatterns(al_out_file, toks1, toks2, sets1, csets);
+      
+      if (crp_file) {
+         const string& l1 = do_transpose ? line2 : line1;
+         const string& l2 = do_transpose ? line1 : line2;
+         (*crp_file) << line_num << endl << l1 << endl << l2 << endl;
+      }
    }
 }
 
@@ -199,7 +214,7 @@ void writePatterns(ostream& al_out_file,
 
 void getArgs(int argc, char* argv[])
 {
-   const char* switches[] = {"v", "c", "t", "fin:", "fout:"};
+   const char* switches[] = {"v", "c", "t", "fin:", "fout:", "crp:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 4, 4, help_message);
    arg_reader.read(argc-1, argv+1);
 
@@ -209,6 +224,7 @@ void getArgs(int argc, char* argv[])
    arg_reader.testAndSet("fin", fin);
    arg_reader.testAndSet("fout", fout);
    arg_reader.testAndSet("fout", fout);
+   arg_reader.testAndSet("crp", crp);
 
    arg_reader.testAndSet(0, "text1", text1);
    arg_reader.testAndSet(1, "text2", text2);

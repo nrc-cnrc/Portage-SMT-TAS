@@ -312,13 +312,23 @@ void IBM1::count_sym_helper(const vector<string>& src_toks,
 pair<double,Uint> IBM1::estimate(double pruning_threshold,
                                  double null_pruning_threshold)
 {
+   Uint zero_counts = 0;
    for (Uint i = 0; i < tt.numSourceWords(); ++i) {
       double sum = 0.0;
       for (Uint j = 0; j < counts[i].size(); ++j)
          sum += counts[i][j];
-      for (Uint j = 0; j < counts[i].size(); ++j)
-         tt.prob(i, j) = sum ? counts[i][j] / sum : 1.0 / sum;
+      if (sum == 0.0)
+         ++zero_counts;
+      else
+         for (Uint j = 0; j < counts[i].size(); ++j)
+            tt.prob(i, j) = counts[i][j] / sum;
    }
+
+   if ( zero_counts )
+      error(ETWarn, "IBM1::estimate(): Zero counts for %u out of %u "
+            "source words, kept previous distribution for each of them.",
+            zero_counts, tt.numSourceWords());
+
    Uint size = tt.prune(pruning_threshold, null_pruning_threshold, nullWord());
 
    return make_pair(exp(-logprob / num_toks),size);
@@ -588,15 +598,8 @@ IBM2::IBM2(const string& ttable_file, Uint dummy, Uint max_slen, Uint max_tlen,
    initProbTables();
 }
 
-IBM2::IBM2(const string& ttable_file)
-   : IBM1(ttable_file)
-   , pos_probs(NULL)
-   , pos_counts(NULL)
-   , backoff_probs(NULL)
-   , backoff_counts(NULL)
+void IBM2::read(const string& pos_file)
 {
-   string pos_file = posParamFileName(ttable_file);
-
    iSafeMagicStream ifs(pos_file);
 
    ifs >> max_slen;
@@ -629,6 +632,33 @@ IBM2::IBM2(const string& ttable_file)
       for (Uint j = 0; j < backoff_size; ++j)
          ifs >> backoff_probs[i * backoff_size + j];
 }
+
+IBM2::IBM2(const string& ttable_file)
+   : IBM1(ttable_file)
+   , pos_probs(NULL)
+   , pos_counts(NULL)
+   , backoff_probs(NULL)
+   , backoff_counts(NULL)
+{
+   read(posParamFileName(ttable_file));
+}
+
+IBM2::IBM2(void* bogus, const string& pos_file)
+   : IBM1()
+   , pos_probs(NULL)
+   , pos_counts(NULL)
+   , backoff_probs(NULL)
+   , backoff_counts(NULL)
+{
+   read(pos_file);
+}
+
+IBM2::IBM2()
+   : pos_probs(NULL)
+   , pos_counts(NULL)
+   , backoff_probs(NULL)
+   , backoff_counts(NULL)
+{}
 
 IBM2::IBM2(const IBM2& that)
    : pos_probs(NULL)

@@ -37,6 +37,7 @@ PROGRAMS = $(TESTPROGS) \
         gen_phrase_tables \
         gen_jpt_filter_tool \
         ibm_entropy \
+        ibmcat \
         joint2cond_phrase_tables \
         joint2multi_cpt \
         phrase_align_stats \
@@ -46,7 +47,6 @@ PROGRAMS = $(TESTPROGS) \
         tt2pt \
         tt_pt_merge \
         word_align_tool
-
 
 BINSCRIPTS = \
         add-indicator-to-multiprob-pt.pl \

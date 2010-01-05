@@ -1,6 +1,6 @@
 /**
  * @author George Foster, Eric Joanis
- * @file gen_phrase_tables.cc 
+ * @file gen_phrase_tables.cc
  * @brief Program that generates phrase translation tables from IBM models and
  * a set of line-aligned files.
  *
@@ -149,7 +149,7 @@ static const char* const switches[] = {
 };
 
 static Uint verbose = 0;
-static Uint smoothing_verbose = 0; // ugly ugly ugly ugly ugly ugly ugly ugly 
+static Uint smoothing_verbose = 0; // ugly ugly ugly ugly ugly ugly ugly ugly
 static Uint prune1 = 0;
 static vector<string> align_methods;
 static vector<string> smoothing_methods;
@@ -199,7 +199,7 @@ static optional<bool> anchor_2;
 static optional<bool> end_dist_2;
 static optional<Uint> max_jump_2;
 
-static void add_ibm1_translations(Uint lang, const TTable& tt, PhraseTable& pt, 
+static void add_ibm1_translations(Uint lang, const TTable& tt, PhraseTable& pt,
 				  Voc& src_word_voc, Voc& tgt_word_voc,
                                   ostream* os);
 
@@ -222,7 +222,7 @@ public:
     * @param argv  same as the main argv
     * @param alt_help  alternate help message
     */
-   ARG(const int argc, const char* const argv[], const char* alt_help) : 
+   ARG(const int argc, const char* const argv[], const char* alt_help) :
       argProcessor(ARRAY_SIZE(switches), switches, 1, -1, help_message, "-h", false, alt_help, "-H"),
       m_logger(Logging::getLogger("verbose.main.arg"))
    {
@@ -239,7 +239,7 @@ public:
       if (mp_arg_reader->getSwitch("v")) {verbose = 1; smoothing_verbose = 1;}
       if (mp_arg_reader->getSwitch("vv")) verbose = 2;
       if (mp_arg_reader->getSwitch("vs")) smoothing_verbose = 2;
-      
+
       mp_arg_reader->testAndSet("a", align_methods);
       mp_arg_reader->testAndSet("s", smoothing_methods);
       mp_arg_reader->testAndSet("prune1", prune1);
@@ -335,21 +335,21 @@ public:
          min_phrase_len2 = min_phrase_len.size() == 2 ? min_phrase_len[1] : min_phrase_len[0];
       }
 
-      if ( !indiv_tables && !joint && !tmtext_output && multipr_output == "") {
+      if (!indiv_tables && !joint && !tmtext_output && multipr_output.empty()) {
          // When no other global action is specified, do -tmtext.
          tmtext_output = true;
       }
 
-      if (multipr_output != "" && multipr_output != "fwd" && multipr_output != "rev" && 
+      if (multipr_output != "" && multipr_output != "fwd" && multipr_output != "rev" &&
           multipr_output != "both")
          error(ETFatal, "Unknown value for -multipr switch: %s", multipr_output.c_str());
 
-      if (smoothing_methods.size() > 1 && multipr_output == "") {
+      if (smoothing_methods.size() > 1 && multipr_output.empty()) {
          error(ETWarn, "Multiple smoothing methods are only used with -multipr output - ignoring all but %s",
                smoothing_methods[0].c_str());
          smoothing_methods.resize(1);
       }
-      
+
       if (giza_alignment && align_methods.size() > 1)
         error(ETFatal, "Can't use -giza with multiple alignment methods");
    }
@@ -368,13 +368,21 @@ std::ostream& operator<<(std::ostream& os, const optional<T>& val) {
 
 using namespace genPhraseTable;
 
+void doEverything(const char* prog_name, ARG& args);
+
 int MAIN(argc, argv)
 {
    printCopyright(2004, "gen_phrase_tables");
-   static string alt_help = 
-      "--- word aligners ---\n" + WordAlignerFactory::help() + 
+   static string alt_help =
+      "--- word aligners ---\n" + WordAlignerFactory::help() +
       "\n--- phrase smoothers ---\n" + PhraseSmootherFactory<Uint>::help();
    ARG args(argc, argv, alt_help.c_str());
+   doEverything(argv[0], args);
+}
+END_MAIN
+
+void doEverything(const char* prog_name, ARG& args)
+{
    string z_ext(compress_output ? ".gz" : "");
 
    if ((indiv_tables || joint) && lang1 >= lang2)
@@ -489,7 +497,7 @@ int MAIN(argc, argv)
           error(ETFatal, "Missing arguments: alignment files");
         args.testAndSet(arg, "alfile1", alfile1);
         args.testAndSet(arg+1, "alfile2", alfile2);
-        if (verbose) 
+        if (verbose)
           cerr << "reading aligment files " << alfile1 << "/" << alfile2 << endl;
         if (al_1) delete al_1;
         al_1 = new GizaAlignmentFile(alfile1);
@@ -542,9 +550,9 @@ int MAIN(argc, argv)
                cerr << "---" << endl;
             }
             aligner_factory->addPhrases(toks1, toks2, sets1,
-                                        max_phrase_len1, max_phrase_len2, 
+                                        max_phrase_len1, max_phrase_len2,
                                         max_phraselen_diff,
-                                        min_phrase_len1, min_phrase_len2, 
+                                        min_phrase_len1, min_phrase_len2,
                                         pt);
          }
          if (verbose > 1) cerr << endl; // end of block
@@ -611,12 +619,9 @@ int MAIN(argc, argv)
       if ( tmtext_output || multipr_output != "" ) {
          if (verbose) cerr << "smoothing:" << endl;
 
-         PhraseSmootherFactory<Uint>
-            smoother_factory(&pt, ibm_1, ibm_2, smoothing_verbose);
-
+         PhraseSmootherFactory<Uint> smoother_factory(&pt, ibm_1, ibm_2, smoothing_verbose);
          vector< PhraseSmoother<Uint>* > smoothers;
-         for (Uint i = 0; i < smoothing_methods.size(); ++i)
-            smoothers.push_back(smoother_factory.createSmoother(smoothing_methods[i]));
+         smoother_factory.createSmoothersAndTally(smoothers, smoothing_methods);
 
          if ( tmtext_output ) {
             string filename;
@@ -661,15 +666,14 @@ int MAIN(argc, argv)
    }
 
    if (verbose) cerr << "done" << endl;
-}
-END_MAIN
 
+}
 
 // Lang is source language for tt: 1 or 2.
 // If os is non-NULL, the pairs get written to os instead of inserted into the
 // phrasetable.
 
-void add_ibm1_translations(Uint lang, const TTable& tt, PhraseTable& pt, 
+void add_ibm1_translations(Uint lang, const TTable& tt, PhraseTable& pt,
                            Voc& src_word_voc, Voc& tgt_word_voc,
                            ostream* os)
 {

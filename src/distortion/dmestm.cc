@@ -163,8 +163,7 @@ int main(int argc, char* argv[])
    vector<DistortionCount> l1_marginals(pt.numLang1Phrases());
    vector<DistortionCount> l2_marginals(pt.numLang2Phrases());
 
-   PhraseTableGen<DistortionCount>::iterator p = pt.begin();
-   for (; !p.equal(pt.end()); p.incr()) {
+   for (PhraseTableGen<DistortionCount>::iterator p = pt.begin(); p != pt.end(); ++p) {
       global_counts += p.getJointFreqRef();
       l1_marginals[p.getPhraseIndex(1)] += p.getJointFreqRef();
       l2_marginals[p.getPhraseIndex(2)] += p.getJointFreqRef();
@@ -192,7 +191,7 @@ int main(int argc, char* argv[])
    Uint totfreq = 0, totfreq_eval = 0.0;
    Uint nphrases = 0, nphrases_eval = 0.0;
 
-   for (p = pt.begin(); !p.equal(pt.end()); p.incr()) {
+   for (PhraseTableGen<DistortionCount>::iterator p = pt.begin(); p != pt.end(); ++p) {
 
       l1_prior = global_prior;
       l2_prior = global_prior;

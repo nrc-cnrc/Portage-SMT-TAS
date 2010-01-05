@@ -51,6 +51,12 @@ Model training options are documented in "train_ibm -h".
 }
 
 TIMEFORMAT="Single-job-total: Real %3lR User %3lU Sys %3lS PCPU %P%%"
+START_TIME=`date +"%s"`
+trap '
+   RC=$?
+   echo "Master-Wall-Time $((`date +%s` - $START_TIME))s" >&2
+   exit $RC
+' 0
 
 run_cmd() {
    if [[ "$1" = "-no-error" ]]; then
@@ -62,8 +68,18 @@ run_cmd() {
    date >&2
    echo "$*" >&2
    if [[ ! $NOTREALLY ]]; then
+      MON_FILE=`mktemp ${TMPPFX}mon.run_cmd.XXXXXXXX`
+      process-memory-usage.pl -s 1 30 $$ > $MON_FILE &
+      MON_PID=$!
       eval time $*
       rc=$?
+      kill -10 $MON_PID
+      if (( `wc -l < $MON_FILE` > 1 )); then
+         MON_VSZ=`egrep -ho 'vsz: [0-9.]+G' $MON_FILE 2> /dev/null | egrep -o "[0-9.]+" | sum.pl -m`
+         MON_RSS=`egrep -ho 'rss: [0-9.]+G' $MON_FILE 2> /dev/null | egrep -o "[0-9.]+" | sum.pl -m`
+         echo "run_cmd finished $*" >&2
+         echo "run_cmd rc=$rc Max VMEM ${MON_VSZ}G Max RAM ${MON_RSS}G" >&2
+      fi
       if [[ -z "$RUN_CMD_NO_ERROR" && "$rc" != 0 ]]; then
          echo "Exit status: $rc is not zero - aborting." >&2
          exit 1
@@ -231,11 +247,6 @@ done
 TMPPFX=$TMPPFX/
 
 mkdir $TMPPFX || error_exit "Can't create directory $TMPPFX - aborting."
-# We no longer want this trap: only clean up on successful run, at the end of
-# the script
-#if [[ ! $DEBUG ]]; then
-#   trap 'rm -rf $TMPPFX' 0
-#fi
 
 if [[ $NUM_ITERS2 -lt 1 && -n "$SAVE_IBM1" && "$SAVE_IBM1" != "$MODEL" ]]; then
    echo "-n2 0 used, -s option ignored, saving to $MODEL" >&2
@@ -410,3 +421,4 @@ if [[ ! $DEBUG ]]; then
    rm -rf $TMPPFX
 fi
 
+exit

@@ -1,9 +1,9 @@
 /**
- * @author George Foster
+ * @author George Foster, with reduced memory usage mods by Darlene Stewart
  * @file phrase_smoother.h  Abstract interface and factory for phrase-table smoothing techniques.
- * 
- * 
- * COMMENTS: 
+ *
+ *
+ * COMMENTS:
  *
  * Abstract interface and factory for phrase-table smoothing techniques. See
  * PhraseSmootherFactory for instructions on how to add new smoothers.
@@ -32,22 +32,42 @@ namespace Portage {
  * Abstract smoother. T is the type used to represent phrase-table frequencies.
  */
 template<class T>
-class PhraseSmoother 
+class PhraseSmoother
 {
+protected:
+   Uint num_tallyMarginals_passes;   // number of passes needed by tallyMarginals
+   Uint tallyMarginals_pass;         // current tallyMarginals pass number
+
 public:
 
    // probabilities are represented as floats in canoe, so don't go below
    // FLT_MIN!
    static const double VERY_SMALL_PROB = FLT_MIN;
 
+   /// Constructor.
+   PhraseSmoother(Uint num_passes=1) :
+      num_tallyMarginals_passes(num_passes), tallyMarginals_pass(1) {}
 
    /// Destructor.
    virtual ~PhraseSmoother() {}
 
+   Uint numTallyMarginalsPasses() const {return num_tallyMarginals_passes;}
+   Uint currentTallyMarginalsPass() const {return tallyMarginals_pass;}
+   /**
+    * Given a phrase pair (phrase1, phrase2), tally the marginals.
+    * Can be called multiple times for multiple passes over the phrase table.
+    * @param it
+    */
+   virtual void tallyMarginals(const typename PhraseTableGen<T>::iterator& it) {}
+   /**
+    * Do required computation upon completion of a pass of tallying the marginals.
+    */
+   virtual void tallyMarginalsFinishPass() {++tallyMarginals_pass;}
+
    /**
     * Given a phrase pair (phrase1, phrase2), return smoothed estimates for
     * P(phrase1|phrase2).
-    * @param it  
+    * @param it
     * @return Returns  P(phrase1|phrase2)
     */
    virtual double probLang1GivenLang2(
@@ -55,7 +75,7 @@ public:
    /**
     * Given a phrase pair (phrase1, phrase2), return smoothed estimates for
     * P(phrase2|phrase1).
-    * @param it  
+    * @param it
     * @return Returns  P(phrase2|phrase1)
     */
    virtual double probLang2GivenLang1(
@@ -84,7 +104,7 @@ class PhraseSmootherFactory
 
    /// Generic object allocator for PhraseSmoothers<T>.
    template<class S> struct DCon {
-      ///  Allocates a new object of type T constructed with S(factory, s). 
+      ///  Allocates a new object of type T constructed with S(factory, s).
       static PhraseSmoother<T>*
          create(PhraseSmootherFactory<T>& factory, const string& s)
       {
@@ -115,7 +135,7 @@ public:
     * @param ibm_lang1_given_lang2 ""
     * @param verbose level: 0 for no messages, 1 for basic, 2 for detail
     */
-   PhraseSmootherFactory(PhraseTableGen<T>* pt, 
+   PhraseSmootherFactory(PhraseTableGen<T>* pt,
                          IBM1* ibm_lang2_given_lang1,
                          IBM1* ibm_lang1_given_lang2,
 			 Uint verbose);
@@ -127,7 +147,7 @@ public:
     * @param fail fail with error in case of problems, rather than returning NULL
     * @return Returns a new createSmoother.
     */
-   PhraseSmoother<T>* createSmoother(const string& tname, const string& args, 
+   PhraseSmoother<T>* createSmoother(const string& tname, const string& args,
                                      bool fail = true);
 
    /**
@@ -143,6 +163,25 @@ public:
       toks.resize(2);
       return createSmoother(toks[0], toks[1], fail);
    }
+
+   /**
+    * Create one smoother and tally its marginals.
+    * @param tname_and_args  class of smoother and args to pass to smoother's constructor
+    * @param fail  fail with error in case of problems, rather than returning NULL
+    * @return returns created smoother used to generate conditional probabilities
+    */
+   PhraseSmoother<T>* createSmootherAndTally(const string& tname_and_args, bool fail=true);
+
+   /**
+    * Create smoothers and tally the marginals.
+    * @param smoothers vector of created smoothers used to generate conditional
+    * probabilities
+    * @param tname_and_args  vector of class names of smoothing methods with
+    * args to pass to smoother's constructor
+    * @param fail  fail with error in case of problems, rather than returning NULL
+    */
+   void createSmoothersAndTally(vector< PhraseSmoother<T>* >& smoothers,
+                                vector<string> tnames_and_args, bool fail=true);
 
    /**
     * Get help message describing all known smoother methods.
@@ -202,6 +241,8 @@ public:
     */
    RFSmoother(PhraseSmootherFactory<T>& factory, const string& args);
 
+   virtual void tallyMarginals(const typename PhraseTableGen<T>::iterator& it);
+
    virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it);
    virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
 };
@@ -228,6 +269,36 @@ public:
    }
    virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it) {
       return it.getJointFreq();
+   }
+};
+
+
+//-----------------------------------------------------------------------------
+/**
+ * Marginal frequencies
+ */
+template<class T>
+class MarginalFreqs : public PhraseSmoother<T>
+{
+   Uint lang;                   // 1 or 2
+   vector<T> marginals;         // l1|l2 phrase -> total frequency
+
+public:
+
+   /**
+    * Constructor
+    * @param factory
+    * @param args
+    */
+   MarginalFreqs(PhraseSmootherFactory<T>& factory, const string& args);
+
+   virtual void tallyMarginals(const typename PhraseTableGen<T>::iterator& it);
+
+   virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it) {
+      return marginals[it.getPhraseIndex(lang)];
+   }
+   virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it) {
+      return marginals[it.getPhraseIndex(lang)];
    }
 };
 
@@ -261,7 +332,7 @@ public:
 /**
  * Good-Turing. The float/double implementation currently maps frequencies to
  * their integer ceilings in order to come up with smoothed counts. This may
- * not be the best binning method. 
+ * not be the best binning method.
  */
 template<class T>
 class GTSmoother : public PhraseSmoother<T>
@@ -279,6 +350,9 @@ class GTSmoother : public PhraseSmoother<T>
    vector<double> lang1_num0trans; // l1 phrase -> num translations with 0 freq
    vector<double> lang2_num0trans; // l2 phrase -> num translations with 0 freq
 
+   // count_map is used by tallyMarginalsPass1 and tallyMarginalsPass1Finish.
+   map<Uint,Uint> count_map;	// freq -> num phrases with this freq
+
    GoodTuring* gt;
 
 public:
@@ -291,6 +365,9 @@ public:
    GTSmoother(PhraseSmootherFactory<T>& factory, const string& args);
    /// Destructor.
    ~GTSmoother() {if (gt) delete gt;}
+
+   virtual void tallyMarginals(const typename PhraseTableGen<T>::iterator& it);
+   virtual void tallyMarginalsFinishPass();
 
    virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it);
    virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
@@ -311,7 +388,7 @@ class KNSmoother : public PhraseSmoother<T>
    Uint numD;                   ///< number of discounting coeffs
    bool unigram;                ///< use unigram lower-order distribution
    Uint verbose;
-   
+
    // c-1,i -> num L2 phrases with freq c paired with L1 phrase with index i (and
    // v.v.), for c = 1..numD
    vector< vector<Uint> > lang1_event_counts;
@@ -333,7 +410,7 @@ class KNSmoother : public PhraseSmoother<T>
     * @param marge
     */
    void dumpProbInfo(const char* desc,
-                     T jointfreq, double disc, double gamma, double lower_order, double marge) 
+                     T jointfreq, double disc, double gamma, double lower_order, double marge)
    {
       cerr << desc << ": " <<
          jointfreq << "-" << disc << "+" << gamma << "*" << lower_order << "/" << marge << "  " <<
@@ -341,7 +418,7 @@ class KNSmoother : public PhraseSmoother<T>
    }
 
 public:
-   
+
    /**
     * Constructor.
     * @param factory
@@ -350,7 +427,10 @@ public:
    KNSmoother(PhraseSmootherFactory<T>& factory, const string& args);
    /// Destructor.
    ~KNSmoother() {}
-   
+
+   virtual void tallyMarginals(const typename PhraseTableGen<T>::iterator& it);
+   virtual void tallyMarginalsFinishPass();
+
    virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it);
    virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
 };
@@ -374,7 +454,7 @@ class ZNSmoother : public PhraseSmoother<T>
    vector<double> phrase_probs;
 
 public:
-   
+
    /**
     * Constructor.
     * @param factory
@@ -383,7 +463,7 @@ public:
    ZNSmoother(PhraseSmootherFactory<T>& factory, const string& args);
    /// Destructor.
    ~ZNSmoother() {}
-   
+
    virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it);
    virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
 };
@@ -404,7 +484,7 @@ class IBM1Smoother : public PhraseSmoother<T>
    vector<string> l2_phrase;
 
 public:
-   
+
    /**
     * Constructor.
     * @param factory
@@ -413,7 +493,7 @@ public:
    IBM1Smoother(PhraseSmootherFactory<T>& factory, const string& args);
    /// Destructor.
    ~IBM1Smoother() {}
-   
+
    virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it);
    virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
 };
@@ -433,7 +513,7 @@ class IBMSmoother : public PhraseSmoother<T>
    vector<string> l2_phrase;
 
 public:
-   
+
    /**
     * Constructor.
     * @param factory
@@ -442,7 +522,7 @@ public:
    IBMSmoother(PhraseSmootherFactory<T>& factory, const string& args);
    /// Destructor.
    ~IBMSmoother() {}
-   
+
    virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it);
    virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
 };

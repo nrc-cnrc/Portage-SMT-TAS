@@ -98,6 +98,7 @@ Options:\n\
 -dir d    Direction for output tables(s). One of: 'fwd' = output <cpt>.<l1>2<l2>\n\
           for translating from <l1> to <l2>; 'rev' = output <cpt>.<l2>2<l1>; or\n\
           'both' = output both. [fwd]\n\
+-nofwd    Write only 'reverse' estimates, not 'forward' ones.\n\
 -z        Compress the output files [don't]\n\
 -force    Overwrite any existing files [don't]\n\
 ";
@@ -106,6 +107,7 @@ Options:\n\
 
 static bool verbose = false;
 static bool int_counts = false;
+static bool nofwd = false;
 static string lang1("en");
 static string lang2("fr");
 static Uint prune1 = 0;
@@ -141,7 +143,7 @@ template<class T> struct ValAndIndex {
    ValAndIndex(): val(0), index(-1) {}
    ValAndIndex(T val) : val(val), index(-1) {}
 
-   // tread a val,index pair as a val for all intents and purposes, except the
+   // treat a val,index pair as a val for all intents and purposes, except the
    // explicit manipulations performed by this program
 
    operator T() const {
@@ -317,7 +319,7 @@ void doEverything(const char* prog_name)
       // that weren't already in pt, and zero freqs in pt for next iter 
       jointfreqs[i+1].resize(num_phrases);
       for (typename PhraseTableGen< ValAndIndex<T> >::iterator it = pt.begin(); 
-	   !it.equal(pt.end()); it.incr()) {
+	   it != pt.end(); ++it) {
          ValAndIndex<T>& vi = it.getJointFreqRef();
          if (vi.index == Uint(-1)) { // new phrase pair
             vi.index = jointfreqs[i+1].size();
@@ -371,7 +373,7 @@ void doEverything(const char* prog_name)
               << " translations" << (prune1w ? " per word" : "") 
               << ", using total freqs" << endl;
       for (typename PhraseTableGen< ValAndIndex<T> >::iterator it = pt.begin(); 
-	   !it.equal(pt.end()); it.incr()) {
+	   it != pt.end(); ++it) {
          ValAndIndex<T>& vi = it.getJointFreqRef();
          vi.val = jointfreqs[0][vi.index];
       }
@@ -418,17 +420,16 @@ void doEverything(const char* prog_name)
 
    vector< vector<Smoother*> > smoothers(jointfreqs.size());
    for (Uint i = 0; i < jointfreqs.size(); ++i) { // for each freq column
-
       // inject column's contents into pt
       for (typename PhraseTableGen< ValAndIndex<T> >::iterator it = pt.begin(); 
-	   !it.equal(pt.end()); it.incr()) {
+	   it != pt.end(); ++it) {
          ValAndIndex<T>& vi = it.getJointFreqRef();
 	 vi.val = vi.index < jointfreqs[i].size() ? jointfreqs[i][vi.index] : 0;
       }
       // create all required smoothers for this column
       for (Uint j = 0; j < column_smoothers[i].size(); ++j) {
          string& sm = counting_smoothing_methods[column_smoothers[i][j]];
-         smoothers[i].push_back(smoother_factory.createSmoother(sm));
+         smoothers[i].push_back(smoother_factory.createSmootherAndTally(sm));
       }
    }
    if (verbose && counting_smoothing_methods.size()) 
@@ -436,9 +437,8 @@ void doEverything(const char* prog_name)
 
    // Now make the smoothers that don't depend on joint counts.
    vector<Smoother*> noncount_smoothers(noncount_smoothing_methods.size());
-   for (Uint i = 0; i < noncount_smoothing_methods.size(); ++i)
-      noncount_smoothers[i] = 
-         smoother_factory.createSmoother(noncount_smoothing_methods[i]);
+   smoother_factory.createSmoothersAndTally(noncount_smoothers, 
+                                            noncount_smoothing_methods);
 
    if (verbose && noncount_smoothing_methods.size()) 
       cerr << "created count-independent smoother(s)" << endl;
@@ -470,7 +470,7 @@ void doEverything(const char* prog_name)
    string p1, p2;
    Uint total = 0;
    for (typename PhraseTableGen< ValAndIndex<T> >::iterator it = pt.begin(); 
-	!it.equal(pt.end()); it.incr()) {
+	it != pt.end(); ++it) {
       vals_fwd.clear();
       vals_rev.clear();
       it.getPhrase(1, p1);
@@ -490,12 +490,16 @@ void doEverything(const char* prog_name)
 
       if (out_fwd) {
 	 vals = vals_rev;
-	 vals.insert(vals.end(), vals_fwd.begin(), vals_fwd.end());
+	 if (!nofwd) vals.insert(vals.end(), vals_fwd.begin(), vals_fwd.end());
 	 PhraseTableBase::writePhrasePair(*out_fwd, p1.c_str(), p2.c_str(), vals);
       }
       if (out_rev) {
-	 vals = vals_fwd;
-	 vals.insert(vals.end(), vals_rev.begin(), vals_rev.end());
+         if (nofwd) {
+            vals = vals_rev;
+         } else {
+            vals = vals_fwd;
+            vals.insert(vals.end(), vals_rev.begin(), vals_rev.end());
+         }
 	 PhraseTableBase::writePhrasePair(*out_rev, p2.c_str(), p1.c_str(), vals);
       }	 
       ++total;
@@ -517,7 +521,7 @@ void getArgs(int argc, char* argv[])
    const char* switches[] = {
       "v", "i", "1:", "2:", "prune1:", "prune1w:", "s:", "0:", "eps0:",
       "ibm_l1_given_l2:", "ibm_l2_given_l1:", "ibm:", "lc1:", "lc2:", 
-      "o:", "dir:", "z", "force"
+      "o:", "dir:", "nofwd", "z", "force"
    };
 
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 1, -1, help_message,
@@ -540,6 +544,7 @@ void getArgs(int argc, char* argv[])
    arg_reader.testAndSet("lc2", lc2);
    arg_reader.testAndSet("o", name);
    arg_reader.testAndSet("dir", output_drn);
+   arg_reader.testAndSet("nofwd", nofwd);
    arg_reader.testAndSet("z", compress_output);
    arg_reader.testAndSet("force", force);
 

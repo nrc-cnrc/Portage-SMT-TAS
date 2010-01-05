@@ -16,6 +16,7 @@
 #include <vector>
 #include <str_utils.h>
 #include <cstdlib>
+#include <string>
 
 namespace Portage {
 
@@ -103,6 +104,15 @@ struct DistortionCount {
 
 // write contents of dc on a stream
 std::ostream& operator<<(std::ostream& os, const DistortionCount& dc);
+
+inline bool conv(const string& s, DistortionCount& dc)
+{
+   vector<string> toks;
+   if (split(s, toks) != dc.size())
+      return false;
+   dc.read(toks.begin(), toks.end());
+   return true;
+};
 
 }
 

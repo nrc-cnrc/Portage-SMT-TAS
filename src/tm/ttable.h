@@ -32,6 +32,7 @@
 #include <quick_set.h>
 #include <voc.h>
 #include <casemap_strings.h>
+#include <boost/dynamic_bitset.hpp>
 
 namespace Portage {
 
@@ -105,11 +106,18 @@ private:
    unordered_map<string,Uint> sword_map; ///< S-language vocab
    vector<string> twords; ///< T-language vocab (mapping index to word)
    vector<SrcDistn> src_distns;
-   vector<vector<bool>*> src_distns_quick;
-   QuickSet src_inds; ///< local variable to add(), kept persistent for speed
-   QuickSet tgt_inds; ///< local variable to add(), kept persistent for speed
+
+   //typedef vector<bool> SrcDistnQuick; // not bad, already 1 bit per element
+   typedef boost::dynamic_bitset<> SrcDistnQuick; // slightly more efficient than vector<bool>
+   vector<SrcDistnQuick*> src_distns_quick;
+
+   QuickSet src_inds; ///< local variable to add(), kept persistent/static for speed
+   QuickSet tgt_inds; ///< local variable to add(), kept persistent/static for speed
 
    SrcDistn empty_distn;  ///< Empty source distribution.
+
+   /// Show structure sizes for memory optimization purposes
+   void displayStructureSizes() const;
 
    void add(Uint src_index, Uint tgt_index);
    void read(const string& filename, const Voc* src_voc);
@@ -149,6 +157,12 @@ public:
 
    /// Destructor.
    ~TTable();
+
+   /// Display TTable in plain text, regardless of its input format
+   /// Converts binary TTables for reading, or simply prints out 
+   /// text ones.
+   static void output_in_plain_text(ostream& os, const string& filename,
+                                    bool verbose = false);
 
    /**
     * Set case mapping. Use the given CaseMapStrings objects to map source or

@@ -60,6 +60,26 @@ enum ErrorType {
 };
 
 /**
+ * This namespace encapsulates the callbacks that do the real work for
+ * Portage::error().  Intended for unit testing, this callback mechanism allows
+ * the disabling or changing of error()'s default behaviour.
+ */
+namespace Error_ns {
+   /// This callback does nothing, effectively disabling error().
+   void nullErrorCallBack(ErrorType et, const string& msg);
+   /// This default call back does the normal work advertized in the
+   /// documentation of error().
+   void defaultErrorCallBack(ErrorType et, const string& msg);
+   /// The signature required of a valid errorCallback.
+   typedef void (*ErrorCallback)(ErrorType et, const string& msg);
+   struct dummy {
+      /// This static function pointer holds the error callback currently in
+      /// effect.  Change its value to change what error() does.
+      static ErrorCallback errorCallback;
+   };
+}
+
+/**
  * Signal an error or warning message on cerr, and possibly quit.
  * @param et type of error: 
  *   ETFatal, print "Error: <msg>" and exit 1

@@ -19,23 +19,24 @@ usage() {
    done
    cat <<==EOF== >&2
 
-Usage: gen-jpt-parallel.sh [-n N][-w nw][-rp RUNPARALLELOPTS][-o outfile]
-          GPT GPTARGS file1_lang1 file1_lang2
+Usage: gen-jpt-parallel.sh [-n N][-w NW][-rp RUNPARALLELOPTS][-o OUTFILE]
+       GPT GPTARGS file1_lang1 file1_lang2
 
 Generate a joint phrase table for a single (large) file pair in parallel, by
 splitting the pair into pieces, generating a joint table for each piece, then
-concatenating the results, which are written to stdout (uncompressed).
+merging the results, which are written to stdout (uncompressed).
 
 Options:
 
-  -n        Number of chunks in which to split the file pair. [4]
-  -w nw     Add <nw> best IBM1 translations for src and tgt words that occur in
+  -n N      Number of chunks in which to split the file pair. [4]
+  -nw W     Number of workers to run in parallel. [N]
+  -w NW     Add NW best IBM1 translations for src and tgt words that occur in
             given files but have no have phrase translations. This is similar
             to using -w for non-parallel phrase extraction from the given
             files, but uses a slightly different (probably better) algorithm;
             also, its results are independent of the number of parallel jobs N.
   -rp       Provide custom run-parallel.sh options (enclose in quotes!).
-  -o        Send output to outfile (compressed).
+  -o        Send output to OUTFILE (compressed if it has a .gz extension).
   GPT       Keyword to signal beginning of gen_phrase_tables options and args.
   GPTARGS   Arguments and options for gen_phrase_tables: these must include
             the two IBM model arguments, but should NOT include any output
@@ -72,15 +73,25 @@ is_int() {
    fi
 }
 
+TIMEFORMAT="Single-job-total: Real %3Rs User %3Us Sys %3Ss PCPU %P%%"
+START_TIME=`date +"%s"`
+trap '
+   RC=$?
+   echo "Master-Wall-Time $((`date +%s` - $START_TIME))s" >&2
+   exit $RC
+' 0
+
 NUM_JOBS=4
 NW=
 OUTFILE="-"
 RP_OPTS=
 VERBOSE=
+WORKERS=
 
 while [ $# -gt 0 ]; do
    case "$1" in
    -n)         arg_check 1 $# $1; is_int $2 $1; NUM_JOBS=$2; shift;;
+   -nw)        arg_check 1 $# $1; is_int $2 $1; WORKERS=$2; shift;;
    -w)         arg_check 1 $# $1; is_int $2 $1; NW=$2; shift;;
    -rp)        arg_check 1 $# $1; RP_OPTS="$RP_OPTS $2"; shift;;
    -o)         arg_check 1 $# $1; OUTFILE=$2; shift;;
@@ -96,9 +107,9 @@ while [ $# -gt 0 ]; do
    shift
 done
 
-if [ $# -lt 4 ]; then
-   error_exit "Missing IBM models and file pair arguments."
-fi
+[[ $WORKERS ]] || WORKERS=$NUM_JOBS
+
+[[ $# -lt 4 ]] && error_exit "Missing IBM models and file pair arguments."
 
 GPTARGS=($@)
 if [[ "$GPTARGS" =~ -v ]]; then
@@ -113,12 +124,8 @@ unset GPTARGS[$#-1]
 WORKDIR=JPTPAR$$
 test -d $WORKDIR || mkdir $WORKDIR
 
-if [ ! -e $file1 ]; then
-   error_exit "Input file $file1 doesn't exist"
-fi
-if [ ! -e $file2 ]; then
-   error_exit "Input file $file2 doesn't exist"
-fi
+[[ -e $file1 ]] || error_exit "Input file $file1 doesn't exist"
+[[ -e $file2 ]] || error_exit "Input file $file2 doesn't exist"
 
 NL=`zcat -f $file1 | wc -l`
 SPLITLINES=$(($NL/$NUM_JOBS))
@@ -126,21 +133,24 @@ if [ -n $(($NL%$NUM_JOBS)) ]; then
    SPLITLINES=$(($SPLITLINES+1))
 fi
 
-zcat -f $file1 | split -l $SPLITLINES - $WORKDIR/L1.
-zcat -f $file2 | split -l $SPLITLINES - $WORKDIR/L2.
+time {
+   zcat -f $file1 | split -a 4 -l $SPLITLINES - $WORKDIR/L1.
+   zcat -f $file2 | split -a 4 -l $SPLITLINES - $WORKDIR/L2.
+}
 
-if [ $DEBUG ]; then
-    echo "NUM_JOBS = $NUM_JOBS" >&2
-    echo "NW = $NW" >&2
-    echo "RP_OPTS = <$RP_OPTS>" >&2
-    echo "GPTARGS = <${GPTARGS[@]}>" >&2
-    echo $file1 >&2
-    echo $file2 >&2
-    echo $WORKDIR >&2
-    echo $NL >&2
-    echo $SPLITLINES >&2
-    echo Verbose: $VERBOSE >&2
-fi
+if [[ $DEBUG ]]; then
+   echo "NUM_JOBS = $NUM_JOBS"
+   echo "WORKERS = $WORKERS"
+   echo "NW = $NW"
+   echo "RP_OPTS = <$RP_OPTS>"
+   echo "GPTARGS = <${GPTARGS[@]}>"
+   echo $file1
+   echo $file2
+   echo $WORKDIR
+   echo $NL
+   echo $SPLITLINES
+   echo Verbose: $VERBOSE
+fi >&2 # send everything to STDERR
 
 # if [ ! $DEBUG ]; then
 #    trap 'rm -rf ${WORKDIR}.*' 0 2 3 13 14 15
@@ -154,6 +164,7 @@ if [[ -n "$NW" ]]; then
    get_voc $file2 > $WORKDIR/voc.2
 fi
 
+# Build the command list.
 for src in `ls $WORKDIR/L1.*`; do
    tgt=${src/\/L1./\/L2.}
    suff=${src##*/L1.}
@@ -167,17 +178,16 @@ done
 
 test $DEBUG && cat $CMDS_FILE
 
-if [ -n $VERBOSE ]; then
-    echo "run-parallel.sh $VERBOSE $RP_OPTS $CMDS_FILE $NUM_JOBS" >&2
-fi
 
-test $NOTREALLY ||
-   eval "run-parallel.sh $VERBOSE $RP_OPTS $CMDS_FILE $NUM_JOBS"
+[[ -n $VERBOSE ]] && echo "run-parallel.sh $VERBOSE $RP_OPTS $CMDS_FILE $WORKERS" >&2
+
+[[ $NOTREALLY ]] || eval "run-parallel.sh $VERBOSE $RP_OPTS $CMDS_FILE $WORKERS"
 RC=$?
 if (( $RC != 0 )); then
    echo "problem calculating the joint frequencies (status=$RC) - quitting!" >&2
    exit $RC
 fi
+
 
 # Merging parts
 test $DEBUG && echo merge_counts $OUTFILE $WORKDIR/*.jpt.gz
@@ -198,8 +208,10 @@ if [[ ! $NOTREALLY ]]; then
        WPFILES="$WORKDIR/jpt.wp1.gz $WORKDIR/jpt.wp2.gz"
     fi
 
-    eval "merge_counts $OUTFILE $WORKDIR/*.jpt.gz $WPFILES"
-    RC=$?
+    time {
+       eval "merge_counts $OUTFILE $WORKDIR/*.jpt.gz $WPFILES"
+       RC=$?
+    }
     if (( $RC != 0 )); then
         echo "problems merging the joint frequencies (status=$RC) - quitting!" >&2
         exit $RC
@@ -207,3 +219,5 @@ if [[ ! $NOTREALLY ]]; then
 fi
 
 rm -rf ${WORKDIR}
+
+exit

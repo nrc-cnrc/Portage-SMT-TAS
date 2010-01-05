@@ -172,6 +172,10 @@ template<> inline string typeName<int>() {return "int";}
 template<> inline string typeName<string>() {return "string";}
 /// Same as typeName()
 template<> inline string typeName<Uint>() {return "Uint";}
+/// Same as typeName()
+template<> inline string typeName<Int64>() {return "Int64";}
+/// Same as typeName()
+template<> inline string typeName<Uint64>() {return "Uint64";}
 
 /**
  * Convert string to Uint.

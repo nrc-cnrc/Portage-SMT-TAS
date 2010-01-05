@@ -106,13 +106,18 @@ namespace Portage
          rReader.integrityCheck();
 
          total.output();
-         printf("%s score: %f\n", ScoreStats::name(), ScoreStats::convertToDisplay(total.score()));
-         printf("Human readable value: %2.2f", 100*ScoreStats::convertToDisplay(total.score()));
 
+         double conf_interval(0);
          if (arg.bDoConf) {
             typename ScoreStats::CIcomputer wc;
-            cout << " +/- " << bootstrapConfInterval(indiv.begin(), indiv.end(), wc, 0.95, 1000);
+            conf_interval = bootstrapConfInterval(indiv.begin(), indiv.end(), wc, 0.95, 1000);
          }
+
+         printf("%s score: %f", ScoreStats::name(), ScoreStats::convertToDisplay(total.score()));
+         if (arg.bDoConf) cout << " +/- " << conf_interval;
+         cout << endl;
+         printf("Human readable value: %.2f", 100*ScoreStats::convertToDisplay(total.score()));
+         if (arg.bDoConf) printf(" +/- %.2f", 100*conf_interval);
          cout << endl;
       }
    } // ends namespace scoremain

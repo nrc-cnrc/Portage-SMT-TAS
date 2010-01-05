@@ -425,6 +425,13 @@ namespace Portage {
     /// Assignment is not allowed
     IBM2& operator=(const IBM2&);
 
+    /**
+     * Read an existing position parameters file.
+     * For use by constructors only.
+     * @param dist_file  file containing the distributional parameters
+     */
+    void read(const string& dist_file);
+
   public:
 
     // Avoid hiding base class overriden functions.
@@ -439,6 +446,11 @@ namespace Portage {
     static const string posParamFileName(const string& ttable_name) {
       return addExtension(ttable_name, ".pos");
     }
+
+    /**
+     * Default constructor.
+     */
+    IBM2();
 
     /**
      * Construct an empty model; use add() to populate. The parameters specify
@@ -469,6 +481,14 @@ namespace Portage {
      * @param ttable_file  file containing the ttable.
      */
     IBM2(const string& ttable_file);
+
+    /**
+     * Construct using an existing .dist file but no TTable file.
+     * This constructor exists only to support ibmcat.cc.
+     * @param bogus  NULL pointer to disambiguate with the previous constructor
+     * @param pos_file  file containing the positional parameters
+     */
+    IBM2(void* bogus, const string& pos_file);
 
     /// Copy constructor (slow, intended for testing purposes only)
     /// Deep copy of the TTable and IBM1 counts, but not of IBM2 positional

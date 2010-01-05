@@ -21,6 +21,8 @@
 using namespace Portage;
 using namespace std;
 
+Error_ns::ErrorCallback Error_ns::dummy::errorCallback = Error_ns::defaultErrorCallBack;
+
 Error::Error(const char* fmt, ...)
 {
    vector<char> buf(1000);
@@ -31,9 +33,10 @@ Error::Error(const char* fmt, ...)
    msg = &buf[0];
 }
 
-void Portage::error(ErrorType et, const string& msg)
+void Portage::Error_ns::nullErrorCallBack(ErrorType et, const string& msg) {}
+
+void Portage::Error_ns::defaultErrorCallBack(ErrorType et, const string& msg)
 {
-   string hdr;
    if (et == ETFatal) {
       cerr << "Error: " << msg << endl;
       exit(1);
@@ -42,6 +45,13 @@ void Portage::error(ErrorType et, const string& msg)
    } else {
       cerr << msg << endl;
       exit(0);
+   }
+}
+
+void Portage::error(ErrorType et, const string& msg)
+{
+   if (Error_ns::dummy::errorCallback) {
+      (*Error_ns::dummy::errorCallback)(et, msg);
    }
 }
 

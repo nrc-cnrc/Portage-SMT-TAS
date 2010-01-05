@@ -1,6 +1,6 @@
 /**
- * @author George Foster
- * @file joint2cond_phrase_tables.cc 
+ * @author George Foster, with reduced memory usage mods by Darlene Stewart
+ * @file joint2cond_phrase_tables.cc
  * @brief Program that converts joint-frequency phrase table.
  *
  *
@@ -33,8 +33,8 @@ using namespace std;
 static char help_message[] = "\n\
 joint2cond_phrase_tables [-Hvijz][-[no-]sort][-1 l1][-2 l2][-o name][-s 'meth args']\n\
                          [-ibm n][-hmm][-ibm_l2_given_l1 m][-ibm_l1_given_l2 m]\n\
-                         [-prune1 n][-tmtext][-multipr d][jtable]\n\
-                         [-lc1 loc][-lc2 loc]\n\
+                         [-prune1 n][-tmtext][-multipr d][-lc1 loc][-lc2 loc]\n\
+                         [-[no-]reduce-mem][jtable]\n\
 \n\
 Convert joint-frequency phrase table <jtable> (stdin if no <jtable> parameter\n\
 given) into two standard conditional-probability phrase tables\n\
@@ -73,7 +73,7 @@ Options:\n\
       locale <loc>, eg: C, en_US.UTF-8, fr_CA.88591 [don't map]\n\
 -tmtext     Write TMText format phrase tables (delimited text files)\n\
             <name>.<lang1>_given_<lang2> and <name>.<lang2>_given_<lang1>.\n\
-            [default if none of -j, -tmtext nor -multipr is given]\n\
+            [default if none of -j, -tmtext, -multipr is given]\n\
 -multipr d  Write text phrase table(s) with multiple probabilities: for each\n\
             phrase pair, one or more 'backward' probabilities followed by one\n\
             or more 'forward' probabilities (more than one when multiple\n\
@@ -81,6 +81,14 @@ Options:\n\
             'both', to select: output <name>.<lang1>2<lang2>, the reverse, or\n\
             both directions.\n\
 -force  Overwrite any existing files\n\
+-[no-]reduce-mem  Reduce/don't reduce memory usage. Memory reduction is\n\
+                  achieved by not keeping the phrase tables entirely in memory.\n\
+                  This requires reading the jpt file multiple times, once for\n\
+                  each iteration over the phrase table. [don't reduce memory]\n\
+                  Note: Concatenation of jpts is not permitted with the\n\
+                  reduced memory option, and the jpt cannot be read from stdin.\n\
+                  Use merge_counts to tally counts from multiple jpts before\n\
+                  using this option, or else the output will be incorrect.\n\
 ";
 
 // globals
@@ -106,12 +114,13 @@ static string in_file;
 static bool compress_output = false;
 static string extension(".gz");
 static bool sorted(true);
+static bool reduce_memory(false);
 
 static void getArgs(int argc, const char* const argv[]);
-void delete_or_error_if_exists(const string& filename);
+static void delete_or_error_if_exists(const string& filename);
 
 template<class T>
-void doEverything(const char* prog_name);
+static void doEverything(const char* prog_name);
 
 // main
 
@@ -133,8 +142,30 @@ static string makeFinalFileName(string orignal_filename)
    return orignal_filename;
 }
 
+static void open_output_file(oMagicStream& ofs, string& filename) {
+   if (verbose) cerr << "Writing " << filename << endl;
+   ofs.open(filename);
+   if (ofs.fail())
+      error(ETFatal, "Unable to open %s for writing", filename.c_str());
+}
+
+static void open_cd_file(oMagicStream& ofs, string& name, string& lang1, string& lang2) {
+   string filename = makeFinalFileName(name + "." + lang2 + "_given_" + lang1);
+   open_output_file(ofs, filename);
+};
+
+static void open_mp_file(oMagicStream& ofs, string& name, string& lang1, string& lang2) {
+   string filename = makeFinalFileName(name + "." + lang1 + "2" + lang2);
+   if (sorted) {
+      filename = " > " + filename;
+      if (compress_output) filename = "| gzip" + filename;
+      filename = "| LC_ALL=C TMPDIR=. sort " + filename;
+   }
+   open_output_file(ofs, filename);
+};
+
 template<class T>
-void doEverything(const char* prog_name)
+static void doEverything(const char* prog_name)
 {
    // Early error checking
    if ( tmtext_output ) {
@@ -146,11 +177,11 @@ void doEverything(const char* prog_name)
    if ( multipr_output == "rev" || multipr_output == "both" )
       delete_or_error_if_exists(makeFinalFileName(name + "." + lang2 + "2" + lang1));
 
-   iSafeMagicStream in(in_file.size() ? in_file : "-");
+   time_t start_time(time(NULL));
    PhraseTableGen<T> pt;
-   pt.readJointTable(in);
+   pt.readJointTable(in_file, reduce_memory);
 
-   if (verbose) {
+   if (verbose && !reduce_memory) {
       cerr << "read joint table: "
            << pt.numLang1Phrases() << " " << lang1 << " phrases, "
            << pt.numLang2Phrases() << " " << lang2 << " phrases" << endl;
@@ -158,12 +189,12 @@ void doEverything(const char* prog_name)
 
    if (prune1) {
       if (verbose)
-         cerr << "pruning to best " << prune1 << "translations" << endl;
+         cerr << "pruning to best " << prune1 << " translations" << endl;
       pt.pruneLang2GivenLang1(prune1);
    }
 
    if (joint)
-      pt.dump_joint_freqs(cout);
+      pt.dump_joint_freqs(cout, 0, false, false);
 
    IBM1* ibm_1 = NULL;
    IBM1* ibm_2 = NULL;
@@ -197,47 +228,74 @@ void doEverything(const char* prog_name)
 
    PhraseSmootherFactory<T> smoother_factory(&pt, ibm_1, ibm_2, verbose);
    vector< PhraseSmoother<T>* > smoothers;
-   for (Uint i = 0; i < smoothing_methods.size(); ++i)
-      smoothers.push_back(smoother_factory.createSmoother(smoothing_methods[i]));
+   smoother_factory.createSmoothersAndTally(smoothers, smoothing_methods);
 
-   if (verbose) cerr << "created smoother(s)" << endl;
+   if (verbose && reduce_memory) {
+      cerr << "read joint table: "
+           << pt.numLang1Phrases() << " " << lang1 << " phrases, "
+           << pt.numLang2Phrases() << " " << lang2 << " phrases" << endl;
+   }
+   if (verbose)
+      cerr << "Read joint table and ran smoothers in " << (time(NULL) - start_time) << " seconds" << endl;
 
-   string filename;
-   if ( tmtext_output ) {
-      filename = makeFinalFileName(name + "." + lang2 + "_given_" + lang1);
-      {
-         oSafeMagicStream ofs(filename);
-         dumpCondDistn<T>(ofs, 1, pt, *smoothers[0], verbose);
-      }
-
-      filename = makeFinalFileName(name + "." + lang1 + "_given_" + lang2);
-      {
-         oSafeMagicStream ofs(filename);
-         dumpCondDistn<T>(ofs, 2, pt, *smoothers[0], verbose);
-      }
+   oMagicStream cd1_ofs, cd2_ofs;
+   if (tmtext_output) {
+      open_cd_file(cd1_ofs, name, lang1, lang2);
+      open_cd_file(cd2_ofs, name, lang2, lang1);
    }
 
-   if (multipr_output == "fwd" || multipr_output == "both") {
-      string filename = makeFinalFileName(name + "." + lang1 + "2" + lang2);
-      if (sorted) {
-         filename = " > " + filename;
-         if (compress_output) filename = "| gzip" + filename;
-         filename = "| LC_ALL=C TMPDIR=. sort " + filename;
-      }
-      if (verbose) cerr << "Writing " << filename << endl;
-      oSafeMagicStream ofs(filename);
-      dumpMultiProb(ofs, 1, pt, smoothers, verbose);
+   oMagicStream mp_fwd_ofs, mp_rev_ofs;
+   bool fwd = multipr_output == "fwd" || multipr_output == "both";
+   if (fwd) {
+      open_mp_file(mp_fwd_ofs, name, lang1, lang2);
    }
-   if (multipr_output == "rev" || multipr_output == "both") {
-      string filename = makeFinalFileName(name + "." + lang2 + "2" + lang1);
-      if (sorted) {
-         filename = " > " + filename;
-         if (compress_output) filename = "| gzip" + filename;
-         filename = "| LC_ALL=C TMPDIR=. sort " + filename;
+   bool rev = multipr_output == "rev" || multipr_output == "both";
+   if (rev) {
+      open_mp_file(mp_rev_ofs, name, lang2, lang1);
+   }
+
+   Uint total = 0;
+   Uint cd1_non_zero = 0,  cd2_non_zero = 0;
+   Uint mp_fwd_non_zero = 0,  mp_rev_non_zero = 0;
+   start_time = time(NULL);
+   for (typename PhraseTableGen<T>::iterator it(pt.begin()); it != pt.end(); ++it) {
+      if (tmtext_output) {
+         if (dumpCondDistn(cd1_ofs, 1, it, *smoothers[0], verbose)) ++cd1_non_zero;
+         if (dumpCondDistn(cd2_ofs, 2, it, *smoothers[0], verbose)) ++cd2_non_zero;
       }
-      if (verbose) cerr << "Writing " << filename << endl;
-      oSafeMagicStream ofs(filename);
-      dumpMultiProb(ofs, 2, pt, smoothers, verbose);
+      if (fwd)
+         if (dumpMultiProb(mp_fwd_ofs, 1, it, smoothers, verbose)) ++mp_fwd_non_zero;
+      if (rev)
+         if (dumpMultiProb(mp_rev_ofs, 2, it, smoothers, verbose)) ++mp_rev_non_zero;
+      ++total;
+   }
+   if (verbose)
+      cerr << "Wrote files in " << (time(NULL) - start_time) << " seconds" << endl;
+   if (tmtext_output) {
+      cd1_ofs.flush();
+      cd2_ofs.flush();
+      if (verbose) {
+         cerr << "dumped conditional distn 1: "
+              << cd1_non_zero << " non-zero prob phrase pairs of "
+              << total << " total phrase pairs" << endl;
+         cerr << "dumped conditional distn 2: "
+              << cd2_non_zero << " non-zero prob phrase pairs of "
+              << total << " total phrase pairs" << endl;
+      }
+   }
+   if (fwd) {
+      mp_fwd_ofs.flush();
+      if (verbose)
+         cerr << "dumped fwd multi-prob distn: "
+              << mp_fwd_non_zero << " non-zero prob phrase pairs of "
+              << total << " total phrase pairs" << endl;
+   }
+   if (rev) {
+      mp_rev_ofs.flush();
+      if (verbose)
+         cerr << "dumped rev multi-prob distn: "
+              << mp_rev_non_zero << " non-zero prob phrase pairs of "
+              << total << " total phrase pairs" << endl;
    }
 }
 
@@ -247,10 +305,11 @@ static void getArgs(int argc, const char* const argv[])
 {
    const string alt_help = PhraseSmootherFactory<Uint>::help();
    const char* switches[] = {
-      "v", "i", "j", "z", "prune1:", "s:", "1:", "2:", "o:", "force", 
+      "v", "i", "j", "z", "prune1:", "s:", "1:", "2:", "o:", "force",
       "ibm:", "hmm", "ibm_l1_given_l2:", "ibm_l2_given_l1:",
       "lc1:", "lc2:",
-      "tmtext", "multipr:", "sort", "no-sort"
+      "tmtext", "multipr:", "sort", "no-sort",
+      "reduce-mem", "no-reduce-mem"
    };
 
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 0, 1, help_message,
@@ -277,8 +336,10 @@ static void getArgs(int argc, const char* const argv[])
    arg_reader.testAndSet("force", force);
    arg_reader.testAndSetOrReset("sort", "no-sort", sorted);
    if (sorted && multipr_output != "") cerr << "Producing sorted cpt." << endl;
+   arg_reader.testAndSetOrReset("reduce-mem", "no-reduce-mem", reduce_memory);
 
    arg_reader.testAndSet(0, "jtable", in_file);
+   if (in_file.empty()) in_file = "-";
 
    if ( (ibm_l2_given_l1 != "" || ibm_l1_given_l2 != "") &&
         ibm_num == 42 && !use_hmm ) {
@@ -295,25 +356,32 @@ static void getArgs(int argc, const char* const argv[])
       else
          error(ETFatal, "Models are neither IBM2 nor HMM, specify -ibm N or -hmm explicitly.");
    }
- 
+
    if (smoothing_methods.empty())
       smoothing_methods.push_back("RFSmoother");
 
-   if ( !joint && !tmtext_output && multipr_output == "" )
+   if (!joint && !tmtext_output && multipr_output.empty())
       tmtext_output = true;
 
-   if (multipr_output != "" && multipr_output != "fwd" && multipr_output != "rev" && 
+   if (multipr_output != "" && multipr_output != "fwd" && multipr_output != "rev" &&
        multipr_output != "both")
       error(ETFatal, "Unknown value for -multipr switch: %s", multipr_output.c_str());
-   
-   if (smoothing_methods.size() > 1 && multipr_output == "") {
+
+   if (smoothing_methods.size() > 1 && multipr_output.empty()) {
       error(ETWarn, "Multiple smoothing methods are only used with -multipr output - ignoring all but %s",
             smoothing_methods[0].c_str());
       smoothing_methods.resize(1);
    }
+
+   if (reduce_memory && (in_file == "-")) {
+      error(ETWarn, "Cannot reduce memory when reading jtable from stdin. "
+            "Phrase tables will be kept entirely in memory.  "
+            "(Ignoring -reduce-mem option.)");
+      reduce_memory = false;
+   }
 }
 
-void delete_or_error_if_exists(const string& filename) {
+static void delete_or_error_if_exists(const string& filename) {
    if ( force )
       delete_if_exists(filename.c_str(),
          "File %s exists - deleting and recreating");
