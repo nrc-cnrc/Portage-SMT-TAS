@@ -96,7 +96,7 @@ General options:
        killall  Kill all workers immediately and exit
   -subst MATCH  Have workers substite MATCH in each command by their worker-id
                 before running it.
-  -unordered_cat Outputs to stdout, in an unordered fashion, stdouts from all
+  -unordered-cat Outputs to stdout, in an unordered fashion, stdouts from all
                  the workers.
 
 Cluster mode options:
@@ -219,7 +219,7 @@ while (( $# > 0 )); do
    -p)             arg_check 1 $# $1; PREFIX="$2"; shift;;
    -e)             arg_check 1 $# $1; CMD_LIST=1
                    echo "$2" >> $JOBSET_FILENAME; shift;;
-   -unordered_cat) VERBOSE=0; UNORDERED_CAT=1;;
+   -unordered-cat|-unordered_cat) VERBOSE=0; UNORDERED_CAT=1;;
    -exec|-c)       arg_check 1 $# $1; shift; NOLOCAL=1; EXEC=1
                    VERBOSE=$(( $VERBOSE - 1 ))
                    # Special case for make's sake - make invokes uname -s twice
