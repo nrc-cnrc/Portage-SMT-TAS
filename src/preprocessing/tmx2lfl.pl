@@ -1,15 +1,18 @@
-#!/usr/bin/perl -sw
+#!/usr/bin/perl
+# $Id$
 
-# tmx2lfl.pl
+# @file tmx2lfl.pl
+# @brief Extract a parallel corpus from tmx files.
 # 
-# PROGRAMMER: Michel Simard
+# @author Samuel Larkin based on Michel Simard's work.
 # 
 # COMMENTS:
 # 
-# Groupe de technologies langagières interactives / Interactive Language Technologies Group
-# Institut de technologie de l'information / Institute for Information Technology
+# Technologies langagieres interactives / Interactive Language Technologies
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2006, Conseil national de recherches du Canada / Copyright 2006, National Research Council of Canada
+# Copyright 2009, Conseil national de recherches du Canada /
+# Copyright 2009, National Research Council of Canada
 
 use strict;
 use warnings;
@@ -20,52 +23,67 @@ $Data::Dumper::Indent=1;
 binmode STDERR, ":encoding(utf-8)";
 binmode STDOUT, ":encoding(utf-8)";
 
-my $txt = undef;
 
 # command-line
-my $HELP = 
-"Usage tmx2lfl.pl {options} [ tmx-file... ]
+sub usage {
+   local $, = "\n";
+   print STDERR @_, "";
+   $0 =~ s#.*/##;
+   print STDERR "
+Usage $0 {options} [ tmx-file... ]
 
-Convert TMX (Translation Memory Exchange) files into a LFL
-(line-for-line) aligned pair of text files.  Only the languages
-specified with the -src and -tgt arguments are extracted (default is
-en and fr), and output goes to pair of files <output>.<src> and
-<output>.<tgt>, where <output> is specified with the -output option
-(default is lfl-output) and <src> and <tgt> correspond to language
-names given with -src and -tgt.
+Convert TMX (Translation Memory Exchange) files into a LFL (line-for-line)
+aligned pair of text files.  The languages specified with the -src and -tgt
+arguments are extracted (if the TMX contains exactly two languages, the default
+is to extract them both), and output goes to pair of files <output>.<src> and
+<output>.<tgt>, where <output> is specified with the -output option (default is
+lfl-output) and <src> and <tgt> correspond to language names given with -src
+and -tgt.
 
 Note:
-  The input should be a \"Well-Formed\" tmx and can be in either UCS-2 or UTF-8
-  but the output will be in UTF-8.
-  You can validate your tmx file by:
+  The input should be a \"Well-Formed\" tmx in ASCII, UTF-16 or UTF-8;
+  the output will always be in UTF-8.
+  You can validate your tmx file by doing the following:
     # To obtain tmx14.dtd
     curl -o tmx14.dtd http://www.lisa.org/fileadmin/standards/tmx1.4/tmx14.dtd.txt
-    # Valid that the tms is \"Well-Formed\"
+    # Validate that the tmx is \"Well-Formed\"
     xmllint --noout --valid YourFile.tmx
 
 Options:
   -output=P     Set output file prefix [lfl-output]
-  -src=S        Specify source language [en]
-  -tgt=T        Specify target language [fr]
+  -src=S        Specify source language [auto-detect]
+  -tgt=T        Specify target language [auto-detect]
   -txt=X        Specify and trigger outputing a text-only parallel corpus []
-  -extra        Add an extra line space between pairs of TU's
+  -extra        Add an extra empty line between pairs of TU's [don't]
   -verbose      Verbose mode
   -d            debugging mode.
-  -help,-h      Print this thing and exit
+  -help,-h      Print this help message and exit
 ";
-
-our ($h, $help, $v, $d, $verbose, $output, $src, $tgt, $extra, $txt);
-
-if (defined($h) or defined($help)) {
-    print STDERR $HELP;
-    exit 0;
+   exit 1;
 }
 
-$verbose = 0 unless defined $verbose;
-$output = "lfl-output" unless defined $output;
-$src = "en" unless defined $src;
-$tgt = "fr" unless defined $tgt;
-$extra = 0 unless defined $extra;
+use Getopt::Long;
+# Note to programmer: Getopt::Long automatically accepts unambiguous
+# abbreviations for all options.
+my $debug = undef;
+my $verbose = 0;
+my $output  = "lfl-output";
+my $extra   = undef;
+my $src = undef;
+my $tgt = undef;
+my $txt = undef;
+GetOptions(
+   extra       => \$extra,
+   "output=s"  => \$output,
+   "src=s"     => \$src,
+   "tgt=s"     => \$tgt,
+   "txt=s"     => \$txt,
+
+   help        => sub { usage },
+   verbose     => sub { ++$verbose },
+   quiet       => sub { $verbose = 0 },
+   debug       => \$debug,
+) or usage;
 
 my @filename = @ARGV;
 
@@ -73,10 +91,66 @@ my @filename = @ARGV;
 # Validate input files.
 die "You don't have xmllint on your system!" if (system("which-test.sh xmllint") != 0);
 
+my @lang_specifiers;
 foreach my $file (@filename) {
-   verbose("[Checking XML well-formness of $file]");
-   die " [BAD]\nFix $file to be XML well-formed." if (system("xmllint --noout $file") != 0);
+   verbose("[Checking XML well-formedness of $file]");
+   if (system("xmllint --stream --noout $file 2> /dev/null") != 0) {
+      # YES, we rerun the command.  The first xmllint call would complain if
+      # there is no dtd accessible but would still return that the tmx is valid
+      # if so.  It is simpler to run it once muted and, if there are errors, to
+      # rerun xmllint this time showing the user what xmllint found.
+      system("xmllint --stream --noout $file");
+      die " [BAD]\nFix $file to be XML well-formed.";
+   }
    verbose("\r[Checking XML well-formness of $file] [OK]]\n");
+   
+   # Quickly grab language specifiers from the tmx.
+   my $spec;
+   my $cmd = "head -1 $file | egrep -qam1 \$'\\x{fffe}'";
+   debug("$cmd\n");
+   if (system($cmd) == 0) {
+      debug("UTF-16 $file language specifier detection.\n");
+      $spec .= `iconv -f UTF-16 -t UTF-8 $file | grep -m5 "xml:lang" | sort | uniq`;
+   }
+   else {
+      debug("UTF-8 $file language specifier detection.\n");
+      $spec .= `grep -m5 "xml:lang" $file | sort | uniq`;
+   }
+   while ($spec =~ /"([^\"]+)"/g) {
+      push(@lang_specifiers, $1);
+   }
+}
+
+# No language specifiers given by the user, let's auto-detect them.
+if (not defined($src) and not defined($tgt)) {
+   # Remove duplicate language identifiers.
+   @lang_specifiers = keys %{{ map { $_ => 1 } @lang_specifiers }};
+   unless (scalar(@lang_specifiers) == 2) {
+      print STDERR "Language identifiers found are: " . join(":", @lang_specifiers) . "\n";
+      die "Too many or too few language specifiers in your input tmx.";
+   }
+
+   $src = $lang_specifiers[0];
+   $tgt = $lang_specifiers[1];
+}
+
+# Make sure we have language specifiers for src and tgt
+die "No source language specifier" unless(defined($src));
+die "No target language specifier" unless(defined($tgt));
+
+if ( $debug ) {
+   no warnings;
+   print STDERR "
+   files     = @filename
+   extra     = $extra
+   output    = $output
+   src       = $src
+   tgt       = $tgt
+   txt       = $txt
+   verbose   = $verbose
+   debug     = $debug
+
+";
 }
 
 
@@ -117,7 +191,7 @@ exit 0;
 sub processPH {
    my ($parser, $ph) = @_;
    my $string = join(" ", map(normalize($_->text_only), $ph));
-   print STDERR "PH: $string\n" if ($d);
+   print STDERR "PH: $string\n" if ($debug);
    #print STDERR "PH: " . Dumper($ph);
    #$ph->print(\*STDERR, 1);
 
@@ -150,7 +224,7 @@ sub processTU {
       }
    }
    print ID "$docid\n";
-   if (defined($d) and $docid eq "UNKNOWN") {
+   if (defined($debug) and $docid eq "UNKNOWN") {
       print STDERR "no docid for tuid: $tuid\n";
       #print STDERR "TU: " . Dumper($tu);
       $tu->print(\*STDERR, 1);
@@ -187,7 +261,7 @@ sub processTU {
       $segs =~ s/\s+$//;   # Trim white spaces at the end of each line.
       print { $parser->{outfile}->{$lang} } $segs, "\n";
       print { $parser->{outfile}->{$lang} } "\n" if $extra;
-      print STDERR "SEG: $segs\n" if ($d);
+      print STDERR "SEG: $segs\n" if ($debug);
    }
    $parser->{tu_count} = $n + 1;
 
@@ -197,7 +271,7 @@ sub processTU {
 
 sub verbose { printf STDERR (@_) if $verbose; }
 
-sub debug { printf STDERR (@_) if (defined($d)); }
+sub debug { printf STDERR (@_) if (defined($debug)); }
 
 sub normalize {
     my ($text) = @_;
