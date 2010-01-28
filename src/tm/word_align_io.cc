@@ -375,11 +375,13 @@ istream& SRIReader::operator()(istream &in,
    split(line, toks);
    for (Uint i = 0; i < toks.size(); ++i) {
       if (splitZ(toks[i], subtoks, "-") != 2)
-         error(ETFatal, "format error in SRI-style alignment: expecting tokens in format i-j");
+         error(ETFatal, "format error in SRI-style alignment: expecting tokens in format i-j.");
       Uint l1 = conv<Uint>(subtoks[0]);
       Uint l2 = conv<Uint>(subtoks[1]);
-      assert(l1 < toks1.size()); // lazy; should be error
-      assert(l2 < toks2.size());
+      if ( l1 >= toks1.size() )
+         error(ETFatal, "format error in SRI-style alignment: l1 position past end of sentence.");
+      if ( l2 >= toks2.size() )
+         error(ETFatal, "format error in SRI-style alignment: l2 position past end of sentence.");
       sets[l1].push_back(l2);
    }
 
