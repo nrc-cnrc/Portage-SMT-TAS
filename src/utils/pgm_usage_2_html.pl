@@ -129,7 +129,7 @@ my $header = <<HEADER;
   <BODY BGCOLOR="#FFFFFF" LINK="#0000ff" VLINK="#006600">
 
   <CENTER>
-  <H1 id="logo"><img alt="Science at work for Canada" height="90" width="450" src="$NRC_logo_path/NRC_banner_e.jpg" /></H1>
+  <H1 id="logo"><img alt="Science at work for Canada" src="$NRC_logo_path/NRC_banner_e.jpg" /></H1>
   </CENTER>
   <H1>$title</H1>
   <H5>$hierarchy</H5>
