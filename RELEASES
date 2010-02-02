@@ -1,11 +1,10 @@
-                            PORTAGEshared_v1.3c
-           (unofficial release of the current development trunk)
+                             PORTAGEshared_v1.4
 
 Technologies langagieres interactives / Interactive Language Technologies
 Institut de technologie de l'information / Institute for Information Technology
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2004-2008, Sa Majeste la Reine du Chef du Canada
-Copyright 2004-2008, Her Majesty in Right of Canada
+Copyright 2004-2010, Sa Majeste la Reine du Chef du Canada
+Copyright 2004-2010, Her Majesty in Right of Canada
 
 Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
@@ -14,19 +13,62 @@ license agreement for details.
                               Release History
                    (with a summary of important changes)
 
-Rough notes as I go
- - gale and uli word alignment format writers
- - IBMDiagAligner, HybridPostAligner and ExternalAligner word aligners
- - phrase smoothers: JointFreqs, alpha-smoothing option to RFSmoother and
-   IndicatorSmoother
- - Moses-style lexicalized distortion
- - decoder discard-recomb when only asking for 1-best
- - decoder lev / ngram / adir / LDM
-
-Current development trunk
- This sections shows changes since the latest official release.
+v1.4
+ This update primarily incorporates improvements intended to help the
+ performance of Portage as an online translation service, as well as some
+ scientific progress we've made in the last year.
 
  Major changes:
+
+ - Tightly Packed Tries (TPT) (see Germann, Joanis and Larkin, SETQA-NLP 2009)
+   use memory mapped IO for optimized access to highly compact representations
+   of models.  When used together, TPLMs (Tightly Packed Language Models),
+   TPPTs (Tightly Packed Phrase Tables) and TPLDMs (Tightly Package Lexicalized
+   Distortion Models) reduce the decoder start time to nearly nothing, while
+   maintaining good decoder speeds.  Furthermore, when a translation server
+   uses this technology, the file caching mechanism of the operating system
+   holds in memory what was read by a previous instance of the decoder, so that
+   once the server has traslated a few sentences, a significant speed gain can
+   be observed as disk access becomes less and less necessary.  This technology
+   is ideal for a live translation server, whether it is delivered as a web
+   service or otherwise.
+
+ - PortageLive.  Portage now comes ready to deploy as a translation server, via
+   a web service using SOAP, via a web page, or connecting to the translation
+   server via ssh.  Documentation is included on how to do so as a Virtual
+   Appliance that can run on any virtual machine architecture (from local
+   infrastructure to cloud computing).  The TPT technology mentioned earlier
+   significantly reduces the memory requirements for such deployment.  See Paul
+   et al, MT Summit 2009, for details (paper accompanying the Technology
+   Showcase, available at http://www.mt-archive.info/MTS-2009-TOC.htm).
+
+ - The peak memory required to train a phrase table has been reduced by about
+   50%: instead of invoking only gen_phrase_tables, one can parallelize the
+   counting process (the first half of what gen_phrase_tables does) with
+   gen-jpt-parallel.sh and invoke joint2cond_phrase_tables -reduce-mem to do
+   run the estimation process in a small memory footprint.
+
+ - The experimental framework now keeps track of resources used at all stages
+   of processing, to identify peek memory usage more readily, and to be able to
+   see where the time is spent.  Now, all the major scripts in Portage track
+   memory usage and CPU time: cow.sh, rat.sh, cat.sh, run-parallel.sh,
+   canoe-parallel.sh, etc.  The utility script time-mem can be used to do the
+   same for any other program or program suite.
+
+ - New decoder features:
+   - Adirectional features (see Chen, Foster and Kuhn, MT Summit 2009)
+   - Lexicalized distortion models (see Koehn et al, ACL 2007)
+   - Levenshtein or N-gram distance from a reference, useful especially for the
+     fuzzy mode in phrase_tm_align.  By default, phrase_tm_align only returns
+     an alignment if phrase pairs exist to exactly cover the two sentences to
+     align.  In fuzzy mode, phrase_tm_align is allowed to consider other
+     translations of the source that are close to the target, where "close" is
+     defined as having low Levenshtein or N-gram distance.  This distance is
+     used as a feature in the log-linear model, and optimized jointly with the
+     rest of the model by the decoder.
+
+ - New script tmx2lfl.pl designed to extract parallel corpora in plain text
+   from TMX (Translation Memory eXchange) files.
 
  - New script tmtext-apply-weights.pl pre-applies log-linear weights learned
    using cow.sh to create more compact models for use by a translation server.
@@ -35,17 +77,60 @@ Current development trunk
    require that a phrase pair have at least one actually linked word pair.
    (Previously, unaligned words were allowed to be considered a phrase pair.)
 
+ - The new program joint2multi_cpt solves the "phrase hole" problem.  When
+   multiple phrase tables are used together, phrase pairs that appear in one
+   but not all tables are penalized too aggressively by default, yielding what
+   we call the "phrase hole" problem.  This problem is especially severe when
+   one table is much smaller than the other; often, cow.sh learned to stronly
+   discount that table's opinion because it was not appropriately smoothed.
+   joint2multi_cpt solves this problem by smoothing phrase tables considered as
+   a set, giving reasonable smoothed estimates in each table for all phrase
+   pairs, including those appearing only in other tables.
+
+ - MERT (cow.sh): improved stability of the search for optimal parameters.
+   See Foster and Kuhn, WMT 2009, for details.
+
+ - Confidence Estimation.  Portage now comes with a module that produces
+   confidence estimates accompanying the decoder output.  See Simard and
+   Isabelle, MT Summit 2009, for details.
+
  Minor changes:
 
  - New "sri" word alignment reader (for word_align_tool, eval_word_alignment).
- - The forward TM scores are now included in future score calculation.
- - Canoe now supports the -bind PID option, exiting automatically when the
-   master process disappears.
+ - New "gale" and "uli" word alignnment writers.
+ - New word aligners: IBMDiagAligner, HybridPostAligner, ExternalAligner.
+ - New phrase smoothers in gen_phrase_tables and joint2cond_phrase_tables:
+   JointFreqs, alpha-smoothing option to RFSmoother and IndicatorSmoother
+ - canoe decoder:
+   - The forward TM scores are now included in future score calculation.
+   - Now supports the -bind PID option, exiting automatically when the
+     master process disappears.
+   - Faster 1-best decoding by discarding recombined states on the fly.
+ - Rescoring / MERT:
+   - New features: Levenshtein distance and N-gram distance to a specified
+     reference.
+   - Various improvements to the module in general.
  - The tokenizer now takes linear time regardless of paragraph length (used to
    be quadratic on the length of each paragraph).
- - Minor improvements to run-parallel.sh.
+ - The tokenizer supports a -notok switch to perform sentence splitting only.
+ - Many improvements to run-parallel.sh.
+ - parallelize.sh: new -w switch to determine the number of blocks from a
+   minimum number of lines per block instead of a fixed number of blocks.
+ - Bug fix in the HMM alignment model: the end-distribution semantics is a bit
+   cleaner, and p0/up0 can now be arbitrarily high, because the effective p0 is
+   capped at .999.  (High p0/up0 have been found to be good for the phrase
+   extraction process, so this is important).
+ - Adaptation is no longer dependent SRILM programs.
+ - New length-dependant phrase table pruning option to filter_models yields
+   better results than the fixed ttable-limit decoder parameter.
+ - Miscellaneous new programs:
+   - binlm2arpalm converts an LM file from our binary format to the standard
+     ARPA format.
+   - ibmcat displays binary word-alignment model files in plain text.
+   - wc_stat is like wc but displays more statistics
  - Save dependency information per source file during compilation instead of
    re-processing each file to generate Makefile.depends.
+ - More unit-testing test suites.
  - Some code clean-up using Klocwork Insight, fixing potential future problems.
  - Some code documentation clean-up.
 
