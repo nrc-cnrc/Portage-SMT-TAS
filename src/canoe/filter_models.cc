@@ -183,6 +183,8 @@ int MAIN(argc, argv)
    // CHECKING consistency in user's request.
    LOG_VERBOSE1(filter_models_Logger, "Consistency check of user's request");
    // Logic checking
+   if (arg.soft_limit && !c.tpptFiles.empty())
+      error(ETFatal, "You can't use limit aka filter30 with TPPTs");
    if (arg.limit() && !(c.phraseTableSizeLimit > NO_SIZE_LIMIT))
       error(ETFatal, "You're using filter TM, please set a value greater then 0 to [ttable-limit]");
    // When using hard limit, user must provide the tms-weights
@@ -190,6 +192,8 @@ int MAIN(argc, argv)
       error(ETFatal, "You must provide the TMs weights when doing a hard_limit");
    if (src_sents.empty() && !arg.limit())
       error(ETFatal, "You must provide source sentences when doing grep");
+   if (arg.doLMs && !c.tpptFiles.empty())
+      error(ETFatal, "Filtering language models (-L) when using TPPTs is not implemented yet.");
 
 
 
@@ -286,6 +290,18 @@ int MAIN(argc, argv)
 
       // Add LMs
       if (arg.doLMs) {
+         // We must get the vocab from the TPPTs first
+         // This code currently moot, since guarded in checks above, but kept here
+         // for when we do implement extractVocabFromTPPTs() properly.
+         if ( !c.tpptFiles.empty() && limitPhrases && c.lmFiles.size() > 0 ) {
+            LOG_VERBOSE1(filter_models_Logger, "Extracting vocabulary from TPPTs");
+            time_t start_time = time(NULL);
+            cerr << "Extracting target vocabulary from TPPTs";
+            assert(phraseTable);
+            phraseTable->extractVocabFromTPPTs(0);
+            cerr << " ... done in " << (time(NULL) - start_time) << "s" << endl;
+         }
+
          if (!c.lmFiles.empty()) LOG_VERBOSE1(filter_models_Logger, "Processing Language Models");
          for (FL_iterator it(c.lmFiles.begin()); it!=c.lmFiles.end(); ++it) {
             string lm, flm;

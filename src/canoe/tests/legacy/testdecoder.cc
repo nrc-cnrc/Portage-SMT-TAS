@@ -169,7 +169,7 @@ public:
  */
 void print(HypothesisStack &stack)
 {
-   vector<Uint> words;
+   VectorPhrase words;
    while (!stack.isEmpty())
    {
       DecoderState *cur = stack.pop();
@@ -264,57 +264,57 @@ Expected phrases (final state, path, phrase, score = sum of words in phrase):
    // 0->A
    phrases[0].src_words.start = 2;
    phrases[0].src_words.end = 3;
-   phrases[0].phrase.push_back(2);
+   phrases[0].phrase = VectorPhrase(1, 2);
 
    // 0->B
    phrases[1].src_words.start = 0;
    phrases[1].src_words.end = 1;
-   phrases[1].phrase.push_back(4);
+   phrases[1].phrase = VectorPhrase(1, 4);
 
    // 0->C
    phrases[2].src_words.start = 1;
    phrases[2].src_words.end = 3;
-   phrases[2].phrase.push_back(6);
+   phrases[2].phrase = VectorPhrase(1, 6);
 
    // A->C
    phrases[3].src_words.start = 1;
    phrases[3].src_words.end = 2;
-   phrases[3].phrase.push_back(2);
+   phrases[3].phrase = VectorPhrase(1, 2);
 
    // A->D
    phrases[4].src_words.start = 0;
    phrases[4].src_words.end = 1;
-   phrases[4].phrase.push_back(4);
+   phrases[4].phrase = VectorPhrase(1, 4);
 
    // B->F5
    phrases[5].src_words.start = 1;
    phrases[5].src_words.end = 3;
-   phrases[5].phrase.push_back(3);
+   phrases[5].phrase = VectorPhrase(1, 3);
 
    // B->F6
    phrases[6].src_words.start = 1;
    phrases[6].src_words.end = 3;
-   phrases[6].phrase.push_back(5);
+   phrases[6].phrase = VectorPhrase(1, 5);
 
    // C->F1, E->F7
    phrases[7].src_words.start = 0;
    phrases[7].src_words.end = 1;
-   phrases[7].phrase.push_back(2);
+   phrases[7].phrase = VectorPhrase(1, 2);
 
    // C->F2, E->F8
    phrases[8].src_words.start = 0;
    phrases[8].src_words.end = 1;
-   phrases[8].phrase.push_back(4);
+   phrases[8].phrase = VectorPhrase(1, 4);
 
    // D->F3
    phrases[9].src_words.start = 1;
    phrases[9].src_words.end = 2;
-   phrases[9].phrase.push_back(3);
+   phrases[9].phrase = VectorPhrase(1, 3);
 
    // D->F4
    phrases[10].src_words.start = 1;
    phrases[10].src_words.end = 2;
-   phrases[10].phrase.push_back(5);
+   phrases[10].phrase = VectorPhrase(1, 5);
 
    RangeHash rangeHash;
    unordered_map<Range, vector<PhraseInfo *>, RangeHash> finderMap(10, rangeHash);

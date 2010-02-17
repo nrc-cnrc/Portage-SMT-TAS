@@ -22,6 +22,7 @@
 #include "randomDistribution.h"
 #include "lm.h"
 #include "lmdynmap.h"
+#include "tppt.h"
 #include <boost/spirit.hpp>
 #include <boost/spirit/actor/assign_actor.hpp>
 #include <boost/bind.hpp>
@@ -100,6 +101,7 @@ CanoeConfig::CanoeConfig()
    //backPhraseFiles;
    //multiProbTMFiles;
    //multiProbLDMFiles;
+   //tpptFiles;
    //lmFiles;
    lmOrder                = 0;
    //distWeight.push_back(1.0);
@@ -169,7 +171,9 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("ttable-multi-prob", "stringVect", &multiProbTMFiles,
       ParamInfo::relative_path_modification | ParamInfo::check_file_name));
    param_infos.push_back(ParamInfo("lex-dist-model-file", "stringVect", &multiProbLDMFiles,
-      ParamInfo::relative_path_modification | ParamInfo::check_file_name));
+      ParamInfo::relative_path_modification | ParamInfo::ldm_check_file_name));
+   param_infos.push_back(ParamInfo("ttable-tppt", "stringVect", &tpptFiles,
+      ParamInfo::relative_path_modification | ParamInfo::tppt_check_file_name));
    param_infos.push_back(ParamInfo("lmodel-file", "stringVect", &lmFiles,
       ParamInfo::relative_path_modification | ParamInfo::lm_check_file_name));
    param_infos.push_back(ParamInfo("lmodel-order", "Uint", &lmOrder));
@@ -571,9 +575,12 @@ void CanoeConfig::check()
 
    const Uint multi_prob_model_count(getTotalMultiProbModelCount());
    const Uint multi_adir_model_count(getTotalAdirectionalModelCount()); //boxing
+   const Uint tppt_model_count(getTotalTPPTModelCount());
 
    if (transWeights.empty())
-      transWeights.assign(backPhraseFiles.size() + multi_prob_model_count, 1.0);
+      transWeights.assign(backPhraseFiles.size() 
+                           + multi_prob_model_count + tppt_model_count,
+                          1.0);
 
    // Rule decoder feature
    if (rule_weights.empty()) {
@@ -612,7 +619,8 @@ void CanoeConfig::check()
 
    if (lmFiles.empty())
       error(ETFatal, "No language model file specified.");
-   if (backPhraseFiles.empty() && multiProbTMFiles.empty())
+   if (backPhraseFiles.empty() &&
+       multiProbTMFiles.empty() && tpptFiles.empty())
       error(ETFatal, "No phrase table file specified.");
 
    if (distWeight.size() != distortionModel.size())
@@ -635,11 +643,11 @@ void CanoeConfig::check()
 
    if (lmWeights.size() != lmFiles.size())
       error(ETFatal, "Number of language model weights does not match number of language model files.");
-   if (transWeights.size() != backPhraseFiles.size() + multi_prob_model_count)
+   if (transWeights.size() != backPhraseFiles.size() + multi_prob_model_count + tppt_model_count)
       error(ETFatal, "Number of translation model weights does not match number of translation model files.");
    if (forPhraseFiles.size() > 0 && forPhraseFiles.size() != backPhraseFiles.size())
       error(ETFatal, "Number of forward translation models !=  number of backward translation model files.");
-   if (forwardWeights.size() > 0 && forwardWeights.size() != forPhraseFiles.size() + multi_prob_model_count)
+   if (forwardWeights.size() > 0 && forwardWeights.size() != forPhraseFiles.size() + multi_prob_model_count + tppt_model_count)
       error(ETFatal, "Number of forward translation model weights != number of (forward) translation model files.");
    if (adirTransWeights.size() != multi_adir_model_count) //boxing
       error(ETFatal, "Number of adirectional translation model weights != number of (adirectional) translation model files."); //boxing
@@ -654,7 +662,7 @@ void CanoeConfig::check()
    // if (bypassMarked && weightMarked)
    //   error(ETWarn, "Both -bypass-marked and -weight-marked found.  Only doing -bypass-marked");
    if ( phraseTableSizeLimit != NO_SIZE_LIMIT && forPhraseFiles.empty() &&
-        multiProbTMFiles.empty())
+        multiProbTMFiles.empty() && tpptFiles.empty())
       error(ETWarn, "Doing phrase table pruning without forward translation model.");
 
    if ( bCubePruning )
@@ -677,6 +685,15 @@ void CanoeConfig::check()
       if (!isfinite(wts[i]))
          error(ETFatal, "A weight has a non-finite value (id:%d, value:%f).",
                i, wts[i]);
+
+   // Unless load first is specified, you cannot mix and match tppt other text pt.
+   if (!loadFirst) {
+      const bool isThereTMS = !forPhraseFiles.empty() 
+        || !backPhraseFiles.empty()
+        || !multiProbTMFiles.empty();
+      if (isThereTMS && !tpptFiles.empty())
+         error(ETFatal, "You cannot use TPPTs with other types of phrase tables unless you use -load-first.");
+   }
 } //check()
 
 void CanoeConfig::check_all_files() const
@@ -714,6 +731,33 @@ void CanoeConfig::check_all_files() const
             }
          }
       }
+      else if (it->groups & ParamInfo::tppt_check_file_name) {
+         assert(it->tconv == "stringVect");
+         vector<string>& v = *((vector<string>*)(it->val));
+         for (vector<string>::const_iterator f(v.begin()); f!=v.end(); ++f) {
+            if (!TPPT::checkFileExists(*f)) {
+               cerr << "can't access TPPT: " << *f << endl;
+               ok = false;
+            }
+         }
+      }
+      else if (it->groups & ParamInfo::ldm_check_file_name) {
+         assert(it->tconv == "stringVect");
+         vector<string>& v = *((vector<string>*)(it->val));
+         for (vector<string>::const_iterator f(v.begin()); f!=v.end(); ++f) {
+            if (isSuffix(".tpldm", *f)) {
+               if (!TPPT::checkFileExists(*f)) {
+                  cerr << "can't access TPLDM: " << *f << endl;
+                  ok = false;
+               }
+            } else {
+               if (!check_if_exists(*f)) {
+                  cerr << "can't access LDM / TPLDM: " << *f << endl;
+                  ok = false;
+               }
+            }
+         }
+      }
    }
 
    // On error, exit with error status so this check can be used in scripts
@@ -744,6 +788,21 @@ Uint CanoeConfig::getTotalAdirectionalModelCount() const
    }
    return multi_adir_model_count;
 } //boxing
+
+Uint CanoeConfig::getTotalTPPTModelCount() const
+{
+   Uint tppt_prob_column_count = 0;
+   for (Uint i = 0; i < tpptFiles.size(); ++i) {
+      tppt_prob_column_count +=
+         PhraseTable::countTPPTProbModels(tpptFiles[i].c_str());
+      if ( tppt_prob_column_count % 2 != 0 )
+         error(ETFatal, "Uneven number of probability columns (%d) in "
+               "ttable-tppt file %s.",
+               PhraseTable::countTPPTProbModels(tpptFiles[i].c_str()),
+               tpptFiles[i].c_str());
+   }
+   return tppt_prob_column_count / 2;
+}
 
 string& CanoeConfig::getFeatureWeightString(string& s) const
 {

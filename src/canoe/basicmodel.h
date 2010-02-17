@@ -194,9 +194,10 @@ namespace Portage
       vector<double> lmWeightsV;
 
       /**
-       * Translation model weights.  Stored in the same order
-       * addTranslationModel() and/or addMultiProbTransModel() were called,
-       * which should be single prob first, multi prob after.
+       * Translation model weights.  If a mix of TM types are used, this
+       * vector contains first the text model weights (single and multi prob
+       * models in the order they were inserted, which should be single prob
+       * first, multi prob after), then the TPPT model weights.
        */
       vector<double> transWeightsV;
 
@@ -350,6 +351,17 @@ namespace Portage
        *                  in the current vocabulary.
        */
       virtual Uint getUintWord(const string &word);
+
+      /**
+       * When TPPTs are used with limitPhrases, addLanguageModel
+       * calls phraseTable->extractVocabFromTPPTs() before loading the
+       * language models, because opening a TPPT does not involve
+       * populating tgt_vocab, the way opening a text phrase table does.
+       *
+       * This flag is set iff extractVocabFromTPPTs() has been
+       * called since the last TPPT was opened.
+       */
+      bool vocab_read_from_TPPTs;
 
       friend class BasicModel;
    public:
@@ -532,6 +544,22 @@ namespace Portage
             vector<double> adir_weights); //boxing
 
       /**
+       * Add a TPPT translation model.
+       * As with other "add TM" methods, weights can be subsequently changed
+       * using transWeights.
+       * @param tppt_file          TPPT phrase table file name;
+       * @param backward_weights   weights for the backward models; there must
+       *                           be the same number as backward models in the
+       *                           file: half as many as columns in the file.
+       * @param forward_weights    weights for the forward models; there must
+       *                           be the same number as backward_weights, if
+       *                           forward probabilities are used, or none.
+       */
+      virtual void addTpptTransModel(const char *tppt_file,
+            vector<double> backward_weights,
+            vector<double> forward_weights);
+
+      /**
        * Add a multi-probability lexicalized distortion model.
        *
        * @param lexicalized_dm_file   multi-prob distortion model file name;
@@ -555,6 +583,10 @@ namespace Portage
       virtual void addLanguageModel(const char *file, double weight,
             Uint limit_order = 0, ostream *const os_filtered = 0);
 
+      /**
+       * Extracts the vocabulary from the TPPTs.
+       */
+      void extractVocabFromTPPTs();
    public:
       /**
        * @brief describe the model in human readable format.

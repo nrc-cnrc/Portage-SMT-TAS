@@ -1,0 +1,22 @@
+A
+B
+c2C
+D
+c2c1d0E
+c1c1c1d0d0F
+0: $$$G
+1: $$$H
+c2
+&p == &ref: 0
+I
+d0J
+c2d0
+&p == &r->ref: 0
+cp.c_str()$$$
+r->ref.c_str()
+K
+L
+cp.c_str()$$$
+r->ref.c_str()
+M
+d0d0d0

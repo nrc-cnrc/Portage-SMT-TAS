@@ -1,6 +1,6 @@
 /**
  * @author George Foster
- * @file utils/tester.cc
+ * @file utils/tests/legacy/tester.cc
  * @brief Program to run class tests.
  * 
  * 
@@ -18,6 +18,7 @@
 #include "quick_set.h"
 #include "voc.h"
 #include "gfmath.h"
+#include "compact_phrase.h"
 
 using namespace Portage;
 using namespace std;
@@ -48,6 +49,8 @@ int main(int argc, char* argv[])
    cerr << (Voc::test() ? "ok" : "failed") << endl;
    cerr << "TESTING CountingVoc: " << endl;
    cerr << (testCountingVoc() ? "ok" : "failed") << endl;
+   cerr << "TESTING CompactPhrase: " << endl;
+   cerr << (CompactPhrase::test() ? "ok" : "failed") << endl;
 }
 
 // arg processing

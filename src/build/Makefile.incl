@@ -92,7 +92,7 @@ ifeq ($(NO_UTILS_LIB), true)
 else
    LIB_LIST = $(MODULE_DEPENDS) utils
 endif
-LIBS = $(foreach DIR, $(LIB_LIST), -lportage_$(DIR)) $(EXTRA_LIBS)
+LIBS = $(foreach DIR, $(LIB_LIST), -lportage_$(DIR)) -lboost_iostreams${BOOSTLIBTAG} -lz $(EXTRA_LIBS)
 
 # We used to disable logging by defining LOGGING=NONE, now we do so by defining
 # LOG4CXX=NONE, but still look for LOGGING=NONE in case someone depends on it.

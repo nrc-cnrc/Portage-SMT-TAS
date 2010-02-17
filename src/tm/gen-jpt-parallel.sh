@@ -73,14 +73,6 @@ is_int() {
    fi
 }
 
-TIMEFORMAT="Single-job-total: Real %3Rs User %3Us Sys %3Ss PCPU %P%%"
-START_TIME=`date +"%s"`
-trap '
-   RC=$?
-   echo "Master-Wall-Time $((`date +%s` - $START_TIME))s" >&2
-   exit $RC
-' 0
-
 NUM_JOBS=4
 NW=
 OUTFILE="-"
@@ -116,6 +108,14 @@ if [[ "$GPTARGS" =~ -v ]]; then
    VERBOSE="-v"
 fi
 
+#echo gen_phrase_tables -num-file-args ${GPTARGS[@]} >&2
+NUM_FILE_ARGS=`gen_phrase_tables -num-file-args ${GPTARGS[@]}`
+if [[ $? != 0 ]]; then
+   error_exit "gen_phrase_tables doesn't seem to like the arguments you provided after the GPT keyword."
+elif [[ $NUM_FILE_ARGS != 2 ]]; then
+   error_exit "Currently, gen-jpt-parallel.sh only works with exactly two corpus files; you provided $NUM_FILE_ARGS.";
+fi
+
 file1=${GPTARGS[$#-2]}
 file2=${GPTARGS[$#-1]}
 unset GPTARGS[$#-2]
@@ -126,6 +126,17 @@ test -d $WORKDIR || mkdir $WORKDIR
 
 [[ -e $file1 ]] || error_exit "Input file $file1 doesn't exist"
 [[ -e $file2 ]] || error_exit "Input file $file2 doesn't exist"
+
+
+# Start timing from this point.
+TIMEFORMAT="Single-job-total: Real %3Rs User %3Us Sys %3Ss PCPU %P%%"
+START_TIME=`date +"%s"`
+trap '
+   RC=$?
+   echo "Master-Wall-Time $((`date +%s` - $START_TIME))s" >&2
+   exit $RC
+' 0
+
 
 NL=`zcat -f $file1 | wc -l`
 SPLITLINES=$(($NL/$NUM_JOBS))
@@ -190,7 +201,7 @@ fi
 
 
 # Merging parts
-test $DEBUG && echo merge_counts $OUTFILE $WORKDIR/*.jpt.gz
+test $DEBUG && echo merge_counts $OUTFILE $WORKDIR/*.jpt.gz >&2
 
 if [[ ! $NOTREALLY ]]; then
 

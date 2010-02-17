@@ -25,8 +25,8 @@ new_install:
 	$(MAKE) OT=install subdirs
 
 # These directories will be compiled by default
-SUBDIRS = logging preprocessing eval lm tm adaptation canoe rescoring api \
-          truecasing distortion
+SUBDIRS = logging distortion preprocessing truecasing tpt \
+          lm tm canoe adaptation rescoring api eval
 
 # Additional directories listed here are only compiled if explicitly
 # specified.  Use this for modules in development that are not ready to be
@@ -54,12 +54,14 @@ $(ALL_SUBDIRS): utils
 # If you create a new subdirectory, add its dependencies here (except for
 # utils, which everything is assumed to depend on)
 
-api: canoe tm lm logging
-canoe: logging tm lm
-eval: logging
-rescoring: canoe tm lm eval logging preprocessing
-tm: logging
+api: canoe tm lm logging tpt
+canoe: logging tm lm tpt
 distortion: tm
+eval: logging
+lm: tpt
+rescoring: canoe tm lm eval logging preprocessing tpt
+tm: logging
+truecasing: lm tpt
 
 validate_subdir_dependencies:
 	@if [[ "`grep '^ *MODULE_DEPENDS.*[^ =]' */Makefile | perl -ple 's/\/Makefile//; s/MODULE_DEPENDS\s*=/ /; s/\s+/ /' | wc`" \

@@ -15,6 +15,16 @@
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
 
+# Requirements for the run-parallel.sh suite:
+# Make sure the following are in your path:
+# - parallelize.pl
+# - process-memory-usage.pl
+# - psub
+# - r-parallel-d.pl
+# - r-parallel-worker.pl
+# - run-parallel.sh
+# - sum.pl
+# - which-test.sh
 
 usage() {
    for msg in "$@"; do

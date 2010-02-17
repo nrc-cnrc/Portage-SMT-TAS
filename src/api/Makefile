@@ -64,7 +64,7 @@ else
    DYNLIBS= $(LIBICU)
 endif
 
-MODULE_DEPENDS=canoe tm lm logging
+MODULE_DEPENDS=canoe tm lm logging tpt
 
 include ../build/Makefile.incl
 

@@ -121,6 +121,12 @@ int main(int argc, const char * const * argv)
    if (c.verbosity >= 2)
       c.write(cerr, 2);
 
+   // Temporary hack because TPPTs don't work with dynamic model filtering
+   if ( !c.tpptFiles.empty() && !c.loadFirst ) {
+      error(ETWarn, "Setting -load-first option, since dynamic filtering is not currently compatible with TPPTs.");
+      c.loadFirst = true;
+   }
+
    bool noscore=false, onlyscore=false;
    Uint N=1, K=1;
    string outFile = "-";

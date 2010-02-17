@@ -1,4 +1,6 @@
 #!/bin/bash
+# vim:nowrap
+# $Id$
 
 # @file rat.sh 
 # @brief Train or translate with a rescoring model.
@@ -12,6 +14,11 @@
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2006, Her Majesty in Right of Canada
+
+# All logs should go to STDERR, not STDOUT.  Since cow.sh has no primary
+# output, we use a global { } around the entire script to send all output
+# to STDERR globally, instead of doing it on each echo command.
+{
 
 echo 'rat.sh, NRC-CNRC, (c) 2006 - 2009, Her Majesty in Right of Canada'
 
@@ -130,13 +137,45 @@ arg_check() {
 # Warning message
 warn()
 {
-   echo "WARNING: $*" >&2
+   echo "WARNING: $*"
 }
 
 # Debug message
 debug()
 {
-   test -n "$DEBUG" && echo "<D> $*" >&2
+   test -n "$DEBUG" && echo "<D> $*"
+}
+
+TIMEFORMAT="Single-job-total: Real %3Rs User %3Us Sys %3Ss PCPU %P%%"
+run_cmd() {
+   if [[ "$1" = "-no-error" ]]; then
+      shift
+      RUN_CMD_NO_ERROR=1
+   else
+      RUN_CMD_NO_ERROR=
+   fi
+   date
+   echo "$1"
+   if [[ ! $NOTREALLY ]]; then
+      MON_FILE=`mktemp $WORKDIR_ABSOLUTE/mon.run_cmd.XXXXXXXX`
+      process-memory-usage.pl -s 1 30 $$ > $MON_FILE &
+      MON_PID=$!
+      eval time "$1"
+      rc=$?
+      kill -10 $MON_PID
+      echo "run_cmd finished (rc=$rc): $1"
+      if [ -s "$MON_FILE" -a $(( `wc -l < $MON_FILE` > 1 )) ]; then
+         MON_VSZ=`egrep -ho 'vsz: [0-9.]+G' $MON_FILE 2> /dev/null | egrep -o "[0-9.]+" | sum.pl -m`
+         MON_RSS=`egrep -ho 'rss: [0-9.]+G' $MON_FILE 2> /dev/null | egrep -o "[0-9.]+" | sum.pl -m`
+         echo "run_cmd rc=$rc Max VMEM ${MON_VSZ}G Max RAM ${MON_RSS}G"
+      fi
+      if [[ -z "$RUN_CMD_NO_ERROR" && "$rc" != 0 ]]; then
+         # Print custom message.
+         [[ -n "$2" ]] && echo $2
+         echo "Exit status: $rc is not zero - aborting."
+         exit 1
+      fi
+   fi
 }
 
 
@@ -147,7 +186,7 @@ N=3
 
 CPOPTS=""
 MODE=
-while [ $# -gt 0 ]; do
+while [[ $# -gt 0 ]]; do
    case "$1" in
    -h|-help)     usage;;
    train)        MODE="train"; break;;
@@ -158,7 +197,7 @@ while [ $# -gt 0 ]; do
    shift
 done
 
-if [ "$MODE" = "" ]; then
+if [[ "$MODE" = "" ]]; then
    error_exit "Missing MODE keyword"
 fi
 shift
@@ -182,7 +221,7 @@ CANOE_INI_NBEST_DEPENDENCY_CHECK=
 HARD_FILTER=1  # Do hard filter by default
 TRAINING_TYPE="-bleu"
 
-while [ $# -gt 0 ]; do
+while [[ $# -gt 0 ]]; do
    case "$1" in
    -v|-verbose) VERBOSE=$(( $VERBOSE + 1 ));;
    -d|-debug)   DEBUG="-d";;
@@ -213,7 +252,7 @@ while [ $# -gt 0 ]; do
    shift
 done
 
-if [ $# -lt 2 ]; then error_exit "Expected at least 2 arguments."; fi
+if [[ $# -lt 2 ]]; then error_exit "Expected at least 2 arguments."; fi
 MODEL=$1
 SRC=$2
 shift; shift
@@ -241,42 +280,50 @@ if (( $VERBOSE )); then DASHV="-v"; fi
 
 WORKDIR=`basename "$WORKDIR"`"-"`basename $MSRC`"-${K}best"
 test ! -e $WORKDIR && mkdir $WORKDIR
+WORKDIR_ABSOLUTE=`readlink -f $WORKDIR`
 ORIG_PFX=$PFX
 test -z "$ORIG_PFX" && ORIG_PFX="`basename $MSRC`.";
 PFX=$WORKDIR/$PFX
 
 # arg checking
 
-if [ ! -r $CANOE_CONFIG ]; then
+if [[ ! -r $CANOE_CONFIG ]]; then
    error_exit "Error: CANOE_CONFIG file $CANOE_CONFIG is not readable."
 fi
-if [ ! -e $MODEL ]; then
+if [[ ! -e $MODEL ]]; then
    error_exit "Error: Model file $MODEL does not exist."
 fi
-if [ "$MODE" = "train" ]; then
+if [[ "$MODE" = "train" ]]; then
    if [ \( -e $MODEL_OUT -a ! -w $MODEL_OUT \) -o ! -w `dirname $MODEL_OUT` ]
    then
       error_exit "Error: File $MODEL_OUT is not writable."
    fi
 fi
-if [ "$MODE" = "trans" ]; then
-   if [ ! -e $MODEL ]; then
+if [[ "$MODE" = "trans" ]]; then
+   if [[ ! -e $MODEL ]]; then
       error_exit "Error: Model file $MODEL does not exist."
    fi
 fi
-if [ ! -r $MSRC ]; then
+if [[ ! -r $MSRC ]]; then
    error_exit "Error: MSRC file $MSRC is not readable."
 fi
-if [ ! -r $SRC ]; then
+if [[ ! -r $SRC ]]; then
    error_exit "Error: SRC file $SRC is not readable."
 fi
 
 for ref in $REFS ; do
-   if [ ! -r $ref ]; then
+   if [[ ! -r $ref ]]; then
       error_exit "Error: REFS file $ref is not readable."
    fi
 done
 
+START_TIME=`date +"%s"`
+
+trap '
+   RC=$?
+   echo "Master-Wall-Time $((`date +%s` - $START_TIME))s"
+   exit $RC
+' 0
 
 # RUN
 
@@ -303,24 +350,22 @@ if [[ $HARD_FILTER ]]; then
    if [ ! -f "$FILT_CONFIG" ] || [ "$FILT_CONFIG" -ot "$CANOE_CONFIG" ] || [ ! -f "$FILT_PT" ]; then
 
       debug "Generating hard filtered phrase table and related canoe.ini."
-      [ ! -f "$FILT_CONFIG" ] && debug "filter canoe.ini.cow doesn't exists."
-      [ "$FILT_CONFIG" -ot "$CANOE_CONFIG" ] && debug "Filtered canoe.ini is older than canoe."
-      [ ! -f "$FILT_PT" ] && debug "no hard filtered phrase table file"
+      [[ ! -f "$FILT_CONFIG" ]] && debug "filter canoe.ini.cow doesn't exists."
+      [[ "$FILT_CONFIG" -ot "$CANOE_CONFIG" ]] && debug "Filtered canoe.ini is older than canoe."
+      [[ ! -f "$FILT_PT" ]] && debug "no hard filtered phrase table file"
 
       # It is much easier to have the proper canoe config if we call
       # filter_models from the workdir
       pushd $WORKDIR &> /dev/null
       if [[ $MSRC =~ ^/ ]]; then REL_MSRC=$MSRC; else REL_MSRC=../$MSRC; fi
       # Only regenerate the filtered phrase table if not present
-      cmd="cat $REL_MSRC | filter_models -z -s -f ../$CANOE_CONFIG -hard-limit phrase.table -suffix $FILT_EXT"
-      debug "$cmd"
-      eval $cmd
+      run_cmd "cat $REL_MSRC | filter_models -z -s -f ../$CANOE_CONFIG -hard-limit phrase.table -suffix $FILT_EXT"
       popd &> /dev/null
 
       # Unfortunately the final canoe config is not in the workdir so lets move it.
       mv $CANOE_CONFIG$FILT_EXT $WORKDIR
    else
-      echo "Hard filtered phrase table already exist" >&2
+      echo "Hard filtered phrase table already exist"
    fi
 
    # From now on, use the new filtered canoe config
@@ -332,7 +377,7 @@ else
 fi
 
 # Making sure the Nbest is at least as current as the canoe.ini
-if [ -n "$CANOE_INI_NBEST_DEPENDENCY_CHECK" ]; then
+if [[ -n "$CANOE_INI_NBEST_DEPENDENCY_CHECK" ]]; then
    if [ -f "${PFX}${K}best" ] && [ "${PFX}${K}best" -ot "$CANOE_CONFIG" ]; then
       warn "Regenerating Nbest since it's older than $CANOE_CONFIG"
       rm ${PFX}${K}best
@@ -345,11 +390,11 @@ fi
 
 
 if [ ! -e ${PFX}${K}best -a ! -e ${PFX}${K}best.gz ]; then
-   if [ -e ${PFX}ffvals.gz ]; then
-      echo "Ffvals file ${PFX}ffvals exists already! Overwriting it!"
+   if [[ -e ${PFX}ffvals.gz ]]; then
+      echo "ffvals file ${PFX}ffvals exists already! Overwriting it!"
       \rm ${PFX}ffvals.gz
    fi
-   if [ -e ${PFX}pal.gz ]; then
+   if [[ -e ${PFX}pal.gz ]]; then
       echo "Phrase alignment file ${PFX}pal exists already! Overwriting it!"
       \rm ${PFX}pal.gz
    fi
@@ -357,21 +402,18 @@ if [ ! -e ${PFX}${K}best -a ! -e ${PFX}${K}best.gz ]; then
    warn "Since we are generating a nbest list, all previous ff are now irrelevant, deleting them."
    rm ${PFX}ff.* >& /dev/null  # Keep it quiet
 
-   if ! configtool check $CANOE_CONFIG; then
+   configtool check $CANOE_CONFIG ||
       error_exit "Error: problem with config file $CANOE_CONFIG."
-   fi
 
    # Generating the nbest, ffvals and align
    set -o pipefail
-   canoe-parallel.sh $CPOPTS \
+   run_cmd "canoe-parallel.sh $CPOPTS \
       canoe -append -v $VERBOSE -f $CANOE_CONFIG -nbest ${PFX}nb.:$K -ffvals -palign \
-      < $MSRC | nbest2rescore.pl -canoe > ${PFX}1best
-
-   if (( $? != 0 )); then
-      error_exit "problems with canoe-parallel.sh - quitting!"
-   fi
+      < $MSRC | nbest2rescore.pl -canoe > ${PFX}1best" \
+      "problems with canoe-parallel.sh - quitting!"
    set +o pipefail
-   if [ `wc -l < $MSRC` -ne `wc -l < ${PFX}1best` ]; then
+
+   if [[ `wc -l < $MSRC` -ne `wc -l < ${PFX}1best` ]]; then
       error_exit "problems with canoe-parallel.sh - quitting!"
    fi
 
@@ -394,12 +436,12 @@ if [ ! -e ${PFX}${K}best -a ! -e ${PFX}${K}best.gz ]; then
 
 else
    echo "${PFX}${K}best(.gz) exists - skipping ${K}best and ffvals generation"
-   if [ -e ${PFX}${K}best.gz ]; then
+   if [[ -e ${PFX}${K}best.gz ]]; then
       NBEST=${PFX}${K}best.gz
    else
       NBEST=${PFX}${K}best
    fi
-   if [ -e ${PFX}pal.gz ]; then
+   if [[ -e ${PFX}pal.gz ]]; then
       PAL=${PFX}pal.gz
    else
       PAL=${PFX}pal
@@ -422,46 +464,40 @@ DASHV=
 test -n "$VERBOSE" && DASHV="-v"
 SPROXY_ARG=
 test -n "$SPROXY" && SPROXY_ARG="-s=$SPROXY"
-gen-features-parallel.pl $DEBUG $FORCE_OVERWRITE $DASHV \
+run_cmd "gen-features-parallel.pl $DEBUG $FORCE_OVERWRITE $DASHV \
   -N=$N $JOBS_PER_FF -o=$MODEL_RAT_IN -c=$CANOE_CONFIG -a=$PAL $SPROXY_ARG -p=$PFX \
-  $MODEL $SRC $NBEST
+  $MODEL $SRC $NBEST" \
+  "problems with gen-features-parallel.pl - quitting!"
 
-if (( $? != 0 )); then
-   echo "problems with gen-features-parallel.pl - quitting!"
-   exit 1
-fi
 
 # 3. Train or trans with the rescoring model
 
 if (( $VERBOSE )); then
    echo ""
-   if [ "$MODE" = "train" ]; then echo "Training rescoring model:"; fi
-   if [ "$MODE" = "trans" ]; then echo "Translating with rescoring model:"; fi
+   [[ "$MODE" = "train" ]] && echo "Training rescoring model:";
+   [[ "$MODE" = "trans" ]] && echo "Translating with rescoring model:";
    echo ""
 fi
 
-if [ "$MODE" = "train" ]; then
+if [[ "$MODE" = "train" ]]; then
    if (( $VERBOSE )); then
       echo rescore_train $DASHV $RESCORE_OPTS -n $TRAINING_TYPE -p $PFX $MODEL_RAT_IN $MODEL_RAT_OUT $SRC $NBEST $REFS
    fi
-   eval rescore_train $DASHV $RESCORE_OPTS -n $TRAINING_TYPE -p $PFX $MODEL_RAT_IN $MODEL_RAT_OUT $SRC $NBEST $REFS
+   run_cmd "rescore_train $DASHV $RESCORE_OPTS -n $TRAINING_TYPE -p $PFX $MODEL_RAT_IN $MODEL_RAT_OUT $SRC $NBEST $REFS" \
+           "problems with rescoring!"
 else
    if (( $VERBOSE )); then
       echo rescore_translate $DASHV $RESCORE_OPTS -p $PFX $MODEL_RAT_IN $SRC ${NBEST} \> ${ORIG_PFX}rat
    fi
    # We want the results outside the working dir that's why we are using $ORIG_PFX
-   eval rescore_translate $DASHV $RESCORE_OPTS -p $PFX $MODEL_RAT_IN $SRC ${NBEST} > ${ORIG_PFX}rat
+   run_cmd "rescore_translate $DASHV $RESCORE_OPTS -p $PFX $MODEL_RAT_IN $SRC ${NBEST} > ${ORIG_PFX}rat" \
+           "problems with rescoring!"
 fi
 
-if (( $? != 0 )); then
-   echo "problems with rescoring!"
-   exit 1
-elif (( $VERBOSE )); then
-   echo "Completed on `date`"
-fi
+echo "Completed on `date`"
 
-if [ $MODE = "trans" ]; then
-   if [ -n "$REFS" ]; then
+if [[ $MODE = "trans" ]]; then
+   if [[ -n "$REFS" ]]; then
       echo ""
       echo "Evaluation of 1-best output from canoe:"
       if (( $VERBOSE )); then
@@ -492,3 +528,9 @@ else
    rm $MODEL_TMP
 fi
 
+exit
+
+# All logs should go to STDERR, not STDOUT.  Since cow.sh has no primary
+# output, we use a global { } around the entire script to send all output
+# to STDERR globally, instead of doing it on each echo command.
+} >&2

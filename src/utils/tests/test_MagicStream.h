@@ -21,17 +21,34 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <sstream>
 
+template <class T>
+inline std::string to_string (const T& t)
+{
+   std::stringstream ss;
+   ss << t;
+   return ss.str();
+}
 
 using namespace Portage;
+
+// Debug helper :D
+// To activate use -DTEST_MAGIC_STREAM_DEBUG flag at compile time
+inline void log(const string& msg)
+{
+#ifdef TEST_MAGIC_STREAM_DEBUG
+   cerr << "\tTEST_MAGIC_STREAM_DEBUG LOG:\t" << msg << endl;
+#endif
+}
 
 namespace Portage {
 
 class TestMagicStream : public CxxTest::TestSuite 
 {
 private:
-      string m_read_msg;
-      const string base_name_test;
+   string m_read_msg;
+   const string base_name_test;
 
    /**
    * Prints a matrix of size mI x mJ to out.  Each line is composed of msg i j
@@ -101,6 +118,8 @@ public:
    , vValue(23)
    , filename_fallback(base_name_test + "Fallback")
    , msg_fallback("Fallback")
+   , filename_zlib_fallback(base_name_test + "ZlibFallback" + ".gz")
+   , msg_zlib_fallback("Testing zlib fallback for gzip!")
    {}
    ~TestMagicStream() {
       system("rm MagicStreamTest*");
@@ -456,6 +475,88 @@ public:
       TS_ASSERT(!check_if_exists("unexisting.file.txt"));
       TS_ASSERT(!check_if_exists("unexisting.file.gz"));
       TS_ASSERT(!check_if_exists("unexisting.file.bzip2"));
+   }
+
+
+   // Special case that only works on a node.
+   // Here we are trying to take all the memory and when the memory is full, we
+   // try to open a gzip file which forks and at that precis moment the os
+   // needs twice as much memory which will fail.
+   const string filename_zlib_fallback;
+   const string msg_zlib_fallback;
+   void testZlibFallback() {
+      const unsigned int num_write(800);
+      vector<char*> v;
+      // Bloat the memory.
+      do {
+         try {
+            v.push_back(new char[2000000000]);
+         } catch (std::bad_alloc& e) {
+            v.back() = NULL;
+         }
+      } while (v.back() != NULL);
+
+      log("Memory blocks: " + to_string(v.size()));
+
+      // Delete at least one block from memory so we don't crash someone's job.
+      delete v.back();
+      v.pop_back();
+
+      // Write a file using the backup system.
+      {
+         oMagicStream oms(filename_zlib_fallback);
+         TS_ASSERT(oms.rdbuf() != NULL);
+         for (unsigned int i(0); i<num_write; ++i)
+            oms << msg_zlib_fallback << endl;
+      }
+
+      // Verify the content of the file.
+      {
+         iMagicStream ims(filename_zlib_fallback);
+         TS_ASSERT(ims.rdbuf() != NULL);
+         unsigned int cpt = 0;
+         string line;
+         while (getline(ims, line)) {
+            TS_ASSERT(line == msg_zlib_fallback.c_str());
+            ++cpt;
+         }
+         TS_ASSERT_EQUALS(cpt, num_write);
+      }
+
+      // Lets free up have the memory that way MagicStream won't use the zlib
+      // fallback.
+      const unsigned int Max = v.size() / 2;
+      for (unsigned int i=0; i<Max; ++i) {
+         delete v.back();
+         v.pop_back();
+      }
+
+      log("Memory blocks: " + to_string(v.size()));
+
+      // Write a file using the backup system.
+      {
+         oMagicStream oms(filename_zlib_fallback);
+         TS_ASSERT(oms.rdbuf() != NULL);
+         for (unsigned int i(0); i<num_write; ++i)
+            oms << msg_zlib_fallback << endl;
+      }
+
+      // Verify the content of the file.
+      {
+         iMagicStream ims(filename_zlib_fallback);
+         TS_ASSERT(ims.rdbuf() != NULL);
+         unsigned int cpt = 0;
+         string line;
+         while (getline(ims, line)) {
+            TS_ASSERT(line == msg_zlib_fallback.c_str());
+            ++cpt;
+         }
+         TS_ASSERT_EQUALS(cpt, num_write);
+      }
+
+      // Clean up the memory
+      for (unsigned int i=0; i<v.size(); ++i)
+         delete v[i];
    }
 
 }; // TestMagicStream

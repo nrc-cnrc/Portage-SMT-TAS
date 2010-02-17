@@ -250,7 +250,7 @@ sub truecaseFile
       {  die "\r\n\r\n!!! ERROR: portage_truecaselib::truecaseFile requires 11 input arguments! \taborting...\r\n\r\n";
       } # End if
    } # End if
-   my($inputFile, $LMFile, $vocabMapFile, $lmOrder, $useLMOnlyFlag, $outputFile, $uppercaseSentenceBeginFlag, $cleanMarkupFlag, $verbose) = @_;
+   my($inputFile, $LMFile, $vocabMapFile, $lmOrder, $useLMOnlyFlag, $outputFile, $uppercaseSentenceBeginFlag, $cleanMarkupFlag, $verbose, $tplm, $tppt) = @_;
 
    if(not defined $inputFile)
    {  die "\r\n\r\n!!! ERROR portage_truecaselib::truecaseFile: a file to convert into truecase is required! \taborting...\r\n\r\n";
@@ -262,7 +262,7 @@ sub truecaseFile
 
    my @tmpFiles = ();     # Temporary files collection
 
-   print "portage_truecaselib::truecaseFile: Truecasing \"$inputFile\"...\r\n" unless not $verbose;
+   print STDERR "portage_truecaselib::truecaseFile: Truecasing \"$inputFile\"...\r\n" unless not $verbose;
    my $cleanedInputTextFile = $inputFile;
    if($cleanMarkupFlag)
    {  $cleanedInputTextFile = getTemporaryFile();   # get a temporary file
@@ -276,66 +276,113 @@ sub truecaseFile
    } # End if
 
 
-   if ( ! defined $vocabMapFile ) {
-      print STDERR "Error: A map file must be provided\n";
-      exit( 1 );
-   }
-   if ( ! defined $LMFile ) {
-      print STDERR "Error: An LM file must be provided\n";
-      exit( 1 );
-   }
+   if (defined $tplm or defined $tppt) {
+      print STDERR "portage_truecaselib::truecaseFile: using tpt.\n" unless not $verbose;
 
-   open( MAP, "<", $vocabMapFile );
-   open( TM,  ">", "canoe_tc_tmp_$$.tm" );
-   while ( <MAP> ) {
-      chomp;
-      my @line = split( /\t/, $_ );
-      my $from = shift( @line );
-      my $to   = shift( @line );
-      my $prob = shift( @line );
-      while (    defined( $to )   && $to ne ''
-              && defined( $prob ) && $prob ne '' ) {
-         print TM "$from ||| $to ||| 1 $prob\n";
-         $to   = shift( @line );
-         $prob = shift( @line );
+      die "Error: You must provide a tplm AND a tppt model.\n" unless (defined $tplm and defined $tppt);
+
+      # Build the command.
+      my $command = "set -o pipefail;"
+        . "cat $cleanedInputTextFile | canoe-escapes.pl -add"
+        . " | canoe -f /dev/null "
+        . " -ttable-tppt       $tppt"
+        . " -lmodel-file       $tplm"
+        . (defined $lmOrder ? " -lmodel-order $lmOrder" : "")
+        . " -ttable-limit      100"
+        . " -stack             100"
+        . " -ftm               1.0"
+        . " -lm                2.302585"
+        . " -tm                0.0"
+        . " -distortion-limit  0"
+        . ( $verbose ? "" : " 2> /dev/null" )
+        . " | perl -n -e 's/^<s>\\s*//o; s/\\s*<\\/s>[ ]*//o;"
+        . ( $uppercaseSentenceBeginFlag ? " print ucfirst;'" : " print;'" )
+        . ( defined $outputFile ? " > $outputFile" : '' );
+
+      # Normalize space in the command for prettier printing.
+      $command =~ s/\s+/ /g;
+
+      # What is the command?
+      print STDERR "\tCOMMAND: $command\n" unless not $verbose;
+
+      # Run the command.
+      my $rc = system( $command );
+
+      die "Error while truecasing using canoe" unless ($rc == 0);
+   }
+   else {
+      print STDERR "portage_truecaselib::truecaseFile: using canoe with on the fly phrase table.\n" unless not $verbose;
+
+      die "Error: A map file must be provided\n" unless (defined $vocabMapFile);
+      die "Error: An LM file must be provided\n" unless (defined $LMFile);
+
+      # Convert the vocabmap to a phrase table on the fly.
+      portage_utils::zin(*MAP, $vocabMapFile);
+      my $phrase_table = "canoe_tc_tmp_$$.tm";
+      open( TM,  ">", "$phrase_table" );
+      # Errors caused by UTF-8 characters cause problems for buffered output on Cygwin.
+      if ( `uname -s` =~ 'CYGWIN' ) {
+         binmode TM;
       }
+      while ( <MAP> ) {
+         chomp;
+         my @line = split( /\t/, $_ );
+         my $from = shift( @line );
+         my $to   = shift( @line );
+         my $prob = shift( @line );
+         while (    defined( $to )   && $to ne ''
+                 && defined( $prob ) && $prob ne '' ) {
+            print TM "$from ||| $to ||| 1 $prob\n";
+            $to   = shift( @line );
+            $prob = shift( @line );
+         }
+      }
+      close( MAP );
+      close( TM );
+
+
+      # Build the command.
+      my $command = "set -o pipefail;"
+        . "cat $cleanedInputTextFile | canoe-escapes.pl -add"
+        . " | canoe -f /dev/null "
+        . " -ttable-multi-prob $phrase_table"
+        . " -lmodel-file       $LMFile"
+        . (defined $lmOrder ? " -lmodel-order $lmOrder" : "")
+        . " -ttable-limit      100"
+        . " -stack             100"
+        . " -ftm               1.0"
+        . " -lm                2.302585"
+        . " -tm                0.0"
+        . " -distortion-limit  0"
+        . " -load-first"
+        . ( $verbose ? "" : " 2> /dev/null" )
+        . " | perl -n -e 's/^<s>\\s*//o; s/\\s*<\\/s>[ ]*//o;"
+        .   ( $uppercaseSentenceBeginFlag ? " print ucfirst;'" : " print;'" )
+        . ( defined $outputFile ? " > $outputFile" : '' );
+
+      # Normalize space in the command for prettier printing.
+      $command =~ s/\s+/ /g;
+
+      # What is the command?
+      print STDERR "\tCOMMAND: $command\n" unless not $verbose;
+
+      # Run the command.
+      my $rc = system( $command );
+
+      die "Error while truecasing using canoe" unless ($rc == 0);
+
+      # Clean up.
+      system( "rm -rf $phrase_table" );
    }
-   close( MAP );
-   close( TM );
 
-   open( INI,  ">", "canoe_tc_tmp_$$.ini" );
-      print INI "[ttable-multi-prob] canoe_tc_tmp_$$.tm\n";
-      print INI "[lmodel-file]       $LMFile\n";
-   if ( defined $lmOrder ) {
-      print INI "[lmodel-order]      $lmOrder\n";
-   }
-      print INI "[ttable-limit]      100\n";
-      print INI "[stack]             100\n";
-      print INI "[ftm]               1.0\n";
-      print INI "[lm]                2.302585\n";
-      print INI "[tm]                0.0\n";
-      print INI "[distortion-limit]  0\n";
-      print INI "[load-first]\n";
-   close( INI );
-
-   system(
-       'canoe-escapes.pl -add < ' . $cleanedInputTextFile
-     . "| canoe -f canoe_tc_tmp_$$.ini "
-     . "| perl -n -e 's/^<s>\\s*//o; s/\\s*<\\/s>[ ]*//o;"
-     .   ( $uppercaseSentenceBeginFlag ? " print ucfirst;'" : " print;'" )
-     .   ( defined $outputFile ? " > $outputFile" : '' )
-   );
-
-   system( "rm -rf canoe_tc_tmp_$$.ini canoe_tc_tmp_$$.tm" );
-
-   print "portage_truecaselib::truecaseFile: Truecasing done...\r\n" unless not $verbose;
+   print STDERR "portage_truecaselib::truecaseFile: Truecasing done...\r\n" unless not $verbose;
 
    # delete the temporary files
    if($cleanMarkupFlag)
    {  system("rm -rf $cleanedInputTextFile");
    } # End foreach
 
-   print "portage_truecaselib::truecaseFile: completed successfully!\r\n" unless not $verbose;
+   print STDERR "portage_truecaselib::truecaseFile: completed successfully!\r\n" unless not $verbose;
 
    # delete the temporary files
    foreach my $file (@tmpFiles)

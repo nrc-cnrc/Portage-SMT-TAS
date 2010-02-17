@@ -32,6 +32,9 @@
 using namespace std;
 using namespace boost;
 
+namespace ugdiss {
+   class TpPhraseTable;
+}
 
 namespace Portage
 {
@@ -62,8 +65,6 @@ struct ForwardBackwardPhraseInfo : public MultiTransPhraseInfo
    /// adirectional probabilities for this phrase
    vector<float>  adir_probs; //boxing
 
-   /// lexicalized distortion probability score
-   double         lexdis_prob; //boxing
    /// lexicalized distortion probabilities for this phrase
    vector<float>  lexdis_probs; //boxing
 
@@ -100,6 +101,13 @@ struct TScore
            && lexdis == rhs.lexdis); //boxing
    }
 
+   /**
+    * Display the content of a TScore in ascii format.
+    * Mainly for debugging purposes.
+    * @param  os  where to output this TScore.
+    */
+   void print(ostream& os = cerr) const;
+
    /// Resets all values.  Call clear() before re-using a TScore object.
    void clear() {
       forward.clear();
@@ -121,6 +129,15 @@ class TargetPhraseTable : public vector_map<Phrase, TScore> {
    /// Swaps two TargetPhraseTables.
    /// @param o  other TargetPhraseTables.
    void swap(TargetPhraseTable& o);
+
+   /**
+    * Display the content of a TargetPhraseTable in ascii format, for debugging
+    * purposes.
+    * @param  os  where to output this TargetPhraseTable.
+    * @param  tgtVocab  the vocabulary to be able to output in a Human redable
+    *         form.
+    */
+   void print(ostream& os = cerr, const VocabFilter* const tgtVocab = NULL) const;
 };
 //typedef vector_map<Phrase, TScore> TargetPhraseTable;
 
@@ -138,8 +155,29 @@ protected:
 
    /**
     * The mapping from source phrases to target phrases.
+    * Includes only translation models that were loaded from text formatted
+    * tables, i.e., excludes information from the TPPTs.
     */
    PTrie<TargetPhraseTable> textTable;
+
+   /// The number of translation models that have been loaded from text files.
+   Uint numTextTransModels;
+
+   /**
+    * Translation models opened in TPPT format.
+    * The number of models is the sum of the elements in tpptTableModelCounts.
+    */
+   vector<shared_ptr<ugdiss::TpPhraseTable> > tpptTables;
+
+   /**
+    * The number of models in each TPPT table
+    */
+   vector<Uint> tpptTableModelCounts;
+
+   /**
+    * Lexicalized Distortion Models in TPLDM format.
+    */
+   vector<shared_ptr<ugdiss::TpPhraseTable> > tpldmTables;
 
    /// The total number of translation models that have been loaded.
    Uint numTransModels;
@@ -214,6 +252,11 @@ public:
    virtual ~PhraseTable();
 
    /**
+    * Clear all caches kept by this or submodels.
+    */
+   void clearCache();
+
+   /**
     * Set the log value to use for missing or 0-prob entries (default is LOG_ALMOST_0)
     */
    void setLogAlmostZero(double val) {log_almost_0 = val;}
@@ -231,6 +274,32 @@ public:
    string describePhraseTables(bool forwardWeights) const {
       return backwardDescription + (forwardWeights ? forwardDescription : "");
    }
+
+   /**
+    * Open a TPPT format phrase table.
+    * Note: all text based phrase tables must be loaded first.
+    * @param tppt_filename      The path of the TPPT file to open.
+    *                           Must be a source_lang 2 target_lang TPPT.
+    * @return The total number of probability columns in the model.
+    */
+   Uint openTPPT(const char *tppt_filename);
+
+   /**
+    * Open a Lexicalized Distortion Model in memory map form.
+    * @param  lexicalized_dm_file  Lexicalized Distortion Model's filename.
+    */
+   void openTPLDM(const char *lexicalized_dm_file);
+
+   /**
+    * Extract all target language vocabulary from all opened TPPTs.
+    * This method considers only source phrases in the in the Trie, i.e., added
+    * with addPhrase() or found in any phrase tables loaded using read() with
+    * limitPhrases = false.  Intended for use when limitPhrases is true.
+    * @param verbosity  Verbosity level - only >= 4 has an impact here and
+    *                   causes lots of output about src/tgt phrases being
+    *                   looked at.
+    */
+   void extractVocabFromTPPTs(Uint verbosity);
 
    /**
     * Read a pair of phrase table files and stores the translations.
@@ -304,6 +373,13 @@ public:
     *         is not valid.
     */
    static Uint countAdirScoreColumns(const char* multi_prob_TM_filename); //boxing
+
+   /**
+    * Count the number of probabilities in a TPPT phrase table file.
+    * @param tppt_filename  Model to inspect
+    * @return the total number of probability models in model tppt_filename
+    */
+   static Uint countTPPTProbModels(const char* tppt_filename);
 
    /**
     * Read a multi-prob phrase table file.  The file must be formatted as for
@@ -432,6 +508,7 @@ public:
 
    /**
     * Determine if the table contains a given source phrase.
+    * This looks only in the text table, i.e., it doesn't check TPPTs.
     * @param num_tokens number of tokens in the phrase
     * @param tokens the phrase
     * @return true if phrase is a source phrase in the table
@@ -461,7 +538,7 @@ protected:
       char* probString;           ///< prob string in line
       char* ascoreString;         ///< ascore string in line   //boxing
       Uint  lineNum;              ///< entry number
-      Phrase tgtPhrase;           ///< phrase representation of the target string (vector<Uint>)
+      VectorPhrase tgtPhrase;     ///< phrase representation of the target string (vector<Uint>)
 
       /// Keeps count of the erroneous or zero prob entries
       Uint zero_prob_err_count;
@@ -527,7 +604,9 @@ protected:
          bool limitPhrases);
 
    /**
-    * Search for a src phrase in all phrase tables.
+    * Search for a src phrase in text format PTs (in the Trie) and in TPPT
+    * format PTs.
+    * @param str_key    the key in in a string vector
     * @param s_key      the key in a c string array
     * @param i_key      the key in tgtVocab mapped Uints.  Must correspond to
     *                   the same tokens as s_key.
@@ -536,6 +615,7 @@ protected:
     * otherwise (test with ret_val.get() == NULL or ret_val.use_count() == 0).
     */
    shared_ptr<TargetPhraseTable> findInAllTables(
+         const vector<string>& str_key,
          const char* s_key[], const Uint i_key[], Range range);
 
    /**
@@ -586,11 +666,11 @@ protected:
     * @param tgtPhrase  Destination Phrase for the conversion.
     * @param tgtString  String to convert.
     */
-   void tgtStringToPhrase(Phrase& tgtPhrase, const char* tgtString);
+   void tgtStringToPhrase(VectorPhrase& tgtPhrase, const char* tgtString);
 
    /// Same as tgtStringToPhrase(), but does not add previously unseen words
    /// to the vocabulary.  (Needed for loading lexicalized distortion models)
-   void tgtStringToPhraseIndex(Phrase& tgtPhrase, const char* tgtString);
+   void tgtStringToPhraseIndex(VectorPhrase& tgtPhrase, const char* tgtString);
 
 protected:
    /**

@@ -1,0 +1,104 @@
+#!/bin/bash
+# vim:nowrap
+# $Id$
+
+# @file textldm2tpldm.sh
+# @brief
+#
+# @author Samuel Larkin
+#
+# Technologies langagieres interactives / Interactive Language Technologiesm
+# Inst. de technologie de l'information / Institute for Information Technology
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2009, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2009, Her Majesty in Right of Canada
+
+
+# Include NRC's bash library.
+BIN=`dirname $0`
+if [[ ! -r $BIN/sh_utils.sh ]]; then
+   # assume executing from src/tpt directory
+   BIN="$BIN/../utils"
+fi
+source $BIN/sh_utils.sh
+
+usage() {
+   for msg in "$@"; do
+      echo $msg >&2
+   done
+   cat <<==EOF== >&2
+
+Usage: $0 <textldm_filename> [TPLDM_prefix]
+
+  Converts your textldm into a TPLDM: a lexicalized distortion model encoded
+  using Uli Germann's Tightly Packed tries.
+
+  Output: directory TPLDM_prefix.tpldm containing several files.  Must be in
+  the current directory.  [TPLDM_prefix is the base name of textldm_filename]
+
+Options:
+
+  -h(elp)     print this help message
+  -v(erbose)  increment the verbosity level by 1 (may be repeated)
+  -d(ebug)    print debugging information
+
+==EOF==
+
+   exit 1
+}
+
+# Command line processing [Remove irrelevant parts of this code when you use
+# this template]
+VERBOSE=0
+while [ $# -gt 0 ]; do
+   case "$1" in
+   -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ));;
+   -d|-debug)           DEBUG=1;;
+   -h|-help)            usage;;
+   --)                  shift; break;;
+   -*)                  error_exit "Unknown option $1.";;
+   *)                   break;;
+   esac
+   shift
+done
+
+test $# -eq 0   && error_exit "Missing first argument argument"
+MODEL=$1; shift
+test $# -gt 0   && error_exit "Superfluous arguments $*"
+
+EXTENSION=".tpldm"
+PREFIX=${MODEL%%.gz}
+BACKOFF=${PREFIX}.bkoff
+OUTPUT_TPLDM="${PREFIX}${EXTENSION}"
+
+# Make sure the backoff model is available.
+[[ -s "$BACKOFF" ]] || error_exit "Can't find the backoff model: $BACKOFF";
+
+
+set -o errexit
+
+# To create a tpldm, we will rely on textpt2tppt.sh since the process is the
+# same.
+textpt2tppt.sh -type $EXTENSION $MODEL
+
+# To have a valid TPLDM, we also need the backoff file.
+cp $BACKOFF $OUTPUT_TPLDM/bkoff
+
+
+# Write and README to explain how to use this tpldm model.
+echo "
+The six files bkoff, tppt, cbk, src.tdx, trg.tdx and trg.repos.dat, together,
+constitute a single TPLDM model.  You must keep them together in a directory
+called NAME.tpldm for the model to work properly.  They cannot be used
+compressed.
+
+To use this model in canoe, put two lines like these is your canoe.ini file:
+   [lex-dist-model-file] NAME.tpldm
+   [distortion-model] WordDisplacement:back-lex#m:back-lex#s:back-lex#d:fwd-lex#m:fwd-lex#s:fwd-lex#d
+And optionally (but recommended)
+   [dist-phrase-swap]
+   [dist-limit-ext]
+
+" > $OUTPUT_TPLDM/README
+
+

@@ -107,6 +107,7 @@ public:
    vector<string> backPhraseFiles;  ///< Backward phrase table file names
    vector<string> multiProbTMFiles; ///< Multi-prob phrase table file names
    vector<string> multiProbLDMFiles;///< Multi-prob lexicalized distortion model file names
+   vector<string> tpptFiles;        ///< TPPT phrase table file names
    vector<string> lmFiles;          ///< Language model file names
    Uint lmOrder;                    ///< Maximum LM order (0 == no limit)
 
@@ -250,6 +251,13 @@ public:
    Uint getTotalAdirectionalModelCount() const; //boxing
 
    /**
+    * Count the total number of translation models in TPPT tables.
+    * Dies if any TPPT has an odd number of probability columns.
+    * @return the number of models in files listed under ttable-tppt.
+    */
+   Uint getTotalTPPTModelCount() const;
+
+   /**
     * Get current feature weights in the form of an argument string, eg:
     * "-d .5 -w 0.8 -lm 1 -tm 0.5"
     * @param s string which will contain the result
@@ -329,8 +337,12 @@ private:
          check_file_name            = relative_path_modification << 1,
          /// Specific LM file name check because some LMs need a special treatment
          lm_check_file_name         = check_file_name << 1,
+         /// Specific file name check for TPPTs
+         tppt_check_file_name       = lm_check_file_name << 1,
+         /// Specific file name check for LDMs and TPLDMs
+         ldm_check_file_name        = tppt_check_file_name << 1,
          /// Indicates the number of groupings
-         num_groups                 = lm_check_file_name << 1
+         num_groups                 = ldm_check_file_name << 1
       };
 
       CanoeConfig* c;        ///< Pointer to parent CanoeConfig object

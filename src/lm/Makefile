@@ -34,7 +34,7 @@ LIBRARY = libportage_lm
 
 MODULE_CF =
 
-MODULE_DEPENDS =
+MODULE_DEPENDS = tpt
 
 EXTRA_LIBS = $(TPT_LIBS)
 

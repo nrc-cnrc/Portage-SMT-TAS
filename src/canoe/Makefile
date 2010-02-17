@@ -84,7 +84,7 @@ DYNLIBS=$(LIBICU)
 
 MODULE_CF=
 
-MODULE_DEPENDS=logging tm lm
+MODULE_DEPENDS=logging tm lm tpt
 
 include ../build/Makefile.incl
 

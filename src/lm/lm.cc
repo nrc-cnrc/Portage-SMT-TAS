@@ -16,6 +16,7 @@
 #include "lmtext.h"
 #include "lmmix.h"
 #include "lmdynmap.h"
+#include "tplm.h"
 #include "str_utils.h"
 
 using namespace std;
@@ -87,6 +88,8 @@ shared_ptr<PLM::Creator> PLM::getCreator(const string& lm_filename)
       cr = new LMDynMap::Creator(lm_physical_filename, naming_limit_order);
    } else if ( isSuffix(".mixlm", lm_physical_filename) ) {
       cr = new LMMix::Creator(lm_physical_filename, naming_limit_order);
+   } else if ( isSuffix(".tplm", lm_physical_filename) ) {
+      cr = new TPLM::Creator(lm_physical_filename, naming_limit_order);
    } else {
       cr = new LMTrie::Creator(lm_physical_filename, naming_limit_order);
    }

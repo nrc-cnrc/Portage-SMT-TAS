@@ -233,24 +233,54 @@ BasicModelGenerator* BasicModelGenerator::create(
       weights_already_used += model_count;
    }
 
+   // We load TPPTs last, with their weights right at
+   // the end of the vector.
+   for ( Uint i = 0; i < c.tpptFiles.size(); ++i ) {
+      const Uint model_count =
+         PhraseTable::countTPPTProbModels(c.tpptFiles[i].c_str()) / 2;
+      vector<double> backward_weights, forward_weights;
+      assert(c.transWeights.size() >= weights_already_used + model_count);
+      backward_weights.assign(c.transWeights.begin() + weights_already_used,
+            c.transWeights.begin() + weights_already_used + model_count);
+      if ( c.forwardWeights.size() > 0 ) {
+         assert(c.forwardWeights.size() >= weights_already_used+model_count);
+         forward_weights.assign(
+               c.forwardWeights.begin() + weights_already_used,
+               c.forwardWeights.begin() + weights_already_used + model_count);
+         for (Uint i(0); c.randomWeights && i<model_count; ++i) {
+            const Uint index = weights_already_used + i;
+            result->random_forward_weight.push_back(c.rnd_forwardWeights.get(index));
+         }
+      }
+      result->addTpptTransModel(c.tpptFiles[i].c_str(),
+            backward_weights, forward_weights);
+      for (Uint i(0); c.randomWeights && i<model_count; ++i) {
+         const Uint index = weights_already_used + i;
+         result->random_trans_weight.push_back(c.rnd_transWeights.get(index));
+      }
+      weights_already_used += model_count;
+   }
+
    assert ( weights_already_used == c.transWeights.size() );
 
    //////////// loading DM
    for ( Uint i = 0; i < c.multiProbLDMFiles.size(); ++i ) {
 
-      result->addLexDistModel(c.multiProbLDMFiles[i].c_str());
+      const string ldm_filename = c.multiProbLDMFiles[i];
+
+      result->addLexDistModel(ldm_filename.c_str());
 
       for ( vector<DecoderFeature *>::iterator df_it = result->decoder_features.begin();
             df_it != result->decoder_features.end(); ++df_it ){
 
          LexicalizedDistortion *ldf = dynamic_cast<LexicalizedDistortion *>(*df_it);
          if ( ldf ) {
-            string filename = c.multiProbLDMFiles[i];
-            string oldext=".gz";
-            string newext=".bkoff";
-            filename.erase(filename.end()-oldext.size(),filename.end());
-            filename+=newext;
-            ldf->readDefaults(filename.c_str());
+            if (isSuffix(".tpldm", ldm_filename)) {
+               ldf->readDefaults((ldm_filename + "/bkoff").c_str());
+            }
+            else {
+               ldf->readDefaults((removeZipExtension(ldm_filename) + ".bkoff").c_str());
+            }
          }
       }
 
@@ -288,6 +318,7 @@ BasicModelGenerator::BasicModelGenerator(const CanoeConfig& c,
    futureScoreLMHeuristic(lm_heuristic_type_from_string(c.futLMHeuristic)),
    cubePruningLMHeuristic(lm_heuristic_type_from_string(c.cubeLMHeuristic)),
    futureScoreUseFtm(c.futScoreUseFtm),
+   vocab_read_from_TPPTs(true),
    addWeightMarked(log(c.weightMarked))
 {
    LOG_VERBOSE1(bmgLogger, "BasicModelGenerator constructor with 2 args");
@@ -313,6 +344,7 @@ BasicModelGenerator::BasicModelGenerator(
    futureScoreLMHeuristic(lm_heuristic_type_from_string(c.futLMHeuristic)),
    cubePruningLMHeuristic(lm_heuristic_type_from_string(c.cubeLMHeuristic)),
    futureScoreUseFtm(c.futScoreUseFtm),
+   vocab_read_from_TPPTs(true),
    addWeightMarked(log(c.weightMarked))
 {
    LOG_VERBOSE1(bmgLogger, "BasicModelGenerator construtor with 5 args");
@@ -430,16 +462,42 @@ void BasicModelGenerator::addMultiProbTransModel(
    } //boxing
 }
 
+void BasicModelGenerator::addTpptTransModel(const char *tppt_file,
+      vector<double> backward_weights,
+      vector<double> forward_weights)
+{
+   vocab_read_from_TPPTs = false;
+   const Uint prob_count = phraseTable->openTPPT(tppt_file);
+   assert(prob_count % 2 == 0);
+   const Uint model_count = prob_count / 2;
+   if ( backward_weights.size() != model_count )
+      error(ETFatal, "wrong number of backward weights (%d) for %s",
+            backward_weights.size(), tppt_file);
+   if ( !forward_weights.empty() && forward_weights.size() != model_count )
+      error(ETFatal, "wrong number of backward weights (%d) for %s",
+            forward_weights.size(), tppt_file);
+   transWeightsV.insert(transWeightsV.end(),
+                        backward_weights.begin(), backward_weights.end());
+   if ( ! forward_weights.empty() )
+      forwardWeightsV.insert(forwardWeightsV.end(),
+                             forward_weights.begin(), forward_weights.end());
+}
+
 ////////////
 void BasicModelGenerator::addLexDistModel(const char *lexicalized_dm_file)
 {
-   phraseTable->readLexicalizedDist(lexicalized_dm_file, true);
+   if (isSuffix(".tpldm", lexicalized_dm_file))
+      phraseTable->openTPLDM(lexicalized_dm_file);
+   else
+      phraseTable->readLexicalizedDist(lexicalized_dm_file, true);
 }
 ////////////
 
 void BasicModelGenerator::addLanguageModel(const char *lmFile, double weight,
    Uint limit_order, ostream *const os_filtered)
 {
+   extractVocabFromTPPTs();
+
    if (!PLM::checkFileExists(lmFile))
       error(ETFatal, "Cannot read from language model file %s", lmFile);
    cerr << "loading language model from " << lmFile << endl;
@@ -454,6 +512,18 @@ void BasicModelGenerator::addLanguageModel(const char *lmFile, double weight,
    // We trust the language model to tell us its order, not the other way around.
    if ( lm->getOrder() > lm_numwords ) lm_numwords = lm->getOrder();
 } // addLanguageModel
+
+void BasicModelGenerator::extractVocabFromTPPTs()
+{
+   if ( limitPhrases && ! vocab_read_from_TPPTs ) {
+      time_t start_time = time(NULL);
+      cerr << "extracting target vocabulary from TPPTs";
+      assert(phraseTable);
+      phraseTable->extractVocabFromTPPTs(verbosity);
+      vocab_read_from_TPPTs = true;
+      cerr << " ... done in " << (time(NULL) - start_time) << "s" << endl;
+   }
+}
 
 string BasicModelGenerator::describeModel() const
 {
@@ -505,10 +575,14 @@ BasicModel *BasicModelGenerator::createModel(
          it != decoder_features.end(); ++it)
       (*it)->newSrcSent(info);
 
-   // Clear all LM caches, since we're about to process a new source sentence.
+   // Inform all LM models that we are about to process a new source sentence.
    for (Uint i=0;i<lms.size();++i) {
       lms[i]->clearCache();
    }
+
+   // Clear the phrase table caches every 10 sentences
+   if ( info.internal_src_sent_seq % 10 == 0 )
+      phraseTable->clearCache();
 
 
    double **futureScores = precomputeFutureScores(info.potential_phrases,

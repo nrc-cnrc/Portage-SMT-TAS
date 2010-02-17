@@ -20,17 +20,23 @@
                
 #include <MagicStream.h>
 #include <errors.h>
+#include <boost/iostreams/filtering_streambuf.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
+//#include <boost/iostreams/device/file.hpp>
+#include <boost/iostreams/device/file_descriptor.hpp>
+
 
 
 using namespace Portage;
 using namespace std;
+using namespace boost::iostreams;
 
 // Debug helper :D
 // To activate use -DMAGIC_STREAM_DEBUG flag at compile time
 inline void log(const string& msg)
 {
 #ifdef MAGIC_STREAM_DEBUG
-   cerr << "\tLOG:\t" << msg << endl;
+   cerr << "\tMAGIC_STREAM_DEBUG LOG:\t" << msg << endl;
 #endif
 }
 
@@ -200,21 +206,30 @@ const MagicStreamBase::OpenMode MagicStreamBase::bufferMode() const
 }
 
 // A unified way of opening a pipe
-void MagicStreamBase::makePipe(const string& _cmd)
+bool MagicStreamBase::makePipe(const string& _cmd)
 {
    const string cmd(_cmd + (Quiet ? " 2> /dev/null" : ""));
    log("using following command for pipe: " + cmd);
    FILE* c_pipe = popen(cmd.c_str(), pipeMode());
    if ( !c_pipe ) {
-      if ( errno != 0 )
-         perror("System error opening opipestream");
-         error(ETFatal, "unable to open pipe for cmd: %s", cmd.c_str());
+      if ( errno != 0 ) {
+         if ( errno == ENOMEM ) {
+            log("Most likely there is not enough memory to fork a pipe.");
+            return false;
+         }
+         else {
+            perror("System error opening opipestream");
+            error(ETFatal, "unable to open pipe for cmd: %s", cmd.c_str());
+         }
+      }
    }
-                        
+
    std_buffer* tmp = new std_buffer(c_pipe, bufferMode());
    assert(tmp != NULL);
 
    stream = stream_type(tmp, PIPE_deleter(c_pipe));
+
+   return true;
 }
 
 // A unified way of opening file
@@ -329,7 +344,17 @@ void iMagicStream::open(const string& s)
       if (tmp->open(s.c_str(), bufferMode())) {
          tmp->close(); // File exists we must close it to now use it with gzip
          delete tmp; tmp = NULL;
-         makePipe("gzip -cqdf " + s);
+         if (!makePipe("gzip -cqdf " + s)) {
+            log("Fallback for iMagicstream.gz");
+
+            using namespace boost::iostreams::zlib;
+            filtering_streambuf<input>* in = new filtering_streambuf<input>();
+            assert(in != NULL);
+            in->push(gzip_decompressor());
+            in->push(file_descriptor_source(s.c_str()));
+
+            stream = stream_type(in);
+         }
       }
    }
    else {
@@ -414,7 +439,17 @@ void oMagicStream::open(const string& s)
    else if (isZip(s)) {
       string command("gzip -cqf > ");
       command += s;
-      makePipe(command);
+      if (!makePipe(command)) {
+         log("Fallback for oMagicstream.gz");
+
+         using namespace boost::iostreams::zlib;
+         filtering_streambuf<output>* out = new filtering_streambuf<output>();
+         assert(out != NULL);
+         out->push(gzip_compressor());
+         out->push(file_descriptor_sink(s.c_str()));
+
+         stream = stream_type(out);
+      }
    }
    else {
       makeFile(s);

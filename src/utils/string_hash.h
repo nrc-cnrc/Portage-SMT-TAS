@@ -11,8 +11,8 @@
  * Example:
  * 
  * \#include "string_hash.h"
- * hash_map<string, MyValType> my_map
- * hash_map<const char*, MyValType, hash<const char*>, str_equal> my_map2
+ * unordered_map<string, MyValType> my_map
+ * unordered_map<const char*, MyValType, hash<const char*>, str_equal> my_map2
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology

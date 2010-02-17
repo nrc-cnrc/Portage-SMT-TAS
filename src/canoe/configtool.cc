@@ -26,6 +26,8 @@
 #include <string.h>
 #include "config_io.h"
 #include "logging.h"
+#include "lm.h"
+#include "tppt.h"
 #include "printCopyright.h"
 
 using namespace Portage;
@@ -52,11 +54,13 @@ depending on <cmd>, one of:\n\
   nt                 - number of translation models\n\
   na                 - number of adirectional translation models\n\
   nt-text            - number of single-prob text translation model files\n\
+  nt-tppt            - number of TPPT translation model files\n\
   nd                 - number of distortion models\n\
   segff              - does model contain a segmentation model ff?\n\
   ttable-file:i      - the ith pair of text phrase table names (backward\n\
                        forward)\n\
   ttable-limit       - value of the ttable-limit parameter\n\
+  memmap             - the total size of mem mapped models in MBs\n\
   rep-ttable-limit:v - a copy of <config>, with ttable-limit value replaced by v\n\
   rep-ttable-files:s - a copy of <config>, with s appended to all phrasetable\n\
                        names\n\
@@ -171,6 +175,13 @@ int main(int argc, char* argv[])
       os << c.distWeight.size() << endl;
    } else if (cmd == "segff") {
       os << c.segWeight.size() << endl;
+   } else if (cmd == "memmap") {
+      Uint64 total_memmap_size = 0;
+      for ( Uint i = 0; i < c.tpptFiles.size(); ++i )
+         total_memmap_size += TPPT::totalMemmapSize(c.tpptFiles[i]);
+      for ( Uint i = 0; i < c.lmFiles.size(); ++i )
+         total_memmap_size += PLM::totalMemmapSize(c.lmFiles[i]);
+      os << (total_memmap_size/1024/1024) << endl;
    } else if (cmd == "nb") {
       int n = 1 // length is always a basic feature
             + c.segWeight.size()
@@ -179,12 +190,15 @@ int main(int argc, char* argv[])
    } else if (cmd == "nl") {
       os << c.lmFiles.size() << endl;
    } else if (cmd == "nt") {
-      os << (c.backPhraseFiles.size() + c.getTotalMultiProbModelCount())
-         << endl;
+      os << (c.backPhraseFiles.size() +
+             c.getTotalMultiProbModelCount() +
+             c.getTotalTPPTModelCount()) << endl;
    } else if (cmd == "na") {
       os << c.getTotalAdirectionalModelCount() << endl;
    } else if (cmd == "nt-text") {
       os << c.backPhraseFiles.size() << endl;
+   } else if (cmd == "nt-tppt") {
+      os << c.getTotalTPPTModelCount() << endl;
    } else if (isPrefix("ttable-file:", cmd)) {
       if (split(cmd, toks, ":") != 2 || !conv(toks[1], vi))
          error(ETFatal, "bad format for ttable-file command");
@@ -345,7 +359,14 @@ int main(int argc, char* argv[])
 
       const string& cpt = toks[1];
       c.multiProbTMFiles.clear();
-      c.multiProbTMFiles.push_back(cpt);
+      if (isSuffix(".tppt", cpt)) {
+         c.readStatus("ttable-multi-prob") = false;
+         c.readStatus("ttable-tppt") = true;
+         c.tpptFiles.push_back(cpt);
+      }
+      else {
+         c.multiProbTMFiles.push_back(cpt);
+      }
 
       c.write(os, 0, pretty);
    } else if (isPrefix("applied-weights", cmd)) {
@@ -354,7 +375,14 @@ int main(int argc, char* argv[])
 
       const string& cpt = toks[1];
       c.multiProbTMFiles.clear();
-      c.multiProbTMFiles.push_back(cpt);
+      if (isSuffix(".tppt", cpt)) {
+         c.readStatus("ttable-multi-prob") = false;
+         c.readStatus("ttable-tppt") = true;
+         c.tpptFiles.push_back(cpt);
+      }
+      else {
+         c.multiProbTMFiles.push_back(cpt);
+      }
 
       c.transWeights.clear();
       c.transWeights.push_back(conv<double>(toks[2]));

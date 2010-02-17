@@ -1,4 +1,5 @@
 #!/bin/bash
+# vim:nowrap
 # $Id$
 #
 # @file canoe-optimize-weight, a.k.a., cow.sh 
@@ -10,6 +11,11 @@
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2004-2009, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2004-2009, Her Majesty in Right of Canada
+
+# All logs should go to STDERR, not STDOUT.  Since cow.sh has no primary
+# output, we use a global { } around the entire script to send all output
+# to STDERR globally, instead of doing it on each echo command.
+{
 
 COMPRESS_EXT=".gz"
 VERBOSE=
@@ -222,7 +228,7 @@ check_ttable_limit() {
    fi
 }
 
-TIMEFORMAT="Single-job-total: Real %3lR User %3lU Sys %3lS PCPU %P%%"
+TIMEFORMAT="Single-job-total: Real %3Rs User %3Us Sys %3Ss PCPU %P%%"
 run_cmd() {
    if [[ "$1" = "-no-error" ]]; then
       shift
@@ -240,23 +246,19 @@ run_cmd() {
       rc=$?
       kill -10 $MON_PID
       echo "run_cmd finished (rc=$rc): $*"
-      if (( `wc -l < $MON_FILE` > 1 )); then
+      if [ -s "$MON_FILE" -a $(( `wc -l < $MON_FILE` > 1 )) ]; then
          MON_VSZ=`egrep -ho 'vsz: [0-9.]+G' $MON_FILE 2> /dev/null | egrep -o "[0-9.]+" | sum.pl -m`
          MON_RSS=`egrep -ho 'rss: [0-9.]+G' $MON_FILE 2> /dev/null | egrep -o "[0-9.]+" | sum.pl -m`
          echo "run_cmd rc=$rc Max VMEM ${MON_VSZ}G Max RAM ${MON_RSS}G"
       fi
       if [[ -z "$RUN_CMD_NO_ERROR" && "$rc" != 0 ]]; then
+         # Print custom message.
+         [[ -n "$2" ]] && echo $2
          echo "Exit status: $rc is not zero - aborting."
          exit 1
       fi
    fi
 }
-
-
-# Make it easy to recover the command line from saved logs.
-echo $0 $*
-echo Starting on `date`
-echo ""
 
 # Command-line processing
 while [[ $# -gt 0 ]]; do
@@ -332,6 +334,19 @@ fi
 if [[ -n "$LOAD_BALANCING" ]]; then
    PARALLEL_OPTS="-lb $PARALLEL_OPTS"
 fi
+
+START_TIME=`date +"%s"`
+
+trap '
+   RC=$?
+   echo "Master-Wall-Time $((`date +%s` - $START_TIME))s"
+   exit $RC
+' 0
+
+# Make it easy to recover the command line from saved logs.
+echo $0 $*
+echo Starting on `date`
+echo ""
 
 if [[ $DEBUG ]]; then
    echo "
@@ -653,35 +668,35 @@ while [[ 1 ]]; do
    totalPrevK=0
    totalNewK=0
    time {
-   for x in $FOO_FILES; do
-      #echo Append-uniq $x on `date`
-      x=${x%$COMPRESS_EXT}
-      f=${x%."$N"best}
+      for x in $FOO_FILES; do
+         #echo Append-uniq $x on `date`
+         x=${x%$COMPRESS_EXT}
+         f=${x%."$N"best}
 
-      # We use gzip in case the user requested compressed foo files
-      touch $f.duplicateFree$COMPRESS_EXT $f.duplicateFree.ffvals$COMPRESS_EXT
-      prevK=`gzip -cqfd $f.duplicateFree$COMPRESS_EXT | wc -l`
-      totalPrevK=$((totalPrevK + prevK))
-      append-uniq.pl -nbest=$f.duplicateFree$COMPRESS_EXT -addnbest=$x$COMPRESS_EXT \
-         -ffvals=$f.duplicateFree.ffvals$COMPRESS_EXT -addffvals=$x.ffvals$COMPRESS_EXT
+         # We use gzip in case the user requested compressed foo files
+         touch $f.duplicateFree$COMPRESS_EXT $f.duplicateFree.ffvals$COMPRESS_EXT
+         prevK=`gzip -cqfd $f.duplicateFree$COMPRESS_EXT | wc -l`
+         totalPrevK=$((totalPrevK + prevK))
+         append-uniq.pl -nbest=$f.duplicateFree$COMPRESS_EXT -addnbest=$x$COMPRESS_EXT \
+            -ffvals=$f.duplicateFree.ffvals$COMPRESS_EXT -addffvals=$x.ffvals$COMPRESS_EXT
 
-      # Check return value
-      RVAL=$?
-      if [[ $RVAL -ne 0 ]]; then
-         error_exit "append-uniq.pl returned $RVAL"
-      fi
+         # Check return value
+         RVAL=$?
+         if [[ $RVAL -ne 0 ]]; then
+            error_exit "append-uniq.pl returned $RVAL"
+         fi
 
-      newK=`gzip -cqfd $f.duplicateFree$COMPRESS_EXT | wc -l`
-      totalNewK=$((totalNewK + newK))
+         newK=`gzip -cqfd $f.duplicateFree$COMPRESS_EXT | wc -l`
+         totalNewK=$((totalNewK + newK))
 
-      # Check if there was anything new
+         # Check if there was anything new
          if [[ $prevK -ne $newK ]]; then
-         new=1
-      fi
+            new=1
+         fi
 
-      echo -n ".";
-   done
-   echo
+         echo -n ".";
+      done
+      echo
    }
    echo "Total size of n-best list -- previous: $totalPrevK; current: $totalNewK."
    echo
@@ -776,6 +791,7 @@ while [[ 1 ]]; do
          echo New model identical to previous one.
          write_models
          echo Done on `date`
+
          exit
       fi
       # Replace the old model with the new one
@@ -787,3 +803,10 @@ while [[ 1 ]]; do
    fi
 
 done
+
+exit
+
+# All logs should go to STDERR, not STDOUT.  Since cow.sh has no primary
+# output, we use a global { } around the entire script to send all output
+# to STDERR globally, instead of doing it on each echo command.
+} >&2

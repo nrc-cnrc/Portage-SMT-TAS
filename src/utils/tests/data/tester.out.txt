@@ -14,3 +14,5 @@ this, is, a, somewhat, redundant, test, of, one, small, class, not, entirely, su
 ok
 TESTING CountingVoc: 
 ok
+TESTING CompactPhrase: 
+ok

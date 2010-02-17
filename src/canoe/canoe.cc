@@ -397,6 +397,12 @@ int MAIN(argc, argv)
    if (c.verbosity >= 2)
       c.write(cerr, 2);
 
+   // Temporary hack because TPPTs don't work with dynamic model filtering
+   if ( !c.tpptFiles.empty() && !c.loadFirst ) {
+      error(ETWarn, "Setting -load-first option, since dynamic filtering is not currently compatible with TPPTs.");
+      c.loadFirst = true;
+   }
+
    // If the user request a single file, this object will keep track of the
    // required files
    OneFileInfo  one_file_info(c);

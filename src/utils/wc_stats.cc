@@ -36,7 +36,7 @@ Options:\n\
 static bool verbose = false;
 static vector<string> infiles;
 static void getArgs(int argc, char* argv[]);
-static const char* header = "#Lines, #Words, #Char, shortest line, longest line, mean, sdev, filename";
+static const char* header = "#Lines\t#Words\t#Char\tshortest line\tlongest line\tmean\tsdev\tfilename";
 
 /**
  * Parses and cumulates stats on sentences.

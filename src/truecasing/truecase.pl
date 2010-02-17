@@ -26,10 +26,11 @@ use portage_truecaselib;
 ###### READING OF COMMAND LINE ARGUMENTS ######
 ###############################################
 
-my ($inputFile, $LMFile, $vocabCountFile, $vocabMapFile, $LMFileTitles, 
+my ($inputFile, $LMFile, $vocabCountFile, $vocabMapFile, $LMFileTitles,
     $vocabMapFileTitles, $vocabCountFileTitles,
     $unknownsMapFile, $lmOrder, $outputFile, $outputDir, $useLMOnlyFlag,
     $cleanMarkupFlag, $forceNISTTitlesFUFlag, $useNISTTitleModelsFlag,
+    $tplm, $tppt,
     $verbose, $uppercaseSentenceBeginFlag, $help);
 
 Getopt::Long::GetOptions(
@@ -43,6 +44,8 @@ Getopt::Long::GetOptions(
          'lm=s'      => \$LMFile,
          'unkmap=s'  => \$unknownsMapFile,
          'lmorder=s' => \$lmOrder,
+         'tplm=s'    => \$tplm,
+         'tppt=s'    => \$tppt,
 
       # Flags
          'useLMOnly!' => \$useLMOnlyFlag,
@@ -67,7 +70,7 @@ Getopt::Long::GetOptions(
 
 # print ("ARGV=" . (join '|', @ARGV) . "\r\n");
 # exit;
-   
+
 #Displays the help for the usage of this library
 if((defined $help) or (not defined $inputFile and (@ARGV < 1)))
 {  displayHelp();
@@ -75,7 +78,7 @@ if((defined $help) or (not defined $inputFile and (@ARGV < 1)))
 # Trains a Language Model (trigram et vocab mapping) from a sample training file given with the option "--text"
 # and save the models in their respective files given with the options "--lm" and "--map".
 }else
-{  
+{
    if((not defined $inputFile) and (@ARGV > 0))
    {  $inputFile = $ARGV[0];
    } # End if
@@ -88,7 +91,11 @@ if((defined $help) or (not defined $inputFile and (@ARGV < 1)))
 
    my @tmpFiles = undef;
 
-   if(not defined $vocabCountFile and not defined $vocabMapFile and not defined $LMFile)
+   if (defined $tplm or defined $tppt) {
+      # This pre-empts all other cases.
+      print STDERR "\ntruecase.pl: using TPT.\n" unless !$verbose;
+   }
+   elsif(not defined $vocabCountFile and not defined $vocabMapFile and not defined $LMFile)
    {
       print STDERR "truecase.pl: No model is given! Assessing PORTAGE default truecasing model names...\r\n" unless !$verbose;
       $LMFile = portage_truecaselibconstantes::DEFAULT_NGRAM_MODEL;
@@ -127,7 +134,7 @@ if((defined $help) or (not defined $inputFile and (@ARGV < 1)))
       {  $LMFileTitles = $LMFile . portage_truecaselibconstantes::TITLE_LM_FILENAME_SUFFIX;
          $LMFileTitles = undef unless (-e $LMFileTitles);
          $vocabCountFileTitles = $vocabCountFile . portage_truecaselibconstantes::TITLE_VOCABULARY_COUNT_FILENAME_SUFFIX;
-      
+
          if(-e $vocabCountFileTitles)
          {  # Generate the V1V2 mapping for NIST titiles.
             $vocabMapFileTitles = $vocabMapFile . portage_truecaselibconstantes::TITLE_VOCABULARY_MAPPING_FILENAME_SUFFIX;
@@ -143,21 +150,21 @@ if((defined $help) or (not defined $inputFile and (@ARGV < 1)))
    if(defined $unknownsMapFile and not defined $vocabMapFile)
    {  die "\r\n!!! ERROR truecase.pl: a vocabulary count or mapping model must also be given when using \"unkMap\" option (Unknown-Word-Classes)! \taborting...\r\n\r\n";
    } # End if
-   
+
    if((not defined $outputFile) and defined $outputDir)
    {  $outputDir =~ s/\/$//;  #Remove any ending slash
       my @path = portage_truecaselib::getPathAndFilenameFor($inputFile);
       $outputFile = "$outputDir/$path[0]" . portage_truecaselibconstantes::DEFAULT_TRUECASED_FILENAME_SUFFIX;
    } # End if
 
-   
+
    if(defined $unknownsMapFile or $useNISTTitleModelsFlag)
    {  print STDERR "truecase.pl: Truecasing with Unknown words resolution launched on \"$inputFile\"...\r\n" unless !$verbose;
       portage_truecaselib::advancedTruecaseFile($inputFile, $LMFile, $vocabMapFile, $unknownsMapFile, $LMFileTitles, $vocabMapFileTitles, $outputFile, $lmOrder, $forceNISTTitlesFUFlag, $useLMOnlyFlag, $uppercaseSentenceBeginFlag, $cleanMarkupFlag, $verbose);
       print STDERR "truecase.pl: Truecasing with Unknown words resolution done...\r\n" unless !$verbose;
    }else
    {  print STDERR "truecase.pl: Truecasing launched on \"$inputFile\" ...\r\n" unless !$verbose;
-      portage_truecaselib::truecaseFile($inputFile, $LMFile, $vocabMapFile, $lmOrder, $useLMOnlyFlag, $outputFile, $uppercaseSentenceBeginFlag, $cleanMarkupFlag, $verbose);
+      portage_truecaselib::truecaseFile($inputFile, $LMFile, $vocabMapFile, $lmOrder, $useLMOnlyFlag, $outputFile, $uppercaseSentenceBeginFlag, $cleanMarkupFlag, $verbose, $tplm, $tppt);
       print STDERR "truecaseengine.pl: Truecasing done...\r\n" unless !$verbose;
    } # End if
 
@@ -193,6 +200,9 @@ sub displayHelp
       --lm=s   => the Language Model (NGram file) to be used.\r\
       --unkmap=s  => the V1 to V2 of unknown words classes mapping file.\r\
       --lmOrder=s => the effective N-gram order used by the language models.\r\n\
+      --tplm=s => the Language Model (NGram file) in TPLM format to be used.\n\
+      --tppt=s => the V1 to V2 phrase table in TPPT format\n\
+                  (use vocabMap2tpt.sh to create the TPPT).\n\
    # Flags\r\
       --useLMOnly => Requests that only a given NGram model be used;\r\
                   any given V1-to-V2 will be ignored.\r\
@@ -221,16 +231,20 @@ sub displayHelp
       [--lm=ngram.lm] [--unkmap=unknows.map] [--lmOrder=3]\r\
       [--uppercaseTitlesBOW] [--useTitleModels] [--useLMOnly]\r\
       [--uppercaseBOS] [--out=text-tc[--outDir=outs]] [--verbose]\r\n\
+   truecase.pl --text=inputfile.txt --tplm=lm.tplm --tppt=mapping.tppt\n\
  WARNING:\r\
-    - You should set the values in portage_truecaselibconstantes.pm module\r\
-      for default options.\r\n\
+    - Default options are set in the portage_truecaselibconstantes.pm module.\r\n\
+    - You need the Perl modules File and IO::File.  They should be in your\r\
+      Perl lib path.\r\n\
+    - You should have a variable PORTAGE in your environment that\r\
+      points to Portage project location (for default options).\r\n\
     - You might have some errors related to malformed UTF-8 if you're\r\
       processing non-UTF-8 data.  The solution is to remove it from your\r\
       Environment variable \$LANG.  Example: if LANG==en_CA.UTF-8, set it to\r\
       LANG=en_CA and export it.  If the problem remains, set LC_ALL instead.\r\n\
  LICENSE:\r\
-  Copyright (c) 2004, 2005, Sa Majeste la Reine du Chef du Canada /\r\
-  Copyright (c) 2004, 2005, Her Majesty in Right of Canada\r\n\
+  Copyright (c) 2004-2010, Sa Majeste la Reine du Chef du Canada /\r\
+  Copyright (c) 2004-2010, Her Majesty in Right of Canada\r\n\
   This software is distributed to the GALE project participants under the terms\r\
   and conditions specified in GALE project agreements, and remains the sole\r\
   property of the National Research Council of Canada.\r\n\
@@ -265,6 +279,9 @@ B< =======================
      --lm=s  => the Language Model (NGram file) to be used.
      --unkmap=s => the V1 to V2 of unknown words classes mapping file.
      --lmOrder=s => the effective N-gram order used by the language models.
+     --tplm=s => the Language Model (NGram file) in TPLM format to be used.
+     --tppt=s => the V1 to V2 phrase table in TPPT format
+                 (use vocabMap2tpt.sh to create the TPPT).
 
    # Flags
      --useLMOnly => Requests that only a given NGram model be used;
@@ -292,8 +309,13 @@ B< =======================
    - You should set the values in portage_truecaselibconstantes.pm module
      for default options.
 
-   - You should have a variable PORTAGE in your environment that points to
-     Portage project location (for default options).
+   - Default options are set in the portage_truecaselibconstantes.pm module.\r\n\
+
+   - You need the Perl modules File and IO::File.  They should be in your\r\
+     Perl lib path.\r\n\
+
+   - You should have a variable PORTAGE in your environment that\r\
+     points to Portage project location (for default options).\r\n\
 
    - You might have some errors related to malformed UTF-8 if you're
      processing non-UTF-8 data.  The solution is to remove it from your
@@ -310,6 +332,7 @@ B< =======================
            [--lm=ngram.lm] [--unkmap=unknows.map] [--useLMOnly] [--lmOrder=3]
            [--uppercaseTitlesBOW] [--useTitleModels]
            [--uppercaseBOS] [--out=text-tc[--outDir=outs]] [--verbose]
+    truecase.pl --text=inputfile.txt --tplm=lm.tplm --tppt=mapping.tppt
 
 =head1 COPYRIGHT INFORMATION
 

@@ -78,7 +78,7 @@ DYNLIBS=-lpthread $(LIBICU)
 
 PGM_WITH_ALTERNATIVE_HELP = rescore_train
 
-MODULE_DEPENDS=canoe tm lm eval logging preprocessing
+MODULE_DEPENDS=canoe tm lm eval logging preprocessing tpt
 
 ifdef NO_PORTAGE_OPENMP
 MODULE_CF=-Wno-unknown-pragmas

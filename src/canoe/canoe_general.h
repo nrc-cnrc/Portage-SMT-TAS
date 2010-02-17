@@ -23,6 +23,7 @@
 #include <vector>
 #include <sstream>
 #include <cassert>
+#include <compact_phrase.h>
 
 using namespace std;
 using namespace Portage;
@@ -42,7 +43,10 @@ namespace Portage
    extern const int NO_MAX_LEVENSHTEIN;
 
    /// Definition of a Phrase.
-   typedef vector<Uint> Phrase;
+   /// Can be VectorPhrase or CompactPhrase, both defined in
+   /// utils/compact_phrase.h
+   typedef VectorPhrase Phrase;
+   //typedef CompactPhrase Phrase;
 
    /**
     * A range of words in a sentence [start, end):

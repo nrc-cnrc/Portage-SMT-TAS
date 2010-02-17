@@ -104,7 +104,10 @@ class MagicStreamBase : private boost::noncopyable
 
       /// A unified way of opening a pipe.
       /// @param cmd the command to open in pipe mode.
-      void makePipe(const std::string& cmd);
+      /// @return true if the pipe was opened successfully, false if it failed
+      ///         due to lack of memory.  does error(ETFatal) if it fails for
+      ///         other reasons.
+      bool makePipe(const std::string& cmd);
 
       /// A unified way of opening file.
       /// @param filename filename to open.

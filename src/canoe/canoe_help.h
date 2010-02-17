@@ -74,8 +74,17 @@ Options (in command-line format):\n\
      the syntax is:\n\
      s ||| t ||| P_1(s|t) P_2(s|t) P_1(t|s) P_2(t|s) ||| A_1(s,t) .. A_m(s,t)\n\
 \n\
-     At least one translation model is required, either using this option or\n\
-     using the -ttable-file* option pair.\n\
+ -ttable-tppt FILE1[FILE2[:..]]\n\
+     Phrase translation model file(s) in TPPT format (Tightly Packed Phrase\n\
+     Table), indexed on the source language, containing an even number of\n\
+     models, considered to be backward models followed by the same number of\n\
+     forward models.\n\
+     Like a multi-prob phrase table, a TPPT contining 2*N probs requires N\n\
+     backward weights and, if they are supplied, N forward weights.\n\
+\n\
+ Phrase table notes:\n\
+     At least one translation model must be specified (through the\n\
+     -ttable-tppt or -ttable-file* options).\n\
      The number of translation models must match the number of translation\n\
      model weights.\n\
 \n\
@@ -94,8 +103,7 @@ Options (in command-line format):\n\
      correcting it requires multiplying the desired -weight-l values by\n\
      log(10), which cow/rat/rescore_train do implicitly.  We chose not to\n\
      fix it to avoid having to adjust all previously tuned sets of weights.\n\
-     Note that throughout PORTAGEshared, logs are natural by default, not\n\
-     base 10.\n\
+     Note that throughout Portage, logs are natural by default, not base 10.\n\
 \n\
  -lmodel-order LMORDER\n\
      If non-zero, globally limits the order of all language models. [0]\n\
@@ -105,9 +113,10 @@ Options (in command-line format):\n\
      The translation model weight(s).  If this option is used, the number of\n\
      weights must match the number of translation models specified.  [1.0]\n\
 \n\
-     If a mix of text and multi-prob translation models are specified, the\n\
-     weights of the single-prob text translation models come first, then\n\
-     the weights of the multi-prob models.\n\
+     If a mix of text, multi-prob and TPPT translation models are\n\
+     specified, the weights of the single-prob text translation models come\n\
+     first, then the weights of the multi-prob models, finally the weights of\n\
+     the TPPT models.\n\
 \n\
  -weight-f W1[:W2[:..]]\n\
  -ftm W1[:W2[:..]]\n\
@@ -180,7 +189,7 @@ Options (in command-line format):\n\
 \n\
  -ttable-limit L\n\
      The number of target phrases to keep in translation table pruning; 0\n\
-     means no limit.  If used, forward probs should be provided (via\n\
+     means no limit.  If used, forward probs should be provided (via the\n\
      -ttable-* options); ttable pruning is arbitrary otherwise. [0]\n\
 \n\
  -ttable-threshold T\n\
