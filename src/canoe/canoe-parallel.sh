@@ -16,6 +16,7 @@
 
 PATH="$PATH:/usr/local/bin"
 
+TIMEFORMAT="Single-job-total: Real %3Rs User %3Us Sys %3Ss PCPU %P%%"
 CANOE=canoe
 MIN_DEFAULT_NUM=4
 MAX_DEFAULT_NUM=10
@@ -217,6 +218,24 @@ if [ $VERBOSE -gt 0 ]; then
       echo "NOT using load-balancing" >&2
    fi
 fi
+
+# When using TPLMs and TPPTs, we need to request additional virtual memory
+# allowance for memory mapped IO.
+   FILE_PATTERN="-f  *([^ ][^ ]*)"
+   if [[ "${CANOEOPTS[*]}" =~ ${FILE_PATTERN} ]]; then
+      CONFIGFILE=${BASH_REMATCH[1]}
+   else
+      CONFIGFILE=canoe.ini
+   fi
+   debug CONFIGFILE=$CONFIGFILE
+   if (configtool check $CONFIGFILE > /dev/null); then true; else
+      error_exit "Problem with config file $CONFIGFILE."
+   fi
+   MEMMAP_SIZE=`configtool memmap $CONFIGFILE`
+   debug MEMMAP_SIZE=$MEMMAP_SIZE
+   if [[ $MEMMAP_SIZE -ge 1024 ]]; then
+      PSUBOPTS="$PSUBOPTS -memmap $((MEMMAP_SIZE / 1024))"
+   fi
 
 if [ $DEBUG ]; then
    echo "
@@ -432,7 +451,7 @@ fi
 # Reassemble the program's STDOUT
 if [ -n "$LOAD_BALANCING" ]; then
    # Sort translation by src sent id and then remove id
-   cat $WORK_DIR/out.* | sort -g | cut -f2
+   time { cat $WORK_DIR/out.* | sort -g | cut -f2; }
    TOTAL_LINES_OUTPUT=`cat $WORK_DIR/out.* | wc -l`
 else
    TOTAL_LINES_OUTPUT=0
@@ -492,12 +511,12 @@ if [ -n "$APPEND" ]; then
       debug "LB FFVALS output: $OUTPUT"
       test -f $OUTPUT && \rm $OUTPUT
       s=0;
-      while [ $s -lt $NUM_MERGE ]; do
+      time { while [ $s -lt $NUM_MERGE ]; do
          base_filename=`printf "${NBEST_PREFIX}.%4.4d.${K}best.ffvals$NBEST_COMPRESS" $s`
          cat ${base_filename} >> $OUTPUT
          \rm ${base_filename}
          s=$((s + 1));
-      done
+      done; }
    fi
 
    # merge pal files
@@ -506,12 +525,12 @@ if [ -n "$APPEND" ]; then
       debug "LB PAL output: $OUTPUT"
       test -f $OUTPUT && \rm $OUTPUT
       s=0;
-      while [ $s -lt $NUM_MERGE ]; do
+      time { while [ $s -lt $NUM_MERGE ]; do
          base_filename=`printf "${NBEST_PREFIX}.%4.4d.${K}best.pal$NBEST_COMPRESS" $s`
          cat ${base_filename} >> $OUTPUT
          \rm ${base_filename}
          s=$((s + 1));
-      done
+      done; }
    fi
 
    # merge the nbest files
@@ -520,12 +539,12 @@ if [ -n "$APPEND" ]; then
       debug "LB NBEST output: $OUTPUT"
       test -f $OUTPUT && \rm $OUTPUT
       s=0;
-      while [ $s -lt $NUM_MERGE ]; do
+      time { while [ $s -lt $NUM_MERGE ]; do
          base_filename=`printf "${NBEST_PREFIX}.%4.4d.${K}best$NBEST_COMPRESS" $s`
          cat ${base_filename} >> $OUTPUT
          \rm ${base_filename}
          s=$((s + 1));
-      done
+      done; }
    fi
 fi
 
