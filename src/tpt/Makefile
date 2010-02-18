@@ -1,13 +1,12 @@
 # Makefile for stuff related to tightly packed tries
 #
+# Author: Ulrich Germann / Eric Joanis
+#
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2005, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2005, Her Majesty in Right of Canada
-
-BOOST_INCDIR = -I${BOOST_ROOT}/include
-BOOST_LIBDIR = -L${BOOST_ROOT}/lib
+# Copyright 2008, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2008, Her Majesty in Right of Canada
 
 OBJECTS = \
    bitwise.o \

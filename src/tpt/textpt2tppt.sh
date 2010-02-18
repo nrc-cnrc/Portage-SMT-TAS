@@ -1,7 +1,6 @@
 #!/bin/bash
 # @file textpt2tppt.sh 
-# @brief Convert a text format Phrase Table into a Tightly Packed Phrase Table
-# (TPPT): a PT encoded using Uli's Tightly Packed tries.
+# @brief Convert a text Phrase Table into a TPPT.
 # 
 # @author Eric Joanis, based on Uli Germann's usage instructions
 # 

@@ -14,7 +14,12 @@
 # Copyright 2008, Her Majesty in Right of Canada
 
 # Includes NRC's bash library.
-source "`dirname \"$0\"`/sh_utils.sh"
+BIN=`dirname $0`
+if [[ ! -r $BIN/sh_utils.sh ]]; then
+   # assume executing from src/tpt directory
+   BIN="$BIN/../utils"
+fi
+source $BIN/sh_utils.sh
 
 # Exit if a pipe fails.
 set -o pipefail;

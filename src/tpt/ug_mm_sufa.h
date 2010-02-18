@@ -1,5 +1,19 @@
+// This file is derivative work from Ulrich Germann's Tightly Packed Tries
+// package (TPTs and related software).
+//
+// Original Copyright:
+// Copyright 2005-2009 Ulrich Germann; all rights reserved.
+// Under licence to NRC.
+//
+// Copyright for modifications:
+// Technologies langagieres interactives / Interactive Language Technologies
+// Inst. de technologie de l'information / Institute for Information Technology
+// Conseil national de recherches Canada / National Research Council Canada
+// Copyright 2008-2010, Sa Majeste la Reine du Chef du Canada /
+// Copyright 2008-2010, Her Majesty in Right of Canada
+
+
 // (c) 2007-2009 Ulrich Germann. All rights reserved.
-// Licensed to NRC under special agreement.
 
 #ifndef _ug_mm_sufa_h
 #define _ug_mm_sufa_h

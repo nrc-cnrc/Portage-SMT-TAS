@@ -3,7 +3,7 @@
 # $Id$
 
 # @file textldm2tpldm.sh
-# @brief
+# @brief Convert a text LDM to a TPLDM.
 #
 # @author Samuel Larkin
 #
