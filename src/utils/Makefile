@@ -81,6 +81,7 @@ BINSCRIPTS = \
         ngrams.pl \
         ospl2mteval.pl \
         outpipe.sh \
+        p-res-mon.sh \
         parallel-uniq.pl \
         parallelize.pl \
         parse-monitor.sh \
