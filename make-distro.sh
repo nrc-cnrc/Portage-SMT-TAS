@@ -280,6 +280,9 @@ make_pdfs() {
          run_cmd cp */*.pdf ../doc/
          run_cmd make clean '>&' /dev/null
          run_cmd rm -f canoe/uml.eps
+         run_cmd cp -p adaptation/README ../doc/README.adaptation
+         run_cmd cp -p confidence/README ../doc/README.confidence
+         run_cmd cp -p rescoring/README ../doc/README.rescoring
       run_cmd popd
 
       run_cmd pushd ./test-suite/unit-testing/toy
