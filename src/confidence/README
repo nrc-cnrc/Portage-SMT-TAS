@@ -1,0 +1,227 @@
+CONFIDENCE ESTIMATION IN PORTAGE
+
+
+1. INTRODUCTION
+
+This is PORTAGE's sentence-level confidence estimation (CE) layer.
+The purpose of CE in this context is to produce a value -- typically a
+real-valued number between 0 and 1 -- that reflects the translation
+system's belief that it has done a Good Job.  This number can then be
+used for various things, for example filtering out lower-quality or
+dubious machine translations, prioritizing post-editing effort, etc.
+
+Schematically, a source-language sentence Q is submitted to PORTAGE,
+which produces a translation P.  The CE component then produces a
+value Z, based on examination of the whole process. 
+
+  +---------------------------+
+  |        +---------+        |      +----+
+  | Q ---> | PORTAGE | ---> P | ---> | CE | ---> Z
+  |        +---------+        |      +----+
+  +---------------------------+
+
+In this context, the term "examination" really means "feature
+extraction": Characteristics of Q, P, the relation between Q and P, as
+well as the internal state of the PORTAGE system after translation are
+extracted as feature values X_1, X_2, ..., X_N, and fed to the CE
+system for computing the value of Z.  For example, the following
+features could be used:
+
+X_1  = q.clen           Number of characters in Q
+X_2  = q.wlen           Number of words in Q
+X_3  = p.clen           Number of characters in P
+X_4  = p.wlen           Number of words in P
+X_5  = qp.clen.ratio    q.clen / p.clen
+X_6  = qp.wlen.ratio    q.wlen / p.wlen
+X_7  = p.score          The loglinear model score computed by PORTAGE
+                        for P 
+X_8  = q.oov            Number of out-of-vocabulary (unknown to
+                        PORTAGE) words in Q
+X_9  = p.plen           Number of phrases used by PORTAGE to translate
+                        Q into P 
+X_10 = p.pmax           Length (in words) of the longest phrase used
+                        by PORTAGE to translate Q into P
+X_11 = q.lm             prob(Q), as estimated by a source-language
+                        ngram model 
+X_12 = p.lm             prob(P), as estimated by a target-language
+                        ngram model 
+X_13 = qp.ibm1          prob(P|Q), as estimated by a IBM1 translation
+                        model 
+X_14 = qp.ibm1.rev      prob(Q|P), as estimated by a IBM1 translation
+                        model 
+X_15 = qp.ibm2          prob(P|Q), as estimated by a IBM2 translation
+                        model 
+X_16 = qp.ibm2.rev      prob(Q|P), as estimated by a IBM2 translation
+                        model 
+X_17 = qp.hmm           prob(P|Q), as estimated by a HMM translation
+                        model 
+X_18 = qp.hmm.rev       prob(Q|P), as estimated by a HMM translation
+                        model
+etc.
+
+The internal function that computes CE values from these features
+could of course be anything.  In this implementation, CE is based on a
+supervised machine learning approach (a regression SVM).  This means
+that the CE function is learned from a training set, i.e. a collection
+of labeled examples of the form < X_1, X_2, ..., X_N, Y >.  
+
+Where do these learning examples come from?  One way to obtain them
+would be to take a sample source text, have it translated into target
+language by PORTAGE, then ask a human judge to manually label each
+translation with a score Y reflecting how good he/she thinks the
+translation is.
+
+Here, we take a different approach.  We choose a sample source text for
+which human translations are already available.  From there, it is
+possible to apply automatic translation quality metrics, such as BLEU
+or WER, and use these values as training labels Y.  Formally:
+
+- the training set is computed from a collection of pairs of sentences
+  < Q, R >, where Q is a source-language sentence (the "query") and R is
+  a human-quality translation (the "reference") for Q. (The method
+  presented here can be generalized to multiple references R_1...R_M)
+
+- each sentence Q is machine-tranlated --> P
+
+- features are extracted from Q, P and PORTAGE's state after
+  translation:  X = X_1, ..., X_N
+
+- the "quality" of P is measured by means of an automatic quality
+  metric H: Y = H(P,R)
+
+- The CE function is learned from the resulting training examples 
+  < X_1, X_2, ..., X_N, Y > 
+
+Note: There are obvious conceptual similarities between CE and
+rescoring.  The main difference between the two is that the scoring
+function of rescoring is designed to rank multiple translations of the
+same sentence, while CE attempts to rank translations of different
+sentences on an identical scale.
+
+
+
+2. INSTALLING
+
+You first make sure you have the following Perl modules:
+
+File::Temp
+File::Spec
+List::Util
+
+Also, if you plan to use TMX or TTX files 
+
+XML::Twig
+Time::gmtime
+
+You also need the LIBSVM package
+(http://www.csie.ntu.edu.tw/~cjlin/libsvm). Make sure that svm-train
+and svm-predict are in your path.
+
+Then, cd to this directory and do "make install".  (This was already done
+automatically if you installed all of Portage.)
+
+
+
+3. USING THIS TOOLKIT.
+
+This CE toolkit has been implemented somewhat in the same spirit as
+PORTAGE's rescoring component (in fact, it relies on some rescoring
+programs, most notably gen_feature_values).  This means that it is
+designed to operate in "batch" mode: all input and output is done
+through files, and many intermediate values (feature values,
+etc.) are stored in temporary files.
+
+If you're a casual user, the only program you need to know about is
+ce_translate.pl.  This handles most everything about CE, both for
+training and testing/running, including the translation process
+itself, as well as some pre- and post-processing issues such as
+tokenization, lowercasing, truecasing and detokenization.
+
+To train a CE component:
+
+  % ce_translate.pl -train -desc=ce_desc canoe_ini ce_model source_text target_text
+
+Argument canoe_ini points to a PORTAGE config file; ce_model is the
+name of the file in which the trained model will be saved; the source
+text file (source_text) is assumed to be plain (truecase, untokenized)
+text, in one-sentence-per-line format, as is the target_text, and both
+source_test and target_text are assumed to be aligned line-for-line.
+
+File "ce_desc" (-desc option) contains a description of the structure
+of the CE model, essentially a list of features.  The format of this
+file is documented in the on-line documentation of program
+"ce_train.pl". To consult this documentation, do:
+
+  % ce_train.pl -help=desc
+
+You can also find example files in this directory, called "ce.ini" and
+"ce-notm.ini".
+
+Once you have trained a CE model, you can use it to compute CE values
+for a new text file.  To do this, you can call ce_tranlate.pl like
+this:
+
+  % ce_translate.pl canoe_ini ce_model source_text > ce_output
+
+For each input line in source_text, file ce_output will contain a line
+with two tab-separated fields: a numerical CE value and the
+translation of the input.
+
+
+4. ADDITIONAL DETAILS
+
+Program ce_translate.pl has all kinds of options, e.g. to handle
+pre-tokenized or pre-lowercased text, unsegmented text, TMX or TTX
+input, translation memory output files, reference translations for
+testing, etc.  The online help is the reference for all these options:
+
+  % ce_translate.pl -help
+
+It is worth knowing that ce_translate.pl creates a temporary working
+directory, which is cleaned-up and deleted at the end of the process.
+But you can override this behavior with the -dir=D option: the program
+then stores all intermediate results, including the text's translation
+and all feature values in directory D, which is not deleted at the end
+of the process.  Within this directory:
+
+- Q.txt is the source-language text, in plain-text format
+- p.tok is in lowercase tokenized format
+- P.txt is PORTAGE's output, truecased and tokenized, but you need to
+  specify truecasing model files with options -tclm and -tcmap
+  for this to work. 
+- R.txt is the reference translation, in plain-text format
+- {Q,P,R}.tok are tokenized versions of these texts
+- {q,p,r}.tok are lowercase, tokenized versions of these texts
+- p.raw is the  raw output from PORTAGE's canoe
+
+ce_translate.pl is a wrapper, which calls a number of programs.  We
+briefly describe the most important of these below:
+
+- ce_canoe2ffvals.pl: Parse the output of PORTAGE's canoe (assuming
+  the -trace and -ffvals options) to produce individual text and
+  feature value files required by this toolkit.
+- ce_train.pl: performs CE model training.
+- ce.pl: computes CE values.
+
+All of these programs assume the existence of a working directory, as
+generated by ce_translate.pl, and the file naming convention described
+above within that directory.  All programs accept the -help option.
+Moreover, more specific help can be obtained by calling ce.pl or
+ce_train.pl like this:
+
+- For help on the format of the CE model description file:
+
+  % ce.pl -help=desc
+
+- About the features themselves:
+
+  % ce.pl -help=features
+
+- About dependencies between features:
+
+  % ce.pl -help=depend
+
+
+
+Author: Michel Simard
+

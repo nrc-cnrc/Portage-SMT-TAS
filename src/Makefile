@@ -8,8 +8,8 @@
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
 
-.PHONY: all clean install export docs test
-all clean install export docs test:
+.PHONY: all clean install export docs test lib
+all clean install export docs test lib:
 	$(MAKE) OT=$@ subdirs
 
 # Targets new and new_install need to be custom defined here, because
@@ -25,12 +25,16 @@ new_install:
 	$(MAKE) OT=install subdirs
 
 # These directories will be compiled by default
-SUBDIRS = logging distortion preprocessing truecasing tpt \
-          lm tm canoe adaptation rescoring api eval
+# IMPORTANT NOTE: when you add a directory here, you must also add it to the
+# DIRECTORY DEPENDENCIES section below.
+SUBDIRS = adaptation api canoe confidence distortion eval \
+          lm logging preprocessing rescoring \
+          tm tpt truecasing 
 
 # Additional directories listed here are only compiled if explicitly
 # specified.  Use this for modules in development that are not ready to be
 # generally used yet.
+# Directories listed here must also be covered in DIRECTORY DEPENDENCIES.
 ALL_SUBDIRS = $(SUBDIRS)
 
 .PHONY: subdirs utils $(ALL_SUBDIRS) validate_subdir_dependencies
@@ -47,34 +51,52 @@ utils: validate_subdir_dependencies
 $(ALL_SUBDIRS): utils
 	$(MAKE) -C $@ $(OT)
 
-%_progs:
-	$(MAKE) OT=lib $*
+# Target used to make just the strict minimum to build the programs in one
+# directory: its dependent libraries, its own library, and its executables.
+%/progs: DEPENDENT_LIBS=utils $(call calc_deps,$*) $*
+%/progs:
+	$(MAKE) $(foreach D,$(DEPENDENT_LIBS),$D/lib)
 	$(MAKE) -C $* $(OT)
 
-# If you create a new subdirectory, add its dependencies here (except for
-# utils, which everything is assumed to depend on)
+# Target used to make just the library (.a file) in a subdirectory
+%/lib:
+	$(MAKE) -C $* lib
 
-api: canoe tm lm logging tpt
-canoe: logging tm lm tpt
-distortion: tm
-eval: logging
-lm: tpt
-rescoring: canoe tm lm eval logging preprocessing tpt
-tm: logging
-truecasing: lm tpt
+# This target allows the syntax <dir>/<program>, e.g., canoe/canoe or
+# tm/train_ibm, to do the strict minimum amount of work required to compile
+# that one program: the dependent libraries, the library in <dir>, and
+# <program> itself in <dir>.
+DIR_CMD=$(foreach D,$(ALL_SUBDIRS) utils,$D/%)
+$(DIR_CMD): FORCE
+	$(MAKE) OT=$* $(word 1,$(subst /, ,$@))/progs
 
-validate_subdir_dependencies:
-	@if [[ "`grep '^ *MODULE_DEPENDS.*[^ =]' */Makefile | perl -ple 's/\/Makefile//; s/MODULE_DEPENDS\s*=/ /; s/\s+/ /' | wc`" \
-	      != \
-	      "`grep '^ *MODULE_DEPENDS.*[^ =]' */Makefile | perl -ple 's/\/Makefile//; s/MODULE_DEPENDS\s*=/ /; s/\s+/ /' | grep -x -f - Makefile  | wc`" \
-	   ]]; then \
-	   echo There is an error in the module dependency block in src/Makefile. ; \
-	   echo Please update it as follows '(you can cut and paste the following lines)': ; \
-	   grep '^ *MODULE_DEPENDS.*[^ =]' */Makefile | \
-	      perl -ple 's/\/Makefile//; s/MODULE_DEPENDS\s*=/ /; s/\s+/ /' | \
-	      diff - Makefile | grep '^<' | sed 's/^< //' ; \
-	   exit 1 ; \
-	fi
+.PHONY: FORCE
+FORCE::
+
+# Automatically calculate the dependencies for each module, by reading its
+# Makefile and consulting its MODULE_DEPENDS variable
+calc_deps = $(shell perl -pe 's/\\\n$$/ /' < $(1)/Makefile | grep MODULE_DEPENDS | sed 's/ *MODULE_DEPENDS *= *//')
+
+# DIRECTORY DEPENDENCIES
+# Each directory in $(SUBDIRS) and $(ALL_SUBDIRS) must be listed here, even if
+# it does not currently have any dependencies.
+adaptation:     $(call calc_deps,adaptation)
+api:            $(call calc_deps,api)
+canoe:          $(call calc_deps,canoe)
+confidence:     $(call calc_deps,confidence)
+distortion:     $(call calc_deps,distortion)
+eval:           $(call calc_deps,eval)
+lm:             $(call calc_deps,lm)
+logging:        $(call calc_deps,logging)
+preprocessing:  $(call calc_deps,preprocessing)
+rescoring:      $(call calc_deps,rescoring)
+tm:             $(call calc_deps,tm)
+tpt:            $(call calc_deps,tpt)
+truecasing:     $(call calc_deps,truecasing)
+# EJJ design note: can't figure out how to make the list above automatically
+# apply to everything in $(ALL_SUBDIRS), unfortunately, so we'll still have to
+# manually add each directory in both places, but at least the actual list of
+# dependencies is now calculated.
 
 
 # This next section is to generate web pages from the programs help message.
@@ -92,7 +114,7 @@ index.html: make_module_usage
 	| sed 's#.*/##' \
 	| tr " " "\n" \
 	| sort \
-	| ./utils/pgm_usage_2_html.pl -main "PORTAGEshared: Usage information by program" \
+	| ./utils/pgm_usage_2_html.pl -main "Portage v1.4: Usage information by program" \
 	> ${USAGE_DIR}/$@
 	cp build/*.gif build/*.jpg ${USAGE_DIR}
 

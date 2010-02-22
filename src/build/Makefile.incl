@@ -265,6 +265,10 @@ export: all install_inc install_static_lib install_dyn_lib
 new_install: clean
 	$(MAKE) install
 
+# go up once to build all required libraries
+lib-deps:
+	$(MAKE) -C .. $(foreach L,$(MODULE_DEPENDS) utils,$L/lib)
+
 # Utility target
 FORCE::
 
@@ -485,7 +489,7 @@ MODULE_USAGE_DIR = ${USAGE_DIR}/${MODULE_NAME}
 # Main alias to create the web pages.
 .PHONY: usage
 
-USAGE_PROGRAMS   = $(filter-out $(TESTPROGS), $(PROGRAMS)) ${BINSCRIPTS}
+USAGE_PROGRAMS   = $(filter-out $(TESTPROGS), $(PROGRAMS)) ${BINSCRIPTS} $(wildcard README)
 
 # usage: index per module of all available programs
 # usage in each modules will require lib in dependent modules
@@ -509,6 +513,11 @@ vpath %.html ${MODULE_USAGE_DIR}
 %.html: %
 	install -d -m0750 ${MODULE_USAGE_DIR}
 	./$* -h 2>&1 | ../utils/pgm_usage_2_html.pl -pgm ${MODULE_NAME}/$* > ${MODULE_USAGE_DIR}/$@
+
+# Special case: a README is included verbatim in the usage page.
+README.html: README
+	install -d -m0750 ${MODULE_USAGE_DIR}
+	cat README | ../utils/pgm_usage_2_html.pl -pgm ${MODULE_NAME}/README > ${MODULE_USAGE_DIR}/$@
 
 # This is a special target for programs that also have the alternative help
 # message aka -H.

@@ -15,7 +15,7 @@
 use strict;
 use warnings;
 
-print STDERR "pgm_usage_2_html.pl, NRC-CNRC, (c) 2006 - 2008, Her Majesty in Right of Canada\n";
+print STDERR "pgm_usage_2_html.pl, NRC-CNRC, (c) 2006 - 2010, Her Majesty in Right of Canada\n";
 
 sub usage {
    local $, = "\n";
@@ -30,11 +30,12 @@ Usage: $0 [options] [<in> [<out>]]
 
 Options:
 
-  -pgm <MODULE>/<NAME>    Creates a web page with the content of a program called <NAME>
-                 with it's help description given by <in>.
+  -pgm <MODULE>/<NAME>  Creates a web page with the content of a program called
+                 <NAME> with its help output given by <in>.
   -module <NAME> Creates list of available program in a module.  Expects a list
                  of all available programs as <in>.
   -main <TITLE>  Creates a web page with the list of all modules given by <in>.
+  -index <TITLE> Creates a web page listing all programs.
 
   -h(elp)       print this help message
   -v(erbose)    increment the verbosity level by 1 (may be repeated)
@@ -98,11 +99,11 @@ if (defined($main_index)) {
 elsif (defined($full_index)) {
    $title = $full_index;
    $NRC_logo_path = ".";
-   $hierarchy = " <A HREF=\"index.html\">PORTAGEshared</A>";
+   $hierarchy = " <A HREF=\"index.html\">Portage v1.4</A>";
 }
 else {
    $NRC_logo_path = "..";
-   $hierarchy = "<A HREF=\"../index.html\">PORTAGEshared</A> /";
+   $hierarchy = "<A HREF=\"../index.html\">Portage v1.4</A> /";
    if (defined($module_index)) {
       $title = "Module: $module_index";
       $hierarchy .= " $module_index /";
@@ -124,7 +125,7 @@ my $header = <<HEADER;
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD>
-  <TITLE>PORTAGE shared - $title</TITLE>
+  <TITLE>Portage v1.4 - $title</TITLE>
   </HEAD>
   <BODY BGCOLOR="#FFFFFF" LINK="#0000ff" VLINK="#006600">
 
@@ -141,7 +142,7 @@ my $footer = <<FOOTER;
 <table width="100%" border="0" cellpadding="0" cellspacing="0"> 
 <tr>
   <td width="20%" valign="bottom" align="right">
-    <img src="$NRC_logo_path/iit_sidenav_graphictop_e.gif" height="54" alt="NRC-IIT - Institute for Information Technology" />
+    <img src="$NRC_logo_path/iit_sidenav_graphictop_e.gif" height="54" alt="NRC-IIT" />
   </td>
   <td width="60%" valign="bottom" align="center" class="imgcell">
      <img src="$NRC_logo_path/mainf1.gif" alt="National Research Council Canada" width="286" height="44" />
@@ -152,13 +153,15 @@ my $footer = <<FOOTER;
 </tr>
 <tr>
   <td valign="top" align="right">
-    <img src="$NRC_logo_path/iit_sidenav_graphicbottom_e.gif" alt="NRC-IIT - Institute for Information Technology" />
+    <img src="$NRC_logo_path/iit_sidenav_graphicbottom_e.gif" alt="Institute for Information Technology" />
   </td>
   <td valign="top" align="center">
+  <font size=-1>
 Technologies langagi&egrave;res interactives / Interactive Language Technologies<BR>
 Institut de technologie de l'information / Institute for Information Technology<BR>
 Conseil national de recherches Canada / National Research Council Canada<BR>
-Copyright &copy; 2004-2009, Sa Majest&eacute; la Reine du Chef du Canada / Her Majesty in Right of Canada
+Copyright &copy; 2004-2010, Sa Majest&eacute; la Reine du Chef du Canada / Her Majesty in Right of Canada
+  </font>
   </td>
 </tr>
 </table> 
@@ -192,7 +195,13 @@ if (defined($module_index)) {
       if ($code =~ /[#\*] \@brief\s+(.*?)^\s*([#\*]\s*$|[#\*]\s*\@|\*\/)/ms) {
          my $oneliner = $1;
          $oneliner =~ s/[#\*\n]//g;
+         $oneliner =~ s/&/&amp;/g;
+         $oneliner =~ s/</&lt;/g;
+         $oneliner =~ s/>/&gt;/g;
          chomp($oneliner);
+         print OUT "<TD ALIGN=\"left\" VALIGN=\"top\">$oneliner</TD>";
+      } elsif ($pgm_name eq "README") {
+         my $oneliner = "README file for the $module_index module.";
          print OUT "<TD ALIGN=\"left\" VALIGN=\"top\">$oneliner</TD>";
       }
       print OUT "</TR>\n";
@@ -203,7 +212,7 @@ if (defined($module_index)) {
 }
 # Compile a list of all available module in Portage.
 elsif (defined($main_index)) {
-   print OUT "<H2>PORTAGEshared programs by module:</H2><BR>
+   print OUT "<H2>Portage v1.4 programs by module:</H2><BR>
    <UL>
    ";
    while (<IN>) {
@@ -236,11 +245,13 @@ elsif (defined($full_index)) {
       }
 
       # Grab the link and store it memory.
-      if (/HREF="(.*html)"/) {
+      if (/HREF="(.*)\.html"/) {
          my $key = $1;
          $key =~ s/.*\///;
+         s#(\Q$key\E</A>)#$1 (<A HREF="$module_name/index.html">$module_name</A>)# or warn "No Key: $key";
+         #print STDERR "POST $_\n";
          $key = lc($key);
-         $list{$key} = $_;
+         $list{"$key/$module_name"} = $_;
       }
       else {
          print STDERR "<WARN>: Couldn't detect a link.\n";
