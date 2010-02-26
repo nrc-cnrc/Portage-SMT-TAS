@@ -50,7 +50,7 @@ static void getArgs(int argc, char* argv[]);
  * Convert the casing for an input file.
  * @arg convet  What UTF8Utils function to use to convert the casing.
  */
-void process(string& (UTF8Utils::*convert)(const string&, string&)) {
+void process(const string& (UTF8Utils::*convert)(const string&, string&)) {
    iSafeMagicStream istr(infile);
    oSafeMagicStream ostr(outfile);
 

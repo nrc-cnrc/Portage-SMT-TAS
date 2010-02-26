@@ -70,7 +70,7 @@ public:
     * @param out output UTF8 string (may be \<in\>)
     * @return out
     */
-   string& toUpper(const string& in, string& out);
+   const string& toUpper(const string& in, string& out);
 
    /**
     * Convert a UTF8 string to lowercase. If the string isn't valid UTF8,
@@ -80,7 +80,7 @@ public:
     * @param out output UTF8 string (may be \<in\>)
     * @return out
     */
-   string& toLower(const string& in, string& out);
+   const string& toLower(const string& in, string& out);
 
    /**
     * Convert the first character of a UTF8 string to uppercase. If the string
@@ -90,7 +90,7 @@ public:
     * @param out output UTF8 string (may be \<in\>)
     * @return out
     */
-   string& capitalize(const string& in, string& out);
+   const string& capitalize(const string& in, string& out);
 
 
    /**
@@ -101,7 +101,7 @@ public:
     * @param out output UTF8 string (may be \<in\>)
     * @return out
     */
-   string& decapitalize(const string& in, string& out);
+   const string& decapitalize(const string& in, string& out);
 
 };
 

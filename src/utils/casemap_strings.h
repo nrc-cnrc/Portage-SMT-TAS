@@ -32,7 +32,7 @@ namespace Portage {
 
 class CaseMapStrings {
 
-   locale loc;
+   locale* loc;
    UTF8Utils* utf8;
 
    void init();
@@ -41,14 +41,20 @@ public:
 
    /**
     * Create, using given locale
+    * @post loc!=NULL
     */
    CaseMapStrings(const char* loc_name);
    CaseMapStrings(const locale& loc);
 
    /**
+    * Destructor
+    */
+   ~CaseMapStrings();
+
+   /**
     * Name of the locale being used for case conversion.
     */
-   string localeName() {return loc.name();}
+   string localeName() {return loc->name();}
 
 
    /**
@@ -57,7 +63,7 @@ public:
     * @param out uppercase version of \<in\> (may be in)
     * @return out
     */
-   string& toUpper(const string& in, string& out) const;
+   const string& toUpper(const string& in, string& out) const;
 
    string toUpper(const string& in) const {
       string out;
@@ -70,7 +76,7 @@ public:
     * @param out lowercase version of \<out\> (may be \<in\>)
     * @return out
     */
-   string& toLower(const string& in, string& out) const;
+   const string& toLower(const string& in, string& out) const;
 
    string toLower(const string& in) const {
       string out;
@@ -83,7 +89,7 @@ public:
     * @param out capitalized version of \<out\> (may be \<in\>)
     * @return out
     */
-   string& capitalize(const string& in, string& out) const;
+   const string& capitalize(const string& in, string& out) const;
 
    string capitalize(const string& in) const {
       string out;
@@ -96,7 +102,7 @@ public:
     * @param out decapitalized version of \<out\> (may be \<in\>)
     * @return out
     */
-   string& decapitalize(const string& in, string& out) const;
+   const string& decapitalize(const string& in, string& out) const;
 
    string decapitalize(const string& in) const {
       string out;

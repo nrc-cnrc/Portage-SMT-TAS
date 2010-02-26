@@ -44,17 +44,18 @@ class LMDynMap : public PLM
    // Define the available mappings
 
    struct Mapping {
-      virtual string& operator()(string& in) = 0;
+      virtual ~Mapping() {}
+      virtual const string& operator()(string& in) = 0;
    };
 
    struct IdentMap : public Mapping {
-      virtual string& operator()(string& in) {return in;}
+      virtual const string& operator()(string& in) {return in;}
    };
 
    struct LowerCaseMap : public Mapping {
       CaseMapStrings cms;
       string out;
-      virtual string& operator()(string& in) {return cms.toLower(in, out);}
+      virtual const string& operator()(string& in) {return cms.toLower(in, out);}
       LowerCaseMap(const char* loc) : cms(loc) {}
    };
 
@@ -86,7 +87,7 @@ class LMDynMap : public PLM
        * @return Returns the transformed in where the digits get substituted by
        *         token.
        */
-      virtual string& operator()(string& in) {
+      virtual const string& operator()(string& in) {
          (*mapper)(in, out);
          return out;
       }

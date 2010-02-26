@@ -19,6 +19,10 @@ PROGRAMS = \
         sample_parallel_text \
 	ssal
 
+DYNLIBS= $(LIBICU)
+
+MODULE_DEPENDS = tm
+
 BINSCRIPTS = $(wildcard *.pl)
 
 PERL_LIBS = $(wildcard *.pm)

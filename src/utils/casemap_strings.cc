@@ -10,15 +10,16 @@
  */
 #include "casemap_strings.h"
 #include "errors.h"
+#include <stdexcept>
 
 using namespace Portage;
 
 void CaseMapStrings::init()
 {
-   if (loc.name().find("utf8", 0) != string::npos ||
-       loc.name().find("utf-8", 0) != string::npos ||
-       loc.name().find("UTF8", 0) != string::npos ||
-       loc.name().find("UTF-8", 0) != string::npos) {
+   if (loc->name().find("utf8", 0) != string::npos ||
+       loc->name().find("utf-8", 0) != string::npos ||
+       loc->name().find("UTF8", 0) != string::npos ||
+       loc->name().find("UTF-8", 0) != string::npos) {
 #ifndef NOICU
       utf8 = new UTF8Utils();
 #else
@@ -31,53 +32,64 @@ void CaseMapStrings::init()
 }
 
 CaseMapStrings::CaseMapStrings(const char* loc_name) :
-   loc(loc_name), utf8(NULL)
+   loc(NULL), utf8(NULL)
 {
-   init();
+   try {
+      loc = new locale(loc_name);
+      init();
+   } catch (std::runtime_error& e) {
+      error(ETFatal, "Locale name %s is not valid.  See /usr/lib/locale for a list of valid locales.", loc_name);
+   }
 }
 
 CaseMapStrings::CaseMapStrings(const locale& loc) :
-   loc(loc), utf8(NULL)
+   loc(NULL), utf8(NULL)
 {
+   this->loc = new locale(loc);
    init();
 }
 
-string& CaseMapStrings::toUpper(const string& in, string& out) const
+CaseMapStrings::~CaseMapStrings() {
+   delete loc;  loc = NULL;
+   delete utf8; utf8 = NULL;
+}
+
+const string& CaseMapStrings::toUpper(const string& in, string& out) const
 {
    if (utf8)
       return utf8->toUpper(in, out);
    out.resize(in.size());
    for (Uint i = 0; i < in.size(); ++i)
-      out[i] = toupper(in[i], loc);
+      out[i] = toupper(in[i], *loc);
    return out;
 }
 
-string& CaseMapStrings::toLower(const string& in, string& out) const
+const string& CaseMapStrings::toLower(const string& in, string& out) const
 {
    if (utf8)
       return utf8->toLower(in, out);
    out.resize(in.size());
    for (Uint i = 0; i < in.size(); ++i)
-      out[i] = tolower(in[i], loc);
+      out[i] = tolower(in[i], *loc);
    return out;
 }
 
-string& CaseMapStrings::capitalize(const string& in, string& out) const
+const string& CaseMapStrings::capitalize(const string& in, string& out) const
 {
    if (utf8)
       return utf8->capitalize(in, out);
    if (&in != &out) out = in;
    if (out.size())
-      out[0] = toupper(out[0], loc);
+      out[0] = toupper(out[0], *loc);
    return out;
 }
 
-string& CaseMapStrings::decapitalize(const string& in, string& out) const
+const string& CaseMapStrings::decapitalize(const string& in, string& out) const
 {
    if (utf8)
       return utf8->decapitalize(in, out);
    if (&in != &out) out = in;
    if (out.size())
-      out[0] = tolower(out[0], loc);
+      out[0] = tolower(out[0], *loc);
    return out;
 }

@@ -75,70 +75,70 @@ void UTF8Utils::truncateU16AfterFirst()
    if (e < len) u16[e] = 0;
 }
 
-string& UTF8Utils::toUpper(const string& in, string& out)
+const string& UTF8Utils::toUpper(const string& in, string& out)
 {
    if (!convToU16(in))
-      return (string&)in;
+      return in;
 
    u_strToUpper(&u16[0], u16.size(), &u16[0], -1, NULL, &ecode);
    if (U_FAILURE(ecode))
-      return (string&)in;
+      return in;
 
    if (!convFromU16(out))
-      return (string&)in;
+      return in;
 
    return out;
 }
 
-string& UTF8Utils::toLower(const string& in, string& out)
+const string& UTF8Utils::toLower(const string& in, string& out)
 {
    if (!convToU16(in))
-      return (string&)in;
+      return in;
 
    u_strToLower(&u16[0], u16.size(), &u16[0], -1, NULL, &ecode);
    if (U_FAILURE(ecode))
-      return (string&)in;
+      return in;
 
    if (!convFromU16(out))
-      return (string&)in;
+      return in;
 
    return out;
 }
 
 // This is sort of convoluted, but so is the library.
 
-string& UTF8Utils::capitalize(const string& in, string& out)
+const string& UTF8Utils::capitalize(const string& in, string& out)
 {
    if (!convToU16(in))
-      return (string&)in;
+      return in;
 
    truncateU16AfterFirst();
    string first;
    if (!convFromU16(first))
-      return (string&)in;
+      return in;
    toUpper(first, first);
 
    if (U_FAILURE(ecode))
-      return (string&)in;
+      return in;
 
    out = first + in.substr(first.size());
 
    return out;
 }
 
-string& UTF8Utils::decapitalize(const string& in, string& out)
+const string& UTF8Utils::decapitalize(const string& in, string& out)
 {
    if (!convToU16(in))
-      return (string&)in;
+      return in;
 
    truncateU16AfterFirst();
    string first;
    if (!convFromU16(first))
-      return (string&)in;
+      return in;
    toLower(first, first);
 
    if (U_FAILURE(ecode))
-      return (string&)in;
+      return in;
 
    out = first + in.substr(first.size());
 
@@ -155,25 +155,25 @@ static void ICUNotCompiled() {
 }
 
 UTF8Utils::UTF8Utils() {}
-string& UTF8Utils::toUpper(const string& in, string& out)
+const string& UTF8Utils::toUpper(const string& in, string& out)
 {
    ICUNotCompiled();
    return out;
 }
 
-string& UTF8Utils::toLower(const string& in, string& out)
+const string& UTF8Utils::toLower(const string& in, string& out)
 {
    ICUNotCompiled();
    return out;
 }
 
-string& UTF8Utils::capitalize(const string& in, string& out)
+const string& UTF8Utils::capitalize(const string& in, string& out)
 {
    ICUNotCompiled();
    return out;
 }
 
-string& UTF8Utils::decapitalize(const string& in, string& out)
+const string& UTF8Utils::decapitalize(const string& in, string& out)
 {
    ICUNotCompiled();
    return out;

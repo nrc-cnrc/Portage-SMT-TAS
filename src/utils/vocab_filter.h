@@ -129,7 +129,7 @@ namespace Portage {
      * used after the add*() operations and before keepLMentry() calls.
      * @param vf object to be remapped
      * @param vmap functor to map vf strings, eg:
-     *        struct VMap {string& operator()(const string& s){...}};
+     *        struct VMap {const string& operator()(const string& s){...}};
      * @param index_map for each index i in vf, index_map[i] will be set to the
      *        corresponding index in the new VocabFilter.
      */
