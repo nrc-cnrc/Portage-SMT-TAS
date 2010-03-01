@@ -29,27 +29,35 @@ namespace Portage {
 using namespace std;
 
 inline void showMemoryUsage() {
-   const pid_t pid = getpid();
-   char file[32];
+   try {
+      const pid_t pid = getpid();
+      char file[32];
 
-   cerr << "PID: " << pid << endl;
-   snprintf(file, 31, "/proc/%d/status", pid);
-   //cerr << file << endl;
-   ifstream status(file);
-   cerr << status.rdbuf() << endl;
-   status.close();
+      cerr << "PID: " << pid << endl;
+      snprintf(file, 31, "/proc/%d/status", pid);
+      //cerr << file << endl;
+      ifstream status(file);
+      cerr << status.rdbuf() << endl;
+      status.close();
 
-   snprintf(file, 31, "/proc/%d/stat", pid);
-   //cerr << file << endl;
-   ifstream stat(file);
-   cerr << stat.rdbuf() << endl;
-   stat.close();
+      snprintf(file, 31, "/proc/%d/stat", pid);
+      //cerr << file << endl;
+      ifstream stat(file);
+      cerr << stat.rdbuf() << endl;
+      stat.close();
 
-   
-   char cmd[32];
-   snprintf(cmd, 31, "top -bn 1 -p %d 1>&2", pid);
-   system(cmd);
-   system("ps fuxww 1>&2");
+      
+      char cmd[32];
+      snprintf(cmd, 31, "top -bn 1 -p %d 1>&2", pid);
+      cerr << cmd << endl;
+      if ( system(cmd) )
+         cerr << "System call failed - probably not enough memory to run it." << endl;
+      cerr << "ps fuxww 1>&2" << endl;
+      if ( system("ps fuxww 1>&2") )
+         cerr << "System call failed - probably not enough memory to run it." << endl;
+   } catch (std::bad_alloc& e) {
+      cerr << "Caught std::bad_alloc (again!) - not enough memory to provide full troubleshooting information..." << endl;
+   }
 
 /*   struct rusage resources;
    //int who = RUSAGE_SELF;

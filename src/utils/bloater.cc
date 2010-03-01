@@ -1,10 +1,10 @@
 /**
  * @author George Foster
- * @file bloater.cc 
+ * @file bloater.cc
  * @brief Bloat up memory usage until death ensues.
  *
  *
- * COMMENTS: 
+ * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
@@ -20,6 +20,7 @@
 #include "MagicStream.h"
 #include "show_mem_usage.h"
 #include "process_bind.h"
+#include "file_utils.h"
 #include <cstdlib>
 #include <limits>
 #include <boost/optional/optional.hpp>
@@ -48,7 +49,7 @@ Options:\n\
 
 static optional<pid_t> pid;
 static bool verbose = false;
-static Uint blocksize = 0;
+static Uint64 blocksize = 0;
 static Uint maxIter = numeric_limits<Uint>::max();
 static bool do_open = false;
 static void getArgs(int argc, const char* const argv[]);
@@ -61,12 +62,14 @@ int MAIN(argc, argv)
 
    if (pid) process_bind(*pid);
 
-   Uint  tot_size   = 0;
+   Uint64 tot_size  = 0;
    char* bloat_vect = NULL;
    Uint  num_blocks = 0;
 
    Uint round(0);
    do {
+      if (verbose)
+         cerr << endl << endl << "Starting iteration " << ++num_blocks << endl;
       bloat_vect = new char[blocksize];
       //if ( round % 10 == 0 )
       for (size_t i = 0; i * 256 < blocksize; ++i)
@@ -75,12 +78,17 @@ int MAIN(argc, argv)
 
       tot_size += blocksize;
       if (verbose) {
-         cerr << ++num_blocks << " total size = " << tot_size << endl;
+         cerr << num_blocks << " total size = " << tot_size << endl;
          showMemoryUsage();
       }
       if (do_open) {
          static const char* const filename = "delme.from.bloater.gz";
-         oMagicStream out(filename);
+         oSafeMagicStream* out = new oSafeMagicStream(filename);
+         if (verbose) {
+            out = NULL; // to quiet compiler warning
+            cerr << endl << endl << "Showing the memory usage again after open gzip stream:" << endl;
+            showMemoryUsage();
+         }
       }
       sleep(1);
    } while (++round < maxIter);
@@ -102,7 +110,7 @@ void getArgs(int argc, const char* const argv[])
    arg_reader.testAndSet("bind:", pid);
 
    // Open requires verbose.
-   if (do_open) verbose = true;
-  
+   //if (do_open) verbose = true;
+
    arg_reader.testAndSet(0, "blocksize", blocksize);
-}   
+}

@@ -1,7 +1,7 @@
 /**
  * @author Eric Joanis
  * @file compact_phrase.h Object that encapsulates a phrase compacted using
- *                        what is rather a misunderstanding of Uli Germann's
+ *                        what is partly a misunderstanding of Uli Germann's
  *                        idea, a simplified Huffman-like encoding, but has
  *                        some uses.
  *

@@ -16,6 +16,8 @@
 #include <sstream>
 #include "str_utils.h"
 #include <cstdlib>
+#include <limits>
+#include <cerrno>
 
 using namespace Portage;
 
@@ -104,28 +106,64 @@ size_t Portage::getNextTok(const string& s, size_t pos, string& tok,
    return tok.size() || state == intok ? s.size() : string::npos;
 }
 
-bool Portage::conv(const string& str, Uint& val)
-{
-   char* end;
-   const char* s = str.c_str();
-   int v = strtol(s, &end, 10);
-   val = (Uint)v;
-   return v >= 0 && end != s && *end == 0;
-}
-
 bool Portage::conv(const char* s, Uint& val)
 {
    char* end;
-   int v = strtol(s, &end, 10);
+   errno = 0;
+   // v must be a 64 bit int so we can detect over-/underflow correctly.
+   // We do not use strtoul because it silently accepts negative numbers and
+   // casts them to positive ones.
+   // On 64 bit machines, strtol would work, but not on 32 bit machines.
+   const Int64 v = strtoll(s, &end, 10);
    val = (Uint)v;
-   return v >= 0 && end != s && *end == 0;
+   static const Int64 min(0), max(numeric_limits<Uint>::max());
+   return errno == 0 && v >= min && v <= max && end != s && *end == 0;
 }
 
 bool Portage::conv(const char* s, int& val)
 {
    char* end;
-   val = strtol(s, &end, 10);
-   return end != s && *end == 0;
+   errno = 0;
+   // v must be long int, the return type of strtol, not int nor Int64!!!  
+   // On a 32 bit machine, long int is the same as int, but on a 64 bit machine
+   // long int is the same as Int64, so strtol itself has a different
+   // implementation on the two architectures.  The implementation here is
+   // designed to correctly parse s into a 32-bit int on either architecture,
+   // and to reliably detect over/underflow on both architectures.
+   const long int v = strtol(s, &end, 10);
+   val = (int)v;
+   static const long int min(numeric_limits<int>::min()),
+                         max(numeric_limits<int>::max());
+   return errno == 0 && v >= min && v <= max && end != s && *end == 0;
+}
+
+bool Portage::conv(const char* s, Uint64& val)
+{
+   char* end;
+   errno = 0;
+
+   while (isspace(*s)) ++s;
+   bool negative = (*s == '-');
+   val = strtoull(s, &end, 10);
+   return errno == 0 && !negative && end != s && *end == 0;
+
+   /*
+   // Using strroll(), as done here, will not work for values in (LLONG_MAX ..
+   // ULLONG_MAX].
+   // Using strtoull will not work either, because it silently accepts negative
+   // input as correct.
+   Int64 v = strtoll(s, &end, 10);
+   val = (Uint64)v;
+   return errno == 0 && v >= 0 && end != s && *end == 0;
+   */
+}
+
+bool Portage::conv(const char* s, Int64& val)
+{
+   char* end;
+   errno = 0;
+   val = strtoll(s, &end, 10);
+   return errno == 0 && end != s && *end == 0;
 }
 
 bool Portage::conv(const char* s, double& val)

@@ -363,7 +363,7 @@ verbose(1, "Merging commands: ");
 if ( $verbose >= 1 ) { `cat $merge_cmd_file >&2`; }
 verbose(1, "End of merging commands.\n");
 $cmd = "$debug_cmd bash $merge_cmd_file";
-verbose(1, "cmd is: $cmd");
+verbose(2, "cmd is: $cmd");
 $rc = system($cmd);
 die "Error merging output." unless($rc eq 0);
 

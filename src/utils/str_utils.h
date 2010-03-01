@@ -186,7 +186,7 @@ template<> inline string typeName<Uint64>() {return "Uint64";}
  */
 extern bool conv(const char* s, Uint& val);
 /// Same as conv(const char* s, Uint& val);
-extern bool conv(const string& s, Uint& val);
+inline bool conv(const string& s, Uint& val) { return conv(s.c_str(), val); }
 
 /**
  * Convert string to int.
@@ -198,6 +198,28 @@ extern bool conv(const string& s, Uint& val);
 extern bool conv(const char* s, int& val);
 /// Same as conv(const char* s, int& val).
 inline bool conv(const string& s, int& val) { return conv(s.c_str(), val); }
+
+/**
+ * Convert string to Uint64.
+ *
+ * @param s string to convert to Uint64
+ * @param val returned Uint64 value of s
+ * @return true iff conv successful.
+ */
+extern bool conv(const char* s, Uint64& val);
+/// Same as conv(const char* s, Uint64& val);
+inline bool conv(const string& s, Uint64& val) { return conv(s.c_str(), val); }
+
+/**
+ * Convert string to Int64.
+ *
+ * @param s string to convert to Int64
+ * @param val returned Int64 value of s
+ * @return true iff conv successful.
+ */
+extern bool conv(const char* s, Int64& val);
+/// Same as conv(const char* s, Int64& val).
+inline bool conv(const string& s, Int64& val) { return conv(s.c_str(), val); }
 
 /**
  * Convert string to double.
@@ -280,26 +302,24 @@ template <class T> T conv(const char* s)
    return val;
 }
 
-// This overload mustn't exist
-// Makes compilation of convT<T>  ambiguous
-// Explicitly deactivate the string version to spare copies
-//template <class T> bool convT(const string& s, T& val)
 template <class T> bool convT(const char* s, T& val)
 {
    return conv(s, val);
 }
-
-
-// This overload mustn't exist
+// The const string& overload of convT must not exist:
 // Makes compilation of convT<T>  ambiguous
-// Explicitly deactivate the string version to spare copies
-//template <class T> bool convCheck(const string& s, T& val)
+//template <class T> bool convT(const string& s, T& val);
+
+
 template <class T> bool convCheck(const char* s, T& val)
 {
    if (!conv(s, val))
       error(ETFatal, "can't convert <%s> to %s", s, typeName<T>().c_str());
    return true;
 }
+// The const string& overload of convCheck must not exist:
+// Makes compilation of convCheck<T>  ambiguous
+//template <class T> bool convCheck(const string& s, T& val);
 
 
 /**
