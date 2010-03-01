@@ -15,6 +15,7 @@
 #include "MagicStream.h"
 
 using namespace Portage;
+using namespace std;
 
 const char ArgReader::switch_prefix('-');
 const char ArgReader::suffix_for_switches_that_take_args(':');
@@ -105,7 +106,10 @@ void ArgReader::read(Uint argc, const char* const argv[])
          }
          else if (switches_noargs.find(sw) != switches_noargs.end())
          {
-           switch_values[sw].push_back("");
+           // Keep track of the switch position in the arguments' list.
+           char tmp[1024];
+           sprintf(tmp, "%d", i);
+           switch_values[sw].push_back(tmp);
          }
          else
          {        // switch not found: check for switch glob
@@ -148,7 +152,7 @@ void ArgReader::read(Uint argc, const char* const argv[])
 void ArgReader::read(const string& args) {
    vector<string> toks;
    split(args, toks);
-   Uint argc = toks.size();
+   const Uint argc = toks.size();
    const char* argv[argc];
    for (Uint i = 0; i < argc; i++) {
       argv[i] = toks[i].c_str();
@@ -176,9 +180,14 @@ bool ArgReader::getSwitch(const char* s, string* val) const
    
    SwitchIter res = switch_values.find(sw);
    if (res == switch_values.end()) return false;
-   if (val)
-      *val = res->second.front();
-      
+   if (val) {
+      *val = res->second.back();
+      assert(val != NULL);
+      if (switches_args.find(sw) != switches_args.end())
+         error(ETWarn, "-%s specified multiple times; last value prevails -%s %s",
+               sw.c_str(), sw.c_str(), val->c_str());
+   }
+
    return true;
 }
 

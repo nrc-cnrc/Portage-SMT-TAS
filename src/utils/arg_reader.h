@@ -117,9 +117,9 @@ public:
    void dump(ostream& os);
 
    /**
-    * Looks for the first value of a switch (from the list of switches with values).
-    * @param sw switch that we want its first value
-    * @param val will contains the first value of a switch sw if it exists 
+    * Looks for the last value of a switch (from the list of switches with values).
+    * @param sw switch that we want its last value
+    * @param val will contains the last value of a switch sw if it exists 
     * @return true if sw is found or false otherwise
     */
    bool getSwitch(const char* sw, string* val = NULL) const;
@@ -212,12 +212,38 @@ public:
    void testAndSetOrReset(const char* set_sw, const char* reset_sw,
                           BOOL_TYPE& val)
    {
-      if ( getSwitch(set_sw) ) {
+      string set_idx_s;
+      bool b_set = getSwitch(set_sw, &set_idx_s);
+
+      string reset_idx_s;
+      bool b_reset = getSwitch(reset_sw, &reset_idx_s);
+
+      if (b_set && b_reset) {
+         // Get the index of the switches.
+         Uint set_idx = 0;
+         assert(conv(set_idx_s, set_idx) == true);
+
+         Uint reset_idx = 0;
+         assert(conv(reset_idx_s, reset_idx) == true);
+
+         assert(set_idx != reset_idx);
+
+         // Return the value of the last switch.
+         if (set_idx > reset_idx) {
+            val = true;
+            error(ETWarn, "-%s specified after -%s; last instance prevails: -%s",
+                  set_sw, reset_sw, set_sw);
+         }
+         else {
+            val = false;
+            error(ETWarn, "-%s specified after -%s; last instance prevails: -%s",
+                  reset_sw, set_sw, reset_sw);
+         }
+      }
+      else if (b_set) {
          val = true;
-         if ( getSwitch(reset_sw) )
-            error(ETWarn, "contradictory switches -%s and -%s both specified; ignoring -%s",
-                  set_sw, reset_sw, reset_sw);
-      } else if ( getSwitch(reset_sw) ) {
+      }
+      else if (b_reset) {
          val = false;
       }
    }
