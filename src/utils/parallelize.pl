@@ -100,6 +100,13 @@ Good examples:
     -m tgt_out \\
     'filter_training_corpus src_in tgt_in src_out tgt_out 100 9'
 
+  To illustrate the -merge option, here is an example that does an inventory
+  count of characters in a corpus:
+  $0 \\
+    -merge \"merge_counts -\" -w 100000 -n 100 \\
+    \"(grep -o . | sed 's/^ \$/__/' | get_voc -c | sed 's/^__ /  /' | \\
+       LC_ALL=C sort) < corpus > corpus.char\"
+
 BAD examples:
   $0 '(cat | gzip) < input > output.gz'
   Your output will be zipped twice.
@@ -330,7 +337,8 @@ foreach my $m (@MERGES) {
          $sub_cmd = "$MERGE_PGM $dir/*";
       }
       elsif ($m =~ m#/dev/stderr#) {
-         $sub_cmd = "$MERGE_PGM $dir/* 1>&2";
+         # MERGE_PGM never applies to stderr
+         $sub_cmd = "cat $dir/* 1>&2";
       }
       else {
          $sub_cmd = "$MERGE_PGM $dir/* > $m";
@@ -351,8 +359,11 @@ die "Error running run-parallel.sh" unless($rc eq 0);
 
 # If everything is fine merge all MERGES
 verbose(1, "Merging final outputs.");
+verbose(1, "Merging commands: ");
+if ( $verbose >= 1 ) { `cat $merge_cmd_file >&2`; }
+verbose(1, "End of merging commands.\n");
 $cmd = "$debug_cmd bash $merge_cmd_file";
-verbose(2, "cmd is: $cmd");
+verbose(1, "cmd is: $cmd");
 $rc = system($cmd);
 die "Error merging output." unless($rc eq 0);
 
