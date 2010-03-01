@@ -379,6 +379,9 @@ static void getArgs(int argc, const char* const argv[])
             "(Ignoring -reduce-mem option.)");
       reduce_memory = false;
    }
+
+   if (prune1 && (multipr_output == "rev" || multipr_output == "both"))
+      error(ETFatal, "prune1 is not valid with -multipr rev or -multipr both.");
 }
 
 static void delete_or_error_if_exists(const string& filename) {
