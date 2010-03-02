@@ -141,17 +141,17 @@ Mandatory dependencies for all distributions:
    runs without problems, as long as the rest of the dependencies are
    installed.  We tested an early version of PORTAGEshared on PC-BSD and Mac OS
    X.  It worked reasonably well on those platforms then, but these are not our
-   regular working platforms so we make no guarantees everything will work
-   correctly.  Cygwin works reasonably well.  We have not tested on Solaris at
-   all.
+   regular working platforms and we make no guarantees everything will work
+   correctly.  Things also work reasonably well on Cygwin, but again we make no
+   guarantees.  We have not tested on Solaris at all.
 
  - A large swap file.  Your system should be configured to have twice as much
    swap space as RAM, to avoid frustrating problems down the road.
    Insufficient swap space will sometimes cause crashes due to a "lack of
    memory" even though there appears to be plenty available.
 
- - Standard utilities: bash (3.0 or more recent), perl, grep, egrep, sort,
-   gzip, tail, head, sed, awk, etc.
+ - Standard utilities: awk, bash (3.0 or more recent), (e)grep, gzip, head,
+   perl, sed, sort, tail, tar, etc.
 
  - A language modelling toolkit to train language models.  Our code can read
    and use language models, but we don't provide the training functionality,
@@ -160,7 +160,7 @@ Mandatory dependencies for all distributions:
    used SRILM, we recommend MITLM (http://code.google.com/p/mitlm/), another
    excellent LM toolkit which allows commercial use.  You can also use any
    other package which produces language models in Doug Paul's ARPA format, but
-   in our experiments, SRILM and MITLM have worked best.
+   note that in our experiments, SRILM and MITLM have worked best.
 
 Optional dependencies for all distributions:
 
@@ -216,12 +216,12 @@ Mandatory dependencies for source code distributions:
    gmake (which can be invoked using "make" on most Linux distributions).
 
  - boost - PORTAGEshared makes use of some libraries in the boost C++ libraries
-   collection, including the Boost Graph Library, uBLAS, smart pointers, etc.
-   Any version since 1.33 should do.
+   collection, including the Boost Graph Library, uBLAS, smart pointers,
+   iostreams, etc.  Any version since 1.36 should do.
 
    Some recent distributions of Linux may already include the boost libraries,
    otherwise you can download them free from the boost home page.  Note,
-   though, that some Linux distributions include only parts of boost--some
+   though, that some Linux distributions include only parts of boost -- some
    leave out the Boost Graph Library, for example.  If you get errors about
    missing boost includes while compiling Portage, do a complete installation
    of a recent version of boost.
@@ -236,9 +236,9 @@ Mandatory dependencies for source code distributions:
    Boost home page: http://www.boost.org or http://boost.sourceforge.net
    This procedure worked for us, and may help you install it yourself, if your
    sys admins can't do it globally for you:
-      # Download the boost tarball, currently boost_1_36_0.tar.bz2, by
-      # following the download links from the home page.  PORTAGEshared does
-      # not require the latest version.
+      # Download the latest boost tarball, say boost_1_36_0.tar.bz2, by
+      # following the download links from the home page.  PORTAGEshared
+      # requires version 1.36 or more recent.
       # Extract it
       tar -xjf boost_1_36_0.tar.bz2
       # Go into it
@@ -253,6 +253,12 @@ Mandatory dependencies for source code distributions:
       # Install to $DEST/{include,lib}
       make -k install
       # Edit src/Makefile.user-conf and set the BOOST_ROOT variable to $DEST.
+
+ - zlib - PORTAGEshared uses zlib as an alternative to gzip in some unusual
+   cases where the latter causes some PORTAGEshared programs to crash.  This
+   library has been standard on Linux distributions for a long time, so you
+   should not have to install it yourself.  But if the compiler says it can't
+   find libz.a, you can download it from http://www.zlib.net/.  
 
 Optional dependencies for source code distributions:
 
