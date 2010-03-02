@@ -49,7 +49,7 @@ Options:\n\
 
 static optional<pid_t> pid;
 static bool verbose = false;
-static Uint64 blocksize = 0;
+static size_t blocksize = 0;
 static Uint maxIter = numeric_limits<Uint>::max();
 static bool do_open = false;
 static void getArgs(int argc, const char* const argv[]);
@@ -62,7 +62,7 @@ int MAIN(argc, argv)
 
    if (pid) process_bind(*pid);
 
-   Uint64 tot_size  = 0;
+   size_t tot_size  = 0;
    char* bloat_vect = NULL;
    Uint  num_blocks = 0;
 

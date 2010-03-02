@@ -38,7 +38,7 @@ Options:\n\
 // globals
 
 static bool verbose = false;
-static Uint blocksize = 0;
+static size_t blocksize = 0;
 static Uint numThreads = 4;
 static Uint maxIter = numeric_limits<Uint>::max();
 static void getArgs(int argc, const char* const argv[]);
@@ -61,7 +61,7 @@ void* a_thread(void* ptr)
    cerr << "Hello from thread No. " << id << endl;
    pthread_mutex_unlock(&lock);
 
-   Uint  tot_size   = 0;
+   size_t tot_size  = 0;
    char* bloat_vect = NULL;
    Uint  num_blocks = 0;
 
