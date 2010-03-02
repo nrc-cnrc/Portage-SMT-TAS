@@ -20,7 +20,7 @@ use LexiTools;
 print STDERR "tokenize.pl, NRC-CNRC, (c) 2004 - 2009, Her Majesty in Right of Canada\n";
 
 my $HELP = "
-Usage: tokenize.pl [-v] [-p] [-noss] [-notok] [-lang=l] [in [out]]
+Usage: tokenize.pl [-v] [-p] -ss|-noss [-notok] [-lang=l] [in [out]]
 
   Tokenize and sentence-split text in ISO-8859-1 (iso latin 1).
 
@@ -30,19 +30,21 @@ Options:
       the start of its paragraph, <sent> markers after sentences, and <para>
       markers after each paragraph.
 -p    Print an extra newline after each paragraph (has no effect if -v)
--noss Don't do sentence-splitting. [do]
+-ss   Perform sentence-splitting.
+-noss Don't perform sentence-splitting.
+      Note: one of -ss or -noss is now required, because the old default (-ss)
+      often caused unexpected behaviour.
 -lang Specify two-letter language code: en or fr [en]
 -paraline
       File is in one-paragraph-per-line format [no]
 
 Caveat:
 
-  The default behaviour is to consider consecutive non-blank lines as a
-  paragraph: newlines within the paragraph are removed and sentence splitting
-  is performed.  To increase sentence splitting accuracy, make sure you
-  preserve existing paragraph boundaries in your text, separating them with a
-  blank line (i.e., two newlines), or using -paraline if your input contains
-  one paragraph per line.
+  With -ss, consecutive non-blank lines are considered as a paragraph: newlines
+  within the paragraph are removed and sentence splitting is performed.  To
+  increase sentence splitting accuracy, try to preserve existing paragraph
+  boundaries in your text, separating them with a blank line (i.e., two
+  newlines), or using -paraline if your input contains one paragraph per line.
 
   To preserve existing line breaks, e.g., if your input is already
   one-sentence-per-line, use -noss, otherwise your sentence breaks will be
@@ -50,7 +52,7 @@ Caveat:
 
 ";
 
-our ($help, $h, $lang, $v, $p, $noss, $paraline, $notok);
+our ($help, $h, $lang, $v, $p, $ss, $noss, $paraline, $notok);
 
 if ($help || $h) {
    print $HELP;
@@ -59,6 +61,7 @@ if ($help || $h) {
 $lang = "en" unless defined $lang;
 $v = 0 unless defined $v;
 $p = 0 unless defined $p;
+$ss = 0 unless defined $ss;
 $noss = 0 unless defined $noss;
 $notok = 0 unless defined $notok;
 $paraline = 0 unless defined $paraline;
@@ -70,6 +73,16 @@ my $psep = $p ? "\n\n" : "\n";
 
 open(IN, "<$in") || die "Can't open $in for reading";
 open(OUT, ">$out") || die "Can't open $out for writing";
+
+if ( !$ss && !$noss ) {
+   die "One of -ss and -noss is now required.\n";
+}
+if ( $ss && $noss ) {
+   die "Specify only one of -ss or -noss.\n";
+}
+if ( $noss && $notok ) {
+   warn "Just copying the input since -noss and -notok are both specified.\n";
+}
 
 # Enable immediate flush when piping
 select(OUT); $| = 1;
@@ -96,11 +109,11 @@ while (1)
 
    if ($notok) {
       if ($noss) {
-         # A bit weird, but the user ask not to split nor tokenize.
+         # A bit weird, but the user asked to neither split nor tokenize.
          print OUT $para;
       }
       else {
-         # User ask for sentence splitting only, no tokenization.
+         # User asked for sentence splitting only, no tokenization.
          my $sentence_start = 0;
          for (my $i = 0; $i < $#sent_positions+1; ++$i) {
             # sent_position indicate the beginning of the next sentence, since
@@ -110,6 +123,7 @@ while (1)
 
             my $sentence_end = $token_positions[$index] + $token_positions[$index+1];
             my $sentence = get_sentence($para, $sentence_start, $sentence_end);
+            $sentence =~ s/\s*\n\s*/ /g; # remove sentence-internal newlines
             print OUT $sentence;
             print OUT " $sentence_start,$sentence_end" if ($v);
             print OUT ($v ? "<sent>" : "");

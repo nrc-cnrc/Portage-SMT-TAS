@@ -40,10 +40,10 @@ accent.utf8: accent
 	iconv -f iso-8859-1 -t UTF-8 < $< > $@
 
 accent.tok: accent
-	tokenize.pl $< $@
+	tokenize.pl -ss $< $@
 
 accent.utf8.tok: accent.utf8
-	utokenize.pl $< $@
+	utokenize.pl -ss $< $@
 
 display.%: %
 	file $*
@@ -56,13 +56,13 @@ compare.%: %
 
 # hyphens specific.
 hyphens.tok: hyphens
-	tokenize.pl -lang=fr $< > $@
+	tokenize.pl -lang=fr -ss $< > $@
 
 hyphens.detok: hyphens.tok
 	detokenize.pl -lang=fr $< > $@
 
 hyphens.tok.utf8: hyphens
-	iconv -f cp1252 -t utf-8 $< | utokenize.pl -lang=fr > $@
+	iconv -f cp1252 -t utf-8 $< | utokenize.pl -ss -lang=fr > $@
 
 hyphens.detok.utf8: hyphens.tok.utf8
 	udetokenize.pl -lang=fr $< > $@
@@ -86,11 +86,11 @@ hyphens.noss: hyphens
 
 # No tokenization.
 hyphens.notok: hyphens
-	tokenize.pl -lang=fr -noss < $< > $@
+	tokenize.pl -lang=fr -ss -notok < $< > $@
 
 # No sentence splitting & no tokenization.
 hyphens.noss.notok: hyphens
-	tokenize.pl -lang=fr -noss < $< > $@
+	tokenize.pl -lang=fr -noss -notok < $< > $@
 
 # No sentence splitting.
 utf8.hyphens.noss: hyphens
@@ -98,7 +98,7 @@ utf8.hyphens.noss: hyphens
 
 # No tokenization.
 utf8.hyphens.notok: hyphens
-	iconv -f cp1252 -t utf-8 $< | utokenize.pl -lang=fr -notok > $@
+	iconv -f cp1252 -t utf-8 $< | utokenize.pl -lang=fr -ss -notok > $@
 
 # No sentence splitting & no tokenization.
 utf8.hyphens.noss.notok: hyphens
