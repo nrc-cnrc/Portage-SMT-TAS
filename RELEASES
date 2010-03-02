@@ -44,7 +44,7 @@ v1.4
    Appliance that can run on any virtual machine architecture (from local
    infrastructure to cloud computing).  The TPT technology mentioned earlier
    significantly reduces the memory requirements for such deployment.  See Paul
-   et al, MT Summit 2009, for details (paper accompanying the Technology
+   et al (MT Summit 2009) for details (paper accompanying the Technology
    Showcase, available at http://www.mt-archive.info/MTS-2009-TOC.htm).
 
  - The peak memory required to train a phrase table has been reduced by about
@@ -53,16 +53,23 @@ v1.4
    gen-jpt-parallel.sh and invoke joint2cond_phrase_tables -reduce-mem to do
    run the estimation process in a small memory footprint.
 
- - The experimental framework now keeps track of resources used at all stages
-   of processing, to identify peek memory usage more readily, and to be able to
-   see where the time is spent.  Now, all the major scripts in Portage track
-   memory usage and CPU time: cow.sh, rat.sh, cat.sh, run-parallel.sh,
-   canoe-parallel.sh, etc.  The utility script time-mem can be used to do the
-   same for any other program or program suite.
+ - Resource monitoring: The experimental framework now keeps track of resources
+   used at all stages of processing, to identify peek memory usage more
+   readily, and to be able to see where the time is spent.  The major scripts
+   in Portage track memory usage and CPU time: cow.sh, rat.sh, cat.sh,
+   run-parallel.sh, canoe-parallel.sh, etc.  The utility script time-mem can be
+   used to do the same for any other program or program suite.
 
  - New decoder features:
-   - Adirectional features (see Chen, Foster and Kuhn, MT Summit 2009)
-   - Lexicalized distortion models (see Koehn et al, ACL 2007)
+   - Adirectional scores for phrase pairs are now supported as decoder
+     features.  Previously, Portage only supported forward and backward scores,
+     intended to model P(t|s) and P(s|t), respectively.  Adirectional features
+     allow the use of arbitrary functions f(s,t) associated with each phrase
+     pair, without any implied semantics.  The association features of Chen,
+     Foster and Kuhn (MT Summit 2009) are an example of such features.
+     The adirectional scores are stored as the "4th" column in multi-prob
+     phrase tables.  See the user manual for details.
+   - Lexicalized distortion models (see Koehn et al, ACL-2007)
    - Levenshtein or N-gram distance from a reference, useful especially for the
      fuzzy mode in phrase_tm_align.  By default, phrase_tm_align only returns
      an alignment if phrase pairs exist to exactly cover the two sentences to
@@ -93,17 +100,22 @@ v1.4
    pairs, including those appearing only in other tables.
 
  - MERT (cow.sh): improved stability of the search for optimal parameters.
-   See Foster and Kuhn, WMT 2009, for details.
+   See Foster and Kuhn (WMT 2009) for details.
 
  - Confidence Estimation.  Portage now comes with a module that produces
    confidence estimates accompanying the decoder output.  See Simard and
-   Isabelle, MT Summit 2009, for details.
+   Isabelle (MT Summit 2009) for details.
 
  Minor changes:
 
- - New "sri" word alignment reader (for word_align_tool, eval_word_alignment).
- - New "gale" and "uli" word alignnment writers.
- - New word aligners: IBMDiagAligner, HybridPostAligner, ExternalAligner.
+ - Word alignment:
+   - New "sri" alignment reader (for word_align_tool, eval_word_alignment).
+   - New "gale" and "uli" alignnment writers.
+   - New word aligners: IBMDiagAligner, HybridPostAligner, ExternalAligner.
+   - Bug fix in the HMM alignment model: the end-distribution semantics is a
+     bit cleaner, and p0/up0 can now be arbitrarily high, because the effective
+     p0 is capped at .999.  (High p0/up0 have been found to be good for the
+     phrase extraction process, so this is important).
  - New phrase smoothers in gen_phrase_tables and joint2cond_phrase_tables:
    JointFreqs, alpha-smoothing option to RFSmoother and IndicatorSmoother
  - canoe decoder:
@@ -111,21 +123,21 @@ v1.4
    - Now supports the -bind PID option, exiting automatically when the
      master process disappears.
    - Faster 1-best decoding by discarding recombined states on the fly.
+   - All boolean options now have a -no variant so that something turned on in
+     the canoe.ini can be turned off on the command line.
  - Rescoring / MERT:
    - New features: Levenshtein distance and N-gram distance to a specified
      reference.
    - Various improvements to the module in general.
- - The tokenizer now takes linear time regardless of paragraph length (used to
-   be quadratic on the length of each paragraph).
- - The tokenizer supports a -notok switch to perform sentence splitting only.
+ - Tokenizer:
+   - Now reliably fast, taking linear time regardless of paragraph length (used
+     to be quadratic on the length of each paragraph).
+   - Supports a -notok switch to perform sentence splitting only.
  - Many improvements to run-parallel.sh.
  - parallelize.sh: new -w switch to determine the number of blocks from a
-   minimum number of lines per block instead of a fixed number of blocks.
- - Bug fix in the HMM alignment model: the end-distribution semantics is a bit
-   cleaner, and p0/up0 can now be arbitrarily high, because the effective p0 is
-   capped at .999.  (High p0/up0 have been found to be good for the phrase
-   extraction process, so this is important).
- - Adaptation is no longer dependent SRILM programs.
+   minimum number of lines per block instead of a fixed number of blocks, with
+   the -n switch capping the number of blocks used.
+ - Adaptation is no longer dependent on SRILM programs.
  - New length-dependant phrase table pruning option to filter_models yields
    better results than the fixed ttable-limit decoder parameter.
  - Miscellaneous new programs:
@@ -138,6 +150,11 @@ v1.4
  - More unit-testing test suites.
  - Some code clean-up using Klocwork Insight, fixing potential future problems.
  - Some code documentation clean-up.
+ - Logs now go consistently to STDERR, even for programs without a primary
+   output on STDOUT.
+ - MagicStream: our library that handles reading and writing compressed files
+   on the fly uses gzip by default, but now falls back to using zlib (via the
+   boost::iostreams library) when gzip fails to start due to memory limits.
 
 v1.3 21.01.2009
  This update to PORTAGEshared is primarily intended to incorporate the new HMM
@@ -338,24 +355,25 @@ v1.2 28.01.2008
  - Soft TM filtering: joint filtering of several phrase tables in such a way
    that, no matter what weights are used, the top L hypotheses will have been
    kept, i.e., discards entries that can never make it to the top L, under any
-   set of non-negative weights.  Also described in Badr et al (2007).
+   set of non-negative weights.  Also described in Badr et al (CORES-2007).
    - Used by cow.sh when the -filt option is specified (recommended).
 
  - LM filtering based on per-sentence-vocabulary, as described in Badr et al
-   (2007) (see the annotated bibliography in the user manual for all paper
-   references).  In short, keeps an n-gram only if all the words it contains
-   can occur together in the translation of at least one source sentence.
-   Typical LM filtering uses one global vocabulary; this technique efficiently
-   keeps track of a separate vocabulary for each input sentence to translate.
-   In decoding, this approach can save some 25% of the memory required for
-   large LMs, or as much as 50% when combined with soft TM filtering.  In
-   lm_eval and the LM rescoring function, significantly higher savings are
-   possible.  Works with both the text (ARPA) and our BinLM file formats.
+   (CORES-2007) (see the annotated bibliography in the user manual for all
+   paper references).  In short, keeps an n-gram only if all the words it
+   contains can occur together in the translation of at least one source
+   sentence.  Typical LM filtering uses one global vocabulary; this technique
+   efficiently keeps track of a separate vocabulary for each input sentence to
+   translate.  In decoding, this approach can save some 25% of the memory
+   required for large LMs, or as much as 50% when combined with soft TM
+   filtering.  In lm_eval and the LM rescoring function, significantly higher
+   savings are possible.  Works with both the text (ARPA) and our BinLM file
+   formats.
    - Automatically used by canoe while loading language models;
    - automatically used by the rescoring module for the NgramFF feature;
    - used by lm_eval when the -per-sent-limit option is specified.
 
- - Implemented Huang and Chiang's (2007) cube pruning algorithm.  Can yield an
+ - Implemented Huang and Chiang's (ACL-2007) cube pruning algorithm.  Can yield an
    order-of-magnitude speed up in decoding in most circumstances.  Requires
    careful re-tuning of some decoding parameters, however, especially S (stack
    size) since its meaning is not the same as with regular decoding.  Run canoe
@@ -363,7 +381,7 @@ v1.2 28.01.2008
 
  - New module implementing George Foster's LM and TM adaptation work, with
    integration of the resulting mixture models in the decoder - details in
-   Foster and Kuhn (2007).
+   Foster and Kuhn (WMT-2007).
 
  - Optimization of various programs throughout the Portage suite, including
    canoe.
@@ -400,9 +418,9 @@ v1.2 28.01.2008
      containing an ID in any format (no whitespace allowed); lines with
      identical IDs are considered to come from the same document).
    - nbest*Post* - posterior probability features for confidence estimation
-     rescoring - see Ueffing and Ney (2005), Zens and Ney (2006).  These papers
-     not included in our annotated bibliography provide even more background
-     and depth:
+     rescoring - see Ueffing and Ney (HLT-EMNLP 2005), Zens and Ney (WMT-2006).
+     These papers not included in our annotated bibliography provide even more
+     background and depth:
       - Blatz et al. (2003).  Confidence Estimation for Machine Translation.
         JHU/CLSP Summer Workshop.
       - Ueffing (2006).  Word Confidence Measures for Machine Translation.
@@ -411,7 +429,7 @@ v1.2 28.01.2008
      expensive features - not recommended for general use) - features based on
      Mangu et al (1999).
    - BLEUrisk - Minimum Bayes Risk using BLEU loss function - see Kumar and
-     Byrne (2004).
+     Byrne (HLT-NAACL 2004).
    - ParMismatch and QuotMismatch - count mismatched parentheses and quotes.
    - CacheLM - cache LM over docs defined in docid files (see above) - see
      Kuhn and De Mori (1990-2).
