@@ -1,4 +1,4 @@
-                             PORTAGEshared_v1.4
+                                Portage_v1.4
 
 Technologies langagieres interactives / Interactive Language Technologies
 Institut de technologie de l'information / Institute for Information Technology
@@ -17,6 +17,11 @@ v1.4
  This update primarily incorporates improvements intended to help the
  performance of Portage as an online translation service, as well as some
  scientific progress we've made in the last year.
+
+ Note that PORTAGEshared has been renamed "Portage" with a version number,
+ i.e., this package is now known as "Portage 1.4".  References to PORTAGEshared
+ within the documentation or the code can be considered to refer to "Portage
+ x.y" for all version numbers "x.y", as well as PORTAGEshared 1.0 to 1.3.
 
  Major changes:
 
