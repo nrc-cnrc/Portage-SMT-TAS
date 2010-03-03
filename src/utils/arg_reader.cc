@@ -183,8 +183,8 @@ bool ArgReader::getSwitch(const char* s, string* val) const
    if (val) {
       *val = res->second.back();
       assert(val != NULL);
-      if (switches_args.find(sw) != switches_args.end())
-         error(ETWarn, "-%s specified multiple times; last value prevails -%s %s",
+      if (res->second.size() > 1 && switches_args.find(sw) != switches_args.end())
+         error(ETWarn, "-%s specified multiple times; last value prevails: -%s %s",
                sw.c_str(), sw.c_str(), val->c_str());
    }
 

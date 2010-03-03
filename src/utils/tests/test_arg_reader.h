@@ -132,13 +132,26 @@ public:
       //cerr << "A test" << endl;
       const char* const switches[] = {"a:"};
       ArgReader arg(1, switches, 0, 0, "", "", false, "", "");
-      const char* const argv[] = {"-a 1", "-a 2"};
-      arg.read(2, argv);
+      const char* const argv[] = {"-a", "1", "-a", "2"};
+      arg.read(4, argv);
       Uint tmp;
       arg.testAndSet("a", tmp);
       TS_ASSERT_EQUALS(tmp, 2);
       TS_ASSERT_EQUALS(error_message_count, 1);
-      checkErrorMessage("-a specified multiple times; last value prevails -a  2");
+      checkErrorMessage("-a specified multiple times; last value prevails: -a 2");
+   }
+
+   // Make sure non-duplicated values do not generate a warning.
+   void testNonDuplicatedArgumentValueValue() {
+      //cerr << "A test" << endl;
+      const char* const switches[] = {"a:"};
+      ArgReader arg(1, switches, 0, 0, "", "", false, "", "");
+      const char* const argv[] = {"-a", "1"};
+      arg.read(2, argv);
+      Uint tmp;
+      arg.testAndSet("a", tmp);
+      TS_ASSERT_EQUALS(tmp, 1);
+      TS_ASSERT_EQUALS(error_message_count, 0);
    }
 }; // TestArgReader
 
