@@ -1,5 +1,5 @@
 #!/utestsr/bin/make -f
-# vim:noet:ts=3
+# vim:noet:ts=3:nowrap
 #
 # @file Makefile run this test suite
 #
@@ -12,43 +12,49 @@
 # Copyright 2008, Her Majesty in Right of Canada
 
 
+SHELL = bash
+
 MERGE_COUNTS ?= merge_counts
+#MERGE_COUNTS ?= valgrind --leak-check=full merge_counts
 DIFF ?= diff -sq
 
 
+vpath % data
+
 .PHONY: all
-all: empty_file one_file twice_file 3_file 4_file one_file_empty_file big
-	echo All tests PASSED.
+all:
+	@echo All tests PASSED
 
-
-.PHONY: one_file
-empty_file:
-	${MERGE_COUNTS} - data/e | ${DIFF} - data/e
-
-.PHONY: one_file
-one_file:
-	${MERGE_COUNTS} - data/a | ${DIFF} - data/a
-
-.PHONY: twice_file
-twice_file:
-	${MERGE_COUNTS} - data/a data/a | ${DIFF} - data/a2
-
-.PHONY: 3_file
-3_file:
-	${MERGE_COUNTS} - data/a data/b data/c | ${DIFF} - data/abc
-
-.PHONY: 4_file
-4_file:
-	${MERGE_COUNTS} - data/a data/b data/c data/c | ${DIFF} - data/abc2
-
-.PHONY: one_file_empty_file
-one_file_empty_file:
-	${MERGE_COUNTS} - data/a data/e | ${DIFF} - data/a
-
-.PHONY: big
-big:
-	${MERGE_COUNTS} - data/*gram | ${DIFF} - data/big
 
 .PHONY: clean
 clean:
 	# Nothing to do
+
+
+# Targets cannot be PHONY.
+empty_file: e
+one_file: a
+
+all: empty_file one_file
+empty_file one_file: %:
+	${MERGE_COUNTS} - $< | ${DIFF} - $<
+
+twice_file: a a
+
+3_file: c b a
+
+4_file: c b a c
+
+one_file_empty_file: a e
+
+big: $(wildcard data/*gram)
+
+all: twice_file 3_file 4_file one_file_empty_file big
+twice_file 3_file 4_file one_file_empty_file big: %:
+	diff -q <(${MERGE_COUNTS} - $+) <(ngram-merge $+ | tr '\t' ' ')
+
+all: unordered
+unordered:
+	merge_counts - <(echo -e "a 1\na 2\nb 4\na 1") 2>&1 \
+	| grep Error \
+	| grep -q 'is not LC_ALL=C sorted'
