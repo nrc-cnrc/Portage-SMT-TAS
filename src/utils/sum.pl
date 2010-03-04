@@ -17,7 +17,8 @@
 use strict;
 use warnings;
 
-print STDERR "sum.pl, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada\n";
+print STDERR "sum.pl, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada\n"
+   unless defined $ENV{PORTAGE_INTERNAL_CALL};
 
 my $HELP = "
 sum.pl [-namr] [in [out]]
