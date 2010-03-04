@@ -97,6 +97,7 @@ BINSCRIPTS = \
         run-parallel.sh \
         r-parallel-d.pl \
         r-parallel-worker.pl \
+        second-to-hms.pl \
         select-line \
         select-lines \
         sh_utils.sh \
