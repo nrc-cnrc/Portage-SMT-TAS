@@ -128,6 +128,7 @@ legacy_test_trie: tests/legacy/test_trie tests/data/test_trie.in.txt \
                   tests/data/test_trie.out.txt
 	tests/legacy/test_trie < tests/data/test_trie.in.txt | \
            diff tests/data/test_trie.out.txt -
+	${RM} test_trie.binary
 
 # Some programs need extra dynamic libraries
 bloater: DYNLIBS += -lpthread
