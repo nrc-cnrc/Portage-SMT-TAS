@@ -190,12 +190,12 @@ mkCodeBook(map<float,Score> const& M, ostream& codebook)
   for (map<float,Score>::const_iterator m = M.begin(); m != M.end(); m++)
     v[i++] = m;
   sort(v.begin(),v.end(),byFreq());
-  vector<uint32_t> bits_needed(max(2,int(ceil(log2(v.size()-1))))+1,0);
+  vector<uint32_t> bits_needed(max(2,int(ceil(log2(v.size()))))+1,0);
   for (size_t k = 0; k < v.size(); k++)
     {
       assert(v[k]->second.id < ret.size());
       ret[v[k]->second.id] = k;
-      size_t bn = max(2,int(ceil(log2(k))));
+      size_t bn = max(2,int(ceil(log2(k+1))));
       bits_needed[bn] += v[k]->second.cnt;
     }
   // determine the best encoding scheme
