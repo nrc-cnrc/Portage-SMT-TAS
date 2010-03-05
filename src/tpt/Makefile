@@ -51,7 +51,6 @@ PROGRAMS = \
 BINSCRIPTS = \
    arpalm2tplm.sh \
    build-tp-suffix-array.sh \
-   gng2tpt.sh \
    mmsufa.compile.sh \
    textldm2tpldm.sh \
    textpt2tppt.sh \
