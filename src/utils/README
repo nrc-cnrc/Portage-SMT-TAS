@@ -49,7 +49,6 @@ multi_voc.{cc,h}              EJ  List of vocabularies, stored efficiently.
 ngrams.pl                     GF  Write ngram tokens in tokenized text.
 number_mapper.{cc,h}          SL  Replaces digits of a number into a token (@).
 ospl2mteval.pl                GF  Convert one-sent-per-line text to NIST MT format.
-outpipe.sh                    AT  A switchable tee?
 parallelize.pl                SL  Generic parallelization tool for non-parallel commands.
 parallel-uniq.pl              EJ  Like uniq, but take into consideration parallel files.
 parse-monitor.sh              EJ  Summarize monitor-process.sh's output.
