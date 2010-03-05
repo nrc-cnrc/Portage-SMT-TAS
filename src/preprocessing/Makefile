@@ -21,9 +21,11 @@ PROGRAMS = \
 
 DYNLIBS= $(LIBICU)
 
+PGM_WITH_ALTERNATIVE_HELP = ssal
+
 MODULE_DEPENDS = tm
 
-BINSCRIPTS = $(wildcard *.pl)
+BINSCRIPTS = $(wildcard *.pl *.py)
 
 PERL_LIBS = $(wildcard *.pm)
 

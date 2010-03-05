@@ -26,7 +26,7 @@ using namespace Portage;
 
 /// Program ssal (Simple sentence aligner) usage
 static char help_message[] = "\n\
-ssal [-v][-hm mark][-m1 m][-m2 m][-w w][-ibm_1g2 model][-ibm_2g1 model]\n\
+ssal [-vH][-hm mark][-m1 m][-m2 m][-w w][-ibm_1g2 model][-ibm_2g1 model]\n\
      [-l][-lc locale][-f][-fm][-a alfile][-i idfile]\n\
      file1 file2\n\
 \n\
@@ -41,6 +41,7 @@ the output.\n\
 Options:\n\
 \n\
 -v  Write progress reports to cerr.\n\
+-H  Print some guidelines on multi-pass alignment, then quit.\n\
 -hm Interpret <mark>, when alone on a line, as hard markup: align sentence\n\
     pairs between consecutive marks, never across them. It is an error for one\n\
     input file to contain more hard marks than the other. By default, <mark>\n\
@@ -69,6 +70,55 @@ Options:\n\
     region, even empty ones. This means, for instance, that it must contain 1\n\
     line if file1/file2 are empty. Due to the line-alignment requirement for\n\
     output, however, id lines for empty regions are not written to <idfile>.al.\n\
+";
+
+static char alt_help[] = "\n\
+Here is a suggested multi-pass procedure for aligning raw text:\n\
+\n\
+1) Identify paragraphs or similar structure in the text, using cues such as\n\
+   blank lines. Put both source and target texts in one-paragraph-per-line\n\
+   format, not necessarily tokenized. Put any parallel anchors that are\n\
+   identical across both texts alone on a line.\n\
+\n\
+2) Align paragraphs using ssal in length-based mode (no -ibm* options), eg:\n\
+\n\
+   ssal en.para fr.para\n\
+\n\
+3) Tokenize and sentence-split the results from 2, marking aligned paragraph\n\
+   boundaries with blank lines, eg:\n\
+\n\
+   utokenize.pl -ss -paraline -p -lang=en en.para.al | head -n -1 > en.sent\n\
+   utokenize.pl -ss -paraline -p -lang=fr fr.para.al | head -n -1 > fr.sent\n\
+\n\
+4) Align sentences using ssal in length-based mode, treating paragraph\n\
+   boundaries as hard constraints, eg:\n\
+\n\
+   ssal -hm \"\" -fm -a al.len en.sent fr.sent \n\
+\n\
+5) Train HMM models on the sentence alignments mapped to lowercase, eg:\n\
+\n\
+   utf8_casemap en.sent.al en.sent.lc\n\
+   utf8_casemap fr.sent.al fr.sent.lc\n\
+   train_ibm -hmm -bin hmm.fr_given_en.bin en.sent.lc fr.sent.lc\n\
+   train_ibm -hmm -bin hmm.en_given_fr.bin fr.sent.lc en.sent.lc\n\
+\n\
+6) Re-align using HMM model, eg:\n\
+\n\
+   mv en.sent.al{,.len}\n\
+   mv fr.sent.al{,.len}\n\
+   ssal -hm \"\" -fm -l -a al.ibm \\\n\
+        -ibm_1g2 hmm.en_given_fr.bin -ibm_2g1 hmm.fr_given_en.bin \\\n\
+        en.sent fr.sent\n\
+\n\
+7) Optionally, compare length-based and ibm-based alignments, eg:\n\
+\n\
+   al-diff.py -m \"\" al.len al.ibm en.sent fr.sent | less\n\
+\n\
+Steps 5 and 6 usually improve alignment quality, but this depends on many\n\
+factors, such as the size of the corpus. For large corpora, the HMM model\n\
+training should be done in parallel using cat.sh.  Variants on this procedure\n\
+involve tuning ssal's -w parameter using al-diff.py, and training the HMM on\n\
+only high-confidence len-based alignments from step 4.\n\
 ";
 
 // globals
@@ -181,7 +231,8 @@ static void getArgs(int argc, char* argv[])
 {
    const char* switches[] = {"v", "f", "fm", "hm:", "a:", "i:", "m1:", "m2:",
                              "w:", "ibm_1g2:", "ibm_2g1:", "l", "lc:"};
-   ArgReader arg_reader(ARRAY_SIZE(switches), switches, 2, 2, help_message);
+   ArgReader arg_reader(ARRAY_SIZE(switches), switches, 2, 2, help_message, "-h",
+                        false, alt_help, "-H");
    arg_reader.read(argc-1, argv+1);
 
    arg_reader.testAndSet("v", verbose);
