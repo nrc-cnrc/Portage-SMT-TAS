@@ -223,7 +223,7 @@ if [[ $TIME_CMD ]]; then
    fi
    # Here we want the original stdout as pass-through and we want to process
    # the original stderr.
-   { { run_cmd "${ARGUMENTS[@]}"; sync; } 3>&1 1>&2 2>&3 | parseCommand; sync; } 3>&1 1>&2 2>&3
+   { { run_cmd "${ARGUMENTS[@]}"; sync; } 3>&1 1>&2 2>&3 | parseCommand 2>&1; sync; } 3>&1 1>&2 2>&3
 
 # Is the first argument an executable?
 elif which-test.sh $1 && [ -x "`which $1`" ]; then
