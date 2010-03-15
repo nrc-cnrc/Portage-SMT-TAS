@@ -320,10 +320,9 @@ sub truecaseFile
       portage_utils::zin(*MAP, $vocabMapFile);
       my $phrase_table = "canoe_tc_tmp_$$.tm";
       open( TM,  ">", "$phrase_table" );
-      # Errors caused by UTF-8 characters cause problems for buffered output on Cygwin.
-      if ( `uname -s` =~ 'CYGWIN' ) {
-         binmode TM;
-      }
+      # We want to be locale agnostic when converting map file (MAP) to the phrase table (TM).
+      binmode(TM);
+      binmode(MAP);
       while ( <MAP> ) {
          chomp;
          my @line = split( /\t/, $_ );
