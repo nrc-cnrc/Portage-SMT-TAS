@@ -43,6 +43,8 @@ Options:\n\
               NB: any tokens assigned prob 0 by all models are ignored.\n\
   -n maxiter  Max number of EM iterations [100]\n\
   -prec p     Precision: stop when max change in any weight is < p [0.001]\n\
+  -prior wts  Use MAP prior weights from file wts [uniform]\n\
+  -w          Multiply prior weights by w to get MAP prior counts [0]\n\
 ";
 
 // globals
@@ -54,6 +56,8 @@ static bool oov_ok;
 static PLM::OOVHandling oov("SimpleAutoVoc", oov_ok);
 static Uint num_iters = 100;
 static double prec = 0.001;
+static string priorwts_filename("");
+static double w = 0.0;
 static string modelsfilename;
 static string textfilename;
 
@@ -116,6 +120,30 @@ int main(int argc, char* argv[])
            << endl;
    }
 
+   // prior?
+
+   vector<double> prior_wts(models.size(), 1.0 / models.size());
+   if (priorwts_filename != "") {
+      prior_wts.resize(0);
+      iSafeMagicStream strm(priorwts_filename);
+      while (getline(strm, line))
+         prior_wts.push_back(conv<double>(line));
+      if (prior_wts.size() != models.size())
+         error(ETFatal, "size of prior weight vector does not match number of models");
+      if (w == 0.0)
+         error(ETWarn, "prior weight vector will be ignored, since -w weight is 0");
+   }
+   for (Uint i = 0; i < prior_wts.size(); ++i)
+      prior_wts[i] *= w;
+
+   if (verbose && w) {
+      if (priorwts_filename != "")
+         cerr << "using MAP smoothing with weights from " + priorwts_filename;
+      else
+         cerr << "using MAP smoothing with uniform weights";
+      cerr << " x " << w << endl;
+   }
+
    // em
 
    start = time(NULL);
@@ -162,7 +190,7 @@ int main(int argc, char* argv[])
                  << noovs << " tokens ignored" << endl;
          cerr << "iter " << iter+1 << " done: ppx = " << pow(10.0, -logprob / ntoks) << endl;
       }
-      if (em.estimate() < prec)
+      if (em.estimate(w ? &prior_wts : NULL) < prec)
          break;
    }
    if (verbose)
@@ -178,7 +206,7 @@ int main(int argc, char* argv[])
 
 void getArgs(int argc, char* argv[])
 {
-   const char* switches[] = {"v", "order:", "per-sent-filt", "oov:", "n:", "prec:"};
+   const char* switches[] = {"v", "order:", "per-sent-filt", "oov:", "n:", "prec:", "prior:", "w:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 2, 2, help_message);
    arg_reader.read(argc-1, argv+1);
 
@@ -187,6 +215,8 @@ void getArgs(int argc, char* argv[])
    arg_reader.testAndSet("per-sent-filt", per_sent_filt);
    arg_reader.testAndSet("n", num_iters);
    arg_reader.testAndSet("prec", prec);
+   arg_reader.testAndSet("prior", priorwts_filename);
+   arg_reader.testAndSet("w", w);
 
    string oov_string;
    arg_reader.testAndSet("oov", oov_string);
