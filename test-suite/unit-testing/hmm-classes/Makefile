@@ -21,7 +21,7 @@ all: test
 
 .SECONDARY:
 
-DIFF_IGNORE = --ignore-blank-lines --ignore-matching-lines=TTable --ignore-matching-lines=NRC-CNRC
+DIFF_IGNORE = --ignore-blank-lines --ignore-matching-lines=TTable --ignore-matching-lines=NRC-CNRC --ignore-matching-lines=PORTAGE/NOTICE
 
 clean:
 	rm -f ibm[12]* phrases* hmm-*
