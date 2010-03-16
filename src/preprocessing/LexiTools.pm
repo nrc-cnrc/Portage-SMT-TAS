@@ -467,7 +467,7 @@ sub split_word_en #(word, offset)
    my $os = shift || 0;
    my @atom_positions = ();
 
-   if ($word !~ /^it[$apostrophes]s/ && $word =~ /^([$iso_alpha]+)([$apostrophes][Ss])$/o) {
+   if ($word !~ /^it[$apostrophes]s/i && $word =~ /^([$iso_alpha]+)([$apostrophes][Ss])$/o) {
       push(@atom_positions, $os, len($1), $os+len($1), len($2));
    } else {
       push(@atom_positions, $os, len($word));

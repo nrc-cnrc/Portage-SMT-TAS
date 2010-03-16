@@ -72,14 +72,14 @@ my $out = shift || "-";
 
 my $psep = $p ? "\n\n" : "\n";
 
-open(IN, "<$in") || die "Can't open $in for reading";
-open(OUT, ">$out") || die "Can't open $out for writing";
+open(IN, "<$in") || die "tokenize.pl: Can't open $in for reading";
+open(OUT, ">$out") || die "tokenize.pl: Can't open $out for writing";
 
 if ( !$ss && !$noss ) {
-   die "One of -ss and -noss is now required.\n";
+   die "tokenize.pl: One of -ss and -noss is now required.\n";
 }
 if ( $ss && $noss ) {
-   die "Specify only one of -ss or -noss.\n";
+   die "tokenize.pl: Specify only one of -ss or -noss.\n";
 }
 if ( $noss && $notok ) {
    warn "Just copying the input since -noss and -notok are both specified.\n";
