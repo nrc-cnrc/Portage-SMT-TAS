@@ -294,7 +294,7 @@ int main(int argc, char* argv[])
       c.setFeatureWeights(wts);
       os << c.getFeatureWeightString(line) << endl;
    } else if (isPrefix("args:", cmd)) {
-      if (split(cmd, toks, ":") != 2)
+      if (split(cmd, toks, ":", 2) != 2) 
          error(ETFatal, "bad format for args command");
       vector<string> params = c.getParamList();
       const char* switches[params.size()];
@@ -303,7 +303,7 @@ int main(int argc, char* argv[])
       ArgReader r(ARRAY_SIZE(switches), switches, 0, 0, "", "-h", false);
       r.read(toks[1]);
       c.setFromArgReader(r);
-      c.write(os,0,pretty);
+      c.write(os,1,pretty);
    } else if (cmd == "weights") {
       string line;
       os << c.getFeatureWeightString(line) << endl;
