@@ -243,11 +243,16 @@ class HMMAligner : public IBM1 {
 
    /**
     * Get the .dist filename from the base ttable filename.
-    * @param ttable_name  
-    * @return 
+    * @param ttable_name Base TTable filename for the HMMAligner model 
+    * @param keep_zip  if true, extensions are not removed; otherwise they are
+    *                  should be true only when creating a model, not when reading it.
+    * @return associated distortion parameter file
     */
-   static const string distParamFileName(const string& ttable_name) {
-      return addExtension(removeZipExtension(ttable_name), ".dist");
+   static const string distParamFileName(const string& ttable_name, bool keep_zip = false)  {
+      if ( keep_zip )
+         return addExtension(ttable_name, ".dist");
+      else
+         return addExtension(removeZipExtension(ttable_name), ".dist");
    };
 
    /**

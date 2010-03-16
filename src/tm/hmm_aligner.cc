@@ -650,7 +650,7 @@ void HMMAligner::write(const string& ttable_file, bool bin_ttable) const
 {
    IBM1::write(ttable_file, bin_ttable);
 
-   const string dist_file = distParamFileName(ttable_file);
+   const string dist_file = distParamFileName(ttable_file, true);
    oSafeMagicStream out(dist_file);
 
    out << jump_strategy->getMagicString() << endl;
