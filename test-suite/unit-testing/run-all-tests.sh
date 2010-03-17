@@ -9,7 +9,7 @@
 # Copyright 2008, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2008, Her Majesty in Right of Canada
 
-echo 'run-all-test.sh, NRC-CNRC, (c) 2008, Her Majesty in Right of Canada' 1>&2
+echo 'run-all-tests.sh, NRC-CNRC, (c) 2008, Her Majesty in Right of Canada' 1>&2
 
 if [[ "$1" =~ "^-" ]]; then
    echo "Usage: $0 [test-suite [test-suite2 [...]]]
