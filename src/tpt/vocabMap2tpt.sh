@@ -87,7 +87,7 @@ verbose 2 "Intermediate model is $tmpModel"
 verbose 1 "Creating intermediate textpt model ($tmpModel)."
 zcat -f $VocabMapFile \
 | perl -nle ' 
-   BEGIN{binmode(STDIN, ":encoding(UTF-8)"); binmode(STDOUT, ":encoding(UTF-8)")}
+   BEGIN{binmode(STDIN); binmode(STDOUT)}
    my @line = split( /\t/, $_ ); 
    my $from = shift( @line ); 
    my $to   = shift( @line ); 

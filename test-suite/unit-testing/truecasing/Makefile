@@ -13,18 +13,17 @@ LM  = tc-lm.en
 .NOTPARALLEL:
 .SECONDARY:
 
-all: canoe1_latin1
+all: canoe1_cp1252
 all: canoe1_utf8
-all: canoe2_latin1
+all: canoe2_cp1252
 all: canoe2_utf8
-# Note: Currently TPPTs support UTF8 only.
-#all: tpt_latin1
+all: tpt_cp1252
 all: tpt_utf8
-#all: tpt_uBoS_latin1
+all: tpt_uBoS_cp1252
 all: tpt_uBoS_utf8
-all: srilm_latin1
+all: srilm_cp1252
 all: srilm_utf8
-all: viterbi_latin1
+all: viterbi_cp1252
 all: viterbi_utf8
 
 clean:
@@ -62,7 +61,7 @@ viterbi%: src% ref% ${LM}% ${MAP}%
 #REF = This is a test .\nÉric lives in Québec .
 #SRC = this is a test .\néric lives in québec .
 
-# Make sure the correct latin1 text goes into the *_latin1 files.
+# Make sure the correct windows-1252 (CP1252) text goes into the *_cp1252 files.
 REF = This is a test .\n\xC9ric lives in Qu\xE9bec .
 SRC = this is a test .\n\xE9ric lives in qu\xE9bec .
 
@@ -72,16 +71,16 @@ SRC = this is a test .\n\xE9ric lives in qu\xE9bec .
 #REF = \xC9tude is an accented word .
 #SRC = \xE9tude is an accented word .
 
-src_latin1:
+src_cp1252:
 	echo -e "${SRC}" > $@
 
-ref_latin1:
+ref_cp1252:
 	echo -e "${REF}" > $@
 
-${LM}_latin1:
+${LM}_cp1252:
 	echo -e "${REF}" | ngram-count -text - -order 3 -lm $@
 
-${MAP}_latin1:
+${MAP}_cp1252:
 	echo -e\
 		"a\tA\t0.0273266569645544\ta\t0.972673343035446\n"\
 		"\xE9ric\t\xC9RIC\t0.0203383\t\xC9ric\t0.970669\t\xE9ric\t0.00521756\n"\
@@ -91,9 +90,9 @@ ${MAP}_latin1:
 		"this\tTHIS\t5.95558008802638e-05\tThis\t0.170216289237831\tthis\t0.829724154961289\n" \
 	> $@
 
-src_utf8 ref_utf8 ${LM}_utf8 ${MAP}_utf8: %_utf8: %_latin1
+src_utf8 ref_utf8 ${LM}_utf8 ${MAP}_utf8: %_utf8: %_cp1252
 	cat $< \
-	| iconv -f latin1 -t UTF-8 \
+	| iconv -f windows-1252 -t UTF-8 \
 	> $@
 
 %.gz: %
