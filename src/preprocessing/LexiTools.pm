@@ -132,21 +132,24 @@ my @short_stops_fr = qw {
 # Get the next paragraph from a file. Return: text in para (including trailing
 # markup, if any)
 
-sub get_para #(\*FILEHANDLE)
+sub get_para #(\*FILEHANDLE, $one_para_per_line)
 {
    local $/ = "\n";     # protect record separator against external meddling
-   my $fh = shift;
+   my ($fh, $one_para_per_line) = @_;
+
    my ($line, $para) = ("", "");
+   my $line_count = 0;
 
    # skip leading blank lines
 
    while ($line = <$fh>) {
       if ($line !~ /^\s*$/o) {
          $para .= $line;
+         ++$line_count;
          last;
       }
    }
-   if ($line && $line =~ /^\s*<[^>]+>\s*$/o) {return $para;}
+   if ($line && ($line =~ /^\s*<[^>]+>\s*$/o || $one_para_per_line)) {return $para;}
 
    while ($line = <$fh>) {
       if ($line =~ /^\s*$/o) {last;}
@@ -159,6 +162,8 @@ sub get_para #(\*FILEHANDLE)
 
 # Split a paragraph into tokens. Return list of (start,len) token positions.
 
+# EJJ note: can't use the signature (\$$) here, because $para is modified in
+# this method, and we don't want the changes reflected for the caller.
 sub tokenize #(paragraph, lang)
 {
    my $para = shift;
