@@ -22,7 +22,7 @@ all: test
 test: display.accent \
      $(addprefix compare., accent.tok accent.utf8 accent.utf8.tok) \
      $(addprefix display., accent.tok accent.utf8 accent.utf8.tok) \
-     french-hyphens ch-punc
+     french-hyphens ch-punc en-prices
 
 
 french-hyphens: compare.hyphens.tok compare.hyphens.tok.utf8 \
@@ -30,11 +30,14 @@ french-hyphens: compare.hyphens.tok compare.hyphens.tok.utf8 \
 
 ch-punc: $(foreach EXT, 000 001 010 011 100 101 110 111, compare.chinese-punc.detok.$(EXT))
 
+en-prices: compare.eng-prices.detok compare.eng-prices.detok.utf8
+
 clean:
 	${RM} accent.tok accent.utf8 accent.utf8.tok hyphens.{tok,detok}{,.utf8}
 	${RM} chinese-punc.detok.[01][01][01]
 	${RM} hyphens.noss hyphens.noss.notok hyphens.notok
 	${RM} $(addprefix utf8.,hyphens.noss hyphens.noss.notok hyphens.notok)
+	${RM} eng-prices.utf8 eng-prices.detok{,.utf8}
 
 accent.utf8: accent
 	iconv -f iso-8859-1 -t UTF-8 < $< > $@
@@ -129,3 +132,14 @@ chinese-punc.detok.110: chinese-punc
 
 chinese-punc.detok.111: chinese-punc
 	udetokenize.pl -latin1 -chinesepunc -stripchinese < $< > $@
+	
+# Price specific ($ processing in English).
+eng-prices.utf8: eng-prices
+	iconv -f iso-8859-1 -t UTF-8 < $< > $@
+
+eng-prices.detok: eng-prices
+	detokenize.pl -lang=en $< > $@
+	
+eng-prices.detok.utf8: eng-prices.utf8
+	udetokenize.pl -lang=en $< > $@
+	

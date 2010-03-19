@@ -170,7 +170,10 @@ while(<IN>)
 sub process_word
 {
    my( $ch_pre, $ch_before)= @_;
-   if( ($ch_pre eq "%") ){# take care of (%)
+   if( ($ch_pre eq "%") ){ # take care of (%)
+      push ( @out_sentence, $ch_pre);
+   }
+   elsif( is_en_price($ch_pre, $ch_before)) {
       push ( @out_sentence, $ch_pre);
    }
    elsif( is_punctuation($ch_before) || is_right_bracket($ch_before)){
@@ -411,3 +414,9 @@ sub is_fr_hyph_ending #ch
            $ch =~ /^-(?:t-)?(?:je|tu|ils?|elles?|on|nous|vous|moi|toi|lui|eux|en|y|ci|ce|les?|leurs?|la|l[àÀ]|donc)/oi);
 }
 
+sub is_en_price # ch1, ch2
+{
+   my $ch_pre=shift;
+   my $ch_before=shift;
+   return ($lang eq "en" && $ch_before eq "\$" && $ch_pre =~ /^\.?\d/oi);
+}
