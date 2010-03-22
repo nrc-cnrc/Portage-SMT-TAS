@@ -16,6 +16,10 @@
 # Includes NRC's bash library.
 source `dirname $0`/sh_utils.sh
 
+if [[ $PORTAGE_INTERNAL_CALL ]]; then WAS_CALLED_INTERNALLY=1; fi
+[[ $PORTAGE_INTERNAL_CALL ]] ||
+print_nrc_copyright p-res-mon.sh 2009
+export PORTAGE_INTERNAL_CALL=1
 
 # Summarizes Wall/Cpu time, VMEM & RAM.
 # If there is an argument, the output will mimic grep's output => filename:line
@@ -124,6 +128,9 @@ run_cmd() {
       MON_FILE=`mktemp $WORKDIR_ABSOLUTE/mon.run_cmd.XXXXXXXX`
       process-memory-usage.pl -s 1 30 $$ > $MON_FILE &
       MON_PID=$!
+      # We don't consider calls via time-mem as internal, so unexport
+      # PORTAGE_INTERNAL_CALL unless it was set before time-mem was called.
+      [[ $WAS_CALLED_INTERNALLY ]] || export -n PORTAGE_INTERNAL_CALL
       time {
          # time this block as a whole so that sync (below) can be effective
          # before the output of time itself is printed to STDERR
@@ -131,6 +138,7 @@ run_cmd() {
          rc=$?
          sync
       }
+      export PORTAGE_INTERNAL_CALL=1
       kill -10 $MON_PID
       sync
       echo "run_cmd finished (rc=$rc): $@" >&2

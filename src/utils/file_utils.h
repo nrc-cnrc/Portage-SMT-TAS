@@ -192,6 +192,14 @@ string DirName(const string& filename);
 string BaseName(const string& filename);
 
 /**
+ * Get the full path to the current program, i.e., where it is actually running
+ * from, including the directory and file name.  This is equivalent to $0 in
+ * bash or Perl
+ * @return Full path to current program
+ */
+string GetAppPath();
+
+/**
  * Verifies that the file has .Z, .z or .gz extension.
  * @param filename filename to check if it's a gzip file
  * @return Returns true if filename contains .Z, .z or .gz

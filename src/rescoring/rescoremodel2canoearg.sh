@@ -29,7 +29,17 @@ numLM=1
 ## -l  Assume L language models (1 or more) [1]
 ##
 
-echo 'rescoremodel2canoearg.sh, NRC-CNRC, (c) 2006 - 2009, Her Majesty in Right of Canada' >&2
+# Include NRC's bash library.
+BIN=`dirname $0`
+if [[ ! -r $BIN/sh_utils.sh ]]; then
+   # assume executing from src/tpt directory
+   BIN="`dirname $BIN`/utils"
+fi
+source $BIN/sh_utils.sh
+
+[[ $PORTAGE_INTERNAL_CALL ]] ||
+print_nrc_copyright rescoremodel2canoearg.sh 2006
+export PORTAGE_INTERNAL_CALL=1
 
 while getopts "l:d:s:t:h" flag; do
    case $flag in 
@@ -51,14 +61,12 @@ fi
 
 model=$1
 if [ ! -r $model ]; then
-    echo "Error: Cannot read model file $model.  Use -h for help."
-    exit 1
+    error_exit "Cannot read model file $model."
 fi
 
 totlines=$((1 + $distFF + $segFF + $numLM + $numTM))
 if [ `egrep -v '^[ ]*$' $model | wc -l` != $totlines ]; then
-   echo "Error: $model does not contain $totlines lines - check -d, -s, -l and -t values"
-   exit 1
+   error_exit "$model does not contain $totlines lines - check -d, -s, -l and -t values"
 fi
 
 

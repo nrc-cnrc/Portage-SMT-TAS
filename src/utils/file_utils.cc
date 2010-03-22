@@ -13,6 +13,7 @@
  */
 
 #include <cerrno>
+#include <climits>
 #include "portage_defs.h"
 #include "file_utils.h"
 #include "errors.h"
@@ -108,12 +109,14 @@ bool Portage::check_if_exists(const string& filename, bool accept_compressed)
 
 void Portage::DecomposePath(const string& filename, string* path, string* file)
 {
-   assert(filename.size() > 0);
-   
    string rpath, rfile;
    
-   // filename = "/"
-   if (filename == "/") {
+   if (filename.empty() ) {
+      // Follow what dirname(3) and basename(3) do for an empty argument
+      // See "man 3 basename" for details.
+      rpath = rfile = ".";
+   }
+   else if (filename == "/") {
       rpath = rfile = "/";
    }
    else {
@@ -148,6 +151,19 @@ string Portage::BaseName(const string& filename)
    string r;
    DecomposePath(filename, NULL, &r);
    return r;
+}
+
+string Portage::GetAppPath() {
+   char program_path[PATH_MAX];
+   ssize_t program_path_length = readlink("/proc/self/exe", program_path, PATH_MAX);
+   if ( program_path_length < 0 ) {
+      int errnum = errno;
+      error(ETWarn, "Can't read /proc/self/exe link: %s", strerror(errnum));
+      return "";
+   }
+   assert( program_path_length < PATH_MAX );
+   program_path[program_path_length] = '\0';
+   return program_path;
 }
 
 bool Portage::isZipFile(const string& filename)

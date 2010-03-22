@@ -55,6 +55,7 @@ PROGRAMS = $(TESTPROGS) \
         iroc_exp \
         meanvar \
         merge_counts \
+        portage_info \
         strip_non_printing \
         utf8_casemap \
         utf8_filter \

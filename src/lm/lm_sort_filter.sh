@@ -15,9 +15,16 @@
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2006, Her Majesty in Right of Canada
 
-echo 'lm_sort_filter.sh, NRC-CNRC, Copyright (c) 2006 - 2009, Her Majesty in Right of Canada' >&2
-# Includes NRC's bash library.
-source `dirname $0`/sh_utils.sh
+# Include NRC's bash library.
+BIN=`dirname $0`
+if [[ ! -r $BIN/sh_utils.sh ]]; then
+   # assume executing from src/tpt directory
+   BIN="`dirname $BIN`/utils"
+fi
+source $BIN/sh_utils.sh
+
+print_nrc_copyright lm_sort_filter.sh 2006
+export PORTAGE_INTERNAL_CALL=1
 
 usage() {
    for msg in "$@"; do

@@ -8,8 +8,8 @@
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2005, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2005, Her Majesty in Right of Canada
+# Copyright 2004, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2004, Her Majesty in Right of Canada
 
 ## 
 ## Usage: getcolumn.sh COLNUM [FILE]
@@ -22,7 +22,12 @@
 ## FILE	The file, or - for standard input.  [-]
 ##
 
-echo 'getcolumn.sh, NRC-CNRC, (c) 2004 - 2009, Her Majesty in Right of Canada' >&2
+# Include NRC's bash library.
+source `dirname $0`/sh_utils.sh
+
+[[ $PORTAGE_INTERNAL_CALL ]] ||
+print_nrc_copyright getcolumn.sh 2004
+export PORTAGE_INTERNAL_CALL=1
 
 if [ $# -lt 1 -o $# -gt 2 -o "$1" == "-h" ]; then
     cat $0 | grep "^##" | cut -c4-
@@ -36,7 +41,7 @@ TMPFILE=
 # If using standard input, put it into a temporary file
 if [ $# -lt 2 -o "$file" == "-" ]; then
     TMPFILE=/tmp/$$.in
-    filename=the input
+    filename="the input"
     while [ -e $TMPFILE ]; do
 	$TMPFILE=$TMPFILE.
     done
@@ -56,8 +61,7 @@ done
 
 # Check that every line has the correct number of columns
 if [ "`sed "/$exp/ d" $file | head -c 1`" != "" ]; then
-    echo "Fewer than $1 columns in $filename."
-    exit 1
+    error_exit "Fewer than $1 columns in $filename."
 fi
 
 # Use sed to select only the correct column

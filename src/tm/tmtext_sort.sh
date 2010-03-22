@@ -14,6 +14,17 @@
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2006, Her Majesty in Right of Canada
 
+# Include NRC's bash library.
+BIN=`dirname $0`
+if [[ ! -r $BIN/sh_utils.sh ]]; then
+   # assume executing from src/tpt directory
+   BIN="`dirname $BIN`/utils"
+fi
+source $BIN/sh_utils.sh
+
+print_nrc_copyright tmtext_sort.sh 2006
+export PORTAGE_INTERNAL_CALL=1
+
 usage() {
     for msg in "$@"; do
         echo $msg >&2
@@ -27,8 +38,6 @@ Usage: tmtext_sort.sh [-h(elp)] [-1st] tmtext-file > sorted-tmtext-file
 ==EOF==
     exit 1
 }
-
-echo 'tmtext_sort.sh, NRC-CNRC, (c) 2006 - 2009, Her Majesty in Right of Canada' >&2
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -45,7 +54,7 @@ if [ -z "$TMTEXT_IN" ]; then
 fi
 
 if [ $TMTEXT_IN != "-" -a ! -r $TMTEXT_IN ]; then
-    usage "Can't read file $TMTEXT_IN";
+    error_exit "Can't read file $TMTEXT_IN";
 fi
 
 # The sort command is only correct in C locale.

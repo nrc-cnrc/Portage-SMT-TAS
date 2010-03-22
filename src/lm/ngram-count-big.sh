@@ -15,8 +15,17 @@
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada
 # Copyright 2006, Her Majesty in Right of Canada
 
-echo 'ngram-count-big.sh, NRC-CNRC, (c) 2006 - 2009, Her Majesty in Right of Canada'
-echo 'Wrapper around SRILM software - use only if you have a valid SRILM license'
+# Include NRC's bash library.
+BIN=`dirname $0`
+if [[ ! -r $BIN/sh_utils.sh ]]; then
+   # assume executing from src/tpt directory
+   BIN="`dirname $BIN`/utils"
+fi
+source $BIN/sh_utils.sh
+
+print_nrc_copyright ngram-count-big.sh 2006
+echo 'Wrapper around SRILM software - use only if you have a valid SRILM license' >&2
+export PORTAGE_INTERNAL_CALL=1
 
 usage() {
    for msg in "$@"; do
@@ -48,20 +57,6 @@ Options:
 ==EOF==
 
    exit 1
-}
-
-error_exit() {
-   for msg in "$@"; do
-      echo $msg
-   done
-   echo "Use -h for help."
-   exit 1
-}
-
-arg_check() {
-   if [ $2 -le $1 ]; then
-      error_exit "Missing argument to $3 option."
-   fi
 }
 
 echo ""

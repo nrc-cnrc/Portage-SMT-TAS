@@ -15,11 +15,19 @@
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2006, Her Majesty in Right of Canada
 
-echo 'masstesting.sh, NRC-CNRC, Copyright (c) 2006 - 2009, Her Majesty in Right of Canada'
+# Include NRC's bash library.
+BIN=`dirname $0`
+if [[ ! -r $BIN/sh_utils.sh ]]; then
+   # assume executing from src/tpt directory
+   BIN="`dirname $BIN`/utils"
+fi
+source $BIN/sh_utils.sh
 
-if [ $# -ne 3 ]; then
-   echo Your are missing some arguments
-   exit 1;
+print_nrc_copyright masstesting.sh 2006
+export PORTAGE_INTERNAL_CALL=1
+
+if [[ $# -ne 3 ]]; then
+   error_exit "Your are missing some arguments"
 fi
 
 LM_FOR_SRILM=$1

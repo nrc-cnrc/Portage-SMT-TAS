@@ -16,6 +16,7 @@
 #define __PRINT_COPYRIGHT_H__
 
 #include <cstdio>
+#include <cstdlib>
 
 namespace Portage {
    /**
@@ -26,6 +27,9 @@ namespace Portage {
    inline void printCopyright(const unsigned int startDate,
                               const char* progName = NULL)
    {
+      static const char* const quench_copyright = getenv("PORTAGE_INTERNAL_CALL");
+      if ( quench_copyright ) return;
+
       if ( progName ) {
          fprintf(stderr, "\n%s, ", progName);
       } else {
@@ -43,7 +47,7 @@ namespace Portage {
             startDate);
       }
 
-      fprintf(stderr, "\n");
+      fprintf(stderr, "Please run \"portage_info -notice\" for Copyright notices of 3rd party libraries.\n\n");
    }
 }
 

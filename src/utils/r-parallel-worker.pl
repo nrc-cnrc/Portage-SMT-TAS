@@ -83,7 +83,10 @@ sub send_recv($) {
    my $message = shift;
    socket(SOCK, PF_INET, SOCK_STREAM, $proto)
       or exit_with_error("Can't create socket: $!");
-   connect(SOCK, $paddr) or exit_with_error("Can't connect to socket: $!");
+   connect(SOCK, $paddr) or do {
+      if ( $message =~ /^GET/ ) { return ""; }
+      exit_with_error("Can't connect to socket (deamon probably exited): $!");
+   };
    select SOCK; $| = 1; select STDOUT; # set autoflush on SOCK
    print SOCK $message, "\n";
    local $/; undef $/;
@@ -123,6 +126,7 @@ if ( defined $subst ) {
 #
 
 my $start_time = time;
+#`sleep 123`;
 my $reply_rcvd = send_recv "GET ($me)";
 chomp $reply_rcvd;
 
@@ -135,7 +139,7 @@ sub report_signal($) {
 my $mon_pid;
 if ( $mon ) {
    $mon_pid = `set -m; process-memory-usage.pl -s 1 60 $$ > $mon & echo -n \$!`;
-   log_msg "Monitor PID $mon_pid";
+   #log_msg "Monitor PID $mon_pid";
 }
 
 while(defined $reply_rcvd and $reply_rcvd !~ /^\*\*\*EMPTY\*\*\*/i
@@ -183,7 +187,7 @@ while(defined $reply_rcvd and $reply_rcvd !~ /^\*\*\*EMPTY\*\*\*/i
 
 if ( $mon_pid ) {
    system("kill $mon_pid");
-   log_msg("Killed monitor process $mon_pid");
+   #log_msg("Killed monitor process $mon_pid");
 }
 
 log_msg "Done.";

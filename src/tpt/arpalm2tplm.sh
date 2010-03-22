@@ -11,6 +11,15 @@
 # Copyright 2008, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2008, Her Majesty in Right of Canada
 
+# Include NRC's bash library.
+BIN=`dirname $0`
+if [[ ! -r $BIN/sh_utils.sh ]]; then
+   # assume executing from src/tpt directory
+   BIN="$BIN/../utils"
+fi
+source $BIN/sh_utils.sh
+
+echo 'arpalm2tplm.sh, (c) 2005-2010, Ulrich Germann and Her Majesty in Right of Canada' >&2
 
 usage() {
    for msg in "$@"; do
@@ -37,29 +46,6 @@ Options:
    exit 1
 }
 
-# error_exit "some error message" "optionnally a second line of error message"
-# will exit with an error status, print the specified error message(s) on
-# STDERR.
-error_exit() {
-   echo -n arpalm2tplm.sh: "" >&2
-   for msg in "$@"; do
-      echo $msg >&2
-   done
-   echo "Use -h for help." >&2
-   exit 1
-}
-
-# Verify that enough args remain on the command line
-# syntax: one_arg_check <args needed> $# <arg name>
-# Note that the syntax show above is meant to be part of a while/case structure
-# for handling parameters, so that $# still includes the option itself.  exits
-# with error message if the check fails.
-arg_check() {
-   if [ $2 -le $1 ]; then
-      error_exit "Missing argument to $3 option."
-   fi
-}
-
 # arg_check_int $value $arg_name exits with an error if $value does not
 # represent an integer, using $arg_name to provide a meaningful error message.
 check_pos_int() {
@@ -70,20 +56,12 @@ check_pos_int() {
    fi
 }
 
-# Print a verbose message.
-verbose() {
-   level=$1; shift
-   if [[ $level -le $VERBOSE ]]; then
-      echo "$*" >&2
-   fi
-}
-
 NUM_PAR=1
 VERBOSE=0
 while [ $# -gt 0 ]; do
    case "$1" in
    -h|-help)     usage;;
-   -n)           arg_check 1 $# $!; check_pos_int $2 $1; NUM_PAR=$2; shift;;
+   -n)           arg_check 1 $# $!; arg_check_pos_int $2 $1; NUM_PAR=$2; shift;;
    -v|-verbose)  VERBOSE=$(( $VERBOSE + 1 ));;
    --)           shift; break;;
    -*)           error_exit "Unknown option $1.";;
@@ -114,7 +92,7 @@ fi
 
 OUTPUTLM=`basename $OUTPUTLM .tplm`
 
-echo "Building TPLM $OUTPUTLM.tplm of order $LMORDER for LM $TEXTLM, using $NUM_PAR parallel job(s)."
+echo "Building TPLM $OUTPUTLM.tplm of order $LMORDER for LM $TEXTLM, using $NUM_PAR parallel job(s)." >&2
 
 if [[ `basename $TEXTLM` == $TEXTLM ]]; then
    #TEXTLM is in current directory

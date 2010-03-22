@@ -14,6 +14,18 @@
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
 
+
+# Include NRC's bash library.
+BIN=`dirname $0`
+if [[ ! -r $BIN/sh_utils.sh ]]; then
+   # assume executing from src/tpt directory
+   BIN="`dirname $BIN`/utils"
+fi
+source $BIN/sh_utils.sh
+
+print_nrc_copyright canoe-parallel.sh 2005
+export PORTAGE_INTERNAL_CALL=1
+
 PATH="$PATH:/usr/local/bin"
 
 TIMEFORMAT="Single-job-total: Real %3Rs User %3Us Sys %3Ss PCPU %P%%"
@@ -25,13 +37,11 @@ LOW_SENT_PER_BLOCK=40
 NBEST_PREFIX=      # Will be use to merge chunks in append mode
 NBEST_COMPRESS=    # Will be use to merge chunks in append mode
 
-
 usage() {
    for msg in "$@"; do
       echo $msg >&2
    done
    cat <<==EOF== >&2
-canoe-parallel.sh, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada
 
 Usage: canoe-parallel.sh [options] canoe [canoe options] < <input>
 
@@ -98,39 +108,6 @@ Cluster mode options (ignored on non-clustered machines):
    exit 1
 }
 
-
-# error_exit "some error message" "optionnally a second line of error message"
-# will exit with an error status, print the specified error message(s) on
-# STDERR.
-error_exit() {
-   echo -n "canoe-parallel.sh fatal error: " >&2
-   for msg in "$@"; do
-      echo $msg >&2
-   done
-   echo "Use -h for help." >&2
-   exit 1
-}
-
-# Verify that enough args remain on the command line
-# syntax: one_arg_check <args needed> $# <arg name>
-# Note that this function expects to be in a while/case structure for
-# handling parameters, so that $# still includes the option itself.
-# exits with error message if the check fails.
-arg_check() {
-   if [ $2 -le $1 ]; then
-      error_exit "Missing argument to $3 option."
-   fi
-}
-
-warn()
-{
-   echo "Warning: $*" >&2
-}
-
-debug()
-{
-   test -n "$DEBUG" && echo "<D> $*" >&2
-}
 
 
 # Command line processing ; "declare -a" declares array variables

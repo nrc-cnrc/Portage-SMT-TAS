@@ -15,6 +15,8 @@
 # Copyright 2010, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2010, Her Majesty in Right of Canada
 
+echo 'build-tp-suffix-array.sh, (c) 2005-2010, Ulrich Germann and Her Majesty in Right of Canada' >&2
+
 # Include NRC's bash library.
 BIN=`dirname $0`
 if [[ ! -r $BIN/sh_utils.sh ]]; then

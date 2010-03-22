@@ -12,7 +12,12 @@
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
 
-echo 'monitor-process.sh, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada' >&2
+# Include NRC's bash library.
+source `dirname $0`/sh_utils.sh
+
+[[ $PORTAGE_INTERNAL_CALL ]] ||
+print_nrc_copyright monitor-process.sh 2005
+export PORTAGE_INTERNAL_CALL=1
 
 usage() {
    for msg in "$@"; do
@@ -36,28 +41,6 @@ Options:
 ==EOF==
 
    exit 1
-}
-
-# error_exit "some error message" "optionnally a second line of error message"
-# will exit with an error status, print the specified error message(s) on
-# STDERR.
-error_exit() {
-   for msg in "$@"; do
-      echo $msg >&2
-   done
-   echo "Use -h for help." >&2
-   exit 1
-}
-
-# Verify that enough args remain on the command line
-# syntax: one_arg_check <args needed> $# <arg name>
-# Note that this function expects to be in a while/case structure for
-# handling parameters, so that $# still includes the option itself.
-# exits with error message if the check fails.
-arg_check() {
-    if [ $2 -le $1 ]; then
-        error_exit "Missing argument to $3 option."
-    fi
 }
 
 # Command line processing [Remove irrelevant parts of this code when you use this template]

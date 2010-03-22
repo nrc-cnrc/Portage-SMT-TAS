@@ -103,6 +103,10 @@ class mergeStream
             iSafeMagicStream   input;  ///< file stream
             Datum*             _data;  ///< Datum
             string             buffer; ///< line buffer
+            /// We need to placeholder to keep track of the entries to check if
+            /// the stream is LC_ALL=C sorted.
+            string             current_entry;
+            string             next_entry;  ///< a buffer space for the next entry.
 
          private:
             Stream(const Stream&); ///< Noncopyable
@@ -142,7 +146,17 @@ class mergeStream
                   if (pos == string::npos)
                      error(ETFatal, "Invalid entry %s", buffer.c_str());
                   if (_data == NULL) _data = new Datum;
-                  _data->prefix = buffer.substr(0, pos+1);  // Keep the space
+                  assert(_data != NULL);
+
+                  // Check if the stream is LC_ALL=C sorted on the fly.
+                  next_entry = buffer.substr(0, pos+1);
+                  if (current_entry > next_entry) {
+                     error(ETFatal, "%s is not LC_ALL=C sorted\n%s\n%s",
+                          file.c_str(), current_entry.c_str(), next_entry.c_str());
+                  }
+
+                  current_entry = next_entry;
+                  _data->prefix = next_entry;
                   if (!convT(buffer.substr(pos+1).c_str(), _data->count))
                      error(ETWarn, "Count is not a number: %s", buffer.substr(pos).c_str());
                }

@@ -60,6 +60,14 @@ public:
       os.close();
       unlink(tmp_file_name);
    }
+
+   void testGetAppPath() {
+      string my_app_path = GetAppPath();
+      TS_ASSERT_EQUALS(BaseName(my_app_path).substr(0,5), "test_");
+      TS_ASSERT_EQUALS(BaseName(DirName(my_app_path)), "tests");
+      TS_ASSERT_EQUALS(BaseName(DirName(DirName(my_app_path))), "utils");
+      TS_ASSERT_EQUALS(BaseName(DirName(DirName(DirName(my_app_path)))), "src");
+   }
 }; // TestYourClass
 
 } // Portage

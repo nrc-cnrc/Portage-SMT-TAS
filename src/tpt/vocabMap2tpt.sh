@@ -13,6 +13,8 @@
 # Copyright 2008, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2008, Her Majesty in Right of Canada
 
+echo 'vocabMap2tpt.sh, (c) 2005-2010, Ulrich Germann and Her Majesty in Right of Canada' >&2
+
 # Includes NRC's bash library.
 BIN=`dirname $0`
 if [[ ! -r $BIN/sh_utils.sh ]]; then

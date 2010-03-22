@@ -14,6 +14,7 @@
 # Copyright 2008-2010, Her Majesty in Right of Canada
 
 
+echo 'mmsufa.compile.sh, (c) 2005-2010, Ulrich Germann and Her Majesty in Right of Canada' >&2
 
 # simple script for compiling a text file into a suffix array
 # three files are produced: 

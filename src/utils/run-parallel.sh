@@ -1,4 +1,4 @@
-#!/bin/bash -k
+#!/bin/bash
 # $Id$
 
 # @file run-parallel.sh 
@@ -25,6 +25,12 @@
 # - run-parallel.sh
 # - sum.pl
 # - which-test.sh
+
+# Include NRC's bash library.
+source `dirname $0`/sh_utils.sh
+
+[[ $PORTAGE_INTERNAL_CALL || "$*" =~ "-(c|exec)\b" ]] ||
+print_nrc_copyright run-parallel.sh 2005
 
 usage() {
    for msg in "$@"; do
@@ -166,18 +172,6 @@ error_exit() {
    echo "Use -h for help." >&2
    GLOBAL_RETURN_CODE=1
    exit 1
-}
-
-arg_check() {
-   if (( $2 <= $1 )); then
-      error_exit "Missing argument to $3 option."
-   fi
-}
-
-# Print a warning message
-warn()
-{
-   echo "WARNING: $*" >&2
 }
 
 MY_HOST=`hostname`
@@ -923,6 +917,8 @@ if (( $VERBOSE > 0 )); then
    cat $WORKDIR/rc 2> /dev/null | tr '\n' ' ' >&2
    echo "" >&2
 fi
+
+export PORTAGE_INTERNAL_CALL=1
 
 TOTAL_CPU=`grep -h $WORKER_CPU_STRING $WORKDIR/err.worker-* 2> /dev/null | 
    egrep -o "[0-9.]+" | sum.pl`

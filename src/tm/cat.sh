@@ -12,7 +12,16 @@
 # Copyright 2007, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2007, Her Majesty in Right of Canada
 
-echo 'cat.sh, NRC-CNRC, (c) 2007 - 2009, Her Majesty in Right of Canada' >&2
+# Include NRC's bash library.
+BIN=`dirname $0`
+if [[ ! -r $BIN/sh_utils.sh ]]; then
+   # assume executing from src/tpt directory
+   BIN="`dirname $BIN`/utils"
+fi
+source $BIN/sh_utils.sh
+
+print_nrc_copyright cat.sh 2007
+export PORTAGE_INTERNAL_CALL=1
 
 usage() {
    for msg in "$@"; do
@@ -50,14 +59,6 @@ Model training options are documented in "train_ibm -h".
    exit 1
 }
 
-TIMEFORMAT="Single-job-total: Real %3lR User %3lU Sys %3lS PCPU %P%%"
-START_TIME=`date +"%s"`
-trap '
-   RC=$?
-   echo "Master-Wall-Time $((`date +%s` - $START_TIME))s" >&2
-   exit $RC
-' 0
-
 run_cmd() {
    if [[ "$1" = "-no-error" ]]; then
       shift
@@ -87,26 +88,6 @@ run_cmd() {
    fi
 }
 
-error_exit() {
-   for msg in "$@"; do
-      echo $msg >&2
-   done
-   echo "Use -h for help." >&2
-   exit 1
-}
-
-arg_check() {
-   if [[ $2 -le $1 ]]; then
-      error_exit "Missing argument to $3 option."
-   fi
-}
-
-is_int() {
-   if [[ "`expr $1 + 0 2> /dev/null`" != "$1" ]]; then
-      error_exit "Invalid argument ($1) to $2 option - must be int."
-   fi
-}
-
 SAVE_ARGS="$@"
 NUM_JOBS=4
 NUM_ITERS1=5
@@ -118,15 +99,15 @@ declare -a TRAIN_IBM_OPTS
 declare -a TRAIN_HMM_OPTS
 while [[ $# -gt 0 ]]; do
    case "$1" in
-   -n)         arg_check 1 $# $1; is_int $2 $1; NUM_JOBS=$2; shift;;
-   -pn)        arg_check 1 $# $1; is_int $2 $1; NUM_CPUS=$2; shift;;
-   -1n)        arg_check 1 $# $1; is_int $2 $1; NUM_IBM1_JOBS=$2; shift;;
-   -1pn)       arg_check 1 $# $1; is_int $2 $1; NUM_IBM1_CPUS=$2; shift;;
+   -n)         arg_check 1 $# $1; arg_check_int $2 $1; NUM_JOBS=$2; shift;;
+   -pn)        arg_check 1 $# $1; arg_check_int $2 $1; NUM_CPUS=$2; shift;;
+   -1n)        arg_check 1 $# $1; arg_check_int $2 $1; NUM_IBM1_JOBS=$2; shift;;
+   -1pn)       arg_check 1 $# $1; arg_check_int $2 $1; NUM_IBM1_CPUS=$2; shift;;
    -rp)        arg_check 1 $# $1; RP_OPTS="$RP_OPTS $2"; shift;;
    -i)         arg_check 1 $# $1; INIT_MODEL=$2; shift;;
    -s)         arg_check 1 $# $1; SAVE_IBM1=$2; shift;;
-   -n1)        arg_check 1 $# $1; is_int $2 $1; NUM_ITERS1=$2; shift;;
-   -n2)        arg_check 1 $# $1; is_int $2 $1; NUM_ITERS2=$2; shift;;
+   -n1)        arg_check 1 $# $1; arg_check_int $2 $1; NUM_ITERS1=$2; shift;;
+   -n2)        arg_check 1 $# $1; arg_check_int $2 $1; NUM_ITERS2=$2; shift;;
    -bin)       BIN_MODELS=$1;;
    -hmm)       DO_HMM=1;;
    -mod|-ibm1|-ibm2|-count-only|-est-only)
@@ -188,6 +169,14 @@ MODEL=$1
 shift
 
 CORPUS=$*
+
+TIMEFORMAT="Single-job-total: Real %3lR User %3lU Sys %3lS PCPU %P%%"
+START_TIME=`date +"%s"`
+trap '
+   RC=$?
+   echo "Master-Wall-Time $((`date +%s` - $START_TIME))s" >&2
+   exit $RC
+' 0
 
 if [[ $DO_SYM ]]; then
    if [[ $MODEL =~ ".*[^a-zA-Z0-9]([a-zA-Z0-9]*)_given_([a-zA-Z0-9]*)" ]]; then

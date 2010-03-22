@@ -18,6 +18,8 @@ if [[ ! -r $BIN/sh_utils.sh ]]; then
 fi
 source $BIN/sh_utils.sh
 
+echo 'textpt2tppt.sh, (c) 2005-2010, Ulrich Germann and Her Majesty in Right of Canada' >&2
+
 usage() {
    for msg in "$@"; do
       echo $msg >&2
@@ -38,15 +40,6 @@ Options:
 
 ==EOF==
 
-   exit 1
-}
-
-error_exit() {
-   echo -n textpt2tppt.sh: "" >&2
-   for msg in "$@"; do
-      echo $msg >&2
-   done
-   echo "Use -h for help." >&2
    exit 1
 }
 

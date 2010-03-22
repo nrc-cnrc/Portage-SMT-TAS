@@ -11,7 +11,16 @@
 # Copyright 2007, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2007, Her Majesty in Right of Canada
 
-echo 'gen-jpt-parallel.sh, NRC-CNRC, (c) 2007 - 2009, Her Majesty in Right of Canada' >&2
+# Include NRC's bash library.
+BIN=`dirname $0`
+if [[ ! -r $BIN/sh_utils.sh ]]; then
+   # assume executing from src/tpt directory
+   BIN="`dirname $BIN`/utils"
+fi
+source $BIN/sh_utils.sh
+
+print_nrc_copyright gen-jpt-parallel.sh 2007
+export PORTAGE_INTERNAL_CALL=1
 
 usage() {
    for msg in "$@"; do
@@ -53,26 +62,6 @@ Options:
    exit 1
 }
 
-error_exit() {
-   for msg in "$@"; do
-      echo $msg >&2
-   done
-   echo "Use -h for help." >&2
-   exit 1
-}
-
-arg_check() {
-   if [ $2 -le $1 ]; then
-      error_exit "Missing argument to $3 option."
-   fi
-}
-
-is_int() {
-   if [ "`expr $1 + 0 2> /dev/null`" != "$1" ]; then
-      error_exit "Invalid argument ($1) to $2 option - must be int."
-   fi
-}
-
 NUM_JOBS=4
 NW=
 OUTFILE="-"
@@ -82,9 +71,9 @@ WORKERS=
 
 while [ $# -gt 0 ]; do
    case "$1" in
-   -n)         arg_check 1 $# $1; is_int $2 $1; NUM_JOBS=$2; shift;;
-   -nw)        arg_check 1 $# $1; is_int $2 $1; WORKERS=$2; shift;;
-   -w)         arg_check 1 $# $1; is_int $2 $1; NW=$2; shift;;
+   -n)         arg_check 1 $# $1; arg_check_int $2 $1; NUM_JOBS=$2; shift;;
+   -nw)        arg_check 1 $# $1; arg_check_int $2 $1; WORKERS=$2; shift;;
+   -w)         arg_check 1 $# $1; arg_check_int $2 $1; NW=$2; shift;;
    -rp)        arg_check 1 $# $1; RP_OPTS="$RP_OPTS $2"; shift;;
    -o)         arg_check 1 $# $1; OUTFILE=$2; shift;;
    -v)         VERBOSE="-v";;

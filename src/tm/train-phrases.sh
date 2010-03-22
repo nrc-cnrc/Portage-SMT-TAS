@@ -14,7 +14,16 @@
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2006, Her Majesty in Right of Canada
 
-echo 'train-phrases.sh, NRC-CNRC, (c) 2006 - 2009, Her Majesty in Right of Canada'
+# Include NRC's bash library.
+BIN=`dirname $0`
+if [[ ! -r $BIN/sh_utils.sh ]]; then
+   # assume executing from src/tpt directory
+   BIN="`dirname $BIN`/utils"
+fi
+source $BIN/sh_utils.sh
+
+print_nrc_copyright train-phrases.sh 2006
+export PORTAGE_INTERNAL_CALL=1
 
 usage() {
     for msg in "$@"; do
@@ -45,20 +54,6 @@ Options:
 ==EOF==
 
     exit 1
-}
-
-error_exit() {
-    for msg in "" "$@"; do
-        echo "$msg" >&2
-    done
-    #echo "Use -h for help." >&2
-    usage
-}
-
-arg_check() {
-    if [ $2 -le $1 ]; then
-        error_exit "Missing argument to $3 option."
-    fi
 }
 
 set -o noclobber

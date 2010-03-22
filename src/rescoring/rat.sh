@@ -20,7 +20,16 @@
 # to STDERR globally, instead of doing it on each echo command.
 {
 
-echo 'rat.sh, NRC-CNRC, (c) 2006 - 2009, Her Majesty in Right of Canada'
+# Include NRC's bash library.
+BIN=`dirname $0`
+if [[ ! -r $BIN/sh_utils.sh ]]; then
+   # assume executing from src/tpt directory
+   BIN="`dirname $BIN`/utils"
+fi
+source $BIN/sh_utils.sh
+
+print_nrc_copyright rat.sh 2006
+export PORTAGE_INTERNAL_CALL=1
 
 usage() {
    for msg in "$@"; do
@@ -110,40 +119,6 @@ existing model, only the new feature is calculated.
 ==EOF==
 
    exit 1
-}
-
-# error_exit "some error message" "optionally a second line of error message"
-# will exit with an error status, printing the specified error message(s) on
-# STDERR.
-error_exit() {
-   for msg in "$@"; do
-      echo $msg
-   done
-   echo "Use -h for help."
-   exit 1
-}
-
-# Verify that enough args remain on the command line
-# syntax: one_arg_check <args needed> $# <arg name>
-# Note that this function expects to be in a while/case structure for
-# handling parameters, so that $# still includes the option itself.
-# exits with error message if the check fails.
-arg_check() {
-   if [ $2 -le $1 ]; then
-      error_exit "Missing argument to $3 option."
-   fi
-}
-
-# Warning message
-warn()
-{
-   echo "WARNING: $*"
-}
-
-# Debug message
-debug()
-{
-   test -n "$DEBUG" && echo "<D> $*"
 }
 
 TIMEFORMAT="Single-job-total: Real %3Rs User %3Us Sys %3Ss PCPU %P%%"

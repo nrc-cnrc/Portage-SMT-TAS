@@ -2,9 +2,9 @@
 # $Id$
 
 # @file prog.sh 
-# @brief Briefly describe your script here.
+# @brief BRIEFLY DESCRIBE YOUR SCRIPT HERE.
 # 
-# @author Write your name here
+# @author WRITE YOUR NAME HERE
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -12,10 +12,11 @@
 # Copyright 2010, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2010, Her Majesty in Right of Canada
 
-echo 'prog.sh, NRC-CNRC, (c) 2009, Her Majesty in Right of Canada' >&2
-
 # Includes NRC's bash library.
 source `dirname $0`/sh_utils.sh
+
+# CHANGE THE PROGRAM NAME AND YEAR HERE
+print_nrc_copyright prog.sh 2010
 
 usage() {
    for msg in "$@"; do

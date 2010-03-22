@@ -36,8 +36,6 @@ MODULE_CF =
 
 MODULE_DEPENDS = tpt
 
-EXTRA_LIBS = $(TPT_LIBS)
-
 DYNLIBS = $(LIBICU)
 
 include ../build/Makefile.incl

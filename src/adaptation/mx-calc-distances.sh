@@ -12,7 +12,16 @@
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada / 
 # Copyright 2006, Her Majesty in Right of Canada
 
-echo 'mx-calc-distances.sh, NRC-CNRC, (c) 2006 - 2009, Her Majesty in Right of Canada' >&2
+# Include NRC's bash library.
+BIN=`dirname $0`
+if [[ ! -r $BIN/sh_utils.sh ]]; then
+   # assume executing from src/tpt directory
+   BIN="`dirname $BIN`/utils"
+fi
+source $BIN/sh_utils.sh
+
+print_nrc_copyright mx-calc-distances.sh 2006
+export PORTAGE_INTERNAL_CALL=1
 
 usage() {
    for msg in "$@"; do
@@ -53,21 +62,6 @@ Options:
 
     exit 1
 }
-
-error_exit() {
-   for msg in "$@"; do
-      echo $msg >&2
-   done
-   echo "Use -h for help." >&2
-   exit 1
-}
-
-arg_check() {
-   if [ $2 -le $1 ]; then
-      error_exit "Missing argument to $3 option."
-   fi
-}
-
 
 # Command line processing
 

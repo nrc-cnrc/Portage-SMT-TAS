@@ -13,7 +13,17 @@
 # Copyright 2008, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2008, Her Majesty in Right of Canada
 
-echo 'rescore-train-micro.sh, NRC-CNRC, (c) 2008 - 2009, Her Majesty in Right of Canada'
+# Include NRC's bash library.
+BIN=`dirname $0`
+if [[ ! -r $BIN/sh_utils.sh ]]; then
+   # assume executing from src/tpt directory
+   BIN="`dirname $BIN`/utils"
+fi
+source $BIN/sh_utils.sh
+
+[[ $PORTAGE_INTERNAL_CALL ]] ||
+print_nrc_copyright rescore-train-micro.sh 2008
+export PORTAGE_INTERNAL_CALL=1
 
 usage() {
    for msg in "$@"; do
@@ -52,21 +62,6 @@ Options:
 ==EOF==
 
    exit 1
-}
-
-error_exit() {
-   echo -n "rescore-train-micro.sh fatal error: "
-   for msg in "$@"; do
-      echo $msg 
-   done
-   echo "Use -h for help."
-   exit 1
-}
-
-arg_check() {
-   if [ $2 -le $1 ]; then
-      error_exit "Missing argument to $3 option."
-   fi
 }
 
 # patsubst PATTERN SEQ sets FNAME to PATTERN with 'IIII' replaced by SEQ

@@ -13,6 +13,11 @@
 # Copyright 2009, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2009, Her Majesty in Right of Canada
 
+# Include NRC's bash library.
+source `dirname $0`/sh_utils.sh
+
+print_nrc_copyright process-bind.sh 2009
+
 usage() {
    for msg in "$@"; do
       echo $msg >&2
@@ -41,39 +46,6 @@ Exit status:
 ==EOF==
 
    exit 1
-}
-
-# error_exit "some error message" "optionnally a second line of error message"
-# will exit with an error status, print the specified error message(s) on
-# STDERR.
-error_exit() {
-   for msg in "$@"; do
-      echo $msg >&2
-   done
-   echo "Use -h for help." >&2
-   exit 1
-}
-
-# arg_check_pos_int $value $arg_name exits with an error if $value does not
-# represent a positive integer, using $arg_name to provide a meaningful error
-# message.
-arg_check_pos_int() {
-   expr $1 + 0 &> /dev/null
-   RC=$?
-   if [ $RC != 0 -a $RC != 1 ] || [ $1 -le 0 ]; then
-      error_exit "Invalid argument to $2 option: $1; positive integer expected."
-   fi
-}
-
-# Verify that enough args remain on the command line
-# syntax: one_arg_check <args needed> $# <arg name>
-# Note that the syntax show above is meant to be part of a while/case structure
-# for handling parameters, so that $# still includes the option itself.  exits
-# with error message if the check fails.
-arg_check() {
-   if [ $2 -le $1 ]; then
-      error_exit "Missing argument to $3 option."
-   fi
 }
 
 # Command line processing [Remove irrelevant parts of this code when you use

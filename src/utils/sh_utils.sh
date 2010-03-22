@@ -16,10 +16,14 @@
 # will exit with an error status, print the specified error message(s) on
 # STDERR.
 error_exit() {
-   for msg in "$@"; do
-      echo $msg >&2
-   done
-   echo "Use -h for help." >&2
+   {
+      PROG_NAME=`basename $0`
+      echo -n "$PROG_NAME fatal error: "
+      for msg in "$@"; do
+         echo $msg
+      done
+      echo "Use -h for help."
+   } >&2
    exit 1
 }
 
@@ -82,13 +86,31 @@ run_cmd() {
    fi
 }
 
+# Print the standard NRC Copyright notice
+# Usage: print_nrc_copyright(program_name, year)
+CURRENT_COPYRIGHT_YEAR=2010
+print_nrc_copyright() {
+   prog_name=$1
+   year=$2
+   {
+      echo -n "$prog_name, NRC-CNRC, (c) $year"
+      if [[ $year != $CURRENT_COPYRIGHT_YEAR ]]; then
+         echo -n " - $CURRENT_COPYRIGHT_YEAR"
+      fi
+      echo ", Her Majesty in Right of Canada";
+      echo "Please run \"portage_info -notice\" for Copyright notices of 3rd party libraries."
+      echo ""
+   } >&2
+}
+
 # This library's help message.
 _sh_utils_help() {
-   echo "This is intended to be used as a library, not a stand-alone program."
+   print_nrc_copyright sh_utils.sh 2008
+   echo "sh_utils.sh is intended to be used as a library, not as a stand-alone program."
 }
 
 # This file is intended to be a library and not an executable file.
-if [[ $0 == "sh_utils.sh" ]]; then
+if [[ `basename $0` == "sh_utils.sh" ]]; then
    _sh_utils_help
    exit 1
 fi

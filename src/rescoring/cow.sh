@@ -17,6 +17,17 @@
 # to STDERR globally, instead of doing it on each echo command.
 {
 
+# Include NRC's bash library.
+BIN=`dirname $0`
+if [[ ! -r $BIN/sh_utils.sh ]]; then
+   # assume executing from src/tpt directory
+   BIN="`dirname $BIN`/utils"
+fi
+source $BIN/sh_utils.sh
+
+print_nrc_copyright cow.sh 2004
+export PORTAGE_INTERNAL_CALL=1
+
 COMPRESS_EXT=".gz"
 VERBOSE=
 FILTER=
@@ -166,37 +177,15 @@ FFVALPARSER_OPTS="-canoe"
 ##     echo STOP_AFTER=0 > COW_DYNAMIC_OPTIONS
 ##
 
-echo 'cow.sh, NRC-CNRC, (c) 2004 - 2009, Her Majesty in Right of Canada'
-
 #------------------------------------------------------------------------------
 # Argument processing & checking
 #------------------------------------------------------------------------------
-
-error_exit() {
-   echo -n "cow.sh fatal error: "
-   for msg in "$@"; do
-      echo $msg
-   done
-   echo "Use -h for help."
-   exit 1
-}
 
 warn() {
    echo -n "cow.sh warning: "
    for msg in "$@"; do
       echo $msg
    done
-}
-
-# Verify that enough args remain on the command line
-# syntax: one_arg_check <args needed> $# <arg name>
-# Note that this function expects to be in a while/case structure for
-# handling parameters, so that $# still includes the option itself.
-# exits with error message if the check fails.
-arg_check() {
-   if [[ $2 -le $1 ]]; then
-      error_exit "Missing argument to $3 option."
-   fi
 }
 
 # Rename an existing file to avoid accidentally re-using old data from an

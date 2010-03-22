@@ -13,6 +13,7 @@
 # Copyright 2009, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2009, Her Majesty in Right of Canada
 
+echo 'textldm2tpldm.sh, (c) 2005-2010, Ulrich Germann and Her Majesty in Right of Canada' >&2
 
 # Include NRC's bash library.
 BIN=`dirname $0`
