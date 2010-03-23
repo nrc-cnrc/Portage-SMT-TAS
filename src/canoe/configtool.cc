@@ -85,7 +85,6 @@ depending on <cmd>, one of:\n\
                        ith feature. Features are written in the same order\n\
                        than canoe writes them to an ffvals file.\n\
   rule:<file|->      - lists all rule classes from <file|->.\n\
-  list-cpt           - list all multi-probs.\n\
   rep-multi-prob:cpt - replace all multiprobs with cpt.\n\
   applied-weights:tppt:w-tm:w-ftm\n\
                      - change the forward and backward weights to w-tm and w-ftm\n\
