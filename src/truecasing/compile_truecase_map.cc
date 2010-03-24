@@ -91,6 +91,10 @@ int main(int argc, char* argv[])
             vocmap[ltoks[j]][ttoks[j]]++;
          }
       }
+
+      if (getline((*lin), line)) {
+         error(ETFatal, "truecase file %s too short", tfiles[i].c_str());
+      }
    }
 
    unordered_map< string, map<string,Uint> >::const_iterator p;
