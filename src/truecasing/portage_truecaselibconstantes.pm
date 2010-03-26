@@ -84,10 +84,6 @@ use constant MARKUP_PATTERNS => '<[^>]+>';
 #junk cleaning regular expressions: Regular expression to detect all more than 3 nexted ALL UPPERCASE words lines
 use constant JUNKS_REG => '([A-Z]{3,}\W?)+(\s([A-Z]{3,}\W?)+)+';
 
-#=========== Output Results ======================
-#Make sure Every sentence begins with capital letter
-use constant ENSURE_UPPERCASE_SENTENCE_BEGIN => 0;
-
 #==================== Language Models path ====================
 # A default V1 to V2 case mapping model file
 use constant DEFAULT_V1V2MAP_MODEL => $ENV{'PORTAGE'} . '/models/srilm/truecase/default.map';

@@ -47,14 +47,17 @@ B< ========================================
 =item B<DESCRIPTION>
 
  Convert a given file into truecase form. If $unknownsMapFile and $vocabMapFile
- are provided, it resolves of all the unknow words into their corresponding classes.
+ are provided, it resolves of all the unknown words into their corresponding classes.
+ 
+ Warning: Uppercasing the first character in words in titles may not work
+ correctly for accented characters.
 
 =item B<SYNOPSIS>
 
  portage_truecaselib::advancedTruecaseFile($inputFile, $LMFile, $vocabMapFile,
           $unknownsMapFile, $LMFileTitles, $vocabMapFileTitles, $outputFile,
           $lmOrder, $forceNISTTitlesFUFlag, $useLMOnlyFlag,
-          $uppercaseSentenceBeginFlag, $cleanMarkupFlag, $verbose);
+          $ucBOSEncoding, $cleanMarkupFlag, $verbose);
 
  @PARAM $inputFile the file to be converted into truecase.
  @PARAM $LMFile the NGram Language Models file. The file should be in Doug
@@ -67,14 +70,16 @@ B< ========================================
     be in Doug Paul's ARPA ngram file format.  It can be undefined if not used.
  @PARAM $vocabMapFileTitles the vocabulary V1-to-V2 mapping model for titles.
     It should have the format produced by compile_truecase_map.
+ @PARAM $outputFile the file into which the truecase result should be written.
  @PARAM $lmOrder the effective N-gram order used by the language models.
  @PARAM $forceNISTTitlesFUFlag if this flag is true, the first letter of all
-    words in titles are uppercased.
- @PARAM $outputFile the file into which the truecase result should be written.
- @PARAM $uppercaseSentenceBeginFlag if this flag is true, the begining
-    of all the sentence is uppercased.
+    words in titles are uppercased. 
+    May not correctly uppercase accented characters.
  @PARAM $useLMOnlyFlag if true, only a given NGram model ($LMFile) will be
     use; the V1-to-V2 ($vocabMapFile) will be ignored.
+ @PARAM $ucBOSEncoding if defined, then uppercase the beginning of each 
+    sentence using the specified encoding (e.g. utf8).
+    Correctly uppercases accented characters.
  @PARAM $cleanMarkupFlag if true, all the markup blocs are removed from
     the files before processing.
  @PARAM $verbose if true, progress information is printed to the standard ouptut.
@@ -92,14 +97,16 @@ B< ========================================
 
 sub advancedTruecaseFile
 {  if(not @_)  # if no argument is sent in
-   {  die "\r\n\r\n!!! ERROR: portage_truecaselib::advancedTruecaseFile requires 14 input arguments! \taborting...\r\n\r\n";
+   {  die "ERROR: portage_truecaselib::advancedTruecaseFile requires 14 input arguments!  aborting...\n";
    }elsif($_[0] and $_[0] =~ /^portage_truecaselib/) # if we are called as a module then skip the our reference name
    {  shift;
       if(not @_)  # if no argument is sent in
-      {  die "\r\n\r\n!!! ERROR: portage_truecaselib::advancedTruecaseFile requires 14 input arguments! \taborting...\r\n\r\n";
-      } # End if
-   } # End if
-   my($inputFile, $LMFile, $vocabMapFile, $unknownsMapFile, $LMFileTitles, $vocabMapFileTitles, $outputFile, $lmOrder, $forceNISTTitlesFUFlag, $useLMOnlyFlag, $uppercaseSentenceBeginFlag, $cleanMarkupFlag, $verbose) = @_;
+      {  die "ERROR: portage_truecaselib::advancedTruecaseFile requires 14 input arguments!  aborting...\n";
+      }
+   }
+   my($inputFile, $LMFile, $vocabMapFile, $unknownsMapFile, $LMFileTitles, 
+      $vocabMapFileTitles, $outputFile, $lmOrder, $forceNISTTitlesFUFlag, $useLMOnlyFlag, 
+      $ucBOSEncoding, $cleanMarkupFlag, $verbose) = @_;
 
    my @tmpFiles = ();     # Temporary files collection
 
@@ -115,26 +122,26 @@ sub advancedTruecaseFile
 
    ############## CASE OF UNKNOW WORDS CLASSES RESOLUTION ###########
    if(defined $unknownsMapFile and defined $vocabMapFile)
-   {  print "portage_truecaselib::advancedTruecaseFile: Truecasing with Unknown Classes resolution...\r\n" unless not $verbose;
+   {  print STDERR "portage_truecaselib::advancedTruecaseFile: Truecasing with Unknown Classes resolution...\n" unless not $verbose;
 
       #----1- Create a merged V1 to V2 map model from vocabMapFile and unknownsMapFile (unkown words classes).
-      print "portage_truecaselib::advancedTruecaseFile: Creating a merged V1 to V2 map model from \"$vocabMapFile\" and \"$unknownsMapFile\"...\r\n" unless not $verbose;
+      print STDERR "portage_truecaselib::advancedTruecaseFile: Creating a merged V1 to V2 map model from \"$vocabMapFile\" and \"$unknownsMapFile\"...\n" unless not $verbose;
       my $extendedMapFile = getTemporaryFile();   # get a temporary file
       push @tmpFiles, $extendedMapFile;
       if($useLMOnlyFlag)
       {  $extendedMapFile = $unknownsMapFile;   # ignore V1-to-V2 model if requested but process the titles!!!!
       }else
       {  mergeMapFilesInto($vocabMapFile, $unknownsMapFile, $extendedMapFile);
-      } # End if
-      print "portage_truecaselib::advancedTruecaseFile: merged V1 to V2 done...\r\n" unless not $verbose;
+      }
+      print STDERR "portage_truecaselib::advancedTruecaseFile: merged V1 to V2 done...\n" unless not $verbose;
 
       #----2- Get a hash table of the list of all the words in the vocabulary resource (without the unkown words)
-      print "portage_truecaselib::advancedTruecaseFile: Building a list of all the words in the vocabulary resource...\r\n" unless not $verbose;
+      print STDERR "portage_truecaselib::advancedTruecaseFile: Building a list of all the words in the vocabulary resource...\n" unless not $verbose;
       my %knownWordsListHash = extractWordsListHashFrom($vocabMapFile);
-      print "portage_truecaselib::advancedTruecaseFile: Listing done...\r\n" unless not $verbose;
+      print STDERR "portage_truecaselib::advancedTruecaseFile: Listing done...\n" unless not $verbose;
 
-      #----3- Prepare the input file by resolving the unkown classes. Unknow word is replaced by its class
-      print "portage_truecaselib::advancedTruecaseFile: Preparing \"$inputFile\" by resolving the unkown words into classes. An unknow word is replaced by its class...\r\n" unless not $verbose;
+      #----3- Prepare the input file by resolving the unknown classes. Unknow word is replaced by its class
+      print STDERR "portage_truecaselib::advancedTruecaseFile: Preparing \"$inputFile\" by resolving the unknown words into classes. An unknown word is replaced by its class...\n" unless not $verbose;
       my $tmpInputFile = getTemporaryFile();   # get a temporary file
       push @tmpFiles, $tmpInputFile;
       my %unknownWordsReplacementTrack;
@@ -147,51 +154,53 @@ sub advancedTruecaseFile
       }else
       {  %unknownWordsReplacementTrack = prepareFileResolvingUnknowWordsToClasses($inputFile, $tmpInputFile, \%knownWordsListHash);
       } # End if
-      print "portage_truecaselib::advancedTruecaseFile: Preparing done...\r\n" unless not $verbose;
+      print STDERR "portage_truecaselib::advancedTruecaseFile: Preparing done...\n" unless not $verbose;
 
       #----4- Truecase
-      print "portage_truecaselib::advancedTruecaseFile: Truecasing ...\r\n" unless not $verbose;
-      truecaseFile($tmpInputFile, $LMFile, $extendedMapFile, $lmOrder, undef, $outTmpFile, $uppercaseSentenceBeginFlag, undef, $verbose);
-      print "portage_truecaselib::advancedTruecaseFile: Truecasing done...\r\n" unless not $verbose;
+      print STDERR "portage_truecaselib::advancedTruecaseFile: Truecasing ...\n" unless not $verbose;
+      truecaseFile($tmpInputFile, $LMFile, $extendedMapFile, $lmOrder, undef, $outTmpFile, 
+         $ucBOSEncoding, undef, $verbose);
+      print STDERR "portage_truecaselib::advancedTruecaseFile: Truecasing done...\n" unless not $verbose;
 
       #----5- Recover the unknown classes
-      print "portage_truecaselib::advancedTruecaseFile: Recovering the unknown words from classes...\r\n" unless not $verbose;
+      print STDERR "portage_truecaselib::advancedTruecaseFile: Recovering the unknown words from classes...\n" unless not $verbose;
       recoverUnkownWordsFromClasses($outTmpFile, \%unknownWordsReplacementTrack, $outTmpFile);
-      print "portage_truecaselib::advancedTruecaseFile: Recovering done...\r\n" unless not $verbose;
+      print STDERR "portage_truecaselib::advancedTruecaseFile: Recovering done...\n" unless not $verbose;
 
    ############## CASE OF NO UNKNOW WORDS CLASSES RESOLUTION ###########
    }else
    {  #----1- ------- Don't resolve Unknown classes -----------#
-      print "portage_truecaselib::advancedTruecaseFile: Truecasing ...\r\n" unless not $verbose;
-      truecaseFile($inputFile, $LMFile, $vocabMapFile, $lmOrder, $useLMOnlyFlag, $outTmpFile, $uppercaseSentenceBeginFlag, $cleanMarkupFlag, $verbose);
-      print "portage_truecaselib::advancedTruecaseFile: Truecasing done...\r\n" unless not $verbose;
-   } # End if
+      print STDERR "portage_truecaselib::advancedTruecaseFile: Truecasing ...\n" unless not $verbose;
+      truecaseFile($inputFile, $LMFile, $vocabMapFile, $lmOrder, $useLMOnlyFlag, $outTmpFile, 
+         $ucBOSEncoding, $cleanMarkupFlag, $verbose);
+      print STDERR "portage_truecaselib::advancedTruecaseFile: Truecasing done...\n" unless not $verbose;
+   }
 
    ############## CASE OF TITLES PROCESSING ###########
    if($forceNISTTitlesFUFlag or defined $LMFileTitles or defined $vocabMapFileTitles)
-   {  print "portage_truecaselib::advancedTruecaseFile: Processing titles...\r\n" unless not $verbose;
-      specialNISTTitleProcessing($outTmpFile, $LMFileTitles, $vocabMapFileTitles, $forceNISTTitlesFUFlag, $lmOrder, $useLMOnlyFlag, $outTmpFile, $uppercaseSentenceBeginFlag, $cleanMarkupFlag, $verbose);
-
-      print "portage_truecaselib::advancedTruecaseFile: Titles done...\r\n" unless not $verbose;
-   } # End if
+   {  print STDERR "portage_truecaselib::advancedTruecaseFile: Processing titles...\n" unless not $verbose;
+      specialNISTTitleProcessing($outTmpFile, $LMFileTitles, $vocabMapFileTitles, 
+         $forceNISTTitlesFUFlag, $lmOrder, $useLMOnlyFlag, $outTmpFile, $ucBOSEncoding, 
+         $cleanMarkupFlag, $verbose);
+      print STDERR "portage_truecaselib::advancedTruecaseFile: Titles done...\n" unless not $verbose;
+   }
 
    if($standardOuputFlag)
-   {  open (INPUTFILE, "$outTmpFile") or warn "\r\nWarning portage_truecaselib::advancedTruecaseFile: could not open \"$outTmpFile\" to print out its content to standard output: $! \tSkipping...\r\n";
+   {  open (INPUTFILE, "$outTmpFile") or warn "Warning portage_truecaselib::advancedTruecaseFile: could not open \"$outTmpFile\" to print out its content to standard output: $!  Skipping...\n";
       flock INPUTFILE, 2;  # Lock
       my @lines = <INPUTFILE>;
       close (INPUTFILE);
       print @lines;
-   } # End if
-
-   print "portage_truecaselib::advancedTruecaseFile: completed successfully!\r\n" unless not $verbose;
+   }
 
    # delete the temporary files
    foreach my $file (@tmpFiles)
    {  if($file)
       {  system("rm -rf $file");
-      } # End if
-   } # End foreach
+      }
+   }
 
+   print STDERR "portage_truecaselib::advancedTruecaseFile: completed successfully!\n" unless not $verbose;
 } # End advancedTruecaseFile
 
 
@@ -214,7 +223,7 @@ B< ===============================
 =item B<SYNOPSIS>
 
  portage_truecaselib::truecaseFile($inputFile, $LMFile, $vocabMapFile,
-   $lmOrder, $useLMOnlyFlag, $outputFile, $uppercaseSentenceBeginFlag,
+   $lmOrder, $useLMOnlyFlag, $outputFile, $ucBOSEncoding,
    $cleanMarkupFlag, $verbose);
 
  @PARAM $inputFile the file to be converted into truecase.
@@ -224,11 +233,12 @@ B< ===============================
       It should have the format produced by compile_truecase_map.
       It's required.
  @PARAM $lmOrder the effective N-gram order used by the language models.
- @PARAM $outputFile the file into which the truecase result should be written.
- @PARAM $uppercaseSentenceBeginFlag if this flag is true, the begining
-    of all the sentence is uppercased.
  @PARAM $useLMOnlyFlag if true, only a given NGram model ($LMFile) will be
-         use; the V1-to-V2 ($vocabMapFile) will be ignored.
+         used; the V1-to-V2 ($vocabMapFile) will be ignored.
+ @PARAM $outputFile the file into which the truecase result should be written.
+ @PARAM $ucBOSEncoding if defined, then uppercase the beginning of each 
+    sentence using the specified encoding (e.g. utf8).
+    Correctly uppercases accented characters.
  @PARAM $cleanMarkupFlag if true, all the markup blocs are removed from
          the files before processing.
  @PARAM $verbose if true, progress information is printed to the standard ouptut.
@@ -243,26 +253,26 @@ B< ===============================
 # --------------------------------------------------------------------------------#
 sub truecaseFile
 {  if(not @_)  # if no argument is sent in
-   {  die "\r\n\r\n!!! ERROR: portage_truecaselib::truecaseFile requires 11 input arguments! \taborting...\r\n\r\n";
+   {  die "ERROR: portage_truecaselib::truecaseFile requires 11 input arguments!  aborting...\n";
    }elsif($_[0] and $_[0] =~ /^portage_truecaselib/) # if we are called as a module then skip the our reference name
    {  shift;
       if(not @_)  # if no argument is sent in
-      {  die "\r\n\r\n!!! ERROR: portage_truecaselib::truecaseFile requires 11 input arguments! \taborting...\r\n\r\n";
-      } # End if
-   } # End if
-   my($inputFile, $LMFile, $vocabMapFile, $lmOrder, $useLMOnlyFlag, $outputFile, $uppercaseSentenceBeginFlag, $cleanMarkupFlag, $verbose, $tplm, $tppt) = @_;
-
+      {  die "ERROR: portage_truecaselib::truecaseFile requires 11 input arguments!  aborting...\n";
+      }
+   }
+   my($inputFile, $LMFile, $vocabMapFile, $lmOrder, $useLMOnlyFlag, $outputFile, $ucBOSEncoding, 
+      $cleanMarkupFlag, $verbose, $tplm, $tppt) = @_;
+   
    if(not defined $inputFile)
-   {  die "\r\n\r\n!!! ERROR portage_truecaselib::truecaseFile: a file to convert into truecase is required! \taborting...\r\n\r\n";
-   } # End if
+   {  die "ERROR: portage_truecaselib::truecaseFile: a file to convert into truecase is required!  aborting...\n";
+   }
 
-   $uppercaseSentenceBeginFlag = portage_truecaselibconstantes::ENSURE_UPPERCASE_SENTENCE_BEGIN unless defined $uppercaseSentenceBeginFlag;
    $cleanMarkupFlag = portage_truecaselibconstantes::REMOVE_MARKUPS_FLAG unless defined $cleanMarkupFlag;
    $lmOrder = portage_truecaselibconstantes::DEFAULT_NGRAM_ORDER unless defined $lmOrder;
 
    my @tmpFiles = ();     # Temporary files collection
 
-   print STDERR "portage_truecaselib::truecaseFile: Truecasing \"$inputFile\"...\r\n" unless not $verbose;
+   print STDERR "portage_truecaselib::truecaseFile: Truecasing \"$inputFile\"...\n" unless not $verbose;
    my $cleanedInputTextFile = $inputFile;
    if($cleanMarkupFlag)
    {  $cleanedInputTextFile = getTemporaryFile();   # get a temporary file
@@ -276,41 +286,17 @@ sub truecaseFile
    } # End if
 
 
+   my $cmd_part1;
+   my ($ttable_type, $ttable_file, $model_file);
    if (defined $tplm or defined $tppt) {
       print STDERR "portage_truecaselib::truecaseFile: using tpt.\n" unless not $verbose;
 
       die "Error: You must provide a tplm AND a tppt model.\n" unless (defined $tplm and defined $tppt);
 
-      # Build the command.
-      my $command = "set -o pipefail;"
-        . "cat $cleanedInputTextFile | canoe-escapes.pl -add"
-        . " | canoe -f /dev/null "
-        . " -ttable-tppt       $tppt"
-        . " -lmodel-file       $tplm"
-        . (defined $lmOrder ? " -lmodel-order $lmOrder" : "")
-        . " -ttable-limit      100"
-        . " -stack             100"
-        . " -ftm               1.0"
-        . " -lm                2.302585"
-        . " -tm                0.0"
-        . " -distortion-limit  0"
-        . ( $verbose ? "" : " 2> /dev/null" )
-        . " | perl -n -e 's/^<s>\\s*//o; s/\\s*<\\/s>[ ]*//o;"
-        . ( $uppercaseSentenceBeginFlag ? " print ucfirst;'" : " print;'" )
-        . ( defined $outputFile ? " > $outputFile" : '' );
-
-      # Normalize space in the command for prettier printing.
-      $command =~ s/\s+/ /g;
-
-      # What is the command?
-      print STDERR "\tCOMMAND: $command\n" unless not $verbose;
-
-      # Run the command.
-      my $rc = system( $command );
-
-      die "Error while truecasing using canoe" unless ($rc == 0);
-   }
-   else {
+      $ttable_type = "tppt";
+      $ttable_file = $tppt;
+      $model_file = $tplm;
+   } else {
       print STDERR "portage_truecaselib::truecaseFile: using canoe with on the fly phrase table.\n" unless not $verbose;
 
       die "Error: A map file must be provided\n" unless (defined $vocabMapFile);
@@ -319,6 +305,7 @@ sub truecaseFile
       # Convert the vocabmap to a phrase table on the fly.
       portage_utils::zin(*MAP, $vocabMapFile);
       my $phrase_table = "canoe_tc_tmp_$$.tm";
+      push @tmpFiles, $phrase_table;
       open( TM,  ">", "$phrase_table" );
       # We want to be locale agnostic when converting map file (MAP) to the phrase table (TM).
       binmode(TM);
@@ -339,57 +326,55 @@ sub truecaseFile
       close( MAP );
       close( TM );
 
-
-      # Build the command.
-      my $command = "set -o pipefail;"
-        . "cat $cleanedInputTextFile | canoe-escapes.pl -add"
-        . " | canoe -f /dev/null "
-        . " -ttable-multi-prob $phrase_table"
-        . " -lmodel-file       $LMFile"
-        . (defined $lmOrder ? " -lmodel-order $lmOrder" : "")
-        . " -ttable-limit      100"
-        . " -stack             100"
-        . " -ftm               1.0"
-        . " -lm                2.302585"
-        . " -tm                0.0"
-        . " -distortion-limit  0"
-        . " -load-first"
-        . ( $verbose ? "" : " 2> /dev/null" )
-        . " | perl -n -e 's/^<s>\\s*//o; s/\\s*<\\/s>[ ]*//o;"
-        .   ( $uppercaseSentenceBeginFlag ? " print ucfirst;'" : " print;'" )
-        . ( defined $outputFile ? " > $outputFile" : '' );
-
-      # Normalize space in the command for prettier printing.
-      $command =~ s/\s+/ /g;
-
-      # What is the command?
-      print STDERR "\tCOMMAND: $command\n" unless not $verbose;
-
-      # Run the command.
-      my $rc = system( $command );
-
-      die "Error while truecasing using canoe" unless ($rc == 0);
-
-      # Clean up.
-      system( "rm -rf $phrase_table" );
+      $ttable_type = "multi-prob";
+      $ttable_file = $phrase_table;
+      $model_file = $LMFile;
    }
 
-   print STDERR "portage_truecaselib::truecaseFile: Truecasing done...\r\n" unless not $verbose;
+   # Build the canoe command.
+   $cmd_part1 = "set -o pipefail;"
+      . "cat $cleanedInputTextFile | canoe-escapes.pl -add"
+      . " | canoe -f /dev/null "
+      . " -ttable-$ttable_type $ttable_file"
+      . " -lmodel-file         $model_file"
+      . (defined $lmOrder ? " -lmodel-order $lmOrder" : "")
+      . " -ttable-limit      100"
+      . " -stack             100"
+      . " -ftm               1.0"
+      . " -lm                2.302585"
+      . " -tm                0.0"
+      . " -distortion-limit  0"
+      . " -load-first"
+      . " -v " . ( $verbose ? "1" : "0" );
 
-   # delete the temporary files
-   if($cleanMarkupFlag)
-   {  system("rm -rf $cleanedInputTextFile");
-   } # End foreach
+   # Build the whole command pipeline.
+   my $command = $cmd_part1
+      . " | perl -n -e 's/^<s>\\s*//o; s/\\s*<\\/s>[ ]*//o;"
+      . (defined $ucBOSEncoding ? " BEGIN{use encoding q{$ucBOSEncoding}} print ucfirst;'"
+                                : " print;'" )
+      . (defined $outputFile ? " > $outputFile" : '' );
+      
+   # Normalize space in the command for prettier printing.
+   $command =~ s/\s+/ /g;
 
-   print STDERR "portage_truecaselib::truecaseFile: completed successfully!\r\n" unless not $verbose;
+   # What is the command?
+   print STDERR "\tCOMMAND: $command\n" unless not $verbose;
 
-   # delete the temporary files
-   foreach my $file (@tmpFiles)
-   {  if($file)
-      {  system("rm -rf $file");
-      } # End if
-   } # End foreach
+   # Run the command.
+   my $rc = system( $command );
 
+   die "Error while truecasing using canoe" unless ($rc == 0);
+
+   print STDERR "portage_truecaselib::truecaseFile: Truecasing done...\n" unless not $verbose;
+
+   # Delete the temporary files, including $cleanedInputTextFile and $phrase_table 
+   foreach my $file (@tmpFiles) {
+      if($file) {
+         system("rm -rf $file");
+      }
+   }
+
+   print STDERR "portage_truecaselib::truecaseFile: completed successfully!\n" unless not $verbose;
 } # End truecaseFile
 
 
@@ -445,18 +430,18 @@ B< =================================
 # --------------------------------------------------------------------------------#
 sub extractVocabFromFile
 {  if(not @_)  # if no argument is sent in
-   {  die "\r\n\r\n!!! ERROR: portage_truecaselib::extractVocabFromFile requires an input argument! \taborting...\r\n\r\n";
+   {  die "ERROR: portage_truecaselib::extractVocabFromFile requires an input argument!  aborting...\n";
    }elsif($_[0] and $_[0] =~ /^portage_truecaselib/) # if we are called as a module then skip the our reference name
    {  shift;
       if(not @_)  # if no argument is sent in
-      {  die "\r\n\r\n!!! ERROR: portage_truecaselib::extractVocabFromFile requires an input argument! \taborting...\r\n\r\n";
+      {  die "ERROR: portage_truecaselib::extractVocabFromFile requires an input argument!  aborting...\n";
       } # End if
    } # End if
    my($vocabularyFilename) = @_;
 
    my(%vocabWordsData, $line, @data);
 
-   open (INPUTFILE, $vocabularyFilename) or die "\r\n\r\n!!! ERROR portage_truecaselib::extractVocabFromFile: could not open \"$vocabularyFilename\" for input: $! \taborting...\r\n\r\n";
+   open (INPUTFILE, $vocabularyFilename) or die "ERROR: portage_truecaselib::extractVocabFromFile: could not open \"$vocabularyFilename\" for input: $!  aborting...\n";
    flock INPUTFILE, 2;  # Lock
    #my @lines = grep !/^[ \t\r\n\f]+|[ \t\r\n\f]+$/, <INPUTFILE>;
    my @lines = <INPUTFILE>;
@@ -477,7 +462,7 @@ sub extractVocabFromFile
          $vocabWordsData{$data[0]} = $data[1];
          #print "\tINNN--- $data[0] ## $vocabWordsData{$data[0]} #\r\n";
       }elsif(@data != 0)
-      {  warn "\r\nWarning portage_truecaselib::computeTrueCasingErrorsBetween: the data has a wrong format in \"$vocabularyFilename\"! \tskipping... ...\r\n";
+      {  warn "Warning portage_truecaselib::computeTrueCasingErrorsBetween: the data has a wrong format in \"$vocabularyFilename\"! \tskipping... ...\n";
       } # End if
    } #end foreach
 
@@ -515,30 +500,30 @@ portage_truecaselib::mergeMapFilesInto($vocabMapFile1, $vocabMapFile2,
 # --------------------------------------------------------------------------------#
 sub mergeMapFilesInto
 {  if(not @_)  # if no argument is sent in
-   {  die "\r\n\r\n!!! ERROR: portage_truecaselib::mergeMapFilesInto requires 3 input arguments! \taborting...\r\n\r\n";
+   {  die "ERROR: portage_truecaselib::mergeMapFilesInto requires 3 input arguments!  aborting...\n";
    }elsif($_[0] and $_[0] =~ /^portage_truecaselib/) # if we are called as a module then skip the our reference name
    {  shift;
       if(not @_)  # if no argument is sent in
-      {  die "\r\n\r\n!!! ERROR: portage_truecaselib::mergeMapFilesInto requires 3 input arguments! \taborting...\r\n\r\n";
+      {  die "ERROR: portage_truecaselib::mergeMapFilesInto requires 3 input arguments!  aborting...\n";
       } # End if
    } # End if
    my($vocabMapFile1, $vocabMapFile2, $extendedMapFile) = @_;
 
    if(not defined $vocabMapFile1)
-   {  die "\r\n\r\n!!! ERROR portage_truecaselib::mergeMapFilesInto: a V1 to V2 mapping model is required for merging! \taborting...\r\n\r\n";
+   {  die "ERROR: portage_truecaselib::mergeMapFilesInto: a V1 to V2 mapping model is required for merging!  aborting...\n";
    } # End if
 
-   open (INPUTFILE, "$vocabMapFile1") or die "\r\n\r\n!!! ERROR portage_truecaselib::mergeMapFilesInto: could not open the initial model \"$vocabMapFile1\": $! \taborting...\r\n\r\n";
+   open (INPUTFILE, "$vocabMapFile1") or die "ERROR: portage_truecaselib::mergeMapFilesInto: could not open the initial model \"$vocabMapFile1\": $!  aborting...\n";
    flock INPUTFILE, 2;  # Lock
    my @lines = <INPUTFILE>;
    close (INPUTFILE);
 
-   open (OUTPUTFILE, ">>$extendedMapFile") or die "\r\n\r\n!!! ERROR portage_truecaselib::mergeMapFilesInto: could not create an appended copy for the model \"$extendedMapFile\": $! \taborting...\r\n\r\n";
+   open (OUTPUTFILE, ">>$extendedMapFile") or die "ERROR: portage_truecaselib::mergeMapFilesInto: could not create an appended copy for the model \"$extendedMapFile\": $!  aborting...\n";
    flock OUTPUTFILE, 2;  # Lock
    print OUTPUTFILE @lines;
    print OUTPUTFILE "\r\n";
 
-   open (INPUTFILE, "$vocabMapFile2") or die "\r\n\r\n!!! ERROR portage_truecaselib::mergeMapFilesInto: could not open the Unknown-Words-Classes-Model \"$vocabMapFile2\": $! \taborting...\r\n\r\n";
+   open (INPUTFILE, "$vocabMapFile2") or die "ERROR: portage_truecaselib::mergeMapFilesInto: could not open the Unknown-Words-Classes-Model \"$vocabMapFile2\": $!  aborting...\n";
    flock INPUTFILE, 2;  # Lock
    @lines = <INPUTFILE>;
    close (INPUTFILE);
@@ -603,21 +588,21 @@ B< =================================================
 # --------------------------------------------------------------------------------#
 sub writeVocabularyMappingFileForVocabulary
 {  if(not @_)  # if no argument is sent in
-   {  die "\r\n\r\n!!! ERROR: portage_truecaselib::writeVocabularyMappingFileForVocabulary requires 3 input arguments! \taborting...\r\n\r\n";
+   {  die "ERROR: portage_truecaselib::writeVocabularyMappingFileForVocabulary requires 3 input arguments!  aborting...\n";
    }elsif($_[0] and $_[0] =~ /^portage_truecaselib/) # if we are called as a module then skip the our reference name
    {  shift;
       if(not @_)  # if no argument is sent in
-      {  die "\r\n\r\n!!! ERROR: portage_truecaselib::writeVocabularyMappingFileForVocabulary requires 3 input arguments! \taborting...\r\n\r\n";
+      {  die "ERROR: portage_truecaselib::writeVocabularyMappingFileForVocabulary requires 3 input arguments!  aborting...\n";
       } # End if
    } # End if
    my($vocabularyCountFilename, $vocabularyMappingFilename, $onesAllFormProbabilityFlag) = @_;
 
    if((!defined $vocabularyCountFilename) or (! -e $vocabularyCountFilename))
-   {  die "\r\n\r\n!!! ERROR portage_truecaselib::writeVocabularyMappingFileForVocabulary: vocabulary Count File is required and should have the format output by get_voc -c.  The file \"$vocabularyCountFilename\" is invalid! \taborting...\r\n\r\n";
+   {  die "ERROR: portage_truecaselib::writeVocabularyMappingFileForVocabulary: vocabulary Count File is required and should have the format output by get_voc -c.  The file \"$vocabularyCountFilename\" is invalid!  aborting...\n";
    } # End if
 
    if(!defined $vocabularyMappingFilename)
-   {  die "\r\n\r\n!!! ERROR portage_truecaselib::writeVocabularyMappingFileForVocabulary: a valide name must be provided for the vocabulary V1-to-V2 mapping information file. The file \"$vocabularyCountFilename\" is invalid! \taborting...\r\n\r\n";
+   {  die "ERROR: portage_truecaselib::writeVocabularyMappingFileForVocabulary: a valide name must be provided for the vocabulary V1-to-V2 mapping information file. The file \"$vocabularyCountFilename\" is invalid!  aborting...\n";
    }
 
    my %vocabWordsHash = getVocabWordsHash($vocabularyCountFilename, undef);
@@ -668,23 +653,25 @@ B< =======================
 #-------------------------------------------------------------------------#
 sub cleanTextFile
 {  if(not @_)  # if no argument is sent in
-   {  die "\r\n\r\n!!! ERROR: portage_truecaselib::cleanTextFile requires 7 input arguments! \taborting...\r\n\r\n";
+   {  die "ERROR: portage_truecaselib::cleanTextFile requires 7 input arguments!  aborting...\n";
    }elsif($_[0] and $_[0] =~ /^portage_truecaselib/) # if we are called as a module then skip the our reference name
    {  shift;
       if(not @_)  # if no argument is sent in
-      {  die "\r\n\r\n!!! ERROR: portage_truecaselib::cleanTextFile requires 7 input arguments! \taborting...\r\n\r\n";
-      } # End if
-   } # End if
-   my ($filename, $cleanedFilename, $cleanJunkLinesFlag, $excludeNISTTitlesFlag, $cleaningResidusFilename, $forceToLowerCaseFlag, $markupRegExpress) = @_;
+      {  die "ERROR: portage_truecaselib::cleanTextFile requires 7 input arguments!  aborting...\n";
+      }
+   }
+   my ($filename, $cleanedFilename, $cleanJunkLinesFlag, $excludeNISTTitlesFlag, 
+      $cleaningResidusFilename, $forceToLowerCaseFlag, $markupRegExpress) = @_;
 
-   open(INPUTFILE, $filename) or die "\r\n\r\n!!! ERROR portage_truecaselib::cleanTextFile: could not open \"$filename\" for input: $! \taborting...\r\n\r\n";
+   open(INPUTFILE, $filename) or die "ERROR: portage_truecaselib::cleanTextFile: could not open \"$filename\" for input: $!  aborting...\n";
    flock INPUTFILE, 2;  # Lock
    my @lines = <INPUTFILE>;
    close (INPUTFILE);
 
    my @residuLines = ();
 
-   $markupRegExpress = ('(' . portage_truecaselibconstantes::MARKUP_PATTERNS . ($cleanJunkLinesFlag ? ")|($JUNKS_REG)" : ')')) unless defined $markupRegExpress;
+   $markupRegExpress = ('(' . portage_truecaselibconstantes::MARKUP_PATTERNS . 
+                        ($cleanJunkLinesFlag ? ")|($JUNKS_REG)" : ')')) unless defined $markupRegExpress;
 
    # Cleaning
    @lines = grep !/$markupRegExpress/o, @lines;
@@ -697,17 +684,17 @@ sub cleanTextFile
                {  push @residuLines, $lines[$i-1];
                   $lines[$i-1] = "CRTL_PORTAGE_NIST_TITLE_LIGNE_DETECTED\r\n";
                }
-            } # End if
-         } # End For
+            }
+         }
       }else
       {  for(my $i=0; $i < @lines; $i++)
          {  if($lines[$i] =~ /$NIST_TITLE_REG/io)
             {  if($i > 0)
                {  $lines[$i-1] = "CRTL_PORTAGE_NIST_TITLE_LIGNE_DETECTED\r\n";
                }
-            } # End if
-         } # End For
-      } # End if
+            }
+         }
+      }
       @lines = grep !/^CRTL_PORTAGE_NIST_TITLE_LIGNE_DETECTED/, @lines;
       # print "excludeNISTTitlesFlag\r\n";
    } # End if
@@ -718,22 +705,22 @@ sub cleanTextFile
    {  my @path = getPathAndFilenameFor($cleanedFilename); # Get the parent directory and create it if not exist yet;
       if(($path[1] ne '') and (not -e $path[1]))
       {  system 'mkdir --parent ' . $path[1];
-      } # End if
-      open (OUTPUTFILE, ">$cleanedFilename") or die "\r\n\r\n!!! ERROR portage_truecaselib::cleanTextFile: could not open \"$cleanedFilename\" for output: $! \taborting...\r\n\r\n";
+      }
+      open (OUTPUTFILE, ">$cleanedFilename") or die "ERROR: portage_truecaselib::cleanTextFile: could not open \"$cleanedFilename\" for output: $!  aborting...\n";
       flock OUTPUTFILE, 2;  # Lock
       print OUTPUTFILE ($forceToLowerCaseFlag ? lc (join '', @lines) : join '', @lines);
       close (OUTPUTFILE);
-   } # End if
+   }
    if(defined $cleaningResidusFilename and (@residuLines > 0))
    {  my @path = getPathAndFilenameFor($cleaningResidusFilename); # Get the parent directory and create it if not exist yet;
       if(($path[1] ne '') and (not -e $path[1]))
       {  system 'mkdir --parent ' . $path[1];
-      } # End if
-      open (OUTPUTFILE, ">>$cleaningResidusFilename") or die "\r\n\r\n!!! ERROR portage_truecaselib::cleanTextFile: could not open \"$cleaningResidusFilename\" for output: $! \taborting...\r\n\r\n";
+      }
+      open (OUTPUTFILE, ">>$cleaningResidusFilename") or die "ERROR: portage_truecaselib::cleanTextFile: could not open \"$cleaningResidusFilename\" for output: $!  aborting...\n";
       flock OUTPUTFILE, 2;  # Lock
       print OUTPUTFILE ($forceToLowerCaseFlag ? lc (join '', @residuLines) : join '', @residuLines);
       close (OUTPUTFILE);
-   } # End if
+   }
 } # End of cleanTextFile
 
 
@@ -765,11 +752,11 @@ B< =================================
 # ----------------------------------------------------------------------------#
 sub getPathAndFilenameFor
 {  if(not @_)  # if no argument is sent in
-   {  die "\r\n\r\n!!! ERROR: portage_truecaselib::getPathAndFilenameFor requires an input argument! \taborting...\r\n\r\n";
+   {  die "ERROR: portage_truecaselib::getPathAndFilenameFor requires an input argument!  aborting...\n";
    }elsif($_[0] and $_[0] =~ /^portage_truecaselib/) # if we are called as a module then skip the our reference name
    {  shift;
       if(not @_)  # if no argument is sent in
-      {  die "\r\n\r\n!!! ERROR: portage_truecaselib::getPathAndFilenameFor requires an input argument! \taborting...\r\n\r\n";
+      {  die "ERROR: portage_truecaselib::getPathAndFilenameFor requires an input argument!  aborting...\n";
       } # End if
    } # End if
 
@@ -854,7 +841,7 @@ sub getTemporaryFile()
 ####Debugging Bypass###
       $maxLoop++;
       if($maxLoop > 5000)
-      {  die "\r\n\r\n!!! ERROR: portage_truecaselib::getTemporaryFile: Could not get a temporary file from the OS! \taborting...\r\n\r\n";
+      {  die "ERROR: portage_truecaselib::getTemporaryFile: Could not get a temporary file from the OS!  aborting...\n";
       } # End if
    }until $fh = IO::File->new($filename, O_RDWR|O_CREAT|O_EXCL);
 
@@ -902,11 +889,11 @@ sub getTemporaryFile()
 # --------------------------------------------------------------------------------#
 sub getVocabWordsHash
 {  if(not @_)  # if no argument is sent in
-   {  die "\r\n\r\n!!! ERROR: portage_truecaselib::getVocabWordsHash requires 1 input argument! \taborting...\r\n\r\n";
+   {  die "ERROR: portage_truecaselib::getVocabWordsHash requires 1 input argument!  aborting...\n";
    }elsif($_[0] and $_[0] =~ /^portage_truecaselib/) # if we are called as a module then skip the our reference name
    {  shift;
       if(not @_)  # if no argument is sent in
-      {  die "\r\n\r\n!!! ERROR: portage_truecaselib::getVocabWordsHash requires 1 input argument! \taborting...\r\n\r\n";
+      {  die "ERROR: portage_truecaselib::getVocabWordsHash requires 1 input argument!  aborting...\n";
       } # End if
    } # End if
    my ($vocabularyCountFilename) = @_;
@@ -950,11 +937,11 @@ sub getVocabWordsHash
 # --------------------------------------------------------------------------------#
 sub writeMappingFileForVocabWordsHash
 {  if(not @_)  # if no argument is sent in
-   {  die "\r\n\r\n!!! ERROR: portage_truecaselib::writeMappingFileForVocabWordsHash requires 3 input arguments! \taborting...\r\n\r\n";
+   {  die "ERROR: portage_truecaselib::writeMappingFileForVocabWordsHash requires 3 input arguments!  aborting...\n";
    }elsif($_[0] and $_[0] =~ /^portage_truecaselib/) # if we are called as a module then skip the our reference name
    {  shift;
       if(not @_)  # if no argument is sent in
-      {  die "\r\n\r\n!!! ERROR: portage_truecaselib::writeMappingFileForVocabWordsHash requires 3 input arguments! \taborting...\r\n\r\n";
+      {  die "ERROR: portage_truecaselib::writeMappingFileForVocabWordsHash requires 3 input arguments!  aborting...\n";
       } # End if
    } # End if
    my($vocabWordsHashRef, $vocabularyMappingFilename, $onesAllFormProbabilityFlag) = @_;
@@ -987,7 +974,7 @@ sub writeMappingFileForVocabWordsHash
    if(($path[1] ne '') and (not -e $path[1]))
    {  system 'mkdir --parent ' . $path[1];
    } # End if
-   open (OUTPUTFILE, ">$vocabularyMappingFilename") or die "\r\n\r\n!!! ERROR: could not open \"$vocabularyMappingFilename\" for output: $! \taborting...\r\n\r\n";
+   open (OUTPUTFILE, ">$vocabularyMappingFilename") or die "ERROR: could not open \"$vocabularyMappingFilename\" for output: $!  aborting...\n";
    flock OUTPUTFILE, 2;  # Lock
    print OUTPUTFILE $strBuffer;
    close (OUTPUTFILE);
@@ -1017,23 +1004,23 @@ sub writeMappingFileForVocabWordsHash
 #---------------------------------------------------------#
 sub recoverUnkownWordsFromClasses
 {  if(not @_)  # if no argument is sent in
-   {  die "\r\n\r\n!!! ERROR: portage_truecaselib::recoverUnkownWordsFromClasses requires 3 input arguments! \taborting...\r\n\r\n";
+   {  die "ERROR: portage_truecaselib::recoverUnkownWordsFromClasses requires 3 input arguments!  aborting...\n";
    }elsif($_[0] and $_[0] =~ /^portage_truecaselib/) # if we are called as a module then skip the our reference name
    {  shift;
       if(not @_)  # if no argument is sent in
-      {  die "\r\n\r\n!!! ERROR: portage_truecaselib::recoverUnkownWordsFromClasses requires 3 input arguments! \taborting...\r\n\r\n";
+      {  die "ERROR: portage_truecaselib::recoverUnkownWordsFromClasses requires 3 input arguments!  aborting...\n";
       } # End if
    } # End if
    my($inputFile, $unknownWordsReplacementTrackRef, $outputFile) = @_;
 
    if(not defined $inputFile)
-   {  die "\r\n\r\n!!! ERROR portage_truecaselib::recoverUnkownWordsFromClasses: a file is required to recover unknown words! \taborting...\r\n\r\n";
+   {  die "ERROR: portage_truecaselib::recoverUnkownWordsFromClasses: a file is required to recover unknown words!  aborting...\n";
    } # End if
 
    my %unknownWordsReplacementTrack = %{$unknownWordsReplacementTrackRef};
 
    #----4- Recover the unknown classes
-   open(INPUTFILE, "$inputFile") or die "\r\n\r\n!!! ERROR portage_truecaselib::recoverUnkownWordsFromClasses: could not open to map file \"$inputFile\" for input: $! \taborting...\r\n\r\n";
+   open(INPUTFILE, "$inputFile") or die "ERROR: portage_truecaselib::recoverUnkownWordsFromClasses: could not open to map file \"$inputFile\" for input: $!  aborting...\n";
    flock INPUTFILE, 2;  # Lock
    my @lines = <INPUTFILE>;
    @lines = grep !/^\s+$/, @lines;
@@ -1107,7 +1094,7 @@ sub recoverUnkownWordsFromClasses
       if(($path[1] ne '') and (not -e $path[1]))
       {  system 'mkdir --parent ' . $path[1];
       } # End if
-      open (OUTPUTFILE, ">$outputFile") or warn "\r\nWarning portage_truecaselib::recoverUnkownWordsFromClasses: could not append the file \"$outputFile\" for output: $!\r\n";
+      open (OUTPUTFILE, ">$outputFile") or warn "Warning portage_truecaselib::recoverUnkownWordsFromClasses: could not append the file \"$outputFile\" for output: $!\n";
       flock OUTPUTFILE, 2;  # Lock
       print OUTPUTFILE @lines;
       close (OUTPUTFILE);
@@ -1134,12 +1121,15 @@ B< ===============================================
 
  Detect NIST format titles lines and truecase only those lines leaving untouched
  the other parts of the file.
+ 
+ Warning: Uppercasing the first character in words in titles may not work
+ correctly for accented characters.
 
 =item B<SYNOPSIS>
 
  portage_truecaselib::specialNISTTitleProcessing($inputFile, $LMFileTitles,
             $vocabMapFileTitles, $forceNISTTitlesFUFlag, $lmOrder, $useLMOnlyFlag,
-            $outputFile, $uppercaseSentenceBeginFlag, $cleanMarkupFlag, $verbose);
+            $outputFile, $ucBOSEncoding, $cleanMarkupFlag, $verbose);
 
  @PARAM $inputFile the file whose eventual titles to be converted into truecase.
  @PARAM $LMFileTitles the NGram Language Models file for titles. The file should
@@ -1148,12 +1138,14 @@ B< ===============================================
     It should have the format produced by compile_truecase_map.
  @PARAM $forceNISTTitlesFUFlag if this flag is true, the first letter of all
     words in titles are uppercased.
+    May not correctly uppercase accented characters.
  @PARAM $lmOrder the effective N-gram order used by the language models.
  @PARAM $useLMOnlyFlag if true, only a given NGram model ($LMFile) will be
     use; the V1-to-V2 ($vocabMapFile) will be ignored.
  @PARAM $outputFile the file into which the truecase result should be written.
- @PARAM $uppercaseSentenceBeginFlag if this flag is true, the begining
-    of all the sentence is uppercased.
+ @PARAM $ucBOSEncoding if defined, then uppercase the beginning of each 
+    sentence using the specified encoding (e.g. utf8).
+    Correctly uppercases accented characters.
  @PARAM $cleanMarkupFlag if true, all the markup blocs are removed from
     the files before processing.
  @PARAM $verbose if true, progress information is printed to the standard ouptut.
@@ -1172,17 +1164,17 @@ B< ===============================================
 # --------------------------------------------------------------------------------#
 sub specialNISTTitleProcessing
 {  if(not @_)  # if no argument is sent in
-   {  die "\r\n\r\n!!! ERROR: portage_truecaselib::specialNISTTitleProcessing requires 12 input arguments! \taborting...\r\n\r\n";
+   {  die "ERROR: portage_truecaselib::specialNISTTitleProcessing requires 12 input arguments!  aborting...\n";
    }elsif($_[0] and $_[0] =~ /^portage_truecaselib/) # if we are called as a module then skip the our reference name
    {  shift;
       if(not @_)  # if no argument is sent in
-      {  die "\r\n\r\n!!! ERROR: portage_truecaselib::specialNISTTitleProcessing requires 12 input arguments! \taborting...\r\n\r\n";
+      {  die "ERROR: portage_truecaselib::specialNISTTitleProcessing requires 12 input arguments!  aborting...\n";
       } # End if
    } # End if
-   my($inputFile, $LMFileTitles, $vocabMapFileTitles, $forceNISTTitlesFUFlag, $lmOrder, $useLMOnlyFlag, $outputFile, $uppercaseSentenceBeginFlag, $cleanMarkupFlag, $verbose) = @_;
+   my($inputFile, $LMFileTitles, $vocabMapFileTitles, $forceNISTTitlesFUFlag, $lmOrder, $useLMOnlyFlag, $outputFile, $ucBOSEncoding, $cleanMarkupFlag, $verbose) = @_;
 
    # Load input file into a text line buffer
-   open (INPUTFILE, $inputFile) or die "\r\n\r\n!!! ERROR portage_truecaselib::specialNISTTitleProcessing: could not open \"$inputFile\" to process titles: $! \taborting...\r\n\r\n";
+   open (INPUTFILE, $inputFile) or die "ERROR: portage_truecaselib::specialNISTTitleProcessing: could not open \"$inputFile\" to process titles: $!  aborting...\n";
    flock INPUTFILE, 2;  # Lock
    my @lines = <INPUTFILE>;
    close(INPUTFILE);
@@ -1191,7 +1183,7 @@ sub specialNISTTitleProcessing
    my @titleLines = ();
    my @titleLineNums;
 
-   print "portage_truecaselib::specialNISTTitleProcessing: Detecting titles in \"$inputFile\" ...\r\n" unless not $verbose;
+   print STDERR "portage_truecaselib::specialNISTTitleProcessing: Detecting titles in \"$inputFile\" ...\n" unless not $verbose;
    for(my $numLine=0; $numLine < @lines; $numLine++)
    {  # Detect title lignes (that aren't blank lines) and track them
       if(($numLine > 0) and ($lines[$numLine] =~ /$NIST_TITLE_REG/io) and not ($lines[$numLine-1] =~ /^\s+$/))
@@ -1200,14 +1192,14 @@ sub specialNISTTitleProcessing
       } # End if
    } # End for
 
-   print "portage_truecaselib::specialNISTTitleProcessing: Detecting titles done...\r\n" unless not $verbose;
+   print STDERR "portage_truecaselib::specialNISTTitleProcessing: Detecting titles done...\n" unless not $verbose;
 
    if(@titleLines > 0)
    {  #---- Truecase titles' buffer ----
-      print "portage_truecaselib::specialNISTTitleProcessing: Truecasing titles' buffer...\r\n" unless not $verbose;
+      print STDERR "portage_truecaselib::specialNISTTitleProcessing: Truecasing titles' buffer...\n" unless not $verbose;
       my $inTmpFile = getTemporaryFile();  # get a temporary file to concatenate titles in
       push @tmpFiles, $inTmpFile;
-      open (OUTPUTFILE, ">$inTmpFile") or die "\r\n\r\n!!! ERROR portage_truecaselib::specialNISTTitleProcessing: could not open \"$inTmpFile\" to write the concatenated titles in: $! \taborting...\r\n\r\n";
+      open (OUTPUTFILE, ">$inTmpFile") or die "ERROR: portage_truecaselib::specialNISTTitleProcessing: could not open \"$inTmpFile\" to write the concatenated titles in: $!  aborting...\n";
       flock OUTPUTFILE, 2;  # Lock
       print OUTPUTFILE @titleLines;
       close(OUTPUTFILE);
@@ -1215,11 +1207,11 @@ sub specialNISTTitleProcessing
       my $outTmpFile = getTemporaryFile();  # get a temporary file to receive the titles truecasing
       push @tmpFiles, $outTmpFile;
 
-      truecaseFile($inTmpFile, $LMFileTitles, $vocabMapFileTitles, $lmOrder, $useLMOnlyFlag, $outTmpFile, $uppercaseSentenceBeginFlag, $cleanMarkupFlag, $verbose);
-      print "portage_truecaselib::specialNISTTitleProcessing: Truecasing titles' buffer done...\r\n" unless not $verbose;
+      truecaseFile($inTmpFile, $LMFileTitles, $vocabMapFileTitles, $lmOrder, $useLMOnlyFlag, $outTmpFile, $ucBOSEncoding, $cleanMarkupFlag, $verbose);
+      print STDERR "portage_truecaselib::specialNISTTitleProcessing: Truecasing titles' buffer done...\n" unless not $verbose;
 
-      print "portage_truecaselib::specialNISTTitleProcessing: Updating truecased titles...\r\n" unless not $verbose;
-      open (INPUTFILE, $outTmpFile) or die "\r\n\r\n!!! ERROR portage_truecaselib::specialNISTTitleProcessing: could not open \"$outTmpFile\" to process titles: $! \taborting...\r\n\r\n";
+      print STDERR "portage_truecaselib::specialNISTTitleProcessing: Updating truecased titles...\n" unless not $verbose;
+      open (INPUTFILE, $outTmpFile) or die "ERROR: portage_truecaselib::specialNISTTitleProcessing: could not open \"$outTmpFile\" to process titles: $!  aborting...\n";
       flock INPUTFILE, 2;  # Lock
       @titleLines = <INPUTFILE>;
       close(INPUTFILE);
@@ -1227,8 +1219,8 @@ sub specialNISTTitleProcessing
 
       # Check the consistency: #TitlesLines form truecaseFile == #TitlesLines before
       if(scalar @titleLines != scalar @titleLineNums)
-      {  warn "\r\nWarning portage_truecaselib::specialNISTTitleProcessing: Titles processing is ignored due to line matching inconsistencies...\r\n";
-         print "portage_truecaselib::specialNISTTitleProcessing: Titles processing is ignored due to line matching inconsistencies...\r\n" unless not $verbose;
+      {  warn "Warning portage_truecaselib::specialNISTTitleProcessing: Titles processing is ignored due to line matching inconsistencies...\n";
+         print STDERR "portage_truecaselib::specialNISTTitleProcessing: Titles processing is ignored due to line matching inconsistencies...\n" unless not $verbose;
       }else
       {  if($forceNISTTitlesFUFlag)
          {  for(my $i=0; $i < @titleLineNums; $i++)
@@ -1255,9 +1247,9 @@ sub specialNISTTitleProcessing
          } # End if
       } # End if
 
-      print "portage_truecaselib::specialNISTTitleProcessing: Updating truecased titles done...\r\n" unless not $verbose;
+      print STDERR "portage_truecaselib::specialNISTTitleProcessing: Updating truecased titles done...\n" unless not $verbose;
    }else
-   {  print "portage_truecaselib::specialNISTTitleProcessing: No titles were detected...\r\n" unless not $verbose;
+   {  print STDERR "portage_truecaselib::specialNISTTitleProcessing: No titles were detected...\n" unless not $verbose;
    } # End if
 
    if(defined $outputFile)
@@ -1265,7 +1257,7 @@ sub specialNISTTitleProcessing
       if(($path[1] ne '') and (not -e $path[1]))
       {  system 'mkdir --parent ' . $path[1];
       } # End if
-      open (OUTPUTFILE, ">$outputFile") or die "\r\n\r\n!!! ERROR portage_truecaselib::specialNISTTitleProcessing: could not open \"$outputFile\" to write out the title processed file: $! \taborting...\r\n\r\n";
+      open (OUTPUTFILE, ">$outputFile") or die "ERROR: portage_truecaselib::specialNISTTitleProcessing: could not open \"$outputFile\" to write out the title processed file: $!  aborting...\n";
       flock OUTPUTFILE, 2;  # Lock
       print OUTPUTFILE @lines;
       close(OUTPUTFILE);
@@ -1291,11 +1283,11 @@ sub specialNISTTitleProcessing
 
 sub prepareFileResolvingUnknowWordsToClasses
 {  if(not @_)  # if no argument is sent in
-   {  die "\r\n\r\n!!! ERROR: portage_truecaselib::prepareFileResolvingUnknowWordsToClasses requires 3 input arguments! \taborting...\r\n\r\n";
+   {  die "ERROR: portage_truecaselib::prepareFileResolvingUnknowWordsToClasses requires 3 input arguments!  aborting...\n";
    }elsif($_[0] and $_[0] =~ /^portage_truecaselib/) # if we are called as a module then skip the our reference name
    {  shift;
       if(not @_)  # if no argument is sent in
-      {  die "\r\n\r\n!!! ERROR: portage_truecaselib::prepareFileResolvingUnknowWordsToClasses requires 3 input arguments! \taborting...\r\n\r\n";
+      {  die "ERROR: portage_truecaselib::prepareFileResolvingUnknowWordsToClasses requires 3 input arguments!  aborting...\n";
       } # End if
    } # End if
 
@@ -1307,7 +1299,7 @@ sub prepareFileResolvingUnknowWordsToClasses
    ########## CASE: NO WORDS IN THE LIST #######
    if(not defined $knownWordsListHashRef)
    {  # Copy inputFile to preparedFile as is and return undef as tracking hash
-      open(INPUTFILE, "$inputFile") or die "\r\n\r\n!!! ERROR portage_truecaselib::prepareFileResolvingUnknowWordsToClasses: could not open \"$inputFile\" for reading: $! \taborting...\r\n\r\n";
+      open(INPUTFILE, "$inputFile") or die "ERROR: portage_truecaselib::prepareFileResolvingUnknowWordsToClasses: could not open \"$inputFile\" for reading: $!  aborting...\n";
       flock INPUTFILE, 2;  # Lock
       @lines = <INPUTFILE>;
       close(INPUTFILE);
@@ -1316,7 +1308,7 @@ sub prepareFileResolvingUnknowWordsToClasses
       if(($path[1] ne '') and (not -e $path[1]))
       {  system 'mkdir --parent ' . $path[1];
       } # End if
-      open(OUTPUTFILE, ">$preparedFile") or die "\r\n\r\n!!! ERROR portage_truecaselib::prepareFileResolvingUnknowWordsToClasses: could not open \"$preparedFile\" for writing: $! \taborting...\r\n\r\n";
+      open(OUTPUTFILE, ">$preparedFile") or die "ERROR: portage_truecaselib::prepareFileResolvingUnknowWordsToClasses: could not open \"$preparedFile\" for writing: $!  aborting...\n";
       flock OUTPUTFILE, 2;  # Lock
       print OUTPUTFILE @lines;
       close(OUTPUTFILE);
@@ -1334,7 +1326,7 @@ sub prepareFileResolvingUnknowWordsToClasses
    my @words;
    my %trackingHashTable = ();
 
-   open(INPUTFILE, "$inputFile") or die "\r\n\r\n!!! ERROR portage_truecaselib::prepareFileResolvingUnknowWordsToClasses: could not open \"$inputFile\" for reading: $! \taborting...\r\n\r\n";
+   open(INPUTFILE, "$inputFile") or die "ERROR: portage_truecaselib::prepareFileResolvingUnknowWordsToClasses: could not open \"$inputFile\" for reading: $!  aborting...\n";
    flock INPUTFILE, 2;  # Lock
    @lines = <INPUTFILE>;
    @lines = grep !/^\s+$/, @lines;
@@ -1376,7 +1368,7 @@ sub prepareFileResolvingUnknowWordsToClasses
    if(($path[1] ne '') and (not -e $path[1]))
    {  system 'mkdir --parent ' . $path[1];
    } # End if
-   open(OUTPUTFILE, ">$preparedFile") or die "\r\n\r\n!!! ERROR portage_truecaselib::prepareFileResolvingUnknowWordsToClasses: could not open \"$preparedFile\" for writing: $! \taborting...\r\n\r\n";
+   open(OUTPUTFILE, ">$preparedFile") or die "ERROR: portage_truecaselib::prepareFileResolvingUnknowWordsToClasses: could not open \"$preparedFile\" for writing: $!  aborting...\n";
    flock OUTPUTFILE, 2;  # Lock
    print OUTPUTFILE @lines;
    close(OUTPUTFILE);
@@ -1392,11 +1384,11 @@ sub prepareFileResolvingUnknowWordsToClasses
 
 sub resolveWordToClass
 {  if(not @_)  # if no argument is sent in
-   {  die "\r\n\r\n!!! ERROR: portage_truecaselib::resolveWordToClass requires an input argument! \taborting...\r\n\r\n";
+   {  die "ERROR: portage_truecaselib::resolveWordToClass requires an input argument!  aborting...\n";
    }elsif($_[0] and $_[0] =~ /^portage_truecaselib/) # if we are called as a module then skip the our reference name
    {  shift;
       if(not @_)  # if no argument is sent in
-      {  die "\r\n\r\n!!! ERROR: portage_truecaselib::resolveWordToClass requires an input argument! \taborting...\r\n\r\n";
+      {  die "ERROR: portage_truecaselib::resolveWordToClass requires an input argument!  aborting...\n";
       } # End if
    } # End if
    my($word) = @_;
@@ -1435,17 +1427,17 @@ sub resolveWordToClass
 
 sub extractWordsListHashFrom
 {  if(not @_)  # if no argument is sent in
-   {  die "\r\n\r\n!!! ERROR: portage_truecaselib::extractWordsListHashFrom requires an input argument! \taborting...\r\n\r\n";
+   {  die "ERROR: portage_truecaselib::extractWordsListHashFrom requires an input argument!  aborting...\n";
    }elsif($_[0] and $_[0] =~ /^portage_truecaselib/) # if we are called as a module then skip the our reference name
    {  shift;
       if(not @_)  # if no argument is sent in
-      {  die "\r\n\r\n!!! ERROR: portage_truecaselib::extractWordsListHashFrom requires an input argument! \taborting...\r\n\r\n";
+      {  die "ERROR: portage_truecaselib::extractWordsListHashFrom requires an input argument!  aborting...\n";
       } # End if
    } # End if
 
    my($vocabFile) = @_;
 
-   open (INPUTFILE, $vocabFile) or die "\r\n\r\n!!! ERROR portage_truecaselib::extractWordsListHashFrom: could not open \"$vocabFile\" to extract the list of words: $! \taborting...\r\n\r\n";
+   open (INPUTFILE, $vocabFile) or die "ERROR: portage_truecaselib::extractWordsListHashFrom: could not open \"$vocabFile\" to extract the list of words: $!  aborting...\n";
    flock INPUTFILE, 2;  # Lock
    my @lines = <INPUTFILE>;
    close(INPUTFILE);

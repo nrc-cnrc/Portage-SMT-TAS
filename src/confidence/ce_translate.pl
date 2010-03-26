@@ -368,9 +368,9 @@ sub truecase {
     my ($lang, $in, $out) = @_;
     if ($tcmap and $tclm) {
         if ($tctp) {
-            call("truecase.pl --text=\"${in}\" --uppercaseBOS --tplm=${tclm} --tppt=${tcmap} > \"${out}\"");
+            call("truecase.pl --text=\"${in}\" --ucBOSEncoding=utf8 --tplm=${tclm} --tppt=${tcmap} > \"${out}\"");
         } else {
-            call("truecase.pl --text=\"${in}\" --uppercaseBOS --lm=${tclm} --map=${tcmap} > \"${out}\"");
+            call("truecase.pl --text=\"${in}\" --ucBOSEncoding=utf8 --lm=${tclm} --map=${tcmap} > \"${out}\"");
         }
     } else {
         call("cp \"${in}\" \"${out}\"");

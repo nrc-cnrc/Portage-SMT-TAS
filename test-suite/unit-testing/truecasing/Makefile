@@ -1,14 +1,16 @@
 #!/usr/bin/make -f
 # vim:noet:ts=3
 
-#LIB       = PERL5LIB=~/sandboxes/quick.fix/src/truecasing:$$PERL5LIB
-#TRUECASER = ~/sandboxes/quick.fix/src/truecasing/truecase.pl
+#TRUECASER = perl -I ../../../src/truecasing ../../../src/truecasing/truecase.pl
 TRUECASER = truecase.pl
 
+UCBOS = --ucBOSEncoding $*
 VERBOSE = --verbose
 
 MAP = tc-map.en
 LM  = tc-lm.en
+
+QUIET = -q
 
 .NOTPARALLEL:
 .SECONDARY:
@@ -17,65 +19,60 @@ all: canoe1_cp1252
 all: canoe1_utf8
 all: canoe2_cp1252
 all: canoe2_utf8
+all: canoe_ucbos_cp1252
+all: canoe_ucbos_utf8
 all: tpt_cp1252
 all: tpt_utf8
-all: tpt_uBoS_cp1252
-all: tpt_uBoS_utf8
-all: srilm_cp1252
-all: srilm_utf8
-all: viterbi_cp1252
-all: viterbi_utf8
+all: tpt_ucbos_cp1252
+all: tpt_ucbos_utf8
 
 clean:
 	${RM} -r ${LM}_*.tplm* ${MAP}_*.tppt*
 	${RM} ref_* src_* ${LM}_* ${MAP}_* vocabMap2tpt.*
 
-canoe1%: src% ref% ${LM}%.gz ${MAP}%.gz
-	${LIB} ${TRUECASER} ${VERBOSE} --text=$< --lm=${LM}$*.gz --map=${MAP}$*.gz \
-	| diff -q - ref$*
+canoe1_%: src_% ref_% ${LM}_% ${MAP}_%
+	${LIB} ${TRUECASER} ${VERBOSE} --text=$< --lm=${LM}_$* --map=${MAP}_$* \
+	| diff ${QUIET} - ref_$*
 
-canoe2%: src% ref% ${LM}%.gz ${MAP}%
-	${LIB} ${TRUECASER} ${VERBOSE} --text=$< --lm=${LM}$*.gz --map=${MAP}$* \
-	| diff -q - ref$*
+canoe2_%: src_% ref_% ${LM}_%.gz ${MAP}_%.gz
+	${LIB} ${TRUECASER} ${VERBOSE} --text=$< --lm=${LM}_$*.gz --map=${MAP}_$*.gz \
+	| diff ${QUIET} - ref_$*
 
-tpt%: src% ref% ${LM}%.tplm ${MAP}%.tppt
-	${LIB} ${TRUECASER} ${VERBOSE} --text=$< --tplm=${LM}$*.tplm --tppt=${MAP}$*.tppt \
-	| diff -q - ref$*
+canoe_ucbos_%: src_ucbos_% ref_ucbos_% ${LM}_%.gz ${MAP}_%.gz
+	${LIB} ${TRUECASER} ${VERBOSE} ${UCBOS} --text=$< --lm=${LM}_$*.gz --map=${MAP}_$*.gz \
+	| diff ${QUIET} - ref_ucbos_$*
 
-tpt_uBoS%: src% ref% ${LM}%.tplm ${MAP}%.tppt
-	${LIB} ${TRUECASER} ${VERBOSE} --text=$< --tplm=${LM}$*.tplm --tppt=${MAP}$*.tppt --uppercaseBOS \
-	| diff -q - ref$*
+tpt_%: src_% ref_% ${LM}_%.tplm ${MAP}_%.tppt
+	${LIB} ${TRUECASER} ${VERBOSE} --text=$< --tplm=${LM}_$*.tplm --tppt=${MAP}_$*.tppt \
+	| diff ${QUIET} - ref_$*
 
-srilm%: src% ref% ${LM}% ${MAP}%
-	${LIB} ${TRUECASER} ${VERBOSE} --text=$< --lm=${LM}$* --map=${MAP}$* --srilm \
-	| diff -q - ref$*
-
-viterbi%: src% ref% ${LM}% ${MAP}%
-	${LIB} ${TRUECASER} ${VERBOSE} --text=$< --lm=${LM}$* --map=${MAP}$* --srilm --viterbi \
-	| diff -q - ref$*
-
+tpt_ucbos_%: src_ucbos_% ref_ucbos_% ${LM}_%.tplm ${MAP}_%.tppt
+	${LIB} ${TRUECASER} ${VERBOSE} ${UCBOS} --text=$< --tplm=${LM}_$*.tplm --tppt=${MAP}_$*.tppt \
+	| diff ${QUIET} - ref_ucbos_$*
 
 ########################################
 # HELPERS
 
-#REF = This is a test .\nÉric lives in Québec .
-#SRC = this is a test .\néric lives in québec .
+#REF_UCBOS = This is a test .\nÉric lives in Québec .\nÉtude is accented .
+#SRC_UCBOS = this is a test . \néric lives in québec . \nétude is accented . 
 
 # Make sure the correct windows-1252 (CP1252) text goes into the *_cp1252 files.
+REF_UCBOS = This is a test .\n\xC9ric lives in Qu\xE9bec .\n\xC9tude is accented .
+SRC_UCBOS = this is a test . \n\xE9ric lives in qu\xE9bec . \n\xC9tude is accented . 
 REF = This is a test .\n\xC9ric lives in Qu\xE9bec .
-SRC = this is a test .\n\xE9ric lives in qu\xE9bec .
-
-# NOTE: The following SRC/REF text, which contains a sentence beginning with a
-# word starting with an accented character that is unknown by the truecasing
-# model, should work with --uppercaseBOS, but it does not:
-#REF = \xC9tude is an accented word .
-#SRC = \xE9tude is an accented word .
+SRC = this is a test . \n\xE9ric lives in qu\xE9bec . 
 
 src_cp1252:
 	echo -e "${SRC}" > $@
 
 ref_cp1252:
 	echo -e "${REF}" > $@
+
+src_ucbos_cp1252:
+	echo -e "${SRC_UCBOS}" > $@
+
+ref_ucbos_cp1252:
+	echo -e "${REF_UCBOS}" > $@
 
 ${LM}_cp1252:
 	echo -e "${REF}" | ngram-count -text - -order 3 -lm $@
@@ -90,7 +87,7 @@ ${MAP}_cp1252:
 		"this\tTHIS\t5.95558008802638e-05\tThis\t0.170216289237831\tthis\t0.829724154961289\n" \
 	> $@
 
-src_utf8 ref_utf8 ${LM}_utf8 ${MAP}_utf8: %_utf8: %_cp1252
+src_utf8 ref_utf8 src_ucbos_utf8 ref_ucbos_utf8 ${LM}_utf8 ${MAP}_utf8: %_utf8: %_cp1252
 	cat $< \
 	| iconv -f windows-1252 -t UTF-8 \
 	> $@
