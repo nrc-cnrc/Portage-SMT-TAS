@@ -106,7 +106,7 @@ print_nrc_copyright() {
 # This library's help message.
 _sh_utils_help() {
    print_nrc_copyright sh_utils.sh 2008
-   echo "sh_utils.sh is intended to be used as a library, not as a stand-alone program."
+   echo "sh_utils.sh is intended to be used as a library, not as a stand-alone program." >&2
 }
 
 # This file is intended to be a library and not an executable file.

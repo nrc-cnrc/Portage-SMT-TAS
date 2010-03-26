@@ -21,9 +21,10 @@ echo 'build-tp-suffix-array.sh, (c) 2005-2010, Ulrich Germann and Her Majesty in
 BIN=`dirname $0`
 if [[ ! -r $BIN/sh_utils.sh ]]; then
    # assume executing from src/tpt directory
-   BIN="`dirname $BIN`/utils"
+   BIN="$BIN/../utils"
 fi
 source $BIN/sh_utils.sh
+
 
 usage() {
    for msg in "$@"; do
@@ -51,15 +52,6 @@ Options:
 
 ==EOF==
 
-   exit 1
-}
-
-error_exit() {
-   echo -n text2msa.sh: "" >&2
-   for msg in "$@"; do
-      echo $msg >&2
-   done
-   echo "Use -h for help." >&2
    exit 1
 }
 

@@ -151,7 +151,7 @@ using namespace Portage::ConfigTool;
 int main(int argc, char* argv[])
 {
    Logging::init();
-   printCopyright(2005,"configtool");
+   //printCopyright(2005,"configtool");
 
    getArgs(argc, argv);
    ostream& os = *osp;

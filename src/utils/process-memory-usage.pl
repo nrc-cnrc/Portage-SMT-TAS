@@ -28,7 +28,7 @@ BEGIN {
    }
 }
 use portage_utils;
-printCopyright "process-memory-usage.pl", 2007;
+#printCopyright "process-memory-usage.pl", 2007;
 $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
 sub usage {
