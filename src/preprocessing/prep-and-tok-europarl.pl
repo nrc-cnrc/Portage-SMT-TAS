@@ -1,6 +1,6 @@
 #!/usr/bin/perl -s
 
-# @file prep-europarl.pl 
+# @file prep-and-tok-europarl.pl 
 # @brief Preprocess Europarl (en/fr) files.
 # 
 # @author George Foster
@@ -15,7 +15,18 @@
 
 use locale;
 
-print STDERR "prep-europarl.pl, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada\n";
+BEGIN {
+   # If this script is run from within src/ rather than being properly
+   # installed, we need to add utils/ to the Perl library include path (@INC).
+   if ( $0 !~ m#/bin/[^/]*$# ) {
+      my $bin_path = $0;
+      $bin_path =~ s#/[^/]*$##;
+      unshift @INC, "$bin_path/../utils";
+   }
+}
+use portage_utils;
+printCopyright("prep-and-tok-europarl.pl", 2005);
+$ENV{PORTAGE_INTERNAL_CALL} = 1;
 
 $HELP = "
 prep-and-tok-europarl.pl [in [out]]

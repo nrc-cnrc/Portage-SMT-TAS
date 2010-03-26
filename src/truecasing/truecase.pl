@@ -12,11 +12,26 @@
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2008, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2008, Her Majesty in Right of Canada
+# Copyright 2004, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2004, Her Majesty in Right of Canada
 
 use strict;
 use warnings;
+
+BEGIN {
+   # If this script is run from within src/ rather than being properly
+   # installed, we need to add utils/ to the Perl library include path (@INC).
+   if ( $0 !~ m#/bin/[^/]*$# ) {
+      my $bin_path = $0;
+      $bin_path =~ s#/[^/]*$##;
+      unshift @INC, "$bin_path/../utils", $bin_path;
+   }
+}
+use portage_utils;
+printCopyright("truecase.pl", 2004);
+$ENV{PORTAGE_INTERNAL_CALL} = 1;
+
+
 use utf8;
 #use Getopt::Long::Configure('ignore_case');
 use Getopt::Long;
@@ -199,10 +214,11 @@ sub displayHelp
                   be used in conjunction with --map option.\r\
       --lm=s   => the Language Model (NGram file) to be used.\r\
       --unkmap=s  => the V1 to V2 of unknown words classes mapping file.\r\
-      --lmOrder=s => the effective N-gram order used by the language models.\r\n\
-      --tplm=s => the Language Model (NGram file) in TPLM format to be used.\n\
-      --tppt=s => the V1 to V2 phrase table in TPPT format\n\
-                  (use vocabMap2tpt.sh to create the TPPT).\n\
+      --lmOrder=s => the effective N-gram order used by the language models.
+      --tplm=s => the Language Model (NGram file) in TPLM format to be used.
+      --tppt=s => the V1 to V2 phrase table in TPPT format
+                  (use vocabMap2tpt.sh to create the TPPT).
+
    # Flags\r\
       --useLMOnly => Requests that only a given NGram model be used;\r\
                   any given V1-to-V2 will be ignored.\r\

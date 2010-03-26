@@ -16,6 +16,19 @@
 use strict;
 use warnings;
 
+BEGIN {
+   # If this script is run from within src/ rather than being properly
+   # installed, we need to add utils/ to the Perl library include path (@INC).
+   if ( $0 !~ m#/bin/[^/]*$# ) {
+      my $bin_path = $0;
+      $bin_path =~ s#/[^/]*$##;
+      unshift @INC, "$bin_path/../utils";
+   }
+}
+use portage_utils;
+printCopyright("nbest2rescore.pl", 2005);
+$ENV{PORTAGE_INTERNAL_CALL} = 1;
+
 # globals
 my $phrase_re = qr/\"([^\\\"]*(?:(?:\\.)[^\\\"]*)*)\"/;
 my $align_re = qr/a=\[([^;\]]+;[^;\]]+;[^;\]]+[^]]*)\]/;
@@ -24,9 +37,7 @@ my $legacy_re = qr/\(([^\)]+)\)/;
 
 # command-line
 my $HELP = 
-"nbest2rescore.pl, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada
-
-Usage nbest2rescore.pl {options}
+"Usage: nbest2rescore.pl [options]
 
 Read N-best translation files, as produced by the canoe decoder, and produce
 output in a format compatible with the rescore programs (rescore_train,

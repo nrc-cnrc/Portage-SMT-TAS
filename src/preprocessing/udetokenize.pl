@@ -21,7 +21,19 @@
 use strict;
 use utf8;
 
-print STDERR "udetokenize.pl, NRC-CNRC, (c) 2004 - 2009, Her Majesty in Right of Canada\n";
+BEGIN {
+   # If this script is run from within src/ rather than being properly
+   # installed, we need to add utils/ to the Perl library include path (@INC).
+   if ( $0 !~ m#/bin/[^/]*$# ) {
+      my $bin_path = $0;
+      $bin_path =~ s#/[^/]*$##;
+      unshift @INC, "$bin_path/../utils";
+   }
+}
+use portage_utils;
+printCopyright("udetokenize.pl", 2004);
+$ENV{PORTAGE_INTERNAL_CALL} = 1;
+
 
 # This is a utf8 handling script => io should be in utf8 format
 # ref: http://search.cpan.org/~tty/kurila-1.7_0/lib/open.pm

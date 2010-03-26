@@ -18,7 +18,19 @@ use locale;
 use POSIX qw(locale_h);
 setlocale(LC_CTYPE, "fr_CA.iso88591");
 
-print STDERR "uc-first.pl, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada\n";
+BEGIN {
+   # If this script is run from within src/ rather than being properly
+   # installed, we need to add utils/ to the Perl library include path (@INC).
+   if ( $0 !~ m#/bin/[^/]*$# ) {
+      my $bin_path = $0;
+      $bin_path =~ s#/[^/]*$##;
+      unshift @INC, "$bin_path/../utils";
+   }
+}
+use portage_utils;
+printCopyright "uc-first.pl", 2005;
+$ENV{PORTAGE_INTERNAL_CALL} = 1;
+
 
 $HELP = "
 uc-first.pl [in [out]]

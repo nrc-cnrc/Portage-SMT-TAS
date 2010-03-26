@@ -73,6 +73,20 @@ Michel Simard
 
 =cut
 
+BEGIN {
+   # If this script is run from within src/ rather than being properly
+   # installed, we need to add utils/ to the Perl library include path (@INC).
+   if ( $0 !~ m#/bin/[^/]*$# ) {
+      my $bin_path = $0;
+      $bin_path =~ s#/[^/]*$##;
+      unshift @INC, "$bin_path/../utils", $bin_path;
+   }
+}
+use portage_utils;
+printCopyright("ce_gen_features.pl", 2009);
+$ENV{PORTAGE_INTERNAL_CALL} = 1;
+
+
 use CE::model;
 use CE::help;
 

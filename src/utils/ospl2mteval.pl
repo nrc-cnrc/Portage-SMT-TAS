@@ -18,7 +18,19 @@
 use strict;
 use warnings;
 
-print STDERR "ospl2mteval.pl, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada\n";
+BEGIN {
+   # If this script is run from within src/ rather than being properly
+   # installed, we need to add utils/ to the Perl library include path (@INC).
+   if ( $0 !~ m#/bin/[^/]*$# ) {
+      my $bin_path = $0;
+      $bin_path =~ s#/[^/]*$##;
+      unshift @INC, "$bin_path/../utils";
+   }
+}
+use portage_utils;
+printCopyright "ospl2mteval.pl", 2005;
+$ENV{PORTAGE_INTERNAL_CALL} = 1;
+
 
 my $HELP = "
 ospl2mteval.pl [-srclang l][-tgtlang l][-setid id][-sysid id] src tst ref1 ref2 ...

@@ -17,14 +17,28 @@
 use utf8;
 
 use strict;
+
+
+BEGIN {
+   # If this script is run from within src/ rather than being properly
+   # installed, we need to add utils/ to the Perl library include path (@INC).
+   if ( $0 !~ m#/bin/[^/]*$# ) {
+      my $bin_path = $0;
+      $bin_path =~ s#/[^/]*$##;
+      unshift @INC, "$bin_path/../utils", $bin_path;
+   }
+}
+use portage_utils;
+printCopyright("utokenize.pl", 2004);
+$ENV{PORTAGE_INTERNAL_CALL} = 1;
+
 use ULexiTools;
+
 #use locale;
 # This is a utf8 handling script => io should be in utf8 format
 # ref: http://search.cpan.org/~tty/kurila-1.7_0/lib/open.pm
 use open IO => ':encoding(utf-8)';
 use open ':std';  # <= indicates that STDIN and STDOUT are utf8
-
-print STDERR "utokenize.pl, NRC-CNRC, (c) 2004 - 2009, Her Majesty in Right of Canada\n";
 
 my $HELP = "
 Usage: tokenize.pl [-v] [-p] -ss|-noss [-notok] [-lang=l] [in [out]]

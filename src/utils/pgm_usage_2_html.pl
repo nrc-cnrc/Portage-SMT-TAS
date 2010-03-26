@@ -15,7 +15,21 @@
 use strict;
 use warnings;
 
-print STDERR "pgm_usage_2_html.pl, NRC-CNRC, (c) 2006 - 2010, Her Majesty in Right of Canada\n";
+BEGIN {
+   # If this script is run from within src/ rather than being properly
+   # installed, we need to add utils/ to the Perl library include path (@INC).
+   if ( $0 !~ m#/bin/[^/]*$# ) {
+      my $bin_path = $0;
+      $bin_path =~ s#/[^/]*$##;
+      unshift @INC, "$bin_path/../utils";
+   }
+}
+use portage_utils;
+printCopyright("pgm_usage_2_html.pl", 2008);
+# Setting PORTAGE_INTERNAL_CALL here means the HTML usage pages will not have
+# the Copyright at the beginning of each help message, which is the intended
+# effect since the Copyright is at the bottom of each page already.
+$ENV{PORTAGE_INTERNAL_CALL} = 1;
 
 sub usage {
    local $, = "\n";

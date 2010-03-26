@@ -1,6 +1,6 @@
 #!/usr/bin/perl -sw
 
-# @file reverseff.pl 
+# @file reverseffvals.pl 
 # @brief Reverses the words in each line of input of -ffvals text.
 #
 # @author Matthew Arnold
@@ -15,7 +15,19 @@
 
 use strict;
 
-print STDERR "reverseff.pl, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada\n";
+BEGIN {
+   # If this script is run from within src/ rather than being properly
+   # installed, we need to add utils/ to the Perl library include path (@INC).
+   if ( $0 !~ m#/bin/[^/]*$# ) {
+      my $bin_path = $0;
+      $bin_path =~ s#/[^/]*$##;
+      unshift @INC, "$bin_path/../utils";
+   }
+}
+use portage_utils;
+printCopyright "reverseffvals.pl", 2005;
+$ENV{PORTAGE_INTERNAL_CALL} = 1;
+
 
 my $HELP =
 "Usage: $0 [infile [outfile]]

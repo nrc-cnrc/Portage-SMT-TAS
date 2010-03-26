@@ -17,18 +17,26 @@
 
 use strict;
 use warnings;
-use portage_utils;
 
-print STDERR "strip-parallel-blank-lines.pl, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada\n";
+BEGIN {
+   # If this script is run from within src/ rather than being properly
+   # installed, we need to add utils/ to the Perl library include path (@INC).
+   if ( $0 !~ m#/bin/[^/]*$# ) {
+      my $bin_path = $0;
+      $bin_path =~ s#/[^/]*$##;
+      unshift @INC, "$bin_path/../utils";
+   }
+}
+use portage_utils;
+printCopyright("strip-parallel-blank-lines.pl", 2005);
+$ENV{PORTAGE_INTERNAL_CALL} = 1;
+
 
 my $HELP = "
 strip-parallel-blank-lines.pl file1 file2
 
-Strip parallel blank lines from two line-aligned files. Write output to <file1>.no-blanks
-
-Options:
-
--v Write interesting messages to stderr.
+  Strip parallel blank lines from two line-aligned files.
+  Write output to <file1>.no-blanks
 
 ";
 

@@ -14,7 +14,19 @@
 # Copyright 2006, Sa Majeste la Reine du Chef du Canada / 
 # Copyright 2006, Her Majesty in Right of Canada
 
-print STDERR "split-listed.pl, NRC-CNRC, (c) 2006 - 2009, Her Majesty in Right of Canada\n";
+BEGIN {
+   # If this script is run from within src/ rather than being properly
+   # installed, we need to add utils/ to the Perl library include path (@INC).
+   if ( $0 !~ m#/bin/[^/]*$# ) {
+      my $bin_path = $0;
+      $bin_path =~ s#/[^/]*$##;
+      unshift @INC, "$bin_path/../utils";
+   }
+}
+use portage_utils;
+printCopyright "split-listed.pl", 2006;
+$ENV{PORTAGE_INTERNAL_CALL} = 1;
+
 
 $HELP = "
 split-listed.pl [-d=outdir] listfile [infile]

@@ -14,7 +14,19 @@
 use strict;
 use warnings;
 
-print STDERR "gen-features-parallel.pl, NRC-CNRC, (c) 2009, Her Majesty in Right of Canada\n";
+BEGIN {
+   # If this script is run from within src/ rather than being properly
+   # installed, we need to add utils/ to the Perl library include path (@INC).
+   if ( $0 !~ m#/bin/[^/]*$# ) {
+      my $bin_path = $0;
+      $bin_path =~ s#/[^/]*$##;
+      unshift @INC, "$bin_path/../utils";
+   }
+}
+use portage_utils;
+printCopyright("gen-features-parallel.pl", 2008);
+$ENV{PORTAGE_INTERNAL_CALL} = 1;
+
 
 my $SRC_TAG = "<src>";
 my $FFVAL_WTS_TAG = "<ffval-wts>";

@@ -12,6 +12,19 @@
 # Copyright 2009, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2009, Her Majesty in Right of Canada
 
+BEGIN {
+   # If this script is run from within src/ rather than being properly
+   # installed, we need to add utils/ to the Perl library include path (@INC).
+   if ( $0 !~ m#/bin/[^/]*$# ) {
+      my $bin_path = $0;
+      $bin_path =~ s#/[^/]*$##;
+      unshift @INC, "$bin_path/../utils";
+   }
+}
+use portage_utils;
+printCopyright("filter-distortion-model.pl", 2009);
+$ENV{PORTAGE_INTERNAL_CALL} = 1;
+
 use strict;
 use warnings;
 
@@ -51,7 +64,7 @@ GetOptions(
 ) or usage;
 
 # Make sure that the user provided us with at least a conditional phrase table.
-0 == @ARGV and usage "Missing parameter(s): @ARGV";
+0 == @ARGV and usage "Missing parameter(s): you must provide at least the CPT.";
 
 my $CPT   = shift;  # What is the conditional phrase table.
 my $DM    = shift || "-";  # What is the distortion model to filter.

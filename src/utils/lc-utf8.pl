@@ -13,7 +13,6 @@
 # Copyright 2008, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2008, Her Majesty in Right of Canada
 
-print STDERR "lc-utf8.pl, NRC-CNRC, (c) 2008 - 2009, Her Majesty in Right of Canada\n";
 
 require 5.004;
 use locale;

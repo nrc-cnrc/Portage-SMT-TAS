@@ -17,6 +17,20 @@
 use strict;
 use warnings;
 
+BEGIN {
+   # If this script is run from within src/ rather than being properly
+   # installed, we need to add utils/ to the Perl library include path (@INC).
+   if ( $0 !~ m#/bin/[^/]*$# ) {
+      my $bin_path = $0;
+      $bin_path =~ s#/[^/]*$##;
+      unshift @INC, "$bin_path/../utils";
+   }
+}
+use portage_utils;
+printCopyright("tmtext-apply-weights.pl", 2008);
+$ENV{PORTAGE_INTERNAL_CALL} = 1;
+
+
 # Shield against log 0.
 sub safe_log {
    # -18 is what's used inside canoe.

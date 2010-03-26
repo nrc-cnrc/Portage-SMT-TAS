@@ -22,7 +22,7 @@ sub usage {
    print STDERR "
 Usage: $0 [options] [IN [OUT]]
 
-  Briefly describe what your program does here
+  Convert from seconds to HH:MM:SS or vice-versa.
 
 Options:
 

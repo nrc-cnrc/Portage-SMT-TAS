@@ -19,16 +19,27 @@
 
 use strict;
 use warnings;
+BEGIN {
+   # If this script is run from within src/ rather than being properly
+   # installed, we need to add utils/ to the Perl library include path (@INC).
+   if ( $0 !~ m#/bin/[^/]*$# ) {
+      my $bin_path = $0;
+      $bin_path =~ s#/[^/]*$##;
+      unshift @INC, "$bin_path/../utils";
+   }
+}
+use portage_utils;
+printCopyright "append-uniq.pl", 2005;
+$ENV{PORTAGE_INTERNAL_CALL} = 1;
+
 
 sub usage {
    local $, = "\n";
    print STDERR @_, "";
    $0 =~ s#.*/##;
    print STDERR "
-   append-uniq.pl, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada
-
-   Usage: $0 [-h(elp)] [-v(erbose)] -nbest=file -ffvals=file
-          -addnbest=file -addffvals=file
+Usage: $0 [-h(elp)] [-v(erbose)] -nbest=file -ffvals=file
+       -addnbest=file -addffvals=file
 
    Appends non duplicate lines from addnbest and addffvals files to nbest and
    ffvals, where a duplicate is a line which is identical to another in *both*
@@ -39,13 +50,13 @@ sub usage {
       append-uniq.pl -nbest=<emptyfile> -ffvals=<emptyfile>
          -addnbest=nbest -addffvals=ffvals
 
-   Options:
+Options:
 
    -h(elp):      print this help message
    -v(erbose):   increment the verbosity level by 1 (may be repeated)
    -d(ebug):     print debugging information
 
-   ";
+";
    exit 1;
 }
 
@@ -81,6 +92,10 @@ if ( $debug ) {
 ";
 }
 
+for ( $nbest, $ffvals, $addnbest, $addffvals ) {
+   defined $_ or die "append-uniq.pl: -nbest, -ffvals, -addnbest and -addffvals are all required.\n";
+   -r $_ or die "append-uniq.pl: Can't open $_ for reading: $!\n";
+}
 
 open(NBEST, "gzip -cqfd $nbest |") or die "Can't open $nbest for reading: $!\n";
 open(FFVALS, "gzip -cqfd $ffvals |") or die "Can't open $ffvals for reading: $!\n";

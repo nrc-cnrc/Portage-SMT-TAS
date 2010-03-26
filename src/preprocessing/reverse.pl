@@ -15,17 +15,30 @@
 
 use strict;
 
-print STDERR "reverse.pl, NRC-CNRC, (c) 2005 - 2009, Her Majesty in Right of Canada\n";
+BEGIN {
+   # If this script is run from within src/ rather than being properly
+   # installed, we need to add utils/ to the Perl library include path (@INC).
+   if ( $0 !~ m#/bin/[^/]*$# ) {
+      my $bin_path = $0;
+      $bin_path =~ s#/[^/]*$##;
+      unshift @INC, "$bin_path/../utils";
+   }
+}
+use portage_utils;
+printCopyright("reverse.pl", 2005);
+$ENV{PORTAGE_INTERNAL_CALL} = 1;
+
 
 my $HELP =
 "Usage: $0 [infile [outfile]]
 
-Reverses the words in each line of input, outputting the result.  Words in a line must be
-delimited by spaces (other forms of whitespace are counted as part of a word).
+  Reverses the words in each line of input, outputting the result.  Words in a
+  line must be delimited by spaces (other forms of whitespace are counted as
+  part of a word).
 
 Options:
-infile	The input file; if not specified, standard input is used.
-outfile	The output file; if not specified, standard output is used.
+  infile   The input file; if not specified, standard input is used.
+  outfile  The output file; if not specified, standard output is used.
 
 ";
 
