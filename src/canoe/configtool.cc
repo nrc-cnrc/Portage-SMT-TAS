@@ -89,6 +89,12 @@ depending on <cmd>, one of:\n\
   applied-weights:tppt:w-tm:w-ftm\n\
                      - change the forward and backward weights to w-tm and w-ftm\n\
                        respectively and replaces multi-probs for tppt.\n\
+  tp                 - Changes multiprobs, language models and lexicalized\n\
+                       distortion models to their tightly packed version for\n\
+                       portageLive.\n\
+  list-lm            - Simply lists language models file names.\n\
+  list-ldm           - Simply lists lexicalized distortion models file names.\n\
+  list-tm            - Simply lists translation models file names.\n\
   args:<args>        - Apply canoe command-line arguments <args> to <config>, and\n\
                        write resulting new configuration.\n\
 \n\
@@ -389,6 +395,41 @@ int main(int argc, char* argv[])
       c.forwardWeights.push_back(conv<double>(toks[3]));
 
       c.write(os, 0, pretty);
+   } else if (isPrefix("tp", cmd)) {
+      // Translation models.
+      for (Uint i=0; i<c.multiProbTMFiles.size(); ++i) {
+         c.tpptFiles.push_back(removeZipExtension(c.multiProbTMFiles[i]) + ".tppt");
+      }
+
+      c.multiProbTMFiles.clear();
+      c.readStatus("ttable-multi-prob") = false;
+      if (!c.tpptFiles.empty()) c.readStatus("ttable-tppt") = true;
+
+      // Lexicalized Distortion Models.
+      for (Uint i=0; i<c.multiProbLDMFiles.size(); ++i) {
+         c.multiProbLDMFiles[i] = removeZipExtension(c.multiProbLDMFiles[i]) + ".tpldm";
+      }
+
+      // Language Models.
+      for (Uint i=0; i<c.lmFiles.size(); ++i) {
+         if (isSuffix(".binlm.gz", c.lmFiles[i])) {
+            c.lmFiles[i] = c.lmFiles[i].substr(0, c.lmFiles[i].size()-strlen(".binlm.gz")) + ".tplm";
+         }
+      }
+
+      c.write(os, 0, pretty);
+   } else if (isPrefix("list-lm", cmd)) {
+      copy(c.lmFiles.begin(), c.lmFiles.end(), ostream_iterator<string>(cout, " "));
+      cout << endl;
+   } else if (isPrefix("list-ldm", cmd)) {
+      copy(c.multiProbLDMFiles.begin(), c.multiProbLDMFiles.end(), ostream_iterator<string>(cout, " "));
+      cout << endl;
+   } else if (isPrefix("list-tm", cmd)) {
+      copy(c.forPhraseFiles.begin(), c.forPhraseFiles.end(), ostream_iterator<string>(cout, " "));
+      copy(c.backPhraseFiles.begin(), c.backPhraseFiles.end(), ostream_iterator<string>(cout, " "));
+      copy(c.multiProbTMFiles.begin(), c.multiProbTMFiles.end(), ostream_iterator<string>(cout, " "));
+      copy(c.tpptFiles.begin(), c.tpptFiles.end(), ostream_iterator<string>(cout, " "));
+      cout << endl;
    } else
       error(ETFatal, "unknown command: %s", cmd.c_str());
 }
