@@ -125,7 +125,7 @@ sub predict {
     close $outfh;
 
     my $options = "";
-    my $cmd = "svm-predict ${options} ${datafile} ${model} ${outfile} >& /dev/null";
+    my $cmd = "svm-predict ${options} ${datafile} ${model} ${outfile}"; ## >& /dev/null";
     debug("Calling: $cmd\n");
 
     system($cmd) == 0 

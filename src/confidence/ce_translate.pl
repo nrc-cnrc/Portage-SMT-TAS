@@ -55,13 +55,13 @@ a number of intermediate results, most notably tokenized and
 lowercased versions of the text files, PORTAGE translations, and
 individual value files for each feature used by the CE model.  The
 temporary directory is normally deleted at the end of the process,
-unless the C<-dir=D> option is specified.
+unless something goes wrong, or if the C<-dir=D> option is specified.
 
 =head1 OPTIONS
 
 =head2 General Options
 
-=over 1
+=over 
 
 =item -dir=D          Store all work files in directory D [default is to use a temporary dir, deleted at the end]
 
@@ -71,9 +71,19 @@ unless the C<-dir=D> option is specified.
 
 =item -tmem=T         Use TMem output file T
 
-=item -ss             Input text is *not* pre-segmented into sentences
+=item -notok          Input text is pre-tokenized
 
-=item -notok          Input text is pre-tokenized (cancels -ss)
+=item -nl=X           Newline interpretation in input text: 
+
+=over 
+
+=item -nl=p means "end-of-paragraph"; 
+
+=item -nl=s means "end-of-sentence"; 
+
+=item anything else means "two consecutive newlines mark end-of-paragraph, otherwise treat newline as whitespace".
+
+=back
 
 =item -nolc           Don't lowercase input text
 
@@ -168,10 +178,11 @@ $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
 
 use File::Temp qw(tempdir);
+use File::Path qw(remove_tree);
 
 our ($h, $help, $verbose, $debug, $desc, $tmem, $train,
      $test, $src, $tgt, $tmx, $ttx, $xsrc, $xtgt, $k, $norm, $dir, $path,
-     $out, $filter, $dryrun, $ss, $notok, $nolc, 
+     $out, $filter, $dryrun, $nl, $notok, $nolc, 
      $tclm, $tcmap, $tctp, $skipto);
 
 if ($h or $help) { 
@@ -197,7 +208,7 @@ $tgt = "fr" unless defined $tgt;
 $xsrc = "EN-CA" unless defined $xsrc;
 $xtgt = "FR-CA" unless defined $xtgt;
 $dryrun = 0 unless defined $dryrun;
-$ss = 0 unless defined $ss;
+$nl = 0 unless defined $nl;
 $notok = 0 unless defined $notok;
 $nolc = 0 unless defined $nolc;
 $tclm = 0 unless defined $tclm;
@@ -219,11 +230,9 @@ if ($train) {
     $ref_text = $test;
 }
 
-my $preprocess = 'perl -pe "s/[<>\\\\\\\\]/\\\\\\\\$&/g"';
-
-
 # Make working directory
 
+my $keep_dir = $dir;
 if ($dryrun) {
     $dir = "ce_work_temp_dir" unless $dir;
 } elsif ($skipto) {
@@ -234,7 +243,7 @@ if ($dryrun) {
         mkdir $dir or die "Can't make directory $dir: errno=$!";
     }
 } else {
-    $dir = tempdir('ce_work_XXXXXX', TMPDIR=>1, CLEANUP=>1);
+    $dir = tempdir('ce_work_XXXXXX', TMPDIR=>1, CLEANUP=>0);
 }
 
 my $Q_txt = "${dir}/Q.txt";
@@ -262,14 +271,14 @@ IN:{
     } elsif ($ttx) {
         call("ce_ttx2ospl.pl -verbose=${verbose} -dir=\"${dir}\" -src=${xsrc} -tgt=${xtgt} \"$input_text\"");
     } else {
-        call("${preprocess} < \"${input_text}\" > \"${Q_txt}\"");
+        preprocess($input_text, $Q_txt);
         if ($tmem) {
-            call("${preprocess} < \"${tmem}\" > \"${T_txt}\"");
+            preprocess($tmem, $T_txt);
         }
     }
 
     if ($ref_text) {
-        call("${preprocess} < \"${ref_text}\" > \"${R_txt}\"");
+        preprocess($ref_text, $R_txt);
     }
 }
 
@@ -333,15 +342,32 @@ OUT:{
     }
 }
 
+# Cleanup
+
+CLEANUP:{
+    if (not $keep_dir) {
+        verbose("[Cleaning up and deleting work directory $dir]\n");
+        remove_tree($dir);
+    }
+}
+
+
 exit 0;
+
+sub preprocess {
+    my ($in, $out) = @_;
+    call("cat \"${in}\" | ridbom.sh | crlf2lf.sh | canoe-escapes.pl -add | utf8_filter -c > \"${out}\"");
+}
 
 sub tokenize {
     my ($lang, $in, $out) = @_;
-    if ($notok) {
+    if ($notok and $nl eq 's') {
         call("cp \"${in}\" \"${out}\"");
     } else {
         my $tokopt = " -lang=${lang}";
-        $tokopt .= " -noss" unless $ss;
+        $tokopt .= $nl eq 's' ? " -ss" : " -noss";
+        $tokopt .= " -paraline" if $nl eq 'p';
+        $tokopt .= " -notok" if $notok;
         call("utokenize.pl ${tokopt} \"${in}\" \"${out}\"");
     }
 }

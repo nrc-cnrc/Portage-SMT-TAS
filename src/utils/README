@@ -17,6 +17,7 @@ build_devfile.pl              FS  Randomly extract a dev file from a corpus.
 casemap_strings.{cc,h}        GF  Locale-aware case-mapping.
 combine.pl                    AT  Combine files by interleaving lines.
 cvs-status-summary.pl         EJ  Compact summary of cvs status making stuff stand out.
+crlf2lf.sh                    MS  Convert CRLF (DOS-style) line endings to LF (UNIX-style).
 diff-round.pl                 EJ  Compare ff. files, ignoring rounding differences.
 docid.{cc,h}                  GF  Mapping from sentence indexes to document names
 errors.{cc,h}                 GF  Simple exception and error-message class.
@@ -70,6 +71,7 @@ randomly-choose-n-nums        GF  Does a little bit more.
 remove_stop.pl                MA  Remove words in a given list from tokenized text.
 removewords.pl                AT  Remove words in a given list from tokenized text.
 reverseffvals.pl              MA  Reverse something to do with ffvals.
+ridbom.sh                     MS  Remove the byte-order marker (BOM) from UTF8 input.
 run-after.sh                  EJ  Run a job once another job has finished.
 run-parallel.sh               EJ  Run a job suite using the deamon/worker system.
 r-parallel-d.pl               PP/EJ  Deamon for run-parallel.sh.

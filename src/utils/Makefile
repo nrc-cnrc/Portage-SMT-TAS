@@ -67,6 +67,7 @@ BINSCRIPTS = \
         append-uniq.pl \
         best-rr-val \
         combine.pl \
+        crlf2lf.sh \
         cvs-status-summary.pl \
         diff-round.pl \
         filter-for-giza.pl \
@@ -93,6 +94,7 @@ BINSCRIPTS = \
         remove_stop.pl \
         removewords.pl \
         reverseffvals.pl \
+        ridbom.sh \
         run-after.sh \
         run-parallel.sh \
         r-parallel-d.pl \

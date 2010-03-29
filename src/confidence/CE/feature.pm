@@ -51,7 +51,7 @@ $VERSION     = 1.00;
 
 our $SRC_LANG="en";
 our $TGT_LANG="fr";
-our $SILENCER=" 2> /dev/null";
+our $SILENCER=""; ## " 2> /dev/null";
 
 my $GEN="gen_feature_values";
 my $BLEU="bleumain";
@@ -306,15 +306,13 @@ sub generate {
     } elsif ($feature->arg('file')) {
         my $fin = findFile($feature->arg('file'), @search_path);
         my $field = $feature->arg('field') || 1;
-        my $cmd = "cut -f ${field} ${fin} 1> ${fout}";
-        system($cmd.$SILENCER) == 0 or die "$cmd Failed";
+        call("cut -f ${field} ${fin}", $fout);
         
         # Length in characters
     } elsif ($type =~ /^([qptr])\.clen$/) {
         my $x = $1;
         my $fin = "${dir}/${prefix}${x}.tok";
-        my $cmd = "$GEN LengthFF 0 ${fin} ${fin} 1> ${fout}";
-        system($cmd.$SILENCER) == 0 or die "$cmd Failed";
+        call("$GEN LengthFF 0 ${fin} ${fin}", $fout);
 
         # Length in words
     } elsif ($type =~ /^([qptr])\.wlen$/) {
@@ -336,8 +334,7 @@ sub generate {
         die "Missing feature argument: lm" unless $feature->arg('lm');
         my $lm = findFile($feature->arg('lm'), @search_path);
         my $fin = "${dir}/${prefix}${x}.tok";
-        my $cmd = "$GEN NgramFF ${lm} ${fin} ${fin} 1> ${fout}";
-        system($cmd.$SILENCER) == 0 or die "$cmd Failed";
+        call("$GEN NgramFF ${lm} ${fin} ${fin}", $fout);
 
         # Length normalized one-text feature
     } elsif ($type =~ /^([qptr])\.(.*)\.norm$/) {
@@ -348,11 +345,11 @@ sub generate {
         open(my $in2, "< ${fin2}") or die "Can't open ${fin2}";
         open(my $out, "> ${fout}") or die "Can't open ${fout}";
         while (my $value=<$in1>) {
-            my $M=<$in2> || die "Too few input lines in ${fin2}";
+            my $M=<$in2> || cleanupAndDie("Too few input lines in ${fin2}", $fout);
             my $norm_value = $value / ($M + 0.0001);
             print $out $norm_value, "\n";
         }
-        die "Too many input lines in ${fin2}" unless eof($in2);
+        cleanupAndDie("Too many input lines in ${fin2}", $fout) unless eof($in2);
         close $in1;
         close $in2;
         close $out;
@@ -368,13 +365,13 @@ sub generate {
         open(my $in3, "< ${fin3}") or die "Can't open ${fin3}";
         open(my $out, "> ${fout}") or die "Can't open ${fout}";
         while (my $value=<$in1>) {
-            my $M=<$in2> || die "Too few input lines in ${fin2}";
-            my $N=<$in3> || die "Too few input lines in ${fin3}";
+            my $M=<$in2> || cleanupAndDie("Too few input lines in ${fin2}", $fout);
+            my $N=<$in3> || cleanupAndDie("Too few input lines in ${fin3}", $fout);
             my $norm_value = $value / ($M + $N + 0.0001);
             print $out $norm_value, "\n";
         }
-        die "Too many input lines in ${fin2}" unless eof($in2);
-        die "Too many input lines in ${fin3}" unless eof($in3);
+        cleanupAndDie("Too many input lines in ${fin2}", $fout) unless eof($in2);
+        cleanupAndDie("Too many input lines in ${fin3}", $fout) unless eof($in3);
         close $in1;
         close $in2;
         close $in3;
@@ -391,11 +388,11 @@ sub generate {
         open(my $in2, "< ${fin2}") or die "Can't open ${fin2}";
         open(my $out, "> ${fout}") or die "Can't open ${fout}";
         while (my $len1=<$in1>) {
-            my $len2=<$in2> || die "Too few input lines in ${fin2}";
+            my $len2=<$in2> || cleanupAndDie("Too few input lines in ${fin2}", $fout);
             my $ratio = $len1/($len2+.01);
             print $out $ratio, "\n";
         }
-        die "Too many input lines in ${fin2}" unless eof($in2);
+        cleanupAndDie("Too many input lines in ${fin2}", $fout) unless eof($in2);
         close $in1;
         close $in2;
         close $out;
@@ -413,8 +410,7 @@ sub generate {
         $ff .= ($rev ? 'SrcGivenTgt' : 'TgtGivenSrc');
         die "Missing feature argument: tm" unless $feature->arg('tm');
         my $model = findFile($feature->arg('tm'), @search_path);
-        my $cmd = "$GEN ${ff} ${model} ${fin1} ${fin2} 1> ${fout}";
-        system($cmd.$SILENCER) == 0 or die "$cmd Failed";
+        call("$GEN ${ff} ${model} ${fin1} ${fin2}", $fout);
 
         # Translation model ratios        
     } elsif ($type =~ /^([ptr])([ptr])\.(ibm1|ibm2|hmm)(\.rev)?\.ratio$/) {
@@ -427,11 +423,11 @@ sub generate {
         open(my $in2, "< ${fin2}") or die "Can't open ${fin2}";
         open(my $out, "> ${fout}") or die "Can't open ${fout}";
         while (my $p1=<$in1>) {
-            my $p2=<$in2> || die "Too few input lines in ${fin2}";
+            my $p2=<$in2> || cleanupAndDie("Too few input lines in ${fin2}", $fout);
             my $ratio = $p1 - $p2; # these are log probs, really
             print $out $ratio, "\n";
         }
-        die "Too many input lines in ${fin2}" unless eof($in2);
+        cleanupAndDie("Too many input lines in ${fin2}", $fout) unless eof($in2);
         close $in1;
         close $in2;
         close $out;
@@ -448,7 +444,7 @@ sub generate {
             chop $line1;
             my @t1 = split(/\s+/, $line1);
             my $line2 = readline($in2);
-            die "Not enough lines in $fin2" unless defined $line2;
+            cleanupAndDie("Not enough lines in $fin2", $fout) unless defined $line2;
             chop $line2;
             my @t2 = split(/\s+/, $line2);
             my $lev = Levenshtein(\@t1, \@t2);
@@ -470,7 +466,7 @@ sub generate {
             chop $line1;
             my @t1 = split(/\s+/, $line1);
             my $line2 = readline($in2);
-            die "Not enough lines in $fin2" unless defined $line2;
+            cleanupAndDie("Not enough lines in $fin2", $fout) unless defined $line2;
             chop $line2;
             my @t2 = split(/\s+/, $line2);
             my $lcs = longestCommonSubstring(\@t1, \@t2);
@@ -493,7 +489,7 @@ sub generate {
             chop $line1;
             my @t1 = split(/\s+/, $line1);
             my $line2 = readline($in2);
-            die "Not enough lines in $fin2" unless defined $line2;
+            cleanupAndDie("Not enough lines in $fin2", $fout) unless defined $line2;
             chop $line2;
             my @t2 = split(/\s+/, $line2);
             my $ng_cnt = commonNgrams(\@t1, \@t2, $n);
@@ -512,11 +508,11 @@ sub generate {
         open(my $in2, "< ${fin2}") or die "Can't open ${fin2}";
         open(my $out, "> ${fout}") or die "Can't open ${fout}";
         while (my $lcs=<$in1>) {
-            my $N=<$in2> || die "Too few input lines in ${fin2}";
+            my $N=<$in2> || cleanupAndDie("Too few input lines in ${fin2}", $fout);
             my $U=(min($lcs, $K)/$K)*(min(2*$lcs,$N)/$N);
             print $out $U, "\n";
         }
-        die "Too many input lines in ${fin2}" unless eof($in2);
+        cleanupAndDie("Too many input lines in ${fin2}", $fout) unless eof($in2);
         close $in1;
         close $in2;
         close $out;
@@ -526,17 +522,13 @@ sub generate {
         my ($x, $y) = ($1, $2);
         my $fin1 = "${dir}/${prefix}${x}.tok";
         my $fin2 = "${dir}/${prefix}${y}.tok";
-        my $cmd = "${BLEU} -detail 1 ${fin1} ${fin2} | grep 'Sentence.*BLEU score:' | cut -f5 -d' ' > ${fout}";
-        system($cmd.$SILENCER) == 0 or die "$cmd Failed";
-        
+        call("${BLEU} -detail 1 ${fin1} ${fin2} | grep 'Sentence.*BLEU score:' | cut -f5 -d' '", $fout);        
         # WER
     } elsif ($type =~ /^([qptr])([qptr])\.wer$/) {
         my ($x, $y) = ($1, $2);
         my $fin1 = "${dir}/${prefix}${x}.tok";
         my $fin2 = "${dir}/${prefix}${y}.tok";
-        my $cmd = "${WER} -detail 1 ${fin1} ${fin2} | grep 'Sentence.*WER score:' | cut -f5 -d' ' > ${fout}";
-        system($cmd.$SILENCER) == 0 or die "$cmd Failed";
-        
+        call("${WER} -detail 1 ${fin1} ${fin2} | grep 'Sentence.*WER score:' | cut -f5 -d' '", $fout);
         # Unknown feature: die
     } else {
         die "Can't handle feature $type";
@@ -569,6 +561,19 @@ sub findFile {
     die sprintf("Can't find $filename in directories: %s", join(", ", @search_path));
 
     return undef;
+}
+
+sub call {
+    my ($cmd, $fout) = @_;
+    system("${cmd} 1> ${fout} $SILENCER") == 0 
+        or cleanupAndDie("Command failed: $cmd", $fout);
+}
+
+sub cleanupAndDie {
+    my ($message, @files) = @_;
+    
+    unlink @files;
+    die $message;
 }
 
 
