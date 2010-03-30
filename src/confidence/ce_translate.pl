@@ -178,7 +178,7 @@ $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
 
 use File::Temp qw(tempdir);
-use File::Path qw(remove_tree);
+use File::Path qw(rmtree);
 
 our ($h, $help, $verbose, $debug, $desc, $tmem, $train,
      $test, $src, $tgt, $tmx, $ttx, $xsrc, $xtgt, $k, $norm, $dir, $path,
@@ -347,7 +347,7 @@ OUT:{
 CLEANUP:{
     if (not $keep_dir) {
         verbose("[Cleaning up and deleting work directory $dir]\n");
-        remove_tree($dir);
+        rmtree($dir);
     }
 }
 
