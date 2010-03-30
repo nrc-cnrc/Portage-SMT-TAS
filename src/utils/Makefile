@@ -82,7 +82,6 @@ BINSCRIPTS = \
         mteval2ospl.sed \
         ngrams.pl \
         ospl2mteval.pl \
-        p-res-mon.sh \
         parallel-uniq.pl \
         parallelize.pl \
         parse-monitor.sh \
@@ -108,6 +107,7 @@ BINSCRIPTS = \
         stableuniq.pl \
         stableuniqffvals.pl \
         sum.pl \
+	time-mem \
         trans-search.pl \
         uc-first.pl \
         uncombine.pl \

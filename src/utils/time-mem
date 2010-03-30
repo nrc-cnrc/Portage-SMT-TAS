@@ -1,7 +1,7 @@
 #!/bin/bash
 # $Id$
 
-# @file p-res-mon.sh
+# @file time-mem
 # @brief Map/Reduce wall/cpu time, VMEM & RAM.
 #
 # @author Samuel Larkin
@@ -16,10 +16,6 @@
 # Includes NRC's bash library.
 source `dirname $0`/sh_utils.sh
 
-if [[ $PORTAGE_INTERNAL_CALL ]]; then WAS_CALLED_INTERNALLY=1; fi
-[[ $PORTAGE_INTERNAL_CALL ]] ||
-print_nrc_copyright p-res-mon.sh 2009
-export PORTAGE_INTERNAL_CALL=1
 
 # Summarizes Wall/Cpu time, VMEM & RAM.
 # If there is an argument, the output will mimic grep's output => filename:line
@@ -56,8 +52,12 @@ parseCommand() {
       fi
 
       # Find the overall wall time.
+      # RP-Totals: Wall time 19s CPU time 26.24s Max VMEM 0.084G Max RAM 0.009G
+      if [[ $line =~ "Wall time ([0-9.]+)s" ]]; then
+         WALL_TIME_LIST="$WALL_TIME_LIST ${BASH_REMATCH[1]}"
+      fi
       if [[ $line =~ "Master-Wall-Time ([0-9.]+)s" ]]; then
-         WALL_TIME=${BASH_REMATCH[1]}
+         WALL_TIME_LIST="$WALL_TIME_LIST ${BASH_REMATCH[1]}"
       fi
    done
 
@@ -66,6 +66,7 @@ parseCommand() {
    MON_VSZ=`echo $VMEM_LIST | egrep -o "[0-9.]+" | sum.pl -m`
    MON_RSS=`echo $RAM_LIST | egrep -o "[0-9.]+" | sum.pl -m`
    CPU_TIME=`echo $CPU_TIME_LIST | egrep -o "[0-9.]+" | sum.pl`
+   WALL_TIME=`echo $WALL_TIME_LIST | egrep -o "[0-9.]+" | sum.pl`
 
    RESULT="${ARG}P-RES-MON\tWALL TIME: ${WALL_TIME}s\tCPU TIME: ${CPU_TIME}s\tVSZ: ${MON_VSZ}G\tRSS: ${MON_RSS}G"
    [[ $DEBUG ]] && echo -e "<D> $RESULT" >&2
@@ -83,18 +84,19 @@ reduce() {
    declare CPU_TIME_LIST=0
    declare WALL_TIME_LIST=0
 
+   indent=">"
    while read line
    do
       [[ $DEBUG ]] && echo "<Dr> $line" >&2
       # Skip commented lines.
       if [[ $line =~ "^([^>]+):(P-RES-MON>WALL TIME: ([0-9.]+)s>CPU TIME: ([0-9.]+)s>VSZ: ([0-9.]+)G>RSS: ([0-9.]+)G)" ]]; then
-         echo -e ">`basename ${BASH_REMATCH[1]}`:${BASH_REMATCH[2]}"
+         echo -e "$indent`basename ${BASH_REMATCH[1]}`:${BASH_REMATCH[2]}"
          WALL_TIME_LIST=" $WALL_TIME_LIST ${BASH_REMATCH[3]}"
          CPU_TIME_LIST="$CPU_TIME_LIST ${BASH_REMATCH[4]}"
          VMEM_LIST="$VMEM_LIST ${BASH_REMATCH[5]}"
          RAM_LIST="$RAM_LIST ${BASH_REMATCH[6]}"
       elif [[ $line =~ "P-RES-MON>WALL TIME:" ]]; then
-         echo -e ">$line"
+         echo -e "$indent$line"
       fi
    done
 
@@ -128,9 +130,6 @@ run_cmd() {
       MON_FILE=`mktemp $WORKDIR_ABSOLUTE/mon.run_cmd.XXXXXXXX`
       process-memory-usage.pl -s 1 30 $$ > $MON_FILE &
       MON_PID=$!
-      # We don't consider calls via time-mem as internal, so unexport
-      # PORTAGE_INTERNAL_CALL unless it was set before time-mem was called.
-      [[ $WAS_CALLED_INTERNALLY ]] || export -n PORTAGE_INTERNAL_CALL
       time {
          # time this block as a whole so that sync (below) can be effective
          # before the output of time itself is printed to STDERR
@@ -138,7 +137,6 @@ run_cmd() {
          rc=$?
          sync
       }
-      export PORTAGE_INTERNAL_CALL=1
       kill -10 $MON_PID
       sync
       echo "run_cmd finished (rc=$rc): $@" >&2
@@ -173,8 +171,7 @@ Usage: $0 [options] {cmd | files}
 
 Options:
 
-  -t(iming)   Does the necesary thing to time a command.
-
+  -T(ally)    Tally results.
   -h(elp)     print this help message
   -v(erbose)  increment the verbosity level by 1 (may be repeated)
   -d(ebug)    print debugging information
@@ -187,11 +184,12 @@ Options:
 # Command line processing [Remove irrelevant parts of this code when you use
 # this template]
 VERBOSE=0
+TALLY=
 while [ $# -gt 0 ]; do
    case "$1" in
    #-m|-meta)            META=1;;
    -m|-meta)            META=$2;shift;;
-   -t|-time)            TIME_CMD=1;;
+   -T|Tally)            TALLY=1;;
    -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ));;
    -d|-debug)           DEBUG=1;;
    -h|-help)            usage;;
@@ -218,29 +216,17 @@ done
 # Make sure we detect failure in a serie of pipes.
 set -o pipefail;
 
-# The user wants to time a command that doesn't produce statistics and he's
-# asking us calculate the statistics for him.
-if [[ $TIME_CMD ]]; then
-   if [[ $DEBUG ]]; then
-      # We need to warn the debugger both on stdout & stderr that this script
-      # is screwing up the streams.
-      {
-         echo "WARNING: Debug mode messes with stderr & stdout."
-         echo "<D> cmd: ${ARGUMENTS[@]}";
-      } | tee /dev/stderr
-   fi
-   # Here we want the original stdout as pass-through and we want to process
-   # the original stderr.
-   { { run_cmd "${ARGUMENTS[@]}"; sync; } 3>&1 1>&2 2>&3 | parseCommand 2>&1; sync; } 3>&1 1>&2 2>&3
-
-# Is the first argument an executable?
-elif which-test.sh $1 && [ -x "`which $1`" ]; then
-   echo "Parsing command"
-   { eval "${ARGUMENTS[@]}"; } 2>&1 | parseCommand | second-to-hms.pl
+# Check if the command is a known executable that already produces time & mem data.
+pgm=`basename $1`
+if [[ $pgm == "rat.sh" || $pgm == "cat.sh" || $pgm == "cow.sh" || $pgm == "gen-jpt-parallel.sh" || $pgm == "canoe-parallel.sh" ]]; then
+   [[ $DEBUG ]] && echo "Parsing command $pgm" >&2
+   # These commands already produce the data, we only need to parse the data.
+   #{ eval "${ARGUMENTS[@]}"; } 2>&1 | parseCommand | second-to-hms.pl
+   { { eval "${ARGUMENTS[@]}" || exit; sync; } 3>&1 1>&2 2>&3 || exit | parseCommand 2>&1; sync; } 3>&1 1>&2 2>&3
 
 # Ok we assume the user provided us with only files thus he wants us to do a
 # one line summary.
-else
+elif [[ $TALLY ]]; then
    [[ $META ]] && META="$META:"
    { for f in $*; do
       [[ $DEBUG ]] && echo "Processing $f" >&2
@@ -256,5 +242,20 @@ else
    | sed 's/>/\t/g' \
    | sed "s/^P-RES-MON/${META}P-RES-MON/" \
    | second-to-hms.pl
+
+# The user wants to time a command that doesn't produce statistics and he's
+# asking us calculate the statistics for him.
+else
+   if [[ $DEBUG ]]; then
+      # We need to warn the debugger both on stdout & stderr that this script
+      # is screwing up the streams.
+      {
+         echo "WARNING: Debug mode messes with stderr & stdout."
+         echo "<D> cmd: ${ARGUMENTS[@]}";
+      } | tee /dev/stderr
+   fi
+   # Here we want the original stdout as pass-through and we want to process
+   # the original stderr.
+   { { run_cmd "${ARGUMENTS[@]}" || exit; sync; } 3>&1 1>&2 2>&3 || exit | parseCommand 2>&1; sync; } 3>&1 1>&2 2>&3
 fi
 
