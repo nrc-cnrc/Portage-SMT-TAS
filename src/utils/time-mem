@@ -16,6 +16,11 @@
 # Includes NRC's bash library.
 source `dirname $0`/sh_utils.sh
 
+if [[ $PORTAGE_INTERNAL_CALL ]]; then WAS_CALLED_INTERNALLY=1; fi
+[[ $PORTAGE_INTERNAL_CALL ]] ||
+print_nrc_copyright "time-mem" 2009
+export PORTAGE_INTERNAL_CALL=1
+
 
 # Summarizes Wall/Cpu time, VMEM & RAM.
 # If there is an argument, the output will mimic grep's output => filename:line
@@ -57,7 +62,8 @@ parseCommand() {
          WALL_TIME_LIST="$WALL_TIME_LIST ${BASH_REMATCH[1]}"
       fi
       if [[ $line =~ "Master-Wall-Time ([0-9.]+)s" ]]; then
-         WALL_TIME_LIST="$WALL_TIME_LIST ${BASH_REMATCH[1]}"
+         # Master wall time was calculated for us, override.
+         WALL_TIME_LIST="${BASH_REMATCH[1]}"
       fi
    done
 
@@ -130,6 +136,9 @@ run_cmd() {
       MON_FILE=`mktemp $WORKDIR_ABSOLUTE/mon.run_cmd.XXXXXXXX`
       process-memory-usage.pl -s 1 30 $$ > $MON_FILE &
       MON_PID=$!
+      # We don't consider calls via time-mem as internal, so unexport
+      # PORTAGE_INTERNAL_CALL unless it was set before time-mem was called.
+      [[ $WAS_CALLED_INTERNALLY ]] || export -n PORTAGE_INTERNAL_CALL
       time {
          # time this block as a whole so that sync (below) can be effective
          # before the output of time itself is printed to STDERR
@@ -137,6 +146,7 @@ run_cmd() {
          rc=$?
          sync
       }
+      export PORTAGE_INTERNAL_CALL=1
       kill -10 $MON_PID
       sync
       echo "run_cmd finished (rc=$rc): $@" >&2
@@ -165,16 +175,23 @@ usage() {
    done
    cat <<==EOF== >&2
 
-Usage: $0 [options] {cmd | files}
+Usage: time-mem [options] {cmd | files}
 
-  Map/Reduce Wall/Cpu time, VMEM & RAM.
+  Map/Reduce Wall/CPU time, VMEM & RAM.
+
+  Map mode: by default, runs the command provided on the command line,
+  measuring CPU and memory usage.
+
+  Reduce mode: with the -Tally option, tallies results from previous runs, in
+  which case the arguments should be a list of log files to process.
 
 Options:
 
-  -T(ally)    Tally results.
-  -h(elp)     print this help message
-  -v(erbose)  increment the verbosity level by 1 (may be repeated)
-  -d(ebug)    print debugging information
+  -T(ally)      Tally results.
+  -m(eta) NAME  Label the tally line with NAME, e.g., for hierarchical reports.
+  -h(elp)       print this help message
+  -v(erbose)    increment the verbosity level by 1 (may be repeated)
+  -d(ebug)      print debugging information
 
 ==EOF==
 
