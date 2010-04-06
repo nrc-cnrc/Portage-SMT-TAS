@@ -27,8 +27,10 @@ BEGIN {
    }
 }
 use portage_utils;
-printCopyright "sum.pl", 2005;
-$ENV{PORTAGE_INTERNAL_CALL} = 1;
+# Sum is used way too much, and nearly exclussively internally - don't print
+# the Copyright
+#printCopyright "sum.pl", 2005;
+#$ENV{PORTAGE_INTERNAL_CALL} = 1;
 
 
 my $HELP = "
@@ -47,6 +49,7 @@ Options:
 our ($help, $h, $n, $r, $a, $m);
 
 if ($help || $h) {
+   printCopyright "sum.pl", 2005;
    print $HELP;
    exit 0;
 }
