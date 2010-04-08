@@ -86,12 +86,15 @@ FFVALPARSER_OPTS="-canoe"
 ## -Z       Do not compress the large temporary files in WORKDIR [do].
 ## -nbest-list-size The size of the n-best lists to create.  [200]
 ## -maxiter Do at most MAX iterations.
-## -filt    Filter the phrase tables based on SFILE for faster operation.
-##          Should not change your results in a significant way (some changes
-##          may be observed due to rounding differences).  Creates a single
-##          multi-prob table containing only entries from the phrase tables that
-##          match SFILE and meet the ttable-limit criterion in CFILE, if any.
-##          Uses this table afterwards in place of the original tables.
+## -filt    Filter the phrase tables and lexicalized distortion models based on 
+##          SFILE for faster operation. This should not change your results in 
+##          a significant way (some changes may be observed due to rounding 
+##          differences). Creates a single multi-prob table containing only 
+##          entries from the phrase tables that match SFILE and meet the 
+##          ttable-limit criterion in CFILE, if any. Also, filters the
+##          distortion model files based on the filtered phrase tables.
+##          Uses the filtered phrase tables and filtered distortion models 
+##          afterwards in place of the original tables.
 ##          (Recommended option) [don't filter]
 ## -ttable-limit Use T as the ttable-limit for -filt, instead of the value 
 ##          specified in CFILE. T is not written back to filtered versions of
@@ -502,15 +505,41 @@ if [[ $MICRO -gt 0 ]]; then
    done
 fi
 
-# Filter phrasetables to retain only matching source phrases.
-if [[ "$FILTER" = "-filt" ]]; then
-   # Filter-joint, apply -L limit
+# Filter the phrase tables to retain only matching source phrases.
+if [[ $FILTER && ( `configtool nt-tppt $CFILE` != 0 ) ]]; then
+   warn "Using non-filterable PTs; ignoring $FILTER option"
+elif [[ "$FILTER" = "-filt" ]]; then
+   # Filter both the phrase tables and the lexicalized distortion models.
+   # First filter the phrase tables: filter-joint, apply -L limit
    if [[ -z "$TTABLE_LIMIT" ]]; then
        TTABLE_LIMIT=`configtool ttable-limit $CFILE`
    fi
    check_ttable_limit $TTABLE_LIMIT;
-   run_cmd "filter_models -z -r -f $CFILE -ttable-limit $TTABLE_LIMIT -suffix .FILT -soft-limit multi.probs.`basename ${SFILE}`.${TTABLE_LIMIT} < $SFILE"
+   CPT=multi.probs.`basename ${SFILE}`.${TTABLE_LIMIT}
+   run_cmd "filter_models -z -r -f $CFILE -ttable-limit $TTABLE_LIMIT -suffix .FILT -soft-limit ${CPT} < $SFILE"
    CFILE=$CFILE.FILT
+   CPT=$CPT.FILT.gz
+
+   # Now, filter the text LDMs on the resulting filtered phrase table.
+   LDMS=`configtool list-ldm $CFILE`
+   FLDMS=
+   TPLDMS=
+   for LDM in ${LDMS}; do
+      if [[ "${LDM%.tpldm}" = "${LDM}" ]]; then
+         # Filter text LDM
+         FLDM=`basename ${LDM} .gz`.FILT.gz
+         run_cmd "filter-distortion-model.pl -v ${CPT} ${LDM} | gzip > ${FLDM}"
+         FLDMS=${FLDMS}${FLDMS:+:}${FLDM}
+         cp ${LDM%.gz}.bkoff ${FLDM%.gz}.bkoff
+      else
+         # Skip filtering for TPLDM - just record the name.
+         TPLDMS="${TPLDMS}:${LDM}"
+      fi
+   done
+   if [[ ${FLDMS} ]]; then
+      configtool -p "args:-lex-dist-model-file ${FLDMS}${TPLDMS}" $CFILE >$CFILE.FILTLDM
+      mv $CFILE.FILTLDM $CFILE
+   fi
 elif [[ "$FILTER" = "-filt-no-ttable-limit" ]]; then
    # filter-grep only, keep all translations for matching source phrases
    configtool rep-ttable-files-local:.FILT $CFILE > $CFILE.FILT

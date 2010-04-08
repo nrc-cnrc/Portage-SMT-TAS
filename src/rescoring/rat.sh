@@ -110,7 +110,8 @@ cp-opts  Options to canoe-parallel.sh (e.g., -n). Only the options that come
          it if not.  Similarly, feature functions are regenerated unless they
          are more recent than the nbest list.  This mimics "make" because the
          nbest depends on the canoe.ini [don't regenerate existing files]
--no-filt Do not perform hard-filter on the phrase tables. [do]
+-no-filt Do not perform hard-filter on the phrase tables and filtering of
+         distortion models. [do]
 
 Note: if any intermediate files already exist, this script will not overwrite
 them (unles -F is specified), so that when you add extra features to an
@@ -316,16 +317,21 @@ fi
 
 # The canoe weights are fixed, might as well take advantage of this
 # and filter the phrase tables more aggressively.
-if [[ $HARD_FILTER ]]; then
+# If filtering the phrase tables, then filter the distortion models too.
+if [[ `configtool nt-tppt $CANOE_CONFIG` != 0 ]]; then
+   if [[ $HARD_FILTER ]]; then
+      warn "Using non-filterable PTs; disabling hard filtering of phrase tables"
+   fi
+elif [[ $HARD_FILTER ]]; then
+   # First, filter the phrase tables.
    TTABLE_LIMIT=`configtool ttable-limit $CANOE_CONFIG`
    FILT_EXT=".HARD-FILT$TTABLE_LIMIT"
    FILT_CONFIG="$WORKDIR/$CANOE_CONFIG$FILT_EXT"
    FILT_PT="$WORKDIR/phrase.table$FILT_EXT.gz"
 
    if [ ! -f "$FILT_CONFIG" ] || [ "$FILT_CONFIG" -ot "$CANOE_CONFIG" ] || [ ! -f "$FILT_PT" ]; then
-
       debug "Generating hard filtered phrase table and related canoe.ini."
-      [[ ! -f "$FILT_CONFIG" ]] && debug "filter canoe.ini.cow doesn't exists."
+      [[ ! -f "$FILT_CONFIG" ]] && debug "Filtered canoe.ini.cow doesn't exist."
       [[ "$FILT_CONFIG" -ot "$CANOE_CONFIG" ]] && debug "Filtered canoe.ini is older than canoe."
       [[ ! -f "$FILT_PT" ]] && debug "no hard filtered phrase table file"
 
@@ -342,9 +348,33 @@ if [[ $HARD_FILTER ]]; then
    else
       echo "Hard filtered phrase table already exist"
    fi
-
+   
    # From now on, use the new filtered canoe config
    CANOE_CONFIG=$FILT_CONFIG
+   
+   # Now, filter the distortion models on the resulting filtered phrase table.
+   LDMS=`configtool list-ldm $FILT_CONFIG`
+   FILT_LDMS=
+   TPLDMS=
+   for LDM in ${LDMS}; do
+      if [[ "${LDM%.tpldm}" = "${LDM}" ]]; then
+         FILT_LDM=`basename ${LDM} .gz`.FILT.gz
+         run_cmd "filter-distortion-model.pl -v ${FILT_PT} ${LDM} | gzip > $WORKDIR/${FILT_LDM}"
+         FILT_LDMS=${FILT_LDMS}${FILT_LDMS:+:}${FILT_LDM}
+         cp ${LDM%.gz}.bkoff $WORKDIR/${FILT_LDM%.gz}.bkoff
+      else
+         # Skip filtering for TPLDM - just record the name.
+         TPLDMS="${TPLDMS}:${LDM}"
+      fi
+   done
+   if [[ ${FILT_LDMS} ]]; then
+      pushd $WORKDIR &> /dev/null
+      CFILE=`basename $FILT_CONFIG`
+      configtool -p "args:-lex-dist-model-file ${FILT_LDMS}${TPLDMS}" $CFILE > $CFILE.FILTLDM
+      popd &> /dev/null
+      # From now on, use the new filtered canoe config
+      CANOE_CONFIG="$FILT_CONFIG.FILTLDM"
+   fi
 
    debug "canoe.ini after filtering is: $CANOE_CONFIG"
 else
