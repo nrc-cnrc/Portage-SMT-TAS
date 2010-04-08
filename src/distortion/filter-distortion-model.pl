@@ -84,21 +84,23 @@ if ( $debug ) {
 ";
 }
 
+$DM !~ /.tpldm$/ or die "Can't filter tightly packed distortion models (TPLDMs).\n";
+
 if (system("zcat -f $CPT | LC_ALL=C sort -c >& /dev/null") != 0) {
-   print STDERR "$CPT is NOT sorted\n" if ($debug);
+   print STDERR "$CPT is NOT sorted\n" if ($debug || $verbose > 1);
    open(CPT, "zcat -f $CPT | LC_ALL=C sort |") or die "Can't open conditional phrase table ($CPT) for reading: $!\n";
 }
 else {
-   print STDERR "$CPT is sorted\n" if ($debug);
+   print STDERR "$CPT is sorted\n" if ($debug || $verbose > 1);
    open(CPT, "zcat -f $CPT |") or die "Can't open conditional phrase table ($CPT) for reading: $!\n";
 }
 
 if (system("zcat -f $DM  | LC_ALL=C sort -c >& /dev/null") != 0) {
-   print STDERR "$DM is NOT sorted\n" if ($debug);
+   print STDERR "$DM is NOT sorted\n" if ($debug || $verbose > 1);
    open(DM, "zcat -f $DM  | LC_ALL=C sort |") or die "Can't open distortion model ($DM) for reading: $!\n";
 }
 else {
-   print STDERR "$DM is sorted\n" if ($debug);
+   print STDERR "$DM is sorted\n" if ($debug || $verbose > 1);
    open(DM, "zcat -f $DM  |") or die "Can't open distortion model ($DM) for reading: $!\n";
 }
 
