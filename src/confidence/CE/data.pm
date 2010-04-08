@@ -1,4 +1,5 @@
 #!/usr/bin/perl -s
+# $Id$
 # @file data.pm 
 # @brief Datapoint representation for confidence estimation
 # 

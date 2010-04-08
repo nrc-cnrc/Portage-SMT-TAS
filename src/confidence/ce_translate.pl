@@ -1,18 +1,19 @@
-#!/usr/bin/perl -s -w 
-# @file ce_translate.pl 
+#!/usr/bin/perl -s -w
+# $Id$
+# @file ce_translate.pl
 # @brief Confidence Estimation wrapper program
-# 
+#
 # @author Michel Simard
-# 
+#
 # COMMENTS:
-# 
+#
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2009, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2009, Her Majesty in Right of Canada
 
-=pod 
+=pod
 
 =head1 SYNOPSIS
 
@@ -61,7 +62,7 @@ unless something goes wrong, or if the C<-dir=D> option is specified.
 
 =head2 General Options
 
-=over 
+=over
 
 =item -dir=D          Store all work files in directory D [default is to use a temporary dir, deleted at the end]
 
@@ -71,21 +72,21 @@ unless something goes wrong, or if the C<-dir=D> option is specified.
 
 =item -tmem=T         Use TMem output file T
 
-=item -notok          Input text is pre-tokenized
+=item -nolc           Don't lowercase input text
 
-=item -nl=X           Newline interpretation in input text: 
+=item -notok          Input text is pre-tokenized (so don't retokenize it!)
 
-=over 
+=item -nl=X           Newlines in the input text:
 
-=item -nl=p means "end-of-paragraph"; 
+=over
 
-=item -nl=s means "end-of-sentence"; 
+=item -nl=p             mark the end of a paragraph;
 
-=item anything else means "two consecutive newlines mark end-of-paragraph, otherwise treat newline as whitespace".
+=item -nl=s             mark the end of a sentence;
+
+=item anything else     two consecutive newlines mark the end of a paragraph, otherwise newline is just whitespace.
 
 =back
-
-=item -nolc           Don't lowercase input text
 
 =item -tclm=F         Perform truecasing on output, using LM F
 
@@ -95,15 +96,17 @@ unless something goes wrong, or if the C<-dir=D> option is specified.
 
 =item -path=P         Set search path for F<ce_model> feature arguments [same directory as F<ce-model>]
 
+=item -plugin=P       Specify plugin directory; see note on plugins below. Default is to look for a directory F<plugins> in the same directory as the F<canoe_ini> file.
+
 =back
 
 =head2 Non-training Options
 
 =over 1
 
-=item -tmx            Input/output text in TMX format (not compatible with -train)
+=item -tmx            Input/output text in TMX format (not compatible with C<-train>)
 
-=item -ttx            Input/output text in TTX format (not compatible with -train)
+=item -ttx            Input/output text in TTX format (not compatible with C<-train>)
 
 =item -xsrc=S         TTX/TMX source language name [EN-CA]
 
@@ -111,9 +114,9 @@ unless something goes wrong, or if the C<-dir=D> option is specified.
 
 =item -out=F          Output CE values to file F [stdout]
 
-=item -filter=T       Filter out translations below confidence threshold T (-tmx mode only)
+=item -filter=T       Filter out translations below confidence threshold T (C<-tmx> mode only)
 
-=item -test=R         Compute prediction accuracy statistics based on reference translation file F<R>. 
+=item -test=R         Compute prediction accuracy statistics based on reference translation file F<R>.
 
 =back
 
@@ -144,6 +147,20 @@ unless something goes wrong, or if the C<-dir=D> option is specified.
 =item -dryrun         Don't do anything, just print the commands
 
 =back
+
+=head1 PLUGINS
+
+Application-specific text pre- and post-processing is handled through
+a simple "plugin" mechanism: this program calls executables (programs
+or scripts) named F<preprocess_plugin>, F<predecode_plugin>,
+F<postdecode_plugin> and F<postprocess_plugin> before tokenization,
+before and after decoding and after detokenization, respectively.
+Default implementations are provided for each of these, but these can
+be overridden by providing alternate plugins in a directory called
+F<plugins> in the same directory as the F<canoe_ini> file, or in a
+plugin directory specified with the C<-plugin> option.  All plugins
+are expected to read from standard input and write to standard output,
+and should require no command-line arguments.
 
 =head1 SEE ALSO
 
@@ -179,13 +196,14 @@ $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
 use File::Temp qw(tempdir);
 use File::Path qw(rmtree);
+use File::Spec;
 
-our ($h, $help, $verbose, $debug, $desc, $tmem, $train,
+our ($h, $help, $verbose, $debug, $desc, $tmem, $train, $plugin,
      $test, $src, $tgt, $tmx, $ttx, $xsrc, $xtgt, $k, $norm, $dir, $path,
-     $out, $filter, $dryrun, $nl, $notok, $nolc, 
+     $out, $filter, $dryrun, $nl, $notok, $nolc,
      $tclm, $tcmap, $tctp, $skipto);
 
-if ($h or $help) { 
+if ($h or $help) {
     -t STDOUT ? system "pod2usage -verbose 3 $0" : system "pod2text $0";
     exit 0;
 }
@@ -214,11 +232,12 @@ $nolc = 0 unless defined $nolc;
 $tclm = 0 unless defined $tclm;
 $tcmap = 0 unless defined $tcmap;
 $skipto = "" unless defined $skipto;
+$plugin = "" unless defined $plugin;
 
 die "Can't both -train and -test" if $train and $test;
 die "Can't train from TMX (yet)" if $train and $tmx;
 die "Can't train from TTX (yet)" if $train and $ttx;
-die "Can't have both -ttx and -tmx" if $tmx and $ttx; 
+die "Can't have both -ttx and -tmx" if $tmx and $ttx;
 
 my $canoe_ini = shift || die "Missing argument: canoe_ini";
 my $ce_model = shift || die "Missing argument: ce_model";
@@ -228,6 +247,15 @@ if ($train) {
     $ref_text = shift || die "Missing argument in training mode: ref_text";
 } elsif ($test) {
     $ref_text = $test;
+}
+
+# Locate Plugins directory
+my $plugin_dir;
+if ($plugin) {
+    $plugin_dir = $plugin;
+} else {
+    my ($vol, $dir, undef) = File::Spec->splitpath($canoe_ini);
+    $plugin_dir = File::Spec->catpath($vol, $dir, "plugins");
 }
 
 # Make working directory
@@ -246,19 +274,45 @@ if ($dryrun) {
     $dir = tempdir('ce_work_XXXXXX', TMPDIR=>1, CLEANUP=>0);
 }
 
-my $Q_txt = "${dir}/Q.txt";
-my $Q_tok = "${dir}/Q.tok";
-my $q_tok = "${dir}/q.tok";
-my $T_txt = "${dir}/T.txt";
-my $T_tok = "${dir}/T.tok";
-my $t_tok = "${dir}/t.tok";
-my $P_txt = "${dir}/P.txt";
-my $P_tok = "${dir}/P.tok";
-my $p_raw = "${dir}/p.raw";
-my $p_tok = "${dir}/p.tok";
-my $R_txt = "${dir}/R.txt";
-my $R_tok = "${dir}/R.tok";
-my $r_tok = "${dir}/r.tok";
+# File names
+
+my $Q_txt = "${dir}/Q.txt";     # Raw source text
+# --> preprocessor plugin
+my $Q_pre = "${dir}/Q.pre";     # Pre-processed (pre-tokenization) source
+# --> tokenize
+my $Q_tok = "${dir}/Q.tok";     # Tokenized source
+# --> lowercase
+my $q_tok = "${dir}/q.tok";     # Lowercased tokenized source
+# --> predecoder plugin
+my $q_dec = "${dir}/q.dec";     # Decoder-ready source
+# --> decoding
+my $p_raw = "${dir}/p.raw";     # Raw decoder output (with trace)
+# --> decoder output parsing
+my $p_dec = "${dir}/p.dec";     # Raw decoder translation
+# --> postdecoder plugin
+my $p_tok = "${dir}/p.tok";     # Post-processed decoder translation
+# --> truecasing
+my $P_tok = "${dir}/P.tok";     # Truecased tokenized translation
+# --> detokenization
+my $P_dtk = "${dir}/P.dtk";     # Truecased detokenized translation
+# --> postprocessor plugin
+my $P_txt = "${dir}/P.txt";     # translation
+
+my $R_txt = "${dir}/R.txt";     # Raw reference translation
+# --> preprocessor plugin
+my $R_pre = "${dir}/R.pre";     # Pre-processed (pre-tokenization) ref translation
+# --> tokenize
+my $R_tok = "${dir}/R.tok";     # Tokenized ref translation
+# --> lowercase
+my $r_tok = "${dir}/r.tok";     # Lowercased tokenized ref translation
+
+my $T_txt = "${dir}/T.txt";     # Raw TMem target
+# --> preprocessor plugin
+my $T_pre = "${dir}/T.pre";     # Pre-processed (pre-tokenization) TMem target
+# --> tokenize
+my $T_tok = "${dir}/T.tok";     # Tokenized TMem target
+# --> lowercase
+my $t_tok = "${dir}/t.tok";     # Lowercased tokenized TMem target
 
 
 goto $skipto if $skipto;
@@ -271,30 +325,33 @@ IN:{
     } elsif ($ttx) {
         call("ce_ttx2ospl.pl -verbose=${verbose} -dir=\"${dir}\" -src=${xsrc} -tgt=${xtgt} \"$input_text\"");
     } else {
-        preprocess($input_text, $Q_txt);
+        copy($input_text, $Q_txt);
         if ($tmem) {
-            preprocess($tmem, $T_txt);
+            copy($tmem, $T_txt);
         }
     }
 
     if ($ref_text) {
-        preprocess($ref_text, $R_txt);
+        copy($ref_text, $R_txt);
     }
 }
 
-# Tokenize and lowercase
+# Preprocess, Tokenize and lowercase
 
-PREP:{ 
-    tokenize($src, $Q_txt, $Q_tok);
+PREP:{
+    plugin("preprocess", $Q_txt, $Q_pre);
+    tokenize($src, $Q_pre, $Q_tok);
     lowercase($Q_tok, $q_tok);
-    
+
     if ($tmem or $ttx) {
-        tokenize($src, $T_txt, $T_tok);
+        plugin("preprocess", $T_txt, $T_pre);
+        tokenize($tgt, $T_pre, $T_tok);
         lowercase($T_tok, $t_tok);
     }
-    
+
     if ($ref_text) {
-        tokenize($src, $R_txt, $R_tok);
+        plugin("preprocess", $R_txt, $R_pre);
+        tokenize($tgt, $R_pre, $R_tok);
         lowercase($R_tok, $r_tok);
     }
 }
@@ -302,13 +359,17 @@ PREP:{
 # Translate
 
 TRANS:{
-    call("canoe -trace -ffvals -f ${canoe_ini} < \"${q_tok}\" > \"${p_raw}\"");
+    plugin("predecode", $q_tok, $q_dec);
+    call("canoe -trace -ffvals -f ${canoe_ini} < \"${q_dec}\" > \"${p_raw}\"");
     call("ce_canoe2ffvals.pl -verbose=${verbose} -dir=\"${dir}\" \"${p_raw}\"");
+    # ce_canoe2ffvals.pl generates $p_dec from $p_raw, among other things
+    plugin("postdecode", $p_dec, $p_tok);
 }
 
 POST:{
-    truecase($tgt, ${p_tok}, ${P_tok});
-    detokenize($tgt, ${P_tok}, ${P_txt});
+    truecase($tgt, $p_tok, $P_tok);
+    detokenize($tgt, $P_tok, $P_dtk);
+    plugin("postprocess", $P_dtk, $P_txt);
 }
 
 # Train/predict CE
@@ -354,21 +415,30 @@ CLEANUP:{
 
 exit 0;
 
-sub preprocess {
+sub copy {
     my ($in, $out) = @_;
-    call("cat \"${in}\" | ridbom.sh | crlf2lf.sh | canoe-escapes.pl -add | utf8_filter -c > \"${out}\"");
+
+    call("cp \"${in}\" \"${out}\"", $out);
+}
+
+sub plugin {
+    my ($name, $in, $out) = @_;
+    my $old_path = $ENV{PATH};
+    $ENV{PATH} = "${plugin_dir}:".$ENV{PATH};
+    call("${name}_plugin < \"${in}\" > \"${out}\"", $out);
+    $ENV{PATH} = $old_path;
 }
 
 sub tokenize {
     my ($lang, $in, $out) = @_;
     if ($notok and $nl eq 's') {
-        call("cp \"${in}\" \"${out}\"");
+        copy($in, $out);
     } else {
         my $tokopt = " -lang=${lang}";
         $tokopt .= $nl eq 's' ? " -ss" : " -noss";
         $tokopt .= " -paraline" if $nl eq 'p';
         $tokopt .= " -notok" if $notok;
-        call("utokenize.pl ${tokopt} \"${in}\" \"${out}\"");
+        call("utokenize.pl ${tokopt} \"${in}\" \"${out}\"", $out);
     }
 }
 
@@ -377,16 +447,16 @@ sub detokenize {
 #     if ($notok) {
 #         call("cp \"${in}\" \"${out}\"");
 #     } else {
-    call("udetokenize.pl -lang=${lang} < \"${in}\" > \"${out}\"");
+    call("udetokenize.pl -lang=${lang} < \"${in}\" > \"${out}\"", $out);
 #    }
 }
 
 sub lowercase {
     my ($in, $out) = @_;
     if ($nolc) {
-        call("cp \"${in}\" \"${out}\"");
+        copy($in, $out)
     } else {
-        call("utf8_casemap -c l \"${in}\" \"${out}\"");
+        call("utf8_casemap -c l \"${in}\" \"${out}\"", $out);
     }
 }
 
@@ -394,24 +464,43 @@ sub truecase {
     my ($lang, $in, $out) = @_;
     if ($tcmap and $tclm) {
         if ($tctp) {
-            call("truecase.pl --text=\"${in}\" --ucBOSEncoding=utf8 --tplm=${tclm} --tppt=${tcmap} > \"${out}\"");
+            call("truecase.pl --text=\"${in}\" --ucBOSEncoding=utf8 --tplm=${tclm} --tppt=${tcmap} > \"${out}\"", $out);
         } else {
-            call("truecase.pl --text=\"${in}\" --ucBOSEncoding=utf8 --lm=${tclm} --map=${tcmap} > \"${out}\"");
+            call("truecase.pl --text=\"${in}\" --ucBOSEncoding=utf8 --lm=${tclm} --map=${tcmap} > \"${out}\"", $out);
         }
     } else {
-        call("cp \"${in}\" \"${out}\"");
+        copy($in, $out);
     }
 }
 
 sub call {
-    my ($cmd) = @_;
+    my ($cmd, @outfiles) = @_;
     verbose("[call: %s]\n", $cmd);
     if ($dryrun) {
         print $cmd, "\n";
     } else {
-        system($cmd)==0 
-            or die sprintf("Command \"%s\" failed: $?", $cmd);
+        system($cmd)==0
+            or do {
+                my $explanation;
+                if ($? == -1) {
+                    $explanation = "failed to execute: $!";
+                } elsif ($? & 127) {
+                    $explanation =
+                        sprintf "died with signal %d, %s coredump",
+                                ($? & 127),  ($? & 128) ? 'with' : 'without';
+                } else {
+                    $explanation = sprintf "exited with value %d", $? >> 8;
+                }
+                cleanupAndDie("Command \"$cmd\" $explanation.\n", @outfiles);
+            };
     }
+}
+
+sub cleanupAndDie {
+    my ($message, @files) = @_;
+
+    unlink @files;
+    die "ce_translate.pl: $message";
 }
 
 sub verbose { printf STDERR @_ if $verbose; }

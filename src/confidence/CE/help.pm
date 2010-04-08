@@ -1,4 +1,5 @@
 #!/usr/bin/perl -s
+# $Id$
 # @file help.pm 
 # @brief Help object for confidence estimation
 # 

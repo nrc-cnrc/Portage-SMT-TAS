@@ -1,4 +1,5 @@
 #!/usr/bin/perl -sw
+# $Id$
 
 # @file ce_canoe2ffvals.pl 
 # @brief Parses canoe output and generates FileFF-style files.
@@ -34,7 +35,7 @@ are:
 
 =over 1
 
-=item p.tok: tokenized output text
+=item p.dec: decoder output text (tokenized, lowercase)
 
 =item p.oov: per-sentence OOV count
 
@@ -114,7 +115,7 @@ $prefix = "" unless defined $prefix;
 my $infile = shift || "-";
 
 open(my $in, "< $infile") or die "Can't open input file $infile";
-my $p_text_file = "${dir}/${prefix}p.tok";
+my $p_text_file = "${dir}/${prefix}p.dec";
 my $p_oov_file = "${dir}/${prefix}p.oov";
 my $p_plen_file = "${dir}/${prefix}p.plen";
 my $p_pmax_file = "${dir}/${prefix}p.pmax";

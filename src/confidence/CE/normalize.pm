@@ -1,4 +1,5 @@
 #!/usr/bin/perl -s
+# $Id$
 # @file normalize.pm
 # @brief Feature Normalization for confidence estimation
 # 

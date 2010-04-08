@@ -1,4 +1,5 @@
 #!/usr/bin/perl -s
+# $Id$
 # @file base.pm 
 # @brief Base object for confidence estimation
 # 

@@ -1,4 +1,5 @@
 #!/usr/bin/perl -s
+# $Id$
 # @file ce_tmx.pl 
 # @brief Handle TMX files for confidence estimation
 # 

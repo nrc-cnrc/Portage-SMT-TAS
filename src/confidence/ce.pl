@@ -1,4 +1,5 @@
 #!/usr/bin/perl -w -s
+# $Id$
 # @file ce.pl 
 # @brief Compute confidence estimation
 # 

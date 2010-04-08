@@ -1,4 +1,5 @@
 #!/usr/bin/perl -s
+# $Id$
 # @file libsvm.pm 
 # @brief Quick-and-dirty Perl API for libsvm
 # 
@@ -98,7 +99,7 @@ sub train {
         system($cmd) == 0 
             or die sprintf("Command \"%s\" failed: $?", $cmd);
     }
-    my $cmd = "svm-train ${options} ${datafile} ${model}";
+    my $cmd = "svm-train ${options} ${datafile} ${model} 1>&2"; # because svm-predict writes verbose-style output to stdout";
     debug("Calling: $cmd\n");
 
     system($cmd) == 0 
@@ -125,7 +126,7 @@ sub predict {
     close $outfh;
 
     my $options = "";
-    my $cmd = "svm-predict ${options} ${datafile} ${model} ${outfile}"; ## >& /dev/null";
+    my $cmd = "svm-predict ${options} ${datafile} ${model} ${outfile} 1>&2"; # because svm-predict writes verbose-style output to stdout
     debug("Calling: $cmd\n");
 
     system($cmd) == 0 

@@ -1,4 +1,5 @@
 #!/usr/bin/perl -w -s
+# $Id$
 # @file ce_train.pl 
 # @brief Learn a confidence estimation model
 # 

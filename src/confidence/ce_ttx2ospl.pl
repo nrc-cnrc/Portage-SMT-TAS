@@ -1,4 +1,5 @@
 #!/usr/bin/perl -s
+# $Id$
 # @file ce_ttx2ospl.pl 
 # @brief Handle TTX files for confidence estimation
 # 
