@@ -84,7 +84,7 @@ BINSCRIPTS = \
         ospl2mteval.pl \
         parallel-uniq.pl \
         parallelize.pl \
-        parse-monitor.sh \
+        parse-monitor.pl \
         process-bind.sh \
         process-memory-usage.pl \
         psub \

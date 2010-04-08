@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 # $Id$
 #
-# @file parse-monitor.sh 
+# @file parse-monitor.pl 
 # @brief Extract useful information from the output of monitor-process.sh
 #
 # @author Eric Joanis
@@ -26,7 +26,7 @@ BEGIN {
    }
 }
 use portage_utils;
-printCopyright("parse-monitor.sh", 2005);
+printCopyright("parse-monitor.pl", 2005);
 $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
 sub usage {
