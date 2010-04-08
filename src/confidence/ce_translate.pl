@@ -480,19 +480,7 @@ sub call {
         print $cmd, "\n";
     } else {
         system($cmd)==0
-            or do {
-                my $explanation;
-                if ($? == -1) {
-                    $explanation = "failed to execute: $!";
-                } elsif ($? & 127) {
-                    $explanation =
-                        sprintf "died with signal %d, %s coredump",
-                                ($? & 127),  ($? & 128) ? 'with' : 'without';
-                } else {
-                    $explanation = sprintf "exited with value %d", $? >> 8;
-                }
-                cleanupAndDie("Command \"$cmd\" $explanation.\n", @outfiles);
-            };
+            or cleanupAndDie(explainSystemRC($?,$cmd,$0), @outfiles);
     }
 }
 
@@ -500,7 +488,7 @@ sub cleanupAndDie {
     my ($message, @files) = @_;
 
     unlink @files;
-    die "ce_translate.pl: $message";
+    die $message;
 }
 
 sub verbose { printf STDERR @_ if $verbose; }
