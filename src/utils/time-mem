@@ -82,7 +82,7 @@ parseCommand() {
          # Master wall time was calculated for us, override.
          WALL_TIME_LIST="${BASH_REMATCH[1]}"
       fi
-   done
+   done < <(egrep 'Single-job-total:|RP-Totals:|run_cmd rc=0|Master-Wall-Time')
 
    [[ $DEBUG ]] && echo "<D> parseCommand: $WALL_TIME : $CPU_TIME_LIST : $VMEM_LIST : $RAM_LIST" >&2
 
@@ -255,7 +255,6 @@ pgm=`basename $1`
 if [[ $pgm == "rat.sh" || $pgm == "cat.sh" || $pgm == "cow.sh" || $pgm == "gen-jpt-parallel.sh" || $pgm == "canoe-parallel.sh" ]]; then
    [[ $DEBUG ]] && echo "Parsing command $pgm" >&2
    # These commands already produce the data, we only need to parse the data.
-   #{ eval "${ARGUMENTS[@]}"; } 2>&1 | parseCommand | second-to-hms.pl
    { { eval "${ARGUMENTS[@]}" || exit; sync; } 3>&1 1>&2 2>&3 || exit | parseCommand 2>&1; sync; } 3>&1 1>&2 2>&3
 
 # Ok we assume the user provided us with only files thus he wants us to do a
@@ -268,7 +267,6 @@ elif [[ $TALLY ]]; then
       if ! { set -o pipefail; egrep -h 'P-RES-MON|TIME-MEM' $f | sed "s/^P-RES-MON\|TIME-MEM/${g}:TIME-MEM/"; }; then
          [[ $DEBUG ]] && echo "Calculating on the fly" >&2
          cat $f \
-         | egrep 'Single-job-total:|RP-Totals:|run_cmd rc=0|Master-Wall-Time' \
          | second-to-hms.pl -r \
          | parseCommand "$f:"
       fi
