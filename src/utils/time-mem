@@ -32,36 +32,53 @@ parseCommand() {
    declare CPU_TIME_LIST=0
    declare WALL_TIME=0
 
+   # Single-job-total: Real 0.112s User 0.004s
+   # 
    while read line
    do
       # Indicate that we are aware of this line.
       [[ $DEBUG ]] && echo -n "{> "
       echo $line
 
-      # Get all occurences of VMEM
-      if [[ $line =~ "VMEM ([0-9.]+)G" ]]; then
+      # RP-Totals: Wall time 21s CPU time 40.03s Max VMEM 0.076G Max RAM 0.007G
+      if [[ $line =~ "RP-Totals: Wall time ([0-9.]+)s CPU time ([0-9.]+)s Max VMEM ([0-9.]+)G Max RAM ([0-9.]+)G" ]]; then
+         [[ $DEBUG ]] && echo "{Wall time> ${BASH_REMATCH[1]}"
+         WALL_TIME_LIST="$WALL_TIME_LIST ${BASH_REMATCH[1]}"
+
+         [[ $DEBUG ]] && echo "{CPU> ${BASH_REMATCH[2]}"
+         CPU_TIME_LIST="$CPU_TIME_LIST ${BASH_REMATCH[2]}"
+
+         [[ $DEBUG ]] && echo "{VMEM> ${BASH_REMATCH[3]}"
+         VMEM_LIST="$VMEM_LIST ${BASH_REMATCH[3]}"
+
+         [[ $DEBUG ]] && echo "{RAM> ${BASH_REMATCH[4]}"
+         RAM_LIST="$RAM_LIST ${BASH_REMATCH[4]}"
+      fi
+
+      # Single-job-total: Real 0.092s User 0.028s Sys 0.000s PCPU 30.45%
+      if [[ $line =~ "Single-job-total: Real ([0-9.]+)s User ([0-9.]+)s Sys ([0-9.]+)s" ]]; then
+         [[ $DEBUG ]] && echo "{Real> ${BASH_REMATCH[1]}"
+         WALL_TIME_LIST="$WALL_TIME_LIST ${BASH_REMATCH[1]}"
+
+         # We include User & Sys for cpu time.
+         [[ $DEBUG ]] && echo "{User> ${BASH_REMATCH[2]}"
+         CPU_TIME_LIST="$CPU_TIME_LIST ${BASH_REMATCH[2]}"
+
+         [[ $DEBUG ]] && echo "{Sys> ${BASH_REMATCH[3]}"
+         CPU_TIME_LIST="$CPU_TIME_LIST ${BASH_REMATCH[3]}"
+      fi
+      # run_cmd rc=0 Max VMEM 0.071G Max RAM 0.009G
+      if [[ $line =~ "run_cmd rc=0 Max VMEM ([0-9.]+)G Max RAM ([0-9.]+)G" ]]; then
+         [[ $DEBUG ]] && echo "{VMEM> ${BASH_REMATCH[1]}"
          VMEM_LIST="$VMEM_LIST ${BASH_REMATCH[1]}"
-      fi
 
-      # Get all occurences of RAM
-      if [[ $line =~ "RAM ([0-9.]+)G" ]]; then
-         RAM_LIST="$RAM_LIST ${BASH_REMATCH[1]}"
-      fi
-
-      #RP-Totals: Wall time 21s CPU time 40.03s Max VMEM 0.076G Max RAM 0.007G
-      if [[ $line =~ "CPU time ([0-9.]+)s" ]]; then
-         CPU_TIME_LIST="$CPU_TIME_LIST ${BASH_REMATCH[1]}"
-      fi
-      if [[ $line =~ "User ([0-9.]+)s" ]]; then
-         CPU_TIME_LIST="$CPU_TIME_LIST ${BASH_REMATCH[1]}"
+         [[ $DEBUG ]] && echo "{RAM> ${BASH_REMATCH[2]}"
+         RAM_LIST="$RAM_LIST ${BASH_REMATCH[2]}"
       fi
 
       # Find the overall wall time.
-      # RP-Totals: Wall time 19s CPU time 26.24s Max VMEM 0.084G Max RAM 0.009G
-      if [[ $line =~ "Wall time ([0-9.]+)s" ]]; then
-         WALL_TIME_LIST="$WALL_TIME_LIST ${BASH_REMATCH[1]}"
-      fi
       if [[ $line =~ "Master-Wall-Time ([0-9.]+)s" ]]; then
+         [[ $DEBUG ]] && echo "{Master-Wall-Time> ${BASH_REMATCH[1]}"
          # Master wall time was calculated for us, override.
          WALL_TIME_LIST="${BASH_REMATCH[1]}"
       fi
@@ -74,7 +91,7 @@ parseCommand() {
    CPU_TIME=`echo $CPU_TIME_LIST | egrep -o "[0-9.]+" | sum.pl`
    WALL_TIME=`echo $WALL_TIME_LIST | egrep -o "[0-9.]+" | sum.pl`
 
-   RESULT="${ARG}P-RES-MON\tWALL TIME: ${WALL_TIME}s\tCPU TIME: ${CPU_TIME}s\tVSZ: ${MON_VSZ}G\tRSS: ${MON_RSS}G"
+   RESULT="${ARG}TIME-MEM\tWALL TIME: ${WALL_TIME}s\tCPU TIME: ${CPU_TIME}s\tVSZ: ${MON_VSZ}G\tRSS: ${MON_RSS}G"
    [[ $DEBUG ]] && echo -e "<D> $RESULT" >&2
    sync
    echo -e $RESULT | second-to-hms.pl
@@ -95,13 +112,13 @@ reduce() {
    do
       [[ $DEBUG ]] && echo "<Dr> $line" >&2
       # Skip commented lines.
-      if [[ $line =~ "^([^>]+):(P-RES-MON>WALL TIME: ([0-9.]+)s>CPU TIME: ([0-9.]+)s>VSZ: ([0-9.]+)G>RSS: ([0-9.]+)G)" ]]; then
+      if [[ $line =~ "^([^>]+):((P-RES-MON|TIME-MEM)>WALL TIME: ([0-9.]+)s>CPU TIME: ([0-9.]+)s>VSZ: ([0-9.]+)G>RSS: ([0-9.]+)G)" ]]; then
          echo -e "$indent`basename ${BASH_REMATCH[1]}`:${BASH_REMATCH[2]}"
-         WALL_TIME_LIST=" $WALL_TIME_LIST ${BASH_REMATCH[3]}"
-         CPU_TIME_LIST="$CPU_TIME_LIST ${BASH_REMATCH[4]}"
-         VMEM_LIST="$VMEM_LIST ${BASH_REMATCH[5]}"
-         RAM_LIST="$RAM_LIST ${BASH_REMATCH[6]}"
-      elif [[ $line =~ "P-RES-MON>WALL TIME:" ]]; then
+         WALL_TIME_LIST=" $WALL_TIME_LIST ${BASH_REMATCH[4]}"
+         CPU_TIME_LIST="$CPU_TIME_LIST ${BASH_REMATCH[5]}"
+         VMEM_LIST="$VMEM_LIST ${BASH_REMATCH[6]}"
+         RAM_LIST="$RAM_LIST ${BASH_REMATCH[7]}"
+      elif [[ $line =~ "(P-RES-MON|TIME-MEM)>WALL TIME:" ]]; then
          echo -e "$indent$line"
       fi
    done
@@ -113,7 +130,7 @@ reduce() {
    CPU_TIME=`echo $CPU_TIME_LIST | egrep -o "[0-9.]+" | sum.pl`
    WALL_TIME=`echo $WALL_TIME_LIST | egrep -o "[0-9.]+" | sum.pl`
 
-   RESULT="P-RES-MON\tWALL TIME: ${WALL_TIME}s\tCPU TIME: ${CPU_TIME}s\tVSZ: ${MON_VSZ}G\tRSS: ${MON_RSS}G"
+   RESULT="TIME-MEM\tWALL TIME: ${WALL_TIME}s\tCPU TIME: ${CPU_TIME}s\tVSZ: ${MON_VSZ}G\tRSS: ${MON_RSS}G"
    [[ $DEBUG ]] && echo -e "<D> $RESULT" >&2
    echo -e $RESULT
 }
@@ -248,16 +265,19 @@ elif [[ $TALLY ]]; then
    { for f in $*; do
       [[ $DEBUG ]] && echo "Processing $f" >&2
       g=`basename $f`
-      if ! { set -o pipefail; grep -h 'P-RES-MON' $f | sed "s/^P-RES-MON/${g}:P-RES-MON/"; }; then
+      if ! { set -o pipefail; egrep -h 'P-RES-MON|TIME-MEM' $f | sed "s/^P-RES-MON\|TIME-MEM/${g}:TIME-MEM/"; }; then
          [[ $DEBUG ]] && echo "Calculating on the fly" >&2
-         cat $f | parseCommand "$f:"
+         cat $f \
+         | egrep 'Single-job-total:|RP-Totals:|run_cmd rc=0|Master-Wall-Time' \
+         | second-to-hms.pl -r \
+         | parseCommand "$f:"
       fi
    done } \
    | second-to-hms.pl -r \
    | sed 's/\t/>/g' \
    | reduce \
    | sed 's/>/\t/g' \
-   | sed "s/^P-RES-MON/${META}P-RES-MON/" \
+   | sed "s/^P-RES-MON\|TIME-MEM/${META}TIME-MEM/" \
    | second-to-hms.pl
 
 # The user wants to time a command that doesn't produce statistics and he's
