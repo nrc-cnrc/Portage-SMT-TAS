@@ -382,10 +382,10 @@ if [ ! -e ${PFX}${K}best -a ! -e ${PFX}${K}best.gz ]; then
 
    # Generating the nbest, ffvals and align
    set -o pipefail
-   run_cmd "canoe-parallel.sh $CPOPTS \
+   canoe-parallel.sh $CPOPTS \
       canoe -append -v $VERBOSE -f $CANOE_CONFIG -nbest ${PFX}nb.:$K -ffvals -palign \
-      < $MSRC | nbest2rescore.pl -canoe > ${PFX}1best" \
-      "problems with canoe-parallel.sh - quitting!"
+      < $MSRC | nbest2rescore.pl -canoe > ${PFX}1best \
+      || error_exit"problems with canoe-parallel.sh - quitting!"
    set +o pipefail
 
    if [[ `wc -l < $MSRC` -ne `wc -l < ${PFX}1best` ]]; then
@@ -439,10 +439,11 @@ DASHV=
 test -n "$VERBOSE" && DASHV="-v"
 SPROXY_ARG=
 test -n "$SPROXY" && SPROXY_ARG="-s=$SPROXY"
-run_cmd "gen-features-parallel.pl $DEBUG $FORCE_OVERWRITE $DASHV \
+FEATURE_CMD="gen-features-parallel.pl $DEBUG $FORCE_OVERWRITE $DASHV \
   -N=$N $JOBS_PER_FF -o=$MODEL_RAT_IN -c=$CANOE_CONFIG -a=$PAL $SPROXY_ARG -p=$PFX \
-  $MODEL $SRC $NBEST" \
-  "problems with gen-features-parallel.pl - quitting!"
+  $MODEL $SRC $NBEST"
+echo "Running: $FEATURE_CMD"
+eval "$FEATURE_CMD" || error_exit "problems with gen-features-parallel.pl - quitting!"
 
 
 # 3. Train or trans with the rescoring model

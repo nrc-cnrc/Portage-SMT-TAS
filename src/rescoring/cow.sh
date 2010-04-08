@@ -578,7 +578,12 @@ while [[ 1 ]]; do
    if [[ "$PARALLEL" == 1 ]]; then
       RUNSTR="$CANOE_PARALLEL $PARALLEL_OPTS $RUNSTR"
    fi
-   run_cmd "$RUNSTR < $SFILE > $TRANSFILE.ff"
+   if [[ "$CANOE_PARALLEL" == "canoe-parallel.sh" ]]; then
+      # Don't time canoe-parallel.sh since it's going to report time-mem measurements.
+      $RUNSTR < $SFILE > $TRANSFILE.ff
+   else
+      run_cmd "$RUNSTR < $SFILE > $TRANSFILE.ff"
+   fi
 
    # From here on, use given weights (not random weights)
    RANDOM_WEIGHTS=

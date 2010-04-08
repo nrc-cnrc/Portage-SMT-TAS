@@ -293,6 +293,7 @@ if (defined($RESCORING_MODEL_OUT)) {
 # Process the MODEL file and launch gen_feature_value jobs
 # Build a process list for generating the feature function values
 my @PARALLEL_FILE = ();   # List files/features that were run in parallel and need merging
+my $start_time = time;
 while (my $LINE = <MODEL_FILE>) {
 
    # Skip the empty lines
@@ -521,6 +522,7 @@ close(MODEL_FILE);
 close(CMDS_FILE);
 close(RESCORING_MODEL_OUT_FILE) if (defined($RESCORING_MODEL_OUT));
 
+printf STDERR "Processing $MODEL in %ds\n", time - $start_time;
 
 
 # Now that we have the processes' list, we can execute them

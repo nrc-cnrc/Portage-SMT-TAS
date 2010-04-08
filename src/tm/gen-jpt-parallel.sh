@@ -160,8 +160,10 @@ CMDS_FILE=$WORKDIR/cmds
 test -f $CMDS_FILE && \rm -f $CMDS_FILE
 
 if [[ -n "$NW" ]]; then
+   time {
    get_voc $file1 > $WORKDIR/voc.1
    get_voc $file2 > $WORKDIR/voc.2
+   }
 fi
 
 # Build the command list.
@@ -170,8 +172,10 @@ for src in `ls $WORKDIR/L1.*`; do
    suff=${src##*/L1.}
    if [[ -n "$NW" ]]; then
       WOPS="-w $NW -wf $WORKDIR/$suff.wp -wfvoc $WORKDIR/voc"
+      time {
       get_voc $src > $WORKDIR/$suff.voc.1
       get_voc $tgt > $WORKDIR/$suff.voc.2
+      }
    fi
    echo "test ! -f $src || ((set -o pipefail; gen_phrase_tables $WOPS -j ${GPTARGS[@]} $src $tgt | LC_ALL=C $SORT_DIR sort | gzip > $WORKDIR/$suff.jpt.gz) && mv $src $src.done)" >> $CMDS_FILE
 done
@@ -196,6 +200,7 @@ if [[ ! $NOTREALLY ]]; then
 
     if [[ -n "$NW" ]]; then
 
+      time {
        cat $WORKDIR/*.wp.1 | LC_ALL=C $SORT_DIR sort | LC_ALL=C uniq -c > $WORKDIR/wp-cnts.1
        cat $WORKDIR/*.wp.2 | LC_ALL=C $SORT_DIR sort | LC_ALL=C uniq -c > $WORKDIR/wp-cnts.2
 
@@ -206,6 +211,7 @@ if [[ ! $NOTREALLY ]]; then
        gen_jpt_filter_tool -l2 $WORKDIR/{voc-cnts,wp-cnts}.2 | LC_ALL=C $SORT_DIR sort | gzip > $WORKDIR/jpt.wp2.gz
         
        WPFILES="$WORKDIR/jpt.wp1.gz $WORKDIR/jpt.wp2.gz"
+       }
     fi
 
     time {
