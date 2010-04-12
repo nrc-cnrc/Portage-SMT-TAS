@@ -77,7 +77,7 @@ if [[ ! -r $TEXTPT ]]; then
    error_exit "Can't read $TEXTPT."
 fi
 
-echo Building TPPT $OUTPUTPT$TPT_EXTENSION from PT $TEXTPT
+echo "Building TPPT $OUTPUTPT$TPT_EXTENSION from PT $TEXTPT" >&2
 
 if [[ `basename $TEXTPT` == $TEXTPT ]]; then
    #TEXTPT is in current directory
