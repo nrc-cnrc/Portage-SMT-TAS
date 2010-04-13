@@ -21,20 +21,20 @@ all: test.2
 all: test.3
 all: test.4
 all: test.5
+all: test-b
 
 clean:
-	${RM} cpt.* dm.* filt.*
+	${RM} cpt.* dm.* filt.* log*
 
 ########################################
 # Compare a run to a reference
 test: cpt dm filt
-	${FILTER_DISTORTION_MODEL} cpt dm \
+	${FILTER_DISTORTION_MODEL} cpt dm 2> log \
 	| diff -q - filt
 
-test.%: cpt.% dm.% filt.%
-	${FILTER_DISTORTION_MODEL} cpt.$* dm.$* \
-	| diff -q - filt.$*
-
+test%: cpt% dm% filt%
+	${FILTER_DISTORTION_MODEL} cpt$* dm$* 2> log$* \
+	| diff -q - filt$*
 
 ########################################
 # Create the reference.
