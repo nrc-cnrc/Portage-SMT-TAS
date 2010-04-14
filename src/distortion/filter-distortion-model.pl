@@ -111,13 +111,18 @@ my $dm_entry = "";  # This is the original entry from the distortion model for e
 my $dm = "";  # Will ultimately contain the source ||| target ||| of the distortion model.
 
 # How to find the probs.
-my $prob = qr/\|\|\| [^\|]+$/;
+my $prob = qr/ \|\|\| [^\|]+$/;
 
-# This loop drive the algorithm by going through all conditional phrase table entries.
-while ($cpt = <CPT>) {
+#my $prev_cpt = "";
+#my $prev_dm = "";
+
+# This loop drives the algorithm by going through all conditional phrase table entries.
+mainloop: while (defined ($cpt = <CPT>)) {
    # Remove probs and unwanted newline.
-   chomp $cpt;
-   $cpt =~ s/$prob//;
+   #chomp $cpt;
+   $cpt =~ s/$prob/ ||| /o;
+
+   #if ( $prev_cpt ge $cpt ) { warn "CPT $prev_cpt >= $cpt"; }
 
    # TODO: should I also remove the spaces to make the cpt and dm more likely
    # to be equal and white space independent.
@@ -125,25 +130,30 @@ while ($cpt = <CPT>) {
    # This loop processes all distortion model entries.
    do {
       # Do we need a new entry from the distortion model?
+      #$prev_dm = $dm;
       $dm_entry = <DM> unless ($dm ge $cpt);
 
       # Make sure we are not a the end of the distortion model.
       unless (defined $dm_entry) {
          $dm = "";
          $dm_entry = "";
-         next;
+         last mainloop;
       }
 
       # Remove probs and unwanted newline.
-      chomp $dm_entry;
+      #chomp $dm_entry;
       $dm = $dm_entry;
-      $dm =~ s/$prob//;
+      $dm =~ s/$prob/ ||| /o;
+
+      #if ( $prev_dm gt $dm ) { warn "LDM $prev_dm > $dm"; }
 
       print STDERR "\tCPT: $cpt\n\tDM: $dm\n\n" if ($debug);
 
       # This distortion model entry is part of the conditional phrase table, keep it.
-      print FILT "$dm_entry\n" if ($dm eq $cpt);
+      print FILT $dm_entry if ($dm eq $cpt);
    } while ($dm lt $cpt );
+
+   #$prev_cpt = $cpt;
 }
 
 close(CPT);
