@@ -1,6 +1,5 @@
                              PORTAGEshared_v1.4
 
-
 Technologies langagieres interactives / Interactive Language Technologies
 Institut de technologie de l'information / Institute for Information Technology
 Conseil national de recherches Canada / National Research Council Canada
@@ -46,8 +45,8 @@ For source code distributions :
    system configuration and choices.
    Compile and install PORTAGEshared:
       cd src
-      gmake -j 5
-      gmake -j 5 install
+      make -j 5
+      make -j 5 install
    We typically use -j N for parallel compiling.  N = 1 + the number of CPUs on
    the machine seems to be optimal.  If you're sharing the machine with many
    users, however, you may not want to use the -j switch at all.
@@ -55,28 +54,30 @@ For source code distributions :
 
                         Verifying your installation
 
-Once PORTAGEshared is installed, execute these three commands to make sure you
+Once PORTAGEshared is installed, execute these four commands to make sure you
 can run the software:
    cow.sh -h
    tokenize.pl -h
    canoe -h
-These three commands invoke programs that are each installed differently, and
+   ce.pl -h
+These commands invoke programs that are each installed differently, and
 exercise the key parts of PORTAGEshared installation.  If everything is OK,
 each will give you usage information about the command.
 
-If cow.sh -h or tokenize.pl -h says "command not found", your PATH is not
-correctly set or your installation failed.  Check your SETUP.bash/tcsh file and
-make sure you are sourcing it properly, ideally in your .<shell>rc file.  Your
-$PATH variable should include PORTAGEshard/bin.  Also check that
-PORTAGEshared/bin contains tokenize.pl.  If that's not the case, "gmake
-install" probably didn't complete successfully.
+If you get "command not found" for any of these, your PATH is not correctly set
+or your installation failed.  Check your SETUP.bash/tcsh file and make sure you
+are sourcing it properly, ideally in your .<shell>rc file.  Your $PATH variable
+should include PORTAGEshared/bin.  Also check that PORTAGEshared/bin contains
+tokenize.pl.  If that's not the case, "make install" probably didn't complete
+successfully.
 
-If tokenize.pl -h says "Can't locate LexiTools.pm in @INC ...", then your
-PERL5LIB is not correctly set or your installation partially failed.  Check
-your SETUP.bash/tcsh file and make sure you are sourcing it properly, ideally
-in your .<shell>rc file.  Your $PERL5LIB variable should include
-PORTAGEshared/lib.  That directory should also contain LexiTools.pm.  If it
-doesn't, "gmake install" probably didn't complete successfully.
+If tokenize.pl -h or ce.pl -h says "Can't locate <SomeFile>.pm in @INC ...",
+then your PERL5LIB is not correctly set or your installation partially failed.
+Check your SETUP.bash/tcsh file and make sure you are sourcing it properly,
+ideally in your .<shell>rc file.  Your $PERL5LIB variable should include
+PORTAGEshared/lib.  That directory should also contain LexiTools.pm and a
+subdirectory called CE containing several .pm files.  If it doesn't, "make
+install" probably didn't complete successfully.
 
 If canoe -h says "command not found" but the other two commands work:
  - with binary distributions, your $PATH variable must also include the
@@ -85,8 +86,8 @@ If canoe -h says "command not found" but the other two commands work:
    appropriately.  The PORTAGEshared/bin/<arch> directory contains all the
    compiled C++ executables.
  - with source distributions, canoe is installed in the same directory as
-   cow.sh and tokenize.pl, so compilation probably failed if those scripts work
-   but canoe doesn't.
+   cow.sh and tokenize.pl, so compilation probably failed if only canoe doesn't
+   work.
 
 Binary distributions only:
  - If canoe -h complains about a lib*.so* file not being found, some external
