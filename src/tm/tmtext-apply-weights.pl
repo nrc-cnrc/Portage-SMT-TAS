@@ -53,7 +53,8 @@ Usage: $0 -src <src_lang> -tgt <tgt_lang> [-o <out prefix>]
        [-config|-f <canoe.ini>]
        [-h(elp)] [-v(erbose)] [in]
 
-  Apply specific weigths to a multi-probs tm and output two single prob tms.
+  Apply fixed weights to a multi-prob phrase table and output a two-prob
+  phrase table (one forward and one backward), in multi-prob format.
 
 Options:
   -o            Specify the base output name [phrase-weight-applied]
@@ -67,8 +68,8 @@ Options:
   -hf           Apply hard filter.
   -shf <MODEL>  Save intermediate hard-filtered model to <MODEL>.
                 Note that <MODEL> will be augmented with the suffix .FILT.
-  -tmdb         Produce a tmdb.
-  -tppt         Produce a tppt.
+  -tmdb         Produce a TMDB instead of a multi-prob TMText
+  -tppt         Produce a TPPT as well as a multi-prob TMText
 
   -h(elp):      print this help message
   -v(erbose):   increment the verbosity level by 1 (may be repeated)
@@ -101,6 +102,7 @@ GetOptions(
    hf          => \my $do_hardFilter,
    "shf=s"     => \my $hardFilter_model,
 
+   h           => sub { usage },
    help        => sub { usage },
    verbose     => sub { ++$verbose },
    quiet       => sub { $verbose = 0 },
