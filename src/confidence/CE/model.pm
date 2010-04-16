@@ -138,7 +138,7 @@ sub initialize {
     $this->{model_path} = undef; # user-specified search path for feature argument files
     $this->{dataset} = undef;
 
-    my $dir = $this->{tmp_dir} = tempdir('ce_model_XXXXXX', TMPDIR=>1, CLEANUP=>1);
+    my $dir = $this->{tmp_dir} = tempdir('ce_model_XXXXXX', DIR=>".", CLEANUP=>1);
     $this->debug("[[Model temp dir: $dir]]\n");
     $this->{model_file} = "${dir}/model";
     $this->{norm_file} = "${dir}/norm";

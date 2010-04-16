@@ -72,6 +72,8 @@ unless something goes wrong, or if the C<-dir=D> option is specified.
 
 =item -tmem=T         Use TMem output file T
 
+=item -n=N            Decode N-ways parallel
+
 =item -nolc           Don't lowercase input text
 
 =item -notok          Input text is pre-tokenized (so don't retokenize it!)
@@ -180,6 +182,8 @@ Michel Simard
 
 =cut
 
+use strict;
+
 BEGIN {
    # If this script is run from within src/ rather than being properly
    # installed, we need to add utils/ to the Perl library include path (@INC).
@@ -200,7 +204,7 @@ use File::Spec;
 
 our ($h, $help, $verbose, $debug, $desc, $tmem, $train, $plugin,
      $test, $src, $tgt, $tmx, $ttx, $xsrc, $xtgt, $k, $norm, $dir, $path,
-     $out, $filter, $dryrun, $nl, $notok, $nolc,
+     $out, $filter, $dryrun, $n, $nl, $notok, $nolc,
      $tclm, $tcmap, $tctp, $skipto);
 
 if ($h or $help) {
@@ -226,6 +230,7 @@ $tgt = "fr" unless defined $tgt;
 $xsrc = "EN-CA" unless defined $xsrc;
 $xtgt = "FR-CA" unless defined $xtgt;
 $dryrun = 0 unless defined $dryrun;
+$n = 0 unless defined $n;
 $nl = 0 unless defined $nl;
 $notok = 0 unless defined $notok;
 $nolc = 0 unless defined $nolc;
@@ -233,6 +238,7 @@ $tclm = 0 unless defined $tclm;
 $tcmap = 0 unless defined $tcmap;
 $skipto = "" unless defined $skipto;
 $plugin = "" unless defined $plugin;
+
 
 die "Can't both -train and -test" if $train and $test;
 die "Can't train from TMX (yet)" if $train and $tmx;
@@ -271,7 +277,7 @@ if ($dryrun) {
         mkdir $dir or die "Can't make directory $dir: errno=$!";
     }
 } else {
-    $dir = tempdir('ce_work_XXXXXX', TMPDIR=>1, CLEANUP=>0);
+    $dir = tempdir('ce_work_XXXXXX', DIR=>".", CLEANUP=>0);
 }
 
 # File names
@@ -360,7 +366,11 @@ PREP:{
 
 TRANS:{
     plugin("predecode", $q_tok, $q_dec);
-    call("canoe -trace -ffvals -f ${canoe_ini} < \"${q_dec}\" > \"${p_raw}\"");
+    my $decoder = "canoe";
+    if ( $n > 1 ) {
+        $decoder = "canoe-parallel.sh -n $n canoe";
+    }
+    call("$decoder -trace -ffvals -f ${canoe_ini} < \"${q_dec}\" > \"${p_raw}\"");
     call("ce_canoe2ffvals.pl -verbose=${verbose} -dir=\"${dir}\" \"${p_raw}\"");
     # ce_canoe2ffvals.pl generates $p_dec from $p_raw, among other things
     plugin("postdecode", $p_dec, $p_tok);

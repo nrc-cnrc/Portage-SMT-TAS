@@ -89,6 +89,8 @@ Michel Simard
 
 =cut
 
+use strict;
+
 BEGIN {
    # If this script is run from within src/ rather than being properly
    # installed, we need to add utils/ to the Perl library include path (@INC).
