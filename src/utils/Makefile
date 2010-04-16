@@ -70,6 +70,7 @@ BINSCRIPTS = \
         crlf2lf.sh \
         cvs-status-summary.pl \
         diff-round.pl \
+        expand-auto.pl \
         filter-for-giza.pl \
         filter-latin.pl \
         getcolumn.sh \

@@ -22,6 +22,7 @@ diff-round.pl                 EJ  Compare ff. files, ignoring rounding differenc
 docid.{cc,h}                  GF  Mapping from sentence indexes to document names
 errors.{cc,h}                 GF  Simple exception and error-message class.
 exception_dump.h              SL  Macro for printing a message when dying on an exception
+expand-auto.pl                EJ  Like expand, with automatically calculated tab stops.
 file_utils.{cc,h}             GF  File utility routines and classes (add to me!).
 filter-for-giza.pl            MS  Filter training corpus for use with GIZA++.
 filter-latin.pl               GF  Filter invalid characters from an iso-latin1 encoded file.
