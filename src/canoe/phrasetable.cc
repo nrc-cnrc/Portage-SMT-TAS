@@ -247,7 +247,7 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
    string prev_src;
    Uint prev_src_word_count = 0;
    TargetPhraseTable *tgtTable = NULL;
-   while (!in.eof())
+   while (in.good())    // stop on EOF or error reading file.
    {
       getline(in, line);
       if (line == "") continue;
@@ -639,12 +639,12 @@ Uint PhraseTable::countProbColumns(const char* multi_prob_TM_filename)
    string physical_filename;
    isReversed(multi_prob_TM_filename, &physical_filename);
    iMagicStream in(physical_filename, true);  // make this a silent stream
-   if ( in.bad() ) return 0;
+   if ( in.fail() ) return 0;
    string ph1, ph2, prob_str, ascore_str;
    bool blank = true;
-   Uint lineNo;
+   Uint lineNo = 0;
    // This reads one line and returns the list of probs into prob
-   while ( blank && !in.eof() )
+   while ( blank && in.good() )
       readLine(in, ph1, ph2, prob_str, ascore_str, blank, multi_prob_TM_filename, lineNo); //boxing
    if ( blank ) {
       error(ETWarn, "No data lines found in multi-prob phrase table %s",
@@ -661,12 +661,12 @@ Uint PhraseTable::countAdirScoreColumns(const char* multi_prob_TM_filename)
    string physical_filename;
    isReversed(multi_prob_TM_filename, &physical_filename);
    iMagicStream in(physical_filename, true);  // make this a silent stream
-   if ( in.bad() ) return 0;
+   if ( in.fail() ) return 0;
    string ph1, ph2, prob_str, ascore_str; //boxing
    bool blank = true;
-   Uint lineNo;
+   Uint lineNo = 0;
    // This reads one line and returns the list of probs into prob
-   while ( blank && !in.eof() )
+   while ( blank && in.good() )
       readLine(in, ph1, ph2, prob_str, ascore_str, blank, multi_prob_TM_filename, lineNo); //boxing
    if ( blank ) {
       error(ETWarn, "No data lines found in multi-prob phrase table %s",
