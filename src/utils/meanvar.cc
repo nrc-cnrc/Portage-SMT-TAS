@@ -32,7 +32,7 @@ Input is a column of numbers.\n\
 Options:\n\
 \n\
 -d   Standard deviation instead of variance\n\
--c   Use a confidence interval of ci [.95]\n\
+-c   Use a confidence interval of ci (use with -s) [.95]\n\
 -s   Use ns resampling runs, 0 means don't calculate conf intervals [0]\n\
 ";
 

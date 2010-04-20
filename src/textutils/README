@@ -1,0 +1,27 @@
+This directory, textutils/, contains generic or basic, non-linguistic text
+processing utilities.  In contrast, preprocessing/ contains linguistically
+motived text processing utilities.
+
+Catalog of programs in this directory
+-------------------------------------
+
+Note: .cc extensions are in parentheses, because you should leave out the .cc
+when you invoke the program.
+
+File name             Programmer  Description
+---------             ----------  -----------
+
+asciify (.cc)                 GF  Remap non-ascii characters.
+crlf2lf.sh                    MS  Convert CRLF (DOS-style) line endings to LF (UNIX-style).
+get_voc (.cc)                 GF  Extract a vocabulary from a tokenized file.
+lc-latin.pl                   GF  Map iso-latin text to lowercase, in any locale (it hopes).
+lc-utf8.pl                    EJ  Map utf8 text to lowercase, regardless of your locale.
+lines.py                      NU  Extract the given lines from a file.
+normalize-unicode.pl          EJ  Normalize unicode input into canonical representations.
+ridbom.sh                     MS  Remove the byte-order marker (BOM) from UTF8 input.
+select-line                   GF  Get a given line from a text.
+strip_non_printing (.cc)      SL  Remove non-printing characters.
+strip-parallel-blank-lines.pl GF  Strip parallel blank lines from two line-aligned files.
+uc-first.pl                   GF  Map line-initial character to uppercase in iso-latin text.
+utf8_casemap (.cc)            GF  Case conversion for UTF8 text.
+utf8_filter (.cc)             HJ  Sanitize text following a strict definition of utf8.

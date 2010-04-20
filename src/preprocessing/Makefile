@@ -14,9 +14,8 @@ OBJECTS = \
 LIBRARY = libportage_preprocessing
 
 PROGRAMS = \
-	asciify \
-        map_number \
-        sample_parallel_text \
+	map_number \
+	sample_parallel_text \
 	ssal
 
 DYNLIBS= $(LIBICU)

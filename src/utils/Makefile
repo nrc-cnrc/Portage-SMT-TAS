@@ -50,15 +50,11 @@ PROGRAMS = $(TESTPROGS) \
         bin_class_stats \
         bloater \
         bloater_pthread \
-        get_voc \
         good_turing_estm \
         iroc_exp \
         meanvar \
         merge_counts \
         portage_info \
-        strip_non_printing \
-        utf8_casemap \
-        utf8_filter \
         wc_stats
 
 BINSCRIPTS = \
@@ -67,15 +63,12 @@ BINSCRIPTS = \
         append-uniq.pl \
         best-rr-val \
         combine.pl \
-        crlf2lf.sh \
         cvs-status-summary.pl \
         diff-round.pl \
         expand-auto.pl \
         filter-for-giza.pl \
         filter-latin.pl \
         getcolumn.sh \
-        lc-latin.pl \
-        lc-utf8.pl \
         li-sort.sh \
         load-balancing.pl \
         monitor-process.sh \
@@ -94,23 +87,19 @@ BINSCRIPTS = \
         remove_stop.pl \
         removewords.pl \
         reverseffvals.pl \
-        ridbom.sh \
         run-after.sh \
         run-parallel.sh \
         r-parallel-d.pl \
         r-parallel-worker.pl \
         second-to-hms.pl \
-        select-line \
-        select-lines \
         sh_utils.sh \
         sort-by-length.pl \
         split-listed.pl \
         stableuniq.pl \
         stableuniqffvals.pl \
         sum.pl \
-	time-mem \
+        time-mem \
         trans-search.pl \
-        uc-first.pl \
         uncombine.pl \
         which-test.sh
 
@@ -136,5 +125,4 @@ legacy_test_trie: tests/legacy/test_trie tests/data/test_trie.in.txt \
 # Some programs need extra dynamic libraries
 bloater: DYNLIBS += -lpthread
 bloater_pthread: DYNLIBS += -lpthread
-utf8_casemap: DYNLIBS += $(LIBICU)
 tests/test_casemap_strings: DYNLIBS += $(LIBICU)

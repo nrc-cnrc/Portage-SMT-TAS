@@ -29,7 +29,7 @@ new_install:
 # DIRECTORY DEPENDENCIES section below.
 SUBDIRS = adaptation api canoe confidence distortion eval \
           lm logging preprocessing rescoring \
-          tm tpt truecasing 
+          tm tpt truecasing textutils
 
 # Additional directories listed here are only compiled if explicitly
 # specified.  Use this for modules in development that are not ready to be

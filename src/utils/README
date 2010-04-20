@@ -1,5 +1,8 @@
-Catalog of files in this directory
-----------------------------------
+Catalog of files and programs in this directory
+-----------------------------------------------
+
+Note: the .cc extension of executable c++ programs is in parentheses, because
+you should leave out the .cc when you invoke the program.
 
 File name             Programmer  Description
 ---------             ----------  -----------
@@ -10,14 +13,13 @@ append-uniq.pl                SL  Append parallel non duplicate lines.
 arg_reader.{cc,h}             GF  Argument processing for C++ programs.
 bc_stats.{cc,h}               GF  Statistics over binary classification results.
 best-rr-val                   GF  Pick out the best line in a rescore-results file.
-bin_class_stats.cc            GF  Statistics over binary classification results (program).
-bloater.cc                    GF  Allocate memory until death occurs.
+bin_class_stats (.cc)         GF  Statistics over binary classification results (program).
+bloater (.cc)                 GF  Allocate memory until death occurs.
 bootstrap.h                   GF  Bootstrap resampling for confidence intervals.
 build_devfile.pl              FS  Randomly extract a dev file from a corpus.
 casemap_strings.{cc,h}        GF  Locale-aware case-mapping.
 combine.pl                    AT  Combine files by interleaving lines.
 cvs-status-summary.pl         EJ  Compact summary of cvs status making stuff stand out.
-crlf2lf.sh                    MS  Convert CRLF (DOS-style) line endings to LF (UNIX-style).
 diff-round.pl                 EJ  Compare ff. files, ignoring rounding differences.
 docid.{cc,h}                  GF  Mapping from sentence indexes to document names
 errors.{cc,h}                 GF  Simple exception and error-message class.
@@ -27,23 +29,21 @@ file_utils.{cc,h}             GF  File utility routines and classes (add to me!)
 filter-for-giza.pl            MS  Filter training corpus for use with GIZA++.
 filter-latin.pl               GF  Filter invalid characters from an iso-latin1 encoded file.
 getcolumn.sh                  AT  Get a column from a file, similar to cut.
-get_voc.cc                    GF  Extract a vocabulary from a tokenized file.
 gfmath.{cc,h}                 GF  log2 and exp2, and that's all!
 gfstats.{cc,h}                GF  Mean, var, sdev on anything you can iterate over.
 good_turing.{cc,h}            GF  Good-Turing adjustment on event counts.
-good_turing_estm.cc           GF  Good-Turing adjustment on event counts (program).
+good_turing_estm (.cc)        GF  Good-Turing adjustment on event counts (program).
 histogram_fit.{cc,h}          GF  Histogram data fitting.
 hmm.{cc,h}                    EJ  Generic HMM library.
-iroc_exp.cc                   GF  You will never need to use this program.
+iroc_exp (.cc)                GF  You will never need to use this program.
 lazy_stl.h                    EJ  Wrapper for some STL methods often called the same way.
-lc-latin.pl                   GF  Map iso-latin text to lowercase, in any locale (it hopes).
 levenshtein.h                 NU  Calculate Levenshtein alignments and distances.
 li-sort.sh                    GF  Locale-independent sort.
 load-balancing.pl             SL  Split input into blocks in decreasing order of "hardness".
 ls_poly_fit.{cc,h}            GF  Least-squares polynomial curve fitting.
 MagicStream.{cc,h}            SL  Transparently open pipes and compressed files.
 matrix_solver.{cc,h}          GF  Solve simple matrix equations.
-meanvar.cc                    GF  Mean & variance of a set of numbers, with confidence.
+meanvar (.cc)                 GF  Mean & variance of a set of numbers, with confidence.
 monitor-process.sh            EJ  Monitor a process's memory and CPU usage.
 mteval2ospl.pl                GF  Convert NIST MT text to one-sent-per-line, documentwise.
 mteval2ospl.sed               AT  Convert NIST MT text to one-sent-per-line.
@@ -59,7 +59,7 @@ perm_iterator.{cc,h}          AT  Iterate over permutations.
 portage_defs.{cc,h}           GF  Some idiosyncratic definitions.
 printCopyright.h              SL  Display the Crown Copyright notice.
 process-memory-usage.pl       SL  Tally the memory usage of a process tree.
-prog.cc                       GF  C++ program template.
+prog (.cc)                    GF  C++ program template.
 prog.gnuplot                  GF  Gnuplot program template.
 prog.pl                       EJ  Perl program template.
 prog.sh                       EJ  Bash program template.
@@ -72,14 +72,11 @@ randomly-choose-n-nums        GF  Does a little bit more.
 remove_stop.pl                MA  Remove words in a given list from tokenized text.
 removewords.pl                AT  Remove words in a given list from tokenized text.
 reverseffvals.pl              MA  Reverse something to do with ffvals.
-ridbom.sh                     MS  Remove the byte-order marker (BOM) from UTF8 input.
 run-after.sh                  EJ  Run a job once another job has finished.
 run-parallel.sh               EJ  Run a job suite using the deamon/worker system.
 r-parallel-d.pl               PP/EJ  Deamon for run-parallel.sh.
 r-parallel-worker.pl          PP/EJ  Execute tasks obtained from r-parallel-d.pl
-sample_parallel_text.cc       GF  Extract a subsample from a parallel text.
-select-line                   GF  Get a given line from a text.
-select-lines                  GF  Get a set of given lines from a text (VERY slow).
+sample_parallel_text (.cc)    GF  Extract a subsample from a parallel text.
 simple_histogram.h            SL  Simple histogram building/displaying class.
 sloth.sh                      GF  Script to Lower Overhead when Testing Hypotheses
 sort-by-length.pl             EJ  Sort a text file by line length.
@@ -90,23 +87,20 @@ string_hash.h                 GF  Hash function for strings, for g++ hash_* clas
 strip-markup.pl               GF  Strips <markup like this> from a text.
 str_utils.{cc,h}              GF  String utility routines and classes (add to me!).
 sum.pl                        GF  Sum a column of numbers.
-tester.cc                     GF  Test some GF modules, sort of.
-testleven.cc                  NU  Unit testing for levenshtein.h.
-test_MagicStream.cc           SL  Unit testing for MagicStream.{cc,h}.
+testleven (.cc)               NU  Unit testing for levenshtein.h.
+test_MagicStream (.cc)        SL  Unit testing for MagicStream.{cc,h}.
 test_trie*                    EJ  Test the trie implementation.
 trans-search.pl               GF  Grep for an expression in parallel Hansard.
 trie*.{cc,h}                  EJ  A fast and compact trie representation.
-try.cc                        GF  A program shell for trying things out.
-uc-first.pl                   GF  Map line-initial character to uppercase in iso-latin text.
+try (.cc)                     GF  A program shell for trying things out.
 uncombine.pl                  GF  Pull apart an interleaved file created by combine.pl.
-utf8_casemap.cc               GF  Case conversion for UTF8 text.
 utf8_utils.{cc,h}             GF  UTF8 handling utilities.
 vcb.h                         GF  Simple virtual constructor mechanism.
 vector_map.h                  AT  Associative map built on STL vectors.
 voc.{cc,h}                    GF  Map words <-> indexes.
 voc_map.h                     EJ  Mapping between two Vocabs.
 vocab_filter.{cc,h}           SL  Vocab with filtering operations (for LMs).
-wc_stats.cc                   SL  A wc-like pgm that provides more info.
+wc_stats (.cc)                SL  A wc-like pgm that provides more info.
 which-test.sh                 EJ  Which-like program with reliable exit status.
 
 Memory pools:
