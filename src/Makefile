@@ -27,9 +27,20 @@ new_install:
 # These directories will be compiled by default
 # IMPORTANT NOTE: when you add a directory here, you must also add it to the
 # DIRECTORY DEPENDENCIES section below.
-SUBDIRS = adaptation api canoe confidence distortion eval \
-          lm logging preprocessing rescoring \
-          tm tpt truecasing textutils
+SUBDIRS = adaptation \
+	  api \
+	  canoe \
+	  confidence \
+	  distortion \
+	  eval \
+	  lm \
+	  logging \
+	  preprocessing \
+	  rescoring \
+	  tm \
+	  tpt \
+	  truecasing \
+	  textutils
 
 # Additional directories listed here are only compiled if explicitly
 # specified.  Use this for modules in development that are not ready to be
@@ -90,6 +101,7 @@ lm:             $(call calc_deps,lm)
 logging:        $(call calc_deps,logging)
 preprocessing:  $(call calc_deps,preprocessing)
 rescoring:      $(call calc_deps,rescoring)
+textutils:      $(call calc_deps,textutils)
 tm:             $(call calc_deps,tm)
 tpt:            $(call calc_deps,tpt)
 truecasing:     $(call calc_deps,truecasing)
