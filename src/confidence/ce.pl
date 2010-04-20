@@ -141,7 +141,8 @@ $stats = 0 unless defined $stats;
 $verbose = 0 unless defined $verbose;
 $debug = 0 unless defined $debug;
 
-my $model = CE::model->new(load=>$model_name, verbose=>$verbose, debug=>$debug);
+my $model = CE::model->new(load=>$model_name, tmpdir=>$data_dir, 
+                           verbose=>$verbose, debug=>$debug);
 $model->modelPath($path) if $path;
 $model->getData($data_dir, with_target=>$stats);
 if ($stats) {

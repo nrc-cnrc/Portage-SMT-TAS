@@ -120,12 +120,14 @@ unless something goes wrong, or if the C<-dir=D> option is specified.
 
 =item -test=R         Compute prediction accuracy statistics based on reference translation file F<R>.
 
+=item -logdir=D       Specify alternate log directory for C<plog.pl>.
+
 =back
+
 
 =head2 Training Options
 
 =over 1
-
 
 =item -train          Training mode
 
@@ -137,16 +139,18 @@ unless something goes wrong, or if the C<-dir=D> option is specified.
 
 =back
 
+
 =head2 Other stuff
 
 =over 1
-
 
 =item -verbose        Be verbose
 
 =item -debug          Print debugging info
 
 =item -dryrun         Don't do anything, just print the commands
+
+=item -help,-h        Print help message and exit
 
 =back
 
@@ -182,6 +186,11 @@ Michel Simard
 
 =cut
 
+## Developper's note: There is also a -skipto=S option, which can be
+## used when debugging to skip to a specific processing stage.  This
+## is implemented via Perl's goto mechanism.  Current stages are IN,
+## PREP, TRANS, POST, CE, OUT and CLEANUP.
+
 use strict;
 
 BEGIN {
@@ -202,10 +211,11 @@ use File::Temp qw(tempdir);
 use File::Path qw(rmtree);
 use File::Spec;
 
-our ($h, $help, $verbose, $debug, $desc, $tmem, $train, $plugin,
-     $test, $src, $tgt, $tmx, $ttx, $xsrc, $xtgt, $k, $norm, $dir, $path,
-     $out, $filter, $dryrun, $n, $nl, $notok, $nolc,
-     $tclm, $tcmap, $tctp, $skipto);
+our($help, $h, $verbose, $debug);
+our($desc, $tmem, $train, $plugin,
+    $test, $src, $tgt, $tmx, $ttx, $xsrc, $xtgt, $k, $norm, $dir, $path,
+    $out, $filter, $logdir, $dryrun, $n, $nl, $notok, $nolc,
+    $tclm, $tcmap, $tctp, $skipto);
 
 if ($h or $help) {
     -t STDOUT ? system "pod2usage -verbose 3 $0" : system "pod2text $0";
@@ -238,6 +248,7 @@ $tclm = 0 unless defined $tclm;
 $tcmap = 0 unless defined $tcmap;
 $skipto = "" unless defined $skipto;
 $plugin = "" unless defined $plugin;
+$logdir = "" unless defined $logdir;
 
 
 die "Can't both -train and -test" if $train and $test;
@@ -255,6 +266,8 @@ if ($train) {
     $ref_text = $test;
 }
 
+verbose("[Processing input text \"${input_text}\"]\n");
+
 # Locate Plugins directory
 my $plugin_dir;
 if ($plugin) {
@@ -267,18 +280,24 @@ if ($plugin) {
 # Make working directory
 
 my $keep_dir = $dir;
+my $plog_file;
+
 if ($dryrun) {
     $dir = "ce_work_temp_dir" unless $dir;
 } elsif ($skipto) {
     die "Use -dir with -skipto" unless $dir;
     die "Unreadable directory $dir with -skipto" unless -d $dir;
-} elsif ($dir) {
-    if (not -d $dir) {
-        mkdir $dir or die "Can't make directory $dir: errno=$!";
-    }
 } else {
-    $dir = tempdir('ce_work_XXXXXX', DIR=>".", CLEANUP=>0);
+    if ($dir) {
+        if (not -d $dir) {
+            mkdir $dir or die "Can't make directory $dir: errno=$!";
+        }
+    } else {
+        $dir = tempdir('ce_work_XXXXXX', TMPDIR=>1, CLEANUP=>0);
+    }
+    $plog_file = plogCreate($input_text) unless $train; # Don't log when training
 }
+verbose("[Work directory: \"${dir}\"]\n");
 
 # File names
 
@@ -320,6 +339,8 @@ my $T_tok = "${dir}/T.tok";     # Tokenized TMem target
 # --> lowercase
 my $t_tok = "${dir}/t.tok";     # Lowercased tokenized TMem target
 
+
+# Skipto option
 
 goto $skipto if $skipto;
 
@@ -416,6 +437,7 @@ OUT:{
 # Cleanup
 
 CLEANUP:{
+    plogUpdate($plog_file, $Q_pre, 'success');
     if (not $keep_dir) {
         verbose("[Cleaning up and deleting work directory $dir]\n");
         rmtree($dir);
@@ -424,6 +446,9 @@ CLEANUP:{
 
 
 exit 0;
+
+
+## Subroutines
 
 sub copy {
     my ($in, $out) = @_;
@@ -435,8 +460,54 @@ sub plugin {
     my ($name, $in, $out) = @_;
     my $old_path = $ENV{PATH};
     $ENV{PATH} = "${plugin_dir}:".$ENV{PATH};
-    call("${name}_plugin < \"${in}\" > \"${out}\"", $out);
+    my $actual_prog = callOutput("which ${name}_plugin"); # for the benefit of verbose
+    call("${actual_prog} < \"${in}\" > \"${out}\"", $out);
     $ENV{PATH} = $old_path;
+}
+
+sub plogCreate {
+    my ($job_name) = @_;
+    my $plog_file;
+
+    if ($dryrun) {
+        $plog_file = "dummy-log";
+    } else {
+
+        my @plog_opt = ();
+        push @plog_opt, "-verbose" if $verbose;
+        push @plog_opt, "-dir=\"$logdir\"" if $logdir;
+
+        my $cmd = sprintf("plog.pl -create %s \"${job_name}\"", join(" ", @plog_opt));
+        $plog_file = callOutput($cmd);
+    }
+    
+    return $plog_file;
+}
+
+sub plogUpdate {
+    my ($plog_file, $infile, $status) = @_;
+
+    return unless $plog_file;   # means "no logging"
+
+    return if $dryrun;
+
+    my $wc = $infile ? wordCount($infile) : 0;
+    my @plog_opt = ();
+    push @plog_opt, "-verbose" if $verbose;
+    push @plog_opt, "-dir=\"$logdir\"" if $logdir;
+    
+    my $cmd = sprintf("plog.pl -update %s \"${plog_file}\" $wc $status", join(" ", @plog_opt));
+    # Don't use call(): potential recursive loop!!
+    system($cmd)==0 
+        or warn "Command \"$cmd\" failed: $?";
+}
+
+sub wordCount {
+    my ($in) = @_;
+
+    my $cmd = "wc --words < \"${in}\"";
+    my $wc = callOutput($cmd);
+    return $wc;
 }
 
 sub tokenize {
@@ -494,9 +565,29 @@ sub call {
     }
 }
 
+sub callOutput {
+    my ($cmd) = @_;
+    
+    my ($fh, $fname) = File::Temp->tempfile("callOutput-XXXXXX", UNLINK=>1);
+    close $fh;
+
+    system("$cmd > $fname")==0
+        or cleanupAndDie(explainSystemRC($?,$cmd,$0));
+
+    open($fh, "<$fname") or die "Can't open temp file $fname for reading";
+    my @cmdout = <$fh>;
+    close $fh;
+
+    my $cmdout = join("", @cmdout);
+    chomp $cmdout;
+
+    return $cmdout;
+}
+
 sub cleanupAndDie {
     my ($message, @files) = @_;
 
+    plogUpdate($plog_file, undef, 'failure');
     unlink @files;
     die $message;
 }

@@ -137,8 +137,9 @@ sub initialize {
     $this->{model_dir} = File::Spec->rel2abs("."); # internal knowledge of where we are
     $this->{model_path} = undef; # user-specified search path for feature argument files
     $this->{dataset} = undef;
+    my $tmpdir = $this->{tmpdir} || File::Spec->tmpdir();
 
-    my $dir = $this->{tmp_dir} = tempdir('ce_model_XXXXXX', DIR=>".", CLEANUP=>1);
+    my $dir = $this->{tmp_dir} = tempdir('ce_model_XXXXXX', DIR=>$tmpdir, CLEANUP=>1);
     $this->debug("[[Model temp dir: $dir]]\n");
     $this->{model_file} = "${dir}/model";
     $this->{norm_file} = "${dir}/norm";

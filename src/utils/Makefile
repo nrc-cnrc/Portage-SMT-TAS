@@ -60,21 +60,14 @@ PROGRAMS = $(TESTPROGS) \
 BINSCRIPTS = \
         alignment-stats.pl \
         all-best-rr-vals \
-        append-uniq.pl \
         best-rr-val \
-        combine.pl \
         cvs-status-summary.pl \
         diff-round.pl \
-        filter-for-giza.pl \
-        filter-latin.pl \
-        getcolumn.sh \
         load-balancing.pl \
         monitor-process.sh \
         mteval2ospl.pl \
         mteval2ospl.sed \
-        ngrams.pl \
         ospl2mteval.pl \
-        parallel-uniq.pl \
         parallelize.pl \
         parse-monitor.pl \
         process-bind.sh \
@@ -82,23 +75,15 @@ BINSCRIPTS = \
         psub \
         randomly-choose-n-args.pl \
         randomly-choose-n-nums \
-        remove_stop.pl \
-        removewords.pl \
         reverseffvals.pl \
         run-after.sh \
         run-parallel.sh \
         r-parallel-d.pl \
         r-parallel-worker.pl \
-        second-to-hms.pl \
         sh_utils.sh \
-        sort-by-length.pl \
-        split-listed.pl \
-        stableuniq.pl \
-        stableuniqffvals.pl \
         sum.pl \
         time-mem \
         trans-search.pl \
-        uncombine.pl \
         which-test.sh
 
 PERL_LIBS=portage_utils.pm
