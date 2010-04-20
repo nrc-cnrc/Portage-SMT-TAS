@@ -14,9 +14,14 @@ PROGRAMS = \
 	utf8_casemap \
 	utf8_filter
 
-DYNLIBS= $(LIBICU)
-
 BINSCRIPTS = $(wildcard *.sh *.pl *.py) \
+	preprocess_plugin \
+	predecode_plugin \
+	postdecode_plugin \
+	postprocess_plugin \
 	select-line
 
 include ../build/Makefile.incl
+
+# Some programs need extra dynamic libraries
+utf8_casemap: DYNLIBS += $(LIBICU)
