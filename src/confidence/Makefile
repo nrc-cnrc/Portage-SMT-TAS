@@ -15,11 +15,7 @@ BINSCRIPTS = \
         ce_train.pl \
         ce_translate.pl \
         ce_gen_features.pl \
-        ce_tmx.pl \
-        preprocess_plugin \
-        predecode_plugin \
-        postdecode_plugin \
-        postprocess_plugin
+        ce_tmx.pl
 
 # See PERL_LIB_DIR line at end of Makefile
 PERL_LIBS = \

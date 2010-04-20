@@ -2,7 +2,7 @@ Catalog of files and programs in this directory
 -----------------------------------------------
 
 Note: the .cc extension of executable c++ programs is in parentheses, because
-you should leave out the .cc when you invoke the program.
+you leave it out when you invoke the program.
 
 File name             Programmer  Description
 ---------             ----------  -----------
@@ -24,7 +24,6 @@ diff-round.pl                 EJ  Compare ff. files, ignoring rounding differenc
 docid.{cc,h}                  GF  Mapping from sentence indexes to document names
 errors.{cc,h}                 GF  Simple exception and error-message class.
 exception_dump.h              SL  Macro for printing a message when dying on an exception
-expand-auto.pl                EJ  Like expand, with automatically calculated tab stops.
 file_utils.{cc,h}             GF  File utility routines and classes (add to me!).
 filter-for-giza.pl            MS  Filter training corpus for use with GIZA++.
 filter-latin.pl               GF  Filter invalid characters from an iso-latin1 encoded file.
@@ -38,7 +37,6 @@ hmm.{cc,h}                    EJ  Generic HMM library.
 iroc_exp (.cc)                GF  You will never need to use this program.
 lazy_stl.h                    EJ  Wrapper for some STL methods often called the same way.
 levenshtein.h                 NU  Calculate Levenshtein alignments and distances.
-li-sort.sh                    GF  Locale-independent sort.
 load-balancing.pl             SL  Split input into blocks in decreasing order of "hardness".
 ls_poly_fit.{cc,h}            GF  Least-squares polynomial curve fitting.
 MagicStream.{cc,h}            SL  Transparently open pipes and compressed files.

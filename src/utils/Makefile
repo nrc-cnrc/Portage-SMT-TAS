@@ -65,11 +65,9 @@ BINSCRIPTS = \
         combine.pl \
         cvs-status-summary.pl \
         diff-round.pl \
-        expand-auto.pl \
         filter-for-giza.pl \
         filter-latin.pl \
         getcolumn.sh \
-        li-sort.sh \
         load-balancing.pl \
         monitor-process.sh \
         mteval2ospl.pl \
