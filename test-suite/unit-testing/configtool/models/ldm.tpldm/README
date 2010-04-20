@@ -1,0 +1,14 @@
+
+The six files bkoff, tppt, cbk, src.tdx, trg.tdx and trg.repos.dat, together,
+constitute a single TPLDM model.  You must keep them together in a directory
+called NAME.tpldm for the model to work properly.  They cannot be used
+compressed.
+
+To use this model in canoe, put two lines like these is your canoe.ini file:
+   [lex-dist-model-file] NAME.tpldm
+   [distortion-model] WordDisplacement:back-lex#m:back-lex#s:back-lex#d:fwd-lex#m:fwd-lex#s:fwd-lex#d
+And optionally (but recommended)
+   [dist-phrase-swap]
+   [dist-limit-ext]
+
+

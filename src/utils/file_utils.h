@@ -169,6 +169,13 @@ void error_if_exists(const char* filename, const char* error_msg);
 bool check_if_exists(const string& filename, bool accept_compressed = true);
 
 /**
+ * Verifies if a directory exists.
+ * @param dirname           directory name to check
+ * @return Returns true if the directory exists.
+ */
+bool is_directory(const string& dirname);
+
+/**
  * Like basename and dirname, will decompose the original filename into its
  * path and file
  * @param[in]  filename  original file name to decompose.

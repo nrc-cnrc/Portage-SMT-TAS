@@ -1,0 +1,8 @@
+Error: Directory found when file expected for ttable-multi-prob parameter: models/cpt.tppt
+NOTE: use the ttable-tppt parameter to specify a TPPT directory.
+Error: Directory found when file expected for LDM: models/ldm.tpldm.bad
+NOTE: for a TPLDM, the directory name must end with '.tpldm'.
+Warning: File 'models/cpt.tppt.bad.tppt' does not exist.
+Error: Can't access TPPT: models/cpt.tppt.bad
+Error: Directory found when file expected for LM: models/lm.tplm.bad
+NOTE: for a TPLM, the directory name must end with '.tplm'.

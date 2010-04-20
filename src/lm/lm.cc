@@ -64,7 +64,7 @@ PLM::Creator::Creator(const string& lm_physical_filename,
 
 bool PLM::Creator::checkFileExists()
 {
-   return check_if_exists(lm_physical_filename);
+   return (check_if_exists(lm_physical_filename) && !is_directory(lm_physical_filename));
 }
 
 Uint64 PLM::Creator::totalMemmapSize()

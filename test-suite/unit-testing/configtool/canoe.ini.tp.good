@@ -1,0 +1,19 @@
+[lex-dist-model-file] models/ldm.tpldm
+[ttable-tppt] models/cpt.tppt
+[lmodel-file] models/lm.tplm
+[weight-d] 0.01017835736:-0.1810668558:0.02064814046:-0.005209894385:-0.5552810431:0.01621774957:-0.03451742604
+[weight-w] 0.07968005538
+[weight-l] 0.9360384345
+[weight-t] 1.679626052
+[weight-f] 0.0776925889
+[ttable-limit] 30
+[ttable-threshold] 0
+[stack] 20000
+[beam-threshold] 0.001
+[distortion-limit] 7
+[dist-limit-ext]
+[dist-phrase-swap]
+[distortion-model] WordDisplacement:back-lex#m:back-lex#s:back-lex#d:fwd-lex#m:fwd-lex#s:fwd-lex#d
+[segmentation-model] none
+[bypass-marked]
+[cube-pruning]

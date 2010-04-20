@@ -14,6 +14,8 @@
 
 #include <cerrno>
 #include <climits>
+#include <sys/stat.h>
+
 #include "portage_defs.h"
 #include "file_utils.h"
 #include "errors.h"
@@ -105,6 +107,14 @@ bool Portage::check_if_exists(const string& filename, bool accept_compressed)
       }
    }
    return true;
+}
+
+bool Portage::is_directory(const string& dirname)
+{
+   struct stat stat_buf;
+   if (stat(dirname.c_str(), &stat_buf) == 0 && S_ISDIR(stat_buf.st_mode))
+      return true;
+   return false;
 }
 
 void Portage::DecomposePath(const string& filename, string* path, string* file)

@@ -707,16 +707,28 @@ void CanoeConfig::check_all_files() const
          if (it->tconv == "stringVect") {
             vector<string>& v = *((vector<string>*)(it->val));
             for (vector<string>::const_iterator f(v.begin()); f!=v.end(); ++f) {
-               if (!check_if_exists(*f) && f->find("<src>")>=f->size()) {
-                  cerr << "can't access: " << *f << endl;
+               if (f->find("<src>") < f->size()) continue;
+               if (!check_if_exists(*f)) {
+                  cerr << "Error: Can't access: " << *f << endl;
+                  ok = false;
+               } else if (is_directory(*f)) {
+                  cerr << "Error: Directory found when file expected for "
+                       << it->names[0] << " parameter: " << *f << endl;
+                  if (it->names[0] == "ttable-multi-prob")
+                     cerr << "NOTE: use the ttable-tppt parameter to specify a TPPT directory." << endl;
                   ok = false;
                }
             }
          }
          else if (it->tconv == "string") {
             const string& f = *(string*)(it->val);
-            if (!f.empty() && !check_if_exists(f) && f.find("<src>")>=f.size()) {
-               cerr << "can't access: " << f << endl;
+            if (f.empty() || f.find("<src>") < f.size()) continue;
+            if (!check_if_exists(f)) {
+               cerr << "Error: Can't access: " << f << endl;
+               ok = false;
+            } else if (is_directory(f)) {
+               cerr << "Error: Directory found when file expected for "
+                    << it->names[0] << " parameter: " << f << endl;
                ok = false;
             }
          }
@@ -726,7 +738,12 @@ void CanoeConfig::check_all_files() const
          vector<string>& v = *((vector<string>*)(it->val));
          for (vector<string>::const_iterator f(v.begin()); f!=v.end(); ++f) {
             if (!PLM::checkFileExists(*f)) {
-               cerr << "can't access lm: " << *f << endl;
+               if (!is_directory(*f))
+                  cerr << "Error: Can't access LM: " << *f << endl;
+               else {
+                  cerr << "Error: Directory found when file expected for LM: " << *f << endl;
+                  cerr << "NOTE: for a TPLM, the directory name must end with '.tplm'." << endl;
+               }
                ok = false;
             }
          }
@@ -736,7 +753,7 @@ void CanoeConfig::check_all_files() const
          vector<string>& v = *((vector<string>*)(it->val));
          for (vector<string>::const_iterator f(v.begin()); f!=v.end(); ++f) {
             if (!TPPT::checkFileExists(*f)) {
-               cerr << "can't access TPPT: " << *f << endl;
+               cerr << "Error: Can't access TPPT: " << *f << endl;
                ok = false;
             }
          }
@@ -747,12 +764,16 @@ void CanoeConfig::check_all_files() const
          for (vector<string>::const_iterator f(v.begin()); f!=v.end(); ++f) {
             if (isSuffix(".tpldm", *f)) {
                if (!TPPT::checkFileExists(*f)) {
-                  cerr << "can't access TPLDM: " << *f << endl;
+                  cerr << "Error: Can't access TPLDM: " << *f << endl;
                   ok = false;
                }
             } else {
                if (!check_if_exists(*f)) {
-                  cerr << "can't access LDM / TPLDM: " << *f << endl;
+                  cerr << "Error: Can't access LDM: " << *f << endl;
+                  ok = false;
+               } else if (is_directory(*f)) {
+                  cerr << "Error: Directory found when file expected for LDM: " << *f << endl;
+                  cerr << "NOTE: for a TPLDM, the directory name must end with '.tpldm'." << endl;
                   ok = false;
                }
             }

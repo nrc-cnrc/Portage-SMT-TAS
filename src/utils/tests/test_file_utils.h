@@ -61,6 +61,23 @@ public:
       unlink(tmp_file_name);
    }
 
+   void test_is_directory() {
+      TS_ASSERT(is_directory("."));
+      char cwd[1024];
+      TS_ASSERT(is_directory(getcwd(cwd, 1024)));
+      char tmp_file_name[] = "./tmp_test_is_directoryXXXXXX";
+      int tmp_fd = mkstemp(tmp_file_name);
+      assert(tmp_fd >= 0);
+      close(tmp_fd);
+      TS_ASSERT(!is_directory(tmp_file_name));
+      unlink(tmp_file_name);
+      TS_ASSERT(!is_directory(tmp_file_name));
+      symlink(cwd, tmp_file_name);
+      TS_ASSERT(is_directory(tmp_file_name));
+      unlink(tmp_file_name);
+      TS_ASSERT(!is_directory(tmp_file_name));
+   }
+
    void testGetAppPath() {
       string my_app_path = GetAppPath();
       TS_ASSERT_EQUALS(BaseName(my_app_path).substr(0,5), "test_");
