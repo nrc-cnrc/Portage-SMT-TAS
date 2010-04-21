@@ -74,7 +74,10 @@ PROGRAMS=$(TESTPROGS) \
 	mix_phrasetables \
 	phrase_tm_align
 
-BINSCRIPTS=nbest2rescore.pl canoe-parallel.sh
+BINSCRIPTS= \
+	canoe-parallel.sh \
+	canoe-timing-stats.pl \
+	nbest2rescore.pl
 
 DOCUMENTS=canoe.pdf
 
