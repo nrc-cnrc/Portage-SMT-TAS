@@ -70,6 +70,7 @@ BINSCRIPTS = \
         ospl2mteval.pl \
         parallelize.pl \
         parse-monitor.pl \
+        plog.pl \
         process-bind.sh \
         process-memory-usage.pl \
         psub \
