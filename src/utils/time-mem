@@ -86,10 +86,10 @@ parseCommand() {
 
    [[ $DEBUG ]] && echo "<D> parseCommand: $WALL_TIME : $CPU_TIME_LIST : $VMEM_LIST : $RAM_LIST" >&2
 
-   MON_VSZ=`echo $VMEM_LIST | egrep -o "[0-9.]+" | sum.pl -m`
-   MON_RSS=`echo $RAM_LIST | egrep -o "[0-9.]+" | sum.pl -m`
-   CPU_TIME=`echo $CPU_TIME_LIST | egrep -o "[0-9.]+" | sum.pl`
-   WALL_TIME=`echo $WALL_TIME_LIST | egrep -o "[0-9.]+" | sum.pl`
+   MON_VSZ=`echo $VMEM_LIST | sum.pl -l -m`
+   MON_RSS=`echo $RAM_LIST | sum.pl -l -m`
+   CPU_TIME=`echo $CPU_TIME_LIST | sum.pl -l`
+   WALL_TIME=`echo $WALL_TIME_LIST | sum.pl -l`
 
    RESULT="${ARG}TIME-MEM\tWALL TIME: ${WALL_TIME}s\tCPU TIME: ${CPU_TIME}s\tVSZ: ${MON_VSZ}G\tRSS: ${MON_RSS}G"
    [[ $DEBUG ]] && echo -e "<D> $RESULT" >&2
@@ -125,10 +125,10 @@ reduce() {
 
    [[ $DEBUG ]] && echo "DEBUG reduce: $WALL_TIME_LIST : $CPU_TIME_LIST : $VMEM_LIST : $RAM_LIST" >&2
 
-   MON_VSZ=`echo $VMEM_LIST | egrep -o "[0-9.]+" | sum.pl -m`
-   MON_RSS=`echo $RAM_LIST | egrep -o "[0-9.]+" | sum.pl -m`
-   CPU_TIME=`echo $CPU_TIME_LIST | egrep -o "[0-9.]+" | sum.pl`
-   WALL_TIME=`echo $WALL_TIME_LIST | egrep -o "[0-9.]+" | sum.pl`
+   MON_VSZ=`echo $VMEM_LIST | sum.pl -l -m`
+   MON_RSS=`echo $RAM_LIST | sum.pl -l -m`
+   CPU_TIME=`echo $CPU_TIME_LIST | sum.pl -l`
+   WALL_TIME=`echo $WALL_TIME_LIST | sum.pl -l`
 
    RESULT="TIME-MEM\tWALL TIME: ${WALL_TIME}s\tCPU TIME: ${CPU_TIME}s\tVSZ: ${MON_VSZ}G\tRSS: ${MON_RSS}G"
    [[ $DEBUG ]] && echo -e "<D> $RESULT" >&2
