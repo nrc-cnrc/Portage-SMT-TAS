@@ -120,8 +120,6 @@ unless something goes wrong, or if the C<-dir=D> option is specified.
 
 =item -test=R         Compute prediction accuracy statistics based on reference translation file F<R>.
 
-=item -logdir=D       Specify alternate log directory for C<plog.pl>.
-
 =back
 
 
@@ -214,7 +212,7 @@ use File::Spec;
 our($help, $h, $verbose, $debug);
 our($desc, $tmem, $train, $plugin,
     $test, $src, $tgt, $tmx, $ttx, $xsrc, $xtgt, $k, $norm, $dir, $path,
-    $out, $filter, $logdir, $dryrun, $n, $nl, $notok, $nolc,
+    $out, $filter, $dryrun, $n, $nl, $notok, $nolc,
     $tclm, $tcmap, $tctp, $skipto);
 
 if ($h or $help) {
@@ -248,7 +246,6 @@ $tclm = 0 unless defined $tclm;
 $tcmap = 0 unless defined $tcmap;
 $skipto = "" unless defined $skipto;
 $plugin = "" unless defined $plugin;
-$logdir = "" unless defined $logdir;
 
 
 die "Can't both -train and -test" if $train and $test;
@@ -475,7 +472,6 @@ sub plogCreate {
 
         my @plog_opt = ();
         push @plog_opt, "-verbose" if $verbose;
-        push @plog_opt, "-dir=\"$logdir\"" if $logdir;
 
         my $cmd = sprintf("plog.pl -create %s \"${job_name}\"", join(" ", @plog_opt));
         $plog_file = callOutput($cmd);
@@ -494,7 +490,6 @@ sub plogUpdate {
     my $wc = $infile ? wordCount($infile) : 0;
     my @plog_opt = ();
     push @plog_opt, "-verbose" if $verbose;
-    push @plog_opt, "-dir=\"$logdir\"" if $logdir;
     
     my $cmd = sprintf("plog.pl -update %s \"${plog_file}\" $wc $status", join(" ", @plog_opt));
     # Don't use call(): potential recursive loop!!
