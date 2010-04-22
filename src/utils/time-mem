@@ -112,12 +112,12 @@ reduce() {
    do
       [[ $DEBUG ]] && echo "<Dr> $line" >&2
       # Skip commented lines.
-      if [[ $line =~ "^([^>]+):((P-RES-MON|TIME-MEM)>WALL TIME: ([0-9.]+)s>CPU TIME: ([0-9.]+)s>VSZ: ([0-9.]+)G>RSS: ([0-9.]+)G)" ]]; then
-         echo -e "$indent`basename ${BASH_REMATCH[1]}`:${BASH_REMATCH[2]}"
-         WALL_TIME_LIST=" $WALL_TIME_LIST ${BASH_REMATCH[4]}"
-         CPU_TIME_LIST="$CPU_TIME_LIST ${BASH_REMATCH[5]}"
-         VMEM_LIST="$VMEM_LIST ${BASH_REMATCH[6]}"
-         RAM_LIST="$RAM_LIST ${BASH_REMATCH[7]}"
+      if [[ $line =~ "^(\./)?([^>]+):((P-RES-MON|TIME-MEM)>WALL TIME: ([0-9.]+)s>CPU TIME: ([0-9.]+)s>VSZ: ([0-9.]+)G>RSS: ([0-9.]+)G)" ]]; then
+         echo -e "$indent${BASH_REMATCH[2]}:${BASH_REMATCH[3]}"
+         WALL_TIME_LIST=" $WALL_TIME_LIST ${BASH_REMATCH[5]}"
+         CPU_TIME_LIST="$CPU_TIME_LIST ${BASH_REMATCH[6]}"
+         VMEM_LIST="$VMEM_LIST ${BASH_REMATCH[7]}"
+         RAM_LIST="$RAM_LIST ${BASH_REMATCH[8]}"
       elif [[ $line =~ "(P-RES-MON|TIME-MEM)>WALL TIME:" ]]; then
          echo -e "$indent$line"
       fi
@@ -250,16 +250,11 @@ done
 # Make sure we detect failure in a serie of pipes.
 set -o pipefail;
 
-# Check if the command is a known executable that already produces time & mem data.
 pgm=`basename $1`
-if [[ $pgm == "rat.sh" || $pgm == "cat.sh" || $pgm == "cow.sh" || $pgm == "gen-jpt-parallel.sh" || $pgm == "canoe-parallel.sh" ]]; then
-   [[ $DEBUG ]] && echo "Parsing command $pgm" >&2
-   # These commands already produce the data, we only need to parse the data.
-   { { eval "${ARGUMENTS[@]}" || exit; sync; } 3>&1 1>&2 2>&3 || exit | parseCommand 2>&1; sync; } 3>&1 1>&2 2>&3
 
-# Ok we assume the user provided us with only files thus he wants us to do a
-# one line summary.
-elif [[ $TALLY ]]; then
+# The user specified -T(ally): they want a one line summary for each log file
+# provided
+if [[ $TALLY ]]; then
    [[ $META ]] && META="$META:"
    { for f in $*; do
       [[ $DEBUG ]] && echo "Processing $f" >&2
@@ -272,11 +267,17 @@ elif [[ $TALLY ]]; then
       fi
    done } \
    | second-to-hms.pl -r \
-   | sed 's/\t/>/g' \
+   | perl -pe 'while (s/^(>*)   /$1>/) {1}; s/\t/>/g' \
    | reduce \
-   | sed 's/>/\t/g' \
-   | sed "s/^P-RES-MON\|TIME-MEM/${META}TIME-MEM/" \
+   | perl -pe 'while (s/^(>*)>/$1   /) {1}; s/>/\t/g;
+               s/^P-RES-MON|^TIME-MEM/'"${META}"'TIME-MEM/;' \
    | second-to-hms.pl
+
+# Check if the command is a known executable that already produces time & mem data.
+elif [[ $pgm == "rat.sh" || $pgm == "cat.sh" || $pgm == "cow.sh" || $pgm == "gen-jpt-parallel.sh" || $pgm == "canoe-parallel.sh" ]]; then
+   [[ $DEBUG ]] && echo "Parsing command $pgm" >&2
+   # These commands already produce the data, we only need to parse the data.
+   { { eval "${ARGUMENTS[@]}" || exit; sync; } 3>&1 1>&2 2>&3 || exit | parseCommand 2>&1; sync; } 3>&1 1>&2 2>&3
 
 # The user wants to time a command that doesn't produce statistics and he's
 # asking us calculate the statistics for him.
