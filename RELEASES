@@ -14,9 +14,9 @@ license agreement for details.
                    (with a summary of important changes)
 
 v1.4
- This update primarily incorporates improvements intended to help the
- performance of Portage as an online translation service, as well as some
- scientific progress we've made in the last year.
+ This update incorporates improvements intended to help the performance of
+ Portage as an online translation service, as well as scientific progress we've
+ made in the last year.
 
  Note that PORTAGEshared has been renamed "Portage" with a version number,
  i.e., this package is now known as "Portage 1.4".  References to PORTAGEshared
@@ -36,7 +36,9 @@ v1.4
    once the server has traslated a few sentences, a significant speed gain can
    be observed as disk access becomes less and less necessary.  This technology
    is ideal for a live translation server, whether it is delivered as a web
-   service or otherwise.
+   service or otherwise.  Tightly packed models are integrated in the decoder,
+   the rescoring module, the confidence estimation module, the truecasing
+   module, i.e., everywhere these models can be used.
 
  - PortageLive.  Portage now comes ready to deploy as a translation server, via
    a web service using SOAP, via a web page, or connecting to the translation
@@ -53,12 +55,19 @@ v1.4
    gen-jpt-parallel.sh and invoke joint2cond_phrase_tables -reduce-mem to do
    run the estimation process in a small memory footprint.
 
- - Resource monitoring: The experimental framework now keeps track of resources
-   used at all stages of processing, to identify peek memory usage more
-   readily, and to be able to see where the time is spent.  The major scripts
-   in Portage track memory usage and CPU time: cow.sh, rat.sh, cat.sh,
-   run-parallel.sh, canoe-parallel.sh, etc.  The utility script time-mem can be
-   used to do the same for any other program or program suite.
+ - Experimental framework:
+   - The framework was enhanced in many ways, reflecting the changes in the
+     software, incorporating new modules, and following the evolution of the
+     recommended procedures.
+   - Resource monitoring: the framework now keeps track of resources used at
+     all stages of processing, to identify peek memory usage more readily, and
+     to be able to see where the time is spent.  The major scripts in Portage
+     track memory usage and CPU time: cow.sh, rat.sh, cat.sh, run-parallel.sh,
+     canoe-parallel.sh, etc.  The utility script time-mem is used to do the
+     same for other programs and program suites, and can be used outside
+     Portage as well.
+   - Tutorial: the framework-toy.pdf document has been revised to reflect
+     current code, and improved as a general tutorial for Portage.
 
  - New decoder features:
    - Adirectional scores for phrase pairs are now supported as decoder
@@ -116,6 +125,13 @@ v1.4
      bit cleaner, and p0/up0 can now be arbitrarily high, because the effective
      p0 is capped at .999.  (High p0/up0 have been found to be good for the
      phrase extraction process, so this is important).
+ - Sentence alignment (ssal):
+   - added support for IBM1 models and documented a multi-pass procedure for
+     producing improved sentence alignments.
+   - new hard boundaries within the input text allow handling a collection of
+     distinct documents collected together in a single file pair, as well as
+     the use of external sources of information such as section or paragraph
+     boundaries.
  - New phrase smoothers in gen_phrase_tables and joint2cond_phrase_tables:
    JointFreqs, alpha-smoothing option to RFSmoother and IndicatorSmoother
  - canoe decoder:
@@ -144,7 +160,8 @@ v1.4
    - binlm2arpalm converts an LM file from our binary format to the standard
      ARPA format.
    - ibmcat displays binary word-alignment model files in plain text.
-   - wc_stat is like wc but displays more statistics
+   - wc_stat is like wc but displays more statistics.
+   - al-diff.py compares different sentence alignments for a given text.
  - Save dependency information per source file during compilation instead of
    re-processing each file to generate Makefile.depends.
  - More unit-testing test suites.
@@ -155,6 +172,12 @@ v1.4
  - MagicStream: our library that handles reading and writing compressed files
    on the fly uses gzip by default, but now falls back to using zlib (via the
    boost::iostreams library) when gzip fails to start due to memory limits.
+ - New script canoe-timing-stats.pl helps track time spent loading models
+   versus time spent actually doing translation.
+ - New module textutils/ groups together utility scripts and programs for basic
+   text manipulation, making them easier to find.
+ - Truecaser: fixed issues for handling different encodings.
+ - Quench the Copyright notices that were printed much too often.
 
 v1.3 21.01.2009
  This update to PORTAGEshared is primarily intended to incorporate the new HMM
