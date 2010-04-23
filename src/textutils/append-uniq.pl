@@ -177,4 +177,5 @@ close(ADDFFVALS);
 
 print(STDERR "iniLine: $iniLine iniDup: $iniDup addedLine: $addedLine\n")
    if ($verbose > 1);
+print STDOUT "$iniLine + $addedLine = " . ($iniLine + $addedLine) . "\n";
 

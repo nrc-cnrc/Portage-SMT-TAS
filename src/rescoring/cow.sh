@@ -29,6 +29,8 @@ print_nrc_copyright cow.sh 2004
 export PORTAGE_INTERNAL_CALL=1
 
 COMPRESS_EXT=".gz"
+ALLTARGETS=alltargets.gz
+ALLFFVALS=allffvals.gz
 VERBOSE=
 FILTER=
 TTABLE_LIMIT=
@@ -478,13 +480,13 @@ fi
 
 export LC_ALL=C
 
-for FILE in $WORKDIR/foo.* $WORKDIR/alltargets $WORKDIR/allffvals \
+for FILE in $WORKDIR/foo.* $WORKDIR/$ALLTARGETS $WORKDIR/$ALLFFVALS \
    $WORKDIR/$POWELLFILE* $WORKDIR/$POWELLMICRO*; do
    \rm -f $FILE
 done
 
 if [[ ! -e $MODEL ]]; then
-   configtool rescore-model:$WORKDIR/allffvals $CFILE > $MODEL
+   configtool rescore-model:$WORKDIR/$ALLFFVALS $CFILE > $MODEL
    # For the random ranges
    MODEL_ORIG=$MODEL.orig
    cut -d' ' -f1 $MODEL > $MODEL_ORIG
@@ -698,10 +700,11 @@ while [[ 1 ]]; do
 
          # We use gzip in case the user requested compressed foo files
          touch $f.duplicateFree$COMPRESS_EXT $f.duplicateFree.ffvals$COMPRESS_EXT
-         prevK=`gzip -cqfd $f.duplicateFree$COMPRESS_EXT | wc -l`
-         totalPrevK=$((totalPrevK + prevK))
+         #prevK=`gzip -cqfd $f.duplicateFree$COMPRESS_EXT | wc -l`
+         #totalPrevK=$((totalPrevK + prevK))
          append-uniq.pl -nbest=$f.duplicateFree$COMPRESS_EXT -addnbest=$x$COMPRESS_EXT \
-            -ffvals=$f.duplicateFree.ffvals$COMPRESS_EXT -addffvals=$x.ffvals$COMPRESS_EXT
+            -ffvals=$f.duplicateFree.ffvals$COMPRESS_EXT -addffvals=$x.ffvals$COMPRESS_EXT \
+            > $f.lineCounts
 
          # Check return value
          RVAL=$?
@@ -709,8 +712,19 @@ while [[ 1 ]]; do
             error_exit "append-uniq.pl returned $RVAL"
          fi
 
-         newK=`gzip -cqfd $f.duplicateFree$COMPRESS_EXT | wc -l`
-         totalNewK=$((totalNewK + newK))
+         # append-uniq.pl now outputs line count information into
+         # $f.lineCounts, so we don't have to re-read the file again.
+         if [[ `cat $f.lineCounts` =~ "([0-9]+) \+ ([0-9]+) = ([0-9]+)" ]]; then
+            prevK=${BASH_REMATCH[1]}
+            totalPrevK=$((totalPrevK + prevK))
+            newK=${BASH_REMATCH[3]}
+            totalNewK=$((totalNewK + newK))
+         else
+            error_exit "append-uniq.pl did not produce line counts"
+         fi
+
+         #newK=`gzip -cqfd $f.duplicateFree$COMPRESS_EXT | wc -l`
+         #totalNewK=$((totalNewK + newK))
 
          # Check if there was anything new
          if [[ $prevK -ne $newK ]]; then
@@ -741,14 +755,14 @@ while [[ 1 ]]; do
 
    echo Preparing to run rescore_train on `date`
 
-   \rm $WORKDIR/alltargets $WORKDIR/allffvals >& /dev/null
+   \rm $WORKDIR/$ALLTARGETS $WORKDIR/$ALLFFVALS >& /dev/null
    S=$((`wc -l < $SFILE`))
    time for((n=0;n<$S;++n))
    {
       m=`printf "%4.4d" $n`
-      # We use gzip in case the user requested compress foo files
-      gzip -cqfd $WORKDIR/foo.${m}.duplicateFree$COMPRESS_EXT        | perl -pe "s/^/$n\t/"  >> $WORKDIR/alltargets
-      gzip -cqfd $WORKDIR/foo.${m}.duplicateFree.ffvals$COMPRESS_EXT | perl -pe "s/^/$n\t/"  >> $WORKDIR/allffvals
+      # We use gzip in case the user requested compressed foo files
+      gzip -cqfd $WORKDIR/foo.${m}.duplicateFree$COMPRESS_EXT        | perl -pe "s/^/$n\t/"  | gzip >> $WORKDIR/$ALLTARGETS
+      gzip -cqfd $WORKDIR/foo.${m}.duplicateFree.ffvals$COMPRESS_EXT | perl -pe "s/^/$n\t/"  | gzip >> $WORKDIR/$ALLFFVALS
    }
 
    # Find the parameters that optimize the BLEU score over the given set of all targets
@@ -791,7 +805,7 @@ while [[ 1 ]]; do
          $ESTOP -s $SEED -wi $WEIGHTINFILE -wo $WEIGHTOUTFILE \
          -win $WINTMP \
          -dyn -n $FLOOR_ARG \
-         $MODEL_ORIG $TMPMODELFILE $SFILE $WORKDIR/alltargets $RFILES"
+         $MODEL_ORIG $TMPMODELFILE $SFILE $WORKDIR/$ALLTARGETS $RFILES"
    else
       WTS="$POWELLMICRO.IIII"
       RT_OPTS="$RESCORE_OPTS $ESTOP -s $SEED -wi $WTS -wo $WTS -n -sm $MICROSM \
