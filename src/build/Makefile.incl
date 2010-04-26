@@ -317,6 +317,7 @@ ifeq ($(CXXTEST),NONE)
 test: warn_no_cxxtest
 warn_no_cxxtest:
 	@echo Warning: Skipping unit testing since CxxTest is not installed.
+clean_testrunners:
 else
 test: run_testsuites
 CXXTEST_SUITES=$(wildcard tests/*.h)
