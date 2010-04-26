@@ -228,8 +228,35 @@ void PhraseTableGen<T>::prunePhraseFreqs(PhraseFreqs &phrase_freqs, Uint n)
 {
    if (n >= phrase_freqs.size())
       return;
-   partial_sort(phrase_freqs.begin(), phrase_freqs.begin()+n, phrase_freqs.end(),
+
+   // EJJ 25 April 2010: we now wish to do a stable n best extraction: keep the
+   // n best phrase freqs, but without reordering them.  We do this via a
+   // proxy.  Documentation heavy because the technique is not that obvious.
+
+   // phrase freqs proxy keeps the original position and its frequency, rather
+   // than the original phrase and its frequency.
+   PhraseFreqs phrase_freqs_proxy(phrase_freqs);
+   for (Uint i = 0; i < phrase_freqs_proxy.size(); ++i)
+      phrase_freqs_proxy.at(i).first = i;
+   // sort by reverse frequency - use partial sort to order the top n only.
+   partial_sort(phrase_freqs_proxy.begin(), phrase_freqs_proxy.begin()+n, phrase_freqs_proxy.end(),
                 ComparePhrasesByJointFreq());
+   // sort the n best by index position, to preserve the original ordering.
+   sort(phrase_freqs_proxy.begin(), phrase_freqs_proxy.begin()+n);
+   // Now put the n best elements at the beginning of phrase_freqs, but do so
+   // in such a way as to preserve the order they occurred in, and in such a
+   // way as to keep the other ones around in the rest of the structure, for
+   // proper discounting.
+   for (Uint i = 0; i < n; ++i) {
+      Uint proxy_i = phrase_freqs_proxy.at(i).first;
+      if ( i < proxy_i )
+         swap(phrase_freqs.at(i), phrase_freqs.at(proxy_i));
+      else if ( i == proxy_i )
+         ; // nothing to do since we keep i in its original place
+      else
+         assert(false && "i should never be greater than proxy[i]");
+   }
+
    typename PhraseFreqs::iterator pf;
    for (pf = phrase_freqs.begin()+n; pf < phrase_freqs.end(); ++pf)
       lang2_voc.freq(pf->first) -= pf->second;

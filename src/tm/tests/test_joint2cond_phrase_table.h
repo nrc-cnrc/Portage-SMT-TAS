@@ -405,20 +405,20 @@ const struct TestJoint2CondPhraseTable::jpt_data TestJoint2CondPhraseTable::prun
    {"s2", "t4", 1},
    {"s3", "t2", 6},
    {"s3", "t1", 5},
-   {"s4", "t5", 10},
    {"s4", "t3", 5},
+   {"s4", "t5", 10},
 };
 
 const Uint TestJoint2CondPhraseTable::pruned_data_length( ARRAY_SIZE(pruned_data) );
 
 const double TestJoint2CondPhraseTable::pruned_rf_pl1gl2[] =
 {
-   5./13, 1./7, 3./13, 1./1, 6./7, 5./13, 10./10, 5./5
+   5./13, 1./7, 3./13, 1./1, 6./7, 5./13, 5./5, 10./10
 };
 
 const double TestJoint2CondPhraseTable::pruned_rf_pl2gl1[] =
 {
-   5./6, 1./6, 3./4, 1./4, 6./11, 5./11, 10./15, 5./15
+   5./6, 1./6, 3./4, 1./4, 6./11, 5./11, 5./15, 10./15
 };
 
 } // Portage
