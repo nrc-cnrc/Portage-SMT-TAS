@@ -311,10 +311,7 @@ public:
    struct ComparePhraseProxiesById
    {
       bool operator()(const pair<Uint,T>& p1, const pair<Uint,T>& p2) {
-         if (p1.first < p2.first)
-            return true;
-         else
-            return false;
+         return p1.first < p2.first;
       }
    };
 
