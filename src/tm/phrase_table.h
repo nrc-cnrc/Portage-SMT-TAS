@@ -307,6 +307,17 @@ public:
       }
    };
 
+   /// Phrase proxies in order of id
+   struct ComparePhraseProxiesById
+   {
+      bool operator()(const pair<Uint,T>& p1, const pair<Uint,T>& p2) {
+         if (p1.first < p2.first)
+            return true;
+         else
+            return false;
+      }
+   };
+
    PhraseTableGen() : num_lang1_phrases(0), keep_phrase_table_in_memory(true),
                       prune1(0), jpt_stream(NULL), phrase_table_read(false) {}
 

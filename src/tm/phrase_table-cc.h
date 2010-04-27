@@ -239,10 +239,11 @@ void PhraseTableGen<T>::prunePhraseFreqs(PhraseFreqs &phrase_freqs, Uint n)
    for (Uint i = 0; i < phrase_freqs_proxy.size(); ++i)
       phrase_freqs_proxy.at(i).first = i;
    // sort by reverse frequency - use partial sort to order the top n only.
-   partial_sort(phrase_freqs_proxy.begin(), phrase_freqs_proxy.begin()+n, phrase_freqs_proxy.end(),
-                ComparePhrasesByJointFreq());
+   partial_sort(phrase_freqs_proxy.begin(), phrase_freqs_proxy.begin()+n,
+                phrase_freqs_proxy.end(), ComparePhrasesByJointFreq());
    // sort the n best by index position, to preserve the original ordering.
-   sort(phrase_freqs_proxy.begin(), phrase_freqs_proxy.begin()+n);
+   sort(phrase_freqs_proxy.begin(), phrase_freqs_proxy.begin()+n,
+        ComparePhraseProxiesById());
    // Now put the n best elements at the beginning of phrase_freqs, but do so
    // in such a way as to preserve the order they occurred in, and in such a
    // way as to keep the other ones around in the rest of the structure, for
