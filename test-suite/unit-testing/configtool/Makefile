@@ -11,7 +11,8 @@
 # Copyright 2010, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2010, Her Majesty in Right of Canada
 
-CONFIGTOOL = ~/workspace/PORTAGEshared/src/canoe/configtool
+#CONFIGTOOL = ~/workspace/PORTAGEshared/src/canoe/configtool
+CONFIGTOOL = configtool
 SHELL = bash
 
 .SECONDARY:
