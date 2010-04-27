@@ -10,8 +10,8 @@
 # Copyright 2005, Her Majesty in Right of Canada
 
 all: multi.probs.no-src-grep.gz multi.probs.src.gz
-	diff log.multi.probs.no-src-grep log.multi.probs.no-src-grep.ref
-	diff log.multi.probs.src log.multi.probs.src.ref
+	diff -I filter_models -I portage_info -I ".one in " log.multi.probs.no-src-grep log.multi.probs.no-src-grep.ref
+	diff -I filter_models -I portage_info -I ".one in " log.multi.probs.src log.multi.probs.src.ref
 
 clean:
 	-$(RM) dummy.lm canoe.ini*
