@@ -16,6 +16,7 @@ Contents of this directory:
    api/             API to the decoder, for including in other applications
    build/           tools for compiling and installing
    canoe/           decoder, including code for using translation models
+   confidence/      confidence estimation
    eval/            code for automatic evaluation of MT output
    htmldoc/         generated code documentation (start at htmldoc/index.html)
    lm/              library for using various types of language models

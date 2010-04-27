@@ -199,13 +199,20 @@ if [ -n "$PATCH_FROM" ]; then
    done
 fi
 
+check_reliable_host() {
+   [[ `hostname` = joyce ]] &&
+      error_exit "This script does not work on Joyce.  Use Verlaine instead."
+}
+
 do_checkout() {
-   if [ -z "$NOT_REALLY" ]; then
-      test -d $OUTPUT_DIR && error_exit "$OUTPUT_DIR exists - won't overwrite -delete it first."
+   if [[ ! $NOT_REALLY ]]; then
+      [[ -d $OUTPUT_DIR && ! $FORCE ]] &&
+         error_exit "$OUTPUT_DIR exists - won't overwrite -delete it first."
    fi
 
    run_cmd mkdir $OUTPUT_DIR
    run_cmd echo "$0 $SAVED_COMMAND_LINE" \> $OUTPUT_DIR/make-distro-cmd-used
+   run_cmd echo Ran on `hostname` \>\> $OUTPUT_DIR/make-distro-cmd-used
    run_cmd pushd ./$OUTPUT_DIR
       run_cmd cvs $CVS_DIR co -P \"$VERSION_TAG\" PORTAGEshared '>&' cvs.log
       if [[ $FRAMEWORK ]]; then
@@ -250,6 +257,7 @@ do_checkout() {
             ed PORTAGEshared/src/Makefile.user-conf
       fi
 
+      run_cmd rm -f PORTAGEshared/src/.log.klocwork*
       run_cmd rm -f PORTAGEshared/make-distro.sh
    run_cmd popd
 }
@@ -280,9 +288,10 @@ make_pdfs() {
          run_cmd cp */*.pdf ../doc/
          run_cmd make clean '>&' /dev/null
          run_cmd rm -f canoe/uml.eps
-         run_cmd cp -p adaptation/README ../doc/README.adaptation
-         run_cmd cp -p confidence/README ../doc/README.confidence
-         run_cmd cp -p rescoring/README ../doc/README.rescoring
+         run_cmd cp -p adaptation/README ../doc/adaptation.README
+         run_cmd mkdir -p ../doc/confidence
+         run_cmd cp -p confidence/README confidence/ce*.ini ../doc/confidence/
+         run_cmd cp -p rescoring/README ../doc/rescoring.README
       run_cmd popd
 
       run_cmd pushd ./test-suite/unit-testing/toy
@@ -293,6 +302,7 @@ make_pdfs() {
       run_cmd pushd ./framework
          run_cmd make doc
          run_cmd make doc-clean
+         run_cmd cp framework-toy.pdf ../doc
       run_cmd popd
 
    run_cmd popd
@@ -365,6 +375,9 @@ make_iso_and_tar() {
    run_cmd popd
 }
 
+
+check_reliable_host
+
 test $OUTPUT_DIR  || error_exit "Missing mandatory -dir argument"
 
 if [[ ! $COMPILE_ONLY ]]; then
@@ -372,8 +385,8 @@ if [[ ! $COMPILE_ONLY ]]; then
       error_exit "Missing mandatory -rCVS_TAG or -DCVS_DATE argument"
    fi
 
-   do_checkout
-   get_user_manual
+   #do_checkout
+   #get_user_manual
    make_pdfs
    if [[ ! $NO_SOURCE && ! $NO_DOXY ]]; then
       echo Including source code documentation.

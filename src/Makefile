@@ -126,7 +126,7 @@ index.html: make_module_usage
 	| sed 's#.*/##' \
 	| tr " " "\n" \
 	| sort \
-	| ./utils/pgm_usage_2_html.pl -main "Portage v1.4: Usage information by program" \
+	| ./utils/pgm_usage_2_html.pl -main "Portage 1.4: Usage information by program" \
 	> ${USAGE_DIR}/$@
 	cp build/*.gif build/*.jpg ${USAGE_DIR}
 
