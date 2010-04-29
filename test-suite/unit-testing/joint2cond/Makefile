@@ -43,7 +43,7 @@ GEN_PHRASE_TABLES ?= gen_phrase_tables
 
 .PHONY: all clean cpt multi gen
 
-all: cpt multi gen
+all: cpt multi gen prune1_2
 	@echo All tests PASSED \(assuming you ran with -B\)
 
 cpt: cpt.ibm2-${SMOOTHERS_DESC}.train.en2fr.gz
@@ -51,6 +51,8 @@ cpt: cpt.ibm2-${SMOOTHERS_DESC}.train.en2fr.gz
 multi: cpt.multi.ibm2-${M_SMOOTHERS_DESC}.train.en2fr.gz
 
 gen: out.jpt.ibm2.train.en-fr.gz
+
+prune1_2: cpt.ibm2-rf-prune1_2.train.en2fr.gz
 
 vpath %.al data
 vpath ibm2.% data
@@ -100,6 +102,18 @@ out.jpt.ibm2.train.en-fr.gz: ibm2.train.fr_given_en.gz ibm2.train.en_given_fr.gz
 		-v -z -j -w 1 -m 8 -ibm 2 -1 en -2 fr $+ \
 		> $@ 2> log.out.jpt.ibm2.train.en-fr
 	diff-round.pl -sort $@ ref/${CYGWIN}$@ -q
+
+# prune1_2 exercices the tie-breaking part of the code
+cpt.ibm2-rf-prune1_2.train.en2fr.gz: jpt.ibm2.train.en-fr.gz
+	${RM} $@
+	${JOINT2COND_PHRASE_TABLES} \
+		-no-sort -force -prune1 2 -v -i -z -reduce-mem \
+		-s RFSmoother -multipr fwd \
+		-o $(subst .en2fr.gz, , $@) \
+		$^ \
+		>& log.$(subst .gz,,$@)
+	diff-round.pl $@ ref/$@ -q
+	zcat $@ | LC_ALL=C sort -c
 
 valgrind: ibm2.train.fr_given_en.gz ibm2.train.en_given_fr.gz jpt.ibm2.train.en-fr.gz
 	valgrind --tool=massif --depth=6 \
