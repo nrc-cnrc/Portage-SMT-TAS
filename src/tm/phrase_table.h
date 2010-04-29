@@ -297,21 +297,13 @@ public:
     */
    struct ComparePhrasesByJointFreq
    {
-      bool operator()(const pair<Uint,T>& p1, const pair<Uint,T>& p2) {
-         if (p1.second > p2.second)
+      bool operator()(const pair<Uint,T>* p1, const pair<Uint,T>* p2) {
+         if (p1->second > p2->second)
             return true;
-         else if (p1.second == p2.second)
-            return p1.first > p2.first;
+         else if (p1->second == p2->second)
+            return p1->first > p2->first;
          else
             return false;
-      }
-   };
-
-   /// Phrase proxies in order of id
-   struct ComparePhraseProxiesById
-   {
-      bool operator()(const pair<Uint,T>& p1, const pair<Uint,T>& p2) {
-         return p1.first < p2.first;
       }
    };
 
