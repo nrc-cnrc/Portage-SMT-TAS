@@ -98,7 +98,7 @@ sub parsemem($) {
 sub parse_run_cmd_output($$$) {
    my ($walltime, $cputime) = parsetime $_[0];
    my ($ram, $vmem) = parsemem $_[1];
-   print OUT "   $_[2]:TIME-MEM\tWALL TIME: $walltime\tCPU TIME: $cputime\tVSZ: $vmem\tRSS: $ram\n";
+   print OUT "   $_[2]:\tWALL TIME: $walltime\tCPU TIME: $cputime\tVSZ: $vmem\tRSS: $ram\n";
 }
 
 sub processlog($$) {
@@ -117,7 +117,7 @@ sub processlog($$) {
       }
       # Canoe-parallel produces an RP-Total line
       if ( /RP-Totals: Wall time (\d+)(?:\.\d*)?s CPU time (\d+)(?:\.\d*)?s Max VMEM ([0-9.]+G) Max RAM ([0-9.]+G)/ ) {
-         print OUT "   canoe-parallel:TIME-MEM\tWALL TIME: $1s\tCPU TIME: $2s\tVSZ: $3\tRSS: $4\n";
+         print OUT "   canoe-parallel:\tWALL TIME: $1s\tCPU TIME: $2s\tVSZ: $3\tRSS: $4\n";
       }
       # Producing n-best lists - running append-uniq.pl for each dev sentence
       if ( /^Producing n-best lists/ ) {

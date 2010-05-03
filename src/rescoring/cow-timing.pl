@@ -61,7 +61,7 @@ sub processlog($$) {
    my ($canoe, $uniq, $cat, $rtrain) = ("","","","");
    my $header_printed = 0;
    while (<IN>) {
-      if ( /^   (.*):TIME-MEM\tWALL TIME: (\d+)s/ ) {
+      if ( /^   (.*):\tWALL TIME: (\d+)s/ ) {
          my $step = $1;
          my $time = $2;
          SWITCH: for ($step) {
