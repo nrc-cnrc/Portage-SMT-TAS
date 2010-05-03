@@ -39,6 +39,7 @@ Usage: $0 LOGFILE(S)
   canoe or canoe-parallel.sh.
 
   Focuses specically on model load time vs translation time.
+  Use cow-timing.pl to get detailed timing information for cow.sh.
 
 ";
    exit 1;

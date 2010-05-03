@@ -609,7 +609,7 @@ while [[ 1 ]]; do
    if [[ "$PARALLEL" == 1 ]]; then
       RUNSTR="$CANOE_PARALLEL $PARALLEL_OPTS $RUNSTR"
    fi
-   if [[ "$CANOE_PARALLEL" == "canoe-parallel.sh" ]]; then
+   if [[ "$PARALLEL" == 1 ]]; then
       # Don't time canoe-parallel.sh since it's going to report time-mem measurements.
       $RUNSTR < $SFILE > $TRANSFILE.ff
    else

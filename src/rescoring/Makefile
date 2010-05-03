@@ -46,6 +46,8 @@ OBJECTS = \
 BINSCRIPTS = \
 	cow.sh \
         cowpie.py \
+	cow-timing.pl \
+	cow-timing-full.pl \
 	gen-features-parallel.pl \
 	rat.sh \
         rescore-bwd-lm.sh \
