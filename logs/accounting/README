@@ -17,3 +17,5 @@ Portage users write access.  For example, if all users are members of the
 then set the group for logs/acounting to "portage", and set the sticky bit.  If
 users don't below to a common group, their umask should be 0000, the most
 permissive possible.
+
+Run plog.pl -extract or -stats to list or summarize the accounting log entries.
