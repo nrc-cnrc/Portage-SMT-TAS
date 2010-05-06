@@ -1,0 +1,19 @@
+                                Portage 1.4
+
+Technologies langagieres interactives / Interactive Language Technologies
+Institut de technologie de l'information / Institute for Information Technology
+Conseil national de recherches Canada / National Research Council Canada
+Copyright 2004-2010, Sa Majeste la Reine du Chef du Canada
+Copyright 2004-2010, Her Majesty in Right of Canada
+
+                              Accounting logs
+
+This directory will contain accounting logs that get created when the Portage
+translation server is used.  This directory and the subdirectories that will
+get created should be writable to all users who will use Portage.  If they are
+not, make sure the umask of each user is permissive enough to allow other
+Portage users write access.  For example, if all users are members of the
+"portage" group, then make sure their umask is 000n, where n can be any value,
+then set the group for logs/acounting to "portage", and set the sticky bit.  If
+users don't below to a common group, their umask should be 0000, the most
+permissive possible.
