@@ -272,7 +272,7 @@ public:
     * @return A string describing all phrase tables
     */
    string describePhraseTables(bool forwardWeights) const {
-      return backwardDescription + (forwardWeights ? forwardDescription : "");
+      return backwardDescription + (forwardWeights ? forwardDescription : "") + adirDescription;
    }
 
    /**
