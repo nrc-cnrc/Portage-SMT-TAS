@@ -95,9 +95,11 @@ standard output.
 
 =item -update         Update mode: update the status of the given log file
 
-=item -extract        Extract mode: extract entries for the given period [default action]
+=item -extract        Extract mode: extract entries for the given period
 
 =item -header         With C<-extract>, output a CSV header
+
+=item -stats          Stats mode: display various statistics for the given period [default action]
 
 =item -verbose        Be verbose
 
@@ -358,13 +360,13 @@ sub logStats {
         }
     }
 
-    printf("Total Jobs:       %d\n", int(@job_no));
-    printf("  Successful:     %d\n", $success_count);
-    printf("  Failed:         %d\n", $failure_count);
-    printf("  Pending:        %d\n", $pending_count);
-    printf("First:            %d (%s)\n", $job_no[0], $first_time) if @job_no;
-    printf("Last:             %d (%s)\n", $job_no[-1], $last_time) if @job_no;
-    printf("Words translated: %d\n", $word_count);
+    printf("Total Jobs:                    %d\n", int(@job_no));
+    printf("  Successful:                  %d\n", $success_count);
+    printf("  Failed:                      %d\n", $failure_count);
+    printf("  Pending:                     %d\n", $pending_count);
+    printf("First:                         %d (%s)\n", $job_no[0], $first_time) if @job_no;
+    printf("Last:                          %d (%s)\n", $job_no[-1], $last_time) if @job_no;
+    printf("Words successfully translated: %d\n", $word_count);
 
     close $plog_fh;
 }
@@ -395,7 +397,7 @@ sub logWrite {                  # write to filehandle
 }
 
 sub logWriteHeader {                  # write header to filehandle
-    my ($fh);
+    my ($fh) = @_;
 
     print {$fh} join($CSV_SEP, @LOG_FIELDS),"\n";
 }
