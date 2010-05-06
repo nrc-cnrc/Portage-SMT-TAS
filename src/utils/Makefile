@@ -87,6 +87,8 @@ BINSCRIPTS = \
         trans-search.pl \
         which-test.sh
 
+PGM_WITH_ALTERNATIVE_HELP = plog.pl
+
 PERL_LIBS=portage_utils.pm
 
 # Tell Make to skip -lportage_utils, since we're building it here.

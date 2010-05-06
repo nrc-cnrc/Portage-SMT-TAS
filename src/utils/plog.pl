@@ -1,4 +1,5 @@
 #!/usr/bin/perl -s -w
+# $Id$
 # @file plog.pl
 # @brief manage PORTAGE's accounting log
 #
@@ -105,7 +106,7 @@ standard output.
 
 =item -h,-help        Print a help message and exit
 
-=item -man,-H,-Help   Print manual
+=item -man,-H,-Help   Print the full manual
 
 =back
 
