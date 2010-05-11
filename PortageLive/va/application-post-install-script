@@ -1,0 +1,27 @@
+#!/bin/bash
+# Sample Post-Install Script; see section 3 of PLiveVA.pdf for documentation.
+echo "post-install shell code"
+
+# 3.1 Setting the timezone
+ln -sf /usr/share/zoneinfo/America/Montreal /etc/localtime
+
+# 3.2 Customize the user's "portage" environment
+echo 'export PORTAGE=/opt/Portage' >> /home/portage/.bashrc
+echo 'test -f $PORTAGE/SETUP.bash && source $PORTAGE/SETUP.bash' >> /home/portage/.bashrc
+
+# 3.3 Pre-populate the user's "portage" with a public key
+mkdir /home/portage/.ssh
+chown portage.portage /home/portage/.ssh
+chmod 700 /home/portage/.ssh
+
+# Change this to your own DSS key!
+echo 'ssh-dss AAAAB3NzaC1kc3MAAACBAMQEpC/w6FAupe6xyjcPZKSQhFpX+B1otOmN5j6M4HaXbVYO53vWF4ooqKoh9aJZEpNkaIsyGi3b+qOii1jQsiB1pqiyLImHEu22YILEw6968BZ4WMzJMiePJv+XopHVXmMUzXYwZ37qMaNOSZqf6i1awrCXBeO1hrKDyqrS68aDAAAAFQDD6cztMWAI5DeKD4DRbWfd2+RsXQAAAIB5z8Um04nm1R8+bPBmcWyM1nPkv6tggYveTUu9woi8HJCsUFt35RDhvOmsM3oFFRBbZhOMaTa2PQwo3ebUKXrQJfosBQ6O2ft5q+sLQhmEcufRSutfJezIoNR1O+fLSR5Eog1nRID3yltUmhJnk06hPvWKRTLPHf/wztaAC258DAAAAIEArmFX1drbEnJV1pyJnDDPx7MNRdloHxAV/vqIBenbX8UfQhi3ObnZuTIq3+6fgqRc0nVfxhYB4e9T+gAB2SHCmh1IQ+yN6MAZegRxxP1/mYTB2d67Xg4+l4oD0acFoEqZuJYDGosmicRfEkxUJeFxH8zinpAExgUtIxR4UjmmCRw= PortageLive_key' > /home/portage/.ssh/authorized_keys
+chown -R portage.portage /home/portage/.ssh/
+chmod 600 /home/portage/.ssh/authorized_keys
+
+# 3.4 Allow php to be interpreted if present in an html document
+echo 'AddType application/x-httpd-php .html' >> /etc/httpd/conf.d/php.conf
+
+# 3.5 Make sure apache runs
+chkconfig httpd on
+

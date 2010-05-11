@@ -1,0 +1,31 @@
+#!/bin/bash
+# Sample First Boot Script; see section 4 of PLiveVA.pdf for documentation.
+
+#Un comment to send the output of this script to a logfile
+#exec > /opt/vmware/var/log/firstboot 2>&1
+
+# 4.1 Allowing SSL based web serving
+sed -i 's/#DocumentRoot "\/var\/www\/html"/DocumentRoot "\/var\/www\/html\/secure"/' /etc/httpd/conf.d/ssl.conf
+
+# 4.2 The WSDL file needs to be tailored to have the hostname or IP of this machine
+sed "s/__REPLACE_THIS_WITH_YOUR_IP__/`ifconfig | grep \"inet addr\" | head -1 | awk {'print $2'} | cut -d \":\" -f2`/" /opt/Portage/www/PortageLiveAPI.wsdl > /var/www/html/PortageLiveAPI.wsdl
+
+# 4.3 Two (2) files are required to start serving soap requests
+ln -s /opt/Portage/www/index.html /var/www/html/index.html
+ln -s /opt/Portage/www/PortageLiveAPI.php /var/www/html/PortageLiveAPI.php
+
+# 4.4 Creating the content available through the SSL variant
+mkdir /var/www/html/secure
+sed "s/__REPLACE_THIS_WITH_YOUR_IP__/`ifconfig | grep \"inet addr\" | head -1 | awk {'print $2'} | cut -d \":\" -f2`/" /opt/Portage/www/secure/PortageLiveAPI.wsdl > /var/www/html/secure/PortageLiveAPI.wsdl
+ln -s /opt/Portage/www/secure/index.html /var/www/html/secure/index.html
+ln -s /opt/Portage/www/secure/PortageLiveAPI.php /var/www/html/secure/PortageLiveAPI.php
+
+# 4.5 Provide the initial password for the "portage" account if login is required
+echo Username: portage
+echo Password: <password>
+echo Phonetics: <phonetics encoding to make it easier to remember>
+
+#Un comment to run subsequent boot script after first boot
+#/opt/vmware/etc/isv/subsequentboot
+
+
