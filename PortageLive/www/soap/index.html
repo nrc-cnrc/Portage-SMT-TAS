@@ -1,0 +1,37 @@
+<html>
+<head>
+<title>PortageLiveAPI</title>
+</head>
+<body>
+
+<h1>PortageLive SOAP API test</h1>
+
+This page demonstrate how the appliance can be used as a web service.
+
+url of wsdl: <a href="http://<?php print $_SERVER["SERVER_ADDR"]; ?>/PortageLiveAPI.wsdl">WSDL over the LAN</a>
+
+<form action="<?=$me?>" method="post" name="formulaire" target="_self">
+
+<INPUT TYPE = "TEXT" Name = "to_translate" >
+<INPUT TYPE = "Submit" Name = "Submit1" VALUE = "Translate">
+
+</FORM>
+
+
+
+<?php
+
+$to_translate = $_POST['to_translate'];
+
+if ($to_translate != "") {
+  print "<hr><b>Translating: </b>" . $to_translate . "<br>";
+  $client = new SoapClient("http://" . $_SERVER["SERVER_ADDR"] . "/PortageLiveAPI.wsdl");
+  print "<hr><b>Portage replied: </b>" . $client->getTranslation($to_translate);
+}
+
+?>
+
+
+
+</body>
+</html>

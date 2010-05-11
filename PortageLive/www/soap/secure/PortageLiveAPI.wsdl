@@ -1,0 +1,50 @@
+<?xml version ="1.0" encoding ="UTF-8"?> 
+<definitions name="PortageLiveService" 
+  targetNamespace="https://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.wsdl" 
+  xmlns="http://schemas.xmlsoap.org/wsdl/"
+  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+  xmlns:tns="https://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.wsdl"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+<message name="getTranslationRequest"> 
+  <part name="srcString" type="xsd:string"/> 
+</message> 
+<message name="getTranslationResponse"> 
+  <part name="Result" type="xsd:string"/> 
+</message> 
+
+<portType name="Translation_PortType"> 
+  <operation name="getTranslation"> 
+    <input message="tns:getTranslationRequest"/> 
+    <output message="tns:getTranslationResponse"/> 
+  </operation> 
+</portType> 
+
+<binding name="Translation_Binding" type="tns:Translation_PortType"> 
+  <soap:binding style="rpc" 
+    transport="http://schemas.xmlsoap.org/soap/http"/> 
+  <operation name="getTranslation"> 
+    <soap:operation soapAction="getTranslation"/> 
+    <input> 
+      <soap:body 
+        encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+	namespace="urn:example:portageliveservice"
+        use="encoded"/> 
+    </input> 
+    <output> 
+      <soap:body 
+        encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+        namespace="urn:example:portageliveservice"
+        use="encoded"/>
+    </output> 
+  </operation> 
+</binding> 
+
+<service name="PortageLive_Service"> 
+  <documentation>WSDL File for PortageLiveService</documentation>
+  <port binding="tns:Translation_Binding" name="Translation_Port"> 
+    <soap:address 
+	location="https://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.php"/> 
+  </port> 
+</service> 
+</definitions> 
