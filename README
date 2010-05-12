@@ -58,6 +58,7 @@ translation, including:
    bin/         executable code (if included in your distribution)
    lib/         run-time libraries (if included in your distribution)
    test-suite/  various test suites
+   PortageLive/ files needed to setup a runtime translation server
    README       this file
    INSTALL      installation instructions
    RELEASES     release history

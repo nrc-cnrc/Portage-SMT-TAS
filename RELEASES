@@ -44,10 +44,11 @@ v1.4
    a web service using SOAP, via a web page, or connecting to the translation
    server via ssh.  Documentation is included on how to do so as a Virtual
    Appliance that can run on any virtual machine architecture (from local
-   infrastructure to cloud computing).  The TPT technology mentioned earlier
-   significantly reduces the memory requirements for such deployment.  See Paul
-   et al (MT Summit 2009) for details (paper accompanying the Technology
-   Showcase, available at http://www.mt-archive.info/MTS-2009-TOC.htm).
+   infrastructure to cloud computing), or on a dedicated translation server.
+   The TPT technology mentioned earlier significantly reduces the memory
+   requirements for such deployment.  See Paul et al (MT Summit 2009) for
+   details (paper accompanying the Technology Showcase, available at
+   http://www.mt-archive.info/MTS-2009-TOC.htm).
 
  - The peak memory required to train a phrase table has been reduced by about
    50%: instead of invoking only gen_phrase_tables, one can parallelize the
