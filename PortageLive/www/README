@@ -1,14 +1,30 @@
-This directory includes scripts that can help you reproduce the structure we
-use to package the web software for PortageLive virtual appliances.
+Technologies langagieres interactives / Interactive Language Technologies
+Institut de technologie de l'information / Institute for Information Technology
+Conseil national de recherches Canada / National Research Council Canada
+Copyright 2004-2010, Sa Majeste la Reine du Chef du Canada
+Copyright 2004-2010, Her Majesty in Right of Canada
 
-First run ./prep-file-layout.sh to create the rpm.build.root hierarchy.
-The files placed in that directory reproduce the location where files are to be
+Distributed under specific licensing terms.  Please refer to your signed
+license agreement for details.
+
+
+                                PortageLive
+                            Web service software
+
+This directory includes scripts that can help you reproduce the structure we
+use to package the web software for PortageLive virtual appliances.  Detailed
+instructions are in the PortageLive Manual part of the Portage 1.4 User Manual.
+
+In this directory:
+
+First run ./prep-file-layout.sh to create the rpm.build.root hierarchy.  The
+files placed in that directory reproduce the location where files are to be
 installed on the translation server, as is normally done with RPMs.
 
 Then, either copy the files manually to your translation server, if you have
 just one physical server, or build the RPM by running ../scripts/make-rpm.sh if
 you are using virtual appliances.
 
-Important note: the scripts work for us, but rely on details of how the OS and
-Apache is installed, among other things.  You should expect to have to adjust
-the procedure for your own environment.
+Note: the scripts work for us, but rely on details of how the OS and Apache is
+installed, among other things.  You should expect to have to adjust the
+procedure for your own environment.

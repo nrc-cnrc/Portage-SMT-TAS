@@ -1,0 +1,19 @@
+Technologies langagieres interactives / Interactive Language Technologies
+Institut de technologie de l'information / Institute for Information Technology
+Conseil national de recherches Canada / National Research Council Canada
+Copyright 2004-2010, Sa Majeste la Reine du Chef du Canada
+Copyright 2004-2010, Her Majesty in Right of Canada
+
+Distributed under specific licensing terms.  Please refer to your signed
+license agreement for details.
+
+
+                                PortageLive
+                        Virtual Application creation
+
+This directory contains the virtual appliance creation instructions, with
+samples for the three scripts you can manually cut-and-paste into the VMWare
+Studio interface, if you chose to use VMWare Studio.
+
+Please read the "PortageLive Manual" section of the Portage 1.4 User Manual
+first!
