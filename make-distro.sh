@@ -302,7 +302,7 @@ make_pdfs() {
       run_cmd pushd ./framework
          run_cmd make doc
          run_cmd make doc-clean
-         run_cmd cp framework-toy.pdf ../doc
+         run_cmd cp tutorial.pdf ../doc
       run_cmd popd
 
    run_cmd popd

@@ -74,12 +74,11 @@ translation, including:
 The framework subdirectory provides a template experimental framework.  This is
 intended as a reasonable experimental starting point.  We recommend you use
 this framework as your starting point for real experiments.  A tutorial is
-included showing how to run a toy experiment with this framework:
-framework-toy.pdf.  Even if you used PORTAGEshared before, we recommend you
-read through this document, as it highlight the currently recommended
-procedures for using PORTAGEshared.  If you used our old toy example as a
-starting point previously, it may be worth starting again from the new
-framework instead.
+included showing how to run a toy experiment with this framework: tutorial.pdf.
+Even if you used PORTAGEshared before, we recommend you read through this
+document, as it highlight the currently recommended procedures for using
+PORTAGEshared.  If you used our old toy example as a starting point previously,
+it may be worth starting again from the new framework instead.
 
 For further documentation, look at the contents of doc/.
 
