@@ -30,15 +30,15 @@ all: testsuite
 clean:
 	${RM} lowercase* truecase*
 
-.INTERMEDIATE: lowercase
+.PRECIOUS: lowercase
 lowercase: compile_truecase_map.unittest
 	utf8_casemap -c l < $< > $@
 
-.INTERMEDIATE: lowercase_remove
+.PRECIOUS: lowercase_remove
 lowercase_remove: compile_truecase_map.unittest
 	sed -e 's/REMOVE//' < $< | utf8_casemap -c l > $@
 
-.INTERMEDIATE: truecase_short lowercase_short
+.PRECIOUS: truecase_short lowercase_short
 truecase_short: compile_truecase_map.unittest
 lowercase_short: lowercase
 %_short:
