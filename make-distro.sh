@@ -385,8 +385,8 @@ if [[ ! $COMPILE_ONLY ]]; then
       error_exit "Missing mandatory -rCVS_TAG or -DCVS_DATE argument"
    fi
 
-   #do_checkout
-   #get_user_manual
+   do_checkout
+   get_user_manual
    make_pdfs
    if [[ ! $NO_SOURCE && ! $NO_DOXY ]]; then
       echo Including source code documentation.
