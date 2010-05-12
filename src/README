@@ -13,7 +13,6 @@ license agreement for details.
 Contents of this directory:
 
    adaptation/      mixture-model adaptation (training of mixture LMs and TMs)
-   api/             API to the decoder, for including in other applications
    build/           tools for compiling and installing
    canoe/           decoder, including code for using translation models
    confidence/      confidence estimation

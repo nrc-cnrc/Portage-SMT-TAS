@@ -28,7 +28,6 @@ new_install:
 # IMPORTANT NOTE: when you add a directory here, you must also add it to the
 # DIRECTORY DEPENDENCIES section below.
 SUBDIRS = adaptation \
-	  api \
 	  canoe \
 	  confidence \
 	  distortion \
@@ -92,7 +91,6 @@ calc_deps = $(shell perl -pe 's/\\\n$$/ /' < $(1)/Makefile | grep MODULE_DEPENDS
 # Each directory in $(SUBDIRS) and $(ALL_SUBDIRS) must be listed here, even if
 # it does not currently have any dependencies.
 adaptation:     $(call calc_deps,adaptation)
-api:            $(call calc_deps,api)
 canoe:          $(call calc_deps,canoe)
 confidence:     $(call calc_deps,confidence)
 distortion:     $(call calc_deps,distortion)
