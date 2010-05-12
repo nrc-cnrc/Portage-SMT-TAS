@@ -22,7 +22,7 @@ ce_ttx2ospl.pl {options} ttx_file
 =head1 DESCRIPTION
 
 Convert TTX format file (Trados batch file) to OSPL (one sentence per
-line) format.  Priduces output compatible with the confidences
+line) format.  Produces output compatible with the confidences
 estimation programs (ce_translate.pl, etc.).  Output is written onto
 multiple files.  Each file contains as many lines as there are
 translation units in the input ttx_file.  All output files are
@@ -56,6 +56,13 @@ default). Output files are:
 =item -help,-h        Print this message and exit
 
 =back
+
+=head1 CAVEATS
+
+TTX is a proprietary, closed-source file format.  This program is
+essentially based on reverse engineering of existing files in that
+format.  Therefore, we can not guarantee the quality of the output.
+Use at your own risks.
 
 =head1 SEE ALSO
 

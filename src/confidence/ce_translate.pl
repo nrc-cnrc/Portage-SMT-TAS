@@ -108,7 +108,7 @@ unless something goes wrong, or if the C<-dir=D> option is specified.
 
 =item -tmx            Input/output text in TMX format (not compatible with C<-train>)
 
-=item -ttx            Input/output text in TTX format (not compatible with C<-train>)
+=item -ttx            Input text in TTX format, output in plain text (not compatible with C<-train>) See caveats in C<ce_ttx2ospl.pl -help>.
 
 =item -xsrc=S         TTX/TMX source language name [EN-CA]
 
@@ -511,7 +511,7 @@ sub tokenize {
         copy($in, $out);
     } else {
         my $tokopt = " -lang=${lang}";
-        $tokopt .= $nl eq 's' ? " -ss" : " -noss";
+        $tokopt .= $nl eq 's' ? " -noss" : " -ss";
         $tokopt .= " -paraline" if $nl eq 'p';
         $tokopt .= " -notok" if $notok;
         call("utokenize.pl ${tokopt} \"${in}\" \"${out}\"", $out);

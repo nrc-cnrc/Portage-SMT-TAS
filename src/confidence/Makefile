@@ -12,6 +12,7 @@ BINSCRIPTS = \
         ce_canoe2ffvals.pl \
         ce_ttx2ospl.pl \
         ce.pl \
+        ce_distance.pl \
         ce_train.pl \
         ce_translate.pl \
         ce_gen_features.pl \
