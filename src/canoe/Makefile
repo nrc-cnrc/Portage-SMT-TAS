@@ -77,7 +77,8 @@ PROGRAMS=$(TESTPROGS) \
 BINSCRIPTS= \
 	canoe-parallel.sh \
 	canoe-timing-stats.pl \
-	nbest2rescore.pl
+	nbest2rescore.pl \
+	translate.pl
 
 DOCUMENTS=canoe.pdf
 
