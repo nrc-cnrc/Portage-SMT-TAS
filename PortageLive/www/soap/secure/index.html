@@ -25,8 +25,15 @@ $to_translate = $_POST['to_translate'];
 
 if ($to_translate != "") {
   print "<hr><b>Translating: </b>" . $to_translate . "<br>";
-  $client = new SoapClient("https://" . $_SERVER["SERVER_ADDR"] . "/PortageLiveAPI.wsdl");
-  print "<hr><b>Portage replied: </b>" . $client->getTranslation($to_translate);
+  try {
+    $client = new SoapClient("PortageLiveAPI.wsdl");
+
+    print "<hr><b>Portage replied: </b>" . $client->getTranslation($to_translate);
+  }
+  catch (SoapFault $exception) {
+    print "SOAP Fault: (faultcode: {$fault->faultcode}, faultstring: {$fault->faultstring})" . "<BR/>";
+    var_dump($soapFault);
+  }
 }
 
 ?>
