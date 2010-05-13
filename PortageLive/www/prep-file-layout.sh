@@ -80,8 +80,8 @@ mkdir -p $SOAP_DEST/secure                   # directory for SOAP stuff
 cp cgi/*.cgi rpm.build.root/var/www/html/cgi-bin
 
 # Copy the php and SOAP files
-cp soap/{client.php,index.html,PortageLiveAPI.*} $SOAP_DEST
-cp soap/secure/{client.php,index.html,PortageLiveAPI.*} $SOAP_DEST/secure
+cp soap/{index.html,PortageLiveAPI.*,test.php} $SOAP_DEST
+cp soap/secure/{index.html,PortageLiveAPI.*,test.php} $SOAP_DEST/secure
 
 # For fixed IP, replace the token by the given IP
 if [[ $FIXED_IP ]]; then
