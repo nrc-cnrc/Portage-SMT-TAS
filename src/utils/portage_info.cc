@@ -74,12 +74,12 @@ int main(int argc, char* argv[])
             in.open(notice_path);
             if (!in) {
                // Third, if we're running portage_info directly in the src/utils
-               // directory, you have to do ../..  instead of just ..
-               if ( BaseName(program_dir) == "utils" ) {
-                  notice_path = program_dir + "/../../NOTICE";
-                  //cerr << notice_path << endl;
-                  in.open(notice_path);
-               }
+               // directory, or in the case of a binary distribution, you have
+               // to do ../..  instead of just ..
+               notice_path = program_dir + "/../../NOTICE";
+               //cerr << notice_path << endl;
+               in.open(notice_path);
+
                if (!in) {
                   cerr << "Can't open the NOTICE file; it should be located in $PORTAGE/NOTICE." << endl;
                   exit(1);
