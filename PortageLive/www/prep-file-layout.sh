@@ -73,11 +73,11 @@ fi
 
 # Create directory structure
 mkdir -p rpm.build.root/var/www/html/plive   # working directory
-mkdir -p rpm.build.root/var/www/html/cgi-bin # cgi scripts
+mkdir -p rpm.build.root/var/www/cgi-bin      # cgi scripts
 mkdir -p $SOAP_DEST/secure                   # directory for SOAP stuff
 
 # Copy the CGI scripts
-cp cgi/*.cgi rpm.build.root/var/www/html/cgi-bin
+cp cgi/*.cgi rpm.build.root/var/www/cgi-bin
 
 # Copy the php and SOAP files
 cp soap/{index.html,PortageLiveAPI.*,test.php} $SOAP_DEST
@@ -94,3 +94,6 @@ fi
 # Set proper permissions on the directory and file structure
 find rpm.build.root -type d | xargs chmod 755
 find rpm.build.root -type f | xargs chmod 644
+find -name \*.cgi | xargs chmod o+x
+chmod o+w rpm.build.root/var/www/html/plive
+
