@@ -263,40 +263,6 @@ Mandatory dependencies for source code distributions:
 
 Optional dependencies for source code distributions:
 
- - ACE - PORTAGEshared includes an API you can use to embed the decoder in your
-   application, as well as a demo that can be placed on a web page.  This demo
-   requires ACE.
-
-   By default, the Makefile will not build the demo, but if you have ACE you
-   can enable its compilation by commenting out the line "ACE=NONE" in
-   src/api/Makefile.
-
-   ACE home page: http://www.cs.wustl.edu/~schmidt/ACE.html
-   This procedure worked for us, and may help you install it yourself, if your
-   sys admins can't do it globally for you:
-      # Download and expand the ACE-5.5 tarball (but older versions should work
-      # too).
-      wget http://deuce.doc.wustl.edu/ACE-5.5.tar.gz
-      tar -xzf ACE-5.5.tar.gz
-      cd ACE_wrappers
-      # At this point, useful help can be found by typing:
-      #   "links ACE-INSTALL.html#unix_autoconf"
-      # The following more or less follows the instructions found there.
-      # Create a platform specific build directory and go there
-      mkdir -p build/i686
-      cd build/i686
-      # Run autoconf - replace $DEST with your preferred destination, e.g.,
-      # $PORTAGE, $HOME, $HOME/pkgs or $HOME/ace.
-      # (This step takes a long time.)
-      ../../configure --prefix=$DEST
-      # Compile (if your are using (t)csh, add "env" in front of this command)
-      # (This step takes a long time; add -j 5 to speed it up.)
-      ACE_ROOT=`pwd` make
-      # Install to $DEST/{include,lib} (if your are using (t)csh, add "env"
-      # in front of this command)
-      ACE_ROOT=`pwd` make install
-      # Edit src/Makefile.user-conf and set the ACE variable to $DEST.
-
  - CxxTest - our unit testing framework depends on CxxTest, which can be
    downloaded from http://cxxtest.tigris.org/.  CxxTest is a very small package
    that is very easy to install, even though it needs to be installed manually.

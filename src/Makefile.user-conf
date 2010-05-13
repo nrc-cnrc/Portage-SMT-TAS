@@ -92,24 +92,6 @@ CXXTEST=$(PORTAGE)# AT NRC
 PORTAGE_OPENMP=-fopenmp # AT NRC
 
 # ------------------------------------
-# Variable:        ACE
-# Possible values: defined to "NONE" disables the use of ACE (and the
-#                  compilation of paddle_server and paddle_client, the web
-#                  demo), any other value or undefined enables the use of ACE.
-#                  If the ACE variable is undefined or empty, it is assumed
-#                  that ACE can be found in standard include and library paths.
-#                  The ACE variable can also be set to the full path where ACE 
-#                  was installed, in which case the compile will look for ACE
-#                  include files in $ACE/include, and ACE libraries in
-#                  $ACE/lib.
-# Notes:           Comment out the ACE?=NONE line to compile the web demo.
-#                  Requires ACE.  Uncomment and edit the next line if needed.
-
-ACE?=NONE
-#ACE=$(PORTAGE)
-ACE=$(PORTAGE)# AT NRC
-
-# ------------------------------------
 # Variable:        LOG4CXX
 # Possible values: "NONE" disables logging.
 #                  Any other value or undefined enables logging.

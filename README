@@ -46,7 +46,12 @@ translation, including:
    arrays) for instant loading and fast access via memory-mapped IO;
  - a confidence estimation module to compute a per-sentence quality
    prediction/estimation of the translations produced by Portage;
- - an API to incorporate the decoder into other applications; a web-ready demo;
+ - an API to incorporate the decoder into other applications using SOAP or cgi;
+   an updated web-ready demo;
+ - PortageLive -- tools to setup a runtime SMT server using Portage, accessible
+   via a SOAP API, via CGI scripts or a command line interface;
+ - an experimental framework -- a collection of tools to automate running all
+   the components required to train a full machine translation system.
  - lots of general utility code needed for the above.
 
 

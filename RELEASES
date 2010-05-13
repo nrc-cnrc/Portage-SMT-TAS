@@ -179,6 +179,7 @@ v1.4
    text manipulation, making them easier to find.
  - Truecaser: fixed issues for handling different encodings.
  - Quench the Copyright notices that were printed much too often.
+ - The obsolete src/api/ directory was deleted; PortageLive supercedes it.
 
 v1.3 21.01.2009
  This update to PORTAGEshared is primarily intended to incorporate the new HMM
