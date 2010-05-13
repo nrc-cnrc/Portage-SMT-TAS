@@ -326,7 +326,7 @@ elif [[ $HARD_FILTER ]]; then
    # First, filter the phrase tables.
    TTABLE_LIMIT=`configtool ttable-limit $CANOE_CONFIG`
    FILT_EXT=".HARD-FILT$TTABLE_LIMIT"
-   FILT_CONFIG="$WORKDIR/$CANOE_CONFIG$FILT_EXT"
+   FILT_CONFIG="$WORKDIR/`basename $CANOE_CONFIG`$FILT_EXT"
    FILT_PT="$WORKDIR/phrase.table$FILT_EXT.gz"
 
    if [ ! -f "$FILT_CONFIG" ] || [ "$FILT_CONFIG" -ot "$CANOE_CONFIG" ] || [ ! -f "$FILT_PT" ]; then
@@ -339,8 +339,9 @@ elif [[ $HARD_FILTER ]]; then
       # filter_models from the workdir
       pushd $WORKDIR &> /dev/null
       if [[ $MSRC =~ ^/ ]]; then REL_MSRC=$MSRC; else REL_MSRC=../$MSRC; fi
+      if [[ $CANOE_CONFIG =~ ^/ ]]; then REL_CONFIG=$CANOE_CONFIG; else REL_CONFIG=../$CANOE_CONFIG; fi
       # Only regenerate the filtered phrase table if not present
-      run_cmd "cat $REL_MSRC | filter_models -z -s -f ../$CANOE_CONFIG -hard-limit phrase.table -suffix $FILT_EXT"
+      run_cmd "cat $REL_MSRC | filter_models -z -s -f $REL_CONFIG -hard-limit phrase.table -suffix $FILT_EXT"
       popd &> /dev/null
 
       # Unfortunately the final canoe config is not in the workdir so lets move it.
