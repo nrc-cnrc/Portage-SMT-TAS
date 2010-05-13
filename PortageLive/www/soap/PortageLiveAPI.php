@@ -9,7 +9,7 @@ class PortageLiveAPI {
 	);
 
 	$cwd = '/tmp';
-	$env = array('PORTAGE' => '/opt/Portage', 'LD_LIBRARY_PATH' => '/opt/Portage/lib:/lib:/usr/lib', 'PATH' => '/opt/Portage/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'PERL5LIB' => '/opt/Portage/lib');
+	$env = array('PORTAGE' => '/opt/Portage', 'LD_LIBRARY_PATH' => '/opt/Portage/lib:/lib:/usr/lib', 'PATH' => '/opt/Portage/bin:/opt/Portage/models/context:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'PERL5LIB' => '/opt/Portage/lib');
 
 	$process = proc_open('translate.sh 2> /dev/null', $descriptorspec, $pipes, $cwd, $env);
 
