@@ -21,6 +21,7 @@
 ## 
 ## Default predecoding plugin: to be called immediately prior to
 ## decoding (but after tokenization, lowercasing, etc.).
+## Among other things, the predecoding plugin must apply the rules parser.
 ##
 
 if [ "$1" == "-help" -o "$1" == "-h" ]; then
@@ -28,5 +29,8 @@ if [ "$1" == "-help" -o "$1" == "-h" ]; then
     exit 1
 fi
 
-exec utf8_filter
+# If you have a rules parser, replace the canoe-escapes.pl call by a call to your
+# rules parser. The rules parser must also escape literal use of the following 
+# characters in the input text: '<', '>', '\'.
+canoe-escapes.pl -add | utf8_filter
 

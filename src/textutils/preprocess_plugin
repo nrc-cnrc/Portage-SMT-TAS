@@ -27,5 +27,5 @@ if [ "$1" == "-help" -o "$1" == "-h" ]; then
     exit 1
 fi
 
-ridbom.sh | crlf2lf.sh | canoe-escapes.pl -add 
+ridbom.sh | crlf2lf.sh
 
