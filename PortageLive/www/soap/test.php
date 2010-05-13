@@ -8,7 +8,7 @@
       print "response of getTranslation: " . $translation; 
     }
     else {
-      print "<FONT COLOR=\"#00FF00\"><BR/><H1><B>Error</B></H1></FONT>";
+      print "<FONT COLOR=\"#FF0000\"><BR/><H1><B>Error</B></H1></FONT>";
     }
   }
   catch (SoapFault $exception) {
