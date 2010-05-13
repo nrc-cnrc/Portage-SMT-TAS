@@ -151,6 +151,7 @@ run_cmd() {
    if [[ ! $NOTREALLY ]]; then
       START_TIME=`date +"%s"`
       MON_FILE=`mktemp $WORKDIR_ABSOLUTE/mon.run_cmd.XXXXXXXX`
+      trap "rm -f $MON_FILE; exit" 0 1 2 3 5 10 13 14 15
       process-memory-usage.pl -s 1 30 $$ > $MON_FILE &
       MON_PID=$!
       # We don't consider calls via time-mem as internal, so unexport
