@@ -85,6 +85,8 @@ EXTRA_LIBS=$(LOGGING_LIB)
 
 DYNLIBS=$(LIBICU)
 
+canoe: DYNLIBS += -lpthread
+
 MODULE_CF=
 
 MODULE_DEPENDS=logging tm lm tpt
