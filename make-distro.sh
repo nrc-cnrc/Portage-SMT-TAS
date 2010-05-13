@@ -88,6 +88,7 @@ Canned options for specific licensees:
   -aachen       Same as: -bin -nosrc -licence BinOnly -compile-host leclerc
                          -archive-name BinOnly
   -smart-bin    Same as: -aachen
+  -bin2010      Same as: -bin -nosrc -licence BinOnly -archive-name BinOnly
   -smart-src    Same as: -licence SMART -archive-name SMART
   -altera       Same as: -licence ALTERA -archive-name Altera
   -can-biz	Same as: -licence CanBiz -archive-name CanBiz
@@ -158,6 +159,8 @@ while [ $# -gt 0 ]; do
    -smart-src)          LICENCE=SMART; ARCHIVE_NAME=SMART;;
    -aachen|-smart-bin)  INCLUDE_BIN=1; NO_SOURCE=1; LICENCE=BinOnly
                         COMPILE_HOST=leclerc; ARCHIVE_NAME=BinOnly;;
+   -bin2010)            INCLUDE_BIN=1; NO_SOURCE=1; LICENCE=bin2010
+                        ARCHIVE_NAME=BinOnly;;
    -altera)             LICENCE=ALTERA; ARCHIVE_NAME=Altera;;
    -can-biz)		LICENCE=CanBiz; ARCHIVE_NAME=CanBiz;;
    -framework)          arg_check 1 $# $1; FRAMEWORK=$2; shift;;
@@ -199,12 +202,22 @@ if [ -n "$PATCH_FROM" ]; then
    done
 fi
 
+print_header() {
+   fn=$1
+   echo
+   echo =============================================
+   echo $fn
+   echo =============================================
+}
+
 check_reliable_host() {
+   print_header check_reliable_host
    [[ `hostname` = joyce ]] &&
       error_exit "This script does not work on Joyce.  Use Verlaine instead."
 }
 
 do_checkout() {
+   print_header do_checkout
    if [[ ! $NOT_REALLY ]]; then
       [[ -d $OUTPUT_DIR && ! $FORCE ]] &&
          error_exit "$OUTPUT_DIR exists - won't overwrite -delete it first."
@@ -263,6 +276,7 @@ do_checkout() {
 }
 
 get_user_manual() {
+   print_header get_user_manual
    run_cmd pushd ./$OUTPUT_DIR
       run_cmd rsync -arz ilt.iit.nrc.ca:/export/projets/Lizzy/PORTAGEshared/snapshot/ \
                          PORTAGEshared/doc/user-manual
@@ -281,6 +295,7 @@ get_user_manual() {
 }
 
 make_pdfs() {
+   print_header make_pdfs
    run_cmd pushd ./$OUTPUT_DIR/PORTAGEshared
 
       run_cmd pushd ./src
@@ -309,12 +324,16 @@ make_pdfs() {
 }
 
 make_doxy() {
+   print_header make_doxy
+   echo Including source code documentation.
    run_cmd pushd ./$OUTPUT_DIR/PORTAGEshared/src
       run_cmd make doxy '>&' ../../doxy.log
    run_cmd popd
 }
 
 make_usage() {
+   print_header make_usage
+   echo Generating usage information.
    run_cmd pushd ./$OUTPUT_DIR/PORTAGEshared
       run_cmd cvs $CVS_DIR co -P \"$VERSION_TAG\" -d SRC_FOR_USAGE PORTAGEshared/src '>&' ../cvs_for_usage.log
       run_cmd pushd ./SRC_FOR_USAGE
@@ -325,6 +344,7 @@ make_usage() {
 }
 
 make_bin() {
+   print_header "make_bin ICU=$ICU"
    ELFDIR=`arch`
    if [[ $ICU = yes ]]; then
       ICU_LIB="ICU=$ICU_ROOT"
@@ -350,6 +370,8 @@ make_bin() {
 }
 
 make_iso_and_tar() {
+   print_header make_iso_and_tar
+   echo Generating tar ball and iso file.
    VERSION="${VERSION_TAG#-r}"
    VERSION="${VERSION// /.}"
    VOLID=PORTAGEshared_${VERSION}
@@ -389,16 +411,15 @@ if [[ ! $COMPILE_ONLY ]]; then
    get_user_manual
    make_pdfs
    if [[ ! $NO_SOURCE && ! $NO_DOXY ]]; then
-      echo Including source code documentation.
       make_doxy
    fi
    if [[ ! $NO_USAGE ]]; then
-      echo Generating usage information.
       make_usage
    fi
 fi
 
 if [[ $INCLUDE_BIN || $COMPILE_ONLY ]]; then
+   echo ""
    echo Including compiled code.
    if [[ $ICU = both ]]; then
       ICU=yes
@@ -411,12 +432,13 @@ if [[ $INCLUDE_BIN || $COMPILE_ONLY ]]; then
 fi
 
 if [[ $COMPILE_HOST ]]; then
-   echo Logging on to $COMPILE_HOST to compile code.
+   print_header "Logging on to $COMPILE_HOST to compile code."
    run_cmd ssh $COMPILE_HOST cd `pwd` \\\; $0 -compile-only -dir $OUTPUT_DIR $ICU_OPT
 fi
 
 if [[ ! $COMPILE_ONLY ]]; then
 
+   print_header "Cleaning up source and source-doc"
    if [[ $NO_SOURCE ]]; then
       run_cmd pushd ./$OUTPUT_DIR/PORTAGEshared
          run_cmd mv ./doc/code-doc-binonly.html ./doc/code-documentation.html
@@ -427,6 +449,7 @@ if [[ ! $COMPILE_ONLY ]]; then
    fi
 
    if [[ $PATCH_FROM ]]; then
+      print_header "Preparing patches"
       for PATCH_ARG in $PATCH_FROM; do
          OLD_DIR=${PATCH_ARG%:*}
          PATCHLEVEL_TOKEN=${PATCH_ARG##*:}
@@ -448,7 +471,6 @@ if [[ ! $COMPILE_ONLY ]]; then
    fi
 
    if [[ ! $NO_ARCHIVES ]]; then
-      echo Generating tar ball and iso file.
       make_iso_and_tar
    fi
 fi
