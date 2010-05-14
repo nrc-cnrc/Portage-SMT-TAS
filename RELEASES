@@ -174,7 +174,8 @@ v1.4
    on the fly uses gzip by default, but now falls back to using zlib (via the
    boost::iostreams library) when gzip fails to start due to memory limits.
  - New script canoe-timing-stats.pl helps track time spent loading models
-   versus time spent actually doing translation.
+   versus time spent actually doing translation; cow-timing.pl summarizes the
+   time spent in the various parts of cow.sh.
  - New module textutils/ groups together utility scripts and programs for basic
    text manipulation, making them easier to find.
  - Truecaser: fixed issues for handling different encodings.
