@@ -290,10 +290,18 @@ if ($dryrun) {
             mkdir $dir or die "Can't make directory $dir: errno=$!";
         }
     } else {
-        $dir = tempdir('ce_work_XXXXXX', TMPDIR=>1, CLEANUP=>0);
+        $dir = "";
+        # Use eval to avoid death if unable to create the work directory .
+        eval {$dir = tempdir('ce_work_XXXXXX', DIR=>".", CLEANUP=>0);};
+        if (not -d $dir) {
+           $dir = tempdir('ce_work_XXXXXX', TMPDIR=>1, CLEANUP=>0);
+           # Prevent running in cluster mode if using /tmp as the work directory.
+           $ENV{PORTAGE_NOCLUSTER} = 1;
+        }
     }
     $plog_file = plogCreate($input_text) unless $train; # Don't log when training
 }
+$keep_dir = $dir if $debug;   # don't delete the directory in -debug mode.
 verbose("[Work directory: \"${dir}\"]\n");
 
 # File names
