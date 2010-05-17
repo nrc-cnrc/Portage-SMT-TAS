@@ -282,6 +282,7 @@ BEGIN {
       unshift @INC, "$bin_path/../utils", $bin_path;
    }
 }
+
 use portage_utils;
 printCopyright("translate.pl", 2010);
 $ENV{PORTAGE_INTERNAL_CALL} = 1;
@@ -367,7 +368,6 @@ unless (defined $canoe_ini) {
 -f $canoe_ini && -r _ or die "ERROR: canoe.ini file '$canoe_ini' is not a readable file";
 
 my $models_dir = dirname($canoe_ini);
-verbose("[models_dir: '$models_dir' (" . Cwd::realpath($models_dir) . ")]\n");
 -d $models_dir or die "ERROR: models directory '$models_dir' is not a readable directory";
 
 # Locate the rescoring or CE model, if needed.
@@ -501,8 +501,6 @@ unless ($with_ce) {
 @ARGV > 0 or die "ERROR: Too few arguments." if $tmx;
 my $input_text = @ARGV > 0 ? shift : "-";
 
-verbose("[Processing input text \"${input_text}\"]\n");
-
 unless (defined $out) {
    $out = "-";
 } else {
@@ -519,6 +517,9 @@ if ($dryrun) {
 } elsif ($skipto) {
     $dir or die "ERROR: Use -dir with -skipto";
     -d $dir or die "ERROR: Unreadable directory '$dir' with -skipto";
+    open(STDERR, ">>", "${dir}/log.translate.pl");
+    print STDERR "\n---------- " . localtime() . " ----------\n"
+       or warn "Unable to redirect STDERR to append to '${dir}/log.translate.pl'";
 } else {
     if ($dir) {
         if (not -d $dir) {
@@ -534,14 +535,19 @@ if ($dryrun) {
            $ENV{PORTAGE_NOCLUSTER} = 1;
         }
     }
+    open(STDERR, ">", "${dir}/log.translate.pl") 
+       or warn "Unable to redirect STDERR to '${dir}/log.translate.pl'";
     $plog_file = plogCreate($input_text);
 }
+
 $keep_dir = $dir if $debug;
 verbose("[Work directory: \"${dir}\"]\n");
+verbose("[models_dir: '$models_dir' (" . Cwd::realpath($models_dir) . ")]\n");
+verbose("[Processing input text \"${input_text}\"]\n");
 
 # Generate a README file for the working directory.
 unless ($dryrun) {
-   open README, ">", "$dir/README";
+   open (README, ">", "$dir/README") or die "Unable to open '$dir/README' for writing";
    print README (
       "Filenames starting with 'Q' or 'q' = query text = source language input.\n",
       "Filenames starting with 'P' or 'p' = product text = target language output.\n",
@@ -731,9 +737,8 @@ sub plogCreate {
    if ($dryrun) {
       $plog_file = "dummy-log";
    } else {
-      my @plog_opt = ();
-      push @plog_opt, "-verbose" if $verbose;
-      my $cmd = sprintf("plog.pl -create %s \"${job_name}\"", join(" ", @plog_opt));
+      my $plog_opt = $verbose ? "-verbose" : "";
+      my $cmd = "plog.pl -create $plog_opt \"${job_name}\"";
       $plog_file = callOutput($cmd);
    }
     
