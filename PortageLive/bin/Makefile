@@ -59,7 +59,7 @@ INSTALL_BIN_LIST = $(addprefix ${DEST_BIN_DIR}/, ${PORTAGE_BINS} ${CLUSTER_BINS}
 .PHONY: install_bin
 all: install_bin
 install_bin: ${INSTALL_BIN_LIST}
-	chmod o+x,o+r $+
+	chmod 0755 $+
 
 # Binaries' dependencies.
 ${INSTALL_BIN_LIST}: ${DEST_BIN_DIR}/%: %
@@ -70,7 +70,8 @@ ALL_FILES += ${INSTALL_BIN_LIST}
 ${DEST_BIN_DIR}/plog.pl:  ${DEST_BASE_DIR}/logs/accounting
 ${DEST_BASE_DIR}/logs/accounting:
 	mkdir -p $@
-	chmod o+w $@
+	chmod 0755 $(dir $@)
+	chmod 0777 $@
 
 
 
@@ -96,7 +97,7 @@ ${DEST_OTHER_DIR}/SETUP.bash:
 	echo "export LD_LIBRARY_PATH=\$${PORTAGE}/lib:\$$LD_LIBRARY_PATH" > $@
 	echo "export PATH=\$${PORTAGE}/bin:\$$PATH" >> $@
 	echo "export PERL5LIB=\$${PORTAGE}/lib:\$$PERL5LIB" >> $@
-	chmod o+x,o+r $@
+	chmod 0755 $@
 
 
 
@@ -128,7 +129,6 @@ INSTALL_LIB_LIST = $(addprefix ${DEST_LIB_DIR}/, ${LIBRARIES})
 all: install_lib
 install_lib: ${INSTALL_LIB_LIST}
 install_lib: ${DEST_LIB_DIR}/CE
-	chmod o+r $+
 
 # Libraries' dependencies.
 ${INSTALL_LIB_LIST}: ${DEST_LIB_DIR}/%: %
@@ -138,6 +138,8 @@ ALL_FILES += ${INSTALL_LIB_LIST}
 # Special rule to install Confidence Estimation's plugins.
 ${DEST_LIB_DIR}/CE: ${DEST_LIB_DIR}/%: ${SRC_PORTAGE_LIB_DIR}/%
 	cp -R $< $@
+	chmod 0755 $@
+	chmod 0644 $@/*.pm
 
 
 
