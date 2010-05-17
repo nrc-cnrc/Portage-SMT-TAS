@@ -152,7 +152,8 @@ SETUP_DEST_DIR := $(shell mkdir -p ${DEST_BIN_DIR} ${DEST_LIB_DIR})
 vpath % ${SRC_PORTAGE_LIB_DIR} ${SRC_PORTAGE_BIN_DIR} ${SRC_CLUSTER_BIN_DIR}
 
 .PHONY: all
-#all: ${ALL_FILES}
+all:
+	chmod 0755 ${DEST_BASE_DIR} $(dir ${DEST_BASE_DIR}) ${DEST_BIN_DIR} ${DEST_LIB_DIR}
 
 # Basically, it's all about copying.
 ${ALL_FILES}: %:
