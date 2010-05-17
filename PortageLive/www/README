@@ -25,6 +25,6 @@ Then, either copy the files manually to your translation server, if you have
 just one physical server, or build the RPM by running ../scripts/make-rpm.sh if
 you are using virtual appliances.
 
-Note: the scripts work for us, but rely on details of how the OS and Apache is
+Note: the scripts work for us, but rely on details of how the OS and Apache are
 installed, among other things.  You should expect to have to adjust the
 procedure for your own environment.
