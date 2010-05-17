@@ -27,16 +27,16 @@ DEST_BASE_DIR ?= rpm.build.root/opt/Portage
 ################################################################################
 # BINARIES
 CE ?= ce_canoe2ffvals.pl ce_gen_features.pl ce.pl ce_tmx.pl ce_train.pl ce_translate.pl ce_ttx2ospl.pl plog.pl
-CHINESE ?= 03_manseg.pl 04_markup.pl 05_rules.pl
 CLUSTER ?= parallelize.pl psub r-parallel-d.pl r-parallel-worker.pl run-parallel.sh which-test.sh
-DECODE ?= canoe canoe-escapes.pl canoe-parallel.sh 
+DECODE ?= canoe canoe-escapes.pl canoe-parallel.sh
+TRANSLATE ?= postdecode_plugin postprocess_plugin predecode_plugin preprocess_plugin translate.pl ridbom.sh crlf2lf.sh utf8_filter
 OTHER_BIN ?= configtool
 RESCORE ?= feature_function_tool gen-features-parallel.pl gen_feature_values nbest2rescore.pl rat.sh rescore_translate
 TOKENIZATION ?= truecase.pl udetokenize.pl utf8_casemap utokenize.pl
 EXTRAS ?= bloater
 
 # Must contains pgm from Portage only.
-PORTAGE_BINS ?= ${CE} ${DECODE} ${OTHER_BIN} ${RESCORE} ${TOKENIZATION}
+PORTAGE_BINS ?= ${CE} ${DECODE} ${OTHER_BIN} ${RESCORE} ${TOKENIZATION} ${TRANSLATE}
 CLUSTER_BINS ?= ${CLUSTER}
 
 AUTO_DIR := $(sort $(dir $(shell which ${PORTAGE_BINS} 2> /dev/null)))
@@ -101,21 +101,8 @@ ${DEST_OTHER_DIR}/SETUP.bash:
 
 
 ################################################################################
-# CHINESE SPECIFIC
-ifdef DO_CHINESE
-PORTAGE_BINS += ${CHINESE}
-
-# Chinese libs:
-#a94_recode.pm
-#Encode
-#rpm.build.root/opt/Portage/models/manseg.fre
-endif
-
-
-
-################################################################################
 # LIBRARIES
-#PORTAGE_LIBS := LexiTools_u8.pm portage_truecaselibconstantes.pm portage_truecaselib.pm portage_utils.pm ULexiTools.pm
+#PORTAGE_LIBS := portage_truecaselibconstantes.pm portage_truecaselib.pm portage_utils.pm ULexiTools.pm
 PORTAGE_LIBS ?= portage_truecaselibconstantes.pm portage_truecaselib.pm portage_utils.pm ULexiTools.pm
 LIBRARIES += ${PORTAGE_LIBS}
 
