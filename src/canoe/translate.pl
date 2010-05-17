@@ -393,7 +393,7 @@ if ($with_rescoring) {
       $ce_model = $model
    } else {
       my @files = grep !/^.*\/log\.[^\/]+/, glob "$models_dir/*.cem";
-      @files > 0 or die "ERROR: Unable to locate a .cem file in '$models_dir'",
+      @files > 0 or die "ERROR: Unable to locate a .cem file in '$models_dir'; ",
                         "use -model to specify the CE model";
       @files == 1 or die "ERROR: Found multiple .cem files in '$models_dir'; ",
                          "use -model to specify the CE model";
