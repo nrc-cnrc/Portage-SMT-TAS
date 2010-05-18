@@ -42,7 +42,7 @@ CLUSTER_BINS ?= ${CLUSTER}
 AUTO_DIR := $(sort $(dir $(shell which ${PORTAGE_BINS} 2> /dev/null)))
 SRC_PORTAGE_BIN_DIR ?= ${AUTO_DIR:/=}
 ifneq ("$(words ${SRC_PORTAGE_BIN_DIR})","1")
-$(error Most likely you don't have Portage only software in PORTAGE_BINS)
+$(error Problem finding Portage software, maybe it's not installed, or the PORTAGE_BINS variable lists non-Portage programs)
 endif
 
 AUTO_DIR1 := $(sort $(dir $(shell which ${CLUSTER_BINS} 2> /dev/null)))
