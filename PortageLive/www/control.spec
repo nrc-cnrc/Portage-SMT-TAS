@@ -1,6 +1,6 @@
 Summary: This package contains all required files required for web-access.
 Name: PortageLive-www
-Version: 1.0.0.0
+Version: 1.4.0
 Release: 0
 License: Copyright © 2004-2010 NRC-CNRC . see { commercial, research, evaluation } LICENCE
 Vendor: National Research Council Canada
