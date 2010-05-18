@@ -60,7 +60,7 @@ The first form of this command (C<plog.pl -create>) is used to create
 an entry for a new job: C<job_name> is the C<JOB> field (typically the
 name of the source text file being translated). Values for the other
 fields are allocated automatically: job numbers <NO> are allocated
-sequentially, starting from 1; C<TIME> is the curent time; C<WORDS> is
+sequentially, starting from 1; C<TIME> is the current time; C<WORDS> is
 zero; C<STATUS> is "pending"; and C<FILE> is the complete name of the
 file corresponding to this log entry.  Upon successfully creating the
 entry, the program outputs the C<FILE> field on the standard output.
@@ -74,7 +74,7 @@ number of source words translated; and C<status> should either be
 The third form is used either to extract entries (C<-extract>) or to
 compute global statistics on these entries (C<-stats>).  By default
 (no C<period> argument), all log entries are considered. The C<period>
-argument can beused to specify a time period: C<YYYY> for a complete
+argument can be used to specify a time period: C<YYYY> for a complete
 year (e.g. "2010"), C<YYYY/MM> for a month (e.g. "2005/02") or
 C<YYYY/MM/DD> for a specific day (e.g. "1964/01/07").  With
 C<-extract>, log entries are output to standard output in
@@ -225,6 +225,7 @@ sub logCreate {
                                          sprintf("%02d", $now->mday()));
     my $full_dirname = File::Spec->catdir($dir, $todays_path);
 
+    umask 0000;                 # Ugly, but effective
     File::Path::mkpath($full_dirname, 0, 0777);    # like mkdir -p
     my ($log_fh, $full_filename) = File::Temp::tempfile(sprintf("%06d.%s.%s.XXXX",
                                                                 logValue($job, 'NO'), 
