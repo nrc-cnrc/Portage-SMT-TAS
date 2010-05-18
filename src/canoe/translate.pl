@@ -360,23 +360,23 @@ $with_rescoring = 0 unless defined $with_rescoring;
 $with_ce = 0 unless defined $with_ce;
 $decode_only + $with_rescoring + $with_ce == 1
    or die "ERROR: Missing or extra switch; specify exactly one of: ",
-          "-decode-only, -with-rescoring, -with-ce";
+          "-decode-only, -with-rescoring, -with-ce.\nStopped";
 
 $n = 1 unless defined $n;
 $n >= 1 or die "ERROR: n must be a positive integer (n-ways-parallel)";
 $n > 1 or !defined $xtra_cp_opts 
-   or die "ERROR: -xtra-cp-opts is valid only when using canoe parallel (n>1)";
+   or die "ERROR: -xtra-cp-opts is valid only when using canoe parallel (n>1).\nStopped";
 
 unless (defined $canoe_ini) {
    $canoe_ini = "canoe.ini.cow";
    $canoe_ini = "$ENV{PORTAGE}/models/canoe.ini.cow" unless -f $canoe_ini;
    -f $canoe_ini or die "ERROR: Unable to locate a canoe.ini.cow file; ",
-                        "use -f or -ini to specify the canoe.ini file"
+                        "use -f or -ini to specify the canoe.ini file.\nStopped"
 }
--f $canoe_ini && -r _ or die "ERROR: canoe.ini file '$canoe_ini' is not a readable file";
+-f $canoe_ini && -r _ or die "ERROR: canoe.ini file '$canoe_ini' is not a readable file.\nStopped";
 
 my $models_dir = dirname($canoe_ini);
--d $models_dir or die "ERROR: models directory '$models_dir' is not a readable directory";
+-d $models_dir or die "ERROR: models directory '$models_dir' is not a readable directory.\nStopped";
 
 # Locate the rescoring or CE model, if needed.
 my ($rs_model, $ce_model) = ("", "");
@@ -389,12 +389,12 @@ if ($with_rescoring) {
       my @files = grep !(/\.ini$/ || /\.template$/), glob "$rescoring_dir/rescore-model*";
       @files > 0 or die "ERROR: Unable to locate a rescore-model file in '$rescoring_dir'; ",
                         -d $rescoring_dir ? "" : "'$rescoring_dir' does not exist; ",
-                        "use -model to specify the rescoring model";
+                        "use -model to specify the rescoring model.\nStopped";
       @files == 1 or die "ERROR: Found multiple rescore-model files in '$rescoring_dir'; ",
-                         "use -model to specify the rescoring model";
+                         "use -model to specify the rescoring model.\nStopped";
       $rs_model = shift @files;
    }
-   -f $rs_model && -r _ or die "ERROR: Rescoring model '$rs_model' is not a readable file";
+   -f $rs_model && -r _ or die "ERROR: Rescoring model '$rs_model' is not a readable file.\nStopped";
 } elsif ($with_ce) {
    # Locate the CE model.
    if (defined $model) {
@@ -402,15 +402,15 @@ if ($with_rescoring) {
    } else {
       my @files = grep !/^.*\/log\.[^\/]+/, glob "$models_dir/*.cem";
       @files > 0 or die "ERROR: Unable to locate a .cem file in '$models_dir'; ",
-                        "use -model to specify the CE model";
+                        "use -model to specify the CE model.\nStopped";
       @files == 1 or die "ERROR: Found multiple .cem files in '$models_dir'; ",
-                         "use -model to specify the CE model";
+                         "use -model to specify the CE model.\nStopped";
       $ce_model = shift @files;
    }
-   -f $ce_model && -r _ or die "ERROR: CE model '$ce_model' is not a readable file";
+   -f $ce_model && -r _ or die "ERROR: CE model '$ce_model' is not a readable file.\nStopped";
 } else {
    !defined $model or die "ERROR: -model option is invalid with -decode-only; "
-                        . "use -f or -ini to specify the canoe.ini file";
+                        . "use -f or -ini to specify the canoe.ini file.\nStopped";
 }
 
 $tok = 1 unless defined $tok;
@@ -419,19 +419,19 @@ $detok = 1 unless defined $detok;
 
 $nl = "" unless defined $nl;
 $nl eq "" or $nl eq "s" or $nl eq "p"
-   or die "ERROR: -nl option must be one of: 's', 'p', or ''";
+   or die "ERROR: -nl option must be one of: 's', 'p', or ''.\nStopped";
 $tok or $nl eq "s"
-   or die "ERROR: -notok requires -nl=s to be specified";
+   or die "ERROR: -notok requires -nl=s to be specified.\nStopped";
 
 !defined $tc || !defined $tctp
-   or die "ERROR: Specify only one of: -notc, -tc, -tctp";
+   or die "ERROR: Specify only one of: -notc, -tc, -tctp.\nStopped";
 $tc = 0 unless defined $tc;
 $tctp = 0 unless defined $tctp;
 $tc = 1 if $tctp;
 $tc or (!defined $tclm && !defined $tcmap)
-   or die "ERROR: Do not specify -tclm or -tctp with -notc";
+   or die "ERROR: Do not specify -tclm or -tctp with -notc.\nStopped";
 (defined $tclm && defined $tcmap) or (!defined $tclm && !defined $tcmap)
-   or die "ERROR: Specify neither or both of -tclm and -tcmap";
+   or die "ERROR: Specify neither or both of -tclm and -tcmap.\nStopped";
 
 # Locate the Truecasing model.
 if ($tc and !defined $tclm) {
@@ -439,26 +439,33 @@ if ($tc and !defined $tclm) {
    my $tc_dir = "$models_dir/models/tc";
    foreach my $ext ($tctp ? (".tplm", ".tppt") : (".binlm.gz", ".map")) {
       my @files = grep !/^.*\/log\.[^\/]+/, glob "$tc_dir/*$ext";
-      @files > 0 or die "ERROR: Unable to locate a $ext file in '$tc_dir'; ",
-                        -d "$tc_dir" ? ("perhaps you need the " . ($tctp ? "-tc" : "-tctp") 
-                                        . " option instead of " . ($tctp ? "-tctp" : "-tc"))
-                                     : ("; '$tc_dir' does not exist; use -tclm "
-                                        . "and -tcmap to specify the truecasing files");
-      @files == 1 or die "ERROR: Found multiple $ext files in '$tc_dir'; ",
-                         "use -tclm and -tcmap to specify the truecasing files";
+      @files > 0
+         or die "ERROR: Unable to locate a $ext file in '$tc_dir'; ",
+                -d "$tc_dir" ? ("perhaps you need the " . ($tctp ? "-tc" : "-tctp") 
+                                . " option instead of " . ($tctp ? "-tctp" : "-tc"))
+                             : ("; '$tc_dir' does not exist; use -tclm "
+                                . "and -tcmap to specify the truecasing files"),
+                ".\nStopped";
+      @files == 1
+         or die "ERROR: Found multiple $ext files in '$tc_dir'; ",
+                "use -tclm and -tcmap to specify the truecasing files.\nStopped";
       push @tc_files, @files;
    }
    ($tclm, $tcmap) = @tc_files;
 }
 if ($tc) {
    if ($tctp) {
-      -d $tclm && -x _ or die "ERROR: Tightly packed truecasing model '$tclm' ",
-                              "is not a readable directory";
-      -d $tcmap && -x _ or die "ERROR: Tightly packed truecasing map '$tcmap' ",
-                               "is not a readable directory";      
+      -d $tclm && -x _ 
+         or die "ERROR: Tightly packed truecasing model '$tclm' ",
+                "is not a readable directory.\nStopped";
+      -d $tcmap && -x _ 
+         or die "ERROR: Tightly packed truecasing map '$tcmap' ",
+                "is not a readable directory.\nStopped";      
    } else {
-      -f $tclm && -r _ or die "ERROR: Truecasing model '$tclm' is not a readable file";
-      -f $tcmap && -r _ or die "ERROR: Truecasing map '$tcmap' is not a readable file";
+      -f $tclm && -r _ 
+         or die "ERROR: Truecasing model '$tclm' is not a readable file.\nStopped";
+      -f $tcmap && -r _ 
+         or die "ERROR: Truecasing map '$tcmap' is not a readable file.\nStopped";
    }
 }
 
@@ -468,7 +475,7 @@ $tgt = "fr" unless defined $tgt;
 my $utf8 = 1;
 if (defined $encoding) {
    $encoding eq "utf8" or $encoding eq "cp1252" 
-      or die "ERROR: -encoding must be one of: 'utf8' or 'cp1252'";
+      or die "ERROR: -encoding must be one of: 'utf8' or 'cp1252'.\nStopped";
    $utf8 = $encoding eq "utf8";
 }
 
@@ -480,9 +487,9 @@ if (defined $plugins) {
 }
 
 $decode_only or $with_ce or !defined $xtra_decode_opts
-   or die "ERROR: -xtra-decode-opts is valid only with -decode-only or -with-ce";
+   or die "ERROR: -xtra-decode-opts is valid only with -decode-only or -with-ce.\nStopped";
 $with_rescoring or !defined $xtra_rat_opts
-   or die "ERROR: -xtra-rat-opts is valid only with -with-rescoring";
+   or die "ERROR: -xtra-rat-opts is valid only with -with-rescoring.\nStopped";
 $xtra_cp_opts = "" unless defined $xtra_cp_opts;
 $xtra_decode_opts = "" unless defined $xtra_decode_opts;
 $xtra_rat_opts = "" unless defined $xtra_rat_opts;
@@ -490,14 +497,14 @@ $xtra_rat_opts = "" unless defined $xtra_rat_opts;
 # CE specific options
 unless ($with_ce) {
    !defined $tmx and !defined $xsrc and !defined $xtgt and !defined $filter 
-      or die "ERROR: -tmx, -xsrc, -xtgt and -filter are valid only with -with-ce.";
+      or die "ERROR: -tmx, -xsrc, -xtgt and -filter are valid only with -with-ce.\nStopped";
    !defined $xtra_ce_opts
-      or die "ERROR: -xtra-ce-opts is valid only with -with-ce";
+      or die "ERROR: -xtra-ce-opts is valid only with -with-ce.\nStopped";
 } else {
    $tmx = 0 unless defined $tmx;
    unless ($tmx) {
       !defined $xsrc and !defined $xtgt and !defined $filter
-         or die "ERROR: -xsrc, -xtgt and -filter are valid only with -tmx."
+         or die "ERROR: -xsrc, -xtgt and -filter are valid only with -tmx.\nStopped"
    } else {
       $xsrc = "EN-CA" unless defined $xsrc;
       $xtgt = "FR-CA" unless defined $xtgt;
@@ -505,36 +512,38 @@ unless ($with_ce) {
    $xtra_ce_opts = "" unless defined $xtra_ce_opts;
 }
 
-@ARGV <= 1 or die "ERROR: Too many arguments.";
-@ARGV > 0 or die "ERROR: Too few arguments." if $tmx;
+@ARGV <= 1 or die "ERROR: Too many arguments.\nStopped";
+@ARGV > 0 or die "ERROR: Too few arguments.\nStopped" if $tmx;
 my $input_text = @ARGV > 0 ? shift : "-";
 
 unless (defined $out) {
    $out = "-";
 } else {
    system("echo '' >$out") == 0
-      or die "ERROR: '$out' is not a writable file.";
+      or die "ERROR: '$out' is not a writable file.\nStopped";
 }
 
 # Make working directory and the log file.
 my $keep_dir = $dir;
 my $plog_file;
 
+open(SAVE_STDERR, ">&STDERR");   # later, STDERR may be redirected to a log file.
+
 if ($dryrun) {
     $dir = "translate_work_temp_dir" unless $dir;
 } elsif ($skipto) {
-    $dir or die "ERROR: Use -dir with -skipto";
-    -d $dir or die "ERROR: Unreadable directory '$dir' with -skipto";
+    $dir or die "ERROR: Use -dir with -skipto.\nStopped";
+    -d $dir or die "ERROR: Unreadable directory '$dir' with -skipto.\nStopped";
     if ($quiet) {
        # Make terminal output as quiet as possible by redirecting STDERR.
        open(STDERR, ">>", "${dir}/log.translate.pl");
        print STDERR "\n---------- " . localtime() . "skipto $skipto ----------\n"
-          or warn "Unable to redirect STDERR to append to '${dir}/log.translate.pl'";
+          or warn "WARNING: Unable to redirect STDERR to append to '${dir}/log.translate.pl'";
     }
 } else {
     if ($dir) {
         if (not -d $dir) {
-           mkdir $dir or die "ERROR: Can't make directory '$dir': errno=$!";
+           mkdir $dir or die "ERROR: Can't make directory '$dir': errno=$!.\nStopped";
         }
     } else {
         $dir = "";
@@ -549,7 +558,7 @@ if ($dryrun) {
     if ($quiet) {
        # Make terminal output as quiet as possible by redirecting STDERR.
        open(STDERR, ">", "${dir}/log.translate.pl") 
-          or warn "Unable to redirect STDERR to '${dir}/log.translate.pl'";
+          or warn "WARNING: Unable to redirect STDERR to '${dir}/log.translate.pl'";
     }
     $plog_file = plogCreate($input_text);
 }
@@ -561,7 +570,8 @@ verbose("[Processing input text \"${input_text}\"]\n");
 
 # Generate a README file for the working directory.
 unless ($dryrun) {
-   open (README, ">", "$dir/README") or die "Unable to open '$dir/README' for writing";
+   open (README, ">", "$dir/README")
+      or cleanupAndDie("Unable to open '$dir/README' for writing.\n");
    print README (
       "Filenames starting with 'Q' or 'q' = query text = source language input.\n",
       "Filenames starting with 'P' or 'p' = product text = target language output.\n",
@@ -770,8 +780,7 @@ sub plogUpdate {
    my $plog_opt = $verbose ? "-verbose" : "";
    my $cmd = "plog.pl -update $plog_opt \"${plog_file}\" $wc $status";
    # Don't use call(): potential recursive loop!!
-   system($cmd) == 0 
-      or warn "Command \"$cmd\" failed: $?";
+   system($cmd) == 0 or warn "WARNING: ", explainSystemRC($?,$cmd,$0);
 }
 
 sub wordCount {
@@ -845,10 +854,9 @@ sub callOutput {
    my ($fh, $fname) = File::Temp->tempfile("callOutput-XXXXXX", UNLINK=>1);
    close $fh;
 
-   system("$cmd > $fname") == 0
-      or cleanupAndDie(explainSystemRC($?,$cmd,$0));
+   system("$cmd > $fname") == 0 or cleanupAndDie(explainSystemRC($?,$cmd,$0));
 
-   open($fh, "<$fname") or die "Can't open temp file $fname for reading";
+   open($fh, "<$fname") or cleanupAndDie("Can't open temp file $fname for reading.\n");
    my @cmdout = <$fh>;
    close $fh;
 
@@ -862,8 +870,13 @@ sub cleanupAndDie {
    my ($message, @files) = @_;
 
    plogUpdate($plog_file, undef, 'failure');
+   if ($quiet) {
+      # Notify the user via the original STDERR.
+      print SAVE_STDERR "ERROR: ", $message;
+      print SAVE_STDERR "See '${dir}/log.translate.pl' for details.\n";      
+   }
    unlink @files;
-   die $message;
+   die "ERROR: ", $message;
 }
 
 sub verbose { printf STDERR @_ if $verbose; }
