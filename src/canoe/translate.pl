@@ -211,6 +211,10 @@ Specify additional C<ce.pl> options (valid for -with-ce only).
 
 Be verbose. (cumulative)
 
+=item -quiet
+
+Make terminal output as quiet as possible by redirecting STDERR to a log file.
+
 =item -debug
 
 Print debugging info.
@@ -301,7 +305,7 @@ my $verbose = 0;
 Getopt::Long::GetOptions(
    'help'           => sub { displayHelp(); exit 0 },
    "verbose+"       => \$verbose,
-   "quiet"          => sub { $verbose = 0 },
+   "quiet"          => \my $quiet,
    "debug"          => \my $debug,
    "dryrun"         => \my $dryrun,
    
@@ -346,6 +350,10 @@ Getopt::Long::GetOptions(
    #Development options
    "skipto=s"    => \my $skipto,
 ) or (displayHelp(), print("ERROR: translate.pl aborted due to bad option.\n"), exit 1);
+
+$quiet = 0 unless defined $quiet;
+$debug = 0 unless defined $debug;
+$dryrun = 0 unless defined $dryrun;
 
 $decode_only = 0 unless defined $decode_only;
 $with_rescoring = 0 unless defined $with_rescoring;
@@ -517,9 +525,12 @@ if ($dryrun) {
 } elsif ($skipto) {
     $dir or die "ERROR: Use -dir with -skipto";
     -d $dir or die "ERROR: Unreadable directory '$dir' with -skipto";
-    open(STDERR, ">>", "${dir}/log.translate.pl");
-    print STDERR "\n---------- " . localtime() . " ----------\n"
-       or warn "Unable to redirect STDERR to append to '${dir}/log.translate.pl'";
+    if ($quiet) {
+       # Make terminal output as quiet as possible by redirecting STDERR.
+       open(STDERR, ">>", "${dir}/log.translate.pl");
+       print STDERR "\n---------- " . localtime() . "skipto $skipto ----------\n"
+          or warn "Unable to redirect STDERR to append to '${dir}/log.translate.pl'";
+    }
 } else {
     if ($dir) {
         if (not -d $dir) {
@@ -535,8 +546,11 @@ if ($dryrun) {
            $ENV{PORTAGE_NOCLUSTER} = 1;
         }
     }
-    open(STDERR, ">", "${dir}/log.translate.pl") 
-       or warn "Unable to redirect STDERR to '${dir}/log.translate.pl'";
+    if ($quiet) {
+       # Make terminal output as quiet as possible by redirecting STDERR.
+       open(STDERR, ">", "${dir}/log.translate.pl") 
+          or warn "Unable to redirect STDERR to '${dir}/log.translate.pl'";
+    }
     $plog_file = plogCreate($input_text);
 }
 
