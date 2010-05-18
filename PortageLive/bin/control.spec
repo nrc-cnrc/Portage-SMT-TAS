@@ -1,12 +1,12 @@
 Summary: This package contains all required binaries to translate with Portage.
 Name: PortageLive-bin
-Version: 1.0.0.0
-Release: 1
+Version: 1.4.0
+Release: 0
 License: Copyright © 2004-2010 NRC-CNRC . see { commercial, research, evaluation } LICENCE
 Vendor: National Research Council Canada
 Group: translation
 URL: http://www.nrc-cnrc.gc.ca/
-BuildArchitectures: i386
+BuildArchitectures: x86_64
 #Requires: php php-soap
 
 %description
