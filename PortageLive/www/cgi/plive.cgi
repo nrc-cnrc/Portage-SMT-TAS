@@ -496,7 +496,8 @@ sub NRCFooter {
                           "Institut de technologie de l'information / Institute for Information Technology", br(),
                           "Conseil national de recherches Canada / National Research Council Canada", br(),
                           "Copyright 2004&ndash;2010, Sa Majest&eacute; la Reine du Chef du Canada / ",
-                          "Her Majesty in Right of Canada"))));
+                          "Her Majesty in Right of Canada", br(),
+                          "<a href=\"/portage_notices.html\">Third party Copyright notices</a>"))));
 }
 
 

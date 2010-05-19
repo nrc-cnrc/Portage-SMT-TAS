@@ -160,6 +160,20 @@ ${ALL_FILES}: %:
 	cp $< $@
 
 
+################################################################################
+# The notices file has to get assembled from the head, tail, and the output of
+# portage_info -notice
+.PHONY: notice
+all: notice
+notice: notices_head.html notices_tail.html
+	mkdir -p rpm.build.root/var/www/html
+	find rpm.build.root/var -type d | xargs chmod 0755
+	cat notices_head.html > rpm.build.root/var/www/html/portage_notices.html
+	portage_info -notice >> rpm.build.root/var/www/html/portage_notices.html
+	cat notices_tail.html >> rpm.build.root/var/www/html/portage_notices.html
+	chmod 0644 rpm.build.root/var/www/html/portage_notices.html
+
+
 
 ################################################################################
 # CLEAN UP.
