@@ -83,10 +83,19 @@ if (my $dir = param('dir')
 
         print p("Nothing to monitor.");
 }
-print end_html();
+print copyright();
 
 exit 0;
 
         
-
-
+sub copyright() {
+    return (hr(),
+            p({align=>'center'},
+              small(
+                    "Technologies langagieres interactives / Interactive Language Technologies",br(),
+                    "Inst. de technologie de l'information / Institute for Information Technology", br(),
+                    "Conseil national de recherches Canada / National Research Council Canada", br(),
+                    "Copyright 2010, Sa Majeste la Reine du Chef du Canada /",
+                    "Copyright 2010, Her Majesty in Right of Canada")),
+            end_html());
+}
