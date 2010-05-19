@@ -172,6 +172,7 @@ notice: notices_head.html notices_tail.html
 	portage_info -notice >> rpm.build.root/var/www/html/portage_notices.html
 	cat notices_tail.html >> rpm.build.root/var/www/html/portage_notices.html
 	chmod 0644 rpm.build.root/var/www/html/portage_notices.html
+	portage_info -notice >> rpm.build.root/opt/Portage/NOTICE
 
 
 
