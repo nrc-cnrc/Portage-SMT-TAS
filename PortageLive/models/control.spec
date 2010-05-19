@@ -2,7 +2,7 @@ Summary: This package contains all required models to translate from src_lang to
 Name: PortageLive-models-context
 Version: 1.0.0.0
 Release: 1
-License: Copyright © 2004-2010 NRC-CNRC . see { evaluation } LICENCE
+License: Copyright © 2004-2010 NRC-CNRC . see your signed license agreement.
 Vendor: National Research Council Canada
 Group: translation
 URL: http://www.nrc-cnrc.gc.ca/
