@@ -125,6 +125,8 @@ sub printForm {
 
     print start_html("PORTAGELive");
 
+    print NRCBanner();
+
     print h1("PORTAGELive"), 
 
     p();
@@ -309,6 +311,7 @@ sub monitor {
                                   -content => "0;url=${redirect}"}));
 
     print 
+        NRCBanner(),
         h1("PORTAGELive"),
         p("Processing $work_name: translating $line_count segments"),
         "\n";
@@ -334,6 +337,7 @@ sub textBoxOutput {
     print start_html(-title=>"PORTAGELive");
 
     print 
+        NRCBanner(),
         h1("PORTAGELive"),
         h2($LANG->{name}{$SRC_LANG}." source text:"),
         p($source),
@@ -437,6 +441,7 @@ sub problem {
     print start_html(-title=>"PORTAGELive Problem");
 
     print 
+        NRCBanner(),
         h1("PORTAGELive PROBLEM"),
         p(sprintf($message, @args)),
         "\n";
@@ -467,14 +472,37 @@ sub timeStamp() {
 }
 
 
+sub NRCBanner {
+    return p({align=>'center'}, img({src=>'/images/NRC_banner_e.jpg'}));
+}
+
+sub NRCFooter {
+    return table({border=>0, cellpadding=>0, cellspacing=>0, width=>'100%'},
+                 Tr(td({width=>'20%', valign=>'bottom', align=>'right'},
+                       img({src=>'/images/iit_sidenav_graphictop_e.gif', height=>54,
+                            alt=>'NRC-IIT - Institute for Information Technology'})),
+                    td({width=>'60%', valign=>'bottom', align=>'center'},
+                       img({src=>'/images/mainf1.gif', height=>44, width=>286,
+                            alt=>'National Research Council Canada'})),
+                    td({width=>'20%', valign=>'center', align=>'left'},
+                       img({src=>'/images/mainWordmark.gif', height=>44, width=>93,
+                            alt=>'Government of Canada'}))),
+                 Tr(td({valign=>'top', align=>'right'},
+                       img({src=>'/images/iit_sidenav_graphicbottom_e.gif',
+                            alt=>'NRC-IIT - Institute for Information Technology'})),
+                    td({valign=>'top', align=>'center'},
+                       small(
+                          "Technologies langagi&egrave;res interactives / Interactive Language Technologies", br(),
+                          "Institut de technologie de l'information / Institute for Information Technology", br(),
+                          "Conseil national de recherches Canada / National Research Council Canada", br(),
+                          "Copyright 2004&ndash;2010, Sa Majest&eacute; la Reine du Chef du Canada / ",
+                          "Her Majesty in Right of Canada"))));
+}
+
+
+
 sub copyright() {
     return (hr(),
-            p({align=>'center'},
-              small(
-                    "Technologies langagieres interactives / Interactive Language Technologies",br(),
-                    "Inst. de technologie de l'information / Institute for Information Technology", br(),
-                    "Conseil national de recherches Canada / National Research Council Canada", br(),
-                    "Copyright 2010, Sa Majeste la Reine du Chef du Canada /",
-                    "Copyright 2010, Her Majesty in Right of Canada")),
+            NRCFooter(),
             end_html());
 }
