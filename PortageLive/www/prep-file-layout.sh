@@ -73,11 +73,15 @@ fi
 
 # Create directory structure
 mkdir -p rpm.build.root/var/www/html/plive   # working directory
+mkdir -p rpm.build.root/var/www/html/images  # to hold all images
 mkdir -p rpm.build.root/var/www/cgi-bin      # cgi scripts
 mkdir -p $SOAP_DEST/secure                   # directory for SOAP stuff
 
 # Copy the CGI scripts
 cp cgi/*.cgi rpm.build.root/var/www/cgi-bin
+
+# Copy the images needed by the CGI scripts
+cp images/*.gif images/*.jpg rpm.build.root/var/www/html/images
 
 # Copy the php and SOAP files
 cp soap/{index.html,PortageLiveAPI.*,test.php} $SOAP_DEST
