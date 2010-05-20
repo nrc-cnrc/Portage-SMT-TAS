@@ -16,7 +16,7 @@ class PortageLiveAPI {
             'PERL5LIB' => '/opt/Portage/lib'
          );
 
-         $process = proc_open('translate.sh 2> /dev/null', $descriptorspec, $pipes, $cwd, $env);
+         $process = proc_open('soap-translate.sh 2> /dev/null', $descriptorspec, $pipes, $cwd, $env);
 
          if (is_resource($process)) {
             // $pipes now looks like this:
