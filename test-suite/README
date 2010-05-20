@@ -20,5 +20,7 @@ Contents of this directory:
  - rescoring-example/   example prepared for a previous release of the
                         rescoring code only
 
+ - tutorial-data/       Toy data for the tuturial in our experimental framework
+                        (tutorial.pdf is recommended as your starting point).
 
 

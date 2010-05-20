@@ -39,6 +39,4 @@ Contents of this directory:
  - toy/                 Complete use of the PORTAGEshared software suite on a
                         tiny corpus, with parameters chosen to run very fast
                         (*not* recommended as an experimental starting point).
- - framework-toy/       Toy data for the tuturial in our experimental framework
-                        (tutorial.pdf is recommended as your starting point).
-
+ - other directories    Other unit test suites
