@@ -17,7 +17,10 @@ instructions are in the PortageLive Manual part of the Portage 1.4 User Manual.
 
 In this directory:
 
-First run ./prep-file-layout.sh to create the rpm.build.root hierarchy.  The
+Before you proceed, if you're going to use the CGI scripts, edit cgi/plive.cgi
+and set the variables in section "USER CONFIGURATION" to appropriate values.
+
+Now run ./prep-file-layout.sh to create the rpm.build.root hierarchy.  The
 files placed in that directory reproduce the location where files are to be
 installed on the translation server, as is normally done with RPMs.
 
