@@ -19,23 +19,32 @@
 
  ce_tmx.pl {options} extract dir [ tmx_in ]
  ce_tmx.pl {options} replace dir [ tmx_out ]
+ ce_tmx.pl {options} check [ tmx_in ]
 
 =head1 DESCRIPTION
 
 TMX pre- and post-processing tools for translation with PORTAGE within
-the confidence estimation framework.  The first form extracts the
+the confidence estimation framework.  
+
+The first form extracts the
 source-language text segments from a TMX file into a plain text file
 (<dir>/Q.txt), and produces a TMX file template (<dir>/QP.template.tmx).
+
 The second form inserts target-language translations from file
 <dir>/P.txt into that template,  generating the output TMX file
-<dir>/QP.tmx.
+<dir>/QP.tmx.  
+
+The third form checks the validity of the file. If the file is valid,
+the program outputs the number of translateble source-language
+segments on the standard output and exits successfully; if the file is
+not valid, it exits with a non-zero status and possibly a diagnostic
+on the standard error stream.
 
 =head1 OPTIONS
 
 =over 1
 
-=item -filter=T       In 'replace' mode, filter out TUs with confidence
-                below T [don't] 
+=item -filter=T       In 'replace' mode, filter out TUs with confidence below T [don't] 
 
 =item -src=SL         Specify TMX source language [EN-CA]
 
@@ -110,12 +119,12 @@ $src = $DEFAULT_SRC unless defined $src;
 $tgt = $DEFAULT_TGT unless defined $tgt;
 
 my $action = shift or die "Missing argument: action";
-my $dir = shift or die "Missing argument: dir";
-my $tmx_file = shift || "-";
-
-die "No such directory: $dir" unless -d $dir;
 
 if ($action eq 'extract') {
+    my $dir = shift or die "Missing argument: dir";
+    die "No such directory: $dir" unless -d $dir;
+
+    my $tmx_file = shift || "-";
     open(my $tmx_out, ">${output_layers}", "${dir}/QP.template.tmx")
         or die "Can open output TMX template file";
     my $ix = newIx();
@@ -127,6 +136,10 @@ if ($action eq 'extract') {
 } 
 
 elsif ($action eq 'replace') {
+    my $dir = shift or die "Missing argument: dir";
+    die "No such directory: $dir" unless -d $dir;
+
+    my $tmx_file = shift || "-";
     my $ce_file = defined $filter ? "${dir}/pr.ce" : undef;
     my $ix = ixLoad("${dir}/P.txt", "${dir}/Q.ix", $ce_file);
     
@@ -136,6 +149,13 @@ elsif ($action eq 'replace') {
                tmx_out=>$tmx_out, ix=>$ix, filter=>$filter,
                src_lang=>$src, tgt_lang=>$tgt);
     close $tmx_out;
+} 
+
+elsif ($action eq 'check') {
+    my $tmx_file = shift || "-";
+    my $info = processTMX(action=>'check', tmx_in=>$tmx_file, 
+                       src_lang=>$src, tgt_lang=>$tgt);
+    print $info->{seg_count}, "\n";
 } 
 
 else {
@@ -163,11 +183,12 @@ sub processTMX {
     verbose("[Processing TMX file %s ...]\n", $parser->{tmx_in});
     $parser->parsefile($parser->{tmx_in});
 
-    $parser->flush($parser->{tmx_out}, pretty_print=>'indented');
+    xmlFlush($parser);
     verbose("\r[%d%s segments processed. Done]\n", $parser->{seg_count}, 
             exists $parser->{total} ? "/".$parser->{total} : "" );
     verbose("[%d TUs filtered out]\n", $parser->{filter_count}) 
         if defined $parser->{filter};
+    return $parser;
 }
 
 sub processPH {
@@ -186,6 +207,13 @@ sub processHI {
    $hi->erase();
 }
 
+sub xmlFlush {
+    my ($parser) = @_;
+    $parser->{action} eq 'check'
+        ? $parser->purge()
+        : $parser->flush($parser->{tmx_out}, pretty_print=>'indented');
+}
+
 sub processTU {
     my ($parser, $tu) = @_;
 
@@ -195,7 +223,7 @@ sub processTU {
     $parser->{seg_id} = ""; # will be set in processText()
 
     # Extraction mode: find src-lang text segments and replace with placeholder ID
-    if ($parser->{action} eq 'extract') {
+    if ($parser->{action} eq 'extract' or $parser->{action} eq 'check') {
         my $new_tgt_tuv = 0;
         my $old_tgt_tuv = 0;
         foreach my $tuv (@tuvs) {
@@ -225,7 +253,7 @@ sub processTU {
         } else {
             warn("Missing source-language version in TU");
         }
-        $parser->flush($parser->{tmx_out}, pretty_print=>'indented');
+        xmlFlush($parser);
     }
 
     # Replacement mode: find placeholder ID, replace with text
@@ -260,13 +288,11 @@ sub processTU {
             $tu->delete();       # BOOM!
             $parser->{filter_count}++;
         } else {
-            $parser->flush($parser->{tmx_out}, pretty_print=>'indented');
+            xmlFlush($parser);
         }
     }
 
-    
     $parser->{tu_count}++;
-
 }
 
 sub processSegment {
