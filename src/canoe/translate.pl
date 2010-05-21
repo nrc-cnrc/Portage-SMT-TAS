@@ -28,7 +28,9 @@ translate.pl - Translate text
 
 This program translates a source text file SRC_TEXT to the target language 
 according to the current trained models. If SRC_TEXT is not specified, the 
-source text is read from standard input (STDIN).
+source text is read from standard input (STDIN). With the C<-tmx> option,
+SRC_TEXT is a TMX format file from which the source text is extracted and to 
+which the translated text is replaced.
 
 By default, the program creates a temporary working directory, where it stores
 intermediate results, including tokenized and lowercased versions of the text
@@ -176,7 +178,7 @@ Specify additional C<rat.sh> options (valid for -with-rescoring only).
 
 =back
 
-=head2 Confidence Estimation Specific Options
+=head2 TMX Specific Options
 
 =over 12
 
@@ -191,6 +193,12 @@ Use XSRC as the TMX source language name. [EN-CA]
 =item -xtgt=XTGT
 
 Use XTGT as the TMX target language name. [FR-CA]
+
+=back
+
+=head2 Confidence Estimation Specific Options
+
+=over 12
 
 =item -filter=T
 
@@ -340,10 +348,12 @@ Getopt::Long::GetOptions(
    "xtra-cp-opts=s"      => \my $xtra_cp_opts,
    "xtra-rat-opts=s"     => \my $xtra_rat_opts,
    
-   #CE specific options
+   #TMX specific options
    "tmx"            => \my $tmx,
    "xsrc=s"         => \my $xsrc,
    "xtgt=s"         => \my $xtgt,
+
+   #CE specific options
    "filter=f"       => \my $filter,
    "xtra-ce-opts=s" => \my $xtra_ce_opts,
    
@@ -494,26 +504,28 @@ $xtra_cp_opts = "" unless defined $xtra_cp_opts;
 $xtra_decode_opts = "" unless defined $xtra_decode_opts;
 $xtra_rat_opts = "" unless defined $xtra_rat_opts;
 
+# TMX specific options
+$tmx = 0 unless defined $tmx;
+if ($tmx) {
+   $xsrc = "EN-CA" unless defined $xsrc;
+   $xtgt = "FR-CA" unless defined $xtgt;
+} else {
+   !defined $xsrc and !defined $xtgt and !defined $filter
+      or die "ERROR: -xsrc, -xtgt and -filter are valid only with -tmx.\nStopped"
+}
+
 # CE specific options
-unless ($with_ce) {
-   !defined $filter 
+if ($with_ce) {
+   $xtra_ce_opts = "" unless defined $xtra_ce_opts;
+} else {
+   !defined $filter
       or die "ERROR: -filter is valid only with -with-ce.\nStopped";
    !defined $xtra_ce_opts
       or die "ERROR: -xtra-ce-opts is valid only with -with-ce.\nStopped";
-} else {
-   $tmx = 0 unless defined $tmx;
-   unless ($tmx) {
-      !defined $xsrc and !defined $xtgt and !defined $filter
-         or die "ERROR: -xsrc, -xtgt and -filter are valid only with -tmx.\nStopped"
-   } else {
-      $xsrc = "EN-CA" unless defined $xsrc;
-      $xtgt = "FR-CA" unless defined $xtgt;
-   }
-   $xtra_ce_opts = "" unless defined $xtra_ce_opts;
 }
 
 @ARGV <= 1 or die "ERROR: Too many arguments.\nStopped";
-@ARGV > 0 or die "ERROR: Too few arguments.\nStopped" if $tmx;
+@ARGV > 0 or die "ERROR: Too few arguments. SRC_TEXT file required.\nStopped" if $tmx;
 my $input_text = @ARGV > 0 ? shift : "-";
 
 unless (defined $out) {
@@ -706,15 +718,15 @@ CE:{
 # Produce output
 OUT:{
    unless ($tmx) {
-       if ($with_ce) {
-           my $ce_output = $out ne "-" ? "> \"$out\"" : "";
-           call("paste ${dir}/pr.ce \"${P_txt}\" ${ce_output}");
-       } else {
-           copy($P_txt, $out);
-       }
+      if ($with_ce) {
+         my $ce_output = $out ne "-" ? "> \"$out\"" : "";
+         call("paste ${dir}/pr.ce \"${P_txt}\" ${ce_output}");
+      } else {
+         copy($P_txt, $out);
+      }
    } else {
-       my $fopt = defined $filter ? "-filter=$filter" : "";
-       call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} ${fopt} replace \"$dir\"");
+      my $fopt = defined $filter ? "-filter=$filter" : "";
+      call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} ${fopt} replace \"$dir\"");
    }
 }
 
