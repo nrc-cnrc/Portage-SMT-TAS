@@ -1,17 +1,74 @@
 #!/usr/bin/perl -w
+# @file plive-monitor.cgi
+# @brief PORTAGE live monitor CGI script
+#
+# @author Michel Simard
+#
+# COMMENTS:
+#
+# Technologies langagieres interactives / Interactive Language Technologies
+# Inst. de technologie de l'information / Institute for Information Technology
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2010, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2010, Her Majesty in Right of Canada
 
+=pod
+
+=head1 SYNOPSIS
+
+    plive-monitor.cgi
+
+=head1 DESCRIPTION
+
+This program is a companion to F<plive.cgi>; together, they implement
+an HTTP interface to PORTAGE live.
+
+Translation jobs submitted to PORTAGE live through the F<plive.cgi>
+script are sometimes run in the background.  This script allows the
+user to monitor the progression of the job, and ultimately to
+recuperate the result.
+
+=head1 SEE ALSO
+
+plive.cgi.
+
+=head1 AUTHOR
+
+Michel Simard
+
+=head1 COPYRIGHT
+
+ Technologies langagieres interactives / Interactive Language Technologies
+ Inst. de technologie de l'information / Institute for Information Technology
+ Conseil national de recherches Canada / National Research Council Canada
+ Copyright 2010, Sa Majeste la Reine du Chef du Canada /
+ Copyright 2010, Her Majesty in Right of Canada
+
+=cut
+
+use strict;
 use strict 'refs';
 use warnings;
-use CGI qw(:standard);
-use CGI::Carp qw/fatalsToBrowser/;
-use File::Spec::Functions qw(splitdir catdir);
 
+## --------------------- USER CONFIGURATION ------------------------------
+##
+## NOTE: if you change any of this, also change it in plive.cgi
+
+## Where PORTAGE files reside -- standard is /opt/Portage 
 my $PORTAGE_PATH = "/opt/Portage";
-my $PORTAGE_BIN = "${PORTAGE_PATH}/bin";
-my $PORTAGE_LIB = "${PORTAGE_PATH}/lib";
-my $WEB_PATH = "/var/www/html";
 
-my $OUTPUT_TMX = 0;
+## Where PORTAGE executables reside -- standard is ${PORTAGE_PATH}/bin
+my $PORTAGE_BIN = "${PORTAGE_PATH}/bin";
+
+## Where PORTAGE code libraries reside -- standard is ${PORTAGE_PATH}/lib
+my $PORTAGE_LIB = "${PORTAGE_PATH}/lib";
+
+## Top of web
+my $WEB_PATH = "/var/www/html"; 
+
+## ---------------------- END USER CONFIGURATION ---------------------------
+##
+## below this line, you're on your own...
 
 $ENV{PORTAGE} = $PORTAGE_PATH;
 $ENV{PATH} = join(":", $PORTAGE_BIN, $ENV{PATH});
@@ -19,79 +76,106 @@ $ENV{PERL5LIB} = exists $ENV{PERL5LIB} ? join(":", $PORTAGE_LIB, $ENV{PERL5LIB})
 $ENV{LD_LIBRARY_PATH} = exists $ENV{LD_LIBRARY_PATH} ? join(":", $PORTAGE_LIB, $ENV{LD_LIBRARY_PATH}) : $PORTAGE_LIB;
 push @INC, $PORTAGE_LIB;
 
+use CGI qw(:standard);
+use CGI::Carp qw/fatalsToBrowser/;
+use File::Spec::Functions qw(splitdir catdir);
+
 $|=1;
-
-our ($v, $verbose, $Verbose, $mode, $host, $key);
-
-$verbose = 0 unless defined $verbose;
-$Verbose = 0 unless defined $Verbose;
 
 print header(-type=>'text/html');
         
-if (my $dir = param('dir')
-    and my $file = param('file')
-    and my $start_time = param('time')) {
-    my $filepath = catdir($WEB_PATH, $dir, $file);
-    my $url = catdir("", $dir, $file);
-    my $time = time() - $start_time;
+## Script expects three parameters: file, dir and time
+if (my $filename = param('file')     # The name of the file we are monitoring
+    and my $work_dir = param('dir')  # The work directory
+    and my $start_time = param('time')) { # When the job started
 
-    my $canoe_in = catdir($WEB_PATH, $dir, "q.tok");
-    my $canoe_out = catdir($WEB_PATH, $dir, "p.raw");
-    my $ce_out = catdir($WEB_PATH, $dir, "pr.ce");
+    my $filepath = catdir($WEB_PATH, $work_dir, $filename);
+    my $url = catdir("", $work_dir, $filename);
+    my $elapsed_time = time() - $start_time;
 
-    if (-r $filepath) {
-        print start_html("PORTAGELive");
+    my $canoe_in = catdir($WEB_PATH, $work_dir, "q.tok");
+    my $canoe_out = catdir($WEB_PATH, $work_dir, "p.raw");
+    my $ce_out = catdir($WEB_PATH, $work_dir, "pr.ce");
+    my $job_done = catdir($WEB_PATH, $work_dir, "done");
+    my $trace_file = catdir($WEB_PATH, $work_dir, "trace");
+    
+    # Background process is done
+    if (-e $job_done) {         
+        print head($filename);
 
-        print NRCBanner(),
-              h1("PORTAGELive");
+        if (-r $filepath) { # The output file exists, so presumably everything went well
+            print 
+                p("Output file is ready.  Right-click this link to save the file:",
+                  a({-href=>$url}, $filename));
+        } else { # The output file doesn't exist, so something went wrong
+            print 
+                p("Translation job terminated with no output"),
+                hr(),
+                getTrace($trace_file);
+        } 
 
-        print p("Output file is ready.  Right-click this link to save the file:",
-                a({-href=>$url}, $file));
-
+    # Background process is still running:
     } else {
-        print start_html(-head=>meta({-http_equiv => 'refresh',
-                                      -content => '5'}),
-                         -title=>"PORTAGELive");
+        print head($filename, 5); # Refresh in 5 seconds
 
-        print NRCBanner(),
-              h1("PORTAGELive");
-
-        print p("Processing file $file");
-
-        if (not -r $canoe_in) {
+        # What stage are we at:
+        if (not -r $canoe_in) { # No decoder-ready file yet: still pre-processing
             print p("Preparing input...");
-        } elsif (not -r $canoe_out) {
+        } elsif (not -r $canoe_out) { # No decoder-output file yet: probably loading models
             my $in_count = int(`wc --lines < $canoe_in`) + 0;
             print p("Preparing to translate ${in_count} segments...");
-        } else {
+        } else { # There is an output file, let's see how much of the input is processed:          
             my $in_count = int(`wc --lines < $canoe_in`) + 0;
-            my $out_count = int(`wc --lines < $canoe_out`) + 0;
+            my $out_count = int(`wc --lines < $canoe_out`) + 0;   
             print p("Translated ${out_count} of ${in_count} segments...");
-            if ($in_count == $out_count) {
-                if (not -r $ce_out) {
+
+            if ($in_count == $out_count) { # Means decoding is done
+                if (not -r $ce_out) { # we might be estimating confidence
                     print p("Estimating confidence...");
-                } else {
+                } else {        # or just postprocessing
                     print p("Preparing output...");
                 }
             }
         }
         
     }
-    print(p("Elapsed time: $time seconds."));
+    print p("Elapsed time: ${elapsed_time} seconds.");
 } else {
-        print start_html("PORTAGELive");
-
-        print NRCBanner(),
-              h1("PORTAGELive");
-
-        print p("Nothing to monitor.");
+        print head("Nothing to monitor.");
 }
-print copyright();
+
+print tail();
 
 exit 0;
 
+
+## Subs
+
+sub head {
+    my($filename, $refresh) = @_;
+    $refresh = 0 unless defined $refresh;
+
+    my %start = (-title=>"PORTAGELive");
+    $start{-head} = meta({-http_equiv=>'refresh',
+                          -content =>$refresh})
+        if $refresh > 0;
+
+    return (start_html(%start),
+            NRCBanner(),
+            h1("PORTAGELive"),
+            p("Processing file $filename"));
+}
+
+sub tail() {
+    return (hr(),
+            NRCFooter(),
+            end_html());
+}
+
 sub NRCBanner {
-    return p({align=>'center'}, img({src=>'/images/NRC_banner_e.jpg'}));
+    return 
+        p({align=>'center'}, 
+          img({src=>'/images/NRC_banner_e.jpg'}));
 }
 
 sub NRCFooter {
@@ -119,8 +203,11 @@ sub NRCFooter {
 }
 
         
-sub copyright() {
-    return (hr(),
-            NRCFooter(),
-            end_html());
+sub getTrace {
+    my ($trace_file) = @_;
+    return (-r $trace_file     
+            ? h1("Trace File").pre(`cat $trace_file`)
+            : h1("No readable trace file"));
 }
+
+1;

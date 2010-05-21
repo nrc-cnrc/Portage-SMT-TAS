@@ -20,13 +20,21 @@
 
 =head1 DESCRIPTION
 
-This program and its companion F<plive-monitor.cgi> implemente a HTTP
+This program and its companion F<plive-monitor.cgi> implement an HTTP
 interface to PORTAGE live.
 
 Users can either submit translations through a text box, or through
 file upload.  In the latter case, the translation job is performed in
-the background, and the user is redirected to plive-monitor.cgi while
+the background, and the user is redirected to F<plive-monitor.cgi> while
 awaiting job completion.
+
+=head1 CONFIGURATION
+
+For this script to work for your application, you will likely have to
+modify some internal variables. The most important of these are near
+the top of the script.  Look for a comment saying "USER
+CONFIGURATION".  Variables you are likely to want to change are
+C<SRC_LANG>, C<TGT_LANG>, C<CE_MODEL> and C<RESCORE_INI>.
 
 =head1 SEE ALSO
 
@@ -47,46 +55,70 @@ Michel Simard
 =cut
 
 use strict;
-use strict 'refs';
 use warnings;
-use CGI qw(:standard);
-use CGI::Carp qw/fatalsToBrowser/;
-use XML::Twig;
-use Time::gmtime;
-use File::Temp qw(tempdir);
-use File::Spec::Functions qw(splitdir catdir);
 
-my $LANG = { iso2=>{ fr=>'fr', en=>'en' },
-             iso3=>{ fr=>'fre', en=>'eng' },
-             xml=>{ fr=>'FR_CA', en=>'EN_CA' },
-             name=>{ fr=>'French', en=>'English' } };
+## --------------------- USER CONFIGURATION ------------------------------
+##
+## Variables you are likely to want to change are:
+## $SRC_LANG, $TGT_LANG, $CE_MODEL, $RESCORE_INI.
 
-
-## Site-specific configuration -- you may want to modify some of this stuff:
-
-
+## Source-language, target-language, as 2-character ISO-639-1 code
 my $SRC_LANG = 'en';
 my $TGT_LANG = 'fr';
 
+## Where PORTAGE files reside -- standard is /opt/Portage 
+## NOTE: if you change this, also change it in plive-monitor.cgi
 my $PORTAGE_PATH = "/opt/Portage";
+
+## Where PORTAGE executables reside -- standard is ${PORTAGE_PATH}/bin
+## NOTE: if you change this, also change it in plive-monitor.cgi
 my $PORTAGE_BIN = "${PORTAGE_PATH}/bin";
+
+## Where PORTAGE code libraries reside -- standard is ${PORTAGE_PATH}/lib
+## NOTE: if you change this, also change it in plive-monitor.cgi
 my $PORTAGE_LIB = "${PORTAGE_PATH}/lib";
-my $PORTAGE_MODEL_DIR = "${PORTAGE_PATH}/models/context"; # .$systems
+
+## Where the PORTAGE translation model files reside 
+## -- standard is ${PORTAGE_PATH}/models/context
+my $PORTAGE_MODEL_DIR = "${PORTAGE_PATH}/models/context";
+
+## Decoder configuration file
+## -- standard is ${PORTAGE_MODEL_DIR}/canoe.ini.cow
 my $CANOE_INI = "${PORTAGE_MODEL_DIR}/canoe.ini.cow";
-my $CE_MODEL = ""; # "${PORTAGE_MODEL_DIR}/models/ce/ce_model";
+
+## Rescoring configuration file -- empty string ("") means no rescoring
+my $RESCORE_INI = "";
+
+## Confidence estimation model -- empty string ("") means no CE
+## -- standard is ${PORTAGE_MODEL_DIR}/ce_model.cem
+#my $CE_MODEL = "${PORTAGE_MODEL_DIR}/ce_model.cem"; 
+my $CE_MODEL = ""; 
+
+## Truecasing model files -- standard is 
+## ${PORTAGE_MODEL_DIR}/models/tc/tc-lm.${TGT_LANG}.tplm
+## and ${PORTAGE_MODEL_DIR}/models/tc/tc-map.${TGT_LANG}.tppt
 my $TC_LM = "${PORTAGE_MODEL_DIR}/models/tc/tc-lm.${TGT_LANG}.tplm";
 my $TC_MAP = "${PORTAGE_MODEL_DIR}/models/tc/tc-map.${TGT_LANG}.tppt";
 
-# Make sure HTTP server has rw-access to this directory:
+## PORTAGE Live work directory
+## NOTE: Make sure HTTP server has rw-access to this directory
+## NOTE: if you change this, also change it in plive-monitor.cgi
 my $WORK_PATH = "/var/www/html/plive"; 
 
 # Because text box translations are performed "on the spot", there is
 # a risk for the page to time-out.  Hence this practical limit on
 # job size:
-
 my $MAX_TEXTBOX = 500;
 
-## Site-specific configuration stops here -- normally...
+# ISO-639 language name stuff -- you may want to add languages.
+my $LANG = { iso2=>{ fr=>'fr', en=>'en' },
+             iso3=>{ fr=>'fra', en=>'eng' },
+             xml=>{ fr=>'FR_CA', en=>'EN_CA' },
+             name=>{ fr=>'French', en=>'English'} };
+
+## ---------------------- END USER CONFIGURATION ---------------------------
+##
+## below this line, you're on your own...
 
 
 $ENV{PORTAGE} = $PORTAGE_PATH;
@@ -98,6 +130,13 @@ $ENV{LD_LIBRARY_PATH} = (exists $ENV{LD_LIBRARY_PATH}
                          ? join(":", $PORTAGE_LIB, $ENV{LD_LIBRARY_PATH}) 
                          : $PORTAGE_LIB);
 push @INC, $PORTAGE_LIB;
+
+use CGI qw(:standard);
+use CGI::Carp qw/fatalsToBrowser/;
+use XML::Twig;
+use Time::gmtime;
+use File::Temp qw(tempdir);
+use File::Spec::Functions qw(splitdir catdir);
 
 $|=1;
 
@@ -141,7 +180,7 @@ sub printForm {
     print start_multipart_form(),
     table({align=>'center', width=>400},
           Tr(td({colspan=>2, align=>'left',border=>0}, 
-                p("Either type in some text, or select a plain-text file to translate. When you press the <em>Translate</em> button, the text will be translated by PORTAGELive."),
+                p("Either type in some text, or select a text file to translate (plain text or TMX). When you press the <em>Translate</em> button, the text will be translated by PORTAGELive."),
                 br())),
           ## Text-box (textarea) interface:
 
@@ -160,35 +199,39 @@ sub printForm {
 
           Tr(td({colspan=>2, align=>'center'}, 
                 h3("-- OR --"))),
-          Tr(td({colspan=>2, align=>'left'}, 
-                strong("Select a file:"),
-                filefield(-name=>'filename',
+          Tr(td({align=>'right'}, 
+                strong("Select a file:")),
+             td(filefield(-name=>'filename',
                           -value=>'',
                           -default=>'',
                           -size=>60))),
           Tr({valign=>'top'},
-             td(checkbox(-name=>'tmx',
+             td({align=>'right'}, 
+                checkbox(-name=>'tmx',
                          -checked=>0,
                          -label=>'')),
              td(strong("TMX"), 
                 "-- Check this box if input file is TMX.")),
           $CE_MODEL 
           ? Tr({valign=>'top'},
-               td(scrolling_list(-name=>'filter',
+               td({align=>'right'}, 
+                  scrolling_list(-name=>'filter',
                                  -default=>'no filtering',
                                  -values=>[ 'no filtering', map(sprintf("%0.2f", $_), @filter_values) ],
                                  -size=>1)),
                td(strong("Filter"),
-                  "-- Set the filtering threshold on confidence."))
+                  "-- Set the filtering threshold on confidence (TMX files only)."))
           : "",
           Tr({valign=>'top'},
-             td(checkbox(-name=>'noss',
+             td({align=>'right'}, 
+                checkbox(-name=>'noss',
                          -checked=>0,
                          -label=>'')),
              td(strong("pre-segmented"),
                 "-- Check this box if sentences are already newline-separated in the source text file.")),
           Tr({valign=>'top'},
-             td(checkbox(-name=>'notok',
+             td({align=>'right'}, 
+                checkbox(-name=>'notok',
                          -checked=>0,
                          -label=>'')),
              td(strong("pre-tokenized"),
@@ -274,7 +317,7 @@ sub processText {
         monitor($work_name, $work_dir, $outfilename, $line_count);
     
         # Launch translate.pl in the background for uploaded files
-        system("(if (${tr_cmd}); then ln -s ${tr_output} ${user_output}; fi)&") == 0 
+        system("(if (${tr_cmd}); then ln -s ${tr_output} ${user_output}; fi; touch $work_dir/done)&") == 0 
             or problem("Call returned with error code: ${tr_cmd} (error = %d)", $?>>8);
     } else {
         # Perform job here for text box
