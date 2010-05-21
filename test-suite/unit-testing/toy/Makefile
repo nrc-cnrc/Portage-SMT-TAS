@@ -41,9 +41,9 @@ txtfiles := $(wildcard *.txt)
 tokenize: $(txtfiles:%.txt=%.tok)
 
 %_en.tok: %_en.txt
-	tokenize.pl -lang=en $< $@
+	tokenize.pl -ss -lang=en $< $@
 %_fr.tok: %_fr.txt
-	tokenize.pl -lang=fr $< $@
+	tokenize.pl -ss -lang=fr $< $@
 
 
 align: $(txtfiles:%.txt=%.al)
