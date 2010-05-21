@@ -2,7 +2,7 @@
 # vim:noet:ts=3:nowrap
 # $Id$
 # @file prep-file-layoyt.sh
-# @brief Fetch a set Portage system aka models and create the proper layout for
+# @brief Fetch trained Portage models and create the proper layout for
 #        portageLive.
 # 
 # @author Samuel Larkin
@@ -21,8 +21,10 @@ usage() {
 
 Usage: prep-file-layout.sh <source>
 
-  Fetch from <source>, a tuned portage simple framework system, all models that
-  are needed for portageLive and creates the proper layout for the rpm. 
+  Fetch trained models from <source>, which has to be the directory where
+  a Portage system was trained using the experimental framework.
+  The files are placed in the proper structure for building an RPM to install
+  on a translation server.
 
 ==EOF==
 
