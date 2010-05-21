@@ -496,8 +496,8 @@ $xtra_rat_opts = "" unless defined $xtra_rat_opts;
 
 # CE specific options
 unless ($with_ce) {
-   !defined $tmx and !defined $xsrc and !defined $xtgt and !defined $filter 
-      or die "ERROR: -tmx, -xsrc, -xtgt and -filter are valid only with -with-ce.\nStopped";
+   !defined $filter 
+      or die "ERROR: -filter is valid only with -with-ce.\nStopped";
    !defined $xtra_ce_opts
       or die "ERROR: -xtra-ce-opts is valid only with -with-ce.\nStopped";
 } else {
@@ -705,16 +705,16 @@ CE:{
 
 # Produce output
 OUT:{
-   unless ($with_ce) {
-      copy($P_txt, $out);
-   } else { # $with_ce
-       unless ($tmx) {
-          my $ce_output = $out ne "-" ? "> \"$out\"" : "";
-          call("paste ${dir}/pr.ce \"${P_txt}\" ${ce_output}");
+   unless ($tmx) {
+       if ($with_ce) {
+           my $ce_output = $out ne "-" ? "> \"$out\"" : "";
+           call("paste ${dir}/pr.ce \"${P_txt}\" ${ce_output}");
        } else {
-          my $fopt = defined $filter ? "-filter=$filter" : "";
-          call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} ${fopt} replace \"$dir\"");
+           copy($P_txt, $out);
        }
+   } else {
+       my $fopt = defined $filter ? "-filter=$filter" : "";
+       call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} ${fopt} replace \"$dir\"");
    }
 }
 
