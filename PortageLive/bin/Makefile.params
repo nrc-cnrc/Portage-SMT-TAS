@@ -1,0 +1,3 @@
+# vim:noet:ts=3:nowrap:filetype=make
+
+DO_EXTERNAL_LIBS = 0
