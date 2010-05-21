@@ -27,6 +27,7 @@ DEST_BASE_DIR ?= rpm.build.root/opt/Portage
 ################################################################################
 # BINARIES
 CE ?= ce_canoe2ffvals.pl ce_gen_features.pl ce.pl ce_tmx.pl ce_train.pl ce_translate.pl ce_ttx2ospl.pl plog.pl
+CE_EXTERNAL ?= svm-predict
 CLUSTER ?= parallelize.pl psub r-parallel-d.pl r-parallel-worker.pl run-parallel.sh which-test.sh
 DECODE ?= canoe canoe-escapes.pl canoe-parallel.sh
 TRANSLATE ?= postdecode_plugin postprocess_plugin predecode_plugin preprocess_plugin translate.pl ridbom.sh crlf2lf.sh utf8_filter
@@ -38,23 +39,26 @@ EXTRAS ?= bloater
 # Must contains pgm from Portage only.
 PORTAGE_BINS ?= ${CE} ${DECODE} ${OTHER_BIN} ${RESCORE} ${TOKENIZATION} ${TRANSLATE}
 CLUSTER_BINS ?= ${CLUSTER}
+BINARIES ?= ${PORTAGE_BINS} ${CLUSTER_BINS} ${CE_EXTERNAL}
 
-AUTO_DIR := $(sort $(dir $(shell which ${PORTAGE_BINS} 2> /dev/null)))
-SRC_PORTAGE_BIN_DIR ?= ${AUTO_DIR:/=}
-ifneq ("$(words ${SRC_PORTAGE_BIN_DIR})","1")
+
+# Make sure all Portage's binaries are from the same source build.
+SRC_PORTAGE_BIN_DIR := $(sort $(dir $(shell which ${PORTAGE_BINS} 2> /dev/null)))
+ifeq ("$(words ${SRC_PORTAGE_BIN_DIR})","0")
+$(error Problem finding Portage software, maybe it's not installed)
+else ifneq ("$(words ${SRC_PORTAGE_BIN_DIR})","1")
 $(error Problem finding Portage software, maybe it's not installed, or the PORTAGE_BINS variable lists non-Portage programs)
 endif
 
-AUTO_DIR1 := $(sort $(dir $(shell which ${CLUSTER_BINS} 2> /dev/null)))
-SRC_CLUSTER_BIN_DIR ?= ${AUTO_DIR1:/=}
-
+# Where are we supposed to copy the binaires?
 DEST_BIN_DIR ?= ${DEST_BASE_DIR}/bin
 
 ########################################
 # How to handle binaries by defining binaries dependencies.
-vpath % ${SRC_PORTAGE_BIN_DIR} ${SRC_CLUSTER_BIN_DIR}
+# We should be able to find the binaries in the current PATH.
+vpath % ${PATH}
 
-INSTALL_BIN_LIST = $(addprefix ${DEST_BIN_DIR}/, ${PORTAGE_BINS} ${CLUSTER_BINS})
+INSTALL_BIN_LIST := $(addprefix ${DEST_BIN_DIR}/, ${BINARIES})
 
 .PHONY: install_bin
 all: install_bin
@@ -80,7 +84,7 @@ ${DEST_BASE_DIR}/logs/accounting:
 OTHER ?= 
 DEST_OTHER_DIR ?= ${DEST_BASE_DIR}
 
-INSTALL_OTHER_LIST = $(addprefix ${DEST_OTHER_DIR}/, ${OTHER})
+INSTALL_OTHER_LIST := $(addprefix ${DEST_OTHER_DIR}/, ${OTHER})
 
 .PHONY: install_other
 install_other: ${DEST_OTHER_DIR}/SETUP.bash
@@ -110,13 +114,17 @@ LIBRARIES += ${PORTAGE_LIBS}
 # Define DO_EXTERNAL_LIBS if you want to bundle all external libs need by
 # Portage's software.
 ifdef DO_EXTERNAL_LIBS
-EXTERNAL_LIBS := $(sort $(notdir $(shell ldd `which ${PORTAGE_BINS} ${CLUSTER_BINS} 2> /dev/null` | perl -nle '/=> (\/home\/portage\/[^ ]+)/; print $$1' | sort | uniq)))
+EXTERNAL_LIBS := $(sort $(notdir $(shell ldd `which ${BINARIES} 2> /dev/null` | perl -nle '/=> (\/home\/portage\/[^ ]+)/; print $$1' | sort | uniq)))
 LIBRARIES += ${EXTERNAL_LIBS}
-EXTERNAL_LIBS_DIR := $(sort $(dir $(shell ldd `which ${PORTAGE_BINS} ${CLUSTER_BINS} 2> /dev/null` | perl -nle '/=> (\/home\/portage\/[^ ]+)/; print $$1' | sort | uniq)))
+EXTERNAL_LIBS_DIR := $(sort $(dir $(shell ldd `which ${BINARIES} 2> /dev/null` | perl -nle '/=> (\/home\/portage\/[^ ]+)/; print $$1' | sort | uniq)))
 vpath % ${EXTERNAL_LIBS_DIR}
 endif
 
-SRC_PORTAGE_LIB_DIR ?= ${AUTO_DIR:bin/=lib}
+# Portage's libraries are just beside the binaries' directory.
+# Note: this can represent more than one directory.
+SRC_PORTAGE_LIB_DIR ?= ${SRC_PORTAGE_BIN_DIR:bin/=lib}
+
+# Where are we supposed to copy the libraries.
 DEST_LIB_DIR ?= ${DEST_BASE_DIR}/lib
 
 ########################################
@@ -124,7 +132,7 @@ DEST_LIB_DIR ?= ${DEST_BASE_DIR}/lib
 vpath % ${SRC_PORTAGE_LIB_DIR}
 
 # Where and what are the libraries needed.
-INSTALL_LIB_LIST = $(addprefix ${DEST_LIB_DIR}/, ${LIBRARIES})
+INSTALL_LIB_LIST := $(addprefix ${DEST_LIB_DIR}/, ${LIBRARIES})
 .PHONY: install_lib
 all: install_lib
 install_lib: ${INSTALL_LIB_LIST}
@@ -148,8 +156,6 @@ ${DEST_LIB_DIR}/CE: ${DEST_LIB_DIR}/%: ${SRC_PORTAGE_LIB_DIR}/%
 ################################################################################
 # Now that we defined all that we need, we can define the all target.
 SETUP_DEST_DIR := $(shell mkdir -p ${DEST_BIN_DIR} ${DEST_LIB_DIR})
-
-vpath % ${SRC_PORTAGE_LIB_DIR} ${SRC_PORTAGE_BIN_DIR} ${SRC_CLUSTER_BIN_DIR}
 
 .PHONY: all
 all:
@@ -194,7 +200,6 @@ debug:
 	@echo "${EXTERNAL_LIBS}"
 	@echo "Needed libraries dir:"
 	@echo "${EXTERNAL_LIBS_DIR}"
-	@echo "AUTO_DIR: ${AUTO_DIR}"
 	@echo "SRC_PORTAGE_LIB_DIR: ${SRC_PORTAGE_LIB_DIR}"
 	@echo "PORTAGE_BINS: ${PORTAGE_BINS}"
 	@echo "WHICH: $(shell which ${PORTAGE_BINS})"
