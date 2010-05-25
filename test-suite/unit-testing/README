@@ -1,8 +1,8 @@
 Technologies langagieres interactives / Interactive Language Technologies
 Institut de technologie de l'information / Institute for Information Technology
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2008-2009, Sa Majeste la Reine du Chef du Canada
-Copyright 2008-2009, Her Majesty in Right of Canada
+Copyright 2008-2010, Sa Majeste la Reine du Chef du Canada
+Copyright 2008-2010, Her Majesty in Right of Canada
 
 Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
@@ -20,23 +20,48 @@ manual analysis.
 After installing PORTAGEshared, you can run the automated test suites by
 invoking ./run-all-tests.sh.  If all tests pass, great.  If not, differences in
 floating point rounding between your architecture and ours is a likely cause,
-and might not indicate an real problem.
+and might not indicate an real problem.  In particular, these test suites are
+known to be especially sensitive to floating point variance: align.posteriors,
+joint2cond, hmm-*, rescoring.metric. 
 
 Contents of this directory:
 
+Scripts:
  - run-all-tests.sh     Master script running all fully automated suites.
+ - clean-all-tests.sh   Clean up after running test suites.
+
+Test suites:
+ - align.posteriors/    Test suite for the PosteriorAligner.
+ - canoe.compress.output/  Make sure different ways of creating n-best produce
+                        the same results.
+ - compile_truecase_map/  Test suite for compile_truecase_map.
+ - configtool/          Test suite for configtool.
+ - filter-distortion-model/  Test suite for filter-distortion-model.
+ - filter_models/       Test suite for filter_models.
  - hmm-classes/         Test suite for the class-conditioned variant of the HMM
                         word alignment module.
  - hmm-lex/             Test suite for the lexically conditioned variant of the
                         HMM word alignment module.
  - hmm-sym/             Test suite for symmetrized training of HMM word
                         alignment models.
+ - joint2cond/          Test suite for joint2cond_phrase_tables, including its
+                        -reduce-mem and -prune1 options.
  - lm/                  Test suite for using our various LM file formats and
                         filtering options.
+ - lm.train_mixture/    Test suite for train_lm_mixture.
+ - merge_counts/        Test suite for merge_counts and its uses for parallel
+                        counting of phrase tables and LMs.
+ - portage_utils.pm/    Test suite for Perl magic streams
  - rescoring.metric/    Test suite for using PER or WER in cow.sh.
+ - run-parallel.io/     Test STDERR and STDOUT capturing in run-parallel.sh.
+ - run-parallel.local-workers/  Test the choosing of the number of workers in
+                        the master job under varying circumstances.
+ - run-parallel.RP_PSUB_OPTS/  Make sure RP_PSUB_OPTS=... works correctly.
  - script.ff/           Test suite for the SCRIPT: rescoring feature.
+ - strip_non_printing/  Test suite for strip_non_printing.
  - tokenize.pl/         Test suite for recent enhancements to our tokenizer.
  - toy/                 Complete use of the PORTAGEshared software suite on a
                         tiny corpus, with parameters chosen to run very fast
                         (*not* recommended as an experimental starting point).
- - other directories    Other unit test suites
+ - truecasing/          Test suite for truecasing.
+ - word_align_tool/     Test suite for word_align_tool.
