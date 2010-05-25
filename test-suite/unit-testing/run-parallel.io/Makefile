@@ -42,7 +42,8 @@ dash_e:
 		-e "sleep 1; perl $(subst XX,0,${PRINT_XX})" \
 		-e "perl $(subst XX,1,${PRINT_XX})" \
 		2 1>out 2>err
-	cat err | perl -ne ${FILTER_ERR} | diff -q - ref.err-e
+	cat err | perl -ne ${FILTER_ERR} | diff -q - ref.err-e || \
+	cat err | perl -ne ${FILTER_ERR} | diff -q - ref.err-e.alt
 	${RM} out err
 
 clean:
