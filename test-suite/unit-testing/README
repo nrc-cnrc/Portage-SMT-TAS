@@ -53,6 +53,8 @@ Test suites:
                         counting of phrase tables and LMs.
  - portage_utils.pm/    Test suite for Perl magic streams
  - rescoring.metric/    Test suite for using PER or WER in cow.sh.
+ - r-parallel-d.pl/     Test suite for the run-parallel deamon's ability to
+                        detect when its parent has disappeared and then exit.
  - run-parallel.io/     Test STDERR and STDOUT capturing in run-parallel.sh.
  - run-parallel.local-workers/  Test the choosing of the number of workers in
                         the master job under varying circumstances.
