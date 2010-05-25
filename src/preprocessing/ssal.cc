@@ -352,8 +352,10 @@ static double alignScore(const vector<string>& lines1, const vector<string>& lin
 
    double match_score = 0.0;
    if (!ibm_1g2) {
-      double z = sqrt(len1*len1 + len2*len2) * sqrt(totlen1*totlen1 + totlen2*totlen2);
-      match_score = log(len1 * totlen1 + len2 * totlen2) - log(z);
+      double n = max(max(len1,len2), max(totlen1,totlen2)); // largest component
+      double l1 = len1/n, l2 = len2/n, tl1 = totlen1/n, tl2 = totlen2/n;
+      double z = sqrt(l1*l1 + l2*l2) * sqrt(tl1*tl1 + tl2*tl2);
+      match_score = log(l1*tl1 + l2*tl2) - log(z);
    } else {
       match_score = ibm_1g2->logpr(toks2, toks1) + ibm_2g1->logpr(toks1, toks2);
    }
