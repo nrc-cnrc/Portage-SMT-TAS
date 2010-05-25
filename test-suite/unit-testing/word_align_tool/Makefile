@@ -25,6 +25,8 @@ cmp_align.%: align.%
 cmp_align.hwa: align.hwa
 	diff aligned.1 ref/aligned.1
 
+export PORTAGE_INTERNAL_CALL=1
+
 align.%:
 	word_align_tool -fin sri -fout $* in/text.fr in/text.en in/align.sri $@
 
