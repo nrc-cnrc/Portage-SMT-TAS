@@ -155,7 +155,7 @@ file is documented in the on-line documentation of program
   % ce_train.pl -help=desc
 
 You can also find example files in this directory, called "ce.ini" and
-"ce-notm.ini".
+"ce-notm.ini".  (Also in /doc/confidence on the PORTAGE CD.)
 
 Once you have trained a CE model, you can use it to compute CE values
 for a new text file.  To do this, you can call ce_tranlate.pl like
