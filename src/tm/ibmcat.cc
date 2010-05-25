@@ -20,7 +20,7 @@ using namespace Portage;
 using namespace std;
 
 static const char help_message[] = "\n\
-train_ibm MODEL_FILE\n\
+ibmcat MODEL_FILE\n\
 \n\
   Display MODEL_FILE in plain text, whether is it a text or binary TTable,\n\
   IBM1, IBM2 positional or HMM dist model file.  If the file is in text format,\n\
