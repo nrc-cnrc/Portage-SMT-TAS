@@ -120,55 +120,55 @@ src:
 ## GENERATING PHRASE TABLES
 FILT_CMD := filter_models -c -f canoe.ini -suffix ".NEW"
 online.hard.complete: canoe.ini phrases-GT-KN.fr2en.gz
-	(time $(FILT_CMD) -no-src-grep -tm-online -hard-limit tmp.$@; wc tmp.$@.NEW) &> log.$@
+	(time $(FILT_CMD) -no-src-grep -tm-online -hard-limit tmp.$@; LC_ALL=C wc tmp.$@.NEW) &> log.$@
 	@mv tmp.$@.NEW $@
 
 online.hard.incomplete: src canoe.ini phrases-GT-KN.fr2en.gz
-	(time $(FILT_CMD) -tm-online -hard-limit tmp.$@ < $<; wc tmp.$@.NEW) &> log.$@
+	(time $(FILT_CMD) -tm-online -hard-limit tmp.$@ < $<; LC_ALL=C wc tmp.$@.NEW) &> log.$@
 	@mv tmp.$@.NEW $@
 
 online.soft.complete: canoe.ini phrases-GT-KN.fr2en.gz
-	(time $(FILT_CMD) -no-src-grep -tm-online -soft-limit tmp.$@; wc tmp.$@.NEW) &> log.$@
+	(time $(FILT_CMD) -no-src-grep -tm-online -soft-limit tmp.$@; LC_ALL=C wc tmp.$@.NEW) &> log.$@
 	@mv tmp.$@.NEW $@
 
 online.soft.incomplete: src canoe.ini phrases-GT-KN.fr2en.gz
-	(time $(FILT_CMD) -tm-online -soft-limit tmp.$@ < $<; wc tmp.$@.NEW) &> log.$@
+	(time $(FILT_CMD) -tm-online -soft-limit tmp.$@ < $<; LC_ALL=C wc tmp.$@.NEW) &> log.$@
 	@mv tmp.$@.NEW $@
 
 
 notonline.hard.complete: canoe.ini phrases-GT-KN.fr2en.gz
-	(time $(FILT_CMD) -no-src-grep -hard-limit tmp.$@; wc tmp.$@.NEW) &> log.$@
+	(time $(FILT_CMD) -no-src-grep -hard-limit tmp.$@; LC_ALL=C wc tmp.$@.NEW) &> log.$@
 	@mv tmp.$@.NEW $@
 
 notonline.hard.incomplete: src canoe.ini phrases-GT-KN.fr2en.gz
-	(time $(FILT_CMD) -hard-limit tmp.$@ < $<; wc tmp.$@.NEW) &> log.$@
+	(time $(FILT_CMD) -hard-limit tmp.$@ < $<; LC_ALL=C wc tmp.$@.NEW) &> log.$@
 	@mv tmp.$@.NEW $@
 
 notonline.soft.complete: canoe.ini phrases-GT-KN.fr2en.gz
-	(time $(FILT_CMD) -no-src-grep -soft-limit tmp.$@; wc tmp.$@.NEW) &> log.$@
+	(time $(FILT_CMD) -no-src-grep -soft-limit tmp.$@; LC_ALL=C wc tmp.$@.NEW) &> log.$@
 	@mv tmp.$@.NEW $@
 
 notonline.soft.incomplete: src canoe.ini phrases-GT-KN.fr2en.gz
-	(time $(FILT_CMD) -soft-limit tmp.$@ < $<; wc tmp.$@.NEW) &> log.$@
+	(time $(FILT_CMD) -soft-limit tmp.$@ < $<; LC_ALL=C wc tmp.$@.NEW) &> log.$@
 	@mv tmp.$@.NEW $@
 
 
 phrases-GT-KN.fr2en.FILT.gz: src canoe.ini phrases-GT-KN.fr2en.gz
-	(time filter_models -f canoe.ini < $<; wc $@) &> log.$(subst .gz,,$@)
+	(time filter_models -f canoe.ini < $<; LC_ALL=C wc $@) &> log.$(subst .gz,,$@)
 
 ## Generate filter_models with code previous to april 3rd 2007
 phrases-GT-KN.fr2en.ORIG.GREP.gz: src canoe.ini phrases-GT-KN.fr2en.gz
-	(time $(CLEAN_PATH)/filter_models -f canoe.ini -suffix .ORIG.GREP < src; wc $@) &> log.$(subst .gz,,$@)
+	(time $(CLEAN_PATH)/filter_models -f canoe.ini -suffix .ORIG.GREP < src; LC_ALL=C wc $@) &> log.$(subst .gz,,$@)
 
 ## Generate filter_models with code previous to april 3rd 2007
 phrases-GT-KN.fr2en.ORIG.LIMIT.gz: src canoe.ini phrases-GT-KN.fr2en.gz
-	(time $(CLEAN_PATH)/filter_models -z -f canoe.ini -limit phrases-GT-KN.fr2en -suffix .ORIG.LIMIT < src; wc $@) &> log.$(subst .gz,,$@)
+	(time $(CLEAN_PATH)/filter_models -z -f canoe.ini -limit phrases-GT-KN.fr2en -suffix .ORIG.LIMIT < src; LC_ALL=C wc $@) &> log.$(subst .gz,,$@)
 
 
 ############################################################
 ## CHECKING
 WC: $(FILES)
-	wc -l $^
+	LC_ALL=C wc -l $^
 
 check1: WC
 	diff-round.pl -q -sort -prec 5 notonline.hard.complete   online.hard.complete
