@@ -48,7 +48,7 @@ lowercase_short: lowercase
 # Make sure the map is valid.
 testsuite: validate_output
 validate_output: compile_truecase_map.unittest lowercase
-	compile_truecase_map $+ | diff -q - compile_truecase_map.unittest.ref
+	compile_truecase_map $+ | LC_ALL=C sort | diff -q - <(sort compile_truecase_map.unittest.ref)
 
 # Make sure with valid inputs, compile_truecase_map succeeds.
 testsuite: all_valid_inputs
