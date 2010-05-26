@@ -209,9 +209,9 @@ Optional dependencies for all distributions:
 
 Mandatory dependencies for source code distributions:
 
- - GNU g++ - PORTAGEshared compilation has only been tested with g++, and makes
-   use of some g++ extensions to C++.  It compiles fine with all versions we've
-   tested between 3.3.3 and 4.3.2.
+ - GNU g++ - Portage 1.4 compilation has only been tested with g++, and makes
+   use of some g++ extensions to C++.  We currently use 4.2.0 and 4.3.2.  We
+   don't expect it to compile with 4.4.x or more recent versions yet.
 
  - GNU make - our makefile makes use of GNU extensions to make, so you must use
    gmake (which can be invoked using "make" on most Linux distributions).
