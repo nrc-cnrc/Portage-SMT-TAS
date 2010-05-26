@@ -1,5 +1,6 @@
 
-train_ibm, NRC-CNRC, (c) 2005 - 2008, Her Majesty in Right of Canada
+train_ibm, NRC-CNRC, (c) 2005 - 2010, Her Majesty in Right of Canada
+Please run "portage_info -notice" for Copyright notices of 3rd party libraries.
 
 Created HMM model with existing IBM1 model and p0: 0.05 up0: 0.1 alpha: 0.01 lambda: 0 anchor: 0 end-dist: 0 max-jump: 0
 initializing from ref/ibm1-dev1.en_given_fr:

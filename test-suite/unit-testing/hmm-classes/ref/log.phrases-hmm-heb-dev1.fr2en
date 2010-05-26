@@ -1,0 +1,26 @@
+
+gen_phrase_tables, NRC-CNRC, (c) 2004 - 2010, Her Majesty in Right of Canada
+Please run "portage_info -notice" for Copyright notices of 3rd party libraries.
+
+Loading HMM models
+Read TTable in N seconds
+Loaded HMM model with p0: 0.05 up0: 0 alpha: 0.01 lambda: 0 anchor: 1 end-dist: 1 max-jump: 7
+Read TTable in N seconds
+Loaded HMM model with p0: 0.05 up0: 0 alpha: 0.01 lambda: 0 anchor: 1 end-dist: 1 max-jump: 7
+models loaded
+reading ref/dev1_fr.al/ref/dev1_en.al
+
+Stats: 100 fr/en sentence pairs processed.
+avg(link count / sqrt(fr length * en length)) = 1.34227 stdev = 0.146939
+avg(fr null count / fr length) = 0.00982322 stdev = 0.0201574
+avg(fr exclude count / fr length) = 0 stdev = 0
+avg(en null count / en length) = 0.00797149 stdev = 0.0198827
+avg(en exclude count / en length) = 0 stdev = 0
+
+smoothing:
+created 2 smoother:s:
+  created 'RFSmoother' smoother using 1 phrase table pass.
+  created 'IBMSmoother' smoother using 0 phrase table passes.
+Writing phrases-hmm-heb-dev1.fr2en
+dumped multi-prob distn: 1715 phrase pairs
+done
