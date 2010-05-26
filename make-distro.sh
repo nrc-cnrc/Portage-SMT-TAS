@@ -316,7 +316,7 @@ make_pdfs() {
 
       run_cmd pushd ./framework
          run_cmd make doc
-         run_cmd make doc-clean
+         run_cmd make clean.doc
          run_cmd cp tutorial.pdf ../doc
       run_cmd popd
 
