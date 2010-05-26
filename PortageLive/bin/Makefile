@@ -114,9 +114,10 @@ LIBRARIES += ${PORTAGE_LIBS}
 # Define DO_EXTERNAL_LIBS if you want to bundle all external libs need by
 # Portage's software.
 ifdef DO_EXTERNAL_LIBS
-EXTERNAL_LIBS := $(sort $(notdir $(shell ldd `which ${BINARIES} 2> /dev/null` | perl -nle '/=> (\/home\/portage\/[^ ]+)/; print $$1' | sort | uniq)))
+# Here, we fetch the libraries related to Portage's pgm only.
+EXTERNAL_LIBS := $(sort $(notdir $(shell ldd `which ${PORTAGE_BINS} ${CLUSTER_BINS} 2> /dev/null` | egrep -i Portage | perl -nle 'print $$1 if /=> ([^ ]+)/;' | sort | uniq)))
 LIBRARIES += ${EXTERNAL_LIBS}
-EXTERNAL_LIBS_DIR := $(sort $(dir $(shell ldd `which ${BINARIES} 2> /dev/null` | perl -nle '/=> (\/home\/portage\/[^ ]+)/; print $$1' | sort | uniq)))
+EXTERNAL_LIBS_DIR := $(sort $(dir $(shell ldd `which ${PORTAGE_BINS} ${CLUSTER_BINS} 2> /dev/null` | egrep -i Portage | perl -nle 'print $$1 if /=> ([^ ]+)/;' | sort | uniq)))
 vpath % ${EXTERNAL_LIBS_DIR}
 endif
 
@@ -203,4 +204,5 @@ debug:
 	@echo "SRC_PORTAGE_LIB_DIR: ${SRC_PORTAGE_LIB_DIR}"
 	@echo "PORTAGE_BINS: ${PORTAGE_BINS}"
 	@echo "WHICH: $(shell which ${PORTAGE_BINS})"
+	@echo ${PORTAGE}
 
