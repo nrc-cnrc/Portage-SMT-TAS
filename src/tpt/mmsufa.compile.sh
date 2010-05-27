@@ -16,7 +16,8 @@
 
 echo 'mmsufa.compile.sh, (c) 2005-2010, Ulrich Germann and Her Majesty in Right of Canada' >&2
 
-# simple script for compiling a text file into a suffix array
+# @brief Simple script for compiling a text file into a suffix array
+#
 # three files are produced: 
 # $2.tdx: TokenIndex (vocabulary file; memory-mapped)
 # $2.mct: memory-mapped corpus track 

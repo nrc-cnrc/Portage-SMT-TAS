@@ -200,9 +200,9 @@ if (defined($module_index)) {
             $pgm_name .= ".cc";
          }
          local( $/, *CODE ) ;
-         open( CODE, "head -10 $pgm_name | egrep '^[ ]*(#|\\*)' |" ) or die "sudden flaming death\n";
+         open( CODE, "head -23 $pgm_name | egrep '^[ ]*(#|\\*)' |" ) or die "sudden flaming death\n";
          $code = <CODE>;
-         print STDERR "head -10 $pgm_name | egrep '^[ ]*(#|\\*)' |\n" if ($debug);
+         print STDERR "head -23 $pgm_name | egrep '^[ ]*(#|\\*)' |\n" if ($debug);
       }
 
       print STDERR $code if ($debug);
