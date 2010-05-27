@@ -35,8 +35,11 @@ Arguments:
   -r or -D      What source to use for this distro, as a well formatted CVS
                 option: either -rCVS_TAG, with CVS_TAG (typically vX_Y) having
                 been created first using "cvs tag -R CVS_TAG" on the whole
-                PORTAGEshared repository.  Such a tag is recommended, but any
-                valid cvs -r or -D option can be used, if necessary.
+                PORTAGEshared repository, or:
+                   cvs rtag -Dnow v1_4 PORTAGEshared
+                   cvs rtag -Dnow v1_4 portage.simple.framework.2
+                Such a tag is recommended, but any valid cvs -r or -D option
+                can be used, if necessary.
 
   -dir          The distro will be created in OUTPUT_DIR, which must not
                 already exist.
