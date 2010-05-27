@@ -6,8 +6,8 @@
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology 
 # Conseil national de recherches Canada / National Research Council Canada 
-# Copyright 2008, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2008, Her Majesty in Right of Canada 
+# Copyright 2008-2010, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2008-2010, Her Majesty in Right of Canada 
 
 
 # This file contains all the user-configurable variables used to build
@@ -84,11 +84,11 @@ CXXTEST=$(PORTAGE)# AT NRC
 # Variable:        PORTAGE_OPENMP
 # Possible values: specifies the compiler flag to enable OpenMP 
 #                  (requires g++ 4.2 or more recent)
-# Notes:           Uncomment this line to enable multi-threading, currently
+# Notes:           Comment this line out to disable multi-threading, currently
 #                  only used by rescore_train.  (Other programs are
 #                  parallelized via our various *-parallel.sh scripts).
 
-#PORTAGE_OPENMP?=-fopenmp
+PORTAGE_OPENMP?=-fopenmp
 PORTAGE_OPENMP=-fopenmp # AT NRC
 
 # ------------------------------------
