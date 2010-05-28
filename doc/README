@@ -12,9 +12,9 @@ license agreement for details.
 
 Contents of this directory:
 
-   tutorial.pdf             PORTAGEshared tutorial using our framework
+   tutorial.pdf             Portage 1.4 tutorial using our framework
                             Note: read this tutorial *first*
-   user-manual.html         PORTAGEshared user manual
+   user-manual.html         Portage 1.4 user manual
    usage.html               Usage information for each program
    adaptation.README        Documentation for the adaptation module
    rescoring.README         Additional doc for the rescoring module

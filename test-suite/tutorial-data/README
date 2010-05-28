@@ -8,7 +8,7 @@ Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
 
 
-                        PORTAGEshared tutorial data
+                         Portage 1.4 tutorial data
 
 This directory the data for running the tutorial experiment using our
 experiment framework.  See framework/tutorial.pdf for details.

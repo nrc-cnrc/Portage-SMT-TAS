@@ -8,11 +8,11 @@ Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
 
 
-                        PORTAGEshared source code
+                          Portage 1.4 source code
 
 Contents of this directory:
 
-   Makefile         top-level Makefile for building PORTAGEshared
+   Makefile         top-level Makefile for building Portage 1.4
    Makefile.user-conf  user-configurable build parameters
 
    adaptation/      mixture-model adaptation (training of mixture LMs and TMs)
