@@ -231,6 +231,8 @@ do_checkout() {
    run_cmd echo Ran on `hostname` \>\> $OUTPUT_DIR/make-distro-cmd-used
    run_cmd pushd ./$OUTPUT_DIR
       run_cmd cvs $CVS_DIR co -P \"$VERSION_TAG\" PORTAGEshared '>&' cvs.log
+      run_cmd chmod 755 PORTAGEshared/logs
+      run_cmd chmod 777 PORTAGEshared/logs/accounting
       if [[ $FRAMEWORK ]]; then
          run_cmd pushd PORTAGEshared
             run_cmd cvs $CVS_DIR co -P \"$VERSION_TAG\" -d framework $FRAMEWORK '>&' ../cvs.framework.log
@@ -240,22 +242,22 @@ do_checkout() {
 
       if [ "$LICENCE" = SMART ]; then
          echo Keeping only SMART licence info.
-         run_cmd find PORTAGEshared -name LICENCE\* -maxdepth 1 \| \
+         run_cmd find PORTAGEshared -maxdepth 1 -name LICENCE\* \| \
                  grep -v -x PORTAGEshared/LICENCE_SMART \| xargs rm -f
       elif [ "$LICENCE" = CanUniv -o \( -z "$LICENCE" -a -z "$NO_SOURCE" \) ]; then
          echo Keeping only Canadian University licence info.
-         run_cmd find PORTAGEshared -name LICENCE\* -maxdepth 1 \| \
+         run_cmd find PORTAGEshared -maxdepth 1 -name LICENCE\* \| \
                  grep -v -x PORTAGEshared/LICENCE \| xargs rm -f
       elif [ "$LICENCE" = BinOnly -o -n "$NO_SOURCE" ]; then
          echo No source: removing all LICENCE files.
-         run_cmd find PORTAGEshared -name LICENCE\* -maxdepth 1 \| xargs rm -f
+         run_cmd find PORTAGEshared -maxdepth 1 -name LICENCE\* \| xargs rm -f
       elif [ "$LICENCE" = ALTERA ]; then
          echo Keeping only the Altera licence info.
-         run_cmd find PORTAGEshared -name LICENCE\* -maxdepth 1 \| \
+         run_cmd find PORTAGEshared -maxdepth 1 -name LICENCE\* \| \
                  grep -v -x PORTAGEshared/LICENCE_ALTERA \| xargs rm -f
       elif [ "$LICENCE" = CanBiz ]; then
          echo Keeping only the Canadian companies licence info.
-         run_cmd find PORTAGEshared -name LICENCE\* -maxdepth 1 \| \
+         run_cmd find PORTAGEshared -maxdepth 1 -name LICENCE\* \| \
                  grep -v -x PORTAGEshared/LICENCE_COMPANY \| xargs rm -f
       else
          error_exit "Invalid -licence specfication"
