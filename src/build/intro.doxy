@@ -13,18 +13,19 @@
  * you can consult by clicking on the "Directories" tab above.
  *
  * Here is a brief description of each module, in approximately logical order:
- * - \a utils : General-purpose utilities.
- * - \a textutils : Basic text processing utilities (mostly scripts).
- * - \a logging : Logging facility for debugging.
- * - \a preprocessing : Markup, tokenization, etc (perl scripts), sentence alignment.
- * - \a lm : Library for using various types of language models.
- * - \a tm : Translation model training.
- * - \a adaptation : Mixture-model adaptation.
- * - \a eval : Automatic evaluation of MT output.
- * - \a canoe : Decoder, including code for using phrase tables.
- * - \a rescoring : N-best list reordering using a variety of features.
- * - \a confidence : confidence estimation (in Perl only).
- * - \a truecasing : Restore natural case to text.
+ * - \a utils: General-purpose utilities.
+ * - \a textutils: Basic text processing utilities (mostly scripts).
+ * - \a logging: Logging facility for debugging.
+ * - \a preprocessing: Markup, tokenization, etc (perl scripts), sentence alignment.
+ * - \a lm: Library for using various types of language models.
+ * - \a tm: Translation model training.
+ * - \a distortion: Lexicalized distortion model training.
+ * - \a adaptation: Mixture-model adaptation.
+ * - \a eval: Automatic evaluation of MT output.
+ * - \a canoe: Decoder, including code for using phrase tables.
+ * - \a rescoring: N-best list reordering using a variety of features.
+ * - \a confidence: confidence estimation (in Perl only).
+ * - \a truecasing: Restore natural case to text.
  */
 
 /**
@@ -45,6 +46,11 @@
  *
  * Run the decoder, estimating how confident the system is in the quality of
  * the output.
+ */
+
+/**
+ * \dir distortion
+ * \brief Lexicalized Distortion
  */
 
 /**
@@ -85,6 +91,15 @@
  * This module contains all the code relevant to train translation models,
  * including the IBM1/2/HMM word alignment models and the phrase tables.
  * It also includes the code relevant to using word alignment models.
+ */
+
+/**
+ * \dir tpt
+ * \brief Tightly packed tries, suffix arrays and related code.
+ *
+ * This module contains all the code relevant to convert language models,
+ * translation models, lexicalized distortion models into their tightly-packed
+ * equivalents, as well as code to use these models.
  */
 
 /**
