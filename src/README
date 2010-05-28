@@ -12,10 +12,14 @@ license agreement for details.
 
 Contents of this directory:
 
+   Makefile         top-level Makefile for building PORTAGEshared
+   Makefile.user-conf  user-configurable build parameters
+
    adaptation/      mixture-model adaptation (training of mixture LMs and TMs)
    build/           tools for compiling and installing
    canoe/           decoder, including code for using translation models
    confidence/      confidence estimation
+   distortion/      lexicalized distortion model training
    eval/            code for automatic evaluation of MT output
    htmldoc/         generated code documentation (start at htmldoc/index.html)
    lm/              library for using various types of language models
@@ -26,5 +30,6 @@ Contents of this directory:
    textutils/       basic text processing utilities
    tm/              code for creating translation models (phrase based as well
                     as phrase based with lexical smoothing)
+   tpt/             tightly packed tries, suffix arrays and related code
    truecasing/      restore natural case to text
    utils/           basic tools for other modules to use
