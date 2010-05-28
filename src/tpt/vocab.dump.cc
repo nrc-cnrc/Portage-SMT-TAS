@@ -20,7 +20,7 @@
  * @file vocab.dump.cc
  * @brief Dumps a Vocab file (.vcb) in plain text format to stdout.
  *
- * First step in mmsufa generation. Normally called via mmsufa.compile.sh.
+ * First step in mmsufa generation. Normally called via build-tp-suffix-array.sh.
  */
 #include <iostream>
 #include <sstream>

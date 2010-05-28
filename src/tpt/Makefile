@@ -27,7 +27,7 @@ OBJECTS = \
    ug_sufa_base.o \
    ug_vocab.o
 
-TESTPROGS = 
+TESTPROGS =
 
 PROGRAMS = \
    $(TESTPROGS) \
@@ -51,7 +51,6 @@ PROGRAMS = \
 BINSCRIPTS = \
    arpalm2tplm.sh \
    build-tp-suffix-array.sh \
-   mmsufa.compile.sh \
    textldm2tpldm.sh \
    textpt2tppt.sh \
    vocabMap2tpt.sh
