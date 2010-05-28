@@ -67,12 +67,14 @@ translation, including:
    framework/   sample experimental framework
    bin/         executable code (if included in your distribution)
    lib/         run-time libraries (if included in your distribution)
+   logs/        place-holder for runtime logs
    test-suite/  various test suites
    PortageLive/ files needed to setup a runtime translation server
    README       this file
    INSTALL      installation instructions
    RELEASES     release history
    LICENCE      notes about your PORTAGEshared licence agreement
+   NOTICE       third party Copyright notices
    SETUP.bash   config file for bash users
    SETUP.tcsh   config file for tcsh users
    *.patch      patches for upgrading a previous installation in place

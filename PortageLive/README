@@ -19,7 +19,7 @@ Contents:
    bin/         tools to build the PortageLive runtime software layout
    models/      tools to build the PortageLive models layout
    www/         web service software, and tools to install it
-   scritps/     scripts shared between all of the above
+   scripts/     scripts shared between all of the above
    va/          specific documentation for creating a PortageLive Virtual
                 Appliance - don't start here, it won't make sense until you
                 read the PortageLive Manual.

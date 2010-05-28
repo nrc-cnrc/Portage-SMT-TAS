@@ -42,7 +42,7 @@ uncombine.pl                  GF  Pull apart an interleaved file created by comb
 utf8_casemap (.cc)            GF  Case conversion for UTF8 text.
 utf8_filter (.cc)             HJ  Sanitize text following a strict definition of utf8.
 
-Default plugins for ce_translate.pl and translate.sh:
+Default plugins for ce_translate.pl and translate.pl:
 postdecode_plugin             MS  Ad hoc processing done after decoding.
 postprocess_plugin            MS  Ad hoc processing done after post-processing.
 predecode_plugin              MS  Ad hoc processing done before decoding.
