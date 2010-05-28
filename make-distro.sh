@@ -377,10 +377,10 @@ make_iso_and_tar() {
    echo Generating tar ball and iso file.
    VERSION="${VERSION_TAG#-r}"
    VERSION="${VERSION// /.}"
-   VOLID=PORTAGEshared_${VERSION}
+   VOLID=Portage_${VERSION}
    VOLID=`echo "$VOLID" | perl -pe 's#[/:]#.#g'`
    #echo $VOLID
-   ISO_VOLID=PORTAGEshared`echo $VERSION | sed -e 's/v//g' -e 's/_/./'`
+   ISO_VOLID=Portage`echo $VERSION | sed -e 's/v//g' -e 's/_/./'`
    ISO_VOLID=${ISO_VOLID:0:31}
    if [ -n "$ARCHIVE_NAME" ]; then
       ARCHIVE_FILE=${VOLID}_${ARCHIVE_NAME}
@@ -395,7 +395,8 @@ make_iso_and_tar() {
       fi
       run_cmd mkisofs -V $ISO_VOLID -joliet-long -o $ARCHIVE_FILE.iso \
               PORTAGEshared $PATCH_FILES '&>' iso.log
-      run_cmd tar -cvzf $ARCHIVE_FILE.tar.gz PORTAGEshared '>&' tar.log
+      run_cmd mv PORTAGEshared Portage1.4
+      run_cmd tar -cvzf $ARCHIVE_FILE.tar.gz Portage1.4 '>&' tar.log
       run_cmd md5sum $ARCHIVE_FILE.* \> $ARCHIVE_FILE.md5
    run_cmd popd
 }
