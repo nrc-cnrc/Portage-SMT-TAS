@@ -1,0 +1,12 @@
+                                Portage 1.4
+
+Technologies langagieres interactives / Interactive Language Technologies
+Institut de technologie de l'information / Institute for Information Technology
+Conseil national de recherches Canada / National Research Council Canada
+Copyright 2004-2010, Sa Majeste la Reine du Chef du Canada
+Copyright 2004-2010, Her Majesty in Right of Canada
+
+                                    Logs
+
+This directory will contain logs that get created by Portage.  So far, only
+accounting logs are saved here.  See accounting/README.
