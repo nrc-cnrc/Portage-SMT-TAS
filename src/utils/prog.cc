@@ -3,8 +3,8 @@
  * @author Write your name here
  * @file prog.cc
  * @brief Briefly describe your program here.
- * 
- * 
+ *
+ *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada

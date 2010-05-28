@@ -11,6 +11,15 @@
 # Copyright 2008, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2008, Her Majesty in Right of Canada
 
+if ($#ARGV >= 0 && $ARGV[0] eq "-h") {
+   print STDERR "Usage: lm-order.pl <LM file>
+
+  Display the order of a language model file in ARPA format.
+
+";
+   exit;
+}
+
 open FILE, "gzip -cqfd $ARGV[0]|" or die "lm-order.pl: Can't open $ARGV[0]: $!\n";
 my $order = 0;
 while (<FILE>) {

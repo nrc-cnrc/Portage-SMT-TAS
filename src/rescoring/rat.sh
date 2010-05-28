@@ -23,8 +23,8 @@
 # Include NRC's bash library.
 BIN=`dirname $0`
 if [[ ! -r $BIN/sh_utils.sh ]]; then
-   # assume executing from src/tpt directory
-   BIN="`dirname $BIN`/utils"
+   # assume executing from src/* directory
+   BIN="$BIN/../utils"
 fi
 source $BIN/sh_utils.sh
 

@@ -109,7 +109,28 @@ print_nrc_copyright() {
 # This library's help message.
 _sh_utils_help() {
    print_nrc_copyright sh_utils.sh 2008
-   echo "sh_utils.sh is intended to be used as a library, not as a stand-alone program." >&2
+   {
+   echo '
+sh_utils.sh is a library of useful bash functions for other bash scripts.
+
+   Include sh_utils.sh in your bash script using the following snippet of code:
+
+   BIN=`dirname $0`
+   if [[ ! -r $BIN/sh_utils.sh ]]; then
+      # assume executing from src/* directory
+      BIN="$BIN/../utils"
+   fi
+   source $BIN/sh_utils.sh
+
+Functions available:
+'
+
+   grep -o '^[a-z][a-z_]*()' $0 | sed 's/^/   /'
+
+   echo "
+Documentation for these functions is found within $0
+"
+   } >&2
 }
 
 # This file is intended to be a library and not an executable file.

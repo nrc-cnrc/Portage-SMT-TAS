@@ -11,19 +11,25 @@
 # Copyright 2004, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2004, Her Majesty in Right of Canada
 
-## 
+##
 ## Usage: getcolumn.sh COLNUM [FILE]
-## 
-## Retrieves the COLNUM-th column from the tab-delimited file FILE.
+##
+##   Retrieves the COLNUM-th column from the tab-delimited file FILE.
 ##
 ## Options:
-## COLNUM	The column number to retrieve.  If there are fewer than COLNUM columns in
-##	any line of the file then an error message is output instead.
-## FILE	The file, or - for standard input.  [-]
+##   COLNUM The column number to retrieve.  If there are fewer than COLNUM columns
+##          in any line of the file then an error message is output instead.
+##   FILE   The file, or - for standard input.  [-]
 ##
 
 # Include NRC's bash library.
-source `dirname $0`/sh_utils.sh
+BIN=`dirname $0`
+if [[ ! -r $BIN/sh_utils.sh ]]; then
+   # assume executing from src/* directory
+   BIN="$BIN/../utils"
+fi
+source $BIN/sh_utils.sh
+
 
 [[ $PORTAGE_INTERNAL_CALL ]] ||
 print_nrc_copyright getcolumn.sh 2004
