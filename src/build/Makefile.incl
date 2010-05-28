@@ -499,6 +499,7 @@ ifeq ($(strip $(USAGE_PROGRAMS)),)
 usage:
 else
 index.html: $(addsuffix .html,${USAGE_PROGRAMS})
+usage: export PORTAGE_INTERNAL_CALL=1
 usage: index.html
 index.html:
 	echo "$(USAGE_PROGRAMS)" \

@@ -20,7 +20,11 @@
 ## DIR_PATTERN should expand to the desired directories [*]
 ##
 
-echo 'all-best-rr-vals, NRC-CNRC, (c) 2007 - 2008, Her Majesty in Right of Canada'
+# Includes NRC's bash library.
+source `dirname $0`/sh_utils.sh
+
+print_nrc_copyright all-best-rr-vals 2007
+
 
 if [[ $# > 1 || $1 =~ ^-h ]]; then
    cat $0 | egrep '^##' | cut -c4-
