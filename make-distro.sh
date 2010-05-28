@@ -286,12 +286,16 @@ get_user_manual() {
       run_cmd rsync -arz ilt.iit.nrc.ca:/export/projets/Lizzy/PORTAGEshared/snapshot/ \
                          PORTAGEshared/doc/user-manual
       run_cmd find PORTAGEshared/doc/user-manual/uploads -name Layout* \| xargs rm -f
+      run_cmd find PORTAGEshared/doc/user-manual/uploads -name \*.gif.1 \| xargs rm -f
       run_cmd pushd PORTAGEshared/doc/user-manual/pages
          for x in *.html; do
-            echo Making images relative in $x.
+            echo Making images relative in $x and renaming PORTAGE shared '->' Portage 1.4.
             if [[ ! $NOT_REALLY ]]; then
                perl -e 'print '"'"'%s/IMG SRC="http:\/\/wiki-ilt\/PORTAGEshared\/uploads/img src="..\/uploads/'"'"'."\nw\nq\n"' | ed $x
                perl -e 'print '"'"'%s/img src="http:\/\/wiki-ilt\/PORTAGEshared\/uploads/img src="..\/uploads/'"'"'."\nw\nq\n"' | ed $x
+               if grep -q 'PORTAGE shared' $x; then
+                  perl -e 'print '"'"'%s/PORTAGE shared/Portage 1.4/g'"'"'."\nw\nq\n"' | ed $x
+               fi
             fi
          done
       run_cmd popd
@@ -333,6 +337,10 @@ make_doxy() {
    echo Including source code documentation.
    run_cmd pushd ./$OUTPUT_DIR/PORTAGEshared/src
       run_cmd make doxy '>&' ../../doxy.log
+      run_cmd mv htmldoc htmldoc_tmp
+      run_cmd mkdir htmldoc
+      run_cmd mv htmldoc_tmp htmldoc/files
+      echo '<META HTTP-EQUIV="refresh" CONTENT="0; URL=files/index.html">' > htmldoc/index.html
    run_cmd popd
 }
 
@@ -370,6 +378,7 @@ make_bin() {
       run_cmd pushd ./lib
          run_cmd mkdir -p $ELFDIR
          run_cmd file \* \| grep ELF \| sed "'s/:.*//'" \| xargs -i{} mv {} $ELFDIR
+         run_cmd rmdir --ignore-fail-on-non-empty $ELFDIR
       run_cmd popd
    run_cmd popd
 }
@@ -447,11 +456,9 @@ if [[ ! $COMPILE_ONLY ]]; then
    print_header "Cleaning up source and source-doc"
    if [[ $NO_SOURCE ]]; then
       run_cmd pushd ./$OUTPUT_DIR/PORTAGEshared
-         run_cmd mv ./doc/code-doc-binonly.html ./doc/code-documentation.html
+         run_cmd rm ./doc/code-documentation.html
          run_cmd rm -r src
       run_cmd popd
-   else
-      run_cmd rm ./$OUTPUT_DIR/PORTAGEshared/doc/code-doc-binonly.html
    fi
 
    if [[ $PATCH_FROM ]]; then
