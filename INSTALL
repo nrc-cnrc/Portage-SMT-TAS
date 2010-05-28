@@ -154,6 +154,10 @@ Mandatory dependencies for all distributions:
  - Standard utilities: awk, bash (3.0 or more recent), (e)grep, gzip, head,
    perl, sed, sort, tail, tar, etc.
 
+ - GNU make 3.81 - when compiling Portage 1.4 and when running the experimental
+   framework, our Makefiles use GNU extensions to make, as well as features
+   that were introduced in version 3.81.
+
  - A language modelling toolkit to train language models.  Our code can read
    and use language models, but we don't provide the training functionality,
    since it is readily available.  If your licensing requirements allow it, we
@@ -212,9 +216,6 @@ Mandatory dependencies for source code distributions:
  - GNU g++ - Portage 1.4 compilation has only been tested with g++, and makes
    use of some g++ extensions to C++.  We currently use 4.2.0 and 4.3.2.  We
    don't expect it to compile with 4.4.x or more recent versions yet.
-
- - GNU make - our makefile makes use of GNU extensions to make, so you must use
-   gmake (which can be invoked using "make" on most Linux distributions).
 
  - boost - Portage 1.4 makes use of some libraries in the boost C++ libraries
    collection, including the Boost Graph Library, uBLAS, smart pointers,
