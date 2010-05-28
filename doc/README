@@ -19,7 +19,7 @@ Contents of this directory:
    adaptation.README        Documentation for the adaptation module
    rescoring.README         Additional doc for the rescoring module
    confidence/              Documentation for the confidence module
-   code-docutation.html     Code documentation
+   code-documentation.html  Code documentation
    canoe.pdf                Overview of the initial design of the decoder
    rescoring_overview.pdf   Overview of the initial design of the rescorer
    ochlinemax.pdf           Details of Och's line max algorithm
