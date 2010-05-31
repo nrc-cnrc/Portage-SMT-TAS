@@ -419,7 +419,7 @@ sub checkFile {
     my $file_type = `file --brief --mime \"$src_file\"`;
     my ($mimetype, undef) = split(/[\s;]+/, $file_type, 2);
     problem("Please submit a plain text file")
-        unless ($mimetype eq 'text/plain');
+        unless ($mimetype =~ /text\/.*/);
     my $charset = ($file_type =~ /charset=([^\s;]+)/) ? $1 : "unknown";
     problem("Please use either UTF-8 or ASCII character encoding")
         unless ($charset eq 'utf-8') or ($charset eq 'us-ascii');
