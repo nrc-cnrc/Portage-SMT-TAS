@@ -66,6 +66,9 @@ my $PORTAGE_LIB = "${PORTAGE_PATH}/lib";
 ## Top of web
 my $WEB_PATH = "/var/www/html"; 
 
+# Set this to 1 if you want the working directory to be cleaned up after successful runs.
+my $DO_CLEAN_UP = 0;
+
 ## ---------------------- END USER CONFIGURATION ---------------------------
 ##
 ## below this line, you're on your own...
@@ -100,19 +103,27 @@ if (my $filename = param('file')     # The name of the file we are monitoring
     my $trace_file = catdir($WEB_PATH, $work_dir, "trace");
     
     # Background process is done
-    if (-e $job_done) {         
+    if (-e $job_done) {
         print head($filename);
 
         if (-r $filepath) { # The output file exists, so presumably everything went well
+            if ($DO_CLEAN_UP) {
+                my @files = <${WEB_PATH}/${work_dir}/*>;
+                for my $file (@files) {
+                    unlink $file unless ($file =~ /${filename}/);
+                }
+            }
             print 
                 p("Output file is ready.  Right-click this link to save the file:",
-                  a({-href=>$url}, $filename));
+                a({-href=>$url}, $filename));
         } else { # The output file doesn't exist, so something went wrong
             print 
                 p("Translation job terminated with no output"),
                 hr(),
                 getTrace($trace_file);
         } 
+        print p("Elapsed time: ${elapsed_time} seconds.");
+        print p(a({-href=>"plive.cgi"}, "Translate more text"));
 
     # Background process is still running:
     } else {
@@ -138,8 +149,8 @@ if (my $filename = param('file')     # The name of the file we are monitoring
             }
         }
         
+        print p("Elapsed time: ${elapsed_time} seconds.");
     }
-    print p("Elapsed time: ${elapsed_time} seconds.");
 } else {
         print head("Nothing to monitor.");
 }

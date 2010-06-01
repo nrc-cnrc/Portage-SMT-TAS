@@ -103,7 +103,10 @@ my $TC_MAP = "${PORTAGE_MODEL_DIR}/models/tc/tc-map.${TGT_LANG}.tppt";
 ## PORTAGE Live work directory
 ## NOTE: Make sure HTTP server has rw-access to this directory
 ## NOTE: if you change this, also change it in plive-monitor.cgi
-my $WORK_PATH = "/var/www/html/plive"; 
+my $WEB_PATH = "/var/www/html";
+
+# plive's work directory location.
+my $WORK_PATH = "${WEB_PATH}/plive"; 
 
 # Because text box translations are performed "on the spot", there is
 # a risk for the page to time-out.  Hence this practical limit on
@@ -166,7 +169,7 @@ sub printForm {
 
     print NRCBanner();
 
-    print h1("PORTAGELive"), 
+    print h1({align=>'center'}, "PORTAGELive"),
 
     p();
 
@@ -179,8 +182,8 @@ sub printForm {
     
     print start_multipart_form(),
     table({align=>'center', width=>400},
-          Tr(td({colspan=>2, align=>'left',border=>0}, 
-                p("Either type in some text, or select a text file to translate (plain text or TMX). When you press the <em>Translate</em> button, the text will be translated by PORTAGELive."),
+          Tr(td({colspan=>2, align=>'left', border=>0}, 
+                p("Either type in some text, or select a text file to translate (plain text or TMX).<BR /> Press the <em>Translate</em> button to have PORTAGELive translate your text."),
                 br())),
           ## Text-box (textarea) interface:
 
@@ -191,8 +194,7 @@ sub printForm {
                          -value=>'',
                          -columns=>60, -rows=>10))),
           Tr(td({colspan=>2, align=>'center'},
-                submit(-name=>'TranslateBox'),
-                defaults('Clear Form'))),
+                submit(-name=>'TranslateBox', -value=>'Translate Text'))),
 
 
           ## File-upload interface:
@@ -223,6 +225,12 @@ sub printForm {
                   "-- Set the filtering threshold on confidence (TMX files only)."))
           : "",
           Tr({valign=>'top'},
+             td({colspan=>2, align=>'center'},
+                submit(-name=>'TranslateFile', -value=>'Translate File'))),
+          Tr(td({colspan=>2, align=>'center'}, hr())),
+          Tr(td({colspan=>2, align=>'left'}, 
+                strong("Advanced Options:"))),
+          Tr({valign=>'top'},
              td({align=>'right'}, 
                 checkbox(-name=>'noss',
                          -checked=>0,
@@ -238,7 +246,6 @@ sub printForm {
                 "-- Check this box if word-tokens are already space-separated in the source text file.")),
           Tr({valign=>'top'},
              td({colspan=>2, align=>'center'},
-                submit(-name=>'TranslateFile'),
                 defaults('Clear Form'))));
 
     endform();
@@ -274,7 +281,7 @@ sub processText {
     }
 
     # Get some basic info on source text:
-    my $line_count = param('tmx') 
+    param('tmx') 
         ? checkTMX($src_file) 
         : checkFile($src_file, param('notok'), param('noss'));
     
@@ -291,8 +298,7 @@ sub processText {
                   "-tctp",
                   "-tclm=${TC_LM}",
                   "-tcmap=${TC_MAP}",
-                  "-dir=\"${work_dir}\"",
-                  "-out=\"${work_dir}/P.ce-out\"");
+                  "-dir=\"${work_dir}\"");
     push @tr_opt, $CE_MODEL
         ? ("-with-ce", "-model=$CE_MODEL")
         : ("-decode-only");
@@ -314,10 +320,11 @@ sub processText {
     
     # Launch translation
     if (param('filename')) {
-        monitor($work_name, $work_dir, $outfilename, $line_count);
+        monitor($work_name, $work_dir, $outfilename);
     
-        # Launch translate.pl in the background for uploaded files
-        system("(if (${tr_cmd}); then ln -s ${tr_output} ${user_output}; fi; touch $work_dir/done)&") == 0 
+	# Launch translate.pl in the background in order to return to apache
+	# webserver as soon as possible.
+        system("(if (${tr_cmd}); then mv ${tr_output} ${user_output}; fi; touch $work_dir/done)&") == 0
             or problem("Call returned with error code: ${tr_cmd} (error = %d)", $?>>8);
     } else {
         # Perform job here for text box
@@ -328,19 +335,17 @@ sub processText {
         close $P;
         textBoxOutput(param('textbox'), @p);
     }
-
 }
 
-# monitor(work_name, work_dir, outfilename, line_count)
+# monitor(work_name, work_dir, outfilename)
 # 
 # Redirect the user to a job monitoring page (see plive-monitor.cgi)
 # - work_name:  user-recognizable name for the job (typically the uploaded source text file name)
 # - work_dir: translate.pl's work directory
 # - outfilename: target translation file name (within the work dir)
-# - line_count: total number of text segments (sentences) to translate
 
 sub monitor {
-    my ($work_name, $work_dir, $outfilename, $line_count) = @_;
+    my ($work_name, $work_dir, $outfilename) = @_;
 # Output redirection to plive-monitor
     print header(-type=>'text/html',
                  -charset=>'utf-8');
@@ -356,7 +361,6 @@ sub monitor {
     print 
         NRCBanner(),
         h1("PORTAGELive"),
-        p("Processing $work_name: translating $line_count segments"),
         "\n";
     print copyright();
 
@@ -423,18 +427,6 @@ sub checkFile {
     my $charset = ($file_type =~ /charset=([^\s;]+)/) ? $1 : "unknown";
     problem("Please use either UTF-8 or ASCII character encoding")
         unless ($charset eq 'utf-8') or ($charset eq 'us-ascii');
-
-    # Count words and sentences
-    my $tokopt = "-lang=${SRC_LANG}";
-    $tokopt .= $noss ? " -noss" : " -ss";
-    $tokopt .= " -notok" if $notok;
-    my $cmd = "${PORTAGE_BIN}/utokenize.pl $tokopt \"$src_file\" | wc --lines";
-    my $segments = int(`$cmd`);
-    
-    problem("No text to translate in file")
-        unless ($segments);
-
-    return $segments;
 }
 
 # checkTMX(src_file)
@@ -446,18 +438,9 @@ sub checkTMX {
     my ($infile) = @_;
 
     my $cmd = "ce_tmx.pl check \"${infile}\"";
-    my ($fh, $fname) = File::Temp->tempfile("checkTMX-XXXXXX", UNLINK=>1);
-    close $fh;
 
-    system("$cmd > $fname")==0
+    system("$cmd > /dev/null") == 0
         or problem("TMX check failed: $?");
-    open($fh, "<$fname") 
-        or problem("Can't open temp file $fname for reading");
-    my $seg_count = <$fh>;
-    close $fh;
-
-    chomp $seg_count;
-    return $seg_count;
 }
 
 
