@@ -97,7 +97,7 @@ if (my $filename = param('file')     # The name of the file we are monitoring
     my $elapsed_time = time() - $start_time;
 
     my $canoe_in = catdir($WEB_PATH, $work_dir, "q.tok");
-    my $canoe_out = catdir($WEB_PATH, $work_dir, "p.raw");
+    my $canoe_out = catdir($WEB_PATH, $work_dir, param('ce') ? "p.raw" : "p.dec");
     my $ce_out = catdir($WEB_PATH, $work_dir, "pr.ce");
     my $job_done = catdir($WEB_PATH, $work_dir, "done");
     my $trace_file = catdir($WEB_PATH, $work_dir, "trace");
@@ -141,7 +141,7 @@ if (my $filename = param('file')     # The name of the file we are monitoring
             print p("Translated ${out_count} of ${in_count} segments...");
 
             if ($in_count == $out_count) { # Means decoding is done
-                if (not -r $ce_out) { # we might be estimating confidence
+                if (param('ce') and not -r $ce_out) { # we might be estimating confidence
                     print p("Estimating confidence...");
                 } else {        # or just postprocessing
                     print p("Preparing output...");

@@ -354,6 +354,7 @@ sub monitor {
     while (@path and $path[0] ne 'plive') { shift @path; }
     my $time = time();
     my $redirect="/cgi-bin/plive-monitor.cgi?time=${time}&file=${outfilename}&dir=".join("/",@path);
+    $redirect .= $CE_MODEL ? "&ce=1" : "&ce=0";
     print start_html(-title=>"PORTAGELive",
                      -head=>meta({-http_equiv => 'refresh',
                                   -content => "0;url=${redirect}"}));
