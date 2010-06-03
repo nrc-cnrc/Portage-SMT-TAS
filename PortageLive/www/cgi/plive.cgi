@@ -298,6 +298,7 @@ sub processText {
                   "-tctp",
                   "-tclm=${TC_LM}",
                   "-tcmap=${TC_MAP}",
+                  "-out=\"${work_dir}/P.out\"",
                   "-dir=\"${work_dir}\"");
     push @tr_opt, $CE_MODEL
         ? ("-with-ce", "-model=$CE_MODEL")
