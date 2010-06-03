@@ -137,7 +137,7 @@ if (my $filename = param('file')     # The name of the file we are monitoring
 
         # What stage are we at:
         if (not -r $canoe_in) { # No decoder-ready file yet: still pre-processing
-            print p("Preparing input...");
+            print p("Loading ...");
         } elsif (not -r $canoe_out) { # No decoder-output file yet: probably loading models
             my $in_count = int(`wc --lines < $canoe_in`) + 0;
             print p("Preparing to translate ${in_count} segments...");
