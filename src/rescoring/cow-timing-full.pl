@@ -88,8 +88,8 @@ sub parsemem($) {
    my $ram = "";
    my $vmem = "";
    if ( /Max VMEM ([0-9.]+G) Max RAM ([0-9.]+G)/ ) {
-      $ram = $1;
-      $vmem = $2;
+      $vmem = $1;
+      $ram = $2;
    }
    return ($ram, $vmem);
 }
