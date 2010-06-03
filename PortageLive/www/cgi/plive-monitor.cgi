@@ -101,6 +101,7 @@ if (my $filename = param('file')     # The name of the file we are monitoring
     my $ce_out = catdir($WEB_PATH, $work_dir, "pr.ce");
     my $job_done = catdir($WEB_PATH, $work_dir, "done");
     my $trace_file = catdir($WEB_PATH, $work_dir, "trace");
+    my $monitor_log = catdir($WEB_PATH, $work_dir, "monitor_log");
     
     # Background process is done
     if (-e $job_done) {
@@ -124,6 +125,11 @@ if (my $filename = param('file')     # The name of the file we are monitoring
         } 
         print p("Elapsed time: ${elapsed_time} seconds.");
         print p(a({-href=>"plive.cgi"}, "Translate more text"));
+        if (open MONITOR, ">$monitor_log") {
+            my $out_count = int(`wc --lines < $canoe_out`) + 0;   
+            print MONITOR "Translated ${out_count} segments in ${elapsed_time} seconds.";
+            close MONITOR;
+        }
 
     # Background process is still running:
     } else {
