@@ -391,8 +391,8 @@ sub textBoxOutput {
         h2($LANG->{name}{$SRC_LANG}." source text:"),
         p($source),
         h2($LANG->{name}{$TGT_LANG}." target text:"),
-        p(join("<br>", @target)),
-        "\n";
+        p(join("<br>", @target));
+    print p(a({-href=>"plive.cgi"}, "Translate more text"));
     print copyright();
 
     close STDIN;
