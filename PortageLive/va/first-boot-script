@@ -14,6 +14,7 @@ sed "s/__REPLACE_THIS_WITH_YOUR_IP__/`ifconfig | grep \"inet addr\" | head -1 | 
 ln -s /opt/Portage/www/index.html /var/www/html/index.html
 ln -s /opt/Portage/www/soap.html /var/www/html/soap.html
 ln -s /opt/Portage/www/PortageLiveAPI.php /var/www/html/PortageLiveAPI.php
+ln -s /opt/Portage/www/test.php /var/www/html/test.php
 
 # 4.4 Creating the content available through the SSL variant
 mkdir /var/www/html/secure
@@ -21,6 +22,7 @@ sed "s/__REPLACE_THIS_WITH_YOUR_IP__/`ifconfig | grep \"inet addr\" | head -1 | 
 ln -s /opt/Portage/www/secure/index.html /var/www/html/secure/index.html
 ln -s /opt/Portage/www/secure/soap.html /var/www/html/secure/soap.html
 ln -s /opt/Portage/www/secure/PortageLiveAPI.php /var/www/html/secure/PortageLiveAPI.php
+ln -s /opt/Portage/www/secure/test.php /var/www/html/secure/test.php
 
 # 4.5 Provide the initial password for the "portage" account if login is required
 echo Username: portage
