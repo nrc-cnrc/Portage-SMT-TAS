@@ -72,6 +72,9 @@ DESTINATION=rpm.build.root/opt/Portage/models/context
 mkdir -p $DESTINATION
 scp -r $SOURCE/models/portageLive/* $DESTINATION/
 
+# Let's add a md5sum since building a rpm for the models is error prone.
+pushd rpm.build.root/opt/Portage/models && find -type f | egrep -v md5 | xargs md5sum > md5 && popd
+
 # Set proper permissions on the directory and file structure
 find rpm.build.root -type d | xargs chmod 755
 find rpm.build.root -type f | xargs chmod 644
