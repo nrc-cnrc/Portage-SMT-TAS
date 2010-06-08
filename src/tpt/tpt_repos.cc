@@ -30,7 +30,7 @@ namespace ugdiss
   toRepos<MemTreeNode<uint32_t,uint32_t>,uint32_t>(ostream& idx, 
                                                    ostream& dat, 
                                                    MemTreeNode<uint32_t,uint32_t>& node, 
-                                                   uint32_t parent, 
+                                                   filepos_type parent, 
                                                    vector<uint32_t>& remap)
   {
     static uint32_t flagmask = FLAGMASK; 
@@ -53,13 +53,13 @@ namespace ugdiss
 
     // process children and write index
     typedef MemTreeNode<uint32_t>::map_t::iterator myIter;
-    vector<pair<uint32_t,uint32_t> > tmpidx;
+    vector<pair<uint32_t,filepos_type> > tmpidx;
     for (myIter m = node.mDtrs.begin(); m != node.mDtrs.end(); m++)
       {
 	pair<filepos_type,uchar> jar;
 	jar = toRepos(idx,dat,m->second,myDatPos,remap);
 	key_t key = (m->first<<FLAGBITS)+jar.second;
-        tmpidx.push_back(pair<uint32_t,uint32_t>(key,jar.first));
+        tmpidx.push_back(pair<uint32_t,filepos_type>(key,jar.first));
       }
     filepos_type idxStart = idx.tellp();
     for (size_t i = 0; i < tmpidx.size(); i++)

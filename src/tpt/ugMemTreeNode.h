@@ -166,7 +166,7 @@ namespace ugdiss
     pair<filepos_type,uchar>
     toRepos<MemTreeNode<val_t,key_t>,val_t>(ostream& idx, ostream& dat,
                                             MemTreeNode<val_t,key_t>& node,
-                                            val_t parent, vector<val_t>& remap);
+                                            filepos_type parent, vector<val_t>& remap);
   };
 
   template<typename val_t, typename key_t>

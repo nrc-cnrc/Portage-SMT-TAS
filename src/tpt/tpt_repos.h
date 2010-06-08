@@ -40,7 +40,7 @@ namespace ugdiss
   template<typename MTNODE, typename val_t>
   pair<filepos_type,uchar>
   toRepos(ostream& idx, ostream& dat, MTNODE& node, 
-	  uint32_t parent, vector<val_t>& remap);
+	  filepos_type parent, vector<val_t>& remap);
  
   template<typename MEMTABLE,typename val_t>
   vector<val_t>
