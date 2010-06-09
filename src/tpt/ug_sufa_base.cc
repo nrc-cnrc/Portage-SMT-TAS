@@ -421,7 +421,7 @@ namespace ugdiss
   Sufa::
   upper_bound(id_type const* keyStart, id_type const* keyStop) const
   {
-    if (keyStart == keyStop) return reinterpret_cast<char const*>(index);
+    if (keyStart == keyStop) return endData; // reinterpret_cast<char const*>(index);
     char const* const lower = getLowerBound(*keyStart);
     char const* const upper = getUpperBound(*keyStart);
     return find_end(lower,upper,keyStart,keyStop,0);
