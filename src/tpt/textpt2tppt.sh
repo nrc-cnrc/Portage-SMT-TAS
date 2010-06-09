@@ -101,16 +101,10 @@ if [[ ! -r $TEXTPT ]]; then
    error_exit "Can't read $TEXTPT."
 fi
 
-BIN=`dirname $0`
-if [[ $BIN =~ ^\\. ]]; then
-   #BIN is a relative path
-   BIN=../$BIN
-fi
-
-$BIN/ptable.encode-phrases $TEXTPT 1 $OUTPUTPT >&2
-$BIN/ptable.encode-phrases $TEXTPT 2 $OUTPUTPT >&2
-$BIN/ptable.encode-scores $TEXTPT $OUTPUTPT >&2
-$BIN/ptable.assemble $OUTPUTPT >&2
+ptable.encode-phrases $TEXTPT 1 $OUTPUTPT >&2
+ptable.encode-phrases $TEXTPT 2 $OUTPUTPT >&2
+ptable.encode-scores $TEXTPT $OUTPUTPT >&2
+ptable.assemble $OUTPUTPT >&2
 mv $OUTPUTPT.{tppt,cbk,trg.repos.dat,src.tdx,trg.tdx} ../$OUTPUTPT$TPT_EXTENSION/ ||
    error_exit "Can't mv relevant output files into $OUTPUTPT$TPT_EXTENSION, model probably exists but can't be moved and renamed properly."
 cd ..
