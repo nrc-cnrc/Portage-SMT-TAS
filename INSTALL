@@ -167,6 +167,19 @@ Mandatory dependencies for all distributions:
    other package which produces language models in Doug Paul's ARPA format, but
    note that in our experiments, SRILM and MITLM have worked best.
 
+ - The libsvm library, needed for Confidence Estimation.  The package is
+   available from http://www.csie.ntu.edu.tw/~cjlin/libsvm/ and is very easy to
+   compile.  Installation is manual but trivial.  This procedure worked for us:
+      # Download the current tar ball
+      wget 'http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/libsvm.cgi?+http://www.csie.ntu.edu.tw/~cjlin/libsvm+tar.gz'
+      # Expand it
+      tar -xzf libsvm-2.91.tar.gz
+      # Go in the directory and compile the package
+      cd libsvm-2.91
+      make
+      # "Install" the three executables somewhere on the PATH.
+      cp svm-predict svm-train svm-scale $PORTAGE/bin
+
 Optional dependencies for all distributions:
 
  - ICU - Portage 1.4 includes a few tools that use ICU to correctly do
