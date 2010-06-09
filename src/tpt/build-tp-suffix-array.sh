@@ -125,12 +125,12 @@ if [[ $CORPUS =~ \\.gz$ ]]; then
 else
    CAT="cat"
 fi
-verbose 1 "$CAT $CORPUS | $BIN/vocab.build $QUIET --tdx $OUTPUT_TPSA.tdx"
-$CAT $CORPUS | $BIN/vocab.build $QUIET --tdx $OUTPUT_TPSA.tdx >&2
-verbose 1 "$CAT $CORPUS | $BIN/mmctrack.build $QUIET $OUTPUT_TPSA.tdx $OUTPUT_TPSA.mct"
-$CAT $CORPUS | $BIN/mmctrack.build $QUIET $OUTPUT_TPSA.tdx $OUTPUT_TPSA.mct >&2
-verbose 1 "$BIN/mmsufa.build $QUIET $OUTPUT_TPSA.mct $OUTPUT_TPSA.msa"
-$BIN/mmsufa.build $QUIET $OUTPUT_TPSA.mct $OUTPUT_TPSA.msa >&2
+verbose 1 "$CAT $CORPUS | vocab.build $QUIET --tdx $OUTPUT_TPSA.tdx"
+$CAT $CORPUS | vocab.build $QUIET --tdx $OUTPUT_TPSA.tdx >&2
+verbose 1 "$CAT $CORPUS | mmctrack.build $QUIET $OUTPUT_TPSA.tdx $OUTPUT_TPSA.mct"
+$CAT $CORPUS | mmctrack.build $QUIET $OUTPUT_TPSA.tdx $OUTPUT_TPSA.mct >&2
+verbose 1 "mmsufa.build $QUIET $OUTPUT_TPSA.mct $OUTPUT_TPSA.msa"
+mmsufa.build $QUIET $OUTPUT_TPSA.mct $OUTPUT_TPSA.msa >&2
 
 mv $OUTPUT_TPSA.{tdx,mct,msa} ../$OUTPUT_TPSA.tpsa/ ||
    error_exit "Can't mv output files into $OUTPUT_TPSA.tpsa, model probably exists but can't be moved and renamed properly."
