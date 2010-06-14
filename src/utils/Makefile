@@ -112,3 +112,11 @@ legacy_test_trie: tests/legacy/test_trie tests/data/test_trie.in.txt \
 bloater: DYNLIBS += -lpthread
 bloater_pthread: DYNLIBS += -lpthread
 tests/test_casemap_strings: DYNLIBS += $(LIBICU)
+
+# Additional tests to make sure programs we need are present
+test: check_make381
+
+.PHONY: check_make381
+check_make381:
+	@perl -e 'if ( '`make --version | egrep -o '[0-9]+\.[0-9]+'`' < 3.81 ) { print "Portage requires GNU make 3.81\n"; exit 1; }'
+
