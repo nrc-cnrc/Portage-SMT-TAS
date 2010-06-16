@@ -258,9 +258,11 @@ bool LMText::readLine(
 
          if (os_filtered != 0) *os_filtered << line << endl;
 
-         if ( tok_count != order )
-            error(ETFatal, "N-gram of order %d in %d-gram section",
-               tok_count, order);
+         if ( tok_count != order ) {
+            error(ETWarn, "N-gram of order %d in %d-gram section: %s",
+               tok_count, order, line.c_str());
+            continue;
+         }
 
          // Either limit_vocab is false, or we found no OOV, so we're done
          break;
