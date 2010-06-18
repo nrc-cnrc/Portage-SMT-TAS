@@ -23,8 +23,8 @@
     }
   }
   catch (SoapFault $exception) {
-    print "SOAP Fault: (faultcode: {$fault->faultcode}, faultstring: {$fault->faultstring})" . "<BR/>";
-    var_dump($soapFault);
+    print "SOAP Fault: (faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring})" . "<BR/>";
+    var_dump($exception);
   }
 ?> 
 
