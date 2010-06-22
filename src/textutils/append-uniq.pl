@@ -45,8 +45,8 @@ Usage: $0 [-h(elp)] [-v(erbose)] -nbest=file -ffvals=file
    ffvals, where a duplicate is a line which is identical to another in *both*
    files at the same time.
 
-   Warning: nbest and ffvals must be duplicate free, if not use use this
-   program to remove duplicates as follow:
+   Nbest and ffvals must be duplicate free, which you can accomplish using
+   the following command:
       append-uniq.pl -nbest=<emptyfile> -ffvals=<emptyfile>
          -addnbest=nbest -addffvals=ffvals
 
@@ -74,10 +74,6 @@ GetOptions(
    quiet         => sub { $verbose = 0 },
    debug         => \my $debug,
 ) or usage;
-
-# This script is called once per sentence by cow.sh, don't pollute the log!
-print STDERR "append-uniq.pl, NRC-CNRC, (c) 2004 - 2009, Her Majesty in Right of Canada\n"
-   if ($verbose > 1);
 
 if ( $debug ) {
    no warnings;
