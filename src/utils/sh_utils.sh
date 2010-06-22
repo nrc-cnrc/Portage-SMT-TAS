@@ -12,6 +12,12 @@
 # Copyright 2008, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2008, Her Majesty in Right of Canada
 
+# Portage is developed with bash 3, and uses the bash 3.1 RE syntax, not bash 4.
+# set "compat31" if we're using bash 4, to preserve the old, expected behaviour.
+if [[ $BASH_VERSINFO = 4 ]]; then
+   shopt -s compat31
+fi
+
 # error_exit "some error message" "optionnally a second line of error message"
 # will exit with an error status, print the specified error message(s) on
 # STDERR.
