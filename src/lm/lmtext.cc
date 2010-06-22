@@ -234,12 +234,16 @@ bool LMText::readLine(
          char* strtok_state; // state variable for strtok_r
          Uint tok_count = 0;
          char* s_tok = strtok_r(phrase_pos, " ", &strtok_state);
+         bool order_error(false);
          while (s_tok != NULL) {
             ++tok_count;
-            if ( tok_count > order )
-               error(ETFatal,
-                  "N-gram of greater order in %d-gram section: %s ,%d, %d",
-                  order, line.c_str(), tok_count, order);
+            if ( tok_count > order ) {
+               error(ETWarn,
+                  "Ignoring N-gram of higher order in %d-gram section: %s",
+                  order, line.c_str());
+               order_error = true;
+               break;
+            }
             if ( limit_vocab ) {
                phrase[order-tok_count] = vocab->index(s_tok);
             }
@@ -249,6 +253,7 @@ bool LMText::readLine(
 
             s_tok = strtok_r(NULL, " ", &strtok_state);
          } // while
+         if ( order_error ) continue;
 
          // If we found an OOV or fair another filtering test, we skip this
          // entry and read another line
@@ -259,7 +264,7 @@ bool LMText::readLine(
          if (os_filtered != 0) *os_filtered << line << endl;
 
          if ( tok_count != order ) {
-            error(ETWarn, "N-gram of order %d in %d-gram section: %s",
+            error(ETWarn, "Ignoring N-gram of order %d in %d-gram section: %s",
                tok_count, order, line.c_str());
             continue;
          }
