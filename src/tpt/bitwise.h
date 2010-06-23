@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 #include <endian.h>
+#include <stdint.h>
 namespace ugdiss
 {
   using namespace std;
