@@ -15,6 +15,7 @@
 #include "errors.h"
 #include <vector>
 #include <stdarg.h>
+#include <cstdio>
 #include <iostream>
 #include <cstdlib>
 
