@@ -56,9 +56,12 @@ PERL_LIB_DIR := $(INSTALL_DIR)/lib
 # If BOOST_ROOT is defined, pull boost from there
 ifdef BOOST_ROOT
    BOOST_LIB_DIR = -L$(BOOST_ROOT)/lib
-   BOOST_INC_DIR = -isystem $(patsubst %/boost,%,$(wildcard $(BOOST_ROOT)/include/*/boost))
-   ifeq ($(strip $(BOOST_INC_DIR)),-I)
-      $(error Cannot find boost include directory under BOOST_ROOT=$(BOOST_ROOT).  Please set BOOST_ROOT to the directory where boost is installed)
+   BOOST_INC_DIR = -isystem$(patsubst %/boost,%,$(wildcard $(BOOST_ROOT)/include/*/boost))
+   ifeq ($(strip $(BOOST_INC_DIR)),-isystem)
+      BOOST_INC_DIR = -isystem$(patsubst %/boost,%,$(wildcard $(BOOST_ROOT)/include/boost))
+      ifeq ($(strip $(BOOST_INC_DIR)),-isystem)
+         $(error Cannot find boost include directory under BOOST_ROOT=$(BOOST_ROOT).  Please set BOOST_ROOT to the directory where boost is installed)
+      endif
    endif
 endif
 

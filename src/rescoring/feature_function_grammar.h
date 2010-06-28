@@ -18,8 +18,16 @@
 #include "portage_defs.h"
 #include "randomDistribution.h"
 #include "errors.h"
-#include <boost/spirit.hpp>
-#include <boost/spirit/actor/assign_actor.hpp>
+#include <boost/version.hpp>
+#if BOOST_VERSION >= 103800
+   #include <boost/spirit/include/classic.hpp>
+   #include <boost/spirit/include/classic_assign_actor.hpp>
+   using namespace boost::spirit::classic;
+#else
+   #include <boost/spirit.hpp>
+   #include <boost/spirit/actor/assign_actor.hpp>
+   using namespace boost::spirit;
+#endif
 #include <boost/bind.hpp>
 #include <string>
 
@@ -27,7 +35,7 @@
 namespace Portage {
 
 /// Grammar to parse feature function from a rescoring-model.
-class feature_function_grammar : public boost::spirit::grammar<feature_function_grammar>
+class feature_function_grammar : public grammar<feature_function_grammar>
 {
 protected:
    // Only usefull within the class
@@ -128,8 +136,6 @@ public:
       /// @param  self the grammar object itself
       definition(feature_function_grammar const& self)  
       {
-         using namespace boost::spirit;
-
          // Note: square braces are used to attach semantic action to a parsed
          // sequence of tokens.
          // Note: lexeme_d is to turn off white space skipping.
@@ -192,9 +198,9 @@ public:
          r = (name >> arg)[assign_a(self.ff)] >> weight[bind(&feature_function_grammar::checkDistn, &self, _1, _2)];
       }
       /// Some rules placeholders
-      boost::spirit::rule<ScannerT>  r, weight, normal, uniform, values, none, fix, name, arg;
+      rule<ScannerT>  r, weight, normal, uniform, values, none, fix, name, arg;
       /// Default starting point.
-      boost::spirit::rule<ScannerT> const& start() const { return r; };
+      rule<ScannerT> const& start() const { return r; };
    };
 
    void debug(const char* const msg) const {

@@ -22,7 +22,12 @@
 #include <iostream>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/operators.hpp>
-#include <boost/property_map.hpp>
+#include <boost/version.hpp>
+#if BOOST_VERSION >= 104000
+   #include <boost/property_map/property_map.hpp>
+#else
+   #include <boost/property_map.hpp>
+#endif
 #include <file_utils.h>
 #include "decoder.h"
 #include "phrasedecoder_model.h"

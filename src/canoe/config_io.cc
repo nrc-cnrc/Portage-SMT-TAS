@@ -23,12 +23,19 @@
 #include "lm.h"
 #include "lmdynmap.h"
 #include "tppt.h"
-#include <boost/spirit.hpp>
-#include <boost/spirit/actor/assign_actor.hpp>
+#include <boost/version.hpp>
+#if BOOST_VERSION >= 103800
+   #include <boost/spirit/include/classic.hpp>
+   #include <boost/spirit/include/classic_assign_actor.hpp>
+   using namespace boost::spirit::classic;
+#else
+   #include <boost/spirit.hpp>
+   #include <boost/spirit/actor/assign_actor.hpp>
+   using namespace boost::spirit;
+#endif
 #include <boost/bind.hpp>
 
 using namespace Portage;
-using namespace boost::spirit;
 
 /**
  * Grammar to parse and create the proper random distribution from a canoe.ini file.
