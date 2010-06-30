@@ -79,7 +79,8 @@ int MAIN(argc,argv)
       const string binlm_tempfile = binlm_filename.substr(0, binlm_filename.size()-3);
       lmtext->write_binary(binlm_tempfile);
       cerr << "Wrote binlm (... " << (time(NULL) - start) << " secs)" << endl;
-      system(("gzip -9fq " + binlm_tempfile).c_str());
+      if ( system(("gzip -9fq " + binlm_tempfile).c_str()) != 0 )
+         error(ETFatal, "Problem gzipping %s", binlm_tempfile.c_str());
       cerr << "Compressed binlm (... " << (time(NULL) - start) << " secs)"
            << endl;
    } else {
