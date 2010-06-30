@@ -48,6 +48,7 @@ public:
    void testLatin1() {
       CaseMapStrings cms("en_CA.iso-8859-1");
       TS_ASSERT_EQUALS(error_message_count, 0);
+      if ( error_message_count > 0 ) return;
       TS_ASSERT_EQUALS(cms.toUpper("\xe0"), string("\xc0")); // a/A accent grave
       TS_ASSERT_EQUALS(cms.toUpper("\xbd"), string("\xbd")); // 1/2 in latin1 (oe in latin9)
       TS_ASSERT_EQUALS(cms.toUpper("a"), string("A"));
@@ -55,6 +56,7 @@ public:
    void testDefault() {
       CaseMapStrings cms("en_CA"); // defaults to latin1
       TS_ASSERT_EQUALS(error_message_count, 0);
+      if ( error_message_count > 0 ) return;
       TS_ASSERT_EQUALS(cms.toUpper("\xe0"), string("\xc0")); // a/A accent grave
       TS_ASSERT_EQUALS(cms.toUpper("\xbd"), string("\xbd")); // 1/2 in latin1 (oe in latin9)
       TS_ASSERT_EQUALS(cms.toUpper("a"), string("A"));
@@ -92,6 +94,7 @@ public:
       TS_ASSERT_EQUALS(error_message_count, 1);
       #else
       TS_ASSERT_EQUALS(error_message_count, 0);
+      if ( error_message_count > 0 ) return;
       TS_ASSERT_EQUALS(cms.toUpper("\u00e0"), string("\u00c0")); // a/A accent grave
       TS_ASSERT_EQUALS(cms.toUpper("a"), string("A"));
       #endif
