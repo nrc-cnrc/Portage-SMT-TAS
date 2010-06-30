@@ -515,7 +515,7 @@ unless ($with_ce) {
 }
 
 @ARGV <= 1 or die "ERROR: Too many arguments.\nStopped";
-@ARGV > 0 or die "ERROR: Too few arguments.\nStopped" if $tmx;
+@ARGV > 0 or die "ERROR: Missing argument: SRC_TEXT\nStopped" if $tmx;
 my $input_text = @ARGV > 0 ? shift : "-";
 
 unless (defined $out) {
