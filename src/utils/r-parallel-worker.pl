@@ -130,7 +130,6 @@ if ( defined $subst ) {
 #
 
 my $start_time = time;
-#`sleep 123`;
 my $reply_rcvd = send_recv "GET ($me)";
 chomp $reply_rcvd;
 
@@ -189,7 +188,6 @@ while(defined $reply_rcvd and $reply_rcvd !~ /^\*\*\*EMPTY\*\*\*/i
       # EJJ June 2010: explicitly use /bin/bash, in case sh!=bash (e.g., on
       # Ubuntu and Debian)
       my $rc = system("/bin/bash", "-c", $job_command);
-      #my $rc = system("/bin/bash -c '" . $job_command . "'");
       #my $rc = system($job_command);
       $SIG{INT} = $SIG{QUIT} = $SIG{TERM} = 'ignore_signal';
       if ( $rc == -1 ) {
