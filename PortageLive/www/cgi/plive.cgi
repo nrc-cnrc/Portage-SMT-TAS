@@ -33,8 +33,8 @@ awaiting job completion.
 For this script to work for your application, you will likely have to
 modify some internal variables. The most important of these are near
 the top of the script.  Look for a comment saying "USER
-CONFIGURATION".  Variables you are likely to want to change are
-C<SRC_LANG>, C<TGT_LANG>, C<CE_MODEL> and C<RESCORE_INI>.
+CONFIGURATION".  Variables you are likely to want to change are 
+<PORTAGE_PATH> and <WEB_PATH>.
 
 =head1 SEE ALSO
 
@@ -59,12 +59,6 @@ use warnings;
 
 ## --------------------- USER CONFIGURATION ------------------------------
 ##
-## Variables you are likely to want to change are:
-## $SRC_LANG, $TGT_LANG, $CE_MODEL, $RESCORE_INI.
-
-## Source-language, target-language, as 2-character ISO-639-1 code
-my $SRC_LANG = 'en';
-my $TGT_LANG = 'fr';
 
 ## Where PORTAGE files reside -- standard is /opt/Portage 
 ## NOTE: if you change this, also change it in plive-monitor.cgi
@@ -78,27 +72,14 @@ my $PORTAGE_BIN = "${PORTAGE_PATH}/bin";
 ## NOTE: if you change this, also change it in plive-monitor.cgi
 my $PORTAGE_LIB = "${PORTAGE_PATH}/lib";
 
-## Where the PORTAGE translation model files reside 
-## -- standard is ${PORTAGE_PATH}/models/context
-my $PORTAGE_MODEL_DIR = "${PORTAGE_PATH}/models/context";
+## Where the PORTAGE contexts (trained models) reside 
+## -- standard is ${PORTAGE_PATH}/models
+my $PORTAGE_MODEL_DIR = "${PORTAGE_PATH}/models";
 
-## Decoder configuration file
-## -- standard is ${PORTAGE_MODEL_DIR}/canoe.ini.cow
-my $CANOE_INI = "${PORTAGE_MODEL_DIR}/canoe.ini.cow";
-
-## Rescoring configuration file -- empty string ("") means no rescoring
-my $RESCORE_INI = "";
-
-## Confidence estimation model -- empty string ("") means no CE
-## -- standard is ${PORTAGE_MODEL_DIR}/ce_model.cem
-#my $CE_MODEL = "${PORTAGE_MODEL_DIR}/ce_model.cem"; 
-my $CE_MODEL = ""; 
-
-## Truecasing model files -- standard is 
-## ${PORTAGE_MODEL_DIR}/models/tc/tc-lm.${TGT_LANG}.tplm
-## and ${PORTAGE_MODEL_DIR}/models/tc/tc-map.${TGT_LANG}.tppt
-my $TC_LM = "${PORTAGE_MODEL_DIR}/models/tc/tc-lm.${TGT_LANG}.tplm";
-my $TC_MAP = "${PORTAGE_MODEL_DIR}/models/tc/tc-map.${TGT_LANG}.tppt";
+## The list of available contexts (trained models):
+## -- if you leave an empty list, this script will find out by itself 
+##    what's available in $PORTAGE_MODEL_DIR
+my @PORTAGE_CONTEXTS = ();
 
 ## PORTAGE Live work directory
 ## NOTE: Make sure HTTP server has rw-access to this directory
@@ -116,7 +97,7 @@ my $MAX_TEXTBOX = 500;
 # ISO-639 language name stuff -- you may want to add languages.
 my $LANG = { iso2=>{ fr=>'fr', en=>'en' },
              iso3=>{ fr=>'fra', en=>'eng' },
-             xml=>{ fr=>'FR_CA', en=>'EN_CA' },
+             xml=>{ fr=>'FR-CA', en=>'EN-CA' },
              name=>{ fr=>'French', en=>'English'} };
 
 ## ---------------------- END USER CONFIGURATION ---------------------------
@@ -144,6 +125,8 @@ use File::Spec::Functions qw(splitdir catdir);
 $|=1;
 
 ## Main:
+
+my %CONTEXT = getContexts(@PORTAGE_CONTEXTS);
 
 if (param('TranslateBox') or param('TranslateFile')) {
     processText();
@@ -179,16 +162,23 @@ sub printForm {
     
     my @filter_values = ();
     for (my $v = 0; $v <= 1; $v += 0.05) { push @filter_values, $v; }
+    my %context_labels = ();
+    for my $c (sort keys %CONTEXT) { $context_labels{$c} = $CONTEXT{$c}->{label}; }
     
     print start_multipart_form(),
-    table({align=>'center', width=>400},
+    table({align=>'center', width=>600},
+          Tr(td(strong("Select a system:")),
+             td(popup_menu(-name=>'context',
+                           -values=>["", sort keys %CONTEXT],
+                           -labels=>{ ""=>'-- Please pick one --',
+                                      %context_labels }))),
           Tr(td({colspan=>2, align=>'left', border=>0}, 
                 p("Either type in some text, or select a text file to translate (plain text or TMX).<BR /> Press the <em>Translate</em> button to have PORTAGELive translate your text."),
                 br())),
           ## Text-box (textarea) interface:
 
           Tr(td({colspan=>2, align=>'left'}, 
-                strong("Type some ".$LANG->{name}{$SRC_LANG}." text:"))),
+                strong("Type in source-language text:"))),
           Tr(td({colspan=>2, align=>'left'}, 
                 textarea(-name=>'textbox',
                          -value=>'',
@@ -214,16 +204,14 @@ sub printForm {
                          -label=>'')),
              td(strong("TMX"), 
                 "-- Check this box if input file is TMX.")),
-          $CE_MODEL 
-          ? Tr({valign=>'top'},
-               td({align=>'right'}, 
-                  scrolling_list(-name=>'filter',
-                                 -default=>'no filtering',
-                                 -values=>[ 'no filtering', map(sprintf("%0.2f", $_), @filter_values) ],
-                                 -size=>1)),
-               td(strong("Filter"),
-                  "-- Set the filtering threshold on confidence (TMX files only)."))
-          : "",
+          Tr({valign=>'top'},
+             td({align=>'right'}, 
+                scrolling_list(-name=>'filter',
+                               -default=>'no filtering',
+                               -values=>[ 'no filtering', map(sprintf("%0.2f", $_), @filter_values) ],
+                               -size=>1)),
+             td(strong("Filter"),
+                "-- Set the filtering threshold on confidence (TMX files only).")),
           Tr({valign=>'top'},
              td({colspan=>2, align=>'center'},
                 submit(-name=>'TranslateFile', -value=>'Translate File'))),
@@ -258,60 +246,82 @@ sub printForm {
 # Does the translation
 
 sub processText {
-    my $src_file;               # Local copy of the source-text file
     my $work_name;              # User-recognizable jobname
+    my $work_dir;               # For translate.pl
 
-    # Get the source text:
-    if (param('filename')) {    # File upload
-        $src_file=tmpFileName(param('filename')) || problem("Can't get tmpFileName()");
+    my $context = param('context');
+    if (not $context) {
+        problem("No system (\"context\") specified.");
+
+    # Create the work dir, get the source text in there:
+    } elsif (param('filename')) {    # File upload
+        my $src_file = tmpFileName(param('filename')) 
+            || problem("Can't get tmpFileName()");
         my @src_file_parts = split(/[:\\\/]+/, param('filename'));
-        $work_name = normalizeName($src_file_parts[-1]);
+        $work_name = normalizeName(join("_", $context, $src_file_parts[-1]));
+        $work_dir = makeWorkDir($work_name) 
+            || problem("Can't make work directory for $work_name");
+        system("cp",  $src_file, "$work_dir/Q.in") == 0
+            || problem("Can't copy input file $src_file into $work_dir/Q.in");
 
     } elsif (param('textbox')) { # Text box
         problem("Input text too large (limit = ${MAX_TEXTBOX}).  Try file upload instead.") 
             if length(param('textbox')) > $MAX_TEXTBOX;
-        my $fh;
-        ($fh, $src_file)=File::Temp::tempfile();
+        $work_name = join("_", $context, "Text-Box");
+        $work_dir = makeWorkDir($work_name) 
+            || problem("Can't make work directory for $work_name");
+        open(my $fh, "> $work_dir/Q.in")
+            || problem("Can't create input file Q.in in work directory $work_dir");
         print {$fh} param('textbox'), "\n";
         close $fh;
 
-        $work_name = "Text-Box";
     } else {
         problem("No text or file to translate");
     }
 
     # Get some basic info on source text:
     param('tmx') 
-        ? checkTMX($src_file) 
-        : checkFile($src_file, param('notok'), param('noss'));
+        ? checkTMX("$work_dir/Q.in") 
+        : checkFile("$work_dir/Q.in", param('notok'), param('noss'));
     
     # Prepare the ground for translate.pl:
-    my $work_dir = makeWorkDir($work_name) 
-        || problem("Can't make directory for $work_name");
-    link $src_file, "$work_dir/Q.in" 
-        || problem("Can't link to input file $src_file");
     my $outfilename = "PLive-${work_name}";
+    my $src_lang = $CONTEXT{$context}->{src};
+    my $tgt_lang = $CONTEXT{$context}->{tgt};
     my @tr_opt = ("-verbose",
-                  "-ini=$CANOE_INI",
-                  "-src=${SRC_LANG}",
-                  "-tgt=${TGT_LANG}",
+                  "-ini=".$CONTEXT{$context}->{canoe_ini},
+                  "-src=${src_lang}",
+                  "-tgt=${tgt_lang}",
                   "-tctp",
-                  "-tclm=${TC_LM}",
-                  "-tcmap=${TC_MAP}",
-                  "-out=\"${work_dir}/P.out\"",
-                  "-dir=\"${work_dir}\"");
-    push @tr_opt, $CE_MODEL
-        ? ("-with-ce", "-model=$CE_MODEL")
-        : ("-decode-only");
-    push @tr_opt, param('notok') ? "-notok": "-tok";
-    push @tr_opt, param('noss') ? "-nl=s" : "-nl=p";
-    push @tr_opt, ("-tmx", 
-                   "-xsrc=".$LANG->{xml}{$SRC_LANG}, 
-                   "-xtgt=".$LANG->{xml}{$TGT_LANG})
-        if param('tmx');
-    push @tr_opt, "-filter=".(param('filter')+0) 
-        unless (param('filter') eq 'no filtering') 
-        or (not defined param('filter'));
+                  "-tclm=".$CONTEXT{$context}->{tclm},
+                  "-tcmap=".$CONTEXT{$context}->{tcmap},
+                  "-out=\"$work_dir/P.out\"",
+                  "-dir=\"$work_dir\"");
+    push @tr_opt, ($CONTEXT{$context}->{ce_model}
+                   ? ("-with-ce", 
+                      "-model=".$CONTEXT{$context}->{ce_model})
+                   : ("-decode-only"));
+    my $filter_threshold = (!defined param('filter') ? 0 
+                            : param('filter') eq 'no filtering' ? 0 
+                            : param('filter') + 0);
+    if ($filter_threshold > 0) {
+        problem("Confidence-based filtering is only currently compatible with TMX input.")
+            unless param('tmx');
+        problem("Confidence-based filtering not available with system %s", $context)
+            unless $CONTEXT{$context}->{ce_model};
+        
+        push @tr_opt, "-filter=$filter_threshold";
+    }
+    if (param('tmx')) {
+        push @tr_opt, ("-tmx", 
+                       "-xsrc=".$LANG->{xml}{$src_lang}, 
+                       "-xtgt=".$LANG->{xml}{$tgt_lang},
+                       "-nl=s");
+    } else {
+        push @tr_opt, param('notok') ? "-notok": "-tok";
+        push @tr_opt, param('noss') ? "-nl=s" : "-nl=p";
+    }
+    
     my $tr_opt = join(" ", @tr_opt);
     my $tr_cmd = "${PORTAGE_PATH}/bin/translate.pl ${tr_opt} \"$work_dir/Q.in\" >& \"$work_dir/trace\"";
 
@@ -321,12 +331,15 @@ sub processText {
     
     # Launch translation
     if (param('filename')) {
-        monitor($work_name, $work_dir, $outfilename);
+        monitor($work_name, $work_dir, $outfilename, $context);
     
-	# Launch translate.pl in the background in order to return to apache
-	# webserver as soon as possible.
-        system("(if (${tr_cmd}); then mv ${tr_output} ${user_output}; fi; touch $work_dir/done)&") == 0
-            or problem("Call returned with error code: ${tr_cmd} (error = %d)", $?>>8);
+        # Launch translate.pl in the background for uploaded files, in order to return to
+	# webserver as soon as possible, and avoid potential timeout.
+
+        close STDIN;
+        close STDOUT;
+        system("(if (${tr_cmd}); then ln -s ${tr_output} ${user_output}; fi; touch $work_dir/done)&") == 0 
+            or die("Call returned with error code: ${tr_cmd} (error = %d)", $?>>8);
     } else {
         # Perform job here for text box
         system(${tr_cmd}) == 0
@@ -338,15 +351,16 @@ sub processText {
     }
 }
 
-# monitor(work_name, work_dir, outfilename)
+# monitor(work_name, work_dir, outfilename, context)
 # 
 # Redirect the user to a job monitoring page (see plive-monitor.cgi)
 # - work_name:  user-recognizable name for the job (typically the uploaded source text file name)
 # - work_dir: translate.pl's work directory
 # - outfilename: target translation file name (within the work dir)
+# - context: Name of the context (model) within which job is submitted
 
 sub monitor {
-    my ($work_name, $work_dir, $outfilename) = @_;
+    my ($work_name, $work_dir, $outfilename, $context) = @_;
 # Output redirection to plive-monitor
     print header(-type=>'text/html',
                  -charset=>'utf-8');
@@ -354,8 +368,8 @@ sub monitor {
     my @path = splitdir($work_dir);
     while (@path and $path[0] ne 'plive') { shift @path; }
     my $time = time();
-    my $redirect="/cgi-bin/plive-monitor.cgi?time=${time}&file=${outfilename}&dir=".join("/",@path);
-    $redirect .= $CE_MODEL ? "&ce=1" : "&ce=0";
+    my $redirect="/cgi-bin/plive-monitor.cgi?time=${time}&file=${outfilename}&context=${context}&dir=".join("/",@path);
+    $redirect .= $CONTEXT{context}->{ce_model} ? "&ce=1" : "&ce=0";
     print start_html(-title=>"PORTAGELive",
                      -head=>meta({-http_equiv => 'refresh',
                                   -content => "0;url=${redirect}"}));
@@ -365,10 +379,6 @@ sub monitor {
         h1("PORTAGELive"),
         "\n";
     print copyright();
-
-    close STDIN;
-    close STDOUT;
-
 }
 
 # textBoxOutput($source, @target)
@@ -388,15 +398,12 @@ sub textBoxOutput {
     print 
         NRCBanner(),
         h1("PORTAGELive"),
-        h2($LANG->{name}{$SRC_LANG}." source text:"),
+        h2("Source text:"),
         p($source),
-        h2($LANG->{name}{$TGT_LANG}." target text:"),
+        h2("Translation:"),
         p(join("<br>", @target));
     print p(a({-href=>"plive.cgi"}, "Translate more text"));
     print copyright();
-
-    close STDIN;
-    close STDOUT;
 }
 
 # makeWorkDir(filename)
@@ -446,6 +453,61 @@ sub checkTMX {
 }
 
 
+# getContexts()
+#
+# Gather information about available "contexts" (trained Portage systems)
+# -- if argument list is empty, find out what's available in $PORTAGE_MODEL_DIR
+sub getContexts {
+    my (@list) = @_;
+
+    if (!@list) {
+        opendir(my $dh, $PORTAGE_MODEL_DIR) 
+            or problem("Can't open directory $PORTAGE_MODEL_DIR");
+        @list = readdir($dh);
+        closedir $dh;
+    }
+    
+    my %context = ();
+    for my $model (@list) {
+        if (my $info = getContextInfo($model)) {
+            $context{$model} = $info;
+        }
+    }
+    return %context;
+}
+
+# getContextInfo()
+#
+# Get basic info about model
+sub getContextInfo {
+    my ($name) = @_;
+
+    my %info = ( name=>$name );
+
+    my $D = "${PORTAGE_MODEL_DIR}/${name}";
+    my $sh_file = "$D/soap-translate.sh";
+    return undef # Can't find SOAP script $sh_file
+        unless -r $sh_file;
+    my $cmdline = `tail --lines=1 $sh_file`;
+    $info{src} = ($cmdline =~ /-src=(\w+)/) ? $1
+        : return undef; # Can't find source language in command-line $cmdline
+    $info{tgt} = ($cmdline =~ /-tgt=(\w+)/) ? $1 
+        : return undef; # Can't find target language in command-line $cmdline
+    $info{rescore} = ($cmdline =~ /-with-rescoring/);
+    
+    $info{canoe_ini} = (-r "$D/canoe.ini.cow") ? "$D/canoe.ini.cow" 
+        : return undef; # Can't find canoe.ini file $D/canoe.ini.cow
+    $info{rescore_ini} = (-r "$D/rescore.ini") ? "$D/rescore.ini" : "";
+    $info{tclm} = "$D/models/tc/tc-lm.".$info{tgt}.".tplm";
+    $info{tcmap} = "$D/models/tc/tc-map.".$info{tgt}.".tppt";
+    $info{ce_model} = (-r "$D/ce_model.cem") ? "$D/ce_model.cem" : "";
+
+    $info{label} = sprintf("%s (%s --> %s): %s confidence estimation",
+                           $info{name}, $info{src}, $info{tgt},
+                           $info{ce_model} ? "with" : "no");
+    return \%info;
+}
+
 # normalizeName(name)
 #
 # Remove anything that not alphanumeric, dash, underscore, dot or plus
@@ -481,9 +543,6 @@ sub problem {
     }
 
     print copyright();
-
-    close STDIN;
-    close STDOUT;
 
     exit 0;
 }

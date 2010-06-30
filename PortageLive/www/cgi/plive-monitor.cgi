@@ -87,10 +87,13 @@ $|=1;
 
 print header(-type=>'text/html');
         
-## Script expects three parameters: file, dir and time
+## Script expects these parameters: file, dir, time, ce and context
 if (my $filename = param('file')     # The name of the file we are monitoring
     and my $work_dir = param('dir')  # The work directory
-    and my $start_time = param('time')) { # When the job started
+    and my $start_time = param('time')  # The work directory
+    and my $context = param('context')) {  # What context (model)
+    
+    my $ce = int(param('ce'));  # Are we estimating confidence?
 
     my $filepath = catdir($WEB_PATH, $work_dir, $filename);
     my $url = catdir("", $work_dir, $filename);
@@ -103,9 +106,11 @@ if (my $filename = param('file')     # The name of the file we are monitoring
     my $trace_file = catdir($WEB_PATH, $work_dir, "trace");
     my $monitor_log = catdir($WEB_PATH, $work_dir, "monitor_log");
     
+#    my $trace_url = catdir("", $work_dir, "trace");
+
     # Background process is done
     if (-e $job_done) {
-        print head($filename);
+        print pageHead($filename, $context);
 
         if (-r $filepath) { # The output file exists, so presumably everything went well
             if ($DO_CLEAN_UP) {
@@ -119,9 +124,7 @@ if (my $filename = param('file')     # The name of the file we are monitoring
                 a({-href=>$url}, $filename));
         } else { # The output file doesn't exist, so something went wrong
             print 
-                p("Translation job terminated with no output"),
-                hr(),
-                getTrace($trace_file);
+                p("Translation job terminated with no output.");
         } 
         print p("Elapsed time: ${elapsed_time} seconds.");
         print p(a({-href=>"plive.cgi"}, "Translate more text"));
@@ -133,7 +136,7 @@ if (my $filename = param('file')     # The name of the file we are monitoring
 
     # Background process is still running:
     } else {
-        print head($filename, 5); # Refresh in 5 seconds
+        print pageHead($filename, $context, 5); # Refresh in 5 seconds
 
         # What stage are we at:
         if (not -r $canoe_in) { # No decoder-ready file yet: still pre-processing
@@ -157,19 +160,20 @@ if (my $filename = param('file')     # The name of the file we are monitoring
         
         print p("Elapsed time: ${elapsed_time} seconds.");
     }
+#    print p("Have a look at job's ", a({-href=>$trace_url}, "trace file"), ".");
 } else {
-        print head("Nothing to monitor.");
+        print pageHead(0);
 }
 
-print tail();
+print pageTail();
 
 exit 0;
 
 
 ## Subs
 
-sub head {
-    my($filename, $refresh) = @_;
+sub pageHead {
+    my($filename, $context, $refresh) = @_;
     $refresh = 0 unless defined $refresh;
 
     my %start = (-title=>"PORTAGELive");
@@ -180,10 +184,12 @@ sub head {
     return (start_html(%start),
             NRCBanner(),
             h1("PORTAGELive"),
-            p("Processing file $filename"));
+            $filename 
+            ? p("Processing file $filename with system $context")
+            : p("No job to monitor"));
 }
 
-sub tail() {
+sub pageTail {
     return (hr(),
             NRCFooter(),
             end_html());
