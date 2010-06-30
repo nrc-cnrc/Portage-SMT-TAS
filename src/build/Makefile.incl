@@ -17,6 +17,9 @@
 # Copyright 2005, Her Majesty in Right of Canada
 # =============================================================================
 
+# For distros where /bin/sh is not bash, such as Ubuntu, where /bin/sh is dash.
+SHELL=/bin/bash
+
 # Read in all user-configurable variables
 include ../Makefile.user-conf
 
