@@ -30,6 +30,7 @@
 #include <map>
 #include <cmath>
 #include <sstream>
+#include <limits>  // numeric_limits<float>::min & numeric_limits<float>::max
 
 #if IN_PORTAGE
 #include "file_utils.h"
@@ -229,14 +230,26 @@ process_line(string const& line, ostream& tmp,
   istringstream buf(line.substr(p));
 
   float s; 
+  double s_prime;
   for (size_t i = 0; i < scoreCount.size(); i++)
     {
-      buf >> s;
+      buf >> s_prime;
       if (buf.fail())
         cerr << efatal << "Format error in phrase table file:" << endl
              << "Missing or bad score in line " << linectr << endl
              << ">" << line << "<"
              << exit_1;
+      // There are some cases where the prob read is outside a float's
+      // permitted value.  Let's make sure we cope well with this scenario.
+      if (s_prime > 0) {
+         if (s_prime < numeric_limits<float>::min()) s_prime = numeric_limits<float>::min();
+         if (s_prime > numeric_limits<float>::max()) s_prime = numeric_limits<float>::max();
+      }
+      else if (s_prime < 0) {
+         if (-s_prime < numeric_limits<float>::min()) s_prime = -numeric_limits<float>::min();
+         if (-s_prime > numeric_limits<float>::max()) s_prime = -numeric_limits<float>::max();
+      }
+      s = static_cast<float>(s_prime);
       map<float,Score>::value_type foo(s,Score(scoreCount[i].size()));
       map<float,Score>::iterator bar = scoreCount[i].insert(foo).first;
       bar->second.cnt++;
