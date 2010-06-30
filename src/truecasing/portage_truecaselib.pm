@@ -360,8 +360,8 @@ sub truecaseFile
    # What is the command?
    print STDERR "\tCOMMAND: $command\n" unless not $verbose;
 
-   # Run the command.
-   my $rc = system( $command );
+   # Run the command using bash, not sh (in case sh!=bash)
+   my $rc = system( "/bin/bash", "-c", $command );
 
    die "Error while truecasing using canoe" unless ($rc == 0);
 
