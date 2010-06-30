@@ -477,6 +477,13 @@ public:
       TS_ASSERT(!check_if_exists("unexisting.file.bzip2"));
    }
 
+   // Test opening a file that does not exist
+   void testOpenNotExists() {
+      TS_ASSERT(!iMagicStream("unexisting.file.gz"));
+      TS_ASSERT(!iMagicStream("unexisting.file.txt"));
+      TS_ASSERT(!iMagicStream("unexisting.file.bzip2"));
+   }
+
 
    // Special case that only works on a node.
    // Here we are trying to take all the memory and when the memory is full, we
