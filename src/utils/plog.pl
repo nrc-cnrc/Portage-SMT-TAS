@@ -23,7 +23,7 @@ use strict;
 
 =item plog.pl {options} -create job_name
 
-=item plog.pl {options} -update log_file word_count status
+=item plog.pl {options} -update log_file status words_in [ words_out ] 
 
 =item plog.pl {options} [ -extract|-stats ] [ period ]
 
@@ -41,35 +41,50 @@ following fields:
 
 =item TIME      Date and time of the last logging operation, as an ISO 8601 timestamp YYYY-MM-DDTHH:MM:SSZ 
 
+=item USER      User name (system) who created the log entry
+
 =item JOB       Name of the job (user-given)
 
-=item WORDS     Word count (non-negative integer number of source words to be translated)
+=item WORDS_IN  Submitted word count (non-negative integer number of source words submitted to translation)
+
+=item WORDS_OUT Translated word count (non-negative integer number of source words actually translated, i.e. after confidence estimation filtering, if applicable)
 
 =item STATUS    Current job status: one of "pending", "success" or "failure"
 
 =item FILE      the name of the log file associated with the job
 
+=item COMMENT   A user-specified comment
+
 =back
 
 Logging for a translation job is normally viewed as a two-step
 process: first, create a log entry before the translation job begins;
-and second, update the entry to reflect the final status of the job
+second, update the entry to reflect the final status of the job
 once it's finished.
 
 The first form of this command (C<plog.pl -create>) is used to create
 an entry for a new job: C<job_name> is the C<JOB> field (typically the
 name of the source text file being translated). Values for the other
 fields are allocated automatically: job numbers <NO> are allocated
-sequentially, starting from 1; C<TIME> is the current time; C<WORDS> is
-zero; C<STATUS> is "pending"; and C<FILE> is the complete name of the
-file corresponding to this log entry.  Upon successfully creating the
-entry, the program outputs the C<FILE> field on the standard output.
+sequentially, starting from 1; C<TIME> is the current time;
+C<WORDS_IN> and C<WORDS_OUT> are zero; C<STATUS> is "pending"; C<FILE>
+is the complete name of the file corresponding to this log entry;
+C<COMMENT> is empty.  Upon successfully creating the entry, the
+program outputs the C<FILE> field on the standard output.
 
-The second form (C<plog.pl -update>) is used to update the C<WORDS>
-and C<STATUS> fields of the given entry. C<log_file> is the file name
-returned by the C<plog.pl -create> command; C<word_count> is the
-number of source words translated; and C<status> should either be
-"success" or "failure".
+The second form (C<plog.pl -update>) is used to update the C<STATUS>,
+C<WORDS_IN> and C<WORDS_OUT> fields of the given entry. C<log_file> is
+the file name returned by the C<plog.pl -create> command; C<status>
+should either be "success" or "failure"; C<words_in> is the number of
+source words submitted to translation; and C<words_out> is the actual
+number of source-words translated (not filtered out by confidence
+estimation) -- if not given, it is assumed to be the same as
+C<words_in>.
+
+Both the first and second forms accept an optional C<-comment> switch,
+by which the caller may add a textual comment to the log entry.  Note
+that a comment specified in the C<-update> form, even empty, will
+overwrite a comment given with the C<-create> form.
 
 The third form is used either to extract entries (C<-extract>) or to
 compute global statistics on these entries (C<-stats>).  By default
@@ -80,7 +95,7 @@ C<YYYY/MM/DD> for a specific day (e.g. "1964/01/07").  With
 C<-extract>, log entries are output to standard output in
 tab-separated CSV format:
 
-NO TIME JOB WORDS STATUS FILE
+NO TIME USER JOB WORDS_IN WORDS_OUT STATUS FILE COMMENT
 
 With C<-stats>, various statistics are computed and printed to
 standard output.
@@ -98,7 +113,11 @@ standard output.
 
 =item -extract        Extract mode: extract entries for the given period
 
+=item -comment=C      With C<-create> and C<-update>, add a textual comment to the entry
+
 =item -header         With C<-extract>, output a CSV header
+
+=item -raw            With C<-extract>, output raw (non-CSV) entries
 
 =item -stats          Stats mode: display various statistics for the given period [default action]
 
@@ -139,7 +158,16 @@ $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
 my $PORTAGE = $ENV{PORTAGE};
 my $DEFAULT_LOG = File::Spec->catdir($PORTAGE, "logs", "accounting");
-my @LOG_FIELDS = qw(NO TIME USER JOB WORDS STATUS FILE);
+my @LOG_FIELDS = qw(NO TIME USER JOB WORDS_IN WORDS_OUT STATUS FILE COMMENT);
+my %LOG_DEFAULT = (NO=>0,
+                   TIME=>undef,
+                   USER=>undef,
+                   JOB=>undef,
+                   WORDS_IN=>0,
+                   WORDS_OUT=>0,
+                   STATUS=>"pending",
+                   FILE=>"",
+                   COMMENT=>"");
 my $CSV_SEP = "\t";
 my $LOG_LOCK = ".lock";
 
@@ -152,7 +180,8 @@ use File::Temp qw(tempfile);
 ##
 our($help, $h, $H, $Help, $HELP, $man, 
     $create, $update, $extract, $stats,
-    $dir, $header,
+    $comment, 
+    $dir, $header, $raw,
     $verbose);
 our($debug);              # undocumented options
 
@@ -169,7 +198,19 @@ die "You can't specify more than one of -create, -update, -extract and -stats\n"
     if defined($update) + defined($create) + defined($extract) + defined($stats) > 1;
 
 $dir = $DEFAULT_LOG unless defined $dir;
+$comment = undef unless defined $comment; # Yes, this is totally useless, except as documentation
+die "Option -comment only appicable with -create or -update" 
+    if defined($comment) and not ($create or $update);
+
 $header = 0 unless defined $header;
+die "Option -header only appicable with -extract" 
+    if $header and not $extract;
+$raw = 0 unless defined $raw;
+die "Option -raw only appicable with -extract" 
+    if $raw and not $extract;
+die "Options -raw and -header can't be used together" 
+    if $raw and $header;
+
 $verbose = 0 unless defined $verbose;
 $debug = 0 unless defined $debug;
 
@@ -182,21 +223,23 @@ if ($create) {
     defined(my $job_name = shift) or die "Missing argument: job_name\n";
     die "Too many arguments\n" if shift;
 
-    print STDOUT logCreate($dir, $job_name), "\n";
+    print STDOUT logCreate($dir, $job_name, $comment), "\n";
 
 } elsif ($update) {
     defined(my $log_file = shift) or die "Missing argument: log_file\n";
-    defined(my $word_count = shift) or die "Missing argument: word_count\n";
     defined(my $job_status = shift) or die "Missing argument: status\n";
+    defined(my $words_in = shift) or die "Missing argument: words_in\n";
+    my $words_out = shift;      # Don't care if it's undef -- handled by logUpdate()
+
     die "Too many arguments\n" if shift;
 
-    logUpdate($dir, $log_file, $word_count, $job_status);
+    logUpdate($dir, $log_file, $job_status, $words_in, $words_out, $comment);
 
 } elsif ($extract) {  
     my $period = shift || "";
     die "Too many arguments\n" if shift;
 
-    logExtract($dir, $period, $header);
+    logExtract($dir, $period, $header, $raw);
 } else {                        # -stats
     my $period = shift || "";
     die "Too many arguments\n" if shift;
@@ -207,17 +250,18 @@ if ($create) {
 exit 0;
 
 sub logCreate {
-    my ($dir, $job_name) = @_;
+    my ($dir, $job_name, $comment) = @_;
+    $comment = "" unless defined $comment;
 
     verbose("[Creating log entry for \"${job_name}\" in $dir]\n");
 
-    my $now = gmtime();             # Greenwich time
+    my $now = gmtime();         # Greenwich time
+    my @pw = getpwuid($<);
     my $job = logNew(NO=>getNO($dir),
                      JOB=>$job_name,
-                     USER=>getpwuid($<),
+                     USER=>$pw[0], # username
                      TIME=>timeStamp($now),
-                     WORDS=>0,
-                     STATUS=>'pending');
+                     COMMENT=>$comment);
                 
 
     my $todays_path = File::Spec->catdir(sprintf("%04d", $now->year()+1900), 
@@ -250,15 +294,21 @@ sub logCreate {
 
 
 sub logUpdate {
-    my ($dir, $log_file, $word_count, $job_status) = @_;
+    my ($dir, $log_file, $job_status, $words_in, $words_out, $comment) = @_;
+    $words_in = 0 unless defined $words_in;
+    $words_out = $words_in unless defined $words_out;
 
     verbose("[Updating log entry \"${log_file}\" status to $job_status]\n");
 
-    die "word_count must be a non-negative integer value; got \"$word_count\"\n"
-        unless $word_count =~ /^[0-9]+$/;
-
     die "Status must be one of \"pending\", \"success\" or \"failure\" ; got \"$job_status\"\n"
         unless $job_status =~ /^(pending|success|failure)$/;
+
+    die "words_in must be a non-negative integer value; got \"$words_in\"\n"
+        unless $words_in =~ /^[0-9]+$/;
+    die "words_out must be a non-negative integer value; got \"$words_out\"\n"
+        unless $words_out =~ /^[0-9]+$/;
+    die "words_out must be less or equal than words_in\n"
+        unless $words_out <= $words_in;
 
     my $full_filename = File::Spec->catfile($dir, $log_file);
     open(my $log_fh, "<$full_filename") 
@@ -270,8 +320,11 @@ sub logUpdate {
     close $log_fh;
 
     logValue($job, 'TIME', timeStamp(gmtime())); # Greenwich time;
-    logValue($job, 'WORDS', $word_count);
+    logValue($job, 'WORDS_IN', $words_in);
+    logValue($job, 'WORDS_OUT', $words_out);
     logValue($job, 'STATUS', $job_status);
+    logValue($job, 'COMMENT', $comment) 
+        if defined $comment;    # Overwrite only if defined!
 
     open($log_fh, ">$full_filename") or die "No write-access to log file $full_filename\n";
     logWrite($job, $log_fh) or die "Can't write to log file $full_filename\n";
@@ -283,7 +336,8 @@ sub logUpdate {
 }
 
 sub logExtract {
-    my ($dir, $period, $header) = @_;
+    my ($dir, $period, $header, $raw) = @_;
+    my $logWriter = $raw ? \&logWrite : \&logCSVWrite;
 
     verbose($period 
             ? "[Extracting log entries for period $period]\n"
@@ -295,7 +349,7 @@ sub logExtract {
     my $full_dir = File::Spec->catdir($dir, $period);
 
     if (-d $full_dir) {
-        logWriteHeader(*STDOUT) if $header;
+        logCSVHeader(*STDOUT) if $header;
         # We could just do "find ... -exec cat"; instead, we read and validate each entry:
         my $cmd = "find $full_dir -name '*.log' | sort -n |";
         open(my $log_files, $cmd) or die "Can't do \"$cmd\"";
@@ -310,7 +364,7 @@ sub logExtract {
             warn "**Warning: Extra material in log file $log_file\n" 
                 if defined readline($log_fh);
             close $log_fh;
-            logWrite($log_entry, *STDOUT);
+            &$logWriter($log_entry, *STDOUT);
         }
         close $log_files;
 
@@ -324,10 +378,11 @@ sub logExtract {
 sub logStats {
     my ($dir, $period) = @_;
 
-    my $plog_call = "$0 -extract -dir=$dir -verbose=$verbose $period";
+    my $plog_call = "$0 -extract -raw -dir=$dir -verbose=$verbose $period";
     open(my $plog_fh, "$plog_call |") or die "Call failed: $plog_call\n";
 
-    my $word_count = 0;
+    my $words_in = 0;
+    my $words_out = 0;
     my $success_count = 0;
     my $failure_count = 0;
     my $pending_count = 0;
@@ -345,7 +400,8 @@ sub logStats {
             or (logValue($job, 'TIME') gt $last_time); 
         if (logValue($job, 'STATUS') eq 'success') {
             ++$success_count;
-            $word_count += logValue($job, 'WORDS');
+            $words_in += logValue($job, 'WORDS_IN');
+            $words_out += logValue($job, 'WORDS_OUT');
         } elsif (logValue($job, 'STATUS') eq 'failure') {
             ++$failure_count;
         } elsif (logValue($job, 'STATUS') eq 'pending') {
@@ -368,7 +424,10 @@ sub logStats {
     printf("  Pending:                     %d\n", $pending_count);
     printf("First:                         %d (%s)\n", $job_no[0], $first_time) if @job_no;
     printf("Last:                          %d (%s)\n", $job_no[-1], $last_time) if @job_no;
-    printf("Words successfully translated: %d\n", $word_count);
+    printf("Source words submitted:        %d\n", $words_in);
+    printf("Source words translated:       %d (%.2f%%)\n", 
+           $words_out, 
+           $words_in > 0 ? 100 * $words_out / $words_in : 0);
 
     close $plog_fh;
 }
@@ -377,10 +436,13 @@ sub logStats {
 ## log pseudo-object
 
 sub logNew {                    # constructor
-    my (%args)=@_;
-    my $log = { };
-    for my $field (@LOG_FIELDS) {
-        $log->{$field} = exists($args{$field}) ? $args{$field} : undef;
+    my %kv = @_;
+    my $log = { %LOG_DEFAULT };
+    for my $field (keys %kv) {
+        debug("logNew: initializing field \"$field\" to value \"%s\"\n", $kv{$field});
+        $log->{$field} = (exists($log->{$field}) # check validity of field names
+                          ? $kv{$field}
+                          : die "logNew: unsupported log field \"$field\"");
     }
     return $log;
 }
@@ -395,10 +457,30 @@ sub logValue {                  # get/set field values
 sub logWrite {                  # write to filehandle
     my ($log, $fh) = @_;
 
-    print {$fh} (join($CSV_SEP, map { my $v = logValue($log, $_); defined($v) ? makeCSVsafe($v) : "" } @LOG_FIELDS), "\n");
+    my @fields = ();
+    for my $f (@LOG_FIELDS) {
+        my $v = logValue($log, $f);
+        push @fields, makeCSVsafe($f."=".$v) if defined $v;
+    }
+
+    print {$fh} (join($CSV_SEP, @fields), "\n");
+                 
 }
 
-sub logWriteHeader {                  # write header to filehandle
+sub logCSVWrite {                  # write to filehandle
+    my ($log, $fh) = @_;
+
+    my @fields = ();
+    for my $f (@LOG_FIELDS) {
+        my $v = logValue($log, $f);
+        push @fields, makeCSVsafe(defined $v ? $v : "");
+    }
+
+    print {$fh} (join($CSV_SEP, @fields), "\n");
+                 
+}
+
+sub logCSVHeader {                  # write header to filehandle
     my ($fh) = @_;
 
     print {$fh} join($CSV_SEP, @LOG_FIELDS),"\n";
@@ -406,20 +488,33 @@ sub logWriteHeader {                  # write header to filehandle
 
 sub logRead {
     my ($fh) = @_;
+    my @LEGACY_FIELDS = qw(NO TIME USER JOB WORDS_IN STATUS FILE);
 
     defined (my $line = readline($fh)) 
         or return undef;
 
     chomp $line;
-    my @values = split(/$CSV_SEP/, $line);
-    die "Wrong number of fields in log entry"
-        unless $#values == $#LOG_FIELDS;
-    my %kv;
-    @kv{@LOG_FIELDS} = @values;
-    my $log = logNew(%kv);
-    
-    return $log;
+    my @fields = split(/$CSV_SEP/, $line);
+    my %kv = ();
+
+    # Legacy format:
+    if ($fields[0] =~ /^\d$/ and $#fields == $#LEGACY_FIELDS) {
+        @kv{@LEGACY_FIELDS} = @fields;
+        $kv{WORDS_OUT} = $kv{WORDS_IN};
+    } 
+    # Standard format:
+    else { 
+        for my $f (@fields) {
+            if ($f !~ /^([^=]+)=(.*)$/) {
+                die "Invalid field ($f) in line ($line)";
+                return undef;
+            }
+            $kv{$1} = $2;
+        }
+    }
+    return logNew(%kv);
 }
+
 
 
 ## Get next log entry number
