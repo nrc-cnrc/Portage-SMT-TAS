@@ -122,7 +122,7 @@ public:
    , msg_zlib_fallback("Testing zlib fallback for gzip!")
    {}
    ~TestMagicStream() {
-      system("rm MagicStreamTest*");
+      TS_ASSERT(system("rm -f MagicStreamTest*") == 0);
    }
 
    void setUp() {

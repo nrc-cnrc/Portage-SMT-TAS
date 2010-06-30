@@ -72,7 +72,7 @@ public:
       TS_ASSERT(!is_directory(tmp_file_name));
       unlink(tmp_file_name);
       TS_ASSERT(!is_directory(tmp_file_name));
-      symlink(cwd, tmp_file_name);
+      TS_ASSERT(symlink(cwd, tmp_file_name) == 0);
       TS_ASSERT(is_directory(tmp_file_name));
       unlink(tmp_file_name);
       TS_ASSERT(!is_directory(tmp_file_name));
