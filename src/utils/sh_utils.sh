@@ -12,9 +12,10 @@
 # Copyright 2008, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2008, Her Majesty in Right of Canada
 
-# Portage is developed with bash 3, and uses the bash 3.1 RE syntax, not bash 4.
-# set "compat31" if we're using bash 4, to preserve the old, expected behaviour.
-if [[ $BASH_VERSINFO = 4 ]]; then
+# Portage is developed with bash 3, and uses the bash 3.1 RE syntax, which
+# changed from version 3.2.  Set "compat31" if we're using bash 3.2, 4 or more
+# recent, to preserve the expected syntax.
+if [[ $BASH_VERSINFO -ge 4 || $BASH_VERSINFO = 3 && ${BASH_VERSINFO[1]} -ge 2 ]]; then
    shopt -s compat31
 fi
 
