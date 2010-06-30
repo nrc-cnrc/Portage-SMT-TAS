@@ -280,7 +280,8 @@ int main(int argc, const char * const * argv)
     // temp file now contains filtered IBM model, append phrase table
     // sort phrase table and ibm model together
     string command = "sort " + tempFile + " " + ptFile + " > " + sortedFile;
-    system(command.c_str());
+    if ( system(command.c_str()) != 0 )
+        error(ETFatal, "Error running %s", command.c_str());
     
     // go through line by line and merge duplicates based on weight
     iSafeMagicStream sorted_in(sortedFile);
@@ -292,9 +293,11 @@ int main(int argc, const char * const * argv)
     if (!no_clean)
     {
        command = "rm " + tempFile; 
-       system(command.c_str());
+       if ( system(command.c_str()) != 0 )
+           error(ETWarn, "Error running %s", command.c_str());
        command = "rm " + sortedFile;
-       system(command.c_str());
+       if ( system(command.c_str()) != 0 )
+           error(ETWarn, "Error running %s", command.c_str());
     }
 
     return 0;
