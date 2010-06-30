@@ -464,7 +464,7 @@ sub ixLoad {
         my $seg = readline($seg_in);
         die "Not enough lines in text file $seg_file" unless defined $seg;
         chop $seg;
-        my $ce;
+        my $ce = 0;
         if ($ce_file) {
             $ce = readline($ce_in);
             die "Not enough lines in CE file $ce_file" unless defined $ce;
