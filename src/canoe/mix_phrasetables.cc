@@ -201,7 +201,9 @@ int main(int argc, char* argv[])
    join(tmp_pt_list.begin(), tmp_pt_list.end(), tmp_pts);
    string tmp = getTempName();
    string command = "zcat -f " + tmp_pts + "| li-sort.sh > " + tmp;
-   system(command.c_str());
+   int ret = system(command.c_str()); 
+   if ( ret != 0 )
+      error(ETFatal, "exit status %d from: %s", ret, command.c_str());
    for (Uint i = 0; i < pts.size(); ++i) {
       unlink(tmp_pt_list[i].c_str());
    }
