@@ -38,7 +38,8 @@ public:
    iSafeMagicStream(const string& fname, bool bQuiet = false)
    : iMagicStream(fname, bQuiet) {
       if (this->fail())
-	 error(ETFatal, "Unable to open %s for reading", fname.c_str());
+	 error(ETFatal, "Unable to open %s for reading%s%s", fname.c_str(),
+               (errno != 0 ? ": " : ""), (errno != 0 ? strerror(errno) : ""));
    }
 };
 
@@ -55,7 +56,8 @@ public:
    oSafeMagicStream(const string& fname, bool bQuiet = false)
    : oMagicStream(fname, bQuiet) {
       if (this->fail())
-	 error(ETFatal, "Unable to open %s for writing", fname.c_str());
+	 error(ETFatal, "Unable to open %s for writing%s%s", fname.c_str(),
+               (errno != 0 ? ": " : ""), (errno != 0 ? strerror(errno) : ""));
    }
 };
 
