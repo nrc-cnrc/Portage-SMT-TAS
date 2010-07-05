@@ -30,12 +30,12 @@ namespace ugdiss
 
   TokenIndex::
   TokenIndex() 
-    : ridx(NULL),unkLabel("UNK"),numTokens(0)
+    : unkLabel("UNK"),numTokens(0)
   {};
   
   TokenIndex::
   TokenIndex(string fname, string unkToken) 
-    : ridx(NULL),unkLabel(unkToken)
+    : unkLabel(unkToken)
   {
     this->open(fname,unkToken);
   };
