@@ -294,6 +294,7 @@ $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
 use File::Temp qw(tempdir);
 use File::Path qw(rmtree);
+use File::Spec;
 use File::Basename;
 use Cwd;
 
@@ -562,7 +563,7 @@ if ($dryrun) {
        open(STDERR, ">", "${dir}/log.translate.pl") 
           or warn "WARNING: Unable to redirect STDERR to '${dir}/log.translate.pl'";
     }
-    $plog_file = plogCreate($input_text);
+    $plog_file = plogCreate("File:${input_text}; Context:".File::Spec->rel2abs($models_dir));
 }
 
 $keep_dir = $dir if $debug;
@@ -619,6 +620,9 @@ my $P_dtk = "${dir}/P.dtk";     # Truecased detokenized translation
 # --> postprocessor plugin
 my $P_txt = "${dir}/P.txt";     # translation
 
+#Others:
+my $pr_ce = "${dir}/pr.ce";     # confidence estimation
+my $Q_filt = "${dir}/Q.filt";   # post-filtering source
 
 # Skipto option
 goto $skipto if $skipto;
@@ -722,11 +726,13 @@ OUT:{
 
 # Cleanup
 CLEANUP:{
-   plogUpdate($plog_file, $Q_pre, 'success');
-   unless ($keep_dir) {
-      verbose("[Cleaning up and deleting work directory $dir]\n");
-      rmtree($dir);
-   }
+    my $words_in = sourceWordCount();
+    my $words_out = defined($filter) ? sourceWordCount($filter) : $words_in;
+    plogUpdate($plog_file, 'success', $words_in, $words_out);
+    unless ($keep_dir) {
+        verbose("[Cleaning up and deleting work directory $dir]\n");
+        rmtree($dir);
+    }
 }
 
 exit 0; # All done!
@@ -757,14 +763,16 @@ sub plugin {
 }
 
 sub plogCreate {
-   my ($job_name) = @_;
+   my ($job_name, $comment) = @_;
    my $plog_file;
 
    if ($dryrun) {
       $plog_file = "dummy-log";
    } else {
-      my $plog_opt = $verbose ? "-verbose" : "";
-      my $cmd = "plog.pl -create $plog_opt \"${job_name}\"";
+      my @plog_opt = qw(-create);
+      push @plog_opt, "-verbose" if $verbose;
+      push @plog_opt, "-comment=\"$comment\"" if defined $comment;
+      my $cmd = "plog.pl ".join(" ", @plog_opt)." \"${job_name}\"";
       $plog_file = callOutput($cmd);
    }
     
@@ -772,23 +780,48 @@ sub plogCreate {
 }
 
 sub plogUpdate {
-   my ($plog_file, $infile, $status) = @_;
+   my ($plog_file, $status, $words_in, $words_out, $comment) = @_;
+   $words_in = 0 unless defined $words_in;
+   $words_out = $words_in unless defined $words_in;
 
    return unless $plog_file;   # means "no logging"
 
    return if $dryrun;
 
-   my $wc = $infile ? wordCount($infile) : 0;
-   my $plog_opt = $verbose ? "-verbose" : "";
-   my $cmd = "plog.pl -update $plog_opt \"${plog_file}\" $wc $status";
+   my @plog_opt = qw(-update);
+   push @plog_opt, "-verbose" if $verbose;
+   push @plog_opt, "-comment=\"$comment\"" if defined $comment;
+   my $cmd = "plog.pl ".join(" ", @plog_opt)." \"${plog_file}\" $status $words_in $words_out";
    # Don't use call(): potential recursive loop!!
    system($cmd) == 0 or warn "WARNING: ", explainSystemRC($?,$cmd,$0);
 }
 
-sub wordCount {
-   my ($in) = @_;
+sub sourceWordCount {
+   my ($filter) = @_;
+   my $count_file;
+   if (defined $filter) {
+       open(my $tfh, "<${Q_pre}") or die "Can't open text file ${Q_pre}";
+       open(my $cfh, "<${pr_ce}") or die "Can't open CE file ${pr_ce}";
+       open(my $ffh, ">${Q_filt}") or die "Can't open filtered source ${Q_filt}";
 
-   my $cmd = "wc --words < \"${in}\"";
+       while (my $t = <$tfh>) {
+           my $y = readline($cfh);
+           die "Not enough lines in CE file ${pr_ce}"
+               unless defined $y;
+           print {$ffh} $t unless ($y < $filter);
+       }
+       warn "Too many lines in CE file ${pr_ce}" if readline($cfh);
+
+       close $tfh;
+       close $cfh;
+       close $ffh;
+
+       $count_file = $Q_filt;
+   } else {
+       $count_file = $Q_pre;
+   }
+
+   my $cmd = "wc --words < \"${count_file}\"";
    my $wc = callOutput($cmd);
    return $wc;
 }
@@ -871,7 +904,7 @@ sub callOutput {
 sub cleanupAndDie {
    my ($message, @files) = @_;
 
-   plogUpdate($plog_file, undef, 'failure');
+   plogUpdate($plog_file, 'failure');
    if ($quiet) {
       # Notify the user via the original STDERR.
       print SAVE_STDERR "ERROR: ", $message;

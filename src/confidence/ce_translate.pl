@@ -208,6 +208,7 @@ $ENV{PORTAGE_INTERNAL_CALL} = 1;
 use File::Temp qw(tempdir);
 use File::Path qw(rmtree);
 use File::Spec;
+use File::Basename;
 
 our($help, $h, $verbose, $debug);
 our($desc, $tmem, $train, $plugin,
@@ -239,8 +240,8 @@ $xsrc = "EN-CA" unless defined $xsrc;
 $xtgt = "FR-CA" unless defined $xtgt;
 $dryrun = 0 unless defined $dryrun;
 $n = 0 unless defined $n;
-$nl = 0 unless defined $nl;
 $notok = 0 unless defined $notok;
+$nl = ($tmx || $notok ? "s" : "") unless defined $nl;
 $nolc = 0 unless defined $nolc;
 $tclm = 0 unless defined $tclm;
 $tcmap = 0 unless defined $tcmap;
@@ -299,7 +300,8 @@ if ($dryrun) {
            $ENV{PORTAGE_NOCLUSTER} = 1;
         }
     }
-    $plog_file = plogCreate($input_text) unless $train; # Don't log when training
+    $plog_file = plogCreate("File:${input_text}; Context:".File::Spec->rel2abs(dirname($canoe_ini)))
+        unless $train; # Don't log when training
 }
 $keep_dir = $dir if $debug;   # don't delete the directory in -debug mode.
 verbose("[Work directory: \"${dir}\"]\n");
@@ -343,6 +345,10 @@ my $T_pre = "${dir}/T.pre";     # Pre-processed (pre-tokenization) TMem target
 my $T_tok = "${dir}/T.tok";     # Tokenized TMem target
 # --> lowercase
 my $t_tok = "${dir}/t.tok";     # Lowercased tokenized TMem target
+
+#Others:
+my $pr_ce = "${dir}/pr.ce";     # confidence estimation
+my $Q_filt = "${dir}/Q.filt";   # post-filtering source
 
 
 # Skipto option
@@ -442,7 +448,9 @@ OUT:{
 # Cleanup
 
 CLEANUP:{
-    plogUpdate($plog_file, $Q_pre, 'success');
+    my $words_in = sourceWordCount();
+    my $words_out = defined($filter) ? sourceWordCount($filter) : $words_in;
+    plogUpdate($plog_file, 'success', $words_in, $words_out);
     if (not $keep_dir) {
         verbose("[Cleaning up and deleting work directory $dir]\n");
         rmtree($dir);
@@ -471,46 +479,67 @@ sub plugin {
 }
 
 sub plogCreate {
-    my ($job_name) = @_;
-    my $plog_file;
+   my ($job_name, $comment) = @_;
+   my $plog_file;
 
-    if ($dryrun) {
-        $plog_file = "dummy-log";
-    } else {
-
-        my @plog_opt = ();
-        push @plog_opt, "-verbose" if $verbose;
-
-        my $cmd = sprintf("plog.pl -create %s \"${job_name}\"", join(" ", @plog_opt));
-        $plog_file = callOutput($cmd);
-    }
+   if ($dryrun) {
+      $plog_file = "dummy-log";
+   } else {
+      my @plog_opt = qw(-create);
+      push @plog_opt, "-verbose" if $verbose;
+      push @plog_opt, "-comment=\"$comment\"" if defined $comment;
+      my $cmd = "plog.pl ".join(" ", @plog_opt)." \"${job_name}\"";
+      $plog_file = callOutput($cmd);
+   }
     
-    return $plog_file;
+   return $plog_file;
 }
 
 sub plogUpdate {
-    my ($plog_file, $infile, $status) = @_;
+   my ($plog_file, $status, $words_in, $words_out, $comment) = @_;
+   $words_in = 0 unless defined $words_in;
+   $words_out = $words_in unless defined $words_in;
 
-    return unless $plog_file;   # means "no logging"
+   return unless $plog_file;   # means "no logging"
 
-    return if $dryrun;
+   return if $dryrun;
 
-    my $wc = $infile ? wordCount($infile) : 0;
-    my @plog_opt = ();
-    push @plog_opt, "-verbose" if $verbose;
-    
-    my $cmd = sprintf("plog.pl -update %s \"${plog_file}\" $wc $status", join(" ", @plog_opt));
-    # Don't use call(): potential recursive loop!!
-    system($cmd)==0 
-        or warn "Command \"$cmd\" failed: $?";
+   my @plog_opt = qw(-update);
+   push @plog_opt, "-verbose" if $verbose;
+   push @plog_opt, "-comment=\"$comment\"" if defined $comment;
+   my $cmd = "plog.pl ".join(" ", @plog_opt)." \"${plog_file}\" $status $words_in $words_out";
+   # Don't use call(): potential recursive loop!!
+   system($cmd) == 0 or warn "WARNING: ", explainSystemRC($?,$cmd,$0);
 }
 
-sub wordCount {
-    my ($in) = @_;
+sub sourceWordCount {
+   my ($filter) = @_;
+   my $count_file;
+   if (defined $filter) {
+       open(my $tfh, "<${Q_pre}") or die "Can't open text file ${Q_pre}";
+       open(my $cfh, "<${pr_ce}") or die "Can't open CE file ${pr_ce}";
+       open(my $ffh, ">${Q_filt}") or die "Can't open filtered source ${Q_filt}";
 
-    my $cmd = "wc --words < \"${in}\"";
-    my $wc = callOutput($cmd);
-    return $wc;
+       while (my $t = <$tfh>) {
+           my $y = readline($cfh);
+           die "Not enough lines in CE file ${pr_ce}"
+               unless defined $y;
+           print {$ffh} $t unless ($y < $filter);
+       }
+       warn "Too many lines in CE file ${pr_ce}" if readline($cfh);
+
+       close $tfh;
+       close $cfh;
+       close $ffh;
+
+       $count_file = $Q_filt;
+   } else {
+       $count_file = $Q_pre;
+   }
+
+   my $cmd = "wc --words < \"${count_file}\"";
+   my $wc = callOutput($cmd);
+   return $wc;
 }
 
 sub tokenize {

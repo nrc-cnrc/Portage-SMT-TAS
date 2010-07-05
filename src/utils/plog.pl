@@ -183,7 +183,7 @@ our($help, $h, $H, $Help, $HELP, $man,
     $comment, 
     $dir, $header, $raw,
     $verbose);
-our($debug);              # undocumented options
+our($debug, $wout);              # undocumented options
 
 if ($help or $h) {
     system "podselect -section SYNOPSIS -section OPTIONS -section COPYRIGHT $0 | pod2text";
@@ -210,6 +210,7 @@ die "Option -raw only appicable with -extract"
     if $raw and not $extract;
 die "Options -raw and -header can't be used together" 
     if $raw and $header;
+$wout = 0 unless defined $wout;
 
 $verbose = 0 unless defined $verbose;
 $debug = 0 unless defined $debug;
@@ -427,7 +428,8 @@ sub logStats {
     printf("Source words submitted:        %d\n", $words_in);
     printf("Source words translated:       %d (%.2f%%)\n", 
            $words_out, 
-           $words_in > 0 ? 100 * $words_out / $words_in : 0);
+           $words_in > 0 ? 100 * $words_out / $words_in : 0)
+        if $wout;
 
     close $plog_fh;
 }
@@ -498,7 +500,7 @@ sub logRead {
     my %kv = ();
 
     # Legacy format:
-    if ($fields[0] =~ /^\d$/ and $#fields == $#LEGACY_FIELDS) {
+    if ($fields[0] =~ /^\d+$/ and $#fields == $#LEGACY_FIELDS) {
         @kv{@LEGACY_FIELDS} = @fields;
         $kv{WORDS_OUT} = $kv{WORDS_IN};
     } 
