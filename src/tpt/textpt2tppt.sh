@@ -43,6 +43,7 @@ Options:
    exit 1
 }
 
+VERBOSE=0
 TPT_EXTENSION=".tppt"
 while [ $# -gt 0 ]; do
    case "$1" in
@@ -101,10 +102,10 @@ if [[ ! -r $TEXTPT ]]; then
    error_exit "Can't read $TEXTPT."
 fi
 
-ptable.encode-phrases $TEXTPT 1 $OUTPUTPT >&2
-ptable.encode-phrases $TEXTPT 2 $OUTPUTPT >&2
-ptable.encode-scores $TEXTPT $OUTPUTPT >&2
-ptable.assemble $OUTPUTPT >&2
+run_cmd "ptable.encode-phrases $TEXTPT 1 $OUTPUTPT >&2"
+run_cmd "ptable.encode-phrases $TEXTPT 2 $OUTPUTPT >&2"
+run_cmd "ptable.encode-scores $TEXTPT $OUTPUTPT >&2"
+run_cmd "ptable.assemble $OUTPUTPT >&2"
 mv $OUTPUTPT.{tppt,cbk,trg.repos.dat,src.tdx,trg.tdx} ../$OUTPUTPT$TPT_EXTENSION/ ||
    error_exit "Can't mv relevant output files into $OUTPUTPT$TPT_EXTENSION, model probably exists but can't be moved and renamed properly."
 cd ..
@@ -125,6 +126,6 @@ To use this model in canoe, put a line like this is your canoe.ini file:
 
 cd ..
 
-
+echo Done textpt2tppt.sh. >&2
 
 

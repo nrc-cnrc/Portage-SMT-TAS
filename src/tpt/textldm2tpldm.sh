@@ -53,8 +53,10 @@ Options:
 VERBOSE=0
 while [ $# -gt 0 ]; do
    case "$1" in
-   -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ));;
-   -d|-debug)           DEBUG=1;;
+   -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ))
+                        BASE_OPTIONS="$BASE_OPTIONS $1";;
+   -d|-debug)           DEBUG=1
+                        BASE_OPTIONS="$BASE_OPTIONS $1";;
    -h|-help)            usage;;
    --)                  shift; break;;
    -*)                  error_exit "Unknown option $1.";;
@@ -80,7 +82,7 @@ set -o errexit
 
 # To create a tpldm, we will rely on textpt2tppt.sh since the process is the
 # same.
-textpt2tppt.sh -type $EXTENSION $MODEL
+textpt2tppt.sh $BASE_OPTIONS -type $EXTENSION $MODEL
 
 # To have a valid TPLDM, we also need the backoff file.
 cp $BACKOFF $OUTPUT_TPLDM/bkoff
@@ -102,4 +104,5 @@ And optionally (but recommended)
 
 " > $OUTPUT_TPLDM/README
 
+echo Done textldm2tpldm.sh. >&2
 
