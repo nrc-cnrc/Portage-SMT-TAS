@@ -86,6 +86,7 @@ namespace Portage {
 // old ext/hash_map by changing the line that says #if 0 above to say #if 1.
 #include <tr1/unordered_map>
 #include <tr1/functional> // for tr1::hash()
+#include <boost/functional/hash.hpp> // for boost::hash_range(It,It)
 //#include <backward/hash_fun.h> // for hash<const char*>
 namespace std
 {
@@ -100,12 +101,16 @@ namespace std
          {
             public:
                /// Generate a hash value for a c string
-               unsigned int operator()(const char* s) const {
+               std::size_t operator()(const char* s) const {
+                  // Stable - this is part of the documented interface for
+                  // boost::hash, and what boost::hash<std::string> uses.
+                  return boost::hash_range(s, s+strlen(s));
+
                   // Yuk - memory allocation crazy
                   //return hash<std::string>()(s);
 
                   // Yuk, uses internals of implementation
-                  return _Fnv_hash<>::hash(s, strlen(s));
+                  //return _Fnv_hash<>::hash(s, strlen(s));
 
                   // Yuk, still uses obsolete headers
                   //return __gnu_cxx::hash<const char*>()(s);
