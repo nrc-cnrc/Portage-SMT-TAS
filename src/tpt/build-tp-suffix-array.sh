@@ -132,14 +132,12 @@ $CAT $CORPUS | mmctrack.build $QUIET $OUTPUT_TPSA.tdx $OUTPUT_TPSA.mct >&2
 verbose 1 "mmsufa.build $QUIET $OUTPUT_TPSA.mct $OUTPUT_TPSA.msa"
 mmsufa.build $QUIET $OUTPUT_TPSA.mct $OUTPUT_TPSA.msa >&2
 
-mv $OUTPUT_TPSA.{tdx,mct,msa} ../$OUTPUT_TPSA.tpsa/ ||
-   error_exit "Can't mv output files into $OUTPUT_TPSA.tpsa, model probably exists but can't be moved and renamed properly."
+for x in tdx mct msa; do
+   mv $OUTPUT_TPSA.$x ../$OUTPUT_TPSA.tpsa/$x ||
+      error_exit "Can't mv $OUTPUT_TPSA.$x into $OUTPUT_TPSA.tpsa/$x, model probably exists but can't be moved or renamed properly."
+done
 cd ..
 rm -r $TMPDIR
-
-cd $OUTPUT_TPSA.tpsa ||
-   error_exit "Can't cd into $OUTPUT_TPSA.tpsa, model probably exists but can't be renamed properly."
-rename $OUTPUT_TPSA. "" $OUTPUT_TPSA.*
 
 echo "
 The three files $OUTPUT_TPSA.tpsa/tdx, $OUTPUT_TPSA.tpsa/mct, and $OUTPUT_TPSA.tpsa/msa,
@@ -155,9 +153,7 @@ The three files comprising the suffix array model or the corpus text are:
 $OUTPUT_TPSA.tpsa/tdx: token index (memory-mapped vocabulary file)
 $OUTPUT_TPSA.tpsa/mct: memory-mapped corpus track
 $OUTPUT_TPSA.tpsa/msa: memory-mapped suffix array
-" > README
-
-cd ..
+" > $OUTPUT_TPSA.tpsa/README
 
 echo "ALL DONE!"
 if [ $VERBOSE -gt 1 ]; then

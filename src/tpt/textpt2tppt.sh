@@ -106,14 +106,13 @@ run_cmd "ptable.encode-phrases $TEXTPT 1 $OUTPUTPT >&2"
 run_cmd "ptable.encode-phrases $TEXTPT 2 $OUTPUTPT >&2"
 run_cmd "ptable.encode-scores $TEXTPT $OUTPUTPT >&2"
 run_cmd "ptable.assemble $OUTPUTPT >&2"
-mv $OUTPUTPT.{tppt,cbk,trg.repos.dat,src.tdx,trg.tdx} ../$OUTPUTPT$TPT_EXTENSION/ ||
-   error_exit "Can't mv relevant output files into $OUTPUTPT$TPT_EXTENSION, model probably exists but can't be moved and renamed properly."
+for x in tppt cbk trg.repos.dat src.tdx trg.tdx; do
+   mv $OUTPUTPT.$x ../$OUTPUTPT$TPT_EXTENSION/$x ||
+      error_exit "Can't mv $OUTPUTPT.$x into $OUTPUTPT$TPT_EXTENSION/$x, model probably exists but can't be moved or renamed properly."
+done
 cd ..
 rm -r $TMPDIR
 
-cd $OUTPUTPT$TPT_EXTENSION ||
-   error_exit "Can't cd into $OUTPUTPT$TPT_EXTENSION, model probably exists but can't be renamed properly."
-rename $OUTPUTPT. "" $OUTPUTPT.*
 echo "
 The five files tppt, cbk, src.tdx, trg.tdx and trg.repos.dat, together,
 constitute a single TPPT model.  You must keep them together in a directory
@@ -122,9 +121,7 @@ compressed.
 
 To use this model in canoe, put a line like this is your canoe.ini file:
    [ttable-tppt] NAME$TPT_EXTENSION
-" > README
-
-cd ..
+" > $OUTPUTPT$TPT_EXTENSION/README
 
 echo Done textpt2tppt.sh. >&2
 
