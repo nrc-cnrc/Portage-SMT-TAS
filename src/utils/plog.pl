@@ -419,17 +419,19 @@ sub logStats {
         }
     }
 
-    printf("Total Jobs:                    %d\n", int(@job_no));
-    printf("  Successful:                  %d\n", $success_count);
-    printf("  Failed:                      %d\n", $failure_count);
-    printf("  Pending:                     %d\n", $pending_count);
-    printf("First:                         %d (%s)\n", $job_no[0], $first_time) if @job_no;
-    printf("Last:                          %d (%s)\n", $job_no[-1], $last_time) if @job_no;
-    printf("Source words submitted:        %d\n", $words_in);
-    printf("Source words translated:       %d (%.2f%%)\n", 
-           $words_out, 
-           $words_in > 0 ? 100 * $words_out / $words_in : 0)
+    printf("Jobs:\n");
+    printf("  First:      no. %d  (%s)\n", $job_no[0], $first_time) if @job_no;
+    printf("  Last:       no. %d  (%s)\n", $job_no[-1], $last_time) if @job_no;
+    printf("  Successful: %5d", $success_count);
+    printf("  (%d total source words", $words_in);
+    printf(", %d filtered out = %.2f%%", 
+           $words_in - $words_out, 
+           $words_in > 0 ? 100 * ($words_in - $words_out) / $words_in : 0)
         if $wout;
+    print(")\n");
+    printf("  Failed:     %5d\n", $failure_count);
+    printf("  Pending:    %5d\n", $pending_count);
+    printf("Total jobs:   %5d\n", int(@job_no));
 
     close $plog_fh;
 }
