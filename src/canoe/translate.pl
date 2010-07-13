@@ -360,7 +360,7 @@ Getopt::Long::GetOptions(
    
    #Development options
    "skipto=s"    => \my $skipto,
-) or (displayHelp(), print("ERROR: translate.pl aborted due to bad option.\n"), exit 1);
+) or (print(STDERR "ERROR: translate.pl aborted due to bad option.\nRun with -h for help.\n"), exit 1);
 
 $quiet = 0 unless defined $quiet;
 $debug = 0 unless defined $debug;
