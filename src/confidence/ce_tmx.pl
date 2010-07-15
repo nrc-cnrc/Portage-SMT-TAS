@@ -279,7 +279,7 @@ sub processTU {
         my ($id, $ce);
         $id = $parser->{seg_id};
         $ce = ($id and defined $parser->{filter}) ? ixGetCE($parser->{ix}, $id) : undef;
-        debug("Filtering on $id: CE=$ce\n");
+        debug("Filtering on $id: CE=%s\n", defined $ce ? $ce : "undef");
         if (defined $parser->{filter}
             and ($id = $parser->{seg_id})
             and defined($ce = ixGetCE($parser->{ix}, $id))
