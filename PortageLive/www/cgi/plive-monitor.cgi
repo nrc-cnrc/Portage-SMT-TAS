@@ -1,4 +1,5 @@
 #!/usr/bin/perl -w
+# $Id$
 # @file plive-monitor.cgi
 # @brief PORTAGE live monitor CGI script
 #
@@ -86,6 +87,14 @@ use File::Spec::Functions qw(splitdir catdir);
 $|=1;
 
 print header(-type=>'text/html');
+
+# Calculate the number of seconds from $start_time to the modification time of
+# $file
+sub time_delta($$) {
+    my ($start_time, $file) = @_;
+    my @stats = stat($file);
+    $stats[9] - $start_time;
+}
         
 ## Script expects these parameters: file, dir, time, ce and context
 if (my $filename = param('file')     # The name of the file we are monitoring
@@ -108,9 +117,53 @@ if (my $filename = param('file')     # The name of the file we are monitoring
     
 #    my $trace_url = catdir("", $work_dir, "trace");
 
-    # Background process is done
     if (-e $job_done) {
-        print pageHead($filename, $context);
+        print pageHead($filename, $context); # Background process is done
+    } else {
+        print pageHead($filename, $context, 5); # Refresh in 5 seconds - still running
+    }
+
+    # Even if the background process is done, print the timing information for
+    # each stage
+    #print p("canoe_in: $canoe_in");
+    if (not -r $canoe_in) { # No decoder-ready file yet: still pre-processing
+        print br("Loading ...");
+    } else {
+        print br("Loading ... elapsed time: " . time_delta($start_time, $canoe_in) . " seconds.");
+        #print p("canoe_out: $canoe_out");
+        if (not -r $canoe_out) { # No decoder-output file yet: probably loading models
+            my $in_count = int(`wc --lines < $canoe_in`) + 0;
+            print br("Preparing to translate ${in_count} segments...");
+        } else {
+            my $in_count = int(`wc --lines < $canoe_in`) + 0;
+            my $out_count = int(`wc --lines < $canoe_out`) + 0;   
+            if ($in_count != $out_count) { # Means decoding in progress
+                print br("Translated ${out_count} of ${in_count} segments...");
+            } else { # Means decoding is done
+                print br("Translated ${out_count} of ${in_count} segments... elapsed time: "
+                        . time_delta($start_time, $canoe_out) . " seconds");
+                if (param('ce') and not -r $ce_out) { # we might be estimating confidence
+                    print br("Estimating confidence...");
+                } else {        # or just postprocessing
+                    if (param('ce')) {
+                        print br("Estimating confidence... elapsed time: "
+                                 . time_delta($start_time, $ce_out) . " seconds");
+                    }
+                    #print p("job_done: $job_done");
+                    if (not -e $job_done) {
+                        print br("Preparing output...");
+                    } else {
+                        print br("Preparing output... elapsed time: " . time_delta($start_time, $job_done) . " seconds");
+                    }
+                }
+            }
+        }
+    }
+    if (not -e $job_done) {
+        print p("Elapsed time so far: $elapsed_time seconds.");
+    } else  { # Background process is done
+        $elapsed_time = time_delta($start_time, $job_done);
+        print p("Total job processing time: ${elapsed_time} seconds.");
 
         if (-r $filepath) { # The output file exists, so presumably everything went well
             if ($DO_CLEAN_UP) {
@@ -126,43 +179,17 @@ if (my $filename = param('file')     # The name of the file we are monitoring
             print 
                 p("Translation job terminated with no output.");
         } 
-        print p("Elapsed time: ${elapsed_time} seconds.");
         print p(a({-href=>"plive.cgi"}, "Translate more text"));
         if (open MONITOR, ">$monitor_log") {
             my $out_count = int(`wc --lines < $canoe_out`) + 0;   
             print MONITOR "Translated ${out_count} segments in ${elapsed_time} seconds.";
             close MONITOR;
         }
-
-    # Background process is still running:
-    } else {
-        print pageHead($filename, $context, 5); # Refresh in 5 seconds
-
-        # What stage are we at:
-        if (not -r $canoe_in) { # No decoder-ready file yet: still pre-processing
-            print p("Loading ...");
-        } elsif (not -r $canoe_out) { # No decoder-output file yet: probably loading models
-            my $in_count = int(`wc --lines < $canoe_in`) + 0;
-            print p("Preparing to translate ${in_count} segments...");
-        } else { # There is an output file, let's see how much of the input is processed:          
-            my $in_count = int(`wc --lines < $canoe_in`) + 0;
-            my $out_count = int(`wc --lines < $canoe_out`) + 0;   
-            print p("Translated ${out_count} of ${in_count} segments...");
-
-            if ($in_count == $out_count) { # Means decoding is done
-                if (param('ce') and not -r $ce_out) { # we might be estimating confidence
-                    print p("Estimating confidence...");
-                } else {        # or just postprocessing
-                    print p("Preparing output...");
-                }
-            }
-        }
-        
-        print p("Elapsed time: ${elapsed_time} seconds.");
     }
+         
 #    print p("Have a look at job's ", a({-href=>$trace_url}, "trace file"), ".");
 } else {
-        print pageHead(0);
+    print pageHead(0);
 }
 
 print pageTail();
@@ -186,7 +213,7 @@ sub pageHead {
             h1("PORTAGELive"),
             $filename 
             ? p("Processing file $filename with system $context")
-            : p("No job to monitor"));
+            : p("No job to monitor.  " , a({-href=>"plive.cgi"}, "Submit a job")));
 }
 
 sub pageTail {
