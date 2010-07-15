@@ -1,4 +1,5 @@
 #!/usr/bin/perl -w
+# $Id$
 # @file plive.cgi
 # @brief PORTAGE live CGI script
 #
@@ -338,7 +339,7 @@ sub processText {
 
         close STDIN;
         close STDOUT;
-        system("(if (${tr_cmd}); then ln -s ${tr_output} ${user_output}; fi; touch $work_dir/done)&") == 0 
+        system("/bin/bash", "-c", "(if (${tr_cmd}); then ln -s ${tr_output} ${user_output}; fi; touch $work_dir/done)&") == 0 
             or die("Call returned with error code: ${tr_cmd} (error = %d)", $?>>8);
     } else {
         # Perform job here for text box
@@ -369,7 +370,7 @@ sub monitor {
     while (@path and $path[0] ne 'plive') { shift @path; }
     my $time = time();
     my $redirect="/cgi-bin/plive-monitor.cgi?time=${time}&file=${outfilename}&context=${context}&dir=".join("/",@path);
-    $redirect .= $CONTEXT{context}->{ce_model} ? "&ce=1" : "&ce=0";
+    $redirect .= $CONTEXT{$context}->{ce_model} ? "&ce=1" : "&ce=0";
     print start_html(-title=>"PORTAGELive",
                      -head=>meta({-http_equiv => 'refresh',
                                   -content => "0;url=${redirect}"}));
