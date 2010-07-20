@@ -1,8 +1,9 @@
 # =============================================================================
-# MODULE: Makefile.incl - include file for lower-level Makefiles
-#
-# PROGRAMMERS: George Foster, Aaron Tikuisis, Eric Joanis,
-#              Patrick Paul, Samuel Larkin
+# $Id$
+# @file Makefile.incl
+# @brief Include file for lower-level Makefiles
+# @author George Foster, Aaron Tikuisis, Eric Joanis, Patrick Paul, 
+#         Samuel Larkin, Darlene Stewart
 #
 # This defines a bunch of standard targets in terms of variables that list
 # files, directories, commands, etc. All the local make has to do is list local
@@ -464,6 +465,9 @@ ifdef BINSCRIPTS
 	install -d -m0750 $(BIN_DIR)
 	install -p -m0750 $(BINSCRIPTS) $(BIN_DIR)
 endif
+ifeq (${MAKELEVEL},0)
+	$(MAKE) install_summary
+endif
 
 install_doc: $(INFOFILES) $(DOCUMENTS)
 ifdef INFOFILES
@@ -480,6 +484,20 @@ ifdef PERL_LIBS
 	install -d -m0750 $(PERL_LIB_DIR)
 	install -p -m0640 $(PERL_LIBS) $(PERL_LIB_DIR)
 endif
+
+# This target is invoked by install targets to update the INSTALL_SUMMARY file
+# in the bin directory to reflect the CVS status of all src files corresponding
+# to the installed items.
+.PHONY: install_summary
+install_summary:
+	if [[ -d CVS ]]; then \
+	   echo "" >> $(BIN_DIR)/INSTALL_SUMMARY; \
+	   date >> $(BIN_DIR)/INSTALL_SUMMARY; \
+	   echo "Module installed: `pwd`" >> $(BIN_DIR)/INSTALL_SUMMARY; \
+	   cvs status | ../utils/cvs-status-summary.pl \
+	   | perl -pe "s|( {2,})([^ ])|\1`pwd | sed 's#.*/src/#src/#'`/\2|g" \
+	   >> $(BIN_DIR)/INSTALL_SUMMARY; \
+	fi
 
 
 # This next section is to generate web pages from the programs help message.

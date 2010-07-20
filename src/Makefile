@@ -1,6 +1,6 @@
 # Portage top-level Makefile
 #
-# @author George Foster, Eric Joanis, Samuel Larkin
+# @author George Foster, Eric Joanis, Samuel Larkin, Darlene Stewart
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -50,6 +50,21 @@ ALL_SUBDIRS = $(SUBDIRS)
 .PHONY: subdirs utils $(ALL_SUBDIRS) validate_subdir_dependencies
 
 subdirs: validate_subdir_dependencies utils $(SUBDIRS)
+ifeq (${OT},install)
+	$(MAKE) install_summary
+endif
+
+# This target is invoked by install targets to update the INSTALL_SUMMARY file
+# in the bin directory to reflect the CVS status of all src files corresponding
+# to the installed items.
+.PHONY: install_summary
+install_summary:
+	if [[ -d CVS ]]; then \
+	   cd ..; \
+	   date > bin/INSTALL_SUMMARY; \
+	   echo "Sandbox: `pwd`" >> bin/INSTALL_SUMMARY; \
+	   cvs status src | src/utils/cvs-status-summary.pl >> bin/INSTALL_SUMMARY; \
+	fi
 
 vpath Doxyfile build/
 doxy: Doxyfile
@@ -67,6 +82,9 @@ $(ALL_SUBDIRS): utils
 %/progs:
 	$(MAKE) $(foreach D,$(DEPENDENT_LIBS),$D/lib)
 	$(MAKE) -C $* $(OT)
+ifeq (${OT},install)
+	$(MAKE) -C $* install_summary
+endif
 
 # Target used to make just the library (.a file) in a subdirectory
 %/lib:
