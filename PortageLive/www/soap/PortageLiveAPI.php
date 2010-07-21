@@ -13,6 +13,7 @@
 
 
 $base_web_dir = "/var/www/html";
+$base_portage_dir = "/opt/Portage";
 
 # produce debugging information
 function debug($i) {
@@ -27,8 +28,8 @@ class PortageLiveAPI {
    function getContextInfo($context) {
       $info = array();
       $info["context"] = $context;
-      $info["portage_dir"] = "/opt/Portage";
-      $info["context_dir"] = "$info[portage_dir]/models/$context";
+      global $base_portage_dir;
+      $info["context_dir"] = "$base_portage_dir/models/$context";
       $info["script"] = "$info[context_dir]/soap-translate.sh";
       if ( is_file($info["script"]) ) {
          $info["good"] = true;
@@ -51,6 +52,23 @@ class PortageLiveAPI {
          $info["label"] = "$context: bad context";
       }
       return $info;
+   }
+
+   # Enumerate all installed contexts
+   function getAllContexts($verbose = false) {
+      $contexts = array();
+      global $base_portage_dir;
+      $dirs = scandir("$base_portage_dir/models");
+      foreach ($dirs as $dir) {
+         $info = $this->getContextInfo($dir);
+         if ($info["good"]) {
+            if ( $verbose )
+               $contexts[] = $info['label'];
+            else
+               $contexts[] = $dir;
+         }
+      }
+      return join(";",$contexts);
    }
 
    # Validate the context described in context info $i, throwing SoapFault if
@@ -80,11 +98,12 @@ class PortageLiveAPI {
    # launch a background job using &, for example.
    function runCommand($command, $src_string, &$i, &$exit_status = NULL, $wantoutput = true) {
       $cwd = "/tmp";
+      global $base_portage_dir;
       $env = array(
-         'PORTAGE'         => "$i[portage_dir]",
-         'LD_LIBRARY_PATH' => "$i[portage_dir]/lib:/lib:/usr/lib",
-         'PATH'            => "$i[portage_dir]/bin:$i[context_dir]:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-         'PERL5LIB'        => "$i[portage_dir]/lib"
+         'PORTAGE'         => "$base_portage_dir",
+         'LD_LIBRARY_PATH' => "$base_portage_dir/lib:/lib:/usr/lib",
+         'PATH'            => "$base_portage_dir/bin:$i[context_dir]:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+         'PERL5LIB'        => "$base_portage_dir/lib"
       );
 
       $descriptorspec = array(
@@ -234,7 +253,20 @@ class PortageLiveAPI {
                return "2 Failed".debug($info);
             }
          } else {
-            return "1 In progress".debug($info);
+            $linestodo = `cat $dir/q.tok 2> /dev/null | wc -l 2> /dev/null`;
+            $linesdone = 0;
+            if ( $info['ce'] )
+               $linesdone = `cat $dir/p.raw 2> /dev/null | wc -l 2> /dev/null`;
+            else
+               $linesdone = `cat $dir/p.dec 2> /dev/null | wc -l 2> /dev/null`;
+            $progress = 0;
+            if ( $linestodo > 0 ) {
+               if ( $linesdone < $linestodo )
+                  $progress = intval(($linesdone / $linestodo) * 89);
+               else
+                  $progress = 90;
+            }
+            return "1 In progress ($progress% done)".debug($info);
          }
       } else {
          return "3 Dir not found".debug($info);

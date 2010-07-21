@@ -19,6 +19,9 @@
   Copyright 2009, 2010, Her Majesty in Right of Canada
 </documentation>
 
+<message name="getAllContextsRequest">
+  <part name="verbose" type="xsd:boolean"/>
+</message>
 <message name="getTranslationRequest"> 
   <part name="srcString" type="xsd:string"/> 
 </message> 
@@ -40,6 +43,20 @@
   <part name="context" type="xsd:string"/>
   <part name="CETreshold" type="xsd:decimal"/>
 </message>
+
+<portType name="ListContexts_PortType">
+  <operation name="getAllContexts">
+    <documentation>
+    Get the list of contexts installed on the PortageLive server.
+    If verbose is true, each context includes a short description.
+    If verbose is false, only the name of each context is provided.
+    In all cases, the results are provided in a semi-colon separated list.
+    Throws a SoapFault exception in case of a protocol or connection error.
+    </documentation>
+    <input message="tns:getAllContextsRequest"/>
+    <output message="tns:getTranslationResponse"/>
+  </operation>
+</portType>
 
 <portType name="Translation_PortType"> 
   <operation name="getTranslation"> 
@@ -134,6 +151,20 @@
   </operation>
 </portType>
 
+<binding name="ListContexts_Binding" type="tns:ListContexts_PortType">
+  <soap:binding style="rpc"
+    transport="http://schemas.xmlsoap.org/soap/http"/>
+  <operation name="getAllContexts">
+    <soap:operation soapAction="getAllContexts"/>
+    <input> <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                       namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+    </input>
+    <output> <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                        namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+    </output>
+  </operation>
+</binding>
+
 <binding name="Translation_Binding" type="tns:Translation_PortType"> 
   <soap:binding style="rpc" 
     transport="http://schemas.xmlsoap.org/soap/http"/> 
@@ -206,6 +237,9 @@
 
 <service name="PortageLive_Service"> 
   <documentation>Definition of the PortageLive Service</documentation>
+  <port binding="tns:ListContexts_Binding" name="ListContexts_Port">
+    <soap:address location="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.php"/>
+  </port>
   <port binding="tns:Translation_Binding" name="Translation_Port"> 
     <soap:address location="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.php"/>
   </port> 

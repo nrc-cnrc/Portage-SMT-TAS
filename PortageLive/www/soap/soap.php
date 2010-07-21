@@ -80,7 +80,13 @@ Link to <a href="<?=$WSDL?>">the WSDL</a>.
 
 <?php
 
-
+try {
+   $client = new SoapClient($WSDL);
+   print "<hr/><b>Contexts: </b>" . $client->getAllContexts(false);
+   print "<br/><b>Verbose contexts: </b>" . $client->getAllContexts(true);
+} catch (SoapFault $exception) {
+   print "<br/><b>SOAP Fault trying to list contexts: </b></b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
+}
 
 
 if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
@@ -92,7 +98,7 @@ if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
   try {
     $client = new SoapClient($WSDL);
   } catch (SoapFault $exception) {  
-    print "<HR/><b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}<BR/>";
+    print "<HR/><b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
   }
 
   try {
@@ -100,7 +106,7 @@ if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
     print $client->getTranslation($to_translate);
     //print "<br/><b>Trace: </b>"; var_dump($client);
   } catch (SoapFault $exception) {  
-    print "<b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}<BR/>";
+    print "<b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
   }
 
   try {
@@ -108,7 +114,7 @@ if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
     print $client->getTranslation2($to_translate, $context);
     //print "<br/><b>Trace: </b>"; var_dump($client);
   } catch (SoapFault $exception) {  
-    print "<b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}<BR/>";
+    print "<b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
   }
 
   try {
@@ -116,7 +122,7 @@ if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
     print $client->getTranslationCE($to_translate, $context);
     //print "<br/><b>Trace: </b>"; var_dump($client);
   } catch (SoapFault $exception) {  
-    print "<b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}<BR/>";
+    print "<b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
   }
 
 
@@ -159,7 +165,7 @@ if ( $button == "TranslateTMX" && $_FILES["tmx_filename"]["name"] != "") {
       $monitor_token=$reply;
       #print "<br/><b>Trace: </b>"; var_dump($client);
     } catch (SoapFault $exception) {  
-      print "<HR/><b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}<BR/>";
+      print "<HR/><b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
   }
 
   } else {
@@ -190,7 +196,7 @@ if ( $button == "MonitorJob" && !empty($monitor_token) ) {
       print "<br/>Right click and save: <a href=\"$matches[1]\">Output TMX</a>";
     print "<br/><a href=\"$monitor_token\">Switch to interactive job monitoring</a>";
   } catch (SoapFault $exception) {  
-    print "<HR/><b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}<BR/>";
+    print "<HR/><b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
   }
 }
 
