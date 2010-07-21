@@ -35,7 +35,7 @@ The second form inserts target-language translations from file
 <dir>/QP.tmx.  
 
 The third form checks the validity of the file. If the file is valid,
-the program outputs the number of translateble source-language
+the program outputs the number of translatable source-language
 segments on the standard output and exits successfully; if the file is
 not valid, it exits with a non-zero status and possibly a diagnostic
 on the standard error stream.
