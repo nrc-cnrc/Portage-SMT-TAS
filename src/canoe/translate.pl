@@ -310,6 +310,7 @@ use Cwd;
 # abbreviations for all options.
 use Getopt::Long;
 my $verbose = 0;
+my $saved_command_line = "$0 @ARGV";
 
 Getopt::Long::GetOptions(
    'help'           => sub { displayHelp(); exit 0 },
@@ -365,6 +366,10 @@ Getopt::Long::GetOptions(
 $quiet = 0 unless defined $quiet;
 $debug = 0 unless defined $debug;
 $dryrun = 0 unless defined $dryrun;
+
+if ( !$quiet || $verbose ) {
+   print STDERR "$saved_command_line\n\n";
+}
 
 $decode_only = 0 unless defined $decode_only;
 $with_rescoring = 0 unless defined $with_rescoring;
