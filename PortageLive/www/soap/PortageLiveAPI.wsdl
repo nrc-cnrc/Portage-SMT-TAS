@@ -6,45 +6,219 @@
   xmlns:tns="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.wsdl"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
+<documentation>
+  file: PortageLiveAPI.wsdl
+  brief: Definition of the API to the Portage SMT software suite.
+  author: Patrick Paul and Eric Joanis
+
+  Technologies langagières interactives / Interactive Language Technologies
+  Institut de technologie de l'information / Institute for Information Technology
+  Conseil national de recherches Canada / National Research Council Canada
+  Copyright 2009, 2010, Sa Majesté la Reine du Chef du Canada /
+  Copyright 2009, 2010, Her Majesty in Right of Canada
+</documentation>
+
 <message name="getTranslationRequest"> 
   <part name="srcString" type="xsd:string"/> 
 </message> 
 <message name="getTranslationResponse"> 
   <part name="Result" type="xsd:string"/> 
 </message> 
+<message name="translationToken">
+  <part name="token" type="xsd:string"/>
+</message>
+
+<message name="getTranslation2Request">
+  <part name="srcString" type="xsd:string"/>
+  <part name="context" type="xsd:string"/>
+</message>
+
+<message name="translateTMXCERequest">
+  <part name="TMXContentsBase64" type="xsd:string"/>
+  <part name="TMXFilename" type="xsd:string"/>
+  <part name="context" type="xsd:string"/>
+  <part name="CETreshold" type="xsd:decimal"/>
+</message>
 
 <portType name="Translation_PortType"> 
   <operation name="getTranslation"> 
+    <documentation>
+    Translate text using the default context.  The result is the translation,
+    one sentence per line.
+    Throws SoapFault in case of problems.  If the faultcode is
+    "PortageContext", the problem is with the context, if it is
+    "PortageServer", the problem is with Portage server, otherwise some other
+    problem occurred, normally described by the faultcode and explained by the
+    faulstring.
+    </documentation>
     <input message="tns:getTranslationRequest"/> 
     <output message="tns:getTranslationResponse"/> 
   </operation> 
 </portType> 
+
+<portType name="Translation2_PortType">
+  <operation name="getTranslation2">
+    <documentation>
+    Translate text using the specified context.  The result is the translation,
+    one sentence per line.
+    Throws SoapFault in case of problems.  If the faultcode is
+    "PortageContext", the problem is with the context, if it is
+    "PortageServer", the problem is with Portage server, otherwise some other
+    problem occurred, normally described by the faultcode and explained by the
+    faulstring.
+    </documentation>
+    <input message="tns:getTranslation2Request"/>
+    <output message="tns:getTranslationResponse"/>
+  </operation>
+</portType>
+
+<portType name="TranslationCE_PortType">
+  <operation name="getTranslationCE">
+    <documentation>
+    Translate text using the specified context, and calculate confidence scores
+    on the translation.  The result is the translation, one sentence per line,
+    with the confidence score preceeding each translation, separated by a tab
+    character.
+    Throws SoapFault in case of problems.  If the faultcode is
+    "PortageContext", the problem is with the context (including the case where
+    the context does not support confidence estimation), if it is
+    "PortageServer", the problem is with Portage server, otherwise some other
+    problem occurred, normally described by the faultcode and explained by the
+    faulstring.
+    </documentation>
+    <input message="tns:getTranslation2Request"/>
+    <output message="tns:getTranslationResponse"/>
+  </operation>
+</portType>
+
+<portType name="TranslateTMX_PortType">
+  <operation name="translateTMXCE">
+    <documentation>
+    Submit a request to translate a TMX file using the specified
+    context.  TMXContentsBase64 is its contents in base64 encoding and
+    TMXFilename is its name.  IF CETreshold is greater than 0, confidence
+    estimation is used to filter out translations with confidence score below
+    the threshold (valid value are between 0 and 1).
+    Returns a token used to monitor the job.  The token can be used in one of
+    two ways: it is a URL you can use to interactively monitor the job in a
+    browser.  Or you can pass it as argument to translateTMXCE_Status().
+    Throws SoapFault in case of problems.  If the faultcode is
+    "PortageContext", the problem is with the context (including the case where
+    the context does not support confidence estimation and CETreshold>0), if it
+    is "PortageServer", the problem is with Portage server, otherwise some
+    other problem occurred, normally described by the faultcode and explained
+    by the faulstring.
+    </documentation>
+    <input message="tns:translateTMXCERequest"/>
+    <output message="tns:translationToken"/>
+  </operation>
+</portType>
+
+<portType name="TranslateTMX_Status_PortType">
+  <operation name="translateTMXCE_Status">
+    <documentation>
+    Get the status of a job submitted using translateTMXCE().
+    Returns a string containing a one digit code followed by a human readable
+    description of the status.
+    Valid codes are: 0: job completed successfully, 1: job in progress, 2: job
+    finished but failed, 3: something is wrong with the token.
+    If the code is 0, the result string will be "0 Done: result_url", where
+    result_url is the URL where you can fetch the translated TMX via HTTP.
+    If you are going to poll a job status repeatedly, it is recommended you
+    insert a 5 second delay between successive requests.
+    Throws a SoapFault exception in case of a protocol or connection error.
+    </documentation>
+    <input message="tns:translationToken"/>
+    <output message="tns:getTranslationResponse"/>
+  </operation>
+</portType>
 
 <binding name="Translation_Binding" type="tns:Translation_PortType"> 
   <soap:binding style="rpc" 
     transport="http://schemas.xmlsoap.org/soap/http"/> 
   <operation name="getTranslation"> 
     <soap:operation soapAction="getTranslation"/> 
-    <input> 
-      <soap:body 
-        encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
-	namespace="urn:example:portageliveservice"
-        use="encoded"/> 
+    <input> <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                       namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
     </input> 
-    <output> 
-      <soap:body 
-        encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
-        namespace="urn:example:portageliveservice"
-        use="encoded"/>
+    <output> <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                        namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+    </output>
+  </operation>
+</binding>
+
+<binding name="Translation2_Binding" type="tns:Translation2_PortType">
+  <soap:binding style="rpc"
+    transport="http://schemas.xmlsoap.org/soap/http"/>
+  <operation name="getTranslation2">
+    <soap:operation soapAction="getTranslation2"/>
+    <input> <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                       namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+    </input>
+    <output> <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                        namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+    </output>
+  </operation>
+</binding>
+
+<binding name="TranslationCE_Binding" type="tns:TranslationCE_PortType">
+  <soap:binding style="rpc"
+    transport="http://schemas.xmlsoap.org/soap/http"/>
+  <operation name="getTranslationCE">
+    <soap:operation soapAction="getTranslationCE"/>
+    <input> <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                       namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+    </input>
+    <output> <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                        namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+    </output>
+  </operation>
+</binding>
+
+<binding name="TranslateTMX_Binding" type="tns:TranslateTMX_PortType">
+  <soap:binding style="rpc"
+    transport="http://schemas.xmlsoap.org/soap/http"/>
+  <operation name="translateTMXCE">
+    <soap:operation soapAction="translateTMXCE"/>
+    <input> <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                       namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+    </input>
+    <output> <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                        namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+    </output>
+  </operation>
+</binding>
+
+<binding name="TranslateTMX_Status_Binding" type="tns:TranslateTMX_Status_PortType">
+  <soap:binding style="rpc"
+    transport="http://schemas.xmlsoap.org/soap/http"/>
+  <operation name="translateTMXCE_Status">
+    <soap:operation soapAction="translateTMXCE_Status"/>
+    <input> <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                       namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+    </input>
+    <output> <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                        namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
     </output> 
   </operation> 
 </binding> 
 
 <service name="PortageLive_Service"> 
-  <documentation>WSDL File for PortageLiveService</documentation>
+  <documentation>Definition of the PortageLive Service</documentation>
   <port binding="tns:Translation_Binding" name="Translation_Port"> 
-    <soap:address 
-	location="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.php"/> 
+    <soap:address location="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.php"/>
   </port> 
+  <port binding="tns:Translation2_Binding" name="Translation2_Port">
+    <soap:address location="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.php"/>
+  </port>
+  <port binding="tns:TranslationCE_Binding" name="TranslationCE_Port">
+    <soap:address location="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.php"/>
+  </port>
+  <port binding="tns:TranslateTMX_Binding" name="TranslateTMX_Port">
+    <soap:address location="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.php"/>
+  </port>
+  <port binding="tns:TranslateTMX_Status_Binding" name="TranslateTMX_Status_Port">
+    <soap:address location="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.php"/>
+  </port>
 </service> 
 </definitions> 
