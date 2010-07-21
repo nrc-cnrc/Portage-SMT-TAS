@@ -99,7 +99,7 @@ sub time_delta($$) {
 ## Script expects these parameters: file, dir, time, ce and context
 if (my $filename = param('file')     # The name of the file we are monitoring
     and my $work_dir = param('dir')  # The work directory
-    and my $start_time = param('time')  # The work directory
+    and my $start_time = param('time')  # The start time
     and my $context = param('context')) {  # What context (model)
     
     my $ce = int(param('ce'));  # Are we estimating confidence?
@@ -108,86 +108,97 @@ if (my $filename = param('file')     # The name of the file we are monitoring
     my $url = catdir("", $work_dir, $filename);
     my $elapsed_time = time() - $start_time;
 
-    my $canoe_in = catdir($WEB_PATH, $work_dir, "q.tok");
-    my $canoe_out = catdir($WEB_PATH, $work_dir, param('ce') ? "p.raw" : "p.dec");
-    my $ce_out = catdir($WEB_PATH, $work_dir, "pr.ce");
-    my $job_done = catdir($WEB_PATH, $work_dir, "done");
-    my $trace_file = catdir($WEB_PATH, $work_dir, "trace");
-    my $monitor_log = catdir($WEB_PATH, $work_dir, "monitor_log");
-    
-#    my $trace_url = catdir("", $work_dir, "trace");
-
-    if (-e $job_done) {
-        print pageHead($filename, $context); # Background process is done
+    my $full_work_dir = catdir($WEB_PATH, $work_dir);
+    if ( ! -d $full_work_dir ) {
+        print pageHead(0);
+        print p("Can't find working directory $work_dir.");
     } else {
-        print pageHead($filename, $context, 5); # Refresh in 5 seconds - still running
-    }
+        my $input = catdir($WEB_PATH, $work_dir, "Q.in");
+        my $canoe_in = catdir($WEB_PATH, $work_dir, "q.tok");
+        my $canoe_out = catdir($WEB_PATH, $work_dir, param('ce') ? "p.raw" : "p.dec");
+        my $ce_out = catdir($WEB_PATH, $work_dir, "pr.ce");
+        my $job_done = catdir($WEB_PATH, $work_dir, "done");
+        my $trace_file = catdir($WEB_PATH, $work_dir, "trace");
+        my $monitor_log = catdir($WEB_PATH, $work_dir, "monitor_log");
+        
+        #my $trace_url = catdir("", $work_dir, "trace");
 
-    # Even if the background process is done, print the timing information for
-    # each stage
-    #print p("canoe_in: $canoe_in");
-    if (not -r $canoe_in) { # No decoder-ready file yet: still pre-processing
-        print br("Loading ...");
-    } else {
-        print br("Loading ... elapsed time: " . time_delta($start_time, $canoe_in) . " seconds.");
-        #print p("canoe_out: $canoe_out");
-        if (not -r $canoe_out) { # No decoder-output file yet: probably loading models
-            my $in_count = int(`wc --lines < $canoe_in`) + 0;
-            print br("Preparing to translate ${in_count} segments...");
+        if (-e $job_done) {
+            print pageHead($filename, $context); # Background process is done
         } else {
-            my $in_count = int(`wc --lines < $canoe_in`) + 0;
-            my $out_count = int(`wc --lines < $canoe_out`) + 0;   
-            if ($in_count != $out_count) { # Means decoding in progress
-                print br("Translated ${out_count} of ${in_count} segments...");
-            } else { # Means decoding is done
-                print br("Translated ${out_count} of ${in_count} segments... elapsed time: "
-                        . time_delta($start_time, $canoe_out) . " seconds");
-                if (param('ce') and not -r $ce_out) { # we might be estimating confidence
-                    print br("Estimating confidence...");
-                } else {        # or just postprocessing
-                    if (param('ce')) {
-                        print br("Estimating confidence... elapsed time: "
-                                 . time_delta($start_time, $ce_out) . " seconds");
-                    }
-                    #print p("job_done: $job_done");
-                    if (not -e $job_done) {
-                        print br("Preparing output...");
-                    } else {
-                        print br("Preparing output... elapsed time: " . time_delta($start_time, $job_done) . " seconds");
-                    }
-                }
-            }
+            print pageHead($filename, $context, 5); # Refresh in 5 seconds - still running
         }
-    }
-    if (not -e $job_done) {
-        print p("Elapsed time so far: $elapsed_time seconds.");
-    } else  { # Background process is done
-        $elapsed_time = time_delta($start_time, $job_done);
-        print p("Total job processing time: ${elapsed_time} seconds.");
 
-        if (-r $filepath) { # The output file exists, so presumably everything went well
-            if ($DO_CLEAN_UP) {
-                my @files = <${WEB_PATH}/${work_dir}/*>;
-                for my $file (@files) {
-                    unlink $file unless ($file =~ /${filename}/);
+        #if ( -r $input ) {
+        #    print br("Time delta from start to Q.in: " . time_delta($start_time, $input) . " seconds.");
+        #}
+
+        # Even if the background process is done, print the timing information for
+        # each stage
+        #print p("canoe_in: $canoe_in");
+        if (not -r $canoe_in) { # No decoder-ready file yet: still pre-processing
+            print br("Loading ...");
+        } else {
+            print br("Loading ... elapsed time: " . time_delta($start_time, $canoe_in) . " seconds.");
+            #print p("canoe_out: $canoe_out");
+            if (not -r $canoe_out) { # No decoder-output file yet: probably loading models
+                my $in_count = int(`wc --lines < $canoe_in`) + 0;
+                print br("Preparing to translate ${in_count} segments...");
+            } else {
+                my $in_count = int(`wc --lines < $canoe_in`) + 0;
+                my $out_count = int(`wc --lines < $canoe_out`) + 0;   
+                if ($in_count != $out_count) { # Means decoding in progress
+                    print br("Translated ${out_count} of ${in_count} segments...");
+                } else { # Means decoding is done
+                    print br("Translated ${out_count} of ${in_count} segments... elapsed time: "
+                            . time_delta($start_time, $canoe_out) . " seconds");
+                    if (param('ce') and not -r $ce_out) { # we might be estimating confidence
+                        print br("Estimating confidence...");
+                    } else {        # or just postprocessing
+                        if (param('ce')) {
+                            print br("Estimating confidence... elapsed time: "
+                                     . time_delta($start_time, $ce_out) . " seconds");
+                        }
+                        #print p("job_done: $job_done");
+                        if (not -e $job_done) {
+                            print br("Preparing output...");
+                        } else {
+                            print br("Preparing output... elapsed time: " . time_delta($start_time, $job_done) . " seconds");
+                        }
+                    }
                 }
             }
-            print 
-                p("Output file is ready.  Right-click this link to save the file:",
-                a({-href=>$url}, $filename));
-        } else { # The output file doesn't exist, so something went wrong
-            print 
-                p("Translation job terminated with no output.");
-        } 
-        print p(a({-href=>"plive.cgi"}, "Translate more text"));
-        if (open MONITOR, ">$monitor_log") {
-            my $out_count = int(`wc --lines < $canoe_out`) + 0;   
-            print MONITOR "Translated ${out_count} segments in ${elapsed_time} seconds.";
-            close MONITOR;
         }
-    }
-         
-#    print p("Have a look at job's ", a({-href=>$trace_url}, "trace file"), ".");
+        if (not -e $job_done) {
+            print p("Elapsed time so far: $elapsed_time seconds.");
+        } else  { # Background process is done
+            $elapsed_time = time_delta($start_time, $job_done);
+            print p("Total job processing time: ${elapsed_time} seconds.");
+
+            if (-r $filepath) { # The output file exists, so presumably everything went well
+                if ($DO_CLEAN_UP) {
+                    my @files = <${WEB_PATH}/${work_dir}/*>;
+                    for my $file (@files) {
+                        unlink $file unless ($file =~ /${filename}/);
+                    }
+                }
+                print 
+                    p("Output file is ready.  Right-click this link to save the file:",
+                    a({-href=>$url}, $filename));
+            } else { # The output file doesn't exist, so something went wrong
+                print 
+                    p("Translation job terminated with no output.");
+            } 
+            print p(a({-href=>"plive.cgi"}, "Translate more text"));
+            if (open MONITOR, ">$monitor_log") {
+                my $wc_output = `wc --lines < $canoe_out 2> /dev/null`;
+                my $out_count = $wc_output ? (int($wc_output)+0) : 0;
+                print MONITOR "Translated ${out_count} segments in ${elapsed_time} seconds.";
+                close MONITOR;
+            }
+        }
+    }         
+    #print p("Have a look at job's ", a({-href=>$trace_url}, "trace file"), ".");
 } else {
     print pageHead(0);
 }
