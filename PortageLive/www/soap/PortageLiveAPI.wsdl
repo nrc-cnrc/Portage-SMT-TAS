@@ -7,6 +7,7 @@
   xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
 <documentation>
+  $Id$
   file: PortageLiveAPI.wsdl
   brief: Definition of the API to the Portage SMT software suite.
   author: Patrick Paul and Eric Joanis

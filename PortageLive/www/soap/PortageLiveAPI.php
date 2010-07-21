@@ -1,4 +1,5 @@
 <?php
+# $Id$
 # @file PortageLiveAPI.php 
 # @brief Implementation of the API to the Portage SMT software suite.
 # 
@@ -258,7 +259,7 @@ class PortageLiveAPI {
 
    # Translate $src_string using the default context
    function getTranslation($src_string) {
-      return $this->getTranslation2($src_string, "toy.fr2en");
+      return $this->getTranslation2($src_string, "context");
    }
 }
 
