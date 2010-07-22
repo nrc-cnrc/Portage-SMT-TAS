@@ -171,9 +171,10 @@ Optional dependencies for all distributions:
 
  - ICU - Portage 1.4 includes a few tools that use ICU to correctly do
    case-mapping on utf8 data.  This functionality will be disabled if ICU is
-   not available.  ICU is only required to use the utf8 casemapping
-   functionality of DynMap LMs, so in most cases you will not need this
-   library, and can safely leave it out, at least to get started.
+   not available.  ICU is not strictly required.  We recommend you install it
+   if you can, but if you have difficulties with it, you can leave it out, at
+   least to get started.  In this case, for source distributions, set the ICU
+   variable in src/Makefile.user-conf to NONE.
 
    With binary only distributions, use programs and libraries in bin/<arch>-icu
    and lib/<arch>-icu if you have ICU, or programs in libraries in bin/<arch>
@@ -194,9 +195,13 @@ Optional dependencies for all distributions:
 
    With source code distributions, if you install ICU, edit the ICU variable in
    src/Makefile.user-conf to enable the compilation of the relevant code.
+
+   With most Linux distros, you just need to install a package called something
+   like libicu-dev, and you're done.  In this case the ICU variable is not
+   required since the library will be installed in the standard locations.
    
-   If it is not already available via your Linux distro, ICU can be downloaded
-   from http://icu-project.org/download/.
+   If it is not available via your Linux distro, ICU can be downloaded from
+   http://icu-project.org/download/.
    This procedure worked for us:
       # Download the ICU4C 4.0 tar ball and expand it
       wget http://download.icu-project.org/files/icu4c/4.0/icu4c-4_0-src.tgz
@@ -211,10 +216,10 @@ Optional dependencies for all distributions:
       # You may also need to edit SETUP.bash and SETUP.tcsh and add :$DEST/lib
       # at the end of the two expressions setting LD_LIBRARY_PATH.
 
- - libsvm - The libsvm library is needed for Confidence Estimation.  The
-   package is available from http://www.csie.ntu.edu.tw/~cjlin/libsvm/ and is
-   very easy to compile.  Installation is manual but trivial.  This procedure
-   worked for us:
+ - libsvm - The executable programs that come with the libsvm library are
+   needed for Confidence Estimation.  The package is available from
+   http://www.csie.ntu.edu.tw/~cjlin/libsvm/ and is very easy to compile.
+   Installation is manual but trivial.  This procedure worked for us:
       # Download the current tar ball
       wget 'http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/libsvm.cgi?+http://www.csie.ntu.edu.tw/~cjlin/libsvm+tar.gz'
       # Expand it
@@ -225,8 +230,9 @@ Optional dependencies for all distributions:
       # "Install" the three executables somewhere on the PATH.
       cp svm-predict svm-train svm-scale $PORTAGE/bin
 
-   If you can work as root, libsvm is available through some Linux distros.  On
-   CentOS, which uses yum, this should work:
+   If you can work as root, libsvm is available through some Linux distros as a
+   package called libsvm-tools or libsvm.  On CentOS, which uses yum, this
+   should work:
       # Search for packages called libsvm
       yum search libsvm
       # Find the one matching your architecture, say x86_64:
@@ -301,8 +307,9 @@ Mandatory dependencies for source code distributions:
  - zlib - Portage 1.4 uses zlib as an alternative to gzip in some unusual
    cases where the latter causes some Portage 1.4 programs to crash.  This
    library has been standard on Linux distributions for a long time, so you
-   should not have to install it yourself.  But if the compiler says it can't
-   find libz.a, you can download it from http://www.zlib.net/.  
+   should not have to install it yourself.  In some distros, you have to add
+   the zlib1g-dev package.  But if the compiler says it can't find libz.a, you
+   can download it from http://www.zlib.net/.
 
 Optional dependencies for source code distributions:
 
@@ -325,13 +332,15 @@ Optional dependencies for source code distributions:
       cp -p cxxtestgen.pl $DEST/bin/
       # Edit src/Makefile.user-conf and set the CXXTEST variable to $DEST.
 
+   If you don't install CxxTest, set CXXTEST=NONE in src/Makefile.user-conf.
+
  - log4cxx - some programs in Portage 1.4 use log4cxx to produce debugging
    information.  By default, the use of logging is disabled in Portage 1.4.
-   To enable logging, make sure you have log4cxx installed, comment out the
-   line "LOGGING=NONE" in src/build/Makefile.incl, and compile again.  The
-   logging facilities are not well documented, so you would probably only do
-   this in communication with ILT staff, who will explain how to use it as
-   necessary.
+   To enable logging, make sure you have log4cxx installed, edit
+   src/Makefile.user-conf to set LOG4CXX to the full path with log4cxx is
+   installed, and compile again.  The logging facilities are not well
+   documented, so you would probably only do this in communication with ILT
+   staff, who will explain how to use it as necessary.
 
    log4cxx home: http://logging.apache.org/log4cxx/.
    This procedure worked for us, and may help you install it yourself, if your
@@ -356,7 +365,6 @@ Optional dependencies for source code distributions:
 
    Portage 1.4 uses both ctags and etags by default, but you can disable
    their use by defining PORTAGE_NO_CTAGS and/or PORTAGE_NO_ETAGS to 1 in your
-   .<shell>rc file, or by uncommenting the lines "#PORTAGE_NO_CTAGS=1" and/or
-   "#PORTAGE_NO_ETAGS=1" in src/Makefile.user-conf.
-
+   .<shell>rc file, or by uncommenting the lines "PORTAGE_NO_CTAGS=1" and/or
+   "PORTAGE_NO_ETAGS=1" in src/Makefile.user-conf.
 
