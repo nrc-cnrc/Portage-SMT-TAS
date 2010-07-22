@@ -225,18 +225,29 @@ Optional dependencies for all distributions:
       # "Install" the three executables somewhere on the PATH.
       cp svm-predict svm-train svm-scale $PORTAGE/bin
 
-   If you can work as root, libsvm is available through many Linux distros.  On
-   systems such as RedHat or CentOS, which use yum, this should work:
+   If you can work as root, libsvm is available through some Linux distros.  On
+   CentOS, which uses yum, this should work:
       # Search for packages called libsvm
       yum search libsvm
       # Find the one matching your architecture, say x86_64:
       yum install libsvm.x86_64
 
  - XML::Twig - this Perl module is used by tmx2lfl.pl to extract text out of
-   TMX files.  It is easiest to install via cpan.  Executed as root, this
-   command should do the trick:
+   TMX files.  It has a number of further dependencies that need to be
+   installed as well, and that shoudl be handled automatically by the following
+   methods.
+
+   If you're using yum or another Linux package manager, the easiest method is
+   to install perl-XML-Twig.  This has to be done as root.  It should cause
+   perl-XML-Parser and probably several other packages to get isntalled too.
+
+   Failing that, you can try using cpan.  Executed as root, this command might
+   do the trick.
       cpan -i XML::Twig
-   
+   You have to let it install all dependencies.  (Say y or yes to all
+   questions.)  You mileage may vary because various compilations steps are
+   required.  This method requires a compiler.
+
    If you cannot work as root, you can setup libraries in your user account,
    but some work will be needed to configure CPAN to do so, and then some more
    work will be required so those libraries are seen by Perl at runtime.  Ask
