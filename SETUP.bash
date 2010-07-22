@@ -40,7 +40,7 @@ PORTAGE=$HOME/Portage1.4
 # END OF USER CONFIGURABLE VARIABLES
 # =======================================================================
 
-echo 'Portage 1.4, NRC-CNRC, (c) 2004 - 2010, Her Majesty in Right of Canada'
+echo 'Portage 1.4, NRC-CNRC, (c) 2004 - 2010, Her Majesty in Right of Canada' >&2
 
 PATH=$PORTAGE/bin${PATH:+:$PATH}
 
