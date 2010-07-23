@@ -54,17 +54,49 @@ ifeq (${OT},install)
 	$(MAKE) install_summary
 endif
 
-# This target is invoked by install targets to update the INSTALL_SUMMARY file
-# in the bin directory to reflect the CVS status of all src files corresponding
-# to the installed items.
+
+# The install_summary target is invoked by install targets to update the 
+# INSTALL_SUMMARY file in the bin directory to reflect the CVS status of all 
+# src files corresponding to the installed items.
+
+BIN_DIR = ../bin
+CVS_SS_PATH = utils:$$PATH
+INSTALL_PATH = $(if ${MODULE_NAME}, $(abspath ${MODULE_NAME}), ${CURDIR})
+INSTALL_SRC_DIR = $(subst $(dir ${CURDIR}),,${INSTALL_PATH})
+SRC_DIR = $(notdir ${CURDIR})
+
 .PHONY: install_summary
+ifeq ("$(wildcard ${INSTALL_PATH}/CVS)","")
 install_summary:
-	if [[ -d CVS ]]; then \
-	   cd ..; \
-	   date > bin/INSTALL_SUMMARY; \
-	   echo "Sandbox: `pwd`" >> bin/INSTALL_SUMMARY; \
-	   cvs status src | src/utils/cvs-status-summary.pl >> bin/INSTALL_SUMMARY; \
+	@echo "WARNING: CVS directory not found. Not generating bin/INSTALL_SUMMARY."
+else
+install_summary: SHELL=/bin/bash
+install_summary:
+	$(if ${MODULE_NAME},echo "" >>,cat /dev/null >) ${BIN_DIR}/INSTALL_SUMMARY
+	date >> ${BIN_DIR}/INSTALL_SUMMARY
+	echo "$(if ${MODULE_NAME},Module installed,Sandbox): ${INSTALL_PATH}" >> ${BIN_DIR}/INSTALL_SUMMARY 
+	@echo "#!/bin/sh" >.cvs-ssh-batch-mode.sh
+	@echo "${CVS_RSH} $(if $(findstring ssh,${CVS_RSH}),-o BatchMode=yes,) \$$@" >>.cvs-ssh-batch-mode.sh
+	@chmod +x .cvs-ssh-batch-mode.sh;
+	@echo "cvs status ${INSTALL_SRC_DIR} | cvs-status-summary.pl >> ${BIN_DIR}/INSTALL_SUMMARY"
+	@-if [[ "`PATH=${CVS_SS_PATH} which cvs-status-summary.pl`" == "" ]]; then \
+	   echo "WARNING: cvs-status-summary.pl not found." >&2; \
+	   echo "CVS status summary not generated in bin/INSTALL_SUMMARY." >&2; \
+	   false; \
+	else \
+	   summary_len=`wc -l <${BIN_DIR}/INSTALL_SUMMARY`; \
+	   (cd ..; CVS_RSH=${SRC_DIR}/.cvs-ssh-batch-mode.sh cvs status ${INSTALL_SRC_DIR} \
+	      | PATH=${SRC_DIR}/${CVS_SS_PATH} cvs-status-summary.pl) \
+	      >> ${BIN_DIR}/INSTALL_SUMMARY;\
+	   if [[ `wc -l <${BIN_DIR}/INSTALL_SUMMARY` -lt $$summary_len+3 ]]; then \
+	      echo "WARNING: cvs status failed." >&2; \
+	      echo "CVS status summary not generated in bin/INSTALL_SUMMARY." >&2; \
+	      false; \
+	   fi \
 	fi
+	@${RM} .cvs-ssh-batch-mode.sh
+endif
+
 
 vpath Doxyfile build/
 doxy: Doxyfile
@@ -83,7 +115,7 @@ $(ALL_SUBDIRS): utils
 	$(MAKE) $(foreach D,$(DEPENDENT_LIBS),$D/lib)
 	$(MAKE) -C $* $(OT)
 ifeq (${OT},install)
-	$(MAKE) -C $* install_summary
+	$(MAKE) MODULE_NAME=$* install_summary
 endif
 
 # Target used to make just the library (.a file) in a subdirectory
