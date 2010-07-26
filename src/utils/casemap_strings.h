@@ -40,7 +40,8 @@ class CaseMapStrings {
 public:
 
    /**
-    * Create, using given locale
+    * Create, using given locale.
+    * If loc_name is "" or NULL, the POSIX locale is used.
     * @post loc!=NULL
     */
    CaseMapStrings(const char* loc_name);

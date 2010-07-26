@@ -99,6 +99,20 @@ public:
       TS_ASSERT_EQUALS(cms.toUpper("a"), string("A"));
       #endif
    }
+   void testEmptyLocale() {
+      CaseMapStrings cms("");
+      TS_ASSERT_EQUALS(error_message_count, 0);
+      TS_ASSERT_EQUALS(cms.toUpper("\xe0"), string("\xe0")); // latin-1 a accent grave not mapped in C/POSIX
+      TS_ASSERT_EQUALS(cms.toUpper("\u00e0"), string("\u00e0")); // utf-8 a/A accent grave not mapped in C/POSIX
+      TS_ASSERT_EQUALS(cms.toUpper("a"), string("A"));
+   }
+   void testNullLocale() {
+      CaseMapStrings cms(NULL);
+      TS_ASSERT_EQUALS(error_message_count, 0);
+      TS_ASSERT_EQUALS(cms.toUpper("\xe0"), string("\xe0")); // latin-1 a accent grave not mapped in C/POSIX
+      TS_ASSERT_EQUALS(cms.toUpper("\u00e0"), string("\u00e0")); // utf-8 a/A accent grave not mapped in C/POSIX
+      TS_ASSERT_EQUALS(cms.toUpper("a"), string("A"));
+   }
    void testBadLocale() {
       TS_ASSERT_EQUALS(error_message, "");
       TS_ASSERT_EQUALS(error_message_count, 0);

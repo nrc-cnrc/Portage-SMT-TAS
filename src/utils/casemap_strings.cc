@@ -35,7 +35,10 @@ CaseMapStrings::CaseMapStrings(const char* loc_name) :
    loc(NULL), utf8(NULL)
 {
    try {
-      loc = new locale(loc_name);
+      if ( loc_name && loc_name[0] != '\0' )
+         loc = new locale(loc_name);
+      else
+         loc = new locale("POSIX");
       init();
    } catch (std::runtime_error& e) {
       error(ETFatal, "Locale name %s is not valid.  See /usr/lib/locale for a list of valid locales.", loc_name);
