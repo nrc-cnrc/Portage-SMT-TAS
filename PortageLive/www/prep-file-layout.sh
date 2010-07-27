@@ -84,8 +84,8 @@ cp cgi/*.cgi rpm.build.root/var/www/cgi-bin
 cp images/*.gif images/*.jpg rpm.build.root/var/www/html/images
 
 # Copy the php and SOAP files
-cp soap/{index.html,PortageLiveAPI.*,test.php,soap.html} $SOAP_DEST
-cp soap/secure/{index.html,PortageLiveAPI.*,test.php,soap.html} $SOAP_DEST/secure
+cp soap/{index.html,PortageLiveAPI.*,test.php,soap.php} $SOAP_DEST
+cp soap/secure/{index.html,PortageLiveAPI.*,test.php,soap.php} $SOAP_DEST/secure
 
 # For fixed IP, replace the token by the given IP
 if [[ $FIXED_IP ]]; then
