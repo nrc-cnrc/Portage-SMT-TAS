@@ -55,6 +55,7 @@ error_exit() {
    exit 1
 }
 
+shopt -s compat31 >& /dev/null
 set -o errexit
 
 while [ $# -gt 0 ]; do
@@ -81,16 +82,23 @@ fi
 
 DESTINATION=rpm.build.root/opt/Portage/models/$CONTEXT
 mkdir -p $DESTINATION
-scp -r $SOURCE/models/portageLive/* $DESTINATION/
+if [[ $SOURCE =~ : ]]; then
+   CP_CMD="scp -r"
+else
+   CP_CMD="cp -Lr"
+fi
+$CP_CMD $SOURCE/models/portageLive/* $DESTINATION/
 
 # Let's add a md5sum since building a rpm for the models is error prone.
-pushd rpm.build.root/opt/Portage/models && find -type f | egrep -v md5 | xargs md5sum > md5 && popd
+pushd rpm.build.root/opt/Portage/models/$CONTEXT && find -type f | egrep -v md5 | xargs md5sum > md5 && popd
 
 # Set proper permissions on the directory and file structure
 find rpm.build.root -type d | xargs chmod 755
 find rpm.build.root -type f | xargs chmod 644
 find -type f -name \*.sh | xargs chmod 755
-[[ `find $DESTINATION/plugins -type f` ]] && chmod 755 $DESTINATION/plugins/*
+if [[ -d $DESTINATION/plugins ]]; then
+   [[ `find $DESTINATION/plugins -type f` ]] && chmod 755 $DESTINATION/plugins/*
+fi
 
 exit
 
