@@ -31,3 +31,8 @@ you are using virtual appliances.
 Note: the scripts work for us, but rely on details of how the OS and Apache are
 installed, among other things.  You should expect to have to adjust the
 procedure for your own environment.
+
+Note: If you are planing to use ssl/https, each place in the wsdl file that
+has http://__REPLACE_THIS_WITH_YOUR_IP__/ needs to have https instead of http.
+./prep-file-layout.sh does this automatically while copying the file to the
+rpm.build.root layout, under html/secure instead of just html/.

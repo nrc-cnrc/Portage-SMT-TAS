@@ -19,12 +19,15 @@ usage() {
    done
    cat <<==EOF== >&2
 
-Usage: prep-file-layout.sh <source>
+Usage: prep-file-layout.sh <source> [<context_label>]
 
   Fetch trained models from <source>, which has to be the directory where
   a Portage system was trained using the experimental framework.
   The files are placed in the proper structure for building an RPM to install
   on a translation server.
+
+  <context_label> is the label of the context: models are prepared for
+  installation under /opt/Portage/models/<context_label>.  ["context"]
 
 ==EOF==
 
@@ -66,9 +69,17 @@ done
 
 test $# -eq 0  && error_exit "Missing source directory argument"
 SOURCE=$1; shift
+
+if [[ $# -gt 0 ]]; then
+   CONTEXT=$1;
+   shift;
+else
+   CONTEXT=context
+fi
+
 [[ $# -gt 0 ]] && usage "Superfluous argument(s) $*"
 
-DESTINATION=rpm.build.root/opt/Portage/models/context
+DESTINATION=rpm.build.root/opt/Portage/models/$CONTEXT
 mkdir -p $DESTINATION
 scp -r $SOURCE/models/portageLive/* $DESTINATION/
 

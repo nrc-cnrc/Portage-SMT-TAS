@@ -85,14 +85,21 @@ cp images/*.gif images/*.jpg rpm.build.root/var/www/html/images
 
 # Copy the php and SOAP files
 cp soap/{index.html,PortageLiveAPI.*,test.php,soap.php} $SOAP_DEST
-cp soap/secure/{index.html,PortageLiveAPI.*,test.php,soap.php} $SOAP_DEST/secure
+# Copy them into secure/ as well, for use with ssl/https.
+cp soap/{index.html,PortageLiveAPI.php,test.php,soap.php} $SOAP_DEST/secure
+perl -ple 's/(http)(:\/\/__REPLACE_THIS_WITH_YOUR_IP__)/$1s$2/' \
+   < soap/PortageLiveAPI.wsdl \
+   > $SOAP_DEST/secure/PortageLiveAPI.wsdl
 
 # For fixed IP, replace the token by the given IP
 if [[ $FIXED_IP ]]; then
    sed "s/__REPLACE_THIS_WITH_YOUR_IP__/$FIXED_IP/" \
-      < soap/PortageLiveAPI.wsdl > $SOAP_DEST/PortageLiveAPI.wsdl
-   sed "s/__REPLACE_THIS_WITH_YOUR_IP__/$FIXED_IP/" \
-      < soap/secure/PortageLiveAPI.wsdl > $SOAP_DEST/secure/PortageLiveAPI.wsdl
+      < soap/PortageLiveAPI.wsdl \
+      > $SOAP_DEST/PortageLiveAPI.wsdl
+   perl -ple 's/(http)(:\/\/__REPLACE_THIS_WITH_YOUR_IP__)/$1s$2/' \
+      < soap/PortageLiveAPI.wsdl \
+   | sed "s/__REPLACE_THIS_WITH_YOUR_IP__/$FIXED_IP/" \
+      > $SOAP_DEST/secure/PortageLiveAPI.wsdl
 fi
 
 # Set proper permissions on the directory and file structure
