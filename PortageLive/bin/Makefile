@@ -77,7 +77,21 @@ ${DEST_BASE_DIR}/logs/accounting:
 	chmod 0755 $(dir $@)
 	chmod 0777 $@
 
+########################################
+# Handle the INSTALL_SUMMARY file, if present.
+ifneq ("$(wildcard ${SRC_PORTAGE_BIN_DIR:/=}/INSTALL_SUMMARY)","")
+INSTALL_SUMMARY_LIST := $(addprefix ${DEST_BIN_DIR}/, INSTALL_SUMMARY)
 
+.PHONY: install_summary
+all: install_summary
+install_summary: ${INSTALL_SUMMARY_LIST}
+	chmod 0644 $+
+
+# INSTALL_SUMMARY dependencies
+${INSTALL_SUMMARY_LIST}: ${DEST_BIN_DIR}/%: ${SRC_PORTAGE_BIN_DIR:/=}/%
+
+ALL_FILES += ${INSTALL_SUMMARY_LIST}
+endif
 
 ################################################################################
 # OTHER FILES
