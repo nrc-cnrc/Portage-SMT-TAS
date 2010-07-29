@@ -1,4 +1,4 @@
-                                Portage 1.4
+                               Portage 1.4.1
 
 Technologies langagieres interactives / Interactive Language Technologies
 Institut de technologie de l'information / Institute for Information Technology
@@ -13,7 +13,35 @@ license agreement for details.
                               Release History
                    (with a summary of important changes)
 
-v1.4 31.05.2010
+v1.4.1 2010-07-30
+ This is a maintenance release, fixing several issues in v1.4.
+
+ Minor changes:
+ - PortageLive now supports installing multiple contexts on the same server,
+   via both the CGI and SOAP interfaces.  The SOAP interface has been enhanced
+   to let the user specify which context to use, whether confidence estimation
+   is required, and to handle TMX files.  The CGI interface has several
+   improvements.
+ - In PortageLive, the duplicate copy of the SOAP code for secure servers has
+   been removed, and replaced with a mechanism that generates it automatically.
+ - When packaging models for a PortageLive context, tmtext-apply-weights.pl is
+   no longer used by default, since it is unstable and the gain is not that
+   significant.
+ - Dependencies on bash extensions are now made explicit, so that Portage can
+   run on Ubuntu even when /bin/sh is dash.
+ - Portage is now compatible with g++ 4.4.4 and 4.5.0, boost 1.43 and bash 4.
+ - New script filter-long-lines.pl can be used to filter excessively long lines
+   from a parallel corpus.
+ - plog.pl now outputs statistics in a clearer format.
+ - Improved installation instructions, in particular regarding dependencies.
+
+ Bug fixes:
+ - Fixed crash in gen_phrase_tables and a few other programs when compilation
+   with ICU is disabled and the user locale is *.utf-8.
+ - Fixed issue where TPTs might be corrupted when the file was larger than 4GB.
+ - Fixed several more minor issues.
+
+v1.4 2010-05-31
  This update incorporates improvements intended to help the performance of
  Portage as an online translation service, as well as scientific progress we've
  made in the last year.
@@ -182,7 +210,7 @@ v1.4 31.05.2010
  - Quench the Copyright notices that were printed much too often.
  - The obsolete src/api/ directory was deleted; PortageLive supercedes it.
 
-v1.3 21.01.2009
+v1.3 2009-01-21
  This update to PORTAGEshared is primarily intended to incorporate the new HMM
  word alignment module, and related functionality.  We have also taken the
  opportunity to migrate many improvements from Portage, add a new experimental
@@ -372,7 +400,7 @@ v1.3 21.01.2009
      stable.
 
 
-v1.2 28.01.2008
+v1.2 2008-01-28
  This is a significant update to PORTAGEshared, incorporating most of the
  changes we have made to Portage since the initial release of PORTAGEshared.
 
@@ -631,7 +659,7 @@ v1.2 28.01.2008
  - rescoring feature IBM1Deletion was available but not hooked in properly.
 
 
-v1.1 01.04.2007
+v1.1 2007-04-01
  - Added the BinLM format for fast loading of LMs, supported by all
    programs loading LMs, with utility lmtext2binlm to generate them.
  - Made ibm model 2 the default in gen_phrase_tables.
@@ -640,5 +668,5 @@ v1.1 01.04.2007
  - Added -o option to rat.sh, which no longer generates .w files.
 
 
-v1.0 31.10.2006
+v1.0 2006-10-31
    Initial release.
