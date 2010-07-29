@@ -9,7 +9,7 @@
 # Copyright 2008, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2008, Her Majesty in Right of Canada
 
-echo 'run-all-tests.sh, NRC-CNRC, (c) 2008, Her Majesty in Right of Canada' 1>&2
+echo 'run-all-tests.sh, NRC-CNRC, (c) 2008-2010, Her Majesty in Right of Canada' 1>&2
 
 if [[ "$1" =~ "^-" ]]; then
    echo "Usage: $0 [test-suite [test-suite2 [...]]]
@@ -27,6 +27,10 @@ fi
 echo ""
 echo Test suites to run: $TEST_SUITES
 
+run_test() {
+   { time-mem ./run-test.sh; } >& log.run-test
+}
+
 for TEST_SUITE in $TEST_SUITES; do
    echo ""
    echo =======================================
@@ -35,7 +39,7 @@ for TEST_SUITE in $TEST_SUITES; do
       if [[ ! -x ./run-test.sh ]]; then
          echo FAILED $TEST_SUITE: can\'t find or execute ./run-test.sh
          FAIL="$FAIL $TEST_SUITE"
-      elif ./run-test.sh >& log.run-test; then
+      elif run_test; then
          echo PASSED $TEST_SUITE
       else
          echo FAILED $TEST_SUITE: ./run-test.sh returned $?
