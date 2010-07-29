@@ -36,7 +36,7 @@ Options:\n\
 static void getArgs(int argc, char* argv[]);
 static bool notice = false;
 static bool version = false;
-static const char VERSION[] = "Portage 1.4";
+static const char VERSION[] = "Portage 1.4.1";
 
 // main
 

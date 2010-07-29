@@ -13,7 +13,8 @@ license agreement for details.
 
 This directory includes scripts that can help you reproduce the structure we
 use to package the web software for PortageLive virtual appliances.  Detailed
-instructions are in the PortageLive Manual part of the Portage 1.4 User Manual.
+instructions are in the PortageLive Manual part of the Portage 1.4.1 User
+Manual.
 
 In this directory:
 
