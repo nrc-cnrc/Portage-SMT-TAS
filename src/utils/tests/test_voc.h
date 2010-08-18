@@ -125,6 +125,50 @@ public:
       // Make sure old token doesn't exists anymore.
       TS_ASSERT_EQUALS(v.index(oldToken), 3u);
    }
-}; // TestYourClass
+}; // TestVoc
+
+class TestProbVoc : public CxxTest::TestSuite
+{
+private:
+   ProbVoc v;
+
+public:
+   void setUp() {
+      v.add("asdf", 0.1f);
+      v.add("qwer", 0.2f);
+      v.add("zxcv", 1.0f);
+   }
+   void tearDown() { v.clear(); }
+
+   void test_read_write() {
+      char tmp_file_name[] = "ProbVocTestReadWriteXXXXXX";
+      int tmp_fd = mkstemp(tmp_file_name);
+      oMagicStream os(tmp_fd, true);
+      TS_ASSERT(os);
+      v.write(os);
+      os.close();
+
+      ProbVoc v2;
+      v2.read(tmp_file_name);
+      unlink(tmp_file_name);
+
+      TS_ASSERT_DIFFERS(v.word(0), v2.word(0));
+      TS_ASSERT_DIFFERS(v.word(1), v2.word(1));
+      TS_ASSERT_DIFFERS(v.word(2), v2.word(2));
+      TS_ASSERT_RELATION(str_equal, v.word(0), v2.word(0));
+      TS_ASSERT_RELATION(str_equal, v.word(1), v2.word(1));
+      TS_ASSERT_RELATION(str_equal, v.word(2), v2.word(2));
+      TS_ASSERT_EQUALS(v.freq((Uint)0), v2.freq((Uint)0));
+      TS_ASSERT_EQUALS(v.freq(1), v2.freq(1));
+      TS_ASSERT_EQUALS(v.freq(2), v2.freq(2));
+      TS_ASSERT_EQUALS(v2.size(), 3u);
+      TS_ASSERT_EQUALS(v2.index("asdf"), 0u);
+      TS_ASSERT_EQUALS(v2.index("qwer"), 1u);
+      TS_ASSERT_EQUALS(v2.index("zxcv"), 2u);
+      TS_ASSERT_EQUALS(v2.freq("asdf"), 0.1f);
+      TS_ASSERT_EQUALS(v2.freq("qwer"), 0.2f);
+      TS_ASSERT_EQUALS(v2.freq("zxcv"), 1.0f);
+   }
+}; // TestProbVoc
 
 } // Portage

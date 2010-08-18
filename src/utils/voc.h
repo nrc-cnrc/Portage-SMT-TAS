@@ -266,6 +266,27 @@ public:
    }
 
    /**
+    * Write contents to a file in which space-separated word/count pairs are
+    * listed one per line.
+    * @param filename  file name to output vocabulary
+    */
+   void write(const string& filename) const {
+      oSafeMagicStream ostr(filename);
+      write(ostr);
+   }
+
+   /**
+    * Write contents to a stream in which space-separated word/count pairs are
+    * listed one per line.
+    * @param os     stream to output vocabulary
+    */
+   void write(ostream& os) const {
+      for (Uint i = 0; i < size(); ++i)
+         os << word(i) << " " << counts[i] << nf_endl;
+      os.flush();
+   }
+
+   /**
     * Add a word to the vocab, and increase its count.
     * @param word
     * @param inc amount by which to increment count
@@ -310,6 +331,9 @@ public:
 
 /// Definition for the most frequently used type for the counting vocabulary.
 typedef _CountingVoc<Uint> CountingVoc;
+
+/// Vocabulary with a probability associated with each word.
+typedef _CountingVoc<float> ProbVoc;
 
 /// Unit testing of counting vocabulary.
 bool testCountingVoc();
