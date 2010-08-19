@@ -328,8 +328,10 @@ collectCounts(string ifile,
             {
               B[n][truncate(rscore)]++;
             }
-          // At this point there shouldn't be anything left in the buffer.
-          if (!buf.eof())
+          // At this point there shouldn't be anything left in the buffer,
+          // but we want to ignore any extra whitespace.
+          char junk;
+          if (!buf.eof() && (buf >> junk))
             cerr << efatal << fmt_error << lctr << ": " << endl
                  << "Invalid line format, some words left in buffer" << endl
                  << "[" << buf << "]" << endl
