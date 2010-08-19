@@ -60,6 +60,7 @@ testsuite:
 	   echo Error: Cannot read ${LMPREFIX}.${ARPALMEXT}; false; fi
 	${MAKE} LMEXT=lm ${INPUT}.${LMPREFIX}.lm_cmp
 	${MAKE} LMEXT=binlm ${INPUT}.${LMPREFIX}.lm_cmp
+	${MAKE} LMEXT=tplm ${INPUT}.${LMPREFIX}.lm_cmp
 
 .SECONDARY:
 
@@ -80,6 +81,9 @@ ${INPUT}.${LMPREFIX}.${LMEXT}.out-limit: ${INPUT} ${LM}
 ${INPUT}.${LMPREFIX}.${LMEXT}.out-per-sent-limit: ${INPUT} ${LM}
 	time lm_eval -limit -per-sent-limit ${LM} ${INPUT} > $@ 2> log.$@
 
+%.tplm: %.${ARPALMEXT}
+	arpalm2tplm.sh -n 4 $< $@ >& log.$@
+
 %.binlm: %.${ARPALMEXT}
 	arpalm2binlm $< $@ >& log.$@
 
@@ -87,4 +91,6 @@ clean:
 	${RM} *.out *.out-limit *.out-per-sent-limit
 	${RM} log.*
 	${RM} *.binlm
+	${RM} -r europarl.en.tplm test.tplm test2.tplm test3.tplm
+	${RM} -r europarl.en.tplm.tmp.* test.tplm.tmp.* test2.tplm.tmp.* test3.tplm.tmp.*
 	${RM} europarl.en.lm europarl.en.in
