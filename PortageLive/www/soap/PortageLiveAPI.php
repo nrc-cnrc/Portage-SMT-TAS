@@ -152,7 +152,7 @@ class PortageLiveAPI {
          throw new SoapFault("PortageServer", "failed to run $translate_script: $!<br/>".debug($i));
       }
 
-      return $my_retval . "<br/>" . debug($i);
+      return $my_retval . debug($i);
    }
 
    # Create a working directory based on $filename.
