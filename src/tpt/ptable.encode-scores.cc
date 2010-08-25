@@ -259,6 +259,8 @@ process_line(string const& line, ostream& tmp,
 
 int MAIN(argc, argv)
 {
+  cerr << "ptable.encode-scores starting." << endl;
+
   interpret_args(argc,(char **)argv);
   string line;
 
@@ -326,5 +328,7 @@ int MAIN(argc, argv)
         assert(*p < remap[y].size());
         *p = remap[y][*p];
       }
+
+  cerr << "ptable.encode-scores finished." << endl;
 }
 END_MAIN

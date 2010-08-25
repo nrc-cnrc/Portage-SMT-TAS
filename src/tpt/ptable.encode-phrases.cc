@@ -149,11 +149,14 @@ wid(string const& w, vocab& V)
 vector<uint32_t>
 writeTokenIndex(string ofname, vocab& V)
 {
+  //cerr << "writeTokenIndex: ofname=" << ofname << " V.size: " << V.size() << endl;
   vector<uint32_t> retval(V.size());
   vector<Word*> w;
   w.reserve(V.size());
-  for (vocab::iterator m = V.begin(); m != V.end(); m++)
+  for (vocab::iterator m = V.begin(); m != V.end(); m++) {
+    //cerr << "writeTokenIndex: " << m->first << endl;
     w.push_back(&(m->second));
+  }
 
   // sort tokens in decreasing order of frequency
   sort(w.begin(),w.end(),cmpWrd());
@@ -206,7 +209,7 @@ public:
     for (i = 0; i < stop && a[i] == b[i]; i++);
     if (i < stop && (!depth || depth==asize || depth==bsize))
       return a[i] < b[i];
-    // cout << asize << " " << bsize << " " << depth << endl;
+    //cerr << asize << " " << bsize << " " << depth << endl;
     assert(depth < asize && depth < bsize);
     return asize < bsize;
   }
@@ -331,6 +334,8 @@ interpret_args(int ac, char* av[])
 
 int MAIN(argc, argv)
 {
+  cerr << "ptable.encode-phrases starting." << endl;
+
   interpret_args(argc, (char **)argv);
   string coltag = (mode == 1 ? ".src" : mode == 2 ? ".trg" : ".aln");
   string line, w;
@@ -410,5 +415,7 @@ int MAIN(argc, argv)
   for (size_t i = 0; i < pids.size(); i++)
     out.write(reinterpret_cast<char*>(&pidmap[pids[i]]),4);
   out.close();
+
+  cerr << "ptable.encode-phrases finished." << endl;
 }
 END_MAIN

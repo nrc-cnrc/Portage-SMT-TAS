@@ -38,11 +38,12 @@ namespace ugdiss
 
     filepos_type myDatPos = dat.tellp();
   
+    //cerr << "*toRepos: node.id=" << node.id << " node.val=" << node.val << " parent=" << parent << endl;
+    //cerr << myDatPos << endl;
+  
     // write node in the repository
     binwrite(dat,node.id);
 
-    // cout << myDatPos << " parent:" << parent << endl;
-    
     binwrite(dat,myDatPos-parent);
     if (node.val >= remap.size()) {
       cerr << ewarn << "Encountered pid (" << node.val << ") greater than "
@@ -81,6 +82,7 @@ namespace ugdiss
       }
     else
       ret.first = myDatPos;
+    //cerr << "*toRepos: returning ret.first=" << ret.first << " ret.second=" << (ret.second&0xff) << endl;
     return ret;
   }
 
@@ -101,6 +103,8 @@ namespace ugdiss
       cerr << efatal << "Unable to open file '" << (bname+".idx") << "' for writing."
            << exit_1;
     
+    //cerr << "toRepos: bname=" << bname << " numTokens=" << numTokens << " highestPid=" << highestPid << endl;
+
     numwrite(idx,filepos_type(0));  // reserve room for start idx pos.
     numwrite(idx,numTokens); // record idx size.
     binwrite(idx,0U); // root value, not needed for repositories
@@ -121,6 +125,7 @@ namespace ugdiss
           cerr << efatal << "Encountered id (" << m->first << ") >= numTokens ("
                << numTokens << ") in in-memory trie of sequences."
                << exit_1;
+        //cerr << "toRepos: m:" << m->first << ", " << m->second.id << " " << m->second.val << endl;
         index[m->first] = toRepos(idx,dat,m->second,0,remap);
       }
     
@@ -132,6 +137,7 @@ namespace ugdiss
     // write index ...
     for (size_t i = 0; i < index.size(); i++)
       {
+        //cerr << "toRepos: i=" << i << " " << index[i].first << " " << (index[i].second&0xff) << endl;
         numwrite(idx,index[i].first);
         idx.put(index[i].second);
       }

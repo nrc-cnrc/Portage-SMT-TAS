@@ -1,0 +1,9 @@
+
+The five files tppt, cbk, src.tdx, trg.tdx and trg.repos.dat, together,
+constitute a single TPPT model.  You must keep them together in a directory
+called NAME.tppt for the model to work properly.  They cannot be used
+compressed.
+
+To use this model in canoe, put a line like this is your canoe.ini file:
+   [ttable-tppt] NAME.tppt
+

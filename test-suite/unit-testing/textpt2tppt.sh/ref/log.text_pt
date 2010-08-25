@@ -1,0 +1,22 @@
+textpt2tppt.sh, (c) 2005-2010, Ulrich Germann and Her Majesty in Right of Canada
+Building TPPT pt.tppt from PT text_pt
+ptable.encode-phrases starting.
+Converting to a fast vocabulary format.
+Writing token index.
+ptable.encode-phrases finished.
+ptable.encode-phrases starting.
+Converting to a fast vocabulary format.
+Writing token index.
+ptable.encode-phrases finished.
+ptable.encode-scores starting.
+ptable.encode-scores finished.
+ptable.assemble starting.
+highestTrgPhraseId: 58577
+bits needed for encoding target phrase Ids: 17
+2 code books
+code book 1 has 1 values and 1 blocks: 2 
+code book 2 has 547 values and 1 blocks: 10 
+ptable.assemble processing phrase table nodes.
+ptable.assemble writing index.
+ptable.assemble finished.
+Done textpt2tppt.sh.

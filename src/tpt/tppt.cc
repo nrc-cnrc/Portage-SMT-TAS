@@ -86,6 +86,14 @@ namespace ugdiss
     --p;
     for (--p; *p>=0 && p > trgRepos.data(); p--); 
     for (--p; *p>=0 && p > trgRepos.data(); p--); 
+
+    // The calculation of tbits is incorrect.
+    // It is, in general, 1 bit bigger than it needs to be, but fixing
+    // this problem here and in the ptable.assemble program would render
+    // current TPPT files unreadable, because this value is not stored
+    // anywhere in the TPPT.
+    // The correct calculation is:
+    // uint32_t tbits = int(ceil(log2((++p-trgRepos.data())+1)));
     uint32_t tbits = int(ceil(log2(++p-trgRepos.data())))+1;
     trgPhraseCoder.setBlocks(vector<uint32_t>(1,tbits)); 
   }
@@ -128,7 +136,7 @@ namespace ugdiss
     for (size_t i = 0; i < numTokens; i++)
       {
         char const* p = idxBase + i*(sizeof(filepos_type)+1);
-        cout << i 
+        cerr << i
              << " " << *rcast<filepos_type const*>(p) 
              << " " << int(*rcast<uchar const*>(p+sizeof(filepos_type)))
              << endl;
@@ -205,7 +213,7 @@ namespace ugdiss
   find(string const& word) 
   {
     id_type wid = root->srcVcb[word];
-    // cout << "[2] wid=" << wid << endl;
+    //cerr << "[2] wid=" << wid << endl;
     if (wid == root->srcVcb.getUnkId()) 
       return TpPhraseTable::node_ptr_t();
     if (wid > root->numTokens)
@@ -227,13 +235,13 @@ namespace ugdiss
     const id_type wid  = srcVcb[word];
     if (wid == srcVcb.getUnkId()) 
       return TpPhraseTable::node_ptr_t();
-    // cout << "wid=" << wid << endl;
+    //cerr << "wid=" << wid << endl;
     if (wid > numTokens)
       cerr << efatal << "Encountered bad wid: " << wid << exit_1;
 
     filepos_type offset 
       = *rcast<filepos_type const*>(idxBase+wid*(sizeof(filepos_type)+1));
-    // cout << "offset=" << offset << endl;
+    //cerr << "offset=" << offset << endl;
     if (!offset)
       return TpPhraseTable::node_ptr_t();
 
@@ -280,7 +288,7 @@ namespace ugdiss
                 for (size_t k = 0; k < root->score.size(); k++)
                   {
                     z = s[k].readNumber(z.first,z.second,scoreId);
-                    // cout << "score id [" << k << "]: " << scoreId << endl; 
+                    //cerr << "score id [" << k << "]: " << scoreId << endl;
                     v[i].score[k] = root->score[k][scoreId];
                   }
               }

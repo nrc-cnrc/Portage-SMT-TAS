@@ -126,6 +126,7 @@ encodeOneEntry(string& dest, size_t bo, size_t o
 #endif
                )
 {
+  //cerr << "encodeOneEntry: bo=" << bo << " o=" << o << endl;
   if (o >= trg_size)
     cerr << efatal << "Invalid index into .trg.col file: " << o << exit_1;
   bo = trgCoder.writeNumber(dest,bo,trgBase[o]);
@@ -143,6 +144,7 @@ encodeOneEntry(string& dest, size_t bo, size_t o
       v.push_back(scoreId);
 #endif
     }
+  //cerr << "encodeOneEntry: returning bo=" << bo << endl;
   return bo;
 }
 
@@ -153,6 +155,8 @@ encodeAllEntries(string& dest, size_t o)
 #if VERIFY_VALUE_ENCODING
   vector<uint32_t> v; // for debugging
 #endif
+
+  //cerr << "encodeAllEntries: o=" << o << endl;
 
   uint32_t curSrcPid = srcBase[srcPO[o]];
 
@@ -172,7 +176,7 @@ encodeAllEntries(string& dest, size_t o)
 #endif
 
 #if VERIFY_VALUE_ENCODING
-  cout << "\n\n\n" << bitpattern(dest) << endl;
+  cerr << "\n\n\n" << bitpattern(dest) << endl;
   
 
   // verify encoding
@@ -183,8 +187,8 @@ encodeAllEntries(string& dest, size_t o)
       uint32_t foo;
 
 #if 0
-      cout << "[" << k << "]t: " << bitpattern(v[z]) << " EXPECTED" << endl;
-      cout << "[" << k << "]t: " 
+      cerr << "[" << k << "]t: " << bitpattern(v[z]) << " EXPECTED" << endl;
+      cerr << "[" << k << "]t: "
            << bitpattern(r.first[0]) << " "
            << bitpattern(r.first[1]) << " "
            << bitpattern(r.first[2]) << " "
@@ -192,24 +196,25 @@ encodeAllEntries(string& dest, size_t o)
 #endif
       r = trgCoder.readNumber(r,foo);
 
-      cout << "t[" << k << "]: " << v[z] << " " << foo << endl;
+      cerr << "t[" << k << "]: " << v[z] << " " << foo << endl;
       assert(foo == v[z++]);
       for (size_t x = 0; x < scoreCoder.size(); x++)
         {
 #if 0
-          cout << "s[" << x << "]: " << bitpattern(v[z]) << " EXPECTED" << endl;
-          cout << "s[" << x << "]: " 
+          cerr << "s[" << x << "]: " << bitpattern(v[z]) << " EXPECTED" << endl;
+          cerr << "s[" << x << "]: "
                << bitpattern(r.first[0]) << " "
                << bitpattern(r.first[1]) << " "
                << bitpattern(r.first[2]) << " "
                << "bo=" << int(r.second) << endl;
 #endif          
           r = scoreCoder[x].readNumber(r,foo);
-          cout << "s[" << x << "]: " << v[z] << " " << foo << endl;
+          cerr << "s[" << x << "]: " << v[z] << " " << foo << endl;
           assert(foo == v[z++]);
         }
     }
 #endif
+  //cerr << "encodeAllEntries: returning " << (i-o) << endl;
   return i-o;
 }
 
@@ -226,6 +231,7 @@ processNode(ostream& out, char const* const p, uchar flags, uint32_t& o)
   char const* idxStart = p;
   string myValue;
   size_t numPhrases=0;
+  //cerr << "processNode: flags=" << (flags&0xff) << " o=" << o << endl;
   if (q < refIdx_start || q >= refIdx_end)
     cerr << efatal << "Corrupt .src.repos.idx file (invalid offset)." << exit_1;
   if (flags&HAS_CHILD_MASK)
@@ -244,8 +250,8 @@ processNode(ostream& out, char const* const p, uchar flags, uint32_t& o)
       q = binread(q,srcPid);
       if (q > refIdx_end)
         cerr << efatal << "Corrupt .src.repos.idx file (invalid offset)." << exit_1;
-      // cout << "source id from idx: " << srcPid << endl;
-      // cout << "top of stack: " << srcBase[srcPO[o]] << endl;
+      //cerr << "source id from idx: " << srcPid << endl;
+      //cerr << "top of stack: " << srcBase[srcPO[o]] << endl;
       assert (srcBase[srcPO[o]] >= srcPid);
       if (srcBase[srcPO[o]] == srcPid)
         o += (numPhrases = encodeAllEntries(myValue,o));
@@ -267,11 +273,9 @@ processNode(ostream& out, char const* const p, uchar flags, uint32_t& o)
         }
       else 
         {
-#if 0
-          cout << "offset=" << offset << " flags=" << int(id&flagmask) 
-               << "tos=" << srcBase[srcPO[o]] 
-               << endl;
-#endif
+          //cerr << "offset=" << offset << " flags=" << int(id&flagmask)
+          //     << "tos=" << srcBase[srcPO[o]]
+          //     << endl;
           if (offset == srcBase[srcPO[o]])
             {
               string chldval; // child value
@@ -309,6 +313,8 @@ processNode(ostream& out, char const* const p, uchar flags, uint32_t& o)
     }
   if (ret.second)
     ret.first = myPos;
+  //cerr << "processNode: returning ret.first=" << ret.first
+  //     << " ret.second=" << (ret.second&0xff) << " o=" << o << endl;
   return ret;
 }
 
@@ -332,6 +338,7 @@ bio::mapped_file_source refIdx;
 
 int MAIN(argc, argv)
 {
+  cerr << "ptable.assemble starting." << endl;
   if (argc > 1 && !strcmp(argv[1], "-h"))
     {
       cerr << help_message << endl;
@@ -346,7 +353,7 @@ int MAIN(argc, argv)
   string bname = argv[1];
   string srcName = bname + ".src.col";
   open_mapped_file_source(src, srcName);
-  numEntries = src.size()/4;
+  numEntries = src.size() / sizeof(uint32_t);
 
   string trgName = bname + ".trg.col";
   open_mapped_file_source(trg, trgName);
@@ -375,6 +382,14 @@ int MAIN(argc, argv)
 
   // determine the sequence of bit blocks to encode the phrase / score IDs
   size_t highestTrgPhraseId = getMaxId(bname+".trg.repos.dat");
+  cerr << "highestTrgPhraseId: " << highestTrgPhraseId << endl;
+  // The calculation of bitsNeededForTrgPhraseIds is incorrect.
+  // It is, in general, 1 bit bigger than it needs to be, but fixing
+  // this problem here and in TpPhraseTable::openTrgRepos() would render
+  // current TPPT files unreadable, because this value is not stored
+  // anywhere in the TPPT.
+  // The correct calculation is:
+  // size_t bitsNeededForTrgPhraseIds = int(ceil(log2(highestTrgPhraseId+1)));
   size_t bitsNeededForTrgPhraseIds = int(ceil(log2(highestTrgPhraseId)))+1;
   cerr << "bits needed for encoding target phrase Ids: "
        << bitsNeededForTrgPhraseIds << endl;
@@ -404,6 +419,8 @@ int MAIN(argc, argv)
   uint32_t o = 0;
   vector<pair<filepos_type,uchar> > I(refNumTokens,pair<filepos_type,uchar>(0,0));
 
+  cerr << "ptable.assemble processing phrase table nodes." << endl;
+
   r = refIdx.data()+refStartIdx;
   if (r + (sizeof(filepos_type)+1)*(filepos_type)refNumTokens > refIdx_end)
     cerr << efatal << "Corrupt index file '" << refIdxName << "'." << exit_1;
@@ -412,9 +429,10 @@ int MAIN(argc, argv)
       filepos_type offset; uchar flags;
       r = numread(r,offset);
       flags = *r++;
+      //cerr << "main: i=" << i << " flags=" << (unsigned)flags << " offset=" << offset << " o=" << o << endl;
       if (flags)
         I[i] = processNode(idx,refIdx.data()+offset,flags,o);
-      else if (offset == srcBase[srcPO[o]])
+      else if (o < numEntries && offset == srcBase[srcPO[o]])
         {
           string chldval; // child value
           uint32_t numCP = encodeAllEntries(chldval,o); // num child phrase entries
@@ -423,7 +441,10 @@ int MAIN(argc, argv)
           idx.write(chldval.c_str(),chldval.size());
           o += numCP;
         }
+      //cerr << "main: now o=" << o << endl;
     }
+
+  cerr << "ptable.assemble writing index." << endl;
   filepos_type idxStart = idx.tellp();
   idx.seekp(0);
   numwrite(idx,idxStart);
@@ -434,5 +455,6 @@ int MAIN(argc, argv)
       idx.put(I[i].second);
     }
   idx.close();
+  cerr << "ptable.assemble finished." << endl;
 }
 END_MAIN

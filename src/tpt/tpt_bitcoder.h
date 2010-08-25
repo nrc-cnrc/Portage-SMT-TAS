@@ -59,6 +59,9 @@ namespace ugdiss
         {
           threshold[i] = (th<<=b[i])-1;
           modMask[i] = one<<b[i];
+          //cerr << "setBlocks i: " << i << " block[i]=" << b[i]
+          //     << " threshold[i]=" << threshold[i]
+          //     << " modMask[i]=" << modMask[i] << endl;
         }
     }
 
@@ -73,6 +76,9 @@ namespace ugdiss
     pair<char const*, unsigned char>
     readBits(char const* src, unsigned char offset, size_t numBits, T& dest)
     {
+      //cerr << "readBits: src=" << hex << (unsigned long)src << dec << ": "
+      //     << bitpattern(src[0]) << " " << bitpattern(src[1])
+      //     << " offset=" << (unsigned)offset << " numBits=" << numBits << endl;
       assert(numBits <= sizeof(T)*8);
       pair<char const*, size_t> retval;
       retval.second = (offset+numBits)%8;    // new offset
@@ -87,9 +93,9 @@ namespace ugdiss
         case 8: dest = bswap_64(dest); break;
         default: ;
         }
-      // cout << "dest=" << bitpattern(dest) << " offset=" << int(offset) << endl;
+      //cerr << "dest=" << bitpattern(dest) << " offset=" << int(offset) << endl;
       dest <<= offset;
-      // cout << "dest=" << bitpattern(dest) << " offset=" << int(offset) << endl;
+      //cerr << "dest(shifted)=" << bitpattern(dest) << endl;
       if (offset+numBits > sizeof(T)*8)
         dest += uchar(*(retval.first)) >> (8-offset);
       dest >>= sizeof(T)*8 - numBits;
@@ -98,7 +104,9 @@ namespace ugdiss
       // not yet implemented; 
       // probably all we need is to skip the byte swapping
 #endif
-      // cout << "dest(2)=" << bitpattern(dest) << endl;
+      //cerr << "dest(final)=" << bitpattern(dest) << endl;
+      //cerr << "readBits returning retval=" << hex << (unsigned long)retval.first
+      //     << "," << (unsigned)retval.second << endl;
       return retval;
     }
     
@@ -113,6 +121,7 @@ namespace ugdiss
     size_t 
     writeBits(string& dest, size_t offset, T x, size_t numBits)
     {
+      //cerr << "writeBits: x=" << x << " offset=" << offset << " numBits=" << numBits << endl;
       assert(numBits);
 #if __BYTE_ORDER==__LITTLE_ENDIAN
       // size_t btw = (numBits-1)/8; // bytes to write - 1
@@ -120,13 +129,11 @@ namespace ugdiss
       unsigned char* stop = reinterpret_cast<unsigned char*>(&x); // that's the little end
       if (numBits%8)
         x <<= 8-(numBits%8);
-#if 0
-      cout << "before:  " << bitpattern(dest,offset) << " (" 
-           << p-stop+1 << " bytes to write)" << endl;
-      cout << "x=       " << bitpattern(x) << " (" 
-           << numBits << " bits to write)" << endl;
-      cout << "offset=" << offset << endl;
-#endif
+      //cerr << "before:  " << bitpattern(dest,offset) << " ("
+      //     << p-stop+1 << " bytes to write)" << endl;
+      //cerr << "x=       " << bitpattern(x) << " ("
+      //     << numBits << " bits to write)" << endl;
+      //cerr << "offset=" << offset << endl;
       for(;p>=stop;p--) 
         {
           if (offset)
@@ -135,25 +142,21 @@ namespace ugdiss
               *dest.rbegin() += (*p>>offset);
 	      if (p>stop || numBits%8 > 8-offset || numBits%8==0)
 		dest += *p<<(8-offset);
-#if 0
-              cout << "then[1]: " << bitpattern(dest) 
-		   << " " << p-stop 
-		   << " " << (offset+numBits)%8
-		   << endl;
-#endif
+              //cerr << "then[1]: " << bitpattern(dest) << " "
+              //   << p-stop << " " << (offset+numBits)%8 << endl;
             }
           else
             {
               dest += *p;
-              // cout << "then[2]: "<< bitpattern(dest) << endl;
+              //cerr << "then[2]: "<< bitpattern(dest) << endl;
             }
         } 
-      // cout << "final:   " << bitpattern(dest) << endl;
+      //cerr << "final:   " << bitpattern(dest) << endl;
 #else
       assert(0); 
       // not yet implemented 
 #endif
-      // cout << "offset=" << (offset+numBits)%8 << endl;
+      //cerr << "writeBits returning offset=" << (offset+numBits)%8 << endl;
       return (offset+numBits)%8;
     }
   public:
@@ -167,34 +170,33 @@ namespace ugdiss
     writeNumber(string& dest, size_t offset, T x) 
     {
       size_t lastBlock=0;
-      while (x >= threshold[lastBlock]) 
+      //cerr << "writeNumber: x: " << x << " ("<< bitpattern(x)<< ") threshold[0]=" << threshold[0]
+      //     << " block.size()= " << block.size() << endl;
+      while (x > threshold[lastBlock])
       {
-        // cout << x << " " << threshold[lastBlock] << endl;
+        //cerr << "lastBlock=" << lastBlock << " threshold[lastBlock]=" << threshold[lastBlock] << endl;
         lastBlock++;
         assert(lastBlock < block.size());
       }
+      //cerr << "lastBlock=" << lastBlock << " threshold[lastBlock]=" << threshold[lastBlock] << endl;
       T buf[lastBlock+1];
       for (int i = lastBlock; i > 0;i--)
         {
           buf[i] = x % modMask[i];
-#if 0
-          cout << (bitpattern(modMask[i])) << " (b[" << i << "]=" << block[i] << ")" << endl;
-          cout << (bitpattern(x)) << " [" << x << "]" << endl;
-          cout << (bitpattern(buf[i])) << " {" << buf[i] << "}" << endl;
-#endif
+          //cerr << (bitpattern(modMask[i])) << " (b[" << i << "]=" << block[i] << ")" << endl;
+          //cerr << (bitpattern(x)) << " [" << x << "]" << endl;
+          //cerr << (bitpattern(buf[i])) << " {" << buf[i] << "}" << endl;
           x >>= block[i];
         }
       buf[0] = x;
-#if 0
-      cout << bitpattern(modMask[0]) << " (" << block[0] << ")" << endl;
-      cout << bitpattern(x) << " [" << x << "]" << endl;
-      cout << bitpattern(buf[0]) << " {" << buf[0] << "}" << endl;
-#endif
+      //cerr << bitpattern(modMask[0]) << " (" << block[0] << ")" << endl;
+      //cerr << bitpattern(x) << " [" << x << "]" << endl;
+      //cerr << bitpattern(buf[0]) << " {" << buf[0] << "}" << endl;
       size_t i = 0;
       for (; i < lastBlock; i++)
         {
           offset = writeBits(dest,offset,buf[i],block[i]+1);
-          // cout << offset << " (offset)" << endl;
+          //cerr << offset << " (offset)" << endl;
         }
       if (i+1 == block.size())
         offset = writeBits(dest,offset,buf[lastBlock],block[lastBlock]);
@@ -203,6 +205,7 @@ namespace ugdiss
           buf[lastBlock] |= modMask[lastBlock];
           offset = writeBits(dest,offset,buf[lastBlock],block[lastBlock]+1);
         }
+      //cerr << "writeNumber returning offset=" << offset << endl;
       return offset;
     }
 
@@ -215,6 +218,9 @@ namespace ugdiss
     readNumber(pair<char const*, unsigned char> const p, T& x) 
     {
       assert(block.size());
+      //cerr << "readNumber: p: " << bitpattern(p.first[0]) << " "
+      //     << bitpattern(p.first[1]) << ", " << (unsigned)p.second << endl;
+
       // single block encoding:
       if (block.size()==1)
         return readBits(p.first,p.second,block[0],x);
@@ -223,39 +229,44 @@ namespace ugdiss
       pair<char const*, unsigned char> r; 
       r = readBits(p.first,p.second,block[0]+1,x);
       T m = modMask[0];
-      // cout << "readNum: " << bitpattern(x) << " " << block[0]+1 << " bits" << endl;
-      // cout << "m=:      " << bitpattern(m) << endl;
-      // cout << r.first-src << " " << r.second << endl;
+      //cerr << "read x = " << bitpattern(x) << " " << block[0]+1 << " bits" << endl;
+      //cerr << "modMask[0]: " << bitpattern(m) << endl;
 
       if (x&m)
         {
           x %= m;
+          //cerr << "x = " << x << " (" << bitpattern(x) << ") final (1)" << endl;
+          //cerr << "readNumber returning: " << r.first-p.first << " " << (unsigned)r.second << endl;
           return r;
         }
       size_t blast=block.size()-1;
       T buf;
-      // cout << "x = " << bitpattern(x) << endl;
+      //cerr << "x = " << bitpattern(x) << endl;
       for (size_t i = 1; i < blast; i++)
         {
           size_t b = block[i];
           m = modMask[i];
+          //cerr << "modMask[" << i << "]: " << bitpattern(m) << endl;
           x <<= b;
-          // cout << "x = " << bitpattern(x) << " <<" << b << endl;
+          //cerr << "x = " << bitpattern(x) << " <<" << b << endl;
           r = readBits(r.first,r.second,b+1,buf);
+          //cerr << "read buf = " << bitpattern(buf) << endl;
           if (buf&m)
             {
               x += buf%m;
+              //cerr << "x = " << x << " (" << bitpattern(x) << ") final (2)" << endl;
+              //cerr << "readNumber returning: " << r.first-p.first << " " << (unsigned)r.second << endl;
               return r;
             }
           x += buf;
         }
       x <<= block[blast];
-      // cout << "x = " << bitpattern(x) << " <<" << block[blast] << endl;
+      //cerr << "x = " << bitpattern(x) << " <<" << block[blast] << endl;
       r = readBits(r.first,r.second,block[blast],buf);
-      // cout << "b = " << bitpattern(buf) << " pre-final" << endl;
-      // cout << "x = " << bitpattern(x) << " pre-final" << endl;
+      //cerr << "read buf = " << bitpattern(buf) << endl;
       x += buf;
-      // cout << "x = " << bitpattern(x) << " final" << endl;
+      //cerr << "x = " << x << " (" << bitpattern(x) << ") final (3)" << endl;
+      //cerr << "readNumber returning: index " << r.first-p.first << " offset " << (unsigned)r.second << endl;
       return r;
     }
 
