@@ -77,6 +77,16 @@ namespace ugdiss
     return ret;
   }
 
+  std::string bitpattern(uint64_t const& x)
+  {
+    unsigned char const* p = reinterpret_cast<unsigned char const*>(&x+1);
+    unsigned char const* stop = reinterpret_cast<unsigned char const*>(&x);
+    string ret;
+    while (--p >= stop)
+      ret += bitpattern(*p)+" ";
+    return ret;
+  }
+
   std::string bitpattern(string const& x)
   {
     string ret;

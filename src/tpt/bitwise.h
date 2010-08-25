@@ -66,10 +66,11 @@ namespace ugdiss
   std::string bitpattern(char const& c);
   std::string bitpattern(unsigned char const& c);
   std::string bitpattern(uint32_t const& x);
+  std::string bitpattern(uint64_t const& x);
   std::string bitpattern(string const& x);
   std::string bitpattern(string const& x, size_t offset);
   std::string bitpattern(char const& c, int offset);
-  std::string bitpattern(uint32_t const& x, size_t bytes, size_t bits);
+  //std::string bitpattern(uint32_t const& x, size_t bytes, size_t bits);
 
 
 }
