@@ -439,6 +439,9 @@ void TTable::read_bin(const string& filename, const Voc* src_voc)
    Uint svoc_lineno(0);
    Uint sindex;
    string sword;
+   vector<string> swords; // to map source word to index for filtering src_distn
+   if (src_voc)
+      swords.resize(svoc_size);
    char c;
    while (svoc_lineno < svoc_size) {
       if ( is.eof() )
@@ -457,6 +460,8 @@ void TTable::read_bin(const string& filename, const Voc* src_voc)
                fname, svoc_lineno);
       pair<WordMapIter,bool> res =
          sword_map.insert(make_pair(sword, sindex));
+      if (src_voc)
+         swords[sindex] = sword;
       if ( !res.second )
          error(ETFatal, "Duplicate source word %s in %s svoc line %d",
                sword.c_str(), fname, svoc_lineno);
@@ -504,6 +509,11 @@ void TTable::read_bin(const string& filename, const Voc* src_voc)
       if ( c != ':' )
          error(ETFatal, "Invalid format in file %s src_distns %d", fname, i);
       readbin(is, src_distns[i]);
+      // If src_voc is specified, we don't need src_distn for source words not in it.
+      if (src_voc && src_voc->index(swords[i].c_str()) == src_voc->size()) {
+         SrcDistn empty;
+         src_distns[i].swap(empty);
+      }
    }
 
    // Footer
