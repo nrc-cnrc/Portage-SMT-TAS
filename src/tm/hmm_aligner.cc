@@ -12,6 +12,7 @@
 #include "portage_defs.h"
 #include "errors.h"
 #include "hmm_aligner.h"
+#include "tmp_val.h"
 
 using namespace Portage;
 
@@ -289,6 +290,57 @@ void HMMAligner::initCounts() {
    jump_strategy->initCounts(tt);
 }
 
+static const char* split_long_sentences_str =
+   getenv("PORTAGE_HMM_SPLIT_LONG_SENTENCES");
+static const Uint split_long_sentences =
+   split_long_sentences_str ? conv<Uint>(split_long_sentences_str) : 200;
+
+static Uint splitInEvenChunks(
+   const vector<string>& src_toks,
+   const vector<string>& tgt_toks,
+   vector<vector<string> >& src_toks_v,
+   vector<vector<string> >& tgt_toks_v
+)
+{
+   if ( split_long_sentences == 0 ) return 1;
+
+   Uint src_size = src_toks.size() - 1;
+   Uint tgt_size = tgt_toks.size();
+   Uint src_chunks = (src_size-1) / split_long_sentences + 1;
+   Uint tgt_chunks = (tgt_size-1) / split_long_sentences + 1;
+   Uint chunks = max(src_chunks, tgt_chunks);
+   if ( src_size < chunks ) chunks = src_size;
+   if ( tgt_size < chunks ) chunks = tgt_size;
+   if ( chunks <= 1 ) {
+      return 1;
+   }
+   error(ETWarn, "HMM module splitting long sentence pair (%u/%u) "
+         "into %u chunks", src_size, tgt_size, chunks);
+   src_toks_v.resize(chunks);
+   tgt_toks_v.resize(chunks);
+   Uint src_end(1), tgt_end(0);
+   for ( Uint i = 0; i < chunks; ++i ) {
+      Uint src_begin = src_end;
+      src_end = 1 + ((i+1) * src_size) / chunks;
+      src_toks_v[i].clear();
+      src_toks_v[i].reserve(src_end-src_begin+1);
+      src_toks_v[i].push_back(src_toks[0]); // NULL word
+      for ( Uint j = src_begin; j < src_end; ++j )
+         src_toks_v[i].push_back(src_toks[j]);
+
+      Uint tgt_begin = tgt_end;
+      tgt_end = ((i+1) * tgt_size) / chunks;
+      tgt_toks_v[i].clear();
+      tgt_toks_v[i].reserve(tgt_end-tgt_begin);
+      for ( Uint j = tgt_begin; j < tgt_end; ++j )
+         tgt_toks_v[i].push_back(tgt_toks[j]);
+      //cerr << " src size " << src_toks_v[i].size();
+      //cerr << " tgt size " << tgt_toks_v[i].size();
+      //cerr << endl;
+   }
+   return chunks;
+}
+
 void HMMAligner::count(const vector<string>& src_toks_arg,
                        const vector<string>& tgt_toks,
                        bool use_null)
@@ -296,6 +348,19 @@ void HMMAligner::count(const vector<string>& src_toks_arg,
    assert(!useImplicitNulls);
 
    StringVecWithExplicitNull src_toks(src_toks_arg, use_null);
+
+   if ( split_long_sentences && 
+        ( src_toks.size() > split_long_sentences + 1 ||
+          tgt_toks.size() > split_long_sentences ) ) {
+      vector<vector<string> > src_toks_v;
+      vector<vector<string> > tgt_toks_v;
+      const Uint chunks = splitInEvenChunks(src_toks, tgt_toks, src_toks_v, tgt_toks_v);
+      if ( chunks > 1 ) {
+         for ( Uint c = 0; c < chunks; ++c )
+            count(src_toks_v[c], tgt_toks_v[c], false);
+         return;
+      }
+   }
 
    // Variable names:
    //  - I and J are from HMM alignment descriptions (Vogel et al, Och+Ney)
@@ -602,6 +667,25 @@ void HMMAligner::count_symmetrized(const vector<string>& src_toks,
       return;
    }
 
+   // use splitInEvenChunks() when input is too long.
+   if ( split_long_sentences && 
+        ( src_toks.size() > split_long_sentences ||
+          tgt_toks.size() > split_long_sentences ) ) {
+      vector<vector<string> > src_toks_v;
+      vector<vector<string> > tgt_toks_v;
+      const Uint chunks = splitInEvenChunks(
+         StringVecWithExplicitNull(src_toks, use_null), tgt_toks, src_toks_v, tgt_toks_v);
+      if ( chunks > 1 ) {
+         for ( Uint c = 0; c < chunks; ++c ) {
+            const Uint old_src_size = src_toks_v[c].size();
+            src_toks_v[c].erase(src_toks_v[c].begin());
+            assert(src_toks_v[c].size() + 1 == old_src_size);
+            count_symmetrized(src_toks_v[c], tgt_toks_v[c], use_null, r_ibm1);
+         }
+         return;
+      }
+   }
+
    // The first steps, including running the Forward-Backward procedure and
    // getting the various posteriors, are done in the helper's constructor for
    // each direction.
@@ -687,6 +771,23 @@ double HMMAligner::logpr(const vector<string>& src_toks,
                          const vector<string>& tgt_toks, double smooth) {
    if ( src_toks.empty() && tgt_toks.empty() ) return 0.0;
    if ( src_toks.empty() || tgt_toks.empty() ) return log(smooth);
+
+   if ( split_long_sentences &&
+        ( src_toks.size() > split_long_sentences ||
+          tgt_toks.size() > split_long_sentences ) ) {
+      vector<vector<string> > src_toks_v;
+      vector<vector<string> > tgt_toks_v;
+      StringVecWithExplicitNull src_toks_n(src_toks, useImplicitNulls);
+      const Uint chunks = splitInEvenChunks(src_toks_n, tgt_toks, src_toks_v, tgt_toks_v);
+      if ( chunks > 1 ) {
+         tmp_val<bool> tmp_null(useImplicitNulls, false);
+         double logprob(0.0);
+         for ( Uint c = 0; c < chunks; ++c )
+            logprob += logpr(src_toks_v[c], tgt_toks_v[c], smooth);
+         return logprob;
+      }
+   }
+
    uintVector O;
    shared_ptr<HMM> hmm(makeHMM(src_toks, tgt_toks, O, smooth));
    dMatrix alpha_hat;
@@ -700,6 +801,23 @@ double HMMAligner::viterbi_logpr(const vector<string>& src_toks,
                                  double smooth) {
    if ( src_toks.empty() && tgt_toks.empty() ) return 0.0;
    if ( src_toks.empty() || tgt_toks.empty() ) return log(smooth);
+
+   if ( split_long_sentences &&
+        ( src_toks.size() > split_long_sentences ||
+          tgt_toks.size() > split_long_sentences ) ) {
+      vector<vector<string> > src_toks_v;
+      vector<vector<string> > tgt_toks_v;
+      StringVecWithExplicitNull src_toks_n(src_toks, useImplicitNulls);
+      const Uint chunks = splitInEvenChunks(src_toks_n, tgt_toks, src_toks_v, tgt_toks_v);
+      if ( chunks > 1 ) {
+         tmp_val<bool> tmp_null(useImplicitNulls, false);
+         double logprob(0.0);
+         for ( Uint c = 0; c < chunks; ++c )
+            logprob += viterbi_logpr(src_toks_v[c], tgt_toks_v[c], smooth);
+         return logprob;
+      }
+   }
+
    uintVector O;
    shared_ptr<HMM> hmm(makeHMM(src_toks, tgt_toks, O, smooth));
    // One might think doing Viterbi over logs is faster, but the conversion is
@@ -731,6 +849,36 @@ void HMMAligner::align(const vector<string>& src, const vector<string>& tgt,
    if ( tgt.empty() || src.empty() || (!useImplicitNulls && src.size() == 1) ) {
       tgt_al.resize(tgt.size(), 0);
       return;
+   }
+
+   if ( split_long_sentences &&
+        ( src.size() > split_long_sentences ||
+          tgt.size() > split_long_sentences ) ) {
+      vector<vector<string> > src_toks_v;
+      vector<vector<string> > tgt_toks_v;
+      StringVecWithExplicitNull src_toks_n(src, useImplicitNulls);
+      const Uint chunks = splitInEvenChunks(src_toks_n, tgt, src_toks_v, tgt_toks_v);
+      if ( chunks > 1 ) {
+         tgt_al.clear();
+         tgt_al.reserve(tgt.size());
+         const Uint null_position = useImplicitNulls ? src.size() : 0;
+         Uint src_offset_c = useImplicitNulls ? 0 : 1;
+         tmp_val<bool> tmp_null(useImplicitNulls, false);
+         for ( Uint c = 0; c < chunks; ++c ) {
+            vector<Uint> tgt_al_c;
+            align(src_toks_v[c], tgt_toks_v[c], tgt_al_c, twist, NULL);
+            assert(tgt_al_c.size() == tgt_toks_v[c].size());
+            for ( Uint j = 0; j < tgt_al_c.size(); ++j ) {
+               if ( tgt_al_c[j] == 0 )
+                  tgt_al.push_back(null_position);
+               else
+                  tgt_al.push_back(tgt_al_c[j] - 1 + src_offset_c);
+            }
+            src_offset_c += src_toks_v[c].size() - 1;
+         }
+         assert(tgt_al.size() == tgt.size());
+         return;
+      }
    }
 
    Uint J = tgt.size();
@@ -788,6 +936,41 @@ double HMMAligner::linkPosteriors(const vector<string>& src,
    const Uint I = real_I + (jump_strategy->getAnchor() ? 1 : 0);
 
    assert(useImplicitNulls || src[0] == nullWord());
+
+   // resize and initialize posteriors with 0.0 in each cell.
+   posteriors.assign(tgt.size(), vector<double>(real_I+1, 0.0));
+
+   if ( split_long_sentences &&
+        ( src.size() > split_long_sentences ||
+          tgt.size() > split_long_sentences ) ) {
+      vector<vector<string> > src_toks_v;
+      vector<vector<string> > tgt_toks_v;
+      StringVecWithExplicitNull src_toks_n(src, useImplicitNulls);
+      const Uint chunks = splitInEvenChunks(src_toks_n, tgt, src_toks_v, tgt_toks_v);
+      if ( chunks > 1 ) {
+         const Uint null_position = useImplicitNulls ? src.size() : 0;
+         Uint src_offset_c = useImplicitNulls ? 0 : 1;
+         Uint tgt_offset_c = 0;
+         tmp_val<bool> tmp_null(useImplicitNulls, false);
+         double logprob(0);
+         for ( Uint c = 0; c < chunks; ++c ) {
+            vector<vector<double> > posteriors_c;
+            logprob += linkPosteriors(src_toks_v[c], tgt_toks_v[c], posteriors_c);
+            assert(posteriors_c.size() == tgt_toks_v[c].size());
+            assert(posteriors_c[0].size() == src_toks_v[c].size());
+            for ( Uint j = 0; j < posteriors_c.size(); ++j ) {
+               posteriors[j+tgt_offset_c][null_position] = posteriors_c[j][0];
+               for ( Uint i = 1; i < posteriors_c[j].size(); ++i )
+                  posteriors[j+tgt_offset_c][i-1+src_offset_c] = posteriors_c[j][i];
+            }
+            src_offset_c += src_toks_v[c].size() - 1;
+            tgt_offset_c += tgt_toks_v[c].size();
+         }
+         assert(src_offset_c == src.size());
+         assert(tgt_offset_c == tgt.size());
+         return logprob;
+      }
+   }
 
    uintVector O;
    shared_ptr<HMM> hmm(makeHMM(src, tgt, O, 1e-10, 0.1));
