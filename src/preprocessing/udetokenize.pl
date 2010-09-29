@@ -183,6 +183,9 @@ sub process_word
 {
    my( $ch_pre, $ch_before)= @_;
    if( ($ch_pre eq "%") ){ # take care of (%)
+      if ( $lang eq "fr" ) {
+         push ( @out_sentence, $space );
+      }
       push ( @out_sentence, $ch_pre);
    }
    elsif( is_en_price($ch_pre, $ch_before)) {
