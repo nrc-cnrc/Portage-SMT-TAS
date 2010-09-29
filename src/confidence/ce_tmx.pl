@@ -44,19 +44,38 @@ on the standard error stream.
 
 =over 1
 
-=item -filter=T       In 'replace' mode, filter out TUs with confidence below T [don't] 
+=item -filter=T       
 
-=item -src=SL         Specify TMX source language [EN-CA]
+In 'replace' mode, filter out TUs with confidence below T [don't] 
 
-=item -tgt=TL         Specify TMX target language [FR-CA]
+=item -src=SL         
 
-=item -verbose        Be verbose
+Specify TMX source language [EN-CA]
 
-=item -Verbose        Be more verbose
+=item -tgt=TL         
 
-=item -debug          Produce debugging info
+Specify TMX target language [FR-CA]
 
-=item -help,-h        Print this message and exit
+=item -keeptags
+
+Retain keeptags code (BPT, EPT, IT and PH elements) within target
+language TUs (default is to delete it)
+
+=item -verbose        
+
+Be verbose
+
+=item -Verbose        
+
+Be more verbose
+
+=item -debug          
+
+Produce debugging info
+
+=item -help,-h        
+
+Print this message and exit
 
 =head1 SEE ALSO
 
@@ -103,7 +122,7 @@ my $input_layers = ":utf8";
 my $DEFAULT_SRC="EN-CA";
 my $DEFAULT_TGT="FR-CA";
 
-our ($h, $help, $verbose, $Verbose, $debug, $src, $tgt, $filter);
+our ($h, $help, $verbose, $Verbose, $debug, $src, $tgt, $filter, $keeptags);
 
 if ($h or $help) {
     -t STDOUT ? system "pod2usage -verbose 3 $0" : system "pod2text $0";
@@ -114,6 +133,7 @@ $verbose = 0 unless defined $verbose;
 $Verbose = 0 unless defined $Verbose;
 $debug = 0 unless defined $debug;
 
+$keeptags = 0 unless defined $keeptags;
 $filter = undef unless defined $filter;
 $src = $DEFAULT_SRC unless defined $src;
 $tgt = $DEFAULT_TGT unless defined $tgt;
@@ -130,7 +150,8 @@ if ($action eq 'extract') {
     my $ix = newIx();
     processTMX(action=>'extract', tmx_in=>$tmx_file, 
                tmx_out=>$tmx_out, ix=>$ix,
-               src_lang=>$src, tgt_lang=>$tgt);
+               src_lang=>$src, tgt_lang=>$tgt,
+               keeptags=>$keeptags);
     close $tmx_out;
     ixSave($ix, "${dir}/Q.txt", "${dir}/Q.ix");
 } 
@@ -147,7 +168,8 @@ elsif ($action eq 'replace') {
         or die "Can open output TMX template file";
     processTMX(action=>'replace', tmx_in=>"${dir}/QP.template.tmx", 
                tmx_out=>$tmx_out, ix=>$ix, filter=>$filter,
-               src_lang=>$src, tgt_lang=>$tgt);
+               src_lang=>$src, tgt_lang=>$tgt,
+               keeptags=>$keeptags);
     close $tmx_out;
 } 
 
@@ -169,7 +191,10 @@ sub processTMX {
     my %args = @_;
 
     my $parser = XML::Twig->new( twig_handlers=> { tu => \&processTU, 
-                                                ph => \&processPH, 
+                                                ph => \&processNativeCode, 
+                                                bpt => \&processNativeCode, 
+                                                ept => \&processNativeCode, 
+                                                it => \&processNativeCode, 
                                                 hi => \&processHI },
                                  );
                                  # keep_encoding=>0, 
@@ -191,14 +216,20 @@ sub processTMX {
     return $parser;
 }
 
-sub processPH {
-   my ($parser, $ph) = @_;
-   my $string = join(" ", map(normalize($_->text(no_recurse=>1)), $ph));
+sub processNativeCode {
+   my ($parser, $e) = @_;
+   my $name = $e->name();
+   my $text = normalize($e->text(no_recurse=>1));
 
    # Special treatment for \- \_ in compounded words.
-   if ($string =~ /\\([-_])/) {
-      $ph->set_text($1);
-      $ph->erase();
+   if (($name =~ /^ph$/i) and ($text =~ /^\s*\\([-_])\s*$/)) {
+       $e->set_text($1);
+       $e->erase();
+   } elsif (not $parser->{keeptags}) {
+       # Only applies within target language TUVs:
+       my $tuv = $e->parent('tuv');
+       my $lang = $tuv->att('xml:lang') if $tuv;
+       $e->delete() if $lang and ($lang eq $parser->{tgt_lang});
    }
 }
 
@@ -273,6 +304,7 @@ sub processTU {
             }
             $tu->set_att(changeid => 'MT!');
             $tu->set_att(changedate => timeStamp());
+            $tu->set_att(usagecount => '0');
         }
 
         # CE-filtering:
