@@ -409,8 +409,17 @@ void align(const vector<string>& lines1, const vector<string>& lines2,
       score_matrix.resize(size);
       backlink_matrix.resize(size);
    }
-   double (*score_mat)[dim2] = (double(*)[dim2]) &score_matrix[0];
-   Uint (*backlink_mat)[dim2] = (Uint(*)[dim2]) &backlink_matrix[0];
+// Workaround to avoid warning "error: statement has no effect"
+// with gcc 4.5.0 on OpenSuSE 11.3 (JHJ)
+   typedef double array_size_dim2_of_doubles[dim2];
+   typedef Uint   array_size_dim2_of_Uint[dim2];
+   array_size_dim2_of_doubles *
+      score_mat = (array_size_dim2_of_doubles *) &score_matrix[0];
+   array_size_dim2_of_Uint *
+      backlink_mat = (array_size_dim2_of_Uint *) &backlink_matrix[0];
+// replaces:
+//   double (*score_mat)[dim2] = (double(*)[dim2]) &score_matrix[0];
+//   Uint (*backlink_mat)[dim2] = (Uint(*)[dim2]) &backlink_matrix[0];
 
    score_mat[0][0] = 0.0;    // no cost starting point
 
@@ -462,7 +471,12 @@ void write(Uint region_num,
            const string& idline, ostream* oidfile)
 {
    const Uint dim2 = lines2.size()+1;
-   double (*score_mat)[dim2] = (double(*)[dim2]) &score_matrix[0];
+// Workaround to avoid warning "error: statement has no effect"
+// with gcc 4.5 (JHJ)
+   typedef double array_size_dim2_of_doubles[dim2];
+   array_size_dim2_of_doubles *
+      score_mat = (array_size_dim2_of_doubles *) &score_matrix[0];
+//   double (*score_mat)[dim2] = (double(*)[dim2]) &score_matrix[0];
 
    if (region_num > 1 and mark and !filt_mark) {
       ofile1 << mark << endl;

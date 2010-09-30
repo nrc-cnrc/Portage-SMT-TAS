@@ -179,7 +179,7 @@ while(<IN>)
    $#out_sentence=-1;
 }
 
-sub process_word
+sub process_word #ch1, ch2
 {
    my( $ch_pre, $ch_before)= @_;
    if( ($ch_pre eq "%") ){ # take care of (%)

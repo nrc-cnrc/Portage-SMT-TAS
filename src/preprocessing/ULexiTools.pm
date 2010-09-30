@@ -197,7 +197,6 @@ sub tokenize #(paragraph, lang)
          if (context_says_abbr($para, $i, @tok_posits) ||
                &$matches_known_abbr(get_token($para, $i-2, @tok_posits)) ||
                looks_like_abbr($lang, $para, $i-2, @tok_posits)) {
-
             $tok_posits[$i-1]++;
             splice(@tok_posits, $i, 2);
             $i -= 2;    # account for splice
@@ -226,7 +225,7 @@ sub split_sentences(\$\@) #(para_string, token_positions)
    for (my $i = 0; $i < $#$token_positions; $i += 2) {
       my $tok = get_token($$para, $i, @$token_positions);
       if ($end_pending) {
-         if ($tok !~ /^([$quotes\)\]]|[$apostrophes]{1,2})$/o ||
+         if ($tok !~ /^([$quotes\)\]]|[$apostrophes]{1,2}|<\/[^>]+>)$/o ||
              $tok =~ /^[$leftquotes]{1,2}/ ) {
             push(@sent_posits, $i);
             $end_pending = 0;
@@ -323,7 +322,7 @@ sub context_says_abbr(\$$\@) #($para_string, index_of_dot, token_positions)
    # skip ambig punc
    for ($index += 2; $index < $#$token_positions; $index += 2) {
       if (get_token($$string, $index, @$token_positions) !~
-            /^([$quotes\(\)\[\]\{\}…]|[$apostrophes]{1,2}|[$hyphens]{1,3}|[.]{2,4})$/o) {last;}
+            /^([$quotes\(\)\[\]\{\}…]|[$apostrophes]{1,2}|[$hyphens]{1,3}|[.]{2,4}|<[^>]+>)$/o) {last;}
    }
 
    if ($index > $#$token_positions) {return 0;} # end of para
@@ -401,7 +400,7 @@ sub split_punc #(string, offset[0])
 
    # split internal --, ---, n-dash, m-dash, .., ..., etc.
    if (($tok =~ /^(.*[^$hyphens])?([$hyphens]{2,4}|[$wide_dashes])([^$hyphens].*)?$/o) ||
-         ($tok =~ /^(.*[^\.])?(\.{2,4}|…)([^\.].*)?$/o)) {
+       ($tok =~ /^(.*[^\.])?(\.{2,4}|…)([^\.].*)?$/o)) {
       my ($p1, $p2, $p3) = ($1, $2, $3);
       push(@atoms, split_punc($p1, $offset));
       push(@atoms, $offset+len($p1), length($p2) == 1 ? 1 : 2);

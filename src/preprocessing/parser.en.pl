@@ -5,7 +5,7 @@ use Exporter;
 
 # @file parser.en.pl 
 # @brief The following is a portion of a perl program that
-# detects dates and numbers in an English #text corpus, converts them to a
+# detects dates and numbers in an English text corpus, converts them to a
 # standard format and marks them up. 
 #
 
