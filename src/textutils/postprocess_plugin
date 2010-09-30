@@ -29,3 +29,6 @@ fi
 
 exec cat
 
+# Suggestion: for an English->French system, you could use fix-en-fr-numbers.pl
+# to patch numbers, reformatting them from English to French style.
+#exec fix-en-fr-numbers.pl
