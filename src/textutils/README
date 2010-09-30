@@ -1,6 +1,6 @@
 This directory, textutils/, contains generic or basic, non-linguistic text
 processing utilities.  In contrast, preprocessing/ contains linguistically
-motived text processing utilities.
+motivated text processing utilities.
 
 Catalog of programs in this directory
 -------------------------------------
