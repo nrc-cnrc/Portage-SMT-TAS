@@ -64,9 +64,9 @@
 #                  compliant casemapping in Portage 1.4.  Requires ICU.  
 #                  Uncomment and edit the next line if needed.
 
-ICU?=NONE
+ICU=NONE
 #ICU=$(PORTAGE)
-ICU=$(PORTAGE)# AT NRC
+#ICU=$(PORTAGE)# AT NRC
 
 # ------------------------------------
 # Variable:        CXXTEST

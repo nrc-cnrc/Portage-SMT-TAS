@@ -1,4 +1,4 @@
-                               Portage 1.4.1
+                                Portage 1.4
 
 Technologies langagieres interactives / Interactive Language Technologies
 Institut de technologie de l'information / Institute for Information Technology
@@ -12,7 +12,7 @@ license agreement for details.
 
                        Third Party Copyright Notices
 
-Portage 1.4.1 is linked with the following 3rd party libraries:
+Portage 1.4 is linked with the following 3rd party libraries:
  - Boost C++ Libraries
  - g++ runtime libraries
  - ICU - International Components for Unicode

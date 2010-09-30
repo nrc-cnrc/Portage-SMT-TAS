@@ -13,7 +13,7 @@ license agreement for details.
 
 This directory contains the files you need to install a trained Portage system
 on a translation server.  We call this PortageLive.  Please read the
-"PortageLive Manual" section of the Portage 1.4.1 User Manual for instructions.
+"PortageLive Manual" section of the Portage 1.4 User Manual for instructions.
 
 Contents:
    bin/         tools to build the PortageLive runtime software layout

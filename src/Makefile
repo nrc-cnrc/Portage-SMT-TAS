@@ -68,7 +68,7 @@ SRC_DIR = $(notdir ${CURDIR})
 .PHONY: install_summary
 ifeq ("$(wildcard ${INSTALL_PATH}/CVS)","")
 install_summary:
-	@echo "WARNING: CVS directory not found. Not generating bin/INSTALL_SUMMARY."
+	@:
 else
 install_summary: SHELL=/bin/bash
 install_summary:
@@ -174,7 +174,7 @@ index.html: make_module_usage
 	| sed 's#.*/##' \
 	| tr " " "\n" \
 	| sort \
-	| ./utils/pgm_usage_2_html.pl -main "Portage 1.4.1: Usage information by program" \
+	| ./utils/pgm_usage_2_html.pl -main "Portage 1.4.2: Usage information by program" \
 	> ${USAGE_DIR}/$@
 	cp build/*.gif build/*.jpg ${USAGE_DIR}
 
