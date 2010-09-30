@@ -14,6 +14,7 @@
 # Copyright 2010, Her Majesty in Right of Canada
 
 all: test
+	@echo All tests PASSED
 
 test: test-utf8 test-latin1
 
