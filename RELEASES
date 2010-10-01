@@ -13,7 +13,7 @@ license agreement for details.
                               Release History
                    (with a summary of important changes)
 
-v1.4.2 2010-09-30
+v1.4.2 2010-01-10
  This is a maintenance release.
 
  Minor changes:
@@ -28,11 +28,13 @@ v1.4.2 2010-09-30
  - When inserting Portage translations back into a TMX file, ce_tmx.pl now sets
    TU attribute usagecount to 0 and deletes BPT, EPT, IT and PH elements
    (native formatting codes) unless -keeptags is set.
+ - Made n-best list management in cow.sh more efficient.
 
  Minor bug fixes:
  - Added missing implementation of vocab-filtering of binary TTables.
  - Fixed a rare crash situation in textpt2tppt.sh.
  - Made arpalm2tplm.sh robust to extra white space in the ARPA LM files.
+ - Fixed cow.sh to remove unintended 10000 line limit in dev set.
 
 v1.4.1 2010-07-30
  This is a maintenance release, fixing several issues in v1.4.0.
