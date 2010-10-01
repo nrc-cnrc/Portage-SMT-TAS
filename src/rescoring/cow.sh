@@ -230,20 +230,31 @@ run_cmd() {
    else
       RUN_CMD_NO_ERROR=
    fi
+   if [[ "$1" = "-no-mon" ]]; then
+      shift
+      RUN_CMD_NO_MON=1
+   else
+      RUN_CMD_NO_MON=
+   fi
    date
    echo "$*"
    if [[ ! $NOTREALLY ]]; then
-      MON_FILE=`mktemp $WORKDIR/mon.run_cmd.XXXXXXXX`
-      process-memory-usage.pl -s 1 30 $$ > $MON_FILE &
-      MON_PID=$!
-      eval time "$*"
-      rc=$?
-      kill -10 $MON_PID
-      echo "run_cmd finished (rc=$rc): $*"
-      if [ -s "$MON_FILE" -a $(( `wc -l < $MON_FILE` > 1 )) ]; then
-         MON_VSZ=`egrep -ho 'vsz: [0-9.]+G' $MON_FILE 2> /dev/null | egrep -o "[0-9.]+" | sum.pl -m`
-         MON_RSS=`egrep -ho 'rss: [0-9.]+G' $MON_FILE 2> /dev/null | egrep -o "[0-9.]+" | sum.pl -m`
-         echo "run_cmd rc=$rc Max VMEM ${MON_VSZ}G Max RAM ${MON_RSS}G"
+      if [[ $RUN_CMD_NO_MON ]]; then
+         eval "$*"
+         rc=$?
+      else
+         MON_FILE=`mktemp $WORKDIR/mon.run_cmd.XXXXXXXX`
+         process-memory-usage.pl -s 1 30 $$ > $MON_FILE &
+         MON_PID=$!
+         eval time "$*"
+         rc=$?
+         kill -10 $MON_PID
+         echo "run_cmd finished (rc=$rc): $*"
+         if [ -s "$MON_FILE" -a $(( `wc -l < $MON_FILE` > 1 )) ]; then
+            MON_VSZ=`egrep -ho 'vsz: [0-9.]+G' $MON_FILE 2> /dev/null | egrep -o "[0-9.]+" | sum.pl -m`
+            MON_RSS=`egrep -ho 'rss: [0-9.]+G' $MON_FILE 2> /dev/null | egrep -o "[0-9.]+" | sum.pl -m`
+            echo "run_cmd rc=$rc Max VMEM ${MON_VSZ}G Max RAM ${MON_RSS}G"
+         fi
       fi
       if [[ -z "$RUN_CMD_NO_ERROR" && "$rc" != 0 ]]; then
          # Print custom message.
@@ -252,6 +263,11 @@ run_cmd() {
          exit 1
       fi
    fi
+}
+
+clean_big_files() {
+   run_cmd -no-mon "find $WORKDIR -name foo.\* | xargs rm -f"
+   run_cmd -no-mon "rm -f $WORKDIR/$ALLTARGETS $WORKDIR/$ALLFFVALS"
 }
 
 # Command-line processing
@@ -364,23 +380,29 @@ WORKDIR=$WORKDIR"
 fi
 
 SFILE=$1
+if [[ ! -r $SFILE ]]; then
+   cat $SFILE > /dev/null # produces explanatory error message
+   error_exit "Cannot read source file $SFILE."
+fi
 shift
 if [[ $# -eq 1 && `cat $1 | wc -l` -gt `cat $SFILE | wc -l` ]]; then
    warn "Old style combined RFILE supplied - uncombining it";
    RFILE=$1
+   [[ -r $RFILE ]] || error_exit "Cannot read reference file $RFILE."
    echo uncombine.pl `cat $SFILE | wc -l` $RFILE
    uncombine.pl `cat $SFILE | wc -l` $RFILE
    RVAL=$?
    if [[ $RVAL -ne 0 ]]; then
-      error_exit "can't uncombine ref file"
+      error_exit "Cannot uncombine ref file"
    fi
    RFILES=`ls $RFILE.[0-9]* | tr '\n' ' '`
 else
    RFILES=$*
 fi
 for x in $RFILES; do
+   [[ -r $x ]] || error_exit "Cannot read reference file $x."
    if [[ `cat $x | wc -l` -ne `cat $SFILE | wc -l` ]]; then
-      error_exit "ref file $x has a different number of lines as source file $SFILE"
+      error_exit "Ref file $x has a different number of lines as source file $SFILE"
    fi
 done
 
@@ -428,7 +450,7 @@ if [[ ! -r $CFILE ]]; then
    error_exit "Cannot read config file $CFILE."
 fi
 if configtool check $CFILE; then true; else
-   error_exit "problem with config file $CFILE."
+   error_exit "Problem with config file $CFILE."
 fi
 
 if [[ $MICRO -gt 0 ]]; then
@@ -474,14 +496,17 @@ if [[ "$VERBOSE" = "-v" ]]; then
    RTRAIN="$RTRAIN -v"
 fi
 
+# S is the number of lines in the source file SFILE
+S=$((`wc -l < $SFILE`))
+
 #------------------------------------------------------------------------------
 # Build model file and filtered phrase tables
 #------------------------------------------------------------------------------
 
 export LC_ALL=C
 
-for FILE in $WORKDIR/foo.* $WORKDIR/$ALLTARGETS $WORKDIR/$ALLFFVALS \
-   $WORKDIR/$POWELLFILE* $WORKDIR/$POWELLMICRO*; do
+clean_big_files
+for FILE in $WORKDIR/$POWELLFILE* $WORKDIR/$POWELLMICRO*; do
    \rm -f $FILE
 done
 
@@ -501,10 +526,12 @@ fi
 # initialize micro rescoring models if needed
 if [[ $MICRO -gt 0 ]]; then
    configtool rescore-model:.duplicateFree.ffvals$COMPRESS_EXT $CFILE > $MODEL.micro.in
-   S=`wc -l < $SFILE`
-   for i in `seq -w 0 9999 | head -$S`; do
-      cp $MODEL.micro.in $MODEL.micro.$i
-   done
+   #S=`wc -l < $SFILE` - initialized once at the top.
+   for((n=0;n<$S;++n))
+   {
+      m=`printf "%4.4d" $n`
+      cp $MODEL.micro.in $MODEL.micro.$m
+   }
 fi
 
 # Filter the phrase tables to retain only matching source phrases.
@@ -571,6 +598,11 @@ write_models() {
          error_exit "configtool had non-zero return code: $RC."
       fi
    fi
+
+   # Clean up on a successful run, unless -debug was specified.
+   if [[ ! $DEBUG ]]; then
+      clean_big_files
+   fi
 }
 
 #------------------------------------------------------------------------------
@@ -595,10 +627,12 @@ while [[ 1 ]]; do
    if [[ $MICRO -gt 0 ]]; then
       MICRO_WTS=$WORKDIR/micro-weights.$((ITER+1))
       cat /dev/null > $MICRO_WTS
-      S=`wc -l < $SFILE`
-      for i in `seq -w 0 9999 | head -$S`; do
-         configtool arg-weights:$MODEL.micro.$i $CFILE >> $MICRO_WTS
-      done
+      #S=`wc -l < $SFILE` # Initialized once at the top
+      for((n=0;n<$S;++n))
+      {
+         m=`printf "%4.4d" $n`
+         configtool arg-weights:$MODEL.micro.$m $CFILE >> $MICRO_WTS
+      }
    fi
 
    # Run decoder
@@ -611,6 +645,7 @@ while [[ 1 ]]; do
    fi
    if [[ "$PARALLEL" == 1 ]]; then
       # Don't time canoe-parallel.sh since it's going to report time-mem measurements.
+      echo "$RUNSTR < $SFILE > $TRANSFILE.ff"
       $RUNSTR < $SFILE > $TRANSFILE.ff
    else
       run_cmd "$RUNSTR < $SFILE > $TRANSFILE.ff"
@@ -689,31 +724,37 @@ while [[ 1 ]]; do
    echo ""
    echo Producing n-best lists on `date`
 
-   FOO_FILES=$WORKDIR/foo.????."$N"best$COMPRESS_EXT
    totalPrevK=0
    totalNewK=0
    time {
-      for x in $FOO_FILES; do
-         #echo Append-uniq $x on `date`
-         x=${x%$COMPRESS_EXT}
-         f=${x%."$N"best}
+      for((n=0;n<$S;++n))
+      {
+         m=`printf "%4.4d" $n`
+         x=$WORKDIR/foo.$m.${N}best
+         f=$WORKDIR/foo.$m
 
-         # We use gzip in case the user requested compressed foo files
          touch $f.duplicateFree$COMPRESS_EXT $f.duplicateFree.ffvals$COMPRESS_EXT
-         #prevK=`gzip -cqfd $f.duplicateFree$COMPRESS_EXT | wc -l`
-         #totalPrevK=$((totalPrevK + prevK))
-         append-uniq.pl -nbest=$f.duplicateFree$COMPRESS_EXT -addnbest=$x$COMPRESS_EXT \
+         echo append-uniq.pl -nbest=$f.duplicateFree$COMPRESS_EXT -addnbest=$x$COMPRESS_EXT \
             -ffvals=$f.duplicateFree.ffvals$COMPRESS_EXT -addffvals=$x.ffvals$COMPRESS_EXT \
-            > $f.lineCounts
+            \> $f.lineCounts
+      } | run-parallel.sh -psub -1 - 4 >& $WORKDIR/log.append-uniq.parallel
+      # The above is done 4 ways parallel to speed up n-best list management,
+      # but not too aggressively since we are parellelizing write operations.
 
-         # Check return value
-         RVAL=$?
-         if [[ $RVAL -ne 0 ]]; then
-            error_exit "append-uniq.pl returned $RVAL"
-         fi
+      # Check return value
+      RVAL=$?
+      if [[ $RVAL -ne 0 ]]; then
+         error_exit "parallel append-uniq.pl returned $RVAL"
+      fi
 
-         # append-uniq.pl now outputs line count information into
-         # $f.lineCounts, so we don't have to re-read the file again.
+      for((n=0;n<$S;++n))
+      {
+         m=`printf "%4.4d" $n`
+         x=$WORKDIR/foo.$m.${N}best
+         f=$WORKDIR/foo.$m
+
+         # Read the new and old line counts from $f.lineCounts, output by
+         # append-uniq.pl while adding the new lines to duplicateFree.
          if [[ `cat $f.lineCounts` =~ "([0-9]+) \+ ([0-9]+) = ([0-9]+)" ]]; then
             prevK=${BASH_REMATCH[1]}
             totalPrevK=$((totalPrevK + prevK))
@@ -723,16 +764,13 @@ while [[ 1 ]]; do
             error_exit "append-uniq.pl did not produce line counts"
          fi
 
-         #newK=`gzip -cqfd $f.duplicateFree$COMPRESS_EXT | wc -l`
-         #totalNewK=$((totalNewK + newK))
-
          # Check if there was anything new
          if [[ $prevK -ne $newK ]]; then
             new=1
          fi
 
-         echo -n ".";
-      done
+         #echo -n ".";
+      }
       echo
    }
    echo "Total size of n-best list -- previous: $totalPrevK; current: $totalNewK."
@@ -755,14 +793,19 @@ while [[ 1 ]]; do
 
    echo Preparing to run rescore_train on `date`
 
-   \rm $WORKDIR/$ALLTARGETS $WORKDIR/$ALLFFVALS >& /dev/null
-   S=$((`wc -l < $SFILE`))
-   time for((n=0;n<$S;++n))
-   {
-      m=`printf "%4.4d" $n`
-      # We use gzip in case the user requested compressed foo files
-      gzip -cqfd $WORKDIR/foo.${m}.duplicateFree$COMPRESS_EXT        | perl -pe "s/^/$n\t/"  | gzip >> $WORKDIR/$ALLTARGETS
-      gzip -cqfd $WORKDIR/foo.${m}.duplicateFree.ffvals$COMPRESS_EXT | perl -pe "s/^/$n\t/"  | gzip >> $WORKDIR/$ALLFFVALS
+   rm $WORKDIR/$ALLTARGETS $WORKDIR/$ALLFFVALS >& /dev/null
+   #S=$((`wc -l < $SFILE`)) # Initialized once at the top
+   time {
+      for((n=0;n<$S;++n))
+      {
+         m=`printf "%4.4d" $n`
+         gzip -cqfd $WORKDIR/foo.${m}.duplicateFree$COMPRESS_EXT        | sed "s/^/$n\t/"
+      } | gzip > $WORKDIR/$ALLTARGETS
+      for((n=0;n<$S;++n))
+      {
+         m=`printf "%4.4d" $n`
+         gzip -cqfd $WORKDIR/foo.${m}.duplicateFree.ffvals$COMPRESS_EXT | sed "s/^/$n\t/"
+      } | gzip > $WORKDIR/$ALLFFVALS
    }
 
    # Find the parameters that optimize the BLEU score over the given set of all targets
@@ -788,10 +831,12 @@ while [[ 1 ]]; do
 
    # ensure powellweights.micro.IIII files exist on first iteration
    if [[ $MICRO -ne 0 ]]; then    
-      S=`wc -l < $SFILE`
-      for i in `seq -w 0 9999 | head -$S`; do
-         touch $POWELLMICRO.$i
-      done
+      #S=`wc -l < $SFILE` # Initialized once at the top
+      for((n=0;n<$S;++n))
+      {
+         m=`printf "%4.4d" $n`
+         touch $POWELLMICRO.$m
+      }
    fi
 
 
