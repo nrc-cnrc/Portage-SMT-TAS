@@ -40,13 +40,22 @@ while(<>) {
    # Add a space between digit %
    s/([0-9])%/$1 %/g;
 
+   # This one rule replaces the other ones for command to space conversion,
+   # and handles more cases correctly, in particular 0.000,02 -> 0.000 02
+   # The period is *not* replaced here, even though it would be simple to do
+   # so, because it introduces errors, which Uli's original RE doesn't.
+   s/[0-9]{1,3}(?:,[0-9]{3})*(?:\.(?:[0-9]{3},)*[0-9]{1,3})?/
+     { my $num = $&; $num =~ tr#,# #; $num }
+    /exg;
+
+
    # This rule removed - the case is already correctly handled by the rest of
    # the code, while it introduces errors, as detected during unit testing.
    # fix 1,000.00 => 1 000,00
    #s/([0-9]),([0-9]{3})\./$1 $2,/g;
 
    # fix 1,000 => 1 000
-   s/([0-9]),(?=[0-9]{3})/$1 /g;
+   #s/([0-9]),(?=[0-9]{3})/$1 /g;
 
    #s/([^\.][0-9]+)\.([0-9])/$1,$2/g;
 
