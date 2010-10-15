@@ -84,6 +84,7 @@ BINSCRIPTS = \
         sh_utils.sh \
         sum.pl \
         time-mem \
+        time-mem-tally.pl \
         trans-search.pl \
         which-test.sh
 

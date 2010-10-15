@@ -14,10 +14,10 @@
 
 # Portage is developed with bash 3, and uses the bash 3.1 RE syntax, which
 # changed from version 3.2.  Set "compat31" if we're using bash 3.2, 4 or more
-# recent, to preserve the expected syntax.
-if [[ $BASH_VERSINFO -ge 4 || $BASH_VERSINFO = 3 && ${BASH_VERSINFO[1]} -ge 2 ]]; then
-   shopt -s compat31
-fi
+# recent, to preserve the expected syntax.  We used to test the version of bash
+# explicitly, but it's simpler to always run the command and ignore its return
+# code: if it fails, we're running a version of bash that doesn't need it.
+shopt -s compat31 >& /dev/null || true
 
 # error_exit "some error message" "optionnally a second line of error message"
 # will exit with an error status, print the specified error message(s) on
