@@ -1,0 +1,1018 @@
+/home/larkins/sandboxes/quick.fix/bin/cow.sh ../../corpora/dev1_fr.rule ../../corpora/dev1_en.lc
+Starting on Wed Apr 7 22:25:15 EDT 2010
+
+checking for XLM
+ok
+Wed Apr  7 22:25:25 EDT 2010
+filter_models -z -r -f canoe.ini -ttable-limit 30 -suffix .FILT -soft-limit multi.probs.dev1_fr.rule.30 < ../../corpora/dev1_fr.rule
+
+filter_models, NRC-CNRC, (c) 2006 - 2010, Her Majesty in Right of Canada
+
+  Running in load all in memory
+  Running with source sentences => filtering phrase table base on source phrases
+  Running in SOFT mode using limit(30)
+Using 56 source sentences
+LM filtering with per sentence vocab(56)
+loading phrase table from models/tm/cpt.hmm3-rf-zn.tm-train.fr2en.gz: ..........................................
+420855 lines read, 10276 entries kept.
+Done in 1s
+loading phrase table from models/tm/cpt.ibm2-rf-zn.tm-train.fr2en.gz: .............
+138698 lines read, 6117 entries kept.
+Done in 1s
+Using fixPruning with 30
+There are 13207 entries left after applying SOFT filtering
+Histogram before filtering
+  Count:1217 mean:11.3583 sdev: 23.8896
+  0+: 1217 
+Histogram after filtering
+  Count:1217 mean:10.8521 sdev: 21.279
+  0+: 1111 30+: 57 60+: 16 90+: 19 120+: 13 150+: 1 
+ ... done in 1s
+New config file is: canoe.ini.FILT
+Single-job-total: Real 4.010s User 1.820s Sys 0.132s PCPU 48.68%
+run_cmd finished (rc=0): filter_models -z -r -f canoe.ini -ttable-limit 30 -suffix .FILT -soft-limit multi.probs.dev1_fr.rule.30 < ../../corpora/dev1_fr.rule
+run_cmd rc=0 Max VMEM 0.071G Max RAM 0.009G
+
+Running decoder on Wed Apr 7 22:25:31 EDT 2010
+
+Starting 20767 on blz41 on Wed Apr 7 22:25:32 EDT 2010
+/home/larkins/sandboxes/quick.fix/bin/canoe-parallel.sh -lb -n 4 -no-lb canoe -v 1 -f canoe.ini.FILT -d 1:1:1:1:1:1:1 -w 0 -lm 1 -tm 1:1:1:1 -ftm 1:1:1:1 -nbest foos/foo.gz:100 -ffvals
+Using /home/larkins/sandboxes/quick.fix/bin/canoe
+
+NOT using load-balancing
+[Wed Apr  7 22:25:41 2010] starting (Primary blz41:413438.balzac) (1) test ! -f canoe-parallel.20767/input.0 || (cat canoe-parallel.20767/input.0 | time canoe -v 1 -f canoe.ini.FILT -d 1:1:1:1:1:1:1 -w 0 -lm 1 -tm 1:1:1:1 -ftm 1:1:1:1 -ffvals -first-sentnum 0 -nbest foos/foo.gz:100 > canoe-parallel.20767/out.0 2> canoe-parallel.20767/err.0 && rm canoe-parallel.20767/input.0) 
+[Wed Apr  7 22:25:41 2010] starting (Primary blz41:413438.balzac) (2) test ! -f canoe-parallel.20767/input.1 || (cat canoe-parallel.20767/input.1 | time canoe -v 1 -f canoe.ini.FILT -d 1:1:1:1:1:1:1 -w 0 -lm 1 -tm 1:1:1:1 -ftm 1:1:1:1 -ffvals -first-sentnum 14 -nbest foos/foo.gz:100 > canoe-parallel.20767/out.1 2> canoe-parallel.20767/err.1 && rm canoe-parallel.20767/input.1) 
+[Wed Apr  7 22:25:41 2010] starting (Primary blz41:413438.balzac) (3) test ! -f canoe-parallel.20767/input.2 || (cat canoe-parallel.20767/input.2 | time canoe -v 1 -f canoe.ini.FILT -d 1:1:1:1:1:1:1 -w 0 -lm 1 -tm 1:1:1:1 -ftm 1:1:1:1 -ffvals -first-sentnum 28 -nbest foos/foo.gz:100 > canoe-parallel.20767/out.2 2> canoe-parallel.20767/err.2 && rm canoe-parallel.20767/input.2) 
+[Wed Apr  7 22:25:41 2010] starting (Primary blz41:413438.balzac) (4) test ! -f canoe-parallel.20767/input.3 || (cat canoe-parallel.20767/input.3 | time canoe -v 1 -f canoe.ini.FILT -d 1:1:1:1:1:1:1 -w 0 -lm 1 -tm 1:1:1:1 -ftm 1:1:1:1 -ffvals -first-sentnum 42 -nbest foos/foo.gz:100 > canoe-parallel.20767/out.3 2> canoe-parallel.20767/err.3 && rm canoe-parallel.20767/input.3) 
+[Wed Apr  7 22:25:57 2010] 1/4 DONE (Primary blz41:413438.balzac) (rc=0) (2) test ! -f canoe-parallel.20767/input.1 || (cat canoe-parallel.20767/input.1 | time canoe -v 1 -f canoe.ini.FILT -d 1:1:1:1:1:1:1 -w 0 -lm 1 -tm 1:1:1:1 -ftm 1:1:1:1 -ffvals -first-sentnum 14 -nbest foos/foo.gz:100 > canoe-parallel.20767/out.1 2> canoe-parallel.20767/err.1 && rm canoe-parallel.20767/input.1)
+[Wed Apr  7 22:25:58 2010] 2/4 DONE (Primary blz41:413438.balzac) (rc=0) (4) test ! -f canoe-parallel.20767/input.3 || (cat canoe-parallel.20767/input.3 | time canoe -v 1 -f canoe.ini.FILT -d 1:1:1:1:1:1:1 -w 0 -lm 1 -tm 1:1:1:1 -ftm 1:1:1:1 -ffvals -first-sentnum 42 -nbest foos/foo.gz:100 > canoe-parallel.20767/out.3 2> canoe-parallel.20767/err.3 && rm canoe-parallel.20767/input.3)
+[Wed Apr  7 22:25:58 2010] 3/4 DONE (Primary blz41:413438.balzac) (rc=0) (1) test ! -f canoe-parallel.20767/input.0 || (cat canoe-parallel.20767/input.0 | time canoe -v 1 -f canoe.ini.FILT -d 1:1:1:1:1:1:1 -w 0 -lm 1 -tm 1:1:1:1 -ftm 1:1:1:1 -ffvals -first-sentnum 0 -nbest foos/foo.gz:100 > canoe-parallel.20767/out.0 2> canoe-parallel.20767/err.0 && rm canoe-parallel.20767/input.0)
+[Wed Apr  7 22:25:58 2010] 4/4 DONE (Primary blz41:413438.balzac) (rc=0) (3) test ! -f canoe-parallel.20767/input.2 || (cat canoe-parallel.20767/input.2 | time canoe -v 1 -f canoe.ini.FILT -d 1:1:1:1:1:1:1 -w 0 -lm 1 -tm 1:1:1:1 -ftm 1:1:1:1 -ffvals -first-sentnum 28 -nbest foos/foo.gz:100 > canoe-parallel.20767/out.2 2> canoe-parallel.20767/err.2 && rm canoe-parallel.20767/input.2)
+
+========== err.worker-0 ==========
+Run-parallel-worker-CPU=user1.49s+sys0.26s
+
+========== err.worker-1 ==========
+Run-parallel-worker-CPU=user1.39s+sys0.24s
+
+========== err.worker-2 ==========
+Run-parallel-worker-CPU=user1.36s+sys0.20s
+
+========== err.worker-3 ==========
+Run-parallel-worker-CPU=user1.40s+sys0.31s
+
+========== End ==========
+Exit status(es) from all jobs (in the order they finished): 0 0 0 0 
+RP-Totals: Wall time 25s CPU time 6.65s Max VMEM 0.088G Max RAM 0.010G
+
+==> block 0 output 14 lines <==
+==> STDERR from block 0 <==
+Reading input sentences.
+LM filtering with per sentence vocab(14)
+loading phrase table from multi.probs.dev1_fr.rule.30.FILT.gz: .
+13207 lines read, 7920 entries kept.
+Done in 0s
+Warning: 26092 0 or negative probabilities found in multi.probs.dev1_fr.rule.30.FILT.gz - treated as missing entries
+opening text lexicalized distortion models/ldm/ldm.hmm3+ibm2.fr2en.gz
+loading lexicalized distortion model from models/ldm/ldm.hmm3+ibm2.fr2en.gz: ............................................
+444385 lines read, 7283 entries kept.
+Done in 1s
+loading language model from models/lm/lm-train_en-kn-5g.binlm.gz
+........Kept 15277 of 42109 nodes.  Done in 0s.
+Loaded data structures in 5 seconds.
+
+Features of the log-linear model used, in order:
+1	DistortionModel:WordDisplacement
+2	DistortionModel:back-lex#m
+3	DistortionModel:back-lex#s
+4	DistortionModel:back-lex#d
+5	DistortionModel:fwd-lex#m
+6	DistortionModel:fwd-lex#s
+7	DistortionModel:fwd-lex#d
+8	LengthFeature
+9	LanguageModel:models/lm/lm-train_en-kn-5g.binlm.gz;SimpleAutoVoc
+10	TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=0)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=1)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=2)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=3)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=4)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=5)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=6)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=7)
+
+
+Including forward translation probs in future score calculation.
+Translating 14 sentences...............Translated 14 sentences in 10 seconds.
+Overall LM hits:
+Found k-grams: 0:1494( 2%) 1:32481(40%) 2:36671(45%) 3:8382(10%) 4:1552( 2%) 5:709( 1%) Total: 81289
+
+cmd: canoe -v 1 -f canoe.ini.FILT -d 1:1:1:1:1:1:1 -w 0 -lm 1 -tm 1:1:1:1 -ftm 1:1:1:1 -ffvals -first-sentnum 0 -nbest foos/foo.gz:100
+real: 15.92
+user: 1.46
+sys: 0.24
+
+
+==> block 1 output 14 lines <==
+==> STDERR from block 1 <==
+Reading input sentences.
+LM filtering with per sentence vocab(14)
+loading phrase table from multi.probs.dev1_fr.rule.30.FILT.gz: .
+13207 lines read, 5464 entries kept.
+Done in 0s
+Warning: 18388 0 or negative probabilities found in multi.probs.dev1_fr.rule.30.FILT.gz - treated as missing entries
+opening text lexicalized distortion models/ldm/ldm.hmm3+ibm2.fr2en.gz
+loading lexicalized distortion model from models/ldm/ldm.hmm3+ibm2.fr2en.gz: ............................................
+444385 lines read, 5059 entries kept.
+Done in 1s
+loading language model from models/lm/lm-train_en-kn-5g.binlm.gz
+........Kept 13274 of 42109 nodes.  Done in 0s.
+Loaded data structures in 5 seconds.
+
+Features of the log-linear model used, in order:
+1	DistortionModel:WordDisplacement
+2	DistortionModel:back-lex#m
+3	DistortionModel:back-lex#s
+4	DistortionModel:back-lex#d
+5	DistortionModel:fwd-lex#m
+6	DistortionModel:fwd-lex#s
+7	DistortionModel:fwd-lex#d
+8	LengthFeature
+9	LanguageModel:models/lm/lm-train_en-kn-5g.binlm.gz;SimpleAutoVoc
+10	TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=0)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=1)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=2)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=3)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=4)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=5)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=6)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=7)
+
+
+Including forward translation probs in future score calculation.
+Translating 14 sentences...............Translated 14 sentences in 9 seconds.
+Overall LM hits:
+Found k-grams: 0:461( 1%) 1:23730(45%) 2:23488(45%) 3:4682( 9%) 4:350( 1%) 5:34( 0%) Total: 52745
+
+cmd: canoe -v 1 -f canoe.ini.FILT -d 1:1:1:1:1:1:1 -w 0 -lm 1 -tm 1:1:1:1 -ftm 1:1:1:1 -ffvals -first-sentnum 14 -nbest foos/foo.gz:100
+real: 15.49
+user: 1.39
+sys: 0.27
+
+
+==> block 2 output 14 lines <==
+==> STDERR from block 2 <==
+Reading input sentences.
+LM filtering with per sentence vocab(14)
+loading phrase table from multi.probs.dev1_fr.rule.30.FILT.gz: .
+13207 lines read, 5867 entries kept.
+Done in 0s
+Warning: 19452 0 or negative probabilities found in multi.probs.dev1_fr.rule.30.FILT.gz - treated as missing entries
+opening text lexicalized distortion models/ldm/ldm.hmm3+ibm2.fr2en.gz
+loading lexicalized distortion model from models/ldm/ldm.hmm3+ibm2.fr2en.gz: ............................................
+444385 lines read, 5399 entries kept.
+Done in 1s
+loading language model from models/lm/lm-train_en-kn-5g.binlm.gz
+........Kept 13960 of 42109 nodes.  Done in 0s.
+Loaded data structures in 5 seconds.
+
+Features of the log-linear model used, in order:
+1	DistortionModel:WordDisplacement
+2	DistortionModel:back-lex#m
+3	DistortionModel:back-lex#s
+4	DistortionModel:back-lex#d
+5	DistortionModel:fwd-lex#m
+6	DistortionModel:fwd-lex#s
+7	DistortionModel:fwd-lex#d
+8	LengthFeature
+9	LanguageModel:models/lm/lm-train_en-kn-5g.binlm.gz;SimpleAutoVoc
+10	TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=0)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=1)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=2)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=3)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=4)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=5)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=6)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=7)
+
+
+Including forward translation probs in future score calculation.
+Translating 14 sentences...............Translated 14 sentences in 9 seconds.
+Overall LM hits:
+Found k-grams: 0:705( 1%) 1:24020(42%) 2:24569(43%) 3:5948(10%) 4:1333( 2%) 5:976( 2%) Total: 57551
+
+cmd: canoe -v 1 -f canoe.ini.FILT -d 1:1:1:1:1:1:1 -w 0 -lm 1 -tm 1:1:1:1 -ftm 1:1:1:1 -ffvals -first-sentnum 28 -nbest foos/foo.gz:100
+real: 16.01
+user: 1.37
+sys: 0.20
+
+
+==> block 3 output 14 lines <==
+==> STDERR from block 3 <==
+Reading input sentences.
+LM filtering with per sentence vocab(14)
+loading phrase table from multi.probs.dev1_fr.rule.30.FILT.gz: .
+13207 lines read, 4940 entries kept.
+Done in 0s
+Warning: 16456 0 or negative probabilities found in multi.probs.dev1_fr.rule.30.FILT.gz - treated as missing entries
+opening text lexicalized distortion models/ldm/ldm.hmm3+ibm2.fr2en.gz
+loading lexicalized distortion model from models/ldm/ldm.hmm3+ibm2.fr2en.gz: ............................................
+444385 lines read, 4562 entries kept.
+Done in 1s
+loading language model from models/lm/lm-train_en-kn-5g.binlm.gz
+........Kept 13069 of 42109 nodes.  Done in 0s.
+Loaded data structures in 5 seconds.
+
+Features of the log-linear model used, in order:
+1	DistortionModel:WordDisplacement
+2	DistortionModel:back-lex#m
+3	DistortionModel:back-lex#s
+4	DistortionModel:back-lex#d
+5	DistortionModel:fwd-lex#m
+6	DistortionModel:fwd-lex#s
+7	DistortionModel:fwd-lex#d
+8	LengthFeature
+9	LanguageModel:models/lm/lm-train_en-kn-5g.binlm.gz;SimpleAutoVoc
+10	TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=0)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=1)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=2)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=3)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=4)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=5)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=6)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=7)
+
+
+Including forward translation probs in future score calculation.
+Translating 14 sentences...............Translated 14 sentences in 9 seconds.
+Overall LM hits:
+Found k-grams: 0:1001( 2%) 1:19909(47%) 2:16724(40%) 3:3277( 8%) 4:588( 1%) 5:673( 2%) Total: 42172
+
+cmd: canoe -v 1 -f canoe.ini.FILT -d 1:1:1:1:1:1:1 -w 0 -lm 1 -tm 1:1:1:1 -ftm 1:1:1:1 -ffvals -first-sentnum 42 -nbest foos/foo.gz:100
+real: 15.70
+user: 1.34
+sys: 0.19
+
+
+Done 20767 on blz41 on Wed Apr 7 22:26:05 EDT 2010
+
+Master-Wall-Time 34s
+
+bleumain, NRC-CNRC, (c) 2004 - 2010, Her Majesty in Right of Canada
+
+Current weight vector: -d 1:1:1:1:1:1:1 -w 0 -lm 1 -tm 1:1:1:1 -ftm 1:1:1:1
+bleumain foos/transfile ../../corpora/dev1_en.lc
+
+bleumain, NRC-CNRC, (c) 2004 - 2010, Her Majesty in Right of Canada
+
+1-gram (match/total) 560/976 0.57377
+2-gram (match/total) 265/920 0.288043
+3-gram (match/total) 157/865 0.181503
+4-gram (match/total) 98/814 0.120393
+Sentence length: 976; Best-match sentence length: 864
+Score: -1.40591
+BLEU score: 0.245143
+Human readable value: 24.51
+
+2 iteration(s) remaining.
+
+Producing n-best lists on Wed Apr 7 22:26:06 EDT 2010
+........................................................
+Single-job-total: Real 42.482s User 1.140s Sys 1.928s PCPU 7.22%
+Total size of n-best list -- previous: 0; current: 3281.
+
+Preparing to run rescore_train on Wed Apr 7 22:26:48 EDT 2010
+Single-job-total: Real 2.979s User 0.172s Sys 0.572s PCPU 24.97%
+Running rescore_train on Wed Apr 7 22:26:51 EDT 2010
+Wed Apr  7 22:26:51 EDT 2010
+rescore_train -v -bleu             -s 0 -wi foos/powellweights.tmp.0 -wo foos/powellweights.tmp.1          -win 3              -dyn -n           foos/curmodel.orig foos/curmodel.tmp ../../corpora/dev1_fr.rule foos/alltargets ../../corpora/dev1_en.lc
+
+rescore_train, NRC-CNRC, (c) 2004 - 2010, Her Majesty in Right of Canada
+
+Compiled openmp
+Using 4 threads.
+Set OMP_NUM_THREADS=N to change to N threads.
+SCORE TYPE: BLEU
+initializing feature FileFF with arg: [foos/allffvals,1]
+initializing feature FileFF with arg: [foos/allffvals,2]
+initializing feature FileFF with arg: [foos/allffvals,3]
+initializing feature FileFF with arg: [foos/allffvals,4]
+initializing feature FileFF with arg: [foos/allffvals,5]
+initializing feature FileFF with arg: [foos/allffvals,6]
+initializing feature FileFF with arg: [foos/allffvals,7]
+initializing feature FileFF with arg: [foos/allffvals,8]
+initializing feature FileFF with arg: [foos/allffvals,9]
+initializing feature FileFF with arg: [foos/allffvals,10]
+initializing feature FileFF with arg: [foos/allffvals,11]
+initializing feature FileFF with arg: [foos/allffvals,12]
+initializing feature FileFF with arg: [foos/allffvals,13]
+initializing feature FileFF with arg: [foos/allffvals,14]
+initializing feature FileFF with arg: [foos/allffvals,15]
+initializing feature FileFF with arg: [foos/allffvals,16]
+initializing feature FileFF with arg: [foos/allffvals,17]
+|------------------------------------+------------------------------------|
+...........................................................................
+Done loading in 0 seconds
+Calling Powell with initial wts=[17](1.04349,0.543602,1.25222,-0.876923,-0.236759,-0.0407342,-0.925306,-0.8205,-0.548426,-0.278022,1.48568,-1.13247,-0.808698,-0.289443,-0.633032,-0.259201,-0.171369)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](224.693,2002.66,-16122,2162.87,2165.03,16492,137.991,2508.24,6756.1,-4840.21,-195.408,-111.295,4447.59,-1337.79,111.098,-2902.01,-5470.98)
+Score: 0.287982 in 0 seconds
+Calling Powell with initial wts=[17](-0.696519,-1.09639,-1.2768,-1.09071,-0.728939,-0.257612,-1.03407,1.26316,0.597997,0.266244,0.209141,0.391336,0.401883,1.46851,1.44307,-0.53394,-0.0176487)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](-3.65837,-1.08229,-207.063,-2.11955,-13.6726,19.5804,-27.8842,52.1488,101.013,37.37,-4.99673,-49.2394,4.92515,-47.6673,-8.83577,-14.3817,-56.495)
+Score: 0.286948 in 0 seconds
+Calling Powell with initial wts=[17](1.64467,0.20644,0.783128,0.310432,-0.920544,1.03689,1.52222,0.0750841,0.316664,-0.0973965,-0.951967,-0.337049,-0.948448,-0.755899,-2.74264,-0.401181,1.21353)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](-1.23306,0.100377,-3.52537,0.310741,-0.203884,2.69402,1.49902,1.0323,0.416813,-0.20437,0.708625,-0.600278,-1.0103,0.378803,-2.53559,-0.415754,1.21663)
+Score: 0.287058 in 0 seconds
+Calling Powell with initial wts=[17](0.220262,1.12234,-0.572049,-1.081,0.380238,1.45939,2.52779,0.871975,-0.85605,1.70403,1.20856,-0.335027,-0.443671,3.15097,0.354374,0.385996,-0.977861)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](26.3663,-6.41287,-108.946,-49.01,48.8507,261.059,64.3005,74.0278,362.468,-159.516,118.7,79.4458,60.2883,-44.4955,-19.1557,-2.33276,-172.8)
+Score: 0.287281 in 0 seconds
+Calling Powell with initial wts=[17](-0.348848,0.011009,0.0569066,-0.340957,2.29444,0.776099,-1.0138,-0.265914,0.685805,-1.5727,-0.489163,0.363609,-0.577257,0.292093,-0.759331,0.112754,-0.426066)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](2.9953,-0.751218,-4.02147,-0.759375,3.6729,1.9806,-0.63009,-0.316584,2.16148,-1.67503,-0.506027,0.372452,-0.59542,-0.00639128,-0.854296,-1.02822,-0.512439)
+Score: 0.286024 in 0 seconds
+Calling Powell with initial wts=[17](-0.826402,-0.465812,1.04325,0.701398,0.596928,-0.518167,-1.79017,0.0569718,2.13729,-0.142998,-0.768677,0.0270126,1.05156,-2.35908,1.0901,-0.125677,-0.684097)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](0.374763,-0.590957,-14.2533,10.4358,-1.43398,-0.289245,-6.29872,2.72609,8.36749,-1.04948,-0.11994,-0.333369,0.611294,-3.75042,-5.99569,1.16505,-0.332751)
+Score: 0.286154 in 0 seconds
+Calling Powell with initial wts=[17](-0.0644871,0.593267,0.552265,-1.7007,0.49083,-0.172191,0.858254,-0.0998634,-0.127779,0.0340342,-0.342756,0.467932,-0.639574,0.733435,1.78653,1.23703,-1.24336)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](160.576,-5585.49,-36353,-3826.44,-1481.27,3195.6,-3572.49,15074.4,42496.7,16046.7,-6716.32,-16495.4,68806.5,-20381,2757.8,-109.743,-18978.5)
+Score: 0.285093 in 0 seconds
+Calling Powell with initial wts=[17](0.771188,0.931711,0.0399401,0.520435,0.00169914,-1.22097,-0.127866,-1.3124,0.274975,2.22716,-0.0759628,-0.864214,0.501966,-0.923073,1.03057,-0.81898,-2.12576)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](0.0161711,0.00383914,-51.7573,18.4226,11.3249,18.6545,5.82842,7.18035,20.5548,-15.8557,-1.86813,0.446846,-2.45798,-2.60403,0.0788141,-1.18648,-19.4241)
+Score: 0.288407 in 0 seconds
+Calling Powell with initial wts=[17](-0.850667,0.465253,-0.202028,0.800616,-0.619915,0.0269803,-0.524651,-0.924311,0.419199,-2.28008,0.158237,1.54289,-1.97372,-0.119974,-0.551339,-2.99026,-0.458542)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](-5.90996,-12.3956,-153.874,75.6127,359.985,51.7488,364.783,14.626,194.05,-151.06,-12.0572,35.3067,-6.71023,-52.0933,-132.57,-2.90522,10.3406)
+Score: 0.287164 in 0 seconds
+Calling Powell with initial wts=[17](0.44554,0.380242,-0.512978,-0.216722,0.074964,-2.95837,0.224932,0.672676,0.830269,0.508047,-0.0121192,-1.39543,-0.711088,-1.90666,-2.22786,-0.971055,0.502179)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](-1.45068,-0.439423,-3.84211,1.67288,1.28389,-0.272319,0.913736,0.624198,5.76156,-0.807435,-0.453504,-2.53033,0.540828,-2.79509,-2.35112,-1.04574,1.95088)
+Score: 0.287179 in 0 seconds
+Calling Powell with initial wts=[17](0.765338,0.734702,0.362722,0.291993,-0.582067,-0.958011,-0.0219871,-0.299564,0.145532,1.61773,-0.212198,-0.407329,1.71606,-0.879238,-0.393357,1.03235,0.356848)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](-0.0293017,0.0364839,-9.04745,5.67705,1.99358,2.7618,-5.93278,2.35072,17.3813,-2.36992,0.398713,-3.505,8.24393,-6.69824,1.93334,0.318708,-14.1877)
+Score: 0.287002 in 0 seconds
+Calling Powell with initial wts=[17](-1.42486,-0.248793,0.862754,-0.665806,-0.0534301,0.257375,1.51992,-0.630908,-1.95136,0.561997,-1.06694,0.0225485,-1.34286,0.0691421,0.826941,0.109685,-0.321299)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](-143.754,563.566,-2323.9,1716.53,3099.31,5139.52,1415.17,3611.95,4811.5,-1731.26,-2051.5,-609.197,4895.52,-2034.5,98.5612,-711.498,-3637.79)
+Score: 0.289552 in 0 seconds
+Calling Powell with initial wts=[17](-2.78394,-0.58533,-1.22349,1.24247,0.920871,0.313006,0.169234,0.74745,0.641115,-1.39901,-0.223247,-0.182252,0.66563,-1.20199,-0.807699,-0.892135,-0.856194)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](-1.07882,-0.77599,-2.34419,1.72274,0.908456,2.29112,0.00375536,0.8792,3.53204,-1.55769,-0.0318397,-0.460398,0.128341,-1.3007,-2.27154,-0.57003,-0.905958)
+Score: 0.288927 in 0 seconds
+Calling Powell with initial wts=[17](0.493785,-2.06497,-1.62831,0.478133,-2.80503,-1.48938,1.02408,-0.808494,0.0853067,-0.455658,-2.05424,0.775187,-0.422245,0.188378,-0.135695,0.951117,-1.10194)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](4.6346,-152.932,-999.872,-102.852,-41.6814,98.4496,-90.2304,358.198,1110.44,622.403,-283.319,-594.42,-176.739,-302.615,-155.876,-10.5605,-508.49)
+Score: 0.284530 in 0 seconds
+Calling Powell with initial wts=[17](-0.829375,-0.488492,0.431351,-0.0227186,-1.37943,1.14079,0.0801443,2.94391,-0.317946,0.451518,0.0659791,0.560197,-0.110628,0.77194,-0.518142,-0.0649097,0.139842)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](-0.11798,23.5698,-22.7763,17.4119,1.24238,12.9993,6.94481,12.5823,5.21537,-0.911765,-1.0674,0.560248,7.89811,3.54298,-0.458296,0.0314791,0.155973)
+Score: 0.285479 in 0 seconds
+Calling Powell with initial wts=[17](-1.22127,0.392544,-0.463975,0.114683,0.456555,0.683837,1.16508,0.0578129,0.597328,-1.17153,1.14205,0.653488,0.249723,-1.69259,0.0719162,0.803527,0.206564)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](26.896,204.99,-1167.22,373.469,-36.9159,1447.27,-461.882,671.464,1511.95,-248.932,-83.772,-243.332,728.904,-718.831,-49.7823,-234.567,-1043.13)
+Score: 0.288891 in 0 seconds
+Calling Powell with initial wts=[17](-1.08914,0.211087,1.38071,0.564708,0.223626,0.333108,-0.0506812,-0.038111,-0.415004,1.08289,0.449584,0.261241,-0.386709,-0.206291,-1.85752,-1.1237,0.910002)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](0.227053,29.1673,-33.9858,45.0224,18.129,-11.4067,18.5052,32.4268,72.8503,-47.1409,29.1552,21.6647,-5.78697,-1.05633,-54.6292,1.11574,1.21706)
+Score: 0.288177 in 0 seconds
+Calling Powell with initial wts=[17](0.306448,1.76883,-0.204718,-0.262017,0.100259,0.479051,-1.1257,2.17674,0.76527,-0.403419,0.285896,-0.426909,0.0407069,-0.456025,-0.746624,0.164453,-1.55923)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](0.407222,0.106005,-2.81079,-0.871508,0.57319,-0.447423,-0.467296,1.55694,1.85719,-1.28545,-0.144658,-0.615739,-0.15322,-0.575376,-0.768411,-0.637188,-1.56429)
+Score: 0.288961 in 0 seconds
+Calling Powell with initial wts=[17](1.63893,-1.10808,0.503631,-0.0150266,-0.0189655,-1.16793,-0.510339,-0.909737,-0.225299,0.215889,1.38788,0.0871861,-1.26089,-0.642609,-0.359066,0.681787,-0.0596507)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](56.4464,1512.02,-32199.4,1755.67,1312.09,11515.6,-747.406,2321.83,6841.28,-220.314,-5312.45,-2916.82,5244.6,-1764.45,-1983.32,-43.0615,-5325.08)
+Score: 0.288174 in 0 seconds
+Calling Powell with initial wts=[17](-0.0523422,-0.352973,0.767849,-0.22988,0.009929,0.306264,-0.677896,-2.48339,-2.56449,-0.0603367,-0.899311,1.91956,1.0184,-1.10706,0.481791,-1.50375,-0.368746)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](3540.04,3920.53,-12854.8,-967.653,4332.55,8568.14,43.6907,3877.38,4982.6,-2766.02,-572.326,-3.64305,6679.49,1770.1,322.521,-288.538,388.77)
+Score: 0.285515 in 0 seconds
+Calling Powell with initial wts=[17](0.13186,-0.285708,-1.28624,0.297495,0.934304,-0.716964,0.00319889,-1.46588,0.711821,-0.908632,-1.36333,-1.40454,1.34632,-1.08404,-0.803815,-0.694807,-0.158703)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](-0.360029,0.381041,-0.58934,0.498147,0.301299,-1.25418,-0.382599,-0.837105,0.769742,-0.96914,-1.50278,-1.47222,1.31912,-1.16206,-0.822414,-0.627841,-0.938479)
+Score: 0.286021 in 0 seconds
+Calling Powell with initial wts=[17](1.53787,-0.344777,-1.20642,0.173279,0.919981,-0.12092,-2.01205,0.593615,-1.35998,-1.34761,-0.205772,0.547286,0.819608,0.569787,-0.163859,-1.58929,-1.53347)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](-128.097,709.588,-6133.58,198.75,718.279,2306.28,1123.94,1845.07,2113,-680.321,-678.128,-147.243,1312.25,-162.427,-1820.91,-684.581,-13.4774)
+Score: 0.288800 in 0 seconds
+Calling Powell with initial wts=[17](-0.24384,-0.927354,0.673523,-1.1716,0.422996,0.333256,-2.40139,-0.661772,0.648322,-0.150385,0.0656823,-1.20461,1.00073,0.589271,0.231895,1.32062,-0.525148)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](1.48243,2.92379,-4.65272,1.73565,0.289143,-0.351156,-2.4409,-0.457979,18.9008,-3.58477,5.88036,1.26166,0.980677,0.17031,0.216818,0.98285,-0.489556)
+Score: 0.284088 in 0 seconds
+Calling Powell with initial wts=[17](0.975191,-2.30985,-1.33549,0.629139,-0.968428,0.268372,0.803703,0.802451,-1.82626,-0.0813103,-0.317628,-0.675018,-0.149866,1.35171,-1.09079,-0.514464,-0.163809)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](10.1993,27.036,-21.0908,40.9799,18.9022,17.9354,7.42806,36.5016,43.9813,-17.7591,21.943,-4.242,5.57587,4.68383,-26.5278,-14.2535,-0.477883)
+Score: 0.288961 in 0 seconds
+Best weight vector found in 0 seconds
+Best score: 0.289552
+Using normalized wts=[17](-0.0279704,0.109654,-0.452162,0.333986,0.603034,1,0.275351,0.70278,0.936176,-0.336853,-0.399161,-0.118532,0.952525,-0.395854,0.0191771,-0.138437,-0.707807)
+Single-job-total: Real 1.109s User 1.708s Sys 0.092s PCPU 100.00%
+run_cmd finished (rc=0): rescore_train -v -bleu             -s 0 -wi foos/powellweights.tmp.0 -wo foos/powellweights.tmp.1          -win 3              -dyn -n           foos/curmodel.orig foos/curmodel.tmp ../../corpora/dev1_fr.rule foos/alltargets ../../corpora/dev1_en.lc
+run_cmd rc=0 Max VMEM 0.069G Max RAM 0.008G
+Files foos/curmodel and foos/curmodel.tmp differ
+
+Running decoder on Wed Apr 7 22:26:53 EDT 2010
+
+Starting 22509 on blz41 on Wed Apr 7 22:26:53 EDT 2010
+/home/larkins/sandboxes/quick.fix/bin/canoe-parallel.sh -lb -n 4 -no-lb canoe -v 1 -f canoe.ini.FILT -d -0.02797039784:0.1096535027:-0.452162236:0.3339864314:0.6030341983:1:0.2753509283 -w 0.7027795911 -lm 0.9361762404 -tm -0.3368528783:-0.3991613984:-0.1185318902:0.9525250196 -ftm -0.3958541751:0.0191771239:-0.1384366453:-0.7078067064 -nbest foos/foo.gz:100 -ffvals
+Using /home/larkins/sandboxes/quick.fix/bin/canoe
+
+NOT using load-balancing
+[Wed Apr  7 22:26:55 2010] starting (Primary blz41:413438.balzac) (1) test ! -f canoe-parallel.22509/input.0 || (cat canoe-parallel.22509/input.0 | time canoe -v 1 -f canoe.ini.FILT -d -0.02797039784:0.1096535027:-0.452162236:0.3339864314:0.6030341983:1:0.2753509283 -w 0.7027795911 -lm 0.9361762404 -tm -0.3368528783:-0.3991613984:-0.1185318902:0.9525250196 -ftm -0.3958541751:0.0191771239:-0.1384366453:-0.7078067064 -ffvals -first-sentnum 0 -nbest foos/foo.gz:100 > canoe-parallel.22509/out.0 2> canoe-parallel.22509/err.0 && rm canoe-parallel.22509/input.0) 
+[Wed Apr  7 22:26:55 2010] starting (Primary blz41:413438.balzac) (2) test ! -f canoe-parallel.22509/input.1 || (cat canoe-parallel.22509/input.1 | time canoe -v 1 -f canoe.ini.FILT -d -0.02797039784:0.1096535027:-0.452162236:0.3339864314:0.6030341983:1:0.2753509283 -w 0.7027795911 -lm 0.9361762404 -tm -0.3368528783:-0.3991613984:-0.1185318902:0.9525250196 -ftm -0.3958541751:0.0191771239:-0.1384366453:-0.7078067064 -ffvals -first-sentnum 14 -nbest foos/foo.gz:100 > canoe-parallel.22509/out.1 2> canoe-parallel.22509/err.1 && rm canoe-parallel.22509/input.1) 
+[Wed Apr  7 22:26:55 2010] starting (Primary blz41:413438.balzac) (3) test ! -f canoe-parallel.22509/input.2 || (cat canoe-parallel.22509/input.2 | time canoe -v 1 -f canoe.ini.FILT -d -0.02797039784:0.1096535027:-0.452162236:0.3339864314:0.6030341983:1:0.2753509283 -w 0.7027795911 -lm 0.9361762404 -tm -0.3368528783:-0.3991613984:-0.1185318902:0.9525250196 -ftm -0.3958541751:0.0191771239:-0.1384366453:-0.7078067064 -ffvals -first-sentnum 28 -nbest foos/foo.gz:100 > canoe-parallel.22509/out.2 2> canoe-parallel.22509/err.2 && rm canoe-parallel.22509/input.2) 
+[Wed Apr  7 22:26:55 2010] starting (Primary blz41:413438.balzac) (4) test ! -f canoe-parallel.22509/input.3 || (cat canoe-parallel.22509/input.3 | time canoe -v 1 -f canoe.ini.FILT -d -0.02797039784:0.1096535027:-0.452162236:0.3339864314:0.6030341983:1:0.2753509283 -w 0.7027795911 -lm 0.9361762404 -tm -0.3368528783:-0.3991613984:-0.1185318902:0.9525250196 -ftm -0.3958541751:0.0191771239:-0.1384366453:-0.7078067064 -ffvals -first-sentnum 42 -nbest foos/foo.gz:100 > canoe-parallel.22509/out.3 2> canoe-parallel.22509/err.3 && rm canoe-parallel.22509/input.3) 
+[Wed Apr  7 22:27:33 2010] 1/4 DONE (Primary blz41:413438.balzac) (rc=0) (4) test ! -f canoe-parallel.22509/input.3 || (cat canoe-parallel.22509/input.3 | time canoe -v 1 -f canoe.ini.FILT -d -0.02797039784:0.1096535027:-0.452162236:0.3339864314:0.6030341983:1:0.2753509283 -w 0.7027795911 -lm 0.9361762404 -tm -0.3368528783:-0.3991613984:-0.1185318902:0.9525250196 -ftm -0.3958541751:0.0191771239:-0.1384366453:-0.7078067064 -ffvals -first-sentnum 42 -nbest foos/foo.gz:100 > canoe-parallel.22509/out.3 2> canoe-parallel.22509/err.3 && rm canoe-parallel.22509/input.3)
+[Wed Apr  7 22:27:43 2010] 2/4 DONE (Primary blz41:413438.balzac) (rc=0) (2) test ! -f canoe-parallel.22509/input.1 || (cat canoe-parallel.22509/input.1 | time canoe -v 1 -f canoe.ini.FILT -d -0.02797039784:0.1096535027:-0.452162236:0.3339864314:0.6030341983:1:0.2753509283 -w 0.7027795911 -lm 0.9361762404 -tm -0.3368528783:-0.3991613984:-0.1185318902:0.9525250196 -ftm -0.3958541751:0.0191771239:-0.1384366453:-0.7078067064 -ffvals -first-sentnum 14 -nbest foos/foo.gz:100 > canoe-parallel.22509/out.1 2> canoe-parallel.22509/err.1 && rm canoe-parallel.22509/input.1)
+[Wed Apr  7 22:27:47 2010] 3/4 DONE (Primary blz41:413438.balzac) (rc=0) (3) test ! -f canoe-parallel.22509/input.2 || (cat canoe-parallel.22509/input.2 | time canoe -v 1 -f canoe.ini.FILT -d -0.02797039784:0.1096535027:-0.452162236:0.3339864314:0.6030341983:1:0.2753509283 -w 0.7027795911 -lm 0.9361762404 -tm -0.3368528783:-0.3991613984:-0.1185318902:0.9525250196 -ftm -0.3958541751:0.0191771239:-0.1384366453:-0.7078067064 -ffvals -first-sentnum 28 -nbest foos/foo.gz:100 > canoe-parallel.22509/out.2 2> canoe-parallel.22509/err.2 && rm canoe-parallel.22509/input.2)
+[Wed Apr  7 22:27:58 2010] 4/4 DONE (Primary blz41:413438.balzac) (rc=0) (1) test ! -f canoe-parallel.22509/input.0 || (cat canoe-parallel.22509/input.0 | time canoe -v 1 -f canoe.ini.FILT -d -0.02797039784:0.1096535027:-0.452162236:0.3339864314:0.6030341983:1:0.2753509283 -w 0.7027795911 -lm 0.9361762404 -tm -0.3368528783:-0.3991613984:-0.1185318902:0.9525250196 -ftm -0.3958541751:0.0191771239:-0.1384366453:-0.7078067064 -ffvals -first-sentnum 0 -nbest foos/foo.gz:100 > canoe-parallel.22509/out.0 2> canoe-parallel.22509/err.0 && rm canoe-parallel.22509/input.0)
+
+========== err.worker-0 ==========
+Run-parallel-worker-CPU=user48.73s+sys2.42s
+
+========== err.worker-1 ==========
+Run-parallel-worker-CPU=user44.58s+sys2.18s
+
+========== err.worker-2 ==========
+Run-parallel-worker-CPU=user59.11s+sys2.91s
+
+========== err.worker-3 ==========
+Run-parallel-worker-CPU=user34.71s+sys1.89s
+
+========== End ==========
+Exit status(es) from all jobs (in the order they finished): 0 0 0 0 
+RP-Totals: Wall time 65s CPU time 196.53s Max VMEM 0.141G Max RAM 0.075G
+
+==> block 0 output 14 lines <==
+==> STDERR from block 0 <==
+Reading input sentences.
+LM filtering with per sentence vocab(14)
+loading phrase table from multi.probs.dev1_fr.rule.30.FILT.gz: .
+13207 lines read, 7920 entries kept.
+Done in 0s
+Warning: 26092 0 or negative probabilities found in multi.probs.dev1_fr.rule.30.FILT.gz - treated as missing entries
+opening text lexicalized distortion models/ldm/ldm.hmm3+ibm2.fr2en.gz
+loading lexicalized distortion model from models/ldm/ldm.hmm3+ibm2.fr2en.gz: ............................................
+444385 lines read, 7283 entries kept.
+Done in 1s
+loading language model from models/lm/lm-train_en-kn-5g.binlm.gz
+........Kept 15277 of 42109 nodes.  Done in 0s.
+Loaded data structures in 2 seconds.
+
+Features of the log-linear model used, in order:
+1	DistortionModel:WordDisplacement
+2	DistortionModel:back-lex#m
+3	DistortionModel:back-lex#s
+4	DistortionModel:back-lex#d
+5	DistortionModel:fwd-lex#m
+6	DistortionModel:fwd-lex#s
+7	DistortionModel:fwd-lex#d
+8	LengthFeature
+9	LanguageModel:models/lm/lm-train_en-kn-5g.binlm.gz;SimpleAutoVoc
+10	TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=0)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=1)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=2)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=3)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=4)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=5)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=6)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=7)
+
+
+Including forward translation probs in future score calculation.
+Translating 14 sentences...............Translated 14 sentences in 61 seconds.
+Overall LM hits:
+Found k-grams: 0:108350( 1%) 1:8580589(92%) 2:628744( 7%) 3:19646( 0%) 4:1356( 0%) 5:153( 0%) Total: 9.33884e+06
+
+cmd: canoe -v 1 -f canoe.ini.FILT -d -0.02797039784:0.1096535027:-0.452162236:0.3339864314:0.6030341983:1:0.2753509283 -w 0.7027795911 -lm 0.9361762404 -tm -0.3368528783:-0.3991613984:-0.1185318902:0.9525250196 -ftm -0.3958541751:0.0191771239:-0.1384366453:-0.7078067064 -ffvals -first-sentnum 0 -nbest foos/foo.gz:100
+real: 62.96
+user: 59.09
+sys: 2.85
+
+
+==> block 1 output 14 lines <==
+==> STDERR from block 1 <==
+Reading input sentences.
+LM filtering with per sentence vocab(14)
+loading phrase table from multi.probs.dev1_fr.rule.30.FILT.gz: .
+13207 lines read, 5464 entries kept.
+Done in 0s
+Warning: 18388 0 or negative probabilities found in multi.probs.dev1_fr.rule.30.FILT.gz - treated as missing entries
+opening text lexicalized distortion models/ldm/ldm.hmm3+ibm2.fr2en.gz
+loading lexicalized distortion model from models/ldm/ldm.hmm3+ibm2.fr2en.gz: ............................................
+444385 lines read, 5059 entries kept.
+Done in 1s
+loading language model from models/lm/lm-train_en-kn-5g.binlm.gz
+........Kept 13274 of 42109 nodes.  Done in 0s.
+Loaded data structures in 2 seconds.
+
+Features of the log-linear model used, in order:
+1	DistortionModel:WordDisplacement
+2	DistortionModel:back-lex#m
+3	DistortionModel:back-lex#s
+4	DistortionModel:back-lex#d
+5	DistortionModel:fwd-lex#m
+6	DistortionModel:fwd-lex#s
+7	DistortionModel:fwd-lex#d
+8	LengthFeature
+9	LanguageModel:models/lm/lm-train_en-kn-5g.binlm.gz;SimpleAutoVoc
+10	TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=0)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=1)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=2)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=3)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=4)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=5)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=6)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=7)
+
+
+Including forward translation probs in future score calculation.
+Translating 14 sentences...............Translated 14 sentences in 46 seconds.
+Overall LM hits:
+Found k-grams: 0:74925( 1%) 1:6423161(90%) 2:600291( 8%) 3:11074( 0%) 4:438( 0%) 5:4( 0%) Total: 7.10989e+06
+
+cmd: canoe -v 1 -f canoe.ini.FILT -d -0.02797039784:0.1096535027:-0.452162236:0.3339864314:0.6030341983:1:0.2753509283 -w 0.7027795911 -lm 0.9361762404 -tm -0.3368528783:-0.3991613984:-0.1185318902:0.9525250196 -ftm -0.3958541751:0.0191771239:-0.1384366453:-0.7078067064 -ffvals -first-sentnum 14 -nbest foos/foo.gz:100
+real: 47.84
+user: 44.55
+sys: 2.17
+
+
+==> block 2 output 14 lines <==
+==> STDERR from block 2 <==
+Reading input sentences.
+LM filtering with per sentence vocab(14)
+loading phrase table from multi.probs.dev1_fr.rule.30.FILT.gz: .
+13207 lines read, 5867 entries kept.
+Done in 0s
+Warning: 19452 0 or negative probabilities found in multi.probs.dev1_fr.rule.30.FILT.gz - treated as missing entries
+opening text lexicalized distortion models/ldm/ldm.hmm3+ibm2.fr2en.gz
+loading lexicalized distortion model from models/ldm/ldm.hmm3+ibm2.fr2en.gz: ............................................
+444385 lines read, 5399 entries kept.
+Done in 1s
+loading language model from models/lm/lm-train_en-kn-5g.binlm.gz
+........Kept 13960 of 42109 nodes.  Done in 0s.
+Loaded data structures in 2 seconds.
+
+Features of the log-linear model used, in order:
+1	DistortionModel:WordDisplacement
+2	DistortionModel:back-lex#m
+3	DistortionModel:back-lex#s
+4	DistortionModel:back-lex#d
+5	DistortionModel:fwd-lex#m
+6	DistortionModel:fwd-lex#s
+7	DistortionModel:fwd-lex#d
+8	LengthFeature
+9	LanguageModel:models/lm/lm-train_en-kn-5g.binlm.gz;SimpleAutoVoc
+10	TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=0)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=1)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=2)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=3)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=4)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=5)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=6)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=7)
+
+
+Including forward translation probs in future score calculation.
+Translating 14 sentences...............Translated 14 sentences in 50 seconds.
+Overall LM hits:
+Found k-grams: 0:51919( 1%) 1:7097620(91%) 2:624984( 8%) 3:34259( 0%) 4:895( 0%) 5:294( 0%) Total: 7.80997e+06
+
+cmd: canoe -v 1 -f canoe.ini.FILT -d -0.02797039784:0.1096535027:-0.452162236:0.3339864314:0.6030341983:1:0.2753509283 -w 0.7027795911 -lm 0.9361762404 -tm -0.3368528783:-0.3991613984:-0.1185318902:0.9525250196 -ftm -0.3958541751:0.0191771239:-0.1384366453:-0.7078067064 -ffvals -first-sentnum 28 -nbest foos/foo.gz:100
+real: 52.02
+user: 48.69
+sys: 2.40
+
+
+==> block 3 output 14 lines <==
+==> STDERR from block 3 <==
+Reading input sentences.
+LM filtering with per sentence vocab(14)
+loading phrase table from multi.probs.dev1_fr.rule.30.FILT.gz: .
+13207 lines read, 4940 entries kept.
+Done in 0s
+Warning: 16456 0 or negative probabilities found in multi.probs.dev1_fr.rule.30.FILT.gz - treated as missing entries
+opening text lexicalized distortion models/ldm/ldm.hmm3+ibm2.fr2en.gz
+loading lexicalized distortion model from models/ldm/ldm.hmm3+ibm2.fr2en.gz: ............................................
+444385 lines read, 4562 entries kept.
+Done in 1s
+loading language model from models/lm/lm-train_en-kn-5g.binlm.gz
+........Kept 13069 of 42109 nodes.  Done in 0s.
+Loaded data structures in 2 seconds.
+
+Features of the log-linear model used, in order:
+1	DistortionModel:WordDisplacement
+2	DistortionModel:back-lex#m
+3	DistortionModel:back-lex#s
+4	DistortionModel:back-lex#d
+5	DistortionModel:fwd-lex#m
+6	DistortionModel:fwd-lex#s
+7	DistortionModel:fwd-lex#d
+8	LengthFeature
+9	LanguageModel:models/lm/lm-train_en-kn-5g.binlm.gz;SimpleAutoVoc
+10	TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=0)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=1)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=2)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=3)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=4)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=5)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=6)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=7)
+
+
+Including forward translation probs in future score calculation.
+Translating 14 sentences...............Translated 14 sentences in 36 seconds.
+Overall LM hits:
+Found k-grams: 0:75647( 1%) 1:4945590(91%) 2:385920( 7%) 3:18147( 0%) 4:1300( 0%) 5:395( 0%) Total: 5.427e+06
+
+cmd: canoe -v 1 -f canoe.ini.FILT -d -0.02797039784:0.1096535027:-0.452162236:0.3339864314:0.6030341983:1:0.2753509283 -w 0.7027795911 -lm 0.9361762404 -tm -0.3368528783:-0.3991613984:-0.1185318902:0.9525250196 -ftm -0.3958541751:0.0191771239:-0.1384366453:-0.7078067064 -ffvals -first-sentnum 42 -nbest foos/foo.gz:100
+real: 37.75
+user: 34.68
+sys: 1.86
+
+
+Done 22509 on blz41 on Wed Apr 7 22:27:59 EDT 2010
+
+Master-Wall-Time 66s
+
+bleumain, NRC-CNRC, (c) 2004 - 2010, Her Majesty in Right of Canada
+
+Current weight vector: -d -0.02797039784:0.1096535027:-0.452162236:0.3339864314:0.6030341983:1:0.2753509283 -w 0.7027795911 -lm 0.9361762404 -tm -0.3368528783:-0.3991613984:-0.1185318902:0.9525250196 -ftm -0.3958541751:0.0191771239:-0.1384366453:-0.7078067064
+bleumain foos/transfile ../../corpora/dev1_en.lc
+
+bleumain, NRC-CNRC, (c) 2004 - 2010, Her Majesty in Right of Canada
+
+1-gram (match/total) 119/1046 0.113767
+2-gram (match/total) 18/990 0.0181818
+3-gram (match/total) 2/935 0.00213904
+4-gram (match/total) 0/883 0
+Sentence length: 1046; Best-match sentence length: 864
+Score: -20.3515
+BLEU score: 0.000000
+Human readable value: 0.00
+
+1 iteration(s) remaining.
+
+Producing n-best lists on Wed Apr 7 22:27:59 EDT 2010
+........................................................
+Single-job-total: Real 9.954s User 1.172s Sys 2.008s PCPU 31.95%
+Total size of n-best list -- previous: 3281; current: 8461.
+
+Preparing to run rescore_train on Wed Apr 7 22:28:09 EDT 2010
+Single-job-total: Real 2.502s User 0.168s Sys 0.644s PCPU 32.45%
+Running rescore_train on Wed Apr 7 22:28:12 EDT 2010
+Wed Apr  7 22:28:12 EDT 2010
+rescore_train -v -bleu             -s 1 -wi foos/powellweights.tmp.1 -wo foos/powellweights.tmp.2          -win 3              -dyn -n           foos/curmodel.orig foos/curmodel.tmp ../../corpora/dev1_fr.rule foos/alltargets ../../corpora/dev1_en.lc
+
+rescore_train, NRC-CNRC, (c) 2004 - 2010, Her Majesty in Right of Canada
+
+Compiled openmp
+Using 4 threads.
+Set OMP_NUM_THREADS=N to change to N threads.
+SCORE TYPE: BLEU
+initializing feature FileFF with arg: [foos/allffvals,1]
+initializing feature FileFF with arg: [foos/allffvals,2]
+initializing feature FileFF with arg: [foos/allffvals,3]
+initializing feature FileFF with arg: [foos/allffvals,4]
+initializing feature FileFF with arg: [foos/allffvals,5]
+initializing feature FileFF with arg: [foos/allffvals,6]
+initializing feature FileFF with arg: [foos/allffvals,7]
+initializing feature FileFF with arg: [foos/allffvals,8]
+initializing feature FileFF with arg: [foos/allffvals,9]
+initializing feature FileFF with arg: [foos/allffvals,10]
+initializing feature FileFF with arg: [foos/allffvals,11]
+initializing feature FileFF with arg: [foos/allffvals,12]
+initializing feature FileFF with arg: [foos/allffvals,13]
+initializing feature FileFF with arg: [foos/allffvals,14]
+initializing feature FileFF with arg: [foos/allffvals,15]
+initializing feature FileFF with arg: [foos/allffvals,16]
+initializing feature FileFF with arg: [foos/allffvals,17]
+|------------------------------------+------------------------------------|
+...........................................................................
+Done loading in 1 seconds
+Calling Powell with initial wts=[17](-143.754,563.566,-2323.9,1716.53,3099.31,5139.52,1415.17,3611.95,4811.5,-1731.26,-2051.5,-609.197,4895.52,-2034.5,98.5612,-711.498,-3637.79)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](39948.1,192158,-6321.68,99283.5,170486,39437.4,80313.8,149487,304529,110260,14178,-124893,162703,13794.1,92669,31439.8,133589)
+Score: 0.280460 in 0 seconds
+Calling Powell with initial wts=[17](0.407222,0.106005,-2.81079,-0.871508,0.57319,-0.447423,-0.467296,1.55694,1.85719,-1.28545,-0.144658,-0.615739,-0.15322,-0.575376,-0.768411,-0.637188,-1.56429)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](0.859045,18.6538,0.604731,12.8787,1.0158,2.24979,2.24795,-2.1925,28.2679,-7.86768,-4.63657,3.15941,22.6561,4.10238,-1.02115,-1.44788,2.623)
+Score: 0.282233 in 0 seconds
+Calling Powell with initial wts=[17](10.1993,27.036,-21.0908,40.9799,18.9022,17.9354,7.42806,36.5016,43.9813,-17.7591,21.943,-4.242,5.57587,4.68383,-26.5278,-14.2535,-0.477883)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](22.3691,334.856,-58.1154,287.468,29.0126,85.3744,70.0845,47.4435,324.706,541.226,-62.8883,-234.71,118.088,-8.89935,2.46125,-10.19,65.8199)
+Score: 0.281209 in 0 seconds
+Calling Powell with initial wts=[17](1.00051,0.565152,1.19826,-0.813848,-0.253395,-0.0208537,-0.877489,-0.800276,-1.17104,-1.57718,0.889385,-1.09412,-1.34757,-0.171883,-0.342603,-0.279262,-0.305103)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](656.321,3483.83,1176.49,227.204,257.397,1288.55,139.991,115.521,2904,-89.7387,21.9096,-125.891,2158.44,1633.59,430.85,1354.48,-240.971)
+Score: 0.279757 in 0 seconds
+Calling Powell with initial wts=[17](-0.663473,-1.13129,-1.21442,-1.01214,-0.780283,-0.140297,-0.999084,1.2571,1.18123,1.50678,0.12333,0.38036,0.673953,0.891588,0.780903,-0.575317,-0.0323825)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](-3.66812,38.5065,-3.12118,-1.72953,-6.11773,-0.920173,1.81826,12.2999,48.655,-11.4857,27.5142,-5.20513,107.767,14.5491,4.99111,34.8644,-3.71327)
+Score: 0.276162 in 0 seconds
+Calling Powell with initial wts=[17](-0.531533,-2.60094,-0.406424,0.723267,-0.921322,0.843359,1.28049,1.4468,-0.874935,-0.0338809,1.39836,0.645408,0.634422,1.16906,-2.80998,-1.03609,0.1334)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](1109.33,5012.41,689.17,-79.4178,2454.5,2191.21,5093.19,-781.945,48076.2,-3420.69,9375.4,682.687,6305.99,-1166.85,-4177.99,-4477.54,-196.173)
+Score: 0.281485 in 0 seconds
+Calling Powell with initial wts=[17](1.5704,1.02205,-0.882771,-2.5259,0.377255,-0.0209639,-2.74375,-1.15248,0.230596,0.796144,0.61202,-1.20068,-0.84659,0.0718057,0.477691,0.995344,1.54552)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](-671.79,-798.207,-173.319,-1196.46,-442.871,10524.9,-2993.3,1116.88,33847.2,2308.05,20195.7,515.799,-5902.76,-127.577,-8305.3,13763.9,-846.304)
+Score: 0.277895 in 0 seconds
+Calling Powell with initial wts=[17](-1.03669,-1.18828,0.677139,-0.597368,2.37022,-1.52667,-0.3306,-0.582604,0.137814,0.242202,-0.700212,0.0869274,-0.181107,-0.978765,-0.920335,0.129347,-1.78091)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](35198.6,158046,23125.7,34763.3,56472.7,98127.1,-9877.41,-174.543,1.08099e+06,8866.01,-29619.6,-146054,696725,549.332,165551,-224557,3404.46)
+Score: 0.283431 in 1 seconds
+Calling Powell with initial wts=[17](-1.48949,-0.327645,2.64283,-0.501029,0.138032,-1.68543,-0.383302,-1.55561,-1.15103,1.55267,1.58922,1.18621,-0.348088,0.0235934,-0.956728,0.105061,-1.94642)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](2013.44,10648.8,148.838,3115.6,5582.46,7154.37,5304.1,7409.02,9743.09,404.271,-66.5371,1224.88,-234.745,-60.7258,94.6461,-725.589,1162.4)
+Score: 0.280146 in 0 seconds
+Calling Powell with initial wts=[17](0.0449038,-0.314455,0.733717,0.19046,0.413355,0.392065,0.57564,0.0743384,0.141782,-0.868373,-0.443494,-0.733656,-0.882652,-0.473304,0.228945,-0.897536,0.91595)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](-12.0242,412.786,325.341,-14.5197,-36.642,-109.278,-11.0492,3.43212,286.788,-5.48009,197.934,-132.191,31.605,38.1524,72.8174,-91.5132,-54.4086)
+Score: 0.278976 in 0 seconds
+Calling Powell with initial wts=[17](-0.931086,-0.553268,0.00686213,-0.0762845,0.0223973,2.38713,-0.10844,0.981659,-0.0860432,-0.00226365,-2.1244,0.420474,1.09662,0.376375,0.396923,0.549235,1.52795)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](-231.463,382.756,-1486.39,822.887,24.0615,370.481,553.458,78.3429,265.817,30.1745,-10.2207,-132.515,802.405,-166.677,349.463,231.536,10.3297)
+Score: 0.273757 in 0 seconds
+Calling Powell with initial wts=[17](0.153402,-2.19579,0.920992,1.40554,1.04796,0.643024,0.911991,-1.42694,-0.496475,0.797817,-1.18608,0.883665,0.238006,0.0309089,0.157187,0.760463,-0.0494646)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](8.65038,72.6115,-8.61258,0.491397,-1.24387,22.376,-8.23592,4.34577,920.933,-42.6778,305.727,-118.561,68.5353,-132.625,-22.279,139.19,37.1066)
+Score: 0.282333 in 0 seconds
+Calling Powell with initial wts=[17](-0.48915,-1.78721,0.394874,0.797234,-0.123058,0.0041998,0.355561,1.03408,1.24125,-1.4481,1.22007,0.956775,0.490601,1.21897,0.596733,-0.387173,-1.12215)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](382.718,2360.28,8.26778,754.956,602.854,546.927,-425.022,1295.92,26871,-78.87,11139.1,-775.787,3830.21,3052,4710.03,257.381,-887.979)
+Score: 0.281518 in 0 seconds
+Calling Powell with initial wts=[17](2.40358,-0.247662,0.3897,0.529628,-0.563301,-1.09636,-0.425464,2.19386,0.736477,-0.357267,-0.498246,-0.665434,0.130841,0.351003,-0.482688,0.05898,-1.60979)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](-5.86357,-32.699,-216.64,95.5315,140.209,161.376,21.3083,18.8498,514.52,-148.577,222.158,16.7778,34.1034,44.254,-30.6989,-0.165902,72.4228)
+Score: 0.283431 in 0 seconds
+Calling Powell with initial wts=[17](-0.206966,-0.167255,0.0704699,0.50028,-0.166803,1.16286,-0.753926,0.575386,-0.85206,-1.71328,0.486011,0.567052,1.49864,-0.256349,-0.809512,-1.03789,-0.475733)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](324.335,2045.98,-76.8414,2199.03,1139.74,963.908,550.829,431.788,1660.87,-15.202,159.072,-325.834,522.588,30.2749,-35.4236,470.81,-71.1314)
+Score: 0.282797 in 0 seconds
+Calling Powell with initial wts=[17](-0.404234,1.06201,-2.6007,-0.920368,0.678138,0.814489,0.386593,0.220028,-0.460029,0.857485,-1.59119,0.595226,0.915437,1.50717,-0.147309,0.585213,1.2829)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](6.1753,6.31528,-7.47431,4.70176,-0.0832642,-0.334315,-0.236881,39.6267,196.505,307.878,-163.629,-3.93024,258.358,132.228,-16.7159,147.501,-7.63879)
+Score: 0.279550 in 0 seconds
+Calling Powell with initial wts=[17](1.24462,0.573052,-0.364476,-0.314339,-1.75897,1.60839,-0.672582,1.46313,2.13828,2.72216,-2.18348,-1.0421,-0.248221,-1.18001,-0.853615,-0.607196,-2.26226)
+Powell config: ftol=0.01, ftlearn=wts, always_use_general_linemax=0, randomize_feature_order=0
+Powell returned wts=[17](16313.7,66352.9,8239.74,3289.58,9443.15,38403.1,2319.35,8798.94,54948.5,-1355.29,-1618.15,-595.292,43033.5,22041.5,-3833.41,-21390.6,76229.7)
+Score: 0.265272 in 0 seconds
+Best weight vector found in 1 seconds
+Best score: 0.283431
+Using normalized wts=[17](0.0325615,0.146205,0.0213932,0.0321588,0.0522418,0.0907755,-0.00913739,-0.000161466,1,0.00820177,-0.0274005,-0.135111,0.644526,0.000508176,0.153148,-0.207733,0.0031494)
+Single-job-total: Real 2.542s User 4.736s Sys 0.112s PCPU 100.00%
+run_cmd finished (rc=0): rescore_train -v -bleu             -s 1 -wi foos/powellweights.tmp.1 -wo foos/powellweights.tmp.2          -win 3              -dyn -n           foos/curmodel.orig foos/curmodel.tmp ../../corpora/dev1_fr.rule foos/alltargets ../../corpora/dev1_en.lc
+run_cmd rc=0 Max VMEM 0.069G Max RAM 0.008G
+Files foos/curmodel and foos/curmodel.tmp differ
+
+Running decoder on Wed Apr 7 22:28:15 EDT 2010
+
+Starting 24254 on blz41 on Wed Apr 7 22:28:15 EDT 2010
+/home/larkins/sandboxes/quick.fix/bin/canoe-parallel.sh -lb -n 4 -no-lb canoe -v 1 -f canoe.ini.FILT -d 0.03256154805:0.1462052613:0.02139316127:0.03215884417:0.05224175751:0.09077545255:-0.009137394838 -w -0.0001614663488 -lm 1 -tm 0.008201771416:-0.02740049921:-0.1351113468:0.6445263624 -ftm 0.0005081757554:0.1531483084:-0.2077334821:0.003149398137 -nbest foos/foo.gz:100 -ffvals
+Using /home/larkins/sandboxes/quick.fix/bin/canoe
+
+NOT using load-balancing
+[Wed Apr  7 22:28:16 2010] starting (Primary blz41:413438.balzac) (1) test ! -f canoe-parallel.24254/input.0 || (cat canoe-parallel.24254/input.0 | time canoe -v 1 -f canoe.ini.FILT -d 0.03256154805:0.1462052613:0.02139316127:0.03215884417:0.05224175751:0.09077545255:-0.009137394838 -w -0.0001614663488 -lm 1 -tm 0.008201771416:-0.02740049921:-0.1351113468:0.6445263624 -ftm 0.0005081757554:0.1531483084:-0.2077334821:0.003149398137 -ffvals -first-sentnum 0 -nbest foos/foo.gz:100 > canoe-parallel.24254/out.0 2> canoe-parallel.24254/err.0 && rm canoe-parallel.24254/input.0) 
+[Wed Apr  7 22:28:16 2010] starting (Primary blz41:413438.balzac) (2) test ! -f canoe-parallel.24254/input.1 || (cat canoe-parallel.24254/input.1 | time canoe -v 1 -f canoe.ini.FILT -d 0.03256154805:0.1462052613:0.02139316127:0.03215884417:0.05224175751:0.09077545255:-0.009137394838 -w -0.0001614663488 -lm 1 -tm 0.008201771416:-0.02740049921:-0.1351113468:0.6445263624 -ftm 0.0005081757554:0.1531483084:-0.2077334821:0.003149398137 -ffvals -first-sentnum 14 -nbest foos/foo.gz:100 > canoe-parallel.24254/out.1 2> canoe-parallel.24254/err.1 && rm canoe-parallel.24254/input.1) 
+[Wed Apr  7 22:28:16 2010] starting (Primary blz41:413438.balzac) (3) test ! -f canoe-parallel.24254/input.2 || (cat canoe-parallel.24254/input.2 | time canoe -v 1 -f canoe.ini.FILT -d 0.03256154805:0.1462052613:0.02139316127:0.03215884417:0.05224175751:0.09077545255:-0.009137394838 -w -0.0001614663488 -lm 1 -tm 0.008201771416:-0.02740049921:-0.1351113468:0.6445263624 -ftm 0.0005081757554:0.1531483084:-0.2077334821:0.003149398137 -ffvals -first-sentnum 28 -nbest foos/foo.gz:100 > canoe-parallel.24254/out.2 2> canoe-parallel.24254/err.2 && rm canoe-parallel.24254/input.2) 
+[Wed Apr  7 22:28:16 2010] starting (Primary blz41:413438.balzac) (4) test ! -f canoe-parallel.24254/input.3 || (cat canoe-parallel.24254/input.3 | time canoe -v 1 -f canoe.ini.FILT -d 0.03256154805:0.1462052613:0.02139316127:0.03215884417:0.05224175751:0.09077545255:-0.009137394838 -w -0.0001614663488 -lm 1 -tm 0.008201771416:-0.02740049921:-0.1351113468:0.6445263624 -ftm 0.0005081757554:0.1531483084:-0.2077334821:0.003149398137 -ffvals -first-sentnum 42 -nbest foos/foo.gz:100 > canoe-parallel.24254/out.3 2> canoe-parallel.24254/err.3 && rm canoe-parallel.24254/input.3) 
+[Wed Apr  7 22:28:41 2010] 1/4 DONE (Primary blz41:413438.balzac) (rc=0) (4) test ! -f canoe-parallel.24254/input.3 || (cat canoe-parallel.24254/input.3 | time canoe -v 1 -f canoe.ini.FILT -d 0.03256154805:0.1462052613:0.02139316127:0.03215884417:0.05224175751:0.09077545255:-0.009137394838 -w -0.0001614663488 -lm 1 -tm 0.008201771416:-0.02740049921:-0.1351113468:0.6445263624 -ftm 0.0005081757554:0.1531483084:-0.2077334821:0.003149398137 -ffvals -first-sentnum 42 -nbest foos/foo.gz:100 > canoe-parallel.24254/out.3 2> canoe-parallel.24254/err.3 && rm canoe-parallel.24254/input.3)
+[Wed Apr  7 22:28:43 2010] 2/4 DONE (Primary blz41:413438.balzac) (rc=0) (3) test ! -f canoe-parallel.24254/input.2 || (cat canoe-parallel.24254/input.2 | time canoe -v 1 -f canoe.ini.FILT -d 0.03256154805:0.1462052613:0.02139316127:0.03215884417:0.05224175751:0.09077545255:-0.009137394838 -w -0.0001614663488 -lm 1 -tm 0.008201771416:-0.02740049921:-0.1351113468:0.6445263624 -ftm 0.0005081757554:0.1531483084:-0.2077334821:0.003149398137 -ffvals -first-sentnum 28 -nbest foos/foo.gz:100 > canoe-parallel.24254/out.2 2> canoe-parallel.24254/err.2 && rm canoe-parallel.24254/input.2)
+[Wed Apr  7 22:28:48 2010] 3/4 DONE (Primary blz41:413438.balzac) (rc=0) (2) test ! -f canoe-parallel.24254/input.1 || (cat canoe-parallel.24254/input.1 | time canoe -v 1 -f canoe.ini.FILT -d 0.03256154805:0.1462052613:0.02139316127:0.03215884417:0.05224175751:0.09077545255:-0.009137394838 -w -0.0001614663488 -lm 1 -tm 0.008201771416:-0.02740049921:-0.1351113468:0.6445263624 -ftm 0.0005081757554:0.1531483084:-0.2077334821:0.003149398137 -ffvals -first-sentnum 14 -nbest foos/foo.gz:100 > canoe-parallel.24254/out.1 2> canoe-parallel.24254/err.1 && rm canoe-parallel.24254/input.1)
+[Wed Apr  7 22:28:54 2010] 4/4 DONE (Primary blz41:413438.balzac) (rc=0) (1) test ! -f canoe-parallel.24254/input.0 || (cat canoe-parallel.24254/input.0 | time canoe -v 1 -f canoe.ini.FILT -d 0.03256154805:0.1462052613:0.02139316127:0.03215884417:0.05224175751:0.09077545255:-0.009137394838 -w -0.0001614663488 -lm 1 -tm 0.008201771416:-0.02740049921:-0.1351113468:0.6445263624 -ftm 0.0005081757554:0.1531483084:-0.2077334821:0.003149398137 -ffvals -first-sentnum 0 -nbest foos/foo.gz:100 > canoe-parallel.24254/out.0 2> canoe-parallel.24254/err.0 && rm canoe-parallel.24254/input.0)
+
+========== err.worker-0 ==========
+Run-parallel-worker-CPU=user28.78s+sys1.85s
+
+========== err.worker-1 ==========
+Run-parallel-worker-CPU=user22.63s+sys1.29s
+
+========== err.worker-2 ==========
+Run-parallel-worker-CPU=user23.94s+sys1.58s
+
+========== err.worker-3 ==========
+Run-parallel-worker-CPU=user34.57s+sys1.90s
+
+========== End ==========
+Exit status(es) from all jobs (in the order they finished): 0 0 0 0 
+RP-Totals: Wall time 39s CPU time 116.54s Max VMEM 0.100G Max RAM 0.011G
+
+==> block 0 output 14 lines <==
+==> STDERR from block 0 <==
+Reading input sentences.
+LM filtering with per sentence vocab(14)
+loading phrase table from multi.probs.dev1_fr.rule.30.FILT.gz: .
+13207 lines read, 7920 entries kept.
+Done in 0s
+Warning: 26092 0 or negative probabilities found in multi.probs.dev1_fr.rule.30.FILT.gz - treated as missing entries
+opening text lexicalized distortion models/ldm/ldm.hmm3+ibm2.fr2en.gz
+loading lexicalized distortion model from models/ldm/ldm.hmm3+ibm2.fr2en.gz: ............................................
+444385 lines read, 7283 entries kept.
+Done in 1s
+loading language model from models/lm/lm-train_en-kn-5g.binlm.gz
+........Kept 15277 of 42109 nodes.  Done in 1s.
+Loaded data structures in 2 seconds.
+
+Features of the log-linear model used, in order:
+1	DistortionModel:WordDisplacement
+2	DistortionModel:back-lex#m
+3	DistortionModel:back-lex#s
+4	DistortionModel:back-lex#d
+5	DistortionModel:fwd-lex#m
+6	DistortionModel:fwd-lex#s
+7	DistortionModel:fwd-lex#d
+8	LengthFeature
+9	LanguageModel:models/lm/lm-train_en-kn-5g.binlm.gz;SimpleAutoVoc
+10	TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=0)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=1)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=2)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=3)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=4)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=5)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=6)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=7)
+
+
+Including forward translation probs in future score calculation.
+Translating 14 sentences...............Translated 14 sentences in 35 seconds.
+Overall LM hits:
+Found k-grams: 0:154646( 2%) 1:3661970(42%) 2:4105924(47%) 3:719141( 8%) 4:77135( 1%) 5:21024( 0%) Total: 8.73984e+06
+
+cmd: canoe -v 1 -f canoe.ini.FILT -d 0.03256154805:0.1462052613:0.02139316127:0.03215884417:0.05224175751:0.09077545255:-0.009137394838 -w -0.0001614663488 -lm 1 -tm 0.008201771416:-0.02740049921:-0.1351113468:0.6445263624 -ftm 0.0005081757554:0.1531483084:-0.2077334821:0.003149398137 -ffvals -first-sentnum 0 -nbest foos/foo.gz:100
+real: 37.29
+user: 34.55
+sys: 1.86
+
+
+==> block 1 output 14 lines <==
+==> STDERR from block 1 <==
+Reading input sentences.
+LM filtering with per sentence vocab(14)
+loading phrase table from multi.probs.dev1_fr.rule.30.FILT.gz: .
+13207 lines read, 5464 entries kept.
+Done in 0s
+Warning: 18388 0 or negative probabilities found in multi.probs.dev1_fr.rule.30.FILT.gz - treated as missing entries
+opening text lexicalized distortion models/ldm/ldm.hmm3+ibm2.fr2en.gz
+loading lexicalized distortion model from models/ldm/ldm.hmm3+ibm2.fr2en.gz: ............................................
+444385 lines read, 5059 entries kept.
+Done in 1s
+loading language model from models/lm/lm-train_en-kn-5g.binlm.gz
+........Kept 13274 of 42109 nodes.  Done in 0s.
+Loaded data structures in 1 seconds.
+
+Features of the log-linear model used, in order:
+1	DistortionModel:WordDisplacement
+2	DistortionModel:back-lex#m
+3	DistortionModel:back-lex#s
+4	DistortionModel:back-lex#d
+5	DistortionModel:fwd-lex#m
+6	DistortionModel:fwd-lex#s
+7	DistortionModel:fwd-lex#d
+8	LengthFeature
+9	LanguageModel:models/lm/lm-train_en-kn-5g.binlm.gz;SimpleAutoVoc
+10	TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=0)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=1)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=2)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=3)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=4)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=5)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=6)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=7)
+
+
+Including forward translation probs in future score calculation.
+Translating 14 sentences...............Translated 14 sentences in 30 seconds.
+Overall LM hits:
+Found k-grams: 0:64087( 1%) 1:3098713(47%) 2:3055312(46%) 3:395198( 6%) 4:47923( 1%) 5:1091( 0%) Total: 6.66232e+06
+
+cmd: canoe -v 1 -f canoe.ini.FILT -d 0.03256154805:0.1462052613:0.02139316127:0.03215884417:0.05224175751:0.09077545255:-0.009137394838 -w -0.0001614663488 -lm 1 -tm 0.008201771416:-0.02740049921:-0.1351113468:0.6445263624 -ftm 0.0005081757554:0.1531483084:-0.2077334821:0.003149398137 -ffvals -first-sentnum 14 -nbest foos/foo.gz:100
+real: 31.27
+user: 28.76
+sys: 1.82
+
+
+==> block 2 output 14 lines <==
+==> STDERR from block 2 <==
+Reading input sentences.
+LM filtering with per sentence vocab(14)
+loading phrase table from multi.probs.dev1_fr.rule.30.FILT.gz: .
+13207 lines read, 5867 entries kept.
+Done in 0s
+Warning: 19452 0 or negative probabilities found in multi.probs.dev1_fr.rule.30.FILT.gz - treated as missing entries
+opening text lexicalized distortion models/ldm/ldm.hmm3+ibm2.fr2en.gz
+loading lexicalized distortion model from models/ldm/ldm.hmm3+ibm2.fr2en.gz: ............................................
+444385 lines read, 5399 entries kept.
+Done in 1s
+loading language model from models/lm/lm-train_en-kn-5g.binlm.gz
+........Kept 13960 of 42109 nodes.  Done in 0s.
+Loaded data structures in 1 seconds.
+
+Features of the log-linear model used, in order:
+1	DistortionModel:WordDisplacement
+2	DistortionModel:back-lex#m
+3	DistortionModel:back-lex#s
+4	DistortionModel:back-lex#d
+5	DistortionModel:fwd-lex#m
+6	DistortionModel:fwd-lex#s
+7	DistortionModel:fwd-lex#d
+8	LengthFeature
+9	LanguageModel:models/lm/lm-train_en-kn-5g.binlm.gz;SimpleAutoVoc
+10	TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=0)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=1)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=2)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=3)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=4)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=5)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=6)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=7)
+
+
+Including forward translation probs in future score calculation.
+Translating 14 sentences...............Translated 14 sentences in 25 seconds.
+Overall LM hits:
+Found k-grams: 0:53817( 1%) 1:2503438(41%) 2:3084366(50%) 3:439724( 7%) 4:59905( 1%) 5:6723( 0%) Total: 6.14797e+06
+
+cmd: canoe -v 1 -f canoe.ini.FILT -d 0.03256154805:0.1462052613:0.02139316127:0.03215884417:0.05224175751:0.09077545255:-0.009137394838 -w -0.0001614663488 -lm 1 -tm 0.008201771416:-0.02740049921:-0.1351113468:0.6445263624 -ftm 0.0005081757554:0.1531483084:-0.2077334821:0.003149398137 -ffvals -first-sentnum 28 -nbest foos/foo.gz:100
+real: 26.50
+user: 23.92
+sys: 1.56
+
+
+==> block 3 output 14 lines <==
+==> STDERR from block 3 <==
+Reading input sentences.
+LM filtering with per sentence vocab(14)
+loading phrase table from multi.probs.dev1_fr.rule.30.FILT.gz: .
+13207 lines read, 4940 entries kept.
+Done in 0s
+Warning: 16456 0 or negative probabilities found in multi.probs.dev1_fr.rule.30.FILT.gz - treated as missing entries
+opening text lexicalized distortion models/ldm/ldm.hmm3+ibm2.fr2en.gz
+loading lexicalized distortion model from models/ldm/ldm.hmm3+ibm2.fr2en.gz: ............................................
+444385 lines read, 4562 entries kept.
+Done in 1s
+loading language model from models/lm/lm-train_en-kn-5g.binlm.gz
+........Kept 13069 of 42109 nodes.  Done in 0s.
+Loaded data structures in 1 seconds.
+
+Features of the log-linear model used, in order:
+1	DistortionModel:WordDisplacement
+2	DistortionModel:back-lex#m
+3	DistortionModel:back-lex#s
+4	DistortionModel:back-lex#d
+5	DistortionModel:fwd-lex#m
+6	DistortionModel:fwd-lex#s
+7	DistortionModel:fwd-lex#d
+8	LengthFeature
+9	LanguageModel:models/lm/lm-train_en-kn-5g.binlm.gz;SimpleAutoVoc
+10	TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=0)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=1)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=2)
+TranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=3)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=4)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=5)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=6)
+ForwardTranslationModel:multi.probs.dev1_fr.rule.30.FILT.gz(col=7)
+
+
+Including forward translation probs in future score calculation.
+Translating 14 sentences...............Translated 14 sentences in 23 seconds.
+Overall LM hits:
+Found k-grams: 0:102986( 2%) 1:2522604(49%) 2:2191628(42%) 3:316067( 6%) 4:26772( 1%) 5:1662( 0%) Total: 5.16172e+06
+
+cmd: canoe -v 1 -f canoe.ini.FILT -d 0.03256154805:0.1462052613:0.02139316127:0.03215884417:0.05224175751:0.09077545255:-0.009137394838 -w -0.0001614663488 -lm 1 -tm 0.008201771416:-0.02740049921:-0.1351113468:0.6445263624 -ftm 0.0005081757554:0.1531483084:-0.2077334821:0.003149398137 -ffvals -first-sentnum 42 -nbest foos/foo.gz:100
+real: 24.84
+user: 22.61
+sys: 1.26
+
+
+Done 24254 on blz41 on Wed Apr 7 22:28:55 EDT 2010
+
+Master-Wall-Time 40s
+
+bleumain, NRC-CNRC, (c) 2004 - 2010, Her Majesty in Right of Canada
+
+Current weight vector: -d 0.03256154805:0.1462052613:0.02139316127:0.03215884417:0.05224175751:0.09077545255:-0.009137394838 -w -0.0001614663488 -lm 1 -tm 0.008201771416:-0.02740049921:-0.1351113468:0.6445263624 -ftm 0.0005081757554:0.1531483084:-0.2077334821:0.003149398137
+bleumain foos/transfile ../../corpora/dev1_en.lc
+
+bleumain, NRC-CNRC, (c) 2004 - 2010, Her Majesty in Right of Canada
+
+1-gram (match/total) 552/927 0.595469
+2-gram (match/total) 251/871 0.288175
+3-gram (match/total) 138/816 0.169118
+4-gram (match/total) 82/765 0.10719
+Sentence length: 927; Best-match sentence length: 864
+Score: -1.44323
+BLEU score: 0.236164
+Human readable value: 23.62
+
+Reached maximum number of iterations. Stopping.
+configtool -p set-weights:rescore-results canoe.ini.FILT canoe.ini.FILT.cow
+configtool -p set-weights:rescore-results canoe.ini canoe.ini.cow
+Done on Wed Apr 7 22:28:55 EDT 2010
+Master-Wall-Time 220s
