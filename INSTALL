@@ -60,6 +60,7 @@ run the software:
    tokenize.pl -h
    canoe -h
    ce.pl -h
+   tmx2lfl.pl -h
 These commands invoke programs that are each installed differently, and
 exercise the key parts of Portage 1.4 installation.  If everything is OK,
 each will give you usage information about the command.
@@ -78,6 +79,11 @@ ideally in your .<shell>rc file.  Your $PERL5LIB variable should include
 Portage1.4.2/lib.  That directory should also contain LexiTools.pm and a
 subdirectory called CE containing several .pm files.  If it doesn't, "make
 install" probably didn't complete successfully.
+
+If tmx2lfl.pl complains about not finding XML/Twig.pm, then XML::Twig is
+missing or is not installed correctly; see External dependencies below.  You
+can safely ignore this problem if you're not planning to work with TMX or TTX
+files.
 
 If canoe -h says "command not found" but the other two commands work:
  - with binary distributions, your $PATH variable must also include the
@@ -240,7 +246,7 @@ Optional dependencies for all distributions:
 
  - XML::Twig - this Perl module is used by tmx2lfl.pl to extract text out of
    TMX files.  It has a number of further dependencies that need to be
-   installed as well, and that shoudl be handled automatically by the following
+   installed as well, and that should be handled automatically by the following
    methods.
 
    If you're using yum or another Linux package manager, the easiest method is
