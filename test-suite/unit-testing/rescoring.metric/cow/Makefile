@@ -18,6 +18,7 @@ clean:
 	-${RM} canoe.ini.cow.*
 	-${RM} log.cow.*
 	-${RM} rescore-results.*
+	-${RM} run-parallel-logs-local
 
 .PHONY: cow 
 cow: bleu per wer

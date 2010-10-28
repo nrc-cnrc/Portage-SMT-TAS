@@ -27,6 +27,7 @@ all: testsuite
 .PHONY: clean
 clean:
 	${RM} run-parallel-logs-*
+	${RM} -r canoe-parallel.*
 
 
 ########################################
