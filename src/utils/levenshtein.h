@@ -21,9 +21,9 @@
 #ifndef LEVENSHTEIN_H
 #define LEVENSHTEIN_H
 
+#include <vector>  // include before portage_defs to avoid parse errors in klockwork
 #include "portage_defs.h"
 #include <boost/dynamic_bitset.hpp>
-#include <vector>
 #include <iostream>
 
 namespace Portage {

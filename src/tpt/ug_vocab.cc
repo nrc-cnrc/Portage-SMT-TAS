@@ -328,7 +328,7 @@ namespace ugdiss
     size_t lexcolwidth = min(count_type(60),mxStrLen);
     for (size_t i = writeSpecials ? 0 : 2; i < nIdx.size(); i++)
       {
-        iterator m = nIdx[i];
+        Vocab::iterator m = nIdx[i];
         if (noColumns)
           out  << m->second.first  << " "
                << m->first         << " "

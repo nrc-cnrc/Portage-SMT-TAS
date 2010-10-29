@@ -16,10 +16,10 @@
 #ifndef FEATUREFUNCTION_H
 #define FEATUREFUNCTION_H
 
+#include <vector>  // include before portage_defs to avoid parse errors in klockwork
 #include "portage_defs.h"
 #include "basic_data_structure.h"
 #include <string>
-#include <vector>
 
 // Guide to the perplexed: definitions of the following classes come from
 // "basic_data_structure.h", which is included from the eval module:

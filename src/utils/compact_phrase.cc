@@ -9,6 +9,7 @@
  * Copyright 2007, Her Majesty in Right of Canada
  */
 
+#include <vector>  // include before portage_defs to avoid parse errors in klockwork
 #include "portage_defs.h"
 #include "compact_phrase.h"
 #include <iostream>

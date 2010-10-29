@@ -13,11 +13,11 @@
  * Copyright 2007, Her Majesty in Right of Canada
  */
 
+#include <iterator>  // include before portage_defs to avoid parse errors in klockwork
 #include "number_mapper.h"
 #include "MagicStream.h"
 #include "str_utils.h"
 #include "arg_reader.h"
-#include <iterator>
 
 using namespace Portage;
 

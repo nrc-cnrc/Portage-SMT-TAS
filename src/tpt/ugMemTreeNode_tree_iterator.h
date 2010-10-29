@@ -36,7 +36,7 @@ namespace ugdiss
   tree_iterator
   {
   protected:
-    MemTreeNode* mRoot;
+    MemTreeNode<val_t,key_t>* mRoot;
     vector<typename MemTreeNode<val_t,key_t>::map_t::iterator> mPath;
   public:
     friend class MemTreeNode<val_t,key_t>;
