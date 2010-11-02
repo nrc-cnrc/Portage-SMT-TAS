@@ -11,6 +11,9 @@
 # Copyright 2009, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2009, Her Majesty in Right of Canada
 
+# Run in Bash 3.1 compatibility mode.
+shopt -s compat31 >& /dev/null || true
+
 if [[ $1 != -f || ! $2 ]]; then
    echo "Usage: qstat -f PSEUDO_JOBID
 

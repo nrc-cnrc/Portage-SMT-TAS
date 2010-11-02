@@ -119,5 +119,5 @@ test: check_make381
 
 .PHONY: check_make381
 check_make381:
-	@perl -e 'if ( '`make --version | egrep -o '[0-9]+\.[0-9]+'`' < 3.81 ) { print "Portage requires GNU make 3.81\n"; exit 1; }'
+	@perl -e 'if ( '`make --version | egrep -o -m 1 '[0-9]+\.[0-9]+'`' < 3.81 ) { print "Portage requires GNU make 3.81\n"; exit 1; }'
 

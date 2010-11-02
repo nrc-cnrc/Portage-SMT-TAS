@@ -142,7 +142,16 @@ void getArgs(int argc, const char* const argv[])
    arg_reader.testAndSet("maxiter", maxIter);
    arg_reader.testAndSet("n", numThreads);
   
-   arg_reader.testAndSet(0, "blocksize", blocksize);
+//   arg_reader.testAndSet(0, "blocksize", blocksize);
+   if( sizeof(blocksize) <= sizeof(unsigned int)) {
+      Uint bsize;
+      arg_reader.testAndSet(0, "blocksize", bsize);
+      blocksize = (size_t)bsize;
+   } else {
+      Uint64 bsize;
+      arg_reader.testAndSet(0, "blocksize", bsize);
+      blocksize = (size_t)bsize;
+   }
 }   
 
 

@@ -50,7 +50,7 @@ cpt: cpt.ibm2-${SMOOTHERS_DESC}.train.en2fr.gz
 
 multi: cpt.multi.ibm2-${M_SMOOTHERS_DESC}.train.en2fr.gz
 
-gen: out.jpt.ibm2.train.en-fr.gz
+gen: out.jpt.ibm2.train.en-fr
 
 prune1_2: cpt.ibm2-rf-prune1_2.train.en2fr.gz
 
@@ -97,7 +97,7 @@ cpt.multi.ibm2-${M_SMOOTHERS_DESC}.train.en2fr.gz: ibm2.train.fr_given_en.gz ibm
 		>& log.cpt.multi.ibm2-${M_SMOOTHERS_DESC}.train.en2fr
 	diff-round.pl -sort $@ ref/$@ -q
 
-out.jpt.ibm2.train.en-fr.gz: ibm2.train.fr_given_en.gz ibm2.train.en_given_fr.gz train_en.al train_fr.al
+out.jpt.ibm2.train.en-fr: ibm2.train.fr_given_en.gz ibm2.train.en_given_fr.gz train_en.al train_fr.al
 	${GEN_PHRASE_TABLES} \
 		-v -z -j -w 1 -m 8 -ibm 2 -1 en -2 fr $+ \
 		> $@ 2> log.out.jpt.ibm2.train.en-fr

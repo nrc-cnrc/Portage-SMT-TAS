@@ -35,6 +35,7 @@
  * istream.imbue(arpa_space);
  */
 class arpa_ctype : public std::ctype<char> {
+#ifndef Darwin
     mask my_table[UCHAR_MAX+1];
 public:
     arpa_ctype(size_t refs = 0)  
@@ -59,6 +60,15 @@ public:
         }
 #endif        
     }
+
+#else
+public:
+    bool is(mask m, char c) const {
+      if((m == space) && (c == '\v'))
+        return false;
+      return std::ctype<char>::is(m, c);
+    }
+#endif // !Darwin
 };
 
 #endif  // __ARPA_CTYPE_H__

@@ -28,6 +28,10 @@
 // #define IS_32_BIT (sizeof(unsigned long)==4)
 // #define IS_64_BIT (sizeof(unsigned long)==8)
 
+#if IN_PORTAGE
+#include "portage_defs.h"
+#endif  // IN_PORTAGE
+
 // ID_TYPE      is the integer type used for token ids
 // COUNT_TYPE   is the integer type used for token counts
 // FILEPOS_TYPE is the integer type used for file offsets

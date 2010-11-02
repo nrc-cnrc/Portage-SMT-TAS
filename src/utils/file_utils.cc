@@ -15,10 +15,14 @@
 #include <cerrno>
 #include <climits>
 #include <sys/stat.h>
+#include <cstdlib>
 
 #include "portage_defs.h"
 #include "file_utils.h"
 #include "errors.h"
+#ifdef Darwin
+#include <mach-o/dyld.h>
+#endif
 
 using namespace std;
 using namespace Portage;
@@ -165,12 +169,24 @@ string Portage::BaseName(const string& filename)
 
 string Portage::GetAppPath() {
    char program_path[PATH_MAX];
+#ifdef Darwin
+   program_path[0] = '\0';
+   char path[PATH_MAX+1];
+   uint32_t program_path_length = sizeof(path);
+   if (_NSGetExecutablePath(path, &program_path_length) != 0 ||
+       !realpath(path, program_path)) {
+      error(ETWarn, "Can't get real path for '%s': %s", path, strerror(errno));
+      return "";
+   }
+   program_path_length = strlen(program_path);
+#else
    ssize_t program_path_length = readlink("/proc/self/exe", program_path, PATH_MAX);
    if ( program_path_length < 0 ) {
       int errnum = errno;
       error(ETWarn, "Can't read /proc/self/exe link: %s", strerror(errnum));
       return "";
    }
+#endif
    assert( program_path_length < PATH_MAX );
    program_path[program_path_length] = '\0';
    return program_path;

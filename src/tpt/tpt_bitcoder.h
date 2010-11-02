@@ -22,7 +22,11 @@
 #include <cassert>
 #include <byteswap.h>
 #include <string>
+#ifdef Darwin
+#include <machine/endian.h>
+#else
 #include <endian.h>
+#endif
 #include "bitwise.h"
 #include "tpt_typedefs.h"
 
@@ -84,7 +88,7 @@ namespace ugdiss
       retval.second = (offset+numBits)%8;    // new offset
       retval.first = src+(offset+numBits)/8; // new "base pointer"
       
-#if __BYTE_ORDER==__LITTLE_ENDIAN
+#if (defined(__BYTE_ORDER) && __BYTE_ORDER == __LITTLE_ENDIAN) || (defined(BYTE_ORDER) && BYTE_ORDER == LITTLE_ENDIAN)
       dest = *reinterpret_cast<T const*>(src);
       switch (sizeof(T))
         {
@@ -123,7 +127,7 @@ namespace ugdiss
     {
       //cerr << "writeBits: x=" << x << " offset=" << offset << " numBits=" << numBits << endl;
       assert(numBits);
-#if __BYTE_ORDER==__LITTLE_ENDIAN
+#if (defined(__BYTE_ORDER) && __BYTE_ORDER == __LITTLE_ENDIAN) || (defined(BYTE_ORDER) && BYTE_ORDER == LITTLE_ENDIAN)
       // size_t btw = (numBits-1)/8; // bytes to write - 1
       unsigned char* p    = reinterpret_cast<unsigned char*>(&x)+(numBits-1)/8; 
       unsigned char* stop = reinterpret_cast<unsigned char*>(&x); // that's the little end

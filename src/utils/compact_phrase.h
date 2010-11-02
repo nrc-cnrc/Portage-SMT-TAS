@@ -180,7 +180,7 @@ class CompactPhrase {
       /// value at current position, if not end
       Uint current_val;
       /// Constructor for use by begin() and end() in owner class
-      const_iterator(const char* data) : pos(data) {
+      const_iterator(const char* data) : pos(data), current_val(0) {
          if ( data ) operator++();
       }
 

@@ -17,8 +17,7 @@
 
 -include Makefile.params
 
-SHELL = bash
-
+SHELL = bash -O compat31
 
 .PHONY: all
 all: testsuite

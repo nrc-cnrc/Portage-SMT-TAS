@@ -34,7 +34,7 @@ ibm2.fr_given_en.gz:
 	train_ibm -vr -s       \
 	  ibm1.fr_given_en.gz  \
 	  ibm2.fr_given_en.gz  \
-          ${TRAIN}
+          ${TRAIN} \
 	  >& log.train_ibm.fr_given_en
 
 ibm2.en_given_fr.gz:
@@ -42,7 +42,7 @@ ibm2.en_given_fr.gz:
 	train_ibm -v  -s       \
 	  ibm1.en_given_fr.gz  \
 	  ibm2.en_given_fr.gz  \
-          ${TRAIN}
+          ${TRAIN} \
 	  >& log.train_ibm.en_given_fr
 
 phrases-GT-KN.fr2en.gz: ibm2.fr_given_en.gz ibm2.en_given_fr.gz
@@ -52,11 +52,11 @@ phrases-GT-KN.fr2en.gz: ibm2.fr_given_en.gz ibm2.en_given_fr.gz
 	  -o phrases-GT-KN              \
 	  ibm2.en_given_fr.gz           \
 	  ibm2.fr_given_en.gz           \
-          ${TRAIN}
+          ${TRAIN} \
 	  >& log.gen_multi_prob_phrase_tables
 
 canoe.ini:
-	echo -e "[ttable-multi-prob] \n \
+	env echo -e "[ttable-multi-prob] \n \
 	phrases-GT-KN.fr2en.gz\n \
 	[lmodel-file]\n \
 	${LM}\n \

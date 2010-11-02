@@ -63,22 +63,22 @@ REF = This is a test .\n\xC9ric lives in Qu\xE9bec .
 SRC = this is a test . \n\xE9ric lives in qu\xE9bec . 
 
 src_cp1252:
-	echo -e "${SRC}" > $@
+	env echo -e "${SRC}" > $@
 
 ref_cp1252:
-	echo -e "${REF}" > $@
+	env echo -e "${REF}" > $@
 
 src_ucbos_cp1252:
-	echo -e "${SRC_UCBOS}" > $@
+	env echo -e "${SRC_UCBOS}" > $@
 
 ref_ucbos_cp1252:
-	echo -e "${REF_UCBOS}" > $@
+	env echo -e "${REF_UCBOS}" > $@
 
 ${LM}_cp1252:
-	echo -e "${REF}" | ngram-count -text - -order 3 -lm $@
+	env echo -e "${REF}" | ngram-count -text - -order 3 -lm $@
 
 ${MAP}_cp1252:
-	echo -e\
+	env echo -e\
 		"a\tA\t0.0273266569645544\ta\t0.972673343035446\n"\
 		"\xE9ric\t\xC9RIC\t0.0203383\t\xC9ric\t0.970669\t\xE9ric\t0.00521756\n"\
 		"is\tIS\t5.80701487396775e-05\tIs\t0.0248139752821408\tis\t0.975127954569119\n"\

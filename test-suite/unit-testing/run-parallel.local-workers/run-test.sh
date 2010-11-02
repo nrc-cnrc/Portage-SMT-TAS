@@ -12,5 +12,5 @@
 
 ./go.sh 2>&1 |
    egrep "(NOLOCAL|PBS_JOBID|JOB_VMEM|PARENT_VMEM|NCPUS|PARENT_NCPUS|LOCAL_JOBS|FIRST_PSUB|NUM)" |
-   diff ref -
+   diff -b ref -
 

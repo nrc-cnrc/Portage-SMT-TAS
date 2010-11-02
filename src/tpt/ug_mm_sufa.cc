@@ -24,10 +24,6 @@
 #include "tpt_tightindex.h"
 #include "tpt_utils.h"
 
-#ifdef CYGWIN
-typedef unsigned long ulong;
-#endif
-
 namespace ugdiss
 {
   using namespace std;

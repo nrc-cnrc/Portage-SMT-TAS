@@ -257,7 +257,19 @@ process_line(string const& line, ostream& tmp, vocab& V, size_t linectr)
     {
       vector<uint32_t> v;
       for (buf >> w; w != COLSEPWORD && !buf.eof(); buf >> w)
-	v.push_back(wid(w,V));
+      {
+#ifdef Darwin
+          // Work around for non-functioning buf.imbue(arpa_space) on Mac OS.
+          while(buf.peek() == '\v')
+            {
+              w += (char)buf.get();
+              string more;
+              buf >> more;
+              w += more;
+            }
+#endif
+        v.push_back(wid(w,V));
+      }
 
       if (buf.eof())
         cerr << efatal << "Format error in phrase table file:" << endl

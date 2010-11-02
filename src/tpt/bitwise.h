@@ -19,7 +19,11 @@
 
 #include <string>
 #include <vector>
+#ifdef Darwin
+#include <machine/endian.h>
+#else
 #include <endian.h>
+#endif
 #include <stdint.h>
 namespace ugdiss
 {
@@ -37,12 +41,12 @@ namespace ugdiss
     string buf;
     T x = _x;
     char* cx = reinterpret_cast<char*>(&x);
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+#if (defined(__BYTE_ORDER) && __BYTE_ORDER == __LITTLE_ENDIAN) || (defined(BYTE_ORDER) && BYTE_ORDER == LITTLE_ENDIAN)
     cx += sizeof(T)-1;
 #endif
     for (size_t i = 0; i < sizeof(T); i++)
       {
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+#if (defined(__BYTE_ORDER) && __BYTE_ORDER == __LITTLE_ENDIAN) || (defined(BYTE_ORDER) && BYTE_ORDER == LITTLE_ENDIAN)
 	char c = *(cx-i);
 	if (i) buf += (sizeof(T)==markbyte ? '|' : ' ');
 #else

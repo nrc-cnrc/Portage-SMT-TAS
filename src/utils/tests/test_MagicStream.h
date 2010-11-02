@@ -495,13 +495,11 @@ public:
       const unsigned int num_write(800);
       vector<char*> v;
       // Bloat the memory.
+      char *buf;
       do {
-         try {
-            v.push_back(new char[2000000000]);
-         } catch (std::bad_alloc& e) {
-            v.back() = NULL;
-         }
-      } while (v.back() != NULL);
+         if ((buf = new (nothrow) char[2000000000]))
+            v.push_back(buf);
+      } while (buf);
 
       log("Memory blocks: " + to_string(v.size()));
 

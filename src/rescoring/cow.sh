@@ -248,7 +248,7 @@ run_cmd() {
          MON_PID=$!
          eval time "$*"
          rc=$?
-         kill -10 $MON_PID
+         kill -USR1 $MON_PID
          echo "run_cmd finished (rc=$rc): $*"
          if [ -s "$MON_FILE" -a $(( `wc -l < $MON_FILE` > 1 )) ]; then
             MON_VSZ=`egrep -ho 'vsz: [0-9.]+G' $MON_FILE 2> /dev/null | egrep -o "[0-9.]+" | sum.pl -m`
@@ -741,11 +741,11 @@ while [[ 1 ]]; do
       # The above is done 4 ways parallel to speed up n-best list management,
       # but not too aggressively since we are parellelizing write operations.
 
-      # Check return value
-      RVAL=$?
-      if [[ $RVAL -ne 0 ]]; then
+         # Check return value
+         RVAL=$?
+         if [[ $RVAL -ne 0 ]]; then
          error_exit "parallel append-uniq.pl returned $RVAL"
-      fi
+         fi
 
       for((n=0;n<$S;++n))
       {
@@ -802,8 +802,8 @@ while [[ 1 ]]; do
          gzip -cqfd $WORKDIR/foo.${m}.duplicateFree$COMPRESS_EXT        | sed "s/^/$n\t/"
       } | gzip > $WORKDIR/$ALLTARGETS
       for((n=0;n<$S;++n))
-      {
-         m=`printf "%4.4d" $n`
+   {
+      m=`printf "%4.4d" $n`
          gzip -cqfd $WORKDIR/foo.${m}.duplicateFree.ffvals$COMPRESS_EXT | sed "s/^/$n\t/"
       } | gzip > $WORKDIR/$ALLFFVALS
    }

@@ -17,6 +17,12 @@
 
 #include <cassert>
 
+#include <sys/types.h>
+#if defined(Darwin) || defined(CYGWIN)
+typedef unsigned long ulong;
+#endif
+
+
 #ifdef INFINITY
 #undef INFINITY
 #endif

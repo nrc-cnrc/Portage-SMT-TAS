@@ -11,6 +11,8 @@
 #include "casemap_strings.h"
 #include "errors.h"
 #include <stdexcept>
+#include <cstring>
+#include <iostream>
 
 using namespace Portage;
 
@@ -35,9 +37,15 @@ CaseMapStrings::CaseMapStrings(const char* loc_name) :
    loc(NULL), utf8(NULL)
 {
    try {
-      if ( loc_name && loc_name[0] != '\0' )
+      if ( loc_name && loc_name[0] != '\0' ) {
+#ifdef Darwin
+         if ((strcmp(loc_name, "C") != 0) && (strcmp(loc_name, "POSIX") != 0)) {
+            error(ETFatal, "Locale name %s is not valid.  C++ locale class on Darwin supports only C and POSIX locals.", loc_name);
+            return;
+         }
+#endif
          loc = new locale(loc_name);
-      else
+      } else
          loc = new locale("POSIX");
       init();
    } catch (std::runtime_error& e) {

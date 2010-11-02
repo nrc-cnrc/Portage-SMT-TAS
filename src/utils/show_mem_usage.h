@@ -31,6 +31,7 @@ using namespace std;
 inline void showMemoryUsage() {
    try {
       const pid_t pid = getpid();
+#ifndef Darwin
       char file[32];
 
       cerr << "PID: " << pid << endl;
@@ -45,16 +46,33 @@ inline void showMemoryUsage() {
       ifstream stat(file);
       cerr << stat.rdbuf() << endl;
       stat.close();
-
+#else
+      char ps_cmd[32];
+      snprintf(ps_cmd, 31, "ps -v %d 1>&2'", pid);
+      cerr << ps_cmd << endl;
+      if ( system(ps_cmd) )
+         cerr << "System call failed - probably not enough memory to run it." << endl;
+#endif
       
-      char cmd[32];
-      snprintf(cmd, 31, "top -bn 1 -p %d 1>&2", pid);
+      char cmd[48];
+#ifndef Darwin
+      snprintf(cmd, 47, "top -bn 1 -p %d 1>&2", pid);
+#else
+      snprintf(cmd, 47, "top -l 1 | egrep '^ *((PID)|(%d)) 1>&2'", pid);
+#endif
       cerr << cmd << endl;
       if ( system(cmd) )
          cerr << "System call failed - probably not enough memory to run it." << endl;
+
+#ifndef Darwin
       cerr << "ps fuxww 1>&2" << endl;
       if ( system("ps fuxww 1>&2") )
          cerr << "System call failed - probably not enough memory to run it." << endl;
+#else
+      cerr << "ps uxww 1>&2" << endl;
+      if ( system("ps uxww 1>&2") )
+         cerr << "System call failed - probably not enough memory to run it." << endl;
+#endif
    } catch (std::bad_alloc& e) {
       cerr << "Caught std::bad_alloc (again!) - not enough memory to provide full troubleshooting information..." << endl;
    }

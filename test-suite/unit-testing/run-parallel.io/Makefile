@@ -48,3 +48,4 @@ dash_e:
 
 clean:
 	${RM} out err
+	${RM} -r run-p.*

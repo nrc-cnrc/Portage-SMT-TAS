@@ -87,7 +87,11 @@ endif
 # places to find things; include the -L flag, eg -L/my-other-lib-dir
 PORTAGE?=/home/portage
 OTHER_INC_DIRS = $(BOOST_INC_DIR) $(ICU_INC_DIR) -isystem$(PORTAGE)/include
+ifneq ($(OSTYPE),Darwin)
 OTHER_LIB_DIRS = $(BOOST_LIB_DIR) $(ICU_LIB_DIR) -L$(PORTAGE)/lib
+else
+OTHER_LIB_DIRS = -L/opt/local/lib -L/usr/lib $(BOOST_LIB_DIR) $(ICU_LIB_DIR)
+endif
 
 # lib and include directories due to MODULE_DEPENDS
 MODULE_LIB_DIR = $(foreach DIR, $(MODULE_DEPENDS), -L../$(DIR))
@@ -446,7 +450,12 @@ ifeq ($(OSTYPE),CYGWIN)
     # automagically get the .exe extension.
     INST_EX=install -s
 else
+ifeq ($(OSTYPE),Darwin)
+    # On Darwin, -s strips too much by default (need strip -x).
+    INST_EX=install -p
+else
     INST_EX=install -ps
+endif
 endif
 
 install_bin: $(PROGRAMS) $(DYNPROGS) $(BINSCRIPTS)

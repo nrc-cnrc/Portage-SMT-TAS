@@ -138,7 +138,7 @@ run_cmd() {
       MON_PID=$!
       eval time "$1"
       rc=$?
-      kill -10 $MON_PID
+      kill -USR1 $MON_PID
       echo "run_cmd finished (rc=$rc): $1"
       if [ -s "$MON_FILE" -a $(( `wc -l < $MON_FILE` > 1 )) ]; then
          MON_VSZ=`egrep -ho 'vsz: [0-9.]+G' $MON_FILE 2> /dev/null | egrep -o "[0-9.]+" | sum.pl -m`

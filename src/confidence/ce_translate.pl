@@ -307,6 +307,9 @@ $keep_dir = $dir if $debug;   # don't delete the directory in -debug mode.
 verbose("[Work directory: \"${dir}\"]\n");
 
 # File names
+my $ostype = `uname -s`;
+chomp $ostype;
+my $ci = ($ostype eq "Darwin") ? "l" : ""; # for case insensitive file systems
 
 my $Q_txt = "${dir}/Q.txt";     # Raw source text
 # --> preprocessor plugin
@@ -314,7 +317,7 @@ my $Q_pre = "${dir}/Q.pre";     # Pre-processed (pre-tokenization) source
 # --> tokenize
 my $Q_tok = "${dir}/Q.tok";     # Tokenized source
 # --> lowercase
-my $q_tok = "${dir}/q.tok";     # Lowercased tokenized source
+my $q_tok = "${dir}/q${ci}.tok";     # Lowercased tokenized source
 # --> predecoder plugin
 my $q_dec = "${dir}/q.dec";     # Decoder-ready source
 # --> decoding
@@ -322,7 +325,7 @@ my $p_raw = "${dir}/p.raw";     # Raw decoder output (with trace)
 # --> decoder output parsing
 my $p_dec = "${dir}/p.dec";     # Raw decoder translation
 # --> postdecoder plugin
-my $p_tok = "${dir}/p.tok";     # Post-processed decoder translation
+my $p_tok = "${dir}/p${ci}.tok";     # Post-processed decoder translation
 # --> truecasing
 my $P_tok = "${dir}/P.tok";     # Truecased tokenized translation
 # --> detokenization
@@ -336,7 +339,7 @@ my $R_pre = "${dir}/R.pre";     # Pre-processed (pre-tokenization) ref translati
 # --> tokenize
 my $R_tok = "${dir}/R.tok";     # Tokenized ref translation
 # --> lowercase
-my $r_tok = "${dir}/r.tok";     # Lowercased tokenized ref translation
+my $r_tok = "${dir}/r${ci}.tok";     # Lowercased tokenized ref translation
 
 my $T_txt = "${dir}/T.txt";     # Raw TMem target
 # --> preprocessor plugin
@@ -344,7 +347,7 @@ my $T_pre = "${dir}/T.pre";     # Pre-processed (pre-tokenization) TMem target
 # --> tokenize
 my $T_tok = "${dir}/T.tok";     # Tokenized TMem target
 # --> lowercase
-my $t_tok = "${dir}/t.tok";     # Lowercased tokenized TMem target
+my $t_tok = "${dir}/t${ci}.tok";     # Lowercased tokenized TMem target
 
 #Others:
 my $pr_ce = "${dir}/pr.ce";     # confidence estimation
@@ -537,7 +540,7 @@ sub sourceWordCount {
        $count_file = $Q_pre;
    }
 
-   my $cmd = "wc --words < \"${count_file}\"";
+   my $cmd = "wc -w < \"${count_file}\"";
    my $wc = callOutput($cmd);
    return $wc;
 }
@@ -620,7 +623,7 @@ sub cleanupAndDie {
     my ($message, @files) = @_;
 
     plogUpdate($plog_file, undef, 'failure');
-    unlink @files;
+    unlink @files unless $debug;
     die $message;
 }
 

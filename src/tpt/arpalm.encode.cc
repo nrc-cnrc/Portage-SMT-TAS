@@ -183,8 +183,8 @@ interpret_args(int ac, char* av[])
      "'unknown' token")
     ("lm", po::value<string>(&lmFile),
      "language model file in arpa text format (input)")
-    ("output,o", po::value<string>(&oBaseName), 
-     "base name for output files")
+     ("output,o", po::value<string>(&oBaseName),
+      "base name for output files")
     ("truncate,x", po::value<size_t>(&truncate_bitshift),
      "number of bits by which to truncate the float mantissa (max 23)")
     // ("tidx,t", po::value<string>(&tidxFile), "token index file (output)")
@@ -195,14 +195,14 @@ interpret_args(int ac, char* av[])
   a.add("lm",1);
   a.add("output",1);
   a.add("unk",1);
-  
+
   try {
     po::store(po::command_line_parser(ac,av).options(o).positional(a).run(), vm);
     po::notify(vm);
   } catch(std::exception& e) {
     cerr << efatal << e.what() << endl << help_message << exit_1;
   }
-  
+
   if (vm.count("help"))
     {
       cerr << help_message << endl;
@@ -242,23 +242,23 @@ static const char * const fmt_error = "Format error in plaintext arpa LM file at
 
 /** collects word and value counts from a language model in arpa text format */
 void
-collectCounts(string ifile, 
-         myMap& wCnt, 
+collectCounts(string ifile,
+         myMap& wCnt,
          vector<vector<pair<size_t,float> > >& pvals,
          vector<vector<pair<size_t,float> > >& bvals)
 {
   vector<map<float,size_t> > P,B; // p.-vals, b.o.-weights
 
-  // open input 
+  // open input
 #if IN_PORTAGE
   iSafeMagicStream arpalm_in(ifile);
 #else
-  filtering_istream arpalm_in; 
+  filtering_istream arpalm_in;
   open_input_stream(ifile,arpalm_in);
 #endif
 
   // read header information (get number of ngrams for each ngram length)
-  string dummy,line; 
+  string dummy,line;
   vector<size_t> numNg;
   size_t lctr=0;
   while (getline(arpalm_in,line))
@@ -292,7 +292,7 @@ collectCounts(string ifile,
          << exit_1;
   P.resize(numNg.size());
   B.resize(numNg.size()-1);
-  
+
   // now read ngram information
   for (size_t n = 0; n < numNg.size(); n++)
     {
@@ -312,6 +312,16 @@ collectCounts(string ifile,
           buf.imbue(arpa_space);
           if (!(buf >> lscore >> w))
             cerr << efatal << fmt_error << lctr << exit_1;
+#ifdef Darwin
+          // Work around for non-functioning buf.imbue(arpa_space) on Mac OS.
+          while(buf.peek() == '\v')
+            {
+              w += (char)buf.get();
+              string more;
+              buf >> more;
+              w += more;
+            }
+#endif
           P[n][truncate(lscore)]++;
           wCnt[w]++;
 	  for (size_t k = 1; k <= n; k++)
@@ -407,23 +417,23 @@ valueId(vector<pair<float,id_type> > const& vec, float const& val)
  *        sorted in ascending order of back-off weights
  * @returns a vector of unigram probability Ids
  */
-vector<id_type> 
+vector<id_type>
 encodeData(string file, TokenIndex& tidx,
            vector<vector<pair<float,id_type> > >& pvals,
            vector<vector<pair<float,id_type> > >& bvals)
 {
   vector<id_type> uniprobIds(tidx.getNumTokens()); // return value
-  
+
   // open input stream
 #if IN_PORTAGE
   iSafeMagicStream arpalm_in(file);
 #else
-  filtering_istream arpalm_in; 
+  filtering_istream arpalm_in;
   open_input_stream(file,arpalm_in);
 #endif
 
   // read header information (get number of ngrams for each ngram length)
-  string dummy,line; 
+  string dummy,line;
   vector<size_t> numNg;
   size_t lctr=0;
   while (getline(arpalm_in,line))
@@ -443,7 +453,7 @@ encodeData(string file, TokenIndex& tidx,
           assert(ngsize==int(numNg.size()));
         }
     }
- 
+
   ofstream sortJobs("sng-av.jobs"); // file that contains all the sort jobs
   if (sortJobs.fail())
     cerr << efatal << "Unable to open sng-av.jobs for writing." << exit_1;
@@ -469,14 +479,24 @@ encodeData(string file, TokenIndex& tidx,
           buf.imbue(arpa_space);
           if (!(buf >> lscore >> w))
             cerr << efatal << fmt_error << lctr << exit_1;
+#ifdef Darwin
+          // Work around for non-functioning buf.imbue(arpa_space) on Mac OS.
+          while(buf.peek() == '\v')
+            {
+              w += (char)buf.get();
+              string more;
+              buf >> more;
+              w += more;
+            }
+#endif
           id_type pvalId = valueId(pvals[n],lscore);
           id_type wid = tidx[w.c_str()];
 	  ngram[0] = wid;
 	  for (size_t k = 1; k <= n; k++)
-	    { 
+	    {
 	      if (!(buf >> w))
 	        cerr << efatal << fmt_error << lctr << exit_1;
-	      ngram[k] = tidx[w]; 
+	      ngram[k] = tidx[w];
 	    }
           if (n)
             {
@@ -493,7 +513,7 @@ encodeData(string file, TokenIndex& tidx,
 #endif
             }
           else
-            uniprobIds[ngram[0]] = pvalId; 
+            uniprobIds[ngram[0]] = pvalId;
 	  if (buf>>rscore)
 	    {
               id_type bowId = valueId(bvals[n],rscore);
@@ -508,13 +528,13 @@ encodeData(string file, TokenIndex& tidx,
           getline(arpalm_in,line);
           lctr++;
         }
-      
+
 #if 0
       vector<string> const& pfn = pfiles.getFileNames();
       for (size_t i = 0; i < pfn.size(); i++)
         {
-          sortJobs << "arpalm.sng-av " << pfn[i] 
-            // << " " 
+          sortJobs << "arpalm.sng-av " << pfn[i]
+            // << " "
             // << pfn[i] << ".sorted && rm -f " << pfn[i]
                    << endl;
         }
@@ -522,8 +542,8 @@ encodeData(string file, TokenIndex& tidx,
       vector<string> const& bfn = bfiles.getFileNames();
       for (size_t i = 0; i < bfn.size(); i++)
         {
-          sortJobs << "arpalm.sng-av " << bfn[i] << endl; 
-          // sortJobs << "arpalm.sng-av " << bfn[i] << " " 
+          sortJobs << "arpalm.sng-av " << bfn[i] << endl;
+          // sortJobs << "arpalm.sng-av " << bfn[i] << " "
           // << bfn[i] << ".sorted && rm -f " << bfn[i]
           // << endl;
         }
@@ -548,11 +568,11 @@ void write_codebook(string cbkFile, vector<id_type> const& uniprobs,
 
   // record sizes of probability codebooks
   for (size_t i = 0; i < maxNg; i++)
-    binwrite(cb,pvals[i].size());  
+    binwrite(cb,pvals[i].size());
 
   // record sizes of backoff weight codebooks
   for (size_t i = 0; i < bvals.size(); i++)
-    binwrite(cb,bvals[i].size()); 
+    binwrite(cb,bvals[i].size());
 
   // write probability codebooks
   for (size_t i = 0; i < maxNg; i++)
@@ -567,7 +587,7 @@ void write_codebook(string cbkFile, vector<id_type> const& uniprobs,
   // write unigram probabilities
   for (size_t i = 0; i < uniprobs.size(); i++)
     cb.write(rcast<char const*>(&(uniprobs[i])),sizeof(id_type));
-  
+
   cb.close();
 
 #if 0
@@ -579,9 +599,9 @@ void write_codebook(string cbkFile, vector<id_type> const& uniprobs,
       buf << "codebook.p." << i+1;
       ofstream out(buf.str().c_str());
       for (size_t k = 0; k < pvals[i].size(); k++)
-        out << k << " " 
-            << pvals[i][k].second << " " 
-            << pvals[i][k].first 
+        out << k << " "
+            << pvals[i][k].second << " "
+            << pvals[i][k].first
             << endl;
     }
 
@@ -591,8 +611,8 @@ void write_codebook(string cbkFile, vector<id_type> const& uniprobs,
       buf << "codebook.b." << i+1;
       ofstream out(buf.str().c_str());
       for (size_t k = 0; k < bvals[i].size(); k++)
-        out << k << " " << bvals[i][k].second << " " 
-            << bvals[i][k].first 
+        out << k << " " << bvals[i][k].second << " "
+            << bvals[i][k].first
             << endl;
     }
 #endif
@@ -613,25 +633,26 @@ valCounts2valIdMap(vector<pair<size_t,float> > const& vec)
 
 int MAIN(argc, argv)
 {
+  cerr << "starting arpalm.encode" << endl;
   interpret_args(argc, (char **)argv);
 
   // probability values for each n-gram order 
   // sorted in descending order of frequency
-  vector<vector<pair<size_t,float> > > pvalCounts; 
+  vector<vector<pair<size_t,float> > > pvalCounts;
 
   // back-off values for each n-gram order
   // sorted in descending order of frequency
   vector<vector<pair<size_t,float> > > bvalCounts;
 
   // word counts
-  myMap wCnt; 
+  myMap wCnt;
 
   // collect counts for words and values
   collectCounts(lmFile,wCnt,pvalCounts,bvalCounts);
 
   // write the token index to disk and open it for encoding the data
-  mkTokenIndex(tidxFile,wCnt,unkToken); 
-  TokenIndex tidx(tidxFile,unkToken); 
+  mkTokenIndex(tidxFile,wCnt,unkToken);
+  TokenIndex tidx(tidxFile,unkToken);
 
   vector<vector<pair<float,id_type> > > pvalMap(pvalCounts.size());
   vector<vector<pair<float,id_type> > > bowMap(bvalCounts.size());
@@ -645,7 +666,7 @@ int MAIN(argc, argv)
   // write the code book
   write_codebook(cbkFile,uniprobIds,pvalCounts,bvalCounts);
 
-  // write a file with the IDs of zero back-off weights 
+  // write a file with the IDs of zero back-off weights
   // (needed if back-off weights of zero are omitted in the lm text file)
   ofstream bzero("bowzero");
   if (bzero.fail())
@@ -653,6 +674,7 @@ int MAIN(argc, argv)
   for (size_t x = 0; x < bowMap.size(); x++)
     bzero << valueId(bowMap[x],0.0) << " ";
   bzero << endl;
+  cerr << "done arpalm.encode" << endl;
 }
 END_MAIN
 

@@ -18,7 +18,11 @@
 #define __num_read_write_hh
 #include <stdint.h>
 #include <iostream>
+#ifdef Darwin
+#include <machine/endian.h>
+#else
 #include <endian.h>
+#endif
 #include <byteswap.h>
 #include "tpt_typedefs.h"
 
@@ -28,7 +32,7 @@ template<typename uintNumber>
 void
 numwrite(std::ostream& out, uintNumber const& x)
 {
-#if __BYTE_ORDER == __BIG_ENDIAN
+#if (defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN) || (defined(BYTE_ORDER) && BYTE_ORDER == BIG_ENDIAN)
   uintNumber y;
   switch (sizeof(uintNumber))
     {
@@ -48,7 +52,7 @@ void
 numread(std::istream& in, uintNumber& x)
 {
   in.read(reinterpret_cast<char*>(&x),sizeof(uintNumber));
-#if __BYTE_ORDER == __BIG_ENDIAN
+#if (defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN) || (defined(BYTE_ORDER) && BYTE_ORDER == BIG_ENDIAN)
   switch (sizeof(uintNumber))
     {
     case 2: x = bswap_16(x); break;
@@ -65,7 +69,7 @@ numread(char const* src, uintNumber& x)
 {
   // ATTENTION: THIS NEEDS TO BE VERIFIED FOR BIG-ENDIAN MACHINES!!!
   x = *reinterpret_cast<uintNumber const*>(src);
-#if __BYTE_ORDER == __BIG_ENDIAN
+#if (defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN) || (defined(BYTE_ORDER) && BYTE_ORDER == BIG_ENDIAN)
   switch (sizeof(uintNumber))
     {
     case 2: x = bswap_16(x); break;

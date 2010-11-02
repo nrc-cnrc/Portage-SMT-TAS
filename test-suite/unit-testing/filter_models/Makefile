@@ -10,7 +10,8 @@
 HEAD_SIZE ?= 100
 FILES     ?= online.hard.complete online.hard.incomplete online.soft.complete online.soft.incomplete notonline.hard.complete notonline.hard.incomplete notonline.soft.complete notonline.soft.incomplete
 CLEAN_PATH ?= ~/sandBoxes/CleanVersion/Portage/src/canoe
-PORTAGE ?= /home/portage
+#PORTAGE ?= /home/portage
+PORTAGE = ../../..
 
 
 .PHONY: clean small check all online online_hard online_soft notonline notonline_hard notonline_soft FORCE
@@ -32,6 +33,7 @@ clean:
 	${RM} tmp.online.*
 
 distclean: clean
+	[ ! -a src ] || chmod +w src
 	${RM} src
 	${RM} ibm[12].*
 	${RM} phrases-GT-KN.fr2en.gz
@@ -69,7 +71,7 @@ phrases-GT-KN.fr2en.gz: ibm2.fr_given_en.gz ibm2.en_given_fr.gz
 	  >& log.gen_multi_prob_phrase_tables
 
 canoe.ini:
-	echo -e "[ttable-multi-prob] \n \
+	env echo -e "[ttable-multi-prob] \n \
 	phrases-GT-KN.fr2en.gz\n \
 	[lmodel-file]\n \
 	${PORTAGE}/test-suite/regress-small-voc/europarl.en.srilm\n \
@@ -83,7 +85,7 @@ canoe.ini:
 	[distortion-model] WordDisplacement\n" > $@
 
 canoe.ini_:
-	echo -e "[lmodel-file]\n \
+	env echo -e "[lmodel-file]\n \
 	${PORTAGE}/test-suite/regress-small-voc/europarl.en.srilm\n \
 	[weight-d] 0.3200787604\n \
 	[weight-w] 0.3201824725\n \
@@ -192,7 +194,7 @@ SRC_PHRASE: $(foreach f, $(FILES), $f.src)
 
 ############################################################
 ## MAKING TRANSLATION
-trans.%: %  canoe.ini_
+trans.%: %  canoe.ini_ src
 	canoe -f canoe.ini_ -ttable-multi-prob $< < src > $@ 2> log.canoe.$@
 
 trans.src: phrases-GT-KN.fr2en.gz src canoe.ini_
@@ -237,7 +239,7 @@ phrases.small.hard.FILT: FORCE canoe.ini.small phrases.small.fr2en
 	diff $@ ref/$@
 
 canoe.ini.small:
-	echo -e "[ttable-limit] 2\n\
+	env echo -e "[ttable-limit] 2\n\
 [ttable-multi-prob] phrases.small.fr2en\n\
 [lmodel-file]\n\
     ${PORTAGE}/test-suite/regress-small-voc/europarl.en.srilm.binlm\n\
@@ -246,7 +248,7 @@ canoe.ini.small:
 [ftm] 0:1" > $@
 
 canoe.ini.small.fwd:
-	echo -e "[ttable-limit] 2\n\
+	env echo -e "[ttable-limit] 2\n\
 [ttable-multi-prob] phrases.small.fr2en\n\
 [lmodel-file]\n\
     ${PORTAGE}/test-suite/regress-small-voc/europarl.en.srilm.binlm\n\
@@ -254,7 +256,7 @@ canoe.ini.small.fwd:
 [distortion-limit] 0" > $@
 
 phrases.small.fr2en:
-	echo -e "ceci ||| a ||| 0.1 0.1 0.1 0.1\n\
+	env echo -e "ceci ||| a ||| 0.1 0.1 0.1 0.1\n\
 ceci ||| b ||| 0.1 0.1 0.01 1e-10\n\
 ceci ||| c ||| 0.1 0.1 0.001 0.001\n\
 ceci ||| d ||| 0.1 0.1 1e-10 0.01\n\

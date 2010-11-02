@@ -247,7 +247,7 @@ while (( $# > 0 )); do
                    # Thanks germannu for the following regex :D
                    #echo $* | perl -ne '/RP_PSUB_OPTS=(([\x22\x27]).*?[^\\]\2|[^ \x22\x27\n]+)/; print "$1\n";'
                    # Needs some extra escaping for \ and we also remove extra quoting.
-                   RP_PSUB_OPTS=`echo $* | perl -ne '/RP_PSUB_OPTS=(([\x22\x27]).*?[^\\\\]\2|[^ \x22\x27\n]+)/; print "$1\n";' | sed -e 's/^[\x22\x27]//' -e 's/[\x22\x27]$//'`
+                   RP_PSUB_OPTS=`echo $* | perl -pe '/RP_PSUB_OPTS=(([\x22\x27]).*?[^\\\\]\2|[^ \x22\x27\n]+)/; $_=$1; s/^[\x22\x27]//; s/[\x22\x27]$//;'`
 
                    test -n "$DEBUG" && echo "  <D> RP_PSUB_OPTS: $RP_PSUB_OPTS" >&2;
                    test -n "$DEBUG" && echo "  <D> all: $*" >&2

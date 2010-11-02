@@ -15,6 +15,6 @@
 
 
 rm -f log.debug
-find -type d -name run-p.\* | xargs -r rm -r
+find . -type d -name run-p.\* | xargs -r rm -r
 
 exit

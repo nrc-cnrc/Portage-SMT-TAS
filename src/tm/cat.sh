@@ -74,7 +74,7 @@ run_cmd() {
       MON_PID=$!
       eval time $*
       rc=$?
-      kill -10 $MON_PID
+      kill -USR1 $MON_PID
       if (( `wc -l < $MON_FILE` > 1 )); then
          MON_VSZ=`egrep -ho 'vsz: [0-9.]+G' $MON_FILE 2> /dev/null | egrep -o "[0-9.]+" | sum.pl -m`
          MON_RSS=`egrep -ho 'rss: [0-9.]+G' $MON_FILE 2> /dev/null | egrep -o "[0-9.]+" | sum.pl -m`

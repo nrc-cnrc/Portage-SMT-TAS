@@ -25,6 +25,7 @@
 #include "portage_defs.h"
 #include <boost/dynamic_bitset.hpp>
 #include <iostream>
+#include <sys/types.h>
 
 namespace Portage {
 

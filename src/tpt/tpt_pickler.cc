@@ -115,13 +115,13 @@ namespace ugdiss
     binwrite_unsigned_integer(out, data);
   }
 
-#if __WORDSIZE == 64
+#if __WORDSIZE == 64 || defined(Darwin)
   void 
   binwrite(std::ostream& out, unsigned int data)
   { 
     binwrite_unsigned_integer(out, data);
   }
-#else 
+#else
   void 
   binwrite(std::ostream& out, size_t data)
   { 

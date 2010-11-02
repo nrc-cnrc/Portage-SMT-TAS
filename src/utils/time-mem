@@ -92,9 +92,9 @@ parseCommand() {
    WALL_TIME=`echo $WALL_TIME_LIST | sum.pl -l`
 
    RESULT="${ARG}TIME-MEM\tWALL TIME: ${WALL_TIME}s\tCPU TIME: ${CPU_TIME}s\tVSZ: ${MON_VSZ}G\tRSS: ${MON_RSS}G"
-   [[ $DEBUG ]] && echo -e "<D> $RESULT" >&2
+   [[ $DEBUG ]] && env echo -e "<D> $RESULT" >&2
    sync
-   echo -e $RESULT | second-to-hms.pl
+   env echo -e $RESULT | second-to-hms.pl
 }
 
 
@@ -113,13 +113,13 @@ reduce() {
       [[ $DEBUG ]] && echo "<Dr> $line" >&2
       # Skip commented lines.
       if [[ $line =~ "^(\./)?([^>]+):((P-RES-MON|TIME-MEM)>WALL TIME: ([0-9.]+)s>CPU TIME: ([0-9.]+)s>VSZ: ([0-9.]+)G>RSS: ([0-9.]+)G)" ]]; then
-         echo -e "$indent${BASH_REMATCH[2]}:${BASH_REMATCH[3]}"
+         env echo -e "$indent${BASH_REMATCH[2]}:${BASH_REMATCH[3]}"
          WALL_TIME_LIST=" $WALL_TIME_LIST ${BASH_REMATCH[5]}"
          CPU_TIME_LIST="$CPU_TIME_LIST ${BASH_REMATCH[6]}"
          VMEM_LIST="$VMEM_LIST ${BASH_REMATCH[7]}"
          RAM_LIST="$RAM_LIST ${BASH_REMATCH[8]}"
       elif [[ $line =~ "(P-RES-MON|TIME-MEM)>WALL TIME:" ]]; then
-         echo -e "$indent$line"
+         env echo -e "$indent$line"
       fi
    done
 
@@ -131,8 +131,8 @@ reduce() {
    WALL_TIME=`echo $WALL_TIME_LIST | sum.pl -l`
 
    RESULT="TIME-MEM\tWALL TIME: ${WALL_TIME}s\tCPU TIME: ${CPU_TIME}s\tVSZ: ${MON_VSZ}G\tRSS: ${MON_RSS}G"
-   [[ $DEBUG ]] && echo -e "<D> $RESULT" >&2
-   echo -e $RESULT
+   [[ $DEBUG ]] && env echo -e "<D> $RESULT" >&2
+   env echo -e $RESULT
 }
 
 
@@ -168,7 +168,7 @@ run_cmd() {
          sync
       }
       export PORTAGE_INTERNAL_CALL=1
-      kill -10 $MON_PID
+      kill -USR1 $MON_PID
       sync
       echo "run_cmd finished (rc=$rc): $@" >&2
       if [ -s "$MON_FILE" -a $(( `wc -l < $MON_FILE` > 1 )) ]; then
