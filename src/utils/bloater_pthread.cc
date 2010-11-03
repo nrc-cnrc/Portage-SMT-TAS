@@ -38,7 +38,7 @@ Options:\n\
 // globals
 
 static bool verbose = false;
-static size_t blocksize = 0;
+static Uint64 blocksize = 0;
 static Uint numThreads = 4;
 static Uint maxIter = numeric_limits<Uint>::max();
 static void getArgs(int argc, const char* const argv[]);
@@ -142,16 +142,7 @@ void getArgs(int argc, const char* const argv[])
    arg_reader.testAndSet("maxiter", maxIter);
    arg_reader.testAndSet("n", numThreads);
   
-//   arg_reader.testAndSet(0, "blocksize", blocksize);
-   if( sizeof(blocksize) <= sizeof(unsigned int)) {
-      Uint bsize;
-      arg_reader.testAndSet(0, "blocksize", bsize);
-      blocksize = (size_t)bsize;
-   } else {
-      Uint64 bsize;
-      arg_reader.testAndSet(0, "blocksize", bsize);
-      blocksize = (size_t)bsize;
-   }
+   arg_reader.testAndSet(0, "blocksize", blocksize);
 }   
 
 
