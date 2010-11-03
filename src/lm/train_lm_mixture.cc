@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
          for (Uint i = 0; i < toks.size(); ++i) {
             Uint w = vocab.index(toks[i].c_str());
             for (Uint m = 0; m < models.size(); ++m)
-               probs[m] = pow(10.0, models[m]->wordProb(w, context, order-1));
+               probs[m] = pow(10.0, static_cast<double>(models[m]->wordProb(w, context, order-1)));
             double p = em.count(probs);
             if (p) {
                logprob += log10(p);
