@@ -15,6 +15,7 @@
 #include "file_utils.h"
 #include "arg_reader.h"
 #include "printCopyright.h"
+#include <boost/version.hpp>
 
 using namespace Portage;
 using namespace std;
@@ -28,6 +29,9 @@ Options:\n\
 \n\
   -version   Print the current Portage version\n\
   -notice    Display the 3rd party Copyright notices\n\
+  -with-icu  Indicates whether Portage was compiled with ICU or not,\n\
+             exiting with 0 status iff it was.\n\
+  -build-options  Display build options used when compiling Portage\n\
 \n\
 ";
 
@@ -36,6 +40,8 @@ Options:\n\
 static void getArgs(int argc, char* argv[]);
 static bool notice = false;
 static bool version = false;
+static bool with_icu = false;
+static bool build_options = false;
 static const char VERSION[] = "Portage 1.4.2";
 
 // main
@@ -44,9 +50,47 @@ int main(int argc, char* argv[])
 {
    getArgs(argc, argv);
 
-   if ( version )
-      cerr << VERSION << endl;
-   else {
+   if ( version ) {
+      cout << VERSION << endl;
+   } else if ( with_icu ) {
+      cout << VERSION << " was compiled with";
+      #ifdef NOICU
+         cout << "out ICU" << endl;
+         exit(1);
+      #else
+         cout << " ICU" << endl;
+         exit(0);
+      #endif
+   } else if ( build_options ) {
+      printCopyright(2004, VERSION);
+
+      #ifdef NOICU
+         cout << "ICU: no" << endl;
+      #else
+         cout << "ICU: yes" << endl;
+      #endif
+
+      #ifdef NO_LOGGING
+         cout << "Logging: no" << endl;
+      #else
+         cout << "Logging: yes" << endl;
+      #endif
+
+      #ifdef NO_EDUMP
+         cout << "Exception dump: no" << endl;
+      #else
+         cout << "Exception dump: yes" << endl;
+      #endif
+
+      cout << "Boost version: " << BOOST_LIB_VERSION << endl;
+
+      #ifdef __GNUC__
+         cout << "Compiler: g++ " << __VERSION__ << endl;
+      #endif
+
+      cout << endl;
+
+   } else {
       printCopyright(2004, VERSION);
       if ( notice ) {
          const char* const PORTAGE = getenv("PORTAGE");
@@ -98,11 +142,13 @@ int main(int argc, char* argv[])
 
 void getArgs(int argc, char* argv[])
 {
-   const char* switches[] = {"version", "notice"};
+   const char* switches[] = {"version", "notice", "with-icu", "build-options"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 0, 0, help_message);
    arg_reader.read(argc-1, argv+1);
 
    arg_reader.testAndSet("version", version);
    arg_reader.testAndSet("notice", notice);
+   arg_reader.testAndSet("with-icu", with_icu);
+   arg_reader.testAndSet("build-options", build_options);
 }
 
