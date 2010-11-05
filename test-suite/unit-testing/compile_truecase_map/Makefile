@@ -23,7 +23,12 @@ export PORTAGE_INTERNAL_CALL=1
 SHELL = bash
 
 .PHONY: all
+ifeq ($(strip $(shell portage_info -with-icu > /dev/null 2> /dev/null && echo "true")),true)
 all: testsuite
+else
+all:
+	@echo "Portage wasn't compiled with ICU thus this unittest is not relevant."
+endif
 
 
 .PHONY: clean
