@@ -23,9 +23,9 @@ clean:
 	$(RM) -r map*_given_* log.map* run-parallel-logs*
 
 cmp_%.fr_given_en: %.fr_given_en
-	$(MAKE) do_cmp_$*.fr_given_en{,.dist}
-	if [[ -f ref/$*.en_given_fr.gz ]]; then \
-	   $(MAKE) do_cmp_$*.en_given_fr{,.dist} ; \
+	@$(MAKE) --no-print-directory do_cmp_$*.fr_given_en{,.dist}
+	@if [[ -f ref/$*.en_given_fr.gz ]]; then \
+	   $(MAKE) --no-print-directory do_cmp_$*.en_given_fr{,.dist} ; \
 	fi
 
 do_cmp_%:
