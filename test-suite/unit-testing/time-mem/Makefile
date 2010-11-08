@@ -17,7 +17,11 @@
 
 -include Makefile.params
 
-SHELL = bash -O compat31
+# We need bash -O compat31 on bash versions that support it, but earlier
+# versions crash when one provides that option.  So we set SHELL with or
+# without it, depending on whether it fails to start with -O compat31 or not.
+SHELL := $(shell if bash -O compat31 -c true 2> /dev/null; \
+           then echo bash -O compat31; else echo bash; fi)
 
 .PHONY: all
 all: testsuite
@@ -26,7 +30,6 @@ all: testsuite
 .PHONY: clean
 clean:
 	${RM} run-parallel-logs-*
-	${RM} -r canoe-parallel.*
 
 
 ########################################
@@ -47,7 +50,7 @@ error_code: error_code_good
 
 .PHONY: error_code_bad
 error_code_bad:
-	! time-mem false
+	! { time-mem false; }
 
 .PHONY: error_code_good
 error_code_good:
@@ -94,9 +97,10 @@ debug_tally:
 
 ########################################
 # This unittest uses bloater and verify that the time & memory are approximately correctly reported.
+# Sometimes the mem checking happens a bit too soon, so test for > 0.30 GB instead of > 0.32 GB
 time-mem.bloater:
 	OUT=`time-mem bloater -maxiter 32 10000000 2>&1`; \
 	echo $$OUT; \
 	[[ "$$OUT" =~ "Real ([0-9.]+)" ]] && [[ "$${BASH_REMATCH[1]}" > 32 ]] \
-	&& [[ "$$OUT" =~ "VMEM ([0-9.]+)" ]] && [[ "$${BASH_REMATCH[1]}" > 0.32 ]]
+	&& [[ "$$OUT" =~ "VMEM ([0-9.]+)" ]] && [[ "$${BASH_REMATCH[1]}" > 0.30 ]]
 
