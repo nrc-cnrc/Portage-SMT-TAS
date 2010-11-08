@@ -59,8 +59,6 @@
 							<tool id="cdt.managedbuild.tool.gnu.archiver.macosx.base.54709728" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.macosx.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.macosx.base.2048231573" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.macosx.base">
 								<option id="gnu.cpp.compiler.option.include.paths.1642877422" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="/opt/local/include"/>
-									<listOptionValue builtIn="false" value="/opt/local/include/gcc45/c++"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/adaptation}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/canoe}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/confidence}&quot;"/>
@@ -75,6 +73,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/tpt}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/truecasing}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/utils}&quot;"/>
+									<listOptionValue builtIn="false" value="/opt/local/include"/>
+									<listOptionValue builtIn="false" value="/opt/local/include/gcc45/c++"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.1492097046" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="IN_PORTAGE=1"/>
@@ -84,8 +84,6 @@
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.macosx.base.1860474769" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.macosx.base">
 								<option id="gnu.c.compiler.option.include.paths.821375852" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="/opt/local/include"/>
-									<listOptionValue builtIn="false" value="/opt/local/include/gcc45/c++"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/adaptation}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/canoe}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/confidence}&quot;"/>
@@ -100,6 +98,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/tpt}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/truecasing}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/utils}&quot;"/>
+									<listOptionValue builtIn="false" value="/opt/local/include"/>
+									<listOptionValue builtIn="false" value="/opt/local/include/gcc45/c++"/>
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1985014474" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="IN_PORTAGE=1"/>
