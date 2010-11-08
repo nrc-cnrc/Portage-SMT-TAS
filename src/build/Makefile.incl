@@ -75,11 +75,15 @@ else
    LIBICU=-licuuc
    ifneq ($(ICU),)
       ICU_INC_DIR=-isystem$(ICU)/include
-      ICU_LIB_DIR=-L$(ICU)/lib
-      ifneq ($(LD_LIBRARY_PATH),)
-         export LD_LIBRARY_PATH:=$(LD_LIBRARY_PATH):$(ICU)/lib
+      ICU_LIB_DIR=-L$(ICU)/lib $(ICU_RPATH)
+      ifndef NO_ICU_RPATH
+         ICU_RPATH=-Wl,-rpath,$(ICU)/lib
       else
-         export LD_LIBRARY_PATH=$(ICU)/lib
+         ifneq ($(LD_LIBRARY_PATH),)
+            export LD_LIBRARY_PATH:=$(LD_LIBRARY_PATH):$(ICU)/lib
+         else
+            export LD_LIBRARY_PATH=$(ICU)/lib
+         endif
       endif
    endif
 endif

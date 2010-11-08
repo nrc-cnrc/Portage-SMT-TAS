@@ -360,7 +360,7 @@ make_bin() {
    print_header "make_bin ICU=$ICU"
    ELFDIR=`arch`
    if [[ $ICU = yes ]]; then
-      ICU_LIB="ICU=$ICU_ROOT"
+      ICU_LIB="ICU=$ICU_ROOT NO_ICU_RPATH=1"
       ELFDIR=$ELFDIR-icu
    else
       ICU_LIB=""
