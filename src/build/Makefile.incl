@@ -1,3 +1,4 @@
+# vim:noet:ts=3
 # =============================================================================
 # $Id$
 # @file Makefile.incl
@@ -90,7 +91,7 @@ endif
 
 # places to find things; include the -L flag, eg -L/my-other-lib-dir
 PORTAGE?=/home/portage
-OTHER_INC_DIRS = $(BOOST_INC_DIR) $(ICU_INC_DIR) -isystem$(PORTAGE)/include
+OTHER_INC_DIRS = $(BOOST_INC_DIR) $(ICU_INC_DIR) -isystem $(PORTAGE)/include
 ifneq ($(OSTYPE),Darwin)
 OTHER_LIB_DIRS = $(BOOST_LIB_DIR) $(ICU_LIB_DIR) -L$(PORTAGE)/lib
 else
@@ -345,9 +346,9 @@ clean_testrunners:
 .PHONY: run_tests/%
 run_tests/%: tests/%
 	$<
+CXXTESTGEN?=cxxtestgen.pl
 $(CXXTEST_RUNNERS_CC): %.cc: %.h
-	cxxtestgen.pl --error-printer -o $@ $<
-endif
+	${CXXTESTGEN} --error-printer -o $@ $<
 endif
 
 # Compile and execute legacy tests, if any
@@ -382,19 +383,21 @@ $(DYNPROGS): %: %.o $(OBJECTS) $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_
 	$(CXX) $(LINKFLAGS) -o $@ $(OBJECTS) $< $(LIBS) $(DYNLIBS)
 endif
 
-# make tags for finding various definitions in vi and related editors
+# make tags for finding various definitions in vi and related editors.
+# to turn this on, define PORTAGE_CTAGS (vi users)
 tags:
 ifdef SOURCES
-    ifndef PORTAGE_NO_CTAGS
+    ifdef PORTAGE_CTAGS
         # Can be niced in the background - compilation need not wait for this
 	nice ctags $(INCLUDES) $(SOURCES) &
     endif
 endif
 
-# make tags for finding various definitions in emacs and related editors
+# make tags for finding various definitions in emacs and related editors.
+# to turn this on, define PORTAGE_ETAGS (emacs users)
 TAGS:
 ifdef SOURCES
-    ifndef PORTAGE_NO_ETAGS
+    ifdef PORTAGE_ETAGS
         # Can be niced in the background - compilation need not wait for this
 	nice etags -C $(INCLUDES) $(SOURCES) &
     endif

@@ -108,24 +108,24 @@ LOG4CXX?=NONE
 LOG4CXX=$(PORTAGE)# AT NRC
 
 # ------------------------------------
-# Variable:        PORTAGE_NO_CTAGS
-# Possible values: defined to any non-blank value turns off the use of ctags
-# Notes:           Uncomment this line if you don't have the ctags program or
-#                  if you don't use vi or a related editor.  Equivalently, you
-#                  can export/setenv PORTAGE_NO_CTAGS to 1 in your .<shell>rc
-#                  file to disable the use of etags.
+# Variable:        PORTAGE_CTAGS
+# Possible values: defined to any non-blank value turns on the use of ctags
+# Notes:           Uncomment this line if you have the ctags program and want
+#                  to use tags in vi or a related editor.  Equivalently, you
+#                  can export/setenv PORTAGE_CTAGS to 1 in your .<shell>rc file
+#                  to enable the use of etags.
 
-#PORTAGE_NO_CTAGS?=1
+#PORTAGE_CTAGS?=1
 
 # ------------------------------------
-# Variable:        PORTAGE_NO_ETAGS
-# Possible values: defined to any non-blank value turns off the use of etags
-# Notes:           Uncomment this line if you don't have the etags program or
-#                  if you don't use emacs or a related editor.  Equivalently,
-#                  you can export/setenv PORTAGE_NO_ETAGS to 1 in your
-#                  .<shell>rc file to disable the use of etags.
+# Variable:        PORTAGE_ETAGS
+# Possible values: defined to any non-blank value turns on the use of etags
+# Notes:           Uncomment this line if you have the etags program and want
+#                  to use tags in emacs or a related editor.  Equivalently, you
+#                  can export/setenv PORTAGE_ETAGS to 1 in your .<shell>rc file
+#                  to enable the use of etags.
 
-#PORTAGE_NO_ETAGS?=1
+#PORTAGE_ETAGS?=1
 
 # ------------------------------------
 # Variable:        MYLATEX
