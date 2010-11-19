@@ -158,7 +158,11 @@ Mandatory dependencies for all distributions:
    memory" even though there appears to be plenty available.
 
  - Standard utilities: awk, bash (3.0 or more recent), (e)grep, gzip, head,
-   perl, sed, sort, tail, tar, etc.
+   sed, sort, tail, tar, etc.
+
+ - Perl 5.8.8 or more recent.  Version 5.8.5 is mostly usable, but some
+   functionality involving XML files (in particular, TMX files) will not work
+   with 5.8.5.
 
  - GNU make 3.81 - when compiling Portage 1.4 and when running the experimental
    framework, our Makefiles use GNU extensions to make, as well as features
