@@ -350,6 +350,7 @@ CXXTESTGEN?=cxxtestgen.pl
 $(CXXTEST_RUNNERS_CC): %.cc: %.h
 	${CXXTESTGEN} --error-printer -o $@ $<
 endif
+endif
 
 # Compile and execute legacy tests, if any
 run_%: % tests/data/%.out.txt FORCE
