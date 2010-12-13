@@ -40,7 +40,7 @@ CaseMapStrings::CaseMapStrings(const char* loc_name) :
       if ( loc_name && loc_name[0] != '\0' ) {
 #ifdef Darwin
          if ((strcmp(loc_name, "C") != 0) && (strcmp(loc_name, "POSIX") != 0)) {
-            error(ETFatal, "Locale name %s is not valid.  C++ locale class on Darwin supports only C and POSIX locals.", loc_name);
+            error(ETFatal, "Locale name %s is not valid. C++ locale class on Darwin supports only C and POSIX locales.", loc_name);
             return;
          }
 #endif
@@ -49,7 +49,7 @@ CaseMapStrings::CaseMapStrings(const char* loc_name) :
          loc = new locale("POSIX");
       init();
    } catch (std::runtime_error& e) {
-      error(ETFatal, "Locale name %s is not valid.  See /usr/lib/locale for a list of valid locales.", loc_name);
+      error(ETFatal, "Locale name %s is not valid. See /usr/lib/locale for a list of valid locales.", loc_name);
    }
 }
 

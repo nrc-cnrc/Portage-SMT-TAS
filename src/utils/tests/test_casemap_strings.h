@@ -47,14 +47,11 @@ public:
 
    void testLatin1() {
       CaseMapStrings cms("en_CA.iso-8859-1");
-      #ifdef Darwin
       if (error_message_count > 0) {
-         cerr << "***testLatin1: " << error_message << endl;
+         TS_WARN(error_message + " Skipping remainder of test. You may ignore" +
+                 " this warning if you do not plan to use this locale.");
          return;
       }
-      #endif
-      TS_ASSERT_EQUALS(error_message_count, 0);
-      if (error_message_count > 0) return;
       TS_ASSERT_EQUALS(cms.toUpper("\xe0"), string("\xc0")); // a/A accent grave
       TS_ASSERT_EQUALS(cms.toUpper("\xbd"), string("\xbd")); // 1/2 in latin1 (oe in latin9)
       TS_ASSERT_EQUALS(cms.toUpper("a"), string("A"));
@@ -62,14 +59,11 @@ public:
 
    void testDefault() {
       CaseMapStrings cms("en_CA"); // defaults to latin1
-      #ifdef Darwin
       if (error_message_count > 0) {
-         cerr << "***testDefault: " << error_message << endl;
+         TS_WARN(error_message + " Skipping remainder of test. You may ignore" +
+                 " this warning if you do not plan to use this locale.");
          return;
       }
-      #endif
-      TS_ASSERT_EQUALS(error_message_count, 0);
-      if (error_message_count > 0) return;
       TS_ASSERT_EQUALS(cms.toUpper("\xe0"), string("\xc0")); // a/A accent grave
       TS_ASSERT_EQUALS(cms.toUpper("\xbd"), string("\xbd")); // 1/2 in latin1 (oe in latin9)
       TS_ASSERT_EQUALS(cms.toUpper("a"), string("A"));
@@ -77,31 +71,26 @@ public:
 
    void testLatin9() {
       CaseMapStrings cms("en_GB.iso885915");
-      #ifdef Darwin
       if (error_message_count > 0) {
-         cerr << "***testLatin9: " << error_message << endl;
+         TS_WARN(error_message + " Skipping remainder of test. You may ignore" +
+                 " this warning if you do not plan to use this locale.");
          return;
       }
-      #endif
-      TS_ASSERT_EQUALS(error_message_count, 0);
-      if ( error_message_count == 0 ) {
-         // if the en_GB.iso885915 locale happens not to be installed, don't
-         // perform these tests.
-         TS_ASSERT_EQUALS(cms.toUpper("\xe0"), string("\xc0")); // a/A accent grave
-         TS_ASSERT_EQUALS(cms.toUpper("\xbd"), string("\xbc")); // oe/OE
-         TS_ASSERT_EQUALS(cms.toUpper("a"), string("A"));
-      }
+      TS_ASSERT_EQUALS(cms.toUpper("\xe0"), string("\xc0")); // a/A accent grave
+      TS_ASSERT_EQUALS(cms.toUpper("\xbd"), string("\xbc")); // oe/OE
+      TS_ASSERT_EQUALS(cms.toUpper("a"), string("A"));
    }
 
    void testCP1252() {
       CaseMapStrings cms("en_CA.CP1252");
-      //TS_ASSERT_EQUALS(error_message_count, 0);
-      // CP1252 typically not supported on Linux systems, so don't depend on it.
-      if ( error_message_count == 0 ) {
-         TS_ASSERT_EQUALS(cms.toUpper("\xe0"), string("\xc0")); // a/A accent grave
-         TS_ASSERT_EQUALS(cms.toUpper("\x9c"), string("\x8c")); // oe/OE
-         TS_ASSERT_EQUALS(cms.toUpper("a"), string("A"));
+      if (error_message_count > 0) {
+         TS_WARN(error_message + " Skipping remainder of test. You may ignore" +
+                 " this warning if you do not plan to use this locale.");
+         return;
       }
+      TS_ASSERT_EQUALS(cms.toUpper("\xe0"), string("\xc0")); // a/A accent grave
+      TS_ASSERT_EQUALS(cms.toUpper("\x9c"), string("\x8c")); // oe/OE
+      TS_ASSERT_EQUALS(cms.toUpper("a"), string("A"));
    }
 
    void testCLocale() {
@@ -113,17 +102,14 @@ public:
 
    void testUtf8() {
       CaseMapStrings cms("en_CA.utf-8");
-      #ifdef Darwin
-      if (error_message_count > 0) {
-         cerr << "***testUtf8: " << error_message << endl;
-         return;
-      }
-      #endif
       #ifdef NOICU
       TS_ASSERT_EQUALS(error_message_count, 1);
       #else
-      TS_ASSERT_EQUALS(error_message_count, 0);
-      if ( error_message_count > 0 ) return;
+      if (error_message_count > 0) {
+         TS_WARN(error_message + " Skipping remainder of test. You may ignore" +
+                 " this warning if you do not plan to use this locale.");
+         return;
+      }
       TS_ASSERT_EQUALS(cms.toUpper("\u00e0"), string("\u00c0")); // a/A accent grave
       TS_ASSERT_EQUALS(cms.toUpper("a"), string("A"));
       #endif
