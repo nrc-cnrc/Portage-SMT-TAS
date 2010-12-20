@@ -280,6 +280,10 @@ sub processText {
         problem("No text or file to translate");
     }
 
+    $ENV{PATH} = "$PORTAGE_MODEL_DIR/$context/bin:$ENV{PATH}";
+    $ENV{PERL5LIB} = "$PORTAGE_MODEL_DIR/$context/lib:$ENV{PERL5LIB}";
+    $ENV{LD_LIBRARY_PATH} = "$PORTAGE_MODEL_DIR/$context/lib:$ENV{LD_LIBRARY_PATH}";
+
     # Get some basic info on source text:
     param('tmx') 
         ? checkTMX("$work_dir/Q.in") 
@@ -324,7 +328,7 @@ sub processText {
     }
     
     my $tr_opt = join(" ", @tr_opt);
-    my $tr_cmd = "${PORTAGE_PATH}/bin/translate.pl ${tr_opt} \"$work_dir/Q.in\" >& \"$work_dir/trace\"";
+    my $tr_cmd = "translate.pl ${tr_opt} \"$work_dir/Q.in\" >& \"$work_dir/trace\"";
 
     my $tr_output = catdir($work_dir, param('tmx') ? "QP.tmx" : "P.txt");
     my $user_output = catdir($work_dir, $outfilename);

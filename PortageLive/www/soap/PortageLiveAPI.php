@@ -99,11 +99,12 @@ class PortageLiveAPI {
    function runCommand($command, $src_string, &$i, &$exit_status = NULL, $wantoutput = true) {
       $cwd = "/tmp";
       global $base_portage_dir;
+      $context_dir = $i["context_dir"];
       $env = array(
          'PORTAGE'         => "$base_portage_dir",
-         'LD_LIBRARY_PATH' => "$base_portage_dir/lib:/lib:/usr/lib",
-         'PATH'            => "$base_portage_dir/bin:$i[context_dir]:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-         'PERL5LIB'        => "$base_portage_dir/lib"
+         'LD_LIBRARY_PATH' => "$context_dir/lib:$base_portage_dir/lib:/lib:/usr/lib",
+         'PATH'            => "$context_dir/bin:$i[context_dir]:$base_portage_dir/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+         'PERL5LIB'        => "$context_dir/lib:$base_portage_dir/lib"
       );
 
       $descriptorspec = array(
