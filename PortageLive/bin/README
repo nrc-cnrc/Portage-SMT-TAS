@@ -21,9 +21,14 @@ In this directory:
 Make sure you have compiled and installed Portage 1.4 already, and set the
 path properly by calling $PORTAGE/SETUP.bash.
 
-Run "make" to create the rpm.build.root hierarchy.  The files placed in that
-directory reproduce the location where files are to be installed on the
-translation server, as is normally done with RPMs.
+Run
+   make
+or
+   make DO_EXTERNAL_LIBS=1
+to create the rpm.build.root hierarchy.  The files placed in that directory
+reproduce the location where files are to be installed on the translation
+server, as is normally done with RPMs.  The second variant tries to include all
+relevant shared libraries in the result.
 
 Then, either copy the files manually to your translation server, if you have
 just one physical server, or build the RPM by running ../scripts/make-rpm.sh if
@@ -33,7 +38,7 @@ Note (1): the scripts work for us, but rely on details of how the OS is
 installed, among other things.  You should expect to have to adjust the
 procedure for your own environment.
 
-Note (2): if your Portage''''Live machine (virtual or physical) has a different
+Note (2): if your PortageLive machine (virtual or physical) has a different
 operating system version, or a different Linux distro, than the machine where
 Portage was compiled, you might have some difficulties with shared libraries
 (`.so` files).  If that is the case, you can try defining DO_EXTERNAL_LIBS=1 in
