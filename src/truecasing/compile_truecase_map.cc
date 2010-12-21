@@ -92,9 +92,11 @@ int main(int argc, char* argv[])
          }
       }
 
-      if (!auto_lc)
+      if (!auto_lc) {
          if (getline((*lin), line))
             error(ETFatal, "truecase file %s too short", tfiles[i].c_str());
+         delete lin;
+      }
    }
 
    unordered_map< string, map<string,Uint> >::const_iterator p;
