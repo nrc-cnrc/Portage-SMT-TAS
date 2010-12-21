@@ -257,7 +257,7 @@ For -with-rescoring, in order for rat.sh to work correctly, either the
 rescoring model must use absolute paths or its model paths must be of the
 form C<models/subpath> and be accessible from the current directory 
 (i.e. C<./models/subpath> references the corresponding model).
-This is the way portageLive and the framework work.
+This is the way portageLive and portage.simple.framework.2 work.
 
 =head1 SEE ALSO
 
@@ -533,7 +533,7 @@ if ($with_ce) {
 }
 
 @ARGV <= 1 or die "ERROR: Too many arguments.\nStopped";
-@ARGV > 0 or die "ERROR: Missing argument: SRC_TEXT\nStopped" if $tmx;
+@ARGV > 0 or die "ERROR: Too few arguments. SRC_TEXT file required.\nStopped" if $tmx;
 my $input_text = @ARGV > 0 ? shift : "-";
 
 unless (defined $out) {
@@ -737,7 +737,8 @@ OUT:{
        }
    } else {
        my $fopt = defined $filter ? "-filter=$filter" : "";
-       call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} ${fopt} replace \"$dir\"");
+       my $sopt = $with_ce ? "-score" : "-noscore";
+       call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} ${fopt} ${sopt} replace \"$dir\"");
    }
 }
 

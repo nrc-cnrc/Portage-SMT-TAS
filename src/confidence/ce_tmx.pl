@@ -61,6 +61,11 @@ Specify TMX target language [FR-CA]
 Retain keeptags code (BPT, EPT, IT and PH elements) within target
 language TUs (default is to delete it)
 
+=item -score/-noscore
+
+In 'replace' mode, do/don't insert confidence scores inside TUV's,
+using TMX PROP elements of type Txt::CE. (default is -score)
+
 =item -verbose        
 
 Be verbose
@@ -122,7 +127,7 @@ my $input_layers = ":utf8";
 my $DEFAULT_SRC="EN-CA";
 my $DEFAULT_TGT="FR-CA";
 
-our ($h, $help, $verbose, $Verbose, $debug, $src, $tgt, $filter, $keeptags);
+our ($h, $help, $verbose, $Verbose, $debug, $src, $tgt, $filter, $keeptags, $score, $noscore);
 
 if ($h or $help) {
     -t STDOUT ? system "pod2usage -verbose 3 $0" : system "pod2text $0";
@@ -137,6 +142,11 @@ $keeptags = 0 unless defined $keeptags;
 $filter = undef unless defined $filter;
 $src = $DEFAULT_SRC unless defined $src;
 $tgt = $DEFAULT_TGT unless defined $tgt;
+die "Only one of -score and -noscore can be specified" 
+    if (defined($score) and defined($noscore));
+$score = (defined($score) ? $score :
+          defined($noscore) ? not $noscore :
+          1);
 
 my $action = shift or die "Missing argument: action";
 
@@ -161,7 +171,7 @@ elsif ($action eq 'replace') {
     die "No such directory: $dir" unless -d $dir;
 
     my $tmx_file = shift || "-";
-    my $ce_file = defined $filter ? "${dir}/pr.ce" : undef;
+    my $ce_file = (-r "${dir}/pr.ce") ? "${dir}/pr.ce" : undef;
     my $ix = ixLoad("${dir}/P.txt", "${dir}/Q.ix", $ce_file);
     
     open(my $tmx_out, ">${output_layers}", "${dir}/QP.tmx")
@@ -169,7 +179,7 @@ elsif ($action eq 'replace') {
     processTMX(action=>'replace', tmx_in=>"${dir}/QP.template.tmx", 
                tmx_out=>$tmx_out, ix=>$ix, filter=>$filter,
                src_lang=>$src, tgt_lang=>$tgt,
-               keeptags=>$keeptags);
+               keeptags=>$keeptags, score=>$score);
     close $tmx_out;
 } 
 
@@ -307,14 +317,21 @@ sub processTU {
             $tu->set_att(usagecount => '0');
         }
 
-        # CE-filtering:
+        # Confidence estimation:
         my ($id, $ce);
         $id = $parser->{seg_id};
-        $ce = ($id and defined $parser->{filter}) ? ixGetCE($parser->{ix}, $id) : undef;
-        debug("Filtering on $id: CE=%s\n", defined $ce ? $ce : "undef");
+        $ce = $id ? ixGetCE($parser->{ix}, $id) : undef;
+
+        debug("Confidence estimation for $id: CE=%s\n", defined $ce ? $ce : "undef");
+        if ($parser->{score}
+            and defined($ce)) {
+            XML::Twig::Elt
+                ->new(prop=>{type=>'Txt::CE'}, sprintf("%.4f", $ce))
+                ->paste(first_child => $tu);
+        }
+        
         if (defined $parser->{filter}
-            and ($id = $parser->{seg_id})
-            and defined($ce = ixGetCE($parser->{ix}, $id))
+            and defined($ce)
             and $ce < $parser->{filter}) {
             debug("Filtering out $id\n");
             $tu->delete();       # BOOM!

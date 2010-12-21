@@ -440,7 +440,7 @@ OUT:{
     unless ($train) {
         if ($tmx) {
             my $fopt = defined $filter ? "-filter=$filter" : "";
-            call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} ${fopt} replace \"$dir\"");
+            call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} -score ${fopt} replace \"$dir\"");
         } else {
             my $ce_output = $out ? "> \"$out\"" : "";
             call("paste ${dir}/pr.ce \"${P_txt}\" ${ce_output}");
