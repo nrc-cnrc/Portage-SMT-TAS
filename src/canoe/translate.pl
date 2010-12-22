@@ -257,7 +257,7 @@ For -with-rescoring, in order for rat.sh to work correctly, either the
 rescoring model must use absolute paths or its model paths must be of the
 form C<models/subpath> and be accessible from the current directory 
 (i.e. C<./models/subpath> references the corresponding model).
-This is the way portageLive and portage.simple.framework.2 work.
+This is the way portageLive and the framework work.
 
 =head1 SEE ALSO
 
