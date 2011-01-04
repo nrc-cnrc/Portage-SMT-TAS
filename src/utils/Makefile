@@ -54,6 +54,7 @@ PROGRAMS = $(TESTPROGS) \
         iroc_exp \
         meanvar \
         merge_counts \
+        merge_multi_column_counts \
         portage_info \
         wc_stats
 
