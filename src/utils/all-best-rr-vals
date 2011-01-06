@@ -26,23 +26,32 @@ source `dirname $0`/sh_utils.sh
 print_nrc_copyright all-best-rr-vals 2007
 
 
-if [[ $# > 1 || $1 =~ ^-h ]]; then
+if [[ $1 =~ ^-h ]]; then
    cat $0 | egrep '^##' | cut -c4-
    exit 1
 fi
 
-if [[ $# = 1 ]]; then
-   pref="$1"
+if [[ $# -gt 1 ]]; then
+   prefs=$*
 else
-   pref="*"
+   if [[ $# = 1 ]]; then
+      prefs="$1"
+   else
+      prefs="*"
+   fi
+   if ! ls -t1 $prefs/rescore-results >& /dev/null; then
+      echo `basename $0`: No files found matching $pref/rescore-results 
+      exit 1
+   fi
 fi
 
-if ! ls -t1 $pref/rescore-results >& /dev/null; then
-   echo `basename $0`: No files found matching $pref/rescore-results 
-   exit 1
-fi
+for pref in $prefs; do
+   file_list="$file_list $pref/rescore-results"
+done
 
-for f in `ls -t1 $pref/rescore-results`; do
+#echo file_list=$file_list
+
+for f in `ls -t1 $file_list 2> /dev/null`; do
    best=`best-rr-val $f`
    log=`dirname $f`/log.cow
    if [[ -r $log ]]; then
@@ -58,4 +67,3 @@ for f in `ls -t1 $pref/rescore-results`; do
    fi
    echo "$best $status"
 done
-
