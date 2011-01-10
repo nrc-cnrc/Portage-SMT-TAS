@@ -17,7 +17,7 @@ v1.4.2 2010-10-01
  This is a maintenance release.
 
  Minor changes:
- - The detokenizer for French no longer glues % to nubers.
+ - The detokenizer for French no longer glues % to numbers.
  - The new script fix-en-fr-numbers.pl patches numbers copied from English
    to French by reformatting them using French conventions.  Intended for use
    in postprocess_plugin.
