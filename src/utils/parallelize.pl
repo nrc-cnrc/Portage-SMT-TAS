@@ -176,6 +176,13 @@ sub verbose {
 
 $PSUB_OPTS = "-psub \"$PSUB_OPTS\"" unless ($PSUB_OPTS eq "");
 
+# We need to strip any arguments of the MERGE_PGM command before we can check
+# if the merge program is available in PATH.
+$MERGE_PGM =~ /([^ ]+)/;
+my $CHECK_MERGE_PGM = $1;
+my $rc = system("which $CHECK_MERGE_PGM &> /dev/null");
+die "$CHECK_MERGE_PGM is not in your PATH.\n" unless($rc eq 0);
+
 
 # Grab the rest of the command line as the command to run
 my $CMD = join " ", @ARGV;
@@ -367,7 +374,7 @@ close(MERGE_CMD_FILE);
 verbose(1, "Processing all chunks.");
 my $cmd = "$debug_cmd run-parallel.sh $RP_OPTS $PSUB_OPTS $NOLOCAL $cmd_file $NP";
 verbose(2, "cmd is: $cmd");
-my $rc = system($cmd);
+$rc = system($cmd);
 die "Error running run-parallel.sh" unless($rc eq 0);
 
 
