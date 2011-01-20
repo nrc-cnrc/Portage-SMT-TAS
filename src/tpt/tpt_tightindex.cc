@@ -81,8 +81,9 @@ namespace ugdiss
   
   // write a key or value into a tight index
   // flag indicates wheter it's a key or a value
-  void tightwrite(std::ostream& out, uint64_t data, bool flag)
+  size_t tightwrite(std::ostream& out, uint64_t data, bool flag)
   {
+    size_t cnt = 0;
     // assert(sizeof(size_t)==4);
 #ifdef LOG_WRITE_ACTIVITY
     size_t bytes_written=1;
@@ -98,6 +99,7 @@ namespace ugdiss
 	  { 
 	    char c = char(data%128)|char(-128);
 	    out.put(c); 
+	    ++cnt;
 	    data >>= 7; 
 #ifdef LOG_WRITE_ACTIVITY
 	    bytes_written++;
@@ -105,6 +107,7 @@ namespace ugdiss
 	  }
 	char c = char(data%128)|char(-128);
 	out.put(c);
+	++cnt;
       }
     else
       {
@@ -115,6 +118,7 @@ namespace ugdiss
 	  {
 	    char c = data&127;
 	    out.put(c); 
+	    ++cnt;
 	    data >>= 7;
 #ifdef LOG_WRITE_ACTIVITY
 	    bytes_written++;
@@ -122,10 +126,12 @@ namespace ugdiss
 	  }
 	char c = (data&127);
 	out.put(c);
+	++cnt;
       }
 #ifdef LOG_WRITE_ACTIVITY
     std::cerr << " in " << bytes_written << " bytes" << std::endl;
 #endif
+    return cnt;
   }
   
 // For the code below: does it make a difference if I hard-code the 

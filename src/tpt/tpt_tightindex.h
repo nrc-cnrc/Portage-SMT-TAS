@@ -43,7 +43,7 @@ extern bool debug;
 namespace ugdiss
 {
   // void tightwritex(iostream& out, size_t data, bool flag);
-  void 
+  size_t
   tightwrite(std::ostream& out, uint64_t data, bool flag);
 
   filepos_type 

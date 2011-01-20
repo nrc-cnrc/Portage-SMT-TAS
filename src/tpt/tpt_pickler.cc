@@ -30,9 +30,10 @@ namespace ugdiss
 // template function for writing unsigned integers (short, long, long
 // long)
   template <typename T>
-  void
+  size_t
   binwrite_unsigned_integer(std::ostream& out, T data)
   {
+    size_t cnt = 0;
     char c;
 #ifdef LOG_WRITE_ACTIVITY
     size_t bytes_written = 1;
@@ -44,13 +45,16 @@ namespace ugdiss
 	bytes_written++;
 #endif
 	out.put(data%128);
+	++cnt;
 	data = data >> 7;
       }
     c = data;
     out.put(c|char(-128)); // set the 'stop' bit
+    ++cnt;
 #ifdef LOG_WRITE_ACTIVITY
     cerr << " in " << bytes_written << " bytes" << std::endl;
 #endif
+    return cnt;
   }
 
   template<typename T>
@@ -91,37 +95,37 @@ namespace ugdiss
     data += T(c&mask) << 63;
   }
 
-  void 
+  size_t
   binwrite(std::ostream& out, unsigned char data) 
   { 
-    binwrite_unsigned_integer(out, data);
+    return binwrite_unsigned_integer(out, data);
   }
 
-  void 
+  size_t
   binwrite(std::ostream& out, unsigned short data)
   { 
-    binwrite_unsigned_integer(out, data);
+    return binwrite_unsigned_integer(out, data);
   }
 
-  void 
+  size_t
   binwrite(std::ostream& out, unsigned long data)
   { 
-    binwrite_unsigned_integer(out, data);
+    return binwrite_unsigned_integer(out, data);
   }
 
-  void 
+  size_t
   binwrite(std::ostream& out, unsigned long long data)
   { 
-    binwrite_unsigned_integer(out, data);
+    return binwrite_unsigned_integer(out, data);
   }
 
 #if __WORDSIZE == 64 || defined(Darwin)
-  void 
+  size_t
   binwrite(std::ostream& out, unsigned int data)
   { 
-    binwrite_unsigned_integer(out, data);
+    return binwrite_unsigned_integer(out, data);
   }
-#else
+#else 
   void 
   binwrite(std::ostream& out, size_t data)
   { 
@@ -254,12 +258,13 @@ namespace ugdiss
   }
 
   // writing and reading strings ...
-  void 
+  size_t
   binwrite(std::ostream& out, std::string const& s)
   {
     size_t len = s.size();
-    ugdiss::binwrite(out,len);
+    size_t cnt = ugdiss::binwrite(out,len);
     out.write(s.c_str(),len);
+    return cnt+len;
   }
   
   void
@@ -339,12 +344,13 @@ namespace ugdiss
 //     return in; 
 //   }
 
-  void
+  size_t
   binwrite(std::ostream& out, float x)
   { 
     // IMPORTANT: this is not robust against the big/little endian 
     // issue. 
-    out.write(reinterpret_cast<char*>(&x),sizeof(float)); 
+    out.write(reinterpret_cast<char*>(&x),sizeof(float));
+    return sizeof(float);
   }
   
   void

@@ -35,15 +35,15 @@ namespace ugdiss
    * representation. Write and read errors can be checked directly
    * on the ostream object after the function call, so no return value is
    * necessary.*/
-  void binwrite(std::ostream& out, char               data); 
-  void binwrite(std::ostream& out, unsigned char      data); 
-  void binwrite(std::ostream& out, unsigned short     data);
-  void binwrite(std::ostream& out, unsigned int       data);
-  void binwrite(std::ostream& out, unsigned long      data);
-  void binwrite(std::ostream& out, size_t             data);
-  void binwrite(std::ostream& out, unsigned long long data);
-  void binwrite(std::ostream& out, std::string const& data);
-  void binwrite(std::ostream& out, float              data); 
+  size_t binwrite(std::ostream& out, char               data);
+  size_t binwrite(std::ostream& out, unsigned char      data);
+  size_t binwrite(std::ostream& out, unsigned short     data);
+  size_t binwrite(std::ostream& out, unsigned int       data);
+  size_t binwrite(std::ostream& out, unsigned long      data);
+  size_t binwrite(std::ostream& out, size_t             data);
+  size_t binwrite(std::ostream& out, unsigned long long data);
+  size_t binwrite(std::ostream& out, std::string const& data);
+  size_t binwrite(std::ostream& out, float              data);
 
   void binread(std::istream& out, char               &data); 
   void binread(std::istream& out, unsigned char      &data); 
