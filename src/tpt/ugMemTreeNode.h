@@ -25,10 +25,9 @@
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
+#include "tpt_typedefs.h"
 #include "ugReadWriteValues.h"
 #include "tpt_tightindex.h"
-#include "tpt_typedefs.h"
-#include "tpt_repos.h"
 #include "tpt_pickler.h"
 
 using namespace std;
@@ -166,7 +165,8 @@ namespace ugdiss
     pair<filepos_type,uchar>
     toRepos<MemTreeNode<val_t,key_t>,val_t>(ostream& idx, ostream& dat,
                                             MemTreeNode<val_t,key_t>& node,
-                                            filepos_type parent, vector<val_t>& remap);
+                                            filepos_type parent, vector<val_t>& remap,
+                                            filepos_type &curIdxPos, filepos_type &curDatPos);
   };
 
   template<typename val_t, typename key_t>
