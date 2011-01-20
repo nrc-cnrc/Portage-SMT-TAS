@@ -1,6 +1,6 @@
 /**
  * @author Darlene Stewart
- * @file tpt_error.h Exception and error handling in the tpt module.
+ * @file tpt_error.h Exception, error and debug handling in the tpt module.
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
@@ -25,6 +25,16 @@ using namespace Portage;
 #define MAIN(argc, argv) main(int argc, const char* const argv[])
 #define END_MAIN
 #endif  // IN_PORTAGE
+
+
+//#define DEBUG_TPT
+// Execute the expression (usually assert or output) if in debug mode.
+#ifdef DEBUG_TPT
+   #define TPT_DBG(expr) expr
+#else
+   #define TPT_DBG(expr)
+#endif
+
 
 namespace ugdiss {
 
