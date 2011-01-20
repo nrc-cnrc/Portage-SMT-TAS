@@ -197,6 +197,24 @@ bool PTrie<LeafDataT, InternalDataT, NeedDtor>::find(
 }
 
 template<class LeafDataT, class InternalDataT, bool NeedDtor>
+typename PTrie<LeafDataT, InternalDataT, NeedDtor>::iterator
+   PTrie<LeafDataT, InternalDataT, NeedDtor>::find(const TrieKeyT key)
+{
+   //cerr << "find ";
+   Uint bucket = hash(key);
+   TrieNode<LeafDataT, InternalDataT, NeedDtor> *node = &(roots[bucket]);
+   TrieDatum<LeafDataT, InternalDataT, NeedDtor> *datum;
+   Uint leaf_pos;
+   if ( node->find(key, datum, leaf_pos) ) {
+      //cerr << " found" << endl;
+      return iterator(*this, node, true, false, bucket, leaf_pos);
+   } else {
+      //cerr << " not found" << endl;
+      return end_iter;
+   }
+}
+
+template<class LeafDataT, class InternalDataT, bool NeedDtor>
 bool PTrie<LeafDataT, InternalDataT, NeedDtor>::sum(
    const TrieKeyT key[], Uint min_depth, Uint max_depth, LeafDataT& val
 ) const {
@@ -744,6 +762,19 @@ InternalDataT PTrie<LeafDataT, InternalDataT, NeedDtor>::iterator
              ->internal_data();
    else
       return InternalDataT();
+}
+
+template<class LeafDataT, class InternalDataT, bool NeedDtor>
+typename PTrie<LeafDataT, InternalDataT, NeedDtor>::iterator
+   PTrie<LeafDataT, InternalDataT, NeedDtor>::iterator::find(const TrieKeyT key)
+{
+   TrieDatum<LeafDataT, InternalDataT, NeedDtor> *datum;
+   Uint leaf_pos;
+   if ( node->find(key, datum, leaf_pos) ) {
+      return iterator(parent, node, false, false, root_bucket, leaf_pos);
+   } else {
+      return end_iter;
+   }
 }
 
 template<class LeafDataT, class InternalDataT, bool NeedDtor>

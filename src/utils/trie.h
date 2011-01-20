@@ -298,6 +298,15 @@ class PTrie {
       Uint* depth = NULL);
 
    /**
+    * Find a root key in the trie, returning an iterator to it.
+    * @param key      Root key to be looked up
+    * @return an iterator which can be used to traverse the trie rooted at key
+    * (using the iterator's begin_children() and end_children() methods).
+    * Returns end_iter if the key is not found as a root.
+    */
+   iterator find(const TrieKeyT key);
+
+   /**
     * Sum leaf values over a sequence of prefixes of a key.  Add the values
     * found in the trie for prefixes of key of depth [min_depth .. max_depth].
     * key_size is assumed to be >= max_depth.  val should be initialized
@@ -648,6 +657,15 @@ class PTrie {
        * @return end iterator
        */
       const iterator& end_children() const { return parent.end_iter; }
+
+      /**
+       * Find a child of this node, returning an iterator to it.
+       * @param key      Key to look up
+       * @return an iterator which can be used to traverse the trie rooted at key
+       * (using the iterator's begin_children() and end_children() methods).
+       * Returns end_iter if the key is not found as a child of this node.
+       */
+      iterator find(const TrieKeyT key);
 
       /**
        * Insert a child for this node.
