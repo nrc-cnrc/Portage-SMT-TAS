@@ -29,14 +29,17 @@
 
 #include <boost/iostreams/device/mapped_file.hpp>
 
+//#define DEBUG_TPT
+
 #include "tpt_typedefs.h"
 #include "tpt_tokenindex.h"
-#include "ugMemTable.h"
+#include "tpt_tightindex.h"
+#include "tpt_pickler.h"
 #include "tpt_bitcoder.h"
 #include "tpt_utils.h"
 
 static char help_message[] = "\n\
-ptable.assemble [options] OUTPUT_BASE_NAME\n\
+ptable.assemble [-h] OUTPUT_BASE_NAME\n\
 \n\
   Sort the entries and assemble the encoded phrase table (TPPT) from the\n\
   various intermediate files.\n\
@@ -48,8 +51,6 @@ ptable.assemble [options] OUTPUT_BASE_NAME\n\
   This program is normally called via textpt2tppt.sh.\n\
 \n\
 ";
-
-#define rcast reinterpret_cast
 
 #define VERIFY_VALUE_ENCODING 0
 
@@ -76,8 +77,8 @@ getBitBlocksFromCodeBook(string fname)
   assert(sizeof(float) == 4);
   bio::mapped_file_source cbk;
   open_mapped_file_source(cbk, fname);
-  uint32_t const* p = rcast<uint32_t const*>(cbk.data());
-  uint32_t const* cbk_end = rcast<uint32_t const*>(cbk.data()+cbk.size());
+  uint32_t const* p = reinterpret_cast<uint32_t const*>(cbk.data());
+  uint32_t const* cbk_end = reinterpret_cast<uint32_t const*>(cbk.data()+cbk.size());
   if (p > cbk_end-1)
     cerr << efatal << "Empty codebook file '" << fname << "'." << exit_1;
   size_t numBooks = *p++;
@@ -126,7 +127,7 @@ encodeOneEntry(string& dest, size_t bo, size_t o
 #endif
                )
 {
-  //cerr << "encodeOneEntry: bo=" << bo << " o=" << o << endl;
+  TPT_DBG(cerr << "encodeOneEntry: bo=" << bo << " o=" << o << endl);
   if (o >= trg_size)
     cerr << efatal << "Invalid index into .trg.col file: " << o << exit_1;
   bo = trgCoder.writeNumber(dest,bo,trgBase[o]);
@@ -144,7 +145,7 @@ encodeOneEntry(string& dest, size_t bo, size_t o
       v.push_back(scoreId);
 #endif
     }
-  //cerr << "encodeOneEntry: returning bo=" << bo << endl;
+  TPT_DBG(cerr << "encodeOneEntry: returning bo=" << bo << endl);
   return bo;
 }
 
@@ -156,7 +157,7 @@ encodeAllEntries(string& dest, size_t o)
   vector<uint32_t> v; // for debugging
 #endif
 
-  //cerr << "encodeAllEntries: o=" << o << endl;
+  TPT_DBG(cerr << "encodeAllEntries: o=" << o << endl);
 
   uint32_t curSrcPid = srcBase[srcPO[o]];
 
@@ -181,7 +182,7 @@ encodeAllEntries(string& dest, size_t o)
 
   // verify encoding
   size_t z=0;
-  pair<char const*,uchar> r(rcast<char const*>(dest.c_str()),0);
+  pair<char const*,uchar> r(reinterpret_cast<char const*>(dest.c_str()),0);
   for (size_t k = o; k < i; k++)
     {
       uint32_t foo;
@@ -214,7 +215,7 @@ encodeAllEntries(string& dest, size_t o)
         }
     }
 #endif
-  //cerr << "encodeAllEntries: returning " << (i-o) << endl;
+  TPT_DBG(cerr << "encodeAllEntries: returning " << (i-o) << endl);
   return i-o;
 }
 
@@ -222,7 +223,7 @@ char const* refIdx_start;
 char const* refIdx_end;
 
 pair<filepos_type,uchar>
-processNode(ostream& out, char const* const p, uchar flags, uint32_t& o)
+processNode(ostream& out, filepos_type& curOutPos, char const* const p, uchar flags, uint32_t& o)
 {
   id_type flagmask = FLAGMASK;
   id_type flagfilter = ~flagmask;
@@ -231,7 +232,7 @@ processNode(ostream& out, char const* const p, uchar flags, uint32_t& o)
   char const* idxStart = p;
   string myValue;
   size_t numPhrases=0;
-  //cerr << "processNode: flags=" << (flags&0xff) << " o=" << o << endl;
+  TPT_DBG(cerr << "processNode: flags=" << (flags&0xff) << " o=" << o << endl);
   if (q < refIdx_start || q >= refIdx_end)
     cerr << efatal << "Corrupt .src.repos.idx file (invalid offset)." << exit_1;
   if (flags&HAS_CHILD_MASK)
@@ -250,8 +251,8 @@ processNode(ostream& out, char const* const p, uchar flags, uint32_t& o)
       q = binread(q,srcPid);
       if (q > refIdx_end)
         cerr << efatal << "Corrupt .src.repos.idx file (invalid offset)." << exit_1;
-      //cerr << "source id from idx: " << srcPid << endl;
-      //cerr << "top of stack: " << srcBase[srcPO[o]] << endl;
+      TPT_DBG(cerr << "source id from idx: " << srcPid << endl);
+      TPT_DBG(cerr << "top of stack: " << srcBase[srcPO[o]] << endl);
       assert (srcBase[srcPO[o]] >= srcPid);
       if (srcBase[srcPO[o]] == srcPid)
         o += (numPhrases = encodeAllEntries(myValue,o));
@@ -267,54 +268,58 @@ processNode(ostream& out, char const* const p, uchar flags, uint32_t& o)
       if (id&flagmask)
         {
           pair<filepos_type,uchar> jar 
-            = processNode(out,idxStart-offset,id&flagmask,o);
+            = processNode(out, curOutPos, idxStart-offset, id&flagmask, o);
           id = (id&flagfilter)+jar.second;
           I.push_back(pair<id_type,filepos_type>(id,jar.first));
         }
       else 
         {
-          //cerr << "offset=" << offset << " flags=" << int(id&flagmask)
-          //     << "tos=" << srcBase[srcPO[o]]
-          //     << endl;
+          TPT_DBG(cerr << "offset=" << offset << " flags=" << int(id&flagmask)
+                       << "tos=" << srcBase[srcPO[o]] << endl);
           if (offset == srcBase[srcPO[o]])
             {
               string chldval; // child value
               uint32_t numCP = encodeAllEntries(chldval,o); // num child phrase entries
               o += numCP;
               id_type key = (id&flagfilter)+HAS_VALUE_MASK;
-              I.push_back(pair<id_type,filepos_type>(key,out.tellp()));
-              binwrite(out,numCP);
+              TPT_DBG(assert((filepos_type)out.tellp() == curOutPos));
+              I.push_back(pair<id_type,filepos_type>(key, curOutPos));
+              curOutPos += binwrite(out, numCP);
               out.write(chldval.c_str(),chldval.size());
+              curOutPos += chldval.size();
             }
         }
     }
 
-  filepos_type myIStart = out.tellp();
+  TPT_DBG(assert((filepos_type)out.tellp() == curOutPos));
+  filepos_type myIStart = curOutPos;
   for (size_t i = 0; i < I.size(); i++)
     {
-      tightwrite(out,I[i].first,false);
+      curOutPos += tightwrite(out, I[i].first, false);
       if (I[i].first&flagmask)
-        tightwrite(out,myIStart-I[i].second,true);
+        curOutPos += tightwrite(out, myIStart-I[i].second, true);
       else
-        tightwrite(out,I[i].second,true);
+        curOutPos += tightwrite(out, I[i].second, true);
     }
-  filepos_type myPos = out.tellp();
+  TPT_DBG(assert((filepos_type)out.tellp() == curOutPos));
+  filepos_type myPos = curOutPos;
   pair<filepos_type,uchar> ret(0,0);
   if (I.size())
     {
-      binwrite(out,myPos-myIStart);
+      curOutPos += binwrite(out, myPos-myIStart);
       ret.second += HAS_CHILD_MASK;
     }
   if (myValue.size())
     {
-      binwrite(out,numPhrases);
+      curOutPos += binwrite(out, numPhrases);
       out.write(myValue.c_str(),myValue.size());
+      curOutPos += myValue.size();
       ret.second += HAS_VALUE_MASK;
     }
   if (ret.second)
     ret.first = myPos;
-  //cerr << "processNode: returning ret.first=" << ret.first
-  //     << " ret.second=" << (ret.second&0xff) << " o=" << o << endl;
+  TPT_DBG(cerr << "processNode: returning ret.first=" << ret.first
+               << " ret.second=" << (ret.second&0xff) << " o=" << o << endl);
   return ret;
 }
 
@@ -369,14 +374,14 @@ int MAIN(argc, argv)
     cerr << efatal << "Unable to open tppt index file '" << idxName << "' for writing."
          << exit_1;
 
-  srcBase   = rcast<uint32_t const*>(src.data());
-  trgBase   = rcast<uint32_t const*>(trg.data());
-  scoreBase = rcast<uint32_t const*>(scores.data());
+  srcBase   = reinterpret_cast<uint32_t const*>(src.data());
+  trgBase   = reinterpret_cast<uint32_t const*>(trg.data());
+  scoreBase = reinterpret_cast<uint32_t const*>(scores.data());
   trg_size  = trg.size() / sizeof(uint32_t);
   score_size = scores.size() / sizeof(uint32_t);
 
   srcPO.resize(numEntries); 
-  for (size_t i = 0; i < numEntries; i++) 
+  for (size_t i = 0; i < numEntries; i++)
     srcPO[i] = i;
   sort(srcPO.begin(), srcPO.end(), mySortFunc(srcBase));
 
@@ -413,8 +418,9 @@ int MAIN(argc, argv)
 
   numwrite(idx,filepos_type(0)); // reserve room for start of index 
   numwrite(idx,refNumTokens);    // number of tokens
-  binwrite(idx,0U); // root value 
-  binwrite(idx,0U); // default value
+  filepos_type curIdxPos = sizeof(filepos_type) + sizeof(id_type);
+  curIdxPos += binwrite(idx, 0U); // root value
+  curIdxPos += binwrite(idx, 0U); // default value
   
   uint32_t o = 0;
   vector<pair<filepos_type,uchar> > I(refNumTokens,pair<filepos_type,uchar>(0,0));
@@ -426,34 +432,38 @@ int MAIN(argc, argv)
     cerr << efatal << "Corrupt index file '" << refIdxName << "'." << exit_1;
   for (size_t i = 0; i < refNumTokens; i++)
     {
+      TPT_DBG(cerr << "ptable.assemble processing i = " << i << endl);
       filepos_type offset; uchar flags;
       r = numread(r,offset);
       flags = *r++;
-      //cerr << "main: i=" << i << " flags=" << (unsigned)flags << " offset=" << offset << " o=" << o << endl;
+      TPT_DBG(cerr << "main: i=" << i << " flags=" << (unsigned)flags
+                   << " offset=" << offset << " o=" << o << endl);
       if (flags)
-        I[i] = processNode(idx,refIdx.data()+offset,flags,o);
+        I[i] = processNode(idx, curIdxPos, refIdx.data()+offset, flags, o);
       else if (o < numEntries && offset == srcBase[srcPO[o]])
         {
           string chldval; // child value
           uint32_t numCP = encodeAllEntries(chldval,o); // num child phrase entries
-          I[i] = pair<filepos_type,uchar>(idx.tellp(),HAS_VALUE_MASK);
-          binwrite(idx,numCP);
+          TPT_DBG(assert((filepos_type)idx.tellp() == curIdxPos));
+          I[i] = pair<filepos_type,uchar>(curIdxPos, HAS_VALUE_MASK);
+          curIdxPos += binwrite(idx, numCP);
           idx.write(chldval.c_str(),chldval.size());
+          curIdxPos += chldval.size();
           o += numCP;
         }
-      //cerr << "main: now o=" << o << endl;
+      TPT_DBG(cerr << "main: now o=" << o << endl);
     }
 
   cerr << "ptable.assemble writing index." << endl;
-  filepos_type idxStart = idx.tellp();
-  idx.seekp(0);
-  numwrite(idx,idxStart);
-  idx.seekp(idxStart);
+  TPT_DBG(assert((filepos_type)idx.tellp() == curIdxPos));
+  filepos_type idxStart = curIdxPos;
   for (size_t i = 0; i < I.size(); i++)
     {
       numwrite(idx,I[i].first);
       idx.put(I[i].second);
     }
+  idx.seekp(0);
+  numwrite(idx,idxStart);
   idx.close();
   cerr << "ptable.assemble finished." << endl;
 }

@@ -28,6 +28,8 @@
 // - proper help message, command line interface, etc
 
 #include <map>
+#include <tr1/unordered_map>
+#include <ctime>
 #include <cmath>
 #include <sstream>
 #include <limits>  // numeric_limits<float>::min & numeric_limits<float>::max
@@ -41,6 +43,8 @@ using namespace Portage;
 #endif
 
 #include <boost/program_options.hpp>
+
+//#define DEBUG_TPT
 
 #include "tpt_typedefs.h"
 #include "tpt_tokenindex.h"
@@ -69,15 +73,11 @@ inline ostream& help_message(ostream& os)
   return os << base_help_message << options_help.str();
 }
 
-
-#define rcast reinterpret_cast
-
 namespace po  = boost::program_options;
 namespace bio = boost::iostreams;
 
 using namespace std;
 using namespace ugdiss;
-
 
 const char * const COLSEP = " ||| ";
 
@@ -86,27 +86,6 @@ string oBaseName;
 //string truncation;
 // vector<size_t> truncactionBits; // add truncation later (maybe)
 
-
-size_t 
-countScores(string const& line)
-{
-   size_t p = line.rfind(COLSEP); // find the last column separator
-   if (p != string::npos)
-      p += strlen(COLSEP);      // skip the column separator
-  istringstream buf(line.substr(p));
-  float f(0);
-  size_t count=0;
-  while (buf>>f) {
-     count++;
-  }
-  if (!buf.eof())
-    cerr << efatal << "Format error in phrase table file:" << endl
-         << "Malformed scores in line 1" << endl << ">" << line << "<"
-         << exit_1;
-  if (f > 2.7179 && f < 2.7181) // moses-style phrase table
-     count--;
-  return count;
-}
 
 void
 interpret_args(int ac, char* av[])
@@ -148,77 +127,40 @@ interpret_args(int ac, char* av[])
          << exit_1;
 }
 
-struct SortByFreq
+size_t
+count_scores_per_line(string const& line)
 {
-  bool
-  operator()(map<float,uint32_t>::iterator const& A,
-             map<float,uint32_t>::iterator const& B)
-  {
-    return B->second < A->second;
-  }
-};
+   size_t p = line.rfind(COLSEP); // find the last column separator
+   if (p == string::npos)
+     cerr << efatal << "Format error in phrase table file:" << endl
+          << "No column separator '" << COLSEP << "' in line 1" << endl
+          << ">" << line << "<"
+          << exit_1;
+  p += strlen(COLSEP);      // skip the column separator
+  const char *buf(line.c_str()+p);
 
-class Score
-{
-public:
-  uint32_t id;
-  uint32_t cnt;
-  Score(uint32_t _id) : id(_id), cnt(0) {};
-  bool
-  operator<(Score const& A)
-  {
-    return id < A.id;
-  }
-
-  
-};
-
-struct byFreq
-{
-  bool operator()(map<float,Score>::const_iterator const& A, 
-                  map<float,Score>::const_iterator const& B) 
-  { 
-    return A->second.cnt > B->second.cnt;
-  }
-};
-    
-vector<uint32_t>
-mkCodeBook(map<float,Score> const& M, ostream& codebook)
-{
-  vector<uint32_t> ret(M.size());
-  vector<map<float,Score>::const_iterator> v(M.size());
-  size_t i = 0;
-  for (map<float,Score>::const_iterator m = M.begin(); m != M.end(); m++)
-    v[i++] = m;
-  sort(v.begin(),v.end(),byFreq());
-  vector<uint32_t> bits_needed(max(2,int(ceil(log2(v.size()))))+1,0);
-  for (size_t k = 0; k < v.size(); k++)
+  float f(0);
+  size_t count=0;
+  while(1)
     {
-      assert(v[k]->second.id < ret.size());
-      ret[v[k]->second.id] = k;
-      size_t bn = max(2,int(ceil(log2(k+1))));
-      bits_needed[bn] += v[k]->second.cnt;
+      char *next;
+      f = static_cast<float>(strtod(buf, &next));
+      if (buf == next) break;
+      ++count;
+      buf = next;
     }
-  // determine the best encoding scheme
-  Escheme best = best_scheme(bits_needed,5);
-  vector<uint32_t> const& blocks = best.blockSizes;
-  uint32_t x = v.size();               
-  // number of distinct scores in this column
-  codebook.write(rcast<char*>(&x),4); 
-  x = blocks.size();                   
-  // number of bit blocks used to encode score IDs
-  codebook.write(rcast<char*>(&x),4); 
-  for (size_t k = 0; k < blocks.size(); k++)
-    codebook.write(rcast<char const*>(&(blocks[k])),4);   // bit block sizes
-  for (size_t k = 0; k < v.size(); k++)
-    codebook.write(rcast<char const*>(&(v[k]->first)),sizeof(float));
-  return ret;
+  if (line.find_first_not_of(" \t", buf-line.c_str()) != string::npos)
+    cerr << efatal << "Format error in phrase table file:" << endl
+         << "Malformed scores in line 1" << endl << ">" << line << "<"
+         << exit_1;
+  if (f > 2.7179 && f < 2.7181) // moses-style phrase table
+     count--;
+  return count;
 }
-
 
 void
 process_line(string const& line, ostream& tmp,
-             vector<map<float,Score> >& scoreCount, size_t linectr)
+             size_t scrs_per_line, size_t linectr)
 {
   size_t p = line.rfind(COLSEP); // find the last column separator
   if (p == string::npos)
@@ -227,18 +169,18 @@ process_line(string const& line, ostream& tmp,
          << ">" << line << "<"
          << exit_1;
   p += strlen(COLSEP); // skip the column separator
-  istringstream buf(line.substr(p));
+  const char *buf(line.c_str()+p);
 
-  float s; 
-  double s_prime;
-  for (size_t i = 0; i < scoreCount.size(); i++)
+  for (size_t i = 0; i < scrs_per_line; i++)
     {
-      buf >> s_prime;
-      if (buf.fail())
+      char *next;
+      double s_prime = strtod(buf, &next);
+      if (next == buf)
         cerr << efatal << "Format error in phrase table file:" << endl
              << "Missing or bad score in line " << linectr << endl
              << ">" << line << "<"
              << exit_1;
+      buf = next;
       // There are some cases where the prob read is outside a float's
       // permitted value.  Let's make sure we cope well with this scenario.
       if (s_prime > 0) {
@@ -249,13 +191,258 @@ process_line(string const& line, ostream& tmp,
          if (-s_prime < numeric_limits<float>::min()) s_prime = -numeric_limits<float>::min();
          if (-s_prime > numeric_limits<float>::max()) s_prime = -numeric_limits<float>::max();
       }
-      s = static_cast<float>(s_prime);
-      map<float,Score>::value_type foo(s,Score(scoreCount[i].size()));
-      map<float,Score>::iterator bar = scoreCount[i].insert(foo).first;
-      bar->second.cnt++;
-      tmp.write(rcast<char*>(&(bar->second.id)),sizeof(bar->second.id));
+      float s = static_cast<float>(s_prime);
+      tmp.write(reinterpret_cast<char*>(&s),sizeof(s));
+    }
+  if (line.find_first_not_of(" \t", buf-line.c_str()) != string::npos)
+     cerr << efatal << "Format error in phrase table file:" << endl
+          << "Extra or bad score in line " << linectr << endl
+          << ">" << line << "<"
+          << exit_1;
+}
+
+// The scores map maps probability scores to ids.
+// We use a specialized allocator for the scores map that allocates the value
+// nodes in the scores vector, instead of using the standard way that uses
+// new to allocate each node. This allows us to manage the space much more
+// efficiently. The internal scores vector must not be allowed to grow, so its
+// capacity must be set to the maximum allowable in the constructor.
+
+template<typename Tp>
+class scores_allocator
+{
+public:
+  typedef size_t            size_type;
+  typedef ptrdiff_t         difference_type;
+  typedef Tp*              pointer;
+  typedef const Tp*        const_pointer;
+  typedef Tp&              reference;
+  typedef const Tp&        const_reference;
+  typedef Tp               value_type;
+
+private:
+  typedef struct {
+     tr1::__detail::_Hash_node<pair<float, uint32_t>, false> _node;
+     float score() const { return _node._M_v.first; }
+     uint32_t id () const { return _node._M_v.second; }
+  } score_t;
+
+  vector<score_t>* scores;
+  bool owner;   // object owns storage for scores vector?
+
+public:
+  template<typename Tp1>
+  struct rebind { typedef scores_allocator<Tp1> other; };
+
+  scores_allocator(size_t max_size=0) throw()
+    : scores(new vector<score_t>), owner(true)
+  {
+     scores->reserve(max_size);
+  }
+
+  scores_allocator(const scores_allocator& o) throw()
+    : scores(o.scores), owner(false) {}
+
+  template<typename Tp1>
+  scores_allocator(const scores_allocator<Tp1>& o) throw()
+    : scores(reinterpret_cast<vector<score_t> *>(&o.get_scores_ref())), owner(false) {}
+
+  ~scores_allocator() throw() { if (owner) delete scores; }
+
+  pointer
+  address(reference x) const { return &x; }
+
+  const_pointer
+  address(const_reference x) const { return &x; }
+
+  void
+  deallocate(pointer p, size_type n)
+  {
+    // delete p if it was allocated with new.
+    if (p < (void *)&scores->front() || p > (void *)&scores->back())
+      delete p;
+  }
+
+  pointer
+  allocate(size_type n, const void* p = 0)
+  {
+    if (n > 1)
+      return static_cast<Tp*>(::operator new(n * sizeof(Tp)));
+
+    assert (sizeof(Tp) == sizeof(score_t));
+    if (scores->size() + 1 > scores->capacity())
+      std::__throw_bad_alloc();
+    scores->resize(scores->size() + 1);
+    return (pointer)&scores->back();
+  }
+
+  void
+  construct(pointer p, const Tp& val)
+  {
+    ::new((void *)p) value_type(val);
+  }
+
+  void
+  destroy(pointer p) {}
+
+  size_t
+  size() { return scores->size(); }
+
+  size_type
+  max_size() const throw() { return scores->capacity(); }
+
+  vector<score_t>&
+  get_scores_ref() const { return *scores; }
+
+  vector<float>
+  get_scores() const
+  {
+    vector<float> ret(scores->size());
+    for (size_t i=0; i < scores->size(); ++i)
+       ret[i] = (*scores)[i].score();
+    return ret;
+  }
+};
+
+template<typename Tp>
+inline bool
+operator==(const scores_allocator<Tp>&, const scores_allocator<Tp>&)
+{ return true; }
+
+template<typename Tp>
+inline bool
+operator!=(const scores_allocator<Tp>&, const scores_allocator<Tp>&)
+{ return false; }
+
+typedef scores_allocator<pair<float, uint32_t> > scores_allocator_t;
+typedef tr1::unordered_map<float, uint32_t, tr1::hash<float>, equal_to<float>,
+                           scores_allocator_t> scores_map_t;
+
+//typedef tr1::unordered_map<float, uint32_t> scores_map_t;
+//typedef map<float, uint32_t> scores_map_t; // use to reproduce Uli's original output
+//vector<uint32_t> ids;  // use to reproduce Uli's original sort order.
+
+// Count score occurrences, writing preliminary score IDs to the .scr file.
+// Fill the scrs and cnts vectors, ordered by id, with scores and their
+// corresponding counts, respectively.
+void
+count_scores(bio::mapped_file &scr_file, size_t which_scr, size_t scrs_per_line,
+             vector<float>& scrs, vector<uint32_t>& cnts)
+{
+  float* scr_end = reinterpret_cast<float*>(scr_file.data() + scr_file.size());
+  float* p = reinterpret_cast<float*>(scr_file.data());
+  size_t num_lines = (scr_end - p)/scrs_per_line;
+  cnts.reserve((num_lines + 7) / 8);
+
+  scores_allocator_t scores_alloc(num_lines);
+  TPT_DBG(cerr << "scores_alloc: max_size=" << scores_alloc.max_size() << endl);
+  scores_map_t *scores(new scores_map_t(0, tr1::hash<float>(), equal_to<float>(), scores_alloc));
+//  scores_map_t *scores(new scores_map_t);  // for map or default unordered_map scores_map_t
+
+  p += which_scr;
+  while (p < scr_end)
+    {
+      scores_map_t::value_type new_score(*p, scores->size());
+      TPT_DBG(cerr << "inserting: " << new_score.first << " " << new_score.second << endl);
+      scores_map_t::iterator score_it = scores->insert(new_score).first;
+      assert(score_it->second <= cnts.size());
+      if (score_it->second == cnts.size())
+         cnts.push_back(0);
+      ++cnts[score_it->second];
+      // Convert the score in the file to its preliminary score id.
+      *reinterpret_cast<uint32_t*>(p) = score_it->second;
+      p += scrs_per_line;
+    }
+  TPT_DBG(cerr << "cnts: size = " << cnts.size() << ", capacity = " << cnts.capacity() << endl);
+//  sleep(5);           // maximum space used at this point
+
+  delete scores;  // no longer needed
+
+  // Retrieve the scores from the scores allocator. scrs will be ordered by id.
+  scrs = scores_alloc.get_scores();
+
+  // Code for using map<float, uint32_t> to reproduce Uli's original output:
+  // Use global ids vector to reproduce Uli's original sort order.
+//  scrs.resize(cnts.size());
+//  ids.resize(cnts.size());
+//  uint i = 0;
+//  for (scores_map_t::const_iterator m = scores->begin(); m != scores->end(); m++)
+//    {
+//      scrs[m->second] = m->first;
+//      ids[i++] = m->second;
+//    }
+//  delete scores;
+}
+
+struct byFreq
+{
+  vector<uint32_t>& cnts;
+  byFreq(vector<uint32_t>& cnts) : cnts(cnts) {}
+  bool operator()(uint32_t const& A, uint32_t const& B)
+  {
+     return cnts[A] > cnts[B];
+  }
+};
+
+// Write the codebook for a scores column to the .cbk file and convert cnts to
+// a remapping vector mapping the preliminary score IDs to final score IDs.
+void
+mkCodeBook(ostream& codebook, vector<float>& scrs, vector<uint32_t>& cnts)
+{
+  TPT_DBG(cerr << "mkCodeBook: scrs.size = " << scrs.size() << endl);
+  vector<uint32_t>& remap = cnts;  // cnts doubles as the remap vector.
+
+  // Note: comment out the next 3 lines when reproducing Uli's original output.
+  vector<uint32_t> ids(scrs.size());
+  for (size_t i = 0; i < scrs.size(); ++i)
+     ids[i] = i;
+  sort(ids.begin(), ids.end(), byFreq(cnts));
+
+  vector<uint32_t> bits_needed(max(2, int(ceil(log2(ids.size()))))+1, 0);
+  for (size_t k = 0; k < scrs.size(); k++)
+    {
+      size_t bn = max(2, int(ceil(log2(k+1))));
+      bits_needed[bn] += cnts[ids[k]];
+    }
+  for (size_t k = 0; k < remap.size(); k++)
+     remap[ids[k]] = k;       // remap the ids.
+  TPT_DBG(cerr << "  bits_needed.size = " << bits_needed.size() << endl);
+
+  // determine the best encoding scheme
+  Escheme best = best_scheme(bits_needed,5);
+  vector<uint32_t> const& blocks = best.blockSizes;
+
+  TPT_DBG(cerr << "  scrs.size = " << scrs.size() << endl);
+  uint32_t x = scrs.size(); // number of distinct scores in this column
+  codebook.write(reinterpret_cast<char*>(&x), 4);
+  TPT_DBG(cerr << "  blocks.size = " << blocks.size() << endl);
+  x = blocks.size(); // number of bit blocks used to encode score IDs
+  codebook.write(reinterpret_cast<char*>(&x), 4);
+  for (size_t k = 0; k < blocks.size(); k++)
+    {
+      TPT_DBG(cerr << "  blocks[" << k << "] = " << blocks[k] << endl);
+      codebook.write(reinterpret_cast<char const*>(&(blocks[k])), 4); // bit block sizes
+    }
+  for (size_t k = 0; k < scrs.size(); k++)
+    codebook.write(reinterpret_cast<char const*>(&scrs[ids[k]]), sizeof(float));
+}
+
+// Remap the preliminary score IDs for a scores column in the .scr file to
+// the final score IDs.
+void
+remap_ids(bio::mapped_file& scr_file, size_t which_scr, size_t scrs_per_line,
+         vector<uint32_t>& remap)
+{
+  uint32_t* p = reinterpret_cast<uint32_t*>(scr_file.data()) + which_scr;
+  uint32_t* scr_end = reinterpret_cast<uint32_t*>(scr_file.data() + scr_file.size());
+  while (p < scr_end)
+    {
+      assert(*p < remap.size());
+      *p = remap[*p];
+      p += scrs_per_line;
     }
 }
+
 
 int MAIN(argc, argv)
 {
@@ -264,7 +451,7 @@ int MAIN(argc, argv)
   interpret_args(argc,(char **)argv);
   string line;
 
-  // count score occurrences, writing preliminary results to the .scr file.
+  // Read the phrase table, storing the scores into the .scr file for fast access.
   string scrName(oBaseName+".scr");
   ofstream tmpFile(scrName.c_str());
   if (tmpFile.fail())
@@ -278,36 +465,23 @@ int MAIN(argc, argv)
   open_input_stream(iFileName,in);
 #endif
 
+  cerr << "Reading phrase table." << endl;
+  time_t start_time(time(NULL));
   getline(in,line);
-  vector<map<float,Score> > scoreCount(countScores(line));
+  uint32_t scrs_per_line = count_scores_per_line(line);
   size_t linectr = 1;
-  process_line(line, tmpFile, scoreCount, linectr);
+  process_line(line, tmpFile, scrs_per_line, linectr);
   while (getline(in,line))
     {
       if (++linectr%1000000 == 0)
-        cerr << "Counting scores: " << linectr/1000000 << "M lines read" << endl;
-#if 0
-      if (linectr%10000 == 0 || linectr>235180)
-        cerr << "[" << linectr << "] " << line << endl;
-#endif
-      process_line(line, tmpFile, scoreCount, linectr);
+        cerr << "Reading phrase table: " << linectr/1000000 << "M lines read" << endl;
+      process_line(line, tmpFile, scrs_per_line, linectr);
     }
   tmpFile.close();
-  
-  // write codebook and get remapping vectors mapping from
-  // preliminary score IDs to final score IDs
-  vector<vector<uint32_t> > remap(scoreCount.size());
-  string cbkName(oBaseName+".cbk");
-  ofstream cbk(cbkName.c_str());
-  if (cbk.fail())
-    cerr << efatal << "Unable to open codebook file '" << cbkName << "' for writing."
-         << exit_1;
-  uint32_t scnt = scoreCount.size();
-  cbk.write(rcast<char*>(&scnt),4);
-  for (size_t i = 0; i < scoreCount.size(); i++)
-    remap[i] = mkCodeBook(scoreCount[i],cbk);
-  
-  // now remap the temporary .scr file to its final version
+
+  cerr << "Read " << linectr << " lines in " << (time(NULL) - start_time) << " seconds." << endl;
+
+  // Open the .scr (memory-mapped, read/write) and .cbk (write) files
   bio::mapped_file scr;
   try {
     scr.open(scrName, ios::in|ios::out);
@@ -316,18 +490,36 @@ int MAIN(argc, argv)
     cerr << efatal << "Unable to open final score file '" << scrName << "' for read/write."
          << exit_1;
   }
-  uint32_t* p = rcast<uint32_t*>(scr.data());
-  size_t expected_size = linectr * scoreCount.size() * sizeof(uint32_t);
+  size_t expected_size = linectr * scrs_per_line * sizeof(uint32_t);
   if (scr.size() != expected_size)
     cerr << efatal << "Incorrect score file size: " << scr.size()
          << "; expected " << expected_size
          << exit_1;
-  for (size_t x = 0; x < linectr; x++)
-    for (size_t y = 0; y < scoreCount.size(); y++, p++)
-      {
-        assert(*p < remap[y].size());
-        *p = remap[y][*p];
-      }
+
+  string cbkName(oBaseName+".cbk");
+  ofstream cbk(cbkName.c_str());
+  if (cbk.fail())
+    cerr << efatal << "Unable to open codebook file '" << cbkName << "' for writing."
+         << exit_1;
+  cbk.write(reinterpret_cast<char*>(&scrs_per_line),4); // number of code books.
+
+  // For each score field (column) in the .scr file:
+  // 1. Count score occurrences, writing preliminary score IDs to the .scr file.
+  // 2. Write its codebook to the .cbk file and get remapping vector mapping
+  //    the preliminary score IDs to final score IDs.
+  // 3. Remap the preliminary score IDs in the .scr file to the final score IDs.
+  for (size_t i = 0; i < scrs_per_line; i++)
+    {
+      cerr << "Counting scores for code book " << i << "." << endl;
+      vector<uint32_t> cnts;
+      vector<float> scrs;
+      count_scores(scr, i, scrs_per_line, scrs, cnts);
+      cerr << "Writing code book " << i << "." << endl;
+      vector<uint32_t>& remap = cnts;  // cnts doubles as remap vector
+      mkCodeBook(cbk, scrs, cnts);
+      cerr << "Remapping score ids for code book " << i << "." << endl;
+      remap_ids(scr, i, scrs_per_line, remap);
+    }
 
   cerr << "ptable.encode-scores finished." << endl;
 }
