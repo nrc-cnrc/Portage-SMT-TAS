@@ -139,6 +139,7 @@ reduce() {
 
 TIMEFORMAT="Single-job-total: Real %3Rs User %3Us Sys %3Ss PCPU %P%%"
 WORKDIR_ABSOLUTE=/tmp
+MON_PERIOD=30
 run_cmd() {
    if [[ "$1" = "-no-error" ]]; then
       shift
@@ -155,7 +156,7 @@ run_cmd() {
       for signal in 1 2 3 5 10 13 14 15; do
          trap "rm -f $MON_FILE; exit $((128 + signal))" $signal
       done
-      process-memory-usage.pl -s 1 30 $$ > $MON_FILE &
+      process-memory-usage.pl -s 1 $MON_PERIOD $$ > $MON_FILE &
       MON_PID=$!
       # We don't consider calls via time-mem as internal, so unexport
       # PORTAGE_INTERNAL_CALL unless it was set before time-mem was called.
@@ -208,11 +209,12 @@ Usage: time-mem [options] {cmd | files}
 
 Options:
 
-  -T(ally)      Tally results.
-  -m(eta) NAME  Label the tally line with NAME, e.g., for hierarchical reports.
-  -h(elp)       print this help message
-  -v(erbose)    increment the verbosity level by 1 (may be repeated)
-  -d(ebug)      print debugging information
+  -p(eriod) P  Sleep for P seconds between monitoring samples. [30]
+  -T(ally)     Tally results.
+  -m(eta) NAME Label the tally line with NAME, e.g., for hierarchical reports.
+  -h(elp)      Print this help message
+  -v(erbose)   Increment the verbosity level by 1 (may be repeated)
+  -d(ebug)     Print debugging information
 
 ==EOF==
 
@@ -225,7 +227,8 @@ VERBOSE=0
 TALLY=
 while [ $# -gt 0 ]; do
    case "$1" in
-   #-m|-meta)            META=1;;
+   -p|-period)          arg_check 1 $# $1; arg_check_pos_int $2 $1;
+                        MON_PERIOD=$2; shift;;
    -m|-meta)            META=$2;shift;;
    -T|Tally)            TALLY=1;;
    -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ));;
