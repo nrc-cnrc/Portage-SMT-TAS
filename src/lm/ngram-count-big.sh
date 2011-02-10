@@ -21,7 +21,7 @@ if [[ ! -r $BIN/sh_utils.sh ]]; then
    # assume executing from src/* directory
    BIN="$BIN/../utils"
 fi
-source $BIN/sh_utils.sh
+source $BIN/sh_utils.sh || { echo "Error: Unable to source sh_utils.sh" >&2; exit 1; }
 
 print_nrc_copyright ngram-count-big.sh 2006
 echo 'Wrapper around SRILM software - use only if you have a valid SRILM license' >&2
