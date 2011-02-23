@@ -288,10 +288,7 @@ int MAIN(argc, argv)
           foo[bo_order] = zeroId;
           assemble_value(pv,pi,bo_ngram(foo),datFile,idxFile);
         }
-      if (!pv.size() || (pi < pv.size() && !(pv[pi] < bo[bi])))
-        {
-          assemble_value(pv,pi,bo[bi],datFile,idxFile);
-        }
+      assemble_value(pv,pi,bo[bi],datFile,idxFile);
     }
   if (pi != pv.size())
     cerr << efatal << "Extra probability values found." << endl
