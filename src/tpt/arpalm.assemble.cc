@@ -30,6 +30,10 @@
 #include <vector>
 #include <glob.h>
 
+//#define DEBUG_TPT
+//#define DEBUG_TPT_2
+
+#include "tpt_typedefs.h"
 #include "tpt_tightindex.h"
 #include "tpt_tokenindex.h"
 #include "tpt_pickler.h"
@@ -59,10 +63,10 @@ class ngram
 {
 public:
   size_t   order;
-  uint32_t const* id;
+  id_type const* id;
   ngram() : order(0), id(NULL) {};
   ngram(char const* _p, size_t _o)
-    : order(_o), id(reinterpret_cast<uint32_t const*>(_p))
+    : order(_o), id(reinterpret_cast<id_type const*>(_p))
   {}
   
   bool operator==(ngram const& other)
@@ -105,7 +109,7 @@ public:
   id_type 
   val() const
   {
-    return *reinterpret_cast<id_type const*>(id+order);
+    return *(id+order);
   }
   
 };
@@ -163,11 +167,11 @@ public:
         cerr << idxName << endl;
         open_mapped_file_source(idx, idxName);
         open_mapped_file_source(dat, datName);
-        top.id = reinterpret_cast<uint32_t const*>(idx.data()+1);
+        top.id = reinterpret_cast<id_type const*>(idx.data()+1);
       }
     return dat.is_open() && idx.is_open();
   }
-  
+
   ngramStreamer(size_t _order, size_t _valSize, string pattern)
     : order(_order), 
       valueSize(_valSize),
@@ -198,9 +202,9 @@ public:
   pop()
   {
     char const* foo = reinterpret_cast<char const*>(top.id);
-    foo += order*sizeof(uint32_t)+valueSize;
+    foo += order*sizeof(id_type)+valueSize;
     if (foo < idx.data()+idx.size())
-      top.id = reinterpret_cast<uint32_t const*>(foo);
+      top.id = reinterpret_cast<id_type const*>(foo);
     else if (!open_next_file())
       top.id = 0;
   }
@@ -209,7 +213,7 @@ public:
   topValStart()
   {
     assert (top.id != NULL);
-    return dat.data()+*reinterpret_cast<uint64_t const*>(top.id+order);
+    return dat.data()+*reinterpret_cast<filepos_type const*>(top.id+order);
   }
 
 #if 0
@@ -226,11 +230,12 @@ public:
 };
 
 pair<filepos_type,uchar>
-writeNode(ostream& out, vector<ngramStreamer*>& B, size_t i)
+writeNode(ostream& out, vector<ngramStreamer*>& B, size_t i, filepos_type& outPos)
 {
-  // cout << "writing " << B[i]->top << endl;
+  TPT_DBG2(cerr << "writing " << B[i]->top << endl);
   // process children, if any
-  map<id_type,filepos_type> M;
+  typedef pair<id_type,filepos_type> idx_entry_t;
+  vector<idx_entry_t> tmpidx;
   if (i+1 < B.size())
     {
       while (B[i+1]->top < B[i]->top)
@@ -242,28 +247,30 @@ writeNode(ostream& out, vector<ngramStreamer*>& B, size_t i)
       while (B[i+1]->top.match(B[i]->top))
         {
           id_type wid = B[i+1]->top.id[i+1];
-          pair<filepos_type,uchar> jar = writeNode(out,B,i+1); 
+          if (!tmpidx.empty()) assert((wid<<FLAGBITS) > tmpidx.back().first);
+          pair<filepos_type,uchar> jar = writeNode(out, B, i+1, outPos); 
           // writeNode also pops B[i+1]
-          M[(wid<<FLAGBITS)+jar.second] = jar.first;
+          tmpidx.push_back(idx_entry_t((wid<<FLAGBITS)+jar.second, jar.first));
         }
     }
 
   // write the index
-  typedef map<id_type,filepos_type>::iterator myIter;
-  filepos_type idxStart = out.tellp();
-  for (myIter m = M.begin(); m != M.end(); m++)
+  TPT_DBG(assert(outPos == (filepos_type)out.tellp()));
+  filepos_type idxStart = outPos;
+  typedef vector<idx_entry_t>::iterator idx_iter_t;
+  for (idx_iter_t it = tmpidx.begin(); it != tmpidx.end(); it++)
     {
-      tightwrite(out, m->first, false); 
-      if (m->first&FLAGMASK)
-        tightwrite(out, idxStart - m->second, true);
+      outPos += tightwrite(out, it->first, false);
+      if (it->first&FLAGMASK)
+        outPos += tightwrite(out, idxStart - it->second, true);
       else
-        tightwrite(out, m->second, true); 
+        outPos += tightwrite(out, it->second, true);
     }
-  assert(out.tellp() >= 0);
-  filepos_type myPosition = out.tellp();
-  uchar flags = M.size() ? HAS_CHILD_MASK : 0;
+  TPT_DBG(assert(outPos >= 0); assert(outPos == (filepos_type)out.tellp()));
+  filepos_type myPosition = outPos;
+  uchar flags = tmpidx.empty() ? 0: HAS_CHILD_MASK;
   if (flags)
-    binwrite(out,myPosition - idxStart);
+    outPos += binwrite(out, myPosition - idxStart);
 
   // get node value computed earlier by assemble.sng-av:
   id_type bowId,pvalEncSize;
@@ -273,10 +280,13 @@ writeNode(ostream& out, vector<ngramStreamer*>& B, size_t i)
 
   if (flags || pvalEncSize)
     {
-      binwrite(out,bowId);
-      binwrite(out,pvalEncSize);
-      if (pvalEncSize) 
-        out.write(p,pvalEncSize);
+      outPos += binwrite(out, bowId);
+      outPos += binwrite(out, pvalEncSize);
+      if (pvalEncSize)
+        {
+          out.write(p, pvalEncSize);
+          outPos += pvalEncSize;
+        }
       flags += HAS_VALUE_MASK;
     }
   else
@@ -301,6 +311,7 @@ getNumTokens(char const* fname)
 
 int MAIN(argc, argv)
 {
+  cerr << "starting arpalm.assemble" << endl;
   if (argc > 1 && !strcmp(argv[1], "-h"))
     {
       cerr << help_message << endl;
@@ -326,29 +337,31 @@ int MAIN(argc, argv)
     cerr << efatal << "Unable to open '" << datFileName << "' for writing."
          << exit_1;
   numTokens = getNumTokens(tdxFileName.c_str());
-  // cout << numTokens << " tokens" << endl;
+  TPT_DBG(cerr << numTokens << " tokens" << endl);
   for (size_t i = 1; i < order; i++)
-    B.push_back(new ngramStreamer(i,8,"grams.vals.*"));
+    B.push_back(new ngramStreamer(i, sizeof(filepos_type), "grams.vals.*"));
 
   vector<filepos_type> offset(numTokens,0);
   vector<uchar>         flags(numTokens,0);
   numwrite(out,filepos_type(0)); // reserve room for start index pos.
   numwrite(out,numTokens);       // reserve room for index size
-  binwrite(out,0U);binwrite(out,0U); // root value
-  binwrite(out,0U);binwrite(out,0U); // default value
+  filepos_type outPos = sizeof(filepos_type) + sizeof(id_type);
+  outPos += binwrite(out,0U); outPos += binwrite(out,0U); // root value
+  outPos += binwrite(out,0U); outPos += binwrite(out,0U); // default value
   assert(B.size());
   while (B[0]->top.id != NULL)
     {
-      size_t wid = B[0]->top.id[0];
+      id_type wid = B[0]->top.id[0];
       if (wid >= offset.size())
 	cerr << efatal << "Encountered wid > numTokens." << endl
 	     << "Token index and ngram-files must be out of sync."
 	     << exit_1;
-      pair<filepos_type,uchar> jar = writeNode(out,B,0);
+      pair<filepos_type,uchar> jar = writeNode(out, B, 0, outPos);
       offset[wid] = jar.first;
       flags[wid] = jar.second;
     }
-  filepos_type sIdx = out.tellp();
+  TPT_DBG(assert(outPos == (filepos_type)out.tellp()));
+  filepos_type sIdx = outPos;
   for (size_t i = 0; i < offset.size(); i++)
     {
       numwrite(out,offset[i]);
@@ -356,5 +369,6 @@ int MAIN(argc, argv)
     }
   out.seekp(0);
   numwrite(out,sIdx);
+  cerr << "done arpalm.assemble" << endl;
 }
 END_MAIN

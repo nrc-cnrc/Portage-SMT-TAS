@@ -31,13 +31,14 @@
 #include <map>
 #include <iomanip>
 #include <stdint.h>
+
+//#define DEBUG_TPT
+//#define DEBUG_TPT_2
+
+#include "tpt_typedefs.h"
 #include "tpt_tightindex.h"
 #include "tpt_pickler.h"
 #include "tpt_utils.h"
-
-#ifndef rcast
-#define rcast reinterpret_cast
-#endif
 
 using namespace std;
 using namespace ugdiss;
@@ -73,12 +74,12 @@ unsigned int bo_order,pv_order;
 class bo_ngram
 {
 public:
-  uint32_t const* p; // pointer to first id
+  id_type const* p; // pointer to first id
   bo_ngram(char const* _p) 
-    : p(reinterpret_cast<uint32_t const*>(_p))
+    : p(reinterpret_cast<id_type const*>(_p))
   {};
 
-  bo_ngram(uint32_t const* _p) 
+  bo_ngram(id_type const* _p)
     : p(_p)
   {};
 
@@ -93,9 +94,9 @@ public:
 class pv_ngram
 {
 public:
-  uint32_t const* p; // pointer to first id
+  id_type const* p; // pointer to first id
   pv_ngram(char const* _p) 
-    : p(reinterpret_cast<uint32_t const*>(_p))
+    : p(reinterpret_cast<id_type const*>(_p))
   {};
 
   bool operator<(pv_ngram const& other) const
@@ -140,39 +141,40 @@ operator<<(ostream& out, pv_ngram const& ng)
 
 void 
 assemble_value(vector<pv_ngram, boost::pool_allocator<pv_ngram> > const& pv,
-               size_t& pi, bo_ngram bong, ostream& datFile, ostream& idxFile)
+               size_t& pi, bo_ngram bong, ostream& datFile,
+               filepos_type &datPos, ostream& idxFile)
 {
-  // cout << "assembling value for " << bong << endl;
-
-  map<uint32_t,uint32_t> M;
-  for (;pi < pv.size() && pv[pi].match(bong); pi++)
-    M[*rcast<uint32_t const*>(pv[pi].p+bo_order)] 
-      = *rcast<uint32_t const*>(pv[pi].p+pv_order);
+  TPT_DBG2(cerr << "assembling value for " << bong << " pi = " << pi << endl);
+  size_t cnt = 0; id_type prev = 0;
   ostringstream buf;
-  for (map<uint32_t,uint32_t>::iterator m = M.begin(); m != M.end(); m++)
+  for (;pi < pv.size() && pv[pi].match(bong); pi++)
     {
-      tightwrite(buf,m->first,false);
-      tightwrite(buf,m->second,true);
+      id_type key = *(pv[pi].p+bo_order);
+      tightwrite(buf, key, false);
+      tightwrite(buf, *(pv[pi].p+pv_order), true);
+      if (cnt++ > 0) assert(key > prev); prev = key;
     }
-  uint64_t fpos = datFile.tellp();
-  binwrite(datFile,*(rcast<uint32_t const*>(bong.p+bo_order)));
-  binwrite(datFile,buf.str().size());
-  if (buf.str().size())
-    datFile.write(buf.str().c_str(),buf.str().size());
+  TPT_DBG2(cerr << cnt << " matches" << endl;)
+
+  TPT_DBG(assert(datPos == (filepos_type)datFile.tellp()));
+  filepos_type fpos = datPos;
+  datPos += binwrite(datFile, *(bong.p+bo_order));
+  datPos += binwrite(datFile, buf.str());
   for (size_t i = 0; i < bo_order; i++)
-    idxFile.write(rcast<char const*>(bong.p+i),4);
-  idxFile.write(rcast<char const*>(&fpos),8);
+    idxFile.write(reinterpret_cast<char const*>(bong.p+i), sizeof(id_type));
+  idxFile.write(reinterpret_cast<char const*>(&fpos), sizeof(filepos_type));
 }
 
 
-/** input two files: back-off weight ids for (n-1) grams and probability value ids for n-grams
+/** input: two files: back-off weight ids for (n-1) grams and
+ *                    probability value ids for n-grams
  *  Still rudimentary:
  *  - expect first and only argument to be file in the cwd following the pattern 
  *    [0-9]-grams.bo.[0-9][0-9][0-9][0-9](.sorted)
  */
-
 int MAIN(argc, argv)
 {
+  cerr << "starting arpalm.sng-av" << endl;
   if (argc < 2)
     cerr << efatal << "BO_FILE (<N-1>grams.bo.<DDDD>[.sorted]) required." << endl
          << help_message << exit_1;
@@ -212,10 +214,11 @@ int MAIN(argc, argv)
          << "' is not reasonable." << endl
          << "N-gram order must be an integer in the range 1-100." << endl
          << exit_1;
-  size_t bo_recSize=4*(bo_order+1);
-  char const* bo_end =  bo_in.data()+bo_in.size();
+  size_t bo_recSize = (bo_order+1) * sizeof(id_type);
+  char const* bo_end = bo_in.data() + bo_in.size();
  
   cerr << "Sorting " << boFile << endl;
+  bo.reserve((bo_end - bo_in.data()) / bo_recSize);
   for (const char* x = bo_in.data()+1; x < bo_end; x += bo_recSize)
     bo.push_back(bo_ngram(x));
   sort(bo.begin(),bo.end());
@@ -245,9 +248,10 @@ int MAIN(argc, argv)
   if (havePFile)
     {
       open_mapped_file_source(pv_in, pvFile);
-      size_t pv_recSize=4*(pv_order+1);
+      size_t pv_recSize = (pv_order+1) * sizeof(id_type);
       cerr << "Sorting " << pvFile << endl;
       char const* pv_end =  pv_in.data()+pv_in.size();
+      pv.reserve((pv_end - pv_in.data() - 1) / pv_recSize);
       for (const char* x = pv_in.data()+1; x < pv_end; x += pv_recSize)
         pv.push_back(pv_ngram(x));
       sort(pv.begin(),pv.end());
@@ -275,6 +279,7 @@ int MAIN(argc, argv)
 
   cerr << "Writing " << datFileName << " and " << idxFileName << endl;
 
+  filepos_type datPos = 0;
   idxFile.put(char(bo_order));
   size_t pi = 0;
   for (size_t bi = 0; bi < bo.size(); bi++)
@@ -282,17 +287,18 @@ int MAIN(argc, argv)
       while (pi < pv.size() && pv[pi] < bo[bi])
         {
           // missing back-off weight
-          uint32_t foo[pv_order];
+          id_type foo[pv_order];
           for (size_t i = 0 ; i < bo_order; i++)
             foo[i] = pv[pi].p[i];
           foo[bo_order] = zeroId;
-          assemble_value(pv,pi,bo_ngram(foo),datFile,idxFile);
+          assemble_value(pv, pi, bo_ngram(foo), datFile, datPos, idxFile);
         }
-      assemble_value(pv,pi,bo[bi],datFile,idxFile);
+      assemble_value(pv, pi, bo[bi], datFile, datPos, idxFile);
     }
   if (pi != pv.size())
     cerr << efatal << "Extra probability values found." << endl
          << "Mismatch between files '" << boFile << "' and '" << pvFile << "'."
          << exit_1;
+  cerr << "done arpalm.sng-av" << endl;
 }
 END_MAIN

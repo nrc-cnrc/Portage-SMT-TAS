@@ -40,10 +40,27 @@ Options:
    -n NUM_PAR   Specifies how many parallel workers to use [4]
    -h(elp)      Print this help message
    -v(erbose)   Increment the verbosity level by 1 (may be repeated)
+   -d(ebug)     Debug mode - don't delete tmp directory.
 
 ==EOF==
 
    exit 1
+}
+
+MON_PERIOD=
+RP_OPTS=
+TIME_MEM=
+#MON_PERIOD="-period 10"
+#RP_OPTS="${MON_PERIOD}"
+#TIME_MEM="time-mem ${MON_PERIOD}"
+
+redirect()
+{
+   if [[ $TIME_MEM ]]; then
+      echo "../log.${OUTPUTLM}.$1"
+   else
+      echo "2"
+   fi
 }
 
 # arg_check_int $value $arg_name exits with an error if $value does not
@@ -63,6 +80,7 @@ while [ $# -gt 0 ]; do
    -h|-help)     usage;;
    -n)           arg_check 1 $# $!; arg_check_pos_int $2 $1; NUM_PAR=$2; shift;;
    -v|-verbose)  VERBOSE=$(( $VERBOSE + 1 ));;
+   -d|-debug)    DEBUG=1;;
    --)           shift; break;;
    -*)           error_exit "Unknown option $1.";;
    *)            break;;
@@ -119,19 +137,26 @@ if [[ ! -r $TEXTLM ]]; then
    error_exit "Can't read $TEXTLM."
 fi
 
+if [[ $DEBUG ]]; then
+   echo "Using:" >&2
+   which arpalm.encode >&2
+   which arpalm.sng-av >&2
+   which arpalm.assemble >&2
+fi
+
 verbose 1 "Start encoding."
-verbose 1 "arpalm.encode $TEXTLM ../$OUTPUTLM.tplm/"
-arpalm.encode $TEXTLM ../$OUTPUTLM.tplm/ >&2
+verbose 1 "arpalm.encode $TEXTLM ../$OUTPUTLM.tplm/ >& $(redirect arpalm.encode)"
+${TIME_MEM} arpalm.encode $TEXTLM ../$OUTPUTLM.tplm/ >& $(redirect arpalm.encode)
 perl -nle '@tokens = split; print "@tokens &> log.$tokens[-1]"' \
    < sng-av.jobs > sng-av.jobs.logging
 
 verbose 1 "Running sub jobs in parallel."
-verbose 1 "run-parallel.sh sng-av.jobs.logging $NUM_PAR"
-run-parallel.sh sng-av.jobs.logging $NUM_PAR >&2
+verbose 1 "run-parallel.sh ${RP_OPTS} sng-av.jobs.logging $NUM_PAR >& $(redirect arpalm.sng-av)"
+run-parallel.sh ${RP_OPTS} sng-av.jobs.logging $NUM_PAR >& $(redirect arpalm.sng-av)
 
 verbose 1 "Assembling sub-jobs."
-verbose 1 "arpalm.assemble $LMORDER ../$OUTPUTLM.tplm/"
-arpalm.assemble $LMORDER ../$OUTPUTLM.tplm/ >&2
+verbose 1 "arpalm.assemble $LMORDER ../$OUTPUTLM.tplm/ >& $(redirect arpalm.assemble)"
+${TIME_MEM} arpalm.assemble $LMORDER ../$OUTPUTLM.tplm/ >& $(redirect arpalm.assemble)
 cd ..
 
 for x in cbk tdx tplm; do
@@ -149,6 +174,6 @@ anywhere you would normally provide an LM file name.
 " > $OUTPUTLM.tplm/README
 
 verbose 1 "Cleaning up!"
-rm -r $TMPDIR
+[[ ! $DEBUG ]] && rm -r $TMPDIR
 
 verbose 1 "DONE"
