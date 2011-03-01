@@ -27,12 +27,19 @@ using namespace Portage;
 #endif  // IN_PORTAGE
 
 
-//#define DEBUG_TPT
 // Execute the expression (usually assert or output) if in debug mode.
+//#define DEBUG_TPT
 #ifdef DEBUG_TPT
    #define TPT_DBG(expr) expr
 #else
    #define TPT_DBG(expr)
+#endif
+// For second level debugging:
+//#define DEBUG_TPT_2
+#ifdef DEBUG_TPT_2
+   #define TPT_DBG2(expr) expr
+#else
+   #define TPT_DBG2(expr)
 #endif
 
 
