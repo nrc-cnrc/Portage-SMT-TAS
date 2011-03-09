@@ -10,6 +10,7 @@
 #
 # @author original detokenize.pl: SongQiang Fang and George Foster
 #              UTF-8 adaptation and improved handling of French: Eric Joanis
+#              Spanish handling by Samuel Larkin
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -50,7 +51,7 @@ Warning: ASCII quotes are handled assuming there is only one level of quotation.
 
 Options:
 
--lang=L        Specify two-letter language code: en or fr [en]
+-lang=L        Specify two-letter language code: en or es or fr [en]
                Works well for English, not bad for French.
 -latin1        Replace characters that map to cp-1252 but not to iso-8859-1 by
                their closest equivalents that do
@@ -136,6 +137,10 @@ while(<IN>)
          if( is_punctuation($word_pre) ){ # don't add space before the word
             push ( @out_sentence, $word_pre);
          }
+         elsif ( $lang eq "es" and $word_pre =~ /[¡¿]/ ) {
+            push ( @out_sentence, $space) unless ( $word_before =~ /[¡¿]/ );
+            push ( @out_sentence, $word_pre);
+         }
          elsif( is_quote( $word_pre) ){ # process quote according it is start or end
             process_quote($word_pre, $word_before);
          }
@@ -152,8 +157,8 @@ while(<IN>)
             process_word( $word_pre, $word_before);
          }
       }
-
    }
+
    if ( $latin1 ) {
       foreach (@out_sentence) {
          s/€/Euro/g;
@@ -188,7 +193,7 @@ sub process_word #ch1, ch2
       }
       push ( @out_sentence, $ch_pre);
    }
-   elsif( is_en_price($ch_pre, $ch_before)) {
+   elsif( is_price_abut_left($ch_pre, $ch_before) ) {
       push ( @out_sentence, $ch_pre);
    }
    elsif( is_punctuation($ch_before) || is_right_bracket($ch_before)){
@@ -212,7 +217,6 @@ sub process_word #ch1, ch2
 
 sub process_bracket #ch1, ch2
 {
-
    my $ch_pre=shift;
    my $ch_before=shift;
    if( is_right_bracket($ch_pre)){
@@ -223,7 +227,7 @@ sub process_bracket #ch1, ch2
 #        push ( @out_sentence, $ch_pre);
 #     }
       if( is_quote($ch_before)){
-         process_quote_before($ch_pre,$ch_before);
+         process_quote_before($ch_pre, $ch_before);
       }
       else{
          push ( @out_sentence, $space);
@@ -266,7 +270,7 @@ sub process_quote #ch1 ,ch2
          pop @double_quote;
       }
       else{# in start place, push a space first (changed on Dec 13 2004)
-         push (@double_quote, $ch_pre);
+         push ( @double_quote, $ch_pre);
          push ( @out_sentence, $space);
          push ( @out_sentence, $ch_pre);
       }
@@ -292,7 +296,7 @@ sub process_quote #ch1 ,ch2
             pop @single_quote;
          }
          else{# in start place, push a space first (changed on Dec 13 2004)
-            push (@single_quote, $ch_pre);
+            push ( @single_quote, $ch_pre);
             push ( @out_sentence, $space);
             push ( @out_sentence, $ch_pre);
          }
@@ -341,7 +345,13 @@ sub is_double_quote # $ch
    # they are not glued to the text in French.
    # “ and ” (English angled double quotes) also left out: we
    # treat them as brackets instead, since they are left/right specific
-   return ((defined $ch_pre)&&($ch_pre eq "\""));
+   if ($lang eq "es") {
+   # they are not glued to the text in French.
+      return ((defined $ch_pre) && ($ch_pre eq "\"" or $ch_pre eq "«" or $ch_pre eq "»"));
+   }
+   else {
+      return ((defined $ch_pre)&&($ch_pre eq "\""));
+   }
 }
 
 sub is_single_quote # $ch
@@ -368,8 +378,15 @@ sub is_special # $var1
 sub is_punctuation # $var1
 {
    my $ch_pre=shift;
-   return ( $lang eq "fr" ? ($ch_pre =~ m/^(?:[,.!?;…]|\.\.\.)$/)
-                          : ($ch_pre =~ m/^[,.:!?;]$/));
+   if ( $lang eq "fr" ) {
+      return $ch_pre =~ m/^(?:[,.!?;…]|\.\.\.)$/;
+   }
+   elsif ( $lang eq "es" ) {
+      return $ch_pre =~ m/^[,.:;]$/;
+   }
+   else {
+      return $ch_pre =~ m/^[,.:!?;]$/;
+   }
 }
 sub is_bracket # $ch
 {
@@ -382,7 +399,7 @@ sub is_left_bracket # $ch
    # Includes left double and single quotes, since they require the same
    # treatment as brackets
    # Excludes < and ‹ since we don't split them in utokenize.pl
-   return ( $ch =~ m/^[[({“‘`]$/);
+   return ( $lang eq "es" ? ($ch =~ m/^[[({“‘`¡¿]$/) : ($ch =~ m/^[[({“‘`]$/) );
 }
 sub is_right_bracket #ch
 {
@@ -390,7 +407,7 @@ sub is_right_bracket #ch
    # Includes right double and single quotes, since they require the same
    # treatment as brackets
    # Excludes > and › since we don't split them in utokenize.pl
-   return ( $ch =~ m/^[])}”’´]$/);
+   return ( $lang eq "es" ? ($ch =~ m/^[])}”’´!?]$/) : ($ch =~ m/^[])}”’´]$/) );
 }
 
 sub is_prefix # ch
@@ -429,9 +446,10 @@ sub is_fr_hyph_ending #ch
            $ch =~ /^-(?:t-)?(?:je|tu|ils?|elles?|on|nous|vous|moi|toi|lui|eux|en|y|ci|ce|les?|leurs?|la|l[àÀ]|donc)/oi);
 }
 
-sub is_en_price # ch1, ch2
+sub is_price_abut_left # ch1, ch2
 {
    my $ch_pre=shift;
    my $ch_before=shift;
-   return ($lang eq "en" && $ch_before eq "\$" && $ch_pre =~ /^\.?\d/oi);
+   return (($lang eq "en" or $lang eq "es") && $ch_before eq "\$" && $ch_pre =~ /^\.?\d/oi);
 }
+

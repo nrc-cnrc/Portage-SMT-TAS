@@ -56,7 +56,7 @@ Options:
       Note: one of -ss or -noss is now required, because the old default (-ss)
       often caused unexpected behaviour.
 -notok Don't perform tokenization. [do]
--lang Specify two-letter language code: en or fr [en]
+-lang Specify two-letter language code: en or es or fr [en]
 -paraline
       File is in one-paragraph-per-line format [no]
 
