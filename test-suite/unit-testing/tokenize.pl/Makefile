@@ -16,9 +16,11 @@
 
 .PHONY: all clean french-hyphens ch-punc
 
+.PHONY: all
 all: test
 	@echo All tests PASSED
 
+.PHONY: test
 test: display.accent \
      $(addprefix compare., accent.tok accent.utf8 accent.utf8.tok) \
      $(addprefix display., accent.tok accent.utf8 accent.utf8.tok) \
@@ -30,6 +32,7 @@ french-hyphens: compare.hyphens.tok compare.hyphens.tok.utf8 \
 
 ch-punc: $(foreach EXT, 000 001 010 011 100 101 110 111, compare.chinese-punc.detok.$(EXT))
 
+.PHONY: en-prices
 en-prices: compare.eng-prices.detok compare.eng-prices.detok.utf8
 
 clean:
@@ -142,4 +145,43 @@ eng-prices.detok: eng-prices
 	
 eng-prices.detok.utf8: eng-prices.utf8
 	udetokenize.pl -lang=en $< > $@
-	
+
+
+
+################################################################################
+# SPANISH
+# These should come back identical after tokenization & detokenization.
+test: spanish
+
+clean: clean.spanish
+.PHONY: clean.spanish
+clean.spanish:
+	${RM} es.tok es.detok es.source
+
+.PHONY: spanish
+spanish: compare.es.tok compare.es.detok
+
+SOURCE_ES := A Bush, esperanza. \
+             ¿Lo mismo Unidos? \
+             Si no te gusta la comida, ¿por qué la comes? \
+             ¡Qué lástima, estás bien? \
+             Gana \$$30.000 por año. \
+             Quiero leer \"Romeo y Julieta\". \
+             Quiero leer «Romeo y Julieta». \
+             \"Crepúsculo\", \"Cien años de soledad\", y \"El zahir\" son libros populares. \
+             ¡¿Qué viste?! \
+             ¡¡¡Idiota!!! \
+             «Antonio me dijo: “Vaya ‘cacharro’ que se ha comprado Julián”».
+
+# This dialog should come back in three sentences.
+SOURCE_ES += — ¿Cómo estás? — Muy bien ¿y tú? — Muy bien también.
+
+es.source:
+	echo "${SOURCE_ES}" > $@
+
+es.tok: es.source
+	utokenize.pl -lang=es -ss < $< | tee $@
+
+es.detok: es.tok
+	udetokenize.pl -lang=es < $< | tee $@
+
