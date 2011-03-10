@@ -407,7 +407,8 @@ sub context_says_abbr(\$$\@) #($para_string, index_of_dot, token_positions)
       return 1;         # always ends a sentence
    } elsif ($tok =~ /^[¡¿]$/) {
       # TODO: what if UU.EE. ¿a question?
-      return 0;  # Not an abbreviation since the following token guarantees a new sentence
+      # Let's assume that this is not a mid sentence question even if it is allowed in spanish.
+      return 0;  
    } else {
       return $tok !~ /^[[:upper:]]/o;   # next real word not cap'd
    }
