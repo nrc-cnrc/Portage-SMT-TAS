@@ -36,19 +36,79 @@ Options:\n\
 static bool verbose = false;
 static vector<string> infiles;
 static void getArgs(int argc, char* argv[]);
-static const char* header = "#Lines\t#Words\t#Char\tshortest line\tlongest line\tmean\tsdev\tfilename";
+static const char* header = "#Lines\t#Words\t#Char\tshortest L\tlongest L\tmean(W/L)\tsdev(W/L)\tfilename";
+
+
 
 /**
  * Parses and cumulates stats on sentences.
  */
 class countStats {
+   // NOTE: s = square root of[(sum of Xsquared -((sum of X)*(sum of X)/N))/(N-1)]
+   // Std Dev = sqrt((SUM[x^2] - SUM[x]^2)/n / (n-1))
    private:
-      Uint lines;   ///< Number of lines in the input.
-      Uint words;   ///< Number of words in the input.
       unsigned long long characters;   ///< Number of characters in the input.
       Uint shortest_line;   ///< Length of the shortest line in the input.
       Uint longest_line;   ///< Length of the longest line in the input.
-      vector<Uint> acc;   ///< Accumulator of line length to calculate mean & sdev.
+
+      /// Object to keep track of counts in order to calculate mean & sdev.
+      struct Counts {
+         // The following are used to calculate the mean & sdev.
+         unsigned long long sumX;         ///< Accumulator of X.
+         unsigned long long sumXsquare;   ///< Accumulator of X square.
+         unsigned long long n;            ///< Accumulator of number of samples.
+         /**
+          * Default constructor.
+          */
+         Counts() 
+         : sumX(0)
+         , sumXsquare(0)
+         , n(0)
+         { }
+         /**
+          * Add a data point to the stats pool.
+          * @param X  a data point.
+          */
+         void add(unsigned long long X) {
+            sumX       += X;
+            sumXsquare += X * X;
+            ++n;
+         }
+         /**
+          * Combines/cumulates two Counts.
+          * @param other  counts to cumulate.
+          */
+         void add(const Counts& other) {
+            sumX       += other.sumX;
+            sumXsquare += other.sumXsquare;
+            n          += other.n;
+         }
+
+         /**
+          * Reset the statistic accumulator to 0.
+          */
+         void clear() {
+            sumX = sumXsquare = n = 0;
+         }
+         /**
+          * Calculate the mean.
+          * @return mean.
+          */
+         double mean() const {
+            return _mean(sumX, n);
+         }
+         /**
+          * Calculate the standard deviation.
+          * @return standard deviation.
+          */
+         double sdev() const {
+            return _sdev(sumX, sumXsquare, n);
+         }
+      };
+
+      Counts tokenPerLine;  ///< Keeps track of number of tokens per line.
+      Counts tokenPerDoc;   ///< Keeps track of number of tokens per document.
+      Counts linePerDoc;    ///< Keeps track of number of lines per document.
 
    private:
       vector<string> tokens;    ///< The current tokens in that current line.
@@ -62,6 +122,15 @@ class countStats {
          , lineSize(lineSize)
          {}
 
+         /**
+          * Reset the counts to zero.
+          */
+         void clear() {
+            lineNumber = 0;
+            numTokens  = 0;
+            lineSize   = 0;
+         }
+
          Uint lineNumber;   ///< Line number.
          Uint numTokens;    ///< number of tokens on that line.
          Uint lineSize;     ///< number of charaters on that line.
@@ -70,12 +139,22 @@ class countStats {
    public:
       /// Default constructor.
       countStats()
-      : lines(0)
-      , words(0)
-      , characters(0)
-      , shortest_line(0xFFFFFFFF)
+      : characters(0)
+      , shortest_line(-1) // OK to use -1, casts to max unsigned value.
       , longest_line(0)
       {}
+
+      /**
+       * Reset the counts to zero.
+       */
+      void clear() {
+         characters = 0;
+         shortest_line = -1;
+         longest_line = 0;
+         tokenPerLine.clear();
+         tokenPerDoc.clear();
+         linePerDoc.clear();
+      }
 
       /**
        * Calculates and cumulates stats on a line.
@@ -83,23 +162,20 @@ class countStats {
        * @return a structure wieht the line number, number of tokens and characters.
        */
       perLineStats cumulate(const string& line) {
-         // Number of lines.
-         ++lines;
-
          // Number or tokens in that line.
          tokens.clear();
          split(line, tokens);
          const Uint num_token = tokens.size();
-         words += num_token;
          shortest_line = min(shortest_line, num_token);
          longest_line  = max(longest_line, num_token);
-         acc.push_back(num_token);
+
+         tokenPerLine.add(num_token);
 
          // Number of characers in that line.
          const Uint line_size = line.size() + 1;
          characters += line_size;
 
-         return perLineStats(lines, num_token, line_size);
+         return perLineStats(tokenPerLine.n, num_token, line_size);
       }
 
       /**
@@ -108,14 +184,14 @@ class countStats {
        * @return the augmented stats.
        */
       countStats& operator+=(const countStats& other) {
-         lines += other.lines;
-         words += other.words;
          characters += other.characters;
 
          shortest_line = min(shortest_line, other.shortest_line);
          longest_line  = max(longest_line, other.longest_line);
-         acc.reserve(acc.size() + other.acc.size());
-         acc.insert(acc.end(), other.acc.begin(), other.acc.end());
+
+         tokenPerLine.add(other.tokenPerLine);
+         tokenPerDoc.add(other.tokenPerLine.sumX);
+         linePerDoc.add(other.tokenPerLine.n);
 
          return *this;
       }
@@ -125,10 +201,18 @@ class countStats {
        * @param filename  stats apply to filename.
        */
       void fullPrint(const string& filename) const {
-         const double v_mean = mean(acc.begin(), acc.end());
-         const double v_sdev = Portage::sdev(acc.begin(), acc.end(), v_mean);
-         printf("L:%d\tW:%d\tC:%llu\ts:%d\tl:%d\tm:%2.2f\tsdev:%2.2f\t%s\n",
-           lines, words, characters, shortest_line, longest_line, v_mean, v_sdev, filename.c_str());
+         const double v_mean = tokenPerLine.mean();
+         const double v_sdev = tokenPerLine.sdev();
+         printf("L:%llu\tW:%llu\tC:%llu\ts:%u\tl:%u\tm:%2.2f\tsdev:%2.2f\t%s\n",
+           tokenPerLine.n, tokenPerLine.sumX, characters, shortest_line, longest_line, v_mean, v_sdev, filename.c_str());
+
+         // If we are a global stat object for all documents.
+         if (linePerDoc.n > 0) {
+            cout << "\n";
+            printf("%2.2f words per doc with sdev of %2.2f\n", tokenPerDoc.mean(), tokenPerDoc.sdev());
+            printf("%2.2f lines per doc with sdev of %2.2f\n", linePerDoc.mean(), linePerDoc.sdev());
+            cout << linePerDoc.n << " documents in total" << endl;
+         }
       }
 };
 
@@ -144,12 +228,15 @@ int main(int argc, char* argv[])
    }
 
    countStats allDocStats;
+   string line;   // The current line.
+   countStats docStats;
+   countStats::perLineStats lineStats;
    for (Uint i(0); i<infiles.size(); ++i) {
       iSafeMagicStream istr(infiles[i]);
 
-      string line;   // The current line.
-      countStats docStats;
-      countStats::perLineStats lineStats;
+      line.clear();
+      docStats.clear();
+      lineStats.clear();
       while (getline(istr, line)) {
          lineStats = docStats.cumulate(line);
 
