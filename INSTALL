@@ -157,8 +157,8 @@ Mandatory dependencies for all distributions:
    Insufficient swap space will sometimes cause crashes due to a "lack of
    memory" even though there appears to be plenty available.
 
- - Standard utilities: awk, bash (3.0 or more recent), (e)grep, gzip, head,
-   sed, sort, tail, tar, etc.
+ - Standard utilities: awk, bash (3.0 or more recent), bzip2, (e)grep, gzip,
+   head, sed, sort, tail, tar, etc.
 
  - Perl 5.8.8 or more recent.  Version 5.8.5 is mostly usable, but some
    functionality involving XML files (in particular, TMX files) will not work
@@ -180,11 +180,10 @@ Mandatory dependencies for all distributions:
 Optional dependencies for all distributions:
 
  - ICU - Portage 1.4 includes a few tools that use ICU to correctly do
-   case-mapping on utf8 data.  This functionality will be disabled if ICU is
-   not available.  ICU is not strictly required.  We recommend you install it
-   if you can, but if you have difficulties with it, you can leave it out, at
-   least to get started.  In this case, for source distributions, set the ICU
-   variable in src/Makefile.user-conf to NONE.
+   case-mapping on utf-8 data.  This functionality will be disabled if ICU is
+   not available.  We recommend you install ICU if you can, but if you have
+   difficulties with it, you can leave it out.  In this case, for source
+   distributions, set the ICU variable in src/Makefile.user-conf to NONE.
 
    With binary only distributions, use programs and libraries in bin/<arch>-icu
    and lib/<arch>-icu if you have ICU, or programs in libraries in bin/<arch>
@@ -248,10 +247,10 @@ Optional dependencies for all distributions:
       # Find the one matching your architecture, say x86_64:
       yum install libsvm.x86_64
 
- - XML::Twig - this Perl module is used by tmx2lfl.pl to extract text out of
-   TMX files.  It has a number of further dependencies that need to be
-   installed as well, and that should be handled automatically by the following
-   methods.
+ - XML::Twig version 3.28 or later - this Perl module is used by tmx2lfl.pl to
+   extract text out of TMX files.  It has a number of further dependencies that
+   need to be installed as well, and that should be handled automatically by
+   the following methods.
 
    If you're using yum or another Linux package manager, the easiest method is
    to install perl-XML-Twig.  This has to be done as root.  It should cause
@@ -261,8 +260,8 @@ Optional dependencies for all distributions:
    do the trick.
       cpan -i XML::Twig
    You have to let it install all dependencies.  (Say y or yes to all
-   questions.)  You mileage may vary because various compilations steps are
-   required.  This method requires a compiler.
+   questions.)  You mileage may vary because various compilation steps are
+   required.
 
    If you cannot work as root, you can setup libraries in your user account,
    but some work will be needed to configure CPAN to do so, and then some more
@@ -272,21 +271,30 @@ Optional dependencies for all distributions:
 Mandatory dependencies for source code distributions:
 
  - GNU g++ - Portage 1.4 compilation has only been tested with g++, and makes
-   use of some g++ extensions to C++.  We currently use 4.2.0 and 4.3.2.
-   Portage 1.4.1 was also compiled and tested with g++ 4.4.4 and 4.5.0, while
-   Portage 1.4.2 supports g++ 4.5.1.
+   use of some g++ extensions to C++.  We currently use versions between 4.2.0
+   and 4.5.0.  Portage 1.4.1 was compiled and tested with g++ 4.4.4 and 4.5.0,
+   while Portage 1.4.2 supports g++ 4.5.1.
 
  - boost - Portage 1.4 makes use of some libraries in the boost C++ libraries
    collection, including the Boost Graph Library, uBLAS, smart pointers,
-   iostreams, etc.  Any version since 1.36 should do.  We have compiled with
-   and tested 1.36 and 1.43.
+   iostreams, etc.
+   
+   We have compiled and tested Portage 1.4 with the following boost/g++
+   combinations:
+    - boost 1.43 + g++ 4.5
+    - boost 1.43 + g++ 4.4
+    - boost 1.36 + g++ 4.3
+    - boost 1.36 + g++ 4.2
+   Other combinations may or may not work.  For example, we know boost 1.36 is
+   not compatible with g++ 4.4 or later.  If you already have another boost/g++
+   combination and Portage 1.4 compiles without errors, your installation
+   should be OK.  Otherwise, try one of the combinations listed above.
 
    Some recent distributions of Linux may already include the boost libraries,
-   otherwise you can download them free from the boost home page.  Note,
-   though, that some Linux distributions include only parts of boost -- some
-   leave out the Boost Graph Library, for example.  If you get errors about
-   missing boost includes while compiling Portage, do a complete installation
-   of a recent version of boost.
+   otherwise you can download them free from the boost home page.  However,
+   some Linux distributions include only parts of boost -- some leave out the
+   Boost Graph Library, for example.  If you get errors about missing boost
+   includes while compiling Portage, do a complete installation.
 
    It is recommended you have your sys admin install boost, but you can also
    install it in your own user space.  Either way, you need to edit
@@ -298,22 +306,23 @@ Mandatory dependencies for source code distributions:
    Boost home page: http://www.boost.org or http://boost.sourceforge.net
    This procedure worked for us, and may help you install it yourself, if your
    sys admins can't do it globally for you:
-      # Download the latest boost tarball, say boost_1_36_0.tar.bz2, by
-      # following the download links from the home page.  Portage 1.4
-      # requires version 1.36 or more recent.
+      # Download the boost tarball, say boost_1_NN_0.tar.bz2, by following the
+      # download links from the home page.
       # Extract it
-      tar -xjf boost_1_36_0.tar.bz2
+      tar -xjf boost_1_NN_0.tar.bz2
       # Go into it
-      cd boost_1_36_0/
-      # Run autoconf, with overridden install destination - replace $DEST
-      # with your preferred destination, e.g., $PORTAGE, $HOME, $HOME/pkgs or
+      cd boost_1_NN_0/
+      # Do auto-config, overriding the install destination - replace $DEST with
+      # your preferred destination, e.g., $PORTAGE, $HOME, $HOME/pkgs or
       # $HOME/boost, making sure that $BOOST_ROOT points to $DEST, either as en
-      # environment variable or in src/build/Makefile.incl.
-      ./configure --prefix=$DEST
+      # environment variable or in src/build/Makefile.incl.  (the boostrap/bjam
+      # commands are for recent versions of boost, while the configure/make
+      # commands are for older versions.)
+      ./bootstrap.sh --prefix=$DEST     OR     ./configure --prefix=$DEST
       # Build.  This step will take a long time.
-      make -k
+      bjam -j4                          OR     make -k -j 4
       # Install to $DEST/{include,lib}
-      make -k install
+      bjam -j4 install                  OR     make -k -j 4 install
       # Edit src/Makefile.user-conf and set the BOOST_ROOT variable to $DEST.
 
  - zlib - Portage 1.4 uses zlib as an alternative to gzip in some unusual cases
