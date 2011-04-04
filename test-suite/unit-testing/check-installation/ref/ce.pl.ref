@@ -1,0 +1,58 @@
+
+ce.pl, NRC-CNRC, (c) 2009 - 2010, Her Majesty in Right of Canada
+Please run "portage_info -notice" for Copyright notices of 3rd party libraries.
+
+SYNOPSIS
+    ce.pl {options} ce_model [ data_dir ]
+
+DESCRIPTION
+    Compute confidence estimation, using the given ce_model. All input files
+    (i.e. files containing data from which CE model feature values are
+    computed, e.g. q.tok, P.tok, p.score, etc.) are assumed to exist in the
+    data_dir directory, or the current directory if data_dir is not
+    specified. Output is written in a file called pr.ce within that
+    directory, unless option "-output" is specified.
+
+OPTIONS
+    -output=O
+     Output file name [data_dir/pr.ce]
+
+    -path=P
+     Colon-separated search path for feature-specific file arguments.
+     Default is to search for files relative to data_dir first, then
+     relative to directory where ce_model resides.
+
+    -stats
+     Write prediction accuracy statistics to STDERR; this assumes the
+     presence in data_dir of reference translations for the source text
+     (file r.tok).
+
+    -verbose
+     Be verbose
+
+    -debug
+     Produce debugging info
+
+    -help, -h
+     Print this message and exit
+
+    -help=desc, -help=features, -help=depend
+     Print additional help information: desc: model description files;
+     features: confidence estimation features; depend: feature dependencies.
+
+    -H
+     Print all additional help information available.
+
+SEE ALSO
+    ce_train.pl, ce_translate.pl.
+
+AUTHOR
+    Michel Simard
+
+COPYRIGHT
+     Technologies langagieres interactives / Interactive Language Technologies
+     Inst. de technologie de l'information / Institute for Information Technology
+     Conseil national de recherches Canada / National Research Council Canada
+     Copyright 2009, Sa Majeste la Reine du Chef du Canada /
+     Copyright 2009, Her Majesty in Right of Canada
+
