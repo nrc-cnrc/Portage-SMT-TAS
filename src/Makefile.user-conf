@@ -136,4 +136,13 @@ LOG4CXX=$(PORTAGE)# AT NRC
 MYLATEX ?= latex -interaction=batchmode
 #MYLATEX = NONE
 
+# ------------------------------------
+# Variable:        HAS_LZMA
+# Possible values: NONE or we will attempt to autodetect the presence of lzma.
+# Notes:           Uncomment the "HAS_LZMA = NONE" line if you don't want to
+#                  support lzma in Portage.
+
+HAS_LZMA := $(or $(shell test -x "`which lzma 2> /dev/null`" && echo USER-DEFINED), NONE)
+#HAS_LZMA = NONE
+
 

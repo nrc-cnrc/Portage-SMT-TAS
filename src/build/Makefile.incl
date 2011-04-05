@@ -126,6 +126,17 @@ else
    LOGGING_LIB = -llog4cxx -Wl,-Bdynamic -lpthread -Wl,-Bstatic
 endif
 
+# In the Makefile.user-conf we autodetect the presence of lzma on the current
+# system.  If lzma is not available, we will skip everything related to lzma in
+# Portage.
+HAS_LZMA ?= $(or $(shell test -x "`which lzma 2> /dev/null`" && echo DEFAULT-DEFINED), NONE)
+ifeq ($(HAS_LZMA),NONE)
+   $(info Compiling Portage without lzma support.)
+else
+   $(info Compiling Portage with lzma support.)
+   CFLAG_LZMA := -DUSE_LZMA
+endif
+
 # Disable all checking in boost::ublas, since they're very expensive, unless
 # UBLAS_DEBUG is defined.
 ifndef UBLAS_DEBUG
@@ -156,7 +167,7 @@ else
     OPTS = -O3 -fPIC -fno-strict-aliasing -D$(OSTYPE) $(CF)
 endif
 # COPTS is for compilation only options
-COPTS = -Wall -Werror $(BOOST_CF) $(CFLAG_LOGGING) $(MODULE_CF)
+COPTS = -Wall -Werror $(BOOST_CF) $(CFLAG_LOGGING) $(CFLAG_LZMA) $(MODULE_CF)
 # LFLAGS is only for -L options: library search path for linking
 LFLAGS = -L. -L../utils $(MODULE_LIB_DIR) $(OTHER_LIB_DIRS)
 # IFLAGS is only for -I options: include search path

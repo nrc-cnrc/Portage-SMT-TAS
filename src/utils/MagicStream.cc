@@ -321,6 +321,7 @@ void iMagicStream::open(const string& s)
       makePipe(s.substr(0, s.length()-1));
    }
    else if (isLzma(s)) {
+#ifdef USE_LZMA
       std::filebuf* tmp = new std::filebuf;
       assert(tmp);
       if (tmp->open(s.c_str(), bufferMode())) {
@@ -328,6 +329,9 @@ void iMagicStream::open(const string& s)
          delete tmp; tmp = NULL;
          makePipe("lzma -4 -cqdf " + s);
       }
+#else
+      error(ETFatal, "Portage was not compiled with lzma support!");
+#endif
    }
    else if (isBzip2(s)) {
       std::filebuf* tmp = new std::filebuf;
@@ -427,9 +431,13 @@ void oMagicStream::open(const string& s)
       makePipe(s.substr(1));
    }
    else if (isLzma(s)) {
+#ifdef USE_LZMA
       string command("lzma -cqf > ");
       command += s;
       makePipe(command);
+#else
+      error(ETFatal, "Portage was not compiled with lzma support!");
+#endif
    }
    else if (isBzip2(s)) {
       string command("bzip2 -cqf > ");

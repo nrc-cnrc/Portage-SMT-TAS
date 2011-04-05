@@ -17,6 +17,7 @@
 #include "MagicStream.h"
 #include "binio.h"
 #include "file_utils.h"
+#include "tmp_val.h"
 //#include <bits/functexcept.h> // __throw_ios_failure
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -125,9 +126,22 @@ public:
       TS_ASSERT(system("rm -f MagicStreamTest*") == 0);
    }
 
+   static unsigned int error_message_count;  ///< Will count the number of times error() was called.
+   static string error_message;   ///< Will keep track of the last message sent to error().
+   /**
+    * Stub function replacement for function error that prevents printing to
+    * stderr but that keeps track of the last error message string.
+    */
+   static void countErrorCallBack(ErrorType et, const string& msg) {
+      ++error_message_count;
+      error_message = msg;
+   }
+
    void setUp() {
       // Reset the message to detect bad reads.
       m_read_msg = "Beginning of test";
+      error_message = "";
+      error_message_count = 0;
    }
    void tearDown() {
       // this is for code that needs to be run after each test*() method.
@@ -224,14 +238,24 @@ public:
    const string filename_lzma;
    const string msg_lzma;
    void testWritingLzmaFile() {
+#ifdef USE_LZMA
       oMagicStream os(filename_lzma);
       TS_ASSERT(os);
       TS_ASSERT(os << msg_lzma << endl);
       TS_ASSERT_THROWS_NOTHING(printMatrice(os, msg_lzma, 3u, 5u));
       os.close();
       TS_ASSERT(os);
+#else
+      using namespace Portage::Error_ns;
+      tmp_val<ErrorCallback> tmp(dummy::errorCallback, countErrorCallBack);
+      oMagicStream os(filename_lzma);
+      //cerr << "NOT USING LZMA: " << error_message_count << " " << error_message << endl; // SAM DEBUGGING
+      TS_ASSERT_EQUALS(error_message_count, 1u);
+      TS_ASSERT_EQUALS(error_message, "Portage was not compiled with lzma support!");
+#endif
    }
    void testReadingLzmaFile() {
+#ifdef USE_LZMA
       iMagicStream is(filename_lzma);
       TS_ASSERT(is);
       TS_ASSERT(getline(is, m_read_msg));
@@ -239,6 +263,14 @@ public:
       TS_ASSERT_THROWS_NOTHING(checkMatrice(is, msg_lzma, 3u, 5u));
       is.close();
       TS_ASSERT(is);
+#else
+      using namespace Portage::Error_ns;
+      tmp_val<ErrorCallback> tmp(dummy::errorCallback, countErrorCallBack);
+      iMagicStream os(filename_lzma);
+      //cerr << "NOT USING LZMA: " << error_message_count << " " << error_message << endl; // SAM DEBUGGING
+      TS_ASSERT_EQUALS(error_message_count, 1u);
+      TS_ASSERT_EQUALS(error_message, "Portage was not compiled with lzma support!");
+#endif
    }
 
    // Testing File Descriptor
@@ -421,9 +453,11 @@ public:
       TS_ASSERT_THROWS_NOTHING(checkMatrice(is, msg_bzip2, 3u, 5u));
    }
    void testFileIgnoreLzma() {
+#ifdef USE_LZMA
       iMagicStream is(filename_lzma);
       TS_ASSERT(is.ignore(msg_lzma.size()));
       TS_ASSERT_THROWS_NOTHING(checkMatrice(is, msg_lzma, 3u, 5u));
+#endif
    }
 
    void testFileSeekPlainText() {
@@ -565,5 +599,8 @@ public:
    }
 
 }; // TestMagicStream
+
+unsigned int TestMagicStream::error_message_count = 0;
+string TestMagicStream::error_message;
 
 } // Portage
