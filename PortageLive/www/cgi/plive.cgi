@@ -433,13 +433,20 @@ sub makeWorkDir {
 sub checkFile {
     my ($src_file, $notok, $noss) = @_;
 
-    # Check the MIME type and char set
-    my $file_type = `file --brief --mime \"$src_file\"`;
+    # Check the MIME type and char set - only accept utf-8 plain text.
+
+    # We prefix the file with a bunch of spaces to avoid collisions with mime
+    # types whose magic number is plain text strings - e.g., a file starting
+    # with "nut free" is identified as an Apple QuickTime movie by file.
+    # Binary files are identified as "application/octet-stream" with these
+    # extra spaces, so although their correct mime type is lost, the result
+    # still works for our purposes here.
+    my $file_type = `{ echo '                     '; cat \"$src_file\"; } | file --brief --mime -`;
     my ($mimetype, undef) = split(/[\s;]+/, $file_type, 2);
-    problem("Please submit a plain text file")
+    problem("Please submit a plain text file (your file seems to be $mimetype)")
         unless ($mimetype =~ /text\/.*/);
     my $charset = ($file_type =~ /charset=([^\s;]+)/) ? $1 : "unknown";
-    problem("Please use either UTF-8 or ASCII character encoding")
+    problem("Please use either UTF-8 or ASCII character encoding (your file seems to be $mimetype)")
         unless ($charset eq 'utf-8') or ($charset eq 'us-ascii');
 }
 
