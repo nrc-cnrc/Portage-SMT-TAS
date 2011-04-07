@@ -268,6 +268,13 @@ Optional dependencies for all distributions:
    work will be required so those libraries are seen by Perl at runtime.  Ask
    your sysadmin for help if you don't already know how to do this.
 
+ - xml_grep and xmllint - also required by tmx2lfl.pl.  xml_grep comes with
+   XML::Twig.  xmllint is fairly standard and should be available via the
+   package manager in most distros.
+
+ - Python - some convenience scripts use python.  Python should be standard, or
+   avaiable via the package manager, in most distros.
+
 Mandatory dependencies for source code distributions:
 
  - GNU g++ - Portage 1.4 compilation has only been tested with g++, and makes
