@@ -54,16 +54,14 @@ For source code distributions :
 
                         Verifying your installation
 
-Once Portage 1.4 is installed, execute these four commands to make sure you can
+Once Portage 1.4 is installed, execute the following command to make sure you can
 run the software:
-   cow.sh -h
-   tokenize.pl -h
-   canoe -h
-   ce.pl -h
-   tmx2lfl.pl -h
-These commands invoke programs that are each installed differently, and
-exercise the key parts of Portage 1.4 installation.  If everything is OK,
-each will give you usage information about the command.
+   make -C $HOME/Portage1.4.2/test-suite/unit-testing/check-installation
+This script invokes programs that are each installed differently, and exercise
+the key parts of Portage 1.4 installation.  If everything is OK, you should see
+the following message: "Everything is correctly installed!" otherwise you will
+get some indication of what could be missing or mis-configured.  Repeat the
+command until you solved all errors.
 
 If you get "command not found" for any of these, your PATH is not correctly set
 or your installation failed.  Check your SETUP.bash/tcsh file and make sure you
