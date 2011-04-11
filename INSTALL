@@ -395,3 +395,7 @@ Optional dependencies for source code distributions:
    .<shell>rc file, or by uncommenting the lines "PORTAGE_NO_CTAGS=1" and/or
    "PORTAGE_NO_ETAGS=1" in src/Makefile.user-conf.
 
+Optional PortageLive dependencies
+
+ - If you are interested in PortageLive, look at PortageLive/va/PLiveVA.pdf for
+   additional dependencies. 
