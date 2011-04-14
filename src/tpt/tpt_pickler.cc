@@ -21,10 +21,6 @@
 using namespace std;
 using namespace ugdiss;
 
-#ifdef CYGWIN
-#define stat64  stat
-#endif
-
 namespace ugdiss
 {
 // template function for writing unsigned integers (short, long, long
@@ -126,10 +122,10 @@ namespace ugdiss
     return binwrite_unsigned_integer(out, data);
   }
 #else 
-  void 
+  size_t
   binwrite(std::ostream& out, size_t data)
   { 
-    binwrite_unsigned_integer(out, data);
+     return binwrite_unsigned_integer(out, data);
   }
 #endif
 
