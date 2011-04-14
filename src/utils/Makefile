@@ -101,6 +101,10 @@ DOCUMENTS =
 # Module/directory specific compile flags
 MODULE_CF=
 
+ifeq ($(shell ulimit -v),unlimited)
+tests/test_MagicStream: MODULE_CF += -DUNLIMITED_VMEM
+endif
+
 include ../build/Makefile.incl
 
 # Special rule to run legacy_test_trie, because it requires an input data file

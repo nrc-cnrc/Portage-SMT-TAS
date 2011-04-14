@@ -521,11 +521,12 @@ public:
 
    // Special case that only works on a node.
    // Here we are trying to take all the memory and when the memory is full, we
-   // try to open a gzip file which forks and at that precis moment the os
+   // try to open a gzip file which forks and at that precise moment the os
    // needs twice as much memory which will fail.
    const string filename_zlib_fallback;
    const string msg_zlib_fallback;
    void testZlibFallback() {
+   #ifndef UNLIMITED_VMEM
       const unsigned int num_write(800);
       vector<char*> v;
       // Bloat the memory.
@@ -533,6 +534,10 @@ public:
       do {
          if ((buf = new (nothrow) char[2000000000]))
             v.push_back(buf);
+         if (v.size() > 255) {   // avoid infinite loop - max out at 512 GB
+            TS_FAIL(">512GB VMEM allocated. Bailing out.");
+            break;
+         }
       } while (buf);
 
       log("Memory blocks: " + to_string(v.size()));
@@ -562,8 +567,7 @@ public:
          TS_ASSERT_EQUALS(cpt, num_write);
       }
 
-      // Lets free up have the memory that way MagicStream won't use the zlib
-      // fallback.
+      // Lets free up half the memory so MagicStream won't use the zlib fallback.
       const unsigned int Max = v.size() / 2;
       for (unsigned int i=0; i<Max; ++i) {
          delete v.back();
@@ -596,6 +600,7 @@ public:
       // Clean up the memory
       for (unsigned int i=0; i<v.size(); ++i)
          delete v[i];
+   #endif
    }
 
 }; // TestMagicStream

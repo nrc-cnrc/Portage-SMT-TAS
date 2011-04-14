@@ -29,6 +29,10 @@
 
 namespace ugdiss {
 
+#if defined(Darwin) || defined(CYGWIN)
+#define stat64    stat
+#endif
+
 uint64_t
 getFileSize(const std::string& fname)
 {
