@@ -101,7 +101,7 @@ DOCUMENTS =
 # Module/directory specific compile flags
 MODULE_CF=
 
-ifeq ($(shell ulimit -v),unlimited)
+ifeq ($(shell bash -c ulimit -v),unlimited)
 tests/test_MagicStream: MODULE_CF += -DUNLIMITED_VMEM
 endif
 
