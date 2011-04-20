@@ -237,19 +237,19 @@ run_cmd() {
       RUN_CMD_NO_MON=
    fi
    date
-   echo "$*"
+   echo "$1"
    if [[ ! $NOTREALLY ]]; then
       if [[ $RUN_CMD_NO_MON ]]; then
-         eval "$*"
+         eval "$1"
          rc=$?
       else
          MON_FILE=`mktemp $WORKDIR/mon.run_cmd.XXXXXXXX`
          process-memory-usage.pl -s 1 30 $$ > $MON_FILE &
          MON_PID=$!
-         eval time "$*"
+         eval time "$1"
          rc=$?
          kill -USR1 $MON_PID
-         echo "run_cmd finished (rc=$rc): $*"
+         echo "run_cmd finished (rc=$rc): $1"
          if [ -s "$MON_FILE" -a $(( `wc -l < $MON_FILE` > 1 )) ]; then
             MON_VSZ=`egrep -ho 'vsz: [0-9.]+G' $MON_FILE 2> /dev/null | egrep -o "[0-9.]+" | sum.pl -m`
             MON_RSS=`egrep -ho 'rss: [0-9.]+G' $MON_FILE 2> /dev/null | egrep -o "[0-9.]+" | sum.pl -m`
@@ -646,7 +646,7 @@ while [[ 1 ]]; do
    if [[ "$PARALLEL" == 1 ]]; then
       # Don't time canoe-parallel.sh since it's going to report time-mem measurements.
       echo "$RUNSTR < $SFILE > $TRANSFILE.ff"
-      $RUNSTR < $SFILE > $TRANSFILE.ff
+      run_cmd -no-mon "$RUNSTR < $SFILE > $TRANSFILE.ff" "Failed running $CANOE_PARALLEL in serial mode."
    else
       run_cmd "$RUNSTR < $SFILE > $TRANSFILE.ff"
    fi
