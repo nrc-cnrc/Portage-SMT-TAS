@@ -1356,14 +1356,22 @@ void PhraseTable::getPhrases(vector<pair<double, PhraseInfo *> > &phrases,
          MultiTransPhraseInfo *newPI;
          if (forward_weights || adir_weights || !tscore.lexdis.empty()) {
             ForwardBackwardPhraseInfo* newFBPI = new ForwardBackwardPhraseInfo;
-            newFBPI->forward_trans_probs = tscore.forward;
-            newFBPI->forward_trans_prob =
-               dotProduct(*forward_weights, tscore.forward, forward_weights->size());
+            if ( forward_weights ) {
+               newFBPI->forward_trans_probs = tscore.forward;
+               newFBPI->forward_trans_prob =
+                  dotProduct(*forward_weights, tscore.forward, forward_weights->size());
+            }
+            else {
+               newFBPI->forward_trans_prob = 0;
+            }
 
-            if (adir_weights != NULL) {
+            if ( adir_weights ) {
                newFBPI->adir_probs = tscore.adir; //boxing
                newFBPI->adir_prob =
                   dotProduct(*adir_weights, tscore.adir, adir_weights->size());   //boxing
+            }
+            else {
+               newFBPI->adir_prob = 0;
             }
             newFBPI->lexdis_probs = tscore.lexdis; //boxing
 
