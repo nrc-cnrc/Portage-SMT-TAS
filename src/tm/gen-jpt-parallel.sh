@@ -3,7 +3,7 @@
 # @file gen-jpt-parallel.sh 
 # @brief generate a joint probability table in parallel.
 #
-# @author George Foster
+# @author George Foster & Samuel Larkin
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -29,11 +29,11 @@ usage() {
    cat <<==EOF== >&2
 
 Usage: gen-jpt-parallel.sh [-n N][-w NW][-rp RUNPARALLELOPTS][-o OUTFILE]
-       GPT GPTARGS file1_lang1 file1_lang2
+       GPT GPTARGS file1_lang1 file1_lang2 ... fileN_lang1 fileN_lang2
 
-Generate a joint phrase table for a single (large) file pair in parallel, by
-splitting the pair into pieces, generating a joint table for each piece, then
-merging the results, which are written to stdout (uncompressed).
+Generate a joint phrase table for file pairs in parallel, by splitting the pair
+into pieces, generating a joint table for each piece, then merging the results,
+which are written to stdout (uncompressed).
 
 Options:
 
@@ -93,28 +93,53 @@ done
 [[ $# -lt 4 ]] && error_exit "Missing IBM models and file pair arguments."
 
 GPTARGS=($@)
-if [[ "$GPTARGS" =~ -v ]]; then
+ALIGN_OPT=
+for ((i=0; i<${#GPTARGS[*]}; ++i)) {
+   if [[ ${GPTARGS[$i]} =~ -v ]]; then
    VERBOSE="-v"
-fi
+   fi
+}
+[[ $DEBUG ]] && echo "ALIGN_OPT=$ALIGN_OPT" >&2
 
-#echo gen_phrase_tables -num-file-args ${GPTARGS[@]} >&2
-NUM_FILE_ARGS=`gen_phrase_tables -num-file-args ${GPTARGS[@]}`
-if [[ $? != 0 ]]; then
-   error_exit "gen_phrase_tables doesn't seem to like the arguments you provided after the GPT keyword."
-elif [[ $NUM_FILE_ARGS != 2 ]]; then
-   error_exit "Currently, gen-jpt-parallel.sh only works with exactly two corpus files; you provided $NUM_FILE_ARGS.";
-fi
+FILE1=()
+FILE2=()
+# Ask gen_phrase_tables what are the corpora in the user provided command.
+FILE_ARGS=(`gen_phrase_tables -file-args ${GPTARGS[@]}`)
+[[ $? == 0 ]] || error_exit "gen_phrase_tables doesn't seem to like the arguments you provided after the GPT keyword."
 
-file1=${GPTARGS[$#-2]}
-file2=${GPTARGS[$#-1]}
-unset GPTARGS[$#-2]
-unset GPTARGS[$#-1]
+NUM_FILE_ARGS=${#FILE_ARGS[@]}
+[[ $DEBUG ]] && echo "${#FILE_ARGS[@]}: <${FILE_ARGS[@]}>" >&2
+[[ `expr ${#FILE_ARGS[@]} % 2` -eq 0 ]] || error_exit "You are missing a corpus in your pair of corpora"
+# Split the single list of files into src / tgt.
+while [[ ${#FILE_ARGS[@]} > 0 ]]; do
+   if [[ `expr ${#FILE_ARGS[@]} % 2` -eq 0 ]]; then
+      # PUSH
+      FILE1=("${FILE1[@]}" ${FILE_ARGS[0]})
+   else
+      # PUSH
+      FILE2=("${FILE2[@]}" ${FILE_ARGS[0]})
+   fi
+   # POP
+   #FILE_ARGS=(${FILE_ARGS[@]:0:$((${#FILE_ARGS[@]}-1))})
+   FILE_ARGS=(${FILE_ARGS[@]:1})
+done
+[[ $DEBUG ]] && echo "FILE1: ${#FILE1[@]}: <${FILE1[@]}>" >&2
+[[ $DEBUG ]] && echo "FILE2: ${#FILE2[@]}: <${FILE2[@]}>" >&2
+# There must be exactly the same number of "src" & "tgt" corpora.
+[[ ${#FILE1[@]} == ${#FILE2[@]} ]] || error_exit "We failed to split the corpora's list."
+
+# We will remove the corpora from the list of arguments since we will need to
+# replace them by chunks that we will generate later.
+GPTARGS=(${GPTARGS[@]:0:$((${#GPTARGS[@]}-${NUM_FILE_ARGS}))})
+[[ $DEBUG ]] && echo "AFTER: ${GPTARGS[@]}" >&2
+
+# Make sure all files are accessible
+for file in ${FILE1[@]} ${FILE2[@]}; do
+   [[ -e $file ]] || error_exit "Input file $file doesn't exist"
+done
 
 WORKDIR=JPTPAR$$
 test -d $WORKDIR || mkdir $WORKDIR
-
-[[ -e $file1 ]] || error_exit "Input file $file1 doesn't exist"
-[[ -e $file2 ]] || error_exit "Input file $file2 doesn't exist"
 
 
 # Start timing from this point.
@@ -127,15 +152,16 @@ trap '
 ' 0
 
 
-NL=`zcat -f $file1 | wc -l`
+NL=`zcat -f ${FILE1[@]} | wc -l`
 SPLITLINES=$(($NL/$NUM_JOBS))
 if [ -n $(($NL%$NUM_JOBS)) ]; then
    SPLITLINES=$(($SPLITLINES+1))
 fi
 
+[[ $VERBOSE ]] && echo 'Splitting input corpora' >&2
 time {
-   zcat -f $file1 | split -a 4 -l $SPLITLINES - $WORKDIR/L1.
-   zcat -f $file2 | split -a 4 -l $SPLITLINES - $WORKDIR/L2.
+   zcat -f ${FILE1[@]} | split -a 4 -l $SPLITLINES - $WORKDIR/L1.
+   zcat -f ${FILE2[@]} | split -a 4 -l $SPLITLINES - $WORKDIR/L2.
 }
 
 if [[ $DEBUG ]]; then
@@ -144,8 +170,8 @@ if [[ $DEBUG ]]; then
    echo "NW = $NW"
    echo "RP_OPTS = <$RP_OPTS>"
    echo "GPTARGS = <${GPTARGS[@]}>"
-   echo $file1
-   echo $file2
+   echo ${FILE1[@]}
+   echo ${FILE2[@]}
    echo $WORKDIR
    echo $NL
    echo $SPLITLINES
@@ -161,8 +187,8 @@ test -f $CMDS_FILE && \rm -f $CMDS_FILE
 
 if [[ -n "$NW" ]]; then
    time {
-   get_voc $file1 > $WORKDIR/voc.1
-   get_voc $file2 > $WORKDIR/voc.2
+      zcat -f ${FILE1[@]} | get_voc > $WORKDIR/voc.1
+      zcat -f ${FILE2[@]} | get_voc > $WORKDIR/voc.2
    }
 fi
 
@@ -180,10 +206,10 @@ for src in `ls $WORKDIR/L1.*`; do
    echo "test ! -f $src || ((set -o pipefail; gen_phrase_tables $WOPS -j ${GPTARGS[@]} $src $tgt | LC_ALL=C $SORT_DIR sort | gzip > $WORKDIR/$suff.jpt.gz) && mv $src $src.done)" >> $CMDS_FILE
 done
 
-test $DEBUG && cat $CMDS_FILE
+test $DEBUG && cat $CMDS_FILE >&2
 
 
-[[ -n $VERBOSE ]] && echo "run-parallel.sh $VERBOSE $RP_OPTS $CMDS_FILE $WORKERS" >&2
+[[ $VERBOSE ]] && echo "run-parallel.sh $VERBOSE $RP_OPTS $CMDS_FILE $WORKERS" >&2
 
 [[ $NOTREALLY ]] || eval "run-parallel.sh $VERBOSE $RP_OPTS $CMDS_FILE $WORKERS"
 RC=$?
@@ -194,7 +220,8 @@ fi
 
 
 # Merging parts
-test $DEBUG && echo merge_counts $OUTFILE $WORKDIR/*.jpt.gz >&2
+MERGE_CMD="merge_multi_column_counts $ALIGN_OPT $OUTFILE $WORKDIR/*.jpt.gz $WPFILES"
+test $DEBUG && echo $MERGE_CMD >&2
 
 if [[ ! $NOTREALLY ]]; then
 
@@ -215,7 +242,7 @@ if [[ ! $NOTREALLY ]]; then
     fi
 
     time {
-       eval "merge_counts $OUTFILE $WORKDIR/*.jpt.gz $WPFILES"
+       eval "$MERGE_CMD"
        RC=$?
     }
     if (( $RC != 0 )); then
@@ -224,6 +251,7 @@ if [[ ! $NOTREALLY ]]; then
     fi
 fi
 
-rm -rf ${WORKDIR}
+# Clean up.
+[[ $DEBUG ]] || rm -rf ${WORKDIR}
 
 exit
