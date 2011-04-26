@@ -146,6 +146,7 @@ static const char* const switches[] = {
    "twist", "addsw", "o:", "f1:", "f2:",
    "lc1:", "lc2:",
    "num-file-args", // hidden option for gen-jpt-parallel.sh
+   "file-args", // hidden option for gen-jpt-parallel.sh
    "multipr:", "tmtext", "giza"
 };
 
@@ -353,6 +354,14 @@ public:
 
       if (giza_alignment && align_methods.size() > 1)
         error(ETFatal, "Can't use -giza with multiple alignment methods");
+
+      if (mp_arg_reader->getSwitch("file-args")) {
+         vector<string> corpora;
+         mp_arg_reader->getVars(first_file_arg, corpora);
+         copy(corpora.begin(), corpora.end(), ostream_iterator<string>(cout, " "));
+         cout << endl;
+         exit(0);
+      }
 
       if (mp_arg_reader->getSwitch("num-file-args")) {
          cout << (mp_arg_reader->numVars() - first_file_arg) << endl;
