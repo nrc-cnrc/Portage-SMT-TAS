@@ -27,12 +27,15 @@ namespace Portage {
 
 /// Used to convert string tokens to integer value.
 class Voc {
+protected:
    /// When you have the index and you want to convert it back to a word.
    vector<const char*> words;
    /// When you have a word and you want to find its index.
    unordered_map<const char*, Uint, hash<const char*>, str_equal> map;
+   /// Const Iterator to traverse all the map by words
+   typedef unordered_map<const char*, Uint, hash<const char*>, str_equal>::const_iterator ConstMapIter;
    /// Iterator to traverse all the map by words
-   typedef unordered_map<const char*, Uint, hash<const char*>, str_equal>::const_iterator MapIter;
+   typedef unordered_map<const char*, Uint, hash<const char*>, str_equal>::iterator MapIter;
 
    /// Clears the content of the vocabulary.
    void deleteWords();
@@ -89,8 +92,8 @@ public:
    /// Default constructor
    Voc();
 
-   /// Destructor.
-   ~Voc();
+   /// Destructor. (virtual because some subclasses need it to be so.)
+   virtual ~Voc();
 
    /**
     * Read contents from a file in which words are listed one per line. These
@@ -151,7 +154,7 @@ public:
     * @return index of word, or size() if not there
     */
    Uint index(const char* word) const {
-      MapIter p = map.find(word);
+      ConstMapIter p = map.find(word);
       return p == map.end() ? size() : p->second;
    };
 
@@ -177,7 +180,7 @@ public:
    bool empty() const { return words.empty(); }
 
    /// Clear the vocabulary.
-   void clear();
+   virtual void clear();
 
    /// Swap the contents of two vocabularies.
    void swap(Voc& that);
@@ -285,6 +288,9 @@ public:
          os << word(i) << " " << counts[i] << nf_endl;
       os.flush();
    }
+
+   /// Clear the voc
+   virtual void clear() { counts.clear(); Voc::clear(); }
 
    /**
     * Add a word to the vocab, and increase its count.
