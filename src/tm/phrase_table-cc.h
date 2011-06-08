@@ -17,6 +17,9 @@
 #ifndef PHRASE_TABLE_CC_H
 #define PHRASE_TABLE_CC_H
 
+
+namespace Portage {
+
 /*---------------------------------------------------------------------------------------------
   PhraseTableGen implementation
   -------------------------------------------------------------------------------------------*/
@@ -25,6 +28,8 @@ template<class T>
 void PhraseTableGen<T>::clear()
 {
    lang1_voc.clear();
+   for ( Uint i = 0; i < phrase_table.size(); ++i )
+      delete phrase_table[i];
    phrase_table.clear();
    lang2_voc.clear();
 }
@@ -44,8 +49,8 @@ bool PhraseTableGen<T>::exists(ToksIter beg1, ToksIter end1, ToksIter beg2, Toks
    if (id2 == lang2_voc.size())
       return false;
 
-   const typename PhraseFreqs::iterator iter = phrase_table[id1].find(id2);
-   if (iter == phrase_table[id1].end())
+   const typename PhraseFreqs::iterator iter = phrase_table[id1]->find(id2);
+   if (iter == phrase_table[id1]->end())
       return false;
 
    val = iter->second;
@@ -64,14 +69,14 @@ void PhraseTableGen<T>::addPhrasePair(ToksIter beg1, ToksIter end1, ToksIter beg
    Uint id2 = lang2_voc.add(phrase2.c_str(), val);
    if (keep_phrase_table_in_memory) {
       if (id1 == phrase_table.size()) {
-         phrase_table.push_back(PhraseFreqs());
+         phrase_table.push_back(new PhraseFreqs());
       }
-      phrase_table[id1][id2] += val;
+      (*phrase_table[id1])[id2] += val;
    }
 }
 
 template<class T>
-void PhraseTableGen<T>::lookupPhrasePair(string &line, Uint& id1, Uint& id2, T& val)
+void PhraseTableGen<T>::lookupPhrasePair(const string &line, Uint& id1, Uint& id2, T& val)
 {
    vector<string> toks;
    typename PhraseTableGen<T>::ToksIter b1, e1, b2, e2, v;
@@ -93,14 +98,14 @@ void PhraseTableGen<T>::lookupPhrasePair(string &line, Uint& id1, Uint& id2, T& 
       id2 = lang2_voc.add(phrase2.c_str(), val);
       if (keep_phrase_table_in_memory) {
          if (id1 == phrase_table.size())
-            phrase_table.push_back(PhraseFreqs());
-         phrase_table[id1][id2] += val;
+            phrase_table.push_back(new PhraseFreqs());
+         (*phrase_table[id1])[id2] += val;
       }
    }
 }
 
 template<class T>
-void PhraseTableGen<T>::lookupPhrasePair(string &line, string& phrase1, Uint& id2, T& val)
+void PhraseTableGen<T>::lookupPhrasePair(const string &line, string& phrase1, Uint& id2, T& val)
 {
    vector<string> toks;
    typename PhraseTableGen<T>::ToksIter b1, e1, b2, e2, v;
@@ -176,6 +181,21 @@ void PhraseTableGen<T>::getPhrase(Uint lang, const string& coded, vector<string>
 }
 
 template<class T>
+Uint PhraseTableGen<T>::getPhraseLength(Uint lang, Uint id) {
+   if (lang == 1) {
+      if (id > lang1_voc.size())
+         error(ETFatal, "Phrase for index %d in lang 1 not stored in memory.", id);
+      return phraseLength(lang1_voc.word(id));
+   } else
+      return phraseLength(lang2_voc.word(id));
+}
+
+template<class T>
+Uint PhraseTableGen<T>::getPhraseLength(Uint lang, const char* coded) {
+   return phraseLength(coded);
+}
+
+template<class T>
 void PhraseTableGen<T>::dump_prob_lang2_given_lang1(ostream& ostr)
 {
    assert(keep_phrase_table_in_memory);
@@ -183,9 +203,9 @@ void PhraseTableGen<T>::dump_prob_lang2_given_lang1(ostream& ostr)
    for (Uint i = 0; i < phrase_table.size(); ++i) {
       double sum = 0.0;
       typename PhraseFreqs::iterator pf;
-      for (pf = phrase_table[i].begin(); pf != phrase_table[i].end(); ++pf)
+      for (pf = phrase_table[i]->begin(); pf != phrase_table[i]->end(); ++pf)
          sum += pf->second;
-      for (pf = phrase_table[i].begin(); pf != phrase_table[i].end(); ++pf) {
+      for (pf = phrase_table[i]->begin(); pf != phrase_table[i]->end(); ++pf) {
          double value = pf->second / sum;
          if (value != 0)
             writePhrasePair(ostr, lang2_voc.word(pf->first), lang1_voc.word(i),
@@ -201,7 +221,7 @@ void PhraseTableGen<T>::dump_prob_lang1_given_lang2(ostream& ostr)
    ostr.precision(9); // Enough to keep all the precision of a float
    for (Uint i = 0; i < phrase_table.size(); ++i) {
       typename PhraseFreqs::iterator pf;
-      for (pf = phrase_table[i].begin(); pf != phrase_table[i].end(); ++pf) {
+      for (pf = phrase_table[i]->begin(); pf != phrase_table[i]->end(); ++pf) {
          double value = pf->second / (double) lang2_voc.freq(pf->first);
          if (value != 0)
             writePhrasePair(ostr, lang1_voc.word(i), lang2_voc.word(pf->first),
@@ -211,21 +231,22 @@ void PhraseTableGen<T>::dump_prob_lang1_given_lang2(ostream& ostr)
 }
 
 template<class T>
-void PhraseTableGen<T>::pruneLang2GivenLang1(Uint nmax, bool per_word)
+void PhraseTableGen<T>::pruneLang2GivenLang1(Uint fixed_max, Uint per_word_max)
 {
-   prune1 = nmax;
+   prune1_fixed = fixed_max;
+   prune1_per_word = per_word_max;
    if (!keep_phrase_table_in_memory)
       return;
    for (Uint i = 0; i < phrase_table.size(); ++i) {
-      const Uint nwords = max(strlen(lang1_voc.word(i)), 1);   // playing it safe..
-      const Uint n = per_word ? nmax * nwords / num_code_bytes : nmax;
-      prunePhraseFreqs(phrase_table[i], n);
+      const Uint nwords = phraseLength(lang1_voc.word(i));
+      prunePhraseFreqs(*phrase_table[i], nwords);
    }
 }
 
 template<class T>
-void PhraseTableGen<T>::prunePhraseFreqs(PhraseFreqs &phrase_freqs, Uint n)
+void PhraseTableGen<T>::prunePhraseFreqs(PhraseFreqs &phrase_freqs, Uint lang1_num_words)
 {
+   const Uint n = prune1_fixed + prune1_per_word * lang1_num_words;
    if (n >= phrase_freqs.size())
       return;
 
@@ -277,7 +298,7 @@ void PhraseTableGen<T>::dump_freqs_lang1(ostream& ostr)
    for (Uint i = 0; i < lang1_voc.size(); ++i) {
       double sum = 0.0;
       typename PhraseFreqs::iterator pf;
-      for (pf = phrase_table[i].begin(); pf != phrase_table[i].end(); ++pf)
+      for (pf = phrase_table[i]->begin(); pf != phrase_table[i]->end(); ++pf)
          sum += pf->second;
       toks.clear();
       ph = lang1_voc.word(i);
@@ -419,7 +440,7 @@ PhraseTableGen<T>::iterator::iterator(PhraseTableGen<T>* pt, bool end/*=false*/)
       strategy_type = memoryIterator;
       iterator_strategy = new MemoryIteratorStrategy(pt, end);
    }
-   else if(pt->prune1) {
+   else if(pt->prune1_fixed || pt->prune1_per_word) {
       strategy_type = pruningIterator;
       iterator_strategy = new Pruning2IteratorStrategy(pt, end);
    }
@@ -538,6 +559,12 @@ string& PhraseTableGen<T>::iterator::getPhrase(Uint lang, string& phrase) const
 }
 
 template<class T>
+Uint PhraseTableGen<T>::iterator::getPhraseLength(Uint lang) const
+{
+   return iterator_strategy->getPhraseLength(lang);
+}
+
+template<class T>
 Uint PhraseTableGen<T>::iterator::getPhraseIndex(Uint lang) const
 {
    return iterator_strategy->getPhraseIndex(lang);
@@ -591,6 +618,12 @@ string& PhraseTableGen<T>::iterator::IteratorStrategy::getPhrase(Uint lang, stri
    return phrase;
 }
 
+template<class T>
+Uint PhraseTableGen<T>::iterator::IteratorStrategy::getPhraseLength(Uint lang) const
+{
+   return pt->getPhraseLength(lang, getPhraseIndex(lang));
+}
+
 /*---------------------------------------------------------------------------------------------
   MemoryIteratorStrategy implementation
   -------------------------------------------------------------------------------------------*/
@@ -599,18 +632,18 @@ template<class T>
 PhraseTableGen<T>::iterator::MemoryIteratorStrategy::MemoryIteratorStrategy(PhraseTableGen<T>* pt_, bool end_/*=false*/) :
    IteratorStrategy(pt_, end_)
 {
-   if (IteratorStrategy::end) return;
-   PhraseTable& phrase_table(IteratorStrategy::pt->phrase_table);
-   if (! phrase_table.size()) {
-      IteratorStrategy::end = true;
+   if (end) return;
+   PhraseTable& phrase_table(pt->phrase_table);
+   if (phrase_table.empty()) {
+      end = true;
       return;
    }
    row_iter = phrase_table.begin();
    row_iter_end = phrase_table.end();
-   elem_iter = (*row_iter).begin();
-   elem_iter_end = (*row_iter).end();
-   IteratorStrategy::id1 = 0;
-   IteratorStrategy::id2 = elem_iter->first;
+   elem_iter = (*row_iter)->begin();
+   elem_iter_end = (*row_iter)->end();
+   id1 = 0;
+   id2 = elem_iter->first;
 }
 
 template<class T>
@@ -631,18 +664,18 @@ template<class T>
 typename PhraseTableGen<T>::iterator::MemoryIteratorStrategy&
 PhraseTableGen<T>::iterator::MemoryIteratorStrategy::operator++()
 {
-   if (IteratorStrategy::end) return *this;
+   if (end) return *this;
 
    if (++elem_iter == elem_iter_end) {
-      ++IteratorStrategy::id1;
+      ++id1;
       if (++row_iter == row_iter_end) {
-         IteratorStrategy::end = true;
+         end = true;
          return *this;
       }
-      elem_iter = (*row_iter).begin();
-      elem_iter_end = (*row_iter).end();
+      elem_iter = (*row_iter)->begin();
+      elem_iter_end = (*row_iter)->end();
    }
-   IteratorStrategy::id2 = elem_iter->first;
+   id2 = elem_iter->first;
    return *this;
 }
 
@@ -666,13 +699,14 @@ template<class T>
 PhraseTableGen<T>::iterator::FileIteratorStrategy::FileIteratorStrategy(PhraseTableGen<T>* pt_, bool end_/*=false*/) :
    IteratorStrategy(pt_, end_), jpt_stream(NULL)
 {
-   if (IteratorStrategy::end) return;
+   if (end) return;
    jpt_stream.reset();
-   if (IteratorStrategy::pt->jpt_file.length() > 0) {
-      auto_ptr<iSafeMagicStream> new_stream(new iSafeMagicStream(IteratorStrategy::pt->jpt_file));
+   if (pt->jpt_file.length() > 0) {
+      auto_ptr<iSafeMagicStream> new_stream(new iSafeMagicStream(pt->jpt_file));
       jpt_stream = new_stream;
-   } else if (IteratorStrategy::pt->jpt_stream) {
-      auto_ptr<istream> new_stream(new istream(IteratorStrategy::pt->jpt_stream->rdbuf()));
+   } else if (pt->jpt_stream) {
+      // This path is used only for unit testing
+      auto_ptr<istream> new_stream(new istream(pt->jpt_stream->rdbuf()));
       jpt_stream = new_stream;
       jpt_stream->clear();
       jpt_stream->seekg(0);
@@ -699,16 +733,15 @@ template<class T>
 typename PhraseTableGen<T>::iterator::FileIteratorStrategy&
 PhraseTableGen<T>::iterator::FileIteratorStrategy::operator++()
 {
-   if (IteratorStrategy::end) return *this;
+   if (end) return *this;
    assert(jpt_stream.get() != NULL);
    string line;
    if (! getline(*jpt_stream, line)) {
-      IteratorStrategy::end = true;
-      IteratorStrategy::pt->phrase_table_read = true;
+      end = true;
+      pt->phrase_table_read = true;
       return *this;
    }
-   IteratorStrategy::pt->lookupPhrasePair(line, IteratorStrategy::id1,
-                                          IteratorStrategy::id2, val);
+   pt->lookupPhrasePair(line, id1, id2, val);
    return *this;
 }
 
@@ -732,11 +765,10 @@ template<class T>
 PhraseTableGen<T>::iterator::File2IteratorStrategy::File2IteratorStrategy(PhraseTableGen<T>* pt_, bool end_/*=false*/) :
    FileIteratorStrategy(pt_, end_)
 {
-   if (IteratorStrategy::end) return;
+   if (end) return;
    vector<string> toks;
-   IteratorStrategy::pt->getPhrase(1, IteratorStrategy::id1, toks);
-   IteratorStrategy::pt->compressPhrase(toks.begin(), toks.end(), phrase1,
-                                        IteratorStrategy::pt->wvoc1);
+   pt->getPhrase(1, id1, toks);
+   pt->compressPhrase(toks.begin(), toks.end(), phrase1, pt->wvoc1);
 }
 
 template<class T>
@@ -754,22 +786,21 @@ template<class T>
 typename PhraseTableGen<T>::iterator::File2IteratorStrategy&
 PhraseTableGen<T>::iterator::File2IteratorStrategy::operator++()
 {
-   if (IteratorStrategy::end) return *this;
-   assert(FileIteratorStrategy::jpt_stream.get() != NULL);
+   if (end) return *this;
+   assert(jpt_stream.get() != NULL);
    string line;
-   if (! getline(*FileIteratorStrategy::jpt_stream, line)) {
-      IteratorStrategy::end = true;
-      IteratorStrategy::pt->phrase_table_read = true;
+   if (! getline(*jpt_stream, line)) {
+      end = true;
+      pt->phrase_table_read = true;
       return *this;
    }
    string next_ph1;
-   IteratorStrategy::pt->lookupPhrasePair(line, next_ph1, IteratorStrategy::id2,
-                                          FileIteratorStrategy::val);
+   pt->lookupPhrasePair(line, next_ph1, id2, FileIteratorStrategy::val);
    if (next_ph1 != phrase1) {
       phrase1 = next_ph1;
-      ++IteratorStrategy::id1;
-      if (! IteratorStrategy::pt->phrase_table_read)
-         ++IteratorStrategy::pt->num_lang1_phrases;
+      ++id1;
+      if (! pt->phrase_table_read)
+         ++pt->num_lang1_phrases;
    }
    return *this;
 }
@@ -778,19 +809,28 @@ template<class T>
 void PhraseTableGen<T>::iterator::File2IteratorStrategy::getPhrase(Uint lang, vector<string>& toks) const
 {
    if (lang == 1)
-      IteratorStrategy::pt->getPhrase(lang, phrase1, toks);
+      pt->getPhrase(lang, phrase1, toks);
    else
-      IteratorStrategy::pt->getPhrase(lang, getPhraseIndex(lang), toks);
+      pt->getPhrase(lang, getPhraseIndex(lang), toks);
 }
 
 template<class T>
 string& PhraseTableGen<T>::iterator::File2IteratorStrategy::getPhrase(Uint lang, string& phrase) const
 {
    if (lang == 1)
-      IteratorStrategy::pt->getPhrase(lang, phrase1, phrase);
+      pt->getPhrase(lang, phrase1, phrase);
    else
-      IteratorStrategy::pt->getPhrase(lang, getPhraseIndex(lang), phrase);
+      pt->getPhrase(lang, getPhraseIndex(lang), phrase);
    return phrase;
+}
+
+template<class T>
+Uint PhraseTableGen<T>::iterator::File2IteratorStrategy::getPhraseLength(Uint lang) const
+{
+   if (lang == 1)
+      return pt->getPhraseLength(lang, phrase1.c_str());
+   else
+      return pt->getPhraseLength(lang, getPhraseIndex(lang));
 }
 
 /*---------------------------------------------------------------------------------------------
@@ -801,11 +841,11 @@ template<class T>
 PhraseTableGen<T>::iterator::PruningIteratorStrategy::PruningIteratorStrategy(PhraseTableGen<T>* pt_, bool end_/*=false*/) :
    FileIteratorStrategy(pt_, end_)
 {
-   if (IteratorStrategy::end) return;
+   if (end) return;
    pf_index = phrase_freqs.size();
-   next_id1 = IteratorStrategy::id1;
-   next_id2 = IteratorStrategy::id2;
-   next_val = FileIteratorStrategy::val;
+   next_id1 = id1;
+   next_id2 = id2;
+   next_val = val;
    operator++();
 }
 
@@ -828,32 +868,31 @@ template<class T>
 typename PhraseTableGen<T>::iterator::PruningIteratorStrategy&
 PhraseTableGen<T>::iterator::PruningIteratorStrategy::operator++()
 {
-   if (FileIteratorStrategy::end) return *this;
+   if (end) return *this;
 
    if (++pf_index >= phrase_freqs.size()) {
-      assert(FileIteratorStrategy::jpt_stream.get() != NULL);
+      assert(jpt_stream.get() != NULL);
       string line;
-      if (FileIteratorStrategy::jpt_stream->eof()) {
-         IteratorStrategy::end = true;
-         IteratorStrategy::pt->phrase_table_read = true;
+      if (jpt_stream->eof()) {
+         end = true;
+         pt->phrase_table_read = true;
          return *this;
       }
-      IteratorStrategy::id1 = next_id1;
+      id1 = next_id1;
       phrase_freqs.clear();
       phrase_freqs[next_id2] += next_val;
-      while (getline(*FileIteratorStrategy::jpt_stream, line)) {
-         IteratorStrategy::pt->lookupPhrasePair(line, next_id1, next_id2, next_val);
-         if (next_id1 == IteratorStrategy::id1)
+      while (getline(*jpt_stream, line)) {
+         pt->lookupPhrasePair(line, next_id1, next_id2, next_val);
+         if (next_id1 == id1)
             phrase_freqs[next_id2] += next_val;
          else break;
       }
-      IteratorStrategy::pt->prunePhraseFreqs(IteratorStrategy::id1, phrase_freqs,
-                                             IteratorStrategy::pt->prune1);
+      pt->prunePhraseFreqs(id1, phrase_freqs, getPhraseLength(1));
       pf_index = 0;
    }
 
-   IteratorStrategy::id2 = phrase_freqs.at(pf_index).first;
-   FileIteratorStrategy::val = phrase_freqs.at(pf_index).second;
+   id2 = phrase_freqs.at(pf_index).first;
+   val = phrase_freqs.at(pf_index).second;
    return *this;
 }
 
@@ -865,12 +904,12 @@ template<class T>
 PhraseTableGen<T>::iterator::Pruning2IteratorStrategy::Pruning2IteratorStrategy(PhraseTableGen<T>* pt_, bool end_/*=false*/) :
    File2IteratorStrategy(pt_, end_)
 {
-   if (IteratorStrategy::end) return;
+   if (end) return;
    pf_index = phrase_freqs.size();
-   next_id1 = IteratorStrategy::id1;
-   next_id2 = IteratorStrategy::id2;
-   next_val = FileIteratorStrategy::val;
-   next_phrase1 = File2IteratorStrategy::phrase1;
+   next_id1 = id1;
+   next_id2 = id2;
+   next_val = val;
+   next_phrase1 = phrase1;
    operator++();
 }
 
@@ -894,39 +933,40 @@ template<class T>
 typename PhraseTableGen<T>::iterator::Pruning2IteratorStrategy&
 PhraseTableGen<T>::iterator::Pruning2IteratorStrategy::operator++()
 {
-   if (IteratorStrategy::end) return *this;
+   if (end) return *this;
 
    if (++pf_index >= phrase_freqs.size()) {
-      assert(File2IteratorStrategy::jpt_stream.get() != NULL);
+      assert(jpt_stream.get() != NULL);
       string line;
-      if (File2IteratorStrategy::jpt_stream->eof()) {
-         IteratorStrategy::end = true;
-         IteratorStrategy::pt->phrase_table_read = true;
+      if (jpt_stream->eof()) {
+         end = true;
+         pt->phrase_table_read = true;
          return *this;
       }
-      IteratorStrategy::id1 = next_id1;
-      File2IteratorStrategy::phrase1 = next_phrase1;
+      id1 = next_id1;
+      phrase1 = next_phrase1;
       phrase_freqs.clear();
       phrase_freqs[next_id2] += next_val;
-      while (getline(*File2IteratorStrategy::jpt_stream, line)) {
-         IteratorStrategy::pt->lookupPhrasePair(line, next_phrase1, next_id2, next_val);
-         if (next_phrase1 == File2IteratorStrategy::phrase1)
+      while (getline(*jpt_stream, line)) {
+         pt->lookupPhrasePair(line, next_phrase1, next_id2, next_val);
+         if (next_phrase1 == phrase1)
             phrase_freqs[next_id2] += next_val;
          else {
             ++next_id1;
-            if (! IteratorStrategy::pt->phrase_table_read)
-               ++IteratorStrategy::pt->num_lang1_phrases;
+            if (! pt->phrase_table_read)
+               ++pt->num_lang1_phrases;
             break;
          }
       }
-      IteratorStrategy::pt->prunePhraseFreqs(phrase_freqs, IteratorStrategy::pt->prune1);
+      pt->prunePhraseFreqs(phrase_freqs, getPhraseLength(1));
       pf_index = 0;
    }
 
-   IteratorStrategy::id2 = phrase_freqs.at(pf_index).first;
-   FileIteratorStrategy::val = phrase_freqs.at(pf_index).second;
+   id2 = phrase_freqs.at(pf_index).first;
+   val = phrase_freqs.at(pf_index).second;
    return *this;
 }
 
+} // Portage
 
 #endif // PHRASE_TABLE_CC_H

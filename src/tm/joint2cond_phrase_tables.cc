@@ -33,7 +33,7 @@ using namespace std;
 static char help_message[] = "\n\
 joint2cond_phrase_tables [-Hvijz][-[no-]sort][-1 l1][-2 l2][-o name][-s 'meth args']\n\
                          [-ibm n][-hmm][-ibm_l2_given_l1 m][-ibm_l1_given_l2 m]\n\
-                         [-prune1 n][-tmtext][-multipr d][-lc1 loc][-lc2 loc]\n\
+                         [-prune1 n][-prune1w nw][-tmtext][-multipr d][-lc1 loc][-lc2 loc]\n\
                          [-[no-]reduce-mem][jtable]\n\
 \n\
 Convert joint-frequency phrase table <jtable> (stdin if no <jtable> parameter\n\
@@ -49,6 +49,9 @@ Options:\n\
 -i    Counts are integers [counts are floating point]\n\
 -prune1  Prune so that each language1 phrase has at most n translations. This is\n\
       based on joint frequencies, and is done right after reading in the table.\n\
+-prune1w  Same as prune1, but multiply nw by the number of words in the current\n\
+      source phrase.  When using both -prune1 and -prune1w, keep n + nw*len\n\
+      tranlations for a source phrase of len words.\n\
 -j    Write global joint frequency phrase table to stdout (useful for combining\n\
       multiple tables cat'd to <jtable>).\n\
 -z    Compress the output files[don't]\n\
@@ -89,6 +92,8 @@ Options:\n\
                   reduced memory option, and the jpt cannot be read from stdin.\n\
                   Use merge_counts to tally counts from multiple jpts before\n\
                   using this option, or else the output will be incorrect.\n\
+                  When combined with -prune1[w], all phrase pairs for a given\n\
+                  lang1 phrase must also occur consecutively.\n\
 ";
 
 // globals
@@ -97,6 +102,7 @@ static bool verbose = false;
 static bool int_counts = false;
 static bool joint = false;
 static Uint prune1 = 0;
+static Uint prune1w = 0;
 static string lang1("en");
 static string lang2("fr");
 static string name("phrases");
@@ -187,10 +193,15 @@ static void doEverything(const char* prog_name)
            << pt.numLang2Phrases() << " " << lang2 << " phrases" << endl;
    }
 
-   if (prune1) {
-      if (verbose)
-         cerr << "pruning to best " << prune1 << " translations" << endl;
-      pt.pruneLang2GivenLang1(prune1);
+   if (prune1 || prune1w) {
+      if (verbose) {
+         cerr << "pruning to best ";
+         if (prune1)            cerr << prune1;
+         if (prune1 && prune1w) cerr << "+";
+         if (prune1w)           cerr << prune1w << "*numwords";
+         cerr << " translations" << endl;
+      }
+      pt.pruneLang2GivenLang1(prune1, prune1w);
    }
 
    if (joint)
@@ -305,7 +316,7 @@ static void getArgs(int argc, const char* const argv[])
 {
    const string alt_help = PhraseSmootherFactory<Uint>::help();
    const char* switches[] = {
-      "v", "i", "j", "z", "prune1:", "s:", "1:", "2:", "o:", "force",
+      "v", "i", "j", "z", "prune1:", "prune1w:", "s:", "1:", "2:", "o:", "force",
       "ibm:", "hmm", "ibm_l1_given_l2:", "ibm_l2_given_l1:",
       "lc1:", "lc2:",
       "tmtext", "multipr:", "sort", "no-sort",
@@ -320,6 +331,7 @@ static void getArgs(int argc, const char* const argv[])
    arg_reader.testAndSet("i", int_counts);
    arg_reader.testAndSet("j", joint);
    arg_reader.testAndSet("prune1", prune1);
+   arg_reader.testAndSet("prune1w", prune1w);
    arg_reader.testAndSet("z", compress_output);
    arg_reader.testAndSet("1", lang1);
    arg_reader.testAndSet("2", lang2);
@@ -380,8 +392,8 @@ static void getArgs(int argc, const char* const argv[])
       reduce_memory = false;
    }
 
-   if (prune1 && (multipr_output == "rev" || multipr_output == "both"))
-      error(ETFatal, "prune1 is not valid with -multipr rev or -multipr both.");
+   if ((prune1||prune1w) && (multipr_output == "rev" || multipr_output == "both"))
+      error(ETFatal, "prune1(w) is not valid with -multipr rev or -multipr both.");
 }
 
 static void delete_or_error_if_exists(const string& filename) {

@@ -69,6 +69,11 @@ string PhraseTableBase::recodePhrase(const string& coded, Voc& voc,
    return s1;
 }
 
+Uint PhraseTableBase::phraseLength(const char* coded)
+{
+   return strlen(coded) / num_code_bytes;
+}
+
 void PhraseTableBase::extractTokens(const string& line, vector<string>& toks,
 				    ToksIter& b1, ToksIter& e1,
 				    ToksIter& b2, ToksIter& e2,

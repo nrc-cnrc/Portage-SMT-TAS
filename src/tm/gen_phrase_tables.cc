@@ -28,8 +28,8 @@ using namespace Portage;
 
 static char help_message[] = "\n\
 gen_phrase_tables [-hHvijz][-a 'meth args'][-s 'meth args'][-w nw]\n\
-                  [-wf file][-wfvoc voc][-addsw]\n\
-                  [-prune1 n][-m max][-min min][-d ldiff][-ali][-twist]\n\
+                  [-wf file][-wfvoc voc][-addsw][-twist]\n\
+                  [-prune1 n][-prune1w nw][-m max][-min min][-d ldiff][-ali]\n\
                   [-ibm n][-hmm][-p0 p0][-up0 up0][-alpha a][-lambda l]\n\
                   [-[no]anchor][-max-jump max_j][-[no]end-dist]\n\
                   [-lc1 loc][-lc2 loc]\n\
@@ -55,6 +55,9 @@ Options:\n\
 -z     Add .gz to all generated file names (and compress those files).\n\
 -prune1  Prune so that each language1 phrase has at most n translations. This\n\
        is based on joint frequencies, and is done before smoothing.\n\
+-prune1w  Same as prune1, but multiply nw by the number of words in the current\n\
+       source phrase.  When using both -prune1 and -prune1w, keep n + nw*len\n\
+       tranlations for a source phrase of len words.\n\
 -a     Word-alignment method and optional args. Use -H for list of methods.\n\
        Multiple methods may be specified by using -a repeatedly. [IBMOchAligner]\n\
 -s     Smoothing method for conditional probs. Use -H for list of methods.\n\
@@ -137,7 +140,7 @@ Output selection options (specify as many as you need):\n\
 typedef PhraseTableGen<Uint> PhraseTable;
 
 static const char* const switches[] = {
-   "v", "vv", "vs", "i", "j", "z", "prune1:", "a:", "s:",
+   "v", "vv", "vs", "i", "j", "z", "prune1:", "prune1w:", "a:", "s:",
    "m:", "min:", "d:", "ali", "w:", "wf:", "wfvoc:", "1:", "2:", "ibm:",
    "hmm", "p0:", "up0:", "alpha:", "lambda:", "max-jump:",
    "anchor", "noanchor", "end-dist", "noend-dist",
@@ -153,6 +156,7 @@ static const char* const switches[] = {
 static Uint verbose = 0;
 static Uint smoothing_verbose = 0; // ugly ugly ugly ugly ugly ugly ugly ugly
 static Uint prune1 = 0;
+static Uint prune1w = 0;
 static vector<string> align_methods;
 static vector<string> smoothing_methods;
 static bool indiv_tables = false;
@@ -245,6 +249,7 @@ public:
       mp_arg_reader->testAndSet("a", align_methods);
       mp_arg_reader->testAndSet("s", smoothing_methods);
       mp_arg_reader->testAndSet("prune1", prune1);
+      mp_arg_reader->testAndSet("prune1w", prune1w);
       mp_arg_reader->testAndSet("i", indiv_tables);
       mp_arg_reader->testAndSet("j", joint);
       mp_arg_reader->testAndSet("z", compress_output);
@@ -624,10 +629,15 @@ void doEverything(const char* prog_name, ARG& args)
       if (os2) delete os2;
    }
 
-   if (prune1) {
-      if (verbose)
-         cerr << "pruning to best " << prune1 << "translations" << endl;
-      pt.pruneLang2GivenLang1(prune1);
+   if (prune1 || prune1w) {
+      if (verbose) {
+         cerr << "pruning to best ";
+         if (prune1)            cerr << prune1;
+         if (prune1 && prune1w) cerr << "+";
+         if (prune1w)           cerr << prune1w << "*numwords";
+         cerr << " translations" << endl;
+      }
+      pt.pruneLang2GivenLang1(prune1, prune1w);
    }
 
    if ( !indiv_tables ) {

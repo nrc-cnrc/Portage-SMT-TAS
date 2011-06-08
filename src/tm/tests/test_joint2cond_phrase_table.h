@@ -67,13 +67,13 @@ class TestJoint2CondPhraseTable : public CxxTest::TestSuite
    }
 
    void initPhraseTableGen(PhraseTableGen<Uint>& ptg, bool reduce_memory, 
-                           Uint prune1=0, const char *name="")
+                           Uint prune1, Uint prune1w, const char *name)
    {
       //cout << "-------- " << name << " reduce_memory: " << reduce_memory
-      //     << " prune1: " << prune1 << endl;
+      //     << " prune1: " << prune1 << " prune1w: " << prune1w << endl;
       ptg.readJointTable(*jpt_in, reduce_memory);
-      if (prune1)
-         ptg.pruneLang2GivenLang1(prune1);
+      if (prune1 || prune1w)
+         ptg.pruneLang2GivenLang1(prune1, prune1w);
    }
 
    void createSmoothersAndTally(vector< PhraseSmoother<Uint>* >& smoothers,
@@ -99,7 +99,7 @@ class TestJoint2CondPhraseTable : public CxxTest::TestSuite
 
    void checkIt(PhraseTableGen<Uint>::iterator &it, const struct jpt_data *expected, Uint i)
    {
-      //dumpIt(it, i);
+//      dumpIt(it, i);
       Uint index1 = it.getPhraseIndex(1);
       Uint index2 = it.getPhraseIndex(2);
       string phrase1, phrase2;
@@ -114,18 +114,21 @@ class TestJoint2CondPhraseTable : public CxxTest::TestSuite
    }
    
 public:   
-   void testReadJointTable(bool reduce_memory, Uint prune1=0)
+   void testReadJointTable(bool reduce_memory, Uint prune1=0, Uint prune1w=0)
    {
+      const bool pruning = prune1 || prune1w;
       PhraseTableGen<Uint> ptg;
-      initPhraseTableGen(ptg, reduce_memory, prune1, "testReadJointTable");
+      initPhraseTableGen(ptg, reduce_memory, prune1, prune1w, "testReadJointTable");
 
-      const struct jpt_data *expected = prune1 ? pruned_data : data;
+      const struct jpt_data *expected = pruning ? pruned_data : data;
+      const Uint expected_len = pruning ? pruned_data_length : data_length;
+      PhraseTableGen<Uint>::iterator it = ptg.begin();
       Uint i = 0;
-      for (PhraseTableGen<Uint>::iterator it = ptg.begin();
-           it != ptg.end(); ++it, ++i) {
+      for ( ; it != ptg.end() && i < expected_len; ++it, ++i)
          checkIt(it, expected, i);
-      }
-      TS_ASSERT_EQUALS(i, prune1 ? pruned_data_length : data_length);
+      TS_ASSERT(it == ptg.end());
+      for ( ; it != ptg.end(); ++it, ++i);
+      TS_ASSERT_EQUALS(i, expected_len);
    }
    
    void testReadJointTableNoReduceMemoryNoPruning()
@@ -148,21 +151,36 @@ public:
       testReadJointTable(true, prune);
    }
    
-   void testIteratorAssignmentAndCopyConstruction(bool reduce_memory, Uint prune1=0)
+   void testReadJointTableNoReduceMemoryPerWordPruning()
    {
-      PhraseTableGen<Uint> ptg;
-      initPhraseTableGen(ptg, reduce_memory, prune1, "testIteratorAssignmentAndCopyConstruction");
+      testReadJointTable(false, 0, prune);
+   }
 
-      const struct jpt_data *expected = prune1 ? pruned_data : data;
+   void testReadJointTableReduceMemoryPerWordPruning()
+   {
+      testReadJointTable(true, 0, prune);
+   }
+
+   void testIteratorAssignmentAndCopyConstruction(bool reduce_memory, Uint prune1=0, Uint prune1w=0)
+   {
+      const bool pruning = prune1 || prune1w;
+      PhraseTableGen<Uint> ptg;
+      initPhraseTableGen(ptg, reduce_memory, prune1, prune1w, "testIteratorAssignmentAndCopyConstruction");
+
+      const struct jpt_data *expected = pruning ? pruned_data : data;
+      const Uint expected_len = pruning ? pruned_data_length : data_length;
+      PhraseTableGen<Uint>::iterator it = ptg.begin();
       Uint i = 0;
-      for (PhraseTableGen<Uint>::iterator it = ptg.begin(); it != ptg.end(); ++it, ++i) {
+      for (; it != ptg.end() && i < expected_len; ++it, ++i) {
          // Using a copy constructor, take stream ownership from 'it'.
          PhraseTableGen<Uint>::iterator it_copy = it;
          checkIt(it_copy, expected, i);
          // Using assignment operator, return ownership to 'it'.
          it = it_copy;
       }
-      TS_ASSERT_EQUALS(i, prune1 ? pruned_data_length : data_length);
+      TS_ASSERT(it == ptg.end());
+      for ( ; it != ptg.end(); ++it, ++i);
+      TS_ASSERT_EQUALS(i, expected_len);
    }
 
    void testIteratorAssignmentAndCopyConstructionNoReduceMemoryNoPruning()
@@ -188,7 +206,7 @@ public:
    void testCreateSmootherAndTally(bool reduce_memory)
    {
       PhraseTableGen<Uint> ptg;
-      initPhraseTableGen(ptg, reduce_memory, 0, "testCreateSmootherAndTally");
+      initPhraseTableGen(ptg, reduce_memory, 0, 0, "testCreateSmootherAndTally");
 
       PhraseSmootherFactory<Uint> sf(&ptg, NULL, NULL, 0);
       PhraseSmoother<Uint>* smoother = sf.createSmootherAndTally("RFSmoother", false);
@@ -197,8 +215,8 @@ public:
       Uint i = 0;
       for (PhraseTableGen<Uint>::iterator it = ptg.begin();
            it != ptg.end(); ++it, ++i) {
-         TS_ASSERT_EQUALS(smoother->probLang1GivenLang2(it), rf_pl1gl2[i]);
-         TS_ASSERT_EQUALS(smoother->probLang2GivenLang1(it), rf_pl2gl1[i]);
+         TS_ASSERT_DELTA(smoother->probLang1GivenLang2(it), rf_pl1gl2[i], 0.000001);
+         TS_ASSERT_DELTA(smoother->probLang2GivenLang1(it), rf_pl2gl1[i], 0.000001);
       }
       TS_ASSERT_EQUALS(i, data_length);
    }
@@ -213,25 +231,26 @@ public:
       testCreateSmootherAndTally(true);
    }
 
-   void testCreateSmoothersAndTally(bool reduce_memory, Uint prune1=0)
+   void testCreateSmoothersAndTally(bool reduce_memory, Uint prune1=0, Uint prune1w=0)
    {
+      const bool pruning = prune1 || prune1w;
       PhraseTableGen<Uint> ptg;
-      initPhraseTableGen(ptg, reduce_memory, prune1, "testCreateSmoothersAndTally");
+      initPhraseTableGen(ptg, reduce_memory, prune1, prune1w, "testCreateSmoothersAndTally");
 
       vector< PhraseSmoother<Uint>* > smoothers;
       createSmoothersAndTally(smoothers, ptg);
       TS_ASSERT_EQUALS(smoothers.size(), 1);
       TS_ASSERT(smoothers[0] != NULL);
 
-      const double *expected_pl1gl2 = prune1 ? pruned_rf_pl1gl2 : rf_pl1gl2;
-      const double *expected_pl2gl1 = prune1 ? pruned_rf_pl2gl1 : rf_pl2gl1;
+      const double *expected_pl1gl2 = pruning ? pruned_rf_pl1gl2 : rf_pl1gl2;
+      const double *expected_pl2gl1 = pruning ? pruned_rf_pl2gl1 : rf_pl2gl1;
       Uint i = 0;
       for (PhraseTableGen<Uint>::iterator it = ptg.begin();
            it != ptg.end(); ++it, ++i) {
-         TS_ASSERT_EQUALS(smoothers[0]->probLang1GivenLang2(it), expected_pl1gl2[i]);
-         TS_ASSERT_EQUALS(smoothers[0]->probLang2GivenLang1(it), expected_pl2gl1[i]);
+         TS_ASSERT_DELTA(smoothers[0]->probLang1GivenLang2(it), expected_pl1gl2[i], 0.000001);
+         TS_ASSERT_DELTA(smoothers[0]->probLang2GivenLang1(it), expected_pl2gl1[i], 0.000001);
       }
-      TS_ASSERT_EQUALS(i, prune1 ? pruned_data_length : data_length);
+      TS_ASSERT_EQUALS(i, pruning ? pruned_data_length : data_length);
    }
 
    void testCreateSmoothersAndTallyNoReduceMemoryNoPruning()
@@ -254,10 +273,11 @@ public:
       testCreateSmoothersAndTally(true, prune);
    }
 
-   void testDumpCondDistn(bool reduce_memory, Uint prune1=0)
+   void testDumpCondDistn(bool reduce_memory, Uint prune1=0, Uint prune1w=0)
    {
+      const bool pruning = prune1 || prune1w;
       PhraseTableGen<Uint> ptg;
-      initPhraseTableGen(ptg, reduce_memory, prune1, "testDumpCondDistn");
+      initPhraseTableGen(ptg, reduce_memory, prune1, prune1w, "testDumpCondDistn");
 
       vector< PhraseSmoother<Uint>* > smoothers;
       createSmoothersAndTally(smoothers, ptg);
@@ -267,9 +287,9 @@ public:
 
       ostringstream expected_out;
       expected_out.precision(9);
-      Uint expected_length = prune1 ? pruned_data_length : data_length;
-      const struct jpt_data *expected_data = prune1 ? pruned_data : data;
-      const double *expected_pl2gl1 = prune1 ? pruned_rf_pl2gl1 : rf_pl2gl1;
+      Uint expected_length = pruning ? pruned_data_length : data_length;
+      const struct jpt_data *expected_data = pruning ? pruned_data : data;
+      const double *expected_pl2gl1 = pruning ? pruned_rf_pl2gl1 : rf_pl2gl1;
       for (Uint i=0; i < expected_length; ++i) {
          expected_out << expected_data[i].t << psep << expected_data[i].s
                       << psep << expected_pl2gl1[i] << endl;
@@ -280,7 +300,7 @@ public:
       dumpCondDistn<Uint>(out, 2, ptg, *smoothers[0]);
 
       expected_out.str("");
-      const double *expected_pl1gl2 = prune1 ? pruned_rf_pl1gl2 : rf_pl1gl2;
+      const double *expected_pl1gl2 = pruning ? pruned_rf_pl1gl2 : rf_pl1gl2;
       for (Uint i=0; i < expected_length; ++i) {
          expected_out << expected_data[i].s << psep << expected_data[i].t
                       << psep << expected_pl1gl2[i] << endl;
@@ -308,10 +328,11 @@ public:
       testDumpCondDistn(true, prune);
    }
 
-   void testDumpMultiProb(bool reduce_memory, Uint prune1=0)
+   void testDumpMultiProb(bool reduce_memory, Uint prune1=0, Uint prune1w=0)
    {
+      const bool pruning = prune1 || prune1w;
       PhraseTableGen<Uint> ptg;
-      initPhraseTableGen(ptg, reduce_memory, prune1, "testDumpMultiProb");
+      initPhraseTableGen(ptg, reduce_memory, prune1, prune1w, "testDumpMultiProb");
 
       vector< PhraseSmoother<Uint>* > smoothers;
       createSmoothersAndTally(smoothers, ptg);
@@ -321,10 +342,10 @@ public:
 
       ostringstream expected_out;
       expected_out.precision(9);
-      Uint expected_length = prune1 ? pruned_data_length : data_length;
-      const struct jpt_data *expected_data = prune1 ? pruned_data : data;
-      const double *expected_pl1gl2 = prune1 ? pruned_rf_pl1gl2 : rf_pl1gl2;
-      const double *expected_pl2gl1 = prune1 ? pruned_rf_pl2gl1 : rf_pl2gl1;
+      Uint expected_length = pruning ? pruned_data_length : data_length;
+      const struct jpt_data *expected_data = pruning ? pruned_data : data;
+      const double *expected_pl1gl2 = pruning ? pruned_rf_pl1gl2 : rf_pl1gl2;
+      const double *expected_pl2gl1 = pruning ? pruned_rf_pl2gl1 : rf_pl2gl1;
       for (Uint i=0; i < expected_length; ++i) {
          expected_out << expected_data[i].s << psep << expected_data[i].t << psep
                       << expected_pl1gl2[i] << sep << expected_pl2gl1[i] << endl;

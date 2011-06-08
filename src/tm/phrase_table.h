@@ -81,6 +81,11 @@ struct PhraseTableBase
                               const string& sep = PhraseTableBase::sep);
 
    /**
+    * Determine the length of a coded phrase without decoding it
+    */
+   static Uint phraseLength(const char* coded);
+
+   /**
     * Write a pair of compressed phrase strings + associated value on a stream.
     */
    template<class T>
@@ -102,10 +107,10 @@ struct PhraseTableBase
    /**
     * Convert a phrase pair read from a stream into a token sequence.
     * @param line line read from a stream
-    * @param toks token sequence
-    * @param b1, e1 beginning and end+1 markers for 1st phrase
-    * @param b2, e2 beginning and end+1 markers for 2nd phrase
-    * @param v position of value
+    * @param[out] toks token sequence
+    * @param[out] b1, e1 beginning and end+1 markers for 1st phrase
+    * @param[out] b2, e2 beginning and end+1 markers for 2nd phrase
+    * @param[out] v position of value
     * @param tolerate_multi_vals allow multiple value fields
     */
    static void extractTokens(const string& line, vector<string>& toks,
@@ -131,7 +136,7 @@ struct PhraseTableBase
 template<class T> class PhraseTableGen : public PhraseTableBase
 {
    typedef vector_map<Uint,T> PhraseFreqs; // l2-index -> frequency
-   typedef vector<PhraseFreqs> PhraseTable;
+   typedef vector<PhraseFreqs*> PhraseTable;
 
    Voc lang1_voc;		// l1compressedphrase <-> l1index
    PhraseTable phrase_table;    // l1index -> (l2index,freq), (l2index,freq), ...
@@ -143,10 +148,19 @@ template<class T> class PhraseTableGen : public PhraseTableBase
    Uint num_lang1_phrases;      // number of language 1 phrases.
 
    bool keep_phrase_table_in_memory; // set if phrase table is kept fully in memory
-   Uint prune1;                 // pruning factor; 0: no pruning.
+   // pruning: no pruning if prune1_fixed == prune1_per_word == 0
+   Uint prune1_fixed;           // fixed part of pruning factor;
+   Uint prune1_per_word;        // variable part of pruning factor; 
+
    string jpt_file;             // file name of jpt file
-   istream* jpt_stream;         // stream used for reading a jpt file
+   istream* jpt_stream;         // stream used for reading a jpt file - for unit testing only
    bool phrase_table_read;      // set upon completion of first jpt file reading
+
+private:
+   /// noncopyable - disable copy constructor
+   PhraseTableGen(const PhraseTableGen&);
+   /// noncopyable - disable assignment opeartor
+   PhraseTableGen& operator=(const PhraseTableGen&);
 
 public:
    /**
@@ -181,6 +195,7 @@ public:
       bool operator!=(const iterator& it) const { return ! operator==(it); }
       string& getPhrase(Uint lang, string& phrase) const; // lang is 1 or 2
       void getPhrase(Uint lang, vector<string>& toks) const; // lang is 1 or 2
+      Uint getPhraseLength(Uint lang) const; // lang is 1 or 2
       Uint getPhraseIndex(Uint lang) const; // unique contiguous index for L1 or L2 phrase
       T getJointFreq() const;
       T& getJointFreqRef();
@@ -207,6 +222,7 @@ public:
          bool operator!=(const IteratorStrategy& it) const { return ! operator==(it); }
          virtual void getPhrase(Uint lang, vector<string>& toks) const; // lang is 1 or 2
          virtual string& getPhrase(Uint lang, string& phrase) const; // lang is 1 or 2
+         virtual Uint getPhraseLength(Uint lang) const; // lang is 1 or 2
          Uint getPhraseIndex(Uint lang) const { return lang == 1 ? id1 : id2; }
          virtual T getJointFreq() const = 0;
          virtual T& getJointFreqRef() = 0;
@@ -219,6 +235,11 @@ public:
          typename PhraseTable::iterator row_iter_end;
          typename PhraseFreqs::iterator elem_iter;
          typename PhraseFreqs::iterator elem_iter_end;
+      protected:
+         using IteratorStrategy::end;
+         using IteratorStrategy::pt;
+         using IteratorStrategy::id1;
+         using IteratorStrategy::id2;
       public:
          MemoryIteratorStrategy() : IteratorStrategy() {};
          MemoryIteratorStrategy(PhraseTableGen<T>* pt_, bool end_=false);
@@ -233,6 +254,10 @@ public:
       class FileIteratorStrategy : public IteratorStrategy
       {
       protected:
+         using IteratorStrategy::end;
+         using IteratorStrategy::pt;
+         using IteratorStrategy::id1;
+         using IteratorStrategy::id2;
          auto_ptr<istream> jpt_stream;
          T val;
       public:
@@ -249,6 +274,12 @@ public:
       class File2IteratorStrategy : public FileIteratorStrategy
       {
       protected:
+         using IteratorStrategy::end;
+         using IteratorStrategy::pt;
+         using IteratorStrategy::id1;
+         using IteratorStrategy::id2;
+         using FileIteratorStrategy::jpt_stream;
+         using FileIteratorStrategy::val;
          string phrase1;
       public:
          File2IteratorStrategy() : FileIteratorStrategy() {};
@@ -257,12 +288,20 @@ public:
          virtual File2IteratorStrategy& operator++(); // increment
          virtual void getPhrase(Uint lang, vector<string>& toks) const; // lang is 1 or 2
          virtual string& getPhrase(Uint lang, string& phrase) const; // lang is 1 or 2
+         virtual Uint getPhraseLength(Uint lang) const; // lang is 1 or 2
       }; // class File2IteratorStrategy
 
       // Strategy for not keeping the phrase frequency tables in memory
       // (with pruning).
       class PruningIteratorStrategy : public FileIteratorStrategy
       {
+         using IteratorStrategy::end;
+         using IteratorStrategy::pt;
+         using IteratorStrategy::id1;
+         using IteratorStrategy::id2;
+         using FileIteratorStrategy::jpt_stream;
+         using FileIteratorStrategy::val;
+
          PhraseFreqs phrase_freqs;
          Uint pf_index;
          Uint next_id1, next_id2;
@@ -278,6 +317,15 @@ public:
       // frequency tables in memory (with pruning).
       class Pruning2IteratorStrategy : public File2IteratorStrategy
       {
+      private:
+         using IteratorStrategy::end;
+         using IteratorStrategy::pt;
+         using IteratorStrategy::id1;
+         using IteratorStrategy::id2;
+         using FileIteratorStrategy::jpt_stream;
+         using FileIteratorStrategy::val;
+         using File2IteratorStrategy::phrase1;
+
          PhraseFreqs phrase_freqs;
          Uint pf_index;
          Uint next_id1, next_id2;
@@ -308,7 +356,8 @@ public:
    };
 
    PhraseTableGen() : num_lang1_phrases(0), keep_phrase_table_in_memory(true),
-                      prune1(0), jpt_stream(NULL), phrase_table_read(false) {}
+                      prune1_fixed(0), prune1_per_word(0),
+                      jpt_stream(NULL), phrase_table_read(false) {}
 
    ~PhraseTableGen() {}
 
@@ -340,13 +389,22 @@ public:
    void dump_freqs_lang2(ostream& ostr);
 
    /**
-    * Discard all but the best (most frequent) n translations for each lang1
-    * phrase.  This may remove some lang2 phrases from the table. If per_word,
-    * multiply n by the number of words in the lang1 phrase.
+    * Discard all but the best (most frequent) translations for each lang1
+    * phrase.  This may remove some lang2 phrases from the table.
+    * The number of translations kept is n = fixed_max + per_word_max * the
+    * number of words in the lang1 phrase.
+    * @param fixed_max     "b" - keep fixed_max lang2 phrases, plus
+    * @param per_word_max  "a"x - also keep per_word_max * len(lang1 phrase)
+    *                      lang2 phrases
     */
-   void pruneLang2GivenLang1(Uint n, bool per_word = false);
+   void pruneLang2GivenLang1(Uint fixed_max, Uint per_word_max);
 private:
-   void prunePhraseFreqs(PhraseFreqs& phrase_freqs, Uint n);
+   /**
+    * Prune a single phrase_freqs table, using the pruning parameters in *this.
+    * @param lang1_num_words  number of words in the lang1 phrase for which
+    *                         phrase_freqs is the list of target phrases.
+    */
+   void prunePhraseFreqs(PhraseFreqs& phrase_freqs, Uint lang1_num_words);
 public:
 
    /**
@@ -366,11 +424,20 @@ private:
     * and look them up in the phrase table, adding them if the phrase table
     * has not already been constructed. During phrase table construction,
     * if pair exists already, increment its count by val.
+    * @param line input line to parse from the joint count phrase table
+    * @param[out] id1 lang-1 phrase, represented by its id in lang1_voc
+    * @param[out] id2 lang-2 phrase, represented by its id in lang2_voc
+    * @param[out] val the frequency of this phrase pair.
     */
-   void lookupPhrasePair(string &line, Uint& id1, Uint& id2, T& val);
-   void lookupPhrasePair(string &line, string& phrase1, Uint& id2, T& val);
-public:
+   void lookupPhrasePair(const string &line, Uint& id1, Uint& id2, T& val);
+   /**
+    * Same as the other lookupPhrasePair() method, except for how the lang-1
+    * phrase is returned.
+    * @param[out] phrase1 lang-1 phrase, represented in compressed form
+    */
+   void lookupPhrasePair(const string &line, string& phrase1, Uint& id2, T& val);
 
+public:
    /**
     * If given phrase pair exists in the table, return true and set val to
     * its frequency within the table.
@@ -403,14 +470,18 @@ public:
 private:
    string& getPhrase(Uint lang, const string &coded, string &phrase);
    void  getPhrase(Uint lang, const string &coded, vector<string>& toks);
+
+   Uint getPhraseLength(Uint lang, Uint id);
+   Uint getPhraseLength(Uint lang, const char* coded);
 public:
 
 }; // class PhraseTableGen
 
-
-#include "phrase_table-cc.h"
-
+// typedef-like definition for the commonly needed PhraseTableGen<Uint> case.
+class PhraseTableUint : public PhraseTableGen<Uint> {};
 
 } // namespace Portage
+
+#include "phrase_table-cc.h"
 
 #endif
