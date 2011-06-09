@@ -101,7 +101,7 @@ out.jpt.ibm2.train.en-fr: ibm2.train.fr_given_en.gz ibm2.train.en_given_fr.gz tr
 	${GEN_PHRASE_TABLES} \
 		-v -z -j -w 1 -m 8 -ibm 2 -1 en -2 fr $+ \
 		> $@ 2> log.out.jpt.ibm2.train.en-fr
-	diff-round.pl -sort $@ ref/${CYGWIN}$@ -q
+	diff-round.pl -sort $@ ref/${CYGWIN}$@.gz -q
 
 # prune1_2 exercices the tie-breaking part of the code
 cpt.ibm2-rf-prune1_2.train.en2fr.gz: jpt.ibm2.train.en-fr.gz
@@ -150,7 +150,7 @@ prune1_both: ibm2.train.fr_given_en.gz ibm2.train.en_given_fr.gz jpt.ibm2.train.
 		-ibm_l2_given_l1  $(filter %.fr_given_en.gz, $+) \
 		-ibm_l1_given_l2  $(filter %.en_given_fr.gz, $+) \
 		${REDUCE_MEMORY} \
-		$(filter %.en-fr.gz, $+) 2>&1` =~ "Error: prune1 is not valid with -multipr rev or -multipr both." ]]
+		$(filter %.en-fr.gz, $+) 2>&1` =~ "Error: prune1\(w\) is not valid with -multipr rev or -multipr both." ]]
 
 # Prune1 is invalid when generating multiprobs in rev direction.
 prune1_rev: ibm2.train.fr_given_en.gz ibm2.train.en_given_fr.gz jpt.ibm2.train.en-fr.gz
@@ -165,7 +165,7 @@ prune1_rev: ibm2.train.fr_given_en.gz ibm2.train.en_given_fr.gz jpt.ibm2.train.e
 		-ibm_l2_given_l1  $(filter %.fr_given_en.gz, $+) \
 		-ibm_l1_given_l2  $(filter %.en_given_fr.gz, $+) \
 		${REDUCE_MEMORY} \
-		$(filter %.en-fr.gz, $+) 2>&1` =~ "Error: prune1 is not valid with -multipr rev or -multipr both." ]]
+		$(filter %.en-fr.gz, $+) 2>&1` =~ "Error: prune1\(w\) is not valid with -multipr rev or -multipr both." ]]
 
 # Prune1 is only valid when generating multiprobs in fwd direction.
 prune1_fwd: ibm2.train.fr_given_en.gz ibm2.train.en_given_fr.gz jpt.ibm2.train.en-fr.gz
