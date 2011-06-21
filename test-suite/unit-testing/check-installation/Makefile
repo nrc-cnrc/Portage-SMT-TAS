@@ -20,8 +20,9 @@
 HOSTNAME:=$(shell uname -n)
 ifeq (${HOSTNAME},iitgatsrv0575)
 # On Leclerc, where we run autobuild, the default Perl can't handle XML::Twig
-export PERL5LIB:=/home/portage/i686-g4.2/lib/site_perl/5.8.9:${PERL5LIB}
+export PERL5LIB:=${HOME}/lib/5.8.9:${HOME}/lib/site_perl/5.8.9:/home/portage/i686-g4.2/lib/site_perl/5.8.9:${PERL5LIB}
 export PATH:=/home/portage/pkgs/perl-5.8.9-x86_64/bin:${PATH}
+$(info Special PERL5LIB for leclerc is now: ${PERL5LIB})
 TMX2LFL:=perl $(shell which tmx2lfl.pl)
 else
 TMX2LFL:=tmx2lfl.pl
@@ -37,7 +38,7 @@ all: testsuite
 
 .PHONY: clean
 clean:
-
+	@true
 
 .PHONY: testsuite
 testsuite:
@@ -51,11 +52,12 @@ testsuite: pre_installation
 
 .PHONY: pre_installation
 pre_installation: perl_version make_version gcc_version ram_vs_swap
+	@echo "Prerequisites are correctly installed." >&2
 
 .PHONY: perl_version
 perl_version:
 	@perl -e 'require 5.8.5;' || ! echo "Your perl version is to old." >&2
-	@perl -e 'require 5.8.8;' || echo "Some perl XML functionalities we most likely fail." >&2
+	@perl -e 'require 5.8.8;' || echo "Some perl XML functionalities will most likely fail." >&2
 
 
 .PHONY: make_version
@@ -87,7 +89,7 @@ testsuite: post_installation
 
 .PHONY: post_installation
 post_installation: canoe cow.sh tokenize.pl ce.pl tmx2lfl.pl
-	@echo "Everything is correctly installed!" >&2
+	@echo "Portage is correctly installed." >&2
 
 
 canoe: EXPLAIN:=Make sure Portage is correctly installed.  Check your PATH.
