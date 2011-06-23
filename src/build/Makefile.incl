@@ -159,12 +159,13 @@ endif
 
 CC = gcc
 CXX = g++
+OPT_LEVEL=-O3
 
 # OPTS is for compilation and linking options
 ifeq ($(OSTYPE),CYGWIN)
-    OPTS = -O3 -fno-strict-aliasing -D$(OSTYPE) $(CF)
+    OPTS = $(OPT_LEVEL) -fno-strict-aliasing -D$(OSTYPE) $(CF)
 else
-    OPTS = -O3 -fPIC -fno-strict-aliasing -D$(OSTYPE) $(CF)
+    OPTS = $(OPT_LEVEL) -fPIC -fno-strict-aliasing -D$(OSTYPE) $(CF)
 endif
 # COPTS is for compilation only options
 COPTS = -Wall -Werror $(BOOST_CF) $(CFLAG_LOGGING) $(CFLAG_LZMA) $(MODULE_CF)
