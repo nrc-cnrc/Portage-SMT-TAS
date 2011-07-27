@@ -43,6 +43,7 @@ PROGRAMS = $(TESTPROGS) \
         phrase_align_stats \
         phrase_oracle \
         run_ibm \
+        sigprune_fet \
         train_ibm \
         tt2pt \
         tt_pt_merge \
@@ -52,6 +53,7 @@ BINSCRIPTS = \
         add-indicator-to-multiprob-pt.pl \
         cat.sh \
         gen-jpt-parallel.sh \
+        sigprune.sh \
         tmtext-apply-weights.pl \
         tmtext_sort.sh \
         train-phrases.sh \
