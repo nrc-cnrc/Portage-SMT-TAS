@@ -795,7 +795,7 @@ PhraseTableGen<T>::iterator::File2IteratorStrategy::operator++()
       return *this;
    }
    string next_ph1;
-   pt->lookupPhrasePair(line, next_ph1, id2, FileIteratorStrategy::val);
+   pt->lookupPhrasePair(line, next_ph1, id2, val);
    if (next_ph1 != phrase1) {
       phrase1 = next_ph1;
       ++id1;

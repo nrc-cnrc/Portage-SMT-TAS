@@ -22,10 +22,10 @@
 #include <algorithm>
 #include <ostream>
 #include <cmath>
-#include <voc.h>
-#include <file_utils.h>
-#include <vector_map.h>
-#include <portage_defs.h>
+#include "voc.h"
+#include "file_utils.h"
+#include "vector_map.h"
+#include "portage_defs.h"
 #include "ttable.h"
 #include "tm_io.h"
 #include "ibm.h"
@@ -75,7 +75,7 @@ struct PhraseTableBase
    static void decompressPhrase(const string& coded, vector<string>& toks, Voc& voc);
 
    /**
-    * Recode a phrase from a packed string representation to a a phrase string
+    * Recode a phrase from a packed string representation to a a phrase string.
     */
    static string recodePhrase(const string& coded, Voc& voc,
                               const string& sep = PhraseTableBase::sep);
@@ -96,13 +96,15 @@ struct PhraseTableBase
     * Write a pair of normal phrase strings + associated value on a stream.
     */
    template<class T>
-   static void writePhrasePair(ostream& os, const char* p1, const char* p2, T val);
+   static void writePhrasePair(ostream& os, const char* p1, const char* p2,
+                               T val);
 
    /**
     * Write a pair of normal phrase strings + associated values on a stream.
     */
    template<class T>
-   static void writePhrasePair(ostream& os, const char* p1, const char* p2, vector<T>& vals);
+   static void writePhrasePair(ostream& os, const char* p1, const char* p2,
+                               vector<T>& vals);
 
    /**
     * Convert a phrase pair read from a stream into a token sequence.
@@ -371,6 +373,11 @@ public:
     * Write contents to stream, filtering any pairs with freq < thresh (unless
     * the filt flag is false). Order is lang1,lang2; or lang2,lang1 if reverse
     * is true.
+    * @param ostr output stream
+    * @param thresh threshold under which to discard phrase pairs, unless filt=false
+    * @param reserve if true, language order is lang2,lang1.
+    * @param filt disable filtering - mostly useful when T=float, since counts
+    *             could theoretically be negative.
     */
    void dump_joint_freqs(ostream& ostr, T thresh = 0, bool reverse = false,
                          bool filt=true);
@@ -416,7 +423,9 @@ public:
     * Add a pair of phrases (represented as ptrs into token sequences) with a given count.
     * If pair exists already, increment its count by val.
     */
-   void addPhrasePair(ToksIter beg1, ToksIter end1, ToksIter beg2, ToksIter end2, T val=1);
+   void addPhrasePair(ToksIter beg1, ToksIter end1,
+                      ToksIter beg2, ToksIter end2,
+                      T val=1);
 
 private:
    /**
