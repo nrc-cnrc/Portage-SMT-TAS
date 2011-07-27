@@ -133,7 +133,7 @@ int MAIN(argc, argv)
   vector<id_type> index;
   string line;
   index.push_back(0);
-  id_type unkId = Tdx.getUnkId();
+  const id_type unkId = Tdx.getUnkId();
   uint64_t unkCnt = 0;
   vector<id_type> snt;
   while (getline(cin,line))
@@ -145,8 +145,10 @@ int MAIN(argc, argv)
       index.push_back(totalWords);
       for (size_t i = 0; i < snt.size(); ++i)
         {
-          if (snt[i] == unkId)
+          if (snt[i] == unkId) {
+            cerr << "Unknown token: <" << line << ">" << endl;
             ++unkCnt;
+          }
           numwrite(out,snt[i]);
         }
       // progress report
@@ -180,3 +182,4 @@ int MAIN(argc, argv)
   if (!quiet) cerr << "Done" << endl;
 }
 END_MAIN
+
