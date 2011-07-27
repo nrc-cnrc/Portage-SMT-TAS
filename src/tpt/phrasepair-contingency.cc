@@ -59,6 +59,7 @@ inline ostream& help_message(ostream& os)
 }
 
 bool   quiet;
+bool   sigfet = false;
 string bname;
 string L1;
 string L2;
@@ -71,6 +72,7 @@ interpret_args(int ac, char* av[])
   o.add_options()
     ("help,h",    "print this message")
     ("quiet,q",   "don't print progress information")
+    ("sigfet,s",  "output in a compatible format for sigprune_fet")
     ;
   options_help << o;
 
@@ -113,6 +115,7 @@ interpret_args(int ac, char* av[])
          << help_message << exit_1;
 
   quiet  = vm.count("quiet");
+  sigfet = vm.count("sigfet");
 }
 
 void 
@@ -196,13 +199,23 @@ int MAIN(argc, argv)
       while (buf>>w && w != "|||") p2.push_back(V2[w]);
       size_t jj,m1,m2;
       contingency(p1,p2,S1,S2,jj,m1,m2);
-      cout << line.substr(0,buf.tellg()) << " " // << " ||| "
-           << jj << " " // joint count
-           << m1 << " " // marginal count for p1
-           << m2 << " " // marginal count for p2
-           << C1.size() 
-        // << " " << V1.toString(p1) << " ::: " << V2.toString(p2) 
-	   << endl;
+      if (sigfet) {
+         cout << "\t" << jj
+            << "\t" << m1
+            << "\t" << m2
+            << "\t" << C1.size()
+            << "\t" << line
+            << endl;
+      }
+      else {
+         cout << line.substr(0,buf.tellg()) << " " // << " ||| "
+            << jj << " " // joint count
+            << m1 << " " // marginal count for p1
+            << m2 << " " // marginal count for p2
+            << C1.size() 
+            // << " " << V1.toString(p1) << " ::: " << V2.toString(p2) 
+            << endl;
+      }
       if (!quiet && (++cnt)%1000==0)
         cerr << cnt/1000 << "K phrase pairs processed" << endl;
     }

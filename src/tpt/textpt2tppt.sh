@@ -111,7 +111,7 @@ for x in tppt cbk trg.repos.dat src.tdx trg.tdx; do
       error_exit "Can't mv $OUTPUTPT.$x into $OUTPUTPT$TPT_EXTENSION/$x, model probably exists but can't be moved or renamed properly."
 done
 cd ..
-rm -r $TMPDIR
+[[ ! $DEBUG ]] && rm -r $TMPDIR
 
 echo "
 The five files tppt, cbk, src.tdx, trg.tdx and trg.repos.dat, together,

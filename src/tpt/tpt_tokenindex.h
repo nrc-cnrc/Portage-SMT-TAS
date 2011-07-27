@@ -23,6 +23,7 @@
 #include <boost/iostreams/device/mapped_file.hpp>
 #include <boost/iostreams/stream.hpp>
 #include "tpt_typedefs.h"
+#include "tpt_constants.h"
 #include <vector>
 
 using namespace std;
@@ -60,8 +61,8 @@ namespace ugdiss
     Entry const* endIdx;
     CompFunc comp;
     TokenIndex();
-    TokenIndex(string fname,string unkToken="UNK");
-    void open(string fname,string unkToken="UNK");
+    TokenIndex(string fname,string unkToken=default_unk_token);
+    void open(string fname,string unkToken=default_unk_token);
     id_type operator[](char const* w)  const;
     id_type operator[](string const& w)  const;
     char const* const operator[](id_type id) const;

@@ -38,6 +38,7 @@
 
 #include "ug_vocab.h"
 #include "tpt_pickler.h"
+#include "tpt_constants.h"
 
 namespace ugdiss
 {
@@ -53,7 +54,7 @@ namespace ugdiss
   {
     mxStrLen = totalCount = refCount = 0;
     nIdx.push_back(sIdx.insert(EntryType("NULL", IdCntPair(0,0))).first);
-    nIdx.push_back(sIdx.insert(EntryType("UNK",  IdCntPair(1,0))).first);
+    nIdx.push_back(sIdx.insert(EntryType(default_unk_token,  IdCntPair(1,0))).first);
   }
 
   Vocab::Vocab()

@@ -27,10 +27,9 @@
 using namespace std;
 namespace ugdiss
 {
-
   TokenIndex::
   TokenIndex() 
-    : unkLabel("UNK"),numTokens(0)
+    : unkLabel(default_unk_token),numTokens(0)
   {};
   
   TokenIndex::
@@ -100,7 +99,7 @@ namespace ugdiss
   TokenIndex::
   reverseIndex() const
   {
-    size_t numToks = endIdx-startIdx;
+    const size_t numToks = endIdx-startIdx;
 
     // cout << "tokenindex has " << numToks << " tokens" << endl;
 

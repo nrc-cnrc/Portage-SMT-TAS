@@ -123,7 +123,7 @@ interpret_args(int ac, char* av[])
 void
 findCandidates(vector<id_type> const& snt)
 {
-  size_t ngs = min(ngSize,snt.size());
+  const size_t ngs = min(ngSize,snt.size());
   map<id_type,short> ngmatch;
   
   typedef std::vector<id_type>::const_iterator iter;

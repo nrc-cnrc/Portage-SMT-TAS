@@ -123,7 +123,7 @@ int MAIN(argc, argv)
         continue;
       while (a != string::npos)
         {
-          size_t z = lbuf.find_first_of(toksep,a);
+          const size_t z = lbuf.find_first_of(toksep,a);
           if (z != string::npos)
             V[lbuf.substr(a,z-a)].cnt++;
           else
@@ -174,3 +174,4 @@ int MAIN(argc, argv)
   if (!quiet) cerr << "Done" << endl;
 }
 END_MAIN
+

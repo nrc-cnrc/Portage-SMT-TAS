@@ -13,7 +13,6 @@
 // Copyright 2008-2010, Her Majesty in Right of Canada
 
 
-
 // (c) 2007,2008 Ulrich Germann
 #ifndef __bitCoder_hh
 #define __bitCoder_hh
@@ -145,7 +144,7 @@ namespace ugdiss
               assert(dest.size());
               *dest.rbegin() += (*p>>offset);
 	      if (p>stop || numBits%8 > 8-offset || numBits%8==0)
-		dest += *p<<(8-offset);
+                 dest += *p<<(8-offset);
               //cerr << "then[1]: " << bitpattern(dest) << " "
               //   << p-stop << " " << (offset+numBits)%8 << endl;
             }
