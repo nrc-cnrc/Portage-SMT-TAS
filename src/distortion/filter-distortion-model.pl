@@ -33,15 +33,15 @@ sub usage {
    print STDERR @_, "";
    $0 =~ s#.*/##;
    print STDERR "
-Usage: $0 [options] CPT_IN [DM_IN [DM_FILT_OUT]]
+Usage: $0 [options]  CPT_IN  DM_IN  DM_FILT_OUT
 
   Filters a distortion model based on the entries in a conditional phrase
   table.
 
   CPT_IN      required conditional phrase table use to prune source ||| target
               entries in the distortion model.
-  DM_IN       required distortion model to filter [-].
-  DM_FILT_OUT output file to contain the filtered distortion model [-].
+  DM_IN       required distortion model to filter.
+  DM_FILT_OUT output file to contain the filtered distortion model.
 
 Options:
 
@@ -66,9 +66,9 @@ GetOptions(
 # Make sure that the user provided us with at least a conditional phrase table.
 0 == @ARGV and usage "Missing parameter(s): you must provide at least the CPT.";
 
-my $CPT   = shift;  # What is the conditional phrase table.
-my $DM    = shift || "-";  # What is the distortion model to filter.
-my $FILT  = shift || "-";  # Where should we send the output.
+my $CPT   = shift or die "Missing your Conditional Phrase Table!";  # What is the conditional phrase table.
+my $DM    = shift or die "Missing your Lexicalized Distortion Model!";  # What is the distortion model to filter.
+my $FILT  = shift or die "Missing your output filtered filename!";  # Where should we send the output.
 
 0 == @ARGV or usage "Superfluous parameter(s): @ARGV";
 
@@ -104,14 +104,16 @@ else {
    open(DM, "zcat -f $DM  |") or die "Can't open distortion model ($DM) for reading: $!\n";
 }
 
-open(FILT, ">$FILT") or die "Can't open output ($FILT) for writing: $!\n";
+if ($FILT =~ /\.gz$/) {
+   open(FILT, "| gzip > $FILT") or die "Can't open output ($FILT) for writing: $!\n";
+}
+else {
+   open(FILT, ">$FILT") or die "Can't open output ($FILT) for writing: $!\n";
+}
 
 my $cpt = "";  # Will ultimately contain the source ||| target ||| of the conditional phrase table.
 my $dm_entry = "";  # This is the original entry from the distortion model for easier output.
 my $dm = "";  # Will ultimately contain the source ||| target ||| of the distortion model.
-
-# How to find the probs.
-my $prob = qr/ \|\|\| [^\|]+$/;
 
 #my $prev_cpt = "";
 #my $prev_dm = "";
@@ -120,7 +122,8 @@ my $prob = qr/ \|\|\| [^\|]+$/;
 mainloop: while (defined ($cpt = <CPT>)) {
    # Remove probs and unwanted newline.
    #chomp $cpt;
-   $cpt =~ s/$prob/ ||| /o;
+   # Keep only the first two columns.
+   $cpt = join(" ||| ", (split(/ \|\|\| /, $cpt))[0,1]) . " ||| ";
 
    #if ( $prev_cpt ge $cpt ) { warn "CPT $prev_cpt >= $cpt"; }
 
@@ -143,7 +146,8 @@ mainloop: while (defined ($cpt = <CPT>)) {
       # Remove probs and unwanted newline.
       #chomp $dm_entry;
       $dm = $dm_entry;
-      $dm =~ s/$prob/ ||| /o;
+      # Keep only the first two columns.
+      $dm = join(" ||| ", (split(/ \|\|\| /, $dm))[0,1]) . " ||| ";
 
       #if ( $prev_dm gt $dm ) { warn "LDM $prev_dm > $dm"; }
 
@@ -159,4 +163,17 @@ mainloop: while (defined ($cpt = <CPT>)) {
 close(CPT);
 close(DM);
 close(FILT);
+
+# Each Lexicalized Distortion Model should be accompanied of a bkoff file.
+# Let's create the bkoff file for the filtered model.
+unless ($FILT eq "-") {
+   $DM    =~ s/(\.gz)?$/.bkoff/;
+   $FILT  =~ s/(\.gz)?$/.bkoff/;
+   my $cmd = "cp $DM $FILT";
+   print STDERR "$cmd\n" if ($debug);
+   system("$cmd") == 0 or die "Problem creating the bkoff file ($?)."
+}
+else {
+   warn "WARNING: You need to copy the proper bkoff model for $FILT\n";
+}
 
