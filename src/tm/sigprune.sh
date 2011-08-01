@@ -82,8 +82,8 @@ while [ $# -gt 0 ]; do
    -n)                  arg_check 1 $# $1; PARALLELIZE_OPTS="$PARALLELIZE_OPTS -n $2"; shift;;
    -np)                 arg_check 1 $# $1; PARALLELIZE_OPTS="$PARALLELIZE_OPTS -np $2"; shift;;
    -w)                  arg_check 1 $# $1; PARALLELIZE_OPTS="$PARALLELIZE_OPTS -w $2"; shift;;
-   -psub)               arg_check 1 $# $1; PARALLELIZE_OPTS="$PARALLELIZE_OPTS -psub $2"; shift;;
-   -rp)                 arg_check 1 $# $1; PARALLELIZE_OPTS="$PARALLELIZE_OPTS -rp $2"; shift;;
+   -psub)               arg_check 1 $# $1; PARALLELIZE_OPTS="$PARALLELIZE_OPTS -psub '$2'"; shift;;
+   -rp)                 arg_check 1 $# $1; PARALLELIZE_OPTS="$PARALLELIZE_OPTS -rp '$2'"; shift;;
 
    -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ));;
    -d|-debug)           DEBUG=1;;
