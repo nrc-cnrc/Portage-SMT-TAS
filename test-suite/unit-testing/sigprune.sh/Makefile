@@ -73,7 +73,7 @@ UNITTEST1 := -psub '-N TEST -3'
 unittest1: unittest1.gz
 	[[ ! -e "cnts.jpt.ibm2.tm-train.en-fr.gz" ]]  # Co-occurrence count file mustn't exsit after.
 	grep 'Creating the co-occurence counts.' log.$@
-	grep 'Requested 3 CPUs per worker' log.$@
+	[[ `hostname` != "balzac" ]] || grep 'Requested 3 CPUs per worker' log.$@
 	diff -q <(zcat -f $<) <(zcat -f ref/sig.jpt.ibm2.tm-train.en-fr.gz)
 
 unittest1.gz: jpt.ibm2.tm-train.en-fr.gz tm-train_en.lc.gz tm-train_fr.lc.gz | unittest0.gz
