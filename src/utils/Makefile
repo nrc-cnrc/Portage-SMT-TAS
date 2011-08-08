@@ -83,6 +83,7 @@ BINSCRIPTS = \
         r-parallel-d.pl \
         r-parallel-worker.pl \
         sh_utils.sh \
+        split.py \
         sum.pl \
         time-mem \
         time-mem-tally.pl \
