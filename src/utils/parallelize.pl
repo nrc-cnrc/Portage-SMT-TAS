@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 # $Id$
 
 # @file parallelize.pl
@@ -85,10 +85,15 @@ Options:
   -w W    Specifies the minimum number of lines in each block.
   -s <X>  split additional input file X in N chunks where X in cmd_args.
   -m <Z>  merge additional output file Z where Z in cmd_args.
+  -stipe  Each job get lines l%N==i and also prevents creating temporary chunk
+          files.
   -merge  merge command [cat]
   -nolocal  Run run-parallel.sh -nolocal
   -psub <O> Passes additional options to run-parallel.sh -psub.
   -rp   <O> Passes additional options to run-parallel.sh.
+
+Note:
+  -s / -m accept a space-separated list of files i.e. -s 'a b c'.
 
 Good examples:
   Tokenize the test_en.txt using 12 nodes.
@@ -134,7 +139,7 @@ my $debug_cmd = "";
 use Getopt::Long;
 # Note to programmer: Getopt::Long automatically accepts unambiguous
 # abbreviations for all options.
-my $MERGE_PGM = "cat";
+my $MERGE_PGM = undef;
 my $verbose = 0;
 my @SPLITS = ();
 my @MERGES = ();
@@ -149,6 +154,12 @@ GetOptions(
    "verbose+"  => \$verbose,
    quiet       => sub { $verbose = 0 },
    debug       => \my $debug,
+
+   # Hidden option for unit testing parsing the arguments.
+   show_args   => \my $show_args,
+   "workdir=s" => \my $workdir,
+
+   stripe      => \my $use_stripe_splitting,
 
    "s=s"       => \@SPLITS,
    "m=s"       => \@MERGES,
@@ -176,6 +187,27 @@ sub verbose {
 
 $PSUB_OPTS = "-psub \"$PSUB_OPTS\"" unless ($PSUB_OPTS eq "");
 
+# Make sure we have access to split.py.
+$use_stripe_splitting = ($use_stripe_splitting and system("which split.py &> /dev/null") == 0);
+if ($use_stripe_splitting) {
+   # If we are using stipe mode and the user DIDN'T specify is one merge
+   # command tool, we will use split.py in rebuild mode.
+   $MERGE_PGM = "split.py -r" unless(defined($MERGE_PGM));
+}
+
+
+# Make sure the merge command tool is set.
+$MERGE_PGM = "cat" unless(defined($MERGE_PGM));
+
+
+# Removes duplicates in an array.
+sub remove_dups {
+   my %hash;
+   $hash{$_}++ for @_;
+   # sorting is needed here for parallelize.pl's unittest.
+   return sort(keys %hash);
+}
+
 # We need to strip any arguments of the MERGE_PGM command before we can check
 # if the merge program is available in PATH.
 $MERGE_PGM =~ /([^ ]+)/;
@@ -183,6 +215,10 @@ my $CHECK_MERGE_PGM = $1;
 my $rc = system("which $CHECK_MERGE_PGM &> /dev/null");
 die "$CHECK_MERGE_PGM is not in your PATH.\n" unless($rc eq 0);
 
+# If the user provides more than one file to an -s option, we need to make sure
+# we expand to be one entry per array index.
+@SPLITS = map { split("[ \t]+", $_) } @SPLITS;
+@MERGES = map { split("[ \t]+", $_) } @MERGES;
 
 # Grab the rest of the command line as the command to run
 my $CMD = join " ", @ARGV;
@@ -222,22 +258,27 @@ else {
 verbose(1, "Adding $merge to merge");
 push @MERGES, $merge;
 
-
-# Create a working directory to prevent polluting the environment.
-my $workdir = "parallelize.pl.$$";
-mkdir($workdir);
+@SPLITS = remove_dups @SPLITS;
+@MERGES = remove_dups @MERGES;
 
 if ( $debug ) {
    $debug_cmd = "time ";
    no warnings;
    printf STDERR "
    CMD=$CMD
-   SPLITS=@SPLITS
-   MERGES=@MERGES
+   SPLITS=%s
+   MERGES=%s
    PSUB_OPTS=$PSUB_OPTS
    RP_OPTS=$RP_OPTS
-";
+"
+   , join(" : ", @SPLITS)
+   , join(" : ", @MERGES);
+   exit if(defined($show_args));
 }
+
+# Create a working directory to prevent polluting the environment.
+$workdir = "parallelize.pl.$$" unless(defined($workdir));
+mkdir($workdir);
 
 
 
@@ -270,37 +311,38 @@ if ($debug) {
 }
 
 
-# Create MERGES dir
-foreach my $m (@MERGES) {
-   my $dir = "$workdir/" . $basename{$m};
+# Create MERGES & SPLITS dir
+foreach my $d (@MERGES, @SPLITS) {
+   my $dir = "$workdir/" . $basename{$d};
    mkdir($dir) unless -e $dir;
 }
 
 
 my $NUMBER_OF_CHUNK_GENERATED = $N;
 
-# Split all SPLITS
-foreach my $s (@SPLITS) {
-   my $dir = "$workdir/" . $basename{$s};
-   mkdir($dir) unless -e $dir;
+unless ($use_stripe_splitting) {
+   # Split all SPLITS
+   foreach my $s (@SPLITS) {
+      my $dir = "$workdir/" . $basename{$s};
 
-   my $NUM_LINE = $W;
-   # Did the user specified a number of line to split into?
-   if (defined($N)) {
-      $NUM_LINE = `gzip -cqfd $s | wc -l`;
-      $NUM_LINE = ceil($NUM_LINE / $N);
-      $NUM_LINE = $W if (defined($W) and $W > $NUM_LINE);
+      my $NUM_LINE = $W;
+      # Did the user specified a number of line to split into?
+      if (defined($N)) {
+         $NUM_LINE = `gzip -cqfd $s | wc -l`;
+         $NUM_LINE = ceil($NUM_LINE / $N);
+         $NUM_LINE = $W if (defined($W) and $W > $NUM_LINE);
+      }
+
+      verbose(1, "Splitting $s in $N chunks of ~$NUM_LINE lines in $dir");
+      my $rc = system("$debug_cmd gzip -cqfd $s | split -a 4 -d -l $NUM_LINE - $dir/");
+      die "Error spliting $s\n" unless($rc eq 0);
+
+      # Calculates the total number of jobs to create which can be different from
+      # -n N if the user specified -w W.
+      $NUMBER_OF_CHUNK_GENERATED = `find $dir -type f | \\wc -l`;
+
+      warn "You requested $N jobs but only $NUMBER_OF_CHUNK_GENERATED were created (due to -w $W)." if (2*$NUMBER_OF_CHUNK_GENERATED < $N);
    }
-
-   verbose(1, "Splitting $s in $N chunks of ~$NUM_LINE lines in $dir");
-   my $rc = system("$debug_cmd gzip -cqfd $s | split -a 3 -d -l $NUM_LINE - $dir/");
-   die "Error spliting $s\n" unless($rc eq 0);
-
-   # Calculates the total number of jobs to create which can be different from
-   # -n N if the user specified -w W.
-   $NUMBER_OF_CHUNK_GENERATED = `ls $dir/* | \\wc -l`;
-
-   warn "You requested $N jobs but only $NUMBER_OF_CHUNK_GENERATED were created (due to -w $W)." if (2*$NUMBER_OF_CHUNK_GENERATED < $N);
 }
 
 sub min{
@@ -317,7 +359,28 @@ my $cmd_file = "$workdir/commands";
 open(CMD_FILE, ">$cmd_file") or die "Unable to open command file";
 for (my $i=0; $i<$NUMBER_OF_CHUNK_GENERATED; ++$i) {
    my $SUB_CMD = $CMD;
-   my $index = sprintf("%3.3d", $i);
+   my $index = sprintf("%4.4d", $i);
+
+   # For each occurence of a file to merge, replace it by a chunk.
+   foreach my $m (@MERGES) {
+      my $file = "$workdir/" . $basename{$m} . "/$index";
+      unless ($SUB_CMD =~ s/(^|\s|>)\Q$m\E($|\s)/$1$file$2/) {
+         die "Unable to match $m and $file";
+      }
+   }
+
+   if ($use_stripe_splitting) {
+      my $done = "$workdir/" . $basename{$SPLITS[0]} . "/$index.done";
+      foreach my $s (@SPLITS) {
+         unless ($SUB_CMD =~ s/(^|\s|<)\Q$s\E($|\s)/$1<(split.py -i $i -m $N $s)$2/) {
+            die "Unable to match $s";
+         }
+      }
+
+      verbose(1, "\tStrip mode: Adding to the command list: $SUB_CMD");
+      print(CMD_FILE "test -f $done || { { $debug_cmd $SUB_CMD; } && touch $done; }\n");
+   }
+   else {
    my @delete = ();
    # For each occurence of a file to split, replace it by a chunk.
    foreach my $s (@SPLITS) {
@@ -327,21 +390,14 @@ for (my $i=0; $i<$NUMBER_OF_CHUNK_GENERATED; ++$i) {
          die "Unable to match $s and $file";
       }
    }
-   # For each occurence of a file to merge, replace it by a chunk.
-   foreach my $m (@MERGES) {
-      my $file = "$workdir/" . $basename{$m} . "/$index";
-      unless ($SUB_CMD =~ s/(^|\s|>)\Q$m\E($|\s)/$1$file$2/) {
-         die "Unable to match $m and $file";
-      }
-   }
 
    verbose(1, "\tAdding to the command list: $SUB_CMD");
    # By deleting the input chunks we say this block was properly process in
    # case of a resume is needed.
-   #printf(CMD_FILE "$SUB_CMD && rm -rf %s\n", join(" ", @delete));
-   print(CMD_FILE "test ! -f $delete[0] || (($debug_cmd $SUB_CMD) && mv $delete[0] $delete[0].done)\n");
+      print(CMD_FILE "test ! -f $delete[0] || { { $debug_cmd $SUB_CMD; } && mv $delete[0] $delete[0].done; }\n");
+   }
 }
-close(CMD_FILE);
+close(CMD_FILE) or die "Unable to close command file!";
 
 
 verbose(1, "Building merge command file.");
@@ -350,24 +406,25 @@ open(MERGE_CMD_FILE, ">$merge_cmd_file") or die "Unable to open merge command fi
 foreach my $m (@MERGES) {
    my $dir = "$workdir/" . $basename{$m};
    my $sub_cmd;
+   my $find_files = "set -o pipefail; find $dir -maxdepth 1 -type f | sort | xargs";
    if ($m =~ /.gz$/) {
-      $sub_cmd = "set -o pipefail; $MERGE_PGM $dir/* | gzip > $m";
+      $sub_cmd = "$MERGE_PGM | gzip > $m";
    }
    else {   
       if ($m =~ m#/dev/stdout#) {
-         $sub_cmd = "$MERGE_PGM $dir/*";
+         $sub_cmd = "$MERGE_PGM";
       }
       elsif ($m =~ m#/dev/stderr#) {
          # MERGE_PGM never applies to stderr
-         $sub_cmd = "cat $dir/* 1>&2";
+         $sub_cmd = "cat 1>&2";
       }
       else {
-         $sub_cmd = "$MERGE_PGM $dir/* > $m";
+         $sub_cmd = "$MERGE_PGM > $m";
       }
    }
-   print MERGE_CMD_FILE "test ! -d $dir || ($debug_cmd $sub_cmd && mv $dir $dir.done)\n";
+   print MERGE_CMD_FILE "test ! -d $dir || { { $debug_cmd $find_files $sub_cmd; } && mv $dir $dir.done; }\n";
 }
-close(MERGE_CMD_FILE);
+close(MERGE_CMD_FILE) or die "Unable to close merge command file!";
 
 
 # Run all the sub commands
