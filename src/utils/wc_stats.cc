@@ -111,7 +111,7 @@ class countStats {
       Counts linePerDoc;    ///< Keeps track of number of lines per document.
 
    private:
-      vector<string> tokens;    ///< The current tokens in that current line.
+      vector<char> tokens;  ///< The current token indicators in that current line.
 
    public:
       /// Placeholder for verbose mode where we print stats per line.
@@ -156,6 +156,11 @@ class countStats {
          linePerDoc.clear();
       }
 
+      /// DummyConverter for calling split to simply count tokens.
+      struct DummyConverter {
+         void operator()(const char* src, char& dest) { dest = 1; }
+      };
+
       /**
        * Calculates and cumulates stats on a line.
        * @param line  line to analyse.
@@ -164,8 +169,11 @@ class countStats {
       perLineStats cumulate(const string& line) {
          // Number or tokens in that line.
          tokens.clear();
-         split(line, tokens);
-         const Uint num_token = tokens.size();
+         // Optimization: since we only count tokens, but don't inspect them,
+         // convert them to dummy indicators instead of real strings.  This
+         // change made the program run about 2.5x faster (i.e., a typical run
+         // takes 40% of the time it used to take).
+         const Uint num_token = split(line.c_str(), tokens, DummyConverter());
          shortest_line = min(shortest_line, num_token);
          longest_line  = max(longest_line, num_token);
 
