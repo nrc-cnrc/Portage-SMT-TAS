@@ -35,7 +35,7 @@ sub usage {
    $0 =~ s#.*/##;
    print STDERR "
 
-Usage: lm_sort.sh [-h(elp)] [-v(erbose)] [-d(ebug)]
+Usage: lm_sort.pl [-h(elp)] [-v(erbose)] [-d(ebug)]
        input output
 
   Takes an LM in ARPA format and outputs the ngram entries sorted regardless
