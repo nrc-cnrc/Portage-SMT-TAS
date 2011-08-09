@@ -31,6 +31,8 @@ if [[ ! -r $BIN/sh_utils.sh ]]; then
 fi
 source $BIN/sh_utils.sh || { echo "Error: Unable to source sh_utils.sh" >&2; exit 1; }
 
+print_nrc_copyright sigprune.sh 2011
+
 usage() {
    for msg in "$@"; do
       echo $msg >&2
@@ -107,6 +109,7 @@ TGT=$1; shift
 SIG=$1; shift || SIG="-"
 test $# -gt 0   && error_exit "Superfluous arguments $*"
 
+
 if [[ $THRESHOLD == "a-e" ]]; then
    # Keeps <1,1,1>
    FILTER="perl -nle \"BEGIN{use encoding 'UTF-8';} @a = split(/\t/); print \\\$a[8] if (\\\$a[2] == 2 or \\\$a[2] == 3)\""
@@ -165,7 +168,7 @@ fi
       [[ -s mmfusa.src.tpsa ]] || build-tp-suffix-array.sh $SRC mmfusa.src >&2
       [[ -s mmfusa.tgt.tpsa ]] || build-tp-suffix-array.sh $TGT mmfusa.tgt >&2
 
-      CMD="time parallelize.pl $PARALLELIZE_OPTS \"phrasepair-contingency --sigfet mmfusa src tgt < $JPT\" $SIG_OUT"
+      CMD="time parallelize.pl -stripe $PARALLELIZE_OPTS \"phrasepair-contingency --sigfet mmfusa src tgt < $JPT\" $SIG_OUT"
       [[ $DEBUG ]] && echo "Contingency command: $CMD" >&2
       eval "$CMD" || error_exit "Problem with parallelize.pl!"
    fi;
