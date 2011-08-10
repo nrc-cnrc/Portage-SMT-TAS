@@ -10,5 +10,6 @@
 # Copyright 2009, Her Majesty in Right of Canada
 
 rm -rf run-p.1.*
+rm -rf run-p.tmpjobs.*
 rm -rf run-parallel-logs-*
 
