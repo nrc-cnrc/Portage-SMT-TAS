@@ -10,6 +10,12 @@ Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
 
 
+                              Acknowledgments
+
+We would like to acknowledge the help of Marc Tessier in improving these
+installation notes.
+
+
                            Installing Portage 1.4
 
 We don't use autoconf, so the installation is done manually, but we tried to
