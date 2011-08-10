@@ -38,7 +38,8 @@ Options:\n\
   -v               verbose: output word, sentence and document log-prob, as\n\
                    well as document perplexity and a trace of each word query\n\
   -sent            sentence: only output sentence log-probs.\n\
-  -q|-ppl          quiet/ppl: only output document log-prob and perplexity\n\
+  -q|-ppl          quiet: only output document log-prob and perplexity\n\
+  -ppls            write perplexity (counting eos) instead of logprob for -sent\n\
   -p-unk P_UNK     if LMFILE is a closed-vocabulary LM (i.e., P(<unk>) is not\n\
                    defined), set P(<unk>) = P_UNK. [0]\n\
   -log10-p-unk LOG10_P_UNK  equivalent to -p-unk 10 ** LOG10_P_UNK [-infinity]\n\
@@ -81,6 +82,7 @@ static string lm_filename;
 static string test_filename;
 static bool verbose = false;
 static bool quiet = false;
+static bool ppls = false;
 static bool sent = false;
 static double p_unk = 0;
 static double log10_p_unk = -INFINITY;
@@ -170,7 +172,10 @@ int MAIN(argc,argv)
    Uint processed = 0;
    Uint Noov = 0;
    while(getline(testfile, line)) {
-      if(line.empty()) continue;
+      if(line.empty()) {
+         if (sent) cout << (ppls ? "1.0" : "0.0") << endl;
+         continue;
+      }
       docLogProb += processOneLine_fast(line, lm, vocab, num_toks, Noov);
       //vector<string> words;
       //split(line,words," ");
@@ -196,7 +201,7 @@ int MAIN(argc,argv)
    }
 
    if ( verbose ) {
-      // Ugly to downcast but this is really a particularity of a subclass.
+      // Ugly to downcast but here we really use particularities of subclasses.
       LMTrie* lmtrie = dynamic_cast<LMTrie*>(lm);
       if (lmtrie != NULL) lmtrie->displayStats();
    }
@@ -213,7 +218,7 @@ int MAIN(argc,argv)
 void getArgs(int argc, const char* const argv[])
 {
    const char* const switches[] = {
-      "v", "q", "ppl", "sent", "limit", "per-sent-limit", "order:",
+      "v", "q", "ppl", "sent", "ppls", "limit", "per-sent-limit", "order:",
       "log10-p-unk:", "p-unk:", "voc-type:",
       "final-cleanup",
    };
@@ -223,6 +228,7 @@ void getArgs(int argc, const char* const argv[])
    arg_reader.testAndSet("v", verbose);
    arg_reader.testAndSet("q", quiet);
    arg_reader.testAndSet("ppl", quiet);
+   arg_reader.testAndSet("ppls", ppls);
    if ( quiet ) verbose = false;
    arg_reader.testAndSet("sent", sent);
    arg_reader.testAndSet("log10-p-unk", log10_p_unk);
@@ -288,6 +294,8 @@ float processOneLine_fast(const string& line, PLM* lm, Voc& voc, Uint& num_toks,
    strcpy(buf, line.c_str());
    char* strtok_state; // state variable for strtok_r
    char* tok = strtok_r(buf, " ", &strtok_state);
+   Uint nt = num_toks;
+   Uint noov = Noov;
    while (tok != NULL) {
       ++num_toks;
       const Uint word = limit_vocab ? voc.index(tok) : voc.add(tok);
@@ -302,13 +310,18 @@ float processOneLine_fast(const string& line, PLM* lm, Voc& voc, Uint& num_toks,
 
       tok = strtok_r(NULL, " ", &strtok_state);
    }
+   nt = num_toks - nt; // number of toks in sentence
+   noov = Noov - noov; // number of oovs in sentence
    // Do the end of sentence
    sentLogProb += getProb(voc.index(PLM::SentEnd), context, lm, voc);
 
    if (verbose)
       cout << "logProb = " << sentLogProb << endl << endl;
-   else if ( sent )
-      cout << sentLogProb << endl;
-
+   else if (sent) {
+      if (ppls) 
+         cout << pow(10, (-sentLogProb / (nt + 1 - noov))) << endl;
+      else
+         cout << sentLogProb << endl;
+   }
    return sentLogProb;
 }
