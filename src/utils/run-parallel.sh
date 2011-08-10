@@ -1,4 +1,4 @@
-#!/bin/bash -k
+#!/bin/bash
 # $Id$
 
 # @file run-parallel.sh 
@@ -397,7 +397,7 @@ trap '
          sleep 1
       done
    fi
-   for x in $WORKDIR/log.worker-* $WORKDIR/mon.worker-*; do
+   for x in ${LOGFILEPREFIX}log.worker* $WORKDIR/mon.worker-*; do
       if [[ -s $x ]]; then
          echo $x
          echo ""
@@ -405,7 +405,8 @@ trap '
          echo ""
       fi
    done > run-parallel-logs-${PBS_JOBID-local}
-   test -n "$DEBUG" || rm -rf $WORKDIR $CLEANLOG
+   test -n "$DEBUG" || rm -rf ${LOGFILEPREFIX}log.worker* $WORKDIR $CLEANLOG
+   [[ -f $LOGFILEPREFIX ]] && rm -f $LOGFILEPREFIX
    trap "" 0
    exit $GLOBAL_RETURN_CODE
 ' 0 1 2 3 13 14 15
@@ -420,6 +421,7 @@ if [[ $DEBUG ]]; then
 fi
 test -f $JOBSET_FILENAME && mv $JOBSET_FILENAME $WORKDIR/jobs
 JOBSET_FILENAME=$WORKDIR/jobs
+LOGFILEPREFIX=$WORKDIR/
 
 if [[ $NOCLUSTER ]]; then
    CLUSTER=
@@ -641,8 +643,22 @@ if [[ $CLUSTER ]]; then
    #    and STDERR to $OUT and $ERR, respectively
    #  - >&2 (not escaped) sends psub's output to STDERR of this script.
 
+   # Put psub-dummy-output files in a folder that won't go away if the master
+   # is done before some of the workers; avoids getting nasty emails from PBS.
+   if [[ ! -d $HOME/.run-parallel-logs ]]; then
+      mkdir $HOME/.run-parallel-logs ||
+         error_exit "Can't create $HOME/.run-parallel-logs directory"
+   fi
+   # Remove old psub-dummy-output files from previous runs
+   # We use -exec rather than piping into xargs because it's much faster this
+   # way when there are no files to delete, which will most often be the case.
+   find $HOME/.run-parallel-logs/ -type f -mtime +7 -exec rm -f '{}' \; 2>&1 | grep -v 'No such file or directory'
+   TMPLOGFILEPREFIX=`mktemp $HOME/.run-parallel-logs/run-p.$$.XXXXXX`
+   [[ $? == 0 ]] || error_exit "Can't create temporary file for worker log files."
+   LOGFILEPREFIX=$TMPLOGFILEPREFIX
+
    SUBMIT_CMD=(psub
-               -o $WORKDIR/psub-dummy-output
+               -o $HOME/.run-parallel-logs/psub-dummy-output
                -noscript
                $PSUBOPTS)
 
@@ -695,59 +711,36 @@ if [[ $UNIT_TEST ]]; then
    exit
 fi
 
+# We use a named pipe instead of a file - faster, and more reliable.
+mkfifo $WORKDIR/port || error_exit "Can't create named pipe $WORKDIR/port"
+DAEMON_CMD="r-parallel-d.pl -bind $$ -on-error $ON_ERROR $NUM $WORKDIR"
 if (( $VERBOSE > 1 )); then
-   r-parallel-d.pl -bind $$ -on-error $ON_ERROR $NUM $WORKDIR &
+   $DAEMON_CMD &
    DAEMON_PID=$!
 elif (( $VERBOSE > 0 )); then
-   r-parallel-d.pl -bind $$ -on-error $ON_ERROR $NUM $WORKDIR 2>&1 | 
+   $DAEMON_CMD 2>&1 | 
       egrep --line-buffered 'FATAL ERROR|\] ([0-9/]* (DONE|SIGNALED)|starting|Non-zero)' 1>&2 &
    DAEMON_PID=$!
 else
-   r-parallel-d.pl -bind $$ -on-error $ON_ERROR $NUM $WORKDIR 2>&1 | 
+   $DAEMON_CMD 2>&1 | 
       egrep --line-buffered 'FATAL ERROR' 1>&2 &
    DAEMON_PID=$!
 fi
 
-# make sure we have a server listening, by sending a ping
-connect_delay=0
-while true; do
-   sleep 1
-   if [[ -f $WORKDIR/port ]]; then
-      MY_PORT=`cat $WORKDIR/port 2> /dev/null`
-   else
-      MY_PORT=
+MY_PORT=`cat $WORKDIR/port`
+[[ $DEBUG ]] && echo "MY_PORT=$MY_PORT" >&2
+if [[ $MY_PORT = FAIL ]]; then
+   error_exit "Daemon had a fatal error"
+elif [[ -z $MY_PORT ]]; then
+   error_exit "Failed to launch daemon"
+else
+   if (( $VERBOSE > 1 )); then
+      echo Pinging $MY_HOST:$MY_PORT >&2
    fi
-   connect_delay=$((connect_delay + 1))
-   if [[ -z "$MY_PORT" ]]; then
-      if [[ $connect_delay -ge 10 ]]; then
-         echo No daemon yet after $connect_delay seconds - still trying >&2
-      fi
-      if [[ $connect_delay -ge 15 ]]; then
-         # after 15 seconds, slow down to trying every 5 seconds
-         sleep 4;
-         connect_delay=$((connect_delay + 4))
-      fi
-      if [[ $connect_delay -ge 60 ]]; then
-         # after 60 seconds, slow down to trying every 15 seconds
-         sleep 10; 
-         connect_delay=$((connect_delay + 10))
-      fi
-      if [[ $connect_delay -ge 1200 ]]; then
-         error_exit "Can't get a daemon, giving up"
-      fi
-   else
-      if (( $VERBOSE > 1 )); then
-         echo Pinging $MY_HOST:$MY_PORT >&2
-      fi
-      if [[ "`echo PING | r-parallel-worker.pl -netcat -host $MY_HOST -port $MY_PORT`" = PONG ]]; then
-         if (( $connect_delay > 10 )); then
-            echo Finally got a daemon after $connect_delay seconds >&2
-         fi
-         # daemon responded correctly, we're good to go now.
-         break
-      fi
+   if [[ "`echo PING | r-parallel-worker.pl -netcat -host $MY_HOST -port $MY_PORT`" != PONG ]]; then
+      error_exit "Daemon did not respond correctly to PING request"
    fi
-done
+fi
 
 if (( $VERBOSE > 1 )); then
    echo Daemon launched successfully on $MY_HOST:$MY_PORT >&2
@@ -776,7 +769,7 @@ if [[ $CLUSTER ]]; then
       fi
    done
    echo -n "" -N $WORKER_NAME-__WORKER__ID__ >> $PSUB_CMD_FILE
-   echo -n "" -e $WORKDIR/log.worker-__WORKER__ID__ >> $PSUB_CMD_FILE
+   echo -n "" -e ${LOGFILEPREFIX}log.worker-__WORKER__ID__ >> $PSUB_CMD_FILE
    echo -n "" $WORKER_COMMAND $SUBST_OPT $QUOTA -mon $WORKDIR/mon.worker-__WORKER__ID__ -period $MON_PERIOD \\\> $WORKDIR/out.worker-__WORKER__ID__ 2\\\> $WORKDIR/err.worker-__WORKER__ID__ \>\> $WORKER_JOBIDS >> $PSUB_CMD_FILE
 else
    echo $WORKER_COMMAND $SUBST_OPT -mon $WORKDIR/mon.worker-__WORKER__ID__ -period $MON_PERIOD \> $WORKDIR/out.worker-__WORKER__ID__ 2\> $WORKDIR/err.worker-__WORKER__ID__ \& > $PSUB_CMD_FILE
@@ -811,7 +804,7 @@ if (( $NUM > $FIRST_PSUB )); then
       # submit all workers in a single request
       OUT=$WORKDIR/out.worker-
       ERR=$WORKDIR/err.worker-
-      LOG=$WORKDIR/log.worker
+      LOG=${LOGFILEPREFIX}log.worker
       MON=$WORKDIR/mon.worker-
       ID='$PBS_ARRAYID'
       if [[ $WORKER_SUBST ]]; then
@@ -838,7 +831,7 @@ if (( $NUM > $FIRST_PSUB )); then
          # worker scripts themselves
          OUT=$WORKDIR/out.worker-$i
          ERR=$WORKDIR/err.worker-$i
-         LOG=$WORKDIR/log.worker-$i
+         LOG=${LOGFILEPREFIX}log.worker-$i
          MON=$WORKDIR/mon.worker-$i
          if [[ $WORKER_SUBST ]]; then
             SUBST_OPT="-subst $WORKER_SUBST/$i"
