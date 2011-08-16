@@ -49,17 +49,21 @@ Usage: $0 [OPTIONS] -threshold TH JPT SRC TGT [SIG]
 
 Options:
 
-  -keep            Keep the co-occurrence counts file.
-  -threshold THR   Keep all phrase pairs with a log(significance) <= -THR.
-                   Larger values of THR result in smaller table.
-                   Note that THR is a positive number.
-                   Remaining log(significance) values = -∞, -THR].
-                   'a+e' filters out <1,1,1> phrase pairs.
-                   'a-e' keeps the <1,1,1> phrase pairs.
+  -threshold THR  Keep all phrase pairs with a log(significance) <= -THR.
+                  Larger values of THR result in smaller tables.
+                  Note that THR must be a positive real number or one of
+                  the following pre-defined constants:
+                  'a+e' (read alpha + epsilon) is the significance threshold
+                        such that <1,1,1> phrase pairs are filtered out.
+                  'a-e' (read alpha - epsilon) is the threshold such that
+                        <1,1,1> phrase pairs are kept.
+                  Note: a (alpha) is the significance level of <1,1,1> phrase
+                  pairs, as discussed in Johnson et al, EMNLP 2007.
 
-  -n N    split the work in N jobs/chunks (at most N with -w) [3].
-  -np M   number of simultaneous workers used to process the N chunks [N].
-  -w W    Specifies the minimum number of lines in each block.
+  -keep     Keep the co-occurrence counts file.
+  -n N      Split the work in N jobs/chunks (at most N with -w) [3].
+  -np M     Number of simultaneous workers used to process the N chunks [N].
+  -w W      Specifies the minimum number of lines in each block.
   -psub <O> Passes additional options to run-parallel.sh -psub.
   -rp   <O> Passes additional options to run-parallel.sh.
 
