@@ -265,8 +265,10 @@ CanoeConfig::CanoeConfig()
    // New entries should be added immediately before "lm".
 
    const char* weight_names[] = {
-      "d", "w", "sm", "ibm1f", "ruw",
-      "lev", "ng",
+      "d", "w", "sm",
+      "ibm1f", "lev", "ng", "ruw",
+      // insert new features above this line - in the same order as in
+      // BMG::InitDecoderFeatures()!!!
       "lm", "tm", "ftm", "atm"
    };
    weight_params.assign(weight_names, weight_names + ARRAY_SIZE(weight_names));

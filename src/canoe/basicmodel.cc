@@ -34,7 +34,7 @@ Logging::logger bmgLogger(Logging::getLogger("debug.canoe.basicmodelgenerator"))
 // you change it, you will break existing models stored on disk.
 //
 // NB2: If you (yes you!) make any changes to this function, you must update
-// setWeightsFromString() accordingly.
+// setWeightsFromString() accordingly, as well as weight_names in config_io.cc.
 //
 // Implementation note: it would be cleaner to initialize decoder_features and
 // featureWeightsV from declarative information in CanoeConfig. A mechanism
@@ -106,7 +106,7 @@ void BasicModelGenerator::InitDecoderFeatures(const CanoeConfig& c)
 
    for (Uint i = 0; i < c.ngramMatchWeights.size(); ++i) {
       if (c.ngramMatchWeights[i] != 0) {
-         LOG_VERBOSE2(bmgLogger, "Creating a ngram model for %d-gram", i);
+         LOG_VERBOSE2(bmgLogger, "Creating a ngram model for %d-gram", i+1);
          ostringstream tmpstr;
          tmpstr << i+1;
          decoder_features.push_back(DecoderFeature::create(this,
@@ -130,6 +130,9 @@ void BasicModelGenerator::InitDecoderFeatures(const CanoeConfig& c)
       if (c.randomWeights)
          random_feature_weight.push_back(c.rnd_rule_weights.get(i));
    }
+
+   // Add new features here (above this comment) - same order as in
+   // weight_names in config_io.cc.
 }
 
 
@@ -233,8 +236,8 @@ BasicModelGenerator* BasicModelGenerator::create(
       weights_already_used += model_count;
    }
 
-   // We load TPPTs last, with their weights right at
-   // the end of the vector.
+   // We load TPPTs last, with their weights after the multi-prob weights,
+   // right at the end of the vector.
    for ( Uint i = 0; i < c.tpptFiles.size(); ++i ) {
       const Uint model_count =
          PhraseTable::countTPPTProbModels(c.tpptFiles[i].c_str()) / 2;
