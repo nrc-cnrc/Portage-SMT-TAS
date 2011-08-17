@@ -18,6 +18,7 @@
 
 #include "file_utils.h"
 #include "arg_reader.h"
+#include "printCopyright.h"
 
 using namespace Portage;
 using namespace std;
@@ -205,6 +206,7 @@ string write_b64( double i )
 
 int main( int argc, char* argv[] )
 {
+   printCopyright(2005, "sigprune_fet");
    getArgs( argc, argv );
 
    iSafeMagicStream istr( infile );
