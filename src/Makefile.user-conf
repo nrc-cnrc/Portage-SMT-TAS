@@ -145,4 +145,22 @@ MYLATEX ?= latex -interaction=batchmode
 HAS_LZMA := $(or $(shell test -x "`which lzma 2> /dev/null`" && echo USER-DEFINED), NONE)
 #HAS_LZMA = NONE
 
+# ------------------------------------
+# Variable:        TCMALLOC
+# Possible values: Where TCMalloc/google-perftools is installed, or
+#                  "NONE" or undefined to disable using TCMalloc.
+# Notes:           TCMalloc provides faster memory allocation than the default
+#                  malloc on some systems
+
+TCMALLOC ?= NONE
+#TCMALLOC = <fullpath>/google-perftools-1.8
+
+# ------------------------------------
+# Variable:        GOOGLE_PROFILER
+# Possible values: Where the Google profiler (google-perftools) is installed,
+#                  or "NONE" or undefined to disable using it.
+# Notes:           Used only for development purposes.
+
+GOOGLE_PROFILER ?= NONE
+#GOOGLE_PROFILER = <fullpath>/google-perftools-1.8
 

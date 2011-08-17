@@ -61,7 +61,7 @@ MODULE_CF = -DIN_PORTAGE=1 -ggdb
 
 MODULE_DEPENDS=
 
-EXTRA_LIBS = -lboost_program_options${BOOSTLIBTAG}
+EXTRA_LIBS = -lboost_program_options
 
 DYNLIBS =
 

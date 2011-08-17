@@ -80,6 +80,9 @@ BINSCRIPTS= \
 	nbest2rescore.pl \
 	translate.pl
 
+# config_io.o is very expensive to optimize, for some reason.
+config_io.o: OPT_LEVEL=-O0
+
 DOCUMENTS=canoe.pdf
 
 EXTRA_LIBS=$(LOGGING_LIB)

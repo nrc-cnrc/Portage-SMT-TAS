@@ -25,6 +25,10 @@ SHELL=/bin/bash
 # Read in all user-configurable variables
 include ../Makefile.user-conf
 
+# Function that adds the BOOSTLIBTAG to all -lboost libraries.
+# Usage $(call fix_boost_lib_tag, ${ARGS})
+fix_boost_lib_tag=$(addsuffix ${BOOSTLIBTAG}, $(filter -lboost%, ${1})) $(filter-out -lboost%, ${1})
+
 # Default values
 DOXYFILE ?= ../build/Doxyfile
 ifndef SOURCES
@@ -108,7 +112,17 @@ ifeq ($(NO_UTILS_LIB), true)
 else
    LIB_LIST = $(MODULE_DEPENDS) utils
 endif
-LIBS = $(foreach DIR, $(LIB_LIST), -lportage_$(DIR)) -lboost_iostreams${BOOSTLIBTAG} -lz $(EXTRA_LIBS)
+
+# These libraries are linked with everything everywhere
+GLOBAL_LIBS =
+GLOBAL_DYNLIBS = -lboost_iostreams -lz
+
+LIBS = $(foreach DIR, $(LIB_LIST), -lportage_$(DIR)) \
+       $(call fix_boost_lib_tag, ${GLOBAL_LIBS}) \
+       $(call fix_boost_lib_tag, $(EXTRA_LIBS))
+
+ALLDYNLIBS = $(call fix_boost_lib_tag, ${DYNLIBS}) \
+             $(call fix_boost_lib_tag, ${GLOBAL_DYNLIBS})
 
 # We used to disable logging by defining LOGGING=NONE, now we do so by defining
 # LOG4CXX=NONE, but still look for LOGGING=NONE in case someone depends on it.
@@ -131,9 +145,13 @@ endif
 # Portage.
 HAS_LZMA ?= $(or $(shell test -x "`which lzma 2> /dev/null`" && echo DEFAULT-DEFINED), NONE)
 ifeq ($(HAS_LZMA),NONE)
-   $(info Compiling Portage without lzma support.)
+   ifeq (${MAKELEVEL},0)
+      #$(info Compiling Portage without lzma support.)
+   endif
 else
-   $(info Compiling Portage with lzma support.)
+   ifeq (${MAKELEVEL},0)
+      #$(info Compiling Portage with lzma support.)
+   endif
    CFLAG_LZMA := -DUSE_LZMA
 endif
 
@@ -325,7 +343,7 @@ ifdef LIBRARY
 endif
 $(LIBRARY).so: $(OBJECTS)
 ifdef LIBRARY
-	$(CXX) -shared -o $(LIBRARY).so $(OBJECTS) $(LFLAGS) $(LIBS) $(DYNLIBS)
+	$(CXX) -shared -o $(LIBRARY).so $(OBJECTS) $(LFLAGS) $(LIBS) $(ALLDYNLIBS)
 endif
 else
 $(LIBRARY).a: $(OBJECTS)
@@ -382,18 +400,47 @@ test: $(foreach legacy_test, $(notdir $(LEGACY_TESTS)), legacy_$(legacy_test))
 # Load up any dependencies thus previously saved.
 -include .deps/*.d
 
+
+# Define TCMALLOC to the location of Google's libtcmalloc in order to compile with it.
+# Undefined or define TCMALLOC to NONE to disable compiling with libtcmalloc.
+# TCMALLOC :=
+# TCMALLOC := NONE
+# TCMALLOC := /home/portage/pkgs/google-perftools-1.7
+ifdef TCMALLOC
+   ifneq (${TCMALLOC}, NONE)
+      LFLAGS     += -L${TCMALLOC}/lib -Wl,-rpath -Wl,${TCMALLOC}/lib
+      ALLDYNLIBS += -ltcmalloc
+   endif
+endif
+
+
+# Define GOOGLE_PROFILER to the location of Google's libprofiler in order to compile with it.
+# Undefined or define GOOGLE_PROFILER to NONE to disable compiling with libprofiler.
+# GOOGLE_PROFILER :=
+# GOOGLE_PROFILER := NONE
+# GOOGLE_PROFILER := /home/portage/pkgs/google-perftools-1.7
+ifdef GOOGLE_PROFILER
+   ifneq (${GOOGLE_PROFILER}, NONE)
+      ifneq (${GOOGLE_PROFILER}, ${TCMALLOC})
+         LFLAGS     += -L${GOOGLE_PROFILER}/lib -Wl,-rpath -Wl,${GOOGLE_PROFILER}/lib
+      endif
+      ALLDYNLIBS += -lprofiler
+   endif
+endif
+
+
 # make programs, linking to library if there is one, else to all object files
 bin: $(PROGRAMS) $(DYNPROGS)
 ifdef LIBRARY
 $(PROGRAMS) $(CXXTEST_RUNNERS) $(LEGACY_TESTS): %: %.o $(LIBRARY).a $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).a)
-	$(CXX) $(LINKFLAGS) -o $@ $< $(LIBRARY).a $(LINKWITH) $(DYNLIBS)
+	$(CXX) $(LINKFLAGS) -o $@ $< $(LIBRARY).a $(LINKWITH) $(ALLDYNLIBS)
 $(DYNPROGS): %: %.o $(LIBRARY).so $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).so)
-	$(CXX) $(LINKFLAGS) -o $@ $< $(LIBRARY).so $(LIBS) $(DYNLIBS)
+	$(CXX) $(LINKFLAGS) -o $@ $< $(LIBRARY).so $(LIBS) $(ALLDYNLIBS)
 else
 $(PROGRAMS) $(CXXTEST_RUNNERS) $(LEGACY_TESTS): %: %.o $(OBJECTS) $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).a)
-	$(CXX) $(LINKFLAGS) -o $@ $(OBJECTS) $< $(LINKWITH) $(DYNLIBS)
+	$(CXX) $(LINKFLAGS) -o $@ $(OBJECTS) $< $(LINKWITH) $(ALLDYNLIBS)
 $(DYNPROGS): %: %.o $(OBJECTS) $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).so)
-	$(CXX) $(LINKFLAGS) -o $@ $(OBJECTS) $< $(LIBS) $(DYNLIBS)
+	$(CXX) $(LINKFLAGS) -o $@ $(OBJECTS) $< $(LIBS) $(ALLDYNLIBS)
 endif
 
 # make tags for finding various definitions in vi and related editors.
