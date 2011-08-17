@@ -10,12 +10,6 @@ Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
 
 
-                              Acknowledgments
-
-We would like to acknowledge the help of Marc Tessier in improving these
-installation notes.
-
-
                            Installing Portage 1.4
 
 We don't use autoconf, so the installation is done manually, but we tried to
@@ -172,6 +166,10 @@ Mandatory dependencies for all distributions:
    framework, our Makefiles use GNU extensions to make, as well as features
    that were introduced in version 3.81.
 
+ - Python 2.7 - some convenience scripts, as well as the new truecasing module,
+   use python.  In most distros, Python should be standard, or available via
+   the package manager.  Version 2.7 (or 2.7.x) is required.
+
  - A language modelling toolkit to train language models.  Our code can read
    and use language models, but we don't provide the training functionality,
    since it is readily available.  If your licensing requirements allow it, we
@@ -275,9 +273,6 @@ Optional dependencies for all distributions:
  - xml_grep and xmllint - also required by tmx2lfl.pl.  xml_grep comes with
    XML::Twig.  xmllint is fairly standard and should be available via the
    package manager in most distros.
-
- - Python - some convenience scripts use python.  Python should be standard, or
-   avaiable via the package manager, in most distros.
 
 Mandatory dependencies for source code distributions:
 
@@ -405,3 +400,10 @@ Optional PortageLive dependencies
 
  - If you are interested in PortageLive, look at PortageLive/va/PLiveVA.pdf for
    additional dependencies. 
+
+
+                              Acknowledgments
+
+We would like to acknowledge the help of Marc Tessier, as well as the feedback
+from several other users, in improving these installation notes.
+
