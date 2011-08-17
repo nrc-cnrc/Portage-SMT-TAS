@@ -39,10 +39,10 @@ if [[ ! -f $1 ]]; then
 fi
 
 if [[ $wts = 0 ]]; then
-   bleu=`sort -k3,3 -gr $1 | head -1 | cut -d' ' -f3`
+   bleu=`sort -k3,3 -gr $1 2> /dev/null | head -1 | cut -d' ' -f3`
    line=`grep -n "BLEU score: $bleu" $1 | head -1 | cut -d: -f1`
    nl=`wc -l < $1`
    echo "$bleu $1 ($nl iters, best = $line)"
 else
-   sort -k3,3 -gr $1 | head -1 | cut -d' ' -f4- | perl -pe 's/-[a-zA-Z]+//go; s/:/ /go;'
+   sort -k3,3 -gr $1 2> /dev/null | head -1 | cut -d' ' -f4- | perl -pe 's/-[a-zA-Z]+//go; s/:/ /go;'
 fi

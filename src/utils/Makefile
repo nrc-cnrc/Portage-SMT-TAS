@@ -85,6 +85,7 @@ BINSCRIPTS = \
         sh_utils.sh \
         split.py \
         sum.pl \
+        summarize-canoe-results.py \
         time-mem \
         time-mem-tally.pl \
         trans-search.pl \
