@@ -13,6 +13,61 @@ license agreement for details.
                               Release History
                    (with a summary of important changes)
 
+v1.4.3 2011-09-??
+ This release is primarily intended distribute our improved truecasing module,
+ and its integration in the experimental framework.  It also includes
+ improvements we've made in various parts of the system since the last release.
+
+ Major changes:
+ - Improved truecasing module, which takes into account casing information from
+   the source sentence.
+ - The framework is adjusted to optionally use the new truecasing module.
+ - Significance pruning is now available (following Johnson et al, EMNLP 2007),
+   and integrated in the framework.
+
+ Changes of intermediate importance:
+ - The framework now supports using a phrase table merged from the IBM2 and HMM
+   ones, instead of using them separately.  This is now the recommended
+   procedure.
+ - The tokenizer and detokenizer (utf-8 version only) now support Spanish.
+ - TPPT (Tightly Packed Phrase Table) and TPLM (Tightly Packed Language Model)
+   generation is now significantly faster and requires less memory.
+ - Added OS X (Darwin) support.
+
+ Minor changes:
+ - When PortageLive processes a TMX with confidence estimation enabled, the CE
+   score is included in every translation unit as a property of type "Txt::CE".
+ - PortageLive now allows overridden programs to exist in each model's /bin and
+   /lib directory, thus allowing one to have model specific versions of some
+   programs.
+ - The boost and zlib libraries are now linked dynamically.
+ - Linking with TCMalloc, a fast memory allocator, is now supported.
+ - gen_phrase_tables has better memory and performance behaviour on large
+   training corpora.
+ - lm_eval now optionally outputs per sentence log-prob or perplexity.
+ - gen_phrase_tables/joint2cond_phrase_tables now support -prune1w:
+   length-dependent phrase table pruning.
+ - parallelize.pl supports a new striped mode with fewer temporary files.
+ - A few more test suites were added.
+ - New time-mem-tally.pl script makes "make time-mem" faster in the framework.
+ - New merge_multi_column_counts program can merge Lexicalized Distortion Model
+   count files.
+ - New script summarize-canoe-results.py makes it easier to see and compare the
+   result of multiple experiments and/or system training runs.
+ - Better dependency and sanity checking at installation time.
+ - lzma is supported but no longer required.
+ - Support multiple training file pairs in gen-jpt-parallel.sh.
+ - wc_stats is now about 2.5x faster.
+
+ Minor bug fixes:
+ - run-parallel.sh is now more stable (it would sometimes hang if the file
+   system was very busy: this is fixed).
+ - Fixed problem with TPLMs where, under rare boundary conditions, a parameter
+   of the language model might be lost.
+ - When PortageLive receives text that collides with the "Magic number" of some
+   mime types, the file was not recognized as plain text -- this is now fixed.
+ - The tpt module did not allow UNK to appear as a real token, now it does.
+
 v1.4.2 2010-10-01
  This is a maintenance release.
 
