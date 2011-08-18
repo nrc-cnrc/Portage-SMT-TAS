@@ -2,7 +2,7 @@
 # vim:nowrap
 # $Id$
 #
-# @file canoe-optimize-weight, a.k.a., cow.sh 
+# @file canoe-optimize-weight, a.k.a., cow.sh
 # @brief Optimizer for canoe's weights renamed from rescoreloop.sh
 #
 # Aaron Tikuisis / George Foster / Eric Joanis
@@ -88,17 +88,17 @@ FFVALPARSER_OPTS="-canoe"
 ## -Z       Do not compress the large temporary files in WORKDIR [do].
 ## -nbest-list-size The size of the n-best lists to create.  [200]
 ## -maxiter Do at most MAX iterations.
-## -filt    Filter the phrase tables and lexicalized distortion models based on 
-##          SFILE for faster operation. This should not change your results in 
-##          a significant way (some changes may be observed due to rounding 
-##          differences). Creates a single multi-prob table containing only 
-##          entries from the phrase tables that match SFILE and meet the 
+## -filt    Filter the phrase tables and lexicalized distortion models based on
+##          SFILE for faster operation. This should not change your results in
+##          a significant way (some changes may be observed due to rounding
+##          differences). Creates a single multi-prob table containing only
+##          entries from the phrase tables that match SFILE and meet the
 ##          ttable-limit criterion in CFILE, if any. Also, filters the
 ##          distortion model files based on the filtered phrase tables.
-##          Uses the filtered phrase tables and filtered distortion models 
+##          Uses the filtered phrase tables and filtered distortion models
 ##          afterwards in place of the original tables.
 ##          (Recommended option) [don't filter]
-## -ttable-limit Use T as the ttable-limit for -filt, instead of the value 
+## -ttable-limit Use T as the ttable-limit for -filt, instead of the value
 ##          specified in CFILE. T is not written back to filtered versions of
 ##          CFILE.
 ## -filt-no-ttable-limit  Similar to -filt, with a somewhat faster filtering
@@ -108,7 +108,7 @@ FFVALPARSER_OPTS="-canoe"
 ##          the original tables.  Unlike -filt, this option does not introduce
 ##          rounding differences, the output should therefore be identical to
 ##          that obtained with unfiltered tables.  [don't filter]
-## -lb      Run canoe-parallel.sh in load balancing mode to help even out the 
+## -lb      Run canoe-parallel.sh in load balancing mode to help even out the
 ##          translation's load distribution [do].
 ## -no-lb   Disable load-balancing [don't].
 ## -floor   Index of parameter at which to start zero-flooring. (0 means all)
@@ -139,19 +139,16 @@ FFVALPARSER_OPTS="-canoe"
 ##          in micro mode [3]
 ## -wacc    Start Powell with the WIN best weights from each of the N iterations
 ##          before the current one. [1]
-## -win     Use the WIN best weights from the previous iteration(s) as starting 
-##          points for Powell's algorithm. [3] 
+## -win     Use the WIN best weights from the previous iteration(s) as starting
+##          points for Powell's algorithm. [3]
 ## -f       The configuration file to pass to the decoder. [canoe.ini]
 ## -canoe-options  Provide additional options to the decoder. []
 ## -rescore-options  Provide additional options to the rescore_train. []
 ## -parallel or -parallel:"PARALLEL_OPTIONS":  Use canoe-parallel.sh to
 ##          parallelize decoding.  Any option to canoe-parallel.sh, such as
-##          -n <N> if you want to specify the number of parallel jobs to
-##          use, -nolowpri to get more memory, -highmem to really get more
-##          memory, should be specified after the : and must be in quotes,
-##          e.g.:   -parallel:"-n 4".
-##                  -parallel:"-n 4 -nolowpri".
-##                  -parallel:"-n 4 -highmem".
+##          -n <N> or -psub <PSUB_OPT> should be specified after the : and must
+##          be in quotes.
+##          e.g.: decode with 4 workers:  -parallel:"-n 4".
 ## -bleu    Perform training using BLEU as the metric [do]
 ## -per     Perform training using PER as the metric [don't]
 ## -wer     Perform training using WER as the metric [don't]
@@ -419,7 +416,7 @@ TRANSFILE=$WORKDIR/transfile
 HISTFILE="rescore-results"
 # code below assumes that $POWELLFILE* and $POWELLMICRO* are disjoint:
 POWELLFILE="$WORKDIR/powellweights.tmp"
-POWELLMICRO="$WORKDIR/powellweights.micro" 
+POWELLMICRO="$WORKDIR/powellweights.micro"
 MODEL_ORIG=$MODEL.orig
 
 rename_old $HISTFILE
@@ -741,11 +738,11 @@ while [[ 1 ]]; do
       # The above is done 4 ways parallel to speed up n-best list management,
       # but not too aggressively since we are parellelizing write operations.
 
-         # Check return value
-         RVAL=$?
-         if [[ $RVAL -ne 0 ]]; then
+      # Check return value
+      RVAL=$?
+      if [[ $RVAL -ne 0 ]]; then
          error_exit "parallel append-uniq.pl returned $RVAL"
-         fi
+      fi
 
       for((n=0;n<$S;++n))
       {
@@ -802,8 +799,8 @@ while [[ 1 ]]; do
          gzip -cqfd $WORKDIR/foo.${m}.duplicateFree$COMPRESS_EXT        | sed "s/^/$n\t/"
       } | gzip > $WORKDIR/$ALLTARGETS
       for((n=0;n<$S;++n))
-   {
-      m=`printf "%4.4d" $n`
+      {
+         m=`printf "%4.4d" $n`
          gzip -cqfd $WORKDIR/foo.${m}.duplicateFree.ffvals$COMPRESS_EXT | sed "s/^/$n\t/"
       } | gzip > $WORKDIR/$ALLFFVALS
    }
@@ -830,7 +827,7 @@ while [[ 1 ]]; do
    touch $WEIGHTINFILE   # create powellweights.tmp.0 if nec
 
    # ensure powellweights.micro.IIII files exist on first iteration
-   if [[ $MICRO -ne 0 ]]; then    
+   if [[ $MICRO -ne 0 ]]; then
       #S=`wc -l < $SFILE` # Initialized once at the top
       for((n=0;n<$S;++n))
       {
@@ -844,7 +841,7 @@ while [[ 1 ]]; do
       rename_old $WEIGHTOUTFILE
    fi
 
-   
+
    if [[ $MICRO -eq 0 ]]; then
       RUNSTR="$RTRAIN $TRAINING_TYPE $RESCORE_OPTS \
          $ESTOP -s $SEED -wi $WEIGHTINFILE -wo $WEIGHTOUTFILE \
