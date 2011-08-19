@@ -24,11 +24,13 @@ v1.4.3 2011-09-??
  - The framework is adjusted to optionally use the new truecasing module.
  - Significance pruning is now available (following Johnson et al, EMNLP 2007),
    and integrated in the framework.
-
- Changes of intermediate importance:
  - The framework now supports using a phrase table merged from the IBM2 and HMM
    ones, instead of using them separately.  This is now the recommended
-   procedure.
+   procedure.  When you move to the 1.4.3 framework, you will notice that
+   PT_TYPES is now set to "merged_cpt" by default, instead of "ibm2_cpt
+   hmm3_cpt", which would restore the old behaviour.
+
+ Changes of intermediate importance:
  - The tokenizer and detokenizer (utf-8 version only) now support Spanish.
  - TPPT (Tightly Packed Phrase Table) and TPLM (Tightly Packed Language Model)
    generation is now significantly faster and requires less memory.
@@ -57,7 +59,7 @@ v1.4.3 2011-09-??
  - Better dependency and sanity checking at installation time.
  - lzma is supported but no longer required.
  - Support multiple training file pairs in gen-jpt-parallel.sh.
- - wc_stats is now about 2.5x faster.
+ - wc_stats is now about 2.5 times faster.
 
  Minor bug fixes:
  - run-parallel.sh is now more stable (it would sometimes hang if the file
@@ -67,6 +69,10 @@ v1.4.3 2011-09-??
  - When PortageLive receives text that collides with the "Magic number" of some
    mime types, the file was not recognized as plain text -- this is now fixed.
  - The tpt module did not allow UNK to appear as a real token, now it does.
+ - cow.sh is not longer limited to dev sets have fewer than 10000 sentences.
+ - canoe -lattice output is now about 8 times more compact: recombined nodes
+   were previously unecessarily expanded, now they are correctly kept as a
+   single node in the lattice output.
 
 v1.4.2 2010-10-01
  This is a maintenance release.
