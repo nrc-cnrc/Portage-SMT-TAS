@@ -53,110 +53,116 @@ static void insertEscapes(string &str, const char *charsToEscape = "\"\\", char 
 
 
 PrintFunc::PrintFunc(vector<bool>* oovs) : oovs(oovs) {
-  clear();
+   clear();
 }
 
 void
 PrintFunc::clear() {
-  sout.str("");
+   sout.str("");
 }
 
 void
 PrintFunc::appendPhrase(const DecoderState *state, PhraseDecoderModel &model) {
-  string result;
-  if (state != NULL) {
-     model.getStringPhrase(result, state->trans->lastPhrase->phrase);
-     sout << result;
-  }
+   string result;
+   if (state != NULL) {
+      model.getStringPhrase(result, state->trans->lastPhrase->phrase);
+      sout << result;
+   }
 }
 
 void
 PrintFunc::appendQuotedPhrase(const DecoderState *state, PhraseDecoderModel &model) {
-  if (state != NULL) {
-    PhraseInfo *phrase = state->trans->lastPhrase;
-    string p;
-    model.getStringPhrase(p, phrase->phrase);
-    insertEscapes(p);  // Escape all occurrences of " and \ in p
-    sout << '"' << p << '"';
-  }
+   if (state != NULL) {
+      PhraseInfo *phrase = state->trans->lastPhrase;
+      string p;
+      model.getStringPhrase(p, phrase->phrase);
+      insertEscapes(p);  // Escape all occurrences of " and \ in p
+      sout << '"' << p << '"';
+   }
 }
 
 void
 PrintFunc::appendAlignmentInfo(const DecoderState *state, PhraseDecoderModel &model) {
-  if (state != NULL) {
-    PhraseInfo *phrase = state->trans->lastPhrase;
-    bool oov = true;
-    for (Uint i = phrase->src_words.start; i < phrase->src_words.end; ++i)
-       if (!oovs || !(*oovs)[i]) {oov = false; break;}
-    sout << "a=["
-         << exp(phrase->phrase_trans_prob)      << ';'
-         << phrase->src_words.start             << ';'
-         << (phrase->src_words.end - 1)         << ';'
-         << (oov ? "O" : "I")                << ']';
-  }
+   if (state != NULL) {
+      PhraseInfo *phrase = state->trans->lastPhrase;
+      bool oov = true;
+      for (Uint i = phrase->src_words.start; i < phrase->src_words.end; ++i)
+         if (!oovs || !(*oovs)[i]) {oov = false; break;}
+      sout << "a=["
+           << exp(phrase->phrase_trans_prob)      << ';'
+           << phrase->src_words.start             << ';'
+           << (phrase->src_words.end - 1)         << ';'
+           << (oov ? "O" : "I")                   << ']';
+   }
 }
 
 void
 PrintFunc::appendFFValues(const DecoderState *state, BasicModel &model) {
-  if (state != NULL) {
-    vector<double> ffvals;
-    model.getFeatureFunctionVals(ffvals, *state->trans);
-    assert(ffvals.size() > 0);
+   if (state != NULL) {
+      vector<double> ffvals;
+      model.getFeatureFunctionVals(ffvals, *state->trans);
+      assert(ffvals.size() > 0);
 
-    sout << "v=[";
-    for (Uint i = 0; i < ffvals.size(); i++) {
-      if (i) sout << ';';
-      sout << ffvals[i];
-    }
-    sout << ']';
-  }
+      sout << "v=[";
+      for (Uint i = 0; i < ffvals.size(); i++) {
+         if (i) sout << ';';
+         sout << ffvals[i];
+      }
+      sout << ']';
+   }
 }
 
-PrintPhraseOnly::PrintPhraseOnly(PhraseDecoderModel &m, vector<bool>* oovs): PrintFunc(oovs), model(m) {}
+PrintPhraseOnly::PrintPhraseOnly(PhraseDecoderModel &m, vector<bool>* oovs)
+   : PrintFunc(oovs), model(m)
+{}
 
 string PrintPhraseOnly::operator()(const DecoderState *state)
 {
-  clear();
-  appendPhrase(state, model);
-  return sout.str();
-} // operator()
+   clear();
+   appendPhrase(state, model);
+   return sout.str();
+}
 
-PrintTrace::PrintTrace(PhraseDecoderModel &m, vector<bool>* oovs): PrintFunc(oovs), model(m) {}
+PrintTrace::PrintTrace(PhraseDecoderModel &m, vector<bool>* oovs)
+   : PrintFunc(oovs), model(m)
+{}
 
 string PrintTrace::operator()(const DecoderState *state) {
-  clear();
-  if (state != NULL) {
-    appendQuotedPhrase(state, model);
-    sout << ' ';
-    appendAlignmentInfo(state, model);
-  }
-  return sout.str();
+   clear();
+   if (state != NULL) {
+      appendQuotedPhrase(state, model);
+      sout << ' ';
+      appendAlignmentInfo(state, model);
+   }
+   return sout.str();
 }
 
 PrintFFVals::PrintFFVals(BasicModel &m, vector<bool>* oovs): PrintFunc(oovs), model(m) {}
 
 string PrintFFVals::operator()(const DecoderState *state) {
-  clear();
-  if (state != NULL) {
-    appendQuotedPhrase(state, model);
-    sout << ' ';
-    appendFFValues(state, model);
-  }
-  return sout.str();
+   clear();
+   if (state != NULL) {
+      appendQuotedPhrase(state, model);
+      sout << ' ';
+      appendFFValues(state, model);
+   }
+   return sout.str();
 }
 
-PrintAll::PrintAll(BasicModel &m, vector<bool>* oovs): PrintFunc(oovs), model(m) {}
+PrintAll::PrintAll(BasicModel &m, vector<bool>* oovs)
+   : PrintFunc(oovs), model(m)
+{}
 
 string PrintAll::operator()(const DecoderState *state) {
-  clear();
-  if (state != NULL) {
-    appendQuotedPhrase(state, model);
-    sout << ' ';
-    appendAlignmentInfo(state, model);
-    sout << ' ';
-    appendFFValues(state, model);
-  }
-  return sout.str();
+   clear();
+   if (state != NULL) {
+      appendQuotedPhrase(state, model);
+      sout << ' ';
+      appendAlignmentInfo(state, model);
+      sout << ' ';
+      appendFFValues(state, model);
+   }
+   return sout.str();
 }
 
 
@@ -240,29 +246,21 @@ static void printCoverageVector(ostream &out, const DecoderState *state)
  * @param covout    The stream to output coverage vector information to.
  * @param print     Print function that will format the state info to the proper format
  * @param state     A pointer to the DecoderState to output transitions for.
+ * @param pState    A pointer to the "prime" DecoderState, if this state has been recombined
  * @param backwards Whether to output transitions in reverse.
  */
 template<class PrintFunc>
 static void doState(ostream *out, ostream *covout, PrintFunc &print,
-                    const DecoderState *state, bool backwards)
+                    const DecoderState *state, const DecoderState *pState, bool backwards)
 {
-   if (covout)
+   if (covout && state==pState)
       printCoverageVector(*covout, state);
 
    if (state->back != NULL) {
 
       // Output the main transition
       double arcwt = exp(state->score - state->back->score);
-      printTransition(out, state->back->id, state->id, print(state), arcwt, backwards);
-
-      // Output all the transitions due to recombined translations
-      for (vector<DecoderState *>::const_iterator it = state->back->recomb.begin();
-           it < state->back->recomb.end(); it++) {
-         // We take the difference in score between state and state->back
-         // instead of between state and this recombined one (*it), because the
-         // score on state was initially computed using state->back.
-         printTransition(out, (*it)->id, state->id, print(state), arcwt, backwards);
-      }
+      printTransition(out, state->back->id, pState->id, print(state), arcwt, backwards);
    }
 } // doState
 
@@ -276,12 +274,13 @@ static void doState(ostream *out, ostream *covout, PrintFunc &print,
  * @param stateMap  The map used to remember which states have already been
  *                  visited.
  * @param state     A pointer to the DecoderState to do.
+ * @param pState    A pointer to the "prime" decoder state, if this state has been recombined
  * @param backwards Whether to output transitions in reverse.
  * @param mv  Keeps track of the visited states and their sub lattice weight (dynamic programming)
  */
 template<class PrintFunc>
 static double addAndDoState(ostream *out, ostream *covout, PrintFunc &print,
-                          SEEN &stateMap, DecoderState *state,
+                          SEEN &stateMap, DecoderState *state, DecoderState *pState,
                           bool backwards, MasseVu_ptr mv)
 {
    if (!stateMap[state->id]) {
@@ -289,7 +288,7 @@ static double addAndDoState(ostream *out, ostream *covout, PrintFunc &print,
       double dMasse(0.0);
       if (state->back != NULL) {
          const double dDelta(exp(state->score - state->back->score));
-         dMasse = dDelta * addAndDoState(out, covout, print, stateMap, state->back, backwards, mv);
+         dMasse = dDelta * addAndDoState(out, covout, print, stateMap, state->back, state->back, backwards, mv);
       }
       else {
          dMasse = 1.0f;
@@ -297,13 +296,13 @@ static double addAndDoState(ostream *out, ostream *covout, PrintFunc &print,
 
       stateMap[state->id] = true;
       if (out) {
-         doState(out, covout, print, state, backwards);
+         doState(out, covout, print, state, pState, backwards);
       }
 
       for ( VDSit it(state->recomb.begin()); it != state->recomb.end(); ++it) {
          assert(*it != NULL);
          assert((*it)->recomb.empty());
-         dMasse += addAndDoState(out, covout, print, stateMap, *it, backwards, mv);
+         dMasse += addAndDoState(out, covout, print, stateMap, *it, state, backwards, mv);
       }
 
       // If we need to calculate Masse => keep a copy of Masse
@@ -372,17 +371,13 @@ double writeWordGraph(ostream *out, ostream *covout, PrintFunc &print,
          {
             printTransition(out, (*it2)->id, "FINAL", print(NULL), 1, backwards);
          }
-         dMasseTotale += addAndDoState(out, covout, print, stateMap, (*it), backwards, mv);
+         dMasseTotale += addAndDoState(out, covout, print, stateMap, (*it), (*it), backwards, mv);
       } else {
          // On the other hand, if we are going forward then since
          // addAndDoState() does a post-order traversal, the first transition
          // outputted will be from state 0, the initial state.
-         dMasseTotale += addAndDoState(out, covout, print, stateMap, (*it), backwards, mv);
+         dMasseTotale += addAndDoState(out, covout, print, stateMap, (*it), (*it), backwards, mv);
          printTransition(out, (*it)->id, "FINAL", print(NULL), 1, backwards);
-         for (dsIT it2((*it)->recomb.begin()); it2 != (*it)->recomb.end(); ++it2)
-         {
-            printTransition(out, (*it2)->id, "FINAL", print(NULL), 1, backwards);
-         }
       } // if
    } // for
 
