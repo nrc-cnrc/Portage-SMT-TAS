@@ -139,7 +139,13 @@ int MAIN(argc, argv)
   while (getline(cin,line))
     {
       Tdx.toIdSeq(snt, line);
+      id_type prev_totalWords = totalWords;
       totalWords += snt.size();
+      if (totalWords < prev_totalWords)
+        cerr << efatal << "overflow writing corpus track file " << ctrackFile
+             << ": too many tokens for position id type.  sizeof(position id type)="
+             << sizeof(totalWords) << exit_1;
+
       // sentence start was pushed on previous iteration.
       // push end for this sentence, which is also the start of the next one.
       index.push_back(totalWords);
@@ -149,6 +155,8 @@ int MAIN(argc, argv)
             cerr << "Unknown token: <" << line << ">" << endl;
             ++unkCnt;
           }
+          // EJJ A corpus track is not tightly packed because O(1) random
+          // access is required when it is used with a suffix array.
           numwrite(out,snt[i]);
         }
       // progress report
@@ -165,8 +173,14 @@ int MAIN(argc, argv)
   // when writing the index, include the end of the last sentence.
   for (size_t i = 0; i < index.size(); i++)
     numwrite(out,index[i]);
-  out.seekp(0);
+
   idxSize = index.size();
+  if (size_t(index.size()) != size_t(idxSize))
+    cerr << efatal << "overflow writing corpus track file " << ctrackFile
+         << ": too many sentences for index size type.  sizeof(index size type)="
+         << sizeof(idxSize) << exit_1;
+
+  out.seekp(0);
   numwrite(out,startIdx);
   numwrite(out,idxSize-1);
   numwrite(out,totalWords);

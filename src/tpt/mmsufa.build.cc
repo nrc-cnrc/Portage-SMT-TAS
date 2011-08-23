@@ -180,6 +180,11 @@ int MAIN(argc, argv)
          << "' for writing." << exit_1;
   filepos_type idxStart(0);
   id_type idxSize(sufa.size());
+  if (size_t(idxSize) != size_t(sufa.size()))
+    cerr << efatal << "Overflow writing suffix array file '" << sufaFile
+         << "': too many types for index size type.  sizeof(index size type)="
+         << sizeof(idxSize) << exit_1;
+
   numwrite(out,idxStart);
   numwrite(out,idxSize);
   vector<filepos_type> index(sufa.size()+1);
@@ -207,6 +212,12 @@ int MAIN(argc, argv)
       {
         id_type const* k = C.sntStart(i);
         id_type const* const stop = C.sntEnd(i);
+
+        if (size_t(stop-k)/sizeof(*k) > size_t(ushort(-1)))
+          cerr << "Overflow writing suffix array file '" << sufaFile
+               << "': sentence " << i << " has more tokens than can be indexed"
+               << " in offset type of size " << sizeof(ushort) << exit_1;
+
         for (ushort p = 0; k < stop; ++p,++k)
           if (*k >= batch_start && *k < batch_end)
             sufa[*k].push_back(Token(i,p));
