@@ -126,11 +126,11 @@ else
    CAT="cat"
 fi
 verbose 1 "$CAT $CORPUS | vocab.build $QUIET --tdx $OUTPUT_TPSA.tdx"
-$CAT $CORPUS | vocab.build $QUIET --tdx $OUTPUT_TPSA.tdx >&2
+$CAT $CORPUS | time-mem vocab.build $QUIET --tdx $OUTPUT_TPSA.tdx >&2
 verbose 1 "$CAT $CORPUS | mmctrack.build $QUIET $OUTPUT_TPSA.tdx $OUTPUT_TPSA.mct"
-$CAT $CORPUS | mmctrack.build $QUIET $OUTPUT_TPSA.tdx $OUTPUT_TPSA.mct >&2
+$CAT $CORPUS | time-mem mmctrack.build $QUIET $OUTPUT_TPSA.tdx $OUTPUT_TPSA.mct >&2
 verbose 1 "mmsufa.build $QUIET $OUTPUT_TPSA.mct $OUTPUT_TPSA.msa"
-mmsufa.build $QUIET $OUTPUT_TPSA.mct $OUTPUT_TPSA.msa >&2
+time-mem mmsufa.build $QUIET $OUTPUT_TPSA.mct $OUTPUT_TPSA.msa >&2
 
 for x in tdx mct msa; do
    mv $OUTPUT_TPSA.$x ../$OUTPUT_TPSA.tpsa/$x ||

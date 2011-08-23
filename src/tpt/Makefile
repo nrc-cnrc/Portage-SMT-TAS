@@ -61,8 +61,6 @@ MODULE_CF = -DIN_PORTAGE=1 -ggdb
 
 MODULE_DEPENDS=
 
-EXTRA_LIBS = -lboost_program_options
-
-DYNLIBS =
+DYNLIBS = -lboost_program_options
 
 include ../build/Makefile.incl

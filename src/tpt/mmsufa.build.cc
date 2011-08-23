@@ -157,48 +157,23 @@ void count_words()
 #endif
 }
 
+Uint elapsed(size_t start_time) {
+   return time(NULL) - start_time;
+}
+
+#define ELAPSED " (" << elapsed(start_time) << "s)"
+
 int MAIN(argc, argv)
 {
   interpret_args(argc, (char **)argv);
+  size_t start_time = time(NULL);
 
   C.open(ctrackFile);
   count_words();
   
   vector<vector<Token> > sufa(wcnt.size());
-  for (size_t i = 0; i < wcnt.size(); i++)
-    sufa[i].reserve(wcnt[i]);
 
-  for (id_type i = 0; i < C.size(); i++)
-    {
-      id_type const* k = C.sntStart(i);
-      id_type const* const stop = C.sntEnd(i);
-      for (ushort p = 0; k < stop; ++p,++k)
-	sufa[*k].push_back(Token(i,p));
-      if (!quiet && (i+1)%1000000==0)
-        cerr << (i+1)/1000000 << "M sentences processed" << endl;
-    }
-  
-  if (!quiet)
-    {
-      cerr << C.size() << " sentences processed in total." << endl;
-      cerr << "Sorting ..." << endl;
-    }
-  for (size_t i = 0; i < sufa.size(); i++)
-    {
-      if (sufa[i].size() > 5000 && !quiet)
-	cerr << "Sorting " << sufa[i].size() << " items for id " << i << "."<< endl;
-      sort(sufa[i].begin(),sufa[i].end(),less<Token>());
-#if 0
-      // debugging code; can be removed once the thing is stable
-      // Sanity check ...
-      typedef vector<Token>::iterator iter;
-      for (iter m = sufa[i].begin(); m != sufa[i].end(); ++m)
-	assert(*(C.sntStart(m->sid)+m->offset) == i);
-#endif
-    }
-
-  if (!quiet)
-    cerr << "Writing data..." << endl;
+  // EJJ Write leader in suffix array file.
   ofstream out(sufaFile.c_str());
   if (out.fail())
     cerr << efatal << "Unable to open suffix array file '" << sufaFile
@@ -208,15 +183,80 @@ int MAIN(argc, argv)
   numwrite(out,idxStart);
   numwrite(out,idxSize);
   vector<filepos_type> index(sufa.size()+1);
-  for (size_t i = 0; i < sufa.size(); i++)
-    {
-      index[i] = out.tellp();
-      for (size_t k = 0; k < wcnt[i]; k++)
-	{
-	  tightwrite(out,sufa[i][k].sid,0);
-	  tightwrite(out,sufa[i][k].offset,1);
-	}
-    }
+
+  // EJJ Multi-pass process with exponential growth in number of bins handled.
+  // Tokens are sorted by reverse frequency, which means, by Zipfean logic, and
+  // confirmed empirically, that each pass will have similar amounts of data to
+  // process.  We thus significantly reduce the amount of memory required by
+  // this program: a little more than the corpus track is all that's needed,
+  // instead of 2 to 3 times the size of the corpus track.  The time overhead
+  // for this iterative processing is small, so we can safely hard-code this
+  // logic without parameterizing it.
+  size_t batch_start = 0;
+  size_t batch_end = 10;
+  while (true) {
+    if (batch_end > wcnt.size()) batch_end = wcnt.size();
+
+    if (!quiet)
+      cerr << "Starting batch for vocids in [" << batch_start << "," << batch_end << ")" << ELAPSED << endl;
+
+    for (size_t i = batch_start; i < batch_end; i++)
+      sufa[i].reserve(wcnt[i]);
+
+    for (id_type i = 0; i < C.size(); i++)
+      {
+        id_type const* k = C.sntStart(i);
+        id_type const* const stop = C.sntEnd(i);
+        for (ushort p = 0; k < stop; ++p,++k)
+          if (*k >= batch_start && *k < batch_end)
+            sufa[*k].push_back(Token(i,p));
+        if (!quiet && (i+1)%1000000==0)
+          cerr << (i+1)/1000000 << "M sentences processed" << ELAPSED << endl;
+      }
+    
+    if (!quiet)
+      {
+        cerr << C.size() << " sentences processed in total." << ELAPSED << endl;
+        cerr << "Sorting ..." << endl;
+      }
+    for (size_t i = batch_start; i < batch_end; i++)
+      {
+        if (sufa[i].size() > 5000 && !quiet)
+          cerr << "Sorting " << sufa[i].size() << " items for id " << i << "."<< ELAPSED << endl;
+        sort(sufa[i].begin(),sufa[i].end(),less<Token>());
+        #if 0
+          // debugging code; can be removed once the thing is stable
+          // Sanity check ...
+          typedef vector<Token>::iterator iter;
+          for (iter m = sufa[i].begin(); m != sufa[i].end(); ++m)
+            assert(*(C.sntStart(m->sid)+m->offset) == i);
+        #endif
+      }
+
+    if (!quiet)
+      cerr << "Writing data..." << ELAPSED << endl;
+    for (size_t i = batch_start; i < batch_end; i++)
+      {
+        index[i] = out.tellp();
+        for (size_t k = 0; k < wcnt[i]; k++)
+          {
+            tightwrite(out,sufa[i][k].sid,0);
+            tightwrite(out,sufa[i][k].offset,1);
+          }
+        
+        // Release the memory from sufa[i], since we're done with it
+        {
+          vector<Token> empty;
+          sufa[i].swap(empty);
+        }
+      }
+
+    if ( batch_end >= wcnt.size() ) break;
+    batch_start = batch_end;
+    batch_end *= 2;
+  }
+   
+  // EJJ write the end of the file, now that all the batches have been processed.
   idxStart = index[sufa.size()] = out.tellp();
   for (size_t i = 0; i < index.size(); i++)
     numwrite(out,index[i]-index[0]);
@@ -226,6 +266,6 @@ int MAIN(argc, argv)
     cerr << efatal << "Writing suffix array file '" << sufaFile << "' failed."
          << exit_1;
   out.close();
-  if (!quiet) cerr << "Done" << endl;
+  if (!quiet) cerr << "Done" << ELAPSED << endl;
 }
 END_MAIN

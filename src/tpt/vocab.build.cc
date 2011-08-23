@@ -117,7 +117,7 @@ int MAIN(argc, argv)
 
   while (getline(cin,lbuf))
     {
-      istringstream line(lbuf);
+      //istringstream line(lbuf);
       size_t a = lbuf.find_first_not_of(toksep,0);
       if (a == string::npos)
         continue;
