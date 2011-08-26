@@ -166,11 +166,11 @@ run_cmd() {
          # before the output of time itself is printed to STDERR
          eval "$@"
          rc=$?
-         sync
+         #sync # sync is very expensive!  Don't do it!
       }
       export PORTAGE_INTERNAL_CALL=1
       kill -USR1 $MON_PID
-      sync
+      #sync # sync is very expensive!  Don't do it!
       echo "run_cmd finished (rc=$rc): $@" >&2
       if [ -s "$MON_FILE" -a $(( `wc -l < $MON_FILE` > 1 )) ]; then
          MON_VSZ=`egrep -ho 'vsz: [0-9.]+G' $MON_FILE 2> /dev/null | egrep -o "[0-9.]+" | sum.pl -m`
@@ -284,7 +284,9 @@ if [[ $TALLY ]]; then
 elif [[ $pgm == "rat.sh" || $pgm == "cat.sh" || $pgm == "cow.sh" || $pgm == "gen-jpt-parallel.sh" || $pgm == "canoe-parallel.sh" ]]; then
    [[ $DEBUG ]] && echo "Parsing command $pgm" >&2
    # These commands already produce the data, we only need to parse the data.
-   { { eval "${ARGUMENTS[@]}" || exit; sync; } 3>&1 1>&2 2>&3 || exit | parseCommand 2>&1; sync; } 3>&1 1>&2 2>&3
+   # Turns out sync is sometimes very expensive, so we disable this processing, which requires it.
+   #{ { eval "${ARGUMENTS[@]}" || exit; sync; } 3>&1 1>&2 2>&3 || exit | parseCommand 2>&1; sync; } 3>&1 1>&2 2>&3
+   eval "${ARGUMENTS[@]}" || exit
 
 # The user wants to time a command that doesn't produce statistics and he's
 # asking us calculate the statistics for him.
@@ -299,6 +301,9 @@ else
    fi
    # Here we want the original stdout as pass-through and we want to process
    # the original stderr.
-   { { run_cmd "${ARGUMENTS[@]}" || exit; sync; } 3>&1 1>&2 2>&3 || exit | parseCommand 2>&1; sync; } 3>&1 1>&2 2>&3
+   # Turns out sync is sometimes very expensive, so we disable this processing, which requires it.
+   #{ { run_cmd "${ARGUMENTS[@]}" || exit; sync; } 3>&1 1>&2 2>&3 || exit | parseCommand 2>&1; sync; } 3>&1 1>&2 2>&3
+   run_cmd "${ARGUMENTS[@]}" || exit
+
 fi
 
