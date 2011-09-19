@@ -3,7 +3,7 @@
 
 # Makefile - Test (u)tokenize.pl and (u)detokenize.pl for various special cases.
 #
-# PROGRAMMER: Samuel Larkin / Eric Joanis
+# PROGRAMMER: Samuel Larkin / Eric Joanis / Darlene Stewart
 #
 # COMMENTS:
 #
@@ -14,9 +14,8 @@
 # Copyright 2008, Her Majesty in Right of Canada
 
 
-.PHONY: all clean french-hyphens ch-punc
+.PHONY: all clean french-hyphens dots ch-punc
 
-.PHONY: all
 all: test
 	@echo All tests PASSED
 
@@ -24,11 +23,14 @@ all: test
 test: display.accent \
      $(addprefix compare., accent.tok accent.utf8 accent.utf8.tok) \
      $(addprefix display., accent.tok accent.utf8 accent.utf8.tok) \
-     french-hyphens ch-punc en-prices
+     french-hyphens dots ch-punc en-prices
 
 
 french-hyphens: compare.hyphens.tok compare.hyphens.tok.utf8 \
                 compare.hyphens.detok compare.hyphens.detok.utf8
+
+dots: compare.periods.tok compare.periods.tok.utf8 \
+      compare.periods.detok compare.periods.detok.utf8
 
 ch-punc: $(foreach EXT, 000 001 010 011 100 101 110 111, compare.chinese-punc.detok.$(EXT))
 
@@ -36,10 +38,12 @@ ch-punc: $(foreach EXT, 000 001 010 011 100 101 110 111, compare.chinese-punc.de
 en-prices: compare.eng-prices.detok compare.eng-prices.detok.utf8
 
 clean:
-	${RM} accent.tok accent.utf8 accent.utf8.tok hyphens.{tok,detok}{,.utf8}
+	${RM} accent.tok accent.utf8 accent.utf8.tok 
+	${RM} hyphens.utf8 hyphens.{tok,detok}{,.utf8}
+	${RM} periods.utf8 periods.{tok,detok}{,.utf8}
+	${RM} ${HYPHENS} $(addsuffix .utf8, ${HYPHENS})
+	${RM} ${PERIODS} $(addsuffix .utf8, ${PERIODS})
 	${RM} chinese-punc.detok.[01][01][01]
-	${RM} hyphens.noss hyphens.noss.notok hyphens.notok
-	${RM} $(addprefix utf8.,hyphens.noss hyphens.noss.notok hyphens.notok)
 	${RM} eng-prices.utf8 eng-prices.detok{,.utf8}
 
 accent.utf8: accent
@@ -61,27 +65,48 @@ compare.%: %
 
 
 # hyphens specific.
+hyphens.utf8: hyphens
+	iconv -f cp1252 -t utf-8 < $< > $@
+
 hyphens.tok: hyphens
 	tokenize.pl -lang=fr -ss $< > $@
 
 hyphens.detok: hyphens.tok
 	detokenize.pl -lang=fr $< > $@
 
-hyphens.tok.utf8: hyphens
-	iconv -f cp1252 -t utf-8 $< | utokenize.pl -ss -lang=fr > $@
+hyphens.tok.utf8: hyphens.utf8
+	utokenize.pl -ss -lang=fr < $< > $@
 
 hyphens.detok.utf8: hyphens.tok.utf8
+	udetokenize.pl -lang=fr $< > $@
+
+# periods specific.
+periods.utf8: periods
+	iconv -f cp1252 -t utf-8 < $< > $@
+
+periods.tok: periods
+	tokenize.pl -lang=fr -ss -paraline $< > $@
+
+periods.detok: periods.tok
+	detokenize.pl -lang=fr $< > $@
+
+periods.tok.utf8: periods.utf8
+	utokenize.pl -ss -paraline -lang=fr < $< > $@
+
+periods.detok.utf8: periods.tok.utf8
 	udetokenize.pl -lang=fr $< > $@
 
 
 # Short cut to execute all targets that test skipping sub-tasks in tokenize.pl.
 .PHONY: not_option
-not_option: hyphens.noss hyphens.notok hyphens.noss.notok
-not_option: $(addprefix utf8.,hyphens.noss hyphens.notok hyphens.noss.notok)
+HYPHENS = hyphens.noss hyphens.notok hyphens.pretok hyphens.noss.notok
+PERIODS = periods.noss periods.notok periods.pretok periods.noss.notok
+not_option: ${HYPHENS} $(addsuffix .utf8, ${HYPHENS})
+not_option: ${PERIODS} $(addsuffix .utf8, ${PERIODS})
 
 # Verify that the not option targets match the reference.
-compare_not_option: $(addprefix compare.,hyphens.noss hyphens.notok hyphens.noss.notok)
-compare_not_option: $(addprefix compare.utf8.,hyphens.noss hyphens.notok hyphens.noss.notok)
+compare_not_option: $(addprefix compare., ${HYPHENS} $(addsuffix .utf8, ${HYPHENS}))
+compare_not_option: $(addprefix compare., ${PERIODS} $(addsuffix .utf8, ${PERIODS}))
 
 # Adding dependencies to french-hyphens.
 french-hyphens: compare_not_option
@@ -90,25 +115,53 @@ french-hyphens: compare_not_option
 hyphens.noss: hyphens
 	tokenize.pl -lang=fr -noss < $< > $@
 
+hyphens.noss.utf8: hyphens.utf8
+	utokenize.pl -lang=fr -noss < $< > $@
+
+periods.noss: periods
+	tokenize.pl -lang=en -noss < $< > $@
+
+periods.noss.utf8: periods.utf8
+	utokenize.pl -lang=en -noss < $< > $@
+
 # No tokenization.
 hyphens.notok: hyphens
 	tokenize.pl -lang=fr -ss -notok < $< > $@
+
+hyphens.notok.utf8: hyphens.utf8
+	utokenize.pl -lang=fr -ss -notok < $< > $@
+
+periods.notok: periods
+	tokenize.pl -lang=en -ss -paraline -notok < $< > $@
+
+periods.notok.utf8: periods.utf8
+	utokenize.pl -lang=en -ss -paraline -notok < $< > $@
+
+# Pre-tokenized.
+hyphens.pretok: hyphens
+	tokenize.pl -lang=fr -noss < $< | tokenize.pl -lang=fr -ss -pretok > $@
+
+hyphens.pretok.utf8: hyphens.utf8
+	utokenize.pl -lang=fr -noss < $< | utokenize.pl -lang=fr -ss -pretok > $@
+
+periods.pretok: periods
+	tokenize.pl -lang=en -noss < $< | tokenize.pl -lang=fr -ss -paraline -pretok > $@
+
+periods.pretok.utf8: periods.utf8
+	utokenize.pl -lang=en -noss < $< | utokenize.pl -lang=en -ss -paraline -pretok > $@
 
 # No sentence splitting & no tokenization.
 hyphens.noss.notok: hyphens
 	tokenize.pl -lang=fr -noss -notok < $< > $@
 
-# No sentence splitting.
-utf8.hyphens.noss: hyphens
-	iconv -f cp1252 -t utf-8 $< | utokenize.pl -lang=fr -noss > $@
+hyphens.noss.notok.utf8: hyphens.utf8
+	utokenize.pl -lang=fr -noss -notok < $< > $@
 
-# No tokenization.
-utf8.hyphens.notok: hyphens
-	iconv -f cp1252 -t utf-8 $< | utokenize.pl -lang=fr -ss -notok > $@
+periods.noss.notok: periods
+	tokenize.pl -lang=en -noss -notok < $< > $@
 
-# No sentence splitting & no tokenization.
-utf8.hyphens.noss.notok: hyphens
-	iconv -f cp1252 -t utf-8 $< | utokenize.pl -lang=fr -noss -notok > $@
+periods.noss.notok.utf8: periods.utf8
+	utokenize.pl -lang=en -noss -notok < $< > $@
 
 
 # Chinese specific.

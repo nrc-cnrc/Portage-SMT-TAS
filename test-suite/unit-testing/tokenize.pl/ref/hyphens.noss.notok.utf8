@@ -13,3 +13,15 @@ lignes.  Comme ça, on pourrait tester
 si -ss / -noss et -notok fonctionnent correctement ensemble.
 
 Bon, je triche et je me sers aussi de ce fichier pour tester les pourcentages.  10 %, en français, ça se laisse en deux tokens.
+
+un-trait d'union
+
+deux--traits d'union
+
+trois---traits d'union
+
+quatre----traits d'union
+
+cinq-----traits d'union
+
+six------traits d'union
