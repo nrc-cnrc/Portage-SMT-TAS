@@ -66,15 +66,10 @@ void processOnline(const CanoeConfig& c, const ARG& arg,
 {
    LOG_VERBOSE1(filter_models_Logger, "Processing online/streaming");
 
-   // In online mode there can only be one and only one multiTM and we must be
+   // In online mode there can only be one multiTM and we must be
    // in either hard or soft mode
-   if (!(arg.limit()
-         && c.multiProbTMFiles.size() == 1
-         && c.backPhraseFiles.empty()
-         && c.forPhraseFiles.empty()))
-   {
-      error(ETFatal, "When using the tm-online mode there can only be one and only one multi-prob TM!");
-   }
+   if (!(arg.limit() && c.multiProbTMFiles.size() == 1))
+      error(ETFatal, "When using the tm-online mode there can only be one multi-prob TM!");
 
    // The limitPhrase must be false if the user requested filter complete
    const bool limitPhrases(!arg.no_src_grep);
@@ -234,29 +229,6 @@ int MAIN(argc, argv)
 
 
 
-      // Add TMtext to vocab and filter them
-      if (!c.backPhraseFiles.empty()) LOG_VERBOSE1(filter_models_Logger, "Processing Single Probs");
-      for (Uint i(0); i<c.backPhraseFiles.size(); ++i) {
-         string bck, fbck;
-         arg.getFilenames(c.backPhraseFiles[i], bck, fbck);
-
-         if (!arg.doLMs && !arg.limit())
-            c.backPhraseFiles[i] = arg.prepareFilename(c.backPhraseFiles[i]);
-
-         if (!c.forPhraseFiles.empty()) {
-            string fwd, ffwd;
-            arg.getFilenames(c.forPhraseFiles[i], fwd, ffwd);
-
-            if (!arg.doLMs && !arg.limit())
-               c.forPhraseFiles[i] = arg.prepareFilename(c.forPhraseFiles[i]);
-
-            phraseTable->processSingleProb(bck, fbck, fwd.c_str(), ffwd.c_str());
-         }
-         else {
-            phraseTable->processSingleProb(bck, fbck);
-         }
-      }
-
 
       // Add multi-prob TMs to vocab and filter them
       if (!c.multiProbTMFiles.empty()) LOG_VERBOSE1(filter_models_Logger, "Processing multi-probs");
@@ -307,10 +279,6 @@ int MAIN(argc, argv)
             string lm, flm;
             arg.getFilenames(*it, lm, flm);
 
-            // Skip LMDBs.
-            if ( lm.size() >= 5 && lm.compare(lm.size()-5, 5, ".lmdb") == 0 )
-               continue;
-
             if (!check_if_exists(lm))
                error(ETFatal, "Cannot read from language model file %s", lm.c_str());
 
@@ -346,8 +314,6 @@ int MAIN(argc, argv)
    LOG_VERBOSE1(filter_models_Logger, "Creating new canoe.ini");
    const string configFile(addExtension(arg.config, arg.suffix));
    if (arg.limit()) {
-      c.readStatus("ttable-file-t2s")   = false;
-      c.readStatus("ttable-file-s2t")   = false;
       c.readStatus("ttable-multi-prob") = true;
       c.multiProbTMFiles.clear();  // We should end up with only one multi-prob
       c.multiProbTMFiles.push_back(arg.prepareFilename(arg.limit_file));
@@ -359,7 +325,6 @@ int MAIN(argc, argv)
    if (arg.output_config) {
       cerr << "New config file is: " << configFile << endl;
       c.write(configFile.c_str(), 1, true);
-      //c.write(cerr, 1, true);
    }
 
 } END_MAIN

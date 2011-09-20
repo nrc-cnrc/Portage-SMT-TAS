@@ -34,7 +34,7 @@ gen_phrase_tables [-hHvijz][-a 'meth args'][-s 'meth args'][-w nw]\n\
                   [-[no]anchor][-max-jump max_j][-[no]end-dist]\n\
                   [-lc1 loc][-lc2 loc]\n\
                   [-1 lang1][-2 lang2][-o name][-f1 freqs1][-f2 freqs2]\n\
-                  [-tmtext][-multipr d][-giza]\n\
+                  [-multipr d][-giza]\n\
                   ibm-model_lang2_given_lang1 ibm-model_lang1_given_lang2 \n\
                   file1_lang1 file1_lang2 ... fileN_lang1 fileN_lang2\n\
 \n\
@@ -42,10 +42,6 @@ Generate phrase translation tables from IBM or HMM models and a set of\n\
 line-aligned files. The models should be for p(lang2|lang1) and p(lang1|lang2)\n\
 respectively: <model1> should contain entries of the form 'lang1 lang2 prob',\n\
 and <model2> the reverse.\n\
-\n\
-The output format is determined by the output selection options (see below).\n\
-Multiple formats (TMText, multipr) are written if multiple format options are\n\
-specified.\n\
 \n\
 Options:\n\
 \n\
@@ -117,9 +113,6 @@ HMM only options:\n\
 \n\
 Output selection options (specify as many as you need):\n\
 \n\
--tmtext     Write TMText format phrase tables (delimited text files)\n\
-            <name>.<lang1>_given_<lang2> and <name>.<lang2>_given_<lang1>.\n\
-            [default if none of -tmtext, -multipr, -i, or -j is given]\n\
 -multipr d  Write text phrase table(s) with multiple probabilities: for each\n\
             phrase pair, one or more 'backward' probabilities followed by one\n\
             or more 'forward' probabilities (more than one when multiple\n\
@@ -183,7 +176,6 @@ static string freqs1;
 static string freqs2;
 static Uint ibm_num = 42; // 42 means uninitialized - ARG will set its value.
 static bool use_hmm = false;
-static bool tmtext_output = false;
 static string multipr_output = "";
 static bool compress_output = false;
 static Uint first_file_arg = 2;
@@ -289,8 +281,10 @@ public:
       mp_arg_reader->testAndSet("o", name);
       mp_arg_reader->testAndSet("f1", freqs1);
       mp_arg_reader->testAndSet("f2", freqs2);
-      mp_arg_reader->testAndSet("tmtext", tmtext_output);
       mp_arg_reader->testAndSet("multipr", multipr_output);
+
+      if (mp_arg_reader->getSwitch("tmtext"))
+         error(ETFatal, "-tmtext is obsolete");
 
       // initialize *_2 parameters from defaults if not explicitly set
       if (!p0_2) p0_2 = p0;
@@ -342,11 +336,6 @@ public:
          min_phrase_len2 = min_phrase_len.size() == 2 ? min_phrase_len[1] : min_phrase_len[0];
       }
 
-      if (!indiv_tables && !joint && !tmtext_output && multipr_output.empty()) {
-         // When no other global action is specified, do -tmtext.
-         tmtext_output = true;
-      }
-
       if (multipr_output != "" && multipr_output != "fwd" && multipr_output != "rev" &&
           multipr_output != "both")
          error(ETFatal, "Unknown value for -multipr switch: %s", multipr_output.c_str());
@@ -372,6 +361,9 @@ public:
          cout << (mp_arg_reader->numVars() - first_file_arg) << endl;
          exit(0);
       }
+
+      if (!indiv_tables && !joint && multipr_output.empty())
+         error(ETFatal, "No output requested");
    }
 };
 
@@ -434,8 +426,8 @@ void doEverything(const char* prog_name, ARG& args)
    }
 
 
-   IBM1* ibm_1=0;
-   IBM1* ibm_2=0;
+   IBM1* ibm_1 = NULL;
+   IBM1* ibm_2 = NULL;
 
    if (ibm_num == 0) {
       if (verbose) cerr << "**Not** loading IBM models" << endl;
@@ -461,11 +453,11 @@ void doEverything(const char* prog_name, ARG& args)
 
    CaseMapStrings cms1(lc1.c_str());
    CaseMapStrings cms2(lc2.c_str());
-   if (lc1 != "") {
+   if (lc1 != "" && ibm_num != 0) {
       ibm_1->getTTable().setSrcCaseMapping(&cms1);
       ibm_2->getTTable().setTgtCaseMapping(&cms1);
    }
-   if (lc2 != "") {
+   if (lc2 != "" && ibm_num != 0) {
       ibm_1->getTTable().setTgtCaseMapping(&cms2);
       ibm_2->getTTable().setSrcCaseMapping(&cms2);
    }
@@ -495,8 +487,8 @@ void doEverything(const char* prog_name, ARG& args)
    string alfile1, alfile2;
    Uint fpair = 0;
 
-   GizaAlignmentFile* al_1=0;
-   GizaAlignmentFile* al_2=0;
+   GizaAlignmentFile* al_1 = NULL;
+   GizaAlignmentFile* al_2 = NULL;
 
    WordAlignerStats stats;
 
@@ -512,23 +504,23 @@ void doEverything(const char* prog_name, ARG& args)
       iSafeMagicStream in2(in_f2);
 
       if (giza_alignment) {
-        arg+=2;
-        if (arg+1 >= args.numVars())
-          error(ETFatal, "Missing arguments: alignment files");
-        args.testAndSet(arg, "alfile1", alfile1);
-        args.testAndSet(arg+1, "alfile2", alfile2);
-        if (verbose)
-          cerr << "reading aligment files " << alfile1 << "/" << alfile2 << endl;
-        if (al_1) delete al_1;
-        al_1 = new GizaAlignmentFile(alfile1);
-        if (al_2) delete al_2;
-        al_2 = new GizaAlignmentFile(alfile2);
-        if (aligner_factory) delete aligner_factory;
-        aligner_factory = new WordAlignerFactory(al_1, al_2, verbose, twist, add_single_word_phrases);
+         arg+=2;
+         if (arg+1 >= args.numVars())
+            error(ETFatal, "Missing arguments: alignment files");
+         args.testAndSet(arg, "alfile1", alfile1);
+         args.testAndSet(arg+1, "alfile2", alfile2);
+         if (verbose)
+            cerr << "reading aligment files " << alfile1 << "/" << alfile2 << endl;
+         if (al_1) delete al_1;
+         al_1 = new GizaAlignmentFile(alfile1);
+         if (al_2) delete al_2;
+         al_2 = new GizaAlignmentFile(alfile2);
+         if (aligner_factory) delete aligner_factory;
+         aligner_factory = new WordAlignerFactory(al_1, al_2, verbose, twist, add_single_word_phrases);
 
-        aligners.clear();
-        for (Uint i = 0; i < align_methods.size(); ++i)
-          aligners.push_back(aligner_factory->createAligner(align_methods[i]));
+         aligners.clear();
+         for (Uint i = 0; i < align_methods.size(); ++i)
+            aligners.push_back(aligner_factory->createAligner(align_methods[i]));
       }
 
       Uint line_no = 0;
@@ -607,6 +599,8 @@ void doEverything(const char* prog_name, ARG& args)
       ++fpair;
    }
 
+   pt.remap_psep();
+
    if (verbose) stats.display(lang1, lang2, cerr);
 
    if (add_word_translations && ibm_1 && ibm_2) {
@@ -641,28 +635,12 @@ void doEverything(const char* prog_name, ARG& args)
    }
 
    if ( !indiv_tables ) {
-      if ( tmtext_output || multipr_output != "" ) {
+      if ( multipr_output != "" ) {
          if (verbose) cerr << "smoothing:" << endl;
 
          PhraseSmootherFactory<Uint> smoother_factory(&pt, ibm_1, ibm_2, smoothing_verbose);
          vector< PhraseSmoother<Uint>* > smoothers;
          smoother_factory.createSmoothersAndTally(smoothers, smoothing_methods);
-
-         if ( tmtext_output ) {
-            string filename;
-            filename = name + "." + lang2 + "_given_" + lang1 + z_ext;
-            {
-               if (verbose) cerr << "Writing " << filename << endl;
-               oSafeMagicStream ofs(filename);
-               dumpCondDistn(ofs, 1, pt, *smoothers[0], verbose);
-            }
-            filename = name + "." + lang1 + "_given_" + lang2 + z_ext;
-            {
-               if (verbose) cerr << "Writing " << filename << endl;
-               oSafeMagicStream ofs(filename);
-               dumpCondDistn(ofs, 2, pt, *smoothers[0], verbose);
-            }
-         }
 
          if (multipr_output == "fwd" || multipr_output == "both") {
             string filename = name + "." + lang1 + "2" + lang2 + z_ext;
@@ -676,7 +654,6 @@ void doEverything(const char* prog_name, ARG& args)
             oSafeMagicStream ofs(filename);
             dumpMultiProb(ofs, 2, pt, smoothers, verbose);
          }
-
       }
       if (joint)
          pt.dump_joint_freqs(cout);
@@ -692,6 +669,13 @@ void doEverything(const char* prog_name, ARG& args)
 
    if (verbose) cerr << "done" << endl;
 
+}
+
+static const string& remap(const string& s) {
+   if (s == PhraseTableBase::psep)
+      return PhraseTableBase::psep_replacement;
+   else
+      return s;
 }
 
 // Lang is source language for tt: 1 or 2.
@@ -712,13 +696,14 @@ void add_ibm1_translations(Uint lang, const TTable& tt, PhraseTable& pt,
          tt.getSourceDistnByDecrProb(*p, trans, probs);
          Uint num_added = 0;
          for (Uint i = 0; num_added < add_word_translations && i < trans.size(); ++i) {
-            if (tgt_word_voc.index(trans[i].c_str()) == tgt_word_voc.size())
+            if (tgt_word_voc.index(trans[i].c_str()) == tgt_word_voc.size()) {
                continue;
+            }
             if (lang == 1) {
-               if (os) (*os) << *p << " ||| " << trans[i] << " ||| " << 1 << endl;
+               if (os) (*os) << remap(*p) << " ||| " << remap(trans[i]) << " ||| " << 1 << endl;
                else pt.addPhrasePair(p, p+1, trans.begin()+i, trans.begin()+i+1);
             } else {
-               if (os) (*os) << trans[i] << " ||| " << *p << " ||| " << 1 << endl;
+               if (os) (*os) << remap(trans[i]) << " ||| " << remap(*p) << " ||| " << 1 << endl;
                else pt.addPhrasePair(trans.begin()+i, trans.begin()+i+1, p, p+1);
             }
             ++num_added;

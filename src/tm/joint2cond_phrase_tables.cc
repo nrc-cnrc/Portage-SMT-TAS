@@ -33,8 +33,8 @@ using namespace std;
 static char help_message[] = "\n\
 joint2cond_phrase_tables [-Hvijz][-[no-]sort][-1 l1][-2 l2][-o name][-s 'meth args']\n\
                          [-ibm n][-hmm][-ibm_l2_given_l1 m][-ibm_l1_given_l2 m]\n\
-                         [-prune1 n][-prune1w nw][-tmtext][-multipr d][-lc1 loc][-lc2 loc]\n\
-                         [-[no-]reduce-mem][jtable]\n\
+                         [-prune1 n][-prune1w nw][-multipr d]\n\
+                         [-lc1 loc][-lc2 loc] [-[no-]reduce-mem][jtable]\n\
 \n\
 Convert joint-frequency phrase table <jtable> (stdin if no <jtable> parameter\n\
 given) into two standard conditional-probability phrase tables\n\
@@ -74,16 +74,13 @@ Options:\n\
       (Compilation with ICU is required to use UTF-8 locales.)\n\
 -lc2  Do lowercase mapping of lang 2 words to match IBM/HMM models, using\n\
       locale <loc>, eg: C, en_US.UTF-8, fr_CA.88591 [don't map]\n\
--tmtext     Write TMText format phrase tables (delimited text files)\n\
-            <name>.<lang1>_given_<lang2> and <name>.<lang2>_given_<lang1>.\n\
-            [default if none of -j, -tmtext, -multipr is given]\n\
 -multipr d  Write text phrase table(s) with multiple probabilities: for each\n\
             phrase pair, one or more 'backward' probabilities followed by one\n\
             or more 'forward' probabilities (more than one when multiple\n\
             smoothing methods are selected). d may be one of 'fwd', 'rev', or\n\
             'both', to select: output <name>.<lang1>2<lang2>, the reverse, or\n\
             both directions.\n\
--force  Overwrite any existing files\n\
+-force      Overwrite any existing files\n\
 -[no-]reduce-mem  Reduce/don't reduce memory usage. Memory reduction is\n\
                   achieved by not keeping the phrase tables entirely in memory.\n\
                   This requires reading the jpt file multiple times, once for\n\
@@ -113,7 +110,6 @@ static string ibm_l2_given_l1;
 static string ibm_l1_given_l2;
 static string lc1;
 static string lc2;
-static bool tmtext_output = false;
 static string multipr_output = "";
 static bool force = false;
 static string in_file;
@@ -155,11 +151,6 @@ static void open_output_file(oMagicStream& ofs, string& filename) {
       error(ETFatal, "Unable to open %s for writing", filename.c_str());
 }
 
-static void open_cd_file(oMagicStream& ofs, string& name, string& lang1, string& lang2) {
-   string filename = makeFinalFileName(name + "." + lang2 + "_given_" + lang1);
-   open_output_file(ofs, filename);
-};
-
 static void open_mp_file(oMagicStream& ofs, string& name, string& lang1, string& lang2) {
    string filename = makeFinalFileName(name + "." + lang1 + "2" + lang2);
    if (sorted) {
@@ -174,10 +165,6 @@ template<class T>
 static void doEverything(const char* prog_name)
 {
    // Early error checking
-   if ( tmtext_output ) {
-      delete_or_error_if_exists(makeFinalFileName(name + "." + lang1 + "_given_" + lang2));
-      delete_or_error_if_exists(makeFinalFileName(name + "." + lang2 + "_given_" + lang1));
-   }
    if ( multipr_output == "fwd" || multipr_output == "both" )
       delete_or_error_if_exists(makeFinalFileName(name + "." + lang1 + "2" + lang2));
    if ( multipr_output == "rev" || multipr_output == "both" )
@@ -249,12 +236,6 @@ static void doEverything(const char* prog_name)
    if (verbose)
       cerr << "Read joint table and ran smoothers in " << (time(NULL) - start_time) << " seconds" << endl;
 
-   oMagicStream cd1_ofs, cd2_ofs;
-   if (tmtext_output) {
-      open_cd_file(cd1_ofs, name, lang1, lang2);
-      open_cd_file(cd2_ofs, name, lang2, lang1);
-   }
-
    oMagicStream mp_fwd_ofs, mp_rev_ofs;
    bool fwd = multipr_output == "fwd" || multipr_output == "both";
    if (fwd) {
@@ -266,34 +247,19 @@ static void doEverything(const char* prog_name)
    }
 
    Uint total = 0;
-   Uint cd1_non_zero = 0,  cd2_non_zero = 0;
    Uint mp_fwd_non_zero = 0,  mp_rev_non_zero = 0;
    start_time = time(NULL);
    for (typename PhraseTableGen<T>::iterator it(pt.begin()); it != pt.end(); ++it) {
-      if (tmtext_output) {
-         if (dumpCondDistn(cd1_ofs, 1, it, *smoothers[0], verbose)) ++cd1_non_zero;
-         if (dumpCondDistn(cd2_ofs, 2, it, *smoothers[0], verbose)) ++cd2_non_zero;
-      }
       if (fwd)
-         if (dumpMultiProb(mp_fwd_ofs, 1, it, smoothers, verbose)) ++mp_fwd_non_zero;
+         if (dumpMultiProb(mp_fwd_ofs, 1, it, smoothers, verbose))
+            ++mp_fwd_non_zero;
       if (rev)
-         if (dumpMultiProb(mp_rev_ofs, 2, it, smoothers, verbose)) ++mp_rev_non_zero;
+         if (dumpMultiProb(mp_rev_ofs, 2, it, smoothers, verbose))
+            ++mp_rev_non_zero;
       ++total;
    }
    if (verbose)
       cerr << "Wrote files in " << (time(NULL) - start_time) << " seconds" << endl;
-   if (tmtext_output) {
-      cd1_ofs.flush();
-      cd2_ofs.flush();
-      if (verbose) {
-         cerr << "dumped conditional distn 1: "
-              << cd1_non_zero << " non-zero prob phrase pairs of "
-              << total << " total phrase pairs" << endl;
-         cerr << "dumped conditional distn 2: "
-              << cd2_non_zero << " non-zero prob phrase pairs of "
-              << total << " total phrase pairs" << endl;
-      }
-   }
    if (fwd) {
       mp_fwd_ofs.flush();
       if (verbose)
@@ -343,7 +309,6 @@ static void getArgs(int argc, const char* const argv[])
    arg_reader.testAndSet("ibm_l1_given_l2", ibm_l1_given_l2);
    arg_reader.testAndSet("lc1", lc1);
    arg_reader.testAndSet("lc2", lc2);
-   arg_reader.testAndSet("tmtext", tmtext_output);
    arg_reader.testAndSet("multipr", multipr_output);
    arg_reader.testAndSet("force", force);
    arg_reader.testAndSetOrReset("sort", "no-sort", sorted);
@@ -352,6 +317,9 @@ static void getArgs(int argc, const char* const argv[])
 
    arg_reader.testAndSet(0, "jtable", in_file);
    if (in_file.empty()) in_file = "-";
+
+   if (arg_reader.getSwitch("tmtext"))
+      error(ETFatal, "-tmtext is obsolete");
 
    if ( (ibm_l2_given_l1 != "" || ibm_l1_given_l2 != "") &&
         ibm_num == 42 && !use_hmm ) {
@@ -372,8 +340,8 @@ static void getArgs(int argc, const char* const argv[])
    if (smoothing_methods.empty())
       smoothing_methods.push_back("RFSmoother");
 
-   if (!joint && !tmtext_output && multipr_output.empty())
-      tmtext_output = true;
+   if (!joint && multipr_output.empty())
+      error(ETFatal, "No output requested");
 
    if (multipr_output != "" && multipr_output != "fwd" && multipr_output != "rev" &&
        multipr_output != "both")

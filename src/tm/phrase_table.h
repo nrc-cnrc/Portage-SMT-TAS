@@ -164,6 +164,8 @@ private:
    /// noncopyable - disable assignment opeartor
    PhraseTableGen& operator=(const PhraseTableGen&);
 
+   void remap_psep_helper(Voc& voc, const string& sep, const string& replacement);
+
 public:
    /**
     *  iterator over contents (phrase pairs and joint frequencies).
@@ -368,6 +370,11 @@ public:
     */
    void readJointTable(istream& in, bool reduce_memory=false);
    void readJointTable(const string& infile, bool reduce_memory=false);
+
+   /**
+    * Remap psep so it doesn't get output as a token in the resulting phrase table.
+    */
+   void remap_psep();
 
    /**
     * Write contents to stream, filtering any pairs with freq < thresh (unless

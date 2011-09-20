@@ -42,20 +42,8 @@ class PhraseTableFilterGrep : public PhraseTableFilter {
       /// Destructor.
       virtual ~PhraseTableFilterGrep();
       
-      /**
-       * Given a phrase table in a file, filters it and output the filtered results to an another file.
-       * @param input     file name of the phrase table to be filtered
-       * @param output    file name of the filtered phrase table
-       * @param reversed  indicates if the phrase table's direction is reversed
-       */
-      void filterSingleProb(const string& input, const string& output, bool reversed);
-
       virtual bool processEntry(TargetPhraseTable* tgtTable, Entry& entry);
-      virtual void processSingleProb(const string& src_given_tgt_file, 
-         const string& backward_output,
-         const char *tgt_given_src_file = NULL,
-         const char* forward_output = NULL);
-      virtual Uint processMultiProb(const string& multi_prob_TM_filename, const string& filtered_output);
+      virtual Uint processMultiProb(const string& TM_filename, const string& filtered_output);
 
 }; // ends class PhraseTableFilterGrep
 }; // ends namespace Portage

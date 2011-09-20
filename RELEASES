@@ -46,6 +46,7 @@ v1.4.3 2011-09-??
  - Linking with TCMalloc, a fast memory allocator, is now supported.
  - gen_phrase_tables has better memory and performance behaviour on large
    training corpora.
+ - TPSA (Tightly Packed Suffix Array) generation now requires less memory.
  - lm_eval now optionally outputs per sentence log-prob or perplexity.
  - gen_phrase_tables/joint2cond_phrase_tables now support -prune1w:
    length-dependent phrase table pruning.
@@ -60,6 +61,11 @@ v1.4.3 2011-09-??
  - lzma is supported but no longer required.
  - Support multiple training file pairs in gen-jpt-parallel.sh.
  - wc_stats is now about 2.5 times faster.
+ - Removed obsolete single prob phrase table format (gen_phrase_tables -tmtext
+   and canoe -ttable-file*).
+ - canoe -h and -options output improved.
+ - canoe now has a -use-ftm switch to enable forward translation models with
+   default weights, instead of having to use -ftm with the right number of 1's.
 
  Minor bug fixes:
  - run-parallel.sh is now more stable (it would sometimes hang if the file
@@ -73,6 +79,8 @@ v1.4.3 2011-09-??
  - canoe -lattice output is now about 8 times more compact: recombined nodes
    were previously unecessarily expanded, now they are correctly kept as a
    single node in the lattice output.
+ - On rare occasions, the presence of ||| in the training corpus would cause an
+   invalid phrase table to be generated; this is now fixed.
 
 v1.4.2 2010-10-01
  This is a maintenance release.

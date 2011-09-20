@@ -151,40 +151,14 @@ void PhraseTable::openTPLDM(const char *lexicalized_dm_file)
    tpldmTables.push_back(p_tppt);
 }
 
-void PhraseTable::read(const char *src_given_tgt_file,
-                       const char *tgt_given_src_file,
-                       bool limitPhrases)
-{
-   readFile(src_given_tgt_file, src_given_tgt, limitPhrases);
-
-   ostringstream description;
-   description << "TranslationModel:" << src_given_tgt_file << endl;
-   backwardDescription += description.str();
-
-   if (tgt_given_src_file != NULL) {
-      readFile(tgt_given_src_file, tgt_given_src, limitPhrases);
-
-      ostringstream description;
-      description << "ForwardTranslationModel:" << tgt_given_src_file << endl;
-      forwardDescription += description.str();
-   }
-   else {
-      forwardsProbsAvailable = false;
-   }
-
-   ++numTextTransModels;
-   ++numTransModels;
-} // read
-
-
 TargetPhraseTable* PhraseTable::getTargetPhraseTable(const Entry& entry, Uint& src_word_count, bool limitPhrases)
 {
    TargetPhraseTable *tgtTable = NULL;
-   char* tokens[1000]; // 1000 word-long phrase is considered "infinite"
+   char* tokens[1000+1]; // 1000 word-long phrase is considered "infinite"
 
    // Tokenize source
-   // Destructive split: src becomes the memory holder for tokens.
-   src_word_count = split(entry.src, tokens, 1000, " ");
+   // Destructive split: src remains the memory holder for tokens.
+   src_word_count = split(entry.src, tokens, 1000+1, " ");
 
    if(!(src_word_count > 0)) {
       error(ETWarn, "\nSuspicious entry in %s, there is no source in: %s\n",
@@ -247,7 +221,7 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
    string prev_src;
    Uint prev_src_word_count = 0;
    TargetPhraseTable *tgtTable = NULL;
-   while (in.good())    // stop on EOF or error reading file.
+   while (in.good())
    {
       getline(in, line);
       if (line == "") continue;
@@ -255,10 +229,12 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
 
       // Look for two or three occurrences of |||.
       const string::size_type index1 = line.find(PHRASE_TABLE_SEP, 0);
-      const string::size_type index2 = line.find(PHRASE_TABLE_SEP, index1 + sep_len);
-      if (index2 == string::npos) {
+      if (index1 == string::npos)
          error(ETFatal, "Bad format in %s at line %d", file, entry.lineNum);
-      }
+      const string::size_type index2 = line.find(PHRASE_TABLE_SEP, index1 + sep_len);
+      if (index2 == string::npos)
+         error(ETFatal, "Bad format in %s at line %d", file, entry.lineNum);
+      const string::size_type index3 = line.find(PHRASE_TABLE_SEP, index2 + sep_len - 1);
 
       // Copy line into a buffer we can safely parse destructively.
       char line_buffer[line.size()+1];
@@ -266,29 +242,25 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
       entry.line = &line;
 
       line_buffer[index1] = '\0';
+      line_buffer[index2] = '\0';
+      if (index3 != string::npos)
+         line_buffer[index3] = line_buffer[index3+1] = '\0';
+
       entry.src        = trim(line_buffer, " ");
       // Canoe can't do anything with an empty source thus skip it.
       if (*entry.src == '\0') {
          error(ETWarn, "SKIPPING empty source at line %d while loading tm: %s\n", entry.lineNum, line.c_str());
          continue;
       }
-      line_buffer[index2] = '\0';
       entry.tgt        = trim(line_buffer + index1 + sep_len);
       entry.probString = trim(line_buffer + index2 + sep_len);
+      if (index3 != string::npos)
+         entry.ascoreString = trim(line_buffer + index3 + sep_len);
 
-      //boxing
-      const string::size_type index3 = line.find(PHRASE_TABLE_SEP, index2 + sep_len);
-
-      if (index3 != string::npos) {
-        line_buffer[index3] = '\0';
-        entry.ascoreString =  trim(line_buffer + index3 + sep_len);
-      }//boxing
-
-      if (entry.lineNum % 10000 == 0) {
+      if (entry.lineNum % 100000 == 0)
          cerr << '.' << flush;
-      }
 
-      if (d == tgt_given_src || d == multi_prob_reversed) {
+      if (d == multi_prob_reversed) {
          // Account for the order of phrases in the table
          std::swap(entry.src, entry.tgt);
       }
@@ -332,7 +304,7 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
 
    cerr << endl << entry.lineNum << " lines read, " << numKept << " entries kept.";
    if ( numFiltered > 0 )
-      cerr << endl << (numKept - numFiltered) << "entries remaining after filtering.";
+      cerr << endl << (numKept - numFiltered) << " entries remaining after filtering.";
    cerr << endl << "Done in " << (time(NULL) - start_time) << "s" << endl;
 
    if ( entry.zero_prob_err_count ) {
@@ -343,10 +315,6 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
 
    switch (d)
    {
-      case src_given_tgt:
-      case tgt_given_src:
-         return 1;
-         break;
       case multi_prob:
       case multi_prob_reversed:
          // Sometimes processing won't have counted columns - in that case we
@@ -406,10 +374,10 @@ bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
 
          if ( entry.lexicalized_distortion_prob_count > 0 ) {
 
-            char* lexdis_tokens[entry.lexicalized_distortion_prob_count];
+            char* lexdis_tokens[entry.lexicalized_distortion_prob_count+1];
             // fast, destructive split
             const Uint actual_lexdis_count = split(entry.probString,
-                                                   lexdis_tokens, entry.lexicalized_distortion_prob_count);
+                  lexdis_tokens, entry.lexicalized_distortion_prob_count+1);
             if ( actual_lexdis_count != entry.lexicalized_distortion_prob_count )
                error(ETFatal, "Wrong number of lexicalized distortion probabilities (%d instead of %d) in %s at line %d",
                      actual_lexdis_count, entry.lexicalized_distortion_prob_count, entry.file, entry.lineNum);
@@ -442,45 +410,6 @@ bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
             }
          }
        }//boxing
-   }
-   else if ( entry.d == src_given_tgt || entry.d == tgt_given_src ) {
-      // Determine probability for single-prob phrase table
-      float prob;
-      if (!conv(entry.probString, prob)) {
-         error(ETFatal, "Invalid number format (%s) in %s at line %d",
-               entry.probString, entry.file, entry.lineNum);
-      }
-
-      // Prevents against a bad phrase table.
-      if (!isfinite(prob)) {
-         error(ETWarn, "Invalid value of prob (%s) in %s at line %d",
-               entry.probString, entry.file, entry.lineNum);
-         prob = 0.0f;
-      }
-
-      // Get the vector of current probabilities
-      vector<float> *curProbs;
-      if (entry.d == src_given_tgt) {
-         curProbs = &( (*tgtTable)[entry.tgtPhrase].backward );
-      } else {
-         curProbs = &( (*tgtTable)[entry.tgtPhrase].forward );
-      }
-
-      if (curProbs->size() > numTextTransModels) {
-         error(ETWarn, "Entry %s ||| %s appears more than once in %s; new occurrence on line %d",
-               entry.src, entry.tgt, entry.file, entry.lineNum);
-      }
-      else {
-         //assert(curProbs->size() <= numTextTransModels);
-         curProbs->resize(numTextTransModels, ZERO);
-         if ( prob <= 0 ) {
-            curProbs->push_back(ZERO);
-            ++entry.zero_prob_err_count;
-         }
-         else {
-            curProbs->push_back(convertFromRead(prob));
-         }
-      }
    }
    else {
       // Determine probabilities for multi-prob phrase table, possibly with
@@ -537,6 +466,7 @@ bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
          forward_probs = &(probs[0]);
       }
       else {
+         assert(entry.d == multi_prob);
          backward_probs = &(probs[0]);
          forward_probs = &(probs[multi_prob_model_count]);
       }
@@ -571,10 +501,10 @@ bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
 
 
       if ( entry.adirectional_prob_count > 0 ) {
-         char* ascore_tokens[entry.adirectional_prob_count];
+         char* ascore_tokens[entry.adirectional_prob_count+1];
          // fast, destructive split
          const Uint actual_ascore_count = split(entry.ascoreString,
-               ascore_tokens, entry.adirectional_prob_count);
+               ascore_tokens, entry.adirectional_prob_count+1);
          if ( actual_ascore_count != entry.adirectional_prob_count )
             error(ETFatal, "Wrong number of adirectional probabilities (%d instead of %d) in %s at line %d",
                   actual_ascore_count, entry.adirectional_prob_count, entry.file, entry.lineNum);
@@ -778,16 +708,6 @@ void PhraseTable::tgtStringToPhrase(VectorPhrase& tgtPhrase, const char* tgtStri
 }
 
 
-void PhraseTable::write(ostream* src_given_tgt_out, ostream* tgt_given_src_out)
-{
-   // 9 digits is enough to keep all the precision of a float
-   if ( src_given_tgt_out ) src_given_tgt_out->precision(9);
-   if ( tgt_given_src_out ) tgt_given_src_out->precision(9);
-   vector<string> prefix;
-   write(src_given_tgt_out, tgt_given_src_out,
-         textTable.begin_children(), textTable.end_children(), prefix);
-} // write (public method)
-
 void PhraseTable::write(ostream& multi_src_given_tgt_out)
 {
    // 9 digits is enough to keep all the precision of a float
@@ -807,7 +727,7 @@ void PhraseTable::write(ostream& multi_src_given_tgt_out, const string& src,
          ++tgt_p) {
 
       // construct tgt phrase
-      string tgt(getStringPhrase(tgt_p->first));
+      const string tgt(getStringPhrase(tgt_p->first));
 
       // output
       multi_src_given_tgt_out << src << PHRASE_TABLE_SEP << tgt << PHRASE_TABLE_SEP;
@@ -826,12 +746,14 @@ void PhraseTable::write(ostream& multi_src_given_tgt_out, const string& src,
       }
 
       //boxing
-      if (tgt_p->second.adir.size() > 0) {
+      if ( numAdirTransModels > 0 || !tgt_p->second.adir.empty() ) {
          multi_src_given_tgt_out << PHRASE_TABLE_SEP;
 
-         for (Uint i = 0; i < tgt_p->second.adir.size(); ++i) {
+         for (Uint i = 0; i < tgt_p->second.adir.size(); ++i)
             multi_src_given_tgt_out << " " << convertToWrite(tgt_p->second.adir[i]);
-         }
+
+         for (Uint i(tgt_p->second.adir.size()); i < numAdirTransModels; ++i)
+            multi_src_given_tgt_out << " " << 0.0f;
       }//boxing
 
       multi_src_given_tgt_out << endl;
@@ -851,8 +773,7 @@ void PhraseTable::write(ostream& multi_src_given_tgt_out,
          // write contents of this node, if any
 
          // construct source phrase
-         string src;
-         join(prefix.begin(), prefix.end(), src);
+         string src = join(prefix);
 
          write(multi_src_given_tgt_out, src, it.get_value());
       }
@@ -865,73 +786,6 @@ void PhraseTable::write(ostream& multi_src_given_tgt_out,
       prefix.pop_back();
    }
 }
-
-void PhraseTable::write(ostream* src_given_tgt_out, ostream* tgt_given_src_out,
-                        PTrie<TargetPhraseTable>::iterator it,
-                        const PTrie<TargetPhraseTable>::iterator& end,
-                        vector<string>& prefix)
-{
-   for ( ; it != end; ++it ) {
-      prefix.push_back(tgtVocab.word(it.get_key()));
-
-      if ( it.is_leaf() ) {
-         // write contents of this node, if any
-
-         // construct source phrase
-         string src;
-         join(prefix.begin(), prefix.end(), src);
-
-         const TargetPhraseTable& tgt_phrase_table = it.get_value();
-         TargetPhraseTable::const_iterator tgt_p;
-         for ( tgt_p = tgt_phrase_table.begin();
-               tgt_p != tgt_phrase_table.end();
-               ++tgt_p) {
-
-            // construct tgt phrase
-            string tgt(getStringPhrase(tgt_p->first));
-
-            // output
-            if (src_given_tgt_out) {
-               (*src_given_tgt_out) << src << PHRASE_TABLE_SEP << tgt << PHRASE_TABLE_SEP;
-               for (Uint i = 0; i < tgt_p->second.backward.size(); ++i) {
-                  (*src_given_tgt_out) << convertToWrite(tgt_p->second.backward[i]);
-                  if (i+1 < tgt_p->second.backward.size()) (*src_given_tgt_out) << ":";
-               }
-               for (Uint i = tgt_p->second.backward.size(); i < numTextTransModels; ++i) {
-                  if (i > 0) (*src_given_tgt_out) << ":";
-                  (*src_given_tgt_out) << 0.0f;
-                  error(ETWarn, "Entry %s ||| %s missing from backward table",
-                        src.c_str(), tgt.c_str());
-               }
-               (*src_given_tgt_out) << endl;
-            }
-            if (tgt_given_src_out && forwardsProbsAvailable) {
-               (*tgt_given_src_out) << tgt << PHRASE_TABLE_SEP << src << PHRASE_TABLE_SEP;
-               for (Uint i = 0; i < tgt_p->second.forward.size(); ++i) {
-                  (*tgt_given_src_out) << convertToWrite(tgt_p->second.forward[i]);
-                  if (i+1 < tgt_p->second.forward.size()) (*tgt_given_src_out) << ":";
-               }
-               for (Uint i = tgt_p->second.forward.size(); i < numTextTransModels; ++i) {
-                  if (i > 0) (*tgt_given_src_out) << ":";
-                  (*tgt_given_src_out) << 0.0f;
-                  error(ETWarn, "Entry %s ||| %s missing from forward table",
-                     tgt.c_str(), src.c_str());
-               }
-               (*tgt_given_src_out) << endl;
-            }
-         }
-      }
-
-      if ( it.has_children() ) {
-         // recurse over children, if any
-         write(src_given_tgt_out, tgt_given_src_out,
-               it.begin_children(), it.end_children(), prefix);
-      }
-
-      prefix.pop_back();
-   }
-} // write (private recursive method)
-
 
 void PhraseTable::readLine(istream &in, string &ph1, string &ph2, string &prob,
    string &ascore, bool &blank, const char *fileName, Uint &lineNum)
@@ -946,31 +800,35 @@ void PhraseTable::readLine(istream &in, string &ph1, string &ph2, string &prob,
       blank = true;
    } else
    {
+      const Uint sep_len = strlen(PHRASE_TABLE_SEP);
       // Look for two or three occurrences of |||. //boxing
       lineNum++;
       const string::size_type index1 = line.find(PHRASE_TABLE_SEP, 0);
-      const string::size_type index2 = line.find(PHRASE_TABLE_SEP, index1 + strlen(PHRASE_TABLE_SEP));
+      const string::size_type index2 = line.find(PHRASE_TABLE_SEP, index1 + sep_len);
       if (index2 == string::npos)
       {
          error(ETFatal, "Bad format in %s at line %d", fileName, lineNum);
       } // if
       ph1 = line.substr(0, index1);
       trim(ph1, " ");
-      ph2 = line.substr(index1 + strlen(PHRASE_TABLE_SEP),
-                        index2 - index1 - strlen(PHRASE_TABLE_SEP));
+      ph2 = line.substr(index1 + sep_len,
+                        index2 - index1 - sep_len);
       trim(ph2, " ");
 
       //boxing
-      const string::size_type index3 = line.find(PHRASE_TABLE_SEP, index2 + strlen(PHRASE_TABLE_SEP));
+      const string::size_type index3 = line.find(PHRASE_TABLE_SEP, index2 + sep_len - 1);
       if (index3 == string::npos)
       {
-         prob = line.substr(index2 + strlen(PHRASE_TABLE_SEP));
+         prob = line.substr(index2 + sep_len);
          ascore = "";
       } else
       {
-         prob   = line.substr(index2 + strlen(PHRASE_TABLE_SEP),
-                              index3 - index2 - strlen(PHRASE_TABLE_SEP));
-         ascore = line.substr(index3 + strlen(PHRASE_TABLE_SEP));
+         if ( index3 > index2 + sep_len )
+            prob   = line.substr(index2 + sep_len,
+                                 index3 - index2 - sep_len);
+         else
+            prob = ""; // empty 3rd column
+         ascore = line.substr(index3 + sep_len);
       }
       trim(prob, " ");
       trim(ascore, " ");
@@ -1147,10 +1005,10 @@ shared_ptr<TargetPhraseTable> PhraseTable::findInAllTables(
       textTgtTable = NULL;
 
    if ( tpptTables.empty() && tpldmTables.empty() ) {
-      // If there are no TPPTs/TPLDMs, this function is a mere wrapper
-      // around textTable.find.  We use NullDeleter as the custom deleter for
-      // the returned shared_ptr, which does nothing and will therefore not
-      // affect the in memory phrase table.
+      // If there are no TPPTs/TPLDMs, this function is a mere wrapper around
+      // textTable.find().  We use NullDeleter as the custom deleter for the
+      // returned shared_ptr, which does nothing and will therefore not affect
+      // the in memory phrase table.
       return shared_ptr<TargetPhraseTable>(textTgtTable, NullDeleter());
    }
 
@@ -1353,32 +1211,22 @@ void PhraseTable::getPhrases(vector<pair<double, PhraseInfo *> > &phrases,
       if (pruningScore > logPruneThreshold)
       {
          // If it passes threshold pruning, add it to the vector phrases.
-         MultiTransPhraseInfo *newPI;
-         if (forward_weights || adir_weights || !tscore.lexdis.empty()) {
-            ForwardBackwardPhraseInfo* newFBPI = new ForwardBackwardPhraseInfo;
-            if ( forward_weights ) {
-               newFBPI->forward_trans_probs = tscore.forward;
-               newFBPI->forward_trans_prob =
-                  dotProduct(*forward_weights, tscore.forward, forward_weights->size());
-            }
-            else {
-               newFBPI->forward_trans_prob = 0;
-            }
+         ForwardBackwardPhraseInfo* newPI = new ForwardBackwardPhraseInfo;
+         if ( forward_weights ) {
+            newPI->forward_trans_probs = tscore.forward;
+            newPI->forward_trans_prob =
+               dotProduct(*forward_weights, tscore.forward, forward_weights->size());
+         } else
+            newPI->forward_trans_prob = 0;
 
-            if ( adir_weights ) {
-               newFBPI->adir_probs = tscore.adir; //boxing
-               newFBPI->adir_prob =
-                  dotProduct(*adir_weights, tscore.adir, adir_weights->size());   //boxing
-            }
-            else {
-               newFBPI->adir_prob = 0;
-            }
-            newFBPI->lexdis_probs = tscore.lexdis; //boxing
+         if ( adir_weights ) {
+            newPI->adir_probs = tscore.adir; //boxing
+            newPI->adir_prob =
+               dotProduct(*adir_weights, tscore.adir, adir_weights->size());   //boxing
+         } else
+            newPI->adir_prob = 0;
 
-            newPI = newFBPI;
-         } else {
-            newPI = new MultiTransPhraseInfo;
-         }
+         newPI->lexdis_probs = tscore.lexdis; //boxing
 
          newPI->src_words = src_words;
          newPI->phrase = it->first;

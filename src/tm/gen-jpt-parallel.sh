@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# @file gen-jpt-parallel.sh 
+# @file gen-jpt-parallel.sh
 # @brief generate a joint probability table in parallel.
 #
 # @author George Foster & Samuel Larkin
@@ -96,7 +96,7 @@ GPTARGS=($@)
 ALIGN_OPT=
 for ((i=0; i<${#GPTARGS[*]}; ++i)) {
    if [[ ${GPTARGS[$i]} =~ -v ]]; then
-   VERBOSE="-v"
+      VERBOSE="-v"
    fi
 }
 [[ $DEBUG ]] && echo "ALIGN_OPT=$ALIGN_OPT" >&2
@@ -187,8 +187,8 @@ test -f $CMDS_FILE && \rm -f $CMDS_FILE
 
 if [[ -n "$NW" ]]; then
    time {
-      zcat -f ${FILE1[@]} | get_voc > $WORKDIR/voc.1
-      zcat -f ${FILE2[@]} | get_voc > $WORKDIR/voc.2
+      zcat -f ${FILE1[@]} | get_voc | sed 's/^|||$/___|||___/' > $WORKDIR/voc.1
+      zcat -f ${FILE2[@]} | get_voc | sed 's/^|||$/___|||___/' > $WORKDIR/voc.2
    }
 fi
 
@@ -199,8 +199,8 @@ for src in `ls $WORKDIR/L1.*`; do
    if [[ -n "$NW" ]]; then
       WOPS="-w $NW -wf $WORKDIR/$suff.wp -wfvoc $WORKDIR/voc"
       time {
-      get_voc $src > $WORKDIR/$suff.voc.1
-      get_voc $tgt > $WORKDIR/$suff.voc.2
+         get_voc $src | sed 's/^|||$/___|||___/' > $WORKDIR/$suff.voc.1
+         get_voc $tgt | sed 's/^|||$/___|||___/' > $WORKDIR/$suff.voc.2
       }
    fi
    echo "test ! -f $src || ((set -o pipefail; gen_phrase_tables $WOPS -j ${GPTARGS[@]} $src $tgt | LC_ALL=C $SORT_DIR sort | gzip > $WORKDIR/$suff.jpt.gz) && mv $src $src.done)" >> $CMDS_FILE
@@ -220,35 +220,34 @@ fi
 
 
 # Merging parts
-MERGE_CMD="merge_multi_column_counts $ALIGN_OPT $OUTFILE $WORKDIR/*.jpt.gz $WPFILES"
-test $DEBUG && echo $MERGE_CMD >&2
+test $DEBUG && echo merge_multi_column_counts $ALIGN_OPT $OUTFILE $WORKDIR/*.jpt.gz >&2
 
 if [[ ! $NOTREALLY ]]; then
 
-    if [[ -n "$NW" ]]; then
+   if [[ -n "$NW" ]]; then
 
       time {
-       cat $WORKDIR/*.wp.1 | LC_ALL=C $SORT_DIR sort | LC_ALL=C uniq -c > $WORKDIR/wp-cnts.1
-       cat $WORKDIR/*.wp.2 | LC_ALL=C $SORT_DIR sort | LC_ALL=C uniq -c > $WORKDIR/wp-cnts.2
+         cat $WORKDIR/*.wp.1 | LC_ALL=C $SORT_DIR sort | LC_ALL=C uniq -c > $WORKDIR/wp-cnts.1
+         cat $WORKDIR/*.wp.2 | LC_ALL=C $SORT_DIR sort | LC_ALL=C uniq -c > $WORKDIR/wp-cnts.2
 
-       cat $WORKDIR/*.voc.1 | LC_ALL=C $SORT_DIR sort | LC_ALL=C uniq -c > $WORKDIR/voc-cnts.1
-       cat $WORKDIR/*.voc.2 | LC_ALL=C $SORT_DIR sort | LC_ALL=C uniq -c > $WORKDIR/voc-cnts.2
+         cat $WORKDIR/*.voc.1 | LC_ALL=C $SORT_DIR sort | LC_ALL=C uniq -c > $WORKDIR/voc-cnts.1
+         cat $WORKDIR/*.voc.2 | LC_ALL=C $SORT_DIR sort | LC_ALL=C uniq -c > $WORKDIR/voc-cnts.2
 
-       gen_jpt_filter_tool -l1 $WORKDIR/{voc-cnts,wp-cnts}.1 | LC_ALL=C $SORT_DIR sort | gzip > $WORKDIR/jpt.wp1.gz
-       gen_jpt_filter_tool -l2 $WORKDIR/{voc-cnts,wp-cnts}.2 | LC_ALL=C $SORT_DIR sort | gzip > $WORKDIR/jpt.wp2.gz
-        
-       WPFILES="$WORKDIR/jpt.wp1.gz $WORKDIR/jpt.wp2.gz"
-       }
-    fi
+         gen_jpt_filter_tool -l1 $WORKDIR/{voc-cnts,wp-cnts}.1 | LC_ALL=C $SORT_DIR sort | gzip > $WORKDIR/jpt.wp1.gz
+         gen_jpt_filter_tool -l2 $WORKDIR/{voc-cnts,wp-cnts}.2 | LC_ALL=C $SORT_DIR sort | gzip > $WORKDIR/jpt.wp2.gz
 
-    time {
-       eval "$MERGE_CMD"
-       RC=$?
-    }
-    if (( $RC != 0 )); then
-        echo "problems merging the joint frequencies (status=$RC) - quitting!" >&2
-        exit $RC
-    fi
+         WPFILES="$WORKDIR/jpt.wp1.gz $WORKDIR/jpt.wp2.gz"
+      }
+   fi
+
+   time {
+      eval "merge_multi_column_counts $ALIGN_OPT $OUTFILE $WORKDIR/*.jpt.gz $WPFILES"
+      RC=$?
+   }
+   if (( $RC != 0 )); then
+      echo "problems merging the joint frequencies (status=$RC) - quitting!" >&2
+      exit $RC
+   fi
 fi
 
 # Clean up.

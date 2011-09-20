@@ -94,12 +94,12 @@ public:
 
       // change the old token for the new token.
       TS_ASSERT(v.remap(1u, newToken));
-      TS_ASSERT_EQUALS(v.index(newToken), 1u);
+      TS_ASSERT_EQUALS(v.index(newToken), 3u); // EJJ remap is now partial: word(i), but not index(s)
       TS_ASSERT_RELATION(str_equal, v.word(1u), newToken);
       // Make sure no new words were added.
       TS_ASSERT_EQUALS(v.size(), 3u);
       // Make sure old token doesn't exists anymore.
-      TS_ASSERT_EQUALS(v.index(oldToken), 3u);
+      TS_ASSERT_EQUALS(v.index(oldToken), 1u); // EJJ remap is now partial: word(i), but not index(s)
    }
 
    // remapping old token.
@@ -118,12 +118,12 @@ public:
 
       // change the old token for new token.
       TS_ASSERT(v.remap(oldToken, newToken));
-      TS_ASSERT_EQUALS(v.index(newToken), 1u);
+      TS_ASSERT_EQUALS(v.index(newToken), 3u); // EJJ remap is now partial: word(i), but not index(s)
       TS_ASSERT_RELATION(str_equal, v.word(1u), newToken);
       // Make sure no new words were added.
       TS_ASSERT_EQUALS(v.size(), 3u);
       // Make sure old token doesn't exists anymore.
-      TS_ASSERT_EQUALS(v.index(oldToken), 3u);
+      TS_ASSERT_EQUALS(v.index(oldToken), 1u); // EJJ remap is now partial: word(i), but not index(s)
    }
 }; // TestVoc
 

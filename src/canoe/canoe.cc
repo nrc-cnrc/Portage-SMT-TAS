@@ -29,6 +29,7 @@
 #include "printCopyright.h"
 #include "logging.h"
 #include "errors.h"
+#include "arg_reader.h"
 #include "process_bind.h"
 #include <boost/optional/optional.hpp>
 
@@ -41,7 +42,7 @@ using boost::optional;
  * instead of separate files.
  */
 class OneFileInfo {
-   const bool append;              ///< Keeps track of the user request to make one file
+   const bool append;                  ///< Keeps track of the user request to make one file
    oSafeMagicStream* f_nbest;          ///< nbestlist Stream 
    oSafeMagicStream* f_ffvals;         ///< ffvals stream
    oSafeMagicStream* f_pal;            ///< pal stream

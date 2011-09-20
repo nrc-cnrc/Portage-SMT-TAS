@@ -15,19 +15,17 @@
 
 #include "new_src_sent_info.h"
 #include "inputparser.h"
-#include <iostream>
-#include <iomanip>
+#include "str_utils.h"
 #include <fstream>
-#include "file_utils.h"
 #include "arg_reader.h"
 #ifdef Darwin
 #include <libgen.h>
 #endif
-#include <string.h>
 #include "config_io.h"
 #include "logging.h"
 #include "lm.h"
 #include "tppt.h"
+#include "basicmodel.h"
 #include "printCopyright.h"
 
 using namespace Portage;
@@ -53,12 +51,9 @@ depending on <cmd>, one of:\n\
   nl                 - number of language models\n\
   nt                 - number of translation models\n\
   na                 - number of adirectional translation models\n\
-  nt-text            - number of single-prob text translation model files\n\
-  nt-tppt            - number of TPPT translation model files\n\
+  nt-tppt            - number of TPPT translation models\n\
   nd                 - number of distortion models\n\
   segff              - does model contain a segmentation model ff?\n\
-  ttable-file:i      - the ith pair of text phrase table names (backward\n\
-                       forward)\n\
   ttable-limit       - value of the ttable-limit parameter\n\
   memmap             - the total size of mem mapped models in MBs\n\
   rep-ttable-limit:v - a copy of <config>, with ttable-limit value replaced by v\n\
@@ -66,12 +61,6 @@ depending on <cmd>, one of:\n\
                        names\n\
   rep-ttable-files-local:s - a copy of <config>, with s appended to all\n\
                        phrasetable names, and their path stripped\n\
-  filt-ttables:s     - a copy of <config>, with: s appended to backwards\n\
-                       phrasetable names; forward phrasetable parameters\n\
-                       removed; and ttable-limit set to 0.\n\
-  filt-ttables-local:s - a copy of <config>, with: s appended to backwards\n\
-                       phrasetable names; their path stripped; forward phrase-\n\
-                       table parameters removed; and ttable-limit set to 0.\n\
   check              - check that all feature files can be read: write ok if\n\
                        so, otherwise list ones that can't\n\
   set-weights:rr     - A copy of <config>, with weights replaced by optimum\n\
@@ -83,18 +72,18 @@ depending on <cmd>, one of:\n\
                        'FileFF:ff,i w' for i = 1..N (num features in\n\
                        configfile), and w is the weight associated with the\n\
                        ith feature. Features are written in the same order\n\
-                       than canoe writes them to an ffvals file.\n\
-  rule:<file|->      - lists all rule classes from <file|->.\n\
-  rep-multi-prob:cpt - replace all multiprobs with cpt.\n\
+                       that canoe writes them to an ffvals file.\n\
+  rule:<file|->      - List all rule classes from <file|->.\n\
+  rep-multi-prob:cpt - Replace all multiprobs with cpt.\n\
   applied-weights:tppt:w-tm:w-ftm\n\
-                     - change the forward and backward weights to w-tm and w-ftm\n\
+                     - Change the forward and backward weights to w-tm and w-ftm\n\
                        respectively and replaces multi-probs for tppt.\n\
-  tp                 - Changes multiprobs, language models and lexicalized\n\
+  tp                 - Change multiprobs, language models and lexicalized\n\
                        distortion models to their tightly packed version for\n\
                        portageLive.\n\
-  list-lm            - Simply lists language models file names.\n\
-  list-ldm           - Simply lists lexicalized distortion models file names.\n\
-  list-tm            - Simply lists translation models file names.\n\
+  list-lm            - List language model file names.\n\
+  list-ldm           - List lexicalized distortion model file names.\n\
+  list-tm            - List all translation model file names.\n\
   args:<args>        - Apply canoe command-line arguments <args> to <config>, and\n\
                        write resulting new configuration.\n\
 \n\
@@ -195,23 +184,17 @@ int main(int argc, char* argv[])
    } else if (cmd == "nl") {
       os << c.lmFiles.size() << endl;
    } else if (cmd == "nt") {
-      os << (c.backPhraseFiles.size() +
-             c.getTotalMultiProbModelCount() +
+      os << (c.getTotalMultiProbModelCount() +
              c.getTotalTPPTModelCount()) << endl;
    } else if (cmd == "na") {
       os << c.getTotalAdirectionalModelCount() << endl;
    } else if (cmd == "nt-text") {
-      os << c.backPhraseFiles.size() << endl;
+      error(ETWarn, "Using obsolete command nt-text");
+      os << 0 << endl;
    } else if (cmd == "nt-tppt") {
       os << c.getTotalTPPTModelCount() << endl;
    } else if (isPrefix("ttable-file:", cmd)) {
-      if (split(cmd, toks, ":") != 2 || !conv(toks[1], vi))
-         error(ETFatal, "bad format for ttable-file command");
-      if (vi > c.backPhraseFiles.size() || vi == 0)
-         error(ETFatal, "bad ttable-file index");
-      os << c.backPhraseFiles[vi-1];
-      if (c.forPhraseFiles.size() > vi-1) os << " " << c.forPhraseFiles[vi-1];
-      os << endl;
+      error(ETFatal, "Using obsolete command ttable-file");
    } else if (cmd == "ttable-limit") {
       os << c.phraseTableSizeLimit << endl;
    } else if (isPrefix("rep-ttable-limit:", cmd)) {
@@ -222,42 +205,19 @@ int main(int argc, char* argv[])
    } else if (isPrefix("rep-ttable-files:", cmd)) {
       if (split(cmd, toks, ":") != 2)
          error(ETFatal, "bad format for rep-ttable-files command");
-      for (Uint i = 0; i < c.backPhraseFiles.size(); ++i)
-         c.backPhraseFiles[i] = addExtension(c.backPhraseFiles[i], toks[1]);
-      for (Uint i = 0; i < c.forPhraseFiles.size(); ++i)
-         c.forPhraseFiles[i] = addExtension(c.forPhraseFiles[i], toks[1]);
       for (Uint i = 0; i < c.multiProbTMFiles.size(); ++i)
          c.multiProbTMFiles[i] = addExtension(c.multiProbTMFiles[i], toks[1]);
       c.write(os,0,pretty);
    } else if (isPrefix("rep-ttable-files-local:", cmd)) {
       if (split(cmd, toks, ":") != 2)
          error(ETFatal, "bad format for rep-ttable-files command");
-      for (Uint i = 0; i < c.backPhraseFiles.size(); ++i)
-         c.backPhraseFiles[i] = addExtension(BaseName(c.backPhraseFiles[i].c_str()), toks[1]);
-      for (Uint i = 0; i < c.forPhraseFiles.size(); ++i)
-         c.forPhraseFiles[i] = addExtension(BaseName(c.forPhraseFiles[i].c_str()), toks[1]);
       for (Uint i = 0; i < c.multiProbTMFiles.size(); ++i)
          c.multiProbTMFiles[i] = addExtension(BaseName(c.multiProbTMFiles[i].c_str()), toks[1]);
       c.write(os,0,pretty);
    } else if (isPrefix("filt-ttables:", cmd)) {
-      if (split(cmd, toks, ":") != 2)
-         error(ETFatal, "bad format for filt-ttables command");
-      for (Uint i = 0; i < c.backPhraseFiles.size(); ++i)
-         c.backPhraseFiles[i] = addExtension(c.backPhraseFiles[i], toks[1]);
-      c.readStatus("ttable-file-t2s") = false;
-      c.readStatus("ttable-limit") = true;
-      c.phraseTableSizeLimit = 0;
-      c.write(os,0,pretty);
+      error(ETFatal, "Using obsolete command filt-ttables");
    } else if (isPrefix("filt-ttables-local:", cmd)) {
-      if (split(cmd, toks, ":") != 2)
-         error(ETFatal, "bad format for filt-ttables command");
-      for (Uint i = 0; i < c.backPhraseFiles.size(); ++i) {
-         c.backPhraseFiles[i] = addExtension(BaseName(c.backPhraseFiles[i].c_str()), toks[1]);
-      }
-      c.readStatus("ttable-file-t2s") = false;
-      c.readStatus("ttable-limit") = true;
-      c.phraseTableSizeLimit = 0;
-      c.write(os,0,pretty);
+      error(ETFatal, "Using obsolete command filt-ttables-local");
    } else if (isPrefix("set-weights:", cmd)) {
       if (split(cmd, toks, ":") != 2)
          error(ETFatal, "bad format for set-weights command");
@@ -276,6 +236,8 @@ int main(int argc, char* argv[])
       c.write(os,0,pretty);
    } else if (cmd == "check") {
       c.check_all_files(); // dies with error if any files is not readable
+      //cerr << "BMG constructor" << endl;
+      BasicModelGenerator bmg(c); // dies with error if any simple model is bad
       os << "ok" << endl;
    } else if (isPrefix("rescore-model:", cmd)) {
       if (split(cmd, toks, ":") != 2)
@@ -337,7 +299,7 @@ int main(int argc, char* argv[])
                      "this token sequence: %s",
                      nss_info.external_src_sent_id, nss_info.marks.size(),
                      (nss_info.marks.size() == 1 ? "" : "s"),
-                     joini(nss_info.src_sent.begin(), nss_info.src_sent.end()).c_str());
+                     join(nss_info.src_sent).c_str());
             else
                error(ETFatal, "Aborting because of ill-formed markup");
          }
@@ -348,16 +310,11 @@ int main(int argc, char* argv[])
          // Create a default weight vector.
          vector<float> weights(rule_classes_names.size(), 1.0f);
 
-         cout << "[rule-classes] ";
-         copy(rule_classes_names.begin(), rule_classes_names.end()-1, ostream_iterator<string>(cout, ":"));
-         cout << rule_classes_names.back() << endl;
-         cout << "[rule-weights] ";
-         copy(weights.begin(), weights.end()-1, ostream_iterator<float>(cout, ":"));
-         cout << weights.back() << endl;
+         cout << "[rule-classes] " << join(rule_classes_names, ":") << endl;
+         cout << "[rule-weights] " << join(weights, ":") << endl;
       }
    } else if (isPrefix("list-multi-probs", cmd)) {
-      copy(c.multiProbTMFiles.begin(), c.multiProbTMFiles.end(), ostream_iterator<string>(cout, " "));
-      cout << endl;
+      cout << join(c.multiProbTMFiles) << endl;
    } else if (isPrefix("rep-multi-prob:", cmd)) {
       if (split(cmd, toks, ":") != 2)
          error(ETFatal, "bad format for rep-multi-prob command");
@@ -406,8 +363,8 @@ int main(int argc, char* argv[])
       if (!c.tpptFiles.empty()) c.readStatus("ttable-tppt") = true;
 
       // Lexicalized Distortion Models.
-      for (Uint i=0; i<c.multiProbLDMFiles.size(); ++i) {
-         c.multiProbLDMFiles[i] = removeZipExtension(c.multiProbLDMFiles[i]) + ".tpldm";
+      for (Uint i=0; i<c.LDMFiles.size(); ++i) {
+         c.LDMFiles[i] = removeZipExtension(c.LDMFiles[i]) + ".tpldm";
       }
 
       // Language Models.
@@ -419,17 +376,13 @@ int main(int argc, char* argv[])
 
       c.write(os, 0, pretty);
    } else if (isPrefix("list-lm", cmd)) {
-      copy(c.lmFiles.begin(), c.lmFiles.end(), ostream_iterator<string>(cout, " "));
-      cout << endl;
+      cout << join(c.lmFiles) << endl;
    } else if (isPrefix("list-ldm", cmd)) {
-      copy(c.multiProbLDMFiles.begin(), c.multiProbLDMFiles.end(), ostream_iterator<string>(cout, " "));
-      cout << endl;
+      cout << join(c.LDMFiles) << endl;
    } else if (isPrefix("list-tm", cmd)) {
-      copy(c.forPhraseFiles.begin(), c.forPhraseFiles.end(), ostream_iterator<string>(cout, " "));
-      copy(c.backPhraseFiles.begin(), c.backPhraseFiles.end(), ostream_iterator<string>(cout, " "));
-      copy(c.multiProbTMFiles.begin(), c.multiProbTMFiles.end(), ostream_iterator<string>(cout, " "));
-      copy(c.tpptFiles.begin(), c.tpptFiles.end(), ostream_iterator<string>(cout, " "));
-      cout << endl;
+      vector<string> alltms(c.multiProbTMFiles);
+      alltms.insert(alltms.end(), c.tpptFiles.begin(), c.tpptFiles.end());
+      cout << join(alltms) << endl;
    } else
       error(ETFatal, "unknown command: %s", cmd.c_str());
 }

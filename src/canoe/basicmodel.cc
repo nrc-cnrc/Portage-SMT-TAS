@@ -23,6 +23,7 @@
 #include "errors.h"
 #include "randomDistribution.h"
 #include <math.h>
+#include <numeric> // for accumulate
 
 using namespace Portage;
 using namespace std;
@@ -47,7 +48,7 @@ Logging::logger bmgLogger(Logging::getLogger("debug.canoe.basicmodelgenerator"))
 void BasicModelGenerator::InitDecoderFeatures(const CanoeConfig& c)
 {
    if ( c.distortionModel.empty() )
-      cerr << "Not using any distortion model" << endl;
+      if (c.verbosity) cerr << "Not using any distortion model" << endl;
    for ( Uint i(0); i < c.distortionModel.size(); ++i ) {
       LOG_VERBOSE2(bmgLogger, "Creating a distortion model with >%s<",
          c.distortionModel[i].c_str());
@@ -164,36 +165,9 @@ BasicModelGenerator* BasicModelGenerator::create(
 
    LOG_VERBOSE1(bmgLogger, "Creating bmg - loading TMs");
 
-   // Load single prob phrase tables
-   for (Uint i = 0; i < c.backPhraseFiles.size(); ++i) {
-      if (!c.forPhraseFiles.empty()) {
-         if (!c.forwardWeights.empty()) {
-            result->addTranslationModel(c.backPhraseFiles[i].c_str(),
-                  c.forPhraseFiles[i].c_str(),
-                  c.transWeights[i], c.forwardWeights[i]);
-            if (c.randomWeights) {
-               result->random_forward_weight.push_back(c.rnd_forwardWeights.get(i));
-               result->random_trans_weight.push_back(c.rnd_transWeights.get(i));
-            }
-         } else {
-            result->addTranslationModel(c.backPhraseFiles[i].c_str(),
-                  c.forPhraseFiles[i].c_str(),
-                  c.transWeights[i]);
-            if (c.randomWeights) {
-               result->random_trans_weight.push_back(c.rnd_transWeights.get(i));
-            }
-         }
-      } else {
-         result->addTranslationModel(c.backPhraseFiles[i].c_str(),
-               c.transWeights[i]);
-         if (c.randomWeights) {
-            result->random_trans_weight.push_back(c.rnd_transWeights.get(i));
-         }
-      }
-   }
-
    // Load multi prob phrase tables
-   Uint weights_already_used = c.backPhraseFiles.size();
+   Uint weights_already_used = 0;
+   Uint adir_weights_already_used = 0;
    for ( Uint i = 0; i < c.multiProbTMFiles.size(); ++i ) {
       const Uint model_count =
          PhraseTable::countProbColumns(c.multiProbTMFiles[i].c_str()) / 2;
@@ -218,10 +192,10 @@ BasicModelGenerator* BasicModelGenerator::create(
       }
       //boxing
       if ( c.adirTransWeights.size() > 0 ) {
-         adir_weights.assign(c.adirTransWeights.begin() + weights_already_used,
-                             c.adirTransWeights.end() + weights_already_used);
+         adir_weights.assign(c.adirTransWeights.begin() + adir_weights_already_used,
+                             c.adirTransWeights.begin() + adir_weights_already_used + adir_model_count);
          for (Uint i(0); c.randomWeights && i<adir_model_count; ++i) {
-            const Uint index = weights_already_used + i;
+            const Uint index = adir_weights_already_used + i;
             result->random_adir_weight.push_back(c.rnd_adirTransWeights.get(index));
          }
       }//boxing
@@ -233,7 +207,9 @@ BasicModelGenerator* BasicModelGenerator::create(
          const Uint index = weights_already_used + i;
          result->random_trans_weight.push_back(c.rnd_transWeights.get(index));
       }
+
       weights_already_used += model_count;
+      adir_weights_already_used += adir_model_count;
    }
 
    // We load TPPTs last, with their weights after the multi-prob weights,
@@ -265,11 +241,12 @@ BasicModelGenerator* BasicModelGenerator::create(
    }
 
    assert ( weights_already_used == c.transWeights.size() );
+   assert ( adir_weights_already_used == c.adirTransWeights.size() );
 
-   //////////// loading DM
-   for ( Uint i = 0; i < c.multiProbLDMFiles.size(); ++i ) {
+   //////////// loading LDMs
+   for ( Uint i = 0; i < c.LDMFiles.size(); ++i ) {
 
-      const string ldm_filename = c.multiProbLDMFiles[i];
+      const string ldm_filename = c.LDMFiles[i];
 
       result->addLexDistModel(ldm_filename.c_str());
 
@@ -408,26 +385,6 @@ BasicModelGenerator::~BasicModelGenerator()
    }
 } // ~BasicModelGenerator
 
-void BasicModelGenerator::addTranslationModel(const char *src_to_tgt_file,
-        const char *tgt_to_src_file, double weight)
-{
-   phraseTable->read(src_to_tgt_file, tgt_to_src_file, limitPhrases);
-   transWeightsV.insert(transWeightsV.end(), weight);
-} // addTranslationModel
-
-void BasicModelGenerator::addTranslationModel(const char *src_to_tgt_file,
-        const char *tgt_to_src_file, double weight, double forward_weight)
-{
-   forwardWeightsV.insert(forwardWeightsV.end(), forward_weight);
-   addTranslationModel(src_to_tgt_file, tgt_to_src_file, weight);
-} // addTranslationModel
-
-void BasicModelGenerator::addTranslationModel(const char *src_to_tgt_file, double weight)
-{
-   addTranslationModel(src_to_tgt_file, NULL, weight);
-} // addTranslationModel
-
-
 void BasicModelGenerator::addMultiProbTransModel(
    const char *multi_prob_tm_file, vector<double> backward_weights,
    vector<double> forward_weights, vector<double> adir_weights)
@@ -547,7 +504,7 @@ string BasicModelGenerator::describeModel() const
 BasicModel *BasicModelGenerator::createModel(
    newSrcSentInfo& info, bool alwaysTryDefault)
 {
-   //LOG_VERBOSE2(bmgLogger, "Creating a model for: %s", join(src_sent, " ").c_str());
+   //LOG_VERBOSE2(bmgLogger, "Creating a model for: %s", join(src_sent).c_str());
 
    // make sure all class names are valid.
    const vector<MarkedTranslation>& marks = info.marks;
@@ -657,34 +614,27 @@ void BasicModelGenerator::addMarkedPhraseInfos(
 {
    // Compute the total weight on phrase translation models, in order to
    // denormalize the probabilities
-   double totalWeight = 0;
-   for ( vector<double>::const_iterator it = transWeightsV.begin();
-         it != transWeightsV.end(); ++it )
-      totalWeight += *it;
+   double totalWeight = accumulate(transWeightsV.begin(), transWeightsV.end(), 0.0);
+   double totalForwardWeight = accumulate(forwardWeightsV.begin(), forwardWeightsV.end(), 0.0);
+   double totalAdirWeight = accumulate(adirTransWeightsV.begin(), adirTransWeightsV.end(), 0.0);
 
    for ( vector<MarkedTranslation>::const_iterator it = marks.begin();
          it != marks.end(); it++)
    {
-      // Create a MultiTransPhraseInfo for each marked phrase
-      MultiTransPhraseInfo *newPI;
-      if ( ! forwardWeightsV.empty() ) {
-         ForwardBackwardPhraseInfo* newFBPI = new ForwardBackwardPhraseInfo;
-         newFBPI->forward_trans_prob =
-            (it->log_prob + addWeightMarked) * totalWeight;
-         newFBPI->forward_trans_probs.insert(newFBPI->forward_trans_probs.end(),
-            forwardWeightsV.size(), it->log_prob + addWeightMarked);
+      // Create a ForwardBackwardPhraseInfo for each marked phrase
+      ForwardBackwardPhraseInfo* newPI = new ForwardBackwardPhraseInfo;
+      newPI->forward_trans_prob =
+         (it->log_prob + addWeightMarked) * totalForwardWeight;
+      newPI->forward_trans_probs.insert(newPI->forward_trans_probs.end(),
+         forwardWeightsV.size(), it->log_prob + addWeightMarked);
 
-         //boxing
-         newFBPI->adir_prob =
-            (it->log_prob + addWeightMarked) * totalWeight;
-         newFBPI->adir_probs.insert(newFBPI->adir_probs.end(),
-            adirTransWeightsV.size(), it->log_prob + addWeightMarked);
-         //boxing
+      //boxing
+      newPI->adir_prob =
+         (it->log_prob + addWeightMarked) * totalAdirWeight;
+      newPI->adir_probs.insert(newPI->adir_probs.end(),
+         adirTransWeightsV.size(), it->log_prob + addWeightMarked);
+      //boxing
 
-         newPI = newFBPI;
-      } else {
-         newPI = new MultiTransPhraseInfo;
-      }
       newPI->src_words = it->src_words;
       newPI->phrase_trans_prob = (it->log_prob + addWeightMarked) * totalWeight;
       newPI->phrase_trans_probs.insert(newPI->phrase_trans_probs.end(),
@@ -713,29 +663,23 @@ void BasicModelGenerator::addMarkedPhraseInfos(
 PhraseInfo *BasicModelGenerator::makeNoTransPhraseInfo(
    const Range &range, const char *word)
 {
-   MultiTransPhraseInfo *newPI;
-   if ( ! forwardWeightsV.empty() ) {
-      ForwardBackwardPhraseInfo* newFBPI = new ForwardBackwardPhraseInfo;
-      newFBPI->forward_trans_probs.insert(newFBPI->forward_trans_probs.end(),
+   ForwardBackwardPhraseInfo* newPI = new ForwardBackwardPhraseInfo;
+   newPI->forward_trans_probs.insert(newPI->forward_trans_probs.end(),
          forwardWeightsV.size(), LOG_ALMOST_0);
-      newFBPI->forward_trans_prob = dotProduct(forwardWeightsV,
-         newFBPI->forward_trans_probs, forwardWeightsV.size());
+   newPI->forward_trans_prob = dotProduct(forwardWeightsV,
+         newPI->forward_trans_probs, forwardWeightsV.size());
 
-      newFBPI->adir_probs.insert(newFBPI->adir_probs.end(),       //boxing
-                        adirTransWeightsV.size(), LOG_ALMOST_0);  //boxing
-      newFBPI->adir_prob = dotProduct(adirTransWeightsV,               //boxing
-                        newFBPI->adir_probs, adirTransWeightsV.size());//boxing
+   newPI->adir_probs.insert(newPI->adir_probs.end(),    //boxing
+         adirTransWeightsV.size(), LOG_ALMOST_0);       //boxing
+   newPI->adir_prob = dotProduct(adirTransWeightsV,     //boxing
+         newPI->adir_probs, adirTransWeightsV.size());  //boxing
 
-      newPI = newFBPI;
-   } else {
-      newPI = new MultiTransPhraseInfo;
-   }
    newPI->src_words = range;
    newPI->phrase.push_back(tgt_vocab.add(word));
    newPI->phrase_trans_probs.insert(newPI->phrase_trans_probs.end(),
-      transWeightsV.size(), LOG_ALMOST_0);
+         transWeightsV.size(), LOG_ALMOST_0);
    newPI->phrase_trans_prob = dotProduct(newPI->phrase_trans_probs,
-      transWeightsV, transWeightsV.size());
+         transWeightsV, transWeightsV.size());
    return newPI;
 } // makeNoTransPhraseInfo
 
@@ -763,25 +707,11 @@ double **BasicModelGenerator::precomputeFutureScores(
          for ( vector<PhraseInfo*>::const_iterator it = phrases[j][i-j].begin();
                it != phrases[j][i - j].end(); ++it )
          {
-            // Translation score
-            double newScore = dotProduct(
-               ((MultiTransPhraseInfo *) *it)->phrase_trans_probs,
-               transWeightsV, transWeightsV.size());
-
-            //boxing
-
-            if (futureScoreUseFtm) {
-               newScore += dotProduct(
-                     ((ForwardBackwardPhraseInfo *) *it)->forward_trans_probs,
-                     forwardWeightsV, forwardWeightsV.size());
-            }
-            // Adirectional score
-            if (((ForwardBackwardPhraseInfo *) *it)->adir_probs.size() > 0
-               && adirTransWeightsV.size() > 0) {
-               assert(((ForwardBackwardPhraseInfo *) *it)->adir_probs.size() == adirTransWeightsV.size());
-               newScore += dotProduct(((ForwardBackwardPhraseInfo *) *it)->adir_probs,
-                     adirTransWeightsV, adirTransWeightsV.size());
-            }//boxing
+            ForwardBackwardPhraseInfo *FBPI = dynamic_cast<ForwardBackwardPhraseInfo*>(*it);
+            assert(FBPI);
+            double newScore = FBPI->phrase_trans_prob + FBPI->adir_prob;
+            if (futureScoreUseFtm)
+               newScore += FBPI->forward_trans_prob;
 
             // Add heuristic LM score
             if ( futureScoreLMHeuristic == LMH_UNIGRAM ) {
@@ -946,8 +876,8 @@ double BasicModelGenerator::dotProductLM(
 void BasicModelGenerator::getRawTrans(vector<double> &transVals,
         const PartialTranslation &trans)
 {
-   // This comes directly from the MultiTransPhraseInfo object.
-   MultiTransPhraseInfo *phrase = dynamic_cast<MultiTransPhraseInfo *>(trans.lastPhrase);
+   // This comes directly from the ForwardBackwardPhraseInfo object.
+   const ForwardBackwardPhraseInfo *phrase = dynamic_cast<const ForwardBackwardPhraseInfo *>(trans.lastPhrase);
    assert(phrase != NULL);
    transVals.insert(transVals.end(), phrase->phrase_trans_probs.begin(),
          phrase->phrase_trans_probs.end());
@@ -967,8 +897,8 @@ void BasicModelGenerator::getRawForwardTrans(vector<double> &forwardVals,
 
    // This comes from the ForwardBackwardPhraseInfo object, assuming
    // we have forward weights, as asserted above.
-   ForwardBackwardPhraseInfo *phrase =
-      dynamic_cast<ForwardBackwardPhraseInfo *>(trans.lastPhrase);
+   const ForwardBackwardPhraseInfo *phrase =
+      dynamic_cast<const ForwardBackwardPhraseInfo *>(trans.lastPhrase);
    assert(phrase != NULL);
    forwardVals.insert(forwardVals.end(), phrase->forward_trans_probs.begin(),
          phrase->forward_trans_probs.end());
@@ -981,8 +911,8 @@ double BasicModelGenerator::dotProductForwardTrans(const vector<double> &weights
 
    // This comes from the ForwardBackwardPhraseInfo object, assuming
    // we have forward weights, as checked above.
-   ForwardBackwardPhraseInfo *phrase =
-      dynamic_cast<ForwardBackwardPhraseInfo *>(trans.lastPhrase);
+   const ForwardBackwardPhraseInfo *phrase =
+      dynamic_cast<const ForwardBackwardPhraseInfo *>(trans.lastPhrase);
    assert(phrase != NULL);
    return phrase->forward_trans_prob;
 }
@@ -995,8 +925,8 @@ void BasicModelGenerator::getRawAdirTrans(vector<double> &adirVals,
 
    // This comes from the ForwardBackwardPhraseInfo object, assuming
    // we have adirectional weights, as asserted above.
-   ForwardBackwardPhraseInfo *phrase =
-      dynamic_cast<ForwardBackwardPhraseInfo *>(trans.lastPhrase);
+   const ForwardBackwardPhraseInfo *phrase =
+      dynamic_cast<const ForwardBackwardPhraseInfo *>(trans.lastPhrase);
    assert(phrase != NULL);
    adirVals.insert(adirVals.end(), phrase->adir_probs.begin(),
          phrase->adir_probs.end());
@@ -1010,8 +940,8 @@ double BasicModelGenerator::dotProductAdirTrans(const vector<double> &weights,
 
    // This comes from the ForwardBackwardPhraseInfo object, assuming
    // we have forward weights, as checked above.
-   ForwardBackwardPhraseInfo *phrase =
-      dynamic_cast<ForwardBackwardPhraseInfo *>(trans.lastPhrase);
+   const ForwardBackwardPhraseInfo *phrase =
+      dynamic_cast<const ForwardBackwardPhraseInfo *>(trans.lastPhrase);
    assert(phrase != NULL);
    return phrase->adir_prob;
 }
@@ -1021,19 +951,16 @@ void BasicModelGenerator::getRawFeatures(vector<double> &ffVals,
         const PartialTranslation &trans)
 {
    // The other features' weights come from their individual objects
-   ffVals.reserve(ffVals.size() + decoder_features.size());
-   for (Uint k = 0; k < decoder_features.size(); ++k) {
+   for (Uint k = 0; k < decoder_features.size(); ++k)
       ffVals.push_back(decoder_features[k]->score(trans));
-   }
 }
 
 double BasicModelGenerator::dotProductFeatures(const vector<double> &weights,
         const PartialTranslation &trans)
 {
    double result = 0.0;
-   for (Uint k = 0; k < decoder_features.size(); ++k) {
+   for (Uint k = 0; k < decoder_features.size(); ++k)
       result += decoder_features[k]->score(trans) * weights[k];
-   }
    return result;
 }
 
@@ -1245,7 +1172,7 @@ double BasicModel::scoreTranslation(const PartialTranslation &trans, Uint verbos
 double BasicModel::computeFutureScore(const PartialTranslation &trans)
 {
    // EJJ, Nov 2007:
-   // The distortion limit test is now done when considering candidate phrase,
+   // The distortion limit test is now done when considering candidate phrases,
    // so it is no longer necessary to do it again here.
 
    double precomputedScore = 0;
@@ -1261,10 +1188,9 @@ double BasicModel::computeFutureScore(const PartialTranslation &trans)
 
    // Other features
    double ffScore = 0;
-   for (Uint k = 0; k < parent.decoder_features.size(); ++k) {
+   for (Uint k = 0; k < parent.decoder_features.size(); ++k)
       ffScore += parent.decoder_features[k]->futureScore(trans)
                  * featureWeights[k];
-   }
 
    return precomputedScore + ffScore;
 } // computeFutureScore

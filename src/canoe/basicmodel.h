@@ -194,10 +194,9 @@ namespace Portage
       vector<double> lmWeightsV;
 
       /**
-       * Translation model weights.  If a mix of TM types are used, this
-       * vector contains first the text model weights (single and multi prob
-       * models in the order they were inserted, which should be single prob
-       * first, multi prob after), then the TPPT model weights.
+       * Translation model weights.  If a mix of TM types are used, this vector
+       * contains first the multi-prob model weights, then the TPPT model
+       * weights.
        */
       vector<double> transWeightsV;
 
@@ -272,7 +271,7 @@ namespace Portage
 
       //boxing
       /**
-       * @brief Get raw adirectinal translation models scores
+       * @brief Get raw adirectional translation model scores
        * @param adirVals      vector to which will be appended the scores
        * @param trans         partial translation to score
        */
@@ -337,7 +336,8 @@ namespace Portage
             const PartialTranslation &trans);
 
       /**
-       * @brief convert a phrase from vector<Uint> representation to string.
+       * Convert a phrase from vector<Uint> representation to string.
+       * Subclasses may override as needed to change the semantics of a phrase.
        * @param s         The string onto which the phrase is appended.
        * @param uPhrase   The phrase as a vector of Uint's.
        */
@@ -477,51 +477,6 @@ namespace Portage
 
    private:
       /**
-       * Add a text-based TM, with its forward probs used for pruning only.
-       *
-       * Adds a translation model, loaded from the given text files.  The
-       * tgt_to_src_file, if not NULL, is used to get forward probabilities,
-       * which are then used for pruning.  Note that the weight may be
-       * subsequently changed using the public instance variable
-       * transWeights.
-       * @param src_to_tgt_file   The backwards translation model file.
-       * @param tgt_to_src_file   The forwards translation model file, or
-       *                          NULL for none.
-       * @param weight            The weight for this model.
-       */
-      virtual void addTranslationModel(const char *src_to_tgt_file,
-            const char *tgt_to_src_file, double weight);
-
-      /**
-       * Add a text-based TM using forward and backward probs.
-       * Same as the 3-parameter
-       * BasicModelGenerator::addTranslationModel(const char
-       * *src_to_tgt_file, const char *tgt_to_src_file, double weight), but
-       * with forward weights, which will make the decoder use both the
-       * forward and the backward probabilities in the log-linear model,
-       * instead of only using forward probs for pruning the phrase tables.
-       * @param src_to_tgt_file   The backward translation model file
-       * @param tgt_to_src_file   The forward  translation model file
-       * @param weight            model's weight
-       * @param forward_weight    The forward weight for this model.
-       */
-      virtual void addTranslationModel(const char *src_to_tgt_file,
-            const char *tgt_to_src_file, double weight,
-            double forward_weight);
-
-      /**
-       * Add a text-based translation model without forward probs.
-       *
-       * Adds a translation model, loaded from the given text file.  Note
-       * that the weight may be subsequently changed using the public
-       * instance variable transWeights.
-       * @param src_to_tgt_file   The backwards translation model file.
-       * @param weight            The weight for this model.
-       */
-      virtual void addTranslationModel(const char *src_to_tgt_file,
-            double weight);
-
-      /**
        * Add a multi-probability translation model.
        * As with other "add TM" methods, weights can be subsequently changed
        * using transWeights.
@@ -587,6 +542,7 @@ namespace Portage
        * Extracts the vocabulary from the TPPTs.
        */
       void extractVocabFromTPPTs();
+
    public:
       /**
        * @brief describe the model in human readable format.
@@ -886,6 +842,7 @@ namespace Portage
        */
       virtual void getTotalFeatureFunctionVals(vector<double> &vals,
             const PartialTranslation &trans);
+
    }; // BasicModel
 
 } // Portage

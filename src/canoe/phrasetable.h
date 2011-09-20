@@ -41,20 +41,15 @@ namespace Portage
 class Voc;
 
 /// Token that seperates items in a phrase table
-extern const char *PHRASE_TABLE_SEP;
-
-
-/// PhraseInfo with probabilities from multiple phrase tables
-struct MultiTransPhraseInfo : public PhraseInfo
-{
-   /// Backward probabilities for this phrase
-   vector<float> phrase_trans_probs;
-}; // MultiTransPhraseInfo
+extern const char *PHRASE_TABLE_SEP; // = " ||| "
 
 
 /// PhraseInfo with forward and backward probs from multiple phrase tables
-struct ForwardBackwardPhraseInfo : public MultiTransPhraseInfo
+struct ForwardBackwardPhraseInfo : public PhraseInfo
 {
+   /// Backward probabilities for this phrase
+   vector<float> phrase_trans_probs;
+
    /// forward probability score
    double         forward_trans_prob;
    /// forward probabilities for this phrase
@@ -119,9 +114,9 @@ struct TScore
 
 /// Leaf structure for phrase tables: map target phrase to probs.
 class TargetPhraseTable : public vector_map<Phrase, TScore> {
-  private:
-     typedef vector_map<Phrase, TScore> Parent;
-  public:
+private:
+   typedef vector_map<Phrase, TScore> Parent;
+public:
    /// Set of input sentences in which the source phrase occurs.
    /// Only relevant in limitPhrases mode, will be empty otherwise.
    boost::dynamic_bitset<> input_sent_set;
@@ -302,32 +297,6 @@ public:
    void extractVocabFromTPPTs(Uint verbosity);
 
    /**
-    * Read a pair of phrase table files and stores the translations.
-    * The file contents should be of the standard
-    * "phrase_lang1 ||| phrase_lang2 ||| p(phrase_lang1 | phrase_lang2)".
-    * If the files cannot be opened or if this format is not followed, this
-    * function may terminate the execution with an error.  Note that it is not
-    * checked whether the same phrase mappings appear in the two files; if one
-    * appears in one file but not the other, the missing probability is
-    * assigned the value exp(log_almost_0).
-    * @param src_given_tgt_file The path of the phrase table file, with
-    *                           source phrases in the leftmost column.
-    *                           The probabilities here are what are
-    *                           actually used in decoding.
-    * @param tgt_given_src_file The path of the phrase table file, with
-    *                           target phrases in the leftmost column.
-    *                           The probabilities here may be used for pruning
-    *                           and/or as the forward probability score.
-    *                           This may be NULL, but then it is recommended
-    *                           that size-pruning not be done.
-    * @param limitPhrases       Whether to store all phrase translations or
-    *                           only those for source phrases that are already
-    *                           in the table.
-    */
-   virtual void read(const char *src_given_tgt_file, const char *tgt_given_src_file,
-                     bool limitPhrases);
-
-   /**
     * Determine if a multi-prob file name says it's reversed.
     * A normal multi-prob files has lines like:
     *    "src ||| tgt ||| backward_probs forward_probs"
@@ -422,14 +391,6 @@ public:
    virtual Uint readLexicalizedDist(const char* lexicalized_DM_filename, bool limitPhrases);
 
    /**
-    * Write the contents to backward and/or forward streams.
-    * @param src_given_tgt_out Pointer to backward stream; write nothing if null
-    * @param tgt_given_src_out Pointer to forward stream; write nothing if
-    * null, or if table doesn't contain forward probs.
-    */
-   void write(ostream* src_given_tgt_out, ostream* tgt_given_src_out);
-
-   /**
     * Write a multiprob translation table from the trie
     * @param  multi_src_given_tgt_out  opened stream to output multiprob TM
     */
@@ -449,7 +410,7 @@ public:
    /**
     * Adds all sentences to the VocabFilter object which will take care of
     * building structures needed for LM filtering based on per sentence vocab.
-    * @param  sentences  tokeninzed sentences to be added to the vocab.
+    * @param  sentences  tokenized sentences to be added to the vocab.
     */
    void addSourceSentences(const vector<vector<string> >& sentences);
 
@@ -488,7 +449,8 @@ public:
                        const vector<string> &sent,
                        const vector<double> &weights,
                        Uint pruneSize, double logPruneThreshold,
-                       const vector<Range> &rangesToSkip, Uint verbosity,
+                       const vector<Range> &rangesToSkip,
+                       Uint verbosity,
                        const vector<double> *forward_weights = NULL,
                        const vector<double> *adir_weights = NULL);
 
@@ -518,8 +480,6 @@ public:
 protected:
    /// Direction of phrase table to load
    enum dir {
-      src_given_tgt,         ///< src ||| tgt ||| p(src|tgt)
-      tgt_given_src,         ///< tgt ||| src ||| p(tgt|src)
       multi_prob,            ///< src ||| tgt ||| backward probs forward probs
       multi_prob_reversed,   ///< tgt ||| src ||| forward probs backward probs
       lexicalized_distortion ///< src ||| tgt ||| pm ps pd nm ns nd
@@ -572,7 +532,9 @@ protected:
       , lexicalized_distortion_prob_count(0)
       {}
       void print() const {
-         cerr << endl << "ENTRY: " << src << ", " << tgt << ", " << probString << ", " << ascoreString << ", " << tgtPhrase.size() << endl;
+         cerr << endl << "ENTRY: " << src << ", " << tgt << ", " << probString
+              << ", " << ascoreString << ", " << tgtPhrase.size();
+         cerr << endl;
       }
    };
 
@@ -594,8 +556,8 @@ protected:
     * Helper for readFile, with changing behaviour in filtering subclasses.
     * In this class, get the TargetPhraseTable object from the trie for the
     * phrase in Entry, creating it if limitPhrases is false.
-    * @param entry information about phrase table line being processed
-    * @param src_word_count  return the number of source words in entry.src.
+    * @param[in/out] entry  information about phrase table line being processed
+    * @param[out] entry.src_word_count  return the number of source words in entry.src.
     * @param limitPhrases whether to restrict the processing to phrases
     *                     pre-entered into the trie.
     */
@@ -630,19 +592,6 @@ protected:
     *         files.
     */
    Uint readFile(const char *file, dir d, bool limitPhrases);
-
-   /**
-    * Recursively write out all source phrases stored below a given trie node.
-    * @param src_given_tgt_out  output stream for backward probs
-    * @param tgt_given_src_out  output stream for forward probs
-    * @param it         iterator at the beginning of the current node to explore
-    * @param end        iterator at the end of the current node to explore
-    * @param prefix_stack  the source words of the parent nodes in trie
-    */
-   void write(ostream* src_given_tgt_out, ostream* tgt_given_src_out,
-              PTrie<TargetPhraseTable>::iterator it,
-              const PTrie<TargetPhraseTable>::iterator& end,
-              vector<string>& prefix_stack);
 
    /**
     * Recursively write out all source phrases stored below a given trie node.

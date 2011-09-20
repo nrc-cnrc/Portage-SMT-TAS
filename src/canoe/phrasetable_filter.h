@@ -60,19 +60,6 @@ class PhraseTableFilter : public PhraseTable {
       {}
 
       /**
-       * Takes care of single probs.
-       * @param src_given_tgt_file  backward input file
-       * @param backward_output     backward output file
-       * @param tgt_given_src_file  forward input file
-       * @param forward_output      forward output file
-       */
-      virtual void processSingleProb(const string& src_given_tgt_file, 
-         const string& backward_output,
-         const char *tgt_given_src_file = NULL,
-         const char* forward_output = NULL)
-      { Parent::read(src_given_tgt_file.c_str(), tgt_given_src_file, limitPhrases); }   
-
-      /**
        * Takes care of multi probs.
        * @param multi_prob_TM_filename  multi probs input file name
        * @param filtered_output  multi probs output file name.

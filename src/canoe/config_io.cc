@@ -14,6 +14,7 @@
  */
 
 #include "config_io.h"
+#include "arg_reader.h"
 #include "str_utils.h"
 #include "phrasetable.h"
 #include <iomanip>
@@ -77,7 +78,7 @@ struct distribution_grammar : public grammar<distribution_grammar>
    struct definition
    {
       /// Default constructor.
-      /// @param self  grammar object to be able to refere to it if needs be.
+      /// @param self  grammar object to be able to refer to it if needs be.
       definition(distribution_grammar const& self)
       {
          random   = normal | uniform | fix;
@@ -104,10 +105,8 @@ CanoeConfig::CanoeConfig()
    // those places).
 
    //configFile;
-   //forPhraseFiles;
-   //backPhraseFiles;
    //multiProbTMFiles;
-   //multiProbLDMFiles;
+   //LDMFiles;
    //tpptFiles;
    //lmFiles;
    lmOrder                = 0;
@@ -162,6 +161,7 @@ CanoeConfig::CanoeConfig()
    bCubePruning           = false;
    cubeLMHeuristic        = "incremental";
    futLMHeuristic         = "incremental";
+   useFtm                 = false;
    futScoreUseFtm         = true;
    final_cleanup          = false;  // for speed reason we don't normally delete the bmg
    bind_pid               = -1;
@@ -171,13 +171,9 @@ CanoeConfig::CanoeConfig()
    // parameters:
 
    param_infos.push_back(ParamInfo("config f", "string", &configFile));
-   param_infos.push_back(ParamInfo("ttable-file-t2s ttable-file-n2f", "stringVect", &forPhraseFiles,
-      ParamInfo::relative_path_modification | ParamInfo::check_file_name));
-   param_infos.push_back(ParamInfo("ttable-file-s2t ttable-file ttable-file-f2n", "stringVect", &backPhraseFiles,
-      ParamInfo::relative_path_modification | ParamInfo::check_file_name));
    param_infos.push_back(ParamInfo("ttable-multi-prob", "stringVect", &multiProbTMFiles,
       ParamInfo::relative_path_modification | ParamInfo::check_file_name));
-   param_infos.push_back(ParamInfo("lex-dist-model-file", "stringVect", &multiProbLDMFiles,
+   param_infos.push_back(ParamInfo("lex-dist-model-file", "stringVect", &LDMFiles,
       ParamInfo::relative_path_modification | ParamInfo::ldm_check_file_name));
    param_infos.push_back(ParamInfo("ttable-tppt", "stringVect", &tpptFiles,
       ParamInfo::relative_path_modification | ParamInfo::tppt_check_file_name));
@@ -243,7 +239,7 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("ffvals", "bool", &ffvals));
    param_infos.push_back(ParamInfo("masse", "bool", &masse));
    param_infos.push_back(ParamInfo("verbose v", "Uint", &verbosity));
-   param_infos.push_back(ParamInfo("lattice l", "lat", &latticeFilePrefix));
+   param_infos.push_back(ParamInfo("lattice", "lat", &latticeFilePrefix));
    param_infos.push_back(ParamInfo("nbest", "nb", &nbestFilePrefix));
    param_infos.push_back(ParamInfo("first-sentnum", "Uint", &firstSentNum));
    param_infos.push_back(ParamInfo("backwards", "bool", &backwards));
@@ -254,6 +250,7 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("cube-lm-heuristic", "string", &cubeLMHeuristic));
    param_infos.push_back(ParamInfo("future-score-lm-heuristic", "string", &futLMHeuristic));
    param_infos.push_back(ParamInfo("future-score-use-ftm", "bool", &futScoreUseFtm));
+   param_infos.push_back(ParamInfo("use-ftm", "bool", &useFtm));
    param_infos.push_back(ParamInfo("lb", "bool", &bLoadBalancing));
    param_infos.push_back(ParamInfo("ref", "string", &refFile,
       ParamInfo::relative_path_modification | ParamInfo::check_file_name));
@@ -263,7 +260,6 @@ CanoeConfig::CanoeConfig()
    // List of all parameters that correspond to weights. ORDER IS SIGNIFICANT
    // and must match the order in BasicModelGenerator::InitDecoderFeatures().
    // New entries should be added immediately before "lm".
-
    const char* weight_names[] = {
       "d", "w", "sm",
       "ibm1f", "lev", "ng", "ruw",
@@ -370,19 +366,18 @@ string CanoeConfig::ParamInfo::get(bool pretty) {
    } else if (tconv == "double") {
       ss << *(double*)val;
    } else if (tconv == "stringVect") {
-      string s;
       vector<string>& v = *(vector<string>*)val;
       if (pretty) {
          for (vector<string>::iterator it = v.begin(); it != v.end(); ++it)
             ss << "\n   " << *it;
       } else
-         ss << join(v.begin(), v.end(), s, ":");
+         ss << join(v, ":");
    } else if (tconv == "UintVect") {
       vector<Uint>& v = *(vector<Uint>*)val;
-      ss << join<Uint>(v.begin(), v.end(), ":");
+      ss << join(v, ":");
    } else if (tconv == "doubleVect") {
       vector<double>& v = *(vector<double>*)val;
-      ss << join<double>(v.begin(), v.end(), ":", precision);
+      ss << join(v, ":", precision);
    } else if (tconv == "lat") {   // lattice params
       ss << c->latticeFilePrefix;
    } else if (tconv == "nb") {   // nbest list params
@@ -577,27 +572,29 @@ void CanoeConfig::check()
       segWeight.push_back(1.0);
 
    if (ibm1FwdWeights.empty())
-      ibm1FwdWeights.insert(ibm1FwdWeights.end(), ibm1FwdFiles.size(), 1.0);
+      ibm1FwdWeights.resize(ibm1FwdFiles.size(), 1.0);
 
    if (lmWeights.empty())
-      lmWeights.insert(lmWeights.end(), lmFiles.size(), 1.0);
+      lmWeights.resize(lmFiles.size(), 1.0);
 
    const Uint multi_prob_model_count(getTotalMultiProbModelCount());
    const Uint multi_adir_model_count(getTotalAdirectionalModelCount()); //boxing
    const Uint tppt_model_count(getTotalTPPTModelCount());
 
    if (transWeights.empty())
-      transWeights.assign(backPhraseFiles.size() 
-                           + multi_prob_model_count + tppt_model_count,
-                          1.0);
+      transWeights.assign(multi_prob_model_count + tppt_model_count, 1.0);
+
+   if (forwardWeights.empty() && useFtm)
+      forwardWeights.assign(multi_prob_model_count + tppt_model_count, 1.0);
+
+   if (adirTransWeights.empty())
+      adirTransWeights.resize(multi_adir_model_count, 1.0);
 
    // Rule decoder feature
-   if (rule_weights.empty()) {
-      rule_weights.insert(rule_weights.end(), rule_classes.size(), 1.0f);
-   }
-   if (rule_log_zero.empty()) {
-      rule_log_zero.insert(rule_log_zero.end(), rule_classes.size(), phraseTableLogZero);
-   }
+   if (rule_weights.empty())
+      rule_weights.resize(rule_classes.size(), 1.0f);
+   if (rule_log_zero.empty())
+      rule_log_zero.resize(rule_classes.size(), phraseTableLogZero);
 
    ////////////////////////////////////////////////////////
    // ERRORS:
@@ -619,18 +616,19 @@ void CanoeConfig::check()
          existingBackLex = true;
    }
 
-   if (multiProbLDMFiles.empty() && (existingFwdLex || existingBackLex)){
+   if (LDMFiles.empty() && (existingFwdLex || existingBackLex))
       error(ETFatal, "No lexicalized distortion model file specified.");
-   }
-   if (!multiProbLDMFiles.empty() && (!existingFwdLex && !existingBackLex)){
+   if (!LDMFiles.empty() && (!existingFwdLex && !existingBackLex))
       error(ETFatal, "No lexicalized distortion model type [fwd-lex and|or back-lex] specified.");
-   }//boxing
+   if (LDMFiles.size() > 1)
+      error(ETFatal, "Support for multiple LDM files is not implemented.");
 
    if (lmFiles.empty())
       error(ETFatal, "No language model file specified.");
-   if (backPhraseFiles.empty() &&
-       multiProbTMFiles.empty() && tpptFiles.empty())
+   if (multiProbTMFiles.empty() && tpptFiles.empty())
       error(ETFatal, "No phrase table file specified.");
+   if (transWeights.empty())
+      error(ETFatal, "No translation model in the phrase table file(s) specified.");
 
    if (distWeight.size() != distortionModel.size())
       error(ETFatal, "Number of distortion models does not match number of distortion model weights.");
@@ -652,12 +650,10 @@ void CanoeConfig::check()
 
    if (lmWeights.size() != lmFiles.size())
       error(ETFatal, "Number of language model weights does not match number of language model files.");
-   if (transWeights.size() != backPhraseFiles.size() + multi_prob_model_count + tppt_model_count)
-      error(ETFatal, "Number of translation model weights does not match number of translation model files.");
-   if (forPhraseFiles.size() > 0 && forPhraseFiles.size() != backPhraseFiles.size())
-      error(ETFatal, "Number of forward translation models !=  number of backward translation model files.");
-   if (forwardWeights.size() > 0 && forwardWeights.size() != forPhraseFiles.size() + multi_prob_model_count + tppt_model_count)
-      error(ETFatal, "Number of forward translation model weights != number of (forward) translation model files.");
+   if (transWeights.size() != multi_prob_model_count + tppt_model_count)
+      error(ETFatal, "Number of translation model weights does not match number of translation models.");
+   if (forwardWeights.size() > 0 && forwardWeights.size() != multi_prob_model_count + tppt_model_count)
+      error(ETFatal, "Number of forward translation model weights != number of (forward) translation models.");
    if (adirTransWeights.size() != multi_adir_model_count) //boxing
       error(ETFatal, "Number of adirectional translation model weights != number of (adirectional) translation model files."); //boxing
 
@@ -670,10 +666,6 @@ void CanoeConfig::check()
 
    // if (bypassMarked && weightMarked)
    //   error(ETWarn, "Both -bypass-marked and -weight-marked found.  Only doing -bypass-marked");
-   if ( phraseTableSizeLimit != NO_SIZE_LIMIT && forPhraseFiles.empty() &&
-        multiProbTMFiles.empty() && tpptFiles.empty())
-      error(ETWarn, "Doing phrase table pruning without forward translation model.");
-
    if ( bCubePruning )
       if ( covLimit != 0 || covThreshold != 0.0 )
          error(ETWarn, "Coverage pruning is not implemented yet in the cube pruning decoder, ignoring -cov-* options.");
@@ -697,11 +689,9 @@ void CanoeConfig::check()
 
    // Unless load first is specified, you cannot mix and match tppt other text pt.
    if (!loadFirst) {
-      const bool isThereTMS = !forPhraseFiles.empty() 
-        || !backPhraseFiles.empty()
-        || !multiProbTMFiles.empty();
+      const bool isThereTMS = !multiProbTMFiles.empty();
       if (isThereTMS && !tpptFiles.empty())
-         error(ETFatal, "You cannot use TPPTs with other types of phrase tables unless you use -load-first.");
+         error(ETFatal, "You cannot mix and match TPPTs with other types of phrase tables unless you use -load-first.");
    }
 } //check()
 
@@ -717,12 +707,15 @@ void CanoeConfig::check_all_files() const
             vector<string>& v = *((vector<string>*)(it->val));
             for (vector<string>::const_iterator f(v.begin()); f!=v.end(); ++f) {
                if (f->find("<src>") < f->size()) continue;
-               if (!check_if_exists(*f)) {
-                  cerr << "Error: Can't access: " << *f << endl;
+               string physical_file_name = *f;
+               if (it->names[0] == "ttable-multi-prob")
+                  PhraseTable::isReversed(*f, &physical_file_name);
+               if (!check_if_exists(physical_file_name)) {
+                  cerr << "Error: Can't access: " << physical_file_name << endl;
                   ok = false;
-               } else if (is_directory(*f)) {
+               } else if (is_directory(physical_file_name)) {
                   cerr << "Error: Directory found when file expected for "
-                       << it->names[0] << " parameter: " << *f << endl;
+                       << it->names[0] << " parameter: " << physical_file_name << endl;
                   if (it->names[0] == "ttable-multi-prob")
                      cerr << "NOTE: use the ttable-tppt parameter to specify a TPPT directory." << endl;
                   ok = false;
@@ -893,7 +886,7 @@ void CanoeConfig::getFeatureWeights(vector<double>& weights) const
 
 void CanoeConfig::setFeatureWeights(const vector<double>& weights)
 {
-   // this is very dumb
+   // this is very dumb:
    vector<double> wts;
    getFeatureWeights(wts);
    if (weights.size() != wts.size())

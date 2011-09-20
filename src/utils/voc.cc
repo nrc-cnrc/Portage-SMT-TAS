@@ -172,11 +172,14 @@ bool Voc::remap(Uint index, const char* newToken) {
    // Obviously an invalid index.
    if (index >= words.size()) return false;
 
-   // This new token is already part of the vocabulary.
+   // If this new token is already part of the vocabulary and hasn't been
+   // itself remapped, refuse to do the remapping.
    MapIter it = map.find(newToken);
-   if (it != map.end()) return false;
+   if (it != map.end() && 0 == strcmp(words[it->second], newToken) )
+      return false;
 
-   // Get ride of the old token
+   /*
+   // Get rid of the old token
    map.erase(words[index]);
    delete[] words[index];
 
@@ -185,6 +188,15 @@ bool Voc::remap(Uint index, const char* newToken) {
    pair<MapIter, bool> res = map.insert(make_pair(w, index));
    assert(res.second);
    words[index] = w;
+   */
+
+   // EJJ - we only change the output string, not the search string: this
+   // behaviour may be weird, but gen_phrase_tables, the program for which
+   // remap() exists, has to alternate between recognizing the old string
+   // when converting to an index() and getting the new string when converting
+   // back from an index.
+   //delete [] words[index]; //memory leak: we still need the old string, for map, so we can't delete it now!
+   words[index] = strdup_new(newToken);
 
    return true;
 }

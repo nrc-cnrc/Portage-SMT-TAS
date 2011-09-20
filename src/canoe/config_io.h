@@ -16,14 +16,15 @@
 #define CONFIG_IO_H
 
 #include <map>
-#include <arg_reader.h>
-#include <canoe_general.h>
-#include <errors.h>
-#include <file_utils.h>
-#include <randomDistribution.h>
+#include "canoe_general.h"
+#include "errors.h"
+#include "file_utils.h"
 
 namespace Portage
 {
+
+class ArgReader; // No need to actually include arg_reader.h here.
+class rnd_distribution; // No need to actually include randomDistribution.h here.
 
 /**
  * @brief Class to represent and manipulate canoe's parameters.
@@ -103,23 +104,21 @@ public:
    // Parameters:
 
    string configFile;               ///< Name of the canoe config file
-   vector<string> forPhraseFiles;   ///< Forward phrase table file names
-   vector<string> backPhraseFiles;  ///< Backward phrase table file names
    vector<string> multiProbTMFiles; ///< Multi-prob phrase table file names
-   vector<string> multiProbLDMFiles;///< Multi-prob lexicalized distortion model file names
+   vector<string> LDMFiles;         ///< Lexicalized distortion model file names
    vector<string> tpptFiles;        ///< TPPT phrase table file names
    vector<string> lmFiles;          ///< Language model file names
    Uint lmOrder;                    ///< Maximum LM order (0 == no limit)
 
    // WEIGHTS
-   vector<double> distWeight;       ///< Distortion model weight
-   random_param rnd_distWeight;     ///< Distortion model weight
+   vector<double> distWeight;       ///< Distortion model weights
+   random_param rnd_distWeight;     ///< Distortion model weight distributions
    double lengthWeight;             ///< Length penalty weight
-   random_param rnd_lengthWeight;   ///< Length penalty weight
-   vector<double> segWeight;        ///< Segmentation model weight
-   random_param rnd_segWeight;      ///< Segmentation model weight
+   random_param rnd_lengthWeight;   ///< Length penalty weight distribution
+   vector<double> segWeight;        ///< Segmentation model weights
+   random_param rnd_segWeight;      ///< Segmentation model weight distributions
    vector<double> ibm1FwdWeights;   ///< Forward IBM1 feature weights
-   random_param rnd_ibm1FwdWeights; ///< Forward IBM1 feature weights
+   random_param rnd_ibm1FwdWeights; ///< Forward IBM1 feature weight distributions
    vector<double> levWeight;        ///< Weight for Levenshtein distance in forced alignment
    random_param rnd_levWeight;      ///< Weight for Levenshtein distance in forced alignment
    vector<double> ngramMatchWeights;///< Weight for n-gram precision in forced alignment
@@ -152,7 +151,7 @@ public:
    double covThreshold;             ///< Coverage pruning prob threshold
    int levLimit;                    ///< levenshtien limit
    int distLimit;                   ///< Distortion limit
-   bool distLimitExt;               ///< Allowed extended definition of dist limit
+   bool distLimitExt;               ///< Use the extended definition of dist limit
    bool distPhraseSwap;             ///< Allow swapping contiguous phrases
    vector<string> distortionModel;  ///< Distortion model name(s)
    string segmentationModel;        ///< Segmentation model name
@@ -182,6 +181,7 @@ public:
    bool bCubePruning;               ///< Run the cube pruning decoder
    string cubeLMHeuristic;          ///< What LM heuristic to use in cube pruning
    string futLMHeuristic;           ///< What LM heuristic to use when calculating future scores
+   bool useFtm;                     ///< Use FTMs even if no weights are given
    bool futScoreUseFtm;             ///< Whether to use forward translation probabilities to compute the future costs
    bool final_cleanup;              ///< Indicates if canoe should delete its bmg.
    int  bind_pid;                   ///< What pid to monitor.
@@ -225,7 +225,9 @@ public:
 
    /**
     * Check parameter values and die if not ok.  Must be called after setting
-    * parameters.  Also sets default weights if not specified.
+    * parameters because it applies various logical implications between
+    * options.  One of several rules applied is setting default weights as
+    * needed.
     */
    void check();
 

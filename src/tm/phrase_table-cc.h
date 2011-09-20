@@ -325,18 +325,36 @@ void PhraseTableGen<T>::dump_freqs_lang2(ostream& ostr)
 }
 
 template<class T>
-void PhraseTableGen<T>::dump_joint_freqs(ostream& ostr, T thresh, bool reverse, bool filt)
+void PhraseTableGen<T>::remap_psep_helper(Voc& voc, const string& token, const string& replacement)
+{
+   Uint sep_index = voc.index(token.c_str());
+   if (sep_index != voc.size()) {
+      if (voc.word(sep_index) == token) { // otherwise remap_psep() was already done!
+         if (voc.index(replacement.c_str()) != voc.size()) {
+            // replacement already exists, replace it too, recursively until there are no collisions.
+            remap_psep_helper(voc, replacement, "_" + replacement);
+         }
+         bool rc = voc.remap(token.c_str(), replacement.c_str());
+         assert(rc);
+      }
+   }
+}
+
+template<class T>
+void PhraseTableGen<T>::remap_psep()
 {
    // If for some odd reason the source corpora have ||| change it for ___|||___
-   if (wvoc1.index(psep.c_str()) != wvoc1.size()) {
-      wvoc1.remap(psep.c_str(), psep_replacement.c_str());
-   }
-   if (wvoc2.index(psep.c_str()) != wvoc2.size()) {
-      wvoc2.remap(psep.c_str(), psep_replacement.c_str());
-   }
+   remap_psep_helper(wvoc1, psep, psep_replacement);
+   remap_psep_helper(wvoc2, psep, psep_replacement);
+}
+
+template<class T>
+void PhraseTableGen<T>::dump_joint_freqs(ostream& ostr, T thresh, bool reverse, bool filt)
+{
+   remap_psep();
 
    string p1, p2;
-   for (iterator it = begin(); it != end(); ++it)
+   for (iterator it = begin(); it != end(); ++it) {
       if (!filt || it.getJointFreq() >= thresh) {
          it.getPhrase(1, p1);
          it.getPhrase(2, p2);
@@ -345,6 +363,7 @@ void PhraseTableGen<T>::dump_joint_freqs(ostream& ostr, T thresh, bool reverse, 
          else
             writePhrasePair(ostr, p2.c_str(), p1.c_str(), it.getJointFreq());
       }
+   }
 }
 
 template<class T>

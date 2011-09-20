@@ -32,7 +32,7 @@ class TestJoint2CondPhraseTable : public CxxTest::TestSuite
       string t;
       int cnt;
    };
-   
+
    static const string sep;
    static const string psep;
    static const struct jpt_data data[];
@@ -44,7 +44,7 @@ class TestJoint2CondPhraseTable : public CxxTest::TestSuite
    static const Uint pruned_data_length;
    static const double pruned_rf_pl1gl2[];
    static const double pruned_rf_pl2gl1[];
-      
+
    string makeDataStream(const struct jpt_data data[], Uint length)
    {
       ostringstream text;
@@ -53,20 +53,20 @@ class TestJoint2CondPhraseTable : public CxxTest::TestSuite
       }
       return text.str();
    };
-   
+
    istringstream *jpt_in;
-   
+
    void setUp()
    {
       jpt_in = new istringstream(makeDataStream(data, data_length), istringstream::in);
    };
-   
+
    void tearDown()
    {
       delete jpt_in;
    }
 
-   void initPhraseTableGen(PhraseTableGen<Uint>& ptg, bool reduce_memory, 
+   void initPhraseTableGen(PhraseTableGen<Uint>& ptg, bool reduce_memory,
                            Uint prune1, Uint prune1w, const char *name)
    {
       //cout << "-------- " << name << " reduce_memory: " << reduce_memory
@@ -112,8 +112,8 @@ class TestJoint2CondPhraseTable : public CxxTest::TestSuite
       TS_ASSERT_EQUALS(phrase2, expected[i].t);
       TS_ASSERT_EQUALS(count, expected[i].cnt);
    }
-   
-public:   
+
+public:
    void testReadJointTable(bool reduce_memory, Uint prune1=0, Uint prune1w=0)
    {
       const bool pruning = prune1 || prune1w;
@@ -130,17 +130,17 @@ public:
       for ( ; it != ptg.end(); ++it, ++i);
       TS_ASSERT_EQUALS(i, expected_len);
    }
-   
+
    void testReadJointTableNoReduceMemoryNoPruning()
    {
       testReadJointTable(false);
    }
-   
+
    void testReadJointTableReduceMemoryNoPruning()
    {
       testReadJointTable(true);
    }
-   
+
    void testReadJointTableNoReduceMemoryPruning()
    {
       testReadJointTable(false, prune);
@@ -150,7 +150,7 @@ public:
    {
       testReadJointTable(true, prune);
    }
-   
+
    void testReadJointTableNoReduceMemoryPerWordPruning()
    {
       testReadJointTable(false, 0, prune);
@@ -201,6 +201,16 @@ public:
    void testIteratorAssignmentAndCopyConstructionReduceMemoryPruning()
    {
       testIteratorAssignmentAndCopyConstruction(true, prune);
+   }
+
+   void testIteratorAssignmentAndCopyConstructionNoReduceMemoryPerWordPruning()
+   {
+      testIteratorAssignmentAndCopyConstruction(false, 0, prune);
+   }
+
+   void testIteratorAssignmentAndCopyConstructionReduceMemoryPerWordPruning()
+   {
+      testIteratorAssignmentAndCopyConstruction(true, 0, prune);
    }
 
    void testCreateSmootherAndTally(bool reduce_memory)
@@ -273,59 +283,14 @@ public:
       testCreateSmoothersAndTally(true, prune);
    }
 
-   void testDumpCondDistn(bool reduce_memory, Uint prune1=0, Uint prune1w=0)
+   void testCreateSmoothersAndTallyNoReduceMemoryPerWordPruning()
    {
-      const bool pruning = prune1 || prune1w;
-      PhraseTableGen<Uint> ptg;
-      initPhraseTableGen(ptg, reduce_memory, prune1, prune1w, "testDumpCondDistn");
-
-      vector< PhraseSmoother<Uint>* > smoothers;
-      createSmoothersAndTally(smoothers, ptg);
-
-      ostringstream out;
-      dumpCondDistn<Uint>(out, 1, ptg, *smoothers[0]);
-
-      ostringstream expected_out;
-      expected_out.precision(9);
-      Uint expected_length = pruning ? pruned_data_length : data_length;
-      const struct jpt_data *expected_data = pruning ? pruned_data : data;
-      const double *expected_pl2gl1 = pruning ? pruned_rf_pl2gl1 : rf_pl2gl1;
-      for (Uint i=0; i < expected_length; ++i) {
-         expected_out << expected_data[i].t << psep << expected_data[i].s
-                      << psep << expected_pl2gl1[i] << endl;
-      }
-      TS_ASSERT_EQUALS(out.str(), expected_out.str());
-
-      out.str("");
-      dumpCondDistn<Uint>(out, 2, ptg, *smoothers[0]);
-
-      expected_out.str("");
-      const double *expected_pl1gl2 = pruning ? pruned_rf_pl1gl2 : rf_pl1gl2;
-      for (Uint i=0; i < expected_length; ++i) {
-         expected_out << expected_data[i].s << psep << expected_data[i].t
-                      << psep << expected_pl1gl2[i] << endl;
-      }
-      TS_ASSERT_EQUALS(out.str(), expected_out.str());
+      testCreateSmoothersAndTally(false, 0, prune);
    }
 
-   void testDumpCondDistnNoReduceMemoryNoPruning()
+   void testCreateSmoothersAndTallyReduceMemoryPerWordPruning()
    {
-      testDumpCondDistn(false);
-   }
-
-   void testDumpCondDistnReduceMemoryNoPruning()
-   {
-      testDumpCondDistn(true);
-   }
-
-   void testDumpCondDistnNoReduceMemoryPruning()
-   {
-      testDumpCondDistn(false, prune);
-   }
-
-   void testDumpCondDistnReduceMemoryPruning()
-   {
-      testDumpCondDistn(true, prune);
+      testCreateSmoothersAndTally(true, 0, prune);
    }
 
    void testDumpMultiProb(bool reduce_memory, Uint prune1=0, Uint prune1w=0)
@@ -381,6 +346,16 @@ public:
    void testDumpMultiProbReduceMemoryPruning()
    {
       testDumpMultiProb(true, prune);
+   }
+
+   void testDumpMultiProbNoReduceMemoryPerWordPruning()
+   {
+      testDumpMultiProb(false, 0, prune);
+   }
+
+   void testDumpMultiProbReduceMemoryPerWordPruning()
+   {
+      testDumpMultiProb(true, 0, prune);
    }
 
 };

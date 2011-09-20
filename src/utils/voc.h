@@ -186,18 +186,27 @@ public:
    void swap(Voc& that);
 
    /**
-    * Remap an index id to some new token.
-    * @param index  index to remap.
-    * @param newToken new token for index.
-    * @return Returns false if index is invalid.
+    * Remap an index id to some new token.  Use with care, because remapping is
+    * partial: word(index) will become newToken, but index(newToken) will
+    * continue to be size(), while if oldToken was previously word(index), then
+    * index(oldToken) will continue to find index.
+    * @param  index  index to remap.
+    * @param  newToken new token for index.
+    * @return false if index is invalid or newToken already in voc and not
+    *         previously remapped.
     */
    bool remap(Uint index, const char* newToken);
 
    /**
-    * Remap some old token for a new one.
-    * @param oldToken old token to change.
-    * @param newToken new token to use.
-    * @return Returns false if oldToken is not found.
+    * Remap an index id to some new token.  Use with care, because remapping is
+    * partial: let index=index(oldToken); word(index) will become newToken, but
+    * index(newToken) will continue to be size(), while index(oldToken) will
+    * continue to find index.  Thus, afterwards, word(index(oldToken)) returns
+    * newToken.
+    * @param  oldToken old token to change.
+    * @param  newToken new token to use.
+    * @return false if oldToken is not found or newToken already in voc and not
+    *         previously remapped.
     */
    bool remap(const char* oldToken, const char* newToken);
 
