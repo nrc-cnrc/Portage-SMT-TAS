@@ -79,39 +79,92 @@ string& Portage::unParsePhraseAlign(const vector<PhrasePair>& phrase_pairs, stri
    return s = oss.str();
 }
 
-/// Callable entity to sort on source position in increasing order 
 struct CompareSourcePositions {
-   /**
-    * Compares two PhrasePair
-    * @param p1  left-hand side operand
-    * @param p2  right-hand side operand
-    * @return Returns true if the source position of p1 is before p2
-    */
    bool operator()(const PhrasePair& p1, const PhrasePair& p2) {
       return p1.src_pos.first < p2.src_pos.first;
    }
 };
 
-/// Callable entity to sort on target position in increasing order
 struct CompareTargetPositions {
-   /**
-    * Compares two PhrasePair
-    * @param p1  left-hand side operand
-    * @param p2  right-hand side operand
-    * @return Returns true if the target position of p1 is before p2
-    */
    bool operator()(const PhrasePair& p1, const PhrasePair& p2) {
       return p1.tgt_pos.first < p2.tgt_pos.first;
    }
 };
 
-void Portage::sortBySource(vector<PhrasePair>& phrase_pairs)
+void Portage::sortBySource(vector<PhrasePair>::iterator beg, 
+                           vector<PhrasePair>::iterator end)
 {
-   sort(phrase_pairs.begin(), phrase_pairs.end(), CompareSourcePositions());
+   sort(beg, end, CompareSourcePositions());
 }
 
-
-void Portage::sortByTarget(vector<PhrasePair>& phrase_pairs)
+void Portage::sortByTarget(vector<PhrasePair>::iterator beg,
+                           vector<PhrasePair>::iterator end) 
 {
-   sort(phrase_pairs.begin(), phrase_pairs.end(), CompareTargetPositions());
+   sort(beg, end, CompareTargetPositions());
+}
+
+bool Portage::sourceContig(vector<PhrasePair>::iterator beg, 
+                           vector<PhrasePair>::iterator end)
+{
+   for (vector<PhrasePair>::iterator p = beg+1; p < end; ++p)
+      if (p->src_pos.first != (p-1)->src_pos.second)
+         return false;
+   return true;
+}
+
+bool Portage::targetContig(vector<PhrasePair>::iterator beg, 
+                           vector<PhrasePair>::iterator end)
+{
+   for (vector<PhrasePair>::iterator p = beg+1; p < end; ++p)
+      if (p->tgt_pos.first != (p-1)->tgt_pos.second)
+         return false;
+   return true;
+}
+
+PalReader::PalReader(const string& srcfile, const string& outfile, const string& palfile,
+                     bool verbose) :
+   srcfile(srcfile), outfile(outfile), palfile(palfile),
+   src(srcfile), out(outfile), pal(palfile), 
+   output_is_nbest(false), n(1), i(0)
+{
+   if (srcfile == "-" || outfile == "-" || palfile == "-")
+      error(ETFatal, "error: can't read src/out/pal files from stdin");
+
+   Uint slines = countFileLines(srcfile);
+   Uint olines = countFileLines(outfile);
+   Uint plines = countFileLines(palfile);
+   n = plines / slines;
+   if (n != float(plines)/float(slines))
+      error(ETFatal, "number of lines in palfile %s must be an integer multiple of lines in srcfile %s", 
+            palfile.c_str(), srcfile.c_str());
+   if (olines == plines)
+      output_is_nbest = true;
+   else if (olines != slines)
+      error(ETFatal, "number of lines in outfile %s must match either srcfile %s or palfile %s", 
+            outfile.c_str(), srcfile.c_str(), palfile.c_str());
+
+   if (verbose) {
+      cerr << "reading source file " << srcfile << endl;
+      cerr << "reading output file " << outfile << ", with " 
+           << (output_is_nbest ? n : 1) << "-best hyps " << endl;
+      cerr << "reading phrase-alignment file " << palfile << ", with " 
+           << n << "-best alignments" << endl;
+   }
+}
+
+bool PalReader::readNext(string& srcline, string& outline, string &palline)
+{
+   if (i == n) i = 0;
+   if (i == 0)
+      if (!getline(src, srcline))
+         return false;
+   if (i == 0 || output_is_nbest)
+      if (!getline(out, outline))
+         error(ETFatal, "outfile %s is too short", outfile.c_str());
+   if (!getline(pal, palline))
+      error(ETFatal, "palfile %s is too short", palfile.c_str());
+
+   ++i;
+
+   return true;
 }

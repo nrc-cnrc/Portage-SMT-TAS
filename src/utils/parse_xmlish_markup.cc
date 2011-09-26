@@ -273,3 +273,16 @@ string& Portage::XMLunescape(const char buf[], string& dest, Uint buflen)
    }
    return dest;
 }
+
+bool Portage::findXMLishTag(const string& s, string::size_type beg, 
+             string::size_type& tbeg, string::size_type& tend)
+{
+   tbeg = s.find_first_of("<", beg);
+   if (tbeg == string::npos) 
+      return false;
+   tend = s.find_first_of(">", tbeg+1);
+   if (tend == string::npos)
+      return false;
+   ++tend;
+   return true;
+}

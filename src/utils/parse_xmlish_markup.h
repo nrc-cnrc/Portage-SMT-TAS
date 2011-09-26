@@ -93,7 +93,20 @@ struct XMLishTag
  */
 bool parseXMLishTag(const char buf[], XMLishTag& tag, Uint *beg, Uint* end);
 
+
 /**
+ * Find the next tag beginning at or after a given starting position in a
+ * string. A VERY simple version of parseXMLishTag.
+ * @param s the string
+ * @param beg place to start looking
+ * @param tbeg index of initial '<', if tag found
+ * @param tend index+1 of final '>', if tag found
+ * @return true if tag found
+*/
+bool findXMLishTag(const string& s, string::size_type beg, 
+                   string::size_type& tbeg, string::size_type& tend);
+
+/*
  * Replace XML special characters with escape codes.
  * @param buf string containined XML special characters
  * @param dest string with special characters escaped
