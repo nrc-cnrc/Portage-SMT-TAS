@@ -15,6 +15,7 @@ LIBRARY = libportage_preprocessing
 
 PROGRAMS = \
 	map_number \
+	markup_canoe_output \
 	sample_parallel_text \
 	ssal
 
