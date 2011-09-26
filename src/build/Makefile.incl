@@ -61,6 +61,7 @@ LIB_DIR := $(INSTALL_DIR)/lib
 BIN_DIR := $(INSTALL_DIR)/bin
 DATA_DIR := $(INSTALL_DIR)/data
 PERL_LIB_DIR := $(INSTALL_DIR)/lib
+PYTHON_LIB_DIR := $(INSTALL_DIR)/lib
 
 # If BOOST_ROOT is defined, pull boost from there
 ifdef BOOST_ROOT
@@ -121,7 +122,8 @@ LIBS = $(foreach DIR, $(LIB_LIST), -lportage_$(DIR)) \
        $(call fix_boost_lib_tag, ${GLOBAL_LIBS}) \
        $(call fix_boost_lib_tag, $(EXTRA_LIBS))
 
-ALLDYNLIBS = $(call fix_boost_lib_tag, ${DYNLIBS}) \
+ALLDYNLIBS = -Wl,-Bdynamic \
+             $(call fix_boost_lib_tag, ${DYNLIBS}) \
              $(call fix_boost_lib_tag, ${GLOBAL_DYNLIBS})
 
 # We used to disable logging by defining LOGGING=NONE, now we do so by defining
@@ -206,7 +208,7 @@ endif
 ifeq ($(OSTYPE),Darwin)
    LINKWITH = $(LIBS)
 else
-   LINKWITH = -Wl,-Bstatic $(LIBS) -Wl,-Bdynamic
+   LINKWITH = -Wl,-Bstatic $(LIBS)
 endif
 
 # -----------------------------------------------------------------------------
@@ -228,6 +230,9 @@ endif
 
 # Name of perl modules to install in LIB_DIR
 # PERL_LIBS =
+
+# Python modules to install in LIB_DIR
+# PYTHON_LIBS =
 
 # Programs for static linking with local libs. Each must have a corresponding
 # program.c or program.cc.
@@ -283,9 +288,10 @@ endif
 # -----------------------------------------------------------------------------
 
 
-.PHONY: new all clean lib dyn_lib bin TAGS tags info doxy \
+.PHONY: new all clean lib dyn_lib python_lib bin TAGS tags info doxy \
 	docs install export install_inc install_dyn_lib install_static_lib \
-	install_perl_lib install_bin install_doc test runcxxtest FORCE
+	install_perl_lib install_python_lib install_bin install_doc \
+	test runcxxtest FORCE
 
 # Override the default suffix list, to remove .sh.  (The make manual says .sh
 # is a cludge for the SCCS revision control system, which we don't use.)
@@ -294,14 +300,14 @@ endif
            .info .dvi .tex .texinfo .texi .txinfo .w .ch .web .elc .el .cpp
 
 # make everything that can be made, except doxy, which spews too many messages
-all: lib bin TAGS tags info test .cvsignore
+all: lib bin python_lib TAGS tags info test .cvsignore
 
 # make everything from scratch
 new: clean
 	$(MAKE) all
 
 # put everything where it belongs, as needed for using the software
-install: all install_perl_lib install_bin
+install: all install_perl_lib install_python_lib install_bin
 
 # put the include files and static libraries where they belong, as needed for
 # an external program using Portage libraries.
@@ -336,21 +342,17 @@ clean: clean_testrunners
 # make static and dynamic libraries
 lib: $(LIBRARY).a
 dyn_lib: $(LIBRARY).so
+$(LIBRARY).a: $(OBJECTS)
+ifdef LIBRARY
 ifneq ($(OSTYPE),Darwin)
-$(LIBRARY).a: $(OBJECTS)
-ifdef LIBRARY
 	$(AR) r $@ $?
-endif
-$(LIBRARY).so: $(OBJECTS)
-ifdef LIBRARY
-	$(CXX) -shared -o $(LIBRARY).so $(OBJECTS) $(LFLAGS) $(LIBS) $(ALLDYNLIBS)
-endif
 else
-$(LIBRARY).a: $(OBJECTS)
-ifdef LIBRARY
 	libtool -static -o $(LIBRARY).a $(OBJECTS)
 endif
-$(LIBRARY).so:
+endif
+$(LIBRARY).so: $(OBJECTS) $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).a)
+ifdef LIBRARY
+	$(CXX) -shared $(OPTS) -o $(LIBRARY).so $(OBJECTS) $(LFLAGS) $(LIBS) $(ALLDYNLIBS)
 endif
 
 # Compile and execute unit test suites, if any
@@ -492,6 +494,12 @@ $(DOCUMENTS): %.pdf: %.dvi
 	$(MYLATEX) $*
 endif
 
+python_lib: $(PYTHON_LIBS)
+
+# Compile python library module
+%.pyc: %.py
+	python -m compileall $<
+
 install_inc: $(INCLUDES)
 ifdef INCLUDES
 	install -d -m0750 $(INC_DIR)
@@ -500,10 +508,8 @@ endif
 
 install_dyn_lib: dyn_lib
 ifdef LIBRARY
-ifneq ($(OSTYPE),Darwin)
 	install -d -m0750 $(LIB_DIR)
 	install -p -m0750 $(LIBRARY).so $(LIB_DIR)
-endif
 endif
 
 install_static_lib: lib
@@ -559,6 +565,12 @@ install_perl_lib: $(PERL_LIBS)
 ifdef PERL_LIBS
 	install -d -m0750 $(PERL_LIB_DIR)
 	install -p -m0640 $(PERL_LIBS) $(PERL_LIB_DIR)
+endif
+
+install_python_lib: $(PYTHON_LIBS)
+ifdef PYTHON_LIBS
+	install -d -m0750 $(PYTHON_LIB_DIR)
+	install -p -m0640 $(PYTHON_LIBS) $(PYTHON_LIB_DIR)
 endif
 
 
