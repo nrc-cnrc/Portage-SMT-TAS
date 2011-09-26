@@ -95,6 +95,8 @@ PGM_WITH_ALTERNATIVE_HELP = plog.pl
 
 PERL_LIBS=portage_utils.pm
 
+PYTHON_LIBS=portage_utils.pyc
+
 # Tell Make to skip -lportage_utils, since we're building it here.
 NO_UTILS_LIB = true
 
