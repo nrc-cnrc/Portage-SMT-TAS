@@ -16,7 +16,7 @@
 # The PORTAGE environment variable points the the root of the Portage 1.4
 # package.
 # Change this variable to indicate where this package is actually located.
-PORTAGE=$HOME/Portage1.4.2
+PORTAGE=$HOME/Portage1.4.3
 
 # Extra dynamic libraries.  If you had to install dynamic libraries in custom
 # locations to get Portage 1.4 running, list the PATHs where the .so files
@@ -40,13 +40,15 @@ PORTAGE=$HOME/Portage1.4.2
 # END OF USER CONFIGURABLE VARIABLES
 # =======================================================================
 
-echo 'Portage 1.4.2, NRC-CNRC, (c) 2004 - 2010, Her Majesty in Right of Canada' >&2
+echo 'Portage 1.4.3, NRC-CNRC, (c) 2004 - 2011, Her Majesty in Right of Canada' >&2
 
 PATH=$PORTAGE/bin${PATH:+:$PATH}
 
 LD_LIBRARY_PATH=$PORTAGE/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
 
 PERL5LIB=$PORTAGE/lib${PERL5LIB:+:$PERL5LIB}
+
+PYTHONPATH=$PORTAGE/lib${PYTHONPATH:+:$PYTHONPATH}
 
 if [[ $PRECOMP_PORTAGE_ARCH ]]; then
    PATH=$PORTAGE/bin/$PRECOMP_PORTAGE_ARCH:$PATH
@@ -59,4 +61,4 @@ if [[ $EXTRA_DYNLIB_PATH ]]; then
    unset EXTRA_DYNLIB_PATH
 fi
 
-export PORTAGE PATH LD_LIBRARY_PATH PERL5LIB
+export PORTAGE PATH LD_LIBRARY_PATH PERL5LIB PYTHONPATH

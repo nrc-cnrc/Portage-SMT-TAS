@@ -16,7 +16,7 @@
 # The PORTAGE environment variable points the the root of the Portage 1.4
 # package.
 # Change this variable to indicate where this package is actually located.
-setenv PORTAGE $HOME/Portage1.4.2
+setenv PORTAGE $HOME/Portage1.4.3
 
 # Extra dynamic libraries.  If you had to install dynamic libraries in custom
 # locations to get Portage 1.4 running, list the PATHs where the .so files
@@ -40,7 +40,7 @@ setenv PORTAGE $HOME/Portage1.4.2
 # END OF USER CONFIGURABLE VARIABLES
 # =======================================================================
 
-echo 'Portage 1.4.2, NRC-CNRC, (c) 2004 - 2010, Her Majesty in Right of Canada' > /dev/stderr
+echo 'Portage 1.4.3, NRC-CNRC, (c) 2004 - 2011, Her Majesty in Right of Canada' > /dev/stderr
 
 if (! $?PATH) then
    setenv PATH $PORTAGE/bin
@@ -58,6 +58,12 @@ if (! $?PERL5LIB) then
    setenv PERL5LIB $PORTAGE/lib
 else
    setenv PERL5LIB $PORTAGE/lib:$PERL5LIB
+endif
+
+if (! $?PYTHONPATH) then
+   setenv PYTHONPATH $PORTAGE/lib
+else
+   setenv PYTHONPATH $PORTAGE/lib:$PYTHONPATH
 endif
 
 if (! $?CPLUS_INCLUDE_PATH) then
