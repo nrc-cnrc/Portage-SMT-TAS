@@ -1,16 +1,35 @@
-#!/usr/bin/perl -w
-
-# @file truecase.pl
-# @brief Truecaser.
+#!/usr/bin/env perl
+# $Id$
 #
-# @author Akakpo Agbago under supervision of George Foster
+# @file truecase.pl
+# @brief Script to truecase target language text.
+#
+# Two truecasing workflows are supported. The first (old) workflow involves
+# truecasing using just target language information to truecase the target 
+# text; the second (new) workflow involves additionaly using source language
+# information to improve the target text truecasing.
+#
+# In both workflows, the first step is to truecase the target language text 
+# using a target language truecasing language model and vocabulary map. The 
+# old workflow finishes with an optional step of very simple (and quite dumb) 
+# beginning-of-sentence capitalization.
+#
+# The new workflow, on the other hand, performs two additional steps.
+# It applies rules to transfer case information from the corresponding source
+# language text to the target language text (i.e. to case OOVs and handle
+# uppercase sequences). Finally, it applies beginning-of-sentence capitalization
+# using source language case information and examining the target language text
+# for sentence boundary markers.
+#
+# @author Rewritten by Darlene Stewart
+#         Original by Akakpo Agbago under supervision of George Foster
 #         with updates by Eric Joanis and Darlene Stewart
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2004, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2004, Her Majesty in Right of Canada
+# Copyright 2004, 2005, 2011, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2004, 2005, 2011, Her Majesty in Right of Canada
 
 use strict;
 use warnings;
@@ -24,212 +43,335 @@ BEGIN {
       unshift @INC, "$bin_path/../utils", $bin_path;
    }
 }
+
 use portage_utils;
 printCopyright("truecase.pl", 2004);
 $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
-
 use utf8;
-#use Getopt::Long::Configure('ignore_case');
+use File::Basename;
+
+use constant WITH_BASH => 1;
+
+# Note to programmer: Getopt::Long automatically accepts unambiguous
+# abbreviations for all options.
 use Getopt::Long;
-use portage_truecaselib;
 
-###############################################
-###### READING OF COMMAND LINE ARGUMENTS ######
-###############################################
+my $verbose = 0;
+my $debug = 0;
 
-my ($inputFile, $LMFile, $vocabCountFile, $vocabMapFile, $LMFileTitles,
-    $vocabMapFileTitles, $vocabCountFileTitles,
-    $unknownsMapFile, $lmOrder, $outputFile, $outputDir, $useLMOnlyFlag,
-    $cleanMarkupFlag, $forceNISTTitlesFUFlag, $useNISTTitleModelsFlag,
-    $tplm, $tppt,
-    $verbose, $uppercaseSentenceBeginFlag, $ucBOSEncoding, $help);
+Getopt::Long::GetOptions(
+   # Common flags
+   'help'            => sub { display_help(); exit 0 },
+   'v|verbose+'      => \$verbose,
+   'debug+'          => \$debug,
 
-if(! Getopt::Long::GetOptions(
+   # Input argument
+   'text=s'          => \my $in_file,     # target language text to truecase
+   'src=s'           => \my $src_file,    # truecased source language text
+   'pal=s'           => \my $pal_file,    # phrase alignments
 
-      # Input argument
-         'text=s'    => \$inputFile,
-
-      # Models arguments
-         'map=s'     => \$vocabMapFile,
-         'voc=s'     => \$vocabCountFile,
-         'lm=s'      => \$LMFile,
-         'unkmap=s'  => \$unknownsMapFile,
-         'lmorder=s' => \$lmOrder,
-         'tplm=s'    => \$tplm,
-         'tppt=s'    => \$tppt,
-
-      # Uppercasing encoding
-      # NOTE: --uppercaseBOS is no longer valid, but we explicitly check for it
-      #       in order to generate an informative error message.
-         'ucBOSEncoding=s' => \$ucBOSEncoding,
-         'uppercaseBOS!' => \$uppercaseSentenceBeginFlag,
+   # Models arguments
+   'lm=s'            => \my $lm_file,     # target language TC LM
+   'map=s'           => \my $map_file,    # target language TC vocab map
+   'tplm=s'          => \my $tplm,        # tightly packed target language TC LM
+   'tppt=s'          => \my $tppt,        # tightly packed TC phrase table
+   'lmorder=i'       => \my $lmOrder,     # LM order for target language TC LM
+   'srclm=s'         => \my $srclm_file,  # source language NC1 LM
       
-      # Flags
-         'useLMOnly!' => \$useLMOnlyFlag,
-         'cleanTags!'     => \$cleanMarkupFlag,
-         'uppercaseTitlesBOW!' => \$forceNISTTitlesFUFlag,
-         'useTitleModels!'     => \$useNISTTitleModelsFlag,
-         'verbose!'   => \$verbose,
+   # Flags for basic truecasing target language text using SRILM
+   'uselmonly!'      => \my $use_lmOnly,
+   'srilm!'          => \my $use_srilm,
+   'viterbi!'        => \my $use_viterbi,
 
-      # Output arguments
-         'out=s'      => \$outputFile,
-         'outDir=s'   => \$outputDir,
+   # Beginning-of-sentence capitalization and encoding
+   'bos!'            => \my $bos_cap,
+   'encoding=s'      => \my $encoding,
+   'srclang=s'       => \my $srclang,
+   'locale=s'        => \my $locale,
+   'ucBOSEncoding=s' => \my $ucBOSEncoding,  # deprecated
 
-      # Help
-         'help!'      => \$help,
-         ) )
+   "xtra-cm-opts=s"  => \my $xtra_cm_opts,   # extra options for casemark.py -r
+   "xtra-bos-opts=s" => \my $xtra_bos_opts,  # extra options for boscap.py
+
+   # Output arguments
+   'out=s'           => \my $out_file,
+)  or (print(STDERR "ERROR: truecase.pl aborted due to bad option.\nRun 'truecase.pl -h' for help.\n"), exit 1);
+
+@ARGV < (defined $in_file ? 1 : 2)
+   or die "ERROR: truecase.pl: too many arguments. Only one INPUT_FILE permitted.\n";
+$in_file = $ARGV[0] unless defined $in_file or @ARGV == 0;
+$in_file = '-' unless defined $in_file;
+
+if ($use_srilm) {
+   not defined $tplm and not defined $tppt
+      or die "ERROR: '-tplm' and '-tppt' cannot be used with '-srilm'.\n";
+   defined $lm_file or die "ERROR: LM must be specified using '-lm'.\n";
+   defined $map_file or defined $use_lmOnly 
+      or die "ERROR: MAP must be specified using '-map' or '-useLMOnly' must be used.\n";
+   not defined $map_file or not defined $use_lmOnly 
+      or die "ERROR: only one of '-map' or '-useLMOnly' can be used.\n";
+} else {
+   not defined $use_viterbi 
+      or die "ERROR: '-[no]viterbi' option can only be used with '-srilm'.\n";
+   not defined $use_lmOnly 
+      or die "ERROR: '-[no]useLMOnly' option can only be used with '-srilm'.\n";
+   defined $tplm or defined $lm_file 
+      or die "ERROR: LM must be specified using '-tplm' or '-lm'.\n";
+   not defined $tplm or not defined $lm_file 
+      or die "ERROR: only one of '-tplm' and '-lm' can be used.\n";
+   defined $tppt or defined $map_file 
+      or die "ERROR: MAP must be specified using '-tppt' or '-map'.\n";
+   not defined $tppt or not defined $map_file 
+      or die "ERROR: only one of '-tppt' and '-map' can be used.\n";
+   defined $tplm and defined $tppt or not defined $tplm and not defined $tppt
+      or die "ERROR: LM and MAP must both be tightly packed (use '-tplm' and '-tppt') ",
+             "or both not be tightly packed (use '-lm' and '-map').\n";
+}
+
+if (defined $ucBOSEncoding) {
+   warn "WARNING: '-ucBOSEncoding' is deprecated. Use '-bos' and '-encoding' instead!\n",
+        "Run 'truecase.pl -h' for help.\n";
+   not defined $src_file
+      or die "ERROR: '-ucBOSEncoding' option cannot be used with '-src'.\n";
+   not defined $bos_cap and not defined $encoding
+      or die "ERROR: '-ucBOSEncoding' option cannot be used with '-bos' or '-encoding'.\n";
+   $bos_cap = 1;
+   $encoding = $ucBOSEncoding;
+}
+
+if (defined $src_file) {
+   defined $pal_file
+      or die "ERROR: '-src' requires PAL_FILE to be specified with '-pal' option.\n";
+   defined $srclm_file
+      or die "ERROR: '-src' requires SRC_NC1_LM_FILE to be specified with '-srclm' option.\n";
+   if (defined $locale) {
+      not defined $srclang
+         or die "ERROR: '-srclang' option cannot be used with '-loc'.\n";
+      not defined $encoding
+         or die "ERROR: '-enc' option cannot be used with '-loc'.\n";
+      ($srclang, my $rest) = split(/_/, $locale, 2);
+      ($encoding) = split(/./, $rest, 2);
+   } else {
+      $srclang = "en" unless defined $srclang;
+      $encoding = "utf-8" unless defined $encoding;
+      $locale = "${srclang}_CA.${encoding}";
+   }
+   $xtra_cm_opts = "" unless defined $xtra_cm_opts;
+   $xtra_bos_opts = "" unless defined $xtra_bos_opts;
+} else {
+   not defined $pal_file
+      or die "ERROR: '-pal' option can only be used with '-src'.\n";
+   not defined $srclm_file
+      or die "ERROR: '-srclm' option can only be used with '-src'.\n";
+   not defined $locale
+      or die "ERROR: '-loc' option can only be used with '-src'.\n";
+   not defined $locale
+      or die "ERROR: '-srclang' option can only be used with '-src'.\n";
+   not defined $xtra_cm_opts
+      or die "ERROR: '-xtra_cm_opts' option can only be used with '-src'.\n";
+   not defined $xtra_bos_opts
+      or die "ERROR: '-xtra_bos_opts' option can only be used with both '-src' and '-bos'.\n";
+   $encoding = "utf-8" unless defined $encoding;
+}
+
+$bos_cap = 0 unless defined $bos_cap;
+$lmOrder = 3 unless defined $lmOrder;
+
+print STDERR "truecase.pl: truecasing '$in_file' starting\n" if $verbose;
+
+my @tmp_files = ();     # Temporary files collection
+my $tmp_txt = "tc_tmp_text_$$";
+
+# Establish that the output file can be written.
+$out_file = "" unless defined $out_file;
+if ($out_file) {
+   my $out_dir = dirname($out_file);
+   run("mkdir -p $out_dir");
+   run("echo '' > $out_file");
+}
+my $gz = substr($out_file, -3, 3) eq ".gz" ? ".gz" : ""; # output to be gzipped?
+my $gzip = $gz ? "| gzip" : "";
+
+# Step 1: Basic truecasing using target language TC LM and map
+my $cmd_part1;
+if ($use_srilm) { # using disambig
+   print STDERR "truecase.pl: using SRILM disambig",
+                ($use_viterbi ? " and viterbi.\n" : ".\n") if $verbose;
+   $cmd_part1 = "disambig -text $in_file -order $lmOrder -lm $lm_file"
+                . ($use_lmOnly ? "" : " -map $map_file")
+                . " -keep-unk"
+                . ($use_viterbi ? "" : " -fb");
+} else { # using canoe
+   my ($ttable_type, $ttable_file, $model_file);
+   if (defined $tplm) {
+      print STDERR "truecase.pl: using canoe with TPT.\n" if $verbose;
+      $ttable_type = "tppt";
+      $model_file = $tplm;
+      $ttable_file = $tppt;
+   } else {
+      print STDERR "truecase.pl: using canoe with on-the-fly phrase table.\n" if $verbose;
+      $ttable_type = "multi-prob";
+      $model_file = $lm_file;
+      $ttable_file = "tc_tmp_canoe_$$.tm";
+      push @tmp_files, $ttable_file;
+      convert_map_to_phrase_table($map_file, $ttable_file);
+   }
+   my $vb = $verbose > 1 ? $verbose - 1 : 0;
+   $cmd_part1 = "set -o pipefail; "
+                . "cat $in_file | canoe-escapes.pl -add "
+                . "| canoe -f /dev/null -v $vb -load-first"
+                . " -ttable-$ttable_type $ttable_file -lmodel-file $model_file"
+                . " -lmodel-order $lmOrder -ttable-limit 100 -stack 100"
+                . " -ftm 1.0  -lm 2.302585 -tm 0.0 -distortion-limit 0";
+}
+my $bos = $bos_cap && !defined $src_file ? 
+          "BEGIN{use encoding q{$encoding}} print ucfirst" : "print";
+my $tc_file = defined $src_file ? "${tmp_txt}.tc$gz" : $out_file;
+(push @tmp_files, $tc_file) if defined $src_file;
+my $cmd = $cmd_part1
+          . " | perl -n -e 's/^<s>\\s*//o; s/\\s*<\\/s>[ ]*//o; ${bos};'"
+          . ($tc_file ? " $gzip > $tc_file" : "");
+run($cmd, WITH_BASH);
+
+# At this point we are done if we are just doing basic truecasing based on
+# target language knowledge.
+
+my $v = ($verbose > 1) ? "-v" : "";
+my $d = ($debug > 1) ? "-d" : "";
+
+if (defined $src_file) {
+   # Step 2: Normalize the case of sentence-initial characters in the source text.
+   # (needed by steps 3 and 4).
+   my $nc1_file = "${tmp_txt}.nc1$gz";
+   my $nc1ss_file = "${tmp_txt}.nc1ss$gz";
+   push @tmp_files, $nc1_file, $nc1ss_file;
+   my $tee_file = $gz ? ">(gzip > $nc1ss_file)" : "$nc1ss_file";
+   run("normc1 $v -ignore 1 -extended -notitle -loc $locale $srclm_file $src_file "
+       . "| tee $tee_file "
+       . "| perl -pe 's/(.)\$/\$1 /; s/(.)\\n/\$1/' "
+       . "$gzip > $nc1_file", WITH_BASH);
+   my $palz = substr($pal_file, -3, 3) eq ".gz" ? "z" : "";
+   my $pal_lc = run_with_output($palz . "cat $pal_file | wc -l");
+   my $nc1ss_lc = run_with_output(($gz ? "z" : "") . "cat $nc1ss_file | wc -l");
+   $nc1_file = $nc1ss_file if $nc1ss_lc == $pal_lc;
+
+   # Step 3: Transfer case from source language to target language text.
+   my $cmark_file = "${tmp_txt}.cmark$gz";
+   my $cmark_out_file = "${tmp_txt}.cmark.out$gz";
+   my $cmark_log_file = "${tmp_txt}.cmark.log";
+   push @tmp_files, $cmark_file, $cmark_out_file, $cmark_log_file;
+   my $cmark_tc_file = $bos_cap ? "${tmp_txt}.cmark.tc$gz" : $out_file;
+   (push @tmp_files, $cmark_tc_file) if defined $bos_cap;
+   # Preload the C++ standard library to ensure that C++ exceptions and I/O 
+   # are properly initialized when calling a C++ shared library from Python.
+   my $ld_preload = "LD_PRELOAD=libstdc++.so:\$LD_PRELOAD";
+   run("$ld_preload casemark.py $v $d -a -lm $srclm_file -enc $encoding $nc1_file $cmark_file", WITH_BASH);
+   run("markup_canoe_output $v -n OOV $cmark_file $tc_file $pal_file "
+       . "2> $cmark_log_file $gzip > $cmark_out_file");
+   run("casemark.py $v $d -r -enc $encoding $xtra_cm_opts $cmark_out_file $cmark_tc_file");
+
+   # Step 4: Capitalize beginning-of-sentence words, using hints from source language text.
+   if ($bos_cap) {
+      my $opts = ($nc1ss_lc != $pal_lc ? "-ssp " : "") . "-enc $encoding $xtra_bos_opts";
+      if ($debug) {
+         my $bos_file = "${tmp_txt}.bos$gz";
+         my $bos_out_file = "${tmp_txt}.bos.out$gz";
+         push @tmp_files, $bos_file, $bos_out_file;
+         $opts .= "$d -srcbos $bos_file -tgtbos $bos_out_file";
+      }
+      run("boscap.py $v $opts $cmark_tc_file $src_file $nc1ss_file $pal_file $out_file");
+   }
+}
+
+print STDERR "truecase.pl: truecasing '$in_file' done.\n" if $verbose;
+
+# Delete all the temporary files.
+unless ($debug) {
+   foreach my $file (@tmp_files) {
+      system("rm -rf $file") if $file;
+   }
+}
+
+
+sub convert_map_to_phrase_table
 {
-   displayHelp();
-   die "\nERROR truecase.pl: aborting because of unknown or bad option(s).\n";
-};
+   # Convert the vocab map to a phrase table on the fly.
+   my ($map_file, $pt_file) = @_;
+   portage_utils::zin(*MAP, $map_file);
+   open( TM,  ">", "$pt_file" ) 
+      or die "ERROR: unable to open '$pt_file' for writing";
 
+   # Need to be locale agnostic when converting map file (MAP) to the phrase table (TM).
+   binmode(TM);
+   binmode(MAP);
+   while (<MAP>) {
+      chomp;
+      my @line = split( /\t/, $_ );
+      my $from = shift( @line );
+      my $to = shift( @line );
+      my $prob = shift( @line );
+      while (defined $to && $to ne '' and defined $prob && $prob ne '' ) {
+         print TM "$from ||| $to ||| 1 $prob\n";
+         $to = shift( @line );
+         $prob = shift( @line );
+      }
+   }
+   close( MAP );
+   close( TM );
+}
 
-###############################################
-############ INPUT TASKS PROCESSING ###########
-###############################################
-
-# print ("ARGV=" . (join '|', @ARGV) . "\r\n");
-# exit;
-
-#Displays the help for the usage of this library
-if((defined $help) or (not defined $inputFile and (@ARGV < 1)))
-{  displayHelp();
-   exit 0;
-}else
+sub run
 {
-   if((not defined $inputFile) and (@ARGV > 0))
-   {  $inputFile = $ARGV[0];
-   }
+   my ($cmd, $with_bash) = @_;
+   $with_bash = 0 unless defined $with_bash;
+   print STDERR "COMMAND: $cmd\n" if $verbose;
+   system($with_bash ? ("/bin/bash", "-c", $cmd) : $cmd) == 0
+      or die "ERROR: truecase.pl failed (error $?) running '$cmd'.\n";
+}
 
-   if(not defined $inputFile)
-   {  die "ERROR truecase.pl: a file to truecase is required using the option \"--text=InputFile\"!  aborting...\n";
-   }
+sub run_with_output
+{
+   my ($cmd) = @_;
+   my $output = `$cmd`;
+   die "ERROR: truecase.pl failed (error $?) running '$cmd'.\n" if $?;
+   chomp $output;     # remove last \n
+   return $output;
+}
 
-   if ( defined $uppercaseSentenceBeginFlag) {
-      print STDERR "ERROR truecase.pl: \"--uppercaseBOS\" flag is invalid. \n" . 
-         "Instead use \"--ucBOSEncoding=<enc>\" to specify the encoding " . 
-         "to use for beginning of sentence uppercasing.\n";
-      displayHelp();
-      die "ERROR truecase.pl: aborting because of bad --uppercaseBOS option.\n";
-   }
-   
-   print STDERR "\ntruecase.pl: TRUECASING PROCESS START\n" unless !$verbose;
-
-   my @tmpFiles = undef;
-
-   if (defined $tplm or defined $tppt) {
-      # This pre-empts all other cases.
-      print STDERR "truecase.pl: using TPT.\n" unless !$verbose;
-   }
-   elsif(not defined $vocabCountFile and not defined $vocabMapFile and not defined $LMFile)
-   {
-      print STDERR "truecase.pl: No model is given! Assessing PORTAGE default truecasing model names...\n" unless !$verbose;
-      $LMFile = portage_truecaselibconstantes::DEFAULT_NGRAM_MODEL;
-      $vocabMapFile = portage_truecaselibconstantes::DEFAULT_V1V2MAP_MODEL;
-      $unknownsMapFile = portage_truecaselibconstantes::DEFAULT_UNKNOWN_V1V2MAP_MODEL unless defined $unknownsMapFile;
-
-      if(((not defined $LMFile) or (not -e $LMFile)) and ((not defined $vocabMapFile) or (not -e $vocabMapFile)))
-      {  die "ERROR truecase.pl: a vocabulary mapping and/or NGram model are required " . 
-             "using the option \"--map=V1V2MapFile\" or \"--voc=VocabCountFile\" " . 
-             "or \"--lm=NGramFile\"! aborting...\n";
-      }
-
-      if($useNISTTitleModelsFlag)
-      {  $LMFileTitles = $LMFile . portage_truecaselibconstantes::TITLE_LM_FILENAME_SUFFIX;
-         $LMFileTitles = undef unless (-e $LMFileTitles);
-         $vocabMapFileTitles = $vocabMapFile . portage_truecaselibconstantes::TITLE_VOCABULARY_MAPPING_FILENAME_SUFFIX;
-         $vocabMapFileTitles = undef unless (-e $vocabMapFileTitles);
-      }
-
-      print STDERR "truecase.pl: Assessing PORTAGE default truecasing model names done...\n" unless !$verbose;
-
-   }elsif(defined $vocabCountFile and defined $vocabMapFile)
-   {  die "ERROR truecase.pl: only one vocabulary model can be used. " . 
-          "Use only one of \"--voc=vocabCountFile\" or \"--map=vocabMapFile\"!  aborting...\n";
-   }elsif($useNISTTitleModelsFlag and defined $vocabMapFile)
-   {  $vocabMapFileTitles = $vocabMapFile . portage_truecaselibconstantes::TITLE_VOCABULARY_MAPPING_FILENAME_SUFFIX;
-      $vocabMapFileTitles = undef unless (-e $vocabMapFileTitles);
-   }elsif(defined $vocabCountFile)
-   {  $vocabMapFile = portage_truecaselib::getTemporaryFile();   # get a temporary file
-      push @tmpFiles, $vocabMapFile;
-
-      # Generate the temporary V1V2 mapping from the vocabulary count file.
-      print STDERR "truecase.pl: Creating a temporary V1 to V2 vocabulary mapping model into \"$vocabMapFile\" ...\n" unless !$verbose;
-      portage_truecaselib::writeVocabularyMappingFileForVocabulary($vocabCountFile, $vocabMapFile);
-      print STDERR "truecase.pl: Temporary V1 to V2 vocabulary mapping model done...\n" unless !$verbose;
-
-      # Generate the temporary V1V2 mapping for titles
-      if($useNISTTitleModelsFlag)
-      {  $LMFileTitles = $LMFile . portage_truecaselibconstantes::TITLE_LM_FILENAME_SUFFIX;
-         $LMFileTitles = undef unless (-e $LMFileTitles);
-         $vocabCountFileTitles = $vocabCountFile . portage_truecaselibconstantes::TITLE_VOCABULARY_COUNT_FILENAME_SUFFIX;
-
-         if(-e $vocabCountFileTitles)
-         {  # Generate the V1V2 mapping for NIST titiles.
-            $vocabMapFileTitles = $vocabMapFile . portage_truecaselibconstantes::TITLE_VOCABULARY_MAPPING_FILENAME_SUFFIX;
-            print STDERR "truecase.pl: Creating a temporary titles V1 to V2 mapping model into \"$vocabMapFileTitles\" ...\n" unless !$verbose;
-            portage_truecaselib::writeVocabularyMappingFileForVocabulary($vocabCountFileTitles, $vocabMapFileTitles, undef);
-            print STDERR "truecase.pl: Temporary titles V1 to V2 mapping model done ...\n" unless !$verbose;
-         }else
-         {  $vocabCountFileTitles = undef;
-         }
-      }
-   } # End if
-
-   if(defined $unknownsMapFile and not defined $vocabMapFile)
-   {  die "ERROR truecase.pl: a vocabulary count or mapping model must also be " . 
-          "given when using \"unkMap\" option (Unknown-Word-Classes)!  aborting...\n";
-   }
-
-   if((not defined $outputFile) and defined $outputDir)
-   {  $outputDir =~ s/\/$//;  #Remove any ending slash
-      my @path = portage_truecaselib::getPathAndFilenameFor($inputFile);
-      $outputFile = "$outputDir/$path[0]" . portage_truecaselibconstantes::DEFAULT_TRUECASED_FILENAME_SUFFIX;
-   }
-
-   if(defined $unknownsMapFile or $useNISTTitleModelsFlag)
-   {  print STDERR "truecase.pl: Truecasing with Unknown words resolution launched on \"$inputFile\"...\n" unless !$verbose;
-      portage_truecaselib::advancedTruecaseFile($inputFile, $LMFile, $vocabMapFile, $unknownsMapFile,
-         $LMFileTitles, $vocabMapFileTitles, $outputFile, $lmOrder, $forceNISTTitlesFUFlag, 
-         $useLMOnlyFlag, $ucBOSEncoding, $cleanMarkupFlag, $verbose);
-      print STDERR "truecase.pl: Truecasing with Unknown words resolution done...\n" unless !$verbose;
-   }else
-   {  print STDERR "truecase.pl: Truecasing launched on \"$inputFile\" ...\n" unless !$verbose;
-      portage_truecaselib::truecaseFile($inputFile, $LMFile, $vocabMapFile, $lmOrder, $useLMOnlyFlag, 
-         $outputFile, $ucBOSEncoding, $cleanMarkupFlag, $verbose, $tplm, $tppt);
-      print STDERR "truecase.pl: Truecasing done...\n" unless !$verbose;
-   }
-
-   # delete the temporary files
-   foreach my $file (@tmpFiles)
-   {  if($file)
-      {  system('rm -f ' . $file);
-      }
-   }
-
-   print STDERR "truecase.pl: TRUECASING PROCESS END\n\n" unless !$verbose;
-} # End if
-
-
-sub displayHelp
+sub display_help
 {  
    -t STDERR ? system "pod2text -t -o $0 >&2" : system "pod2text $0 >&2";
 }
+
 
 =pod
 
 =head1 NAME
 
-truecase.pl - Truecaser
+truecase.pl - Truecase target language text
 
 =head1 SYNOPSIS
 
-truecase.pl [options] [--text] INPUT_FILE
+truecase.pl [options] [-text] [INPUT_FILE]
 
 =head1 DESCRIPTION
 
-This script converts an input text file into its truecase form.
+This script converts target language text to its truecase form.
+Two truecasing workflows are supported. The first (old) workflow involves
+truecasing using just target language information to truecase the target text;
+the second (new) workflow involves additionaly using source language
+information to improve the target text truecasing.
+
+In both workflows, the first step is to truecase the target language text using
+a target language truecasing language model and vocabulary map. The old
+workflow finishes with an optional step of very simple (and quite dumb)
+beginning-of-sentence capitalization. The new workflow, on the other hand,
+performs two additional steps. It applies rules to transfer case information
+from the corresponding source language text to the target language text
+(i.e. to case OOVs and handle uppercase sequences). Finally, it applies
+beginning-of-sentence capitalization using source language case information
+and examining the target language text for sentence boundary markers.
 
 =head1 OPTIONS
 
@@ -237,18 +379,27 @@ This script converts an input text file into its truecase form.
 
 =over 12
 
-=item --text=INPUT_FILE
+=item -text INPUT_FILE
 
-Input text file to convert into truecase.
+Input target language text file to truecase. Default is STDIN.
 
-=item --out=OUTPUT_FILE
+=item -out OUTPUT_FILE
 
-Output file for truecase text.
+Output file for truecased target language text. Default is STDOUT.
 
-=item --outDir=OUTPUT_DIR
+=item -src SRC_FILE
 
-Directory for the truecase output file.
-The output file name used is the input file name with a default extension appended.
+Corresponding truecased source language text. (new TC workflow)
+
+=item -pal PAL_FILE
+
+Phrase alignment file mapping between source and target language phrases.
+Required with -src. 
+
+The PAL_FILE can be generated by calling canoe like this:
+
+ canoe -f canoe.ini -palign < SRC \
+    | nbest2rescore.pl -canoe -palout=PAL > OUT
 
 =back
 
@@ -256,58 +407,91 @@ The output file name used is the input file name with a default extension append
 
 =over 12
 
-=item --map=s
+=item -lm LM_FILE
 
-V1 to V2 vocabulary mapping model. Cannot be used in conjunction with --voc option.
+Target language truecasing Language Model (NGram file) to use.
+Can be in text or binlm format (with canoe), GZIP or uncompressed;
+(use -tplm for tplm format). One of -lm or -tplm is required.
 
-=item --voc=s
+=item -map MAP_FILE
 
-Vocabulary statistics model file. Cannot be used in conjunction with --map option.
+V1 to V2 vocabulary mapping model. One of -map or -tppt is required with canoe.
 
-=item --unkmap=s
+=item -lmOrder N
 
-V1 to V2 unknown word classes mapping file.
+Effective N-gram order used by the target language TC LM model.
 
-=item --lm=s
+=item -tplm TPLM_FILE
 
-Language Model (NGram file) to use.
+Target language TC Language Model in TPLM format.
+Valid with canoe only, not SRILM. -tplm and -tppt must be used together.
 
-=item --lmOrder=n
-
-Effective N-gram order used by the language models.
-
-=item --tplm=s
-
-Language Model (NGram file) in TPLM format to use.
-
-=item --tppt=s
+=item -tppt TPPT_FILE
 
 V1 to V2 phrase table in TPPT format. (Use vocabMap2tpt.sh to create the TPPT).
+Valid with canoe only, not SRILM. -tplm and -tppt must be used together.
 
-=item --useLMOnly
+=item -srclm SRC_NC1_LM_FILE
 
-Requests use of only the given NGram model; any given V1-to-V2 mapping will be ignored.
+Source language sentence-initial case normalization (NC1) Language Model.
+Can be in text or binlm format, GZIP or uncompressed, or tplm format.
+Required with -src.
 
 =back
 
-=head2 Uppercasing Options
+=head2 Beginning-of-Sentence (BOS) Casing and Encoding
 
 =over 12
 
-=item --ucBOSEncoding=ENC
+=item -bos
+
+Do beginning-of-sentence capitalization.
+
+=item -encoding ENCODING
+
+The source and target language text file encoding. Default is 'utf-8'.
+Not valid with -locale.
+
+=item -srclang SRC_LANG
+
+The source language (in 2 character format). Default is 'en'.
+Not valid with -locale.
+
+=item -locale LOCALE
+
+The locale for the source language. The encoding and source language can be
+gleaned from the locale, so -encoding and -srclang cannot be used with -locale.
+Valid only with -src.
+
+=item -xtra-bos-opts OPTS
+
+Specify additional C<boscap.py> options. Valid only with both -src and -bos.
+
+=item -ucBOSEncoding ENC
+
+DEPRECATED.
 
 If defined, then uppercase the beginning of each sentence using the specified 
 encoding (e.g. C<utf8>). Correctly uppercases accented characters.
 
-=item --uppercaseTitlesBOW
+=back
 
-Uppercase the first letter of all words in titles.
-May not correctly uppercase accented characters.
+=head2 Using SRILM
 
-=item --useTitleModels
+=over 12
 
-Assume the input file is in NIST04 format and detect and titlecase titles accordingly.
-May not correctly uppercase accented characters.
+=item -useSRILM
+
+Use SRILM disambig instead of canoe to perform the truecasing.
+The default is to use canoe.
+
+=item -useViterbi
+
+Use Viterbi matching instead of forward-backward matching in SRILM disambig.
+
+=item -useLMOnly
+
+Use only the given NGram model with SRILM disambig; no V1-to-V2 mapping used.
 
 =back
 
@@ -315,45 +499,64 @@ May not correctly uppercase accented characters.
 
 =over 12
 
-=item --verbose
+=item -xtra-cm-opts OPTS
 
-Print verbose information.
+Specify additional C<casemark.py -r> options. Valid only with -src.
 
-=item --help
+=item -verbose
 
-Print this help.
+Print verbose information to STDERR.  (cumulative)
+
+=item -debug
+
+Print debug output to STDERR.
+
+=item -help
+
+Print this help and exit.
 
 =back
 
 =head1 EXAMPLES
 
- truecase.pl --text=inputfile.txt [--lm=ngram.lm] [--useLMOnly]
-        [--map=mapping.map [--voc=words.count]] [--unkmap=unknows.map]
-        [--lmOrder=3] [--ucBOSEncoding=utf8] [--out=text-tc[--outDir=outs]]
-        [--uppercaseTitlesBOW] [--useTitleModels] [--verbose]
-        
- truecase.pl inputfile.txt [--map=mapping.map [--voc=words.count]]
-        [--lm=ngram.lm] [--unkmap=unknows.map] [--useLMOnly] [--lmOrder=3]
-        [--uppercaseTitlesBOW] [--useTitleModels]
-        [--ucBOSEncoding=cp1252] [--out=text-tc[--outDir=outs]] [--verbose]
-        
- truecase.pl --text=inputfile.txt --tplm=lm.tplm --tppt=mapping.tppt
+=head2 BASIC
+
+ truecase.pl -lm ngram.binlm.gz -map mapping.map.gz [-lmOrder 3] \
+        [-bos] [-encoding utf-8] [-verbose] -text infile.txt \
+        > outfile.tc
+
+ truecase.pl -lm ngram.lm -useSRILM -useLMOnly [-lmOrder 3] \
+        [-bos] [-enc cp1252] [-out outfile.tc] [-verbose] infile.txt
+
+ truecase.pl -tplm lm.tplm -tppt mapping.tppt infile.txt
+
+ cat infile.txt | truecase.pl -lm ngram.lm -map mapping.map -text - >outfile.tc
+
+ cat infile.txt | truecase.pl -lm ngram.lm -map mapping.map >outfile.tc
+
+=head2 USING SOURCE INFO
+
+ truecase.pl -lm tc_en_lm.binlm.gz -map tc_en_map.map.gz [-lmOrder 3] \
+        -src text_fr.tc -srclm nc1_fr_lm.binlm.gz -pal text.pal \
+        [-bos] -srclang fr [-encoding utf-8] [-verbose] text_en.lc > text_en.tc
+
+ truecase.pl [-verbose] -lm tc_fr_lm.tplm -map tc_fr_map.tppt [-lmOrder 3] \
+        -src text_fr.tc -srclm nc1_fr_lm.tplm -pal text.pal \
+        [-bos] [-srclang en] [-encoding utf-8] text_en.lc > text_en.tc
 
 =head1 CAVEATS
 
+ The following may or may not be relevant.
  If you experience errors related to malformed UTF-8 when processing non-UTF8 
  data, the solution is to adjust the value of your "$LANG" Environment variable. 
  Example: if "LANG==en_CA.UTF-8", set "LANG=en_CA" and export it. 
  If the problem persists, try setting LC_ALL instead.
- 
- Uppercasing of accented characters may not work correctly for the 
- --uppercaseTitlesBOW and --useTitleModels options.
 
 =head1 AUTHOR
 
 =over 1
 
-B<Programmer> - Akakpo Agbago; B<Supervisor> - George Foster
+B<Programmer> - Rewritten by Darlene Stewart. Original by Akakpo Agbago
 
 =back
 
@@ -362,7 +565,7 @@ B<Programmer> - Akakpo Agbago; B<Supervisor> - George Foster
  Technologies langagieres interactives / Interactive Language Technologies
  Inst. de technologie de l'information / Institute for Information Technology
  Conseil national de recherches Canada / National Research Council Canada
- Copyright (c) 2004-2010, Sa Majeste la Reine du Chef du Canada /
- Copyright (c) 2004-2010, Her Majesty in Right of Canada
+ Copyright (c) 2004, 2005, 2011, Sa Majeste la Reine du Chef du Canada /
+ Copyright (c) 2004, 2005, 2011, Her Majesty in Right of Canada
 
 =cut

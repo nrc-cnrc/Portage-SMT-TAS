@@ -1,20 +1,38 @@
-# Makefile for Portage utils
+# Makefile for Portage truecasing
+# $Id$
 
-# George Foster
+# George Foster; updated by Darlene Stewart
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2005, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2005, Her Majesty in Right of Canada
+# Copyright 2005, 2011 Sa Majeste la Reine du Chef du Canada /
+# Copyright 2005, 2011 Her Majesty in Right of Canada
 
-PERL_LIBS= $(wildcard *.pm)
+OBJECTS = pylm.o
 
-PROGRAMS=compile_truecase_map
+LIBRARY = libportage_truecasing
 
-BINSCRIPTS= $(wildcard *.pl)
+PERL_LIBS=
+
+PROGRAMS = \
+	compile_truecase_map \
+	normc1
+
+BINSCRIPTS= \
+	truecase.pl \
+	boscap.py \
+	casemark.py \
+	filter-nc1.py
+
+EXTRA_LIBS = $(LOGGING_LIB)
+
+DYNLIBS = $(LIBICU)
+
+MODULE_DEPENDS = lm logging tpt
+
+MODULE_CF =
 
 include ../build/Makefile.incl
 
-.PHONY: tests
-
-tests: $(TESTPROGS)
+all: dyn_lib
+install: install_dyn_lib
