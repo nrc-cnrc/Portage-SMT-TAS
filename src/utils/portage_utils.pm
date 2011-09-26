@@ -59,7 +59,7 @@ B< =============================================
 
 =cut
 
-my $current_year = 2010;
+my $current_year = 2011;
 
 sub printCopyright($$) {
    if ( !$ENV{PORTAGE_INTERNAL_CALL} ) {
