@@ -40,6 +40,7 @@ use open IO=>':utf8';
 use File::Spec qw(rel2abs);
 use CE::distance qw(Levenshtein longestCommonSubstring commonNgrams);
 use CE::help;
+use Carp;
 
 use Exporter;
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
@@ -559,7 +560,7 @@ sub findFile {
         return $filepath if (-r $filepath);
     }
 
-    die sprintf("Can't find $filename in directories: %s", join(", ", @search_path));
+    confess sprintf("Can't find $filename in directories: %s", join(", ", @search_path));
 
     return undef;
 }
