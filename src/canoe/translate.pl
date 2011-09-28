@@ -118,7 +118,7 @@ Detokenize the text on output. Use --nodetok to skip detokenization. [detok]
 
 If -tc, truecase the text on output using a text LM and map for the truecasing 
 model.
-If -tctp, truecase using a tightly packed LM and map for the truecasing model.
+If -tctp, truecase using tightly packed LMs and map for the truecasing model.
 For -tc or -tctp, the LM and map files, if not specified using -tclm and -tcmap,
 are searched for in F<models/tc> relative to the F<canoe.ini> location.
 If -notc, skip truecasing.
@@ -126,13 +126,20 @@ If -notc, skip truecasing.
 
 =item -tclm=LM
 
-Use language model file LM for the truecasing model (valid for -tc or -tctp).
-[lm file located in F<models/tc> directory relative to the F<canoe.ini> location]
+Use target language model file LM for the truecasing model (valid for -tc or -tctp).
+[target LM file located in F<models/tc> directory relative to the F<canoe.ini> location]
 
 =item -tcmap=MAP
 
 Use map file MAP for the truecasing model (valid for -tc or -tctp).
 [F<*.map> file located in F<models/tc> directory relative to the F<canoe.ini> location]
+
+=item -tcsrclm=SRCLM
+
+If present, use source sentence-initial case normalization (NC1) language model 
+file SRCLM to provide addition source language information for the truecasing 
+model (valid for -tc or -tctp).
+[source LM file located in F<models/tc> directory relative to the F<canoe.ini> location, if present]
 
 =item -src=SRC
 
@@ -335,6 +342,7 @@ Getopt::Long::GetOptions(
    "tctp"           => \my $tctp,
    "tclm=s"         => \my $tclm,
    "tcmap=s"        => \my $tcmap,
+   "tcsrclm=s"      => \my $tcsrclm,
 
    "src=s"          => \my $src,
    "tgt=s"          => \my $tgt,
@@ -429,6 +437,9 @@ if ($with_rescoring) {
                         . "use -f or -ini to specify the canoe.ini file.\nStopped";
 }
 
+$src = "en" unless defined $src;
+$tgt = "fr" unless defined $tgt;
+
 $tok = 1 unless defined $tok;
 $lc = 1 unless defined $lc;
 $detok = 1 unless defined $detok;
@@ -446,55 +457,77 @@ $tok or $nl eq "s"
 $tc = 0 unless defined $tc;
 $tctp = 0 unless defined $tctp;
 $tc = 1 if $tctp;
-$tc or (!defined $tclm && !defined $tcmap)
-   or die "ERROR: Do not specify -tclm or -tctp with -notc.\nStopped";
+$tc or (!defined $tclm && !defined $tcmap && !defined $tcsrclm)
+   or die "ERROR: Do not specify -tclm, -tctp or -tcsrclm with -notc.\nStopped";
 (defined $tclm && defined $tcmap) or (!defined $tclm && !defined $tcmap)
    or die "ERROR: Specify neither or both of -tclm and -tcmap.\nStopped";
+(defined $tcsrclm && defined $tclm) or (!defined $tcsrclm)
+   or die "ERROR: Do not specify -tcsrc without -tclm specified.\nStopped";
+!defined $tcsrclm or !$with_rescoring
+   or die "ERROR: -tcsrclm cannot be used with -with-rescoring.\nStopped";
 
 # Locate the Truecasing model.
 if ($tc and !defined $tclm) {
    my @tc_files = ();
    my $tc_dir = "$models_dir/models/tc";
+   my $use_msg = "use -tclm, -tcmap and -tcsrclm to specify the truecasing files.\nStopped";
+   -d $tc_dir
+      or die "ERROR: '$tc_dir' does not exist; ", $use_msg;
    foreach my $ext ($tctp ? (".tplm", ".tppt") : (".binlm.gz", ".map")) {
-      my @files = grep !/^.*\/log\.[^\/]+/, glob "$tc_dir/*$ext";
+      my @files = grep !/\/log\.[^\/]+$/ && !/[\/.-_]nc1[\.-_][^\/]+$/, 
+                  glob "$tc_dir/*{.,-,_}$tgt*$ext";
       @files > 0
-         or die "ERROR: Unable to locate a $ext file in '$tc_dir'; ",
-                -d "$tc_dir" ? ("perhaps you need the " . ($tctp ? "-tc" : "-tctp") 
-                                . " option instead of " . ($tctp ? "-tctp" : "-tc"))
-                             : ("; '$tc_dir' does not exist; use -tclm "
-                                . "and -tcmap to specify the truecasing files"),
+         or die "ERROR: Unable to locate a $tgt TC $ext file in '$tc_dir'; ",
+                "perhaps you need the " , $tctp ? "-tc" : "-tctp",  
+                " option instead of ", $tctp ? "-tctp" : "-tc",
                 ".\nStopped";
       @files == 1
-         or die "ERROR: Found multiple $ext files in '$tc_dir'; ",
-                "use -tclm and -tcmap to specify the truecasing files.\nStopped";
+         or die "ERROR: Found multiple $tgt TC $ext files in '$tc_dir'; ", $use_msg;
       push @tc_files, @files;
    }
    ($tclm, $tcmap) = @tc_files;
+   unless ($with_rescoring) {
+      # New truecasing workflow using source info currently not compatible with rescoring.
+      my $ext = $tctp ? ".tplm" : ".binlm.gz";
+      my @files = grep !/\/log\.[^\/]+$/ && /[\/.-_]nc1[\.-_][^\/]+$/, 
+                  glob "$tc_dir/*{.,-,_}$src*$ext";
+      @files <= 1
+         or die "ERROR: Found multiple $src NC1 $ext files in '$tc_dir'; ", $use_msg;
+      $tcsrclm = $files[0] unless @files == 0;
+   }
 }
 if ($tc) {
    if ($tctp) {
       -d $tclm && -x _ 
-         or die "ERROR: Tightly packed truecasing model '$tclm' ",
+         or die "ERROR: Tightly packed truecasing $tgt model '$tclm' ",
                 "is not a readable directory.\nStopped";
       -d $tcmap && -x _ 
          or die "ERROR: Tightly packed truecasing map '$tcmap' ",
                 "is not a readable directory.\nStopped";      
    } else {
       -f $tclm && -r _ 
-         or die "ERROR: Truecasing model '$tclm' is not a readable file.\nStopped";
+         or die "ERROR: Truecasing $tgt model '$tclm' is not a readable file.\nStopped";
       -f $tcmap && -r _ 
          or die "ERROR: Truecasing map '$tcmap' is not a readable file.\nStopped";
    }
+   if (defined $tcsrclm) {
+      if ($tcsrclm =~ /.tplm$/) {
+         -d $tcsrclm && -x _ 
+            or die "ERROR: Tightly packed truecasing $src model '$tcsrclm' ",
+                   "is not a readable directory.\nStopped";
+      } else {
+         -f $tcsrclm && -r _ 
+            or die "ERROR: Truecasing $src model '$tcsrclm' is not a readable file.\nStopped";      
+      }
+   }
 }
-
-$src = "en" unless defined $src;
-$tgt = "fr" unless defined $tgt;
 
 my $utf8 = 1;
 if (defined $encoding) {
-   $encoding eq "utf8" or $encoding eq "cp1252" 
+   my $lc_enc = lc $encoding;
+   $utf8 = $lc_enc eq "utf8" || $lc_enc eq "utf-8";
+   $utf8 or $lc_enc eq "cp1252" 
       or die "ERROR: -encoding must be one of: 'utf8' or 'cp1252'.\nStopped";
-   $utf8 = $encoding eq "utf8";
 }
 
 # Locate the Plugins directory
@@ -604,10 +637,15 @@ unless ($dryrun) {
       "Extensions:\n",
       ".txt = raw source text / final translation (post-processed) output text\n",
       ".pre = pre-processed (pre-tokenization) source\n",
+      ".filt = post-filtering source\n",
       ".tok = tokenized source / translation (after post-decoder plugin)\n",
-      ".dec = decoder ready source / raw decoder translation\n",
-      ".raw = raw decoder output (with trace) for -with-ce\n",
+      ".dec = decoder ready source / raw decoder translation (OOV markup removed)\n",
+      ".dec.oov = raw decoder translation with OOV markup\n",
+      ".tok.oov = tokenized translation with OOV markup (after post-decoder plugin)\n",
+      ".pal = phrase alignments from the decoder used with truecasing\n",
+      ".raw = raw decoder output (with trace) for -with-ce and truecasing\n",
       ".dtk = detokenized translation\n",
+      "pr.ce = confidence estimation\n",
       "\n",
       "Final translation output is in P.txt\n",
    );
@@ -615,21 +653,28 @@ unless ($dryrun) {
 }
 
 # File names - the naming scheme required for use with CE is adhered to.
+my $ostype = `uname -s`;
+chomp $ostype;
+my $ci = ($ostype eq "Darwin") ? "l" : ""; # for case insensitive file systems
+
 my $Q_txt = "${dir}/Q.txt";     # Raw source text
 # --> preprocessor plugin
 my $Q_pre = "${dir}/Q.pre";     # Pre-processed (pre-tokenization) source
 # --> tokenize
 my $Q_tok = "${dir}/Q.tok";     # Tokenized source
 # --> lowercase
-my $q_tok = "${dir}/q.tok";     # Lowercased tokenized source
+my $q_tok = "${dir}/q${ci}.tok";    # Lowercased tokenized source
 # --> predecoder plugin
 my $q_dec = "${dir}/q.dec";     # Decoder-ready source
 # --> decoding
 my $p_raw = "${dir}/p.raw";     # Raw decoder output (with trace)
 # --> decoder output parsing
-my $p_dec = "${dir}/p.dec";     # Raw decoder translation
+my $p_decoov = "${dir}/p.dec.oov";  # Raw decoder translation with OOV markup
+my $p_dec = "${dir}/p.dec";     # Raw decoder translation (OOV markup removed)
+my $p_pal = "${dir}/p.pal";     # Phrase alignments used with truecasing
 # --> postdecoder plugin
-my $p_tok = "${dir}/p.tok";     # Post-decoder plugin processed translation
+my $p_tokoov = "${dir}/p.tok.oov";  # Post-decoder plugin processed translation (with OOV markup)
+my $p_tok = "${dir}/p${ci}.tok";    # Post-decoder plugin processed translation (OOV markup removed)
 # --> truecasing
 my $P_tok = "${dir}/P.tok";     # Truecased tokenized translation
 # --> detokenization
@@ -649,7 +694,7 @@ IN:{
    unless ($tmx) {
       copy($input_text, $Q_txt);
    } else {
-      call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} extract \"$dir\" \"$input_text\"");
+      call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} extract '$dir' '$input_text'");
    }
 }
 
@@ -671,13 +716,18 @@ TRANS:{
          $decoder = "canoe-parallel.sh $v -n $n $xtra_cp_opts canoe";
       }
       my $decoder_opts = $verbose ? "-v $verbose" : "";
-      $decoder_opts .= " -trace -ffvals" if $with_ce;
+      $decoder_opts .= " -palign" if (defined $tcsrclm or $with_ce);
+      $decoder_opts .= " -ffvals" if $with_ce;
       $decoder_opts .= " $xtra_decode_opts";
-      my $p_out = $with_ce ? $p_raw : $p_dec;
-      call("$decoder $decoder_opts -f ${canoe_ini} < \"${q_dec}\" > \"${p_out}\"");
+      my $p_out = (defined $tcsrclm or $with_ce) ? $p_raw : $p_dec;
+      call("$decoder $decoder_opts -f ${canoe_ini} < '${q_dec}' > '${p_out}'");
+      if (defined $tcsrclm) {
+         call("nbest2rescore.pl -canoe -tagoov -palout='${p_pal}' < '${p_raw}' " . 
+              "| perl -pe 's/ +\$//;' > '${p_decoov}'");
+      }
       if ($with_ce) {
-         call("ce_canoe2ffvals.pl -verbose=${verbose} -dir=\"${dir}\" \"${p_raw}\"");
          # ce_canoe2ffvals.pl generates $p_dec from $p_raw, among other things
+         call("ce_canoe2ffvals.pl -verbose=${verbose} -dir='${dir}' '${p_raw}'");
       }
    } else {  # $with_rescoring
       # We run rat.sh from the working directory to have it create its working
@@ -709,12 +759,17 @@ TRANS:{
       chdir($cwd);
    }
    
-   plugin("postdecode", $p_dec, $p_tok);
+   if (not defined $tcsrclm) {
+      plugin("postdecode", $p_dec, $p_tok);   
+   } else {
+      plugin("postdecode", $p_decoov, $p_tokoov);
+      call("cat '${p_tokoov}' | perl -pe 's/<OOV>(.+?)<\\/OOV>/\\1/g;' >'${p_tok}'"); 
+   }
 }
 
 # Truecase, detokenize, and postprocess
 POST:{
-   truecase($tgt, $p_tok, $P_tok);
+   truecase($tgt, defined $tcsrclm ? $p_tokoov : $p_tok, $P_tok, $Q_tok, $p_pal);
    detokenize($tgt, $P_tok, $P_dtk);
    plugin("postprocess", $P_dtk, $P_txt);
 }
@@ -722,7 +777,7 @@ POST:{
 # Predict CE
 CE:{
    if ($with_ce) {
-      call("ce.pl -verbose=${verbose} ${xtra_ce_opts} ${ce_model} \"${dir}\"");
+      call("ce.pl -verbose=${verbose} ${xtra_ce_opts} ${ce_model} '${dir}'");
    }
 }
 
@@ -730,15 +785,15 @@ CE:{
 OUT:{
    unless ($tmx) {
        if ($with_ce) {
-           my $ce_output = $out ne "-" ? "> \"$out\"" : "";
-           call("paste ${dir}/pr.ce \"${P_txt}\" ${ce_output}");
+           my $ce_output = $out ne "-" ? "> '$out'" : "";
+           call("paste ${dir}/pr.ce '${P_txt}' ${ce_output}");
        } else {
            copy($P_txt, $out);
        }
    } else {
        my $fopt = defined $filter ? "-filter=$filter" : "";
        my $sopt = $with_ce ? "-score" : "-noscore";
-       call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} ${fopt} ${sopt} replace \"$dir\"");
+       call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} ${fopt} ${sopt} replace '$dir'");
    }
 }
 
@@ -776,7 +831,7 @@ sub plugin {
    my $old_path = $ENV{PATH};
    $ENV{PATH} = "${plugins_dir}:".$ENV{PATH};
    my $actual_prog = callOutput("which ${name}_plugin"); # for the benefit of verbose
-   call("${actual_prog} < \"${in}\" > \"${out}\"", $out);
+   call("${actual_prog} < '${in}' > '${out}'", $out);
    $ENV{PATH} = $old_path;
 }
 
@@ -800,7 +855,7 @@ sub plogCreate {
 sub plogUpdate {
    my ($plog_file, $status, $words_in, $words_out, $comment) = @_;
    $words_in = 0 unless defined $words_in;
-   $words_out = $words_in unless defined $words_in;
+   $words_out = $words_in unless defined $words_out;
 
    return unless $plog_file;   # means "no logging"
 
@@ -809,7 +864,7 @@ sub plogUpdate {
    my @plog_opt = qw(-update);
    push @plog_opt, "-verbose" if $verbose;
    push @plog_opt, "-comment=\"$comment\"" if defined $comment;
-   my $cmd = "plog.pl ".join(" ", @plog_opt)." \"${plog_file}\" $status $words_in $words_out";
+   my $cmd = "plog.pl ".join(" ", @plog_opt)." '${plog_file}' $status $words_in $words_out";
    # Don't use call(): potential recursive loop!!
    system($cmd) == 0 or warn "WARNING: ", explainSystemRC($?,$cmd,$0);
 }
@@ -839,7 +894,7 @@ sub sourceWordCount {
        $count_file = $Q_pre;
    }
 
-   my $cmd = "wc --words < \"${count_file}\"";
+   my $cmd = "wc -w < '${count_file}'";
    my $wc = callOutput($cmd);
    return $wc;
 }
@@ -852,9 +907,9 @@ sub tokenize {
       my $tokopt = " -lang=${lang}";
       $tokopt .= $nl eq 's' ? " -noss" : " -ss";
       $tokopt .= " -paraline" if $nl eq 'p';
-      $tokopt .= " -notok" if !$tok;
+      $tokopt .= " -pretok" if !$tok;
       my $u = $utf8 ? "u" : "";
-      call("${u}tokenize.pl ${tokopt} \"${in}\" \"${out}\"", $out);
+      call("${u}tokenize.pl ${tokopt} '${in}' '${out}'", $out);
    }
 }
 
@@ -864,7 +919,7 @@ sub detokenize {
       copy($in, $out);
    } else {
       my $u = $utf8 ? "u" : "";
-      call("${u}detokenize.pl -lang=${lang} < \"${in}\" > \"${out}\"", $out);
+      call("${u}detokenize.pl -lang=${lang} < '${in}' > '${out}'", $out);
    }
 }
 
@@ -874,19 +929,21 @@ sub lowercase {
       copy($in, $out);
    } else {
       my $lc_prog = $utf8 ? "utf8_casemap -c l" : "lc-latin.pl";
-      call("${lc_prog} \"${in}\" \"${out}\"", $out);
+      call("${lc_prog} '${in}' '${out}'", $out);
    }
 }
 
 sub truecase {
-   my ($lang, $in, $out) = @_;
+   my ($lang, $in, $out, $src, $pal) = @_;
    unless ($tc) {
-      copy($in, $out);      
+      copy($in, $out);
    } else {
       my ($lm_sw, $map_sw) = $tctp ? ("tplm", "tppt") : ("lm", "map");
-      my $model_opts = "--$lm_sw=\"${tclm}\" --$map_sw=\"${tcmap}\"";
-      my $enc = $utf8 ? "utf8" : "cp1252";
-      call("truecase.pl --text=\"${in}\" --ucBOSEncoding=${enc} $model_opts > \"${out}\"", $out);
+      my $model_opts = "-$lm_sw '${tclm}' -$map_sw '${tcmap}'";
+      my $src_opts = defined $tcsrclm ? "-src '${src}' -pal '${pal}' -srclm ${tcsrclm}" : "";
+      my $enc = $utf8 ? "utf-8" : "cp1252";
+      my $v = $verbose ? "-verbose" : "";
+      call("truecase.pl $v -text '${in}' -bos -enc ${enc} $model_opts $src_opts > '${out}'", $out);
    }
 }
 
