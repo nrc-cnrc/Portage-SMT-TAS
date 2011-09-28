@@ -40,7 +40,7 @@ testsuite:
 testsuite: pre_installation
 
 .PHONY: pre_installation
-pre_installation: perl_version make_version gcc_version ram_vs_swap
+pre_installation: perl_version python_version make_version gcc_version ram_vs_swap
 	@echo "Prerequisites are correctly installed." >&2
 
 .PHONY: perl_version
@@ -48,6 +48,9 @@ perl_version:
 	@perl -e 'require 5.8.5;' || ! echo "Your perl version is to old." >&2
 	@perl -e 'require 5.8.8;' || echo "Some perl XML functionalities will most likely fail." >&2
 
+.PHONY: python_version
+python_version:
+	@python --version 2>&1 | grep -q 2\.7 || ! echo "Portage requires Python 2.7." >&2
 
 .PHONY: make_version
 make_version:
@@ -79,7 +82,7 @@ testsuite: post_installation
 VALIDATE_PGMS := canoe cow.sh tokenize.pl ce.pl tmx2lfl.pl
 .PHONY: post_installation
 post_installation: ${VALIDATE_PGMS}
-	@echo "Portage is correctly installed." >&2
+	@echo "Portage itself is correctly installed." >&2
 
 
 canoe: EXPLAIN:=Make sure Portage is correctly installed.  Check your PATH.
