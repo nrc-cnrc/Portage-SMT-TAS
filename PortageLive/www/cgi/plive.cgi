@@ -302,6 +302,9 @@ sub processText {
                   "-tcmap=".$CONTEXT{$context}->{tcmap},
                   "-out=\"$work_dir/P.out\"",
                   "-dir=\"$work_dir\"");
+    if ($CONTEXT{$context}->{tcsrclm}) {
+       push @tr_opt, "-tcsrclm=".$CONTEXT{$context}->{tcsrclm}; 
+    }
     push @tr_opt, ($CONTEXT{$context}->{ce_model}
                    ? ("-with-ce", 
                       "-model=".$CONTEXT{$context}->{ce_model})
@@ -512,6 +515,8 @@ sub getContextInfo {
     $info{rescore_ini} = (-r "$D/rescore.ini") ? "$D/rescore.ini" : "";
     $info{tclm} = "$D/models/tc/tc-lm.".$info{tgt}.".tplm";
     $info{tcmap} = "$D/models/tc/tc-map.".$info{tgt}.".tppt";
+    my $tcsrclm_name = "$D/models/tc/nc1-lm.".$info{src}.".tplm";
+    $info{tcsrclm} = (-r $tcsrclm_name) ? $tcsrclm_name : "";
     $info{ce_model} = (-r "$D/ce_model.cem") ? "$D/ce_model.cem" : "";
 
     $info{label} = sprintf("%s (%s --> %s): %s confidence estimation",
@@ -594,7 +599,7 @@ sub NRCFooter {
                           "Technologies langagi&egrave;res interactives / Interactive Language Technologies", br(),
                           "Institut de technologie de l'information / Institute for Information Technology", br(),
                           "Conseil national de recherches Canada / National Research Council Canada", br(),
-                          "Copyright 2004&ndash;2010, Sa Majest&eacute; la Reine du Chef du Canada / ",
+                          "Copyright 2004&ndash;2011, Sa Majest&eacute; la Reine du Chef du Canada / ",
                           "Her Majesty in Right of Canada", br(),
                           "<a href=\"/portage_notices.html\">Third party Copyright notices</a>"))));
 }
