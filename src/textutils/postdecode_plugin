@@ -22,6 +22,12 @@
 ## Default postdecoding plugin: to be called immediately after decoding.
 ##
 
+# WARNING: postdecode_plugin must not change the tokenization of the text
+#          because the truecasing process uses phrase alignment information
+#          from the decoder, which will be wrong if the tokenization changes.
+#          Also, the input to the postdecode_plugin may contain XML markup
+#          identifying OOVs.
+
 if [ "$1" == "-help" -o "$1" == "-h" ]; then
     cat $0 | grep "^##" | cut -c4-
     exit 1
