@@ -36,8 +36,8 @@ Arguments:
                 option: either -rCVS_TAG, with CVS_TAG (typically vX_Y) having
                 been created first using "cvs tag -R CVS_TAG" on the whole
                 PORTAGEshared repository, or:
-                   cvs rtag -Dnow v1_4_2 PORTAGEshared
-                   cvs rtag -Dnow v1_4_2 portage.simple.framework.2
+                   cvs rtag -Dnow v1_4_3 PORTAGEshared
+                   cvs rtag -Dnow v1_4_3 portage.simple.framework.2
                 Such a tag is recommended, but any valid cvs -r or -D option
                 can be used, if necessary.
 
@@ -289,12 +289,12 @@ get_user_manual() {
       run_cmd find PORTAGEshared/doc/user-manual/uploads -name \*.gif.1 \| xargs rm -f
       run_cmd pushd PORTAGEshared/doc/user-manual/pages
          for x in *.html; do
-            echo Making images relative in $x and renaming PORTAGE shared '->' Portage 1.4.2.
+            echo Making images relative in $x and renaming PORTAGE shared '->' Portage 1.4.3.
             if [[ ! $NOT_REALLY ]]; then
                perl -e 'print '"'"'%s/IMG SRC="http:\/\/wiki-ilt\/PORTAGEshared\/uploads/img src="..\/uploads/'"'"'."\nw\nq\n"' | ed $x
                perl -e 'print '"'"'%s/img src="http:\/\/wiki-ilt\/PORTAGEshared\/uploads/img src="..\/uploads/'"'"'."\nw\nq\n"' | ed $x
                if grep -q 'PORTAGE shared' $x; then
-                  perl -e 'print '"'"'%s/PORTAGE shared/Portage 1.4.2/g'"'"'."\nw\nq\n"' | ed $x
+                  perl -e 'print '"'"'%s/PORTAGE shared/Portage 1.4.3/g'"'"'."\nw\nq\n"' | ed $x
                fi
             fi
          done
@@ -378,6 +378,9 @@ make_bin() {
       run_cmd pushd ./lib
          run_cmd mkdir -p $ELFDIR
          run_cmd file \* \| grep ELF \| sed "'s/:.*//'" \| xargs -i{} mv {} $ELFDIR
+         if [[ $ICU = yes ]]; then
+            LD_LIBRARY_PATH=$ICU_ROOT/lib:$LD_LIBRARY_PATH ldd ../bin/$ELFDIR/canoe | grep -o '/[^ ]*icu[^ ]*.so[^ ]*' | xargs -i cp {} $ELFDIR
+         fi
          run_cmd rmdir --ignore-fail-on-non-empty $ELFDIR
       run_cmd popd
    run_cmd popd
@@ -406,8 +409,8 @@ make_iso_and_tar() {
       fi
       run_cmd mkisofs -V $ISO_VOLID -joliet-long -o $ARCHIVE_FILE.iso \
               PORTAGEshared $PATCH_FILES '&>' iso.log
-      run_cmd mv PORTAGEshared Portage1.4.2
-      run_cmd tar -cvzf $ARCHIVE_FILE.tar.gz Portage1.4.2 '>&' tar.log
+      run_cmd mv PORTAGEshared Portage1.4.3
+      run_cmd tar -cvzf $ARCHIVE_FILE.tar.gz Portage1.4.3 '>&' tar.log
       run_cmd md5sum $ARCHIVE_FILE.* \> $ARCHIVE_FILE.md5
    run_cmd popd
 }
