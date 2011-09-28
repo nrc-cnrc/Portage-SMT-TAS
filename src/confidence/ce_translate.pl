@@ -553,7 +553,7 @@ sub tokenize {
         my $tokopt = " -lang=${lang}";
         $tokopt .= $nl eq 's' ? " -noss" : " -ss";
         $tokopt .= " -paraline" if $nl eq 'p';
-        $tokopt .= " -notok" if $notok;
+        $tokopt .= " -pretok" if $notok;
         call("utokenize.pl ${tokopt} \"${in}\" \"${out}\"", $out);
     }
 }
