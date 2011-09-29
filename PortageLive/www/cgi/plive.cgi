@@ -93,7 +93,7 @@ my $WORK_PATH = "${WEB_PATH}/plive";
 # Because text box translations are performed "on the spot", there is
 # a risk for the page to time-out.  Hence this practical limit on
 # job size:
-my $MAX_TEXTBOX = 500;
+my $MAX_TEXTBOX = 1000;
 
 # ISO-639 language name stuff -- you may want to add languages.
 my $LANG = { iso2=>{ fr=>'fr', en=>'en' },
