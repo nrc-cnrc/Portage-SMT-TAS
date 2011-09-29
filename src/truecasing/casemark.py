@@ -68,7 +68,7 @@ markup_group.add_argument("-a", "--add-markup", dest="add_markup",
 markup_group.add_argument("-r", "--remove-markup", dest="add_markup", 
                           action="store_false",
                           help="remove case markup from target text, applying case rules [don't]")
-parser.add_argument("-lm", "--lm", nargs='?', type=FileType('r'), default=None,
+parser.add_argument("-lm", "--lm", nargs='?', default=None,
                     help="for -a, source nc1 lm file for identifying acronyms [%(default)s]")
 parser.add_argument("-u", "--upper", type=int, choices=(1,2,3), default=2,
                     help="for -r, apply upper case rule [%(default)s]")
@@ -505,7 +505,7 @@ def main():
         pylm.load_vocab(infile)
         verbose("Vocab filter size:", pylm.get_vocab_filter_size())
         verbose("Loading LM...")
-        pylm.load_lm(cmd_args.lm.name)
+        pylm.load_lm(cmd_args.lm)
         
     process_line = add_markup_line if cmd_args.add_markup else rm_markup_line
     line_number = 0    
