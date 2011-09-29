@@ -33,11 +33,12 @@ DECODE ?= canoe canoe-escapes.pl canoe-parallel.sh
 TRANSLATE ?= postdecode_plugin postprocess_plugin predecode_plugin preprocess_plugin translate.pl ridbom.sh crlf2lf.sh utf8_filter
 OTHER_BIN ?= configtool portage_info
 RESCORE ?= feature_function_tool gen-features-parallel.pl gen_feature_values nbest2rescore.pl rat.sh rescore_translate
-TOKENIZATION ?= truecase.pl udetokenize.pl utf8_casemap utokenize.pl
+TOKENIZATION ?= udetokenize.pl utf8_casemap utokenize.pl
+TRUECASING ?= truecase.pl casemark.py boscap.py normc1 markup_canoe_output
 EXTRAS ?= bloater
 
-# Must contains pgm from Portage only.
-PORTAGE_BINS ?= ${CE} ${DECODE} ${OTHER_BIN} ${RESCORE} ${TOKENIZATION} ${TRANSLATE}
+# Must contain programs from Portage only.
+PORTAGE_BINS ?= ${CE} ${DECODE} ${OTHER_BIN} ${RESCORE} ${TOKENIZATION} ${TRANSLATE} ${TRUECASING}
 CLUSTER_BINS ?= ${CLUSTER}
 BINARIES ?= ${PORTAGE_BINS} ${CLUSTER_BINS} ${CE_EXTERNAL}
 
@@ -115,6 +116,7 @@ ${DEST_OTHER_DIR}/SETUP.bash:
 	echo "export LD_LIBRARY_PATH=\$${PORTAGE}/lib:\$$LD_LIBRARY_PATH" > $@
 	echo "export PATH=\$${PORTAGE}/bin:\$$PATH" >> $@
 	echo "export PERL5LIB=\$${PORTAGE}/lib:\$$PERL5LIB" >> $@
+	echo "export PYTHONPATH=\$${PORTAGE}/lib:\$$PYTHONPATH" >> $@
 	chmod 0755 $@
 
 
@@ -122,7 +124,7 @@ ${DEST_OTHER_DIR}/SETUP.bash:
 ################################################################################
 # LIBRARIES
 #PORTAGE_LIBS := portage_truecaselibconstantes.pm portage_truecaselib.pm portage_utils.pm ULexiTools.pm
-PORTAGE_LIBS ?= portage_truecaselibconstantes.pm portage_truecaselib.pm portage_utils.pm ULexiTools.pm
+PORTAGE_LIBS ?= portage_utils.pm portage_utils.pyc ULexiTools.pm libportage_truecasing.so
 LIBRARIES += ${PORTAGE_LIBS}
 
 # Define DO_EXTERNAL_LIBS if you want to bundle all external libs need by
