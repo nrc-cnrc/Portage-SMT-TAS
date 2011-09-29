@@ -489,7 +489,7 @@ if ($tc and !defined $tclm) {
    unless ($with_rescoring) {
       # New truecasing workflow using source info currently not compatible with rescoring.
       my $ext = $tctp ? ".tplm" : ".binlm.gz";
-      my @files = grep !/\/log\.[^\/]+$/ && /[\/.-_]nc1[\.-_][^\/]+$/, 
+      my @files = grep !/\/log\.[^\/]+$/ && /[\/.\-_]nc1[\.\-_][^\/]+$/, 
                   glob "$tc_dir/*{.,-,_}$src*$ext";
       @files <= 1
          or die "ERROR: Found multiple $src NC1 $ext files in '$tc_dir'; ", $use_msg;
