@@ -198,8 +198,8 @@ not defined $tplm or -d $tplm && -x _
    or die "ERROR: Tightly packed truecasing model '$tplm' is not a readable directory.\n";
 not defined $tppt or -d $tppt && -x _ 
    or die "ERROR: Tightly packed truecasing phrase table '$tppt' is not a readable directory.\n";
-not defined $srclm_file or -f $srclm_file && -r _ 
-   or die "ERROR: Source NC1 language model '$srclm_file' is not a readable file.\n";
+not defined $srclm_file or (-f $srclm_file && -r _) or (-d $srclm_file && -x _)
+   or die "ERROR: Source NC1 language model '$srclm_file' is not readable.\n";
 
 # Establish that the output file can be written.
 $out_file = "" unless defined $out_file;
