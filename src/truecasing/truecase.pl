@@ -203,9 +203,9 @@ not defined $srclm_file or (-f $srclm_file && -r _) or (-d $srclm_file && -x _)
 
 # Establish that the output file can be written.
 $out_file = "" unless defined $out_file;
+my $work_dir = dirname($out_file);
 if ($out_file) {
-   my $out_dir = dirname($out_file);
-   run("mkdir -p $out_dir");
+   run("mkdir -p $work_dir");
    run("echo '' > $out_file");
 }
 my $gz = substr($out_file, -3, 3) eq ".gz" ? ".gz" : ""; # output to be gzipped?
@@ -231,7 +231,7 @@ if ($use_srilm) { # using disambig
       print STDERR "truecase.pl: using canoe with on-the-fly phrase table.\n" if $verbose;
       $ttable_type = "multi-prob";
       $model_file = $lm_file;
-      $ttable_file = "tc_tmp_canoe_$$.tm";
+      $ttable_file = "${work_dir}/tc_tmp_canoe_$$.tm";
       push @tmp_files, $ttable_file;
       convert_map_to_phrase_table($map_file, $ttable_file);
    }
@@ -245,7 +245,7 @@ if ($use_srilm) { # using disambig
 }
 my $bos = $bos_cap && !defined $src_file ? 
           "BEGIN{use encoding q{$encoding}} print ucfirst" : "print";
-my $tc_file = defined $src_file ? "${tmp_txt}.tc$gz" : $out_file;
+my $tc_file = defined $src_file ? "${work_dir}/${tmp_txt}.tc$gz" : $out_file;
 (push @tmp_files, $tc_file) if defined $src_file;
 my $cmd = $cmd_part1
           . " | perl -n -e 's/^<s>\\s*//o; s/\\s*<\\/s>[ ]*//o; ${bos};'"
@@ -261,9 +261,9 @@ my $d = ($debug > 1) ? "-d" : "";
 if (defined $src_file) {
    # Step 2: Normalize the case of sentence-initial characters in the source text.
    # (needed by steps 3 and 4).
-   my $nc1_file = "${tmp_txt}.nc1$gz";
+   my $nc1_file = "${work_dir}/${tmp_txt}.nc1$gz";
    my $nc1ss_file = $nc1_file;
-   my $nc1sj_file = "${tmp_txt}.nc1sj$gz";   # sentence joined
+   my $nc1sj_file = "${work_dir}/${tmp_txt}.nc1sj$gz";   # sentence joined
    push @tmp_files, $nc1_file, $nc1sj_file;
    my $tee_file = $gz ? ">(gzip > $nc1_file)" : "$nc1_file";
    run("normc1 $v -ignore 1 -extended -notitle -loc $locale $srclm_file $src_file "
@@ -275,11 +275,11 @@ if (defined $src_file) {
    $nc1_file = $nc1sj_file if $nc1_lc != $pal_lc;
 
    # Step 3: Transfer case from source language to target language text.
-   my $cmark_file = "${tmp_txt}.cmark$gz";
-   my $cmark_out_file = "${tmp_txt}.cmark.out$gz";
-   my $cmark_log_file = "${tmp_txt}.cmark.log";
+   my $cmark_file = "${work_dir}/${tmp_txt}.cmark$gz";
+   my $cmark_out_file = "${work_dir}/${tmp_txt}.cmark.out$gz";
+   my $cmark_log_file = "${work_dir}/${tmp_txt}.cmark.log";
    push @tmp_files, $cmark_file, $cmark_out_file, $cmark_log_file;
-   my $cmark_tc_file = $bos_cap ? "${tmp_txt}.cmark.tc$gz" : $out_file;
+   my $cmark_tc_file = $bos_cap ? "${work_dir}/${tmp_txt}.cmark.tc$gz" : $out_file;
    (push @tmp_files, $cmark_tc_file) if defined $bos_cap;
    # Preload the C++ standard library to ensure that C++ exceptions and I/O 
    # are properly initialized when calling a C++ shared library from Python.
@@ -293,8 +293,8 @@ if (defined $src_file) {
    if ($bos_cap) {
       my $opts = ($nc1_lc != $pal_lc ? "-ssp " : "") . "-enc $encoding $xtra_bos_opts";
       if ($debug) {
-         my $bos_file = "${tmp_txt}.bos$gz";
-         my $bos_out_file = "${tmp_txt}.bos.out$gz";
+         my $bos_file = "${work_dir}/${tmp_txt}.bos$gz";
+         my $bos_out_file = "${work_dir}/${tmp_txt}.bos.out$gz";
          push @tmp_files, $bos_file, $bos_out_file;
          $opts .= "$d -srcbos $bos_file -tgtbos $bos_out_file";
       }

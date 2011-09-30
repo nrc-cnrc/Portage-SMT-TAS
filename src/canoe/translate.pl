@@ -943,7 +943,8 @@ sub truecase {
       my $src_opts = defined $tcsrclm ? "-src '${src}' -pal '${pal}' -srclm ${tcsrclm}" : "";
       my $enc = $utf8 ? "utf-8" : "cp1252";
       my $v = $verbose ? "-verbose" : "";
-      call("truecase.pl $v -text '${in}' -bos -enc ${enc} $model_opts $src_opts > '${out}'", $out);
+      my $d = $debug ? "-debug" : "";
+      call("truecase.pl $v $d -text '${in}' -bos -enc ${enc} -out '${out}' $model_opts $src_opts", $out);
    }
 }
 
