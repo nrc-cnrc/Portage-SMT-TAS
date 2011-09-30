@@ -329,9 +329,9 @@ def move_bos_markup(src_line, tgt_line, pal_line, line_number):
                 prev_tgt_i = tgt_i
             tgt_i = -1
 
-    if src_i != pal[-1].src.end + 1:
+    if src_i != ((pal[-1].src.end + 1) if len(pal) else 0):
         fatal_error("# src tokens mismatch with pal info at line", line_number)
-    if len(tgt_toks) != max(pal, key=lambda x:x.tgt.end).tgt.end + 1:
+    if len(tgt_toks) != ((max(pal, key=lambda x:x.tgt.end).tgt.end + 1) if len(pal) else 0):
         fatal_error("# tgt tokens mismatch with pal info at line", line_number)
 
     # Add BOS case markup in target for sentences that did not have markup
