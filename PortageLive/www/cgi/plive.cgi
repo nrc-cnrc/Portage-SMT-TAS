@@ -107,14 +107,22 @@ my $LANG = { iso2=>{ fr=>'fr', en=>'en' },
 
 
 $ENV{PORTAGE} = $PORTAGE_PATH;
-$ENV{PATH} = join(":", $PORTAGE_BIN, $ENV{PATH});
-$ENV{PERL5LIB} = (exists $ENV{PERL5LIB} 
-                  ? join(":", $PORTAGE_LIB, $ENV{PERL5LIB}) 
-                  : $PORTAGE_LIB);
-$ENV{LD_LIBRARY_PATH} = (exists $ENV{LD_LIBRARY_PATH} 
-                         ? join(":", $PORTAGE_LIB, $ENV{LD_LIBRARY_PATH}) 
-                         : $PORTAGE_LIB);
+$ENV{PATH} = `source $PORTAGE_PATH/SETUP.bash; echo -n \$PATH`;
+$ENV{PERL5LIB} = `source $PORTAGE_PATH/SETUP.bash; echo -n \$PERL5LIB`; 
+$ENV{LD_LIBRARY_PATH} = `source $PORTAGE_PATH/SETUP.bash; echo -n \$LD_LIBRARY_PATH`; 
+$ENV{PYTHONPATH} = `source $PORTAGE_PATH/SETUP.bash; echo -n \$PYTHONPATH`; 
 push @INC, $PORTAGE_LIB;
+
+# We used to hard-code the environment variables here, but now we use
+# SETUP.bash, as above.  Trade-off: using SETUP.bash means several system calls
+# (via ` `), which is not as efficient.  Might be worth benchmarking some day...
+#$ENV{PATH} = join(":", $PORTAGE_BIN, $ENV{PATH});
+#$ENV{PERL5LIB} = (exists $ENV{PERL5LIB} 
+#                  ? join(":", $PORTAGE_LIB, $ENV{PERL5LIB}) 
+#                  : $PORTAGE_LIB);
+#$ENV{LD_LIBRARY_PATH} = (exists $ENV{LD_LIBRARY_PATH} 
+#                         ? join(":", $PORTAGE_LIB, $ENV{LD_LIBRARY_PATH}) 
+#                         : $PORTAGE_LIB);
 
 use CGI qw(:standard);
 use CGI::Carp qw/fatalsToBrowser/;

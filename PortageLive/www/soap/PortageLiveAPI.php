@@ -104,7 +104,8 @@ class PortageLiveAPI {
          'PORTAGE'         => "$base_portage_dir",
          'LD_LIBRARY_PATH' => "$context_dir/lib:$base_portage_dir/lib:/lib:/usr/lib",
          'PATH'            => "$context_dir/bin:$i[context_dir]:$base_portage_dir/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-         'PERL5LIB'        => "$context_dir/lib:$base_portage_dir/lib"
+         'PERL5LIB'        => "$context_dir/lib:$base_portage_dir/lib",
+         'PYTHONPATH'      => "$context_dir/lib:$base_portage_dir/lib"
       );
 
       $descriptorspec = array(
