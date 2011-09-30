@@ -122,9 +122,13 @@ LIBS = $(foreach DIR, $(LIB_LIST), -lportage_$(DIR)) \
        $(call fix_boost_lib_tag, ${GLOBAL_LIBS}) \
        $(call fix_boost_lib_tag, $(EXTRA_LIBS))
 
-ALLDYNLIBS = -Wl,-Bdynamic \
-             $(call fix_boost_lib_tag, ${DYNLIBS}) \
-             $(call fix_boost_lib_tag, ${GLOBAL_DYNLIBS})
+ifeq ($(OSTYPE),Darwin)
+ALLDYNLIBS =
+else
+ALLDYNLIBS = -Wl,-Bdynamic 
+endif
+ALLDYNLIBS += $(call fix_boost_lib_tag, ${DYNLIBS}) \
+              $(call fix_boost_lib_tag, ${GLOBAL_DYNLIBS})
 
 # We used to disable logging by defining LOGGING=NONE, now we do so by defining
 # LOG4CXX=NONE, but still look for LOGGING=NONE in case someone depends on it.
