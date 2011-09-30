@@ -130,9 +130,9 @@ LIBRARIES += ${PORTAGE_LIBS}
 # Portage's software.
 ifdef DO_EXTERNAL_LIBS
 # Here, we fetch the libraries related to Portage's pgm only.
-EXTERNAL_LIBS := $(sort $(notdir $(shell ldd `which ${PORTAGE_BINS} ${CLUSTER_BINS} 2> /dev/null` | egrep -i '(Portage|gcc)' | perl -nle 'print $$1 if /=> ([^ ]+)/;' | sort | uniq)))
+EXTERNAL_LIBS := $(sort $(notdir $(shell ldd `which ${PORTAGE_BINS} ${CLUSTER_BINS} 2> /dev/null` | grep -v ' /lib' | perl -nle 'print $$1 if /=> ([^ ]+)/;' | sort | uniq)))
 LIBRARIES += ${EXTERNAL_LIBS}
-EXTERNAL_LIBS_DIR := $(sort $(dir $(shell ldd `which ${PORTAGE_BINS} ${CLUSTER_BINS} 2> /dev/null` | egrep -i '(Portage|gcc)' | perl -nle 'print $$1 if /=> ([^ ]+)/;' | sort | uniq)))
+EXTERNAL_LIBS_DIR := $(sort $(dir $(shell ldd `which ${PORTAGE_BINS} ${CLUSTER_BINS} 2> /dev/null` | grep -v ' /lib' | perl -nle 'print $$1 if /=> ([^ ]+)/;' | sort | uniq)))
 vpath % ${EXTERNAL_LIBS_DIR}
 endif
 
