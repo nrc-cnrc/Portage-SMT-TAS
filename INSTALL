@@ -3,8 +3,8 @@
 Technologies langagieres interactives / Interactive Language Technologies
 Institut de technologie de l'information / Institute for Information Technology
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2004-2010, Sa Majeste la Reine du Chef du Canada
-Copyright 2004-2010, Her Majesty in Right of Canada
+Copyright 2004-2011, Sa Majeste la Reine du Chef du Canada
+Copyright 2004-2011, Her Majesty in Right of Canada
 
 Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
@@ -133,6 +133,13 @@ you made *should* be merged with changes we made between releases, but such
 merging might lead to problems and/or conflicts, so it is strongly advised that
 you work on a backup, and carefully read the patch man page to see how
 conflicts are handled and how you can resolve them.
+
+
+                           Hardware requirements
+
+See doc/system-requirements.pdf, "Performance Information and Required
+Configuration", for a discussion of hardware requirements and system
+performance on some sample datasets.
 
 
                            External dependencies

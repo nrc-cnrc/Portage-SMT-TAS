@@ -15,6 +15,7 @@ Contents of this directory:
    tutorial.pdf             Portage 1.4 tutorial using our framework
                             Note: read this tutorial *first*
    user-manual.html         Portage 1.4 user manual
+   system-requirements.pdf  Sys reqs and recommended hardware
    usage.html               Usage information for each program
    adaptation.README        Documentation for the adaptation module
    rescoring.README         Additional doc for the rescoring module
