@@ -290,7 +290,7 @@ else {
       s/</&lt;/g;
       # Special replace for programs that have the alternative help message.
       # Both help messages are separated by NRC_HELP_SEPARATOR_TAG. 
-      s#NRC_HELP_SEPARATOR_TAG#</PRE><HR><BR><H3>Alternative help message</H3><BR><PRE>#;
+      s#NRC_HELP_SEPARATOR_TAG#</PRE><HR><BR><H3>Additional help message</H3><BR><PRE>#;
       print OUT;
    }
    # Add the back and top button.
