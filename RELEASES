@@ -1,4 +1,4 @@
-                               Portage 1.4.2
+                               Portage 1.4.3
 
 Technologies langagieres interactives / Interactive Language Technologies
 Institut de technologie de l'information / Institute for Information Technology
@@ -13,22 +13,23 @@ license agreement for details.
                               Release History
                    (with a summary of important changes)
 
-v1.4.3 2011-09-??
+v1.4.3 2011-10-03
  This release is primarily intended distribute our improved truecasing module,
  and its integration in the experimental framework.  It also includes
  improvements we've made in various parts of the system since the last release.
 
  Major changes:
- - Improved truecasing module, which takes into account casing information from
-   the source sentence.
- - The framework is adjusted to optionally use the new truecasing module.
+ - Improved truecasing workflow, which takes into account casing information
+   from the source sentence.
+ - The framework is adjusted to use the new truecasing workflow by default, or
+   optionally the old one.
  - Significance pruning is now available (following Johnson et al, EMNLP 2007),
    and integrated in the framework.
  - The framework now supports using a phrase table merged from the IBM2 and HMM
    ones, instead of using them separately.  This is now the recommended
-   procedure.  When you move to the 1.4.3 framework, you will notice that
-   PT_TYPES is now set to "merged_cpt" by default, instead of "ibm2_cpt
-   hmm3_cpt", which would restore the old behaviour.
+   procedure, and the default.  When you move to the 1.4.3 framework, you will
+   notice that PT_TYPES is now set to "merged_cpt" by default, instead of
+   "ibm2_cpt hmm3_cpt", which would restore the old behaviour.
 
  Changes of intermediate importance:
  - The tokenizer and detokenizer (utf-8 version only) now support Spanish.
