@@ -214,7 +214,8 @@ class PortageLiveAPI {
                  "-src=$i[src] -tgt=$i[tgt] " .
                  "-xsrc={$xml_lang[$i["src"]]} -xtgt={$xml_lang[$i["tgt"]]} -" .
                  "-dir=\"$work_dir\" -out=\"$work_dir/P.out\" " .
-                 ($ce_threshold > 0 ? "-with-ce -filter=$ce_threshold " : "-decode-only ") .
+                 (!empty($i["ce_model"]) ? "-with-ce " : "-decode-only ") .
+                 ($ce_threshold > 0 ? "-filter=$ce_threshold " : "") .
                  "\"$work_dir/Q.in\" >& \"$work_dir/trace\" ";
       $start_time = time();
       $exit_status = NULL;
@@ -226,7 +227,7 @@ class PortageLiveAPI {
                  "file=PLive-$work_name&" .
                  "context=$context&" .
                  "dir=plive/" . basename($work_dir) . "&" .
-                 "ce=" . ($ce_threshold > 0 ? "1" : "0");
+                 "ce=" . (!empty($i["ce_model"]) ? "1" : "0");
       return $monitor;
    }
 
