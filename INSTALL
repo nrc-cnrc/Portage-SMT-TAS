@@ -286,8 +286,9 @@ Mandatory dependencies for source code distributions:
  - GNU g++ - Portage 1.4 compilation has only been tested with g++, and makes
    use of some g++ extensions to C++.  We currently use versions between 4.2.0
    and 4.5.0.  Portage 1.4.1 was compiled and tested with g++ 4.4.4 and 4.5.0,
-   while Portage 1.4.3 supports g++ 4.5.1.  You need 4.2.0 or more recent to
-   take advantage of multi-threading via OpenMP, used in some parts of Portage.
+   while Portage 1.4.2 and 1.4.3 support g++ 4.5.1.  You need 4.2.0 or more
+   recent to take advantage of multi-threading via OpenMP, used in some parts
+   of Portage.
 
  - boost - Portage 1.4 makes use of some libraries in the boost C++ libraries
    collection, including the Boost Graph Library, uBLAS, smart pointers,

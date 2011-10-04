@@ -1,6 +1,6 @@
 Summary: This package contains all required binaries to translate with Portage.
 Name: PortageLive-bin
-Version: 1.4.2
+Version: 1.4.3
 Release: 0
 License: Copyright © 2004-2010 Her Majesty in Right of Canada. see { commercial, research, evaluation } LICENCE
 Vendor: National Research Council Canada
