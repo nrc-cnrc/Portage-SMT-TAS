@@ -394,7 +394,7 @@ make_iso_and_tar() {
    VOLID=Portage_${VERSION}
    VOLID=`echo "$VOLID" | perl -pe 's#[/:]#.#g'`
    #echo $VOLID
-   ISO_VOLID=Portage`echo $VERSION | sed -e 's/v//g' -e 's/_/./'`
+   ISO_VOLID=Portage`echo $VERSION | sed -e 's/v//g' -e 's/_/./g'`
    ISO_VOLID=${ISO_VOLID:0:31}
    if [ -n "$ARCHIVE_NAME" ]; then
       ARCHIVE_FILE=${VOLID}_${ARCHIVE_NAME}
