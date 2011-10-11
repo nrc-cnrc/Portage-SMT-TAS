@@ -25,6 +25,12 @@ setenv PORTAGE $HOME/Portage1.4.3
 # in /opt/gcc-4.2.0 on a 64 bit machine.
 #set EXTRA_DYNLIB_PATH=/opt/gcc-4.2.0/lib64:/opt/gcc-4.2.0/lib
 
+# Extra program PATHs.  If you installed Python, Perl, your language modelling
+# toolkit, or other required programs in non-standard locations, you can add
+# them to your PATH globally on your system, or add them to the
+# EXTRA_PROGRAM_PATH variable here.
+#set EXTRA_PROGRAM_PATH=/path/to/python2.7/bin:/path/to/other/dependency/bin
+
 # Binary distributions only: PRECOMP_PORTAGE_ARCH must be i686 (32 bits) or
 # x86_64 (64 bits), depending on your architecture.  We only provide
 # pre-compilied executables for those two architectures, though they may be
@@ -81,4 +87,9 @@ endif
 if ($?EXTRA_DYNLIB_PATH) then
    setenv LD_LIBRARY_PATH ${EXTRA_DYNLIB_PATH}:$LD_LIBRARY_PATH
    unset EXTRA_DYNLIB_PATH
+endif
+
+if ($?EXTRA_PROGRAM_PATH) then
+   setenv PATH ${EXTRA_PROGRAM_PATH}:$PATH
+   unset EXTRA_PROGRAM_PATH
 endif

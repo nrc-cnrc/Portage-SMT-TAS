@@ -25,6 +25,12 @@ PORTAGE=$HOME/Portage1.4.3
 # in /opt/gcc-4.2.0 on a 64 bit machine.
 #EXTRA_DYNLIB_PATH=/opt/gcc-4.2.0/lib64:/opt/gcc-4.2.0/lib
 
+# Extra program PATHs.  If you installed Python, Perl, your language modelling
+# toolkit, or other required programs in non-standard locations, you can add
+# them to your PATH globally on your system, or add them to the
+# EXTRA_PROGRAM_PATH variable here.
+#EXTRA_PROGRAM_PATH=/path/to/python2.7/bin:/path/to/other/dependency/bin
+
 # Binary distributions only: PRECOMP_PORTAGE_ARCH must be i686 (32 bits) or
 # x86_64 (64 bits), depending on your architecture.  We only provide
 # pre-compilied executables for those two architectures, though they may be
@@ -43,6 +49,9 @@ PORTAGE=$HOME/Portage1.4.3
 echo 'Portage 1.4.3, NRC-CNRC, (c) 2004 - 2011, Her Majesty in Right of Canada' >&2
 
 PATH=$PORTAGE/bin${PATH:+:$PATH}
+if [[ $EXTRA_PROGRAM_PATH ]]; then
+   PATH=$EXTRA_PROGRAM_PATH:$PATH
+fi
 
 LD_LIBRARY_PATH=$PORTAGE/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
 

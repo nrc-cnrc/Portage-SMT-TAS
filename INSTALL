@@ -167,7 +167,9 @@ Mandatory dependencies for all distributions:
 
  - Perl 5.8.8 or more recent.  Version 5.8.5 is mostly usable, but some
    functionality involving XML files (in particular, TMX files) will not work
-   with 5.8.5.
+   with 5.8.5.  If you install Perl in a non-standard location, make sure it
+   comes first on your PATH, or add its bin directory to EXTRA_PROGRAM_PATH in
+   SETUP.bash/tcsh.
 
  - GNU make 3.81 - when compiling Portage 1.4 and when running the experimental
    framework, our Makefiles use GNU extensions to make, as well as features
@@ -175,7 +177,9 @@ Mandatory dependencies for all distributions:
 
  - Python 2.7 - some convenience scripts, as well as the new truecasing module,
    use python.  In most distros, Python should be standard, or available via
-   the package manager.  Version 2.7 (or 2.7.x) is required.
+   the package manager.  Version 2.7 (or 2.7.x) is required.  If you install
+   Python 2.7 in a non-standard location, make sure it comes first on your
+   PATH, or add its bin directory to EXTRA_PROGRAM_PATH in SETUP.bash/tcsh.
 
  - A language modelling toolkit to train language models.  Our code can read
    and use language models, but we don't provide the training functionality,
