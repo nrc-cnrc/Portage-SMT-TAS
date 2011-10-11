@@ -52,6 +52,12 @@ perl_version:
 python_version:
 	@python --version 2>&1 | grep -q 2\.7 || ! echo "Portage requires Python 2.7." >&2
 
+.PHONY: python_modules
+python_modules:
+	@rc=0; for module in argparse ctypes __future__ optparse os.path subprocess codecs glob gzip math os re sys string; do \
+		/usr/bin/python -c "import $$module" || rc=1;\
+	done; [[ $$rc == 0 ]] || ! echo "Some required Python modules are missing." >&2
+
 .PHONY: make_version
 make_version:
 	@[[ $$( echo "`\make --version | head -n 1 | egrep -o '[0-9\.]+'` >= 3.81" | bc) == 1 ]] \
@@ -79,7 +85,7 @@ ram_vs_swap:
 # What needs to work after a successful installation of Portage.
 testsuite: post_installation
 
-VALIDATE_PGMS := canoe cow.sh tokenize.pl ce.pl tmx2lfl.pl
+VALIDATE_PGMS := canoe cow.sh tokenize.pl ce.pl tmx2lfl.pl filter-nc1.py
 .PHONY: post_installation
 post_installation: ${VALIDATE_PGMS}
 	@echo "Portage itself is correctly installed." >&2
@@ -90,10 +96,17 @@ ce.pl: EXPLAIN:=Check your PERL5LIB or XML::Twig may not be correctly installed.
 cow.sh: EXPLAIN:=Make sure Portage is correctly installed.  Check your PATH.
 tmx2lfl.pl: EXPLAIN:=Check your PERL5LIB or you're missing XML::Twig or your version is not greater or equal to XML::Twig-3.28.
 tokenize.pl: EXPLAIN:=Check your PERL5LIB.
+filter-nc1.py: EXPLAIN:=Check your Python version and PYTHONPATH variable.
 
 .PHONY: ${VALIDATE_PGMS}
 # We simply make sure we can invoke the help message to trigger the dependencies.
 ${VALIDATE_PGMS}:
 	@which $@ &> /dev/null || ! echo "Can't locate $@ in your PATH." >&2
-	@$@ -h 2>&1 | head -8 | diff --ignore-matching-lines='Her Majesty in Right of Canada' - ref/$@.ref -q || ! echo "$@ FAILED: ${EXPLAIN}  Refer to \$$PORTAGE/INSTALL" >&2
+	@$@ -h 2>&1 | head -8 | diff --ignore-matching-lines='Her Majesty in Right of Canada' - ref/$@.ref -q || ! ( $@ -h; echo "$@ -h FAILED: ${EXPLAIN}  Refer to \$$PORTAGE/INSTALL." ) >&2
 
+post_installation: check_casemark
+
+.PHONY: check_casemark
+check_casemark: EXPLAIN:=Check your LD_LIBRARY_PATH: it should point to the location of libportage_truecasing.so.  Check your PYTHONPATH: it should point to the location of portage_utils.py.
+check_casemark:
+	@casemark.py -lm /dev/null /dev/null 2>&1 | diff --ignore-matching-lines='Her Majesty in Right of Canada' - ref/casemark.py.error-ref -q || ! ( casemark.py -lm /dev/null /dev/null ; echo "casemark.py -lm /dev/null /dev/null FAILED: ${EXPLAIN}  Refer to \$$PORTAGE/INSTALL." ) >&2
