@@ -263,7 +263,7 @@ sub processText {
         problem("No system (\"context\") specified.");
 
     # Create the work dir, get the source text in there:
-    } elsif (param('filename')) {    # File upload
+    } elsif (param('TranslateFile') and param('filename')) {  # File upload
         my $src_file = tmpFileName(param('filename')) 
             || problem("Can't get tmpFileName()");
         my @src_file_parts = split(/[:\\\/]+/, param('filename'));
@@ -273,7 +273,7 @@ sub processText {
         system("cp",  $src_file, "$work_dir/Q.in") == 0
             || problem("Can't copy input file $src_file into $work_dir/Q.in");
 
-    } elsif (param('textbox')) { # Text box
+    } elsif (param('TranslateBox') and param('textbox')) {  # Text box
         problem("Input text too large (limit = ${MAX_TEXTBOX}).  Try file upload instead.") 
             if length(param('textbox')) > $MAX_TEXTBOX;
         $work_name = join("_", $context, "Text-Box");
@@ -346,7 +346,7 @@ sub processText {
     param('trace', "$work_dir/trace");
     
     # Launch translation
-    if (param('filename')) {
+    if (param('TranslateFile') and param('filename')) {
         monitor($work_name, $work_dir, $outfilename, $context);
     
         # Launch translate.pl in the background for uploaded files, in order to return to
@@ -419,6 +419,11 @@ sub textBoxOutput {
         h2("Translation:"),
         p(join("<br>", @target));
     print p(a({-href=>"plive.cgi"}, "Translate more text"));
+    #my @params = param();
+    #print "<PRE> @params </PRE>";
+    #foreach my $param (@params) {
+    #    print "<PRE> $param = ", param($param), "</PRE>";
+    #}
     print copyright();
 }
 
