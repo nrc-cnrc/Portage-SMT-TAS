@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 # $Id$
 
 # @file r-parallel-worker.pl 
@@ -19,6 +19,7 @@
 # internal -- it is never called on its own.
 
 use strict;
+use warnings;
 
 use Getopt::Long;
 require 5.002;

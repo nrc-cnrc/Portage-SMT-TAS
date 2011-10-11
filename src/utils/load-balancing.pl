@@ -1,7 +1,7 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 # $Id$
 #
-# @file load-balancing.pl 
+# @file load-balancing.pl
 # @brief Splits the input into blocks where the first block should be the
 # hardest to translate and the last block, the easiest.
 #
@@ -17,6 +17,7 @@
 
 use POSIX qw(ceil floor);
 use strict;
+use warnings;
 
 BEGIN {
    # If this script is run from within src/ rather than being properly
@@ -48,7 +49,7 @@ Usage: $0 [-h(elp)] [-v(erbose)]
    Output:
       [ PATTERN.0000, PATTERN.node )
       [ PATTERN.node, PATTERN.job )
-   if a reference is available:   
+   if a reference is available:
       [ PATTERN.ref.0000, PATTERN.ref.node )
       [ PATTERN.ref.node, PATTERN.ref.job )
 
@@ -122,7 +123,7 @@ close(REF) if (defined($ref));
 
 ##################################################
 # SORTING IN DECREASING ORDER OF SOURCE SENTENCE LENGTH
-my @sorted = sort { $src_sents{$b}{'word'} <=> $src_sents{$a}{'word'} } keys %src_sents; 
+my @sorted = sort { $src_sents{$b}{'word'} <=> $src_sents{$a}{'word'} } keys %src_sents;
 
 # FOR DEBUGGING
 if (0) {

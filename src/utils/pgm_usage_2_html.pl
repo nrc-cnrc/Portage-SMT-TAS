@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 # $Id$
 
 # @file pgm_usage_2_html.pl 

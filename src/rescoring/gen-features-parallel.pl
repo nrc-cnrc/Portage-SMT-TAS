@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 #
 # @file gen-features-parallel.pl 
 # @brief Generate a set of feature-value files in parallel, as required by the

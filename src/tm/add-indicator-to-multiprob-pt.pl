@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 # $Id$
 
 # @file add-indicator-column-to-pt.pl 

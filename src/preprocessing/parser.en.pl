@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 use vars qw($VERSION @ISA @EXPORT);
 use Exporter;

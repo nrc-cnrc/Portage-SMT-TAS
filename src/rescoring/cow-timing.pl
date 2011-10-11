@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 # $Id$
 # @file cow-timing.pl
 # @brief Provide timing information for a cow run.

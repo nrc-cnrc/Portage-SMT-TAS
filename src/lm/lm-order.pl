@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # @file lm-order.pl
 # @brief Determine the order of an ARPA format LM file.

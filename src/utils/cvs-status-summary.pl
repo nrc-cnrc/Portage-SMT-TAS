@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 # $Id$
 
 # @file cvs-status-summary.pl 
@@ -12,6 +12,9 @@
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
+
+use strict;
+use warnings;
 
 BEGIN {
    # If this script is run from within src/ rather than being properly
@@ -45,7 +48,6 @@ GetOptions(
    help        => sub { usage },
 );
 
-use strict;
 my @conflicts;
 my %status_lists;
 local $/ = "=================\n";

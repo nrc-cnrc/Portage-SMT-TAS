@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 # $Id$
 # @file canoe-timing-stats.pl
 # @brief Provide timing statistics for a canoe or cow or rat run.
