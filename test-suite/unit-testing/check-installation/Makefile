@@ -31,7 +31,7 @@ clean:
 
 .PHONY: testsuite
 testsuite:
-	@echo "Installation successful!"
+	@echo "Installation successful."
 
 
 
@@ -61,7 +61,7 @@ make_version:
 .PHONY: gcc_version
 gcc_version:
 	@[[ $$( echo "`\g++ --version | head -n 1 | egrep -om1 '[0-9]\.[0-9]+'` >= 4.2" | bc) == 1 ]] \
-	|| ! echo "Portage requires at least g++-4.2!" >&2
+	|| ! echo "Portage requires at least g++-4.2, unless you have a binary distribution." >&2
 
 
 # Since the ram is power of 1024 but swap is power of 1000, we will make the
@@ -94,6 +94,6 @@ tokenize.pl: EXPLAIN:=Check your PERL5LIB.
 .PHONY: ${VALIDATE_PGMS}
 # We simply make sure we can invoke the help message to trigger the dependencies.
 ${VALIDATE_PGMS}:
-	@which $@ &> /dev/null || ! echo "Can't locate $@ in your PATH!" >&2
+	@which $@ &> /dev/null || ! echo "Can't locate $@ in your PATH." >&2
 	@$@ -h 2>&1 | head -8 | diff --ignore-matching-lines='Her Majesty in Right of Canada' - ref/$@.ref -q || ! echo "$@ FAILED: ${EXPLAIN}  Refer to \$$PORTAGE/INSTALL" >&2
 
