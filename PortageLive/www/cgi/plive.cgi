@@ -182,7 +182,7 @@ sub printForm {
                            -labels=>{ ""=>'-- Please pick one --',
                                       %context_labels }))),
           Tr(td({colspan=>2, align=>'left', border=>0}, 
-                p("Either type in some text, or select a text file to translate (plain text or TMX).<BR /> Press the <em>Translate</em> button to have PORTAGELive translate your text."),
+                p("Either type in some text, or select a text file to translate (plain text or TMX).<BR /> Press the <em>Translate Text</em> or the <em>Translate File</em> button to have PORTAGELive <br /> translate your text or file."),
                 br())),
           ## Text-box (textarea) interface:
 
@@ -418,7 +418,7 @@ sub textBoxOutput {
         p($source),
         h2("Translation:"),
         p(join("<br>", @target));
-    print p(a({-href=>"plive.cgi"}, "Translate more text"));
+    print p(a({-href=>"plive.cgi?context=".param('context')}, "Translate more text"));
     #my @params = param();
     #print "<PRE> @params </PRE>";
     #foreach my $param (@params) {
