@@ -177,9 +177,21 @@ Mandatory dependencies for all distributions:
 
  - Python 2.7 - some convenience scripts, as well as the new truecasing module,
    use python.  In most distros, Python should be standard, or available via
-   the package manager.  Version 2.7 (or 2.7.x) is required.  If you install
-   Python 2.7 in a non-standard location, make sure it comes first on your
-   PATH, or add its bin directory to EXTRA_PROGRAM_PATH in SETUP.bash/tcsh.
+   the package manager, but it might not be the right version: version 2.7 (or
+   2.7.x) is required.  If you install Python 2.7 in a non-standard location,
+   make sure it comes first on your PATH, or add its bin directory to
+   EXTRA_PROGRAM_PATH in SETUP.bash/tcsh.  If you compile Python 2.7 by hand,
+   make sure you have the zlib-devel (or zlib-dev, or zlib1g-dev) package
+   installed first.
+
+   This procedure worked for us:
+      # Obtain Python-2.7.1.tar.bz2 from the web.
+      tar -xjf Python-2.7.1.tar.bz2
+      cd Python-2.7.1
+      ./configure --prefix=$PORTAGE/pkgs/python2.7.1
+      make -j 5
+      make install -j 5
+      # Add $PORTAGE/pkgs/python2.7.1/bin to EXTRA_DYNLIB_PATH in SETUP.bash/tcsh.
 
  - A language modelling toolkit to train language models.  Our code can read
    and use language models, but we don't provide the training functionality,
@@ -348,8 +360,8 @@ Mandatory dependencies for source code distributions:
    where the latter causes some Portage 1.4 programs to crash.  This library
    has been standard on Linux distributions for a long time, so you should not
    have to install it yourself.  In some distros, you have to add the
-   zlib1g-dev package.  But if the compiler says it can't find libz.a, you can
-   download it from http://www.zlib.net/.
+   zlib1g-dev package, or zlib-devel, or zlib-dev.  But if the compiler says it
+   can't find libz.a, you can download it from http://www.zlib.net/.
 
 Optional dependencies for source code distributions:
 
