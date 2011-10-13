@@ -206,9 +206,14 @@ HMM::HMM(Uint N, Uint M, EmissionType emission_type, ParameterType parm_type)
          Pi(i) = 0.0;
    }
 
-   // Allocate B's sub-matrices
-   for ( Uint i = 0; i < B_storage.size(); ++i )
+   // Initialize A to all zeros
+   A_storage.clear();
+
+   // Allocate B's sub-matrices and initialize them to all zeros
+   for ( Uint i = 0; i < B_storage.size(); ++i ) {
       B_storage[i].resize(N,M);
+      B_storage[i].clear();
+   }
 }
 
 HMM::~HMM() {
@@ -260,8 +265,10 @@ double HMM::probViterbi(const uintVector &O, uintVector &X_hat,
    // X^_t = X_hat[t], for t in [0, T] (i.e., T+1 distinct values)
    // delta_j(t) = delta(t,j)
    dMatrix delta(T+1, N);
+   delta.clear();
    // psi_j(t) = psi(t,j) -- for simplicity, we store but don't use psi_j(0)
    uintMatrix psi(T+1, N);
+   psi.clear();
 
    double log_maxprob(0.0);
 
@@ -331,6 +338,11 @@ double HMM::probViterbi(const uintVector &O, uintVector &X_hat,
 
          if ( max_prod > max_delta_at_t )
             max_delta_at_t = max_prod;
+      }
+
+      if ( max_delta_at_t <= 0.0 ) {
+         // There is no path to time step t with prob != 0; give up now.
+         break;
       }
 
       if ( max_delta_at_t < FLT_MIN ) {
@@ -494,7 +506,7 @@ double HMM::statePosteriors(const uintVector &O, dMatrix &gamma,
 
    dMatrix beta_hat;
    BackwardProcedure(O, c, beta_hat, verbose);
-   
+
    statePosteriors(O, alpha_hat, beta_hat, gamma, verbose);
    return log_pr;
 } // HMM::statePosteriors()
@@ -944,11 +956,11 @@ void HMM::BWCountExpectation(const uintVector &O, const dMatrix &alpha_hat,
 
    if ( verbose ) {
       cerr << "CountExpectation results:" << endl;
-      cerr << "Pi counts: " << joini(Pi_counts.begin(), Pi_counts.end()) << endl;
+      cerr << "Pi counts: " << join(Pi_counts.begin(), Pi_counts.end()) << endl;
       cerr << "A counts:" << endl;
       for ( Uint i = 0; i < N; ++i ) {
          dMatrixRow row(A_counts, i);
-         cerr << " i=" << i << ": " << joini(row.begin(), row.end()) << endl;
+         cerr << " i=" << i << ": " << join(row.begin(), row.end()) << endl;
       }
       cerr << "B counts:" << endl;
       for ( Uint i = 0; i < B_counts.size(); ++i ) {
@@ -956,7 +968,7 @@ void HMM::BWCountExpectation(const uintVector &O, const dMatrix &alpha_hat,
             cerr << " i=" << i << endl;
          for ( Uint j = 0; j < N; ++j ) {
             dMatrixRow row(B_counts[i], j);
-            cerr << "  j=" << j << ": " << joini(row.begin(), row.end()) << endl;
+            cerr << "  j=" << j << ": " << join(row.begin(), row.end()) << endl;
          }
       }
    }
@@ -988,6 +1000,7 @@ void HMM::BWReestimate(const dVector &Pi_counts, const dMatrix &A_counts,
       double a_i_sum(0.0);
       for ( Uint j = 0; j < N; ++j )
          a_i_sum += A_counts(i,j);
+      if ( a_i_sum == 0 ) a_i_sum = 1; // avoid div by 0
       for ( Uint j = 0; j < N; ++j )
          A(i,j) = A_counts(i,j) / a_i_sum;
    }
@@ -1006,6 +1019,7 @@ void HMM::BWReestimate(const dVector &Pi_counts, const dMatrix &A_counts,
          for ( Uint k = 0; k < M; ++k )
             b_i_sum += B_counts[0](i,k);
          if ( verbose ) cerr << "b_" << i << "_sum = " << b_i_sum << endl;
+         if ( b_i_sum == 0 ) b_i_sum = 1; // avoid div by 0
          for ( Uint k = 0; k < M; ++k )
             B(i,k) = B_counts[0](i,k) / b_i_sum;
       }

@@ -33,19 +33,23 @@ ibmcat MODEL_FILE\n\
 \n\
 Options:\n\
   -v    Write progress reports to cerr.\n\
+  -sort If MODEL_FILE is a TTable, sort it.\n\
   -h    Print this help message.\n\
 ";
 
-static const char* switches[] = { "v" };
+static const char* switches[] = { "v", "sort" };
 
 static ArgReader arg_reader(ARRAY_SIZE(switches), switches,
                             1, 1, help_message, "-h", true);
 static bool verbose = false;
 static string model;
+static bool sort_ttable = false;
 
 void getArgs(int argc, char* argv[])
 {
    arg_reader.read(argc-1, argv+1);
+   arg_reader.testAndSet("sort", sort_ttable);
+   arg_reader.testAndSet("v", verbose);
    arg_reader.testAndSet(0, "model", model);
 }
 
@@ -78,6 +82,6 @@ int main(int argc, char* argv[])
    }
 
    // process TTable / IBM1 model
-   TTable::output_in_plain_text(cout, model, verbose);
+   TTable::output_in_plain_text(cout, model, verbose, sort_ttable);
 }
 

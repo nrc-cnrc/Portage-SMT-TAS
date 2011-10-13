@@ -251,6 +251,17 @@ while (<IN>) {
       $bwd_prob += $tm_weights[$i] * safe_log($probs[$i]);
       $fwd_prob += $ftm_weights[$i] * safe_log($probs[$i+$fwd_offset]);
    }
+
+   # Here we could use a weight of 1 and output $bwd_prob and $fwd_prob as
+   # computed so far, but this would cause a problem with canoe, in how it
+   # handles missing phrases.  When a phrase is missing from the phrase table,
+   # such as is always the case with OOVs, canoe assigns log(p)=-18 to that
+   # phrase, which then gets multiplied by the weight.  If we apply all the
+   # weights and set the new decoder weight to 1, an OOV gets the score 1 *
+   # -18.  But if we decode with the input tables, it gets the score $tm_weight
+   # * -18.  Since this program should be strictly an optimization that doesn't
+   # change the decoder's output, we have to keep the weight to the sum of the
+   # original weights, hence the correction applied here.
    $bwd_prob = exp($bwd_prob / $tm_weight);
    $fwd_prob = exp($fwd_prob / $ftm_weight);
 

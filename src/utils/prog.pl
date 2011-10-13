@@ -25,7 +25,7 @@ BEGIN {
    }
 }
 use portage_utils;
-printCopyright "prog.pl", 2006;
+printCopyright "prog.pl", 2011;
 $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
 

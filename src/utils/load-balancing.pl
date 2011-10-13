@@ -90,7 +90,7 @@ die "You must specify the job's parameter" if (!defined($job));
 # READING THE INPUT AND REFERENCE
 open(INPUT, "<$input") or die "Unable to open $input for reading\n";
 if (defined($ref)) {
-   open(REF, "<$ref") or die "Unable to open $ref for reading\n";
+   zopen(*REF, "<$ref") or die "Unable to open $ref for reading\n";
 }
 
 my $line;

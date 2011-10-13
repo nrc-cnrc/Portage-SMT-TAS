@@ -192,7 +192,7 @@ WordAligner* WordAlignerFactory::createAligner(const string& tname,
 string WordAlignerFactory::help() {
    string h;
    for (Uint i = 0; tinfos[i].pf; ++i)
-      h += tinfos[i].tname + " " + tinfos[i].help + "\n";
+      h += tinfos[i].tname + " " + tinfos[i].help + "\n\n";
    return h;
 }
 

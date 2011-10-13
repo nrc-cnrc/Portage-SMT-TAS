@@ -49,6 +49,19 @@ public:
       TS_ASSERT_EQUALS(v2.index("bar"),3u);
    }
 
+   void test_read_write() {
+      ostringstream oss;
+      v.write(oss);
+      string ref="asdf\nqwer\nzxcv\n";
+      TS_ASSERT_EQUALS(oss.str(), "asdf\nqwer\nzxcv\n");
+      Voc v2;
+      istringstream iss(ref);
+      v2.read(iss);
+      TS_ASSERT_RELATION(str_equal, v.word(0), v2.word(0));
+      TS_ASSERT_RELATION(str_equal, v.word(1), v2.word(1));
+      TS_ASSERT_RELATION(str_equal, v.word(2), v2.word(2));
+   }
+
    void test_read_write_stream() {
       char tmp_file_name[] = "VocTestReadWriteXXXXXX";
       int tmp_fd = mkstemp(tmp_file_name);
@@ -169,6 +182,26 @@ public:
       TS_ASSERT_EQUALS(v2.freq("qwer"), 0.2f);
       TS_ASSERT_EQUALS(v2.freq("zxcv"), 1.0f);
    }
+
+   void test_sort() {
+      v.sortReverseFreq();
+      TS_ASSERT_EQUALS(v.index("asdf"), 2u);
+      TS_ASSERT_EQUALS(v.index("qwer"), 1u);
+      TS_ASSERT_EQUALS(v.index("zxcv"), 0u);
+      TS_ASSERT_EQUALS(v.word(0u), string("zxcv"));
+      TS_ASSERT_EQUALS(v.word(1u), string("qwer"));
+      TS_ASSERT_EQUALS(v.word(2u), string("asdf"));
+      TS_ASSERT_EQUALS(v.freq(0u), 1.0f);
+      TS_ASSERT_EQUALS(v.freq(1u), 0.2f);
+      TS_ASSERT_EQUALS(v.freq(2u), 0.1f);
+   }
+   
+   void test_clear() {
+      v.clear();
+      TS_ASSERT_EQUALS(v.size(), 0);
+   }
 }; // TestProbVoc
+
+
 
 } // Portage

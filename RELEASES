@@ -13,6 +13,18 @@ license agreement for details.
                               Release History
                    (with a summary of important changes)
 
+v1.???
+
+ Changes of intermediate importance:
+ - New -filter-singletons switch to train_ibm reduces memory bubble at the
+   beginning of the IBM1 model training procedure for large corpora.
+
+ Minor changes:
+ - New -w switch to joint2multi_cpt.
+ - New -sort switch to ibmcat.
+ - Removed obsolete train-phrases.sh script.
+ - Various optimizations and code clean-up.
+
 v1.4.3 2011-10-03
  This release is primarily intended distribute our improved truecasing module,
  and its integration in the experimental framework.  It also includes

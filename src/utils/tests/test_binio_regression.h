@@ -38,7 +38,7 @@ class TestBinIORegression : public CxxTest::TestSuite
       void writebin(std::ostream& out) const { BinIO::writebin(out, reverse_bytes(v)); }
       void readbin(std::istream& in) { BinIO::readbin(in, v); v = reverse_bytes(v); }
       bool operator==(NonSafeMovableT x) const { return v == x.v; }
-      void operator=(Uint v) { this->v = v; }
+      NonSafeMovableT& operator=(Uint v) { this->v = v; return *this; }
    };
 
 public:

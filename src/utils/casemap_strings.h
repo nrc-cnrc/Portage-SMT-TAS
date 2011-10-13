@@ -37,6 +37,10 @@ class CaseMapStrings {
 
    void init();
 
+private:
+   CaseMapStrings(const CaseMapStrings&); ///< non-copyable
+   CaseMapStrings& operator=(const CaseMapStrings&); ///< non-copyable
+
 public:
 
    /**

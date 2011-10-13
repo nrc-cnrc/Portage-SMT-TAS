@@ -294,9 +294,8 @@ public:
          os << "[" << beg1 << "," << end1 << ")[" << beg2 << "," << end2 << ")";
       }
       void dump(ostream& os, const vector<string>& toks1, const vector<string>& toks2) {
-         string s1, s2;
-         os << join(toks1.begin()+beg1, toks1.begin()+end1, s1, "_") << "/"
-            << join(toks2.begin()+beg2, toks2.begin()+end2, s2, "_");
+         os << join(toks1.begin()+beg1, toks1.begin()+end1, "_") << "/"
+            << join(toks2.begin()+beg2, toks2.begin()+end2, "_");
       }
 
    };
@@ -681,6 +680,11 @@ class ExternalAligner : public WordAligner
    istream* external_alignments;
    SRIReader reader;
 
+   /// non-copyable
+   ExternalAligner(const ExternalAligner&);
+   /// non-copyable
+   ExternalAligner& operator=(const ExternalAligner&);
+
 public:
 
    ExternalAligner(WordAlignerFactory& factory, const string& args);
@@ -698,7 +702,7 @@ public:
   stop reading here!
  *--------------------------------------------------------------------------*/
 
-/**
+/*
  * For each word, we keep track of the range [e,l] of its earliest and latest
  * connection positions in the other sentence. "Joiner" words are coded as
  * [s,0] and "splitter" words as [s,s] (where s is the size of the other
@@ -771,9 +775,8 @@ void WordAlignerFactory::addPhrases(const vector<string>& toks1, const vector<st
                                       toks2.begin()+b2, toks2.begin()+e2, ct);
 
                   if (verbose > 1) {
-                     string p1, p2;
-                     PhraseTableBase::codePhrase(toks1.begin()+b1, toks1.begin()+e1, p1, "_");
-                     PhraseTableBase::codePhrase(toks2.begin()+b2, toks2.begin()+e2, p2, "_");
+                     string p1 = join(toks1.begin()+b1, toks1.begin()+e1, "_");
+                     string p2 = join(toks2.begin()+b2, toks2.begin()+e2, "_");
                      cerr << b1 << ':' << p1 << ':' << e1 << "/" << b2 << ':' << p2 << ':' << e2 << " ";
                   }
                }

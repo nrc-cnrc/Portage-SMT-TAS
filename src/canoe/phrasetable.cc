@@ -158,7 +158,7 @@ TargetPhraseTable* PhraseTable::getTargetPhraseTable(const Entry& entry, Uint& s
 
    // Tokenize source
    // Destructive split: src remains the memory holder for tokens.
-   src_word_count = split(entry.src, tokens, 1000+1, " ");
+   src_word_count = destructive_split(entry.src, tokens, 1000+1, " ");
 
    if(!(src_word_count > 0)) {
       error(ETWarn, "\nSuspicious entry in %s, there is no source in: %s\n",
@@ -376,7 +376,7 @@ bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
 
             char* lexdis_tokens[entry.lexicalized_distortion_prob_count+1];
             // fast, destructive split
-            const Uint actual_lexdis_count = split(entry.probString,
+            const Uint actual_lexdis_count = destructive_split(entry.probString,
                   lexdis_tokens, entry.lexicalized_distortion_prob_count+1);
             if ( actual_lexdis_count != entry.lexicalized_distortion_prob_count )
                error(ETFatal, "Wrong number of lexicalized distortion probabilities (%d instead of %d) in %s at line %d",
@@ -433,7 +433,7 @@ bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
 
       char* prob_tokens[entry.multi_prob_col_count];
       // fast, destructive split
-      const Uint actual_count = split(entry.probString, prob_tokens, entry.multi_prob_col_count);
+      const Uint actual_count = destructive_split(entry.probString, prob_tokens, entry.multi_prob_col_count+1);
       if ( actual_count != entry.multi_prob_col_count )
          error(ETFatal, "Wrong number of probabilities (%d instead of %d) in %s at line %d",
                actual_count, entry.multi_prob_col_count, entry.file, entry.lineNum);
@@ -503,7 +503,7 @@ bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
       if ( entry.adirectional_prob_count > 0 ) {
          char* ascore_tokens[entry.adirectional_prob_count+1];
          // fast, destructive split
-         const Uint actual_ascore_count = split(entry.ascoreString,
+         const Uint actual_ascore_count = destructive_split(entry.ascoreString,
                ascore_tokens, entry.adirectional_prob_count+1);
          if ( actual_ascore_count != entry.adirectional_prob_count )
             error(ETFatal, "Wrong number of adirectional probabilities (%d instead of %d) in %s at line %d",

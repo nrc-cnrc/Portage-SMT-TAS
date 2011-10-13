@@ -174,7 +174,7 @@ shared_ptr<HMM> HMMAligner::makeHMM(const vector<string>& src_toks_arg,
 
    if ( ! hmm->checkTransitionDistributions(false, true) ) {
       cerr << "observed: " << join(tgt_toks) << endl;
-      cerr << "hidden: " << join<string>(src_toks) << endl;
+      cerr << "hidden: " << join(src_toks) << endl;
       hmm->write(cerr);
       error(ETFatal, "Bad HMM");
    }
@@ -266,14 +266,14 @@ shared_ptr<HMM> HMMAligner::makeHMM(const vector<string>& src_toks_arg,
 
    if ( ! hmm->checkEmissionDistributions(false, true) ) {
       cerr << "observed: " << join(tgt_toks) << endl;
-      cerr << "hidden: " << join<string>(src_toks) << endl;
+      cerr << "hidden: " << join(src_toks) << endl;
       hmm->write(cerr);
       error(ETFatal, "Bad HMM");
    }
 
    if ( super_verbose_hmm ) {
-      cerr << "observed: " << join(tgt_toks) << endl;
-      cerr << "hidden: " << join<string>(src_toks) << endl;
+      cerr << "observed: " << join(tgt_toks) << nf_endl;
+      cerr << "hidden: " << join(src_toks) << nf_endl;
       hmm->write(cerr);
    }
 
@@ -407,7 +407,7 @@ void HMMAligner::count(const vector<string>& src_toks_arg,
       logprob += cur_logprob;
       num_toks += tgt_toks.size();
    } else {
-      string s = join<string>(src_toks);
+      string s = join(src_toks);
       string t = join(tgt_toks);
       error(ETWarn, "BWForwardBackwardCount logprob = %g, skipping line:\n%s\n%s",
             cur_logprob, s.c_str(), t.c_str());

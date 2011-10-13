@@ -105,6 +105,37 @@ template<class Iterator> double var(Iterator beg, Iterator end, double mean)
    }
    return n > 1 ? s/(n-1) : 0.0;
 }
+ 
+/**
+ * Compute mean and var in one pass.
+ * @param beg  start iterator.
+ * @param end  end iterator.
+ * @return Returns mean,variance over [beg .. end).
+ */
+template<class Iterator> pair<double,double> meanvar(Iterator beg, Iterator end)
+{
+   double s = 0.0, s2 = 0.0;
+   int n = 0;
+   for (; beg != end; ++beg, ++n) {
+      s += *beg;
+      s2 += *beg * *beg;
+   }
+   return make_pair(s / n, _var(s, s2, n));
+}
+
+/**
+ * Normalize values by subtracting the mean and dividing by sdev.
+ * @param beg  start iterator.
+ * @param end  end iterator.
+ * @return Returns mean,variance over [beg .. end).
+ */
+template<class Iterator> void meanvarnorm(Iterator beg, Iterator end)
+{
+   pair<double, double> mv = meanvar(beg, end);
+   double sd = mv.second ? sqrt(mv.second) : 1.0;
+   for (Iterator p = beg; p != end; ++p)
+      *p = (*p - mv.first) / sd;
+}
 
 /**
  * Compute standard deviation.

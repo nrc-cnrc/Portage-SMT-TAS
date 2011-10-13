@@ -9,10 +9,12 @@
  * them. In all cases the alignment is represented internally in the canonical
  * format defined by AlignWords (align_word.h).
  *
- * To add a new format to either interface: 1) Derive a new class from
- * the interface; 2) Add a constructor call to the interface's create() method;
+ * To add a new format to either interface:
+ * 1) Derive a new class from the interface;
+ * 2) Add a constructor call to the interface's create() method;
  * 3) Add the format's name to WORD_ALIGNMENT_WRITER_FORMATS or
- * WORD_ALIGNMENT_READER_FORMATS.
+ *    WORD_ALIGNMENT_READER_FORMATS;
+ * 4) Document the format in WordAlignmentWriter::help().
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
@@ -56,9 +58,17 @@ public:
     * @param format see WORD_ALIGNMENT_WRITER_FORMATS for list
     */
    static WordAlignmentWriter* create(const string& format);
+
+   /**
+    * Provide documentation on what the different word alignment formats are.
+    */
+   static string help();
+
+   /// Class with virtual methods should have virtual destructor too
+   virtual ~WordAlignmentWriter() {}
 };
 
-#define WORD_ALIGNMENT_WRITER_FORMATS "aachen, gale, hwa, matrix, compact, ugly, green, sri, or uli"
+#define WORD_ALIGNMENT_WRITER_FORMATS "aachen, gale, hwa, matrix, compact, ugly, green, sri, uli"
 
 /// Full alignment output style.
 class UglyWriter : public WordAlignmentWriter {
@@ -140,13 +150,44 @@ public:
 /**
  * Green format: this is similar to compact, but distinguishes between
  * unaligned tokens and those that are explicitly linked to null (the end
- * position in the other language).
+ * position in the other language).  Just as in sets, NULL links are
+ * represented as the value toks2.size() for NULL-aligned lang1 tokens, while
+ * NULL-aligned lang2 tokens are listed in the toks1.size()th entry in the
+ * output.
  */
 class GreenWriter : public WordAlignmentWriter {
 public:
    virtual ostream& operator()(ostream &out, 
                                const vector<string>& toks1, const vector<string>& toks2,
                                const vector< vector<Uint> >& sets);
+
+   /**
+    * Given alignment sets, write in out the alignment for the token
+    * subsequences [beg1,end1) / [beg2,end2).  This method combines a subset
+    * operation, a translation and writing to a final format.  It is done in a
+    * single operation for optimization purposes.
+    * @param sep use this separator for the top-level (default is space).
+    */
+   static void write_partial_alignment(string& out,
+                                const vector<string>& toks1, Uint beg1, Uint end1,
+                                const vector<string>& toks2, Uint beg2, Uint end2,
+                                const vector< vector<Uint> >& sets,
+                                char sep = ' ');
+
+   /**
+    * Given an alignment in green format, reverse it, i.e., reverse the roles of
+    * toks1 and toks2.
+    * @param out where to write the results
+    * @param green_alignment alignment in green format
+    * @param toks1_len the number of tokens in the original lang1 sequence
+    * @param toks2_len the number of tokens in the original lang2 sequence
+    * @param sep use this separator for the top-level (default is space).
+    *            has to be the same as was used to generate green_alignment
+    *            in the first place.
+    */
+   static void reverse_alignment(string& out, const char* green_alignment,
+                                 Uint toks1_len, Uint toks2_len, char sep = ' ');
+
 };
 
 /**
@@ -196,17 +237,20 @@ public:
     * @param toks1  sentence in language 1
     * @param toks2  sentence in language 2
     * @param sets   alignment read in, in the representation produced by AlignWords::align().
-    * @return       modified in.
+    * @return       true if an alignment was read in, false on EOF
     */
-   virtual istream& operator()(istream &in, 
-                               const vector<string>& toks1, const vector<string>& toks2,
-                               vector< vector<Uint> >& sets) = 0;
+   virtual bool operator()(istream &in, 
+                           const vector<string>& toks1, const vector<string>& toks2,
+                           vector< vector<Uint> >& sets) = 0;
    
    /**
     * Create a new writer using the given format.
     * @param format see WORD_ALIGNMENT_READER_FORMATS for list
     */
    static WordAlignmentReader* create(const string& format);
+
+   /// Class with virtual methods should have virtual destructor too
+   virtual ~WordAlignmentReader() {}
 };
 
 #define WORD_ALIGNMENT_READER_FORMATS "hwa, green, sri"
@@ -224,9 +268,9 @@ public:
    /// Constructor.
    HwaReader() : sentence_id(0) {}
    
-   virtual istream& operator()(istream &in, 
-                               const vector<string>& toks1, const vector<string>& toks2,
-                               vector< vector<Uint> >& sets);
+   virtual bool operator()(istream &in, 
+                           const vector<string>& toks1, const vector<string>& toks2,
+                           vector< vector<Uint> >& sets);
 };
 
 /**
@@ -235,14 +279,19 @@ public:
  * position in the other language).
  */
 class GreenReader : public WordAlignmentReader {
+   char sep; ///< separator to expect instead of a space.
 public:
    int sentence_id;
    /// Constructor.
-   GreenReader() : sentence_id(0) {}
+   GreenReader(char sep = ' ') : sep(sep), sentence_id(0) {}
 
-   virtual istream& operator()(istream &in, 
-                               const vector<string>& toks1, const vector<string>& toks2,
-                               vector< vector<Uint> >& sets);
+   virtual bool operator()(istream &in, 
+                           const vector<string>& toks1, const vector<string>& toks2,
+                           vector< vector<Uint> >& sets);
+   /// Same as the other variant of this operator, but takes the input line as
+   /// argument instead of reading it from a file or stream, and without the
+   /// toks1 and toks2 parameters since the GreenReader doesn't actually use them.
+   void operator()(const string& line, vector< vector<Uint> >& sets);
 };
 
 /**
@@ -254,9 +303,9 @@ public:
    /// Constructor.
    SRIReader() : sentence_id(0) {}
 
-   virtual istream& operator()(istream &in, 
-                               const vector<string>& toks1, const vector<string>& toks2,
-                               vector< vector<Uint> >& sets);
+   virtual bool operator()(istream &in, 
+                           const vector<string>& toks1, const vector<string>& toks2,
+                           vector< vector<Uint> >& sets);
 };
 
 }

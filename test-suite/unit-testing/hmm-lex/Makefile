@@ -18,9 +18,7 @@ all: \
    cmp_map-cat.fr_given_en \
    cmp_map-sym.fr_given_en \
    cmp_map-sym-cat.fr_given_en
-
-clean:
-	$(RM) -r map*_given_* log.map* run-parallel-logs*
+	@echo All tests PASSED
 
 cmp_%.fr_given_en: %.fr_given_en
 	@$(MAKE) --no-print-directory do_cmp_$*.fr_given_en{,.dist}
@@ -33,17 +31,20 @@ do_cmp_%:
 
 map.fr_given_en: $(CORPUS)
 	$(RM) $@ $@.dist
-	train_ibm -v -mimic he-lex $@ $+ >& log.$@
+	train_ibm -filter-singletons 0 -v -mimic he-lex $@ $+ >& log.$@
 
 map-cat.fr_given_en: $(CORPUS)
 	$(RM) $@ $@.dist
-	cat.sh -v -mimic he-lex $@ $+ >& log.$@
+	cat.sh -filter-singletons 0 -v -mimic he-lex $@ $+ >& log.$@
 
 map-sym.fr_given_en: $(CORPUS)
 	$(RM) $@ $@.dist $(subst fr_given_en,en_given_fr,$@){,.dist}
-	train_ibm -v -symmetrized liang -mimic he-lex $@ $+ >& log.$@
+	train_ibm -filter-singletons 0 -v -symmetrized liang -mimic he-lex $@ $+ >& log.$@
 
 map-sym-cat.fr_given_en: $(CORPUS)
 	$(RM) $@ $@.dist $(subst fr_given_en,en_given_fr,$@){,.dist}
-	cat.sh -v -symmetrized liang -mimic he-lex $@ $+ >& log.$@
+	cat.sh -filter-singletons 0 -v -symmetrized liang -mimic he-lex $@ $+ >& log.$@
+
+clean:
+	$(RM) map*_given_* log.map* run-parallel-logs*
 

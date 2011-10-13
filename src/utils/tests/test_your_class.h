@@ -2,23 +2,23 @@
  * @author INSERT YOUR NAME HERE
  * @file test_your_class.h  Test suite for YourClass
  *
- * This file, test_prog.h, written by Eric Joanis, is intended as a template
- * for your own unit test suites.  Copy it to tests/test_your_class.h, remove
- * all the irrelevant content (such as this paragraph and all the sample test
- * cases below), substitute all instances of "your class" with appropriate
+ * This file, test_your_class.h, written by Eric Joanis, is intended as a
+ * template for your own unit test suites.  Copy it to tests/test_<YOUR_CLASS>.h,
+ * remove all the irrelevant content (such as this paragraph and all the sample
+ * test cases below), substitute all instances of "your class" with appropriate
  * text describing yours, and you're ready to go: "make test" will now run
  * your test suite among the rest.
  * Full documentation of CxxTest is here:
  *      http://cxxtest.sourceforge.net/guide.html
  * and the list of assertions is here:
  *      http://cxxtest.sourceforge.net/guide.html#TOC8
- * And several examples exist in our own tests/test*.h files.
+ * And lots of examples exist in our own tests/test*.h files.
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2010, Sa Majeste la Reine du Chef du Canada /
- * Copyright 2010, Her Majesty in Right of Canada
+ * Copyright 2011, Sa Majeste la Reine du Chef du Canada /
+ * Copyright 2011, Her Majesty in Right of Canada
  */
 
 #include <cxxtest/TestSuite.h>

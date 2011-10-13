@@ -169,10 +169,15 @@ fi
       fi
 
       echo "Creating the co-occurence counts." >&2
-      [[ -s mmfusa.src.tpsa ]] || build-tp-suffix-array.sh $SRC mmfusa.src >&2
-      [[ -s mmfusa.tgt.tpsa ]] || build-tp-suffix-array.sh $TGT mmfusa.tgt >&2
+      [[ -s mmsufa.src.tpsa ]] || build-tp-suffix-array.sh $SRC mmsufa.src >&2
+      [[ -s mmsufa.tgt.tpsa ]] || build-tp-suffix-array.sh $TGT mmsufa.tgt >&2
 
-      CMD="time parallelize.pl -stripe $PARALLELIZE_OPTS \"phrasepair-contingency --sigfet mmfusa src tgt < $JPT\" $SIG_OUT"
+      # UGH!  Sometimes one of the phrasepair-contingency instances fails to
+      # see some of the TPSA files that were just created.  So we wait to give
+      # the file system and the stars time to align themselves properly...
+      sleep 5
+
+      CMD="time parallelize.pl -stripe $PARALLELIZE_OPTS \"phrasepair-contingency --sigfet mmsufa src tgt < $JPT\" $SIG_OUT"
       [[ $DEBUG ]] && echo "Contingency command: $CMD" >&2
       eval "$CMD" || error_exit "Problem with parallelize.pl!"
    fi;
@@ -182,10 +187,10 @@ fi
 | eval $OUTPUT
 
 if [[ ! $KEEP_INTERMEDIATE ]]; then
-   # NOTE: in order to get a 0 exit status the following is writing to always
+   # NOTE: in order to get a 0 exit status the following is written to always
    # produce true unless there is really a problem removing the files.
-   [[ ! -e mmfusa.src.tpsa ]] || rm -r mmfusa.src.tpsa
-   [[ ! -e mmfusa.tgt.tpsa ]] || rm -r mmfusa.tgt.tpsa
+   [[ ! -e mmsufa.src.tpsa ]] || rm -r mmsufa.src.tpsa
+   [[ ! -e mmsufa.tgt.tpsa ]] || rm -r mmsufa.tgt.tpsa
 fi
 
 exit

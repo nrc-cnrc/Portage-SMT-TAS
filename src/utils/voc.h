@@ -22,6 +22,7 @@
 #include "string_hash.h"
 #include "file_utils.h"
 #include <numeric> // for accumulate
+#include <algorithm> // for sort
 
 namespace Portage {
 
@@ -340,6 +341,59 @@ public:
       T sum = accumulate(counts.begin(), counts.end(), 0.0);
       for (Uint i = 0; i < counts.size(); ++i)
          counts[i] /= sum;
+   }
+
+private:
+   /// Comparing functor for sortReverseFreq
+   class HigherCount {
+      const vector<T>& counts;
+   public:
+      HigherCount(const vector<T>& counts) : counts(counts) {}
+      bool operator() (Uint i, Uint j) { return counts[i] > counts[j]; }
+   };
+
+public:
+   /**
+    * Re-sort all elements of the vocabulary to assign the lowest indices to
+    * the most frequent words.
+    * Warning: this will change the index of all words, so make sure no
+    * external object is using the indices of this vocabulary.
+    */
+   void sortReverseFreq() {
+      assert(counts.size() == words.size());
+      assert(counts.size() == size());
+      // given new index i, ordering[i] has the old index for the same word
+      vector<Uint> ordering(size());
+      for (Uint i = 0; i < size(); ++i) ordering[i] = i;
+      std::sort(ordering.begin(), ordering.end(), HigherCount(counts));
+
+      // Update the words[] list.
+      {
+         vector<const char*> reordered_words(size());
+         for (Uint i = 0; i < size(); ++i)
+            reordered_words[i] = words[ordering[i]];
+         words.swap(reordered_words);
+      }
+
+      // Update the map
+      {
+         // given old index i, reversed_ordering[i] has the new index for the
+         // same word, needed to update the map.
+         vector<Uint> reversed_reordering(size());
+         for (Uint i = 0; i < size(); ++i)
+            reversed_reordering[ordering[i]] = i;
+         for (MapIter it = map.begin(); it != map.end(); ++it)
+            it->second = reversed_reordering[it->second];
+      }
+
+      // Update the counts
+      {
+         vector<T> reordered_counts(size());
+         for (Uint i = 0; i < size(); ++i)
+            reordered_counts[i] = counts[ordering[i]];
+         counts.swap(reordered_counts);
+      }
+
    }
 
 };

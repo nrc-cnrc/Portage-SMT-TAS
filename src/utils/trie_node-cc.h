@@ -483,7 +483,7 @@ Uint TrieNode<LeafDataT, InternalDataT, NeedDtor>::read_binary(
          children[i] = ~(Uint(0));
       }
       key_stack.push_back(list[i].key_elem);
-      //cerr << "Key " << join<Uint>(key_stack);
+      //cerr << "Key " << join(key_stack);
       if ( filter(key_stack) ) { // Keep this key
          //cerr << " keeping it" << endl;
          keys_kept.push_back(key_stack.back());
@@ -647,7 +647,7 @@ Uint TrieNode<LeafDataT, InternalDataT, NeedDtor>::read_binary(
          ok = false;
    }
    if ( !ok ) {
-      cerr << "Corrupted list should be " << join<Uint>(keys_kept)
+      cerr << "Corrupted list should be " << join(keys_kept)
            << " but is";
       for ( Uint i(0); i < list_alloc; ++i )
          cerr << " " << list[i].key_elem;

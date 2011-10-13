@@ -236,7 +236,7 @@ std::string& Portage::pack(Uint x, string& s, Uint base, Uint fill)
    return s;
 }
 
-Uint Portage::unpack(const string& s, Uint start, Uint num_chars, Uint base)
+Uint Portage::unpack(const char* s, Uint start, Uint num_chars, Uint base)
 {
    Uint x = 0;
    Uint last = start + num_chars - 1;
@@ -285,29 +285,77 @@ string Portage::decodeRFC2396(const string& s)
    return d;
 }
 
-string& Portage::join(vector<string>::const_iterator beg,
-                      vector<string>::const_iterator end, 
-                      string& s, const string& sep)
+string& Portage::join_append(vector<string>::const_iterator beg,
+                             vector<string>::const_iterator end, 
+                             string& s, const string& sep)
 {
-   while (beg < end) {
+   if (s.capacity() == 0) {
+      // This optimization can help with a fresh string, but can be harmful if
+      // done repeatedly in a tight loop over the same string buffer s
+      // Profiling shows this optimization is worthwhile.
+      Uint capacity_needed(0);
+      Uint sep_len = sep.size();
+      for ( vector<string>::const_iterator it = beg; it != end; ++it )
+         capacity_needed += it->size() + sep_len;
+      if ( beg < end ) capacity_needed -= sep_len;
+      s.reserve(s.size() + capacity_needed);
+   }
+
+   if (beg != end) {
       s += *beg;
-      if (beg+1 != end)  s += sep;
+      ++beg;
+   }
+   while (beg != end) {
+      s += sep;
+      s += *beg;
       ++beg;
    }
    return s;
 }
 
-Uint Portage::split(char* s, char* tokens[], Uint max_tokens, const char* sep)
+// optimized specializations for join() results going to an actual string
+template <>
+_Joiner<vector<string>::const_iterator>::operator const string () const {
+   string s;
+   join_append(beg, end, s, sep);
+   return s;
+}
+template <>
+_Joiner<vector<string>::iterator>::operator const string () const {
+   string s;
+   join_append(beg, end, s, sep);
+   return s;
+}
+
+Uint Portage::destructive_split(char* s, char* tokens[], Uint max_tokens, const char* sep)
 {
    char* strtok_state;
    Uint tok_count = 0;
    char* tok = strtok_r(s, sep, &strtok_state);
-   while (tok != NULL && tok_count < max_tokens) {
-      tokens[tok_count] = tok;
-      ++tok_count;
+   while (tok != NULL && tok_count + 2 < max_tokens) {
+      tokens[tok_count++] = tok;
       tok = strtok_r(NULL, sep, &strtok_state);
    }
-   if ( tok != NULL ) ++tok_count;
+   if ( tok != NULL ) {
+      tokens[tok_count++] = tok;
+      assert(tok_count <= max_tokens);
+   }
+   if ( strtok_state != NULL ) {
+      // This bit of code is ugly, and relies on internals of strtok_r, but
+      // it is well tested via unit testing, so it is in fact reliable.
+      // We do this ugly stuff to return in tokens[max_tokens-1] the rest of
+      // s starting at the beginning of the max_tokens'th token.  If we use
+      // strtok_r again, a null is actually inserted at the end of the
+      // max_tokens'th token, which is not what we want here.
+
+      // skip past any characters from sep at the beginnig of strtok_state
+      while ( *strtok_state != '\0' && strchr(sep, *strtok_state) )
+         ++strtok_state;
+      if ( *strtok_state != '\0' ) {
+         tokens[tok_count++] = strtok_state;
+         assert(tok_count <= max_tokens);
+      }
+   }
    return tok_count;
 }
 

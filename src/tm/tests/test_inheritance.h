@@ -27,6 +27,7 @@ public:
       Base* p = new Sub;
       Base& r(*p);
       TS_ASSERT_EQUALS(r.foo(), 1);
+      if (p) delete p;
    }
 }; // testInheritance
 

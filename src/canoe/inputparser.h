@@ -29,6 +29,7 @@ namespace Portage
    /// Reads and parses input that may contain marked phrases.
    class InputParser
    {
+   friend class TestInputParser;
    private:
       istream &in;   ///< Stream we are reading from
 
@@ -49,6 +50,7 @@ namespace Portage
          LEFT_ANGLE_IN_MARK,
          LITERAL_BACKSLASH,
          LITERAL_ANGLE,
+         NULL_CHARACTER,
       };
 
       /**

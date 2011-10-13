@@ -4,8 +4,8 @@ Please run "portage_info -notice" for Copyright notices of 3rd party libraries.
 
 Read TTable in N seconds
 Created HMM model with existing IBM1 model and p0: 0.05 up0: 0 alpha: 0.01 lambda: 0 anchor: 1 end-dist: 1 max-jump: 7 using word classes from: ref/dev1_en.cls
-initializing from ref/ibm1-dev1.fr_given_en:
-beginning training:
+Initializing from ref/ibm1-dev1.fr_given_en:
+Beginning training:
 reading ref/dev1_en.al/ref/dev1_fr.al
 Lines processed: 100
 iter 1 (HMM): prev ppx = 43.4388, size = 29972 word pairs; took N second(s).

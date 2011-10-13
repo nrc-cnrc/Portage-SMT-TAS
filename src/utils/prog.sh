@@ -2,9 +2,9 @@
 # $Id$
 
 # @file prog.sh 
-# @brief BRIEFLY DESCRIBE YOUR SCRIPT HERE.
+# @brief Briefly describe your script here.
 # 
-# @author WRITE YOUR NAME HERE
+# @author Write your name here
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -13,9 +13,14 @@
 # Copyright 2011, Her Majesty in Right of Canada
 
 # Includes NRC's bash library.
-source `dirname $0`/sh_utils.sh
+BIN=`dirname $0`
+if [[ ! -r $BIN/sh_utils.sh ]]; then
+   # assume executing from src/* directory
+   BIN="$BIN/../utils"
+fi
+source $BIN/sh_utils.sh || { echo "Error: Unable to source sh_utils.sh" >&2; exit 1; }
 
-# CHANGE THE PROGRAM NAME AND YEAR HERE
+# Change the program name and year here
 print_nrc_copyright prog.sh 2011
 
 usage() {

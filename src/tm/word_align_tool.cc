@@ -47,7 +47,9 @@ Options:\n\
       [don't]\n\
 -fin  Format for input alignment file, one of: "WORD_ALIGNMENT_READER_FORMATS" [hwa]\n\
 -fout Format for output alignment file, one of:\n\
-      "WORD_ALIGNMENT_WRITER_FORMATS", or patterns [green]\n\
+      "WORD_ALIGNMENT_WRITER_FORMATS",\n\
+      or patterns [green]\n\
+      Note: type \"align-words -H\" for documentation on each format.\n\
 -crp  Write Uli-style combined text file to <file>.\n\
 ";
 
@@ -106,7 +108,8 @@ int main(int argc, char* argv[])
       splitZ(line1, toks1);
       splitZ(line2, toks2);
 
-      (*wal_reader)(al_in_file, toks1, toks2, sets1);
+      if (!(*wal_reader)(al_in_file, toks1, toks2, sets1))
+         error(ETFatal, "alignment file %s too short", al_in.c_str());
 
       if (do_transpose) transpose(toks1, toks2, sets1);
       if (do_closure) WordAligner::close(sets1, csets);
@@ -122,6 +125,9 @@ int main(int argc, char* argv[])
          (*crp_file) << line_num << endl << l1 << endl << l2 << endl;
       }
    }
+   delete wal_reader;
+   delete wal_writer;
+   delete crp_file;
 }
 
 // this is expensive

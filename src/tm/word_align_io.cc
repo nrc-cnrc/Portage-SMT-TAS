@@ -45,7 +45,87 @@ WordAlignmentWriter* WordAlignmentWriter::create(const string& format)
    else 
       error(ETFatal, "Unknown alignment format: %s", format.c_str());
 
+   assert(writer);
+
    return writer;
+}
+
+/*
+ * example generated in test-suite/unit-testing/word_align_tool.
+ * run make all, the examples will be generated into files align2.*
+ */
+string WordAlignmentWriter::help()
+{
+   return
+"--- Word alignment formats ---\n\
+\n\
+Examples shown are for \"N a a b U\" and \"U A B B N\", with the a's aligned to A,\n\
+b aligned to the B's, the N's NULL aligned, and the U's unaligned.\n\
+\n\
+Note: only green and gale are complete formats, i.e., formats which contain all\n\
+the alignment information.\n\
+\n\
+aachen   Aachen style: one line for the sent ID followed by one line per link\n\
+         incomplete: NULL-aligned and unaligned words are not distinguished.\n\
+         e.g.: SENT: 0\n\
+               S 1 1\n\
+               S 2 1\n\
+               S 3 2\n\
+               S 3 3\n\
+         \n\
+gale     GALE (RWTH) alignment output style.\n\
+         ID 0 # Source Sent # Raw Hyp # Postprocessed Hyp @ Alignment # Scores\n\
+         e.g.: 0  0 # N a a b U # U A B B N # U A B B N @\n\
+               A 0 5 A 1 1 A 2 1 A 3 2 A 3 3 A 5 4 # noscores\n\
+         \n\
+compact  <sent ID><tab><alignment>, where <alignment> is a semi-colon separated\n\
+         list of comma-separated lists of indices.  The indices in the n-th\n\
+         list indicate which lang2 words the n-th lang1 word is aligned to.\n\
+         The lang2 word indices start at 1, contrary to all other formats.\n\
+         incomplete: NULL-aligned and unaligned words are not distinguished.\n\
+         e.g.: 0\t;2;2;3,4;;\n\
+         \n\
+ugly     List of aligned word pairs.\n\
+         incomplete: identical words are not distinguished,\n\
+         e.g.: a/A a/A b/B b/B\n\
+               EXCLUDED: 0 / 4\n\
+         \n\
+matrix   Matrix format for easy visual inspection\n\
+         incomplete: NULL-aligned and unaligned words are not distinguished.\n\
+         e.g.: |U|A|B|B|N|\n\
+               +-+-+-+-+-+\n\
+               | | | | | |N\n\
+               | |x| | | |a\n\
+               | |x| | | |a\n\
+               | | |x|x| |b\n\
+               | | | | | |U\n\
+               +-+-+-+-+-+\n\
+         \n\
+hwa      One sentence pair per file, in files named \"aligned.ID\"\n\
+         incomplete: NULL-aligned and unaligned words are not distinguished.\n\
+         e.g.: 1  1  (a, A)\n\
+               2  1  (a, A)\n\
+               3  2  (b, B)\n\
+               3  3  (b, B)\n\
+         \n\
+green    Similar to compact, but complete, with 0 offset indices, no sentence\n\
+         ID, and space separated.  Unaligned lang1 words are shown by \"-\",\n\
+         NULL-aligned lang1 words are shown by the number of lang2 words,\n\
+         unaligned lang2 words are implicit, NULL-aligned lang2 words are\n\
+         listed in the optional last element of the top-level list.\n\
+         e.g.: 5 1 1 2,3 - 4\n\
+         \n\
+sri      List of lang1-lang2 index pairs representing the alignment links.\n\
+         incomplete: NULL-aligned and unaligned words are not distinguished.\n\
+         e.g.: 1-1 2-1 3-2 3-3\n\
+\n\
+uli      Format for Uli's YAWAT tool.\n\
+         incomplete: represents the transitive closure of the alignment.\n\
+         incomplete: NULL-aligned and unaligned words are not distinguished.\n\
+         e.g.: 1 1,2:1:unspec 3:2,3:unspec\n\
+\n\
+";
+
 }
 
 ostream& UglyWriter::operator()(ostream &out, 
@@ -206,6 +286,212 @@ ostream& GreenWriter::operator()(ostream &out,
    return out;
 }
 
+void GreenWriter::write_partial_alignment(string& out,
+      const vector<string>& toks1, Uint beg1, Uint end1,
+      const vector<string>& toks2, Uint beg2, Uint end2,
+      const vector< vector<Uint> >& sets, char sep)
+{
+   assert(beg1 <= toks1.size());
+   assert(end1 <= toks1.size());
+   assert(beg2 <= toks2.size());
+   assert(end2 <= toks2.size());
+   assert((sets.size() == toks1.size()) || (sets.size() == toks1.size() + 1));
+
+   ostringstream ss;
+
+   for ( Uint i = beg1; i < end1; ++i ) {
+      bool empty(true);
+      for ( Uint j = 0; j < sets[i].size(); ++j ) {
+         Uint jj = sets[i][j];
+         if ( beg2 <= jj && jj < end2 ) {
+            if (empty)
+               empty = false;
+            else
+               ss << ',';
+            ss << jj - beg2;
+         } else if ( jj == toks2.size() ) {
+            if ( !empty ) error(ETFatal, "NULL and regular alignment for same word.");
+            empty = false;
+            ss << (end2 - beg2);
+         }
+      }
+      if ( empty )
+         ss << '-';
+      if ( i+1 < end1 )
+         ss << sep;
+   }
+   if (sets.size() > toks1.size()) {
+      Uint i = toks1.size();
+      bool empty(true);
+      for ( Uint j = 0; j < sets[i].size(); ++j ) {
+         Uint jj = sets[i][j];
+         if ( beg2 <= jj && jj < end2 ) {
+            if (empty) {
+               empty = false;
+               if ( beg1 < end1 )
+                  ss << sep;
+            } else
+               ss << ',';
+            ss << jj - beg2;
+         } else if ( jj == toks2.size() ) {
+            error(ETFatal, "NULL - NULL alignment is not meaningful.");
+         }
+      }
+   }
+
+   out = ss.str();
+} // GreenWriter::write_partial_alignment()
+
+void GreenWriter::reverse_alignment(string& out, const char* green_alignment,
+                                    Uint toks1_len, Uint toks2_len, char sep)
+{
+   if ( 1 )
+   // This variant is ugly, but 62% faster (i.e., it runs in 38% of the time
+   // the alternative takes)
+   // Optimized by parsing into flat auto arrays with offset lists, instead of
+   // vectors of vectors.
+   {
+      // parse the alignment
+      Uint len = strlen(green_alignment);
+      // compact structure to hold alignments
+      // al[j] has the tok2 offsets for alignment links
+      Uint al[len];
+      // al_start[i] says where the alignments for toks1[i] start
+      Uint al_start[toks1_len+2];
+      // rev_al_count[j] says how many toks1 elements were aligned to j
+      Uint rev_al_count[toks2_len+1];
+      for ( Uint j = 0; j <= toks2_len; ++j ) rev_al_count[j] = 0;
+      char alignment_copy[len+1];
+      strcpy(alignment_copy, green_alignment);
+      char seps1[2] = {sep, '\0'};
+      char seps2[] = ",";
+      char *saveptr1, *saveptr2;
+      char* num1 = strtok_r(alignment_copy, seps1, &saveptr1);
+      Uint next_al_index(0);
+      Uint next_toks1_index(0);
+      while (num1 != NULL) {
+         if ( next_toks1_index > toks1_len )
+            error(ETFatal, "Alignment has too many fields for %u source tokens: %s",
+                  toks1_len, green_alignment);
+         al_start[next_toks1_index++] = next_al_index;
+         if (num1[0] == '-' && num1[1] == '\0') {
+            ; // no alignments here, just skip
+         } else {
+            char* num2 = strtok_r(num1, seps2, &saveptr2);
+            while (num2 != NULL) {
+               Uint j = conv<Uint>(num2);
+               if ( j > toks2_len )
+                  error(ETFatal, "Alignment value out of range given %u target tokens: %s",
+                        j, green_alignment);
+               al[next_al_index++] = j;
+               ++rev_al_count[j];
+               num2 = strtok_r(NULL, seps2, &saveptr2);
+            }
+         }
+         num1 = strtok_r(NULL, seps1, &saveptr1);
+      }
+      if ( next_toks1_index < toks1_len )
+         error(ETFatal, "Alignment has too few fields for %u source tokens: %s",
+               toks1_len, green_alignment);
+      assert(next_al_index <= len);
+      al_start[next_toks1_index++] = next_al_index;
+      if ( next_toks1_index <= toks1_len + 1 )
+         al_start[next_toks1_index++] = next_al_index;
+      const Uint toks1_with_null_len = toks1_len +
+         (al_start[toks1_len] == al_start[toks1_len+1] ? 0 : 1);
+      assert(al_start[0] == 0);
+
+      // reverse the alignment
+      Uint rev_al_next[toks2_len+1];
+      rev_al_next[0] = 0;
+      Uint rev_al_start[toks2_len+2];
+      rev_al_start[0] = 0;
+      for ( Uint j = 0; j < toks2_len; ++j )
+         rev_al_start[j+1] = rev_al_next[j+1] = rev_al_next[j] + rev_al_count[j];
+      rev_al_start[toks2_len+1] = rev_al_next[toks2_len] + rev_al_count[toks2_len];
+      assert(rev_al_start[toks2_len+1] == next_al_index);
+      Uint rev_al[next_al_index];
+      Uint j = 0;
+      for ( Uint i = 0; i < toks1_with_null_len; ++i )
+         for ( ; j < al_start[i+1]; ++j )
+            rev_al[rev_al_next[al[j]]++] = i;
+      assert(j == next_al_index);
+
+      // display the alignment
+      ostringstream oss;
+      const Uint toks2_with_null_len = toks2_len +
+         (rev_al_start[toks2_len] == rev_al_start[toks2_len+1] ? 0 : 1);
+      for ( Uint i = 0; i < toks2_with_null_len; ++i ) {
+         if ( rev_al_start[i] == rev_al_start[i+1] )
+            oss << '-';
+         for (Uint j = rev_al_start[i]; j < rev_al_start[i+1]; ++j) {
+            oss << rev_al[j];
+            if (j+1 < rev_al_start[i+1]) oss << ',';
+         }
+         if (i+1 < toks2_with_null_len)
+            oss << sep;
+      }
+      out = oss.str();
+
+   }
+   else
+   // Simpler but much slower because we parse into vectors of vectors.
+   {
+
+      GreenReader reader;
+      vector<vector<Uint> > sets;
+      vector<string> toks1(toks1_len);
+      vector<string> toks2(toks2_len);
+      istringstream iss;
+      if ( sep != ' ' ) {
+         Uint len = strlen(green_alignment);
+         char green2[len+1];
+         for ( Uint i = 0; i < len; ++i ) {
+            if ( green_alignment[i] == sep )
+               green2[i] = ' ';
+            else
+               green2[i] = green_alignment[i];
+         }
+         green2[len] = '\0';
+         iss.str(green2);
+      } else {
+         iss.str(green_alignment);
+      }
+      reader(iss, toks1, toks2, sets);
+
+      //this->operator()(cerr, toks1, toks2, sets);
+      
+      vector<vector<Uint> > reverse_sets (toks2_len+1);
+      for ( Uint i = 0; i < sets.size(); ++i ) {
+         for ( Uint j = 0; j < sets[i].size(); ++j ) {
+            Uint jj = sets[i][j];
+            if ( jj <= toks2_len )
+               reverse_sets[jj].push_back(i);
+            else
+               error(ETFatal, "Bad alignment string %s with lengths %u and %u",
+                     green_alignment, toks1_len, toks2_len);
+         }
+      }
+      // If nothing is NULL aligned, remove the NULL alignment list.
+      if ( reverse_sets.back().empty() )
+         reverse_sets.pop_back();
+
+      ostringstream oss;
+      GreenWriter().operator()(oss, toks2, toks1, reverse_sets);
+      out = oss.str();
+      // strip the newline
+      if ( !out.empty() )
+         out.resize(out.length() - 1);
+      // change ' ' for the chosen separator
+      if ( sep != ' ' )
+         for ( Uint i = 0; i < out.size(); ++i )
+            if ( out[i] == ' ' )
+               out[i] = sep;
+
+   }
+}
+
+
 ostream& SRIWriter::operator()(ostream &out, 
                                const vector<string>& toks1, const vector<string>& toks2,
                                const vector< vector<Uint> >& sets) 
@@ -254,24 +540,26 @@ ostream& UliWriter::operator()(ostream &out,
 
 WordAlignmentReader* WordAlignmentReader::create(const string& format)
 {
-   WordAlignmentReader* writer = NULL;
+   WordAlignmentReader* reader = NULL;
    if (format == "hwa")
-      writer = new HwaReader();
+      reader = new HwaReader();
    else if (format == "green")
-      writer = new GreenReader();
+      reader = new GreenReader();
    else if (format == "sri")
-      writer = new SRIReader();
+      reader = new SRIReader();
    else 
       error(ETFatal, "Unknown alignment format: %s", format.c_str());
 
-   return writer;
+   assert(reader);
+
+   return reader;
 }
 
 // format: index1 index2 (word1, word2)
 
-istream& HwaReader::operator()(istream &in, 
-                               const vector<string>& toks1, const vector<string>& toks2,
-                               vector< vector<Uint> >& sets)
+bool HwaReader::operator()(istream &in, 
+                           const vector<string>& toks1, const vector<string>& toks2,
+                           vector< vector<Uint> >& sets)
 {
    ostringstream fname;
    fname << "aligned-in." << ++sentence_id;
@@ -300,7 +588,7 @@ istream& HwaReader::operator()(istream &in,
       string tok2 = toks[3].substr(0, toks[3].length()-1); // word2)  -> word2
 
       if (index1 >= toks1.size() || index2 >= toks2.size())
-         error(ETFatal, "length mismatch error for sentence aligment %d, line %d", sentence_id, line_num);
+         error(ETFatal, "length mismatch error for sentence alignment %d, line %d", sentence_id, line_num);
       if (tok1 != toks1[index1])
          error(ETWarn, "L1 token mismatch error for sentence alignment %d, line %d: %s vs %s", 
                sentence_id, line_num, tok1.c_str(), toks1[index1].c_str());
@@ -331,21 +619,27 @@ istream& HwaReader::operator()(istream &in,
          sets[toks1.size()].push_back(i);
       }
 
-   return in;
+   return true;
 
 }
 
-istream& GreenReader::operator()(istream &in, 
-                                 const vector<string>& toks1, const vector<string>& toks2,
-                                 vector< vector<Uint> >& sets) 
+bool GreenReader::operator()(istream &in, 
+                             const vector<string>& toks1, const vector<string>& toks2,
+                             vector< vector<Uint> >& sets) 
 {
    string line;
-   vector<string> toks, subtoks;
-   
    if (!getline(in, line))
-      error(ETFatal, "aligment file too short");
+      return false;
+      //error(ETFatal, "alignment file too short");
+   operator()(line, sets);
+   return true;
+}
 
-   split(line, toks);
+void GreenReader::operator()(const string& line, vector< vector<Uint> >& sets) 
+{
+   vector<string> toks, subtoks;
+   const char seps[2] = {sep, '\0'};
+   split(line, toks, seps);
    sets.resize(toks.size());
 
    for (Uint i = 0; i < sets.size(); ++i) {
@@ -357,12 +651,11 @@ istream& GreenReader::operator()(istream &in,
             sets[i][j] = conv<Uint>(subtoks[j]);
       }
    }   
-   return in;
 }
 
-istream& SRIReader::operator()(istream &in, 
-                               const vector<string>& toks1, const vector<string>& toks2,
-                               vector< vector<Uint> >& sets)
+bool SRIReader::operator()(istream &in, 
+                           const vector<string>& toks1, const vector<string>& toks2,
+                           vector< vector<Uint> >& sets)
 {
    string line;
    vector<string> toks, subtoks;
@@ -371,7 +664,9 @@ istream& SRIReader::operator()(istream &in,
    sets.resize(toks1.size());
 
    if (!getline(in, line))
-      error(ETFatal, "aligment file too short");
+      return false;
+      //error(ETFatal, "alignment file too short");
+
    split(line, toks);
    for (Uint i = 0; i < toks.size(); ++i) {
       if (splitZ(toks[i], subtoks, "-") != 2)
@@ -385,5 +680,5 @@ istream& SRIReader::operator()(istream &in,
       sets[l1].push_back(l2);
    }
 
-   return in;
+   return true;
 }

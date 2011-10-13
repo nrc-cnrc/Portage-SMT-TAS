@@ -48,7 +48,7 @@ class countStats {
    // Std Dev = sqrt((SUM[x^2] - SUM[x]^2)/n / (n-1))
    private:
       unsigned long long characters;   ///< Number of characters in the input.
-      Uint shortest_line;   ///< Length of the shortest line in the input.
+      Uint shortest_line;  ///< Length of the shortest line in the input.
       Uint longest_line;   ///< Length of the longest line in the input.
 
       /// Object to keep track of counts in order to calculate mean & sdev.

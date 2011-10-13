@@ -1,6 +1,6 @@
 /**
  * @author Aaron Tikuisis
- * @file canoe.cc 
+ * @file canoe.cc
  * @brief Program canoe, Portage's decoder.
  *
  * $Id$
@@ -43,7 +43,7 @@ using boost::optional;
  */
 class OneFileInfo {
    const bool append;                  ///< Keeps track of the user request to make one file
-   oSafeMagicStream* f_nbest;          ///< nbestlist Stream 
+   oSafeMagicStream* f_nbest;          ///< nbestlist Stream
    oSafeMagicStream* f_ffvals;         ///< ffvals stream
    oSafeMagicStream* f_pal;            ///< pal stream
    oSafeMagicStream* f_lattice;        ///< lattice stream
@@ -93,7 +93,7 @@ class OneFileInfo {
       oSafeMagicStream* pal() const { return f_pal; }
       oSafeMagicStream* lattice() const { assert(f_lattice); return f_lattice; }
       oSafeMagicStream* lattice_state() const { assert(f_lattice_state); return f_lattice_state; }
-};   
+};
 
 
 /**
@@ -451,7 +451,7 @@ int MAIN(argc, argv)
                      "this token sequence: %s",
                      sourceSentenceIds.back(), marks.back().size(),
                      (marks.back().size() == 1 ? "" : "s"),
-                     joini(sents.back().begin(), sents.back().end()).c_str());
+                     join(sents.back()).c_str());
             else
                error(ETFatal, "Aborting because of ill-formed markup");
          }
@@ -541,7 +541,7 @@ int MAIN(argc, argv)
                      "this token sequence: %s",
                      sourceSentenceId, nss_info.marks.size(),
                      (nss_info.marks.size() == 1 ? "" : "s"),
-                     joini(nss_info.src_sent.begin(), nss_info.src_sent.end()).c_str());
+                     join(nss_info.src_sent).c_str());
             } else {
                error(ETFatal, "Aborting because of ill-formed markup");
             }
@@ -562,11 +562,11 @@ int MAIN(argc, argv)
          gen->setRandomWeights((c.randomSeed + 1) * sourceSentenceId);
 
       if (c.sentWeights != "") {
-	 if (sourceSentenceId < sent_weights.size())
-	    gen->setWeightsFromString(sent_weights[sourceSentenceId]);
-	 else
-	    error(ETWarn, "source sentence index %d out of range for sentWeights file - %s", 
-		  sourceSentenceId, "using global weights");
+         if (sourceSentenceId < sent_weights.size())
+            gen->setWeightsFromString(sent_weights[sourceSentenceId]);
+         else
+            error(ETWarn, "source sentence index %d out of range for sentWeights file - %s",
+                  sourceSentenceId, "using global weights");
       }
 
       nss_info.external_src_sent_id = sourceSentenceId;

@@ -1,6 +1,6 @@
 /**
  * @author Eric Joanis
- * @file test_jmm_jump_simple.h
+ * @file test_hmm_jump_simple.h
  * @brief Test suite for HmmJumpSimple.
  *
  * Technologies langagieres interactives / Interactive Language Technologies

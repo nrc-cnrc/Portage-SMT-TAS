@@ -100,13 +100,13 @@ class mergeStream
       class Stream {
          private:
             const string       file;   ///< Filename
+            Uint               lineno; ///< Current line number
             iSafeMagicStream   input;  ///< file stream
             Datum*             _data;  ///< Datum
             string             buffer; ///< line buffer
-            /// We need to placeholder to keep track of the entries to check if
+            /// We need a placeholder to keep track of the entries to check if
             /// the stream is LC_ALL=C sorted.
-            string             current_entry;
-            string             next_entry;  ///< a buffer space for the next entry.
+            string             prev_entry;
 
          private:
             Stream(const Stream&); ///< Noncopyable
@@ -116,10 +116,11 @@ class mergeStream
             /// Default constructor
             Stream(const string& file)
             : file(file)
+            , lineno(0)
             , input(file)
             , _data(NULL)
             {
-               // Triggers writing the first record which is required to have
+               // Triggers reading the first record which is required to have
                // the stream ordered.
                get();
             }
@@ -142,21 +143,21 @@ class mergeStream
 
             Datum* get() {
                if (getline(input, buffer)) {
-                  string::size_type pos = buffer.rfind(delimiter);
+                  ++lineno;
+                  const string::size_type pos = buffer.rfind(delimiter);
                   if (pos == string::npos)
                      error(ETFatal, "Invalid entry %s", buffer.c_str());
                   if (_data == NULL) _data = new Datum;
                   assert(_data != NULL);
 
                   // Check if the stream is LC_ALL=C sorted on the fly.
-                  next_entry = buffer.substr(0, pos+1);
-                  if (current_entry > next_entry) {
-                     error(ETFatal, "%s is not LC_ALL=C sorted\n%s\n%s",
-                          file.c_str(), current_entry.c_str(), next_entry.c_str());
+                  _data->prefix = buffer.substr(0, pos+1);
+                  if (prev_entry > _data->prefix) {
+                     error(ETFatal, "%s is not LC_ALL=C sorted at line %u:\n%s\n%s",
+                           file.c_str(), lineno, prev_entry.c_str(), _data->prefix.c_str());
                   }
 
-                  current_entry = next_entry;
-                  _data->prefix = next_entry;
+                  prev_entry = _data->prefix;
                   if (!convT(buffer.substr(pos+1).c_str(), _data->count))
                      error(ETWarn, "Count is not a number: %s", buffer.substr(pos).c_str());
                }
@@ -310,7 +311,7 @@ int main(int argc, char* argv[])
    printCopyright(2008, "merge_counts");
    getArgs(argc, argv);
 
-   fprintf(stderr, "Attempting to merge :\n");
+   fprintf(stderr, "Merging :\n");
    copy(infiles.begin(), infiles.end(), ostream_iterator<string>(cerr, " "));
    cerr << endl;
 

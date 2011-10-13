@@ -157,6 +157,16 @@ bool PTrie<LeafDataT, InternalDataT, NeedDtor>::find(
 
 template<class LeafDataT, class InternalDataT, bool NeedDtor>
 bool PTrie<LeafDataT, InternalDataT, NeedDtor>::find(
+   const TrieKeyT key[], Uint key_size, const LeafDataT*& p_val, Uint* depth
+) const {
+   LeafDataT* non_const_p_val;
+   bool rc = const_cast<PTrie*>(this)->find(key, key_size, non_const_p_val, depth);
+   p_val = non_const_p_val;
+   return rc;
+}
+
+template<class LeafDataT, class InternalDataT, bool NeedDtor>
+bool PTrie<LeafDataT, InternalDataT, NeedDtor>::find(
    const TrieKeyT key[], Uint key_size, LeafDataT*& p_val, Uint* depth
 ) {
    //cerr << "find ";

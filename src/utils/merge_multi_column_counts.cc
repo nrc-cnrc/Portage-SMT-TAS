@@ -2,10 +2,10 @@
  * @author Boxing Chen
  * @file merge_multi_column_counts.cc
  * @brief Merge sorted files by multi-counts which separated by " ||| ".
- * 
+ *
  * modified based on Samuel Larkin's merge_counts.cc
- * 
- * COMMENTS: 
+ *
+ * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
@@ -28,7 +28,9 @@ using namespace std;
 static char help_message[] = "\n\
 merge_counts [-v][-d] [outfile [infile]]\n\
 \n\
-Merge multi-counts files where the counts are separated by \" ||| \" in a line.\n\
+Merge multi-counts files where the counts are separated by \" ||| \" from the\n\
+beginning of the line.  Everything up to and including the separator is used as\n\
+the merge key.\n\
 \n\
 IMPORTANT:\n\
 - input files must be LC_ALL=C sorted.\n\
@@ -64,14 +66,15 @@ class mergeStream
          string prefix;   ///< phrase
          string suffix;   ///< phrase
          vector<Uint> counts;    ///< phrase's counts
-         
+
          void print(ostream& out) const {
             out << prefix;
             int i;
             for (i = 0; i < int(counts.size()) - 1; i++) {
                out << counts[i] << " ";
             }
-            out << counts[i] << suffix << endl;                
+            out << counts[i] << suffix;
+            out << endl;
          }
 
          void debug(const char* const msg) const {
@@ -95,24 +98,32 @@ class mergeStream
       class Stream {
          private:
             const string       file;   ///< Filename
+            Uint               lineno; ///< Current line number
             iSafeMagicStream   input;  ///< file stream
             Datum*             _data;  ///< Datum
             string             buffer; ///< line buffer
+            /// We need a placeholder to keep track of the entries to check if
+            /// the stream is LC_ALL=C sorted.
+            string             prev_entry;
 
          private:
-            Stream(const Stream&);
-            Stream& operator=(const Stream&);
+            Stream(const Stream&); ///< Noncopyable
+            Stream& operator=(const Stream&); ///< Noncopyable
 
          public:
             /// Default constructor
             Stream(const string& file)
             : file(file)
+            , lineno(0)
             , input(file)
             , _data(new Datum)
             {
+               // Triggers reading the first record which is required to have
+               // the stream ordered.
                get();
             }
 
+            /// Destructor.
             ~Stream() { delete _data; }
 
             bool eof() const { return input.eof(); }
@@ -129,27 +140,36 @@ class mergeStream
             }
 
             void get() {
-               const Uint sep_len = strlen(PHRASE_TABLE_SEP);                     
-               
-               if (getline(input, buffer)) {                        
+               const Uint sep_len = strlen(PHRASE_TABLE_SEP);
+
+               if (getline(input, buffer)) {
+                  ++lineno;
                   const string::size_type pos = buffer.rfind(PHRASE_TABLE_SEP);
                   if (pos == string::npos)
                      error(ETFatal, "Invalid entry %s", buffer.c_str());
-                     
+
+                  // Check if the stream is LC_ALL=C sorted on the fly.
                   _data->prefix = buffer.substr(0, pos+sep_len);  // Keep the PHRASE_TABLE_SEP
-                  
+                  if (prev_entry > _data->prefix) {
+                     error(ETFatal, "%s is not LC_ALL=C sorted at line %u:\n%s\n%s",
+                           file.c_str(), lineno, prev_entry.c_str(), _data->prefix.c_str());
+                  }
+
+                  prev_entry = _data->prefix;
+
                   vector<string> allcounts;
                   split(buffer.substr(pos+sep_len), allcounts);
-                  
-                  _data->counts.clear(); 
-                  
+
+                  _data->counts.clear();
+
                   Uint intcount;
-                  for (int j =0; j < int(allcounts.size()); j++){            
-                  
-                     if (!convT(allcounts[j].c_str(), intcount))
+                  for (int j =0; j < int(allcounts.size()); j++){
+
+                     if (!convT(allcounts[j].c_str(), intcount)) {
                         error(ETWarn, "Count is not a number %s", allcounts[j].c_str());
-                     else
+                     } else {
                         _data->counts.push_back(intcount);
+                     }
                   }
                }
             }
@@ -196,7 +216,13 @@ class mergeStream
       , finished(false)
       {
          for (Uint i(0); i<infiles.size(); ++i) {
-            queue.push(new Stream(infiles[i]));
+            Stream* s = new Stream(infiles[i]);
+            if ( s->eof() ) {
+               cerr << "Ignoring empty input file: " << infiles[i] << endl;
+               delete s;
+            } else {
+               queue.push(s);
+            }
          }
 
          last_datum_read = get();
@@ -259,13 +285,12 @@ class mergeStream
        */
       Datum next() {
          Datum* current;
-         swap(total, last_datum_read);  // Initialzes total with the smallest value
+         swap(total, last_datum_read);  // Initializes total with the smallest value
          // NOTE: current aka last_datum_read is not empty after this loop.
          while ((current = get()) != NULL && *(current) == *(total)) {
-            //total->count += current->count;
-                for (int i = 0; i < int(current->counts.size()); i++) { //boxing
-                   total->counts[i] += current->counts[i]; //boxing
-                } 
+            for (int i = 0; i < int(current->counts.size()); i++) { //boxing
+               total->counts[i] += current->counts[i]; //boxing
+            }
          }
 
          return *total;
@@ -279,7 +304,7 @@ int main(int argc, char* argv[])
 {
    getArgs(argc, argv);
 
-   fprintf(stderr, "Attempting to merge :\n");
+   fprintf(stderr, "Merging :\n");
    copy(infiles.begin(), infiles.end(), ostream_iterator<string>(cerr, " "));
    cerr << endl;
 

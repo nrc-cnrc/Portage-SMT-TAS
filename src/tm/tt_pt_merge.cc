@@ -112,7 +112,7 @@ void readIBM_fixed(istream& in, ostream& out, double type_mod)
        { error(ETFatal, "IBM file has incorrect format"); } 
 
        stringstream temp;
-       double prob; // ugly conversion hack, need Perl 
+       double prob(-1); // ugly conversion hack, need Perl 
        temp << phrases[2]; 
        temp >> prob;
        if (prob > type_mod) 
@@ -150,7 +150,7 @@ void readIBM_targetted(istream& in, ostream& out, double type_mod)
        { error(ETFatal, "IBM file has incorrect format"); } 
 
        stringstream temp;
-       double prob; // ugly conversion hack, need Perl 
+       double prob(-1); // ugly conversion hack, need Perl 
        temp << phrases[2]; 
        temp >> prob;
        storage[phrases[0]].push(WordProbPair(phrases[1],prob));
@@ -182,7 +182,7 @@ CondProb readPTLine(istream& in)
    for (Uint i = 0; i < curr.size(); i++) // get rid of extra spacing
    { curr[i] = trim(curr[i]); }
    stringstream temp;
-   double prob; // ugly conversion hack, need Perl 
+   double prob(-1); // ugly conversion hack, need Perl 
    temp << curr[2]; 
    temp >> prob;
    return CondProb(curr[0], curr[1], prob, curr.size() == 4);
@@ -281,7 +281,7 @@ int main(int argc, const char * const * argv)
     // sort phrase table and ibm model together
     string command = "sort " + tempFile + " " + ptFile + " > " + sortedFile;
     if ( system(command.c_str()) != 0 )
-        error(ETFatal, "Error running %s", command.c_str());
+       error(ETFatal, "Error running %s", command.c_str());
     
     // go through line by line and merge duplicates based on weight
     iSafeMagicStream sorted_in(sortedFile);
@@ -294,10 +294,10 @@ int main(int argc, const char * const * argv)
     {
        command = "rm " + tempFile; 
        if ( system(command.c_str()) != 0 )
-           error(ETWarn, "Error running %s", command.c_str());
+          error(ETWarn, "Error running %s", command.c_str());
        command = "rm " + sortedFile;
        if ( system(command.c_str()) != 0 )
-           error(ETWarn, "Error running %s", command.c_str());
+          error(ETWarn, "Error running %s", command.c_str());
     }
 
     return 0;

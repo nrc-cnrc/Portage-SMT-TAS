@@ -83,8 +83,10 @@ int main(int argc, char* argv[])
       splitZ(line1, toks1);
       splitZ(line2, toks2);
 
-      (*wal_reader)(ref_file, toks1, toks2, sets_ref);
-      (*wal_reader)(al_file, toks1, toks2, sets_al);
+      if (!(*wal_reader)(ref_file, toks1, toks2, sets_ref))
+         error(ETFatal, "reference alignment file %s too short", ref.c_str());
+      if (!(*wal_reader)(al_file, toks1, toks2, sets_al))
+         error(ETFatal, "alignment file %s too short", al.c_str());
 
       if (do_closure) {
          WordAligner::close(sets_ref, csets_ref);

@@ -68,6 +68,11 @@ class HMMAligner : public IBM1 {
       StringVecWithExplicitNull(const vector<string>& toks, bool implicitNull);
       size_t size() { return toks_with_null.size(); }
       bool empty() { return toks_with_null.empty(); }
+
+      typedef vector<string>::const_iterator const_iterator;
+      const_iterator begin() const { return toks_with_null.begin(); }
+      const_iterator end() const { return toks_with_null.end(); }
+
       const string& operator[](size_t i) { return toks_with_null[i]; }
       /// Implicit conversion to a const vector<string>& so these can be
       /// easily passed to the many methods expecting such vectors.

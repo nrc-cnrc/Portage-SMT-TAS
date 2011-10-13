@@ -184,9 +184,9 @@ void HMMJumpSimple::write(ostream& out, bool bin) const {
       writebin(out, forward_jump_p);
       out << "End binary HMM jump counts v1.0" << endl;
    } else {
-      out << joini(backward_jump_p.begin(), backward_jump_p.begin()+max_back+1)
+      out << join(backward_jump_p.begin(), backward_jump_p.begin()+max_back+1)
           << endl;
-      out << joini(forward_jump_p.begin(), forward_jump_p.begin()+max_for+1)
+      out << join(forward_jump_p.begin(), forward_jump_p.begin()+max_for+1)
           << endl;
    }
 } // write()

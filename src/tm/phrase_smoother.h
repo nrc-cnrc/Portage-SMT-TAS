@@ -83,7 +83,6 @@ public:
 
 };
 
-
 //-----------------------------------------------------------------------------
 /**
  * Factory class for creating smoothers from text descriptions. T is the type
@@ -373,7 +372,6 @@ public:
    virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
 };
 
-
 //-----------------------------------------------------------------------------
 /**
  * Kneser-Ney. Similar comment applies to the above for G-T. Consider this a
@@ -386,6 +384,7 @@ class KNSmoother : public PhraseSmoother<T>
    vector<double> lang2_marginals;
 
    Uint numD;                   ///< number of discounting coeffs
+   bool given;                  ///< coeffs were specified by user
    bool unigram;                ///< use unigram lower-order distribution
    Uint verbose;
 

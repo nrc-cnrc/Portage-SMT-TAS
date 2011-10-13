@@ -51,7 +51,7 @@ public:
 
    /**
     * Checks if the last seen error message is what we are expecting.
-    * @params expected_error_message  last expected error message.
+    * @param expected_error_message  last expected error message.
     */
    void checkErrorMessage(const char* const expected_error_message) {
       TS_ASSERT(expected_error_message != NULL);
@@ -62,11 +62,11 @@ public:
 
    /**
     * Generic function to test bool command line arguments named x/no-x.
-    * @params argc  how many arguments on the command line.
-    * @params argv  command line argumenrs.
-    * @params val  expected value of x.
-    * @params expected_error_count  expected number of error messages displayed during this test.
-    * @params expected_error_message  last expected error message displayed during this test.
+    * @param argc  how many arguments on the command line.
+    * @param argv  command line argumenrs.
+    * @param val  expected value of x.
+    * @param expected_error_count  expected number of error messages displayed during this test.
+    * @param expected_error_message  last expected error message displayed during this test.
     */
    void duplicatedArgumentX(Uint argc, const char* const argv[],
       optional<bool> val, unsigned int expected_error_count,
@@ -80,6 +80,10 @@ public:
       TS_ASSERT_EQUALS(test_value, val);
       TS_ASSERT_EQUALS(error_message_count, expected_error_count);
       if (expected_error_count > 0) checkErrorMessage(expected_error_message);
+   }
+
+   void setUp() {
+      error_message_count = 0;
    }
 
    /////////////////////////////////////

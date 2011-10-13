@@ -44,6 +44,7 @@ namespace Portage {
     inline bool operator== (const NGram &ngr) const;
 
     const vector<T>& getWords() const;
+    const Uint getSize() const;
 
     friend ostream& operator<< (ostream &out, const NGram &ngr) {
       for (typename vector<T>::const_iterator itr = ngr.getWords().begin(); itr!=ngr.getWords().end(); itr++)
@@ -100,6 +101,10 @@ namespace Portage {
   template<class T>
   const vector<T>& NGram<T>::getWords() const {
     return words;
+  }
+  template<class T>
+  const Uint NGram<T>::getSize() const {
+    return n;
   }
 
 } // Portage

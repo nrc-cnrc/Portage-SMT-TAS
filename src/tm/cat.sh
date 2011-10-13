@@ -38,11 +38,11 @@ Usage: cat.sh [-n N] [-pn PN] [-1n 1N] [-1pn 1PN] [-h(elp)]
 Options to control parallel processing:
 
   -n        Number of chunks in which to split the parallel corpus. [4]
-  -pn       Number of CPUs to use.  If reading and writing the models doesn't
+  -pn       Parallelism level.  If reading and writing the models doesn't
             take too long, N = PN*2 might help get all the workers to finish at
             about the same time. [N].  
   -1n       Number of chunks to use in the IBM1 training phase. [N]
-  -1pn      Number of CPUs to use in the IBM1 training phase.
+  -1pn      Parallelism level for the IBM1 training phase.
             [1N if -1n specified, else PN if -pn specified, else N]
   -h(elp)   Print this help message.
   -rp       Provide custom run-parallel.sh options.
@@ -116,7 +116,7 @@ while [[ $# -gt 0 ]]; do
                error_exit "Use train_ibm directly for model conversions.";;
    -v|-r|-m|-vr|-rv)
                TRAIN_IBM_OPTS=("${TRAIN_IBM_OPTS[@]}" "$1");;
-   -p|-p2|-speed|-beg|-end|-slen|-tlen|-bksize)
+   -p|-p2|-speed|-filter-singletons|-beg|-end|-slen|-tlen|-bksize|-max-len)
                arg_check 1 $# $1
                TRAIN_IBM_OPTS=("${TRAIN_IBM_OPTS[@]}" "$1" "$2")
                shift;;
@@ -213,7 +213,7 @@ if [[ $DEBUG ]]; then
    echo
    echo N=$NUM_JOBS PN=$NUM_CPUS 1N=$NUM_IBM1_JOBS 1PN=$NUM_IBM1_CPUS
    echo $SYM_OPT $L2_GIVEN_L1
-fi
+fi >&2
 
 for outputfile in $MODEL $REV_MODEL $SAVE_IBM1 $REV_SAVE_IBM1; do
    if [[ -n $outputfile && -e $outputfile ]]; then

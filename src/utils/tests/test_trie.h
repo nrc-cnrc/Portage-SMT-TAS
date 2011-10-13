@@ -59,6 +59,41 @@ public:
       trie.clear();
       TS_ASSERT_EQUALS(MyInt::in_existence, 0);
    }
+
+   void test_operator() {
+      PTrie<Uint> trie;
+      vector<Uint> key(3,2);
+      trie[key] = 6;
+      TS_ASSERT_EQUALS(trie[key], 6u);
+      Uint val(0);
+      TS_ASSERT(trie.find(&key[0], 3, val));
+      TS_ASSERT_EQUALS(val, 6);
+      TS_ASSERT(!trie.find(&key[0], 2, val));
+
+      key[2] = 3;
+      trie[key] += 10;
+      TS_ASSERT(trie.find(&key[0], 3, val));
+      TS_ASSERT_EQUALS(val, 10);
+      TS_ASSERT(!trie.find(&key[0], 2, val));
+
+      key[2] = 2;
+      TS_ASSERT(trie.find(&key[0], 3, val));
+      TS_ASSERT_EQUALS(val, 6);
+
+      key[2] = 1;
+      TS_ASSERT(!trie.find(&key[0], 3, val));
+
+      vector<Uint> key2(6,2);
+      TS_ASSERT_EQUALS(trie.at(&key2[2], 3), 6u);
+      TS_ASSERT_EQUALS(trie.at(&key2[1], 4), 0u);
+
+      const Uint* p_val(NULL);
+      const PTrie<Uint>& const_trie(trie);
+      TS_ASSERT(const_trie.find(&key2[2], 3, p_val));
+      TS_ASSERT(p_val);
+      if ( p_val )
+         TS_ASSERT_EQUALS(*p_val, 6u);
+   }
 }; // TestTrie
 
 } // Portage

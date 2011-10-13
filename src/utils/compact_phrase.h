@@ -47,6 +47,7 @@
 
 #include "array_mem_pool.h"
 #include "str_utils.h"
+#include "voc.h"
 #include <boost/operators.hpp>
 
 namespace Portage {
@@ -307,10 +308,33 @@ class VectorPhrase : public vector<Uint> {
    VectorPhrase(const VectorPhrase& other) { *this = other; }
    VectorPhrase(size_t size, Uint default_val = 0)
       : vector<Uint>(size,default_val) {}
+   template <class InputIterator>
+   VectorPhrase(InputIterator first, InputIterator last)
+      : vector<Uint>(first, last) {}
    VectorPhrase() {}
 }; // VectorPhrase
 
-
+/**
+ * Convert a phrase from a Uint sequence (VectorPhrase or CompactPhrase) to a
+ * space separated string.
+ * @param uPhrase  Uint sequence phrase
+ * @param voc      vocabulary to convert Uint to strings
+ * @pre all elements of uPhrase must be < voc.size()
+ * @return the phrase in a single string, with a space separating each token
+ */
+template <class PhraseT>
+string phrase2string(const PhraseT& uPhrase, const Voc& voc) {
+   ostringstream s;
+   const Uint voc_size = voc.size();
+   bool first(true);
+   for ( typename PhraseT::const_iterator it(uPhrase.begin());
+         it != uPhrase.end(); ++it ) {
+      if ( first ) first = false; else s << " ";
+      assert(*it < voc_size);
+      s << voc.word(*it);
+   }
+   return s.str();
+}
 
 } // Portage
 

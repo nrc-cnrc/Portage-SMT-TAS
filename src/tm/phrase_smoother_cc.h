@@ -101,9 +101,10 @@ void PhraseSmootherFactory<T>::createSmoothersAndTally(vector< PhraseSmoother<T>
    // over the phrase table.
    for (Uint i = 0; i < smoothers_per_pass.size(); ++i) {
       for (typename PhraseTableGen<T>::iterator it = phrase_table->begin();
-            it != phrase_table->end(); ++it)
+            it != phrase_table->end(); ++it) {
          for (Uint j = 0; j < smoothers_per_pass[i].size(); ++j)
             smoothers_per_pass[i][j]->tallyMarginals(it);
+      }
       for (Uint j = 0; j < smoothers_per_pass[i].size(); ++j)
          smoothers_per_pass[i][j]->tallyMarginalsFinishPass();
    }
@@ -173,7 +174,9 @@ typename PhraseSmootherFactory<T>::TInfo PhraseSmootherFactory<T>::tinfos[] = {
       true,
    },{
       DCon< KNSmoother<T> >::create,
-      "KNSmoother", "[numD][-u] - Kneser-Ney smoothing, using numD discount coeffs [1]",
+      "KNSmoother", "[numD][-d coeffs][-u] - Kneser-Ney smoothing, using numD discount\n\
+           coeffs; these come from comma-separated values in <coeffs> if -d given,\n \
+           otherwise they are determined automatically [1 coeff, set automatically]",
       true,
    },{
       DCon< ZNSmoother<T> >::create,
@@ -488,17 +491,32 @@ double GTSmoother<T>::probLang2GivenLang1(const typename PhraseTableGen<T>::iter
  */
 template<class T>
 KNSmoother<T>::KNSmoother(PhraseSmootherFactory<T>& factory, const string& args) :
-   PhraseSmoother<T>(1), numD(1), unigram(false), verbose(factory.getVerbose())
+   PhraseSmoother<T>(1), numD(0), given(false), unigram(false), verbose(factory.getVerbose())
 {
    if (args != "") {
       vector<string> toks;
       split(args, toks);
       for (Uint i = 0; i < toks.size(); ++i)
-         if (toks[i] == "-u")
+         if (toks[i] == "-u") {
             unigram = true;
-         else
+         } else if (toks[i] == "-d") {
+            if (++i == toks.size())
+               error(ETFatal, "expecting KN discount coeffs after -d");
+            given = true;
+            split<double>(toks[i], D, ",");
+            if (numD != 0 && numD != D.size())
+               error(ETWarn, "KN numD and -d params conflict; ignoring numD");
+            numD = D.size();
+         } else {
             numD = conv<Uint>(toks[i]);
+            if (given && numD != D.size())
+               error(ETWarn, "KN numD and -d params conflict; ignoring numD");
+         }
    }
+
+   if (numD == 0)
+      numD = 1;
+   D.resize(numD);
 
    PhraseTableGen<T>& pt = *factory.getPhraseTable();
 
@@ -513,7 +531,6 @@ KNSmoother<T>::KNSmoother(PhraseSmootherFactory<T>& factory, const string& args)
    }
 
    global_event_counts.resize(numD+1);
-   D.resize(numD);
 
    event_count_sum = 0;
    tot_freq = 0.0;
@@ -572,7 +589,8 @@ void KNSmoother<T>::tallyMarginalsFinishPass()
       }
       const double Y = global_event_counts[0] / (global_event_counts[0] + 2.0 * global_event_counts[1]);
       for (Uint c = 1; c <= numD; ++c) {
-	 D[c-1] = c - (c+1) * Y * global_event_counts[c] / global_event_counts[c-1];
+	 if (!given)
+            D[c-1] = c - (c+1) * Y * global_event_counts[c] / global_event_counts[c-1];
 	 if (verbose)
 	    cerr << "D" << c << " = " << D[c-1] << endl;
       }

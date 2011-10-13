@@ -46,15 +46,18 @@ public:
     * Count one training instance.
     * @params probs vector[numModels()] of probabilities assigned by models
     * to this instance
-    * @return the probability of the instance under current weights
+    * @params freq number of occurrences of this instance
+    * @return the probability of the instance under current weights (this is
+    * the prob assigned to just one instance, regardless of freq)
     */
-   double count(const vector<double>& probs);
+   double count(const vector<double>& probs, Uint freq = 1);
    
    /**
     * Estimate weights from counts. The M-step.
+    * @param prior_counts count-domain prior on weights; 0 by default
     * @return absolute value of largest single-weight delta
     */
-   double estimate();
+   double estimate(const vector<double>* prior_counts = NULL);
 
    /**
     * Return number of models.

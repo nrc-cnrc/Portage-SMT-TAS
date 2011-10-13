@@ -46,16 +46,18 @@ namespace Portage
       using vector< pair<KeyT, DataT> >::end;
       //@}
 
+      typedef typename vector< pair<KeyT, DataT> >::iterator iterator;
+      typedef typename vector< pair<KeyT, DataT> >::const_iterator const_iterator;
+
       /**
        * Finds a key.
        * @param key the key to be found
        * @return Returns a iterator that points to the key value or
        *         the end iterator if not found
        */
-      typename vector< pair<KeyT, DataT> >::const_iterator
-         find(const KeyT &key) const
+      const_iterator find(const KeyT &key) const
       {
-         typename vector< pair<KeyT, DataT> >::const_iterator it(begin());
+         const_iterator it(begin());
          for (; it != end(); ++it)
             if (key == it->first) break;
          return it;
@@ -67,10 +69,9 @@ namespace Portage
        * @return Returns a iterator that points to the key value or
        *         the end iterator if not found
        */
-      typename vector< pair<KeyT, DataT> >::iterator
-         find(const KeyT &key)
+      iterator find(const KeyT &key)
       {
-         typename vector< pair<KeyT, DataT> >::iterator it(begin());
+         iterator it(begin());
          for (; it != end(); ++it)
             if (key == it->first) break;
          return it;
@@ -83,7 +84,7 @@ namespace Portage
        */
       DataT &operator[](const KeyT &key)
       {
-         typename vector< pair<KeyT, DataT> >::iterator it = find(key);
+         iterator it = find(key);
          if (it == end()) {
             push_back(make_pair(key, DataT()));
             return back().second;
@@ -91,6 +92,41 @@ namespace Portage
             return it->second;
          }
       } // operator[]
+
+      /**
+       * Perform multi-set union on two maps, keeping the result in *this
+       * @param x  vector_map to add to *this.
+       */
+      void operator+=(const vector_map<KeyT, DataT>& x)
+      {
+         for ( const_iterator it(x.begin()), end(x.end()); it != end; ++it )
+            operator[](it->first) += it->second;
+      }
+
+      /**
+       * Find the maximal element in *this.
+       * Returns end() when *this is empty.
+       */
+      iterator max()
+      {
+         iterator max_it(begin()), it(begin());
+         for (; it != end(); ++it)
+            if ( it->second > max_it->second ) max_it = it;
+         return max_it;
+      }
+
+      /**
+       * Find the maximal element in *this.
+       * Returns end() when *this is empty.
+       */
+      const_iterator max() const
+      {
+         const_iterator max_it(begin()), it(begin());
+         for (; it != end(); ++it)
+            if ( it->second > max_it->second ) max_it = it;
+         return max_it;
+      }
+
    }; // vector_map
 } // Portage
 

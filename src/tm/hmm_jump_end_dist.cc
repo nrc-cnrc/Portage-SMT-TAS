@@ -228,14 +228,14 @@ void HMMJumpEndDist::write(ostream& out, bool bin) const {
       writebin(out, final_jump_p); // new with v1.1
       out << "End binary HMM jump parameters v1.1" << endl;
    } else {
-      out << joini(backward_jump_p.begin(), backward_jump_p.begin()+max_back+1)
+      out << join(backward_jump_p.begin(), backward_jump_p.begin()+max_back+1)
           << endl;
-      out << joini(forward_jump_p.begin(), forward_jump_p.begin()+max_for+1)
+      out << join(forward_jump_p.begin(), forward_jump_p.begin()+max_for+1)
           << endl;
       // new with v1.1:
-      out << joini(init_jump_p.begin(), init_jump_p.begin()+max_init+1)
+      out << join(init_jump_p.begin(), init_jump_p.begin()+max_init+1)
           << endl;
-      out << joini(final_jump_p.begin(), final_jump_p.begin()+max_final+1)
+      out << join(final_jump_p.begin(), final_jump_p.begin()+max_final+1)
           << endl;
    }
 }

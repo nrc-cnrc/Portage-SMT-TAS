@@ -6,8 +6,8 @@ Warning: The -liang option has been replaced by -mimic liang. Please update your
 Warning: Proceeding as if you had typed -mimic liang.
 Read TTable in N seconds
 Created HMM model with existing IBM1 model and p0: 0 up0: 1 alpha: 0 lambda: 0 anchor: 1 end-dist: 1 max-jump: 5
-initializing from ref/ibm1-dev1.en_given_fr:
-beginning training:
+Initializing from ref/ibm1-dev1.en_given_fr:
+Beginning training:
 reading ref/dev1_fr.al/ref/dev1_en.al
 Lines processed: 100
 iter 1 (HMM): prev ppx = 34.1118, size = 30129 word pairs; took N second(s).

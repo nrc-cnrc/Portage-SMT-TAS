@@ -168,4 +168,3 @@ test10: run-test10 run-test7
 	diff-round.pl -p 5 -sort hmm-heb-dev1.fr_given_en.dist hmm-heb-cat-dev1.fr_given_en.dist -q
 	sed 's/ [0-9][0-9]* second/ N second/' < log.hmm-heb-cat-dev1.fr_given_en | \
 	   diff $(DIFF_IGNORE) ref/log.hmm-heb-cat-dev1.fr_given_en - -q
-	

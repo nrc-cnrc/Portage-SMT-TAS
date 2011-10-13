@@ -28,10 +28,11 @@
 #include "string_hash.h"
 #include <algorithm>
 #include <string>
-#include <errors.h>
-#include <quick_set.h>
-#include <voc.h>
-#include <casemap_strings.h>
+#include <boost/shared_ptr.hpp>
+#include "errors.h"
+#include "quick_set.h"
+#include "voc.h"
+#include "casemap_strings.h"
 #include <boost/dynamic_bitset.hpp>
 
 namespace Portage {
@@ -61,20 +62,37 @@ private:
 
    /// Token that separes fields in GIZA++ files
    static const string sep_str;
-   Uint speed;                  ///< controls initial pass algorithm
+   /// controls initial pass algorithm: data structure used
+   Uint speed;
+   /// controls initial pass algorithm: filter tgt-lang singletons for
+   /// src-lang words with freq >= filter_singletons.  Requires that
+   /// counting_src_voc and counting_tgt_voc are both provided.
+   /// A value of 0 means no filtering.
+   Uint filter_singletons;
 
    /// Definition of a source distribution iterator.
    typedef SrcDistn::const_iterator SrcDistnIter;
 
-   /// Callable entity to sort on Probs in decreasing order.
+   /// Hash function for tie breaking equal probs - stable on 32 and 64 bits.
+   static Uint mHash(const string& s);
+
+   /// Callable entity to sort on Probs in decreasing order, with stable
+   /// tie-breaking.
    struct CompareProbs {
+   private:
+      const TTable* parent;
+   public:
+      /// Constructor
+      CompareProbs(const TTable* parent) : parent(parent) {}
       /**
-       * Compares x and y based on their probs (for decreasing order sort)
+       * Compares x and y based on their probs (for decreasing order sort),
+       * with tie-breaking done using an arbitrary (i.e., non bias-introducing)
+       * yet deterministic rule.
        * @param x,y TIndexAndProb objects to compare.
        * @return true iff x > y
        */
-      bool operator()(const TIndexAndProb& x, const TIndexAndProb& y) const
-      {return x.second > y.second;}
+      bool operator()(const TIndexAndProb& x, const TIndexAndProb& y) const;
+
    };
    /// Callable entity to sort on indexes in increasing order.
    struct CompareTIndexes {
@@ -107,14 +125,21 @@ private:
    vector<string> twords; ///< T-language vocab (mapping index to word)
    vector<SrcDistn> src_distns;
 
+   /// Experimental - counting voc for step 0 filtering
+   shared_ptr<CountingVoc> counting_src_voc;
+   /// Experimental - counting voc for step 0 filtering
+   shared_ptr<CountingVoc> counting_tgt_voc;
+
    //typedef vector<bool> SrcDistnQuick; // not bad, already 1 bit per element
+   //typedef tr1::unordered_set<Uint> SrcDistnQuick; // grossly inefficent!
    typedef boost::dynamic_bitset<> SrcDistnQuick; // slightly more efficient than vector<bool>
+   //typedef PTrie<bool, Empty, false> SrcDistnQuick; // not much better than sorted vector
    vector<SrcDistnQuick*> src_distns_quick;
 
    QuickSet src_inds; ///< local variable to add(), kept persistent/static for speed
    QuickSet tgt_inds; ///< local variable to add(), kept persistent/static for speed
 
-   SrcDistn empty_distn;  ///< Empty source distribution.
+   static const SrcDistn empty_distn;  ///< Empty source distribution.
 
    /// Show structure sizes for memory optimization purposes
    void displayStructureSizes() const;
@@ -158,11 +183,18 @@ public:
    /// Destructor.
    ~TTable();
 
-   /// Display TTable in plain text, regardless of its input format
-   /// Converts binary TTables for reading, or simply prints out 
-   /// text ones.
+   /**
+    * Display TTable in plain text, regardless of its input format
+    * Converts binary TTables for reading, or simply prints out 
+    * text ones.
+    * @param os output stream to write to
+    * @param filename TTable to read
+    * @param verbose produce verbose output if true
+    * @param sorted if filename is a binary TTable, sort it before writing it;
+    *               this parameter has no effect if filename is a text TTable.
+    */
    static void output_in_plain_text(ostream& os, const string& filename,
-                                    bool verbose = false);
+                                    bool verbose = false, bool sorted = false);
 
    /**
     * Set case mapping. Use the given CaseMapStrings objects to map source or
@@ -173,6 +205,26 @@ public:
     */
    void setSrcCaseMapping(CaseMapStrings* cms) {sword_casemap = cms;}
    void setTgtCaseMapping(CaseMapStrings* cms) {tword_casemap = cms;}
+
+   /**
+    * Initial pass filtering: the counting voc is used to filter out singletons
+    * associated with high-frequency words right at insertion time.
+    * Note: the TTable assumes ownership of both vocs and will delete them.
+    * Precondition: the TTable must be empty.
+    * @param counting_src_voc Source-lang voc with frequencies
+    * @param counting_tgt_voc Target-lang voc with frequencies
+    */
+   void setCountingVocs(CountingVoc* counting_src_voc,
+                        CountingVoc* counting_tgt_voc);
+
+   /**
+    * Enables the use of the counting vocs for filtering target-side singletons
+    * from source words with frequency >= threshold.
+    * 0 means no filtering (this is the default when constructing a TTable).
+    * You must also provide counting source and target vocabularies via
+    * setCountingVocs(), or TTable::add() will assert false.
+    */
+   void setSingletonFilter(Uint threshold) { filter_singletons = threshold; }
 
    /**
     * Set a 'null' word that is not subject to normal casemapping operations,
@@ -194,8 +246,9 @@ public:
    /**
     * Writes the ttable to a stream.
     * @param os  An opened stream to output the ttable.
+    * @param sorted  Sort output asciibetically by src words, then tgt words.
     */
-   void write(ostream& os) const;
+   void write(ostream& os, bool sorted = false) const;
 
    /**
     * Writes the TTable in binary format to a stream
@@ -330,7 +383,7 @@ public:
    double getBestTrans(const string& src_word, string& best_trans);
 
    /**
-    * p(tgt_word|src_word).
+    * Forward prob => p(tgt_word|src_word).
     * @return p(tgt_word|src_word), or smooth if no such pair exists in the
     * table.
     */

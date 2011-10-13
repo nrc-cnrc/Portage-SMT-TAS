@@ -49,7 +49,7 @@ static Uint modelno = 2;
 static double smooth = 1e-07;
 static string model;
 static bool per_doc = false;
-static bool sent_logpr = false;
+static bool per_sent = false;
 
 
 const char* switches[] = {"v", "r", "m:", "s:", "doc", "sent"};
@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
          split(line2,toks2);
 
          const double sent_logpr = ibm->logpr(toks1, toks2, smooth);
-         if ( sent_logpr ) cout << sent_logpr << endl;
+         if ( per_sent ) cout << sent_logpr << endl;
          doc_pr += sent_logpr;
          logpr  += sent_logpr;
          ++num_segments;
@@ -135,7 +135,7 @@ void getArgs(int argc, char* argv[])
    arg_reader.testAndSet("m", modelno);
    arg_reader.testAndSet("s", smooth);
    arg_reader.testAndSet("doc", per_doc);
-   arg_reader.testAndSet("sent-logpr", sent_logpr);
+   arg_reader.testAndSet("sent", per_sent);
 
    arg_reader.testAndSet(0, "model", model);
 }

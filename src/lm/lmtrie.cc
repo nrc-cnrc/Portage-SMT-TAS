@@ -93,7 +93,7 @@ void LMTrie::rec_dump_trie_to_cerr(
 float LMTrie::wordProb(Uint word, const Uint context[], Uint context_length)
 {
    if ( debug_wp ) cerr << "Query " << word << " | "
-                        << joini(context, context + context_length) << endl;
+                        << join(context, context + context_length) << endl;
 
    // Reminder: context is backwards!
    // This is desirable since we work backwards in the trie.
@@ -106,7 +106,7 @@ float LMTrie::wordProb(Uint word, const Uint context[], Uint context_length)
    // For open-vocabulary language models, map unknown words to UNK_Symbol
    if ( complex_open_voc_lm && vocab ) {
       Uint UNK_index = vocab->index(UNK_Symbol);
-      float dummy;
+      float dummy = 0.0f;
       for (Uint i = 0; i < context_length + 1; ++i)
          if ( ! trie.find(query+i, 1, dummy) )
             query[i] = UNK_index;

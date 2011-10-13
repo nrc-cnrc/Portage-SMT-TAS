@@ -14,6 +14,7 @@
 #define STR_UTILS_H
 
 #include "errors.h"
+#include "join_details.h"
 #include <string>
 #include <vector>
 #include <sstream>
@@ -323,7 +324,7 @@ template <class T> bool convCheck(const char* s, T& val)
 
 
 /**
- * Join a vector of strings into a single string.
+ * Join a vector of strings into a single string, appending the results to s.
  *
  * @param beg begin iterator
  * @param end end iterator
@@ -331,91 +332,56 @@ template <class T> bool convCheck(const char* s, T& val)
  * @param sep separator to put between each word
  * @return the result of the join operation (ref to s)
  */
-string& join(vector<string>::const_iterator beg,
-             vector<string>::const_iterator end,
-             string& s, const string& sep=" ");
+string& join_append(vector<string>::const_iterator beg,
+                    vector<string>::const_iterator end,
+                    string& s, const string& sep=" ");
 
 /**
- * Join a vector of strings into a single string.
+ * Join a vector of strings into a single string, appending the results to s.
  *
  * @param v   whole vector to join
  * @param s   result of the join operation
  * @param sep separator to put between each word
  * @return the result of the join operation (ref to s)
  */
-inline string& join(const vector<string>& v, string& s, const string& sep=" ")
+inline string& join_append(const vector<string>& v, string& s, const string& sep=" ")
 {
-   return join(v.begin(), v.end(), s, sep);
+   return join_append(v.begin(), v.end(), s, sep);
 }
 
 /**
  * Joins a sequence of arbitrary type into a string.
  *
- * Join a vector of T into a single string. Call this using T explicitly, eg
- * for a vector x<double>, call: join<double>(x.begin(), x.end()).
+ * The return value can be used as if it was a string:
+ * string s = join(...);
+ * But it is optimized to avoid temporaries when output to a stream:
+ * cerr << join(...) << endl;   (efficient: no temporary copy)
+ * It is safe to call c_str() on the result in a printf() or error() statement:
+ * error(ETWarn, "... %s ...", join(...).c_str());
  *
  * @param beg begin iterator
  * @param end end iterator
  * @param sep separator to put between each word
  * @param precision stream precision
- * @return the result of the join operation
+ * @return the result of the join operation, usable as if it was a string
  */
-template <class T>
-string join(typename vector<T>::const_iterator beg,
-            typename vector<T>::const_iterator end,
-            const string& sep=" ", Uint precision = 8)
-{
-   ostringstream ss;
-   ss << setprecision(precision);
-
-   while (beg != end) {
-      ss << *beg;
-      if (beg+1 != end) ss << sep;
-      ++beg;
-   }
-   return ss.str();
-}
+template <class IteratorType>
+_Joiner<IteratorType>
+join(IteratorType beg, IteratorType end, const string& sep=" ", Uint precision=8);
 
 /**
- * Joins a sequence of arbitrary type into a string.
- * Join any container of T's into a single string.
- * @param beg begin iterator
- * @param end end iterator
- * @param sep separator to put between each word
- * @param precision stream precision
- * @return the result of the join operation
- */
-template <class T_const_iterator>
-string joini(T_const_iterator beg, T_const_iterator end,
-             const string& sep=" ", Uint precision = 8)
-{
-   ostringstream ss;
-   ss << setprecision(precision);
-
-   while (beg != end) {
-      ss << *beg;
-      ++beg;
-      if ( beg != end ) ss << sep;
-   }
-   return ss.str();
-}
-
-/**
- * Join a vector of arbitrary type into a string.  See join<T> above for
- * details.
+ * Join a vector/container of arbitrary type into a string.  See
+ * join<IteratorType> above for details and safe/optimized uses.
  *
- * @param v   whole vector to join
- * @param sep separator to put between each word
+ * @param c    whole vector/container to join (c.begin() and c.end() must both
+ *             return ContainerType::const_iterator.)
+ * @param sep  separator to put between each word
  * @param precision stream precision
- * @return the result of the join operation
+ * @return the result of the join operation, usable as if it was a string
  */
-template <class T>
-inline string join(const vector<T>& v, const string& sep=" ",
-                   Uint precision = 8)
-{
-   return join<T>(v.begin(), v.end(), sep, precision);
-}
-
+template <class ContainerType>
+_Joiner<typename ContainerType::const_iterator>
+join(const ContainerType& c, const string& sep=" ", Uint precision=8);
 
 /**
  * Pack an integer into a string.  Codes it as a base-b number and writing
@@ -439,7 +405,7 @@ extern string& pack(Uint x, string& s, Uint base, Uint fill = 0);
  * @param base used for packing
  * @return packed integer
  */
-extern Uint unpack(const string& s, Uint start, Uint num_chars, Uint base);
+extern Uint unpack(const char* s, Uint start, Uint num_chars, Uint base);
 
 /**
  * Code a character string in RFC2396 (bytewise hex codes)
@@ -471,7 +437,7 @@ extern string decodeRFC2396(const string& s);
  * @param max_toks   the maximum number of tokens to extract; if > 0, then
  *                   only the 1st max_toks-1 delimited tokens will be
  *                   extracted, and the remainder of the string will be the
- *                   last token.
+ *                   last token; 0 means extract everything.
  * @return the number of tokens found
  */
 template<class T, class Converter>
@@ -508,7 +474,7 @@ Uint split(const char* s, vector<T>& dest, Converter converter, const char* sep 
  * @param s          input string
  * @param dest       vector that tokens get appended to
  * @param sep        the set of characters that are considered to be whitespace
- * @param max_toks   the maximum number of tokens to extract; if > 0, then
+ * @param max_toks   the maximum number of tokens to extract; 0 means
  *                   extract everything
  * @return the number of tokens found
  */
@@ -526,7 +492,7 @@ Uint split(const char* s, vector<T>& dest, const char* sep = " \t\n", Uint max_t
  * @param s          input string
  * @param dest       vector that tokens get appended to
  * @param sep        the set of characters that are considered to be whitespace
- * @param max_toks   the maximum number of tokens to extract; if > 0, then
+ * @param max_toks   the maximum number of tokens to extract; 0 means
  *                   extract everything
  * @return the number of tokens found
  */
@@ -568,18 +534,24 @@ Uint splitCheckZ(const string &s, vector<T> &dest, const char* sep = " \t\n", Ui
  * Much less elegant or general than the templatized split() functions above,
  * this version is optimized for raw speed, but works on much simpler and more
  * restrictive premises.
- * Returns the number of tokens found if <= max_tokens, max_tokens+1 if there
- * were too many, in which case tokens has only the max_tokens first ones.
+ * Returns the number of tokens found.
+ *
+ * If there are max_tokens or more tokens in s, extracts the first max_tokens-1
+ * tokens, puts the rest of the string in tokens[max_tokens-1], and returns
+ * max_tokens.  If you expect exactly n tokens, pass max_tokens=n+1 and check
+ * that the return value is n.  If you pass max_tokens=n, then tokens[n-1] will
+ * not have trailing separator characters trimmed out and you won't be able to
+ * confirm your input was valid.
  *
  * @param s          the input string - will be modified, and will be the
  *                   memory buffer for the resulting tokens, and therefore must
  *                   not be freed until the tokens are no longer needed
- * @param tokens     destination token list
+ * @param tokens     destination token list.  must have size >= max_tokens
  * @param max_tokens the size of the tokens array
  * @param sep        the set of characters that are considered to be whitespace
  * @return Returns the number of tokens found
  */
-Uint split(char* s, char* tokens[], Uint max_tokens, const char* sep = " \t\n");
+Uint destructive_split(char* s, char* tokens[], Uint max_tokens, const char* sep = " \t\n");
 
 /**
  * Gets the next token.

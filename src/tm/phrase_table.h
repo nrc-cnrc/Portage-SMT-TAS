@@ -52,18 +52,6 @@ struct PhraseTableBase
    static const Uint max_code = 16581374; // code_base^num_code_bytes - 1
 
    /**
-    * token sequence -> phrase string
-    */
-   static void codePhrase(ToksIter beg, ToksIter end, string& coded,
-                          const string& sep = PhraseTableBase::sep);
-
-   /**
-    * phrase string -> token sequence
-    */
-   static void decodePhrase(const string& coded, vector<string>& toks,
-                            const string& sep = PhraseTableBase::sep);
-
-   /**
     * Encode a token sequence as a packed string, the concatenation of 3-byte
       string encodings of voc indexes of the tokens in the sequence.
     */
@@ -72,12 +60,13 @@ struct PhraseTableBase
    /**
     * Decode packed string representation of a token sequence.
     */
-   static void decompressPhrase(const string& coded, vector<string>& toks, Voc& voc);
+   static void decompressPhrase(const char* coded, vector<string>& toks, Voc& voc);
 
    /**
     * Recode a phrase from a packed string representation to a a phrase string.
+    * Same as decompressPhrase() followed by join().
     */
-   static string recodePhrase(const string& coded, Voc& voc,
+   static string recodePhrase(const char* coded, Voc& voc,
                               const string& sep = PhraseTableBase::sep);
 
    /**
@@ -112,13 +101,14 @@ struct PhraseTableBase
     * @param[out] toks token sequence
     * @param[out] b1, e1 beginning and end+1 markers for 1st phrase
     * @param[out] b2, e2 beginning and end+1 markers for 2nd phrase
-    * @param[out] v position of value
+    * @param[out] v position of (first) value
     * @param tolerate_multi_vals allow multiple value fields
     */
    static void extractTokens(const string& line, vector<string>& toks,
                              ToksIter& b1, ToksIter& e1,
                              ToksIter& b2, ToksIter& e2,
-                             ToksIter& v, bool tolerate_multi_vals = false);
+                             ToksIter& v,
+                             bool tolerate_multi_vals = false);
 };
 
 /**
@@ -363,7 +353,8 @@ public:
                       prune1_fixed(0), prune1_per_word(0),
                       jpt_stream(NULL), phrase_table_read(false) {}
 
-   ~PhraseTableGen() {}
+   ~PhraseTableGen() {
+   }
 
    /**
     * Read contents as a joint table, in the format produced by dump_joint_freqs.
@@ -378,8 +369,7 @@ public:
 
    /**
     * Write contents to stream, filtering any pairs with freq < thresh (unless
-    * the filt flag is false). Order is lang1,lang2; or lang2,lang1 if reverse
-    * is true.
+    * the filt flag is false). Default order is lang1,lang2.
     * @param ostr output stream
     * @param thresh threshold under which to discard phrase pairs, unless filt=false
     * @param reserve if true, language order is lang2,lang1.
@@ -387,7 +377,7 @@ public:
     *             could theoretically be negative.
     */
    void dump_joint_freqs(ostream& ostr, T thresh = 0, bool reverse = false,
-                         bool filt=true);
+                         bool filt = true);
 
    /**
     * Write relative-frequency conditional distributions to stream, in TMText
@@ -484,12 +474,11 @@ public:
    string& getPhrase(Uint lang, Uint id, string &phrase);
    void  getPhrase(Uint lang, Uint id, vector<string>& toks);
 private:
-   string& getPhrase(Uint lang, const string &coded, string &phrase);
-   void  getPhrase(Uint lang, const string &coded, vector<string>& toks);
+   string& getPhrase(Uint lang, const char* coded, string &phrase);
+   void  getPhrase(Uint lang, const char* coded, vector<string>& toks);
 
    Uint getPhraseLength(Uint lang, Uint id);
    Uint getPhraseLength(Uint lang, const char* coded);
-public:
 
 }; // class PhraseTableGen
 

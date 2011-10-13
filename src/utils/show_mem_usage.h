@@ -53,7 +53,7 @@ inline void showMemoryUsage() {
       if ( system(ps_cmd) )
          cerr << "System call failed - probably not enough memory to run it." << endl;
 #endif
-      
+
       char cmd[48];
 #ifndef Darwin
       snprintf(cmd, 47, "top -bn 1 -p %d 1>&2", pid);

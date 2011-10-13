@@ -1,15 +1,15 @@
 /**
  * @author George Foster
  * @file train_ibm.cc 
- * @brief Program that trains IBM models 1 and 2.
+ * @brief Program to train IBM models 1 and 2 and HMM models.
  *
  * TODO: add ppx-based break condition
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2005-2008, Sa Majeste la Reine du Chef du Canada /
- * Copyright 2005-2008, Her Majesty in Right of Canada
+ * Copyright 2005-2010, Sa Majeste la Reine du Chef du Canada /
+ * Copyright 2005-2010, Her Majesty in Right of Canada
  */
 
 #include "file_utils.h"
@@ -19,6 +19,7 @@
 #include "tm_io.h"
 #include "ibm.h"
 #include "hmm_aligner.h"
+#include "voc.h"
 
 using namespace Portage;
 using namespace std;
@@ -42,6 +43,9 @@ Options:\n\
   -hmm     Train an HMM model rather than an IBM2 model\n\
            [train an IBM2 model, unless INIT_MODEL is an HMM model]\n\
   -speed S For initial pass: 1 (slower, smaller) or 2 (faster, bigger) [2]\n\
+  -filter-singletons THRESHOLD  In the IBM 1 initialization only, do not\n\
+           consider target-lang singletons for source words with a frequency\n\
+           greater or equal to THRESHOLD; 0 means don't filter. [100]\n\
   -i INIT_MODEL Initialize the TTable from INIT_MODEL, rather than compiling it\n\
                 from corpus.  Only the word pairs in INIT_MODEL will be\n\
                 considered as potential translations, and their starting probs\n\
@@ -55,7 +59,7 @@ Options:\n\
   -end ENDLINE  Last line to process in each file [0 = final]\n\
   -mod REM:DIV  Process only lines with (line_no\%DIV==REM) in each file. [0:1]\n\
   -final-cleanup Delete models before exiting (slow; use for leak detection)\n\
-  -max-len MAX  Truncate sentenences longer than MAX tokens; 0 = no limit [0]\n\
+  -max-len MAX  Truncate sentences longer than MAX tokens; 0 = no limit [0]\n\
 \n\
 IBM2-only parameters:\n\
   -slen SLEN      Max source length for standard IBM2 pos table [50]\n\
@@ -117,7 +121,7 @@ Options for symmetrized training:\n\
     liang-variant - variant implementation of liang - see tech report.\n\
   -rev-i INIT_REV_MODEL Initial reverse model [inferred from INIT_MODEL]\n\
   -rev-s REV_IBM1_MODEL Output reverse IBM1 model [inferred from IBM1_MODEL]\n\
-  -rev-model REV_MODEL  Output reverse model [inferred from REV_MODEL]\n\
+  -rev-model REV_MODEL  Output reverse model [inferred from MODEL]\n\
   -word-classes-l2 L2WC Word classes for the reverse model []\n\
 \n\
 TTable conversions between Portage binary format and Giza++ format:\n\
@@ -147,7 +151,7 @@ Options for parallel training:\n\
 // train_ibm recognizes!
 static const char* switches[] = {
    "v", "r", "-m", "n1:", "n2:", "i:", "s:", "p:", "p2:",
-   "slen:", "tlen:", "bksize:", "speed:", "bin",
+   "slen:", "tlen:", "bksize:", "speed:", "filter-singletons:", "bin",
    "beg:", "end:", "hmm", "alpha:", "lambda:", "p0:", "anchor", "noanchor",
    "up0:", "max-jump:", "end-dist", "noend-dist",
    "word-classes-l1:", "word-classes-l2:", "max-len",
@@ -176,6 +180,7 @@ static Uint slen = 50;
 static Uint tlen = 50;
 static Uint bksize = 50;
 static Uint speed = 2;
+static Uint filter_singletons = 100;
 static Uint begline = 1;
 static Uint endline = 0;
 static bool bin_ttables = false;
@@ -219,7 +224,6 @@ static void truncate(vector<string>& toks, Uint max_len) {
    }
 }
 
-// main
 
 int main(int argc, char* argv[])
 {
@@ -238,7 +242,6 @@ int main(int argc, char* argv[])
 
    IBM1* aligner(NULL);
    bool init_model_is_ibm1(true);
-   //HMMAligner* ibm2;
    if ( do_hmm ) {
       const char* const word_classes_file_lang1_cstr = 
          word_classes_file_lang1.empty() ? NULL
@@ -271,6 +274,7 @@ int main(int argc, char* argv[])
 
    aligner->useImplicitNulls = false;
    aligner->getTTable().setSpeed(speed);
+   aligner->getTTable().setSingletonFilter(filter_singletons);
 
    IBM1* rev_aligner(NULL);
    if ( symmetrized ) {
@@ -325,16 +329,17 @@ int main(int argc, char* argv[])
 
       rev_aligner->useImplicitNulls = false;
       rev_aligner->getTTable().setSpeed(speed);
+      rev_aligner->getTTable().setSingletonFilter(filter_singletons);
    }
 
    if (verbose) {
-      cerr << "initializing from ";
+      cerr << "Initializing from ";
       if ( init_model.empty() )
          cerr << "corpus";
       else {
          cerr << init_model;
          if ( symmetrized && !rev_init_model.empty() )
-            cerr << "/" << rev_init_model;
+            cerr << " / " << rev_init_model;
       }
       cerr << ":" << endl;
    }
@@ -343,7 +348,7 @@ int main(int argc, char* argv[])
 
    bool line_count_calculated(false);
    Uint line_count = 0; // will be initialized in iter 0
-   Uint line_modulo = 1000000; // will be re-initialinzed in iter 0
+   Uint line_modulo = 1000000; // will be re-initialized in iter 0
 
    if ( est_only ) {
       // Counts were done before, just add them and do the estimation phase
@@ -419,8 +424,55 @@ int main(int argc, char* argv[])
 
       const time_t start_time = time(NULL);
 
+      if (iter == 0 && filter_singletons) {
+         CountingVoc* voc1(new CountingVoc);
+         CountingVoc* voc2(new CountingVoc);
+         for (Uint arg = 1; arg+1 < arg_reader.numVars(); arg += 2) {
+
+            Uint a1 = reverse_dir ? 1 : 0, a2 = reverse_dir ? 0 : 1;
+            string file1 = arg_reader.getVar(arg+a1),
+                   file2 = arg_reader.getVar(arg+a2);
+            if (verbose)
+               cerr << "Reading " << file1 << " / " << file2;
+            arg_reader.testAndSet(arg+a1, "file1", in_f1);
+            arg_reader.testAndSet(arg+a2, "file2", in_f2);
+            iSafeMagicStream in1(in_f1);
+            iSafeMagicStream in2(in_f2);
+            string line;
+            while (getline(in1, line)) {
+               if(line.length()==0)
+                  continue;
+               char buf[line.length()+1];
+               strcpy(buf, line.c_str());
+               char* strtok_state; // state variable for strtok_r
+               char* tok = strtok_r(buf, " ", &strtok_state);
+               while (tok != NULL) {
+                  voc1->add(tok);
+                  tok = strtok_r(NULL, " ", &strtok_state); 
+               }
+            }
+            while (getline(in2, line)) {
+               if(line.length()==0)
+                  continue;
+               char buf[line.length()+1];
+               strcpy(buf, line.c_str());
+               char* strtok_state; // state variable for strtok_r
+               char* tok = strtok_r(buf, " ", &strtok_state);
+               while (tok != NULL) {
+                  voc2->add(tok);
+                  tok = strtok_r(NULL, " ", &strtok_state); 
+               }
+            }
+         }
+         voc1->sortReverseFreq();
+         voc2->sortReverseFreq();
+         aligner->getTTable().setCountingVocs(voc1,voc2);
+         if ( symmetrized )
+            rev_aligner->getTTable().setCountingVocs(voc2,voc1);
+      }
+
       if (iter == 1)
-         if (verbose) cerr << "beginning training:" << endl;
+         if (verbose) cerr << "Beginning training:" << endl;
 
       if (iter > 0) {
          if ( iter <= num_iters1 ) {
@@ -660,6 +712,7 @@ void getArgs(int argc, char* argv[])
    arg_reader.testAndSet("tlen", tlen);
    arg_reader.testAndSet("bksize", bksize);
    arg_reader.testAndSet("speed", speed);
+   arg_reader.testAndSet("filter-singletons", filter_singletons);
    arg_reader.testAndSet("beg", begline);
    arg_reader.testAndSet("end", endline);
    arg_reader.testAndSet("bin", bin_ttables);
@@ -836,6 +889,7 @@ void getArgs(int argc, char* argv[])
       cerr << "tlen    \t"<< tlen << nf_endl;
       cerr << "bksize  \t"<< bksize << nf_endl;
       cerr << "speed   \t"<< speed << nf_endl;
+      cerr << "filter_singletons\t"<< filter_singletons << nf_endl;
       cerr << "begline \t"<< begline << nf_endl;
       cerr << "nf_endline \t"<< endline << endl;
       cerr << "bin_ttables\t"<< bin_ttables << nf_endl;

@@ -1,8 +1,8 @@
+// $Id$
 /**
  * @author Eric Joanis
  * @file trie.h Compact and fast implementation of a trie of Uints.
  *
- * $Id$
  *
  * COMMENTS:
  *
@@ -263,6 +263,27 @@ class PTrie {
    bool find_or_insert(const TrieKeyT key[], Uint key_size, LeafDataT*& p_val);
 
    /**
+    * Access operator following the Associative Container interface from the
+    * STL.  Works like map::operator[], inserting a new, default-initialized
+    * value at key if key was not found.
+    * @param key  key to loop up 
+    * @pre !key.empty()
+    * @return a modifiable reference to the (possibly new) value at key.
+    */
+   LeafDataT& operator[](const vector<Uint>& key) {
+      assert(!key.empty());
+      LeafDataT* p_val;
+      find_or_insert(&key[0], key.size(), p_val);
+      return *p_val;
+   }
+   LeafDataT& at(const TrieKeyT key[], Uint key_size) {
+      assert(key_size>0);
+      LeafDataT* p_val;
+      find_or_insert(key, key_size, p_val);
+      return *p_val;
+   }
+
+   /**
     * Find key in the trie.  If key is found, returns true, copies the value
     * into val, and the depth where key was found into depth, if depth is not
     * NULL.  If key is not found, returns false, but if depth is not NULL,
@@ -278,7 +299,9 @@ class PTrie {
     * @return true if the key was found
     */
    bool find(const TrieKeyT key[], Uint key_size, LeafDataT& val,
-      Uint* depth = NULL) const;
+             Uint* depth = NULL) const;
+   bool find(const TrieKeyT key[], Uint key_size, const LeafDataT*& p_val,
+             Uint* depth = NULL) const;
 
    /**
     * Find key in the trie, getting a modifiable value.  Same as const find,
@@ -304,7 +327,7 @@ class PTrie {
     * (using the iterator's begin_children() and end_children() methods).
     * Returns end_iter if the key is not found as a root.
     */
-   iterator find(const TrieKeyT key);
+   iterator find(TrieKeyT key);
 
    /**
     * Sum leaf values over a sequence of prefixes of a key.  Add the values
@@ -516,7 +539,7 @@ class PTrie {
 
    /**
     * Get an iterator to the beginning of the root node's children.
-    * See rec_dump_trie in test_trie.cc for a sample use.
+    * See rec_dump_trie in tests/legacy/test_trie.cc for a sample use.
     * @return an iterator which can be used to traverse the root in a
     * non-specified order, through which the whole trie can be traversed
     * recursively (using the iterator's begin_children() and end_children()

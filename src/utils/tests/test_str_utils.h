@@ -30,6 +30,62 @@ public:
       TS_ASSERT(strcmp(trim(test_str3), "asdf") == 0);
    }
 
+   void testJoinAppend() {
+      vector<string> v;
+      v.push_back("a");
+      v.push_back("b");
+      v.push_back("c");
+      string buffer;
+      TS_ASSERT_EQUALS(join_append(v, buffer), "a b c");
+      TS_ASSERT_EQUALS(buffer, "a b c");
+      buffer.clear();
+      TS_ASSERT_EQUALS(join_append(v.begin(), v.begin(), buffer), "");
+      TS_ASSERT_EQUALS(join_append(v.begin(), v.begin()+1, buffer), "a");
+      buffer.clear();
+      TS_ASSERT_EQUALS(join_append(v, buffer, "__"), "a__b__c");
+   }
+
+   void testJoiner() {
+      vector<string> v;
+      v.push_back("a");
+      v.push_back("b");
+      v.push_back("c");
+      TS_ASSERT_EQUALS(join(v), "a b c");
+      TS_ASSERT_EQUALS(join(v.begin(), v.end()), "a b c");
+      TS_ASSERT_EQUALS(join(v.begin(), v.begin()), "");
+      TS_ASSERT_EQUALS(join(v.begin(), v.begin()+1), "a");
+      TS_ASSERT_EQUALS(join(v.begin(), v.end(), "+"), "a+b+c");
+
+      vector<float> f;
+      f.push_back(1.0/7);
+      f.push_back(2.0/7);
+      f.push_back(3.0/7);
+      f.push_back(4.0/7);
+      TS_ASSERT_EQUALS(join(f), "0.14285715 0.2857143 0.42857143 0.5714286");
+      TS_ASSERT_EQUALS(join(f, " ", 2), "0.14 0.29 0.43 0.57");
+      TS_ASSERT_EQUALS(join(f, "_", 4), "0.1429_0.2857_0.4286_0.5714");
+
+      ostringstream oss;
+      oss << join(f, "_-_", 5);
+      TS_ASSERT_EQUALS(oss.str(), "0.14286_-_0.28571_-_0.42857_-_0.57143");
+   }
+
+
+   void testJoinIterator() {
+      Uint a[] = {1, 2, 3};
+      TS_ASSERT_EQUALS(join(a, a+3), "1 2 3");
+      TS_ASSERT_EQUALS(join(a, a), "");
+      TS_ASSERT_EQUALS(join(a, a+1), "1");
+   }
+
+   void testJoinPlus() {
+      Uint a[] = {1, 2, 3};
+      TS_ASSERT_EQUALS(join(a, a+3) + " foo", "1 2 3 foo");
+      TS_ASSERT_EQUALS("foo " + join(a, a+3), "foo 1 2 3");
+      TS_ASSERT_EQUALS(join(a, a+3), string("1 2 3"));
+      TS_ASSERT_EQUALS(string("1 2 3"), join(a, a+3));
+   }
+
    void testSplitString() {
       string s("a ||| b ||| c");
       vector<string> toks;
@@ -46,6 +102,56 @@ public:
       TS_ASSERT_EQUALS(toks[0], "a");
       TS_ASSERT_EQUALS(toks[1], "b");
       TS_ASSERT_EQUALS(toks[2], "c");
+   }
+
+   void testEmptySplit() {
+      string empty("");
+      vector<string> toks;
+
+      split(empty, toks, ";");
+      TS_ASSERT_EQUALS(toks.size(), 0);
+   }
+
+   void testSplitMaxToks() {
+      string input = "asdf qwer tyui ghkl";
+      vector<string> tokens;
+      TS_ASSERT_EQUALS(splitZ(input, tokens, " ", 5), 4u);
+      TS_ASSERT_EQUALS(tokens[3], "ghkl");
+      TS_ASSERT_EQUALS(splitZ(input, tokens, " ", 4), 4u);
+      TS_ASSERT_EQUALS(tokens[3], "ghkl");
+      TS_ASSERT_EQUALS(splitZ(input, tokens, " ", 3), 3u);
+      TS_ASSERT_EQUALS(tokens[2], "tyui ghkl");
+
+      input = "asdf qwer tyui   ghkl   ";
+      TS_ASSERT_EQUALS(splitZ(input, tokens, " ", 5), 4u);
+      TS_ASSERT_EQUALS(tokens[3], "ghkl");
+      TS_ASSERT_EQUALS(splitZ(input, tokens, " ", 4), 4u);
+      TS_ASSERT_EQUALS(tokens[3], "ghkl   ");
+      TS_ASSERT_EQUALS(splitZ(input, tokens, " ", 3), 3u);
+      TS_ASSERT_EQUALS(tokens[2], "tyui   ghkl   ");
+   }
+
+   void testDestructiveSplit() {
+      const char input[] = "asdf qwer tyui ghkl   ";
+      char buffer[30] = "";
+      char* tokens[10];
+      strcpy(buffer, input);
+      TS_ASSERT_EQUALS(destructive_split(buffer, tokens, 5), 4u);
+      TS_ASSERT_EQUALS(string(tokens[3]), "ghkl");
+      strcpy(buffer, input);
+      TS_ASSERT_EQUALS(destructive_split(buffer, tokens, 4), 4u);
+      TS_ASSERT_EQUALS(string(tokens[3]), "ghkl   ");
+      strcpy(buffer, input);
+      TS_ASSERT_EQUALS(destructive_split(buffer, tokens, 3), 3u);
+      TS_ASSERT_EQUALS(string(tokens[2]), "tyui ghkl   ");
+
+      const char input2[] = "asdf qwer  tyui  \t \tghkl";
+      strcpy(buffer, input2);
+      TS_ASSERT_EQUALS(destructive_split(buffer, tokens, 4, " \t"), 4u);
+      TS_ASSERT_EQUALS(string(tokens[3]), "ghkl");
+      strcpy(buffer, input2);
+      TS_ASSERT_EQUALS(destructive_split(buffer, tokens, 3, " \t"), 3u);
+      TS_ASSERT_EQUALS(string(tokens[2]), "tyui  \t \tghkl");
    }
 
    void testConvUint() {

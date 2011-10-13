@@ -16,7 +16,7 @@
 
 #include "inputparser.h"
 #include "basicmodel.h"
-#include <errors.h>
+#include "errors.h"
 #include <math.h>
 #include <iostream>
 
@@ -82,7 +82,7 @@ bool InputParser::readMarkedSent(vector<string> &sent,
                   readString(sent.back(), c, (char)0, (char)0, true, true);
                   skipSpaces(c);
                }
-               //cerr << "SENT: " << joini(sent.begin(), sent.end()) << endl;
+               //cerr << "SENT: " << join(sent.begin(), sent.end()) << endl;
                return false;
             }
          }
@@ -406,7 +406,15 @@ bool InputParser::readString(string &s, char &c, char stopFor1, char
 
 void InputParser::skipSpaces(char &c)
 {
-   while (!in.eof() && (c == ' ' || c == '\t' || c == '\r')) {
+   // SL: seems that if there is a null character we will end up in an infite
+   // loop thus let's read it and skip it.
+   while (!in.eof() && (c == ' ' || c == '\t' || c == '\r' || c == '\0')) {
+      if (c == '\0') {
+         if (inc_warning(NULL_CHARACTER) <= max_warn) {
+            error(ETWarn,
+               "NULL characters in plain text input files are invalid.");
+         }
+      }
       in >> c;
    }
 } // skipSpaces
@@ -443,6 +451,10 @@ void InputParser::reportWarningCounts() const
         && warning_counters[LITERAL_ANGLE] > max_warn )
       error(ETWarn, "Format warning summary: %d '<' and/or '>' within tokens "
             "were interpreted literally", warning_counters[LITERAL_ANGLE]);
+   if ( warning_counters.size() > Uint(NULL_CHARACTER)
+        && warning_counters[NULL_CHARACTER] > max_warn )
+      error(ETWarn, "Format warning summary: %d null character found in stream"
+            , warning_counters[NULL_CHARACTER]);
 }
 
 

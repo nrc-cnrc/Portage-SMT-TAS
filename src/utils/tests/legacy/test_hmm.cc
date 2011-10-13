@@ -69,7 +69,7 @@ int main(int argc, char** argv)
    uintVector X_hat;
    double logprob = crazy.Viterbi(O, X_hat, true);
    cerr << "probViterbi logprob " << logprob << " prob " << exp(logprob)
-        << " sequence: " << joini (X_hat.begin(), X_hat.end()) << endl;
+        << " sequence: " << join (X_hat.begin(), X_hat.end()) << endl;
    cerr << endl;
 
    HMM crazy_copy(crazy);
@@ -78,7 +78,7 @@ int main(int argc, char** argv)
    crazy_copy.write(cerr);
    double logprob2 = crazy_copy.Viterbi(O, X_hat, true);
    cerr << "logViterbi logprob " << logprob2 << " prob " << exp(logprob2)
-        << " sequence: " << joini (X_hat.begin(), X_hat.end()) << endl;
+        << " sequence: " << join (X_hat.begin(), X_hat.end()) << endl;
    cerr << endl;
 
    dMatrix alpha_hat;

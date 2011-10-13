@@ -22,29 +22,10 @@ const string PhraseTableBase::sep = " ";
 const string PhraseTableBase::psep = "|||";
 const string PhraseTableBase::psep_replacement = "___|||___";
 
-void PhraseTableBase::codePhrase(ToksIter beg, ToksIter end, string& coded, const string& sep) 
-{
-   coded.clear();
-   if (beg < end) 
-      coded += *beg++;
-   while (beg < end) 
-      coded += sep + *beg++;
-}
-
-void PhraseTableBase::decodePhrase(const string& coded, vector<string>& toks, const string& sep) 
-{
-   toks.clear();
-   string::size_type beg = 0, end;
-   while ((end = coded.find(sep, beg)) != string::npos) {
-      toks.push_back(coded.substr(beg, end-beg));
-      beg = end + sep.length();
-   }
-   toks.push_back(coded.substr(beg, coded.length()-beg));
-}
-
 void PhraseTableBase::compressPhrase(ToksIter beg, ToksIter end, string& coded, Voc& voc) 
 {
    coded.clear();
+   coded.reserve((end-beg) * num_code_bytes + 1);
    for (; beg != end; ++beg) {
       Uint code = voc.add((*beg).c_str());
       assert (code <= max_code);
@@ -52,21 +33,35 @@ void PhraseTableBase::compressPhrase(ToksIter beg, ToksIter end, string& coded, 
    }
 }
 
-void PhraseTableBase::decompressPhrase(const string& coded, vector<string>& toks, Voc& voc)
+void PhraseTableBase::decompressPhrase(const char* coded, vector<string>& toks, Voc& voc)
 {
    toks.clear();
-   for (Uint pos = 0; pos < coded.length(); pos += num_code_bytes)
+   const Uint len = strlen(coded);
+   for (Uint pos = 0; pos < len; pos += num_code_bytes)
       toks.push_back(voc.word(unpack(coded, pos, num_code_bytes, code_base)));
 }
 
-string PhraseTableBase::recodePhrase(const string& coded, Voc& voc,
+string PhraseTableBase::recodePhrase(const char* coded, Voc& voc,
                                      const string& sep)
 {
+   // optimized to avoid temporary vectors as much as possible.
+   string s;
+   const Uint len = strlen(coded);
+   s.reserve(len * 3); // pre-reserve 9 characters per token, including one for sep.
+   if (len) s += voc.word(unpack(coded, 0, num_code_bytes, code_base));
+   for (Uint pos = num_code_bytes; pos < len; pos += num_code_bytes) {
+      s += sep;
+      s += voc.word(unpack(coded, pos, num_code_bytes, code_base));
+   }
+   return s;
+
+   // this old version was nicely functional, but expensive because of the temporary
+   // structure.
+   /*
    vector<string> toks;
    decompressPhrase(coded, toks, voc);
-   string s1;
-   join(toks.begin(), toks.end(), s1, sep);
-   return s1;
+   return join(toks, sep);
+   */
 }
 
 Uint PhraseTableBase::phraseLength(const char* coded)

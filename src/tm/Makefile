@@ -56,7 +56,6 @@ BINSCRIPTS = \
         sigprune.sh \
         tmtext-apply-weights.pl \
         tmtext_sort.sh \
-        train-phrases.sh \
         tt2ptbest.pl
 
 DOCUMENTS =

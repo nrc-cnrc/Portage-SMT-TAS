@@ -28,7 +28,7 @@ class VocMapBasedLMFilter {
    /// Global/local vocab map
    VocMap& voc_map;
    /// Limit the to LM order, (non-zero if requested)
-   Uint limit_order;
+   const Uint limit_order;
 
  public:
    /// Destructor
@@ -62,7 +62,7 @@ class PerSentVocLMFilter : private VocMapBasedLMFilter {
    /// Return true iff key_stack should be kept.
    /// If the base class filter passes, do the per-sentence check.
    bool operator()(const vector<Uint>& key_stack) {
-      //cerr << "Key: " << join<Uint>(key_stack) << endl;
+      //cerr << "Key: " << join(key_stack) << endl;
       if ( ! VocMapBasedLMFilter::operator()(key_stack) ) return false;
       if ( key_stack.size() == 1 ) return true;
       boost::dynamic_bitset<>

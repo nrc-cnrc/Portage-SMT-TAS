@@ -56,8 +56,9 @@ Options:\n\
 -i     Ignore case (actually: lowercase everything).\n\
 -o     Specify output format, one of: \n\
        "WORD_ALIGNMENT_WRITER_FORMATS" [aachen]\n\
--a     Word-alignment method and optional args. Use -H for list of methods.\n\
-       [IBMOchAligner]\n\
+       Use -H for documentation of each format.\n\
+-a     Word-alignment method and optional args.\n\
+       Use -H for the list of methods with documentation.  [IBMOchAligner]\n\
 -post  Also print link posterior probabilities according to each model.\n\
 -ibm   Use IBM model <n>: 1 or 2\n\
 -hmm   Use an HMM model instead of an IBM model (only works with IBMOchAligner).\n\
@@ -232,7 +233,8 @@ int MAIN(argc, argv)
 {
    printCopyright(2005, "align-words");
    static string alt_help = 
-      "--- word aligners ---\n" + WordAlignerFactory::help();
+      WordAlignmentWriter::help() +
+      "--- Word aligners ---\n\n" + WordAlignerFactory::help();
    ARG args(argc, argv, alt_help.c_str());
    string z_ext(compress_output ? ".gz" : "");
 
@@ -263,25 +265,27 @@ int MAIN(argc, argv)
      if (verbose) cerr << "models loaded" << endl;
    }
 
-   WordAlignerFactory* aligner_factory = 0;
-   WordAligner* aligner = 0;
+   WordAlignerFactory* aligner_factory = NULL;
+   WordAligner* aligner = NULL;
 
    if (!giza_alignment) {
      aligner_factory =
        new WordAlignerFactory(ibm_1, ibm_2, verbose, twist, false);
      aligner = aligner_factory->createAligner(align_method);
+     assert(aligner);
    }
 
    string in_f1, in_f2;
    string alfile1, alfile2;
    Uint fpair = 0;
 
-   GizaAlignmentFile* al_1=0;
-   GizaAlignmentFile* al_2=0;
+   GizaAlignmentFile* al_1 = NULL;
+   GizaAlignmentFile* al_2 = NULL;
 
    WordAlignerStats stats;
 
    WordAlignmentWriter *print = WordAlignmentWriter::create(output_format);
+   assert(print != NULL);
 
    for (Uint arg = first_file_arg; arg+1 < args.numVars(); arg += 2) {
 
@@ -309,6 +313,7 @@ int MAIN(argc, argv)
 
         if (aligner) delete aligner;
         aligner = aligner_factory->createAligner(align_method);
+        assert(aligner);
       }
 
       Uint line_no = 0;

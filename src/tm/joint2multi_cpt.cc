@@ -45,7 +45,7 @@ Columns in the output cpt are:\n\
 where RG is 0 or more columns of 'reverse' (src given tgt) probability estimates\n\
 based on global frequencies (summed over all input jpts), RJi is 0 or more\n\
 columns of reverse probability estimates based on frequencies in the ith jpt,\n\
-and RL is 0 or columns of reverse 'lexical' probability estimates. The 'F'\n\
+and RL is 0 or columns of reverse 'lexical' probability estimates.  The 'F'\n\
 columns are 'forward' estimates in the same order as the 'R' ones.  The contents\n\
 of the columns are determined by the arguments to the -s switch.  Note that\n\
 'lexical' estimates always come last, regardless of the order in which they are\n\
@@ -69,7 +69,8 @@ Options:\n\
 -prune1   Prune so that each language1 phrase has at most n translations. Based\n\
           on summed joint freqs; done right after reading in all tables.\n\
 -prune1w  Same as prune1, but multiply n by the number of words in the current\n\
-          source phrase. Only one of prune1 or prune1w may be used.\n\
+          source phrase.  When using both -prune1 and -prune1w, keep n + nw*len\n\
+          tranlations for a source phrase of len words.\n\
 -s sm     Smoothing method for conditional probs. Use -H for list of methods.\n\
           Multiple methods may be specified by using -s repeatedly. By default,\n\
           each listed smoother will be applied to global frequencies and to\n\
@@ -95,6 +96,10 @@ Options:\n\
 -lc2 loc  Do lowercase mapping of lang 2 words to match IBM/HMM models, using\n\
           locale <loc>, eg: C, en_US.UTF-8, fr_CA.88591 [don't map]\n\
 -o cpt    Set base name for output tables [cpt]\n\
+-w cols   Write only the columns in <cols> to <cpt>, where <cols> is a list of\n\
+          1-based indexes, eg '1,2,4,6', into the vector of output probability\n\
+          columns that would normally get written. NB: columns are written in\n\
+          the order they appear on <cols>. [write all]\n\
 -dir d    Direction for output tables(s). One of: 'fwd' = output <cpt>.<l1>2<l2>\n\
           for translating from <l1> to <l2>; 'rev' = output <cpt>.<l2>2<l1>; or\n\
           'both' = output both. [fwd]\n\
@@ -121,6 +126,7 @@ static string ibmtype;
 static string lc1;
 static string lc2;
 static string name("cpt");
+static vector<Uint> output_cols;
 static string output_drn("fwd");
 static bool compress_output = false;
 static bool force = false;
@@ -154,7 +160,7 @@ template<class T> struct ValAndIndex {
    }
 };
 
-template <class T> bool conv(const string& s, ValAndIndex<T>& vi)
+template <class StringType, class T> bool conv(StringType s, ValAndIndex<T>& vi)
 {
    return conv(s, vi.val);
 }
@@ -221,6 +227,23 @@ void parseSmoothingSpec(const string& spec, Uint num_jpts, string& smoother,
          error(ETFatal, "smoother %s doesn't use counts; it can't be applied to specific jpts", 
                smoother.c_str());
 }
+
+/**
+ * Filter vector of output probs to retain only the ones specified in output_cols
+ */
+void filterOutputCols(vector<double>& outprobs)
+{
+   if (output_cols.size() == 0)
+      return;
+   vector<double> outpr(outprobs);
+   outprobs.clear();
+   for (Uint i = 0; i < output_cols.size(); ++i) {
+      if (output_cols[i] >= outpr.size())
+         error(ETFatal, "-w output index too large: %d", output_cols[i]+1);
+      outprobs.push_back(outpr[output_cols[i]]);
+   }
+}
+
 
 // main
 
@@ -368,16 +391,20 @@ void doEverything(const char* prog_name)
    // prune the whole table using global freqs
 
    if (prune1 || prune1w) {
-      if (verbose)
-         cerr << "pruning to best " << (prune1 ? prune1 : prune1w) 
-              << " translations" << (prune1w ? " per word" : "") 
-              << ", using total freqs" << endl;
+      if (verbose) {
+         cerr << "pruning to best ";
+         if (prune1)            cerr << prune1;
+         if (prune1 && prune1w) cerr << "+";
+         if (prune1w)           cerr << prune1w << "*numwords";
+         cerr << " translations, using total freqs" << endl;
+      }
+
       for (typename PhraseTableGen< ValAndIndex<T> >::iterator it = pt.begin(); 
 	   it != pt.end(); ++it) {
          ValAndIndex<T>& vi = it.getJointFreqRef();
          vi.val = jointfreqs[0][vi.index];
       }
-      pt.pruneLang2GivenLang1(prune1 ? prune1 : prune1w, prune1w != 0);
+      pt.pruneLang2GivenLang1(prune1, prune1w);
    }
 
    // create IBM models if needed, and set up optional casemapping
@@ -491,6 +518,7 @@ void doEverything(const char* prog_name)
       if (out_fwd) {
 	 vals = vals_rev;
 	 if (!nofwd) vals.insert(vals.end(), vals_fwd.begin(), vals_fwd.end());
+         filterOutputCols(vals);
 	 PhraseTableBase::writePhrasePair(*out_fwd, p1.c_str(), p2.c_str(), vals);
       }
       if (out_rev) {
@@ -500,6 +528,7 @@ void doEverything(const char* prog_name)
             vals = vals_fwd;
             vals.insert(vals.end(), vals_rev.begin(), vals_rev.end());
          }
+         filterOutputCols(vals);
 	 PhraseTableBase::writePhrasePair(*out_rev, p2.c_str(), p1.c_str(), vals);
       }	 
       ++total;
@@ -521,8 +550,9 @@ void getArgs(int argc, char* argv[])
    const char* switches[] = {
       "v", "i", "1:", "2:", "prune1:", "prune1w:", "s:", "0:", "eps0:",
       "ibm_l1_given_l2:", "ibm_l2_given_l1:", "ibm:", "lc1:", "lc2:", 
-      "o:", "dir:", "nofwd", "z", "force"
+      "o:", "w:", "dir:", "nofwd", "z", "force"
    };
+   string output_cols_string;
 
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 1, -1, help_message,
                         "-h", true, alt_help.c_str(), "-H");
@@ -543,6 +573,7 @@ void getArgs(int argc, char* argv[])
    arg_reader.testAndSet("lc1", lc1);
    arg_reader.testAndSet("lc2", lc2);
    arg_reader.testAndSet("o", name);
+   arg_reader.testAndSet("w", output_cols_string);
    arg_reader.testAndSet("dir", output_drn);
    arg_reader.testAndSet("nofwd", nofwd);
    arg_reader.testAndSet("z", compress_output);
@@ -553,9 +584,6 @@ void getArgs(int argc, char* argv[])
    if (smoothing_methods.empty())
       smoothing_methods.push_back("RFSmoother");
 
-   if (prune1 && prune1w)
-      error(ETFatal, "only one of -prune1 and -prune1w may be specified");
-
    if (ibmtype != "" && ibmtype != "1" && ibmtype != "2" && ibmtype != "hmm")
       error(ETFatal, "Bad value for -ibm switch: %s", ibmtype.c_str());
 
@@ -565,6 +593,15 @@ void getArgs(int argc, char* argv[])
       
    if (output_drn != "fwd" && output_drn != "rev" &&  output_drn != "both")
       error(ETFatal, "Bad value for -dir switch: %s", output_drn.c_str());
+
+   if (output_cols_string != "") {
+      split(output_cols_string, output_cols, " ,");
+      for (Uint i = 0; i < output_cols.size(); ++i) {
+         if (output_cols[i] == 0)
+            error(ETFatal, "-w output columns must be > 0");
+         --output_cols[i];
+      }
+   }
 }
 
 static void checkOutputFile(const string& filename) 
