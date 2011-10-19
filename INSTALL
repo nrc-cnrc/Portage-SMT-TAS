@@ -177,12 +177,15 @@ Mandatory dependencies for all distributions:
 
  - Python 2.7 - some convenience scripts, as well as the new truecasing module,
    use python.  In most distros, Python should be standard, or available via
-   the package manager, but it might not be the right version: version 2.7 (or
+   the package manager, but it might not be the right version: version 2.7 (any
    2.7.x) is required.  If you install Python 2.7 in a non-standard location,
    make sure it comes first on your PATH, or add its bin directory to
-   EXTRA_PROGRAM_PATH in SETUP.bash/tcsh.  If you compile Python 2.7 by hand,
-   make sure you have the zlib-devel (or zlib-dev, or zlib1g-dev) package
-   installed first.
+   EXTRA_PROGRAM_PATH in SETUP.bash/tcsh.  Alternatively, make a soft link
+   (using ln -s) in $PORTAGE/bin to the python executable.  (The soft link is
+   the best solution for your PortageLive server(s), where you must also make
+   sure the apache user has sufficient permissions to use python 2.7.)  If you
+   compile Python 2.7 by hand, make sure you have the zlib-devel (or zlib-dev,
+   or zlib1g-dev) package installed first.
 
    This procedure worked for us:
       # Obtain Python-2.7.1.tar.bz2 from the web.
@@ -191,7 +194,8 @@ Mandatory dependencies for all distributions:
       ./configure --prefix=$PORTAGE/pkgs/python2.7.1
       make -j 5
       make install -j 5
-      # Add $PORTAGE/pkgs/python2.7.1/bin to EXTRA_DYNLIB_PATH in SETUP.bash/tcsh.
+      # Add $PORTAGE/pkgs/python2.7.1/bin to EXTRA_DYNLIB_PATH in SETUP.bash/tcsh,
+      # or: ln -s $PORTAGE/pkgs/python2.7.1/bin/python $PORTAGE/bin/python
 
  - A language modelling toolkit to train language models.  Our code can read
    and use language models, but we don't provide the training functionality,
