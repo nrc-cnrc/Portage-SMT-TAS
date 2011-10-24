@@ -1,4 +1,5 @@
-#!/usr/bin/env perl
+#!/usr/bin/perl -w
+# TODO: NOTE: Reverting change to temporarily fix the daily build on leclerc.  Correct fix consist of installing perl::threads on leclerc and using #!/usr/bin/env perl in this script.
 # $Id$
 #
 # @file r-parallel-d.pl 
@@ -134,12 +135,16 @@ while ( 1 ) {
    my $proto = getprotobyname('tcp');
    socket(Server, PF_INET, SOCK_STREAM, $proto) or exit_with_error "$0 socket: $!";
    setsockopt(Server, SOL_SOCKET, SO_REUSEADDR, pack("l", 1))
-      or exit_with_error "$0 setsockopt: $!";
+      or do {
+         system("echo FAIL > $file_prefix/port");
+         exit_with_error "$0 setsockopt: $!";
+      };
    bind(Server, sockaddr_in($port, INADDR_ANY)) or do {
       if ( $!{"EADDRINUSE"} ) {
          log_msg "port $port already in use,", "trying another one";
          next;
       }
+      system("echo FAIL > $file_prefix/port");
       die "$0 bind: $!";
    };
    listen(Server, SOMAXCONN) or exit_with_error "$0 listen: $!";
