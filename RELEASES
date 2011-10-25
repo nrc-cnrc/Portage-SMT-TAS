@@ -15,7 +15,8 @@ license agreement for details.
 
 v1.4.3.1 2011-10-28
  This is a maintenance release, patching a small but critical bug with
- Lexicalized Distortion Models.
+ Lexicalized Distortion Models.  Significance pruning is also updated to
+ calculate the significance level with better precision.
 
 v1.4.3 2011-10-03
  This release is primarily intended distribute our improved truecasing module,
