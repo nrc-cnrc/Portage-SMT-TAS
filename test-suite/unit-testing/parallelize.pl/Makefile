@@ -97,14 +97,14 @@ numerous_chunks: numerous_chunks1
 numerous_chunks: numerous_chunks2
 
 numerous_chunks0:  output/numerous_chunks0.gz
-numerous_chunks1:  /tmp/numerous_chunks1
+numerous_chunks1:  output.numerous_chunks1
 numerous_chunks2:  output.numerous_chunks2
 numerous_chunks0 numerous_chunks1 numerous_chunks2:  hans3_fr.txt
 	zcmp $+
 
 output/numerous_chunks0.gz:  | output
 # Output to some file.
-output/numerous_chunks0.gz /tmp/numerous_chunks1:  hans3_fr.txt
+output/numerous_chunks0.gz output.numerous_chunks1:  hans3_fr.txt
 	${PARALLELIZE_PL} -n 5000 -np 4 "cat < $+ > $@" 2> log.$(basename $(notdir $@))
 
 # Output to stdout.
