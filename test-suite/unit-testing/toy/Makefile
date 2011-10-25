@@ -91,10 +91,9 @@ train_en.lm: train_en.al
 
 tm: phrases.fr2en
 phrases.fr2en: train_en.al train_fr.al
-	rm -rf tmp; mkdir tmp
-	ln -s ../train_en.al tmp/train_en.al
-	ln -s ../train_fr.al tmp/train_fr.al
-	train-phrases.sh -no-z tmp
+	train_ibm -v  -bin  -s ibm1.fr_given_en ibm2.fr_given_en $+ >& log.train_ibm.fr_given_en
+	train_ibm -vr -bin  -s ibm1.en_given_fr ibm2.en_given_fr $+ >& log.train_ibm.en_given_fr
+	gen_phrase_tables -v  -multipr both -w1 -m8 -1 en -2 fr ibm2.fr_given_en ibm2.en_given_fr $+ >& log.gen_phrase_tables
 
 cow: canoe.ini.cow
 canoe.ini.cow: phrases.fr2en train_en.lm canoe.ini
