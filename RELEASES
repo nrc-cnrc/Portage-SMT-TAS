@@ -1,4 +1,4 @@
-                               Portage 1.4.3
+                              Portage 1.4.3.1
 
 Technologies langagieres interactives / Interactive Language Technologies
 Institut de technologie de l'information / Institute for Information Technology
@@ -12,6 +12,10 @@ license agreement for details.
 
                               Release History
                    (with a summary of important changes)
+
+v1.4.3.1 2011-10-28
+ This is a maintenance release, patching a small but critical bug with
+ Lexicalized Distortion Models.
 
 v1.4.3 2011-10-03
  This release is primarily intended distribute our improved truecasing module,
