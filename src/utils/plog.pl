@@ -258,6 +258,9 @@ sub logCreate {
 
     my $now = gmtime();         # Greenwich time
     my @pw = getpwuid($<);
+    lockLog($dir) 
+        or die "*** All attempts to acquire exclusive access to $dir failed ",
+               "-- please contact your administrator.\n";
     my $job = logNew(NO=>getNO($dir),
                      JOB=>$job_name,
                      USER=>$pw[0], # username
@@ -286,6 +289,8 @@ sub logCreate {
 
     logWrite($job, $log_fh);
     close $log_fh;
+
+    unlockLog($dir) or die "*** Something went wrong while unlocking $dir: errno=$!\n";
 
     chmod 0644, $full_filename;
 
@@ -530,8 +535,6 @@ sub getNO {
     
     die "No such logging directory: $dir\n"  unless -d $dir;
 
-    lockLog($dir) or die "*** All attempts to acquire exclusive access to $dir failed -- please contact your administrator.\n";
-
     my $lastyear = dirGetLast($dir, qr/^\d\d\d\d$/);
     
     if ($lastyear) {
@@ -554,8 +557,6 @@ sub getNO {
         }
     }
 
-    unlockLog($dir) or die "*** Something went wrong while unlocking $dir: errno=$!\n";
-
     return $no;
 }
 
@@ -570,12 +571,12 @@ sub dirGetLast {
     return @subdirs ? pop @subdirs : undef;
 }
 
-## log lock mechanism (just for getting job no)
+## log lock mechanism (just for getting job no and creating log file)
 
 sub lockLog {
     my ($dir, $attempts) = @_;
 
-    $attempts = 3 unless defined $attempts;
+    $attempts = 100 unless defined $attempts;
 
     my $lockdir = File::Spec->catdir($dir, $LOG_LOCK);
 
