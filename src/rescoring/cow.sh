@@ -554,7 +554,7 @@ elif [[ "$FILTER" = "-filt" ]]; then
       if [[ "${LDM%.tpldm}" = "${LDM}" ]]; then
          # Filter text LDM
          FLDM=`basename ${LDM} .gz`.FILT.gz
-         run_cmd "filter-distortion-model.pl -v ${CPT} ${LDM} | gzip > ${FLDM}"
+         run_cmd "filter-distortion-model.pl -v ${CPT} ${LDM} ${FLDM}"
          FLDMS=${FLDMS}${FLDMS:+:}${FLDM}
          cp ${LDM%.gz}.bkoff ${FLDM%.gz}.bkoff
       else

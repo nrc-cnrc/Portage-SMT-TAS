@@ -360,7 +360,7 @@ elif [[ $HARD_FILTER ]]; then
    for LDM in ${LDMS}; do
       if [[ "${LDM%.tpldm}" = "${LDM}" ]]; then
          FILT_LDM=`basename ${LDM} .gz`.FILT.gz
-         run_cmd "filter-distortion-model.pl -v ${FILT_PT} ${LDM} | gzip > $WORKDIR/${FILT_LDM}"
+         run_cmd "filter-distortion-model.pl -v ${FILT_PT} ${LDM} $WORKDIR/${FILT_LDM}"
          FILT_LDMS=${FILT_LDMS}${FILT_LDMS:+:}${FILT_LDM}
          cp ${LDM%.gz}.bkoff $WORKDIR/${FILT_LDM%.gz}.bkoff
       else
