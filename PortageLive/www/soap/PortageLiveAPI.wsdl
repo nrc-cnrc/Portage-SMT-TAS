@@ -10,24 +10,32 @@
   $Id$
   file: PortageLiveAPI.wsdl
   brief: Definition of the API to the Portage SMT software suite.
-  author: Patrick Paul and Eric Joanis
+  author: Patrick Paul, Eric Joanis and Samuel Larkin
 
   Technologies langagières interactives / Interactive Language Technologies
   Institut de technologie de l'information / Institute for Information Technology
   Conseil national de recherches Canada / National Research Council Canada
-  Copyright 2009, 2010, Sa Majesté la Reine du Chef du Canada /
-  Copyright 2009, 2010, Her Majesty in Right of Canada
+  Copyright 2009 - 2011, Sa Majesté la Reine du Chef du Canada /
+  Copyright 2009 - 2011, Her Majesty in Right of Canada
 </documentation>
+
+<message name="primeModelsRequest">
+  <part name="context" type="xsd:string"/>
+  <part name="PrimeMode" type="xsd:string"/>
+</message>
 
 <message name="getAllContextsRequest">
   <part name="verbose" type="xsd:boolean"/>
 </message>
+
 <message name="getTranslationRequest"> 
   <part name="srcString" type="xsd:string"/> 
 </message> 
+
 <message name="getTranslationResponse"> 
   <part name="Result" type="xsd:string"/> 
 </message> 
+
 <message name="translationToken">
   <part name="token" type="xsd:string"/>
 </message>
@@ -44,7 +52,23 @@
   <part name="CETreshold" type="xsd:decimal"/>
 </message>
 
-<portType name="ListContexts_PortType">
+
+<portType name="PortageLive_Interface">
+  <operation name="primeModels">
+    <documentation>
+    For a given context, load its models in memory.
+    Throws a SoapFault exception with fault code "PortageContext" if the
+    context is not valid.
+    Throws a SoapFault exception with fault code "PortagePrimeError" if the
+    prime.sh script failed.
+    Throws a SoapFault exception with fault code "PortageNoPrimeScript" if the
+    context exists but doesn't have a prime.sh script.
+    Throws a SoapFault exception in case of a protocol or connection error.
+    </documentation>
+    <input message="tns:primeModelsRequest"/>
+    <output message="tns:getTranslationResponse"/>
+  </operation>
+
   <operation name="getAllContexts">
     <documentation>
     Get the list of contexts installed on the PortageLive server.
@@ -56,9 +80,7 @@
     <input message="tns:getAllContextsRequest"/>
     <output message="tns:getTranslationResponse"/>
   </operation>
-</portType>
 
-<portType name="Translation_PortType"> 
   <operation name="getTranslation"> 
     <documentation>
     Translate text using the default context.  The result is the translation,
@@ -72,9 +94,7 @@
     <input message="tns:getTranslationRequest"/> 
     <output message="tns:getTranslationResponse"/> 
   </operation> 
-</portType> 
 
-<portType name="Translation2_PortType">
   <operation name="getTranslation2">
     <documentation>
     Translate text using the specified context.  The result is the translation,
@@ -88,9 +108,7 @@
     <input message="tns:getTranslation2Request"/>
     <output message="tns:getTranslationResponse"/>
   </operation>
-</portType>
 
-<portType name="TranslationCE_PortType">
   <operation name="getTranslationCE">
     <documentation>
     Translate text using the specified context, and calculate confidence scores
@@ -107,9 +125,7 @@
     <input message="tns:getTranslation2Request"/>
     <output message="tns:getTranslationResponse"/>
   </operation>
-</portType>
 
-<portType name="TranslateTMX_PortType">
   <operation name="translateTMXCE">
     <documentation>
     Submit a request to translate a TMX file using the specified
@@ -130,9 +146,7 @@
     <input message="tns:translateTMXCERequest"/>
     <output message="tns:translationToken"/>
   </operation>
-</portType>
 
-<portType name="TranslateTMX_Status_PortType">
   <operation name="translateTMXCE_Status">
     <documentation>
     Get the status of a job submitted using translateTMXCE().
@@ -151,7 +165,20 @@
   </operation>
 </portType>
 
-<binding name="ListContexts_Binding" type="tns:ListContexts_PortType">
+
+<binding name="PortageLive_SoapHttpBinding" type="tns:PortageLive_Interface">
+  <soap:binding style="rpc"
+    transport="http://schemas.xmlsoap.org/soap/http"/>
+  <operation name="primeModels">
+    <soap:operation soapAction="primeModels"/>
+    <input> <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                       namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+    </input>
+    <output> <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+                        namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+    </output>
+  </operation>
+
   <soap:binding style="rpc"
     transport="http://schemas.xmlsoap.org/soap/http"/>
   <operation name="getAllContexts">
@@ -163,9 +190,7 @@
                         namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
     </output>
   </operation>
-</binding>
 
-<binding name="Translation_Binding" type="tns:Translation_PortType"> 
   <soap:binding style="rpc" 
     transport="http://schemas.xmlsoap.org/soap/http"/> 
   <operation name="getTranslation"> 
@@ -177,9 +202,7 @@
                         namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
     </output>
   </operation>
-</binding>
 
-<binding name="Translation2_Binding" type="tns:Translation2_PortType">
   <soap:binding style="rpc"
     transport="http://schemas.xmlsoap.org/soap/http"/>
   <operation name="getTranslation2">
@@ -191,9 +214,7 @@
                         namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
     </output>
   </operation>
-</binding>
 
-<binding name="TranslationCE_Binding" type="tns:TranslationCE_PortType">
   <soap:binding style="rpc"
     transport="http://schemas.xmlsoap.org/soap/http"/>
   <operation name="getTranslationCE">
@@ -205,9 +226,7 @@
                         namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
     </output>
   </operation>
-</binding>
 
-<binding name="TranslateTMX_Binding" type="tns:TranslateTMX_PortType">
   <soap:binding style="rpc"
     transport="http://schemas.xmlsoap.org/soap/http"/>
   <operation name="translateTMXCE">
@@ -219,9 +238,7 @@
                         namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
     </output>
   </operation>
-</binding>
 
-<binding name="TranslateTMX_Status_Binding" type="tns:TranslateTMX_Status_PortType">
   <soap:binding style="rpc"
     transport="http://schemas.xmlsoap.org/soap/http"/>
   <operation name="translateTMXCE_Status">
@@ -235,25 +252,12 @@
   </operation> 
 </binding> 
 
+
 <service name="PortageLive_Service"> 
   <documentation>Definition of the PortageLive Service</documentation>
-  <port binding="tns:ListContexts_Binding" name="ListContexts_Port">
-    <soap:address location="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.php"/>
-  </port>
-  <port binding="tns:Translation_Binding" name="Translation_Port"> 
-    <soap:address location="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.php"/>
-  </port> 
-  <port binding="tns:Translation2_Binding" name="Translation2_Port">
-    <soap:address location="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.php"/>
-  </port>
-  <port binding="tns:TranslationCE_Binding" name="TranslationCE_Port">
-    <soap:address location="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.php"/>
-  </port>
-  <port binding="tns:TranslateTMX_Binding" name="TranslateTMX_Port">
-    <soap:address location="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.php"/>
-  </port>
-  <port binding="tns:TranslateTMX_Status_Binding" name="TranslateTMX_Status_Port">
+  <port binding="tns:PortageLive_SoapHttpBinding" name="PortageLive_Library">
     <soap:address location="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.php"/>
   </port>
 </service> 
+
 </definitions> 

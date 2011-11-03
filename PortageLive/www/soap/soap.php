@@ -3,13 +3,13 @@
 # @file soap.php 
 # @brief Test web page for the SOAP API to PortageLive
 # 
-# @author Patrick Paul and Eric Joanis
+# @author Patrick Paul, Eric Joanis and Samuel Larkin
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2009, 2010, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2009, 2010, Her Majesty in Right of Canada
+# Copyright 2009 - 2011, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2009 - 2011, Her Majesty in Right of Canada
 
 # This works if this file and the WSDL and PortageLive service are on the same
 # machine and in the same directory:
@@ -21,6 +21,7 @@ $WSDL="PortageLiveAPI.wsdl";
 $context = "";
 $button = "";
 $monitor_token = "";
+#print_r( $_POST);  // Nice for debug POST's values.
 if ( $_POST ) {
   if ( array_key_exists('context', $_POST) ) {
     $context = $_POST['context'];
@@ -29,6 +30,13 @@ if ( $_POST ) {
     if ( array_key_exists('TranslateTMX', $_POST) )
       $button = "TranslateTMX";
   }
+
+  if ( array_key_exists('context', $_POST) ) {
+    $context = $_POST['context'];
+    if ( array_key_exists('Prime', $_POST) )
+      $button = "Prime";
+  }
+
   if ( array_key_exists('ce_threshold', $_POST) )
     $ce_threshold = $_POST['ce_threshold'] + 0;
   else
@@ -48,7 +56,14 @@ if ( $_POST ) {
 <html>
 <head>
 <title>PortageLiveAPI</title>
+<STYLE type="text/css">
+   div.PRIME { width: 70%;}
+   .PRIME {border-width: 1; border: solid; text-align: center; font-size:1.2em; background-color: #FAFAD2; padding: 1px; margin: 1px}
+   .SUCCESS {color: green}
+   .ERROR {color: red; text-decoration: blink; }
+</STYLE>
 </head>
+
 <body>
 <p align="center"><img src="/images/NRC_banner_e.jpg" /></p>
 
@@ -58,10 +73,40 @@ This page demonstrates how the appliance can be used as a web service.
 
 Link to <a href="<?=$WSDL?>">the WSDL</a>.
 
+
 <FORM action="" enctype="multipart/form-data" method="post" name="formulaire" target="_self">
 
 <br/> Context:
-<INPUT TYPE = "TEXT"   Name = "context"       VALUE = "<?=$context?>" />
+<SELECT NAME = "context">
+<?php
+try {
+   $client = new SoapClient($WSDL);
+   $call = $client->getAllContexts(false);
+   $tokens = preg_split("/;/", $call);
+   foreach ($tokens as $token) {
+      if ($context == $token) {
+         print "<OPTION SELECTED=\"selected\" VALUE=\"$token\">$token</OPTION>";
+      }
+      else {
+         print "<OPTION VALUE=\"$token\">$token</OPTION>";
+      }
+   }
+}
+catch (SoapFault $exception) {
+   print "<br/><b>SOAP Fault trying to list contexts: </b></b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
+}
+?>
+</SELECT>
+<BR />
+
+Prime:
+<INPUT TYPE = "RADIO" NAME = "PrimeMode" VALUE="partial" CHECKED="checked" /> Partial
+<INPUT TYPE = "RADIO" NAME = "PrimeMode" VALUE="full" /> Full
+<INPUT TYPE = "RADIO" NAME = "PrimeMode" VALUE="bogus" /> Unsupported
+<INPUT TYPE = "Submit" Name = "Prime"  VALUE = "Prime context"/>
+
+
+<!-- INPUT TYPE = "TEXT"   Name = "context"       VALUE = "<?=$context?>" / -->
 <hr/> Enter text here:
 <INPUT TYPE = "TEXT"   Name = "to_translate" />
 <INPUT TYPE = "Submit" Name = "TranslateBox"  VALUE = "Translate Text"/>
@@ -73,8 +118,6 @@ Link to <a href="<?=$WSDL?>">the WSDL</a>.
 <br/>CE threshold for filtering (between 0 and 1; 0.0 = no filter)
 <INPUT TYPE = "TEXT"   Name = "ce_threshold"  VALUE = "<?=$ce_threshold?>" SIZE="4" />
 
-
-
 </FORM>
 
 
@@ -82,13 +125,29 @@ Link to <a href="<?=$WSDL?>">the WSDL</a>.
 
 try {
    $client = new SoapClient($WSDL);
-   print "<hr/><b>Contexts: </b>" . $client->getAllContexts(false);
-   print "<br/><b>Verbose contexts: </b>" . $client->getAllContexts(true);
-} catch (SoapFault $exception) {
+   print "<hr/><b>Contexts: </b>" . $client->getAllContexts(false) . "</br>";
+   print "<br/><b>Verbose contexts: </b>" . $client->getAllContexts(true) . "</br>";
+}
+catch (SoapFault $exception) {
    print "<br/><b>SOAP Fault trying to list contexts: </b></b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
 }
 
 
+if ( $button == "Prime"  && $_POST['Prime'] != "" ) {
+   try {
+      $PrimeMode = $_POST['PrimeMode'];
+      $client = new SoapClient($WSDL);
+      $rc = $client->primeModels($context, $PrimeMode);
+      #print "Prime Models ($context, $PrimeMode) rc = $rc<br />";  // DEBUGGING
+      print "<span class=\"PRIME SUCCESS\">Primed successfully!</span></br>";
+      if ($rc != "OK")
+         print "<div class=\"PRIME ERROR\">INVALID return code.</div>";
+   }
+   catch (SoapFault $exception) {
+      print "<div class=\"PRIME ERROR\">Error with primeModels:<br/><b>{$exception->faultcode}</b><br/>{$exception->faultstring}</div>";
+   }
+}
+else
 if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
   $to_translate = $_POST['to_translate'];
   print "<hr/><b>Translating: </b> $to_translate <br/>";
@@ -97,7 +156,8 @@ if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
   $client = "";
   try {
     $client = new SoapClient($WSDL);
-  } catch (SoapFault $exception) {  
+  }
+  catch (SoapFault $exception) {  
     print "<HR/><b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
   }
 

@@ -3,13 +3,13 @@
 # @file PortageLiveAPI.php 
 # @brief Implementation of the API to the Portage SMT software suite.
 # 
-# @author Patrick Paul and Eric Joanis
+# @author Patrick Paul, Eric Joanis and Samuel Larkin
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2009, 2010, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2009, 2010, Her Majesty in Right of Canada
+# Copyright 2009 - 2011, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2009 - 2011, Her Majesty in Right of Canada
 
 
 $base_web_dir = "/var/www/html";
@@ -23,6 +23,25 @@ function debug($i) {
 }
 
 class PortageLiveAPI {
+
+   # Load models in memory
+   function primeModels($context, $PrimeMode) {
+      global $base_portage_dir;
+      $command = "$base_portage_dir/models/$context/prime.sh";
+      if ( ! file_exists("$base_portage_dir/models/$context") )
+         throw new SoapFault("PortageContext", "Context \"$context\" does not exist.<br/>");
+
+      // Make sure there is a priming script or else advise the user.
+      if ( ! is_file("$command") ) {
+         throw new SoapFault("PortageNoPrimeScript", "No priming script available for this context: $context.");
+      }
+
+      exec("$command $PrimeMode", $null, $rc);
+      if ( $rc != 0 )
+         throw new SoapFault("PortagePrimeError", "Failed to prime, something went wrong in prime.sh!!<br />rc=$rc; Command=$command $PrimeMode");
+
+      return "OK";
+   }
 
    # Gather all relevant information about translation context $context
    function getContextInfo($context) {
