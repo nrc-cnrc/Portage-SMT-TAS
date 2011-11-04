@@ -96,6 +96,7 @@ catch (SoapFault $exception) {
    print "<br/><b>SOAP Fault trying to list contexts: </b></b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
 }
 ?>
+<OPTION VALUE="InvalidContext">Invalid context for debugging</OPTION>
 </SELECT>
 <BR />
 
