@@ -56,7 +56,10 @@
 <portType name="PortageLive_Interface">
   <operation name="primeModels">
     <documentation>
-    For a given context, load its models in memory.
+    For a given context, load its models in memory according to PrimeMode.
+    This is accomplished by calling prime.sh with PrimeMode in the context.
+    The default prime.sh uses PrimeMode to partially (partial) or fully (full) load
+    the models in memory.  User can define custom behaviors based on PrimeContext.
     Throws a SoapFault exception with fault code "PortageContext" if the
     context is not valid.
     Throws a SoapFault exception with fault code "PortagePrimeError" if the
