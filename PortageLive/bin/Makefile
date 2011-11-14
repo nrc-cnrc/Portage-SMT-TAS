@@ -124,14 +124,12 @@ ${DEST_OTHER_DIR}/SETUP.bash:
 ################################################################################
 # LIBRARIES
 PORTAGE_LIBS ?= portage_utils.pm portage_utils.pyc ULexiTools.pm libportage_truecasing.so
-LIBRARIES += ${PORTAGE_LIBS}
 
 # Define DO_EXTERNAL_LIBS if you want to bundle all external libs need by
 # Portage's software.
 ifdef DO_EXTERNAL_LIBS
 # Here, we fetch the libraries related to Portage's pgm only.
 EXTERNAL_LIBS := $(sort $(notdir $(shell ldd `which ${PORTAGE_BINS} ${CLUSTER_BINS} 2> /dev/null` | grep -v ' /lib' | perl -nle 'print $$1 if /=> ([^ ]+)/;' | sort | uniq)))
-LIBRARIES += ${EXTERNAL_LIBS}
 EXTERNAL_LIBS_DIR := $(sort $(dir $(shell ldd `which ${PORTAGE_BINS} ${CLUSTER_BINS} 2> /dev/null` | grep -v ' /lib' | perl -nle 'print $$1 if /=> ([^ ]+)/;' | sort | uniq)))
 vpath % ${EXTERNAL_LIBS_DIR}
 endif
@@ -148,7 +146,9 @@ DEST_LIB_DIR ?= ${DEST_BASE_DIR}/lib
 vpath % ${SRC_PORTAGE_LIB_DIR}
 
 # Where and what are the libraries needed.
-INSTALL_LIB_LIST := $(addprefix ${DEST_LIB_DIR}/, ${LIBRARIES})
+PORTAGE_LIB_LIST := $(addprefix ${DEST_LIB_DIR}/, ${PORTAGE_LIBS})
+EXTERNAL_LIB_LIST := $(addprefix ${DEST_LIB_DIR}/, ${EXTERNAL_LIBS})
+INSTALL_LIB_LIST := ${PORTAGE_LIB_LIST} ${EXTERNAL_LIB_LIST}
 .PHONY: install_lib
 all: install_lib
 install_lib: ${INSTALL_LIB_LIST}
@@ -159,7 +159,14 @@ install_lib: ${DEST_LIB_DIR}/CE
 # Libraries' dependencies.
 ${INSTALL_LIB_LIST}: ${DEST_LIB_DIR}/%: %
 
-ALL_FILES += ${INSTALL_LIB_LIST}
+ALL_FILES += ${PORTAGE_LIB_LIST}
+
+# Special rule to install external libraries
+# Note: must first copy the file because prelink wants to retain the original owner
+${EXTERNAL_LIB_LIST}: ${DEST_LIB_DIR}/%:
+	cp $< $@.tmp
+	/usr/sbin/prelink -uo $@ $@.tmp
+	rm $@.tmp
 
 # Special rule to install Confidence Estimation's plugins.
 ${DEST_LIB_DIR}/CE: ${DEST_LIB_DIR}/%: ${SRC_PORTAGE_LIB_DIR}/%
@@ -211,13 +218,13 @@ clean:
 .PHONY: debug
 debug:
 	@echo "all files:"
-	@echo "${ALL_FILES}" | tr ' ' '\n'
-	@echo "Needed libraries:"
+	@echo "${ALL_FILES} $(wildcard ${DEST_LIB_DIR}/CE/*) ${EXTERNAL_LIB_LIST}" | tr ' ' '\n'
+	@echo -e "\nNeeded libraries:"
 	@echo "${EXTERNAL_LIBS}"
 	@echo "Needed libraries dir:"
 	@echo "${EXTERNAL_LIBS_DIR}"
-	@echo "SRC_PORTAGE_LIB_DIR: ${SRC_PORTAGE_LIB_DIR}"
+	@echo -e "\nSRC_PORTAGE_LIB_DIR: ${SRC_PORTAGE_LIB_DIR}"
 	@echo "PORTAGE_BINS: ${PORTAGE_BINS}"
 	@echo "WHICH: $(shell which ${PORTAGE_BINS})"
-	@echo ${PORTAGE}
+	@echo "PORTAGE: ${PORTAGE}"
 
