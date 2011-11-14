@@ -302,7 +302,7 @@ Job Token:
 	 <img alt="NRC-IIT - Institute for Information Technology" src="/images/iit_sidenav_graphicbottom_e.gif" />
       </td> 
       <td align="center" valign="top">
-	 <small>Technologies langagi&egrave;res interactives / Interactive Language Technologies <br /> Institut de technologie de l'information / Institute for Information Technology <br /> Conseil national de recherches Canada / National Research Council Canada <br /> Copyright 2004&ndash;2010, Sa Majest&eacute; la Reine du Chef du Canada /  Her Majesty in Right of Canada <br /> <a href="/portage_notices.html">Third party Copyright notices</a>
+	 <small>Technologies langagi&egrave;res interactives / Interactive Language Technologies <br /> Institut de technologie de l'information / Institute for Information Technology <br /> Conseil national de recherches Canada / National Research Council Canada <br /> Copyright 2004&ndash;2011, Sa Majest&eacute; la Reine du Chef du Canada /  Her Majesty in Right of Canada <br /> <a href="/portage_notices.html">Third party Copyright notices</a>
 	 </small>
       </td>
    </tr>
