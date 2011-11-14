@@ -162,6 +162,7 @@ if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
     print "<HR/><b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
   }
 
+  $start_time = microtime(true);
   try {
     print "<hr/><b>Portage getTranslation() replied: </b>";
     print $client->getTranslation($to_translate);
@@ -169,7 +170,11 @@ if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
   } catch (SoapFault $exception) {  
     print "<b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
   }
+  $end_time = microtime(true);
+  printf("<br/><b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
+  print "<b>Finished at: </b>" . `date` . "<br/>";
 
+  $start_time = microtime(true);
   try {
     print "<hr/><b>getTranslation2() replied: </b>";
     print $client->getTranslation2($to_translate, $context);
@@ -177,7 +182,11 @@ if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
   } catch (SoapFault $exception) {  
     print "<b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
   }
+  $end_time = microtime(true);
+  printf("<br/><b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
+  print "<b>Finished at: </b>" . `date` . "<br/>";
 
+  $start_time = microtime(true);
   try {
     print "<hr/><b>getTranslationCE() replied: </b>";
     print $client->getTranslationCE($to_translate, $context);
@@ -185,6 +194,9 @@ if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
   } catch (SoapFault $exception) {  
     print "<b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
   }
+  $end_time = microtime(true);
+  printf("<br/><b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
+  print "<b>Finished at: </b>" . `date` . "<br/>";
 
 
 
