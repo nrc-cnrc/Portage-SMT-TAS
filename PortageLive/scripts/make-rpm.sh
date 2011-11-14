@@ -49,5 +49,5 @@ time mkpkg -t rpm -c control.spec rpm.build.root/
 # Rename the rpm to have the build architecture specified in the control.spec
 # because mkpkg always calls it i386, regardless of your specification.
 BUILD_ARCH=`egrep BuildArchitectures control.spec  | cut -f2 -d ' '`
-RPM_FILE=`ls -v *rpm | tail -1`
+RPM_FILE=`ls -v *.rpm | tail -1`
 mv $RPM_FILE ${RPM_FILE%%_i386.rpm}_$BUILD_ARCH.rpm
