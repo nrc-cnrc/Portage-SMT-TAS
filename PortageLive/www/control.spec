@@ -2,7 +2,7 @@ Summary: This package contains all required files required for web-access.
 Name: PortageLive-www
 Version: 1.4.3
 Release: 0
-License: Copyright 2004-2011, Her Majesty in Right of Canada. see { commercial, research, evaluation } LICENCE
+License: Copyright © 2004-2011 Her Majesty in Right of Canada. see { commercial, research, evaluation } LICENCE
 Vendor: National Research Council Canada
 Group: translation
 URL: http://www.nrc-cnrc.gc.ca/
