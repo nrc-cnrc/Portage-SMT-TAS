@@ -1,0 +1,11 @@
+Recipe for creating python-2.7.1-install directory:
+
+ln -s /home/portage/downloads/Python-2.7.1.tar.bz2
+tar -xjf Python-2.7.1.tar.bz2
+cd Python-2.7.1
+#Edit Makefile.pre.in to change 2 instances of "--root=/$(DESTDIR)" to "--root=$(DESTDIR)".
+#Edit Lib/cgi.py to change first line from "#! /usr/local/bin/python" to "#! /usr/bin/env python".
+./configure --prefix=/opt/python-2.7.1
+make
+DESTDIR=../python-2.7.1-install make install
+cd -
