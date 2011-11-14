@@ -25,13 +25,13 @@ echo 'AddType application/x-httpd-php .html' >> /etc/httpd/conf.d/php.conf
 # 3.5 Make sure apache runs
 chkconfig httpd on
 
-# Added to fetch huge models from a "publicly" accessible website.
 # EXPERIMENTAL MODEL POPULATING
+# 3.6 Fetch huge models from a "publicly" accessible website.
 wget --recursive --no-parent --no-host-directories --reject 'index.html*' --directory-prefix=/ --cut-dirs=5 --level=inf 'http://leclerc.iit-iti.priv/PortageLive/rpms/Hansard-HOC-fr2en-2/models/rpm.build.root/'
 
 find /opt/Portage/models -type d | xargs chmod 755
 find /opt/Portage/models -type f | xargs chmod 644
 find /opt/Portage/models -type f -name \*.sh | xargs chmod 755
-if [[ -d /opt/Portage/models/context/plugins ]]; then
-   [[ `find /opt/Portage/models/context/plugins -type f` ]] && chmod 755 /opt/Portage/models/context/plugins/*
+if [[ '/opt/Portage/models/*/plugins' != '/opt/Portage/models/\*/plugins' ]]; then
+   find /opt/Portage/models/*/plugins -type f | xargs -r chmod 755
 fi
