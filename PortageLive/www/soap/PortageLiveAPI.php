@@ -26,17 +26,11 @@ class PortageLiveAPI {
 
    # Load models in memory
    function primeModels($context, $PrimeMode) {
-      global $base_portage_dir;
-      $command = "$base_portage_dir/models/$context/prime.sh";
-      if ( ! file_exists("$base_portage_dir/models/$context") )
-         throw new SoapFault("PortageContext", "Context \"$context\" does not exist.<br/>");
+      $rc = 0;
+      $i = $this->getContextInfo($context);
+      $this->validateContext($i);
+      $this->runCommand("prime.sh $PrimeMode", "", $i, $rc, false);
 
-      // Make sure there is a priming script or else advise the user.
-      if ( ! is_file("$command") ) {
-         throw new SoapFault("PortageNoPrimeScript", "No priming script available for this context: $context.");
-      }
-
-      exec("$command $PrimeMode", $null, $rc);
       if ( $rc != 0 )
          throw new SoapFault("PortagePrimeError", "Failed to prime, something went wrong in prime.sh!!<br />rc=$rc; Command=$command $PrimeMode");
 
