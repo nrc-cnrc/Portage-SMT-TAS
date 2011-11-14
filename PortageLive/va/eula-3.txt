@@ -1,0 +1,11 @@
+NRC does not warrant that the Software will be free of vulnerability to
+intrusion, virus attack or hacker attacks. The Software is not
+fault-tolerant and is not designed or intended for use in hazardous
+environments requiring fail-safe performance. You should consider this
+Virtual Appliance as you would with any other devices you introduce on
+your network.
+
+In addition, this Software is sent to you as part of an R&D collaboration
+project and shall not be used for any purpose other than stated in the
+collaboration agreement; this Software shall be destroyed upon completion
+of the R&D collaboration project.

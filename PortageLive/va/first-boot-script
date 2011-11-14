@@ -1,7 +1,7 @@
 #!/bin/bash
 # Sample First Boot Script; see section 4 of PLiveVA.pdf for documentation.
 
-# Un comment to send the output of this script to a logfile
+# Uncomment to send the output of this script to a logfile
 #exec > /opt/vmware/var/log/firstboot 2>&1
 
 # 4.1 Allowing SSL based web serving
@@ -29,7 +29,9 @@ echo Username: portage
 echo Password: <password>
 echo Phonetics: <phonetics encoding to make it easier to remember>
 
-# Un comment to run subsequent boot script after first boot
+# 4.6 Display responsibility warning and force setting of root password.
+echo By setting the root password you assume full responsibility for this Virtual Appliance.
+passwd
+
+# Uncomment to run subsequent boot script after first boot
 #/opt/vmware/etc/isv/subsequentboot
-
-

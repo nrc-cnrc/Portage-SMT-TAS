@@ -1,0 +1,13 @@
+CentOS-5 EULA
+
+CentOS-5 comes with no guarantees or warranties of any sorts,
+either written or implied.
+
+The Distribution is released as GPL. Individual packages in the
+distribution come with their own licences.
+
+See: http://mirror.centos.org/centos/5/os/x86_64/EULA
+
+
+Run "yum info installed" to view the list of installed packages
+and their licenses.

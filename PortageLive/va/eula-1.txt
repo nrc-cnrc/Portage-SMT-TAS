@@ -1,0 +1,13 @@
+Portage 1.4.3
+
+Technologies langagieres interactives / Interactive Language Technologies
+Institut de technologie de l'information / Institute for Information Technology
+Conseil national de recherches Canada / National Research Council Canada
+Copyright 2004-2011, Sa Majeste la Reine du Chef du Canada
+Copyright 2004-2011, Her Majesty in Right of Canada
+
+Distributed under specific licensing terms.  Please refer to your signed
+license agreement for details.
+
+Please see http://${app.ip}/portage_notices.html for Copyright notices of 
+3rd party libraries.
