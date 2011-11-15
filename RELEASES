@@ -13,7 +13,7 @@ license agreement for details.
                               Release History
                    (with a summary of important changes)
 
-v1.4.3.1 2011-10-28
+v1.4.3.1 2011-11-15
  This is a maintenance release, patching a small but critical bug with
  Lexicalized Distortion Models.  Significance pruning is also updated to
  calculate the significance level with better precision.
