@@ -16,6 +16,7 @@
 #define PORTAGE_DEFS_H
 
 #include <cassert>
+#include <cstddef>
 
 #include <sys/types.h>
 #if defined(Darwin) || defined(CYGWIN)
