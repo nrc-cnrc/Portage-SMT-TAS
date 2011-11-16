@@ -8,13 +8,14 @@
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2011, Sa Majeste la Reine du Chef du Canada /
- * Copyright 2011, Her Majesty in Right of Canada
+ * Copyright 2006-2011, Sa Majeste la Reine du Chef du Canada /
+ * Copyright 2006-2011, Her Majesty in Right of Canada
  */
 
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <boost/math/special_functions/gamma.hpp>
 
 #include "file_utils.h"
 #include "arg_reader.h"
@@ -67,74 +68,59 @@ void getArgs( int argc, char* argv[] )
    arg_reader.testAndSet( 1, "outfile", outfile );
 }
 
-#define MINUS_INFINITY -1.0e10
+typedef long double quad;
 
-double gammln2( double x )
+quad lnfact( double x )
 {
-   static double c[ 8 ] = {
-      676.5203681218851,
-    -1259.1392167224028,
-      771.32342877765313,
-     -176.61502916214059,
-       12.507343278686905,
-       -0.13857109526572012,
-        0.0000099843695780195716,
-        0.00000015056327351493116
-   };
-   double y = x;
-   double t = x + 7.5;
-   t -= ( x + 0.5 ) * log( t );
-   double s = 0.99999999999980993;
-   int j;
-   for ( j = 0; j <= 7; j++ ) {
-      s += c[ j ] / ++y;
-   }
-   return -t + log( 2.5066282746310005 * s / x );
+   return lgamma( (quad) x + 1.0 );
 }
 
-double lnfact( double x )
+double ln_hyper( double C_xy, double C_x, double C_y, double nn )
 {
-   return gammln2( x + 1.0 );
+   quad result =
+      - lnfact( C_xy )
+      + lnfact( C_x )
+      - lnfact( C_x - C_xy )
+      + lnfact( C_y )
+      - lnfact( C_y - C_xy )
+      + lnfact( nn - C_x )
+      - lnfact( nn - C_x - C_y + C_xy )
+      + lnfact( nn - C_y )
+      - lnfact( nn );
+   return result;
 }
 
 double lnsum( double ln_x, double ln_y )
 {
-   if ( ln_y > ln_x ) {
-      double t = ln_x;
-      ln_x = ln_y;
-      ln_y = t;
+   if ( ln_x < ln_y ) swap( ln_x, ln_y );
+   double del = ln_y - ln_x;
+   double eps = exp( del );
+   if ( del < 10.0 ) return ln_x + log( 1.0 + eps );
+   double last_result = 0.0;
+   double result = ln_x;
+   double power = eps;
+   double i = 1.0;
+   while ( result != last_result ) {
+      last_result = result;
+      result = last_result + power / i;
+      power *= -eps;
+      ++i;
    }
-   double del = ln_x - ln_y;
-   if ( del > 35.0 ) return ln_x;
-   double eps = exp( -del );
-   if ( del < 12.0 ) return ln_x + log( 1.0 + eps );
-   return ln_x + eps - eps * eps / 2.0;
+   return result;
+//   return ln_x + log( exp( ln_y - ln_x ) + 1.0 );
 }
 
-double ln_hyper( long long C_x, long long C_y, long long C_xy, long long nn )
+double ln_p_value( double C_xy, double C_x, double C_y, double nn )
 {
-   return   lnfact( C_x )
-          + lnfact( nn - C_x )
-          + lnfact( C_y )
-          + lnfact( nn - C_y )
-          - lnfact( nn )
-          - lnfact( C_xy )
-          - lnfact( C_x - C_xy )
-          - lnfact( C_y - C_xy )
-          - lnfact( nn - C_x - C_y + C_xy );
-}
-
-double ln_p_value( long long C_x, long long C_y, long long C_xy, long long nn )
-{
-   double ln_p = ln_hyper( C_x, C_y, C_xy, nn );
+   double ln_p = ln_hyper( C_xy, C_x, C_y, nn );
    double result = ln_p;
-   long long C_xY = C_x - C_xy;
-   long long C_Xy = C_y - C_xy;
-   long long C_XY = nn - C_x - C_y + C_xy;
-   long long C_xy_lim = ( ( C_x < C_y ) ? C_x : C_y );
+   double C_xY = C_x - C_xy;
+   double C_Xy = C_y - C_xy;
+   double C_XY = nn - C_x - C_y + C_xy;
+   double C_xy_lim = ( ( C_x < C_y ) ? C_x : C_y );
    double last_result = 0.0;
    for ( ++C_xy;
-         C_xy <= C_xy_lim && last_result != result;
+         C_xy <= C_xy_lim && result != last_result;
          ++C_xy ) {
       last_result = result;
       ln_p +=   ( log( C_Xy-- ) + log( C_xY-- ) )
@@ -142,33 +128,6 @@ double ln_p_value( long long C_x, long long C_y, long long C_xy, long long nn )
       result = lnsum( result, ln_p );
    }
    return result;
-}
-
-double llr( long long C_x, long long C_y, long long C_xy, long long nn )
-{
-   long long C_X = nn - C_x;
-   long long C_Y = nn - C_y;
-   long long C_xY = C_x - C_xy;
-   long long C_Xy = C_y - C_xy;
-   long long C_XY = C_Y - C_xY;
-   double ln_x  = ( C_x  > 0 ) ? log( C_x  ) : 0.0;
-   double ln_X  = ( C_X  > 0 ) ? log( C_X  ) : 0.0;
-   double ln_y  = ( C_y  > 0 ) ? log( C_y  ) : 0.0;
-   double ln_Y  = ( C_Y  > 0 ) ? log( C_Y  ) : 0.0;
-   double ln_xy = ( C_xy > 0 ) ? log( C_xy ) : 0.0;
-   double ln_xY = ( C_xY > 0 ) ? log( C_xY ) : 0.0;
-   double ln_Xy = ( C_Xy > 0 ) ? log( C_Xy ) : 0.0;
-   double ln_XY = ( C_XY > 0 ) ? log( C_XY ) : 0.0;
-   double ln_nn = (   nn > 0 ) ? log(   nn ) : 0.0;
-   return   C_xy * ( - ln_x - ln_y + ln_xy + ln_nn )
-          + C_xY * ( - ln_x - ln_Y + ln_xY + ln_nn )
-          + C_Xy * ( - ln_X - ln_y + ln_Xy + ln_nn )
-          + C_XY * ( - ln_X - ln_Y + ln_XY + ln_nn );
-}
-
-double G2( long long C_x, long long C_y, long long C_xy, long long nn )
-{
-   return 2.0 * llr( C_x, C_y, C_xy, nn );
 }
 
 string write_b64( double i )
@@ -206,7 +165,7 @@ string write_b64( double i )
 
 int main( int argc, char* argv[] )
 {
-   printCopyright(2005, "sigprune_fet");
+   printCopyright(2006, "sigprune_fet");
    getArgs( argc, argv );
 
    iSafeMagicStream istr( infile );
@@ -220,9 +179,6 @@ int main( int argc, char* argv[] )
 
    int i, j;
    vector< char * > field;
-   double minus_ln_2 = -log( 2.0 );
-   long long last_nn = -1;
-   double minus_ln_nn = 0.0;
 
    while (    getline( istr, line )
            && (    lineno++ < num_lines
@@ -239,41 +195,37 @@ int main( int argc, char* argv[] )
             field.push_back( &line[ i + 1 ] );
          }
       }
-      long long C_fr_en = atoi( field[ 1 ] );
-      long long C_fr    = atoi( field[ 2 ] );
-      long long C_en    = atoi( field[ 3 ] );
-      long long nn      = atoi( field[ 4 ] );
-      if (    0 > C_fr_en
+      double C_fr_en = strtod( field[ 1 ], 0 );
+      double C_fr    = strtod( field[ 2 ], 0 );
+      double C_en    = strtod( field[ 3 ], 0 );
+      double nn      = strtod( field[ 4 ], 0 );
+      if (    0.0 > C_fr_en
            || C_fr_en > C_fr
            || C_fr_en > C_en
            || C_fr > nn
            || C_en > nn ) {
-         cout << "Illegal contingincy table" << endl ;
+         cout << "Illegal contingency table" << endl ;
          exit( 1 );
       }
-      if ( nn != last_nn ) {
-         minus_ln_nn = -log( nn );
-         last_nn = nn;
-      }
+      double minus_ln_nn = -log( nn );
       Uint flag;
       double p_value;
 
 // Anti-linked
-      if (   (double) C_fr_en * (double) nn
-           < (double) C_fr * (double) C_en ) {
+      if ( C_fr_en * nn < C_fr * C_en ) {
          flag = 0;
-         p_value = minus_ln_2;
+         p_value = -log( 2.0 );
       }
 
 // 1-1-1 's
-      else if ( C_fr_en == 1 && C_fr == 1 && C_en == 1 ) {
+      else if ( C_fr_en == 1.0 && C_fr == 1.0 && C_en == 1.0 ) {
          flag = 2;
          p_value = minus_ln_nn;
       }
 
 // Associated less strongly than 1-1-1's
       else {
-         p_value = ln_p_value( C_fr, C_en, C_fr_en, nn );
+         p_value = ln_p_value( C_fr_en, C_fr, C_en, nn );
          if ( p_value > minus_ln_nn ) {
             flag = 1;
          }
@@ -285,8 +237,10 @@ int main( int argc, char* argv[] )
       }
 
       if ( flag >= flag_threshold ) {
-         ostr << write_b64( floor( p_value * 10000000.0 + 0.5 ) ) << '\t';
-         ostr << p_value << '\t';
+         double s_p_value = floor( p_value * 1.0e8 + 0.5 );
+         ostr << write_b64( s_p_value ) << '\t';
+         ostr << setprecision( 14 );
+         ostr << s_p_value * 1.0e-8 << '\t';
          ostr << flag << '\t';
          ostr << line_copy << '\n';
       }
