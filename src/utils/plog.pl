@@ -266,7 +266,7 @@ sub logCreate {
                      USER=>$pw[0], # username
                      TIME=>timeStamp($now),
                      COMMENT=>$comment);
-                
+
 
     my $todays_path = File::Spec->catdir(sprintf("%04d", $now->year()+1900), 
                                          sprintf("%02d", $now->mon()+1), 
@@ -449,16 +449,20 @@ sub logNew {                    # constructor
     my $log = { %LOG_DEFAULT };
     for my $field (keys %kv) {
         debug("logNew: initializing field \"$field\" to value \"%s\"\n", $kv{$field});
-        $log->{$field} = (exists($log->{$field}) # check validity of field names
-                          ? $kv{$field}
-                          : die "logNew: unsupported log field \"$field\"");
+        $log->{$field} = $kv{$field};
+        # Turn off this error checking, because it gets called lockLog() and
+        # unlockLog(), which means failing here is not permitted.
+        #$log->{$field} = (exists($log->{$field}) # check validity of field names
+        #                  ? $kv{$field}
+        #                  : die "logNew: unsupported log field \"$field\"");
     }
     return $log;
 }
 
 sub logValue {                  # get/set field values
     my ($log, $field, $value)=@_;
-    die "Invalid log field name $field" unless exists $log->{$field};
+    # This is sometimes called between lockLog() and unlockLog(), not allowed to die.
+    #die "Invalid log field name $field" unless exists $log->{$field};
     $log->{$field} = $value if defined $value;
     return $log->{$field};
 }
