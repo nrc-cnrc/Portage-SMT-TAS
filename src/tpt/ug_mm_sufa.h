@@ -52,6 +52,9 @@ namespace ugdiss
     mmSufa(string fname, Ctrack const* c);
     void open(string fname, Ctrack const* c);
 
+    char const*
+    random_sample(char const* p, char const* q) const;
+
     count_type
     sntCnt(char const* p, char const * const q) const;
 

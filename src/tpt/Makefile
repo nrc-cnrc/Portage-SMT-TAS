@@ -25,7 +25,12 @@ OBJECTS = \
    ug_mm_ctrack.o \
    ug_mm_sufa.o \
    ug_sufa_base.o \
-   ug_vocab.o
+   ug_vocab.o \
+   ug_corpus_token.o \
+   ug_tsa_array_entry.o \
+   ug_ttrack_base.o \
+   ug_ttrack_position.o \
+   ug_get_options.o
 
 TESTPROGS =
 
@@ -46,7 +51,8 @@ PROGRAMS = \
    tokenindex.dump \
    tppt.dump \
    vocab.build \
-   vocab.dump
+   vocab.dump \
+   mmtsa.find
 
 BINSCRIPTS = \
    arpalm2tplm.sh \

@@ -115,7 +115,8 @@ printRange(size_t start, size_t stop)
 int MAIN(argc, argv)
 {
   interpret_args(argc, (char **)argv);
-  V.open(tdxFile); V.iniReverseIndex();
+  V.open(tdxFile);
+  V.iniReverseIndex();
   C.open(mctFile);
   if (!range.size())
     printRange(0,C.size());

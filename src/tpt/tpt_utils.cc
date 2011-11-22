@@ -24,6 +24,8 @@
  * Copyright 2010, Her Majesty in Right of Canada
  */
 #include <sys/stat.h>
+#include <cstring>
+#include <cerrno>
 #include "tpt_utils.h"
 #include "tpt_typedefs.h"
 
@@ -50,7 +52,9 @@ open_mapped_file_source(bio::mapped_file_source& mfs, const string& fname)
     if (!mfs.is_open()) throw std::exception();
   } catch(std::exception& e) {
     cerr << efatal << "Unable to open memory mapped file '" << fname << "' for reading."
-         << endl << e.what() << exit_1;
+         << endl << e.what()
+         << endl << "errno=" << errno << ": " << strerror(errno)
+         << exit_1;
   }
 }
 

@@ -71,6 +71,9 @@ namespace ugdiss
              << ". Expected < corpus size of " << size() << "."
              << exit_1;
     }
+
+    /** Destructor should be virtual in abstract base class */
+    virtual ~Ctrack() {}
   };
   
 

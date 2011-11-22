@@ -24,9 +24,16 @@
 #include <boost/program_options.hpp>
 
 #include "tpt_tokenindex.h"
-#include "ug_mm_ctrack.h"
-#include "ug_mm_sufa.h"
 #include "tpt_tightindex.h"
+#include "ug_mm_ttrack.h"
+#include "ug_mm_tsa.h"
+#include <tr1/unordered_map>
+
+namespace ugdiss {
+  typedef L2R_Token<SimpleWordId> Token;
+  typedef mmTtrack<Token> mmTTtrack;
+  typedef mmTSA<Token> mmTSufa;
+}
 
 using namespace std;
 using namespace ugdiss;
@@ -118,6 +125,20 @@ interpret_args(int ac, char* av[])
   sigfet = vm.count("sigfet");
 }
 
+template <class SetT>
+void
+fillSet(char const* p, char const* const q, 
+        SetT& set)
+{
+  id_type sid,off;
+  while (p < q)
+    {
+      p = tightread(p,q,sid);
+      p = tightread(p,q,off);
+      set[sid] = 1;
+    }
+}
+
 void 
 fillBitSet(char const* p, char const* const q, 
            boost::dynamic_bitset<uint64_t>& bs)
@@ -135,47 +156,119 @@ typedef map<pair<char const*,ushort>,boost::dynamic_bitset<uint64_t> > myMap;
 typedef myMap::iterator myMapIter;
 myMap B;
 
+template <class MapT1, class MapT2>
+size_t
+intersection_size(const MapT1& set1, const MapT2& set2)
+{
+  size_t count = 0;
+  for (typename MapT1::const_iterator i1(set1.begin()), e1(set1.end());
+       i1 != e1; ++i1)
+    if (set2.find(i1->first) != set2.end()) ++count;
+  return count;
+}
 
-void contingency(vector<id_type> const& p1,
-                 vector<id_type> const& p2,
-                 mmSufa const& S1, 
-                 mmSufa const& S2,
+template <class MapT1>
+size_t
+intersection_size(const MapT1& set1, const boost::dynamic_bitset<uint64_t>& set2)
+{
+  size_t count = 0;
+  for (typename MapT1::const_iterator i1(set1.begin()), e1(set1.end());
+       i1 != e1; ++i1)
+    if (set2.test(i1->first)) ++count;
+  return count;
+}
+
+void chooseAndFillCachedSet(mmTSufa const& S,
+      char const* l, char const* u, ushort key_size,
+      boost::dynamic_bitset<uint64_t>& non_cached,
+      boost::dynamic_bitset<uint64_t>*& setp)
+{
+  static const int min_cache_size = S.getCorpus()->size() / 100;
+  if (u-l > min_cache_size) { // arbitrary threshold for caching bitsets
+    pair<char const*,ushort> key(l,key_size);
+    setp = &(B[key]);
+  } else {
+    setp = &non_cached;
+  }
+  if (setp->empty()) {
+    setp->resize(S.getCorpus()->size());
+    fillBitSet(l,u,*setp);
+  }
+}
+
+void contingency(vector<Token> const& p1,
+                 vector<Token> const& p2,
+                 mmTSufa const& S1, 
+                 mmTSufa const& S2,
                  size_t& jj, size_t& m1, size_t& m2)
 {
-  boost::dynamic_bitset<uint64_t> bs1(S1.getCorpus()->size());
-  boost::dynamic_bitset<uint64_t> bs2(S2.getCorpus()->size());
-  boost::dynamic_bitset<uint64_t>* bsptr1 = &bs1;
-  boost::dynamic_bitset<uint64_t>* bsptr2 = &bs2;
-
   char const* l1 = S1.lower_bound(p1.begin(),p1.end());
   char const* u1 = S1.upper_bound(p1.begin(),p1.end());
 
   char const* l2 = S2.lower_bound(p2.begin(),p2.end());
   char const* u2 = S2.upper_bound(p2.begin(),p2.end());
 
-  if (l1 && u1-l1 > 4096*1024) // arbitrary threshold for caching bitsets
-    {
-      pair<char const*,ushort> key(l1,p1.size());
-      bsptr1 = &(B[key]);
-      if (bsptr1->size() == 0)
-        bsptr1->resize(bs1.size());
-    }
-  if (l1 && bsptr1->count() == 0)
-    fillBitSet(l1,u1,*bsptr1);
+  static const int max_vector_map_size = S1.getCorpus()->size() / 500;
 
-  if (l2 && u2-l2 > 4096*1024) // arbitrary threshold for caching bitsets
-    {
-      pair<char const*,ushort> key(l2,p2.size());
-      bsptr2 = &(B[key]);
-      if (bsptr2->size() == 0)
-        bsptr2->resize(bs2.size());
-    }
-  if (l2 && bsptr2->count() == 0)
-    fillBitSet(l2,u2,*bsptr2);
+  // vector_map is trivially faster for small to medium cases:
+  //typedef vector_map<id_type,bool> SmallMapT;
+  // unordered_map is a faster (up to 5%) for very large cases, and allows
+  // a larger max_vector_map_size to remain competitive.
+  typedef tr1::unordered_map<id_type,bool> SmallMapT;
 
-  jj = (*bsptr1&*bsptr2).count();
-  m1 = bsptr1->count();
-  m2 = bsptr2->count();
+  // Uglier code, yes, but choosing data structure by size speeds this code
+  // up an order of magnitude.
+  if (!l1) {
+    m1 = jj = 0;
+    if (!l2) {
+      m2 = 0;
+    } else if (u2-l2 < max_vector_map_size) {
+      SmallMapT set2;
+      fillSet(l2,u2,set2);
+      m2 = set2.size();
+    } else {
+      boost::dynamic_bitset<uint64_t> set2, *set2p(NULL);
+      chooseAndFillCachedSet(S2, l2, u2, p2.size(), set2, set2p);
+      m2 = set2p->count();
+    }
+  } else if (u1-l1 < max_vector_map_size) {
+    SmallMapT set1;
+    fillSet(l1,u1,set1);
+    m1 = set1.size();
+    if (!l2) {
+      m2 = jj = 0;
+    } else if (u2-l2 < max_vector_map_size) {
+      SmallMapT set2;
+      fillSet(l2,u2,set2);
+      m2 = set2.size();
+      if (m1 < m2)
+        jj = intersection_size(set1,set2);
+      else
+        jj = intersection_size(set2,set1);
+    } else {
+      boost::dynamic_bitset<uint64_t> set2, *set2p(NULL);
+      chooseAndFillCachedSet(S2, l2, u2, p2.size(), set2, set2p);
+      m2 = set2p->count();
+      jj = intersection_size(set1,*set2p);
+    }
+  } else {
+    boost::dynamic_bitset<uint64_t> set1, *set1p(NULL);
+    chooseAndFillCachedSet(S1, l1, u1, p1.size(), set1, set1p);
+    m1 = set1p->count();
+    if (!l2) {
+      m2 = jj = 0;
+    } else if (u2-l2 < max_vector_map_size) {
+      SmallMapT set2;
+      fillSet(l2,u2,set2);
+      m2 = set2.size();
+      jj = intersection_size(set2,*set1p);
+    } else {
+      boost::dynamic_bitset<uint64_t> set2, *set2p(NULL);
+      chooseAndFillCachedSet(S2, l2, u2, p2.size(), set2, set2p);
+      m2 = set2p->count();
+      jj = ((*set1p)&(*set2p)).count();
+    }
+  }
 }
 
 int MAIN(argc, argv)
@@ -183,17 +276,16 @@ int MAIN(argc, argv)
   interpret_args(argc, (char **)argv);
 
   TokenIndex V1, V2;
-  mmCtrack C1, C2;
-  mmSufa S1, S2;
-  open_memory_mapped_suffix_array(bname + "." + L1, V1, C1, S1);
-  open_memory_mapped_suffix_array(bname + "." + L2, V2, C2, S2);
+  mmTTtrack C1, C2;
+  mmTSufa S1, S2;
+  open_mm_tsa(bname + "." + L1, V1, C1, S1);
+  open_mm_tsa(bname + "." + L2, V2, C2, S2);
 
   string line,w;
   id_type cnt = 0;
   while (getline(cin,line))
     {
-      vector<id_type> p1,p2;
-      boost::dynamic_bitset<uint64_t> bs1,bs2;
+      vector<Token> p1,p2;
       istringstream buf(line);
       while (buf>>w && w != "|||") p1.push_back(V1[w]);
       while (buf>>w && w != "|||") p2.push_back(V2[w]);

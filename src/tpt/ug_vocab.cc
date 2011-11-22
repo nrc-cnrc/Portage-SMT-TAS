@@ -426,12 +426,14 @@ namespace ugdiss
     id_type unkId=1;
     out.write(reinterpret_cast<char*>(&unkId),sizeof(id_type));
     ostringstream data;
+    uint32_t offset = 0;
     for (myIter m = sIdx.begin(); m != sIdx.end(); m++)
       {
-        uint32_t offset = data.tellp();
+        //assert(offset == data.tellp());
         out.write(reinterpret_cast<char*>(&offset), 4);
         out.write(reinterpret_cast<char*>(&m->second.first), sizeof(id_type));
         data << m->first << char(0);
+        offset += m->first.size() + 1;
       }
     out<<data.str();
   }

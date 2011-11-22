@@ -59,29 +59,6 @@ namespace ugdiss
   // size_t is 4 (32-bit architecture) or 8 bytes (64-bit architecture)
   // => don't use it
 
-  std::ostream& write(std::ostream& out, char x);
-  std::ostream& write(std::ostream& out, unsigned char x);
-  std::ostream& write(std::ostream& out, short x);
-  std::ostream& write(std::ostream& out, unsigned short x);
-  std::ostream& write(std::ostream& out, long x);
-  std::ostream& write(std::ostream& out, size_t x);
-  std::ostream& write(std::ostream& out, float x);
-
-  std::istream& read(std::istream& in, char& x);
-  std::istream& read(std::istream& in, unsigned char& x);
-  std::istream& read(std::istream& in, short& x);
-  std::istream& read(std::istream& in, unsigned short& x);
-  std::istream& read(std::istream& in, long& x);
-  std::istream& read(std::istream& in, size_t& x);
-  std::istream& read(std::istream& in, float& x);
-
-  template<typename T>
-  T read(std::istream& in)
-  {
-    T ret;
-    read(in,ret);
-    return ret;
-  }
 
   template<typename T>
   T binread(std::istream& in)

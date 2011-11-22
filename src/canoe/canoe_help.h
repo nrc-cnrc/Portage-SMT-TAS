@@ -291,13 +291,13 @@ Options (in command-line format):\n\
      this info will also be written to the lattice or nbest list.\n\
 \n\
  -lattice LPREFIX[.gz]                  Output lattices  [don't]\n\
-     Produces word graph output into files LPREFIX.SENTNUM[.gz], where\n\
-     SENTNUM is a 4+ digit representation of the sentence number, starting\n\
-     at 0000 (or the value of -first-sentnum).  State coverage vectors are\n\
-     output into LPREFIX.SENTNUM.state[.gz].  If -trace or -ffvals is\n\
-     specified then this form of output is used in the wordgraph as well.\n\
-     Even if -backwards is specified, the word graph gives forwards\n\
-     sentences.  If .gz is specified, the output will be gzipped.\n\
+     Produces word graph output into files LPREFIX.SENTNUM[.gz], where SENTNUM\n\
+     is a 4+ digit representation of the sentence number, starting at 0000 (or\n\
+     the value of -first-sentnum).  State coverage vectors are output into\n\
+     LPREFIX.SENTNUM.state[.gz].  If -trace or -ffvals is specified then this\n\
+     form of output is used in the wordgraph as well.  Even if -backwards is\n\
+     specified, the word graph gives forwards sentences.  If .gz is specified,\n\
+     the output will be gzipped.\n\
 \n\
  -nbest NPREFIX[.gz][:N]                Output N-best lists  [don't]\n\
      Produces nbest output into files NPREFIX.SENTNUM.Nbest[.gz]. If N is\n\

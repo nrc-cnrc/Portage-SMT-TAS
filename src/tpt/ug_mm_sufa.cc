@@ -48,6 +48,51 @@ namespace ugdiss
     return m;
   }
 
+  char const*
+  mmSufa::
+  random_sample(char const* p, char const* q) const
+  {
+    size_t distance = q-p;
+    int attempts = 0;
+    while (true) {
+      uint64_t random;
+      if (distance > 0x00ffffff)
+        random = (rand() + (rand() << 31));
+      else
+        random = rand();
+
+      char const* raw_m = p + (random % distance);
+      char const* m = raw_m;
+      
+      if (m > p)
+      {
+        while (m > p && *m <  0) --m;
+        while (m > p && *m >= 0) --m;
+        if (*m < 0) ++m;
+      }
+      assert(*m >= 0);
+
+      /* this idea fails miserably at generating an unbiased sample, and is
+       * more expensive than resampling.
+      int walk = rand() % 100;
+      for (int i = 0; i < walk; ++i) {
+        IndexEntry I;
+        readEntry(m, I);
+        m = I.next;
+        if (m == q) m = p;
+      }
+      return m;
+      */
+
+      if (raw_m == m || raw_m == m+1)
+        return m;
+      else
+      {
+        ++attempts;
+        if (attempts >= 100) return m;
+      }
+    }
+  }
 
   mmSufa::
   mmSufa() 

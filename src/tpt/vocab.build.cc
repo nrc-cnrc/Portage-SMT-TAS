@@ -56,7 +56,7 @@ inline ostream& help_message(ostream& os)
 
 bool   alpha=false, nosort=false, quiet=false;
 string oFile;
-const string toksep=" ";
+const string toksep=" \t";
 
 string tdxFile,vcbFile; 
 

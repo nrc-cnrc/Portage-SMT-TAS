@@ -67,11 +67,18 @@ done
 
 test $# -eq 0   && error_exit "Missing first argument argument"
 MODEL=$1; shift
+if [[ $1 ]]; then
+   PREFIX=$1; shift
+   if [[ `basename $PREFIX` != $PREFIX ]]; then
+      error_exit "Output  model must be created in current directory, without path specification."
+   fi
+else
+   PREFIX=`basename $MODEL .gz`
+fi
 test $# -gt 0   && error_exit "Superfluous arguments $*"
 
 EXTENSION=".tpldm"
-PREFIX=${MODEL%%.gz}
-BACKOFF=${PREFIX}.bkoff
+BACKOFF=${MODEL%%.gz}.bkoff
 OUTPUT_TPLDM="${PREFIX}${EXTENSION}"
 
 # Make sure the backoff model is available.
@@ -82,7 +89,7 @@ set -o errexit
 
 # To create a tpldm, we will rely on textpt2tppt.sh since the process is the
 # same.
-textpt2tppt.sh $BASE_OPTIONS -type $EXTENSION $MODEL
+textpt2tppt.sh $BASE_OPTIONS -type $EXTENSION $MODEL $PREFIX
 
 # To have a valid TPLDM, we also need the backoff file.
 cp $BACKOFF $OUTPUT_TPLDM/bkoff

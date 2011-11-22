@@ -180,7 +180,7 @@ int MAIN(argc, argv)
          << "' for writing." << exit_1;
   filepos_type idxStart(0);
   id_type idxSize(sufa.size());
-  if (size_t(idxSize) != size_t(sufa.size()))
+  if (uint64_t(idxSize) != uint64_t(sufa.size()))
     cerr << efatal << "Overflow writing suffix array file '" << sufaFile
          << "': too many types for index size type.  sizeof(index size type)="
          << sizeof(idxSize) << exit_1;

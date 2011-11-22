@@ -108,7 +108,7 @@ namespace ugdiss
     for (Entry const* x = startIdx; x != endIdx; x++)
       {
 	if (x->id >= v.size()) 
-	  v.resize(x->id+1);
+	  v.resize(x->id+1, NULL);
 	v[x->id] = comp.base+x->offset;
       }
     // cout << "done reversing index " << endl;
@@ -120,6 +120,7 @@ namespace ugdiss
   operator[](id_type id) const
   {
     // for use of the const version of operator[], you need to call iniReverseIndex() first
+    if (!ridx.size()) ridx = reverseIndex();
     if (!ridx.size())
         cerr << efatal << "You need to call iniReverseIndex() "
              << "on the TokenIndex class before using operatorp[](id_type id)."
@@ -134,7 +135,7 @@ namespace ugdiss
 
   void
   TokenIndex::
-  iniReverseIndex() 
+  iniReverseIndex()
   {
     if (!ridx.size()) ridx = reverseIndex();
   }
@@ -168,6 +169,7 @@ namespace ugdiss
   TokenIndex::
   toString(vector<id_type> const& v) const
   {
+    if (!ridx.size()) ridx = reverseIndex();
     assert (ridx.size());
     ostringstream buf;
     for (size_t i = 0; i < v.size(); i++)
@@ -180,25 +182,26 @@ namespace ugdiss
   toString(id_type const* start, id_type const* const stop) 
   {
     if (!ridx.size()) ridx = reverseIndex();
-    ostringstream buf;
+    string buf;
     if (start < stop)
-      buf << ridx[*start];
+      buf = ridx[*start];
     while (++start < stop)
-      buf << " " << ridx[*start];
-    return buf.str();
+      (buf += " ") += ridx[*start];
+    return buf;
   }
 
   string 
   TokenIndex::
   toString(id_type const* start, id_type const* const stop) const
   {
+    if (!ridx.size()) ridx = reverseIndex();
     assert (ridx.size());
-    ostringstream buf;
+    string buf;
     if (start < stop)
-      buf << ridx[*start];
+      buf = ridx[*start];
     while (++start < stop)
-      buf << " " << ridx[*start];
-    return buf.str();
+      (buf += " ") += ridx[*start];
+    return buf;
   }
 
   void
@@ -206,10 +209,15 @@ namespace ugdiss
   toIdSeq(vector<id_type>& idSeq, string const& line) const
   {
     idSeq.clear();
-    istringstream buf(line);
-    string w;
-    while (buf>>w)
-       idSeq.push_back((*this)[w]);
+    size_t q(0), p(0);
+    while (true)
+      {
+        p = line.find_first_not_of(" \t", q);
+        if (p == string::npos) break;
+        q = line.find_first_of(" \t", p);
+        idSeq.push_back((*this)[line.substr(p,q-p)]);
+        if (q == string::npos) break;
+      }
   }
 
   id_type

@@ -41,16 +41,17 @@ namespace ugdiss
     class IndexEntry;    /* stores information about an index entry and
 			  * the corpus position it points to
 			  */
+
   protected:
     Ctrack const* corpus;
 
-    /** pointer to the beginning of the data block with the sorted list of 
-     *  token positions, depending on the subclass, this index can be tightly
-     *  packed (mmSufa) or fixed-width (imSufa)
+    /** pointer to the beginning of the index data block with the sorted list
+     *  of token positions, depending on the subclass, this index can be
+     *  tightly packed (mmSufa) or fixed-width (imSufa)
      */
     char const*     data; 
 
-    /** pointer to the end of the data block with the sorted list of 
+    /** pointer to the end of the index data block with the sorted list of 
      *  token positions, depending on the subclass, this index can be tightly
      *  packed (mmSufa) or fixed-width (imSufa)
      */
@@ -103,6 +104,8 @@ namespace ugdiss
 
     /** return the index position of the first item that 
      *  is equal to or includes [refStart,refEnd) as a prefix
+     *  This method does the actual binary search, in O(log(upX-lo)).
+     *  Returns NULL if [refStart,refEnd) does not occur in [lo,upX).
      */
     char const* 
     find_start(char const* lo, char const* const upX,
@@ -111,7 +114,9 @@ namespace ugdiss
                size_t d) const;
 
     /** return the index position of the first item that is greater than
-     *  [refStart,refEnd) and does not include it as a prefix
+     *  [refStart,refEnd) and does not include it as a prefix.
+     *  This method does the actual binary search, in O(log(upX-lo)).
+     *  Never returns NULL.
      */
     char const* 
     find_end(char const* lo, char const* const upX,
@@ -121,6 +126,7 @@ namespace ugdiss
 
     /** return the index position of the first item that is longer than
      *  [refStart,refEnd) and includes it as a prefix
+     *  This method does the actual binary search, in O(log(upX-lo)).
      */
     char const* 
     find_longer(char const* lo, char const* const upX,
@@ -128,13 +134,24 @@ namespace ugdiss
                 id_type const* const refEnd,
                 size_t d) const;
 
-    /** Returns a char const* pointing to the position in the data block
-     *  where the first item starting with token /id/ is located.
+    /** Returns the index position in the data block where the first item
+     *  starting with token /id/ is located.
+     *  Semantically equivalent to find_start(data, endData, &id, (&id)+1, 0)
+     *  and lower_bound(&id, (&id)+1), this method is expected to be optimized
+     *  by each subclass to take O(1) with a lookup in an additional data
+     *  structure, instead of requiring the normal binary search.
      */
     virtual
     char const*
     getLowerBound(id_type id) const = 0;
 
+    /** Returns the index position in the data block just past the last item
+     *  starting with token /id/.
+     *  Semantically equivalent to find_end(data, endData, &id, (&id)+1, 0) and
+     *  upper_bound(&id, (&id)+1), this method is expected to be optimized by
+     *  each subclass to take O(1) with a lookup in an additional data
+     *  structure, instead of requiring the normal binary search.
+     */
     virtual
     char const*
     getUpperBound(id_type id) const = 0;
@@ -142,7 +159,9 @@ namespace ugdiss
   public:
 
     /** @return a pointer to the beginning of the index entry range covering 
-     *  [keyStart,keyStop)
+     *  [keyStart,keyStop), i.e., the index position of the first item that is
+     *  equal to or includes [keyStart,keyEnd) as a prefix.
+     *  Returns NULL if [keyStart,keyEnd) does not occur at all.
      */
     char const* 
     lower_bound(vector<id_type>::const_iterator const& keyStart,
@@ -151,7 +170,9 @@ namespace ugdiss
     lower_bound(id_type const* keyStart, id_type const* keyStop) const;
 
     /** @return a pointer to the end point of the index entry range covering 
-     *  [keyStart,keyStop)
+     *  [keyStart,keyStop), i.e., the index position of the first item that is
+     *  greater than [keyStart,keyEnd) and does not include it as a prefix.
+     *  Never returns NULL.
      */
     char const* 
     upper_bound(vector<id_type>::const_iterator const& keyStart,
@@ -159,6 +180,11 @@ namespace ugdiss
     char const* 
     upper_bound(id_type const* keyStart, id_type const* keyStop) const;
 
+
+    /** sample one element randomly in [p,q) */
+    virtual
+    char const*
+    random_sample(char const* p, char const* q) const = 0;
 
     /** dump all suffixes in order to /out/ */
     void dump(ostream& out, TokenIndex const& T) const;
@@ -195,15 +221,16 @@ namespace ugdiss
     sntCnt(char const* p, char const* const q) const; 
     
     /** @return raw occurrence count
-     *  depending on the subclass, this is constant time (imSufa) or linear in in the number
-     *  of occurrences (mmSufa).
+     *  depending on the subclass, this is constant time (imSufa) or linear in
+     *  in the number of occurrences (mmSufa).
      */
     virtual
     count_type
     rawCnt(char const* p, char const* const q) const = 0; 
 
-    /** get both sentence and word counts. Avoids having to go over the byte range representing
-     *  the range of suffixes in question twice when dealing with memory-mapped suffix arrays.
+    /** get both sentence and word counts. Avoids having to go over the byte
+     *  range representing the range of suffixes in question twice when dealing
+     *  with memory-mapped suffix arrays.
      */ 
     virtual
     void 
@@ -220,6 +247,8 @@ namespace ugdiss
 
     void readEntry(char const* p, IndexEntry& I) const;
 
+    /** return pointer to the beginning of the data block */
+    char const* dataBegin() const;
     /** return pointer to the end of the data block */
     char const* dataEnd() const;
     
@@ -244,6 +273,8 @@ namespace ugdiss
     Ctrack const*
     getCorpus() const;
 
+    /** Destructor should be virtual for abstract base class */
+    virtual ~Sufa() {}
   };
 
   class

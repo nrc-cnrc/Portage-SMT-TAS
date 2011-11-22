@@ -21,6 +21,7 @@
 #include "tpt_typedefs.h"
 
 #include <sstream>
+#include <cmath> // for log10()
 
 namespace ugdiss
 {
@@ -143,7 +144,6 @@ namespace ugdiss
     I.pos  = p;
     p      = readSid(p,endData,I.sid);
     I.next = readOffset(p,endData,I.offset);
-
   };
 
   Sufa::
@@ -175,6 +175,12 @@ namespace ugdiss
   {
     if (!pos) return NULL;
     return S->corpus->sntEnd(sid);
+  }
+
+  char const*
+  Sufa::dataBegin() const
+  {
+    return data;
   }
 
   char const*
@@ -293,7 +299,7 @@ namespace ugdiss
     float ratio = .1;
     while (lo < up)
       {
-        readEntry(index_jump(lo,up,.1),I);
+        readEntry(index_jump(lo,up,ratio),I);
         x = mycmp(I,refStart,refEnd,d);
 #if 0
         debug=true;
@@ -309,11 +315,8 @@ namespace ugdiss
           }
         debug=false;
 #endif
-        if (x == 2)
-          up = I.pos;
-        else
-          lo = I.next;
-        ratio = .5;
+        if (x == 2) { up = I.pos; }
+        else        { lo = I.next; ratio = .5; }
       }
     if (lo > up)
       cerr << efatal << "Binary search of suffix array failed." << endl;
@@ -520,7 +523,9 @@ namespace ugdiss
         lo = root->find_start(lo, hi, &id, &id+1, lower.size());
         if (!lo) return false;
         lower.push_back(lo);
-        hi = root->find_end(lo, hi, &id, &id+1, lower.size());
+        hi = root->find_end(lo, hi, &id, &id+1, upper.size());
+        // TODO should we not do upper.push_back(hi) here???
+        upper.push_back(hi);
       }
     else
       {
@@ -545,16 +550,9 @@ namespace ugdiss
   tree_iterator::
   lower_bound(int p) const
   {
-    if (p < 0)
-      {
-        assert(int(lower.size()) > -p);
-        return *(lower.rbegin()-p);
-      }
-    else
-      {
-        assert(p < int(lower.size()));
-        return lower[p];
-      }
+    if (p < 0) p += lower.size();
+    assert(p >= 0 && p < int(lower.size()));
+    return lower[p];
   }
 
   char const*
@@ -562,16 +560,9 @@ namespace ugdiss
   tree_iterator::
   upper_bound(int p) const
   {
-    if (p < 0)
-      {
-        assert(int(upper.size()) > -p);
-        return *(upper.rbegin()-p);
-      }
-    else
-      {
-        assert(p < int(upper.size()));
-        return upper[p];
-      }
+    if (p < 0) p += upper.size();
+    assert(p >= 0 && p < int(upper.size()));
+    return upper[p];
   }
 
   /* @return a pointer to the position in the corpus

@@ -175,7 +175,7 @@ int MAIN(argc, argv)
     numwrite(out,index[i]);
 
   idxSize = index.size();
-  if (size_t(index.size()) != size_t(idxSize))
+  if (uint64_t(index.size()) != uint64_t(idxSize))
     cerr << efatal << "overflow writing corpus track file " << ctrackFile
          << ": too many sentences for index size type.  sizeof(index size type)="
          << sizeof(idxSize) << exit_1;
