@@ -1,7 +1,7 @@
 #!/bin/bash
 # $Id$
 
-# @file run-parallel.sh 
+# @file run-parallel.sh
 # @brief runs a series of jobs provided as STDIN on parallel distributed
 # workers managed by r-parallel-d.pl and r-parallel-worker.pl.
 #
@@ -77,7 +77,7 @@ Arguments:
       is equivalent to "psub CMD CMD_OPTS" except that, unlike psub, it
       only returns when CMD has finished running, and the exit status of
       run-parallel.sh will be 0 iff the exit status of CMD was 0.
- 
+
   or
 
   -c CMD CMD_OPTS is equivalent to -e "CMD CMD_OPTS" 1.  When -c is
@@ -106,7 +106,6 @@ General options:
   -h(elp)       Print this help message.
   -d(ebug)      Print debugging information.
   -q(uiet)      Quiet mode only prints error messages and the resource summary.
-  -cleanup      Remove run-parallel-logs-* files  upon completion.
   -v(erbose)    Increase verbosity level.  If specified once, show the daemon's
                 logs, each worker's logs, etc.  Yet more output is produced if
                 specified twice.
@@ -128,7 +127,7 @@ Cluster mode options:
   -highmem      Use 2 CPUs per worker, for extra extra memory.  [propagate the
                 number of CPUs of master job]
   -nohighmem    Use only 1 CPU per worker, even if master job had more.
-  -nolocal      psub all workers [run one worker locally, unless on head node] 
+  -nolocal      psub all workers [run one worker locally, unless on head node]
   -nocluster    force non-cluster mode [auto-detect if we're on a cluster]
   -quota T      When workers have done T minutes of work, re-psub them [30]
   -psub         Provide custom psub options.
@@ -147,12 +146,12 @@ Resource propagation from the master job to worker jobs (cluster mode only):
     psub -2 run-parallel.sh jobfile 10           # 10 2-cpu jobs
     psub -4 run-parallel.sh -psub -2 jobfile 10  # 1 4-cpu job + 9 2-cpu jobs
     psub -1 run-parallel.sh -psub -2 jobfile 10  # 1 1-cpu job + 10 2-cpu jobs
- 
+
   The results would be exactly the same if "run-parallel.sh ..." were called
   from inside a script, which is a more sensible usage. Eg, assuming "myscript"
   calls "run-parallel.sh -psub -2 jobfile 10", then:
 
-    psub -1 myscript   # 1 1-cpu job + 10 2-cpu jobs  
+    psub -1 myscript   # 1 1-cpu job + 10 2-cpu jobs
 
 Dynamic options:
 
@@ -208,7 +207,6 @@ NOLOCAL=
 if on_head_node; then NOLOCAL=1; fi
 NOCLUSTER=
 VERBOSE=1
-CLEANUP=
 DEBUG=
 SAVE_ARGS="$@"
 CMD_FILE=
@@ -276,7 +274,7 @@ while (( $# > 0 )); do
    -subst)         arg_check 1 $# $1; WORKER_SUBST=$2; shift;;
    -v|-verbose)    VERBOSE=$(( $VERBOSE + 1 ));;
    -q|-quiet)      VERBOSE=0;;
-   -cleanup)       CLEANUP=1;;
+   -cleanup)       CLEANUP=1;; # kept here so scripts using it don't have to be patched.
    -d|-debug)      DEBUG=1;;
    -h|-help)       usage;;
    -unit-test)     UNIT_TEST=1;; # hidden option for unit testing
@@ -369,15 +367,10 @@ if [[ "$1" = add || "$1" = quench || "$1" = kill ]]; then
    exit 0
 fi
 
-CLEANLOG=
-if [[ $CLEANUP ]]; then
-   CLEANLOG="run-parallel-logs-${PBS_JOBID-local}"
-fi
-
 # Assume there's a problem until we know things finished cleanly.
 GLOBAL_RETURN_CODE=2
 
-# Process clean up at exit or kill - set this trap early enough that we 
+# Process clean up at exit or kill - set this trap early enough that we
 # clean up no matter what happens.
 trap '
    if [[ -n "$WORKER_JOBIDS" ]]; then
@@ -397,15 +390,18 @@ trap '
          sleep 1
       done
    fi
-   for x in ${LOGFILEPREFIX}log.worker* $WORKDIR/mon.worker-*; do
-      if [[ -s $x ]]; then
-         echo $x
-         echo ""
-         cat $x
-         echo ""
-      fi
-   done > run-parallel-logs-${PBS_JOBID-local}
-   test -n "$DEBUG" || rm -rf ${LOGFILEPREFIX}log.worker* $WORKDIR $CLEANLOG
+   if [[ $DEBUG || $GLOBAL_RETURN_CODE != 0 && $VERBOSE -gt 0 ]]; then
+      for x in ${LOGFILEPREFIX}log.worker* $WORKDIR/mon.worker-*; do
+         if [[ -s $x ]]; then
+            echo ""
+            echo ========== $x ==========
+            echo ""
+            cat $x
+            echo ""
+         fi
+      done >&2
+   fi
+   test -n "$DEBUG" || rm -rf ${LOGFILEPREFIX}log.worker* $WORKDIR
    [[ -f $LOGFILEPREFIX ]] && rm -f $LOGFILEPREFIX
    trap "" 0
    exit $GLOBAL_RETURN_CODE
@@ -545,7 +541,10 @@ if [[ $CLUSTER ]]; then
       # We assume by default that we can run one local job.
       LOCAL_JOBS=1
 
-      if [[ $PBS_JOBID ]]; then
+      if [[ $RUNPARALLEL_WORKER_NCPUS ]]; then
+         PARENT_NCPUS=$RUNPARALLEL_WORKER_NCPUS
+         [[ $DEBUG ]] && echo "Found parent NCPUS override=$RUNPARALLEL_WORKER_NCPUS" >&2
+      elif [[ $PBS_JOBID ]]; then
          if [[ `qstat -f $PBS_JOBID 2> /dev/null` =~ '1:ppn=([[:digit:]]+)' ]]; then
             PARENT_NCPUS=${BASH_REMATCH[1]}
          else
@@ -569,6 +568,12 @@ if [[ $CLUSTER ]]; then
          echo Master was submitted with $PARENT_NCPUS CPUs, propagating to workers. >&2
          PSUBOPTS="-$PARENT_NCPUS $PSUBOPTS"
       fi
+
+      # Make the current NCPUS variable visible to local sub run-parallel jobs, if any.
+      # two statements are required, because of the -k switch in the #! line
+      RUNPARALLEL_WORKER_NCPUS="$NCPUS"
+      export RUNPARALLEL_WORKER_NCPUS
+      #export RUNPARALLEL_WORKER_NCPUS="$NCPUS"
    fi
 
    if [[ -n "$PBS_JOBID" ]]; then
@@ -589,11 +594,14 @@ if [[ $CLUSTER ]]; then
    #echo PSUBOPTS $PSUBOPTS
 
    if [[ ! $NOLOCAL ]]; then
-      # Now that the PSUBOPTS variable has settle down, let see how much vmem the job
-      # requires.
+      # Now that the PSUBOPTS variable has settled down, let's see how much
+      # vmem the job requires.
       JOB_VMEM=`psub -require $PSUBOPTS`
 
-      if [[ $PBS_JOBID ]]; then
+      if [[ $RUNPARALLEL_WORKER_VMEM ]]; then
+         [[ $DEBUG ]] && echo "Found parent VMEM override=$RUNPARALLEL_WORKER_VMEM" >&2
+         PARENT_VMEM=$RUNPARALLEL_WORKER_VMEM
+      elif [[ $PBS_JOBID ]]; then
          # How much VMEM was allocated to the parent?
          if [[ `qstat -f $PBS_JOBID 2> /dev/null` =~ 'Resource_List.vmem = ([[:digit:]]+)gb' ]]; then
             PARENT_VMEM=${BASH_REMATCH[1]}
@@ -617,6 +625,12 @@ if [[ $CLUSTER ]]; then
             fi
          fi
       fi
+
+      # Make the current VMEM variable visible to local sub run-parallel jobs, if any.
+      # two statements are required, because of the -k switch in the #! line
+      RUNPARALLEL_WORKER_VMEM="$JOB_VMEM"
+      export RUNPARALLEL_WORKER_VMEM
+      #export RUNPARALLEL_WORKER_VMEM="$JOB_VMEM"
    fi
 
 
@@ -718,11 +732,11 @@ if (( $VERBOSE > 1 )); then
    $DAEMON_CMD &
    DAEMON_PID=$!
 elif (( $VERBOSE > 0 )); then
-   $DAEMON_CMD 2>&1 | 
+   $DAEMON_CMD 2>&1 |
       egrep --line-buffered 'FATAL ERROR|\] ([0-9/]* (DONE|SIGNALED)|starting|Non-zero)' 1>&2 &
    DAEMON_PID=$!
 else
-   $DAEMON_CMD 2>&1 | 
+   $DAEMON_CMD 2>&1 |
       egrep --line-buffered 'FATAL ERROR' 1>&2 &
    DAEMON_PID=$!
 fi
@@ -923,7 +937,7 @@ export PORTAGE_INTERNAL_CALL=1
 
 END_TIME=`date +%s`
 WALL_TIME=$((END_TIME - START_TIME))
-TOTAL_CPU=`grep -h $WORKER_CPU_STRING $WORKDIR/err.worker-* 2> /dev/null | 
+TOTAL_CPU=`grep -h $WORKER_CPU_STRING $WORKDIR/err.worker-* 2> /dev/null |
    egrep -o "[0-9.]+" | sum.pl`
 MAX_VSZ=`egrep -ho 'vsz: [0-9.]+G' $WORKDIR/mon.worker-* 2> /dev/null |
    egrep -o "[0-9.]+" | sum.pl -m`
