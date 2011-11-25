@@ -85,8 +85,9 @@ Options:
   -w W    Specifies the minimum number of lines in each block.
   -s <X>  split additional input file X in N chunks where X in cmd_args.
   -m <Z>  merge additional output file Z where Z in cmd_args.
-  -stipe  Each job get lines l%N==i and also prevents creating temporary chunk
-          files.
+  -stripe Each job get lines l%N==i and also prevents creating temporary chunk
+          files.  Only works correctly for jobs where each line of input
+          creates one line of output.
   -merge  merge command [cat]
   -nolocal  Run run-parallel.sh -nolocal
   -psub <O> Passes additional options to run-parallel.sh -psub.
@@ -188,9 +189,9 @@ sub verbose {
 $PSUB_OPTS = "-psub \"$PSUB_OPTS\"" unless ($PSUB_OPTS eq "");
 
 # Make sure we have access to split.py.
-$use_stripe_splitting = ($use_stripe_splitting and system("which split.py &> /dev/null") == 0);
+$use_stripe_splitting = ($use_stripe_splitting and system("which-test.sh split.py") == 0);
 if ($use_stripe_splitting) {
-   # If we are using stipe mode and the user DIDN'T specify is one merge
+   # If we are using stripe mode and the user DIDN'T specify is one merge
    # command tool, we will use split.py in rebuild mode.
    $MERGE_PGM = "split.py -r" unless(defined($MERGE_PGM));
 }
@@ -212,8 +213,8 @@ sub remove_dups {
 # if the merge program is available in PATH.
 $MERGE_PGM =~ /([^ ]+)/;
 my $CHECK_MERGE_PGM = $1;
-my $rc = system("which $CHECK_MERGE_PGM &> /dev/null");
-die "Merge program $CHECK_MERGE_PGM is not in your PATH.\n" unless($rc eq 0);
+my $rc = system("which-test.sh $CHECK_MERGE_PGM");
+die "Merge program $CHECK_MERGE_PGM is not on your PATH.\n" unless($rc eq 0);
 
 # If the user provides more than one file to an -s option, we need to make sure
 # we expand to be one entry per array index.
@@ -372,7 +373,10 @@ for (my $i=0; $i<$NUMBER_OF_CHUNK_GENERATED; ++$i) {
    if ($use_stripe_splitting) {
       my $done = "$workdir/" . $basename{$SPLITS[0]} . "/$index.done";
       foreach my $s (@SPLITS) {
-         unless ($SUB_CMD =~ s/(^|\s|<)\Q$s\E($|\s)/$1<(split.py -i $i -m $N $s)$2/) {
+         # NOTE: doing zcat file.gz | split.py is much much faster than
+         # split.py file.gz.  Seems like the python's implementation of gzip is
+         # quite slow.
+         unless ($SUB_CMD =~ s/(^|\s|<)\Q$s\E($|\s)/$1<(zcat -f $s | split.py -i $i -m $N)$2/) {
             die "Unable to match $s";
          }
       }
