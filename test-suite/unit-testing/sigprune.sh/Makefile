@@ -59,7 +59,7 @@ unittest0: unittest0.gz
 	grep 'Creating the co-occurence counts.' log.$@
 	grep -F 'SAVE_ARGS = $(subst ",,${UNITTEST0})' log.$@
 	grep 'PSUBOPTS  =  -2 -N U0_' log.$@
-	diff -q <(zcat -f $<) <(zcat -f ref/sig.jpt.ibm2.tm-train.en-fr.gz)
+	diff <(zcat -f $<) <(zcat -f ref/sig.jpt.ibm2.tm-train.en-fr.gz) -q
 
 unittest0.gz: jpt.ibm2.tm-train.en-fr.gz tm-train_en.lc.gz tm-train_fr.lc.gz
 	-rm -f cnts.jpt.ibm2.tm-train.en-fr.gz
@@ -74,7 +74,7 @@ unittest1: unittest1.gz
 	[[ ! -e "cnts.jpt.ibm2.tm-train.en-fr.gz" ]]  # Co-occurrence count file mustn't exsit after.
 	grep 'Creating the co-occurence counts.' log.$@
 	[[ `hostname` != "balzac" ]] || grep 'Requested 3 CPUs per worker' log.$@
-	diff -q <(zcat -f $<) <(zcat -f ref/sig.jpt.ibm2.tm-train.en-fr.gz)
+	diff <(zcat -f $<) <(zcat -f ref/sig.jpt.ibm2.tm-train.en-fr.gz) -q
 
 unittest1.gz: jpt.ibm2.tm-train.en-fr.gz tm-train_en.lc.gz tm-train_fr.lc.gz | unittest0.gz
 	-rm -f cnts.jpt.ibm2.tm-train.en-fr.gz
@@ -86,8 +86,8 @@ unittest1.gz: jpt.ibm2.tm-train.en-fr.gz tm-train_en.lc.gz tm-train_fr.lc.gz | u
 unittest2: unittest2.gz
 	[[ -e "cnts.jpt.ibm2.tm-train.en-fr.gz" ]]  #  Co-occurrence count file must exist after.
 	grep 'Creating the co-occurence counts.' log.$@
-	diff -q <(zcat -f $<) <(zcat -f ref/sig.jpt.ibm2.tm-train.en-fr.gz)
-	diff -q <(zcat -f cnts.jpt.ibm2.tm-train.en-fr.gz | cut -f2-) <(zcat -f ref/cnts.jpt.ibm2.tm-train.en-fr.gz | cut -f2-)
+	diff <(zcat -f $<) <(zcat -f ref/sig.jpt.ibm2.tm-train.en-fr.gz) -q
+	diff <(zcat -f cnts.jpt.ibm2.tm-train.en-fr.gz | cut -f2-) <(zcat -f ref/cnts.jpt.ibm2.tm-train.en-fr.gz | cut -f2-) -q
 
 unittest2.gz: jpt.ibm2.tm-train.en-fr.gz tm-train_en.lc.gz tm-train_fr.lc.gz | unittest1.gz
 	${SIGPRUNE} -keep -threshold ${THRESHOLD} $+ $@ 2> log.$(basename $@)
@@ -98,7 +98,7 @@ unittest2.gz: jpt.ibm2.tm-train.en-fr.gz tm-train_en.lc.gz tm-train_fr.lc.gz | u
 unittest3: unittest3.gz
 	[[ -e "cnts.jpt.ibm2.tm-train.en-fr.gz" ]]  # Co-occurrence count file must also exist after.
 	grep 'Warning: Reusing the co-occurence count file' log.$@
-	diff -q <(zcat -f $<) <(zcat -f ref/sig.jpt.ibm2.tm-train.en-fr.gz)
+	diff <(zcat -f $<) <(zcat -f ref/sig.jpt.ibm2.tm-train.en-fr.gz) -q
 
 unittest3.gz: jpt.ibm2.tm-train.en-fr.gz tm-train_en.lc.gz tm-train_fr.lc.gz | unittest2.gz
 	[[ -e "cnts.jpt.ibm2.tm-train.en-fr.gz" ]]  # Co-occurrence count file must exist before.
@@ -110,7 +110,7 @@ unittest3.gz: jpt.ibm2.tm-train.en-fr.gz tm-train_en.lc.gz tm-train_fr.lc.gz | u
 unittest4: unittest4.gz
 	[[ -e "cnts.jpt.ibm2.tm-train.en-fr.gz" ]]  # Co-occurrence count file must also exist after.
 	grep 'Warning: Reusing the co-occurence count file' log.$@
-	diff -q <(zcat -f $<) <(zcat -f ref/sig.jpt.ibm2.tm-train.en-fr.gz)
+	diff <(zcat -f $<) <(zcat -f ref/sig.jpt.ibm2.tm-train.en-fr.gz) -q
 
 unittest4.gz: jpt.ibm2.tm-train.en-fr.gz tm-train_en.lc.gz tm-train_fr.lc.gz | unittest3.gz
 	[[ -e "cnts.jpt.ibm2.tm-train.en-fr.gz" ]]  # Co-occurrence count file must exist before.
@@ -121,7 +121,7 @@ unittest4.gz: jpt.ibm2.tm-train.en-fr.gz tm-train_en.lc.gz tm-train_fr.lc.gz | u
 .PHONY: unittest5 unittest6
 unittest5 unittest6: unittest%: unittest%.gz
 	grep 'Warning: Reusing the co-occurence count file' log.$@
-	diff -q <(zcat -f $<) <(zcat -f ref/$<)
+	diff <(zcat -f $<) <(zcat -f ref/$<) -q
 
 unittest5.gz: THRESHOLD=a-e
 unittest6.gz: THRESHOLD=a+e
