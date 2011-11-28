@@ -85,7 +85,7 @@ def myopen(filename, mode='r'):
    if opts.debug: print >> sys.stderr, "myopen: " + filename + " in " + mode + " mode"
    if filename == "-":
       if mode == 'r':
-      theFile = sys.stdin
+         theFile = sys.stdin
       elif mode == 'w':
          theFile = sys.stdout
       else:
