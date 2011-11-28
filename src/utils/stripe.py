@@ -124,7 +124,7 @@ def rebuild():
 
    # What if the user provided use we more files than the os allows us to have opened at once?
    try:
-   inputfiles = map(myOpenRead, inputfilenames)
+      inputfiles = map(myOpenRead, inputfilenames)
    except IOError:
       print >> sys.stderr, "You provided %d files to merge but the os doesn't allow that many file to be opened at once." % len(inputfilenames)
       sys.exit(1)
