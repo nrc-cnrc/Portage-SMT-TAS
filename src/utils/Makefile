@@ -83,7 +83,7 @@ BINSCRIPTS = \
         r-parallel-d.pl \
         r-parallel-worker.pl \
         sh_utils.sh \
-        split.py \
+        stripe.py \
         sum.pl \
         summarize-canoe-results.py \
         time-mem \

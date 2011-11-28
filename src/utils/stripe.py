@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # $Id$
 
-# @file split.py
+# @file stripe.py
 # @brief Performs a strip split which allows splitting without using temporary files.
 #
 # @author Samuel Larkin
@@ -31,7 +31,7 @@ usage="slit.py [options] [infile [outfile]]"
 help="""
   Perform a striped split, assigning lines in a round-robin fashion to each
   chunk.  Intended for splitting files without creating temporary copies.
-  split.py -r [infiles] will rebuild the whole file from striped pieces.
+  stripe.py -r [infiles] will rebuild the whole file from striped pieces.
 """
 
 parser = OptionParser(usage=usage, description=help)
@@ -99,7 +99,7 @@ def myopen(filename, mode='r'):
 
 
 def rebuild():
-   "This function will unstripe the output of a previous usage of split.py."
+   "This function will unstripe the output of a previous usage of stripe.py."
    def myOpenRead(filename):
       "Trying out a function closure."
       if opts.debug: print >> sys.stderr, "myOpenRead: " + filename
