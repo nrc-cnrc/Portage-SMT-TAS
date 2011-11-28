@@ -14,7 +14,7 @@
 # Copyright 2011, Her Majesty in Right of Canada
 
 
-SPLIT := split.py
+STRIPE := stripe.py
 
 -include Makefile.params
 
@@ -39,6 +39,8 @@ testsuite: unittest4
 testsuite: unittest5
 testsuite: unittest6
 testsuite: unittest7
+testsuite: unittest8
+testsuite: unittest9
 
 
 
@@ -46,42 +48,42 @@ testsuite: unittest7
 # Extract all even lines.
 .PHONY: unittest1
 unittest1:
-	${SPLIT} -i 0 -m 2 <(seq 0 10) | diff -q - <(seq 0 2 10)
+	${STRIPE} -i 0 -m 2 <(seq 0 10) | diff - <(seq 0 2 10) -q
 
 
 ########################################
 # Extract all odd lines.
 .PHONY: unittest2
 unittest2:
-	${SPLIT} -i 1 -m 2 <(seq 0 10) | diff -q - <(seq 1 2 10)
+	${STRIPE} -i 1 -m 2 <(seq 0 10) | diff - <(seq 1 2 10) -q
 
 
 ########################################
 # Make sure that we are not losing any lines when extracting even lines and extracting odd lines.
 .PHONY: unittest3
 unittest3:
-	[[ `cat <(${SPLIT} -i 0 -m 2 <(seq 0 10)) <(${SPLIT} -i 1 -m 2 <(seq 0 10)) | \wc -l` == 11 ]] || ! echo "We are missing some entries!" >&2
+	[[ `cat <(${STRIPE} -i 0 -m 2 <(seq 0 10)) <(${STRIPE} -i 1 -m 2 <(seq 0 10)) | \wc -l` == 11 ]] || ! echo "We are missing some entries!" >&2
 
 
 ########################################
 # Validate the index based on the modulo.
 .PHONY: unittest4
 unittest4:
-	${SPLIT} -i 2 -m 2 <(seq 0 10) 2>&1 | grep -qF 'Error the index is 2 but must be in the range [0, 2)'
+	${STRIPE} -i 2 -m 2 <(seq 0 10) 2>&1 | grep -qF 'Indices format is -i i:j where [i,j) where 0 <= i < j <= m.'
 
 
 ########################################
 # Extract all odd lines from standard input.
 .PHONY: unittest5
 unittest5:
-	seq 0 10 | ${SPLIT} -i 1 -m 2 | diff -q - <(seq 1 2 10)
+	seq 0 10 | ${STRIPE} -i 1 -m 2 | diff - <(seq 1 2 10) -q
 
 
 ########################################
 # Extract all odd lines from compressed file.
 .PHONY: unittest6
 unittest6:  input.gz
-	${SPLIT} -i 1 -m 2 $+ | diff -q - <(seq 1 2 10)
+	${STRIPE} -i 1 -m 2 $+ | diff - <(seq 1 2 10) -q
 
 
 ########################################
@@ -89,17 +91,51 @@ unittest6:  input.gz
 .PHONY: unittest7  unittest7p unittest7l
 unittest7: unittest7p
 unittest7: unittest7l
+unittest7: unittest7u
+unittest7: unittest7ulimit
 
+CHUNK_LIST := 0 1 2 3 4 5 6 7 8 9 10
+GEN := seq 0 43
 # Rebuild from a pattern.
-unittest7p: $(addprefix unittest7., 0 1 2)
-	${SPLIT} -r unittest7. | diff -q - <(seq 0 20)
+unittest7p: $(addprefix unittest7., ${CHUNK_LIST})
+	${STRIPE} -r unittest7. | diff - <(${GEN}) -q
 
 # Rebuild from a list of files.
-unittest7l: $(addprefix unittest7., 0 1 2)
-	${SPLIT} -r $+ | diff -q - <(seq 0 20)
+unittest7l: $(addprefix unittest7., ${CHUNK_LIST})
+	${STRIPE} -r $+ | diff - <(${GEN}) -q
+
+# Unsupported feature.
+unittest7u: $(addprefix unittest7., ${CHUNK_LIST})
+	${STRIPE} -r unittest7. -i 0:2 2>&1 \
+	| grep -qF 'Not implemented yet!  You can only merge if you used -i without a range.'
+
+# Too many file for ulimit
+# NOTE: we need a few file handle for STDs and libs but we want less file handles than it would require to open all chunks.
+unittest7ulimit: $(addprefix unittest7., ${CHUNK_LIST})
+	ulimit -n 9; \
+	${STRIPE} -r $+ 2>&1 \
+	| grep -qF "You provided 11 files to merge but the os doesn't allow that many file to be opened at once."
+
 
 unittest7.%:
-	${SPLIT} -i $* -m 3 <(seq 0 20) $@
+	${STRIPE} -i $* -m 11 <(${GEN}) $@
+
+
+
+########################################
+# Basically extract all content with a full range of index within the modulo
+.PHONY: unittest8
+unittest8:
+	${STRIPE} -i 0:2 -m 2 <(${GEN}) | diff - <(${GEN}) -q
+
+
+
+########################################
+# Exclude one of three lines
+.PHONY: unittest9
+unittest9:
+	${STRIPE} -i 0:2 -m 3 <(seq 0 10) | diff - <(sort -g <(seq 0 3 10) <(seq 1 3 10)) -q
+
 
 
 
