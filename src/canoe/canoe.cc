@@ -32,6 +32,8 @@
 #include "arg_reader.h"
 #include "process_bind.h"
 #include <boost/optional/optional.hpp>
+#include <unistd.h>  // sleep
+#include <stdlib.h> // rand
 
 using namespace Portage;
 using namespace std;
@@ -48,6 +50,9 @@ class OneFileInfo {
    oSafeMagicStream* f_pal;            ///< pal stream
    oSafeMagicStream* f_lattice;        ///< lattice stream
    oSafeMagicStream* f_lattice_state;  ///< lattice state stream
+   private:
+      OneFileInfo(const OneFileInfo&);            ///< Non-copyable
+      OneFileInfo& operator=(const OneFileInfo&); ///< Non-copyable
    public:
       /**
        * Default constructor.
@@ -202,101 +207,148 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
          << endl;
    }
 
-   if (c.latticeOut)
-   {
-      if (one_file_info.one()) {
-         const double dMasse = writeWordGraph(
-            one_file_info.lattice(), one_file_info.lattice_state(),
-            print, finalStates, c.backwards, masse);
-         if (masse) {
-            fprintf(stderr, "Weight for sentence(%4.4d): %32.32g\n", num, dMasse);
-            masse = false;
-         }
-      }
-      else {
-         // Create file names
-         char  sent_num[7];
-         snprintf(sent_num, 7, ".%.4d", num);
-         const string curLatticeFile
-            = addExtension(c.latticeFilePrefix, sent_num);
-         const string curCoverageFile
-            = addExtension(c.latticeFilePrefix, string(sent_num) + ".state");
+   Uint iteration(0);
+   const Uint maxTries(3);
+   bool good = true;
 
-         // Open files for output
-         oSafeMagicStream latticeOut(curLatticeFile);
-         oSafeMagicStream covOut(curCoverageFile);
-         // Produce lattice output
-         const double dMasse = writeWordGraph(&latticeOut, &covOut, print,
-               finalStates, c.backwards, masse);
-         if (masse) {
-            fprintf(stderr, "Weight for sentence(%4.4d): %32.32g\n", num, dMasse);
-            masse = false;
-         }
-      }
-   }
+   do {
+      vector<string>  openedFile;
 
-   if (c.nbestOut) {
-      lattice_overlay  theLatticeOverlay(
-         finalStates.begin(), finalStates.end(), model );
-
-      // Create the object that will output the Nbest list form the lattice.
-      NbestPrinter printer(model, oovs);
-
-      if (one_file_info.one()) {
-         // Attach the one file output stream
-         printer.attachNbestStream(one_file_info.nbest());
-         printer.attachFfvalsStream(one_file_info.ffvals());
-         printer.attachPalStream(one_file_info.pal());
-
-         print_nbest( theLatticeOverlay, c.nbestSize, printer, c.backwards );
-      }
-      else {
-         // Here we need to create some temp file stream just long enough to
-         // output the request data.
-         const Uint buffer_size = 31;
-         char  sent_num[buffer_size+1];
-         snprintf(sent_num, buffer_size, ".%.4d.", num);
-         ostringstream ext;
-         ext << sent_num << c.nbestSize << "best";
-         const string curNbestFile  = addExtension(c.nbestFilePrefix, ext.str());
-
-         oMagicStream  ffvals_stream;
-         if (c.ffvals) {
-            ffvals_stream.open(addExtension(curNbestFile, ".ffvals"));
-            assert(!ffvals_stream.fail());
-            printer.attachFfvalsStream(&ffvals_stream);
-         }
-
-         oMagicStream  pal_stream;
-         if (c.trace) {
-            pal_stream.open(addExtension(curNbestFile, ".pal"));
-            assert(!pal_stream.fail());
-            printer.attachPalStream(&pal_stream);
-         }
-
-         oMagicStream nbest_stream(curNbestFile);
-         printer.attachNbestStream(&nbest_stream);
-
-         // Must print here since the streams only exist in this scope on purpose
-         print_nbest( theLatticeOverlay, c.nbestSize, printer, c.backwards );
-      }
-   }
-
-   if (masse)
-   {
-      const double dMasse = writeWordGraph(NULL, NULL, print, finalStates, c.backwards, true);
-      fprintf(stderr, "Weight for sentence(%4.4d): %32.32g\n", num, dMasse);
-      masse = false;
-
-      // Temporary commented out until an option is available
-      if (false)
+      if (c.latticeOut)
       {
-         char file4sl[256];
-         sprintf(file4sl, "file.%4.4d", num);
-         translationProb  tp(model);
-         tp.find(file4sl, finalStates, dMasse);
+         if (one_file_info.one()) {
+            const double dMasse = writeWordGraph(
+                  one_file_info.lattice(), one_file_info.lattice_state(),
+                  print, finalStates, c.backwards, masse);
+            if (masse) {
+               fprintf(stderr, "Weight for sentence(%4.4d): %32.32g\n", num, dMasse);
+               masse = false;
+            }
+         }
+         else {
+            // Create file names
+            char  sent_num[7];
+            snprintf(sent_num, 7, ".%.4d", num);
+            const string curLatticeFile
+               = addExtension(c.latticeFilePrefix, sent_num);
+            const string curCoverageFile
+               = addExtension(c.latticeFilePrefix, string(sent_num) + ".state");
+
+            // Open files for output
+            oSafeMagicStream latticeOut(curLatticeFile);
+            openedFile.push_back(curLatticeFile);
+            oSafeMagicStream covOut(curCoverageFile);
+            openedFile.push_back(curCoverageFile);
+            // Produce lattice output
+            const double dMasse = writeWordGraph(&latticeOut, &covOut, print,
+                  finalStates, c.backwards, masse);
+            if (masse) {
+               fprintf(stderr, "Weight for sentence(%4.4d): %32.32g\n", num, dMasse);
+               masse = false;
+            }
+         }
       }
-   }
+
+      if (c.nbestOut) {
+         lattice_overlay  theLatticeOverlay(
+               finalStates.begin(), finalStates.end(), model );
+
+         // Create the object that will output the Nbest list from the lattice.
+         NbestPrinter printer(model, oovs);
+
+         if (one_file_info.one()) {
+            // Attach the one file output stream
+            printer.attachNbestStream(one_file_info.nbest());
+            printer.attachFfvalsStream(one_file_info.ffvals());
+            printer.attachPalStream(one_file_info.pal());
+
+            print_nbest( theLatticeOverlay, c.nbestSize, printer, c.backwards );
+         }
+         else {
+            // Here we need to create some temp file stream just long enough to
+            // output the request data.
+            const Uint buffer_size = 31;
+            char  sent_num[buffer_size+1];
+            snprintf(sent_num, buffer_size, ".%.4d.", num);
+            ostringstream ext;
+            ext << sent_num << c.nbestSize << "best";
+            const string curNbestFile  = addExtension(c.nbestFilePrefix, ext.str());
+
+            oMagicStream  ffvals_stream;
+            if (c.ffvals) {
+               ffvals_stream.open(addExtension(curNbestFile, ".ffvals"));
+               openedFile.push_back(addExtension(curNbestFile, ".ffvals"));
+               assert(!ffvals_stream.fail());
+               printer.attachFfvalsStream(&ffvals_stream);
+            }
+
+            oMagicStream  pal_stream;
+            if (c.trace) {
+               pal_stream.open(addExtension(curNbestFile, ".pal"));
+               openedFile.push_back(addExtension(curNbestFile, ".pal"));
+               assert(!pal_stream.fail());
+               printer.attachPalStream(&pal_stream);
+            }
+
+            oMagicStream nbest_stream(curNbestFile);
+            openedFile.push_back(curNbestFile);
+            printer.attachNbestStream(&nbest_stream);
+
+            // Must print here since the streams only exist in this scope on purpose
+            print_nbest( theLatticeOverlay, c.nbestSize, printer, c.backwards );
+
+            if (c.ffvals) {
+               if (!ffvals_stream.good())
+                  error(ETWarn, "Bad stream after writing %s.  %s",
+                        addExtension(curNbestFile, ".ffvals").c_str(), errno ? strerror(errno) : "");
+               ffvals_stream.flush();
+               if (!ffvals_stream.good())
+                  error(ETWarn, "Flushing %s yielded an error.  %s",
+                        addExtension(curNbestFile, ".ffvals").c_str(), errno ? strerror(errno) : "");
+            }
+            if (c.trace) {
+               if (!pal_stream.good())
+                  error(ETWarn, "Bad stream after writing %s.  %s",
+                        addExtension(curNbestFile, ".pal").c_str(), errno ? strerror(errno) : "");
+               pal_stream.flush();
+               if (!pal_stream.good())
+                  error(ETWarn, "Flushing %s yielded an error.  %s",
+                        addExtension(curNbestFile, ".pal").c_str(), errno ? strerror(errno) : "");
+            }
+            if (!nbest_stream.good())
+               error(ETWarn, "Bad stream after writing %s.  %s",
+                     curNbestFile.c_str(), errno ? strerror(errno) : "");
+            nbest_stream.flush();
+            error(ETWarn, "Flushing %s yielded an error.  %s",
+                  curNbestFile.c_str(), errno ? strerror(errno) : "");
+         }
+      }
+
+      if (masse)
+      {
+         const double dMasse = writeWordGraph(NULL, NULL, print, finalStates, c.backwards, true);
+         fprintf(stderr, "Weight for sentence(%4.4d): %32.32g\n", num, dMasse);
+         masse = false;
+
+         // Temporary commented out until an option is available
+         if (false)
+         {
+            char file4sl[256];
+            sprintf(file4sl, "file.%4.4d", num);
+            translationProb  tp(model);
+            tp.find(file4sl, finalStates, dMasse);
+         }
+      }
+
+      for (Uint i(0); i<openedFile.size(); ++i) {
+         if (!check_if_exists(openedFile[i])) {
+            error(ETWarn, "Looks like %s wasn't written on disk at iter %d/%d",
+                  openedFile[i].c_str(), iteration+1, maxTries);
+            good = false;
+         }
+      }
+      // Let's wait between 15 to 30 seconds 
+   } while (!good && (++iteration < maxTries) && (sleep(rand() % 5 + 1), true));
 
    delete printPtr;
 } // doOutput
