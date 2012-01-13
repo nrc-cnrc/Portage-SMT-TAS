@@ -29,6 +29,8 @@ use portage_utils;
 printCopyright("nbest2rescore.pl", 2005);
 $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
+use FileHandle;
+
 # globals
 my $phrase_re = qr/\"([^\\\"]*(?:(?:\\.)[^\\\"]*)*)\"/;
 my $align_re = qr/a=\[([^;\]]+;[^;\]]+;[^;\]]+[^]]*)\]/;
@@ -96,40 +98,24 @@ die "Don't know what to do with all these arguments."
 
 # Do it.
 open(my $in_stream, "<$in") 
-    or die "Can't open input nbest file $in\n";
-my $out_stream;
-if ($out =~ /.gz/) {
-   $out =~ s/(.*\.gz)\s*$/| gzip -cqf $mode $1/;
-   open($out_stream, $out) 
-      or die "Can't open output file $out\n";
-}
-else {
-   open($out_stream, "$mode$out")
-      or die "Can't open output file $out\n";
+    or die "Error: nbest2rescore.pl can't open input nbest file <'$in': $!\n";
+
+my $out_stream = new FileHandle;
+zopen($out_stream, "$mode$out")
+   or die "Error: nbest2rescore.pl can't open output file $mode'$out': $!\n";
+
+my $ff_stream;
+if ($ff && $ffout) {
+   $ff_stream = new FileHandle;
+   zopen($ff_stream, "$mode$ffout")
+      or die "Error: nbest2rescore.pl can't open output ff file $mode'$ffout': $!\n";
 }
 
-my ($ff_stream, $pal_stream);
-if ($ff && $ffout) {
-    if ($ffout =~ /.gz/) {
-       $ffout =~ s/(.*\.gz)\s*$/| gzip -cqf $mode $1/;
-       open($ff_stream, $ffout) 
-          or die "Can't open output ff file $ffout\n";
-    }
-    else {
-       open($ff_stream, "$mode$ffout") 
-          or die "Can't open output ff file $ffout\n";
-    }
-}
+my $pal_stream;
 if ($pal && $palout) {
-    if ($palout =~ /.gz/) { 
-       $palout =~ s/(.*\.gz)\s*$/| gzip -cqf $mode $1/; 
-       open($pal_stream, $palout)
-	   or die "Can't open output phrase alignment file $palout\n";
-    }
-    else {
-       open($pal_stream, "$mode$palout")
- 	  or die "Can't open output phrase alignment file $palout\n";
-    }
+   $pal_stream = new FileHandle;
+   zopen($pal_stream, "$mode$palout")
+      or die "Error: nbest2rescore.pl can't open output phrase alignment file $mode'$palout': $!\n";
 }
 
 my $count = 0;
