@@ -26,6 +26,9 @@
 
 from __future__ import print_function, unicode_literals, division, absolute_import
 
+import time
+start_time = time.time()
+
 import sys
 import codecs
 import re
@@ -59,6 +62,8 @@ parser = ArgumentParser(usage=usage, description=help, add_help=False)
 parser.add_argument("-h", "-help", "--help", action=HelpAction)
 parser.add_argument("-v", "--verbose", action=VerboseAction)
 parser.add_argument("-d", "--debug", action=DebugAction)
+parser.add_argument("-time", "--time", action='store_true', default=False,
+                    help="provide timing stats [%(default)s]")
 parser.add_argument("-enc", "--encoding", nargs='?', default="utf-8",
                     help="file encoding [%(default)s]")
 parser.add_argument("-srcbos", "--srcbos", nargs='?', type=FileType('w'), default=None,
@@ -515,6 +520,9 @@ def main():
     if palfile.readline(1) != '':
         fatal_error("More lines in <palfile> file than merged <nc1_srcfile> at line", tgt_line_cnt)
     palfile.close()
+    
+    if cmd_args.time:
+        print("boscap.py: boscap.py took", time.time() - start_time, "seconds.", file=sys.stderr)
 
 
 if __name__ == '__main__':

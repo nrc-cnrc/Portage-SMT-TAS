@@ -242,6 +242,10 @@ Don't do anything, just print the commands.
 
 Print help message and exit.
 
+=item -time
+
+Produce detailed timing info.
+
 =back
 
 =head1 PLUGINS
@@ -313,9 +317,14 @@ use File::Spec;
 use File::Basename;
 use Cwd;
 
+use Time::HiRes qw( time );
+
 # Note to programmer: Getopt::Long automatically accepts unambiguous
 # abbreviations for all options.
 use Getopt::Long;
+
+my $start_time = time;
+
 my $verbose = 0;
 my $saved_command_line = "$0 @ARGV";
 
@@ -325,6 +334,7 @@ Getopt::Long::GetOptions(
    "quiet"          => \my $quiet,
    "debug"          => \my $debug,
    "dryrun"         => \my $dryrun,
+   "time"           => \my $timing,
    
    "decode-only"    => \my $decode_only,
    "with-rescoring" => \my $with_rescoring,
@@ -374,6 +384,7 @@ Getopt::Long::GetOptions(
 $quiet = 0 unless defined $quiet;
 $debug = 0 unless defined $debug;
 $dryrun = 0 unless defined $dryrun;
+$timing = 0 unless defined $timing;
 
 if ( !$quiet || $verbose ) {
    print STDERR "$saved_command_line\n\n";
@@ -808,6 +819,7 @@ CLEANUP:{
     }
 }
 
+(print STDERR "translate.pl: translation workflow took ", time - $start_time, " seconds.\n") if $timing;
 exit 0; # All done!
 
 
@@ -944,12 +956,14 @@ sub truecase {
       my $enc = $utf8 ? "utf-8" : "cp1252";
       my $v = $verbose ? "-verbose" : "";
       my $d = $debug ? "-debug" : "";
-      call("truecase.pl $v $d -text '${in}' -bos -enc ${enc} -out '${out}' $model_opts $src_opts", $out);
+      my $t = $timing ? "-time" : "";
+      call("truecase.pl $v $d $t -text '${in}' -bos -enc ${enc} -out '${out}' $model_opts $src_opts", $out);
    }
 }
 
 sub call {
    my ($cmd, @outfiles) = @_;
+   my $start = time if $timing;
    verbose("[call: %s]\n", $cmd);
    if ($dryrun) {
       print $cmd, "\n";
@@ -957,6 +971,7 @@ sub call {
       system($cmd) == 0
          or cleanupAndDie(explainSystemRC($?,$cmd,$0), @outfiles);
    }
+   (print STDERR "translate.pl: Running ", (split(' ', $cmd, 2))[0], " took ", time - $start, " seconds.\n") if $timing;
 }
 
 sub callOutput {

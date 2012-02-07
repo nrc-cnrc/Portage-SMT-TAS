@@ -51,11 +51,15 @@ $ENV{PORTAGE_INTERNAL_CALL} = 1;
 use utf8;
 use File::Basename;
 
+use Time::HiRes qw( time );
+
 use constant WITH_BASH => 1;
 
 # Note to programmer: Getopt::Long automatically accepts unambiguous
 # abbreviations for all options.
 use Getopt::Long;
+
+my $start_time = time;
 
 my $verbose = 0;
 my $debug = 0;
@@ -65,6 +69,7 @@ Getopt::Long::GetOptions(
    'help'            => sub { display_help(); exit 0 },
    'v|verbose+'      => \$verbose,
    'debug+'          => \$debug,
+   'time'            => \my $timing,
 
    # Input argument
    'text=s'          => \my $in_file,     # target language text to truecase
@@ -97,6 +102,8 @@ Getopt::Long::GetOptions(
    # Output arguments
    'out=s'           => \my $out_file,
 )  or (print(STDERR "ERROR: truecase.pl aborted due to bad option.\nRun 'truecase.pl -h' for help.\n"), exit 1);
+
+$timing = 0 unless defined $timing;
 
 @ARGV < (defined $in_file ? 1 : 2)
    or die "ERROR: truecase.pl: too many arguments. Only one INPUT_FILE permitted.\n";
@@ -257,6 +264,7 @@ run($cmd, WITH_BASH);
 
 my $v = ($verbose > 1) ? "-v" : "";
 my $d = ($debug > 1) ? "-d" : "";
+my $t = $timing ? "-time" : "";
 
 if (defined $src_file) {
    # Step 2: Normalize the case of sentence-initial characters in the source text.
@@ -284,10 +292,10 @@ if (defined $src_file) {
    # Preload the C++ standard library to ensure that C++ exceptions and I/O 
    # are properly initialized when calling a C++ shared library from Python.
    my $ld_preload = "LD_PRELOAD=libstdc++.so:\$LD_PRELOAD";
-   run("$ld_preload casemark.py $v $d -a -lm $srclm_file -enc $encoding $nc1_file $cmark_file", WITH_BASH);
+   run("$ld_preload casemark.py $v $d $t -a -lm $srclm_file -enc $encoding $nc1_file $cmark_file", WITH_BASH);
    run("markup_canoe_output $v -n OOV $cmark_file $tc_file $pal_file "
        . "2> $cmark_log_file $gzip > $cmark_out_file");
-   run("casemark.py $v $d -r -enc $encoding $xtra_cm_opts $cmark_out_file $cmark_tc_file");
+   run("casemark.py $v $d $t -r -enc $encoding $xtra_cm_opts $cmark_out_file $cmark_tc_file");
 
    # Step 4: Capitalize beginning-of-sentence words, using hints from source language text.
    if ($bos_cap) {
@@ -298,7 +306,7 @@ if (defined $src_file) {
          push @tmp_files, $bos_file, $bos_out_file;
          $opts .= "$d -srcbos $bos_file -tgtbos $bos_out_file";
       }
-      run("boscap.py $v $opts $cmark_tc_file $src_file $nc1ss_file $pal_file $out_file");
+      run("boscap.py $v $t $opts $cmark_tc_file $src_file $nc1ss_file $pal_file $out_file");
    }
 }
 
@@ -311,11 +319,14 @@ unless ($debug) {
    }
 }
 
+(print STDERR "truecase.pl: truecasing workflow took ", time - $start_time, " seconds.\n") if $timing;
+
 
 sub convert_map_to_phrase_table
 {
    # Convert the vocab map to a phrase table on the fly.
    my ($map_file, $pt_file) = @_;
+   my $start = time if $timing;
    portage_utils::zin(*MAP, $map_file);
    open( TM,  ">", "$pt_file" ) 
       or die "ERROR: unable to open '$pt_file' for writing";
@@ -337,15 +348,18 @@ sub convert_map_to_phrase_table
    }
    close( MAP );
    close( TM );
+   (print STDERR "truecase.pl: converting map took ", time - $start, " seconds.\n") if $timing;
 }
 
 sub run
 {
    my ($cmd, $with_bash) = @_;
+   my $start = time if $timing;
    $with_bash = 0 unless defined $with_bash;
    print STDERR "COMMAND: $cmd\n" if $verbose;
    system($with_bash ? ("/bin/bash", "-c", $cmd) : $cmd) == 0
       or die "ERROR: truecase.pl failed (error $?) running '$cmd'.\n";
+   (print STDERR "truecase.pl: Running ", (split(' ', $cmd, 2))[0], " took ", time - $start, " seconds.\n") if $timing;
 }
 
 sub run_with_output
@@ -532,6 +546,10 @@ Print debug output to STDERR.
 =item -help
 
 Print this help and exit.
+
+=item -time
+
+Produce detailed timing info.
 
 =back
 

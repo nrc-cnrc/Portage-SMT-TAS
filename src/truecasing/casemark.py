@@ -19,6 +19,9 @@
 
 from __future__ import print_function, unicode_literals, division, absolute_import
 
+import time
+start_time = time.time()
+
 import sys
 import codecs
 import re
@@ -59,6 +62,8 @@ parser = ArgumentParser(usage=usage, description=help, add_help=False)
 parser.add_argument("-h", "-help", "--help", action=HelpAction)
 parser.add_argument("-v", "--verbose", action=VerboseAction)
 parser.add_argument("-d", "--debug", action=DebugAction)
+parser.add_argument("-time", "--time", action='store_true', default=False,
+                    help="provide timing stats [%(default)s]")
 parser.add_argument("-enc", "--encoding", nargs='?', default="utf-8",
                     help="file encoding [%(default)s]")
 markup_group = parser.add_mutually_exclusive_group()
@@ -517,6 +522,11 @@ def main():
         
     infile.close()
     outfile.close()
+    
+    if cmd_args.time:
+        print("casemark.py: casemark.py", "-a" if cmd_args.add_markup else "-r", 
+              "took", time.time() - start_time, "seconds.", file=sys.stderr)
+    
 
 
 class PyLM(object):
