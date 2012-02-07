@@ -414,7 +414,10 @@ def remove_bos_markup(line, line_number):
                 case = case[:-1]
             if i is 1 and case in ("unk-l", "unk-l?"):  # word added before time or number in tgt
                 case = "unk"
-            if prev == '%': 
+            if tok[0].isnumeric():  # skip when token starts with a digit
+                debug("remove_bos_markup: match initial digit")
+                pass
+            elif prev == '%': 
                 # skip start with %
                 debug("remove_bos_markup: match %")
                 pass
@@ -485,8 +488,8 @@ def main():
     tgtbosfile = writer(cmd_args.tgtbos) if cmd_args.tgtbos else None
     sys.stderr = writer(sys.stderr)  # for  utf-8 debug msgs
     
-    src_line_cnt = 0;
-    tgt_line_cnt = 0;
+    src_line_cnt = 0
+    tgt_line_cnt = 0
     src_bos_lines = []
     for nc1_line in nc1_srcfile:
         src_line_cnt += 1
