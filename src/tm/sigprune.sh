@@ -133,7 +133,7 @@ else
 fi
 
 # Define the intermediate count file.
-INTERMEDIATE_FILE="cnts.`basename $JPT`"
+INTERMEDIATE_FILE="sig.cnts.`basename $JPT`"
 if [[ -e "$INTERMEDIATE_FILE" ]]; then
    INTERMEDIATE_EXITS=1
    if [[ "$JPT" -nt "$INTERMEDIATE_FILE" ]]; then
