@@ -188,7 +188,7 @@ sub verbose {
 
 $PSUB_OPTS = "-psub \"$PSUB_OPTS\"" unless ($PSUB_OPTS eq "");
 
-# Make sure we have access to stripe.py.
+# Make sure we have access to stripe.py
 $use_stripe_splitting = ($use_stripe_splitting and system("which-test.sh stripe.py") == 0);
 if ($use_stripe_splitting) {
    # If we are using stripe mode and the user DIDN'T specify is one merge
@@ -385,19 +385,19 @@ for (my $i=0; $i<$NUMBER_OF_CHUNK_GENERATED; ++$i) {
       print(CMD_FILE "test -f $done || { { $debug_cmd $SUB_CMD; } && touch $done; }\n");
    }
    else {
-   my @delete = ();
-   # For each occurence of a file to split, replace it by a chunk.
-   foreach my $s (@SPLITS) {
-      my $file = "$workdir/" . $basename{$s} . "/$index";
-      push(@delete, $file);
-      unless ($SUB_CMD =~ s/(^|\s|<)\Q$s\E($|\s)/$1$file$2/) {
-         die "Unable to match $s and $file";
+      my @delete = ();
+      # For each occurence of a file to split, replace it by a chunk.
+      foreach my $s (@SPLITS) {
+         my $file = "$workdir/" . $basename{$s} . "/$index";
+         push(@delete, $file);
+         unless ($SUB_CMD =~ s/(^|\s|<)\Q$s\E($|\s)/$1$file$2/) {
+            die "Unable to match $s and $file";
+         }
       }
-   }
 
-   verbose(1, "\tAdding to the command list: $SUB_CMD");
-   # By deleting the input chunks we say this block was properly process in
-   # case of a resume is needed.
+      verbose(1, "\tAdding to the command list: $SUB_CMD");
+      # By deleting the input chunks we say this block was properly process in
+      # case of a resume is needed.
       print(CMD_FILE "test ! -f $delete[0] || { { $debug_cmd $SUB_CMD; } && mv $delete[0] $delete[0].done; }\n");
    }
 }
