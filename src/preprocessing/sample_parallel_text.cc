@@ -22,7 +22,7 @@ using namespace Portage;
 using namespace std;
 
 static char help_message[] = "\n\
-sample_parallel_text [-r|-b][-n samplesize|-p pc][-seed s]\n\
+sample_parallel_text [-r|-b|-c][-n samplesize|-p pc][-seed s]\n\
                      [-w wsize][-s suff][-l min-max][-d docidfile]\n\
                      [-docid docidfile]\n\
                      src tgt1 [tgt2 tgt3 ...]\n\
@@ -38,7 +38,10 @@ Options:\n\
     intervals]\n\
 -b  Sample randomly, with replacement [sample by choosing lines at fixed\n\
     intervals]. This option also permutes order of output text. Not compatible\n\
-    with -v -r -w -d -docid -l.\n\
+    with -v -w -d -docid -l.\n\
+-c  Sample randomly by choosing each line with probability <pc>/100. This\n\
+    reinterprets the -p switch (as sampling probability, rather than final\n\
+    size), and is not compatible with -v -w -d -docid -l.\n\
 -n  Produce a sample of size samplesize [0 = use -p to determine size]\n\
 -p  Produce a sample that is pc percent of src size [10]\n\
 -seed Set random seed to <s>.\n\
@@ -63,6 +66,7 @@ Options:\n\
 static bool invert = false;
 static bool randomsel = false;
 static bool bootstrapsel = false;
+static bool choosesel = false;
 static Uint samplesize = 0;
 static double sampleprop = 10.0;
 static Uint seed = 0;
@@ -81,7 +85,7 @@ static void getArgs(int argc, char* argv[]);
 
 static void doBootstrap(Uint numlines)
 {
-   if (samplesize == 0) {
+   if (samplesize) {
       samplesize = numlines * sampleprop / 100.0;
       if (samplesize == 0) samplesize = 1;
    }
@@ -107,10 +111,48 @@ static void doBootstrap(Uint numlines)
 
       string outfile = addExtension(*p, suffix);
       oSafeMagicStream ostr(outfile);
+
       for (Uint i = 0; i < lines.size(); ++i)
          ostr << contents[lines[i]] << endl;
+
    }
 } 
+
+// Sampling method for -c is different from other methods and switch combinations:
+
+static void doChoose(Uint numlines)
+{
+   if (samplesize)
+      error(ETWarn, "samplesize (-n) specification irrelevant with -c");
+
+   // choose line numbers to output: 0 means no; 1 means yes
+
+   vector<Uint> lines(numlines);
+   for (Uint i = 0; i < lines.size(); ++i)
+      lines[i] = rand(100) < sampleprop;
+   
+   // write new files
+
+   vector<string> allfiles(tgtfilenames);
+   allfiles.push_back(srcfilename);
+   vector<string> contents;
+
+   for (vector<string>::iterator p = allfiles.begin(); p != allfiles.end(); ++p) {
+
+      contents.clear();
+      readFileLines(*p, contents);
+      if (contents.size() != numlines)
+         error(ETFatal, "file %s has the wrong number of lines", p->c_str());
+
+      string outfile = addExtension(*p, suffix);
+      oSafeMagicStream ostr(outfile);
+
+      for (Uint i = 0; i < contents.size(); ++i)
+         if (lines[i])
+            ostr << contents[i] << endl;
+   }
+} 
+
 
 // main
 
@@ -148,6 +190,9 @@ int main(int argc, char* argv[])
 
    if (bootstrapsel) {
       doBootstrap(num_lines);
+      return 0;
+   } else if (choosesel) {
+      doChoose(num_lines);
       return 0;
    }
 
@@ -261,7 +306,7 @@ int main(int argc, char* argv[])
 
 void getArgs(int argc, char* argv[])
 {
-   const char* switches[] = {"v", "r", "b", "n:", "p:", "seed:", "w:", "s:", "l:", "d:", "docid:"};
+   const char* switches[] = {"v", "r", "b", "c", "n:", "p:", "seed:", "w:", "s:", "l:", "d:", "docid:"};
 
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 2, -1, help_message, "-h", true);
    arg_reader.read(argc-1, argv+1);
@@ -269,6 +314,7 @@ void getArgs(int argc, char* argv[])
    arg_reader.testAndSet("v", invert);
    arg_reader.testAndSet("r", randomsel);
    arg_reader.testAndSet("b", bootstrapsel);
+   arg_reader.testAndSet("c", choosesel);
    arg_reader.testAndSet("n", samplesize);
    arg_reader.testAndSet("p", sampleprop);
    arg_reader.testAndSet("seed", seed);
@@ -284,11 +330,14 @@ void getArgs(int argc, char* argv[])
    if (arg_reader.getSwitch("p") && arg_reader.getSwitch("n"))
       error(ETFatal, "only one of -n and -p can be used");
 
-   if (arg_reader.getSwitch("b"))
-      if (arg_reader.getSwitch("v") || arg_reader.getSwitch("r") || 
+   if (arg_reader.getSwitch("b") || arg_reader.getSwitch("c"))
+      if (arg_reader.getSwitch("v") ||
           arg_reader.getSwitch("w") || arg_reader.getSwitch("docid") ||
           arg_reader.getSwitch("d") || arg_reader.getSwitch("l"))
-         error(ETFatal, "Switches -v, -r, -w, -d, -docid, and -l are not compatible with -b");
+         error(ETFatal, "Switches -v, -w, -d, -docid, and -l are not compatible with -b/-c");
+
+   if ((randomsel && (bootstrapsel || choosesel)) || (bootstrapsel && choosesel))
+      error(ETFatal, "at most one of -r, -b and -c can be specified");
 
    if (length_spec != "") {
       if (arg_reader.getSwitch("r") || arg_reader.getSwitch("b") || 
