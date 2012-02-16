@@ -41,7 +41,7 @@ if sys.argv[0] not in ('', '-c'):
 
 from portage_utils import *
 
-printCopyright("boscap.py", 2012);
+printCopyright("boscap-nosrc.py", 2012);
 os.environ['PORTAGE_INTERNAL_CALL'] = '1';
 
 

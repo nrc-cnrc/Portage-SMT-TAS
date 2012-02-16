@@ -21,6 +21,7 @@ PROGRAMS = \
 BINSCRIPTS= \
 	truecase.pl \
 	boscap.py \
+	boscap-nosrc.py \
 	casemark.py \
 	filter-nc1.py
 
