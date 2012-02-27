@@ -66,7 +66,7 @@ make_version:
 
 .PHONY: gcc_version
 gcc_version:
-	@[[ $$( echo "`${CXX} --version | head -n 1 | egrep -om1 '[0-9]\.[0-9]+'` >= 4.2" | bc) == 1 ]] \
+	@[[ $$( echo "`${CXX} --version | head -n 1 | egrep -om1 '[0-9]\.[0-9]+' | head -n 1` >= 4.2" | bc) == 1 ]] \
 	|| ! echo "Portage requires at least g++-4.2, unless you have a binary distribution." >&2
 
 
