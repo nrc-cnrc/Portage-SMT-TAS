@@ -254,7 +254,7 @@ function full_translation
                NUM=$MAX_DEFAULT_NUM
          fi
       else
-         if [[ $(uname -s) -ne "Darwin" ]]; then
+         if [[ $(uname -s) != Darwin ]]; then
             NUM=$(echo `grep processor /proc/cpuinfo | wc -l`)
          else
             NUM=$(sysctl -n hw.ncpu)
