@@ -19,7 +19,7 @@ SHELL = /bin/bash
 
 PARALLELIZE_PL ?= parallelize.pl
 
-vpath %.txt ${PORTAGE}/test-suite/toy
+vpath %.txt ${PORTAGE}/test-suite/toy  ${PORTAGE}/test-suite/unit-testing/toy
 vpath input% src
 
 .PHONY: all  testsuite
