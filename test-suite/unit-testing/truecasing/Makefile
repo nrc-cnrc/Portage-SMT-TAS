@@ -74,8 +74,11 @@ src_ucbos_cp1252:
 ref_ucbos_cp1252:
 	env echo -e "${REF_UCBOS}" > $@
 
-${LM}_cp1252:
-	env echo -e "${REF}" | ngram-count -text - -order 3 -lm $@
+# Rule used to generate the file on balzac then that lm was commited to cvs
+# since ngram-count which is srilm, is not always available to PORTAGEshared
+# users.
+#${LM}_cp1252:
+#	env echo -e "${REF}" | ngram-count -text - -order 3 -lm $@
 
 ${MAP}_cp1252:
 	env echo -e\
