@@ -28,7 +28,7 @@ all: tpt_ucbos_utf8
 
 clean:
 	${RM} -r ${LM}_*.tplm* ${MAP}_*.tppt*
-	${RM} ref_* src_* ${LM}_* ${MAP}_* vocabMap2tpt.*
+	${RM} ref_* src_* ${LM}_*.gz ${LM}_utf8* ${MAP}_* vocabMap2tpt.*
 
 canoe1_%: src_% ref_% ${LM}_% ${MAP}_%
 	${LIB} ${TRUECASER} ${VERBOSE} --text=$< --lm=${LM}_$* --map=${MAP}_$* \
