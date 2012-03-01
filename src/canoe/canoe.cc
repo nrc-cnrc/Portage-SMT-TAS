@@ -296,31 +296,6 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
 
             // Must print here since the streams only exist in this scope on purpose
             print_nbest( theLatticeOverlay, c.nbestSize, printer, c.backwards );
-
-            if (c.ffvals) {
-               if (!ffvals_stream.good())
-                  error(ETWarn, "Bad stream after writing %s.  %s",
-                        addExtension(curNbestFile, ".ffvals").c_str(), errno ? strerror(errno) : "");
-               ffvals_stream.flush();
-               if (!ffvals_stream.good())
-                  error(ETWarn, "Flushing %s yielded an error.  %s",
-                        addExtension(curNbestFile, ".ffvals").c_str(), errno ? strerror(errno) : "");
-            }
-            if (c.trace) {
-               if (!pal_stream.good())
-                  error(ETWarn, "Bad stream after writing %s.  %s",
-                        addExtension(curNbestFile, ".pal").c_str(), errno ? strerror(errno) : "");
-               pal_stream.flush();
-               if (!pal_stream.good())
-                  error(ETWarn, "Flushing %s yielded an error.  %s",
-                        addExtension(curNbestFile, ".pal").c_str(), errno ? strerror(errno) : "");
-            }
-            if (!nbest_stream.good())
-               error(ETWarn, "Bad stream after writing %s.  %s",
-                     curNbestFile.c_str(), errno ? strerror(errno) : "");
-            nbest_stream.flush();
-            error(ETWarn, "Flushing %s yielded an error.  %s",
-                  curNbestFile.c_str(), errno ? strerror(errno) : "");
          }
       }
 
