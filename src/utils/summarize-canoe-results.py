@@ -3,198 +3,254 @@
 # @file summarize-canoe-results.py
 # @brief Summarize the results of a set of Portage training runs.
 # 
-# @author George Foster
+# @author George Foster; updated by Darlene Stewart
 #
-# Overly complex code, due to experimentation with Python's class system. 
+# Includes experimentation with Python's class system. 
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2010, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2010, Her Majesty in Right of Canada
+# Copyright 2010, 2012, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2010, 2012 Her Majesty in Right of Canada
+
+from __future__ import print_function, unicode_literals, division, absolute_import
 
 import sys, os, os.path, glob, re, math
-from optparse import OptionParser
-from subprocess import Popen, PIPE
+import argparse
+from argparse import ArgumentParser
+from subprocess import check_output, CalledProcessError
 from os.path import exists, join, isdir, basename, splitext
 
-# arg processing
+# If this script is run from within src/ rather than from the installed bin
+# directory, we add src/utils to the Python module include path (sys.path).
+if sys.argv[0] not in ('', '-c'):
+    bin_path = os.path.dirname(sys.argv[0])
+    if os.path.basename(bin_path) != "bin":
+        sys.path.insert(1, os.path.normpath(os.path.join(bin_path, "..", "utils")))
 
-usage="summarize-canoe-results.py [options] [dirs]"
-help="""
+from portage_utils import *
 
-Summarize the results of a set of canoe runs in the given list of directories,
-or in all immediate subdirectories if no list is given. Runs are sorted in
-order of descending average test-corpus score by default, but this can be
-changed with the -a option. Runs that are lacking one or more results included
-in the sort criterion are displayed last.
-"""
 
-parser = OptionParser(usage=usage, description=help)
-parser.add_option("-v", dest="verbose", action="store_true", default=False,
-                  help="list directories that don't appear to contain a tuning run [%default]")
-parser.add_option("-a", dest="sort_list", type="string", default="",
-                  help="list of results to average for sorting, eg 'test1 test2' " +\
-                  "NB: scores in the 'avg' column are averages ONLY over these " +\
-                  "results; this column isn't displayed if only one result is chosen " +\
-                  "for sorting [average over all results except MERT]")
-parser.add_option("-s", dest="alts", action="store_true", default=False,
-                  help="calculate stability stats over alternative runs stored in " +\
-                  "sub-directories, when these exist: replace BLEU scores with averages, "+\
-                  "and print std deviations on the following lines [%default]")
-parser.add_option("-e", dest="excludedirs", type="string", default="",
-                  help="list of directories to exclude [%default]")
-parser.add_option("-p", dest="prec", type="int", default=2,
-                  help="number of decimal places for BLEU scores [%default]")
-(opts, args) = parser.parse_args()
+def get_args():
+   """Command line argument processing"""
+   
+   usage="summarize-canoe-results.py [options] [-dir] [dirs]"
+   help="""
+   Summarize the results of a set of canoe runs in the given list of directories,
+   or in all immediate subdirectories if no list is given. Runs are sorted in
+   order of descending average test-corpus score by default, but this can be
+   changed with the -a option. Runs that are lacking one or more results included
+   in the sort criterion are displayed last.
+   """
 
-if len(args):                           # explicit directory list given
-   dirs = filter(lambda f: isdir(f), args)
-   if len(dirs) != len(args):
-      print >> sys.stderr, "Warning: ignoring non-directory arguments: ", [f for f in set(args)-set(dirs)]
-else:                                   # no dirs given: use all subdirs
-   dirs = filter(lambda f: isdir(f), os.listdir("."))
+   def is_dir(f):
+      if not isdir(f):
+         warn("Ignoring non-directory argument:", f)
+         return ""
+      return f
 
-excl = opts.excludedirs.split()
-dirs = filter(lambda f: f not in excl, dirs)
+   parser = ArgumentParser(usage=usage, description=help, add_help=False)
+   parser.add_argument("-h", "-help", "--help", action=HelpAction)
+   parser.add_argument("-v", "--verbose", action=VerboseAction, 
+                       help="list directories that don't appear to contain a tuning run [%(default)s]")
+   parser.add_argument("-d", "--debug", action=DebugAction)
+   parser.add_argument("-e", dest="exclude_dirs", nargs="*", type=str, default="",
+                       help="list of directories to exclude [%(default)s]")
+   parser.add_argument("-t", dest="test_sets", nargs="*", type=str, default="",
+                       help="list of test sets for which to list results, "
+                            "e.g. 'test1 test2'; implies -a [include all tests]")
+   parser.add_argument("-a", dest="sort_list", nargs="*", type=str, default="",
+                       help="list of results to average for sorting, e.g. 'test1 test2'; "
+                            "must be a subset of the listed test sets (-t option). "
+                            "NB: scores in the 'avg' column are averages ONLY over these "
+                            "results; this column isn't displayed if only one result is chosen "
+                            "for sorting [average over all results specified by -t except MERT]")
+   parser.add_argument("-delta", dest="delta", type=str, default=None,
+                       help="also show delta BLEU score against a baseline [%(default)s]")
+   parser.add_argument("-s", dest="alts", nargs="?", choices=("avg","trimmed"), const="avg", default=None,
+                       help="calculate stability stats over alternative runs stored in "
+                       "sub-directories, when these exist: replace BLEU scores with averages, "
+                       "and print std deviations on the following lines. Average can be "
+                       "the arithmetic mean (avg, unspecified), or trimmed mean (trimmed) "
+                       "dropping the highest and lowest results for 4 or more runs. [no]")
+   parser.add_argument("-p", dest="prec", type=int, default=2,
+                       help="number of decimal places for BLEU scores [%(default)s]")
+   parser.add_argument("-dir", action='store_true', 
+                       help="directories for which to summarize canoe results follow")
+   parser.add_argument("dirs", nargs="*", type=is_dir, default=[f for f in os.listdir(".") if isdir(f)],
+                       help="directories for which to summarize canoe results")
+   cmd_args = parser.parse_args()
+   
+   excl = tuple(x for s in cmd_args.exclude_dirs for x in s.split())    # split any quoted strings
+   cmd_args.dirs = tuple(d for d in cmd_args.dirs if d and d not in excl) # filter out excluded directories
+   cmd_args.test_sets = tuple(t for s in cmd_args.test_sets for t in s.split())    # split any quoted strings
+   cmd_args.sort_list = tuple(t for s in cmd_args.sort_list for t in s.split())    # split any quoted strings
+   return cmd_args
 
-# objects
+
+devname = "MERT"
+
 
 class DirInfo:
    """Maintain scoring info about a directory containing a tuning run."""
-
-   test_sets = {}                       # test set name -> index
-   sort_indexes = []                    # list of test-set indexes to average for sorting
+   test_sets = set()                    # all test set names
+   sort_test_sets = []                  # list of test-set names to average for sorting
    avg_header = "avg"                   # header for averaged column
+   delta_header = "delta"               # header for delta column
    cow_iter = ""                        # status of cow in iterations
 
    @staticmethod
-   def initSortIndexes(tests):
-      """Initialize global sort_indexes[] list from given space-separated list of test sets"""
-      for t in tests.split():
-         if t in DirInfo.test_sets:
-            DirInfo.sort_indexes.append(DirInfo.test_sets[t])
+   def initSortList(test_sets=None):
+      """Initialize global sort_test_sets list from given test sets
+      test_sets: an iterable providing the names of test sets
+      """
+      if test_sets is None or len(test_sets) is 0:
+          DirInfo.sort_test_sets = [t for t in DirInfo.test_sets if t != devname]
+          return
+      for test_set in test_sets:
+         if test_set in DirInfo.test_sets:
+            DirInfo.sort_test_sets.append(t)
          else:
-            print >> sys.stderr, "ignoring non-existent test set: " + t
-
-   @staticmethod
-   def testSetName(i):
-      """Return the name of the ith test set"""
-      for k in DirInfo.test_sets.keys():
-         if DirInfo.test_sets[k] == i:
-            return k
-      return "NONE"
+            warn("Ignoring non-existent or non-listed test set: ", test_set)
+      print("sort_test_sets:", DirInfo.sort_test_sets)
 
    def __init__(self, name):
       self.name = name
       self.cowlog_exists = False
       self.canoe_wts_exist = False
-      self.scores = []                 # one score per test set, or -1 for none
-
-      # structures for handling alternative runs (used if opts.alts is set)
-      self.subdirs = []                # list of sub DirInfos
-      self.avg_scores = []             # test index -> avg score across main & alt runs
-      self.sdev_scores = []            # test index -> sdev ""
-      self.testavg_sdev = 0 # sdev of avgs across test sets (ones in sort_indexes)
+      self.scores = {}                 # one score per test set, or -1 for none
+      # structures for handling alternative runs (used if cmd_args.alts is set)
+      self.subdirs = []          # list of sub DirInfos
+      self.avg_sdev_scores = {}  # 2-tuple of avg and sdev scores across main & alt runs for each test
+      self.testavg_sdev = 0      # sdev of avgs across test sets (in sort_test_sets) for avgs across runs 
 
    def __str__(self):
-      s = self.name + ":"
-      for k,v in DirInfo.test_sets.iteritems():
-         if self.getScore(v) != -1:
-            s += " " + k + "=" + str(self.scores[v])
+      s = self.name + ": "
+      for k in scores:
+         if self.scores[k] is not None:
+            s += " {0}={1}".format(k, self.scores[k])
       return s + " " + self.statusString()
+   
+   def getTestSets(self):
+      """Return the names of test sets with scores in this DirInfo object."""
+      return self.scores.keys()
 
-   def getScore(self, index, sdev_score = False):
-      s = self.scores if sdev_score == False else self.sdev_scores
-      return s[index] if index < len(s) else -1
+   def getScore(self, test_set, average=False):
+      """Return the score for a test_set or None if no score for the test set."""
+      return self.scores.get(test_set) if not average else self.getAvg(test_set)
+
+   def getAvg(self, test_set):
+      """Return the average of the scores across the main and alt runs for a test_set or None."""
+      return self.avg_sdev_scores.get(test_set, (None,None))[0]
+
+   def getSDev(self, test_set):
+      """Return the standard deviation of the scores across the main and alt runs for a test_set or None."""
+      return self.avg_sdev_scores.get(test_set, (None,None))[1]
 
    def hasRun(self):
       return self.cowlog_exists or self.canoe_wts_exist
 
    def statusString(self):
-      if self.cow_iter != "":
-         cow_iter_format = self.cow_iter + "; "
+      if self.cowlog_exists:
+         msg = "" if self.canoe_wts_exist else "cow not finished"
       else:
-         cow_iter_format = ""
-      if self.cowlog_exists and self.canoe_wts_exist:
-         if self.cow_iter != "":
-            return "(" + self.cow_iter + ")"
-         else:
-            return ""
-      elif self.cowlog_exists and not self.canoe_wts_exist:
-         return "(" + cow_iter_format + "cow not finished)"
-      elif not self.cowlog_exists and self.canoe_wts_exist:
-         return "(" + cow_iter_format + "no local cow)"
-      else:
-         return "(" + cow_iter_format + "cow not run)"
+         msg = "no local cow" if self.canoe_wts_exist else "cow not run"
+      if self.cow_iter or msg:
+         return "({0})".format("; ".join(s for s in (self.cow_iter, msg) if s))
+      return ""
 
-   def addScore(self, testset, score):
-      if testset not in DirInfo.test_sets:
-         DirInfo.test_sets[testset] = len(DirInfo.test_sets)
-      i = DirInfo.test_sets[testset]
-      self.scores.extend([-1] * (i + 1 - len(self.scores)))
-      self.scores[i] = score
+   def addScore(self, test_set, score):
+      """Add a score for a test set."""
+      DirInfo.test_sets.add(test_set)
+      self.scores[test_set] = score
 
-   def avgScore(self):
-      """Average across selected test sets"""
+   def avgScore(self, avgOfAvgs=False):
+      """Return the average across selected test sets.
+      
+      avgOfAvgs: return the average across the alternative run averages if True;
+         otherwise return the average across the base scores
+         or None if any scores are missing
+      """
       avg = 0.0
-      for i in DirInfo.sort_indexes:
-         s = self.getScore(i)
-         if s == -1: return -1
+      for test_set in DirInfo.sort_test_sets:
+         s = self.getScore(test_set, avgOfAvgs)
+         if s is None: return None
          avg += s
-      return avg / len(DirInfo.sort_indexes) if len(DirInfo.sort_indexes) else -1
+      return avg / len(DirInfo.sort_test_sets) if len(DirInfo.sort_test_sets) else None
 
    def avgAndDevScore(self):
-      avg = self.avgScore()
-      dev = self.getScore(0)
-      return [avg, dev]
+      """Return the averageScore across test sets and the dev score.
+      If we have averages across alternative runs, use those instead of the
+      base scores.
+      """
+      use_avgs = len(self.avg_sdev_scores) > 0
+      return (self.avgScore(use_avgs), self.getScore(devname, use_avgs))
 
    @staticmethod
-   def colWidth(prec, header_len):
-      return max(3 + prec, header_len)
+   def colWidth(prec, header):
+      return max(3 + prec, len(header))
 
    @staticmethod
-   def printHeader(prec):
+   def printHeader(prec, printDelta):
       """Print column headings, assuming prec digits after the decimal point."""
-      tests = DirInfo.test_sets.keys()
-      tests.sort()
+      tests = sorted(DirInfo.test_sets)
+      if len(DirInfo.sort_test_sets) > 1:
+          tests.append(DirInfo.avg_header)
+      if printDelta:
+          tests.append(DirInfo.delta_header)
       for t in tests:
-         print t.rjust(DirInfo.colWidth(prec, len(t))), "",
-      if len(DirInfo.sort_indexes) > 1:
-         t = DirInfo.avg_header
-         print t.rjust(DirInfo.colWidth(prec, len(t))), "",
-      print
+         print('{0:>{1}}  '.format(t, DirInfo.colWidth(prec, t)), end='')
+      print()
 
-   @staticmethod
-   def printScore(prec, header_len, score):
-      w = DirInfo.colWidth(prec, header_len)
-      fmt = "%" + str(w) + "." + str(prec) + "f"
-      print fmt % (score * 100.0) if score != -1 else ("-" * w), "",
+   def prettyPrint(self, prec, baseline_score, avg):
+      """Pretty print, with prec digits after the decimal point.
+      
+      prec: number of digits of precision after the decimal point.
+      baseline_score: baseline_score for delta column, or None for no deltas.
+      avg: if not None, print average scores for alternative runs instead of 
+         base score. In this case, avg identifies the type of average computed
+         (arithmetic mean ("avg") or trimmed average ("trimmed"), and a
+         standard-deviation line is also printed.
+      """
+      def fmt_score(score, header):
+          w = DirInfo.colWidth(prec, header)
+          if score is not None:
+             return '{0:{1}.{2}f}  '.format(score*100.0, w, prec)
+          return '{0}  '.format('-' * w)
 
-   def prettyPrint(self, prec):
-      """Pretty print, with prec digits after the decimal point."""
-      tests = DirInfo.test_sets.keys()
-      tests.sort()
-      for t in tests:
-         DirInfo.printScore(prec, len(t), self.getScore(DirInfo.test_sets[t]))
-      if len(DirInfo.sort_indexes) > 1:
-         DirInfo.printScore(prec, len(DirInfo.avg_header), self.avgScore())
-      print "", self.name, self.statusString()
+      show_avg = avg is not None    # show average across alternative runs
+      
+      test_sets = sorted(DirInfo.test_sets)
+      for test_set in test_sets:
+         print(fmt_score(self.getScore(test_set, show_avg), test_set), end='')
+      if len(DirInfo.sort_test_sets) > 1:
+         print(fmt_score(self.avgScore(show_avg), DirInfo.avg_header), end='')
+      if baseline_score is not None:
+         avg_score = self.avgScore(show_avg)
+         delta = avg_score-baseline_score if avg_score is not None else None
+         print(fmt_score(delta, DirInfo.delta_header), end='')
+      print('', self.name, self.statusString())
 
-      # Print standard-deviation line below BLEU scores if opts.alts set (note
-      # that in this case, the BLEU scores printed above are averages over alt
-      # runs if any exist).
+      # Print standard-deviation line below BLEU scores if printing averages
+      # across alternative runs.
+      if show_avg:
+         for test_set in test_sets:
+            print(fmt_score(self.getSDev(test_set), test_set), end='')
+         if len(DirInfo.sort_test_sets) > 1:
+            print(fmt_score(self.testavg_sdev, DirInfo.avg_header), end='')
+         n = len(self.subdirs)
+         runs = "{0}/{1}".format(n-1,n+1) if avg == "trimmed" and n > 3 else n+1
+         print("    std devs over {0} run{1}".format(runs, "s" if len(self.subdirs) else ""))
 
-      if opts.alts:
-         for t in tests:
-            DirInfo.printScore(prec, len(t), self.getScore(DirInfo.test_sets[t], True))
-         if len(DirInfo.sort_indexes) > 1:
-            DirInfo.printScore(prec, len(DirInfo.avg_header), self.testavg_sdev)
-         print "", "   std devs over", len(self.subdirs) + 1, ("runs" if len(self.subdirs) else "run")
 
-# initialize a DirInfo object from the contents of a directory
-
-def readDirInfo(di, d):
+def readDirInfo(di, d, in_test_sets_to_list):
+   """Initialize a DirInfo object from the contents of a directory.
+   
+   di: DirInfo object to be initialized
+   d: name of the directory to process
+   in_test_sets_to_list(test_set): function returning true if the named test_set 
+       should be included (i.e. listed in the results)
+   """
    if exists(join(d, "logs/log.cow")) or \
       exists(join(d, "log.cow")) or \
       exists(join(d, "models/decode/log.canoe.ini.cow")) or \
@@ -202,118 +258,136 @@ def readDirInfo(di, d):
       di.cowlog_exists = 1
    if exists(join(d, "canoe.ini.cow")) or exists(join(d, "models/decode/canoe.ini.cow")):
       di.canoe_wts_exist = 1
-   rr_file = ""
-   if exists(join(d, "rescore-results")):
-      rr_file = "rescore-results"
-   elif exists(join(d, "models/decode/rescore-results")):
-      rr_file = "models/decode/rescore-results"
-   if rr_file != "" and not exists(join(d, "summary")):
-      s = Popen(["best-rr-val", join(d,rr_file)], stdout=PIPE).communicate()[0]
-      devbleu = float(s.split()[0])
-      di.addScore(devname, devbleu)
-      m = re.search("\((\d+) iters, best = (\d+)\)", s);
-      di.cow_iter = s[m.start(2):m.end(2)] + "/" + s[m.start(1):m.end(1)] + " iters"
-   elif exists(join(d, "summary")):   # tune.py run
+   if exists(join(d, "summary")):   # tune.py run
       lines = list(open(join(d, "summary")))
-      scores = map(float, [l.split()[0].split('=')[1] for l in lines])
+      scores = [float(l.split(None, 1)[0].split('=')[1]) for l in lines]
       if len(scores) != 0:
          best = max(scores)
          di.addScore(devname, best)
-         di.cow_iter = str(scores.index(best)+1) + "/" + str(len(scores)) + " iters"
+         di.cow_iter = "{0}/{1} iters".format(scores.index(best)+1, len(scores))
+   else:
+      rr_file = None
+      if exists(join(d, "rescore-results")):
+         rr_file = "rescore-results"
+      elif exists(join(d, "models/decode/rescore-results")):
+         rr_file = "models/decode/rescore-results"
+      if rr_file:
+         s = check_output(["best-rr-val", join(d, rr_file)])
+         devbleu = float(s.split(None, 1)[0])
+         di.addScore(devname, devbleu)
+         m = re.search("\((\d+) iters, best = (\d+)\)", s);
+         di.cow_iter = "{0}/{1} iters".format(m.group(2), m.group(1))
    for f in glob.glob(d + "/*.bleu") + glob.glob(d + "/translate/*.bleu"):
       test = splitext(basename(f))[0]
       if splitext(test)[1] == ".out":
          test = splitext(test)[0]
-      toks = Popen(["grep", "BLEU", f], stdout=PIPE).communicate()[0].split()
-      if len(toks) == 3 or len(toks) == 5:
-         di.addScore(test, float(toks[2]))
+      if in_test_sets_to_list(test):
+         try:
+            toks = check_output(["grep", "BLEU", f]).split()
+         except CalledProcessError:
+            toks = []
+         if len(toks) in (3, 5):
+            di.addScore(test, float(toks[2]))
    return di
 
-# extract results from each directory and make a list of them
 
-devname = "MERT"
+def avg_sdev(scores, mean_type="avg"):
+   """Return average and standard deviation for an iterable.
+   Note: the sdev formula is for the sample only (/n); not the one that estimates
+   the population value (/(n-1)).
+   
+   scores: an iterable providing the scores to average
+   mean_type: "trimmed" for trimmed mean (dropping the highest and lowest for 
+      4 or more scores) or "avg" for arithmetic mean respectively.
+      Default: avg
+   """
+   if len(scores) is 0:
+       return None, None
+   if mean_type == "trimmed" and len(scores) > 3:
+       min_score = min(scores)
+       max_score = max(scores)
+       min_max = min_score + max_score
+       min_max_sq = min_score * min_score + max_score * max_score
+       n = len(scores) - 2
+   else:
+       min_max = min_max_sq = 0.0
+       n = len(scores)
+   avg = (sum(scores) - min_max) / n
+   sdev = math.sqrt((sum(s * s for s in scores) - min_max_sq) / n - avg * avg)
+   return avg, sdev
 
-results = []
-     
-for d in dirs:
+def main():
+   printCopyright("summarize-canoe-results.py", 2010);
+   os.environ['PORTAGE_INTERNAL_CALL'] = '1';
+   
+   cmd_args = get_args()
+   
+   def in_test_sets_to_list(test_set):
+      """Return true if the named test_set should be listed in the results."""
+      return len(cmd_args.test_sets) is 0 or test_set in cmd_args.test_sets
 
-   di = DirInfo(basename(d))
-   readDirInfo(di, d)
+   # Extract results from each directory and make a list of them
+   results = []
+   for d in cmd_args.dirs:
+      di = DirInfo(basename(d))
+      readDirInfo(di, d, in_test_sets_to_list)
+      results.append(di)
+      # check for sub-dirs containing alternative runs if called for
+      if cmd_args.alts:
+         for sd in os.listdir(d):
+            sdir = join(d, sd)
+            # Note: translate subdir was already processed by readDirInfo(di) above
+            if sd not in ("translate", "foos", "logs") and isdir(sdir):
+               sdi = DirInfo(sd)
+               readDirInfo(sdi, sdir, in_test_sets_to_list)
+               if sdi.hasRun():
+                  di.subdirs.append(sdi)
+   
+   # Make list of tests to average for sorting
+   DirInfo.initSortList(cmd_args.sort_list)
+   
+   # Fill in average and sdev for each test set from alts and the sdev of the 
+   # averages across test sets, if called for.
+   # The sdev formula is for the sample only (/n); not the one that
+   # estimates the population value (/(n-1)).
+   if cmd_args.alts:
+      for di in results:
+         if cmd_args.alts == "trimmed" and len(di.subdirs) < 3:
+            warn("Reverting to arithmetic mean for < 4 runs in", d)
+         for test in di.getTestSets():
+            scores = [di.getScore(test)]
+            for sdi in di.subdirs:
+               sc = sdi.getScore(test)
+               scores.append(sc) if sc is not None \
+                  else warn("Alt value missing for", test, "in", join(d, sdi.name))
+            di.avg_sdev_scores[test] = avg_sdev(scores, cmd_args.alts)
+         scores = [di.avgScore()]
+         scores.extend(s for sdi in di.subdirs for s in (sdi.avgScore(),) if s is not None)
+         dummy, di.testavg_sdev = avg_sdev(scores, cmd_args.alts)
+   
+   # sort results by the sorting average
+   results.sort(key=DirInfo.avgAndDevScore, reverse=True)
+   
+   # output sorted results according to chosen format
+   if len(DirInfo.test_sets) is 0:
+      info("No BLEU results found in subdirectories.")
+      sys.exit(0)
+   
+   # What is our baseline average score?
+   baseline_score = None
+   if cmd_args.delta:
+      for r in results: 
+         if r.name == cmd_args.delta:
+            baseline_score = r.avgScore(cmd_args.alts != None)
+            print("baseline:",baseline_score)
+            break
 
-   # check for sub-dirs containing alternative runs if called for
+   DirInfo.printHeader(cmd_args.prec, baseline_score is not None)
+   for r in results:
+      if cmd_args.verbose or r.hasRun():
+         r.prettyPrint(cmd_args.prec, baseline_score, cmd_args.alts)
+   return
 
-   if opts.alts:
-      for sd in os.listdir(d):
-         sdir = d + "/" + sd
-         if isdir(sdir) and sd != "foos" and sd != "logs":
-            sdi = DirInfo(sd)
-            readDirInfo(sdi, sdir)
-            if sdi.hasRun(): di.subdirs.append(sdi)
 
-      # fill in average and sdev for each test set from alts
-      # The sdev formula is for the sample only (/n); not the one that
-      # estimates the population value (/(n-1)).
-
-      di.avg_scores = di.scores[:] 
-      di.sdev_scores = [x * x for x in di.scores]
-      for i in range(len(di.scores)):
-         if di.scores[i] == -1: continue  # main run doesn't have this test set
-         n = 1  # number of runs
-         for sdi in di.subdirs:
-            s = sdi.getScore(i)
-            if s == -1:
-               print >> sys.stderr, "Warning: alt value missing for", \
-                  DirInfo.testSetName(i), "in", d + "/" + sdi.name
-               continue
-            di.avg_scores[i] += s
-            di.sdev_scores[i] += s * s
-            n += 1
-         di.avg_scores[i] /= n
-         di.sdev_scores[i] = math.sqrt(di.sdev_scores[i]/n - 
-                                       di.avg_scores[i] * di.avg_scores[i])
-
-      # point scores -> avg_scores for future processing; this throws away
-      # scores from the main run, but we assume these won't be needed
-
-      if len(di.avg_scores):
-         di.scores = di.avg_scores
-
-   results.append(di)
-
-# make list of test-corpus indexes to average for sorting, and sort results by
-# this average
-
-if opts.sort_list == "":
-   for k in DirInfo.test_sets:
-      if k != devname:
-         opts.sort_list += k + " "
-DirInfo.initSortIndexes(opts.sort_list)
-results.sort(key=DirInfo.avgAndDevScore, reverse=True)
-
-# fill in the sdev of the averages across test sets, if called for
-# The sdev formula is for the sample only (/n); not the one that
-# estimates the population value (/(n-1)).
-
-if opts.alts:
-   for di in results:
-      a = di.avgScore()
-      if a == -1: continue  # run doesn't have one of the test sets
-      di.testavg_sdev = a * a
-      for sdi in di.subdirs:
-         v = sdi.avgScore()
-         a += v
-         di.testavg_sdev += v * v
-      n = len(di.subdirs) + 1
-      a /= n
-      di.testavg_sdev = math.sqrt(di.testavg_sdev/n - a * a)
-
-# output sorted results according to chosen format
-
-if len(DirInfo.test_sets) == 0:
-   print >> sys.stderr, "no BLEU results found in subdirectories"
-   sys.exit(0)
-
-DirInfo.printHeader(opts.prec)
-for r in results:
-   if opts.verbose or r.hasRun():
-      r.prettyPrint(opts.prec)
+if __name__ == '__main__':
+    main()
