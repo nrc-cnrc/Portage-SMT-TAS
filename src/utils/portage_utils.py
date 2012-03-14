@@ -18,7 +18,7 @@ from __future__ import print_function, unicode_literals, division, absolute_impo
 import sys
 import argparse
 import __builtin__
-import os
+from subprocess import Popen, PIPE
 
 __all__ = ["printCopyright",
            "HelpAction", "VerboseAction", "DebugAction", 
@@ -129,12 +129,12 @@ def verbose(*args, **kwargs):
 
 def open(filename, mode='r'):
    """Transparently open files that are stdin, stdout, plain text, compressed or pipes.
-   
+
    examples: open("-")
-     open("file.txt")
-     open("file.gz")
-     open("zcat file.gz | grep a |")
-   
+      open("file.txt")
+      open("file.gz")
+      open("zcat file.gz | grep a |")
+
    filename: name of the file to open
    mode: open mode
    return: file handle to the open file.
@@ -143,7 +143,7 @@ def open(filename, mode='r'):
    #debug("open: ", filename, " in ", mode, " mode")
    if len(filename) is 0:
       fatal_error("You must provide a filename")
-     
+
    if filename == "-":
       if mode == 'r':
          theFile = sys.stdin
@@ -152,21 +152,22 @@ def open(filename, mode='r'):
       else:
          fatal_error("Unsupported mode.")
    elif filename.endswith('|'):
-      theFile = os.popen(filename[:-1], 'r')
+      theFile = Popen(filename[:-1], shell=True, stdout=PIPE).stdout
    elif filename.startswith('|'):
-      theFile = os.popen(filename[1:], 'w')
+      theFile = Popen(filename[1:], shell=True, stdin=PIPE).stdin
    elif filename.endswith(".gz"):
       #theFile = gzip.open(filename, mode+'b')
       if mode == 'r':
-         theFile = os.popen("zcat " + filename)
+         theFile = Popen("zcat " + filename, shell=True, stdout=PIPE).stdout
       elif mode == 'w':
-         theFile = os.popen("gzip > " + filename, 'w')
+         theFile = Popen("gzip > " + filename, shell=True, stdin=PIPE).stdin
       else:
          fatal_error("Unsupported mode for gz files.")
    else:
       theFile = __builtin__.open(filename, mode)
-   
+
    return theFile
+
 
 if __name__ == '__main__':
    pass
