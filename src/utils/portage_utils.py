@@ -18,6 +18,7 @@ from __future__ import print_function, unicode_literals, division, absolute_impo
 import sys
 import argparse
 import __builtin__
+import os
 from subprocess import Popen, PIPE
 
 __all__ = ["printCopyright",
