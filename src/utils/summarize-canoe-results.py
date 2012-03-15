@@ -353,15 +353,15 @@ def main():
    if cmd_args.alts:
       for di in results:
          if cmd_args.alts == "trimmed" and len(di.subdirs) < 3:
-            warn("Reverting to arithmetic mean for < 4 runs in", d)
+            warn("Reverting to arithmetic mean for < 4 runs in", di.name)
          for test in di.getTestSets():
-            scores = [di.getScore(test)]
+            scores = [s for s in (di.getScore(test),) if s is not None]
             for sdi in di.subdirs:
                sc = sdi.getScore(test)
                scores.append(sc) if sc is not None \
-                  else warn("Alt value missing for", test, "in", join(d, sdi.name))
+                  else warn("Alt value missing for", test, "in", join(di.name, sdi.name))
             di.avg_sdev_scores[test] = avg_sdev(scores, cmd_args.alts)
-         scores = [di.avgScore()]
+         scores = [s for s in (di.avgScore(),) if s is not None]
          scores.extend(s for sdi in di.subdirs for s in (sdi.avgScore(),) if s is not None)
          dummy, di.testavg_sdev = avg_sdev(scores, cmd_args.alts)
    
