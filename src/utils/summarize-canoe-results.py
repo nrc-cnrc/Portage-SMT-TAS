@@ -113,8 +113,15 @@ class DirInfo:
          else:
             warn("Ignoring non-existent or non-listed test set: ", test_set)
 
-   def __init__(self, name):
+   def __init__(self, name, long_name=None):
+      """Constructor.
+      
+      name: directory name
+      long_name: long directory name for display purposes, typically the name
+         from the command line arguments for the main run. Defaults to name.
+      """
       self.name = name
+      self.long_name = name if long_name is None else long_name
       self.cowlog_exists = False
       self.canoe_wts_exist = False
       self.scores = {}                 # one score per test set, or -1 for none
@@ -228,7 +235,7 @@ class DirInfo:
          avg_score = self.avgScore(show_avg)
          delta = avg_score-baseline_score if avg_score is not None else None
          print(fmt_score(delta, DirInfo.delta_header), end='')
-      print('', self.name, self.statusString())
+      print('', self.long_name, self.statusString())
 
       # Print standard-deviation line below BLEU scores if printing averages
       # across alternative runs.
@@ -328,7 +335,7 @@ def main():
    # Extract results from each directory and make a list of them
    results = []
    for d in cmd_args.dirs:
-      di = DirInfo(basename(d))
+      di = DirInfo(basename(d), long_name=d)
       readDirInfo(di, d, in_test_sets_to_list)
       results.append(di)
       # check for sub-dirs containing alternative runs if called for
