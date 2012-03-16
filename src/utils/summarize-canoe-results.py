@@ -109,10 +109,9 @@ class DirInfo:
           return
       for test_set in test_sets:
          if test_set in DirInfo.test_sets:
-            DirInfo.sort_test_sets.append(t)
+            DirInfo.sort_test_sets.append(test_set)
          else:
             warn("Ignoring non-existent or non-listed test set: ", test_set)
-      print("sort_test_sets:", DirInfo.sort_test_sets)
 
    def __init__(self, name):
       self.name = name
