@@ -31,9 +31,9 @@ echo PID $TO_CHECK
 EXIT_STATUS=0
 sleep 37 \
 && kill -9 $TO_CHECK \
-&& { ps -o pid,tty,time,comm | egrep r-parallel-d.pl; } \
+&& { ps -o pid,tty,time,args | egrep '^[^g]*r-parallel-d.pl'; } \
 && sleep 16 \
-&& ! { ps -o pid,tty,time,comm | egrep r-parallel-d.pl; } \
+&& ! { ps -o pid,tty,time,args | egrep '^[^g]*r-parallel-d.pl'; } \
 && echo "SUCCESS" || { echo "FAILED" ; EXIT_STATUS=1; }
 
 # Clean-up
