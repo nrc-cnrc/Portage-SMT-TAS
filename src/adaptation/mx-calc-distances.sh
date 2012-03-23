@@ -118,9 +118,9 @@ case $metric in
 	              $x=1.0/(1e-10+$_);
                       print "$x\n"' ;;
    em-sri)
-        eval train_lm_mixture $args $models $textfile 2> /dev/null ;;
+        eval train_lm_mixture $args $models $textfile ;;
    em)
-        eval train_lm_mixture $args $models $textfile 2> /dev/null ;;
+        eval train_lm_mixture $args $models $textfile ;;
    tfidf)
         get_voc -c $textfile > voc.$tmp
         eval cosine_distances $args $models voc.$tmp
