@@ -319,7 +319,8 @@ def avg_sdev(scores, mean_type="avg"):
        min_max = min_max_sq = 0.0
        n = len(scores)
    avg = (sum(scores) - min_max) / n
-   sdev = math.sqrt((sum(s * s for s in scores) - min_max_sq) / n - avg * avg)
+   sdev_sq = (sum(s * s for s in scores) - min_max_sq) / n - avg * avg
+   sdev = math.sqrt(sdev_sq) if sdev_sq > 0.0 else 0.0
    return avg, sdev
 
 def main():
