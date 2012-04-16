@@ -67,12 +67,13 @@ def get_args():
                             "for sorting [average over all results specified by -t except MERT]")
    parser.add_argument("-delta", dest="delta", type=str, default=None,
                        help="also show delta BLEU score against a baseline [%(default)s]")
-   parser.add_argument("-s", dest="alts", nargs="?", choices=("avg","trimmed"), const="avg", default=None,
+   parser.add_argument("-s", dest="alts", nargs="?", choices=("avg","trimmed", "max"), const="avg", default=None,
                        help="calculate stability stats over alternative runs stored in "
                        "sub-directories, when these exist: replace BLEU scores with averages, "
                        "and print std deviations on the following lines. Average can be "
-                       "the arithmetic mean (avg, unspecified), or trimmed mean (trimmed) "
-                       "dropping the highest and lowest results for 4 or more runs. [no]")
+                       "the arithmetic mean (avg, unspecified), trimmed mean (trimmed) "
+                       "dropping the highest and lowest results for 4 or more runs, "
+                       "or maximum (max) using the run with the maximum sorting average. [no]")
    parser.add_argument("-p", dest="prec", type=int, default=2,
                        help="number of decimal places for BLEU scores [%(default)s]")
    parser.add_argument("-dir", action='store_true', 
@@ -128,7 +129,9 @@ class DirInfo:
       # structures for handling alternative runs (used if cmd_args.alts is set)
       self.subdirs = []          # list of sub DirInfos
       self.avg_sdev_scores = {}  # 2-tuple of avg and sdev scores across main & alt runs for each test
-      self.testavg_sdev = 0      # sdev of avgs across test sets (in sort_test_sets) for avgs across runs 
+      self.testavg_avg = 0       # avg of avgs across test sets (in sort_test_sets) for avgs across runs
+      self.testavg_sdev = 0      # sdev of avgs across test sets (in sort_test_sets) for avgs across runs
+      self.dir_max = None        # directory/sub-directory providing maximum average score
 
    def __str__(self):
       s = self.name + ": "
@@ -177,6 +180,8 @@ class DirInfo:
          otherwise return the average across the base scores
          or None if any scores are missing
       """
+      if avgOfAvgs:
+         return self.testavg_avg
       avg = 0.0
       for test_set in DirInfo.sort_test_sets:
          s = self.getScore(test_set, avgOfAvgs)
@@ -186,11 +191,13 @@ class DirInfo:
 
    def avgAndDevScore(self):
       """Return the averageScore across test sets and the dev score.
-      If we have averages across alternative runs, use those instead of the
-      base scores.
+      Use the average for the run giving the maximum average if indicated by 
+      self.dir_max; otherwise, if we have averages across alternative runs, use 
+      those instead of the base scores.
       """
-      use_avgs = len(self.avg_sdev_scores) > 0
-      return (self.avgScore(use_avgs), self.getScore(devname, use_avgs))
+      dir = self.dir_max if self.dir_max else self
+      use_avgs = len(self.avg_sdev_scores) > 0 and not self.dir_max
+      return (dir.avgScore(use_avgs), self.getScore(devname, use_avgs))
 
    @staticmethod
    def colWidth(prec, header):
@@ -224,18 +231,19 @@ class DirInfo:
              return '{0:{1}.{2}f}  '.format(score*100.0, w, prec)
           return '{0}  '.format('-' * w)
 
-      show_avg = avg is not None    # show average across alternative runs
-      
+      show_avg = avg not in (None, "max")    # show average across alternative runs
+
+      dir = self.dir_max if avg == "max" else self
       test_sets = sorted(DirInfo.test_sets)
       for test_set in test_sets:
-         print(fmt_score(self.getScore(test_set, show_avg), test_set), end='')
+         print(fmt_score(dir.getScore(test_set, show_avg), test_set), end='')
       if len(DirInfo.sort_test_sets) > 1:
-         print(fmt_score(self.avgScore(show_avg), DirInfo.avg_header), end='')
+         print(fmt_score(dir.avgScore(show_avg), DirInfo.avg_header), end='')
       if baseline_score is not None:
-         avg_score = self.avgScore(show_avg)
+         avg_score = dir.avgScore(show_avg)
          delta = avg_score-baseline_score if avg_score is not None else None
          print(fmt_score(delta, DirInfo.delta_header), end='')
-      print('', self.long_name, self.statusString())
+      print('', self.long_name if dir is self else join(self.long_name, dir.name), self.statusString())
 
       # Print standard-deviation line below BLEU scores if printing averages
       # across alternative runs.
@@ -359,18 +367,24 @@ def main():
    # estimates the population value (/(n-1)).
    if cmd_args.alts:
       for di in results:
-         if cmd_args.alts == "trimmed" and len(di.subdirs) < 3:
-            warn("Reverting to arithmetic mean for < 4 runs in", di.name)
-         for test in di.getTestSets():
-            scores = [s for s in (di.getScore(test),) if s is not None]
-            for sdi in di.subdirs:
-               sc = sdi.getScore(test)
-               scores.append(sc) if sc is not None \
-                  else warn("Alt value missing for", test, "in", join(di.name, sdi.name))
-            di.avg_sdev_scores[test] = avg_sdev(scores, cmd_args.alts)
-         scores = [s for s in (di.avgScore(),) if s is not None]
-         scores.extend(s for sdi in di.subdirs for s in (sdi.avgScore(),) if s is not None)
-         dummy, di.testavg_sdev = avg_sdev(scores, cmd_args.alts)
+         if cmd_args.alts == "max":
+            # Determine which alternative run gives the maximum average score
+            scores = [di] + di.subdirs
+            i_max = scores.index(max(scores, key=DirInfo.avgScore))
+            di.dir_max = di if i_max is 0 else di.subdirs[i_max-1]
+         else:
+            if cmd_args.alts == "trimmed" and len(di.subdirs) < 3:
+               warn("Reverting to arithmetic mean for < 4 runs in", di.name)
+            for test in di.getTestSets():
+               scores = [s for s in (di.getScore(test),) if s is not None]
+               for sdi in di.subdirs:
+                  sc = sdi.getScore(test)
+                  scores.append(sc) if sc is not None \
+                     else warn("Alt value missing for", test, "in", join(di.name, sdi.name))
+               di.avg_sdev_scores[test] = avg_sdev(scores, cmd_args.alts)
+            scores = [s for s in (di.avgScore(),) if s is not None]
+            scores.extend(s for sdi in di.subdirs for s in (sdi.avgScore(),) if s is not None)
+            di.testavg_avg, di.testavg_sdev = avg_sdev(scores, cmd_args.alts)
    
    # sort results by the sorting average
    results.sort(key=DirInfo.avgAndDevScore, reverse=True)
