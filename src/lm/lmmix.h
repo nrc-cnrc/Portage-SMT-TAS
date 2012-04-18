@@ -14,6 +14,7 @@
 #define LMMIX_H
 
 #include "lm.h"
+#include <cmath>
 
 namespace Portage
 {
@@ -29,7 +30,20 @@ class LMMix : public PLM
     */
    Uint getGramOrder() {return gram_order;}
 
+   /** 
+    * Use log10/exp10 everywhere, following the standard convention for LM
+    * probs in Portage. Comment-out these functions to revert to old mixlm
+    * behaviour, which was equivalent to raising component probs to the power
+    * log10(e) before calculating the weighted combination; and also returning
+    * the natural log of the combined prob instead of log10.
+    */
+   double log(double x) {return log10(x);}
+   double log(float x) {return log10(x);}
+   double exp(double x) {return pow(10, x);}
+   double exp(float x) {return pow(10, x);}
+
 public:
+
    struct Creator : public PLM::Creator {
       Creator(const string& lm_physical_filename, Uint naming_limit_order);
       virtual bool checkFileExists();
