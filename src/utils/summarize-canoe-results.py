@@ -243,7 +243,7 @@ class DirInfo:
          avg_score = dir.avgScore(show_avg)
          delta = avg_score-baseline_score if avg_score is not None else None
          print(fmt_score(delta, DirInfo.delta_header), end='')
-      print('', self.long_name if dir is self else join(self.long_name, dir.name), self.statusString())
+      print('', self.long_name if dir is self else join(self.long_name, dir.name), dir.statusString())
 
       # Print standard-deviation line below BLEU scores if printing averages
       # across alternative runs.
@@ -265,12 +265,17 @@ def readDirInfo(di, d, in_test_sets_to_list):
    in_test_sets_to_list(test_set): function returning true if the named test_set 
        should be included (i.e. listed in the results)
    """
+   decode_dir = "decode"
+   if di.name.startswith("translate"):
+      variant = di.name[len("translate"):]
+      if exists(join(d, "models", "decode" + variant)):
+         decode_dir += variant
    if exists(join(d, "logs/log.cow")) or \
       exists(join(d, "log.cow")) or \
-      exists(join(d, "models/decode/log.canoe.ini.cow")) or \
+      exists(join(d, "models", decode_dir, "log.canoe.ini.cow")) or \
       exists(join(d, "logs/log.tune")):
       di.cowlog_exists = 1
-   if exists(join(d, "canoe.ini.cow")) or exists(join(d, "models/decode/canoe.ini.cow")):
+   if exists(join(d, "canoe.ini.cow")) or exists(join(d, "models", decode_dir, "canoe.ini.cow")):
       di.canoe_wts_exist = 1
    if exists(join(d, "summary")):   # tune.py run
       lines = list(open(join(d, "summary")))
@@ -283,8 +288,8 @@ def readDirInfo(di, d, in_test_sets_to_list):
       rr_file = None
       if exists(join(d, "rescore-results")):
          rr_file = "rescore-results"
-      elif exists(join(d, "models/decode/rescore-results")):
-         rr_file = "models/decode/rescore-results"
+      elif exists(join(d, "models", decode_dir, "rescore-results")):
+         rr_file = join("models", decode_dir, "rescore-results")
       if rr_file:
          s = check_output(["best-rr-val", join(d, rr_file)])
          devbleu = float(s.split(None, 1)[0])
