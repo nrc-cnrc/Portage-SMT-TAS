@@ -734,9 +734,12 @@ while [[ 1 ]]; do
          echo append-uniq.pl -nbest=$f.duplicateFree$COMPRESS_EXT -addnbest=$x$COMPRESS_EXT \
             -ffvals=$f.duplicateFree.ffvals$COMPRESS_EXT -addffvals=$x.ffvals$COMPRESS_EXT \
             \> $f.lineCounts
-      } | run-parallel.sh -psub -1 - 4 >& $WORKDIR/log.append-uniq.parallel
-      # The above is done 4 ways parallel to speed up n-best list management,
-      # but not too aggressively since we are parellelizing write operations.
+      } | run-parallel.sh -psub -1 - 1 >& $WORKDIR/log.append-uniq.parallel
+      # The above was done 4 ways parallel to speed up n-best list management,
+      # but not too aggressively since we are parallelizing write operations.
+      # We turned off the parallelism because of random errors occurring in append-uniq.pl
+      # due to file system problems when it is under heavy load writing in parallel.
+      # This problem was worsened by the introduction of tuning multiple variants in parallel.
 
       # Check return value
       RVAL=$?
