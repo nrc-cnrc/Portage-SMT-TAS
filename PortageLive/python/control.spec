@@ -2,12 +2,13 @@ Summary: This package contains all required files required for python.
 Name: PortageLive-python
 Version: 2.7.1
 Release: 0
-License: Copyright © 2004-2011 Her Majesty in Right of Canada. see { commercial, research, evaluation } LICENCE
-Vendor: National Research Council Canada
+License: PSF - see LICENSE
+Vendor: Python Software Foundation
+Packager: National Research Council Canada
 Group: translation
-URL: http://www.nrc-cnrc.gc.ca/
+URL: http://www.python.org/
 BuildArchitectures: x86_64
-Requires: php php-soap
+#Requires: php php-soap
 
 %description
 Included in this package are the files for a python 2.7.1 installation.
