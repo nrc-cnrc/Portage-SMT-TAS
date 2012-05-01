@@ -21,7 +21,6 @@
 #include <errors.h>
 #include <map>
 #include <string>
-#include <boost/noncopyable.hpp>
 
 
 namespace Portage {
@@ -64,7 +63,7 @@ class multiColumnFileFF
 typedef boost::shared_ptr<multiColumnFileFF> multiColumnUnit;
 
 /// Multiple column unit manager.
-class multiColumnFileFFManager : private noncopyable
+class multiColumnFileFFManager : private NonCopyable
 {
    private:
       /// Definition that maps a file name to its multiple column unit.

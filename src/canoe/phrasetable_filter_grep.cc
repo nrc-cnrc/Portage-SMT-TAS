@@ -32,12 +32,13 @@ PhraseTableFilterGrep::~PhraseTableFilterGrep()
 }
 
 
-Uint PhraseTableFilterGrep::processMultiProb(const string& TM_filename, const string& filtered_output)
+Uint PhraseTableFilterGrep::filter(const string& TM_filename, const string& filtered_TM_filename)
 {
    string physical_filename;
    const bool reversed = isReversed(TM_filename, &physical_filename);
 
-   os_filter_output.open(filtered_output);
+   // os_filter_output will be use by processEntry since processEntry gets called during readFile.
+   os_filter_output.open(filtered_TM_filename);
    const Uint col_count = readFile(physical_filename.c_str(),
                              (reversed ? multi_prob_reversed : multi_prob ),
                              limitPhrases);
@@ -66,6 +67,7 @@ Uint PhraseTableFilterGrep::processMultiProb(const string& TM_filename, const st
    adirDescription     += adir_description.str(); //boxing
 
    numTransModels     += model_count;
+   numTextTransModels += model_count;
    numAdirTransModels += adir_score_count;
 
    return col_count;

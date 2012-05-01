@@ -70,6 +70,10 @@ namespace Portage
           */
          Uint pruneRecombinedStates(double threshold);
 
+         /// Display self for debugging purposes
+         void display(ostream& out, PhraseDecoderModel *model = NULL,
+               Uint sourceLength = 0) const;
+
          /**
           * The number of (lasting) references to this.  When zero, this should
           * be deleted.
@@ -132,7 +136,7 @@ namespace Portage
     * @param usingLev  Specifies if we need to create the info for levenshtein
     * @return    The empty state created.
     */
-   DecoderState *makeEmptyState(Uint sourceLength, bool usingLev);
+   DecoderState *makeEmptyState(Uint sourceLength, bool usingLev, bool usingSR);
 
    /**
     * Creates a DecoderState given by adding the given phrase to the end of
@@ -148,7 +152,7 @@ namespace Portage
     *               calculated, and provides it.
     * @return    The extended state.
     */
-   DecoderState *extendDecoderState(DecoderState *state0, PhraseInfo *phrase,
+   DecoderState *extendDecoderState(DecoderState *state0, const PhraseInfo *phrase,
          Uint &numStates, const UintSet* preCalcSourceWordsCovered = NULL);
 
    /**
@@ -185,7 +189,7 @@ namespace Portage
     *         created by this function, it must be deleted externally.
     */
    HypothesisStack *runDecoder(BasicModel &model, const CanoeConfig& c,
-         bool usingLev);
+                               bool usingLev, bool usingSR);
 
    /**
     * Runs the decoder algorithm.  Uses the hypothesis stacks given, emptying
@@ -200,8 +204,8 @@ namespace Portage
     * @param verbosity  Indicates the level of verbosity
     */
    void runDecoder(PhraseDecoderModel &model, HypothesisStack **hStacks,
-         Uint sourceLength, PhraseFinder &phraseFinder,
-         bool usingLev, Uint verbosity);
+                   Uint sourceLength, PhraseFinder &phraseFinder,
+                   bool usingLev, bool usingSR, Uint verbosity);
 
 } // Portage
 

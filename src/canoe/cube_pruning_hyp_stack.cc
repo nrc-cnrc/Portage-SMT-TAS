@@ -50,20 +50,19 @@ HyperedgeItem::HyperedgeItem(Hyperedge* e, Uint state_index, Uint phrase_index,
                                 false, e->sourceLength)
               << endl
            << "\tsource range "
-              << e->phrases[phrase_index].second->src_words.toString() << endl;
-      string stringPhrase;
-      e->model.getStringPhrase(stringPhrase,
-                               e->phrases[phrase_index].second->phrase);
-      cerr << "\ttarget phrase " << stringPhrase << endl;
+              << e->phrases[phrase_index].second->src_words << endl;
+      cerr << "\ttarget phrase "
+           << e->model.getStringPhrase(e->phrases[phrase_index].second->phrase)
+           << endl;
    }
 }
 
 void HyperedgeItem::CreateDecoderState()
 {
    DecoderState* ds0(e->decoderStates[state_index].second);
-   ds = extendDecoderState(ds0,
-                           e->phrases[phrase_index].second,
-                           *e->nextDecoderStateId,
+   ds = extendDecoderState(ds0,                             // previous DS
+                           e->phrases[phrase_index].second, // phrase
+                           *e->nextDecoderStateId,          // unique state counter
                            &(e->out_sourceWordsNotCovered));
 
    // We fully score ds here, since extendDecoderState doesn't do so
@@ -72,7 +71,7 @@ void HyperedgeItem::CreateDecoderState()
    double dFutureScore = e->model.computeFutureScore(*(ds->trans));
    ds->futureScore = ds->score + dFutureScore;
 
-   if ( e->verbosity >= 3 ) {
+   if (e->verbosity >= 3) {
       cerr << "Creating hypothesis " << ds->id
            << " from " << ds0->id
            << " (" << state_index << "," << phrase_index << ")" << endl
@@ -86,9 +85,9 @@ void HyperedgeItem::CreateDecoderState()
            << "\tsource range "
               << e->phrases[phrase_index].second->src_words.toString() << endl;
       string stringPhrase;
-      e->model.getStringPhrase(stringPhrase,
-                               e->phrases[phrase_index].second->phrase);
-      cerr << "\ttarget phrase " << stringPhrase << endl;
+      cerr << "\ttarget phrase " 
+           << e->model.getStringPhrase(e->phrases[phrase_index].second->phrase)
+           << endl;
    }
 }
 
@@ -258,10 +257,9 @@ void CubePruningHypStack::KBest(Uint K, double pruningThreshold,
                  << endl
               << "\tsource range "
                  << item->ds->trans->lastPhrase->src_words.toString() << endl;
-         string stringPhrase;
-         model.getStringPhrase(stringPhrase,
-            item->ds->trans->lastPhrase->phrase);
-         cerr << "\ttarget phrase " << stringPhrase << endl;
+         cerr << "\ttarget phrase "
+              << model.getStringPhrase(item->ds->trans->lastPhrase->phrase)
+              << endl;
       }
 
       // This line must follow the verbose 3 block above, since it might actually
@@ -299,7 +297,7 @@ void CubePruningHypStack::KBest(Uint K, double pruningThreshold,
    numRecombined = buffer.getNumRecombined();
    numKept = buffer.size();
 
-   if ( verbosity >= 2 )
+   if (verbosity >= 2)
       cerr << "Done KBest for stack " << stack_index << ":"
            << "\n\tInput hyperedges: " << hyperedge_count
            << "\n\tInput partially scored states: " << partially_scored_trans

@@ -639,6 +639,7 @@ bool debug=true;
         dest += uint32_t((*start)&bitmask)<<7;
         if (++start==stop || *start >= 0) return start;
         dest += uint32_t((*start)&bitmask)<<14;
+        //assert(!((*start)&0x7C) || "overflow reading tightly packed ushort");
       }
     else
       {
@@ -647,6 +648,7 @@ bool debug=true;
         dest += uint32_t(*start)<<7;
         if (++start==stop || *start < 0) return start;
         dest += uint32_t(*start)<<14;
+        //assert(!((*start)&0x7C) || "overflow reading tightly packed ushort");
       }
     assert(start<stop);
     return ++start;

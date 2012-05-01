@@ -165,10 +165,11 @@ sub parseCanoeOutput {
         my $phrase = $1;
         my $align = $2;
         my $v = $3;
-        my ($score, $from, $to, $oov) = split(/;/, $align);
-	     $phrase =~ s/\\(.)/$1/go;	# remove inner level of backslashification
+        my ($score, $range, $oov) = split(/;/, $align, 3);
+        my ($from, $to) = split(/-/, $range, 2);
+        $phrase =~ s/\\(.)/$1/go;	# remove inner level of backslashification
         push @phrases, $phrase;
-        $log_score += log($score);
+        $log_score += $score;
         ++$oov_count if $oov eq 'O';
         my @words = split(/\s+/, $phrase);
         my $plen = int(@words);

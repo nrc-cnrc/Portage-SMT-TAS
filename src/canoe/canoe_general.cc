@@ -95,7 +95,7 @@ namespace Portage {
    {
       result.clear();
 
-      for (UintSet::const_iterator it = s.begin(); it < s.end(); it++)
+      for (UintSet::const_iterator it = s.begin(); it < s.end(); ++it)
       {
          if (it->end > r.start && r.end > it->start)
          {
@@ -104,15 +104,24 @@ namespace Portage {
             result.push_back(Range(curStart, curEnd));
          }
       }
-   } // intersectRange
+   }
 
    Uint countSubRanges(const UintSet &set) {
       Uint subRanges = 0;
-      for (UintSet::const_iterator it = set.begin(); it < set.end(); it++) {
+      for (UintSet::const_iterator it = set.begin(); it < set.end(); ++it) {
          Uint len = it->end - it->start;
          subRanges += len * (len + 1) / 2;
       }
       return subRanges;
+   }
+
+   Uint countWords(const UintSet &set) {
+      Uint count(0);
+      for (UintSet::const_iterator it = set.begin(); it < set.end(); ++it) {
+         assert (it->end > it->start);
+         count += it->end - it->start;
+      }
+      return count;
    }
 
    string displayUintSet(const UintSet &set, bool in_is_1, Uint length) {
@@ -130,5 +139,4 @@ namespace Portage {
          result += in_is_1 ? "-" : "1";
       return result;
    }
-
 } // namespace Portage

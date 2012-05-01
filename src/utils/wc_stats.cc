@@ -29,6 +29,7 @@ wc_stats [options] INFILES\n\
 Options:\n\
 \n\
   -v    Write per line stat.\n\
+  -m    Write column markers.[don't]\n\
 ";
 
 // globals
@@ -36,7 +37,8 @@ Options:\n\
 static bool verbose = false;
 static vector<string> infiles;
 static void getArgs(int argc, char* argv[]);
-static const char* header = "#Lines\t#Words\t#Char\tshortest L\tlongest L\tmean(W/L)\tsdev(W/L)\tfilename";
+static const char* header = "#Lines\t#Words\t#Char\tmin #W\tmax #W\tmin #C\tmax #C\t#empty L\tmean(W/L)\tsdev(W/L)\tfilename";
+static bool columnMarkers = false;
 
 
 
@@ -48,8 +50,11 @@ class countStats {
    // Std Dev = sqrt((SUM[x^2] - SUM[x]^2)/n / (n-1))
    private:
       unsigned long long characters;   ///< Number of characters in the input.
-      Uint shortest_line;  ///< Length of the shortest line in the input.
-      Uint longest_line;   ///< Length of the longest line in the input.
+      Uint shortest_line_words;  ///< Length of the shortest line in the input.
+      Uint longest_line_words;   ///< Length of the longest line in the input.
+      Uint shortest_line_chars;  ///< Length of the shortest line in the input.
+      Uint longest_line_chars;   ///< Length of the longest line in the input.
+      Uint empty_lines;    ///< Keep track of how many empty lines there are.
 
       /// Object to keep track of counts in order to calculate mean & sdev.
       struct Counts {
@@ -140,8 +145,11 @@ class countStats {
       /// Default constructor.
       countStats()
       : characters(0)
-      , shortest_line(-1) // OK to use -1, casts to max unsigned value.
-      , longest_line(0)
+      , shortest_line_words(-1) // OK to use -1, casts to max unsigned value.
+      , longest_line_words(0)
+      , shortest_line_chars(-1) // OK to use -1, casts to max unsigned value.
+      , longest_line_chars(0)
+      , empty_lines(0)
       {}
 
       /**
@@ -149,8 +157,11 @@ class countStats {
        */
       void clear() {
          characters = 0;
-         shortest_line = -1;
-         longest_line = 0;
+         shortest_line_words = -1;
+         longest_line_words = 0;
+         shortest_line_chars = -1;
+         longest_line_chars = 0;
+         empty_lines = 0;
          tokenPerLine.clear();
          tokenPerDoc.clear();
          linePerDoc.clear();
@@ -167,6 +178,8 @@ class countStats {
        * @return a structure wieht the line number, number of tokens and characters.
        */
       perLineStats cumulate(const string& line) {
+         if (line.empty()) ++empty_lines;
+
          // Number or tokens in that line.
          tokens.clear();
          // Optimization: since we only count tokens, but don't inspect them,
@@ -174,8 +187,11 @@ class countStats {
          // change made the program run about 2.5x faster (i.e., a typical run
          // takes 40% of the time it used to take).
          const Uint num_token = split(line.c_str(), tokens, DummyConverter());
-         shortest_line = min(shortest_line, num_token);
-         longest_line  = max(longest_line, num_token);
+         shortest_line_words = min(shortest_line_words, num_token);
+         longest_line_words  = max(longest_line_words, num_token);
+         const Uint num_chars = line.size();
+         shortest_line_chars = min(shortest_line_chars, num_chars);
+         longest_line_chars  = max(longest_line_chars, num_chars);
 
          tokenPerLine.add(num_token);
 
@@ -192,10 +208,13 @@ class countStats {
        * @return the augmented stats.
        */
       countStats& operator+=(const countStats& other) {
-         characters += other.characters;
+         empty_lines += other.empty_lines;
+         characters  += other.characters;
 
-         shortest_line = min(shortest_line, other.shortest_line);
-         longest_line  = max(longest_line, other.longest_line);
+         shortest_line_words = min(shortest_line_words, other.shortest_line_words);
+         longest_line_words  = max(longest_line_words, other.longest_line_words);
+         shortest_line_chars = min(shortest_line_chars, other.shortest_line_chars);
+         longest_line_chars  = max(longest_line_chars, other.longest_line_chars);
 
          tokenPerLine.add(other.tokenPerLine);
          tokenPerDoc.add(other.tokenPerLine.sumX);
@@ -208,11 +227,21 @@ class countStats {
        * Displays the overall stats.
        * @param filename  stats apply to filename.
        */
-      void fullPrint(const string& filename) const {
+      void fullPrint(const string& filename, const char* const format = default_format) const {
          const double v_mean = tokenPerLine.mean();
          const double v_sdev = tokenPerLine.sdev();
-         printf("L:%llu\tW:%llu\tC:%llu\ts:%u\tl:%u\tm:%2.2f\tsdev:%2.2f\t%s\n",
-           tokenPerLine.n, tokenPerLine.sumX, characters, shortest_line, longest_line, v_mean, v_sdev, filename.c_str());
+         printf(format,
+           tokenPerLine.n,
+           tokenPerLine.sumX,
+           characters,
+           shortest_line_words,
+           longest_line_words,
+           shortest_line_chars,
+           longest_line_chars,
+           empty_lines,
+           v_mean,
+           v_sdev,
+           filename.c_str());
 
          // If we are a global stat object for all documents.
          if (linePerDoc.n > 0) {
@@ -222,7 +251,11 @@ class countStats {
             cout << linePerDoc.n << " documents in total" << endl;
          }
       }
+
+      static const char* const default_format;
 };
+
+const char* const countStats::default_format = "%llu\t%llu\t%llu\t%u\t%u\t%u\t%u\t%u\t%2.2f\t%2.2f\t%s\n";
 
 // main
 
@@ -234,6 +267,9 @@ int main(int argc, char* argv[])
    if (!infiles.empty() && !verbose) {
       cout << header << endl;
    }
+
+   const char* format = countStats::default_format;
+   if (columnMarkers) format = "L:%llu\tW:%llu\tC:%llu\tminW:%u\tmaxW:%u\tminC:%u\tmaxC:%u\te:%u\tm:%2.2f\tsdev:%2.2f\t%s\n";
 
    countStats allDocStats;
    string line;   // The current line.
@@ -259,22 +295,23 @@ int main(int argc, char* argv[])
       }
 
       allDocStats += docStats;
-      docStats.fullPrint(infiles[i].c_str());
+      docStats.fullPrint(infiles[i].c_str(), format);
    }
    
    printf("\n");
-   allDocStats.fullPrint("TOTAL");
+   allDocStats.fullPrint("TOTAL", format);
 }
 
 // arg processing
 
 void getArgs(int argc, char* argv[])
 {
-   const char* switches[] = {"v"};
+   const char* switches[] = {"v", "m"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 0, -1, help_message);
    arg_reader.read(argc-1, argv+1);
 
    arg_reader.testAndSet("v", verbose);
+   arg_reader.testAndSet("m", columnMarkers);
 
    arg_reader.getVars(0, infiles);
    if (infiles.empty()) infiles.push_back("-");

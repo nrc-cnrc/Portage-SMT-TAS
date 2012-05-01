@@ -43,7 +43,7 @@ class PhraseTableFilterGrep : public PhraseTableFilter {
       virtual ~PhraseTableFilterGrep();
       
       virtual bool processEntry(TargetPhraseTable* tgtTable, Entry& entry);
-      virtual Uint processMultiProb(const string& TM_filename, const string& filtered_output);
+      virtual Uint filter(const string& TM_filename, const string& filtered_TM_filename);
 
 }; // ends class PhraseTableFilterGrep
 }; // ends namespace Portage

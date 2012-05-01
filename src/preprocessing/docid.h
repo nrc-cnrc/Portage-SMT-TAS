@@ -4,6 +4,12 @@
  *                sentence indexes to document names and possibly other info.
  *
  * COMMENTS:
+ * This module was originally meant only to handle document names in the 1st
+ * column of an id file. It has been extended to handle tags in an arbitrary
+ * column, but still thinks of tags as "documents". If the same tag occurs
+ * multiple times in non-contiguous blocks, for instance, each block will be
+ * treated as belonging to a separate 'document'. Also, the 'other' argument to
+ * parse() isn't very useful for tags in an arbitrary field. 
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
@@ -23,6 +29,7 @@ namespace Portage {
 
 class DocID {
 
+   Uint field;                  // space-separated field to choose from id file
    vector<string> doclines;     // line-no -> info from file
    vector<Uint> docids;         // line-no -> doc index
    vector<Uint> docsizes;       // doc index -> number of lines in that doc
@@ -32,11 +39,10 @@ public:
    /**
     * Construct by reading from a docid file in standard format.
     * @param docid_filename Name of a file containing one entry per source
-    * line, in the format: docname [optional-string], where \<docname\> is the
-    * name of the document to which that line belongs (terminated with
-    * whitespace). 
+    * line, in the form of whitespace-separated fields.
+    * @param field Field to pick out from each line (the 1st field is 0).
     */
-   DocID(const string& docid_filename);
+   DocID(const string& docid_filename, Uint field = 0);
 
    /**
     * Return the number of lines in the docid file.
@@ -78,8 +84,8 @@ public:
    /**
     * Parse docid entry for a given source line.
     * @param docline string returned by docline()
-    * @param docname prefix, up to 1st whitespace
-    * @param other suffix, to end of line
+    * @param docname field extracted from docline
+    * @param other suffix of docline that follows docname
     */
    void parse(const string& docline, string& docname, string& other);
 

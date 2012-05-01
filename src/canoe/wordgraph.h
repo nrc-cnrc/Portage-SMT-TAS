@@ -115,7 +115,7 @@ public:
 /// Prints phrase and the feature funtion values
 /// (lattice information extraction).
 class PrintFFVals: public PrintFunc {
-  BasicModel &model;  ///< Model which created the states
+   BasicModel &model;  ///< Model which created the states
 public:
    /// Constructor.
    /// @param model model from which the states were created 
@@ -129,7 +129,7 @@ public:
 /// Prints phrase, alignment and feature function values
 /// (lattice information extraction).
 class PrintAll: public PrintFunc {
-  BasicModel &model;  ///< Model which created the states
+   BasicModel &model;  ///< Model which created the states
 public:
    /// Constructor.
    /// @param model model from which the states were created 

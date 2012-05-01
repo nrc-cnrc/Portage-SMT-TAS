@@ -165,8 +165,9 @@ void LMText::read(const string& lm_file_name, bool limit_vocab,
       // Building the Header
       *os_filtered << "\\data\\" << endl;
 
-      for (Uint i(0); i<sentenceCount.size(); ++i)
-         *os_filtered << "ngram " << i+1 << "=" << sentenceCount[i] << endl;
+      // The header section should contain as many ngram section as the data section.
+      for (Uint order = 0; order < getOrder(); ++order)
+         *os_filtered << "ngram " << order+1 << "=" << sentenceCount[order] << endl;
       *os_filtered << endl;
 
       // Quickly copies the header + temp file in the final output
@@ -255,7 +256,7 @@ bool LMText::readLine(
          } // while
          if ( order_error ) continue;
 
-         // If we found an OOV or fair another filtering test, we skip this
+         // If we found an OOV or failed another filtering test, we skip this
          // entry and read another line
          if ( limit_vocab && !vocab->keepLMentry(phrase, tok_count, order) ) {
             continue;

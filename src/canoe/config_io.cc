@@ -133,10 +133,10 @@ CanoeConfig::CanoeConfig()
    levLimit               = NO_MAX_LEVENSHTEIN;
    distLimit              = NO_MAX_DISTORTION;
    distLimitExt           = false;
+   distLimitSimple        = false;
    distPhraseSwap         = false;
    //distortionModel        = ("WordDisplacement");
    segmentationModel      = "none";
-   obsoleteSegModelArgs   = "";
    //ibm1FwdFiles
    bypassMarked           = false;
    weightMarked           = 1;
@@ -163,8 +163,10 @@ CanoeConfig::CanoeConfig()
    futLMHeuristic         = "incremental";
    useFtm                 = false;
    futScoreUseFtm         = true;
+   maxlen                 = 0;
    final_cleanup          = false;  // for speed reason we don't normally delete the bmg
    bind_pid               = -1;
+   timing                 = false;
 
    // Parameter information, used for input and output. NB: doesn't necessarily
    // correspond 1-1 with actual parameters, as one ParamInfo can set several
@@ -224,10 +226,10 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("levenshtein-limit", "int", &levLimit));
    param_infos.push_back(ParamInfo("distortion-limit", "int", &distLimit));
    param_infos.push_back(ParamInfo("dist-limit-ext", "bool", &distLimitExt));
+   param_infos.push_back(ParamInfo("dist-limit-simple", "bool", &distLimitSimple));
    param_infos.push_back(ParamInfo("dist-phrase-swap", "bool", &distPhraseSwap));
    param_infos.push_back(ParamInfo("distortion-model", "stringVect", &distortionModel));
    param_infos.push_back(ParamInfo("segmentation-model", "string", &segmentationModel));
-   param_infos.push_back(ParamInfo("segmentation-args", "string", &obsoleteSegModelArgs));
    param_infos.push_back(ParamInfo("ibm1-fwd-file", "stringVect", &ibm1FwdFiles,
       ParamInfo::relative_path_modification | ParamInfo::check_file_name));
    param_infos.push_back(ParamInfo("bypass-marked", "bool", &bypassMarked));
@@ -254,18 +256,28 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("lb", "bool", &bLoadBalancing));
    param_infos.push_back(ParamInfo("ref", "string", &refFile,
       ParamInfo::relative_path_modification | ParamInfo::check_file_name));
+   param_infos.push_back(ParamInfo("maxlen", "Uint", &maxlen));
    param_infos.push_back(ParamInfo("final-cleanup", "bool", &final_cleanup));
    param_infos.push_back(ParamInfo("bind", "int", &bind_pid));
+   param_infos.push_back(ParamInfo("timing", "bool", &timing));
 
    // List of all parameters that correspond to weights. ORDER IS SIGNIFICANT
    // and must match the order in BasicModelGenerator::InitDecoderFeatures().
    // New entries should be added immediately before "lm".
    const char* weight_names[] = {
-      "d", "w", "sm",
-      "ibm1f", "lev", "ng", "ruw",
+      "d",      // init by BMG::InitDecoderFeatures(); models loaded by BMG::create()
+      "w",      // init by BMG::InitDecoderFeatures()
+      "sm",     // init by BMG::InitDecoderFeatures()
+      "ibm1f",  // init by BMG::InitDecoderFeatures(); data loaded by feature
+      "lev",    // init by BMG::InitDecoderFeatures()
+      "ng",     // init by BMG::InitDecoderFeatures()
+      "ruw",    // init by BMG::InitDecoderFeatures(); data in decoder input
       // insert new features above this line - in the same order as in
       // BMG::InitDecoderFeatures()!!!
-      "lm", "tm", "ftm", "atm"
+      "lm",     // loaded and init by BMG::create(); dynamically filtered w.r.t. phrase table(s)
+      "tm",     // init by BMG::create(); loaded with phrase table(s)
+      "ftm",    // init by BMG::create(); loaded with phrase table(s)
+      "atm"     // init by BMG::create(); loaded with phrase table(s)
    };
    weight_params.assign(weight_names, weight_names + ARRAY_SIZE(weight_names));
 
@@ -550,6 +562,27 @@ void CanoeConfig::read(istream& configin)
 
 void CanoeConfig::check()
 {
+   // CAC: Alias processing before file check
+   // Enabling aliased lexical-distortion models so that distortion features
+   // can refer to specific files by their aliases
+   map<string,Uint> aliases;
+   Uint iNumAliases=0;
+   for(vector<string>::iterator it=LDMFiles.begin();
+       it!=LDMFiles.end(); ++it){
+      vector<string> toks;
+      if(split(*it,toks,"#")>1){
+         if(toks.size()!=2)
+            error(ETFatal,"Only understand how to handle one # in lex-dist-model-file: %s", it->c_str());
+         if(aliases.find(toks[1])!=aliases.end())
+            error(ETFatal,"Repeated alias %s in lex-dist-model-file %s", toks[1].c_str(), it->c_str());
+         aliases[toks[1]]=iNumAliases++;
+         it->assign(toks[0]);
+      }
+   }
+   if(aliases.size()>0 && aliases.size()!=LDMFiles.size())
+      error(ETFatal,"Did not provide aliases for all entries in lex-dist-model-file");
+   
+   
    // Before checking the integrity of the config, we must make sure all files
    // are valid.
    check_all_files();
@@ -604,24 +637,101 @@ void CanoeConfig::check()
    //if (latticeOut && nbestOut)
    //   error(ETFatal, "Lattice and nbest output cannot be generated simultaneously.");
 
-   //boxing
-   bool existingFwdLex = false;
-   bool existingBackLex = false;
+   // CAC: Here is how you get multiple LDM files into play.
+   // Tag each LDM file with a #TAG, and then for each LDM
+   // feature, use the same #TAG to indicate what model provides
+   // its probabilities. This will be transformed into an index
+   // based tag scheme that the features understand how to handle.
+   // 
+   // [lex-dist-model-file] 
+   //    dm.merge.main.ch2en.ldm.gz#LDM
+   //    dm.merge.main.ch2en.hldm.gz#HDM
+   // [distortion-model] 
+   //    WordDisplacement
+   //    back-lex#m#LDM
+   //    back-lex#s#LDM
+   //    back-lex#d#LDM
+   //    fwd-lex#m#LDM
+   //    fwd-lex#s#LDM
+   //    fwd-lex#d#LDM
+   //    back-hlex#m#HDM
+   //    back-hlex#s#HDM
+   //    back-hlex#d#HDM
+   //    fwd-hlex#m#HDM
+   //    fwd-hlex#s#HDM
+   //    fwd-hlex#d#HDM
+   
+   bool existingLex = false;
+   vector<bool> usingLex(LDMFiles.size(),false);
+   for (vector<string>::iterator it=distortionModel.begin();
+        it != distortionModel.end();
+        ++it){
+      if (isPrefix("fwd-lex",*it)
+          || isPrefix("back-lex",*it) 
+          || isPrefix("fwd-hlex",*it) 
+          || isPrefix("back-hlex",*it)
+          || isPrefix("back-fhlex",*it)
+          ) {
+         existingLex = true;
+         // CAC: More alias handling
+         vector<string> toks;
+         if(aliases.size()>0) {
+            map<string,Uint>::iterator mt;
+            if(split(*it,toks,"#")<2 || (mt=aliases.find(toks[toks.size()-1]))==aliases.end())
+               error(ETFatal, "Couldn't find a valid alias in dist feature: %s.",it->c_str());
+            // Transform alias into an index
+            Uint index = mt->second;
+            // Replace the aliased feature with an indexed feature
+            stringstream feat;
+            for(Uint i=0;i<toks.size()-1;i++) {
+               if(i>0) feat << "#";
+               feat<<toks[i];
+            }
+            feat << "#" << index;
+            it->assign(feat.str());
+         }
+         else {
+            if(split(*it,toks,"#")>2 && !isdigit(toks[2][0]))
+               error(ETFatal, "Looks like %s has an alias, without any aliases on lex-dist-model-files",
+                     it->c_str());
+         }
 
-   vector<string>::iterator it=distortionModel.begin();
-   for (;it != distortionModel.end(); ++it){
-      if ( isPrefix("fwd-lex",*it) )
-         existingFwdLex = true;
-      if ( isPrefix("back-lex",*it) )
-         existingBackLex = true;
+         // CAC: Make sure all indexes (either provided or inferred by aliases)
+         // are less than the number of models
+         toks.clear();
+         split(*it,toks,"#");
+         string snum="";
+         if(toks.size()==2) snum = toks[1];
+         if(toks.size()==3) snum = toks[2];
+         if(!snum.empty() && isdigit(snum[0])) {
+            Uint inum = conv<Uint>(snum);
+            if(inum >= LDMFiles.size())
+               error(ETFatal, "Provided distortion feature index %d >= LDMFile count %d",
+                     inum, LDMFiles.size());
+            usingLex[inum] = true;
+         }
+      }
    }
 
-   if (LDMFiles.empty() && (existingFwdLex || existingBackLex))
+   if (LDMFiles.empty() && existingLex)
       error(ETFatal, "No lexicalized distortion model file specified.");
-   if (!LDMFiles.empty() && (!existingFwdLex && !existingBackLex))
-      error(ETFatal, "No lexicalized distortion model type [fwd-lex and|or back-lex] specified.");
-   if (LDMFiles.size() > 1)
-      error(ETFatal, "Support for multiple LDM files is not implemented.");
+   if (!LDMFiles.empty() && !existingLex)
+      error(ETFatal, "No lexicalized distortion model type [fwd-[h]lex and|or back-[h]lex] specified.");
+   if (LDMFiles.size() > 1) {
+      for(Uint i=0;i<LDMFiles.size();++i) {
+         if(!usingLex[i])
+            error(ETFatal, "Included LDM %s, but no features use it", LDMFiles[i].c_str());
+      }
+   }
+   if (!LDMFiles.empty()) {
+      //text LDM files aren't compatible with tppts or dynmixtms
+      for (Uint i = 0; i < LDMFiles.size(); ++i) {
+         if (!isSuffix(".tpldm", LDMFiles[0])) {
+            if (!tpptFiles.empty())
+               error(ETFatal, "Text LDM files are not compatible with TPPTs; convert your LDM (%s) to a TPLDM to proceed.", LDMFiles[0].c_str());
+         }
+      }
+   }
 
    if (lmFiles.empty())
       error(ETFatal, "No language model file specified.");
@@ -636,8 +746,6 @@ void CanoeConfig::check()
       error(ETWarn, "You can't specify a segmentation weight when using no segmentation model - ignoring it");
       segWeight.clear();
    }
-   if (obsoleteSegModelArgs != "")
-      error(ETFatal, "-segmentation-args is an obsolete option - use -segmentation-model model#args instead.");
 
    if (ibm1FwdFiles.size() != ibm1FwdWeights.size())
       error(ETFatal, "number of IBM1 forward weights does not match number of IBM forward model files");
@@ -687,12 +795,23 @@ void CanoeConfig::check()
          error(ETFatal, "A weight has a non-finite value (id:%d, value:%f).",
                i, wts[i]);
 
+   // loadFirst is required when using TPPTs
+   if (!loadFirst) {
+      if (!tpptFiles.empty()) {
+         error(ETWarn, "Setting -load-first, since dynamic LM filtering is not yet compatible with TPPTs.");
+         loadFirst = true;
+      }
+   }
+
    // Unless load first is specified, you cannot mix and match tppt other text pt.
    if (!loadFirst) {
       const bool isThereTMS = !multiProbTMFiles.empty();
       if (isThereTMS && !tpptFiles.empty())
          error(ETFatal, "You cannot mix and match TPPTs with other types of phrase tables unless you use -load-first.");
    }
+
+   if (distLimitExt && distLimitSimple)
+      error(ETFatal, "Can't use both -dist-limit-ext and -dist-limit-simple.");
 } //check()
 
 void CanoeConfig::check_all_files() const
@@ -731,6 +850,20 @@ void CanoeConfig::check_all_files() const
             } else if (is_directory(f)) {
                cerr << "Error: Directory found when file expected for "
                     << it->names[0] << " parameter: " << f << endl;
+               ok = false;
+            }
+         }
+      }
+      else if (it->groups & ParamInfo::check_dir_name) {
+         vector<string> v;
+         if (it->tconv == "stringVect")
+            v = *((vector<string>*)(it->val));
+         else
+            v.push_back(*(string*)(it->val));
+         for (vector<string>::const_iterator f(v.begin()); f!=v.end(); ++f) {
+            if (!is_directory(*f)) {
+               cerr << "Error: " << *f << " is not a directory in " << it->names[0]
+                    << " parameter." << endl;
                ok = false;
             }
          }
@@ -785,6 +918,12 @@ void CanoeConfig::check_all_files() const
 
    // On error, exit with error status so this check can be used in scripts
    if (!ok) exit(1);
+}
+
+Uint CanoeConfig::getTotalBackwardModelCount() const
+{
+   return getTotalMultiProbModelCount() + 
+          getTotalTPPTModelCount();
 }
 
 Uint CanoeConfig::getTotalMultiProbModelCount() const

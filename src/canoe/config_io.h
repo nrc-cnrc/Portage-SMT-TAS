@@ -66,7 +66,8 @@ class rnd_distribution; // No need to actually include randomDistribution.h here
  *
  * Note: binary arguments are special: they are set to true by including the
  * corresponding parameter in the config file or command line, with no
- * argument.  Not including the parameter leaves the value false.
+ * argument.  Not including the parameter, or prefixing it with "no-", leaves
+ * the value false.
  *
  * Note that the members are only documented briefly here.  See canoe_help.h or
  * type "canoe -h" for more details on the meaning of most of these parameters.
@@ -152,6 +153,7 @@ public:
    int levLimit;                    ///< levenshtien limit
    int distLimit;                   ///< Distortion limit
    bool distLimitExt;               ///< Use the extended definition of dist limit
+   bool distLimitSimple;            ///< Use the simple definition of dist limit
    bool distPhraseSwap;             ///< Allow swapping contiguous phrases
    vector<string> distortionModel;  ///< Distortion model name(s)
    string segmentationModel;        ///< Segmentation model name
@@ -183,8 +185,12 @@ public:
    string futLMHeuristic;           ///< What LM heuristic to use when calculating future scores
    bool useFtm;                     ///< Use FTMs even if no weights are given
    bool futScoreUseFtm;             ///< Whether to use forward translation probabilities to compute the future costs
+   Uint maxlen;                     ///< Skip sentences longer than max len (0 means do all)
+
+   // how to run the software
    bool final_cleanup;              ///< Indicates if canoe should delete its bmg.
    int  bind_pid;                   ///< What pid to monitor.
+   bool timing;                     ///< Show per-sentence timing information
 
    /**
     * Constructor, sets default parameter values.
@@ -237,6 +243,11 @@ public:
     * fixed.  Dies with an error message if any model file is not readable.
     */
    void check_all_files() const;
+
+   /**
+    * Count how many backward TMs there are, over all types.
+    */
+   Uint getTotalBackwardModelCount() const;
 
    /**
     * Count the total number of translation models in multi-prob tables.
@@ -343,8 +354,10 @@ private:
          tppt_check_file_name       = lm_check_file_name << 1,
          /// Specific file name check for LDMs and TPLDMs
          ldm_check_file_name        = tppt_check_file_name << 1,
+         /// Check that the name is an accessible directory
+         check_dir_name             = ldm_check_file_name << 1,
          /// Indicates the number of groupings
-         num_groups                 = ldm_check_file_name << 1
+         num_groups                 = check_dir_name << 1
       };
 
       CanoeConfig* c;        ///< Pointer to parent CanoeConfig object

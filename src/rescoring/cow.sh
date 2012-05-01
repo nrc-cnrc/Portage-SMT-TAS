@@ -542,30 +542,9 @@ elif [[ "$FILTER" = "-filt" ]]; then
    fi
    check_ttable_limit $TTABLE_LIMIT;
    CPT=multi.probs.`basename ${SFILE}`.${TTABLE_LIMIT}
-   run_cmd "filter_models -z -r -f $CFILE -ttable-limit $TTABLE_LIMIT -suffix .FILT -soft-limit ${CPT} < $SFILE"
-   CFILE=$CFILE.FILT
+   run_cmd "filter_models -ldm -z -r -f $CFILE -ttable-limit $TTABLE_LIMIT -suffix .FILT -soft-limit ${CPT} < $SFILE"
    CPT=$CPT.FILT.gz
-
-   # Now, filter the text LDMs on the resulting filtered phrase table.
-   LDMS=`configtool list-ldm $CFILE`
-   FLDMS=
-   TPLDMS=
-   for LDM in ${LDMS}; do
-      if [[ "${LDM%.tpldm}" = "${LDM}" ]]; then
-         # Filter text LDM
-         FLDM=`basename ${LDM} .gz`.FILT.gz
-         run_cmd "filter-distortion-model.pl -v ${CPT} ${LDM} ${FLDM}"
-         FLDMS=${FLDMS}${FLDMS:+:}${FLDM}
-         cp ${LDM%.gz}.bkoff ${FLDM%.gz}.bkoff
-      else
-         # Skip filtering for TPLDM - just record the name.
-         TPLDMS="${TPLDMS}:${LDM}"
-      fi
-   done
-   if [[ ${FLDMS} ]]; then
-      configtool -p "args:-lex-dist-model-file ${FLDMS}${TPLDMS}" $CFILE >$CFILE.FILTLDM
-      mv $CFILE.FILTLDM $CFILE
-   fi
+   CFILE=$CFILE.FILT
 elif [[ "$FILTER" = "-filt-no-ttable-limit" ]]; then
    # filter-grep only, keep all translations for matching source phrases
    configtool rep-ttable-files-local:.FILT $CFILE > $CFILE.FILT

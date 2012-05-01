@@ -4,26 +4,30 @@
 
 namespace ugdiss
 {
-  id_type const&
+  /* inlined in the declaration
+  id_type
   SimpleWordId::
   id() const 
   { 
     return theID; 
   }
+  */
 
   int
   SimpleWordId::
-  cmp(SimpleWordId const& other) const
+  cmp(SimpleWordId other) const
   {
     return (theID < other.theID    ? -1
             : theID == other.theID ?  0
             :                         1);
   }
 
+  /* inlined in the declaration
   SimpleWordId::
-  SimpleWordId(id_type const& id)
+  SimpleWordId(id_type id)
   {
     theID = id;
   }
+  */
 
 }

@@ -63,7 +63,7 @@ class LMDynMap : public PLM
     * Replaces any digits in a word by @.
     * This is a class to handle all number mapping scheme in a uniform way.
     */
-   struct Number : public Mapping {
+   struct Number : public Mapping, private NonCopyable {
       NumberMapper::baseNumberMapper* mapper;  ///< Object to map digits
       string out;   ///< workspace which is NOT reentrant
 

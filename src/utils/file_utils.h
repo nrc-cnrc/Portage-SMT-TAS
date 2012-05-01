@@ -163,6 +163,16 @@ void delete_if_exists(const char* filename, const char* warning_msg);
 void error_if_exists(const char* filename, const char* error_msg);
 
 /**
+ * Test if a file exists and, and issue a fatal error otherwise.
+ * @param filename           file to check
+ * @param accept_compressed  if true, consider the .gz version as equivalent
+ * @param file_type          if non-null, file_type will be include in the
+ *                           error messages produced.
+ */
+void error_unless_exists(const string& filename, bool accept_compressed = true,
+      const char* file_type = NULL);
+
+/**
  * Verifies if a file exists (or optionally its .gz version).
  * @param filename           file to check
  * @param accept_compressed  if true, consider the .gz version as equivalent

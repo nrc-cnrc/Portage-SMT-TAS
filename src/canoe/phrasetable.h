@@ -2,7 +2,7 @@
  * @author Aaron Tikuisis
  * @file phrasetable.h  This file contains the definition of the PhraseTable
  * class, which uses a trie to store mappings from source phrases to target
- * phrases.
+ * phrases. Among other things. Not for the faint of heart.
  *
  * $Id$
  *
@@ -63,6 +63,11 @@ struct ForwardBackwardPhraseInfo : public PhraseInfo
    /// lexicalized distortion probabilities for this phrase
    vector<float>  lexdis_probs; //boxing
 
+
+   virtual void display() const {
+      PhraseInfo::display();
+      cerr << " " << forward_trans_prob << " " << adir_prob;
+   }
 }; // ForwardBackwardPhraseInfo
 
 
@@ -158,20 +163,14 @@ protected:
    /// The number of translation models that have been loaded from text files.
    Uint numTextTransModels;
 
-   /**
-    * Translation models opened in TPPT format.
-    * The number of models is the sum of the elements in tpptTableModelCounts.
-    */
+   /// Translation models opened in TPPT format.
+   /// The number of models is the sum of the elements in tpptTableModelCounts.
    vector<shared_ptr<ugdiss::TpPhraseTable> > tpptTables;
 
-   /**
-    * The number of models in each TPPT table
-    */
+   /// The number of models in each TPPT table
    vector<Uint> tpptTableModelCounts;
 
-   /**
-    * Lexicalized Distortion Models in TPLDM format.
-    */
+   /// Lexicalized Distortion Models in TPLDM format.
    vector<shared_ptr<ugdiss::TpPhraseTable> > tpldmTables;
 
    /// The total number of translation models that have been loaded.
@@ -233,13 +232,14 @@ private:
 public:
 
    /**
-    * Creates a new PhraseTable using the given vocab.
+    * Constructor creates a new PhraseTable using the given vocab.
     * @param tgtVocab vocab object to used - can be shared with other models
     * @param pruningTypeStr NULL or "forward-weights" or "backward-weights"
     *                    or "combined" - see PruningType enum documentation for
     *                    details.
     */
-   PhraseTable(VocabFilter &tgtVocab, const char* pruningTypeStr = NULL);
+   PhraseTable(VocabFilter &tgtVocab,
+               const char* pruningTypeStr = NULL);
 
    /**
     * Destructor.
@@ -412,7 +412,7 @@ public:
     * building structures needed for LM filtering based on per sentence vocab.
     * @param  sentences  tokenized sentences to be added to the vocab.
     */
-   void addSourceSentences(const vector<vector<string> >& sentences);
+   virtual void addSourceSentences(const vector<vector<string> >& sentences);
 
    /**
     * Get all phrase translations from all phrase tables for a given sentence.
@@ -466,7 +466,15 @@ public:
     * @param uPhrase    The phrase as a vector of Uint's.
     * @return           The string representation of uPhrase.
     */
-   string getStringPhrase(const Phrase &uPhrase) const;
+   string getStringPhrase(const Phrase &uPhrase) const {
+      return phrase2string(uPhrase, tgtVocab);
+   }
+
+   /**
+    * Same as above, but outputs to a vector of tokens (returns ref to <res>).
+    * (Needed for DynTM stuff)
+    */
+   vector<string>& getVectorStringPhrase(const Phrase& p, vector<string>& res) const;
 
    /**
     * Determine if the table contains a given source phrase.
@@ -491,20 +499,24 @@ protected:
    struct Entry
    {
       const dir d;                ///< direction of the prob file
+      const bool limitPhrases;    ///< parameter copied from PhraseTable::readFile()'s
       const char* const file;     ///< entry is from file
       string* line;               ///< raw entry
       char* src;                  ///< source string in line
+      vector<string> src_tokens;  ///< source tokens, split from src -- must be vector<string> since only reset when src changes, not at every entry.
       char* tgt;                  ///< target string in line
       char* probString;           ///< prob string in line
       char* ascoreString;         ///< ascore string in line   //boxing
       Uint  lineNum;              ///< entry number
       VectorPhrase tgtPhrase;     ///< phrase representation of the target string (vector<Uint>)
+      Uint src_word_count;        ///< the number of words in src
 
       /// Keeps count of the erroneous or zero prob entries
       Uint zero_prob_err_count;
 
       /// Number of probability columns in the current multi probs file
       Uint multi_prob_col_count;
+      static const Uint multi_prob_col_count_uninit = Uint(-1);
 
       /// Number of adirectional columns in the current multi probs file
       Uint adirectional_prob_count; //boxing
@@ -513,12 +525,13 @@ protected:
       Uint lexicalized_distortion_prob_count; //boxing
 
       /**
-       * Default constructor.
+       * Constructor.
        * @param _d     direction of _file
        * @param _file  current file we are processing
        */
-      Entry(dir _d, const char* _file)
+      Entry(dir _d, bool limitPhrases, const char* _file)
       : d(_d)
+      , limitPhrases(limitPhrases)
       , file(_file)
       , line(NULL)
       , src(NULL)
@@ -526,8 +539,9 @@ protected:
       , probString(NULL)
       , ascoreString(NULL) //boxing
       , lineNum(0)
+      , src_word_count(0)
       , zero_prob_err_count(0)
-      , multi_prob_col_count(0)
+      , multi_prob_col_count(multi_prob_col_count_uninit)
       , adirectional_prob_count(0)
       , lexicalized_distortion_prob_count(0)
       {}
@@ -561,8 +575,7 @@ protected:
     * @param limitPhrases whether to restrict the processing to phrases
     *                     pre-entered into the trie.
     */
-   virtual TargetPhraseTable* getTargetPhraseTable(const Entry& entry,
-         Uint& src_word_count,
+   virtual TargetPhraseTable* getTargetPhraseTable(Entry& entry,
          bool limitPhrases);
 
    /**

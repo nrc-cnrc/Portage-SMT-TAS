@@ -114,7 +114,8 @@ static void MakeHyperedges(
                     DistortionModel::respectsDistLimit(cov, 
                        states[i]->trans->lastPhrase->src_words,
                        src_words, model.c->distLimit, sourceLength,
-                       model.c->distLimitExt, &out_cov)
+                       model.c->distLimitSimple, model.c->distLimitExt,
+                       &out_cov)
                   ||
                    (model.c->distPhraseSwap &&
                     DistortionModel::isPhraseSwap(cov, 
@@ -212,7 +213,7 @@ static void MakeHyperedges(
 } // MakeHyperedges
 
 HypothesisStack* runCubePruningDecoder(BasicModel &model, const CanoeConfig& c,
-      bool usingLev)
+                                       bool usingLev, bool usingSR)
 {
    // Get all the phrase translation options from the model
    Uint sourceLength = model.getSourceLength();
@@ -258,7 +259,7 @@ HypothesisStack* runCubePruningDecoder(BasicModel &model, const CanoeConfig& c,
    double threshold = log(c.pruneThreshold);
 
    // Empty start state for all translations.
-   stacks[0]->push(makeEmptyState(sourceLength, usingLev));
+   stacks[0]->push(makeEmptyState(sourceLength, usingLev, usingSR));
    Uint nextDecoderStateId(1); // 0 is the empty state just created.
 
    for ( Uint s(1); s <= sourceLength; ++s ) {

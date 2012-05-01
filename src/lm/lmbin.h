@@ -53,6 +53,14 @@ protected:
    /// Destructor.
    virtual ~LMBin();
 
+public:
+   /**
+    * Verify that the file is indeed a binlm.
+    * @param  file  binlm file name.
+    * @return true if file points to a binlm.
+    */
+   static bool isA(const string& file);
+
 }; // ends class LMBin
 
 } // ends namespace Portage

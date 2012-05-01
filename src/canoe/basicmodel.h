@@ -28,7 +28,6 @@
 #include "vocab_filter.h"
 #include "marked_translation.h"
 #include "new_src_sent_info.h"
-#include <boost/noncopyable.hpp>
 
 
 using namespace std;
@@ -46,7 +45,7 @@ namespace Portage
     * and is used to create specific instances of decoder models for each
     * sentence.
     */
-   class BasicModelGenerator
+   class BasicModelGenerator : private NonCopyable
    {
    public:
       /// Global configuration object
@@ -58,22 +57,21 @@ namespace Portage
        * Creates a triangular array of all the phrase options for the given
        * sentence.  The (i, j)-th entry of the array returned will contain
        * all phrase translation options for the source range [i, i + j + 1).
-       * @param src_sent  The source sentence.
-       * @param marks     The marked translations for the sentence.
+       * @param info.src_sent  The source sentence.
+       * @param info.marks     The marked translations for the sentence.
        * @param alwaysTryDefault  If true, the default translation (source
        *                  word translates as itself) will be included in the
        *                  phrase options for all phrases; if false, the
        *                  default translation is included only when there is
        *                  no other option.
-       * @param oovs      If not NULL, will be set to true for each position
+       * @param info.oovs If not NULL, will be set to true for each position
        *                  in src_sent that contains an out-of-vocabulary word.
        * @return          A triangular array of translation options,
        *                  organized by the source range covered.
        */
       virtual vector<PhraseInfo *> **createAllPhraseInfos(
-            const vector<string> &src_sent,
-            const vector<MarkedTranslation> &marks,
-            bool alwaysTryDefault, vector<bool>* oovs);
+            const newSrcSentInfo& info,
+            bool alwaysTryDefault);
 
       /**
        * @brief add marked phrases to the phrase table info.
@@ -81,18 +79,18 @@ namespace Portage
        * Adds all the marked phrases to the triangular array result.  Ranges
        * that should be skipped (ranges that have marked translations when
        * c.bypassMarked is false) are stored in rangesToSkip.
-       * @param marks     The marked translations to add.
-       * @param result    The triangular array in which to enter the
-       *                  PhraseInfo object pointers for the marked phrases.
-       *                  The (i, j)-th entry will contain phrases for the
-       *                  source range [i, i + j + 1).
+       * @param info.marks    The marked translations to add.
+       * @param result        The triangular array in which to enter the
+       *                      PhraseInfo object pointers for the marked phrases.
+       *                      The (i, j)-th entry will contain phrases for the
+       *                      source range [i, i + j + 1).
        * @param rangesToSkip  Ranges that should be skipped are put here.
-       * @param sentLength  The length of the source sentence in context.
+       * @param info.src_sent The source sentence in context.
        */
       virtual void addMarkedPhraseInfos(
-            const vector<MarkedTranslation> &marks,
-            vector<PhraseInfo *> **result, vector<Range> &rangesToSkip,
-            Uint sentLength);
+            const newSrcSentInfo& info,
+            vector<PhraseInfo *> **result,
+            vector<Range> &rangesToSkip);
 
       /**
        * Produce a copy-as-is hypothesis.
@@ -338,10 +336,10 @@ namespace Portage
       /**
        * Convert a phrase from vector<Uint> representation to string.
        * Subclasses may override as needed to change the semantics of a phrase.
-       * @param s         The string onto which the phrase is appended.
        * @param uPhrase   The phrase as a vector of Uint's.
+       * @return the result
        */
-      virtual void getStringPhrase(string &s, const Phrase &uPhrase);
+      virtual string getStringPhrase(const Phrase &uPhrase) const;
 
       /**
        * @brief Get the Uint representation of word
@@ -380,13 +378,11 @@ namespace Portage
        *                      false).  (Can be NULL if c.loadFirst is true)
        * @param marks         All the marked translations. (Can be NULL if
        *                      c.loadFirst is true)
-       * @param phrasetable   A user supplied phrase table
        * @pre c.loadFirst || sents != NULL && marks != NULL
        */
       static BasicModelGenerator* create(const CanoeConfig& c,
             const vector<vector<string> > *sents = NULL,
-            const vector<vector<MarkedTranslation> > *marks = NULL,
-            PhraseTable* phrasetable = NULL);
+            const vector<vector<MarkedTranslation> > *marks = NULL);
 
       /**
        * Constructor, creates a new BasicModelGenerator.
@@ -400,8 +396,6 @@ namespace Portage
        *       it is relevant.
        *
        * @param c                 Global canoe configuration object
-       * @param phraseTable       A subclassed or pre-initialized phrase
-       *            table to use [NULL, in which case a new one is created]
        *
        * c.bypassMarked    Whether to use translations from the phrase
        *            table in addition to marked translations, when marked
@@ -434,8 +428,7 @@ namespace Portage
        * c.segModelArg     argument to pass to segmentation model.<BR>
        * c.verbosity       The verbosity level [1].<BR>
        */
-      BasicModelGenerator(const CanoeConfig &c,
-            PhraseTable *phraseTable = NULL);
+      BasicModelGenerator(const CanoeConfig &c);
 
       /**
        * constructor to use when the source text is already known.
@@ -467,8 +460,7 @@ namespace Portage
        */
       BasicModelGenerator(const CanoeConfig &c,
             const vector< vector<string> > &src_sents,
-            const vector< vector<MarkedTranslation> > &marks,
-            PhraseTable *phraseTable = NULL);
+            const vector< vector<MarkedTranslation> > &marks);
 
       /**
        * Destructor.
@@ -476,56 +468,6 @@ namespace Portage
       virtual ~BasicModelGenerator();
 
    private:
-      /**
-       * Add a multi-probability translation model.
-       * As with other "add TM" methods, weights can be subsequently changed
-       * using transWeights.
-       * @param multi_prob_tm_file multi-prob phrase table file name;
-       *                           if the file name ends with "#REVERSED", it
-       *                           will be considered a reversed phrase table.
-       *                           See PhraseTable::isReversed() for details.
-       * @param backward_weights   weights for the backward models; there must
-       *                           be the same number as backward models in the
-       *                           file: half as many as columns in the file.
-       * @param forward_weights    weights for the forward models; there must
-       *                           be the same number as backward_weights, if
-       *                           forward probabilities are used, or none.
-       * @param adir_weights       weights for the adirectional models; there
-       *                           must be the same number as adirectional
-       *                           models in the file, or none
-       */
-      virtual void addMultiProbTransModel(const char *multi_prob_tm_file,
-            vector<double> backward_weights, vector<double> forward_weights,
-            vector<double> adir_weights); //boxing
-
-      /**
-       * Add a TPPT translation model.
-       * As with other "add TM" methods, weights can be subsequently changed
-       * using transWeights.
-       * @param tppt_file          TPPT phrase table file name;
-       * @param backward_weights   weights for the backward models; there must
-       *                           be the same number as backward models in the
-       *                           file: half as many as columns in the file.
-       * @param forward_weights    weights for the forward models; there must
-       *                           be the same number as backward_weights, if
-       *                           forward probabilities are used, or none.
-       */
-      virtual void addTpptTransModel(const char *tppt_file,
-            vector<double> backward_weights,
-            vector<double> forward_weights);
-
-      /**
-       * Add a multi-probability lexicalized distortion model.
-       *
-       * @param lexicalized_dm_file   multi-prob distortion model file name;
-       *                              if the file name ends with "#REVERSED",
-       *                              it will be considered a reversed phrase
-       *                              table.  See PhraseTable::isReversed()
-       *                              for details.
-       * @param lexdis_weights        weights for the distortion models;
-       */
-      virtual void addLexDistModel(const char *lexicalized_dm_file); //boxing
-
       /**
        * Add a language model.  Adds a language model, loaded from the given
        * file.  Note that the weight may be subsequently changed using the
@@ -632,7 +574,7 @@ namespace Portage
    }; // BasicModelGenerator
 
    /// Decoder model for one sentence.
-   class BasicModel: public PhraseDecoderModel, private boost::noncopyable
+   class BasicModel: public PhraseDecoderModel, private NonCopyable
    {
    public:
       /// Glocal configuration object
@@ -702,8 +644,8 @@ namespace Portage
       /// Destructor
       virtual ~BasicModel();
 
-      virtual void getStringPhrase(string &s, const Phrase &uPhrase) {
-         parent.getStringPhrase(s, uPhrase);
+      virtual string getStringPhrase(const Phrase &uPhrase) {
+         return parent.getStringPhrase(uPhrase);
       }
 
       virtual Uint getUintWord(const string &word) {
@@ -730,19 +672,6 @@ namespace Portage
        * [i, i + j + 1).
        */
       virtual vector<PhraseInfo *> **getPhraseInfo() { return phrases; }
-
-      /**
-       * Inform the model of the current PartialTranslation context.
-       *
-       * Between calls to this function, the "<trans>" arguments to
-       * scoreTranslation() and computeFutureScore() are guaranteed to differ
-       * only in their lastPhrase members, ie in their last source/target
-       * phrase pairs. The purpose is to give the model a chance to factor
-       * out computations that depend only on this pair (added for the new
-       * tree-based distortion models).
-       * @param trans the current context
-       */
-      virtual void setContext(const PartialTranslation& trans);
 
       /**
        * Main scoring function.

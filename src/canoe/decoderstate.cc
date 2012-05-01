@@ -36,10 +36,8 @@ DecoderState::~DecoderState()
    assert(refCount == 0);
 
    // Delete the translation object
-   if ( trans != NULL )
-   {
-      delete trans;
-   }
+   delete trans;
+   trans = (PartialTranslation*)0xde1e1ed;
 
    // Iterate through the recombined translations and delete each
    for (vector<DecoderState *>::const_iterator it = recomb.begin();
@@ -59,8 +57,12 @@ DecoderState::~DecoderState()
       if (back->refCount == 0)
       {
          delete back;
+         back = (DecoderState*)0xde1e1ed;
       }
    }
+
+   // memory trampling detection
+   id = 1234000000 + id;
 } // ~DecoderState
 
 void DecoderState::swap(DecoderState& other)
@@ -71,6 +73,27 @@ void DecoderState::swap(DecoderState& other)
    std::swap<double>(futureScore, other.futureScore);
    std::swap<PartialTranslation*>(trans, other.trans);
    std::swap<DecoderState*>(back, other.back);
+}
+
+void DecoderState::display(ostream& out, PhraseDecoderModel *model, Uint sourceLength) const
+{
+   if (sourceLength == 0)
+      sourceLength = trans->numSourceWordsCovered + countWords(trans->sourceWordsNotCovered);
+
+   out << id;
+   if (back) out << " from " << back->id << endl;
+   if (back) out << "\tbase score            " << back->score << endl;
+   out << "\tcoverage              ";
+   if (back)
+      out << displayUintSet(back->trans->sourceWordsNotCovered, false, sourceLength) << " + ";
+   out << trans->lastPhrase->src_words << " = ";
+   out << displayUintSet(trans->sourceWordsNotCovered, false, sourceLength) << endl;
+   out << "\tnum covered words     " << trans->numSourceWordsCovered << endl;
+   if (model) {
+      out << "\ttarget phrase         "
+          << model->getStringPhrase(trans->lastPhrase->phrase);
+      out << endl;
+   }
 }
 
 Uint DecoderState::pruneRecombinedStates(double threshold)
@@ -96,28 +119,12 @@ Uint DecoderState::pruneRecombinedStates(double threshold)
 
 namespace Portage
 {
-   DecoderState *makeEmptyState(Uint sourceLength, bool usingLev)
+   DecoderState *makeEmptyState(Uint sourceLength, bool usingLev, bool usingSR)
    {
       // Create the objects
       DecoderState *state = new DecoderState;
-      PartialTranslation *trans = new PartialTranslation(usingLev);
-      trans->lastPhrase = new PhraseInfo;
+      PartialTranslation *trans = new PartialTranslation(sourceLength, usingLev, usingSR);
       state->trans = trans;
-
-      // Set up the empty phrase translation
-      trans->lastPhrase->src_words.start = 0;
-      trans->lastPhrase->src_words.end = 0;
-      trans->lastPhrase->phrase_trans_prob = 0;
-
-      // Set up the empty translation
-      trans->back = NULL;
-      trans->numSourceWordsCovered = 0;
-
-      // Set the range of words not covered to be the full range of words
-      if ( sourceLength > 0 ) {
-         Range fullRange(0, sourceLength);
-         trans->sourceWordsNotCovered.push_back(fullRange);
-      }
 
       // Set up the empty state
       state->id = 0;
@@ -129,7 +136,7 @@ namespace Portage
       return state;
    } // makeEmptyState
 
-   DecoderState *extendDecoderState(DecoderState *state0, PhraseInfo *phrase,
+   DecoderState *extendDecoderState(DecoderState *state0, const PhraseInfo *phrase,
          Uint &numStates, const UintSet* preCalcSourceWordsCovered)
    {
       assert(state0 != NULL);
@@ -152,12 +159,15 @@ namespace Portage
 
       // Increment state0's reference count and initialize new state to have
       // 0 reference count
-      state0->refCount++;
+      ++state0->refCount;
       state->refCount = 0;
 
       // Assign a unique id
       state->id = numStates;
       numStates++;
+
+      // to detect uninitialized memory
+      state->score = state->futureScore = 1234;
 
       return state;
    } // extendDecoderState

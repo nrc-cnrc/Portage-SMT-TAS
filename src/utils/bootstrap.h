@@ -41,13 +41,13 @@ double bootstrapConfInterval(Iterator beg, Iterator end, Statistic stat,
 			     double conf = 0.95, Uint m = 1000, Uint seed = 0) 
 {
    using namespace std;
-   Uint n = end - beg;
+   const Uint n = end - beg;
    typedef typename std::iterator_traits<Iterator>::value_type T;
    vector<T> resample(n);
    vector<double> deltas(m);
    if (seed != 0) srand(seed);
 
-   double sm = stat(beg, end);
+   const double sm = stat(beg, end);
    copy(beg, end, resample.begin());
    for (Uint i = 0; i < m; ++i) {
       for (Uint j = 0; j < n; ++j)
@@ -85,7 +85,7 @@ void bootstrapConfInterval(Iterator beg, Iterator end,
 			   Uint seed = 0)
 {
    using namespace std;
-   Uint n = end - beg;
+   const Uint n = end - beg;
    typedef typename std::iterator_traits<Iterator>::value_type T;
    typedef vector<double> Vect;
    vector<T> resample(n);
@@ -130,7 +130,7 @@ void bootstrapNWiseComparison(Iterator beg, Iterator end,
 			      Uint m = 1000, Uint seed = 0)
 {
    using namespace std;
-   Uint n = end - beg;
+   const Uint n = end - beg;
    typedef typename std::iterator_traits<Iterator>::value_type T;
    typedef vector<double> Vect;
    vector<T> resample(n);

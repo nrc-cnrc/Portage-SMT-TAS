@@ -125,7 +125,7 @@ struct PhraseTableBase
  * and the phrase frequency tables are not kept in memory. In this case,
  * the jpt file is read each time the phrase table is iterated over.
  */
-template<class T> class PhraseTableGen : public PhraseTableBase
+template<class T> class PhraseTableGen : public PhraseTableBase, private NonCopyable
 {
    typedef vector_map<Uint,T> PhraseFreqs; // l2-index -> frequency
    typedef vector<PhraseFreqs*> PhraseTable;
@@ -149,10 +149,6 @@ template<class T> class PhraseTableGen : public PhraseTableBase
    bool phrase_table_read;      // set upon completion of first jpt file reading
 
 private:
-   /// noncopyable - disable copy constructor
-   PhraseTableGen(const PhraseTableGen&);
-   /// noncopyable - disable assignment opeartor
-   PhraseTableGen& operator=(const PhraseTableGen&);
 
    void remap_psep_helper(Voc& voc, const string& sep, const string& replacement);
 
@@ -187,6 +183,7 @@ public:
       iterator& operator++();   // increment
       bool operator==(const iterator& it) const;
       bool operator!=(const iterator& it) const { return ! operator==(it); }
+      string getPhrase(Uint lang) const { string s; return getPhrase(lang, s); }
       string& getPhrase(Uint lang, string& phrase) const; // lang is 1 or 2
       void getPhrase(Uint lang, vector<string>& toks) const; // lang is 1 or 2
       Uint getPhraseLength(Uint lang) const; // lang is 1 or 2

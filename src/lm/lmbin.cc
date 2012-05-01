@@ -20,6 +20,14 @@ using namespace Portage;
 using namespace std;
 
 
+bool LMBin::isA(const string& file) {
+   string line;
+   iSafeMagicStream is(file, true);
+   getline(is, line);
+   return line == "Portage BinLM file, format v1.0";
+}
+
+
 void LMBin::read_binary(const string& binlm_filename, Uint limit_order)
 {
    iSafeMagicStream ifs(binlm_filename);
@@ -48,7 +56,7 @@ void LMBin::read_binary(const string& binlm_filename, Uint limit_order)
    // Vocab size line
    getline(ifs, line);
    splitZ(line, tokens);
-   Uint voc_size;
+   Uint voc_size = 0;
    if ( tokens.size() != 4 || tokens[0] != "Vocab" || tokens[1] != "size" ||
         tokens[2] != "=" || !conv(tokens[3], voc_size) )
       error(ETFatal, "File %s not in Portage's BinLM format: bad voc size line",
@@ -68,7 +76,7 @@ void LMBin::read_binary(const string& binlm_filename, Uint limit_order)
             binlm_filename.c_str());
    getline(ifs, line);
    splitZ(line,tokens,"=");
-   Uint internal_nodes_in_file;
+   Uint internal_nodes_in_file= 0;
    if ( tokens.size() != 2 ||
         tokens[0] != "End of Portage BinLM file.  Internal node count" ||
         !conv(tokens[1], internal_nodes_in_file) )

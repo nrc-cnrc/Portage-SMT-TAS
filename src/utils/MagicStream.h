@@ -23,13 +23,13 @@
 #ifndef __MAGIC_STREAM_H__
 #define __MAGIC_STREAM_H__
 
+#include "portage_defs.h"
 #include <iostream>
 #include <boost/shared_ptr.hpp>
 #include <ext/stdio_filebuf.h>
 #include <fstream>
 #include <string>
 #include <cerrno>
-#include <boost/noncopyable.hpp>
 
 
 namespace Portage {
@@ -39,7 +39,7 @@ namespace Portage {
  * concrete object but rather as a placeholder of common MagicStream
  * funcion/members.
  */
-class MagicStreamBase : private boost::noncopyable
+class MagicStreamBase : private NonCopyable
 {
    protected:
       /// Internal buffer's definition
@@ -187,6 +187,10 @@ class iMagicStream : public MagicStreamBase, public std::istream
       /// Opens the stream/buffer.
       /// @param s comand to open
       virtual void open(const std::string& s);
+
+      /// Opens the stream/buffer, issueing a fatal error on failure
+      /// @param s comand to open
+      void safe_open(const std::string& s);
 };
 
 /// Output Magic Stream.  Transparently create - and write to - regular files,
@@ -219,6 +223,10 @@ class oMagicStream : public MagicStreamBase, public std::ostream
       /// Opens the stream/buffer.
       /// @param s comand to open
       virtual void open(const std::string& s);
+
+      /// Opens the stream/buffer, issueing a fatal error on failure
+      /// @param s comand to open
+      void safe_open(const std::string& s);
 };
 } // ends Portage
 

@@ -53,7 +53,7 @@ from portage_utils import *
 def get_args():
    """Command line argument processing."""
    
-   usage="prog [options] [infile [outfile]]"
+   usage="prog [options] mandatoryFile1 mandatoryFile2 [infile [outfile]]"
    help="""
    A brief description of what this program does. (Don't bother trying to format
    this text by including blank lines, etc: ArgumentParser is a control freak and
@@ -67,6 +67,9 @@ def get_args():
    parser.add_argument("-h", "-help", "--help", action=HelpAction)
    parser.add_argument("-v", "--verbose", action=VerboseAction)
    parser.add_argument("-d", "--debug", action=DebugAction)
+
+   parser.add_argument("-g", "--flag", dest="someFlag", action='store_true', default=False,
+                       help="some flag option [%(default)s]")
 
    parser.add_argument("-s", dest="str_opt", type=str, default="",
                        help="some string option [%(default)s]")
@@ -82,6 +85,9 @@ def get_args():
                             "[%(default)s]")
    parser.add_argument("-enc", "--encoding", nargs='?', default="utf-8",
                        help="file encoding [%(default)s]")
+
+   parser.add_argument("mandatoryFile1", type=open, help="file 1")
+   parser.add_argument("mandatoryFile2", type=open, help="file 2")
 
    # The following use the portage_utils version of open to open files.
    parser.add_argument("infile", nargs='?', type=open, default=sys.stdin, 

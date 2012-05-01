@@ -553,6 +553,10 @@ Uint splitCheckZ(const string &s, vector<T> &dest, const char* sep = " \t\n", Ui
  */
 Uint destructive_split(char* s, char* tokens[], Uint max_tokens, const char* sep = " \t\n");
 
+/// Same as argument destructive_split(), but without a maximum number of tokens
+/// tokens is cleared before adding the tokens from s to it.
+Uint destructive_splitZ(char* s, vector<const char*>& tokens, const char* sep = " \t\n");
+
 /**
  * Gets the next token.
  *
@@ -685,8 +689,9 @@ splitStringZ(const string& s, vector<string>& dest, const string& sep = " ") {
    dest.clear();
    splitString(s, dest, sep);
 }
+
 /**
- * Do not delete point in boost::shared_ptr.
+ * Do not delete pointer in boost::shared_ptr.
  *
  * Utility class for using boost::shared_ptr: the null deleter says don't
  * delete anything when the object is released.

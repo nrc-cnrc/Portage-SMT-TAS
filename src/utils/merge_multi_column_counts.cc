@@ -16,6 +16,7 @@
 
 #include "file_utils.h"
 #include "arg_reader.h"
+#include "vector_map.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -26,19 +27,21 @@ using namespace Portage;
 using namespace std;
 
 static char help_message[] = "\n\
-merge_counts [-v][-d] [outfile [infile]]\n\
+merge_multi_column_counts [-v][-d] OUTFILE INFILE(S)\n\
 \n\
-Merge multi-counts files where the counts are separated by \" ||| \" from the\n\
-beginning of the line.  Everything up to and including the separator is used as\n\
-the merge key.\n\
-\n\
-IMPORTANT:\n\
-- input files must be LC_ALL=C sorted.\n\
+Merge multi-counts files.  Counts are at the end of each line, separated by\n\
+\" ||| \" from the rest of the line.  Everything up to and including the last\n\
+separator found is used as the merge key.  Input files must be LC_ALL=C sorted.\n\
 \n\
 Options:\n\
 \n\
 -d  Write debugging info. [don't]\n\
 -v  Write progress reports to cerr. [don't]\n\
+-a  Expect alignments with counts instead of multiple columns of counts\n\
+    In this case, the result is the multi-set union of the alignments.\n\
+    The format is a=<align>:<count>(;<align>:<count>)*.\n\
+-top-a  Same as -a, but prints only the globally most frequent alignment,\n\
+        without its count.  Ties are resolved arbitrarily.\n\
 ";
 
 // globals
@@ -46,6 +49,8 @@ const char* PHRASE_TABLE_SEP = " ||| ";
 
 static bool bDebug = false;
 static bool verbose = false;
+static bool process_alignments = false;
+static bool top_alignment = false;
 static vector<string> infiles;
 static string outfile("-");
 
@@ -66,6 +71,7 @@ class mergeStream
          string prefix;   ///< phrase
          string suffix;   ///< phrase
          vector<Uint> counts;    ///< phrase's counts
+         vector_map<string,Uint> alignments; ///< phrase's alignments
 
          void print(ostream& out) const {
             out << prefix;
@@ -74,6 +80,20 @@ class mergeStream
                out << counts[i] << " ";
             }
             out << counts[i] << suffix;
+            if ( process_alignments && !alignments.empty() ) {
+               out << " a=";
+               if ( top_alignment ) {
+                  out << alignments.max()->first;
+               } else {
+                  for ( vector_map<string,Uint>::const_iterator it(alignments.begin()), end(alignments.end());
+                        it != end; ) {
+                     out << it->first;
+                     if ( it->second != 1 || alignments.size() != 1 )
+                        out << ":" << it->second;
+                     if ( ++it != end ) out << ";";
+                  }
+               }
+            }
             out << endl;
          }
 
@@ -161,11 +181,33 @@ class mergeStream
                   split(buffer.substr(pos+sep_len), allcounts);
 
                   _data->counts.clear();
+                  _data->alignments.clear();
 
                   Uint intcount;
                   for (int j =0; j < int(allcounts.size()); j++){
 
-                     if (!convT(allcounts[j].c_str(), intcount)) {
+                     if (process_alignments && allcounts[j].compare(0,2,"a=") == 0) {
+                        vector<string> all_alignments;
+                        split(allcounts[j].substr(2), all_alignments, ";");
+                        for ( Uint i = 0; i < all_alignments.size(); ++i ) {
+                           string::size_type colon_pos = all_alignments[i].find(':');
+                           if ( colon_pos == string::npos ) {
+                              static bool warning_displayed = false;
+                              if ( !warning_displayed ) {
+                                 warning_displayed = true;
+                                 error(ETWarn, "alignments without counts are treated as 1's");
+                              }
+                              _data->alignments[all_alignments[i]] += 1;
+                           } else {
+                              if ( !convT(all_alignments[i].substr(colon_pos+1).c_str(), intcount) )
+                                 error(ETWarn, "Count is not a number %s in %s",
+                                       all_alignments[i].substr(colon_pos+1).c_str(),
+                                       buffer.c_str());
+                              else
+                                 _data->alignments[all_alignments[i].substr(0,colon_pos)] += intcount;
+                           }
+                        }
+                     } else if (!convT(allcounts[j].c_str(), intcount)) {
                         error(ETWarn, "Count is not a number %s", allcounts[j].c_str());
                      } else {
                         _data->counts.push_back(intcount);
@@ -291,6 +333,8 @@ class mergeStream
             for (int i = 0; i < int(current->counts.size()); i++) { //boxing
                total->counts[i] += current->counts[i]; //boxing
             }
+            if ( process_alignments )
+               total->alignments += current->alignments;
          }
 
          return *total;
@@ -321,12 +365,15 @@ int main(int argc, char* argv[])
 
 void getArgs(int argc, char* argv[])
 {
-   const char* switches[] = {"v", "d"};
+   const char* switches[] = {"v", "d", "a", "top-a"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 2, -1, help_message);
    arg_reader.read(argc-1, argv+1);
 
    arg_reader.testAndSet("v", verbose);
    arg_reader.testAndSet("d", bDebug);
+   arg_reader.testAndSet("a", process_alignments);
+   arg_reader.testAndSet("top-a", top_alignment);
+   if ( top_alignment ) process_alignments = true;
 
    arg_reader.testAndSet(0, "outfile", outfile);
    arg_reader.getVars(1, infiles);

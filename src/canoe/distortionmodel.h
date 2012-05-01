@@ -27,6 +27,9 @@ namespace Portage {
 /// Common class for distortion model decoder features.
 class DistortionModel : public DecoderFeature
 {
+protected:
+   Uint sentLength;  ///< Sentence length
+
 public:
 
    /**
@@ -40,6 +43,20 @@ public:
     */
    static DistortionModel* create(const string& name_and_arg,
          bool fail = true);
+
+   // Override DecoreFuture::newSrcSent() to save the sentennce length
+   virtual void newSrcSent(const newSrcSentInfo& new_src_sent_info) {
+      sentLength = new_src_sent_info.src_sent.size();
+   }
+
+   /**
+    * Helper that factors name extraction out of create()
+    * @param name_and_arg name of derived type, with optional argument
+    *                     introduced by # if appropriate.
+    * @param name         returning name by reference
+    * @param arg          returning arg by reference
+    */
+   static void splitNameAndArg(const string& name_and_arg, string& name, string& arg);
 
    /**
     * Verify whether a coverage and last phrase violate the distortion limit.
@@ -81,9 +98,11 @@ public:
     */
    static inline bool respectsDistLimit(const UintSet& cov,
          Range last_phrase, Range new_phrase, int distLimit, Uint sourceLength,
-         bool distLimitExt, const UintSet* resulting_cov = NULL)
+         bool distLimitSimple, bool distLimitExt, const UintSet* resulting_cov = NULL)
    {
-      if ( distLimitExt )
+      if ( distLimitSimple )
+         return respectsDistLimitSimple(cov, new_phrase, distLimit);
+      else if ( distLimitExt )
          return respectsDistLimitExt(cov, last_phrase, new_phrase, distLimit,
                sourceLength, resulting_cov);
       else
@@ -156,6 +175,9 @@ protected:
          Range last_phrase, Range new_phrase, int distLimit, Uint sourceLength,
          const UintSet* resulting_cov);
 
+   /// Implements respectsDistLimit() when distLimitSimple=true.
+   static bool respectsDistLimitSimple(const UintSet& cov,
+         Range new_phrase, int distLimit);
 };
 
 
@@ -164,27 +186,27 @@ protected:
  */
 class WordDisplacement : public DistortionModel
 {
-protected:
-   Uint sentLength;  ///< Sentence length
-
 public:
-
-   virtual void newSrcSent(const newSrcSentInfo& new_src_sent_info) {
-      sentLength = new_src_sent_info.src_sent.size();
-   }
-
    virtual double score(const PartialTranslation& pt);
-
    virtual double partialScore(const PartialTranslation& trans);
-
    virtual Uint computeRecombHash(const PartialTranslation &pt);
-
    virtual bool isRecombinable(const PartialTranslation &pt1, const PartialTranslation &pt2);
-
    virtual double precomputeFutureScore(const PhraseInfo& phrase_info);
-
    virtual double futureScore(const PartialTranslation &trans);
+};
 
+/**
+ * Left distance model measures the distance from the left-most non-covered
+ * word to the current phrase.
+ */
+class LeftDistance : public DistortionModel
+{
+   virtual double score(const PartialTranslation& pt);
+   virtual double partialScore(const PartialTranslation& trans);
+   virtual Uint computeRecombHash(const PartialTranslation &pt);
+   virtual bool isRecombinable(const PartialTranslation &pt1, const PartialTranslation &pt2);
+   virtual double precomputeFutureScore(const PhraseInfo& phrase_info);
+   virtual double futureScore(const PartialTranslation &trans);
 };
 
 /**
@@ -228,8 +250,8 @@ public:
      return 0;
    }
 
-   virtual double futureScore(const PartialTranslation &trans) {
-     return 1;
+   virtual double futureScore(const PartialTranslation &pt) {
+     return pt.sourceWordsNotCovered.empty() ? 0.0 : 1.0;
    }
 };
 
@@ -273,6 +295,7 @@ protected:
       M,S,D,Combined
    } ReorderingType;
    ReorderingType type;
+   Uint offset;
    LexicalizedDistortion(const string& arg);
    
 public:
@@ -281,12 +304,14 @@ public:
    void readDefaults(const char* file_dflt);
    
    //determine the type of reordering( m s d)    
-   ReorderingType determineReorderingType(const PartialTranslation& pt);
-   vector<float> getLexDisProb(const PhraseInfo& phrase_info);
+   virtual ReorderingType determineReorderingType(const PartialTranslation& pt);
+   vector<float>::const_iterator getLexDisProb(const PhraseInfo& phrase_info) const;
 };
 
 class FwdLexDistortion : public LexicalizedDistortion
 {
+private:
+   double scoreHelper(const PartialTranslation& pt);
 
 public:  
    FwdLexDistortion(const string& arg);
@@ -300,6 +325,8 @@ public:
 
 class BackLexDistortion : public LexicalizedDistortion
 {
+private:
+   double scoreHelper(const PartialTranslation& pt);
 
 public:  
    BackLexDistortion(const string& arg);
@@ -309,6 +336,34 @@ public:
    virtual bool isRecombinable(const PartialTranslation &pt1, const PartialTranslation &pt2);
    virtual double precomputeFutureScore(const PhraseInfo& phrase_info);
    virtual double futureScore(const PartialTranslation &trans);
+};
+
+class FwdHierLDM : public FwdLexDistortion
+{
+public:
+   FwdHierLDM(const string& arg);
+   virtual Uint computeRecombHash(const PartialTranslation &pt);
+   virtual bool isRecombinable(const PartialTranslation &pt1, const PartialTranslation &pt2);
+   virtual ReorderingType determineReorderingType(const PartialTranslation& pt);
+};
+
+class BackHierLDM : public BackLexDistortion
+{
+public:
+   BackHierLDM(const string& args);
+   virtual Uint computeRecombHash(const PartialTranslation &pt);
+   virtual bool isRecombinable(const PartialTranslation &pt1, const PartialTranslation &pt2);
+   virtual ReorderingType determineReorderingType(const PartialTranslation& pt);
+};
+
+/**
+ * Experimental Hierarchical LDM that does not require the shift-reduce parser
+ */
+class BackFakeHierLDM : public BackLexDistortion
+{
+public:
+   BackFakeHierLDM(const string& args);
+   virtual ReorderingType determineReorderingType(const PartialTranslation& pt);
 };
 
 /////////////////////

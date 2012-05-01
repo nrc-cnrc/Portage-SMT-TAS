@@ -33,7 +33,7 @@ ForcedTargetPhraseFinder::ForcedTargetPhraseFinder(BasicModel &model,
    //phrase options in triangular array
    //assert(src_sent.size() == srcLength);
 
-   Phrase uint_tgt_sent(tgt_sent.size());
+   VectorPhrase uint_tgt_sent(tgt_sent.size());
    for (Uint i = 0; i < tgt_sent.size(); i++) {
       uint_tgt_sent[i] = model.getUintWord(tgt_sent[i]);
    }
@@ -70,8 +70,8 @@ ForcedTargetPhraseFinder::ForcedTargetPhraseFinder(BasicModel &model,
          }
       }
       finderByTargetWord.push_back(RangePhraseFinder(curPhrases, srcLength,
-               model.c->distLimit, model.c->distLimitExt,
-               model.c->distPhraseSwap));
+               model.c->distLimit, model.c->distLimitSimple,
+               model.c->distLimitExt, model.c->distPhraseSwap));
    }
 } // ForcedTargetPhraseFinder
 

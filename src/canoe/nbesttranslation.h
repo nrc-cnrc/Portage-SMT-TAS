@@ -414,11 +414,8 @@ class my_phrase_map_t {
 
 inline std::string  get( my_phrase_map_t  pm, DecoderStatePair  e ) {
     DecoderState *  v1( source( e, pm.g ) );
-    string  result;
     if ( v1-> trans ) {
-        pm.g.get_model().getStringPhrase(
-            result, v1-> trans-> lastPhrase-> phrase );
-        return result;
+        return pm.g.get_model().getStringPhrase( v1-> trans-> getPhrase() );
     } else {
         return "";
     }

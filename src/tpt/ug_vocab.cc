@@ -98,8 +98,8 @@ namespace ugdiss
       }
     else 
       {
-        id_type    ID;
-        count_type cnt;
+        id_type    ID=0;
+        count_type cnt=0;
         string  S;
 #ifdef WITH_BOOST_IOSTREAMS
         using namespace boost::iostreams;
@@ -125,16 +125,21 @@ namespace ugdiss
   }
 
 
-  vector<id_type>
+  void
   Vocab::
-  toIdSeq(string const& foo,bool createIfNecessary)
+  toIdSeq(vector<id_type>& idSeq,string const& line,bool createIfNecessary)
   {
-    istringstream buf(foo);
-    vector<id_type> retval;
-    string w;
-    while (buf>>w) 
-      retval.push_back(createIfNecessary ? (*this)[w].id : get(w).id);
-    return retval;
+    idSeq.clear();
+    size_t q(0), p(0);
+    while (true)
+      {
+        p = line.find_first_not_of(" \t", q);
+        if (p == string::npos) break;
+        q = line.find_first_of(" \t", p);
+        idSeq.push_back(createIfNecessary ? (*this)[line.substr(p,q-p)].id
+                                          : get(line.substr(p,q-p)).id);
+        if (q == string::npos) break;
+      }
   }
 
   bool
@@ -289,7 +294,7 @@ namespace ugdiss
     assert (!in.eof());
     if (!in.good())
       cerr << efatal << "Unable to read vocab file due to EOF or error." << exit_1;
-    uint64_t VocabSize;
+    uint64_t VocabSize=0;
     binread(in, VocabSize); 
     // cerr << "Vocab size: " << VocabSize << endl;
     nIdx.resize(VocabSize);
@@ -298,8 +303,8 @@ namespace ugdiss
     char buf[mxStrLen+1];
     binread(in, totalCount);
     // cerr << "total word count: " << totalCount << endl;
-    bool recount = (totalCount == 0);
-    uint64_t strt, numchars, ID, cnt;
+    const bool recount = (totalCount == 0);
+    uint64_t strt=0, numchars=0, ID=0, cnt=0;
     for (size_t i = 0; i < VocabSize; i++)
       {
         binread(in,strt);

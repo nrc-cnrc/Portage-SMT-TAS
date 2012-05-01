@@ -340,7 +340,7 @@ namespace ugdiss
       // per encoded index entry.
       ostringstream oss;
       size_t k = binwrite(oss, this->corpus->size());
-      double avg_num_bytes = k - (pow(double(128.0),double(k-1)) / double(this->corpus->size()));
+      double avg_num_bytes = k - ((pow(double(128.0),double(k-1))-1) / double(this->corpus->size()));
       avg_num_bytes_per_entry =
         avg_num_bytes   // avg num bytes to encode sentence ID
         + 1;            // avg num bytes to encode offset

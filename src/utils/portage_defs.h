@@ -87,5 +87,15 @@ inline T max(T a, S b) { return (a > T(b)) ? a : T(b); }
 template <class T, class S>
 inline T min(T a, S b) { return (a < T(b)) ? a : T(b); }
 
+/// Inherit this privately to make a class non-copyable.
+// Placed here so it's easily accessible from all of Portage, given how
+// often we expect to use it.
+class NonCopyable {
+   NonCopyable(const NonCopyable&);
+   NonCopyable& operator=(const NonCopyable&);
+public:
+   NonCopyable() {}
+};
+
 }
 #endif

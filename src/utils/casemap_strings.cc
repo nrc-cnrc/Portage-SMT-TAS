@@ -65,7 +65,7 @@ CaseMapStrings::~CaseMapStrings() {
    delete utf8; utf8 = NULL;
 }
 
-const string& CaseMapStrings::toUpper(const string& in, string& out) const
+string& CaseMapStrings::toUpper(const string& in, string& out) const
 {
    if (utf8)
       return utf8->toUpper(in, out);
@@ -75,7 +75,7 @@ const string& CaseMapStrings::toUpper(const string& in, string& out) const
    return out;
 }
 
-const string& CaseMapStrings::toLower(const string& in, string& out) const
+string& CaseMapStrings::toLower(const string& in, string& out) const
 {
    if (utf8)
       return utf8->toLower(in, out);
@@ -85,7 +85,7 @@ const string& CaseMapStrings::toLower(const string& in, string& out) const
    return out;
 }
 
-const string& CaseMapStrings::capitalize(const string& in, string& out) const
+string& CaseMapStrings::capitalize(const string& in, string& out) const
 {
    if (utf8)
       return utf8->capitalize(in, out);
@@ -95,7 +95,7 @@ const string& CaseMapStrings::capitalize(const string& in, string& out) const
    return out;
 }
 
-const string& CaseMapStrings::decapitalize(const string& in, string& out) const
+string& CaseMapStrings::decapitalize(const string& in, string& out) const
 {
    if (utf8)
       return utf8->decapitalize(in, out);

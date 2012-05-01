@@ -89,35 +89,17 @@ class BasicModelGenerator;
       virtual void newSrcSent(const newSrcSentInfo& info) {}
 
       /**
-       * Set the current partial translation context.
-       *
-       * The decoder calls this method to inform the feature of the current
-       * PartialTranslation context.  Between calls to this function, the
-       * "<trans>" arguments to BasicModel::scoreTranslation() and
-       * BasicModel::computeFutureScore() (and therefore score() and
-       * futureScore() below) are guaranteed to differ only in their lastPhrase
-       * members, ie in their last source/target phrase pairs, having their
-       * back pointer all point to the partial translation argument passed
-       * here.  The purpose is to give the feature a chance to factor out
-       * computations that depend only on this pair.
-       * 
-       * @param trans the current partial translation context
-       */
-      virtual void setContext(const PartialTranslation& trans) {}
-
-      /**
        * Precompute this feature's future score for a single phrase.
        *
        * Precompute the future score based on a given contiguous input range
-       * and suggested translation.  Currently, it is assumed that precomputed
+       * and suggested translation.  By definition, the precomputed
        * future score for any union of disjoint ranges is simply the sum of
-       * those precomputed future scores.  Breaking this assumption may imply
-       * deep changes in the decoder, so try not to break it!
-       * This function will be called for each feature by
-       * BasicModelGenerator::precomputeFutureScores() when it applies the
-       * dynamic programming technique of precomputing future scores.  It is
-       * called for a given source phrase and a candidate target phrase to
-       * translate it.
+       * those precomputed future scores.  You must respect this rule in the
+       * implementation of every feature.  This function will be called for
+       * each feature by BasicModelGenerator::precomputeFutureScores() when it
+       * applies the dynamic programming technique of precomputing future
+       * scores.  It is called for a given source phrase and a candidate target
+       * phrase to translate it.
        *
        * @param phrase_info the phrase for which to precompute a future score
        * @return the precomputed future score
@@ -138,10 +120,13 @@ class BasicModelGenerator;
        * for by precomputeFutureScore(), since the final future score will be
        * the sum of what the two methods provide.
        *
-       * @param trans partial translation for which to produce a future score
+       * Note: it is an error to return a non-zero future score for a complete
+       * translation.
+       *
+       * @param pt partial translation for which to produce a future score
        * @return the future score
        */
-      virtual double futureScore(const PartialTranslation &trans) = 0;
+      virtual double futureScore(const PartialTranslation &pt) = 0;
 
       /**
        * Compute the marginal score for a partial translation.
@@ -160,21 +145,21 @@ class BasicModelGenerator;
        * Partial score based only on the source range, not the target phrase.
        *
        * Compute as much of this feature's marginal score as can be inferred
-       * taking into consideration trans.lastPhrase's src_words, but *ignoring*
-       * the target words in trans.lastPhrase!
+       * taking into consideration pt.lastPhrase's src_words, but *ignoring*
+       * the target words in pt.lastPhrase!
        *
-       * The sum partialScore(trans) + precomputeFutureScore(trans.lastPhrase)
-       * is used as a heuristic for score(trans), so those two methods should
+       * The sum partialScore(pt) + precomputeFutureScore(pt.lastPhrase)
+       * is used as a heuristic for score(pt), so those two methods should
        * not take into account the same information.
        *
        * In the base class, we return 0, because it is expected that most
        * features can't do anything with only the last source range.  Should be
        * overriden in subclasses where this is not the case, like distortion.
        *
-       * @param trans           previous partial translation
+       * @param pt           previous partial translation
        * @return inferrable part of score()
        */
-      virtual double partialScore(const PartialTranslation &trans)
+      virtual double partialScore(const PartialTranslation &pt)
       { return 0.0; }
 
       /**
@@ -195,8 +180,12 @@ class BasicModelGenerator;
       /**
        * @brief Determine if two partial translations are recombinable or not.
        *
+       * Consider a new phrase p added to pt1 and pt2 to form new partial
+       * translation pt1' and pt2'.  Partial translations pt1 and pt2 are
+       * recombinable if for every p, score(pt1') == score(pt2').
+       *
        * This should capture information that is only pertinent to the feature
-       * being implemented, ie NOT the last two target words, nor the set of
+       * being implemented, i.e. NOT the last two target words, nor the set of
        * covered source words, nor anything that is not specific to this
        * feature.
        *
@@ -217,6 +206,8 @@ class BasicModelGenerator;
        * To override this default value for your derived class, reset the
        * protected member "description" above to a new value in your create()
        * function or in your constructor.
+       *
+       * WARNING: not virtual!  Do not try to override!
        *
        * @return A short string describing the feature and its parameters
        */

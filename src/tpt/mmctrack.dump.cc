@@ -25,6 +25,7 @@
 #include "tpt_tokenindex.h"
 
 #include <boost/program_options.hpp>
+#include <fstream>
 
 using namespace std;
 using namespace ugdiss;
@@ -47,7 +48,7 @@ inline ostream& help_message(ostream& os)
   return os << base_help_message << options_help.str();
 }
 
-string tdxFile,mctFile;
+string tdxFile,mctFile, rangeFile;
 vector<string> range;
 bool withNumbers;
 
@@ -62,15 +63,12 @@ interpret_args(int ac, char* av[])
   o.add_options()
     ("help,h",    "print this message")
     ("numbers,n", "print sentence ids as first token")
-    ;
-  options_help << o;
-  
-  po::options_description h("Hidden Options");
-  h.add_options()
+    ("file,f", po::value<string>(&rangeFile), "read ranges from file, one per line")
     ("tdx", po::value<string>(&tdxFile), "token index file (.tdx)")
     ("mct", po::value<string>(&mctFile), "memory mapped corpus track file (.mct)")
     ("range", po::value<vector<string> >(&range), "range (0-n)*")
     ;
+  options_help << o;
 
   po::positional_options_description a;
   a.add("tdx",1);
@@ -79,7 +77,7 @@ interpret_args(int ac, char* av[])
   
 
   try {
-    po::store(po::command_line_parser(ac,av).options(h).positional(a).run(), vm);
+    po::store(po::command_line_parser(ac,av).options(o).positional(a).run(), vm);
     po::notify(vm);
   } catch(std::exception& e) {
     cerr << efatal << e.what() << endl << help_message << exit_1;
@@ -112,32 +110,40 @@ printRange(size_t start, size_t stop)
     }
 }
 
+void 
+printRange(const string &range) {
+  istringstream buf(range);
+  size_t first,last; uchar c;
+  buf>>first;
+  if (buf.peek() == '-')
+    buf>>c>>last;
+  else
+    last=first;
+  if (last >= C.size())
+    last = C.size() - 1;
+  if (buf.eof() && first <= last)
+    printRange(first,last+1);
+  else
+    cerr << ewarn << "Invalid range '" << range << "'." << endl;
+}
+
 int MAIN(argc, argv)
 {
   interpret_args(argc, (char **)argv);
-  V.open(tdxFile);
+  V.open(tdxFile); 
   V.iniReverseIndex();
   C.open(mctFile);
-  if (!range.size())
-    printRange(0,C.size());
-  else
-    {
-      for (size_t i = 0; i < range.size(); i++)
-        {
-          istringstream buf(range[i]);
-          size_t first,last; uchar c;
-          buf>>first;
-          if (buf.peek() == '-')
-            buf>>c>>last;
-          else
-            last=first;
-          if (last >= C.size())
-             last = C.size() - 1;
-          if (buf.eof() && first <= last)
-            printRange(first,last+1);
-          else
-            cerr << ewarn << "Invalid range '" << range[i] << "'." << endl;
-        }
+  if (rangeFile.size()) {
+    ifstream f(rangeFile.c_str());
+    string line;
+    while (f.good()) {
+      getline(f, line);
+      printRange(line);
     }
+  } else if (range.size()) {
+    for (size_t i = 0; i < range.size(); i++)
+      printRange(range[i]);
+  } else 
+    printRange(0,C.size());
 }
 END_MAIN

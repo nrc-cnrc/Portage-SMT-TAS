@@ -22,7 +22,6 @@
 #include <file_utils.h>
 #include <exception>
 #include <memory> //auto_ptr
-#include <boost/noncopyable.hpp>
 
 namespace Portage {
    /// All relevant code for file reader which transparently reader fix or
@@ -33,7 +32,7 @@ namespace Portage {
 
       /// Base class for fix / dynamic file reading for nbest files.
       template<class T>
-      class FileReaderBase : private noncopyable
+      class FileReaderBase : private NonCopyable
       {
          public:
             /// Definition of a group AKA nbest.

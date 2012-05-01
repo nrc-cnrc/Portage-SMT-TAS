@@ -38,6 +38,7 @@ PhraseTMAligner::PhraseTMAligner(const CanoeConfig& c,
                                  const vector< vector<MarkedTranslation> > &marked_src_sents)
 : verbosity(c.verbosity)
 , usingLev(c.levWeight.size() || accumulate(c.ngramMatchWeights.begin(),c.ngramMatchWeights.end(),0.0f)>0.0f)
+, usingSR(ShiftReducer::usingSR(c))
 {
    gen = BasicModelGenerator::create(c, &src_sents, &marked_src_sents);
    if ( c.verbosity >= 1) {
@@ -49,6 +50,8 @@ PhraseTMAligner::PhraseTMAligner(const CanoeConfig& c,
 
 PhraseTMAligner::PhraseTMAligner(const CanoeConfig& c)
 : verbosity(c.verbosity)
+, usingLev(c.levWeight.size() || accumulate(c.ngramMatchWeights.begin(),c.ngramMatchWeights.end(),0.0f)>0.0f)
+, usingSR(ShiftReducer::usingSR(c))
 {
    gen = BasicModelGenerator::create(c);
    if ( c.verbosity >= 1) {
@@ -86,7 +89,7 @@ void PhraseTMAligner::computePhraseTM(newSrcSentInfo& nss_info,
 
    // Use the decoder algorithm to maximize the TM score
    runDecoder(*model, stack, nss_info.src_sent.size(), finder,
-              usingLev, verbosity);
+              usingLev, usingSR, verbosity);
 
    if (stack[nss_info.src_sent.size()]->isEmpty())
       // The translation is precluded by the model
@@ -130,7 +133,7 @@ void PhraseTMAligner::computeFuzzyPhraseTM(newSrcSentInfo& nss_info,
    // Create the model/phrase finder to be used
    vector<PhraseInfo *> **phrases = model->getPhraseInfo();
    RangePhraseFinder finder(phrases, nss_info.src_sent.size(), gen->c->distLimit,
-                            gen->c->distLimitExt, gen->c->distPhraseSwap);
+                            gen->c->distLimitSimple, gen->c->distLimitExt, gen->c->distPhraseSwap);
 
    // If we only want the top hypothesis, there is no need to keep recombined
    // states
@@ -150,7 +153,7 @@ void PhraseTMAligner::computeFuzzyPhraseTM(newSrcSentInfo& nss_info,
    // Use the decoder algorithm to maximize the score, including Levenshtein
    // distance etc.
    runDecoder(*model, stack, nss_info.src_sent.size(), finder,
-              usingLev, verbosity);
+              usingLev, usingSR, verbosity);
 
 
    if (stack[nss_info.src_sent.size()]->isEmpty())

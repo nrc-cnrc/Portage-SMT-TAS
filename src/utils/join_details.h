@@ -135,6 +135,14 @@ ostream& operator<<(ostream& os, const _Joiner<vector<string>::const_iterator>& 
 /// Operators provided so that join(...) behaves as much as possible as if
 /// string was its actual return value.
 template <class IteratorType>
+const string operator+(const string& s, const _Joiner<IteratorType>& joiner) {
+   return s + string(joiner);
+}
+template <class IteratorType>
+const string operator+(const _Joiner<IteratorType>& joiner, const string& s) {
+   return string(joiner) + s;
+}
+template <class IteratorType>
 const string operator+(const char* s, const _Joiner<IteratorType>& joiner) {
    return s + string(joiner);
 }

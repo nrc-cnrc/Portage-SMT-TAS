@@ -94,7 +94,6 @@ static Uint order = 3;
 static Uint limit_order = 0;
 static bool final_cleanup = false;
 
-
 // Function declarations
 /**
  * Parses the command line arguments.

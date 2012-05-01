@@ -54,6 +54,7 @@ OBJECTS= \
     pruning_style.o \
     rule_feature.o \
     segmentmodel.o \
+    shift_reducer.o \
     soft_filter_tm_visitor.o \
     translationProb.o \
     wordgraph.o

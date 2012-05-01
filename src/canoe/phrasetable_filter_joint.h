@@ -36,6 +36,8 @@ class PhraseTableFilterJoint : public PhraseTableFilter {
       /// Use for complete online filtering (save trie's query)
       TargetPhraseTable* tgtTable;
 
+      const pruningStyle* const pruning_type;
+
       /// output file name when processing online
       oSafeMagicStream* online_filter_output;
 
@@ -44,11 +46,13 @@ class PhraseTableFilterJoint : public PhraseTableFilter {
        * Default constructor.
        * @param limitPhrases        limiting
        * @param tgtVocab            target vocaulary
+       * @param pruning_type
        * @param pruningTypeStr      pruning type
        * @param hard_filter_weights             TM weights for hard filtering
        */
       PhraseTableFilterJoint(bool limitPhrases,
          VocabFilter& tgtVocab,
+         const pruningStyle* const pruning_type,
          const char* pruningTypeStr = NULL,
          const vector<double>* const hard_filter_weights = NULL);
 
@@ -56,17 +60,33 @@ class PhraseTableFilterJoint : public PhraseTableFilter {
       virtual ~PhraseTableFilterJoint();
 
       /**
-       * Sets the output filename for online processing.
-       * @param  filename  output filename
-       * @param  pruning_type
+       * Once all phrase tables have been loaded, apply the filter_joint
+       * algorithm and dump multiprobs to filename.
+       * @param filtered_TM_filename  file name to store the filtered TM.
        */
-      void outputForOnlineProcessing(const string& filename, const pruningStyle* pruning_type);
+      virtual void filter(const string& filtered_TM_filename);
+
+      /**
+       * Filters without keeping entry in memory.
+       * @param TM_filename  multi probs input file name
+       * @param filtered_TM_filename  multi probs output file name.
+       */
+      virtual Uint filter(const string& TM_filename, const string& filtered_TM_filename) {
+         outputForOnlineProcessing(filtered_TM_filename);
+         return PhraseTable::readMultiProb(TM_filename.c_str(), limitPhrases);
+      }
+
+      /**
+       * Sets the output filename for online processing.
+       * @param  filtered_TM_filename  output filename
+       */
+      void outputForOnlineProcessing(const string& filtered_TM_filename);
 
       virtual float convertFromRead(float value) const;
       virtual float convertToWrite(float value) const;
-      virtual void  filter_joint(const string& filename, const pruningStyle* const pruning_type);
-      virtual Uint  processTargetPhraseTable(const string& src, Uint src_word_count, TargetPhraseTable* tgtTable);
-      virtual TargetPhraseTable* getTargetPhraseTable(const Entry& entry, Uint src_word_count, bool limitPhrases);
+
+      virtual Uint processTargetPhraseTable(const string& src, Uint src_word_count, TargetPhraseTable* tgtTable);
+      virtual TargetPhraseTable* getTargetPhraseTable(Entry& entry, bool limitPhrases);
 
 }; // ends class PhraseTableFilterJoint
 }; // ends namespace Portage

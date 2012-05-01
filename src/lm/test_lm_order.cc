@@ -83,7 +83,6 @@ void getArgs(int argc, const char* const argv[])
    // Get and validate the binlm filename.
    // It doesn't actually have to be a binlm though.
    arg_reader.testAndSet(0, "lm_file", lm_filename);
-   if ( !check_if_exists(lm_filename) )
-      error(ETFatal, "File %s doesn't exist", lm_filename.c_str());
+   error_unless_exists(lm_filename);
 }
 

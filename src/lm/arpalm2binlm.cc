@@ -114,8 +114,7 @@ void getArgs(int argc, const char* const argv[])
    arg_reader.testAndSet("vocab", vocab_file);
    arg_reader.testAndSet("order", order);
    arg_reader.testAndSet(0,"lm_file", lm_filename);
-   if ( !check_if_exists(lm_filename) )
-      error(ETFatal, "File %s doesn't exist", lm_filename.c_str());
+   error_unless_exists(lm_filename);
    arg_reader.testAndSet(1,"binlm_file", binlm_filename);
    if ( binlm_filename == "" )
       binlm_filename = addExtension(BaseName(lm_filename), ".binlm");

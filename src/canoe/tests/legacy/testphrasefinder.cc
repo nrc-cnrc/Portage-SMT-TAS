@@ -126,7 +126,7 @@ Range-sets to find phrases for:
       TriangArray::Create<vector<PhraseInfo *> >()(SENTLENGTH);
    for (Uint i = 0; i < NUMPHRASES; i++)
    {
-      phrases[i].phrase.push_back(i);
+      phrases[i].phrase = VectorPhrase(1, i);
       phTArray[phrases[i].src_words.start][phrases[i].src_words.end -
          phrases[i].src_words.start - 1].push_back(phrases + i);
    }
@@ -159,13 +159,12 @@ Range-sets to find phrases for:
    {
       // Create the range phrase finder and use it to find phrases
       RangePhraseFinder finder(phTArray, SENTLENGTH, DISTLIMIT[i],
-                               false, false);
+                               false, false, false);
 
       for (Uint i = 0; i < NUMFINDSETS; i++)
       {
-         PartialTranslation cur;
+         PartialTranslation cur(&ph);
          cur.sourceWordsNotCovered = sets[i];
-         cur.lastPhrase = &ph;
 
          // Print the phrases found
          vector<PhraseInfo *> v;

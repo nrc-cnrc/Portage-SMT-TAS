@@ -23,15 +23,20 @@ using namespace Portage;
 //Logging::logger ptLogger_filter_joint(Logging::getLogger("debug.canoe.phraseTable_filter_joint"));
 
 
-PhraseTableFilterJoint::PhraseTableFilterJoint(bool _limitPhrases,
+PhraseTableFilterJoint::PhraseTableFilterJoint(bool limitPhrases,
    VocabFilter &tgtVocab,
+   const pruningStyle* const pruning_type,
    const char* pruningTypeStr,
    const vector<double>* const hard_filter_weights)
-: Parent(_limitPhrases, tgtVocab, pruningTypeStr)
+: Parent(limitPhrases, tgtVocab, pruningTypeStr)
 , visitor(NULL)
 , tgtTable(NULL)
+, pruning_type(pruning_type)
 , online_filter_output(NULL)
 {
+   // Keep a reference on the pruning style.
+   assert(pruning_type);
+
    if (hard_filter_weights != NULL)   {
       visitor = new Joint_Filtering::hardFilterTMVisitor(*this, log_almost_0, hard_filter_weights);
    }
@@ -52,13 +57,9 @@ PhraseTableFilterJoint::~PhraseTableFilterJoint()
 }
 
 
-void PhraseTableFilterJoint::outputForOnlineProcessing(const string& filename, const pruningStyle* _pruning_type)
+void PhraseTableFilterJoint::outputForOnlineProcessing(const string& filtered_TM_filename)
 {
-   // Keep a reference on the pruning style.
-   pruning_type = _pruning_type;
-   assert(pruning_type);
-
-   online_filter_output = new oSafeMagicStream(filename);
+   online_filter_output = new oSafeMagicStream(filtered_TM_filename);
    assert(online_filter_output);
    tgtTable = new TargetPhraseTable;
    assert(tgtTable);
@@ -66,7 +67,7 @@ void PhraseTableFilterJoint::outputForOnlineProcessing(const string& filename, c
    /*
    LOG_VERBOSE2(ptLogger_filter_joint,
         "Setting output for online processing: %s, %s",
-        filename.c_str(),
+        filtered_TM_filename.c_str(),
         pruning_type->description().c_str());
    */
 }
@@ -87,28 +88,27 @@ float PhraseTableFilterJoint::convertToWrite(float value) const
 
 
 // When processing a trie in memory
-void PhraseTableFilterJoint::filter_joint(const string& filename, const pruningStyle* const _pruning_type)
+void PhraseTableFilterJoint::filter(const string& filtered_TM_filename)
 {
    assert(visitor);
 
    // Keep a reference on the pruning style.
-   pruning_type = _pruning_type;
    assert(pruning_type);
 
    /*
    LOG_VERBOSE2(ptLogger_filter_joint,
         "Applying %s filter_joint to: %s, pruningStyle=%s, n=%d",
         visitor->style, 
-        filename.c_str(), 
+        filtered_TM_filename.c_str(), 
         pruning_type->description().c_str(), 
-        numTransModels);
+        numTextTransModels);
    */
 
-   visitor->set(pruning_type, numTransModels);
+   visitor->set(pruning_type, numTextTransModels);
    visitor->numKeptEntry = 0;
    textTable.traverse(*visitor);
 
-   oSafeMagicStream multi(filename);
+   oSafeMagicStream multi(filtered_TM_filename);
    write(multi);
    fprintf(stderr, "There are %d entries left after applying %s filtering\n", visitor->numKeptEntry, visitor->style);
 
@@ -142,7 +142,7 @@ Uint PhraseTableFilterJoint::processTargetPhraseTable(const string& src,
       "Online processing of one entry (%s) L=%d n=%d",
       visitor->style,
       L,
-      tgtTable->front().second.backward.size()); // => numTransModels
+      tgtTable->front().second.backward.size()); // => numTextTransModels
    */
 
    // The visitor holds the code to either do a soft or a hard filter on one
@@ -160,17 +160,22 @@ Uint PhraseTableFilterJoint::processTargetPhraseTable(const string& src,
 }
 
 
-TargetPhraseTable* PhraseTableFilterJoint::getTargetPhraseTable(const Entry& entry, Uint src_word_count, bool limitPhrases)
+TargetPhraseTable* PhraseTableFilterJoint::getTargetPhraseTable(Entry& entry, bool limitPhrases)
 {
    // if we are in offline processing or online but not complete we need to
    // fill out the trie
    if (!online_filter_output || tgtVocab.getNumSourceSents() > 0) {
-      return PhraseTable::getTargetPhraseTable(entry, src_word_count, limitPhrases);
+      return PhraseTable::getTargetPhraseTable(entry, limitPhrases);
    }
    else {
       // When processing online, every TargetPhraseTable should be empty
       assert(tgtTable);
       tgtTable->clear();
+
+      // we still need to count the number of words in entry.src, unfortunately.
+      char* tokens[1000+1];
+      entry.src_word_count = destructive_split(entry.src, tokens, 1000+1, " ");
+
       return tgtTable;
    }
 }

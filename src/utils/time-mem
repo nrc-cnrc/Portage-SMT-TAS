@@ -157,6 +157,7 @@ run_cmd() {
          trap "rm -f $MON_FILE; exit $((128 + signal))" $signal
       done
       process-memory-usage.pl -s 1 $MON_PERIOD $$ > $MON_FILE &
+      sleep 1
       MON_PID=$!
       # We don't consider calls via time-mem as internal, so unexport
       # PORTAGE_INTERNAL_CALL unless it was set before time-mem was called.

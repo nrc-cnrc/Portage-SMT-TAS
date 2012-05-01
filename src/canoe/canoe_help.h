@@ -55,7 +55,7 @@ Options (in command-line format):\n\
      the syntax is:\n\
      s ||| t ||| P_1(s|t) P_2(s|t) P_1(t|s) P_2(t|s) ||| A_1(s,t) .. A_m(s,t)\n\
 \n\
- -ttable-tppt FILE1[FILE2[:..]]         Tightly Packed phrase table(s)\n\
+ -ttable-tppt FILE1[:FILE2[:..]]        Tightly Packed phrase table(s)\n\
      Phrase translation model file(s) in TPPT format (Tightly Packed Phrase\n\
      Table), indexed on the source language, containing an even number of\n\
      models, considered to be backward models followed by the same number of\n\
@@ -98,10 +98,10 @@ Options (in command-line format):\n\
 \n\
  -weight-f|-ftm W1[:W2[:..]]            Forward TM weight(s)  [none]\n\
      The weight(s) for the forward probabilities in the translation models.\n\
-     If this option is used, it has the same requirements as -weight-t.\n\
-     If both this option and -use-ftm are not used, forward TM scores are not\n\
-     used, except possibly for pruning.  With -use-ftm, this option defaults to\n\
-     1.0 for each feature.\n\
+     If this option is used, it has the same requirements and ordering rules as\n\
+     -weight-t.  If neither this option nor -use-ftm are used, forward TM\n\
+     scores are not used, except possibly for pruning.  With -use-ftm, this\n\
+     option defaults to 1.0 for each feature.\n\
 \n\
  -weight-a|-atm W1[:W2[:..]]            Adirectional TM weight(s)  [1.0 for each adir feat.]\n\
      The weight(s) for the adirectional scores in the translation models.\n\
@@ -120,13 +120,13 @@ Options (in command-line format):\n\
      Weight for n-gram precision w.r.t. the reference, which is required.\n\
      The first weight is for unigrams, the second for bigrams, etc.\n\
 \n\
- -weight-d|-d W1[:W2[:..]]              Distortion model weight(s)  [1.0]\n\
+ -weight-d|-d W1[:W2[:..]]              Distortion model weight(s)  [1.0 for each feature]\n\
 \n\
  -weight-w|-w W                         Sentence length weight  [0.0]\n\
 \n\
- -weight-s|-sm W                        Segmentation model weight  [none]\n\
+ -weight-s|-sm W                        Segmentation model weight  [1.0 for each feature]\n\
 \n\
- -weight-ibm1-fwd|-ibm1f W              Forward IBM1 feature weight  [none]\n\
+ -weight-ibm1-fwd|-ibm1f W              Forward IBM1 feature weight  [1.0 for each feature]\n\
      The forward IBM1 feature weight (see -ibm1-fwd-file).\n\
 \n\
  -random-weights|-r                     Set weights randomly per sent  [don't]\n\
@@ -190,6 +190,9 @@ Options (in command-line format):\n\
      reference, expressed as a percentage of the source sentence length.\n\
      (Use -1 for no limit.)\n\
 \n\
+ -maxlen MAXLEN                         Skip long sentences  [0, i.e., no maxlen]\n\
+     If non 0, skip sentences longer than MAXLEN.\n\
+\n\
  -distortion-limit L                    Max jump between source words  [-1, i.e., no limit]\n\
      The max distortion distance between two source words; -1 means no limit; 0\n\
      means monotonic decoding.  See -dist-limit-ext for the semantics of L.\n\
@@ -213,30 +216,64 @@ Options (in command-line format):\n\
      completed without eventually violating the distortion limit) are pruned\n\
      as soon as they can be detected.\n\
 \n\
+ -dist-limit-simple                     Use the 'Simple' distortion limit defn  [don't]\n\
+     Suppose the first uncovered source position, *before* adding the new\n\
+     phrase [c,d), is v.  Under the Simple definition, the distortion limit L\n\
+     is respected iff c <= v + L.  That means a new phrase is allowed as long\n\
+     as it starts no more than L words after the first uncovered word.  Notice\n\
+     that the jump length relative to the previous source phrase is not\n\
+     limited.  Less restrictive than Extended, Simple never generates dead-end\n\
+     hypotheses.\n\
+     Only one of -dist-limit-simple and -dist-limit-ext may be specified.\n\
+\n\
  -dist-phrase-swap                      Allow phrase swaps  [don't]\n\
      Allow swapping two contiguous source phrases of any length.\n\
      Applied as an OR with the distortion limit:  meaningless if L = -1,\n\
      yields quasi-monotonic decoding if L = 0, and a targetted relaxing of\n\
      the distortion limit rule if L > 0.  Orthogonal with -dist-limit-ext.\n\
 \n\
+     Can also be combined with -dist-limit-simple, but the implementation is\n\
+     buggy: Suppose you have L=7, u=v=0 and you add phrase spanning [10,20),\n\
+     which is allowed with -dist-phrase-swap as long as there exists a phrase\n\
+     spanning [0,10).  With the conservative or extended distortion limit, only\n\
+     [0,10) can be added next, completing the phrase swap, but under simple\n\
+     distortion any new phrase that respects c <= v + L will also be allowed.\n\
+\n\
  -distortion-model MODEL[#ARGS][:MODEL2[#ARGS][:..]]  Dist. model(s)  [WordDisplacement]\n\
      The distortion model(s) and their arguments. Zero or more of:\n\
-     WordDisplacement, PhraseDisplacement, fwd-lex[#dir], back-lex[#dir],\n\
+     WordDisplacement, PhraseDisplacement, fwd-lex[#dir],\n\
+     back-lex[#dir], fwd-hlex[#dir], back-hlex[#dir], back-fhlex[#dir],\n\
      ZeroInfo.  To get no distortion model, use 'none'.\n\
 \n\
-     The lexicalized distortion models (LDM), fwd-lex and back-lex, take an\n\
-     optional direction argument, which can be m (monotone), s (swap) or\n\
-     d (discontinuous).\n\
+     The lexicalized distortion models (LDM), fwd-*lex and back-*lex, take\n\
+     an optional direction argument, which can be m (monotone), s (swap) or\n\
+     d (discontinuous). The hlex models are hierarchical LDMs, and back-hlex\n\
+     triggers the use of the shift-reduce parser. back-fhlex is an experimental,\n\
+     parser-free version of back-hlex.\n\
      To combine the distortion penalty with a 2-feature LDM, use:\n\
         WordDisplacement:back-lex:fwd-lex\n\
      To combine the distortion penalty with a 6-feature LDM, use:\n\
         WordDisplacement:back-lex#m:back-lex#s:back-lex#d:fwd-lex#m:fwd-lex#s:fwd-lex#d\n\
+     To combine the distortion penalty with a 2-feature HLDM, use:\n\
+        WordDisplacement:back-hlex:fwd-hlex\n\
+     To combine the distortion penalty with a 6-feature HLDM, use:\n\
+        WordDisplacement:back-hlex#m:back-hlex#s:back-hlex#d:fwd-hlex#m:fwd-hlex#s:fwd-hlex#d\n\
+     To combine distortion penalty with both types of LDM use:\n\
+        WordDisplacement:\n\
+        back-lex#m#L:back-lex#s#L:back-lex#d#L:fwd-lex#m#L:fwd-lex#s#L:fwd-lex#d#L\n\
+        back-hlex#m#H:back-hlex#s#H:back-hlex#d#H:fwd-hlex#m#H:fwd-hlex#s#H:fwd-hlex#d#H\n\
+     Note that this final instance tags each LDM feature with either #L or #H.\n\
+     These tags tell the feature what file to use to retrieve probabilities.\n\
+     They must match tags annotating filenames in -lex-dist-model-file\n\
 \n\
- -lex-dist-model-file FILE              Lexicalized distortion model file  [none]\n\
-     The lexicalized distortion model file in multi-prob text format.\n\
+ -lex-dist-model-file FILELIST             Lexicalized distortion model file(s)  [none]\n\
+     A list of lexicalized distortion model files in multi-prob text format.\n\
      FILE is formatted like a phrase table, but with different semantics:\n\
      src phrase ||| tgt phrase ||| pm ps pd nm ns nd\n\
      Where p=prev, n=next and m=monotonic, s=swap and d=discontinuous.\n\
+     If you include multiple files, each file must be #tagged (for example,\n\
+     with #L or #H) and features must exist in -distortion-model that reference\n\
+     each tag.  For example: dist_file_ldm.gz#L:dist_file_hdm.gz#H\n\
 \n\
  -segmentation-model MODEL[#ARGS]       Segmentation model  [none]\n\
      The segmentation model: one of none, count, bernoulli.\n\
@@ -302,8 +339,8 @@ Options (in command-line format):\n\
  -nbest NPREFIX[.gz][:N]                Output N-best lists  [don't]\n\
      Produces nbest output into files NPREFIX.SENTNUM.Nbest[.gz]. If N is\n\
      not specified, 100 is used. If -ffvals is also specified, feature\n\
-     function values are written to NPREFIX.SENTNUM.Nbest.ffvals[.gz].  With\n\
-     -trace, alignment info is written to NPREFIX.SENTNUM.Nbest.pal[.gz].\n\
+     function values are written to NPREFIX.SENTNUM.Nbest.ffvals[.gz].\n\
+     With -trace, alignment info is written to NPREFIX.SENTNUM.Nbest.pal[.gz].\n\
      If .gz is specified, the outputs will be gzipped.\n\
 \n\
  -first-sentnum INDEX                   First external sentence ID  [0000]\n\
@@ -372,6 +409,8 @@ Options (in command-line format):\n\
 \n\
  -verbose|-v V                          Verbosity level  [1]\n\
      The verbosity level (1 to 4).  Verbose output is written to std error.\n\
+\n\
+ -timing                                Show per-sentence timing  [don't unless V >= 2]\n\
 \n\
  -options                               Show the brief help message\n\
      Produce a shorter help message with one line per option\n\

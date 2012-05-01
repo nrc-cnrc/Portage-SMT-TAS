@@ -6,6 +6,7 @@
 # @brief Tokenize and sentence split latin-1 text.
 #
 # @author George Foster, with minor modifications by Aaron Tikuisis
+#         Samuel Larkin
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -125,7 +126,7 @@ while (1)
       }
    }
 
-   my @token_positions = tokenize($para, $lang, $notok, $pretok);
+   my @token_positions = tokenize($para, $lang, $pretok);
    my @sent_positions = split_sentences($para, @token_positions) unless ($noss);
 
    if ($notok || $pretok) {
@@ -160,7 +161,9 @@ while (1)
             print OUT ($v ? "<sent>\n" : "\n");
             shift @sent_positions;
          }
-         print OUT get_token($para, $i, @token_positions), " ";
+
+         print OUT get_collapse_token($para, $i, @token_positions, $notok || $pretok), " ";
+
          if ($v) {
             print OUT "$token_positions[$i],$token_positions[$i+1]\n";
          }

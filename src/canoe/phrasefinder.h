@@ -69,25 +69,20 @@ namespace Portage
           */
          vector<PhraseInfo *> **phrases;
 
-         /**
-          * The length of the source sentence.
-          */
+         /// The length of the source sentence.
          Uint sentLength;
 
-         /**
-          * The maximum distortion distance.
-          */
+         /// The maximum distortion distance.
          int distLimit;
 
-         /**
-          * Whether to use the extended distortion limit definition
-          */
+         /// Whether to use the Simple distortion limit definition
+         bool distLimitSimple;
+
+         /// Whether to use the extended distortion limit definition
          bool distLimitExt;
 
-         /**
-          * Whether to allow swapping continguous phrases, on top of whatever
-          * distLimit allows.
-          */
+         /// Whether to allow swapping continguous phrases, on top of whatever
+         /// distLimit allows.
          bool distPhraseSwap;
 
       public:
@@ -104,13 +99,16 @@ namespace Portage
           * @param distLimit     The maximum distortion distance allowed
           *                      between two phrases.  NO_MAX_DISTORTION
           *                      (default) indicates no limit.
+          * @param distLimitSimple Whether to use the simple distortion limit
+          *                      definition
           * @param distLimitExt  Whether to use the extended distortion limit
           *                      definition
           * @param distPhraseSwap Whether to allow swapping continguous
           *                      phrases, on top of whatever distLimit allows.
           */
          RangePhraseFinder(vector<PhraseInfo *> **phrases, Uint sentLength,
-               int distLimit, bool distLimitExt, bool distPhraseSwap);
+                           int distLimit, bool distLimitSimple, bool distLimitExt,
+                           bool distPhraseSwap);
 
          virtual void findPhrases(vector<PhraseInfo *> &p,
                                   PartialTranslation &t);

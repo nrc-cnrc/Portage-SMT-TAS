@@ -26,13 +26,10 @@ using namespace Portage;
 using namespace std;
 
 static char help_message[] = "\n\
-merge_counts [-v][-d] [outfile [infile]]\n\
+merge_counts [-v][-d] OUTFILE INFILE(S)\n\
 \n\
-Merge count files where the count is separated by at least one space and is the\n\
-last item on a line.\n\
-\n\
-IMPORTANT:\n\
-- input files must be LC_ALL=C sorted.\n\
+Merge count files.  The count must be at the end of each line, seperated by at\n\
+least one space.  Input files must be LC_ALL=C sorted.\n\
 \n\
 Options:\n\
 \n\

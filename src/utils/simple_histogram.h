@@ -79,7 +79,7 @@ struct logBinner : public Binner {
    , B(B)
    {
       assert(BASE > 0);
-      assert(B >= 0);
+      //assert(B >= 0);
    }
    virtual Uint whichBin(Uint v) const {
       if (v > B) {

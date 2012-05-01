@@ -134,7 +134,7 @@ PalReader::PalReader(const string& srcfile, const string& outfile, const string&
    Uint olines = countFileLines(outfile);
    Uint plines = countFileLines(palfile);
    n = plines / slines;
-   if (n != float(plines)/float(slines))
+   if (n * slines != plines)
       error(ETFatal, "number of lines in palfile %s must be an integer multiple of lines in srcfile %s", 
             palfile.c_str(), srcfile.c_str());
    if (olines == plines)

@@ -75,70 +75,82 @@ void UTF8Utils::truncateU16AfterFirst()
    if (e < len) u16[e] = 0;
 }
 
-const string& UTF8Utils::toUpper(const string& in, string& out)
+// EJJ, April 2012: the following methods all used to return "in" (i.e., a
+// reference to in) in case of error.  This was bad, as highlighted by
+// Klocwork, because "in" is actually a local variable: a const ref argument
+// might be a temporary, it is not necessarily a real variable in the caller's
+// environment.  Plus, it makes the methods counterintuitive: the caller would
+// typically expect they can use out after calling these methods, instead of
+// using their return values.  Indeed, I have at some point found instances in
+// Portage where we use out, not the return value.  So now we use 
+//    { if (&out != &in) out = in; return out; }
+// in case of error, which copies in to out, and makes sure all possible ways
+// to use these methods work correctly and intuitively.
+
+string& UTF8Utils::toUpper(const string& in, string& out)
 {
    if (!convToU16(in))
-      return in;
+      { if (&out != &in) out = in; return out; }
 
    u_strToUpper(&u16[0], u16.size(), &u16[0], -1, NULL, &ecode);
    if (U_FAILURE(ecode))
-      return in;
+      { if (&out != &in) out = in; return out; }
 
    if (!convFromU16(out))
-      return in;
+      { if (&out != &in) out = in; return out; }
 
    return out;
 }
 
-const string& UTF8Utils::toLower(const string& in, string& out)
+string& UTF8Utils::toLower(const string& in, string& out)
 {
    if (!convToU16(in))
-      return in;
+      { if (&out != &in) out = in; return out; }
 
    u_strToLower(&u16[0], u16.size(), &u16[0], -1, NULL, &ecode);
    if (U_FAILURE(ecode))
-      return in;
+      { if (&out != &in) out = in; return out; }
 
    if (!convFromU16(out))
-      return in;
+      { if (&out != &in) out = in; return out; }
 
    return out;
 }
 
 // This is sort of convoluted, but so is the library.
 
-const string& UTF8Utils::capitalize(const string& in, string& out)
+string& UTF8Utils::capitalize(const string& in, string& out)
 {
    if (!convToU16(in))
-      return in;
+      { if (&out != &in) out = in; return out; }
 
    truncateU16AfterFirst();
    string first;
    if (!convFromU16(first))
-      return in;
+      { if (&out != &in) out = in; return out; }
    toUpper(first, first);
 
    if (U_FAILURE(ecode))
-      return in;
+      { if (&out != &in) out = in; return out; }
 
    out = first + in.substr(first.size());
 
    return out;
 }
 
-const string& UTF8Utils::decapitalize(const string& in, string& out)
+string& UTF8Utils::decapitalize(const string& in, string& out)
 {
    if (!convToU16(in))
-      return in;
+      { if (&out != &in) out = in; return out; }
 
    truncateU16AfterFirst();
    string first;
    if (!convFromU16(first))
-      return in;
+      { if (&out != &in) out = in; return out; }
    toLower(first, first);
 
    if (U_FAILURE(ecode))
-      return in;
+      { if (&out != &in) out = in; return out; }
 
    out = first + in.substr(first.size());
 
@@ -155,25 +167,25 @@ static void ICUNotCompiled() {
 }
 
 UTF8Utils::UTF8Utils() {}
-const string& UTF8Utils::toUpper(const string& in, string& out)
+string& UTF8Utils::toUpper(const string& in, string& out)
 {
    ICUNotCompiled();
    return out;
 }
 
-const string& UTF8Utils::toLower(const string& in, string& out)
+string& UTF8Utils::toLower(const string& in, string& out)
 {
    ICUNotCompiled();
    return out;
 }
 
-const string& UTF8Utils::capitalize(const string& in, string& out)
+string& UTF8Utils::capitalize(const string& in, string& out)
 {
    ICUNotCompiled();
    return out;
 }
 
-const string& UTF8Utils::decapitalize(const string& in, string& out)
+string& UTF8Utils::decapitalize(const string& in, string& out)
 {
    ICUNotCompiled();
    return out;

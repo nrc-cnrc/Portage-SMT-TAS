@@ -213,9 +213,10 @@ int MAIN(argc, argv)
         id_type const* k = C.sntStart(i);
         id_type const* const stop = C.sntEnd(i);
 
-        if (size_t(stop-k)/sizeof(*k) > size_t(ushort(-1)))
+        if (size_t(stop-k) > size_t(ushort(-1))+1)
           cerr << "Overflow writing suffix array file '" << sufaFile
-               << "': sentence " << i << " has more tokens than can be indexed"
+               << "': sentence " << i << " has " << (stop-k)
+               << " tokens, which is more than can be indexed"
                << " in offset type of size " << sizeof(ushort) << exit_1;
 
         for (ushort p = 0; k < stop; ++p,++k)

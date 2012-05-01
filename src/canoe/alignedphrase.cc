@@ -28,15 +28,8 @@ namespace {
   const bool DEBUG = false;
 }
 
-//Default constructor
-AlignedPhrase::AlignedPhrase()
-  :myScore(0),
-   myPhraseScores(vector<double>()),
-   myLine(0)
-{ myPhraseScores.clear(); }
-
 //non-default contructor (build phrase alignment from phraseInfo)
-AlignedPhrase::AlignedPhrase(PhraseInfo *pi, const double score)
+AlignedPhrase::AlignedPhrase(const PhraseInfo *pi, const double score)
   :myScore(score),
    myPhraseScores(vector<double>(1,score)),
    myLine(1)
@@ -53,11 +46,9 @@ void AlignedPhrase::line(string &str, PhraseDecoderModel *model, const vector<do
     for (Uint i = 0; i < myLine.size(); ++i)
       if (myLine[i].first->start != myLine[i].first->end) {
         //only print out non-empty ranges
-        ss << RANGEOUT(*(myLine[i].first)) << " ";
-        string str;
-        model->getStringPhrase(str, *(myLine[i].second));
-        ss << "(" << str << ") ";
-      }// if, for, if
+        ss << *(myLine[i].first) << " "
+           << "(" << model->getStringPhrase(*(myLine[i].second)) << ") ";
+      }
   if (incScore) {
     ss << "\ttotal scores per phrase: ";
     for (vector<double>::const_iterator itr=myPhraseScores.begin()+1; itr!=myPhraseScores.end(); itr++)
@@ -70,7 +61,7 @@ void AlignedPhrase::line(string &str, PhraseDecoderModel *model, const vector<do
 }//end line
 
 //Augment this alignment (add in the next alignment)
-void AlignedPhrase::add(PhraseInfo *pi, const double score) {
+void AlignedPhrase::add(const PhraseInfo *pi, const double score) {
   if (DEBUG)
      cerr << "Adding translation" << endl;
   myLine.push_back( make_pair(&(pi->src_words), &(pi->phrase)) );

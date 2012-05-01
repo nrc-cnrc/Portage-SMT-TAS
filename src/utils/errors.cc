@@ -41,11 +41,13 @@ void Portage::Error_ns::defaultErrorCallBack(ErrorType et, const string& msg)
    if (et == ETFatal) {
       cerr << "Error: " << msg << endl;
       exit(1);
+      assert(false);
    } else if (et == ETWarn) {
       cerr << "Warning: " << msg << endl;
    } else {
       cerr << msg << endl;
       exit(0);
+      assert(false);
    }
 }
 
@@ -54,6 +56,9 @@ void Portage::error(ErrorType et, const string& msg)
    if (Error_ns::dummy::errorCallback) {
       (*Error_ns::dummy::errorCallback)(et, msg);
    }
+   #ifdef __KLOCWORK__
+      if (et == ETFatal) abort();
+   #endif
 }
 
 void Portage::error(ErrorType et, const char* fmt, ...)

@@ -68,6 +68,11 @@ F<canoe.ini> location.
 
 Decode N-ways parallel (using C<canoe-parallel.sh> instead of C<canoe>)
 
+=item -w=W
+
+Make sure each parallel block processes at least W sentences, reducing
+N if necessary.
+
 =item -ini=CANOE_INI | -f=CANOE_INI
 
 Use CANOE_INI as the canoe.ini file describing the translation system models.
@@ -340,6 +345,7 @@ Getopt::Long::GetOptions(
    "with-rescoring" => \my $with_rescoring,
    "with-ce"        => \my $with_ce,
    "n=i"            => \my $n,
+   "w=i"            => \my $w,
    "ini|f=s"        => \my $canoe_ini,
    "model=s"        => \my $model,
    
@@ -719,6 +725,14 @@ PREP:{
 # Translate
 TRANS:{
    plugin("predecode", $q_tok, $q_dec);
+
+   if (defined $w and $n > 1) {
+      my $sent_count = `wc -l < $q_dec` + 0;
+      if ($w * $n > $sent_count) {
+         $n = int($sent_count / $w);
+         $n > 0 or $n = 1;
+      }
+   }
    
    unless ($with_rescoring) {
       my $decoder = "canoe";

@@ -195,7 +195,8 @@ def add_tgt_bos_markup(tgt_line, line_number):
             bos_i = None
     
     # Add BOS case markup at the beginning of the line.
-    tgt_toks[0] = '<bos case="{0}"/> {1}'.format(bos_case, tgt_toks[0])
+    if len(tgt_toks) > 0:
+       tgt_toks[0] = '<bos case="{0}"/> {1}'.format(bos_case, tgt_toks[0])
 
     return ' '.join(tgt_toks)
 
@@ -205,7 +206,7 @@ def capitalize(tok):
     tok: token to be capitalized
     returns: capitalized token (or original if a URL)
     """
-    if tok.startswith("www.") or tok.startswith("http:"):
+    if tok.startswith("www.") or tok.startswith("http:") or tok.startswith("https:"):
         return tok          # don't capitalize URLs.
     return capitalize_token(tok)
 

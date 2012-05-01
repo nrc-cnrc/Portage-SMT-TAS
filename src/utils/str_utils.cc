@@ -359,6 +359,18 @@ Uint Portage::destructive_split(char* s, char* tokens[], Uint max_tokens, const 
    return tok_count;
 }
 
+Uint Portage::destructive_splitZ(char* s, vector<const char*>& tokens, const char* sep)
+{
+   tokens.clear();
+   char* strtok_state;
+   char* tok = strtok_r(s, sep, &strtok_state);
+   while (tok != NULL) {
+      tokens.push_back(tok);
+      tok = strtok_r(NULL, sep, &strtok_state);
+   }
+   return tokens.size();
+}
+
 char* Portage::strdup_new(const char* in) {
    if ( in ) {
       char* copy = new char[strlen(in)+1];

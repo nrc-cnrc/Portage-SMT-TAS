@@ -42,17 +42,14 @@ BackwardsModelGenerator::~BackwardsModelGenerator()
 {}
 
 vector<PhraseInfo *> **BackwardsModelGenerator::createAllPhraseInfos(
-   const vector<string> &src_sent,
-   const vector<MarkedTranslation> &marks,
-   bool alwaysTryDefault,
-   vector<bool>* oovs)
+      const newSrcSentInfo& info,
+      bool alwaysTryDefault)
 {
    // Idea: get phrases from parent; reverse the phrase, modify the src_words,
    // and reorganize into a new triangular array
-   Uint sentLength = src_sent.size();
+   Uint sentLength = info.src_sent.size();
    vector<PhraseInfo *> **forward =
-      BasicModelGenerator::createAllPhraseInfos(src_sent, marks,
-                                                alwaysTryDefault, oovs);
+      BasicModelGenerator::createAllPhraseInfos(info, alwaysTryDefault);
    vector<PhraseInfo *> **backward =
       TriangArray::Create<vector<PhraseInfo *> >() (sentLength);
 
@@ -62,9 +59,9 @@ vector<PhraseInfo *> **BackwardsModelGenerator::createAllPhraseInfos(
          for ( vector<PhraseInfo *>::iterator it = forward[i][j].begin();
                it != forward[i][j].end(); it++) {
             (*it)->src_words = newRange;
-            Phrase tmp;
+            VectorPhrase tmp;
             tmp.insert(tmp.end(), (*it)->phrase.rbegin(), (*it)->phrase.rend());
-            (*it)->phrase.swap(tmp);
+            (*it)->phrase = tmp;
          }
          backward[sentLength - i - j - 1][j] = forward[i][j];
       }
@@ -74,11 +71,11 @@ vector<PhraseInfo *> **BackwardsModelGenerator::createAllPhraseInfos(
    return backward;
 } // createAllPhraseInfos
 
-void BackwardsModelGenerator::getStringPhrase(string &s, const Phrase &uPhrase)
+string BackwardsModelGenerator::getStringPhrase(const Phrase &uPhrase) const
 {
-   s.clear();
-   if (uPhrase.empty()) return;
+   if (uPhrase.empty()) return "";
    bool first(true);
+   string s;
    for ( Phrase::const_reverse_iterator word(uPhrase.rbegin());
          word != uPhrase.rend(); ++word ) {
       assert(*word < tgt_vocab.size());
@@ -88,4 +85,5 @@ void BackwardsModelGenerator::getStringPhrase(string &s, const Phrase &uPhrase)
          s.append(" ");
       s.append(tgt_vocab.word(*word));
    }
+   return s;
 } // getStringPhrase

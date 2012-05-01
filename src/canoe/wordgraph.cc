@@ -63,19 +63,14 @@ PrintFunc::clear() {
 
 void
 PrintFunc::appendPhrase(const DecoderState *state, PhraseDecoderModel &model) {
-   string result;
-   if (state != NULL) {
-      model.getStringPhrase(result, state->trans->lastPhrase->phrase);
-      sout << result;
-   }
+   if (state != NULL)
+      sout << model.getStringPhrase(state->trans->getPhrase());
 }
 
 void
 PrintFunc::appendQuotedPhrase(const DecoderState *state, PhraseDecoderModel &model) {
    if (state != NULL) {
-      PhraseInfo *phrase = state->trans->lastPhrase;
-      string p;
-      model.getStringPhrase(p, phrase->phrase);
+      string p = model.getStringPhrase(state->trans->getPhrase());
       insertEscapes(p);  // Escape all occurrences of " and \ in p
       sout << '"' << p << '"';
    }
@@ -84,13 +79,13 @@ PrintFunc::appendQuotedPhrase(const DecoderState *state, PhraseDecoderModel &mod
 void
 PrintFunc::appendAlignmentInfo(const DecoderState *state, PhraseDecoderModel &model) {
    if (state != NULL) {
-      PhraseInfo *phrase = state->trans->lastPhrase;
-      bool oov = true;
-      for (Uint i = phrase->src_words.start; i < phrase->src_words.end; ++i)
-         if (!oovs || !(*oovs)[i]) {oov = false; break;}
+      const PhraseInfo *phrase = state->trans->lastPhrase;
+      bool oov = (oovs &&
+                  phrase->src_words.start + 1 == phrase->src_words.end &&
+                  (*oovs)[phrase->src_words.start]);
       sout << "a=["
-           << exp(phrase->phrase_trans_prob)      << ';'
-           << phrase->src_words.start             << ';'
+           << state->score - (state->back ? state->back->score : 0.0) << ';'
+           << phrase->src_words.start             << '-'
            << (phrase->src_words.end - 1)         << ';'
            << (oov ? "O" : "I")                   << ']';
    }
@@ -137,7 +132,8 @@ string PrintTrace::operator()(const DecoderState *state) {
    return sout.str();
 }
 
-PrintFFVals::PrintFFVals(BasicModel &m, vector<bool>* oovs): PrintFunc(oovs), model(m) {}
+PrintFFVals::PrintFFVals(BasicModel &m, vector<bool>* oovs):
+   PrintFunc(oovs), model(m) {}
 
 string PrintFFVals::operator()(const DecoderState *state) {
    clear();

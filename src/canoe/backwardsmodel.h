@@ -29,12 +29,10 @@ namespace Portage
    class BackwardsModelGenerator: public BasicModelGenerator
    {
       protected:
-         virtual void getStringPhrase(string &s, const Phrase &uPhrase);
+         virtual string getStringPhrase(const Phrase &uPhrase) const;
          virtual vector<PhraseInfo *>** createAllPhraseInfos(
-               const vector<string> &src_sent,
-               const vector<MarkedTranslation> &marks,
-               bool alwaysTryDefault,
-               vector<bool>* oovs = NULL);
+               const newSrcSentInfo& info,
+               bool alwaysTryDefault);
 
       public:
          /**

@@ -18,7 +18,6 @@
 #include "arg_reader.h"
 #include "portage_defs.h"
 #include "logging.h"
-#include <boost/noncopyable.hpp>
 #include <iostream>
 
 namespace Portage
@@ -45,7 +44,7 @@ namespace Portage
     * as a base class for a class ARG which contains all arguments for a
     * particular application.  It adds some default switches to help debugging.
     */
-   class argProcessor : private boost::noncopyable
+   class argProcessor : private NonCopyable
    {
       private:
          /// Internal switches used by argProcessor.

@@ -106,8 +106,7 @@ void getArgs(int argc, const char* const argv[])
    // Get and validate the binlm filename.
    // It doesn't actually have to be a binlm though.
    arg_reader.testAndSet(0, "binlm_file", binlm_filename);
-   if ( !check_if_exists(binlm_filename) )
-      error(ETFatal, "File %s doesn't exist", binlm_filename.c_str());
+   error_unless_exists(binlm_filename);
 
    // Get and validate the arpalm filename.
    arg_reader.testAndSet(1, "arpalm_file", arpalm_filename);

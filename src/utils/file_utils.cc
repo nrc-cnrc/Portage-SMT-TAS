@@ -93,6 +93,17 @@ void Portage::error_if_exists(const char* filename, const char* error_msg) {
    if ( file ) error(ETFatal, error_msg, filename);
 }
 
+void Portage::error_unless_exists(const string& filename, bool accept_compressed,
+      const char* file_type)
+{
+   if (!check_if_exists(filename, accept_compressed))
+      error(ETFatal, "Error: can't open%s%s file %s: %s",
+         file_type ? " " : "",
+         file_type ? file_type : "",
+         filename.c_str(),
+         errno ? strerror(errno) : "unknown problem");
+}
+
 bool Portage::check_if_exists(const string& filename, bool accept_compressed)
 {
    if (filename.empty()) return false;
@@ -107,6 +118,8 @@ bool Portage::check_if_exists(const string& filename, bool accept_compressed)
          ifstream ifsz(fz.c_str());
          return !!ifsz;
       } else {
+         //int errnum = errno;
+         //cerr << "errno = " << errnum << " strerr = " << strerror(errnum) << endl;
          return false;
       }
    }

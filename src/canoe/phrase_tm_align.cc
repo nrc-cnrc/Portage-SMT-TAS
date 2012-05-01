@@ -98,7 +98,7 @@ int main(int argc, const char * const * argv)
    const char* switches[args.size() + 5];
    for (Uint i = 0; i < args.size(); ++i)
       switches[i] = args[i].c_str();
-   switches[args.size()] = ("n:");
+   switches[args.size()+0] = ("n:");
    switches[args.size()+1] = ("k:");
    switches[args.size()+2] = ("noscore");
    switches[args.size()+3] = ("onlyscore");
@@ -178,17 +178,17 @@ int main(int argc, const char * const * argv)
                error(ETWarn, "Tolerating ill-formed markup, but part of the last input line has been discarded.");
             else
                error(ETFatal, "Aborting because of ill-formed markup.");
-         } // if
+         }
 
          if (reader.eof() && src_sents.back().empty()) {
             src_sents.pop_back();
             marked_src_sents.pop_back();
             break;
-         } // if
-      } // while
+         }
+      }
       reader.reportWarningCounts();
       cerr << "... done reading input source sentences." << endl;
-   } // if
+   }
 
    // Read reference (target) sentences.
    if (c.refFile=="")
@@ -207,7 +207,7 @@ int main(int argc, const char * const * argv)
             error(ETWarn, "K specified on command-line (%d) does not match computed K.  Using K=%d.",
                   K, min(K, tgt_sents.size() / src_sents.size()));
             K = min(K, tgt_sents.size() / src_sents.size());
-         } // if
+         }
       }
       else
          K = tgt_sents.size() / src_sents.size();

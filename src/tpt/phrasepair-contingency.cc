@@ -27,6 +27,8 @@
 #include "tpt_tightindex.h"
 #include "ug_mm_ttrack.h"
 #include "ug_mm_tsa.h"
+#include "timer.h"
+//#include "vector_map.h"
 #include <tr1/unordered_map>
 
 namespace ugdiss {
@@ -67,6 +69,7 @@ inline ostream& help_message(ostream& os)
 
 bool   quiet;
 bool   sigfet = false;
+bool   timer = false;
 string bname;
 string L1;
 string L2;
@@ -79,7 +82,8 @@ interpret_args(int ac, char* av[])
   o.add_options()
     ("help,h",    "print this message")
     ("quiet,q",   "don't print progress information")
-    ("sigfet,s",  "output in a compatible format for sigprune_fet")
+    ("sigfet,s",  "output in a format compatible with sigprune_fet")
+    ("time,t",    "track the time taken for each phrase pair")
     ;
   options_help << o;
 
@@ -123,6 +127,7 @@ interpret_args(int ac, char* av[])
 
   quiet  = vm.count("quiet");
   sigfet = vm.count("sigfet");
+  timer  = vm.count("time");
 }
 
 template <class SetT>
@@ -283,14 +288,36 @@ int MAIN(argc, argv)
 
   string line,w;
   id_type cnt = 0;
+  Timer t, t1, t2;
+  t1.reset();
+  t2.reset();
   while (getline(cin,line))
     {
+      if (timer) t.reset();
       vector<Token> p1,p2;
-      istringstream buf(line);
-      while (buf>>w && w != "|||") p1.push_back(V1[w]);
-      while (buf>>w && w != "|||") p2.push_back(V2[w]);
+      //boost::dynamic_bitset<uint64_t> bs1,bs2;
+
+      size_t q(0), p(0), key_end(0);
+      int part = 0;
+      while (true) {
+         p = line.find_first_not_of(" \t", q);
+         if (p == string::npos) break;
+         q = line.find_first_of(" \t", p);
+
+         string token = line.substr(p,q-p);
+         if (token == "|||") {
+            if (part == 1) { key_end = q; break;    }
+            else           { ++part;      continue; }
+         }
+         if (part == 0) p1.push_back(V1[token]);
+         else           p2.push_back(V2[token]);
+
+         if (q == string::npos) break;
+      }
+
       size_t jj,m1,m2;
       contingency(p1,p2,S1,S2,jj,m1,m2);
+      if (timer) cout << t.secsElapsed(1) << "s\t";
       if (sigfet) {
          cout << "\t" << jj
             << "\t" << m1
@@ -300,7 +327,8 @@ int MAIN(argc, argv)
             << endl;
       }
       else {
-         cout << line.substr(0,buf.tellg()) << " " // << " ||| "
+         cout
+            << line.substr(0,key_end) << " " // << " ||| "
             << jj << " " // joint count
             << m1 << " " // marginal count for p1
             << m2 << " " // marginal count for p2
@@ -308,11 +336,13 @@ int MAIN(argc, argv)
             // << " " << V1.toString(p1) << " ::: " << V2.toString(p2) 
             << endl;
       }
-      if (!quiet && (++cnt)%1000==0)
-        cerr << cnt/1000 << "K phrase pairs processed" << endl;
+      if (!quiet && (++cnt)%1000==0) {
+        cerr << cnt/1000 << "K phrase pairs processed in " << t1.secsElapsed(1) << "s." << endl;
+        t1.reset();
+      }
     }
 
   if (!quiet)
-      cerr << cnt << " phrase pairs processed in total." << endl;
+      cerr << cnt << " phrase pairs processed in total, in " << t2.secsElapsed(1) << "s." << endl;
 }
 END_MAIN

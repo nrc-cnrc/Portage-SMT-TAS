@@ -144,7 +144,7 @@ void ArgReader::read(Uint argc, const char* const argv[])
       vars.push_back(argv[i]);
 
    if (max_vars >= 0 && vars.size() > (Uint)max_vars)
-      error(ETFatal, "too many arguments: %s...\n%s", vars[max_vars].c_str(), message_to_print_after_error.c_str());
+      error(ETFatal, "too many arguments (found %u, expected at most %u): %s ...\n%s", vars.size(), max_vars, vars[max_vars].c_str(), message_to_print_after_error.c_str());
    else if (vars.size() < (Uint)min_vars)
       error(ETFatal, "too few arguments\n%s", message_to_print_after_error.c_str());
 }

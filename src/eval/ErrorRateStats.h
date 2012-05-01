@@ -17,7 +17,7 @@
 #define __ERROR_RATE_STATS_H__
 
 #include "basic_data_structure.h"
-#include <math.h>
+#include <cmath>
 
 namespace Portage {
 
@@ -86,68 +86,74 @@ struct ErrorRateStats {
 
    /**
     * Convert "internal" score value to pnorm format: in [0,1],
-    * higher scores are better. No op for WER/PER, but not for BLEU.
+    * higher scores are better. WER and PER, and in the range [0, +infinity), 
+    * with they score being in the range (-infinity, 0], so the best choice is
+    * a sigmoid inspired function that maps WER=0 to 1, WER=1 to a value "near
+    * 0" (.238), and values of WER > 1 to values approaching zero
+    * asymptotically: 2/(1+exp(2*WER)).  This function is inspired from
+    * sigmoids used in neural networks: 1/(1+exp(x)), but it is adjusted to
+    * make WER=0 yield PNORM=1, and to have PNORM close to 1-WER when WER is in
+    * [0,0.5].  Is is closer to max(0, 1-WER) than exp(-WER) would be, which is
+    * desirable.
     * @param value internal value (eg, from score()) 
-    * @return display value.
+    * @return pnorm value
     */
    static double convertToPnorm(double value) {
-      return value;
+      return double(2.0) / (1.0 + exp(- 2 * value));
    }
    /**
     * Convert "internal" score from pnorm format: in [0,1],
-    * higher scores are better. No op for WER/PER, but not for BLEU.
-    * @param value pnorm value (eg, from score()) 
+    * Reverses the operation described in convertToPnorm().
+    * @param value  pnorm value (eg, from convertToPnorm()) 
     * @return internal value.
     */
    static double convertFromPnorm(double value) {
-      return value;
+      return -0.5 * log(2.0 / value - 1.0);
    }
 
-   protected:
-      /**
-       * Calculates the distance between a translation and its reference.
-       * @param translation  words of the translation.
-       * @param ref          words of the reference.
-       * @return Returns some distance between the translation and its reference.
-       */
-      virtual Uint calculateDistance(const Tokens& translation, const Tokens& ref) const = 0;
+protected:
+   /**
+    * Calculates the distance between a translation and its reference.
+    * @param translation  words of the translation.
+    * @param ref          words of the reference.
+    * @return Returns some distance between the translation and its reference.
+    */
+   virtual Uint calculateDistance(const Tokens& translation, const Tokens& ref) const = 0;
 
-      /**
-       * Calculates the distance between a translation and its references.
-       * @param translation  a translation.
-       * @param refs         its references.
-       * @return Returns some distance between the translation and its references.
-       */
-      void init(const Translation& translation, const References& refs) {
-         init(translation.getTokens(), refs);
-      }
+   /**
+    * Calculates the distance between a translation and its references.
+    * @param translation  a translation.
+    * @param refs         its references.
+    */
+   void init(const Translation& translation, const References& refs) {
+      init(translation.getTokens(), refs);
+   }
 
-      /**
-       * Calculates the distance between a translation and its references.
-       * @param translation  words of the translation.
-       * @param refs         its references.
-       * @return Returns some distance between the translation and its references.
-       */
-      void init(const Tokens& translation, const References& refs) {
-         const Uint numRefs(refs.size());
-         Uint least(0);
+   /**
+    * Calculates the distance between a translation and its references.
+    * @param translation  words of the translation.
+    * @param refs         its references.
+    */
+   void init(const Tokens& translation, const References& refs) {
+      const Uint numRefs(refs.size());
+      Uint least(0);
 
-         _source_length = translation.size();
+      _source_length = translation.size();
 
-         for (Uint i(0); i<numRefs; ++i) {
-            const Tokens refWords = refs[i].getTokens();
-            _reflen += refWords.size();
+      for (Uint i(0); i<numRefs; ++i) {
+         const Tokens refWords = refs[i].getTokens();
+         _reflen += refWords.size();
 
-            const Uint cur = calculateDistance(translation, refWords);
+         const Uint cur = calculateDistance(translation, refWords);
 
-            if (i == 0 || cur < least)
-               least = cur;
-         } // for
-         _changes = least;
-         _reflen /= numRefs;
-      }
+         if (i == 0 || cur < least)
+            least = cur;
+      } // for
+      _changes = least;
+      _reflen /= numRefs;
+   }
 
-   protected:
+protected:
    /**
     * Finds the difference in statistics between two ErrorRateStats objects.
     * @relates ErrorRateStats
@@ -194,7 +200,8 @@ struct ErrorRateStats {
          return std::accumulate(begin, end, total).ratio();
       }
    };
-}; // ends class ErrorRateStats
-} // ends namespace Portage
+}; // class ErrorRateStats
+
+} // namespace Portage
 
 #endif // __ERROR_RATE_STATS_H__

@@ -34,12 +34,7 @@ PLM* LMTrie::Creator::Create(VocabFilter* vocab,
                             ostream *const os_filtered,
                             bool quiet)
 {
-   string line;
-   {
-      iSafeMagicStream is(lm_physical_filename, true);
-      getline(is, line);
-   }
-   if ( line == "Portage BinLM file, format v1.0" ) {
+   if ( LMBin::isA(lm_physical_filename) ) {
       //cerr << "BinLM v1.0" << endl;
       assert(vocab);
       if ( limit_vocab ) {
@@ -92,7 +87,7 @@ void LMTrie::rec_dump_trie_to_cerr(
 
 float LMTrie::wordProb(Uint word, const Uint context[], Uint context_length)
 {
-   if ( debug_wp ) cerr << "Query " << word << " | "
+   if ( debug_wp ) cerr << "Query " << word << "=" << vocab->word(word) << " | "
                         << join(context, context + context_length) << endl;
 
    // Reminder: context is backwards!

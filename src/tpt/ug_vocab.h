@@ -119,7 +119,7 @@ public:
   string toString(vector<id_type>::const_iterator a,
                   vector<id_type>::const_iterator const& z) const;
 
-  vector<id_type> toIdSeq(string const& foo, bool createIfNecessary=false);
+  void toIdSeq(vector<id_type>& idSeq, string const& foo, bool createIfNecessary=false);
 
   /** Write Vocab in TokenIndex format */
   void toTokenIndex(ostream& out);

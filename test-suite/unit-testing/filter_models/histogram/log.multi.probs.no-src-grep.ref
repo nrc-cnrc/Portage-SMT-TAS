@@ -5,10 +5,10 @@ Warning: Loading models in memory - make sure you have enough RAM to hold them a
   Running in load all in memory
   Running without source sentences => processing all table entries
   Running in SOFT mode using limit(30)
+Using fixPruning with 30
 loading phrase table from pt: 
 1261 lines read, 1261 entries kept.
 Done in 0s
-Using fixPruning with 30
 There are 90 entries left after applying SOFT filtering
 Histogram before filtering
   Count:19 mean:66.3684 sdev: 280.59

@@ -23,14 +23,32 @@
 using namespace std;
 using namespace Portage;
 
-/*
- * Creates a new partial translation object.
- */
-PartialTranslation::PartialTranslation(bool usingLev)
+const PhraseInfo PartialTranslation::EmptyPhraseInfo;
+
+// CAC: It breaks my heart, but this needs to stay to enable
+// legacy testing.
+PartialTranslation::PartialTranslation(PhraseInfo* phrase)
    : back(NULL)
-   , lastPhrase(NULL)
+   , lastPhrase(phrase)
+   , levInfo(NULL)
+   , shiftReduce(NULL)
+{}
+
+PartialTranslation::PartialTranslation(Uint sourceLen,
+                                       bool usingLev,
+                                       bool usingSR)
+   : back(NULL)
+   , lastPhrase(&EmptyPhraseInfo)
+   , numSourceWordsCovered(0)
    , levInfo(usingLev ? new PartialTranslation::levenshteinInfo() : NULL)
-{ 
+   , shiftReduce(usingSR ? new ShiftReducer(sourceLen): NULL)
+{
+   // Set the range of words not covered to be the full range of words
+   if ( sourceLen > 0 ) {
+      Range fullRange(0, sourceLen);
+      sourceWordsNotCovered.push_back(fullRange);
+   }
+   
    /*static bool hasBeen = false;
    if (!hasBeen) {
       hasBeen = true;
@@ -41,17 +59,20 @@ PartialTranslation::PartialTranslation(bool usingLev)
    }*/
 }
 
-PartialTranslation::PartialTranslation(PartialTranslation* trans0,
-      PhraseInfo* phrase, const UintSet* preCalcSourceWordsCovered)
+PartialTranslation::PartialTranslation(const PartialTranslation* trans0,
+      const PhraseInfo* phrase, const UintSet* preCalcSourceWordsCovered)
    : back(trans0)
    , lastPhrase(phrase)
    , levInfo(trans0->levInfo ? new PartialTranslation::levenshteinInfo() : NULL)
+   , shiftReduce(trans0->shiftReduce
+                 ? new ShiftReducer(phrase->src_words,trans0->shiftReduce)
+                 : NULL)
 {
    assert(trans0 != NULL);
    assert(phrase != NULL);
 
    // Compute foreign words covered
-   Range &newWords = phrase->src_words;
+   const Range &newWords = phrase->src_words;
    assert(trans0->numSourceWordsCovered + newWords.end - newWords.start > 0);
    numSourceWordsCovered = trans0->numSourceWordsCovered +
       newWords.end - newWords.start;
@@ -65,9 +86,10 @@ PartialTranslation::PartialTranslation(PartialTranslation* trans0,
 PartialTranslation::~PartialTranslation()
 {
    if (levInfo) delete levInfo, levInfo = NULL;
+   if (shiftReduce) delete shiftReduce, shiftReduce = NULL;
 }
 
-void PartialTranslation::getLastWords(Phrase &words, Uint num, bool backward)
+void PartialTranslation::getLastWords(VectorPhrase &words, Uint num, bool backward)
    const
 {
    // Preallocate enough memory in the words vector, if necessary
@@ -81,32 +103,31 @@ void PartialTranslation::getLastWords(Phrase &words, Uint num, bool backward)
       _getLastWords(words, num);
 } // getLastWords
 
-void PartialTranslation::_getLastWords(Phrase &words, Uint num) const
+void PartialTranslation::_getLastWords(VectorPhrase &words, Uint num) const
 {
    if (lastPhrase != NULL) {
-      const Uint last_phrase_size(lastPhrase->phrase.size());
+      const Uint last_phrase_size(getPhrase().size());
       if (num > last_phrase_size && back != NULL) {
          // Get tail of previous partial translation
          back->_getLastWords(words, num - last_phrase_size);
       }
 
       // Copy over part or all of the entire last phrase
-      Phrase::const_iterator w_it(lastPhrase->phrase.begin());
+      Phrase::const_iterator w_it(getPhrase().begin());
       if ( num < last_phrase_size )
          w_it += last_phrase_size - num;
-      Phrase::const_iterator w_end(lastPhrase->phrase.end());
+      Phrase::const_iterator w_end(getPhrase().end());
       for ( ; w_it != w_end; ++w_it )
          words.push_back(*w_it);
    }
 } // _getLastWords
 
-void PartialTranslation::_getLastWordsBackward(Phrase &words, Uint num) const
+void PartialTranslation::_getLastWordsBackward(VectorPhrase &words, Uint num) const
 {
    const PartialTranslation* pt = this;
-   PhraseInfo* lp = NULL;
-   while ( pt != NULL && (lp = pt->lastPhrase) && num > 0 ) {
-      Phrase::const_reverse_iterator w_it(lp->phrase.rbegin());
-      Phrase::const_reverse_iterator w_end(lp->phrase.rend());
+   while ( pt != NULL && pt->lastPhrase != NULL && num > 0 ) {
+      Phrase::const_reverse_iterator w_it(pt->getPhrase().rbegin());
+      Phrase::const_reverse_iterator w_end(pt->getPhrase().rend());
       while ( num > 0 && w_it != w_end ) {
          words.push_back(*w_it);
          ++w_it;
@@ -136,13 +157,13 @@ bool PartialTranslation::sameLastWords(const PartialTranslation &that,
    Phrase::const_reverse_iterator thisPos, thatPos, thisEnd, thatEnd;
    bool thisWordExists(false), thatWordExists(false);
    if ( thisTrans && thisTrans->lastPhrase ) {
-      thisPos = thisTrans->lastPhrase->phrase.rbegin();
-      thisEnd = thisTrans->lastPhrase->phrase.rend();
+      thisPos = thisTrans->getPhrase().rbegin();
+      thisEnd = thisTrans->getPhrase().rend();
       thisWordExists = true;
    }
    if ( thatTrans && thatTrans->lastPhrase ) {
-      thatPos = thatTrans->lastPhrase->phrase.rbegin();
-      thatEnd = thatTrans->lastPhrase->phrase.rend();
+      thatPos = thatTrans->getPhrase().rbegin();
+      thatEnd = thatTrans->getPhrase().rend();
       thatWordExists = true;
    }
    while ( num > 0 ) {
@@ -153,8 +174,8 @@ bool PartialTranslation::sameLastWords(const PartialTranslation &that,
          if ( thisTrans->back ) {
             thisTrans = thisTrans->back;
             if ( thisTrans && thisTrans->lastPhrase ) {
-               thisPos = thisTrans->lastPhrase->phrase.rbegin();
-               thisEnd = thisTrans->lastPhrase->phrase.rend();
+               thisPos = thisTrans->getPhrase().rbegin();
+               thisEnd = thisTrans->getPhrase().rend();
                thisWordExists = true;
             }
          }
@@ -164,8 +185,8 @@ bool PartialTranslation::sameLastWords(const PartialTranslation &that,
          if ( thatTrans->back ) {
             thatTrans = thatTrans->back;
             if ( thatTrans && thatTrans->lastPhrase ) {
-               thatPos = thatTrans->lastPhrase->phrase.rbegin();
-               thatEnd = thatTrans->lastPhrase->phrase.rend();
+               thatPos = thatTrans->getPhrase().rbegin();
+               thatEnd = thatTrans->getPhrase().rend();
                thatWordExists = true;
             }
          }
@@ -187,18 +208,12 @@ bool PartialTranslation::sameLastWords(const PartialTranslation &that,
    return true;
 } // sameLastWords
 
-void PartialTranslation::getEntirePhrase(Phrase &words) const
+void PartialTranslation::getEntirePhrase(VectorPhrase &words) const
 {
    getLastWords(words, getLength());
 } // getEntirePhrase
 
 Uint PartialTranslation::getLength() const
 {
-   if (lastPhrase != NULL && back != NULL) {
-      return lastPhrase->phrase.size() + back->getLength();
-   } else if (lastPhrase != NULL) {
-      return lastPhrase->phrase.size();
-   } else {
-      return 0;
-   }
+   return getPhrase().size() + (back ? back->getLength() : 0);
 } // getLength

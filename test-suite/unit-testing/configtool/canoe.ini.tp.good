@@ -17,3 +17,4 @@
 [segmentation-model] none
 [bypass-marked]
 [cube-pruning]
+[load-first]

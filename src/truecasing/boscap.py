@@ -376,7 +376,7 @@ def capitalize(tok):
     tok: token to be capitalized
     returns: capitalized token (or original if a URL)
     """
-    if tok.startswith("www.") or tok.startswith("http:"):
+    if tok.startswith("www.") or tok.startswith("http:") or tok.startswith("https:"):
         return tok          # don't capitalize URLs.
     return capitalize_token(tok)
 

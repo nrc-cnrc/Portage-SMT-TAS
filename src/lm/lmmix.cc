@@ -118,9 +118,11 @@ LMMix::LMMix(const string& name, VocabFilter* vocab,
 
 float LMMix::wordProb(Uint word, const Uint context[], Uint context_length)
 {
+   static double log0 = log(0.0);
    double p = 0.0;
    for (Uint i = 0; i < models.size(); ++i)
-      p += exp(wts[i] + models[i]->wordProb(word, context, context_length));
+      if (wts[i] != log0)
+         p += exp(wts[i] + models[i]->wordProb(word, context, context_length));
    return log(p);
 }
 

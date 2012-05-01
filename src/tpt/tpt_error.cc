@@ -20,6 +20,9 @@ ostream& exit_1(ostream& os)
 {
    os << endl;
    exit(1);
+   #ifdef __KLOCWORK__
+      abort();
+   #endif
    return os;
 }
 

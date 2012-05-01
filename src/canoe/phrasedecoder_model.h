@@ -20,6 +20,7 @@
 #define PHRASEDECODER_MODEL_H
 
 #include "canoe_general.h"
+#include "shift_reducer.h"
 #include <vector>
 #include <boost/dynamic_bitset.hpp>
 
@@ -35,6 +36,9 @@ namespace Portage
     */
    struct PhraseInfo
    {
+      /// Default constructor makes an empty phraseinfo
+      PhraseInfo() : src_words(0,0), phrase_trans_prob(0) {}
+
       /// Destructor
       virtual ~PhraseInfo() {}
 
@@ -48,14 +52,21 @@ namespace Portage
 
       /// The translation model probability of this phrase.
       double phrase_trans_prob;
+
+      /// Display self for debugging purposes
+      virtual void display() const {
+         cerr << src_words << " " << phrase_trans_prob;
+      }
    }; // PhraseInfo
 
    /**
     * Structure to represent a partial translation.
     * Note: This is implemented in partialtranslation.cc.
     */
-   class PartialTranslation
+   class PartialTranslation : private NonCopyable
    {
+      static const PhraseInfo EmptyPhraseInfo;
+
    public:
       ///  Placeholder for levenshtein
       struct levenshteinInfo
@@ -74,16 +85,19 @@ namespace Portage
          levenshteinInfo() : levDistance(-1) {}
       };
 
-   public:
-      /**
-       * The previous partial translation.
-       */
-      PartialTranslation *back;
+      /// The previous partial translation.
+      const PartialTranslation* const back;
 
-      /**
-       * The right-most phrase in the translation.
-       */
-      PhraseInfo *lastPhrase;
+      /// The right-most phrase in the translation.
+      const PhraseInfo* const lastPhrase;
+
+      /// get the phrase covered by the current part of this PartialTranslation
+      // EJJ:  This method may seem pointless, but it helps with consistency of
+      // code between the gappy-branch and the trunk.
+      const Phrase& getPhrase() const {
+         if (lastPhrase) return lastPhrase->phrase;
+         else return EmptyPhraseInfo.phrase;
+      }
 
       /**
        * A set of ranges representing all the source words not covered.  This
@@ -93,24 +107,38 @@ namespace Portage
        */
       UintSet sourceWordsNotCovered;
 
-      /**
-       * The number of source words that have been covered.
-       */
+      /// The number of source words that have been covered.
       Uint numSourceWordsCovered;
 
-      /**
-       * Info to calculate the levenshtein distance.
-       */
+      /// Info to calculate the levenshtein distance.
       levenshteinInfo* levInfo;
 
       /**
-       * Constructor, creates a new partial translation object.
-       * @param usingLev  Specifies if the levenshteinInfo is required
+       * On-board shift-reduce parser tracks the largest-possible
+       * previous phrase
        */
-      PartialTranslation(bool usingLev = false);
+      ShiftReducer* shiftReduce;
 
       /**
-       * Constructor extends trans0 by adding pharse at the end of it.
+       * Constructor, creates a new partial translation object, intended for
+       * creating the initial empty PartialTranslation.
+       * @param sourceLen Length of source sentence
+       * @param usingLev  Specifies if the levenshteinInfo is required
+       * @param usingSR   Specifies if state includes a shift-reduce parser
+       */
+      explicit PartialTranslation(Uint sourceLen, bool usingLev = false, bool usingSR = false);
+
+      /**
+       * Constructor, creates a new partial translation object, intended for
+       * creating artificial debugging states.
+       * Will create an inconsistent state by default (coverage vector and
+       * numCovered will not match the provided phrase)
+       * @param phrase to be initially covered
+       */
+      explicit PartialTranslation(PhraseInfo* phrase);
+
+      /**
+       * Constructor extends trans0 by adding phrase at the end of it.
        * Used mainly by extendDecoderState, but can be called on its own.
        * @param trans0 Partial translation to extend (cannot be NULL)
        * @param phrase Phrase to add to trans (cannot be NULL)
@@ -118,7 +146,7 @@ namespace Portage
        *               that the coverage set of the resulting translation has
        *               already been calculated, and provides it.
        */
-      PartialTranslation(PartialTranslation* trans0, PhraseInfo* phrase,
+      explicit PartialTranslation(const PartialTranslation* trans0, const PhraseInfo* phrase,
             const UintSet* preCalcSourceWordsCovered = NULL);
 
       /// Destructor.
@@ -136,7 +164,7 @@ namespace Portage
        * @param[in]  backward  If true, fill the vector backwards, with the
        *                    leftmost word at the back of the vector.
        */
-      void getLastWords(Phrase &words, Uint num,
+      void getLastWords(VectorPhrase &words, Uint num,
             bool backward = false) const;
 
       /**
@@ -158,7 +186,7 @@ namespace Portage
        * @param[out] words  The vector to be filled with the words in the
        *                    translation.
        */
-      void getEntirePhrase(Phrase &words) const;
+      void getEntirePhrase(VectorPhrase &words) const;
 
       /**
        * Determines the target length of this partial translation.
@@ -174,7 +202,7 @@ namespace Portage
        *                    words in the translation.
        * @param[in] num     The number of words to get.
        */
-      void _getLastWords(Phrase &words, Uint num) const;
+      void _getLastWords(VectorPhrase &words, Uint num) const;
 
       /**
        * Does the real work for getLastWords backward.
@@ -185,7 +213,7 @@ namespace Portage
        *                    words in the translation, in reverse order.
        * @param[in] num     The number of words to get.
        */
-      void _getLastWordsBackward(Phrase &words, Uint num) const;
+      void _getLastWordsBackward(VectorPhrase &words, Uint num) const;
 
    }; // PartialTranslation
 
@@ -194,6 +222,10 @@ namespace Portage
     * Abstract class to encapsulate model information passed to a basic
     * phrase-based decoder a la Koehn. Currently, each model is specific to
     * the current source sentence.
+    *
+    * This seemingly pointless abstract base class exists to enable unit
+    * testing using stubs for the real model.  See tests/legacy/testdecoder.cc
+    * and testhypstack.cc.
     */
    class PhraseDecoderModel
    {
@@ -204,10 +236,9 @@ namespace Portage
       /**
        * Converts a phrase consisting of Uint "word"s into a printable
        * phrase string.
-       * @param[out] s         The string to put the phrase into.
        * @param[in]  uPhrase   The phrase using Uint's to represent words.
        */
-      virtual void getStringPhrase(string &s, const Phrase &uPhrase) = 0;
+      virtual string getStringPhrase(const Phrase &uPhrase) = 0;
 
       /**
        * Get the Uint representation of word.
@@ -233,18 +264,6 @@ namespace Portage
        * [i, i + j + 1).
        */
       virtual vector<PhraseInfo *> **getPhraseInfo() = 0;
-
-      /**
-       * Inform the model of the current PartialTranslation context.
-       * Between calls to this function, the "<trans>" arguments to
-       * scoreTranslation() and computeFutureScore() are guaranteed to differ
-       * only in their lastPhrase members, ie in their last source/target
-       * phrase pairs. The purpose is to give the model a chance to factor
-       * out computations that depend only on this pair (added for the new
-       * tree-based distortion models).
-       * @param[in] trans  the current context
-       */
-      virtual void setContext(const PartialTranslation& trans) {}
 
       /**
        * Main scoring function.

@@ -21,20 +21,23 @@ all: test.check.text.good
 all: test.check.tp.good
 all: test.check.tp.bad
 
+all:
+	@echo All tests PASSED.
+
 LINKS = models/cpt.tppt.ok models/ldm.tpldm.bad models/lm.tplm.bad
 
 test.check.tp.bad: ${LINKS}
 
 models/%:
-	ln -s $(basename $*) models/$*
+	-ln -s $(basename $*) models/$*
 
 clean:
 	${RM} log.run-test ${LINKS}
-	
+
 test.check.%.good:
 	${CONFIGTOOL} check canoe.ini.$*.good 2>&1 \
 	| diff -q - <(echo "ok")
 
 test.check.%.bad:
 	${CONFIGTOOL} check canoe.ini.$*.bad 2>&1 \
-	| diff -q - ref.$*.bad
+	| diff -q - ref/ref.$*.bad

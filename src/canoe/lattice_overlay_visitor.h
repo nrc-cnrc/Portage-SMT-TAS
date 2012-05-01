@@ -21,9 +21,8 @@
 
 namespace Portage {
 /**
- * Visitor object of a nbest lattice.
- * It will extract nbest list, ffvals and pal info from the lattice and writes
- * it to the attached stream.
+ * Visitor object of a nbest lattice.  It will extract nbest list, ffvals,
+ * and pal info from the lattice and writes it to the attached stream.
  */
 class NbestPrinter {
    protected:
@@ -32,6 +31,7 @@ class NbestPrinter {
       ostream*   nbest_stream;        ///< print nbest to this stream
       ostream*   ffvals_stream;       ///< print ffvals to this stream
       ostream*   pal_stream;          ///< print pal to this stream
+      ostream*   debug_stream;        ///< print debugging information to this stream
       vector<double>  global_ffvals;  ///< We need to cumulate each phrase ffval
       Uint pal_counter;               ///< Keeps track of the phrase number for pal
       Uint pal_tgt;                   ///< Keeps track of target word count
@@ -48,6 +48,7 @@ class NbestPrinter {
       , nbest_stream(NULL)
       , ffvals_stream(NULL)
       , pal_stream(NULL)
+      , debug_stream(NULL)
       , pal_counter(0)
       , pal_tgt(0)
       {}
@@ -70,6 +71,12 @@ class NbestPrinter {
       void attachPalStream(ostream* stream)    { pal_stream = stream; }
 
       /**
+       * Attaches a stream to output the debugging info.
+       * @param stream  the stream to output the debugging info
+       */
+      void attachDebugStream(ostream* stream)    { debug_stream = stream; }
+
+      /**
        * Indicates that the end of a sentence was reached.
        */
       void sentenceEnd()
@@ -89,6 +96,8 @@ class NbestPrinter {
             fill(global_ffvals.begin(), global_ffvals.end(), 0.0f);
             *ffvals_stream << endl;
          }  
+         if (debug_stream)
+            *debug_stream << endl << endl;
       }
 
       /**
@@ -100,26 +109,21 @@ class NbestPrinter {
       {
          if (!state) return;
 
-         string result;
          // print the the current phrase
          if (nbest_stream) {
-            model.getStringPhrase(result, state->trans->lastPhrase->phrase);
             // Insert space if this is not the first phrase of the sentence
             if (state->back->back != NULL) *nbest_stream << ' ';
-            *nbest_stream << result;
+            *nbest_stream << model.getStringPhrase(state->trans->getPhrase());
          }
 
          // print the pal
          if (pal_stream) {
-            PhraseInfo *phrase = state->trans->lastPhrase;
-            bool oov = true;
-            for (Uint i = phrase->src_words.start; i < phrase->src_words.end; ++i)
-               if (!oovs || !(*oovs)[i]) { oov = false; break; }
+            const PhraseInfo *phrase = state->trans->lastPhrase;
             if (pal_counter>0) *pal_stream << " ";
-            const Uint size = state->trans->lastPhrase->phrase.size();
-            *pal_stream  << ++pal_counter << ":"
-                         << phrase->src_words.start << "-" << (phrase->src_words.end - 1) << ":"
-                         << pal_tgt << "-" << (pal_tgt + size - 1);
+            const Uint size = state->trans->getPhrase().size();
+            *pal_stream << ++pal_counter << ":"
+                        << phrase->src_words.start << "-" << (phrase->src_words.end - 1) << ":"
+                        << pal_tgt << "-" << (pal_tgt + size - 1);
             pal_tgt += size;
          }
 
@@ -132,6 +136,11 @@ class NbestPrinter {
                global_ffvals.resize(ffvals.size(), 0.0f);
             for (Uint i(0); i< global_ffvals.size(); ++i)   
                global_ffvals[i] += ffvals[i];
+         }
+
+         if (debug_stream) {
+            state->display(*debug_stream, &model, model.getSourceLength());
+            model.scoreTranslation(*state->trans, 3);
          }
       }
 };

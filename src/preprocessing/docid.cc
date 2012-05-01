@@ -16,10 +16,11 @@
 
 using namespace Portage;
 
-DocID::DocID(const string& docid_filename)
+DocID::DocID(const string& docid_filename, Uint field) :
+   field(field)
 {
    if (docid_filename.empty())
-      error(ETFatal, "You must provide a docid file");
+      error(ETFatal, "DocID filename empty");
 
    iSafeMagicStream is(docid_filename);
    string line;
@@ -49,10 +50,10 @@ DocID::DocID(const string& docid_filename)
 void DocID::parse(const string& docline, string& docname, string& other)
 {
    vector<string> toks;
-   split(docline, toks, " \t\n", 2);
+   split(docline, toks, " \t\n", field+2);
 
-   docname = toks.size() > 0 ? toks[0] : "";
-   other = toks.size() > 1 ? toks[1] : "";
+   docname = toks.size() > field ? toks[field] : "";
+   other = toks.size() > field+1 ? toks[field+1] : "";
 }
 
 

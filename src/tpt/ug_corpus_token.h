@@ -16,14 +16,22 @@
 namespace ugdiss
 {
   /** Simple wrapper around id_type for use with the Ttrack/TSA template classes */
-
   class SimpleWordId
   {
     id_type theID;
   public:
-    SimpleWordId(id_type const& id);
-    id_type const& id() const;
-    int cmp(SimpleWordId const& other) const;
+    /// Default constructor
+    SimpleWordId() : theID(0) {}
+    /// Constructor from an id_type.
+    SimpleWordId(id_type id) : theID(id) {}
+    /// Cast operator so we can use a SimpleWordId as if it was a id_type
+    operator id_type () const { return theID; }
+    /// Assignment operator so we can use a SimpleWordId as if it was a id_type
+    SimpleWordId& operator=(id_type id) { theID = id; return *this; }
+    /// Explicitly ask for the ID.
+    id_type id() const { return theID; }
+    /// three way comparison operator
+    int cmp(SimpleWordId other) const;
   };
 
 

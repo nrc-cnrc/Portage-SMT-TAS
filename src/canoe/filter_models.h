@@ -38,11 +38,11 @@ filter_models [-czsr] [-f CONFIG_FILE] [-suffix SUFFIX] [-vocab VOCAB_FILE]\n\
 \n\
    Filter all models in CONFIG_FILE to contain only the lines needed by canoe\n\
    to translate the sentences in SRC.\n\
-   - filter_grep filters based on the source phrases only.\n\
+   - filter-grep filters based on the source phrases only. (default)\n\
    - limit filters target phrases based on the ttable-limit.\n\
-     - hard limit reduces the phrasetable(s) to exactly what will be\n\
+     - -hard-limit reduces the phrasetable(s) to exactly what will be\n\
        used by canoe given a specific set of weights\n\
-     - soft limit is Limit-TM, as described by Badr et al, (2007): it applies\n\
+     - -soft-limit is Limit-TM, as described by Badr et al, (2007): it applies\n\
        the ttable-limit in a way that is compatible with any set of non-\n\
        negative weights.\n\
 \n\
@@ -74,10 +74,12 @@ Options:\n\
 -s   indicates not to strip the path from file names [do]\n\
 -r   don't overwrite existing filtered files [do, unless they're readonly]\n\
 -L   filter language models [don't]\n\
--T   pruning style with arguments style#arg\n\
-        i.e. fix#30 prunes every target phrase table with a limit of 30.\n\
-        or linear#10 prunes every target phrase table with a variable limit\n\
-           source word count x 10\n\
+-T   pruning style with arguments style#arg; style can be fix or linear:\n\
+     - fix#30 prunes every target phrase table with a limit of 30.\n\
+     - linear#10 prunes every target phrase table with a variable limit\n\
+       (source word count) x 10\n\
+     This option overrides -ttable-limit as a command line option to this\n\
+     program or in CONFIG_FILE.\n\
 -ttable-limit Use T instead of the ttable-limit parameter in CONFIG_FILE. This\n\
              value does not get written back to CONFIG_FILE.FILT.\n\
 -no-per-sent do global voc LM filtering only [do per sent LM filtering]\n\
@@ -98,29 +100,30 @@ Options:\n\
              Requires that all the TMs be in a single multi prob TM file,\n\
              sorted on source language phrases; the join_phrasetables program\n\
              can be used to generate such a file. [don't]\n\
+-ldm         filter Lexicalized Distortion Models. [don't]\n\
 \n\
-  EXAMPLES:\n\
+EXAMPLES:\n\
 \n\
-     Filter-grep all TMs in canoe.ini with source phrases from src:\n\
+  Filter-grep all TMs in canoe.ini with source phrases from src:\n\
 \n\
-     filter_models -z -f canoe.ini < src\n\
+    filter_models -z -f canoe.ini < src\n\
 \n\
-     Soft-limit filter all phrasetables in canoe.ini, applying filter_grep\n\
-     using src at the same time:\n\
+  Soft-limit filter all phrasetables in canoe.ini, applying filter-grep\n\
+  using src at the same time:\n\
 \n\
-     filter_models -f canoe.ini -soft-limit SOFT.OUT.gz < src\n\
+    filter_models -f canoe.ini -soft-limit SOFT.OUT.gz < src\n\
 \n\
-     Hard-limit filter a complete multiprob TM, without filter_grep, with\n\
-     minimal memory requirements:\n\
+  Hard-limit filter a complete multiprob TM, without filter-grep, with\n\
+  minimal memory requirements:\n\
 \n\
-     filter_models -f canoe.ini -no-src-grep -tm-online -hard-limit HARD.OUT.gz\n\
+    filter_models -f canoe.ini -no-src-grep -tm-online -hard-limit HARD.OUT.gz\n\
 ";
 
        /// Program filter_models' allowed command line arguments
        const char* const switches[] = {
           "z", "s", "r", "L", "no-per-sent", "no-src-grep",
           "tm-online", "c", "hard-limit:", "soft-limit:", "f:", "suffix:",
-          "ttable-limit:", "vocab:", "input:", "T:"
+          "ttable-limit:", "vocab:", "input:", "T:", "ldm"
        };
 
        /// Command line arguments processing for filter_models.
@@ -133,17 +136,18 @@ Options:\n\
              bool   compress;     ///< should we compress the outputs.
              bool   strip;        ///< should we strip the path from the models file name
              bool   readonly;     ///< treat existing filt files as readonly
-             bool   doLMs;        ///< filter language models
+             bool   filterLMs;    ///< filter language models
              bool   soft_limit;   ///< soft filter limit the phrase table;
              bool   nopersent;    ///< disables per-sentence vocab LM filt
              string limit_file;   ///< multi probs filename for filter30
-             int   ttable_limit;  ///< ttable limit override if >= 0
+             int    ttable_limit; ///< ttable limit override if >= 0
              bool   hard_limit;   ///< perform the hard limit filter
              bool   no_src_grep;  ///< process all entries disregarding the source sentences.
              bool   tm_online;    ///< indicates to process source tm in a streaming mode
-             bool   output_config; ///< indicates to output the modified canoe.ini
-             string input;         ///< Source sentences to filter on
+             bool   output_config;///< indicates to output the modified canoe.ini
+             string input;        ///< Source sentences to filter on
              string pruning_type_switch;  ///< What kind of pruning was specified by the user.
+             bool   filterLDMs;   ///< Should we filter Lexicalized Distortion Models?
 
           public:
              /// Default constructor.
@@ -157,7 +161,7 @@ Options:\n\
              , compress(false)
              , strip(false)
              , readonly(false)
-             , doLMs(false)
+             , filterLMs(false)
              , soft_limit(false)
              , nopersent(false)
              , ttable_limit(-1.0)
@@ -167,6 +171,7 @@ Options:\n\
              , output_config(true)
              , input("-")
              , pruning_type_switch("")
+             , filterLDMs(false)
              {
                 argProcessor::processArgs(argc, argv);
              }
@@ -193,14 +198,15 @@ Options:\n\
                 mp_arg_reader->testAndSet("tm-online", tm_online);
                 mp_arg_reader->testAndSet("input", input);
                 mp_arg_reader->testAndSet("T", pruning_type_switch);
+                mp_arg_reader->testAndSet("ldm", filterLDMs);
                 // if the option is set we don't want to strip.
                 strip         = !mp_arg_reader->getSwitch("s");
                 output_config = !mp_arg_reader->getSwitch("c");
                 mp_arg_reader->testAndSet("r", readonly);
-                doLMs =  mp_arg_reader->getSwitch("L");
+                filterLMs =  mp_arg_reader->getSwitch("L");
 
                 // WARN user of potentiel problems
-                if (nopersent && !doLMs)
+                if (nopersent && !filterLMs)
                    error(ETWarn, "The -no-per-sent flag only takes effect if the L flag is active (process LMs).");
                 if (!tm_online && no_src_grep && (soft_limit || hard_limit))
                    error(ETWarn, "Loading models in memory - make sure you have enough RAM to hold them all.");
@@ -248,8 +254,9 @@ Options:\n\
               * @param filename  original file name.
               * @param in        returns the modified input file name.
               * @param out       returns the modified output file name.
+              * @return whether out was read-only
               */
-             void getFilenames(const string& filename, string& in, string& out) const
+             bool getFilenames(const string& filename, string& in, string& out) const
              {
                 in  = filename;
                 out = prepareFilename(filename);
@@ -258,17 +265,36 @@ Options:\n\
                 ofstream os;    // blunderbuss approach for portability?
                 ifstream is;    // two blunderbussi
                 // Checks if the output file is read-only.
-                if ((readonly && (is.open(out.c_str()), is)) ||
-                    ((is.open(out.c_str()), is) && !(os.open(out.c_str()), os)))
-                {
+                if (isReadOnly(out)) {
                    in  = out;
                    out = "/dev/null";
+                   return true;
                 }
+                return false;
              }
+
              /**
               * Indicates if any tm filtering was requested
               */
               bool limit() const { return soft_limit || hard_limit; }
+
+              bool limitPhrases() const { return !no_src_grep; }
+
+              /**
+               * Returns true if the file exists and if it is marked as readonly.
+               * Note: readonly can be user specified or the file can actually be readonly on disk.
+               * @param file  filename
+               */
+              bool isReadOnly(const string& file) const {
+                 ofstream os;
+                 return check_if_exists(file) && (readonly || !(os.open(file.c_str()), os));
+              }
+
+              bool isReadOnlyOnDisk(const string& file) const {
+                 ofstream os;
+                 // If the file exists but we can't open it in write-mode, it means it is read-only on disk.
+                 return check_if_exists(file) && !(os.open(file.c_str()), os);
+              }
 
        }; // ends ARG
    } // ends filter_models namespace

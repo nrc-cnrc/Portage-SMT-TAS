@@ -72,8 +72,8 @@ namespace Portage
       /**
        * Less operator.
        * @param other  right-hand side operand.
-       * @return Returns true if this Range start before other or if they
-       * start at the same index and this end before other.
+       * @return Returns true if *this starts before other or if both
+       * start at the same index and *this ends before other.
        */
       bool operator<(const Range &other) const {
          return start < other.start ||
@@ -82,12 +82,16 @@ namespace Portage
       /**
        * Equality operator.
        * @param other right-hand side operand.
-       * @return Returns true if both Ranges starts and ends at the same
+       * @return Returns true iff both Ranges start and end at the same
        *         indexes.
        */
       bool operator==(const Range &other) const {
          return start == other.start && end == other.end;
-      } // operator==
+      }
+      /// Inequality operator.
+      bool operator!=(const Range &other) const {
+         return !operator==(other);
+      }
       /**
        * Converts the Range to a readable format.
        * @return Returns a readable format of this Range.
@@ -97,7 +101,18 @@ namespace Portage
          s << "[" << start << "," << end << ")";
          return s.str();
       }
+
+      /// Return the length of a range
+      Uint size() const { return end - start; }
    }; // Range
+
+   /**
+    * Output a range in a readable format
+    */
+   inline ostream& operator<<(ostream& os, const Range& r) {
+      os << '[' << r.start << ", " << r.end << ')';
+      return os;
+   }
 
    /**
     * A set of Uint's is represented uniquely by a minimal set of Range's
@@ -136,6 +151,16 @@ namespace Portage
    void intersectRange(UintSet &result, const UintSet &s, const Range &r);
 
    /**
+    * Test whether a Range and a UintSet are equivalent
+    * @param s  UintSet
+    * @param r  range
+    * @return true iff, conceptually, s == r
+    */
+   inline bool operator==(const UintSet &s, Range r) {
+      return s.size() == 1 && s[0] == r;
+   }
+
+   /**
     * Count the number of possible contiguous subranges in a UintSet
     * @param set       The set of Uints (as a set sequence of Ranges)
     * @return          Number of possible contiguous subranges
@@ -143,7 +168,12 @@ namespace Portage
    Uint countSubRanges(const UintSet &set);
 
    /**
-    * Display a UintSet as a bit vector
+    * count the number of words in set.
+    */
+   Uint countWords(const UintSet &set);
+
+   /**
+    * Display a UintSet as a bit vector, e.g., --111--11-
     * @param set        The set of Uints to display
     * @param in_is_1    If true, displays 1 for elements in the set, - for
     *                   others; if false, reverses 1 and -.
@@ -153,6 +183,16 @@ namespace Portage
     * @return string containing the display.
     */
    string displayUintSet(const UintSet &set, bool in_is_1=true, Uint length=1);
+
+   /**
+    * Display a UintSet as a sequence of ranges, e.g., "[2, 5) [7, 9)".
+    * @param os where to display the uintset
+    * @param s  what to convert to a readable format
+    * @return os
+    */
+   inline ostream& operator<<(ostream& os, const UintSet& set) {
+      os << join(set); return os;
+   }
 
    /**
     * Given an item associated with each subrange of some range [0, R), and
@@ -192,7 +232,6 @@ namespace Portage
        */
       template <class T>
       inline T& Elem(T ** triangArray, Uint i, Uint j) {
-         assert (i >= 0);
          assert (j > i);
          // also assert j <= sentSize, but this can't be checked
          return triangArray[i][j - i - 1];
@@ -258,30 +297,6 @@ namespace Portage
    } // TriangArray
 
    /**
-    * Output a range in a readable format (useful in debugging).
-    */
-   #define RANGEOUT(range) '[' << (range).start << ", " << (range).end << ')'
-
-   /**
-    * Converts a UintSet to a readable string.
-    * @param s  what to convert to a readable format
-    * @return Returns a readable representation of s
-    */
-   inline string UINTSETOUT(const UintSet &s)
-   {
-      if (s.empty()) return "";
-      ostringstream sout;
-      UintSet::const_iterator it = s.begin();
-      while (true) {
-         sout << RANGEOUT(*it);
-         ++it;
-         if (it == s.end()) break;
-         sout << " ";
-      } // while
-      return sout.str();
-   } // UINTSETOUT
-
-   /**
     * Calculates the partial/total dot product between two vectors.
     * Note: If types T and U are not the same, T should be the type with higher
     * precision, since it is also the return type.
@@ -294,9 +309,9 @@ namespace Portage
    {
       assert(size <= a.size());
       assert(size <= b.size());
-      T result = (T)0;
+      T result = T(0);
       for (Uint i = 0; i < size; i++) {
-         if (a[i] != (T)0 && b[i] != (T)0) result += a[i] * b[i];
+         if (a[i] != T(0) && b[i] != T(0)) result += a[i] * b[i];
       } // for
       return result;
    } // dotProduct

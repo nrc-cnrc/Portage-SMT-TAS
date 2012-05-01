@@ -57,7 +57,7 @@ class CanoeConfig;
  *         will result in the destruction of the whole lattice.
  */
 HypothesisStack* runCubePruningDecoder(BasicModel &model, const CanoeConfig& c,
-      bool usingLev);
+                                       bool usingLev, bool usingSR);
 
 
 

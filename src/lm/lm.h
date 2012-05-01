@@ -25,6 +25,13 @@
 #include <vector>
 #include <boost/shared_ptr.hpp>
 
+#ifdef CYGWIN
+#include <cmath>
+// Cygwin 1.5.x has no exp10().
+inline double exp10(double x) {return pow(10.0, (x));}
+inline double exp10(float x) {return pow(10.0f, (x));}
+#endif
+
 using namespace std;
 
 namespace Portage
@@ -55,7 +62,7 @@ public:
       /// @param out  where to display [cerr]
       void display(ostream& out = cerr) const;
       /// Clears the hits values
-      void clear() { values.clear(); }
+      void clear() { values.assign(values.size(), 0); }
       /// Cumulates hits for a particular N.
       /// @param N  length of observed sequence.
       void hit(Uint N) {
@@ -65,7 +72,7 @@ public:
          }
       }
       /// Get the value passed to hit() the most recent time it was called.
-      Uint getLatestHit() {
+      Uint getLatestHit() const {
          return latest_hit;
       }
    };
@@ -405,6 +412,11 @@ public:
     * @return Returns how many times each N was hit.
     */
    virtual Hits getHits() { return hits; }
+
+   /**
+    * Clear the hits statistics.
+    */
+   virtual void clearHits() { hits.clear(); }
 
 }; // PLM
 

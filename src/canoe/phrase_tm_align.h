@@ -52,6 +52,9 @@ namespace Portage
          /// Specifies if the decoder is using levenshtein info
          bool usingLev;
 
+         /// Specifies if the decoder is using the shift-reduce parser
+         bool usingSR;
+
       public:
          /**
           * Creates a new PhraseTMAligner.

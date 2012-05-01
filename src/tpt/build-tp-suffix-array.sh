@@ -122,6 +122,8 @@ fi
 
 if [[ $CORPUS =~ \\.gz$ ]]; then
    CAT="zcat -c"
+elif [[ $CORPUS =~ \\.bz2$ ]]; then
+   CAT="bzcat -c"
 else
    CAT="cat"
 fi

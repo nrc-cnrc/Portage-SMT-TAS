@@ -30,7 +30,9 @@ OBJECTS = \
         portage_defs.o \
         process_bind.o \
         quick_set.o \
+        stats.o \
         str_utils.o \
+        timer.o \
         trie.o \
         utf8_utils.o \
         voc.o \

@@ -6,10 +6,10 @@ filter_models, NRC-CNRC, (c) 2006 - 2009, Her Majesty in Right of Canada
   Running in SOFT mode using limit(30)
 Using 1365 source sentences
 LM filtering with per sentence vocab(1365)
+Using fixPruning with 30
 loading phrase table from pt: 
 1261 lines read, 1225 entries kept.
 Done in 0s
-Using fixPruning with 30
 There are 54 entries left after applying SOFT filtering
 Histogram before filtering
   Count:1 mean:1225 sdev: 0

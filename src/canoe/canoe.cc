@@ -31,7 +31,10 @@
 #include "errors.h"
 #include "arg_reader.h"
 #include "process_bind.h"
+#include "timer.h"
+#include "stats.h"
 #include <boost/optional/optional.hpp>
+#include <cstring>
 #include <unistd.h>  // sleep
 #include <stdlib.h> // rand
 
@@ -171,6 +174,14 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
    if (c.bLoadBalancing) cout << num << '\t';
    cout << s << endl;
 
+   if ( c.verbosity >=1 && ShiftReducer::usingSR(c))
+   {
+      // CAC: Track final ITG stats
+      assert (cur->trans->shiftReduce!=NULL);
+      if(!cur->trans->shiftReduce->isOneElement())
+         ShiftReducer::incompleteStackCnt++;
+   }
+   
    if ( c.verbosity >= 2 )
    {
       // With verbosity >= 2, output the score assigned to the best translation
@@ -510,6 +521,7 @@ int MAIN(argc, argv)
    tgt_sents.clear();  // just in case there is no ref
    // test parameters for levenshtein or n-gram
    const bool usingLev = !c.levWeight.empty() || !c.ngramMatchWeights.empty();
+   const bool usingSR = ShiftReducer::usingSR(c);
    if ( usingLev ){
       if (c.refFile.empty())
          error(ETFatal, "You have to provide a reference file!\nLevenshtein and n-gram decoder features cannot be calculated without!");
@@ -544,15 +556,19 @@ int MAIN(argc, argv)
       readFileLines(c.sentWeights, sent_weights);
 
    if (!c.loadFirst) {
-      cerr << "Translating " << sents.size() << " sentences." << flush;
+      cerr << "Translating " << sents.size() << " sentences." << endl;
    } else {
       cerr << "Reading and translating sentences." << endl;
    }
    time(&start);
    Uint i = 0;
    Uint lastCanoe = 1000;
+   Timer centisecondTimer;
+   AvgVarTotalStat createStats("createModel"), decodeStats("runDecoder"), outputStats("doOutput");
    while (true)
    {
+      centisecondTimer.reset();
+
       newSrcSentInfo nss_info;
       nss_info.internal_src_sent_seq = i;
 
@@ -585,6 +601,9 @@ int MAIN(argc, argv)
       }
       if (!c.bLoadBalancing) sourceSentenceId += c.firstSentNum;
 
+      if (c.verbosity > 1)
+         cerr << "INPUT: " << join(nss_info.src_sent) << endl;
+
       if (c.randomWeights)
          gen->setRandomWeights((c.randomSeed + 1) * sourceSentenceId);
 
@@ -599,6 +618,9 @@ int MAIN(argc, argv)
       nss_info.external_src_sent_id = sourceSentenceId;
       BasicModel *model = gen->createModel(nss_info, false);
 
+      const double createTime = centisecondTimer.secsElapsed(1);
+      createStats.add(createTime);
+
       if (c.oov != "pass") {  // skip translation; just write back source, with oov handling
          writeSrc(c.oov == "write-src-deleted", nss_info.src_sent, oovs);
          delete model;
@@ -606,7 +628,10 @@ int MAIN(argc, argv)
          continue;
       }
 
-      HypothesisStack *h = runDecoder(*model, c, usingLev);
+      HypothesisStack *h = runDecoder(*model, c, usingLev, usingSR);
+
+      const double decodeTime = centisecondTimer.secsElapsed(1) - createTime;
+      decodeStats.add(decodeTime);
 
       switch (i - lastCanoe)
       {
@@ -626,27 +651,52 @@ int MAIN(argc, argv)
             break;
       } // switch
 
-
-      if (!h->isEmpty()) {
-         doOutput(*h, *model, sourceSentenceId, &oovs, c, one_file_info);
-      } else {
-         // No translation for the current sentence:
-         // Insert an empty line
-         cout << endl;
+      if ( h->isEmpty() ) {
          error(ETWarn, "No translation found for sentence %d with the current settings.",
                sourceSentenceId);
+         // Push an empty state onto a fresh stack, so n-best and lattice and ffvals
+         // output all actually happen correctly, even with no translation.
+         delete h;
+         h = new HistogramThresholdHypStack(*model, 1, -1, 1, -1, true);
+         h->push(makeEmptyState(nss_info.src_sent.size(), usingLev, usingSR));
       }
+
+      assert(!h->isEmpty());
+
+      doOutput(*h, *model, sourceSentenceId, &oovs, c, one_file_info);
 
       delete h;
       delete model;
       ++i;
+
+      const double outputTime = centisecondTimer.secsElapsed(1) - createTime - decodeTime;
+      outputStats.add(outputTime);
+
+      if (c.verbosity > 1 || c.timing)
+         cerr << "Timing: create models + decode + output = total: "
+              << createTime << " + " << decodeTime << " + " << outputTime << " = "
+              << createTime + decodeTime + outputTime << " seconds." << endl;
    } // while
    if ( c.loadFirst ) reader.reportWarningCounts();
    cerr << "Translated " << i << " sentences in "
         << difftime(time(NULL), start) << " seconds." << endl;
+   if (c.verbosity >= 1 || c.timing) {
+      cerr << "TimingStats over per-sentence model creation, decoding, and output times, in seconds:" << endl;
+      createStats.write(cerr);
+      decodeStats.write(cerr);
+      outputStats.write(cerr);
+   }
 
    //CompactPhrase::print_ref_count_stats();
    if (c.verbosity >= 1) gen->displayLMHits(cerr);
+
+   // CAC: To measure effectiveness of ITG constraints and/or features
+   if (c.verbosity >= 1 && ShiftReducer::usingSR(c)) {
+      fprintf(stderr, "Used %.3g non-ITG reductions, left %d incomplete stacks\n",
+              double(ShiftReducer::getNonITGCount()),
+              ShiftReducer::incompleteStackCnt
+              );
+   }
 
    delete gen;
 

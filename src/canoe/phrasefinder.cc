@@ -27,11 +27,13 @@ using namespace Portage;
 RangePhraseFinder::RangePhraseFinder(vector<PhraseInfo *> **phrases,
    Uint sentLength,
    int	distLimit,
+   bool distLimitSimple,
    bool distLimitExt,
    bool distPhraseSwap)
 : phrases(phrases)
 , sentLength(sentLength)
 , distLimit(distLimit)
+, distLimitSimple(distLimitSimple)
 , distLimitExt(distLimitExt)
 , distPhraseSwap(distPhraseSwap)
 {
@@ -41,13 +43,13 @@ RangePhraseFinder::RangePhraseFinder(vector<PhraseInfo *> **phrases,
 void RangePhraseFinder::findPhrases(vector<PhraseInfo *> &p, PartialTranslation &t)
 {
    UintSet eSet;
-   if (distLimit != NO_MAX_DISTORTION && !distPhraseSwap)
+   if (distLimit != NO_MAX_DISTORTION && !distPhraseSwap && !distLimitSimple)
    {
       Range limit(max(0, int(t.lastPhrase->src_words.end) - distLimit),
                   sentLength);
       intersectRange(eSet, t.sourceWordsNotCovered, limit);
    } // if
-   UintSet &set((distLimit != NO_MAX_DISTORTION && !distPhraseSwap)
+   UintSet &set((distLimit != NO_MAX_DISTORTION && !distPhraseSwap && !distLimitSimple)
                  ? eSet : t.sourceWordsNotCovered);
    if ( set.empty() ) return;
 
@@ -72,7 +74,7 @@ void RangePhraseFinder::findPhrases(vector<PhraseInfo *> &p, PartialTranslation 
            (
               DistortionModel::respectsDistLimit(t.sourceWordsNotCovered,
                  t.lastPhrase->src_words, it->front()->src_words, distLimit,
-                 sentLength, distLimitExt)
+                 sentLength, distLimitSimple, distLimitExt)
             ||
               (distPhraseSwap && DistortionModel::isPhraseSwap(
                  t.sourceWordsNotCovered, t.lastPhrase->src_words,

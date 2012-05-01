@@ -177,6 +177,7 @@ int main(int argc, const char* const argv[])
    }
 }
 
+
 // Apply powell using either BLEU/PER/WER.
 template<class ScoreStats>
 void train(const ARG& arg)
@@ -240,7 +241,7 @@ void train(const ARG& arg)
    }
 
 
-   // Read and process the N-bests file of candidate target sentences
+   // Read and process the N-bests file of candidate target sentences.
    LOG_VERBOSE2(verboseLogger, "Processing nbests lists (computing feature values and %s scores)", ScoreStats::name());
    NbestReader  pfr(FileReader::create<Translation>(arg.nbest_file, arg.K));
    Uint s(0);
@@ -276,7 +277,7 @@ void train(const ARG& arg)
       computeScore(scores[s], nbest, refs, arg);
 
       progress.step();
-   } // for
+   }
 
    if (s != S) error(ETFatal, "File inconsistency s=%d, S=%d", s, S);
    rReader.integrityCheck();
@@ -355,7 +356,7 @@ double runPowell(const vector<uMatrix>& vH,
 {
    fill(best_wts.begin(), best_wts.end(), 1.0f);
    double best_score(-INFINITY);
-   double extend_thresh(0.0);   // score threshold for extending total_runs
+   double extend_thresh(-INFINITY);   // score threshold for extending total_runs
    Uint num_runs(0);
    Uint total_runs = arg.num_powell_runs == 0 ?
       (rescore_train::NUM_INIT_RUNS+2) :  // +2 for backward compatibility (!)
@@ -366,7 +367,7 @@ double runPowell(const vector<uMatrix>& vH,
    if (arg.powell_log_file != "")
       logfile = new oSafeMagicStream(arg.powell_log_file);
 
-   Uint M = best_wts.size();
+   const Uint M = best_wts.size();
 
    Powell<ScoreStats> powell(vH, scores);
    powell.logstream = logfile;
@@ -387,7 +388,7 @@ double runPowell(const vector<uMatrix>& vH,
 
       int iter = 0;
       double score = 0.0;
-      time_t powell_start = time(NULL);             // time
+      const time_t powell_start = time(NULL);             // time
       powell(wts, POWELL_TOLERANCE, iter, score);
       ++num_runs;
 
@@ -396,22 +397,25 @@ double runPowell(const vector<uMatrix>& vH,
          fprintf(stderr, "Score: %f in %d seconds\n", ScoreStats::convertToDisplay(score), (Uint)(time(NULL)- powell_start));
       }
 
+      double pnorm_score = ScoreStats::convertToPnorm(score);
+      assert(pnorm_score >= 0 && pnorm_score <= 1);
       history.push_back(history_datum<ScoreStats>(score, wts));
-      score_history.push_back(ScoreStats::convertToDisplay(score));
+      score_history.push_back(pnorm_score);
 
       if (score > best_score) {
          best_wts = wts;
          best_score = score;
       }
-      if (!arg.approx_expect && arg.num_powell_runs == 0 && ScoreStats::convertToDisplay(score) > extend_thresh) {
+      if (!arg.approx_expect && arg.num_powell_runs == 0 && ScoreStats::convertToPnorm(score) > extend_thresh) {
          // 'normal' stopping criterion
          total_runs = max(num_runs+rescore_train::NUM_INIT_RUNS+2, 2 * num_runs); // bizarre for bkw compat
-         extend_thresh = ScoreStats::convertToDisplay(score) + SCORETOL;
-      } else if (arg.approx_expect && num_runs > rescore_train::NUM_INIT_RUNS+2) {
+         extend_thresh = ScoreStats::convertToPnorm(score) + SCORETOL;
+      }
+      else if (arg.approx_expect && num_runs > rescore_train::NUM_INIT_RUNS+2) {
          // approx-expect stopping
          const double m = mean(score_history.begin(), score_history.end());
          const double s = sdev(score_history.begin(), score_history.end(), m);
-         const Uint expected_iters = Uint(1.0 / (1.0 - normalCDF(ScoreStats::convertToDisplay(best_score), m, s)));
+         const Uint expected_iters = Uint(1.0 / (1.0 - normalCDF(ScoreStats::convertToPnorm(best_score), m, s)));
          if (num_runs + expected_iters > total_runs)
             break;
       }

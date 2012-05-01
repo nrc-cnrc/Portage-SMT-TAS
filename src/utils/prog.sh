@@ -9,8 +9,8 @@
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2011, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2011, Her Majesty in Right of Canada
+# Copyright 2012, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2012, Her Majesty in Right of Canada
 
 # Includes NRC's bash library.
 BIN=`dirname $0`
@@ -21,7 +21,7 @@ fi
 source $BIN/sh_utils.sh || { echo "Error: Unable to source sh_utils.sh" >&2; exit 1; }
 
 # Change the program name and year here
-print_nrc_copyright prog.sh 2011
+print_nrc_copyright prog.sh 2012
 
 usage() {
    for msg in "$@"; do

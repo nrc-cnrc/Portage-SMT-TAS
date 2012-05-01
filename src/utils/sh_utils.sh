@@ -12,6 +12,17 @@
 # Copyright 2008, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2008, Her Majesty in Right of Canada
 
+# How to include the library:
+## Include NRC's bash library.
+#BIN=`dirname $0`
+#if [[ ! -r $BIN/sh_utils.sh ]]; then
+#   # assume executing from src/* directory
+#   BIN="$BIN/../utils"
+#fi
+#source $BIN/sh_utils.sh || { echo "Error: Unable to source sh_utils.sh" >&2; exit 1; }
+
+
+
 # Portage is developed with bash 3, and uses the bash 3.1 RE syntax, which
 # changed from version 3.2.  Set "compat31" if we're using bash 3.2, 4 or more
 # recent, to preserve the expected syntax.  We used to test the version of bash
@@ -98,7 +109,7 @@ run_cmd() {
 
 # Print the standard NRC Copyright notice
 # Usage: print_nrc_copyright program_name year
-CURRENT_COPYRIGHT_YEAR=2011
+CURRENT_COPYRIGHT_YEAR=2012
 print_nrc_copyright() {
    prog_name=$1
    year=$2

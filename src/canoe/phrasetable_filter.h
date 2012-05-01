@@ -51,22 +51,20 @@ class PhraseTableFilter : public PhraseTable {
 
 
       /**
-       * Once all phrase tables have been loaded, apply the filter_joint
-       * algorithm and dump multiprobs to filename.
-       * @param filename  file name of the resulting multi probs
-       * @param L  ttable-limit
-       */
-      virtual void filter_joint(const string& filename, const pruningStyle* const pruning_type)
-      {}
-
-      /**
        * Takes care of multi probs.
-       * @param multi_prob_TM_filename  multi probs input file name
-       * @param filtered_output  multi probs output file name.
+       * @param TM_filename  multi probs input file name
+       * @param filtered_TM_filename  multi probs output file name.
        */
-      virtual Uint processMultiProb(const string& multi_prob_TM_filename, const string& filtered_output)
-      { return Parent::readMultiProb(multi_prob_TM_filename.c_str(), limitPhrases); }
+      virtual Uint filter(const string& TM_filename, const string& filtered_TM_filename)
+      { return Parent::readMultiProb(TM_filename.c_str(), limitPhrases); }
 
+      Uint readMultiProb(const string& filename) 
+      { return Parent::readMultiProb(filename.c_str(), limitPhrases); }
+
+      virtual void addSourceSentences(const vector<vector<string> >& sentences) {
+         if (limitPhrases)
+            Parent::addSourceSentences(sentences);
+      }
 }; // ends class PhraseTableFilter
 }; // ends namespace Portage
 

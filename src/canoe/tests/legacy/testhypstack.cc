@@ -38,7 +38,7 @@ namespace TestHypothesisStack {
  */
 class TestPDM: public PhraseDecoderModel
 {
-   virtual void getStringPhrase(string &s, const Phrase &uPhrase) {}
+   virtual string getStringPhrase(const Phrase &uPhrase) { return ""; }
    virtual Uint getUintWord(const string &word) { return 0; }
    virtual Uint getSourceLength() { return 0; }
    virtual vector<PhraseInfo *> **getPhraseInfo() { return NULL; }
@@ -134,11 +134,7 @@ words covered.  In brackets is the score given to the state.
    for (int i = 0; i < NUMSTATES; i++)
    {
       // Create the empty state (to refer back to)
-      DecoderState *empty = new DecoderState;
-      empty->trans = new PartialTranslation;
-      empty->trans->back = NULL;
-      empty->back = NULL;
-      empty->refCount = 0;
+      DecoderState *empty = makeEmptyState(i, false, false);
 
       stack = new HistogramThresholdHypStack(pdm, NO_SIZE_LIMIT,
                                              -3.5, 0, log(0.0), false);
@@ -147,7 +143,7 @@ words covered.  In brackets is the score given to the state.
       for (int j = 0; j <= i; j++)
       {
          DecoderState *cur = new DecoderState;
-         cur->trans = new PartialTranslation;
+         cur->trans = new PartialTranslation(0u);
          cur->trans->numSourceWordsCovered = numWordsCovered[j];
          cur->futureScore = cur->score = scores[j];
          cur->refCount = 0;

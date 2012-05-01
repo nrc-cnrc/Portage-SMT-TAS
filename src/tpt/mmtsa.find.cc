@@ -7,6 +7,7 @@
 #include "ug_get_options.h"
 #include "ug_corpus_token.h"
 #include "ug_mm_ttrack.h"
+
 using namespace std;
 using namespace ugdiss;
 
@@ -91,12 +92,17 @@ int main(int argc, char* argv[])
     I.next = start = T.arrayStart();
     stop = T.arrayEnd();
   } else {
-    istringstream buf(searchMe);
-    string w;
     titer m(&T);
-    while (buf>>w)
-      if (!m.extend(V[w]))
-        exit(1); // not found
+    size_t q(0), p(0);
+    while (true)
+      {
+        p = searchMe.find_first_not_of(" \t", q);
+        if (p == string::npos) break;
+        q = searchMe.find_first_of(" \t", p);
+        if (!m.extend(V[searchMe.substr(p,q-p)]))
+          exit(1); // not found
+        if (q == string::npos) break;
+      }
 
     I.next = start = m.lower_bound(-1);
     stop = m.upper_bound(-1);

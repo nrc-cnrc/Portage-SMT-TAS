@@ -30,16 +30,12 @@
 
 namespace Portage {
 
-class CaseMapStrings {
+class CaseMapStrings : private NonCopyable {
 
    locale* loc;
    UTF8Utils* utf8;
 
    void init();
-
-private:
-   CaseMapStrings(const CaseMapStrings&); ///< non-copyable
-   CaseMapStrings& operator=(const CaseMapStrings&); ///< non-copyable
 
 public:
 
@@ -68,7 +64,7 @@ public:
     * @param out uppercase version of \<in\> (may be in)
     * @return out
     */
-   const string& toUpper(const string& in, string& out) const;
+   string& toUpper(const string& in, string& out) const;
 
    string toUpper(const string& in) const {
       string out;
@@ -81,7 +77,7 @@ public:
     * @param out lowercase version of \<out\> (may be \<in\>)
     * @return out
     */
-   const string& toLower(const string& in, string& out) const;
+   string& toLower(const string& in, string& out) const;
 
    string toLower(const string& in) const {
       string out;
@@ -94,7 +90,7 @@ public:
     * @param out capitalized version of \<out\> (may be \<in\>)
     * @return out
     */
-   const string& capitalize(const string& in, string& out) const;
+   string& capitalize(const string& in, string& out) const;
 
    string capitalize(const string& in) const {
       string out;
@@ -107,7 +103,7 @@ public:
     * @param out decapitalized version of \<out\> (may be \<in\>)
     * @return out
     */
-   const string& decapitalize(const string& in, string& out) const;
+   string& decapitalize(const string& in, string& out) const;
 
    string decapitalize(const string& in) const {
       string out;

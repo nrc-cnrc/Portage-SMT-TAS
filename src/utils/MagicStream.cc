@@ -22,9 +22,7 @@
 #include <errors.h>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
-//#include <boost/iostreams/device/file.hpp>
-#include <boost/iostreams/device/file_descriptor.hpp>
-
+#include <boost/iostreams/device/file.hpp>
 
 
 using namespace Portage;
@@ -308,9 +306,9 @@ iMagicStream::~iMagicStream()
 
 void iMagicStream::open(const string& s)
 {
-   assert(!s.empty());
+   //assert(!s.empty());
    if (s.empty())
-      error(ETFatal, "You have provided an empty filename in iMagicStream");
+      error(ETFatal, "Cannot open '' (empty file name) for input: no such file or directory");
 
    log("iMagicStream::open with: " + s);
    if (s == "-") {
@@ -348,14 +346,14 @@ void iMagicStream::open(const string& s)
       if (tmp->open(s.c_str(), bufferMode())) {
          tmp->close(); // File exists we must close it to now use it with gzip
          delete tmp; tmp = NULL;
-         if (!makePipe("gzip -cqdf " + s)) {
-            log("Fallback for iMagicstream.gz");
+         if (1 /* !makePipe("gzip -cqdf " + s)*/) {
+            //log("Fallback for iMagicstream.gz");
 
-            using namespace boost::iostreams::zlib;
+            using namespace boost::iostreams::gzip;
             filtering_streambuf<input>* in = new filtering_streambuf<input>();
             assert(in != NULL);
             in->push(gzip_decompressor());
-            in->push(file_descriptor_source(s.c_str()));
+            in->push(file_source(s.c_str()));
 
             stream = stream_type(in);
          }
@@ -377,7 +375,17 @@ void iMagicStream::open(const string& s)
             //      s.c_str(), s.c_str());
             tmp->close(); // File exists we must close it to now use it with gzip
             delete tmp; tmp = NULL;
-            makePipe("gzip -cqdf " + filename);
+            if (0) {
+               makePipe("gzip -cqdf " + filename);
+            } else {
+               using namespace boost::iostreams::gzip;
+               filtering_streambuf<input>* in = new filtering_streambuf<input>();
+               assert(in != NULL);
+               in->push(gzip_decompressor());
+               in->push(file_source(filename.c_str()));
+
+               stream = stream_type(in);
+            }
          }
       }
    }
@@ -385,6 +393,13 @@ void iMagicStream::open(const string& s)
    init(stream.get());
 }
 
+void iMagicStream::safe_open(const string& s)
+{
+   open(s);
+   if (this->fail())
+      error(ETFatal, "Unable to open %s for reading%s%s", s.c_str(),
+            (errno != 0 ? ": " : ""), (errno != 0 ? strerror(errno) : ""));
+}
 
 //////////////////////////////////////////////////////////////////////////////
 // oMagicStream
@@ -420,7 +435,7 @@ oMagicStream::~oMagicStream()
 void oMagicStream::open(const string& s)
 {
    if (s.empty())
-      error(ETFatal, "You have provided an empty filename in oMagicStream");
+      error(ETFatal, "Cannot open '' (empty file name) for output: no such file or directory");
 
    log("oMagicStream::open with: " + s);
    if (s == "-") {
@@ -445,16 +460,16 @@ void oMagicStream::open(const string& s)
       makePipe(command);
    }
    else if (isZip(s)) {
-      string command("gzip -cqf > ");
-      command += s;
-      if (!makePipe(command)) {
+      //string command("gzip -cqf > ");
+      //command += s;
+      if (1 /* !makePipe(command) */) {
          log("Fallback for oMagicstream.gz");
 
-         using namespace boost::iostreams::zlib;
+         using namespace boost::iostreams::gzip;
          filtering_streambuf<output>* out = new filtering_streambuf<output>();
          assert(out != NULL);
          out->push(gzip_compressor());
-         out->push(file_descriptor_sink(s.c_str()));
+         out->push(file_sink(s.c_str()));
 
          stream = stream_type(out);
       }
@@ -466,4 +481,12 @@ void oMagicStream::open(const string& s)
    }
       
    init(stream.get());
+}
+
+void oMagicStream::safe_open(const string& s)
+{
+   open(s);
+   if (this->fail())
+      error(ETFatal, "Unable to open %s for writing%s%s", s.c_str(),
+            (errno != 0 ? ": " : ""), (errno != 0 ? strerror(errno) : ""));
 }

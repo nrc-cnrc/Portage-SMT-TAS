@@ -118,7 +118,7 @@ case $metric in
 	              $x=1.0/(1e-10+$_);
                       print "$x\n"' ;;
    em-sri)
-        eval train_lm_mixture $args $models $textfile ;;
+        eval train-lm-mixture $args $models $textfile ;;
    em)
         eval train_lm_mixture $args $models $textfile ;;
    tfidf)

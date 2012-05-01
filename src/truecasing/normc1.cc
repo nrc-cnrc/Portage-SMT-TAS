@@ -259,4 +259,7 @@ void getArgs(int argc, char* argv[])
    arg_reader.testAndSet(0, "lmfile", lmfile);
    arg_reader.testAndSet(1, "infile", infile);
    arg_reader.testAndSet(2, "outfile", outfile);
+
+   if (infile == "-" or infile == "/dev/stdin")
+      error(ETFatal, "The input file cannot be - or /dev/stdin since we need to read the input file sevaral times.");
 }

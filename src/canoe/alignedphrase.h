@@ -20,7 +20,6 @@
 #include <phrasedecoder_model.h>
 #include <canoe_general.h>
 #include <utility>
-#include <boost/noncopyable.hpp>
 
 
 namespace Portage {
@@ -35,18 +34,18 @@ struct AlignedPhrase {
 
    /// sequence of alignment pairs (Range refers to source, Phrase
    /// refers to target
-   vector<pair<Range*, Phrase*> > myLine;
+   vector<pair<const Range*, const Phrase*> > myLine;
 
    /**
     * Constructor: Initialise with nothing (not used).
     */
-   AlignedPhrase();
+   AlignedPhrase() : myScore(0) {}
    /**
     * non-default Constructor.
     * @param pi
     * @param score
     */
-   AlignedPhrase(PhraseInfo *pi, const double score);
+   AlignedPhrase(const PhraseInfo *pi, const double score);
 
    /**
     * line function: returns the string that this function refers to.
@@ -67,12 +66,12 @@ struct AlignedPhrase {
     * @param pi: phrase associated with the next translation in the model
     * @param score: score associated with pi (scores are additive)
     */
-   void add(PhraseInfo *pi, const double score);
+   void add(const PhraseInfo *pi, const double score);
 
 };//end struct AlignedPhrase
 
 /// Ordered linked list of alignments.
-struct alignList : private boost::noncopyable {
+struct alignList : private NonCopyable {
   /// current alignment sentence
   AlignedPhrase val;
   /// scores of this translation according to the different submodels/features

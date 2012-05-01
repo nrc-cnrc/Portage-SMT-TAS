@@ -67,41 +67,40 @@ public:
     * return \<in\> unmodified, and set error status (see status()). The
     * conversion is language independent.
     * @param in  input UTF8 string
-    * @param out output UTF8 string (may be \<in\>)
+    * @param out output UTF8 string (is allowed to be \<in\>)
     * @return out
     */
-   const string& toUpper(const string& in, string& out);
+   string& toUpper(const string& in, string& out);
 
    /**
     * Convert a UTF8 string to lowercase. If the string isn't valid UTF8,
     * return \<in\> unmodified, and set error status (see status()). The
     * conversion is language independent.
     * @param in  input UTF8 string
-    * @param out output UTF8 string (may be \<in\>)
+    * @param out output UTF8 string (is allowed to be \<in\>)
     * @return out
     */
-   const string& toLower(const string& in, string& out);
+   string& toLower(const string& in, string& out);
 
    /**
     * Convert the first character of a UTF8 string to uppercase. If the string
     * isn't valid UTF8, return \<in\> unmodified, and set error status (see
     * status()). The conversion is language independent.
     * @param in  input UTF8 string
-    * @param out output UTF8 string (may be \<in\>)
+    * @param out output UTF8 string (is allowed to be \<in\>)
     * @return out
     */
-   const string& capitalize(const string& in, string& out);
-
+   string& capitalize(const string& in, string& out);
 
    /**
     * Convert the first character of a UTF8 string to lowercase. If the string
     * isn't valid UTF8, return \<in\> unmodified, and set error status (see
     * status()). The conversion is language independent.
     * @param in  input UTF8 string
-    * @param out output UTF8 string (may be \<in\>)
+    * @param out output UTF8 string (is allowed to be \<in\>)
     * @return out
     */
-   const string& decapitalize(const string& in, string& out);
+   string& decapitalize(const string& in, string& out);
 
 };
 

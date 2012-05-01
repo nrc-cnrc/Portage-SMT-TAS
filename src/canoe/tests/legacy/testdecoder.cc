@@ -38,7 +38,7 @@ namespace TestDecoder {
  */
 class TestPDM: public PhraseDecoderModel
 {
-   virtual void getStringPhrase(string &s, const Phrase &uPhrase) {}
+   virtual string getStringPhrase(const Phrase &uPhrase) { return ""; }
    virtual Uint getUintWord(const string &word) { return 0; }
    virtual Uint getSourceLength() { return 0; }
    virtual vector<PhraseInfo *> **getPhraseInfo() { return NULL; }
@@ -375,7 +375,7 @@ Expected phrases (final state, path, phrase, score = sum of words in phrase):
    TestPDM model;
 
    // Run the decoder algorithm
-   runDecoder(model, hStacks, SRC_LENGTH, finder, false, 1);
+   runDecoder(model, hStacks, SRC_LENGTH, finder, false, false, 1);
 
    // Delete all stacks but the last one
    for (int i = 0; i < SRC_LENGTH; i++)

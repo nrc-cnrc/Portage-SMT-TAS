@@ -317,23 +317,36 @@ class VectorPhrase : public vector<Uint> {
 /**
  * Convert a phrase from a Uint sequence (VectorPhrase or CompactPhrase) to a
  * space separated string.
+ * @param begin    beginning of Uint sequence
+ * @param end      end of Uint sequence
+ * @param voc      vocabulary to convert Uint to strings
+ * @pre all elements of uPhrase must be < voc.size()
+ * @return the phrase in a single string, with a space separating each token
+ */
+template <class PhraseIter>
+string phrase2string(PhraseIter begin, PhraseIter end, const Voc& voc, const char* sep = " ") {
+   string result;
+   const Uint voc_size = voc.size();
+   bool first(true);
+   for ( PhraseIter it = begin; it != end; ++it ) {
+      if ( first ) first = false; else result += sep;
+      assert(*it < voc_size);
+      result += voc.word(*it);
+   }
+   return result;
+}
+
+/**
+ * Convert a phrase from a Uint sequence (VectorPhrase or CompactPhrase) to a
+ * space separated string.
  * @param uPhrase  Uint sequence phrase
  * @param voc      vocabulary to convert Uint to strings
  * @pre all elements of uPhrase must be < voc.size()
  * @return the phrase in a single string, with a space separating each token
  */
 template <class PhraseT>
-string phrase2string(const PhraseT& uPhrase, const Voc& voc) {
-   ostringstream s;
-   const Uint voc_size = voc.size();
-   bool first(true);
-   for ( typename PhraseT::const_iterator it(uPhrase.begin());
-         it != uPhrase.end(); ++it ) {
-      if ( first ) first = false; else s << " ";
-      assert(*it < voc_size);
-      s << voc.word(*it);
-   }
-   return s.str();
+string phrase2string(const PhraseT& uPhrase, const Voc& voc, const char* sep = " ") {
+   return phrase2string(uPhrase.begin(), uPhrase.end(), voc, sep);
 }
 
 } // Portage

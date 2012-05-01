@@ -560,6 +560,36 @@ public:
 };
 
 /**
+ * Align word for word sentence 1 to sentence 2.
+ */
+class IdentityAligner : public WordAligner
+{
+public:
+
+   /**
+    * Construct with ref to factory and arg string.
+    * @param factory
+    * @param args see tinfos[] in word_align.cc for interpretation
+    */
+   IdentityAligner(WordAlignerFactory& factory, const string& args) {}
+
+   /**
+    * Do an identity alignment : sets the diagonal.  If either sentence is
+    * longer than the other, extra words are NULL aligned, so they can't
+    * participate in any phrases, when the alignment is used for phrase
+    * extraction.
+    * @param toks1  sentence in language 1
+    * @param toks2  sentence in language 2
+    * @param[out] sets1  for each token position in toks1, will contain a set
+    *   corresponding to itself in toks2
+    * @return 1.0
+    */
+   virtual double align(const vector<string>& toks1,
+                        const vector<string>& toks2,
+                        vector< vector<Uint> >& sets1);
+};
+
+/**
  * Aligner using posterior "decoding" with a delta threshold.
  * Based on Liang, Taskar and Klein (HLT 2006), this method uses the product of
  * posterior probabilities in each direction for each link, instead of using
@@ -675,15 +705,10 @@ public:
  * @param args name of a file containing alignments in Moses/SRI format (srcpos-tgtpos),
  * one per line.
  */
-class ExternalAligner : public WordAligner
+class ExternalAligner : public WordAligner, private NonCopyable
 {
    istream* external_alignments;
    SRIReader reader;
-
-   /// non-copyable
-   ExternalAligner(const ExternalAligner&);
-   /// non-copyable
-   ExternalAligner& operator=(const ExternalAligner&);
 
 public:
 
@@ -713,6 +738,8 @@ public:
  * range for joiner words will never affect the range of a surrounding phrase;
  * and the out-of-bounds range for splitter words always prevents any
  * surrounding phrase from being paired.
+ * Note: "Joiner" words are the unaligned ones, while "splitter" words are the
+ * NULL-aligned ones.
  */
 template <class T>
 void WordAlignerFactory::addPhrases(const vector<string>& toks1, const vector<string>& toks2,

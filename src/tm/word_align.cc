@@ -116,6 +116,11 @@ WordAlignerFactory::TInfo WordAlignerFactory::tinfos[] = {
      Align with no correspondences, so all possible phrases get added.",
    },
    {
+      DCon<IdentityAligner>::create,
+      "IdentityAligner", "\n\
+     Align word for word sentence 1 to sentence 2.",
+   },
+   {
       DCon<PosteriorAligner>::create,
       "PosteriorAligner", "[delta [exclude-threshold]]\n\
      Align using posterior decoding, i.e., multiplying posteriors from the\n\
@@ -761,6 +766,44 @@ double CartesianAligner::align(const vector<string>& toks1, const vector<string>
 {
    sets1.clear();
    sets1.resize(toks1.size());
+   return 1.0;
+}
+
+
+/*----------------------------------------------------------------------------
+  IdentityAligner
+  --------------------------------------------------------------------------*/
+
+double IdentityAligner::align(const vector<string>& toks1, const vector<string>& toks2,
+                               vector< vector<Uint> >& sets1)
+{
+   sets1.clear();
+   const Uint s1 = toks1.size();
+   const Uint s2 = toks2.size();
+   // If sentence 2 is longer than sentence 1 we will need to align some word
+   // of sentence 2 to the token one passed the end of sentence 1.
+   sets1.resize(s2 > s1 ? s1+1 : s1);
+   Uint i = 0;
+
+   // Marking all aligned words which will result in a "Identity matrix".
+   for (; i<min(s1, s2); ++i)
+        sets1[i].push_back(i);
+
+   // If sentence 1 is longer than sentence 2, we will set any unaligned word
+   // from sentence 1 to null which is defined to be the token one passed the
+   // end of sentence 2.
+   for (; i<s1; ++i)
+        sets1[i].push_back(toks2.size());
+
+   // If sentence 2 is longer than sentence 1, we will set any unaligned word
+   // from sentence 2 to null which is defined to be the token one passed the
+   // end of sentence 1 thus we pool all unaligned words of sentence 2 to
+   // sentence1[sentence1.length].
+   if (s2 > s1) {
+      for (Uint j(s1); j<s2; ++j)
+           sets1[s1].push_back(j);
+   }
+
    return 1.0;
 }
 

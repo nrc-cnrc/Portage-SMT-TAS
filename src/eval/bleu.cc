@@ -20,14 +20,14 @@
 #include <limits>
 
 namespace Portage {
-   // ugly code - make the code behaviour depend on an environment variable
-   static const bool USE_NIST_STYLE_BLEU = getenv("PORTAGE_NIST_STYLE_BLEU");
-   // discusting code - use side effects of static const initialization to show
-   // a message on screen...
-   static const ostream& dummy =
-      (cerr << (USE_NIST_STYLE_BLEU
-                 ? "Using NIST style brevity penalty in all BLEU calculations\n"
-                 : ""));
+// ugly code - make the code behaviour depend on an environment variable
+static const bool USE_NIST_STYLE_BLEU = getenv("PORTAGE_NIST_STYLE_BLEU");
+// discusting code - use side effects of static const initialization to show
+// a message on screen...
+static const ostream& dummy =
+   (cerr << (USE_NIST_STYLE_BLEU
+             ? "Using NIST style brevity penalty in all BLEU calculations\n"
+             : ""));
 }
 
 using namespace Portage;
@@ -63,53 +63,51 @@ void BLEUstats::setDefaultSmoothing(const Uint n) {
 
 
 /*
-Initializes a new BLEUstats with values of 0, the stats for an empty set of translations.
+  Initializes a new BLEUstats with values of 0, the stats for an empty set of translations.
 */
 BLEUstats::BLEUstats()
-: match(MAX_NGRAMS, 0)
-, total(MAX_NGRAMS, 0)
-, length(0)
-, bmlength(0)
-, smooth(DEFAULT_SMOOTHING)
+  : match(MAX_NGRAMS, 0)
+  , total(MAX_NGRAMS, 0)
+  , length(0)
+  , bmlength(0)
+  , smooth(DEFAULT_SMOOTHING)
 { }
 
 /*
-Initializes a new BLEUstats with values of 0, the stats for an empty set of
-translations.  Set the smoothing type to sm
+  Initializes a new BLEUstats with values of 0, the stats for an empty set of
+  translations.  Set the smoothing type to sm
 */
 BLEUstats::BLEUstats(int sm)
-: match(MAX_NGRAMS, 0)
-, total(MAX_NGRAMS, 0)
-, length(0)
-, bmlength(0)
-, smooth(sm)
+  : match(MAX_NGRAMS, 0)
+  , total(MAX_NGRAMS, 0)
+  , length(0)
+  , bmlength(0)
+  , smooth(sm)
 { }
 
 /*
-Copy constructor
+  Copy constructor
 */
 BLEUstats::BLEUstats(const BLEUstats &s)
 {
    *this = s;
 }
 
-bool nGramMatch(Uint n, vector<Uint>::const_iterator it1,
-                        vector<Uint>::const_iterator it2)
+static bool nGramMatch(Uint n, vector<Uint>::const_iterator it1,
+                       vector<Uint>::const_iterator it2)
 {
    bool match = true;
    for (Uint i = 0; match && i < n; i++, it1++, it2++)
-   {
       match = (*it1 == *it2);
-   } // for
    return match;
 } // nGramMatch
 
 BLEUstats::BLEUstats(const string &tgt, const vector<string> &refs, int sm)
-: match(MAX_NGRAMS, 0)
-, total(MAX_NGRAMS, 0)
-, length(0)
-, bmlength(0)
-, smooth(sm)
+  : match(MAX_NGRAMS, 0)
+  , total(MAX_NGRAMS, 0)
+  , length(0)
+  , bmlength(0)
+  , smooth(sm)
 {
    typedef vector<string>::const_iterator IT;
    Tokens  tgt_words;
@@ -120,32 +118,32 @@ BLEUstats::BLEUstats(const string &tgt, const vector<string> &refs, int sm)
    {
       refs_words.push_back(Tokens());
       split(*it, refs_words.back(), " ");
-   } // for
+   }
    init(tgt_words, refs_words, sm);
 } // BLEUstats
 
 /*
-Initializes a new BLEUstats with values computed for the given translation
-sentence.  tgt_words contains the words for the translated sentence being
-scored.  refs_words is a vector of reference translations, each element
-containing the words for a reference sentence.
+  Initializes a new BLEUstats with values computed for the given translation
+  sentence.  tgt_words contains the words for the translated sentence being
+  scored.  refs_words is a vector of reference translations, each element
+  containing the words for a reference sentence.
 */
 BLEUstats::BLEUstats(const Tokens &tgt_words, const vector<Tokens> &refs_words, int sm)
-: match(MAX_NGRAMS, 0)
-, total(MAX_NGRAMS, 0)
-, length(0)
-, bmlength(0)
-, smooth(sm)
+  : match(MAX_NGRAMS, 0)
+  , total(MAX_NGRAMS, 0)
+  , length(0)
+  , bmlength(0)
+  , smooth(sm)
 {
    init(tgt_words, refs_words, sm);
 } // BLEUstats
 
 BLEUstats::BLEUstats(const Sentence& trans, const References& refs, int sm)
-: match(MAX_NGRAMS, 0)
-, total(MAX_NGRAMS, 0)
-, length(0)
-, bmlength(0)
-, smooth(sm)
+  : match(MAX_NGRAMS, 0)
+  , total(MAX_NGRAMS, 0)
+  , length(0)
+  , bmlength(0)
+  , smooth(sm)
 {
    init(trans, refs, sm);
 }
@@ -206,25 +204,25 @@ void BLEUstats::init(const vector<Uint> &tgt_words, const vector< vector<Uint> >
    for (Uint n = 0; n < MAX_NGRAMS; n++)
    {
       /*
-       Initialize total number of n-grams and (temporary) detailed statistics
-       (count, clipCount) for each n-gram.
-       Since we have just one sentence, the total number of n-grams is
-       precisely the total number of words - (n-1).
-       When an n-gram appears more than once, it is necessary NOT to treat it
-       the same as multiple different n-grams (eg. if target = "the the the"
-       and reference = "the", this does not count as 3 matches).
-       Thus, isDuplicated[i] is true iff the n-gram starting at the i-th word
-       has already appeared in the target, starting BEFORE the i-th word.
-       count[n-1][i] contains the total number of occurrences in the target of
-       the n-gram starting at the i-th word, and clipCount[n-1][i] will hold
-       the "clipped match count" for the same n-gram (both of these apply only
-       when isDuplicated[n-1][i] are false).  The "clipped match count" for an
-       n-gram is defined as:
-       clippedCount = min(count, max_ref_count), where max_ref_count is the
-       maximum number of occurrences of the n-gram in a reference sentence.
-       eg. if the 2-gram "the car" appears twice in the target and once in each
-       of the 2 reference sentences, then the clipped count for "the car" would
-       be 1.
+        Initialize total number of n-grams and (temporary) detailed statistics
+        (count, clipCount) for each n-gram.
+        Since we have just one sentence, the total number of n-grams is
+        precisely the total number of words - (n-1).
+        When an n-gram appears more than once, it is necessary NOT to treat it
+        the same as multiple different n-grams (eg. if target = "the the the"
+        and reference = "the", this does not count as 3 matches).
+        Thus, isDuplicated[i] is true iff the n-gram starting at the i-th word
+        has already appeared in the target, starting BEFORE the i-th word.
+        count[n-1][i] contains the total number of occurrences in the target of
+        the n-gram starting at the i-th word, and clipCount[n-1][i] will hold
+        the "clipped match count" for the same n-gram (both of these apply only
+        when isDuplicated[n-1][i] are false).  The "clipped match count" for an
+        n-gram is defined as:
+        clippedCount = min(count, max_ref_count), where max_ref_count is the
+        maximum number of occurrences of the n-gram in a reference sentence.
+        eg. if the 2-gram "the car" appears twice in the target and once in each
+        of the 2 reference sentences, then the clipped count for "the car" would
+        be 1.
       */
 
       total[n] = (Uint)max((int)length - (int)n, 0);
@@ -246,17 +244,17 @@ void BLEUstats::init(const vector<Uint> &tgt_words, const vector< vector<Uint> >
             {
                // It's duplicated; increment the count on the original
                count[j]++;
-            } // if
-         } // for
-      } // for
+            }
+         }
+      }
 
       vector<Uint>::const_iterator tit = tgt_words.begin();
       i = 0;
       for (; i < total[n]; i++, tit++)
       {
          for (vector< vector<Uint> >::const_iterator it = refs_words.begin();
-               !isDuplicated[i] && clipCount[i] < count[i] && it <
-               refs_words.end(); it++)
+              !isDuplicated[i] && clipCount[i] < count[i] && it <
+              refs_words.end(); it++)
          {
             if (n <= it->size())
             {
@@ -270,12 +268,12 @@ void BLEUstats::init(const vector<Uint> &tgt_words, const vector< vector<Uint> >
                   if (nGramMatch(n + 1, tit, rit))
                   {
                      matches++;
-                  } // if
-               } // for
+                  }
+               }
                clipCount[i] = max(clipCount[i], matches);
-            } // if
-         } // for
-      } // for
+            }
+         }
+      }
 
       match[n] = 0;
       for (i = 0; i < total[n]; i++)
@@ -283,16 +281,16 @@ void BLEUstats::init(const vector<Uint> &tgt_words, const vector< vector<Uint> >
          if (!isDuplicated[i])
          {
             match[n] += clipCount[i];
-         } // if
-      } // for
-   } // for
+         }
+      }
+   }
 
    if ( USE_NIST_STYLE_BLEU ) {
       // NIST uses the shortest reference length for each sentence, to
       // calculate the brevity penalty, rather than the best match one.
       bmlength = refs_words.front().size();
       for (vector< vector<Uint> >::const_iterator it = refs_words.begin() + 1;
-            it < refs_words.end(); it++)
+           it < refs_words.end(); it++)
          if ( int(it->size()) < bmlength )
             bmlength = it->size();
    } else {
@@ -300,13 +298,13 @@ void BLEUstats::init(const vector<Uint> &tgt_words, const vector< vector<Uint> >
       // (or at least did until Jan 2007, when I investigated the issue).
       Ulong curBMLength = refs_words.front().size();
       for (vector< vector<Uint> >::const_iterator it = refs_words.begin() + 1;
-            it < refs_words.end(); it++)
+           it < refs_words.end(); it++)
       {
          // Determine if the length of this candidate is the new best length
          // Notice: length - m is preferred to length + m (for m > 0)
          if (abs((int)(it->size()) - (int)length) < abs((int)curBMLength - (int)length) ||
-               (abs((int)(it->size()) - (int)length) == abs((int)curBMLength - (int)length) &&
-                it->size() < curBMLength))
+             (abs((int)(it->size()) - (int)length) == abs((int)curBMLength - (int)length) &&
+              it->size() < curBMLength))
          {
             curBMLength = it->size();
          } // if
@@ -315,20 +313,20 @@ void BLEUstats::init(const vector<Uint> &tgt_words, const vector< vector<Uint> >
       bmlength = curBMLength;
    }
    smooth = sm;
-} // BLEUstats
+} // BEUstats::init
 
 /*
-Computes the log BLEU score for these stats; that is:
-\log BLEU = max(1 - bmlength / length) + \sum_{n=1}^{N} (1/N) \log(match_n / total_n)
-The generalized BLEU score is actually given by
-\log BLEU = max(1 - bmlength / length) + \sum_{n=1}^{N} w_n \log(match_n / total_n)
-for some choice of weights (w_n).  Generally, the weights are 1/N, which is
-what is used here.
+  Computes the log BLEU score for these stats; that is:
+  \log BLEU = max(1 - bmlength / length) + \sum_{n=1}^{N} (1/N) \log(match_n / total_n)
+  The generalized BLEU score is actually given by
+  \log BLEU = max(1 - bmlength / length) + \sum_{n=1}^{N} w_n \log(match_n / total_n)
+  for some choice of weights (w_n).  Generally, the weights are 1/N, which is
+  what is used here.
 
-Every statistic value (length, bmlength, match[n] and total[n] for n=0, .. ,
-MAX_NGRAMS-1) must be strictly positive; currently this function does not
-detect such errors and in such a case, the output is undefined.
-EJJ 11AUG2005: Added asserts to make sure this condition is respected.
+  Every statistic value (length, bmlength, match[n] and total[n] for n=0, .. ,
+  MAX_NGRAMS-1) must be strictly positive; currently this function does not
+  detect such errors and in such a case, the output is undefined.
+  EJJ 11AUG2005: Added asserts to make sure this condition is respected.
 */
 double BLEUstats::score(Uint maxN, double epsilon) const
 {
@@ -396,15 +394,16 @@ double BLEUstats::score(Uint maxN, double epsilon) const
          result += log(epsilon) / N;
       }
    }
-   else 
-      assert(false);
+   else {
+      error(ETFatal, "Unsupported smoothing type %d", smooth);
+   }
 
    return result;
 }
 
 
 /*
-Outputs the statistics.
+  Outputs the statistics.
 */
 void BLEUstats::output(ostream &out) const
 {
@@ -413,11 +412,13 @@ void BLEUstats::output(ostream &out) const
       out << (n+1) << "-gram (match/total) " << match[n] << "/" << total[n] << " " << ((double)match[n]/total[n]) << endl;
    }
    out << "Sentence length: " << length << "; Best-match sentence length: " << bmlength << endl;
+   double brevity_penalty = min(1 - (double)bmlength / length, 0);
+   out << "Brevity penalty: exp(" << brevity_penalty << ") = " << exp(brevity_penalty) << endl;
    out << "Score: " << score() << endl;
 }
 
 /*
-Write stats to output stream.
+  Write stats to output stream.
 */
 void BLEUstats::write(ostream &out) const
 {
@@ -429,7 +430,7 @@ void BLEUstats::write(ostream &out) const
 }
 
 /*
-Read stats from input stream; reciprocal to write.
+  Read stats from input stream; reciprocal to write.
 */
 void BLEUstats::read(istream &in)
 {
@@ -471,161 +472,162 @@ BLEUstats& BLEUstats::operator+=(const BLEUstats& other)
    return *this;
 }
 
-
-
 namespace Portage
 {
-   /*
-      Finds the difference in statistics between two BLEUstats objects.
-    */
-   BLEUstats operator-(const BLEUstats &s1, const BLEUstats &s2)
-   {
-      //assert (s1.length >= s2.length);
-      //assert (s1.bmlength >= s2.bmlength);
-      assert(s1.smooth==s2.smooth);
+/*
+  Finds the difference in statistics between two BLEUstats objects.
+*/
+BLEUstats operator-(const BLEUstats &s1, const BLEUstats &s2)
+{
+   //assert (s1.length >= s2.length);
+   //assert (s1.bmlength >= s2.bmlength);
+   assert(s1.smooth==s2.smooth);
 
-      BLEUstats result(s1.smooth);
-      for (Uint n = 0; n < BLEUstats::MAX_NGRAMS; n++)
-      {
-         result.match[n] = s1.match[n] - s2.match[n];
-         result.total[n] = s1.total[n] - s2.total[n];
-      }
-      result.length = s1.length - s2.length;
-      result.bmlength = s1.bmlength - s2.bmlength;
-      return result;
+   BLEUstats result(s1.smooth);
+   for (Uint n = 0; n < BLEUstats::MAX_NGRAMS; n++)
+   {
+      result.match[n] = s1.match[n] - s2.match[n];
+      result.total[n] = s1.total[n] - s2.total[n];
    }
+   result.length = s1.length - s2.length;
+   result.bmlength = s1.bmlength - s2.bmlength;
+   return result;
+}
 
-   /*
-      Adds together the statistics of two BLEUstats objects, returning the result.
-    */
-   BLEUstats operator+(const BLEUstats &s1, const BLEUstats &s2)
+/*
+  Adds together the statistics of two BLEUstats objects, returning the result.
+*/
+BLEUstats operator+(const BLEUstats &s1, const BLEUstats &s2)
+{
+   assert((Ulong)s1.length + (Ulong)s2.length <= MAX_BLEU_STAT_TYPE);
+   assert((Ulong)s1.bmlength + (Ulong)s2.bmlength <= MAX_BLEU_STAT_TYPE);
+   assert(s1.smooth==s2.smooth);
+
+   BLEUstats result(s1.smooth);
+   for (Uint n = 0; n < BLEUstats::MAX_NGRAMS; n++)
    {
-      assert((Ulong)s1.length + (Ulong)s2.length <= MAX_BLEU_STAT_TYPE);
-      assert((Ulong)s1.bmlength + (Ulong)s2.bmlength <= MAX_BLEU_STAT_TYPE);
-      assert(s1.smooth==s2.smooth);
-
-      BLEUstats result(s1.smooth);
-      for (Uint n = 0; n < BLEUstats::MAX_NGRAMS; n++)
-      {
-         result.match[n] = s1.match[n] + s2.match[n];
-         result.total[n] = s1.total[n] + s2.total[n];
-      }
-      result.length = s1.length + s2.length;
-      result.bmlength = s1.bmlength + s2.bmlength;
-      return result;
+      result.match[n] = s1.match[n] + s2.match[n];
+      result.total[n] = s1.total[n] + s2.total[n];
    }
+   result.length = s1.length + s2.length;
+   result.bmlength = s1.bmlength + s2.bmlength;
+   return result;
+}
 
-   bool operator==(const BLEUstats &s1, const BLEUstats &s2)
-   {
-      bool result = s1.length == s2.length && s1.bmlength == s2.bmlength && s1.smooth == s2.smooth;
-      for (Uint n = 0; n < BLEUstats::MAX_NGRAMS && result; n++)
-      {
-         result = s1.match[n] == s2.match[n] && s1.total[n] == s2.total[n];
-      } // for
-      return result;
-   } // operator==
+bool operator==(const BLEUstats &s1, const BLEUstats &s2)
+{
+   bool result = s1.length   == s2.length
+              && s1.bmlength == s2.bmlength
+              && s1.smooth   == s2.smooth;
+   for (Uint n = 0; n < BLEUstats::MAX_NGRAMS && result; n++) {
+      result = s1.match[n] == s2.match[n]
+            && s1.total[n] == s2.total[n];
+   }
+   return result;
+}
 
-   bool operator!=(const BLEUstats &s1, const BLEUstats &s2)
-   {
-      return !(s1 == s2);
-   } // operator!=
+bool operator!=(const BLEUstats &s1, const BLEUstats &s2)
+{
+   return !(s1 == s2);
+}
 
 
-   ////////////////////////////////////////////////////////////////////////////////
-   void computeBLEUArrayRow(RowBLEUstats& bleu,
-         const Nbest& nbest,
-         const References& refs,
-         Uint max,
-         int smooth)
-   {
-      const Uint K = min(max, nbest.size());
-      bleu.resize(K);
-      Voc voc;
+////////////////////////////////////////////////////////////////////////////////
+void computeBLEUArrayRow(RowBLEUstats& bleu,
+      const Nbest& nbest,
+      const References& refs,
+      Uint max,
+      int smooth)
+{
+   const Uint K = min(max, nbest.size());
+   bleu.resize(K);
+   Voc voc;
 
-      vector<vector<Uint> > nbest_uint;
-      tokenize(nbest, voc, nbest_uint);
+   vector<vector<Uint> > nbest_uint;
+   tokenize(nbest, voc, nbest_uint);
 
-      vector<vector<Uint> > refs_uint;
-      tokenize(refs, voc, refs_uint);
+   vector<vector<Uint> > refs_uint;
+   tokenize(refs, voc, refs_uint);
 
-      int k;
+   int k;
 #pragma omp parallel for private(k)
-      for (k=0; k<(int)K; ++k) {
-         bleu[k].init(nbest_uint[k], refs_uint, smooth);
-      }
-   } // computeBLEUArrayRow
+   for (k=0; k<(int)K; ++k) {
+      bleu[k].init(nbest_uint[k], refs_uint, smooth);
+   }
+} // computeBLEUArrayRow
 
-   void computeBLEUArrayRow(RowBLEUstats& bleu,
-         const vector<string>& tgt_sents,
-         const vector<string>& ref_sents,
-         Uint max,
-         int smooth)
-   {
-      const Uint K = min(max, tgt_sents.size());
-      bleu.resize(K);
-      Voc voc;
+void computeBLEUArrayRow(RowBLEUstats& bleu,
+      const vector<string>& tgt_sents,
+      const vector<string>& ref_sents,
+      Uint max,
+      int smooth)
+{
+   const Uint K = min(max, tgt_sents.size());
+   bleu.resize(K);
+   Voc voc;
 
-      vector<vector<Uint> > nbest_uint;
-      tokenize(tgt_sents, voc, nbest_uint);
+   vector<vector<Uint> > nbest_uint;
+   tokenize(tgt_sents, voc, nbest_uint);
 
-      vector<vector<Uint> > refs_uint;
-      tokenize(ref_sents, voc, refs_uint);
+   vector<vector<Uint> > refs_uint;
+   tokenize(ref_sents, voc, refs_uint);
 
-      int k;
+   int k;
 #pragma omp parallel for private(k)
-      for (k=0; k<(int)K; ++k) {
-         bleu[k].init(nbest_uint[k], refs_uint, smooth);
-      }
-   } // computeBLEUArrayRow
+   for (k=0; k<(int)K; ++k) {
+      bleu[k].init(nbest_uint[k], refs_uint, smooth);
+   }
+} // computeBLEUArrayRow
 
-   void computeBLEUArray(MatrixBLEUstats& bleu,
-         const vector< vector<string> >& tgt_sents,
-         const vector< vector<string> >& ref_sents)
+void computeBLEUArray(MatrixBLEUstats& bleu,
+      const vector< vector<string> >& tgt_sents,
+      const vector< vector<string> >& ref_sents)
+{
+   assert(bleu.size() == tgt_sents.size());
+   assert(bleu.size() == ref_sents.size());
+
+   const Uint S(tgt_sents.size());
+   for (Uint s(0); s<S; ++s) {
+      computeBLEUArrayRow(bleu[s], tgt_sents[s], ref_sents[s]);
+   }
+} // computeBLEUArray
+
+
+void writeBLEUArray(ostream &out, const MatrixBLEUstats& bleu)
+{
+   out << bleu.size() << endl;
+   for (Uint s = 0; s < bleu.size(); s++)
    {
-      assert(bleu.size() == tgt_sents.size());
-      assert(bleu.size() == ref_sents.size());
-
-      const Uint S(tgt_sents.size());
-      for (Uint s(0); s<S; ++s) {
-         computeBLEUArrayRow(bleu[s], tgt_sents[s], ref_sents[s]);
-      }
-   } // computeBLEUArray
-
-
-   void writeBLEUArray(ostream &out, const MatrixBLEUstats& bleu)
-   {
-      out << bleu.size() << endl;
-      for (Uint s = 0; s < bleu.size(); s++)
+      out << bleu[s].size() << endl;
+      for (Uint k = 0; k < bleu[s].size(); k++)
       {
-         out << bleu[s].size() << endl;
-         for (Uint k = 0; k < bleu[s].size(); k++)
-         {
-            bleu[s][k].write(out);
-            out << endl;
-         }
+         bleu[s][k].write(out);
          out << endl;
       }
+      out << endl;
    }
+}
 
-   void readBLEUArray(istream &in, MatrixBLEUstats& bleu)
+void readBLEUArray(istream &in, MatrixBLEUstats& bleu)
+{
+   Uint S(0);
+   in >> S;
+   bleu.clear();
+   bleu.resize(S);
+   for (Uint s = 0; s < S; s++)
    {
-      Uint S(0);
-      in >> S;
-      bleu.clear();
-      bleu.resize(S);
-      for (Uint s = 0; s < S; s++)
+      Uint K(0);
+      in >> K;
+      bleu[s].resize(K);
+      for (Uint k = 0; k < K; k++)
       {
-         Uint K(0);
-         in >> K;
-         bleu[s].resize(K);
-         for (Uint k = 0; k < K; k++)
+         bleu[s][k].read(in);
+         if (in.eof())
          {
-            bleu[s][k].read(in);
-            if (in.eof())
-            {
-               error(ETFatal, "Unexpected end of file");
-            }
+            error(ETFatal, "Unexpected end of file");
          }
       }
    }
 }
+
+} // namespace Portage

@@ -29,6 +29,10 @@
 #include "tpt_utils.h"
 #include "tpt_typedefs.h"
 
+#if IN_PORTAGE
+   #include "file_utils.h"
+#endif
+
 namespace ugdiss {
 
 #if defined(Darwin) || defined(CYGWIN)
@@ -47,6 +51,9 @@ getFileSize(const std::string& fname)
 void
 open_mapped_file_source(bio::mapped_file_source& mfs, const string& fname)
 {
+#if IN_PORTAGE
+  error_unless_exists(fname, false, "memory mapped");
+#endif
   try {
     mfs.open(fname);
     if (!mfs.is_open()) throw std::exception();
