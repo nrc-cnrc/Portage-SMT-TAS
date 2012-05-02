@@ -35,3 +35,6 @@ find /opt/Portage/models -type f -name \*.sh | xargs chmod 755
 if [[ '/opt/Portage/models/*/plugins' != '/opt/Portage/models/\*/plugins' ]]; then
    find /opt/Portage/models/*/plugins -type f | xargs -r chmod 755
 fi
+
+# 3.7 Set the default context:
+[ -e /opt/Portage/models/context ] || ln -s `ls /opt/Portage/models | head -1` /opt/Portage/models/context
