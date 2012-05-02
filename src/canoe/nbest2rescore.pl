@@ -33,7 +33,7 @@ use FileHandle;
 
 # globals
 my $phrase_re = qr/\"([^\\\"]*(?:(?:\\.)[^\\\"]*)*)\"/;
-my $align_re = qr/a=\[([^;\]]+;[^;\]]+;[^;\]]+[^]]*)\]/;
+my $align_re = qr/a=\[([^;\]]+;[^-;\]]+[-;][^;\]]+[^]]*)\]/;
 my $ffvals_re = qr/v=\[([^\]]+)\]/;
 my $legacy_re = qr/\(([^\)]+)\)/;
 
@@ -193,7 +193,15 @@ sub parseTranslation {
 	# Process the data part
 	if ($alignment) {
 	    $alignment =~ s/\\(.)/$1/go;	# remove inner level of backslashification
-	    my ($score, $begin, $end, $oovstatus) = split(/;/o, $alignment, 4);
+            my @tokens = split(/;/o, $alignment, 4);
+            my ($score, $begin, $end, $oovstatus);
+            if (scalar(@tokens) == 4) {
+               ($score, $begin, $end, $oovstatus) = @tokens;
+            } else {
+               $score = $tokens[0];
+               ($begin, $end) = split(/-/o, $tokens[1], 2);
+               $oovstatus = $tokens[2];
+            }
 	    $record{score} = $score;
 	    $record{begin} = $begin;
 	    $record{end} = $end;
