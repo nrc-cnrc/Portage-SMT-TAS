@@ -118,9 +118,9 @@ struct TScore
 }; // TScore
 
 /// Leaf structure for phrase tables: map target phrase to probs.
-class TargetPhraseTable : public vector_map<Phrase, TScore> {
+class TargetPhraseTable : public unordered_map<Phrase, TScore> {
 private:
-   typedef vector_map<Phrase, TScore> Parent;
+   typedef unordered_map<Phrase, TScore> Parent;
 public:
    /// Set of input sentences in which the source phrase occurs.
    /// Only relevant in limitPhrases mode, will be empty otherwise.

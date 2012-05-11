@@ -35,7 +35,6 @@ OBJECTS= \
     decoderstate.o \
     distortionmodel.o \
     forced_phrase_finder.o \
-    forced_target_phrasetable.o \
     hard_filter_tm_visitor.o \
     hypothesisstack.o \
     ibm_feature.o \

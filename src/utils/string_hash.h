@@ -131,9 +131,9 @@ namespace Portage {
     */
    struct str_equal {
       /**
-       * Compares to strings for equality.
+       * Compares two strings for equality.
        * @param x,y strings to compare
-       * @return Returns true if x == y
+       * @return Returns true if *x == *y
        */
       bool operator()(const char* x, const char* y) const {
          return strcmp(x,y) == 0;

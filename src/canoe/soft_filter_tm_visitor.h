@@ -47,7 +47,7 @@ struct softFilterTMVisitor : public filterTMVisitor
       * and/or backward).
       * @param log_almost_0  user defined 0
       */
-      PhraseInfo4SoftFiltering(const pair<Phrase, TScore>* ref, Uint numTextTransModels, double log_almost_0);
+      PhraseInfo4SoftFiltering(const pair<const Phrase, TScore>* ref, Uint numTextTransModels, double log_almost_0);
 
    };
 

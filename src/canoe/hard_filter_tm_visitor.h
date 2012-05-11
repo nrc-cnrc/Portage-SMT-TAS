@@ -49,7 +49,7 @@ struct hardFilterTMVisitor : public filterTMVisitor
       * @param log_almost_0  user defined 0
       * @param hard_filter_weights  phrasetable weights
       */
-      PhraseInfo4HardFiltering(const pair<Phrase, TScore>* ref, 
+      PhraseInfo4HardFiltering(const pair<const Phrase, TScore>* ref, 
          const Uint numTextTransModels, 
          double log_almost_0, 
          const vector<double>& hard_filter_weights);

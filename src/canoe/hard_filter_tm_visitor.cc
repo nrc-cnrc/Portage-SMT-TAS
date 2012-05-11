@@ -23,7 +23,7 @@ using namespace Portage::Joint_Filtering;
 //Logging::logger ptLogger_hardFilterTMVisitor(Logging::getLogger("debug.canoe.hardFilterTMVisitor"));
 
 
-hardFilterTMVisitor::PhraseInfo4HardFiltering::PhraseInfo4HardFiltering(const pair<Phrase, TScore>* ref, 
+hardFilterTMVisitor::PhraseInfo4HardFiltering::PhraseInfo4HardFiltering(const pair<const Phrase, TScore>* ref, 
    const Uint numTextTransModels, 
    double log_almost_0, 
    const vector<double>& hard_filter_weights)
@@ -77,15 +77,16 @@ void hardFilterTMVisitor::operator()(TargetPhraseTable& tgtTable)
 
       // Keep the first L which we are sure to keep
       TargetPhraseTable reduceTgtTable;
-      reduceTgtTable.reserve(L);
+      //reduceTgtTable.reserve(L);
 
       // Use a heap to extract the pruneSize best items
       make_heap(phrases.begin(), phrases.end(), phraseLessThan);
       for (Uint i(0); i<L; ++i) {
          pop_heap(phrases.begin(), phrases.end(), phraseLessThan);
          pair<double, PhraseInfo4filtering*>& element = phrases.back();
-         reduceTgtTable.push_back(*(element.second->ref));
-         if (element.second) delete element.second;
+         assert(element.second);
+         reduceTgtTable.insert(*(element.second->ref));
+         delete element.second;
          phrases.pop_back();
       }
 

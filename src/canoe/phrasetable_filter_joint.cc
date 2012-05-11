@@ -142,13 +142,13 @@ Uint PhraseTableFilterJoint::processTargetPhraseTable(const string& src,
       "Online processing of one entry (%s) L=%d n=%d",
       visitor->style,
       L,
-      tgtTable->front().second.backward.size()); // => numTextTransModels
+      tgtTable->begin()->second.backward.size()); // => numTextTransModels
    */
 
    // The visitor holds the code to either do a soft or a hard filter on one
    // leaf
    const Uint numBeforeFiltering(tgtTable->size());
-   visitor->set(L, tgtTable->front().second.backward.size());
+   visitor->set(L, tgtTable->begin()->second.backward.size());
    (*visitor)(*tgtTable);
 
    // Write the results to a file and clear the leaf to save memory

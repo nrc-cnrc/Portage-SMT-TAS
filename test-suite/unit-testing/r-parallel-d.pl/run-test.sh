@@ -16,12 +16,12 @@ set -e   # Exit when an error occurs.
 
 
 # Start run-parallel.sh and have the watch dog thread to verify for run-parallel.sh every 30 seconds.
-R_PARALLEL_D_PL_DEBUG=1 R_PARALLEL_D_PL_SLEEP_TIME=15 run-parallel.sh -v -v -e "sleep 30" -e "sleep 30" -e "sleep 30" 1 >& log.debug & 
-TO_CHECK=$!
-echo PID $TO_CHECK
+R_PARALLEL_D_PL_DEBUG=1 R_PARALLEL_D_PL_SLEEP_TIME=8 run-parallel.sh -v -v -e "sleep 16" -e "sleep 16" -e "sleep 16" 1 >& log.debug & 
+MASTER_PID=$!
+echo PID $MASTER_PID
 
 # Checking the functionality:
-# - wait some time, let say enough for the first job to be finished plus half
+# - wait some time, enough for the first job to be finished plus half
 #   way through the first watch dog loop for the second job;
 # - kill the master which is run-parallel.sh
 # - look for r-parallel-d.pl which should still be running at this point;
@@ -29,12 +29,19 @@ echo PID $TO_CHECK
 # - check again to see if r-parallel-d.pl which should be gone at this point;
 # - for user, print a status message about the process.
 EXIT_STATUS=0
-sleep 37 \
-&& kill -9 $TO_CHECK \
-&& { ps -o pid,tty,time,args | egrep '^[^g]*r-parallel-d.pl'; } \
-&& sleep 16 \
-&& ! { ps -o pid,tty,time,args | egrep '^[^g]*r-parallel-d.pl'; } \
-&& echo "SUCCESS" || { echo "FAILED" ; EXIT_STATUS=1; }
+echo sleep 20 && 
+     sleep 20 &&
+echo kill -9 $MASTER_PID && 
+     kill -9 $MASTER_PID &&
+echo First ps && 
+     ps -o pid,ppid,tty,time,args && 
+     { ps -o pid,ppid,tty,time,args | egrep '^ *[0-9]+ +1 [^g]*r-parallel-d.pl$'; } &&
+echo sleep 8 &&
+     sleep 8 &&
+echo Second ps &&
+     ps -o pid,ppid,tty,time,args && 
+! { ps -o pid,ppid,tty,time,args | egrep '^ *[0-9]+ +1 [^g]*r-parallel-d.pl$'; } &&
+echo "SUCCESS" || { echo "FAILED" ; EXIT_STATUS=1; }
 
 # Clean-up
 { find -type d -name run-p.\* | xargs rm -r; } || true

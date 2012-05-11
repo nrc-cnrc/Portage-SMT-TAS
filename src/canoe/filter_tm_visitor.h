@@ -28,7 +28,7 @@ namespace Joint_Filtering {
 /**
  * Interface of a callable entity for soft and hard filtering of phrase tables
  */
-struct filterTMVisitor
+struct filterTMVisitor : private NonCopyable
 {
    /**
    * Yet another PhraseInfo which will be used for filter_joint.
@@ -37,7 +37,7 @@ struct filterTMVisitor
    {
       /// holds a pointer to the entry this was constructed from to later,
       /// during filter_joint, rewrite the original object.
-      const pair<Phrase, TScore>* ref;
+      const pair<const Phrase, TScore>* ref;
 
       /**
       * Default constructor.
@@ -45,7 +45,7 @@ struct filterTMVisitor
       * will need the original to rewrite a reduced target table.
       * @param ref  reference on the original object used to construct this
       */
-      PhraseInfo4filtering(const pair<Phrase, TScore>* ref)
+      PhraseInfo4filtering(const pair<const Phrase, TScore>* ref)
       : ref(ref)
       { assert(ref); }
 

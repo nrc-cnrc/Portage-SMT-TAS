@@ -25,7 +25,7 @@ using namespace Portage::Joint_Filtering;
 //Logging::logger ptLogger_softFilterTMVisitor(Logging::getLogger("debug.canoe.softFilterTMVisitor"));
 
 
-softFilterTMVisitor::PhraseInfo4SoftFiltering::PhraseInfo4SoftFiltering(const pair<Phrase, TScore>* ref, 
+softFilterTMVisitor::PhraseInfo4SoftFiltering::PhraseInfo4SoftFiltering(const pair<const Phrase, TScore>* ref, 
    const Uint numTextTransModels, 
    double log_almost_0)
 : Parent(ref)
@@ -84,9 +84,9 @@ void softFilterTMVisitor::operator()(TargetPhraseTable& tgtTable)
 
       // Keep the first L which we are sure to keep
       TargetPhraseTable reduceTgtTable;
-      reduceTgtTable.reserve(L);
+      //reduceTgtTable.reserve(L);
       for (Uint i(0); i<L; ++i) {
-         reduceTgtTable.push_back(*(phrases[i].second->ref));
+         reduceTgtTable.insert(*(phrases[i].second->ref));
       }
 
       // The actual dynamic filtering algo
@@ -113,7 +113,7 @@ void softFilterTMVisitor::operator()(TargetPhraseTable& tgtTable)
          }
 
          if (count < L) {
-            reduceTgtTable.push_back(*(phrases[i].second->ref));
+            reduceTgtTable.insert(*(phrases[i].second->ref));
          }
          /*else {
             // DEBUGGING

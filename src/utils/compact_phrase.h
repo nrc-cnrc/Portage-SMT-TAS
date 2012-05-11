@@ -351,5 +351,16 @@ string phrase2string(const PhraseT& uPhrase, const Voc& voc, const char* sep = "
 
 } // Portage
 
+// Make it easy to use a VectorPhrase in a hash table.
+namespace std {
+   namespace tr1 {
+      template<> struct hash<Portage::VectorPhrase> {
+         std::size_t operator()(const Portage::VectorPhrase& x) const {
+            return boost::hash_range(x.begin(), x.end());
+         }
+      };
+   }
+}
+
 #endif // _COMPACT_PHRASE_H_
 

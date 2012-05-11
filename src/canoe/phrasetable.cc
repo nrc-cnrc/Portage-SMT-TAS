@@ -23,7 +23,6 @@
 #include "pruning_style.h"
 #include <cmath>
 #include <algorithm>
-#include <map>
 
 #include "compact_phrase.h"
 #include "string_hash.h"
@@ -1012,26 +1011,11 @@ shared_ptr<TargetPhraseTable> PhraseTable::findInAllTables(
 
    // Structure to return
    shared_ptr<TargetPhraseTable> tgtTable(new TargetPhraseTable);
-   // map to access the tgtTable elements more efficiently: benchmarks show
-   // that this extra structure provides a vast (roughly ten-fold) speed-up for
-   // this function.  It used to be a map<vector<Uint>,Uint>, now it's an
-   // unordered_map on CompactPhrase instead, which provides yet another
-   // small speed up (10% faster or so).
-   typedef unordered_map<CompactPhrase, TargetPhraseTable::size_type>
-      TgtTableMap;
-   TgtTableMap tgtTableMap;
    if (textTgtTable != NULL) {
-      tgtTable->reserve(textTgtTable->size());
-      for ( TargetPhraseTable::iterator iter(textTgtTable->begin());
-            iter != textTgtTable->end(); ++iter ) {
-         // Copy the phrase->score pair into the tgtTable
-         tgtTable->push_back(make_pair(iter->first, iter->second));
-         // Also put a pointer to it in the map
-         pair<TgtTableMap::iterator, bool> insert_result =
-            tgtTableMap.insert(make_pair(CompactPhrase(iter->first),
-                                         tgtTable->size() - 1));
-         assert(insert_result.second);
-         TScore &tScores(tgtTable->back().second);
+      *tgtTable = *textTgtTable;
+      for (TargetPhraseTable::iterator iter(tgtTable->begin());
+           iter != tgtTable->end(); ++iter) {
+         TScore &tScores(iter->second);
          assert(numTransModels >= tScores.backward.size());
          tScores.backward.resize(numTransModels, log_almost_0);
          if (forwardsProbsAvailable) {
@@ -1043,20 +1027,15 @@ shared_ptr<TargetPhraseTable> PhraseTable::findInAllTables(
    VectorPhrase tgtPhrase;
 
    // For each TPPT phrase table, find each tgt canditate in the TPPT phrase
-   // table for src_phrase and merge it into tgtTableMap.
+   // table for src_phrase and merge it into tgtTable
    Uint prob_offset = numTextTransModels;
    for ( Uint i = 0; i < tpptTables.size(); ++i ) {
       const Uint numModels = tpptTableModelCounts[i];
       assert(tpptTables[i]);
       TPPT::val_ptr_t targetPhrases =
          tpptTables[i]->lookup(str_key, range.start, range.end);
-      // We will need a complete map if there are any tpldm thus it can only be
-      // the lastTPPT if there are no tpldms.
-      const bool lastTPPT = (i + 1 == tpptTables.size()) && tpldmTables.empty();
-      const bool firstPT = tgtTableMap.empty();
       if (targetPhrases) {
          // results are not empty.
-         tgtTable->reserve(targetPhrases->size());
          for ( vector<TPPT::TCand>::iterator
                   it(targetPhrases->begin()), end(targetPhrases->end());
                it != end; ++it ) {
@@ -1066,52 +1045,12 @@ shared_ptr<TargetPhraseTable> PhraseTable::findInAllTables(
                tgtPhrase[j] = tgtVocab.add(it->words[j].c_str());
             assert(it->score.size() == 2*numModels);
 
-            // EJJ note: the following code seems poorly factorized, but is a
-            // fair bit faster as it is written than the previous, simpler
-            // version.  The overhead for using TPPTs was significant before
-            // these optimizations, so please don't restructure this code
-            // without making sure you're not slowing things down.  Cases with
-            // 1 TPPT alone, 1 TPPT with another PT type, and multiple TPPTs
-            // all need to be kept in mind in properly optimizing this code.
-
-            // merge and/or insert the values into tgtTable and tgtTableMap
-            TScore* tScores(NULL);
-            if (firstPT) {
-               // EJJ: These two lines are faster than an equiv. push_back().
-               tgtTable->resize(tgtTable->size() + 1);
-               tgtTable->back().first = tgtPhrase;
-               if (!lastTPPT) {
-                  pair<TgtTableMap::iterator, bool> insert_result =
-                     tgtTableMap.insert(make_pair(CompactPhrase(tgtPhrase),
-                                                  tgtTable->size() - 1));
-                  assert(insert_result.second);
-               }
-               tScores = &(tgtTable->back().second);
-               tScores->backward.resize(numTransModels, log_almost_0);
-               if (forwardsProbsAvailable)
-                  tScores->forward.resize(numTransModels, log_almost_0);
-            } else {
-               CompactPhrase compactTgtPhrase(tgtPhrase);
-               TgtTableMap::iterator
-                  tgt_iter(tgtTableMap.find(compactTgtPhrase));
-               if (tgt_iter == tgtTableMap.end()) {
-                  tgtTable->resize(tgtTable->size() + 1);
-                  tgtTable->back().first = tgtPhrase;
-                  if (!lastTPPT) {
-                     pair<TgtTableMap::iterator, bool> insert_result =
-                        tgtTableMap.insert(make_pair(compactTgtPhrase,
-                                                     tgtTable->size() - 1));
-                     assert(insert_result.second);
-                  }
-                  tScores = &(tgtTable->back().second);
-                  tScores->backward.resize(numTransModels, log_almost_0);
-                  if (forwardsProbsAvailable)
-                     tScores->forward.resize(numTransModels, log_almost_0);
-               } else {
-                  tScores = &(tgtTable->at(tgt_iter->second).second);
-               }
-            }
+            // merge and/or insert the values into tgtTable
+            TScore* tScores(&(*tgtTable)[tgtPhrase]);
             assert(tScores);
+            tScores->backward.resize(numTransModels, log_almost_0);
+            if (forwardsProbsAvailable)
+               tScores->forward.resize(numTransModels, log_almost_0);
 
             for ( Uint j = 0; j < numModels; ++j ) {
                tScores->backward[prob_offset+j] =
@@ -1145,14 +1084,12 @@ shared_ptr<TargetPhraseTable> PhraseTable::findInAllTables(
             for ( Uint w = 0; w < tgtPhrase.size(); ++w )
                tgtPhrase[w] = tgtVocab.index(it->words[w].c_str());
 
-            CompactPhrase compactTgtPhrase(tgtPhrase);
             // Is this a target phrase previously seen by the cpts (thus we
             // will want to keep this source/target phrase pair)?  If so,
             // attach the lexicalized distortion scores to that TScore.
-            TgtTableMap::iterator
-               tgt_iter(tgtTableMap.find(compactTgtPhrase));
-            if (tgt_iter != tgtTableMap.end()) {
-               tScores = &(tgtTable->at(tgt_iter->second).second);
+            TargetPhraseTable::iterator tgt_iter = tgtTable->find(tgtPhrase);
+            if (tgt_iter != tgtTable->end()) {
+               tScores = &(tgt_iter->second);
                // If we have found the target phrase in the
                // TargetPhraseTable, there must be a tScore with it.
                assert(tScores != NULL);

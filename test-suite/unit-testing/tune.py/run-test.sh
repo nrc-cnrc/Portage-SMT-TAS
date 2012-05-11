@@ -13,6 +13,11 @@
 # Copyright 2012, Her Majesty in Right of Canada
 
 make clean
-make testsuite
+
+if [[ $PBS_JOBID ]] && (( `ulimit -v` < 20000000 )); then
+   run-parallel.sh -v -nolocal -psub "-memmap 12" -e 'make testsuite' 1
+else
+   make testsuite
+fi
 
 exit
