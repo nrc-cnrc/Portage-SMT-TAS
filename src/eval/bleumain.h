@@ -69,9 +69,9 @@ Hack:\n\
             Logging::logger  m_dLogger;
 
          public:
-            int            iSmooth;
-            Uint           maxNgrams;         ///< holds the max ngrams size for the BLEUstats
-            Uint           maxNgramsScore;    ///< holds the max ngrams size when BLEUstats::score
+            int   iSmooth;
+            Uint  maxNgrams;         ///< holds the max ngrams size for the BLEUstats
+            Uint  maxNgramsScore;    ///< holds the max ngrams size when BLEUstats::score
 
          public:
          /**

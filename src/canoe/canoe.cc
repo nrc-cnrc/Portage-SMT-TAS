@@ -544,7 +544,7 @@ int MAIN(argc, argv)
 
    // If verbose >= 1, each run gets the full model printout.
    if ( c.verbosity >= 1 )
-      cerr << endl << "Features of the log-linear model used, in order:"
+      cerr << endl << "Log-linear model used:"
            << endl << gen->describeModel() << endl;
 
    if (c.randomWeights)

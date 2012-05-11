@@ -37,7 +37,7 @@ usage() {
    done
    cat <<==EOF==
 
-rat.sh [cp-opts] MODE [-v][-F][-rescore-opts OPTS]
+rat.sh [cp-opts] MODE [-v][-F][-rescore-opts OPTS][-a ALGORITHM+ARGS]
        [-f cfg][-K nb][-n #nodes][-J #jobs_per_ff]
        [-s SPROXY][-p pfx][-msrc MSRC][-o MODEL_OUT]
        [-bleu | -per | -wer]
@@ -83,6 +83,12 @@ Options:
 
 cp-opts  Options to canoe-parallel.sh (e.g., -n). Only the options that come
          before canoe-parallel.sh's 'canoe' keyword are legal here.
+-a       Optimizer algorithm and its arguments.  The algorithm and its arguments
+         should be enclosed together in quotes, i.e., as a single string
+         argument to this program.  Only relevant in train mode.  One of
+          - powell [RESCORE_OPTS]
+          - mira [C [I [E [B [H [O [D]]]]]]]
+         [powell]
 -v       Verbose output.
 -F       Force overwrite of existing feature function files. [don't overwrite]
 -rescore-opts Pass OPTS to rescore_train (if mode is 'train') or
@@ -211,6 +217,7 @@ while [[ $# -gt 0 ]]; do
    -p)          arg_check 1 $# $1; PFX=$2; shift;;
    -msrc)       arg_check 1 $# $1; MSRC=$2; shift;;
    -o)          arg_check 1 $# $1; MODEL_OUT=$2; shift;;
+   -a)          arg_check 1 $# $1; ALGORITHM=$2; shift;;
    
    -bleu)       TRAINING_TYPE="-bleu";;
    -per)        TRAINING_TYPE="-per";;
@@ -246,6 +253,45 @@ fi
 #if [ "$MODE" = "trans" ] && (( $# != 0 )); then
 #    error_exit "Too many arguments for translation mode."
 #fi
+
+# Interpret the -a argument, if found
+if [[ $ALGORITHM ]]; then
+   [[ $MODE = train ]] || error_exit "-a is only allowed in train mode"
+   declare -a ALG_TOKENS
+   ALG_TOKENS=( $ALGORITHM )
+   if [[ ${ALG_TOKENS[0]} = powell ]]; then
+      POWELL=1
+      debug "old RESCORE_OPTS=\"$RESCORE_OPTS\""
+      RESCORE_OPTS="$RESCORE_OPTS ${ALG_TOKENS[@]/powell/}"
+      debug "new RESCORE_OPTS=\"$RESCORE_OPTS\""
+   elif [[ ${ALG_TOKENS[0]} = mira ]]; then
+      grep -q '^#' $MODEL &&
+         error_exit "Mira does not support comments in your model file."
+      JAV=java
+      JAR=`dirname $0`/cherrycSMT.jar
+      JMEM=-Xmx16000m
+      MIRA=1
+      MIRA_C=1e-02
+      MIRA_I=30
+      MIRA_E=1
+      MIRA_B=-4
+      MIRA_H=true
+      MIRA_O=Oracle
+      MIRA_D=0.999
+      if [[ ${#ALG_TOKENS[@]} -gt 1 ]]; then MIRA_C=${ALG_TOKENS[1]}; fi
+      if [[ ${#ALG_TOKENS[@]} -gt 2 ]]; then MIRA_I=${ALG_TOKENS[1]}; fi
+      if [[ ${#ALG_TOKENS[@]} -gt 3 ]]; then MIRA_E=${ALG_TOKENS[1]}; fi
+      if [[ ${#ALG_TOKENS[@]} -gt 4 ]]; then MIRA_B=${ALG_TOKENS[1]}; fi
+      if [[ ${#ALG_TOKENS[@]} -gt 5 ]]; then MIRA_H=${ALG_TOKENS[1]}; fi
+      if [[ ${#ALG_TOKENS[@]} -gt 6 ]]; then MIRA_O=${ALG_TOKENS[1]}; fi
+      if [[ ${#ALG_TOKENS[@]} -gt 7 ]]; then MIRA_D=${ALG_TOKENS[1]}; fi
+      if [[ ${#ALG_TOKENS[@]} -gt 8 ]]; then
+         warn "Ignoring superfluous mira arguments past the first 7 tokens"
+      fi
+      MIRA_OPTIONS="$MIRA_C $MIRA_I $MIRA_E $MIRA_B $MIRA_H $MIRA_O $MIRA_D"
+      debug "MIRA_OPTIONS=$MIRA_OPTIONS"
+   fi
+fi
 
 
 # default values for some args
@@ -317,7 +363,6 @@ fi
 
 # The canoe weights are fixed, might as well take advantage of this
 # and filter the phrase tables more aggressively.
-# If filtering the phrase tables, then filter the distortion models too.
 if [[ `configtool nt-tppt $CANOE_CONFIG` != 0 ]]; then
    if [[ $HARD_FILTER ]]; then
       warn "Using non-filterable PTs; disabling hard filtering of phrase tables"
@@ -349,7 +394,7 @@ elif [[ $HARD_FILTER ]]; then
    else
       echo "Hard filtered phrase table already exist"
    fi
-   
+
    # From now on, use the new filtered canoe config
    CANOE_CONFIG=$FILT_CONFIG
    
@@ -487,15 +532,15 @@ if (( $VERBOSE )); then
 fi
 
 if [[ "$MODE" = "train" ]]; then
-   if (( $VERBOSE )); then
-      echo rescore_train $DASHV $RESCORE_OPTS -n $TRAINING_TYPE -p $PFX $MODEL_RAT_IN $MODEL_RAT_OUT $SRC $NBEST $REFS
+   if [[ $MIRA ]]; then
+      MIRADATA=${PFX}matrix4mira
+      run_cmd "rescore_translate -p $PFX -dump-for-mira ${PFX}matrix4mira $MODEL_RAT_IN $SRC $NBEST"
+      run_cmd "$JAV $JMEM -ea -jar $JAR MiraTrainNbestDecay $MODEL_RAT_IN $MIRADATA.allffvals.gz $MIRADATA.allbleus.gz $MIRADATA.allnbest.gz ${REFS// /,} $MIRA_OPTIONS > $MODEL_RAT_OUT"
+   else
+      run_cmd "rescore_train $DASHV $RESCORE_OPTS -n $TRAINING_TYPE -p $PFX $MODEL_RAT_IN $MODEL_RAT_OUT $SRC $NBEST $REFS" \
+              "problems with rescoring!"
    fi
-   run_cmd "rescore_train $DASHV $RESCORE_OPTS -n $TRAINING_TYPE -p $PFX $MODEL_RAT_IN $MODEL_RAT_OUT $SRC $NBEST $REFS" \
-           "problems with rescoring!"
 else
-   if (( $VERBOSE )); then
-      echo rescore_translate $DASHV $RESCORE_OPTS -p $PFX $MODEL_RAT_IN $SRC ${NBEST} \> ${ORIG_PFX}rat
-   fi
    # We want the results outside the working dir that's why we are using $ORIG_PFX
    run_cmd "rescore_translate $DASHV $RESCORE_OPTS -p $PFX $MODEL_RAT_IN $SRC ${NBEST} > ${ORIG_PFX}rat" \
            "problems with rescoring!"

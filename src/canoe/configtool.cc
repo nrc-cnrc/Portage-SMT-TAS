@@ -65,6 +65,8 @@ depending on <cmd>, one of:\n\
                        so, otherwise list ones that can't\n\
   set-weights:rr     - A copy of <config>, with weights replaced by optimum\n\
                        (best BLEU) values from the 'rescore-results' file <rr>\n\
+  set-weights-rm:rm  - A copy of <config>, with weights replaced by corresponding\n\
+                       weights from rescoring model <rm>.\n\
   arg-weights:rm     - An argument-string specification of canoe weights\n\
                        corresponding to the contents of the rescore-model file\n\
                        rm.\n\
@@ -260,6 +262,20 @@ int main(int argc, char* argv[])
       }
       c.setFeatureWeights(wts);
       os << c.getFeatureWeightString(line) << endl;
+   } else if (isPrefix("set-weights-rm:", cmd)) {
+      if (split(cmd, toks, ":") != 2)
+         error(ETFatal, "bad format for set-weights-rm command");
+      vector<double> wts;
+      iSafeMagicStream ifs(toks[1].c_str());
+      string line;
+      vector<string> ltoks;
+      while (getline(ifs,line)) {
+         if (splitZ(line, ltoks) != 2)
+            error(ETFatal, "expecting only 2 tokens in rescore-model file %s", toks[1].c_str());
+         wts.push_back(conv<double>(ltoks[1]));
+      }
+      c.setFeatureWeights(wts);
+      c.write(os,0,pretty);
    } else if (isPrefix("args:", cmd)) {
       if (split(cmd, toks, ":", 2) != 2) 
          error(ETFatal, "bad format for args command");

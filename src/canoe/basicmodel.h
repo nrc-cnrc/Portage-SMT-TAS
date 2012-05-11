@@ -209,11 +209,6 @@ namespace Portage
       vector<double> adirTransWeightsV; //boxing
 
       /**
-       * lexicalized distortion model weights.
-       */
-      vector<double> lexdisWeightsV; //boxing
-
-      /**
        * Weight of the other decoder features, typically but not
        * necessarily distortion, length and segmentation, in that order.
        * This vector will always have the same number of element as the
@@ -448,8 +443,6 @@ namespace Portage
        *                      phrases to limit to (if c.loadFirst is
        *                      false).
        * @param marks         All the marked translations.
-       * @param phraseTable   A subclassed or pre-initialized phrase table to
-       *                      use [NULL, in which case a new one is created]
        * c.loadFirst          If false, limit the phrases loaded to ones
        *                      prespecified using src_sents.  The language
        *                      model is then also limited to words found in

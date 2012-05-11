@@ -1036,11 +1036,15 @@ void CanoeConfig::setFeatureWeights(const vector<double>& weights)
    for (Uint i = 0; i < weight_params.size(); ++i) {
       it = param_map.find(weight_params[i]);
       assert (it != param_map.end());
-      if (it->second->tconv == "double")
+      if (it->second->tconv == "double") {
          *(double*)it->second->val = *wp++;
+         it->second->set_from_config = true; // ugh, sorry!
+      }
       else if (it->second->tconv == "doubleVect") {
          vector<double>& v = *(vector<double>*)it->second->val;
          for (Uint j = 0; j < v.size(); ++j)  v[j] = *wp++;
+         if (!v.empty())
+            it->second->set_from_config = true; // ugh, sorry!
       } else
          assert(false);
    }

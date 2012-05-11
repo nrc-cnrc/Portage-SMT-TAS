@@ -28,12 +28,21 @@ ShiftReducer::ShiftReducer(const Range& r, ShiftReducer* parent)
    ,hashCache(0)
 {
    assert(parent!=NULL);
-   assert(top.start!=top.end); // Bound processing non-deterministic
-                               // with 0-width phrases
+
+   // Bound processing non-deterministic with 0-width phrases
+   //assert(top.start!=top.end);
+   // EJJ: this assertion is too strict, because it prevents us from using
+   // [sentlen,sentlen) as an artificial phrase to represent the jump to the
+   // end of the sentence.  Hence replace this assertion with the one inside
+   // the if statement below, which catches strictly non-deterministic
+   // situations.
+
    // Figure out new bounds
    if(r.end<=parent->start()) {
       leftBound = parent->leftBound;
       rightBound = parent->start();
+      // EJJ make sure the non-deterministic case never occurs.
+      assert(!(r.start>=parent->end()));
    } else if(r.start>=parent->end()) {
       leftBound = parent->end();
       rightBound = parent->rightBound;

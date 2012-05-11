@@ -48,11 +48,12 @@ Options:\n\
 -co   Read entries from file <f> that is line-aligned with nbest, and write \n\
       corresponding rescored entries to <f>.resc. This doesn't work with -mbr,\n\
       nor with variable-sized nbest lists.\n\
--mbr  Minimum Bayes risk: Determine hypothesis with min. risk rather than max. score\n\
-      Note that this gives you 1-best output only! [don't]\n\
+-mbr  Minimum Bayes risk: Determine hypothesis with min risk rather than max\n\
+      score.  Note that this gives you 1-best output only! [don't]\n\
 -gf   Scale all sentence probabilities by global factor <f> in MBR calculation [1]\n\
 -bs   Use BLEU smoothing method <b> in MBR (see bleumain -h) [0 = no smoothing]\n\
 -l    Use only top <l> hypotheses for MBR, sort by rescored sentence scores [all]\n\
+-dump-for-mira PREFIX  Instead of rescoring, dump the files needed for mira.\n\
 ";
 
 
@@ -61,7 +62,7 @@ Options:\n\
    /// Program rescore_translate allowed command line switches.
    const char* const switches[] = {
       "dyn", "max:", "p:", "a:", "v", "K:", "n", "s", "c", "kout:", "co:",
-      "mbr", "gf:", "bs:", "l:"
+      "mbr", "gf:", "bs:", "l:", "dump-for-mira:"
    };
    /// Specific argument processing class for rescore_translate program
    class ARG : public argProcessor
@@ -89,6 +90,7 @@ Options:\n\
          string   src_file;         ///< file containing source sentences
          string   nbest_file;       ///< file containing nbest lists
          string   alignment_file;   ///< file containing alignments
+         string   dump_for_mira;    ///< file prefix for dumping data files for mira
 
       public:
       /**
@@ -137,6 +139,7 @@ Options:\n\
             LOG_DEBUG(m_dLogger, "source file name: %s", src_file.c_str());
             LOG_DEBUG(m_dLogger, "nbest file name: %s", nbest_file.c_str());
             LOG_DEBUG(m_dLogger, "alignment file name: %s", alignment_file.c_str());
+            LOG_DEBUG(m_dLogger, "dump-for-mira prefix: %s", dump_for_mira.c_str());
          }
       }
 
@@ -157,6 +160,7 @@ Options:\n\
          mp_arg_reader->testAndSet("mbr", bMbr);
          mp_arg_reader->testAndSet("gf", glob_scale);
          mp_arg_reader->testAndSet("bs", smooth_bleu);
+         mp_arg_reader->testAndSet("dump-for-mira", dump_for_mira);
 
          mp_arg_reader->testAndSet(0, "model", model);
          mp_arg_reader->testAndSet(1, "src", src_file);

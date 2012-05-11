@@ -1,6 +1,6 @@
 /**
  * @author Samuel Larkin based on George Foster, based on "rescore" by Aaron Tikuisis
- * @file rescore_translate.cc 
+ * @file rescore_translate.cc
  * @brief Program rescore_translate which picks the best translation for a
  * source given an nbest list a feature functions weights vector.
  *
@@ -59,11 +59,28 @@ int MAIN(argc, argv)
    const Uint S(RescoreIO::readSource(arg.src_file, sources));
    if (S == 0) error(ETFatal, "empty source file: %s", arg.src_file.c_str());
 
+   ////////////////////////////////////////
+   // DUMP FF MATRIX MODE
+   oMagicStream ffmatrix, nbestmatrix, bleumatrix;
+   bool dump_for_mira = false;
+   if (!arg.dump_for_mira.empty()) {
+      dump_for_mira = true;
+      string ffvalsfiles(arg.dump_for_mira + ".allffvals.gz");
+      string nbestfile(arg.dump_for_mira + ".allnbest.gz");
+      string dummybleufile(arg.dump_for_mira + ".allbleus.gz");
+      LOG_VERBOSE2(verboseLogger, "Writing FF values matrix to %s", ffvalsfiles.c_str());
+      LOG_VERBOSE2(verboseLogger, "Writing variable length N-best lists to %s", nbestfile.c_str());
+      LOG_VERBOSE2(verboseLogger, "Writing dummy allbleus file %s", dummybleufile.c_str());
+      ffmatrix.safe_open(ffvalsfiles);
+      ffmatrix.precision(9);
+      nbestmatrix.safe_open(nbestfile);
+      bleumatrix.safe_open(dummybleufile);
+   }
 
    ////////////////////////////////////////
    // FEATURE FUNCTION SET
    LOG_VERBOSE2(verboseLogger, "Reading ffset");
-   FeatureFunctionSet ffset;
+   FeatureFunctionSet ffset(dump_for_mira);
    ffset.read(arg.model, arg.bVerbose, arg.ff_pref.c_str(), arg.bIsDynamic);
    ffset.createTgtVocab(sources, FileReader::create<Translation>(arg.nbest_file, arg.K));
    uVector wts(ffset.M());
@@ -127,6 +144,24 @@ int MAIN(argc, argv)
       LOG_VERBOSE3(verboseLogger, "Computing FF matrix");
       uMatrix H;
       ffset.computeFFMatrix(H, s, nbest);
+      if (dump_for_mira) {
+         static Uint M = ffset.M(); // number of features
+         for (Uint k = 0; k < nbest.size(); ++k) {
+            ffmatrix << s;
+            for (Uint m = 0; m < M; ++m)
+               if (isfinite(H(k,m)))
+                  ffmatrix << '\t' << H(k,m);
+               else
+                  ffmatrix << '\t' << -9999;
+            ffmatrix << nf_endl;
+
+            nbestmatrix << s << '\t' << nbest[k] << nf_endl;
+
+            bleumatrix << s << ' ' << 0 << nf_endl;
+         }
+         continue;
+      }
+
       K = nbest.size();  // IMPORTANT K might change if computeFFMatrix detects empty lines
 
       if (co_in) {
@@ -140,18 +175,20 @@ int MAIN(argc, argv)
             if (K==0) {
                cout << endl;
                if (co_out) (*co_out) << endl;
-            } else {
+            }
+            else {
                const uVector Scores = boost::numeric::ublas::prec_prod(H, wts);
-               double logz = arg.conf_scores ? logNorm(Scores) : 0.0;
+               const double logz = arg.conf_scores ? logNorm(Scores) : 0.0;
                const Uint bestIndex = my_vector_max_index(Scores);         // k = sentence which is scored highest
-               if (arg.bPrintRank)cout << bestIndex+1 << " ";
+               if (arg.bPrintRank) cout << bestIndex+1 << " ";
                if (arg.print_scores) cout << Scores[bestIndex] - logz << " ";
                cout << nbest.at(bestIndex) << endl;  // DISPLAY best hypothesis
                if (co_out) (*co_out) << colines[bestIndex] << endl;
             }
-         } else {                  // ouptput k best hypotheses
+         }
+         else {                  // ouptput k best hypotheses
             const uVector Scores = boost::numeric::ublas::prec_prod(H, wts);
-            double logz = arg.conf_scores ? logNorm(Scores) : 0.0;
+            const double logz = arg.conf_scores ? logNorm(Scores) : 0.0;
             priority_queue< pair<float, Uint> > best_scores;
             Uint kout = (arg.kout == 0) ? K : min(arg.kout, K);
             for (Uint i = 0; i < Scores.size(); ++i) { // put best kout into pq
@@ -177,7 +214,8 @@ int MAIN(argc, argv)
                   if (co_out) (*co_out) << endl;
                }
          }
-      } else { // Minimum Bayes risk rescoring using BLEU as loss function
+      }
+      else { // Minimum Bayes risk rescoring using BLEU as loss function
 
         // Sort hypotheses by sentence score
         const uVector Scores = boost::numeric::ublas::prec_prod(H, wts) * arg.glob_scale;
@@ -188,19 +226,19 @@ int MAIN(argc, argv)
           best_scores.insert(make_pair(-Scores[i], i));
 
         // Consider only the <kmbr> top hypotheses for MBR
-        Uint kmbr = arg.kmbr == 0 ? K : min(arg.kmbr, K);
+        const Uint kmbr = arg.kmbr == 0 ? K : min(arg.kmbr, K);
 
         // Determine total prob. mass of op <kmbr> hypotheses for normalization
         Uint n=0;
         double sum = 0.0;
-        double minCost = best_scores.begin()->first;
+        const double minCost = best_scores.begin()->first;
         if (arg.bVerbose) cerr << "min costs (max.prob.): " << minCost << endl;
         for (map<float, Uint>::const_iterator itr=best_scores.begin();
              itr!=best_scores.end() && ++n<=kmbr; itr++) {
           sum += exp(minCost - itr->first);
           if (arg.bVerbose) cerr << "sum " << itr->second << ": " << itr->first << "->" << sum << endl;
         }
-        double lognorm = minCost - log(sum);
+        const double lognorm = minCost - log(sum);
         if (arg.bVerbose)
           cerr << "==============================" << endl
                << "Normalizing everything by logprob. " << lognorm << endl;

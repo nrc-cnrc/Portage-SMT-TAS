@@ -91,7 +91,7 @@ Options:\n\
 -rf   Randomize the order in which features are optimized by each call to\n\
       Powell's alg [always optimize in fixed order 1,2,3...].\n\
 -sm   bleu smoothing formula 1 2 3 (see bleumain -h for details) [1]\n\
--a    Also read in phrase alignment file F.\n\
+-a    Also read in phrase alignment (pal) file F.\n\
 -f    Floor output weights at 0, beginning with zero-based index i. [don't]\n\
 -p    Prepend ff-pref to file names for FileFF features\n\
 -dyn  Indicates that the nbest list and FileFF files are in variable-size\n\

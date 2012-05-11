@@ -364,13 +364,41 @@ string BasicModelGenerator::describeModel() const
    // The order of the features here must be the same as in
    // BasicModel::getFeatureFunctionVals()
    ostringstream description;
+   description << "index\tweight\tfeature description" << endl;
    Uint featureIndex(0);  // indicates column for the feature
-   for ( vector<DecoderFeature*>::const_iterator it = decoder_features.begin();
-         it != decoder_features.end(); ++it )
-      description << ++featureIndex << "\t" << (*it)->describeFeature() << endl;
-   for ( vector<PLM*>::const_iterator it = lms.begin(); it != lms.end(); ++it )
-      description << ++featureIndex << "\t" << (*it)->describeFeature() << endl;
-   description << ++featureIndex << "\t" << phraseTable->describePhraseTables(!forwardWeightsV.empty());
+   assert(decoder_features.size() == featureWeightsV.size());
+   for (Uint i = 0; i < decoder_features.size(); ++i) {
+      description << ++featureIndex << "\t";
+      if (c->randomWeights) description << "random"; else description << featureWeightsV[i];
+      description << "\t" << decoder_features[i]->describeFeature() << nf_endl;
+   }
+   assert(lms.size() == lmWeightsV.size());
+   for (Uint i = 0; i < lms.size(); ++i) {
+      description << ++featureIndex << "\t";
+      if (c->randomWeights) description << "random"; else description << lmWeightsV[i];
+      description << "\t" << lms[i]->describeFeature() << nf_endl;
+   }
+   string tm_desc = phraseTable->describePhraseTables(!forwardWeightsV.empty());
+   vector<string> tm_desc_items;
+   split(tm_desc, tm_desc_items, "\n");
+   vector<double> all_tm_weights = transWeightsV;
+   all_tm_weights.insert(all_tm_weights.end(), forwardWeightsV.begin(), forwardWeightsV.end());
+   all_tm_weights.insert(all_tm_weights.end(), adirTransWeightsV.begin(), adirTransWeightsV.end());
+   assert(all_tm_weights.size() == tm_desc_items.size());
+   for (Uint i = 0; i < tm_desc_items.size(); ++i) {
+      description << ++featureIndex << "\t";
+      if (c->randomWeights) description << "random"; else description << all_tm_weights[i];
+      description << "\t" << tm_desc_items[i] << nf_endl;
+   }
+   /*
+   description << phraseTable->describePhraseTables(!forwardWeightsV.empty());
+   description << "TM weights: tm: " << join(transWeightsV);
+   if (!forwardWeightsV.empty())
+      description << " ftm: " << join(forwardWeightsV);
+   if (!adirTransWeightsV.empty())
+      description << " atm: " << join(adirTransWeightsV);
+   description << rnd << endl;
+   */
 
    return description.str();
 } // describeModel

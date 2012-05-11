@@ -40,11 +40,11 @@ reference files.\n\
 \n\
 Options:\n\
 \n\
--v  Write progress reports to cerr.\n\
--n  Use n bootstrapped samples for comparison. [1000]\n\
--bleu train using bleu as the scoring metric [do]\n\
--wer  train using wer as the scoring metric [don't]\n\
--per  train using per as the scoring metric [don't]\n\
+-v      Write progress reports to cerr.\n\
+-n      Use n bootstrapped samples for comparison. [1000]\n\
+-bleu   train using bleu as the scoring metric [do]\n\
+-wer    train using wer as the scoring metric [don't]\n\
+-per    train using per as the scoring metric [don't]\n\
 ";
 
 

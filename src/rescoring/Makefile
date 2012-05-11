@@ -52,7 +52,10 @@ BINSCRIPTS = \
 	rat.sh \
         rescore-bwd-lm.sh \
         rescore-train-micro.sh \
-	rescoremodel2canoearg.sh
+	rescoremodel2canoearg.sh \
+        stub-feature-function.sh \
+        tune.py \
+	cherrycSMT.jar
 
 LIBRARY=libportage_rescoring
 
@@ -80,7 +83,7 @@ DYNLIBS=-lpthread $(LIBICU)
 
 PGM_WITH_ALTERNATIVE_HELP = rescore_train
 
-MODULE_DEPENDS=canoe tm lm eval logging preprocessing tpt
+MODULE_DEPENDS=canoe lm eval tm preprocessing tpt logging
 
 ifdef NO_PORTAGE_OPENMP
 MODULE_CF=-Wno-unknown-pragmas
