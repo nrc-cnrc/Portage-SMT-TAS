@@ -6,7 +6,7 @@
  *
  *
  * Technologies langagieres interactives / Interactive Language Technologies
- * Inst. de technologie de l'information / Institute for Information Technology
+ * Tech. de l'information et des communications / Information and Communications Tech.
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2012, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2012, Her Majesty in Right of Canada
