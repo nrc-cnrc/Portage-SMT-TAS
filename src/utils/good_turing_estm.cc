@@ -82,6 +82,8 @@ int main(int argc, char* argv[])
 
    for (Uint i = 0; i < freqs.size(); ++i) 
       os << gt->smoothedFreq(freqs[i]) << endl;
+
+   delete gt;
 }
 
 // arg processing

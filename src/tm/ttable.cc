@@ -40,7 +40,7 @@ TTable::TTable(const string& filename, const Voc* src_voc)
 {
    init();
    string line;
-   {
+   if (filename != "-") {
       iSafeMagicStream is(filename, true);
       getline(is, line);
    }
@@ -106,7 +106,7 @@ void TTable::read(const string& filename, const Voc* src_voc)
 
       pair<WordMapIter,bool> res;
 
-      float pr;
+      float pr(0);
       conv(toks[2], pr);
 
       res = tword_map.insert(make_pair(toks[1], twords.size()));
@@ -194,7 +194,7 @@ void TTable::makeDistnsUniform()
    // values have been inserted.
    for (Uint i = 0; i < src_distns.size(); ++i) {
       SrcDistn& distn = src_distns[i];
-      if (distn.capacity() > 0 && float(distn.size() / distn.capacity() < .9)) {
+      if (distn.capacity() > 0 && float(distn.size()) / distn.capacity() < .9) {
          SrcDistn compact_copy(distn);
          distn.swap(compact_copy);
          assert(distn.capacity() == distn.size());

@@ -15,6 +15,7 @@
 #define __MAP_NUMBER_H__
 
 #include "portage_defs.h"
+#include <boost/shared_ptr.hpp>
 #include <string>
 
 namespace Portage {
@@ -34,50 +35,38 @@ class baseNumberMapper {
 
    public:
       /**
-      * Functor to make any number mapper pointer a compatible converter for split.
-      */
+       * Functor to make any number mapper pointer a compatible converter for split.
+       */
       struct functor {
          /// What number mapper this capsule is wrapping.
-         baseNumberMapper*  mapper;
+         boost::shared_ptr<baseNumberMapper>  mapper;
 
          /**
-         * Default constructor.
-         * @param map_type  the number mapper type.
-         * @param token     token to replace digits.
-         */
+          * Default constructor.
+          * @param map_type  the number mapper type.
+          * @param token     token to replace digits.
+          */
          functor(const string& map_type, const char token = '@')
          : mapper(getMapper(map_type, token))
          {
-            assert(mapper != NULL);
+            assert(mapper);
          }
          /**
-         * Default constructor.
-         * @param mapper  the number mapper.
-         */
+          * Default constructor.
+          * @param mapper  the number mapper.
+          */
          functor(baseNumberMapper* const mapper)
          : mapper(mapper)
          {
-            assert(mapper != NULL);
+            assert(mapper);
          }
          /**
-         * Free the memory used by the internal mapper.
-         * Since the capsule cannot really be the owner of the pointer, because
-         * split need copy to copy the converter aka the capsule, we still offer the
-         * possibility for the user to release the memory of the mapper.
-         */
-         void free() {
-            if (mapper) {
-               delete mapper;
-               mapper = NULL;
-            }
-         }
-         /**
-         * Makes the capsule a proper functor for split.
-         * @param in   the input string to map.
-         * @param out  the mapped string.
-         */
+          * Makes the capsule a proper functor for split.
+          * @param in   the input string to map.
+          * @param out  the mapped string.
+          */
          void operator()(const string& in, string& out) {
-            assert(mapper != NULL);
+            assert(mapper);
             mapper->map(in, out);
          }
       };

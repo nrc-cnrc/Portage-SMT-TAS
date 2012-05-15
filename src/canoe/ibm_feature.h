@@ -70,7 +70,9 @@ public:
 
    /// Destructor.
    ~IBM1FwdFeature() {
-      // delete ibm1;
+      // Feature destructors should clean up properly - they won't be called at
+      // all in -no-final-cleanup mode!
+      delete ibm1;
    }
 };
 

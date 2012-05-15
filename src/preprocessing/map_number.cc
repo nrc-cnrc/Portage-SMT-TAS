@@ -65,9 +65,6 @@ int main(const int argc, const char* argv[]) {
       copy(converted_input.begin(), converted_input.end(), ostream_iterator<string>(cout, " "));
       cout << endl;
    }
-
-   // Free up the mapper
-   mapper.free();
 }
 
 void getArgs(int argc, const char* const argv[])

@@ -13,7 +13,6 @@
 #include "file_utils.h"
 #include "arg_reader.h"
 #include "printCopyright.h"
-#include <boost/scoped_ptr.hpp>
 
 using namespace Portage;
 using namespace std;
@@ -61,11 +60,12 @@ int main(int argc, char* argv[])
    iSafeMagicStream nbestsfile(nbests);
    oSafeMagicStream nbestsoutfile(nbestsout);
 
-   boost::scoped_ptr<istream> palfile;
-   boost::scoped_ptr<ostream> paloutfile;
-   if (pal != "") {
-      palfile.reset(new iSafeMagicStream(pal));
-      paloutfile.reset(new oSafeMagicStream(pal + ".uniq"));
+   iMagicStream palfile;
+   oMagicStream paloutfile;
+   const bool has_pal = !pal.empty();
+   if (has_pal) {
+      palfile.safe_open(pal);
+      paloutfile.safe_open(pal + ".uniq");
    }
 
    vector<string> nbout;
@@ -83,8 +83,8 @@ int main(int argc, char* argv[])
 	 if (!getline(nbestsfile, line))
 	    break;
 
-	 if (palfile) 
-	    if (!getline(*palfile, palline)) 
+	 if (has_pal) 
+	    if (!getline(palfile, palline)) 
 	       error(ETFatal, "pal file %s too short", pal.c_str());
 
 	 if (nbout.size() != K) { // try to add this hyp
@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
 	       }
 	    if (!dup) {
 	       nbout.push_back(line);
-	       if (palfile) palout.push_back(palline);
+	       if (has_pal) palout.push_back(palline);
 	    }
 	 }
       }
@@ -110,10 +110,10 @@ int main(int argc, char* argv[])
       for (Uint i = 0; i < KOUT; ++i) {
          if (i < nbout.size()) {
             nbestsoutfile << nbout[i];
-	    if (palfile) (*paloutfile) << palout[i];
+	    if (has_pal) paloutfile << palout[i];
 	 }
          nbestsoutfile << "\n";
-	 if (palfile) (*paloutfile) << "\n";
+	 if (has_pal) paloutfile << "\n";
       }
    }
 }

@@ -27,7 +27,7 @@
 namespace Portage {
 
 /// Used to convert string tokens to integer value.
-class Voc {
+class Voc : private NonCopyable {
 protected:
    /// When you have the index and you want to convert it back to a word.
    vector<const char*> words;

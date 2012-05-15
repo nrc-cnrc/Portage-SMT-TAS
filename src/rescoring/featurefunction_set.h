@@ -31,7 +31,7 @@ typedef boost::shared_ptr<FeatureFunction> ptr_FF;
 /**
  * A weighted set of feature functions
  */
-class FeatureFunctionSet
+class FeatureFunctionSet : private NonCopyable
 {
    bool training;               // read() will parse random distn if true
    Uint seed;                   // seed increment for all random generators

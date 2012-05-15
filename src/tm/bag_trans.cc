@@ -51,16 +51,6 @@ static ifstream ifs;
 static ofstream ofs;
 static void getArgs(int argc, char* argv[]);
 
-bool regetline(istream& is, string& line) 
-{
-   if (!persist || is == cin)
-      return false;
-   ifs.clear();
-   ifs.close();
-   ifs.open(input_file.c_str());
-   return getline(is, line);
-}
-
 int main(int argc, char* argv[])
 {
    printCopyright(2005, "bag_trans");

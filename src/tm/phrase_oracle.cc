@@ -114,7 +114,9 @@ int main(int argc, char* argv[])
    split(align_spec, toks, " \n\t", 2);
    toks.resize(2);
    WordAligner* main_aligner = factory.createAligner(toks[0], toks[1]);
+   assert(main_aligner);
    WordAligner* cart_aligner = factory.createAligner("CartesianAligner", "");
+   assert(cart_aligner);
 
    if (verbose) cerr << "models loaded" << endl;
 

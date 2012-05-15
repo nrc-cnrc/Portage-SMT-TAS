@@ -64,7 +64,7 @@ enum FFRequires {
  * with the source sentence's own nbest.  Finally, we can extract feature
  * values by calling the value(s) function.
  */
-class FeatureFunction {
+class FeatureFunction : private NonCopyable {
 
 protected:
 

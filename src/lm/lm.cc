@@ -317,7 +317,7 @@ void PLM::Hits::display(ostream& out) const {
    const double total_hits = accumulate(values.begin(), values.end(), 0.0f);
    out << "Found k-grams: ";
    for (Uint i(0); i<values.size(); ++i) {
-      snprintf(buffer, 126, "%d:%d(%2.0f", i, values[i], values[i]/total_hits*100.0f);
+      snprintf(buffer, 126, "%d:%d(%2.0f", i, values[i], double(values[i])/total_hits*100.0f);
       out << buffer << "%) ";
    }
    out << "Total: " << total_hits << endl;

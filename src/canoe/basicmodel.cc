@@ -311,7 +311,7 @@ BasicModelGenerator::~BasicModelGenerator()
 {
    LOG_VERBOSE1(bmgLogger, "Destroying a BasicModelGenerator");
 
-   // if the user doesn't want so clean up, exit.
+   // if the user doesn't want to clean up, exit.
    if (c != NULL && c->final_cleanup) {
       for ( vector<DecoderFeature *>::iterator it = decoder_features.begin();
             it != decoder_features.end(); ++it )

@@ -1011,6 +1011,7 @@ shared_ptr<TargetPhraseTable> PhraseTable::findInAllTables(
 
    // Structure to return
    shared_ptr<TargetPhraseTable> tgtTable(new TargetPhraseTable);
+   assert(tgtTable);
    if (textTgtTable != NULL) {
       *tgtTable = *textTgtTable;
       for (TargetPhraseTable::iterator iter(tgtTable->begin());

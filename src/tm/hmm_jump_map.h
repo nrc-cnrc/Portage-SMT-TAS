@@ -26,7 +26,7 @@ namespace Portage {
  * Bayesian MAP training, with non-lexicalized jump probs as a prior.
  * This class implements the approach presented by Xiadong He at ACL-WMT07.
  */
-class HMMJumpMAP : public HMMJumpStrategy {
+class HMMJumpMAP : public HMMJumpStrategy, private NonCopyable {
    virtual void set_p_zero(double _p_zero) { prior->set_p_zero(_p_zero); p_zero = _p_zero;}
    virtual void set_uniform_p0(double _uniform_p0) { prior->set_uniform_p0(_uniform_p0); uniform_p0 = _uniform_p0; }
    virtual void set_alpha(double _alpha) { prior->set_alpha(_alpha); alpha = _alpha; }

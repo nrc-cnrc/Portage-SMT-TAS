@@ -105,6 +105,7 @@ int main(int argc, char* argv[])
 
    WordAlignerFactory alfactory(ibm_1, ibm_2, 0, false, false);
    WordAligner* aligner = alfactory.createAligner(align_method);
+   assert(aligner);
 
    WordAlignmentWriter* alwriter = WordAlignmentWriter::create(output_format);
    GALEWriter* galewriter = NULL;
@@ -207,6 +208,9 @@ int main(int argc, char* argv[])
       error(ETFatal, "pal file is too long");
    
    if (verbose) cerr << endl << "done" << endl;
+
+   delete alwriter;
+   delete ppnbest;
 }
 
 // arg processing

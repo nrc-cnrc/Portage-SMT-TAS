@@ -122,6 +122,9 @@ int main(int argc, char* argv[])
         << "on " << num_files << " files, " << num_segments << " segments, " << num_toks << " tokens"
         << endl;
 
+   #ifdef __KLOCWORK__
+   delete ibm;
+   #endif
 }
 
 // arg processing

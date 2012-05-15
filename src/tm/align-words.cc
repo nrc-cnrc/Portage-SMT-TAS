@@ -412,7 +412,7 @@ int MAIN(argc, argv)
 
    // Clean up - we typically skip this step as an optimization, since the OS
    // cleans things up much faster, and just as effectively on Linux hosts.
-   if ( 0 ) {
+   #ifdef __KLOCWORK__
       time_t start = time(NULL);
       delete aligner;
       delete aligner_factory;
@@ -422,7 +422,7 @@ int MAIN(argc, argv)
       delete ibm_1;
       delete ibm_2;
       cerr << "Spent " << (time(NULL)-start) << " seconds cleaning up";
-   }
+   #endif
 
 }
 END_MAIN
