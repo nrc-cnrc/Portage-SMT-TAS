@@ -16,10 +16,10 @@
 #include "printCopyright.h"
 #include "file_utils.h"
 #include "arg_reader.h"
+#include "merge_stream.h"
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <queue>
 #include <iterator>
 
 using namespace Portage;
@@ -50,254 +50,54 @@ static void getArgs(int argc, char* argv[]);
 
 
 /**
- * Keeps track of multiple streams and only allows access to the smallest
- * stream which is the stream with the smallest phrase in ascii order.
+ * Bundles the phrase and its counts.
  */
-class mergeStream
-{
-   public:
-      /**
-       * Bundles the phrase and its counts.
-       */
-      struct Datum {
-         string prefix;   ///< phrase
-         Uint   count;    ///< phrase's count
+struct Datum {
+   string key;   ///< phrase
+   Uint   count;    ///< phrase's count
 
-         /// Default constructor.
-         Datum()
-         : count(0xBAD)
-         {}
+   /// Default constructor.
+   Datum()
+      : count(0xBAD)
+   {}
 
-         void print(ostream& out) const {
-            out << prefix << count << endl;
-         }
+   /// Stream need the key to validate the order of it underlying input file.
+   const string& getKey() const { return key; }
 
-         void debug(const char* const msg) const {
-            if (bDebug) {
-               cerr << msg << "\t";
-               print(cerr);
-            }
-         }
-         Datum& operator+=(const Datum& other) {
-            count += other.count;
-            return *this;
-         }
-         bool operator==(const Datum& other) const {
-            return prefix == other.prefix;
-         }
-         bool operator<(const Datum& other) const {
-            return prefix < other.prefix;
-         }
-      };
+   bool parse(const string& buffer, Uint pId) {
+      const string::size_type pos = buffer.rfind(delimiter);
+      if (pos == string::npos)
+         error(ETFatal, "Invalid entry %s", buffer.c_str());
 
-   private:
-      /**
-       * Reads, parses and track each datum from a file.
-       */
-      class Stream {
-         private:
-            const string       file;   ///< Filename
-            Uint               lineno; ///< Current line number
-            iSafeMagicStream   input;  ///< file stream
-            Datum*             _data;  ///< Datum
-            string             buffer; ///< line buffer
-            /// We need a placeholder to keep track of the entries to check if
-            /// the stream is LC_ALL=C sorted.
-            string             prev_entry;
+      // Check if the stream is LC_ALL=C sorted on the fly.
+      key = buffer.substr(0, pos+1);
 
-         private:
-            Stream(const Stream&); ///< Noncopyable
-            Stream& operator=(const Stream&); ///< Noncopyable
+      if (!convT(buffer.substr(pos+1).c_str(), count))
+         error(ETWarn, "Count is not a number: %s", buffer.substr(pos).c_str());
 
-         public:
-            /// Default constructor
-            Stream(const string& file)
-            : file(file)
-            , lineno(0)
-            , input(file)
-            , _data(NULL)
-            {
-               // Triggers reading the first record which is required to have
-               // the stream ordered.
-               get();
-            }
+      return true;
+   }
 
-            /// Destructor.
-            ~Stream() { delete _data; }
+   void print(ostream& out) const {
+      out << key << count << endl;
+   }
 
-            bool eof() const { return _data == NULL; }
-
-            /**
-             * Swaps this stream's buffer with spare.
-             * This stream will now use spare internally.
-             * This allows use to minimize memory allocation/copy.
-             * @param spare a datum buffer to give to this stream.
-             */
-            void swap_buffer(Datum*& spare) {
-                assert(spare != NULL);
-                swap(_data, spare);
-            }
-
-            Datum* get() {
-               if (getline(input, buffer)) {
-                  ++lineno;
-                  const string::size_type pos = buffer.rfind(delimiter);
-                  if (pos == string::npos)
-                     error(ETFatal, "Invalid entry %s", buffer.c_str());
-                  if (_data == NULL) _data = new Datum;
-                  assert(_data != NULL);
-
-                  // Check if the stream is LC_ALL=C sorted on the fly.
-                  _data->prefix = buffer.substr(0, pos+1);
-                  if (prev_entry > _data->prefix) {
-                     error(ETFatal, "%s is not LC_ALL=C sorted at line %u:\n%s\n%s",
-                           file.c_str(), lineno, prev_entry.c_str(), _data->prefix.c_str());
-                  }
-
-                  prev_entry = _data->prefix;
-                  if (!convT(buffer.substr(pos+1).c_str(), _data->count))
-                     error(ETWarn, "Count is not a number: %s", buffer.substr(pos).c_str());
-               }
-               else {
-                  delete _data;
-                  _data = NULL;
-               }
-
-               return _data;
-            }
-
-            bool operator<(const Stream& other) const {
-               // Make sure the exhausted streams are at the end of the queue
-               if (other.eof()) return true;
-               if (eof()) return false;
-               // At this point, _data and other._data have been verified not NULL.
-               return *(_data) < *(other._data);
-            }
-
-            struct bestThan {
-               bool operator()(const Stream* const a, const Stream* const b) {
-                  assert(a != NULL);
-                  assert(b != NULL);
-                  // false when equal
-                  return !(*a < *b);
-               }
-            };
-      };
-
-      /// Keeps track of the next "smallest" stream to get datum from.
-      priority_queue<Stream*, vector<Stream*>, Stream::bestThan> queue;
-
-      /// Last datum read which also acts has a buffered input.
-      Datum* last_datum_read;
-      /// Used to tally counts for a particular source.  Spares some allocations.
-      Datum* total;
-      /// Indicates if there are datums to process in the stream.
-      bool finished;
-
-   private:
-      /// Deactivated copy constructor.
-      mergeStream(const mergeStream&);
-      /// Deactivated assignment operator.
-      mergeStream& operator=(const mergeStream&);
-
-   public:
-      /**
-       * Default constructor.
-       * @param infiles  list of filenames of stream to process.
-       */
-      mergeStream(const vector<string>& infiles)
-      : last_datum_read(new Datum)
-      , total(new Datum)
-      {
-         for (Uint i(0); i<infiles.size(); ++i) {
-            // Create a Stream with one input file.
-            Stream* s = new Stream(infiles[i]);
-            assert(s != NULL);
-            // Make sure there is at least one entry or else the is no point in
-            // adding it to the queue.
-            if (!s->eof()) {
-               queue.push(s);
-            }
-            else {
-               // This stream was empty, delete it.
-               delete s;
-            }
-         }
-
-         last_datum_read = get();
+   void debug(const char* const msg) const {
+      if (bDebug) {
+         cerr << msg << "\t";
+         print(cerr);
       }
-
-      /// Destructor.
-      ~mergeStream() {
-         while (!queue.empty()) {
-            Stream* smallest = queue.top();
-            queue.pop();
-            delete smallest;
-         }
-         assert(queue.empty());
-         delete last_datum_read;
-         delete total;
-      }
-
-      /**
-       * Signals that there is nothing less in the stream(s).
-       * The end only happens when all the streams have reached eof and that
-       * the buffered datum have been processed.
-       * @return Returns true if there is no more datum in the stream.
-       */
-      bool eof() const { 
-         // We are at the end when there is no more datum.
-         return last_datum_read == NULL; 
-      }
-
-      /**
-       * Reads one datum from the "smallest" stream.
-       * @return Returns the the datum from the smallest stream or NULL if the
-       *         queue is empty which doesn't mean there is no datum left in memory.
-       */
-      Datum* get() {
-         if (queue.empty()) {
-            // Deferred eof since we always have one datum in memory.
-            delete last_datum_read;
-            last_datum_read = NULL;
-            return last_datum_read;
-         }
-
-         // Remove eof stream from priority queue
-         Stream* smallest = queue.top();
-         assert(smallest != NULL);
-         queue.pop();
-
-         // Make the datum from the smallest stream the last datum read.
-         smallest->swap_buffer(last_datum_read);
-         assert(last_datum_read != NULL);
-
-         // Update the stream by reading the next entry.
-         smallest->get();
-         if (!smallest->eof()) {
-            queue.push(smallest);
-         }
-         else {
-            delete smallest;
-         }
-
-         return last_datum_read;
-      }
-
-      /**
-       * Tallies the results for the next entry.
-       * @return Returns the tallied result for the next entry.
-       */
-      Datum next() {
-         Datum* current;
-         swap(total, last_datum_read);  // Initialzes total with the smallest value
-         // NOTE: current aka last_datum_read is not empty after this loop.
-         while ((current = get()) != NULL && *(current) == *(total)) {
-            *total += *current;
-         }
-
-         return *total;
-      }
+   }
+   Datum& operator+=(const Datum& other) {
+      count += other.count;
+      return *this;
+   }
+   bool operator==(const Datum& other) const {
+      return key == other.key;
+   }
+   bool operator<(const Datum& other) const {
+      return key < other.key;
+   }
 };
 
 
@@ -313,7 +113,7 @@ int main(int argc, char* argv[])
    cerr << endl;
 
 
-   mergeStream       ms(infiles);
+   mergeStream<Datum>  ms(infiles);
    oSafeMagicStream  out(outfile);
 
    while (!ms.eof()) {
