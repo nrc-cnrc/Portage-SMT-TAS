@@ -1,0 +1,6 @@
+[ttable-multi-prob] cpt1
+[ttable-tppt] cpt2.tppt
+[lmodel-file] lm
+[use-ftm]
+[distortion-limit] 0
+[b] 1e-30

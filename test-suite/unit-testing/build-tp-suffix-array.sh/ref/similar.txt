@@ -1,0 +1,27 @@
+Has he seen the media reports ? 
+[1: 0.277778 :24] Has he seen the media reports ? Would he want to come to my community and talk to the people who are taking off the placards and putting our community at risk ?
+
+Here I am today . 
+
+Should I say from the dictatorship ? 
+[1: 0.727273 :35] Or should I say from the dictatorship ?
+[2: 0.153846 :36] I do not want drivel from the dictatorship anymore .
+
+I do not want drivel from the dictatorship anymore . 
+[1: 1 :36] I do not want drivel from the dictatorship anymore .
+[2: 0.2 :34] I hope that I do not get the usual drivel from the government .
+[3: 0.142857 :35] Or should I say from the dictatorship ?
+
+It is done in other countries . 
+[1: 1 :43] It is done in other countries .
+
+Mr. Speaker , it is short of incredible . 
+[1: 0.666667 :17] Mr. Speaker , it is nothing short of incredible .
+[2: 0.125 :80] Mr. Speaker , I feel sorry for the parliamentary secretary .
+
+So I would ask the parliamentary secretary , has he actually talked to his staff ? 
+[1: 0.777778 :23] The U.S. Coast Guard provides that service . So I would ask the parliamentary secretary , has he actually talked to his staff ?
+
+It is a matter of public policy in many other governments . 
+[1: 1 :44] It is a matter of public policy in many other governments .
+
