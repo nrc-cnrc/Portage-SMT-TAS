@@ -761,7 +761,7 @@ void WordAlignerFactory::addPhrases(const vector<string>& toks1, const vector<st
          latest1[i] = sets1[i].back();
       }
       for (Uint j = 0; j < sets1[i].size(); ++j) {
-         Uint jj = sets1[i][j];
+         const Uint jj = sets1[i][j];
          if (jj < toks2.size()) {
             earliest2[jj] = min(earliest2[jj], i);
             latest2[jj] = max(latest2[jj], i);
@@ -802,8 +802,8 @@ void WordAlignerFactory::addPhrases(const vector<string>& toks1, const vector<st
                                       toks2.begin()+b2, toks2.begin()+e2, ct);
 
                   if (verbose > 1) {
-                     string p1 = join(toks1.begin()+b1, toks1.begin()+e1, "_");
-                     string p2 = join(toks2.begin()+b2, toks2.begin()+e2, "_");
+                     const string p1 = join(toks1.begin()+b1, toks1.begin()+e1, "_");
+                     const string p2 = join(toks2.begin()+b2, toks2.begin()+e2, "_");
                      cerr << b1 << ':' << p1 << ':' << e1 << "/" << b2 << ':' << p2 << ':' << e2 << " ";
                   }
                }
