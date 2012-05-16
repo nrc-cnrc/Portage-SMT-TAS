@@ -1,3 +1,8 @@
+/**
+ * @author Uli Germann and Eric Joanis
+ * @file mmtsa.find.cc
+ * @brief Look for a string in a TPSA.
+ */
 #include <sstream>
 
 #include <boost/program_options.hpp>
@@ -7,6 +12,7 @@
 #include "ug_get_options.h"
 #include "ug_corpus_token.h"
 #include "ug_mm_ttrack.h"
+
 
 using namespace std;
 using namespace ugdiss;

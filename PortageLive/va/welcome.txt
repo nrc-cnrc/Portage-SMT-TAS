@@ -3,7 +3,7 @@ ${app.name} - ${app.version}
 To manage this VM browse to ${vami.url}
 
 This Virtual Appliance (VA) implements a translation engine that uses the
-Portage 1.4.3 SMT system from the Interactive Language Technologies group (ILT)
+Portage 1.5.0 SMT system from the Interactive Language Technologies group (ILT)
 of the NRC's Institute for Information Technology, with models trained on the
 client_corpus_name corpus.
 

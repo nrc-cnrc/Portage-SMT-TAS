@@ -202,7 +202,7 @@ Mandatory dependencies for all distributions:
    and use language models, but we don't provide the training functionality,
    since it is readily available.  If your licensing requirements allow it, we
    recommend SRILM (http://www.speech.sri.com/projects/srilm/).  If you can't
-   used SRILM, we recommend MITLM (http://code.google.com/p/mitlm/), another
+   use SRILM, we recommend MITLM (http://code.google.com/p/mitlm/), another
    excellent LM toolkit which allows commercial use.  You can also use any
    other package which produces language models in Doug Paul's ARPA format, but
    note that in our experiments, SRILM and MITLM have worked best.
@@ -367,6 +367,10 @@ Mandatory dependencies for source code distributions:
    can't find libz.a, you can download it from http://www.zlib.net/.
 
 Optional dependencies for source code distributions:
+
+ - TCMalloc - Portage 1.5 will run much faster if you use this very efficient
+   memory allocation library from Google.  After you download and install it,
+   set the variable TCMALLOC in src/Makefile.user-conf to enalbe its use.
 
  - CxxTest - our unit testing framework depends on CxxTest, which can be
    downloaded from http://cxxtest.tigris.org/.  CxxTest is a very small package
