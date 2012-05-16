@@ -1,49 +1,50 @@
-                               Portage_1.4.3
+                               Portage_1.5.0
 
 Technologies langagieres interactives / Interactive Language Technologies
-Institut de technologie de l'information / Institute for Information Technology
+Technologies de l'information et des communications /
+   Information and Communications Technologies
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2004-2011, Sa Majeste la Reine du Chef du Canada
-Copyright 2004-2011, Her Majesty in Right of Canada
+Copyright 2004-2012, Sa Majeste la Reine du Chef du Canada
+Copyright 2004-2012, Her Majesty in Right of Canada
 
 Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
 
 
-                           Installing Portage 1.4
+                           Installing Portage 1.5
 
 We don't use autoconf, so the installation is done manually, but we tried to
 keep it as simple as possible.
 
 Copy the full contents of the CD to a directory of your choice, say
-$HOME/Portage1.4.3.
-   cp -prd /CDlocation $HOME/Portage1.4.3
+$HOME/Portage1.5.0.
+   cp -prd /CDlocation $HOME/Portage1.5.0
 or
-   rsync -av /CDlocation $HOME/Portage1.4.3
+   rsync -av /CDlocation $HOME/Portage1.5.0
 
 Some users have reported needing to run "chmod +w" on some files or directories
-after the cp or rsync above.  Running "chmod -R +w $HOME/Portage1.4.3" might
+after the cp or rsync above.  Running "chmod -R +w $HOME/Portage1.5.0" might
 solve this problem.
 
-If you chose a location other than $HOME/Portage1.4.3, edit SETUP.bash and
+If you chose a location other than $HOME/Portage1.5.0, edit SETUP.bash and
 SETUP.tcsh and change the value of the PORTAGE variable to the actual location
-where your installed Portage 1.4, and adjust the next steps below
+where your installed Portage 1.5, and adjust the next steps below
 accordingly.
 
-Add $HOME/Portage1.4.3/{bin,lib,include} to the appropriate environment
-variables by sourcing $HOME/Portage1.4.3/SETUP.bash or SETUP.tcsh (depending
+Add $HOME/Portage1.5.0/{bin,lib,include} to the appropriate environment
+variables by sourcing $HOME/Portage1.5.0/SETUP.bash or SETUP.tcsh (depending
 on your preferred shell - if you use a shell other than bash or csh/tcsh,
 you're on your own):
-   source $HOME/Portage1.4.3/SETUP.bash
+   source $HOME/Portage1.5.0/SETUP.bash
 or
-   source $HOME/Portage1.4.3/SETUP.tcsh
+   source $HOME/Portage1.5.0/SETUP.tcsh
 
 For source code distributions :
 
    Resolve any dependencies (see External dependencies, below).
    Review src/Makefile.user-conf and make any changes needed to reflect your
    system configuration and choices.
-   Compile and install Portage 1.4:
+   Compile and install Portage 1.5:
       cd src
       make -j 5
       make -j 5 install
@@ -54,11 +55,11 @@ For source code distributions :
 
                         Verifying your installation
 
-Once Portage 1.4 is installed, execute the following command to make sure you can
+Once Portage 1.5 is installed, execute the following command to make sure you can
 run the software:
-   make -C $HOME/Portage1.4.3/test-suite/unit-testing/check-installation
+   make -C $HOME/Portage1.5.0/test-suite/unit-testing/check-installation
 This script invokes programs that are each installed differently, and exercise
-the key parts of Portage 1.4 installation.  If everything is OK, you should see
+the key parts of Portage 1.5 installation.  If everything is OK, you should see
 the following message: "Everything is correctly installed!" otherwise you will
 get some indication of what could be missing or mis-configured.  Repeat the
 command until you solved all errors.
@@ -66,7 +67,7 @@ command until you solved all errors.
 If you get "command not found" for any of these, your PATH is not correctly set
 or your installation failed.  Check your SETUP.bash/tcsh file and make sure you
 are sourcing it properly, ideally in your .<shell>rc file.  Your $PATH variable
-should include Portage1.4.3/bin.  Also check that Portage1.4.3/bin contains
+should include Portage1.5.0/bin.  Also check that Portage1.5.0/bin contains
 tokenize.pl.  If that's not the case, "make install" probably didn't complete
 successfully.
 
@@ -74,7 +75,7 @@ If tokenize.pl -h or ce.pl -h says "Can't locate <SomeFile>.pm in @INC ...",
 then your PERL5LIB is not correctly set or your installation partially failed.
 Check your SETUP.bash/tcsh file and make sure you are sourcing it properly,
 ideally in your .<shell>rc file.  Your $PERL5LIB variable should include
-Portage1.4.3/lib.  That directory should also contain LexiTools.pm and a
+Portage1.5.0/lib.  That directory should also contain LexiTools.pm and a
 subdirectory called CE containing several .pm files.  If it doesn't, "make
 install" probably didn't complete successfully.
 
@@ -85,9 +86,9 @@ files.
 
 If canoe -h says "command not found" but the other two commands work:
  - with binary distributions, your $PATH variable must also include the
-   architecture specific folder Portage1.4.3/bin/<arch>.  Check your
+   architecture specific folder Portage1.5.0/bin/<arch>.  Check your
    SETUP.bash/tcsh file and make sure you have set the PRECOMP_PORTAGE_ARCH
-   appropriately.  The Portage1.4.3/bin/<arch> directory contains all the
+   appropriately.  The Portage1.5.0/bin/<arch> directory contains all the
    compiled C++ executables.
  - with source distributions, canoe is installed in the same directory as
    cow.sh and tokenize.pl, so compilation probably failed if only canoe doesn't
@@ -97,7 +98,7 @@ Binary distributions only:
  - If canoe -h complains about a lib*.so* file not being found, some external
    dependency might be missing or you have the wrong version of a dynamic
    library.  An error about libstdc++.so, GLIBCXX or libgomp.so probably means
-   your version of g++ is older than the one we used to compile Portage 1.4.
+   your version of g++ is older than the one we used to compile Portage 1.5.
    You might need a newer version: you won't use the compiler, but you still
    need its dynamic libraries.  See the ICU section below if your get an error
    about libicu*.so.
@@ -107,7 +108,7 @@ Binary distributions only:
 
                               Getting Started
 
-Now you're ready to run the Portage 1.4 suite of programs.
+Now you're ready to run the Portage 1.5 suite of programs.
 
 We also provide a template experimental framework in subdirectory framework.
 This is intended as a reasonable out-of-the-box baseline system.  We recommend
@@ -115,20 +116,20 @@ you use this framework as your starting point for real experiments.
 
 In framework, you will also find the document framework-toy.pdf.  This document
 walks you through a complete experiment using a toy corpus.  It is intended as
-a tutorial to get you started with Portage 1.4.
+a tutorial to get you started with Portage 1.5.
 
 For further documentation, see doc/user-manual.html.
 
 
                               Applying a patch
 
-If you have already installed Portage 1.4 before and wish to upgrade to this
+If you have already installed Portage 1.5 before and wish to upgrade to this
 version, you can apply a patch instead of making a fresh copy, if a suitable
 one is provided with your distribution:
-   cd $HOME/Portage1.4.3
+   cd $HOME/Portage1.5.0
    patch -p2 < /CDlocation/OLD_REV_to_NEW_REV.patch
 
-Use patches with care if you have made any changes to Portage 1.4!  Any changes
+Use patches with care if you have made any changes to Portage 1.5!  Any changes
 you made *should* be merged with changes we made between releases, but such
 merging might lead to problems and/or conflicts, so it is strongly advised that
 you work on a backup, and carefully read the patch man page to see how
@@ -144,12 +145,12 @@ performance on some sample datasets.
 
                            External dependencies
 
-Before installing Portage 1.4 itself, you need to make sure you have the
+Before installing Portage 1.5 itself, you need to make sure you have the
 following dependencies installed.
 
 Mandatory dependencies for all distributions:
 
- - Linux - we have tested Portage 1.4 on various Linux distributions and it
+ - Linux - we have tested Portage 1.5 on various Linux distributions and it
    runs without problems, as long as the rest of the dependencies are
    installed.  We tested an older version of PORTAGEshared on PC-BSD and Mac OS
    X.  It worked reasonably well on those platforms then, but these are not our
@@ -171,7 +172,7 @@ Mandatory dependencies for all distributions:
    comes first on your PATH, or add its bin directory to EXTRA_PROGRAM_PATH in
    SETUP.bash/tcsh.
 
- - GNU make 3.81 - when compiling Portage 1.4 and when running the experimental
+ - GNU make 3.81 - when compiling Portage 1.5 and when running the experimental
    framework, our Makefiles use GNU extensions to make, as well as features
    that were introduced in version 3.81.
 
@@ -208,7 +209,7 @@ Mandatory dependencies for all distributions:
 
 Optional dependencies for all distributions:
 
- - ICU - Portage 1.4 includes a few tools that use ICU to correctly do
+ - ICU - Portage 1.5 includes a few tools that use ICU to correctly do
    case-mapping on utf-8 data.  This functionality will be disabled if ICU is
    not available.  We recommend you install ICU if you can, but if you have
    difficulties with it, you can leave it out.  In this case, for source
@@ -303,26 +304,24 @@ Optional dependencies for all distributions:
 
 Mandatory dependencies for source code distributions:
 
- - GNU g++ - Portage 1.4 compilation has only been tested with g++, and makes
+ - GNU g++ - Portage 1.5 compilation has only been tested with g++, and makes
    use of some g++ extensions to C++.  We currently use versions between 4.2.0
-   and 4.5.0.  Portage 1.4.1 was compiled and tested with g++ 4.4.4 and 4.5.0,
-   while Portage 1.4.2 and 1.4.3 support g++ 4.5.1.  You need 4.2.0 or more
-   recent to take advantage of multi-threading via OpenMP, used in some parts
-   of Portage.
+   and 4.5.1.  You need 4.2.0 or more recent to take advantage of
+   multi-threading via OpenMP, used in some parts of Portage.
 
- - boost - Portage 1.4 makes use of some libraries in the boost C++ libraries
+ - boost - Portage 1.5 makes use of some libraries in the boost C++ libraries
    collection, including the Boost Graph Library, uBLAS, smart pointers,
    iostreams, etc.
    
-   We have compiled and tested Portage 1.4 with the following boost/g++
+   We have compiled and tested Portage 1.5 with the following boost/g++
    combinations:
-    - boost 1.43 + g++ 4.5
-    - boost 1.43 + g++ 4.4
+    - boost 1.43 or 1.48 + g++ 4.5
+    - boost 1.43 or 1.48 + g++ 4.4
     - boost 1.36 + g++ 4.3
     - boost 1.36 + g++ 4.2
    Other combinations may or may not work.  For example, we know boost 1.36 is
    not compatible with g++ 4.4 or later.  If you already have another boost/g++
-   combination and Portage 1.4 compiles without errors, your installation
+   combination and Portage 1.5 compiles without errors, your installation
    should be OK.  Otherwise, try one of the combinations listed above.
 
    Some recent distributions of Linux may already include the boost libraries,
@@ -334,7 +333,7 @@ Mandatory dependencies for source code distributions:
    It is recommended you have your sys admin install boost, but you can also
    install it in your own user space.  Either way, you need to edit
    src/Makefile.user-conf and set BOOST_ROOT to the root directory of your
-   boost installation.  The Portage 1.4 makefiles are configured to look for
+   boost installation.  The Portage 1.5 makefiles are configured to look for
    the boost include files in $BOOST_ROOT/include, and the boost libraries in
    $BOOST_ROOT/lib.
 
@@ -360,8 +359,8 @@ Mandatory dependencies for source code distributions:
       bjam -j4 install                  OR     make -k -j 4 install
       # Edit src/Makefile.user-conf and set the BOOST_ROOT variable to $DEST.
 
- - zlib - Portage 1.4 uses zlib as an alternative to gzip in some unusual cases
-   where the latter causes some Portage 1.4 programs to crash.  This library
+ - zlib - Portage 1.5 uses zlib as an alternative to gzip in some unusual cases
+   where the latter causes some Portage 1.5 programs to crash.  This library
    has been standard on Linux distributions for a long time, so you should not
    have to install it yourself.  In some distros, you have to add the
    zlib1g-dev package, or zlib-devel, or zlib-dev.  But if the compiler says it
@@ -390,8 +389,8 @@ Optional dependencies for source code distributions:
 
    If you don't install CxxTest, set CXXTEST=NONE in src/Makefile.user-conf.
 
- - log4cxx - some programs in Portage 1.4 use log4cxx to produce debugging
-   information.  By default, the use of logging is disabled in Portage 1.4.
+ - log4cxx - some programs in Portage 1.5 use log4cxx to produce debugging
+   information.  By default, the use of logging is disabled in Portage 1.5.
    To enable logging, make sure you have log4cxx installed, edit
    src/Makefile.user-conf to set LOG4CXX to the full path with log4cxx is
    installed, and compile again.  The logging facilities are not well
@@ -419,7 +418,7 @@ Optional dependencies for source code distributions:
    programs.  These programs will build the databases needed to enable
    cross-links in these editors.  See your editor's manual for details.
 
-   Portage 1.4 uses both ctags and etags by default, but you can disable their
+   Portage 1.5 uses both ctags and etags by default, but you can disable their
    use by defining PORTAGE_NO_CTAGS and/or PORTAGE_NO_ETAGS to 1 in your
    .<shell>rc file, or by uncommenting the lines "PORTAGE_NO_CTAGS=1" and/or
    "PORTAGE_NO_ETAGS=1" in src/Makefile.user-conf.

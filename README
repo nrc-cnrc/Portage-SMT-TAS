@@ -1,10 +1,11 @@
-                               Portage 1.4.3
+                               Portage 1.5.0
  
 Technologies langagieres interactives / Interactive Language Technologies
-Institut de technologie de l'information / Institute for Information Technology
+Technologies de l'information et des communications /
+   Information and Communications Technologies
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2004-2011, Sa Majeste la Reine du Chef du Canada
-Copyright 2004-2011, Her Majesty in Right of Canada
+Copyright 2004-2012, Sa Majeste la Reine du Chef du Canada
+Copyright 2004-2012, Her Majesty in Right of Canada
 
 Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
@@ -12,11 +13,10 @@ license agreement for details.
 See NOTICE for the Copyright notices of 3rd party libraries.
 
 Note that PORTAGEshared has been renamed "Portage" with a version number, i.e.,
-this package is now known as "Portage 1.4".  References to PORTAGEshared within
-the documentation or the code are considered to refer to Portage 1.4, or to
-PORTAGEshared 1.0 to 1.3 if the context refers to older versions.  Portage 1.4
-refers to any of the minor releases (currently, 1.4.0 to 1.4.3 exist; we had
-originally labelled 1.4.0 as simply 1.4).
+this package is now known as "Portage 1.5".  References to PORTAGEshared within
+the documentation or the code are considered to refer to Portage 1.5, Portage 1.4 or
+PORTAGEshared 1.0 to 1.3 if the context refers to older versions.  Portage 1.5
+refers to any of the minor releases (currently, 1.5.0 exists).
 
                              Brief Description
 
@@ -26,7 +26,7 @@ used to support other projects at NRC and elsewhere.
 
 The SMT system developed under the Portage project is also called "Portage";
 this distribution for various partners used to be called PORTAGEshared, and is
-now known simply as Portage with a version number.  Portage 1.4 includes a
+now known simply as Portage with a version number.  Portage 1.5 includes a
 complete suite of software tools required for phrase-based statistical machine
 translation, including:
  - preprocessing of French and English (tokenization, detokenization,
@@ -35,7 +35,7 @@ translation, including:
    corpora;
  - training phrase-based translation models from aligned corpora and lexical
    models;
- - training lexicalized distortion models;
+ - training lexicalized distortion models, and their hierarchical variant;
  - using language models in text and binary format for various purposes;
  - filtering language and translation models to retain only information needed
    for a particular text to be translated;
@@ -45,7 +45,9 @@ translation, including:
  - rescoring (choosing the best hypothesis from an n-best list) using sources
    of information that are external to the decoder; a collection of rescoring
    features;
- - optimizing weights, both for decoding and for rescoring;
+ - optimizing weights, both for decoding and for rescoring, using a variety of
+   tuning algorithms, including N-Best MERT, Lattice and N-Best MIRA and a few
+   more;
  - truecasing (restoring upper case letters in the output of the translation);
  - evaluation using BLEU, WER or PER.
  - a tightly packed representation of various model files (LMs, TMs, suffix
