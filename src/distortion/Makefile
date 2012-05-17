@@ -7,23 +7,27 @@
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
 
-OBJECTS = \
+OBJECTS := \
+	distortion_algorithm.o \
 	dmstruct.o
 
-LIBRARY = libportage_distortion
+LIBRARY := libportage_distortion
 
-PROGRAMS = \
+PROGRAMS := \
 	dmcount \
 	dmestm
 
-DOCUMENTS = 
+DOCUMENTS := 
 
-BINSCRIPTS = filter-distortion-model.pl
+BINSCRIPTS := filter-distortion-model.pl
 
 DYNLIBS = $(LIBICU)
 
-MODULE_CF= 
+# Module/directory specific compile flags
+MODULE_CF :=
 
-MODULE_DEPENDS = tm
+MODULE_DEPENDS = logging tm
+
+EXTRA_LIBS = $(LOGGING_LIB)
 
 include ../build/Makefile.incl

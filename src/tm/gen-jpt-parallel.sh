@@ -88,30 +88,71 @@ while [ $# -gt 0 ]; do
    shift
 done
 
+which-test.sh stripe.py || error_exit "You are missing a key component (stripe.py)."
+
+
+# Verify that the requested number of chunks doesn't exceed the maximum allowed
+# simultaneously opened files since merge_multi_column_counts needs to have
+# them all opened at once.
+MAX_ALLOWED_OPEN_FILE=$((`ulimit -n`-20))
+[[ $NUM_JOBS -gt $MAX_ALLOWED_OPEN_FILE ]]  && error_exit "$0 doesn't support merging more than $MAX_ALLOWED_OPEN_FILE chunks.  Lower the number of chunks before restarting."
+
+
 [[ $WORKERS ]] || WORKERS=$NUM_JOBS
 
 [[ $# -lt 4 ]] && error_exit "Missing IBM models and file pair arguments."
 
-GPTARGS=($@)
+GPTARGS=("$@")
 ALIGN_OPT=
-for ((i=0; i<${#GPTARGS[*]}; ++i)) {
+for i in ${!GPTARGS[@]}; do
    if [[ ${GPTARGS[$i]} =~ -v ]]; then
       VERBOSE="-v"
+   elif [[ ${GPTARGS[$i]} =~ -ext ]]; then
+      EXTERNAL_ALIGNER=1;
    fi
-}
+done
 [[ $DEBUG ]] && echo "ALIGN_OPT=$ALIGN_OPT" >&2
 
 FILE1=()
 FILE2=()
+FILE3=()
 # Ask gen_phrase_tables what are the corpora in the user provided command.
-FILE_ARGS=(`gen_phrase_tables -file-args ${GPTARGS[@]}`)
+[[ $DEBUG ]] && echo "${#GPTARGS[@]}: <${GPTARGS[@]}>" >&2
+[[ $NW ]] && USING_W="-w $NW"
+FILE_ARGS=(`gen_phrase_tables -file-args $USING_W "${GPTARGS[@]}"`)
 [[ $? == 0 ]] || error_exit "gen_phrase_tables doesn't seem to like the arguments you provided after the GPT keyword."
 
 NUM_FILE_ARGS=${#FILE_ARGS[@]}
 [[ $DEBUG ]] && echo "${#FILE_ARGS[@]}: <${FILE_ARGS[@]}>" >&2
-[[ `expr ${#FILE_ARGS[@]} % 2` -eq 0 ]] || error_exit "You are missing a corpus in your pair of corpora"
-# Split the single list of files into src / tgt.
-while [[ ${#FILE_ARGS[@]} > 0 ]]; do
+if [[ $EXTERNAL_ALIGNER ]]; then
+   [[ $FILTER ]] && error_exit "You cannot use -ext with a filter."
+
+   [[ `expr ${#FILE_ARGS[@]} % 3` -eq 0 ]] || error_exit "You are missing a file in your triplet"
+   # Split the single list of files into src / tgt.
+   for i in ${!FILE_ARGS[@]}; do
+      if [[ `expr $i % 3` -eq 0 ]]; then
+         # PUSH
+         FILE1=("${FILE1[@]}" ${FILE_ARGS[$i]})
+      elif [[ `expr $i % 3` -eq 1 ]]; then
+         # PUSH
+         FILE2=("${FILE2[@]}" ${FILE_ARGS[$i]})
+      elif [[ `expr $i % 3` -eq 2 ]]; then
+         # PUSH
+         FILE3=("${FILE3[@]}" ${FILE_ARGS[$i]})
+      else
+         error_exit "Something really wrong!";
+      fi
+   done
+   [[ $DEBUG ]] && echo "FILE1: ${#FILE1[@]}: <${FILE1[@]}>" >&2
+   [[ $DEBUG ]] && echo "FILE2: ${#FILE2[@]}: <${FILE2[@]}>" >&2
+   [[ $DEBUG ]] && echo "FILE3: ${#FILE3[@]}: <${FILE3[@]}>" >&2
+   # There must be exactly the same number of "src" & "tgt" corpora.
+   [[ ${#FILE1[@]} == ${#FILE2[@]} ]] || error_exit "We failed to split the corpora's list."
+   [[ ${#FILE1[@]} == ${#FILE3[@]} ]] || error_exit "We failed to split the corpora's list."
+else
+   [[ `expr ${#FILE_ARGS[@]} % 2` -eq 0 ]] || error_exit "You are missing a corpus in your pair of corpora"
+   # Split the single list of files into src / tgt.
+   while [[ ${#FILE_ARGS[@]} > 0 ]]; do
    if [[ `expr ${#FILE_ARGS[@]} % 2` -eq 0 ]]; then
       # PUSH
       FILE1=("${FILE1[@]}" ${FILE_ARGS[0]})
@@ -122,19 +163,21 @@ while [[ ${#FILE_ARGS[@]} > 0 ]]; do
    # POP
    #FILE_ARGS=(${FILE_ARGS[@]:0:$((${#FILE_ARGS[@]}-1))})
    FILE_ARGS=(${FILE_ARGS[@]:1})
-done
-[[ $DEBUG ]] && echo "FILE1: ${#FILE1[@]}: <${FILE1[@]}>" >&2
-[[ $DEBUG ]] && echo "FILE2: ${#FILE2[@]}: <${FILE2[@]}>" >&2
-# There must be exactly the same number of "src" & "tgt" corpora.
-[[ ${#FILE1[@]} == ${#FILE2[@]} ]] || error_exit "We failed to split the corpora's list."
+   done
+   [[ $DEBUG ]] && echo "FILE1: ${#FILE1[@]}: <${FILE1[@]}>" >&2
+   [[ $DEBUG ]] && echo "FILE2: ${#FILE2[@]}: <${FILE2[@]}>" >&2
+   # There must be exactly the same number of "src" & "tgt" corpora.
+   [[ ${#FILE1[@]} == ${#FILE2[@]} ]] || error_exit "We failed to split the corpora's list."
+fi
 
 # We will remove the corpora from the list of arguments since we will need to
 # replace them by chunks that we will generate later.
-GPTARGS=(${GPTARGS[@]:0:$((${#GPTARGS[@]}-${NUM_FILE_ARGS}))})
-[[ $DEBUG ]] && echo "AFTER: ${GPTARGS[@]}" >&2
+[[ $DEBUG ]] && echo "BEFORE: ${#GPTARGS[@]}: <${GPTARGS[@]}>" >&2
+GPTARGS=("${GPTARGS[@]:0:$((${#GPTARGS[@]}-${NUM_FILE_ARGS}))}")
+[[ $DEBUG ]] && echo "AFTER: ${#GPTARGS[@]}: <${GPTARGS[@]}>" >&2
 
 # Make sure all files are accessible
-for file in ${FILE1[@]} ${FILE2[@]}; do
+for file in ${FILE1[@]} ${FILE2[@]} ${FILE3[@]}; do
    [[ -e $file ]] || error_exit "Input file $file doesn't exist"
 done
 
@@ -152,29 +195,16 @@ trap '
 ' 0
 
 
-NL=`zcat -f ${FILE1[@]} | wc -l`
-SPLITLINES=$(($NL/$NUM_JOBS))
-if [ -n $(($NL%$NUM_JOBS)) ]; then
-   SPLITLINES=$(($SPLITLINES+1))
-fi
-
-[[ $VERBOSE ]] && echo 'Splitting input corpora' >&2
-time {
-   zcat -f ${FILE1[@]} | split -a 4 -l $SPLITLINES - $WORKDIR/L1.
-   zcat -f ${FILE2[@]} | split -a 4 -l $SPLITLINES - $WORKDIR/L2.
-}
-
 if [[ $DEBUG ]]; then
    echo "NUM_JOBS = $NUM_JOBS"
    echo "WORKERS = $WORKERS"
    echo "NW = $NW"
    echo "RP_OPTS = <$RP_OPTS>"
    echo "GPTARGS = <${GPTARGS[@]}>"
-   echo ${FILE1[@]}
-   echo ${FILE2[@]}
-   echo $WORKDIR
-   echo $NL
-   echo $SPLITLINES
+   echo source corpora: ${FILE1[@]}
+   echo target corpora: ${FILE2[@]}
+   echo alignment file: ${FILE3[@]}
+   echo WORKDIR: $WORKDIR
    echo Verbose: $VERBOSE
 fi >&2 # send everything to STDERR
 
@@ -185,28 +215,77 @@ fi >&2 # send everything to STDERR
 CMDS_FILE=$WORKDIR/cmds
 test -f $CMDS_FILE && \rm -f $CMDS_FILE
 
-if [[ -n "$NW" ]]; then
+[[ $VERBOSE ]] && echo "Creating voc files." >&2
+if [[ ! $NOTREALLY ]]; then
+   if [[ -n "$NW" ]]; then
    time {
       zcat -f ${FILE1[@]} | get_voc | sed 's/^|||$/___|||___/' > $WORKDIR/voc.1
       zcat -f ${FILE2[@]} | get_voc | sed 's/^|||$/___|||___/' > $WORKDIR/voc.2
    }
+   fi
 fi
 
-# Build the command list.
-for src in `ls $WORKDIR/L1.*`; do
-   tgt=${src/\/L1./\/L2.}
-   suff=${src##*/L1.}
-   if [[ -n "$NW" ]]; then
-      WOPS="-w $NW -wf $WORKDIR/$suff.wp -wfvoc $WORKDIR/voc"
-      time {
-         get_voc $src | sed 's/^|||$/___|||___/' > $WORKDIR/$suff.voc.1
-         get_voc $tgt | sed 's/^|||$/___|||___/' > $WORKDIR/$suff.voc.2
-      }
+declare -a ARG_STRING
+for i in ${!GPTARGS[@]}; do
+   if [[ ${GPTARGS[$i]} =~ " " ]]; then
+      # Quote arguments with spaces.
+      ARG_STRING="$ARG_STRING \"${GPTARGS[$i]//\"/\\\"}\""
+   else
+      ARG_STRING="$ARG_STRING ${GPTARGS[$i]}"
    fi
-   echo "test ! -f $src || ((set -o pipefail; gen_phrase_tables $WOPS -j ${GPTARGS[@]} $src $tgt | LC_ALL=C $SORT_DIR sort | gzip > $WORKDIR/$suff.jpt.gz) && mv $src $src.done)" >> $CMDS_FILE
 done
 
-test $DEBUG && cat $CMDS_FILE >&2
+[[ $VERBOSE ]] && echo "Building command list." >&2
+# Build the command list.
+for idx in `seq -w 0 $(($NUM_JOBS-1))`; do
+   src="zcat -f ${FILE1[@]} | stripe.py -i $idx -m $NUM_JOBS"
+   tgt="zcat -f ${FILE2[@]} | stripe.py -i $idx -m $NUM_JOBS"
+   ali="zcat -f ${FILE3[@]} | stripe.py -i $idx -m $NUM_JOBS"
+
+   if [[ ! $NOTREALLY ]]; then
+   if [[ -n "$NW" ]]; then
+         WOPS="-w $NW -wf $WORKDIR/$idx.wp -wfvoc $WORKDIR/voc"
+      time {
+            eval $src | get_voc | sed 's/^|||$/___|||___/' > $WORKDIR/$idx.voc.1
+            eval $tgt | get_voc | sed 's/^|||$/___|||___/' > $WORKDIR/$idx.voc.2
+      }
+   fi
+   fi
+   if [[ $EXTERNAL_ALIGNER ]]; then
+      echo "test -f $WORKDIR/$idx.done || { { set -o pipefail; gen_phrase_tables $WOPS -j $ARG_STRING <($src) <($tgt) <($ali) | LC_ALL=C $SORT_DIR sort | gzip > $WORKDIR/$idx.jpt.gz; } && touch $WORKDIR/$idx.done; }"
+   else
+      echo "test -f $WORKDIR/$idx.done || { { set -o pipefail; gen_phrase_tables $WOPS -j $ARG_STRING <($src $FILTER) <($tgt $FILTER) | LC_ALL=C $SORT_DIR sort | gzip > $WORKDIR/$idx.jpt.gz; } && touch $WORKDIR/$idx.done; }"
+   fi
+done > $CMDS_FILE
+
+[[ $DEBUG ]] && cat $CMDS_FILE >&2
+
+
+[[ $VERBOSE ]] && echo "Creating merge command file." >&2
+merge_commands="$WORKDIR/merge.cmds"
+cat >> $merge_commands <<-cmd-head
+	set -e
+	set -o pipefail
+cmd-head
+
+if [[ -n "$NW" ]]; then
+cat >> $merge_commands <<-End-of-message
+	test -s "$WORKDIR/wp-cnts.1" || cat $WORKDIR/*.wp.1 | LC_ALL=C $SORT_DIR sort | LC_ALL=C uniq -c > $WORKDIR/wp-cnts.1
+	test -s "$WORKDIR/wp-cnts.2" || cat $WORKDIR/*.wp.2 | LC_ALL=C $SORT_DIR sort | LC_ALL=C uniq -c > $WORKDIR/wp-cnts.2
+
+	test -s "$WORKDIR/voc-cnts.1" || cat $WORKDIR/*.voc.1 | LC_ALL=C $SORT_DIR sort | LC_ALL=C uniq -c > $WORKDIR/voc-cnts.1
+	test -s "$WORKDIR/voc-cnts.2" || cat $WORKDIR/*.voc.2 | LC_ALL=C $SORT_DIR sort | LC_ALL=C uniq -c > $WORKDIR/voc-cnts.2
+
+	test -f "$WORKDIR/jpt.wp1.gz" || gen_jpt_filter_tool -l1 $WORKDIR/{voc-cnts,wp-cnts}.1 | LC_ALL=C $SORT_DIR sort | gzip > $WORKDIR/jpt.wp1.gz
+	test -f "$WORKDIR/jpt.wp2.gz" || gen_jpt_filter_tool -l2 $WORKDIR/{voc-cnts,wp-cnts}.2 | LC_ALL=C $SORT_DIR sort | gzip > $WORKDIR/jpt.wp2.gz
+End-of-message
+   WPFILES="$WORKDIR/jpt.wp1.gz $WORKDIR/jpt.wp2.gz"
+fi
+
+echo "[[ \"$OUTFILE\" != \"-\" ]] && [[ -f "$OUTFILE" ]] || merge_multi_column_counts $ALIGN_OPT $OUTFILE $WORKDIR/*.jpt.gz $WPFILES" >> $merge_commands
+
+[[ $DEBUG ]] && cat $merge_commands >&2
+
 
 
 [[ $VERBOSE ]] && echo "run-parallel.sh $VERBOSE $RP_OPTS $CMDS_FILE $WORKERS" >&2
@@ -220,28 +299,11 @@ fi
 
 
 # Merging parts
-test $DEBUG && echo merge_multi_column_counts $ALIGN_OPT $OUTFILE $WORKDIR/*.jpt.gz >&2
+[[ $VERBOSE ]] && echo "Merging the final ouput(s)" >&2
 
 if [[ ! $NOTREALLY ]]; then
-
-   if [[ -n "$NW" ]]; then
-
-      time {
-         cat $WORKDIR/*.wp.1 | LC_ALL=C $SORT_DIR sort | LC_ALL=C uniq -c > $WORKDIR/wp-cnts.1
-         cat $WORKDIR/*.wp.2 | LC_ALL=C $SORT_DIR sort | LC_ALL=C uniq -c > $WORKDIR/wp-cnts.2
-
-         cat $WORKDIR/*.voc.1 | LC_ALL=C $SORT_DIR sort | LC_ALL=C uniq -c > $WORKDIR/voc-cnts.1
-         cat $WORKDIR/*.voc.2 | LC_ALL=C $SORT_DIR sort | LC_ALL=C uniq -c > $WORKDIR/voc-cnts.2
-
-         gen_jpt_filter_tool -l1 $WORKDIR/{voc-cnts,wp-cnts}.1 | LC_ALL=C $SORT_DIR sort | gzip > $WORKDIR/jpt.wp1.gz
-         gen_jpt_filter_tool -l2 $WORKDIR/{voc-cnts,wp-cnts}.2 | LC_ALL=C $SORT_DIR sort | gzip > $WORKDIR/jpt.wp2.gz
-
-         WPFILES="$WORKDIR/jpt.wp1.gz $WORKDIR/jpt.wp2.gz"
-      }
-   fi
-
    time {
-      eval "merge_multi_column_counts $ALIGN_OPT $OUTFILE $WORKDIR/*.jpt.gz $WPFILES"
+      source $merge_commands
       RC=$?
    }
    if (( $RC != 0 )); then

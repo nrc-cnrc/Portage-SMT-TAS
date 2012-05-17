@@ -16,6 +16,7 @@ OBJECTS = \
         hmm_jump_classes.o \
         hmm_jump_map.o \
         ibm.o \
+        phrase_pair_extractor.o \
         phrase_table.o \
         phrase_table_reader.o \
         tm_io.o \
@@ -40,10 +41,12 @@ PROGRAMS = $(TESTPROGS) \
         ibmcat \
         joint2cond_phrase_tables \
         joint2multi_cpt \
+        merge_sigprune_counts \
         phrase_align_stats \
         phrase_oracle \
         run_ibm \
         sigprune_fet \
+        sigprune_line_numbering \
         train_ibm \
         tt2pt \
         tt_pt_merge \

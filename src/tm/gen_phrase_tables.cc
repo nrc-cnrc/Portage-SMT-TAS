@@ -23,6 +23,7 @@
 #include "phrase_smoother.h"
 #include "phrase_smoother_cc.h"
 #include "phrase_table_writer.h"
+#include "phrase_pair_extractor.h"
 
 using namespace Portage;
 
@@ -100,6 +101,15 @@ Options:\n\
         - you still need to provide IBM models as arguments\n\
         - this currently only works with IBMOchAligner\n\
         - this won't work if you specify more than one aligner\n\
+-ext   SRI-style alignments are to be read from files in SRI format,\n\
+       rather than computed at run-time; corresponding alignment files \n\
+       should be specified after each pair of text files, like this: \n\
+       fileN_lang1 fileN_lang2 align_1_to_2...\n\
+       Notes:\n\
+        - this replace the hack: -a 'ExternalAligner model' -ibm 1 /dev/null /dev/null\n\
+        - you DON'T need to provide IBM models as arguments\n\
+        - this implies the ExternalAligner\n\
+        - this won't work if you specify more than one aligner\n\
 \n\
 HMM only options:\n\
        By default, all HMM parameters are read from the model file. However,\n\
@@ -143,30 +153,18 @@ static const char* const switches[] = {
    "lc1:", "lc2:",
    "num-file-args", // hidden option for gen-jpt-parallel.sh
    "file-args", // hidden option for gen-jpt-parallel.sh
-   "multipr:", "tmtext", "giza"
+   "multipr:", "tmtext", "giza", "ext"
 };
 
-static Uint verbose = 0;
 static Uint smoothing_verbose = 0; // ugly ugly ugly ugly ugly ugly ugly ugly
 static Uint prune1 = 0;
 static Uint prune1w = 0;
-static vector<string> align_methods;
 static vector<string> smoothing_methods;
 static bool indiv_tables = false;
-static bool twist = false;
-static bool add_single_word_phrases = false;
 static bool joint = false;
 static bool giza_alignment = false;
-static Uint add_word_translations = 0;
 static string add_word_trans_file = "";
 static string add_word_trans_voc = "";
-static Uint max_phrase_len1 = 4;
-static Uint max_phrase_len2 = 4;
-static Uint max_phraselen_diff = 4;
-static Uint min_phrase_len1 = 1;
-static Uint min_phrase_len2 = 1;
-static bool allow_linkless_pairs = false;
-static string model1, model2;
 static string lang1("en");
 static string lang2("fr");
 static string lc1;
@@ -174,33 +172,14 @@ static string lc2;
 static string name("phrases");
 static string freqs1;
 static string freqs2;
-static Uint ibm_num = 42; // 42 means uninitialized - ARG will set its value.
-static bool use_hmm = false;
 static string multipr_output = "";
 static bool compress_output = false;
 static Uint first_file_arg = 2;
+static bool externalAlignerMode = false;
 
-// The optional<T> variables are intentionally left uninitialized.
-static optional<double> p0;
-static optional<double> up0;
-static optional<double> alpha;
-static optional<double> lambda;
-static optional<bool> anchor;
-static optional<bool> end_dist;
-static optional<Uint> max_jump;
-
-static optional<double> p0_2;
-static optional<double> up0_2;
-static optional<double> alpha_2;
-static optional<double> lambda_2;
-static optional<bool> anchor_2;
-static optional<bool> end_dist_2;
-static optional<Uint> max_jump_2;
-
-static void add_ibm1_translations(Uint lang, const TTable& tt, PhraseTable& pt,
-				  Voc& src_word_voc, Voc& tgt_word_voc,
-                                  ostream* os);
-
+// Most parameters are in now ppe, with their defaults set in
+// PhrasePairExtractor::PhrasePairExtractor() (see phrase_pair_extractor.h).
+static PhrasePairExtractor ppe;
 
 // arg processing
 
@@ -234,49 +213,58 @@ public:
       string max_phrase_string;
       string min_phrase_string;
 
-      if (mp_arg_reader->getSwitch("v")) {verbose = 1; smoothing_verbose = 1;}
-      if (mp_arg_reader->getSwitch("vv")) verbose = 2;
+      if (mp_arg_reader->getSwitch("v")) {ppe.verbose = 1; smoothing_verbose = 1;}
+      if (mp_arg_reader->getSwitch("vv")) ppe.verbose = 2;
       if (mp_arg_reader->getSwitch("vs")) smoothing_verbose = 2;
 
-      mp_arg_reader->testAndSet("a", align_methods);
+      mp_arg_reader->testAndSet("ext", externalAlignerMode);
+      if (externalAlignerMode) {
+	 // When using the external Aligner Mode, we don't require word alignment models.
+         ppe.ibm_num = 0;
+         first_file_arg = 0;
+         ppe.align_methods.clear();
+         ppe.align_methods.push_back("ExternalAligner");
+      }
+
+      mp_arg_reader->testAndSet("a", ppe.align_methods);
       mp_arg_reader->testAndSet("s", smoothing_methods);
       mp_arg_reader->testAndSet("prune1", prune1);
       mp_arg_reader->testAndSet("prune1w", prune1w);
       mp_arg_reader->testAndSet("i", indiv_tables);
       mp_arg_reader->testAndSet("j", joint);
       mp_arg_reader->testAndSet("z", compress_output);
-      mp_arg_reader->testAndSet("m", max_phrase_string);
-      mp_arg_reader->testAndSet("min", min_phrase_string);
-      mp_arg_reader->testAndSet("d", max_phraselen_diff);
-      mp_arg_reader->testAndSet("ali", allow_linkless_pairs);
-      mp_arg_reader->testAndSet("w", add_word_translations);
+      mp_arg_reader->testAndSet("m", ppe.max_phrase_string);
+      mp_arg_reader->testAndSet("min", ppe.min_phrase_string);
+      mp_arg_reader->testAndSet("d", ppe.max_phraselen_diff);
+      mp_arg_reader->testAndSet("ali", ppe.allow_linkless_pairs);
+      mp_arg_reader->testAndSet("w", ppe.add_word_translations);
       mp_arg_reader->testAndSet("wf", add_word_trans_file);
       mp_arg_reader->testAndSet("wfvoc", add_word_trans_voc);
       mp_arg_reader->testAndSet("1", lang1);
       mp_arg_reader->testAndSet("2", lang2);
       mp_arg_reader->testAndSet("lc1", lc1);
       mp_arg_reader->testAndSet("lc2", lc2);
-      mp_arg_reader->testAndSet("ibm", ibm_num);
-      mp_arg_reader->testAndSet("hmm", use_hmm);
+      mp_arg_reader->testAndSet("ibm", ppe.ibm_num);
+      mp_arg_reader->testAndSet("hmm", ppe.use_hmm);
 
-      mp_arg_reader->testAndSet("p0", p0);
-      mp_arg_reader->testAndSet("up0", up0);
-      mp_arg_reader->testAndSet("alpha", alpha);
-      mp_arg_reader->testAndSet("lambda", lambda);
-      mp_arg_reader->testAndSet("max-jump", max_jump);
-      mp_arg_reader->testAndSetOrReset("anchor", "noanchor", anchor);
-      mp_arg_reader->testAndSetOrReset("end-dist", "noend-dist", end_dist);
+      mp_arg_reader->testAndSet("p0", ppe.p0);
+      mp_arg_reader->testAndSet("up0", ppe.up0);
+      mp_arg_reader->testAndSet("alpha", ppe.alpha);
+      mp_arg_reader->testAndSet("lambda", ppe.lambda);
+      mp_arg_reader->testAndSet("max-jump", ppe.max_jump);
+      mp_arg_reader->testAndSetOrReset("anchor", "noanchor", ppe.anchor);
+      mp_arg_reader->testAndSetOrReset("end-dist", "noend-dist", ppe.end_dist);
 
-      mp_arg_reader->testAndSet("p0_2", p0_2);
-      mp_arg_reader->testAndSet("up0_2", up0_2);
-      mp_arg_reader->testAndSet("alpha_2", alpha_2);
-      mp_arg_reader->testAndSet("lambda_2", lambda_2);
-      mp_arg_reader->testAndSet("max-jump_2", max_jump_2);
-      mp_arg_reader->testAndSetOrReset("anchor_2", "noanchor_2", anchor_2);
-      mp_arg_reader->testAndSetOrReset("end-dist_2", "noend-dist_2", end_dist_2);
+      mp_arg_reader->testAndSet("p0_2", ppe.p0_2);
+      mp_arg_reader->testAndSet("up0_2", ppe.up0_2);
+      mp_arg_reader->testAndSet("alpha_2", ppe.alpha_2);
+      mp_arg_reader->testAndSet("lambda_2", ppe.lambda_2);
+      mp_arg_reader->testAndSet("max-jump_2", ppe.max_jump_2);
+      mp_arg_reader->testAndSetOrReset("anchor_2", "noanchor_2", ppe.anchor_2);
+      mp_arg_reader->testAndSetOrReset("end-dist_2", "noend-dist_2", ppe.end_dist_2);
 
-      mp_arg_reader->testAndSet("twist", twist);
-      mp_arg_reader->testAndSet("addsw", add_single_word_phrases);
+      mp_arg_reader->testAndSet("twist", ppe.twist);
+      mp_arg_reader->testAndSet("addsw", ppe.add_single_word_phrases);
       mp_arg_reader->testAndSet("giza", giza_alignment);
       mp_arg_reader->testAndSet("o", name);
       mp_arg_reader->testAndSet("f1", freqs1);
@@ -286,55 +274,27 @@ public:
       if (mp_arg_reader->getSwitch("tmtext"))
          error(ETFatal, "-tmtext is obsolete");
 
-      // initialize *_2 parameters from defaults if not explicitly set
-      if (!p0_2) p0_2 = p0;
-      if (!up0_2) up0_2 = up0;
-      if (!alpha_2) alpha_2 = alpha;
-      if (!lambda_2) lambda_2 = lambda;
-      if (!max_jump_2) max_jump_2 = max_jump;
-      if (!anchor_2) anchor_2 = anchor;
-      if (!end_dist_2) end_dist_2 = end_dist;
-
-      if (ibm_num == 0) {
-         if (!giza_alignment)
-            error(ETFatal, "Can't use -ibm=0 trick unless -giza is used");
+      if (ppe.ibm_num == 0 and !ppe.use_hmm) {
+         if (!giza_alignment && !externalAlignerMode)
+            error(ETFatal, "Can't use -ibm=0 trick unless -giza or -ext is used");
          first_file_arg = 0;
-      } else {
-         mp_arg_reader->testAndSet(0, "model1", model1);
-         mp_arg_reader->testAndSet(1, "model2", model2);
-         if ( ibm_num == 42 && !use_hmm ) {
-            // neither -hmm nor -ibm specified; default is IBM2 if .pos files
-            // exist, or else HMM if .dist files exist, or error otherwise: we
-            // never assume IBM1, because it is so seldom used, it's probably
-            // an error; we want the user to assert its use explicitly.
-            if ( check_if_exists(IBM2::posParamFileName(model1)) &&
-                 check_if_exists(IBM2::posParamFileName(model2)) )
-               ibm_num = 2;
-            else if ( check_if_exists(HMMAligner::distParamFileName(model1)) &&
-                      check_if_exists(HMMAligner::distParamFileName(model2)) )
-               use_hmm = true;
-            else
-               error(ETFatal, "Models are neither IBM2 nor HMM, specify -ibm N or -hmm explicitly.");
          }
+      else {
+         first_file_arg = 2;
+         mp_arg_reader->testAndSet(0, "model1", ppe.model1);
+         mp_arg_reader->testAndSet(1, "model2", ppe.model2);
       }
 
-      if (max_phrase_string.length()) {
-         vector<Uint> max_phrase_len;
-         if (!split(max_phrase_string, max_phrase_len, ",") ||
-             max_phrase_len.empty() || max_phrase_len.size() > 2)
-            error(ETFatal, "bad argument for -m switch");
-         max_phrase_len1 = max_phrase_len[0];
-         max_phrase_len2 = max_phrase_len.size() == 2 ? max_phrase_len[1] : max_phrase_len[0];
+      // We must have word alginment models to be able to add word translations.
+      if (ppe.add_word_translations > 0) {
+         first_file_arg = 2;
+         mp_arg_reader->testAndSet(0, "model1", ppe.model1);
+         mp_arg_reader->testAndSet(1, "model2", ppe.model2);
+	 // Let's automatically figure out the model's type.
+	 if (ppe.ibm_num == 0) ppe.ibm_num = 42;
       }
 
-      if (min_phrase_string.length()) {
-         vector<Uint> min_phrase_len;
-         if (!split(min_phrase_string, min_phrase_len, ",") ||
-             min_phrase_len.empty() || min_phrase_len.size() > 2)
-            error(ETFatal, "bad argument for -min switch");
-         min_phrase_len1 = min_phrase_len[0];
-         min_phrase_len2 = min_phrase_len.size() == 2 ? min_phrase_len[1] : min_phrase_len[0];
-      }
+      ppe.checkArgs();
 
       if (multipr_output != "" && multipr_output != "fwd" && multipr_output != "rev" &&
           multipr_output != "both")
@@ -346,8 +306,18 @@ public:
          smoothing_methods.resize(1);
       }
 
-      if (giza_alignment && align_methods.size() > 1)
+      if (giza_alignment && ppe.align_methods.size() > 1)
         error(ETFatal, "Can't use -giza with multiple alignment methods");
+
+      if (externalAlignerMode) {
+         if (ppe.align_methods.size() > 1)
+            error(ETFatal, "Can't use -ext with multiple alignment methods!");
+         ppe.align_methods.clear();
+      }
+
+      if (ppe.add_word_translations > 0 and (ppe.model1.empty() || ppe.model2.empty())) {
+         error(ETFatal, "You need to provide IBM or HMM when using -w!");
+      }
 
       if (mp_arg_reader->getSwitch("file-args")) {
          vector<string> corpora;
@@ -378,9 +348,37 @@ std::ostream& operator<<(std::ostream& os, const optional<T>& val) {
 
 }; // ends namespace genPhraseTable
 
+
 using namespace genPhraseTable;
 
+/**
+ * A functor to extract phrase pairs once a sentence pair is aligned by the
+ * phrase pair extractor's alignFilePair method.
+ */
+struct ExtractPhrasePairs {
+   WordAlignerStats* stats;
+   ExtractPhrasePairs(WordAlignerStats* stats)
+      : stats(stats)
+   {}
+   void operator()(
+	 const vector<string>& toks1,
+	 const vector<string>& toks2,
+	 vector< vector<Uint> >& sets1,
+	 PhraseTableUint& pt,
+	 PhrasePairExtractor& ppe) {
+      if (stats) stats->tally(sets1, toks1.size(), toks2.size());
+      assert(ppe.aligner_factory);
+      ppe.aligner_factory->addPhrases(toks1, toks2, sets1,
+                                  ppe.max_phrase_len1, ppe.max_phrase_len2,
+                                  ppe.max_phraselen_diff,
+                                  ppe.min_phrase_len1, ppe.min_phrase_len2,
+                                  pt, 1u);
+   }
+
+};
+
 void doEverything(const char* prog_name, ARG& args);
+
 
 int MAIN(argc, argv)
 {
@@ -393,9 +391,11 @@ int MAIN(argc, argv)
 }
 END_MAIN
 
+
+
 void doEverything(const char* prog_name, ARG& args)
 {
-   string z_ext(compress_output ? ".gz" : "");
+   const string z_ext(compress_output ? ".gz" : "");
 
    if ((indiv_tables || joint) && lang1 >= lang2)
       error(ETWarn, "%s\n%s\n%s",
@@ -403,73 +403,26 @@ void doEverything(const char* prog_name, ARG& args)
          "lexicographically earlier name goes in left column. Fix by giving",
          "this language as the -1 argument.");
 
-   if (align_methods.empty())
-      align_methods.push_back("IBMOchAligner");
    if (smoothing_methods.empty())
       smoothing_methods.push_back("RFSmoother");
 
-   if (max_phrase_len1 == 0) max_phrase_len1 = 10000000;
-   if (max_phrase_len2 == 0) max_phrase_len2 = 10000000;
-   if (min_phrase_len1 == 0) {
-      min_phrase_len1 = 1;
-      cerr << "minimal phrase length has to be at least 1 -> changing this!" << endl;
-   }
-   if (min_phrase_len2 == 0) {
-      min_phrase_len2 = 1;
-      cerr << "minimal phrase length has to be at least 1 -> changing this!" << endl;
-   }
-   if ( min_phrase_len1 > max_phrase_len1 || min_phrase_len2 > max_phrase_len2 ) {
-      cerr << "Minimal phrase length is greater than the maximal one!" << endl
-           << "lang1 : " << min_phrase_len1 << " " << max_phrase_len1 << endl
-           << "lang2 : " << min_phrase_len2 << " " << max_phrase_len2 << endl;
-      exit(1);
-   }
-
-
-   IBM1* ibm_1 = NULL;
-   IBM1* ibm_2 = NULL;
-
-   if (ibm_num == 0) {
-      if (verbose) cerr << "**Not** loading IBM models" << endl;
+   if (ppe.ibm_num == 0 and !ppe.use_hmm) {
+      if (ppe.verbose) cerr << "**Not** loading IBM models" << endl;
    } else {
-      if (use_hmm) {
-         if (verbose) cerr << "Loading HMM models" << endl;
-         ibm_1 = new HMMAligner(model1, p0, up0, alpha, lambda, anchor,
-                                end_dist, max_jump);
-         ibm_2 = new HMMAligner(model2, p0_2, up0_2, alpha_2, lambda_2, anchor_2,
-                                end_dist_2, max_jump_2);
-      } else if (ibm_num == 1) {
-         if (verbose) cerr << "Loading IBM1 models" << endl;
-         ibm_1 = new IBM1(model1);
-         ibm_2 = new IBM1(model2);
-      } else if (ibm_num == 2) {
-         if (verbose) cerr << "Loading IBM2 models" << endl;
-         ibm_1 = new IBM2(model1);
-         ibm_2 = new IBM2(model2);
-      } else
-         error(ETFatal, "Invalid option: -ibm %d", ibm_num);
-      if (verbose) cerr << "models loaded" << endl;
+      ppe.loadModels();
    }
+
+   if (ppe.verbose > 1) ppe.dumpParameters();
 
    CaseMapStrings cms1(lc1.c_str());
    CaseMapStrings cms2(lc2.c_str());
-   if (lc1 != "" && ibm_num != 0) {
-      ibm_1->getTTable().setSrcCaseMapping(&cms1);
-      ibm_2->getTTable().setTgtCaseMapping(&cms1);
+   if (lc1 != "" && ppe.ibm_num != 0) {
+      ppe.ibm_1->getTTable().setSrcCaseMapping(&cms1);
+      ppe.ibm_2->getTTable().setTgtCaseMapping(&cms1);
    }
-   if (lc2 != "" && ibm_num != 0) {
-      ibm_1->getTTable().setTgtCaseMapping(&cms2);
-      ibm_2->getTTable().setSrcCaseMapping(&cms2);
-   }
-
-   WordAlignerFactory* aligner_factory = 0;
-   vector<WordAligner*> aligners;
-
-   if (!giza_alignment) {
-     aligner_factory = new WordAlignerFactory(ibm_1, ibm_2, verbose, twist,
-                                              add_single_word_phrases, allow_linkless_pairs);
-     for (Uint i = 0; i < align_methods.size(); ++i)
-       aligners.push_back(aligner_factory->createAligner(align_methods[i]));
+   if (lc2 != "" && ppe.ibm_num != 0) {
+      ppe.ibm_1->getTTable().setTgtCaseMapping(&cms2);
+      ppe.ibm_2->getTTable().setSrcCaseMapping(&cms2);
    }
 
    Voc extern_word_voc_1, extern_word_voc_2;
@@ -480,10 +433,9 @@ void doEverything(const char* prog_name, ARG& args)
       extern_word_voc_2.read(is2);
    }
 
-   PhraseTable pt;
+   PhraseTableUint pt;
    Voc word_voc_1, word_voc_2;
 
-   string in_f1, in_f2;
    string alfile1, alfile2;
    Uint fpair = 0;
 
@@ -491,17 +443,33 @@ void doEverything(const char* prog_name, ARG& args)
    GizaAlignmentFile* al_2 = NULL;
 
    WordAlignerStats stats;
+   WordAlignerStats* p_stats = ppe.verbose ? &stats : NULL;
+   ExtractPhrasePairs algo(p_stats);
 
    for (Uint arg = first_file_arg; arg+1 < args.numVars(); arg += 2) {
 
-      string file1 = args.getVar(arg), file2 = args.getVar(arg+1);
-      if (verbose)
-         cerr << "reading " << file1 << "/" << file2 << endl;
+      const string file1 = args.getVar(arg);
+      const string file2 = args.getVar(arg+1);
 
-      args.testAndSet(arg, "file1", in_f1);
-      args.testAndSet(arg+1, "file2", in_f2);
-      iSafeMagicStream in1(in_f1);
-      iSafeMagicStream in2(in_f2);
+      if (externalAlignerMode) {
+         arg+=1;
+         if (arg+1 >= args.numVars())
+            error(ETFatal, "Missing arguments: alignment files");
+         args.testAndSet(arg+1, "alfile1", alfile1);
+         if (ppe.verbose)
+            cerr << "reading aligment files " << alfile1 << endl;
+
+         IBM1* model = NULL;
+         if (ppe.aligner_factory) delete ppe.aligner_factory;
+         ppe.aligner_factory = new WordAlignerFactory(
+               model, model, ppe.verbose, ppe.twist, ppe.add_single_word_phrases);
+
+         ppe.align_methods.clear();
+         ppe.align_methods.push_back("ExternalAligner " + alfile1);
+
+         ppe.aligners.clear();
+         ppe.aligners.push_back(ppe.aligner_factory->createAligner("ExternalAligner", alfile1));
+      }
 
       if (giza_alignment) {
          arg+=2;
@@ -509,81 +477,36 @@ void doEverything(const char* prog_name, ARG& args)
             error(ETFatal, "Missing arguments: alignment files");
          args.testAndSet(arg, "alfile1", alfile1);
          args.testAndSet(arg+1, "alfile2", alfile2);
-         if (verbose)
+         if (ppe.verbose)
             cerr << "reading aligment files " << alfile1 << "/" << alfile2 << endl;
          if (al_1) delete al_1;
          al_1 = new GizaAlignmentFile(alfile1);
          if (al_2) delete al_2;
          al_2 = new GizaAlignmentFile(alfile2);
-         if (aligner_factory) delete aligner_factory;
-         aligner_factory = new WordAlignerFactory(al_1, al_2, verbose, twist, add_single_word_phrases);
+         if (ppe.aligner_factory) delete ppe.aligner_factory;
+         ppe.aligner_factory = new WordAlignerFactory(
+               al_1, al_2, ppe.verbose, ppe.twist, ppe.add_single_word_phrases);
 
-         aligners.clear();
-         for (Uint i = 0; i < align_methods.size(); ++i)
-            aligners.push_back(aligner_factory->createAligner(align_methods[i]));
+         ppe.aligners.clear();
+         for (Uint i = 0; i < ppe.align_methods.size(); ++i)
+            ppe.aligners.push_back(ppe.aligner_factory->createAligner(ppe.align_methods[i]));
       }
 
-      Uint line_no = 0;
-      string line1, line2;
-      vector<string> toks1, toks2;
-      vector< vector<Uint> > sets1;
+      ppe.alignFilePair(file1,
+	    file2,
+	    pt,
+	    algo,
+	    word_voc_1,
+	    word_voc_2);
 
-      while (getline(in1, line1)) {
-         if (!getline(in2, line2)) {
-            error(ETWarn, "skipping rest of file pair %s/%s because line counts differ",
-                  file1.c_str(), file2.c_str());
-            break;
-         }
-         ++line_no;
-
-         if (verbose > 1) cerr << "--- " << line_no << " ---" << endl;
-
-         toks1.clear(); toks2.clear();
-         split(line1, toks1);
-         split(line2, toks2);
-
-         for (Uint i = 0; i < toks1.size(); ++i)
-            word_voc_1.add(toks1[i].c_str());
-         for (Uint i = 0; i < toks2.size(); ++i)
-            word_voc_2.add(toks2[i].c_str());
-
-         if (verbose > 1)
-            cerr << line1 << endl << line2 << endl;
-
-         for (Uint i = 0; i < aligners.size(); ++i) {
-
-            if (verbose > 1) cerr << "---" << align_methods[i] << "---" << endl;
-            aligners[i]->align(toks1, toks2, sets1);
-            if (verbose) stats.tally(sets1, toks1.size(), toks2.size());
-
-            if (verbose > 1) {
-               cerr << "---" << endl;
-               aligner_factory->showAlignment(toks1, toks2, sets1);
-               cerr << "---" << endl;
-            }
-            aligner_factory->addPhrases(toks1, toks2, sets1,
-                                        max_phrase_len1, max_phrase_len2,
-                                        max_phraselen_diff,
-                                        min_phrase_len1, min_phrase_len2,
-                                        pt);
-         }
-         if (verbose > 1) cerr << endl; // end of block
-         if (verbose == 1 && line_no % 1000 == 0)
-            cerr << "line: " << line_no << endl;
-      }
-
-      if (getline(in2, line2))
-         error(ETWarn, "skipping rest of file pair %s/%s because line counts differ",
-               file1.c_str(), file2.c_str());
 
       if (indiv_tables) {
 
-         if (add_word_translations && ibm_1 && ibm_2) {
-            if (verbose) cerr << "ADDING IBM1 translations for untranslated words:" << endl;
-            add_ibm1_translations(1, ibm_1->getTTable(), pt, word_voc_1,
-                                  add_word_trans_voc == "" ? word_voc_2 : extern_word_voc_2, NULL);
-            add_ibm1_translations(2, ibm_2->getTTable(), pt, word_voc_2,
-                                  add_word_trans_voc == "" ? word_voc_1 : extern_word_voc_1, NULL);
+         if (ppe.add_word_translations && ppe.ibm_1 && ppe.ibm_2) {
+            if (ppe.verbose) cerr << "ADDING IBM1 translations for untranslated words in lang 1:" << endl;
+            ppe.add_ibm1_translations(1, pt, word_voc_1, add_word_trans_voc == "" ? word_voc_2 : extern_word_voc_2);
+            if (ppe.verbose) cerr << "ADDING IBM1 translations for untranslated words in lang 2:" << endl;
+            ppe.add_ibm1_translations(2, pt, word_voc_2, add_word_trans_voc == "" ? word_voc_1 : extern_word_voc_1);
             word_voc_1.clear();
             word_voc_2.clear();
          }
@@ -601,30 +524,35 @@ void doEverything(const char* prog_name, ARG& args)
 
    pt.remap_psep();
 
-   if (verbose) stats.display(lang1, lang2, cerr);
+   if (ppe.verbose) stats.display(lang1, lang2, cerr);
 
-   if (add_word_translations && ibm_1 && ibm_2) {
+   if (ppe.add_word_translations && ppe.ibm_1 && ppe.ibm_2) {
       ostream* os1 = NULL;
       ostream* os2 = NULL;
       if (add_word_trans_file != "") {
          os1 = new oSafeMagicStream(add_word_trans_file + ".1");
          os2 = new oSafeMagicStream(add_word_trans_file + ".2");
       }
-      if (verbose) {
-         cerr << "ADDING IBM1 translations for untranslated words";
-         if (os1) cerr << " (writing to " << add_word_trans_file << ".[12])";
+      if (ppe.verbose) {
+         cerr << "ADDING IBM1 translations for untranslated words in lang 1:";
+         if (os1) cerr << " (writing to " << add_word_trans_file << ".1)";
          cerr << endl;
       }
-      add_ibm1_translations(1, ibm_1->getTTable(), pt, word_voc_1,
+      ppe.add_ibm1_translations(1, pt, word_voc_1,
                             add_word_trans_voc == "" ? word_voc_2 : extern_word_voc_2, os1);
-      add_ibm1_translations(2, ibm_2->getTTable(), pt, word_voc_2,
+      if (ppe.verbose) {
+         cerr << "ADDING IBM1 translations for untranslated words in lang 2:";
+         if (os1) cerr << " (writing to " << add_word_trans_file << ".2)";
+         cerr << endl;
+      }
+      ppe.add_ibm1_translations(2, pt, word_voc_2,
                             add_word_trans_voc == "" ? word_voc_1 : extern_word_voc_1, os2);
       if (os1) delete os1;
       if (os2) delete os2;
    }
 
    if (prune1 || prune1w) {
-      if (verbose) {
+      if (ppe.verbose) {
          cerr << "pruning to best ";
          if (prune1)            cerr << prune1;
          if (prune1 && prune1w) cerr << "+";
@@ -636,23 +564,23 @@ void doEverything(const char* prog_name, ARG& args)
 
    if ( !indiv_tables ) {
       if ( multipr_output != "" ) {
-         if (verbose) cerr << "smoothing:" << endl;
+         if (ppe.verbose) cerr << "smoothing:" << endl;
 
-         PhraseSmootherFactory<Uint> smoother_factory(&pt, ibm_1, ibm_2, smoothing_verbose);
+         PhraseSmootherFactory<Uint> smoother_factory(&pt, ppe.ibm_1, ppe.ibm_2, smoothing_verbose);
          vector< PhraseSmoother<Uint>* > smoothers;
          smoother_factory.createSmoothersAndTally(smoothers, smoothing_methods);
 
          if (multipr_output == "fwd" || multipr_output == "both") {
             string filename = name + "." + lang1 + "2" + lang2 + z_ext;
-            if (verbose) cerr << "Writing " << filename << endl;
+            if (ppe.verbose) cerr << "Writing " << filename << endl;
             oSafeMagicStream ofs(filename);
-            dumpMultiProb(ofs, 1, pt, smoothers, verbose);
+            dumpMultiProb(ofs, 1, pt, smoothers, ppe.verbose);
          }
          if (multipr_output == "rev" || multipr_output == "both") {
             string filename = name + "." + lang2 + "2" + lang1 + z_ext;
-            if (verbose) cerr << "Writing " << filename << endl;
+            if (ppe.verbose) cerr << "Writing " << filename << endl;
             oSafeMagicStream ofs(filename);
-            dumpMultiProb(ofs, 2, pt, smoothers, verbose);
+            dumpMultiProb(ofs, 2, pt, smoothers, ppe.verbose);
          }
       }
       if (joint)
@@ -667,50 +595,8 @@ void doEverything(const char* prog_name, ARG& args)
       }
    }
 
-   if (verbose) cerr << "done" << endl;
+   if (ppe.verbose) cerr << "done" << endl;
 
-}
-
-static const string& remap(const string& s) {
-   if (s == PhraseTableBase::psep)
-      return PhraseTableBase::psep_replacement;
-   else
-      return s;
-}
-
-// Lang is source language for tt: 1 or 2.
-// If os is non-NULL, the pairs get written to os instead of inserted into the
-// phrasetable.
-
-void add_ibm1_translations(Uint lang, const TTable& tt, PhraseTable& pt,
-                           Voc& src_word_voc, Voc& tgt_word_voc,
-                           ostream* os)
-{
-   vector<string> words, trans;
-   vector<float> probs;
-
-   tt.getSourceVoc(words);
-   for (vector<string>::const_iterator p = words.begin(); p != words.end(); ++p) {
-      bool in_phrase_voc = lang == 1 ? pt.inVoc1(*p) : pt.inVoc2(*p);
-      if (!in_phrase_voc && src_word_voc.index(p->c_str()) != src_word_voc.size()) {
-         tt.getSourceDistnByDecrProb(*p, trans, probs);
-         Uint num_added = 0;
-         for (Uint i = 0; num_added < add_word_translations && i < trans.size(); ++i) {
-            if (tgt_word_voc.index(trans[i].c_str()) == tgt_word_voc.size()) {
-               continue;
-            }
-            if (lang == 1) {
-               if (os) (*os) << remap(*p) << " ||| " << remap(trans[i]) << " ||| " << 1 << endl;
-               else pt.addPhrasePair(p, p+1, trans.begin()+i, trans.begin()+i+1);
-            } else {
-               if (os) (*os) << remap(trans[i]) << " ||| " << remap(*p) << " ||| " << 1 << endl;
-               else pt.addPhrasePair(trans.begin()+i, trans.begin()+i+1, p, p+1);
-            }
-            ++num_added;
-            if (verbose > 1) cerr << *p << "/" << trans[i] << endl;
-         }
-      }
-   }
 }
 
 // vim:sw=3:
