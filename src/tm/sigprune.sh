@@ -61,9 +61,10 @@ Options:
                   pairs, as discussed in Johnson et al, EMNLP 2007.
 
   -keep     Keep the co-occurrence counts file.
-  -n N      Split the work in N jobs/chunks (at most N with -w) [3].
-  -np M     Number of simultaneous workers used to process the N chunks [N].
-  -w W      Specifies the minimum number of lines in each block.
+  -np M     Number of simultaneous workers used to process the chunks [3].
+  -n N      Split the work in N jobs/chunks (or at most N, with -w) [3*M].
+  -w w      Specifies the minimum number of lines in each block [1,000,000].
+  -W W      Specifies the maximum number of lines in each block [150,000,000].
   -psub <O> Passes additional options to run-parallel.sh -psub.
   -rp   <O> Passes additional options to run-parallel.sh.
 
@@ -79,17 +80,19 @@ Options:
 # Command line processing [Remove irrelevant parts of this code when you use
 # this template]
 VERBOSE=0
+w=1000000
+W=150000000
 while [ $# -gt 0 ]; do
    case "$1" in
    -keep)               KEEP_INTERMEDIATE=1;;
    -threshold)          arg_check 1 $# $1; THRESHOLD=$2; shift;;
-   -sigopts)            arg_check 1 $# $1; SIG_OPTS=$2; shift;;
 
-   -n)                  arg_check 1 $# $1; PARALLELIZE_OPTS="$PARALLELIZE_OPTS -n $2"; shift;;
-   -np)                 arg_check 1 $# $1; PARALLELIZE_OPTS="$PARALLELIZE_OPTS -np $2"; shift;;
-   -w)                  arg_check 1 $# $1; PARALLELIZE_OPTS="$PARALLELIZE_OPTS -w $2"; shift;;
-   -psub)               arg_check 1 $# $1; PARALLELIZE_OPTS="$PARALLELIZE_OPTS -psub '$2'"; shift;;
-   -rp)                 arg_check 1 $# $1; PARALLELIZE_OPTS="$PARALLELIZE_OPTS -rp '$2'"; shift;;
+   -n)                  arg_check 1 $# $1; N=$2; shift;;
+   -np)                 arg_check 1 $# $1; NP=$2; shift;;
+   -w)                  arg_check 1 $# $1; w=$2; shift;;
+   -W)                  arg_check 1 $# $1; W=$2; shift;;
+   -psub)               arg_check 1 $# $1; PSUB_OPTS="$PSUB_OPTS $2"; shift;;
+   -rp)                 arg_check 1 $# $1; RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $2"; shift;;
 
    -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ));;
    -d|-debug)           DEBUG=1;;
@@ -101,9 +104,21 @@ while [ $# -gt 0 ]; do
    shift
 done
 
+# User specifies W has maximum number of tokens in either source or target
+# shard but we will use W has maximum tokens in combining source shard and
+# target shard.
+W=$((2*$W))
+w=$((2*$w))
 
-#test $# -eq 0   && error_exit "Missing threshold value."
-#THRESHOLD=$1; shift
+# Validate the minimum shards size against the maximum shards size.
+[[ $w -le $W ]] || error_exit "w must be smaller or equal to W."
+
+# Make sure N & NP have a value.
+[[ $NP ]] || NP=3
+[[ $N ]] || N=$(($NP * 3))
+
+debug "RUN_PARALLEL_OPTS: $RUN_PARALLEL_OPTS"
+
 test $# -eq 0   && error_exit "Missing jpt."
 JPT=$1; shift
 test $# -eq 0   && error_exit "Missing source corpus."
@@ -131,14 +146,28 @@ else
    # Keeps only those entries that meets the threshold the user provided.
    FILTER="perl -nle \"BEGIN{use encoding 'UTF-8';} @a = split(/\t/); print \\\$a[8] if (\\\$a[1] <= -$THRESHOLD)\""
 fi
+debug "FILTER=$FILTER"
 
 # Define the intermediate count file.
 INTERMEDIATE_FILE="sig.cnts.`basename $JPT`"
-if [[ -e "$INTERMEDIATE_FILE" ]]; then
+# Always keep the intermediate file compressed.
+INTERMEDIATE_FILE=${INTERMEDIATE_FILE%%.gz}.gz
+INTERMEDIATE_SIG_COUNTS="cat"
+# Is there a valid intermediate file?
+if [[ -n "`find . -maxdepth 1 -size +21c -name $INTERMEDIATE_FILE`" ]]; then
    INTERMEDIATE_EXITS=1
    if [[ "$JPT" -nt "$INTERMEDIATE_FILE" ]]; then
       error_exit "\n\tYour co-occurence count file ($INTERMEDIATE_FILE) is older than your JPT ($JPT)." \
          "\tTake the proper action to fix this situation."
+   fi
+else
+   # By default we don't keep the intermediate count file.
+   if [[ $KEEP_INTERMEDIATE ]]; then
+      if [[ $INTERMEDIATE_FILE =~ ".gz$" ]]; then
+         INTERMEDIATE_SIG_COUNTS="tee >(gzip > $INTERMEDIATE_FILE)"
+      else
+         INTERMEDIATE_SIG_COUNTS="tee $INTERMEDIATE_FILE"
+      fi
    fi
 fi
 
@@ -152,46 +181,133 @@ else
 fi
 
 
+
+# the mmsufa files will be named after the source and target files
+MMSUFA_SRC=mmsufa.`basename $SRC`
+MMSUFA_TGT=mmsufa.`basename $TGT`
+
+WORKDIR=sigprune.sh.$$
+mkdir $WORKDIR || error_exit "Cannot create workdir $WORDIR"
+MMSUFA_CMDS=cmd.mmsufa
+CONTINGENCY_CMDS=cmd.contingency
+MERGE_CMDS=cmd.merge
+
+START_TIME=`date +"%s"`
+set -o pipefail
+verbose 1 "Starting on `date`"
+TIMEFORMAT="Sub-job-total: Real %3Rs User %3Us Sys %3Ss PCPU %P%%"
 # Try to reuse an already created intermediate file.
-{
-   if [[ $INTERMEDIATE_EXITS ]]; then
-      echo "Warning: Reusing the co-occurence count file: $INTERMEDIATE_FILE" >&2
-      zcat -f $INTERMEDIATE_FILE;
-   else
-      SIG_OUT=""
-      if [[ $KEEP_INTERMEDIATE ]]; then
-         SIG_OPTS="$SIG_OPTS -keep-intermediate-files"
-         if [[ $INTERMEDIATE_FILE =~ ".gz$" ]]; then
-            SIG_OUT="| tee >(gzip > $INTERMEDIATE_FILE)"
+if [[ $INTERMEDIATE_EXITS ]]; then
+   warn "Reusing the co-occurence count file: $INTERMEDIATE_FILE"
+   zcat -f $INTERMEDIATE_FILE
+else
+   # Let's try to create shards of even sizes smaller than W but of at least size w for the input corpora.
+   verbose 1 "Calculating the total number of tokens in $SRC & $TGT"
+   time {
+      NUMBER_CORPORA_TOKENS=`zcat -f $SRC $TGT | wc -w`;
+   }
+   verbose 1 "There are $NUMBER_CORPORA_TOKENS in the source & target corpora combined."
+   NUM_SHARDS=$(($NUMBER_CORPORA_TOKENS / $W))
+   [[ $NUM_SHARDS -gt 1 ]] && W=$(($NUMBER_CORPORA_TOKENS / $NUM_SHARDS + 1))
+   [[ $W -lt $w ]] && W=$w
+
+   verbose 1 "Sharding the input corpora $SRC & $TGT in shards of ~$W tokens."
+   time {
+      paste <(zcat -f $SRC) <(zcat -f $TGT) \
+         | perl -nle "BEGIN{\$c=0; sub c { close(S); close(T); } sub o { open(S, \">$WORKDIR/\$c.s\"); open(T, \">$WORKDIR/\$c.t\"); \$c++; \$total=0}; }(\$s, \$t)=split(/\t/); o() unless(fileno S); print S \$s; print T \$t; \$total+=scalar(split(/[ \t]+/, \$s)) + scalar(split(/[ \t]+/, \$t)); c() if (\$total > $W); END{c();}" \
+         || error_exit "Error splitting the input corpora.";
+   }
+
+
+   # Sharding the joint phrase table.
+   verbose 1 "Calculating the total number of phrase pairs in $JPT"
+   time {
+      NUMBER_OF_JPT_ENTRIES=`zcat -f $JPT | wc -l`;
+   }
+   verbose 1 "There are $NUMBER_OF_JPT_ENTRIES phrase pairs in the joint phrase table."
+   JPT_SHARD_SIZE=$(($NUMBER_OF_JPT_ENTRIES / $N + 1))
+   mkdir -p $WORKDIR/jpt || error_exit "Cannot create directory for jpts."
+   verbose 1 "Sharding the joint phrase table in shards of ~$JPT_SHARD_SIZE phrase pairs."
+   time {
+      zcat -f $JPT | split --suffix-length=5 --numeric-suffixes --lines=$JPT_SHARD_SIZE - $WORKDIR/jpt/;
+   }
+
+
+   verbose 1 "Preparing memory mapped suffix array's commands."
+   pushd $WORKDIR &> /dev/null || error_exit "Can't change dir to $WORKDIR"
+   for src in *.s; do
+      tgt=${src%%.s}.t
+      if [[ -s $src.tpsa/msa ]]; then
+         warn "Reusing existing $src.tpsa."
          else
-            SIG_OUT="| tee $INTERMEDIATE_FILE"
+         echo "pushd $WORKDIR && build-tp-suffix-array.sh $src"
          fi
+      if [[ -s $tgt.tpsa/msa ]]; then
+         warn "Reusing existing $tgt.tpsa."
+      else
+         echo "pushd $WORKDIR && build-tp-suffix-array.sh $tgt"
       fi
+   done > $MMSUFA_CMDS
+   [[ $DEBUG ]] && cat $MMSUFA_CMDS >&2
 
-      echo "Creating the co-occurence counts." >&2
-      [[ -s mmsufa.src.tpsa ]] || build-tp-suffix-array.sh $SRC mmsufa.src >&2
-      [[ -s mmsufa.tgt.tpsa ]] || build-tp-suffix-array.sh $TGT mmsufa.tgt >&2
+   verbose 1 "Preparing co-occurence counts commands."
+   MODULO=$NP
+   for jpt_shard in jpt/*; do
+      jpt_shard=`basename $jpt_shard`
+      for mmsufa in *.s; do
+         mmsufa=${mmsufa%%.s}
+         prefix=$WORKDIR/$mmsufa
+         out=$WORKDIR/jpt${jpt_shard}_mmsufa${mmsufa}.out.gz
+         # NOTE: not using stripe.py in order to make it easier to merge the output.
+         #echo "zcat $JPT | stripe.py -i $jpt_shard -m $MODULO | phrasepair-contingency --sigfet $prefix s.tpsa t.tpsa > $out"
+         echo "phrasepair-contingency --sigfet $prefix s.tpsa t.tpsa < $WORKDIR/jpt/$jpt_shard | cut -f1-5 | gzip > $out"
+      done
+   done > $CONTINGENCY_CMDS
+   [[ $DEBUG ]] && cat $CONTINGENCY_CMDS >&2
 
-      # UGH!  Sometimes one of the phrasepair-contingency instances fails to
-      # see some of the TPSA files that were just created.  So we wait to give
-      # the file system and the stars time to align themselves properly...
-      sleep 5
+   verbose 1 "Preparing merging commands."
+   for jpt_shard in jpt/*; do
+      jpt_file="$WORKDIR/$jpt_shard"
+      jpt_shard=`basename $jpt_shard`
+      echo "merge_sigprune_counts $jpt_file $WORKDIR/jpt${jpt_shard}_mmsufa*.out.gz"
+   done > $MERGE_CMDS
+   [[ $DEBUG ]] && cat $MERGE_CMDS >&2
+   popd &> /dev/null
 
-      CMD="time parallelize.pl -stripe $PARALLELIZE_OPTS \"phrasepair-contingency --sigfet mmsufa src tgt < $JPT\" $SIG_OUT"
-      [[ $DEBUG ]] && echo "Contingency command: $CMD" >&2
-      eval "$CMD" || error_exit "Problem with parallelize.pl!"
-   fi;
-} \
+   verbose 0 "Creating memory mapped suffix arrays."
+   run-parallel.sh $RUN_PARALLEL_OPTS -psub "$PSUB_OPTS" $WORKDIR/$MMSUFA_CMDS $NP || error_exit "Problem generating memory mapped suffix arrays!"
+
+   verbose 0 "Calculating phrase pairs co-occurences for each shard."
+   run-parallel.sh $RUN_PARALLEL_OPTS -psub "$PSUB_OPTS" $WORKDIR/$CONTINGENCY_CMDS $NP || error_exit "Problem calculating phrase pair contingency!"
+
+   verbose 0 "Calculating phrase pairs co-occurences for the entire joint phrase table."
+   time {
+      . $WORKDIR/$MERGE_CMDS;
+   }
+fi \
+| sigprune_line_numbering \
+| eval $INTERMEDIATE_SIG_COUNTS \
 | sigprune_fet \
 | eval $FILTER \
 | eval $OUTPUT
 
-if [[ ! $KEEP_INTERMEDIATE ]]; then
-   # NOTE: in order to get a 0 exit status the following is written to always
-   # produce true unless there is really a problem removing the files.
-   [[ ! -e mmsufa.src.tpsa ]] || rm -r mmsufa.src.tpsa
-   [[ ! -e mmsufa.tgt.tpsa ]] || rm -r mmsufa.tgt.tpsa
+# NOTE: SP::PrefixCode::b64 creates a line number required for Howard's significance pruning scripts.
+# Can be replaced with sigprune_line_numbering.
+
+
+verbose 0 "Done"
+verbose 0 "Master-Wall-Time $((`date +%s` - $START_TIME))s"
+
+if [[ $KEEP_INTERMEDIATE ]]; then
+   # Make sure there was no problem generating the intermediate count file.
+   if [[ -z "`find . -maxdepth 1 -size +21c -name $INTERMEDIATE_FILE`" ]]; then
+      error_exit "Error generating a valid intermediate file ($INTERMEDIATE_FILE)"
+   fi
 fi
+
+# TODO: Should we keep the mmsufa?
+# Actually, even on the .gc.ca it took about 15 mins per mmsufa x 6.
+[[ $DEBUG ]] || rm -r $WORKDIR || error_exit "Problem cleaning up the working directory."
 
 exit
 
