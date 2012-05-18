@@ -14,10 +14,11 @@
 # Copyright 2011, Her Majesty in Right of Canada
 
 
+SIGPRUNE := sigprune.sh
+THRESHOLD := 4.5
+
 -include Makefile.params
 
-THRESHOLD := 4.5
-SIGPRUNE := $(shell which sigprune.sh)
 
 vpath jpt.%.en-fr.gz src
 vpath tm-train%.gz src
@@ -30,13 +31,13 @@ all: testsuite
 
 .PHONY: clean
 clean:
-	${RM} log.unittest* runpara_cmds run-parallel-logs-local unittest*.gz sig.cnts.jpt.ibm2.tm-train.en-fr.gz
+	${RM} log.* runpara_cmds run-parallel-logs-local unittest*.gz
 	${RM} -r run-p.*  *.tpsa  parallelize.pl.*  TEST.*  sigprune.sh.*
-
+	${RM}  sig.cnts.jpt.ibm2.tm-train.en-fr.gz sig.cnts.jpt.vtab.gz
 
 
 .PHONY: testsuite
-testsuite: unittest0
+#testsuite: unittest0
 testsuite: unittest1
 testsuite: unittest2
 testsuite: unittest3
@@ -45,82 +46,112 @@ testsuite: unittest5
 testsuite: unittest6
 testsuite: unittest7
 testsuite: unittest8
+testsuite: test_find_vtab test_sig_vtab
+
+testsuite:
+	@echo All tests PASSED.
+
+
+
+# Not the reference sigprune jpt but the counts required to create the sigpruned jpt.
+reference.counts: jpt.ibm2.tm-train.en-fr.gz tm-train_en.lc.gz tm-train_fr.lc.gz
+	build-tp-suffix-array.sh $(filter %tm-train_en.lc.gz, $+)
+	mv tm-train_en.lc.tpsa tm-train.en.lc.tpsa
+	build-tp-suffix-array.sh $(filter %tm-train_fr.lc.gz, $+)
+	mv tm-train_fr.lc.tpsa tm-train.fr.lc.tpsa
+	zcat $(filter %jpt.ibm2.tm-train.en-fr.gz, $+) \
+	| phrasepair-contingency --sigfet tm-train en.lc.tpsa fr.lc.tpsa \
+	> $@
 
 
 
 # Test out the parallelism when calling phrasepair-contingency within sigpurne.sh.
 # Also make sure that run-parallel's arguments are correctly passed down.
-UNITTEST0 := -d -nocluster -psub "-2 -N U0_" -p TEST.
+UNITTEST0_OPTS := -rp "-d -nocluster -p TEST." -psub "-2 -N U0_"
 .PHONY: unittest0
 unittest0: unittest0.gz
-	[[ ! -e "sig.cnts.jpt.ibm2.tm-train.en-fr.gz" ]]  # Co-occurrence count file mustn't exsit after.
-	[[ `grep -c 'DONE (Primary' log.$@` == 4 ]] || ! echo "parallelize.pl should have created 4 jobs." >&2
-	[[ `grep 'DONE (Primary' log.$@ | egrep -c 'parallelize.pl\.[0-9]+'` == 4 ]] || ! echo "Check if $@ used parallelize.pl?" >&2
-	grep 'Creating the co-occurence counts.' log.$@
-	grep -F 'SAVE_ARGS = $(subst ",,${UNITTEST0})' log.$@
+	[[ `grep 'DONE (Primary' log.$@ | grep -c 'build-tp-suffix-array.sh'` == 4 ]] || ! echo "sigprune.sh should have created 2 mmsufa.tpsa" >&2
+	[[ `grep 'DONE (Primary' log.$@ | grep -c 'phrasepair-contingency --sigfet'` == 8 ]] || ! echo "Unexpected number of contingency jobs." >&2
+	grep --quiet 'Creating memory mapped suffix arrays.' log.$@
+	grep --quiet 'Calculating phrase pairs co-occurences for each shard.' log.$@
+	grep --quiet 'Calculating phrase pairs co-occurences for the entire joint phrase table.' log.$@
+	grep -F 'SAVE_ARGS = -d -nocluster -p TEST. -psub  -2 -N U0_' log.$@
 	grep 'PSUBOPTS  =  -2 -N U0_' log.$@
 	diff <(zcat -f $<) <(zcat -f ref/sig.jpt.ibm2.tm-train.en-fr.gz) -q
 
+# use -w 1000 -W 1200 to force creating two sets of mmsufa, 4 in total
+# NOTE: we will test if the intermediate count file exist here in order to be able to rerun make without error.
 unittest0.gz: jpt.ibm2.tm-train.en-fr.gz tm-train_en.lc.gz tm-train_fr.lc.gz
 	-rm -f sig.cnts.jpt.ibm2.tm-train.en-fr.gz
-	export PORTAGE_NOCLUSTER=1; ${SIGPRUNE} -d -rp '${UNITTEST0}' -n 4 -np 2 -threshold ${THRESHOLD} $+ $@ 2> log.$(basename $@)
+	export PORTAGE_NOCLUSTER=1; ${SIGPRUNE} -v -w 1000 -W 1200 -d ${UNITTEST0_OPTS} -n 4 -np 2 -threshold ${THRESHOLD} $+ $@ 2> log.$(basename $@)
+	[[ ! -e "sig.cnts.jpt.ibm2.tm-train.en-fr.gz" ]]  # Co-occurrence count file must not exist after.
+
 
 
 # Don't keep co-occurrence count file and doesn't exist before.
 # Also make sure that psub's arguments are correctly passed down.
-UNITTEST1 := -psub '-N TEST -3'
+UNITTEST1 := -psub "-N TEST -3"
 .PHONY: unittest1
 unittest1: unittest1.gz
-	[[ ! -e "sig.cnts.jpt.ibm2.tm-train.en-fr.gz" ]]  # Co-occurrence count file mustn't exsit after.
-	grep 'Creating the co-occurence counts.' log.$@
+	grep --quiet 'Creating memory mapped suffix arrays.' log.$@
+	grep --quiet 'Calculating phrase pairs co-occurences for each shard.' log.$@
+	grep --quiet 'Calculating phrase pairs co-occurences for the entire joint phrase table.' log.$@
 	[[ `hostname` != "balzac" ]] || grep 'Requested 3 CPUs per worker' log.$@
 	diff <(zcat -f $<) <(zcat -f ref/sig.jpt.ibm2.tm-train.en-fr.gz) -q
 
 unittest1.gz: jpt.ibm2.tm-train.en-fr.gz tm-train_en.lc.gz tm-train_fr.lc.gz | unittest0.gz
 	-rm -f sig.cnts.jpt.ibm2.tm-train.en-fr.gz
-	${SIGPRUNE} ${UNITTEST1} -threshold ${THRESHOLD} $+ $@ 2> log.$(basename $@)
+	${SIGPRUNE} ${UNITTEST1} -v -threshold ${THRESHOLD} $+ $@ 2> log.$(basename $@)
+	[[ ! -e "sig.cnts.jpt.ibm2.tm-train.en-fr.gz" ]]  # Co-occurrence count file must not exist after.
 
 
-# Keep but cnts.jpt doesn't already exist.
+
+# Keep but sig.cnts.jpt doesn't already exist.
 .PHONY: unittest2
 unittest2: unittest2.gz
-	[[ -e "sig.cnts.jpt.ibm2.tm-train.en-fr.gz" ]]  #  Co-occurrence count file must exist after.
-	grep 'Creating the co-occurence counts.' log.$@
+	grep --quiet 'Creating memory mapped suffix arrays.' log.$@
+	grep --quiet 'Calculating phrase pairs co-occurences for each shard.' log.$@
+	grep --quiet 'Calculating phrase pairs co-occurences for the entire joint phrase table.' log.$@
 	diff <(zcat -f $<) <(zcat -f ref/sig.jpt.ibm2.tm-train.en-fr.gz) -q
 	diff <(zcat -f sig.cnts.jpt.ibm2.tm-train.en-fr.gz | cut -f2-) <(zcat -f ref/cnts.jpt.ibm2.tm-train.en-fr.gz | cut -f2-) -q
 
 unittest2.gz: jpt.ibm2.tm-train.en-fr.gz tm-train_en.lc.gz tm-train_fr.lc.gz | unittest1.gz
+	-rm -f sig.cnts.jpt.ibm2.tm-train.en-fr.gz
 	${SIGPRUNE} -keep -threshold ${THRESHOLD} $+ $@ 2> log.$(basename $@)
+	[[ -e "sig.cnts.jpt.ibm2.tm-train.en-fr.gz" ]]  #  Co-occurrence count file must exist after.
+
 
 
 # Co-occurrence count file already exist and we want to keep it.
 .PHONY: unittest3
 unittest3: unittest3.gz
-	[[ -e "sig.cnts.jpt.ibm2.tm-train.en-fr.gz" ]]  # Co-occurrence count file must also exist after.
-	grep 'Warning: Reusing the co-occurence count file' log.$@
+	grep 'WARNING: Reusing the co-occurence count file' log.$@
 	diff <(zcat -f $<) <(zcat -f ref/sig.jpt.ibm2.tm-train.en-fr.gz) -q
 
 unittest3.gz: jpt.ibm2.tm-train.en-fr.gz tm-train_en.lc.gz tm-train_fr.lc.gz | unittest2.gz
 	[[ -e "sig.cnts.jpt.ibm2.tm-train.en-fr.gz" ]]  # Co-occurrence count file must exist before.
-	${SIGPRUNE} -keep -threshold ${THRESHOLD} $+ $@ 2> log.$(basename $@)
+	${SIGPRUNE} -v -keep -threshold ${THRESHOLD} $+ $@ 2> log.$(basename $@)
+	[[ -e "sig.cnts.jpt.ibm2.tm-train.en-fr.gz" ]]  # Co-occurrence count file must also exist after.
+
 
 
 # Co-occurrence count file already exist and we don't want to keep it.
 .PHONY: unittest4
 unittest4: unittest4.gz
-	[[ -e "sig.cnts.jpt.ibm2.tm-train.en-fr.gz" ]]  # Co-occurrence count file must also exist after.
-	grep 'Warning: Reusing the co-occurence count file' log.$@
+	grep 'WARNING: Reusing the co-occurence count file' log.$@
 	diff <(zcat -f $<) <(zcat -f ref/sig.jpt.ibm2.tm-train.en-fr.gz) -q
 
 unittest4.gz: jpt.ibm2.tm-train.en-fr.gz tm-train_en.lc.gz tm-train_fr.lc.gz | unittest3.gz
 	[[ -e "sig.cnts.jpt.ibm2.tm-train.en-fr.gz" ]]  # Co-occurrence count file must exist before.
-	${SIGPRUNE} -keep -threshold ${THRESHOLD} $+ $@ 2> log.$(basename $@)
+	${SIGPRUNE} -v -threshold ${THRESHOLD} $+ $@ 2> log.$(basename $@)
+	[[ -e "sig.cnts.jpt.ibm2.tm-train.en-fr.gz" ]]  # Co-occurrence count file must also exist after.
+
 
 
 # Keep or filter-out <1,1,1> 
 .PHONY: unittest5 unittest6
 unittest5 unittest6: unittest%: unittest%.gz
-	grep 'Warning: Reusing the co-occurence count file' log.$@
+	grep 'WARNING: Reusing the co-occurence count file' log.$@
 	diff <(zcat -f $<) <(zcat -f ref/$<) -q
 
 unittest5.gz: THRESHOLD=a-e
@@ -130,11 +161,14 @@ unittest5.gz unittest6.gz: unittest%.gz: jpt.ibm2.tm-train.en-fr.gz tm-train_en.
 	${SIGPRUNE} -keep -threshold ${THRESHOLD} $+ $@ 2> log.$(basename $@)
 
 
+
 # Threshold values should be positive.
 .PHONY: unittest7
 unittest7:  unittest7.gz
 unittest7.gz:  jpt.ibm2.tm-train.en-fr.gz tm-train_en.lc.gz tm-train_fr.lc.gz | unittest4.gz
 	${SIGPRUNE} -keep -threshold -10 $+ $@ 2>&1 | grep 'fatal error: Your threshold should be a positive value'
+	@echo "OK: fatal error as expected"
+
 
 
 # Threshold values should be great than 0.
@@ -142,4 +176,26 @@ unittest7.gz:  jpt.ibm2.tm-train.en-fr.gz tm-train_en.lc.gz tm-train_fr.lc.gz | 
 unittest8:  unittest8.gz
 unittest8.gz:  jpt.ibm2.tm-train.en-fr.gz tm-train_en.lc.gz tm-train_fr.lc.gz | unittest4.gz
 	${SIGPRUNE} -keep -threshold 0 $+ $@ 2>&1 | grep 'fatal error: Your threshold should be a positive value'
+	@echo "OK: fatal error as expected"
 
+
+
+#### vtab testing - make sure token separator is simply [spaces|tab]+, nothing else
+
+test_sig_vtab: sig.cnts.jpt.vtab.gz
+	diff <(zcat $@) <(zcat ref/$@)
+
+vpath jpt.vtab  src/
+vpath vtab.%    src/
+sig.cnts.jpt.vtab.gz: jpt.vtab vtab.en vtab.fr
+	${RM} $@
+	${SIGPRUNE} -n 1 -np 1 -keep -threshold .1 $+ >& log.$@
+
+test_find_vtab: vtab.en
+	build-tp-suffix-array.sh $<
+	mmtsa.find --tpsa vtab.en.tpsa v | diff - /dev/null
+	mmtsa.find --tpsa vtab.en.tpsa tab | diff - /dev/null
+	mmtsa.find --tpsa vtab.en.tpsa test | diff - <(echo 0 1)
+	mmtsa.find --tpsa vtab.en.tpsa $$'v\vtab' | diff - <(echo 0 4)
+	mmtsa.find --tpsa vtab.en.tpsa $$'a v\vtab' | diff - <(echo 0 3)
+	mmtsa.find --tpsa vtab.en.tpsa $$'\t a \t v\vtab ' | diff - <(echo 0 3)
