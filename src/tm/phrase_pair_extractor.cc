@@ -184,12 +184,7 @@ void PhrasePairExtractor::loadModels(bool createAligner)
    
    if (use_hmm) {
       if (verbose)
-         cerr << "Loading HMM models with p0: " << p0
-              << " up0: " << up0 << " alpha: " << alpha
-              << " lambda: " << lambda << " anchor: " << anchor
-              << " start-dist: " << start_dist << " final-dist: " << final_dist
-              << " max-jump: " << max_jump
-              << endl;
+         cerr << "Loading HMM models" << endl;
       ibm_1 = new HMMAligner(model1, p0, up0, alpha, lambda, anchor,
                              end_dist, max_jump);
       ibm_2 = new HMMAligner(model2, p0_2, up0_2, alpha_2, lambda_2, anchor_2,
