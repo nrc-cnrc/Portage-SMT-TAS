@@ -24,7 +24,7 @@ class BasicModelGenerator;
 namespace Portage {
 
 /// forward IBM1 decoder feature
-class IBM1FwdFeature : public DecoderFeature
+class IBM1FwdFeature : public DecoderFeature, private NonCopyable
 {
    /// much smaller than for phrasetables, because values down to 1e-30 occur in
    /// ttables 
