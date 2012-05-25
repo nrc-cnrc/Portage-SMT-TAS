@@ -681,7 +681,7 @@ while [[ 1 ]]; do
       \rm COW_DYNAMIC_OPTIONS
    fi
 
-   new=
+   declare new=
 
    if [[ -n "$MAXITER" ]]; then
       if [[ $MAXITER -lt 1 ]]; then
@@ -703,17 +703,22 @@ while [[ 1 ]]; do
    totalPrevK=0
    totalNewK=0
    time {
-      for((n=0;n<$S;++n))
-      {
-         m=`printf "%4.4d" $n`
-         x=$WORKDIR/foo.$m.${N}best
-         f=$WORKDIR/foo.$m
-
+      file_pattern="$WORKDIR/foo.%4.4d"
+      # Let's create all the duplicate free files which are our output.
+      for((n=0;n<$S;++n)) {
+         f=`printf $file_pattern $n`
          touch $f.duplicateFree$COMPRESS_EXT $f.duplicateFree.ffvals$COMPRESS_EXT
-         echo append-uniq.pl -nbest=$f.duplicateFree$COMPRESS_EXT -addnbest=$x$COMPRESS_EXT \
-            -ffvals=$f.duplicateFree.ffvals$COMPRESS_EXT -addffvals=$x.ffvals$COMPRESS_EXT \
-            \> $f.lineCounts
-      } | run-parallel.sh -psub -1 - 1 >& $WORKDIR/log.append-uniq.parallel
+      }
+      # Let's split the work of creating the duplicate free files amongst some workers.
+      NUMBER_DUPLICATE_FREE_WORKERS=4
+      for((n=0;n<$NUMBER_DUPLICATE_FREE_WORKERS;++n)) {
+         x="$file_pattern.${N}best"
+         echo append-uniq.pl \
+            -i $n -m $NUMBER_DUPLICATE_FREE_WORKERS -S $S \
+            -nbest=$file_pattern.duplicateFree$COMPRESS_EXT -addnbest=$x$COMPRESS_EXT \
+            -ffvals=$file_pattern.duplicateFree.ffvals$COMPRESS_EXT -addffvals=$x.ffvals$COMPRESS_EXT \
+            \> $WORKDIR/lineCounts.$n
+      } | run-parallel.sh -psub -1 - $NUMBER_DUPLICATE_FREE_WORKERS &> $WORKDIR/log.append-uniq.parallel
       # The above was done 4 ways parallel to speed up n-best list management,
       # but not too aggressively since we are parallelizing write operations.
       # We turned off the parallelism because of random errors occurring in append-uniq.pl
@@ -726,15 +731,19 @@ while [[ 1 ]]; do
          error_exit "parallel append-uniq.pl returned $RVAL"
       fi
 
-      for((n=0;n<$S;++n))
-      {
-         m=`printf "%4.4d" $n`
-         x=$WORKDIR/foo.$m.${N}best
-         f=$WORKDIR/foo.$m
+      [[ `\ls $WORKDIR/lineCounts.* | \wc -l` -eq $NUMBER_DUPLICATE_FREE_WORKERS ]] || error_exit "Error while creating the lineCounts files.";
+      for f in $WORKDIR/lineCounts.*;
+      do
+         [[ -s $f ]] || error_exit "Error: lineCounts file $f is empty!";
+      done
 
+      # NOTE: the following must be done like this with <() at the end to
+      # prevent creating a subshell which would create a new variable then at
+      # the end we don't get the proper value for new.
+      while read line; do 
          # Read the new and old line counts from $f.lineCounts, output by
          # append-uniq.pl while adding the new lines to duplicateFree.
-         if [[ `cat $f.lineCounts` =~ "([0-9]+) \+ ([0-9]+) = ([0-9]+)" ]]; then
+         if [[ $line =~ "([0-9]+) \+ ([0-9]+) = ([0-9]+)" ]]; then
             prevK=${BASH_REMATCH[1]}
             totalPrevK=$((totalPrevK + prevK))
             newK=${BASH_REMATCH[3]}
@@ -747,9 +756,8 @@ while [[ 1 ]]; do
          if [[ $prevK -ne $newK ]]; then
             new=1
          fi
+      done < <(cat $WORKDIR/lineCounts.*)
 
-         #echo -n ".";
-      }
       echo
    }
    echo "Total size of n-best list -- previous: $totalPrevK; current: $totalNewK."
