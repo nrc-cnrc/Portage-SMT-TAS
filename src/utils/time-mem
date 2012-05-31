@@ -136,6 +136,28 @@ reduce() {
 }
 
 
+# This method is called when the job finishes, but also when a signal is
+# caught, so we report time and memory usage even when a job is killed.
+report() {
+   export PORTAGE_INTERNAL_CALL=1
+   [[ $MON_PID ]] && kill -USR1 $MON_PID
+   #sync # sync is very expensive!  Don't do it!
+   echo "run_cmd finished (rc=$rc): $@" >&2
+   if [ -s "$MON_FILE" -a $(( `wc -l < $MON_FILE` > 1 )) ]; then
+      MON_VSZ=`egrep -ho 'vsz: [0-9.]+G' $MON_FILE 2> /dev/null | egrep -o "[0-9.]+" | sum.pl -m`
+      MON_RSS=`egrep -ho 'rss: [0-9.]+G' $MON_FILE 2> /dev/null | egrep -o "[0-9.]+" | sum.pl -m`
+      echo "run_cmd rc=$rc Max VMEM ${MON_VSZ}G Max RAM ${MON_RSS}G" >&2
+   fi
+   END_TIME=`date +%s`
+   WALL_TIME=$((END_TIME - START_TIME))
+   echo "Master-Wall-Time ${WALL_TIME}s" >&2
+
+   if [[ -z "$RUN_CMD_NO_ERROR" && "$rc" != 0 ]]; then
+      [[ $DEBUG ]] && echo "Oups there was an error." >&2
+      (( $VERBOSE > 0 )) && echo "Exit status: $rc is not zero - aborting." >&2
+      exit $rc
+   fi
+}
 
 TIMEFORMAT="Single-job-total: Real %3Rs User %3Us Sys %3Ss PCPU %P%%"
 WORKDIR_ABSOLUTE=/tmp
@@ -152,9 +174,9 @@ run_cmd() {
    if [[ ! $NOTREALLY ]]; then
       START_TIME=`date +"%s"`
       MON_FILE=`mktemp $WORKDIR_ABSOLUTE/mon.run_cmd.XXXXXXXX`
-      trap "rm -f $MON_FILE; exit" 0
+      trap "rm -f $MON_FILE; exit $rc" 0
       for signal in 1 2 3 5 10 13 14 15; do
-         trap "rm -f $MON_FILE; exit $((128 + signal))" $signal
+         trap "echo Caught signal $signal >&2; rc=$((128 + signal)); report; rm -f $MON_FILE; exit $rc" $signal
       done
       process-memory-usage.pl -s 1 $MON_PERIOD $$ > $MON_FILE &
       sleep 1
@@ -169,24 +191,7 @@ run_cmd() {
          rc=$?
          #sync # sync is very expensive!  Don't do it!
       }
-      export PORTAGE_INTERNAL_CALL=1
-      kill -USR1 $MON_PID
-      #sync # sync is very expensive!  Don't do it!
-      echo "run_cmd finished (rc=$rc): $@" >&2
-      if [ -s "$MON_FILE" -a $(( `wc -l < $MON_FILE` > 1 )) ]; then
-         MON_VSZ=`egrep -ho 'vsz: [0-9.]+G' $MON_FILE 2> /dev/null | egrep -o "[0-9.]+" | sum.pl -m`
-         MON_RSS=`egrep -ho 'rss: [0-9.]+G' $MON_FILE 2> /dev/null | egrep -o "[0-9.]+" | sum.pl -m`
-         echo "run_cmd rc=$rc Max VMEM ${MON_VSZ}G Max RAM ${MON_RSS}G" >&2
-      fi
-      END_TIME=`date +%s`
-      WALL_TIME=$((END_TIME - START_TIME))
-      echo "Master-Wall-Time ${WALL_TIME}s" >&2
-
-      if [[ -z "$RUN_CMD_NO_ERROR" && "$rc" != 0 ]]; then
-         [[ $DEBUG ]] && echo "Oups there was an error." >&2
-         (( $VERBOSE > 0 )) && echo "Exit status: $rc is not zero - aborting." >&2
-         exit $rc
-      fi
+      report
    fi
 }
 
