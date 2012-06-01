@@ -124,6 +124,7 @@ legacy_test_trie: tests/legacy/test_trie tests/data/test_trie.in.txt \
 bloater: DYNLIBS += -lpthread
 bloater_pthread: DYNLIBS += -lpthread
 tests/test_casemap_strings: DYNLIBS += $(LIBICU)
+tests/test_utf8_utils: DYNLIBS += $(LIBICU)
 
 # Additional tests to make sure programs we need are present
 test: check_make381

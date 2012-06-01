@@ -128,12 +128,13 @@ string& UTF8Utils::capitalize(const string& in, string& out)
    string first;
    if (!convFromU16(first))
       { if (&out != &in) out = in; return out; }
+   Uint in_first_size = first.size(); // toUpper can change size of first
    toUpper(first, first);
 
    if (U_FAILURE(ecode))
       { if (&out != &in) out = in; return out; }
 
-   out = first + in.substr(first.size());
+   out = first + in.substr(in_first_size);
 
    return out;
 }
@@ -147,12 +148,13 @@ string& UTF8Utils::decapitalize(const string& in, string& out)
    string first;
    if (!convFromU16(first))
       { if (&out != &in) out = in; return out; }
+   Uint in_first_size = first.size(); // toLower can change size of first
    toLower(first, first);
 
    if (U_FAILURE(ecode))
       { if (&out != &in) out = in; return out; }
 
-   out = first + in.substr(first.size());
+   out = first + in.substr(in_first_size);
 
    return out;
 }
