@@ -20,7 +20,6 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <iterator>
 
 using namespace Portage;
 using namespace std;
@@ -58,7 +57,7 @@ struct Datum {
 
    /// Default constructor.
    Datum()
-      : count(0xBAD)
+   : count(0xBAD)
    {}
 
    /// Stream need the key to validate the order of it underlying input file.
@@ -108,13 +107,10 @@ int main(int argc, char* argv[])
    printCopyright(2008, "merge_counts");
    getArgs(argc, argv);
 
-   fprintf(stderr, "Merging :\n");
-   copy(infiles.begin(), infiles.end(), ostream_iterator<string>(cerr, " "));
-   cerr << endl;
-
+   cerr << "Merging: " << endl << join(infiles) << endl;
 
    mergeStream<Datum>  ms(infiles);
-   oSafeMagicStream  out(outfile);
+   oSafeMagicStream    out(outfile);
 
    while (!ms.eof()) {
       ms.next().print(out);

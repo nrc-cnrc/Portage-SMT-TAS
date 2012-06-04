@@ -16,13 +16,11 @@
 
 #include "arg_reader.h"
 #include "vector_map.h"
-//#include "file_utils.h"
 #include "merge_stream.h"
 #include "printCopyright.h"
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <iterator>  // ostream_iterator
 
 using namespace Portage;
 using namespace std;
@@ -196,20 +194,16 @@ struct Datum {
 };
 
 
-
 // main
 int main(int argc, char* argv[])
 {
    printCopyright(2009, "merge_multi_column_counts");
    getArgs(argc, argv);
 
-   fprintf(stderr, "Merging :\n");
-   copy(infiles.begin(), infiles.end(), ostream_iterator<string>(cerr, " "));
-   cerr << endl;
-
+   cerr << "Merging: " << endl << join(infiles) << endl;
 
    mergeStream<Datum>  ms(infiles);
-   oSafeMagicStream  out(outfile);
+   oSafeMagicStream    out(outfile);
 
    while (!ms.eof()) {
       ms.next().print(out);
