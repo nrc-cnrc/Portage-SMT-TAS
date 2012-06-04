@@ -27,6 +27,6 @@ MODULE_DEPENDS = tm
 
 BINSCRIPTS = $(wildcard *.pl *.py)
 
-PERL_LIBS = $(wildcard *.pm)
+PERL_LIBS = $(wildcard *.pm) manseg.fre
 
 include ../build/Makefile.incl
