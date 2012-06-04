@@ -83,7 +83,7 @@ bool dumpMultiProb(ostream& ofs, Uint left_lang,
    // EJJ High precision is fine and all, but costs us in space in CPT files,
    // as well as in TPPT files, where the encoding is more expensive to keep
    // all those pointless bits around.
-   //ofs.precision(9); // Enough to keep all the precision of a float
+   ofs.precision(9); // Enough to keep all the precision of a float
    string p1, p2;
    vector<double> vals;
 
