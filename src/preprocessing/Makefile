@@ -14,6 +14,8 @@ OBJECTS = \
 LIBRARY = libportage_preprocessing
 
 PROGRAMS = \
+	giza_convert_ttable \
+	giza_filter \
 	map_number \
 	markup_canoe_output \
 	sample_parallel_text \
