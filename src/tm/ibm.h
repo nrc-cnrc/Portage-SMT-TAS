@@ -81,14 +81,42 @@ namespace Portage {
   class GizaAlignmentFile : public IBMAligner {
   private:
     iMagicStream in;   ///< Input stream containing the GIZA alignments.
+  protected:
     Uint sent_count;   ///< Keeps count of the number of sentences.
+
+    GizaAlignmentFile();
 
   public:
     /// Constructor.
     /// @param  filename file name containing the GIZA alignments.
     GizaAlignmentFile(string& filename);
     /// Destructor.
-    ~GizaAlignmentFile();
+    virtual ~GizaAlignmentFile();
+
+    /**
+     * This is a read, really; src and tgt are used only to check
+     * the validity of the alignment.
+     * @copydoc IBMAligner::align()
+     */
+    virtual void align(const vector<string>& src, const vector<string>& tgt,
+                       vector<Uint>& tgt_al,
+                       bool twist = false,
+                       vector<double>* tgt_al_probs = NULL);
+  };
+
+
+  /// Reads GIZA++-v2 alignment from a file.
+  class Giza2AlignmentFile : public GizaAlignmentFile {
+  protected:
+    istream* p_in;   ///< Input stream containing the GIZA alignments.
+
+  public:
+    /// Constructor.
+    /// @param  filename file name containing the GIZA alignments.
+    Giza2AlignmentFile(string& filename);
+    Giza2AlignmentFile(istream* in);
+    /// Destructor.
+    virtual ~Giza2AlignmentFile();
 
     /**
      * This is a read, really; src and tgt are used only to check

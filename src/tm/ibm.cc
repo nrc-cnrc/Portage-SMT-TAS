@@ -21,16 +21,131 @@
 using namespace Portage;
 
 /*----------------------------------------------------------------------------
+Giza2AlignmentFile
+----------------------------------------------------------------------------*/
+
+Giza2AlignmentFile::Giza2AlignmentFile(string& filename)
+   : GizaAlignmentFile()
+{
+   sent_count = 0;
+   p_in = new iMagicStream(filename);
+   if (!p_in)
+      error(ETFatal, "GizaAlignmentFile: Failed to open alignment file "
+                     +filename);
+}
+
+Giza2AlignmentFile::Giza2AlignmentFile(istream* in)
+   : GizaAlignmentFile()
+   , p_in(in)
+{
+   sent_count = 0;
+   assert(in != NULL);
+}
+
+Giza2AlignmentFile::~Giza2AlignmentFile()
+{
+   delete p_in;
+}
+
+void
+Giza2AlignmentFile::align(const vector<string>& src, const vector<string>& tgt,
+                         vector<Uint>& tgt_al, bool twist,
+                         vector<double>* tgt_al_probs)
+{
+   // How many fields are expected in the alignment description line aka first line.
+   static const Uint NUMBER_OF_EXPECTED_FIELD = 14;
+   /*
+   # Sentence pair (1) source length 11 target length 16 alignment score : 3.63487e-24
+   m. hulchanski est l' un des plus éminents spécialistes du canada en matière de logement .
+   NULL ({ 14 }) dr. ({ 1 }) hulchanski ({ 2 }) is ({ 3 }) one ({ 4 5 }) of ({ 6 }) canada ({ 11 }) 's ({ }) foremost ({ 7 8 9 10 12 13 }) housing ({ 15 }) experts ({ }) . ({ 16 })
+   */
+
+   ++sent_count;
+
+   tgt_al.clear();
+   tgt_al.resize(tgt.size(), src.size());
+   if (tgt_al_probs) {
+      tgt_al_probs->clear();
+      tgt_al_probs->resize(tgt.size(), src.size());
+   }
+
+   string line;
+
+   // First line in "# Sentence pair (1) source length 11 target length 16 alignment score : 3.63487e-24"
+   vector<string> field;
+   if (!getline(*p_in, line))
+      error(ETFatal, "Giza2AlignmentFile (sent %d): Unexpectedly reached end of file",
+            sent_count);
+   split(line, field);
+   if (field.size() != NUMBER_OF_EXPECTED_FIELD || !isPrefix("# Sentence pair (", line.c_str()))
+      error(ETFatal, "Giza2AlignmentFile (sent %d): Expected \"# Sentence pair (%d)....\", got \"%s\"",
+            sent_count, sent_count, line.c_str());
+
+   // Check sentence id?
+   // Check source length
+   Uint sentenceLength = 0;
+   if (!conv(field[6], sentenceLength) or sentenceLength != src.size()) {
+      copy(src.begin(), src.end(), ostream_iterator<string>(cerr, ":")); cerr << endl;
+      error(ETWarn, "Giza2AlignmentFile (send %d): Expected source length %d, got %d", sent_count, src.size(), sentenceLength);
+   }
+   // Check target length
+   if (!conv(field[9], sentenceLength) or sentenceLength != tgt.size())
+      error(ETWarn, "Giza2AlignmentFile (send %d): Expected target length %d, got %d", sent_count, tgt.size(), sentenceLength);
+
+
+   // Read target
+   if (!getline(*p_in, line))
+      error(ETFatal, "Giza2AlignmentFile (send %d): Corrupted file, there is no target.", sent_count);
+
+
+   // Read source sentence that contain alignments.
+   if (!getline(*p_in, line))
+      error(ETFatal, "Giza2AlignmentFile (send %d): Corrupted file, there is no source.", sent_count);
+   field.clear();
+   split(line, field);
+   // We initialize src_index to -1 since the source sentence in GIZA-v2's
+   // format starts with a NULL token which is not a word that is part of the
+   // original sentence.
+   int src_index = -1;
+   for (vector<string>::const_iterator token(field.begin()); token!=field.end(); ++token) {
+      if (*token == "({") {
+         ++token;
+         while (*token != "})") {
+            Uint tgt_index = 0;
+            if (!conv(*token, tgt_index))
+               error(ETFatal, "Giza2AlignmentFile (send %d): Unable to convert to Uint (%s).", sent_count, token->c_str());
+            tgt_index -= 1;  // Make the index a 0-based index.
+            if (tgt_index < tgt_al.size())
+               // Are we processing the NULL token?
+               tgt_al[tgt_index] = (src_index == -1 ? src.size() : src_index);
+            else
+               error(ETFatal, "Giza2AlignmentFile (send %d): Error tgt_index (%d, %d)", sent_count, tgt_index, tgt_al.size());
+            ++token;
+         }
+         ++src_index;
+      }
+   }
+
+   if ((Uint)src_index != src.size())
+      error(ETFatal, "Giza2AlignmentFile (sent %d): Error src_index (%d, %d)", sent_count, src_index, src.size());
+}
+
+
+/*----------------------------------------------------------------------------
 GizaAlignmentFile
 ----------------------------------------------------------------------------*/
 
+GizaAlignmentFile::GizaAlignmentFile()
+   : sent_count(0)
+{}
+
 GizaAlignmentFile::GizaAlignmentFile(string& filename)
    : in(filename)
+   , sent_count(0)
 {
    if (!in)
       error(ETFatal, "GizaAlignmentFile: Failed to open alignment file "
                      +filename);
-   sent_count = 0;
 }
 
 GizaAlignmentFile::~GizaAlignmentFile() {}
@@ -39,7 +154,7 @@ void
 GizaAlignmentFile::align(const vector<string>& src, const vector<string>& tgt,
                          vector<Uint>& tgt_al, bool twist,
                          vector<double>* tgt_al_probs) {
-   sent_count++;
+   ++sent_count;
 
    tgt_al.clear();
    tgt_al.resize(tgt.size(), 0);
@@ -199,7 +314,7 @@ void IBM1::count(const vector<string>& src_toks,
    for (Uint i = 0; i < tgt_toks.size(); ++i) {
 
       double sum = 0.0;
-      Uint tindex = tt.targetIndex(tgt_toks[i]);
+      const Uint tindex = tt.targetIndex(tgt_toks[i]);
       if (tindex == tt.numTargetWords()) continue;
 
       for (Uint j = 0; j < src_size; ++j) {
@@ -282,7 +397,7 @@ void IBM1::count_sym_helper(const vector<string>& src_toks,
 
    for (Uint i = 0; i < tgt_toks.size(); ++i) {
 
-      Uint tindex = tt.targetIndex(tgt_toks[i]);
+      const Uint tindex = tt.targetIndex(tgt_toks[i]);
       if (tindex == tt.numTargetWords()) continue;
 
       for ( Uint j = 0; j < src_toks.size(); ++j ) {

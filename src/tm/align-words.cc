@@ -66,7 +66,7 @@ Options:\n\
        -hmm is assumed, otherwise -ibm 2 is the default]\n\
 -twist With IBM1, assume one language has reverse word order.\n\
        No effect with IBM2 or HMM.\n\
--giza  IBM-style alignments are to be read from files in GIZA++ format,\n\
+-giza(2)  IBM-style alignments are to be read from files in GIZA++ format,\n\
        rather than computed at run-time; corresponding alignment files \n\
        should be specified after each pair of text files, like this: \n\
        fileN_lang1 fileN_lang2 align_1_to_2 align_2_to_1...\n\
@@ -93,7 +93,7 @@ HMM only options:\n\
 typedef PhraseTableGen<Uint> PhraseTable;
 
 static const char* const switches[] = {
-   "v", "vv", "i", "z", "a:", "o:", "hmm", "ibm:", "twist", "giza", "post",
+   "v", "vv", "i", "z", "a:", "o:", "hmm", "ibm:", "twist", "giza", "giza2", "post",
    "p0:", "up0:", "alpha:", "lambda:", "max-jump:",
    "anchor", "noanchor", "end-dist", "noend-dist",
    "p0_2:", "up0_2:", "alpha_2:", "lambda_2:", "max-jump_2:",
@@ -105,6 +105,7 @@ static bool lowercase = false;
 static string align_method;
 static bool twist = false;
 static bool giza_alignment = false;
+static Uint giza_version = 1;
 static bool posteriors = false;
 static string model1, model2;
 static Uint ibm_num = 42; // 42 means not initialized - ARG will set its value
@@ -173,8 +174,12 @@ public:
       mp_arg_reader->testAndSet("ibm", ibm_num);
       mp_arg_reader->testAndSet("hmm", use_hmm);
       mp_arg_reader->testAndSet("twist", twist);
-      mp_arg_reader->testAndSet("giza", giza_alignment);
       mp_arg_reader->testAndSet("post", posteriors);
+      // Check Giza
+      mp_arg_reader->testAndSet("giza", giza_alignment);
+      if (mp_arg_reader->getSwitch("giza")) giza_version = 1;
+      mp_arg_reader->testAndSet("giza2", giza_alignment);
+      if (mp_arg_reader->getSwitch("giza2")) giza_version = 2;
 
       mp_arg_reader->testAndSet("p0", p0);
       mp_arg_reader->testAndSet("up0", up0);
@@ -305,9 +310,18 @@ int MAIN(argc, argv)
         if (verbose) 
           cerr << "reading aligment files " << alfile1 << "/" << alfile2 << endl;
         if (al_1) delete al_1;
-        al_1 = new GizaAlignmentFile(alfile1);
         if (al_2) delete al_2;
+        if (giza_version == 1) {
+           al_1 = new GizaAlignmentFile(alfile1);
         al_2 = new GizaAlignmentFile(alfile2);
+        }
+        else if (giza_version == 2) {
+           al_1 = new Giza2AlignmentFile(alfile1);
+           al_2 = new Giza2AlignmentFile(alfile2);
+        }
+        else
+           error(ETFatal, "Invalid giza version (%d)", giza_version);
+
         if (aligner_factory) delete aligner_factory;
         aligner_factory = new WordAlignerFactory(al_1, al_2, verbose, twist, false);
 
