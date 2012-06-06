@@ -26,11 +26,12 @@ DEST_BASE_DIR ?= rpm.build.root/opt/Portage
 
 ################################################################################
 # BINARIES
+CHINESE ?= chinese_rule_create.pl chinese_rule_markup.pl chinese_segmenter.pl ictclas_postprocessing.pl ictclas_preprocessing.pl ictclas_run.sh
 CE ?= ce_canoe2ffvals.pl ce_gen_features.pl ce.pl ce_tmx.pl ce_train.pl ce_translate.pl ce_ttx2ospl.pl plog.pl
 CE_EXTERNAL ?= svm-predict
 CLUSTER ?= parallelize.pl psub r-parallel-d.pl r-parallel-worker.pl run-parallel.sh which-test.sh
 DECODE ?= canoe canoe-escapes.pl canoe-parallel.sh
-TRANSLATE ?= postdecode_plugin postprocess_plugin predecode_plugin preprocess_plugin translate.pl ridbom.sh crlf2lf.sh utf8_filter fix-en-fr-numbers.pl
+TRANSLATE ?= postdecode_plugin postprocess_plugin predecode_plugin preprocess_plugin translate.pl ridbom.sh crlf2lf.sh utf8_filter fix-en-fr-numbers.pl ${CHINESE}
 OTHER_BIN ?= configtool portage_info
 RESCORE ?= feature_function_tool gen-features-parallel.pl gen_feature_values nbest2rescore.pl rat.sh rescore_translate
 TOKENIZATION ?= udetokenize.pl utf8_casemap utokenize.pl
@@ -123,7 +124,7 @@ ${DEST_OTHER_DIR}/SETUP.bash:
 
 ################################################################################
 # LIBRARIES
-PORTAGE_LIBS ?= portage_utils.pm portage_utils.pyc ULexiTools.pm libportage_truecasing.so
+PORTAGE_LIBS ?= portage_utils.pm portage_utils.pyc ULexiTools.pm libportage_truecasing.so manseg.fre
 
 # Define DO_EXTERNAL_LIBS if you want to bundle all external libs need by
 # Portage's software.
