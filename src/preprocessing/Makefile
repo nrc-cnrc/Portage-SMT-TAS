@@ -27,7 +27,7 @@ PGM_WITH_ALTERNATIVE_HELP = ssal
 
 MODULE_DEPENDS = tm
 
-BINSCRIPTS = $(wildcard *.pl *.py)
+BINSCRIPTS = $(wildcard *.pl *.py *.sh)
 
 PERL_LIBS = $(wildcard *.pm) manseg.fre
 
