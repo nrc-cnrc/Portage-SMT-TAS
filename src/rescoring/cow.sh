@@ -542,7 +542,8 @@ elif [[ "$FILTER" = "-filt" ]]; then
    fi
    check_ttable_limit $TTABLE_LIMIT;
    CPT=multi.probs.`basename ${SFILE}`.${TTABLE_LIMIT}
-   run_cmd "filter_models -ldm -z -r -f $CFILE -ttable-limit $TTABLE_LIMIT -suffix .FILT -soft-limit ${CPT} < $SFILE"
+   [[ -n "`configtool list-ldm $CFILE`" ]] && FM_LDM=-ldm
+   run_cmd "filter_models $FM_LDM -z -r -f $CFILE -ttable-limit $TTABLE_LIMIT -suffix .FILT -tm-soft-limit ${CPT} < $SFILE"
    CPT=$CPT.FILT.gz
    CFILE=$CFILE.FILT
 elif [[ "$FILTER" = "-filt-no-ttable-limit" ]]; then

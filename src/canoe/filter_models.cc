@@ -41,20 +41,20 @@ using namespace Portage::filter_models;
  |
 -+    +-filter_grep
  |    |
- |    +-online--+-hard_limit-+-complete
- |    |         |            +-src-grep
- +-TM-+         +-soft_limit-+-complete
-      |                      +-src-grep
+ |    +-online--+-tm_hard_limit-+-complete
+ |    |         |               +-src-grep
+ +-TM-+         +-tm_soft_limit-+-complete
+      |                         +-src-grep
       |
-      +-general-+-hard_limit-+-complete
-                |            +-src-grep
-                +-soft_limit-+-complete
-                             +-src-grep
+      +-general-+-tm_hard_limit-+-complete
+                |               +-src-grep
+                +-tm_soft_limit-+-complete
+                                +-src-grep
 
  online  => not in memory, processing on the fly TMs must be sorted
  general => loaded in memory before processing
- hard_limit => hard_limit_weights -> exactly L or less entries are kept
- soft_limit => LimitTM in Badr et al, 2007
+ tm_hard_limit => tm_hard_limit_weights -> exactly L or less entries are kept
+ tm_soft_limit => LimitTM in Badr et al, 2007
  complete => all TM entries are processed no filtering based on source sentences is done
  src-grep => source are required and are used to prefilter the phrase table entries
 ******************************************************************************/
@@ -107,7 +107,7 @@ bool processOnline(const CanoeConfig& c, const ARG& arg,
          tgt_vocab,
          pruning_type,
          c.phraseTablePruneType.c_str(),
-         ( arg.hard_limit
+         ( arg.tm_hard_limit
             ? ( (c.phraseTablePruneType == "forward-weights" && !c.forwardWeights.empty())
                  ? &c.forwardWeights
                  : &c.transWeights
@@ -156,14 +156,22 @@ int MAIN(argc, argv)
    if (arg.ttable_limit >= 0) // use ttable_limit for pruning, instead of config file value
       c.phraseTableSizeLimit = Uint(arg.ttable_limit);
 
+   if (arg.filterLDMs and c.LDMFiles.empty()) {
+      error(ETWarn, "You ask to filter Lexicalized Distortion Models but you config file doesn't contain any.");
+      // Disable filtering LDMs since there are no LDMs in the canoe.ini file.
+      arg.filterLDMs = false;
+   }
+
 
    // Print the requested running mode from user
-   if (arg.tm_online)   cerr << "  Running in online / streaming mode" << endl;
-   else                 cerr << "  Running in load all in memory" << endl;
-   if (arg.no_src_grep) cerr << "  Running without source sentences => processing all table entries" << endl;
-   else                 cerr << "  Running with source sentences => filtering phrase table base on source phrases" << endl;
-   if (arg.soft_limit)  cerr << "  Running in SOFT mode using limit(" << c.phraseTableSizeLimit << ")" << endl;
-   if (arg.hard_limit)  cerr << "  Running in HARD mode using limit(" << c.phraseTableSizeLimit << ")" << endl;
+   if (arg.verbose) {
+      if (arg.tm_online)   cerr << "  Running in online / streaming mode" << endl;
+      else                 cerr << "  Running in load all in memory" << endl;
+      if (arg.no_src_grep) cerr << "  Running without source sentences => processing all table entries" << endl;
+      else                 cerr << "  Running with source sentences => filtering phrase table base on source phrases" << endl;
+      if (arg.tm_soft_limit)  cerr << "  Running in SOFT mode using limit(" << c.phraseTableSizeLimit << ")" << endl;
+      if (arg.tm_hard_limit)  cerr << "  Running in HARD mode using limit(" << c.phraseTableSizeLimit << ")" << endl;
+   }
    if (arg.tm_online)   error(ETWarn, "Be sure that your phrasetable is sorted before calling filter_models (LC_ALL=C)");
 
 
@@ -200,9 +208,9 @@ int MAIN(argc, argv)
       error(ETFatal, "You can't use limit aka filter30 with TPPTs");
    if (arg.limit() and !(c.phraseTableSizeLimit > NO_SIZE_LIMIT))
       error(ETFatal, "You're using filter TM, please set a value greater then 0 to [ttable-limit]");
-   // When using hard limit, user must provide the tms-weights
-   if (arg.hard_limit and c.transWeights.empty())
-      error(ETFatal, "You must provide the TMs weights when doing a hard_limit");
+   // When using tm hard limit, user must provide the tms-weights
+   if (arg.tm_hard_limit and c.transWeights.empty())
+      error(ETFatal, "You must provide the TMs weights when doing a tm_hard_limit");
    if (src_sents.empty() and arg.limitPhrases())
       error(ETFatal, "You must provide source sentences when doing grep");
    if (arg.filterLMs and !c.tpptFiles.empty())
@@ -213,7 +221,7 @@ int MAIN(argc, argv)
       error(ETFatal, "Filtering LDMs when using TPPTs is not supported.");
 
 
-   // online mode only applies to hard_limit or soft_limit.
+   // online mode only applies to tm_hard_limit or tm_soft_limit.
    if (!arg.limit()) arg.tm_online = false;
 
    if (c.multiProbTMFiles.empty() and c.tpptFiles.empty())
@@ -237,8 +245,8 @@ int MAIN(argc, argv)
             // work.  We will disable soft/hard filtering and also disable grep
             // filtering.  If the user requested LM filtering, the TM's
             // vocabulary will be loaded.
-            arg.soft_limit  = false;
-            arg.hard_limit  = false;
+            arg.tm_soft_limit  = false;
+            arg.tm_hard_limit  = false;
             arg.tm_online   = false;
             arg.no_src_grep = true;
 
@@ -251,9 +259,9 @@ int MAIN(argc, argv)
          // We can't proceed since we should be filtering a new model and thus
          // loading the vocabulary for potentially filtering LMs & LDMs.
          else if (arg.isReadOnlyOnDisk(filtered_cpt_filename)) {
-             error(ETFatal,
-                   "Incoherent scenario, a filtered TM exists (%s), is read-only but user want to overwrite.  Cannot proceed....",
-                   filtered_cpt_filename.c_str());
+            error(ETFatal,
+                  "Incoherent scenario, a filtered TM exists (%s), is read-only but user want to overwrite.  Cannot proceed....",
+                  filtered_cpt_filename.c_str());
          }
          // The filtered model exists and it's not readonly in any shape or form thus we will generate a new one.
          else {
@@ -319,7 +327,7 @@ int MAIN(argc, argv)
                tgt_vocab,
                pruning_type,
                c.phraseTablePruneType.c_str(),
-               ( arg.hard_limit
+               ( arg.tm_hard_limit
                  ? ( (c.phraseTablePruneType == "forward-weights" && !c.forwardWeights.empty())
                     ? &c.forwardWeights
                     : &c.transWeights
@@ -355,7 +363,9 @@ int MAIN(argc, argv)
 
          delete pruning_type; pruning_type = NULL;
 
-         cerr << " ... done in " << (time(NULL) - start_time) << "s" << endl;
+         if (arg.verbose) {
+            cerr << " ... done in " << (time(NULL) - start_time) << "s" << endl;
+         }
       }
 
       // Change the config file to reflect the new filtered TM.
@@ -399,7 +409,7 @@ int MAIN(argc, argv)
          }
          else {
             phraseTable.filter(translationModelFilename, 
-               filteredTranslationModelFilename + (reversed ? "#REVERSED" : ""));
+                  filteredTranslationModelFilename + (reversed ? "#REVERSED" : ""));
             weve_created_a_cpt = true;
          }
 
@@ -445,10 +455,14 @@ int MAIN(argc, argv)
       if ( !c.tpptFiles.empty() && arg.limitPhrases() && c.lmFiles.size() > 0 ) {
          LOG_VERBOSE1(filter_models_Logger, "Extracting vocabulary from TPPTs");
          const time_t start_time = time(NULL);
-         cerr << "Extracting target vocabulary from TPPTs";
+         if (arg.verbose) {
+            cerr << "Extracting target vocabulary from TPPTs";
+         }
          PhraseTable  phraseTable(tgt_vocab, NULL);
          phraseTable.extractVocabFromTPPTs(0);  // Will extract the TPPT voc into tgt_vocab.
-         cerr << " ... done in " << (time(NULL) - start_time) << "s" << endl;
+         if (arg.verbose) {
+            cerr << " ... done in " << (time(NULL) - start_time) << "s" << endl;
+         }
       }
 
       // At this point, we must have a populated voc or else filtering will remove everything.
@@ -489,12 +503,16 @@ int MAIN(argc, argv)
             error(ETWarn, "Cannot filter %s since %s is read-only.", lm.c_str(), flm.c_str());
          }
          else {
-            cerr << "loading Language Model from " << lm << " to " << flm << endl;
+            if (arg.verbose) {
+               cerr << "loading Language Model from " << lm << " to " << flm << endl;
+            }
             const time_t start_time = time(NULL);
             oSafeMagicStream  os_filtered(flm);
             const PLM *lm_model = PLM::Create(lm, &tgt_vocab, PLM::ClosedVoc,
                   LOG_ALMOST_0, arg.limitPhrases(), c.lmOrder, &os_filtered);
-            cerr << " ... done in " << (time(NULL) - start_time) << "s" << endl;
+            if (arg.verbose) {
+               cerr << " ... done in " << (time(NULL) - start_time) << "s" << endl;
+            }
             if (lm_model) { delete lm_model; lm_model = NULL; }
 
             *file = flm + option;
@@ -528,8 +546,8 @@ int MAIN(argc, argv)
          if (arg.readonly && check_if_exists(filtered_ldm)) {
             if (weve_created_a_cpt)
                error(ETFatal, "%s hasn't been filtered eventhough a new cpt was created (%s) since you asked not to override models.",
-                  file->c_str(),
-                  cpt_filename.c_str());
+                     file->c_str(),
+                     cpt_filename.c_str());
             else
                error(ETWarn, "Lexicalized Distortion Model %s has already been filtered. Skipping...", file->c_str());
          }
@@ -539,9 +557,11 @@ int MAIN(argc, argv)
          else {
             // filter-distortion-model.pl -v ${CPT} ${LDM} ${FLDM}
             const string cmd = "filter-distortion-model.pl -v " + cpt_filename
-                               + " " + *file
-                               + " " + filtered_ldm;
-            cerr << "Filtering LDM using: " << cmd << endl;  // SAM DEBUGGING
+               + " " + *file
+               + " " + filtered_ldm;
+            if (arg.verbose) {
+               cerr << "Filtering LDM using: " << cmd << endl;  // SAM DEBUGGING
+            }
             const int rc = system (cmd.c_str());
             if (rc != 0) {
                error(ETFatal, "Error filtering Lexicalized Distortion Model with filter-distortion-model.pl! (rc=%d)", rc);
@@ -557,10 +577,12 @@ int MAIN(argc, argv)
 
    // Print out the vocab if necessary
    if (arg.vocab_file.size() > 0) {
-      cerr << "Dumping Vocab" << endl;
+      if (arg.verbose) {
+         cerr << "Dumping Vocab" << endl;
+      }
       if (tgt_vocab.per_sentence_vocab) {
          fprintf(stderr, "Average vocabulary size per source sentences: %f\n",
-            tgt_vocab.per_sentence_vocab->averageVocabSizePerSentence());
+               tgt_vocab.per_sentence_vocab->averageVocabSizePerSentence());
       }
       oSafeMagicStream os_vocab(arg.vocab_file);
       tgt_vocab.write(os_vocab);
@@ -575,7 +597,9 @@ int MAIN(argc, argv)
       c.phraseTableSizeLimit = ttable_limit_from_config;
 
    if (arg.output_config) {
-      cerr << "New config file is: " << configFile << endl;
+      if (arg.verbose) {
+         cerr << "New config file is: " << configFile << endl;
+      }
       c.write(configFile.c_str(), 1, true);
    }
 

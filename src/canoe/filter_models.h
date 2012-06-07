@@ -28,102 +28,107 @@ namespace Portage
    {
        /// Program filter_models' usage.
        static char help_message[] = "\n\
-filter_models [-czsr] [-f CONFIG_FILE] [-suffix SUFFIX] [-vocab VOCAB_FILE]\n\
-              [-hard-limit OUTFILE | -soft-limit OUTFILE]\n\
-              [-L [-no-per-sent]] [-ttable-limit T]\n\
-              [-T <fix#limit|linear#limit>]\n\
-              [-tm-online] [-no-src-grep | < SRC]\n\
+filter_models [-f config] [options] [-no-src-grep | < src]\n\
 \n\
-   SWISS ARMY KNIFE OF FILTERING ;)\n\
+Filter models used by a canoe config file. Filtered versions of the models are\n\
+created in the current directory, by default, along with a new canoe config\n\
+file <config>.FILT that refers to them. Filtering currently applies to TMs\n\
+(phrasetables), DMs, and LMs, as follows:\n\
 \n\
-   Filter all models in CONFIG_FILE to contain only the lines needed by canoe\n\
-   to translate the sentences in SRC.\n\
-   - filter-grep filters based on the source phrases only. (default)\n\
-   - limit filters target phrases based on the ttable-limit.\n\
-     - -hard-limit reduces the phrasetable(s) to exactly what will be\n\
-       used by canoe given a specific set of weights\n\
-     - -soft-limit is Limit-TM, as described by Badr et al, (2007): it applies\n\
-       the ttable-limit in a way that is compatible with any set of non-\n\
-       negative weights.\n\
+TM filtering is controlled by 3 separate parameters:\n\
+1) Unless -no-src-grep is given, phrase pairs are filtered to match a source\n\
+   text supplied on stdin.\n\
+2) For each retained source phrase, a set of allowed translations is determined\n\
+   by either hard filtering (-tm-hard-limit), soft filtering (-tm-soft-limit), or no\n\
+   filtering (the default). Hard filtering uses the parameters in <config> to\n\
+   mimic canoe's filtering. Soft filtering eliminates phrase pairs that will\n\
+   never receive high scores, no matter what (non-negative) weights are\n\
+   assigned to forward phrase probabilities. e weights used for hard or soft\n\
+   filtering are specified by [ttable-prune-type] in <config>: either\n\
+   'forward-weights' or 'backward-weights' can be used, but not 'combined'.\n\
+3) If doing either hard or soft filtering, the number of translations to retain\n\
+   is determined by the [ttable-limit] parameter in <config>. This may be\n\
+   overridden by the local -tm-prune switch, as described below. The\n\
+   [ttable-threshold] parameter in <config> is ignored. \n\
+If either -tm-hard-limit or -tm-soft-limit is specified, a single filtered phrase\n\
+table is created, combining entries from all tables in <config>. Its name is\n\
+given by the argument to -*-limit switch. Otherwise, one filtered table is\n\
+created for each table in <config>, named n.FILT.gz, where n.gz is the base\n\
+name of the original table.\n\
 \n\
-   NOTES:\n\
-      Soft and hard limit filtering will produce a single multiprob\n\
-      phrasetable, while filter_grep filtering will create one new phrasetable\n\
-      for each of the phrasetables in the CONFIG_FILE by adding SUFFIX to\n\
-      each of them.\n\
+DM filtering is invoked by the -ldm switch. It filters a lexicalized DM dm.gz\n\
+specified in <config> to contain only phrase pairs found in the current\n\
+filtered phrase table, and writes a local version dm.FILT.gz.\n\
 \n\
-   HINTS:\n\
-      Use tmtext_sort.sh and join_phrasetables if you need to build one TM.\n\
+LM filtering is invoked by the -lm switch. It filters ngrams not needed for\n\
+decoding with current filtered phrase table(s) from any LM(s) lm.gz specified\n\
+in <config>, and writes local version(s) lm.FILT.gz.\n\
 \n\
-   WARNING:\n\
-      Soft or hard limit filtering with [ttable-prune-type] forward-weights\n\
-      or combined is not implemented.\n\
-\n\
-   WARNING:\n\
-      Running filter_models in limit mode twice in sequence may yield, for the\n\
-      second run and the same ttable-limit, a subset of the first run.\n\
-      This is due to the fact that the hard and soft limit filtering process\n\
-      load probs, convert them to logprobs and back causing rounding errors.\n\
-      If identical output is required, one can filter an \"original set\" by\n\
-      using filter_models in limit mode with a ttable-limit of <huge number>.\n\
+Use -H for examples, and further details.\n\
 \n\
 Options:\n\
--f   canoe config file [canoe.ini]\n\
--c   do not output a new canoe.ini [do]\n\
--z   compress outputs [don't, unless filename in CONFIG_FILE is compressed]\n\
--s   indicates not to strip the path from file names [do]\n\
--r   don't overwrite existing filtered files [do, unless they're readonly]\n\
--L   filter language models [don't]\n\
--T   pruning style with arguments style#arg; style can be fix or linear:\n\
-     - fix#30 prunes every target phrase table with a limit of 30.\n\
-     - linear#10 prunes every target phrase table with a variable limit\n\
-       (source word count) x 10\n\
-     This option overrides -ttable-limit as a command line option to this\n\
-     program or in CONFIG_FILE.\n\
+\n\
+-f c  canoe config file [canoe.ini]\n\
+-c    do not output a new canoe.ini [do]\n\
+-z    compress outputs [don't, unless filename in <config> is compressed]\n\
+-s    don't strip the path from model file names [do]\n\
+-r    don't overwrite existing filtered files [do]\n\
+-suffix s  use <s> as suffix for filtered models and config files [.FILT]\n\
+-no-src-grep  don't filter phrase table(s) for current source text [do]\n\
+-tm-hard-limit|-tm-soft-limit out  use hard or soft TM filtering as described above,\n\
+      writing filtered phrase table to out.FILT(.gz?).\n\
 -ttable-limit Use T instead of the ttable-limit parameter in CONFIG_FILE. This\n\
              value does not get written back to CONFIG_FILE.FILT.\n\
--no-per-sent do global voc LM filtering only [do per sent LM filtering]\n\
--suffix      SUFFIX of filtered models when no -*-limit option is used [.FILT]\n\
--vocab       write the target language vocab for SRC to VOCAB_FILE [don't]\n\
--soft-limit  Chop the phrase tables' tails; CONFIG_FILE must set ttable-limit;\n\
-             write the result as a multi-prob file in OUTFILE.SUFFIX.\n\
-             This is Limit-TM, as described by Badr et al, (2007). [don't]\n\
--hard-limit  Apply the TM weights to the phrase table(s) and keep the\n\
-             ttable-limit best tgt phrases for each SRC phrase, exactly as\n\
-             canoe would with the same weights.  Output is also one multi-prob,\n\
-             OUTFILE.SUFFIX. [don't]\n\
--no-src-grep Process all source phrases, ignoring SRC (STDIN won't be read).\n\
-             Warning: memory intensive unless used with -tm-online. [don't]\n\
--tm-online   In -*-limit mode, process one source phrase at a time, deleting it\n\
-             from memory before processing the next; this online process has\n\
-             minimal, constant memory requirements for arbitrarily large TMs.\n\
-             Requires that all the TMs be in a single multi prob TM file,\n\
-             sorted on source language phrases; the join_phrasetables program\n\
-             can be used to generate such a file. [don't]\n\
--ldm         filter Lexicalized Distortion Models. [don't]\n\
+-tm-prune s#n  TM pruning strategy, overrides [ttable-limit] in <config>. Retains n \n\
+      top translations for each source phrase if style is 'fix', and n * w if\n\
+      style is 'linear', where w is the number of words in the source phrase.\n\
+-tm-online   If -*-limit is specified, process one source phrase at a time to\n\
+      save memory. Requires that <config> contain only one TM, sorted on source\n\
+      phrases (use tmtext_sort.sh and join_phrasetables).\n\
+-ldm  filter lexicalized DMs as described above [don't]\n\
+-lm   filter language models as described avove [don't]\n\
+-no-per-sent|-phaseIIb  LM filtering strategy, either global (less filtering\n\
+      than default) or 'phaseIIb' (more filtering) [filter with per-sent voc]\n\
+-vocab v  write the target language vocab for <src> to file <v> [don't]\n\
 \n\
-EXAMPLES:\n\
+";
+
+static char alternate_help_message[] = "\n\
+Warning:\n\
 \n\
-  Filter-grep all TMs in canoe.ini with source phrases from src:\n\
+   Running filter_models in limit mode twice in sequence may yield, for the\n\
+   second run and the same ttable-limit, a subset of the first run.  This is\n\
+   due to the fact that the hard and soft limit filtering process load probs,\n\
+   convert them to logprobs and back causing rounding errors.  If identical\n\
+   output is required, one can filter an \"original set\" by using filter_models\n\
+   in limit mode with a ttable-limit of <huge number>.\n\
+\n\
+NOTE:\n\
+   -tm-soft-limit: This is Limit-TM, as described by Badr et al, (2007).\n\
+\n\
+Examples:\n\
+\n\
+* Filter all TMs in canoe.ini by matching source phrases from src:\n\
 \n\
     filter_models -z -f canoe.ini < src\n\
 \n\
-  Soft-limit filter all phrasetables in canoe.ini, applying filter-grep\n\
-  using src at the same time:\n\
+* Filter TMs in canoe.ini by matching source phrases from src, then soft\n\
+  filtering to choose their translations. Write results to soft.FILT.gz:\n\
 \n\
-    filter_models -f canoe.ini -soft-limit SOFT.OUT.gz < src\n\
+    filter_models -f canoe.ini -tm-soft-limit soft.gz < src\n\
 \n\
-  Hard-limit filter a complete multiprob TM, without filter-grep, with\n\
-  minimal memory requirements:\n\
+* Hard-filter a single multiprob TM in canoe.ini, using minimal memory. Write\n\
+  results to hard.FILT.gz:\n\
 \n\
-    filter_models -f canoe.ini -no-src-grep -tm-online -hard-limit HARD.OUT.gz\n\
+    filter_models -f canoe.ini -no-src-grep -tm-online -tm-hard-limit hard.gz\n\
+\n\
 ";
 
        /// Program filter_models' allowed command line arguments
        const char* const switches[] = {
-          "z", "s", "r", "L", "no-per-sent", "no-src-grep",
-          "tm-online", "c", "hard-limit:", "soft-limit:", "f:", "suffix:",
-          "ttable-limit:", "vocab:", "input:", "T:", "ldm"
+          "z", "s", "r", "lm", "no-per-sent", "no-src-grep",
+          "tm-online", "c", "tm-hard-limit:", "tm-soft-limit:", "f:", "suffix:",
+          "ttable-limit:", "vocab:", "input:", "tm-prune:", "ldm", "v"
        };
 
        /// Command line arguments processing for filter_models.
@@ -137,24 +142,25 @@ EXAMPLES:\n\
              bool   strip;        ///< should we strip the path from the models file name
              bool   readonly;     ///< treat existing filt files as readonly
              bool   filterLMs;    ///< filter language models
-             bool   soft_limit;   ///< soft filter limit the phrase table;
+             bool   tm_soft_limit;   ///< soft filter limit the phrase table;
              bool   nopersent;    ///< disables per-sentence vocab LM filt
              string limit_file;   ///< multi probs filename for filter30
              int    ttable_limit; ///< ttable limit override if >= 0
-             bool   hard_limit;   ///< perform the hard limit filter
+             bool   tm_hard_limit;   ///< perform the tm hard limit filter
              bool   no_src_grep;  ///< process all entries disregarding the source sentences.
              bool   tm_online;    ///< indicates to process source tm in a streaming mode
              bool   output_config;///< indicates to output the modified canoe.ini
              string input;        ///< Source sentences to filter on
              string pruning_type_switch;  ///< What kind of pruning was specified by the user.
              bool   filterLDMs;   ///< Should we filter Lexicalized Distortion Models?
+             bool   verbose;      ///< Should we display process on screen?
 
           public:
              /// Default constructor.
              /// @param argc  number of command line arguments.
              /// @param argv  command line argument vector.
              ARG(const int argc, const char* const argv[])
-             : argProcessor(ARRAY_SIZE(switches), switches, 0, 3, help_message, "-h", true)
+             : argProcessor(ARRAY_SIZE(switches), switches, 0, 3, help_message, "-h", true, alternate_help_message, "-H")
              , config("canoe.ini")
              , suffix(".FILT")
              , vocab_file("")
@@ -162,16 +168,17 @@ EXAMPLES:\n\
              , strip(false)
              , readonly(false)
              , filterLMs(false)
-             , soft_limit(false)
+             , tm_soft_limit(false)
              , nopersent(false)
              , ttable_limit(-1.0)
-             , hard_limit(false)
+             , tm_hard_limit(false)
              , no_src_grep(false)
              , tm_online(false)
              , output_config(true)
              , input("-")
              , pruning_type_switch("")
              , filterLDMs(false)
+             , verbose(false)
              {
                 argProcessor::processArgs(argc, argv);
              }
@@ -184,10 +191,10 @@ EXAMPLES:\n\
              /// Set the local variables with command line argument's value.
              virtual void processArgs()
              {
-                mp_arg_reader->testAndSet("soft-limit", soft_limit);
-                mp_arg_reader->testAndSet("soft-limit", limit_file);
-                mp_arg_reader->testAndSet("hard-limit", hard_limit);
-                mp_arg_reader->testAndSet("hard-limit", limit_file);
+                mp_arg_reader->testAndSet("tm-soft-limit", tm_soft_limit);
+                mp_arg_reader->testAndSet("tm-soft-limit", limit_file);
+                mp_arg_reader->testAndSet("tm-hard-limit", tm_hard_limit);
+                mp_arg_reader->testAndSet("tm-hard-limit", limit_file);
                 mp_arg_reader->testAndSet("ttable-limit", ttable_limit);
                 mp_arg_reader->testAndSet("f", config);
                 mp_arg_reader->testAndSet("suffix", suffix);
@@ -197,29 +204,30 @@ EXAMPLES:\n\
                 mp_arg_reader->testAndSet("no-src-grep", no_src_grep);
                 mp_arg_reader->testAndSet("tm-online", tm_online);
                 mp_arg_reader->testAndSet("input", input);
-                mp_arg_reader->testAndSet("T", pruning_type_switch);
+                mp_arg_reader->testAndSet("tm-prune", pruning_type_switch);
                 mp_arg_reader->testAndSet("ldm", filterLDMs);
+                mp_arg_reader->testAndSet("v", verbose);
                 // if the option is set we don't want to strip.
                 strip         = !mp_arg_reader->getSwitch("s");
                 output_config = !mp_arg_reader->getSwitch("c");
                 mp_arg_reader->testAndSet("r", readonly);
-                filterLMs =  mp_arg_reader->getSwitch("L");
+                filterLMs =  mp_arg_reader->getSwitch("lm");
 
                 // WARN user of potentiel problems
                 if (nopersent && !filterLMs)
                    error(ETWarn, "The -no-per-sent flag only takes effect if the L flag is active (process LMs).");
-                if (!tm_online && no_src_grep && (soft_limit || hard_limit))
+                if (!tm_online && no_src_grep && (tm_soft_limit || tm_hard_limit))
                    error(ETWarn, "Loading models in memory - make sure you have enough RAM to hold them all.");
-                if (tm_online && !soft_limit && !hard_limit)
+                if (tm_online && !tm_soft_limit && !tm_hard_limit)
                    error(ETWarn, "Superfluous -tm-online since grepping is always online(Not loading in memory)");
 
                 // Check for user misuage of flags
                 if (suffix == "")
                    error(ETFatal, "You must provide a non empty suffix");
-                if (soft_limit && hard_limit)
+                if (tm_soft_limit && tm_hard_limit)
                    error(ETFatal, "Cannot do soft_limit and hard_limit at the same time.");
-                if (no_src_grep && !soft_limit && !hard_limit)
-                   error(ETFatal, "When using grep mode you must provide source sentences.");
+                if (no_src_grep && !tm_soft_limit && !tm_hard_limit)
+                   error(ETWarn, "no TM filtering will be performed");
              }
 
              /// Checks if the user requested the vocab
@@ -276,7 +284,7 @@ EXAMPLES:\n\
              /**
               * Indicates if any tm filtering was requested
               */
-              bool limit() const { return soft_limit || hard_limit; }
+              bool limit() const { return tm_soft_limit || tm_hard_limit; }
 
               bool limitPhrases() const { return !no_src_grep; }
 

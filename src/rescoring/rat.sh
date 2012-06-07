@@ -386,7 +386,7 @@ elif [[ $HARD_FILTER ]]; then
       if [[ $MSRC =~ ^/ ]]; then REL_MSRC=$MSRC; else REL_MSRC=../$MSRC; fi
       if [[ $CANOE_CONFIG =~ ^/ ]]; then REL_CONFIG=$CANOE_CONFIG; else REL_CONFIG=../$CANOE_CONFIG; fi
       # Only regenerate the filtered phrase table if not present
-      run_cmd "cat $REL_MSRC | filter_models -z -s -f $REL_CONFIG -hard-limit phrase.table -suffix $FILT_EXT"
+      run_cmd "cat $REL_MSRC | filter_models -z -s -f $REL_CONFIG -tm-hard-limit phrase.table -suffix $FILT_EXT"
       popd &> /dev/null
 
       # Unfortunately the final canoe config is not in the workdir so lets move it.

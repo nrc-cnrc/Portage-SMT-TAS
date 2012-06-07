@@ -30,7 +30,6 @@ VocabFilter::VocabFilter(Uint number_source_sents) :
 		      NULL)
 {
    if (per_sentence_vocab) {
-      cerr << "LM filtering with per sentence vocab(" << number_source_sents << ")" << endl;
       assert(number_source_sents>0);
    } else {
       assert(number_source_sents==0);
@@ -39,7 +38,7 @@ VocabFilter::VocabFilter(Uint number_source_sents) :
 
 VocabFilter::~VocabFilter()
 {
-   if (per_sentence_vocab) { delete per_sentence_vocab; per_sentence_vocab = NULL; }
+   freePerSentenceData();
 }
 
 void VocabFilter::addWord(const string& word, Uint sent_no)
