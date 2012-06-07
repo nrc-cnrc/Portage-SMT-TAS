@@ -142,7 +142,7 @@ public:
 //typedef vector_map<Phrase, TScore> TargetPhraseTable;
 
 /// Phrase Table structure - holds together info from all phrase tables
-class PhraseTable
+class PhraseTable : private NonCopyable
 {
 public:
    /// Log value to use for missing or 0-prob entries (default is LOG_ALMOST_0)
@@ -222,12 +222,6 @@ protected:
 
     /// Human readable description of all lexicalized distortion tables
    string lexdisDescription;
-
-private:
-   /// PhraseTables are not safely copyable
-   PhraseTable(const PhraseTable&);
-   /// PhraseTables are not safely copyable
-   PhraseTable& operator=(const PhraseTable&);
 
 public:
 
