@@ -78,5 +78,5 @@ bool PhraseTableFilterGrep::processEntry(TargetPhraseTable* tgtTable, Entry& ent
 {
    os_filter_output << *entry.line << endl;
 
-   return false;
+   return true;
 }
