@@ -1,0 +1,16 @@
+read in/jpt.dev.en-fr.gz - 593 pairs
+read in/cpt.hans1.en2fr.gz - probabilities for 0 pairs retained
+read in/cpt.hans2.en2fr.gz - probabilities for 0 pairs retained
+EM for column 1: 
+(skipping - using fixed weights)
+column 1 wts = 0.1 0.9 
+EM for column 2: 
+(skipping - using fixed weights)
+column 2 wts = 0.2 0.8 
+EM for column 3: 
+(skipping - using fixed weights)
+column 3 wts = 0.7 0.3 
+EM for column 4: 
+(skipping - using fixed weights)
+column 4 wts = 0.6 0.4 
+wrote 44517 phrase pairs

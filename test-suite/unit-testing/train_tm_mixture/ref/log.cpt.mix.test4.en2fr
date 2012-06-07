@@ -1,0 +1,54 @@
+read in/jpt.dev.en-fr.gz - 593 pairs
+read in/cpt.hans1.en2fr.gz - probabilities for 184 pairs retained
+read in/cpt.hans2.en2fr.gz - probabilities for 176 pairs retained
+EM for column 1: 
+(skipping - using fixed weights)
+column 1 wts = 0.2 0.8 
+EM for column 2: 
+iter 1 done: ppx = 0.516441
+iter 2 done: ppx = 0.51634
+iter 3 done: ppx = 0.516265
+iter 4 done: ppx = 0.51621
+iter 5 done: ppx = 0.516169
+iter 6 done: ppx = 0.516139
+iter 7 done: ppx = 0.516116
+iter 8 done: ppx = 0.5161
+iter 9 done: ppx = 0.516087
+iter 10 done: ppx = 0.516078
+iter 11 done: ppx = 0.516072
+iter 12 done: ppx = 0.516067
+iter 13 done: ppx = 0.516063
+iter 14 done: ppx = 0.51606
+iter 15 done: ppx = 0.516058
+iter 16 done: ppx = 0.516057
+iter 17 done: ppx = 0.516056
+column 2 wts = 0.543183 0.456817 
+EM for column 3: 
+iter 1 done: ppx = 0.621154
+iter 2 done: ppx = 0.621195
+iter 3 done: ppx = 0.621226
+iter 4 done: ppx = 0.621248
+iter 5 done: ppx = 0.621265
+iter 6 done: ppx = 0.621278
+iter 7 done: ppx = 0.621287
+iter 8 done: ppx = 0.621294
+iter 9 done: ppx = 0.6213
+iter 10 done: ppx = 0.621304
+iter 11 done: ppx = 0.621307
+iter 12 done: ppx = 0.621309
+iter 13 done: ppx = 0.62131
+column 3 wts = 0.510757 0.489243 
+EM for column 4: 
+iter 1 done: ppx = 0.631462
+iter 2 done: ppx = 0.631458
+iter 3 done: ppx = 0.631456
+iter 4 done: ppx = 0.631455
+iter 5 done: ppx = 0.631454
+iter 6 done: ppx = 0.631453
+iter 7 done: ppx = 0.631452
+iter 8 done: ppx = 0.631452
+iter 9 done: ppx = 0.631452
+iter 10 done: ppx = 0.631451
+iter 11 done: ppx = 0.631451
+column 4 wts = 0.507908 0.492092 
+wrote 44517 phrase pairs

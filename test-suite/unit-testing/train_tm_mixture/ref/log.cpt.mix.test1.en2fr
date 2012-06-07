@@ -1,0 +1,39 @@
+read in/jpt.dev.en-fr.gz - 593 pairs
+read in/cpt.hans1.en2fr.gz - probabilities for 184 pairs retained
+read in/cpt.hans2.en2fr.gz - probabilities for 176 pairs retained
+EM for column 1: 
+iter 1 done: ppx = 0.546556
+iter 2 done: ppx = 0.546589
+iter 3 done: ppx = 0.546613
+iter 4 done: ppx = 0.546632
+iter 5 done: ppx = 0.546646
+iter 6 done: ppx = 0.546656
+iter 7 done: ppx = 0.546664
+iter 8 done: ppx = 0.54667
+column 1 wts = 0.520646 0.479354 
+EM for column 2: 
+iter 1 done: ppx = 0.516441
+iter 2 done: ppx = 0.51634
+iter 3 done: ppx = 0.516265
+iter 4 done: ppx = 0.51621
+iter 5 done: ppx = 0.516169
+iter 6 done: ppx = 0.516139
+iter 7 done: ppx = 0.516116
+iter 8 done: ppx = 0.5161
+iter 9 done: ppx = 0.516087
+iter 10 done: ppx = 0.516078
+column 2 wts = 0.541324 0.458676 
+EM for column 3: 
+iter 1 done: ppx = 0.621154
+iter 2 done: ppx = 0.621195
+iter 3 done: ppx = 0.621226
+iter 4 done: ppx = 0.621248
+iter 5 done: ppx = 0.621265
+column 3 wts = 0.508465 0.491535 
+EM for column 4: 
+iter 1 done: ppx = 0.631462
+iter 2 done: ppx = 0.631458
+iter 3 done: ppx = 0.631456
+iter 4 done: ppx = 0.631455
+column 4 wts = 0.506066 0.493934 
+wrote 44517 phrase pairs

@@ -48,6 +48,7 @@ PROGRAMS = $(TESTPROGS) \
         sigprune_fet \
         sigprune_line_numbering \
         train_ibm \
+        train_tm_mixture \
         tt2pt \
         tt_pt_merge \
         word_align_tool
