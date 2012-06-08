@@ -125,36 +125,36 @@ src:
 ## GENERATING PHRASE TABLES
 FILT_CMD := ${FILTER_MODELS} -c -f canoe.ini -suffix ".NEW"
 online.hard.complete: canoe.ini phrases-GT-KN.fr2en.gz
-	{ time $(FILT_CMD) -no-src-grep -tm-online -hard-limit tmp.$@; LC_ALL=C wc tmp.$@.NEW; } &> log.$@
+	{ time $(FILT_CMD) -no-src-grep -tm-online -tm-hard-limit tmp.$@; LC_ALL=C wc tmp.$@.NEW; } &> log.$@
 	@mv tmp.$@.NEW $@
 
 online.hard.incomplete: src canoe.ini phrases-GT-KN.fr2en.gz
-	{ time $(FILT_CMD) -tm-online -hard-limit tmp.$@ < $<; LC_ALL=C wc tmp.$@.NEW; } &> log.$@
+	{ time $(FILT_CMD) -tm-online -tm-hard-limit tmp.$@ < $<; LC_ALL=C wc tmp.$@.NEW; } &> log.$@
 	@mv tmp.$@.NEW $@
 
 online.soft.complete: canoe.ini phrases-GT-KN.fr2en.gz
-	{ time $(FILT_CMD) -no-src-grep -tm-online -soft-limit tmp.$@; LC_ALL=C wc tmp.$@.NEW; } &> log.$@
+	{ time $(FILT_CMD) -no-src-grep -tm-online -tm-soft-limit tmp.$@; LC_ALL=C wc tmp.$@.NEW; } &> log.$@
 	@mv tmp.$@.NEW $@
 
 online.soft.incomplete: src canoe.ini phrases-GT-KN.fr2en.gz
-	{ time $(FILT_CMD) -tm-online -soft-limit tmp.$@ < $<; LC_ALL=C wc tmp.$@.NEW; } &> log.$@
+	{ time $(FILT_CMD) -tm-online -tm-soft-limit tmp.$@ < $<; LC_ALL=C wc tmp.$@.NEW; } &> log.$@
 	@mv tmp.$@.NEW $@
 
 
 notonline.hard.complete: canoe.ini phrases-GT-KN.fr2en.gz
-	{ time $(FILT_CMD) -no-src-grep -hard-limit tmp.$@; LC_ALL=C wc tmp.$@.NEW; } &> log.$@
+	{ time $(FILT_CMD) -no-src-grep -tm-hard-limit tmp.$@; LC_ALL=C wc tmp.$@.NEW; } &> log.$@
 	@mv tmp.$@.NEW $@
 
 notonline.hard.incomplete: src canoe.ini phrases-GT-KN.fr2en.gz
-	{ time $(FILT_CMD) -hard-limit tmp.$@ < $<; LC_ALL=C wc tmp.$@.NEW; } &> log.$@
+	{ time $(FILT_CMD) -tm-hard-limit tmp.$@ < $<; LC_ALL=C wc tmp.$@.NEW; } &> log.$@
 	@mv tmp.$@.NEW $@
 
 notonline.soft.complete: canoe.ini phrases-GT-KN.fr2en.gz
-	{ time $(FILT_CMD) -no-src-grep -soft-limit tmp.$@; LC_ALL=C wc tmp.$@.NEW; } &> log.$@
+	{ time $(FILT_CMD) -no-src-grep -tm-soft-limit tmp.$@; LC_ALL=C wc tmp.$@.NEW; } &> log.$@
 	@mv tmp.$@.NEW $@
 
 notonline.soft.incomplete: src canoe.ini phrases-GT-KN.fr2en.gz
-	{ time $(FILT_CMD) -soft-limit tmp.$@ < $<; LC_ALL=C wc tmp.$@.NEW; } &> log.$@
+	{ time $(FILT_CMD) -tm-soft-limit tmp.$@ < $<; LC_ALL=C wc tmp.$@.NEW; } &> log.$@
 	@mv tmp.$@.NEW $@
 
 
@@ -223,22 +223,22 @@ small: phrases.small.soft.fwd.FILT phrases.small.soft.FILT \
 
 phrases.small.soft.fwd.FILT: FORCE canoe.ini.small.fwd phrases.small.fr2en
 	${FILTER_MODELS} -f canoe.ini.small.fwd \
-	   -soft-limit phrases.small.soft.fwd -no-src-grep
+	   -tm-soft-limit phrases.small.soft.fwd -no-src-grep
 	diff-round.pl -q -sort $@ ref/$@
 
 phrases.small.soft.FILT: FORCE canoe.ini.small phrases.small.fr2en
 	${FILTER_MODELS} -f canoe.ini.small \
-	   -soft-limit phrases.small.soft -no-src-grep
+	   -tm-soft-limit phrases.small.soft -no-src-grep
 	diff-round.pl -q -sort $@ ref/$@
 
 phrases.small.hard.fwd.FILT: FORCE canoe.ini.small.fwd phrases.small.fr2en
 	${FILTER_MODELS} -f canoe.ini.small.fwd \
-	   -hard-limit phrases.small.hard.fwd -no-src-grep
+	   -tm-hard-limit phrases.small.hard.fwd -no-src-grep
 	diff-round.pl -q -sort $@ ref/$@
 
 phrases.small.hard.FILT: FORCE canoe.ini.small phrases.small.fr2en
 	${FILTER_MODELS} -f canoe.ini.small \
-	   -hard-limit phrases.small.hard -no-src-grep
+	   -tm-hard-limit phrases.small.hard -no-src-grep
 	diff-round.pl -q -sort $@ ref/$@
 
 canoe.ini.small:

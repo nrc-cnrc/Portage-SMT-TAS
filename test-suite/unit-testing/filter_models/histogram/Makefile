@@ -42,18 +42,18 @@ canoe.ini: dummy.lm
 multi.probs.no-src-grep.gz: canoe.ini
 	filter_models \
 		-no-src-grep \
-		-z -r \
+		-v -z -r \
 		-f canoe.ini \
 		-suffix .no-src-grep \
-		-soft-limit multi.probs \
+		-tm-soft-limit multi.probs \
 		>& log.$(basename $@)
 
 
 multi.probs.src.gz: canoe.ini
 	filter_models \
-		-z -r \
+		-v -z -r \
 		-f canoe.ini \
 		-suffix .src \
-		-soft-limit multi.probs \
+		-tm-soft-limit multi.probs \
 		< src \
 		>& log.$(basename $@)
