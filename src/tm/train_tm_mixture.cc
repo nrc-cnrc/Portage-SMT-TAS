@@ -124,7 +124,7 @@ struct Datum {
    }
 
    void print(ostream& out) {
-      PhraseTableBase::writePhrasePair(out, p1.c_str(), p2.c_str(), /*NULL,*/ probs/*, false, 0.0*/);
+      PhraseTableBase::writePhrasePair(out, p1.c_str(), p2.c_str(), NULL, probs, false, 0.0);
    }
 
    bool parse(const string& buffer, Uint pId) {
@@ -132,8 +132,7 @@ struct Datum {
       vector<string> toks;
       PhraseTableBase::ToksIter b1, b2, e1, e2, v, a;
 
-      PhraseTableBase::extractTokens(buffer, toks, b1, e1, b2, e2, v, /*a,*/ true);
-      a = toks.end();        //DELETE THIS LINE WHEN ALIGNMENTS SUPPORTED!!!!
+      PhraseTableBase::extractTokens(buffer, toks, b1, e1, b2, e2, v, a, true);
 
       // Verify on the fly that the stream is LC_ALL=C.
       p1 = join(b1,e1);
@@ -196,7 +195,7 @@ int MAIN(argc, argv)
 
    iSafeMagicStream is(input_jpt_file);
    while (getline(is, line)) {
-      pt.extractTokens(line, toks, b1, e1, b2, e2, v/*, a*/);
+      pt.extractTokens(line, toks, b1, e1, b2, e2, v, a);
       if (rev) {
          swap(b1, b2);
          swap(e1, e2);
@@ -228,8 +227,7 @@ int MAIN(argc, argv)
 
       // read at least one line from each cpt to check the number of columns.
       while (getline(istr, line)) {
-         pt.extractTokens(line, toks, b1, e1, b2, e2, v, /*a,*/ true);
-         a = toks.end();        //DELETE THIS LINE WHEN ALIGNMENTS SUPPORTED!!!!
+         pt.extractTokens(line, toks, b1, e1, b2, e2, v, a, true);
          if (num_cols != 0) {
             if (static_cast<Uint>(a - v) != num_cols)
                error(ETFatal, "phrasetables must have same numbers of columns!");
