@@ -294,6 +294,7 @@ void multipleFiles()
       char buff[32];
       snprintf(buff, 30, "delme.%d.gz", i);
       array2[i] = new oMagicStream(buff);
+      assert(array2[i] != NULL);
       cout << ".";
    }
    cout << endl;

@@ -471,8 +471,10 @@ bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
       if (needBiPhrases) {
          if (!curProbs->bi_phrase.empty() && alignment) {
             static bool warning_printed = false;
-            error(ETWarn, "When using -bilm-file with multiple phrase tables, the first phrase table where a phrase pair is encountered determines the alignment used to construct the bi-phrase.  Ignoring the second instance found.  This message will only be printed once even if there are many such occurrences.");
-            warning_printed = true;
+            if (!warning_printed) {
+               error(ETWarn, "When using -bilm-file with multiple phrase tables, the first phrase table where a phrase pair is encountered determines the alignment used to construct the bi-phrase.  Ignoring the second instance found.  This message will only be printed once even if there are many such occurrences.");
+               warning_printed = true;
+            }
          } else {
             Uint tgt_size = entry.tgtPhrase.size();
             VectorPhrase bi_phrase(entry.tgtPhrase.size());

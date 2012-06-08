@@ -111,6 +111,7 @@ public:
                                        end = map.end();
       ++it;
       OrderedMap<Uint,float>::iterator it2 = it++;
+      TS_ASSERT(it != end);
       TS_ASSERT_EQUALS(it2.index(), 9u);
       TS_ASSERT_EQUALS(it.index(), 12u);
       *it = 15;

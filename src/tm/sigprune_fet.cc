@@ -177,7 +177,7 @@ int main( int argc, char* argv[] )
 
    ssize_t read;
 
-   int i, j;
+   int i;
    vector< char * > field;
 
    while (    getline( istr, line )
@@ -187,7 +187,6 @@ int main( int argc, char* argv[] )
       read = line.length();
       field.resize( 0 );
       field.push_back( &line[ 0 ] );
-      j = 0;
       for ( i = 0; i < read; ++i ) {
          if (    line[ i ] == '\t'
               || line[ i ] == '\n' ) {

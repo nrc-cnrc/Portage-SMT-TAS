@@ -84,6 +84,7 @@ int MAIN(argc, argv)
       if (do_open) {
          static const char* const filename = "delme.from.bloater.gz";
          oSafeMagicStream* out = new oSafeMagicStream(filename);
+         assert(out != NULL);
          if (verbose) {
             out = NULL; // to quiet compiler warning
             cerr << endl << endl << "Showing the memory usage again after open gzip stream:" << endl;
