@@ -81,22 +81,22 @@ filter_grep-%:
 	@${MAKE} --no-print-directory cmp_canoe.ini-$*.FILT-G-$* cmp_cpt.4thonly.FILT-G-$* cmp_cpt.alonly.FILT-G-$* cmp_$*-cpt.fr2en.FILT-G-$*.gz
 
 filter_hard-%:
-	filter_models -c -ttable-limit 2 -f canoe.ini-$* -hard-limit $*-cpt.hard < 1sent 2> log.$@
+	filter_models -c -ttable-limit 2 -f canoe.ini-$* -tm-hard-limit $*-cpt.hard < 1sent 2> log.$@
 	@${MAKE} --no-print-directory cmp_$*-cpt.hard.FILT
 
 filter_soft-%:
-	filter_models -c -ttable-limit 2 -f canoe.ini-$* -soft-limit $*-cpt.soft < 1sent 2> log.$@
+	filter_models -c -ttable-limit 2 -f canoe.ini-$* -tm-soft-limit $*-cpt.soft < 1sent 2> log.$@
 	@${MAKE} --no-print-directory cmp_$*-cpt.soft.FILT
 
 %-cpt.online-input.ONECPT.gz:
-	filter_models -ttable-limit 100 -f canoe.ini-$* -soft-limit $*-cpt.online-input -no-src-grep -z -suffix .ONECPT 2> log.$@
+	filter_models -ttable-limit 100 -f canoe.ini-$* -tm-soft-limit $*-cpt.online-input -no-src-grep -z -suffix .ONECPT 2> log.$@
 
 filter_hard_online-%: %-cpt.online-input.ONECPT.gz
-	filter_models -tm-online -ttable-limit 2 -f canoe.ini-$*.ONECPT -hard-limit $*-cpt.hard.online < 1sent
+	filter_models -tm-online -ttable-limit 2 -f canoe.ini-$*.ONECPT -tm-hard-limit $*-cpt.hard.online < 1sent
 	@${MAKE} --no-print-directory cmp_$*-cpt.hard.online.FILT
 
 filter_soft_online-%: %-cpt.online-input.ONECPT.gz
-	filter_models -tm-online -ttable-limit 2 -f canoe.ini-$*.ONECPT -soft-limit $*-cpt.soft.online < 1sent
+	filter_models -tm-online -ttable-limit 2 -f canoe.ini-$*.ONECPT -tm-soft-limit $*-cpt.soft.online < 1sent
 	@${MAKE} --no-print-directory cmp_$*-cpt.soft.online.FILT
 
 cmp_%: %
