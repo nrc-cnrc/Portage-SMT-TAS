@@ -5,7 +5,7 @@
 # @file portage_utils.py
 # @brief Useful common Python classes and functions
 # 
-# @author Darlene Stewart
+# @author Darlene Stewart & Samuel Larkin
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -159,9 +159,10 @@ def open(filename, mode='r'):
    elif filename.endswith(".gz"):
       #theFile = gzip.open(filename, mode+'b')
       if mode == 'r':
-         theFile = Popen("zcat " + filename, shell=True, stdout=PIPE).stdout
+         theFile = Popen(["zcat", "-f", filename], stdout=PIPE).stdout
       elif mode == 'w':
-         theFile = Popen("gzip > " + filename, shell=True, stdin=PIPE).stdin
+         internal_file = __builtin__.open(filename, mode)
+         theFile = Popen(["gzip"], close_fds=True, stdin=PIPE, stdout=internal_file).stdin
       else:
          fatal_error("Unsupported mode for gz files.")
    else:
