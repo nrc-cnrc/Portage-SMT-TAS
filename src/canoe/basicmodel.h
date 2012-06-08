@@ -157,6 +157,11 @@ namespace Portage
       VocabFilter tgt_vocab;
 
       /**
+       * The vocab to store bi-words (for BiLM queries) that will constitute bi_phrase
+       */
+      VocabFilter biPhraseVocab;
+
+      /**
        * All decoder features other than LMs and TMs (e.g., distortion,
        * length, segmentation, and any feature added in the future).
        */
@@ -216,12 +221,14 @@ namespace Portage
        */
       vector<double> featureWeightsV;
 
+   public:
       /**
        * The window size (number of words) used by the language model.
        * Probably between 2 and 5.  (Typically 3)
        */
       Uint lm_numwords;
 
+   protected:
       /// Possible LM Heuristic types
       enum LMHeuristicType { LMH_NONE, LMH_UNIGRAM, LMH_INCREMENTAL,
                              LMH_SIMPLE };
@@ -560,6 +567,12 @@ namespace Portage
       /// vocabularies.
       const Voc& get_voc() const { return tgt_vocab; }
 
+      // So much for read-only.
+      Voc* getOpenVoc() {return &tgt_vocab;}
+
+      /// Get a reference to the bi-phrase vocabulary
+      VocabFilter& getBiPhraseVoc() { return biPhraseVocab; }
+
       /// Prints how many times each N where hit with the lm queries.
       /// @param out  where to display the hits
       void displayLMHits(ostream& out = cerr);
@@ -572,6 +585,9 @@ namespace Portage
    public:
       /// Glocal configuration object
       const CanoeConfig* const c;
+
+      /// Optional target sentence.
+      const vector<string>* const tgt_sent;
 
    private:
       /// The source sentence (in the order it occurs in the input).
@@ -616,6 +632,7 @@ namespace Portage
        * @brief Constructor, creates a BasicModel.
        *
        * @param src_sent  The source sentence.
+       * @param tgt_sent  Optional reference sentence in the target language.
        * @param phrases   The triangular array of phrase translation options;
        *                  the (i, j)-th entry contains phrase translation
        *                  options for the source range [i, i + j + 1).
@@ -627,6 +644,7 @@ namespace Portage
        *                  All model weights will be initialized from parent.
        */
       BasicModel(const vector<string> &src_sent,
+            const vector<string> *tgt_sent,
             vector<PhraseInfo *> **phrases,
             double **futureScore,
             BasicModelGenerator &parent);
@@ -650,6 +668,9 @@ namespace Portage
        * @return the phrase table.
        */
       PhraseTable& getPhraseTable() { return *(parent.phraseTable); }
+
+      /// Get a reference to the bi-phrase vocabulary
+      VocabFilter& getBiPhraseVoc() { return parent.biPhraseVocab; }
 
       /**
        * Get the length of the source sentence being translated.

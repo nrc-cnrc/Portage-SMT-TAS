@@ -215,10 +215,18 @@ int MAIN(argc, argv)
       error(ETFatal, "You must provide source sentences when doing grep");
    if (arg.filterLMs and !c.tpptFiles.empty())
       error(ETFatal, "Filtering Language Models (-L) when using TPPTs is not implemented yet.");
-   if (arg.filterLDMs and (!(arg.limit() or c.multiProbTMFiles.size() == 1)))
-      error(ETFatal, "To filter LDMs, we must either have one cpt or use hard/soft filtering to produce one cpt before filtering LDMs.");
-   if (arg.filterLDMs and !c.tpptFiles.empty())
-      error(ETFatal, "Filtering LDMs when using TPPTs is not supported.");
+   if (arg.filterLDMs and (!(arg.limit() or c.multiProbTMFiles.size() == 1))) {
+      if (arg.limitPhrases())
+         error(ETWarn, "Filtering LDMs with multiple CPTs and no hard/soft filtering; taking only source phrases into account for LDM filtering, not target phrases.");
+      else
+         error(ETFatal, "To filter LDMs, we must either have one cpt or use hard/soft filtering to produce one cpt before filtering LDMs.  Alternatively, use filter-grep mode, in which case LDM filtering takes into account source phrases, but not target phrases, as it would normally.");
+   }
+   if (arg.filterLDMs and !c.tpptFiles.empty()) {
+      if (arg.limitPhrases())
+         error(ETWarn, "Filtering LDMs when using TPPTs takes only source phrases into account for LDM filtering, not target phrases.");
+      else
+         error(ETFatal, "Filtering LDMs when using TPPTs and not limiting phrases is not supported.");
+   }
 
 
    // online mode only applies to tm_hard_limit or tm_soft_limit.
@@ -294,9 +302,11 @@ int MAIN(argc, argv)
                   filteredTranslationModelFilename.c_str());
          }
       }
+      /*
       else
          if (arg.filterLDMs)
             error(ETFatal, "It is impossible to either filter LDMs in source grep mode unless you only have one TM.");
+      */
    }
 
 
@@ -455,10 +465,10 @@ int MAIN(argc, argv)
       if ( !c.tpptFiles.empty() && arg.limitPhrases() && c.lmFiles.size() > 0 ) {
          LOG_VERBOSE1(filter_models_Logger, "Extracting vocabulary from TPPTs");
          const time_t start_time = time(NULL);
-         if (arg.verbose) {
+         if (arg.verbose)
             cerr << "Extracting target vocabulary from TPPTs";
-         }
-         PhraseTable  phraseTable(tgt_vocab, NULL);
+         VocabFilter dummy_voc(0);
+         PhraseTable  phraseTable(tgt_vocab, dummy_voc, NULL);
          phraseTable.extractVocabFromTPPTs(0);  // Will extract the TPPT voc into tgt_vocab.
          if (arg.verbose) {
             cerr << " ... done in " << (time(NULL) - start_time) << "s" << endl;
@@ -528,8 +538,12 @@ int MAIN(argc, argv)
       LOG_VERBOSE1(filter_models_Logger, "Processing Lexicalized Distortion Models");
 
       // There can only be one cpt to filter ldms.
-      if (c.multiProbTMFiles.size() != 1)
-         error(ETFatal, "In order to filter LDMs, we must have only one CPT.");
+      if (c.multiProbTMFiles.size() != 1 or !c.tpptFiles.empty()) {
+         if (arg.limitPhrases())
+            error(ETWarn, "There is more than one CPT or there are TPPTs, so LDM filtering can't look at target phrases; doing filter-grep only on the LDM(s).");
+         else
+            error(ETFatal, "In order to filter LDMs, we must have only one CPT and no TPPTs, or do filter-grep.");
+      }
 
       const string cpt_filename = c.multiProbTMFiles.front();
       for (FL_iterator file(c.LDMFiles.begin()); file!=c.LDMFiles.end(); ++file) {
@@ -555,18 +569,31 @@ int MAIN(argc, argv)
             error(ETWarn, "Cannot filter %s since %s is read-only.", file->c_str(), filtered_ldm.c_str());
          }
          else {
-            // filter-distortion-model.pl -v ${CPT} ${LDM} ${FLDM}
-            const string cmd = "filter-distortion-model.pl -v " + cpt_filename
-               + " " + *file
-               + " " + filtered_ldm;
-            if (arg.verbose) {
-               cerr << "Filtering LDM using: " << cmd << endl;  // SAM DEBUGGING
+            if (c.multiProbTMFiles.size() != 1 || !c.tpptFiles.empty()) {
+               assert(arg.limitPhrases());
+               PhraseTableFilterGrep phraseTable(arg.limitPhrases(), tgt_vocab, c.phraseTablePruneType.c_str());
+               phraseTable.addSourceSentences(src_sents);
+               error_unless_exists(*file, true, "LDM");
+               phraseTable.filter(*file, filtered_ldm);
+               const string bkoff_file = (isZipFile(*file) ? removeExtension(*file) : *file) + ".bkoff";
+               const string filt_bkoff_file = (isZipFile(filtered_ldm) ? removeExtension(filtered_ldm) : filtered_ldm) + ".bkoff";
+               iSafeMagicStream bk_in(bkoff_file.c_str());
+               oSafeMagicStream bk_out(filt_bkoff_file.c_str());
+               string line;
+               while (getline(bk_in, line))
+                  bk_out << line;
+            } else {
+               // filter-distortion-model.pl -v ${CPT} ${LDM} ${FLDM}
+               const string cmd = "filter-distortion-model.pl -v " + cpt_filename
+                                  + " " + *file
+                                  + " " + filtered_ldm;
+               if (arg.verbose)
+                  cerr << "Filtering LDM using: " << cmd << endl;  // SAM DEBUGGING
+               const int rc = system(cmd.c_str());
+               if (rc != 0)
+                  error(ETFatal, "Error filtering Lexicalized Distortion Model with filter-distortion-model.pl! (rc=%d)", rc);
+               // NOTE: the associated .bkoff for the newly filtered LDM will be created by filter-distortion-model.pl.
             }
-            const int rc = system (cmd.c_str());
-            if (rc != 0) {
-               error(ETFatal, "Error filtering Lexicalized Distortion Model with filter-distortion-model.pl! (rc=%d)", rc);
-            }
-            // NOTE: the associated .bkoff for the newly filtered LDM will be created by filter-distortion-model.pl.
          }
 
          // Replace unfiltered ldm in config file with the filtered one.

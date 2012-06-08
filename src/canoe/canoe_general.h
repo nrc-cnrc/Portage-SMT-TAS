@@ -42,6 +42,9 @@ namespace Portage
    /// Indicates no limit on maximum levenshtien cost
    extern const int NO_MAX_LEVENSHTEIN;
 
+   /// Indicates no limit on maximum itg distortion
+   extern const int NO_MAX_ITG;
+
    /// Definition of a Phrase.
    /// Can be VectorPhrase or CompactPhrase, both defined in
    /// utils/compact_phrase.h
@@ -204,13 +207,13 @@ namespace Portage
     * @param set       The set of Uint's.
     */
    template <class T>
-   void pickItemsByRange(vector<T> &result, T **triangArray, const UintSet &set)
+   void pickItemsByRange(vector<const T*> &result, T **triangArray, const UintSet &set)
    {
       result.reserve(countSubRanges(set));
       for (UintSet::const_iterator it = set.begin(); it < set.end(); it++) {
          for (Uint i = it->start; i < it->end; i++) {
             for (Uint j = 0; j < it->end - i; j++) {
-               result.push_back(triangArray[i][j]);
+               result.push_back(&triangArray[i][j]);
             }
          }
       }

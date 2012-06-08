@@ -62,7 +62,9 @@ struct filterTMVisitor : private NonCopyable
       void MakeLogProbs(vector<float>& convertedProbs, const vector<float>& originalProbs,
                         Uint numTextTransModels, double log_almost_0) const
       {
-         assert(originalProbs.size() > 0);  // SAM DEBUG
+         // EJJ Nov 2010: the following assertion is no longer appropropriate,
+         // since we now allow multi prob tables with empty 3rd columns.
+         //assert(originalProbs.size() > 0);
          convertedProbs.resize(numTextTransModels, log_almost_0);
          for (Uint i(0); i<originalProbs.size(); ++i) {
             if (originalProbs[i] <= 0.0f)

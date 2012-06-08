@@ -1,0 +1,59 @@
+
+\data\
+ngram 1=22
+ngram 2=24
+ngram 3=0
+
+\1-grams:
+-1.380211	.	-99
+-0.7781513	</s>
+-99	<s>	-7.1016
+-1.380211	OFFICIAL	-99
+-1.380211	REPORT	-99
+-1.380211	Table	-99
+-1.380211	U	-99
+-1.380211	V	-99
+-1.380211	W	-99
+-1.380211	X	-99
+-1.380211	Y	-99
+-1.380211	a	-99
+-1.380211	ceci	-99
+-1.380211	d	-99
+-1.380211	e	-99
+-1.380211	has	-99
+-1.380211	is	-99
+-1.380211	matières	-99
+-1.380211	of	-99
+-1.380211	r	-99
+-1.380211	t	-99
+-1.380211	test	-99
+
+\2-grams:
+0	. </s>
+-0.60206	<s> X
+-0.60206	<s> ceci
+-0.60206	<s> has
+-0.60206	<s> matières
+0	OFFICIAL REPORT
+0	REPORT Table
+0	Table of
+0	U V
+0	V W
+0	W </s>
+0	X Y
+0	Y U
+0	a .
+0	ceci test
+0	d e
+0	e r
+0	has d
+0	is a
+0	matières OFFICIAL
+0	of </s>
+0	r t
+0	t </s>
+0	test is
+
+\3-grams:
+
+\end\

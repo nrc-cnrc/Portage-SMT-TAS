@@ -21,6 +21,9 @@
 #include "levenshtein_feature.h"
 #include "ngrammatch_feature.h"
 #include "rule_feature.h"
+#include "unal_feature.h"
+#include "bilm_model.h"
+#include "basicmodel.h"
 #include "errors.h"
 
 using namespace Portage;
@@ -45,8 +48,15 @@ DecoderFeature* DecoderFeature::create(BasicModelGenerator* bmg,
       f = new NgramMatchFeature(args);
    } else if ( group == RuleFeature::name ) {
       f = new RuleFeature(bmg, args);
-   } else if ( fail ) {
-      error(ETFatal, "unknown decoder feature: " + group);
+   } else if ( group == "UnalFeature" ) {
+      f = new UnalFeature(bmg->getPhraseTable().alignmentVoc, name);
+   } else if ( group == "BiLMModel" ) {
+      f = new BiLMModel(bmg, args);
+   } else {
+      if ( fail )
+         error(ETFatal, "unknown decoder feature: " + group);
+      else
+         return NULL;
    }
 
    // We MUST return a valid pointer or else it's an error.

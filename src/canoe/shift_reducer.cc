@@ -129,7 +129,7 @@ void ShiftReducer::reduce()
 
 bool ShiftReducer::usingSR(const CanoeConfig& c)
 {
-   //if(c.distLimitITG) return true;
+   if(c.distLimitITG) return true;
    
    for(Uint i=0; i<c.distortionModel.size(); i++)
    {

@@ -52,6 +52,11 @@ namespace ugdiss
       setBlocks(b);
     }
 
+    /**
+     * Set the blocks for this bit coder.
+     * each block indicates how many bits it contains, i.e., b[0] says how many
+     * bits encoded in the first block, b[1] how many bits in the second, etc.
+     */
     void setBlocks(vector<uint32_t>  const& b)
     {
       threshold.resize(b.size());

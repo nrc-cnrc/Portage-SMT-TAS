@@ -14,16 +14,17 @@
  */
           
 #include "phrasetable_filter_grep.h"
+#include "logging.h"
 
 using namespace Portage;
 
-// Phrase Table filter grep logger
-//Logging::logger ptLogger_filter_grep(Logging::getLogger("debug.canoe.phraseTable_filter_grep"));
+/// Phrase Table filter grep logger
+Logging::logger ptLogger_filter_grep(Logging::getLogger("debug.canoe.phraseTable_filter_grep"));
 
 PhraseTableFilterGrep::PhraseTableFilterGrep(bool _limitPhrases, VocabFilter &tgtVocab, const char* pruningTypeStr)
 : Parent(_limitPhrases, tgtVocab, pruningTypeStr)
 {
-   //LOG_VERBOSE2(ptLogger_filter_grep, "Creating/Using a PhraseTableFilterGrep");
+   LOG_VERBOSE2(ptLogger_filter_grep, "Creating/Using a PhraseTableFilterGrep");
 }
 
 

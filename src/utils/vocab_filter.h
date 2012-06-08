@@ -74,7 +74,7 @@ namespace Portage {
 
  private:
 
-    /// Deactivated constructor.
+    /// Deactivated default constructor.
     VocabFilter();
 
  public:

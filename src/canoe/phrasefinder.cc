@@ -27,15 +27,19 @@ using namespace Portage;
 RangePhraseFinder::RangePhraseFinder(vector<PhraseInfo *> **phrases,
    Uint sentLength,
    int	distLimit,
+   int  itgLimit,
    bool distLimitSimple,
    bool distLimitExt,
-   bool distPhraseSwap)
+   bool distPhraseSwap,
+   bool distLimitITG)
 : phrases(phrases)
 , sentLength(sentLength)
 , distLimit(distLimit)
+, itgLimit(itgLimit)
 , distLimitSimple(distLimitSimple)
 , distLimitExt(distLimitExt)
 , distPhraseSwap(distPhraseSwap)
+, distLimitITG(distLimitITG)
 {
    assert(distLimit >= 0 || distLimit == NO_MAX_DISTORTION);
 }
@@ -53,37 +57,44 @@ void RangePhraseFinder::findPhrases(vector<PhraseInfo *> &p, PartialTranslation 
                  ? eSet : t.sourceWordsNotCovered);
    if ( set.empty() ) return;
 
-   vector<vector<PhraseInfo *> > picks;
+   vector<const vector<PhraseInfo *>*> picks;
    pickItemsByRange(picks, phrases, set);
 
    // EJJ Count how many PhraseInfo's we might keep, so that we can
    // pre-allocate the memory for p, the result vector
    Uint phraseCount = 0;
-   for (vector< vector<PhraseInfo *> >::const_iterator it = picks.begin(); 
+   for (vector< const vector<PhraseInfo *>*>::const_iterator it = picks.begin(); 
          it < picks.end(); it++)
-      phraseCount += it->size();
+      phraseCount += (*it)->size();
    p.reserve(phraseCount);
 
    // Put all the PhraseInfo's into a single vector, results
-   for ( vector< vector<PhraseInfo *> >::const_iterator it = picks.begin();
+   for ( vector< const vector<PhraseInfo *>*>::const_iterator it = picks.begin();
          it < picks.end(); ++it)
    {
       // Do the distortion limit tests outside the jt loop, since we know that
       // all phrases in a given "pick" share the same source range.
-      if ( ! it->empty() &&
+      if ( ! (*it)->empty() &&
            (
-              DistortionModel::respectsDistLimit(t.sourceWordsNotCovered,
-                 t.lastPhrase->src_words, it->front()->src_words, distLimit,
+            (
+             (!distLimitITG
+              || DistortionModel::respectsITG(itgLimit,
+                                              t.shiftReduce,
+                                              (*it)->front()->src_words))
+             &&
+             DistortionModel::respectsDistLimit(t.sourceWordsNotCovered,
+                 t.lastPhrase->src_words, (*it)->front()->src_words, distLimit,
                  sentLength, distLimitSimple, distLimitExt)
+             )
             ||
               (distPhraseSwap && DistortionModel::isPhraseSwap(
                  t.sourceWordsNotCovered, t.lastPhrase->src_words,
-                 it->front()->src_words, sentLength, phrases))
+                 (*it)->front()->src_words, sentLength, phrases))
            )
          )
       {
-         for ( vector<PhraseInfo *>::const_iterator jt = it->begin();
-               jt < it->end(); ++jt)
+         for ( vector<PhraseInfo *>::const_iterator jt = (*it)->begin();
+               jt < (*it)->end(); ++jt)
          {
             p.push_back(*jt);
          }

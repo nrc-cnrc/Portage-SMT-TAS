@@ -137,7 +137,7 @@ words covered.  In brackets is the score given to the state.
       DecoderState *empty = makeEmptyState(i, false, false);
 
       stack = new HistogramThresholdHypStack(pdm, NO_SIZE_LIMIT,
-                                             -3.5, 0, log(0.0), false);
+                                             -3.5, 0, log(0.0), 0, 0, false);
 
       // Add the first i states
       for (int j = 0; j <= i; j++)

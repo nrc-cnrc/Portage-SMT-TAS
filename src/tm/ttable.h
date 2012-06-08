@@ -352,7 +352,7 @@ public:
     * @return the offset of given target index within src_distn, or
     *         return -1 if not there.
     */
-   int targetOffset(Uint target_index, const SrcDistn& src_distn);
+   int targetOffset(Uint target_index, const SrcDistn& src_distn) const;
 
    /**
     * Get the source distribution in decreasing order of probabilities.

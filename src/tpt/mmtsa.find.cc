@@ -13,7 +13,6 @@
 #include "ug_corpus_token.h"
 #include "ug_mm_ttrack.h"
 
-
 using namespace std;
 using namespace ugdiss;
 

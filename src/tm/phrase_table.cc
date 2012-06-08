@@ -72,15 +72,37 @@ Uint PhraseTableBase::phraseLength(const char* coded)
 void PhraseTableBase::extractTokens(const string& line, vector<string>& toks,
 				    ToksIter& b1, ToksIter& e1,
 				    ToksIter& b2, ToksIter& e2,
-				    ToksIter& v, bool tolerate_multi_vals)
+				    ToksIter& v, ToksIter& a,
+                                    bool tolerate_multi_vals)
 {
    toks.clear();
    vector<Uint> seps;
    split(line, toks);
    for (Uint i = 0; i < toks.size(); ++i)
       if (toks[i] == psep) seps.push_back(i);
-   if (seps.size() != 2 || (!tolerate_multi_vals && seps[1]+2 != toks.size()))
-      error(ETFatal, "incorrect format in phrase table: %s", line.c_str());
+   if (seps.size() != 2)
+      error(ETFatal, "incorrect format in phrase table (wrong number of separators): %s", line.c_str());
+
+   // Format is: ... val1 ... valn [a=...] [c=...]
+   // Code below sets the 'a' pointer to the first a= or c= field.
+
+   if (toks.back().compare(0, 2, "c=") == 0) {
+      a = toks.end() - 1;
+      if ((*(a-1)).compare(0, 2, "a=") == 0)
+         --a;
+   } else if (toks.back().compare(0, 2, "a=") == 0) {
+      a = toks.end() - 1;
+   } else
+      a = toks.end();
+   int value_count((a - toks.begin()) - seps[1] - 1);
+
+   if ( tolerate_multi_vals ) {
+      if ( value_count < 1 )
+         error(ETFatal, "incorrect format in phrase table (expected at least one value token after 2nd separator): %s", line.c_str());
+   } else {
+      if ( value_count != 1 )
+         error(ETFatal, "incorrect format in phrase table (expected exactly one value token after 2nd separator): %s", line.c_str());
+   }
 
    b1 = toks.begin();
    e1 = toks.begin() + seps[0];

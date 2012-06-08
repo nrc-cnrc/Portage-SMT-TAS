@@ -27,6 +27,8 @@ class PhraseTableFilter : public PhraseTable {
    private:   
       /// Definition of PhraseTableFilter base class
       typedef PhraseTable Parent;
+      /// Dummy bi-phrase vocab, required by parent constructor
+      VocabFilter biPhraseVocab;
    protected:
       /// Are we limiting phrase table to the input phrase vocabulary?
       bool limitPhrases;
@@ -40,7 +42,8 @@ class PhraseTableFilter : public PhraseTable {
        * @param pruningTypeStr      pruning type
        */
       PhraseTableFilter(bool limitPhrases, VocabFilter& tgtVocab, const char* pruningTypeStr = NULL)
-      : Parent(tgtVocab, pruningTypeStr)
+      : Parent(tgtVocab, biPhraseVocab, pruningTypeStr)
+      , biPhraseVocab(0)
       , limitPhrases(limitPhrases)
       , pruning_type(NULL)
       {}

@@ -26,6 +26,7 @@
 #include "phrase_smoother_cc.h"
 #include "phrase_table_writer.h"
 #include "hmm_aligner.h"
+#include "logging.h"
 
 using namespace Portage;
 using namespace std;
@@ -47,6 +48,9 @@ Options:\n\
 -H    List available smoothing methods and quit.\n\
 -v    Write progress reports to cerr.\n\
 -i    Counts are integers [counts are floating point]\n\
+-x    Swap left/right phrases when reading them in. Not compatible with joint\n\
+      tables containing alignment info. This option is meant for use with the\n\
+      -prune* options, when the source language is language2 (right column).\n\
 -prune1  Prune so that each language1 phrase has at most n translations. This is\n\
       based on joint frequencies, and is done right after reading in the table.\n\
 -prune1w  Same as prune1, but multiply nw by the number of words in the current\n\
@@ -80,6 +84,16 @@ Options:\n\
             smoothing methods are selected). d may be one of 'fwd', 'rev', or\n\
             'both', to select: output <name>.<lang1>2<lang2>, the reverse, or\n\
             both directions.\n\
+-write-al A Show alignment information with all phrase pairs written in\n\
+            multi-prob and joint frequency formats.  Alignments must be present\n\
+            in <jtable>.  Alignments are reversed in reversed multi-prob\n\
+            tables.  If A is \"top\", the most frequent alignment is written in\n\
+            the \"green\" format surrounded by a=(<alignment>), just before the\n\
+            scores or counts.  If A is \"keep\" (or \"all\"), the alignment\n\
+            information found in <jtable> is copied through as is.  \"none\" is\n\
+            the same as not specifying -write-al.  [none]\n\
+-write-count Show the joint count in the 3rd column of multi-prob phrase tables\n\
+            in the format c=<count>.  [don't]\n\
 -force      Overwrite any existing files\n\
 -[no-]reduce-mem  Reduce/don't reduce memory usage. Memory reduction is\n\
                   achieved by not keeping the phrase tables entirely in memory.\n\
@@ -98,6 +112,7 @@ Options:\n\
 static bool verbose = false;
 static bool int_counts = false;
 static bool joint = false;
+static bool swap_on_read = false;
 static Uint prune1 = 0;
 static Uint prune1w = 0;
 static string lang1("en");
@@ -117,6 +132,9 @@ static bool compress_output = false;
 static string extension(".gz");
 static bool sorted(true);
 static bool reduce_memory(false);
+static string store_alignment_option = "";
+static Uint display_alignments = 0; // 0=none, 1=top, 2=all/keep
+static bool write_count(false);
 
 static void getArgs(int argc, const char* const argv[]);
 static void delete_or_error_if_exists(const string& filename);
@@ -129,6 +147,7 @@ static void doEverything(const char* prog_name);
 int MAIN(argc,argv)
 {
    printCopyright(2005, "joint2cond_phrase_tables");
+   Logging::init();
    getArgs(argc, argv);
 
    if (int_counts)
@@ -172,7 +191,7 @@ static void doEverything(const char* prog_name)
 
    time_t start_time(time(NULL));
    PhraseTableGen<T> pt;
-   pt.readJointTable(in_file, reduce_memory);
+   pt.readJointTable(in_file, reduce_memory, swap_on_read);
 
    if (verbose && !reduce_memory) {
       cerr << "read joint table: "
@@ -192,7 +211,7 @@ static void doEverything(const char* prog_name)
    }
 
    if (joint)
-      pt.dump_joint_freqs(cout, 0, false, false);
+      pt.dump_joint_freqs(cout, 0, false, false, display_alignments);
 
    IBM1* ibm_1 = NULL;
    IBM1* ibm_2 = NULL;
@@ -251,10 +270,10 @@ static void doEverything(const char* prog_name)
    start_time = time(NULL);
    for (typename PhraseTableGen<T>::iterator it(pt.begin()); it != pt.end(); ++it) {
       if (fwd)
-         if (dumpMultiProb(mp_fwd_ofs, 1, it, smoothers, verbose))
+         if (dumpMultiProb(mp_fwd_ofs, 1, it, smoothers, display_alignments, write_count, verbose))
             ++mp_fwd_non_zero;
       if (rev)
-         if (dumpMultiProb(mp_rev_ofs, 2, it, smoothers, verbose))
+         if (dumpMultiProb(mp_rev_ofs, 2, it, smoothers, display_alignments, write_count, verbose))
             ++mp_rev_non_zero;
       ++total;
    }
@@ -282,9 +301,10 @@ static void getArgs(int argc, const char* const argv[])
 {
    const string alt_help = PhraseSmootherFactory<Uint>::help();
    const char* switches[] = {
-      "v", "i", "j", "z", "prune1:", "prune1w:", "s:", "1:", "2:", "o:", "force",
+      "v", "i", "j", "z", "x", "prune1:", "prune1w:", "s:", "1:", "2:", "o:", "force",
       "ibm:", "hmm", "ibm_l1_given_l2:", "ibm_l2_given_l1:",
       "lc1:", "lc2:",
+      "write-al:", "write-count",
       "tmtext", "multipr:", "sort", "no-sort",
       "reduce-mem", "no-reduce-mem"
    };
@@ -296,6 +316,7 @@ static void getArgs(int argc, const char* const argv[])
    arg_reader.testAndSet("v", verbose);
    arg_reader.testAndSet("i", int_counts);
    arg_reader.testAndSet("j", joint);
+   arg_reader.testAndSet("x", swap_on_read);
    arg_reader.testAndSet("prune1", prune1);
    arg_reader.testAndSet("prune1w", prune1w);
    arg_reader.testAndSet("z", compress_output);
@@ -314,6 +335,8 @@ static void getArgs(int argc, const char* const argv[])
    arg_reader.testAndSetOrReset("sort", "no-sort", sorted);
    if (sorted && multipr_output != "") cerr << "Producing sorted cpt." << endl;
    arg_reader.testAndSetOrReset("reduce-mem", "no-reduce-mem", reduce_memory);
+   arg_reader.testAndSet("write-al", store_alignment_option);
+   arg_reader.testAndSet("write-count", write_count);
 
    arg_reader.testAndSet(0, "jtable", in_file);
    if (in_file.empty()) in_file = "-";
@@ -362,6 +385,28 @@ static void getArgs(int argc, const char* const argv[])
 
    if ((prune1||prune1w) && (multipr_output == "rev" || multipr_output == "both"))
       error(ETFatal, "prune1(w) is not valid with -multipr rev or -multipr both.");
+
+   if (!store_alignment_option.empty()) {
+      if ( store_alignment_option == "top" ) {
+         // display_alignments==1 means display only top one, without freq
+         display_alignments = 1;
+      } else if ( store_alignment_option == "keep" || store_alignment_option == "all" ) {
+         // display_alignments==2 means display all alignments with freq.  In
+         // joint2cond_phrase_tables, this means preserving whatever was in jtable.
+         display_alignments = 2;
+      } else if ( store_alignment_option == "none" ) {
+         display_alignments = 0;
+      } else {
+         error(ETFatal, "Invalid -write-al value: %s; expected top or keep.",
+               store_alignment_option.c_str());
+      }
+   }
+
+   if (display_alignments && multipr_output.empty() && !joint)
+      error(ETFatal, "-write-al requires -multipr or -j");
+
+   if (write_count && multipr_output.empty())
+      error(ETFatal, "-write-count requires -multipr");
 }
 
 static void delete_or_error_if_exists(const string& filename) {

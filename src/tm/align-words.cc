@@ -313,7 +313,7 @@ int MAIN(argc, argv)
         if (al_2) delete al_2;
         if (giza_version == 1) {
            al_1 = new GizaAlignmentFile(alfile1);
-        al_2 = new GizaAlignmentFile(alfile2);
+           al_2 = new GizaAlignmentFile(alfile2);
         }
         else if (giza_version == 2) {
            al_1 = new Giza2AlignmentFile(alfile1);

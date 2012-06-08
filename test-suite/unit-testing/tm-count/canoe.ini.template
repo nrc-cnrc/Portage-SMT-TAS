@@ -1,0 +1,13 @@
+[ttable-multi-prob]
+# Make sure we can load a file with only the fourth column, so unal
+# features could be calculated outside and provided in the 4th col.
+cpt.4thonly
+# Make sure we can load a file with only alignments
+cpt.alonly
+# Phrase table with counts only
+cpt.countonly
+# Phrase table with 2 feature and alignment info
+OPT-cpt.fr2en.gz
+[lmodel-file] trivial.lm
+[unal-feature] any:edges:srcleft:tgtright:srcleft+tgtright
+[ftm] 1

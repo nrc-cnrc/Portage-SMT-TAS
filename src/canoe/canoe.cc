@@ -79,7 +79,18 @@ class OneFileInfo {
          const string curNbestFile  = addExtension(c.nbestFilePrefix, ext.str());
          if (append && c.nbestOut)
          {
-            f_nbest                = new oSafeMagicStream(curNbestFile);
+            if (!c.nbestProcessor.empty()) {
+               const string filename =
+                  "| "
+                  + c.nbestProcessor
+                  + (isSuffix(".gz", curNbestFile) ? "| gzip > " : ">")
+                  + curNbestFile;
+               f_nbest = new oSafeMagicStream(filename);
+            }
+            else {
+               f_nbest = new oSafeMagicStream(curNbestFile);
+            }
+
             if (c.ffvals) f_ffvals = new oSafeMagicStream(addExtension(curNbestFile, ".ffvals"));
             if (c.trace)  f_pal    = new oSafeMagicStream(addExtension(curNbestFile, ".pal"));
          }
@@ -127,12 +138,12 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
       BasicModel *bmodel = dynamic_cast<BasicModel *>(&model);
       assert(bmodel != NULL);
       if (c.trace) {
-         printPtr = new PrintAll(*bmodel, oovs);
+         printPtr = new PrintAll(*bmodel, c.walign, oovs);
       } else {
          printPtr = new PrintFFVals(*bmodel, oovs);
       }
    } else if (c.trace) {
-      printPtr = new PrintTrace(model, oovs);
+      printPtr = new PrintTrace(model, c.walign, oovs);
    } else {
       printPtr = new PrintPhraseOnly(model, oovs);
    } // if
@@ -227,37 +238,37 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
 
       if (c.latticeOut)
       {
-         if (one_file_info.one()) {
-            const double dMasse = writeWordGraph(
-                  one_file_info.lattice(), one_file_info.lattice_state(),
-                  print, finalStates, c.backwards, masse);
-            if (masse) {
-               fprintf(stderr, "Weight for sentence(%4.4d): %32.32g\n", num, dMasse);
-               masse = false;
+            if (one_file_info.one()) {
+               const double dMasse = writeWordGraph(
+                     one_file_info.lattice(), one_file_info.lattice_state(),
+                     print, finalStates, c.backwards, masse);
+               if (masse) {
+                  fprintf(stderr, "Weight for sentence(%4.4d): %32.32g\n", num, dMasse);
+                  masse = false;
+               }
             }
-         }
-         else {
-            // Create file names
-            char  sent_num[7];
-            snprintf(sent_num, 7, ".%.4d", num);
-            const string curLatticeFile
-               = addExtension(c.latticeFilePrefix, sent_num);
-            const string curCoverageFile
-               = addExtension(c.latticeFilePrefix, string(sent_num) + ".state");
+            else {
+               // Create file names
+               char  sent_num[7];
+               snprintf(sent_num, 7, ".%.4d", num);
+               const string curLatticeFile
+                  = addExtension(c.latticeFilePrefix, sent_num);
+               const string curCoverageFile
+                  = addExtension(c.latticeFilePrefix, string(sent_num) + ".state");
 
-            // Open files for output
-            oSafeMagicStream latticeOut(curLatticeFile);
-            openedFile.push_back(curLatticeFile);
-            oSafeMagicStream covOut(curCoverageFile);
-            openedFile.push_back(curCoverageFile);
-            // Produce lattice output
-            const double dMasse = writeWordGraph(&latticeOut, &covOut, print,
-                  finalStates, c.backwards, masse);
-            if (masse) {
-               fprintf(stderr, "Weight for sentence(%4.4d): %32.32g\n", num, dMasse);
-               masse = false;
+               // Open files for output
+               oSafeMagicStream latticeOut(curLatticeFile);
+               openedFile.push_back(curLatticeFile);
+               oSafeMagicStream covOut(curCoverageFile);
+               openedFile.push_back(curCoverageFile);
+               // Produce lattice output
+               const double dMasse = writeWordGraph(&latticeOut, &covOut, print,
+                     finalStates, c.backwards, masse);
+               if (masse) {
+                  fprintf(stderr, "Weight for sentence(%4.4d): %32.32g\n", num, dMasse);
+                  masse = false;
+               }
             }
-         }
       }
 
       if (c.nbestOut) {
@@ -266,6 +277,9 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
 
          // Create the object that will output the Nbest list from the lattice.
          NbestPrinter printer(model, oovs);
+
+         if (c.verbosity >= 3)
+            printer.attachDebugStream(&cerr);
 
          if (one_file_info.one()) {
             // Attach the one file output stream
@@ -287,26 +301,35 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
 
             oMagicStream  ffvals_stream;
             if (c.ffvals) {
-               ffvals_stream.open(addExtension(curNbestFile, ".ffvals"));
+               ffvals_stream.safe_open(addExtension(curNbestFile, ".ffvals"));
                openedFile.push_back(addExtension(curNbestFile, ".ffvals"));
-               assert(!ffvals_stream.fail());
                printer.attachFfvalsStream(&ffvals_stream);
             }
 
             oMagicStream  pal_stream;
             if (c.trace) {
-               pal_stream.open(addExtension(curNbestFile, ".pal"));
+               pal_stream.safe_open(addExtension(curNbestFile, ".pal"));
                openedFile.push_back(addExtension(curNbestFile, ".pal"));
-               assert(!pal_stream.fail());
                printer.attachPalStream(&pal_stream);
             }
 
-            oMagicStream nbest_stream(curNbestFile);
+            oMagicStream  nbest_stream;
+            if (!c.nbestProcessor.empty()) {
+               const string filename =
+                  "| "
+                  + c.nbestProcessor
+                  + (isSuffix(".gz", curNbestFile) ? "| gzip > " : ">")
+                  + curNbestFile;
+               nbest_stream.safe_open(filename);
+            }
+            else {
+               nbest_stream.safe_open(curNbestFile);
+            }
             openedFile.push_back(curNbestFile);
             printer.attachNbestStream(&nbest_stream);
 
             // Must print here since the streams only exist in this scope on purpose
-            print_nbest( theLatticeOverlay, c.nbestSize, printer, c.backwards );
+            print_nbest(theLatticeOverlay, c.nbestSize, printer, c.backwards);
          }
       }
 
@@ -432,20 +455,12 @@ int MAIN(argc, argv)
    if (c.bind_pid > 0)
       process_bind(c.bind_pid);
 
-
    if (c.verbosity >= 2)
       c.write(cerr, 2);
-
-   // Temporary hack because TPPTs don't work with dynamic model filtering
-   if ( !c.tpptFiles.empty() && !c.loadFirst ) {
-      error(ETWarn, "Setting -load-first option, since dynamic filtering is not currently compatible with TPPTs.");
-      c.loadFirst = true;
-   }
 
    // If the user request a single file, this object will keep track of the
    // required files
    OneFileInfo  one_file_info(c);
-
 
    // Set random number seed
    srand(time(NULL));
@@ -518,14 +533,20 @@ int MAIN(argc, argv)
 
    // get reference (target sentences) if levenshtein or n-gram is used
    vector<vector<string> > tgt_sents;
-   tgt_sents.clear();  // just in case there is no ref
    // test parameters for levenshtein or n-gram
    const bool usingLev = !c.levWeight.empty() || !c.ngramMatchWeights.empty();
    const bool usingSR = ShiftReducer::usingSR(c);
-   if ( usingLev ){
+   const bool forcedDecoding = c.forcedDecoding || c.forcedDecodingNZ;
+   const bool needRef = usingLev || forcedDecoding;
+   iMagicStream ref;
+   if ( needRef ){
       if (c.refFile.empty())
-         error(ETFatal, "You have to provide a reference file!\nLevenshtein and n-gram decoder features cannot be calculated without!");
-      iSafeMagicStream ref(c.refFile);
+         error(ETFatal, "You have to provide a reference file!\n%s",
+               usingLev
+                ? "Levenshtein and n-gram decoder features cannot be calculated without!"
+                : "Forced decoding cannot work without!");
+      ref.safe_open(c.refFile);
+
       if (!c.loadFirst)
       {
          // Read reference (target) sentences.
@@ -546,6 +567,9 @@ int MAIN(argc, argv)
    if ( c.verbosity >= 1 )
       cerr << endl << "Log-linear model used:"
            << endl << gen->describeModel() << endl;
+
+   if ( c.futScoreUseFtm > 0)
+      cerr << endl << "Including forward translation probs in future score calculation." << endl;
 
    if (c.randomWeights)
       cerr << "NOTE: using random weights (ignoring given weights); init seed="
@@ -576,6 +600,7 @@ int MAIN(argc, argv)
       nss_info.oovs = &oovs;
 
       Uint sourceSentenceId(0);
+      vector<string> tgt_sent; // for loadfirst, if refs are needed
       if (c.loadFirst) {
          if ( ! reader.readMarkedSent(nss_info.src_sent, nss_info.marks, NULL, &sourceSentenceId) ) {
             if ( c.tolerateMarkupErrors ) {
@@ -591,6 +616,14 @@ int MAIN(argc, argv)
          }
          //TODO: maybe some test here for tgt_sents like phrase alignment when k is used????
          if (reader.eof()) break;
+
+         if (needRef) {
+            string line;
+            if (!getline(ref, line))
+               error(ETFatal, "Unexpected end of reference file before end of source file.");
+            split(line, tgt_sent, " ");
+            nss_info.tgt_sent = &tgt_sent;
+         }
       } else {
          if (i == sents.size()) break;
          // Gather the proper information for the current sentence we want to process.
@@ -616,6 +649,7 @@ int MAIN(argc, argv)
       }
 
       nss_info.external_src_sent_id = sourceSentenceId;
+      if (forcedDecoding) gen->lm_numwords = nss_info.tgt_sent->size() + 1;
       BasicModel *model = gen->createModel(nss_info, false);
 
       const double createTime = centisecondTimer.secsElapsed(1);
@@ -628,7 +662,20 @@ int MAIN(argc, argv)
          continue;
       }
 
-      HypothesisStack *h = runDecoder(*model, c, usingLev, usingSR);
+      HypothesisStack *h = NULL;
+
+      const Uint sourceLength = nss_info.src_sent.size();
+      if (c.maxlen && sourceLength > c.maxlen) {
+         //cout << endl;
+         error(ETWarn, "Skipping source sentence longer than maxlen (%u>%u).",
+               sourceLength, c.maxlen);
+         //++i;
+         //continue;
+         h = new HistogramThresholdHypStack(*model, 1, -1, 1, -1, 0, 0, true);
+         h->push(makeEmptyState(sourceLength, usingLev, usingSR));
+      } else {
+         h = runDecoder(*model, c, usingLev, usingSR);
+      }
 
       const double decodeTime = centisecondTimer.secsElapsed(1) - createTime;
       decodeStats.add(decodeTime);
@@ -652,13 +699,17 @@ int MAIN(argc, argv)
       } // switch
 
       if ( h->isEmpty() ) {
-         error(ETWarn, "No translation found for sentence %d with the current settings.",
-               sourceSentenceId);
+         if ( forcedDecoding )
+            // In forced decoding, empty results are common, so be brief
+            cerr << "0";
+         else
+            error(ETWarn, "No translation found for sentence %d with the current settings.",
+                  sourceSentenceId);
          // Push an empty state onto a fresh stack, so n-best and lattice and ffvals
          // output all actually happen correctly, even with no translation.
          delete h;
-         h = new HistogramThresholdHypStack(*model, 1, -1, 1, -1, true);
-         h->push(makeEmptyState(nss_info.src_sent.size(), usingLev, usingSR));
+         h = new HistogramThresholdHypStack(*model, 1, -1, 1, -1, 0, 0, true);
+         h->push(makeEmptyState(sourceLength, usingLev, usingSR));
       }
 
       assert(!h->isEmpty());

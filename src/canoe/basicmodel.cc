@@ -18,12 +18,14 @@
 
 #include "logging.h"
 #include "basicmodel.h"
+#include "config_io.h"
 #include "backwardsmodel.h"
 #include "lm.h"
 #include "errors.h"
 #include "randomDistribution.h"
 #include <math.h>
 #include <numeric> // for accumulate
+#include "word_align_io.h" // for BiLMWriter::sep
 
 using namespace Portage;
 using namespace std;
@@ -35,7 +37,8 @@ Logging::logger bmgLogger(Logging::getLogger("debug.canoe.basicmodelgenerator"))
 // you change it, you will break existing models stored on disk.
 //
 // NB2: If you (yes you!) make any changes to this function, you must update
-// setWeightsFromString() accordingly, as well as weight_names in config_io.cc.
+// setFeatureWeightsFromString() and getFeatureWeights() accordingly, which you
+// accomplish by setting weight_names in config_io.cc.
 //
 // Implementation note: it would be cleaner to initialize decoder_features and
 // featureWeightsV from declarative information in CanoeConfig. A mechanism
@@ -83,6 +86,15 @@ void BasicModelGenerator::InitDecoderFeatures(const CanoeConfig& c)
       //cerr << "Not using any segmentation model" << endl;
    }
 
+   for (Uint i = 0; i < c.unalFeatures.size(); ++i) {
+      LOG_VERBOSE2(bmgLogger, "Creating unal feature >%s<",
+         c.unalFeatures[i].c_str());
+      decoder_features.push_back(DecoderFeature::create(this,
+         "UnalFeature", c.unalFeatures[i], ""));
+      featureWeightsV.push_back(c.unalWeight[i]);
+      if (c.randomWeights)
+         random_feature_weight.push_back(c.rnd_unalWeight.get(i));
+   }
 
    for (Uint i = 0; i < c.ibm1FwdWeights.size(); ++i) {
       LOG_VERBOSE2(bmgLogger, "Creating a ibm1fwd model with >%s<",
@@ -94,7 +106,6 @@ void BasicModelGenerator::InitDecoderFeatures(const CanoeConfig& c)
          random_feature_weight.push_back(c.rnd_ibm1FwdWeights.get(i));
    }
 
-
    if (c.levWeight.size()) {
       LOG_VERBOSE2(bmgLogger, "Creating a lev model");
       decoder_features.push_back(DecoderFeature::create(this,
@@ -103,7 +114,6 @@ void BasicModelGenerator::InitDecoderFeatures(const CanoeConfig& c)
       if (c.randomWeights)
          random_feature_weight.push_back(c.rnd_levWeight.get(0));
    }
-
 
    for (Uint i = 0; i < c.ngramMatchWeights.size(); ++i) {
       if (c.ngramMatchWeights[i] != 0) {
@@ -134,6 +144,9 @@ void BasicModelGenerator::InitDecoderFeatures(const CanoeConfig& c)
 
    // Add new features here (above this comment) - same order as in
    // weight_names in config_io.cc.
+
+   // BiLM features are semantically *here*, even though they are loaded in
+   // BasicModelGenerator::create().
 }
 
 
@@ -187,13 +200,25 @@ BasicModelGenerator* BasicModelGenerator::create(
    for ( Uint i = 0; i < c.multiProbTMFiles.size(); ++i )
       result->phraseTable->readMultiProb(c.multiProbTMFiles[i].c_str(), result->limitPhrases);
 
-   // We load TPPTs last, with their weights after the multi-prob weights,
-   // right at the end of the vector.
+   // We load TPPTs next, with their weights after the multi-prob weights.
    for ( Uint i = 0; i < c.tpptFiles.size(); ++i ) {
       result->vocab_read_from_TPPTs = false;
       result->phraseTable->openTPPT(c.tpptFiles[i].c_str());
    }
 
+   // Loading BiLM files.  They are added at the end of the decoder_features
+   // vector, so they must be the last ones before "lm" in weight_names in
+   // config_io.cc.  We don't load then in InitDecoderFeatures because we have
+   // to have loaded the TM first, to enable dynamic filtering.
+   for (Uint i = 0; i < c.bilmFiles.size(); ++i) {
+      LOG_VERBOSE2(bmgLogger, "Creating BiLM feature >%s<",
+         c.bilmFiles[i].c_str());
+      result->decoder_features.push_back(DecoderFeature::create(result,
+         "BiLMModel", "", c.bilmFiles[i]));
+      result->featureWeightsV.push_back(c.bilmWeights[i]);
+      if (c.randomWeights)
+         result->random_feature_weight.push_back(c.rnd_bilmWeights.get(i));
+   }
 
    //////////// loading LDMs
    for ( Uint i = 0; i < c.LDMFiles.size(); ++i ) {
@@ -215,7 +240,6 @@ BasicModelGenerator* BasicModelGenerator::create(
                ldf->readDefaults((removeZipExtension(ldm_filename) + ".bkoff").c_str());
          }
       }
-
    }
 
    //////////// loading LMs
@@ -231,7 +255,8 @@ BasicModelGenerator* BasicModelGenerator::create(
    }
    LOG_DEBUG(bmgLogger, "Finish loading language models");
 
-   // HUMM no need for all that filtering data, might as well get rid of it.
+   // We no longer need all that filtering data, since dynmamic LM filtering
+   // has been completed by now.
    result->tgt_vocab.freePerSentenceData();
 
    return result;
@@ -241,6 +266,7 @@ BasicModelGenerator::BasicModelGenerator(const CanoeConfig& c) :
    c(&c),
    verbosity(c.verbosity),
    tgt_vocab(0),
+   biPhraseVocab(0),
    limitPhrases(false),
    lm_numwords(1),
    futureScoreLMHeuristic(lm_heuristic_type_from_string(c.futLMHeuristic)),
@@ -251,7 +277,7 @@ BasicModelGenerator::BasicModelGenerator(const CanoeConfig& c) :
 {
    LOG_VERBOSE1(bmgLogger, "BasicModelGenerator constructor with 2 args");
 
-   phraseTable = new PhraseTable(tgt_vocab, c.phraseTablePruneType.c_str());
+   phraseTable = new PhraseTable(tgt_vocab, biPhraseVocab, c.phraseTablePruneType.c_str());
    InitDecoderFeatures(c);
 }
 
@@ -262,7 +288,8 @@ BasicModelGenerator::BasicModelGenerator(
 ) :
    c(&c),
    verbosity(c.verbosity),
-   tgt_vocab(src_sents.size()),
+   tgt_vocab(c.loadFirst ? 0 : src_sents.size()),
+   biPhraseVocab(c.loadFirst ? 0 : src_sents.size()),
    limitPhrases(!c.loadFirst),
    lm_numwords(1),
    futureScoreLMHeuristic(lm_heuristic_type_from_string(c.futLMHeuristic)),
@@ -273,7 +300,8 @@ BasicModelGenerator::BasicModelGenerator(
 {
    LOG_VERBOSE1(bmgLogger, "BasicModelGenerator construtor with 5 args");
 
-   phraseTable = new PhraseTable(tgt_vocab, c.phraseTablePruneType.c_str());
+   phraseTable = new PhraseTable(tgt_vocab, biPhraseVocab, c.phraseTablePruneType.c_str(), !c.bilmFiles.empty());
+
    if (limitPhrases)
    {
       // Enter all source phrases into the phrase table, and into the vocab
@@ -446,7 +474,7 @@ BasicModel *BasicModelGenerator::createModel(
    double **futureScores = precomputeFutureScores(info.potential_phrases,
          info.src_sent.size());
 
-   return new BasicModel(info.src_sent,
+   return new BasicModel(info.src_sent, info.tgt_sent,
                          info.potential_phrases, futureScores, *this);
 } // createModel
 
@@ -534,6 +562,37 @@ void BasicModelGenerator::addMarkedPhraseInfos(
          adirTransWeightsV.size(), it->log_prob + addWeightMarked);
       //boxing
 
+      //EJJ Oct2010 - why don't we set lexdis_probs, as we do in
+      //PhraseTable::getPhrases???  Because we don't need to: when missing,
+      //the global defaults (i.e., the backoff scores) are used.
+
+      newPI->alignment = 0;
+      if (!c->bilmFiles.empty()) {
+         static bool warning_printed = false;
+         if (!warning_printed) {
+            error(ETWarn, "Using BiLMs with marks is OK but not completely supported: even if the BiLM contained the relevant marks, they might have gotten filtered out while loading the model.");
+            // To provide full support, canoe would have to add the marks to
+            // biPhraseVocab *before* loading the BiLM files, which is tricky
+            // to do.  I did not do it right away because this is a rare use
+            // case - we can deal with it later if a) BiLMs prove to work well
+            // *and* b) we want to use marks with them.
+            warning_printed = true;
+         }
+
+         VectorPhrase bi_phrase;
+
+         for ( vector<string>::const_iterator jt = it->markString.begin();
+               jt != it->markString.end(); jt++) {
+            bi_phrase.push_back(
+               biPhraseVocab.add(
+                  (jt->c_str() +
+                   BiLMWriter::sep +
+                   join(info.src_sent.begin()+it->src_words.start, info.src_sent.begin()+it->src_words.end, BiLMWriter::sep)
+                  ).c_str()));
+         }
+         newPI->bi_phrase = bi_phrase;
+      }
+
       newPI->src_words = it->src_words;
       newPI->phrase_trans_prob = (it->log_prob + addWeightMarked) * totalWeight;
       newPI->phrase_trans_probs.insert(newPI->phrase_trans_probs.end(),
@@ -576,6 +635,11 @@ PhraseInfo *BasicModelGenerator::makeNoTransPhraseInfo(
          adirTransWeightsV.size(), LOG_ALMOST_0);       //boxing
    newPI->adir_prob = dotProduct(adirTransWeightsV,     //boxing
          newPI->adir_probs, adirTransWeightsV.size());  //boxing
+
+   newPI->joint_counts.push_back(0); // OOV
+   newPI->alignment = 0;
+   if (!c->bilmFiles.empty())
+      newPI->bi_phrase = VectorPhrase(1, biPhraseVocab.add((word + BiLMWriter::sep + word).c_str()));
 
    newPI->src_words = range;
    newPI->phrase = VectorPhrase(1, tgt_vocab.add(word));
@@ -936,37 +1000,27 @@ void BasicModelGenerator::setRandomWeights() {
 
 void BasicModelGenerator::setWeightsFromString(const string& s)
 {
-   // Put the weights into the CanoeConfig
+   // Put the weights into a temporary copy of the CanoeConfig
+   CanoeConfig tempConfig(*c);
+   tempConfig.setFeatureWeightsFromString(s);
 
-   ((CanoeConfig*)c)->setFeatureWeightsFromString(s);
+   // Now set weights in the BMG from corresponding weights in CanoeConfig.
 
-   // Now set weights in the BMG from corresponding weights in CanoeConfig, the
-   // Good Lord willing. This is basically the code from InitDecoderFeatures()
-   // and create() (aka "NASTY & UGLY"), with the weight-setting parts ripped
-   // away from the model-creating parts.
+   // 1) "Normal" features
+   vector<double> all_weights;
+   tempConfig.getFeatureWeights(all_weights);
+   assert(all_weights.size() > featureWeightsV.size());
+   featureWeightsV.assign(all_weights.begin(), all_weights.begin()+featureWeightsV.size());
 
-   featureWeightsV.clear();
-   for (Uint i = 0; i < c->distortionModel.size(); ++i)
-      if (c->distortionModel[i] != "none")
-         featureWeightsV.push_back(c->distWeight[i]);
-   featureWeightsV.push_back(c->lengthWeight);
-   if ( c->segmentationModel != "none" )
-      featureWeightsV.push_back(c->segWeight[0]);
-   for (Uint i = 0; i < c->ibm1FwdWeights.size(); ++i)
-      featureWeightsV.push_back(c->ibm1FwdWeights[i]);
-   if (c->levWeight.size())
-      featureWeightsV.push_back(c->levWeight[0]);
-   for (Uint i = 0; i < c->ngramMatchWeights.size(); ++i)
-      if (c->ngramMatchWeights[i] != 0)
-         featureWeightsV.push_back(c->ngramMatchWeights[i]);
-   for (Uint i = 0; i < c->rule_classes.size(); ++i)
-      featureWeightsV.push_back(c->rule_weights[i]);
+   // 2) TMs and LMs
+   transWeightsV = tempConfig.transWeights;
+   forwardWeightsV = tempConfig.forwardWeights;
+   adirTransWeightsV = tempConfig.adirTransWeights;
+   lmWeightsV = tempConfig.lmWeights;
 
-   // TMs and LMs, on a wing and a prayer...
-   transWeightsV.assign(c->transWeights.begin(), c->transWeights.end());
-   forwardWeightsV.assign(c->forwardWeights.begin(), c->forwardWeights.end());
-   adirTransWeightsV.assign(c->adirTransWeights.begin(), c->adirTransWeights.end()); //boxing
-   lmWeightsV.assign(c->lmWeights.begin(), c->lmWeights.end());
+   assert(join(all_weights) ==
+          join(featureWeightsV)+" "+join(transWeightsV)+" "+join(forwardWeightsV)
+          +" "+join(adirTransWeightsV)+" "+join(lmWeightsV));
 }
 
 void BasicModelGenerator::displayLMHits(ostream& out) {
@@ -981,11 +1035,14 @@ void BasicModelGenerator::displayLMHits(ostream& out) {
 
 
 BasicModel::BasicModel(const vector<string> &src_sent,
+                       const vector<string> *tgt_sent,
                        vector<PhraseInfo *> **phrases,
                        double **futureScore,
                        BasicModelGenerator &parent) :
-   c(parent.c), src_sent(src_sent), lmWeights(parent.lmWeightsV),
-   transWeights(parent.transWeightsV), forwardWeights(parent.forwardWeightsV),
+   c(parent.c), tgt_sent(tgt_sent), src_sent(src_sent),
+   lmWeights(parent.lmWeightsV), transWeights(parent.transWeightsV),
+   forwardWeights(parent.forwardWeightsV),
+   adirTransWeights(parent.adirTransWeightsV),
    featureWeights(parent.featureWeightsV),
    phrases(phrases), futureScore(futureScore), parent(parent) {}
 

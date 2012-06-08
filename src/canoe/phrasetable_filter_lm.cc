@@ -15,17 +15,18 @@
  */
           
 #include "phrasetable_filter_lm.h"
+#include "logging.h"
 
 using namespace Portage;
 
-// Phrase Table filter LM logger
-//Logging::logger ptLogger_filter_LM(Logging::getLogger("debug.canoe.phraseTable_filter_LM"));
+/// Phrase Table filter LM logger
+Logging::logger ptLogger_filter_LM(Logging::getLogger("debug.canoe.phraseTable_filter_LM"));
 
 
 PhraseTableFilterLM::PhraseTableFilterLM(bool _limitPhrases, VocabFilter &tgtVocab, const char* pruningTypeStr)
 : Parent(_limitPhrases, tgtVocab, pruningTypeStr)
 {
-   //LOG_VERBOSE2(ptLogger_filter_LM, "Creating/Using PhraseTableFilterLM");
+   LOG_VERBOSE2(ptLogger_filter_LM, "Creating/Using PhraseTableFilterLM");
 }
 
 

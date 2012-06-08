@@ -37,13 +37,14 @@ Usage: textpt2tppt.sh <TextPT_filename> [TPPT_prefix]
 Options:
 
    -h(elp)      print this help message
+   -d(ebug)     keep the temporary directory when done
 
 ==EOF==
 
    exit 1
 }
 
-VERBOSE=0
+VERBOSE=1
 TPT_EXTENSION=".tppt"
 while [ $# -gt 0 ]; do
    case "$1" in
@@ -95,21 +96,25 @@ mkdir -p $OUTPUTPT$TPT_EXTENSION ||
    error_exit "Can't create output dir $OUTPUTPT$TPT_EXTENSION, giving up."
 
 TMPDIR=$OUTPUTPT$TPT_EXTENSION.tmp.$$
-mkdir $TMPDIR || error_exit "Can't create temp workdir, giving up."
-cd $TMPDIR || error_exit "Can't cd into $TMPDIR, giving up."
+run_cmd mkdir $TMPDIR || error_exit "Can't create temp workdir, giving up."
+run_cmd cd $TMPDIR || error_exit "Can't cd into $TMPDIR, giving up."
 
 if [[ ! -r $TEXTPT ]]; then
    error_exit "Can't read $TEXTPT."
 fi
 
-run_cmd "ptable.encode-phrases $TEXTPT 1 $OUTPUTPT >&2"
-run_cmd "ptable.encode-phrases $TEXTPT 2 $OUTPUTPT >&2"
-run_cmd "ptable.encode-scores $TEXTPT $OUTPUTPT >&2"
-run_cmd "ptable.assemble $OUTPUTPT >&2"
+run_cmd "time-mem ptable.encode-phrases $TEXTPT 1 $OUTPUTPT >&2"
+run_cmd "time-mem ptable.encode-phrases $TEXTPT 2 $OUTPUTPT >&2"
+run_cmd "time-mem ptable.encode-scores $TEXTPT $OUTPUTPT >&2"
+run_cmd "time-mem ptable.assemble $OUTPUTPT >&2"
 for x in tppt cbk trg.repos.dat src.tdx trg.tdx; do
    mv $OUTPUTPT.$x ../$OUTPUTPT$TPT_EXTENSION/$x ||
       error_exit "Can't mv $OUTPUTPT.$x into $OUTPUTPT$TPT_EXTENSION/$x, model probably exists but can't be moved or renamed properly."
 done
+if [[ -f $OUTPUTPT.config ]]; then
+   mv $OUTPUTPT.config ../$OUTPUTPT$TPT_EXTENSION/config
+   USING_V2=1
+fi
 cd ..
 [[ ! $DEBUG ]] && rm -r $TMPDIR
 
@@ -122,6 +127,15 @@ compressed.
 To use this model in canoe, put a line like this is your canoe.ini file:
    [ttable-tppt] NAME$TPT_EXTENSION
 " > $OUTPUTPT$TPT_EXTENSION/README
+
+if [[ $USING_V2 ]]; then
+   echo "
+
+The additional file config provides the semantic interpretation of the columns
+in the TPPT, supporting 4th column scores and count fields.  Support for
+alignments is planned but not implemented yet.
+" >> $OUTPUTPT$TPT_EXTENSION/README
+fi
 
 echo Done textpt2tppt.sh. >&2
 

@@ -30,7 +30,9 @@ v1.5.0 2012-??-??
      (For details, see Cherry and Foster, NAACL 2012.)
    - Tuning rescoring weights using N-Best MIRA (-a mira option to rat.sh).
    - HLDM: Hierarchical lexicalized distortion models, following Galley and
-     Manning (EMNLP 2008) and Cherry, Moore and Quick (WMT 2012).
+     Manning (EMNLP 2008) and Cherry, Moore and Quick (WMT 2012).  Includes an
+     ITG parser used during decoding, which also provides a new distortion
+     limit implementation, -dist-limit-itg.
    - Framework support for lattice mira and HLDMs.
    - Framework support for the use of Giza++ IBM4 alignments: we obtain our
      best results when we combine phrase pair counts and HLDM counts obtained
@@ -47,7 +49,25 @@ v1.5.0 2012-??-??
  - Phrase table filtering and loading now takes linear time in the size of the
    phrase table, and no longer has a quadratic term in the number of target
    phrases per source phrase.
- - New decoder option: -dist-limit-simple, which helps at least for Chinese.
+ - New decoder features and options:
+   - -dist-limit-simple options, which helps at least for Chinese.
+   - minimum diversity criterion added to coverage pruning
+   - BiLM (following Niehues et al, WMT-2011)
+   - carry joint count information in the phrase table (for future use)
+   - carry alignment information in the phrase table, and optionally include
+     it in the decoder output.
+   - unal features count the number of words left unaligned in phrase pairs
+     (following Guzman et al, MT Summit 2009).
+   - distortion limit based on ITG constraints
+   - LeftDistance experimental distortion model
+   - -maxlen
+   - diversity and -diversity-stack-increment for regular stack decoding
+ - Forced decoding is now done by canoe itself, using all available models.
+   This functionality replaces the obsolete phrase_tm_align program, which was
+   much more limited in functionality.
+ - TPPTs can now store fourth column (adirectional) scores and joint counts.
+ - More phrase table smoothers, enhanced phrase smoother library, and the
+   ability to generate adirectional scores via joint2multi_cpt.
 
  Minor changes:
  - New -w switch to joint2multi_cpt.
@@ -76,6 +96,8 @@ v1.5.0 2012-??-??
  - Make sure the future score of a complete decoder hypothesis is 0.
  - rescore_train in PER and WER mode: the stopping criterion was broken and has
    been fixed.
+ - In forced decoding (previously phrase_tm_align), under some situations the
+   target sentence might not have been fully covered; this has now been fixed.
 
 v1.4.3 2011-10-03
  This release is primarily intended distribute our improved truecasing module,

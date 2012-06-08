@@ -50,7 +50,7 @@ void RuleFeature::newSrcSent(const newSrcSentInfo& nss_info)
    for (MARK_IT mark(marks.begin()); mark!=marks.end(); ++mark) {
       // This mark belongs to this feature function
       if (mark->class_name == class_name) {
-         Phrase tgt_phrase;
+         VectorPhrase tgt_phrase;
          bmg->get_voc().index(mark->markString, tgt_phrase);
 
          RULE_IT rule = find(rule_infos.begin(), rule_infos.end(), mark->src_words);

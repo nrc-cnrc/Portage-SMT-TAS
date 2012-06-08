@@ -22,6 +22,7 @@
 #include "hypothesisstack.h"
 #include "basicmodel.h"
 #include "phrasefinder.h"
+#include "forced_phrase_finder.h"
 #include "cube_pruning_decoder.h"
 #include <vector>
 #include <iostream>
@@ -40,9 +41,16 @@ namespace Portage
       const Uint sourceLength = model.getSourceLength();
 
       // Create the phrase finder
-      RangePhraseFinder finder(model.getPhraseInfo(), sourceLength,
-         c.distLimit, c.distLimitSimple,
-         c.distLimitExt, c.distPhraseSwap);
+      PhraseFinder* finder(NULL);
+      if ( c.forcedDecoding || c.forcedDecodingNZ ) {
+         assert(model.tgt_sent);
+         finder = new ForcedTargetPhraseFinder(model, *model.tgt_sent);
+      } else {
+         finder = new RangePhraseFinder(model.getPhraseInfo(), sourceLength,
+               c.distLimit, c.itgLimit, c.distLimitSimple,
+               c.distLimitExt, c.distPhraseSwap,
+               c.distLimitITG);
+      }
 
       // If we only need to top hypothesis, there is no point in keeping
       // recombined states, so we discard them on the fly.
@@ -62,11 +70,11 @@ namespace Portage
          hStacks[i] = new HistogramThresholdHypStack(model,
                (i == sourceLength ? last_stack_size : c.maxStackSize),
                log(c.pruneThreshold), c.covLimit, log(c.covThreshold),
-               discardRecomb);
+               c.diversity, c.diversityStackIncrement, discardRecomb);
       } // for
 
       // Run the decoder algorithm
-      runDecoder(model, hStacks, sourceLength, finder, usingLev, usingSR, c.verbosity);
+      runDecoder(model, hStacks, sourceLength, *finder, usingLev, usingSR, c.verbosity);
 
       // Keep the final hypothesis stack
       HypothesisStack *result = hStacks[sourceLength];
@@ -80,6 +88,7 @@ namespace Portage
       } // for
       */
 
+      delete finder;
       return result;
    } // runDecoder
 

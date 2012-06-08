@@ -319,6 +319,7 @@ public:
     * @param pt destination phrase table
     * @param ct count each pair as having occurred this many times
     * @param phrase_pairs if non-null, output goes here INSTEAD of pt
+    * @param store_alignments if true, alignment info is stored in pt with each phrase pair.
     */
    template<class T>
    void addPhrases(const vector<string>& toks1, const vector<string>& toks2,
@@ -326,7 +327,8 @@ public:
                    Uint max_phrase_len1, Uint max_phrase_len2, Uint max_phraselen_diff,
                    Uint min_phrase_len1, Uint min_phrase_len2,
                    PhraseTableGen<T>& pt, T ct=1,
-                   vector<PhrasePair>* phrase_pairs = NULL);
+                   vector<PhrasePair>* phrase_pairs = NULL,
+                   bool store_alignments = false);
 };
 
 /**
@@ -722,6 +724,21 @@ public:
 };
 
 
+/**
+ * Class to use an internal aligner: the sets1 argument already contains the
+ * alignments before align() is called.
+ */
+class InternalAligner : public WordAligner
+{
+public:
+   InternalAligner(WordAlignerFactory& factory, const string& args) {}
+   virtual double align(const vector<string>& toks1,
+                        const vector<string>& toks2,
+                        vector< vector<Uint> >& sets1)
+   { return 0; }
+};
+
+
 /*---------------------------------------------------------------------------
   Definitions only past this point; if you just want to use these classes,
   stop reading here!
@@ -746,10 +763,25 @@ void WordAlignerFactory::addPhrases(const vector<string>& toks1, const vector<st
                                     const vector< vector<Uint> >& sets1,
                                     Uint max_phrase_len1, Uint max_phrase_len2, Uint max_phraselen_diff,
                                     Uint min_phrase_len1, Uint min_phrase_len2,
-                                    PhraseTableGen<T>& pt, T ct, vector<PhrasePair>* phrase_pairs)
+                                    PhraseTableGen<T>& pt, T ct, vector<PhrasePair>* phrase_pairs,
+                                    bool store_alignments)
 {
+   // Avoid overflow when max_phrase_len is "infinite": Uint(-1).
+   if (max_phrase_len1 > toks1.size()) max_phrase_len1 = toks1.size() + 1;
+   if (max_phrase_len2 > toks2.size()) max_phrase_len2 = toks2.size() + 1;
+
    if (phrase_pairs)
       phrase_pairs->clear();
+
+   string green_alignment_s; // reduce frequent alloc/realloc
+   const char* green_alignment(NULL);
+   GreenWriter green_writer;
+   if ( store_alignments && addSingleWords) {
+      // all single links have the same alignment, so we don't call
+      // green_writer.write_partial_alignment for this case.
+      green_alignment_s = "0";
+      green_alignment = green_alignment_s.c_str();
+   }
 
    // initialize all words with empty range
    earliest1.assign(toks1.size(), toks2.size()); latest1.assign(toks1.size(), 0);
@@ -771,7 +803,8 @@ void WordAlignerFactory::addPhrases(const vector<string>& toks1, const vector<st
                   phrase_pairs->push_back(PhrasePair(i, i+1, jj, jj+1));
                else
                   pt.addPhrasePair(toks1.begin()+i, toks1.begin()+i+1,
-                                   toks2.begin()+jj, toks2.begin()+jj+1, ct);
+                                   toks2.begin()+jj, toks2.begin()+jj+1,
+                                   ct, green_alignment);
             }
          }
       }
@@ -797,14 +830,22 @@ void WordAlignerFactory::addPhrases(const vector<string>& toks1, const vector<st
 
                   if (phrase_pairs)
                      phrase_pairs->push_back(PhrasePair(b1,e1,b2,e2));
-                  else
+                  else {
+                     if ( store_alignments ) {
+                        green_writer.write_partial_alignment(green_alignment_s,
+                           toks1, b1, e1, toks2, b2, e2, sets1, '_');
+                        green_alignment = green_alignment_s.c_str();
+                     }
                      pt.addPhrasePair(toks1.begin()+b1, toks1.begin()+e1,
-                                      toks2.begin()+b2, toks2.begin()+e2, ct);
+                                      toks2.begin()+b2, toks2.begin()+e2,
+                                      ct, green_alignment);
+                  }
 
                   if (verbose > 1) {
                      const string p1 = join(toks1.begin()+b1, toks1.begin()+e1, "_");
                      const string p2 = join(toks2.begin()+b2, toks2.begin()+e2, "_");
                      cerr << b1 << ':' << p1 << ':' << e1 << "/" << b2 << ':' << p2 << ':' << e2 << " ";
+                     if ( store_alignments ) cerr << "a=(" << green_alignment << ") ";
                   }
                }
             }

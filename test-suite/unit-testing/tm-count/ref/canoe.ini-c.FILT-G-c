@@ -1,0 +1,14 @@
+[ttable-multi-prob] 
+   cpt.4thonly.FILT-G-c
+   cpt.alonly.FILT-G-c
+   cpt.countonly.FILT-G-c
+   c-cpt.fr2en.FILT-G-c.gz
+[lmodel-file] 
+   trivial.lm
+[weight-f] 1
+[unal-feature] 
+   any
+   edges
+   srcleft
+   tgtright
+   srcleft+tgtright

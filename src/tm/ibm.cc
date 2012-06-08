@@ -17,6 +17,7 @@
 #include "errors.h"
 #include "ibm.h"
 #include "tmp_val.h"
+#include "hmm_aligner.h"
 
 using namespace Portage;
 
@@ -205,6 +206,43 @@ IBM1
 ----------------------------------------------------------------------------*/
 
 
+void IBM1::createIBMModelPair(IBM1*& ibm_1g2, IBM1*& ibm_2g1,
+      const string& ibm_1g2_filename, const string& ibm_2g1_filename,
+      string ibmtype, bool verbose)
+{
+   if (ibm_1g2_filename.empty() || ibm_2g1_filename.empty())
+      error(ETFatal, "IBM models in both directions are required");
+
+   if (ibmtype == "") {
+      if (check_if_exists(HMMAligner::distParamFileName(ibm_1g2_filename)) &&
+          check_if_exists(HMMAligner::distParamFileName(ibm_2g1_filename)))
+         ibmtype = "hmm";
+      else if (check_if_exists(IBM2::posParamFileName(ibm_1g2_filename)) &&
+               check_if_exists(IBM2::posParamFileName(ibm_2g1_filename)))
+         ibmtype = "2";
+      else
+         ibmtype = "1";
+   }
+
+   string namepair = ibm_1g2_filename + " + " + ibm_2g1_filename;
+
+   ibm_1g2 = ibm_2g1 = NULL;
+   if (ibmtype == "hmm") {
+      if (verbose) cerr << "Loading HMM models " + namepair << endl;
+      ibm_1g2 = new HMMAligner(ibm_1g2_filename);
+      ibm_2g1 = new HMMAligner(ibm_2g1_filename);
+   } else if (ibmtype == "1") {
+      if (verbose) cerr << "Loading IBM1 models " + namepair << endl;
+      ibm_1g2 = new IBM1(ibm_1g2_filename);
+      ibm_2g1 = new IBM1(ibm_2g1_filename);
+   } else if (ibmtype == "2") {
+      if (verbose) cerr << "Loading IBM2 models " + namepair << endl;
+      ibm_1g2 = new IBM2(ibm_1g2_filename);
+      ibm_2g1 = new IBM2(ibm_2g1_filename);
+   } else {
+      error(ETFatal, "Invalid ibmtype specification: %s", ibmtype.c_str());
+   }
+}
 
 void IBM1::write(const string& ttable_file, bool bin_ttable) const
 {

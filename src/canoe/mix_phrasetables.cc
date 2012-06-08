@@ -20,6 +20,7 @@
 #include "basicmodel.h"
 #include "inputparser.h"
 #include "phrase_table_reader.h"
+#include "logging.h"
 
 using namespace Portage;
 using namespace std;
@@ -79,6 +80,8 @@ static string getTempName();
 
 int main(int argc, char* argv[])
 {
+   Logging::init();
+
    seplen = strlen(sep);
    assert(sep[0] == ' ');	// assumed in line !!! of parseSourcePhrase()
    assert(sep[seplen-1] == ' '); // assumed in line !! below
@@ -197,11 +200,10 @@ int main(int argc, char* argv[])
    // cat and sort the temp files, so that identical phrase pairs are next to
    // each other in a single merged file (another temporary)
 
-   string tmp_pts;
-   join(tmp_pt_list.begin(), tmp_pt_list.end(), tmp_pts);
+   string tmp_pts = join(tmp_pt_list);
    string tmp = getTempName();
    string command = "zcat -f " + tmp_pts + "| li-sort.sh > " + tmp;
-   int ret = system(command.c_str()); 
+   int ret = system(command.c_str());
    if ( ret != 0 )
       error(ETFatal, "exit status %d from: %s", ret, command.c_str());
    for (Uint i = 0; i < pts.size(); ++i) {

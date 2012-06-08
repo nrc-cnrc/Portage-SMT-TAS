@@ -21,6 +21,7 @@
 
 #include "phrasedecoder_model.h"
 #include "decoder_feature.h"
+#include "shift_reducer.h"
 
 namespace Portage {
 
@@ -162,6 +163,11 @@ public:
             return false;
       }
    } // isPhraseSwap()
+
+   /**
+    * Check if extending with this phrase maintains 2-reducibility (ITG constraint)
+    */
+   static bool respectsITG(int itgLimit, ShiftReducer* sr, Range lastphrase);
 
 protected:
 

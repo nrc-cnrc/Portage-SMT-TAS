@@ -204,7 +204,13 @@ int main( int argc, char* argv[] )
            || C_fr_en > C_en
            || C_fr > nn
            || C_en > nn ) {
-         cout << "Illegal contingency table" << endl ;
+         error(ETFatal, "Illegal contingency table\n%d : %d : %d : %d : %d", lineno, C_fr_en, C_fr, C_en, nn);
+         cerr << "Illegal contingency table" << endl ;
+         cerr << lineno
+              << ": " << C_fr_en
+              << ": " << C_fr
+              << ": " << C_en
+              << ": " << nn << endl;
          exit( 1 );
       }
       double minus_ln_nn = -log( nn );

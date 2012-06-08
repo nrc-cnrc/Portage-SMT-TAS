@@ -100,9 +100,8 @@ CanoeConfig::CanoeConfig()
 {
 
    // Default parameter values. WARNING: changing these has impacts on
-   // canoe.cc, phrase_tm_align.cc, and portage_api.cc.  Change with care, and
-   // consider whether you change should be global (here) or local (in one of
-   // those places).
+   // canoe.cc.  Change with care, and consider whether you change should be
+   // global (here) or local (there).
 
    //configFile;
    //multiProbTMFiles;
@@ -115,6 +114,8 @@ CanoeConfig::CanoeConfig()
    //levWeight
    //ngramMatchWeights
    //segWeight
+   //unalWeight
+   //bilmWeights
    //ibm1FwdWeights
    //lmWeights;
    //transWeights;
@@ -130,13 +131,20 @@ CanoeConfig::CanoeConfig()
    pruneThreshold         = 0.0001;
    covLimit               = 0;
    covThreshold           = 0.0;
+   diversity              = 0;
+   diversityStackIncrement = -1;
    levLimit               = NO_MAX_LEVENSHTEIN;
    distLimit              = NO_MAX_DISTORTION;
+   itgLimit               = NO_MAX_ITG;
    distLimitExt           = false;
    distLimitSimple        = false;
    distPhraseSwap         = false;
+   distLimitITG           = false;
+   shiftReduceOnlyITG     = false;
    //distortionModel        = ("WordDisplacement");
    segmentationModel      = "none";
+   //unalFeatures
+   //bilmFiles
    //ibm1FwdFiles
    bypassMarked           = false;
    weightMarked           = 1;
@@ -144,6 +152,7 @@ CanoeConfig::CanoeConfig()
    tolerateMarkupErrors   = false;
    checkInputOnly         = false;
    trace                  = false;
+   walign                 = false;
    ffvals                 = false;
    masse                  = false;
    verbosity              = 1;
@@ -163,6 +172,8 @@ CanoeConfig::CanoeConfig()
    futLMHeuristic         = "incremental";
    useFtm                 = false;
    futScoreUseFtm         = true;
+   forcedDecoding         = false;
+   forcedDecodingNZ       = false;
    maxlen                 = 0;
    final_cleanup          = false;  // for speed reason we don't normally delete the bmg
    bind_pid               = -1;
@@ -181,6 +192,7 @@ CanoeConfig::CanoeConfig()
       ParamInfo::relative_path_modification | ParamInfo::tppt_check_file_name));
    param_infos.push_back(ParamInfo("lmodel-file", "stringVect", &lmFiles,
       ParamInfo::relative_path_modification | ParamInfo::lm_check_file_name));
+   param_infos.push_back(ParamInfo("nbestProcessor", "string", &nbestProcessor));
    param_infos.push_back(ParamInfo("lmodel-order", "Uint", &lmOrder));
    // WEIGHTS
    param_infos.push_back(ParamInfo("weight-d d", "doubleVect", &distWeight));
@@ -189,6 +201,10 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("random-w rw", "stringVect", &rnd_lengthWeight));
    param_infos.push_back(ParamInfo("weight-s sm", "doubleVect", &segWeight));
    param_infos.push_back(ParamInfo("random-s rsm", "stringVect", &rnd_segWeight));
+   param_infos.push_back(ParamInfo("weight-unal unal", "doubleVect", &unalWeight));
+   param_infos.push_back(ParamInfo("random-unal runal", "stringVect", &rnd_unalWeight));
+   param_infos.push_back(ParamInfo("weight-bilm bilm", "doubleVect", &bilmWeights));
+   param_infos.push_back(ParamInfo("random-bilm rbilm", "stringVect", &rnd_bilmWeights));
    param_infos.push_back(ParamInfo("weight-ibm1-fwd ibm1f", "doubleVect", &ibm1FwdWeights));
    param_infos.push_back(ParamInfo("random-ibm1-fwd ribm1f", "stringVect", &rnd_ibm1FwdWeights));
    param_infos.push_back(ParamInfo("weight-lev lev", "doubleVect", &levWeight));
@@ -223,13 +239,21 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("beam-threshold b", "double", &pruneThreshold));
    param_infos.push_back(ParamInfo("cov-limit", "Uint", &covLimit));
    param_infos.push_back(ParamInfo("cov-threshold", "double", &covThreshold));
+   param_infos.push_back(ParamInfo("diversity", "Uint", &diversity));
+   param_infos.push_back(ParamInfo("diversity-stack-increment", "int", &diversityStackIncrement));
    param_infos.push_back(ParamInfo("levenshtein-limit", "int", &levLimit));
    param_infos.push_back(ParamInfo("distortion-limit", "int", &distLimit));
+   param_infos.push_back(ParamInfo("itg-limit", "int", &itgLimit));
    param_infos.push_back(ParamInfo("dist-limit-ext", "bool", &distLimitExt));
    param_infos.push_back(ParamInfo("dist-limit-simple", "bool", &distLimitSimple));
    param_infos.push_back(ParamInfo("dist-phrase-swap", "bool", &distPhraseSwap));
+   param_infos.push_back(ParamInfo("dist-limit-itg", "bool", &distLimitITG));
+   param_infos.push_back(ParamInfo("shift-reduce-only-itg", "bool", &shiftReduceOnlyITG));
    param_infos.push_back(ParamInfo("distortion-model", "stringVect", &distortionModel));
    param_infos.push_back(ParamInfo("segmentation-model", "string", &segmentationModel));
+   param_infos.push_back(ParamInfo("unal-feature", "stringVect", &unalFeatures));
+   param_infos.push_back(ParamInfo("bilm-file", "stringVect", &bilmFiles,
+      ParamInfo::relative_path_modification | ParamInfo::lm_check_file_name));
    param_infos.push_back(ParamInfo("ibm1-fwd-file", "stringVect", &ibm1FwdFiles,
       ParamInfo::relative_path_modification | ParamInfo::check_file_name));
    param_infos.push_back(ParamInfo("bypass-marked", "bool", &bypassMarked));
@@ -238,6 +262,7 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("tolerate-markup-errors", "bool", &tolerateMarkupErrors));
    param_infos.push_back(ParamInfo("check-input-only", "bool", &checkInputOnly));
    param_infos.push_back(ParamInfo("trace t palign", "bool", &trace));
+   param_infos.push_back(ParamInfo("walign", "bool", &walign));
    param_infos.push_back(ParamInfo("ffvals", "bool", &ffvals));
    param_infos.push_back(ParamInfo("masse", "bool", &masse));
    param_infos.push_back(ParamInfo("verbose v", "Uint", &verbosity));
@@ -256,6 +281,8 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("lb", "bool", &bLoadBalancing));
    param_infos.push_back(ParamInfo("ref", "string", &refFile,
       ParamInfo::relative_path_modification | ParamInfo::check_file_name));
+   param_infos.push_back(ParamInfo("forced", "bool", &forcedDecoding));
+   param_infos.push_back(ParamInfo("forced-nz", "bool", &forcedDecodingNZ));
    param_infos.push_back(ParamInfo("maxlen", "Uint", &maxlen));
    param_infos.push_back(ParamInfo("final-cleanup", "bool", &final_cleanup));
    param_infos.push_back(ParamInfo("bind", "int", &bind_pid));
@@ -264,22 +291,29 @@ CanoeConfig::CanoeConfig()
    // List of all parameters that correspond to weights. ORDER IS SIGNIFICANT
    // and must match the order in BasicModelGenerator::InitDecoderFeatures().
    // New entries should be added immediately before "lm".
-   const char* weight_names[] = {
+   const char* weight_names_other[] = {
       "d",      // init by BMG::InitDecoderFeatures(); models loaded by BMG::create()
       "w",      // init by BMG::InitDecoderFeatures()
       "sm",     // init by BMG::InitDecoderFeatures()
+      "unal",   // init by BMG::InitDecoderFeatures(); data in phrase table
       "ibm1f",  // init by BMG::InitDecoderFeatures(); data loaded by feature
       "lev",    // init by BMG::InitDecoderFeatures()
       "ng",     // init by BMG::InitDecoderFeatures()
       "ruw",    // init by BMG::InitDecoderFeatures(); data in decoder input
       // insert new features above this line - in the same order as in
       // BMG::InitDecoderFeatures()!!!
+      "bilm",   // loaded and init by BMG::create(), as if it were at the end if BMG::InitDecoderFeatures(); dynamically filtered w.r.t. phrase table(s)
+   };
+   weight_params_other.assign(weight_names_other, weight_names_other+ARRAY_SIZE(weight_names_other));
+   const char* weight_names_primary[] = {
       "lm",     // loaded and init by BMG::create(); dynamically filtered w.r.t. phrase table(s)
       "tm",     // init by BMG::create(); loaded with phrase table(s)
       "ftm",    // init by BMG::create(); loaded with phrase table(s)
       "atm"     // init by BMG::create(); loaded with phrase table(s)
    };
-   weight_params.assign(weight_names, weight_names + ARRAY_SIZE(weight_names));
+   weight_params_primary.assign(weight_names_primary, weight_names_primary + ARRAY_SIZE(weight_names_primary));
+   weight_params = weight_params_other;
+   weight_params.insert(weight_params.end(), weight_params_primary.begin(), weight_params_primary.end());
 
    for (Uint i = 0; i < param_infos.size(); ++i) {
       param_infos[i].c = this;
@@ -604,6 +638,12 @@ void CanoeConfig::check()
    if (segWeight.empty() && segmentationModel != "none")
       segWeight.push_back(1.0);
 
+   if (unalWeight.empty())
+      unalWeight.resize(unalFeatures.size(), 1.0);
+   
+   if (bilmWeights.empty())
+      bilmWeights.resize(bilmFiles.size(), 1.0);
+
    if (ibm1FwdWeights.empty())
       ibm1FwdWeights.resize(ibm1FwdFiles.size(), 1.0);
 
@@ -637,6 +677,13 @@ void CanoeConfig::check()
    //if (latticeOut && nbestOut)
    //   error(ETFatal, "Lattice and nbest output cannot be generated simultaneously.");
 
+   // CAC: Sanity check and act on shift-reducer modifiers
+   if (shiftReduceOnlyITG) {
+      if (!ShiftReducer::usingSR(*this))
+         error(ETWarn, "Specified shift-reduce-only-itg with no need for shift-reduce parser");
+      ShiftReducer::allowOnlyITG();
+   }
+   
    // CAC: Here is how you get multiple LDM files into play.
    // Tag each LDM file with a #TAG, and then for each LDM
    // feature, use the same #TAG to indicate what model provides
@@ -740,6 +787,23 @@ void CanoeConfig::check()
    if (transWeights.empty())
       error(ETFatal, "No translation model in the phrase table file(s) specified.");
 
+   /* This check has to be deferred, since -ref logically belongs on the
+      command line, not in the canoe.ini file: we don't want the check to be
+      applied in "configtool check", which only checks the canoe.ini file.
+   if (forcedDecoding || forcedDecodingNZ || !levWeight.empty() || !ngramMatchWeights.empty())
+      if (refFile.empty())
+         error(ETFatal, "Specified forced decoding, the levenshtein feature or the n-gram match feature but no reference file.");
+   */
+
+   if (forcedDecoding && !forcedDecodingNZ) {
+      lmWeights.assign(lmWeights.size(), 0.0);
+      ibm1FwdWeights.assign(ibm1FwdWeights.size(), 0.0);
+      lengthWeight = 0.0;
+   }
+
+   if ((forcedDecoding || forcedDecodingNZ) & (bCubePruning))
+      error(ETFatal, "Forced decoding and cube pruning are not compatible.");
+
    if (distWeight.size() != distortionModel.size())
       error(ETFatal, "Number of distortion models does not match number of distortion model weights.");
    if (segWeight.size() > 0 && segmentationModel == "none") {
@@ -747,6 +811,10 @@ void CanoeConfig::check()
       segWeight.clear();
    }
 
+   if (unalWeight.size() != unalFeatures.size())
+      error(ETFatal, "Number of unal features does not match number of unal feature weights.");
+   if (bilmWeights.size() != bilmFiles.size())
+      error(ETFatal, "Number of BiLM files does not match number of BiLM weights.");
    if (ibm1FwdFiles.size() != ibm1FwdWeights.size())
       error(ETFatal, "number of IBM1 forward weights does not match number of IBM forward model files");
 
@@ -763,7 +831,7 @@ void CanoeConfig::check()
    if (forwardWeights.size() > 0 && forwardWeights.size() != multi_prob_model_count + tppt_model_count)
       error(ETFatal, "Number of forward translation model weights != number of (forward) translation models.");
    if (adirTransWeights.size() != multi_adir_model_count) //boxing
-      error(ETFatal, "Number of adirectional translation model weights != number of (adirectional) translation model files."); //boxing
+      error(ETFatal, "Number of adirectional translation model weights != number of (adirectional) translation models."); //boxing
 
    if (oov != "pass" && oov != "write-src-marked" && oov != "write-src-deleted")
       error(ETFatal, "OOV handling method must be one: 'pass', 'write-src-marked', or 'write-src-deleted'");
@@ -774,9 +842,17 @@ void CanoeConfig::check()
 
    // if (bypassMarked && weightMarked)
    //   error(ETWarn, "Both -bypass-marked and -weight-marked found.  Only doing -bypass-marked");
+
+   if ( diversity ) {
+      if ( diversityStackIncrement < -1 )
+         error(ETFatal, "-diversity-stack-increment must be non-negative, or -1 for DSI=I");
+      else if ( diversityStackIncrement == -1 )
+         diversityStackIncrement = maxStackSize;
+   }
+
    if ( bCubePruning )
-      if ( covLimit != 0 || covThreshold != 0.0 )
-         error(ETWarn, "Coverage pruning is not implemented yet in the cube pruning decoder, ignoring -cov-* options.");
+      if ( covLimit != 0 || covThreshold != 0.0 || diversity != 0 )
+         error(ETWarn, "Coverage pruning and diversity are not implemented yet in the cube pruning decoder, ignoring -cov-* and -diversity options.");
 
    if ( cubeLMHeuristic != "none" && cubeLMHeuristic != "unigram" &&
         cubeLMHeuristic != "incremental" && cubeLMHeuristic != "simple" )
@@ -812,6 +888,11 @@ void CanoeConfig::check()
 
    if (distLimitExt && distLimitSimple)
       error(ETFatal, "Can't use both -dist-limit-ext and -dist-limit-simple.");
+
+   if (!bilmFiles.empty()) {
+      if (!tpptFiles.empty())
+         error(ETFatal, "Can't combine -bilm-file with -ttable-tppt, since TPPTs don't store alignment information.");
+   }
 } //check()
 
 void CanoeConfig::check_all_files() const
@@ -944,10 +1025,12 @@ Uint CanoeConfig::getTotalAdirectionalModelCount() const
 {
 
    Uint multi_adir_model_count = 0;
-   for (Uint i = 0; i < multiProbTMFiles.size(); ++i) {
+   for (Uint i = 0; i < multiProbTMFiles.size(); ++i)
       multi_adir_model_count +=
          PhraseTable::countAdirScoreColumns(multiProbTMFiles[i].c_str());
-   }
+   for (Uint i = 0; i < tpptFiles.size(); ++i)
+      multi_adir_model_count +=
+         PhraseTable::countTPPTAdirModels(tpptFiles[i].c_str());
    return multi_adir_model_count;
 } //boxing
 

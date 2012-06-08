@@ -40,7 +40,7 @@ class PrintFunc {
  public:
   /// Constructor.
   /// 
-  PrintFunc(vector<bool>* oovs = NULL);
+  PrintFunc(vector<bool>* oovs);
   /// Destructor.
   virtual ~PrintFunc() {}
 
@@ -55,6 +55,7 @@ class PrintFunc {
  protected:
    ostringstream sout;  ///< Buffer to construct the final output
    vector<bool>* oovs;  ///< source sentence OOVs
+   bool walign;         ///< Whether to include word-alignment info in trace
 
    /// Clears the sout to start a new output.
    void clear();
@@ -77,7 +78,7 @@ class PrintFunc {
     */
    void appendAlignmentInfo(const DecoderState *state, PhraseDecoderModel &model);
    /**
-    * Appends the state's phrase and Feature Function values to sout.
+    * Append the state's feature values to sout.
     * @param state  current state
     * @param model  model from which the state was created
     */
@@ -93,7 +94,7 @@ public:
    /// Constructor.
    /// @param model model from which the states were created 
    /// @param oovs  source sentence oov vector 
-   PrintPhraseOnly(PhraseDecoderModel &model, vector<bool>* oovs = NULL);
+   PrintPhraseOnly(PhraseDecoderModel &model, vector<bool>* oovs);
    virtual string operator()(const DecoderState *state);
 }; // PrintPhraseOnly
 
@@ -105,8 +106,9 @@ class PrintTrace: public PrintFunc {
 public:
    /// Constructor.
    /// @param model model from which the states were created 
+   /// @param walign whether to include word alignments in trace
    /// @param oovs  source sentence oov vector 
-   PrintTrace(PhraseDecoderModel &model, vector<bool>* oovs = NULL);
+   PrintTrace(PhraseDecoderModel &model, bool walign, vector<bool>* oovs);
    virtual string operator()(const DecoderState *state);
 }; // PrintTrace
 
@@ -120,7 +122,7 @@ public:
    /// Constructor.
    /// @param model model from which the states were created 
    /// @param oovs  source sentence oov vector 
-   PrintFFVals(BasicModel &model, vector<bool>* oovs = NULL);
+   PrintFFVals(BasicModel &model, vector<bool>* oovs);
    virtual string operator()(const DecoderState *state);
 }; // PrintFFVals
 
@@ -133,8 +135,9 @@ class PrintAll: public PrintFunc {
 public:
    /// Constructor.
    /// @param model model from which the states were created 
+   /// @param walign whether to include word alignments in trace
    /// @param oovs  source sentence oov vector 
-   PrintAll(BasicModel &model, vector<bool>* oovs = NULL);
+   PrintAll(BasicModel &model, bool walign, vector<bool>* oovs);
    virtual string operator()(const DecoderState *state);
 }; // PrintAll
 

@@ -42,6 +42,10 @@ WordAlignmentWriter* WordAlignmentWriter::create(const string& format)
       writer = new SRIWriter();
    else if (format == "uli")
       writer = new UliWriter();
+   else if (format == "tag")
+      writer = new TagWriter();
+   else if (format == "bilm")
+      writer = new BiLMWriter();
    else 
       error(ETFatal, "Unknown alignment format: %s", format.c_str());
 
@@ -86,7 +90,7 @@ compact  <sent ID><tab><alignment>, where <alignment> is a semi-colon separated\
          e.g.: 0\t;2;2;3,4;;\n\
          \n\
 ugly     List of aligned word pairs.\n\
-         incomplete: identical words are not distinguished,\n\
+         incomplete: identical words are not distinguished.\n\
          e.g.: a/A a/A b/B b/B\n\
                EXCLUDED: 0 / 4\n\
          \n\
@@ -124,6 +128,10 @@ uli      Format for Uli's YAWAT tool.\n\
          incomplete: NULL-aligned and unaligned words are not distinguished.\n\
          e.g.: 1 1,2:1:unspec 3:2,3:unspec\n\
 \n\
+bilm     Format to train a Bilingual LM, following Niehues et al, WMT 2011.\n\
+         incomplete: NULL-aligned and unaligned lang2 words are left out.\n\
+         incomplete: identical lang2 words are not distinguished,\n\
+         e.g. N_|_NULL a_|_A a_|_A b_|_B_|_B U_|_\n\
 ";
 
 }
@@ -280,9 +288,9 @@ ostream& GreenWriter::operator()(ostream &out,
          if (j+1 < sets[i].size()) out << ',';
       }
       if (i+1 < sets.size())
-         out << ' ';
+         out << sep;
    }
-   out << endl;
+   out << local_endl;
    return out;
 }
 
@@ -534,6 +542,53 @@ ostream& UliWriter::operator()(ostream &out,
    return out;
 }
 
+ostream& TagWriter::operator()(ostream &out, 
+                               const vector<string>& toks1, const vector<string>& toks2,
+                               const vector< vector<Uint> >& sets)
+{
+   string tag;
+   for (Uint i = 0; i < toks1.size(); ++i) {
+      if (sets[i].empty())
+         out << "NONE";
+      else if (sets[i][0] == toks2.size())
+         out << "NULL";
+      else {
+         tag = toks2[sets[i][0]];
+         for (Uint j = 1; j < sets[i].size(); ++j)
+            tag += "+" + toks2[sets[i][j]];
+         out << tag;
+      }
+      if (i + 1 < toks1.size())
+         out << ' ';
+   }
+   out << endl;
+   return out;
+}
+
+const string BiLMWriter::sep = "_|_";
+ostream& BiLMWriter::operator()(ostream &out, 
+                                const vector<string>& toks1, const vector<string>& toks2,
+                                const vector< vector<Uint> >& sets)
+{
+   Uint toks2_size = toks2.size();
+   assert(toks1.size() <= sets.size());
+   for (Uint i = 0; i < toks1.size(); ++i) {
+      out << toks1[i];
+      if (sets[i].empty()) out << sep;
+      for (Uint j = 0; j < sets[i].size(); ++j) {
+         out << sep;
+         if (sets[i][j] >= toks2_size)
+            out << "NULL";
+         else
+            out << toks2[sets[i][j]];
+      }
+      if (i+1 < toks1.size())
+         out << ' ';
+   }
+   out << endl;
+   return out;
+}
+
 /*------------------------------------------------------------------------------
   Readers
 ------------------------------------------------------------------------------*/
@@ -671,13 +726,15 @@ bool SRIReader::operator()(istream &in,
    for (Uint i = 0; i < toks.size(); ++i) {
       if (splitZ(toks[i], subtoks, "-") != 2)
          error(ETFatal, "format error in SRI-style alignment: expecting tokens in format i-j.");
-      Uint l1 = conv<Uint>(subtoks[0]);
-      Uint l2 = conv<Uint>(subtoks[1]);
-      if ( l1 >= toks1.size() )
-         error(ETFatal, "format error in SRI-style alignment: l1 position past end of sentence.");
-      if ( l2 >= toks2.size() )
-         error(ETFatal, "format error in SRI-style alignment: l2 position past end of sentence.");
-      sets[l1].push_back(l2);
+      const Uint l1 = conv<Uint>(subtoks[0]);
+      const Uint l2 = conv<Uint>(subtoks[1]);
+      if ( l1 >= toks1.size() || l2 >= toks2.size() ) {
+         error(ETFatal, "format error in SRI-style alignment.  Offending link: %d-%d.\nToks1: %s\nToks2: %s\nAl: %s\n",
+               l1, l2,
+               join(toks1).c_str(), join(toks2).c_str(), line.c_str());
+      } else {
+         sets[l1].push_back(l2);
+      }
    }
 
    return true;

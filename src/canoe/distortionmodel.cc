@@ -202,6 +202,26 @@ bool DistortionModel::respectsDistLimitSimple(const UintSet& cov,
    return new_phrase.start <= cov.front().start + distLimit;
 }
 
+bool DistortionModel::respectsITG(int itgLimit, ShiftReducer* sr, Range lastphrase)
+{
+   assert(sr!=NULL);
+   assert(sr->lBound() <= sr->start());
+   assert(sr->rBound() >= sr->end());
+   return
+      lastphrase.start >= sr->lBound()
+      && lastphrase.end <= sr->rBound()
+      && (itgLimit==NO_MAX_ITG
+          || lastphrase.start >= sr->end()
+          || int(lastphrase.end) >= int(sr->start()) - itgLimit
+          )
+      && (itgLimit==NO_MAX_ITG
+          || lastphrase.end <= sr->start()
+          || int(lastphrase.start) <= int(sr->end()) + itgLimit
+          )
+      ;
+}
+
+
 /************************** WordDisplacement *********************************/
 
 double WordDisplacement::score(const PartialTranslation& pt)

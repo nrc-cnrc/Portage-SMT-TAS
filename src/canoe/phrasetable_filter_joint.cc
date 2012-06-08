@@ -16,11 +16,12 @@
 #include "phrasetable_filter_joint.h"
 #include "soft_filter_tm_visitor.h"
 #include "hard_filter_tm_visitor.h"
+#include "logging.h"
 
 using namespace Portage;
 
 // Phrase Table filter joint logger
-//Logging::logger ptLogger_filter_joint(Logging::getLogger("debug.canoe.phraseTable_filter_joint"));
+Logging::logger ptLogger_filter_joint(Logging::getLogger("debug.canoe.phraseTable_filter_joint"));
 
 
 PhraseTableFilterJoint::PhraseTableFilterJoint(bool limitPhrases,
@@ -45,7 +46,7 @@ PhraseTableFilterJoint::PhraseTableFilterJoint(bool limitPhrases,
    }
    assert(visitor);
 
-   //LOG_VERBOSE1(ptLogger_filter_joint, "Creating/Using PhraseTableFilterJoint %s mode", visitor->style);
+   LOG_VERBOSE1(ptLogger_filter_joint, "Creating/Using PhraseTableFilterJoint %s mode", visitor->style);
 }
 
 
@@ -64,12 +65,10 @@ void PhraseTableFilterJoint::outputForOnlineProcessing(const string& filtered_TM
    tgtTable = new TargetPhraseTable;
    assert(tgtTable);
 
-   /*
    LOG_VERBOSE2(ptLogger_filter_joint,
         "Setting output for online processing: %s, %s",
         filtered_TM_filename.c_str(),
         pruning_type->description().c_str());
-   */
 }
 
 
@@ -95,14 +94,12 @@ void PhraseTableFilterJoint::filter(const string& filtered_TM_filename)
    // Keep a reference on the pruning style.
    assert(pruning_type);
 
-   /*
    LOG_VERBOSE2(ptLogger_filter_joint,
         "Applying %s filter_joint to: %s, pruningStyle=%s, n=%d",
         visitor->style, 
         filtered_TM_filename.c_str(), 
         pruning_type->description().c_str(), 
         numTextTransModels);
-   */
 
    visitor->set(pruning_type, numTextTransModels);
    visitor->numKeptEntry = 0;
@@ -137,13 +134,11 @@ Uint PhraseTableFilterJoint::processTargetPhraseTable(const string& src,
    const Uint L = (*pruning_type)(src_word_count);
 
    // Processing TargetPhraseTable online
-   /*
    LOG_VERBOSE3(ptLogger_filter_joint,
       "Online processing of one entry (%s) L=%d n=%d",
       visitor->style,
       L,
       tgtTable->begin()->second.backward.size()); // => numTextTransModels
-   */
 
    // The visitor holds the code to either do a soft or a hard filter on one
    // leaf
@@ -173,8 +168,7 @@ TargetPhraseTable* PhraseTableFilterJoint::getTargetPhraseTable(Entry& entry, bo
       tgtTable->clear();
 
       // we still need to count the number of words in entry.src, unfortunately.
-      char* tokens[1000+1];
-      entry.src_word_count = destructive_split(entry.src, tokens, 1000+1, " ");
+      entry.src_word_count = splitZ(entry.Src(), entry.src_tokens, " ");
 
       return tgtTable;
    }

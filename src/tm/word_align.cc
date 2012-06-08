@@ -149,6 +149,11 @@ WordAlignerFactory::TInfo WordAlignerFactory::tinfos[] = {
      links on each line, with each link in the format srcpos-tgtpos, giving\n\
      0-based word positions."
    },
+   {
+      DCon<InternalAligner>::create,
+      "InternalAligner", "\n\
+     For programmatic use only - do not use via the command line."
+   },
 
    {NULL, "", ""}
 };

@@ -21,7 +21,6 @@
 #include "voc.h"
 #include <vector>
 #include <string>
-#include <iterator> // for ostream_iterator
 
 namespace Portage {
 
@@ -106,20 +105,13 @@ struct newSrcSentInfo {
    {
       out << "internal_src_sent_seq: " << internal_src_sent_seq << endl;
       out << "external_src_sent_id: " << external_src_sent_id << endl;
-      copy(src_sent.begin(), src_sent.end(), ostream_iterator<string>(out, " "));
-      out << endl;
-      if (tgt_sent != NULL) {
-         copy(tgt_sent->begin(), tgt_sent->end(), ostream_iterator<string>(out, " "));
-         out << endl;
-      }
-      if (!tgt_sent_ids.empty()) {
-         copy(tgt_sent_ids.begin(), tgt_sent_ids.end(), ostream_iterator<Uint>(out, " "));
-         out << endl;
-      }
-      if (oovs != NULL) {
-         copy(oovs->begin(), oovs->end(), ostream_iterator<bool>(out, " "));
-         out << endl;
-      }
+      out << join(src_sent) << endl;
+      if (tgt_sent != NULL)
+         out << join(*tgt_sent) << endl;
+      if (!tgt_sent_ids.empty())
+         out << join(tgt_sent_ids) << endl;
+      if (oovs != NULL)
+         out << join(*oovs) << endl;
    }
 }; // ends newSrcSentInfo
 

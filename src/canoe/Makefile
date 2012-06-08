@@ -18,13 +18,14 @@
 #  export LIBRARY_PATH=$LIBRARY_PATH:/export/projets/portage/lib
 #  export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/export/projets/portage/include
 
-INCLUDES=$(filter-out canoe_help.h filter_models.h phrase_tm_align.h, \
+INCLUDES=$(filter-out canoe_help.h filter_models.h, \
            $(wildcard *.h))
 
 OBJECTS= \
     alignedphrase.o \
     backwardsmodel.o \
     basicmodel.o \
+    bilm_model.o \
     canoe_general.o \
     canoe_constants.o \
     config_io.o \
@@ -49,13 +50,13 @@ OBJECTS= \
     phrasetable_filter_grep.o \
     phrasetable_filter_joint.o \
     phrasetable_filter_lm.o \
-    phrase_tm_align_compute.o \
     pruning_style.o \
     rule_feature.o \
     segmentmodel.o \
     shift_reducer.o \
     soft_filter_tm_visitor.o \
     translationProb.o \
+    unal_feature.o \
     wordgraph.o
 
 LIBRARY=libportage_canoe
@@ -71,8 +72,7 @@ PROGRAMS=$(TESTPROGS) \
 	count_multi_prob_columns \
 	filter_models \
 	join_phrasetables \
-	mix_phrasetables \
-	phrase_tm_align
+	mix_phrasetables
 
 BINSCRIPTS= \
 	canoe-parallel.sh \

@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
 
    vector<Uint> ncols(pts.size()); // phrasetable index -> # columns
    string line;
-   string::size_type pos;
+   string::size_type pos(0);
    vector<string> probs;
    
    // write temporary copies of files with tagged values
@@ -111,8 +111,7 @@ int main(int argc, char* argv[])
    // cat and sort the temp files, so that identical phrase pairs are next to
    // each other in a single merged file (another temporary)
 
-   string tmp_pts;
-   join(tmp_pt_list.begin(), tmp_pt_list.end(), tmp_pts);
+   string tmp_pts = join(tmp_pt_list);
    string tmp = getTempName();
    string command = "zcat -f " + tmp_pts + "| li-sort.sh > " + tmp;
    if (system(command.c_str()) != 0) {

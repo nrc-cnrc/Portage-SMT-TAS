@@ -38,4 +38,7 @@ namespace Portage
     
     // Indicates no limit on max levenshtien
     const int NO_MAX_LEVENSHTEIN = -1;
+
+    // Indicates no limit on max itg distortion
+    const int NO_MAX_ITG = -1;
 } // Portage

@@ -110,6 +110,7 @@ public:
    vector<string> tpptFiles;        ///< TPPT phrase table file names
    vector<string> lmFiles;          ///< Language model file names
    Uint lmOrder;                    ///< Maximum LM order (0 == no limit)
+   string nbestProcessor;           ///< A script that will be invoked for all nbest.
 
    // WEIGHTS
    vector<double> distWeight;       ///< Distortion model weights
@@ -118,6 +119,10 @@ public:
    random_param rnd_lengthWeight;   ///< Length penalty weight distribution
    vector<double> segWeight;        ///< Segmentation model weights
    random_param rnd_segWeight;      ///< Segmentation model weight distributions
+   vector<double> unalWeight;       ///< Unal feature weights
+   random_param rnd_unalWeight;     ///< Unal feature weight distributions
+   vector<double> bilmWeights;      ///< BiLM model weights
+   random_param rnd_bilmWeights;  ///< BiLM model weight distributions
    vector<double> ibm1FwdWeights;   ///< Forward IBM1 feature weights
    random_param rnd_ibm1FwdWeights; ///< Forward IBM1 feature weight distributions
    vector<double> levWeight;        ///< Weight for Levenshtein distance in forced alignment
@@ -150,21 +155,28 @@ public:
    double pruneThreshold;           ///< b = prob-based stack pruning threshold
    Uint covLimit;                   ///< Coverage pruning limit
    double covThreshold;             ///< Coverage pruning prob threshold
+   Uint diversity;                  ///< Min states to keep per coverage
+   int diversityStackIncrement;     ///< stack size increment due to diversity states
    int levLimit;                    ///< levenshtien limit
    int distLimit;                   ///< Distortion limit
+   int itgLimit;                    ///< Limit distance moved from top of SR stack
    bool distLimitExt;               ///< Use the extended definition of dist limit
    bool distLimitSimple;            ///< Use the simple definition of dist limit
    bool distPhraseSwap;             ///< Allow swapping contiguous phrases
+   bool distLimitITG;               ///< Enable ITG constraint
+   bool shiftReduceOnlyITG;         ///< ShiftReducer can perform only ITG reductions
    vector<string> distortionModel;  ///< Distortion model name(s)
    string segmentationModel;        ///< Segmentation model name
-   string obsoleteSegModelArgs;     ///< Kept around to issue a meaningful error message
+   vector<string> unalFeatures;     ///< Unal feature name(s)
    vector<string> ibm1FwdFiles;     ///< Forward IBM1 feature file names
+   vector<string> bilmFiles;        ///< BiLM model file(s)
    bool bypassMarked;               ///< Look in PT even for marked trans
    double weightMarked;             ///< Constant discount for marked probs
    string oov;                      ///< OOV handling method
    bool tolerateMarkupErrors;       ///< Whether to proceed despite markup err
    bool checkInputOnly;             ///< If true, only check the input for markup errors
    bool trace;                      ///< Whether to output alignment info
+   bool walign;                     ///< Whether to include word alignment in alignment info
    bool ffvals;                     ///< Whether to output feature fn values
    bool masse;                      ///< Whether to output total lattice weight
    Uint verbosity;                  ///< Verbosity level
@@ -185,6 +197,8 @@ public:
    string futLMHeuristic;           ///< What LM heuristic to use when calculating future scores
    bool useFtm;                     ///< Use FTMs even if no weights are given
    bool futScoreUseFtm;             ///< Whether to use forward translation probabilities to compute the future costs
+   bool forcedDecoding;             ///< Indicates if decoding is forced to match the reference
+   bool forcedDecodingNZ;           ///< Forced decoding without zeroing lm, length and ibm1 weights
    Uint maxlen;                     ///< Skip sentences longer than max len (0 means do all)
 
    // how to run the software
@@ -197,7 +211,7 @@ public:
     */
    CanoeConfig();
 
-   private:
+private:
    /**
     * Read parameters from a config stream.
     *
@@ -207,7 +221,8 @@ public:
     * @param configin  the input stream containing the configuration.
     */
    void read(istream& configin);
-   public:
+
+public:
    /**
     * Read parameters from a config file.
     *
@@ -402,7 +417,9 @@ private:
    static const Uint precision = 10; ///< significant digits for weights
 
    vector<ParamInfo> param_infos;    ///< main parameter list
-   vector<string> weight_params;     ///< names of params that correspond to weights
+   vector<string> weight_params_other; ///< names of params that correspond to regular weights
+   vector<string> weight_params_primary; ///< names of special weights: LMs, TMs and their components
+   vector<string> weight_params;     ///< names of all params that correspond to weights
    map<string,ParamInfo*> param_map; ///< map : name -> param info
    vector<string> param_list;        ///< list of parameters for ArgReader
 };

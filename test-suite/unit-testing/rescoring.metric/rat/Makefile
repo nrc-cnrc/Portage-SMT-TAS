@@ -33,4 +33,4 @@ rt.%: dev2_fr.al 100best.gz dev2_en.al
 
 diff.%: rt.%
 	diff rescore-model.$* ref/rescore-model.$* -q
-	diff scores.$* ref/scores.$* -q
+	diff-round.pl -p 5 scores.$* ref/scores.$* -q

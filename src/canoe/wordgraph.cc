@@ -52,7 +52,7 @@ static void insertEscapes(string &str, const char *charsToEscape = "\"\\", char 
 } // insertEscapes
 
 
-PrintFunc::PrintFunc(vector<bool>* oovs) : oovs(oovs) {
+PrintFunc::PrintFunc(vector<bool>* oovs) : oovs(oovs), walign(false) {
    clear();
 }
 
@@ -87,7 +87,15 @@ PrintFunc::appendAlignmentInfo(const DecoderState *state, PhraseDecoderModel &mo
            << state->score - (state->back ? state->back->score : 0.0) << ';'
            << phrase->src_words.start             << '-'
            << (phrase->src_words.end - 1)         << ';'
-           << (oov ? "O" : "I")                   << ']';
+           << (oov ? "O" : "I");
+      if (walign) {
+         const ForwardBackwardPhraseInfo* fbpi =
+            dynamic_cast<const ForwardBackwardPhraseInfo*>(state->trans->lastPhrase);
+         assert(fbpi);
+         sout << ';'
+              << dynamic_cast<BasicModel&>(model).getPhraseTable().alignmentVoc.word(fbpi->alignment);
+      }
+      sout << ']';
    }
 }
 
@@ -118,9 +126,11 @@ string PrintPhraseOnly::operator()(const DecoderState *state)
    return sout.str();
 }
 
-PrintTrace::PrintTrace(PhraseDecoderModel &m, vector<bool>* oovs)
+PrintTrace::PrintTrace(PhraseDecoderModel &m, bool _walign, vector<bool>* oovs)
    : PrintFunc(oovs), model(m)
-{}
+{
+   walign = _walign;
+}
 
 string PrintTrace::operator()(const DecoderState *state) {
    clear();
@@ -145,9 +155,11 @@ string PrintFFVals::operator()(const DecoderState *state) {
    return sout.str();
 }
 
-PrintAll::PrintAll(BasicModel &m, vector<bool>* oovs)
-   : PrintFunc(oovs), model(m)
-{}
+PrintAll::PrintAll(BasicModel &m, bool _walign, vector<bool>* oovs):
+   PrintFunc(oovs), model(m)
+{
+   walign = _walign;
+}
 
 string PrintAll::operator()(const DecoderState *state) {
    clear();

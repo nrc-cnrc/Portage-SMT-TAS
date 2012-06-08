@@ -239,9 +239,9 @@ else
       tgt=${src%%.s}.t
       if [[ -s $src.tpsa/msa ]]; then
          warn "Reusing existing $src.tpsa."
-         else
+      else
          echo "pushd $WORKDIR && build-tp-suffix-array.sh $src"
-         fi
+      fi
       if [[ -s $tgt.tpsa/msa ]]; then
          warn "Reusing existing $tgt.tpsa."
       else

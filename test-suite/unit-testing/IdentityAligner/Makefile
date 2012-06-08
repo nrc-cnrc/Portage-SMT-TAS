@@ -62,7 +62,7 @@ IdentityAligner:
 g_equal:
 	${GEN_PHRASE_TABLES} -a 'IdentityAligner' -j -v -m 3 -ibm 1 -1 tc -2 lc /dev/null /dev/null \
 		<(echo "A B C D") <(echo "a b c d") 2> /dev/null \
-		| diff -q - ref/$@
+		| diff - ref/$@ -q
 
 ########################################
 # Create a joint frequency counts when src.length > tgt.length
@@ -70,7 +70,7 @@ g_equal:
 g_more:
 	${GEN_PHRASE_TABLES} -a 'IdentityAligner' -j -v -m 3 -ibm 1 -1 tc -2 lc /dev/null /dev/null \
 		<(echo "E F G H I J K") <(echo "e f g h") 2> /dev/null \
-		| diff -q - ref/$@
+		| diff - ref/$@ -q
 
 ########################################
 # Create a joint frequency counts when src.length < tgt.length
@@ -78,7 +78,7 @@ g_more:
 g_less:
 	${GEN_PHRASE_TABLES} -a 'IdentityAligner' -j -v -m 3 -ibm 1 -1 tc -2 lc /dev/null /dev/null \
 		<(echo "J K L M") <(echo "j k l m n o p") 2> /dev/null \
-		| diff -q - ref/$@
+		| diff - ref/$@ -q
 
 ########################################
 # Create a simple truecase map since the IdentityAligner was create to try a
@@ -88,7 +88,7 @@ testsuite: truecase_map1.lc2tc
 truecase_map1.lc2tc: %.lc2tc:
 	${GEN_PHRASE_TABLES} -a 'IdentityAligner' -s 'RFSmoother' -multipr fwd -o $* -v -m 1 -ibm 1 -1 lc -2 tc /dev/null /dev/null \
 		<(echo "aa aa aa aa aa") <(echo "aa Aa aA AA AA")
-	diff -q $@ ref/$@
+	diff $@ ref/$@ -q
 
 ########################################
 # Create a more elaborate truecasing map using up to 5grams.
@@ -97,7 +97,7 @@ testsuite: truecase_map5.lc2tc
 truecase_map5.lc2tc: %.lc2tc:
 	${GEN_PHRASE_TABLES} -a 'IdentityAligner' -s 'RFSmoother' -multipr fwd -o $* -v -m 5 -ibm 1 -1 lc -2 tc /dev/null /dev/null \
 		<(echo "aa aa aa aa aa") <(echo "aa Aa aA AA AA")
-	diff -q $@ ref/$@
+	diff $@ ref/$@ -q
 
 
 

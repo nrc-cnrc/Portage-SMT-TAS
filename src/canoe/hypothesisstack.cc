@@ -18,6 +18,7 @@
 #include "hypothesisstack.h"
 #include "decoder.h"
 #include "phrasedecoder_model.h"
+#include "lazy_stl.h"
 #include <iostream>
 
 using namespace std;
@@ -78,10 +79,8 @@ RecombHypStack::~RecombHypStack()
       assert((*it)->refCount > 0);
       (*it)->refCount--;
       if ((*it)->refCount == 0)
-      {
          delete (*it);
-      } // if
-   } // for
+   }
 } // ~RecombHypStack
 
 void RecombHypStack::push(DecoderState *s)
@@ -93,7 +92,7 @@ void RecombHypStack::push(DecoderState *s)
    assert(s->recomb.empty());
    assert(s->refCount == 0);
 
-   // Increment the reference count on s since its being added
+   // Increment the reference count on s since it's being added
    s->refCount++;
 
    // Determine if there is a state to recombine with
@@ -116,7 +115,7 @@ void RecombHypStack::push(DecoderState *s)
          // remove anything from the hash table).
          // However, the recomb vector with things in it should stay on rState
          swap(*rState, *s);
-      } // if
+      }
 
       s->refCount--;
       assert(s->refCount == 0);
@@ -125,17 +124,19 @@ void RecombHypStack::push(DecoderState *s)
          delete s;
       else
          rState->recomb.push_back(s);
-   } // if
-} // push
+   }
+} // push()
 
 void RecombHypStack::getAllStates(vector<DecoderState *> &states)
 {
    states.insert(states.end(), recombHash.begin(), recombHash.end());
-} // getAllStates
+} // getAllStates()
 
 HistogramThresholdHypStack::HistogramThresholdHypStack(
-   PhraseDecoderModel &model, Uint pruneSize,
-   double relativeThreshold, Uint covLimit, double covThreshold,
+   PhraseDecoderModel &model,
+   Uint pruneSize, double relativeThreshold,
+   Uint covLimit, double covThreshold,
+   Uint diversity, Uint diversityStackIncrement,
    bool discardRecombined
 )
    : RecombHypStack(model, discardRecombined)
@@ -144,6 +145,8 @@ HistogramThresholdHypStack::HistogramThresholdHypStack(
    , bestScore(-INFINITY)
    , covLimit(covLimit)
    , covThreshold(covThreshold)
+   , diversity(diversity)
+   , diversityStackIncrement(diversityStackIncrement)
    , numKept(0)
    , numPruned(0)
    , numUnrecombined(0)
@@ -152,54 +155,46 @@ HistogramThresholdHypStack::HistogramThresholdHypStack(
    , numRecombCovPruned(0)
 {
    assert(relativeThreshold < 0);
-} // HistogramThresholdHypStack
+}
 
 void HistogramThresholdHypStack::push(DecoderState *s)
 {
-   bestScore = max(bestScore, s->futureScore);
-   if (s->futureScore > bestScore + threshold)
-   {
+   if (s->futureScore > bestScore + threshold) {
+      bestScore = max(bestScore, s->futureScore);
       RecombHypStack::push(s);
-   } else
-   {
+   } else {
       delete s;
       numPruned++;
-   } // if
-} // push
+   }
+}
 
 void HistogramThresholdHypStack::beginPop()
 {
    getAllStates(heap);
    make_heap(heap.begin(), heap.end(), heapCompare);
-   if (heap.size() > 0)
-   {
+   if (heap.size() > 0) {
       if (bestScore != heap.front()->futureScore)
-      {
          cerr << bestScore << " " << heap.front()->futureScore << endl;
-      } // if
       assert(bestScore == heap.front()->futureScore);
-   } // if
+   }
    popStarted = true;
-} // beginPop
+}
 
 DecoderState *HistogramThresholdHypStack::pop()
 {
    if (!popStarted)
-   {
       beginPop();
-   } // if
+
    assert(!isEmpty());
-   pop_heap(heap.begin(), heap.end(), heapCompare);
-   DecoderState *result = heap.back();
-   heap.pop_back();
+   DecoderState *result = lazy::pop_heap(heap, heapCompare);
    numKept++;
 
    // ASSERT : result is to be kept according to both histogram pruning (as
    // tested by isEmpty()) and to coverage pruning (because the loop below
    // removes any states that fail before returning result).
-   
+
    // Deal with coverage pruning, if enabled
-   if ( covLimit != 0 or covThreshold != -INFINITY ) {
+   if ( covLimit != 0 or covThreshold != -INFINITY or diversity) {
       // Count this state
       UintSet& cov(result->trans->sourceWordsNotCovered);
       CoverageMap::iterator it = covMap.find(cov);
@@ -209,7 +204,7 @@ DecoderState *HistogramThresholdHypStack::pop()
          // Coverage not seen before => this state is best for its cov
          covMap.insert(make_pair(cov, make_pair(result->futureScore, 1)));
       }
-         
+
       // Eliminate any subsequent states that don't pass coverage pruning
       while ( !isEmpty() ) {
          UintSet& cov(heap.front()->trans->sourceWordsNotCovered);
@@ -221,20 +216,27 @@ DecoderState *HistogramThresholdHypStack::pop()
             break;
          }
          if (
-            // covLimit set and exceeded:
-            (covLimit != 0 && (*it).second.second >= covLimit)      ||
-            // covThreshold set and exceeded:
-            heap.front()->futureScore <= (*it).second.first + covThreshold
+            // IF the diversity minimum has been met:
+            (*it).second.second >= diversity &&
+            // AND other pruning criteria have been met:
+            (
+               // EITHER we've popped at least pruneSize states:
+               (pruneSize != NO_SIZE_LIMIT && numKept >= pruneSize) ||
+               // OR stack pruning threshold has been met
+               (heap.front()->futureScore <= bestScore + threshold) ||
+               // OR covLimit is set and was exceeded:
+               (covLimit != 0 && (*it).second.second >= covLimit)   ||
+               // OR covThreshold is set and was exceeded:
+               (heap.front()->futureScore <= (*it).second.first + covThreshold)
+            )
          ) {
             // prune this state
             #ifdef DEBUG_COV_PRUNING
-               cerr << "cov PRUNING " << UINTSETOUT(cov) << " " 
+               cerr << "cov PRUNING " << UINTSETOUT(cov) << " "
                     << (*it).second.second << " " << heap.front()->futureScore
                     << " " << (*it).second.first << endl;
             #endif
-            pop_heap(heap.begin(), heap.end(), heapCompare);
-            DecoderState *state_to_prune = heap.back();
-            heap.pop_back();
+            DecoderState *state_to_prune = lazy::pop_heap(heap, heapCompare);
 
             numCovPruned++;
             numRecombCovPruned += 1 + state_to_prune->recomb.size();
@@ -242,13 +244,12 @@ DecoderState *HistogramThresholdHypStack::pop()
             recombHash.erase(state_to_prune);
             assert(state_to_prune->refCount > 0);
             state_to_prune->refCount--;
-            if (state_to_prune->refCount == 0) {
+            if (state_to_prune->refCount == 0)
                delete state_to_prune;
-            } // if
          } else {
             // Keep this state and break the coverage pruning loop
             #ifdef DEBUG_COV_PRUNING
-               cerr << "cov KEEP    " << UINTSETOUT(cov) << " " 
+               cerr << "cov KEEP    " << UINTSETOUT(cov) << " "
                     << (*it).second.second << " " << heap.front()->futureScore
                     << " " << (*it).second.first << endl;
             #endif
@@ -256,7 +257,7 @@ DecoderState *HistogramThresholdHypStack::pop()
          }
       }
    }
-   
+
    // For consistency of results, apply the pruneThreshold to recombined
    // hypotheses at pop-time too, not just before they get pushed on.
    numUnrecombined += result->pruneRecombinedStates(bestScore + threshold);
@@ -269,13 +270,18 @@ DecoderState *HistogramThresholdHypStack::pop()
 bool HistogramThresholdHypStack::isEmpty()
 {
    if (!popStarted)
-   {
       beginPop();
-   } // if
-   return (pruneSize != NO_SIZE_LIMIT && numKept == pruneSize) ||
-           heap.empty() ||
-           heap.front()->futureScore <= bestScore + threshold;
-} // isEmpty
+
+   if ( diversity )
+      return ( diversityStackIncrement != NO_SIZE_LIMIT &&
+               pruneSize != NO_SIZE_LIMIT &&
+               numKept >= pruneSize + diversityStackIncrement ) ||
+             heap.empty();
+   else
+      return (pruneSize != NO_SIZE_LIMIT && numKept >= pruneSize) ||
+             heap.empty() ||
+             heap.front()->futureScore <= bestScore + threshold;
+}
 
 Uint HistogramThresholdHypStack::size() const
 {

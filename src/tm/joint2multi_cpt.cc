@@ -37,10 +37,12 @@ joint2multi_cpt [options] jpt1 .. jptn\n\
 \n\
 Convert joint phrase tables jpt1..jptn into a multi-column conditional phrase\n\
 table, with conditional probability estimates based on selected jpts & smoothing\n\
-methods. Output is written to the file(s) specified by the -o and -dir options.\n\
-Columns in the output cpt are:\n\
+methods. Any <jpti> argument may alternatively be a directory, in which case all\n\
+jpts <jpti>/jpt.* will be concatenated (summing counts), so the directory plays\n\
+the same role as a single jpt in the argument list. Output is written to the\n\
+file(s) specified by the -o and -dir options.  Columns in the output cpt are:\n\
 \n\
-   RG RJ1..RJn RL   FG FJ1..FJn FL\n\
+   RG RJ1..RJn RL   FG FJ1..FJn FL   [AG AJ1..AJn AL]\n\
 \n\
 where RG is 0 or more columns of 'reverse' (src given tgt) probability estimates\n\
 based on global frequencies (summed over all input jpts), RJi is 0 or more\n\
@@ -49,15 +51,15 @@ and RL is 0 or columns of reverse 'lexical' probability estimates.  The 'F'\n\
 columns are 'forward' estimates in the same order as the 'R' ones.  The contents\n\
 of the columns are determined by the arguments to the -s switch.  Note that\n\
 'lexical' estimates always come last, regardless of the order in which they are\n\
-specified, so it is good practice to list them last.\n\
+specified, so it is good practice to list them last. The A* estimates are\n\
+optional adirectional ('4th column') probabilities specified by -a switches\n\
+using the same syntax as -s. In the A* columns, reverse and forward estimates\n\
+from each smoother are written consecutively, and symmetrical smoothers write\n\
+only one value.\n\
 \n\
 Use this program instead of joint2cond_phrase_tables when you have many jpts,\n\
 and you want to make smoothed estimates from each jpt for all phrase pairs\n\
 contained in the union of all jpts.\n\
-\n\
-Note: estimates are based on global frequency (sum over all jpts) or individual\n\
-jpt frequencies - to base estimates on subsets of jpts, combine them ahead of\n\
-time using joint2cond_phrase_table -j, for instance.\n\
 \n\
 Options:\n\
 \n\
@@ -79,15 +81,19 @@ Options:\n\
           the columns to which it should be applied. Eg, '-s 0,2-4,6:RFSmoother'\n\
           means to make RF estimates from global frequencies (id 0) as well as \n\
           from jpts 2, 3, 4, and 6. [RFSmoother]\n\
+-a sm     Smoothers for adirectional (4th column) output; syntax is same as -s.\n\
 -0 cols   Input jpts to sum over when establishing global frequencies. These are\n\
           specified in the same format as the lists of jpts for smoothers in -s,\n\
           except 0 is not legal. NB: jpts may be duplicated in the list. [1-n]\n\
+-max0     Take the max instead of the sum when establishing global frequencies.\n\
 -eps0 e   Epsilon value to use for missing phrase pairs when establishing global\n\
           frequencies. For example, if there are three input jpts, then a phrase\n\
           pair that occurs in only one of them, with frequency f, will be\n\
           assigned a global frequency of f + 2e.  [0]\n\
--ibm_l2_given_l1 m  Name of IBM model for language 2 given language 1 [none]\n\
--ibm_l1_given_l2 m  Name of IBM model for language 1 given language 2 [none]\n\
+-ibm_l2_given_l1 m  Name of IBM model for language 2 given language 1. Repeat the\n\
+          switch to specify multiple models. [none]\n\
+-ibm_l1_given_l2 m  Name of IBM model for language 1 given language 2. Repeat the\n\
+          switch to specify multiple models. [none]\n\
 -ibm n    Type of ibm models given to the -ibm_* switches: 1, 2, or hmm. This\n\
           may be used to force an HMM ttable to be used as an IBM1, for example.\n\
           [determine type of model automatically from filename]\n\
@@ -98,11 +104,16 @@ Options:\n\
 -o cpt    Set base name for output tables [cpt]\n\
 -w cols   Write only the columns in <cols> to <cpt>, where <cols> is a list of\n\
           1-based indexes, eg '1,2,4,6', into the vector of output probability\n\
-          columns that would normally get written. NB: columns are written in\n\
-          the order they appear on <cols>. [write all]\n\
+          columns that would normally get written by -s. NB: columns are written\n\
+          in the order they appear on <cols>. [write all]\n\
 -dir d    Direction for output tables(s). One of: 'fwd' = output <cpt>.<l1>2<l2>\n\
           for translating from <l1> to <l2>; 'rev' = output <cpt>.<l2>2<l1>; or\n\
           'both' = output both. [fwd]\n\
+-write-al A  Write alignment information for all phrase pairs having alignments\n\
+          in input jpts, after summing frequencies across jpts. If A is 'top',\n\
+          write only the most frequent alignment without its frequency; if 'keep',\n\
+          write all alignments with summed frequencies; if 'none', write nothing.\n\
+-write-count Write the total joint count for each phrase pair in c=<cnt> format.\n\
 -nofwd    Write only 'reverse' estimates, not 'forward' ones.\n\
 -z        Compress the output files [don't]\n\
 -force    Overwrite any existing files [don't]\n\
@@ -118,16 +129,20 @@ static string lang2("fr");
 static Uint prune1 = 0;
 static Uint prune1w = 0;
 static vector<string> smoothing_methods;
+static vector<string> adir_smoothing_methods;
 static string jpts0;
+static bool max0 = false;
 static double eps0 = 0;
-static string ibm_l2_given_l1;
-static string ibm_l1_given_l2;
+static vector<string> ibm_l2_given_l1;
+static vector<string> ibm_l1_given_l2;
 static string ibmtype;
 static string lc1;
 static string lc2;
 static string name("cpt");
 static vector<Uint> output_cols;
 static string output_drn("fwd");
+static Uint write_al = 0;
+static bool write_count = false;
 static bool compress_output = false;
 static bool force = false;
 static vector<string> input_jpt_files;
@@ -270,21 +285,9 @@ void doEverything(const char* prog_name)
 
    for (vector<string>::iterator p = input_jpt_files.begin(); 
 	p != input_jpt_files.end(); ++p)
-      if (!check_if_exists(*p))
-	 error(ETFatal, "can't read jpt %s", p->c_str());
+      error_unless_exists(*p, true, "jpt");
 
-   if ( (ibm_l2_given_l1 != "" || ibm_l1_given_l2 != "")  && ibmtype == "") {
-      if (check_if_exists(HMMAligner::distParamFileName(ibm_l2_given_l1)) &&
-	  check_if_exists(HMMAligner::distParamFileName(ibm_l1_given_l2)))
-         ibmtype = "hmm";
-      else if (check_if_exists(IBM2::posParamFileName(ibm_l2_given_l1)) &&
-	       check_if_exists(IBM2::posParamFileName(ibm_l1_given_l2)))
-         ibmtype = "2";
-      else
-	 ibmtype = "1";
-   }
-
-   // Analyze the list of smoothers specified using -s, separate into ones
+   // Analyze the list of smoothers specified using -s/-a, separate into ones
    // that use counts and ones that don't, and create a list of the counting
    // smoothers to be applied to each jpt, and to global counts (index 0)
 
@@ -292,7 +295,6 @@ void doEverything(const char* prog_name)
    vector<string> noncount_smoothing_methods; // eg, IBM estimates
    // column index (0.. num input jpts+1) -> list of indexes into counting_smoothing_methods
    vector< vector<Uint> > column_smoothers(input_jpt_files.size()+1);
-   
    for (Uint i = 0; i < smoothing_methods.size(); ++i) {
       string smoother;
       vector<Uint> jcols;
@@ -303,6 +305,22 @@ void doEverything(const char* prog_name)
          counting_smoothing_methods.push_back(smoother);
       } else
          noncount_smoothing_methods.push_back(smoother);
+   }
+   // a copy of the above block, for -a.
+   vector<string> adir_counting_smoothing_methods; // need jpt counts
+   vector<string> adir_noncount_smoothing_methods; // eg, IBM estimates
+   // column index (0.. num input jpts+1) -> list of indexes into adir_counting_smoothing_methods
+   vector< vector<Uint> > adir_column_smoothers(input_jpt_files.size()+1);
+   for (Uint i = 0; i < adir_smoothing_methods.size(); ++i) {
+      string smoother;
+      vector<Uint> jcols;
+      parseSmoothingSpec<T>(adir_smoothing_methods[i], adir_column_smoothers.size(), smoother, jcols);
+      if (PhraseSmootherFactory<T>::usesCounts(smoother)) {
+         for (Uint j = 0; j < jcols.size(); ++j) 
+            adir_column_smoothers[jcols[j]].push_back(adir_counting_smoothing_methods.size());
+         adir_counting_smoothing_methods.push_back(smoother);
+      } else
+         adir_noncount_smoothing_methods.push_back(smoother);
    }
    if (verbose) {
       Uint col = 0;
@@ -321,6 +339,29 @@ void doEverything(const char* prog_name)
                  << (d == 0 ? " (reverse)" : " (forward)") << endl;
          }
       }
+      col = 0;
+      for (Uint i = 0; i < adir_column_smoothers.size(); ++i) {
+         for (Uint j = 0; j < adir_column_smoothers[i].size(); ++j) {
+            bool symm = PhraseSmootherFactory<T>::isSymmetrical(
+               adir_counting_smoothing_methods[adir_column_smoothers[i][j]]);
+            for (Uint d = 0; d < 2; ++d) {
+               cerr << "4thcolumn " << ++col << ": jpt " << i << " "
+                    << (i == 0 ? "global" : input_jpt_files[i-1].c_str()) << " "
+                    << adir_counting_smoothing_methods[adir_column_smoothers[i][j]]
+                    << (d == 0 ? (symm ? " (symmetrical)" : " (reverse)") : " (forward)")
+                    << endl;
+               if (symm) break;
+            }
+         }
+      }
+      for (Uint i = 0; i < adir_noncount_smoothing_methods.size(); ++i) {
+         if (PhraseSmootherFactory<T>::isSymmetrical(adir_noncount_smoothing_methods[i]))
+            cerr << "4thcolumn " << ++col << ": " << noncount_smoothing_methods[i] << " (symmetrical)" << endl;
+         else {
+            cerr << "4thcolumn " << ++col << ": " << noncount_smoothing_methods[i] << " (reverse)" << endl;
+            cerr << "4thcolumn " << ++col << ": " << noncount_smoothing_methods[i] << " (forward)" << endl;
+         }
+      }
       cerr << endl;
    }
 
@@ -336,11 +377,16 @@ void doEverything(const char* prog_name)
 
       // read ith table into pt
       if (verbose) cerr << "reading " << input_jpt_files[i] << "... ";
-      pt.readJointTable(input_jpt_files[i]);
+      if (is_directory(input_jpt_files[i])) {
+         if (verbose) cerr << "(concatenating all jpt.* in directory) " << endl;
+         string cmd = "zcat " + input_jpt_files[i] + "/jpt.*|" ;
+         pt.readJointTable(cmd); 
+      } else
+         pt.readJointTable(input_jpt_files[i]);
 
       // save freqs in jointfreqs[i+1], assign indexes to phrases from this jpt
       // that weren't already in pt, and zero freqs in pt for next iter 
-      jointfreqs[i+1].resize(num_phrases);
+      jointfreqs[i+1].resize(num_phrases, 0);
       for (typename PhraseTableGen< ValAndIndex<T> >::iterator it = pt.begin(); 
 	   it != pt.end(); ++it) {
          ValAndIndex<T>& vi = it.getJointFreqRef();
@@ -366,7 +412,8 @@ void doEverything(const char* prog_name)
       for (Uint i = 1; i <= input_jpt_files.size(); ++i)
          jpt0_list.push_back(i);
 
-   if (verbose) cerr << "summing counts for column 0, from jpts: ";
+   if (verbose)
+      cerr << (max0 ? "maxing" : "summing") << " counts for column 0, from jpts: ";
    for (Uint i = 0; i < jpt0_list.size(); ++i) {
       if (jpt0_list[i] == 0)
          error(ETFatal, "0 is not a legal value in the argument to -0");
@@ -374,18 +421,16 @@ void doEverything(const char* prog_name)
    }
    if (verbose) cerr << endl;
 
-   jointfreqs[0].resize(num_phrases);
+   jointfreqs[0].resize(num_phrases, 0);
    for (Uint i = 0; i < num_phrases; ++i)
       for (Uint k = 0; k < jpt0_list.size(); ++k) {
          Uint j = jpt0_list[k];
-         if (eps0) {
-            if (i >= jointfreqs[j].size() || jointfreqs[j][i] == 0)
-               jointfreqs[0][i] += eps0;
-            else
-               jointfreqs[0][i] += jointfreqs[j][i];
-         } else
-            if (i < jointfreqs[j].size())
-               jointfreqs[0][i] += jointfreqs[j][i];
+         T freq = i < jointfreqs[j].size() ? jointfreqs[j][i] : 0;
+         if (eps0 && freq == 0) freq = eps0;
+         if (max0) 
+            jointfreqs[0][i] = max(jointfreqs[0][i], freq);
+         else 
+            jointfreqs[0][i] += freq;
       }
 
    // prune the whole table using global freqs
@@ -409,43 +454,39 @@ void doEverything(const char* prog_name)
 
    // create IBM models if needed, and set up optional casemapping
 
-   IBM1* ibm_1 = NULL;
-   IBM1* ibm_2 = NULL;
-   if ( ibm_l2_given_l1 != "" && ibm_l1_given_l2 != "" ) {
-      if (ibmtype == "hmm") {
-         if (verbose) cerr << "loading HMM models" << endl;
-         if (ibm_l2_given_l1 != "") ibm_1 = new HMMAligner(ibm_l2_given_l1);
-         if (ibm_l1_given_l2 != "") ibm_2 = new HMMAligner(ibm_l1_given_l2);
-      } else if (ibmtype == "1") {
-         if (verbose) cerr << "loading IBM1 models" << endl;
-         if (ibm_l2_given_l1 != "") ibm_1 = new IBM1(ibm_l2_given_l1);
-         if (ibm_l1_given_l2 != "") ibm_2 = new IBM1(ibm_l1_given_l2);
-      } else if (ibmtype == "2") {
-         if (verbose) cerr << "loading IBM2 models" << endl;
-         if (ibm_l2_given_l1 != "") ibm_1 = new IBM2(ibm_l2_given_l1);
-         if (ibm_l1_given_l2 != "") ibm_2 = new IBM2(ibm_l1_given_l2);
-      }
-   }
+   vector<IBM1*> ibm_1s;
+   vector<IBM1*> ibm_2s;
    CaseMapStrings cms1(lc1.c_str());
    CaseMapStrings cms2(lc2.c_str());
-   if (lc1 != "" && ibm_1 && ibm_2) {
-      ibm_1->getTTable().setSrcCaseMapping(&cms1);
-      ibm_2->getTTable().setTgtCaseMapping(&cms1);
+   for (Uint i = 0; i < ibm_l1_given_l2.size(); ++i) {
+      assert(ibm_l2_given_l1.size() > i); // checked in getArgs()
+      string namepair = ibm_l2_given_l1[i] + " + " + ibm_l1_given_l2[i];
+      ibm_1s.push_back(NULL); ibm_2s.push_back(NULL);
+      IBM1::createIBMModelPair(ibm_1s.back(), ibm_2s.back(),
+         ibm_l2_given_l1[i], ibm_l1_given_l2[i], ibmtype, verbose);
+      assert(ibm_1s.back()); assert(ibm_2s.back());
+      if (lc1 != "") {
+         ibm_1s[i]->getTTable().setSrcCaseMapping(&cms1);
+         ibm_2s[i]->getTTable().setTgtCaseMapping(&cms1);
+      }
+      if (lc2 != "") {
+         ibm_1s[i]->getTTable().setTgtCaseMapping(&cms2);
+         ibm_2s[i]->getTTable().setSrcCaseMapping(&cms2);
+      }
    }
-   if (lc2 != "" && ibm_1 && ibm_2) {
-      ibm_1->getTTable().setTgtCaseMapping(&cms2);
-      ibm_2->getTTable().setSrcCaseMapping(&cms2);
-   }
-
+   assert(ibm_1s.size() == ibm_2s.size());
+ 
    // Make the counting smoothers. NB: this assumes that each smoother needs
    // access to the appropriate frequencies (for the ith jpt) when it is
    // created, but that the SmootherFactory itself doesn't look at frequencies
    // at all.
 
-   PhraseSmootherFactory< ValAndIndex<T> > smoother_factory(&pt, ibm_1, ibm_2, verbose);
+   PhraseSmootherFactory< ValAndIndex<T> >
+      smoother_factory(&pt, ibm_1s, ibm_2s, verbose);
    typedef PhraseSmoother< ValAndIndex<T> > Smoother;
 
    vector< vector<Smoother*> > smoothers(jointfreqs.size());
+   vector< vector<Smoother*> > adir_smoothers(jointfreqs.size());
    for (Uint i = 0; i < jointfreqs.size(); ++i) { // for each freq column
       // inject column's contents into pt
       for (typename PhraseTableGen< ValAndIndex<T> >::iterator it = pt.begin(); 
@@ -458,8 +499,14 @@ void doEverything(const char* prog_name)
          string& sm = counting_smoothing_methods[column_smoothers[i][j]];
          smoothers[i].push_back(smoother_factory.createSmootherAndTally(sm));
       }
+      for (Uint j = 0; j < adir_column_smoothers[i].size(); ++j) {
+         string& sm = adir_counting_smoothing_methods[adir_column_smoothers[i][j]];
+         adir_smoothers[i].push_back(smoother_factory.createSmootherAndTally(sm));
+      }
+
    }
-   if (verbose && counting_smoothing_methods.size()) 
+   if (verbose && 
+       (counting_smoothing_methods.size() || adir_counting_smoothing_methods.size()))
       cerr << "created count-dependent smoother(s)" << endl;
 
    // Now make the smoothers that don't depend on joint counts.
@@ -467,7 +514,12 @@ void doEverything(const char* prog_name)
    smoother_factory.createSmoothersAndTally(noncount_smoothers, 
                                             noncount_smoothing_methods);
 
-   if (verbose && noncount_smoothing_methods.size()) 
+   vector<Smoother*> adir_noncount_smoothers(adir_noncount_smoothing_methods.size());
+   smoother_factory.createSmoothersAndTally(adir_noncount_smoothers, 
+                                            adir_noncount_smoothing_methods);
+
+   if (verbose && 
+       (noncount_smoothing_methods.size() || adir_noncount_smoothing_methods.size()))
       cerr << "created count-independent smoother(s)" << endl;
 
    // Write output. NB: this assumes that each smoother looks only at the
@@ -494,12 +546,14 @@ void doEverything(const char* prog_name)
    vector<double> vals_fwd;
    vector<double> vals_rev;
    vector<double> vals;
+   vector<double> adir_vals;
    string p1, p2;
    Uint total = 0;
    for (typename PhraseTableGen< ValAndIndex<T> >::iterator it = pt.begin(); 
 	it != pt.end(); ++it) {
       vals_fwd.clear();
       vals_rev.clear();
+      adir_vals.clear();
       it.getPhrase(1, p1);
       it.getPhrase(2, p2);
       ValAndIndex<T>& vi = it.getJointFreqRef();
@@ -509,17 +563,34 @@ void doEverything(const char* prog_name)
 	    vals_rev.push_back(smoothers[i][j]->probLang1GivenLang2(it));
 	    vals_fwd.push_back(smoothers[i][j]->probLang2GivenLang1(it));
 	 }
+	 for (Uint j = 0; j < adir_smoothers[i].size(); ++j) {
+	    adir_vals.push_back(adir_smoothers[i][j]->probLang1GivenLang2(it));
+            if (!adir_smoothers[i][j]->isSymmetrical())
+               adir_vals.push_back(adir_smoothers[i][j]->probLang2GivenLang1(it));
+         }
       }
       for (Uint i = 0; i < noncount_smoothers.size(); ++i) {
          vals_rev.push_back(noncount_smoothers[i]->probLang1GivenLang2(it));
          vals_fwd.push_back(noncount_smoothers[i]->probLang2GivenLang1(it));
       }
+      for (Uint i = 0; i < adir_noncount_smoothers.size(); ++i) {
+         adir_vals.push_back(adir_noncount_smoothers[i]->probLang1GivenLang2(it));
+         if (!adir_noncount_smoothers[i]->isSymmetrical()) 
+            adir_vals.push_back(adir_noncount_smoothers[i]->probLang2GivenLang1(it));
+      }
+
+      double jfreq = vi.index < jointfreqs[0].size() ? jointfreqs[0][vi.index] : 0;
+      string align_str;
+      if (write_al) 
+         it.getAlignmentString(align_str, false, write_al == 1);
 
       if (out_fwd) {
 	 vals = vals_rev;
 	 if (!nofwd) vals.insert(vals.end(), vals_fwd.begin(), vals_fwd.end());
          filterOutputCols(vals);
-	 PhraseTableBase::writePhrasePair(*out_fwd, p1.c_str(), p2.c_str(), vals);
+	 PhraseTableBase::writePhrasePair(*out_fwd, p1.c_str(), p2.c_str(), 
+                                          write_al ? align_str.c_str() : NULL, 
+                                          vals, write_count, jfreq, &adir_vals);
       }
       if (out_rev) {
          if (nofwd) {
@@ -528,9 +599,12 @@ void doEverything(const char* prog_name)
             vals = vals_fwd;
             vals.insert(vals.end(), vals_rev.begin(), vals_rev.end());
          }
+         if (write_al) it.getAlignmentString(align_str, true, write_al == 1);
          filterOutputCols(vals);
-	 PhraseTableBase::writePhrasePair(*out_rev, p2.c_str(), p1.c_str(), vals);
-      }	 
+	 PhraseTableBase::writePhrasePair(*out_rev, p2.c_str(), p1.c_str(), 
+                                          write_al ? align_str.c_str() : NULL, 
+                                          vals, write_count, jfreq, &adir_vals);
+      }
       ++total;
    }
    if (verbose) {
@@ -548,11 +622,11 @@ void getArgs(int argc, char* argv[])
 {
    const string alt_help = PhraseSmootherFactory<Uint>::help();
    const char* switches[] = {
-      "v", "i", "1:", "2:", "prune1:", "prune1w:", "s:", "0:", "eps0:",
+      "v", "i", "1:", "2:", "prune1:", "prune1w:", "s:", "a:", "0:", "max0", "eps0:",
       "ibm_l1_given_l2:", "ibm_l2_given_l1:", "ibm:", "lc1:", "lc2:", 
-      "o:", "w:", "dir:", "nofwd", "z", "force"
+      "o:", "w:", "dir:", "write-al:", "write-count", "nofwd", "z", "force"
    };
-   string output_cols_string;
+   string output_cols_string, write_al_str;
 
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 1, -1, help_message,
                         "-h", true, alt_help.c_str(), "-H");
@@ -565,7 +639,9 @@ void getArgs(int argc, char* argv[])
    arg_reader.testAndSet("prune1", prune1);
    arg_reader.testAndSet("prune1w", prune1w);
    arg_reader.testAndSet("s", smoothing_methods);
+   arg_reader.testAndSet("a", adir_smoothing_methods);
    arg_reader.testAndSet("0", jpts0);
+   arg_reader.testAndSet("max0", max0);
    arg_reader.testAndSet("eps0", eps0);
    arg_reader.testAndSet("ibm_l2_given_l1", ibm_l2_given_l1);
    arg_reader.testAndSet("ibm_l1_given_l2", ibm_l1_given_l2);
@@ -575,6 +651,8 @@ void getArgs(int argc, char* argv[])
    arg_reader.testAndSet("o", name);
    arg_reader.testAndSet("w", output_cols_string);
    arg_reader.testAndSet("dir", output_drn);
+   arg_reader.testAndSet("write-al", write_al_str);
+   arg_reader.testAndSet("write-count", write_count);
    arg_reader.testAndSet("nofwd", nofwd);
    arg_reader.testAndSet("z", compress_output);
    arg_reader.testAndSet("force", force);
@@ -587,10 +665,9 @@ void getArgs(int argc, char* argv[])
    if (ibmtype != "" && ibmtype != "1" && ibmtype != "2" && ibmtype != "hmm")
       error(ETFatal, "Bad value for -ibm switch: %s", ibmtype.c_str());
 
-   if ((ibm_l1_given_l2 != "" || ibm_l2_given_l1 != "") && 
-       (ibm_l1_given_l2 == "" || ibm_l2_given_l1 == ""))
-      error(ETFatal, "IBM models in both directions must be supplied, or none at all");
-      
+   if (ibm_l1_given_l2.size() != ibm_l2_given_l1.size())
+      error(ETFatal, "IBM models in both directions must be paired.");
+
    if (output_drn != "fwd" && output_drn != "rev" &&  output_drn != "both")
       error(ETFatal, "Bad value for -dir switch: %s", output_drn.c_str());
 
@@ -601,6 +678,14 @@ void getArgs(int argc, char* argv[])
             error(ETFatal, "-w output columns must be > 0");
          --output_cols[i];
       }
+   }
+   if (write_al_str != "") {
+      if (write_al_str == "none") write_al = 0;
+      else if (write_al_str == "top") write_al = 1;
+      else if (write_al_str == "all" || write_al_str == "keep") write_al = 2;
+      else
+         error(ETFatal, "Bad value for -write-al switch: %s", 
+               write_al_str.c_str());
    }
 }
 

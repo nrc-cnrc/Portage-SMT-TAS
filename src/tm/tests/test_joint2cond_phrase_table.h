@@ -303,10 +303,10 @@ public:
       createSmoothersAndTally(smoothers, ptg);
 
       ostringstream out;
-      dumpMultiProb(out, 1, ptg, smoothers);
+      dumpMultiProb(out, 1, ptg, smoothers, 0, false, false);
 
       ostringstream expected_out;
-      expected_out.precision(9);
+      //expected_out.precision(9);
       Uint expected_length = pruning ? pruned_data_length : data_length;
       const struct jpt_data *expected_data = pruning ? pruned_data : data;
       const double *expected_pl1gl2 = pruning ? pruned_rf_pl1gl2 : rf_pl1gl2;
@@ -318,7 +318,7 @@ public:
       TS_ASSERT_EQUALS(out.str(), expected_out.str());
 
       out.str("");
-      dumpMultiProb(out, 2, ptg, smoothers);
+      dumpMultiProb(out, 2, ptg, smoothers, 0, false, false);
 
       expected_out.str("");
       for (Uint i=0; i < expected_length; ++i) {

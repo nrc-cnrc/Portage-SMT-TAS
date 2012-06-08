@@ -16,7 +16,9 @@
  */
 
 #include "phrasedecoder_model.h"
+#include "basicmodel.h"
 #include "decoder.h"
+#include "phrasetable.h"
 #include <vector>
 #include <iostream>
 
@@ -93,6 +95,14 @@ void DecoderState::display(ostream& out, PhraseDecoderModel *model, Uint sourceL
       out << "\ttarget phrase         "
           << model->getStringPhrase(trans->lastPhrase->phrase);
       out << endl;
+      const ForwardBackwardPhraseInfo* fbpi = dynamic_cast<const ForwardBackwardPhraseInfo*>(trans->lastPhrase);
+      BasicModel* bm = dynamic_cast<BasicModel*>(model);
+      if (bm && fbpi && fbpi->alignment)
+         out << "\talignment             "
+             << bm->getPhraseTable().alignmentVoc.word(fbpi->alignment) << endl;
+      if (bm && fbpi && !fbpi->bi_phrase.empty())
+         out << "\tbi phrase             "
+             << phrase2string(fbpi->bi_phrase, bm->getBiPhraseVoc()) << endl;
    }
 }
 

@@ -67,7 +67,7 @@ namespace Portage {
        * No complete coverage of the reference (towards sentence start or end) is required.
        * We thus obtain a very optimistic score for a target phrase.
        **/
-      int minLevDist(const Phrase& phr);
+      int minLevDist(const VectorPhrase& phr);
 
       /**
        * For a given partial translation, determine Levenshtein distance from 
@@ -76,7 +76,7 @@ namespace Portage {
        * We thus obtain an optimistic score for partial translations, and we return the
        * set of min positions.
        **/
-      int partialLevDist(const Phrase& hyp, boost::dynamic_bitset<>* min_positions);
+      int partialLevDist(const VectorPhrase& hyp, boost::dynamic_bitset<>* min_positions);
 
       Uint computeRecombHash(const PartialTranslation &pt);
 

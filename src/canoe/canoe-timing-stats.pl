@@ -95,7 +95,7 @@ sub processlog($$) {
       print "No canoe instances found\n\n";
       return;
    }
-   print "individual canoe instances: $instances\n";
+   print "individual canoe instances: $instances; total sentences: $totalsentences\n";
    printf "load time: total = ${totalloadtime}s; avg = %.1fs; per-sent = %.2fs\n",
       $totalloadtime / ($instances || 1), 
       $totalloadtime / ($totalsentences || 1);

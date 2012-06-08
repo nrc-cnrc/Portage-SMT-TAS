@@ -248,11 +248,46 @@ if [[ $NUM_ITERS2 -lt 1 && -z "$SAVE_IBM1" ]]; then
    test -n "$REV_MODEL" && REV_SAVE_IBM1=$REV_MODEL
 fi
 
+if uname -n | egrep -q 'balzac|blz'; then
+   # We do Balzac specific tweakings to optimize resources
+   BALZAC=1
+   # On balzac, we have 4GB of RAM per CPU.
+   RAM_PER_CPU=4
+fi
+# this will include extra options for run-parallel.sh / psub to optimize
+# the number of CPUs requested per job.  We only do this if $BALZAC is set
+OPTIMIZE_CPUS=
+
+balzac_optimize_cpus() {
+   local PREV_FILENAME=$1
+   local PREV_RES=`cat $PREV_FILENAME`
+   if [[ $DEBUG ]]; then
+      echo OPT PREV_FILENAME=$PREV_FILENAME
+      echo OPT PREV_RES=$PREV_RES
+   fi >&2
+   if [[ $PREV_RES =~ 'Max VMEM ([0-9.][0-9.]*)G' ]]; then
+      local PREV_VMEM="${BASH_REMATCH[1]}"
+      local CPUS_NEEDED=`perl -e "use POSIX; print POSIX::ceil($PREV_VMEM / $RAM_PER_CPU)"`
+      if [[ $CPUS_NEEDED == 0 ]]; then
+         CPUS_NEEDED=1
+         echo Increasing CPUS_NEEDED from 0 to minimum value of 1 >&2
+      fi
+      if [[ $DEBUG ]]; then
+         echo OPT PREV_VMEM=$PREV_VMEM
+         echo OPT CPUS_NEEDED=$CPUS_NEEDED
+      fi >&2
+      echo "" "-psub -$CPUS_NEEDED"
+   fi
+   # If the above RE fails to match, we return nothing, which means the workers
+   # will inherit the number of CPUs from the master job.
+}
+
 ITER=0
 
 # Initialization of the model
 CUR_REV_MODEL=""
 if [[ -z "$INIT_MODEL" ]]; then
+   debug "Creating the initial model."
    if [[ $NUM_IBM1_JOBS -le 1 || $NUM_ITERS1 -lt 1 ]]; then
       if [[ $SAVE_IBM1 ]]; then
          CUR_MODEL=$SAVE_IBM1
@@ -281,125 +316,163 @@ else
    fi
 fi
 
-# IBM1 training
-while [[ $NUM_ITERS1 -gt 0 ]]; do
-   CUR_REV_MODEL_OUT=""
-   if [[ $NUM_IBM1_JOBS -le 1 ]]; then
-      if [[ $SAVE_IBM1 ]]; then
-         CUR_MODEL_OUT=$SAVE_IBM1
-         IBM1_OUT="$BIN_MODELS $CUR_MODEL_OUT"
-         if [[ $REV_SAVE_IBM1 ]]; then
-            CUR_REV_MODEL_OUT=$REV_SAVE_IBM1
-            IBM1_OUT="-rev-model $REV_SAVE_IBM1 $IBM1_OUT"
+
+# Create the command files
+createCommandFiles()
+{
+   debug "create Command 1:$NUM_ITERS1 2:$NUM_ITERS2"
+
+   ########################################
+   # IBM1 training
+   while [[ $NUM_ITERS1 -gt 0 ]]; do
+      CUR_REV_MODEL_OUT=""
+      JOB_COUNT_FILE=${TMPPFX}iter$ITER.jobs.ibm1
+      JOB_MERGE_FILE=${TMPPFX}iter$ITER.merge
+      if [[ $NUM_IBM1_JOBS -le 1 ]]; then
+         if [[ $SAVE_IBM1 ]]; then
+            CUR_MODEL_OUT=$SAVE_IBM1
+            IBM1_OUT="$BIN_MODELS $CUR_MODEL_OUT"
+            if [[ $REV_SAVE_IBM1 ]]; then
+               CUR_REV_MODEL_OUT=$REV_SAVE_IBM1
+               IBM1_OUT="-rev-model $REV_SAVE_IBM1 $IBM1_OUT"
+            fi
+         else
+            CUR_MODEL_OUT=${TMPPFX}ibm1$L2_GIVEN_L1.gz
+            IBM1_OUT="-bin $CUR_MODEL_OUT"
          fi
+         CUR_INIT_MODEL="-i $CUR_MODEL"
+         if [[ $CUR_REV_MODEL ]]; then
+            CUR_INIT_MODEL="-rev-i $CUR_REV_MODEL $CUR_INIT_MODEL"
+         fi
+         echo train_ibm "${TRAIN_IBM_OPTS[@]}" -n1 $NUM_ITERS1 -n2 0 \
+                           $SYM_OPT $CUR_INIT_MODEL $IBM1_OUT $CORPUS > $JOB_MERGE_FILE
+         CUR_MODEL=$CUR_MODEL_OUT
+         CUR_REV_MODEL=$CUR_REV_MODEL_OUT
+         ITER=$NUM_ITERS1
+         NUM_ITERS1=0
       else
-         CUR_MODEL_OUT=${TMPPFX}ibm1$L2_GIVEN_L1.gz
-         IBM1_OUT="-bin $CUR_MODEL_OUT"
+         ITER=$((ITER + 1))
+         CUR_INIT_MODEL="-i $CUR_MODEL"
+         if [[ $CUR_REV_MODEL ]]; then
+            CUR_INIT_MODEL="-rev-i $CUR_REV_MODEL $CUR_INIT_MODEL"
+         fi
+         COUNT_FILES=
+         for JOB in `seq 1 $NUM_IBM1_JOBS`; do
+            COUNT_FILE=${TMPPFX}iter$ITER.counts$JOB$L2_GIVEN_L1.gz
+            COUNT_FILES="$COUNT_FILES $COUNT_FILE"
+            echo "train_ibm ${TRAIN_IBM_OPTS[@]} -ibm1 -count-only" \
+                 "-mod $JOB:$NUM_IBM1_JOBS" \
+                 "$SYM_OPT $CUR_INIT_MODEL $COUNT_FILE $CORPUS" \
+                 "&> ${TMPPFX}iter$ITER.counts$JOB.log "
+         done > $JOB_COUNT_FILE
+
+         if [[ $NUM_ITERS1 -eq 1 && -n "$SAVE_IBM1" ]]; then
+            CUR_MODEL_OUT=$SAVE_IBM1
+            IBM1_OUT="$BIN_MODELS $CUR_MODEL_OUT"
+            if [[ $REV_SAVE_IBM1 ]]; then
+               CUR_REV_MODEL_OUT=$REV_SAVE_IBM1
+               IBM1_OUT="-rev-model $REV_SAVE_IBM1 $IBM1_OUT"
+            fi
+         else
+            CUR_MODEL_OUT=${TMPPFX}iter$ITER.ibm1$L2_GIVEN_L1.gz
+            IBM1_OUT="-bin $CUR_MODEL_OUT"
+         fi
+         echo train_ibm "${TRAIN_IBM_OPTS[@]}" -est-only $CUR_INIT_MODEL \
+                           $SYM_OPT $IBM1_OUT $COUNT_FILES > $JOB_MERGE_FILE
+         CUR_MODEL=$CUR_MODEL_OUT
+         CUR_REV_MODEL=$CUR_REV_MODEL_OUT
+         NUM_ITERS1=$((NUM_ITERS1 - 1))
       fi
-      CUR_INIT_MODEL="-i $CUR_MODEL"
-      if [[ $CUR_REV_MODEL ]]; then
-         CUR_INIT_MODEL="-rev-i $CUR_REV_MODEL $CUR_INIT_MODEL"
-      fi
-      run_cmd train_ibm "${TRAIN_IBM_OPTS[@]}" -n1 $NUM_ITERS1 -n2 0 \
-                        $SYM_OPT $CUR_INIT_MODEL $IBM1_OUT $CORPUS
-      CUR_MODEL=$CUR_MODEL_OUT
-      CUR_REV_MODEL=$CUR_REV_MODEL_OUT
-      ITER=$NUM_ITERS1
-      NUM_ITERS1=0
+   done
+
+
+   ########################################
+   # IBM2 / HMM training
+   if [[ $DO_HMM ]]; then
+      MODEL2="hmm"
    else
+      MODEL2="ibm2"
+   fi
+
+   # Create the command files.
+   while [[ $NUM_ITERS2 -gt 0 ]]; do
+      CUR_REV_MODEL_OUT=""
       ITER=$((ITER + 1))
-      echo >&2
-      echo Starting iteration $ITER on `date` >&2
       CUR_INIT_MODEL="-i $CUR_MODEL"
       if [[ $CUR_REV_MODEL ]]; then
          CUR_INIT_MODEL="-rev-i $CUR_REV_MODEL $CUR_INIT_MODEL"
       fi
-      JOBFILE=${TMPPFX}iter$ITER.jobs
-      cat /dev/null > $JOBFILE
+      JOB_COUNT_FILE=${TMPPFX}iter$ITER.jobs
+      JOB_MERGE_FILE=${TMPPFX}iter$ITER.merge
       COUNT_FILES=
-      for JOB in `seq 1 $NUM_IBM1_JOBS`; do
+      for JOB in `seq 1 $NUM_JOBS`; do
          COUNT_FILE=${TMPPFX}iter$ITER.counts$JOB$L2_GIVEN_L1.gz
          COUNT_FILES="$COUNT_FILES $COUNT_FILE"
-         echo "train_ibm ${TRAIN_IBM_OPTS[@]} -ibm1 -count-only" \
-              "-mod $JOB:$NUM_IBM1_JOBS" \
+         echo "train_ibm ${TRAIN_IBM_OPTS[@]} ${TRAIN_HMM_OPTS[@]}" \
+              "-$MODEL2 -count-only -mod $JOB:$NUM_JOBS" \
               "$SYM_OPT $CUR_INIT_MODEL $COUNT_FILE $CORPUS" \
-              "&> ${TMPPFX}iter$ITER.counts$JOB.log " >> $JOBFILE
-      done
-      run_cmd run-parallel.sh $RP_OPTS $QUIET $JOBFILE $NUM_IBM1_CPUS
-      if [[ $NOTREALLY ]]; then
-         cat $JOBFILE
-      fi
-      if [[ "$VERBOSE" -ge 1 && -z "$NOTREALLY" ]]; then
-         head -10000 ${TMPPFX}iter$ITER.counts*.log >&2
-      fi
-      if [[ $NUM_ITERS1 -eq 1 && -n "$SAVE_IBM1" ]]; then
-         CUR_MODEL_OUT=$SAVE_IBM1
-         IBM1_OUT="$BIN_MODELS $CUR_MODEL_OUT"
-         if [[ $REV_SAVE_IBM1 ]]; then
-            CUR_REV_MODEL_OUT=$REV_SAVE_IBM1
-            IBM1_OUT="-rev-model $REV_SAVE_IBM1 $IBM1_OUT"
+              "&> ${TMPPFX}iter$ITER.counts$JOB.log "
+      done > $JOB_COUNT_FILE
+
+      if [[ $NUM_ITERS2 -eq 1 ]]; then
+         CUR_MODEL_OUT=$MODEL
+         MODEL2_OUT="$BIN_MODELS $CUR_MODEL_OUT"
+         if [[ $REV_MODEL ]]; then
+            CUR_REV_MODEL_OUT=$REV_MODEL
+            MODEL2_OUT="-rev-model $REV_MODEL $MODEL2_OUT"
          fi
       else
-         CUR_MODEL_OUT=${TMPPFX}iter$ITER.ibm1$L2_GIVEN_L1.gz
-         IBM1_OUT="-bin $CUR_MODEL_OUT"
+         CUR_MODEL_OUT=${TMPPFX}iter$ITER.$MODEL2$L2_GIVEN_L1.gz
+         MODEL2_OUT="-bin $CUR_MODEL_OUT"
       fi
-      run_cmd train_ibm "${TRAIN_IBM_OPTS[@]}" -est-only $CUR_INIT_MODEL \
-                        $SYM_OPT $IBM1_OUT $COUNT_FILES
+      echo train_ibm "${TRAIN_IBM_OPTS[@]}" "${TRAIN_HMM_OPTS[@]}" -est-only \
+                        $SYM_OPT $CUR_INIT_MODEL -$MODEL2 $MODEL2_OUT $COUNT_FILES > $JOB_MERGE_FILE
       CUR_MODEL=$CUR_MODEL_OUT
       CUR_REV_MODEL=$CUR_REV_MODEL_OUT
-      NUM_ITERS1=$((NUM_ITERS1 - 1))
-   fi
-done
-
-# IBM2 / HMM training
-if [[ $DO_HMM ]]; then
-   MODEL2="hmm"
-else
-   MODEL2="ibm2"
-fi
-while [[ $NUM_ITERS2 -gt 0 ]]; do
-   CUR_REV_MODEL_OUT=""
-   ITER=$((ITER + 1))
-   echo >&2
-   echo Starting iteration $ITER on `date` >&2
-   CUR_INIT_MODEL="-i $CUR_MODEL"
-   if [[ $CUR_REV_MODEL ]]; then
-      CUR_INIT_MODEL="-rev-i $CUR_REV_MODEL $CUR_INIT_MODEL"
-   fi
-   JOBFILE=${TMPPFX}iter$ITER.jobs
-   cat /dev/null > $JOBFILE
-   COUNT_FILES=
-   for JOB in `seq 1 $NUM_JOBS`; do
-      COUNT_FILE=${TMPPFX}iter$ITER.counts$JOB$L2_GIVEN_L1.gz
-      COUNT_FILES="$COUNT_FILES $COUNT_FILE"
-      echo "train_ibm ${TRAIN_IBM_OPTS[@]} ${TRAIN_HMM_OPTS[@]}" \
-           "-$MODEL2 -count-only -mod $JOB:$NUM_JOBS" \
-           "$SYM_OPT $CUR_INIT_MODEL $COUNT_FILE $CORPUS" \
-           "&> ${TMPPFX}iter$ITER.counts$JOB.log " >> $JOBFILE
+      NUM_ITERS2=$((NUM_ITERS2 - 1))
    done
-   run_cmd run-parallel.sh $RP_OPTS $QUIET $JOBFILE $NUM_CPUS
-   if [[ $NOTREALLY ]]; then
-      cat $JOBFILE
-   fi
-   if [[ "$VERBOSE" -ge 1 && -z "$NOTREALLY" ]]; then
-      head -10000 ${TMPPFX}iter$ITER.counts*.log >&2
-   fi
-   if [[ $NUM_ITERS2 -eq 1 ]]; then
-      CUR_MODEL_OUT=$MODEL
-      MODEL2_OUT="$BIN_MODELS $CUR_MODEL_OUT"
-      if [[ $REV_MODEL ]]; then
-         CUR_REV_MODEL_OUT=$REV_MODEL
-         MODEL2_OUT="-rev-model $REV_MODEL $MODEL2_OUT"
+}
+
+# We first create all the command files for the whole training regime, then we
+# run them one at a time in the loop below.
+createCommandFiles
+
+# NOTE must use backtick to get the proper order of files.
+for f in `ls -v ${TMPPFX}iter*.{jobs*,merge} 2> /dev/null`; do
+   [[ $DEBUG ]] && echo "f: $f" >&2
+   if [[ $f =~ "jobs(.ibm1)?$" ]]; then
+      JOB_COUNT_FILE=$f
+      # NOTE: we are not using the same number of cpus if we are doing IBM1
+      CPUS=$NUM_CPUS
+      if [[ $JOB_COUNT_FILE =~ "ibm1$" ]]; then
+         CPUS=$NUM_IBM1_CPUS
       fi
-   else
-      CUR_MODEL_OUT=${TMPPFX}iter$ITER.$MODEL2$L2_GIVEN_L1.gz
-      MODEL2_OUT="-bin $CUR_MODEL_OUT"
+
+      [[ $JOB_COUNT_FILE =~ "iter([0-9]+).jobs" ]] || error_exit "Unable to find at which iteration we are at."
+      ITER=${BASH_REMATCH[1]}
+      echo >&2
+      echo Starting iteration $ITER on `date` >&2
+
+      echo run-parallel.sh $RP_OPTS $OPTIMIZE_CPUS $QUIET $JOB_COUNT_FILE $CPUS >&2
+      if [[ $NOTREALLY ]]; then
+         cat $JOB_COUNT_FILE >&2
+      else
+         RPTOTALS_FILE=${JOB_COUNT_FILE%%.jobs}.rptotals
+         run-parallel.sh $RP_OPTS $OPTIMIZE_CPUS $QUIET $JOB_COUNT_FILE $CPUS \
+            2>&1 | tee >(grep 'RP-Totals' > $RPTOTALS_FILE) >&2
+         if [[ $BALZAC ]]; then
+            OPTIMIZE_CPUS=`balzac_optimize_cpus $RPTOTALS_FILE`
+            echo OPTIMIZE_CPUS=$OPTIMIZE_CPUS >&2
+         fi
+      fi
+
+      if [[ "$VERBOSE" -ge 1 && -z "$NOTREALLY" ]]; then
+         head -10000 ${JOB_COUNT_FILE%%.jobs}.counts*.log >&2
+      fi
+   elif [[ $f =~ "merge$" ]]; then
+      JOB_MERGE_FILE=$f
+      run_cmd . $JOB_MERGE_FILE
    fi
-   run_cmd train_ibm "${TRAIN_IBM_OPTS[@]}" "${TRAIN_HMM_OPTS[@]}" -est-only \
-                     $SYM_OPT $CUR_INIT_MODEL -$MODEL2 $MODEL2_OUT $COUNT_FILES
-   CUR_MODEL=$CUR_MODEL_OUT
-   CUR_REV_MODEL=$CUR_REV_MODEL_OUT
-   NUM_ITERS2=$((NUM_ITERS2 - 1))
 done
 
 echo >&2
@@ -407,7 +480,9 @@ echo Done on `date` >&2
 
 # Things finished successfully, clean up.
 if [[ ! $DEBUG ]]; then
-   rm -rf $TMPPFX
+   rm -rf $TMPPFX ||    # Delete tmp files.
+      ls -la $TMPPFX || # If deleting failed, produce something to help us figure out why.
+      true              # But don't make cat.sh itself fail because if this.
 fi
 
 exit

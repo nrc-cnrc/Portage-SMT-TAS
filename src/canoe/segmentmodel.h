@@ -43,6 +43,14 @@ namespace Portage {
     static SegmentationModel* create(const string& name_and_arg,
           bool fail = true);
 
+    // The following default implementations apply to all segmentation models
+    virtual double score(const PartialTranslation& pt) {
+      return precomputeFutureScore(*pt.lastPhrase);
+    }
+    virtual double partialScore(const PartialTranslation& trans) { return 0; }
+    virtual Uint computeRecombHash(const PartialTranslation &pt) { return 0; }
+    virtual bool isRecombinable(const PartialTranslation &pt1, const PartialTranslation &pt2) { return true; }
+    virtual double futureScore(const PartialTranslation &trans) { return 0; }
   };
 
 
@@ -52,15 +60,10 @@ namespace Portage {
    * 1.
    */
   class SegmentCount : public SegmentationModel {
-
   public:
-
-    virtual double score(const PartialTranslation& pt);
-    virtual double partialScore(const PartialTranslation& trans);
-    virtual Uint computeRecombHash(const PartialTranslation &pt);
-    virtual bool isRecombinable(const PartialTranslation &pt1, const PartialTranslation &pt2);
-    virtual double precomputeFutureScore(const PhraseInfo& phrase_info);
-    virtual double futureScore(const PartialTranslation &trans);
+    virtual double precomputeFutureScore(const PhraseInfo& phrase_info) {
+      return -1;
+    }
   };
 
   //--------------------------------------------------------------------------
@@ -78,12 +81,7 @@ namespace Portage {
      * @param arg  which represents Q the probability of success.
      */
     BernoulliSegmentationModel(const string &arg);
-    virtual double score(const PartialTranslation& pt);
-    virtual double partialScore(const PartialTranslation& trans);
-    virtual Uint computeRecombHash(const PartialTranslation &pt);
-    virtual bool isRecombinable(const PartialTranslation &pt1, const PartialTranslation &pt2);
     virtual double precomputeFutureScore(const PhraseInfo& phrase_info);
-    virtual double futureScore(const PartialTranslation &trans);
   };
 
 

@@ -420,7 +420,7 @@ void TTable::getSourceVoc(vector<string>& src_words) const {
       src_words.push_back(p->first);
 }
 
-int TTable::targetOffset(Uint target_index, const SrcDistn& src_distn) {
+int TTable::targetOffset(Uint target_index, const SrcDistn& src_distn) const {
    SrcDistnIter sp = lower_bound(src_distn.begin(), src_distn.end(),
                                  make_pair(target_index,0.0),
                                  CompareTIndexes());

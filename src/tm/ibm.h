@@ -158,6 +158,26 @@ namespace Portage {
   public:
 
     /**
+     * Factory method to create an aligner pair and load the files given,
+     * detecting automatically what type of aligners they are (IBM1, 2 or HMM).
+     * ibm_1g2 and ibm_2g1 are allocated using new; it is the caller's
+     * responsibility to delete them when they are no longer needed.
+     * It is an error to provide models that are not both of the same type.
+     * A fatal error is issued if the models cannot be opened.
+     * @param ibm_1g2  Will point to model for ibm_1g2_filename
+     * @param ibm_2g1  Will point to model for ibm_2g1_filename
+     * @param ibm_1g2_filename  Filename of first IBM model
+     * @param ibm_2g1_filename  Filename of second IBM model
+     * @param ibmtype  If "", types are auto-detected; if "1", the models are
+     *                 opened as IBM1; if "2", the models are opened as IBM2;
+     *                 if "hmm", the models are opened as HMMAligner.
+     * @param verbose  Output verbose messages if true
+     */
+    static void createIBMModelPair(IBM1*& ibm_1g2, IBM1*& ibm_2g1,
+        const string& ibm_1g2_filename, const string& ibm_2g1_filename,
+        string ibmtype = "", bool verbose = false);
+
+    /**
      * Construct using an existing ttable file.
      * @param ttable_file  file containing the ttable.
      * @param src_voc   if not null, causes the ttable to be filtered while

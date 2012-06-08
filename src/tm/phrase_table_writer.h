@@ -39,17 +39,22 @@ namespace Portage {
  * affects the order in which probabilities are written, as described above
  * @param pt the phrase table on which the smoothers is based
  * @param smoothers the set of smoothers used to generate conditional probs
+ * @param display_alignments if 0, don't display alignments; if 1, display only
+ *                           the most frequent alignment (ties are broken
+ *                           arbitrarily); if 2, display all alignments with
+ *                           counts.
+ * @param write_count  if true, write joint counts too
  * @param verbose yackedy yack
  */
 template<class T>
 void dumpMultiProb(ostream& ofs, Uint left_lang, PhraseTableGen<T>& pt,
                    vector< PhraseSmoother<T>* >& smoothers,
-                   bool verbose = false)
+                   Uint display_alignments, bool write_count, bool verbose)
 {
    Uint total = 0;
 
    for (typename PhraseTableGen<T>::iterator it = pt.begin(); it != pt.end(); ++it) {
-      dumpMultiProb(ofs, left_lang, it, smoothers, verbose);
+      dumpMultiProb(ofs, left_lang, it, smoothers, display_alignments, write_count, verbose);
       ++total;
    }
    ofs.flush();
@@ -71,6 +76,8 @@ void dumpMultiProb(ostream& ofs, Uint left_lang, PhraseTableGen<T>& pt,
  * @param it the phrase table iterator of the phrase pair for which the 
  * conditional distributions are to be dumped
  * @param smoothers the set of smoothers used to generate conditional probabilities
+ * @param display_alignments display no (0), top (1) or all (2) alignments.
+ * @param write_count  if true, write joint counts too
  * @param verbose yackedy yack
  * @return true if non-zero probabilities were written; false otherwise.
  */
@@ -78,12 +85,12 @@ template<class T>
 bool dumpMultiProb(ostream& ofs, Uint left_lang,
                    typename PhraseTableGen<T>::iterator& it,
                    vector< PhraseSmoother<T>* >& smoothers,
-                   bool verbose = false)
+                   Uint display_alignments, bool write_count, bool verbose)
 {
    // EJJ High precision is fine and all, but costs us in space in CPT files,
    // as well as in TPPT files, where the encoding is more expensive to keep
    // all those pointless bits around.
-   ofs.precision(9); // Enough to keep all the precision of a float
+   //ofs.precision(9); // Enough to keep all the precision of a float
    string p1, p2;
    vector<double> vals;
 
@@ -104,7 +111,15 @@ bool dumpMultiProb(ostream& ofs, Uint left_lang,
    }
    if (find_if(vals.begin(), vals.end(), bind2nd(greater<double>(), 0.0)) == vals.end())
       return false;
-   PhraseTableBase::writePhrasePair(ofs, p1.c_str(), p2.c_str(), vals);
+   const char* alignments = NULL;
+   string alignments_s;
+   if ( display_alignments ) {
+      it.getAlignmentString(alignments_s, (left_lang != 1), (display_alignments == 1));
+      alignments = alignments_s.c_str();
+   }
+   double count = write_count ? it.getJointFreq() : 0;
+   PhraseTableBase::writePhrasePair(ofs, p1.c_str(), p2.c_str(), alignments,
+                                    vals, write_count, count);
    return true;
 }
 

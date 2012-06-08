@@ -81,6 +81,17 @@ public:
    virtual double probLang2GivenLang1(
       const typename PhraseTableGen<T>::iterator& it) = 0;
 
+   /**
+    * Return true if this smoother looks at joint counts from the phrasetable
+    * (as opposed to just the phrases, like the IBM smoothers).
+    */
+   virtual bool usesCounts() = 0;
+
+   /**
+    * Return true if p(e|f) == p(f|e) always for this smoother.
+    */
+   virtual bool isSymmetrical() = 0;
+
 };
 
 //-----------------------------------------------------------------------------
@@ -96,10 +107,10 @@ template<class T>
 class PhraseSmootherFactory
 {
    PhraseTableGen<T>* phrase_table;
-   IBM1* ibm_lang2_given_lang1;       ///< IBM model
-   IBM1* ibm_lang1_given_lang2;       ///< IBM model
-
    Uint verbose;
+
+   vector<IBM1*> ibm_lang2_given_lang1;       ///< IBM model(s)
+   vector<IBM1*> ibm_lang1_given_lang2;       ///< IBM model(s)
 
    /// Generic object allocator for PhraseSmoothers<T>.
    template<class S> struct DCon {
@@ -121,6 +132,7 @@ class PhraseSmootherFactory
       string tname;		///< name of derived class
       string help;		///< describes args for derived class ctor
       bool uses_counts;         ///< true iff smoother looks at jpt counts
+      bool is_symmetrical;      ///< true iff p(e|f) == p(f|e) always
    };
    static TInfo tinfos[];	///< array containing all known smoothers
 
@@ -137,6 +149,20 @@ public:
    PhraseSmootherFactory(PhraseTableGen<T>* pt,
                          IBM1* ibm_lang2_given_lang1,
                          IBM1* ibm_lang1_given_lang2,
+			 Uint verbose);
+
+   /**
+    * Construct with phrase table and multiple IBM models in both
+    * directions. IBM models are paired, ie ibm_lang2_given_lang1[i] is used
+    * with ibm_lang1_given_lang2[i].
+    * @param pt
+    * @param ibm_lang2_given_lang1 0 or more pointers to IBM1, IBM2, or HMM
+    * @param ibm_lang1_given_lang2 0 or more pointers to IBM1, IBM2, or HMM
+    * @param verbose level: 0 for no messages, 1 for basic, 2 for detail
+    */
+   PhraseSmootherFactory(PhraseTableGen<T>* pt,
+                         vector<IBM1*> ibm_lang2_given_lang1,
+                         vector<IBM1*> ibm_lang1_given_lang2,
 			 Uint verbose);
 
    /**
@@ -202,12 +228,25 @@ public:
    static bool usesCounts(const string& tname_and_args);
 
    /**
+    * Return true if p(f|e) == p(e|f) always for a given smoother.
+    */
+   static bool isSymmetrical(const string& tname_and_args);
+
+   /**
+    * Get the ith IBM model, or return NULL if no such.
+    */
+   IBM1* getIBMLang1GivenLang2(Uint i = 0) {
+      return ibm_lang1_given_lang2.size() > i ? ibm_lang1_given_lang2[i] : NULL;
+   }
+   IBM1* getIBMLang2GivenLang1(Uint i = 0) {
+      return ibm_lang2_given_lang1.size() > i ? ibm_lang2_given_lang1[i] : NULL;
+   }
+
+   /**
     * Info functions.  Self explanatory named functions.
     */
    //@{
    PhraseTableGen<T>* getPhraseTable() {return phrase_table;}
-   IBM1* getIBMLang1GivenLang2() {return ibm_lang1_given_lang2;}
-   IBM1* getIBMLang2GivenLang1() {return ibm_lang2_given_lang1;}
    Uint getVerbose() {return verbose;}
    //@}
  };
@@ -244,6 +283,8 @@ public:
 
    virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it);
    virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
+   virtual bool usesCounts() {return true;}
+   virtual bool isSymmetrical() {return false;}
 };
 
 
@@ -269,8 +310,35 @@ public:
    virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it) {
       return it.getJointFreq();
    }
+   virtual bool usesCounts() {return true;}
+   virtual bool isSymmetrical() {return true;}
 };
 
+//-----------------------------------------------------------------------------
+/**
+ * Just indicate presence or absence of phrase pair.
+ */
+template<class T>
+class PureIndicator : public PhraseSmoother<T>
+{
+public:
+   /**
+    * Constructor does nothing.
+    * @param factory
+    * @param args
+    */
+   PureIndicator(PhraseSmootherFactory<T>& factory, const string& args) : 
+      PhraseSmoother<T>(0) {}
+
+   virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it) {
+      return it.getJointFreq() ? 1.0 : 0.3;
+   }
+   virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it) {
+      return it.getJointFreq() ? 1.0 : 0.3;
+   }
+   virtual bool usesCounts() {return true;}
+   virtual bool isSymmetrical() {return true;}
+};
 
 //-----------------------------------------------------------------------------
 /**
@@ -299,6 +367,8 @@ public:
    virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it) {
       return marginals[it.getPhraseIndex(lang)];
    }
+   virtual bool usesCounts() {return true;}
+   virtual bool isSymmetrical() {return true;}
 };
 
 
@@ -307,7 +377,7 @@ public:
  * Simulated leave-one-out.
  */
 template<class T>
-class LeaveOneOut : public RFSmoother<T>
+class LeaveOneOutSmoother : public RFSmoother<T>
 {
    Uint strategy;
 
@@ -320,10 +390,12 @@ public:
     * @param factory
     * @param args
     */
-   LeaveOneOut(PhraseSmootherFactory<T>& factory, const string& args);
+   LeaveOneOutSmoother(PhraseSmootherFactory<T>& factory, const string& args);
 
    virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it);
    virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
+   virtual bool usesCounts() {return true;}
+   virtual bool isSymmetrical() {return false;}
 };
 
 
@@ -370,6 +442,8 @@ public:
 
    virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it);
    virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
+   virtual bool usesCounts() {return true;}
+   virtual bool isSymmetrical() {return false;}
 };
 
 //-----------------------------------------------------------------------------
@@ -432,8 +506,50 @@ public:
 
    virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it);
    virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
+   virtual bool usesCounts() {return true;}
+   virtual bool isSymmetrical() {return false;}
 };
 
+
+//-----------------------------------------------------------------------------
+/**
+ * Abstract class grouping all lexical smoothers, so they can also be used in a
+ * stand-alone fashion.
+ */
+template<class T>
+class LexicalSmoother : public PhraseSmoother<T>
+{
+   vector<string> l1_phrase;
+   vector<string> l2_phrase;
+
+protected:
+   IBM1* ibm_lang2_given_lang1;
+   IBM1* ibm_lang1_given_lang2;
+
+   /**
+    * Constructor for subclasses to use in the standard factory/iterator
+    * framework.
+    * @parameter args if non-empty, the first token should be a 1-based index
+    * specifying the pair of ibm models to use in the constructor, eg via
+    * factory.getIBMLang1GivenLang2(i-1) and factory.getIBMLang2GivenLang1(i-1).
+    */
+   LexicalSmoother(PhraseSmootherFactory<T>& factory, const string& args);
+
+   /// Constructor for subclasses to use in the stand-alone case
+   LexicalSmoother(IBM1* ibm_lang2_given_lang1, IBM1* ibm_lang1_given_lang2);
+
+public:
+   /// get p(l1|l2) outside the factory/iterator framework
+   virtual double probLang1GivenLang2(const vector<string>& l1_phrase, const vector<string>& l2_phrase) = 0;
+   /// get p(l2|l1) outside the factory/iterator framework
+   virtual double probLang2GivenLang1(const vector<string>& l1_phrase, const vector<string>& l2_phrase) = 0;
+   
+   // standard factory/iterator framework API
+   virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it);
+   virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
+   virtual bool usesCounts() {return false;}
+   virtual bool isSymmetrical() {return false;}
+};
 
 //-----------------------------------------------------------------------------
 /**
@@ -442,29 +558,25 @@ public:
  * IBM1 probabilities.
  */
 template<class T>
-class ZNSmoother : public PhraseSmoother<T>
+class ZNSmoother : public LexicalSmoother<T>
 {
-   IBM1* ibm_lang2_given_lang1;
-   IBM1* ibm_lang1_given_lang2;
-
-   vector<string> l1_phrase;
-   vector<string> l2_phrase;
-
    vector<double> phrase_probs;
 
 public:
 
    /**
-    * Constructor.
+    * Constructor for use in the standard factory/iterator framework
     * @param factory
     * @param args
     */
    ZNSmoother(PhraseSmootherFactory<T>& factory, const string& args);
+   /// Constructor for use in the stand-alone case
+   ZNSmoother(IBM1* ibm_lang2_given_lang1, IBM1* ibm_lang1_given_lang2);
    /// Destructor.
    ~ZNSmoother() {}
 
-   virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it);
-   virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
+   virtual double probLang1GivenLang2(const vector<string>& l1_phrase, const vector<string>& l2_phrase);
+   virtual double probLang2GivenLang1(const vector<string>& l1_phrase, const vector<string>& l2_phrase);
 };
 
 
@@ -474,27 +586,23 @@ public:
  * formula to calculate p(phrase1|phrase2).
  */
 template<class T>
-class IBM1Smoother : public PhraseSmoother<T>
+class IBM1Smoother : public LexicalSmoother<T>
 {
-   IBM1* ibm_lang2_given_lang1;
-   IBM1* ibm_lang1_given_lang2;
-
-   vector<string> l1_phrase;
-   vector<string> l2_phrase;
-
 public:
 
    /**
-    * Constructor.
+    * Constructor for use in the standard factory/iterator framework
     * @param factory
     * @param args
     */
    IBM1Smoother(PhraseSmootherFactory<T>& factory, const string& args);
+   /// Constructor for use in the stand-alone case
+   IBM1Smoother(IBM1* ibm_lang2_given_lang1, IBM1* ibm_lang1_given_lang2);
    /// Destructor.
    ~IBM1Smoother() {}
 
-   virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it);
-   virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
+   virtual double probLang1GivenLang2(const vector<string>& l1_phrase, const vector<string>& l2_phrase);
+   virtual double probLang2GivenLang1(const vector<string>& l1_phrase, const vector<string>& l2_phrase);
 };
 
 //-----------------------------------------------------------------------------
@@ -503,27 +611,23 @@ public:
  * formula to calculate p(phrase1|phrase2).
  */
 template<class T>
-class IBMSmoother : public PhraseSmoother<T>
+class IBMSmoother : public LexicalSmoother<T>
 {
-   IBM1* ibm_lang2_given_lang1;
-   IBM1* ibm_lang1_given_lang2;
-
-   vector<string> l1_phrase;
-   vector<string> l2_phrase;
-
 public:
 
    /**
-    * Constructor.
+    * Constructor for use in the standard factory/iterator framework
     * @param factory
     * @param args
     */
    IBMSmoother(PhraseSmootherFactory<T>& factory, const string& args);
+   /// Constructor for use in the stand-alone case
+   IBMSmoother(IBM1* ibm_lang2_given_lang1, IBM1* ibm_lang1_given_lang2);
    /// Destructor.
    ~IBMSmoother() {}
 
-   virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it);
-   virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
+   virtual double probLang1GivenLang2(const vector<string>& l1_phrase, const vector<string>& l2_phrase);
+   virtual double probLang2GivenLang1(const vector<string>& l1_phrase, const vector<string>& l2_phrase);
 };
 
 //-----------------------------------------------------------------------------
@@ -545,6 +649,8 @@ public:
 
    virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it);
    virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
+   virtual bool usesCounts() {return true;}
+   virtual bool isSymmetrical() {return false;}
 };
 
 } // Portage

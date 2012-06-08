@@ -16,13 +16,14 @@
 
 #include "soft_filter_tm_visitor.h"
 #include <functional>  // for not2
+#include "logging.h"
 
 using namespace Portage;
 using namespace Portage::Joint_Filtering;
 
 
-// Phrase Table filter joint logger
-//Logging::logger ptLogger_softFilterTMVisitor(Logging::getLogger("debug.canoe.softFilterTMVisitor"));
+/// Phrase Table filter joint logger
+Logging::logger ptLogger_softFilterTMVisitor(Logging::getLogger("debug.canoe.softFilterTMVisitor"));
 
 
 softFilterTMVisitor::PhraseInfo4SoftFiltering::PhraseInfo4SoftFiltering(const pair<const Phrase, TScore>* ref, 
@@ -49,7 +50,7 @@ softFilterTMVisitor::softFilterTMVisitor(
       double log_almost_0)
 : Parent(parent, log_almost_0, "SOFT")
 {
-   //LOG_VERBOSE4(ptLogger_softFilterTMVisitor, "soft filter_joint LOG probs with resized converted");
+   LOG_VERBOSE4(ptLogger_softFilterTMVisitor, "soft filter_joint LOG probs with resized converted");
 }
 
 
@@ -122,7 +123,7 @@ void softFilterTMVisitor::operator()(TargetPhraseTable& tgtTable)
          counts[i] = count;
       }
 
-      //LOG_INFO(ptLogger_softFilterTMVisitor, "keeping only: %d / %d", reduceTgtTable.size(), tgtTable.size());
+      LOG_INFO(ptLogger_softFilterTMVisitor, "keeping only: %d / %d", reduceTgtTable.size(), tgtTable.size());
       // DEBUGGING
       if (false) {
          cerr << "Ordered list: " << endl;
@@ -149,18 +150,13 @@ bool softFilterTMVisitor::lessdot(ForwardBackwardPhraseInfo& in, ForwardBackward
    assert(in.forward_trans_probs.size() == jn.forward_trans_probs.size());
    assert(in.phrase_trans_probs.size()  == jn.phrase_trans_probs.size());
    // DEBUGGING
-   /*cerr << "in: " << parent.getStringPhrase(in.phrase) << endl;;
-   cerr << "forward: ";
-   copy(in.forward_trans_probs.begin(), in.forward_trans_probs.end(), ostream_iterator<float>(cerr, " "));
-   cerr << "backward: ";
-   copy(in.phrase_trans_probs.begin(), in.phrase_trans_probs.end(), ostream_iterator<float>(cerr, " "));
-   cerr << endl;
-   cerr << "jn: " << parent.getStringPhrase(jn.phrase) << endl;;
-   cerr << "forward: ";
-   copy(jn.forward_trans_probs.begin(), jn.forward_trans_probs.end(), ostream_iterator<float>(cerr, " "));
-   cerr << "backward: ";
-   copy(jn.phrase_trans_probs.begin(), jn.phrase_trans_probs.end(), ostream_iterator<float>(cerr, " "));
-   cerr << endl;//*/
+   /*cerr << "in: " << parent.getStringPhrase(in.phrase) << endl;
+   cerr << "forward: " << join(in.forward_trans_probs) << " ";
+   cerr << "backward: " << join(in.phrase_trans_probs) << endl;
+   cerr << "jn: " << parent.getStringPhrase(jn.phrase) << endl;
+   cerr << "forward: " << join(jn.forward_trans_probs) << " ";
+   cerr << "backward: " << join(jn.phrase_trans_probs) << endl;
+   //*/
    
    // First comparison criterion is forward score:
    //  - false if any in.forward > jn.forward

@@ -108,6 +108,8 @@ To use this model in canoe, put two lines like these is your canoe.ini file:
 And optionally (but recommended)
    [dist-phrase-swap]
    [dist-limit-ext]
+or (possibly even better)
+   [dist-limit-simple]
 
 " > $OUTPUT_TPLDM/README
 

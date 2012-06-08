@@ -80,9 +80,8 @@ double runPowell(const vector<uMatrix>& vH,
 template<class ScoreStats>
 ostream& operator<<(ostream& out, const history_datum<ScoreStats>& o) {
    out << ScoreStats::name() << " score: ";
-   out << ScoreStats::convertToDisplay(o.score) << " ";
-   copy(o.wts.begin(), o.wts.end(), ostream_iterator<double>(out, " "));
-   out << endl;
+   out << ScoreStats::convertToDisplay(o.score) << " "
+       << join(o.wts) << endl;
    return out;
 }
 

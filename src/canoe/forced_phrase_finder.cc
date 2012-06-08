@@ -24,6 +24,7 @@
 #include <iostream>
 #include <math.h>
 
+static const bool debug_forced_target_ff = false;
 
 ForcedTargetPhraseFinder::ForcedTargetPhraseFinder(BasicModel &model,
       const vector<string> &tgt_sent)
@@ -59,19 +60,20 @@ ForcedTargetPhraseFinder::ForcedTargetPhraseFinder(BasicModel &model,
                }
                if (match)
                {
-                  // string src, tgt;
-                  // src = (*it)->src_words.toString();
-                  // model.getStringPhrase(tgt, (*it)->phrase);
-                  // cerr << src << " " << tgt << " " << exp((*it)->phrase_trans_prob) << endl;
-
                   curPhrases[j][k].push_back(*it);
+
+                  if ( debug_forced_target_ff ) {
+                     cerr << (*it)->src_words
+                          << " " << model.getStringPhrase((*it)->phrase)
+                          << " " << exp((*it)->phrase_trans_prob) << endl;
+                  }
                }
             }
          }
       }
       finderByTargetWord.push_back(RangePhraseFinder(curPhrases, srcLength,
-               model.c->distLimit, model.c->distLimitSimple,
-               model.c->distLimitExt, model.c->distPhraseSwap));
+               model.c->distLimit, model.c->itgLimit, model.c->distLimitSimple,
+               model.c->distLimitExt, model.c->distPhraseSwap,model.c->distLimitITG));
    }
 } // ForcedTargetPhraseFinder
 
@@ -90,11 +92,28 @@ ForcedTargetPhraseFinder::~ForcedTargetPhraseFinder()
 void ForcedTargetPhraseFinder::findPhrases(vector<PhraseInfo *> &phrases,
       PartialTranslation &t)
 {
+   // WARNING: here we "incorrectly" rely on t.getLength() being well defined.
+   // In general, the existence of recombined states means t can point to
+   // multiple alternatives, not necessarily all having the same length.
+   // However, in forced decoding, we set gen.lm_numwords = tgt_sent.size()
+   // just before creating the BasicModel (see canoe.cc), so that recombination
+   // is only possible when the complete history is shared, and therefore all
+   // paths from t have not only the same length, but the same words, too.
+
    Uint length = t.getLength();
    assert(length <= finderByTargetWord.size());
    if (length < finderByTargetWord.size())
    {
       finderByTargetWord[length].findPhrases(phrases, t);
    } // if
+   for ( vector<PhraseInfo *>::iterator it(phrases.begin());
+         it != phrases.end(); ) {
+      const bool lastSourcePhrase = (t.sourceWordsNotCovered == (*it)->src_words);
+      const bool lastTargetPhrase = (length + (*it)->phrase.size() == finderByTargetWord.size());
+      if ( lastSourcePhrase != lastTargetPhrase )
+         phrases.erase(it);
+      else
+         ++it;
+   }
 } // findPhrases()
 

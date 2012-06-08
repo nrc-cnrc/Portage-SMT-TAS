@@ -17,6 +17,7 @@
 #ifndef PHRASE_TABLE_H
 #define PHRASE_TABLE_H
 
+#include "alignment_freqs.h"
 #include "string_hash.h"
 #include <map>
 #include <algorithm>
@@ -25,6 +26,7 @@
 #include "voc.h"
 #include "file_utils.h"
 #include "vector_map.h"
+#include "ordered_vector_map.h"
 #include "portage_defs.h"
 #include "ttable.h"
 #include "tm_io.h"
@@ -76,24 +78,38 @@ struct PhraseTableBase
 
    /**
     * Write a pair of compressed phrase strings + associated value on a stream.
+    * @param alignment_info if non-NULL, print the alignment info as well
     */
    template<class T>
    static void writePhrasePair(ostream& os, const char* p1, const char* p2,
+                               const char* alignment_info,
                                T val, Voc& voc1, Voc& voc2);
 
    /**
     * Write a pair of normal phrase strings + associated value on a stream.
+    * @param alignment_info if non-NULL, print the alignment info as well
     */
    template<class T>
    static void writePhrasePair(ostream& os, const char* p1, const char* p2,
+                               const char* alignment_info,
                                T val);
 
    /**
     * Write a pair of normal phrase strings + associated values on a stream.
+    * @param alignment_info if non-NULL, print the alignment info as well
+    * @param vals vector of probabilities to write, normally all p(s|t)'s
+    * followed by p(t|s)'s
+    * @param write_count write the c=<count> field
+    * @param count value of <count> for the c=<count> field
+    * @param avals if non-NULL and size() != 0, a vector of probabilities to
+    * write to the '4th column', ie separated by '|||' from normal directional
+    * probabilities 
     */
    template<class T>
    static void writePhrasePair(ostream& os, const char* p1, const char* p2,
-                               vector<T>& vals);
+                               const char* alignment_info,
+                               vector<T>& vals, bool write_count, T count,
+                               vector<T>* avals = NULL);
 
    /**
     * Convert a phrase pair read from a stream into a token sequence.
@@ -102,12 +118,14 @@ struct PhraseTableBase
     * @param[out] b1, e1 beginning and end+1 markers for 1st phrase
     * @param[out] b2, e2 beginning and end+1 markers for 2nd phrase
     * @param[out] v position of (first) value
+    * @param[out] a position of alignments field if present, else position of
+    * joint count field if present (and alignment field isn't), else toks.end()
     * @param tolerate_multi_vals allow multiple value fields
     */
    static void extractTokens(const string& line, vector<string>& toks,
                              ToksIter& b1, ToksIter& e1,
                              ToksIter& b2, ToksIter& e2,
-                             ToksIter& v,
+                             ToksIter& v, ToksIter& a,
                              bool tolerate_multi_vals = false);
 };
 
@@ -140,6 +158,8 @@ template<class T> class PhraseTableGen : public PhraseTableBase, private NonCopy
    Uint num_lang1_phrases;      // number of language 1 phrases.
 
    bool keep_phrase_table_in_memory; // set if phrase table is kept fully in memory
+   bool swap_on_read;                // swap lt/rt phrases when reading jpt
+
    // pruning: no pruning if prune1_fixed == prune1_per_word == 0
    Uint prune1_fixed;           // fixed part of pruning factor;
    Uint prune1_per_word;        // variable part of pruning factor; 
@@ -147,6 +167,22 @@ template<class T> class PhraseTableGen : public PhraseTableBase, private NonCopy
    string jpt_file;             // file name of jpt file
    istream* jpt_stream;         // stream used for reading a jpt file - for unit testing only
    bool phrase_table_read;      // set upon completion of first jpt file reading
+
+   /// Since alignments over short sequence pairs are likely to re-occur
+   /// frequently, we use a voc to map an alignment in "green" format to a Uint.
+   Voc alignment_voc;
+   // alignment -> frequency
+   //typedef vector_map<Uint,T> AlignmentFreqs;
+   /// l2-index -> alignments, i.e., l2-index -> (alignment, freq), (alignment, freq), ...
+   //typedef unordered_map<Uint, AlignmentFreqs<T> > PhraseAlignments;
+   //typedef vector_map<Uint, AlignmentFreqs<T> > PhraseAlignments;
+   typedef ordered_vector_map<Uint, AlignmentFreqs<T>, true> PhraseAlignments;
+   /// l1-index -> (l2-index, alignments), (l2-index, alignments), ...
+   typedef vector<PhraseAlignments*> PhraseAlignmentTable;
+
+   //typedef PTrie<T, Empty, false> PhraseAlignmentTable;
+
+   PhraseAlignmentTable phrase_alignment_table;
 
 private:
 
@@ -188,6 +224,11 @@ public:
       void getPhrase(Uint lang, vector<string>& toks) const; // lang is 1 or 2
       Uint getPhraseLength(Uint lang) const; // lang is 1 or 2
       Uint getPhraseIndex(Uint lang) const; // unique contiguous index for L1 or L2 phrase
+      /// Get the alignments in expanded format; works only with an in-memory phrase table.
+      const AlignmentFreqs<T>& getAlignments() const;
+      /// Get the alignments in display format.
+      void getAlignmentString(string& al, bool reverse, bool top_only) const;
+
       T getJointFreq() const;
       T& getJointFreqRef();
 
@@ -215,6 +256,8 @@ public:
          virtual string& getPhrase(Uint lang, string& phrase) const; // lang is 1 or 2
          virtual Uint getPhraseLength(Uint lang) const; // lang is 1 or 2
          Uint getPhraseIndex(Uint lang) const { return lang == 1 ? id1 : id2; }
+         virtual const AlignmentFreqs<T>& getAlignments() const;
+         virtual void getAlignmentString(string& al, bool reverse, bool top_only) const = 0;
          virtual T getJointFreq() const = 0;
          virtual T& getJointFreqRef() = 0;
       }; // class IteratorStrategy
@@ -226,6 +269,10 @@ public:
          typename PhraseTable::iterator row_iter_end;
          typename PhraseFreqs::iterator elem_iter;
          typename PhraseFreqs::iterator elem_iter_end;
+         typename PhraseAlignmentTable::iterator al_row_iter;
+         typename PhraseAlignmentTable::iterator al_row_iter_end;
+         //typename PhraseAlignments::iterator al_elem_iter;
+         //typename PhraseAlignments::iterator al_elem_iter_end;
       protected:
          using IteratorStrategy::end;
          using IteratorStrategy::pt;
@@ -236,6 +283,8 @@ public:
          MemoryIteratorStrategy(PhraseTableGen<T>* pt_, bool end_=false);
          virtual MemoryIteratorStrategy& operator=(const IteratorStrategy& it);
          virtual MemoryIteratorStrategy& operator++();  // increment
+         virtual const AlignmentFreqs<T>& getAlignments() const;
+         virtual void getAlignmentString(string& al, bool reverse, bool top_only) const;
          virtual T getJointFreq() const;
          virtual T& getJointFreqRef();
       }; // class MemoryIteratorStrategy
@@ -251,11 +300,13 @@ public:
          using IteratorStrategy::id2;
          auto_ptr<istream> jpt_stream;
          T val;
+         string alignments;
       public:
          FileIteratorStrategy() : IteratorStrategy(), jpt_stream(NULL) {};
          FileIteratorStrategy(PhraseTableGen<T>* pt_, bool end_=false);
          virtual FileIteratorStrategy& operator=(const IteratorStrategy& it);
          virtual FileIteratorStrategy& operator++(); // increment
+         virtual void getAlignmentString(string& al, bool reverse, bool top_only) const;
          virtual T getJointFreq() const;
          virtual T& getJointFreqRef();
       }; // class FileIteratorStrategy
@@ -271,6 +322,7 @@ public:
          using IteratorStrategy::id2;
          using FileIteratorStrategy::jpt_stream;
          using FileIteratorStrategy::val;
+         using FileIteratorStrategy::alignments;
          string phrase1;
       public:
          File2IteratorStrategy() : FileIteratorStrategy() {};
@@ -292,11 +344,14 @@ public:
          using IteratorStrategy::id2;
          using FileIteratorStrategy::jpt_stream;
          using FileIteratorStrategy::val;
+         using FileIteratorStrategy::alignments;
 
          PhraseFreqs phrase_freqs;
+         vector_map<Uint,string> alignment_strings;
          Uint pf_index;
          Uint next_id1, next_id2;
          T next_val;
+         string next_alignment_string;
       public:
          PruningIteratorStrategy() : FileIteratorStrategy() {};
          PruningIteratorStrategy(PhraseTableGen<T>* pt_, bool end_=false);
@@ -315,13 +370,16 @@ public:
          using IteratorStrategy::id2;
          using FileIteratorStrategy::jpt_stream;
          using FileIteratorStrategy::val;
+         using FileIteratorStrategy::alignments;
          using File2IteratorStrategy::phrase1;
 
          PhraseFreqs phrase_freqs;
+         vector_map<Uint,string> alignment_strings;
          Uint pf_index;
          Uint next_id1, next_id2;
          T next_val;
          string next_phrase1;
+         string next_alignment_string;
       public:
          Pruning2IteratorStrategy() : File2IteratorStrategy() {};
          Pruning2IteratorStrategy(PhraseTableGen<T>* pt_, bool end_=false);
@@ -351,13 +409,22 @@ public:
                       jpt_stream(NULL), phrase_table_read(false) {}
 
    ~PhraseTableGen() {
+      for ( typename PhraseAlignmentTable::iterator
+                  it(phrase_alignment_table.begin()),
+                  end(phrase_alignment_table.end());
+            it != end; ++it ) {
+         delete *it;
+         *it = NULL;
+      }
    }
 
    /**
     * Read contents as a joint table, in the format produced by dump_joint_freqs.
     */
-   void readJointTable(istream& in, bool reduce_memory=false);
-   void readJointTable(const string& infile, bool reduce_memory=false);
+   void readJointTable(istream& in, bool reduce_memory=false,
+                       bool swap_on_read=false);
+   void readJointTable(const string& infile, bool reduce_memory=false,
+                       bool swap_on_read=false);
 
    /**
     * Remap psep so it doesn't get output as a token in the resulting phrase table.
@@ -372,9 +439,12 @@ public:
     * @param reserve if true, language order is lang2,lang1.
     * @param filt disable filtering - mostly useful when T=float, since counts
     *             could theoretically be negative.
+    * @param display_alignments if 0, don't display alignments; if 1, display only
+    *                           the most frequent alignment (ties are broken
+    *                           arbitrarily); if 2, display all alignments with counts.
     */
    void dump_joint_freqs(ostream& ostr, T thresh = 0, bool reverse = false,
-                         bool filt = true);
+                         bool filt = true, Uint display_alignments = 0);
 
    /**
     * Write relative-frequency conditional distributions to stream, in TMText
@@ -416,10 +486,12 @@ public:
    /**
     * Add a pair of phrases (represented as ptrs into token sequences) with a given count.
     * If pair exists already, increment its count by val.
+    * @param green_alignment if non-NULL, represents the alignment between the
+    *                        sequences in "green" format.
     */
    void addPhrasePair(ToksIter beg1, ToksIter end1,
                       ToksIter beg2, ToksIter end2,
-                      T val=1);
+                      T val=1, const char* green_alignment=NULL);
 
 private:
    /**
@@ -431,14 +503,17 @@ private:
     * @param[out] id1 lang-1 phrase, represented by its id in lang1_voc
     * @param[out] id2 lang-2 phrase, represented by its id in lang2_voc
     * @param[out] val the frequency of this phrase pair.
+    * @param[out] alignments  if found in the input line, the contents of the
+    *             "a=" field, i.e. the alignment(s) for the phrase pair
+    *             observed during phrase table couting.
     */
-   void lookupPhrasePair(const string &line, Uint& id1, Uint& id2, T& val);
+   void lookupPhrasePair(const string &line, Uint& id1, Uint& id2, T& val, string& alignments);
    /**
     * Same as the other lookupPhrasePair() method, except for how the lang-1
     * phrase is returned.
     * @param[out] phrase1 lang-1 phrase, represented in compressed form
     */
-   void lookupPhrasePair(const string &line, string& phrase1, Uint& id2, T& val);
+   void lookupPhrasePair(const string &line, string& phrase1, Uint& id2, T& val, string& alignments);
 
 public:
    /**

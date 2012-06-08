@@ -65,29 +65,25 @@ void HyperedgeItem::CreateDecoderState()
                            *e->nextDecoderStateId,          // unique state counter
                            &(e->out_sourceWordsNotCovered));
 
+   if (e->verbosity >= 3) {
+      cerr << "Creating hypothesis ";
+      ds->display(cerr, &e->model, e->sourceLength);
+   }
+
    // We fully score ds here, since extendDecoderState doesn't do so
-   ds->score = ds0->score +
-               e->model.scoreTranslation(*(ds->trans));
-   double dFutureScore = e->model.computeFutureScore(*(ds->trans));
+   ds->score = ds0->score + e->model.scoreTranslation(*ds->trans, e->verbosity);
+   double dFutureScore = e->model.computeFutureScore(*ds->trans);
    ds->futureScore = ds->score + dFutureScore;
 
    if (e->verbosity >= 3) {
-      cerr << "Creating hypothesis " << ds->id
-           << " from " << ds0->id
-           << " (" << state_index << "," << phrase_index << ")" << endl
-           << "\theuristic score " << heuristic_score << endl
-           << "\tbase score " << ds->score << endl
-           << "\tfuture score " << ds->futureScore << endl
-           << "\tprev coverage "
-              << displayUintSet(ds0->trans->sourceWordsNotCovered,
-                                false, e->sourceLength)
-              << endl
-           << "\tsource range "
-              << e->phrases[phrase_index].second->src_words.toString() << endl;
-      string stringPhrase;
-      cerr << "\ttarget phrase " 
-           << e->model.getStringPhrase(e->phrases[phrase_index].second->phrase)
-           << endl;
+      cerr << "\thyperedge coordinates "
+           << state_index << "," << phrase_index << endl
+           << "\theuristic score       " << heuristic_score << endl
+           << "\tbase score            " << ds->score << endl
+           << "\tfuture score          " << ds->futureScore << endl;
+
+      if (heuristic_score != ds->futureScore)
+         cerr << "\tfuture != heuristic" << endl;
    }
 }
 
@@ -143,7 +139,9 @@ void Hyperedge::DisplayAllItems(Uint s) {
               << partial_score << " "
               << (partial_score + decoderStates[i].second->score) << " "
               << j << " "                       // item id part 2: phrase
-              << phrases[j].second->phrase_trans_prob << " "
+              << phrases[j].second->phrase_trans_prob << " (";
+         phrases[j].second->display();
+         cerr << ") "
               << model.phrasePartialScore(phrases[j].second) << " "
               << "=> "                          // output
               << hitem.ds->score << " "
@@ -179,7 +177,7 @@ CubePruningHypStack::~CubePruningHypStack() {
 
 void CubePruningHypStack::push(DecoderState* ds) {
    ds->refCount++;
-   UintSet& cov(ds->trans->sourceWordsNotCovered);
+   const UintSet& cov(ds->trans->sourceWordsNotCovered);
    map<UintSet, vector<DecoderState*> >::iterator it =
       best_states.find(cov);
    if ( it != best_states.end() ) {

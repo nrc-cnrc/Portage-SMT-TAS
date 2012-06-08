@@ -6,9 +6,9 @@ aa aa ||| aa Aa ||| 1 0.25
 aa aa ||| Aa aA ||| 1 0.25
 aa aa ||| aA AA ||| 1 0.25
 aa aa ||| AA AA ||| 1 0.25
-aa aa aa ||| aa Aa aA ||| 1 0.333333333
-aa aa aa ||| Aa aA AA ||| 1 0.333333333
-aa aa aa ||| aA AA AA ||| 1 0.333333333
+aa aa aa ||| aa Aa aA ||| 1 0.333333
+aa aa aa ||| Aa aA AA ||| 1 0.333333
+aa aa aa ||| aA AA AA ||| 1 0.333333
 aa aa aa aa ||| aa Aa aA AA ||| 1 0.5
 aa aa aa aa ||| Aa aA AA AA ||| 1 0.5
 aa aa aa aa aa ||| aa Aa aA AA AA ||| 1 1

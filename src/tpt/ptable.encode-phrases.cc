@@ -169,43 +169,6 @@ wid(string const& w, vocab& V)
   return m->second.id;
 }
 
-#if 0
-class phraseComp
-{
-public:
-  size_t depth;
-  phraseComp() : depth(0) {};
-  bool operator()(unsigned char const* A, 
-                  unsigned char const* B) const
-  {
-    size_t    asize = *A; 
-    size_t    bsize = *B; 
-    uint32_t const* a = reinterpret_cast<uint32_t const*>(A+1);
-    uint32_t const* b = reinterpret_cast<uint32_t const*>(B+1);
-    size_t    stop = depth ? min(depth,min(asize,bsize)) : min(asize,bsize);
-    size_t i;
-    for (i = 0; i < stop && a[i] == b[i]; i++);
-    if (i < stop && (!depth || depth==asize || depth==bsize))
-      return a[i] < b[i];
-    //cerr << asize << " " << bsize << " " << depth << endl;
-    assert(depth < asize && depth < bsize);
-    return asize < bsize;
-  }
-};
-
-size_t 
-count_columns(string const& line)
-{
-  string::size_t x = 0;
-  size_t ret = 1;
-  for (x = line.find(COLSEPSTRING,x); 
-       x != string::npos; 
-       x = line.find(COLSEPSTRING,x))
-    ret++;
-  return ret;
-}
-#endif
-
 /** Process a line of the phrase table file, converting it to the
  *  fast vocabulary format and writing its word ids to a temporary file.
  */
@@ -452,9 +415,11 @@ int MAIN(argc, argv)
   time_t start_time(time(NULL));
   while (getline(in,line))
     {
-      if (++linectr%1000000 == 0)
-        cerr << "Counting tokens: " << linectr/1000000 << "M lines read" << endl;
-      process_line(line, tmpFile, *V, linectr);
+      if (++linectr%1000000 == 0) cerr << ".";
+      if (linectr%10000000 == 0)
+        cerr << "Counting tokens: " << linectr/1000000 << "M lines read (..."
+             << (time(NULL) - start_time) << "s)" << endl;
+        process_line(line, tmpFile, *V, linectr);
     }
   tmpFile.close();
   cerr << "Read " << linectr << " lines in " << (time(NULL) - start_time) << " seconds." << endl;
@@ -477,7 +442,7 @@ int MAIN(argc, argv)
 #endif
   vector<uint32_t> pids;
   build_repos_trie(tmpName, linectr, remap, rev_trie, pids, highest_pid);
-  remove(tmpName.c_str()); // not needed any more
+  //remove(tmpName.c_str()); // not needed any more
 
   // Step 4: Write out the trie of sequences to disk.
   cerr << "Writing repository." << endl;

@@ -75,6 +75,9 @@ namespace Portage
          /// The maximum distortion distance.
          int distLimit;
 
+         /// The maximum itg distortion distance.
+         int itgLimit;
+
          /// Whether to use the Simple distortion limit definition
          bool distLimitSimple;
 
@@ -84,6 +87,9 @@ namespace Portage
          /// Whether to allow swapping continguous phrases, on top of whatever
          /// distLimit allows.
          bool distPhraseSwap;
+
+         /// Whether to enforce an ITG constraint
+         bool distLimitITG;
 
       public:
 
@@ -99,16 +105,19 @@ namespace Portage
           * @param distLimit     The maximum distortion distance allowed
           *                      between two phrases.  NO_MAX_DISTORTION
           *                      (default) indicates no limit.
+          * @param itgLimit      The maximum distance we can travel from the
+          *                      top of the shift-reduce stack in ITG mode
           * @param distLimitSimple Whether to use the simple distortion limit
           *                      definition
           * @param distLimitExt  Whether to use the extended distortion limit
           *                      definition
           * @param distPhraseSwap Whether to allow swapping continguous
           *                      phrases, on top of whatever distLimit allows.
+          * @param distLimitITG  Whether to use ITG constraints
           */
          RangePhraseFinder(vector<PhraseInfo *> **phrases, Uint sentLength,
-                           int distLimit, bool distLimitSimple, bool distLimitExt,
-                           bool distPhraseSwap);
+                           int distLimit, int itgLimit, bool distLimitSimple, bool distLimitExt,
+                           bool distPhraseSwap, bool distLimitITG);
 
          virtual void findPhrases(vector<PhraseInfo *> &p,
                                   PartialTranslation &t);

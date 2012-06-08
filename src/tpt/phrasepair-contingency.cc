@@ -274,6 +274,37 @@ void contingency(vector<Token> const& p1,
       jj = ((*set1p)&(*set2p)).count();
     }
   }
+
+/*
+  boost::dynamic_bitset<uint64_t> bs1(S1.getCorpus()->size());
+  boost::dynamic_bitset<uint64_t> bs2(S2.getCorpus()->size());
+  boost::dynamic_bitset<uint64_t>* bsptr1 = &bs1;
+  boost::dynamic_bitset<uint64_t>* bsptr2 = &bs2;
+
+  if (l1 && u1-l1 > 4096*1024) // arbitrary threshold for caching bitsets
+    {
+      pair<char const*,ushort> key(l1,p1.size());
+      bsptr1 = &(B[key]);
+      if (bsptr1->size() == 0)
+        bsptr1->resize(bs1.size());
+    }
+  if (l1 && bsptr1->count() == 0)
+    fillBitSet(l1,u1,*bsptr1);
+
+  if (l2 && u2-l2 > 4096*1024) // arbitrary threshold for caching bitsets
+    {
+      pair<char const*,ushort> key(l2,p2.size());
+      bsptr2 = &(B[key]);
+      if (bsptr2->size() == 0)
+        bsptr2->resize(bs2.size());
+    }
+  if (l2 && bsptr2->count() == 0)
+    fillBitSet(l2,u2,*bsptr2);
+
+  jj = (*bsptr1&*bsptr2).count();
+  m1 = bsptr1->count();
+  m2 = bsptr2->count();
+*/
 }
 
 int MAIN(argc, argv)

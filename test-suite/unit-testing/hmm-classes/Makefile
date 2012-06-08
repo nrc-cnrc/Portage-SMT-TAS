@@ -71,9 +71,9 @@ run-test3:
 	   &> log.phrases-hmm-base-dev1.fr2en
 
 test3: run-test3
-	diff-round.pl -sort ref/phrases-hmm-base-dev1.fr2en.gz phrases-hmm-base-dev1.fr2en -q
+	diff-round.pl -p 5 -sort ref/phrases-hmm-base-dev1.fr2en.gz phrases-hmm-base-dev1.fr2en -q
 	sed 's/ [0-9][0-9]* second/ N second/' < log.phrases-hmm-base-dev1.fr2en | \
-	   diff-round.pl -p 6 ref/log.phrases-hmm-base-dev1.fr2en - -q
+	   diff-round.pl -p 5 ref/log.phrases-hmm-base-dev1.fr2en - -q
 
 run-test4:
 	@env echo -e "\nRunning test $(@:run-test%=%)."
@@ -112,7 +112,7 @@ run-test6:
 test6: run-test6
 	diff-round.pl -sort -p 4 ref/phrases-hmm-liang-dev1.fr2en.gz phrases-hmm-liang-dev1.fr2en -q
 	sed 's/ [0-9][0-9]* second/ N second/' < log.phrases-hmm-liang-dev1.fr2en | \
-	   diff-round.pl -p 6 ref/log.phrases-hmm-liang-dev1.fr2en - -q
+	   diff-round.pl -p 5 ref/log.phrases-hmm-liang-dev1.fr2en - -q
 
 run-test7:
 	@env echo -e "\nRunning test $(@:run-test%=%)."
@@ -153,7 +153,7 @@ run-test9:
 test9: run-test9
 	diff-round.pl -p 5 -sort ref/phrases-hmm-heb-dev1.fr2en.gz phrases-hmm-heb-dev1.fr2en -q
 	sed 's/ [0-9][0-9]* second/ N second/' < log.phrases-hmm-heb-dev1.fr2en | \
-	   diff-round.pl -p 6 ref/log.phrases-hmm-heb-dev1.fr2en - -q
+	   diff-round.pl -p 5 ref/log.phrases-hmm-heb-dev1.fr2en - -q
 
 run-test10:
 	@env echo -e "\nRunning test $(@:run-test%=%)."

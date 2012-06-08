@@ -68,7 +68,7 @@ public:
    virtual ~WordAlignmentWriter() {}
 };
 
-#define WORD_ALIGNMENT_WRITER_FORMATS "aachen, gale, hwa, matrix, compact, ugly, green, sri, uli"
+#define WORD_ALIGNMENT_WRITER_FORMATS "aachen, gale, hwa, matrix, compact, ugly, green, sri, uli, tag, bilm"
 
 /// Full alignment output style.
 class UglyWriter : public WordAlignmentWriter {
@@ -156,7 +156,15 @@ public:
  * output.
  */
 class GreenWriter : public WordAlignmentWriter {
+   char sep;
+   string local_endl;
 public:
+   /// Constructor
+   /// @param sep  Character to insert between elements in operator().
+   /// @param end  String to append after the alignment in operator().
+   GreenWriter(char sep = ' ', const string& local_endl = "\n")
+      : sep(sep), local_endl(local_endl) {}
+
    virtual ostream& operator()(ostream &out, 
                                const vector<string>& toks1, const vector<string>& toks2,
                                const vector< vector<Uint> >& sets);
@@ -216,6 +224,34 @@ public:
 
    UliWriter() : sentence_id(0) {}
 
+   virtual ostream& operator()(ostream &out, 
+                               const vector<string>& toks1, const vector<string>& toks2,
+                               const vector< vector<Uint> >& sets);
+};
+
+/**
+ * For each position in toks1, write the word(s) from toks2 that are aligned to
+ * that position.
+ */
+class TagWriter : public WordAlignmentWriter {
+public:
+   virtual ostream& operator()(ostream &out, 
+                               const vector<string>& toks1, const vector<string>& toks2,
+                               const vector< vector<Uint> >& sets);
+};
+
+/**
+ * Output required to train a BiLM, following Niehues, Herrmann, Vogel and
+ * Waibel, WMT 2001. Output tgt_|_src, one token per tgt token.  Null aligned
+ * target words are output as tgt_|_.  Target words with multiple alignment are
+ * output as tgt_|_src1_|_src2...  Unaligned source words are ignored.  Source
+ * words with more than one alignment are blindly repeated.  Incomplete: this
+ * format cannot be used to reconstruct the alignment.  So we do not provide a
+ * reader.
+ */
+class BiLMWriter : public WordAlignmentWriter {
+public:
+   static const string sep;// = "_|_";
    virtual ostream& operator()(ostream &out, 
                                const vector<string>& toks1, const vector<string>& toks2,
                                const vector< vector<Uint> >& sets);

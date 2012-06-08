@@ -436,4 +436,3 @@ void Portage::hier_ldm_count::operator()(
    }
 }
 
-

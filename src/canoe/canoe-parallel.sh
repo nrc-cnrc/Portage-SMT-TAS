@@ -36,6 +36,9 @@ HIGH_SENT_PER_BLOCK=100
 LOW_SENT_PER_BLOCK=40
 NBEST_PREFIX=      # Will be use to merge chunks in append mode
 NBEST_COMPRESS=    # Will be use to merge chunks in append mode
+LATTICE_PREFIX=      # Ditto, for lattices
+LATTICE_COMPRESS=    # Ditto, for lattices
+
 
 usage() {
    for msg in "$@"; do
@@ -45,9 +48,14 @@ usage() {
 
 Usage: canoe-parallel.sh [options] canoe [canoe options] < <input>
 
-  Divides the input into several blocks and runs canoe (one instance per block)
+  Divide the input into several blocks and run canoe (one instance per block)
   in parallel on them; the final output is reassembled to be identical to what
   a single canoe would have output with the same options and input.
+
+  NB: if you are generating nbest lists and associated files (eg alignments,
+  feature values), and concatenating them with canoe's -append option, all
+  relevant options, including -append, must be given on the command line to
+  this program (after the canoe keyword), rather than in a canoe config file.
 
 Options:
 
@@ -55,17 +63,15 @@ Options:
                 expected size.  You must reuse the same original command
                 that failed plus -resume <failed_PID>.
 
-  -lb           run in load balancing mode: split input into J [=2N] blocks,
+  -[no-]lb      run in load balancing mode: split input into J [=2N] blocks,
                 N roughly even "heavy" ones, and J-N lighter ones; run them in
-                heavy to light order. [do]
-
-  -no-lb        turns off load-balancing. [don't]
+                heavy to light order. [don't]
 
   -j(obs) J     Used with -lb to specify the number of jobs J >= N.  [2N]
 
   -cleanup      Cleanup the run-parallel* logs after completion [don't]
 
-  -ref ref-file: reference file for canoe
+  -ref ref-file: reference file for canoe (must occur *before* "canoe")
 
   -noc(luster): background all jobs with & [default if not on a cluster]
 
@@ -115,12 +121,13 @@ declare -a CANOEOPTS
 RUN_PARALLEL_OPTS=
 NUM=
 NUMBER_OF_JOBS=1
+PARNUM=
 VERBOSE=1
 DEBUG=
 GOTCANOE=
 SAVE_ARGS="$@"
-ref=
-LOAD_BALANCING=1
+REF=
+LOAD_BALANCING=
 RESUME=
 PID=$$
 while [ $# -gt 0 ]; do
@@ -132,6 +139,7 @@ while [ $# -gt 0 ]; do
    -ref)           arg_check 1 $# $1; REF=$2; shift;;
    -n|-num)        arg_check 1 $# $1; NUM=$2; shift;;
    -j|-job)        arg_check 1 $# $1; NUMBER_OF_JOBS=$2; shift;;
+   -pn)            arg_check 1 $# $1; PARNUM=$2; shift;;
    -cleanup)       RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
    -highmem)       RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
    -nolocal)       RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
@@ -160,6 +168,9 @@ fi
 WORK_DIR=canoe-parallel.$PID
 INPUT="$WORK_DIR/input"
 CMDS_FILE=$WORK_DIR/commands
+
+# Make sure there is canoe on the command line.
+[[ $GOTCANOE ]] || error_exit "The 'canoe' argument and the canoe options are missing."
 
 # Make sure we have a working directory
 test -e $WORK_DIR || mkdir $WORK_DIR
@@ -211,7 +222,7 @@ fi
    MEMMAP_SIZE=`configtool memmap $CONFIGFILE`
    debug MEMMAP_SIZE=$MEMMAP_SIZE
    if [[ $MEMMAP_SIZE -ge 1024 ]]; then
-      PSUBOPTS="$PSUBOPTS -memmap $((MEMMAP_SIZE / 1024))"
+      PSUBOPTS="-memmap $((MEMMAP_SIZE / 1024)) $PSUBOPTS"
    fi
 
 if [ $DEBUG ]; then
@@ -236,10 +247,6 @@ if [ -n "$QSUBOPTS" ]; then
    RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS -qsub \"$QSUBOPTS\""
 fi
 debug "RUN_PARALLEL_OPTS=$RUN_PARALLEL_OPTS"
-
-if [ ! $GOTCANOE ]; then
-   error_exit "The 'canoe' argument and the canoe options are missing."
-fi
 
 function full_translation
 {
@@ -266,6 +273,7 @@ function full_translation
 
       debug "NUM=$NUM"
    fi
+   if [ ! $PARNUM ]; then PARNUM=$NUM; fi
 
    # Calculate the number of lines per block
    LINES_PER_BLOCK=$(( ( $INPUT_LINES + $NUM - 1 ) / $NUM ))
@@ -278,7 +286,7 @@ function full_translation
    if [ -n "$LOAD_BALANCING" ]; then
       # Make sure there are at least as many jobs as there are nodes
       if [ $NUM -gt $NUMBER_OF_JOBS ]; then
-         NUMBER_OF_JOBS=$((2 * $NUM))
+         NUMBER_OF_JOBS=$NUM
       fi
 
       # Load balancing command
@@ -295,13 +303,26 @@ function full_translation
       # Canoe cannot do load-balancing and append at the same time, so
       # we remove -append here and post-process the output at the end of this
       # script to perform the -append operation.
-      CONFIGARG=`echo "${CANOEOPTS[*]}" | sed "s/-append//g"`
+      declare -a CONFIGARG
+      for i in ${!CANOEOPTS[@]}; do
+         if [[ ${CANOEOPTS[$i]} =~ " " ]]; then
+            # Quote arguments with spaces.
+            CONFIGARG=("${CONFIGARG[@]}" "\"${CANOEOPTS[$i]//\"/\\\"}\"")
+         else
+            # Remove -append
+            if [[ ${CANOEOPTS[$i]} =~ "-append" ]]; then
+               true
+            else
+               CONFIGARG=("${CONFIGARG[@]}" ${CANOEOPTS[$i]})
+            fi
+         fi
+      done
 
       for (( i = 0 ; i < $NUMBER_OF_JOBS ; ++i )); do
          CANOE_INPUT=`printf "$INPUT.%4.4d" $i`
          OUT=$WORK_DIR/out.$i
          ERR=$WORK_DIR/err.$i
-         CMD="time $CANOE $CONFIGARG -lb"
+         CMD="time $CANOE ${CONFIGARG[@]} -lb"
          test -n "$REF" && CMD="$CMD -ref "`printf "$INPUT.ref.%4.4d" $i`
          CMD="cat $CANOE_INPUT | $CMD > $OUT 2> $ERR"
 
@@ -310,7 +331,8 @@ function full_translation
          echo "test ! -f $CANOE_INPUT || ($CMD && rm $CANOE_INPUT)" >> $CMDS_FILE
       done
    else
-      # When running in append mode we need to create intermediate files that we need to keep track
+      # When running in append mode we need to create intermediate files that
+      # we need to keep track of
       # Remove the -nbest option from the list
       CANOEOPTS_APPEND=`echo "${CANOEOPTS[*]}" | perl -pe 's/(^| )-nbest \S+/ /'`
       debug "CANOEOPTS_APPEND: ${CANOEOPTS_APPEND[*]}"
@@ -349,13 +371,13 @@ function full_translation
             LAST_LINE=$(( (i + 1) * LINES_PER_BLOCK ))
             head -$LAST_LINE $INPUT | tail -$LINES_PER_BLOCK > $CANOE_INPUT
             if [ $REF ]; then
-               SELECT_LINES_CMD_R="-ref \"head -$LAST_LINE $REF | tail -$LINES_PER_BLOCK |\""
+               SELECT_LINES_CMD_R="-ref \"gzip -cdqf < $REF | head -$LAST_LINE | tail -$LINES_PER_BLOCK |\""
             fi
          else
             LINES_IN_LAST_BLOCK=$(( INPUT_LINES - i * LINES_PER_BLOCK ))
             tail -$LINES_IN_LAST_BLOCK $INPUT > $CANOE_INPUT
             if [ $REF ]; then
-               SELECT_LINES_CMD_R="-ref \"tail -$LINES_IN_LAST_BLOCK $REF |\""
+               SELECT_LINES_CMD_R="-ref \"gzip -cdqf < $REF | tail -$LINES_IN_LAST_BLOCK |\""
             fi
          fi
 
@@ -396,6 +418,11 @@ TEMP=$NBEST_PREFIX
 NBEST_PREFIX=${TEMP%.gz}
 NBEST_COMPRESS=${TEMP#$NBEST_PREFIX}
 
+# Get the -lattice argument prefix and optional .gz suffix
+TEMP=`echo "${CANOEOPTS[*]}" | perl -ne '/(^| )-lattice (\S+)/o; print $2'`
+LATTICE_PREFIX=${TEMP%.gz}
+LATTICE_COMPRESS=${TEMP#$LATTICE_PREFIX}
+
 debug "NBEST_PREFIX:$NBEST_PREFIX"
 debug "NBEST_SIZE: $NBEST_SIZE"
 debug "NBEST_COMPRESS: $NBEST_COMPRESS"
@@ -416,10 +443,12 @@ fi
 if [ ! -s $CMDS_FILE ]; then
    error_exit "There is no command to run."
 fi
+if [ ! $PARNUM ]; then PARNUM=$NUM; fi
+
 
 # Submit the jobs to run-parallel.sh, which will take care of parallizing them
-debug "run-parallel.sh $RUN_PARALLEL_OPTS $CMDS_FILE $NUM"
-eval run-parallel.sh $RUN_PARALLEL_OPTS $CMDS_FILE $NUM
+debug "run-parallel.sh $RUN_PARALLEL_OPTS $CMDS_FILE $PARNUM"
+eval run-parallel.sh $RUN_PARALLEL_OPTS $CMDS_FILE $PARNUM
 RC=$?
 if (( $RC != 0 )); then
    echo "problems with run-parallel.sh(RC=$RC) - quitting!" >&2
@@ -472,7 +501,7 @@ if [ $TOTAL_LINES_OUTPUT -ne $INPUT_LINES ]; then
 fi
 
 
-# Merging output chunks (nbest, ffvals & pal)
+# Merging output chunks (nbest, ffvals, pal, and lattice)
 if [ -n "$APPEND" ]; then
    FFVALS_CREATED=`echo ${CANOEOPTS[*]} | egrep -oe '-ffvals'`
    PAL_CREATED=`echo ${CANOEOPTS[*]} | egrep -oe '-palign' -e '-t ' -e '-trace'`
@@ -527,6 +556,26 @@ if [ -n "$APPEND" ]; then
          s=$((s + 1));
       done; }
    fi
+
+   # merge lattice and lattice state files
+   if [ -n "$LATTICE_PREFIX" ]; then
+      OUTPUT="${LATTICE_PREFIX}$LATTICE_COMPRESS"
+      OUTPUT_ST="${LATTICE_PREFIX}.state$LATTICE_COMPRESS"
+      test -f $OUTPUT && \rm $OUTPUT
+      test -f $OUTPUT_ST && \rm $OUTPUT_ST
+      s=0;
+      time { while [ $s -lt $NUM_MERGE ]; do
+         base_filename=`printf "${LATTICE_PREFIX}.%4.4d$LATTICE_COMPRESS" $s`
+         base_filename_st=`printf "${LATTICE_PREFIX}.%4.4d.state$LATTICE_COMPRESS" $s`
+         cat ${base_filename} >> $OUTPUT
+         cat ${base_filename_st} >> $OUTPUT_ST
+         \rm ${base_filename}
+         \rm ${base_filename_st}
+         s=$((s + 1));
+      done; }
+   fi
+
+
 fi
 
 # Everything went fine, clean up

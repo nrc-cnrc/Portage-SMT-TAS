@@ -18,6 +18,7 @@ avg(en null count / en length) = 0.00797149 stdev = 0.0198827
 avg(en exclude count / en length) = 0 stdev = 0
 
 smoothing:
+Done PT smoother pass 0
 created 2 smoother:s:
   created 'RFSmoother' smoother using 1 phrase table pass.
   created 'IBMSmoother' smoother using 0 phrase table passes.

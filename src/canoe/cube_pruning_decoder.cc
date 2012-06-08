@@ -68,7 +68,7 @@ static void MakeHyperedges(
    // Declare these vectors outside the loops to reduce the number of
    // alloc/free cycles
    vector<pair<double, DecoderState*> > scored_states;
-   vector<vector<pair<double,PhraseInfo*> > > picks;
+   vector<const vector<pair<double,PhraseInfo*> >*> picks;
    UintSet out_cov;
    // Iterate over coverages
    for ( map<UintSet, vector<DecoderState*> >::iterator
@@ -76,6 +76,7 @@ static void MakeHyperedges(
             cov_end(stacks[s]->getAllStates()->end());
          cov_it != cov_end; ++cov_it ) {
       const UintSet& cov(cov_it->first);
+      bool deadCov = true;
       vector<DecoderState*>& states((*cov_it).second);
 
       // Iterate over source ranges compatible with the coverage (partially
@@ -84,12 +85,12 @@ static void MakeHyperedges(
       //vector<vector<PhraseInfo*> > picks;
       picks.clear();
       pickItemsByRange(picks, scored_phrases, cov);
-      for ( vector<vector<pair<double,PhraseInfo*> > >::iterator
+      for ( vector<const vector<pair<double,PhraseInfo*> >*>::iterator
                pick_it(picks.begin());
             pick_it != picks.end(); ++pick_it ) {
-         if ( pick_it->empty() ) continue;
+         if ( !*pick_it || (*pick_it)->empty() ) continue;
 
-         Range src_words(pick_it->front().second->src_words);
+         Range src_words((*pick_it)->front().second->src_words);
          subRange(out_cov, cov, src_words);
          
          // Future score for all states + phrase pair in this hyperedge will be
@@ -111,11 +112,18 @@ static void MakeHyperedges(
             // Skip this decoder state if it fails on the distortion limit
             if ( !
                  (
+                  (
+                   (!model.c->distLimitITG ||
+                    DistortionModel::respectsITG(model.c->itgLimit,
+                                                 states[i]->trans->shiftReduce,
+                                                 src_words))
+                   &&
                     DistortionModel::respectsDistLimit(cov, 
                        states[i]->trans->lastPhrase->src_words,
                        src_words, model.c->distLimit, sourceLength,
                        model.c->distLimitSimple, model.c->distLimitExt,
                        &out_cov)
+                   )
                   ||
                    (model.c->distPhraseSwap &&
                     DistortionModel::isPhraseSwap(cov, 
@@ -132,7 +140,7 @@ static void MakeHyperedges(
             // rangePartialScore, but only its src_words is used, not its
             // translation
             PartialTranslation pt(states[i]->trans,
-                                  pick_it->front().second, &out_cov);
+                                  (*pick_it)->front().second, &out_cov);
             if ( !futureScoreCalculated ) {
                futureScore = model.computeFutureScore(pt);
                futureScoreCalculated = true;
@@ -161,9 +169,12 @@ static void MakeHyperedges(
                     << displayUintSet(cov, false, sourceLength)
                     << " x " << src_words.toString()
                     << ": " << scored_states.size() << "/" << states.size()
-                    << " states, " << pick_it->size() << " phrases"
+                    << " states, " << (*pick_it)->size() << " phrases"
                     << endl;
             continue;
+         }
+         else {
+            deadCov = false;
          }
 
          // Sort the states in descending order of this partial score for the
@@ -176,7 +187,7 @@ static void MakeHyperedges(
                                          cov,
                                          scored_states,
                                          src_words,
-                                         *pick_it,
+                                         **pick_it,
                                          sourceLength,
                                          nextDecoderStateId,
                                          verbosity);
@@ -189,8 +200,8 @@ static void MakeHyperedges(
          if ( verbosity >= 2 ) {
             hyperedge_count += 1;
             partially_scored_trans += scored_states.size();
-            phrases_count += pick_it->size();
-            total_hyperedge_size += scored_states.size() * pick_it->size();
+            phrases_count += (*pick_it)->size();
+            total_hyperedge_size += scored_states.size() * (*pick_it)->size();
          }
 
          if ( verbosity >= 3 )
@@ -198,8 +209,17 @@ static void MakeHyperedges(
                  << displayUintSet(cov, false, sourceLength)
                  << " x " << src_words.toString()
                  << ": " << scored_states.size() << "/" << states.size()
-                 << " states, " << pick_it->size() << " phrases"
+                 << " states, " << (*pick_it)->size() << " phrases"
                  << endl;
+      }
+      if(verbosity >= 2 && deadCov)
+      {
+         cerr << "Warning: unexpanded coverage vector " << endl
+              << displayUintSet(cov, false, sourceLength);
+         if(states.size()>0 && states[0]->trans->shiftReduce!=NULL) {
+            cerr << endl << states[0]->trans->shiftReduce->toString();
+         }
+         cerr << endl;
       }
    }
 

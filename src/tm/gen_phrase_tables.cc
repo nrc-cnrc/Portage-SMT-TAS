@@ -134,13 +134,18 @@ Output selection options (specify as many as you need):\n\
             (where i is a 4-digit number).  This option suppresses and is\n\
             incompatible with all other output formats.\n\
 -j          Write global joint frequency phrase table to stdout.\n\
+-write-al A Show alignment information in multi-prob and joint frequency phrase\n\
+            tables.  If A is \"top\", the most frequent alignment is written in\n\
+            the \"green\" format preceeded by \"a=\", at the end of the line.\n\
+            If A is \"all\", all observed alignments are shown with counts.\n\
+            \"none\" is the same as not specifying -write-al.  [none]\n\
+-write-count Show the joint count in the 3rd column of multi-prob phrase tables\n\
+            in the format c=<count>.  [don't]\n\
 -f1 freqs1  Write language 1 phrases and their frequencies to file freqs1.\n\
 -f2 freqs2  Write language 2 phrases and their frequencies to file freqs2.\n\
 ";
 
 // globals
-
-typedef PhraseTableGen<Uint> PhraseTable;
 
 static const char* const switches[] = {
    "v", "vv", "vs", "i", "j", "z", "prune1:", "prune1w:", "a:", "s:",
@@ -150,6 +155,7 @@ static const char* const switches[] = {
    "p0_2:", "up0_2:", "alpha_2:", "lambda_2:", "max-jump_2:",
    "anchor_2", "noanchor_2", "end-dist_2", "noend-dist_2",
    "twist", "addsw", "o:", "f1:", "f2:",
+   "write-al:", "write-count",
    "lc1:", "lc2:",
    "num-file-args", // hidden option for gen-jpt-parallel.sh
    "file-args", // hidden option for gen-jpt-parallel.sh
@@ -173,6 +179,8 @@ static string name("phrases");
 static string freqs1;
 static string freqs2;
 static string multipr_output = "";
+static string store_alignment_option = "";
+static bool write_count = false;
 static bool compress_output = false;
 static Uint first_file_arg = 2;
 static bool externalAlignerMode = false;
@@ -209,9 +217,6 @@ public:
    /// See argProcessor::processArgs()
    virtual void processArgs() {
       LOG_INFO(m_logger, "Processing arguments");
-
-      string max_phrase_string;
-      string min_phrase_string;
 
       if (mp_arg_reader->getSwitch("v")) {ppe.verbose = 1; smoothing_verbose = 1;}
       if (mp_arg_reader->getSwitch("vv")) ppe.verbose = 2;
@@ -270,6 +275,8 @@ public:
       mp_arg_reader->testAndSet("f1", freqs1);
       mp_arg_reader->testAndSet("f2", freqs2);
       mp_arg_reader->testAndSet("multipr", multipr_output);
+      mp_arg_reader->testAndSet("write-al", store_alignment_option);
+      mp_arg_reader->testAndSet("write-count", write_count);
 
       if (mp_arg_reader->getSwitch("tmtext"))
          error(ETFatal, "-tmtext is obsolete");
@@ -278,7 +285,7 @@ public:
          if (!giza_alignment && !externalAlignerMode)
             error(ETFatal, "Can't use -ibm=0 trick unless -giza or -ext is used");
          first_file_arg = 0;
-         }
+      }
       else {
          first_file_arg = 2;
          mp_arg_reader->testAndSet(0, "model1", ppe.model1);
@@ -291,6 +298,7 @@ public:
          mp_arg_reader->testAndSet(0, "model1", ppe.model1);
          mp_arg_reader->testAndSet(1, "model2", ppe.model2);
 	 // Let's automatically figure out the model's type.
+         // NOTE 42 is the uninitialized value.
 	 if (ppe.ibm_num == 0) ppe.ibm_num = 42;
       }
 
@@ -318,6 +326,27 @@ public:
       if (ppe.add_word_translations > 0 and (ppe.model1.empty() || ppe.model2.empty())) {
          error(ETFatal, "You need to provide IBM or HMM when using -w!");
       }
+
+      if (!store_alignment_option.empty()) {
+         if ( store_alignment_option == "top" ) {
+            // display_alignments==1 means display only top one, without freq
+            ppe.display_alignments = 1;
+         } else if ( store_alignment_option == "all" ) {
+            // display_alignments==2 means display all alignments with freq
+            ppe.display_alignments = 2;
+         } else if ( store_alignment_option == "none" ) {
+            ppe.display_alignments = 0;
+         } else {
+            error(ETFatal, "Invalid -write-al value: %s; expected top or all.",
+                  store_alignment_option.c_str());
+         }
+      }
+
+      if (ppe.display_alignments && multipr_output.empty() && !joint)
+         error(ETFatal, "-write-al requires -multipr or -j");
+
+      if (write_count && multipr_output.empty())
+         error(ETFatal, "-write-count requires -multipr");
 
       if (mp_arg_reader->getSwitch("file-args")) {
          vector<string> corpora;
@@ -372,7 +401,7 @@ struct ExtractPhrasePairs {
                                   ppe.max_phrase_len1, ppe.max_phrase_len2,
                                   ppe.max_phraselen_diff,
                                   ppe.min_phrase_len1, ppe.min_phrase_len2,
-                                  pt, 1u);
+                                  pt, 1u, NULL, ppe.display_alignments);
    }
 
 };
@@ -515,7 +544,7 @@ void doEverything(const char* prog_name, ARG& args)
          fname << name << "-" << std::setw(4) << setfill('0') << fpair
                << ".pt" << z_ext;
          oSafeMagicStream ofs(fname.str());
-         pt.dump_joint_freqs(ofs);
+         pt.dump_joint_freqs(ofs, 0, false, false, ppe.display_alignments);
          pt.clear();
       }
 
@@ -574,17 +603,17 @@ void doEverything(const char* prog_name, ARG& args)
             string filename = name + "." + lang1 + "2" + lang2 + z_ext;
             if (ppe.verbose) cerr << "Writing " << filename << endl;
             oSafeMagicStream ofs(filename);
-            dumpMultiProb(ofs, 1, pt, smoothers, ppe.verbose);
+            dumpMultiProb(ofs, 1, pt, smoothers, ppe.display_alignments, write_count, ppe.verbose);
          }
          if (multipr_output == "rev" || multipr_output == "both") {
             string filename = name + "." + lang2 + "2" + lang1 + z_ext;
             if (ppe.verbose) cerr << "Writing " << filename << endl;
             oSafeMagicStream ofs(filename);
-            dumpMultiProb(ofs, 2, pt, smoothers, ppe.verbose);
+            dumpMultiProb(ofs, 2, pt, smoothers, ppe.display_alignments, write_count, ppe.verbose);
          }
       }
       if (joint)
-         pt.dump_joint_freqs(cout);
+         pt.dump_joint_freqs(cout, 0, false, false, ppe.display_alignments);
       if (freqs1 != "") {
          oSafeMagicStream ofs(freqs1);
          pt.dump_freqs_lang1(ofs);

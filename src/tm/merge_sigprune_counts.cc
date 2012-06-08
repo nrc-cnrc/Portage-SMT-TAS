@@ -14,7 +14,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <iterator>
 #include "file_utils.h"
 #include "arg_reader.h"
 
@@ -53,9 +52,9 @@ int main(int argc, char* argv[])
          error(ETFatal, "Unable to open file %s", countfilenames[i].c_str());
    }
    if (verbose) {
-      cerr << "Tallying and prepending ";
-      copy(countfilenames.begin(), countfilenames.end(), ostream_iterator<string>(cerr, " "));
-      cerr << "to " << jptfilename << endl;
+      cerr << "Tallying and prepending "
+           << join(countfilenames)
+           << " to " << jptfilename << endl;
    }
 
 
@@ -98,9 +97,7 @@ int main(int argc, char* argv[])
             for (Uint i(0); i<total.size(); ++i)
                total[i] += data[i];
          }
-         cout << '\t';
-         copy(total.begin(), total.end(), ostream_iterator<Uint>(cout, "\t"));
-         cout << jpt_line << '\n';
+         cout << '\t' << join(total, "\t") << '\t' << jpt_line << '\n';
       }
    }
 

@@ -337,6 +337,17 @@ namespace Portage
          CoverageMap covMap;  ///< Map used to implement coverage pruning
 
          /**
+          * Diversity: the minimum number of states to keep for each coverage
+          */
+         Uint diversity;
+
+         /**
+          * Diversity stack increment: the max number of states per stack
+          * added because of the diversity criterion.
+          */
+         Uint diversityStackIncrement;
+
+         /**
           * Comparison functor for the heap
           */
          WorseScore heapCompare;
@@ -400,6 +411,9 @@ namespace Portage
           *                  above to be kept when they have the exact same
           *                  coverage (must be in log space, and negative,
           *                  or log(0.0), i.e., -INFINITY, for no threshold)
+          * @param diversity The minimum number of states to keep per coverage
+          * @param diversityStackIncrement the max number of states per stack
+          *                  added because of the diversity criterion.
           * @param discardRecombined If true, recombined states will be discarded
           *                  as they are added, keeping only the higher scoring
           *                  state.  Set only if you will not trying to extract
@@ -407,8 +421,8 @@ namespace Portage
           */
          HistogramThresholdHypStack(PhraseDecoderModel &model,
                Uint pruneSize, double relativeThreshold,
-               Uint covLimit, double covThreshold,
-               bool discardRecombined);
+               Uint covLimit, double covThreshold, Uint diversity,
+               Uint diversityStackIncrement, bool discardRecombined);
 
          // Methods overridden from parent classes
          virtual void push(DecoderState *s);
@@ -421,10 +435,9 @@ namespace Portage
          virtual Uint getNumRecombKept() const { return numRecombKept; }
          virtual Uint getNumRecombPrunedAtPop() const;
          virtual Uint getNumCovPruned() const { return numCovPruned; }
-         virtual Uint getNumRecombCovPruned() const
-         { return numRecombCovPruned; }
-   }; // ends class HistogramThresholdHypStack
+         virtual Uint getNumRecombCovPruned() const { return numRecombCovPruned; }
+   }; // class HistogramThresholdHypStack
 
-} // ends namespace Portage
+} // namespace Portage
 
 #endif // HYPOTHESISSTACK_H

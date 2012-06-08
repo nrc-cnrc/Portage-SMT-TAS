@@ -58,8 +58,13 @@ static const char* const nf_endl = "\n";
 
 #ifndef ARRAY_SIZE
 /// Return the number of elements in array a.
-#define ARRAY_SIZE(a) (sizeof (a) / sizeof ((a)[0]))
+#define ARRAY_SIZE(a) (must_be_an_array(a), (sizeof (a) / sizeof ((a)[0])) )
 #endif
+
+// If you get a compiler error telling you "no matching function for call to
+// same_type...", then you probably called ARRAY_SIZE on a non-array variable.
+template <class T> bool must_be_an_array(T a) { return same_type(a,&a[0]); }
+template <class T> bool same_type(T, T) { return true; }
 
 /**
  * Returns the maximum between a and b.

@@ -88,7 +88,7 @@ namespace Portage {
 
 
   int LevenshteinFeature::levDist(const PartialTranslation& pt) {
-     Phrase hyp;
+     VectorPhrase hyp;
      pt.getEntirePhrase(hyp);
 
      /*
@@ -106,13 +106,13 @@ namespace Portage {
   }
 
 
-  int LevenshteinFeature::minLevDist(const Phrase& phr) {
+  int LevenshteinFeature::minLevDist(const VectorPhrase& phr) {
 
      assert(ref.size()>0);
      int dist = phr.size(); // distance if no matching part is found
 
      set<Uint> phrW;
-     for (Phrase::const_iterator itr=phr.begin(); itr!=phr.end(); ++itr)
+     for (VectorPhrase::const_iterator itr=phr.begin(); itr!=phr.end(); ++itr)
         phrW.insert(*itr);
 
      // The first and the last word of the best matching part of the ref. must
@@ -150,12 +150,12 @@ namespace Portage {
      return dist;
   }
   
-  int LevenshteinFeature::partialLevDist(const Phrase& hyp, boost::dynamic_bitset<>* min_positions) {
+  int LevenshteinFeature::partialLevDist(const VectorPhrase& hyp, boost::dynamic_bitset<>* min_positions) {
 
      assert(ref.size()>0);
 
      set<Uint> phrW;
-     for (Phrase::const_iterator itr=hyp.begin(); itr!=hyp.end(); itr++)
+     for (VectorPhrase::const_iterator itr=hyp.begin(); itr!=hyp.end(); itr++)
         phrW.insert(*itr);
 
      /** The last word of the best matching part of the ref. must
@@ -173,7 +173,8 @@ namespace Portage {
   }
 
   Uint LevenshteinFeature::computeRecombHash(const PartialTranslation &pt) {
-      return 0;
+      assert(pt.levInfo);
+      return pt.levInfo->levDistance + pt.levInfo->min_positions.count();
   }
 
   bool LevenshteinFeature::isRecombinable(const PartialTranslation &pt1,

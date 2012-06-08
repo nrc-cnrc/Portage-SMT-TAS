@@ -55,6 +55,26 @@ Options (in command-line format):\n\
      the syntax is:\n\
      s ||| t ||| P_1(s|t) P_2(s|t) P_1(t|s) P_2(t|s) ||| A_1(s,t) .. A_m(s,t)\n\
 \n\
+     A multi-prob phrase table may also contain alignment information as the\n\
+     last field of the 3rd column.  The format is\n\
+        a=<al_1>[:<count_1>]{;<al_i>[:<count_i>]}\n\
+     where <al_i> is in \"green\" format with underscores instead of spaces,\n\
+     and the optional <count_i> is a float or int indicating the frequency of\n\
+     <al_i>.  This information is used to calculate the unal features (-see\n\
+     -unal-feature for details).  Currently, if multiple alignments are shown,\n\
+     only the most frequent one is used.\n\
+\n\
+     One or more counts in float or int format can also be stored at the end of\n\
+     the 3rd column, in the format c=<count>{,<count>}. The interpretation of\n\
+     these counts is left to individual features.  Intended for future use:\n\
+     no feature uses these yet.\n\
+     If the same phrase pair occurs in multiple phrase tables, any count\n\
+     vectors are added element-wise, eg [1] + [1,2,3] = [2,2,3].\n\
+\n\
+     All combinations of presence/absence of forward and backward probs (3rd\n\
+     column), alignment, count (end of 3rd column) or adirectional scores (4th\n\
+     column) are allowed.\n\
+\n\
  -ttable-tppt FILE1[:FILE2[:..]]        Tightly Packed phrase table(s)\n\
      Phrase translation model file(s) in TPPT format (Tightly Packed Phrase\n\
      Table), indexed on the source language, containing an even number of\n\
@@ -126,8 +146,12 @@ Options (in command-line format):\n\
 \n\
  -weight-s|-sm W                        Segmentation model weight  [1.0 for each feature]\n\
 \n\
+ -weight-unal|-unal W1[:W2[:..]]        Unal feature weight(s)  [1.0 for each feature]\n\
+\n\
  -weight-ibm1-fwd|-ibm1f W              Forward IBM1 feature weight  [1.0 for each feature]\n\
      The forward IBM1 feature weight (see -ibm1-fwd-file).\n\
+\n\
+ -weight-bilm W1[:W2[:..]]              Weights for BiLM models  [1.0 for each feature]\n\
 \n\
  -random-weights|-r                     Set weights randomly per sent  [don't]\n\
      Ignore given weights, setting weights randomly for each sentence.\n\
@@ -161,6 +185,15 @@ Options (in command-line format):\n\
      threshold; example value: 0.01)\n\
      (Not compatible with cube pruning)\n\
 \n\
+ -diversity MIN_DIVERSITY               Min hypotheses to keep per coverage  [0]\n\
+     Keep at least MIN_DIVERSITY hypotheses for each coverage in the stack.\n\
+     (Not compatible with cube pruning)\n\
+\n\
+ -diversity-stack-increment DSI         Max hyps added to each stack by the -diversity option [S]\n\
+     Notwithstanding MIN_DIVERSITY, don't keep more than S+DSI hypotheses in\n\
+     any given stack, so the search does not become exponential.  (Use 0 for no\n\
+     limit, -1 for DSI=S, or a positive value to set DSI explicitly.)\n\
+\n\
  -ttable-limit L                        Max candidates per source phrase  [0, i.e., no limit]\n\
      The number of target phrases to keep in translation table pruning; 0\n\
      means no limit.  The top L target phrases are kept for each source phrase,\n\
@@ -189,6 +222,15 @@ Options (in command-line format):\n\
      The maximum levenshtein distance between the current translation and the\n\
      reference, expressed as a percentage of the source sentence length.\n\
      (Use -1 for no limit.)\n\
+\n\
+ -forced                                Use forced decoding with ref  [don't]\n\
+     Use forced decoding to find a phrase alignment between sentence pairs in\n\
+     line-aligned source and reference files.  Requires -ref.  (Use -lev or -ng\n\
+     to perform fuzzy phrase alignment.)  Causes the -lm, -w and -ibm1f weights\n\
+     to be set to 0.\n\
+\n\
+ -forced-nz                             Forced dec. using all features  [don't]\n\
+     Same as -forced, but does not zero the -lm, -w and -ibm1f weights.\n\
 \n\
  -maxlen MAXLEN                         Skip long sentences  [0, i.e., no maxlen]\n\
      If non 0, skip sentences longer than MAXLEN.\n\
@@ -226,6 +268,21 @@ Options (in command-line format):\n\
      hypotheses.\n\
      Only one of -dist-limit-simple and -dist-limit-ext may be specified.\n\
 \n\
+ -dist-limit-itg                        Enforce ITG re-ordering limits [don't]\n\
+     Switches on the shift-reduce parser and enforces a constraint such that\n\
+     each next phrase must be reachable from the top of the stack traveling\n\
+     only over uncovered words. Eliminates 2413 by blocking 2,4->1: 4 is top\n\
+     of stack, 1 is next, 2 is between 1 and 4, hence 1 is blocked.\n\
+\n\
+     Enforced in addition to (anded with) the other dist-limits\n\
+\n\
+ -shift-reduce-only-itg                 Shift-reduce will [not] use only 2-reductions\n\
+     The canoe shift-reduce parser can handle arbitrarily complex re-orderings.\n\
+     In the worst case scenario, all n words are reduced with a single n-reduction.\n\
+     Only attempting 2-reductions means linear, rather than quadratic time, and makes\n\
+     a lot of sense if we are also enforcing -dist-limit-itg.\n\
+     This flag is used without -dist-limit-itg mostly to replicate historical results.\n\
+\n\
  -dist-phrase-swap                      Allow phrase swaps  [don't]\n\
      Allow swapping two contiguous source phrases of any length.\n\
      Applied as an OR with the distortion limit:  meaningless if L = -1,\n\
@@ -241,7 +298,7 @@ Options (in command-line format):\n\
 \n\
  -distortion-model MODEL[#ARGS][:MODEL2[#ARGS][:..]]  Dist. model(s)  [WordDisplacement]\n\
      The distortion model(s) and their arguments. Zero or more of:\n\
-     WordDisplacement, PhraseDisplacement, fwd-lex[#dir],\n\
+     WordDisplacement, LeftDistance, PhraseDisplacement, fwd-lex[#dir],\n\
      back-lex[#dir], fwd-hlex[#dir], back-hlex[#dir], back-fhlex[#dir],\n\
      ZeroInfo.  To get no distortion model, use 'none'.\n\
 \n\
@@ -280,9 +337,24 @@ Options (in command-line format):\n\
      Some models require an argument, introduced by '#':\n\
      - bernoulli requires a numerical argument (Q parameter)\n\
 \n\
+ -unal-feature FEAT1[:FEAT2[:..]]       Unaligned word feature(s)  [none]\n\
+     The unal features(s), each in the form UNAL1[+UNAL2[+..]], where each\n\
+     UNAL is in [src|tgt]{right|left|edges|any}. Fields are:\n\
+        right/left = count unaligned words on right/left edge of phrase pair\n\
+        edges = count unaligned words on both edges of phrase pair\n\
+        any = count unaligned words anywhere in phrase pair\n\
+        src/tgt = count over source/target phrase only (default is both)\n\
+     Eg: srcleft+tgtany = count unaligned words on left side of source phrase,\n\
+     and anywhere in target phrase.\n\
+\n\
  -ibm1-fwd-file FILE                    Forward IBM1 feature file  [none]\n\
      Use 'forward' IBM1 feature - FILE should be an IBM1 model trained for\n\
      target language given source language. [none]\n\
+\n\
+ -bilm-file FILE1[:FILE2[:..]]          BiLM files - bilingual language models  [none]\n\
+     Bilingual language model file, following Niehues et al, WMT-2011.\n\
+     Must be an LM trained on the output of align-words -o bilm, with the\n\
+     source language as its lang2 and the target language as its lang1.\n\
 \n\
  -bypass-marked                         Allow bypassing marked translations  [don't]\n\
      When marked translations are found in the source text, translation\n\
@@ -322,6 +394,10 @@ Options (in command-line format):\n\
      Produce alignment and OOV output. If -lattice is given, this info\n\
      will also be stored in the lattice. If -nbest is given, alignment\n\
      info (but not OOV) will be written along with the nbest list.\n\
+\n\
+ -walign                                Output word alignment, if available  [don't]\n\
+     Requires -palign to have any effect - adds the word alignment information\n\
+     to the -palign output in canoe's 1-best and lattice output.\n\
 \n\
  -ffvals                                Output feature function values  [don't]\n\
      Produce feature function output. If -lattice or -nbest is given,\n\

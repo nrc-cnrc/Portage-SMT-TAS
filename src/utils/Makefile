@@ -33,6 +33,7 @@ OBJECTS = \
         stats.o \
         str_utils.o \
         timer.o \
+        tm_entry.o \
         trie.o \
         utf8_utils.o \
         voc.o \

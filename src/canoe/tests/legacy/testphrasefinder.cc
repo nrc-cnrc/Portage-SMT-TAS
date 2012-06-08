@@ -158,8 +158,8 @@ Range-sets to find phrases for:
    for (Uint i = 0; i < ARRAY_SIZE(DISTLIMIT); ++i)
    {
       // Create the range phrase finder and use it to find phrases
-      RangePhraseFinder finder(phTArray, SENTLENGTH, DISTLIMIT[i],
-                               false, false, false);
+      RangePhraseFinder finder(phTArray, SENTLENGTH, DISTLIMIT[i], -1,
+                               false, false, false, false);
 
       for (Uint i = 0; i < NUMFINDSETS; i++)
       {

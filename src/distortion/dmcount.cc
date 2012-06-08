@@ -85,6 +85,8 @@ Options:\n\
         - you DON'T need to provide IBM models as arguments\n\
         - this implies the ExternalAligner\n\
         - this won't work if you specify more than one aligner\n\
+-write-al spec This option is accepted but ignored, for switch compatilibity\n\
+       with gen_phrase_tables.\n\
 -hier  Extract hierarchical LDM counts rather than word-based LDM counts.\n\
 \n\
 HMM only options:\n\
@@ -103,7 +105,7 @@ const char* const switches[] = {
    "anchor", "noanchor", "end-dist", "noend-dist",
    "p0_2:", "up0_2:", "alpha_2:", "lambda_2:", "max-jump_2:",
    "anchor_2", "noanchor_2", "end-dist_2", "noend-dist_2",
-   "ext",
+   "write-al:", "ext",
 };
 
 static bool rev = false;

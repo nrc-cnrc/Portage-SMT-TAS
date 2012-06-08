@@ -44,7 +44,7 @@ GEN_PHRASE_TABLES ?= gen_phrase_tables
 .PHONY: all clean cpt multi gen
 
 all: cpt multi gen prune1_2
-	@echo All tests PASSED \(assuming you ran with -B\)
+	@echo All tests PASSED.
 
 cpt: cpt.ibm2-${SMOOTHERS_DESC}.train.en2fr.gz
 
@@ -80,7 +80,7 @@ cpt.ibm2-${SMOOTHERS_DESC}.train.en2fr.gz: ibm2.train.fr_given_en.gz ibm2.train.
 		${PRUNE} \
 		$(word 3, $^) \
 		>& log.cpt.ibm2-${SMOOTHERS_DESC}.train.en2fr
-	diff-round.pl $@ ref/$@ -q
+	diff-round.pl -p 5 $@ ref/$@ -q
 
 cpt.multi.ibm2-${M_SMOOTHERS_DESC}.train.en2fr.gz: ibm2.train.fr_given_en.gz ibm2.train.en_given_fr.gz jpt.ibm2.train.en-fr.1.gz jpt.ibm2.train.en-fr.2.gz
 	${RM} $@
@@ -95,7 +95,7 @@ cpt.multi.ibm2-${M_SMOOTHERS_DESC}.train.en2fr.gz: ibm2.train.fr_given_en.gz ibm
 		${PRUNE} \
 		$(word 3, $^) $(word 4, $^) \
 		>& log.cpt.multi.ibm2-${M_SMOOTHERS_DESC}.train.en2fr
-	diff-round.pl -sort $@ ref/$@ -q
+	diff-round.pl -p 5 -sort $@ ref/$@ -q
 
 # NOTE: between g++-4.[234] and g++4.5, out.jpt.ibm2.train.en-fr is different.
 # Since the autobuild uses g++-4.2 we need to be lenient about the differences between the ref which was generate with g++-4.5.
@@ -115,7 +115,7 @@ cpt.ibm2-rf-prune1_2.train.en2fr.gz: jpt.ibm2.train.en-fr.gz
 		-o $(subst .en2fr.gz, , $@) \
 		$^ \
 		>& log.$(subst .gz,,$@)
-	diff-round.pl $@ ref/$@ -q
+	diff-round.pl -p 5 $@ ref/$@ -q
 	zcat $@ | LC_ALL=C sort -c
 
 valgrind: ibm2.train.fr_given_en.gz ibm2.train.en_given_fr.gz jpt.ibm2.train.en-fr.gz

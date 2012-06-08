@@ -74,18 +74,18 @@ double NgramMatchFeature::score(const PartialTranslation& pt) {
      std::cerr << "refNgrams:";
      for (map<NGram<Uint>,int>::const_iterator itr=refNgrams.begin(); itr!=refNgrams.end(); itr++)
         cerr << " " << itr->first << "," << itr->second << " ";
-     Phrase hyp;
+     VectorPhrase hyp;
      pt.getEntirePhrase(hyp);
      cerr << endl << "new ";
      if (pt.sourceWordsNotCovered.empty())
         cerr << "complete ";
      cerr << "hyp:";
-     for (Phrase::const_iterator ii=hyp.begin(); ii!=hyp.end(); ii++)
+     for (VectorPhrase::const_iterator ii=hyp.begin(); ii!=hyp.end(); ii++)
         cerr << " " << *ii;
      hyp.clear();
      pt.back->getEntirePhrase(hyp);
      cerr << endl << "old hyp:";
-     for (Phrase::const_iterator ii=hyp.begin(); ii!=hyp.end(); ii++)
+     for (VectorPhrase::const_iterator ii=hyp.begin(); ii!=hyp.end(); ii++)
         cerr << " " << *ii;
      cerr << endl;
   }
@@ -95,7 +95,7 @@ double NgramMatchFeature::score(const PartialTranslation& pt) {
 }
 
 int NgramMatchFeature::ngramMatch(const PartialTranslation& pt) {
-  Phrase hyp;
+  VectorPhrase hyp;
   pt.getEntirePhrase(hyp);
   
   /**
@@ -114,7 +114,7 @@ int NgramMatchFeature::ngramMatch(const PartialTranslation& pt) {
 }
 
 
-int NgramMatchFeature::maxNgramMatch(const Phrase& phr) {
+int NgramMatchFeature::maxNgramMatch(const VectorPhrase& phr) {
 
   if ((int)phr.size()<N)
     return 0;

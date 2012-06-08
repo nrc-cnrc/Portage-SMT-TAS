@@ -46,6 +46,11 @@ Options:
             also, its results are independent of the number of parallel jobs N.
   -rp       Provide custom run-parallel.sh options (enclose in quotes!).
   -o        Send output to OUTFILE (compressed if it has a .gz extension).
+  -FILTER F Use command F on each shard for additionnal preprocessing [].
+            E.g.:
+            perl -ple 's/a/A/g'
+            utf8_casemap -cl | perl -ple 's/.*//g if (/the/)'
+            perl -ple 's/.*// if (scalar(split(/\s+/)) > 1000)'
   GPT       Keyword to signal beginning of gen_phrase_tables options and args.
   GPTARGS   Arguments and options for gen_phrase_tables: these must include
             the two IBM model arguments, but should NOT include any output
@@ -68,6 +73,7 @@ OUTFILE="-"
 RP_OPTS=
 VERBOSE=
 WORKERS=
+FILTER=
 
 while [ $# -gt 0 ]; do
    case "$1" in
@@ -76,6 +82,7 @@ while [ $# -gt 0 ]; do
    -w)         arg_check 1 $# $1; arg_check_int $2 $1; NW=$2; shift;;
    -rp)        arg_check 1 $# $1; RP_OPTS="$RP_OPTS $2"; shift;;
    -o)         arg_check 1 $# $1; OUTFILE=$2; shift;;
+   -FILTER)    arg_check 1 $# $1; FILTER=$2; shift;;
    -v)         VERBOSE="-v";;
    -d|-debug)  DEBUG=1;;
    -notreally) NOTREALLY=1; DEBUG=1;;
@@ -102,6 +109,11 @@ MAX_ALLOWED_OPEN_FILE=$((`ulimit -n`-20))
 
 [[ $# -lt 4 ]] && error_exit "Missing IBM models and file pair arguments."
 
+# If the user provides a filter, make sure it starts with a pipe.
+if [[ -n "$FILTER" ]]; then
+   [[ $FILTER =~ "^(  )*\|" ]] || FILTER="| $FILTER"
+fi
+
 GPTARGS=("$@")
 ALIGN_OPT=
 for i in ${!GPTARGS[@]}; do
@@ -109,6 +121,17 @@ for i in ${!GPTARGS[@]}; do
       VERBOSE="-v"
    elif [[ ${GPTARGS[$i]} =~ -ext ]]; then
       EXTERNAL_ALIGNER=1;
+   elif [[ ${GPTARGS[$i]} == -write-al ]]; then
+      if [[ ${GPTARGS[$((i+1))]} == top ]]; then
+         ALIGN_OPT=-top-a
+         GPTARGS[$((i+1))]=all
+      elif [[ ${GPTARGS[$((i+1))]} == all ]]; then
+         ALIGN_OPT=-a
+      elif [[ ${GPTARGS[$((i+1))]} == none ]]; then
+         true # no need to do anything - "none" means disabled.
+      else
+         error_exit "${GPTARGS[$((i+1))]} is not a valid argument for -write-al option"
+      fi
    fi
 done
 [[ $DEBUG ]] && echo "ALIGN_OPT=$ALIGN_OPT" >&2
@@ -153,16 +176,16 @@ else
    [[ `expr ${#FILE_ARGS[@]} % 2` -eq 0 ]] || error_exit "You are missing a corpus in your pair of corpora"
    # Split the single list of files into src / tgt.
    while [[ ${#FILE_ARGS[@]} > 0 ]]; do
-   if [[ `expr ${#FILE_ARGS[@]} % 2` -eq 0 ]]; then
-      # PUSH
-      FILE1=("${FILE1[@]}" ${FILE_ARGS[0]})
-   else
-      # PUSH
-      FILE2=("${FILE2[@]}" ${FILE_ARGS[0]})
-   fi
-   # POP
-   #FILE_ARGS=(${FILE_ARGS[@]:0:$((${#FILE_ARGS[@]}-1))})
-   FILE_ARGS=(${FILE_ARGS[@]:1})
+      if [[ `expr ${#FILE_ARGS[@]} % 2` -eq 0 ]]; then
+         # PUSH
+         FILE1=("${FILE1[@]}" ${FILE_ARGS[0]})
+      else
+         # PUSH
+         FILE2=("${FILE2[@]}" ${FILE_ARGS[0]})
+      fi
+      # POP
+      #FILE_ARGS=(${FILE_ARGS[@]:0:$((${#FILE_ARGS[@]}-1))})
+      FILE_ARGS=(${FILE_ARGS[@]:1})
    done
    [[ $DEBUG ]] && echo "FILE1: ${#FILE1[@]}: <${FILE1[@]}>" >&2
    [[ $DEBUG ]] && echo "FILE2: ${#FILE2[@]}: <${FILE2[@]}>" >&2
@@ -206,6 +229,7 @@ if [[ $DEBUG ]]; then
    echo alignment file: ${FILE3[@]}
    echo WORKDIR: $WORKDIR
    echo Verbose: $VERBOSE
+   echo FILTER: $FILTER
 fi >&2 # send everything to STDERR
 
 # if [ ! $DEBUG ]; then
@@ -218,10 +242,10 @@ test -f $CMDS_FILE && \rm -f $CMDS_FILE
 [[ $VERBOSE ]] && echo "Creating voc files." >&2
 if [[ ! $NOTREALLY ]]; then
    if [[ -n "$NW" ]]; then
-   time {
-      zcat -f ${FILE1[@]} | get_voc | sed 's/^|||$/___|||___/' > $WORKDIR/voc.1
-      zcat -f ${FILE2[@]} | get_voc | sed 's/^|||$/___|||___/' > $WORKDIR/voc.2
-   }
+      time {
+         zcat -f ${FILE1[@]} | get_voc | sed 's/^|||$/___|||___/' > $WORKDIR/voc.1
+         zcat -f ${FILE2[@]} | get_voc | sed 's/^|||$/___|||___/' > $WORKDIR/voc.2
+      }
    fi
 fi
 
@@ -243,13 +267,13 @@ for idx in `seq -w 0 $(($NUM_JOBS-1))`; do
    ali="zcat -f ${FILE3[@]} | stripe.py -i $idx -m $NUM_JOBS"
 
    if [[ ! $NOTREALLY ]]; then
-   if [[ -n "$NW" ]]; then
+      if [[ -n "$NW" ]]; then
          WOPS="-w $NW -wf $WORKDIR/$idx.wp -wfvoc $WORKDIR/voc"
-      time {
+         time {
             eval $src | get_voc | sed 's/^|||$/___|||___/' > $WORKDIR/$idx.voc.1
             eval $tgt | get_voc | sed 's/^|||$/___|||___/' > $WORKDIR/$idx.voc.2
-      }
-   fi
+         }
+      fi
    fi
    if [[ $EXTERNAL_ALIGNER ]]; then
       echo "test -f $WORKDIR/$idx.done || { { set -o pipefail; gen_phrase_tables $WOPS -j $ARG_STRING <($src) <($tgt) <($ali) | LC_ALL=C $SORT_DIR sort | gzip > $WORKDIR/$idx.jpt.gz; } && touch $WORKDIR/$idx.done; }"

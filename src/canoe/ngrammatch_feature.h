@@ -63,7 +63,7 @@ namespace Portage {
        * reference.  No complete coverage of the reference is required.
        * We thus obtain an optimistic score for partial translations.
        **/
-      int maxNgramMatch(const Phrase& phr);
+      int maxNgramMatch(const VectorPhrase& phr);
 
       Uint computeRecombHash(const PartialTranslation &pt);
 

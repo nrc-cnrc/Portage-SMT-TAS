@@ -23,6 +23,7 @@
 #include "vector_map.h"
 #include "trie.h"
 #include "vocab_filter.h"
+#include "tm_entry.h"
 #include <vector>
 #include <string>
 #include <iostream>
@@ -39,6 +40,7 @@ namespace ugdiss {
 namespace Portage
 {
 class Voc;
+class CanoeConfig;
 
 /// Token that seperates items in a phrase table
 extern const char *PHRASE_TABLE_SEP; // = " ||| "
@@ -63,6 +65,17 @@ struct ForwardBackwardPhraseInfo : public PhraseInfo
    /// lexicalized distortion probabilities for this phrase
    vector<float>  lexdis_probs; //boxing
 
+   /// joint count(s)
+   vector<float>  joint_counts;
+
+   /// Alignment information -- indirectly via PhraseTable::alignmentVoc
+   Uint           alignment;
+
+   /// bi-phrase: the encoding of the phrase with its tgt words aligned to
+   /// their source words, for BiLM queries.
+   Phrase         bi_phrase;        
+
+   ForwardBackwardPhraseInfo() : alignment(0) {}
 
    virtual void display() const {
       PhraseInfo::display();
@@ -85,8 +98,18 @@ struct TScore
    /// lexicalized distortion scores from all DM tables
    vector<float> lexdis; //boxing
 
+   /// joint count(s)
+   vector<float> joint_counts;
+
+   /// alignment information -- indirectly via PhraseTable::alignmentVoc
+   Uint alignment;
+
+   /// bi-phrase: the encoding of the phrase with its tgt words aligned to
+   /// their source words, for BiLM queries.
+   Phrase bi_phrase;        
+
    /// Constructor
-   TScore() {}
+   TScore() : alignment(0) {}
 
    /**
     * Check if two TScore are equal.
@@ -98,6 +121,7 @@ struct TScore
       return (forward == rhs.forward
            && backward == rhs.backward
            && adir == rhs.adir
+           && joint_counts == rhs.joint_counts
            && lexdis == rhs.lexdis); //boxing
    }
 
@@ -114,6 +138,8 @@ struct TScore
       backward.clear();
       adir.clear();
       lexdis.clear();
+      joint_counts.clear();
+      alignment = 0;
    } //boxing
 }; // TScore
 
@@ -148,10 +174,19 @@ public:
    /// Log value to use for missing or 0-prob entries (default is LOG_ALMOST_0)
    static double log_almost_0;
 
+   /// A vocab to store alignment info (TScore::alignment)
+   Voc alignmentVoc;
+
 protected:
 
    /// The vocab for the target and source languages combined
    VocabFilter &tgtVocab;
+
+   /// The vocab to store bi-words (for BiLM queries) that will constitute bi_phrase
+   VocabFilter &biPhraseVocab;
+
+   /// Whether we need the bi_phrase for each phrase
+   bool needBiPhrases;
 
    /**
     * The mapping from source phrases to target phrases.
@@ -163,12 +198,13 @@ protected:
    /// The number of translation models that have been loaded from text files.
    Uint numTextTransModels;
 
-   /// Translation models opened in TPPT format.
-   /// The number of models is the sum of the elements in tpptTableModelCounts.
-   vector<shared_ptr<ugdiss::TpPhraseTable> > tpptTables;
+   /// The number of adirectional models that have been loaded from text files.
+   Uint numTextAdirModels;
 
-   /// The number of models in each TPPT table
-   vector<Uint> tpptTableModelCounts;
+   /// Translation models opened in TPPT format.
+   /// The number of models can be obtained by summing over calls to
+   /// TPPT::numThirdCol() (forward+backward) and TPPT::numFourthCol() (adir).
+   vector<shared_ptr<ugdiss::TpPhraseTable> > tpptTables;
 
    /// Lexicalized Distortion Models in TPLDM format.
    vector<shared_ptr<ugdiss::TpPhraseTable> > tpldmTables;
@@ -228,12 +264,14 @@ public:
    /**
     * Constructor creates a new PhraseTable using the given vocab.
     * @param tgtVocab vocab object to used - can be shared with other models
+    * @param biPhraseVocab vocab object for biphrases
     * @param pruningTypeStr NULL or "forward-weights" or "backward-weights"
     *                    or "combined" - see PruningType enum documentation for
     *                    details.
+    * @param needBiPhrases  Whether to construct the biPhrase for each phrase pair
     */
-   PhraseTable(VocabFilter &tgtVocab,
-               const char* pruningTypeStr = NULL);
+   PhraseTable(VocabFilter &tgtVocab, VocabFilter& biPhraseVocab,
+               const char* pruningTypeStr = NULL, bool needBiPhrases = false);
 
    /**
     * Destructor.
@@ -343,6 +381,11 @@ public:
     * @return the total number of probability models in model tppt_filename
     */
    static Uint countTPPTProbModels(const char* tppt_filename);
+
+   /**
+    * Count the number of adirectional scores in a TPPT phrase table file.
+    */
+   static Uint countTPPTAdirModels(const char* tppt_filename);
 
    /**
     * Read a multi-prob phrase table file.  The file must be formatted as for
@@ -489,61 +532,33 @@ protected:
 
    /**
     * Container for holding one entry when reading a either a single or multi probs.
+    * The code to parse a line in a TM is in TMEntry, this class just adds other
+    * variables that PhraseTable methods need to pass around with entries.
     */
-   struct Entry
+   struct Entry : public TMEntry
    {
       const dir d;                ///< direction of the prob file
       const bool limitPhrases;    ///< parameter copied from PhraseTable::readFile()'s
-      const char* const file;     ///< entry is from file
       string* line;               ///< raw entry
-      char* src;                  ///< source string in line
-      vector<string> src_tokens;  ///< source tokens, split from src -- must be vector<string> since only reset when src changes, not at every entry.
-      char* tgt;                  ///< target string in line
-      char* probString;           ///< prob string in line
-      char* ascoreString;         ///< ascore string in line   //boxing
-      Uint  lineNum;              ///< entry number
+      vector<string> src_tokens;  ///< source tokens, split from Src() -- must be vector<string> since only reset when Src() changes, not at every entry.
       VectorPhrase tgtPhrase;     ///< phrase representation of the target string (vector<Uint>)
       Uint src_word_count;        ///< the number of words in src
-
-      /// Keeps count of the erroneous or zero prob entries
-      Uint zero_prob_err_count;
-
-      /// Number of probability columns in the current multi probs file
-      Uint multi_prob_col_count;
-      static const Uint multi_prob_col_count_uninit = Uint(-1);
-
-      /// Number of adirectional columns in the current multi probs file
-      Uint adirectional_prob_count; //boxing
-
-      /// Number of lexicalized distortion columns in the current file
-      Uint lexicalized_distortion_prob_count; //boxing
+      Uint zero_prob_err_count;   ///< Number of prob <= 0 errors detected
 
       /**
        * Constructor.
-       * @param _d     direction of _file
-       * @param _file  current file we are processing
+       * @param d     direction of _file
+       * @param limitPhrases  whether we're filtering as we're loading.
+       * @param file  current file we are processing
        */
-      Entry(dir _d, bool limitPhrases, const char* _file)
-      : d(_d)
+      Entry(dir d, bool limitPhrases, const string& file)
+      : TMEntry(file)
+      , d(d)
       , limitPhrases(limitPhrases)
-      , file(_file)
       , line(NULL)
-      , src(NULL)
-      , tgt(NULL)
-      , probString(NULL)
-      , ascoreString(NULL) //boxing
-      , lineNum(0)
       , src_word_count(0)
       , zero_prob_err_count(0)
-      , multi_prob_col_count(multi_prob_col_count_uninit)
-      , adirectional_prob_count(0)
-      , lexicalized_distortion_prob_count(0)
       {}
-      void print() const {
-         cerr << endl << "ENTRY: " << src << ", " << tgt << ", " << probString
-              << ", " << ascoreString << ", " << tgtPhrase.size();
-         cerr << endl;
-      }
    };
 
    /**
@@ -569,8 +584,7 @@ protected:
     * @param limitPhrases whether to restrict the processing to phrases
     *                     pre-entered into the trie.
     */
-   virtual TargetPhraseTable* getTargetPhraseTable(Entry& entry,
-         bool limitPhrases);
+   virtual TargetPhraseTable* getTargetPhraseTable(Entry& entry, bool limitPhrases);
 
    /**
     * Search for a src phrase in text format PTs (in the Trie) and in TPPT
