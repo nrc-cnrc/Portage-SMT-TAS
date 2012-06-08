@@ -1,5 +1,6 @@
 
-filter_models, NRC-CNRC, (c) 2006 - 2009, Her Majesty in Right of Canada
+filter_models, NRC-CNRC, (c) 2006 - 2012, Her Majesty in Right of Canada
+Please run "portage_info -notice" for Copyright notices of 3rd party libraries.
 
   Running in load all in memory
   Running with source sentences => filtering phrase table base on source phrases
