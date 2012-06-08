@@ -10,8 +10,8 @@
 # Copyright 2005, Her Majesty in Right of Canada
 
 all: multi.probs.no-src-grep.gz multi.probs.src.gz
-	diff -I filter_models -I portage_info -I ".one in " log.multi.probs.no-src-grep log.multi.probs.no-src-grep.ref
-	diff -I filter_models -I portage_info -I ".one in " log.multi.probs.src log.multi.probs.src.ref
+	diff --ignore-matching 'Her Majesty' --ignore-matching 'one in' log.multi.probs.no-src-grep log.multi.probs.no-src-grep.ref
+	diff --ignore-matching 'Her Majesty' --ignore-matching 'one in' log.multi.probs.src log.multi.probs.src.ref
 
 clean:
 	-$(RM) dummy.lm canoe.ini*
@@ -40,6 +40,7 @@ canoe.ini: dummy.lm
 
 
 multi.probs.no-src-grep.gz: canoe.ini
+	rm $@ 2> /dev/null || true
 	filter_models \
 		-no-src-grep \
 		-v -z -r \
@@ -50,6 +51,7 @@ multi.probs.no-src-grep.gz: canoe.ini
 
 
 multi.probs.src.gz: canoe.ini
+	rm $@ 2> /dev/null || true
 	filter_models \
 		-v -z -r \
 		-f canoe.ini \
