@@ -29,8 +29,8 @@ rt.%: dev2_fr.al 100best.gz dev2_en.al
 		${DATA_DIR}/workdir-dev2_fr.al-100best/rescore-model.ini.rat \
 		rescore-model.$* \
 		$+ \
-                >& log.$*
+		>& log.$*
 
 diff.%: rt.%
 	diff rescore-model.$* ref/rescore-model.$* -q
-	diff-round.pl -p 5 scores.$* ref/scores.$* -q
+	diff-round.pl -sort -p 5 scores.$* ref/scores.$* -q
