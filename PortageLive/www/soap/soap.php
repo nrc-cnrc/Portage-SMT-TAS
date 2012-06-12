@@ -23,31 +23,31 @@ $button = "";
 $monitor_token = "";
 #print_r( $_POST);  // Nice for debug POST's values.
 if ( $_POST ) {
-  if ( array_key_exists('context', $_POST) ) {
-    $context = $_POST['context'];
-    if ( array_key_exists('TranslateBox', $_POST) )
-      $button = "TranslateBox";
-    if ( array_key_exists('TranslateTMX', $_POST) )
-      $button = "TranslateTMX";
-  }
+   if ( array_key_exists('context', $_POST) ) {
+      $context = $_POST['context'];
+      if ( array_key_exists('TranslateBox', $_POST) )
+         $button = "TranslateBox";
+      if ( array_key_exists('TranslateTMX', $_POST) )
+         $button = "TranslateTMX";
+   }
 
-  if ( array_key_exists('context', $_POST) ) {
-    $context = $_POST['context'];
-    if ( array_key_exists('Prime', $_POST) )
-      $button = "Prime";
-  }
+   if ( array_key_exists('context', $_POST) ) {
+      $context = $_POST['context'];
+      if ( array_key_exists('Prime', $_POST) )
+         $button = "Prime";
+   }
 
-  if ( array_key_exists('ce_threshold', $_POST) )
-    $ce_threshold = $_POST['ce_threshold'] + 0;
-  else
-    $ce_threshold = 0;
+   if ( array_key_exists('ce_threshold', $_POST) )
+      $ce_threshold = $_POST['ce_threshold'] + 0;
+   else
+      $ce_threshold = 0;
 
-  if ( array_key_exists('monitor_token', $_POST) )
-    $monitor_token = $_POST['monitor_token'];
-  if ( array_key_exists('MonitorJob', $_POST) )
-    $button = "MonitorJob";
+   if ( array_key_exists('monitor_token', $_POST) )
+      $monitor_token = $_POST['monitor_token'];
+   if ( array_key_exists('MonitorJob', $_POST) )
+      $button = "MonitorJob";
 } else {
-  $ce_threshold = 0;
+   $ce_threshold = 0;
 }
 
 
@@ -139,7 +139,7 @@ if ( $button == "Prime"  && $_POST['Prime'] != "" ) {
       $PrimeMode = $_POST['PrimeMode'];
       $client = new SoapClient($WSDL);
       $rc = $client->primeModels($context, $PrimeMode);
-      #print "Prime Models ($context, $PrimeMode) rc = $rc<br />";  // DEBUGGING
+      //print "Prime Models ($context, $PrimeMode) rc = $rc<br />";  // DEBUGGING
       print "<span class=\"PRIME SUCCESS\">Primed successfully!</span></br>";
       if ($rc != "OK")
          print "<div class=\"PRIME ERROR\">INVALID return code.</div>";
@@ -150,127 +150,129 @@ if ( $button == "Prime"  && $_POST['Prime'] != "" ) {
 }
 else
 if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
-  $to_translate = $_POST['to_translate'];
-  print "<hr/><b>Translating: </b> $to_translate <br/>";
-  print "<b>Context: </b> $context <br/>";
-  print "<b>Processed on: </b> " . `date` . "<br/>";
-  $client = "";
-  try {
-    $client = new SoapClient($WSDL);
-  }
-  catch (SoapFault $exception) {  
-    print "<HR/><b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
-  }
+   $to_translate = $_POST['to_translate'];
+   print "<hr/><b>Translating: </b> $to_translate <br/>";
+   print "<b>Context: </b> $context <br/>";
+   print "<b>Processed on: </b> " . `date` . "<br/>";
+   $client = "";
+   try {
+      $client = new SoapClient($WSDL);
+   }
+   catch (SoapFault $exception) {  
+      print "<HR/><b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
+   }
 
-  $start_time = microtime(true);
-  try {
-    print "<hr/><b>Portage getTranslation() replied: </b>";
-    print $client->getTranslation($to_translate);
-    //print "<br/><b>Trace: </b>"; var_dump($client);
-  } catch (SoapFault $exception) {  
-    print "<b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
-  }
-  $end_time = microtime(true);
-  printf("<br/><b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
-  print "<b>Finished at: </b>" . `date` . "<br/>";
+   $start_time = microtime(true);
+   try {
+      print "<hr/><b>Portage getTranslation() replied: </b>";
+      print $client->getTranslation($to_translate);
+      //print "<br/><b>Trace: </b>"; var_dump($client);
+   } catch (SoapFault $exception) {  
+      print "<b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
+   }
+   $end_time = microtime(true);
+   printf("<br/><b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
+   print "<b>Finished at: </b>" . `date` . "<br/>";
 
-  $start_time = microtime(true);
-  try {
-    print "<hr/><b>getTranslation2() replied: </b>";
-    print $client->getTranslation2($to_translate, $context);
-    //print "<br/><b>Trace: </b>"; var_dump($client);
-  } catch (SoapFault $exception) {  
-    print "<b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
-  }
-  $end_time = microtime(true);
-  printf("<br/><b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
-  print "<b>Finished at: </b>" . `date` . "<br/>";
+   $start_time = microtime(true);
+   try {
+      print "<hr/><b>getTranslation2() replied: </b>";
+      print $client->getTranslation2($to_translate, $context);
+      //print "<br/><b>Trace: </b>"; var_dump($client);
+   } catch (SoapFault $exception) {  
+      print "<b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
+   }
+   $end_time = microtime(true);
+   printf("<br/><b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
+   print "<b>Finished at: </b>" . `date` . "<br/>";
 
-  $start_time = microtime(true);
-  try {
-    print "<hr/><b>getTranslationCE() replied: </b>";
-    print $client->getTranslationCE($to_translate, $context);
-    //print "<br/><b>Trace: </b>"; var_dump($client);
-  } catch (SoapFault $exception) {  
-    print "<b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
-  }
-  $end_time = microtime(true);
-  printf("<br/><b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
-  print "<b>Finished at: </b>" . `date` . "<br/>";
+   $start_time = microtime(true);
+   try {
+      print "<hr/><b>getTranslationCE() replied: </b>";
+      print $client->getTranslationCE($to_translate, $context);
+      //print "<br/><b>Trace: </b>"; var_dump($client);
+   } catch (SoapFault $exception) {  
+      print "<b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
+   }
+   $end_time = microtime(true);
+   printf("<br/><b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
+   print "<b>Finished at: </b>" . `date` . "<br/>";
 
 
 
-  #try {
-  #} catch (SoapFault $exception) {
-  #  if ($exception->faultcode == "PortageContext") {
-  #    print "<HR/><b>PortageContext error: </b>{$exception->faultstring}<br/>";
-  #  } else {
-  #    print "<HR/><b>Unknown SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}<BR/>";
-  #    print "<br/><b>exception: </b>";
-  #    var_dump($exception);
-  #    print "<br/><b>client: </b>";
-  #    var_dump($client);
-  #  }
-  #}
+   /*
+      try {
+      } catch (SoapFault $exception) {
+      if ($exception->faultcode == "PortageContext") {
+      print "<HR/><b>PortageContext error: </b>{$exception->faultstring}<br/>";
+      } else {
+      print "<HR/><b>Unknown SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}<BR/>";
+      print "<br/><b>exception: </b>";
+      var_dump($exception);
+      print "<br/><b>client: </b>";
+      var_dump($client);
+      }
+      }
+    */
 }
 else
 if ( $button == "TranslateTMX" && $_FILES["tmx_filename"]["name"] != "") {
-  $tmx_filename = $_FILES["tmx_filename"]["name"];
-  print "<hr/><b>Translating TMX file: </b> $tmx_filename <br/>";
-  print "<b>Context: </b> $context <br/>";
-  print "<b>Processed on: </b> " . `date` . "<br/>";
+   $tmx_filename = $_FILES["tmx_filename"]["name"];
+   print "<hr/><b>Translating TMX file: </b> $tmx_filename <br/>";
+   print "<b>Context: </b> $context <br/>";
+   print "<b>Processed on: </b> " . `date` . "<br/>";
 
-  if ( is_uploaded_file($_FILES["tmx_filename"]["tmp_name"]) ) {
-    $tmp_file = $_FILES["tmx_filename"]["tmp_name"];
-    #print "<br/><b>TMX Upload OK.  Trace: </b> " . print_r($_FILES["tmx_filename"], true);
-    $tmx_contents = file_get_contents($tmp_file);
-    $tmx_contents_base64 = base64_encode($tmx_contents);
-    #print "<br/><b>file contents len: </b> " . strlen($tmx_contents) .
-    #      " <b>base64 len: </b> " . strlen($tmx_contents_base64);
-    
-  try {
-      $client = new SoapClient($WSDL);
+   if ( is_uploaded_file($_FILES["tmx_filename"]["tmp_name"]) ) {
+      $tmp_file = $_FILES["tmx_filename"]["tmp_name"];
+      //print "<br/><b>TMX Upload OK.  Trace: </b> " . print_r($_FILES["tmx_filename"], true);
+      $tmx_contents = file_get_contents($tmp_file);
+      $tmx_contents_base64 = base64_encode($tmx_contents);
+      //print "<br/><b>file contents len: </b> " . strlen($tmx_contents) .
+      //      " <b>base64 len: </b> " . strlen($tmx_contents_base64);
 
-      $ce_threshold += 0;
-      $reply = $client->translateTMXCE($tmx_contents_base64, $tmx_filename, $context, $ce_threshold);
-      print "<hr/><b>Portage replied: </b>$reply";
-      print "<br/><a href=\"$reply\">Monitor job interactively</a>";
-      $monitor_token=$reply;
-      #print "<br/><b>Trace: </b>"; var_dump($client);
-    } catch (SoapFault $exception) {  
-      print "<HR/><b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
-  }
+      try {
+         $client = new SoapClient($WSDL);
 
-  } else {
-    print "<br/><b>TMX Upload error.  Trace: </b> " . print_r($_FILES["tmx_filename"], true);
-    $file_error_codes = array( 
-      0=>"There is no error, the file uploaded with success", 
-      1=>"The uploaded file exceeds the upload_max_filesize directive in php.ini", 
-      2=>"The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form",
-      3=>"The uploaded file was only partially uploaded", 
-      4=>"No file was uploaded", 
-      6=>"Missing a temporary folder",
-      7=>"Failed to write file to disk",
-      8=>"A PHP extension stopped the file upload",
-    );
-    print "<br/><b>Error code description: </b> {$file_error_codes[$_FILES["tmx_filename"]["error"]]}";
-  }
+         $ce_threshold += 0;
+         $reply = $client->translateTMXCE($tmx_contents_base64, $tmx_filename, $context, $ce_threshold);
+         print "<hr/><b>Portage replied: </b>$reply";
+         print "<br/><a href=\"$reply\">Monitor job interactively</a>";
+         $monitor_token=$reply;
+         //print "<br/><b>Trace: </b>"; var_dump($client);
+      } catch (SoapFault $exception) {  
+         print "<HR/><b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
+      }
+
+   } else {
+      print "<br/><b>TMX Upload error.  Trace: </b> " . print_r($_FILES["tmx_filename"], true);
+      $file_error_codes = array( 
+            0=>"There is no error, the file uploaded with success", 
+            1=>"The uploaded file exceeds the upload_max_filesize directive in php.ini", 
+            2=>"The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form",
+            3=>"The uploaded file was only partially uploaded", 
+            4=>"No file was uploaded", 
+            6=>"Missing a temporary folder",
+            7=>"Failed to write file to disk",
+            8=>"A PHP extension stopped the file upload",
+            );
+      print "<br/><b>Error code description: </b> {$file_error_codes[$_FILES["tmx_filename"]["error"]]}";
+   }
 
 
-  print "<hr/><b>Done processing on: </b>" . `date`;
+   print "<hr/><b>Done processing on: </b>" . `date`;
 }
 else
 if ( $button == "MonitorJob" && !empty($monitor_token) ) {
-  try {
-    $client = new SoapClient($WSDL);
-    $reply = $client->translateTMXCE_Status($monitor_token);
-    print "<hr/><b>Job status: </b> $reply";
-    if ( preg_match("/^0 Done: (\S*)/", $reply, $matches) )
-      print "<br/>Right click and save: <a href=\"$matches[1]\">Output TMX</a>";
-    print "<br/><a href=\"$monitor_token\">Switch to interactive job monitoring</a>";
-  } catch (SoapFault $exception) {  
-    print "<HR/><b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
-  }
+   try {
+      $client = new SoapClient($WSDL);
+      $reply = $client->translateTMXCE_Status($monitor_token);
+      print "<hr/><b>Job status: </b> $reply";
+      if ( preg_match("/^0 Done: (\S*)/", $reply, $matches) )
+         print "<br/>Right click and save: <a href=\"$matches[1]\">Output TMX</a>";
+      print "<br/><a href=\"$monitor_token\">Switch to interactive job monitoring</a>";
+   } catch (SoapFault $exception) {  
+      print "<HR/><b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
+   }
 }
 
 
@@ -279,8 +281,8 @@ if ( $button == "MonitorJob" && !empty($monitor_token) ) {
 <hr/>
 <FORM action="" method="post" name="formulaire2" target="_self">
 Job Token:
-<INPUT TYPE = "TEXT"   Name = "monitor_token"       VALUE = "<?=$monitor_token?>" />
-<INPUT TYPE = "Submit" Name = "MonitorJob"  VALUE = "Monitor Job via SOAP"/>
+<INPUT TYPE = "TEXT"   Name = "monitor_token" VALUE = "<?=$monitor_token?>" />
+<INPUT TYPE = "Submit" Name = "MonitorJob"    VALUE = "Monitor Job via SOAP"/>
 </FORM>
 
 
