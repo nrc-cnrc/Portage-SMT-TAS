@@ -121,7 +121,7 @@ if ($do_hardFilter or defined($hardFilter_model)) {
    error_exit "Invalid canoe.ini $canoe_ini\n" unless ($rc == 0);
 
    if ($hardFilter_model) {
-      my $rc = system("filter_models -f $canoe_ini -no-src-grep -tm-online -c -hard-limit $hardFilter_model");
+      my $rc = system("filter_models -f $canoe_ini -no-src-grep -tm-online -c -tm-hard-limit $hardFilter_model");
       error_exit "error hard filtering!\n" unless ($rc == 0);
       if ($hardFilter_model =~ /\.gz$/) {
          $hardFilter_model =~ s/(.+)(\.gz)$/$1.FILT$2/;
@@ -132,7 +132,7 @@ if ($do_hardFilter or defined($hardFilter_model)) {
       $in = "zcat -f $hardFilter_model |";
    }
    else {
-      $in = "filter_models -f $canoe_ini -no-src-grep -tm-online -c -hard-limit - |";
+      $in = "filter_models -f $canoe_ini -no-src-grep -tm-online -c -tm-hard-limit - |";
    }
 }
 
