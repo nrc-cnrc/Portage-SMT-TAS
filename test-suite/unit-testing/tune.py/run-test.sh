@@ -14,10 +14,10 @@
 
 make clean
 
-if [[ $PBS_JOBID ]] && (( `ulimit -v` < 20000000 )); then
-   run-parallel.sh -v -nolocal -psub "-memmap 12" -e 'make testsuite' 1
+if [[ $PBS_JOBID ]]; then
+   make testsuite -j
 else
-   make testsuite
+   make testsuite -j 2
 fi
 
 exit

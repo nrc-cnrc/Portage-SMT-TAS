@@ -15,15 +15,17 @@
 
 
 TUNE := tune.py
-OPTIMIZERS := powell mira pro expsb svm lmira
-export PORTAGE_NOCLUSTER=1
+# The optimizers are roughly ordered from most expensive to cheapest, so we
+# start by the expensive ones and don't have to wait as long for the results.
+OPTIMIZERS := lmira powell mira pro expsb svm
+#export PORTAGE_NOCLUSTER=1
 
 -include Makefile.params
 
 vpath %.rule  src/
 vpath %.lc    src/
 
-.NOTPARALLEL:
+#.NOTPARALLEL:
 .DEFAULT_GOAL := all
 .PHONY: all
 all:  testsuite
@@ -33,6 +35,7 @@ all:  testsuite
 clean:
 	${RM} canoe.tune* decode-config* summary* rescore-weights
 	${RM} -r foos* logs log.canoe.* canoe-parallel.*
+	${RM} -r tunedir.*
 
 
 
@@ -46,7 +49,10 @@ ${OPTIMIZERS}:  %:  canoe.tune.%
 
 
 canoe.tune.%:  dev1_en.rule  dev1_fr.lc
-	${TUNE} --debug -v --workdir=foos.$* -o $@ -f src/canoe.ini -p 3 -c 1 -m 5 -a $* $+ >& log.$@
-	mv summary summary.$*
-	mv summary.wts summary.$*.wts
+	mkdir -p tunedir.$*
+	cd tunedir.$*; \
+	   run-parallel.sh -psub -4 -c \
+	   ${TUNE} --debug -v --workdir=foos.$* -o ../$@ -f ../src/canoe.ini -p 4 -c 1 -m 4 -a $* $(foreach f,$+,../$f) >& ../log.$@
+	mv tunedir.$*/summary summary.$*
+	mv tunedir.$*/summary.wts summary.$*.wts
 
