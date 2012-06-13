@@ -1,0 +1,39 @@
+#!/bin/bash
+# $Id$
+
+# @file tokenize_plugin
+# @brief This script is provided as an example of tokenize_plugin script.
+#
+# @author Samuel Larkin
+#
+# Technologies langagieres interactives / Interactive Language Technologies
+# Inst. de technologie de l'information / Institute for Information Technology
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2012, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2012, Her Majesty in Right of Canada
+
+
+## 
+## Usage: tokenize_plugin SRC_LANG < in > out
+## 
+## Default tokenize plugin: to be called immediately prior to
+## lowercasing but after preprocess_plugin.
+##
+
+if [ "$1" == "-help" -o "$1" == "-h" ]; then
+    cat $0 | grep "^##" | cut -c4-
+    exit 1
+fi
+
+test $# -eq 0 && echo "Missing language code argument" >&2 && exit 1
+LANG=$1; shift
+
+if [[ "$LANG" == "ch" ]]; then
+   perl -ple 'BEGIN{use encoding "UTF-8";} s/(\.\.\.\.\.\.|\.\.\.|\x{2026}|\x2E|\x{FF0E}|\x3F|\x{FF1F}|\x21|\x{FF01}|\x{3002}|\x{FF61})/$1\n/g' \
+   | chinese_segmenter.pl
+elif [ "$LANG" == "fr" -o "$LANG" == "en" -o "$LANG" == "es" ]; then
+   utokenize.pl -ss -lang=$LANG
+else
+   echo "Unsupported language: $LANG" >&2
+   exit 1
+fi

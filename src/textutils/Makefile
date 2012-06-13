@@ -14,6 +14,8 @@ PROGRAMS = \
 	utf8_casemap \
 	utf8_filter
 
+# NOTE: DO NOT add (de)tokenize_plugin scripts to the BINSCRIPTS variable since
+# they exist only to illustrate what a (de)tokenie_plugin could look like.
 BINSCRIPTS = $(wildcard *.sh *.pl *.py) \
 	preprocess_plugin \
 	predecode_plugin \

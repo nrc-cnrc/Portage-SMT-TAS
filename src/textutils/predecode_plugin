@@ -17,7 +17,7 @@
 #############################################################
 
 ## 
-## Usage: predecode_plugin < in > out
+## Usage: predecode_plugin SRC_LANG < in > out
 ## 
 ## Default predecoding plugin: to be called immediately prior to
 ## decoding (but after tokenization, lowercasing, etc.).
@@ -28,6 +28,9 @@ if [ "$1" == "-help" -o "$1" == "-h" ]; then
     cat $0 | grep "^##" | cut -c4-
     exit 1
 fi
+
+test $# -eq 0 && echo "Missing language code argument" >&2 && exit 1
+LANG=$1; shift
 
 # If you have a rules parser, replace the canoe-escapes.pl call by a call to your
 # rules parser. The rules parser must also escape literal use of the following 

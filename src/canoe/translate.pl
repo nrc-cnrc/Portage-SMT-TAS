@@ -717,14 +717,14 @@ IN:{
 
 # Preprocess, tokenize and lowercase
 PREP:{
-   plugin("preprocess", $Q_txt, $Q_pre);
+   plugin("preprocess", $src, $Q_txt, $Q_pre);
    tokenize($src, $Q_pre, $Q_tok);
    lowercase($Q_tok, $q_tok);
 }
 
 # Translate
 TRANS:{
-   plugin("predecode", $q_tok, $q_dec);
+   plugin("predecode", $src, $q_tok, $q_dec);
 
    if (defined $w and $n > 1) {
       my $sent_count = `wc -l < $q_dec` + 0;
@@ -785,9 +785,9 @@ TRANS:{
    }
    
    if (not defined $tcsrclm) {
-      plugin("postdecode", $p_dec, $p_tok);   
+      plugin("postdecode", $tgt, $p_dec, $p_tok);   
    } else {
-      plugin("postdecode", $p_decoov, $p_tokoov);
+      plugin("postdecode", $tgt, $p_decoov, $p_tokoov);
       call("cat '${p_tokoov}' | perl -pe 's/<OOV>(.+?)<\\/OOV>/\\1/g;' >'${p_tok}'"); 
    }
 }
@@ -796,7 +796,7 @@ TRANS:{
 POST:{
    truecase($tgt, defined $tcsrclm ? $p_tokoov : $p_tok, $P_tok, $Q_tok, $p_pal);
    detokenize($tgt, $P_tok, $P_dtk);
-   plugin("postprocess", $P_dtk, $P_txt);
+   plugin("postprocess", $tgt, $P_dtk, $P_txt);
 }
 
 # Predict CE
@@ -853,11 +853,13 @@ sub copy {
 }
 
 sub plugin {
-   my ($name, $in, $out) = @_;
+   my ($name, $lang, $in, $out) = @_;
    my $old_path = $ENV{PATH};
    $ENV{PATH} = "${plugins_dir}:".$ENV{PATH};
-   my $actual_prog = callOutput("which ${name}_plugin"); # for the benefit of verbose
-   call("${actual_prog} < '${in}' > '${out}'", $out);
+   my $actual_prog = `which ${name}_plugin`;
+   chomp($actual_prog);
+   print STDERR "Using plugin: ${actual_prog}\n";
+   call("${actual_prog} ${lang} < '${in}' > '${out}'", $out);
    $ENV{PATH} = $old_path;
 }
 
@@ -920,22 +922,30 @@ sub sourceWordCount {
        $count_file = $Q_pre;
    }
 
+   cleanupAndDie("Can't open temp file ${count_file} for reading.\n") unless (-r "${count_file}");
    my $cmd = "wc -w < '${count_file}'";
-   my $wc = callOutput($cmd);
-   return $wc;
+   return `$cmd`;
 }
 
 sub tokenize {
    my ($lang, $in, $out) = @_;
    if (!$tok and $nl eq 's') {
       copy($in, $out);
-   } else {
-      my $tokopt = " -lang=${lang}";
-      $tokopt .= $nl eq 's' ? " -noss" : " -ss";
-      $tokopt .= " -paraline" if $nl eq 'p';
-      $tokopt .= " -pretok" if !$tok;
-      my $u = $utf8 ? "u" : "";
-      call("${u}tokenize.pl ${tokopt} '${in}' '${out}'", $out);
+   }
+   else {
+      my $cmd = `which tokenize_plugin 2> /dev/null`;
+      chomp($cmd);
+      if ( $cmd ) {
+         plugin("tokenize", $src, $Q_pre, $Q_tok);
+      }
+      else {
+         my $tokopt = " -lang=${lang}";
+         $tokopt .= $nl eq 's' ? " -noss" : " -ss";
+         $tokopt .= " -paraline" if $nl eq 'p';
+         $tokopt .= " -pretok" if !$tok;
+         my $u = $utf8 ? "u" : "";
+         call("${u}tokenize.pl ${tokopt} '${in}' '${out}'", $out);
+      }
    }
 }
 
@@ -943,9 +953,17 @@ sub detokenize {
    my ($lang, $in, $out) = @_;
    unless ($detok) {
       copy($in, $out);
-   } else {
-      my $u = $utf8 ? "u" : "";
-      call("${u}detokenize.pl -lang=${lang} < '${in}' > '${out}'", $out);
+   }
+   else {
+      my $cmd = `which detokenize_plugin 2> /dev/null`;
+      chomp($cmd);
+      if ( $cmd ) {
+         plugin("detokenize", $tgt, $P_tok, $P_dtk);
+      }
+      else {
+         my $u = $utf8 ? "u" : "";
+         call("${u}detokenize.pl -lang=${lang} < '${in}' > '${out}'", $out);
+      }
    }
 }
 

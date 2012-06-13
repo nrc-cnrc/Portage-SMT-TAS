@@ -1,0 +1,37 @@
+#!/bin/bash
+# $Id$
+
+# @file tokenize_plugin
+# @brief This script is provided as an example of detokenize_plugin script.
+#
+# @author Samuel Larkin
+#
+# Technologies langagieres interactives / Interactive Language Technologies
+# Inst. de technologie de l'information / Institute for Information Technology
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2012, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2012, Her Majesty in Right of Canada
+
+
+## 
+## Usage: detokenize_plugin TGT_LANG < in > out
+## 
+## Default detokenize plugin: to be called immediately prior to
+## postprocess_plugin but after truecasing.
+##
+
+if [ "$1" == "-help" -o "$1" == "-h" ]; then
+    cat $0 | grep "^##" | cut -c4-
+    exit 1
+fi
+
+test $# -eq 0 && echo "Missing language code argument" >&2 && exit 1
+LANG=$1; shift
+
+if [ "$LANG" == "fr" -o "$LANG" == "en" -o "$LANG" == "es" ]; then
+   udetokenize.pl -lang=$LANG
+else
+   echo "Unsupported language: $LANG" >&2
+   exit 1
+fi
+
