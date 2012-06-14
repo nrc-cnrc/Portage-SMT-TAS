@@ -747,7 +747,7 @@ def optimizeOnlineLMIRA(iter, wts, args, logfile):
     print >> logfile, ' '.join(cmd)
     logfile.flush()
     try:
-       toks = check_output(cmd, stdout=PIPE, stderr=logfile).split()
+       toks = check_output(cmd, stderr=logfile).split()
     except CalledProcessError, (num, errstr):
        error("ScoreCountFile failed for optimizeOnlineLMIRA", ' '.join(cmd), num, errstr)
     except OSError, err:
