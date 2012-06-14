@@ -380,18 +380,18 @@ IN:{
 # Preprocess, Tokenize and lowercase
 
 PREP:{
-    plugin("preprocess", $Q_txt, $Q_pre);
+    plugin("preprocess", $src, $Q_txt, $Q_pre);
     tokenize($src, $Q_pre, $Q_tok);
     lowercase($Q_tok, $q_tok);
 
     if ($tmem or $ttx) {
-        plugin("preprocess", $T_txt, $T_pre);
+        plugin("preprocess", $src, $T_txt, $T_pre);
         tokenize($tgt, $T_pre, $T_tok);
         lowercase($T_tok, $t_tok);
     }
 
     if ($ref_text) {
-        plugin("preprocess", $R_txt, $R_pre);
+        plugin("preprocess", $src, $R_txt, $R_pre);
         tokenize($tgt, $R_pre, $R_tok);
         lowercase($R_tok, $r_tok);
     }
@@ -400,7 +400,7 @@ PREP:{
 # Translate
 
 TRANS:{
-    plugin("predecode", $q_tok, $q_dec);
+    plugin("predecode", $src, $q_tok, $q_dec);
     my $decoder = "canoe";
     if ( $n > 1 ) {
         $decoder = "canoe-parallel.sh -n $n canoe";
@@ -408,13 +408,13 @@ TRANS:{
     call("$decoder -trace -ffvals -f ${canoe_ini} < \"${q_dec}\" > \"${p_raw}\"");
     call("ce_canoe2ffvals.pl -verbose=${verbose} -dir=\"${dir}\" \"${p_raw}\"");
     # ce_canoe2ffvals.pl generates $p_dec from $p_raw, among other things
-    plugin("postdecode", $p_dec, $p_tok);
+    plugin("postdecode", $tgt, $p_dec, $p_tok);
 }
 
 POST:{
     truecase($tgt, $p_tok, $P_tok);
     detokenize($tgt, $P_tok, $P_dtk);
-    plugin("postprocess", $P_dtk, $P_txt);
+    plugin("postprocess", $tgt, $P_dtk, $P_txt);
 }
 
 # Train/predict CE
@@ -473,11 +473,11 @@ sub copy {
 }
 
 sub plugin {
-    my ($name, $in, $out) = @_;
+    my ($name, $lang, $in, $out) = @_;
     my $old_path = $ENV{PATH};
     $ENV{PATH} = "${plugin_dir}:".$ENV{PATH};
     my $actual_prog = callOutput("which ${name}_plugin"); # for the benefit of verbose
-    call("${actual_prog} < \"${in}\" > \"${out}\"", $out);
+    call("${actual_prog} ${lang} < \"${in}\" > \"${out}\"", $out);
     $ENV{PATH} = $old_path;
 }
 
@@ -540,30 +540,45 @@ sub sourceWordCount {
        $count_file = $Q_pre;
    }
 
-   my $cmd = "wc -w < \"${count_file}\"";
-   my $wc = callOutput($cmd);
-   return $wc;
+   cleanupAndDie("Can't open temp file ${count_file} for reading.\n") unless (-r "${count_file}");
+   my $cmd = "wc -w < '${count_file}'";
+   return `$cmd`;
 }
 
 sub tokenize {
-    my ($lang, $in, $out) = @_;
-    if ($notok and $nl eq 's') {
-        copy($in, $out);
-    } else {
-        my $tokopt = " -lang=${lang}";
-        $tokopt .= $nl eq 's' ? " -noss" : " -ss";
-        $tokopt .= " -paraline" if $nl eq 'p';
-        $tokopt .= " -pretok" if $notok;
-        call("utokenize.pl ${tokopt} \"${in}\" \"${out}\"", $out);
-    }
+   my ($lang, $in, $out) = @_;
+   if ($notok and $nl eq 's') {
+      copy($in, $out);
+   }
+   else {
+      my $cmd = `which tokenize_plugin 2> /dev/null`;
+      chomp($cmd);
+      if ( $cmd ) {
+         plugin("tokenize", $src, $Q_pre, $Q_tok);
+      }
+      else {
+         my $tokopt = " -lang=${lang}";
+         $tokopt .= $nl eq 's' ? " -noss" : " -ss";
+         $tokopt .= " -paraline" if $nl eq 'p';
+         $tokopt .= " -pretok" if $notok;
+         call("utokenize.pl ${tokopt} \"${in}\" \"${out}\"", $out);
+      }
+   }
 }
 
 sub detokenize {
-    my ($lang, $in, $out) = @_;
+   my ($lang, $in, $out) = @_;
 #     if ($notok) {
 #         call("cp \"${in}\" \"${out}\"");
 #     } else {
-    call("udetokenize.pl -lang=${lang} < \"${in}\" > \"${out}\"", $out);
+   my $cmd = `which detokenize_plugin 2> /dev/null`;
+   chomp($cmd);
+   if ( $cmd ) {
+      plugin("detokenize", $tgt, $P_tok, $P_dtk);
+   }
+   else {
+      call("udetokenize.pl -lang=${lang} < \"${in}\" > \"${out}\"", $out);
+   }
 #    }
 }
 
