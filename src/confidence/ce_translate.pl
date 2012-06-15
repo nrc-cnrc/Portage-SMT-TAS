@@ -552,7 +552,7 @@ sub tokenize {
    }
    else {
       my $old_path = $ENV{PATH};
-      $ENV{PATH} = "${plugins_dir}:".$ENV{PATH};
+      $ENV{PATH} = "${plugin_dir}:".$ENV{PATH};
       my $cmd = `which tokenize_plugin 2> /dev/null`;
       $ENV{PATH} = $old_path;
       chomp($cmd);
@@ -574,10 +574,10 @@ sub detokenize {
 #     if ($notok) {
 #         call("cp \"${in}\" \"${out}\"");
 #     } else {
-      my $old_path = $ENV{PATH};
-      $ENV{PATH} = "${plugins_dir}:".$ENV{PATH};
+   my $old_path = $ENV{PATH};
+   $ENV{PATH} = "${plugin_dir}:".$ENV{PATH};
    my $cmd = `which detokenize_plugin 2> /dev/null`;
-      $ENV{PATH} = $old_path;
+   $ENV{PATH} = $old_path;
    chomp($cmd);
    if ( $cmd ) {
       plugin("detokenize", $tgt, $P_tok, $P_dtk);
