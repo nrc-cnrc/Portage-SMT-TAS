@@ -38,6 +38,9 @@ v1.5.0 2012-??-??
      best results when we combine phrase pair counts and HLDM counts obtained
      from IBM4, HMM and IBM2 alignments, rather than applying only the single
      best alignment method.
+   - Alignment indicator features tell the decoder which alignment(s) provided
+     each phrase pair, allowing the tuning algorithm to weigh the aligners's
+     opinions automatically.
 
  Changes of intermediate importance:
  - New -filter-singletons switch to train_ibm reduces memory bubble at the
