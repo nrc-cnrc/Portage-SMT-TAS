@@ -480,7 +480,7 @@ def optimizePowell(iter, wts, args, logfile):
     seed = str(opts.seed * 10000 + iter)
     wo_file = powellwts + str(iter+1)
     if opts.sparse: sfvals2ffvals(len(wts))
-    cmd = ["rescore_train", "-n", "-r", "15", "-dyn", "-win", "5", "-s", seed, \
+    cmd = ["time-mem", "rescore_train", "-n", "-r", "15", "-dyn", "-win", "5", "-s", seed, \
            "-wi", powellwts + str(iter), "-wo", wo_file] + args.split() + \
            [optimizer_in, optimizer_out, src, allnb] + refs
     print >> logfile, ' '.join(cmd)
@@ -514,7 +514,7 @@ def optimizeMIRA(iter, wts, args, logfile):
     if len(args_vals) > 7:
        print >> logfile, "warning: ignoring values past first 3 tokens in " + args
     refglob = ','.join(refs)
-    cmd = [jav, jmem, "-enableassertions", "-jar", jar, "MiraTrainNbestDecay", optimizer_in, \
+    cmd = ["time-mem", jav, jmem, "-enableassertions", "-jar", jar, "MiraTrainNbestDecay", optimizer_in, \
            allff, allbleus, allnb, refglob, C, I, E, B, H, O, D]
     outfile = open(optimizer_out, 'w')
     print >> logfile, ' '.join(cmd)
@@ -539,7 +539,7 @@ def optimizeSVM(iter, wts, args, logfile):
     if len(args_vals) > 3 :
         print >> logfile, "warning: ignoring values past first 3 tokens in " + args
     refglob = ','.join(refs)
-    cmd = [jav, jmem, "-enableassertions", "-jar", jar, "SvmTrainNbest", optimizer_in, \
+    cmd = ["time-mem", jav, jmem, "-enableassertions", "-jar", jar, "SvmTrainNbest", optimizer_in, \
            allff, allbleus, allnb, refglob, C, B, A]
     outfile = open(optimizer_out, 'w')
     print >> logfile, ' '.join(cmd)
@@ -562,7 +562,7 @@ def optimizeExpSentBleu(iter, wts, args, logfile):
     if len(args_vals) > 2 : 
         print >> logfile, "warning, ignoring values past first token in " + args
     refglob = ",".join(refs)
-    cmd = [jav, jmem, "-enableassertions", "-jar", jar, "ExpLinGainNbest", optimizer_in, \
+    cmd = ["time-mem", jav, jmem, "-enableassertions", "-jar", jar, "ExpLinGainNbest", optimizer_in, \
            allff, allbleus, allnb, refglob, L, BFGS]
     outfile = open(optimizer_out, 'w')
     print >> logfile, ' '.join(cmd)
@@ -591,7 +591,7 @@ def optimizePRO(iter, wts, args, logfile):
     if len(args_vals) > 5:
         print >> logfile, "warning: ignoring values past fourth token in " + args
     refglob = ','.join(refs)
-    cmd = [jav, jmem, "-enableassertions", "-jar", jar, "ProTrainNbest", optimizer_in, \
+    cmd = ["time-mem", jav, jmem, "-enableassertions", "-jar", jar, "ProTrainNbest", optimizer_in, \
            allff, allbleus, allnb, refglob, alg, o, curwt, \
            b, r, str(iter), optimizer_out]
     print >> logfile, ' '.join(cmd)
@@ -619,7 +619,7 @@ def optimizeLMIRA(iter, wts, args, logfile):
     if len(args_vals) > 5:
        print >> logfile, "warning: ignoring values past first 4 tokens in " + args
     refglob = ','.join(refs)
-    cmd = [jav, jmem, "-enableassertions", "-jar", jar, "MiraTrainLattice", optimizer_in, \
+    cmd = ["time-mem", jav, jmem, "-enableassertions", "-jar", jar, "MiraTrainLattice", optimizer_in, \
            workdir, refglob, src, hypmem, C, decay, bg, density, numIt]
     outfile = open(optimizer_out, 'w')
     print >> logfile, ' '.join(cmd)
