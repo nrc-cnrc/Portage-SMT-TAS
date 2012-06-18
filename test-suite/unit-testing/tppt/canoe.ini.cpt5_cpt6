@@ -1,0 +1,6 @@
+[ttable-multi-prob] cpt5 cpt6
+[lmodel-file] lm
+[use-ftm]
+[weight-a] .1 .1 .1
+[distortion-limit] 0
+[b] 1e-30
