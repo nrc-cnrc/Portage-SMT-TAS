@@ -19,6 +19,7 @@
 #include "canoe_general.h"
 #include "errors.h"
 #include "file_utils.h"
+#include "vector_map.h"
 
 namespace Portage
 {
@@ -31,33 +32,44 @@ class rnd_distribution; // No need to actually include randomDistribution.h here
  *
  * To add a new argument to canoe:
  *
- * 1) Add a parameter member to the set below.
+ * If the new argument is a feature in the log-linear model:
+ *  1) Add it short, long and group name to weight_names_other in config_io.cc
  *
- * 2) Initialize the parameter with a default value in the CanoeConfig
- *    constructor.
+ *  2) If the feature only has a weight, set its need_args value to false; if
+ *     it also has a string argument, add a corresponding ParamInfo object to
+ *     the param_infos list (see 3 below for more details, and existing
+ *     features for examples).  Note that all log-linear weights are now
+ *     doubleVect, and their arguments are all stringVect.  Restrictions on the
+ *     number of isntances are enforced in CanoeConfig::check().
  *
- * 3) Add a corresponding ParamInfo object to the param_infos list in the
- *    CanoeConfig constructor. See examples for existing parameters.  Be sure
- *    to flag your new option in the proper group, for example the LMs and TMs
- *    filename must be modified to be able to run canoe.relative thus they are
- *    flagged with relative_path_modification so they can be modified later to
- *    their correct path.
+ * If the new argument is not a log-linear feature:
+ *  1) Add a parameter member to the set below.
  *
- * 4) If the parameter is a loglinear weight, add its name (or an alias) to the
- *    weight_params list in the CanoeConfig constructor. Weights for features
- *    that can be omitted from the model MUST be vectors, even if they take at
- *    most one value. (Empty vectors are used to indicate omission.)
+ *  2) Initialize the parameter with a default value in the CanoeConfig
+ *     constructor.
  *
- * 5) If the parameter is not a standard type (bool, int, Uint, double, string
- *    and vectors of Uint, double, and string), or if it has a special
- *    interpretation, then assign it a new ParamInfo::tconv value, and add
- *    handling for this value in ParamInfo::get() and ParamInfo::set(), to
- *    convert its value(s) to and from a string argument. See the "nbest"
- *    parameter for an example.
+ * Either way:
+ *  3) Add a corresponding ParamInfo object to the param_infos list in the
+ *     CanoeConfig constructor. See examples for existing parameters.  Be sure
+ *     to flag your new option in the proper group, for example the LMs and TMs
+ *     filename must be modified to be able to run canoe.relative thus they are
+ *     flagged with relative_path_modification so they can be modified later to
+ *     their correct path.
  *
- * 6) If necessary, add error checking to CanoeConfig::check().
+ *  4) If the parameter is not a standard type (bool, int, Uint, double, string
+ *     and vectors of Uint, double, and string), or if it has a special
+ *     interpretation, then assign it a new ParamInfo::tconv value, and add
+ *     handling for this value in ParamInfo::get() and ParamInfo::set(), to
+ *     convert its value(s) to and from a string argument. See the "nbest"
+ *     parameter for an example.
  *
- * 7) Add a description of the argument to the help message in canoe_help.h
+ *  5) If necessary, add error checking to CanoeConfig::check().
+ *
+ *  6) If necessary, set default values in CanoeConfig::check(): simple
+ *     constant default values are set in the CanoeConfig constructor, but
+ *     default values that depend on other parameters are set in check().
+ *
+ *  7) Add a description of the argument to the help message in canoe_help.h
  *
  * Once this is done, the parameter may be specified either on canoe's command
  * line, or in a config file, or both. It will also automatically work with
@@ -84,10 +96,8 @@ private:
    {
       private:
          /// Default random distribution's string representation
-         const string default_value;
+         static const string default_value; // = "U(-1.0,1.0)";
       public:
-         /// Default constructor.
-         random_param() : default_value("U(-1.0,1.0)") {}
          /**
           * Converts the internal string representation to the proper random
           * distribution.  If user didn't specify all random distribution, then
@@ -102,6 +112,25 @@ private:
 
 public:
 
+   /// Groups together the variables needed to describe a feature: its name,
+   /// weight name, weights, random weights, feature names.
+   struct FeatureDescription {
+      const string shortname;   ///< short name of the feature's weight option
+      const string group;       ///< long name of the feature group, for DecoderFeature::create()
+      vector<double> weights;   ///< weights for this feature
+      random_param rnd_weights; ///< random weight parameters for this feature
+      bool need_args;           ///< whether the feature is triggered by its args or its weights (default: yes)
+      vector<string> args;      ///< string(s) providing the feature argument(s)
+
+      /// Constructor 
+      FeatureDescription(const string& shortname, const char* group)
+         : shortname(shortname), group(group), need_args(true) {}
+      /// Return weather the config has no features if this group
+      bool empty() const { return weights.empty(); }
+      /// Return how many feature of this group the config has
+      Uint size() const { return weights.size(); }
+   };
+
    // Parameters:
 
    string configFile;               ///< Name of the canoe config file
@@ -113,22 +142,6 @@ public:
    string nbestProcessor;           ///< A script that will be invoked for all nbest.
 
    // WEIGHTS
-   vector<double> distWeight;       ///< Distortion model weights
-   random_param rnd_distWeight;     ///< Distortion model weight distributions
-   double lengthWeight;             ///< Length penalty weight
-   random_param rnd_lengthWeight;   ///< Length penalty weight distribution
-   vector<double> segWeight;        ///< Segmentation model weights
-   random_param rnd_segWeight;      ///< Segmentation model weight distributions
-   vector<double> unalWeight;       ///< Unal feature weights
-   random_param rnd_unalWeight;     ///< Unal feature weight distributions
-   vector<double> bilmWeights;      ///< BiLM model weights
-   random_param rnd_bilmWeights;  ///< BiLM model weight distributions
-   vector<double> ibm1FwdWeights;   ///< Forward IBM1 feature weights
-   random_param rnd_ibm1FwdWeights; ///< Forward IBM1 feature weight distributions
-   vector<double> levWeight;        ///< Weight for Levenshtein distance in forced alignment
-   random_param rnd_levWeight;      ///< Weight for Levenshtein distance in forced alignment
-   vector<double> ngramMatchWeights;///< Weight for n-gram precision in forced alignment
-   random_param rnd_ngramMatchWeights;///< Weight for n-gram precision in forced alignment
    vector<double> lmWeights;        ///< Language model weights
    random_param rnd_lmWeights;      ///< Language model weights
    vector<double> transWeights;     ///< Translation model weights
@@ -138,10 +151,12 @@ public:
    vector<double> adirTransWeights;   ///< Adirectional translation model weights //boxing
    random_param rnd_adirTransWeights; ///< Adirectional translation model weights //boxing
 
+   /// A map holding all the other feature weights and models et al
+   typedef vector_map<string, FeatureDescription*> FeatureMap;
+   FeatureMap features;
+
    // Rule decoder feature arguments
    vector<string> rule_classes;       ///< Rule classes' name
-   vector<double> rule_weights;       ///< Rule classes' weights
-   random_param rnd_rule_weights;     ///< Rule classes' weights
    vector<double> rule_log_zero;      ///< Rule classes' log zero value
 
    bool randomWeights;              ///< true == use rnd weights for each sent.
@@ -165,11 +180,6 @@ public:
    bool distPhraseSwap;             ///< Allow swapping contiguous phrases
    bool distLimitITG;               ///< Enable ITG constraint
    bool shiftReduceOnlyITG;         ///< ShiftReducer can perform only ITG reductions
-   vector<string> distortionModel;  ///< Distortion model name(s)
-   string segmentationModel;        ///< Segmentation model name
-   vector<string> unalFeatures;     ///< Unal feature name(s)
-   vector<string> ibm1FwdFiles;     ///< Forward IBM1 feature file names
-   vector<string> bilmFiles;        ///< BiLM model file(s)
    bool bypassMarked;               ///< Look in PT even for marked trans
    double weightMarked;             ///< Constant discount for marked probs
    string oov;                      ///< OOV handling method
@@ -236,6 +246,17 @@ public:
     * @return list of parameters (each followed by a colon unless boolean).
     */
    const vector<string>& getParamList() const { return param_list; }
+
+   //@{
+   /**
+    * Access a particular feature's description object
+    * @param name  The short name for the feature.  See weight_params_other, or
+    * weight_names_other in config_io.cc, for the current list of allowed
+    * feature names.
+    */
+   FeatureDescription* feature(const char* group) { return features.get(group); }
+   const FeatureDescription* feature(const char* group) const { return features.get(group); }
+   //@}
 
    /**
     * Set parameters from an ArgReader object.
@@ -390,7 +411,7 @@ private:
        * @param val           value of the parameter
        * @param g             group id
        */
-      ParamInfo(const string name_strings, const string& tconv, void* val, Uint g = no_group) :
+      ParamInfo(const string& name_strings, const string& tconv, void* val, Uint g = no_group) :
          tconv(tconv),
          val(val),
          set_from_config(false),

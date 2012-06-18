@@ -63,7 +63,7 @@ namespace Portage
       /// Check to see if we need the parser
       ///
       /// One-stop-shop to list all features/whatever that could
-      /// possible need the extra overhead of shift-reduce parsing
+      /// possibly need the extra overhead of shift-reduce parsing
       static bool usingSR(const CanoeConfig& c);
 
       /// Return a count of non-ITG reductions seen during reduce()

@@ -131,10 +131,11 @@ bool ShiftReducer::usingSR(const CanoeConfig& c)
 {
    if(c.distLimitITG) return true;
    
-   for(Uint i=0; i<c.distortionModel.size(); i++)
+   const vector<string>& distortionModel(c.feature("d")->args);
+   for(Uint i=0; i<distortionModel.size(); i++)
    {
       string name, arg;
-      DistortionModel::splitNameAndArg(c.distortionModel[i],name,arg);
+      DistortionModel::splitNameAndArg(distortionModel[i],name,arg);
       if(name.compare("back-hlex")==0) return true;      
    }
 

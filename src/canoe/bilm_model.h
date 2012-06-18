@@ -23,6 +23,8 @@ class PLM;
 class VocabFilter;
 
 class BiLMModel : public DecoderFeature {
+   BasicModelGenerator* bmg;
+   const string filename;
    PLM* bilm;
    Uint order;
    VocabFilter& voc;
@@ -31,6 +33,7 @@ class BiLMModel : public DecoderFeature {
 public:
    BiLMModel(BasicModelGenerator* bmg, const string& filename);
    ~BiLMModel();
+   virtual void finalizeInitialization(); // the real loading is done here, since we need TMs first
    virtual void newSrcSent(const newSrcSentInfo& info);
    virtual double precomputeFutureScore(const PhraseInfo& phrase_info);
    virtual double futureScore(const PartialTranslation &trans);

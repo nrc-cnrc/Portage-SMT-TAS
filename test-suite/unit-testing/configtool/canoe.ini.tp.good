@@ -14,7 +14,6 @@
 [dist-limit-ext]
 [dist-phrase-swap]
 [distortion-model] WordDisplacement:back-lex#m:back-lex#s:back-lex#d:fwd-lex#m:fwd-lex#s:fwd-lex#d
-[segmentation-model] none
 [bypass-marked]
 [cube-pruning]
 [load-first]

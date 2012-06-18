@@ -29,15 +29,15 @@
 using namespace Portage;
 
 DecoderFeature* DecoderFeature::create(BasicModelGenerator* bmg,
-                                       const string& group, const string& name,
+                                       const string& group,
                                        const string& args, bool fail)
 {
    DecoderFeature* f = NULL;
 
    if ( group == "SegmentationModel" ) {
-      f = SegmentationModel::create(name, fail);
+      f = SegmentationModel::create(args, fail);
    } else if ( group == "DistortionModel" ) {
-      f = DistortionModel::create(name, fail);
+      f = DistortionModel::create(args, fail);
    } else if ( group == "IBM1FwdFeature" ) {
       f = new IBM1FwdFeature(bmg, args);
    } else if ( group == "LengthFeature" ) {
@@ -49,7 +49,7 @@ DecoderFeature* DecoderFeature::create(BasicModelGenerator* bmg,
    } else if ( group == RuleFeature::name ) {
       f = new RuleFeature(bmg, args);
    } else if ( group == "UnalFeature" ) {
-      f = new UnalFeature(bmg->getPhraseTable().alignmentVoc, name);
+      f = new UnalFeature(bmg->getPhraseTable().alignmentVoc, args);
    } else if ( group == "BiLMModel" ) {
       f = new BiLMModel(bmg, args);
    } else {
@@ -61,13 +61,12 @@ DecoderFeature* DecoderFeature::create(BasicModelGenerator* bmg,
 
    // We MUST return a valid pointer or else it's an error.
    if (f == NULL) {
-      error(ETFatal, "Invalid %s when initializing decoder feature with %s %s",
-         group.c_str(), name.c_str(), args.c_str());
+      error(ETFatal, "Invalid %s when initializing decoder feature with %s",
+         group.c_str(), args.c_str());
    }
    
    if ( f && f->description.empty() ) {
       f->description = group;
-      if ( name != "" ) f->description += ":" + name;
       if ( args != "" ) f->description += ":" + args;
    }
 

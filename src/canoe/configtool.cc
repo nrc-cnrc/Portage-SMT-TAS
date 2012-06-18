@@ -99,7 +99,6 @@ Options:\n\
 
 static bool verbose = false;
 static bool pretty = false;
-static bool nocheck = false;
 static string cmd;
 static string config_in = "-";
 static ofstream ofs;
@@ -156,7 +155,7 @@ int main(int argc, char* argv[])
 
    CanoeConfig c;
    c.read(config_in.c_str());
-   if (!nocheck) c.check();
+   c.check();
 
    vector<string> toks;
    Uint vi;
@@ -168,9 +167,9 @@ int main(int argc, char* argv[])
       c.getFeatureWeights(wts);
       os << wts.size() << endl;
    } else if (cmd == "nd") {
-      os << c.distWeight.size() << endl;
+      os << c.feature("d")->size() << endl;
    } else if (cmd == "segff") {
-      os << c.segWeight.size() << endl;
+      os << c.feature("sm")->size() << endl;
    } else if (cmd == "memmap") {
       Uint64 total_memmap_size = 0;
       for ( Uint i = 0; i < c.tpptFiles.size(); ++i )
@@ -180,8 +179,8 @@ int main(int argc, char* argv[])
       os << (total_memmap_size/1024/1024) << endl;
    } else if (cmd == "nb") {
       int n = 1 // length is always a basic feature
-            + c.segWeight.size()
-            + c.distWeight.size();
+            + c.feature("d")->size()
+            + c.feature("sm")->size();
       os << n << endl;
    } else if (cmd == "nl") {
       os << c.lmFiles.size() << endl;
@@ -190,13 +189,8 @@ int main(int argc, char* argv[])
              c.getTotalTPPTModelCount()) << endl;
    } else if (cmd == "na") {
       os << c.getTotalAdirectionalModelCount() << endl;
-   } else if (cmd == "nt-text") {
-      error(ETWarn, "Using obsolete command nt-text");
-      os << 0 << endl;
    } else if (cmd == "nt-tppt") {
       os << c.getTotalTPPTModelCount() << endl;
-   } else if (isPrefix("ttable-file:", cmd)) {
-      error(ETFatal, "Using obsolete command ttable-file");
    } else if (cmd == "ttable-limit") {
       os << c.phraseTableSizeLimit << endl;
    } else if (isPrefix("rep-ttable-limit:", cmd)) {
@@ -216,10 +210,6 @@ int main(int argc, char* argv[])
       for (Uint i = 0; i < c.multiProbTMFiles.size(); ++i)
          c.multiProbTMFiles[i] = addExtension(BaseName(c.multiProbTMFiles[i].c_str()), toks[1]);
       c.write(os,0,pretty);
-   } else if (isPrefix("filt-ttables:", cmd)) {
-      error(ETFatal, "Using obsolete command filt-ttables");
-   } else if (isPrefix("filt-ttables-local:", cmd)) {
-      error(ETFatal, "Using obsolete command filt-ttables-local");
    } else if (isPrefix("set-weights:", cmd)) {
       if (split(cmd, toks, ":") != 2)
          error(ETFatal, "bad format for set-weights command");

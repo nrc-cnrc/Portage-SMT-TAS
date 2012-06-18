@@ -39,35 +39,20 @@ namespace Portage
    class vector_map : public vector< pair<KeyT, DataT> >
    {
    public:
-      //@{
-      /// Needed to compile with g++ 3.4.3
+      // Needed to compile with g++ 3.4.3
       using vector< pair<KeyT, DataT> >::begin;
       using vector< pair<KeyT, DataT> >::back;
       using vector< pair<KeyT, DataT> >::end;
-      //@}
 
       typedef typename vector< pair<KeyT, DataT> >::iterator iterator;
       typedef typename vector< pair<KeyT, DataT> >::const_iterator const_iterator;
 
+      //@{
       /**
        * Finds a key.
        * @param key the key to be found
-       * @return Returns a iterator that points to the key value or
-       *         the end iterator if not found
-       */
-      const_iterator find(const KeyT &key) const
-      {
-         const_iterator it(begin());
-         for (; it != end(); ++it)
-            if (key == it->first) break;
-         return it;
-      } // find
-
-      /**
-       * Finds a key.
-       * @param key the key to be found
-       * @return Returns a iterator that points to the key value or
-       *         the end iterator if not found
+       * @return Returns a (const_)iterator that points to the key value or
+       *         the end (const_)iterator if not found
        */
       iterator find(const KeyT &key)
       {
@@ -75,7 +60,16 @@ namespace Portage
          for (; it != end(); ++it)
             if (key == it->first) break;
          return it;
-      } // find
+      }
+
+      const_iterator find(const KeyT &key) const
+      {
+         const_iterator it(begin());
+         for (; it != end(); ++it)
+            if (key == it->first) break;
+         return it;
+      }
+      //@}
 
       /**
        * Finds a key and returns a reference on its value or adds a key.
@@ -92,6 +86,31 @@ namespace Portage
             return it->second;
          }
       } // operator[]
+
+      //@{
+      /**
+       * Finds a key and returns a (possibly) const reference on its value,
+       * failing with an assertion if key is not found.  This partially mimics
+       * std::vector::at(), but called get() instead, because we sometimes use
+       * the parent class's at() method, and there would be ambiguity when KeyT
+       * is numerical.
+       * @param key the key to be found
+       * @pre key is in *this.
+       */
+      DataT& get(const KeyT &key)
+      {
+         iterator it = find(key);
+         assert(it != end());
+         return it->second;
+      }
+
+      const DataT& get(const KeyT &key) const
+      {
+         const_iterator it = find(key);
+         assert(it != end());
+         return it->second;
+      }
+      //@}
 
       /**
        * Perform multi-set union on two maps, keeping the result in *this

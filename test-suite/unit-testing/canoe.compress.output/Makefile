@@ -67,8 +67,7 @@ canoe.ini:
 	[ttable-limit] 30\n \
 	[ttable-prune-type] backward-weights\n\
 	[distortion-limit] 7\n \
-	[distortion-model] WordDisplacement\n \
-	[segmentation-model] none#whatever\n" > $@
+	[distortion-model] WordDisplacement\n" > $@
 
 SETUP: canoe.ini phrases-GT-KN.fr2en.gz
 	[ -e $(DIR) ] || mkdir $(DIR);

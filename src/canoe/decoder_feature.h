@@ -67,16 +67,23 @@ class BasicModelGenerator;
        *        The returned DecoderFeature* MUST be valid aka not NULL.
        * @param bmg   
        * @param group  name of derived type group (sub class)
-       * @param name   name of derived type (sub sub class, if any)
-       * @param args   argument string for derived constructor.
+       * @param args   argument string for derived constructor or name of sub sub class, if any.
        * @param fail   if true, die with error message when problems occur on
        *               construction 
        * @return the new feature, which the caller should free with delete when
        *        it is no longer needed
        */
       static DecoderFeature* create(BasicModelGenerator* bmg,
-                                    const string& group, const string& name,
+                                    const string& group,
                                     const string& args, bool fail = true);
+
+      /**
+       * Finalize the initialization of a feature.  create() is called before
+       * TMs and LMs are loaded, whereas finalizeInit() is call after TMs and
+       * LMs are loaded.  If you features needs information from the TMs or LMs
+       * to load properly, do that work here instead of in your constructor.
+       */
+      virtual void finalizeInitialization() {}
     
       /**
        * Initialize the feature on a new sentence.

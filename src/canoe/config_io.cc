@@ -109,17 +109,10 @@ CanoeConfig::CanoeConfig()
    //tpptFiles;
    //lmFiles;
    lmOrder                = 0;
-   //distWeight.push_back(1.0);
-   lengthWeight           = 0.0;
-   //levWeight
-   //ngramMatchWeights
-   //segWeight
-   //unalWeight
-   //bilmWeights
-   //ibm1FwdWeights
    //lmWeights;
    //transWeights;
    //forwardWeights;
+   //adirTransWeights;
    randomWeights          = false;
    randomSeed             = 0;
    sentWeights            = "";
@@ -141,11 +134,6 @@ CanoeConfig::CanoeConfig()
    distPhraseSwap         = false;
    distLimitITG           = false;
    shiftReduceOnlyITG     = false;
-   //distortionModel        = ("WordDisplacement");
-   segmentationModel      = "none";
-   //unalFeatures
-   //bilmFiles
-   //ibm1FwdFiles
    bypassMarked           = false;
    weightMarked           = 1;
    oov                    = "pass";
@@ -194,36 +182,18 @@ CanoeConfig::CanoeConfig()
       ParamInfo::relative_path_modification | ParamInfo::lm_check_file_name));
    param_infos.push_back(ParamInfo("nbestProcessor", "string", &nbestProcessor));
    param_infos.push_back(ParamInfo("lmodel-order", "Uint", &lmOrder));
-   // WEIGHTS
-   param_infos.push_back(ParamInfo("weight-d d", "doubleVect", &distWeight));
-   param_infos.push_back(ParamInfo("random-d rd", "stringVect", &rnd_distWeight));
-   param_infos.push_back(ParamInfo("weight-w w", "double", &lengthWeight));
-   param_infos.push_back(ParamInfo("random-w rw", "stringVect", &rnd_lengthWeight));
-   param_infos.push_back(ParamInfo("weight-s sm", "doubleVect", &segWeight));
-   param_infos.push_back(ParamInfo("random-s rsm", "stringVect", &rnd_segWeight));
-   param_infos.push_back(ParamInfo("weight-unal unal", "doubleVect", &unalWeight));
-   param_infos.push_back(ParamInfo("random-unal runal", "stringVect", &rnd_unalWeight));
-   param_infos.push_back(ParamInfo("weight-bilm bilm", "doubleVect", &bilmWeights));
-   param_infos.push_back(ParamInfo("random-bilm rbilm", "stringVect", &rnd_bilmWeights));
-   param_infos.push_back(ParamInfo("weight-ibm1-fwd ibm1f", "doubleVect", &ibm1FwdWeights));
-   param_infos.push_back(ParamInfo("random-ibm1-fwd ribm1f", "stringVect", &rnd_ibm1FwdWeights));
-   param_infos.push_back(ParamInfo("weight-lev lev", "doubleVect", &levWeight));
-   param_infos.push_back(ParamInfo("random-lev rlev", "stringVect", &rnd_levWeight));
-   param_infos.push_back(ParamInfo("weight-ngrams ng", "doubleVect", &ngramMatchWeights));
-   param_infos.push_back(ParamInfo("random-ngrams rng", "stringVect", &rnd_ngramMatchWeights));
+
+   // WEIGHTS of primary features
    param_infos.push_back(ParamInfo("weight-l lm", "doubleVect", &lmWeights));
    param_infos.push_back(ParamInfo("random-l rlm", "stringVect", &rnd_lmWeights));
    param_infos.push_back(ParamInfo("weight-t tm", "doubleVect", &transWeights));
    param_infos.push_back(ParamInfo("random-t rtm", "stringVect", &rnd_transWeights));
    param_infos.push_back(ParamInfo("weight-f ftm", "doubleVect", &forwardWeights));
    param_infos.push_back(ParamInfo("random-f rftm", "stringVect", &rnd_forwardWeights));
-
    param_infos.push_back(ParamInfo("weight-a atm", "doubleVect", &adirTransWeights)); //boxing
    param_infos.push_back(ParamInfo("random-a ratm", "stringVect", &rnd_adirTransWeights)); //boxing
 
    param_infos.push_back(ParamInfo("rule-classes ruc", "stringVect", &rule_classes));
-   param_infos.push_back(ParamInfo("rule-weights ruw", "doubleVect", &rule_weights));
-   param_infos.push_back(ParamInfo("random-rule-weights rruw", "stringVect", &rnd_rule_weights));
    param_infos.push_back(ParamInfo("rule-log-zero rulz", "doubleVect", &rule_log_zero));
 
    param_infos.push_back(ParamInfo("random-weights r", "bool", &randomWeights));
@@ -249,13 +219,6 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("dist-phrase-swap", "bool", &distPhraseSwap));
    param_infos.push_back(ParamInfo("dist-limit-itg", "bool", &distLimitITG));
    param_infos.push_back(ParamInfo("shift-reduce-only-itg", "bool", &shiftReduceOnlyITG));
-   param_infos.push_back(ParamInfo("distortion-model", "stringVect", &distortionModel));
-   param_infos.push_back(ParamInfo("segmentation-model", "string", &segmentationModel));
-   param_infos.push_back(ParamInfo("unal-feature", "stringVect", &unalFeatures));
-   param_infos.push_back(ParamInfo("bilm-file", "stringVect", &bilmFiles,
-      ParamInfo::relative_path_modification | ParamInfo::lm_check_file_name));
-   param_infos.push_back(ParamInfo("ibm1-fwd-file", "stringVect", &ibm1FwdFiles,
-      ParamInfo::relative_path_modification | ParamInfo::check_file_name));
    param_infos.push_back(ParamInfo("bypass-marked", "bool", &bypassMarked));
    param_infos.push_back(ParamInfo("weight-marked", "double", &weightMarked));
    param_infos.push_back(ParamInfo("oov", "string", &oov));
@@ -288,30 +251,61 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("bind", "int", &bind_pid));
    param_infos.push_back(ParamInfo("timing", "bool", &timing));
 
+
+
    // List of all parameters that correspond to weights. ORDER IS SIGNIFICANT
    // and must match the order in BasicModelGenerator::InitDecoderFeatures().
    // New entries should be added immediately before "lm".
    const char* weight_names_other[] = {
-      "d",      // init by BMG::InitDecoderFeatures(); models loaded by BMG::create()
-      "w",      // init by BMG::InitDecoderFeatures()
-      "sm",     // init by BMG::InitDecoderFeatures()
-      "unal",   // init by BMG::InitDecoderFeatures(); data in phrase table
-      "ibm1f",  // init by BMG::InitDecoderFeatures(); data loaded by feature
-      "lev",    // init by BMG::InitDecoderFeatures()
-      "ng",     // init by BMG::InitDecoderFeatures()
-      "ruw",    // init by BMG::InitDecoderFeatures(); data in decoder input
+      // "short name", "long name", "group name",
+      "d", "d", "DistortionModel",
+      "w", "w", "LengthFeature",
+      "sm", "s", "SegmentationModel",
+      "unal", "unal", "UnalFeature",
+      "ibm1f", "ibm1-fwd", "IBM1FwdFeature",
+      "lev", "lev", "LevFeature",
+      "ng", "ngrams", "NgramMatchFeature",
+      "ruw", "rules", "RuleFeature",
+      "bilm", "bilm", "BiLMModel",
       // insert new features above this line - in the same order as in
       // BMG::InitDecoderFeatures()!!!
-      "bilm",   // loaded and init by BMG::create(), as if it were at the end if BMG::InitDecoderFeatures(); dynamically filtered w.r.t. phrase table(s)
    };
-   weight_params_other.assign(weight_names_other, weight_names_other+ARRAY_SIZE(weight_names_other));
+   for (Uint i = 0; i+2 < ARRAY_SIZE(weight_names_other); i += 3) {
+      string shortname = weight_names_other[i];
+      string longname = weight_names_other[i+1];
+      weight_params_other.push_back(shortname);
+      FeatureDescription *f = features[shortname] =
+         new FeatureDescription(shortname, weight_names_other[i+2]);
+
+      string weight_names = "weight-" + longname + " " + shortname;
+      string random_names = "random-" + longname + " r" + shortname;
+      param_infos.push_back(ParamInfo(weight_names, "doubleVect", &f->weights));
+      param_infos.push_back(ParamInfo(random_names, "stringVect", &f->rnd_weights));
+   }
+
+   // For each feature, attach its args element to the appropriate param_info,
+   // so the list of models can be read from the canoe.ini or command line.
+   param_infos.push_back(ParamInfo("distortion-model", "stringVect", &feature("d")->args));
+   feature("w")->need_args = false;
+   param_infos.push_back(ParamInfo("segmentation-model", "stringVect", &feature("sm")->args));
+   param_infos.push_back(ParamInfo("unal-feature", "stringVect", &feature("unal")->args));
+   param_infos.push_back(ParamInfo("ibm1-fwd-file", "stringVect", &feature("ibm1f")->args,
+      ParamInfo::relative_path_modification | ParamInfo::check_file_name));
+   feature("lev")->need_args = false;
+   feature("ng")->need_args = true; // but args not via param_infos - created in check()
+   param_infos.push_back(ParamInfo("bilm-file", "stringVect", &feature("bilm")->args,
+      ParamInfo::relative_path_modification | ParamInfo::lm_check_file_name));
+
+   // The "primary" features are each handled in their own specific ways, so
+   // they are dealt with separately.
    const char* weight_names_primary[] = {
-      "lm",     // loaded and init by BMG::create(); dynamically filtered w.r.t. phrase table(s)
-      "tm",     // init by BMG::create(); loaded with phrase table(s)
-      "ftm",    // init by BMG::create(); loaded with phrase table(s)
-      "atm"     // init by BMG::create(); loaded with phrase table(s)
+      "lm",
+      "tm",
+      "ftm",
+      "atm",
    };
    weight_params_primary.assign(weight_names_primary, weight_names_primary + ARRAY_SIZE(weight_names_primary));
+
    weight_params = weight_params_other;
    weight_params.insert(weight_params.end(), weight_params_primary.begin(), weight_params_primary.end());
 
@@ -339,6 +333,9 @@ CanoeConfig::CanoeConfig()
                weight_params[i].c_str());
    }
 
+   for (Uint i = 0; i < weight_params_other.size(); ++i)
+      assert(features.at(i).first == weight_params[i] &&
+             features.at(i).second->shortname == weight_params[i]);
 }
 
 // Implementation note: since there is no way of specifying an empty string in
@@ -623,29 +620,35 @@ void CanoeConfig::check()
 
    // Set defaults:
 
-   if (distortionModel.empty())
-      distortionModel.push_back("WordDisplacement");
-   else if (distortionModel[0] == "none")
-      distortionModel.clear();
+   FeatureDescription* lengthF = feature("w"); // save this pointer since we reuse it later
+   if (lengthF->weights.empty())
+      lengthF->weights.push_back(0.0);
 
-   if (distWeight.empty() && !distortionModel.empty())
-      distWeight.assign(distortionModel.size(), 1.0);
+   FeatureDescription* distortionF = feature("d"); // save this pointer since we reuse it later
+   if (distortionF->args.empty())
+      distortionF->args.push_back("WordDisplacement");
+   else if (distortionF->args[0] == "none")
+      distortionF->args.clear();
 
-   // Check if the user didn't write in his config none#somearg which is
-   // actually simply none
-   if (isPrefix("none#", segmentationModel))
-      segmentationModel = "none";
-   if (segWeight.empty() && segmentationModel != "none")
-      segWeight.push_back(1.0);
+   FeatureDescription* segmentationF = feature("sm");
+   if (segmentationF->args.size() == 1 && isPrefix("none", segmentationF->args[0])) {
+      error(ETWarn, "Please remove obsolete \"[segmentation-model] none\" or \"none#whatever\" from your canoe.ini files and scripts");
+      segmentationF->args.clear();
+   }
 
-   if (unalWeight.empty())
-      unalWeight.resize(unalFeatures.size(), 1.0);
-   
-   if (bilmWeights.empty())
-      bilmWeights.resize(bilmFiles.size(), 1.0);
+   FeatureDescription *ngF = feature("ng");
+   for (Uint i = 0; i < ngF->weights.size(); ++i)
+      ngF->args.push_back(join(vector<Uint>(1,i+1))); // lazy way to make a string out of a number
 
-   if (ibm1FwdWeights.empty())
-      ibm1FwdWeights.resize(ibm1FwdFiles.size(), 1.0);
+   for (FeatureMap::iterator f_it = features.begin(); f_it != features.end(); ++f_it) {
+      if (f_it->second->need_args) {
+         if (f_it->second->weights.empty())
+            f_it->second->weights.assign(f_it->second->args.size(), 1.0);
+         if (f_it->second->weights.size() != f_it->second->args.size())
+            error(ETFatal, "Number of %s args does not match number of %s weights.",
+                  f_it->second->group.c_str(), f_it->second->group.c_str());
+      }
+   }
 
    if (lmWeights.empty())
       lmWeights.resize(lmFiles.size(), 1.0);
@@ -664,10 +667,20 @@ void CanoeConfig::check()
       adirTransWeights.resize(multi_adir_model_count, 1.0);
 
    // Rule decoder feature
-   if (rule_weights.empty())
-      rule_weights.resize(rule_classes.size(), 1.0f);
+   FeatureDescription* ruwF = feature("ruw");
+   if (ruwF->weights.empty())
+      ruwF->weights.resize(rule_classes.size(), 1.0f);
    if (rule_log_zero.empty())
       rule_log_zero.resize(rule_classes.size(), phraseTableLogZero);
+
+   if (rule_classes.size() != ruwF->weights.size())
+      error(ETFatal, "number of rule weights does not match number of rule classes");
+   if (rule_classes.size() != rule_log_zero.size())
+      error(ETFatal, "number of rule log zero does not match number of rule classes");
+
+   for (Uint i = 0; i < ruwF->weights.size(); ++i)
+      ruwF->args.push_back(rule_classes[i] + ":" + join(vector<double>(1,rule_log_zero[i])));
+
 
    ////////////////////////////////////////////////////////
    // ERRORS:
@@ -710,9 +723,7 @@ void CanoeConfig::check()
    
    bool existingLex = false;
    vector<bool> usingLex(LDMFiles.size(),false);
-   for (vector<string>::iterator it=distortionModel.begin();
-        it != distortionModel.end();
-        ++it){
+   for (vector<string>::iterator it=distortionF->args.begin(); it != distortionF->args.end(); ++it){
       if (isPrefix("fwd-lex",*it)
           || isPrefix("back-lex",*it) 
           || isPrefix("fwd-hlex",*it) 
@@ -790,39 +801,19 @@ void CanoeConfig::check()
    /* This check has to be deferred, since -ref logically belongs on the
       command line, not in the canoe.ini file: we don't want the check to be
       applied in "configtool check", which only checks the canoe.ini file.
-   if (forcedDecoding || forcedDecodingNZ || !levWeight.empty() || !ngramMatchWeights.empty())
+   if (forcedDecoding || forcedDecodingNZ || !feature("lev")->weights.empty() || !feature("ng")->weights.empty())
       if (refFile.empty())
          error(ETFatal, "Specified forced decoding, the levenshtein feature or the n-gram match feature but no reference file.");
    */
 
    if (forcedDecoding && !forcedDecodingNZ) {
       lmWeights.assign(lmWeights.size(), 0.0);
-      ibm1FwdWeights.assign(ibm1FwdWeights.size(), 0.0);
-      lengthWeight = 0.0;
+      feature("ibm1f")->weights.assign(feature("ibm1f")->weights.size(), 0.0);
+      lengthF->weights.assign(lengthF->weights.size(), 0.0);
    }
 
    if ((forcedDecoding || forcedDecodingNZ) & (bCubePruning))
       error(ETFatal, "Forced decoding and cube pruning are not compatible.");
-
-   if (distWeight.size() != distortionModel.size())
-      error(ETFatal, "Number of distortion models does not match number of distortion model weights.");
-   if (segWeight.size() > 0 && segmentationModel == "none") {
-      error(ETWarn, "You can't specify a segmentation weight when using no segmentation model - ignoring it");
-      segWeight.clear();
-   }
-
-   if (unalWeight.size() != unalFeatures.size())
-      error(ETFatal, "Number of unal features does not match number of unal feature weights.");
-   if (bilmWeights.size() != bilmFiles.size())
-      error(ETFatal, "Number of BiLM files does not match number of BiLM weights.");
-   if (ibm1FwdFiles.size() != ibm1FwdWeights.size())
-      error(ETFatal, "number of IBM1 forward weights does not match number of IBM forward model files");
-
-   // Rule decoder feature
-   if (rule_classes.size() != rule_weights.size())
-      error(ETFatal, "number of rule weights does not match number of rule classes");
-   if (rule_classes.size() != rule_log_zero.size())
-      error(ETFatal, "number of rule log zero does not match number of rule classes");
 
    if (lmWeights.size() != lmFiles.size())
       error(ETFatal, "Number of language model weights does not match number of language model files.");
@@ -889,7 +880,7 @@ void CanoeConfig::check()
    if (distLimitExt && distLimitSimple)
       error(ETFatal, "Can't use both -dist-limit-ext and -dist-limit-simple.");
 
-   if (!bilmFiles.empty()) {
+   if (!feature("bilm")->args.empty()) {
       if (!tpptFiles.empty())
          error(ETFatal, "Can't combine -bilm-file with -ttable-tppt, since TPPTs don't store alignment information.");
    }
@@ -1157,6 +1148,8 @@ bool& CanoeConfig::readStatus(const string& param)
    return it->second->set_from_config;
 }
 
+
+const string CanoeConfig::random_param::default_value = "U(-1.0,1.0)";
 
 rnd_distribution* CanoeConfig::random_param::get(Uint index) const
 {

@@ -44,8 +44,18 @@ void BiLMModel::getLastBiWordsBackwards(VectorPhrase &biWords, Uint num, const P
 }
 
 BiLMModel::BiLMModel(BasicModelGenerator* bmg, const string& filename)
-: voc(bmg->getBiPhraseVoc())
+: bmg(bmg)
+, filename(filename)
+, bilm(NULL)
+, order(0)
+, voc(bmg->getBiPhraseVoc())
+, sentStartID(Uint(-1)) // "uninit"
 {
+}
+
+void BiLMModel::finalizeInitialization()
+{
+   assert(!bilm);
    assert(!bmg->limitPhrases || (voc.getNumSourceSents() > 0 && voc.size() > 0));
    cerr << "Loading BiLM model " << filename << endl;
    bilm = PLM::Create(filename, &voc, PLM::SimpleAutoVoc, LOG_ALMOST_0,
@@ -76,6 +86,7 @@ void BiLMModel::newSrcSent(const newSrcSentInfo& info)
 
 double BiLMModel::precomputeFutureScore(const PhraseInfo& phrase_info)
 {
+   assert(bilm);
    const ForwardBackwardPhraseInfo* pi = dynamic_cast<const ForwardBackwardPhraseInfo *>(&phrase_info);
    // We give a detailed diagnostic message here - this is the first method
    // called with any given phrase_info; other methods can just assume or
@@ -104,6 +115,7 @@ double BiLMModel::futureScore(const PartialTranslation &trans)
 
 double BiLMModel::score(const PartialTranslation& pt)
 {
+   assert(bilm);
    const ForwardBackwardPhraseInfo* pi = dynamic_cast<const ForwardBackwardPhraseInfo *>(pt.lastPhrase);
    assert(pi);
    // non-reentrant!

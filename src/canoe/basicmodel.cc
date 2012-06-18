@@ -32,126 +32,30 @@ using namespace std;
 
 Logging::logger bmgLogger(Logging::getLogger("debug.canoe.basicmodelgenerator"));
 
-// NB1: The order in which these parameters are added to featureWeightsV should
-// not be changed - the conversion from/to rescoring models depends on this. If
-// you change it, you will break existing models stored on disk.
-//
-// NB2: If you (yes you!) make any changes to this function, you must update
-// setFeatureWeightsFromString() and getFeatureWeights() accordingly, which you
-// accomplish by setting weight_names in config_io.cc.
-//
-// Implementation note: it would be cleaner to initialize decoder_features and
-// featureWeightsV from declarative information in CanoeConfig. A mechanism
-// exists to do this, but currently only for feature weights (because it is
-// needed for cow and elsewhere). Until a similar mechanism is developed for
-// models, it seems better to continue to do everything "manually" here, even
-// though this makes no use whatsoever of DecoderFeature's virtual
-// constructor.
-
+// Feature order is not strictly driven by the order in which features are
+// found in c.features and the list of names in c.weight_params*.  Use these
+// variables to iterate over features, do not write explicit lists of features!
 void BasicModelGenerator::InitDecoderFeatures(const CanoeConfig& c)
 {
-   if ( c.distortionModel.empty() )
+   if (c.feature("d")->empty())
       if (c.verbosity) cerr << "Not using any distortion model" << endl;
-   for ( Uint i(0); i < c.distortionModel.size(); ++i ) {
-      LOG_VERBOSE2(bmgLogger, "Creating a distortion model with >%s<",
-         c.distortionModel[i].c_str());
-      if (c.distortionModel[i] != "none") {
-         decoder_features.push_back(DecoderFeature::create(this,
-            "DistortionModel", c.distortionModel[i], ""));
-         featureWeightsV.push_back(c.distWeight[i]);
+
+   for (CanoeConfig::FeatureMap::const_iterator it(c.features.begin()),
+        end(c.features.end()); it != end; ++it) {
+      const CanoeConfig::FeatureDescription *f = it->second;
+      assert(!f->need_args || f->weights.size() == f->args.size());
+      for (Uint i(0); i < f->size(); ++i) {
+         string args = f->need_args ? f->args[i] : "";
+         LOG_VERBOSE2(bmgLogger, "Creating a %s model with >%s<",
+            f->group.c_str(), args.c_str());
+         decoder_features.push_back(DecoderFeature::create(this, f->group, args));
+         featureWeightsV.push_back(f->weights[i]);
          if (c.randomWeights)
-            random_feature_weight.push_back(c.rnd_distWeight.get(i));
+            random_feature_weight.push_back(f->rnd_weights.get(i));
       }
    }
-
-
-   LOG_VERBOSE2(bmgLogger, "Creating a length model");
-   decoder_features.push_back(DecoderFeature::create(this,
-      "LengthFeature", "", ""));
-   featureWeightsV.push_back(c.lengthWeight);
-   if (c.randomWeights)
-      random_feature_weight.push_back(c.rnd_lengthWeight.get(0));
-
-
-   if ( c.segmentationModel != "none" ) {
-      LOG_VERBOSE2(bmgLogger, "Creating a segmentation model with >%s<",
-         c.segmentationModel.c_str());
-      decoder_features.push_back(DecoderFeature::create(this,
-         "SegmentationModel", c.segmentationModel, ""));
-      featureWeightsV.push_back(c.segWeight[0]);
-      if (c.randomWeights)
-         random_feature_weight.push_back(c.rnd_segWeight.get(0));
-   } else {
-      // This is the default - no need to warn!
-      //cerr << "Not using any segmentation model" << endl;
-   }
-
-   for (Uint i = 0; i < c.unalFeatures.size(); ++i) {
-      LOG_VERBOSE2(bmgLogger, "Creating unal feature >%s<",
-         c.unalFeatures[i].c_str());
-      decoder_features.push_back(DecoderFeature::create(this,
-         "UnalFeature", c.unalFeatures[i], ""));
-      featureWeightsV.push_back(c.unalWeight[i]);
-      if (c.randomWeights)
-         random_feature_weight.push_back(c.rnd_unalWeight.get(i));
-   }
-
-   for (Uint i = 0; i < c.ibm1FwdWeights.size(); ++i) {
-      LOG_VERBOSE2(bmgLogger, "Creating a ibm1fwd model with >%s<",
-         c.ibm1FwdFiles[i].c_str());
-      decoder_features.push_back(DecoderFeature::create(this,
-         "IBM1FwdFeature", "", c.ibm1FwdFiles[i]));
-      featureWeightsV.push_back(c.ibm1FwdWeights[i]);
-      if (c.randomWeights)
-         random_feature_weight.push_back(c.rnd_ibm1FwdWeights.get(i));
-   }
-
-   if (c.levWeight.size()) {
-      LOG_VERBOSE2(bmgLogger, "Creating a lev model");
-      decoder_features.push_back(DecoderFeature::create(this,
-         "LevFeature", "", ""));
-      featureWeightsV.push_back(c.levWeight[0]);
-      if (c.randomWeights)
-         random_feature_weight.push_back(c.rnd_levWeight.get(0));
-   }
-
-   for (Uint i = 0; i < c.ngramMatchWeights.size(); ++i) {
-      if (c.ngramMatchWeights[i] != 0) {
-         LOG_VERBOSE2(bmgLogger, "Creating a ngram model for %d-gram", i+1);
-         ostringstream tmpstr;
-         tmpstr << i+1;
-         decoder_features.push_back(DecoderFeature::create(this,
-            "NgramMatchFeature", "", tmpstr.str()));
-         featureWeightsV.push_back(c.ngramMatchWeights[i]);
-         if (c.randomWeights)
-            random_feature_weight.push_back(c.rnd_ngramMatchWeights.get(i));
-      }
-   }
-
-   assert(c.rule_classes.size() == c.rule_weights.size());
-   assert(c.rule_classes.size() == c.rule_log_zero.size());
-   for (Uint i(0); i<c.rule_classes.size(); ++i) {
-      LOG_VERBOSE2(bmgLogger, "Creating a rule model with >%s<",
-         c.rule_classes[i].c_str());
-      ostringstream args;
-      args << c.rule_classes[i] << ":" << c.rule_log_zero[i];
-      decoder_features.push_back(DecoderFeature::create(this,
-         "RuleFeature", "", args.str()));
-      featureWeightsV.push_back(c.rule_weights[i]);
-      if (c.randomWeights)
-         random_feature_weight.push_back(c.rnd_rule_weights.get(i));
-   }
-
-   // Add new features here (above this comment) - same order as in
-   // weight_names in config_io.cc.
-
-   // BiLM features are semantically *here*, even though they are loaded in
-   // BasicModelGenerator::create().
 }
 
-
-// NB: If you (yes you!) make any changes to this NASTY UGLY function, you must
-// update setWeightsFromString() accordingly.
 
 BasicModelGenerator* BasicModelGenerator::create(
       const CanoeConfig& c,
@@ -206,20 +110,6 @@ BasicModelGenerator* BasicModelGenerator::create(
       result->phraseTable->openTPPT(c.tpptFiles[i].c_str());
    }
 
-   // Loading BiLM files.  They are added at the end of the decoder_features
-   // vector, so they must be the last ones before "lm" in weight_names in
-   // config_io.cc.  We don't load then in InitDecoderFeatures because we have
-   // to have loaded the TM first, to enable dynamic filtering.
-   for (Uint i = 0; i < c.bilmFiles.size(); ++i) {
-      LOG_VERBOSE2(bmgLogger, "Creating BiLM feature >%s<",
-         c.bilmFiles[i].c_str());
-      result->decoder_features.push_back(DecoderFeature::create(result,
-         "BiLMModel", "", c.bilmFiles[i]));
-      result->featureWeightsV.push_back(c.bilmWeights[i]);
-      if (c.randomWeights)
-         result->random_feature_weight.push_back(c.rnd_bilmWeights.get(i));
-   }
-
    //////////// loading LDMs
    for ( Uint i = 0; i < c.LDMFiles.size(); ++i ) {
       const string ldm_filename = c.LDMFiles[i];
@@ -258,6 +148,10 @@ BasicModelGenerator* BasicModelGenerator::create(
    // We no longer need all that filtering data, since dynmamic LM filtering
    // has been completed by now.
    result->tgt_vocab.freePerSentenceData();
+
+   // Finalize feature initialization
+   for (Uint i = 0; i < result->decoder_features.size(); ++i)
+      result->decoder_features[i]->finalizeInitialization();
 
    return result;
 } // BasicModelGenerator::create()
@@ -300,7 +194,7 @@ BasicModelGenerator::BasicModelGenerator(
 {
    LOG_VERBOSE1(bmgLogger, "BasicModelGenerator construtor with 5 args");
 
-   phraseTable = new PhraseTable(tgt_vocab, biPhraseVocab, c.phraseTablePruneType.c_str(), !c.bilmFiles.empty());
+   phraseTable = new PhraseTable(tgt_vocab, biPhraseVocab, c.phraseTablePruneType.c_str(), !c.feature("bilm")->empty());
 
    if (limitPhrases)
    {
@@ -567,7 +461,7 @@ void BasicModelGenerator::addMarkedPhraseInfos(
       //the global defaults (i.e., the backoff scores) are used.
 
       newPI->alignment = 0;
-      if (!c->bilmFiles.empty()) {
+      if (!c->feature("bilm")->empty()) {
          static bool warning_printed = false;
          if (!warning_printed) {
             error(ETWarn, "Using BiLMs with marks is OK but not completely supported: even if the BiLM contained the relevant marks, they might have gotten filtered out while loading the model.");
@@ -638,7 +532,7 @@ PhraseInfo *BasicModelGenerator::makeNoTransPhraseInfo(
 
    newPI->joint_counts.push_back(0); // OOV
    newPI->alignment = 0;
-   if (!c->bilmFiles.empty())
+   if (!c->feature("bilm")->empty())
       newPI->bi_phrase = VectorPhrase(1, biPhraseVocab.add((word + BiLMWriter::sep + word).c_str()));
 
    newPI->src_words = range;
