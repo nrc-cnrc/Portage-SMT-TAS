@@ -40,7 +40,7 @@ clean:
 
 
 .PHONY: testsuite
-testsuite:  ${OPTIMIZERS}
+testsuite:  ${OPTIMIZERS}  powell.postProcessed
 	@echo All tests ran OK '(but output is not checked in this test suite)'.
 
 
@@ -52,7 +52,11 @@ canoe.tune.%:  dev1_en.rule  dev1_fr.lc
 	mkdir -p tunedir.$*
 	cd tunedir.$*; \
 	   run-parallel.sh -psub -4 -c \
-	   ${TUNE} --debug -v --workdir=foos.$* -o ../$@ -f ../src/canoe.ini -p 4 -c 1 -m 4 -a $* $(foreach f,$+,../$f) >& ../log.$@
+	   ${TUNE} --debug -v --workdir=foos -o ../$@ -f ../src/canoe.ini ${EXTRA} -p 4 -c 1 -m 4 -a $* $(foreach f,$+,../$f) >& ../log.$@
 	mv tunedir.$*/summary summary.$*
 	mv tunedir.$*/summary.wts summary.$*.wts
 
+# Validate that the post processing was applied to the nbest list.  We will uppercase the letter a.
+canoe.tune.powell:  EXTRA=--post \'sed "s/a/A/g"\'
+powell.postProcessed:  %.postProcessed:  canoe.tune.%
+	@! zgrep a tunedir.$*/foos/allnbests.gz
