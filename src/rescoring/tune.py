@@ -48,6 +48,8 @@ history_wts = "summary.wts"
 # arguments
 
 parser = OptionParser(usage=usage, description=help)
+parser.add_option("--post", dest="postProcessor", type="string", default=None,
+                  help="Apply postProcessor to the nbest lists before optimizing [%default]")
 parser.add_option("--workdir", dest="workdir", type="string", default="foos",
                   help="Change the working directory [%default]")
 parser.add_option("--debug", dest="debug", action="store_true", default=False,
@@ -226,15 +228,37 @@ def aggregate_nbests(ns):
     num_cur_hyps = 0
     num_new_hyps = 0
 
+    if opts.postProcessor != None:
+       try:
+          nbpattern = workdir + "/post%04d"
+          cmd = "zcat {w}/nbest.*best.gz | {p} | split -d -a4 -l {n} - {w}/post".format(w=workdir, p=opts.postProcessor, n=opts.nbsize)
+          if opts.debug:
+             print >> sys.stderr, "nbpattern: ", nbpattern
+             print >> sys.stderr, "cmd: ", cmd
+          if call(cmd, shell=True) is not 0:
+             error("Problems while post processing the nbest lists with {}".format(' '.join(cmd)))
+       except CalledProcessError, err:
+          error("Problem running configtool", err)
+       except OSError, err:
+          error("configtool program not found ", err)
+    else:
+       nbpattern = workdir + "/nbest.%04d.%dbest.gz"
+
     for i in range(ns):   # for each source sentence
 
         print >> logfile, "sent ", i+1, ":",
 
         # record new hyps for this sent in dict: hyp -> [vals1, vals2, ..]
 
-        nbname = nbpattern % (i, opts.nbsize)
+        if opts.postProcessor != None:
+           nbname = nbpattern % (i)
+           nbfile = open(nbname)
+        else:
+           nbname = nbpattern % (i, opts.nbsize)
+           nbfile = gzip.open(nbname)
+        if opts.debug:
+           print >> sys.stderr, "Aggregating ", nbfile
         ffname = ffpattern % (i, opts.nbsize)
-        nbfile = gzip.open(nbname)
         fffile = gzip.open(ffname)
 
         nbset = {}
@@ -382,7 +406,7 @@ def decode(wts):
     cmd.append("|")
     cmd.extend(outcmd)
     if call(' '.join(cmd), stdin=srcfile, stdout=outfile, stderr=logfile, shell=True, close_fds=True) is not 0:
-        error("decoder failed: %s" % ' '.join(cmd))
+        error("decoder failed: {}".format(' '.join(cmd)))
 
 @print_timing
 def eval():
@@ -486,7 +510,7 @@ def optimizePowell(iter, wts, args, logfile):
     print >> logfile, ' '.join(cmd)
     logfile.flush()
     if call(cmd, stdout=logfile, stderr=STDOUT) is not 0:
-        error("optimizer failed with cmd: %s" % ' '.join(cmd))
+        error("optimizer failed with cmd: {}".format(' '.join(cmd)))
     wts[:] = optimizerModel2wts(optimizer_out)
     with open(wo_file) as f:
         s = float(f.readline().split()[2])
@@ -520,7 +544,7 @@ def optimizeMIRA(iter, wts, args, logfile):
     print >> logfile, ' '.join(cmd)
     logfile.flush()
     if call(cmd, stdout=outfile, stderr=logfile) is not 0:
-        error("optimizer failed with cmd: %s" % ' '.join(cmd))
+        error("optimizer failed with cmd: {}".format(' '.join(cmd)))
     outfile.close()
     normalize(optimizerModel2wts(optimizer_out), wts)
     with open(optimizer_log) as f:
@@ -545,7 +569,7 @@ def optimizeSVM(iter, wts, args, logfile):
     print >> logfile, ' '.join(cmd)
     logfile.flush()
     if call(cmd, stdout=outfile, stderr=logfile) is not 0:
-        error("optimizer failed: %s" % ' '.join(cmd))
+        error("optimizer failed: {}".format(' '.join(cmd)))
     outfile.close()
     normalize(optimizerModel2wts(optimizer_out), wts)
     with open(optimizer_log) as f:
@@ -568,7 +592,7 @@ def optimizeExpSentBleu(iter, wts, args, logfile):
     print >> logfile, ' '.join(cmd)
     logfile.flush()
     if call(cmd, stdout=outfile, stderr=logfile) is not 0:
-        error("optimizer failed: %s" % ' '.join(cmd))
+        error("optimizer failed: {}".format(' '.join(cmd)))
     outfile.close()
     normalize(optimizerModel2wts(optimizer_out), wts)
     with open(optimizer_log) as f:
@@ -597,7 +621,7 @@ def optimizePRO(iter, wts, args, logfile):
     print >> logfile, ' '.join(cmd)
     logfile.flush()
     if call(cmd, stdout=logfile, stderr=logfile) is not 0:
-        error("optimizer failed: %s" % ' '.join(cmd))
+        error("optimizer failed: {}".format(' '.join(cmd)))
     normalize(optimizerModel2wts(optimizer_out), wts)
     with open(optimizer_log) as f:
         score = list(f)[-1].split()[-1]
@@ -625,7 +649,7 @@ def optimizeLMIRA(iter, wts, args, logfile):
     print >> logfile, ' '.join(cmd)
     logfile.flush()
     if call(cmd, stdout=outfile, stderr=logfile) is not 0:
-        error("optimizer failed: " % ' '.join(cmd))
+        error("optimizer failed: {}".format(' '.join(cmd)))
     outfile.close()
     normalize(optimizerModel2wts(optimizer_out), wts)
     with open(optimizer_log) as f:
@@ -663,7 +687,7 @@ def optimizeOnlineLMIRA(iter, wts, args, logfile):
         print >> logfile, ' '.join(cmd)
         logfile.flush()
         if call(cmd, stdout=logfile, stderr=logfile) is not 0:
-            error("src sharding failed: " % ' '.join(cmd))
+            error("src sharding failed: {}".format(' '.join(cmd)))
         #Shard refs, save ref names
         refShardList = [[shardAnnotate(pref,"xx",i) for i in range(opts.numpar)] for pref in refPrefixes]
         for i in range(len(refs)):
@@ -672,7 +696,7 @@ def optimizeOnlineLMIRA(iter, wts, args, logfile):
             print >> logfile, ' '.join(cmd)
             logfile.flush()
             if call(cmd, stdout=logfile, stderr=logfile) is not 0:
-                error("ref sharding failed: " % ' '.join(cmd))
+                error("ref sharding failed: {}".format(' '.join(cmd)))
         # create shard-specific initial config files
         for i in range(opts.numpar):
            run("configtool rep-sparse-models-local:." + str(i) + " " + dec_cfg + " > " + shardAnnotate(dec_cfg, "ni", i))
@@ -720,20 +744,20 @@ def optimizeOnlineLMIRA(iter, wts, args, logfile):
     print >> logfile, ' '.join(cmd)
     logfile.flush()
     if call(cmd, stdout=logfile, stderr=logfile) is not 0:
-        error("run-parallel failed: %s" % ' '.join(cmd))
+        error("run-parallel failed: {}".format(' '.join(cmd)))
     #Merge configs into a combined file for next iteration
     cmd = [jav, jmem, "-enableassertions", "-jar", jar, "CombineModels", shardAnnotate(model,iter,"xx")]
     cmd.extend([shardAnnotate(model,iter,shard) for shard in range(opts.numpar)])
     print >> logfile, ' '.join(cmd)
     logfile.flush()
     if call(cmd, stdout=logfile, stderr=logfile) is not 0:
-        error("merge failed: %s" % ' '.join(cmd))
+        error("merge failed: {}".format(' '.join(cmd)))
     #Average combined file into a Portage-consumable framework
     cmd = [jav, jmem, "-enableassertions", "-jar", jar, "AverageModel", portageIniWeights, shardAnnotate(model,iter,"xx"), optimizer_out]
     print >> logfile, ' '.join(cmd)
     logfile.flush()
     if call(cmd, stdout=logfile, stderr=logfile) is not 0:
-        error("averaging failed: %s" % ' '.join(cmd))
+        error("averaging failed: {}".format(' '.join(cmd)))
     normalize(olmiraModel2wts(optimizer_out), wts)
     #Combine background BLEU counts
     cmd = [jav, jmem, "-enableassertions", "-jar", jar, "CombineBleuCounts", shardAnnotate(count,iter,"xx")]
@@ -741,7 +765,7 @@ def optimizeOnlineLMIRA(iter, wts, args, logfile):
     print >> logfile, ' '.join(cmd)
     logfile.flush()
     if call(cmd, stdout=logfile, stderr=logfile) is not 0:
-        error("bleu combination failed: %s" % ' '.join(cmd))
+        error("bleu combination failed: {}".format(' '.join(cmd)))
     #Use combined background BLEU to get a score estimate
     cmd = [jav, jmem, "-enableassertions", "-jar", jar, "ScoreCountFile", shardAnnotate(count,iter,"xx")]
     print >> logfile, ' '.join(cmd)
