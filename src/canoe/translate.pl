@@ -924,7 +924,7 @@ sub sourceWordCount {
 
    cleanupAndDie("Can't open temp file ${count_file} for reading.\n") unless (-r "${count_file}");
    my $cmd = "wc -w < '${count_file}'";
-   return `$cmd`;
+   return 0 + `$cmd`; # Add "0 +" to return a number, not a string with a newline.
 }
 
 sub tokenize {
