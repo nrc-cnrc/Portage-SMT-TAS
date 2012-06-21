@@ -59,4 +59,6 @@ canoe.tune.%:  dev1_en.rule  dev1_fr.lc
 # Validate that the post processing was applied to the nbest list.  We will uppercase the letter a.
 canoe.tune.powell:  EXTRA=--post \'sed "s/a/A/g"\'
 powell.postProcessed:  %.postProcessed:  canoe.tune.%
-	@! zgrep a tunedir.$*/foos/allnbests.gz
+	@[[ "`zgrep -c a tunedir.$*/foos/allnbests.gz`" -eq 0 ]] \
+	|| ! echo "ERROR: Post processing didn't happened." >&2
+
