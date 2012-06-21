@@ -242,8 +242,8 @@ sub NRCBanner {
 sub NRCFooter {
     return table({border=>0, cellpadding=>0, cellspacing=>0, width=>'100%'},
                  Tr(td({width=>'20%', valign=>'bottom', align=>'right'},
-                       img({src=>'/images/iit_sidenav_graphictop_e.gif', height=>54,
-                            alt=>'NRC-IIT - Institute for Information Technology'})),
+                       img({src=>'/images/sidenav_graphictop_e.gif', height=>54,
+                            alt=>'NRC-ICT'})),
                     td({width=>'60%', valign=>'bottom', align=>'center'},
                        img({src=>'/images/mainf1.gif', height=>44, width=>286,
                             alt=>'National Research Council Canada'})),
@@ -251,14 +251,14 @@ sub NRCFooter {
                        img({src=>'/images/mainWordmark.gif', height=>44, width=>93,
                             alt=>'Government of Canada'}))),
                  Tr(td({valign=>'top', align=>'right'},
-                       img({src=>'/images/iit_sidenav_graphicbottom_e.gif',
-                            alt=>'NRC-IIT - Institute for Information Technology'})),
+                       img({src=>'/images/sidenav_graphicbottom_e.gif',
+                            alt=>'NRC-ICT'})),
                     td({valign=>'top', align=>'center'},
                        small(
                           "Technologies langagi&egrave;res interactives / Interactive Language Technologies", br(),
-                          "Institut de technologie de l'information / Institute for Information Technology", br(),
+                          "Technologies de l’information et des communications / Information and Communications Technologies", br(),
                           "Conseil national de recherches Canada / National Research Council Canada", br(),
-                          "Copyright 2004&ndash;2010, Sa Majest&eacute; la Reine du Chef du Canada / ",
+                          "Copyright 2004&ndash;2012, Sa Majest&eacute; la Reine du Chef du Canada / ",
                           "Her Majesty in Right of Canada", br(),
                           "<a href=\"/portage_notices.html\">Third party Copyright notices</a>"))));
 }

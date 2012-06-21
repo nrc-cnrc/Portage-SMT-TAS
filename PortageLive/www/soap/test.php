@@ -32,7 +32,7 @@
 <table width="100%" cellspacing="0" cellpadding="0" border="0">
    <tr>
       <td width="20%" align="right" valign="bottom">
-	 <img alt="NRC-IIT - Institute for Information Technology" src="/images/iit_sidenav_graphictop_e.gif" height="54" />
+	 <img alt="NRC-ICT" src="/images/sidenav_graphictop_e.gif" height="54" />
       </td>
       <td width="60%" align="center" valign="bottom">
 	 <img width="286" alt="National Research Council Canada" src="/images/mainf1.gif" height="44" />
@@ -43,10 +43,10 @@
    </tr> 
    <tr>
       <td align="right" valign="top">
-	 <img alt="NRC-IIT - Institute for Information Technology" src="/images/iit_sidenav_graphicbottom_e.gif" />
+	 <img alt="NRC-ICT" src="/images/sidenav_graphicbottom_e.gif" />
       </td> 
       <td align="center" valign="top">
-	 <small>Technologies langagi&egrave;res interactives / Interactive Language Technologies <br /> Institut de technologie de l'information / Institute for Information Technology <br /> Conseil national de recherches Canada / National Research Council Canada <br /> Copyright 2004&ndash;2010, Sa Majest&eacute; la Reine du Chef du Canada /  Her Majesty in Right of Canada <br /> <a href="/portage_notices.html">Third party Copyright notices</a>
+	 <small>Technologies langagi&egrave;res interactives / Interactive Language Technologies <br /> Technologies de l’information et des communications / Information and Communications Technologies <br /> Conseil national de recherches Canada / National Research Council Canada <br /> Copyright 2004&ndash;2012, Sa Majest&eacute; la Reine du Chef du Canada /  Her Majesty in Right of Canada <br /> <a href="/portage_notices.html">Third party Copyright notices</a>
 	 </small>
       </td>
    </tr>
