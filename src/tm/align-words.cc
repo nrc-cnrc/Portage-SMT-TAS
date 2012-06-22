@@ -26,9 +26,12 @@
 using namespace Portage;
 
 static char help_message[] = "\n\
-align-words [-hHvni][-o 'format'][-a 'meth args'][-ibm n][-hmm][-twist][-giza]\n\
-            [-post] ibm-model_lang2_given_lang1 ibm-model_lang1_given_lang2\n\
-            file1_lang1 file1_lang2 ... fileN_lang1 fileN_lang2\n\
+align-words [Options]\n\
+            ibm-model_lang2_given_lang1 ibm-model_lang1_given_lang2\n\
+            file1_lang1 file1_lang2 [ ... fileN_lang1 fileN_lang2]\n\
+align-words -giza(2) [Options]\n\
+            file1_lang1 file1_lang2 align1_1_to_2 align1_2_to_1\n\
+            [ ... fileN_lang1 fileN_lang2 alignN_1_to_2 alignN_2_to_1]\n\
 \n\
   Align words in a set of line-aligned files using IBM or HMM models. The models\n\
   should be for p(lang2|lang1) and p(lang1|lang2) respectively (see train_ibm);\n\

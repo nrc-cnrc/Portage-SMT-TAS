@@ -28,16 +28,17 @@
 using namespace Portage;
 
 static char help_message[] = "\n\
-gen_phrase_tables [-hHvijz][-a 'meth args'][-s 'meth args'][-w nw]\n\
-                  [-wf file][-wfvoc voc][-addsw][-twist]\n\
-                  [-prune1 n][-prune1w nw][-m max][-min min][-d ldiff][-ali]\n\
-                  [-ibm n][-hmm][-p0 p0][-up0 up0][-alpha a][-lambda l]\n\
-                  [-[no]anchor][-max-jump max_j][-[no]end-dist]\n\
-                  [-lc1 loc][-lc2 loc]\n\
-                  [-1 lang1][-2 lang2][-o name][-f1 freqs1][-f2 freqs2]\n\
-                  [-multipr d][-giza]\n\
+gen_phrase_tables [Options]\n\
                   ibm-model_lang2_given_lang1 ibm-model_lang1_given_lang2 \n\
-                  file1_lang1 file1_lang2 ... fileN_lang1 fileN_lang2\n\
+                  file1_lang1 file1_lang2 [ ... fileN_lang1 fileN_lang2]\n\
+\n\
+gen_phrase_tables -giza [Options]\n\
+                  file1_lang1 file1_lang2 align1_1_to_2 align1_2_to_1\n\
+                  [ ... fileN_lang1 fileN_lang2 alignN_1_to_2 alignN_2_to_1]\n\
+\n\
+gen_phrase_tables -ext [Options]\n\
+                  file1_lang1 file1_lang2 align1_1_to_2\n\
+                  [ ... fileN_lang1 fileN_lang2 alignN_1_to_2]\n\
 \n\
 Generate phrase translation tables from IBM or HMM models and a set of\n\
 line-aligned files. The models should be for p(lang2|lang1) and p(lang1|lang2)\n\

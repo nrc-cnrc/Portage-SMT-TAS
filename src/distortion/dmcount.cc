@@ -29,7 +29,14 @@ using namespace std;
 
 static char help_message[] = "\n\
 dmcount [options] ibm_lang2_given_lang1 ibm_lang1_given_lang2 \n\
-                  file1_lang1 file1_lang2 ... fileN_lang1 fileN_lang2\n\
+                  file1_lang1 file1_lang2 [ ... fileN_lang1 fileN_lang2]\n\
+dmcount -giza [Options]\n\
+        file1_lang1 file1_lang2 align1_1_to_2 align1_2_to_1\n\
+        [ ... fileN_lang1 fileN_lang2 alignN_1_to_2 alignN_2_to_1]\n\
+\n\
+dmcount -ext [Options]\n\
+        file1_lang1 file1_lang2 align1_1_to_2\n\
+        [ ... fileN_lang1 fileN_lang2 alignN_1_to_2]\n\
 \n\
 Count reordering events for a lexicalized distortion model over a set of\n\
 line-aligned parallel files, using given IBM/HMM models to perform word\n\
