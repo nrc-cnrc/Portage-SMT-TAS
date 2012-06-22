@@ -1,3 +1,6 @@
 # vim:noet:ts=3:nowrap:filetype=make
 
 #DO_EXTERNAL_LIBS = 1
+
+# Define extra Portage programs to include in addition to the standard ones:
+#EXTRAS ?= bloater

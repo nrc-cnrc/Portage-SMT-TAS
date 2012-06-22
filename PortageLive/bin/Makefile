@@ -38,10 +38,11 @@ OTHER_BIN ?= configtool portage_info
 RESCORE ?= feature_function_tool gen-features-parallel.pl gen_feature_values nbest2rescore.pl rat.sh rescore_translate
 TOKENIZATION ?= udetokenize.pl utf8_casemap utokenize.pl
 TRUECASING ?= truecase.pl casemark.py boscap.py normc1 markup_canoe_output
-EXTRAS ?= bloater
+#Define EXTRAS in Makefile.params to include extra Portage programs
+EXTRAS ?=
 
 # Must contain programs from Portage only.
-PORTAGE_BINS ?= ${CE} ${DECODE} ${OTHER_BIN} ${RESCORE} ${TOKENIZATION} ${TRANSLATE} ${TRUECASING}
+PORTAGE_BINS ?= ${CE} ${DECODE} ${OTHER_BIN} ${RESCORE} ${TOKENIZATION} ${TRANSLATE} ${TRUECASING} ${EXTRAS}
 CLUSTER_BINS ?= ${CLUSTER}
 BINARIES ?= ${PORTAGE_BINS} ${CLUSTER_BINS} ${CE_EXTERNAL}
 
