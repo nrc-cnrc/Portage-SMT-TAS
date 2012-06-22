@@ -156,7 +156,7 @@ my $footer = <<FOOTER;
 <table width="100%" border="0" cellpadding="0" cellspacing="0"> 
 <tr>
   <td width="20%" valign="bottom" align="right">
-    <img src="$NRC_logo_path/iit_sidenav_graphictop_e.gif" height="54" alt="NRC-IIT" />
+    <img src="$NRC_logo_path/sidenav_graphictop_e.gif" height="54" alt="NRC-ICT" />
   </td>
   <td width="60%" valign="bottom" align="center" class="imgcell">
      <img src="$NRC_logo_path/mainf1.gif" alt="National Research Council Canada" width="286" height="44" />
@@ -167,14 +167,14 @@ my $footer = <<FOOTER;
 </tr>
 <tr>
   <td valign="top" align="right">
-    <img src="$NRC_logo_path/iit_sidenav_graphicbottom_e.gif" alt="Institute for Information Technology" />
+    <img src="$NRC_logo_path/sidenav_graphicbottom_e.gif" alt="ICT" />
   </td>
   <td valign="top" align="center">
   <font size=-1>
 Technologies langagi&egrave;res interactives / Interactive Language Technologies<BR>
-Institut de technologie de l'information / Institute for Information Technology<BR>
+Technologies de l’information et des communications / Information and Communications Technologies<BR>
 Conseil national de recherches Canada / National Research Council Canada<BR>
-Copyright &copy; 2004-2011, Sa Majest&eacute; la Reine du Chef du Canada / Her Majesty in Right of Canada
+Copyright &copy; 2004-2012, Sa Majest&eacute; la Reine du Chef du Canada / Her Majesty in Right of Canada
   </font>
   </td>
 </tr>
