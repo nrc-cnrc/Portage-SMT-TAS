@@ -114,7 +114,7 @@ public:
 
    /// Groups together the variables needed to describe a feature: its name,
    /// weight name, weights, random weights, feature names.
-   struct FeatureDescription {
+   struct FeatureGroup {
       const string shortname;   ///< short name of the feature's weight option
       const string group;       ///< long name of the feature group, for DecoderFeature::create()
       vector<double> weights;   ///< weights for this feature
@@ -123,12 +123,30 @@ public:
       vector<string> args;      ///< string(s) providing the feature argument(s)
 
       /// Constructor 
-      FeatureDescription(const string& shortname, const char* group)
+      FeatureGroup(const string& shortname, const char* group)
          : shortname(shortname), group(group), need_args(true) {}
       /// Return weather the config has no features if this group
       bool empty() const { return weights.empty(); }
       /// Return how many feature of this group the config has
       Uint size() const { return weights.size(); }
+   };
+
+   /// The FeatureGroupMap could simply be a typedef on its baseclass, but
+   /// we want the copy construction, assignment operator and destructor to
+   /// work deeply, so the default functions for CanoeConfig itself are deep too.
+   class FeatureGroupMap : public vector_map<string, FeatureGroup*> {
+      typedef vector_map<string, FeatureGroup*> baseclass;
+      FeatureGroupMap& operator=(const FeatureGroupMap&); // intentially not implemented
+   public:
+      FeatureGroupMap() {}
+      FeatureGroupMap(const FeatureGroupMap& x) : baseclass(x) {
+         for (baseclass::iterator it = begin(); it != end(); ++it)
+            it->second = new FeatureGroup(*it->second);
+      }
+      ~FeatureGroupMap() {
+         for (baseclass::iterator it = begin(); it != end(); ++it)
+            delete it->second;
+      }
    };
 
    // Parameters:
@@ -148,16 +166,15 @@ public:
    random_param rnd_transWeights;   ///< Translation model weights
    vector<double> forwardWeights;   ///< Forward translation model weights
    random_param rnd_forwardWeights; ///< Forward translation model weights
-   vector<double> adirTransWeights;   ///< Adirectional translation model weights //boxing
-   random_param rnd_adirTransWeights; ///< Adirectional translation model weights //boxing
+   vector<double> adirTransWeights; ///< Adirectional translation model weights //boxing
+   random_param rnd_adirTransWeights;///< Adirectional translation model weights //boxing
 
-   /// A map holding all the other feature weights and models et al
-   typedef vector_map<string, FeatureDescription*> FeatureMap;
-   FeatureMap features;
+   /// The map holding all the other feature weights and models et al
+   FeatureGroupMap features;
 
    // Rule decoder feature arguments
-   vector<string> rule_classes;       ///< Rule classes' name
-   vector<double> rule_log_zero;      ///< Rule classes' log zero value
+   vector<string> rule_classes;     ///< Rule classes' name
+   vector<double> rule_log_zero;    ///< Rule classes' log zero value
 
    bool randomWeights;              ///< true == use rnd weights for each sent.
    Uint randomSeed;                 ///< Seed for randomWeights
@@ -254,8 +271,8 @@ public:
     * weight_names_other in config_io.cc, for the current list of allowed
     * feature names.
     */
-   FeatureDescription* feature(const char* group) { return features.get(group); }
-   const FeatureDescription* feature(const char* group) const { return features.get(group); }
+   FeatureGroup* featureGroup(const char* group) { return features.get(group); }
+   const FeatureGroup* featureGroup(const char* group) const { return features.get(group); }
    //@}
 
    /**

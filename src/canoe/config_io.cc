@@ -274,8 +274,8 @@ CanoeConfig::CanoeConfig()
       string shortname = weight_names_other[i];
       string longname = weight_names_other[i+1];
       weight_params_other.push_back(shortname);
-      FeatureDescription *f = features[shortname] =
-         new FeatureDescription(shortname, weight_names_other[i+2]);
+      FeatureGroup *f = features[shortname] =
+         new FeatureGroup(shortname, weight_names_other[i+2]);
 
       string weight_names = "weight-" + longname + " " + shortname;
       string random_names = "random-" + longname + " r" + shortname;
@@ -285,16 +285,20 @@ CanoeConfig::CanoeConfig()
 
    // For each feature, attach its args element to the appropriate param_info,
    // so the list of models can be read from the canoe.ini or command line.
-   param_infos.push_back(ParamInfo("distortion-model", "stringVect", &feature("d")->args));
-   feature("w")->need_args = false;
-   param_infos.push_back(ParamInfo("segmentation-model", "stringVect", &feature("sm")->args));
-   param_infos.push_back(ParamInfo("unal-feature", "stringVect", &feature("unal")->args));
-   param_infos.push_back(ParamInfo("ibm1-fwd-file", "stringVect", &feature("ibm1f")->args,
+   param_infos.push_back(ParamInfo("distortion-model", "stringVect", &featureGroup("d")->args));
+   featureGroup("w")->need_args = false;
+   param_infos.push_back(ParamInfo("segmentation-model", "stringVect", &featureGroup("sm")->args));
+   param_infos.push_back(ParamInfo("unal-feature", "stringVect", &featureGroup("unal")->args));
+   param_infos.push_back(ParamInfo("ibm1-fwd-file", "stringVect", &featureGroup("ibm1f")->args,
       ParamInfo::relative_path_modification | ParamInfo::check_file_name));
-   feature("lev")->need_args = false;
-   feature("ng")->need_args = true; // but args not via param_infos - created in check()
-   param_infos.push_back(ParamInfo("bilm-file", "stringVect", &feature("bilm")->args,
+   featureGroup("lev")->need_args = false;
+   featureGroup("ng")->need_args = true; // but args not via param_infos - created in check()
+   param_infos.push_back(ParamInfo("bilm-file", "stringVect", &featureGroup("bilm")->args,
       ParamInfo::relative_path_modification | ParamInfo::lm_check_file_name));
+
+   // The rule feature is weird, we have to turn off its need_args here, and turn
+   // it back on in check() after initializing its args vector.
+   featureGroup("ruw")->need_args = false;
 
    // The "primary" features are each handled in their own specific ways, so
    // they are dealt with separately.
@@ -620,27 +624,27 @@ void CanoeConfig::check()
 
    // Set defaults:
 
-   FeatureDescription* lengthF = feature("w"); // save this pointer since we reuse it later
+   FeatureGroup* lengthF = featureGroup("w"); // save this pointer since we reuse it later
    if (lengthF->weights.empty())
       lengthF->weights.push_back(0.0);
 
-   FeatureDescription* distortionF = feature("d"); // save this pointer since we reuse it later
+   FeatureGroup* distortionF = featureGroup("d"); // save this pointer since we reuse it later
    if (distortionF->args.empty())
       distortionF->args.push_back("WordDisplacement");
    else if (distortionF->args[0] == "none")
       distortionF->args.clear();
 
-   FeatureDescription* segmentationF = feature("sm");
+   FeatureGroup* segmentationF = featureGroup("sm");
    if (segmentationF->args.size() == 1 && isPrefix("none", segmentationF->args[0])) {
       error(ETWarn, "Please remove obsolete \"[segmentation-model] none\" or \"none#whatever\" from your canoe.ini files and scripts");
       segmentationF->args.clear();
    }
 
-   FeatureDescription *ngF = feature("ng");
+   FeatureGroup *ngF = featureGroup("ng");
    for (Uint i = 0; i < ngF->weights.size(); ++i)
       ngF->args.push_back(join(vector<Uint>(1,i+1))); // lazy way to make a string out of a number
 
-   for (FeatureMap::iterator f_it = features.begin(); f_it != features.end(); ++f_it) {
+   for (FeatureGroupMap::iterator f_it = features.begin(); f_it != features.end(); ++f_it) {
       if (f_it->second->need_args) {
          if (f_it->second->weights.empty())
             f_it->second->weights.assign(f_it->second->args.size(), 1.0);
@@ -667,7 +671,7 @@ void CanoeConfig::check()
       adirTransWeights.resize(multi_adir_model_count, 1.0);
 
    // Rule decoder feature
-   FeatureDescription* ruwF = feature("ruw");
+   FeatureGroup* ruwF = featureGroup("ruw");
    if (ruwF->weights.empty())
       ruwF->weights.resize(rule_classes.size(), 1.0f);
    if (rule_log_zero.empty())
@@ -680,6 +684,9 @@ void CanoeConfig::check()
 
    for (Uint i = 0; i < ruwF->weights.size(); ++i)
       ruwF->args.push_back(rule_classes[i] + ":" + join(vector<double>(1,rule_log_zero[i])));
+   // at this point, ruwF->args is initialized, set need_args so that
+   // BasicModel::InitDecoderFeatures() knows to use args.
+   ruwF->need_args = true;
 
 
    ////////////////////////////////////////////////////////
@@ -801,14 +808,14 @@ void CanoeConfig::check()
    /* This check has to be deferred, since -ref logically belongs on the
       command line, not in the canoe.ini file: we don't want the check to be
       applied in "configtool check", which only checks the canoe.ini file.
-   if (forcedDecoding || forcedDecodingNZ || !feature("lev")->weights.empty() || !feature("ng")->weights.empty())
+   if (forcedDecoding || forcedDecodingNZ || !featureGroup("lev")->weights.empty() || !featureGroup("ng")->weights.empty())
       if (refFile.empty())
          error(ETFatal, "Specified forced decoding, the levenshtein feature or the n-gram match feature but no reference file.");
    */
 
    if (forcedDecoding && !forcedDecodingNZ) {
       lmWeights.assign(lmWeights.size(), 0.0);
-      feature("ibm1f")->weights.assign(feature("ibm1f")->weights.size(), 0.0);
+      featureGroup("ibm1f")->weights.assign(featureGroup("ibm1f")->weights.size(), 0.0);
       lengthF->weights.assign(lengthF->weights.size(), 0.0);
    }
 
@@ -880,7 +887,7 @@ void CanoeConfig::check()
    if (distLimitExt && distLimitSimple)
       error(ETFatal, "Can't use both -dist-limit-ext and -dist-limit-simple.");
 
-   if (!feature("bilm")->args.empty()) {
+   if (!featureGroup("bilm")->args.empty()) {
       if (!tpptFiles.empty())
          error(ETFatal, "Can't combine -bilm-file with -ttable-tppt, since TPPTs don't store alignment information.");
    }

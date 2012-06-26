@@ -37,12 +37,12 @@ Logging::logger bmgLogger(Logging::getLogger("debug.canoe.basicmodelgenerator"))
 // variables to iterate over features, do not write explicit lists of features!
 void BasicModelGenerator::InitDecoderFeatures(const CanoeConfig& c)
 {
-   if (c.feature("d")->empty())
+   if (c.featureGroup("d")->empty())
       if (c.verbosity) cerr << "Not using any distortion model" << endl;
 
-   for (CanoeConfig::FeatureMap::const_iterator it(c.features.begin()),
+   for (CanoeConfig::FeatureGroupMap::const_iterator it(c.features.begin()),
         end(c.features.end()); it != end; ++it) {
-      const CanoeConfig::FeatureDescription *f = it->second;
+      const CanoeConfig::FeatureGroup *f = it->second;
       assert(!f->need_args || f->weights.size() == f->args.size());
       for (Uint i(0); i < f->size(); ++i) {
          string args = f->need_args ? f->args[i] : "";
@@ -194,7 +194,7 @@ BasicModelGenerator::BasicModelGenerator(
 {
    LOG_VERBOSE1(bmgLogger, "BasicModelGenerator construtor with 5 args");
 
-   phraseTable = new PhraseTable(tgt_vocab, biPhraseVocab, c.phraseTablePruneType.c_str(), !c.feature("bilm")->empty());
+   phraseTable = new PhraseTable(tgt_vocab, biPhraseVocab, c.phraseTablePruneType.c_str(), !c.featureGroup("bilm")->empty());
 
    if (limitPhrases)
    {
@@ -461,7 +461,7 @@ void BasicModelGenerator::addMarkedPhraseInfos(
       //the global defaults (i.e., the backoff scores) are used.
 
       newPI->alignment = 0;
-      if (!c->feature("bilm")->empty()) {
+      if (!c->featureGroup("bilm")->empty()) {
          static bool warning_printed = false;
          if (!warning_printed) {
             error(ETWarn, "Using BiLMs with marks is OK but not completely supported: even if the BiLM contained the relevant marks, they might have gotten filtered out while loading the model.");
@@ -532,7 +532,7 @@ PhraseInfo *BasicModelGenerator::makeNoTransPhraseInfo(
 
    newPI->joint_counts.push_back(0); // OOV
    newPI->alignment = 0;
-   if (!c->feature("bilm")->empty())
+   if (!c->featureGroup("bilm")->empty())
       newPI->bi_phrase = VectorPhrase(1, biPhraseVocab.add((word + BiLMWriter::sep + word).c_str()));
 
    newPI->src_words = range;

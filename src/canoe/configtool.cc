@@ -167,9 +167,9 @@ int main(int argc, char* argv[])
       c.getFeatureWeights(wts);
       os << wts.size() << endl;
    } else if (cmd == "nd") {
-      os << c.feature("d")->size() << endl;
+      os << c.featureGroup("d")->size() << endl;
    } else if (cmd == "segff") {
-      os << c.feature("sm")->size() << endl;
+      os << c.featureGroup("sm")->size() << endl;
    } else if (cmd == "memmap") {
       Uint64 total_memmap_size = 0;
       for ( Uint i = 0; i < c.tpptFiles.size(); ++i )
@@ -179,8 +179,8 @@ int main(int argc, char* argv[])
       os << (total_memmap_size/1024/1024) << endl;
    } else if (cmd == "nb") {
       int n = 1 // length is always a basic feature
-            + c.feature("d")->size()
-            + c.feature("sm")->size();
+            + c.featureGroup("d")->size()
+            + c.featureGroup("sm")->size();
       os << n << endl;
    } else if (cmd == "nl") {
       os << c.lmFiles.size() << endl;

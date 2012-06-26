@@ -131,7 +131,7 @@ bool ShiftReducer::usingSR(const CanoeConfig& c)
 {
    if(c.distLimitITG) return true;
    
-   const vector<string>& distortionModel(c.feature("d")->args);
+   const vector<string>& distortionModel(c.featureGroup("d")->args);
    for(Uint i=0; i<distortionModel.size(); i++)
    {
       string name, arg;

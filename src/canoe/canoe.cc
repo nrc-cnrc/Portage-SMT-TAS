@@ -534,7 +534,7 @@ int MAIN(argc, argv)
    // get reference (target sentences) if levenshtein or n-gram is used
    vector<vector<string> > tgt_sents;
    // test parameters for levenshtein or n-gram
-   const bool usingLev = !c.feature("lev")->empty() || !c.feature("ng")->empty();
+   const bool usingLev = !c.featureGroup("lev")->empty() || !c.featureGroup("ng")->empty();
    const bool usingSR = ShiftReducer::usingSR(c);
    const bool forcedDecoding = c.forcedDecoding || c.forcedDecodingNZ;
    const bool needRef = usingLev || forcedDecoding;
