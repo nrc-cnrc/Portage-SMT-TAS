@@ -219,6 +219,16 @@ string BaseName(const string& filename);
 string GetAppPath();
 
 /**
+ * Adjust the filename's path relative to a base directory; that is, if
+ * filename is a relative path it is relative to basedir and the result is
+ * basedir/filename.
+ * @param basedir  path name of the base directory
+ * @param filename  file path to be adjusted
+ * @return  the adjusted path name of file
+ */
+string adjustRelativePath(const string& basedir, const string& filename);
+
+/**
  * Verifies that the file has .Z, .z or .gz extension.
  * @param filename filename to check if it's a gzip file
  * @return Returns true if filename contains .Z, .z or .gz

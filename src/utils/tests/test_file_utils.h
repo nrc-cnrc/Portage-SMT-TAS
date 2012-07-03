@@ -85,6 +85,16 @@ public:
       TS_ASSERT_EQUALS(BaseName(DirName(DirName(my_app_path))), "utils");
       TS_ASSERT_EQUALS(BaseName(DirName(DirName(DirName(my_app_path)))), "src");
    }
-}; // TestYourClass
+
+   void test_adjustRelativePath() {
+      TS_ASSERT_EQUALS(adjustRelativePath("a/b/c", "test_file"), "a/b/c/test_file");
+      TS_ASSERT_EQUALS(adjustRelativePath("a/b/c", "d/e/test_file"), "a/b/c/d/e/test_file");
+      TS_ASSERT_EQUALS(adjustRelativePath("/a/b/c", "d/e/test_file"), "/a/b/c/d/e/test_file");
+      TS_ASSERT_EQUALS(adjustRelativePath("/a/b/c", "/d/e/test_file"), "/d/e/test_file");
+      TS_ASSERT_EQUALS(adjustRelativePath("a/b/c", ""), "");
+      TS_ASSERT_EQUALS(adjustRelativePath("", "test_file"), "test_file");
+      TS_ASSERT_EQUALS(adjustRelativePath("", ""), "");
+   }
+}; // TestFileUtils
 
 } // Portage

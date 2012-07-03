@@ -205,6 +205,13 @@ string Portage::GetAppPath() {
    return program_path;
 }
 
+string Portage::adjustRelativePath(const string& basedir, const string& filename)
+{
+   if (filename.empty() or filename[0] == '/' or basedir.empty())
+      return filename;
+   return basedir + '/' + filename;
+}
+
 bool Portage::isZipFile(const string& filename)
 {
    const size_t dot = filename.rfind(".");
