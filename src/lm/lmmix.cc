@@ -24,15 +24,20 @@ namespace Portage {
 LMMix::Creator::Creator(
       const string& lm_physical_filename, Uint naming_limit_order)
    : PLM::Creator(lm_physical_filename, naming_limit_order)
+   , lmmix_relative(true)
 {}
 
 bool LMMix::Creator::checkFileExists()
 {
    if (!check_if_exists(lm_physical_filename)) return false;
 
+   string lmmix_dir = lmmix_relative ? DirName(lm_physical_filename) : "";
+
    string line;
    iSafeMagicStream file(lm_physical_filename);
 
+   bool ok = true;
+   bool have_seen_relative_path = false;
    Uint num_lines = 0;
    while (getline(file, line)) {
       ++num_lines;
@@ -41,9 +46,30 @@ bool LMMix::Creator::checkFileExists()
          error(ETFatal, "syntax error in %s; expected 2 tokens on line %d: %s",
                lm_physical_filename.c_str(), num_lines, line.c_str());
 
-      if (!PLM::checkFileExists(toks[0]))
+      bool file_exists = PLM::checkFileExists(adjustRelativePath(lmmix_dir, toks[0]));
+      if (!file_exists && !have_seen_relative_path && toks[0][0] != '/') {
+         // try the alternative relative path
+         lmmix_relative = not lmmix_relative;
+         lmmix_dir = lmmix_relative ? DirName(lm_physical_filename) : "";
+         file_exists = PLM::checkFileExists(adjustRelativePath(lmmix_dir, toks[0]));
+         if (file_exists) {
+            cerr << "Falling back to path"
+                 << (lmmix_relative ? "" : " (relative to current working directory)")
+                 << ": " << adjustRelativePath(lmmix_dir, toks[0]) << endl;
+            error(ETWarn, "Using component LM paths relative to the %s.",
+                  lmmix_relative ? "mixlm file location" : "current working directory");
+         } else {
+            lmmix_relative = not lmmix_relative; // restore default setting
+            lmmix_dir = lmmix_relative ? DirName(lm_physical_filename) : "";
+         }
+      }
+      if (toks[0][0] != '/')
+         have_seen_relative_path = true;
+      if (!file_exists) {
          cerr << "LMMix(" << lm_physical_filename << ") can't access: "
               << toks[0] << endl;
+         ok = false;
+      }
    }
 
    if (num_lines == 0) {
@@ -51,7 +77,7 @@ bool LMMix::Creator::checkFileExists()
       return false;
    }
 
-   return true;
+   return ok;
 }
 
 Uint64 LMMix::Creator::totalMemmapSize()
@@ -79,19 +105,24 @@ PLM* LMMix::Creator::Create(VocabFilter* vocab,
                             ostream *const os_filtered,
                             bool quiet)
 {
+   if (!checkFileExists())
+      error(ETFatal, "Unable to open MIXLM %s or one of its associated files.",
+            lm_physical_filename.c_str());
    return new LMMix(lm_physical_filename, vocab, oov_handling,
-                    oov_unigram_prob, limit_vocab, limit_order);
+                    oov_unigram_prob, limit_vocab, limit_order, lmmix_relative);
 
 }
 
 LMMix::LMMix(const string& name, VocabFilter* vocab,
              OOVHandling oov_handling, float oov_unigram_prob,
-             bool limit_vocab, Uint limit_order)
+             bool limit_vocab, Uint limit_order, bool lmmix_relative)
    : PLM(vocab, oov_handling, oov_unigram_prob)
 {
    // read component models and their global weights
    iSafeMagicStream file(name);
    string line;
+
+   string lmmix_dir = lmmix_relative ? DirName(name) : "";
 
    double z = 0.0;
    while (getline(file, line)) {
@@ -100,7 +131,8 @@ LMMix::LMMix(const string& name, VocabFilter* vocab,
          error(ETFatal, "syntax error in %s; expected 2 tokens in %s",
                name.c_str(), line.c_str());
 
-      models.push_back(PLM::Create(toks[0], vocab, oov_handling, oov_unigram_prob,
+      models.push_back(PLM::Create(adjustRelativePath(lmmix_dir, toks[0]),
+                                   vocab, oov_handling, oov_unigram_prob,
                                    limit_vocab, limit_order, NULL));
       if (models.back()->getOrder() > gram_order)
          gram_order = models.back()->getOrder();

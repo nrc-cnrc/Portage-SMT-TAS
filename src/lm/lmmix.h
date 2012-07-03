@@ -55,6 +55,8 @@ public:
                           Uint limit_order,
                           ostream *const os_filtered,
                           bool quiet);
+   private:
+      bool lmmix_relative;   // are paths relative to lmmix file location?
    };
 
    /**
@@ -74,13 +76,11 @@ public:
     *                      If lm_filename ends in \#N, that will also be
     *                      treated as if limit_order=N was specified.
     *                      [typical value: 0]
-    *
-    * TODO: relativize the component LM names, like canoe now does with its
-    * filenames.
+    * @param lmmix_relative   are paths relative to the lmmix file location?
     */
    LMMix(const string& name, VocabFilter* vocab,
          OOVHandling oov_handling, float oov_unigram_prob,
-         bool limit_vocab, Uint limit_order);
+         bool limit_vocab, Uint limit_order, bool lmmix_relative);
 
    virtual float wordProb(Uint word, const Uint context[], Uint context_length);
 
