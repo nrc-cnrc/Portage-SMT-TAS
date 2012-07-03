@@ -16,6 +16,7 @@
 #include "config_io.h"
 #include "arg_reader.h"
 #include "str_utils.h"
+#include "file_utils.h"
 #include "phrasetable.h"
 #include <iomanip>
 #include <sstream>
@@ -520,12 +521,10 @@ struct extendFileName
     */
    void operator()(string& file) {
       // extends the path only if it's not an absolute path
-      if (!file.empty() && file[0] != '/') {
-         if (isPrefix(LMDynMap::header, file))
-            file = LMDynMap::fix_relative_path(remoteDirName, file);
-         else
-            file = remoteDirName + "/" + file;
-      }
+      if (isPrefix(LMDynMap::header, file))
+         file = LMDynMap::fix_relative_path(remoteDirName, file);
+      else
+         file = adjustRelativePath(remoteDirName, file);
    }
 };
 
