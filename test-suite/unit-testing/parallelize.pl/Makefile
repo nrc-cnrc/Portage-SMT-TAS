@@ -137,3 +137,9 @@ output.striped_mode1.gz: output.%.gz:  input
 # Split using stripe mode.
 output.striped_mode2:  EXTRA = -n 2 -stripe
 
+
+.PHONY: pipefail
+all:  pipefail
+pipefail:
+	! ${PARALLELIZE_PL} '( false < Makefile | wc )' &> /dev/null \
+	|| ! echo "ERROR: parallelize.pl should detect when an element of a pipe failed." >&2
