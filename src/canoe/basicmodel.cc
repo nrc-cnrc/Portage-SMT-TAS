@@ -64,7 +64,10 @@ BasicModelGenerator* BasicModelGenerator::create(
 {
    BasicModelGenerator *result;
 
-   c.check_all_files();
+   // We don't need to call c.check_all_files() because it was already called
+   // by c.check(), which must have been called to finish initializing the
+   // canoe config prior to passing it to BasicModelGenerator::create.
+   //c.check_all_files();
    assert (c.loadFirst || (sents && marks));
 
    if (c.backwards) {
@@ -254,8 +257,12 @@ void BasicModelGenerator::addLanguageModel(const char *lmFile, double weight,
 {
    extractVocabFromTPPTs();
 
-   if (!PLM::checkFileExists(lmFile))
-      error(ETFatal, "Cannot read from language model file %s", lmFile);
+   // We don't need to call PLM::checkFileExists() for the lm file because
+   // CanoeConfig::check_all_files() was already called by CanoeConfig::check(),
+   // which must have been called to finish initializing the canoe config prior
+   // to passing it to BasicModelGenerator::create.
+   //if (!PLM::checkFileExists(lmFile))
+   //   error(ETFatal, "Cannot read from language model file %s", lmFile);
    cerr << "loading language model from " << lmFile << endl;
    //time_t start_time = time(NULL);
    PLM *lm = PLM::Create(lmFile, &tgt_vocab, PLM::SimpleAutoVoc, LOG_ALMOST_0,
