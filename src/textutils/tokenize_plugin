@@ -26,14 +26,14 @@ if [ "$1" == "-help" -o "$1" == "-h" ]; then
 fi
 
 test $# -eq 0 && echo "Missing language code argument" >&2 && exit 1
-LANG=$1; shift
+SOURCE_LANGUAGE=$1; shift
 
-if [[ "$LANG" == "ch" ]]; then
+if [[ "$SOURCE_LANGUAGE" == "ch" ]]; then
    perl -ple 'BEGIN{use encoding "UTF-8";} s/(\.\.\.\.\.\.|\.\.\.|\x{2026}|\x2E|\x{FF0E}|\x3F|\x{FF1F}|\x21|\x{FF01}|\x{3002}|\x{FF61})/$1\n/g' \
    | chinese_segmenter.pl
-elif [ "$LANG" == "fr" -o "$LANG" == "en" -o "$LANG" == "es" ]; then
-   utokenize.pl -ss -lang=$LANG
+elif [ "$SOURCE_LANGUAGE" == "fr" -o "$SOURCE_LANGUAGE" == "en" -o "$SOURCE_LANGUAGE" == "es" ]; then
+   utokenize.pl -ss -lang=$SOURCE_LANGUAGE
 else
-   echo "Unsupported language: $LANG" >&2
+   echo "Unsupported language: $SOURCE_LANGUAGE" >&2
    exit 1
 fi

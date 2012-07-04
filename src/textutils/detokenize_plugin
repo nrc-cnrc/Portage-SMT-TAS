@@ -26,12 +26,12 @@ if [ "$1" == "-help" -o "$1" == "-h" ]; then
 fi
 
 test $# -eq 0 && echo "Missing language code argument" >&2 && exit 1
-LANG=$1; shift
+TARGET_LANGUAGE=$1; shift
 
-if [ "$LANG" == "fr" -o "$LANG" == "en" -o "$LANG" == "es" ]; then
-   udetokenize.pl -lang=$LANG
+if [ "$TARGET_LANGUAGE" == "fr" -o "$TARGET_LANGUAGE" == "en" -o "$TARGET_LANGUAGE" == "es" ]; then
+   udetokenize.pl -lang=$TARGET_LANGUAGE
 else
-   echo "Unsupported language: $LANG" >&2
+   echo "Unsupported language: $TARGET_LANGUAGE" >&2
    exit 1
 fi
 

@@ -28,7 +28,7 @@ if [ "$1" == "-help" -o "$1" == "-h" ]; then
 fi
 
 test $# -eq 0 && echo "Missing language code argument" >&2 && exit 1
-LANG=$1; shift
+SOURCE_LANGUAGE=$1; shift
 
 ridbom.sh | crlf2lf.sh
 
