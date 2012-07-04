@@ -1,0 +1,100 @@
+De ce côté , on évitera les recherches farfelues et on s' assurera que les études seront effectuées de façon très sérieuse . 
+De toute façon , à travers tout le Québec et le Canada , les sociétés d' histoire et les sociétés de généalogie sont beaucoup plus reconnues pour le sérieux de leur travail et la qualité des recherches effectuées . 
+Elles nous permettent aussi de faire connaître des tranches d' histoire qui , autrement , ne pourraient pas être connues . 
+Souvent , on fait des découvertes relatives à l' évolution de dossiers anciens qui ont une importance réelle pour le présent et pour l' avenir . 
+Cela peut nous éviter , entre autres , de réinventer la roue . 
+Il est également important de savoir que le paragraphe 17(7) prévoit qu' à partir de la 112e année suivant le recensement , les renseignements obtenus pourront être examinés par quiconque . 
+À ce moment , on sera rendu à la période limite , et toutes les informations disponibles pourront être consultées . 
+On dit aussi , à l' article 17(8) , que tout recensement fait à partir de 2006 pourra être examiné par quiconque , à compter de la 92e année suivant le recensement , si la personne visée par celui -ci a consenti à la communication de renseignements .  Pour les recensements faits à partir de 2006 , donc dès le prochain recensement au Canada , une autorisation devra sûrement être donnée par la personne concernée pour que les informations puissent être utilisées à compter de la 92e année suivant ledit recensement . 
+Si la personne refuse de consentir à la divulgation de renseignements personnels la concernant , l' information ne sera jamais rendue publique . 
+Avec ce projet de loi , on corrige des situations qui étaient floues dans le passé et , en même temps , on clarifie la situation pour l' avenir , ce qui est assez intéressant . 
+On répond aux volontés exprimées par les gens qui veulent qu' on protège les renseignements personnels lorsque la personne concernée n' autorise pas leur divulgation . 
+En revanche , lorsque la personne en autorise la divulgation , on aura des délais pertinents qui permettront de mener des études appropriées . 
+Le nouveau paragraphe 17(10) prévoit que tous les relevés de recensement effectués entre 1910 et 2003 ou dès 2006 devront , 92 ans suivant la tenue du recensement , être transférés aux Archives nationales du Canada pour en permettre l' examen , de telle façon qu' on ait ensuite un lieu unique où retrouver l' information . 
+Vous comprendrez , à la lumière des informations que j' ai données , que le Bloc québécois estime que le projet de loi S-13 permet d' étudier d' importantes données historiques suivant une période de prescription acceptable . 
+En conséquence , nous sommes en faveur du principe du projet de loi S-13 . 
+Cela s' inscrit aussi dans la prolongation de l' histoire québécoise commune . 
+L' accès pour les archivistes et les historiens , après une période de 92 ans , permet de produire de meilleurs documents historiques qui enrichissent le patrimoine culturel du Québec et du Canada . 
+Souvent , on doit faire référence à l' interprétation donnée d' une période de notre histoire , de notre passé . 
+Avec des règles claires , par son travail , l' historien va pouvoir aller chercher l' information la plus exacte possible . 
+Même s' il y a toujours des débats politiques autour des questions d' interprétation , les faits seront là et la population pourra juger en conséquence , de façon claire et nette . 
+Plusieurs experts soutiennent que les documents de recensement sont essentiels à la recherche historique et généalogique . 
+Je pense qu' ils ont effectivement raison . 
+Mais où se termine le droit à la vie privée et où commence le besoin de connaissance historique ? 
+Le Bloc québécois juge que bien qu' il faille respecter les droits à la vie privée des citoyens , on ne doit pas avoir d' obligation d' assujettir les renseignements contenus dans les recensements à une confidentialité perpétuelle . 
+On se prive alors d' une information essentielle . 
+Depuis quelques années , les sociétés d' histoire et de généalogie ont accompli toutes sortes de démarches pour aboutir à l' actuel projet de loi , tout en assurant la protection des renseignements personnels . 
+Avec ce projet de loi , on va être capables de rejoindre ces deux objectifs . 
+On peut dire aussi que le passage du temps diminue les préoccupations des répondants concernant la protection de leur vie privée . 
+Il y a évidemment des informations qui , du vivant des gens , auraient pu créer des problèmes . 
+Mais lorsque les gens sont décédés , lorsqu' on est rendu à la génération suivante , il n' y aura plus de problème grâce à la période prévue dans le projet de loi . 
+Donc , suite à un délai suffisant , le droit du public d' avoir accès au dossier des recensements l' emporte , selon nous , sur le droit des répondants à la protection de leur vie privée , si effectivement ce type de délai est protégé . 
+Étant donné que les renseignements ne nuisent pas à des gens qui sont toujours vivants et que la divulgation de l' information ne peut donc pas nuire à ceux -ci , nous jugeons que les retombées historiques et scientifiques sont plus importantes que la protection de la vie privée des gens décédés . 
+Certaines personnes voulaient utiliser l' argument de la promesse faite aux citoyens en ce qui a trait à la protection de leur vie privée . 
+Selon nous , les risques de préjudice contre les personnes toujours vivantes sont très faibles . 
+N' oublions pas que les informations qui pourraient être divulguées dateront d' au moins 92 ans , et pour la majorité , de 112 ans . 
+À partir du recensement de 2006 , les renseignements individuels pourront être protégés éternellement si les personnes veulent les considérer ainsi . 
+Le Bloc québécois ne croit pas que la protection de la vie privée devrait pour autant disparaître lors du décès d' une personne , mais les modalités inscrites au projet de loi permettent , en tenant compte des avis du conseil d' experts du gouvernement où siège le juge La Forest , une période de prescription raisonnable . 
+Il faut se souvenir que la plupart des données recueillies lors d' un recensement ne sont pas confidentielles et celles qui le sont , comme les données sur le revenu , peuvent perdre un peu de leur caractère confidentiel au fil des ans . 
+Malgré les garanties de confidentialité fournies aux répondants , nous croyons qu' une volonté de conserver les renseignements recueillis à l' intention des générations futures existait même à cette époque . 
+Une bonne indication de ceci est l' inscription d' un renvoi des renseignements aux Archives nationales du Canada , tel qu' indiqué dans la loi actuelle . 
+Les Archives sont un organisme qui a toujours eu le mandat de conserver des données pour consultation future . 
+Nous sommes conscients que certains auront des inquiétudes par rapport au respect de la vie privée . 
+Toutefois nous pensons que cela se dissipera au fil du temps . 
+Nous avons devant nous un projet de loi qui , finalement , après de multiples méandres , va permettre de réaliser l' objectif , c' est-à-dire de pouvoir utiliser les informations à des fins historiques comme cela nous est réclamé depuis longtemps par les sociétés d' histoire et de généalogie , tout en assurant une protection suffisante des renseignements personnels . 
+Pour toutes ces raisons , le Bloc québécois va se prononcer en faveur de ce projet de loi . 
+M. Peter Adams ( Peterborough , Lib. ) : 
+Monsieur le Président , j' ai bien aimé les propos tenus par mon collègue . 
+Je sais qu' il suit ce dossier de très près . 
+Comme il l' a signalé , les deux périodes , celle de 92 ans et celle de 112 ans , sont en fait l' un des compromis négociés au cours de nos débats sur cette question , tant les débats publics que les débats au Sénat et à la Chambre . 
+Mon collègue a entendu un orateur précédent affirmer qu' il s' inquiétait , tout comme son parti , de toute la paperasserie que cette mesure créerait . 
+C' est comme cela qu' il présentait les choses . 
+J' avais déjà réfléchi à la question . 
+Personne ne veut créer de paperasserie inutile , mais il semble , dans ce cas -ci , que les intéressés n' auraient des formulaires à remplir que pour la période de 92 ans , période qui pourrait poser des problèmes aux sociétés , aux historiens professionnels et aux grands généalogistes . 
+C' est lorsqu' ils voudront faire des recherches portant sur cette période qu' ils auront à remplir des formulaires et à signer des documents pour avoir accès , avant les autres , aux renseignements qu' ils désirent . 
+Le grand public , le commun des mortels , aura accès à ces documents 112 ans après le recensement . 
+Les renseignements seront alors disponibles et nous pourrons les consulter . 
+À l' instar du député , je crois qu' il s' agit d' un bon compromis et j' aimerais savoir ce qu' il en pense . 
+J' espère qu' il n' y aura pas trop de paperasserie et que l' obligation de remplir les formulaires nécessaires ne visera que les professionnels , sociétés et autres . 
+M. Paul Crête : 
+Monsieur le Président , je remercie mon collègue de sa question . 
+Cette question a été soulevée précédemment et on est en droit de se la poser . 
+Il est pertinent de se demander si , effectivement , les lois qu' on met de l' avant et la façon de le faire entraîneront une bureaucratie supplémentaire importante , et si on se retrouvera devant une situation qui amènera des coûts additionnels importants . 
+Souvent , des projets de loi qui viennent du gouvernement nous apparaissent avoir été préparés à toute vapeur . 
+On a vu cela dans le passé , notamment au sujet du terrorisme , où on a été obligés de revenir trois fois avec le même projet de loi . 
+Dans le cas présent , je pense que ce projet de loi a passé à travers le tamis ; il a été étudié par des gens qui souhaitent vraiment un équilibre . 
+Je crois que les outils informatiques disponibles aujourd'hui permettront de faire un suivi et d' avoir une gestion adéquate , sans nécessairement entraîner une bureaucratie débordante qui étouffe la gestion de la loi . 
+Je tiens à réitérer que mon collègue soulève une question très pertinente . 
+Quand on regarde , par exemple , le projet de loi visant à instaurer un système de contrôle des armes à feu , ce qui en soi est de très bon aloi , on a mis en place un système tellement lourd qu' on en vient à questionner le fond même de l' objectif visé par la Loi sur le contrôle des armes à feu . 
+Il ne faudrait absolument pas qu' on répète ce modèle dans d' autres projets de loi . 
+Dans le cas présent , il m' apparaît que cet équilibre est bien maintenu . 
+Dans sa mise en application , on se rendra compte si , effectivement , les informations peuvent être traitées sans que cela entraîne trop de paperasse . 
+Puisque les divulgations après 112 ans seront valables pour tout le monde , il n' y aura à peu près pas de papier puisque tout le monde aura accès à l' information . 
+Pour l' utilisation entre 92 et 112 ans , il est normal qu' on demande à des sociétés d' histoire , à des historiens , à des généalogistes et aux gens qui feront des demandes de justifier les raisons pour lesquelles ils feront des études , ne serait -ce que parce qu' après 92 ans , il risque d' y avoir encore des gens vivants au sujet desquels des informations seraient contenues dans le recensement . 
+Il faut donc s' assurer qu' il n' y aura pas d' information loufoque et qu' on n' ira pas chercher des choses qui seraient utilisées de façon inadéquate , afin par exemple de ridiculiser une partie de la population , ou des choses comme cela . 
+Il faudra que les demandes soient bien justifiées . 
+Le contrôle bureaucratique doit être effectué pour permettre l' équilibre prévu par le projet de loi . 
+Je souhaite qu' on puisse s' attendre à ce que les gens qui auront à gérer ces informations dans le futur le feront avec une logique suffisante . 
+J' ai confiance dans le fait qu' on a posé là des conditions minimales acceptables . 
+Ce dont je suis certain , c' est que les gens qui font partie des sociétés d' histoire et de généalogie dans tous les comtés que nous représentons seront très heureux de l' adoption de ce projet de loi pour que l' information puisse être utilisée . 
+Ainsi , dans l' un ou l' autre de nos villages dont on célèbre le 100e ou le 150e anniversaire , les gens pourront les remercier d' avoir eu accès à cette information . 
+On parle de recensement et on est en train d' écrire l' histoire du siècle passé . 
+Il est important que ces positions soient clarifiées . 
+En même temps , c' est un projet de loi qui prévoit le long terme . 
+Dans le cas présent , il semble y avoir eu la réflexion nécessaire , et on souhaiterait que le gouvernement ait le même genre d' attitude dans plusieurs autres projets de loi au sujet desquels il ne semble pas respecter cette façon de faire , soit de consulter suffisamment avant d' adopter les lois . 
+M. Paul Szabo ( Mississauga-Sud , Lib. ) : 
+Monsieur le Président , le député a donné une opinion sur la question de savoir si le projet de loi réussit effectivement à protéger le caractère confidentiel ou la vie privée et à trouver une issue à ce débat , à cette impasse qui dure depuis longtemps . 
+Je comprends que des recenseurs ont pris un engagement selon lequel l' information ne serait jamais divulguée . 
+Sauf erreur , le projet de loi prévoit maintenant que ceux qui ont des raisons légitimes , comme des recherches généalogiques ou historiques , peuvent signer une entente qui sera prévue dans le règlement . 
+Je peux seulement présumer que l' engagement dira par exemple que le chercheur , s' il tombe sur des renseignements qui ne sont pas directement liés à son travail généalogique ou historique , s' abstiendra de les divulguer . 
+Le député pourrait -il me donner des précisions ?  Cela ne m' explique toujours pas comment nous tiendrions compte de l' engagement initial à ne jamais divulguer l' information . 
+M. Paul Crête : 
+Monsieur le Président , je remercie mon collègue de sa question . 
+Je ne répéterai pas l' ensemble du paragraphe que j' ai cité concernant cette question . 
+Le comité d' experts qui avait été formé par le gouvernement et où siège entre autres le juge La Forest , qui est l' ex-juge en chef de la Cour suprême du Canada , a estimé en gros que malgré les remarques qui ont pu être faites dans le passé et malgré les objectifs qui avaient été indiqués dans des projets de loi disant qu' il devait y avoir une protection absolue et presque éternelle de l' ensemble des renseignements , il y a en contrepartie de cette position des avis qu' on retrouve au sein des différents projets de loi . 
+On nous dit par exemple , et je cite ce passage dans le rapport du comité : 
+À notre avis , la diffusion des renseignements personnels recueillis dans le cadre des recensements menés avant 1906 constituent un précédent particulièrement important , surtout si l' on prend en considération le fait que les dossiers des recensements de 1891 et de 1901 ont été rendus publics , conformément à la Loi sur la protection des renseignements personnels adoptée en 1983 . 
+Donc , la jurisprudence et la législation dans ce domaine a évolué au fil des ans . 
+Cette année , avec le projet de loi S-13 , nous essayons de trouver un équilibre pour permettre qu' il y ait une divulgation correcte et rationnelle des renseignements à des fins de recherches historiques . 
+En contrepartie , il faut faire en sorte que les renseignements personnels soient protégés adéquatement . 
+Quant à la question de savoir si après 92 ans on peut effectuer une recherche généalogique ou historique , il faut obtenir une autorisation écrite pour examiner des renseignements recueillis lors d' un recensement . 
