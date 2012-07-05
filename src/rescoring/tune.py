@@ -385,7 +385,8 @@ def wts2decoderConfig(wts, config):
     #    print >> sys.stderr, ' '.join(wts2decoderConfigStr(config))
     #    print >> sys.stderr, "with input: ", s
     Popen(wts2decoderConfigStr(config), stdin=PIPE).communicate(s)
-    call(["cat", config])
+    if opts.debug:
+       call(["cat", config])
 
 def shardAnnotate(s, iter, shard) :
     """Append iteration and shard number to str"""
