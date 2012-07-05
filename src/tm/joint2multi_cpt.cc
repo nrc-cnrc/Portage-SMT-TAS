@@ -534,13 +534,13 @@ void doEverything(const char* prog_name)
       string filename = addExtension(name + "." + lang1 + "2" + lang2);
       if (verbose) cerr << "writing to " << filename << endl;
       out_fwd = new oSafeMagicStream(filename);
-      out_fwd->precision(9);
+      //out_fwd->precision(9);
    }
    if (output_drn == "rev" || output_drn == "both") {
       string filename = addExtension(name + "." + lang2 + "2" + lang1);
       if (verbose) cerr << "writing to " << filename << endl;
       out_rev = new oSafeMagicStream(filename);
-      out_rev->precision(9);
+      //out_rev->precision(9);
    }
 
    vector<double> vals_fwd;
