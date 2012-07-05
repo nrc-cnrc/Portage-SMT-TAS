@@ -49,12 +49,12 @@ ${OPTIMIZERS}:  %:  canoe.tune.%
 
 
 canoe.tune.%:  dev1_en.rule  dev1_fr.lc
-	mkdir -p tunedir.$*
+	_LOCAL=1 mkdir -p tunedir.$*
 	cd tunedir.$*; \
 	   run-parallel.sh -psub -4 -c \
 	   ${TUNE} --debug -v --workdir=foos -o ../$@ -f ../src/canoe.ini ${EXTRA} -p 4 -c 1 -m 4 -a $* $(foreach f,$+,../$f) >& ../log.$@
-	mv tunedir.$*/summary summary.$*
-	mv tunedir.$*/summary.wts summary.$*.wts
+	_LOCAL=1 mv tunedir.$*/summary summary.$*
+	_LOCAL=1 mv tunedir.$*/summary.wts summary.$*.wts
 
 # Validate that the post processing was applied to the nbest list.  We will uppercase the letter a.
 canoe.tune.powell:  EXTRA=--post \'sed "s/a/A/g"\'
