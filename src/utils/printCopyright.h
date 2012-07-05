@@ -36,11 +36,11 @@ namespace Portage {
          fprintf(stderr, "\n");
       }
 
-      const unsigned int thisYear(2012);
-      if ( startDate < thisYear ) {
+      const unsigned int current_year(2012);
+      if ( startDate < current_year ) {
          fprintf(stderr,
             "NRC-CNRC, (c) %d - %d, Her Majesty in Right of Canada\n",
-            startDate, thisYear);
+            startDate, current_year);
       } else {
          fprintf(stderr,
             "NRC-CNRC, (c) %d, Her Majesty in Right of Canada\n",
