@@ -277,8 +277,13 @@ def readDirInfo(di, d, in_test_sets_to_list):
       di.cowlog_exists = 1
    if exists(join(d, "canoe.ini.cow")) or exists(join(d, "models", decode_dir, "canoe.ini.cow")):
       di.canoe_wts_exist = 1
-   if exists(join(d, "summary")):   # tune.py run
-      lines = list(open(join(d, "summary")))
+   summary_file = None
+   if exists(join(d, "summary")):
+      summary_file = "summary"
+   elif exists(join(d, "models", decode_dir, "summary")):
+      summary_file = join("models", decode_dir, "summary")
+   if summary_file:    # tune.py run
+      lines = list(open(join(d, summary_file)))
       scores = [float(l.split(None, 1)[0].split('=')[1]) for l in lines]
       if len(scores) != 0:
          best = max(scores)
