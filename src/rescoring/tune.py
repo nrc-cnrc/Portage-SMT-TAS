@@ -177,15 +177,15 @@ def run(cmd):
    if os.system(cmd) != 0:
       error("command failed: " + cmd)
 
-def getOptimizedScore():
+def getOptimizedScore(find_what):
    """Extract from the optimize log the last iteration's best score.
    Must be from the jar's output.
    """
    with open(optimizer_log) as f:
-      score = [s for s in list(f) if find_score_log_optimize.match(s)]
+      score = [ m.group(1) for l in list(f) for m in (find_what(l),) if m]
    if not len(score):
       error("Can't find any score in the optimize log file.")
-   return score[-1].split()[-1]
+   return score[-1]
 
 class NBReader:
     """Manage lookahead for cumulative nbest/ffvals files, for aggregation."""
@@ -559,7 +559,7 @@ def optimizeMIRA(iter, wts, args, logfile):
         error("optimizer failed with cmd: {}".format(' '.join(cmd)))
     outfile.close()
     normalize(optimizerModel2wts(optimizer_out), wts)
-    return getOptimizedScore()
+    return getOptimizedScore(re.compile('Best BLEU found on it# \d+, score ([\d\.]+)').search)
 
 def optimizeSVM(iter, wts, args, logfile):
     """Optimize weights as multiclass SVM training over current aggregate nbest lists."""
@@ -582,7 +582,7 @@ def optimizeSVM(iter, wts, args, logfile):
         error("optimizer failed: {}".format(' '.join(cmd)))
     outfile.close()
     normalize(optimizerModel2wts(optimizer_out), wts)
-    return getOptimizedScore()
+    return getOptimizedScore(re.compile('Best obj found on it# \d+, score it   \d+ : BLEU = ([\d\.]+)').search)
 
 def optimizeExpSentBleu(iter, wts, args, logfile):
     """Optimize weights according to expected sum of Oranges"""
@@ -603,7 +603,7 @@ def optimizeExpSentBleu(iter, wts, args, logfile):
         error("optimizer failed: {}".format(' '.join(cmd)))
     outfile.close()
     normalize(optimizerModel2wts(optimizer_out), wts)
-    return getOptimizedScore()
+    return getOptimizedScore(re.compile('([\d\.]+$)').search)
 
 def optimizePRO(iter, wts, args, logfile):
     """Optimize weights using PRO over current aggregate nbest lists."""
@@ -629,7 +629,7 @@ def optimizePRO(iter, wts, args, logfile):
     if call(cmd, stdout=logfile, stderr=logfile) is not 0:
         error("optimizer failed: {}".format(' '.join(cmd)))
     normalize(optimizerModel2wts(optimizer_out), wts)
-    return getOptimizedScore()
+    return getOptimizedScore(re.compile('Best BLEU found \(samp=\d+\) : ([\d\.]+)').search)
 
 def optimizeLMIRA(iter, wts, args, logfile):
     """Optimize weights using lattice MIRA over current lattices."""
@@ -656,7 +656,7 @@ def optimizeLMIRA(iter, wts, args, logfile):
         error("optimizer failed: {}".format(' '.join(cmd)))
     outfile.close()
     normalize(optimizerModel2wts(optimizer_out), wts)
-    return getOptimizedScore()
+    return getOptimizedScore(re.compile('Best BLEU found on it# \d+, score ([\d\.]+)').search)
 
 def optimizeOnlineLMIRA(iter, wts, args, logfile):
     """Optimize weights using lattice MIRA over lattices generated online."""
