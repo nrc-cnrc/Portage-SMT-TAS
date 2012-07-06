@@ -23,24 +23,29 @@ v1.5.0 2012-??-??
 
  Major changes:
  - Added the key features of our top-scoring NIST 2012 Chinese system:
-   - Tuning decoder weights using Lattice MIRA (new tune.py script), as well as
-     other tuning algorithms.  We have done extensive testing of various tuning
-     methods, and Lattice MIRA works best, yielding significant gains over
-     N-best MERT, our previous default, and reliably beating other methods.
-     (For details, see Cherry and Foster, NAACL 2012.)
+   - Tuning decoder weights using Batch Lattice MIRA (new tune.py script), as
+     well as other tuning algorithms.  We have done extensive testing of
+     various tuning methods, and Lattice MIRA works best, yielding significant
+     gains over N-best MERT, our previous default, and reliably beating other
+     methods.  (For details, see Cherry and Foster, NAACL 2012.)
    - Tuning rescoring weights using N-Best MIRA (-a mira option to rat.sh).
    - HLDM: Hierarchical lexicalized distortion models, following Galley and
      Manning (EMNLP 2008) and Cherry, Moore and Quick (WMT 2012).  Includes an
      ITG parser used during decoding, which also provides a new distortion
      limit implementation, -dist-limit-itg.
    - Framework support for lattice mira and HLDMs.
-   - Framework support for the use of Giza++ IBM4 alignments: we obtain our
-     best results when we combine phrase pair counts and HLDM counts obtained
-     from IBM4, HMM and IBM2 alignments, rather than applying only the single
-     best alignment method.
+   - Framework support for the use of IBM4 alignments produced by an external
+     tool: we obtain our best results when we combine phrase pair counts and
+     HLDM counts obtained from IBM4, HMM and IBM2 alignments, rather than
+     applying only the single best alignment method.
    - Alignment indicator features tell the decoder which alignment(s) provided
      each phrase pair, allowing the tuning algorithm to weigh the aligners's
      opinions automatically.
+   - MixTM: linear mixture of phrase tables for domain adaptation, with proper
+     support in the framework, as well as improved framework support for MixLMs.
+     In both cases, support for combining externally trained generic LMs and/or
+     TMs with in-domain data, to get improved results, especially for smaller
+     in-domain training corpora.
 
  Changes of intermediate importance:
  - New -filter-singletons switch to train_ibm reduces memory bubble at the
