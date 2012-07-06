@@ -29,16 +29,16 @@ static char help_message[] = "\n\
 align-words [Options]\n\
             ibm-model_lang2_given_lang1 ibm-model_lang1_given_lang2\n\
             file1_lang1 file1_lang2 [ ... fileN_lang1 fileN_lang2]\n\
-align-words -giza(2) [Options]\n\
+align-words [-giza|-giza2] -ibm 0 [Options]\n\
             file1_lang1 file1_lang2 align1_1_to_2 align1_2_to_1\n\
             [ ... fileN_lang1 fileN_lang2 alignN_1_to_2 alignN_2_to_1]\n\
 \n\
   Align words in a set of line-aligned files using IBM or HMM models. The models\n\
   should be for p(lang2|lang1) and p(lang1|lang2) respectively (see train_ibm);\n\
-  <model1> should contain entries of the form 'lang1 lang2 prob', and <model2>\n\
-  the reverse. Either model argument can be \"no-model\", in which case no model\n\
-  will be loaded; this may be useful with an alignment method that does not\n\
-  require models or that requires only one.\n\
+  ibm-model_lang2_given_lang1 should contain entries of the form 'lang1 lang2 prob',\n\
+  and ibm-model_lang1_given_lang2 the reverse. Either model argument can be\n\
+  \"no-model\", in which case no model will be loaded; this may be useful with\n\
+  an alignment method that does not require models or that requires only one.\n\
 \n\
   Output is written to stdout. The format is determined by the output selection\n\
   options (see below).\n\
@@ -57,7 +57,7 @@ Options:\n\
 -H     List available word-alignment methods and quit.\n\
 -v     Write progress reports to cerr. Use -vv to get more.\n\
 -i     Ignore case (actually: lowercase everything).\n\
--o     Specify output format, one of: \n\
+-o     Specify output format, one of:\n\
        "WORD_ALIGNMENT_WRITER_FORMATS" [aachen]\n\
        Use -H for documentation of each format.\n\
 -a     Word-alignment method and optional args.\n\
@@ -69,23 +69,22 @@ Options:\n\
        -hmm is assumed, otherwise -ibm 2 is the default]\n\
 -twist With IBM1, assume one language has reverse word order.\n\
        No effect with IBM2 or HMM.\n\
--giza(2)  IBM-style alignments are to be read from files in GIZA++ format,\n\
-       rather than computed at run-time; corresponding alignment files \n\
-       should be specified after each pair of text files, like this: \n\
-       fileN_lang1 fileN_lang2 align_1_to_2 align_2_to_1...\n\
+-giza|-giza2  IBM-style alignments are to be read from files in GIZA++ format,\n\
+       rather than computed at run-time.  -giza is for the old giza format,\n\
+       while -giza2 is for the current giza format.  Corresponding alignment\n\
+       files should be specified after each pair of text files:\n\
+       ... fileN_lang1 fileN_lang2 alignN_1_to_2 alignN_2_to_1 ...\n\
        Notes:\n\
-        - this currently only works with IBMOchAligner\n\
-        - you normally still need to provide IBM models as arguments,\n\
-          unless you use either of these tricks: specify models called\n\
-          \"no-model\", or use the \"-ibm 0\", in which case the program\n\
-          does not expect the 2 model arguments.\n\
+        - only works with IBMOchAligner,\n\
+        - you must specify -ibm 0 or provide IBM models, or \"no-model\", for\n\
+          the two model arguments.\n\
 \n\
 HMM only options:\n\
        By default, all HMM parameters are read from the model file. However,\n\
        these options can be used to override the values in the model file:\n\
           -p0 -up0 -alpha -lambda -anchor -end-dist -max-jump\n\
        Boolean options -anchor and -end-dist can be reset using -no<option>.\n\
-       A parallel set of options -p0_2, -up0_2, etc, applies to the \n\
+       A parallel set of options -p0_2, -up0_2, etc, applies to the\n\
        lang1_given_lang2 models. If these options are not present, the values\n\
        for the original set are used for HMMs in both directions.\n\
        See train_ibm -h for documentation of these HMM parameters.\n\

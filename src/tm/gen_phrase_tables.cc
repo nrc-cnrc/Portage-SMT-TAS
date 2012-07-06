@@ -29,10 +29,10 @@ using namespace Portage;
 
 static char help_message[] = "\n\
 gen_phrase_tables [Options]\n\
-                  ibm-model_lang2_given_lang1 ibm-model_lang1_given_lang2 \n\
+                  ibm-model_lang2_given_lang1 ibm-model_lang1_given_lang2\n\
                   file1_lang1 file1_lang2 [ ... fileN_lang1 fileN_lang2]\n\
 \n\
-gen_phrase_tables -giza [Options]\n\
+gen_phrase_tables -giza -ibm 0 [Options]\n\
                   file1_lang1 file1_lang2 align1_1_to_2 align1_2_to_1\n\
                   [ ... fileN_lang1 fileN_lang2 alignN_1_to_2 alignN_2_to_1]\n\
 \n\
@@ -69,7 +69,7 @@ Options:\n\
        It has no effect if -i is given.\n\
 -wfvoc With -w, use vocabulary files <voc>.1 and <voc>.2 to filter IBM1\n\
        translations instead of vocabularies compiled from the input files.\n\
--addsw Add single-word phrase pairs for each alignment link [don't] \n\
+-addsw Add single-word phrase pairs for each alignment link [don't]\n\
 -m     Maximum phrase length. <max> can be in the form 'len1,len2' to specify\n\
        lengths for each language, or 'len' to use one length for both\n\
        languages. 0 means no limit. [4,4]\n\
@@ -94,30 +94,32 @@ Options:\n\
 -1     Name of language 1 (one in left column in model1) [en]\n\
 -2     Name of language 2 (one in right col of model1) [fr]\n\
 -o     The base name of the generated tables [phrases]\n\
--giza  IBM-style alignments are to be read from files in GIZA++ format,\n\
-       rather than computed at run-time; corresponding alignment files \n\
-       should be specified after each pair of text files, like this: \n\
-       fileN_lang1 fileN_lang2 align_1_to_2 align_2_to_1...\n\
+-giza  IBM-style alignments are to be read from files in the old GIZA++ format,\n\
+       rather than computed at run-time.  Use align-words -giza2 and then\n\
+       gen_phrase_table -ext if you have files in the new giza format.\n\
+       Corresponding alignment files should be specified after each pair of\n\
+       text files:\n\
+       ... fileN_lang1 fileN_lang2 alignN_1_to_2 alignN_2_to_1 ...\n\
        Notes:\n\
-        - you still need to provide IBM models as arguments\n\
-        - this currently only works with IBMOchAligner\n\
-        - this won't work if you specify more than one aligner\n\
--ext   SRI-style alignments are to be read from files in SRI format,\n\
-       rather than computed at run-time; corresponding alignment files \n\
-       should be specified after each pair of text files, like this: \n\
-       fileN_lang1 fileN_lang2 align_1_to_2...\n\
+        - you must specify -ibm 0 or provide IBM models as arguments,\n\
+        - only works with IBMOchAligner,\n\
+        - you can only specify one aligner.\n\
+-ext   SRI-style alignments are to be read from files in SRI format, e.g., as\n\
+       produced by align-words -o sri, rather than computed at run-time;\n\
+       corresponding symmetrized alignment files should be specified after each\n\
+       pair of text files:\n\
+       ... fileN_lang1 fileN_lang2 alignN_1_to_2 ...\n\
        Notes:\n\
-        - this replace the hack: -a 'ExternalAligner model' -ibm 1 /dev/null /dev/null\n\
-        - you DON'T need to provide IBM models as arguments\n\
-        - this implies the ExternalAligner\n\
-        - this won't work if you specify more than one aligner\n\
+        - this replace the hack: -a 'ExternalAligner align' -ibm 1 /dev/null /dev/null,\n\
+        - IBM models should not be provided as arguments,\n\
+        - implies -a ExternalAligner; you cannot use -a to change this.\n\
 \n\
 HMM only options:\n\
        By default, all HMM parameters are read from the model file. However,\n\
        these options can be used to override the values in the model file:\n\
           -p0 -up0 -alpha -lambda -anchor -end-dist -max-jump\n\
        Boolean options -anchor and -end-dist can be reset using -no<option>.\n\
-       A parallel set of options -p0_2, -up0_2, etc, applies to the \n\
+       A parallel set of options -p0_2, -up0_2, etc, applies to the\n\
        lang1_given_lang2 models. If these options are not present, the values\n\
        for the original set are used for HMMs in both directions.\n\
        See train_ibm -h for documentation of these HMM parameters.\n\
@@ -223,8 +225,12 @@ public:
       if (mp_arg_reader->getSwitch("vv")) ppe.verbose = 2;
       if (mp_arg_reader->getSwitch("vs")) smoothing_verbose = 2;
 
+      mp_arg_reader->testAndSet("a", ppe.align_methods);
+
       mp_arg_reader->testAndSet("ext", externalAlignerMode);
       if (externalAlignerMode) {
+         if (!ppe.align_methods.empty())
+            error(ETFatal, "-a and -ext cannot be used together.");
 	 // When using the external Aligner Mode, we don't require word alignment models.
          ppe.ibm_num = 0;
          first_file_arg = 0;
@@ -232,7 +238,6 @@ public:
          ppe.align_methods.push_back("ExternalAligner");
       }
 
-      mp_arg_reader->testAndSet("a", ppe.align_methods);
       mp_arg_reader->testAndSet("s", smoothing_methods);
       mp_arg_reader->testAndSet("prune1", prune1);
       mp_arg_reader->testAndSet("prune1w", prune1w);
