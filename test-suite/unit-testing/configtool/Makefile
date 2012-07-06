@@ -28,11 +28,14 @@ LINKS = models/cpt.tppt.ok models/ldm.tpldm.bad models/lm.tplm.bad
 
 test.check.tp.bad: ${LINKS}
 
+# Copy the models instead of linking to avoid an Eclipse bug that resulted
+# in the removal of the CVS directories from the original model directories.
 models/%:
-	-ln -s $(basename $*) models/$*
+	cp -r models/$(basename $*) models/$* && ${RM} -r models/$*/CVS
 
 clean:
-	${RM} log.run-test ${LINKS}
+	${RM} log.run-test
+	${RM} -r ${LINKS}
 
 test.check.%.good:
 	${CONFIGTOOL} check canoe.ini.$*.good 2>&1 \
