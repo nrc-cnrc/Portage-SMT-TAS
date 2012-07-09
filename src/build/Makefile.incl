@@ -116,7 +116,7 @@ endif
 
 # These libraries are linked with everything everywhere
 GLOBAL_LIBS =
-GLOBAL_DYNLIBS = -lboost_iostreams -lz
+GLOBAL_DYNLIBS = -lboost_iostreams
 
 LIBS = $(foreach DIR, $(LIB_LIST), -lportage_$(DIR)) \
        $(call fix_boost_lib_tag, ${GLOBAL_LIBS}) \
