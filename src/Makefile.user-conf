@@ -78,7 +78,8 @@ ICU=$(PORTAGE)# AT NRC
 
 CXXTEST?=NONE
 #CXXTEST=$(PORTAGE)
-CXXTEST=$(PORTAGE)# AT NRC
+#CXXTEST=$(PORTAGE) # CxxTest 3.10.1 # AT NRC
+CXXTEST=/home/portage/pkgs/cxxtest-4.0.3 # AT NRC
 
 # ------------------------------------
 # Variable:        PORTAGE_OPENMP
