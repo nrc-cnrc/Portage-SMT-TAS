@@ -1,6 +1,6 @@
 # $Id$
 # @file Makefile.user-conf
-# @brief User-configurable building parameters for Portage 1.4
+# @brief User-configurable building parameters for Portage 1.5
 # @author Eric Joanis
 #
 # Technologies langagieres interactives / Interactive Language Technologies
@@ -11,7 +11,7 @@
 
 
 # This file contains all the user-configurable variables used to build
-# Portage 1.4.  It needs to be modified to indicate where various packages
+# Portage 1.5.  It needs to be modified to indicate where various packages
 # are located and, in the case of optinal dependencies, whether their use is
 # desired.  All variables in this file can also be exported as environment
 # variables or specified on the make command line, e.g., to override some
@@ -19,7 +19,7 @@
 
 # If you haven't already done so, you should set the PORTAGE variable in
 # SETUP.bash/tcsh and source the appropriate file for your shell before trying
-# to compile or use Portage 1.4.
+# to compile or use Portage 1.5.
 
 # AT NRC: lines with this commend are automatically removed when creating the
 # AT NRC: PORTAGEshared CD.  If you commit changes to this file, make sure you
@@ -31,7 +31,7 @@
 
 # =============================================================================
 # REQUIRED PACKAGES - you need to install these dependencies and adjust the
-# following variables appropriately to build Portage 1.4.
+# following variables appropriately to build Portage 1.5.
 
 # ------------------------------------
 # Variable:        BOOST_ROOT
@@ -49,7 +49,7 @@
 
 # =============================================================================
 # OPTIONAL PACKAGES - installing these dependencies enables some optional
-# functionalities in Portage 1.4.
+# functionalities in Portage 1.5.
 
 # ------------------------------------
 # Variable:        ICU
@@ -61,7 +61,7 @@
 #                  case, you will also need to make sure the environment
 #                  variable $LD_LIBRARY_PATH includes $(ICU)/lib. 
 # Notes:           Comment out the ICU?=NONE line below to enable Unicode-
-#                  compliant casemapping in Portage 1.4.  Requires ICU.  
+#                  compliant casemapping in Portage 1.5.  Requires ICU.  
 #                  Uncomment and edit the next line if needed.
 
 ICU=NONE
@@ -72,7 +72,7 @@ ICU=$(PORTAGE)# AT NRC
 # Variable:        CXXTEST
 # Possible values: Specifies where CxxTest is installed.
 # Notes:           "make test" will fail unless CxxTest in installed, but
-#                  compilation of Portage 1.4 will not be affected.
+#                  compilation of Portage 1.5 will not be affected.
 #                  Set this value so that $(CXXTEST)/bin/cxxtestgen.pl and
 #                  $(CXXTEST)/include/cxxtest/*.h exist.
 
