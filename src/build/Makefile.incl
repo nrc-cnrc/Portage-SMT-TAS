@@ -196,7 +196,7 @@ COPTS = -Wall -Werror $(BOOST_CF) $(CFLAG_LOGGING) $(CFLAG_LZMA) $(MODULE_CF)
 # LFLAGS is only for -L options: library search path for linking
 LFLAGS = -L. -L../utils $(MODULE_LIB_DIR) $(OTHER_LIB_DIRS)
 # IFLAGS is only for -I options: include search path
-IFLAGS = -I. -I../utils $(MODULE_INCLUDE) $(OTHER_INC_DIRS)
+IFLAGS = -I. -I../utils $(MODULE_INCLUDE) $(CXXTEST_INC_DIR) $(OTHER_INC_DIRS)
 
 # If you need to modify compiler options, do so in the above 4 variables, not
 # in the following 3!  CFLAGS is used by default to compile C source files,
@@ -376,13 +376,15 @@ CXXTEST_SUITES=$(wildcard tests/*.h)
 CXXTEST_RUNNERS=$(patsubst %.h,%,$(CXXTEST_SUITES))
 CXXTEST_RUNNERS_CC=$(patsubst %.h,%.cc,$(CXXTEST_SUITES))
 CXXTEST_RUNNERS_O=$(patsubst %.h,%.o,$(CXXTEST_SUITES))
+$(CXXTEST_RUNNERS_O): CXXTEST_INC_DIR=-isystem $(CXXTEST)
 run_testsuites: $(addprefix run_,$(CXXTEST_RUNNERS))
 clean_testrunners:
 	$(RM) $(CXXTEST_RUNNERS) $(CXXTEST_RUNNERS_O) $(CXXTEST_RUNNERS_CC) tests/cxxtestrunner{,.o,.cc}
 .PHONY: run_tests/%
 run_tests/%: tests/%
 	$<
-CXXTESTGEN?=cxxtestgen.pl
+CXXTESTGEN?=$(word 1,$(wildcard $(strip ${CXXTEST})/bin/cxxtestgen*))
+#CXXTESTGEN?=cxxtestgen.pl
 $(CXXTEST_RUNNERS_CC): %.cc: %.h
 	${CXXTESTGEN} --error-printer -o $@ $<
 endif
