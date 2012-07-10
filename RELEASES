@@ -43,9 +43,10 @@ v1.5.0 2012-??-??
      opinions automatically.
    - MixTM: linear mixture of phrase tables for domain adaptation, with proper
      support in the framework, as well as improved framework support for MixLMs.
-     In both cases, support for combining externally trained generic LMs and/or
-     TMs with in-domain data, to get improved results, especially for smaller
-     in-domain training corpora.
+     In both cases, framework support for combining externally trained generic
+     LMs and/or TMs with in-domain data, to get improved results, especially
+     for smaller in-domain training corpora.
+   - Framework and PortageLive support for Chinese->English pipeline.
 
  Changes of intermediate importance:
  - New -filter-singletons switch to train_ibm reduces memory bubble at the
@@ -76,7 +77,15 @@ v1.5.0 2012-??-??
  - TPPTs can now store fourth column (adirectional) scores and joint counts.
  - More phrase table smoothers, enhanced phrase smoother library, and the
    ability to generate adirectional scores via joint2multi_cpt.
-
+ - Framework support for optionally tuning and testing using multiple tuning
+   variants, which are typically 90% sample subsets of the main tuning set.
+   This is helpful for assessing quality when using less stable tuning methods
+   such as N-best MERT, but the current default, Lattice MIRA, is quite stable.
+ - Support for pre-loading models into memory in PortageLive using a new
+   priming script (prime.sh).
+ - PortageLive support in the framework for the new model features (MixLMs,
+   MixTMs, HLDMs, etc.).
+ 
  Minor changes:
  - New -w switch to joint2multi_cpt.
  - New -sort switch to ibmcat.
@@ -96,6 +105,9 @@ v1.5.0 2012-??-??
  - Removed some obsolete scripts and source code files.
  - Various optimizations, code clean-up, resolve Klocwork warnings, etc.
  - New python coding conventions and utility library portage_utils.py.
+ - New "-s trimmed", "-s max", -t switches to summarize-canoe-results.py, as
+   well as support for current framework structure.
+ - Framework can calculate OOV rates for test translations.
 
  Minor bug fixes:
  - TPSAs, significance pruning and other parts of the tpt/ module now respect
@@ -106,6 +118,8 @@ v1.5.0 2012-??-??
    been fixed.
  - In forced decoding (previously phrase_tm_align), under some situations the
    target sentence might not have been fully covered; this has now been fixed.
+ - In PortageLive setup, pre-linking of external libraries must be undone when
+   making the server copy.
 
 v1.4.3 2011-10-03
  This release is primarily intended distribute our improved truecasing module,
