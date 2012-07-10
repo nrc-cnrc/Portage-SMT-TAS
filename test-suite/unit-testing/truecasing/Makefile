@@ -4,13 +4,13 @@
 #TRUECASER = perl -I ../../../src/truecasing ../../../src/truecasing/truecase.pl
 TRUECASER = truecase.pl
 
-UCBOS = --ucBOSEncoding $*
+UCBOS = -bos -enc $*
 VERBOSE = --verbose
 
 MAP = tc-map.en
 LM  = tc-lm.en
 
-QUIET = -q
+#QUIET = -q
 
 .NOTPARALLEL:
 .SECONDARY:
@@ -25,6 +25,9 @@ all: tpt_cp1252
 all: tpt_utf8
 all: tpt_ucbos_cp1252
 all: tpt_ucbos_utf8
+
+all:
+	@echo All tests PASSED.
 
 clean:
 	${RM} -r ${LM}_*.tplm* ${MAP}_*.tppt*
@@ -54,11 +57,11 @@ tpt_ucbos_%: src_ucbos_% ref_ucbos_% ${LM}_%.tplm ${MAP}_%.tppt
 # HELPERS
 
 #REF_UCBOS = This is a test .\nÉric lives in Québec .\nÉtude is accented .
-#SRC_UCBOS = this is a test . \néric lives in québec . \nétude is accented . 
+#SRC_UCBOS = this is a test . \néric lives in québec . \nétude is accented .
 
 # Make sure the correct windows-1252 (CP1252) text goes into the *_cp1252 files.
-REF_UCBOS = This is a test .\n\xC9ric lives in Qu\xE9bec .\n\xC9tude is accented .
-SRC_UCBOS = this is a test . \n\xE9ric lives in qu\xE9bec . \n\xC9tude is accented . 
+REF_UCBOS = This is a test .\n\xC9ric lives in Qu\xE9bec .\n\xC9tude is accented .\n\" Foo is a test . \"\n1) Foo is a test .\nA) foo is a test .
+SRC_UCBOS = this is a test . \n\xE9ric lives in qu\xE9bec . \n\xC9tude is accented . \n\" foo is a test . \" \n1) foo is a test .\na) foo is a test .
 REF = This is a test .\n\xC9ric lives in Qu\xE9bec .
 SRC = this is a test . \n\xE9ric lives in qu\xE9bec . 
 

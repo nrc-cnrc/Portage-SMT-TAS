@@ -250,12 +250,12 @@ if ($use_srilm) { # using disambig
                 . " -lmodel-order $lmOrder -ttable-limit 100 -stack 100"
                 . " -ftm 1.0  -lm 2.302585 -tm 0.0 -distortion-limit 0";
 }
-my $bos = $bos_cap && !defined $src_file ? 
-          "BEGIN{use encoding q{$encoding}} print ucfirst" : "print";
+
+my $bos = $bos_cap && !defined $src_file ? " | boscap-nosrc.py -enc $encoding - - " : "";
 my $tc_file = defined $src_file ? "${work_dir}/${tmp_txt}.tc$gz" : $out_file;
 (push @tmp_files, $tc_file) if defined $src_file;
 my $cmd = $cmd_part1
-          . " | perl -n -e 's/^<s>\\s*//o; s/\\s*<\\/s>[ ]*//o; ${bos};'"
+          . " | perl -n -e 's/^<s>\\s*//o; s/\\s*<\\/s>[ ]*//o; print;' $bos"
           . ($tc_file ? " $gzip > $tc_file" : "");
 run($cmd, WITH_BASH);
 
