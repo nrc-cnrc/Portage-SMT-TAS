@@ -24,3 +24,4 @@ Contents:
    va/          specific documentation for creating a PortageLive Virtual
                 Appliance - don't start here, it won't make sense until you
                 read the PortageLive Manual.
+   python/      tools to create a custom python package for PortageLive VMs
