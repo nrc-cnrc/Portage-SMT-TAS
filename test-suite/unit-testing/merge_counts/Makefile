@@ -12,7 +12,7 @@
 # Copyright 2008, Her Majesty in Right of Canada
 
 .PHONY: all
-all: gen jpt freq
+all: gen jpt freq bad
 	@echo All tests PASSED
 
 .PHONY: gen jpt freq
@@ -23,3 +23,14 @@ clean:
 	${MAKE} -C gen clean
 	${MAKE} -C jpt clean
 	${MAKE} -C freq clean
+
+SHELL=/bin/bash
+
+# this test still fails, so don't activate it yet.
+empty:
+	merge_counts empty.gz /dev/null
+	(( `wc -c < empty.gz` == 20 ))
+
+bad:
+	! merge_counts bad-out.gz bad.gz
+	@echo bad test passed: bad.gz is indeed corrupt
