@@ -78,7 +78,8 @@ class mergeStream : private NonCopyable
             /// Destructor.
             ~Stream() { delete _data; }
 
-            bool eof() const { return input.eof(); }
+            /// eof returns true on eof and other errors
+            bool eof() const { return !input; }
 
             /**
              * Swaps this stream's buffer with spare.
@@ -105,6 +106,9 @@ class mergeStream : private NonCopyable
                   }
                   previous_key = _data->getKey();
                }
+               if (input.bad())
+                  error(ETFatal, "Problem after line %d of %s.  File may be corrupt.\n",
+                        lineno, file.c_str());
             }
 
             bool operator<(const Stream& other) const {
@@ -176,7 +180,7 @@ class mergeStream : private NonCopyable
       }
 
       /**
-       * Signals that there is nothing less in the stream(s).
+       * Signals that there is nothing left in the stream(s).
        * The end only happens when all the streams have reached eof and that
        * the buffered datum have been processed.
        * @return Returns true if there is no more datum in the stream.
