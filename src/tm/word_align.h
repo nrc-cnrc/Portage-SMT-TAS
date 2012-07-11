@@ -709,6 +709,8 @@ public:
  */
 class ExternalAligner : public WordAligner, private NonCopyable
 {
+   string ext_file_name;
+   Uint lineno;
    istream* external_alignments;
    SRIReader reader;
 

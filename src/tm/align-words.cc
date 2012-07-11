@@ -339,8 +339,7 @@ int MAIN(argc, argv)
 
       while (getline(in1, line1)) {
          if (!getline(in2, line2)) {
-            error(ETWarn, "skipping rest of file pair %s/%s because line counts differ",
-                  in_f1.c_str(), in_f2.c_str());
+            error(ETFatal, "Line counts differ in file pair %s/%s", in_f1.c_str(), in_f2.c_str());
             break;
          }
          ++line_no;
@@ -417,8 +416,7 @@ int MAIN(argc, argv)
       }
 
       if (getline(in2, line2))
-         error(ETWarn, "skipping rest of file pair %s/%s because line counts differ",
-               in_f1.c_str(), in_f2.c_str());
+         error(ETFatal, "Line counts differ in file pair %s/%s", in_f1.c_str(), in_f2.c_str());
 
       ++fpair;
    }

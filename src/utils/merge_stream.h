@@ -59,7 +59,7 @@ class mergeStream : private NonCopyable
             /// We need a placeholder to keep track of the entries to check if
             /// the stream is LC_ALL=C sorted.
             string             previous_key;
-            const Uint         positional_id;  ///< this stream has what position on the command line.
+            const Uint         positional_id;  ///< the position of this stream on the command line.
 
          public:
             /// Default constructor

@@ -250,8 +250,7 @@ struct PhrasePairExtractor {
 
       while (getline(in1, line1)) {
          if (!getline(in2, line2)) {
-            error(ETWarn, "skipping rest of file pair %s/%s because line counts differ",
-                  file1.c_str(), file2.c_str());
+            error(ETFatal, "Line counts differ in file pair %s/%s", file1.c_str(), file2.c_str());
             break;
          }
          ++line_no;
@@ -285,13 +284,12 @@ struct PhrasePairExtractor {
             algo(toks1, toks2, sets1, pt, *this);
          }
          if (verbose > 1) cerr << endl; // end of block
-         if (verbose == 1 && line_no % 1000 == 0)
+         if (verbose == 1 && line_no % 10000 == 0)
             cerr << "line: " << line_no << endl;
       }
 
       if (getline(in2, line2))
-         error(ETWarn, "skipping rest of file pair %s/%s because line counts differ",
-               file1.c_str(), file2.c_str());
+         error(ETFatal, "Line counts differ in file pair %s/%s", file1.c_str(), file2.c_str());
    }
 
 }; // class PhrasePairExtractor

@@ -89,8 +89,7 @@ int main(int argc, char* argv[])
 
       while (getline(in1, line1)) {
          if (!getline(in2, line2)) {
-            error(ETWarn, "skipping rest of file pair %s/%s because line counts differ",
-                  file1.c_str(), file2.c_str());
+            error(ETFatal, "Line counts differ in file pair %s/%s", file1.c_str(), file2.c_str());
             break;
          }
 
@@ -112,8 +111,7 @@ int main(int argc, char* argv[])
       }
 
       if (getline(in2, line2))
-         error(ETWarn, "skipping rest of file pair %s/%s because line counts differ",
-               file1.c_str(), file2.c_str());
+         error(ETFatal, "Line counts differ in file pair %s/%s", file1.c_str(), file2.c_str());
 
       ++num_files;
    }

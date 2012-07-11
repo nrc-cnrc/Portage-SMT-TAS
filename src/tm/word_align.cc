@@ -1157,6 +1157,8 @@ double HybridPostAligner::align(const vector<string>& toks1,
 }
 
 ExternalAligner::ExternalAligner(WordAlignerFactory& factory, const string& args)
+   : ext_file_name(args)
+   , lineno(0)
 {
    external_alignments = new iSafeMagicStream(args);
 }
@@ -1171,6 +1173,9 @@ double ExternalAligner::align(const vector<string>& toks1,
 		              const vector<string>& toks2,
                               vector< vector<Uint> >& sets1)
 {
-   reader(*external_alignments, toks1, toks2, sets1);
+   if (!reader(*external_alignments, toks1, toks2, sets1))
+      error(ETFatal, "No more alignments available in %s after line %u",
+            ext_file_name.c_str(), lineno);
+   ++lineno;
    return 1.0;
 }
