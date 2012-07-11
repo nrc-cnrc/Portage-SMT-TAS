@@ -22,15 +22,15 @@ refers to any of the minor releases (currently, 1.5.0 exists).
 
 Portage is a project to explore new techniques in Statistical Machine
 Translation (SMT), and to develop state-of-the-art SMT technology that can be
-used to support other projects at NRC and elsewhere.
+used commercially, as well as to support other projects at NRC and elsewhere.
 
 The SMT system developed under the Portage project is also called "Portage";
 this distribution for various partners used to be called PORTAGEshared, and is
 now known simply as Portage with a version number.  Portage 1.5 includes a
 complete suite of software tools required for phrase-based statistical machine
 translation, including:
- - preprocessing of French and English (tokenization, detokenization,
-   lowercasing, aligning);
+ - preprocessing of French, English, Spanish (tokenization, detokenization,
+   lowercasing, aligning) and Chinese (segmentation);
  - training lexical translation models (IBM models 1 and 2, HMM) from aligned
    corpora;
  - training phrase-based translation models from aligned corpora and lexical
@@ -50,12 +50,12 @@ translation, including:
    more;
  - truecasing (restoring upper case letters in the output of the translation);
  - evaluation using BLEU, WER or PER.
- - a tightly packed representation of various model files (LMs, TMs, suffix
-   arrays) for instant loading and fast access via memory-mapped IO;
+ - a tightly packed representation of various model files (LMs, TMs, (H)LDMs,
+   suffix arrays) for instant loading and fast access via memory-mapped IO;
  - a confidence estimation module to compute a per-sentence quality
    prediction/estimation of the translations produced by Portage;
  - an API to incorporate the decoder into other applications using SOAP or cgi;
-   an updated web-ready demo;
+   a web-ready demo;
  - PortageLive -- tools to setup a runtime SMT server using Portage, accessible
    via a SOAP API, via CGI scripts or a command line interface;
  - an experimental framework -- a collection of tools to automate running all
