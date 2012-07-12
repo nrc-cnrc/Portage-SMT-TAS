@@ -130,6 +130,20 @@ namespace MagicStream
          }
       }
    };
+
+   /// A callable entity that properly closes a gzip_compressor.
+   struct gzip_deleter {
+      /// Properly close a gzip_compressor.
+      /// @param p file buffer to close
+      void operator()(filtering_streambuf<output>* p) {
+         if (p) {
+            log("Closing gzip compressor");
+            static char dummy = 'b';
+            p->component<gzip_compressor>(0)->write(*(p->component<file_sink>(1)), &dummy, 0);
+            delete p;
+         }
+      }
+   };
 } // ends namespace MagicStream;
 } // ends namespace Portage;
 using namespace Portage::MagicStream;
@@ -471,7 +485,7 @@ void oMagicStream::open(const string& s)
          out->push(gzip_compressor());
          out->push(file_sink(s.c_str()));
 
-         stream = stream_type(out);
+         stream = stream_type(out, gzip_deleter());
       }
    }
    else {

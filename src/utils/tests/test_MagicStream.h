@@ -23,6 +23,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sstream>
+#include <unistd.h>
+
 
 template <class T>
 inline std::string to_string (const T& t)
@@ -516,6 +518,23 @@ public:
       TS_ASSERT(!iMagicStream("unexisting.file.gz"));
       TS_ASSERT(!iMagicStream("unexisting.file.txt"));
       TS_ASSERT(!iMagicStream("unexisting.file.bzip2"));
+   }
+
+   // This tests a work around for boost since writing an empty gzip file with
+   // boost produces an invalid gzip file.
+   void testWriteEmptyGzipFile() {
+      const string filename("emptyFile.gz");
+      // Create AND close, must call the destructor, the empty file.
+      {
+         oMagicStream os(filename);
+      }
+
+      struct stat filestatus;
+      TS_ASSERT_EQUALS(stat(filename.c_str(), &filestatus), 0);
+      // Empty gzip files must be exactly 20 bytes.
+      TS_ASSERT_EQUALS(filestatus.st_size, 20);
+
+      delete_if_exists(filename.c_str(), "Cleaning up");
    }
 
 
