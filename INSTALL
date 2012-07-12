@@ -182,10 +182,9 @@ Mandatory dependencies for all distributions:
    comes first on your PATH, or add its bin directory to EXTRA_PROGRAM_PATH in
    SETUP.bash/tcsh.
 
- - GNU make 3.81 - when compiling Portage 1.5 and when running the experimental
-   framework, our Makefiles use GNU extensions to make, as well as features
-   that were introduced in version 3.81.  We did not test with GNU make 3.82
-   yet, so that may or may not work, we don't know.
+ - GNU make 3.81 or more recent - when compiling Portage 1.5 and when running
+   the experimental framework, our Makefiles use GNU extensions to make, as
+   well as features that were introduced in version 3.81.
 
  - Python 2.7 - our new tuning script, tune.py, the new truecasing module, as
    well as some some convenience scripts, use python.  In most distros, Python
