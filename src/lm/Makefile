@@ -25,10 +25,11 @@ PROGRAMS = \
 	train_lm_mixture
 
 BINSCRIPTS = \
+	lm-filter.py \
+	lm-order.pl \
 	lm_sort.pl \
 	lm_sort_filter.sh \
-	ngram-count-big.sh \
-	lm-order.pl
+	ngram-count-big.sh
 
 LIBRARY = libportage_lm
 
