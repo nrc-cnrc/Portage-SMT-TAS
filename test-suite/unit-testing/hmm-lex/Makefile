@@ -46,5 +46,5 @@ map-sym-cat.fr_given_en: $(CORPUS)
 	cat.sh -filter-singletons 0 -v -symmetrized liang -mimic he-lex $@ $+ >& log.$@
 
 clean:
-	$(RM) map*_given_* log.map* run-parallel-logs*
+	$(RM) -r map*_given_* log.map* run-parallel-logs*
 
