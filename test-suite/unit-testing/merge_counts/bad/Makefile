@@ -14,7 +14,7 @@
 SHELL=/bin/bash
 
 all: bad
-# all: empty
+all: empty
 
 clean:
 	${RM} empty.gz bad-out.gz
