@@ -148,6 +148,7 @@ ibm2.en2fr.align.gz:  ibm2.fr_given_en.gz ibm2.en_given_fr.gz  corpus_en corpus_
 ########################################
 # errors due to empty files (or files with differing line counts) should be caught and fatal
 .PHONY: empty_files
+all: empty_files
 empty_files: externalAligner.empty externalAligner.src_empty externalAligner.tgt_empty
 
 externalAligner.empty: corpus_en corpus_fr /dev/null
