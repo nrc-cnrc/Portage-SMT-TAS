@@ -423,6 +423,38 @@ Optional dependencies for source code distributions:
    TCMalloc depends on libunwind, so you might have to install that first.  It
    is available at http://www.nongnu.org/libunwind/.
 
+   This procedure worked for us:
+      # Change the definition of PKG_DIR if you want to install somewhere else.
+      # Doing the export before you start, as shows here, will let you cut and
+      # paste the instructions below into your shell.
+      export PKG_DIR=$PORTAGE/pkgs
+
+      # Get and install the latest libunwind, 1.0.1 at the time of writing:
+      wget 'http://download.savannah.gnu.org/releases/libunwind/libunwind-1.0.1.tar.gz'
+      tar -xzf libunwind-1.0.1.tar.gz
+      cd libunwind-1.0.1/
+      ./configure --prefix=$PKG_DIR/libunwind-1.0.1
+      make -j 4
+      # make check showed errors for us, but they don't seem to affect
+      # TCMalloc, so we've been ignoring them.
+      make check -j 4
+      make install -j 4
+      cd ..
+
+      # Get the latest gperftools (which includes TCMalloc), 2.0 at the time of
+      # writing:
+      # Obtain gperftools-2.0.tar.gz from http://code.google.com/p/gperftools/
+      tar -xzf gperftools-2.0.tar.gz
+      cd gperftools-2.0
+      # Yes, the follow is ugly, but doing it this way will make your life easier later
+      LD_RUN_PATH=$PKG_DIR/libunwind-1.0.1/lib:$LD_RUN_PATH C_INCLUDE_PATH=$PKG_DIR/libunwind-1.0.1/include LDFLAGS=-L$PKG_DIR/libunwind-1.0.1/lib ./configure --prefix=$PKG_DIR/gperftools-2.0
+      LD_RUN_PATH=$PKG_DIR/libunwind-1.0.1/lib:$LD_RUN_PATH LDFLAGS=-L$PKG_DIR/libunwind-1.0.1/lib make CXXFLAGS="-g -I$PKG_DIR/libunwind-1.0.1/include" -j 5
+      LD_RUN_PATH=$PKG_DIR/libunwind-1.0.1/lib:$LD_RUN_PATH LDFLAGS=-L$PKG_DIR/libunwind-1.0.1/lib make CXXFLAGS="-g -I$PKG_DIR/libunwind-1.0.1/include" -j 5 check
+      LD_RUN_PATH=$PKG_DIR/libunwind-1.0.1/lib:$LD_RUN_PATH LDFLAGS=-L$PKG_DIR/libunwind-1.0.1/lib make CXXFLAGS="-g -I$PKG_DIR/libunwind-1.0.1/include" -j 5 install
+
+      # Edit src/Makefile.user-conf and set TCMALLOC=$PKG_DIR/gperftools-2.0
+      # (here you need to replace $PKG_DIR by its value, e.g., $PORTAGE/pkgs).
+
  - CxxTest - our unit testing framework depends on CxxTest, which can be
    downloaded from http://cxxtest.tigris.org/.  CxxTest is a very small package
    that is very easy to install, even though it needs to be installed manually.
