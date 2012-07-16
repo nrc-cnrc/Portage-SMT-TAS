@@ -25,6 +25,6 @@ empty:
 	(( `wc -c < empty.gz` == 20 ))
 
 bad:
-	! merge_counts bad-out.gz data/bad.gz
+	[[ ! `merge_counts bad-out.gz data/bad.gz` ]]
 	merge_counts bad-out.gz data/bad.gz 2>&1 | grep 'File may be corrupt'
 	@echo bad test passed since bad.gz is indeed corrupt
