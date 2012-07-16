@@ -4,10 +4,11 @@
 # Eric Joanis
 #
 # Technologies langagieres interactives / Interactive Language Technologies
-# Inst. de technologie de l'information / Institute for Information Technology
+# Technologies de l'information et des communications /
+#   Information and Communications Technologies
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2006 - 2011, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2006 - 2011, Her Majesty in Right of Canada
+# Copyright 2006 - 2012, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2006 - 2012, Her Majesty in Right of Canada
 
 
 # =======================================================================
@@ -46,7 +47,7 @@ PORTAGE=$HOME/Portage1.5.0
 # END OF USER CONFIGURABLE VARIABLES
 # =======================================================================
 
-echo 'Portage 1.5.0, NRC-CNRC, (c) 2004 - 2011, Her Majesty in Right of Canada' >&2
+echo 'Portage 1.5.0, NRC-CNRC, (c) 2004 - 2012, Her Majesty in Right of Canada' >&2
 
 PATH=$PORTAGE/bin${PATH:+:$PATH}
 if [[ $EXTRA_PROGRAM_PATH ]]; then
