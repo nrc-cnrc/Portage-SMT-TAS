@@ -218,6 +218,13 @@ Mandatory dependencies for all distributions:
    other package which produces language models in Doug Paul's ARPA format, but
    note that in our experiments, SRILM and MITLM have worked best.
 
+ - Java - A JRE (Java Runtime Environment) version 1.6 or more recent is
+   required to perform decoder weight tuning.  The command "java" must be on
+   your PATH.  Running "java -version" should produce something like 1.6.0_nn
+   or 1.7.0_nn if your installation is correct.  (Again, you can add java's bin
+   directory to EXTRA_PROGRAM_PATH in SETUP.bash/tcsh if you install it in a
+   non-standard location.)
+
 Optional dependencies for all distributions:
 
  - MGIZA++ - Portage 1.5 supports combining IBM4 alignments with its own HMM
@@ -413,6 +420,8 @@ Optional dependencies for source code distributions:
    memory allocation library from Google.  You can obtain it here:
    http://code.google.com/p/gperftools/.  After you download and install it,
    set the variable TCMALLOC in src/Makefile.user-conf to enable its use.
+   TCMalloc depends on libunwind, so you might have to install that first.  It
+   is available at http://www.nongnu.org/libunwind/.
 
  - CxxTest - our unit testing framework depends on CxxTest, which can be
    downloaded from http://cxxtest.tigris.org/.  CxxTest is a very small package
