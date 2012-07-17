@@ -152,13 +152,13 @@ all: empty_files
 empty_files: externalAligner.empty externalAligner.src_empty externalAligner.tgt_empty
 
 externalAligner.empty: corpus_en corpus_fr /dev/null
-	! gen_phrase_tables -v -j -m 8 -1 en -2 fr -ext $+
-	! gen-jpt-parallel.sh -n 2 -nw 2 -rp -nocluster GPT -v -j -m 8 -1 en -2 fr -ext $+
+	! { gen_phrase_tables -v -j -m 8 -1 en -2 fr -ext $+; }
+	! { gen-jpt-parallel.sh -n 2 -nw 2 -rp -nocluster GPT -v -j -m 8 -1 en -2 fr -ext $+; }
 
 externalAligner.src_empty:  /dev/null corpus_fr ibm2.en2fr.align.gz
-	! gen_phrase_tables -v -j -m 8 -1 en -2 fr -ext $+
-	! gen-jpt-parallel.sh -n 2 -nw 2 -rp -nocluster GPT -v -j -m 8 -1 en -2 fr -ext $+
+	! { gen_phrase_tables -v -j -m 8 -1 en -2 fr -ext $+; }
+	! { gen-jpt-parallel.sh -n 2 -nw 2 -rp -nocluster GPT -v -j -m 8 -1 en -2 fr -ext $+; }
 
 externalAligner.tgt_empty:  corpus_en /dev/null ibm2.en2fr.align.gz
-	! gen_phrase_tables -v -j -m 8 -1 en -2 fr -ext $+
-	! gen-jpt-parallel.sh -n 2 -nw 2 -rp -nocluster GPT -v -j -m 8 -1 en -2 fr -ext $+
+	! { gen_phrase_tables -v -j -m 8 -1 en -2 fr -ext $+; }
+	! { gen-jpt-parallel.sh -n 2 -nw 2 -rp -nocluster GPT -v -j -m 8 -1 en -2 fr -ext $+; }
