@@ -367,8 +367,9 @@ Optional dependencies for all distributions:
 
  - If you are planning to process Chinese text, you need a Chinese segmenter.
    You can obtain and use ICTCLAS, available in various locations on the web,
-   or NRC's rewrite of the LDC/UPENN segmenter, included on this CD under
-   third-party/chinese-segmentation/ for convenience.
+   such as https://github.com/pierrchen/ictclas_plus, or NRC's rewrite of the
+   LDC/UPENN segmenter, included under third-party/chinese-segmentation/ on
+   this CD for convenience.
 
 Mandatory dependencies for source code distributions:
 
