@@ -1,0 +1,25 @@
+                             Chinese Segmentation
+
+Technologies langagieres interactives / Interactive Language Technologies
+Technologies de l'information et des communications /
+   Information and Communications Technologies
+Conseil national de recherches Canada / National Research Council Canada
+
+
+This directory contains a third-party Chinese segmenter, mansegment.perl, as
+well as an improved version modified at NRC.  In compliance with the terms of
+the mansegment.perl licence, this code is "free" (see the Copyright notice in
+ldc-cn-seg/mansegment.perl for a precise definition of what we mean here), but
+included with the Portage distribution for convenience.  It is not covered by
+the terms of the Portage 1.x licence.
+
+The script chinese_segmenter.pl is a complete rewrite of mansegment.perl.
+The accompanying database, manseg.fre, is simply ldc-cn-seg/Mandarin.fre
+converted from the GB2312 encoding to UTF-8.
+
+To install NRC's modified Chinese segmenter, copy the script itself to a bin/
+directory on your PATH, and manseg.fre into the corresponding lib/ directory.
+For example, this will work:
+   cp chinese_segmenter.pl $PORTAGE/bin
+   cp manseg.fre $PORTAGE/lib
+

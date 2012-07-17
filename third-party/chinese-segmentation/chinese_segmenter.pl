@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
 
-#====================
-# manseg.pl
+# @file chinese_segmenter.pl
+# @brief Segment utf8 Chinese text in "words".
 #
-# NB: manseg.pl assumes that dictfile and infile are encoded without
+# NB: chinese_segmenter.pl assumes that dictfile and infile are encoded without
 # error using Unicode UTF-8.
 # i.e., it assumes that detection of invalid codes and any needed
 # conversions have been done beforehand.
@@ -15,6 +15,12 @@
 # of the logic is the same.  In particular, the algorithm used for the
 # dynamic programming is loosely similar and the file format of the
 # dictionary is the same.
+#
+# This rewrite completed by Howard Johnson
+# Technologies langagieres interactives / Interactive Language Technologies
+# Technologies de l'information et des communications /
+#    Information and Communications Technologies
+# Conseil national de recherches Canada / National Research Council Canada
 #
 # Terminology:
 # zi: A Chinese character, also sometimes called hanzi (or kanji by
@@ -36,7 +42,7 @@
 #====================
 
 #====================
-# The original header for LDC's mansegment was as follows:
+# The original header for LDC's mansegment.perl was as follows:
 #
 
 ###############################################################################

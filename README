@@ -14,9 +14,10 @@ See NOTICE for the Copyright notices of 3rd party libraries.
 
 Note that PORTAGEshared has been renamed "Portage" with a version number, i.e.,
 this package is now known as "Portage 1.5".  References to PORTAGEshared within
-the documentation or the code are considered to refer to Portage 1.5, Portage 1.4 or
-PORTAGEshared 1.0 to 1.3 if the context refers to older versions.  Portage 1.5
-refers to any of the minor releases (currently, 1.5.0 exists).
+the documentation or the code are considered to refer to Portage 1.5, Portage
+1.4 or PORTAGEshared 1.0 to 1.3 if the context refers to older versions.
+Portage 1.4 or 1.5 refers to any of the minor releases (currently, 1.4.0 to
+1.4.3 exist, as well as 1.5.0).
 
                              Brief Description
 
@@ -30,7 +31,7 @@ now known simply as Portage with a version number.  Portage 1.5 includes a
 complete suite of software tools required for phrase-based statistical machine
 translation, including:
  - preprocessing of French, English, Spanish (tokenization, detokenization,
-   lowercasing, aligning) and Chinese (segmentation);
+   lowercasing, aligning) and Chinese (handling of dates and numbers);
  - training lexical translation models (IBM models 1 and 2, HMM) from aligned
    corpora;
  - training phrase-based translation models from aligned corpora and lexical
@@ -73,6 +74,7 @@ translation, including:
    logs/        place-holder for runtime logs
    test-suite/  various test suites
    PortageLive/ files needed to setup a runtime translation server
+   third-party/ Non-NRC software distributed with Portage 1.5 for convenience
    README       this file
    INSTALL      installation instructions
    RELEASES     release history

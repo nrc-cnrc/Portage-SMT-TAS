@@ -1,13 +1,9 @@
 #!/usr/bin/env perl
 
-use strict;
-use warnings;
-require 5.8.5;
-use utf8;
-
 # $Id$
 #
-# trans_gb_en.pl - convert the marked up gb files to Canoe format
+# @file chinese_rule_create.pl
+# @brief Convert marked-up utf8 Chinese files to Canoe format
 #
 # Usage: trans_gb_en.pl <input file>
 #
@@ -15,15 +11,16 @@ use utf8;
 #
 # Copyright (c) 2004, 2005, 2006, Conseil national de recherches Canada / National Research Council Canada
 #
-# This software is distributed to the GALE project participants under the terms
-# and conditions specified in GALE project agreements, and remains the sole
-# property of the National Research Council of Canada.
-#
 # For further information, please contact :
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
 # See http://iit-iti.nrc-cnrc.gc.ca/locations-bureaux/gatineau_e.html
+
+use strict;
+use warnings;
+require 5.8.5;
+use utf8;
 
 
 # format:  在 <NPP english='January 1st, 1998|Jan. 1st, 1998|January first, 1998' prob='0.8|0.9|0.5'>一九九八年一月一日</NPP>

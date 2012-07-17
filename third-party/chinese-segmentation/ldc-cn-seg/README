@@ -1,0 +1,22 @@
+mansegment.perl Version 1.1
+
+mansegment.perl is a Chinese segmenter for both GB and BIG5 as long as
+the cooresponding word frqenuency dictionary is used.
+
+Run as: mansegment.perl [dictfile] < infile > outfile
+
+Version 1.0 was written by Zhibiao Wu at LDC on April 12 1999. Version
+1.1 is an updated version by Xiaoyi Ma at LDC in March, 2003. The
+changes are:
+
+- simplified code
+- regenerated database to be compatible with perl5
+
+Algorithm: Dynamic programming to find the path which has the highest 
+multiple of word probability, the next word is selected from the longest
+phrase.
+
+dictfile is a two column text file, first column is the frequency, 
+second column is the word. The program will change the file into a dbm 
+file in the first run. So be sure to remove the dbm file if you have a
+newer version of the text file.

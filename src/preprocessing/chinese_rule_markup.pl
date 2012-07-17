@@ -1,16 +1,13 @@
 #!/usr/bin/env perl
 
-use strict;
-use warnings;
-require 5.8.5;
-use utf8;
-
 # $Id$
 #
-# Author:      Howard Johnson
+# @file        chinese_rule_markup.pl
+# @brief       Mark up date and number in pseudo-XML format in Chinese text
+
+# @author      Howard Johnson
 #
-# Purpose:     markup date and number in XML format in Chinese text
-#              This script replaces gb-markup.pl.
+# Note:        This script replaces gb-markup.pl.
 #
 # Copyright (c) 2006, Conseil national de recherches Canada / National
 # Research Council Canada
@@ -24,6 +21,11 @@ use utf8;
 #        With the -mainland option, 兆 is interpreted using its modern/mainland
 #        interpretation of million, otherwise it is the traditional/Taiwan
 #        interpretation of trillion.
+
+use strict;
+use warnings;
+require 5.8.5;
+use utf8;
 
 BEGIN {
    # If this script is run from within src/ rather than being properly
@@ -50,7 +52,9 @@ Usage: $0 [options] [IN [OUT]]
 
 Options:
 
-  -mainland     set some flag
+  -mainland     With the -mainland option, 兆 is interpreted using its
+                modern/mainland interpretation of million, otherwise it is the
+                traditional/Taiwan interpretation of trillion.
 
   -h(elp)       print this help message
 ";
@@ -63,7 +67,7 @@ use Getopt::Long;
 my $verbose = 1;
 GetOptions(
    help        => sub { usage },
-   flag        => \my $mainland,
+   mainland    => \my $mainland,
 ) or usage;
 
 my $in  = shift || "-";

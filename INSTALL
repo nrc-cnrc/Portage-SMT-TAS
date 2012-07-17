@@ -365,6 +365,11 @@ Optional dependencies for all distributions:
    XML::Twig.  xmllint is fairly standard and should be available via the
    package manager in most distros.
 
+ - If you are planning to process Chinese text, you need a Chinese segmenter.
+   You can obtain and use ICTCLAS, available in various locations on the web,
+   or NRC's rewrite of the LDC/UPENN segmenter, included on this CD under
+   third-party/chinese-segmentation/ for convenience.
+
 Mandatory dependencies for source code distributions:
 
  - GNU g++ - Portage 1.5 compilation has only been tested with g++, and makes
