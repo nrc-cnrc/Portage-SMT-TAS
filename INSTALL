@@ -371,6 +371,23 @@ Optional dependencies for all distributions:
    LDC/UPENN segmenter, included under third-party/chinese-segmentation/ on
    this CD for convenience.
 
+   The ICTCLAS downloaded from the link provided above can be installed like
+   this:
+      # On the github site, click on "Downloads" and then "Download as tar.gz"
+      # Expand the .tar.gz file and cd into the directory created
+      cd Source
+      g++ -c *.cpp
+      ar -r ictclas.a *.o
+      cd ..
+      g++ -o ictclas main.cpp Source/ictclas.a
+      # Choose a destination $DEST on your PATH, possibly $PORTAGE/bin
+      cp -pr ictclas Data $DEST
+
+   The NRC rewrite of the LDC/UPENN segmenter can be installed like this:
+      # We assume $PORTAGE points to the top level directory of the CD
+      cp $PORTAGE/third-party/chinese-segmentation/chinese_segmenter.pl $PORTAGE/bin/
+      cp $PORTAGE/third-party/chinese-segmentation/manseg.fre $PORTAGE/lib/
+
 Mandatory dependencies for source code distributions:
 
  - GNU g++ - Portage 1.5 compilation has only been tested with g++, and makes
