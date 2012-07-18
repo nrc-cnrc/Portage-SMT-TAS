@@ -923,8 +923,23 @@ sub sourceWordCount {
    }
 
    cleanupAndDie("Can't open temp file ${count_file} for reading.\n") unless (-r "${count_file}");
-   my $cmd = "wc -w < '${count_file}'";
-   return 0 + `$cmd`; # Add "0 +" to return a number, not a string with a newline.
+   if ($src eq "ch") {
+      my $avg_chinese_char_to_english_word_ratio = 1.8;
+      open(COUNTSRC, "< :encoding(utf-8)", $count_file)
+         or cleanupAndDie("Can't open source-word counting file $count_file for reading.\n");
+      # For Chinese, we count characters and divide by 1.8, a ratio that has been
+      # empirically determined to be a reasonable match from Chinese characters
+      # to English words in parallel corpora.  We found the average at 1.77:1,
+      # and rounded up slightly.
+      my $count = 0;
+      while (<COUNTSRC>) {
+         $count += scalar(my @a = /\S/g);
+      }
+      return int($count/$avg_chinese_char_to_english_word_ratio);
+   } else {
+      my $cmd = "wc -w < '${count_file}'";
+      return 0 + `$cmd`; # Add "0 +" to return a number, not a string with a newline.
+   }
 }
 
 sub tokenize {
