@@ -50,7 +50,7 @@ CANOE_PARALLEL=canoe-parallel.sh
 PARALLEL=
 RTRAIN=rescore_train
 DEFAULT_MODEL=curmodel
-LOAD_BALANCING=1
+LOAD_BALANCING=
 MICRO=0
 MICROSM=1
 MICROPAR=3
@@ -108,9 +108,8 @@ FFVALPARSER_OPTS="-canoe"
 ##          the original tables.  Unlike -filt, this option does not introduce
 ##          rounding differences, the output should therefore be identical to
 ##          that obtained with unfiltered tables.  [don't filter]
-## -lb      Run canoe-parallel.sh in load balancing mode to help even out the
-##          translation's load distribution [do].
-## -no-lb   Disable load-balancing [don't].
+## [-no]-lb Run canoe-parallel.sh in load balancing mode to help even out the
+##          translation's load distribution [don't].
 ## -floor   Index of parameter at which to start zero-flooring. (0 means all)
 ##          NB, this is NOT the floor threshold and cannot be used with nofloor.
 ## -nofloor None of the decoder features are floored.  Cannot be used with floor.
@@ -285,8 +284,8 @@ while [[ $# -gt 0 ]]; do
    -model)         arg_check 1 $# $1; MODEL="$2"; shift;;
    -filt)          FILTER=$1;;
    -ttable-limit)  arg_check 1 $# $1; TTABLE_LIMIT="$2"; shift;;
-   -lb)            LOAD_BALANCING=1;;
-   -no-lb)         LOAD_BALANCING=;;
+   -lb)            LOAD_BALANCING=-lb;;
+   -no-lb)         LOAD_BALANCING=-no-lb;;
    -filt-no-ttable-limit)   FILTER=$1;;
    -mad)           arg_check 1 $# $1; RANDOM_INIT="$2"; shift;;
    -e)             ESTOP="-e -r50";;
@@ -339,7 +338,7 @@ elif [[ $# -lt 2 ]]; then
 fi
 
 if [[ -n "$LOAD_BALANCING" ]]; then
-   PARALLEL_OPTS="-lb $PARALLEL_OPTS"
+   PARALLEL_OPTS="$LOAD_BALANCING $PARALLEL_OPTS"
 fi
 
 START_TIME=`date +"%s"`

@@ -396,7 +396,7 @@ def shardAnnotate(s, iter, shard) :
 def decode(wts):
     """Decode current source file using given weight vector."""
     wts2decoderConfig(wts, "decode-config")
-    cmd = ["canoe-parallel.sh", "-lb", "-cleanup", "-psub", "-" + str(opts.numcpus), \
+    cmd = ["canoe-parallel.sh", "-cleanup", "-psub", "-" + str(opts.numcpus), \
            "-n", str(opts.numpar), "canoe", "-v", "1", "-f", "decode-config"]
     outcmd = ["nbest2rescore.pl", "-canoe"]
     if opts.sparse: 
