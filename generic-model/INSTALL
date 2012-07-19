@@ -1,4 +1,4 @@
-                             generic-model_1.0
+                              Generic Model 1.0
 
 Technologies langagieres interactives / Interactive Language Technologies
 Technologies de l'information et des communications /
@@ -18,10 +18,10 @@ generic-model directory.
 
 Copy the full contents of the DVD to the generic-model directory within Portage
 or some other directory of your choice; the usual location is:
-$HOME/Portage1.5.0/generic-model.
-   cp -prd /DVDlocation/* $HOME/Portage1.5.0/generic-model/
+$PORTAGE/generic-model.
+   cp -prd /DVDlocation/* $PORTAGE/generic-model/
 or
-   rsync -av /DVDlocation/* $HOME/Portage1.5.0/generic-model/
+   rsync -av /DVDlocation/* $PORTAGE/generic-model/
 
                               Getting Started
 
@@ -29,22 +29,22 @@ Please refer to the README file within this directory for instructions on
 how to incorporate the generic models into your Portage translation system.
 
 DVD Contents:
-   INSTALL  this file
-   README   how to use the Generic Model
    lm/      English and French Language Models
-      gc.ca.lm-train_en-kn-5g.filt.binlm.gz
-      	    English LM in binlm format for training a system.
-      gc.ca.lm-train_en-kn-5g.filt.tplm/
-      	    English LM in tplm format, used for translation in an 
+      generic1.0_en.binlm.gz
+      	    English LM in binlm format for training a system
+      generic1.0_en.tplm/
+      	    English LM in TPLM format, used for translation in an 
       	    French->English system using the PortageLive translation server
-      gc.ca.lm-train_fr-kn-5g.filt.binlm.gz
-      	    French LM in binlm format for training a system.
-      gc.ca.lm-train_fr-kn-5g.filt.tplm/
-      	    French LM in tplm format, used for translation in an 
+      generic1.0_fr.binlm.gz
+      	    French LM in binlm format for training a system
+      generic1.0_fr.tplm/
+      	    French LM in TPLM format, used for translation in an 
       	    English->French system using the PortageLive translation server
    tm/      English->French and French->English Translation Models
-      cpt.merged.hmm3-kn3-zn.gc.ca.tm-train.en2fr.gz
+      cpt.generic1.0.en2fr.gz
             TM for training English->French translation system
-      cpt.merged.hmm3-kn3-zn.gc.ca.tm-train.fr2en.gz
+      cpt.generic1.0.fr2en.gz
             TM for training French->English translation system
+   INSTALL  this file
+   README   how to use the Generic Model
       
