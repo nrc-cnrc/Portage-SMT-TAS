@@ -19,9 +19,9 @@ generic-model directory.
 Copy the full contents of the DVD to the generic-model directory within Portage
 or some other directory of your choice; the usual location is:
 $HOME/Portage1.5.0/generic-model.
-   cp -prd /DVDlocation $HOME/Portage1.5.0/generic-model
+   cp -prd /DVDlocation/* $HOME/Portage1.5.0/generic-model/
 or
-   rsync -av /DVDlocation $HOME/Portage1.5.0/generic-model
+   rsync -av /DVDlocation/* $HOME/Portage1.5.0/generic-model/
 
                               Getting Started
 
