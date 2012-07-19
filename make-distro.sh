@@ -281,6 +281,8 @@ do_checkout() {
 }
 
 get_user_manual() {
+   # Note: the user manual snapshot is created by loading this link:
+   # http://wiki-ilt/PORTAGEshared/scripts/restricted/ywiki.cgi?act=snapshot
    print_header get_user_manual
    run_cmd pushd ./$OUTPUT_DIR
       run_cmd rsync -arz ilt.iit.nrc.ca:/export/projets/Lizzy/PORTAGEshared/snapshot/ \
@@ -379,7 +381,9 @@ make_bin() {
          run_cmd mkdir -p $ELFDIR
          run_cmd file \* \| grep ELF \| sed "'s/:.*//'" \| xargs -i{} mv {} $ELFDIR
          if [[ $ICU = yes ]]; then
-            LD_LIBRARY_PATH=$ICU_ROOT/lib:$LD_LIBRARY_PATH ldd ../bin/$ELFDIR/canoe | grep -o '/[^ ]*icu[^ ]*.so[^ ]*' | xargs -i cp {} $ELFDIR
+            LD_LIBRARY_PATH=$ICU_ROOT/lib:$LD_LIBRARY_PATH ldd ../bin/$ELFDIR/canoe | egrep -o '/[^ ]*(icu|portage)[^ ]*.so[^ ]*' | xargs -i cp {} $ELFDIR
+         else
+            ldd ../bin/$ELFDIR/canoe | egrep -o '/[^ ]*portage[^ ]*.so[^ ]*' | xargs -i cp {} $ELFDIR
          fi
          run_cmd rmdir --ignore-fail-on-non-empty $ELFDIR
       run_cmd popd
