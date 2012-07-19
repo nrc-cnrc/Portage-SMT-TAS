@@ -40,14 +40,17 @@ SOURCE_LANGUAGE=$1; shift
 
 if [[ "$SOURCE_LANGUAGE" == "ch" ]]; then
    perl -ple 'BEGIN{use encoding "UTF-8";} s/(\.\.\.\.\.\.|\.\.\.|\x{2026}{1,2}|\x2E|\x{FF0E}|\x3F|\x{FF1F}|\x21|\x{FF01}|\x{3002}|\x{FF61})/$1\n/g; s/\n*$/\n/;'
-   #chinese_segmenter.pl
+
 #elif [[ "SOURCE_LANGUAGE" == "xy" ]]; then
    # insert code or call program to do sentence splitting for language "xy"
    # here, reading STDIN and writing to STDOUT.
+
 elif [ "$SOURCE_LANGUAGE" == "fr" -o "$SOURCE_LANGUAGE" == "en" -o "$SOURCE_LANGUAGE" == "es" ]; then
    echo "Language $SOURCE_LANGUAGE is supported by utokenize.pl, don't use the plugin" >&2
    exit 1
+
 else
    echo "Unsupported language: $SOURCE_LANGUAGE" >&2
    exit 1
+
 fi
