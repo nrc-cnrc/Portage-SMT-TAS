@@ -56,15 +56,15 @@ For the purpose of this description, we assume the generic model is installed in
 in the standard location:
 	$HOME/Portage1.5.0/generic-model 
 
-You can use the language models in the lm directory in simple (log-linear)
+You can use the language models in the lm directory in standard (log-linear)
 combination with your own in-domain LMs or in linear combination using a mixlm.
 To do so, prior to training your Portage system edit your framework
 Makefile.params file as follows.
 
-To train a Portage system using the generic LM in simple combination with your
-in-domain LMs, add the file path of the binlm format target language generic
-model LM to the LM_PRETRAINED_TGT_LMS variable definition. For example, for an
-English->French system, this would be:
+To train a Portage system using the generic LM in standard combination with
+your in-domain LMs, add the file path of the binlm format target language
+generic model LM to the LM_PRETRAINED_TGT_LMS variable definition. For example,
+for an English->French system, this would be:
 
 LM_PRETRAINED_TGT_LMS ?= ${HOME}/Portage1.5.0/generic-model/lm/gc.ca.lm-train_fr-kn-5g.filt.binlm.gz
 
@@ -75,12 +75,12 @@ example, for an English->French system, this would be:
 
 MIXLM_PRETRAINED_TGT_LMS ?= ${HOME}/Portage1.5.0/generic-model/lm/gc.ca.lm-train_fr-kn-5g.filt.binlm.gz
 
-You can use the translation models (CPTs) in the tm directory in simple (log-
+You can use the translation models (CPTs) in the tm directory in standard (log-
 linear) combination with your own in-domain CPTs or in a linear combination
 using a mixtm CPT. To do so, prior to training your Portage system, edit
 your framework Makefile.params file as follows.
 
-To train a Portage system using the generic TM in simple combination with your
+To train a Portage system using the generic TM in standard combination with your
 in-domain TMs, add the file path of the en2fr generic model CPT (for an English
 ->French system) or fr2en generic model CPT (for a French->English system) to
 the TM_PRETRAINED_TMS variable definition. For example, for an English->French
@@ -109,9 +109,9 @@ your own pre-trained models as well.
 Our recommended practice is to use both the generic model LM and generic model
 TM, both in linear combination with your in-domain models. Our experience is
 that the linear mixes (mixlm and mixtm) yield a system with better translation
-quality than the simple log-linear combination. However, in some situations, if
-translation time is an issue, say for single-sentence-at-a-time translation, a
-system using a simple LM combination may translate new text more quickly.
+quality than the standard log-linear combination. However, in some situations,
+if translation time is an issue, say for single-sentence-at-a-time translation,
+a system using a standard LM combination may translate new text more quickly.
 
 
 
