@@ -102,12 +102,12 @@ newline marks the end of a paragraph;
 
 =item -nl=s
 
-newline marks the end of a sentence;
+newline marks the end of a sentence [default with -notok or -tmx];
 
-=item -nl=
+=item -nl=w
 
 two consecutive newlines mark the end of a paragraph, otherwise newline is just
-whitespace. [default]
+whitespace (like a wrap marker) [general default].
 
 =back
 
@@ -263,7 +263,7 @@ before and after decoding and after detokenization, respectively.
 Default implementations are provided for each of these, but these can
 be overridden by providing alternate plugins in a directory called
 F<plugins> in the same directory as the F<canoe.ini> file, or in a
-plugins directory specified with the C<-plugins> option. All plugins
+plugins directory specified with the C<-plugins> option.  All plugins
 are expected to read from standard input and write to standard output,
 and should require no command-line arguments.
 
@@ -461,11 +461,11 @@ $tok = 1 unless defined $tok;
 $lc = 1 unless defined $lc;
 $detok = 1 unless defined $detok;
 
-$nl = ($tmx || !$tok ? "s" : "") unless defined $nl;
-$nl eq "" or $nl eq "s" or $nl eq "p"
-   or die "ERROR: -nl option must be one of: 's', 'p', or ''.\nStopped";
-$tok or $nl eq "s"
-   or die "ERROR: -notok requires -nl=s to be specified.\nStopped";
+$nl = ($tmx || !$tok ? "s" : "w") unless defined $nl;
+$nl eq "w" or $nl eq "s" or $nl eq "p"
+   or die "ERROR: -nl option must be one of: 's', 'p', 'w', or ''.\nStopped";
+#$tok or $nl eq "s"
+#   or die "ERROR: -notok requires -nl=s to be specified.\nStopped";
 !$tmx or $nl eq "s"
    or die "ERROR: -tmx requires -nl=s.\nStopped";
 
@@ -600,37 +600,37 @@ my $plog_file;
 open(SAVE_STDERR, ">&STDERR");   # later, STDERR may be redirected to a log file.
 
 if ($dryrun) {
-    $dir = "translate_work_temp_dir" unless $dir;
+   $dir = "translate_work_temp_dir" unless $dir;
 } elsif ($skipto) {
-    $dir or die "ERROR: Use -dir with -skipto.\nStopped";
-    -d $dir or die "ERROR: Unreadable directory '$dir' with -skipto.\nStopped";
-    if ($quiet) {
-       # Make terminal output as quiet as possible by redirecting STDERR.
-       open(STDERR, ">>", "${dir}/log.translate.pl");
-       print STDERR "\n---------- " . localtime() . "skipto $skipto ----------\n"
-          or warn "WARNING: Unable to redirect STDERR to append to '${dir}/log.translate.pl'";
-    }
+   $dir or die "ERROR: Use -dir with -skipto.\nStopped";
+   -d $dir or die "ERROR: Unreadable directory '$dir' with -skipto.\nStopped";
+   if ($quiet) {
+      # Make terminal output as quiet as possible by redirecting STDERR.
+      open(STDERR, ">>", "${dir}/log.translate.pl");
+      print STDERR "\n---------- " . localtime() . "skipto $skipto ----------\n"
+         or warn "WARNING: Unable to redirect STDERR to append to '${dir}/log.translate.pl'";
+   }
 } else {
-    if ($dir) {
-        if (not -d $dir) {
-           mkdir $dir or die "ERROR: Can't make directory '$dir': errno=$!.\nStopped";
-        }
-    } else {
-        $dir = "";
-        # Use eval to avoid death if unable to create the work directory .
-        eval {$dir = tempdir('translate_work_XXXXXX', DIR=>".", CLEANUP=>0);};
-        if (not -d $dir) {
-           $dir = tempdir('translate_work_XXXXXX', TMPDIR=>1, CLEANUP=>0);
-           # Prevent running in cluster mode if using /tmp as the work directory.
-           $ENV{PORTAGE_NOCLUSTER} = 1;
-        }
-    }
-    if ($quiet) {
-       # Make terminal output as quiet as possible by redirecting STDERR.
-       open(STDERR, ">", "${dir}/log.translate.pl") 
-          or warn "WARNING: Unable to redirect STDERR to '${dir}/log.translate.pl'";
-    }
-    $plog_file = plogCreate("File:${input_text}; Context:".File::Spec->rel2abs($models_dir));
+   if ($dir) {
+      if (not -d $dir) {
+         mkdir $dir or die "ERROR: Can't make directory '$dir': errno=$!.\nStopped";
+      }
+   } else {
+      $dir = "";
+      # Use eval to avoid death if unable to create the work directory .
+      eval {$dir = tempdir('translate_work_XXXXXX', DIR=>".", CLEANUP=>0);};
+      if (not -d $dir) {
+         $dir = tempdir('translate_work_XXXXXX', TMPDIR=>1, CLEANUP=>0);
+         # Prevent running in cluster mode if using /tmp as the work directory.
+         $ENV{PORTAGE_NOCLUSTER} = 1;
+      }
+   }
+   if ($quiet) {
+      # Make terminal output as quiet as possible by redirecting STDERR.
+      open(STDERR, ">", "${dir}/log.translate.pl") 
+         or warn "WARNING: Unable to redirect STDERR to '${dir}/log.translate.pl'";
+   }
+   $plog_file = plogCreate("File:${input_text}; Context:".File::Spec->rel2abs($models_dir));
 }
 
 $keep_dir = $dir if $debug;
@@ -708,10 +708,10 @@ goto $skipto if $skipto;
 
 # Get source text
 IN:{
-   unless ($tmx) {
-      copy($input_text, $Q_txt);
-   } else {
+   if ($tmx) {
       call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} extract '$dir' '$input_text'");
+   } else {
+      copy($input_text, $Q_txt);
    }
 }
 
@@ -809,16 +809,16 @@ CE:{
 # Produce output
 OUT:{
    unless ($tmx) {
-       if ($with_ce) {
-           my $ce_output = $out ne "-" ? "> '$out'" : "";
-           call("paste ${dir}/pr.ce '${P_txt}' ${ce_output}");
-       } else {
-           copy($P_txt, $out);
-       }
+      if ($with_ce) {
+         my $ce_output = $out ne "-" ? "> '$out'" : "";
+         call("paste ${dir}/pr.ce '${P_txt}' ${ce_output}");
+      } else {
+         copy($P_txt, $out);
+      }
    } else {
-       my $fopt = defined $filter ? "-filter=$filter" : "";
-       my $sopt = $with_ce ? "-score" : "-noscore";
-       call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} ${fopt} ${sopt} replace '$dir'");
+      my $fopt = defined $filter ? "-filter=$filter" : "";
+      my $sopt = $with_ce ? "-score" : "-noscore";
+      call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} ${fopt} ${sopt} replace '$dir'");
    }
 }
 
@@ -846,7 +846,7 @@ sub displayHelp
 
 sub copy {
    my ($in, $out) = @_;
-   
+
    my $cmd = $out eq "-" ? qq(cat "$in") 
                          : $in eq "-" ? qq(cat >"$out") : qq(cp "$in" "$out");
    call($cmd, $out ne "-" ? $out : "");
@@ -948,21 +948,40 @@ sub tokenize {
       copy($in, $out);
    }
    else {
-      my $old_path = $ENV{PATH};
-      $ENV{PATH} = "${plugins_dir}:".$ENV{PATH};
-      my $cmd = `which tokenize_plugin 2> /dev/null`;
-      $ENV{PATH} = $old_path;
-      chomp($cmd);
-      if ( $cmd ) {
-         plugin("tokenize", $src, $Q_pre, $Q_tok);
-      }
-      else {
+      if ($lang eq "en" or $lang eq "fr" or $lang eq "es") {
+         # These languages are supported by utokenize.pl
          my $tokopt = " -lang=${lang}";
          $tokopt .= $nl eq 's' ? " -noss" : " -ss";
          $tokopt .= " -paraline" if $nl eq 'p';
          $tokopt .= " -pretok" if !$tok;
          my $u = $utf8 ? "u" : "";
          call("${u}tokenize.pl ${tokopt} '${in}' '${out}'", $out);
+      } else {
+         # Other languages must provide sentsplit_plugin and tokenize_plugin.
+         my $tok_input = $nl ne 's' ? "$in.ospl" : $in;
+         my $ss_output = $tok ? $tok_input : $out;
+         if ($nl ne 's') {
+            my $ss_input = $nl eq 'w' ? "$in.oppl" : $in;
+            if ($nl eq 'w') {
+               open(PARA_INPUT, "< :encoding(utf-8)", $in)
+                  or cleanupAndDie("Can't open $in for reading.\n");
+               open(PARA_OUTPUT, "> :encoding(utf-8)", $ss_input)
+                  or cleanupAndDie("Can't open $ss_input for writing.\n");
+               require ULexiTools;
+               while ($_ = ULexiTools::get_para(\*PARA_INPUT, 0)) {
+                  next if /^\s*$/;
+                  s/\s+/ /g;
+                  s/\s*\z/\n/s;
+                  print PARA_OUTPUT;
+               }
+               close PARA_INPUT;
+               close PARA_OUTPUT;
+            }
+            plugin("sentsplit", $src, $ss_input, $ss_output);
+         }
+         if ($tok) {
+            plugin("tokenize", $src, $tok_input, $out);
+         }
       }
    }
 }
@@ -1029,7 +1048,7 @@ sub call {
 
 sub callOutput {
    my ($cmd) = @_;
-    
+
    my ($fh, $fname) = File::Temp->tempfile("callOutput-XXXXXX", UNLINK=>1);
    close $fh;
 

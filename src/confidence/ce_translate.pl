@@ -1,4 +1,4 @@
-#!/usr/bin/perl -s -w
+#!/usr/bin/perl -s
 # $Id$
 # @file ce_translate.pl
 # @brief Confidence Estimation wrapper program
@@ -82,11 +82,11 @@ unless something goes wrong, or if the C<-dir=D> option is specified.
 
 =over
 
-=item -nl=p             mark the end of a paragraph;
+=item -nl=p           mark the end of a paragraph;
 
-=item -nl=s             mark the end of a sentence;
+=item -nl=s           mark the end of a sentence [default if -tmx or -notok];
 
-=item anything else     two consecutive newlines mark the end of a paragraph, otherwise newline is just whitespace.
+=item -nl=w           two consecutive newlines mark the end of a paragraph, otherwise newline is just whitespace (like wrap marker) [general default].
 
 =back
 
@@ -161,8 +161,8 @@ F<postdecode_plugin> and F<postprocess_plugin> before tokenization,
 before and after decoding and after detokenization, respectively.
 Default implementations are provided for each of these, but these can
 be overridden by providing alternate plugins in a directory called
-F<plugins> in the same directory as the F<canoe_ini> file, or in a
-plugin directory specified with the C<-plugin> option.  All plugins
+F<plugins> in the same directory as the F<canoe.ini> file, or in a
+plugins directory specified with the C<-plugin> option.  All plugins
 are expected to read from standard input and write to standard output,
 and should require no command-line arguments.
 
@@ -184,12 +184,13 @@ Michel Simard
 
 =cut
 
-## Developper's note: There is also a -skipto=S option, which can be
+## Developer's note: There is also a -skipto=S option, which can be
 ## used when debugging to skip to a specific processing stage.  This
 ## is implemented via Perl's goto mechanism.  Current stages are IN,
 ## PREP, TRANS, POST, CE, OUT and CLEANUP.
 
 use strict;
+use warnings;
 
 BEGIN {
    # If this script is run from within src/ rather than being properly
@@ -200,6 +201,7 @@ BEGIN {
       unshift @INC, "$bin_path/../utils", $bin_path;
    }
 }
+
 use portage_utils;
 printCopyright("ce_translate.pl", 2009);
 $ENV{PORTAGE_INTERNAL_CALL} = 1;
@@ -241,7 +243,7 @@ $xtgt = "FR-CA" unless defined $xtgt;
 $dryrun = 0 unless defined $dryrun;
 $n = 0 unless defined $n;
 $notok = 0 unless defined $notok;
-$nl = ($tmx || $notok ? "s" : "") unless defined $nl;
+$nl = ($tmx || $notok ? "s" : "w") unless defined $nl;
 $nolc = 0 unless defined $nolc;
 $tclm = 0 unless defined $tclm;
 $tcmap = 0 unless defined $tcmap;
@@ -281,27 +283,27 @@ my $keep_dir = $dir;
 my $plog_file;
 
 if ($dryrun) {
-    $dir = "ce_work_temp_dir" unless $dir;
+   $dir = "ce_work_temp_dir" unless $dir;
 } elsif ($skipto) {
-    die "Use -dir with -skipto" unless $dir;
-    die "Unreadable directory $dir with -skipto" unless -d $dir;
+   die "Use -dir with -skipto" unless $dir;
+   die "Unreadable directory $dir with -skipto" unless -d $dir;
 } else {
-    if ($dir) {
-        if (not -d $dir) {
-            mkdir $dir or die "Can't make directory $dir: errno=$!";
-        }
-    } else {
-        $dir = "";
-        # Use eval to avoid death if unable to create the work directory .
-        eval {$dir = tempdir('ce_work_XXXXXX', DIR=>".", CLEANUP=>0);};
-        if (not -d $dir) {
-           $dir = tempdir('ce_work_XXXXXX', TMPDIR=>1, CLEANUP=>0);
-           # Prevent running in cluster mode if using /tmp as the work directory.
-           $ENV{PORTAGE_NOCLUSTER} = 1;
-        }
-    }
-    $plog_file = plogCreate("File:${input_text}; Context:".File::Spec->rel2abs(dirname($canoe_ini)))
-        unless $train; # Don't log when training
+   if ($dir) {
+      if (not -d $dir) {
+         mkdir $dir or die "ERROR: Can't make directory '$dir': errno=$!.\nStopped";
+      }
+   } else {
+      $dir = "";
+      # Use eval to avoid death if unable to create the work directory .
+      eval {$dir = tempdir('ce_work_XXXXXX', DIR=>".", CLEANUP=>0);};
+      if (not -d $dir) {
+         $dir = tempdir('ce_work_XXXXXX', TMPDIR=>1, CLEANUP=>0);
+         # Prevent running in cluster mode if using /tmp as the work directory.
+         $ENV{PORTAGE_NOCLUSTER} = 1;
+      }
+   }
+   $plog_file = plogCreate("File:${input_text}; Context:".File::Spec->rel2abs(dirname($canoe_ini)))
+      unless $train; # Don't log when training
 }
 $keep_dir = $dir if $debug;   # don't delete the directory in -debug mode.
 verbose("[Work directory: \"${dir}\"]\n");
@@ -317,7 +319,7 @@ my $Q_pre = "${dir}/Q.pre";     # Pre-processed (pre-tokenization) source
 # --> tokenize
 my $Q_tok = "${dir}/Q.tok";     # Tokenized source
 # --> lowercase
-my $q_tok = "${dir}/q${ci}.tok";     # Lowercased tokenized source
+my $q_tok = "${dir}/q${ci}.tok";    # Lowercased tokenized source
 # --> predecoder plugin
 my $q_dec = "${dir}/q.dec";     # Decoder-ready source
 # --> decoding
@@ -361,91 +363,91 @@ goto $skipto if $skipto;
 # Get source (and possibly reference/tmem target) text
 
 IN:{
-    if ($tmx) {
-        call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} extract \"$dir\" \"$input_text\"");
-    } elsif ($ttx) {
-        call("ce_ttx2ospl.pl -verbose=${verbose} -dir=\"${dir}\" -src=${xsrc} -tgt=${xtgt} \"$input_text\"");
-    } else {
-        copy($input_text, $Q_txt);
-        if ($tmem) {
-            copy($tmem, $T_txt);
-        }
-    }
+   if ($tmx) {
+      call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} extract '$dir' '$input_text'");
+   } elsif ($ttx) {
+      call("ce_ttx2ospl.pl -verbose=${verbose} -dir=\"${dir}\" -src=${xsrc} -tgt=${xtgt} \"$input_text\"");
+   } else {
+      copy($input_text, $Q_txt);
+      if ($tmem) {
+         copy($tmem, $T_txt);
+      }
+   }
 
-    if ($ref_text) {
-        copy($ref_text, $R_txt);
-    }
+   if ($ref_text) {
+      copy($ref_text, $R_txt);
+   }
 }
 
-# Preprocess, Tokenize and lowercase
+# Preprocess, tokenize and lowercase
 
 PREP:{
-    plugin("preprocess", $src, $Q_txt, $Q_pre);
-    tokenize($src, $Q_pre, $Q_tok);
-    lowercase($Q_tok, $q_tok);
+   plugin("preprocess", $src, $Q_txt, $Q_pre);
+   tokenize($src, $Q_pre, $Q_tok);
+   lowercase($Q_tok, $q_tok);
 
-    if ($tmem or $ttx) {
-        plugin("preprocess", $src, $T_txt, $T_pre);
-        tokenize($tgt, $T_pre, $T_tok);
-        lowercase($T_tok, $t_tok);
-    }
+   if ($tmem or $ttx) {
+      plugin("preprocess", $src, $T_txt, $T_pre);
+      tokenize($tgt, $T_pre, $T_tok);
+      lowercase($T_tok, $t_tok);
+   }
 
-    if ($ref_text) {
-        plugin("preprocess", $src, $R_txt, $R_pre);
-        tokenize($tgt, $R_pre, $R_tok);
-        lowercase($R_tok, $r_tok);
-    }
+   if ($ref_text) {
+      plugin("preprocess", $src, $R_txt, $R_pre);
+      tokenize($tgt, $R_pre, $R_tok);
+      lowercase($R_tok, $r_tok);
+   }
 }
 
 # Translate
 
 TRANS:{
-    plugin("predecode", $src, $q_tok, $q_dec);
-    my $decoder = "canoe";
-    if ( $n > 1 ) {
-        $decoder = "canoe-parallel.sh -n $n canoe";
-    }
-    call("$decoder -trace -ffvals -f ${canoe_ini} < \"${q_dec}\" > \"${p_raw}\"");
-    call("ce_canoe2ffvals.pl -verbose=${verbose} -dir=\"${dir}\" \"${p_raw}\"");
-    # ce_canoe2ffvals.pl generates $p_dec from $p_raw, among other things
-    plugin("postdecode", $tgt, $p_dec, $p_tok);
+   plugin("predecode", $src, $q_tok, $q_dec);
+   my $decoder = "canoe";
+   if ( $n > 1 ) {
+      $decoder = "canoe-parallel.sh -n $n canoe";
+   }
+   call("$decoder -trace -ffvals -f ${canoe_ini} < \"${q_dec}\" > \"${p_raw}\"");
+   call("ce_canoe2ffvals.pl -verbose=${verbose} -dir=\"${dir}\" \"${p_raw}\"");
+   # ce_canoe2ffvals.pl generates $p_dec from $p_raw, among other things
+   plugin("postdecode", $tgt, $p_dec, $p_tok);
 }
 
 POST:{
-    truecase($tgt, $p_tok, $P_tok);
-    detokenize($tgt, $P_tok, $P_dtk);
-    plugin("postprocess", $tgt, $P_dtk, $P_txt);
+   truecase($tgt, $p_tok, $P_tok);
+   detokenize($tgt, $P_tok, $P_dtk);
+   plugin("postprocess", $tgt, $P_dtk, $P_txt);
 }
 
 # Train/predict CE
 
 CE:{
-    my $ce_opt = "-verbose=${verbose}";
-    $ce_opt .= " -path=\"${path}\"" if $path;
-    if ($train) {
-        $ce_opt .= " -ini=$desc" if $desc;
-        $ce_opt .= " -k=$k" if $k;
-        $ce_opt .= " -norm=$norm" if $norm;
+   my $ce_opt = "-verbose=${verbose}";
+   $ce_opt .= " -path=\"${path}\"" if $path;
+   if ($train) {
+      $ce_opt .= " -ini=$desc" if $desc;
+      $ce_opt .= " -k=$k" if $k;
+      $ce_opt .= " -norm=$norm" if $norm;
 
-        call("ce_train.pl ${ce_opt} ${ce_model} \"${dir}\"");
-    } else {
-        $ce_opt .= " -stats" if $test;
-        call("ce.pl ${ce_opt} ${ce_model} \"${dir}\"");
-    }
+      call("ce_train.pl ${ce_opt} ${ce_model} \"${dir}\"");
+   } else {
+      $ce_opt .= " -stats" if $test;
+      call("ce.pl ${ce_opt} ${ce_model} \"${dir}\"");
+   }
 }
 
 # Produce output
 
 OUT:{
-    unless ($train) {
-        if ($tmx) {
-            my $fopt = defined $filter ? "-filter=$filter" : "";
-            call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} -score ${fopt} replace \"$dir\"");
-        } else {
-            my $ce_output = $out ? "> \"$out\"" : "";
-            call("paste ${dir}/pr.ce \"${P_txt}\" ${ce_output}");
-        }
-    }
+   unless ($train) {
+      if ($tmx) {
+         my $fopt = defined $filter ? "-filter=$filter" : "";
+         call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} -score ${fopt} replace \"$dir\"");
+      } else {
+         my $ce_output = $out ? "> \"$out\"" : "";
+         call("paste ${dir}/pr.ce \"${P_txt}\" ${ce_output}");
+      }
+   }
 }
 
 # Cleanup
@@ -454,7 +456,7 @@ CLEANUP:{
     my $words_in = sourceWordCount();
     my $words_out = defined($filter) ? sourceWordCount($filter) : $words_in;
     plogUpdate($plog_file, 'success', $words_in, $words_out);
-    if (not $keep_dir) {
+    unless ($keep_dir) {
         verbose("[Cleaning up and deleting work directory $dir]\n");
         rmtree($dir);
     }
@@ -467,18 +469,18 @@ exit 0;
 ## Subroutines
 
 sub copy {
-    my ($in, $out) = @_;
+   my ($in, $out) = @_;
 
-    call("cp \"${in}\" \"${out}\"", $out);
+   call("cp \"${in}\" \"${out}\"", $out);
 }
 
 sub plugin {
-    my ($name, $lang, $in, $out) = @_;
-    my $old_path = $ENV{PATH};
-    $ENV{PATH} = "${plugin_dir}:".$ENV{PATH};
-    my $actual_prog = callOutput("which ${name}_plugin"); # for the benefit of verbose
-    call("${actual_prog} ${lang} < \"${in}\" > \"${out}\"", $out);
-    $ENV{PATH} = $old_path;
+   my ($name, $lang, $in, $out) = @_;
+   my $old_path = $ENV{PATH};
+   $ENV{PATH} = "${plugin_dir}:".$ENV{PATH};
+   my $actual_prog = callOutput("which ${name}_plugin"); # for the benefit of verbose
+   call("${actual_prog} ${lang} < \"${in}\" > \"${out}\"", $out);
+   $ENV{PATH} = $old_path;
 }
 
 sub plogCreate {
@@ -501,7 +503,7 @@ sub plogCreate {
 sub plogUpdate {
    my ($plog_file, $status, $words_in, $words_out, $comment) = @_;
    $words_in = 0 unless defined $words_in;
-   $words_out = $words_in unless defined $words_in;
+   $words_out = $words_in unless defined $words_out;
 
    return unless $plog_file;   # means "no logging"
 
@@ -510,7 +512,7 @@ sub plogUpdate {
    my @plog_opt = qw(-update);
    push @plog_opt, "-verbose" if $verbose;
    push @plog_opt, "-comment=\"$comment\"" if defined $comment;
-   my $cmd = "plog.pl ".join(" ", @plog_opt)." \"${plog_file}\" $status $words_in $words_out";
+   my $cmd = "plog.pl ".join(" ", @plog_opt)." '${plog_file}' $status $words_in $words_out";
    # Don't use call(): potential recursive loop!!
    system($cmd) == 0 or warn "WARNING: ", explainSystemRC($?,$cmd,$0);
 }
@@ -542,29 +544,49 @@ sub sourceWordCount {
 
    cleanupAndDie("Can't open temp file ${count_file} for reading.\n") unless (-r "${count_file}");
    my $cmd = "wc -w < '${count_file}'";
-   return `$cmd`;
+   return 0 + `$cmd`;
 }
 
 sub tokenize {
    my ($lang, $in, $out) = @_;
-   if ($notok and $nl eq 's') {
+   if (!$tok and $nl eq 's') {
       copy($in, $out);
    }
    else {
-      my $old_path = $ENV{PATH};
-      $ENV{PATH} = "${plugin_dir}:".$ENV{PATH};
-      my $cmd = `which tokenize_plugin 2> /dev/null`;
-      $ENV{PATH} = $old_path;
-      chomp($cmd);
-      if ( $cmd ) {
-         plugin("tokenize", $src, $Q_pre, $Q_tok);
-      }
-      else {
+      if ($lang eq "en" or $lang eq "fr" or $lang eq "es") {
+         # These languages are supported by utokenize.pl
          my $tokopt = " -lang=${lang}";
          $tokopt .= $nl eq 's' ? " -noss" : " -ss";
          $tokopt .= " -paraline" if $nl eq 'p';
-         $tokopt .= " -pretok" if $notok;
-         call("utokenize.pl ${tokopt} \"${in}\" \"${out}\"", $out);
+         $tokopt .= " -pretok" if !$tok;
+         my $u = $utf8 ? "u" : "";
+         call("${u}tokenize.pl ${tokopt} '${in}' '${out}'", $out);
+      } else {
+         # Other languages must provide sentsplit_plugin and tokenize_plugin.
+         my $tok_input = $nl ne 's' ? "$in.ospl" : $in;
+         my $ss_output = $tok ? $tok_input : $out;
+         if ($nl ne 's') {
+            my $ss_input = $nl eq 'w' ? "$in.oppl" : $in;
+            if ($nl eq 'w') {
+               open(PARA_INPUT, "< :encoding(utf-8)", $in)
+                  or cleanupAndDie("Can't open $in for reading.\n");
+               open(PARA_OUTPUT, "> :encoding(utf-8)", $ss_input)
+                  or cleanupAndDie("Can't open $ss_input for writing.\n");
+               require ULexiTools;
+               while ($_ = ULexiTools::get_para(\*PARA_INPUT, 0)) {
+                  next if /^\s*$/;
+                  s/\s+/ /g;
+                  s/\s*\z/\n/s;
+                  print PARA_OUTPUT;
+               }
+               close PARA_INPUT;
+               close PARA_OUTPUT;
+            }
+            plugin("sentsplit", $src, $ss_input, $ss_output);
+         }
+         if ($tok) {
+            plugin("tokenize", $src, $tok_input, $out);
+         }
       }
    }
 }
@@ -572,7 +594,7 @@ sub tokenize {
 sub detokenize {
    my ($lang, $in, $out) = @_;
 #     if ($notok) {
-#         call("cp \"${in}\" \"${out}\"");
+#        call("cp '${in}' '${out}'");
 #     } else {
    my $old_path = $ENV{PATH};
    $ENV{PATH} = "${plugin_dir}:".$ENV{PATH};
@@ -583,69 +605,68 @@ sub detokenize {
       plugin("detokenize", $tgt, $P_tok, $P_dtk);
    }
    else {
-      call("udetokenize.pl -lang=${lang} < \"${in}\" > \"${out}\"", $out);
+      call("udetokenize.pl -lang=${lang} < '${in}' > '${out}'", $out);
    }
 #    }
 }
 
 sub lowercase {
-    my ($in, $out) = @_;
-    if ($nolc) {
-        copy($in, $out)
-    } else {
-        call("utf8_casemap -c l \"${in}\" \"${out}\"", $out);
-    }
+   my ($in, $out) = @_;
+   if ($nolc) {
+      copy($in, $out);
+   } else {
+      call("utf8_casemap -c l '${in}' '${out}'", $out);
+   }
 }
 
 sub truecase {
-    my ($lang, $in, $out) = @_;
-    if ($tcmap and $tclm) {
-        if ($tctp) {
-            call("truecase.pl --text=\"${in}\" --ucBOSEncoding=utf8 --tplm=${tclm} --tppt=${tcmap} > \"${out}\"", $out);
-        } else {
-            call("truecase.pl --text=\"${in}\" --ucBOSEncoding=utf8 --lm=${tclm} --map=${tcmap} > \"${out}\"", $out);
-        }
-    } else {
-        copy($in, $out);
-    }
+   my ($lang, $in, $out) = @_;
+   if ($tcmap and $tclm) {
+      if ($tctp) {
+         call("truecase.pl --text='${in}' --ucBOSEncoding=utf8 --tplm=${tclm} --tppt=${tcmap} > '${out}'", $out);
+      } else {
+         call("truecase.pl --text='${in}' --ucBOSEncoding=utf8 --lm=${tclm} --map=${tcmap} > '${out}'", $out);
+      }
+   } else {
+      copy($in, $out);
+   }
 }
 
 sub call {
-    my ($cmd, @outfiles) = @_;
-    verbose("[call: %s]\n", $cmd);
-    if ($dryrun) {
-        print $cmd, "\n";
-    } else {
-        system($cmd)==0
-            or cleanupAndDie(explainSystemRC($?,$cmd,$0), @outfiles);
-    }
+   my ($cmd, @outfiles) = @_;
+   verbose("[call: %s]\n", $cmd);
+   if ($dryrun) {
+      print $cmd, "\n";
+   } else {
+      system($cmd) == 0
+         or cleanupAndDie(explainSystemRC($?,$cmd,$0), @outfiles);
+   }
 }
 
 sub callOutput {
-    my ($cmd) = @_;
-    
-    my ($fh, $fname) = File::Temp->tempfile("callOutput-XXXXXX", UNLINK=>1);
-    close $fh;
+   my ($cmd) = @_;
 
-    system("$cmd > $fname")==0
-        or cleanupAndDie(explainSystemRC($?,$cmd,$0));
+   my ($fh, $fname) = File::Temp->tempfile("callOutput-XXXXXX", UNLINK=>1);
+   close $fh;
 
-    open($fh, "<$fname") or die "Can't open temp file $fname for reading";
-    my @cmdout = <$fh>;
-    close $fh;
+   system("$cmd > $fname") == 0 or cleanupAndDie(explainSystemRC($?,$cmd,$0));
 
-    my $cmdout = join("", @cmdout);
-    chomp $cmdout;
+   open($fh, "<$fname") or cleanupAndDie("Can't open temp file $fname for reading.\n");
+   my @cmdout = <$fh>;
+   close $fh;
 
-    return $cmdout;
+   my $cmdout = join("", @cmdout);
+   chomp $cmdout;
+
+   return $cmdout;
 }
 
 sub cleanupAndDie {
-    my ($message, @files) = @_;
+   my ($message, @files) = @_;
 
-    plogUpdate($plog_file, undef, 'failure');
-    unlink @files unless $debug;
-    die $message;
+   plogUpdate($plog_file, undef, 'failure');
+   unlink @files unless $debug;
+   die $message;
 }
 
 sub verbose { printf STDERR @_ if $verbose; }

@@ -14,13 +14,15 @@ PROGRAMS = \
 	utf8_casemap \
 	utf8_filter
 
-# NOTE: DO NOT add (de)tokenize_plugin scripts to the BINSCRIPTS variable since
-# they exist only to illustrate what a (de)tokenie_plugin could look like.
+# NOTE: DO NOT add the detokenize_plugin script to the BINSCRIPTS variable since
+# it exists only to illustrate what a detokenie_plugin could look like.
 BINSCRIPTS = $(wildcard *.sh *.pl *.py) \
 	preprocess_plugin \
 	predecode_plugin \
 	postdecode_plugin \
 	postprocess_plugin \
+	tokenize_plugin \
+	sentsplit_plugin \
 	select-line
 
 include ../build/Makefile.incl
