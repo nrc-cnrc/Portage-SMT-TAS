@@ -16,13 +16,13 @@ If you have licensed the Portage generic models, you can install these models
 in the generic-model directory.
 
 The Portage Generic Model DVD contains trained English and French language
-models (LM) and English->French and French->English translation models (TM) that
-may be used in conjunction with your own in-domain language and translation
-models in a tuned Portage system. The generic models were trained on a large
-general language corpus and then pruned, keeping the most relevant data while
-shrinking the models to a usable size. Using the generic models in conjunction
-with your in-domain models can significantly improve translation quality of new
-text, especially for small in-domain corpora.
+models (LM) and English->French and French->English translation models (TM),
+which may be used in conjunction with your own in-domain language and
+translation models in a tuned Portage system. The generic models were trained on
+a large general language corpus and then pruned, keeping the most relevant data
+while shrinking the models to a usable size. Using the generic models in
+conjunction with your in-domain models can significantly improve translation
+quality of new text, especially for small in-domain corpora.
 
                    Contents of the generic-model directory
 
@@ -47,7 +47,7 @@ text, especially for small in-domain corpora.
 
                                Getting Started
 
-Plese refer to the INSTALL file in this directory for installation instructions.
+Please refer to the INSTALL file in this directory for installation instructions.
 
 Once installed, the models of the Portage Generic Model are very easy to use in
 conjunction with your in-domain models in the Portage framework.
@@ -57,8 +57,8 @@ in the standard location:
 	$HOME/Portage1.5.0/generic-model 
 
 You can use the language models in the lm directory in simple (log-linear)
-combination with your own in-domain LMs or in linear combination with a mixlm.
-To do so, prior to training your Portage system, you must edit your framework
+combination with your own in-domain LMs or in linear combination using a mixlm.
+To do so, prior to training your Portage system edit your framework
 Makefile.params file as follows.
 
 To train a Portage system using the generic LM in simple combination with your
@@ -76,13 +76,13 @@ example, for an English->French system, this would be:
 MIXLM_PRETRAINED_TGT_LMS ?= ${HOME}/Portage1.5.0/generic-model/lm/gc.ca.lm-train_fr-kn-5g.filt.binlm.gz
 
 You can use the translation models (CPTs) in the tm directory in simple (log-
-linear) combination with your own in-domain CPTs or in a linear combination with
-a mixtm CPT. To do so, prior to training your Portage system, you must edit your
-framework Makefile.params file as follows.
+linear) combination with your own in-domain CPTs or in a linear combination
+using a mixtm CPT. To do so, prior to training your Portage system, edit
+your framework Makefile.params file as follows.
 
 To train a Portage system using the generic TM in simple combination with your
 in-domain TMs, add the file path of the en2fr generic model CPT (for an English
-->French system) or fr2en generic model CPT (for an French->English system) to
+->French system) or fr2en generic model CPT (for a French->English system) to
 the TM_PRETRAINED_TMS variable definition. For example, for an English->French
 system, this would be:
 
@@ -90,18 +90,21 @@ TM_PRETRAINED_TMS ?= ${HOME}/Portage1.5.0/generic-model/tm/cpt.merged.hmm3-kn3-z
 
 To train a Portage system using the generic TM in linear combination with your
 in-domain TMs in a mixtm, add the file path of the en2fr generic model CPT (for
-an English->French system) or fr2en generic model CPT (for an French->English
+an English->French system) or fr2en generic model CPT (for a French->English
 system) to the MIXTM_PRETRAINED_TMS variable definition. For example, for an
 English->French system, this would be:
 
 MIXTM_PRETRAINED_TMS ?= ${HOME}/Portage1.5.0/generic-model/tm/cpt.merged.hmm3-kn3-zn.gc.ca.tm-train.en2fr.gz
 
 The framework will automatically create symbolic links to the necessary generic
-model files within the framework structure, including the tplm format LM for
+model files within the framework structure, including the LM in tplm format for
 PortageLive, and the source language LM if needed for training a mixlm.
 
 In all cases, do not include the generic model name in the TRAIN_LM, MIXLM,
 TRAIN_TM, or MIXTM definitions in the Makefile.params file.
+
+Note: All four PRETRAINED variables accept multiple file paths, so you may add
+your own pre-trained models as well.
 
 Our recommended practice is to use both the generic model LM and generic model
 TM, both in linear combination with your in-domain models. Our experience is
