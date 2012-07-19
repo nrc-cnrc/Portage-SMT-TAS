@@ -1,0 +1,50 @@
+                             generic-model_1.0
+
+Technologies langagieres interactives / Interactive Language Technologies
+Technologies de l'information et des communications /
+   Information and Communications Technologies
+Conseil national de recherches Canada / National Research Council Canada
+Copyright 2012, Sa Majeste la Reine du Chef du Canada
+Copyright 2012, Her Majesty in Right of Canada
+
+Distributed under specific licensing terms.  Please refer to your signed
+license agreement for details.
+
+
+                   Installing the Portage Generic Model 1.0
+
+If you have licensed the Portage Generic Model DVD, you can install it in the
+generic-model directory.
+
+Copy the full contents of the DVD to the generic-model directory within Portage
+or some other directory of your choice; the usual location is:
+$HOME/Portage1.5.0/generic-model.
+   cp -prd /DVDlocation $HOME/Portage1.5.0/generic-model
+or
+   rsync -av /DVDlocation $HOME/Portage1.5.0/generic-model
+
+                              Getting Started
+
+Please refer to the README file within this directory for instructions on
+how to incorporate the generic models into your Portage translation system.
+
+DVD Contents:
+   INSTALL  this file
+   README   how to use the Generic Model
+   lm/      English and French Language Models
+      gc.ca.lm-train_en-kn-5g.filt.binlm.gz
+      	    English LM in binlm format for training a system.
+      gc.ca.lm-train_en-kn-5g.filt.tplm/
+      	    English LM in tplm format, used for translation in an 
+      	    French->English system using the PortageLive translation server
+      gc.ca.lm-train_fr-kn-5g.filt.binlm.gz
+      	    French LM in binlm format for training a system.
+      gc.ca.lm-train_fr-kn-5g.filt.tplm/
+      	    French LM in tplm format, used for translation in an 
+      	    English->French system using the PortageLive translation server
+   tm/      English->French and French->English Translation Models
+      cpt.merged.hmm3-kn3-zn.gc.ca.tm-train.en2fr.gz
+            TM for training English->French translation system
+      cpt.merged.hmm3-kn3-zn.gc.ca.tm-train.fr2en.gz
+            TM for training French->English translation system
+      
