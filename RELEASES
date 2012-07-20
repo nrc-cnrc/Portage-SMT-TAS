@@ -17,12 +17,12 @@ license agreement for details.
 v1.5.0 beta 2012-07-20
 
  This release brings together important new modules and features that have
- allowed us to score first in the NIST Open Machine Translation 2012 Evaluation
- (OpenMT12), as well as a number of other improvements we have made to the
- system.
+ contributed to our success at the NIST Open Machine Translation 2012
+ Evaluation (OpenMT12), as well as a number of other improvements we have made
+ to the system.
 
  Major changes:
- - Added the key features of our top-scoring NIST 2012 Chinese system:
+ - Added the key features of our NIST 2012 Chinese system:
    - Tuning decoder weights using Batch Lattice MIRA (new tune.py script), as
      well as other tuning algorithms.  We have done extensive testing of
      various tuning methods, and Lattice MIRA works best, yielding significant
