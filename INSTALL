@@ -369,7 +369,13 @@ Optional dependencies for all distributions:
    You can obtain and use ICTCLAS, available in various locations on the web,
    such as https://github.com/pierrchen/ictclas_plus, or NRC's rewrite of the
    LDC/UPENN segmenter, included under third-party/chinese-segmentation/ on
-   this CD for convenience.
+   this CD for convenience.  The latter is easier to install, but ICTCLAS is
+   known to produce better results, so we recommend it.
+
+   The NRC rewrite of the LDC/UPENN segmenter can be installed like this:
+      # We assume $PORTAGE points to the top level directory of the CD
+      cp $PORTAGE/third-party/chinese-segmentation/chinese_segmenter.pl $PORTAGE/bin/
+      cp $PORTAGE/third-party/chinese-segmentation/manseg.fre $PORTAGE/lib/
 
    The ICTCLAS downloaded from the link provided above can be installed like
    this:
@@ -383,10 +389,12 @@ Optional dependencies for all distributions:
       # Choose a destination $DEST on your PATH, possibly $PORTAGE/bin
       cp -pr ictclas Data $DEST
 
-   The NRC rewrite of the LDC/UPENN segmenter can be installed like this:
-      # We assume $PORTAGE points to the top level directory of the CD
-      cp $PORTAGE/third-party/chinese-segmentation/chinese_segmenter.pl $PORTAGE/bin/
-      cp $PORTAGE/third-party/chinese-segmentation/manseg.fre $PORTAGE/lib/
+   If you use ICTCLAS, you must also edit tokenize_plugin (in bin/ for binary
+   distributions, in src/textutils/ for source distributions) to make your
+   choice effective (search for ICTCLAS in that file and follow the
+   instructions there).  You must also tell the framework to use ICTCLAS and
+   by setting the USE_ICTCLAS variable to 1 in framework/Makefile.params
+   (again, search for ICTCLAS in that file).
 
 Mandatory dependencies for source code distributions:
 
