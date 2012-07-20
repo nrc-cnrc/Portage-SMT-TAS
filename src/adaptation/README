@@ -12,6 +12,11 @@ license agreement for details.
                           Mixture-Model Adaptation
                           ------------------------
 
+Note: the software for mixture-model adaptation has significantly changed, and
+these models are now fully integrated in the experimental framework.  See the
+framework and the tutorial for more details.  The discussion below remains
+informative, but should no longer be considered software documentation.
+
 Overview: train LMs or TMs (phrase tables) on different parts of the corpus,
 then assign weights to models as a function of the current source text under
 translation.
