@@ -48,6 +48,14 @@ v1.5.0 2012-07-20
      for smaller in-domain training corpora.
    - Framework and PortageLive support for Chinese->English pipeline.
 
+ - For French->English and English->French: added generic models that can be
+   combined with in-domain corpora to supplement them and improve the
+   translation quality.  This can help for all domains, but especially for
+   those with smaller amounts of training data: the generic models will help
+   the system handle the general constructs of the language, while the
+   in-domain material will provide the domain-specific vocabulary and
+   contructions.
+
  Changes of intermediate importance:
  - New -filter-singletons switch to train_ibm reduces memory bubble at the
    beginning of the IBM1 model training procedure for large corpora.

@@ -20,9 +20,13 @@ models (LM) and English->French and French->English translation models (TM),
 which may be used in conjunction with your own in-domain language and
 translation models in a tuned Portage system. The generic models were trained on
 a large general language corpus and then pruned, keeping the most relevant data
-while shrinking the models to a usable size. Using the generic models in
-conjunction with your in-domain models can significantly improve translation
-quality of new text, especially for small in-domain corpora.
+while shrinking the models to a usable size.
+
+Using the generic models in conjunction with your in-domain models can
+significantly improve translation quality of new text, especially for small
+in-domain corpora: the generic models will help the system handle the general
+constructs of the language, while the in-domain material will provide the
+domain-specific vocabulary and contructions.
 
 We thank Library and Archives Canada for providing the data on which the
 Portage models for Generic Model 1.0 were trained.

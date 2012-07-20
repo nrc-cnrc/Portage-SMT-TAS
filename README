@@ -60,7 +60,9 @@ translation, including:
  - PortageLive -- tools to setup a runtime SMT server using Portage, accessible
    via a SOAP API, via CGI scripts or a command line interface;
  - an experimental framework -- a collection of tools to automate running all
-   the components required to train a full machine translation system.
+   the components required to train a full machine translation system;
+ - generic en->fr and fr->en models to supplement in-domain training corpora,
+   for improved translation quality, especially for smaller corpora;
  - lots of general utility code needed for the above.
 
 
