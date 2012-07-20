@@ -549,7 +549,7 @@ sub sourceWordCount {
 
 sub tokenize {
    my ($lang, $in, $out) = @_;
-   if (!$tok and $nl eq 's') {
+   if ($notok and $nl eq 's') {
       copy($in, $out);
    }
    else {
@@ -558,13 +558,12 @@ sub tokenize {
          my $tokopt = " -lang=${lang}";
          $tokopt .= $nl eq 's' ? " -noss" : " -ss";
          $tokopt .= " -paraline" if $nl eq 'p';
-         $tokopt .= " -pretok" if !$tok;
-         my $u = $utf8 ? "u" : "";
-         call("${u}tokenize.pl ${tokopt} '${in}' '${out}'", $out);
+         $tokopt .= " -pretok" if $notok;
+         call("utokenize.pl ${tokopt} '${in}' '${out}'", $out);
       } else {
          # Other languages must provide sentsplit_plugin and tokenize_plugin.
          my $tok_input = $nl ne 's' ? "$in.ospl" : $in;
-         my $ss_output = $tok ? $tok_input : $out;
+         my $ss_output = (!$notok) ? $tok_input : $out;
          if ($nl ne 's') {
             my $ss_input = $nl eq 'w' ? "$in.oppl" : $in;
             if ($nl eq 'w') {
@@ -584,7 +583,7 @@ sub tokenize {
             }
             plugin("sentsplit", $src, $ss_input, $ss_output);
          }
-         if ($tok) {
+         if (!$notok) {
             plugin("tokenize", $src, $tok_input, $out);
          }
       }
