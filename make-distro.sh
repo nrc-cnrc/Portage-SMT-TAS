@@ -277,6 +277,7 @@ do_checkout() {
 
       run_cmd rm -f PORTAGEshared/src/.log.klocwork*
       run_cmd rm -f PORTAGEshared/make-distro.sh
+      run_cmd rm -f PORTAGEshared/generic-model/make-distro.sh
    run_cmd popd
 }
 
