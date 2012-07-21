@@ -149,16 +149,15 @@ do_checkout() {
 
 get_models() {
    print_header make_models
-   run_cmd rsync -arv $MODELS/* ./$OUTPUT_DIR/generic-model/
+   run_cmd rsync -rLptv --progress $MODELS/* ./$OUTPUT_DIR/generic-model/
 }
 
 make_iso_and_tar() {
    print_header make_iso_and_tar
    echo Generating tar ball and iso file.
    
-   #VERSION="${VERSION_TAG#-r}"
-   #VERSION="${VERSION// /.}"
-   VERSION=1.0
+   #VERSION=v1_0
+   VERSION=${OUTPUT_DIR//./_}
    VOLID=PortageGenericModel_${VERSION}
    VOLID=`echo "$VOLID" | perl -pe 's#[/:]#.#g'`
    #echo $VOLID
@@ -193,4 +192,6 @@ if [[ ! $NO_ARCHIVES ]]; then
    make_iso_and_tar
 fi
 
+echo
+echo ALL DONE!
 
