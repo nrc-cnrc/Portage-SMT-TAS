@@ -129,7 +129,7 @@ static string multipr_output = "";
 static bool force = false;
 static string in_file;
 static bool compress_output = false;
-static string extension(".gz");
+static const string extension(".gz");
 static bool sorted(true);
 static bool reduce_memory(false);
 static string store_alignment_option = "";
@@ -178,7 +178,7 @@ static void open_mp_file(oMagicStream& ofs, string& name, string& lang1, string&
       filename = "| LC_ALL=C TMPDIR=. sort " + filename;
    }
    open_output_file(ofs, filename);
-};
+}
 
 template<class T>
 static void doEverything(const char* prog_name)
