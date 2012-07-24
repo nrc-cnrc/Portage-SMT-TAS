@@ -68,6 +68,7 @@ Options:\n\
 -i        Counts are integers [counts are floating point]\n\
 -1 l1     Name of language 1 (one in left column of jpts) [en]\n\
 -2 l2     Name of language 2 (one in right column of jpts) [fr]\n\
+-[no-]sort Sort/don't sort phrase tables on the source phrase. [sort]\n\
 -prune1   Prune so that each language1 phrase has at most n translations. Based\n\
           on summed joint freqs; done right after reading in all tables.\n\
 -prune1w  Same as prune1, but multiply n by the number of words in the current\n\
@@ -144,10 +145,11 @@ static string output_drn("fwd");
 static Uint write_al = 0;
 static bool write_count = false;
 static bool compress_output = false;
+static bool sorted(true);
 static bool force = false;
 static vector<string> input_jpt_files;
 
-static string extension(".gz");
+static const string extension(".gz");
 
 static void getArgs(int argc, char* argv[]);
 static void checkOutputFile(const string& filename);
@@ -273,15 +275,28 @@ int main(int argc, char* argv[])
       doEverything<float>(argv[0]);
 }
 
+static string makeFinalFileName(string filename)
+{
+   if (sorted) {
+      filename = " > " + filename;
+      if (compress_output) filename = "| gzip" + filename;
+      filename = "| LC_ALL=C TMPDIR=. sort " + filename;
+   }
+   return filename;
+}
+
 template<class T>
 void doEverything(const char* prog_name)
 {
    // initial checks
 
+   const string fwd_output_filename = addExtension(name + "." + lang1 + "2" + lang2);
+   const string rev_output_filename = addExtension(name + "." + lang2 + "2" + lang1);
+
    if (output_drn == "fwd" || output_drn == "both")
-      checkOutputFile(addExtension(name + "." + lang1 + "2" + lang2));
+      checkOutputFile(fwd_output_filename);
    if (output_drn == "rev" || output_drn == "both")
-      checkOutputFile(addExtension(name + "." + lang2 + "2" + lang1));
+      checkOutputFile(rev_output_filename);
 
    for (vector<string>::iterator p = input_jpt_files.begin(); 
 	p != input_jpt_files.end(); ++p)
@@ -379,7 +394,7 @@ void doEverything(const char* prog_name)
       if (verbose) cerr << "reading " << input_jpt_files[i] << "... ";
       if (is_directory(input_jpt_files[i])) {
          if (verbose) cerr << "(concatenating all jpt.* in directory) " << endl;
-         string cmd = "zcat " + input_jpt_files[i] + "/jpt.*|" ;
+         const string cmd = "zcat " + input_jpt_files[i] + "/jpt.*|" ;
          pt.readJointTable(cmd); 
       } else
          pt.readJointTable(input_jpt_files[i]);
@@ -531,15 +546,17 @@ void doEverything(const char* prog_name)
    ostream* out_fwd = NULL;
    ostream* out_rev = NULL;
    if (output_drn == "fwd" || output_drn == "both") {
-      string filename = addExtension(name + "." + lang1 + "2" + lang2);
-      if (verbose) cerr << "writing to " << filename << endl;
-      out_fwd = new oSafeMagicStream(filename);
+      if (verbose) cerr << "writing to " << fwd_output_filename << endl;
+      out_fwd = new oSafeMagicStream(makeFinalFileName(fwd_output_filename));
+      if (out_fwd == NULL || out_fwd->fail())
+         error(ETFatal, "Unable to open %s for writing", fwd_output_filename.c_str());
       //out_fwd->precision(9);
    }
    if (output_drn == "rev" || output_drn == "both") {
-      string filename = addExtension(name + "." + lang2 + "2" + lang1);
-      if (verbose) cerr << "writing to " << filename << endl;
-      out_rev = new oSafeMagicStream(filename);
+      if (verbose) cerr << "writing to " << rev_output_filename << endl;
+      out_rev = new oSafeMagicStream(makeFinalFileName(rev_output_filename));
+      if (out_rev == NULL || out_rev->fail())
+         error(ETFatal, "Unable to open %s for writing", rev_output_filename.c_str());
       //out_rev->precision(9);
    }
 
@@ -624,7 +641,8 @@ void getArgs(int argc, char* argv[])
    const char* switches[] = {
       "v", "i", "1:", "2:", "prune1:", "prune1w:", "s:", "a:", "0:", "max0", "eps0:",
       "ibm_l1_given_l2:", "ibm_l2_given_l1:", "ibm:", "lc1:", "lc2:", 
-      "o:", "w:", "dir:", "write-al:", "write-count", "nofwd", "z", "force"
+      "o:", "w:", "dir:", "write-al:", "write-count", "nofwd", "z", "force",
+      "sort", "no-sort",
    };
    string output_cols_string, write_al_str;
 
@@ -656,6 +674,7 @@ void getArgs(int argc, char* argv[])
    arg_reader.testAndSet("nofwd", nofwd);
    arg_reader.testAndSet("z", compress_output);
    arg_reader.testAndSet("force", force);
+   arg_reader.testAndSetOrReset("sort", "no-sort", sorted);
 
    arg_reader.getVars(0, input_jpt_files);
 
