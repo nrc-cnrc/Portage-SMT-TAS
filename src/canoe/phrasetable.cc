@@ -1087,8 +1087,12 @@ shared_ptr<TargetPhraseTable> PhraseTable::findInAllTables(
    }
    assert (prob_offset == numTransModels);
 
+   // ZERO's value depends on the subclass's implementation of convertFromRead
+   const float ZERO(convertFromRead(0.0f));
+
    // Lexicalized Distortion models.
    for (Uint tpldm = 0; tpldm < tpldmTables.size(); ++tpldm) {
+      const Uint currentNumLexDisModels = tpldm*6;
       // Get all lexicalized distortion score for the source phrase.
       assert(range.start <= range.end);
       TPPT::val_ptr_t targetPhrases =
@@ -1115,11 +1119,18 @@ shared_ptr<TargetPhraseTable> PhraseTable::findInAllTables(
                // If we have found the target phrase in the
                // TargetPhraseTable, there must be a tScore with it.
                assert(tScores != NULL);
-               assert(tScores->lexdis.empty());
-               tScores->lexdis.resize(it->score.size());
-               for (Uint p(0); p<it->score.size(); ++p) {
-                  // Make the probs log_probs.
-                  tScores->lexdis[p] = convertFromRead(it->score[p]);
+               if (tScores->lexdis.size() > currentNumLexDisModels) {
+                  error(ETWarn, "Entry src phrase %s appears to have the wrong number of lexical score",
+                        join(str_key).c_str());
+               }
+               else {
+                  tScores->lexdis.resize(currentNumLexDisModels, ZERO);
+                  tScores->lexdis.reserve(currentNumLexDisModels+6);
+                  for (Uint p(0); p<it->score.size(); ++p) {
+                     // Make the probs log_probs.
+                     tScores->lexdis.push_back(convertFromRead(it->score[p]));
+                  }
+                  assert(tScores->lexdis.size() == currentNumLexDisModels+6);
                }
             } //target phrase found.
          } // For every candidates in targetPhrases.
