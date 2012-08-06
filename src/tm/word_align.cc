@@ -91,18 +91,20 @@ void WordAligner::close(vector< vector<Uint> >& sets1, vector< vector<Uint> >& c
 WordAlignerFactory::TInfo WordAlignerFactory::tinfos[] = {
    {
       DCon<IBMOchAligner>::create,
-      "IBMOchAligner", "[-2|-1|1|2|3][exclude]\n\
+      "IBMOchAligner", "[-2|-1|1|2|3|4][exclude]\n\
      Standard Och algorithm (better to use exclude with 1 or 2):\n\
      -1 = forward IBM alignment only, -2 = reverse IBM alignment only,\n\
      1 = use intersection only, 2 = expand to connected points in union, \n\
-     3 = try to align all words [3].\n\
+     3 = try to align all words,\n\
+     4 = like 3, but only add links for which both words were unlinked [3].\n\
      exclude = exclude unlinked words from phrases [include them]"
    },
    {
       DCon<IBMDiagAligner>::create,
-      "IBMDiagAligner", "[2|3][exclude]\n\
+      "IBMDiagAligner", "[2|3|4][exclude]\n\
      Variant on standard Och algorithm (better to use exclude with 1 or 2):\n\
-     2 = expand to connected points in union, 3 = try to align all words [3].\n\
+     2 = expand to connected points in union, 3 = try to align all words,\n\
+     4 = like 3, but only add links for which both words were unlinked [3].\n\
      exclude = exclude unlinked words from phrases [include them]"
    },
    {
@@ -407,6 +409,8 @@ IBMOchAligner::IBMOchAligner(WordAlignerFactory& factory,
          strategy = 2;
       else if (toks[i] == "3")
          strategy = 3;
+      else if (toks[i] == "4")
+         strategy = 4;
       else if (toks[i] == "exclude")
          exclude = true;
       else {
@@ -472,9 +476,14 @@ double IBMOchAligner::align(const vector<string>& toks1, const vector<string>& t
       }
 
       // link any remaining unlinked words that aren't null-aligned
+      // Strategy 3 is like grow-diag-final: add connections if either word is
+      // unlinked.
+      // Strategy 4 is like grow-diag-final-and: add connections only if both
+      // words are unlinked
       if (strategy > 2) {
          for (Uint i = 0; i < sets1.size(); ++i) {
-            if (sets1[i].empty() && al1[i] < al2.size()) {
+            if (sets1[i].empty() && al1[i] < al2.size() &&
+                (strategy == 3 || !connected2[al1[i]])) {
                sets1[i].push_back(al1[i]);
                connected2[al1[i]] = true;
                new_pairs.push_back(i);
@@ -482,7 +491,8 @@ double IBMOchAligner::align(const vector<string>& toks1, const vector<string>& t
             }
          }
          for (Uint j = 0; j < connected2.size(); ++j) {
-            if (!connected2[j] && al2[j] < al1.size()) {
+            if (!connected2[j] && al2[j] < al1.size() &&
+                (strategy == 3 || sets1[al2[j]].empty())) {
                Uint i = al2[j];
                vector<Uint>::iterator p = lower_bound(sets1[i].begin(), sets1[i].end(), j);
                sets1[i].insert(p, j);
@@ -538,7 +548,7 @@ IBMDiagAligner::IBMDiagAligner(WordAlignerFactory& factory,
                                const string& args) :
    IBMOchAligner(factory, args)
 {
-   if (strategy < 1 || strategy > 3)
+   if (strategy < 1 || strategy > 4)
       error(ETFatal, "strategy %d not valid for IBMDiagAligner", strategy);
 }
 
@@ -622,7 +632,8 @@ double IBMDiagAligner::align(const vector<string>& toks1, const vector<string>& 
    // link any remaining unlinked words that aren't null-aligned, as in IBMOchAligner
    if (strategy > 2) {
       for (Uint i = 0; i < sets1.size(); ++i) {
-         if (sets1[i].empty() && al1[i] < al2.size()) {
+         if (sets1[i].empty() && al1[i] < al2.size() &&
+             (strategy == 3 || !connected2[al1[i]])) {
             sets1[i].push_back(al1[i]);
             connected2[al1[i]] = true;
             new_pairs.push_back(i); 
@@ -630,7 +641,8 @@ double IBMDiagAligner::align(const vector<string>& toks1, const vector<string>& 
          }
       }
       for (Uint j = 0; j < connected2.size(); ++j) {
-         if (!connected2[j] && al2[j] < al1.size()) {
+         if (!connected2[j] && al2[j] < al1.size() &&
+             (strategy == 3 || sets1[al2[j]].empty())) {
             Uint i = al2[j];
             vector<Uint>::iterator p = lower_bound(sets1[i].begin(), sets1[i].end(), j);
             sets1[i].insert(p, j);
