@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
 
    string line;
    vector<string> toks;
-   PhraseTableBase::ToksIter b1, e1, b2, e2, v, a;
+   PhraseTableBase::ToksIter b1, e1, b2, e2, v, a, f;
    DistortionCount dc;
 
    // read eval counts into pteval if required
@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
    if (eval.size()) {
       iSafeMagicStream in(eval);
       while (getline(in, line)) {
-         pteval.extractTokens(line, toks, b1, e1, b2, e2, v, a, true);
+         pteval.extractTokens(line, toks, b1, e1, b2, e2, v, a, f, true);
          dc.read(v, toks.end());
          pteval.addPhrasePair(b1, e1, b2, e2, dc);
          ++nphrases_eval_tot;
@@ -138,7 +138,7 @@ int main(int argc, char* argv[])
    iSafeMagicStream in(dmc.size() ? dmc : "-");
    PhraseTableGen<DistortionCount> pt;
    while (getline(in, line)) {
-      pt.extractTokens(line, toks, b1, e1, b2, e2, v, a, true);
+      pt.extractTokens(line, toks, b1, e1, b2, e2, v, a, f, true);
       dc.read(v, toks.end());
       pt.addPhrasePair(b1, e1, b2, e2, dc);
    }

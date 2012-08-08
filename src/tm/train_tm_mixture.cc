@@ -130,9 +130,15 @@ struct Datum {
    bool parse(const string& buffer, Uint pId) {
       stream_positional_id = pId;
       vector<string> toks;
-      PhraseTableBase::ToksIter b1, b2, e1, e2, v, a;
+      PhraseTableBase::ToksIter b1, b2, e1, e2, v, a, f;
 
-      PhraseTableBase::extractTokens(buffer, toks, b1, e1, b2, e2, v, a, true);
+      PhraseTableBase::extractTokens(buffer, toks, b1, e1, b2, e2, v, a, f, true, true);
+
+      static bool warning_printed = false;
+      if (f != toks.end() && !warning_printed) {
+         warning_printed = true;
+         error(ETWarn, "Dropping fourth column values in CPT; these are not supported yet by train_tm_mixture -- they are simply ignored.");
+      }
 
       // Verify on the fly that the stream is LC_ALL=C.
       p1 = join(b1,e1);
@@ -188,14 +194,14 @@ int MAIN(argc, argv)
 
    string line;
    vector<string> toks;
-   PhraseTableBase::ToksIter b1, b2, e1, e2, v, a;
+   PhraseTableBase::ToksIter b1, b2, e1, e2, v, a, f;
    Uint phrase_index;
 
    vector<Uint> jpt_freqs;     // corresponding joint freqs
 
    iSafeMagicStream is(input_jpt_file);
    while (getline(is, line)) {
-      pt.extractTokens(line, toks, b1, e1, b2, e2, v, a);
+      pt.extractTokens(line, toks, b1, e1, b2, e2, v, a, f);
       if (rev) {
          swap(b1, b2);
          swap(e1, e2);
@@ -227,7 +233,7 @@ int MAIN(argc, argv)
 
       // read at least one line from each cpt to check the number of columns.
       while (getline(istr, line)) {
-         pt.extractTokens(line, toks, b1, e1, b2, e2, v, a, true);
+         pt.extractTokens(line, toks, b1, e1, b2, e2, v, a, f, true, true);
          if (num_cols != 0) {
             if (static_cast<Uint>(a - v) != num_cols)
                error(ETFatal, "phrasetables must have same numbers of columns!");

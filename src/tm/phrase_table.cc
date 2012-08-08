@@ -72,30 +72,30 @@ Uint PhraseTableBase::phraseLength(const char* coded)
 void PhraseTableBase::extractTokens(const string& line, vector<string>& toks,
 				    ToksIter& b1, ToksIter& e1,
 				    ToksIter& b2, ToksIter& e2,
-				    ToksIter& v, ToksIter& a,
-                                    bool tolerate_multi_vals)
+				    ToksIter& v, ToksIter& a, ToksIter& f,
+                                    bool tolerate_multi_vals,
+                                    bool allow_fourth_column)
 {
    toks.clear();
    vector<Uint> seps;
    split(line, toks);
    for (Uint i = 0; i < toks.size(); ++i)
       if (toks[i] == psep) seps.push_back(i);
-   if (seps.size() != 2)
+   if ((!allow_fourth_column && seps.size() != 2) ||
+       ( allow_fourth_column && (seps.size() < 2 || seps.size() > 3)))
       error(ETFatal, "incorrect format in phrase table (wrong number of separators): %s", line.c_str());
 
    // Format is: ... val1 ... valn [a=...] [c=...]
    // Code below sets the 'a' pointer to the first a= or c= field.
 
-   if (toks.back().compare(0, 2, "c=") == 0) {
-      a = toks.end() - 1;
-      if ((*(a-1)).compare(0, 2, "a=") == 0)
-         --a;
-   } else if (toks.back().compare(0, 2, "a=") == 0) {
-      a = toks.end() - 1;
-   } else
-      a = toks.end();
-   int value_count((a - toks.begin()) - seps[1] - 1);
+   f = seps.size() == 3 ? toks.begin() + seps[2] : toks.end();
+   assert(f > toks.begin() + 1);
 
+   a = f;
+   if ((*(a-1)).compare(0, 2, "c=") == 0) --a;
+   if ((*(a-1)).compare(0, 2, "a=") == 0) --a;
+
+   int value_count((a - toks.begin()) - seps[1] - 1);
    if ( tolerate_multi_vals ) {
       if ( value_count < 1 )
          error(ETFatal, "incorrect format in phrase table (expected at least one value token after 2nd separator): %s", line.c_str());

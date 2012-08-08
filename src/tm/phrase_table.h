@@ -119,14 +119,21 @@ struct PhraseTableBase
     * @param[out] b2, e2 beginning and end+1 markers for 2nd phrase
     * @param[out] v position of (first) value
     * @param[out] a position of alignments field if present, else position of
-    * joint count field if present (and alignment field isn't), else toks.end()
+    * joint count field if present (and alignment field isn't); in any case,
+    * always the end of the value(s).  If a == f, no alignment or count field
+    * is present.
+    * @param[out] f position of the fourth column separator, if present, else
+    * toks.end(); fourth column values start at f+1, if f!=toks.end().
     * @param tolerate_multi_vals allow multiple value fields
+    * @param allow_fourth_column whether to allow a fourth column or consider
+    * its presence an error.
     */
    static void extractTokens(const string& line, vector<string>& toks,
                              ToksIter& b1, ToksIter& e1,
                              ToksIter& b2, ToksIter& e2,
-                             ToksIter& v, ToksIter& a,
-                             bool tolerate_multi_vals = false);
+                             ToksIter& v, ToksIter& a, ToksIter& f,
+                             bool tolerate_multi_vals = false,
+                             bool allow_fourth_column = false);
 };
 
 /**

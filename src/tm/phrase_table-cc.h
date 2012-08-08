@@ -96,10 +96,10 @@ template<class T>
 void PhraseTableGen<T>::lookupPhrasePair(const string &line, Uint& id1, Uint& id2, T& val, string& alignments)
 {
    vector<string> toks;
-   typename PhraseTableGen<T>::ToksIter b1, e1, b2, e2, v, a;
+   typename PhraseTableGen<T>::ToksIter b1, e1, b2, e2, v, a, f;
    string phrase1, phrase2;
 
-   extractTokens(line, toks, b1, e1, b2, e2, v, a);
+   extractTokens(line, toks, b1, e1, b2, e2, v, a, f);
    if (swap_on_read) {
       swap(b1, b2);
       swap(e1, e2);
@@ -108,7 +108,7 @@ void PhraseTableGen<T>::lookupPhrasePair(const string &line, Uint& id1, Uint& id
    compressPhrase(b2, e2, phrase2, wvoc2);
 
    val = conv<T>(*v);
-   if ( a != toks.end() ) {
+   if ( a != f ) {
       assert((*a)[0] == 'a');
       alignments = a->substr(2);
       if (swap_on_read)
@@ -149,12 +149,12 @@ template<class T>
 void PhraseTableGen<T>::lookupPhrasePair(const string &line, string& phrase1, Uint& id2, T& val, string& alignments)
 {
    vector<string> toks;
-   typename PhraseTableGen<T>::ToksIter b1, e1, b2, e2, v, a;
+   typename PhraseTableGen<T>::ToksIter b1, e1, b2, e2, v, a, f;
    string phrase2;
 
    assert(! keep_phrase_table_in_memory);
 
-   extractTokens(line, toks, b1, e1, b2, e2, v, a);
+   extractTokens(line, toks, b1, e1, b2, e2, v, a, f);
    if (swap_on_read) {
       swap(b1, b2);
       swap(e1, e2);
@@ -163,7 +163,7 @@ void PhraseTableGen<T>::lookupPhrasePair(const string &line, string& phrase1, Ui
    compressPhrase(b2, e2, phrase2, wvoc2);
 
    val = conv<T>(*v);
-   if ( a != toks.end() ) {
+   if ( a != f ) {
       assert((*a)[0] == 'a');
       alignments = a->substr(2);
       if (swap_on_read)
