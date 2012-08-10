@@ -12,7 +12,7 @@
 .SECONDARY:
 
 .PHONY: all
-all: test1 test2 test3 test4
+all: test1 test2 test3 test4 test_PI
 	@echo All tests PASSED.
 
 .PHONY: clean
@@ -21,7 +21,7 @@ clean:
 
 export PORTAGE_INTERNAL_CALL=1
 
-.PHONY: test1 test2 test3 test4
+.PHONY: test1 test2 test3 test4 test_PI
 
 test1: MIX_OPTS =
 
@@ -35,6 +35,11 @@ test1 test2 test3 test4: %: in/cpt.hans1.en2fr.gz in/cpt.hans2.en2fr.gz in/jpt.d
 	train_tm_mixture -v ${MIX_OPTS} -o cpt.mix.$*.en2fr.gz $+ >& log.cpt.mix.$*.en2fr
 	diff-round.pl log.cpt.mix.$*.en2fr ref/log.cpt.mix.$*.en2fr -q
 	diff-round.pl cpt.mix.$*.en2fr.gz ref/cpt.mix.$*.en2fr.gz -q
+
+# test_PI adds a cpt with a fourth column, that should simply be ignored and dropped.
+test_PI: %: in/cpt.hans1.en2fr.gz in/cpt.hans2.en2fr.gz in/cpt.PI.en2fr.gz in/jpt.dev.en-fr.gz
+	! { train_tm_mixture -v ${MIX_OPTS} -o cpt.mix.$*.en2fr.gz $+ >& log.cpt.mix.$*.en2fr; }
+	grep -q 'incorrect format in phrase table' log.cpt.mix.$*.en2fr
 
 
 ########################################

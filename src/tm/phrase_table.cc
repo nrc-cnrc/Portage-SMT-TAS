@@ -83,7 +83,9 @@ void PhraseTableBase::extractTokens(const string& line, vector<string>& toks,
       if (toks[i] == psep) seps.push_back(i);
    if ((!allow_fourth_column && seps.size() != 2) ||
        ( allow_fourth_column && (seps.size() < 2 || seps.size() > 3)))
-      error(ETFatal, "incorrect format in phrase table (wrong number of separators): %s", line.c_str());
+      error(ETFatal, "incorrect format in phrase table (wrong number of separators: this program %s columns): %s",
+            (allow_fourth_column ? "only allows 3 or 4" : "requires exactly 3"),
+            line.c_str());
 
    // Format is: ... val1 ... valn [a=...] [c=...]
    // Code below sets the 'a' pointer to the first a= or c= field.
