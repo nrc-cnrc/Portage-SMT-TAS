@@ -121,7 +121,7 @@ if (my $filename = param('file')     # The name of the file we are monitoring
         my $trace_file = catdir($WEB_PATH, $work_dir, "trace");
         my $monitor_log = catdir($WEB_PATH, $work_dir, "monitor_log");
         
-        #my $trace_url = catdir("", $work_dir, "trace");
+        my $trace_url = catdir("", $work_dir, "trace");
 
         if (-e $job_done) {
             print pageHead($filename, $context); # Background process is done
@@ -197,8 +197,8 @@ if (my $filename = param('file')     # The name of the file we are monitoring
                 close MONITOR;
             }
         }
+        print p("In case of problems, have a look at the job's ", a({-href=>$trace_url}, "trace file"), ".");
     }         
-    #print p("Have a look at job's ", a({-href=>$trace_url}, "trace file"), ".");
 } else {
     print pageHead(0);
 }

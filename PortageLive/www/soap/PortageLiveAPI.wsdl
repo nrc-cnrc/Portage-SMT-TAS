@@ -159,6 +159,8 @@
     finished but failed, 3: something is wrong with the token.
     If the code is 0, the result string will be "0 Done: result_url", where
     result_url is the URL where you can fetch the translated TMX via HTTP.
+    If the code is 2, the result string will be "2 Failed: trace_url", where
+    trace_url will let you see the error log for your job.
     If you are going to poll a job status repeatedly, it is recommended you
     insert a 5 second delay between successive requests.
     Throws a SoapFault exception in case of a protocol or connection error.

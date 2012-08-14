@@ -329,9 +329,11 @@ sub processText {
         push @tr_opt, "-filter=$filter_threshold";
     }
     if (param('tmx')) {
+        my $tmx_src = $CONTEXT{$context}->{xsrc} ? $CONTEXT{$context}->{xsrc} : $LANG->{xml}{$src_lang};
+        my $tmx_tgt = $CONTEXT{$context}->{xtgt} ? $CONTEXT{$context}->{xtgt} : $LANG->{xml}{$tgt_lang};
         push @tr_opt, ("-tmx", 
-                       "-xsrc=".$LANG->{xml}{$src_lang}, 
-                       "-xtgt=".$LANG->{xml}{$tgt_lang},
+                       "-xsrc=$tmx_src",
+                       "-xtgt=$tmx_tgt",
                        "-nl=s");
     } else {
         push @tr_opt, param('notok') ? "-notok": "-tok";
@@ -521,6 +523,8 @@ sub getContextInfo {
         : return undef; # Can't find source language in command-line $cmdline
     $info{tgt} = ($cmdline =~ /-tgt=(\w+)/) ? $1 
         : return undef; # Can't find target language in command-line $cmdline
+    $info{xsrc} = ($cmdline =~ /-xsrc=([-a-zA-Z]+)/) ? $1 : "";
+    $info{xtgt} = ($cmdline =~ /-xtgt=([-a-zA-Z]+)/) ? $1 : "";
     $info{rescore} = ($cmdline =~ /-with-rescoring/);
     
     $info{canoe_ini} = (-r "$D/canoe.ini.cow") ? "$D/canoe.ini.cow" 
@@ -533,7 +537,9 @@ sub getContextInfo {
     $info{ce_model} = (-r "$D/ce_model.cem") ? "$D/ce_model.cem" : "";
 
     $info{label} = sprintf("%s (%s --> %s): %s confidence estimation",
-                           $info{name}, $info{src}, $info{tgt},
+                           $info{name},
+                           ($info{xsrc} ? $info{xsrc} : $info{src}),
+                           ($info{xtgt} ? $info{xtgt} : $info{tgt}),
                            $info{ce_model} ? "with" : "no");
     return \%info;
 }

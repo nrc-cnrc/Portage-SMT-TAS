@@ -51,13 +51,21 @@ class PortageLiveAPI {
             $info["src"] = $matches[1];
          if ( preg_match('/-tgt=(\w+)/', $cmdline, $matches) )
             $info["tgt"] = $matches[1];
+         if ( preg_match('/-xsrc=([-a-zA-Z]+)/', $cmdline, $matches) )
+            $info["xsrc"] = $matches[1];
+         if ( preg_match('/-xtgt=([-a-zA-Z]+)/', $cmdline, $matches) )
+            $info["xtgt"] = $matches[1];
          if ( is_file("$info[context_dir]/canoe.ini.cow") )
             $info["canoe_ini"] = "$info[context_dir]/canoe.ini.cow";
          if ( is_file("$info[context_dir]/rescore.ini") )
             $info["rescore_ini"] = "$info[context_dir]/rescore.ini";
          if ( is_file("$info[context_dir]/ce_model.cem") )
             $info["ce_model"] = "$info[context_dir]/ce_model.cem";
-         $info["label"] = "$context ($info[src] --> $info[tgt]): " .
+         $info["label"] = "$context (" .
+                        (empty($info["xsrc"]) ? $info[src] : $info[xsrc]) .
+                        " --> " .
+                        (empty($info["xtgt"]) ? $info[tgt] : $info[xtgt]) .
+                        "): " .
                         (empty($info["ce_model"]) ? "without" : "with") .
                         " confidence estimation";
       } else {
@@ -223,9 +231,11 @@ class PortageLiveAPI {
          throw new SoapFault("Client", "TMX check failed for $TMX_filename: $tmx_check_log");
 
       $xml_lang = array("fr" => "FR-CA", "en" => "EN-CA"); # add more languages here as needed
+      $tmx_src = empty($i["xsrc"]) ? $xml_lang[$i["src"]] : $i["xsrc"];
+      $tmx_tgt = empty($i["xtgt"]) ? $xml_lang[$i["tgt"]] : $i["xtgt"];
       $command = "translate.pl -tmx -nl=s -tctp -f $i[canoe_ini] " .
                  "-src=$i[src] -tgt=$i[tgt] " .
-                 "-xsrc={$xml_lang[$i["src"]]} -xtgt={$xml_lang[$i["tgt"]]} -" .
+                 "-xsrc=$tmx_src -xtgt=$tmx_tgt " .
                  "-dir=\"$work_dir\" -out=\"$work_dir/P.out\" " .
                  (!empty($i["ce_model"]) ? "-with-ce " : "-decode-only ") .
                  ($ce_threshold > 0 ? "-filter=$ce_threshold " : "") .
@@ -266,7 +276,7 @@ class PortageLiveAPI {
             if (is_file("$dir/$info[file]")) {
                return "0 Done: $info[dir]/$info[file]";
             } else {
-               return "2 Failed".debug($info);
+               return "2 Failed".debug($info).": $info[dir]/trace";
             }
          } else {
             $linestodo = `cat $dir/q.tok 2> /dev/null | wc -l 2> /dev/null`;
