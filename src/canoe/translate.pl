@@ -633,6 +633,8 @@ if ($dryrun) {
    $plog_file = plogCreate("File:${input_text}; Context:".File::Spec->rel2abs($models_dir));
 }
 
+# Past this point, do not call die() directly; call cleanupAndDie() instead.
+
 $keep_dir = $dir if $debug;
 verbose("[Work directory: \"${dir}\"]\n");
 verbose("[models_dir: '$models_dir' (" . Cwd::realpath($models_dir) . ")]\n");
@@ -709,7 +711,8 @@ goto $skipto if $skipto;
 # Get source text
 IN:{
    if ($tmx) {
-      call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} extract '$dir' '$input_text'");
+      call("ce_tmx.pl -verbose=$verbose -src=$xsrc -tgt=$xtgt extract '$dir' '$input_text'");
+      cleanupAndDie("TMX file $input_text has no TUs containing segments in language $xsrc.\n") unless -s $Q_txt;
    } else {
       copy($input_text, $Q_txt);
    }
@@ -901,14 +904,13 @@ sub sourceWordCount {
    my ($filter) = @_;
    my $count_file;
    if (defined $filter) {
-       open(my $tfh, "<${Q_pre}") or die "Can't open text file ${Q_pre}";
-       open(my $cfh, "<${pr_ce}") or die "Can't open CE file ${pr_ce}";
-       open(my $ffh, ">${Q_filt}") or die "Can't open filtered source ${Q_filt}";
+       open(my $tfh, "<${Q_pre}") or cleanupAndDie("Can't open text file ${Q_pre}");
+       open(my $cfh, "<${pr_ce}") or cleanupAndDie("Can't open CE file ${pr_ce}");
+       open(my $ffh, ">${Q_filt}") or cleanupAndDie("Can't open filtered source ${Q_filt}");
 
        while (my $t = <$tfh>) {
            my $y = readline($cfh);
-           die "Not enough lines in CE file ${pr_ce}"
-               unless defined $y;
+           cleanupAndDie("Not enough lines in CE file ${pr_ce}") unless defined $y;
            print {$ffh} $t unless ($y < $filter);
        }
        warn "Too many lines in CE file ${pr_ce}" if readline($cfh);
@@ -1064,6 +1066,8 @@ sub callOutput {
    return $cmdout;
 }
 
+# Routine to clean up (some) files, update the log file, and die.  Call this
+# routine instead of die() once plogCreate() has been called.
 sub cleanupAndDie {
    my ($message, @files) = @_;
 
