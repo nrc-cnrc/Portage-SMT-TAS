@@ -57,7 +57,7 @@ TARGET_LANGUAGE=$1; shift
 #          # non-breakable; more general solution but might cover too many cases.
 #          s/(\d) ([a-zA-Z]{1,2})\b/$1$nbsp$2/g;
 #          # Make the hyphen in codes like A-2 non-breakable
-#          s/\b([a-zA-Z])-([0-9])\b/$1$nbhy$2/g;
+#          s/\b([a-zA-Z0-9])-([a-zA-Z0-9])\b/$1$nbhy$2/g;
 #         ' |
 
 # Default is to just copy the input to the output.
