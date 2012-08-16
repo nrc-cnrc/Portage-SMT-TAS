@@ -73,7 +73,7 @@ Options:
   -tgt=T        Specify target language [auto-detect]
   -txt=X        Specify and trigger outputing a text-only parallel corpus []
   -extra        Add an extra empty line between pairs of TU's [don't]
-  -filename	    If doc id is UNKNOWN, use the filename stem as the doc id [don't]
+  -filename     If doc id is UNKNOWN, use the filename stem as the doc id [don't]
   -timestamp    Add TU creation date timestamp to doc id [don't]
   -verbose      Verbose mode
   -d            debugging mode.
