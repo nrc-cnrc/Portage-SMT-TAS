@@ -565,11 +565,17 @@ $xtra_rat_opts = "" unless defined $xtra_rat_opts;
 # TMX specific options
 $tmx = 0 unless defined $tmx;
 if ($tmx) {
-   $xsrc = "EN-CA" unless defined $xsrc;
-   $xtgt = "FR-CA" unless defined $xtgt;
+   if (!defined $xsrc) {
+      $xsrc = "$src-CA";
+      $xsrc =~ tr/a-z/A-Z/;
+   }
+   if (!defined $xtgt) {
+      $xtgt = "$tgt-CA";
+      $xtgt =~ tr/a-z/A-Z/;
+   }
 } else {
    !defined $xsrc and !defined $xtgt and !defined $filter
-      or die "ERROR: -xsrc, -xtgt and -filter are valid only with -tmx.\nStopped"
+      or warn "Warning: ignoring -xsrc, -xtgt and -filter, which are meaningful only with -tmx.\n"
 }
 
 # CE specific options
