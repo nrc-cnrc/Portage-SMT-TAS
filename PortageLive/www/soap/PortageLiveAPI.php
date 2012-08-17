@@ -32,7 +32,7 @@ class PortageLiveAPI {
       $this->runCommand("prime.sh $PrimeMode", "", $i, $rc, false);
 
       if ( $rc != 0 )
-         throw new SoapFault("PortagePrimeError", "Failed to prime, something went wrong in prime.sh!!<br />rc=$rc; Command=$command $PrimeMode");
+         throw new SoapFault("PortagePrimeError", "Failed to prime, something went wrong in prime.sh.<br />rc=$rc; Command=$command $PrimeMode");
 
       return "OK";
    }
@@ -47,27 +47,29 @@ class PortageLiveAPI {
       if ( is_file($info["script"]) ) {
          $info["good"] = true;
          $cmdline = `tail -n -1 < $info[script]`;
-         if ( preg_match('/-src=(\w+)/', $cmdline, $matches) )
-            $info["src"] = $matches[1];
-         if ( preg_match('/-tgt=(\w+)/', $cmdline, $matches) )
-            $info["tgt"] = $matches[1];
-         if ( preg_match('/-xsrc=([-a-zA-Z]+)/', $cmdline, $matches) )
-            $info["xsrc"] = $matches[1];
-         if ( preg_match('/-xtgt=([-a-zA-Z]+)/', $cmdline, $matches) )
-            $info["xtgt"] = $matches[1];
-         if ( is_file("$info[context_dir]/canoe.ini.cow") )
-            $info["canoe_ini"] = "$info[context_dir]/canoe.ini.cow";
-         if ( is_file("$info[context_dir]/rescore.ini") )
-            $info["rescore_ini"] = "$info[context_dir]/rescore.ini";
-         if ( is_file("$info[context_dir]/ce_model.cem") )
-            $info["ce_model"] = "$info[context_dir]/ce_model.cem";
-         $info["label"] = "$context (" .
-                        (empty($info["xsrc"]) ? $info[src] : $info[xsrc]) .
-                        " --> " .
-                        (empty($info["xtgt"]) ? $info[tgt] : $info[xtgt]) .
-                        "): " .
-                        (empty($info["ce_model"]) ? "without" : "with") .
-                        " confidence estimation";
+         if ( preg_match('/(-decode-only|-with-ce|-with-rescoring)/', $cmdline, $matches) ) {
+            $info["good"] = false;
+            $info["label"] = "$context: context from a previous, incompatible version of Portage";
+         } else {
+            $src = "";
+            if ( preg_match('/-xsrc=([-a-zA-Z]+)/', $cmdline, $matches) )
+               $src = $matches[1];
+            else if ( preg_match('/-src=(\w+)/', $cmdline, $matches) )
+               $src = $matches[1];
+            $tgt = "";
+            if ( preg_match('/-xtgt=([-a-zA-Z]+)/', $cmdline, $matches) )
+               $tgt = $matches[1];
+            else if ( preg_match('/-tgt=(\w+)/', $cmdline, $matches) )
+               $tgt = $matches[1];
+            #if ( is_file("$info[context_dir]/canoe.ini.cow") )
+            #   $info["canoe_ini"] = "$info[context_dir]/canoe.ini.cow";
+            #if ( is_file("$info[context_dir]/rescore.ini") )
+            #   $info["rescore_ini"] = "$info[context_dir]/rescore.ini";
+            if ( is_file("$info[context_dir]/ce_model.cem") )
+               $info["ce_model"] = "$info[context_dir]/ce_model.cem";
+            $info["label"] = "$context ($src --> $tgt)" .
+                           (empty($info["ce_model"]) ? "" : " with CE");
+         }
       } else {
          $info["good"] = false;
          $info["label"] = "$context: bad context";
@@ -231,12 +233,7 @@ class PortageLiveAPI {
          throw new SoapFault("Client", "TMX check failed for $TMX_filename: $tmx_check_log");
 
       $xml_lang = array("fr" => "FR-CA", "en" => "EN-CA"); # add more languages here as needed
-      $tmx_src = empty($i["xsrc"]) ? $xml_lang[$i["src"]] : $i["xsrc"];
-      $tmx_tgt = empty($i["xtgt"]) ? $xml_lang[$i["tgt"]] : $i["xtgt"];
-      $command = "translate.pl -tmx -nl=s -tctp -f $i[canoe_ini] " .
-                 "-src=$i[src] -tgt=$i[tgt] " .
-                 "-xsrc=$tmx_src -xtgt=$tmx_tgt " .
-                 "-dir=\"$work_dir\" -out=\"$work_dir/P.out\" " .
+      $command = "$i[script] -tmx -nl=s -dir=\"$work_dir\" -out=\"$work_dir/P.out\" " .
                  (!empty($i["ce_model"]) ? "-with-ce " : "-decode-only ") .
                  ($ce_threshold > 0 ? "-filter=$ce_threshold " : "") .
                  "\"$work_dir/Q.in\" >& \"$work_dir/trace\" ";
@@ -303,16 +300,14 @@ class PortageLiveAPI {
    function getTranslationCE($src_string, $context) {
       $i = $this->getContextInfo($context);
       $this->validateContext($i, true);
-      return $this->runCommand(
-         "translate.pl -with-ce -tctp -src=$i[src] -tgt=$i[tgt] -f $i[canoe_ini]",
-         $src_string, $i);
+      return $this->runCommand($i["script"]." -with-ce", $src_string, $i);
    }
 
    # Translate $src_string using model $context
    function getTranslation2($src_string, $context) {
       $i = $this->getContextInfo($context);
       $this->validateContext($i);
-      return $this->runCommand($i["script"], $src_string, $i);
+      return $this->runCommand($i["script"]." -decode-only", $src_string, $i);
    }
 
    # Translate $src_string using the default context

@@ -299,24 +299,12 @@ sub processText {
     
     # Prepare the ground for translate.pl:
     my $outfilename = "PLive-${work_name}";
-    my $src_lang = $CONTEXT{$context}->{src};
-    my $tgt_lang = $CONTEXT{$context}->{tgt};
     my @tr_opt = ("-verbose",
-                  "-ini=".$CONTEXT{$context}->{canoe_ini},
-                  "-src=${src_lang}",
-                  "-tgt=${tgt_lang}",
-                  "-tctp",
-                  "-tclm=".$CONTEXT{$context}->{tclm},
-                  "-tcmap=".$CONTEXT{$context}->{tcmap},
                   "-out=\"$work_dir/P.out\"",
                   "-dir=\"$work_dir\"");
-    if ($CONTEXT{$context}->{tcsrclm}) {
-       push @tr_opt, "-tcsrclm=".$CONTEXT{$context}->{tcsrclm}; 
-    }
     push @tr_opt, ($CONTEXT{$context}->{ce_model}
-                   ? ("-with-ce", 
-                      "-model=".$CONTEXT{$context}->{ce_model})
-                   : ("-decode-only"));
+                   ? "-with-ce"
+                   : "-decode-only");
     my $filter_threshold = (!defined param('filter') ? 0 
                             : param('filter') eq 'no filtering' ? 0 
                             : param('filter') + 0);
@@ -329,19 +317,14 @@ sub processText {
         push @tr_opt, "-filter=$filter_threshold";
     }
     if (param('tmx')) {
-        my $tmx_src = $CONTEXT{$context}->{xsrc} ? $CONTEXT{$context}->{xsrc} : $LANG->{xml}{$src_lang};
-        my $tmx_tgt = $CONTEXT{$context}->{xtgt} ? $CONTEXT{$context}->{xtgt} : $LANG->{xml}{$tgt_lang};
-        push @tr_opt, ("-tmx", 
-                       "-xsrc=$tmx_src",
-                       "-xtgt=$tmx_tgt",
-                       "-nl=s");
+        push @tr_opt, ("-tmx", "-nl=s");
     } else {
         push @tr_opt, param('notok') ? "-notok": "-tok";
         push @tr_opt, param('noss') ? "-nl=s" : "-nl=p";
     }
-    
+
     my $tr_opt = join(" ", @tr_opt);
-    my $tr_cmd = "translate.pl ${tr_opt} \"$work_dir/Q.in\" >& \"$work_dir/trace\"";
+    my $tr_cmd = $CONTEXT{$context}->{script} . " ${tr_opt} \"$work_dir/Q.in\" >& \"$work_dir/trace\"";
 
     my $tr_output = catdir($work_dir, param('tmx') ? "QP.tmx" : "P.txt");
     my $user_output = catdir($work_dir, $outfilename);
@@ -515,32 +498,30 @@ sub getContextInfo {
     my %info = ( name=>$name );
 
     my $D = "${PORTAGE_MODEL_DIR}/${name}";
-    my $sh_file = "$D/soap-translate.sh";
-    return undef # Can't find SOAP script $sh_file
-        unless -r $sh_file;
-    my $cmdline = `tail --lines=1 $sh_file`;
-    $info{src} = ($cmdline =~ /-src=(\w+)/) ? $1
-        : return undef; # Can't find source language in command-line $cmdline
-    $info{tgt} = ($cmdline =~ /-tgt=(\w+)/) ? $1 
-        : return undef; # Can't find target language in command-line $cmdline
-    $info{xsrc} = ($cmdline =~ /-xsrc=([-a-zA-Z]+)/) ? $1 : "";
-    $info{xtgt} = ($cmdline =~ /-xtgt=([-a-zA-Z]+)/) ? $1 : "";
-    $info{rescore} = ($cmdline =~ /-with-rescoring/);
+    my $script = "$D/soap-translate.sh";
+    $info{script} = $script;
+    return undef # Can't find SOAP script $script
+        unless -r $script;
+    my $cmdline = `tail --lines=1 $script`;
+    if ($cmdline =~ /(-decode-only|-with-ce|-with-rescoring)/) {
+        return undef; # Invalid command line in soap-translate.sh; context probably from previous, incompatible version of Portagge
+    }
+    my $src = "";
+    if ($cmdline =~ /-xsrc=([-a-zA-Z]+)/) { $src = $1 }
+    elsif ($cmdline =~ /-src=(\w+)/) { $src = $1 }
+    return undef unless $src; # Can't find source language in command line $cmdline
+    my $tgt = "";
+    if ($cmdline =~ /-xtgt=([-a-zA-Z]+)/) { $tgt = $1 }
+    elsif ($cmdline =~ /-tgt=(\w+)/) { $tgt = $1 }
+    return undef unless $tgt; # Can't find target language in command line $cmdline
     
-    $info{canoe_ini} = (-r "$D/canoe.ini.cow") ? "$D/canoe.ini.cow" 
-        : return undef; # Can't find canoe.ini file $D/canoe.ini.cow
-    $info{rescore_ini} = (-r "$D/rescore.ini") ? "$D/rescore.ini" : "";
-    $info{tclm} = "$D/models/tc/tc-lm.".$info{tgt}.".tplm";
-    $info{tcmap} = "$D/models/tc/tc-map.".$info{tgt}.".tppt";
-    my $tcsrclm_name = "$D/models/tc/nc1-lm.".$info{src}.".tplm";
-    $info{tcsrclm} = (-r $tcsrclm_name) ? $tcsrclm_name : "";
+    #$info{canoe_ini} = (-r "$D/canoe.ini.cow") ? "$D/canoe.ini.cow" 
+    #    : return undef; # Can't find canoe.ini file $D/canoe.ini.cow
+    #$info{rescore_ini} = (-r "$D/rescore.ini") ? "$D/rescore.ini" : "";
     $info{ce_model} = (-r "$D/ce_model.cem") ? "$D/ce_model.cem" : "";
 
-    $info{label} = sprintf("%s (%s --> %s): %s confidence estimation",
-                           $info{name},
-                           ($info{xsrc} ? $info{xsrc} : $info{src}),
-                           ($info{xtgt} ? $info{xtgt} : $info{tgt}),
-                           $info{ce_model} ? "with" : "no");
+    $info{label} = "$info{name} ($src --> $tgt)" .
+                   ($info{ce_model} ? " with CE" : "");
     return \%info;
 }
 
