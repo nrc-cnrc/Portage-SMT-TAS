@@ -106,7 +106,7 @@ namespace Portage {
 
 
   /// Reads GIZA++-v2 alignment from a file.
-  class Giza2AlignmentFile : public GizaAlignmentFile {
+  class Giza2AlignmentFile : public GizaAlignmentFile, private NonCopyable {
   protected:
     istream* p_in;   ///< Input stream containing the GIZA alignments.
 

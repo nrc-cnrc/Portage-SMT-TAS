@@ -124,6 +124,8 @@ void
 findCandidates(vector<id_type> const& snt)
 {
   const size_t ngs = min(ngSize,snt.size());
+  if (ngs == 0) return;
+
   map<id_type,short> ngmatch;
   
   typedef std::vector<id_type>::const_iterator iter;

@@ -87,21 +87,21 @@ Giza2AlignmentFile::align(const vector<string>& src, const vector<string>& tgt,
    Uint sentenceLength = 0;
    if (!conv(field[6], sentenceLength) or sentenceLength != src.size()) {
       copy(src.begin(), src.end(), ostream_iterator<string>(cerr, ":")); cerr << endl;
-      error(ETWarn, "Giza2AlignmentFile (send %d): Expected source length %d, got %d", sent_count, src.size(), sentenceLength);
+      error(ETWarn, "Giza2AlignmentFile (sent %d): Expected source length %d, got %d", sent_count, src.size(), sentenceLength);
    }
    // Check target length
    if (!conv(field[9], sentenceLength) or sentenceLength != tgt.size())
-      error(ETWarn, "Giza2AlignmentFile (send %d): Expected target length %d, got %d", sent_count, tgt.size(), sentenceLength);
+      error(ETWarn, "Giza2AlignmentFile (sent %d): Expected target length %d, got %d", sent_count, tgt.size(), sentenceLength);
 
 
    // Read target
    if (!getline(*p_in, line))
-      error(ETFatal, "Giza2AlignmentFile (send %d): Corrupted file, there is no target.", sent_count);
+      error(ETFatal, "Giza2AlignmentFile (sent %d): Corrupted file, there is no target.", sent_count);
 
 
    // Read source sentence that contain alignments.
    if (!getline(*p_in, line))
-      error(ETFatal, "Giza2AlignmentFile (send %d): Corrupted file, there is no source.", sent_count);
+      error(ETFatal, "Giza2AlignmentFile (sent %d): Corrupted file, there is no source.", sent_count);
    field.clear();
    split(line, field);
    // We initialize src_index to -1 since the source sentence in GIZA-v2's
@@ -111,18 +111,20 @@ Giza2AlignmentFile::align(const vector<string>& src, const vector<string>& tgt,
    for (vector<string>::const_iterator token(field.begin()); token!=field.end(); ++token) {
       if (*token == "({") {
          ++token;
-         while (*token != "})") {
+         while (token != field.end() && *token != "})") {
             Uint tgt_index = 0;
             if (!conv(*token, tgt_index))
-               error(ETFatal, "Giza2AlignmentFile (send %d): Unable to convert to Uint (%s).", sent_count, token->c_str());
+               error(ETFatal, "Giza2AlignmentFile (sent %d): Unable to convert to Uint (%s).", sent_count, token->c_str());
             tgt_index -= 1;  // Make the index a 0-based index.
             if (tgt_index < tgt_al.size())
                // Are we processing the NULL token?
                tgt_al[tgt_index] = (src_index == -1 ? src.size() : src_index);
             else
-               error(ETFatal, "Giza2AlignmentFile (send %d): Error tgt_index (%d, %d)", sent_count, tgt_index, tgt_al.size());
+               error(ETFatal, "Giza2AlignmentFile (sent %d): Error tgt_index (%d, %d)", sent_count, tgt_index, tgt_al.size());
             ++token;
          }
+         if (token == field.end())
+            error(ETFatal, "Giza2AlignmentFile (sent %d): Unmatched ({", sent_count);
          ++src_index;
       }
    }

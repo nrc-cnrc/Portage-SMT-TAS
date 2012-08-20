@@ -334,7 +334,9 @@ remap_ids(bio::mapped_file& scr_file, size_t which_scr, uint32_t how_many_scr,
           size_t fields_per_line, vector<uint32_t>& remap)
 {
    uint32_t* p = reinterpret_cast<uint32_t*>(scr_file.data()) + which_scr;
+   assert(p);
    uint32_t* scr_end = reinterpret_cast<uint32_t*>(scr_file.data() + scr_file.size());
+   assert(scr_end);
    while (p < scr_end)
    {
       for (uint32_t i = 0; i < how_many_scr; ++i) {
