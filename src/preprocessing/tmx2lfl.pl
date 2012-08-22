@@ -228,8 +228,8 @@ sub processPH {
    #$ph->print(\*STDERR, 1);
 
    # Special treatment for \- \_ in compounded words.
-   if ($string =~ /\\([-_])/) {
-      $ph->set_text($1);
+   if ($string =~ /^\\([-_])$/) {
+      $ph->set_text("-");
       $ph->erase();
    }
 }
