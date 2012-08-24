@@ -233,7 +233,13 @@ sub processNativeCode {
 
    # Special treatment for \- \_ in compounded words.
    if (($name =~ /^ph$/i) and ($text =~ /^\s*\\([-_])\s*$/)) {
-       $e->set_text($1);
+       # \_ is the RTF and Trados encoding for a non-breaking hyphen; replace it
+       # by -, the regular hyphen, since it is generally used in ad-hoc ways,
+       # when an author or translator doesn't like a particular line-splitting
+       # choice their software has made.
+       $e->set_text("-") if ($1 eq '_');
+       # \- is the rtf and Trados encoding for an optional hyphen; remove it
+       $e->set_text("") if ($1 eq '-');
        $e->erase();
    } elsif (not $parser->{keeptags}) {
        # Only applies within target language TUVs:
@@ -372,7 +378,7 @@ sub processSegment {
         }
     }
 
-    my $old_text = join(" ", @src_seg);
+    my $old_text = join("", @src_seg);
     my $new_text = processText($parser, $old_text);
     $parser->{seg_count}++;
     if ($Verbose) {

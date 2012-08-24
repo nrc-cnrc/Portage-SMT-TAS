@@ -50,6 +50,8 @@ test-suite: unittest6
 test-suite: unittest7
 test-suite: unittest8
 test-suite: unittest9
+test-suite: ce_tmx_test
+test-suite: preprocess_plugin_test
 
 
 # General unittest clean up.
@@ -76,11 +78,11 @@ unittest2: test.utf8.tmx
 # Generic target/commands for unittest1 unittest2.
 unittest1 unittest2:
 	${TMX2LFL} -output=$@ -txt=.txt $<
-	diff -q $@.${L1}     ref/ref.${L1}
-	diff -q $@.${L1}.txt ref/ref.${L1}.txt
-	diff -q $@.${L2}     ref/ref.${L2}
-	diff -q $@.${L2}.txt ref/ref.${L2}.txt
-	diff -q $@.id        ref/ref.id
+	diff $@.${L1}     ref/ref.${L1}     -q
+	diff $@.${L1}.txt ref/ref.${L1}.txt -q
+	diff $@.${L2}     ref/ref.${L2}     -q
+	diff $@.${L2}.txt ref/ref.${L2}.txt -q
+	diff $@.id        ref/ref.id        -q
 
 
 ########################################
@@ -131,9 +133,9 @@ clean5:
 .PHONY: unittest6
 unittest6: test.tmx test.utf8.tmx
 	${TMX2LFL} -output=$@ $+
-	cat ref/ref.${L1} ref/ref.${L1} | diff -q - $@.${L1}
-	cat ref/ref.${L2} ref/ref.${L2} | diff -q - $@.${L2}
-	cat ref/ref.id    ref/ref.id    | diff -q - $@.id
+	cat ref/ref.${L1} ref/ref.${L1} | diff - $@.${L1} -q
+	cat ref/ref.${L2} ref/ref.${L2} | diff - $@.${L2} -q
+	cat ref/ref.id    ref/ref.id    | diff - $@.id    -q
 
 
 ########################################
@@ -145,9 +147,9 @@ ${CORPUS_NAME_WITH_A_SPACE}: test.tmx
 .PHONY: unittest7
 unittest7: ${CORPUS_NAME_WITH_A_SPACE}
 	${TMX2LFL} -output=$@ "$<" "$<"
-	cat ref/ref.${L1} ref/ref.${L1} | diff -q - $@.${L1}
-	cat ref/ref.${L2} ref/ref.${L2} | diff -q - $@.${L2}
-	cat ref/ref.id    ref/ref.id    | diff -q - $@.id
+	cat ref/ref.${L1} ref/ref.${L1} | diff - $@.${L1} -q
+	cat ref/ref.${L2} ref/ref.${L2} | diff - $@.${L2} -q
+	cat ref/ref.id    ref/ref.id    | diff - $@.id    -q
 
 # Special clean-up for this test.
 clean: clean7
@@ -181,3 +183,30 @@ unittest9: tmx-1.4.tmx
 	@[[ `grep -c UNKNOWN $@.id` == 2 ]] || echo "We were expecting 2 document ids." >&2
 	@test ! -s $@.FR-CA || echo "We extracted the wrong target." >&2
 
+
+########################################
+# This test looks at ce_tmx.pl's handling of optional and non-breaking hyphens
+.PHONY: ce_tmx_test
+ce_tmx_test: test.utf8.tmx
+	mkdir -p extract
+	ce_tmx.pl -src=lang2 -tgt=lang1  extract extract test.utf8.tmx
+	diff extract/Q.txt ref/Q.txt -q
+
+clean: clean_ce_tmx
+.PHONY: clean_ce_tmx
+clean_ce_tmx:
+	${RM} -r extract
+
+
+########################################
+# OK, so I'm really starting to abuse of this directory, but it's kind of a
+# place to test preprocessing, especially for special hyphens, so...
+.PHONY: preprocess_plugin_test
+preprocess_plugin_test: prepro.in
+	preprocess_plugin fr < prepro.in > prepro.out
+	diff prepro.out ref/prepro.out -q
+
+clean: clean_prepro
+.PHONY: clean_prepro
+clean_prepro:
+	${RM} prepro.out

@@ -42,10 +42,12 @@ TARGET_LANGUAGE=$1; shift
 # Uncomment the following block of lines to activate, and modify to suit your
 # needs; you can leave lines that don't apply to you in comments.
 #perl -pe 'BEGIN{ use encoding "UTF-8"; use utf8;
-#             $nbsp = " "; # There is a literal non-break space in the quotes here
+#             $nbsp = " "; # There is a literal non-break space, \xA0, in the quotes here
+#             # Choose only one of the following non-break hyphen definitions:
 #             $nbhy = "\x{2011}";   # This is the unicode non-break hyphen
-#             $nbhy = "\x1E";       # This is the MS Word non-break hyphen
-#             $nbhy = "\_";         # This might be the Trados non-break hyphen
+#             $nbhy = "\x1E";       # This is the old MS Word non-break hyphen
+#             $nbhy = "­";          # \xAD, the soft-hyphen, also used by MS Word as non-break hyphen
+#             $nbhy = "\\_";        # RTF non-break hyphen
 #             $nbhy = "<ph>\_</ph>";# Trados might like this better???
 #          }
 #          s/ ([:»%\$€¥£])/$nbsp$1/g; # Make the space before :, », %, etc, non-breakable
@@ -58,6 +60,8 @@ TARGET_LANGUAGE=$1; shift
 #          s/(\d) ([a-zA-Z]{1,2})\b/$1$nbsp$2/g;
 #          # Make the hyphen in codes like A-2 non-breakable
 #          s/\b([a-zA-Z0-9])-([a-zA-Z0-9])\b/$1$nbhy$2/g;
+#          # Replace the soft hyphen (\xAD or alt-0173) by <ph>\_</ph> for Trados
+#          s/­/<ph>\_</ph>/g; # Warning: there is a literal \xAD in utf8 here.
 #         ' |
 
 # Default is to just copy the input to the output.
