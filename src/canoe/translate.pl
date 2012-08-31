@@ -931,19 +931,26 @@ sub sourceWordCount {
    }
 
    cleanupAndDie("Can't open temp file ${count_file} for reading.\n") unless (-r "${count_file}");
-   if ($src eq "ch") {
-      my $avg_chinese_char_to_english_word_ratio = 1.8;
+
+   if ($utf8) {
       open(COUNTSRC, "< :encoding(utf-8)", $count_file)
          or cleanupAndDie("Can't open source-word counting file $count_file for reading.\n");
-      # For Chinese, we count characters and divide by 1.8, a ratio that has been
-      # empirically determined to be a reasonable match from Chinese characters
-      # to English words in parallel corpora.  We found the average at 1.77:1,
-      # and rounded up slightly.
-      my $count = 0;
+      my $word_count = 0;
+      # We follow MS Word: each asian character (Chinese, Japanese, Korean) is
+      # counted as an individual word.  For other languages, we consider
+      # whitespace as the word boundary.
       while (<COUNTSRC>) {
-         $count += scalar(my @a = /\S/g);
+         s/(\p{Han}|
+            \p{Hangul}|
+            \p{Block: CJKUnifiedIdeographs}|
+            \p{Block: CJKSymbolsAndPunctuation}|
+            \p{Block: Katakana}|
+            \p{Block: Katakana_Phonetic_Extensions}|
+            \p{Block: Hiragana}
+           )/ $1 /gx;
+         $word_count += scalar(my @w = split);
       }
-      return int($count/$avg_chinese_char_to_english_word_ratio);
+      return $word_count;
    } else {
       my $cmd = "wc -w < '${count_file}'";
       return 0 + `$cmd`; # Add "0 +" to return a number, not a string with a newline.
