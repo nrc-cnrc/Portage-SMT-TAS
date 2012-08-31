@@ -123,4 +123,52 @@ to see what works best for you. In some situations the standard models may
 result in quicker translation.
 
 
+                  Simplest use: one corpus plus generic models
+
+If you want to use the generic models in a MixLM and MixTM combination with a
+single, in-domain corpus, here is what you would do in Makefile.params.  We'll
+assume your LM training corpus is called lm-train, and your TM training corpus
+is called tm-train, as is the default in the framework.
+
+1. MixLM-related variables
+
+   a. Comment out the line defining TRAIN_LM, since your in-domain corpus will
+      be in the MixLM, not as a regular LM:
+
+      #TRAIN_LM ?= lm-train
+
+   b. Uncomment and change the line defining MIXLM to specify only your corpus:
+
+      MIXLM ?= lm-train
+
+   c. Uncomment the line defining MIXLM_PRETRAINED_TGT_LMS:
+
+      MIXLM_PRETRAINED_TGT_LMS ?= ${PORTAGE}/generic-model/lm/generic1.0_fr.binlm.gz
+
+   d. TRAIN_TC now needs to be explicitly defined, because its default is to
+      copy TRAIN_LM, which is no longer defined.  Uncomment and edit the line
+      defining it:
+
+      TRAIN_TC ?= lm-train
+
+2. MixTM-related variables
+
+   a. As for LMs, turn off the regular TM training by commenting out the
+      definition of TRAIN_TM:
+
+      #TRAIN_TM ?= tm-train
+
+   b. Add your TM training corpus to MIXTM instead:
+
+      MIXTM ?= tm-train
+
+   c. Uncomment the line defining MIXTM_PRETRAINED_TMS:
+
+      MIXTM_PRETRAINED_TMS ?= ${PORTAGE}/generic-model/tm/cpt.generic1.0.en2fr.gz
+
+   d. Leave MIXTM_TRAIN_MIX undefined (don't uncomment its line) since its
+      default value is appropriate:
+
+      #MIXTM_TRAIN_MIX ?= subtm1
+
 
