@@ -14,11 +14,7 @@ license agreement for details.
                               Release History
                    (with a summary of important changes)
 
-v1.5.0 beta2 2012-08-14
-
- Various bug fixes since 1.5.0 beta.
-
-v1.5.0 beta 2012-07-20
+v1.5.0 2012-09-04
 
  This release brings together important new modules and features that have
  contributed to our success at the NIST Open Machine Translation 2012
@@ -37,7 +33,7 @@ v1.5.0 beta 2012-07-20
      Manning (EMNLP 2008) and Cherry, Moore and Quick (WMT 2012).  Includes an
      ITG parser used during decoding, which also provides a new distortion
      limit implementation, -dist-limit-itg.
-   - Framework support for lattice mira and HLDMs.
+   - Framework support for lattice mira and HLDMs, both enabled by default.
    - Framework support for the use of IBM4 alignments produced by an external
      tool: we obtain our best results when we combine phrase pair counts and
      HLDM counts obtained from IBM4, HMM and IBM2 alignments, rather than
@@ -97,6 +93,15 @@ v1.5.0 beta 2012-07-20
    priming script (prime.sh).
  - PortageLive support in the framework for the new model features (MixLMs,
    MixTMs, HLDMs, etc.).
+ - The global word-alignment model option helps MixTM handle small components
+   better.
+ - An alternative alignment symmetrization method, grow-diag-final-and, which
+   is becoming the standard in SMT, and yields better results, has been
+   implemented in Portage and is now enabled by default.
+ - When PortageLive processes a TMX file, as well as when tmx2lfl.pl extracts
+   training data from one, handle Trados and MS Word style non-breaking and
+   optional hyphens better: replace the non-breaking hyphen by a regular one,
+   and remove the optional one.
  
  Minor changes:
  - New -w switch to joint2multi_cpt.
@@ -120,6 +125,11 @@ v1.5.0 beta 2012-07-20
  - New "-s trimmed", "-s max", -t switches to summarize-canoe-results.py, as
    well as support for current framework structure.
  - Framework can calculate OOV rates for test translations.
+ - PortageLive now supports specifying the language and country codes for the
+   TMX files separately for each context.
+ - PortageLive now has proper support for counting words in Chinese text:
+   following standard text processing software, we count each Chinese character
+   as a word.
 
  Minor bug fixes:
  - TPSAs, significance pruning and other parts of the tpt/ module now respect
