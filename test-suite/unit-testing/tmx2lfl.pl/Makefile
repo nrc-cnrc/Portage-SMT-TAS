@@ -14,15 +14,15 @@
 # Copyright 2009, Her Majesty in Right of Canada
 
 HOSTNAME:=$(shell uname -n)
-ifeq (${HOSTNAME},iitgatsrv0575)
+ifeq (${HOSTNAME},leclerc)
 # On Leclerc, where we run autobuild, the default Perl can't handle XML::Twig
-export PERL5LIB:=${HOME}/lib/5.8.9:${HOME}/lib/site_perl/5.8.9:/home/portage/i686-g4.2/lib/site_perl/5.8.9:${PERL5LIB}
-export PATH:=/home/portage/pkgs/perl-5.8.9-x86_64/bin:${PATH}
-$(info Special PERL5LIB for leclerc is now: ${PERL5LIB})
-TMX2LFL:=perl $(shell which tmx2lfl.pl)
+export PATH:=/home/portage/pkgs/perl-5.14.2-x86_64/bin:${PATH}
+CE_TMX:=perl $(shell which ce_tmx.pl)
 else
-TMX2LFL:=tmx2lfl.pl
+CE_TMX:=ce_tmx.pl
 endif
+
+TMX2LFL:=tmx2lfl.pl
 
 L1 ?= lang1
 L2 ?= lang2
@@ -189,7 +189,7 @@ unittest9: tmx-1.4.tmx
 .PHONY: ce_tmx_test
 ce_tmx_test: test.utf8.tmx
 	mkdir -p extract
-	ce_tmx.pl -src=lang2 -tgt=lang1  extract extract test.utf8.tmx
+	${CE_TMX} -src=lang2 -tgt=lang1  extract extract test.utf8.tmx
 	diff extract/Q.txt ref/Q.txt -q
 
 clean: clean_ce_tmx
