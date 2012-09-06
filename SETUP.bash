@@ -47,7 +47,7 @@ PORTAGE=$HOME/Portage1.5.0
 # END OF USER CONFIGURABLE VARIABLES
 # =======================================================================
 
-echo 'Portage 1.5.0 beta2, NRC-CNRC, (c) 2004 - 2012, Her Majesty in Right of Canada' >&2
+echo 'Portage 1.5.0, NRC-CNRC, (c) 2004 - 2012, Her Majesty in Right of Canada' >&2
 
 PATH=$PORTAGE/bin${PATH:+:$PATH}
 if [[ $EXTRA_PROGRAM_PATH ]]; then
