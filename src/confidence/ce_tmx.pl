@@ -1,4 +1,4 @@
-#!/usr/bin/perl -s
+#!/usr/bin/env perl
 # $Id$
 # @file ce_tmx.pl 
 # @brief Handle TMX files for confidence estimation
@@ -119,6 +119,20 @@ use warnings;
 use XML::Twig;
 use Time::gmtime;
 
+use Getopt::Long;
+Getopt::Long::GetOptions(
+   help           => sub { displayHelp(); exit 0 },
+   verbose        => \my $verbose,
+   Verbose        => \my $Verbose,
+   debug          => \my $debug,
+   "src=s"        => \my $src,
+   "tgt=s"        => \my $tgt,
+   "filter=s"     => \my $filter,
+   keeptags       => \my $keeptags,
+   score          => \my $score,
+   noscore        => \my $noscore,
+) or do { displayHelp(); exit 1 };
+
 $|=1;
 
 my $output_layers = ":raw:encoding(UTF8):utf8";
@@ -126,13 +140,6 @@ my $input_layers = ":utf8";
 
 my $DEFAULT_SRC="EN-CA";
 my $DEFAULT_TGT="FR-CA";
-
-our ($h, $help, $verbose, $Verbose, $debug, $src, $tgt, $filter, $keeptags, $score, $noscore);
-
-if ($h or $help) {
-    -t STDOUT ? system "pod2usage -verbose 3 $0" : system "pod2text $0";
-    exit 0;
-}
 
 $verbose = 0 unless defined $verbose;
 $Verbose = 0 unless defined $Verbose;
@@ -548,5 +555,8 @@ sub portageEscape {
 sub verbose { printf STDERR (@_) if ($verbose or $Verbose) ; }
 sub veryVerbose { printf STDERR (@_) if $Verbose; }
 sub debug { printf STDERR (@_) if $debug; }
+sub displayHelp {
+   -t STDOUT ? system "pod2usage -verbose 3 $0" : system "pod2text $0 >&2";
+}
 
 1;
