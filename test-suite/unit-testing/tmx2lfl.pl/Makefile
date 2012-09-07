@@ -189,11 +189,11 @@ unittest9: tmx-1.4.tmx
 # Make sure the language codes are not case sensitive, following the standard.
 .PHONY: unittest_ci
 unittest_ci: test.tmx unittest1
-	${TMX2LFL} -src LaNg1 -tgt lAnG2 -output=$@ -txt=.txt $<
+	${TMX2LFL} -src LaNg1 -tgt lAnG2 -output=$@ -txt=.TxT $<
 	diff $@.LaNg1     ref/ref.${L1}     -q
-	diff $@.LaNg1.txt ref/ref.${L1}.txt -q
+	diff $@.LaNg1.TxT ref/ref.${L1}.txt -q
 	diff $@.lAnG2     ref/ref.${L2}     -q
-	diff $@.lAnG2.txt ref/ref.${L2}.txt -q
+	diff $@.lAnG2.TxT ref/ref.${L2}.txt -q
 	diff $@.id        ref/ref.id        -q
 
 
