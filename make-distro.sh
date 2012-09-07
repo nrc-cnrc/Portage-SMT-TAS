@@ -96,6 +96,13 @@ Canned options for specific licensees:
   -altera       Same as: -licence ALTERA -archive-name Altera
   -can-biz	Same as: -licence CanBiz -archive-name CanBiz
 
+Distro creation check list:
+  - Change the version number in src/utils/portage_info.cc, SETUP.{bash,tcsh}
+  - Change the version number in all the README files
+  - Update the RELEASES file
+  - Make a fresh snapshot of the wiki by loading this link:
+    http://wiki-ilt/PORTAGEshared/scripts/restricted/ywiki.cgi?act=snapshot
+
 ==EOF==
 
     exit 1
