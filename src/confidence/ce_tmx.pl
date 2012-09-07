@@ -18,7 +18,7 @@
 =head1 SYNOPSIS
 
  ce_tmx.pl {options} extract dir [ tmx_in ]
- ce_tmx.pl {options} replace dir [ tmx_out ]
+ ce_tmx.pl {options} replace dir
  ce_tmx.pl {options} check [ tmx_in ]
 
 =head1 DESCRIPTION
@@ -50,11 +50,11 @@ In 'replace' mode, filter out TUs with confidence below T [don't]
 
 =item -src=SL         
 
-Specify TMX source language [EN-CA]
+Specify TMX source language (case insensitive within TMX file) [EN-CA]
 
 =item -tgt=TL         
 
-Specify TMX target language [FR-CA]
+Specify TMX target language (case insensitive within TMX file) [FR-CA]
 
 =item -keeptags
 
@@ -245,7 +245,7 @@ sub processNativeCode {
        # Only applies within target language TUVs:
        my $tuv = $e->parent('tuv');
        my $lang = $tuv->att('xml:lang') if $tuv;
-       $e->delete() if $lang and ($lang eq $parser->{tgt_lang});
+       $e->delete() if $lang and (lc($lang) eq lc($parser->{tgt_lang}));
    }
 }
 
@@ -278,7 +278,7 @@ sub processTU {
             warn("Missing language attribute in TU") unless $lang;
 
             # Use the src-lang TUV as a template for the new tgt-lang TUV
-            if ($lang eq $parser->{src_lang}) {
+            if (lc($lang) eq lc($parser->{src_lang})) {
                 warn("Duplicate source-language tuv\n") if $new_tgt_tuv;
                 $new_tgt_tuv = $tuv->copy();
                 $new_tgt_tuv->set_att('xml:lang' => $parser->{tgt_lang});
@@ -286,7 +286,7 @@ sub processTU {
                 processSegment($parser, $seg) if $seg;
 
             # Keep a handle on the old tgt-lang TUV: it will be replaced
-            } elsif ($lang eq $parser->{tgt_lang}) {
+            } elsif (lc($lang) eq lc($parser->{tgt_lang})) {
                 $old_tgt_tuv = $tuv;
             }
         }
@@ -310,7 +310,7 @@ sub processTU {
             my $lang = $tuv->{att}->{'xml:lang'};
             warn("Missing language attribute in TU") unless $lang;
 
-            if ($lang eq $parser->{tgt_lang}) {
+            if (lc($lang) eq lc($parser->{tgt_lang})) {
                 my $seg = $tuv->first_child('seg'); # There should be exactly one
                 if (not $seg) {
                     warn "No SEG element in target language TUV";
