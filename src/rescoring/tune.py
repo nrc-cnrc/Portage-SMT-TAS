@@ -50,8 +50,10 @@ history_wts = "summary.wts"
 # arguments
 
 parser = OptionParser(usage=usage, description=help)
+parser.add_option("--postLattice", dest="postProcessorLattice", type="string", default=None,
+                  help="Apply post processing to the lattice before optimizing [%default]")
 parser.add_option("--post", dest="postProcessor", type="string", default=None,
-                  help="Apply postProcessor to the nbest lists before optimizing [%default]")
+                  help="Apply post processing the nbest lists before optimizing [%default]")
 parser.add_option("--workdir", dest="workdir", type="string", default="foos",
                   help="Change the working directory [%default]")
 parser.add_option("--debug", dest="debug", action="store_true", default=False,
@@ -216,6 +218,22 @@ class NBReader:
 def aggregate_nbests(ns):
     """Add novel contents (only) of nbest/ffvals files to cumulative lists."""
 
+    if alg == "lmira":
+       if opts.postProcessorLattice != None:
+          latpattern = workdir + "/lat.%04d.gz"
+          for i in range(ns):   # for each source sentence
+             try:
+                cmd = "zcat {f} | {p} | gzip > {f}.tmp && mv {f}.tmp {f}".format(f=latpattern%i, p=opts.postProcessorLattice)
+                if opts.debug:
+                   print >> sys.stderr, "lattice: ", latpattern%i
+                   print >> sys.stderr, "cmd: ", cmd
+                if call(cmd, shell=True) is not 0:
+                   error("Problems while post processing the nbest lists with {}".format(' '.join(cmd)))
+             except CalledProcessError, err:
+                error("Problem running configtool", err)
+             except OSError, err:
+                error("configtool program not found ", err)
+       return -1
     if alg == "lmira" or alg == "olmira":
         return -1
 
