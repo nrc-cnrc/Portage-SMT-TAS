@@ -461,7 +461,7 @@ if [ ! -e ${PFX}${K}best -a ! -e ${PFX}${K}best.gz ]; then
    canoe-parallel.sh $CPOPTS \
       canoe -append -v $VERBOSE -f $CANOE_CONFIG -nbest ${PFX}nb.:$K -ffvals -palign \
       < $MSRC | nbest2rescore.pl -canoe > ${PFX}1best \
-      || error_exit"problems with canoe-parallel.sh - quitting!"
+      || error_exit "problems with canoe-parallel.sh - quitting!"
    set +o pipefail
 
    if [[ `wc -l < $MSRC` -ne `wc -l < ${PFX}1best` ]]; then
