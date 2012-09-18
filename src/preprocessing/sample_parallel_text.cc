@@ -220,7 +220,7 @@ int main(int argc, char* argv[])
       for (Uint i = 0; i < samplesize; ++i) {
          Uint lno;
          if (randomsel) {
-            Uint ui = rand(unchosen.size());
+            const Uint ui = rand(unchosen.size());
             lno = unchosen[ui];
             unchosen.erase(unchosen.begin()+ui);
          } else 
