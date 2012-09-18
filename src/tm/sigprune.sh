@@ -62,15 +62,28 @@ Options:
 
   -keep     Keep the co-occurrence counts file.
   -np M     Number of simultaneous workers used to process the chunks [3].
-  -n N      Split the work in N jobs/chunks (or at most N, with -w) [3*M].
-  -w w      Specifies the minimum number of lines in each block [1,000,000].
-  -W W      Specifies the maximum number of lines in each block [150,000,000].
+  -n N      Split the JPT in N jobs/chunks [min(M,ceil(|JPT|/J))].
+  -w w      Specifies the minimum number of tokens for each suffix arrays [1,000,000].
+  -W W      Specifies the maximum number of tokens for each suffix arrays [150,000,000].
+  -j J      Specifies the minimum of lines per JPT chunk [10,000].
+            (Note: -j has no effect if -n is specified)
   -psub <O> Passes additional options to run-parallel.sh -psub.
   -rp   <O> Passes additional options to run-parallel.sh.
 
   -h(elp)     print this help message
   -v(erbose)  increment the verbosity level by 1 (may be repeated)
   -d(ebug)    print debugging information
+
+A note about parallelism:
+
+  This script parallelizes its work in a matrix fashion: the parallel corpus
+  is divided in chunks that make manageably sized suffix arrays (as controlled
+  by -w and -W, whose defaults are adjusted to make sure each job never needs
+  more than 4GB of RAM); the JPT is also divided in chunks to meet the desired
+  parallelism level (as controlled by -j or -n).
+  
+  Typical usage: specify the desired parallelism with -np, and let the other
+  parameters default.  You will get fewer workers when your job is small.
 
 ==EOF==
 
@@ -80,8 +93,10 @@ Options:
 # Command line processing [Remove irrelevant parts of this code when you use
 # this template]
 VERBOSE=0
+NP=3
 w=1000000
 W=150000000
+J=10000
 while [ $# -gt 0 ]; do
    case "$1" in
    -keep)               KEEP_INTERMEDIATE=1;;
@@ -91,6 +106,7 @@ while [ $# -gt 0 ]; do
    -np)                 arg_check 1 $# $1; NP=$2; shift;;
    -w)                  arg_check 1 $# $1; w=$2; shift;;
    -W)                  arg_check 1 $# $1; W=$2; shift;;
+   -j)                  arg_check 1 $# $1; J=$2; shift;;
    -psub)               arg_check 1 $# $1; PSUB_OPTS="$PSUB_OPTS $2"; shift;;
    -rp)                 arg_check 1 $# $1; RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $2"; shift;;
 
@@ -112,10 +128,6 @@ w=$((2*$w))
 
 # Validate the minimum shards size against the maximum shards size.
 [[ $w -le $W ]] || error_exit "w must be smaller or equal to W."
-
-# Make sure N & NP have a value.
-[[ $NP ]] || NP=3
-[[ $N ]] || N=$(($NP * 3))
 
 debug "RUN_PARALLEL_OPTS: $RUN_PARALLEL_OPTS"
 
@@ -225,9 +237,23 @@ else
       NUMBER_OF_JPT_ENTRIES=`zcat -f $JPT | wc -l`;
    }
    verbose 1 "There are $NUMBER_OF_JPT_ENTRIES phrase pairs in the joint phrase table."
-   JPT_SHARD_SIZE=$(($NUMBER_OF_JPT_ENTRIES / $N + 1))
+   if [[ -z $N ]]; then
+      N=$(ceiling_quotien $NUMBER_OF_JPT_ENTRIES $J)
+      N=$(($NP < $N ? $NP : $N))
+      if [[ $N -gt 1 ]]; then
+         JPT_SHARD_SIZE=$(($NUMBER_OF_JPT_ENTRIES / $N))
+         if [[ $JPT_SHARD_SIZE -lt $J ]]; then
+            N=$(($N - 1))
+            JPT_SHARD_SIZE=$(($NUMBER_OF_JPT_ENTRIES / $N))
+         fi
+      else
+         JPT_SHARD_SIZE=$NUMBER_OF_JPT_ENTRIES
+      fi
+   else
+      JPT_SHARD_SIZE=$(($NUMBER_OF_JPT_ENTRIES / $N + 1))
+   fi
    mkdir -p $WORKDIR/jpt || error_exit "Cannot create directory for jpts."
-   verbose 1 "Sharding the joint phrase table in shards of ~$JPT_SHARD_SIZE phrase pairs."
+   verbose 1 "Sharding the joint phrase table in $N shards of ~$JPT_SHARD_SIZE phrase pairs."
    time {
       zcat -f $JPT | split --suffix-length=5 --numeric-suffixes --lines=$JPT_SHARD_SIZE - $WORKDIR/jpt/;
    }
@@ -260,7 +286,7 @@ else
          out=$WORKDIR/jpt${jpt_shard}_mmsufa${mmsufa}.out.gz
          # NOTE: not using stripe.py in order to make it easier to merge the output.
          #echo "zcat $JPT | stripe.py -i $jpt_shard -m $MODULO | phrasepair-contingency --sigfet $prefix s.tpsa t.tpsa > $out"
-         echo "phrasepair-contingency --sigfet $prefix s.tpsa t.tpsa < $WORKDIR/jpt/$jpt_shard | cut -f1-5 | gzip > $out"
+         echo "cat $prefix.{s,t}.tpsa/* &> /dev/null && phrasepair-contingency --sigfet $prefix s.tpsa t.tpsa < $WORKDIR/jpt/$jpt_shard | cut -f1-5 | gzip > $out"
       done
    done > $CONTINGENCY_CMDS
    [[ $DEBUG ]] && cat $CONTINGENCY_CMDS >&2
