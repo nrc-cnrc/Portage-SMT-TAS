@@ -32,8 +32,9 @@ all: testsuite
 .PHONY: clean
 clean:
 	${RM} log.* runpara_cmds run-parallel-logs-local unittest*.gz
-	${RM} -r run-p.*  *.tpsa  parallelize.pl.*  TEST.*  sigprune.sh.*
-	${RM}  sig.cnts.jpt.ibm2.tm-train.en-fr.gz sig.cnts.jpt.vtab.gz
+	${RM} -r run-p.*  *.tpsa  parallelize.pl.* TEST.* sigprune.sh.*
+	${RM} sig.cnts.jpt.ibm2.tm-train.en-fr.gz sig.cnts.jpt.vtab.gz
+	${RM} jpt.unittest_j_option_?.gz
 
 
 .PHONY: testsuite
@@ -47,6 +48,7 @@ testsuite: unittest6
 testsuite: unittest7
 testsuite: unittest8
 testsuite: test_find_vtab test_sig_vtab
+testsuite: unittest_j
 
 testsuite:
 	@echo All tests PASSED.
@@ -148,7 +150,7 @@ unittest4.gz: jpt.ibm2.tm-train.en-fr.gz tm-train_en.lc.gz tm-train_fr.lc.gz | u
 
 
 
-# Keep or filter-out <1,1,1> 
+# Keep or filter-out <1,1,1>
 .PHONY: unittest5 unittest6
 unittest5 unittest6: unittest%: unittest%.gz
 	grep 'WARNING: Reusing the co-occurence count file' log.$@
@@ -183,7 +185,7 @@ unittest8.gz:  jpt.ibm2.tm-train.en-fr.gz tm-train_en.lc.gz tm-train_fr.lc.gz | 
 #### vtab testing - make sure token separator is simply [spaces|tab]+, nothing else
 
 test_sig_vtab: sig.cnts.jpt.vtab.gz
-	diff <(zcat $@) <(zcat ref/$@)
+	diff <(zcat $<) <(zcat ref/$<)
 
 vpath jpt.vtab  src/
 vpath vtab.%    src/
@@ -199,3 +201,46 @@ test_find_vtab: vtab.en
 	mmtsa.find --tpsa vtab.en.tpsa $$'v\vtab' | diff - <(echo 0 4)
 	mmtsa.find --tpsa vtab.en.tpsa $$'a v\vtab' | diff - <(echo 0 3)
 	mmtsa.find --tpsa vtab.en.tpsa $$'\t a \t v\vtab ' | diff - <(echo 0 3)
+
+
+
+################################################################################
+# Testing the -j option.
+.PHONY:  unittest_j
+unittest_j:  unittest_j_option_1
+unittest_j:  unittest_j_option_2
+unittest_j:  unittest_j_option_3
+
+jpt.unittest_j_option_%.gz:  jpt.ibm2.tm-train.en-fr.gz
+	ln -s $< $@
+
+# Test minimum number of jpt entries per chunks
+# When n is not defined sigprune.sh optimized it.  Here, we are expecting 3 chunks of jpt
+unittest_j_option_1:  unittest_j_option_1.gz
+	@egrep --quiet "Sharding the joint phrase table in 3 shards of ~856 phrase pairs." log.$@
+
+unittest_j_option_1.gz:  %:  jpt.% tm-train_en.lc.gz tm-train_fr.lc.gz
+	-rm -f sig.cnts.$<   # We must recreate the sig.cnts file in order to see how many chunks are created.
+	export PORTAGE_NOCLUSTER=1; ${SIGPRUNE} -v -w 1000 -W 1200 -np 3 -j 200 -threshold ${THRESHOLD} $+ $@ 2> log.${@:.gz=}
+	[[ ! -e "sig.cnts.$<" ]]  # Co-occurrence count file must not exist after.
+
+
+# Here, we are expecting 1 chunks of jpt of 2569 since it must be a minimum of 2000.
+unittest_j_option_2:  unittest_j_option_2.gz
+	@egrep --quiet "Sharding the joint phrase table in 1 shards of ~2569 phrase pairs." log.$@
+
+unittest_j_option_2.gz:  %:  jpt.% tm-train_en.lc.gz tm-train_fr.lc.gz
+	-rm -f sig.cnts.$<   # We must recreate the sig.cnts file in order to see how many chunks are created.
+	export PORTAGE_NOCLUSTER=1; ${SIGPRUNE} -v -w 1000 -W 1200 -np 3 -j 2000 -threshold ${THRESHOLD} $+ $@ 2> log.${@:.gz=}
+	[[ ! -e "sig.cnts.$<" ]]  # Co-occurrence count file must not exist after.
+
+
+# Here, we are expecting 5 chunks of jpt and each jpt chunks should be bigger than the requested minimum size of 500.
+unittest_j_option_3:  unittest_j_option_3.gz
+	@egrep --quiet "Sharding the joint phrase table in 5 shards of ~513 phrase pairs." log.$@
+
+unittest_j_option_3.gz:  %:  jpt.% tm-train_en.lc.gz tm-train_fr.lc.gz
+	-rm -f sig.cnts.$<   # We must recreate the sig.cnts file in order to see how many chunks are created.
+	export PORTAGE_NOCLUSTER=1; ${SIGPRUNE} -v -w 1000 -W 1200 -np 30 -j 500 -threshold ${THRESHOLD} $+ $@ 2> log.${@:.gz=}
+	[[ ! -e "sig.cnts.$<" ]]  # Co-occurrence count file must not exist after.
+
