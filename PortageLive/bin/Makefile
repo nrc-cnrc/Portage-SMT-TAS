@@ -26,7 +26,9 @@ DEST_BASE_DIR ?= rpm.build.root/opt/Portage
 
 ################################################################################
 # BINARIES
-CHINESE ?= chinese_rule_create.pl chinese_rule_markup.pl chinese_segmenter.pl ictclas_postprocessing.pl ictclas_preprocessing.pl ictclas_run.sh
+#If NRC's rewrite of the LDC/UPENN Chinese segmenter is installed, include it.
+CHINESE ?= chinese_rule_create.pl chinese_rule_markup.pl ictclas_postprocessing.pl ictclas_preprocessing.pl ictclas_run.sh \
+           $(notdir $(shell which chinese_segmenter.pl 2> /dev/null))
 CE ?= ce_canoe2ffvals.pl ce_gen_features.pl ce.pl ce_tmx.pl ce_train.pl ce_translate.pl ce_ttx2ospl.pl plog.pl
 CE_EXTERNAL ?= svm-predict
 CLUSTER ?= parallelize.pl psub r-parallel-d.pl r-parallel-worker.pl run-parallel.sh which-test.sh
@@ -127,7 +129,9 @@ ${DEST_OTHER_DIR}/SETUP.bash:
 
 ################################################################################
 # LIBRARIES
-PORTAGE_LIBS ?= portage_utils.pm portage_utils.pyc ULexiTools.pm libportage_truecasing.so manseg.fre
+PORTAGE_LIBS ?= portage_utils.pm portage_utils.pyc ULexiTools.pm libportage_truecasing.so
+#If NRC's rewrite of the LDC/UPENN Chinese segmenter is included, include manseg.fre.
+PORTAGE_LIBS += $(if $(filter chinese_segmenter.pl, ${CHINESE}), manseg.fre)
 
 # Define DO_EXTERNAL_LIBS if you want to bundle all external libs need by
 # Portage's software.
