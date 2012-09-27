@@ -39,7 +39,7 @@ TRANSLATE ?= postdecode_plugin postprocess_plugin predecode_plugin preprocess_pl
 OTHER_BIN ?= configtool portage_info
 RESCORE ?= feature_function_tool gen-features-parallel.pl gen_feature_values nbest2rescore.pl rat.sh rescore_translate
 TOKENIZATION ?= udetokenize.pl utf8_casemap utokenize.pl
-TRUECASING ?= truecase.pl casemark.py boscap.py normc1 markup_canoe_output
+TRUECASING ?= truecase.pl casemark.py boscap.py boscap-nosrc.py normc1 markup_canoe_output
 #Define EXTRAS in Makefile.params to include extra Portage programs
 EXTRAS ?=
 
