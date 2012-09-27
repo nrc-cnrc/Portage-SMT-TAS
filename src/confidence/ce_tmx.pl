@@ -66,11 +66,11 @@ language TUs (default is to delete it)
 In 'replace' mode, do/don't insert confidence scores inside TUV's,
 using TMX PROP elements of type Txt::CE. (default is -score)
 
-=item -verbose        
+=item -verbose=1
 
 Be verbose
 
-=item -Verbose        
+=item -Verbose=1
 
 Be more verbose
 
@@ -122,8 +122,8 @@ use Time::gmtime;
 use Getopt::Long;
 Getopt::Long::GetOptions(
    help           => sub { displayHelp(); exit 0 },
-   verbose        => \my $verbose,
-   Verbose        => \my $Verbose,
+   "verbose=i"    => \my $verbose,
+   "Verbose=i"    => \my $Verbose,
    debug          => \my $debug,
    "src=s"        => \my $src,
    "tgt=s"        => \my $tgt,
