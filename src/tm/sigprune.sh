@@ -238,7 +238,7 @@ else
    }
    verbose 1 "There are $NUMBER_OF_JPT_ENTRIES phrase pairs in the joint phrase table."
    if [[ -z $N ]]; then
-      N=$(ceiling_quotien $NUMBER_OF_JPT_ENTRIES $J)
+      N=$(ceiling_quotient $NUMBER_OF_JPT_ENTRIES $J)
       N=$(($NP < $N ? $NP : $N))
       if [[ $N -gt 1 ]]; then
          JPT_SHARD_SIZE=$(($NUMBER_OF_JPT_ENTRIES / $N))
