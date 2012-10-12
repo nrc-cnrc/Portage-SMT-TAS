@@ -167,9 +167,6 @@ TargetPhraseTable* PhraseTableFilterJoint::getTargetPhraseTable(Entry& entry, bo
       assert(tgtTable);
       tgtTable->clear();
 
-      // we still need to count the number of words in entry.src, unfortunately.
-      entry.src_word_count = splitZ(entry.Src(), entry.src_tokens, " ");
-
       return tgtTable;
    }
 }

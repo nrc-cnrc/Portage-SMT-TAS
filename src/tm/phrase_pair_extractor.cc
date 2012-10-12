@@ -73,7 +73,7 @@ followed by the two required models, t|s and s|t",
 bool PhrasePairExtractor::getArgs(const string& args, const char* sep, bool errors_are_fatal)
 {
    char buffer[args.size() + 1];
-   strncpy(buffer, args.c_str(), args.size()+1);
+   strcpy(buffer, args.c_str());
    assert(buffer[args.size()] == '\0');
    char* argv[args.size()];
    Uint argc = destructive_split(buffer, argv, args.size(), sep);
