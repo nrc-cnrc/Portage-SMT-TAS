@@ -246,7 +246,8 @@ Optional dependencies for all distributions:
       ./configure --prefix=$PORTAGE/pkgs/mgizapp-0.6.3
       make -j 5
       make -j 5 install
-      # Add $PORTAGE/pkgs/mgizapp-0.6.3/bin to EXTRA_PROGRAM_PATH in
+      # Add $PORTAGE/pkgs/mgizapp-0.6.3/bin *and*
+      # $PORTAGE/pkgs/mgizapp-0.6.3/scripts to EXTRA_PROGRAM_PATH in
       # SETUP.bash/tcsh.
 
    Installation of MGIZA++ 0.7.2 can be a bit trickier:
@@ -267,7 +268,8 @@ Optional dependencies for all distributions:
          make -j 5 CPPFLAGS="-isystem $BOOST_ROOT/include" \
          LDFLAGS="-L$BOOST_ROOT/lib -lboost_thread" \
          install
-      # Add $PORTAGE/pkgs/mgizapp-0.7.2/bin to EXTRA_PROGRAM_PATH in
+      # Add $PORTAGE/pkgs/mgizapp-0.7.2/bin *and*
+      # $PORTAGE/pkgs/mgizapp-0.7.2/scripts to EXTRA_PROGRAM_PATH in
       # SETUP.bash/tcsh.
 
  - ICU - Portage 1.5 includes a few tools that use ICU to correctly do
