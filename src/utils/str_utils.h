@@ -447,8 +447,8 @@ Uint split(const char* s, vector<T>& dest, Converter converter, const char* sep 
    // Make a copy to work on
    const Uint len = strlen(s);
    char work[len+1];
-   strncpy(work, s, len);
-   work[len] = '\0';
+   strcpy(work, s);
+   assert(work[len] == '\0');
 
    char* strtok_state;
    const char* tok = strtok_r(work, sep, &strtok_state);

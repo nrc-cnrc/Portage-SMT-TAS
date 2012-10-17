@@ -74,7 +74,7 @@ void TMEntry::newline(const string& line)
       buffer[buffer_size-1] = '\0';
    }
    // Copy line into the buffer we own, which we can safely parse destructively
-   strncpy(buffer, line.c_str(), buffer_size);
+   strcpy(buffer, line.c_str());
    assert(buffer[buffer_size-1] == '\0');
    ++lineno;
 

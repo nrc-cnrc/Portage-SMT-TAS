@@ -177,9 +177,6 @@ TargetPhraseTable* PhraseTable::getTargetPhraseTable(Entry& entry, bool limitPhr
 {
    TargetPhraseTable *tgtTable = NULL;
 
-   // Tokenize source
-   entry.src_word_count = splitZ(entry.Src(), entry.src_tokens, " ");
-
    if(!(entry.src_word_count > 0)) {
       error(ETWarn, "\nSuspicious entry in %s, there is no source phrase in: %s\n",
             entry.File(), entry.line->c_str());
@@ -192,7 +189,7 @@ TargetPhraseTable* PhraseTable::getTargetPhraseTable(Entry& entry, bool limitPhr
    if (limitPhrases) {
       bool contains_unknown_word = false;
       for (Uint i = 0; i < entry.src_word_count; i++) {
-         srcWords[i] = tgtVocab.index(entry.src_tokens[i].c_str());
+         srcWords[i] = tgtVocab.index(entry.src_tokens[i]);
          if (srcWords[i] == tgtVocab.size()) {
             contains_unknown_word = true;
             break;
@@ -204,7 +201,7 @@ TargetPhraseTable* PhraseTable::getTargetPhraseTable(Entry& entry, bool limitPhr
    }
    else {
       for (Uint i = 0; i < entry.src_word_count; i++)
-         srcWords[i] = tgtVocab.add(entry.src_tokens[i].c_str());
+         srcWords[i] = tgtVocab.add(entry.src_tokens[i]);
       textTable.find_or_insert(srcWords, entry.src_word_count, tgtTable);
    }
 
@@ -255,9 +252,21 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
          //cerr << "NEW entry " << entry.Src() << " line " << entry << endl; //SAM DEBUG
          // The source phrase has changed, process the previous target table.
          numFiltered  += processTargetPhraseTable(prev_src, entry.src_word_count, tgtTable);
+         prev_src = entry.Src();
+
+         // Tokenize the new source phrase
+         Uint src_len = strlen(entry.Src())+1;
+         if (src_len > entry.src_buffer_size) {
+            delete [] entry.src_buffer;
+            entry.src_buffer_size = max(2*entry.src_buffer_size, src_len);
+            entry.src_buffer = new char[entry.src_buffer_size];
+            entry.src_buffer[entry.src_buffer_size-1] = '\0';
+         }
+         strcpy(entry.src_buffer, entry.Src());
+         assert(entry.src_buffer[entry.src_buffer_size-1] == '\0');
+         entry.src_word_count = destructive_splitZ(entry.src_buffer, entry.src_tokens, " ");
 
          // Get the new target table.
-         prev_src = entry.Src();
          tgtTable = getTargetPhraseTable(entry, limitPhrases);
       }
 

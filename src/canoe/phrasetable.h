@@ -540,7 +540,9 @@ protected:
       const dir d;                ///< direction of the prob file
       const bool limitPhrases;    ///< parameter copied from PhraseTable::readFile()'s
       string* line;               ///< raw entry
-      vector<string> src_tokens;  ///< source tokens, split from Src() -- must be vector<string> since only reset when Src() changes, not at every entry.
+      char* src_buffer;           ///< storage for src_tokens
+      Uint src_buffer_size;       ///< size of src_buffer
+      vector<const char*> src_tokens; ///< source tokens, split from Src() -- reset when Src() changes, not at every entry.
       VectorPhrase tgtPhrase;     ///< phrase representation of the target string (vector<Uint>)
       Uint src_word_count;        ///< the number of words in src
       Uint zero_prob_err_count;   ///< Number of prob <= 0 errors detected
@@ -556,6 +558,8 @@ protected:
       , d(d)
       , limitPhrases(limitPhrases)
       , line(NULL)
+      , src_buffer(NULL)
+      , src_buffer_size(0)
       , src_word_count(0)
       , zero_prob_err_count(0)
       {}
