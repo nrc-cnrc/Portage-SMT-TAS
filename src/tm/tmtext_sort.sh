@@ -35,6 +35,8 @@ Usage: tmtext_sort.sh [-h(elp)] [-1st] tmtext-file > sorted-tmtext-file
 
   Sort tmtext-file by the 2nd field (1st if -1st is given) then 1st (2nd).
 
+  Note that with -1st, this script simply does LC_ALL=C sort.
+
 ==EOF==
     exit 1
 }
@@ -61,16 +63,17 @@ fi
 export LC_ALL=C
 
 if [ "$USE_FIRST" == TRUE ]; then
-    KEY="-k 1,1 -k 2,2"
+    #KEY="-k 1,1 -k 2,2"
+    exec gzip -cdfq $TMTEXT_IN | sort
 else
     KEY="-k 2,2 -k 1,1"
+    exec
+        gzip -cdfq $TMTEXT_IN |
+        perl -pe 's/ \|\|\| / ||| \t/g' |
+        sort -t'	' $KEY |
+        sed 's/ ||| 	/ ||| /g'
 fi
 
-exec
-    gzip -cdfq $TMTEXT_IN |
-    perl -pe 's/ \|\|\| /\t/g' |
-    sort -t'	' $KEY |
-    sed 's/	/ ||| /g'
 
 # Benchmarking notes: The above code was benchmarked with perl and sed.  Perl
 # does the first substitution about 10% faster than sed, but sed does the
