@@ -1,0 +1,25 @@
+# CVS files and cvs2git-sandbox.sh generated files
+CVS/
+.#*
+_log.cvs*
+
+
+# patterns for files created by a build
+.cvsignore
+.deps
+*.o
+*.pyc
+*.a
+*.so
+
+*.pdf
+*.dvi
+*.aux
+*.bbl
+*.blg
+*.log
+*.eps
+
+# install directories
+bin/
+lib/

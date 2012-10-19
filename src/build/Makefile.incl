@@ -304,7 +304,7 @@ endif
            .info .dvi .tex .texinfo .texi .txinfo .w .ch .web .elc .el .cpp
 
 # make everything that can be made, except doxy, which spews too many messages
-all: lib bin python_lib TAGS tags info test .cvsignore
+all: lib bin python_lib TAGS tags info test .cvsignore .gitignore
 
 # make everything from scratch
 new: clean
@@ -331,17 +331,23 @@ FORCE::
 # remove everything that can be remade
 clean: clean_testrunners
 	\rm -f $(OBJECTS) $(LIBRARY).{a,so} $(PROGRAMS) $(DYNPROGS) \
-	$(INFOFILES) $(DOCUMENTS) .cvsignore Makefile.depend \
-        *.aux *.bbl *.blg *.dvi *.log TAGS tags *~ *.o *.info-* core core.* \
+	$(INFOFILES) $(DOCUMENTS) .cvsignore .gitignore Makefile.depend \
+        *.aux *.bbl *.blg *.dvi *.log TAGS tags *~ *.o *.pyc *.info-* core core.* \
         $(OTHER_GENERATED_FILES) \
 	$(LEGACY_TESTS) $(foreach legacy_test, $(LEGACY_TESTS), $(legacy_test).o)
 	\rm -rf .deps
 
 # make the .cvsignore file, used by CVS to ignore certain files when updating
 .cvsignore: Makefile ../build/Makefile.incl
-	echo $(PROGRAMS) Makefile.depend .cvsignore *.pdf *.dvi *.aux *.bbl *.blg *.log *.eps .deps | tr ' ' '\n' > $@
+	echo $(PROGRAMS) Makefile.depend .cvsignore .gitignore *.pdf *.dvi *.aux *.bbl *.blg *.log *.eps .deps | tr ' ' '\n' > $@
 	if [[ -d tests ]]; then echo .cvsignore $(notdir $(CXXTEST_RUNNERS) $(CXXTEST_RUNNERS_O) $(CXXTEST_RUNNERS_CC)) | tr ' ' '\n' > tests/$@; fi
 	if [[ -d tests/legacy ]]; then echo .cvsignore $(foreach legacy_test, $(notdir $(LEGACY_TESTS)), $(legacy_test){,.o}) | tr ' ' '\n' > tests/legacy/$@; fi
+
+# make the .gitignore file, used by Git to ignore certain files when updating/reporting
+# The project .gitignore file contains general file patterns to ignore, this
+# one contains module-specific names that cannot be matched by general patterns.
+.gitignore: Makefile ../build/Makefile.incl
+	echo .gitignore $(PROGRAMS) $(CXXTEST_RUNNERS) $(CXXTEST_RUNNERS_CC) $(LEGACY_TESTS) | tr ' ' '\n' > $@
 
 # make static and dynamic libraries
 lib: $(LIBRARY).a
