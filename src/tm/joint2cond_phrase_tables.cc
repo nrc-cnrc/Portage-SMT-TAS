@@ -94,7 +94,6 @@ Options:\n\
             the same as not specifying -write-al.  [none]\n\
 -write-count Show the joint count in the 3rd column of multi-prob phrase tables\n\
             in the format c=<count>.  [don't]\n\
--force      Overwrite any existing files\n\
 -[no-]reduce-mem  Reduce/don't reduce memory usage. Memory reduction is\n\
                   achieved by not keeping the phrase tables entirely in memory.\n\
                   This requires reading the jpt file multiple times, once for\n\
@@ -126,7 +125,6 @@ static string ibm_l1_given_l2;
 static string lc1;
 static string lc2;
 static string multipr_output = "";
-static bool force = false;
 static string in_file;
 static bool compress_output = false;
 static const string extension(".gz");
@@ -137,7 +135,6 @@ static Uint display_alignments = 0; // 0=none, 1=top, 2=all/keep
 static bool write_count(false);
 
 static void getArgs(int argc, const char* const argv[]);
-static void delete_or_error_if_exists(const string& filename);
 
 template<class T>
 static void doEverything(const char* prog_name);
@@ -183,12 +180,6 @@ static void open_mp_file(oMagicStream& ofs, string& name, string& lang1, string&
 template<class T>
 static void doEverything(const char* prog_name)
 {
-   // Early error checking
-   if ( multipr_output == "fwd" || multipr_output == "both" )
-      delete_or_error_if_exists(makeFinalFileName(name + "." + lang1 + "2" + lang2));
-   if ( multipr_output == "rev" || multipr_output == "both" )
-      delete_or_error_if_exists(makeFinalFileName(name + "." + lang2 + "2" + lang1));
-
    time_t start_time(time(NULL));
    PhraseTableGen<T> pt;
    pt.readJointTable(in_file, reduce_memory, swap_on_read);
@@ -331,7 +322,9 @@ static void getArgs(int argc, const char* const argv[])
    arg_reader.testAndSet("lc1", lc1);
    arg_reader.testAndSet("lc2", lc2);
    arg_reader.testAndSet("multipr", multipr_output);
+   bool force(false);
    arg_reader.testAndSet("force", force);
+   if (force) error(ETWarn, "ignoring obsolete -force option - existing files are now always overwritten");
    arg_reader.testAndSetOrReset("sort", "no-sort", sorted);
    if (sorted && multipr_output != "") cerr << "Producing sorted cpt." << endl;
    arg_reader.testAndSetOrReset("reduce-mem", "no-reduce-mem", reduce_memory);
@@ -409,11 +402,3 @@ static void getArgs(int argc, const char* const argv[])
       error(ETFatal, "-write-count requires -multipr");
 }
 
-static void delete_or_error_if_exists(const string& filename) {
-   if ( force )
-      delete_if_exists(filename.c_str(),
-         "File %s exists - deleting and recreating");
-   else
-      error_if_exists(filename.c_str(),
-         "File %s exists - won't overwrite without -force option");
-}
