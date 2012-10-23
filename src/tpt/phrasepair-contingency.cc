@@ -367,7 +367,7 @@ int MAIN(argc, argv)
             // << " " << V1.toString(p1) << " ::: " << V2.toString(p2) 
             << endl;
       }
-      if (!quiet && (++cnt)%1000==0) {
+      if (!quiet && (++cnt)%500000==0) {
         cerr << cnt/1000 << "K phrase pairs processed in " << t1.secsElapsed(1) << "s." << endl;
         t1.reset();
       }

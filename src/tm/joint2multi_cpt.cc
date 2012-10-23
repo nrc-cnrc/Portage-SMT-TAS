@@ -81,7 +81,7 @@ Options:\n\
           columns. This may be limited by preceding each smoother with a list of\n\
           the columns to which it should be applied. Eg, '-s 0,2-4,6:RFSmoother'\n\
           means to make RF estimates from global frequencies (id 0) as well as \n\
-          from jpts 2, 3, 4, and 6. [RFSmoother]\n\
+          from jpts 2, 3, 4, and 6. Use 'NONE' for no smoothers. [RFSmoother]\n\
 -a sm     Smoothers for adirectional (4th column) output; syntax is same as -s.\n\
 -0 cols   Input jpts to sum over when establishing global frequencies. These are\n\
           specified in the same format as the lists of jpts for smoothers in -s,\n\
@@ -117,7 +117,6 @@ Options:\n\
 -write-count Write the total joint count for each phrase pair in c=<cnt> format.\n\
 -nofwd    Write only 'reverse' estimates, not 'forward' ones.\n\
 -z        Compress the output files [don't]\n\
--force    Overwrite any existing files [don't]\n\
 ";
 
 // globals
@@ -146,13 +145,11 @@ static Uint write_al = 0;
 static bool write_count = false;
 static bool compress_output = false;
 static bool sorted(true);
-static bool force = false;
 static vector<string> input_jpt_files;
 
 static const string extension(".gz");
 
 static void getArgs(int argc, char* argv[]);
-static void checkOutputFile(const string& filename);
 static string addExtension(string fname);
 template<class T> void doEverything(const char* prog_name);
 
@@ -292,11 +289,6 @@ void doEverything(const char* prog_name)
 
    const string fwd_output_filename = addExtension(name + "." + lang1 + "2" + lang2);
    const string rev_output_filename = addExtension(name + "." + lang2 + "2" + lang1);
-
-   if (output_drn == "fwd" || output_drn == "both")
-      checkOutputFile(fwd_output_filename);
-   if (output_drn == "rev" || output_drn == "both")
-      checkOutputFile(rev_output_filename);
 
    for (vector<string>::iterator p = input_jpt_files.begin(); 
 	p != input_jpt_files.end(); ++p)
@@ -673,13 +665,18 @@ void getArgs(int argc, char* argv[])
    arg_reader.testAndSet("write-count", write_count);
    arg_reader.testAndSet("nofwd", nofwd);
    arg_reader.testAndSet("z", compress_output);
-   arg_reader.testAndSet("force", force);
    arg_reader.testAndSetOrReset("sort", "no-sort", sorted);
+
+   bool force(false);
+   arg_reader.testAndSet("force", force);
+   if (force) error(ETWarn, "ignoring obsolete -force option - existing files are now always overwritten");
 
    arg_reader.getVars(0, input_jpt_files);
 
    if (smoothing_methods.empty())
       smoothing_methods.push_back("RFSmoother");
+   else if (smoothing_methods.size() == 1 && smoothing_methods[0] == "NONE")
+      smoothing_methods.clear();
 
    if (ibmtype != "" && ibmtype != "1" && ibmtype != "2" && ibmtype != "hmm")
       error(ETFatal, "Bad value for -ibm switch: %s", ibmtype.c_str());
@@ -706,16 +703,6 @@ void getArgs(int argc, char* argv[])
          error(ETFatal, "Bad value for -write-al switch: %s", 
                write_al_str.c_str());
    }
-}
-
-static void checkOutputFile(const string& filename) 
-{
-   if (force)
-      delete_if_exists(filename.c_str(),
-                       "File %s exists - deleting and recreating");
-   else
-      error_if_exists(filename.c_str(),
-                      "File %s exists, quitting - use -force to overwrite");
 }
 
 static string addExtension(string fname)

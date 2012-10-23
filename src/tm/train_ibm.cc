@@ -235,11 +235,6 @@ int main(int argc, char* argv[])
    string init_model_parms = do_hmm ? HMMAligner::distParamFileName(init_model)
                                   : IBM2::posParamFileName(init_model);
 
-   if (check_if_exists(model))
-      error(ETFatal, "ttable file <%s> exists - won't overwrite", model.c_str());
-   if (check_if_exists(model_parms))
-      error(ETFatal, "file <%s> exists - won't overwrite", model_parms.c_str());
-
    IBM1* aligner(NULL);
    bool init_model_is_ibm1(true);
    if ( do_hmm ) {
@@ -284,11 +279,6 @@ int main(int argc, char* argv[])
       string rev_init_model_parms =
          do_hmm ? HMMAligner::distParamFileName(rev_init_model)
                 : IBM2::posParamFileName(rev_init_model);
-
-      if (check_if_exists(rev_model))
-         error(ETFatal, "ttable file <%s> exists - won't overwrite", rev_model.c_str());
-      if (check_if_exists(rev_model_parms))
-         error(ETFatal, "file <%s> exists - won't overwrite", rev_model_parms.c_str());
 
       bool rev_init_model_is_ibm1(true);
       if ( do_hmm ) {
@@ -474,6 +464,8 @@ int main(int argc, char* argv[])
       if (iter == 1)
          if (verbose) cerr << "Beginning training:" << endl;
 
+      // Counting phase of the training loop.
+
       if (iter > 0) {
          if ( iter <= num_iters1 ) {
             aligner->IBM1::initCounts();
@@ -514,6 +506,11 @@ int main(int argc, char* argv[])
 
             if (lineno < begline) continue;
             if (endline != 0 && lineno > endline) break;
+
+            if (verbose && lineno % (100000*mod_divisor) == 0)
+               cerr << "line " << lineno << " in " << file1 << "/"
+                    << file2 << endl;
+
             if (global_lineno % mod_divisor != mod_remainder) continue;
 
             ++lines_processed;
@@ -546,10 +543,6 @@ int main(int argc, char* argv[])
                      rev_aligner->count(toks2, toks1, true);
                }
             }
-
-            if (verbose && lineno % 100000 == 0)
-               cerr << "line " << lineno << " in " << file1 << "/"
-                    << file2 << endl;
          }
          if ( !line_count_calculated ) line_count += lineno;
          if ( verbose ) cerr << endl;

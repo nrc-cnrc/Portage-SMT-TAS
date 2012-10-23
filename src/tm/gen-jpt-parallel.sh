@@ -142,7 +142,7 @@ FILE3=()
 # Ask gen_phrase_tables what are the corpora in the user provided command.
 [[ $DEBUG ]] && echo "${#GPTARGS[@]}: <${GPTARGS[@]}>" >&2
 [[ $NW ]] && USING_W="-w $NW"
-FILE_ARGS=(`gen_phrase_tables -file-args $USING_W "${GPTARGS[@]}"`)
+FILE_ARGS=(`gen_phrase_tables -file-args -j $USING_W "${GPTARGS[@]}"`)
 [[ $? == 0 ]] || error_exit "gen_phrase_tables doesn't seem to like the arguments you provided after the GPT keyword."
 
 NUM_FILE_ARGS=${#FILE_ARGS[@]}
@@ -306,7 +306,7 @@ End-of-message
    WPFILES="$WORKDIR/jpt.wp1.gz $WORKDIR/jpt.wp2.gz"
 fi
 
-echo "[[ \"$OUTFILE\" != \"-\" ]] && [[ -f "$OUTFILE" ]] || merge_multi_column_counts $ALIGN_OPT $OUTFILE $WORKDIR/*.jpt.gz $WPFILES" >> $merge_commands
+echo "merge_multi_column_counts $ALIGN_OPT $OUTFILE $WORKDIR/*.jpt.gz $WPFILES" >> $merge_commands
 
 [[ $DEBUG ]] && cat $merge_commands >&2
 
