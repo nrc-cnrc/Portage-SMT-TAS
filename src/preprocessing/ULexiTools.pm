@@ -38,7 +38,7 @@ our (@ISA, @EXPORT);
 @EXPORT = (
    "get_para", "tokenize", "split_sentences",
    "get_tokens", "get_token", "get_collapse_token",
-   "matches_known_abbr_en", "matches_known_abbr_fr", "matches_known_abbr_es",
+   "matches_known_abbr_en", "matches_known_abbr_fr", "matches_known_abbr_es", "matches_known_abbr_da",
    "good_turing_estm", "get_sentence",
    "setDetokenizationLang", "detokenize", "detokenize_array"
 );
@@ -56,13 +56,15 @@ sub len(\$); #(string)
 my %known_abbr_hash_en;
 my %known_abbr_hash_fr;
 my %known_abbr_hash_es;
+my %known_abbr_hash_da;
 my %short_stops_hash_en;
 my %short_stops_hash_fr;
 my %short_stops_hash_es;
+my %short_stops_hash_da;
 
-# Single quotes: ascii ` and ', cp-1252 145 (U+2018) and 146 (U+2019), cp-1252/iso-8859-1 180
+# Single quotes: ascii ` and ', cp-1252 145 and 146, cp-1252/iso-8859-1 180
 my $apostrophes = quotemeta("\`\'‘’´");
-# Quotes: ascii ", cp-1252 147 (U+201C) and 148 (U+201D), cp-1252/iso-8859-1 171 and 187
+# Quotes: ascii ", cp-1252 147 and 148, cp-1252/iso-8859-1 171 and 187
 my $quotes = quotemeta("\"“”«»");
 # specifically left/right quotes and single quotes
 my $leftquotes = quotemeta("‘«“\`");
@@ -119,6 +121,10 @@ my @known_abbrs_fr = qw {
 # mm.      39            126        700
 my @known_abbrs_es = qw {
    av avda c d da dr dra esq gob gral ing lic prof profa sr sra srta st
+};
+
+my @known_abbrs_da = qw {
+   hr frk frøken fr fru
 };
 
 # short words and abbreviation-like words that can end a sentence
@@ -185,13 +191,22 @@ my @short_stops_es = qw {
    si ss sé sí ti tv ue uu va ve vi xx ya yo él 
 };
 
+my @short_stops_da = qw {
+   æf æg af åg al ål am ar år at bb bi bo cd cm co cv da de dø dr
+   ed eg ej el en én er et ét få fe ff fr µg gå gr hk hl hu ii iv
+   ja jf jo jr km ko kø lå le ly µm må mg ml mm mø mr mv nå næ ni nr nu ny
+   og øl om op os på pt rå ro ry så si sø sr tå tb te ti ud ug ve vi vu
+};
+
 # funky hash initializations...
 @known_abbr_hash_en{@known_abbrs_en} = (1) x @known_abbrs_en;
 @known_abbr_hash_fr{@known_abbrs_fr} = (1) x @known_abbrs_fr;
 @known_abbr_hash_es{@known_abbrs_es} = (1) x @known_abbrs_es;
+@known_abbr_hash_da{@known_abbrs_da} = (1) x @known_abbrs_da;
 @short_stops_hash_en{@short_stops_en} = (1) x @short_stops_en;
 @short_stops_hash_fr{@short_stops_fr} = (1) x @short_stops_fr;
 @short_stops_hash_es{@short_stops_es} = (1) x @short_stops_es;
+@short_stops_hash_da{@short_stops_da} = (1) x @short_stops_da;
 
 # Get the next paragraph from a file. Return: text in para (including trailing
 # markup, if any)
@@ -245,6 +260,9 @@ sub tokenize #(paragraph, lang, notok, pretok)
    } elsif ($lang eq "es") {
       $split_word = \&split_word_es;
       $matches_known_abbr = \&matches_known_abbr_es;
+   } elsif ($lang eq "da") {
+      $split_word = \&split_word_da;
+      $matches_known_abbr = \&matches_known_abbr_da;
    }
    else {die "unknown lang in tokenizer: $lang";}
 
@@ -478,6 +496,15 @@ sub matches_known_abbr_es #(word)
    return $known_abbr_hash_es{lc($word)} ? 1 : 0;
 }
 
+# Determine if a word matches a Danish known abbreviation.
+
+sub matches_known_abbr_da #(word)
+{
+   my $word = shift;
+   $word =~ s/[.]//go;
+   return $known_abbr_hash_da{lc($word)} ? 1 : 0;
+}
+
 # Does the current token look like it is an abbreviation?
 
 sub looks_like_abbr($\$$\@) # (lang, para_string, index_of_abbr, token_positions)
@@ -502,6 +529,8 @@ sub looks_like_abbr($\$$\@) # (lang, para_string, index_of_abbr, token_positions
       if (exists($short_stops_hash_fr{lc($word)})) {return 0;}
    } elsif ($lang eq "es") {
       if (exists($short_stops_hash_es{lc($word)})) {return 0;}
+   } elsif ($lang eq "da") {
+      if (exists($short_stops_hash_da{lc($word)})) {return 0;}
    }
    else {die "unknown lang in tokenizer: $lang";}
    return 1;
@@ -656,6 +685,23 @@ sub split_word_es #(word, offset)
 
    push(@atom_positions, $os, len($word));
 
+   return @atom_positions;
+}
+
+# Split an Danish word into parts, eg ?????
+# Return list of (start,len) atom positions.
+
+sub split_word_da #(word, offset)
+{
+   my $word = shift;
+   my $os = shift || 0;
+   my @atom_positions = ();
+
+   if ($word !~ /^it[$apostrophes]s/i && $word =~ /^([[:alpha:]]+)([$apostrophes][Ss])$/o) {
+      push(@atom_positions, $os, len($1), $os+len($1), len($2));
+   } else {
+      push(@atom_positions, $os, len($word));
+   }
    return @atom_positions;
 }
 
