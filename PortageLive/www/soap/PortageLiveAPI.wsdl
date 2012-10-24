@@ -1,13 +1,13 @@
 <?xml version ="1.0" encoding ="UTF-8"?> 
 <definitions name="PortageLiveService" 
-  targetNamespace="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.wsdl" 
+  targetNamespace="http://10.10.23.194/PortageLiveAPI.wsdl" 
   xmlns="http://schemas.xmlsoap.org/wsdl/"
   xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
-  xmlns:tns="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.wsdl"
+  xmlns:tns="http://10.10.23.194/PortageLiveAPI.wsdl"
   xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
 <documentation>
-  $Id$
+  $Id: PortageLiveAPI.wsdl,v 1.9 2012/10/09 17:59:31 larkins Exp $
   file: PortageLiveAPI.wsdl
   brief: Definition of the API to the Portage SMT software suite.
   author: Patrick Paul, Eric Joanis and Samuel Larkin
@@ -318,7 +318,7 @@
 <service name="PortageLive_Service"> 
   <documentation>Definition of the PortageLive Service</documentation>
   <port name="PortageLive_Library" binding="tns:PortageLive_SoapHttpBinding">
-    <soap:address location="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.php"/>
+    <soap:address location="http://10.10.23.194/PortageLiveAPI.php"/>
   </port>
 </service> 
 

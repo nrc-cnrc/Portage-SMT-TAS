@@ -1,5 +1,5 @@
 <?php
-# $Id$
+# $Id: PortageLiveAPI.php,v 1.16 2012/08/17 20:44:01 joanise Exp $
 # @file PortageLiveAPI.php 
 # @brief Implementation of the API to the Portage SMT software suite.
 # 
@@ -200,46 +200,43 @@ class PortageLiveAPI {
       return preg_replace("/[^-_.+a-zA-Z0-9]/", "", $filename);
    }
 
-   # Translate a translation memory using model $context and the confidence
-   # threshold $ce_threshold.  A threshold of 0 means keep everything.
-   # $TMX_contents is a string containing the full content of the tmx file, in Base64 encoding.
-   # $TMX_filename is the name of the TMX file.
-   function translateTMXCE($TMX_contents_base64, $TMX_filename, $context, $ce_threshold) {
+   function translateFileCE($XML_contents_base64, $XML_filename, $context, $ce_threshold, $type) {
+      # TODO: validate that type is either "tmx" or "sdlxliff"
       $i = $this->getContextInfo($context);
       $this->validateContext($i, $ce_threshold > 0);
 
-      $work_dir = $this->makeWorkDir("{$context}_$TMX_filename");
-      $work_name = $this->normalizeName("{$context}_$TMX_filename");
-      $TMX_contents = base64_decode($TMX_contents_base64);
-      $info = "len: " . strlen($TMX_contents) . " base64 len: " .
-              strlen($TMX_contents_base64) . "<br/>";
+      $work_dir = $this->makeWorkDir("{$context}_$XML_filename");
+      $work_name = $this->normalizeName("{$context}_$XML_filename");
+      $XML_contents = base64_decode($XML_contents_base64);
+      $info = "len: " . strlen($XML_contents) . " base64 len: " .
+              strlen($XML_contents_base64) . "<br/>";
       #return $info;
-      $local_tmx_file = fopen("$work_dir/Q.in", "w");
-      if ( !is_resource($local_tmx_file) )
-         throw new SoapFault("PortageServer", "failed to write tmx to local file");
-      $bytes_written = fwrite($local_tmx_file, $TMX_contents);
-      if ( $bytes_written != strlen($TMX_contents) )
-         throw new SoapFault("PortageServer", "incomplete write of tmx to local file " .
-                             "(wrote $bytes_written; expected ".strlen($TMX_contents).")");
-      fclose($local_tmx_file);
-      $TMX_contents="";
-      $TMX_contents_base64="";
+      $local_xml_file = fopen("$work_dir/Q.in", "w");
+      if ( !is_resource($local_xml_file) )
+         throw new SoapFault("PortageServer", "failed to write $type to local file");
+      $bytes_written = fwrite($local_xml_file, $XML_contents);
+      if ( $bytes_written != strlen($XML_contents) )
+         throw new SoapFault("PortageServer", "incomplete write of $type to local file " .
+                             "(wrote $bytes_written; expected ".strlen($XML_contents).")");
+      fclose($local_xml_file);
+      $XML_contents="";
+      $XML_contents_base64="";
 
-      $tmx_check_rc = "";
-      $tmx_check_log = $this->runCommand("ce_tmx.pl check $work_dir/Q.in 2>&1",
-         "", $i, $tmx_check_rc);
-      #return "TMX check log: $tmx_check_log; tmx_check_rc: $tmx_check_rc";
-      if ( $tmx_check_rc != 0 )
-         throw new SoapFault("Client", "TMX check failed for $TMX_filename: $tmx_check_log");
+      $xml_check_rc = "";
+      $xml_check_log = $this->runCommand("ce_tmx.pl check $work_dir/Q.in 2>&1",
+         "", $i, $xml_check_rc);
+      #return "TMX check log: $xml_check_log; xml_check_rc: $xml_check_rc";
+      if ( $xml_check_rc != 0 )
+         throw new SoapFault("Client", "TMX check failed for $XML_filename: $xml_check_log");
 
-      $xml_lang = array("fr" => "FR-CA", "en" => "EN-CA"); # add more languages here as needed
-      $command = "$i[script] -tmx -nl=s -dir=\"$work_dir\" -out=\"$work_dir/P.out\" " .
+      #$xml_lang = array("fr" => "FR-CA", "en" => "EN-CA"); # add more languages here as needed
+      $command = "$i[script] -$type -nl=s -dir=\"$work_dir\" -out=\"$work_dir/P.out\" " .
                  (!empty($i["ce_model"]) ? "-with-ce " : "-decode-only ") .
                  ($ce_threshold > 0 ? "-filter=$ce_threshold " : "") .
                  "\"$work_dir/Q.in\" >& \"$work_dir/trace\" ";
       $start_time = time();
       $exit_status = NULL;
-      $result = $this->runCommand("(if ($command); then ln -s QP.tmx $work_dir/PLive-$work_name; fi; touch $work_dir/done)& disown %1", "", $i, $exit_status, false);
+      $result = $this->runCommand("(if ($command); then ln -s QP.xml $work_dir/PLive-$work_name; fi; touch $work_dir/done)& disown %1", "", $i, $exit_status, false);
       $info2 = "result len: " . strlen($result) . "<br/>";
       $monitor = "http://" . $_SERVER['SERVER_NAME'] .
                  "/cgi-bin/plive-monitor.cgi?" .
@@ -251,7 +248,19 @@ class PortageLiveAPI {
       return $monitor;
    }
 
-   function translateTMXCE_Status($monitor_token) {
+   # Translate a translation memory using model $context and the confidence
+   # threshold $ce_threshold.  A threshold of 0 means keep everything.
+   # $TMX_contents is a string containing the full content of the tmx file, in Base64 encoding.
+   # $TMX_filename is the name of the TMX file.
+   function translateTMXCE($TMX_contents_base64, $TMX_filename, $context, $ce_threshold) {
+      return $this->translateFileCE($TMX_contents_base64, $TMX_filename, $context, $ce_threshold, "tmx");
+   }
+
+   function translateSDLXLIFFCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, $ce_threshold) {
+      return $this->translateFileCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, $ce_threshold, "sdlxliff");
+   }
+
+   function translateFileCE_Status($monitor_token) {
       $tokens = preg_split("/[?&]/", $monitor_token);
       $info = array();
       foreach ($tokens as $token) {
@@ -294,6 +303,15 @@ class PortageLiveAPI {
       } else {
          return "3 Dir not found".debug($info);
       }
+   }
+
+   # TODO: Maybe these fucntions should simply be replaced by one called translatio_Status?
+   function translateTMXCE_Status($monitor_token) {
+      return $this->translateFileCE_Status($monitor_token);
+   }
+
+   function translateSDLXLIFFCE_Status($monitor_token) {
+      return $this->translateFileCE_Status($monitor_token);
    }
 
    # Translate $src_string using model $context and confidence estimation
