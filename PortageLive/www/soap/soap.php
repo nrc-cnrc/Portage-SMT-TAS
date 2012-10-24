@@ -1,10 +1,10 @@
 <?php
-# $Id$
-# @file soap.php 
+# $Id: soap.php,v 1.9 2012/06/21 21:49:12 stewartd Exp $
+# @file soap.php
 # @brief Test web page for the SOAP API to PortageLive
-# 
+#
 # @author Patrick Paul, Eric Joanis and Samuel Larkin
-# 
+#
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
@@ -29,6 +29,8 @@ if ( $_POST ) {
          $button = "TranslateBox";
       if ( array_key_exists('TranslateTMX', $_POST) )
          $button = "TranslateTMX";
+      if ( array_key_exists('TranslateSDLXLIFF', $_POST) )
+         $button = "TranslateSDLXLIFF";
    }
 
    if ( array_key_exists('context', $_POST) ) {
@@ -112,10 +114,13 @@ Prime:
 <INPUT TYPE = "TEXT"   Name = "to_translate" />
 <INPUT TYPE = "Submit" Name = "TranslateBox"  VALUE = "Translate Text"/>
 
-<hr/> Alternatively, use a TMX file:
 <INPUT TYPE = "hidden" Name = "MAX_FILE_SIZE" VALUE = "2000000" />
+<hr/> Alternatively, use a TMX file:
 <INPUT TYPE = "file"   Name = "tmx_filename"/>
 <INPUT TYPE = "Submit" Name = "TranslateTMX"  VALUE = "Translate TMX File"/>
+<br/> Alternatively, use a SDLXLIFF file:
+<INPUT TYPE = "file"   Name = "sdlxliff_filename"/>
+<INPUT TYPE = "Submit" Name = "TranslateSDLXLIFF"  VALUE = "Translate SDLXLIFF File"/>
 <br/>CE threshold for filtering (between 0 and 1; 0.0 = no filter)
 <INPUT TYPE = "TEXT"   Name = "ce_threshold"  VALUE = "<?=$ce_threshold?>" SIZE="4" />
 
@@ -133,6 +138,64 @@ catch (SoapFault $exception) {
    print "<br/><b>SOAP Fault trying to list contexts: </b></b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
 }
 
+
+function processFile($type, $file) {
+   global $context;
+   global $ce_threshold;
+   $filename = $file["name"];
+   print "<hr/><b>Translating $type file: </b> $filename <br/>";
+   print "<b>Context: </b> $context <br/>";
+   print "<b>Processed on: </b> " . `date` . "<br/>";
+
+   if ( is_uploaded_file($file["tmp_name"]) ) {
+      $tmp_file = $file["tmp_name"];
+      //print "<br/><b>$type Upload OK.  Trace: </b> " . print_r($file, true);
+      $tmp_contents = file_get_contents($tmp_file);
+      $tmp_contents_base64 = base64_encode($tmp_contents);
+      //print "<br/><b>file contents len: </b> " . strlen($tmp_contents) .
+      //      " <b>base64 len: </b> " . strlen($tmp_contents_base64);
+
+      try {
+         global $WSDL;
+         $client = new SoapClient($WSDL);
+
+         $ce_threshold += 0;
+         if ($type == "tmx") {
+            $reply = $client->translateTMXCE($tmp_contents_base64, $filename, $context, $ce_threshold);
+         }
+         else
+         if ($type == "sdlxliff") {
+            $reply = $client->translateSDLXLIFFCE($tmp_contents_base64, $filename, $context, $ce_threshold);
+         }
+         else {
+            print "<B>Unknown type: $type</B><BR/>\n";
+         }
+         print "<hr/><b>Portage replied: </b>$reply";
+         print "<br/><a href=\"$reply\">Monitor job interactively</a>";
+         $monitor_token=$reply;
+         //print "<br/><b>Trace: </b>"; var_dump($client);
+      } catch (SoapFault $exception) {
+         print "<HR/><b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
+      }
+
+   } else {
+      print "<br/><b>$type Upload error.  Trace: </b> " . print_r($file, true);
+      $file_error_codes = array(
+            0=>"There is no error, the file uploaded with success",
+            1=>"The uploaded file exceeds the upload_max_filesize directive in php.ini",
+            2=>"The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form",
+            3=>"The uploaded file was only partially uploaded",
+            4=>"No file was uploaded",
+            6=>"Missing a temporary folder",
+            7=>"Failed to write file to disk",
+            8=>"A PHP extension stopped the file upload",
+            );
+      print "<br/><b>Error code description: </b> {$file_error_codes[$file["error"]]}";
+   }
+
+
+   print "<hr/><b>Done processing on: </b>" . `date`;
+}
 
 if ( $button == "Prime"  && $_POST['Prime'] != "" ) {
    try {
@@ -158,7 +221,7 @@ if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
    try {
       $client = new SoapClient($WSDL);
    }
-   catch (SoapFault $exception) {  
+   catch (SoapFault $exception) {
       print "<HR/><b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
    }
 
@@ -167,7 +230,7 @@ if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
       print "<hr/><b>Portage getTranslation() replied: </b>";
       print $client->getTranslation($to_translate);
       //print "<br/><b>Trace: </b>"; var_dump($client);
-   } catch (SoapFault $exception) {  
+   } catch (SoapFault $exception) {
       print "<b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
    }
    $end_time = microtime(true);
@@ -179,7 +242,7 @@ if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
       print "<hr/><b>getTranslation2() replied: </b>";
       print $client->getTranslation2($to_translate, $context);
       //print "<br/><b>Trace: </b>"; var_dump($client);
-   } catch (SoapFault $exception) {  
+   } catch (SoapFault $exception) {
       print "<b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
    }
    $end_time = microtime(true);
@@ -191,7 +254,7 @@ if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
       print "<hr/><b>getTranslationCE() replied: </b>";
       print $client->getTranslationCE($to_translate, $context);
       //print "<br/><b>Trace: </b>"; var_dump($client);
-   } catch (SoapFault $exception) {  
+   } catch (SoapFault $exception) {
       print "<b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
    }
    $end_time = microtime(true);
@@ -217,60 +280,23 @@ if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
 }
 else
 if ( $button == "TranslateTMX" && $_FILES["tmx_filename"]["name"] != "") {
-   $tmx_filename = $_FILES["tmx_filename"]["name"];
-   print "<hr/><b>Translating TMX file: </b> $tmx_filename <br/>";
-   print "<b>Context: </b> $context <br/>";
-   print "<b>Processed on: </b> " . `date` . "<br/>";
-
-   if ( is_uploaded_file($_FILES["tmx_filename"]["tmp_name"]) ) {
-      $tmp_file = $_FILES["tmx_filename"]["tmp_name"];
-      //print "<br/><b>TMX Upload OK.  Trace: </b> " . print_r($_FILES["tmx_filename"], true);
-      $tmx_contents = file_get_contents($tmp_file);
-      $tmx_contents_base64 = base64_encode($tmx_contents);
-      //print "<br/><b>file contents len: </b> " . strlen($tmx_contents) .
-      //      " <b>base64 len: </b> " . strlen($tmx_contents_base64);
-
-      try {
-         $client = new SoapClient($WSDL);
-
-         $ce_threshold += 0;
-         $reply = $client->translateTMXCE($tmx_contents_base64, $tmx_filename, $context, $ce_threshold);
-         print "<hr/><b>Portage replied: </b>$reply";
-         print "<br/><a href=\"$reply\">Monitor job interactively</a>";
-         $monitor_token=$reply;
-         //print "<br/><b>Trace: </b>"; var_dump($client);
-      } catch (SoapFault $exception) {  
-         print "<HR/><b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
-      }
-
-   } else {
-      print "<br/><b>TMX Upload error.  Trace: </b> " . print_r($_FILES["tmx_filename"], true);
-      $file_error_codes = array( 
-            0=>"There is no error, the file uploaded with success", 
-            1=>"The uploaded file exceeds the upload_max_filesize directive in php.ini", 
-            2=>"The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form",
-            3=>"The uploaded file was only partially uploaded", 
-            4=>"No file was uploaded", 
-            6=>"Missing a temporary folder",
-            7=>"Failed to write file to disk",
-            8=>"A PHP extension stopped the file upload",
-            );
-      print "<br/><b>Error code description: </b> {$file_error_codes[$_FILES["tmx_filename"]["error"]]}";
-   }
-
-
-   print "<hr/><b>Done processing on: </b>" . `date`;
+   processFile("tmx", $_FILES["tmx_filename"]);
+}
+else
+if ($button == "TranslateSDLXLIFF" && $_FILES["sdlxliff_filename"]["name"] != "") {
+   processFile("sdlxliff", $_FILES["sdlxliff_filename"]);
 }
 else
 if ( $button == "MonitorJob" && !empty($monitor_token) ) {
    try {
       $client = new SoapClient($WSDL);
+      # TODO: Monitor SDLXLIFF Status.
       $reply = $client->translateTMXCE_Status($monitor_token);
       print "<hr/><b>Job status: </b> $reply";
       if ( preg_match("/^0 Done: (\S*)/", $reply, $matches) )
-         print "<br/>Right click and save: <a href=\"$matches[1]\">Output TMX</a>";
+         print "<br/>Right click and save: <a href=\"$matches[1]\">Translated content</a>";
       print "<br/><a href=\"$monitor_token\">Switch to interactive job monitoring</a>";
-   } catch (SoapFault $exception) {  
+   } catch (SoapFault $exception) {
       print "<HR/><b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
    }
 }
@@ -290,19 +316,19 @@ Job Token:
 <table width="100%" cellspacing="0" cellpadding="0" border="0">
    <tr>
       <td width="20%" align="right" valign="bottom">
-	 <img alt="NRC-ICT" src="/images/sidenav_graphictop_e.gif" height="54" />
+	 <img alt="NRC-ICT" src="/images/iit_sidenav_graphictop_e.gif" height="54" />
       </td>
       <td width="60%" align="center" valign="bottom">
 	 <img width="286" alt="National Research Council Canada" src="/images/mainf1.gif" height="44" />
-      </td> 
+      </td>
       <td width="20%" align="left" valign="center">
 	 <img width="93" alt="Government of Canada" src="/images/mainWordmark.gif" height="44" />
       </td>
-   </tr> 
+   </tr>
    <tr>
       <td align="right" valign="top">
-	 <img alt="NRC-ICT" src="/images/sidenav_graphicbottom_e.gif" />
-      </td> 
+	 <img alt="NRC-ICT" src="/images/iit_sidenav_graphicbottom_e.gif" />
+      </td>
       <td align="center" valign="top">
 	 <small>Technologies langagi&egrave;res interactives / Interactive Language Technologies <br /> Technologies de l’information et des communications / Information and Communications Technologies <br /> Conseil national de recherches Canada / National Research Council Canada <br /> Copyright 2004&ndash;2012, Sa Majest&eacute; la Reine du Chef du Canada /  Her Majesty in Right of Canada <br /> <a href="/portage_notices.html">Third party Copyright notices</a>
 	 </small>

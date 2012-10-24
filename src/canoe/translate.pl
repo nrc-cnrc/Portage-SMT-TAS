@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# $Id$
+# $Id: translate.pl,v 1.30 2012/08/31 21:37:58 joanise Exp $
 # @file translate.pl
 # @brief Script to translate text.
 #
@@ -102,7 +102,7 @@ newline marks the end of a paragraph;
 
 =item -nl=s
 
-newline marks the end of a sentence [default with -notok or -tmx];
+newline marks the end of a sentence [default with -notok or -tmx or -sldxliff];
 
 =item -nl=w
 
@@ -189,6 +189,14 @@ Specify additional C<canoe-parallel.sh> options (valid when n > 1).
 Specify additional C<rat.sh> options (valid for -with-rescoring only).
 
 =back
+
+=head2 SDLXLIFF Specific Options
+
+=over 12
+
+=item -sdlxliff
+
+The input and output files are in sdlxliff format.
 
 =head2 TMX Specific Options
 
@@ -373,7 +381,10 @@ Getopt::Long::GetOptions(
    "xtra-decode-opts=s"  => \my $xtra_decode_opts,
    "xtra-cp-opts=s"      => \my $xtra_cp_opts,
    "xtra-rat-opts=s"     => \my $xtra_rat_opts,
-   
+
+   #SDLXLIFF specific options
+   "sdlxliff"       => \my $sdlxliff,
+
    #TMX specific options
    "tmx"            => \my $tmx,
    "xsrc=s"         => \my $xsrc,
@@ -391,6 +402,8 @@ $quiet = 0 unless defined $quiet;
 $debug = 0 unless defined $debug;
 $dryrun = 0 unless defined $dryrun;
 $timing = 0 unless defined $timing;
+
+die "You cannot specify both -tmx and -sdlxliff." if ($tmx and $sdlxliff);
 
 if ( !$quiet || $verbose ) {
    print STDERR "$saved_command_line\n\n";
@@ -461,13 +474,13 @@ $tok = 1 unless defined $tok;
 $lc = 1 unless defined $lc;
 $detok = 1 unless defined $detok;
 
-$nl = ($tmx || !$tok ? "s" : "w") unless defined $nl;
+$nl = (($tmx || $sdlxliff) || !$tok ? "s" : "w") unless defined $nl;
 $nl eq "w" or $nl eq "s" or $nl eq "p"
    or die "ERROR: -nl option must be one of: 's', 'p', 'w', or ''.\nStopped";
 #$tok or $nl eq "s"
 #   or die "ERROR: -notok requires -nl=s to be specified.\nStopped";
-!$tmx or $nl eq "s"
-   or die "ERROR: -tmx requires -nl=s.\nStopped";
+!($tmx or $sdlxliff) or $nl eq "s"
+   or die "ERROR: -tmx/-sdlxliff requires -nl=s.\nStopped";
 
 !defined $tc || !defined $tctp
    or die "ERROR: Specify only one of: -notc, -tc, -tctp.\nStopped";
@@ -573,9 +586,12 @@ if ($tmx) {
       $xtgt = "$tgt-CA";
       $xtgt =~ tr/a-z/A-Z/;
    }
-} else {
-   !defined $xsrc and !defined $xtgt and !defined $filter
-      or warn "Warning: ignoring -xsrc, -xtgt and -filter, which are meaningful only with -tmx.\n"
+}
+else {
+   unless ($sdlxliff) {
+      !defined $xsrc and !defined $xtgt and !defined $filter
+         or warn "Warning: ignoring -xsrc, -xtgt and -filter, which are meaningful only with -tmx.\n"
+   }
 }
 
 # CE specific options
@@ -589,7 +605,7 @@ if ($with_ce) {
 }
 
 @ARGV <= 1 or die "ERROR: Too many arguments.\nStopped";
-@ARGV > 0 or die "ERROR: Too few arguments. SRC_TEXT file required.\nStopped" if $tmx;
+@ARGV > 0 or die "ERROR: Too few arguments. SRC_TEXT file required.\nStopped" if ($tmx or $sdlxliff);
 my $input_text = @ARGV > 0 ? shift : "-";
 
 unless (defined $out) {
@@ -719,7 +735,12 @@ IN:{
    if ($tmx) {
       call("ce_tmx.pl -verbose=$verbose -src=$xsrc -tgt=$xtgt extract '$dir' '$input_text'");
       cleanupAndDie("TMX file $input_text has no TUs containing segments in language $xsrc.\n") unless -s $Q_txt;
-   } else {
+   }
+   elsif ($sdlxliff) {
+      call("ce_tmx.pl -verbose=$verbose extract '$dir' '$input_text'");
+      cleanupAndDie("TMX file $input_text has no TUs containing segments in language $xsrc.\n") unless -s $Q_txt;
+   }
+   else {
       copy($input_text, $Q_txt);
    }
 }
@@ -817,17 +838,23 @@ CE:{
 
 # Produce output
 OUT:{
-   unless ($tmx) {
+   if ($tmx) {
+      my $fopt = defined $filter ? "-filter=$filter" : "";
+      my $sopt = $with_ce ? "-score" : "-noscore";
+      call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} ${fopt} ${sopt} replace '$dir'");
+   }
+   elsif ($sdlxliff) {
+      my $fopt = defined $filter ? "-filter=$filter" : "";
+      my $sopt = $with_ce ? "-score" : "-noscore";
+      call("ce_tmx.pl -verbose=${verbose} ${fopt} ${sopt} replace '$dir'");
+   }
+   else {
       if ($with_ce) {
          my $ce_output = $out ne "-" ? "> '$out'" : "";
          call("paste ${dir}/pr.ce '${P_txt}' ${ce_output}");
       } else {
          copy($P_txt, $out);
       }
-   } else {
-      my $fopt = defined $filter ? "-filter=$filter" : "";
-      my $sopt = $with_ce ? "-score" : "-noscore";
-      call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} ${fopt} ${sopt} replace '$dir'");
    }
 }
 

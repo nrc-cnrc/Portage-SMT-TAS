@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id$
+# $Id: plive.cgi,v 1.22 2012/08/17 20:44:01 joanise Exp $
 # @file plive.cgi
 # @brief PORTAGE live CGI script
 #
@@ -215,6 +215,13 @@ sub printForm {
                 "-- Check this box if input file is TMX.")),
           Tr({valign=>'top'},
              td({align=>'right'}, 
+                checkbox(-name=>'sdlxliff',
+                         -checked=>0,
+                         -label=>'sdlxliff')),
+             td(strong("SDLXLIFF"), 
+                "-- Check this box if input file is SDLXLIFF.")),
+          Tr({valign=>'top'},
+             td({align=>'right'}, 
                 scrolling_list(-name=>'filter',
                                -default=>'no filtering',
                                -values=>[ 'no filtering', map(sprintf("%0.2f", $_), @filter_values) ],
@@ -293,9 +300,16 @@ sub processText {
     $ENV{LD_LIBRARY_PATH} = "$PORTAGE_MODEL_DIR/$context/lib:$ENV{LD_LIBRARY_PATH}";
 
     # Get some basic info on source text:
-    param('tmx') 
-        ? checkTMX("$work_dir/Q.in") 
-        : checkFile("$work_dir/Q.in", param('notok'), param('noss'));
+    if (param('tmx')) {
+       checkTMX("$work_dir/Q.in");
+    }
+    if (param('sdlxliff')) {
+       # TODO: write checkSDLXLIFF
+       #checkSDLXLIFF("$work_dir/Q.in");
+    }
+    else {
+       checkFile("$work_dir/Q.in", param('notok'), param('noss'));
+    }
     
     # Prepare the ground for translate.pl:
     my $outfilename = "PLive-${work_name}";
@@ -318,7 +332,11 @@ sub processText {
     }
     if (param('tmx')) {
         push @tr_opt, ("-tmx", "-nl=s");
-    } else {
+    }
+    elsif (param('sdlxliff')) {
+        push @tr_opt, ("-sdlxliff", "-nl=s");
+    }
+    else {
         push @tr_opt, param('notok') ? "-notok": "-tok";
         push @tr_opt, param('noss') ? "-nl=s" : "-nl=p";
     }
