@@ -1,0 +1,13 @@
+2.11 End-of-Line Handling
+
+XML parsed entities are often stored in computer files which, for editing
+convenience, are organized into lines. These lines are typically separated by
+some combination of the characters CARRIAGE RETURN (#xD) and LINE FEED (#xA).
+
+To simplify the tasks of applications, the XML processor must behave as if it
+normalized all line breaks in external parsed entities (including the document
+entity) on input, before parsing, by translating both the two-character
+sequence #xD #xA and any #xD that is not followed by #xA to a single #xA
+character.
+
+source: http://www.w3.org/TR/REC-xml/#sec-line-ends

@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff sdl:version="1.0" version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:sdl="http://sdl.com/FileTypes/SdlXliff/1.0">
+  <file datatype="x-sdlfilterframework2" original="" source-language="en-CA" target-language="fr-CA">
+    <header>
+      <file-info xmlns="http://sdl.com/FileTypes/SdlXliff/1.0">
+        <value key="SDL:FileId">98c788f1-54cf-47f4-84dc-4f28e9149242</value>
+        <value key="SDL:CreationDate">09/06/2012 13:11:49</value>
+        <value key="ParagraphTextDirections"></value>
+      </file-info>
+      <sdl:filetype-info>
+        <sdl:filetype-id></sdl:filetype-id>
+      </sdl:filetype-info>
+      <fmt-defs xmlns="http://sdl.com/FileTypes/SdlXliff/1.0">
+        <fmt-def id="1">
+          <value key="Bold">True</value>
+        </fmt-def>
+        <fmt-def id="2">
+          <value key="Italic">True</value>
+        </fmt-def>
+        <fmt-def id="3">
+          <value key="Underline">True</value>
+        </fmt-def>
+        <fmt-def id="4">
+          <value key="TextColor">0, 176, 80</value>
+        </fmt-def>
+        <fmt-def id="5">
+          <value key="BackgroundColor">Yellow</value>
+        </fmt-def>
+        <fmt-def id="6">
+          <value key="FontName">Arial</value>
+        </fmt-def>
+      </fmt-defs>
+      <tag-defs xmlns="http://sdl.com/FileTypes/SdlXliff/1.0">
+        <tag id="1">
+          <bpt can-hide="true" name="cf" word-end="false">&lt;cf bold="True"&gt;</bpt>
+          <bpt-props>
+            <value key="privateuseareachar">false</value>
+            <value key="property">&lt;w:rPr&gt;
+  &lt;w:b /&gt;
+&lt;/w:rPr&gt;</value>
+          </bpt-props>
+          <ept can-hide="true" name="cf" word-end="false">&lt;/cf&gt;</ept>
+          <fmt id="1"/>
+        </tag>
+        <tag id="2">
+          <bpt can-hide="true" name="cf" word-end="false">&lt;cf italic="True"&gt;</bpt>
+          <bpt-props>
+            <value key="privateuseareachar">false</value>
+            <value key="property">&lt;w:rPr&gt;
+  &lt;w:i /&gt;
+&lt;/w:rPr&gt;</value>
+          </bpt-props>
+          <ept can-hide="true" name="cf" word-end="false">&lt;/cf&gt;</ept>
+          <fmt id="2"/>
+        </tag>
+        <tag id="3">
+          <bpt can-hide="true" name="cf" word-end="false">&lt;cf underline="single"&gt;</bpt>
+          <bpt-props>
+            <value key="privateuseareachar">false</value>
+            <value key="property">&lt;w:rPr&gt;
+  &lt;w:u w:val="single" /&gt;
+&lt;/w:rPr&gt;</value>
+          </bpt-props>
+          <ept can-hide="true" name="cf" word-end="false">&lt;/cf&gt;</ept>
+          <fmt id="3"/>
+        </tag>
+        <tag id="4">
+          <bpt can-hide="true" name="cf" word-end="false">&lt;cf color="00B050"&gt;</bpt>
+          <bpt-props>
+            <value key="privateuseareachar">false</value>
+            <value key="property">&lt;w:rPr&gt;
+  &lt;w:color w:val="00B050" /&gt;
+&lt;/w:rPr&gt;</value>
+          </bpt-props>
+          <ept can-hide="true" name="cf" word-end="false">&lt;/cf&gt;</ept>
+          <fmt id="4"/>
+        </tag>
+        <tag id="5">
+          <bpt can-hide="true" name="cf" word-end="false">&lt;cf highlight="yellow"&gt;</bpt>
+          <bpt-props>
+            <value key="privateuseareachar">false</value>
+            <value key="property">&lt;w:rPr&gt;
+  &lt;w:highlight w:val="yellow" /&gt;
+&lt;/w:rPr&gt;</value>
+          </bpt-props>
+          <ept can-hide="true" name="cf" word-end="false">&lt;/cf&gt;</ept>
+          <fmt id="5"/>
+        </tag>
+        <tag id="6">
+          <bpt can-hide="true" name="cf" word-end="false">&lt;cf font="Arial"&gt;</bpt>
+          <bpt-props>
+            <value key="privateuseareachar">false</value>
+            <value key="property">&lt;w:rPr&gt;
+  &lt;w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial" /&gt;
+  &lt;w:lang w:bidi="he-IL" /&gt;
+&lt;/w:rPr&gt;</value>
+          </bpt-props>
+          <ept can-hide="true" name="cf" word-end="false">&lt;/cf&gt;</ept>
+          <fmt id="6"/>
+        </tag>
+      </tag-defs>
+    </header>
+    <body>
+      <trans-unit id="ff6a7e55-a694-491c-960e-a90ea1d7f9ec">
+        <source>This is a test for 12,456 units.</source>
+        <seg-source>
+          <mrk mid="1" mtype="seg">This is a test for 12,456 units.</mrk>
+        </seg-source>
+        <sdl:seg-defs>
+          <sdl:seg id="1"/>
+        </sdl:seg-defs>
+      </trans-unit>
+      <trans-unit id="84a1a182-45c0-4baa-9cb2-6f33050c992c">
+        <source>We will be conducting a trial for the vice president.</source>
+        <seg-source>
+          <mrk mid="2" mtype="seg">We will be conducting a trial for the vice president.</mrk>
+        </seg-source>
+        <sdl:seg-defs>
+          <sdl:seg id="2"/>
+        </sdl:seg-defs>
+      </trans-unit>
+      <trans-unit id="35d39360-3f09-45b8-8a85-9afb5e62691b">
+        <source>This is a test for $12,456.</source>
+        <seg-source>
+          <mrk mid="3" mtype="seg">This is a test for $12,456.</mrk>
+        </seg-source>
+        <sdl:seg-defs>
+          <sdl:seg id="3"/>
+        </sdl:seg-defs>
+      </trans-unit>
+      <trans-unit id="4ccfb91b-eb26-4efd-8384-b1c137581377">
+        <source>This is a test for a part number A-2.</source>
+        <seg-source>
+          <mrk mid="4" mtype="seg">This is a test for a part number A-2.</mrk>
+        </seg-source>
+        <sdl:seg-defs>
+          <sdl:seg id="4"/>
+        </sdl:seg-defs>
+      </trans-unit>
+      <trans-unit id="4f3df57c-061c-4d8c-9123-054721321438">
+        <source>This is a test for 12 V.</source>
+        <seg-source>
+          <mrk mid="5" mtype="seg">This is a test for 12 V.</mrk>
+        </seg-source>
+        <sdl:seg-defs>
+          <sdl:seg id="5"/>
+        </sdl:seg-defs>
+      </trans-unit>
+      <trans-unit id="7915403a-80a7-4b07-913f-a3e804be4480">
+        <source>This is a test for "12,456 units".</source>
+        <seg-source>
+          <mrk mid="6" mtype="seg">This is a test for "12,456 units".</mrk>
+        </seg-source>
+        <sdl:seg-defs>
+          <sdl:seg id="6"/>
+        </sdl:seg-defs>
+      </trans-unit>
+      <trans-unit id="0758a166-3ccb-471b-9e17-ce570ad5c3e2">
+        <source>This is a test for a list:.</source>
+        <seg-source>
+          <mrk mid="7" mtype="seg">This is a test for a list:.</mrk>
+        </seg-source>
+        <sdl:seg-defs>
+          <sdl:seg id="7"/>
+        </sdl:seg-defs>
+      </trans-unit>
+      <trans-unit id="f74cc19a-fb34-455b-8a20-1afa4935cf4f">
+        <source>It is supplied in 200mL vials.</source>
+        <seg-source>
+          <mrk mid="8" mtype="seg">It is supplied in 200mL vials.</mrk>
+        </seg-source>
+        <sdl:seg-defs>
+          <sdl:seg id="8"/>
+        </sdl:seg-defs>
+      </trans-unit>
+      <trans-unit id="17d782d8-73f0-4c94-8aed-58100e1cb8dc">
+        <source>This is to advise the vice-president of the situation.</source>
+        <seg-source>
+          <mrk mid="9" mtype="seg">This is to advise the vice-president of the situation.</mrk>
+        </seg-source>
+        <sdl:seg-defs>
+          <sdl:seg id="9"/>
+        </sdl:seg-defs>
+      </trans-unit>
+      <trans-unit id="79b5187e-1801-4d15-bedb-01606588b59f">
+        <source>This is a <g id="1">test</g> for 12,456 units.</source>
+        <seg-source>
+          <mrk mid="10" mtype="seg">This is a <g id="1">test</g> for 12,456 units.</mrk>
+        </seg-source>
+        <sdl:seg-defs>
+          <sdl:seg id="10"/>
+        </sdl:seg-defs>
+      </trans-unit>
+      <trans-unit id="0c2c97fc-2ac7-4b2d-95ec-531a4815734e">
+        <source>We will be conducting a <g id="2">trial</g> for the vice president.</source>
+        <seg-source>
+          <mrk mid="11" mtype="seg">We will be conducting a <g id="2">trial</g> for the vice president.</mrk>
+        </seg-source>
+        <sdl:seg-defs>
+          <sdl:seg id="11"/>
+        </sdl:seg-defs>
+      </trans-unit>
+      <trans-unit id="687cb49c-f6cc-4b49-8f86-0e6652e1bc0b">
+        <source>This is a <g id="3">test</g> for $12,456.</source>
+        <seg-source>
+          <mrk mid="12" mtype="seg">This is a <g id="3">test</g> for $12,456.</mrk>
+        </seg-source>
+        <sdl:seg-defs>
+          <sdl:seg id="12"/>
+        </sdl:seg-defs>
+      </trans-unit>
+      <trans-unit id="0232ee4a-e47e-4efe-aa27-3ef425ba7beb">
+        <source>This is a test for a part number <g id="4">A-2</g>.</source>
+        <seg-source>
+          <mrk mid="13" mtype="seg">This is a test for a part number <g id="4">A-2</g>.</mrk>
+        </seg-source>
+        <sdl:seg-defs>
+          <sdl:seg id="13"/>
+        </sdl:seg-defs>
+      </trans-unit>
+      <trans-unit id="8da1bafc-5255-4717-86e8-5d5891b12522">
+        <source>This is a test for <g id="5">12 V</g>.</source>
+        <seg-source>
+          <mrk mid="14" mtype="seg">This is a test for <g id="5">12 V</g>.</mrk>
+        </seg-source>
+        <sdl:seg-defs>
+          <sdl:seg id="14"/>
+        </sdl:seg-defs>
+      </trans-unit>
+      <trans-unit id="43b985a1-de38-45af-bf2c-d5779e506a4b">
+        <source>This is to advise the vice<g id="6">­</g>president of the situation.</source>
+        <seg-source>
+          <mrk mid="15" mtype="seg">This is to advise the vice<g id="6">­</g>president of the situation.</mrk>
+        </seg-source>
+        <sdl:seg-defs>
+          <sdl:seg id="15"/>
+        </sdl:seg-defs>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

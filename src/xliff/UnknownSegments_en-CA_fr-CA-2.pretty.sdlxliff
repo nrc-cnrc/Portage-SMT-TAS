@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff sdl:version="1.0" version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:sdl="http://sdl.com/FileTypes/SdlXliff/1.0">
+  <file datatype="x-sdlfilterframework2" original="" source-language="en-CA" target-language="fr-CA">
+    <header>
+      <file-info xmlns="http://sdl.com/FileTypes/SdlXliff/1.0">
+        <value key="SDL:FileId">761a3c9c-ca69-4b6f-bda8-473bfc8b15be</value>
+        <value key="SDL:CreationDate">09/06/2012 13:01:05</value>
+        <value key="ParagraphTextDirections"></value>
+      </file-info>
+      <sdl:filetype-info>
+        <sdl:filetype-id></sdl:filetype-id>
+      </sdl:filetype-info>
+    </header>
+    <body>
+      <trans-unit id="2a11a9d4-619e-40a4-a4c8-d74d3c82fc38">
+        <source>This is a test for 12,456 units.</source>
+        <seg-source>
+          <mrk mid="1" mtype="seg">This is a test for 12,456 units.</mrk>
+        </seg-source>
+        <sdl:seg-defs>
+          <sdl:seg id="1"/>
+        </sdl:seg-defs>
+      </trans-unit>
+      <trans-unit id="fae1621a-8acc-4500-a784-2d707363d30c">
+        <source>We will be conducting a trial for the vice president.</source>
+        <seg-source>
+          <mrk mid="2" mtype="seg">We will be conducting a trial for the vice president.</mrk>
+        </seg-source>
+        <sdl:seg-defs>
+          <sdl:seg id="2"/>
+        </sdl:seg-defs>
+      </trans-unit>
+      <trans-unit id="a274210a-67ca-4dbe-a0c8-14136cfa6e3c">
+        <source>This is a test for $12,456.</source>
+        <seg-source>
+          <mrk mid="3" mtype="seg">This is a test for $12,456.</mrk>
+        </seg-source>
+        <sdl:seg-defs>
+          <sdl:seg id="3"/>
+        </sdl:seg-defs>
+      </trans-unit>
+      <trans-unit id="de55bf26-3f86-4933-a1a0-9197adedf77f">
+        <source>This is a test for a part number A-2.</source>
+        <seg-source>
+          <mrk mid="4" mtype="seg">This is a test for a part number A-2.</mrk>
+        </seg-source>
+        <sdl:seg-defs>
+          <sdl:seg id="4"/>
+        </sdl:seg-defs>
+      </trans-unit>
+      <trans-unit id="421c77c4-6d2b-4b49-8cc7-566297b78bd1">
+        <source>This is a test for 12 V.</source>
+        <seg-source>
+          <mrk mid="5" mtype="seg">This is a test for 12 V.</mrk>
+        </seg-source>
+        <sdl:seg-defs>
+          <sdl:seg id="5"/>
+        </sdl:seg-defs>
+      </trans-unit>
+      <trans-unit id="0a9d2cd2-fd22-4566-98cf-ce5d902a40f5">
+        <source>This is a test for "12,456 units".</source>
+        <seg-source>
+          <mrk mid="6" mtype="seg">This is a test for "12,456 units".</mrk>
+        </seg-source>
+        <sdl:seg-defs>
+          <sdl:seg id="6"/>
+        </sdl:seg-defs>
+      </trans-unit>
+      <trans-unit id="bc380263-5656-4a1f-99fe-42f97c42668e">
+        <source>This is a test for a list:.</source>
+        <seg-source>
+          <mrk mid="7" mtype="seg">This is a test for a list:.</mrk>
+        </seg-source>
+        <sdl:seg-defs>
+          <sdl:seg id="7"/>
+        </sdl:seg-defs>
+      </trans-unit>
+      <trans-unit id="5dc55b49-1c80-4a56-bebb-b76ee54c1c2e">
+        <source>It is supplied in 200mL vials.</source>
+        <seg-source>
+          <mrk mid="8" mtype="seg">It is supplied in 200mL vials.</mrk>
+        </seg-source>
+        <sdl:seg-defs>
+          <sdl:seg id="8"/>
+        </sdl:seg-defs>
+      </trans-unit>
+      <trans-unit id="2b9bfc85-6344-4477-8d4a-ca1113ee96e1">
+        <source>This is to advise the vice-president of the situation.</source>
+        <seg-source>
+          <mrk mid="9" mtype="seg">This is to advise the vice-president of the situation.</mrk>
+        </seg-source>
+        <sdl:seg-defs>
+          <sdl:seg id="9"/>
+        </sdl:seg-defs>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

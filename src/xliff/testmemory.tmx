@@ -1,0 +1,223 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<tmx version="1.4">
+  <header creationtool="SDL Language Platform" creationtoolversion="8.0" o-tmf="SDL TM8 Format" datatype="xml" segtype="sentence" adminlang="en-CA" srclang="en-CA" creationdate="20120906T183820Z" creationid="LEXITECH\lacomeau">
+    <prop type="x-CE:MultipleString"></prop>
+    <prop type="x-Recognizers">RecognizeDates, RecognizeTimes</prop>
+    <prop type="x-TMName">Test-Portage</prop>
+  </header>
+  <body>
+    <tu creationdate="20120907T171425Z" creationid="LEXITECH\lacomeau" changedate="20120907T171425Z" changeid="LEXITECH\lacomeau" lastusagedate="20120907T175924Z" usagecount="2">
+      <prop type="x-Context">-1322326133009045126, -259178015621700202</prop>
+      <prop type="x-Context">0, 0</prop>
+      <prop type="x-Origin">TM</prop>
+      <prop type="x-ConfirmationLevel">Translated</prop>
+      <tuv xml:lang="en-CA">
+        <seg>This is a test for 12 V.</seg>
+      </tuv>
+      <tuv xml:lang="fr-CA">
+        <seg>Ceci est un test de 12 V.</seg>
+      </tuv>
+    </tu>
+    <tu creationdate="20120907T171426Z" creationid="LEXITECH\lacomeau" changedate="20120907T171426Z" changeid="LEXITECH\lacomeau" lastusagedate="20120907T175935Z" usagecount="5">
+      <prop type="x-Context">-1012675330508066149, 5390217813614417199</prop>
+      <prop type="x-Context">6512951918719258191, 5390217813614417199</prop>
+      <prop type="x-Origin">TM</prop>
+      <prop type="x-ConfirmationLevel">Translated</prop>
+      <tuv xml:lang="en-CA">
+        <seg>This is a test for "12,456 units".</seg>
+      </tuv>
+      <tuv xml:lang="fr-CA">
+        <seg>Ceci est un test pour 12,456 unités.</seg>
+      </tuv>
+    </tu>
+    <tu creationdate="20120907T171427Z" creationid="LEXITECH\lacomeau" changedate="20120907T171427Z" changeid="LEXITECH\lacomeau" lastusagedate="20120907T175936Z" usagecount="5">
+      <prop type="x-Context">-5205243567407782600, -1618069909316333213</prop>
+      <prop type="x-Origin">TM</prop>
+      <prop type="x-ConfirmationLevel">Translated</prop>
+      <tuv xml:lang="en-CA">
+        <seg>This is a test for a list:.</seg>
+      </tuv>
+      <tuv xml:lang="fr-CA">
+        <seg>Ceci est un test pour obtenir une liste :.</seg>
+      </tuv>
+    </tu>
+    <tu creationdate="20120907T171428Z" creationid="LEXITECH\lacomeau" changedate="20120907T171428Z" changeid="LEXITECH\lacomeau" lastusagedate="20120907T175929Z" usagecount="2">
+      <prop type="x-Context">3222913555122473452, -8910893512331008330</prop>
+      <prop type="x-Origin">TM</prop>
+      <prop type="x-ConfirmationLevel">Translated</prop>
+      <tuv xml:lang="en-CA">
+        <seg>This is to advise the vice-president of the situation.</seg>
+      </tuv>
+      <tuv xml:lang="fr-CA">
+        <seg>La présente a pour but de conseiller le vice-président de la situation.</seg>
+      </tuv>
+    </tu>
+    <tu creationdate="20120907T171420Z" creationid="LEXITECH\lacomeau" changedate="20120907T171430Z" changeid="LEXITECH\lacomeau" lastusagedate="20120907T175930Z" usagecount="2">
+      <prop type="x-Context">0, 0</prop>
+      <prop type="x-Context">1148891824424177109, -7624160093714354189</prop>
+      <prop type="x-Origin">TM</prop>
+      <prop type="x-ConfirmationLevel">Translated</prop>
+      <tuv xml:lang="en-CA">
+        <seg>This is a <bpt i="1" type="1" x="1" />test<ept i="1" /> for 12,456 units.</seg>
+      </tuv>
+      <tuv xml:lang="fr-CA">
+        <seg>Ceci est un <bpt i="1" type="1" x="1" />test<ept i="1" /> pour 12,456 unités.</seg>
+      </tuv>
+    </tu>
+    <tu creationdate="20120907T171422Z" creationid="LEXITECH\lacomeau" changedate="20120907T171431Z" changeid="LEXITECH\lacomeau" lastusagedate="20120907T175931Z" usagecount="2">
+      <prop type="x-Context">-5205243567407782600, -1618069909316333213</prop>
+      <prop type="x-Origin">TM</prop>
+      <prop type="x-ConfirmationLevel">Translated</prop>
+      <tuv xml:lang="en-CA">
+        <seg>We will be conducting a <bpt i="1" type="2" x="1" />trial<ept i="1" /> for the vice president.</seg>
+      </tuv>
+      <tuv xml:lang="fr-CA">
+        <seg>Nous participerons à un <bpt i="1" type="2" x="1" />essai<ept i="1" /> auprès du vice-président.</seg>
+      </tuv>
+    </tu>
+    <tu creationdate="20120907T171423Z" creationid="LEXITECH\lacomeau" changedate="20120907T171433Z" changeid="LEXITECH\lacomeau" lastusagedate="20120907T175932Z" usagecount="2">
+      <prop type="x-Context">6368196176112874080, 6317407329431778324</prop>
+      <prop type="x-Origin">TM</prop>
+      <prop type="x-ConfirmationLevel">Translated</prop>
+      <tuv xml:lang="en-CA">
+        <seg>This is a <bpt i="1" type="3" x="1" />test<ept i="1" /> for $12,456.</seg>
+      </tuv>
+      <tuv xml:lang="fr-CA">
+        <seg>Ceci est un <bpt i="1" type="3" x="1" />test<ept i="1" /> pour 12,456 $.</seg>
+      </tuv>
+    </tu>
+    <tu creationdate="20120907T171436Z" creationid="LEXITECH\lacomeau" changedate="20120907T171436Z" changeid="LEXITECH\lacomeau" lastusagedate="20120907T175934Z" usagecount="3">
+      <prop type="x-Context">-1322326133009045126, -7744091966898253685</prop>
+      <prop type="x-Context">-1322326133009045126, -259178015621577194</prop>
+      <prop type="x-Origin">TM</prop>
+      <prop type="x-ConfirmationLevel">Translated</prop>
+      <tuv xml:lang="en-CA">
+        <seg>This is a test for <bpt i="1" type="5" x="1" />12 V<ept i="1" />.</seg>
+      </tuv>
+      <tuv xml:lang="fr-CA">
+        <seg>Ceci est un test de <bpt i="1" type="5" x="1" />12 V.<ept i="1" /></seg>
+      </tuv>
+    </tu>
+    <tu creationdate="20120907T171424Z" creationid="LEXITECH\lacomeau" changedate="20120907T171442Z" changeid="LEXITECH\lacomeau" lastusagedate="20120907T175933Z" usagecount="2">
+      <prop type="x-Context">4496442927616393920, 2525436674261664095</prop>
+      <prop type="x-Origin">TM</prop>
+      <prop type="x-ConfirmationLevel">Translated</prop>
+      <tuv xml:lang="en-CA">
+        <seg>This is a test for a part number <bpt i="1" type="4" x="1" />A-2<ept i="1" />.</seg>
+      </tuv>
+      <tuv xml:lang="fr-CA">
+        <seg>Il s'agit d'un examen pour en obtenir une partie nombre <bpt i="1" type="4" x="1" />A­2<ept i="1" />.</seg>
+      </tuv>
+    </tu>
+    <tu creationdate="20120907T171427Z" creationid="LEXITECH\lacomeau" changedate="20120907T171450Z" changeid="LEXITECH\lacomeau" lastusagedate="20120907T175937Z" usagecount="4">
+      <prop type="x-Context">5500552946372689041, 2996177065826662137</prop>
+      <prop type="x-Origin">TM</prop>
+      <prop type="x-ConfirmationLevel">Translated</prop>
+      <tuv xml:lang="en-CA">
+        <seg>It is supplied in 200mL vials.</seg>
+      </tuv>
+      <tuv xml:lang="fr-CA">
+        <seg>Il est présenté en flacons de 200 mL prêts.</seg>
+      </tuv>
+    </tu>
+    <tu creationdate="20120907T171451Z" creationid="LEXITECH\lacomeau" changedate="20120907T171451Z" changeid="LEXITECH\lacomeau" lastusagedate="20120907T175938Z" usagecount="2">
+      <prop type="x-Context">3222913555122473452, -8910893512331008330</prop>
+      <prop type="x-Origin">TM</prop>
+      <prop type="x-ConfirmationLevel">Translated</prop>
+      <tuv xml:lang="en-CA">
+        <seg>This is to advise the vice<bpt i="1" type="6" />­<ept i="1" />president of the situation.</seg>
+      </tuv>
+      <tuv xml:lang="fr-CA">
+        <seg>La présente a pour but de conseiller le vice­président de la situation.</seg>
+      </tuv>
+    </tu>
+    <tu creationdate="20120907T175948Z" creationid="LEXITECH\lacomeau" changedate="20120907T175948Z" changeid="LEXITECH\lacomeau" lastusagedate="20120907T175948Z">
+      <prop type="x-Context">5605700325348885692, 8317117611019784307</prop>
+      <prop type="x-Origin">TM</prop>
+      <prop type="x-ConfirmationLevel">Translated</prop>
+      <tuv xml:lang="en-CA">
+        <seg>Non breaking space</seg>
+      </tuv>
+      <tuv xml:lang="fr-CA">
+        <seg>Non breaking space</seg>
+      </tuv>
+    </tu>
+    <tu creationdate="20120907T175950Z" creationid="LEXITECH\lacomeau" changedate="20120907T175950Z" changeid="LEXITECH\lacomeau" lastusagedate="20120907T175950Z">
+      <prop type="x-Context">5306915564153842997, 6322248484830588580</prop>
+      <prop type="x-Origin">TM</prop>
+      <prop type="x-ConfirmationLevel">Translated</prop>
+      <tuv xml:lang="en-CA">
+        <seg>Optional<ph x="1" type="7" />hyphen</seg>
+      </tuv>
+      <tuv xml:lang="fr-CA">
+        <seg>Optional<ph x="1" type="7" />hyphen</seg>
+      </tuv>
+    </tu>
+    <tu creationdate="20120907T175952Z" creationid="LEXITECH\lacomeau" changedate="20120907T175952Z" changeid="LEXITECH\lacomeau" lastusagedate="20120907T175952Z">
+      <prop type="x-Context">1711367615824193203, 2864056246899555690</prop>
+      <prop type="x-Origin">TM</prop>
+      <prop type="x-ConfirmationLevel">Translated</prop>
+      <tuv xml:lang="en-CA">
+        <seg>em—dash</seg>
+      </tuv>
+      <tuv xml:lang="fr-CA">
+        <seg>em—dash</seg>
+      </tuv>
+    </tu>
+    <tu creationdate="20120907T175954Z" creationid="LEXITECH\lacomeau" changedate="20120907T175954Z" changeid="LEXITECH\lacomeau" lastusagedate="20120907T175954Z">
+      <prop type="x-Context">108869198512826, 108869198512826</prop>
+      <prop type="x-Origin">TM</prop>
+      <prop type="x-ConfirmationLevel">Translated</prop>
+      <tuv xml:lang="en-CA">
+        <seg>en–dash</seg>
+      </tuv>
+      <tuv xml:lang="fr-CA">
+        <seg>en–dash</seg>
+      </tuv>
+    </tu>
+    <tu creationdate="20120907T180001Z" creationid="LEXITECH\lacomeau" changedate="20120907T180001Z" changeid="LEXITECH\lacomeau" lastusagedate="20120907T180001Z">
+      <prop type="x-Context">108870057387356, 108870057387356</prop>
+      <prop type="x-Origin">TM</prop>
+      <prop type="x-ConfirmationLevel">Translated</prop>
+      <tuv xml:lang="en-CA">
+        <seg>non<ph x="1" type="8" />breaking hyphen</seg>
+      </tuv>
+      <tuv xml:lang="fr-CA">
+        <seg>non<ph x="1" type="8" />breaking hyphen</seg>
+      </tuv>
+    </tu>
+    <tu creationdate="20120907T180003Z" creationid="LEXITECH\lacomeau" changedate="20120907T180003Z" changeid="LEXITECH\lacomeau" lastusagedate="20120907T180003Z">
+      <prop type="x-Context">5306915564143966955, -6924481790547698468</prop>
+      <prop type="x-Origin">TM</prop>
+      <prop type="x-ConfirmationLevel">Translated</prop>
+      <tuv xml:lang="en-CA">
+        <seg>em space</seg>
+      </tuv>
+      <tuv xml:lang="fr-CA">
+        <seg>em space</seg>
+      </tuv>
+    </tu>
+    <tu creationdate="20120907T180004Z" creationid="LEXITECH\lacomeau" changedate="20120907T180004Z" changeid="LEXITECH\lacomeau" lastusagedate="20120907T180004Z">
+      <prop type="x-Context">108637660221765, 3367767466874126</prop>
+      <prop type="x-Origin">TM</prop>
+      <prop type="x-ConfirmationLevel">Translated</prop>
+      <tuv xml:lang="en-CA">
+        <seg>en space</seg>
+      </tuv>
+      <tuv xml:lang="fr-CA">
+        <seg>en space</seg>
+      </tuv>
+    </tu>
+    <tu creationdate="20120907T180006Z" creationid="LEXITECH\lacomeau" changedate="20120907T180006Z" changeid="LEXITECH\lacomeau" lastusagedate="20120907T180006Z">
+      <prop type="x-Context">108638547725446, 3367794979488237</prop>
+      <prop type="x-Origin">TM</prop>
+      <prop type="x-ConfirmationLevel">Translated</prop>
+      <tuv xml:lang="en-CA">
+        <seg>¼ em space</seg>
+      </tuv>
+      <tuv xml:lang="fr-CA">
+        <seg>¼ em space</seg>
+      </tuv>
+    </tu>
+  </body>
+</tmx>
