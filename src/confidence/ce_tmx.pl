@@ -66,6 +66,10 @@ language TUs (default is to delete it)
 In 'replace' mode, do/don't insert confidence scores inside TUV's,
 using TMX PROP elements of type Txt::CE. (default is -score)
 
+=item -pretty_print
+
+Indents the xml format to be more human readable. (default is not indented)
+
 =item -verbose=1
 
 Be verbose
@@ -123,6 +127,8 @@ binmode(STDIN, ":encoding(UTF-8)");
 binmode(STDOUT, ":encoding(UTF-8)");
 binmode(STDERR, ":encoding(UTF-8)");
 
+my $score = 0;
+my $pretty_print = 'none';
 use Getopt::Long;
 Getopt::Long::GetOptions(
    help           => sub { displayHelp(); exit 0 },
@@ -133,8 +139,8 @@ Getopt::Long::GetOptions(
    "tgt=s"        => \my $tgt,
    "filter=s"     => \my $filter,
    keeptags       => \my $keeptags,
-   score          => \my $score,
-   noscore        => \my $noscore,
+   'score!'       => \$score,
+   'pp|pretty_print' => sub { $pretty_print = 'indented' },
 ) or do { displayHelp(); exit 1 };
 
 $|=1;
@@ -148,16 +154,12 @@ my $DEFAULT_TGT="FR-CA";
 $verbose = 0 unless defined $verbose;
 $Verbose = 0 unless defined $Verbose;
 $debug = 0 unless defined $debug;
+$pretty_print = 'indented' if ($debug);
 
 $keeptags = 0 unless defined $keeptags;
 $filter = undef unless defined $filter;
 $src = $DEFAULT_SRC unless defined $src;
 $tgt = $DEFAULT_TGT unless defined $tgt;
-die "Only one of -score and -noscore can be specified"
-    if (defined($score) and defined($noscore));
-$score = (defined($score) ? $score :
-          defined($noscore) ? not $noscore :
-          1);
 
 my $action = shift or die "Missing argument: action";
 
@@ -219,6 +221,7 @@ sub processFile {
    my %args = @_;
 
    my $parser = XML::Twig->new(
+         pretty_print => $pretty_print,
          start_tag_handlers => { xliff => \&processXLIFF, tmx => \&processTMX },
          );
 
@@ -274,6 +277,7 @@ sub processXLIFF {
             tag => \&processTag,
             x   => \&processX,
             g   => \&processG,
+            'seg-source//mrk[@mtype="seg"]' => sub { my( $t, $elt)= @_; print STDERR "\ttest MRK", $elt->{att}->{mid}, "\n"; },
             } );
    }
    elsif ($parser->{action} eq 'replace') {
@@ -286,7 +290,6 @@ sub processXLIFF {
       die "Invalid action.\n";
    }
    # Create a template for sdlxliff
-   verbose("About to copy\n");
    copy($parser->{xml_in}, $parser->{template_name}) if($parser->{action} eq 'extract');
 
    $parser->{InputFormat} = 'sdlxliff';
@@ -326,13 +329,13 @@ sub xmlFlush {
     my ($parser) = @_;
     if ($parser->{InputFormat} eq 'sdlxliff') {
        $parser->{action} eq 'replace'
-          ? $parser->flush($parser->{template}, pretty_print=>'indented')
+          ? $parser->flush($parser->{template})
           : $parser->purge();
     }
     elsif ($parser->{InputFormat} eq 'tmx') {
        $parser->{action} eq 'check'
           ? $parser->purge()
-          : $parser->flush($parser->{template}, pretty_print=>'indented');
+          : $parser->flush($parser->{template});
     }
     else {
        die "xmlFlush on a undefined format!";
@@ -343,7 +346,7 @@ sub xmlFlush {
 sub processTag {
    my ($parser, $tag) = @_;
    my $tag_id = $tag->{att}{id};
-   verbose("found tag id=$tag_id\n");
+   debug("processing tag id=$tag_id\n");
    #debug($tag->xml_string, "\n");
 
    if ($tag->get_xpath('ph[@word-end="false" and string()=~/softbreakhyphen/]')) {
@@ -380,7 +383,7 @@ sub processTransUnit {
    die "No source for $trans_unit_id.\n" unless ($source);
 
    my $mrk_id = 0;
-   my @mrks = $source->children('mrk[@mtype="seg"]') or die;
+   my @mrks = $source->descendants('mrk[@mtype="seg"]') or die "Can't find any mrk for $trans_unit_id\n\tcontent:", $source->xml_string, "\n";
    foreach my $mrk (@mrks) {
       my $src_sub = $mrk->xml_string();
       my $id =  "$trans_unit_id.".(defined($mrk->{att}{mid}) ? $mrk->{att}{mid} : $mrk_id++);
@@ -410,14 +413,13 @@ sub processTransUnitReplace {
    die "No source for $trans_unit_id.\n" unless ($source);
 
    my $mrk_id = 0;  # Fallback id.
-   my @mrks = $source->children('mrk[@mtype="seg"]') or die "Can't find any segments";
+   my @mrks = $source->descendants('mrk[@mtype="seg"]') or die "Can't find any mrk for $trans_unit_id\n\tcontent:", $source->xml_string, "\n";
    foreach my $smrk (@mrks) {
       my $mrk = $smrk->copy();
       my $src_sub = $mrk->xml_string();
       my $mid = (defined($mrk->{att}{mid}) ? $mrk->{att}{mid} : $mrk_id++);
       my $xid  = "$trans_unit_id.$mid";
-      my $out = ixGetSegment($parser->{ix}, $xid);
-      $parser->{seg_id} = $out;
+      my $out = getTranslatedText($parser, $xid);
       $mrk->set_text($out);  # for debugging
       ++$parser->{seg_count};
       my $alt_trans = $mrk->wrap_in('target', 'alt-trans' => {'tool-id' => $parser->{'tool-id'}, mid => $mid});
@@ -466,8 +468,9 @@ sub processX {
 sub processG {
    my ($parser, $g) = @_;
    my $text = join(" ", map(normalize($_->text(no_recurse=>1)), $g));
-   debug("G: $text\n");
-   $g->set_text($text);
+   debug("G id=" . $g->{att}{id} . ":  $text\n" . $g->xml_string . "\n");
+   #$g->set_text($text);
+   # Erase the element: the element is deleted and all of its children are pasted in its place.
    $g->erase();
 }
 
@@ -631,7 +634,7 @@ sub processText {
    elsif ($parser->{action} eq 'replace') {
       $out = ixGetSegment($parser->{ix}, $in);
       $parser->{seg_id} = $in;# Ugly side-effect
-         warn("Can't find ID $in in index") unless $out;
+      warn("Can't find ID $in in index") unless $out;
    }
 
    return $out;
