@@ -52,6 +52,7 @@ LANG=en_US.ISO-8859-1
 
 echo -n "Training a more complexe decoder model "
 cow.sh                                 \\
+  -I-really-mean-cow                   \\
   -v                                   \\
   -e                                   \\
   -filt                                \\

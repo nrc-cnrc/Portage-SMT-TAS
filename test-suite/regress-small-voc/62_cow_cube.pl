@@ -49,6 +49,7 @@ test -d workdir ||  mkdir workdir;
 
 echo -n "$me Training decoder model with cube pruning "
 cow.sh                                 \\
+  -I-really-mean-cow                   \\
   -e                                   \\
   -v -filt -floor 2                    \\
   -mad 1                               \\

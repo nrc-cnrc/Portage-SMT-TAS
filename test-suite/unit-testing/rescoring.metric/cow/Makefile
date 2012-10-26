@@ -30,7 +30,7 @@ wer: diff.wer
 vpath dev1_%.al ${DATA_DIR}
 cow.%: dev1_fr.al dev1_en.al
 	test -d foos.$* || mkdir foos.$*
-	cow.sh -v \
+	cow.sh -v -I-really-mean-cow \
 		-$* \
 		-floor 2 \
 		-nbest-list-size 100 \
