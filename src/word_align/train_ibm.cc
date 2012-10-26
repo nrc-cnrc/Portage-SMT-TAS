@@ -16,7 +16,6 @@
 #include <unistd.h>
 #include "arg_reader.h"
 #include "printCopyright.h"
-#include "tm_io.h"
 #include "ibm.h"
 #include "hmm_aligner.h"
 #include "voc.h"

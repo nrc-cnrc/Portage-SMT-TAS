@@ -13,7 +13,6 @@
  */
 
 #include "lm_ff.h"
-#include "canoe_general.h"
 #include "lm.h"
 #include "file_utils.h"
 

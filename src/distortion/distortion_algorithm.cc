@@ -29,14 +29,13 @@ void Portage::word_ldm_count::operator()(
    vector<Uint> earliest2;
    vector<int> latest2;
    DistortionCount dc;
-   PhraseTableUint dummy;
    vector<WordAlignerFactory::PhrasePair> phrases;
 
    ppe.aligner_factory->addPhrases(toks1, toks2, sets1,
                               ppe.max_phrase_len1, ppe.max_phrase_len2,
                               ppe.max_phraselen_diff,
                               ppe.min_phrase_len1, ppe.min_phrase_len2,
-                              dummy, Uint(1), &phrases);
+                              WordAlignerFactory::PhrasePairPushBackFunctor(phrases));
 
 
    // get span for each l2 word: spans for unaligned/untranslated
@@ -180,7 +179,7 @@ void find_corners_expensive(const vector<string>& toks1,
                               BIG, BIG,
                               BIG,
                               SMALL, SMALL,
-                              dummy, Uint(1), &unlimPhrases);
+                              WordAlignerFactory::PhrasePairPushBackFunctor(unlimPhrases));
    vector<WordAlignerFactory::PhrasePair>::iterator p;
    for (p = unlimPhrases.begin(); p != unlimPhrases.end(); ++p) {
       // Set corners
@@ -382,13 +381,12 @@ void Portage::hier_ldm_count::operator()(
    // moved finding phrases to inside the method-specific function,
    // just in case someone wants to fold that operation into another task
    // (such as finding corners)
-   PhraseTableUint dummy;
    vector<WordAlignerFactory::PhrasePair> phrases;
    ppe.aligner_factory->addPhrases(toks1, toks2, sets1,
                               ppe.max_phrase_len1, ppe.max_phrase_len2,
                               ppe.max_phraselen_diff,
                               ppe.min_phrase_len1, ppe.min_phrase_len2,
-                              dummy, Uint(1), &phrases);
+                              WordAlignerFactory::PhrasePairPushBackFunctor(phrases));
 
    // assign mono/swap/disc status to prev- and next-phrase
    // orientations for each extracted phrase pair

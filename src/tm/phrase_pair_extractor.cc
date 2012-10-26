@@ -235,7 +235,16 @@ void PhrasePairExtractor::extractPhrasePairs(
                                   max_phrase_len1, max_phrase_len2,
                                   max_phraselen_diff,
                                   min_phrase_len1, min_phrase_len2,
-                                  pt, 1u, NULL, display_alignments);
+                                  pt.getPhraseAdder(toks1, toks2, 1),
+                                  display_alignments);
       if (verbose > 1) cerr << endl;
    }
+}
+
+
+const string& PhrasePairExtractor::remap(const string& s) {
+   if (s == PhraseTableBase::psep)
+      return PhraseTableBase::psep_replacement;
+   else
+      return s;
 }

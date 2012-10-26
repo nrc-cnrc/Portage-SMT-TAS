@@ -39,7 +39,8 @@ SUBDIRS = adaptation \
 	  tm \
 	  tpt \
 	  truecasing \
-	  textutils
+	  textutils \
+	  word_align
 
 # Additional directories listed here are only compiled if explicitly
 # specified.  Use this for modules in development that are not ready to be

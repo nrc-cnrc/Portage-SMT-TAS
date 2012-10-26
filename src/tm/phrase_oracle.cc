@@ -22,6 +22,7 @@
 #include <printCopyright.h>
 #include "ibm.h"
 #include "word_align.h"
+#include "phrase_table.h"
 
 using namespace Portage;
 using namespace std;
@@ -152,12 +153,14 @@ int main(int argc, char* argv[])
 
          main_aligner->align(src_toks, ref_toks, src_sets);
          factory.addPhrases(src_toks, ref_toks, src_sets, maxlen, maxlen, maxdiff,
-                         minlen, minlen, pt, (float(1.0)-cart_coeff));
+                            minlen, minlen,
+                            pt.getPhraseAdder(src_toks, ref_toks, (float(1.0)-cart_coeff)));
 
          if (cart_coeff != 0) {
             cart_aligner->align(src_toks, ref_toks, src_sets);
             factory.addPhrases(src_toks, ref_toks, src_sets, maxlen, maxlen, maxdiff,
-                            minlen, minlen, pt, cart_coeff);
+                               minlen, minlen,
+                               pt.getPhraseAdder(src_toks, ref_toks, cart_coeff));
          }
 
          if (verbose == 1 && line_no % 1000 == 0)

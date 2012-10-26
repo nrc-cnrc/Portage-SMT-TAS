@@ -29,7 +29,6 @@
 #include "ordered_vector_map.h"
 #include "portage_defs.h"
 #include "ttable.h"
-#include "tm_io.h"
 #include "ibm.h"
 #include "length.h"
 
@@ -494,11 +493,33 @@ public:
     * Add a pair of phrases (represented as ptrs into token sequences) with a given count.
     * If pair exists already, increment its count by val.
     * @param green_alignment if non-NULL, represents the alignment between the
-    *                        sequences in "green" format.
+    *                        sequences in "green" format. This alignment will
+    *                        be added to the list of known alignments for the
+    *                        phrase pair, and its count will be incremented by val.
     */
    void addPhrasePair(ToksIter beg1, ToksIter end1,
                       ToksIter beg2, ToksIter end2,
                       T val=1, const char* green_alignment=NULL);
+
+   /// Functor to add phrase pairs
+   class PhraseAdder {
+      PhraseTableGen* pt;
+      const vector<string>& toks1;
+      const vector<string>& toks2;
+      T val;
+    public:
+      PhraseAdder(PhraseTableGen* pt, const vector<string>& toks1, const vector<string>& toks2, T val)
+         : pt(pt), toks1(toks1), toks2(toks2), val(val) {}
+      void operator()(Uint b1, Uint e1, Uint b2, Uint e2, const char* green_alignment) {
+         pt->addPhrasePair(toks1.begin()+b1, toks1.begin()+e1,
+                           toks2.begin()+b2, toks2.begin()+e2,
+                           val, green_alignment);
+      }
+   };
+   /// Get a PhraseAdder for this phrase table with given token sequences and count value.
+   PhraseAdder getPhraseAdder(const vector<string>& toks1, const vector<string>& toks2, T val) {
+      return PhraseAdder(this, toks1, toks2, val);
+   }
 
 private:
    /**
@@ -526,6 +547,11 @@ public:
    /**
     * If given phrase pair exists in the table, return true and set val to
     * its frequency within the table.
+    * @param beg1 first lang1 token
+    * @param end1 end lang1 token
+    * @param beg2 first lang2 token
+    * @param end2 end lang2 token
+    * @param val set to frequency on return
     */
    bool exists(ToksIter beg1, ToksIter end1, ToksIter beg2, ToksIter end2, T &val);
 

@@ -14,7 +14,6 @@
 
 #include "backward_lm_ff.h"
 #include "lm.h"
-#include "canoe_general.h"
 #include "file_utils.h"
 
 using namespace Portage;

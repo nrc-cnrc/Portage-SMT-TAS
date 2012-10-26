@@ -16,7 +16,6 @@
 #define WORD_ALIGN_H
 
 #include <vector>
-#include "phrase_table.h"
 #include "ibm.h"
 #include "word_align_io.h"
 
@@ -300,6 +299,16 @@ public:
 
    };
 
+   class PhrasePairPushBackFunctor {
+      vector<PhrasePair>& v;
+    public:
+      PhrasePairPushBackFunctor(vector<PhrasePair>& v) : v(v) {}
+      void operator()(Uint b1, Uint e1, Uint b2, Uint e2, const char* green_alignment) {
+         v.push_back(PhrasePair(b1,e1,b2,e2));
+      }
+   };
+
+
    /**
     * Add all phrases licensed by a given alignment to a phrase table.
     * NB: This probably isn't the best place for this fcn, but it will squat
@@ -316,18 +325,18 @@ public:
     * @param max_phraselen_diff maximum allowable difference in paired phrase lengths
     * @param min_phrase_len1 minimum allowable phrase length from toks1
     * @param min_phrase_len2 minimum allowable phrase length from toks2
-    * @param pt destination phrase table
-    * @param ct count each pair as having occurred this many times
-    * @param phrase_pairs if non-null, output goes here INSTEAD of pt
+    * @param phrase_adder A functor that implements
+    *        operator()(Uint b1, Uint e1, Uint b2, Uint e2, const char* green_alignment)
+    *        to receive phrase pair toks1[b1..e1) / toks2[b2..e2), with alignment
+    *        if store_alignments is true.
     * @param store_alignments if true, alignment info is stored in pt with each phrase pair.
     */
-   template<class T>
+   template<class PhraseAdder>
    void addPhrases(const vector<string>& toks1, const vector<string>& toks2,
                    const vector< vector<Uint> >& sets1,
                    Uint max_phrase_len1, Uint max_phrase_len2, Uint max_phraselen_diff,
                    Uint min_phrase_len1, Uint min_phrase_len2,
-                   PhraseTableGen<T>& pt, T ct=1,
-                   vector<PhrasePair>* phrase_pairs = NULL,
+                   PhraseAdder phrase_adder,
                    bool store_alignments = false);
 };
 
@@ -759,21 +768,22 @@ public:
  * surrounding phrase from being paired.
  * Note: "Joiner" words are the unaligned ones, while "splitter" words are the
  * NULL-aligned ones.
+ * @param phrase_adder A functor that implements
+ *        operator()(Uint b1, Uint e1, Uint b2, Uint e2, const char* green_alignment)
+ *        to receive phrase pair toks1[b1..e1) / toks2[b2..e2), with alignment
+ *        if store_alignments is true.
  */
-template <class T>
+template <class PhraseAdder>
 void WordAlignerFactory::addPhrases(const vector<string>& toks1, const vector<string>& toks2,
                                     const vector< vector<Uint> >& sets1,
                                     Uint max_phrase_len1, Uint max_phrase_len2, Uint max_phraselen_diff,
                                     Uint min_phrase_len1, Uint min_phrase_len2,
-                                    PhraseTableGen<T>& pt, T ct, vector<PhrasePair>* phrase_pairs,
+                                    PhraseAdder phrase_adder,
                                     bool store_alignments)
 {
    // Avoid overflow when max_phrase_len is "infinite": Uint(-1).
    if (max_phrase_len1 > toks1.size()) max_phrase_len1 = toks1.size() + 1;
    if (max_phrase_len2 > toks2.size()) max_phrase_len2 = toks2.size() + 1;
-
-   if (phrase_pairs)
-      phrase_pairs->clear();
 
    string green_alignment_s; // reduce frequent alloc/realloc
    const char* green_alignment(NULL);
@@ -801,12 +811,7 @@ void WordAlignerFactory::addPhrases(const vector<string>& toks1, const vector<st
             latest2[jj] = max(latest2[jj], i);
 
             if (addSingleWords) {
-               if (phrase_pairs)
-                  phrase_pairs->push_back(PhrasePair(i, i+1, jj, jj+1));
-               else
-                  pt.addPhrasePair(toks1.begin()+i, toks1.begin()+i+1,
-                                   toks2.begin()+jj, toks2.begin()+jj+1,
-                                   ct, green_alignment);
+               phrase_adder(i, i+1, jj, jj+1, green_alignment);
             }
          }
       }
@@ -830,18 +835,12 @@ void WordAlignerFactory::addPhrases(const vector<string>& toks1, const vector<st
                    (allow_linkless_pairs || la1 >= ea1 || la2 >= ea2) &&
                    (Uint(abs((int)e1 - (int)b1 - (int)e2 + (int)b2)) <= max_phraselen_diff)) {
 
-                  if (phrase_pairs)
-                     phrase_pairs->push_back(PhrasePair(b1,e1,b2,e2));
-                  else {
-                     if ( store_alignments ) {
-                        green_writer.write_partial_alignment(green_alignment_s,
-                           toks1, b1, e1, toks2, b2, e2, sets1, '_');
-                        green_alignment = green_alignment_s.c_str();
-                     }
-                     pt.addPhrasePair(toks1.begin()+b1, toks1.begin()+e1,
-                                      toks2.begin()+b2, toks2.begin()+e2,
-                                      ct, green_alignment);
+                  if ( store_alignments ) {
+                     green_writer.write_partial_alignment(green_alignment_s,
+                        toks1, b1, e1, toks2, b2, e2, sets1, '_');
+                     green_alignment = green_alignment_s.c_str();
                   }
+                  phrase_adder(b1,e1,b2,e2,green_alignment);
 
                   if (verbose > 1) {
                      const string p1 = join(toks1.begin()+b1, toks1.begin()+e1, "_");

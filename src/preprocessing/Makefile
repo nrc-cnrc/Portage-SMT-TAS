@@ -25,7 +25,7 @@ DYNLIBS= $(LIBICU)
 
 PGM_WITH_ALTERNATIVE_HELP = ssal
 
-MODULE_DEPENDS = tm
+MODULE_DEPENDS = word_align
 
 BINSCRIPTS = $(wildcard *.pl *.py *.sh)
 
