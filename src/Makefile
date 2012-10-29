@@ -37,6 +37,7 @@ SUBDIRS = adaptation \
 	  preprocessing \
 	  rescoring \
 	  tm \
+	  tp_models \
 	  tpt \
 	  truecasing \
 	  textutils \

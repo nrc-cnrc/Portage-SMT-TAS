@@ -29,7 +29,7 @@ EXTRA_LIBS = $(LOGGING_LIB)
 
 DYNLIBS = $(LIBICU)
 
-MODULE_DEPENDS = lm logging tpt
+MODULE_DEPENDS = lm logging tp_models tpt
 
 MODULE_CF =
 

@@ -83,7 +83,7 @@ DYNLIBS=-lpthread $(LIBICU)
 
 PGM_WITH_ALTERNATIVE_HELP = rescore_train
 
-MODULE_DEPENDS=lm eval word_align preprocessing tpt logging
+MODULE_DEPENDS=lm eval word_align tp_models tpt preprocessing logging
 
 ifdef NO_PORTAGE_OPENMP
 MODULE_CF=-Wno-unknown-pragmas

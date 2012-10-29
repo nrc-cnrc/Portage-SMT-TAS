@@ -60,3 +60,16 @@ PGM_WITH_ALTERNATIVE_HELP = \
 
 include ../build/Makefile.incl
 
+install: clean_old_programs
+
+.PHONY: clean_old_programs
+clean_old_programs:
+	@${RM} \
+	align-words \
+	eval_word_alignment \
+	ibm_entropy \
+	ibmcat \
+	run_ibm \
+	train_ibm \
+	word_align_tool
+

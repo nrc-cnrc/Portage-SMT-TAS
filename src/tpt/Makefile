@@ -11,8 +11,6 @@
 OBJECTS = \
    bitwise.o \
    repos_getSequence.o \
-   tplm.o \
-   tppt.o \
    tpt_encodingschemes.o \
    tpt_error.o \
    tpt_pickler.o \
@@ -21,52 +19,54 @@ OBJECTS = \
    tpt_tokenindex.o \
    tpt_utils.o \
    ugReadWriteValues.o \
+   ug_corpus_token.o \
    ug_ctrack_base.o \
+   ug_get_options.o \
    ug_mm_ctrack.o \
    ug_mm_sufa.o \
    ug_sufa_base.o \
-   ug_vocab.o \
-   ug_corpus_token.o \
    ug_tsa_array_entry.o \
    ug_ttrack_base.o \
    ug_ttrack_position.o \
-   ug_get_options.o
+   ug_vocab.o
 
 TESTPROGS =
 
 PROGRAMS = \
    $(TESTPROGS) \
-   arpalm.assemble \
-   arpalm.encode \
-   arpalm.sng-av \
    find_similar_sentences \
    mmctrack.build \
    mmctrack.dump \
    mmsufa.build \
    mmsufa.dump \
    phrasepair-contingency \
-   ptable.assemble \
-   ptable.encode-phrases \
-   ptable.encode-scores \
    tokenindex.dump \
-   tppt.dump \
    vocab.build \
    vocab.dump \
    mmtsa.find
 
 BINSCRIPTS = \
-   arpalm2tplm.sh \
    build-tp-suffix-array.sh \
-   textldm2tpldm.sh \
-   textpt2tppt.sh \
    vocabMap2tpt.sh
 
 LIBRARY = libportage_tpt
 
 MODULE_CF = -DIN_PORTAGE=1 -ggdb
 
-MODULE_DEPENDS=
+MODULE_DEPENDS =
 
 DYNLIBS = -lboost_program_options
+
+install: clean_moved_programs
+.PHONY: clean_moved_programs
+clean_moved_programs:
+	@${RM} \
+	arpalm.assemble \
+	arpalm.encode \
+	arpalm.sng-av \
+	ptable.assemble \
+	ptable.encode-phrases \
+	ptable.encode-scores \
+	tppt.dump
 
 include ../build/Makefile.incl
