@@ -31,12 +31,20 @@
 #include <tr1/unordered_map>
 #include <ctime>
 #include <cmath>
+#include <cstring>
 #include <sstream>
 #include <limits>  // numeric_limits<float>::min & numeric_limits<float>::max
+#include <locale>
 
 #if IN_PORTAGE
 #include "file_utils.h"
 #include "tm_entry.h"
+#include "word_align_io.h"
+#include "tp_alignment.h"
+#define DO_HUFFMAN_COMPARISON 0
+#if DO_HUFFMAN_COMPARISON
+#include "huffman.h"
+#endif
 using namespace Portage;
 #else
 #include <boost/iostreams/stream.hpp>
@@ -162,9 +170,13 @@ float trim_double_to_float(double x)
    return static_cast<float>(x);
 }
 
+const bool debug_scr_file = false;
+
 void
-process_line(TMEntry& entry, ostream& tmp,
-             uint32_t third_col_scores, uint32_t num_counts, bool has_alignments)
+process_line(TMEntry& entry, ostream& prelimScoresFile,
+             ostream& prelimAlignmentFile, size_t& prelimAlignmentPosn,
+             uint32_t third_col_scores, uint32_t num_counts,
+             bool has_alignments, vector<uint32_t>& alignment_code_distn)
 {
    assert(third_col_scores <= entry.ThirdCount());
    double v[entry.ThirdCount()];
@@ -173,13 +185,17 @@ process_line(TMEntry& entry, ostream& tmp,
    entry.parseThird(v, &al, &c);
    for (uint32_t i = 0; i < third_col_scores; ++i) {
       float s = trim_double_to_float(v[i]);
-      tmp.write(reinterpret_cast<char*>(&s),sizeof(s));
+      prelimScoresFile.write(reinterpret_cast<char*>(&s),sizeof(s));
+      if (debug_scr_file)
+         fprintf(stderr, "SCR float: %f (\\x%08x)\n", s, *(reinterpret_cast<uint32_t*>(&s)));
    }
    double a[entry.FourthCount()];
    entry.parseFourth(a);
    for (uint32_t i = 0; i < entry.FourthCount(); ++i) {
       float s = trim_double_to_float(a[i]);
-      tmp.write(reinterpret_cast<char*>(&s),sizeof(s));
+      prelimScoresFile.write(reinterpret_cast<char*>(&s),sizeof(s));
+      if (debug_scr_file)
+         fprintf(stderr, "SCR float: %f (\\x%08x)\n", s, *(reinterpret_cast<uint32_t*>(&s)));
    }
    if (num_counts) {
       vector<uint32_t> counts;
@@ -191,12 +207,67 @@ process_line(TMEntry& entry, ostream& tmp,
          counts.resize(num_counts, 0);
       for (uint32_t i = 0; i < num_counts; ++i) {
          uint32_t count = (i < counts.size() ? counts[i] : 0);
-         tmp.write(reinterpret_cast<char*>(&count),sizeof(count));
+         prelimScoresFile.write(reinterpret_cast<char*>(&count),sizeof(count));
+         if (debug_scr_file)
+            fprintf(stderr, "SCR uint32_t: %u (\\x%08x)\n", count, count);
       }
    }
    if (has_alignments) {
-      // TODO: handle the alignment string here.
-      assert(false);
+      // The scores file is used to tell us where in the alignment we will find
+      // the alignment information for the given phrase pair.
+      prelimScoresFile.write(reinterpret_cast<char*>(&prelimAlignmentPosn),sizeof(prelimAlignmentPosn));
+      if (debug_scr_file)
+         fprintf(stderr, "SCR size_t: %lu (\\x%016lx)\n", prelimAlignmentPosn, prelimAlignmentPosn);
+
+      /*
+      if (!al || !*al) {
+         // No alignment info for this phrase pair.  Assume "0" - a one-word
+         // phrase aligned to a one-word phrase in the obvious way.
+         if (strchr(entry.Src(), ' ') || strchr(entry.Tgt(), ' '))
+            error(ETFatal, "Phrase pair with missing alignment info is not a one-word to one-word pair in file %s line %u: %s ||| %s\n", entry.File(), entry.LineNo(), entry.Src(), entry.Tgt());
+         static const char *basic_al = "0";
+         al = basic_al;
+      }
+      */
+      static vector< vector<Uint> > sets;
+      if (al && *al)
+         GreenReader('_')(al, sets);
+      else
+         sets.clear();
+      // alignment_links is a vector of 64-bit uint, not 16, to detect and
+      // report overflow, and to match AlignmentLink::pack()'s return type:
+      static vector<Uint64> alignment_links;
+      alignment_links.clear();
+      for (Uint i = 0; i < sets.size(); ++i) {
+         if (sets[i].empty()) {
+            alignment_links.push_back(AlignmentLink().pack());
+         } else {
+            for (Uint j = 0; j + 1 < sets[i].size(); ++j)
+               alignment_links.push_back(AlignmentLink(sets[i][j], false).pack());
+            alignment_links.push_back(AlignmentLink(sets[i].back(), true).pack());
+         }
+      }
+
+      // Temporary encoding, not fully packed: use a short for each encoded
+      // link, which can never have value 0, and a short with value 0 to mark
+      // the end.  In the final TPPT format, created by ptable.assemble.cc,
+      // we'll pack the same information with the smallest number of bits per
+      // link we can get away with, typically 4 or 5: 4 bits if the longest
+      // phrase in the phrase table has <= 7 tokens, 5 if it has <= 15 tokens.
+      size_t al_size = alignment_links.size();
+      for (uint16_t i = 0; i < al_size; ++i) {
+         uint16_t short_link = alignment_links[i];
+         assert(short_link == alignment_links[i]);
+         if (short_link >= alignment_code_distn.size()) {
+            alignment_code_distn.resize(short_link+1, 0);
+         }
+         ++alignment_code_distn[short_link];
+         prelimAlignmentFile.write(reinterpret_cast<char*>(&short_link),sizeof(short_link));
+         ++prelimAlignmentPosn;
+      }
+      uint16_t end_marker = 0;
+      prelimAlignmentFile.write(reinterpret_cast<char*>(&end_marker),sizeof(end_marker));
+      ++prelimAlignmentPosn;
    }
 }
 
@@ -207,14 +278,17 @@ process_line(TMEntry& entry, ostream& tmp,
 // Count score occurrences, writing preliminary score IDs to the .scr file.
 // Fill the scrs and cnts vectors, ordered by id, with scores and their
 // corresponding counts, respectively.
+// Returns the total count, over all scores. (== sum(cnts))
 template <class ScoreT>
-void
+uint64_t
 count_scores(bio::mapped_file &scr_file, uint32_t which_scr, uint32_t how_many_scr,
              size_t fields_per_line,
              vector<ScoreT>& scrs, vector<uint32_t>& cnts)
 {
    assert(sizeof(ScoreT) == 4);
    assert(which_scr + how_many_scr <= fields_per_line);
+
+   uint64_t total_count = 0;
 
    // No real need for custom allocation when we're using TCMalloc: with
    // TCMalloc, there's no memory overhead, and it's only about 25% slower
@@ -246,6 +320,7 @@ count_scores(bio::mapped_file &scr_file, uint32_t which_scr, uint32_t how_many_s
             scrs.push_back(new_score.first);
          }
          ++cnts[score_it->second];
+         ++total_count;
          // Convert the score in the file to its preliminary score id.
          *reinterpret_cast<uint32_t*>(p+i) = score_it->second;
       }
@@ -265,6 +340,8 @@ count_scores(bio::mapped_file &scr_file, uint32_t which_scr, uint32_t how_many_s
    //   ids[i++] = m->second;
    //}
    //delete scores;
+
+   return total_count;
 }
 
 struct byFreq
@@ -285,8 +362,20 @@ template <> const char* type2string<uint32_t>() { return "uint32_t"; }
 // a remapping vector mapping the preliminary score IDs to final score IDs.
 template <class ScoreT>
 void
-mkCodeBook(ostream& codebook, vector<ScoreT>& scrs, vector<uint32_t>& cnts)
+mkCodeBook(ostream& codebook, vector<ScoreT>& scrs, vector<uint32_t>& cnts, bool no_sort = false)
 {
+   #if DO_HUFFMAN_COMPARISON
+   // Check how much smaller the Huffman encoding would be.
+   { // extra scope so these large structures get deleted as soon as we're done.
+      vector<pair<ScoreT,uint32_t> > scores_for_huffman;
+      scores_for_huffman.reserve(scrs.size());
+      for (Uint i = 0; i < scrs.size(); ++i)
+         scores_for_huffman.push_back(make_pair(scrs[i], cnts[i]));
+      HuffmanCoder<ScoreT> huffman(scores_for_huffman.begin(), scores_for_huffman.end());
+      cerr << "Huffman encoding would have total cost in bits: " << uint64_t(huffman.totalCost()) << endl;
+   }
+   #endif
+
    assert(sizeof(ScoreT) == 4);
    TPT_DBG(cerr << "mkCodeBook: scrs.size = " << scrs.size() << endl);
    vector<uint32_t>& remap = cnts;  // cnts doubles as the remap vector.
@@ -295,7 +384,8 @@ mkCodeBook(ostream& codebook, vector<ScoreT>& scrs, vector<uint32_t>& cnts)
    vector<uint32_t> ids(scrs.size());
    for (size_t i = 0; i < scrs.size(); ++i)
       ids[i] = i;
-   sort(ids.begin(), ids.end(), byFreq(cnts));
+   if (!no_sort)
+      sort(ids.begin(), ids.end(), byFreq(cnts));
 
    vector<uint32_t> bits_needed(max(2, int(ceil(log2(ids.size()))))+1, 0);
    for (size_t k = 0; k < scrs.size(); k++)
@@ -350,14 +440,15 @@ remap_ids(bio::mapped_file& scr_file, size_t which_scr, uint32_t how_many_scr,
 int MAIN(argc, argv)
 {
    cerr << "ptable.encode-scores starting." << endl;
+   cerr.imbue(locale(""));
 
    interpret_args(argc,(char **)argv);
    string line;
 
    // Read the phrase table, storing the scores into the .scr file for fast access.
    string scrName(oBaseName+".scr");
-   ofstream tmpFile(scrName.c_str());
-   if (tmpFile.fail())
+   ofstream prelimScoresFile(scrName.c_str());
+   if (prelimScoresFile.fail())
       cerr << efatal << "Unable to open preliminary score file '" << scrName << "' for writing."
            << exit_1;
 
@@ -391,15 +482,22 @@ int MAIN(argc, argv)
       num_counts = max(counts, num_counts);
    }
 
+   ofstream prelimAlignmentFile;
+   size_t prelimAlignmentPosn(0);
    if (has_alignments) {
-      cerr << ewarn << "The alignment field is not yet supported in the convertion from text phrase tables to TPPTs.  Ignoring all a= fields found in " << iFileName << endl;
-      has_alignments = false;
+      string alFileName(oBaseName+".aln");
+      prelimAlignmentFile.open(alFileName.c_str(), ios_base::out|ios_base::trunc);
+      if (prelimAlignmentFile.fail())
+      cerr << efatal << "Unable to open preliminary alignment file '" << alFileName << "' for writing."
+           << exit_1;
    }
 
    TMEntry entry(iFileName);
+   vector<uint32_t> alignment_code_distn;
    for (uint32_t i = 0; i < initial_lines.size(); ++i) {
       entry.newline(initial_lines[i]);
-      process_line(entry, tmpFile, third_col_scores, num_counts, has_alignments);
+      process_line(entry, prelimScoresFile, prelimAlignmentFile, prelimAlignmentPosn,
+                   third_col_scores, num_counts, has_alignments, alignment_code_distn);
    }
 
    if (initial_lines.size() == header_size) {
@@ -408,10 +506,12 @@ int MAIN(argc, argv)
          if (entry.LineNo() % 10000000 == 0)
             cerr << "Reading phrase table: " << entry.LineNo()/1000000 << "M lines read (..."
                  << (time(NULL) - start_time) << "s)" << endl;
-         process_line(entry, tmpFile, third_col_scores, num_counts, has_alignments);
+         process_line(entry, prelimScoresFile, prelimAlignmentFile, prelimAlignmentPosn,
+                      third_col_scores, num_counts, has_alignments, alignment_code_distn);
       }
    }
-   tmpFile.close();
+   prelimScoresFile.close();
+   if (has_alignments) prelimAlignmentFile.close();
    cerr << "Read " << entry.LineNo() << " lines in " << (time(NULL) - start_time) << " seconds." << endl;
 
    // Write the config file for 1) ptable.assemble to be able to interpret its
@@ -420,7 +520,7 @@ int MAIN(argc, argv)
    if (has_alignments || num_counts || adir_scores) {
       using_v2 = true;
       TPPTConfig::write(oBaseName+".config", third_col_scores, adir_scores,
-         num_counts, false /* alignments are not implemented yet... */);
+         num_counts, has_alignments);
    }
 
    // Open the .scr (memory-mapped, read/write) and .cbk (write) files
@@ -433,7 +533,9 @@ int MAIN(argc, argv)
            << exit_1;
    }
    uint32_t scrs_per_line = third_col_scores + adir_scores;
-   size_t expected_size = entry.LineNo() * (scrs_per_line+num_counts) * sizeof(uint32_t);
+   uint32_t fields_per_line = scrs_per_line + num_counts +
+      (has_alignments ? 1 : 0) * (sizeof(prelimAlignmentPosn)/sizeof(uint32_t));
+   size_t expected_size = entry.LineNo() * fields_per_line * sizeof(uint32_t);
    if (scr.size() != expected_size)
       cerr << efatal << "Incorrect temporary score file size: " << scr.size()
            << "; expected " << expected_size
@@ -457,7 +559,7 @@ int MAIN(argc, argv)
       assert(strlen(code_book_magic_number_v2) % 4 == 0);
    }
 
-   uint32_t numBooks = scrs_per_line + (num_counts > 0 ? 1 : 0);
+   uint32_t numBooks = scrs_per_line + (num_counts > 0 ? 1 : 0) + (has_alignments ? 1 : 0);
    cbk.write(reinterpret_cast<char*>(&numBooks),4); // number of code books.
 
    // For each score field (column) in the .scr file:
@@ -471,12 +573,13 @@ int MAIN(argc, argv)
       cerr << "Counting scores for code book " << i << "." << endl;
       vector<uint32_t> cnts;
       vector<float> scrs;
-      count_scores(scr, i, 1, scrs_per_line+num_counts, scrs, cnts);
-      cerr << "Writing code book " << i << "." << endl;
+      uint64_t total_count = count_scores(scr, i, 1, fields_per_line, scrs, cnts);
+      cerr << "Writing code book " << i << " to encode " << total_count << " scores with "
+           << scrs.size() << " distinct values." << endl;
       vector<uint32_t>& remap = cnts;  // cnts doubles as remap vector
       mkCodeBook(cbk, scrs, cnts);
       cerr << "Remapping score ids for code book " << i << "." << endl;
-      remap_ids(scr, i, 1, scrs_per_line+num_counts, remap);
+      remap_ids(scr, i, 1, fields_per_line, remap);
       cerr << "Done code book " << i << " in " << (time(NULL) - start_time) << " seconds." << endl;
    }
 
@@ -487,13 +590,34 @@ int MAIN(argc, argv)
       cerr << "Counting counts for code book" << i << "." << endl;
       vector<uint32_t> cnts;
       vector<uint32_t> scrs;
-      count_scores(scr, i, num_counts, scrs_per_line+num_counts, scrs, cnts);
-      cerr << "Writing code book " << i << "." << endl;
+      uint64_t total_count = count_scores(scr, i, num_counts, fields_per_line, scrs, cnts);
+      cerr << "Writing code book " << i << " to encode " << total_count << " counts with "
+           << scrs.size() << " distinct values." << endl;
       vector<uint32_t>& remap = cnts;  // cnts doubles as remap vector
       mkCodeBook(cbk, scrs, cnts);
       cerr << "Remapping count ids for code book " << i << "." << endl;
-      remap_ids(scr, i, num_counts, scrs_per_line+num_counts, remap);
+      remap_ids(scr, i, num_counts, fields_per_line, remap);
       cerr << "Done code book " << i << " in " << (time(NULL) - start_time) << " seconds." << endl;
+   }
+
+   // For the links in the alignment field, we also use one code book.
+   // Calculate the number of bits needed per alignment code
+   if (has_alignments) {
+      start_time = time(NULL);
+      assert(alignment_code_distn[0] == 0);
+      alignment_code_distn[0] = entry.LineNo(); // We NULL-terminate each alignment string.
+
+      vector<uint32_t> links(alignment_code_distn.size());
+      uint32_t total_count(0);
+      for (uint32_t i = 0; i < alignment_code_distn.size(); ++i) {
+         links[i] = i;
+         total_count += alignment_code_distn[i];
+      }
+
+      cerr << "Writing code book to encode " << total_count << " alignment links with "
+           << links.size() << " distinct values." << endl;
+      mkCodeBook(cbk, links, alignment_code_distn, /*no_sort=*/true);
+      cerr << "Done alignment link code book in " << (time(NULL) - start_time) << " seconds." << endl;
    }
 
    cerr << "ptable.encode-scores finished." << endl;

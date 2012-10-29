@@ -146,6 +146,42 @@ void CompactPhrase::toPhrase(vector<Uint>& phrase, const char* packed) const {
          phrase.push_back(*it);
 }
 
+string CompactPhrase::packNumber(Uint64 value) {
+   string result;
+   Uint byte_count = 1;
+   Uint64 v = value;
+   while (v >= 0x80) {
+      ++byte_count;
+      v >>= 7;
+   }
+   result.reserve(byte_count);
+   while ( value >= 0x80 ) {
+      result.push_back(0x80 | (value & 0x7f));
+      value >>= 7;
+   }
+   result.push_back(value & 0x7f);
+   assert(result.size() == byte_count);
+   return result;
+}
+
+Uint64 CompactPhrase::unpackNumber(const char*& pos) {
+   Uint64 result = 0;
+   Uint current_shift(0);
+   while (true) {
+      result |= Uint64(*pos & 0x7f) << current_shift;
+      if ( !(*pos & 0x80) ) {
+         ++pos;
+         break;
+      } else {
+         ++pos;
+         current_shift += 7;
+         if (current_shift == 63 && *pos > 0x01)
+            error(ETFatal, "CompactPhrase::unpackNumber to Uint64 overflow error");
+      }
+   }
+   return result;
+}
+
 void CompactPhrase::clear() {
    if ( data ) {
       assert (*data != 0);
@@ -479,6 +515,22 @@ bool CompactPhrase::test() {
       ok = false;
    }
    //cpa[252]
+
+   // test the static packNumber() and unpackNumber() functions
+   Uint64 x = 0;
+   --x;
+   for (Uint i = 0; i < 50; ++i) {
+      string s = packNumber(x);
+      //cerr << x << " = " << s << endl;
+      const char* pos = s.c_str();
+      Uint64 y = unpackNumber(pos);
+      if (x != y) {
+         error(ETWarn, "%ul packed and unpacked yields %ul", x, y);
+         ok = false;
+      }
+      if (i % 2) x <<= (1+i/4);
+      else       ++x;
+   }
 
    return ok;
 }

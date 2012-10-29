@@ -8,21 +8,19 @@
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
 
-.PHONY: all clean install export docs test lib
-all clean install export docs test lib:
-	$(MAKE) OT=$@ subdirs
+.PHONY: all clean install export docs test lib new new_install
 
-# Targets new and new_install need to be custom defined here, because
-# "make OT=new subdirs" doesn't have exactly the same semantics as doing
-# "make new" "make all".  (This difference only matters when -j is used.)
+all clean docs export lib test: %: parallel/%
+	@true
 
-new:
-	$(MAKE) OT=clean subdirs
-	$(MAKE) OT=all subdirs
+install: parallel/install
+	$(MAKE) install_summary
 
-new_install:
-	$(MAKE) OT=clean subdirs
-	$(MAKE) OT=install subdirs
+new: clean
+	$(MAKE) all
+
+new_install: clean
+	$(MAKE) install
 
 # These directories will be compiled by default
 # IMPORTANT NOTE: when you add a directory here, you must also add it to the
@@ -54,6 +52,15 @@ ALL_SUBDIRS = $(SUBDIRS)
 subdirs: validate_subdir_dependencies utils $(SUBDIRS)
 ifeq (${OT},install)
 	$(MAKE) install_summary
+# Here, we want to list Portage's pgms that are obsolete but are still present
+# in the installation directory of the user unless the user installed Portage
+# in his home/bin in which case we prefer to be silent.
+ifneq (${BIN_DIR},${HOME}/bin)
+	@LIST_OBSOLETE=`find ${BIN_DIR} $(dir ${BIN_DIR})lib -ctime +1`; \
+	[[ `echo $$LIST_OBSOLETE | \wc -w` != 0 ]] \
+	&& { echo $$LIST_OBSOLETE | tr " " "\n"; echo "Warning: These files are most likely obsolete and we recommend deleting them."; }; \
+	unset LIST_OBSOLETE
+endif
 endif
 
 
@@ -132,6 +139,20 @@ DIR_CMD=$(foreach D,$(ALL_SUBDIRS) utils,$D/%)
 $(DIR_CMD): FORCE
 	$(MAKE) OT=$* $(word 1,$(subst /, ,$@))/progs
 
+# Generate rules equivalent the pattern %_CMD_%, e.g., dir_CMD_target, which
+# will run target in dir.
+$(foreach D,$(ALL_SUBDIRS) utils $(IIT_SHARED_UTILS), \
+   $(eval \
+      $D_CMD_%: FORCE ; $$(MAKE) -C $D $$* \
+   ) \
+)
+
+parallel/%: parallel/lib
+	${MAKE} $(foreach D,utils $(IIT_SHARED_UTILS) $(SUBDIRS),$D_CMD_$*)
+
+parallel/lib parallel/clean parallel/docs: parallel/%: $(foreach D,utils $(SUBDIRS),$D_CMD_%)
+	@true
+
 .PHONY: FORCE
 FORCE::
 
@@ -153,8 +174,10 @@ preprocessing:  $(call calc_deps,preprocessing)
 rescoring:      $(call calc_deps,rescoring)
 textutils:      $(call calc_deps,textutils)
 tm:             $(call calc_deps,tm)
+tp_models:      $(call calc_deps,tp_models)
 tpt:            $(call calc_deps,tpt)
 truecasing:     $(call calc_deps,truecasing)
+word_align:     $(call calc_deps,word_align)
 # EJJ design note: can't figure out how to make the list above automatically
 # apply to everything in $(ALL_SUBDIRS), unfortunately, so we'll still have to
 # manually add each directory in both places, but at least the actual list of

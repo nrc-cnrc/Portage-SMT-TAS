@@ -27,8 +27,6 @@ class TestArgReader : public CxxTest::TestSuite
 private:
    // Temporarily mute the the function error used by arg_reader for all tests.
    tmp_val<Error_ns::ErrorCallback> tmp;
-   static unsigned int error_message_count;
-   static string error_message;
 
 public:
    /**
@@ -37,17 +35,8 @@ public:
     * it and track some info.
     */
    TestArgReader()
-   : tmp(dummy::errorCallback, countErrorCallBack)
+   : tmp(Current::errorCallback, countErrorCallBack)
    {}
-
-   /**
-    * Stub function replacement for function error that prevents printing to
-    * stderr but that keeps track of the last error message string.
-    */
-   static void countErrorCallBack(ErrorType et, const string& msg) {
-      ++error_message_count;
-      error_message = msg;
-   }
 
    /**
     * Checks if the last seen error message is what we are expecting.
@@ -56,8 +45,8 @@ public:
    void checkErrorMessage(const char* const expected_error_message) {
       TS_ASSERT(expected_error_message != NULL);
       if (expected_error_message)
-         TS_ASSERT_EQUALS(error_message, expected_error_message);
-      error_message_count = 0;
+         TS_ASSERT_EQUALS(ErrorCounts::last_msg, expected_error_message);
+      ErrorCounts::Total = 0;
    }
 
    /**
@@ -78,12 +67,12 @@ public:
       optional<bool> test_value;
       arg.testAndSetOrReset("x", "no-x", test_value);
       TS_ASSERT_EQUALS(test_value, val);
-      TS_ASSERT_EQUALS(error_message_count, expected_error_count);
+      TS_ASSERT_EQUALS(ErrorCounts::Total, expected_error_count);
       if (expected_error_count > 0) checkErrorMessage(expected_error_message);
    }
 
    void setUp() {
-      error_message_count = 0;
+      ErrorCounts::Total = 0;
    }
 
    /////////////////////////////////////
@@ -141,7 +130,7 @@ public:
       Uint tmp;
       arg.testAndSet("a", tmp);
       TS_ASSERT_EQUALS(tmp, 2);
-      TS_ASSERT_EQUALS(error_message_count, 1);
+      TS_ASSERT_EQUALS(ErrorCounts::Total, 1);
       checkErrorMessage("-a specified multiple times; last value prevails: -a 2");
    }
 
@@ -155,11 +144,8 @@ public:
       Uint tmp;
       arg.testAndSet("a", tmp);
       TS_ASSERT_EQUALS(tmp, 1);
-      TS_ASSERT_EQUALS(error_message_count, 0);
+      TS_ASSERT_EQUALS(ErrorCounts::Total, 0);
    }
 }; // TestArgReader
-
-unsigned int TestArgReader::error_message_count = 0;
-string TestArgReader::error_message;
 
 } // Portage

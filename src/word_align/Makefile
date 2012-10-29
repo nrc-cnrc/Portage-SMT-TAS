@@ -10,6 +10,7 @@
 # Copyright 2012, Her Majesty in Right of Canada
 
 OBJECTS = \
+        alignment_file.o \
         hmm_aligner.o \
         hmm_jump_basic_data.o \
         hmm_jump_classes.o \
@@ -18,6 +19,7 @@ OBJECTS = \
         hmm_jump_simple.o \
         hmm_jump_strategy.o \
         ibm.o \
+        tp_alignment.o \
         ttable.o \
         ttablewithmax.o \
         word_align.o \
@@ -28,9 +30,11 @@ LIBRARY = libportage_word_align
 PROGRAMS = $(TESTPROGS) \
         align-words \
         eval_word_alignment \
-        ibmcat \
         ibm_entropy \
+        ibmcat \
         run_ibm \
+        tp_alignment_build \
+        tp_alignment_dump \
         train_ibm \
         word_align_tool
 
@@ -43,10 +47,12 @@ DYNLIBS = $(LIBICU)
 
 MODULE_CF = -DHAVE_CXX_STDHEADERS
 
-MODULE_DEPENDS = logging
+MODULE_DEPENDS = tpt logging
 
 PGM_WITH_ALTERNATIVE_HELP = \
         align-words
 
 include ../build/Makefile.incl
 
+# Additional dependency:
+run_tests/test_alignment_file: tp_alignment_build

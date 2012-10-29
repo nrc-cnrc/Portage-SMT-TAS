@@ -119,6 +119,18 @@ class CompactPhrase {
    /// @param packed compact phrase to unpack; unpack self if NULL
    void toPhrase(vector<Uint>& phrase, const char* packed = NULL) const;
 
+   /// Encode just one number into a string.  this version does not do the +1,
+   /// so a value of zero is actually encoded as a NULL byte.
+   /// @param value  Number to pack
+   /// @return string with the packed representation of value
+   static string packNumber(Uint64 value);
+
+   /// Decode just one number from a string
+   /// @param pos  where to start reading the number; pos will point just past
+   ///             the last byte read after unpacking one number.
+   /// @param the unpacked value
+   static Uint64 unpackNumber(const char*& pos);
+
    /// clears the data from this CompactPhrase
    void clear();
 

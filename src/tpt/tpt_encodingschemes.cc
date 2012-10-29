@@ -20,6 +20,7 @@
 #include <cmath>
 #include <functional>
 #include <algorithm>
+#include "str_utils.h"
 
 namespace ugdiss
 {
@@ -78,6 +79,13 @@ namespace ugdiss
     return this->cost < other.cost;
   }
 
+  ostream&
+  operator<<(ostream& os, const Escheme& s)
+  {
+    os << "blocks: " << Portage::join(s.blockSizes) << " fid: " << s.fid << " cost: " << s.cost;
+    return os;
+  }
+
   uint64_t
   Escheme::
   formula2::
@@ -127,8 +135,9 @@ namespace ugdiss
     // delete f2;
   }
   
-  /// local helper function, publicly available function
-  //  is below
+  // local helper function, publicly available function
+  // is below
+
   void 
   enumerate_schemes(vector<uint32_t> const& D, 
 		    vector<uint32_t>& bins,
@@ -145,10 +154,12 @@ namespace ugdiss
 	E.fid = 1;
 	E.cost = Escheme::formula1()(bins,D);
 	schemes.push_back(E);
+        //cerr << E << endl;
 #endif
 	E.fid = 2;
 	E.cost = Escheme::formula2()(bins,D);
 	schemes.push_back(E);
+        //cerr << E << endl;
 	return;
       }
     else
@@ -162,6 +173,10 @@ namespace ugdiss
   }
 
 
+  // this function enumerates all possible ways to break D.size() bits into
+  // up to max_blocks blocks, using two different possible strategies to
+  // indicate how many blocks are required: 1) store a flag bit after each
+  // block but the last; 2) store the number of blocks before the first block.
   vector<Escheme>
   enumerate_schemes(vector<uint32_t> const& D, uint32_t max_blocks)
   {
@@ -176,6 +191,11 @@ namespace ugdiss
     return schemes;
   }
 
+  // Brute force approach to find the best scheme for D:  enumerate all
+  // possible ways to break D.size() bits into up to max_blocks blocks; 
+  // calculate the cost of each way; sort and pick the best.
+  // D[i] is the total number of occurrences of all values requiring at least
+  // i bits to be represented: D[i] = sum_{j in 2^(i-1) to 2^i-1} freq(j).
   Escheme
   best_scheme(vector<uint32_t> const& D, uint32_t max_blocks)
   {
@@ -183,14 +203,21 @@ namespace ugdiss
     std::sort(S.begin(),S.end(),less<Escheme>());
     uint32_t best = 0;
     uint64_t th = 80*1024*1024; 
-    // we are willing to spend 10 MB of storage for a lower number of 
+    // we are willing to spend 10 MB (80 Mbits) of storage for a lower number of
     // blocks for faster access during read time
+    cerr << "Most compact block encoding: " << S[0] << endl;
     for (uint32_t i = 1; i < S.size(); i++)
       {    
 	if (S[i].cost-S[0].cost >= th) break;
-	if (S[i].blockSizes.size() < S[best].blockSizes.size())
+	if (S[i].blockSizes.size() < S[best].blockSizes.size()) {
 	  best = i;
+          //cerr << "Preferring this encoding: " << S[best]
+          //     << " delta: " << (S[best].cost-S[0].cost) << endl;
+        }
       }
+    if (best != 0)
+      cerr << "Preferring this encoding: " << S[best]
+           << " delta: " << (S[best].cost-S[0].cost) << endl;
     return S[best];
   }
 

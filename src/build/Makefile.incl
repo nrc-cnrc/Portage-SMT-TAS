@@ -64,11 +64,12 @@ PERL_LIB_DIR := $(INSTALL_DIR)/lib
 PYTHON_LIB_DIR := $(INSTALL_DIR)/lib
 
 # If BOOST_ROOT is defined, pull boost from there
+# Note: keep a space between -isystem and its argument, to keep Klocwork happy.
 ifdef BOOST_ROOT
    BOOST_LIB_DIR = -L$(BOOST_ROOT)/lib
-   BOOST_INC_DIR = -isystem$(patsubst %/boost,%,$(wildcard $(BOOST_ROOT)/include/*/boost))
+   BOOST_INC_DIR = -isystem $(patsubst %/boost,%,$(wildcard $(BOOST_ROOT)/include/*/boost))
    ifeq ($(strip $(BOOST_INC_DIR)),-isystem)
-      BOOST_INC_DIR = -isystem$(patsubst %/boost,%,$(wildcard $(BOOST_ROOT)/include/boost))
+      BOOST_INC_DIR = -isystem $(patsubst %/boost,%,$(wildcard $(BOOST_ROOT)/include/boost))
       ifeq ($(strip $(BOOST_INC_DIR)),-isystem)
          $(error Cannot find boost include directory under BOOST_ROOT=$(BOOST_ROOT).  Please set BOOST_ROOT to the directory where boost is installed)
       endif
@@ -111,7 +112,9 @@ MODULE_INCLUDE = $(foreach DIR, $(MODULE_DEPENDS), -I../$(DIR))
 ifeq ($(NO_UTILS_LIB), true)
    LIB_LIST = $(MODULE_DEPENDS)
 else
-   LIB_LIST = $(MODULE_DEPENDS) utils
+   # logging needs to be second last since its symbols need to be seen before
+   # the compiler goes through linking logging.
+   LIB_LIST = $(filter-out logging, $(MODULE_DEPENDS)) $(filter logging, $(MODULE_DEPENDS)) utils
 endif
 
 # These libraries are linked with everything everywhere

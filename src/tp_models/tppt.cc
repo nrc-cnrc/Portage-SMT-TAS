@@ -26,6 +26,10 @@
 #include "tpt_utils.h"
 #include <iostream>
 #include <fstream>
+#include <algorithm> // for sort()
+
+#include "word_align_io.h"
+#include "tp_alignment.h"
 
 #ifndef rcast
 #define rcast reinterpret_cast
@@ -83,20 +87,17 @@ namespace ugdiss
          third_col_count = numBooks;
 
       uint32_t num_floats = third_col_count + fourth_col_count;
-      if (num_counts) {
-         if (numBooks != num_floats + 1)
-            cerr << efatal << "Wrong number of codebooks found in " << fname
-                 << " expected " << num_floats << " float codebooks and one uint32_t, "
-                 << "found " << numBooks << " codebooks instead." << exit_1;
-      } else {
-         if (numBooks != num_floats)
-            cerr << efatal << "Wrong number of codebooks found in " << fname
-                 << " expected " << num_floats << " float codebooks, "
-                 << "found " << numBooks << " codebooks instead." << exit_1;
+      uint32_t num_uint_books = (num_counts > 0 ? 1 : 0) + (has_alignment ? 1 : 0);
+      if (numBooks != num_floats + num_uint_books) {
+         cerr << efatal << "Wrong number of codebooks found in " << fname
+              << " expected " << num_floats << " float codebooks";
+         if (num_uint_books > 0)
+            cerr << " and " << num_uint_books << " uint32_t";
+         cerr << ", found " << numBooks << " codebooks instead." << exit_1;
       }
 
-      scoreCoder.resize(numBooks);
-      score.resize(numBooks);
+      scoreCoder.resize(num_floats);
+      score.resize(num_floats);
       count_base = NULL;
       for (size_t i = 0; i< numBooks; i++)
       {
@@ -130,11 +131,26 @@ namespace ugdiss
          vector<uint32_t> b(numBlocks);
          for (size_t k = 0; k < numBlocks; k++)
             b[k] = *p++;
-         scoreCoder[i].setBlocks(b);
-         if (is_float)
+         if (is_float) {
+            assert(i < num_floats);
+            scoreCoder[i].setBlocks(b);
             score[i] = rcast<float const*>(p);
-         else
+         } else if (num_counts > 0 && i == num_floats) {
+            countCoder.setBlocks(b);
             count_base = p;
+         } else if (has_alignment && i + 1 == numBooks) {
+            alignmentCoder.setBlocks(b);
+            // we don't need to save p for the alignment coder, since it's
+            // dense: the ID for i is i, no mapping is needed.
+            bool bad = false;
+            for (uint32_t i = 0; i < numVals; ++i) {
+               if (i != p[i]) {
+                  error(ETWarn, "i=%u != p[i]=%u; numVals=%u", i, p[i], numVals);
+                  bad = true;
+               }
+            }
+            if (bad) exit(1);
+         }
          p += numVals;
       }
    }
@@ -343,36 +359,59 @@ namespace ugdiss
             pair<char const*,unsigned char> z(p,0);
             BitCoder<uint32_t>&          t = root->trgPhraseCoder;
             vector<BitCoder<uint32_t> >& s = root->scoreCoder;
-            vector<TCand>& v = *valPtr;
+            BitCoder<uint32_t>&          c = root->countCoder;
+            BitCoder<uint16_t>&          a = root->alignmentCoder;
             for (size_t i = 0; i < numPhrases; ++i)
             {
+               TCand& tc((*valPtr)[i]);
                uint32_t trgPhraseOffset,scoreId;
                z = t.readNumber(z.first,z.second,trgPhraseOffset);
                if (trgPhraseOffset >= root->trgRepos.size())
                   cerr << efatal << "Bad trg.repos.dat file." << exit_1;
                char const* q = root->trgRepos.data()+trgPhraseOffset;
-               //EJJ v[i].words = getSequence(q,root->trgVcb);
-               v[i].words.reserve(5);
-               getSequence(v[i].words, q, root->trgVcb);
-               v[i].score.resize(num_floats);
+               //EJJ tc.words = getSequence(q,root->trgVcb);
+               tc.words.reserve(5);
+               getSequence(tc.words, q, root->trgVcb);
+               tc.score.resize(num_floats);
                // Expand all the compressed scores into a vector<float>, using
                // their respective codebooks.
                for (size_t k = 0; k < num_floats; ++k)
                {
                   z = s[k].readNumber(z.first,z.second,scoreId);
                   //cerr << "score id [" << k << "]: " << scoreId << endl;
-                  v[i].score[k] = root->score[k][scoreId];
+                  tc.score[k] = root->score[k][scoreId];
                }
                if (root->num_counts) {
-                  v[i].counts.resize(root->num_counts);
+                  tc.counts.resize(root->num_counts);
                   for (uint32_t k = 0; k < root->num_counts; ++k) {
-                     z = s[num_floats].readNumber(z.first,z.second,scoreId);
-                     v[i].counts[k] = root->count_base[scoreId];
+                     z = c.readNumber(z.first,z.second,scoreId);
+                     tc.counts[k] = root->count_base[scoreId];
                   }
                }
                if (root->has_alignment) {
-                  // Once implemented, this is where we'll read the alignment information.
-                  assert(false);
+                  uint16_t packedLink(0);
+                  string& alignmentString(tc.alignment);
+                  alignmentString.reserve(tc.words.size()*2);
+                  AlignmentLink link;
+                  while (true) {
+                     z = a.readNumber(z.first,z.second,packedLink);
+                   if (packedLink == 0) break;
+                     // Add _ if previous link was last for its word
+                     if (link.last && !alignmentString.empty())
+                        alignmentString += '_';
+                     // Unpack the new link.
+                     link.unpack(packedLink);
+                     if (link.empty) {
+                        alignmentString += '-';
+                     } else if (link.value < 10) {
+                        alignmentString += '0' + char(link.value);
+                     } else {
+                        ostringstream oss;
+                        oss << link.value;
+                        alignmentString += oss.str();
+                     }
+                     if (!link.last) alignmentString += ',';
+                  }
                }
             }
             if (cacheValue)
@@ -443,58 +482,80 @@ namespace ugdiss
       return LPT;
    }
 
+   /// Functor to sort vocab indices by asciibetic of the words they point to,
+   /// implicitely adding a space after each word.
+   struct VcbLessThan {
+      const TokenIndex& vcb;
+      explicit VcbLessThan(const TokenIndex& vcb) : vcb(vcb) {}
+      bool operator()(id_type x, id_type y) {
+         const char* xp = (x == vcb.getNumTokens()+1) ? "|||" : vcb[x];
+         const char* yp = (y == vcb.getNumTokens()+1) ? "|||" : vcb[y];
+         //cerr << x << ":" << xp << " ";
+         //cerr << y << ":" << yp;
+         while (true) {
+            unsigned char xc = (*xp == '\0') ? ' ' : *xp;
+            unsigned char yc = (*yp == '\0') ? ' ' : *yp;
+            //cerr << " xc=" << uint32_t(xc) << " yc=" << uint32_t(yc);
+            if (xc < yc) { /*cerr << " <" << endl;*/ return true; }
+            if (xc > yc) { /*cerr << " >" << endl;*/ return false; }
+            if (*xp == '\0' || *yp == '\0') {
+               assert(*xp == '\0' && *yp == '\0');
+               //cerr << " ==" << endl;
+               return false;
+            }
+            ++xp;
+            ++yp;
+         }
+         //cerr << " ??" << endl;
+         assert(false);
+         return false;
+      }
+
+      template <class T>
+      bool operator()(const pair<id_type,T>& x, const pair<id_type,T>& y) {
+         return operator()(x.first,y.first);
+      }
+   };
+
    void
    TpPhraseTable::
-   dump(ostream& out)
+   dump(ostream& out, bool sort)
    {
-      char const* p = idxBase;
-      for (size_t i = 0; i < numTokens; i++)
-      {
-         filepos_type offset = *rcast<filepos_type const*>(p);
-         p += sizeof(filepos_type);
-         uchar flags = *p++;
-         if (offset)
-            Node(this,indexFile.data()+offset,flags).dump(out,srcVcb[i]);
+      if (sort) {
+         vector<uint32_t> sorted_vcb(numTokens);
+         for (uint32_t i = 0; i < numTokens; ++i)
+            sorted_vcb[i] = i;
+         std::sort(sorted_vcb.begin(), sorted_vcb.end(), VcbLessThan(srcVcb));
+
+         for (size_t i = 0; i < numTokens; i++)
+         {
+            uint32_t wid = sorted_vcb[i];
+            char const* p = idxBase+wid*(sizeof(filepos_type)+1);
+            filepos_type offset = *rcast<filepos_type const*>(p);
+            p += sizeof(filepos_type);
+            uchar flags = *p++;
+            if (offset)
+               Node(this,indexFile.data()+offset,flags).dump_sorted(out,srcVcb[wid]);
+         }
+      } else {
+         char const* p = idxBase;
+         for (size_t i = 0; i < numTokens; i++)
+         {
+            filepos_type offset = *rcast<filepos_type const*>(p);
+            p += sizeof(filepos_type);
+            uchar flags = *p++;
+            if (offset)
+               Node(this,indexFile.data()+offset,flags).dump(out,srcVcb[i]);
+         }
       }
    }
 
    void
    TpPhraseTable::Node::
-   dump(ostream& out,string prefix)
+   enumerate(vector<pair<string, Node> >& list, string prefix)
    {
-      TpPhraseTable::val_ptr_t v = value(false);
-      if (v != NULL)
-      {
-         for (size_t i = 0; i < v->size(); i++)
-         {
-            vector<string>   const&  w = (*v)[i].words;
-            vector<float>    const&  s = (*v)[i].score;
-            vector<uint32_t> const&  c = (*v)[i].counts;
-            out << prefix << " ||| ";
-            for (size_t k = 0; k < w.size(); ++k)
-               out << w[k] << " ";
-            out << "|||";
-            assert(s.size() == root->third_col_count + root->fourth_col_count);
-            for (size_t k = 0; k < root->third_col_count; ++k)
-               out << " " << s[k];
-            if (root->num_counts) {
-               assert(c.size() == root->num_counts);
-               out << " c=" << c[0];
-               for (size_t k = 1; k < c.size(); ++k)
-                  out << "," << c[k];
-            }
-            if (root->has_alignment) {
-               // Once implemented, we need to write out the a= field here.
-               assert(false);
-            }
-            if (root->fourth_col_count) {
-               out << " |||";
-               for (size_t k = root->third_col_count; k < s.size(); ++k)
-                  out << " " << s[k];
-            }
-            out << endl;
-         }
-      }
+      if (value(false) != NULL)
+         list.push_back(make_pair(prefix + " ||| ", *this));
 
       id_type id; id_type flagmask = FLAGMASK; filepos_type offset;
       for (char const* p = idxStart; p < idxStop;)
@@ -503,26 +564,120 @@ namespace ugdiss
          p = tightread(p,idxStop,offset);
          uchar flags = id&flagmask;
          id >>= FLAGBITS;
+         Node(root,idxStart-offset,flags).enumerate(list, prefix+" "+root->srcVcb[id]);
+      }
+   }
+
+   bool
+   TpPhraseTable::Node::
+   operator<(const Node& x) const
+   {
+      return idxStart < x.idxStart || (idxStart == x.idxStart && idxStop < x.idxStop);
+   }
+
+   bool
+   TpPhraseTable::Node::
+   operator==(const Node& x) const
+   {
+      return idxStart == x.idxStart && idxStop == x.idxStop;
+   }
+
+   void
+   TpPhraseTable::Node::
+   dump(ostream& out, string prefix)
+   {
+      TpPhraseTable::val_ptr_t v = value(false);
+      if (v != NULL) {
+         for (size_t i = 0; i < v->size(); ++i) {
+            out << prefix << " ||| ";
+            TCand const& tc = (*v)[i];
+            tc.dump(out, root);
+            out << endl;
+         }
+      }
+      id_type id; id_type flagmask = FLAGMASK; filepos_type offset;
+      for (char const* p = idxStart; p < idxStop;) {
+         p = tightread(p,idxStop,id);
+         p = tightread(p,idxStop,offset);
+         uchar flags = id&flagmask;
+         id >>= FLAGBITS;
          Node(root,idxStart-offset,flags).dump(out,prefix+" "+root->srcVcb[id]);
+      }
+   }
+
+   void
+   TpPhraseTable::Node::
+   dump_sorted(ostream& out, string prefix)
+   {
+      id_type id; id_type flagmask = FLAGMASK; filepos_type offset;
+      vector<pair<id_type, Node> > sorted_children;
+      sorted_children.reserve((idxStop-idxStart)/(sizeof(id)+sizeof(offset))+1);
+      sorted_children.push_back(make_pair(root->srcVcb.getNumTokens()+1, *this));
+      for (char const* p = idxStart; p < idxStop;) {
+         p = tightread(p,idxStop,id);
+         p = tightread(p,idxStop,offset);
+         uchar flags = id&flagmask;
+         id >>= FLAGBITS;
+         sorted_children.push_back(make_pair(id, Node(root,idxStart-offset,flags)));
+      }
+      std::sort(sorted_children.begin(), sorted_children.end(), VcbLessThan(root->srcVcb));
+      for (uint32_t i = 0; i < sorted_children.size(); ++i) {
+         Node& child = sorted_children[i].second;
+         if (child == *this || child.idxStop <= child.idxStart) {
+            TpPhraseTable::val_ptr_t v = child.value(false);
+            if (v != NULL) {
+               string this_prefix = (child == *this) ? prefix+" ||| "
+                  : prefix+" "+root->srcVcb[sorted_children[i].first]+" ||| ";
+               vector<string> sorted_tcands;
+               sorted_tcands.reserve(v->size());
+               for (size_t i = 0; i < v->size(); ++i) {
+                  TCand const& tc = (*v)[i];
+                  sorted_tcands.push_back(tc.toString(root));
+               }
+               std::sort(sorted_tcands.begin(), sorted_tcands.end());
+               for (size_t i = 0; i < v->size(); ++i)
+                  out << this_prefix << sorted_tcands[i] << endl;
+            }
+         } else {
+            child.dump_sorted(out, prefix+" "+root->srcVcb[sorted_children[i].first]);
+            //delete sorted_children[i].second;
+         }
       }
    }
 
    string
    TpPhraseTable::TCand::
-   toString()
+   toString(TpPhraseTable* root) const
    {
       ostringstream buf;
-      for (size_t i = 0; i < words.size(); i++)
-         buf << words[i] << " ";
-      buf << "|||";
-      for (size_t i = 0; i < score.size(); i++)
-         buf << " " << score[i];
-      if (!counts.empty()) {
-         buf << " c=" << counts[0];
-         for (size_t i = 1; i < counts.size(); ++i)
-            buf << "," << counts[i];
-      }
+      dump(buf, root);
       return buf.str();
+   }
+
+   void
+   TpPhraseTable::TCand::
+   dump(ostream& out, TpPhraseTable* root) const
+   {
+      for (size_t i = 0; i < words.size(); i++)
+         out << words[i] << " ";
+      out << "|||";
+
+      assert(score.size() == root->third_col_count + root->fourth_col_count);
+      for (size_t k = 0; k < root->third_col_count; ++k)
+         out << " " << score[k];
+      if (root->has_alignment && !alignment.empty())
+         out << " a=" << alignment;
+      if (root->num_counts) {
+         assert(counts.size() == root->num_counts);
+         out << " c=" << counts[0];
+         for (size_t k = 1; k < counts.size(); ++k)
+            out << "," << counts[k];
+      }
+      if (root->fourth_col_count) {
+         out << " |||";
+         for (size_t k = root->third_col_count; k < score.size(); ++k)
+            out << " " << score[k];
+      }
    }
 
    void TpPhraseTable::numScores(const string& fname, uint32_t& third_col, uint32_t& fourth_col,

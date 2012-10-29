@@ -1087,7 +1087,14 @@ shared_ptr<TargetPhraseTable> PhraseTable::findInAllTables(
             }
 
             if (hasAlignments) {
-               error(ETFatal, "Handling alignment info from TPPTs is not implemented yet.");
+               if (tScores->alignment && tScores->alignment != alignmentVoc.add(it->alignment.c_str())) {
+                  static bool warning_printed = false;
+                  if (!warning_printed) {
+                     error(ETWarn, "Contradictory alignment information found in two phrase tables for the same phrase pair (printing this message only once even if other occurrences are found).");
+                     warning_printed = true;
+                  }
+               }
+               tScores->alignment = alignmentVoc.add(it->alignment.c_str());
             }
          }
       }

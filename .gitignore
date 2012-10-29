@@ -23,3 +23,10 @@ _log.cvs*
 # install directories
 bin/
 lib/
+include/
+usage/
+rpm.build.root/
+
+# Klocwork generated directories
+.kwlp/
+.kwps/

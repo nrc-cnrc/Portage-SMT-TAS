@@ -16,7 +16,7 @@ mix12: cmp_cpt_cpt cmp_cpt_tppt cmp_tppt_cpt cmp_tppt_tppt
 
 mix56: cmp_cpt5_cpt6 cmp_cpt5_tppt6 cmp_tppt5_tppt6
 
-round_trip: cpt1.diff cpt2.diff cpt3.diff cpt4.diff
+round_trip: cpt1.diff cpt2.diff cpt3.diff cpt4.diff cpt7.diff
 
 .SECONDARY:
 
@@ -58,6 +58,9 @@ cpt%.diff: cpt% cpt%.dump
 	diff-round.pl -p 5 $+
 
 cpt4.diff: ref/cpt4.fillcounts cpt4.dump
+	diff-round.pl -p 5 $+
+
+cpt7.diff: ref/cpt7.dump cpt7.dump
 	diff-round.pl -p 5 $+
 
 detect-bad: cpt-bad

@@ -18,6 +18,7 @@
 #ifndef __ugEncodingSchemes_hh
 #define __ugEncodingSchemes_hh
 #include <vector>
+#include <iostream>
 #include <stdint.h>
 
 namespace ugdiss
@@ -53,6 +54,9 @@ namespace ugdiss
 
     // find optimal
   };
+
+  /// Dump an Escheme to a stream, for debugging and verbose purposes.
+  ostream& operator<<(ostream& os, const Escheme& s);
 
   class
   Escheme::

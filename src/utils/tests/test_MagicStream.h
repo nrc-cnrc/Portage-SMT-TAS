@@ -128,22 +128,11 @@ public:
       TS_ASSERT(system("rm -f MagicStreamTest*") == 0);
    }
 
-   static unsigned int error_message_count;  ///< Will count the number of times error() was called.
-   static string error_message;   ///< Will keep track of the last message sent to error().
-   /**
-    * Stub function replacement for function error that prevents printing to
-    * stderr but that keeps track of the last error message string.
-    */
-   static void countErrorCallBack(ErrorType et, const string& msg) {
-      ++error_message_count;
-      error_message = msg;
-   }
-
    void setUp() {
       // Reset the message to detect bad reads.
       m_read_msg = "Beginning of test";
-      error_message = "";
-      error_message_count = 0;
+      Error_ns::ErrorCounts::last_msg.clear();
+      Error_ns::ErrorCounts::Total = 0;
    }
    void tearDown() {
       // this is for code that needs to be run after each test*() method.
@@ -249,11 +238,11 @@ public:
       TS_ASSERT(os);
 #else
       using namespace Portage::Error_ns;
-      tmp_val<ErrorCallback> tmp(dummy::errorCallback, countErrorCallBack);
+      tmp_val<ErrorCallback> tmp(Current::errorCallback, countErrorCallBack);
       oMagicStream os(filename_lzma);
-      //cerr << "NOT USING LZMA: " << error_message_count << " " << error_message << endl; // SAM DEBUGGING
-      TS_ASSERT_EQUALS(error_message_count, 1u);
-      TS_ASSERT_EQUALS(error_message, "Portage was not compiled with lzma support!");
+      //cerr << "NOT USING LZMA: " << ErrorCounts::Total << " " << ErrorCounts::last_msg << endl; // SAM DEBUGGING
+      TS_ASSERT_EQUALS(ErrorCounts::Total, 1u);
+      TS_ASSERT_EQUALS(ErrorCounts::last_msg, "Portage was not compiled with lzma support!");
 #endif
    }
    void testReadingLzmaFile() {
@@ -267,11 +256,11 @@ public:
       TS_ASSERT(is);
 #else
       using namespace Portage::Error_ns;
-      tmp_val<ErrorCallback> tmp(dummy::errorCallback, countErrorCallBack);
+      tmp_val<ErrorCallback> tmp(Current::errorCallback, countErrorCallBack);
       iMagicStream os(filename_lzma);
-      //cerr << "NOT USING LZMA: " << error_message_count << " " << error_message << endl; // SAM DEBUGGING
-      TS_ASSERT_EQUALS(error_message_count, 1u);
-      TS_ASSERT_EQUALS(error_message, "Portage was not compiled with lzma support!");
+      //cerr << "NOT USING LZMA: " << ErrorCounts::Total << " " << ErrorCounts::last_msg << endl; // SAM DEBUGGING
+      TS_ASSERT_EQUALS(ErrorCounts::Total, 1u);
+      TS_ASSERT_EQUALS(ErrorCounts::last_msg, "Portage was not compiled with lzma support!");
 #endif
    }
 
@@ -623,8 +612,5 @@ public:
    }
 
 }; // TestMagicStream
-
-unsigned int TestMagicStream::error_message_count = 0;
-string TestMagicStream::error_message;
 
 } // Portage

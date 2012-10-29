@@ -34,7 +34,7 @@ public:
 
       // Temporarily mute the the function error used in the parse's skipSpaces function.
       using namespace Portage::Error_ns;
-      tmp_val<Error_ns::ErrorCallback> tmp(dummy::errorCallback, nullErrorCallBack);
+      tmp_val<Error_ns::ErrorCallback> tmp(Current::errorCallback, nullErrorCallBack);
 
       // Get ready to parse the string with null characters.
       istringstream iss(source);
