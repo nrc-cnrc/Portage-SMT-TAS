@@ -171,12 +171,12 @@ if ($action eq 'extract') {
    my $ix = newIx();
    my $parser = processFile(action => 'extract',
          xml_in => $xml_file,
-         template_name => "${dir}/QP.template.xml",
+         xml_out_name => "${dir}/QP.template.xml",  # May or may not be open later.
          ix => $ix,
          src_lang => $src,
          tgt_lang => $tgt,
          keeptags => $keeptags);
-   close $parser->{template} if(defined($parser->{template}));
+   close $parser->{xml_out} if(defined($parser->{xml_out}));
    ixSave($ix, "${dir}/Q.txt", "${dir}/Q.ix");
 }
 
@@ -187,18 +187,18 @@ elsif ($action eq 'replace') {
    my $ce_file = (-r "${dir}/pr.ce") ? "${dir}/pr.ce" : undef;
    my $ix = ixLoad("${dir}/P.txt", "${dir}/Q.ix", $ce_file);
 
-   open(my $template, ">${output_layers}", "${dir}/QP.xml")
-      or die "Can open output template file";
+   open(my $xml_out, ">${output_layers}", "${dir}/QP.xml")
+      or die "Can open output xml_out file";
    processFile(action => 'replace',
          xml_in => "${dir}/QP.template.xml",
-         template => $template,
+         xml_out => $xml_out,
          ix => $ix,
          filter => $filter,
          src_lang => $src,
          tgt_lang => $tgt,
          keeptags => $keeptags,
          score => $score);
-   close $template;
+   close $xml_out;
 }
 
 elsif ($action eq 'check') {
@@ -262,8 +262,10 @@ sub processTMX {
       hi  => \&processHI,
       } );
    $parser->{InputFormat} = 'tmx';
-   open(my $template, ">${output_layers}", $parser->{template_name})
-      or die "Can open output template file";
+   if($parser->{action} eq 'extract') {
+      open($parser->{xml_out}, ">${output_layers}", $parser->{xml_out_name})
+         or die "Can open output xml_out file";
+   }
 }
 
 use File::Copy;
@@ -290,7 +292,7 @@ sub processXLIFF {
       die "Invalid action.\n";
    }
    # Create a template for sdlxliff
-   copy($parser->{xml_in}, $parser->{template_name}) if($parser->{action} eq 'extract');
+   copy($parser->{xml_in}, $parser->{xml_out_name}) if($parser->{action} eq 'extract');
 
    $parser->{InputFormat} = 'sdlxliff';
 }
@@ -329,13 +331,13 @@ sub xmlFlush {
     my ($parser) = @_;
     if ($parser->{InputFormat} eq 'sdlxliff') {
        $parser->{action} eq 'replace'
-          ? $parser->flush($parser->{template})
+          ? $parser->flush($parser->{xml_out})
           : $parser->purge();
     }
     elsif ($parser->{InputFormat} eq 'tmx') {
        $parser->{action} eq 'check'
           ? $parser->purge()
-          : $parser->flush($parser->{template});
+          : $parser->flush($parser->{xml_out});
     }
     else {
        die "xmlFlush on a undefined format!";
@@ -383,7 +385,7 @@ sub processTransUnit {
    die "No source for $trans_unit_id.\n" unless ($source);
 
    my $mrk_id = 0;
-   my @mrks = $source->descendants('mrk[@mtype="seg"]') or die "Can't find any mrk for $trans_unit_id\n\tcontent:", $source->xml_string, "\n";
+   my @mrks = $source->descendants('mrk[@mtype="seg"]') or warn "Can't find any mrk for $trans_unit_id\n\tcontent:", $source->xml_string, "\n";
    foreach my $mrk (@mrks) {
       my $src_sub = $mrk->xml_string();
       my $id =  "$trans_unit_id.".(defined($mrk->{att}{mid}) ? $mrk->{att}{mid} : $mrk_id++);
@@ -413,7 +415,7 @@ sub processTransUnitReplace {
    die "No source for $trans_unit_id.\n" unless ($source);
 
    my $mrk_id = 0;  # Fallback id.
-   my @mrks = $source->descendants('mrk[@mtype="seg"]') or die "Can't find any mrk for $trans_unit_id\n\tcontent:", $source->xml_string, "\n";
+   my @mrks = $source->descendants('mrk[@mtype="seg"]') or warn "Can't find any mrk for $trans_unit_id\n\tcontent:", $source->xml_string, "\n";
    foreach my $smrk (@mrks) {
       my $mrk = $smrk->copy();
       my $src_sub = $mrk->xml_string();
@@ -634,7 +636,7 @@ sub processText {
    elsif ($parser->{action} eq 'replace') {
       $out = ixGetSegment($parser->{ix}, $in);
       $parser->{seg_id} = $in;# Ugly side-effect
-      warn("Can't find ID $in in index") unless $out;
+      warn("Can't find ID $in in index") unless defined($out);
    }
 
    return $out;
