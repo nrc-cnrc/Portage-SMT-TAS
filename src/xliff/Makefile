@@ -76,7 +76,7 @@ xliff/%/Q.txt:  %.sdlxliff
 		$(and ${PP}, -pretty_print) \
 		$(or $(and ${SCORE}, -score), -noscore) \
 		$(and ${FILTER}, -filter=${FILTER}) \
-		replace $*\
+		replace $* \
 		2> ${LOGS}/$(basename $(subst /,.,$@)).log
 	[[ -s $@ ]] || ! echo "ERROR replacing $@"
 
