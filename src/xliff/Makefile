@@ -48,7 +48,12 @@ tmx:  $(foreach c, $(basename ${TMX}), tmx/$c/QP.xml)
 tmx/%/Q.txt:  %.tmx
 	@mkdir -p $(dir $@)
 	-@rm $(dir $@)/*
-	${CE_TMX_PL} -verbose=1 $(and ${DEBUG}, -d) extract $(dir $@) $< \
+	${CE_TMX_PL} \
+		-verbose=1 \
+		$(and ${KEEPTAGS}, -keeptags) \
+		$(and ${DEBUG}, -d) \
+		$(and ${PP}, -pretty_print) \
+		extract $(dir $@) $< \
 		2> ${LOGS}/$(basename $(subst /,.,$@)).log
 
 
@@ -56,7 +61,12 @@ xliff:  $(foreach c, $(basename ${XLIFF}), xliff/$c/QP.xml)
 xliff/%/Q.txt:  %.sdlxliff
 	@mkdir -p $(dir $@)
 	-@rm $(dir $@)/*
-	${CE_TMX_PL} -verbose=1 $(and ${DEBUG}, -d) extract $(dir $@) $< \
+	${CE_TMX_PL} \
+		-verbose=1 \
+		$(and ${KEEPTAGS}, -keeptags) \
+		$(and ${DEBUG}, -d) \
+		$(and ${PP}, -pretty_print) \
+		extract $(dir $@) $< \
 		2> ${LOGS}/$(basename $(subst /,.,$@)).log
 	[[ `\wc -l < $@` -eq ${EXPECTED_SIZE} ]]
 
@@ -72,6 +82,7 @@ xliff/%/Q.txt:  %.sdlxliff
 %/QP.xml:  %/P.txt  %/pr.ce
 	${CE_TMX_PL} \
 		-verbose=1 \
+		$(and ${KEEPTAGS}, -keeptags) \
 		$(and ${DEBUG}, -d) \
 		$(and ${PP}, -pretty_print) \
 		$(or $(and ${SCORE}, -score), -noscore) \
@@ -83,8 +94,9 @@ xliff/%/Q.txt:  %.sdlxliff
 
 ########################################
 # TEST
-.PHONY:  test
+.PHONY:  test1 test2
 # Simple hand made test
+test1:  KEEPTAGS=1
 test1:  xliff/test_numbers_hyphens_2.docx/QP.xml
 # Test <seg-source><><><mrk mtype="seg">
 test2:  xliff/TestSet/Target-sdlxliff/WNv_report_-_WEEK_39_graphs_and_tables_4th_Oct_2012.xlsx/QP.xml
