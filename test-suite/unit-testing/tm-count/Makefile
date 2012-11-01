@@ -18,16 +18,18 @@ all: test
 test: test-a test-ca test-c test-tp
 	@echo All tests PASSED.
 
-clean: clean-a clean-ca clean-c clean-tp
-	${RM} log.* 1sent.out-*
+TEMP_FILES=log.* 1sent.out-* *.fr2en.gz \
+           canoe.ini.tp-* 1sent.out.tp-* \
+           canoe.ini-* \
+           1sent.out-* 1sent.out.2-* \
+           canoe.ini-*.*FILT* *-cpt.*.FILT* cpt.*.FILT-G-* \
+           canoe.ini-*.ONE* *-cpt.online-input.ONE*.gz
+TEMP_DIRS=*cpt.*.tppt*
+include ../Makefile.incl
+
+clean: clean-deep
+clean-deep:
 	find . -type l -name \*.fr2en.gz | xargs ${RM}
-
-clean-tp:
-	${RM} canoe.ini.tp-* 1sent.out.tp-*
-	${RM} -r *cpt.*.tppt*
-
-clean-%: clean_canoe-% clean_filter-%
-	${RM} canoe.ini-$* $*-cpt.fr2en.gz
 
 test-tp: check.tp-1sent.out.tp-a check.tp-1sent.out.tp-c check.tp-1sent.out.tp-ca
 test-tp: check.tp-1sent.out.tp-a.ONECPT check.tp-1sent.out.tp-c.ONECPT check.tp-1sent.out.tp-ca.ONECPT
@@ -65,9 +67,6 @@ weights-%: check-%
 canoe-%: cmp_1sent.out-% cmp_1sent.out.2-%
 	@echo $@ passed.
 
-clean_canoe-%:
-	${RM} 1sent.out-$* 1sent.out.2-$*
-
 1sent.out-%: 1sent check-%
 	canoe -f canoe.ini-$* -trace -walign -ffvals < $< > $@ 2> log.$@
 
@@ -98,10 +97,6 @@ check.tp-1sent.out.tp-%: 1sent.out.tp-% 1sent.out-%
 
 filter_models-%: filter_grep-% filter_hard-% filter_soft-% filter_hard_online-% filter_soft_online-%
 	@echo $@ passed.
-
-clean_filter-%:
-	${RM} canoe.ini-$*.*FILT* $*-cpt.*.FILT* cpt.*.FILT-G-$*
-	${RM} canoe.ini-$*.ONE* $*-cpt.online-input.ONE*.gz
 
 filter_grep-%: canoe.ini-%
 	filter_models -f $< -suffix .FILT-G-$* < 1sent 2> log.$@

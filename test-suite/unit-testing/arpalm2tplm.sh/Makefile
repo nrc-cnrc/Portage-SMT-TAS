@@ -4,11 +4,8 @@
 .PHONY: all
 all: test
 
-
-.PHONY: clean
-clean:
-	${RM} -rf lm.tplm lm.tplm.tmp.*
-
+TEMP_DIRS=lm.tplm lm.tplm.tmp.*
+include ../Makefile.incl
 
 .PHONY: test
 test:

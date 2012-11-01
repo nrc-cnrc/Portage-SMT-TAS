@@ -13,8 +13,8 @@ all: test_ibm1 test_ibm2 test_hmm test_sort
 
 .SECONDARY:
 
-clean:
-	${RM} ibm2.tiny* hmm.tiny*
+TEMP_FILES=ibm2.tiny* hmm.tiny*
+include ../Makefile.incl
 
 ibm2.tiny: 1line.en 1line.fr
 	${RM} $@{,.pos}

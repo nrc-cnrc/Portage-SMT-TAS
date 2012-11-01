@@ -14,18 +14,22 @@ TRAIN ?= ${CORPUS_DIR}/lc/europarl.fr-en.fr.lowercase ${CORPUS_DIR}/lc/europarl.
 SRC ?= ${CORPUS_DIR}/lc/test2000.fr.lowercase
 LM ?= ${CORPUS_DIR}/europarl.en.srilm
 
-all: DIFF
+all: DIFF gitignore
 
+TEMP_FILES=1best.* nbest* lattice* ffvals* pal* para.* run-parallel-logs-*
 clean:
-	${RM} 1best.* nbest* lattice* ffvals* pal* para.* $(DIR)/* 
-	${RM} run-parallel-logs-*
-	
+	${RM} ${TEMP_FILES} $(DIR)/*
+
+SETUP_FILES=ibm1.fr_given_en.gz ibm2.fr_given_en.gz ibm1.en_given_fr.gz ibm2.en_given_fr.gz \
+            ibm2.fr_given_en.pos.gz ibm2.en_given_fr.pos.gz phrases-GT-KN.fr2en.gz \
+            canoe.ini log.gen* log.train* .gitignore
+
 distclean: clean
-	${RM} ibm1.fr_given_en.gz ibm2.fr_given_en.gz ibm1.en_given_fr.gz ibm2.en_given_fr.gz
-	${RM} ibm2.fr_given_en.pos.gz ibm2.en_given_fr.pos.gz phrases-GT-KN.fr2en.gz
-	${RM} canoe.ini
-	${RM} log.gen* log.train*
+	${RM} ${SETUP_FILES}
 	${RM} -r $(DIR)
+
+gitignore:
+	echo "${TEMP_FILES} ${SETUP_FILES} ${DIR}/" | tr ' ' '\n' > .gitignore
 
 ############################################################
 ## SETUP

@@ -87,10 +87,6 @@ ${INPUT}.${LMPREFIX}.${LMEXT}.out-per-sent-limit: ${INPUT} ${LM}
 %.binlm: %.${ARPALMEXT}
 	arpalm2binlm $< $@ >& log.$@
 
-clean:
-	${RM} *.out *.out-limit *.out-per-sent-limit
-	${RM} log.*
-	${RM} *.binlm
-	${RM} -r europarl.en.tplm test.tplm test2.tplm test3.tplm
-	${RM} -r europarl.en.tplm.tmp.* test.tplm.tmp.* test2.tplm.tmp.* test3.tplm.tmp.*
-	${RM} europarl.en.lm europarl.en.in
+TEMP_FILES=*.out *.out-limit *.out-per-sent-limit log.* *.binlm europarl.en.lm europarl.en.in
+TEMP_DIRS=europarl.en.tplm test.tplm test2.tplm test3.tplm europarl.en.tplm.tmp.* test.tplm.tmp.* test2.tplm.tmp.* test3.tplm.tmp.*
+include ../Makefile.incl

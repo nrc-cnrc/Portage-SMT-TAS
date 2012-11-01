@@ -1,5 +1,7 @@
 #!/bin/bash
 
+make gitignore
+
 i=1
 for DIST_TYPE in "" -dist-limit-ext -dist-phrase-swap "-dist-limit-ext -dist-phrase-swap" -dist-limit-simple "-dist-limit-simple -dist-phrase-swap"; do
    echo "DIST_TYPE($i)=$DIST_TYPE"

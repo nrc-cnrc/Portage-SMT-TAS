@@ -1,6 +1,5 @@
 #!/usr/bin/make -f
 # vim:noet:ts=3:nowrap:filetype=make
-# $Id$
 
 # @file testsuite
 # @brief
@@ -24,10 +23,8 @@ SHELL := bash
 .PHONY: all
 all: testsuite
 
-
-.PHONY: clean
-clean:
-	${RM} log.* tm-train*lc.gz
+TEMP_FILES=log.* tm-train*lc.gz
+include ../Makefile.incl
 
 
 .PHONY: testsuite

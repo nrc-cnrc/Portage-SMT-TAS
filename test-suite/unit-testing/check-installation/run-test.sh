@@ -13,6 +13,6 @@
 # Copyright 2010, Her Majesty in Right of Canada
 
 make clean
-make -k -j testsuite
+make -k -j all
 
 exit

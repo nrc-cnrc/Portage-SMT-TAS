@@ -19,9 +19,9 @@ mix56: cmp_cpt5_cpt6 cmp_cpt5_tppt6 cmp_tppt5_tppt6
 round_trip: cpt1.diff cpt2.diff cpt3.diff cpt4.diff cpt7.diff
 
 .SECONDARY:
-
-clean:
-	${RM} -r log.* cpt*.tppt cpt*tppt.tmp.* cpt?.dump *.0000.10best*
+TEMP_FILES=log.* cpt?.dump *.0000.10best*
+TEMP_DIRS=cpt*.tppt cpt*tppt.tmp.*
+include ../Makefile.incl
 
 cmp_%: %
 	diff $*.0000.10best ref/

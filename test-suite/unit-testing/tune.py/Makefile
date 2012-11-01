@@ -1,6 +1,5 @@
 #!/usr/bin/make -f
 # vim:noet:ts=3:nowrap:filetype=make
-# $Id$
 
 # @file Makefile
 # @brief
@@ -31,12 +30,9 @@ vpath %.lc    src/
 all:  testsuite
 
 
-.PHONY: clean
-clean:
-	${RM} canoe.tune* decode-config* summary* rescore-weights
-	${RM} -r foos* logs log.canoe.* canoe-parallel.*
-	${RM} -r tunedir.*
-
+TEMP_FILES=canoe.tune* decode-config* summary* rescore-weights
+TEMP_DIRS=foos* logs log.canoe.* canoe-parallel.* tunedir.*
+include ../Makefile.incl
 
 
 .PHONY: testsuite

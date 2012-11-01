@@ -14,8 +14,11 @@ SHELL=bash
 all: configtool canoe filter_models
 	@echo All tests PASSED.
 
-clean: clean_canoe clean_filter
-	${RM} cpt.top.fr2en.gz log.*
+TEMP_FILES=cpt.top.fr2en.gz log.* \
+           1sent.out 1sent.out.2 \
+           canoe.ini.*FILT* cpt.*.FILT* \
+           canoe.ini.ONE* cpt.online-input.ONE*.gz
+include ../Makefile.incl
 
 cpt.top.fr2en.gz:
 	-ln -s ../gen_phrase_tables/ref/cpt.top.fr2en.gz
@@ -35,9 +38,6 @@ weights:
 
 canoe: cmp_1sent.out cmp_1sent.out.2
 
-clean_canoe:
-	${RM} 1sent.out 1sent.out.2
-
 1sent.out: 1sent cpt.top.fr2en.gz
 	canoe -f canoe.ini -trace -ffvals < $< > $@ 2> log.$@
 
@@ -46,10 +46,6 @@ clean_canoe:
 
 
 filter_models: filter_grep filter_hard filter_soft filter_hard_online filter_soft_online
-
-clean_filter:
-	${RM} canoe.ini.*FILT* cpt.*.FILT*
-	${RM} canoe.ini.ONE* cpt.online-input.ONE*.gz
 
 filter_grep:
 	filter_models -f canoe.ini -suffix .FILT-G < 1sent 2> log.$@

@@ -12,8 +12,8 @@ all: cmp_all read_all error
 
 .SECONDARY:
 
-clean:
-	${RM} align.* aligned.1 aligned-in.1 core*
+TEMP_FILES=align.* aligned.1 aligned-in.1 core*
+include ../Makefile.incl
 
 cmp_all: $(addprefix cmp_align.,aachen gale hwa matrix compact ugly green sri uli patterns)
 

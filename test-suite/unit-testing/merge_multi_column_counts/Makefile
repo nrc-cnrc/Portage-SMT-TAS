@@ -1,6 +1,5 @@
 #!/usr/bin/make -f
 # vim:noet:ts=3:nowrap:filetype=make
-# $Id$
 
 # @file Makefile
 # @brief
@@ -25,9 +24,8 @@ vpath input% src/
 all:  testsuite
 
 
-.PHONY: clean
-clean:
-	${RM} unittest1.out unittest2.out
+TEMP_FILES=unittest1.out unittest2.out
+include ../Makefile.incl
 
 .PHONY: testsuite
 testsuite:  unittest1

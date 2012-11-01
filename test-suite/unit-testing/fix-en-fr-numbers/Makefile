@@ -30,5 +30,5 @@ in.latin1 ref/out.latin1: %.latin1: %.utf8
 out.%: in.%
 	fix-en-fr-numbers.pl < $< > $@
 
-clean:
-	${RM} out.* in.latin1 ref/out.latin1
+TEMP_FILES=out.* in.latin1 ref/out.latin1
+include ../Makefile.incl

@@ -32,8 +32,8 @@ all: test.6
 all: test.7.gz
 all: test-b
 
-clean:
-	${RM} cpt* dm* filt* fdm* log*
+TEMP_FILES=cpt* dm* filt* fdm* log*
+include ../Makefile.incl
 
 
 ########################################
