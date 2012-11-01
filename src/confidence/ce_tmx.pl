@@ -1,5 +1,4 @@
 #!/usr/bin/env perl
-# $Id: ce_tmx.pl,v 1.15 2012/09/07 18:13:00 joanise Exp $
 # @file ce_tmx.pl
 # @brief Handle TMX files for confidence estimation
 #
@@ -28,11 +27,11 @@ the confidence estimation framework.
 
 The first form extracts the
 source-language text segments from a TMX file into a plain text file
-(<dir>/Q.txt), and produces a TMX file template (<dir>/QP.template.tmx).
+(<dir>/Q.txt), and produces a TMX file template (<dir>/QP.template.xml).
 
 The second form inserts target-language translations from file
 <dir>/P.txt into that template,  generating the output TMX file
-<dir>/QP.tmx.
+<dir>/QP.xml.
 
 The third form checks the validity of the file. If the file is valid,
 the program outputs the number of translatable source-language
@@ -59,7 +58,8 @@ Specify TMX target language (case insensitive within TMX file) [FR-CA]
 =item -keeptags
 
 Retain keeptags code (BPT, EPT, IT and PH elements) within target
-language TUs (default is to delete it)
+language TUs or retain code (x, g, bpt, ept, bx, ex, ph, it & mrk) within
+seg-source. (default is to delete it)
 
 =item -score/-noscore
 
@@ -189,7 +189,7 @@ elsif ($action eq 'replace') {
 
    open(my $xml_out, ">${output_layers}", "${dir}/QP.xml")
       or die "Can open output xml_out file";
-   processFile(action => 'replace',
+   my $parser = processFile(action => 'replace',
          xml_in => "${dir}/QP.template.xml",
          xml_out => $xml_out,
          ix => $ix,
@@ -199,6 +199,8 @@ elsif ($action eq 'replace') {
          keeptags => $keeptags,
          score => $score);
    close $xml_out;
+   # TODO: should we rename tne output to its proper extension or leave it to PortageLive.php?
+   rename "${dir}/QP.xml",  "${dir}/QP." . $parser->{InputFormat};
 }
 
 elsif ($action eq 'check') {
@@ -277,8 +279,14 @@ sub processXLIFF {
       $parser->setTwigHandlers( {
             'trans-unit' => \&processTransUnit,
             tag => \&processTag,
-            x   => \&processX,
             g   => \&processG,
+            x   => \&processX,
+            bx  => sub { my( $t, $elt)= @_; },
+            ex  => sub { my( $t, $elt)= @_; },
+            bpt => sub { my( $t, $elt)= @_; },
+            ept => sub { my( $t, $elt)= @_; },
+            ph  => sub { my( $t, $elt)= @_; },
+            it  => sub { my( $t, $elt)= @_; },
             'seg-source//mrk[@mtype="seg"]' => sub { my( $t, $elt)= @_; print STDERR "\ttest MRK", $elt->{att}->{mid}, "\n"; },
             } );
    }
@@ -314,7 +322,8 @@ sub processNativeCode {
        # \- is the rtf and Trados encoding for an optional hyphen; remove it
        $e->set_text("") if ($1 eq '-');
        $e->erase();
-   } elsif (not $parser->{keeptags}) {
+   }
+   elsif (not $parser->{keeptags}) {
        # Only applies within target language TUVs:
        my $tuv = $e->parent('tuv');
        my $lang = $tuv->att('xml:lang') if $tuv;
@@ -387,8 +396,9 @@ sub processTransUnit {
    my $mrk_id = 0;
    my @mrks = $source->descendants('mrk[@mtype="seg"]') or warn "Can't find any mrk for $trans_unit_id\n\tcontent:", $source->xml_string, "\n";
    foreach my $mrk (@mrks) {
-      my $src_sub = $mrk->xml_string();
-      my $id =  "$trans_unit_id.".(defined($mrk->{att}{mid}) ? $mrk->{att}{mid} : $mrk_id++);
+      my $src_sub = $parser->{keeptags} ? $mrk->xml_string() : $mrk->text();
+      debug("\tMRK: $src_sub\n");
+      my $id =  "$trans_unit_id." . (defined($mrk->{att}{mid}) ? $mrk->{att}{mid} : $mrk_id++);
       my $out = ixAdd($parser->{ix}, $src_sub, $id);
       #$parser->{seg_id} = $out;
       $mrk->set_text($out);  # for debugging
@@ -418,7 +428,7 @@ sub processTransUnitReplace {
    my @mrks = $source->descendants('mrk[@mtype="seg"]') or warn "Can't find any mrk for $trans_unit_id\n\tcontent:", $source->xml_string, "\n";
    foreach my $smrk (@mrks) {
       my $mrk = $smrk->copy();
-      my $src_sub = $mrk->xml_string();
+      my $src_sub = $parser->{keeptags} ? $mrk->xml_string() : $mrk->text();
       my $mid = (defined($mrk->{att}{mid}) ? $mrk->{att}{mid} : $mrk_id++);
       my $xid  = "$trans_unit_id.$mid";
       my $out = getTranslatedText($parser, $xid);
@@ -456,24 +466,27 @@ sub processTransUnitReplace {
 }
 
 
+# For sdlxliff, we need to map some x element to there value, more precisely, non breaking space.
 sub processX {
    my ($parser, $x) = @_;
    my $x_id = $x->{att}{id};
    debug("X id=$x_id\n");
    if (defined($parser->{tag}{$x_id})) {
       $x->set_text($parser->{tag}{$x_id});
+      $x->erase();
    }
-   $x->erase();
 }
 
 
+# NOTE: erasing g elements is not necessary since during
 sub processG {
    my ($parser, $g) = @_;
    my $text = join(" ", map(normalize($_->text(no_recurse=>1)), $g));
    debug("G id=" . $g->{att}{id} . ":  $text\n" . $g->xml_string . "\n");
    #$g->set_text($text);
    # Erase the element: the element is deleted and all of its children are pasted in its place.
-   $g->erase();
+   # TODO: disabled to extract tags.
+   #$g->erase();
 }
 
 
