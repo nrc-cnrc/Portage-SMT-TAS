@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <definitions xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.wsdl" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="PortageLiveService" targetNamespace="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.wsdl">
+  <!-- Understanding WSDL: http://msdn.microsoft.com/en-us/library/ms996486.aspx-->
   <documentation>
   $Id: PortageLiveAPI.wsdl,v 1.9 2012/10/09 17:59:31 larkins Exp $
   file: PortageLiveAPI.wsdl
