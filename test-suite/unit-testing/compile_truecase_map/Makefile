@@ -1,6 +1,5 @@
 #!/usr/bin/make -f
 # vim:noet:ts=3:nowrap:filetype=make
-# $Id$
 
 # @file Makefile
 # @brief Testsuite for compile_truecase_map.
@@ -31,9 +30,8 @@ all:
 endif
 
 
-.PHONY: clean
-clean:
-	${RM} lowercase* truecase*
+TEMP_FILES=lowercase* truecase*
+include ../Makefile.incl
 
 .PRECIOUS: lowercase
 lowercase: compile_truecase_map.unittest

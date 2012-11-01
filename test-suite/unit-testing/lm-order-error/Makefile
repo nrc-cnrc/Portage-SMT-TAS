@@ -13,8 +13,8 @@ all: test_filtering
 test_filtering: bad.filteredlm
 	diff-round.pl -sort $< ref/$<
 
-clean:
-	${RM} bad.binlm bad.filteredlm
+TEMP_FILES=bad.binlm bad.filteredlm
+include ../Makefile.incl
 
 %.binlm: %.lm
 	arpalm2binlm $< $@

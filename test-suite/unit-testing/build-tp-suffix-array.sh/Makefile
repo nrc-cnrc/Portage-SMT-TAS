@@ -33,12 +33,9 @@ FIND_SIMILAR_SENTENCES ?= find_similar_sentences
 .PHONY: all
 all: test
 
-
-.PHONY: clean
-clean:
-	${RM} test.vcb test.tdx test.mct test.msa similar.txt small.* log.*
-	${RM} -r test_en.tpsa
-
+TEMP_FILES=test.vcb test.tdx test.mct test.msa similar.txt small.* log.*
+TEMP_DIRS=test_en.tpsa
+include ../Makefile.incl
 
 .PHONY: test test1 test2 test3 test4 test5
 # The following commands are executed by "build-tp-suffix-array.sh test_en.al test":

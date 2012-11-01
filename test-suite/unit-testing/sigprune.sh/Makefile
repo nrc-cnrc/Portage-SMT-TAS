@@ -1,6 +1,5 @@
 #!/usr/bin/make -f
 # vim:noet:ts=3:nowrap:filetype=make
-# $Id$
 
 # @file
 # @brief
@@ -29,11 +28,10 @@ SHELL = /bin/bash
 all: testsuite
 
 
-.PHONY: clean
-clean:
-	${RM} log.* runpara_cmds run-parallel-logs-local unittest*.gz
-	${RM} -r run-p.*  *.tpsa  parallelize.pl.*  TEST.*  sigprune.sh.*
-	${RM}  sig.cnts.jpt.ibm2.tm-train.en-fr.gz sig.cnts.jpt.vtab.gz
+TEMP_FILES=log.* runpara_cmds run-parallel-logs-local unittest*.gz \
+           sig.cnts.jpt.ibm2.tm-train.en-fr.gz sig.cnts.jpt.vtab.gz \
+TEMP_DIRS=run-p.*  *.tpsa  parallelize.pl.* TEST.* sigprune.sh.*
+include ../Makefile.incl
 
 
 .PHONY: testsuite

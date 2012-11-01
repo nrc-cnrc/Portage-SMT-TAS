@@ -20,27 +20,24 @@ PORTAGE = ../../..
 .PHONY: clean small check all online online_hard online_soft notonline notonline_hard notonline_soft FORCE
 .PRECIOUS: $(foreach f, $(FILES), trans.$f)
 
-all: small check phrases-GT-KN.fr2en.FILT.gz
+all: small check phrases-GT-KN.fr2en.FILT.gz gitignore
 
 ############################################################
 ## CLEAN
+TEMP_FILES=log.canoe.* log.gen* log.notonline.* log.online.* log.phrases* log.train_ibm.* \
+           notonline* online* \
+           phrases-GT-KN.fr2en.FILT.gz phrases-GT-KN.fr2en.ORIG.GREP.gz phrases-GT-KN.fr2en.ORIG.LIMIT.gz \
+           canoe.ini* phrases.small.* trans.* core.* tmp.online.*
 clean:
-	${RM} log.canoe.* log.gen* log.notonline.* log.online.* log.phrases* log.train_ibm.*
-	${RM} notonline*
-	${RM} online*
-	${RM} phrases-GT-KN.fr2en.FILT.gz phrases-GT-KN.fr2en.ORIG.GREP.gz phrases-GT-KN.fr2en.ORIG.LIMIT.gz
-	${RM} canoe.ini*
-	${RM} phrases.small.*
-	${RM} trans.*
-	${RM} core.*
-	${RM} tmp.online.*
+	${RM} ${TEMP_FILES}
 
+SETUP_FILES= src ibm[12].* phrases-GT-KN.fr2en.gz .gitignore
 distclean: clean
 	[ ! -a src ] || chmod +w src
-	${RM} src
-	${RM} ibm[12].*
-	${RM} phrases-GT-KN.fr2en.gz
+	${RM} ${SETUP_FILES}
 
+gitignore:
+	echo "${TEMP_FILES} ${SETUP_FILES}" | tr ' ' '\n' > .gitignore
 
 ############################################################
 ## SETUP

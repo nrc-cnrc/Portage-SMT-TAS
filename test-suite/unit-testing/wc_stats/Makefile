@@ -1,6 +1,5 @@
 #!/usr/bin/make -f
 # vim:noet:ts=3:nowrap:filetype=make
-# $Id$
 
 # @file
 # @brief
@@ -24,9 +23,8 @@ WC_STATS := wc_stats
 all:  testsuite
 
 
-.PHONY: clean
-clean:
-	${RM} a.gz b.gz c.gz unittest1.gz
+TEMP_FILES=a.gz b.gz c.gz unittest1.gz
+include ../Makefile.incl
 
 
 .PHONY: testsuite

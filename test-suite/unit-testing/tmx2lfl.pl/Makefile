@@ -1,5 +1,4 @@
 #!/usr/bin/make -f
-# $Id$
 # vim:noet:ts=3
 
 # @file Makefile
@@ -55,10 +54,15 @@ test-suite: preprocess_plugin_test
 
 
 # General unittest clean up.
-.PHONY: clean
-clean:
-	${RM} unittest* test.utf8.tmx
+.PHONY: clean gitignore
+TEMP_FILES=unittest* test.utf8.tmx prepro.out test3.utf8.tmx test5.utf8.tmx
+TEMP_DIRS=ce_tmx_test
+include ../Makefile.incl
 
+# The default gitignore and clean targets get the regular files and
+# directories, but not this one, because of its spaces.
+gitignore:
+	echo "${CORPUS_NAME_WITH_A_SPACE}" >> .gitignore
 
 test.utf8.tmx: test.tmx
 	iconv -f UCS-2 -t UTF-8 < $< > $@
@@ -95,12 +99,6 @@ test3.utf8.tmx: test.utf8.tmx
 unittest3: test3.utf8.tmx
 	${TMX2LFL} -output=$@ -txt=.txt $< 2>&1 | grep -q 'Language identifiers found are: lang2:lang1:lang3' 
 
-# Special clean-up for this test.
-clean: clean3
-.PHONY: clean3
-clean3:
-	${RM} test3.utf8.tmx
-
 
 ########################################
 # Using the 3 language specifiers and there should be 10 EMPTY_ tags.
@@ -119,12 +117,6 @@ test5.utf8.tmx: test.utf8.tmx
 .PHONY: unittest5
 unittest5: test5.utf8.tmx
 	[[ `${TMX2LFL} -output=$@ -txt=.txt $< 2>&1 | grep -c "parser error"` == 3 ]]
-
-# Special clean-up for this test.
-clean: clean5
-.PHONY: clean5
-clean5:
-	${RM} test5.utf8.tmx
 
 
 ########################################
@@ -188,14 +180,9 @@ unittest9: tmx-1.4.tmx
 # This test looks at ce_tmx.pl's handling of optional and non-breaking hyphens
 .PHONY: ce_tmx_test
 ce_tmx_test: test.utf8.tmx
-	mkdir -p extract
-	${CE_TMX} -src=lang2 -tgt=lang1  extract extract test.utf8.tmx
-	diff extract/Q.txt ref/Q.txt -q
-
-clean: clean_ce_tmx
-.PHONY: clean_ce_tmx
-clean_ce_tmx:
-	${RM} -r extract
+	mkdir -p $@
+	${CE_TMX} -src=lang2 -tgt=lang1  extract $@ test.utf8.tmx
+	diff $@/Q.txt ref/Q.txt -q
 
 
 ########################################
@@ -206,7 +193,3 @@ preprocess_plugin_test: prepro.in
 	preprocess_plugin fr < prepro.in > prepro.out
 	diff prepro.out ref/prepro.out -q
 
-clean: clean_prepro
-.PHONY: clean_prepro
-clean_prepro:
-	${RM} prepro.out

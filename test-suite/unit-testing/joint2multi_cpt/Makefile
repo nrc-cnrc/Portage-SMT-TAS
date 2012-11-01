@@ -1,6 +1,5 @@
 #!/usr/bin/make -f
 # vim:noet:ts=3:nowrap:filetype=make
-# $Id$
 
 # @file Makefile
 # @brief
@@ -21,9 +20,8 @@
 all:  testsuite
 
 
-.PHONY: clean
-clean:
-	${RM} sorted.* unsorted.*
+TEMP_FILES=sorted.* unsorted.*
+include ../Makefile.incl
 
 
 .PHONY:  testsuite

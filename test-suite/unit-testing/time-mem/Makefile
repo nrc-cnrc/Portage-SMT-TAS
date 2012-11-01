@@ -1,6 +1,5 @@
 #!/usr/bin/make -f
 # vim:noet:ts=3:nowrap:filetype=make
-# $Id$
 
 # @file Makefile
 # @brief Testsuite for time-mem.
@@ -27,9 +26,8 @@ SHELL := $(shell if bash -O compat31 -c true 2> /dev/null; \
 all: testsuite
 
 
-.PHONY: clean
-clean:
-	${RM} run-parallel-logs-*
+TEMP_FILES=run-parallel-logs-*
+include ../Makefile.incl
 
 
 ########################################

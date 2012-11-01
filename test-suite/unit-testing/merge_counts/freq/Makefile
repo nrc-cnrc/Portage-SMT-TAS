@@ -20,9 +20,8 @@ vpath %.4grams data
 all: full two one
 	@echo All tests PASSED
 
-.PHONY: clean
-clean:
-	${RM} test.* REF.*
+TEMP_FILES=test.* REF.*
+include ../../Makefile.incl
 
 .PHONY: full
 full: ${COUNT_FILES}

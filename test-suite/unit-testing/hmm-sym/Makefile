@@ -30,8 +30,8 @@ cmp: cmp_ibm1
 help:
 	@echo PATH=~/sandboxes/PortageTrunk/src/tm:\$$PATH make -B \| egrep --line-buffered -v \'make.*\(ing directory\|aux_cmp\)\'
 
-clean:
-	$(RM) ibm1.* ibm2.* liang.* heb.* log.* core
+TEMP_FILES=ibm1.* ibm2.* liang.* heb.* log.* core
+include ../Makefile.incl
 
 # Convenient target to run the test using the executable in $(SANDBOX)
 sandbox:

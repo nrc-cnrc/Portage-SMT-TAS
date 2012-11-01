@@ -29,9 +29,9 @@ all: tpt_ucbos_utf8
 all:
 	@echo All tests PASSED.
 
-clean:
-	${RM} -r ${LM}_*.tplm* ${MAP}_*.tppt*
-	${RM} ref_* src_* ${LM}_*.gz ${LM}_utf8* ${MAP}_* vocabMap2tpt.*
+TEMP_FILES=ref_* src_* ${LM}_*.gz vocabMap2tpt.*
+TEMP_DIRS=${LM}_*.tplm* ${MAP}_*.tppt* ${LM}_utf8* ${MAP}_*
+include ../Makefile.incl
 
 canoe1_%: src_% ref_% ${LM}_% ${MAP}_%
 	${LIB} ${TRUECASER} ${VERBOSE} --text=$< --lm=${LM}_$* --map=${MAP}_$* \

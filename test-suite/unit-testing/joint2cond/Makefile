@@ -58,10 +58,10 @@ vpath %.al data
 vpath ibm2.% data
 vpath jpt.% data
 
-clean:
-	${RM} cpt.ibm2-${SMOOTHERS_DESC}.train.prune1_fwd*
-	$(RM) cpt.*ibm2-*.train.en2fr* log.cpt.* log.out.* out.jpt.ibm2.train.en-fr* \
-		stats.out classes.out.lang* valgrind.
+TEMP_FILES=cpt.ibm2-${SMOOTHERS_DESC}.train.prune1_fwd* \
+           cpt.*ibm2-*.train.en2fr* log.cpt.* log.out.* out.jpt.ibm2.train.en-fr* \
+           stats.out classes.out.lang* valgrind.
+include ../Makefile.incl
 
 cpt.ibm2-${SMOOTHERS_DESC}.train.en2fr.gz: ibm2.train.fr_given_en.gz ibm2.train.en_given_fr.gz jpt.ibm2.train.en-fr.gz
 	${RM} $@

@@ -45,6 +45,6 @@ map-sym-cat.fr_given_en: $(CORPUS)
 	$(RM) $@ $@.dist $(subst fr_given_en,en_given_fr,$@){,.dist}
 	cat.sh -filter-singletons 0 -v -symmetrized liang -mimic he-lex $@ $+ >& log.$@
 
-clean:
-	$(RM) -r map*_given_* log.map* run-parallel-logs*
-
+TEMP_FILES=log.map* run-parallel-logs*
+TEMP_DIRS=map*_given_*
+include ../Makefile.incl

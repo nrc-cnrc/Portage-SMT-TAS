@@ -1,5 +1,3 @@
-# $Id$
-#
 # @file Makefile to test train_tm_mixture
 # @author Darlene Stewart
 #
@@ -15,9 +13,8 @@
 all: test1 test2 test3 test4 test_PI
 	@echo All tests PASSED.
 
-.PHONY: clean
-clean:
-	${RM} cpt.mix.test* log.cpt.mix.test*
+TEMP_FILES=cpt.mix.test* log.cpt.mix.test*
+include ../Makefile.incl
 
 export PORTAGE_INTERNAL_CALL=1
 

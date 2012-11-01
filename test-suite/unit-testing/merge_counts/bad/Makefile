@@ -16,8 +16,8 @@ SHELL=/bin/bash
 all: bad
 all: empty
 
-clean:
-	${RM} empty.gz bad-out.gz
+TEMP_FILES=empty.gz bad-out.gz
+include ../../Makefile.incl
 
 # this test still fails, so don't activate it yet.
 empty:

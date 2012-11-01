@@ -26,12 +26,9 @@ vpath input% src
 all:  testsuite
 
 
-.PHONY: clean
-clean:
-	${RM} run-parallel-logs-*  log.*
-	${RM} -r parallelize.pl.* run-p.[0-9]*
-	${RM} -r output* striped_mode1
-
+TEMP_FILES=run-parallel-logs-* log.*
+TEMP_DIRS=parallelize.pl.* run-p.[0-9]* output* striped_mode1
+include ../Makefile.incl
 
 
 ########################################

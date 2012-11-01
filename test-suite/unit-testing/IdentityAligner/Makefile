@@ -1,6 +1,5 @@
 #!/usr/bin/make -f
 # vim:noet:ts=3:nowrap:filetype=make
-# $Id$
 
 # @file Makefile
 # @brief Testsuite for IdentityAligner.
@@ -28,9 +27,8 @@ ALIGN_WORDS ?= align-words
 all: testsuite
 
 
-.PHONY: clean
-clean:
-	${RM} truecase_map1.lc2tc truecase_map5.lc2tc
+TEMP_FILES=truecase_map1.lc2tc truecase_map5.lc2tc
+include ../Makefile.incl
 
 
 

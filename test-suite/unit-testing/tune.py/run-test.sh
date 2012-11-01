@@ -1,5 +1,4 @@
 #!/bin/bash
-# $Id$
 
 # @file run-test.sh
 # @brief Run this test suite, with a non-zero exit status if it fails
@@ -15,9 +14,9 @@
 make clean
 
 if [[ $PBS_JOBID ]]; then
-   make testsuite -j
+   make all -j
 else
-   make testsuite -j 2
+   make all -j 2
 fi
 
 exit

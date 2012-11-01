@@ -13,11 +13,10 @@ all: multi.probs.no-src-grep.gz multi.probs.src.gz
 	diff --ignore-matching 'Her Majesty' --ignore-matching 'one in' log.multi.probs.no-src-grep log.multi.probs.no-src-grep.ref
 	diff --ignore-matching 'Her Majesty' --ignore-matching 'one in' log.multi.probs.src log.multi.probs.src.ref
 
-clean:
-	-$(RM) dummy.lm canoe.ini*
-	-$(RM) multi.probs.no-src-grep.gz multi.probs.src.gz
-	-$(RM) log.multi.probs.no-src-grep log.multi.probs.src
-	
+TEMP_FILES=dummy.lm canoe.ini* \
+           multi.probs.no-src-grep.gz multi.probs.src.gz \
+           log.multi.probs.no-src-grep log.multi.probs.src
+include ../../Makefile.incl
 
 dummy.lm:
 	touch $@
