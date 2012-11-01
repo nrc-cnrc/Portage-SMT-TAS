@@ -200,7 +200,7 @@ elsif ($action eq 'replace') {
          score => $score);
    close $xml_out;
    # TODO: should we rename tne output to its proper extension or leave it to PortageLive.php?
-   rename "${dir}/QP.xml",  "${dir}/QP." . $parser->{InputFormat};
+   #rename "${dir}/QP.xml",  "${dir}/QP." . $parser->{InputFormat};
 }
 
 elsif ($action eq 'check') {
@@ -366,7 +366,7 @@ sub processTag {
    # Replace occurrences of <x/> with some id that refer to this tag with a non break hyphen.
    elsif ($tag->get_xpath('ph[@word-end="false" and string()=~/nonbreakhyphen/]')) {
       my $text = $tag->has_child('ph')->{att}{name};
-      $parser->{tag}{$tag_id} = $text;
+      $parser->setTwigHandler("x[\@id=\"$tag_id\"]", sub { my ($parser, $x) = @_; $x->set_text($text); $x->erase(); } );
    }
 }
 
