@@ -207,6 +207,7 @@ elsif ($action eq 'check') {
    my $xml_file = shift || "-";
    my $info = processFile(action => 'check',
          xml_in => $xml_file,
+         keeptags => $keeptags,
          src_lang => $src,
          tgt_lang => $tgt);
    print $info->{seg_count}, "\n";
@@ -287,7 +288,7 @@ sub processXLIFF {
             ept => sub { my( $t, $elt)= @_; },
             ph  => sub { my( $t, $elt)= @_; },
             it  => sub { my( $t, $elt)= @_; },
-            'seg-source//mrk[@mtype="seg"]' => sub { my( $t, $elt)= @_; print STDERR "\ttest MRK", $elt->{att}->{mid}, "\n"; },
+            'seg-source//mrk[@mtype="seg"]' => sub { my( $t, $elt)= @_; debug("\ttest MRK mid=" . $elt->{att}->{mid} . "\n"); },
             } );
    }
    elsif ($parser->{action} eq 'replace') {
@@ -357,7 +358,7 @@ sub xmlFlush {
 sub processTag {
    my ($parser, $tag) = @_;
    my $tag_id = $tag->{att}{id};
-   debug("processing tag id=$tag_id\n");
+   veryVerbose("processing tag id=$tag_id\n");
    #debug($tag->xml_string, "\n");
 
    if ($tag->get_xpath('ph[@word-end="false" and string()=~/softbreakhyphen/]')) {
@@ -397,7 +398,7 @@ sub processTransUnit {
    my @mrks = $source->descendants('mrk[@mtype="seg"]') or warn "Can't find any mrk for $trans_unit_id\n\tcontent:", $source->xml_string, "\n";
    foreach my $mrk (@mrks) {
       my $src_sub = $parser->{keeptags} ? $mrk->xml_string() : $mrk->text();
-      debug("\tMRK: $src_sub\n");
+      veryVerbose("\tMRK: $src_sub\n");
       my $id =  "$trans_unit_id." . (defined($mrk->{att}{mid}) ? $mrk->{att}{mid} : $mrk_id++);
       my $out = ixAdd($parser->{ix}, $src_sub, $id);
       #$parser->{seg_id} = $out;
@@ -470,7 +471,7 @@ sub processTransUnitReplace {
 sub processX {
    my ($parser, $x) = @_;
    my $x_id = $x->{att}{id};
-   debug("X id=$x_id\n");
+   veryVerbose("X id=$x_id\n");
    if (defined($parser->{tag}{$x_id})) {
       $x->set_text($parser->{tag}{$x_id});
       $x->erase();
@@ -482,7 +483,7 @@ sub processX {
 sub processG {
    my ($parser, $g) = @_;
    my $text = join(" ", map(normalize($_->text(no_recurse=>1)), $g));
-   debug("G id=" . $g->{att}{id} . ":  $text\n" . $g->xml_string . "\n");
+   veryVerbose("G id=" . $g->{att}{id} . ":  $text\n" . $g->xml_string . "\n");
    #$g->set_text($text);
    # Erase the element: the element is deleted and all of its children are pasted in its place.
    # TODO: disabled to extract tags.
@@ -702,12 +703,12 @@ sub ixAdd {
         } else {
             $id = ixNewID($ix);
         }
-        debug("ixAdd: INSERTING id=%s, ce=%s, segment=\"%s\"\n", $id, defined $ce ? $ce : "undef", $segment);
+        veryVerbose("ixAdd: INSERTING id=%s, ce=%s, segment=\"%s\"\n", $id, defined $ce ? $ce : "undef", $segment);
         $ix->{id}{$segment} = $id;
         $ix->{segment}{$id} = $segment;
         $ix->{ce}{$id} = $ce if defined $ce;
     } else {
-        debug("ixAdd: EXISTS id=%s, ce=%s, segment=\"%s\"\n", defined $id ? $id : "undef", defined $ce ? $ce : "undef", $segment);
+        veryVerbose("ixAdd: EXISTS id=%s, ce=%s, segment=\"%s\"\n", defined $id ? $id : "undef", defined $ce ? $ce : "undef", $segment);
     }
     return $ix->{id}{$segment};
 }
@@ -786,7 +787,7 @@ sub ixLoad {
             die "Not enough lines in CE file $ce_file" unless defined $ce;
             chop $ce;
         }
-        debug("ixLoad: read $id <<$seg>> ($ce)\n");
+        veryVerbose("ixLoad: read $id <<$seg>> ($ce)\n");
         ixAdd($ix, $seg, $id, $ce);
         verbose("\r[%d lines...]", $count) if (++$count % 1 == 0);
     }
