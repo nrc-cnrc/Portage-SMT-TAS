@@ -273,6 +273,9 @@ sub processTMX {
 
 use File::Copy;
 # If this xml file is a sdlxliff, set the proper handlers for it.
+# BOOKMARKS:
+# * XLIFF version 1.2: http://docs.oasis-open.org/xliff/v1.2/os/xliff-core.html
+# * xliff-core-1.2-strict.xsd: http://docs.oasis-open.org/xliff/v1.2/cs02/xliff-core-1.2-strict.xsd
 sub processXLIFF {
    my ($parser, $elt) = @_;
 
@@ -435,31 +438,40 @@ sub processTransUnitReplace {
       my $out = getTranslatedText($parser, $xid);
       $mrk->set_text($out);  # for debugging
       ++$parser->{seg_count};
-      my $alt_trans = $mrk->wrap_in('target', 'alt-trans' => {'tool-id' => $parser->{'tool-id'}, mid => $mid});
+      #my $alt_trans = $mrk->wrap_in('target', 'alt-trans' => {'tool-id' => $parser->{'tool-id'}, mid => $mid});
+      my $target = $mrk->wrap_in('target');
+
+      my $nodeDefinition = sprintf("target//mrk[\@mid=\"$mid\"]");
+      if (my $previous_target = $trans_unit->get_xpath($nodeDefinition, 0)) {
+         debug("replacing previous trans\t$nodeDefinition\n");
+         $target->replace($previous_target);
+      }
+      else {
+         debug("pasting a new trans\n");
+         $target->paste(last_child => $trans_unit);
+      }
+
+      my $sdl_seg = $trans_unit->get_xpath("sdl:seg-defs/sdl:seg[\@id=\"$mid\"]", 0) or die "Unable to find sdl:seg";
+      # TODO: What if there is no seg-defs and/or sdl:seg?
+      $sdl_seg->{att}->{conf} = 'Draft';
+      $sdl_seg->{att}->{origin} = 'mt';
+      $sdl_seg->{att}->{'origin-system'} = $parser->{'tool-id'};
 
       # Confidence estimation:
       my $ce = $xid ? ixGetCE($parser->{ix}, $xid) : undef;
 
       # TODO: Where to add the confidence score?
+      #<sdl:seg-defs><sdl:seg id="560" /></sdl:seg-defs>
+      #<sdl:seg conf="Draft" id="1" origin="mt" origin-system="Portage-1.5.0" percent="99" >
       debug("Confidence estimation for $xid: CE=%s %s\n", defined $ce ? $ce : "undef", $parser->{filter} ? $parser->{filter} : "undef");
       if ($parser->{score} and defined($ce)) {
-         $alt_trans->{att}->{'match-quality'} = sprintf("%.4f", $ce);
+         $sdl_seg->{att}->{'percent'} = sprintf("%.4f", $ce);
       }
 
       if (defined $parser->{filter} and defined($ce) and $ce < $parser->{filter}) {
          debug("Filtering out $xid\n");
-         $alt_trans->del_att('match-quality');       # BOOM!
+         $sdl_seg->del_att('percent');       # BOOM!
          ++$parser->{filter_count};
-      }
-
-      my $nodeDefinition = sprintf("alt-trans[\@mid=\"$mid\" and \@tool-id=\"%s\"]", $parser->{'tool-id'});
-      if (my $previous_alt_trans = $trans_unit->get_xpath($nodeDefinition, 0)) {
-         debug("replacing previous alt-trans\t$nodeDefinition\n");
-         $alt_trans->replace($previous_alt_trans);
-      }
-      else {
-         debug("pasting a new alt-trans\n");
-         $alt_trans->paste(last_child => $trans_unit);
       }
    }
 
