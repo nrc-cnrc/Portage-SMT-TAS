@@ -26,6 +26,7 @@ DIRS  := $(dir ${XLIFF} ${TMX})
 
 $(shell mkdir -p ${LOGS})
 
+SHELL = bash
 .SECONDARY:
 .DEFAULT_GOAL := all
 .PHONY: all
@@ -56,7 +57,7 @@ tmx/%/Q.txt:  %.tmx
 		2> ${LOGS}/$(basename $(subst /,.,$@)).log
 
 
-xliff:  $(foreach c, $(basename ${XLIFF}), xliff/$c/QP.xml)
+xliff:  $(foreach c, $(basename ${XLIFF}), xliff/$c/val)
 xliff/%/Q.txt:  %.sdlxliff
 	@mkdir -p $(dir $@)
 	-@rm $(dir $@)/*
@@ -91,6 +92,21 @@ xliff/%/Q.txt:  %.sdlxliff
 	[[ -s $@ ]] || ! echo "ERROR replacing $@"
 
 
+
+# Validate sdlxliff format.
+%/val:  %/QP.xml
+	[[ "`xpath $< 'count(//target[not(@*)])' 2> /dev/null`" -eq ${EXPECTED_SIZE} ]] || ! echo "ERROOR: There are some target with attributs" &>2
+	[[ "`xpath $< 'count(//target//mrk)' 2> /dev/null`" -eq ${EXPECTED_SIZE} ]]  || ! echo "ERROR: There is not the right number of mrk segments." &>2 
+	$(and ${SCORE}, ${FILTER}, [[ "`xpath $< 'count(//sdl:seg-defs/sdl:seg/@percent)' 2> /dev/null`" -le "$(call EXPECTED_FILTER, ${EXPECTED_SIZE}, ${FILTER})" ]] || ! echo "ERROR: Filtering" &>2)
+
+
+
+########################################
+# FUNCTIONS
+EXPECTED_FILTER = $(or $(and $(call gt, $1, $2), $(call inc, $(call subtract, $1, $2))), 0)
+
+
+
 ########################################
 # TEST
 .PHONY:  test1 test2
@@ -106,13 +122,20 @@ test2sf:  SCORE=1
 test2sf:  FILTER=53
 test2sf:  xliff/TestSet/Target-sdlxliff/WNv_report_-_WEEK_39_graphs_and_tables_4th_Oct_2012.xlsx/QP.xml
 
+# Source sdlxliff file doesn't have target.
+# Verify that filtering results in 15 = (58 - 44 + 1) mrk segments.
+test3:  override SCORE=1
+test3:  override FILTER=44
+test3:  xliff/TestSet/Unknown-sdlxliff/WNv_report_-_WEEK_39_graphs_and_tables_4th_Oct_2012/QP.xml
+	[[ "`xpath $@ 'count(//sdl:seg-defs/sdl:seg/@percent)' 2> /dev/null`" -le "15" ]] || ! echo "ERROR: Filtering" &>2
+
 
 
 ########################################
 # UNITTEST1
 # Make sure there is an error message when we are missing one entry.
 unittest1.sdlxliff:  test_numbers_hyphens_2.docx.sdlxliff
-	cp $< $@
+	@cp $< $@
 
 # Deletes the first line of P.txt & Q.ix to simulate a missing entry.
 xliff/unittest1/QP.xml:  %/QP.xml:  %/P.txt  %/pr.ce
@@ -136,5 +159,6 @@ rsync:  xliff/QP.xml
 .PHONY:  count
 count:  $(addsuffix .count, $(basename ${XLIFF}))
 %.count: %.sdlxliff
-	@echo "xliff/$*/Q.txt:  override EXPECTED_SIZE = `xpath $+ 'count(//seg-source//mrk[@mtype=\"seg\"])' 2> /dev/null`"
+	@echo "xliff/$*/%:  override EXPECTED_SIZE = `xpath $+ 'count(//seg-source//mrk[@mtype=\"seg\"])' 2> /dev/null`"
 	@[[ `xpath $+ 'count(//mrk[@mtype="seg"])' 2> /dev/null` -eq `egrep -o '<mrk[^<]* mtype="seg"' $+ | \wc -l` ]]
+
