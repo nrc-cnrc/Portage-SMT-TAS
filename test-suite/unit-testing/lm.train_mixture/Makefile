@@ -8,9 +8,8 @@
 # Copyright 2009, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2009, Her Majesty in Right of Canada
 
-main:
+all:
 	run-test.sh
 
-
-clean:
-	${RM} wts
+TEMP_FILES=wts
+include ../Makefile.incl

@@ -60,21 +60,26 @@ namespace bio = boost::iostreams;
 using namespace std;
 using namespace ugdiss;
 
-bio::mapped_file_source src, trg, /*aln,*/ scores;
+bio::mapped_file_source src, trg, scores, aln;
 vector<uint32_t> srcPhraseBlocks,trgPhraseBlocks;
 vector<uint32_t> srcPO;
 ofstream idx;
 uint32_t const *srcBase,*trgBase,*scoreBase;
+uint16_t const *alnBase,*alnEnd;
 
 BitCoder<uint64_t> trgCoder;
 vector<BitCoder<uint64_t> > scoreCoder;
+BitCoder<uint64_t> countCoder;
+BitCoder<uint16_t> alignmentCoder;
 
 size_t numEntries;
-size_t trg_size, score_size;
+size_t trg_size, score_size, aln_size;
 
 uint32_t num_float_scores = 0;
 uint32_t num_uint_scores = 0;
+uint32_t num_alignment_offset_slots = 0;
 uint32_t num_scores = 0;
+bool has_alignments = false;
 
 // return a list of codebooks, where each entry has a bool indicating whether
 // the code book encodes floats (true) or uint32_t (false), and a list of the
@@ -181,7 +186,21 @@ encodeOneEntry(string& dest, size_t bo, size_t o
    // All count fields (c= field) are encoded using one shared code book.
    for (uint32_t j = 0; j < num_uint_scores; ++j) {
       uint32_t countId = scoreBase[o*num_scores+num_float_scores+j];
-      bo = scoreCoder[num_float_scores].writeNumber(dest,bo,countId);
+      bo = countCoder.writeNumber(dest,bo,countId);
+   }
+
+   if (has_alignments) {
+      size_t alnOffset = *(reinterpret_cast<const size_t*>(&scoreBase[o*num_scores+num_float_scores+num_uint_scores]));
+      const uint16_t *alnLink = alnBase + alnOffset;
+      assert(alnLink <= alnEnd);
+      for ( ; alnLink < alnEnd; ++alnLink) {
+         // pack each alignment link into the precalculated number of bits.
+         bo = alignmentCoder.writeNumber(dest,bo,*alnLink);
+         // We're done when we've hit and written the packed link with value 0,
+         // which marks the end.
+         if (*alnLink == 0) break;
+      }
+      assert(*alnLink == 0);
    }
       
    TPT_DBG(cerr << "encodeOneEntry: returning bo=" << bo << endl);
@@ -402,18 +421,20 @@ int MAIN(argc, argv)
    string trgName = bname + ".trg.col";
    open_mapped_file_source(trg, trgName);
 
-   // aln.open(bname+"aln.col");
-
    string scrName = bname + ".scr";
    open_mapped_file_source(scores, scrName);
 
    string configName = bname + ".config";
    uint32_t third_col_count, fourth_col_count, num_counts;
-   bool has_alignments;
    uint32_t tppt_version =
-      TPPTConfig::read(configName, third_col_count, fourth_col_count, num_counts, has_alignments);
-   if (has_alignments)
-      cerr << efatal << "Alignments are not implemented yet" << endl << exit_1;
+      TPPTConfig::read(configName, third_col_count, fourth_col_count, num_counts,
+                       has_alignments);
+
+   if (has_alignments) {
+      assert(tppt_version >= 2);
+      string alnName = bname + ".aln";
+      open_mapped_file_source(aln, alnName);
+   }
 
    string idxName = bname + ".tppt";
    idx.open(idxName.c_str());
@@ -426,6 +447,12 @@ int MAIN(argc, argv)
    scoreBase = reinterpret_cast<uint32_t const*>(scores.data());
    trg_size  = trg.size() / sizeof(uint32_t);
    score_size = scores.size() / sizeof(uint32_t);
+   if (has_alignments) {
+      alnBase   = reinterpret_cast<uint16_t const*>(aln.data());
+      alnEnd    = reinterpret_cast<uint16_t const*>(aln.data()+aln.size());
+      aln_size  = aln.size() / sizeof(uint16_t);
+      assert(size_t(alnEnd-alnBase) == aln_size);
+   }
 
    srcPO.resize(numEntries); 
    for (size_t i = 0; i < numEntries; i++)
@@ -450,20 +477,28 @@ int MAIN(argc, argv)
 
    if (tppt_version >= 2) {
       num_float_scores = third_col_count + fourth_col_count;
-      if (num_float_scores + (num_counts ? 1 : 0) != blocks.size())
+      if (num_float_scores + (num_counts ? 1 : 0) + (has_alignments ? 1 : 0) != blocks.size())
          cerr << efatal << "config file " << configName << " and code book file " << (bname+".cbk")
               << " have a different number of score columns." << exit_1;
       num_uint_scores = num_counts;
+      if (has_alignments)
+         num_alignment_offset_slots = sizeof(size_t)/sizeof(uint32_t);
+      else
+         num_alignment_offset_slots = 0;
    } else {
       num_float_scores = blocks.size();
-      num_uint_scores = 0;
+      num_uint_scores = num_alignment_offset_slots = 0;
    }
-   num_scores = num_float_scores + num_uint_scores;
+   num_scores = num_float_scores + num_uint_scores + num_alignment_offset_slots;
 
    trgCoder.setBlocks(trgPhraseBlocks);
    scoreCoder.resize(blocks.size());
-   for (size_t i = 0; i < blocks.size(); i++)
+   for (size_t i = 0; i < num_float_scores; i++)
       scoreCoder[i].setBlocks(blocks[i].second);
+   if (num_counts > 0)
+      countCoder.setBlocks(blocks[num_float_scores].second);
+   if (has_alignments)
+      alignmentCoder.setBlocks(blocks.back().second);
 
    string refIdxName = bname + ".src.repos.idx";
    open_mapped_file_source(refIdx, refIdxName);

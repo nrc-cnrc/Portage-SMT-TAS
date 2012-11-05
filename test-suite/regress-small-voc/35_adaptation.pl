@@ -139,6 +139,7 @@ popd >& /dev/null
 echo -n "Training a simple decoder model with mix models "
 test -d workdir || mkdir workdir
 cow.sh -v -filt -floor 2               \\
+  -I-really-mean-cow                   \\
   -lb                                  \\
   -mad 1                               \\
   -parallel:"-n 4"                     \\

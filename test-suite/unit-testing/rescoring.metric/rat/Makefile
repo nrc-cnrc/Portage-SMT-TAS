@@ -10,9 +10,8 @@ vpath 100best.gz ${DATA_DIR}/workdir-dev2_fr.al-100best
 .PHONY: all
 all: bleu per wer
 
-.PHONY: clean
-clean:
-	-${RM} scores.* rescore-model.* log.*
+TEMP_FILES=scores.* rescore-model.* log.*
+include ../../Makefile.incl
 
 .PHONY: bleu per wer
 bleu: diff.bleu

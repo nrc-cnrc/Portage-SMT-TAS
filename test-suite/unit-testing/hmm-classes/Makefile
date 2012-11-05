@@ -19,10 +19,9 @@ all: test
 
 DIFF_IGNORE = --ignore-blank-lines --ignore-matching-lines=TTable --ignore-matching-lines=NRC-CNRC --ignore-matching-lines=portage_info
 
-clean:
-	rm -f ibm[12]* phrases* hmm-*
-	rm -f log.hmm* log.phrases*
-	rm -rf tmp
+TEMP_FILES=ibm[12]* phrases* hmm-* log.hmm* log.phrases*
+TEMP_DIRS=tmp/
+include ../Makefile.incl
 
 .PHONY: run-test1 test1 run-test2 test2 run-test3 test3 \
         run-test4 test4 run-test5 test5 run-test6 test6 \

@@ -13,6 +13,6 @@
 # Copyright 2012, Her Majesty in Right of Canada
 
 make clean
-make testsuite
+make all
 
 exit

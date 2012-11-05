@@ -48,6 +48,9 @@ enum FFRequires {
    FF_NEEDS_TGT_VOCAB     =32  ///< Feature function needs the target vocab from the NBest list.
 };
 
+/// Duplicates the same constant in canoe/canoe_general.h, to break a spurious dependency.
+const double LOG_ALMOST_0 = -18;
+
 /**
  * Abstract Feature Function interface.
  * The constructor of a featurefunction must take a string so we can pass it

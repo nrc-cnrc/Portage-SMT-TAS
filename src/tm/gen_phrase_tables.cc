@@ -15,7 +15,6 @@
 #include <argProcessor.h>
 #include <exception_dump.h>
 #include <printCopyright.h>
-#include "tm_io.h"
 #include "ibm.h"
 #include "hmm_aligner.h"
 #include "phrase_table.h"
@@ -40,10 +39,15 @@ gen_phrase_tables -ext [Options]\n\
                   file1_lang1 file1_lang2 align1_1_to_2\n\
                   [ ... fileN_lang1 fileN_lang2 alignN_1_to_2]\n\
 \n\
-Generate phrase translation tables from IBM or HMM models and a set of\n\
-line-aligned files. The models should be for p(lang2|lang1) and p(lang1|lang2)\n\
-respectively: <model1> should contain entries of the form 'lang1 lang2 prob',\n\
-and <model2> the reverse.\n\
+Generate phrase translation tables from either:\n\
+\n\
+1) default: IBM models and set of line-aligned text files. The models should be\n\
+   for p(lang2|lang1) and p(lang1|lang2) respectively: <model1> should contain\n\
+   entries of the form 'lang1 lang2 prob', and <model2> the reverse.\n\
+2) -giza: a set of line-aligned text files, each with a pair of giza-format\n\
+   bi-directional word-alignment files (see -giza below for details).\n\
+3) -ext: a set of line-aligned text files, each with a symmetrized sri-format\n\
+   alignment file (see -ext below for details).\n\
 \n\
 Options:\n\
 \n\
@@ -407,7 +411,8 @@ struct ExtractPhrasePairs {
                                   ppe.max_phrase_len1, ppe.max_phrase_len2,
                                   ppe.max_phraselen_diff,
                                   ppe.min_phrase_len1, ppe.min_phrase_len2,
-                                  pt, 1u, NULL, ppe.display_alignments);
+                                  pt.getPhraseAdder(toks1, toks2, 1),
+                                  ppe.display_alignments);
    }
 
 };

@@ -1,6 +1,5 @@
 #!/usr/bin/make -f
 # vim:noet:ts=3:nowrap:filetype=make
-# $Id$
 
 # @file
 # @brief
@@ -25,10 +24,8 @@ SHELL = bash
 all: testsuite
 
 
-.PHONY: clean
-clean:
-	${RM} input.gz
-	${RM} unittest*
+TEMP_FILES=input.gz unittest*
+include ../Makefile.incl
 
 
 .PHONY: testsuite

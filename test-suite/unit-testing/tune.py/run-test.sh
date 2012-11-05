@@ -15,9 +15,9 @@
 make clean
 
 if [[ $PBS_JOBID ]]; then
-   make testsuite -j
+   make all -j
 else
-   make testsuite -j 2
+   make all -j 2
 fi
 
 exit

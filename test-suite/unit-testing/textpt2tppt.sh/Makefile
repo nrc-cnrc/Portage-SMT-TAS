@@ -28,12 +28,9 @@ sandbox_%:
 	PATH=${SANDBOX}:$$PATH ${MAKE} $* -B | egrep --line-buffered -v 'make.*(ing directory)'
 
 
-.PHONY: clean
-clean:
-	${RM} -r pt.tppt* float_limit_pt.tppt* small_pt.test.*.tppt*
-	${RM} log.text_pt log.float_limit_pt log.small_pt.test.*
-	${RM} small_pt.test.*
-
+TEMP_FILES=log.text_pt log.float_limit_pt log.small_pt.test.*
+TEMP_DIRS=pt.tppt* float_limit_pt.tppt* small_pt.test.*
+include ../Makefile.incl
 
 # The following commands are executed by textpt2tppt.sh:
 #   ptable.encode-phrases textpt 1 xxx

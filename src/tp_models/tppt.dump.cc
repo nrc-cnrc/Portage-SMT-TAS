@@ -27,15 +27,20 @@ using namespace ugdiss;
 using namespace std;
 
 static char help_message[] = "\n\
-tppt.dump [-h] TPPT_BASE_NAME\n\
+tppt.dump [-h|-sort|-nosort] TPPT_BASE_NAME\n\
 \n\
   Output a tightly packed phrase table to stdout in plain text format.\n\
 \n\
-  TPPT_BASE_NAME is either the name of a directory holding the files comprising \n\
+  TPPT_BASE_NAME is either the name of a directory holding the files comprising\n\
   the tightly packed phrase table (cbk, src.tdx, tppt, trg.repos.dat, trg.tdx),\n\
   or it is the base name of the set of files comprising the tightly packed\n\
   phrase table (TPPT_BASE_NAME.cbk, TPPT_BASE_NAME.src.tdx, TPPT_BASE_NAME.tppt,\n\
   TPPT_BASE_NAME.trg.repos.dat, TPPT_BASE_NAME.trg.tdx)\n\
+\n\
+  Options:\n\
+   -h         print this help message\n\
+   -[no]sort  sort/don't sort the output as it is being produced. [sort]\n\
+\n\
 ";
 
 int MAIN(argc, argv)
@@ -48,11 +53,18 @@ int MAIN(argc, argv)
       cerr << help_message << endl;
       exit(0);
     }
-  if (argc > 2)
+
+  bool sortoutput = true;
+  bool found_an_option = false;
+  if (!strcmp(argv[1], "-nosort")) { found_an_option = true; sortoutput = false; }
+  if (!strcmp(argv[1], "-sort")) { found_an_option = true; sortoutput = true; }
+
+  if (argc > 3 or (!found_an_option && argc > 2))
     cerr << efatal << "Too many arguments." << endl << help_message << exit_1;
+  string tppt_name = found_an_option ? argv[2] : argv[1];
 
   TpPhraseTable T;
-  T.open(argv[1]);
-  T.dump(cout);
+  T.open(tppt_name);
+  T.dump(cout, sortoutput);
 }
 END_MAIN

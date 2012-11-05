@@ -33,9 +33,9 @@ test.check.tp.bad: ${LINKS}
 models/%:
 	cp -r models/$(basename $*) models/$* && ${RM} -r models/$*/CVS
 
-clean:
-	${RM} log.run-test
-	${RM} -r ${LINKS}
+TEMP_FILES=log.run-test
+TEMP_DIRS=${LINKS}
+include ../Makefile.incl
 
 test.check.%.good:
 	${CONFIGTOOL} check canoe.ini.$*.good 2>&1 \

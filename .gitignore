@@ -3,7 +3,6 @@ CVS/
 .#*
 _log.cvs*
 
-
 # patterns for files created by a build
 .cvsignore
 .deps
@@ -20,6 +19,18 @@ _log.cvs*
 *.log
 *.eps
 
+# patterns for files created while running the unit test suites
+_log.run-test
+.log.run-all-tests-parallel
+run-p.*/
+
 # install directories
 bin/
 lib/
+include/
+usage/
+rpm.build.root/
+
+# Klocwork generated directories
+.kwlp/
+.kwps/

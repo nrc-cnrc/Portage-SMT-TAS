@@ -17,15 +17,14 @@ SHELL=bash
 # PORTAGEshared.  We copied this unit test suite here anyway, because it is a
 # useful test of lattice-related code, and diversity will be added to
 # PORTAGEshared eventually.
-#all: baselines diversitytests
+#all: diversitytests
 all: baselines
 
 baselines: base cov2
 diversitytests: div2 divincr0 divincr1 divincr20
 
-clean:
-	${RM} l?.0000* log.*
-
+TEMP_FILES=l?.0000* log.*
+include ../Makefile.incl
 
 base:
 	canoe -s 10 -f canoe.ini -lattice lb -cov-limit 0 -v 2 < input &> log.$@

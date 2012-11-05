@@ -44,7 +44,9 @@ namespace ugdiss
          vector<string>   words;
          vector<float>    score;
          vector<uint32_t> counts;
-         string toString();
+         string           alignment;
+         string toString(TpPhraseTable* root) const;
+         void dump(ostream& out, TpPhraseTable* root) const;
       };
       typedef boost::shared_ptr<vector<TCand> > val_ptr_t;
 
@@ -61,6 +63,10 @@ namespace ugdiss
          Node();
          val_ptr_t const& value(bool cacheValue=true);
          void dump(ostream& out, string prefix);
+         void dump_sorted(ostream& out, string prefix);
+         void enumerate(vector<pair<string, Node> >& list, string prefix);
+         bool operator<(const Node& x) const;
+         bool operator==(const Node& x) const;
       };
       typedef boost::shared_ptr<Node> node_ptr_t;
 
@@ -91,9 +97,11 @@ namespace ugdiss
       bio::mapped_file_source      indexFile;
       bio::mapped_file_source       trgRepos;
       BitCoder<uint32_t>      trgPhraseCoder;
-      vector<BitCoder<uint32_t> > scoreCoder; ///< coder for score and count IDs
+      vector<BitCoder<uint32_t> > scoreCoder; ///< coder for score IDs
       vector<float const*>             score; ///< base pointers for score tables
+      BitCoder<uint32_t>          countCoder; ///< coder for count IDs
       uint32_t const*             count_base; ///< base pointer for count table
+      BitCoder<uint16_t>      alignmentCoder; ///< coder for alignment links
 
       // auxiliary functions
       void openCodebook(const string& fname);
@@ -114,6 +122,7 @@ namespace ugdiss
       uint32_t fourth_col_count;  ///< Number of 4th column scores
       uint32_t num_counts;        ///< Number of values in the count field (c=)
       bool has_alignment;         ///< Whether alignments are present
+      uint32_t alignment_encoding_bits; ///< Number of bits used to encoding alignment links
 
    public:
       TokenIndex srcVcb;
@@ -137,8 +146,10 @@ namespace ugdiss
 
       /**
        * Dumpt the TPPT back to a text format phrase table.
+       * @param out  Where to dump the TPPT
+       * @param sort Whether to sort it as we print it
        */
-      void dump(ostream& out);
+      void dump(ostream& out, bool sort);
 
       /// Return the number of third column scores in the model currently open
       uint32_t numThirdCol() const { return third_col_count; }
@@ -154,7 +165,7 @@ namespace ugdiss
        *  @param third_col   Will be set to the number of 3rd column scores
        *  @param fourth_col  Will be set to the number of 4th column scores
        *  @param counts      Will be set of the number of count values (c=)
-       *  @param has_alignment  Weill be set if alignments are stored (a=)
+       *  @param has_alignment  Will be set if alignments are stored (a=)
        */
       static void numScores(const string& fname, uint32_t& third_col, uint32_t& fourth_col,
             uint32_t& counts, bool& has_alignment);

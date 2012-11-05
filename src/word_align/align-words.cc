@@ -92,8 +92,6 @@ HMM only options:\n\
 
 // globals
 
-typedef PhraseTableGen<Uint> PhraseTable;
-
 static const char* const switches[] = {
    "v", "vv", "i", "z", "a:", "o:", "hmm", "ibm:", "twist", "giza", "giza2", "post",
    "p0:", "up0:", "alpha:", "lambda:", "max-jump:",
@@ -143,9 +141,6 @@ static inline char ToLower(char c) { return tolower(c); }
 namespace alignWords {
 /// Specific argument processing class for align-words program.
 class ARG : public argProcessor {
-private:
-    Logging::logger m_logger;
-
 public:
    /**
     * Default constructor.
@@ -154,16 +149,13 @@ public:
     * @param alt_help alternate help message
     */
    ARG(const int argc, const char* const argv[], const char* alt_help) : 
-      argProcessor(ARRAY_SIZE(switches), switches, 1, -1, help_message, "-h", false, alt_help, "-H"),
-      m_logger(Logging::getLogger("verbose.main.arg"))
+      argProcessor(ARRAY_SIZE(switches), switches, 1, -1, help_message, "-h", false, alt_help, "-H")
    {
       argProcessor::processArgs(argc, argv);
    }
 
    /// See argProcessor::processArgs()
    virtual void processArgs() {
-      LOG_INFO(m_logger, "Processing arguments");
-
       string max_phrase_string;
 
       if (mp_arg_reader->getSwitch("v")) {verbose = 1;}

@@ -35,7 +35,7 @@ LIBRARY = libportage_lm
 
 MODULE_CF =
 
-MODULE_DEPENDS = tpt
+MODULE_DEPENDS = tp_models tpt
 
 DYNLIBS = $(LIBICU)
 

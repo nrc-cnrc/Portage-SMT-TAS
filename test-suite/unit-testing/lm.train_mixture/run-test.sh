@@ -20,3 +20,5 @@ train_lm_mixture data/models.binlm data/dev_en1.lc > wts
 
 # compare with ref weights
 diff-round.pl -prec 4 data/wts wts
+
+make gitignore

@@ -13,14 +13,10 @@ help:
 	@cat $(firstword $(MAKEFILE_LIST)) | egrep '^.PHONY:' | sed 's#^.PHONY: ##'
 
 
-.PHONY: clean
-clean:
-	-${RM} canoe.ini.cow.*
-	-${RM} log.cow.*
-	-${RM} rescore-results.*
-	-${RM} run-parallel-logs-local
+TEMP_FILES=canoe.ini.cow.* log.cow.* rescore-results.* run-parallel-logs-local
+include ../../Makefile.incl
 
-.PHONY: cow 
+.PHONY: cow
 cow: bleu per wer
 .PHONY: bleu per wer
 bleu: diff.bleu
@@ -30,7 +26,7 @@ wer: diff.wer
 vpath dev1_%.al ${DATA_DIR}
 cow.%: dev1_fr.al dev1_en.al
 	test -d foos.$* || mkdir foos.$*
-	cow.sh -v \
+	cow.sh -v -I-really-mean-cow \
 		-$* \
 		-floor 2 \
 		-nbest-list-size 100 \

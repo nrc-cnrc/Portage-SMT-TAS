@@ -14,7 +14,7 @@
 # Copyright 2008, Her Majesty in Right of Canada
 
 
-.PHONY: all clean french-hyphens dots ch-punc
+.PHONY: all french-hyphens dots ch-punc
 
 all: test
 	@echo All tests PASSED
@@ -37,14 +37,8 @@ ch-punc: $(foreach EXT, 000 001 010 011 100 101 110 111, compare.chinese-punc.de
 .PHONY: en-prices
 en-prices: compare.eng-prices.detok compare.eng-prices.detok.utf8
 
-clean:
-	${RM} accent.tok accent.utf8 accent.utf8.tok 
-	${RM} hyphens.utf8 hyphens.{tok,detok}{,.utf8}
-	${RM} periods.utf8 periods.{tok,detok}{,.utf8}
-	${RM} ${HYPHENS} $(addsuffix .utf8, ${HYPHENS})
-	${RM} ${PERIODS} $(addsuffix .utf8, ${PERIODS})
-	${RM} chinese-punc.detok.[01][01][01]
-	${RM} eng-prices.utf8 eng-prices.detok{,.utf8}
+TEMP_FILES=accent.* hyphens.* periods.* chinese-punc.* eng-prices.* es.*
+include ../Makefile.incl
 
 accent.utf8: accent
 	iconv -f iso-8859-1 -t UTF-8 < $< > $@
@@ -205,11 +199,6 @@ eng-prices.detok.utf8: eng-prices.utf8
 # SPANISH
 # These should come back identical after tokenization & detokenization.
 test: spanish
-
-clean: clean.spanish
-.PHONY: clean.spanish
-clean.spanish:
-	${RM} es.tok es.detok es.source
 
 .PHONY: spanish
 spanish: compare.es.tok compare.es.detok

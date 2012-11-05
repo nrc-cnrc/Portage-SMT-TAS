@@ -20,8 +20,8 @@ vpath a%.jpt.gz data
 all: full two one
 	@echo All tests PASSED
 
-clean:
-	${RM} test.* REF.*
+TEMP_FILES=test.* REF.*
+include ../../Makefile.incl
 
 REF.full: ${COUNT_FILES}
 	zcat $+ | joint2cond_phrase_tables -ij | LC_ALL=C sort > $@

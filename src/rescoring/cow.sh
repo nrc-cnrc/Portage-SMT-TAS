@@ -71,6 +71,10 @@ FFVALPARSER_OPTS="-canoe"
 ##        [-bleu | -per | -wer]
 ##        -workdir WORKDIR SFILE RFILE1 RFILE2 .. RFILEn
 ##
+##      ********************* OBSOLETE ********************** 
+##      ***   cow.sh is obsolete.  Use tune.py instead!   ***
+##      ********************* OBSOLETE ********************** 
+##
 ## cow.sh: Canoe Optimize Weights
 ##
 ## Does "outer-loop" learning of decoder parameters.  That is, it iteratively
@@ -84,6 +88,7 @@ FFVALPARSER_OPTS="-canoe"
 ##       and results files are deleted or renamed.
 ##
 ## Options:
+## -I-really-mean-cow  Required to bypass the obsolete error message.
 ## -v       Verbose output from canoe (verbose level 1) and rescore_train.
 ## -Z       Do not compress the large temporary files in WORKDIR [do].
 ## -nbest-list-size The size of the n-best lists to create.  [200]
@@ -177,6 +182,10 @@ FFVALPARSER_OPTS="-canoe"
 ##     echo PARALLEL=-n 4 > COW_DYNAMIC_OPTIONS
 ##     echo STOP_AFTER=0 > COW_DYNAMIC_OPTIONS
 ##
+##      ********************* OBSOLETE ********************** 
+##      ***   cow.sh is obsolete.  Use tune.py instead!   ***
+##      ********************* OBSOLETE ********************** 
+##
 
 #------------------------------------------------------------------------------
 # Argument processing & checking
@@ -269,6 +278,7 @@ clean_big_files() {
 # Command-line processing
 while [[ $# -gt 0 ]]; do
    case "$1" in
+   -I-really-mean-cow) REALLY_COW_NOT_TUNE=1;;
    -v|-verbose)    VERBOSE="-v";;
    -d|-debug)      DEBUG=1;;
    -h|-help)       cat $0 | egrep '^##' | cut -c4-; exit 1;;
@@ -311,6 +321,10 @@ while [[ $# -gt 0 ]]; do
    esac
    shift
 done
+
+if [[ ! $REALLY_COW_NOT_TUNE ]]; then
+   error_exit "cow.sh is obsolete; use tune.py instead, or specify -I-really-mean-cow"
+fi
 
 if [[ -n "$NOFLOOR" && $FLOOR -ge 0 ]]; then
    error_exit "Error: You cannot use floor and nofloor at the same time";

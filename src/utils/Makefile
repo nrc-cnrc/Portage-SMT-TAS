@@ -20,6 +20,7 @@ OBJECTS = \
         good_turing.o \
         histogram_fit.o \
         hmm.o \
+        line_indexed_file.o \
         ls_poly_fit.o \
         MagicStream.o \
         matrix_solver.o \
@@ -46,6 +47,7 @@ LIBRARY = libportage_utils
 TESTPROGS =  \
         prog \
         test_MagicStream \
+        test_huffman \
         testleven \
         try
 

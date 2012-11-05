@@ -93,7 +93,7 @@ canoe: DYNLIBS += -lpthread
 
 MODULE_CF=
 
-MODULE_DEPENDS=logging tm lm tpt
+MODULE_DEPENDS=logging tm word_align lm tp_models tpt
 
 include ../build/Makefile.incl
 

@@ -12,11 +12,15 @@
 # Copyright 2010, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2010, Her Majesty in Right of Canada
 
-all: gen merge cpt pcpt pcpt_rmem count
+all: gen merge cpt pcpt pcpt_rmem count gitignore
 	@echo All tests PASSED
 
 clean: clean_gen clean_cpt clean_merge clean_pcpt clean_pcpt_rmem clean_count clean_ext
-	${RM} log.*
+	${RM} log.* .gitignore
+
+gitignore:
+	echo "log.* .gitignore ibm2.* jpt.* pjpt.* cpt.* merge[12].* pcpt.* c-cpt.* ca-cpt.* c-pcpt.* ca-pcpt.* pcpt_rmem.* externalAligner.*.gz JPTPAR*/" | \
+	tr ' ' '\n' > .gitignore
 
 .SECONDARY:
 

@@ -100,7 +100,7 @@ cow: canoe.ini.cow
 canoe.ini.cow: canoe.ini
 	@echo "Training decoder weights"
 	rm -rf foos; mkdir foos
-	cow.sh -nbest-list-size 100 -maxiter 10 -filt -floor 2 \
+	cow.sh -I-really-mean-cow -nbest-list-size 100 -maxiter 10 -filt -floor 2 \
 		-workdir foos dev1_fr.al dev1_en.al &> log.cow
 
 rescore-model.ini: canoe.ini.cow 

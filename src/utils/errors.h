@@ -67,15 +67,26 @@ enum ErrorType {
 namespace Error_ns {
    /// This callback does nothing, effectively disabling error().
    void nullErrorCallBack(ErrorType et, const string& msg);
+   /// counter variables for the count error callback
+   namespace ErrorCounts {
+      extern Uint Fatal;
+      extern Uint Warn;
+      extern Uint Help;
+      extern Uint Total;
+      extern string last_msg;
+   };
+   /// This callback counts errors, also disabling error() but having it
+   /// leave a trace -- useful for unit testing.
+   void countErrorCallBack(ErrorType et, const string& msg);
    /// This default call back does the normal work advertized in the
    /// documentation of error().
    void defaultErrorCallBack(ErrorType et, const string& msg);
    /// The signature required of a valid errorCallback.
    typedef void (*ErrorCallback)(ErrorType et, const string& msg);
-   struct dummy {
+   namespace Current {
       /// This static function pointer holds the error callback currently in
       /// effect.  Change its value to change what error() does.
-      static ErrorCallback errorCallback;
+      extern ErrorCallback errorCallback;
    };
 }
 

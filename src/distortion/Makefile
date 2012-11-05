@@ -26,7 +26,7 @@ DYNLIBS = $(LIBICU)
 # Module/directory specific compile flags
 MODULE_CF :=
 
-MODULE_DEPENDS = logging tm
+MODULE_DEPENDS = tm word_align logging
 
 EXTRA_LIBS = $(LOGGING_LIB)
 

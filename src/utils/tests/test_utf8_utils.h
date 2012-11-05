@@ -24,34 +24,22 @@ class TestUTF8Utils : public CxxTest::TestSuite
 private:
    // Temporarily mute the the function error used by arg_reader for all tests.
    tmp_val<Error_ns::ErrorCallback> tmp;
-   static unsigned int error_message_count;
-   static string error_message;
 
 public:
    // default constructor overrides error's callback to be able to catch it.
-   TestUTF8Utils() : tmp(dummy::errorCallback, countErrorCallBack) {}
-
-   /**
-    * Stub function replacement for function error that prevents printing to
-    * stderr but that keeps track of the last error message string.
-    */
-   static void countErrorCallBack(ErrorType et, const string& msg) {
-      ++error_message_count;
-      error_message = msg;
-   }
+   TestUTF8Utils() : tmp(Current::errorCallback, countErrorCallBack) {}
 
    void setUp() {
-      error_message = "";
-      error_message_count = 0;
+      ErrorCounts::Total = 0;
    }
 
    void testToUpper() {
       UTF8Utils utf8;
       string out;
       #ifdef NOICU
-      TS_ASSERT_EQUALS(error_message_count, 1);
+      TS_ASSERT_EQUALS(ErrorCounts::Total, 1);
       #else
-      TS_ASSERT_EQUALS(error_message_count, 0);
+      TS_ASSERT_EQUALS(ErrorCounts::Total, 0);
       TS_ASSERT_EQUALS(utf8.toUpper("a", out), string("A"));
       TS_ASSERT_EQUALS(utf8.toUpper("\u00e0", out), string("\u00c0")); // a/A accent grave
       // Greek small letter upsilon with dialytika and tonos ->
@@ -72,9 +60,9 @@ public:
       UTF8Utils utf8;
       string out;
       #ifdef NOICU
-      TS_ASSERT_EQUALS(error_message_count, 1);
+      TS_ASSERT_EQUALS(ErrorCounts::Total, 1);
       #else
-      TS_ASSERT_EQUALS(error_message_count, 0);
+      TS_ASSERT_EQUALS(ErrorCounts::Total, 0);
       TS_ASSERT_EQUALS(utf8.toUpper("a", out), string("A"));
       TS_ASSERT_EQUALS(utf8.toUpper("\u00e0", out), string("\u00c0")); // a/A accent grave
       #endif
@@ -84,9 +72,9 @@ public:
       UTF8Utils utf8;
       string out;
       #ifdef NOICU
-      TS_ASSERT_EQUALS(error_message_count, 1);
+      TS_ASSERT_EQUALS(ErrorCounts::Total, 1);
       #else
-      TS_ASSERT_EQUALS(error_message_count, 0);
+      TS_ASSERT_EQUALS(ErrorCounts::Total, 0);
       TS_ASSERT_EQUALS(utf8.capitalize("a", out), string("A"));
       TS_ASSERT_EQUALS(utf8.capitalize("abc", out), string("Abc"));
       TS_ASSERT_EQUALS(utf8.capitalize("\u00e0", out), string("\u00c0")); // a/A accent grave
@@ -108,9 +96,9 @@ public:
       UTF8Utils utf8;
       string out;
       #ifdef NOICU
-      TS_ASSERT_EQUALS(error_message_count, 1);
+      TS_ASSERT_EQUALS(ErrorCounts::Total, 1);
       #else
-      TS_ASSERT_EQUALS(error_message_count, 0);
+      TS_ASSERT_EQUALS(ErrorCounts::Total, 0);
       TS_ASSERT_EQUALS(utf8.decapitalize("A", out), string("a"));
       TS_ASSERT_EQUALS(utf8.decapitalize("ABC", out), string("aBC"));
       TS_ASSERT_EQUALS(utf8.decapitalize("\u00c0", out), string("\u00e0")); // A/a accent grave
@@ -119,8 +107,5 @@ public:
    }
 
 }; // TestUTF8Utils
-
-unsigned int TestUTF8Utils::error_message_count = 0;
-string TestUTF8Utils::error_message;
 
 } // Portage

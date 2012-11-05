@@ -59,7 +59,8 @@ bool PhraseTableGen<T>::exists(ToksIter beg1, ToksIter end1, ToksIter beg2, Toks
 }
 
 template<class T>
-void PhraseTableGen<T>::addPhrasePair(ToksIter beg1, ToksIter end1, ToksIter beg2, ToksIter end2, T val, const char* green_alignment)
+void PhraseTableGen<T>::addPhrasePair(ToksIter beg1, ToksIter end1, ToksIter beg2, ToksIter end2, T val,
+                                      const char* green_alignment)
 {
    string phrase1, phrase2;
    compressPhrase(beg1, end1, phrase1, wvoc1);
@@ -81,13 +82,6 @@ void PhraseTableGen<T>::addPhrasePair(ToksIter beg1, ToksIter end1, ToksIter beg
       if (green_alignment) {
          Uint alignment_id = alignment_voc.add(green_alignment);
          (*phrase_alignment_table[id1])[id2][alignment_id] += val;
-
-         /*
-         Uint key[3] = {id1, id2, alignment_id};
-         T* value_p;
-         phrase_alignment_table.find_or_insert(key, 3, value_p);
-         *value_p += val;
-         */
       }
    }
 }

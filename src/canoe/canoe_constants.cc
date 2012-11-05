@@ -25,8 +25,9 @@ namespace Portage
     // (approx 1.5E0-8), a value more likely to be smaller than observed
     // probabilities in our phrase tables, which easily have values around
     // 1E-6 or 1E-7.
-    // EJJ 2Feb2006: LOG_ALMOST_0 is also defined in tm/tmtext_filter.pl - if
-    // you change it here, change it there too!!!
+    // EJJ 2Feb2006: LOG_ALMOST_0 is also defined in tm/tmtext_filter.pl.
+    // EJJ 18Sept2012: LOG_ALMOST_0 is also defined in rescoring/featurefunction.h.
+    // Keep all the instances in synch!
     const double ALMOST_INFINITY = 100;
     const double LOG_ALMOST_0 = -18;
     

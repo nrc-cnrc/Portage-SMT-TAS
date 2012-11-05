@@ -17,8 +17,8 @@ all: canoe_all emptyjpt
 
 canoe_all: check_canoe-small check_canoe-long
 
-clean:
-	${RM} small.* long.* log.* cpt.top.fr2en.gz
+TEMP_FILES=small.* long.* log.* cpt.top.fr2en.gz
+include ../Makefile.incl
 
 emptyjpt: small_fr small_en
 	! canoe -forced -f canoe.ini -ttable-multi-prob /dev/null -ref small_fr < small_en

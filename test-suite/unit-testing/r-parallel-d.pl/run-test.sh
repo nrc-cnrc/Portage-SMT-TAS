@@ -14,6 +14,7 @@
 
 set -e   # Exit when an error occurs.
 
+make gitignore
 
 # Start run-parallel.sh and have the watch dog thread to verify for run-parallel.sh every 30 seconds.
 R_PARALLEL_D_PL_DEBUG=1 R_PARALLEL_D_PL_SLEEP_TIME=8 run-parallel.sh -v -v -e "sleep 16" -e "sleep 16" -e "sleep 16" 1 >& log.debug & 

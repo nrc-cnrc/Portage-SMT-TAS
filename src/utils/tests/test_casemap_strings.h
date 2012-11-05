@@ -24,31 +24,20 @@ class TestCaseMapStrings : public CxxTest::TestSuite
 private:
    // Temporarily mute the the function error used by arg_reader for all tests.
    tmp_val<Error_ns::ErrorCallback> tmp;
-   static unsigned int error_message_count;
-   static string error_message;
 
 public:
    // default constructor overrides error's callback to be able to catch it.
-   TestCaseMapStrings() : tmp(dummy::errorCallback, countErrorCallBack) {}
-
-   /**
-    * Stub function replacement for function error that prevents printing to
-    * stderr but that keeps track of the last error message string.
-    */
-   static void countErrorCallBack(ErrorType et, const string& msg) {
-      ++error_message_count;
-      error_message = msg;
-   }
+   TestCaseMapStrings() : tmp(Current::errorCallback, countErrorCallBack) {}
 
    void setUp() {
-      error_message = "";
-      error_message_count = 0;
+      ErrorCounts::last_msg.clear();
+      ErrorCounts::Total = 0;
    }
 
    void testLatin1() {
       CaseMapStrings cms("en_CA.iso-8859-1");
-      if (error_message_count > 0) {
-         TS_WARN(error_message + " Skipping remainder of test. You may ignore" +
+      if (ErrorCounts::Total > 0) {
+         TS_WARN(ErrorCounts::last_msg + " Skipping remainder of test. You may ignore" +
                  " this warning if you do not plan to use this locale.");
          return;
       }
@@ -59,8 +48,8 @@ public:
 
    void testDefault() {
       CaseMapStrings cms("en_CA"); // defaults to latin1
-      if (error_message_count > 0) {
-         TS_WARN(error_message + " Skipping remainder of test. You may ignore" +
+      if (ErrorCounts::Total > 0) {
+         TS_WARN(ErrorCounts::last_msg + " Skipping remainder of test. You may ignore" +
                  " this warning if you do not plan to use this locale.");
          return;
       }
@@ -71,8 +60,8 @@ public:
 
    void testLatin9() {
       CaseMapStrings cms("en_GB.iso885915");
-      if (error_message_count > 0) {
-         TS_WARN(error_message + " Skipping remainder of test. You may ignore" +
+      if (ErrorCounts::Total > 0) {
+         TS_WARN(ErrorCounts::last_msg + " Skipping remainder of test. You may ignore" +
                  " this warning if you do not plan to use this locale.");
          return;
       }
@@ -83,8 +72,8 @@ public:
 
    void testCP1252() {
       CaseMapStrings cms("en_CA.CP1252");
-      if (error_message_count > 0) {
-         TS_WARN(error_message + " Skipping remainder of test. You may ignore" +
+      if (ErrorCounts::Total > 0) {
+         TS_WARN(ErrorCounts::last_msg + " Skipping remainder of test. You may ignore" +
                  " this warning if you do not plan to use this locale.");
          return;
       }
@@ -95,7 +84,7 @@ public:
 
    void testCLocale() {
       CaseMapStrings cms("C");
-      TS_ASSERT_EQUALS(error_message_count, 0);
+      TS_ASSERT_EQUALS(ErrorCounts::Total, 0);
       TS_ASSERT_EQUALS(cms.toUpper("\xe0"), string("\xe0")); // a accent grave not mapped in C/POSIX
       TS_ASSERT_EQUALS(cms.toUpper("a"), string("A"));
    }
@@ -103,10 +92,10 @@ public:
    void testUtf8() {
       CaseMapStrings cms("en_CA.utf-8");
       #ifdef NOICU
-      TS_ASSERT_EQUALS(error_message_count, 1);
+      TS_ASSERT_EQUALS(ErrorCounts::Total, 1);
       #else
-      if (error_message_count > 0) {
-         TS_WARN(error_message + " Skipping remainder of test. You may ignore" +
+      if (ErrorCounts::Total > 0) {
+         TS_WARN(ErrorCounts::last_msg + " Skipping remainder of test. You may ignore" +
                  " this warning if you do not plan to use this locale.");
          return;
       }
@@ -117,7 +106,7 @@ public:
 
    void testEmptyLocale() {
       CaseMapStrings cms("");
-      TS_ASSERT_EQUALS(error_message_count, 0);
+      TS_ASSERT_EQUALS(ErrorCounts::Total, 0);
       TS_ASSERT_EQUALS(cms.toUpper("\xe0"), string("\xe0")); // latin-1 a accent grave not mapped in C/POSIX
       TS_ASSERT_EQUALS(cms.toUpper("\u00e0"), string("\u00e0")); // utf-8 a/A accent grave not mapped in C/POSIX
       TS_ASSERT_EQUALS(cms.toUpper("a"), string("A"));
@@ -125,22 +114,19 @@ public:
 
    void testNullLocale() {
       CaseMapStrings cms(NULL);
-      TS_ASSERT_EQUALS(error_message_count, 0);
+      TS_ASSERT_EQUALS(ErrorCounts::Total, 0);
       TS_ASSERT_EQUALS(cms.toUpper("\xe0"), string("\xe0")); // latin-1 a accent grave not mapped in C/POSIX
       TS_ASSERT_EQUALS(cms.toUpper("\u00e0"), string("\u00e0")); // utf-8 a/A accent grave not mapped in C/POSIX
       TS_ASSERT_EQUALS(cms.toUpper("a"), string("A"));
    }
 
    void testBadLocale() {
-      TS_ASSERT_EQUALS(error_message, "");
-      TS_ASSERT_EQUALS(error_message_count, 0);
+      TS_ASSERT_EQUALS(ErrorCounts::last_msg, "");
+      TS_ASSERT_EQUALS(ErrorCounts::Total, 0);
       CaseMapStrings cms("foobar.unknown");
-      TS_ASSERT(!error_message.empty());
-      TS_ASSERT_EQUALS(error_message_count, 1);
+      TS_ASSERT(!ErrorCounts::last_msg.empty());
+      TS_ASSERT_EQUALS(ErrorCounts::Total, 1);
    }
 }; // TestCaseMapStrings
-
-unsigned int TestCaseMapStrings::error_message_count = 0;
-string TestCaseMapStrings::error_message;
 
 } // Portage

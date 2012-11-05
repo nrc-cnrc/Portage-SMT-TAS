@@ -47,6 +47,7 @@ LANG=en_US.ISO-8859-1
 
 echo -n "Training a simple decoder model in load-balancing mode "
 cow.sh -v -filt -floor 2               \\
+  -I-really-mean-cow                   \\
   -lb                                  \\
   -mad 1                               \\
   -parallel:"-n 4"                     \\

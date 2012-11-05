@@ -170,12 +170,8 @@ struct PhrasePairExtractor {
          //vector<WordAlignerFactory::PhrasePair>* phrase_pairs,
          WordAlignerStats* stats);
 
-   const string& remap(const string& s) {
-      if (s == PhraseTableBase::psep)
-         return PhraseTableBase::psep_replacement;
-      else
-         return s;
-   }
+   /// Replace occurrences of the phrase table separator by its replacement value.
+   const string& remap(const string& s);
 
    /**
     *
@@ -183,7 +179,7 @@ struct PhrasePairExtractor {
     * @param pt  is the phrasetable.
     * @param src_word_voc
     * @param tgt_word_voc
-    * @param os  is non-NULL, the pairs get written to os instead of inserted into the phrasetable.
+    * @param os  is non-NULL, the pairs get written to os instead of being inserted into the phrasetable.
     */
    template <class PT>
       void add_ibm1_translations(Uint lang, PT& pt,

@@ -22,7 +22,7 @@
 using namespace Portage;
 using namespace std;
 
-Error_ns::ErrorCallback Error_ns::dummy::errorCallback = Error_ns::defaultErrorCallBack;
+Error_ns::ErrorCallback Error_ns::Current::errorCallback = Error_ns::defaultErrorCallBack;
 
 Error::Error(const char* fmt, ...)
 {
@@ -35,6 +35,23 @@ Error::Error(const char* fmt, ...)
 }
 
 void Portage::Error_ns::nullErrorCallBack(ErrorType et, const string& msg) {}
+
+Uint Portage::Error_ns::ErrorCounts::Fatal = 0;
+Uint Portage::Error_ns::ErrorCounts::Warn = 0;
+Uint Portage::Error_ns::ErrorCounts::Help = 0;
+Uint Portage::Error_ns::ErrorCounts::Total = 0;
+string Portage::Error_ns::ErrorCounts::last_msg;
+void Portage::Error_ns::countErrorCallBack(ErrorType et, const string& msg)
+{
+   if (et == ETFatal)
+      ++ErrorCounts::Fatal;
+   else if (et == ETWarn)
+      ++ErrorCounts::Warn;
+   else
+      ++ErrorCounts::Help;
+   ++Error_ns::ErrorCounts::Total;
+   Error_ns::ErrorCounts::last_msg = msg;
+}
 
 void Portage::Error_ns::defaultErrorCallBack(ErrorType et, const string& msg)
 {
@@ -53,8 +70,8 @@ void Portage::Error_ns::defaultErrorCallBack(ErrorType et, const string& msg)
 
 void Portage::error(ErrorType et, const string& msg)
 {
-   if (Error_ns::dummy::errorCallback) {
-      (*Error_ns::dummy::errorCallback)(et, msg);
+   if (Error_ns::Current::errorCallback) {
+      (*Error_ns::Current::errorCallback)(et, msg);
    }
    #ifdef __KLOCWORK__
       if (et == ETFatal) abort();

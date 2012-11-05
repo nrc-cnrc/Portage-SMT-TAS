@@ -98,7 +98,7 @@ phrases.fr2en: train_en.al train_fr.al
 cow: canoe.ini.cow
 canoe.ini.cow: phrases.fr2en train_en.lm canoe.ini
 	rm -rf foos; mkdir foos
-	cow.sh -nbest-list-size 100 -maxiter 10 -filt -floor 2 \
+	cow.sh -I-really-mean-cow -nbest-list-size 100 -maxiter 10 -filt -floor 2 \
 		-workdir foos dev1_fr.al dev1_en.al &> log.cow
 
 rat: rescore-model
