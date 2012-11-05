@@ -4,7 +4,7 @@
  * class, which provides a log-linear model comprised of translation models,
  * language models, and built-in distortion and length penalties.
  *
- * $Id$ *
+ * $Id$
  *
  * Canoe Decoder
  *
@@ -365,6 +365,7 @@ BasicModel *BasicModelGenerator::createModel(
    // Inform all LM models that we are about to process a new source sentence.
    for (Uint i=0;i<lms.size();++i) {
       lms[i]->clearCache();
+      lms[i]->newSrcSent(info.src_sent, info.external_src_sent_id);
    }
 
    // Clear the phrase table caches every 10 sentences

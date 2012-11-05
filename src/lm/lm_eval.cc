@@ -168,19 +168,24 @@ int MAIN(argc,argv)
    iSafeMagicStream testfile(test_filename);
    float docLogProb = 0.0;
    Uint num_toks = 0;
-   Uint processed = 0;
+   Uint lineno = 0;
    Uint Noov = 0;
    while(getline(testfile, line)) {
       if(line.empty()) {
          if (sent) cout << (ppls ? "1.0" : "0.0") << endl;
+         ++lineno;
          continue;
       }
+
+      vector<string> dummy;
+      lm->newSrcSent(dummy, lineno);
+
       docLogProb += processOneLine_fast(line, lm, vocab, num_toks, Noov);
       //vector<string> words;
       //split(line,words," ");
       //cout << "----------------------"<< endl << "\x1b[31m" << line << "\x1b[0m\n" << endl;
       //processOneLine(words,lm,vocab);
-      ++processed;
+      ++lineno;
    }
 
    cerr << "End (Total time: " << (time(NULL) - start) << " secs)" << endl;

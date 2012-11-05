@@ -116,6 +116,7 @@ LMDynMap::LMDynMap(const string& name, VocabFilter* vocab,
    } else
       error(ETFatal, "unknown LMDynMap map type: %s\n%s",
             map_type.c_str(), help_the_poor_user);
+   assert(mapping);
 
    local_voc = new VocabFilter(*vocab, *mapping, index_map);
 
@@ -166,6 +167,12 @@ float LMDynMap::cachedWordProb(Uint word, const Uint context[],
    for (Uint i = 0; i < context_length; ++i)
       local_context[i] = localIndex(context[i]);
    return m->cachedWordProb(localIndex(word), local_context, context_length);
+}
+
+void LMDynMap::newSrcSent(const vector<string>& src_sent,
+                          Uint external_src_sent_id)
+{
+   m->newSrcSent(src_sent, external_src_sent_id);
 }
 
 string LMDynMap::fix_relative_path(const string& path, string file)

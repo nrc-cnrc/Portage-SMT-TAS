@@ -174,6 +174,8 @@ public:
    virtual float cachedWordProb(Uint word, const Uint context[],
                                 Uint context_length);
    virtual void clearCache() { m->clearCache(); }
+   virtual void newSrcSent(const vector<string>& src_sent,
+                           Uint external_src_sent_id);
 
    /**
     * Fixes the relative path for a dynmap.

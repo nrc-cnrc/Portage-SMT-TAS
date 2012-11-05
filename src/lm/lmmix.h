@@ -22,7 +22,12 @@ namespace Portage
 class LMMix : public PLM
 {
    vector<PLM*> models;		// LMs in the mixture
-   vector<double> wts;		// .. and their (log) weights
+   vector<double> gwts;		// .. and their (log) weights
+
+   double* wts;                 // current weights to use
+
+   bool sent_level_mixture;     // true if per_sent_wts are active
+   vector< vector<double> > per_sent_wts; // sent index -> wts
 
    /**
     * The gram order of the LM.
@@ -77,12 +82,31 @@ public:
     *                      treated as if limit_order=N was specified.
     *                      [typical value: 0]
     * @param lmmix_relative   are paths relative to the lmmix file location?
+    * @param notreally don't actually load component models if true
+    * @param model_names write model names here if non-null
+    *
+    * If the file contains the line "sent-level mixture v1.0 [\<globalwt\>]" then
+    * the remainer must be a sequence of weight vectors, one per line, to be
+    * used in translating successive source sentences. Each per-sentence weight
+    * vector must be the same size as the global vector, ie must contain a
+    * weight for each component LM. If the optional \<globalwt\> parameter is
+    * specified, then each per-sentence vector is set to globalwt * global-vect
+    * + (1-globalwt * per-sent-vect). \<globalwt\> defaults to 0.
     */
    LMMix(const string& name, VocabFilter* vocab,
          OOVHandling oov_handling, float oov_unigram_prob,
-         bool limit_vocab, Uint limit_order, bool lmmix_relative);
+         bool limit_vocab, Uint limit_order, bool lmmix_relative,
+         bool notreally, vector<string>* model_names);
 
    virtual float wordProb(Uint word, const Uint context[], Uint context_length);
+
+   virtual void newSrcSent(const vector<string>& src_sent,
+                           Uint external_src_sent_id);
+
+   const char* sentLevelMixtureCookieV1(); 
+   bool sentLevelMixture() {return sent_level_mixture;}
+   vector<double>& globalWeights() {return gwts;}
+   vector< vector<double> >& perSentWeights() {return per_sent_wts;}
 
    /// Destructor.
    ~LMMix();

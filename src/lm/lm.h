@@ -407,6 +407,20 @@ public:
    string describeFeature() const { return description; }
 
    /**
+    * Tells the LM what is the new sentence we are about to calculate.
+    * Gives the LM the opportunity to do some preprocessing.
+    * Subclasses in which calling newSrcSent() changes the results of
+    * subsequent calls to wordProb() must call clearCache() in this method.
+    * @param src_sent         tokens of the new sentence to translate
+    * @param external_src_sent_id   index of src sent within its file.
+    *                         this id is typically the line number in the input
+    *                         file to canoe-parallel.sh, e.g., not necessarily
+    *                         the line number of the input to canoe itself.
+    */
+   virtual void newSrcSent(const vector<string>& src_sent,
+                           Uint external_src_sent_id) {}
+
+   /**
     * Get some stats on how many time each Ngrams size was hit during
     * translation.
     * @return Returns how many times each N was hit.

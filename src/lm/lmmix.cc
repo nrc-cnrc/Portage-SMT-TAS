@@ -21,6 +21,14 @@ using namespace std;
 
 namespace Portage {
 
+static const char LMMIX_COOKIE_V1_0[] = "sent-level mixture v1.0";
+
+const char* LMMix::sentLevelMixtureCookieV1()
+{
+   return LMMIX_COOKIE_V1_0;
+}
+
+
 LMMix::Creator::Creator(
       const string& lm_physical_filename, Uint naming_limit_order)
    : PLM::Creator(lm_physical_filename, naming_limit_order)
@@ -40,6 +48,8 @@ bool LMMix::Creator::checkFileExists()
    bool have_seen_relative_path = false;
    Uint num_lines = 0;
    while (getline(file, line)) {
+      if (isPrefix(LMMIX_COOKIE_V1_0, line))
+         break;
       ++num_lines;
       vector<string> toks;
       if (split(line, toks) != 2) 
@@ -87,6 +97,8 @@ Uint64 LMMix::Creator::totalMemmapSize()
 
    Uint64 total_size = 0;
    while (getline(file, line)) {
+      if (isPrefix(LMMIX_COOKIE_V1_0, line))
+         break;
       vector<string> toks;
       if (split(line, toks) != 2) 
          error(ETFatal, "syntax error in %s; expected 2 tokens in %s",
@@ -108,44 +120,81 @@ PLM* LMMix::Creator::Create(VocabFilter* vocab,
    if (!checkFileExists())
       error(ETFatal, "Unable to open MIXLM %s or one of its associated files.",
             lm_physical_filename.c_str());
-   return new LMMix(lm_physical_filename, vocab, oov_handling,
-                    oov_unigram_prob, limit_vocab, limit_order, lmmix_relative);
+   return new LMMix(lm_physical_filename, vocab, oov_handling, oov_unigram_prob,
+                    limit_vocab, limit_order, lmmix_relative, false, NULL);
 
 }
 
 LMMix::LMMix(const string& name, VocabFilter* vocab,
              OOVHandling oov_handling, float oov_unigram_prob,
-             bool limit_vocab, Uint limit_order, bool lmmix_relative)
-   : PLM(vocab, oov_handling, oov_unigram_prob)
+             bool limit_vocab, Uint limit_order, bool lmmix_relative,
+             bool notreally, vector<string>* model_names) : 
+   PLM(vocab, oov_handling, oov_unigram_prob),
+   sent_level_mixture(false)
 {
-   // read component models and their global weights
+   // read initial block: component models and their global weights
    iSafeMagicStream file(name);
    string line;
 
    string lmmix_dir = lmmix_relative ? DirName(name) : "";
 
-   double z = 0.0;
    while (getline(file, line)) {
+      if (isPrefix(LMMIX_COOKIE_V1_0, line)) {
+         sent_level_mixture = true;
+         break;
+      }
       vector<string> toks;
       if (split(line, toks) != 2) 
          error(ETFatal, "syntax error in %s; expected 2 tokens in %s",
                name.c_str(), line.c_str());
 
-      models.push_back(PLM::Create(adjustRelativePath(lmmix_dir, toks[0]),
-                                   vocab, oov_handling, oov_unigram_prob,
-                                   limit_vocab, limit_order, NULL));
-      if (models.back()->getOrder() > gram_order)
-         gram_order = models.back()->getOrder();
+      if (model_names)
+         (*model_names).push_back(toks[0]);
 
-      const double wt = conv<double>(toks[1]);
-      z += wt;
-      wts.push_back(log(wt));
+      if (notreally) {
+         models.push_back(NULL);
+      } else {
+         models.push_back(PLM::Create(adjustRelativePath(lmmix_dir, toks[0]),
+                                      vocab, oov_handling, oov_unigram_prob,
+                                      limit_vocab, limit_order, NULL));
+         if (models.back()->getOrder() > gram_order)
+            gram_order = models.back()->getOrder();
+      }
+
+      gwts.push_back(conv<double>(toks[1]));
    }
+
+   double z = accumulate(gwts.begin(), gwts.end(), 0.0);
    if (z > 1.0001 || z < 0.9999)
       error(ETWarn, "lmmix model weights not normalized in %s - sum is %g", name.c_str(), z);
 
    if (models.empty())
       error(ETFatal, "empty lmmix model %s", name.c_str());
+
+   // process sent-level weight vectors, if magic cookie found
+
+   if (sent_level_mixture) {
+
+      double g = 0.0;
+      if (line.length() > strlen(LMMIX_COOKIE_V1_0))
+         g = conv<double>(line.substr(strlen(LMMIX_COOKIE_V1_0)));
+      
+      while (getline(file, line)) {
+         per_sent_wts.push_back(vector<double>(0));
+         if (split(line, per_sent_wts.back()) != gwts.size())
+            error(ETFatal, "size of weight vector doesn't match global vector: %s", 
+                  line.c_str());
+         for (Uint i = 0; i < gwts.size(); ++i)
+            per_sent_wts.back()[i] = log(g * gwts[i] + (1.0-g) * per_sent_wts.back()[i]);
+      }
+   }
+
+   // take log of global wts
+
+   for (Uint i = 0; i < gwts.size(); ++i)
+      gwts[i] = log(gwts[i]);
+
+   wts = &gwts[0];
 }
 
 float LMMix::wordProb(Uint word, const Uint context[], Uint context_length)
@@ -156,6 +205,21 @@ float LMMix::wordProb(Uint word, const Uint context[], Uint context_length)
       if (wts[i] != log0)
          p += exp(wts[i] + models[i]->wordProb(word, context, context_length));
    return log(p);
+}
+
+void LMMix::newSrcSent(const vector<string>& src_sent,
+                       Uint external_src_sent_id)
+{
+   if (sent_level_mixture) {
+      clearCache(); // In this case, changing sentence invalidates the cache.
+      if (external_src_sent_id >= per_sent_wts.size())
+         error(ETFatal, 
+               "mixlm src index too large: you may be using the model for the wrong source file!");
+      wts = &per_sent_wts[external_src_sent_id][0];
+   }
+
+   for (Uint i = 0; i < models.size(); ++i)
+      models[i]->newSrcSent(src_sent, external_src_sent_id);
 }
 
 LMMix::~LMMix()
