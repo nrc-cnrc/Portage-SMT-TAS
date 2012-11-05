@@ -6,7 +6,10 @@
       xmlns:xsd="http://www.w3.org/2001/XMLSchema"
       name="PortageLiveService"
       targetNamespace="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.wsdl">
-  <!-- Understanding WSDL: http://msdn.microsoft.com/en-us/library/ms996486.aspx-->
+
+  <!-- Understanding WSDL: http://msdn.microsoft.com/en-us/library/ms996486.aspx -->
+  <!-- http://www.w3.org/TR/wsdl20 -->
+
   <documentation>
   file: PortageLiveAPI.wsdl
   brief: Definition of the API to the Portage SMT software suite.
@@ -17,7 +20,8 @@
   Conseil national de recherches Canada / National Research Council Canada
   Copyright 2009 - 2012, Sa Majesté la Reine du Chef du Canada /
   Copyright 2009 - 2012, Her Majesty in Right of Canada
-</documentation>
+  </documentation>
+
   <message name="primeModelsRequest">
     <part name="context" type="xsd:string"/>
     <part name="PrimeMode" type="xsd:string"/>
@@ -50,6 +54,7 @@
     <part name="context" type="xsd:string"/>
     <part name="CETreshold" type="xsd:decimal"/>
   </message>
+
   <portType name="PortageLive_Interface">
     <operation name="primeModels">
       <documentation>
@@ -198,8 +203,10 @@
       <output message="tns:getTranslationResponse"/>
     </operation>
   </portType>
+
   <binding name="PortageLive_SoapHttpBinding" type="tns:PortageLive_Interface">
     <soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+
     <operation name="primeModels">
       <soap:operation soapAction="primeModels"/>
       <input>
@@ -282,6 +289,7 @@
       </output>
     </operation>
   </binding>
+
   <service name="PortageLive_Service">
     <documentation>Definition of the PortageLive Service</documentation>
     <port name="PortageLive_Library" binding="tns:PortageLive_SoapHttpBinding">
