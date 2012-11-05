@@ -97,8 +97,14 @@ xliff/%/Q.txt:  %.sdlxliff
 # Simple hand made test
 test1:  KEEPTAGS=1
 test1:  xliff/test_numbers_hyphens_2.docx/QP.xml
+
 # Test <seg-source><><><mrk mtype="seg">
 test2:  xliff/TestSet/Target-sdlxliff/WNv_report_-_WEEK_39_graphs_and_tables_4th_Oct_2012.xlsx/QP.xml
+test2s:  SCORE=1
+test2s:  xliff/TestSet/Target-sdlxliff/WNv_report_-_WEEK_39_graphs_and_tables_4th_Oct_2012.xlsx/QP.xml
+test2sf:  SCORE=1
+test2sf:  FILTER=53
+test2sf:  xliff/TestSet/Target-sdlxliff/WNv_report_-_WEEK_39_graphs_and_tables_4th_Oct_2012.xlsx/QP.xml
 
 
 
