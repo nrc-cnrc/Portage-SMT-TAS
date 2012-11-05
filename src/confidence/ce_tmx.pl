@@ -438,34 +438,51 @@ sub processTransUnitReplace {
       my $out = getTranslatedText($parser, $xid);
       $mrk->set_text($out);  # for debugging
       ++$parser->{seg_count};
-      #my $alt_trans = $mrk->wrap_in('target', 'alt-trans' => {'tool-id' => $parser->{'tool-id'}, mid => $mid});
-      my $target = $mrk->wrap_in('target');
 
+      # Insert translation into document.
       my $nodeDefinition = sprintf("target//mrk[\@mid=\"$mid\"]");
       if (my $previous_target = $trans_unit->get_xpath($nodeDefinition, 0)) {
          debug("replacing previous trans\t$nodeDefinition\n");
-         $target->replace($previous_target);
+         $mrk->replace($previous_target);
       }
       else {
          debug("pasting a new trans\n");
-         $target->paste(last_child => $trans_unit);
+         $mrk->paste(last_child => $trans_unit);
       }
 
-      my $sdl_seg = $trans_unit->get_xpath("sdl:seg-defs/sdl:seg[\@id=\"$mid\"]", 0) or die "Unable to find sdl:seg";
-      # TODO: What if there is no seg-defs and/or sdl:seg?
-      $sdl_seg->{att}->{conf} = 'Draft';
-      $sdl_seg->{att}->{origin} = 'mt';
+
+      my $sdl_defs = $trans_unit->get_xpath("sdl:seg-defs", 0);
+      unless (defined($sdl_defs)) {
+         warn "Unable to find sdl:seg, adding one...";
+         $sdl_defs = XML::Twig::Elt ->new('sdl:seg-defs');
+         $sdl_defs->paste(last_child => $trans_unit);
+      }
+
+      my $sdl_seg = $sdl_defs->get_xpath("sdl:seg[\@id=\"$mid\"]", 0);
+      unless(defined($sdl_seg)) {
+         warn "Unable to find sdl:seg, adding one...";
+         $sdl_seg = XML::Twig::Elt ->new('sdl:seg-seg' => {id => $mrk_id});
+         $sdl_seg->paste(last_child => $sdl_defs);
+      }
+
+      $sdl_seg->{att}->{conf}            = 'Draft';
+      $sdl_seg->{att}->{origin}          = 'mt';
       $sdl_seg->{att}->{'origin-system'} = $parser->{'tool-id'};
 
       # Confidence estimation:
       my $ce = $xid ? ixGetCE($parser->{ix}, $xid) : undef;
 
-      # TODO: Where to add the confidence score?
-      #<sdl:seg-defs><sdl:seg id="560" /></sdl:seg-defs>
-      #<sdl:seg conf="Draft" id="1" origin="mt" origin-system="Portage-1.5.0" percent="99" >
+      # Confidence Estimation element example:
+      # Not yet defined:
+      #   <sdl:seg-defs><sdl:seg id="560" /></sdl:seg-defs>
+      # Defined:
+      #   <sdl:seg-defs><sdl:seg id="560" /></sdl:seg-defs>
+      #      <sdl:seg conf="Draft" id="56" origin="mt" origin-system="Portage-1.5.0" percent="99" >
+      #   </sdl:seg-defs>
       debug("Confidence estimation for $xid: CE=%s %s\n", defined $ce ? $ce : "undef", $parser->{filter} ? $parser->{filter} : "undef");
+      $sdl_seg->del_att('percent');       # Make sure there is no previous value for the attribut percent.
       if ($parser->{score} and defined($ce)) {
-         $sdl_seg->{att}->{'percent'} = sprintf("%.4f", $ce);
+         $sdl_seg->{att}->{'percent'} = sprintf("%.0f", $ce);
       }
 
       if (defined $parser->{filter} and defined($ce) and $ce < $parser->{filter}) {
