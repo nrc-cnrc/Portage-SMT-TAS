@@ -45,7 +45,7 @@ on the standard error stream.
 
 =item -filter=T
 
-In 'replace' mode, filter out TUs with confidence below T [don't]
+In 'replace' mode, filter out translations with confidence below T [don't]
 
 =item -src=SL
 
@@ -428,27 +428,23 @@ sub processTransUnitReplace {
    $source = $trans_unit->get_xpath('source', 0) unless($source);
    die "No source for $trans_unit_id.\n" unless ($source);
 
+   # Create a target element.
+   my $target = $trans_unit->get_xpath('target', 0);
+   $target->delete() if(defined($target));
+   $target = $source->copy();
+   $target->set_tag('target');  # rename it to target.
+   $target->del_atts();  # Make sure there is no attributs.
+   $target->paste(after => $source);
+
    my $mrk_id = 0;  # Fallback id.
-   my @mrks = $source->descendants('mrk[@mtype="seg"]') or warn "Can't find any mrk for $trans_unit_id\n\tcontent:", $source->xml_string, "\n";
-   foreach my $smrk (@mrks) {
-      my $mrk = $smrk->copy();
+   my @mrks = $target->descendants('mrk[@mtype="seg"]') or warn "Can't find any mrk for $trans_unit_id\n\tcontent:", $target->xml_string, "\n";
+   foreach my $mrk (@mrks) {
       my $src_sub = $parser->{keeptags} ? $mrk->xml_string() : $mrk->text();
       my $mid = (defined($mrk->{att}{mid}) ? $mrk->{att}{mid} : $mrk_id++);
       my $xid  = "$trans_unit_id.$mid";
       my $out = getTranslatedText($parser, $xid);
       $mrk->set_text($out);  # for debugging
       ++$parser->{seg_count};
-
-      # Insert translation into document.
-      my $nodeDefinition = sprintf("target//mrk[\@mid=\"$mid\"]");
-      if (my $previous_target = $trans_unit->get_xpath($nodeDefinition, 0)) {
-         debug("replacing previous trans\t$nodeDefinition\n");
-         $mrk->replace($previous_target);
-      }
-      else {
-         debug("pasting a new trans\n");
-         $mrk->paste(last_child => $trans_unit);
-      }
 
 
       my $sdl_defs = $trans_unit->get_xpath("sdl:seg-defs", 0);
