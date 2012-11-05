@@ -1,5 +1,5 @@
 <?php
-# $Id: PortageLiveAPI.php,v 1.16 2012/08/17 20:44:01 joanise Exp $
+# $Id$
 # @file PortageLiveAPI.php 
 # @brief Implementation of the API to the Portage SMT software suite.
 # 
@@ -200,8 +200,11 @@ class PortageLiveAPI {
       return preg_replace("/[^-_.+a-zA-Z0-9]/", "", $filename);
    }
 
-   function translateFileCE($XML_contents_base64, $XML_filename, $context, $ce_threshold, $type) {
-      # TODO: validate that type is either "tmx" or "sdlxliff"
+   # Translate a XML file using model $context and the confidence threshold
+   # $ce_threshold.  A threshold of 0 means keep everything.
+   # $XML_contents_base64 is a string containing the full content of the xml file, in Base64 encoding.
+   # $XML_filename is the name of the XML file.
+   function translateXMLCE($XML_contents_base64, $XML_filename, $context, $ce_threshold, $type) {
       $i = $this->getContextInfo($context);
       $this->validateContext($i, $ce_threshold > 0);
 
@@ -227,10 +230,10 @@ class PortageLiveAPI {
          "", $i, $xml_check_rc);
       #return "TMX check log: $xml_check_log; xml_check_rc: $xml_check_rc";
       if ( $xml_check_rc != 0 )
-         throw new SoapFault("Client", "TMX check failed for $XML_filename: $xml_check_log");
+         throw new SoapFault("Client", "$type check failed for $XML_filename: $xml_check_log");
 
       #$xml_lang = array("fr" => "FR-CA", "en" => "EN-CA"); # add more languages here as needed
-      $command = "$i[script] -$type -nl=s -dir=\"$work_dir\" -out=\"$work_dir/P.out\" " .
+      $command = "$i[script] -xml -nl=s -dir=\"$work_dir\" -out=\"$work_dir/P.out\" " .
                  (!empty($i["ce_model"]) ? "-with-ce " : "-decode-only ") .
                  ($ce_threshold > 0 ? "-filter=$ce_threshold " : "") .
                  "\"$work_dir/Q.in\" >& \"$work_dir/trace\" ";
@@ -248,19 +251,15 @@ class PortageLiveAPI {
       return $monitor;
    }
 
-   # Translate a translation memory using model $context and the confidence
-   # threshold $ce_threshold.  A threshold of 0 means keep everything.
-   # $TMX_contents is a string containing the full content of the tmx file, in Base64 encoding.
-   # $TMX_filename is the name of the TMX file.
    function translateTMXCE($TMX_contents_base64, $TMX_filename, $context, $ce_threshold) {
-      return $this->translateFileCE($TMX_contents_base64, $TMX_filename, $context, $ce_threshold, "tmx");
+      return $this->translateXMLCE($TMX_contents_base64, $TMX_filename, $context, $ce_threshold, "tmx");
    }
 
    function translateSDLXLIFFCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, $ce_threshold) {
-      return $this->translateFileCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, $ce_threshold, "sdlxliff");
+      return $this->translateXMLCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, $ce_threshold, "sdlxliff");
    }
 
-   function translateFileCE_Status($monitor_token) {
+   function translateXMLCE_Status($monitor_token) {
       $tokens = preg_split("/[?&]/", $monitor_token);
       $info = array();
       foreach ($tokens as $token) {
@@ -305,13 +304,12 @@ class PortageLiveAPI {
       }
    }
 
-   # TODO: Maybe these fucntions should simply be replaced by one called translatio_Status?
    function translateTMXCE_Status($monitor_token) {
-      return $this->translateFileCE_Status($monitor_token);
+      return $this->translateXMLCE_Status($monitor_token);
    }
 
    function translateSDLXLIFFCE_Status($monitor_token) {
-      return $this->translateFileCE_Status($monitor_token);
+      return $this->translateXMLCE_Status($monitor_token);
    }
 
    # Translate $src_string using model $context and confidence estimation

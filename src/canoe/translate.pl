@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# $Id: translate.pl,v 1.30 2012/08/31 21:37:58 joanise Exp $
+# $Id$
 # @file translate.pl
 # @brief Script to translate text.
 #
@@ -28,7 +28,7 @@ translate.pl - Translate text
 
 This program translates a source text file SRC_TEXT to the target language 
 according to the current trained models. If SRC_TEXT is not specified, the 
-source text is read from standard input (STDIN). With the C<-tmx> option,
+source text is read from standard input (STDIN). With the C<-xml> option,
 SRC_TEXT is a TMX format file from which the source text is extracted and to 
 which the translated text is replaced.
 
@@ -102,7 +102,7 @@ newline marks the end of a paragraph;
 
 =item -nl=s
 
-newline marks the end of a sentence [default with -notok or -tmx or -sldxliff];
+newline marks the end of a sentence [default with -notok or -xml];
 
 =item -nl=w
 
@@ -190,29 +190,21 @@ Specify additional C<rat.sh> options (valid for -with-rescoring only).
 
 =back
 
-=head2 SDLXLIFF Specific Options
+=head2 XML Specific Options
 
 =over 12
 
-=item -sdlxliff
+=item -xml
 
-The input and output files are in sdlxliff format.
-
-=head2 TMX Specific Options
-
-=over 12
-
-=item -tmx
-
-The input and output files are in TMX format.
+The input and output files are in XML format.
 
 =item -xsrc=XSRC
 
-Use XSRC as the TMX source language name. [EN-CA]
+Use XSRC as the XML source language name. [EN-CA]
 
 =item -xtgt=XTGT
 
-Use XTGT as the TMX target language name. [FR-CA]
+Use XTGT as the XML target language name. [FR-CA]
 
 =back
 
@@ -222,7 +214,7 @@ Use XTGT as the TMX target language name. [FR-CA]
 
 =item -filter=T
 
-Filter out translations below confidence threshold T (valid for C<-tmx> mode only).
+Filter out translations below confidence threshold T (valid for C<-xml> mode only).
 [no]
 
 =item -xtra-ce-opts=OPTS
@@ -382,11 +374,8 @@ Getopt::Long::GetOptions(
    "xtra-cp-opts=s"      => \my $xtra_cp_opts,
    "xtra-rat-opts=s"     => \my $xtra_rat_opts,
 
-   #SDLXLIFF specific options
-   "sdlxliff"       => \my $sdlxliff,
-
-   #TMX specific options
-   "tmx"            => \my $tmx,
+   #XML specific options
+   "xml"            => \my $xml,
    "xsrc=s"         => \my $xsrc,
    "xtgt=s"         => \my $xtgt,
 
@@ -402,8 +391,6 @@ $quiet = 0 unless defined $quiet;
 $debug = 0 unless defined $debug;
 $dryrun = 0 unless defined $dryrun;
 $timing = 0 unless defined $timing;
-
-die "You cannot specify both -tmx and -sdlxliff." if ($tmx and $sdlxliff);
 
 if ( !$quiet || $verbose ) {
    print STDERR "$saved_command_line\n\n";
@@ -474,13 +461,13 @@ $tok = 1 unless defined $tok;
 $lc = 1 unless defined $lc;
 $detok = 1 unless defined $detok;
 
-$nl = (($tmx || $sdlxliff) || !$tok ? "s" : "w") unless defined $nl;
+$nl = ($xml || !$tok ? "s" : "w") unless defined $nl;
 $nl eq "w" or $nl eq "s" or $nl eq "p"
    or die "ERROR: -nl option must be one of: 's', 'p', 'w', or ''.\nStopped";
 #$tok or $nl eq "s"
 #   or die "ERROR: -notok requires -nl=s to be specified.\nStopped";
-!($tmx or $sdlxliff) or $nl eq "s"
-   or die "ERROR: -tmx/-sdlxliff requires -nl=s.\nStopped";
+!$xml or $nl eq "s"
+   or die "ERROR: -xml requires -nl=s.\nStopped";
 
 !defined $tc || !defined $tctp
    or die "ERROR: Specify only one of: -notc, -tc, -tctp.\nStopped";
@@ -575,9 +562,9 @@ $xtra_cp_opts = "" unless defined $xtra_cp_opts;
 $xtra_decode_opts = "" unless defined $xtra_decode_opts;
 $xtra_rat_opts = "" unless defined $xtra_rat_opts;
 
-# TMX specific options
-$tmx = 0 unless defined $tmx;
-if ($tmx) {
+# XML specific options
+$xml = 0 unless defined $xml;
+if ($xml) {
    if (!defined $xsrc) {
       $xsrc = "$src-CA";
       $xsrc =~ tr/a-z/A-Z/;
@@ -586,12 +573,9 @@ if ($tmx) {
       $xtgt = "$tgt-CA";
       $xtgt =~ tr/a-z/A-Z/;
    }
-}
-else {
-   unless ($sdlxliff) {
-      !defined $xsrc and !defined $xtgt and !defined $filter
-         or warn "Warning: ignoring -xsrc, -xtgt and -filter, which are meaningful only with -tmx.\n"
-   }
+} else {
+   !defined $xsrc and !defined $xtgt and !defined $filter
+      or warn "Warning: ignoring -xsrc, -xtgt and -filter, which are meaningful only with -xml.\n"
 }
 
 # CE specific options
@@ -605,7 +589,7 @@ if ($with_ce) {
 }
 
 @ARGV <= 1 or die "ERROR: Too many arguments.\nStopped";
-@ARGV > 0 or die "ERROR: Too few arguments. SRC_TEXT file required.\nStopped" if ($tmx or $sdlxliff);
+@ARGV > 0 or die "ERROR: Too few arguments. SRC_TEXT file required.\nStopped" if $xml;
 my $input_text = @ARGV > 0 ? shift : "-";
 
 unless (defined $out) {
@@ -732,15 +716,10 @@ goto $skipto if $skipto;
 
 # Get source text
 IN:{
-   if ($tmx) {
+   if ($xml) {
       call("ce_tmx.pl -verbose=$verbose -src=$xsrc -tgt=$xtgt extract '$dir' '$input_text'");
-      cleanupAndDie("TMX file $input_text has no TUs containing segments in language $xsrc.\n") unless -s $Q_txt;
-   }
-   elsif ($sdlxliff) {
-      call("ce_tmx.pl -verbose=$verbose extract '$dir' '$input_text'");
-      cleanupAndDie("TMX file $input_text has no TUs containing segments in language $xsrc.\n") unless -s $Q_txt;
-   }
-   else {
+      cleanupAndDie("XML file $input_text has no sentence in language $xsrc.\n") unless -s $Q_txt;
+   } else {
       copy($input_text, $Q_txt);
    }
 }
@@ -838,23 +817,17 @@ CE:{
 
 # Produce output
 OUT:{
-   if ($tmx) {
-      my $fopt = defined $filter ? "-filter=$filter" : "";
-      my $sopt = $with_ce ? "-score" : "-noscore";
-      call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} ${fopt} ${sopt} replace '$dir'");
-   }
-   elsif ($sdlxliff) {
-      my $fopt = defined $filter ? "-filter=$filter" : "";
-      my $sopt = $with_ce ? "-score" : "-noscore";
-      call("ce_tmx.pl -verbose=${verbose} ${fopt} ${sopt} replace '$dir'");
-   }
-   else {
+   unless ($xml) {
       if ($with_ce) {
          my $ce_output = $out ne "-" ? "> '$out'" : "";
          call("paste ${dir}/pr.ce '${P_txt}' ${ce_output}");
       } else {
          copy($P_txt, $out);
       }
+   } else {
+      my $fopt = defined $filter ? "-filter=$filter" : "";
+      my $sopt = $with_ce ? "-score" : "-noscore";
+      call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} ${fopt} ${sopt} replace '$dir'");
    }
 }
 

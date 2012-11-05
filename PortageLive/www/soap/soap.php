@@ -1,5 +1,5 @@
 <?php
-# $Id: soap.php,v 1.9 2012/06/21 21:49:12 stewartd Exp $
+# $Id$
 # @file soap.php
 # @brief Test web page for the SOAP API to PortageLive
 #
@@ -62,7 +62,7 @@ if ( $_POST ) {
    div.PRIME { width: 70%;}
    .PRIME {border-width: 1; border: solid; text-align: center; font-size:1.2em; background-color: #FAFAD2; padding: 1px; margin: 1px}
    .SUCCESS {color: green}
-   .ERROR {color: red; text-decoration: blink; }
+   .ERROR { color: red; text-decoration: blink; font-weight: bold; }
 </STYLE>
 </head>
 
@@ -95,7 +95,7 @@ try {
    }
 }
 catch (SoapFault $exception) {
-   print "<br/><b>SOAP Fault trying to list contexts: </b></b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
+   print "<BR/><SPAN class=\"ERROR\">SOAP Fault trying to list contexts: </SPAN>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}\n";
 }
 ?>
 <OPTION VALUE="InvalidContext">Invalid context for debugging</OPTION>
@@ -135,7 +135,7 @@ try {
    print "<br/><b>Verbose contexts: </b>" . $client->getAllContexts(true) . "</br>";
 }
 catch (SoapFault $exception) {
-   print "<br/><b>SOAP Fault trying to list contexts: </b></b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
+   print "<br/><span class=\"ERROR\">SOAP Fault trying to list contexts: </span>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
 }
 
 
@@ -172,10 +172,11 @@ function processFile($type, $file) {
          }
          print "<hr/><b>Portage replied: </b>$reply";
          print "<br/><a href=\"$reply\">Monitor job interactively</a>";
+         global $monitor_token;
          $monitor_token=$reply;
          //print "<br/><b>Trace: </b>"; var_dump($client);
       } catch (SoapFault $exception) {
-         print "<HR/><b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
+         print "<HR/><span class=\"ERROR\">SOAP Fault: </span>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
       }
 
    } else {
@@ -222,7 +223,7 @@ if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
       $client = new SoapClient($WSDL);
    }
    catch (SoapFault $exception) {
-      print "<HR/><b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
+      print "<HR/><span class=\"ERROR\">SOAP Fault: </span>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
    }
 
    $start_time = microtime(true);
@@ -231,7 +232,7 @@ if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
       print $client->getTranslation($to_translate);
       //print "<br/><b>Trace: </b>"; var_dump($client);
    } catch (SoapFault $exception) {
-      print "<b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
+      print "<span class=\"ERROR\">SOAP Fault: </span>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
    }
    $end_time = microtime(true);
    printf("<br/><b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
@@ -243,7 +244,7 @@ if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
       print $client->getTranslation2($to_translate, $context);
       //print "<br/><b>Trace: </b>"; var_dump($client);
    } catch (SoapFault $exception) {
-      print "<b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
+      print "<span class=\"ERROR\">SOAP Fault: </span>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
    }
    $end_time = microtime(true);
    printf("<br/><b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
@@ -255,7 +256,7 @@ if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
       print $client->getTranslationCE($to_translate, $context);
       //print "<br/><b>Trace: </b>"; var_dump($client);
    } catch (SoapFault $exception) {
-      print "<b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
+      print "<span class=\"ERROR\">SOAP Fault: </span>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
    }
    $end_time = microtime(true);
    printf("<br/><b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
@@ -291,13 +292,22 @@ if ( $button == "MonitorJob" && !empty($monitor_token) ) {
    try {
       $client = new SoapClient($WSDL);
       # TODO: Monitor SDLXLIFF Status.
-      $reply = $client->translateTMXCE_Status($monitor_token);
+      if ( $button == "TranslateTMX") {
+         $reply = $client->translateTMXCE_Status($monitor_token);
+      }
+      else
+      if ($button == "TranslateSDLXLIFF") {
+         $reply = $client->translateSDLXLIFFCE_Status($monitor_token);
+      }
+      else {
+         print "<B>Unknown type: $monitor_token</B><BR/>\n";
+      }
       print "<hr/><b>Job status: </b> $reply";
       if ( preg_match("/^0 Done: (\S*)/", $reply, $matches) )
          print "<br/>Right click and save: <a href=\"$matches[1]\">Translated content</a>";
       print "<br/><a href=\"$monitor_token\">Switch to interactive job monitoring</a>";
    } catch (SoapFault $exception) {
-      print "<HR/><b>SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
+      print "<HR/><span class=\"ERROR\">SOAP Fault: </span>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
    }
 }
 
@@ -316,7 +326,7 @@ Job Token:
 <table width="100%" cellspacing="0" cellpadding="0" border="0">
    <tr>
       <td width="20%" align="right" valign="bottom">
-	 <img alt="NRC-ICT" src="/images/iit_sidenav_graphictop_e.gif" height="54" />
+	 <img alt="NRC-ICT" src="/images/sidenav_graphictop_e.gif" height="54" />
       </td>
       <td width="60%" align="center" valign="bottom">
 	 <img width="286" alt="National Research Council Canada" src="/images/mainf1.gif" height="44" />
@@ -327,7 +337,7 @@ Job Token:
    </tr>
    <tr>
       <td align="right" valign="top">
-	 <img alt="NRC-ICT" src="/images/iit_sidenav_graphicbottom_e.gif" />
+	 <img alt="NRC-ICT" src="/images/sidenav_graphicbottom_e.gif" />
       </td>
       <td align="center" valign="top">
 	 <small>Technologies langagi&egrave;res interactives / Interactive Language Technologies <br /> Technologies de l’information et des communications / Information and Communications Technologies <br /> Conseil national de recherches Canada / National Research Council Canada <br /> Copyright 2004&ndash;2012, Sa Majest&eacute; la Reine du Chef du Canada /  Her Majesty in Right of Canada <br /> <a href="/portage_notices.html">Third party Copyright notices</a>

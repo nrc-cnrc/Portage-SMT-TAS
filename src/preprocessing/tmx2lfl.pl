@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# $Id: tmx2lfl.pl,v 1.13 2012/09/07 16:46:50 joanise Exp $
+# $Id$
 
 # @file tmx2lfl.pl
 # @brief Extract a parallel corpus from tmx files.

@@ -1,4 +1,5 @@
 #!/usr/bin/env perl
+# $Id$
 # @file ce_tmx.pl
 # @brief Handle TMX files for confidence estimation
 #
@@ -45,7 +46,7 @@ on the standard error stream.
 
 =item -filter=T
 
-In 'replace' mode, filter out TUs with confidence below T [don't]
+In 'replace' mode, filter out translations with confidence below T [don't]
 
 =item -src=SL
 
@@ -247,7 +248,7 @@ sub processFile {
    verbose("\r[%d%s segments processed. Done]\n",
          $parser->{seg_count},
          exists $parser->{total} ? "/".$parser->{total} : "" );
-   verbose("[%d TUs filtered out]\n", $parser->{filter_count})
+   verbose("[%d translations filtered out]\n", $parser->{filter_count})
       if defined $parser->{filter};
    return $parser;
 }
@@ -296,7 +297,7 @@ sub processXLIFF {
    }
    elsif ($parser->{action} eq 'replace') {
       $parser->setTwigHandlers( {
-            'trans-unit' => \&processTransUnitReplace,
+            'trans-unit' => \&replaceTransUnit,
             header => \&processHeader,
             } );
    }
@@ -348,6 +349,7 @@ sub xmlFlush {
           : $parser->purge();
     }
     elsif ($parser->{InputFormat} eq 'tmx') {
+       debug("  xmlflush tmx: " . $parser->{action});
        $parser->{action} eq 'check'
           ? $parser->purge()
           : $parser->flush($parser->{xml_out});
@@ -413,7 +415,7 @@ sub processTransUnit {
 }
 
 
-sub processTransUnitReplace {
+sub replaceTransUnit {
    my ($parser, $trans_unit) = @_;
 
    # Get the docid for this translation pair
@@ -428,10 +430,17 @@ sub processTransUnitReplace {
    $source = $trans_unit->get_xpath('source', 0) unless($source);
    die "No source for $trans_unit_id.\n" unless ($source);
 
+   # Create a target element.
+   my $target = $trans_unit->get_xpath('target', 0);
+   $target->delete() if(defined($target));
+   $target = $source->copy();
+   $target->set_tag('target');  # rename it to target.
+   $target->del_atts();  # Make sure there is no attributs.
+   $target->paste(after => $source);
+
    my $mrk_id = 0;  # Fallback id.
-   my @mrks = $source->descendants('mrk[@mtype="seg"]') or warn "Can't find any mrk for $trans_unit_id\n\tcontent:", $source->xml_string, "\n";
-   foreach my $smrk (@mrks) {
-      my $mrk = $smrk->copy();
+   my @mrks = $target->descendants('mrk[@mtype="seg"]') or warn "Can't find any mrk for $trans_unit_id\n\tcontent:", $target->xml_string, "\n";
+   foreach my $mrk (@mrks) {
       my $src_sub = $parser->{keeptags} ? $mrk->xml_string() : $mrk->text();
       my $mid = (defined($mrk->{att}{mid}) ? $mrk->{att}{mid} : $mrk_id++);
       my $xid  = "$trans_unit_id.$mid";
@@ -439,32 +448,23 @@ sub processTransUnitReplace {
       $mrk->set_text($out);  # for debugging
       ++$parser->{seg_count};
 
-      # Insert translation into document.
-      my $nodeDefinition = sprintf("target//mrk[\@mid=\"$mid\"]");
-      if (my $previous_target = $trans_unit->get_xpath($nodeDefinition, 0)) {
-         debug("replacing previous trans\t$nodeDefinition\n");
-         $mrk->replace($previous_target);
-      }
-      else {
-         debug("pasting a new trans\n");
-         $mrk->paste(last_child => $trans_unit);
-      }
-
 
       my $sdl_defs = $trans_unit->get_xpath("sdl:seg-defs", 0);
       unless (defined($sdl_defs)) {
-         warn "Unable to find sdl:seg, adding one...";
+         warn "Unable to find sdl:seg-defs for $trans_unit_id, adding one...";
          $sdl_defs = XML::Twig::Elt ->new('sdl:seg-defs');
          $sdl_defs->paste(last_child => $trans_unit);
       }
 
       my $sdl_seg = $sdl_defs->get_xpath("sdl:seg[\@id=\"$mid\"]", 0);
       unless(defined($sdl_seg)) {
-         warn "Unable to find sdl:seg, adding one...";
-         $sdl_seg = XML::Twig::Elt ->new('sdl:seg-seg' => {id => $mrk_id});
+         warn "Unable to find sdl:seg for $trans_unit_id, adding one...";
+         $sdl_seg = XML::Twig::Elt->new('sdl:seg-seg');
          $sdl_seg->paste(last_child => $sdl_defs);
       }
 
+      $sdl_seg->del_atts();
+      $sdl_seg->{att}->{id}              = $mid;
       $sdl_seg->{att}->{conf}            = 'Draft';
       $sdl_seg->{att}->{origin}          = 'mt';
       $sdl_seg->{att}->{'origin-system'} = $parser->{'tool-id'};
@@ -482,12 +482,19 @@ sub processTransUnitReplace {
       debug("Confidence estimation for $xid: CE=%s %s\n", defined $ce ? $ce : "undef", $parser->{filter} ? $parser->{filter} : "undef");
       $sdl_seg->del_att('percent');       # Make sure there is no previous value for the attribut percent.
       if ($parser->{score} and defined($ce)) {
-         $sdl_seg->{att}->{'percent'} = sprintf("%.0f", $ce);
+         $ce *= 100;
+         $ce  = 0 if ($ce < 0);
+         $ce  = 100 if ($ce > 100);
+         $sdl_seg->{att}->{'percent'} = sprintf("%.0f", $ce);  # %.0f will properly round numbers.
       }
 
       if (defined $parser->{filter} and defined($ce) and $ce < $parser->{filter}) {
          debug("Filtering out $xid\n");
-         $sdl_seg->del_att('percent');       # BOOM!
+         #$sdl_seg->del_att('percent');       # BOOM!
+         #$sdl_seg->delete();
+         $sdl_seg->del_atts();
+         $sdl_seg->{att}->{id} = $mid;
+         $mrk->delete();
          ++$parser->{filter_count};
       }
    }
@@ -618,8 +625,9 @@ sub processTU {
             debug("Filtering out $id\n");
             $tu->delete();       # BOOM!
             $parser->{filter_count}++;
-        } else {
-            xmlFlush($parser);
+        }
+        else {
+           xmlFlush($parser);
         }
     }
 
