@@ -26,34 +26,42 @@
     <part name="context" type="xsd:string"/>
     <part name="PrimeMode" type="xsd:string"/>
   </message>
+
   <message name="getAllContextsRequest">
     <part name="verbose" type="xsd:boolean"/>
   </message>
+
   <message name="getTranslationRequest">
     <part name="srcString" type="xsd:string"/>
   </message>
+
   <message name="getTranslationResponse">
     <part name="Result" type="xsd:string"/>
   </message>
+
   <message name="translationToken">
     <part name="token" type="xsd:string"/>
   </message>
+
   <message name="getTranslation2Request">
     <part name="srcString" type="xsd:string"/>
     <part name="context" type="xsd:string"/>
   </message>
+
   <message name="translateTMXCERequest">
     <part name="TMXContentsBase64" type="xsd:string"/>
     <part name="TMXFilename" type="xsd:string"/>
     <part name="context" type="xsd:string"/>
     <part name="CETreshold" type="xsd:decimal"/>
   </message>
+
   <message name="translateSDLXLIFFCERequest">
     <part name="SDLXLIFFContentsBase64" type="xsd:string"/>
     <part name="SDLXLIFFFilename" type="xsd:string"/>
     <part name="context" type="xsd:string"/>
     <part name="CETreshold" type="xsd:decimal"/>
   </message>
+
 
   <portType name="PortageLive_Interface">
     <operation name="primeModels">
@@ -73,6 +81,7 @@
       <input message="tns:primeModelsRequest"/>
       <output message="tns:getTranslationResponse"/>
     </operation>
+
     <operation name="getAllContexts">
       <documentation>
     Get the list of contexts installed on the PortageLive server.
@@ -84,6 +93,7 @@
       <input message="tns:getAllContextsRequest"/>
       <output message="tns:getTranslationResponse"/>
     </operation>
+
     <operation name="getTranslation">
       <documentation>
     Translate text using the default context.  The result is the translation,
@@ -97,6 +107,7 @@
       <input message="tns:getTranslationRequest"/>
       <output message="tns:getTranslationResponse"/>
     </operation>
+
     <operation name="getTranslation2">
       <documentation>
     Translate text using the specified context.  The result is the translation,
@@ -110,6 +121,7 @@
       <input message="tns:getTranslation2Request"/>
       <output message="tns:getTranslationResponse"/>
     </operation>
+
     <operation name="getTranslationCE">
       <documentation>
     Translate text using the specified context, and calculate confidence scores
@@ -126,6 +138,7 @@
       <input message="tns:getTranslation2Request"/>
       <output message="tns:getTranslationResponse"/>
     </operation>
+
     <operation name="translateTMXCE">
       <documentation>
     Submit a request to translate a TMX file using the specified
@@ -146,6 +159,7 @@
       <input message="tns:translateTMXCERequest"/>
       <output message="tns:translationToken"/>
     </operation>
+
     <operation name="translateTMXCE_Status">
       <documentation>
     Get the status of a job submitted using translateTMXCE().
@@ -164,6 +178,7 @@
       <input message="tns:translationToken"/>
       <output message="tns:getTranslationResponse"/>
     </operation>
+
     <operation name="translateSDLXLIFFCE">
       <documentation>
     Submit a request to translate a SDLXLIFF file using the specified
@@ -184,6 +199,7 @@
       <input message="tns:translateSDLXLIFFCERequest"/>
       <output message="tns:translationToken"/>
     </operation>
+
     <operation name="translateSDLXLIFFCE_Status">
       <documentation>
     Get the status of a job submitted using translateSDLXLIFFCE().
@@ -204,6 +220,7 @@
     </operation>
   </portType>
 
+
   <binding name="PortageLive_SoapHttpBinding" type="tns:PortageLive_Interface">
     <soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
 
@@ -216,6 +233,7 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
+
     <operation name="getAllContexts">
       <soap:operation soapAction="getAllContexts"/>
       <input>
@@ -225,6 +243,7 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
+
     <operation name="getTranslation">
       <soap:operation soapAction="getTranslation"/>
       <input>
@@ -234,6 +253,7 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
+
     <operation name="getTranslation2">
       <soap:operation soapAction="getTranslation2"/>
       <input>
@@ -243,6 +263,7 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
+
     <operation name="getTranslationCE">
       <soap:operation soapAction="getTranslationCE"/>
       <input>
@@ -252,6 +273,7 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
+
     <operation name="translateTMXCE">
       <soap:operation soapAction="translateTMXCE"/>
       <input>
@@ -261,6 +283,7 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
+
     <operation name="translateTMXCE_Status">
       <soap:operation soapAction="translateTMXCE_Status"/>
       <input>
@@ -270,6 +293,7 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
+
     <operation name="translateSDLXLIFFCE">
       <soap:operation soapAction="translateSDLXLIFFCE"/>
       <input>
@@ -279,6 +303,7 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
+
     <operation name="translateSDLXLIFFCE_Status">
       <soap:operation soapAction="translateSDLXLIFFCE_Status"/>
       <input>
@@ -290,10 +315,12 @@
     </operation>
   </binding>
 
+
   <service name="PortageLive_Service">
     <documentation>Definition of the PortageLive Service</documentation>
     <port name="PortageLive_Library" binding="tns:PortageLive_SoapHttpBinding">
       <soap:address location="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.wsdl"/>
     </port>
   </service>
+
 </definitions>
