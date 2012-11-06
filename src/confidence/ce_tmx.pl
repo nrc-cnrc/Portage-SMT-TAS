@@ -296,7 +296,7 @@ sub processXLIFF {
    }
    elsif ($parser->{action} eq 'replace') {
       $parser->setTwigHandlers( {
-            'trans-unit' => \&processTransUnitReplace,
+            'trans-unit' => \&replaceTransUnit,
             header => \&processHeader,
             } );
    }
@@ -413,7 +413,7 @@ sub processTransUnit {
 }
 
 
-sub processTransUnitReplace {
+sub replaceTransUnit {
    my ($parser, $trans_unit) = @_;
 
    # Get the docid for this translation pair
@@ -449,14 +449,14 @@ sub processTransUnitReplace {
 
       my $sdl_defs = $trans_unit->get_xpath("sdl:seg-defs", 0);
       unless (defined($sdl_defs)) {
-         warn "Unable to find sdl:seg, adding one...";
+         warn "Unable to find sdl:seg-defs for $trans_unit_id, adding one...";
          $sdl_defs = XML::Twig::Elt ->new('sdl:seg-defs');
          $sdl_defs->paste(last_child => $trans_unit);
       }
 
       my $sdl_seg = $sdl_defs->get_xpath("sdl:seg[\@id=\"$mid\"]", 0);
       unless(defined($sdl_seg)) {
-         warn "Unable to find sdl:seg, adding one...";
+         warn "Unable to find sdl:seg for $trans_unit_id, adding one...";
          $sdl_seg = XML::Twig::Elt ->new('sdl:seg-seg' => {id => $mrk_id});
          $sdl_seg->paste(last_child => $sdl_defs);
       }
@@ -478,7 +478,9 @@ sub processTransUnitReplace {
       debug("Confidence estimation for $xid: CE=%s %s\n", defined $ce ? $ce : "undef", $parser->{filter} ? $parser->{filter} : "undef");
       $sdl_seg->del_att('percent');       # Make sure there is no previous value for the attribut percent.
       if ($parser->{score} and defined($ce)) {
-         $sdl_seg->{att}->{'percent'} = sprintf("%.0f", $ce);
+         $ce = 0 if ($ce < 0);
+         $ce = 100 if ($ce > 100);
+         $sdl_seg->{att}->{'percent'} = sprintf("%.0f", $ce);  # %.0f will properly round numbers.
       }
 
       if (defined $parser->{filter} and defined($ce) and $ce < $parser->{filter}) {
