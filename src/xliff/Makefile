@@ -39,11 +39,6 @@ all:  tmx
 clean:
 
 .PHONY:  xliff tmx
-#xliff tmx:  %:  %/QP.xml
-#	cat $<
-
-#tmx/Q.txt:  testmemory.tmx
-#xliff/Q.txt:  test_numbers_hyphens_2.pretty.sdlxliff
 
 tmx:  $(foreach c, $(basename ${TMX}), tmx/$c/QP.xml)
 tmx/%/Q.txt:  %.tmx
@@ -99,7 +94,7 @@ xliff/%/Q.txt:  %.sdlxliff
 ${XLIFF_LIST}:  xliff/%/val:  xliff/%/QP.xml
 	[[ "`xpath $< 'count(//target[not(@*)]//mrk[@mtype=\"seg\"])' 2> /dev/null`" -eq ${EXPECTED_SIZE} ]] || ! echo "ERROOR: There are some target with attributs" &>2
 	[[ "`xpath $< 'count(//target//mrk)' 2> /dev/null`" -eq ${EXPECTED_SIZE} ]]  || ! echo "ERROR: There is not the right number of mrk segments." &>2 
-	$(and ${SCORE}, ${FILTER}, [[ "`xpath $< 'count(//sdl:seg-defs/sdl:seg/@percent)' 2> /dev/null`" -le "$(call EXPECTED_FILTER, ${EXPECTED_SIZE}, ${FILTER})" ]] || ! echo "ERROR: Filtering" &>2)
+	$(and ${SCORE}, ${FILTER}, [[ "`xpath $< 'count(//sdl:seg-defs/sdl:seg[@percent >=0 and @price<=100])' 2> /dev/null`" -le "$(call EXPECTED_FILTER, ${EXPECTED_SIZE}, ${FILTER})" ]] || ! echo "ERROR: Filtering" &>2)
 
 
 
