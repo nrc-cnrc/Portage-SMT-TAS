@@ -13,6 +13,7 @@ xliff/TestSet/Target-sdlxliff/12100025-E-HFC_strategy_deck_Sept_19_2012.ppt/%:  
 xliff/TestSet/Target-sdlxliff/12090574-E-Guidance_Document_-_Coal-fired_electricity_-_2012-09-14_callout.doc/%:  override EXPECTED_SIZE = 41
 xliff/TestSet/Target-sdlxliff/12090574-E-Guidance_Document_-_Coal-fired_electricity_-_2012-09-14.docx/%:  override EXPECTED_SIZE = 53
 xliff/test_numbers_hyphens_2.docx/%:  override EXPECTED_SIZE = 26
+xliff/unittest_missing_seg-defs/%:  override EXPECTED_SIZE = 26
 xliff/unittest1/%:  override EXPECTED_SIZE = 26
 xliff/UnknownSegments_en-CA_fr-CA-2/%:  override EXPECTED_SIZE = 9
 xliff/UnknownSegments_en-CA_fr-CA/%:  override EXPECTED_SIZE = 15
