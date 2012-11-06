@@ -1,0 +1,825 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns:sdl="http://sdl.com/FileTypes/SdlXliff/1.0" xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2" sdl:version="1.0">
+  <doc-info xmlns="http://sdl.com/FileTypes/SdlXliff/1.0">
+    <rep-defs>
+      <rep-def id="15db8e5c-5b7c-496c-89d8-e3a938c8e2c2-6">
+        <entry tu="dd866578-0c77-4cf3-be73-eba27f172930" seg="15"/>
+        <entry tu="15db8e5c-5b7c-496c-89d8-e3a938c8e2c2" seg="6"/>
+      </rep-def>
+      <rep-def id="c5c4a778-8c7b-4f6f-84e0-a1fb0662d573-7">
+        <entry tu="b74b6307-7140-48b3-8f25-cc945c1d52cc" seg="16"/>
+        <entry tu="c5c4a778-8c7b-4f6f-84e0-a1fb0662d573" seg="7"/>
+      </rep-def>
+      <rep-def id="b1860ba4-327e-4d60-a265-5c1d04b1d666-8">
+        <entry tu="b40a6e8e-8ddd-4668-b805-c961063a5fc2" seg="17"/>
+        <entry tu="b1860ba4-327e-4d60-a265-5c1d04b1d666" seg="8"/>
+      </rep-def>
+    </rep-defs>
+  </doc-info>
+  <file original="C:\Users\lacomeau\Documents\Studio 2011\Projects\TMX-Portage\en-CA\test_numbers_hyphens_2.docx" source-language="en-CA" datatype="x-sdlfilterframework2" target-language="fr-CA">
+    <header>
+      <reference>
+        <internal-file form="base64">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
+</internal-file>
+      </reference>
+      <sdl:ref-files>
+        <sdl:ref-file uid="0" id="inputfile" name="qe4t50cm.ir0.docx" o-path="C:\Users\lacomeau\Documents\Studio 2011\Projects\TMX-Portage\en-CA\test_numbers_hyphens_2.docx" date="09/07/2012 17:59:00" descr="Original file before conversion." expected-use="Generation"/>
+      </sdl:ref-files>
+      <file-info xmlns="http://sdl.com/FileTypes/SdlXliff/1.0">
+        <value key="SDL:FileId">f6863e32-958d-4a31-845f-0e10e54d1877</value>
+        <value key="SDL:CreationDate">09/07/2012 14:59:12</value>
+        <value key="SDL:OriginalFilePath">C:\Users\lacomeau\Documents\Studio 2011\Projects\TMX-Portage\en-CA\test_numbers_hyphens_2.docx</value>
+        <value key="SDL:AutoClonedFlagSupported">True</value>
+        <value key="SkipNonAcceptedRejectedChanges">False</value>
+        <value key="ExtractDocumentProperties">False</value>
+        <value key="SkipComplexScriptAndAsianTextFont">True</value>
+        <value key="ExtractHyperlinks">Partial</value>
+        <value key="SkipAdvancedFontFormatting">True</value>
+        <value key="ExtractShapeOrder">TopLeftToBottomRightByRow</value>
+        <value key="ExtractTrackChangesMode">DontExtract</value>
+        <value key="TranslateComments">True</value>
+        <value key="WriteStudioCommentsToTarget">True</value>
+        <value key="ParagraphTextDirections"/>
+        <sniff-info>
+          <detected-source-lang detection-level="Guess" lang="en-CA"/>
+        </sniff-info>
+      </file-info>
+      <sdl:filetype-info>
+        <sdl:filetype-id>Word 2007 v 2.0.0.0</sdl:filetype-id>
+      </sdl:filetype-info>
+      <fmt-defs xmlns="http://sdl.com/FileTypes/SdlXliff/1.0">
+        <fmt-def id="1">
+          <value key="FontSize">11</value>
+          <value key="FontName">Calibri</value>
+        </fmt-def>
+        <fmt-def id="2">
+          <value key="Bold">True</value>
+        </fmt-def>
+        <fmt-def id="3">
+          <value key="Italic">True</value>
+        </fmt-def>
+        <fmt-def id="4">
+          <value key="Underline">True</value>
+        </fmt-def>
+        <fmt-def id="5">
+          <value key="TextColor">0, 176, 80</value>
+        </fmt-def>
+        <fmt-def id="6">
+          <value key="BackgroundColor">Yellow</value>
+        </fmt-def>
+        <fmt-def id="7">
+          <value key="FontName">Arial</value>
+        </fmt-def>
+      </fmt-defs>
+      <cxt-defs xmlns="http://sdl.com/FileTypes/SdlXliff/1.0">
+        <cxt-def id="1" type="sdl:paragraph">
+          <fmt id="1"/>
+          <props>
+            <value key="uniqueid">_1</value>
+          </props>
+        </cxt-def>
+      </cxt-defs>
+      <tag-defs xmlns="http://sdl.com/FileTypes/SdlXliff/1.0">
+        <tag id="1">
+          <bpt name="cf" can-hide="true" word-end="false">&lt;cf bold="True"&gt;</bpt>
+          <bpt-props>
+            <value key="privateuseareachar">false</value>
+            <value key="property">&lt;w:rPr&gt;
+  &lt;w:b /&gt;
+&lt;/w:rPr&gt;</value>
+          </bpt-props>
+          <ept name="cf" can-hide="true" word-end="false">&lt;/cf&gt;</ept>
+          <fmt id="2"/>
+        </tag>
+        <tag id="2">
+          <bpt name="cf" can-hide="true" word-end="false">&lt;cf italic="True"&gt;</bpt>
+          <bpt-props>
+            <value key="privateuseareachar">false</value>
+            <value key="property">&lt;w:rPr&gt;
+  &lt;w:i /&gt;
+&lt;/w:rPr&gt;</value>
+          </bpt-props>
+          <ept name="cf" can-hide="true" word-end="false">&lt;/cf&gt;</ept>
+          <fmt id="3"/>
+        </tag>
+        <tag id="3">
+          <bpt name="cf" can-hide="true" word-end="false">&lt;cf underline="single"&gt;</bpt>
+          <bpt-props>
+            <value key="privateuseareachar">false</value>
+            <value key="property">&lt;w:rPr&gt;
+  &lt;w:u w:val="single" /&gt;
+&lt;/w:rPr&gt;</value>
+          </bpt-props>
+          <ept name="cf" can-hide="true" word-end="false">&lt;/cf&gt;</ept>
+          <fmt id="4"/>
+        </tag>
+        <tag id="4">
+          <bpt name="cf" can-hide="true" word-end="false">&lt;cf color="00B050"&gt;</bpt>
+          <bpt-props>
+            <value key="privateuseareachar">false</value>
+            <value key="property">&lt;w:rPr&gt;
+  &lt;w:color w:val="00B050" /&gt;
+&lt;/w:rPr&gt;</value>
+          </bpt-props>
+          <ept name="cf" can-hide="true" word-end="false">&lt;/cf&gt;</ept>
+          <fmt id="5"/>
+        </tag>
+        <tag id="5">
+          <bpt name="cf" can-hide="true" word-end="false">&lt;cf highlight="yellow"&gt;</bpt>
+          <bpt-props>
+            <value key="privateuseareachar">false</value>
+            <value key="property">&lt;w:rPr&gt;
+  &lt;w:highlight w:val="yellow" /&gt;
+&lt;/w:rPr&gt;</value>
+          </bpt-props>
+          <ept name="cf" can-hide="true" word-end="false">&lt;/cf&gt;</ept>
+          <fmt id="6"/>
+        </tag>
+        <tag id="6">
+          <bpt name="cf" can-hide="true" word-end="false">&lt;cf font="Arial"&gt;</bpt>
+          <bpt-props>
+            <value key="privateuseareachar">false</value>
+            <value key="property">&lt;w:rPr&gt;
+  &lt;w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial" /&gt;
+  &lt;w:lang w:bidi="he-IL" /&gt;
+&lt;/w:rPr&gt;</value>
+          </bpt-props>
+          <ept name="cf" can-hide="true" word-end="false">&lt;/cf&gt;</ept>
+          <fmt id="7"/>
+        </tag>
+        <tag id="7">
+          <ph name="¬" word-end="false">&lt;char name="softbreakhyphen"/&gt;</ph>
+        </tag>
+        <tag id="8">
+          <ph name="‑" word-end="false">&lt;char name="nonbreakhyphen"/&gt;</ph>
+        </tag>
+        <tag id="0">
+          <st name="worddocument">&lt;worddocument filerelativepath="/word/document.xml" type="worddocument"&gt;</st>
+        </tag>
+        <tag id="9">
+          <st name="worddocument">&lt;/worddocument filerelativepath="/word/document.xml" type="worddocument"&gt;</st>
+        </tag>
+      </tag-defs>
+    </header>
+    <body>
+      <trans-unit id="0947a678-d901-4758-940b-b004ad326e05" translate="no">
+        <source>
+          <x id="0"/>
+        </source>
+      </trans-unit>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="3a01ddbd-5fa4-475e-a900-3989694ac534">
+          <source>This is a test for 12,456 units.</source>
+          <seg-source>
+            <mrk mtype="seg" mid="1">This is a test for 12,456 units.</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="1">Ceci est un <mrk mtype="x-sdl-location" mid="19b04239-3254-411c-a907-b78322705930"/>test<mrk mtype="x-sdl-location" mid="0a356909-26e8-405d-872b-cabcf78f07b5"/> pour 12,456 unités.</mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="1" conf="Draft" origin="tm" origin-system="Test-Portage" percent="99" text-match="SourceAndTarget">
+              <sdl:value key="SDL:OriginalTranslationHash">-1957117100</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="9993417b-bf4f-48ea-8a09-f4317d89d947">
+          <source>We will be conducting a trial for the vice president.</source>
+          <seg-source>
+            <mrk mtype="seg" mid="2">We will be conducting a trial for the vice president.</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="2">Nous participerons à un <mrk mtype="x-sdl-location" mid="42af14ac-016a-44e5-af54-31db0352890c"/>essai<mrk mtype="x-sdl-location" mid="0cbab956-d2f8-4955-8468-5a8d487c823d"/> auprès du vice-président.</mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="2" conf="Draft" origin="tm" origin-system="Test-Portage" percent="99" text-match="Source">
+              <sdl:value key="SDL:OriginalTranslationHash">-765409278</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="50d0208f-29a1-4570-b844-cbb7a988cd0b">
+          <source>This is a test for $12,456.</source>
+          <seg-source>
+            <mrk mtype="seg" mid="3">This is a test for $12,456.</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="3">Ceci est un <mrk mtype="x-sdl-location" mid="15d69d10-e941-47b7-af69-0b2bf3d5cf1c"/>test<mrk mtype="x-sdl-location" mid="22466b95-b570-4b03-a8bb-20a94979ae08"/> pour 12,456 $.</mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="3" conf="Draft" origin="tm" origin-system="Test-Portage" percent="99" text-match="Source">
+              <sdl:value key="SDL:OriginalTranslationHash">-1255389034</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="a7cf33fe-ff81-4cef-8304-eb3f5e187717">
+          <source>This is a test for a part number A-2.</source>
+          <seg-source>
+            <mrk mtype="seg" mid="4">This is a test for a part number A-2.</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="4">Il s'agit d'un examen pour en obtenir une partie nombre <mrk mtype="x-sdl-location" mid="5c2a6334-d7d7-4e9f-9089-8264ee3654be"/>A­2<mrk mtype="x-sdl-location" mid="3ed93229-726a-43c5-8e8e-576bfe2bf5f6"/>.</mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="4" conf="Draft" origin="tm" origin-system="Test-Portage" percent="99" text-match="Source">
+              <sdl:value key="SDL:OriginalTranslationHash">-1236100962</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="19853b1f-13a0-4407-9a89-0ad35d6932dd">
+          <source>This is a test for 12 V.</source>
+          <seg-source>
+            <mrk mtype="seg" mid="5">This is a test for 12 V.</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="5">Ceci est un test de 12 V.</mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="5" conf="Translated" origin="tm" origin-system="Test-Portage" percent="100" text-match="Source">
+              <sdl:value key="SDL:OriginalTranslationHash">1821228242</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="15db8e5c-5b7c-496c-89d8-e3a938c8e2c2">
+          <source>This is a test for "12,456 units".</source>
+          <seg-source>
+            <mrk mtype="seg" mid="6">This is a test for "12,456 units".</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="6">Ceci est un test pour 12,456 unités.</mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="6" conf="Translated" origin="tm" origin-system="Test-Portage" percent="100" text-match="SourceAndTarget">
+              <sdl:rep id="15db8e5c-5b7c-496c-89d8-e3a938c8e2c2-6"/>
+              <sdl:value key="SDL:OriginalTranslationHash">408941885</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="c5c4a778-8c7b-4f6f-84e0-a1fb0662d573">
+          <source>This is a test for a list:.</source>
+          <seg-source>
+            <mrk mtype="seg" mid="7">This is a test for a list:.</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="7">Ceci est un test pour obtenir une liste :.</mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="7" conf="Translated" origin="tm" origin-system="Test-Portage" percent="100" text-match="SourceAndTarget">
+              <sdl:rep id="c5c4a778-8c7b-4f6f-84e0-a1fb0662d573-7"/>
+              <sdl:value key="SDL:OriginalTranslationHash">-324678240</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="b1860ba4-327e-4d60-a265-5c1d04b1d666">
+          <source>It is supplied in 200mL vials.</source>
+          <seg-source>
+            <mrk mtype="seg" mid="8">It is supplied in 200mL vials.</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="8">Il est présenté en flacons de 200 mL prêts.</mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="8" conf="Translated" origin="tm" origin-system="Test-Portage" percent="100" text-match="SourceAndTarget">
+              <sdl:rep id="b1860ba4-327e-4d60-a265-5c1d04b1d666-8"/>
+              <sdl:value key="SDL:OriginalTranslationHash">630834653</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="22ab85fd-8b18-46ff-a630-ac4170792af5">
+          <source>This is to advise the vice-president of the situation.</source>
+          <seg-source>
+            <mrk mtype="seg" mid="9">This is to advise the vice-president of the situation.</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="9">La présente a pour but de conseiller le vice-président de la situation.</mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="9" conf="Translated" origin="tm" origin-system="Test-Portage" percent="100" text-match="SourceAndTarget">
+              <sdl:value key="SDL:OriginalTranslationHash">-136909869</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="eb641238-d5ce-4569-85b4-3a9c83697397">
+          <source>This is a <g id="1">test</g> for 12,456 units.</source>
+          <seg-source>
+            <mrk mtype="seg" mid="10">This is a <g id="1">test</g> for 12,456 units.</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="10">Ceci est un <g id="1">test</g> pour 12,456 unités.</mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="10" conf="Translated" origin="tm" origin-system="Test-Portage" percent="100" text-match="SourceAndTarget">
+              <sdl:value key="SDL:OriginalTranslationHash">-1957117100</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="5eab2a32-2d02-4d00-92c4-59233ed29f25">
+          <source>We will be conducting a <g id="2">trial</g> for the vice president.</source>
+          <seg-source>
+            <mrk mtype="seg" mid="11">We will be conducting a <g id="2">trial</g> for the vice president.</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="11">Nous participerons à un <g id="2">essai</g> auprès du vice-président.</mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="11" conf="Translated" origin="tm" origin-system="Test-Portage" percent="100" text-match="SourceAndTarget">
+              <sdl:value key="SDL:OriginalTranslationHash">-765409278</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="415297f5-3f4b-4ae0-b719-8a614f4c0dbb">
+          <source>This is a <g id="3">test</g> for $12,456.</source>
+          <seg-source>
+            <mrk mtype="seg" mid="12">This is a <g id="3">test</g> for $12,456.</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="12">Ceci est un <g id="3">test</g> pour 12,456 $.</mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="12" conf="Translated" origin="tm" origin-system="Test-Portage" percent="100" text-match="SourceAndTarget">
+              <sdl:value key="SDL:OriginalTranslationHash">-1255389034</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="0d314dfb-cbb7-41a5-810e-02207e7d1e9e">
+          <source>This is a test for a part number <g id="4">A-2</g>.</source>
+          <seg-source>
+            <mrk mtype="seg" mid="13">This is a test for a part number <g id="4">A-2</g>.</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="13">Il s'agit d'un examen pour en obtenir une partie nombre <g id="4">A­2</g>.</mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="13" conf="Translated" origin="tm" origin-system="Test-Portage" percent="100" text-match="SourceAndTarget">
+              <sdl:value key="SDL:OriginalTranslationHash">-1236100962</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="92975a19-1d7e-4848-a6ad-dc0f08a0c536">
+          <source>This is a test for <g id="5">12 V</g>.</source>
+          <seg-source>
+            <mrk mtype="seg" mid="14">This is a test for <g id="5">12 V</g>.</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="14">Ceci est un test de <g id="5">12 V.</g></mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="14" conf="Translated" origin="tm" origin-system="Test-Portage" percent="100" text-match="SourceAndTarget">
+              <sdl:value key="SDL:OriginalTranslationHash">308624314</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="dd866578-0c77-4cf3-be73-eba27f172930">
+          <source>This is a test for "12,456 units".</source>
+          <seg-source>
+            <mrk mtype="seg" mid="15">This is a test for "12,456 units".</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="15">Ceci est un test pour 12,456 unités.</mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="15" conf="Translated" origin="tm" origin-system="Test-Portage" percent="100" text-match="SourceAndTarget">
+              <sdl:rep id="15db8e5c-5b7c-496c-89d8-e3a938c8e2c2-6"/>
+              <sdl:value key="SDL:OriginalTranslationHash">408941885</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="b74b6307-7140-48b3-8f25-cc945c1d52cc">
+          <source>This is a test for a list:.</source>
+          <seg-source>
+            <mrk mtype="seg" mid="16">This is a test for a list:.</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="16">Ceci est un test pour obtenir une liste :.</mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="16" conf="Translated" origin="tm" origin-system="Test-Portage" percent="100" text-match="SourceAndTarget">
+              <sdl:rep id="c5c4a778-8c7b-4f6f-84e0-a1fb0662d573-7"/>
+              <sdl:value key="SDL:OriginalTranslationHash">-324678240</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="b40a6e8e-8ddd-4668-b805-c961063a5fc2">
+          <source>It is supplied in 200mL vials.</source>
+          <seg-source>
+            <mrk mtype="seg" mid="17">It is supplied in 200mL vials.</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="17">Il est présenté en flacons de 200 mL prêts.</mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="17" conf="Translated" origin="tm" origin-system="Test-Portage" percent="100" text-match="SourceAndTarget">
+              <sdl:rep id="b1860ba4-327e-4d60-a265-5c1d04b1d666-8"/>
+              <sdl:value key="SDL:OriginalTranslationHash">630834653</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="a9d0fbc6-6257-4053-8e6c-b18bf06992e9">
+          <source>This is to advise the vice<g id="6">­</g>president of the situation.</source>
+          <seg-source>
+            <mrk mtype="seg" mid="18">This is to advise the vice<g id="6">­</g>president of the situation.</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="18">La présente a pour but de conseiller le vice­président de la situation.</mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="18" conf="Translated" origin="tm" origin-system="Test-Portage" percent="100" text-match="SourceAndTarget">
+              <sdl:value key="SDL:OriginalTranslationHash">546736456</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="2555fb40-c517-427f-a607-4164ca321cfb">
+          <source>Non breaking space</source>
+          <seg-source>
+            <mrk mtype="seg" mid="19">Non breaking space</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="19">Non breaking space</mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="19" conf="Translated" origin="interactive">
+              <sdl:prev-origin origin="source">
+                <sdl:prev-origin origin="source">
+                  <sdl:prev-origin/>
+                </sdl:prev-origin>
+              </sdl:prev-origin>
+              <sdl:value key="SDL:OriginalTranslationHash">-268862872</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="9c5308b4-fe76-4ffa-8f49-986d79e97a85">
+          <source>Optional<x id="7"/>hyphen</source>
+          <seg-source>
+            <mrk mtype="seg" mid="20">Optional<x id="7"/>hyphen</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="20">Optional<x id="7"/>hyphen</mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="20" conf="Translated" origin="source">
+              <sdl:value key="SDL:OriginalTranslationHash">-2102589769</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="434d086b-9a8a-43f9-a54a-0011f1746592">
+          <source>em—dash</source>
+          <seg-source>
+            <mrk mtype="seg" mid="21">em—dash</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="21">em—dash</mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="21" conf="Translated" origin="source">
+              <sdl:value key="SDL:OriginalTranslationHash">1269356286</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="a9494287-2740-473d-87e4-1f24ae6e474c">
+          <source>en–dash</source>
+          <seg-source>
+            <mrk mtype="seg" mid="22">en–dash</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="22">en–dash</mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="22" conf="Translated" origin="source">
+              <sdl:value key="SDL:OriginalTranslationHash">969979267</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="4ceb811f-4d97-4985-87bb-3544a3cc0a23">
+          <source>non<x id="8"/>breaking hyphen</source>
+          <seg-source>
+            <mrk mtype="seg" mid="23">non<x id="8"/>breaking hyphen</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="23">non<x id="8"/>breaking hyphen</mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="23" conf="Translated" origin="source">
+              <sdl:prev-origin origin="tm" origin-system="Test-Portage" percent="71">
+                <sdl:prev-origin/>
+              </sdl:prev-origin>
+              <sdl:value key="SDL:OriginalTranslationHash">1818193616</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="23053236-a91a-4532-861f-8c670c3cda40">
+          <source>em space</source>
+          <seg-source>
+            <mrk mtype="seg" mid="24">em space</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="24">em space</mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="24" conf="Translated" origin="source">
+              <sdl:value key="SDL:OriginalTranslationHash">-1039634843</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="905ff6da-6923-44db-b1ea-a46aa538178c">
+          <source>en space</source>
+          <seg-source>
+            <mrk mtype="seg" mid="25">en space</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="25">en space</mrk>
+          </target>
+        </trans-unit>
+      </group>
+      <group>
+        <sdl:cxts>
+          <sdl:cxt id="1"/>
+        </sdl:cxts>
+        <trans-unit id="38e064b4-71b9-43b0-8322-1a8bbdf47b94">
+          <source>¼ em space</source>
+          <seg-source>
+            <mrk mtype="seg" mid="26">¼ em space</mrk>
+          </seg-source>
+          <target>
+            <mrk mtype="seg" mid="26">¼ em space</mrk>
+          </target>
+          <sdl:seg-defs>
+            <sdl:seg id="26" conf="Translated" origin="source">
+              <sdl:value key="SDL:OriginalTranslationHash">-965501923</sdl:value>
+            </sdl:seg>
+          </sdl:seg-defs>
+        </trans-unit>
+        <trans-unit id="d6434e31-d554-4eb8-8514-0f42ca023be6" translate="no">
+          <source>
+            <x id="9"/>
+          </source>
+        </trans-unit>
+      </group>
+    </body>
+  </file>
+</xliff>
