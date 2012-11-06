@@ -23,6 +23,7 @@ DIRS  := $(dir ${XLIFF} ${TMX})
 
 -include Makefile.params
 -include Makefile.expected_count
+include gmsl/gmsl  # Needed for EXPECTED_FILTER
 
 $(shell mkdir -p ${LOGS})
 
@@ -57,7 +58,8 @@ tmx/%/Q.txt:  %.tmx
 		2> ${LOGS}/$(basename $(subst /,.,$@)).log
 
 
-xliff:  $(foreach c, $(basename ${XLIFF}), xliff/$c/val)
+XLIFF_LIST :=  $(foreach c, $(basename ${XLIFF}), xliff/$c/val)
+xliff:  ${XLIFF_LIST}
 xliff/%/Q.txt:  %.sdlxliff
 	@mkdir -p $(dir $@)
 	-@rm $(dir $@)/*
@@ -94,8 +96,8 @@ xliff/%/Q.txt:  %.sdlxliff
 
 
 # Validate sdlxliff format.
-%/val:  %/QP.xml
-	[[ "`xpath $< 'count(//target[not(@*)])' 2> /dev/null`" -eq ${EXPECTED_SIZE} ]] || ! echo "ERROOR: There are some target with attributs" &>2
+${XLIFF_LIST}:  xliff/%/val:  xliff/%/QP.xml
+	[[ "`xpath $< 'count(//target[not(@*)]//mrk[@mtype=\"seg\"])' 2> /dev/null`" -eq ${EXPECTED_SIZE} ]] || ! echo "ERROOR: There are some target with attributs" &>2
 	[[ "`xpath $< 'count(//target//mrk)' 2> /dev/null`" -eq ${EXPECTED_SIZE} ]]  || ! echo "ERROR: There is not the right number of mrk segments." &>2 
 	$(and ${SCORE}, ${FILTER}, [[ "`xpath $< 'count(//sdl:seg-defs/sdl:seg/@percent)' 2> /dev/null`" -le "$(call EXPECTED_FILTER, ${EXPECTED_SIZE}, ${FILTER})" ]] || ! echo "ERROR: Filtering" &>2)
 
@@ -126,9 +128,13 @@ test2sf:  xliff/TestSet/Target-sdlxliff/WNv_report_-_WEEK_39_graphs_and_tables_4
 # Verify that filtering results in 15 = (58 - 44 + 1) mrk segments.
 test3:  override SCORE=1
 test3:  override FILTER=44
-test3:  xliff/TestSet/Unknown-sdlxliff/WNv_report_-_WEEK_39_graphs_and_tables_4th_Oct_2012/QP.xml
+test3:  xliff/TestSet/Unknown-sdlxliff/WNv_report_-_WEEK_39_graphs_and_tables_4th_Oct_2012/val
 	[[ "`xpath $@ 'count(//sdl:seg-defs/sdl:seg/@percent)' 2> /dev/null`" -le "15" ]] || ! echo "ERROR: Filtering" &>2
 
+# Score and filter all xliff examples
+test4:  override SCORE=1
+test4:  override FILTER=44
+test4:  ${XLIFF_LIST}
 
 
 ########################################
