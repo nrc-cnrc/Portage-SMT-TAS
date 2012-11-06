@@ -1,0 +1,9 @@
+#!/usr/bin/env perl
+
+use encoding "UTF-8"; 
+
+while (<STDIN>) {
+   chomp;
+   print scalar reverse, "\n";
+}
+
