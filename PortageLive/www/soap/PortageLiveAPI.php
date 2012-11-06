@@ -1,5 +1,4 @@
 <?php
-# $Id: PortageLiveAPI.php,v 1.16 2012/08/17 20:44:01 joanise Exp $
 # @file PortageLiveAPI.php 
 # @brief Implementation of the API to the Portage SMT software suite.
 # 
