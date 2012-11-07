@@ -155,7 +155,7 @@ VERSION := $(shell git log --pretty=format:'%h' -n 1)
 rsync:  xliff/UnknownSegments_en-CA_fr-CA/rsync
 rsync:  xliff/UnknownSegments_en-CA_fr-CA-2/rsync
 xliff/%/rsync:  xliff/%/QP.xml
-	rsync -arz $< ilt:~/exp/Lexitech/xliff/$*.${VERSION}.sdlxiff
+	rsync -arz $< ilt:~/exp/Lexitech/xliff/$*.${VERSION}.sdlxliff
 
 
 
