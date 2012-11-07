@@ -462,7 +462,7 @@ sub replaceTransUnit {
       }
 
       $sdl_seg->del_atts();
-      $sdl_seg->{att}->{id}              = $mrk_id;
+      $sdl_seg->{att}->{id}              = $mid;
       $sdl_seg->{att}->{conf}            = 'Draft';
       $sdl_seg->{att}->{origin}          = 'mt';
       $sdl_seg->{att}->{'origin-system'} = $parser->{'tool-id'};
