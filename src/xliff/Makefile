@@ -92,6 +92,7 @@ xliff/%/Q.txt:  %.sdlxliff
 
 # Validate sdlxliff format.
 ${XLIFF_LIST}:  xliff/%/val:  xliff/%/QP.xml
+	xmllint --noout $<
 	[[ "`xpath $< 'count(//target[not(@*)]//mrk[@mtype=\"seg\"])' 2> /dev/null`" -eq ${EXPECTED_SIZE} ]] || ! echo "ERROOR: There are some target with attributs" &>2
 	[[ "`xpath $< 'count(//target//mrk)' 2> /dev/null`" -eq ${EXPECTED_SIZE} ]]  || ! echo "ERROR: There is not the right number of mrk segments." &>2 
 	$(and ${SCORE}, ${FILTER}, [[ "`xpath $< 'count(//sdl:seg-defs/sdl:seg[@percent >=0 and @price<=100])' 2> /dev/null`" -le "$(call EXPECTED_FILTER, ${EXPECTED_SIZE}, ${FILTER})" ]] || ! echo "ERROR: Filtering" &>2)
@@ -150,8 +151,11 @@ unittest1:  xliff/unittest1/QP.xml
 ########################################
 # 
 .PHONY:  rsync
-rsync:  xliff/QP.xml
-	rsync -arz $< ilt:/home/larkins/exp/Lexitech/xliff/test_numbers_hyphens_2.pretty.translated.sdlxliff
+VERSION := $(shell git log --pretty=format:'%h' -n 1)
+rsync:  xliff/UnknownSegments_en-CA_fr-CA/rsync
+rsync:  xliff/UnknownSegments_en-CA_fr-CA-2/rsync
+xliff/%/rsync:  xliff/%/QP.xml
+	rsync -arz $< ilt:~/exp/Lexitech/xliff/$*.${VERSION}.sdlxiff
 
 
 
