@@ -38,3 +38,6 @@ fi
 
 # 3.7 Set the default context:
 [ -e /opt/Portage/models/context ] || ln -s `ls /opt/Portage/models | head -1` /opt/Portage/models/context
+
+# 3.8 Disable SELinux because PortageLive doesn't work with the default policy.
+sed -i -e 's/^SELINUX=.*$/SELINUX=disabled/' /etc/selinux/config
