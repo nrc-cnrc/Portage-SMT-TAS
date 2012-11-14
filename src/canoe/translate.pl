@@ -963,7 +963,7 @@ sub tokenize {
       copy($in, $out);
    }
    else {
-      if ($lang eq "en" or $lang eq "fr" or $lang eq "es") {
+      if ($lang eq "en" or $lang eq "fr" or $lang eq "es" or $lang eq "da") {
          # These languages are supported by utokenize.pl
          my $tokopt = " -lang=${lang}";
          $tokopt .= $nl eq 's' ? " -noss" : " -ss";
