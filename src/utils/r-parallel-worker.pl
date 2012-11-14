@@ -227,9 +227,9 @@ while(defined $reply_rcvd and $reply_rcvd !~ /^\*\*\*EMPTY\*\*\*/i
    }
 }
 
-if (!$primary and (time - $start_time) < 30) {
+if (!$primary and (time - $start_time) < 60) {
    # Super short jobs are not cluster friendly, especially not arrays of them
-   my $seconds = rand_in_range 1, 10;
+   my $seconds = rand_in_range 5, 30;
    log_msg "Job too short - sleeping $seconds seconds before exiting.";
    sleep $seconds;
 }
