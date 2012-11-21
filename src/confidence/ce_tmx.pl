@@ -367,23 +367,23 @@ sub processTag {
 
    if ($tag->get_xpath('ph[@word-end="false" and string()=~/softbreakhyphen/]')) {
       my $text = $tag->has_child('ph')->{att}{name};
-      sub deleteElt {
-         my ($parser, $x) = @_;
-         veryVerbose("Special handler for $tag_id");
-         $x->delete();
-      }
-      $parser->setTwigHandler("x[\@id=\"$tag_id\"]", \&deleteElt);
+      $parser->setTwigHandler("x[\@id=\"$tag_id\"]",
+         sub {
+            my ($parser, $x) = @_;
+            veryVerbose("Special handler for $tag_id");
+            $x->delete();
+         });
    }
    # Replace occurrences of <x/> with some id that refer to this tag with a non break hyphen.
    elsif ($tag->get_xpath('ph[@word-end="false" and string()=~/nonbreakhyphen/]')) {
       my $text = $tag->has_child('ph')->{att}{name};
-      sub replaceNonBrekaingHyphen {
-         my ($parser, $x) = @_;
-         veryVerbose("Special handler for $tag_id");
-         $x->set_text($text);
-         $x->erase();
-      }
-      $parser->setTwigHandler("x[\@id=\"$tag_id\"]", \&replaceNonBrekaingHyphen);
+      $parser->setTwigHandler("x[\@id=\"$tag_id\"]",
+         sub {
+            my ($parser, $x) = @_;
+            veryVerbose("Special handler for $tag_id");
+            $x->set_text($text);
+            $x->erase();
+         });
    }
 }
 
