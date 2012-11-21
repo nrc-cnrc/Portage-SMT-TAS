@@ -105,6 +105,8 @@ parser.add_option("-s", dest="seed", type="int", default=0,
                   help="start seed for random number generator [%default]")
 parser.add_option("--no_ag", dest="no_ag", action="store_true", default=False,
                   help="turn off n-best aggregation [%default]")
+parser.add_option("--density", dest="density", type="float", default=-1,
+                  help="density prune lattices in canoe (-1 for no pruning) [%default]")
 parser.add_option("--bleuOrder", dest="bleuOrder", type="int", default=4,
                   help="(l)mira optimizes BLEU using this order of ngrams [%default]")
 (opts, args) = parser.parse_args()
@@ -439,6 +441,8 @@ def decode(wts):
        cmd.append("-ffvals")
     if alg == "lmira":
        cmd.extend(["-palign", "-lattice", workdir+"/lat.gz"])
+       if opts.density > 0 :
+          cmd.extend(["-lattice-output-options", "overlay", "-lattice-density", str(opts.density)])
     elif alg == "olmira" :
         cmd.extend([""]) # intentionally blank, only need sentences
     else:
