@@ -58,8 +58,7 @@ Specify TMX target language (case insensitive within TMX file) [FR-CA]
 =item -keeptags
 
 Retain keeptags code (BPT, EPT, IT and PH elements) within target
-language TUs or retain code (x, g, bpt, ept, bx, ex, ph, it & mrk) within
-seg-source. (default is to delete it)
+language TUs. (default is to delete it)
 
 =item -score/-noscore
 
@@ -177,7 +176,7 @@ if ($action eq 'extract') {
          tgt_lang => $tgt,
          keeptags => $keeptags);
    close $parser->{xml_out} if(defined($parser->{xml_out}));
-   ixSave($ix, "${dir}/Q.txt", "${dir}/Q.ix");
+   ixSave($ix, "${dir}/Q.txt", "${dir}/Q.tags", "${dir}/Q.ix");
 }
 
 elsif ($action eq 'replace') {
@@ -185,7 +184,7 @@ elsif ($action eq 'replace') {
    die "No such directory: $dir" unless -d $dir;
 
    my $ce_file = (-r "${dir}/pr.ce") ? "${dir}/pr.ce" : undef;
-   my $ix = ixLoad("${dir}/P.txt", "${dir}/Q.ix", $ce_file);
+   my $ix = ixLoad("${dir}/P.txt", "${dir}/P.tags", "${dir}/Q.ix", $ce_file);
 
    open(my $xml_out, ">${output_layers}", "${dir}/QP.xml")
       or die "Can open output xml_out file";
@@ -413,10 +412,10 @@ sub processTransUnit {
    my $mrk_id = 0;
    my @mrks = $source->descendants('mrk[@mtype="seg"]') or warn "Can't find any mrk for $trans_unit_id\n\tcontent:", $source->xml_string, "\n";
    foreach my $mrk (@mrks) {
-      my $src_sub = $parser->{keeptags} ? $mrk->xml_string() : $mrk->text();
+      my $src_sub = $mrk->text();
       veryVerbose("\tMRK: $src_sub\n");
       my $id =  "$trans_unit_id." . (defined($mrk->{att}{mid}) ? $mrk->{att}{mid} : $mrk_id++);
-      $parser->{seg_id} = ixAdd($parser->{ix}, $src_sub, $id);
+      $parser->{seg_id} = ixAdd($parser->{ix}, $src_sub, $mrk->xml_string(), $id);
       $parser->{seg_count}++;
    }
 
@@ -453,7 +452,8 @@ sub replaceTransUnit {
       my $mid = (defined($mrk->{att}{mid}) ? $mrk->{att}{mid} : $mrk_id++);
       my $xid  = "$trans_unit_id.$mid";
       my $out = getTranslatedText($parser, $xid);
-      $mrk->set_text($out);
+      #$mrk->set_text($out);  # Escapes xml markup in out which is not the behaviour we want for the tag project.
+      $mrk->set_inner_xml($out);  # Looks to be safe if $out doesn't contain any markup/tags.
       ++$parser->{seg_count};
 
 
@@ -738,12 +738,13 @@ sub normalize {
 ########################################
 # Database functions.
 sub newIx {
-    return { id_seed=>0, id=>{}, segment=>{}, ce=>{} };
+    return { id_seed=>0, id=>{}, segment=>{}, tagged=>{}, ce=>{} };
 }
 
 sub ixAdd {
-    my ($ix, $segment, $id, $ce) = @_;
+    my ($ix, $segment, $tagged, $id, $ce) = @_;
     $segment = normalize($segment);
+    $tagged  = normalize($tagged);
 
     if (defined $id or not exists($ix->{id}{$segment})) {
         if (defined $id) {
@@ -751,12 +752,13 @@ sub ixAdd {
         } else {
             $id = ixNewID($ix);
         }
-        veryVerbose("ixAdd: INSERTING id=%s, ce=%s, segment=\"%s\"\n", $id, defined $ce ? $ce : "undef", $segment);
+        veryVerbose("ixAdd: INSERTING id=%s, ce=%s, segment=\"%s\" : tagged=\"%s\"\n", $id, defined $ce ? $ce : "undef", $segment, $tagged);
         $ix->{id}{$segment} = $id;
         $ix->{segment}{$id} = $segment;
+        $ix->{tagged}{$id}  = $tagged;
         $ix->{ce}{$id} = $ce if defined $ce;
     } else {
-        veryVerbose("ixAdd: EXISTS id=%s, ce=%s, segment=\"%s\"\n", defined $id ? $id : "undef", defined $ce ? $ce : "undef", $segment);
+        veryVerbose("ixAdd: EXISTS id=%s, ce=%s, segment=\"%s\" : tagged=\"%s\"\n", defined $id ? $id : "undef", defined $ce ? $ce : "undef", $segment, $tagged);
     }
     return $ix->{id}{$segment};
 }
@@ -783,7 +785,13 @@ sub ixGetID {
 sub ixGetSegment {
     my ($ix, $id) = @_;
     $id = normalize($id);
+    my $tagged = $ix->{tagged}{$id};
+    if (defined($tagged)) {
+       return $tagged;
+    }
+    else {
     return exists($ix->{segment}{$id}) ? $ix->{segment}{$id} : undef;
+    }
 }
 
 sub ixGetCE {
@@ -793,29 +801,38 @@ sub ixGetCE {
 }
 
 sub ixSave {
-    my ($ix, $seg_file, $id_file) = @_;
+    my ($ix, $seg_file, $tag_file, $id_file) = @_;
 
     open(my $seg_out, ">${output_layers}", $seg_file)
         or die "Can't open output file $seg_file";
+    open(my $tag_out, ">${output_layers}", $tag_file)
+        or die "Can't open output file $tag_file";
     open(my $id_out, ">${output_layers}", $id_file)
         or die "Can't open output file $id_file";
 
     for my $id (sort keys %{$ix->{segment}}) {
         my $seg = $ix->{segment}{$id};
-        print {$seg_out} portageEscape($seg), "\n";
+        my $tag = $ix->{tagged}{$id};
+        print {$seg_out} $seg, "\n";
+        print {$tag_out} $tag, "\n";
         print {$id_out} $id, "\n";
     }
 
     close $seg_out;
+    close $tag_out;
     close $id_out;
 }
 
+# TODO: Is there any point in loading back the segment version when all we need
+# is the tagged translation?
 sub ixLoad {
-    my ($seg_file, $id_file, $ce_file) = @_;
+    my ($seg_file, $tag_file, $id_file, $ce_file) = @_;
     my $ix = newIx();
 
     open(my $seg_in, "<$input_layers", $seg_file)
         or die "Can open input file $seg_file";
+    open(my $tag_in, "<$input_layers", $tag_file)
+        or die "Can open input file $tag_file";
     open(my $id_in, "<$input_layers", $id_file)
         or die "Can open input file $id_file";
     open(my $ce_in, "<$input_layers", $ce_file)
@@ -823,12 +840,14 @@ sub ixLoad {
         if defined $ce_file;
 
     my $count = 0;
-    verbose("[Reading index from $seg_file and $id_file]\n");
+    verbose("[Reading index from $seg_file, $tag_file and $id_file]\n");
     verbose("[Reading CE from $ce_file]\n") if defined $ce_file;
     while (my $id = <$id_in>) {
         chomp $id;
         my $seg = readline($seg_in);
         die "Not enough lines in text file $seg_file" unless defined $seg;
+        chomp $seg;
+        my $tag = readline($tag_in) or die "Not enough lines in text file $tag_file";
         chomp $seg;
         my $ce = 0;
         if ($ce_file) {
@@ -836,24 +855,20 @@ sub ixLoad {
             die "Not enough lines in CE file $ce_file" unless defined $ce;
             chomp $ce;
         }
-        veryVerbose("ixLoad: read $id <<%s>> ($ce)\n", $seg);
-        ixAdd($ix, $seg, $id, $ce);
+        veryVerbose("ixLoad: read $id <<%s>> {{%s}} ($ce)\n", $seg, $tag);
+        ixAdd($ix, $seg, $tag, $id, $ce);
         verbose("\r[%d lines...]", $count) if (++$count % 1 == 0);
     }
     verbose("\r[%d lines; done.]\n", $count);
     die "Too many lines in text file $seg_file" unless eof $seg_in;
+    die "Too many lines in text file $tag_file" unless eof $tag_in;
 
     close $seg_in;
+    close $tag_in;
     close $id_in;
     close $ce_in if defined $ce_file;
 
     return $ix;
-}
-
-sub portageEscape {
-    my ($s) = @_;
-    $s =~ s/[\\<>]/\\\&/g;
-    return $s;
 }
 
 sub verbose { printf STDERR (@_) if ($verbose or $Verbose) ; }
