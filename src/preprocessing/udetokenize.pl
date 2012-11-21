@@ -53,7 +53,7 @@ Warning: ASCII quotes are handled assuming there is only one level of quotation.
 
 Options:
 
--lang=L        Specify two-letter language code: en, es, or fr [en]
+-lang=L        Specify two-letter language code: en, es, fr or da [en]
 -latin1        Replace utf-8 characters that map to cp-1252 but not to
                iso-8859-1 by their closest utf-8 equivalents that do
 -chinesepunc   Normalize Chinese punctuation to characters that map back to
