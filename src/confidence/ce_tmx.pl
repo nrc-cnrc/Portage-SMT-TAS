@@ -1,5 +1,4 @@
 #!/usr/bin/env perl
-# $Id$
 # @file ce_tmx.pl
 # @brief Handle TMX files for confidence estimation
 #
@@ -367,12 +366,24 @@ sub processTag {
    #debug($tag->xml_string, "\n");
 
    if ($tag->get_xpath('ph[@word-end="false" and string()=~/softbreakhyphen/]')) {
-      #$parser->{tag}{$tag_id} = 0;
+      my $text = $tag->has_child('ph')->{att}{name};
+      sub deleteElt {
+         my ($parser, $x) = @_;
+         veryVerbose("Special handler for $tag_id");
+         $x->delete();
+      }
+      $parser->setTwigHandler("x[\@id=\"$tag_id\"]", \&deleteElt);
    }
    # Replace occurrences of <x/> with some id that refer to this tag with a non break hyphen.
    elsif ($tag->get_xpath('ph[@word-end="false" and string()=~/nonbreakhyphen/]')) {
       my $text = $tag->has_child('ph')->{att}{name};
-      $parser->setTwigHandler("x[\@id=\"$tag_id\"]", sub { my ($parser, $x) = @_; $x->set_text($text); $x->erase(); } );
+      sub replaceNonBrekaingHyphen {
+         my ($parser, $x) = @_;
+         veryVerbose("Special handler for $tag_id");
+         $x->set_text($text);
+         $x->erase();
+      }
+      $parser->setTwigHandler("x[\@id=\"$tag_id\"]", \&replaceNonBrekaingHyphen);
    }
 }
 
@@ -405,9 +416,7 @@ sub processTransUnit {
       my $src_sub = $parser->{keeptags} ? $mrk->xml_string() : $mrk->text();
       veryVerbose("\tMRK: $src_sub\n");
       my $id =  "$trans_unit_id." . (defined($mrk->{att}{mid}) ? $mrk->{att}{mid} : $mrk_id++);
-      my $out = ixAdd($parser->{ix}, $src_sub, $id);
-      #$parser->{seg_id} = $out;
-      $mrk->set_text($out);  # for debugging
+      $parser->{seg_id} = ixAdd($parser->{ix}, $src_sub, $id);
       $parser->{seg_count}++;
    }
 
@@ -426,8 +435,8 @@ sub replaceTransUnit {
    # Replacement mode: find placeholder ID, replace with text
    return if ($trans_unit->{att}->{translate} and $trans_unit->{att}->{translate} eq "no");
 
-   my $source = $trans_unit->get_xpath('seg-source', 0);
-   $source = $trans_unit->get_xpath('source', 0) unless($source);
+   my $source = $trans_unit->first_child('seg-source');
+   $source = $trans_unit->first_child('source') unless($source);
    die "No source for $trans_unit_id.\n" unless ($source);
 
    # Create a target element.
@@ -441,11 +450,10 @@ sub replaceTransUnit {
    my $mrk_id = 0;  # Fallback id.
    my @mrks = $target->descendants('mrk[@mtype="seg"]') or warn "Can't find any mrk for $trans_unit_id\n\tcontent:", $target->xml_string, "\n";
    foreach my $mrk (@mrks) {
-      my $src_sub = $parser->{keeptags} ? $mrk->xml_string() : $mrk->text();
       my $mid = (defined($mrk->{att}{mid}) ? $mrk->{att}{mid} : $mrk_id++);
       my $xid  = "$trans_unit_id.$mid";
       my $out = getTranslatedText($parser, $xid);
-      $mrk->set_text($out);  # for debugging
+      $mrk->set_text($out);
       ++$parser->{seg_count};
 
 
@@ -490,8 +498,6 @@ sub replaceTransUnit {
 
       if (defined $parser->{filter} and defined($ce) and $ce < $parser->{filter}) {
          debug("Filtering out $xid\n");
-         #$sdl_seg->del_att('percent');       # BOOM!
-         #$sdl_seg->delete();
          $sdl_seg->del_atts();
          $sdl_seg->{att}->{id} = $mid;
          $mrk->delete();
@@ -503,7 +509,11 @@ sub replaceTransUnit {
 }
 
 
-# For sdlxliff, we need to map some x element to there value, more precisely, non breaking space.
+# For SDLXLIFF, we need to map some x element to there value, more precisely,
+# non breaking space.
+# Prefered technique is to create a new handler when we see the proper id when
+# processing <tag>.  See how we define a new handler when we see the <tag> for
+# non breaking hyphen.
 sub processX {
    my ($parser, $x) = @_;
    my $x_id = $x->{att}{id};
@@ -527,6 +537,7 @@ sub processG {
 }
 
 
+# Adds a tool description for Portage.
 sub processHeader {
    my ($parser, $header) = @_;
 
@@ -762,6 +773,7 @@ sub ixNewID {
     return "seg_".$n;
 }
 
+# Not used.
 sub ixGetID {
     my ($ix, $segment) = @_;
     $segment = normalize($segment);
@@ -814,17 +826,17 @@ sub ixLoad {
     verbose("[Reading index from $seg_file and $id_file]\n");
     verbose("[Reading CE from $ce_file]\n") if defined $ce_file;
     while (my $id = <$id_in>) {
-        chop $id;
+        chomp $id;
         my $seg = readline($seg_in);
         die "Not enough lines in text file $seg_file" unless defined $seg;
-        chop $seg;
+        chomp $seg;
         my $ce = 0;
         if ($ce_file) {
             $ce = readline($ce_in);
             die "Not enough lines in CE file $ce_file" unless defined $ce;
-            chop $ce;
+            chomp $ce;
         }
-        veryVerbose("ixLoad: read $id <<$seg>> ($ce)\n");
+        veryVerbose("ixLoad: read $id <<%s>> ($ce)\n", $seg);
         ixAdd($ix, $seg, $id, $ce);
         verbose("\r[%d lines...]", $count) if (++$count % 1 == 0);
     }

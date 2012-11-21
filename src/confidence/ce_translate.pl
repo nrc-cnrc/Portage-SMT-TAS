@@ -34,7 +34,8 @@ In both forms: F<canoe_ini> is a PORTAGE decoder config file;
 F<ce_model> is the name of a CE model file.  These files have a
 C<.cem> extension, which may or may not be specified on the command
 line.  Argument F<source_text> is a source-language text, in
-one-segment-per-line format (but see options C<-tmx> and C<-ttx>).
+one-segment-per-line format (but see options C<-tmx>, C<-sdlxliff> and
+C<-ttx>).
 
 In "prediction" mode (first form), F<ce_model> must be an existing CE
 model file, as produced by program C<ce_train.pl> or this program with
@@ -84,7 +85,7 @@ unless something goes wrong, or if the C<-dir=D> option is specified.
 
 =item -nl=p           mark the end of a paragraph;
 
-=item -nl=s           mark the end of a sentence [default if -tmx or -notok];
+=item -nl=s           mark the end of a sentence [default if -tmx or -sdlxliff or -notok];
 
 =item -nl=w           two consecutive newlines mark the end of a paragraph, otherwise newline is just whitespace (like wrap marker) [general default].
 
@@ -108,6 +109,8 @@ unless something goes wrong, or if the C<-dir=D> option is specified.
 
 =item -tmx            Input/output text in TMX format (not compatible with C<-train>)
 
+=item -sdlxliff       Input/output text in SDLXLIFF format (not compatible with C<-train>)
+
 =item -ttx            Input text in TTX format, output in plain text (not compatible with C<-train>) See caveats in C<ce_ttx2ospl.pl -help>.
 
 =item -xsrc=S         TTX/TMX source language name [EN-CA]
@@ -116,7 +119,7 @@ unless something goes wrong, or if the C<-dir=D> option is specified.
 
 =item -out=F          Output CE values to file F [stdout]
 
-=item -filter=T       Filter out translations below confidence threshold T (C<-tmx> mode only)
+=item -filter=T       Filter out translations below confidence threshold T (C<-tmx> or C<-sdlxliff> mode only)
 
 =item -test=R         Compute prediction accuracy statistics based on reference translation file F<R>.
 
@@ -214,7 +217,7 @@ use File::Basename;
 
 our($help, $h, $verbose, $debug);
 our($desc, $tmem, $train, $plugin,
-    $test, $src, $tgt, $tmx, $ttx, $xsrc, $xtgt, $k, $norm, $dir, $path,
+    $test, $src, $tgt, $tmx, $sdlxliff, $ttx, $xsrc, $xtgt, $k, $norm, $dir, $path,
     $out, $filter, $dryrun, $n, $nl, $notok, $nolc,
     $tclm, $tcmap, $tctp, $skipto);
 
@@ -228,6 +231,8 @@ $debug = 0 unless defined $debug;
 $train = 0 unless defined $train;
 $ttx = 0 unless defined $ttx;
 $tmx = 0 unless defined $tmx;
+$sdlxliff = 0 unless defined $sdlxliff;
+my $xml = $tmx or $sdlxliff;
 $desc = "" unless defined $desc;
 $tmem = "" unless defined $tmem;
 $test = "" unless defined $test;
@@ -243,7 +248,7 @@ $xtgt = "FR-CA" unless defined $xtgt;
 $dryrun = 0 unless defined $dryrun;
 $n = 0 unless defined $n;
 $notok = 0 unless defined $notok;
-$nl = ($tmx || $notok ? "s" : "w") unless defined $nl;
+$nl = ($xml || $notok ? "s" : "w") unless defined $nl;
 $nolc = 0 unless defined $nolc;
 $tclm = 0 unless defined $tclm;
 $tcmap = 0 unless defined $tcmap;
@@ -253,8 +258,9 @@ $plugin = "" unless defined $plugin;
 
 die "Can't both -train and -test" if $train and $test;
 die "Can't train from TMX (yet)" if $train and $tmx;
+die "Can't train from SDLXLIFF (yet)" if $train and $sdlxliff;
 die "Can't train from TTX (yet)" if $train and $ttx;
-die "Can't have both -ttx and -tmx" if $tmx and $ttx;
+die "Can't have both -ttx and (-tmx or -sdlxliff)" if $xml and $ttx;
 
 my $canoe_ini = shift || die "Missing argument: canoe_ini";
 my $ce_model = shift || die "Missing argument: ce_model";
@@ -363,7 +369,7 @@ goto $skipto if $skipto;
 # Get source (and possibly reference/tmem target) text
 
 IN:{
-   if ($tmx) {
+   if ($xml) {
       call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} extract '$dir' '$input_text'");
    } elsif ($ttx) {
       call("ce_ttx2ospl.pl -verbose=${verbose} -dir=\"${dir}\" -src=${xsrc} -tgt=${xtgt} \"$input_text\"");
@@ -440,7 +446,7 @@ CE:{
 
 OUT:{
    unless ($train) {
-      if ($tmx) {
+      if ($xml) {
          my $fopt = defined $filter ? "-filter=$filter" : "";
          call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} -score ${fopt} replace \"$dir\"");
       } else {

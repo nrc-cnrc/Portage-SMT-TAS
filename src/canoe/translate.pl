@@ -1,5 +1,4 @@
 #!/usr/bin/env perl
-# $Id$
 # @file translate.pl
 # @brief Script to translate text.
 #

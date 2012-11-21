@@ -1,5 +1,4 @@
 #!/usr/bin/perl -w
-# $Id$
 # @file plive.cgi
 # @brief PORTAGE live CGI script
 #

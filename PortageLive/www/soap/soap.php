@@ -1,5 +1,4 @@
 <?php
-# $Id$
 # @file soap.php
 # @brief Test web page for the SOAP API to PortageLive
 #
