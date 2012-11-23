@@ -1,12 +1,11 @@
-#!/usr/bin/perl -s
-# $Id$
-# @file ce_tmx.pl 
+#!/usr/bin/env perl
+# @file ce_tmx.pl
 # @brief Handle TMX files for confidence estimation
-# 
-# @author Michel Simard
-# 
+#
+# @author Michel Simard & Samuel Larkin
+#
 # COMMENTS:
-# 
+#
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
@@ -17,22 +16,22 @@
 
 =head1 SYNOPSIS
 
- ce_tmx.pl {options} extract dir [ tmx_in ]
- ce_tmx.pl {options} replace dir [ tmx_out ]
- ce_tmx.pl {options} check [ tmx_in ]
+ ce_tmx.pl {options} extract dir [ xml_in ]
+ ce_tmx.pl {options} replace dir
+ ce_tmx.pl {options} check [ xml_in ]
 
 =head1 DESCRIPTION
 
 TMX pre- and post-processing tools for translation with PORTAGE within
-the confidence estimation framework.  
+the confidence estimation framework.
 
 The first form extracts the
 source-language text segments from a TMX file into a plain text file
-(<dir>/Q.txt), and produces a TMX file template (<dir>/QP.template.tmx).
+(<dir>/Q.txt), and produces a TMX file template (<dir>/QP.template.xml).
 
 The second form inserts target-language translations from file
 <dir>/P.txt into that template,  generating the output TMX file
-<dir>/QP.tmx.  
+<dir>/QP.xml.
 
 The third form checks the validity of the file. If the file is valid,
 the program outputs the number of translatable source-language
@@ -44,41 +43,46 @@ on the standard error stream.
 
 =over 1
 
-=item -filter=T       
+=item -filter=T
 
-In 'replace' mode, filter out TUs with confidence below T [don't] 
+In 'replace' mode, filter out translations with confidence below T [don't]
 
-=item -src=SL         
+=item -src=SL
 
-Specify TMX source language [EN-CA]
+Specify TMX source language (case insensitive within TMX file) [EN-CA]
 
-=item -tgt=TL         
+=item -tgt=TL
 
-Specify TMX target language [FR-CA]
+Specify TMX target language (case insensitive within TMX file) [FR-CA]
 
 =item -keeptags
 
 Retain keeptags code (BPT, EPT, IT and PH elements) within target
-language TUs (default is to delete it)
+language TUs or retain code (x, g, bpt, ept, bx, ex, ph, it & mrk) within
+seg-source. (default is to delete it)
 
 =item -score/-noscore
 
 In 'replace' mode, do/don't insert confidence scores inside TUV's,
 using TMX PROP elements of type Txt::CE. (default is -score)
 
-=item -verbose        
+=item -pretty_print
+
+Indents the xml format to be more human readable. (default is not indented)
+
+=item -verbose=1
 
 Be verbose
 
-=item -Verbose        
+=item -Verbose=1
 
 Be more verbose
 
-=item -debug          
+=item -debug
 
 Produce debugging info
 
-=item -help,-h        
+=item -help,-h
 
 Print this message and exit
 
@@ -88,7 +92,7 @@ ce.pl, ce_train.pl, ce_translate.pl, ce_gen_features.pl, ce_ttx2ospl.pl, ce_cano
 
 =head1 AUTHOR
 
-Michel Simard
+Michel Simard & Samuel Larkin
 
 =head1 COPYRIGHT
 
@@ -118,6 +122,26 @@ use strict;
 use warnings;
 use XML::Twig;
 use Time::gmtime;
+use encoding "UTF-8";
+binmode(STDIN, ":encoding(UTF-8)");
+binmode(STDOUT, ":encoding(UTF-8)");
+binmode(STDERR, ":encoding(UTF-8)");
+
+my $score = 0;
+my $pretty_print = 'none';
+use Getopt::Long;
+Getopt::Long::GetOptions(
+   help           => sub { displayHelp(); exit 0 },
+   "verbose=i"    => \my $verbose,
+   "Verbose=i"    => \my $Verbose,
+   debug          => \my $debug,
+   "src=s"        => \my $src,
+   "tgt=s"        => \my $tgt,
+   "filter=s"     => \my $filter,
+   keeptags       => \my $keeptags,
+   'score!'       => \$score,
+   'pp|pretty_print' => sub { $pretty_print = 'indented' },
+) or do { displayHelp(); exit 1 };
 
 $|=1;
 
@@ -127,104 +151,165 @@ my $input_layers = ":utf8";
 my $DEFAULT_SRC="EN-CA";
 my $DEFAULT_TGT="FR-CA";
 
-our ($h, $help, $verbose, $Verbose, $debug, $src, $tgt, $filter, $keeptags, $score, $noscore);
-
-if ($h or $help) {
-    -t STDOUT ? system "pod2usage -verbose 3 $0" : system "pod2text $0";
-    exit 0;
-}
-
 $verbose = 0 unless defined $verbose;
 $Verbose = 0 unless defined $Verbose;
 $debug = 0 unless defined $debug;
+$pretty_print = 'indented' if ($debug);
 
 $keeptags = 0 unless defined $keeptags;
 $filter = undef unless defined $filter;
 $src = $DEFAULT_SRC unless defined $src;
 $tgt = $DEFAULT_TGT unless defined $tgt;
-die "Only one of -score and -noscore can be specified" 
-    if (defined($score) and defined($noscore));
-$score = (defined($score) ? $score :
-          defined($noscore) ? not $noscore :
-          1);
 
 my $action = shift or die "Missing argument: action";
 
 if ($action eq 'extract') {
-    my $dir = shift or die "Missing argument: dir";
-    die "No such directory: $dir" unless -d $dir;
+   my $dir = shift or die "Missing argument: dir";
+   die "No such directory: $dir" unless -d $dir;
 
-    my $tmx_file = shift || "-";
-    open(my $tmx_out, ">${output_layers}", "${dir}/QP.template.tmx")
-        or die "Can open output TMX template file";
-    my $ix = newIx();
-    processTMX(action=>'extract', tmx_in=>$tmx_file, 
-               tmx_out=>$tmx_out, ix=>$ix,
-               src_lang=>$src, tgt_lang=>$tgt,
-               keeptags=>$keeptags);
-    close $tmx_out;
-    ixSave($ix, "${dir}/Q.txt", "${dir}/Q.ix");
-} 
+   my $xml_file = shift || "-";
+   my $ix = newIx();
+   my $parser = processFile(action => 'extract',
+         xml_in => $xml_file,
+         xml_out_name => "${dir}/QP.template.xml",  # May or may not be open later.
+         ix => $ix,
+         src_lang => $src,
+         tgt_lang => $tgt,
+         keeptags => $keeptags);
+   close $parser->{xml_out} if(defined($parser->{xml_out}));
+   ixSave($ix, "${dir}/Q.txt", "${dir}/Q.ix");
+}
 
 elsif ($action eq 'replace') {
-    my $dir = shift or die "Missing argument: dir";
-    die "No such directory: $dir" unless -d $dir;
+   my $dir = shift or die "Missing argument: dir";
+   die "No such directory: $dir" unless -d $dir;
 
-    my $tmx_file = shift || "-";
-    my $ce_file = (-r "${dir}/pr.ce") ? "${dir}/pr.ce" : undef;
-    my $ix = ixLoad("${dir}/P.txt", "${dir}/Q.ix", $ce_file);
-    
-    open(my $tmx_out, ">${output_layers}", "${dir}/QP.tmx")
-        or die "Can open output TMX template file";
-    processTMX(action=>'replace', tmx_in=>"${dir}/QP.template.tmx", 
-               tmx_out=>$tmx_out, ix=>$ix, filter=>$filter,
-               src_lang=>$src, tgt_lang=>$tgt,
-               keeptags=>$keeptags, score=>$score);
-    close $tmx_out;
-} 
+   my $ce_file = (-r "${dir}/pr.ce") ? "${dir}/pr.ce" : undef;
+   my $ix = ixLoad("${dir}/P.txt", "${dir}/Q.ix", $ce_file);
+
+   open(my $xml_out, ">${output_layers}", "${dir}/QP.xml")
+      or die "Can open output xml_out file";
+   my $parser = processFile(action => 'replace',
+         xml_in => "${dir}/QP.template.xml",
+         xml_out => $xml_out,
+         ix => $ix,
+         filter => $filter,
+         src_lang => $src,
+         tgt_lang => $tgt,
+         keeptags => $keeptags,
+         score => $score);
+   close $xml_out;
+   # TODO: should we rename tne output to its proper extension or leave it to PortageLive.php?
+   #rename "${dir}/QP.xml",  "${dir}/QP." . $parser->{InputFormat};
+}
 
 elsif ($action eq 'check') {
-    my $tmx_file = shift || "-";
-    my $info = processTMX(action=>'check', tmx_in=>$tmx_file, 
-                       src_lang=>$src, tgt_lang=>$tgt);
-    print $info->{seg_count}, "\n";
-} 
+   my $xml_file = shift || "-";
+   my $info = processFile(action => 'check',
+         xml_in => $xml_file,
+         keeptags => $keeptags,
+         src_lang => $src,
+         tgt_lang => $tgt);
+   print $info->{seg_count}, "\n";
+}
 
 else {
-    die "Unsupported action $action";
+   die "Unsupported action $action";
 }
 
 
 exit 0;
 
-sub processTMX {
-    my %args = @_;
+sub processFile {
+   my %args = @_;
 
-    my $parser = XML::Twig->new( twig_handlers=> { tu => \&processTU, 
-                                                ph => \&processNativeCode, 
-                                                bpt => \&processNativeCode, 
-                                                ept => \&processNativeCode, 
-                                                it => \&processNativeCode, 
-                                                hi => \&processHI },
-                                 );
-                                 # keep_encoding=>0, 
-                              # output_encoding=>'UTF-8' );
+   my $parser = XML::Twig->new(
+         pretty_print => $pretty_print,
+         start_tag_handlers => { xliff => \&processXLIFF, tmx => \&processTMX },
+         );
 
-    @{$parser}{keys %args} = values %args; # Merge args into parser
-    $parser->{tu_count} = 0;
-    $parser->{seg_count} = 0;
-    $parser->{filter_count} = 0;
+   @{$parser}{keys %args} = values %args; # Merge args into parser
+   $parser->{tu_count} = 0;
+   $parser->{seg_count} = 0;
+   $parser->{filter_count} = 0;
+   $parser->{'tool-id'} = 'Portage-1.5.0';
+   $parser->{'tool-name'} = 'Portage';
+   $parser->{'tool-version'} = '1.5.0';
+   $parser->{'tool-company'} = 'CNRC-NRC';
 
-    verbose("[Processing TMX file %s ...]\n", $parser->{tmx_in});
-    $parser->parsefile($parser->{tmx_in});
+   verbose("[Processing file %s ...]\n", $parser->{xml_in});
+   $parser->parsefile($parser->{xml_in});
 
-    xmlFlush($parser);
-    verbose("\r[%d%s segments processed. Done]\n", $parser->{seg_count}, 
-            exists $parser->{total} ? "/".$parser->{total} : "" );
-    verbose("[%d TUs filtered out]\n", $parser->{filter_count}) 
-        if defined $parser->{filter};
-    return $parser;
+   xmlFlush($parser);
+
+   die "Unrecognized format.\n" unless(defined($parser->{InputFormat}));
+
+   verbose("\r[%d%s segments processed. Done]\n",
+         $parser->{seg_count},
+         exists $parser->{total} ? "/".$parser->{total} : "" );
+   verbose("[%d translations filtered out]\n", $parser->{filter_count})
+      if defined $parser->{filter};
+   return $parser;
 }
+
+
+# If this xml file is a tmx, set the proper handlers for it.
+sub processTMX {
+   my ($parser, $elt) = @_;
+   $parser->setTwigHandlers( {
+      tu  => \&processTU,
+      ph  => \&processNativeCode,
+      bpt => \&processNativeCode,
+      ept => \&processNativeCode,
+      it  => \&processNativeCode,
+      hi  => \&processHI,
+      } );
+   $parser->{InputFormat} = 'tmx';
+   if($parser->{action} eq 'extract') {
+      open($parser->{xml_out}, ">${output_layers}", $parser->{xml_out_name})
+         or die "Can open output xml_out file";
+   }
+}
+
+use File::Copy;
+# If this xml file is a sdlxliff, set the proper handlers for it.
+# BOOKMARKS:
+# * XLIFF version 1.2: http://docs.oasis-open.org/xliff/v1.2/os/xliff-core.html
+# * xliff-core-1.2-strict.xsd: http://docs.oasis-open.org/xliff/v1.2/cs02/xliff-core-1.2-strict.xsd
+sub processXLIFF {
+   my ($parser, $elt) = @_;
+
+   if ($parser->{action} eq 'extract' or $parser->{action} eq 'check') {
+      $parser->setTwigHandlers( {
+            'trans-unit' => \&processTransUnit,
+            tag => \&processTag,
+            g   => \&processG,
+            x   => \&processX,
+            bx  => sub { my( $t, $elt)= @_; },
+            ex  => sub { my( $t, $elt)= @_; },
+            bpt => sub { my( $t, $elt)= @_; },
+            ept => sub { my( $t, $elt)= @_; },
+            ph  => sub { my( $t, $elt)= @_; },
+            it  => sub { my( $t, $elt)= @_; },
+            'seg-source//mrk[@mtype="seg"]' => sub { my( $t, $elt)= @_; debug("\ttest MRK mid=%s\n", $elt->{att}->{mid}); },
+            } );
+   }
+   elsif ($parser->{action} eq 'replace') {
+      $parser->setTwigHandlers( {
+            'trans-unit' => \&replaceTransUnit,
+            header => \&processHeader,
+            } );
+   }
+   else {
+      die "Invalid action.\n";
+   }
+   # Create a template for sdlxliff
+   copy($parser->{xml_in}, $parser->{xml_out_name}) if($parser->{action} eq 'extract');
+
+   $parser->{InputFormat} = 'sdlxliff';
+}
+
+
 
 sub processNativeCode {
    my ($parser, $e) = @_;
@@ -241,11 +326,12 @@ sub processNativeCode {
        # \- is the rtf and Trados encoding for an optional hyphen; remove it
        $e->set_text("") if ($1 eq '-');
        $e->erase();
-   } elsif (not $parser->{keeptags}) {
+   }
+   elsif (not $parser->{keeptags}) {
        # Only applies within target language TUVs:
        my $tuv = $e->parent('tuv');
        my $lang = $tuv->att('xml:lang') if $tuv;
-       $e->delete() if $lang and ($lang eq $parser->{tgt_lang});
+       $e->delete() if $lang and (lc($lang) eq lc($parser->{tgt_lang}));
    }
 }
 
@@ -256,10 +342,217 @@ sub processHI {
 
 sub xmlFlush {
     my ($parser) = @_;
-    $parser->{action} eq 'check'
-        ? $parser->purge()
-        : $parser->flush($parser->{tmx_out}, pretty_print=>'indented');
+    if ($parser->{InputFormat} eq 'sdlxliff') {
+       $parser->{action} eq 'replace'
+          ? $parser->flush($parser->{xml_out})
+          : $parser->purge();
+    }
+    elsif ($parser->{InputFormat} eq 'tmx') {
+       debug("  xmlflush tmx: %s\n", $parser->{action});
+       $parser->{action} eq 'check'
+          ? $parser->purge()
+          : $parser->flush($parser->{xml_out});
+    }
+    else {
+       die "xmlFlush on a undefined format!";
+    }
 }
+
+# Grab tag in order to process <x/> & <p></p>
+sub processTag {
+   my ($parser, $tag) = @_;
+   my $tag_id = $tag->{att}{id};
+   veryVerbose("processing tag id=%s\n", $tag_id);
+   #debug("%s\n", $tag->xml_string);
+
+   if ($tag->get_xpath('ph[@word-end="false" and string()=~/softbreakhyphen/]')) {
+      my $text = $tag->has_child('ph')->{att}{name};
+      $parser->setTwigHandler("x[\@id=\"$tag_id\"]",
+         sub {
+            my ($parser, $x) = @_;
+            veryVerbose("Special handler for %s\n", $tag_id);
+            $x->delete();
+         });
+   }
+   # Replace occurrences of <x/> with some id that refer to this tag with a non break hyphen.
+   elsif ($tag->get_xpath('ph[@word-end="false" and string()=~/nonbreakhyphen/]')) {
+      my $text = $tag->has_child('ph')->{att}{name};
+      $parser->setTwigHandler("x[\@id=\"$tag_id\"]",
+         sub {
+            my ($parser, $x) = @_;
+            veryVerbose("Special handler for %s\n", $tag_id);
+            $x->set_text($text);
+            $x->erase();
+         });
+   }
+}
+
+# Used to extract or check 'trans-unit'.
+sub processTransUnit {
+   my ($parser, $trans_unit) = @_;
+
+   # Get the docid for this translation pair
+   my $trans_unit_id = $trans_unit->{att}{id};
+   die "Each trans-unit should have its mandatory id." unless defined $trans_unit_id;
+   debug("trans_unit_id: %s\n", $trans_unit_id);
+
+   # Extraction mode: find src-lang text segments and replace with placeholder ID
+   # This translation unit is marked as not to be translated.
+   # The optional translate attribute indicates whether the <trans-unit> is to be translated.
+   return if ($trans_unit->{att}->{translate} and $trans_unit->{att}->{translate} eq "no");
+
+   # Source text - The <seg-source> element is used to maintain a working copy
+   # of the <source> element, where markup such as segmentation can be
+   # introduced without affecting the actual <source> element content. The
+   # content of the <seg-source> is generally the translatable text, typically
+   # divided into segments through the use of <mrk mtype="seg"> elements.
+   my $source = $trans_unit->first_child('seg-source');
+   $source = $trans_unit->first_child('source') unless($source);
+   die "No source for $trans_unit_id.\n" unless ($source);
+
+   my $mrk_id = 0;
+   my @mrks = $source->descendants('mrk[@mtype="seg"]') or warn "Can't find any mrk for $trans_unit_id\n\tcontent:", $source->xml_string, "\n";
+   foreach my $mrk (@mrks) {
+      my $src_sub = $parser->{keeptags} ? $mrk->xml_string() : $mrk->text();
+      veryVerbose("\tMRK: %s\n", $src_sub);
+      my $id =  "$trans_unit_id." . (defined($mrk->{att}{mid}) ? $mrk->{att}{mid} : $mrk_id++);
+      $parser->{seg_id} = ixAdd($parser->{ix}, $src_sub, $id);
+      $parser->{seg_count}++;
+   }
+
+   xmlFlush($parser);
+}
+
+
+sub replaceTransUnit {
+   my ($parser, $trans_unit) = @_;
+
+   # Get the docid for this translation pair
+   my $trans_unit_id = $trans_unit->{att}{id};
+   die "Each trans-unit should have its mandatory id." unless defined $trans_unit_id;
+   debug("trans_unit_id: %s\n", $trans_unit_id);
+
+   # Replacement mode: find placeholder ID, replace with text
+   return if ($trans_unit->{att}->{translate} and $trans_unit->{att}->{translate} eq "no");
+
+   my $source = $trans_unit->first_child('seg-source');
+   $source = $trans_unit->first_child('source') unless($source);
+   die "No source for $trans_unit_id.\n" unless ($source);
+
+   # Create a target element.
+   my $target = $trans_unit->get_xpath('target', 0);
+   $target->delete() if(defined($target));
+   $target = $source->copy();
+   $target->set_tag('target');  # rename it to target.
+   $target->del_atts();  # Make sure there is no attributs.
+   $target->paste(after => $source);
+
+   my $sdl_defs = $trans_unit->get_xpath("sdl:seg-defs", 0);
+   unless (defined($sdl_defs)) {
+      warn "Unable to find sdl:seg-defs for $trans_unit_id, adding one...";
+      $sdl_defs = XML::Twig::Elt ->new('sdl:seg-defs');
+      $sdl_defs->paste(last_child => $trans_unit);
+   }
+
+   my $mrk_id = 0;  # Fallback id.
+   my @mrks = $target->descendants('mrk[@mtype="seg"]') or warn "Can't find any mrk for $trans_unit_id\n\tcontent:", $target->xml_string, "\n";
+   foreach my $mrk (@mrks) {
+      my $mid = (defined($mrk->{att}{mid}) ? $mrk->{att}{mid} : $mrk_id++);
+      my $xid  = "$trans_unit_id.$mid";
+      my $out = getTranslatedText($parser, $xid);
+      $mrk->set_text($out);
+      ++$parser->{seg_count};
+
+
+      my $sdl_seg = $sdl_defs->get_xpath("sdl:seg[\@id=\"$mid\"]", 0);
+      unless(defined($sdl_seg)) {
+         warn "Unable to find sdl:seg for $trans_unit_id, adding one...";
+         $sdl_seg = XML::Twig::Elt->new('sdl:seg-seg');
+         $sdl_seg->paste(last_child => $sdl_defs);
+      }
+
+      $sdl_seg->del_atts();
+      $sdl_seg->{att}->{id}              = $mid;
+      $sdl_seg->{att}->{conf}            = 'Draft';
+      $sdl_seg->{att}->{origin}          = 'mt';
+      $sdl_seg->{att}->{'origin-system'} = $parser->{'tool-id'};
+
+      # Confidence estimation:
+      my $ce = $xid ? ixGetCE($parser->{ix}, $xid) : undef;
+
+      # Confidence Estimation element example:
+      # Not yet defined:
+      #   <sdl:seg-defs><sdl:seg id="560" /></sdl:seg-defs>
+      # Defined:
+      #   <sdl:seg-defs><sdl:seg id="560" /></sdl:seg-defs>
+      #      <sdl:seg conf="Draft" id="56" origin="mt" origin-system="Portage-1.5.0" percent="99" >
+      #   </sdl:seg-defs>
+      debug("Confidence estimation for %s: CE=%s %s\n", $xid, defined $ce ? $ce : "undef", $parser->{filter} ? $parser->{filter} : "undef");
+      $sdl_seg->del_att('percent');       # Make sure there is no previous value for the attribut percent.
+      if ($parser->{score} and defined($ce)) {
+         $ce = 0 if ($ce < 0);
+         $ce = 1 if ($ce > 1);
+         $sdl_seg->{att}->{'percent'} = sprintf("%.0f", 100*$ce);  # %.0f will properly round numbers.
+      }
+
+      if (defined $parser->{filter} and defined($ce) and $ce < $parser->{filter}) {
+         debug("Filtering out %s\n", $xid);
+         $sdl_seg->del_atts();
+         $sdl_seg->{att}->{id} = $mid;
+         $mrk->delete();
+         ++$parser->{filter_count};
+      }
+   }
+
+   xmlFlush($parser);
+}
+
+
+# For SDLXLIFF, we need to map some x element to there value, more precisely,
+# non breaking space.
+# Prefered technique is to create a new handler when we see the proper id when
+# processing <tag>.  See how we define a new handler when we see the <tag> for
+# non breaking hyphen.
+sub processX {
+   my ($parser, $x) = @_;
+   my $x_id = $x->{att}{id};
+   veryVerbose("X id=%s\n", $x_id);
+   if (defined($parser->{tag}{$x_id})) {
+      $x->set_text($parser->{tag}{$x_id});
+      $x->erase();
+   }
+}
+
+
+# NOTE: erasing g elements is not necessary since during
+sub processG {
+   my ($parser, $g) = @_;
+   my $text = join(" ", map(normalize($_->text(no_recurse=>1)), $g));
+   veryVerbose("G id=%s: %s\n%s\n", $g->{att}{id},  $text, $g->xml_string);
+   #$g->set_text($text);
+   # Erase the element: the element is deleted and all of its children are pasted in its place.
+   # TODO: disabled to extract tags.
+   #$g->erase();
+}
+
+
+# Adds a tool description for Portage.
+sub processHeader {
+   my ($parser, $header) = @_;
+
+   my @tools = $header->children('tool[@tool-id="Portage-1.5.0"]');
+
+   unless (@tools) {
+      XML::Twig::Elt->new(
+            tool => {
+            'tool-id' => $parser->{'tool-id'},
+            'tool-name' => $parser->{'tool-name'},
+            'tool-version' => $parser->{'tool-version'},
+            'tool-company' => $parser->{'tool-company'}}
+         )->paste(last_child => $header);
+   }
+}
+
 
 sub processTU {
     my ($parser, $tu) = @_;
@@ -278,7 +571,7 @@ sub processTU {
             warn("Missing language attribute in TU") unless $lang;
 
             # Use the src-lang TUV as a template for the new tgt-lang TUV
-            if ($lang eq $parser->{src_lang}) {
+            if (lc($lang) eq lc($parser->{src_lang})) {
                 warn("Duplicate source-language tuv\n") if $new_tgt_tuv;
                 $new_tgt_tuv = $tuv->copy();
                 $new_tgt_tuv->set_att('xml:lang' => $parser->{tgt_lang});
@@ -286,7 +579,7 @@ sub processTU {
                 processSegment($parser, $seg) if $seg;
 
             # Keep a handle on the old tgt-lang TUV: it will be replaced
-            } elsif ($lang eq $parser->{tgt_lang}) {
+            } elsif (lc($lang) eq lc($parser->{tgt_lang})) {
                 $old_tgt_tuv = $tuv;
             }
         }
@@ -310,7 +603,7 @@ sub processTU {
             my $lang = $tuv->{att}->{'xml:lang'};
             warn("Missing language attribute in TU") unless $lang;
 
-            if ($lang eq $parser->{tgt_lang}) {
+            if (lc($lang) eq lc($parser->{tgt_lang})) {
                 my $seg = $tuv->first_child('seg'); # There should be exactly one
                 if (not $seg) {
                     warn "No SEG element in target language TUV";
@@ -328,22 +621,23 @@ sub processTU {
         $id = $parser->{seg_id};
         $ce = $id ? ixGetCE($parser->{ix}, $id) : undef;
 
-        debug("Confidence estimation for $id: CE=%s\n", defined $ce ? $ce : "undef");
+        debug("Confidence estimation for %s: CE=%s\n", $id, defined $ce ? $ce : "undef");
         if ($parser->{score}
             and defined($ce)) {
             XML::Twig::Elt
                 ->new(prop=>{type=>'Txt::CE'}, sprintf("%.4f", $ce))
                 ->paste(first_child => $tu);
         }
-        
+
         if (defined $parser->{filter}
             and defined($ce)
             and $ce < $parser->{filter}) {
-            debug("Filtering out $id\n");
+            debug("Filtering out %s\n", $id);
             $tu->delete();       # BOOM!
             $parser->{filter_count}++;
-        } else {
-            xmlFlush($parser);
+        }
+        else {
+           xmlFlush($parser);
         }
     }
 
@@ -367,10 +661,10 @@ sub processSegment {
                 $sub->set_text(processText($parser, $src_sub));
                 $parser->{seg_count}++;
                 if ($Verbose) {
-                    veryVerbose("[replacing sub source ``%s'' --> ``%s'']\n", 
+                    veryVerbose("[replacing sub source ``%s'' --> ``%s'']\n",
                                 $src_sub, $sub->text());
                 } elsif ($verbose) {
-                    verbose("\r[%d%s...]", $parser->{seg_count}, 
+                    verbose("\r[%d%s...]", $parser->{seg_count},
                             exists $parser->{total} ? "/".$parser->{total} : "" );
                 }
             }
@@ -382,10 +676,10 @@ sub processSegment {
     my $new_text = processText($parser, $old_text);
     $parser->{seg_count}++;
     if ($Verbose) {
-        veryVerbose("[replacing sub source ``%s'' --> ``%s'']\n", 
+        veryVerbose("[replacing sub source ``%s'' --> ``%s'']\n",
                     $old_text, $new_text);
     } elsif ($verbose) {
-        verbose("\r[%d%s...]", $parser->{seg_count}, 
+        verbose("\r[%d%s...]", $parser->{seg_count},
                 exists $parser->{total} ? "/".$parser->{total} : "" );
     }
     XML::Twig::Elt->new('#PCDATA', $new_text)->paste(first_child => $seg);
@@ -393,40 +687,55 @@ sub processSegment {
 }
 
 sub processText {
-    my ($parser, $in) = @_;
-    my $out = "";
+   my ($parser, $in) = @_;
+   my $out = "";
 
-    if ($parser->{action} eq 'extract') {
-        $out = ixAdd($parser->{ix}, $in);
-        $parser->{seg_id} = $out; # Ugly side-effect
-    } elsif ($parser->{action} eq 'replace') {
-        $out = ixGetSegment($parser->{ix}, $in);
-        $parser->{seg_id} = $in;# Ugly side-effect
-        warn("Can't find ID $in in index") unless $out;
-    }
+   if ($parser->{action} eq 'extract') {
+      $out = ixAdd($parser->{ix}, $in);
+      $parser->{seg_id} = $out; # Ugly side-effect
+   }
+   elsif ($parser->{action} eq 'replace') {
+      $out = ixGetSegment($parser->{ix}, $in);
+      $parser->{seg_id} = $in;# Ugly side-effect
+      warn("Can't find ID $in in index") unless defined($out);
+   }
 
-    return $out;
+   return $out;
 }
 
+
+# Alias for processText which make the intent clearer.
+sub getTranslatedText {
+   my ($parser, $in) = @_;
+   warn "getTranslatedText should be use in replace mode."  unless($parser->{action} eq 'replace');
+   return processText($parser, $in);
+}
+
+
+
 sub timeStamp() {
-    my $time = gmtime();
-    
-    return sprintf("%04d%02d%02dT%02d%02d%02dZ",
-                   $time->year + 1900, $time->mon+1, $time->mday,
-                   $time->hour, $time->min, $time->sec);
+   my $time = gmtime();
+
+   return sprintf("%04d%02d%02dT%02d%02d%02dZ",
+         $time->year + 1900, $time->mon+1, $time->mday,
+         $time->hour, $time->min, $time->sec);
 }
 
 sub normalize {
-    my ($text) = @_;
-    
-    $text =~ s/[\n\r\t\f]/ /g; # Newlines etc. are converted to spaces
-    $text =~ s/ +/ /g;         # Multiple spaces are compressed;
-    $text =~ s/^ +//g;          # Remove leading and trailing spaces
-    $text =~ s/ +$//g;          # Remove leading and trailing spaces
+   my ($text) = @_;
 
-    return $text;
+   $text =~ s/[\n\r\t\f]/ /g; # Newlines etc. are converted to spaces
+   $text =~ s/ +/ /g;         # Multiple spaces are compressed;
+   $text =~ s/^ +//g;          # Remove leading and trailing spaces
+   $text =~ s/ +$//g;          # Remove leading and trailing spaces
+
+   return $text;
 }
 
+
+
+########################################
+# Database functions.
 sub newIx {
     return { id_seed=>0, id=>{}, segment=>{}, ce=>{} };
 }
@@ -441,12 +750,12 @@ sub ixAdd {
         } else {
             $id = ixNewID($ix);
         }
-        debug("ixAdd: INSERTING id=%s, ce=%s, segment=\"%s\"\n", $id, defined $ce ? $ce : "undef", $segment);
+        veryVerbose("ixAdd: INSERTING id=%s, ce=%s, segment=\"%s\"\n", $id, defined $ce ? $ce : "undef", $segment);
         $ix->{id}{$segment} = $id;
         $ix->{segment}{$id} = $segment;
         $ix->{ce}{$id} = $ce if defined $ce;
     } else {
-        debug("ixAdd: EXISTS id=%s, ce=%s, segment=\"%s\"\n", $id, defined $ce ? $ce : "undef", $segment);
+        veryVerbose("ixAdd: EXISTS id=%s, ce=%s, segment=\"%s\"\n", defined $id ? $id : "undef", defined $ce ? $ce : "undef", $segment);
     }
     return $ix->{id}{$segment};
 }
@@ -459,14 +768,15 @@ sub ixNewID {
         ++$n;
     }
     $ix->{id_seed} = $n;
-    
+
     return "seg_".$n;
 }
 
+# Not used.
 sub ixGetID {
     my ($ix, $segment) = @_;
     $segment = normalize($segment);
-    return exists($ix->{id}{$segment}) ? $ix->{id}{$segment} : undef;    
+    return exists($ix->{id}{$segment}) ? $ix->{id}{$segment} : undef;
 }
 
 sub ixGetSegment {
@@ -484,9 +794,9 @@ sub ixGetCE {
 sub ixSave {
     my ($ix, $seg_file, $id_file) = @_;
 
-    open(my $seg_out, ">${output_layers}", $seg_file) 
+    open(my $seg_out, ">${output_layers}", $seg_file)
         or die "Can't open output file $seg_file";
-    open(my $id_out, ">${output_layers}", $id_file) 
+    open(my $id_out, ">${output_layers}", $id_file)
         or die "Can't open output file $id_file";
 
     for my $id (sort keys %{$ix->{segment}}) {
@@ -515,17 +825,17 @@ sub ixLoad {
     verbose("[Reading index from $seg_file and $id_file]\n");
     verbose("[Reading CE from $ce_file]\n") if defined $ce_file;
     while (my $id = <$id_in>) {
-        chop $id;
+        chomp $id;
         my $seg = readline($seg_in);
         die "Not enough lines in text file $seg_file" unless defined $seg;
-        chop $seg;
+        chomp $seg;
         my $ce = 0;
         if ($ce_file) {
             $ce = readline($ce_in);
             die "Not enough lines in CE file $ce_file" unless defined $ce;
-            chop $ce;
+            chomp $ce;
         }
-        debug("ixLoad: read $id <<$seg>> ($ce)\n");
+        veryVerbose("ixLoad: read $id <<%s>> ($ce)\n", $seg);
         ixAdd($ix, $seg, $id, $ce);
         verbose("\r[%d lines...]", $count) if (++$count % 1 == 0);
     }
@@ -548,5 +858,8 @@ sub portageEscape {
 sub verbose { printf STDERR (@_) if ($verbose or $Verbose) ; }
 sub veryVerbose { printf STDERR (@_) if $Verbose; }
 sub debug { printf STDERR (@_) if $debug; }
+sub displayHelp {
+   -t STDOUT ? system "pod2usage -verbose 3 $0" : system "pod2text $0 >&2";
+}
 
 1;

@@ -1,5 +1,4 @@
 #!/usr/bin/perl -w
-# $Id$
 # @file plive.cgi
 # @brief PORTAGE live CGI script
 #
@@ -54,6 +53,11 @@ Michel Simard
  Copyright 2010, Her Majesty in Right of Canada
 
 =cut
+
+# NOTE
+# HOW TO test this script from the command line:
+# http://curl.haxx.se/docs/httpscripting.html
+# curl --form "xml=1" --form "filename=@/root/PORTAGEshared/src/xliff/test_numbers_hyphens_2.docx.sdlxliff" --form "TranslateFile=Translate File" --form "context=reversed" 'http://localhost/cgi-bin/plive.cgi'
 
 use strict;
 use warnings;
@@ -182,7 +186,7 @@ sub printForm {
                            -labels=>{ ""=>'-- Please pick one --',
                                       %context_labels }))),
           Tr(td({colspan=>2, align=>'left', border=>0}, 
-                p("Either type in some text, or select a text file to translate (plain text or TMX).<BR /> Press the <em>Translate Text</em> or the <em>Translate File</em> button to have PORTAGELive <br /> translate your text or file."),
+                p("Either type in some text, or select a text file to translate (plain text or TMX or SDLXLIFF).<BR /> Press the <em>Translate Text</em> or the <em>Translate File</em> button to have PORTAGELive <br /> translate your text or file."),
                 br())),
           ## Text-box (textarea) interface:
 
@@ -208,11 +212,11 @@ sub printForm {
                           -size=>60))),
           Tr({valign=>'top'},
              td({align=>'right'}, 
-                checkbox(-name=>'tmx',
+                checkbox(-name=>'xml',
                          -checked=>0,
                          -label=>'')),
-             td(strong("TMX"), 
-                "-- Check this box if input file is TMX.")),
+             td(strong("TMX/SDLXLIFF"), 
+                "-- Check this box if input file is TMX or SDLXLIFF.")),
           Tr({valign=>'top'},
              td({align=>'right'}, 
                 scrolling_list(-name=>'filter',
@@ -220,7 +224,7 @@ sub printForm {
                                -values=>[ 'no filtering', map(sprintf("%0.2f", $_), @filter_values) ],
                                -size=>1)),
              td(strong("Filter"),
-                "-- Set the filtering threshold on confidence (TMX files only).")),
+                "-- Set the filtering threshold on confidence (TMX/SDLXLIFF files only).")),
           Tr({valign=>'top'},
              td({colspan=>2, align=>'center'},
                 submit(-name=>'TranslateFile', -value=>'Translate File'))),
@@ -293,9 +297,12 @@ sub processText {
     $ENV{LD_LIBRARY_PATH} = "$PORTAGE_MODEL_DIR/$context/lib:$ENV{LD_LIBRARY_PATH}";
 
     # Get some basic info on source text:
-    param('tmx') 
-        ? checkTMX("$work_dir/Q.in") 
-        : checkFile("$work_dir/Q.in", param('notok'), param('noss'));
+    if (param('xml')) {
+       checkXML("$work_dir/Q.in");
+    }
+    else {
+       checkFile("$work_dir/Q.in", param('notok'), param('noss'));
+    }
     
     # Prepare the ground for translate.pl:
     my $outfilename = "PLive-${work_name}";
@@ -310,15 +317,16 @@ sub processText {
                             : param('filter') + 0);
     if ($filter_threshold > 0) {
         problem("Confidence-based filtering is only currently compatible with TMX input.")
-            unless param('tmx');
+            unless param('xml');
         problem("Confidence-based filtering not available with system %s", $context)
             unless $CONTEXT{$context}->{ce_model};
         
         push @tr_opt, "-filter=$filter_threshold";
     }
-    if (param('tmx')) {
-        push @tr_opt, ("-tmx", "-nl=s");
-    } else {
+    if (param('xml')) {
+        push @tr_opt, ("-xml", "-nl=s");
+    }
+    else {
         push @tr_opt, param('notok') ? "-notok": "-tok";
         push @tr_opt, param('noss') ? "-nl=s" : "-nl=p";
     }
@@ -326,7 +334,7 @@ sub processText {
     my $tr_opt = join(" ", @tr_opt);
     my $tr_cmd = $CONTEXT{$context}->{script} . " ${tr_opt} \"$work_dir/Q.in\" >& \"$work_dir/trace\"";
 
-    my $tr_output = catdir($work_dir, param('tmx') ? "QP.tmx" : "P.txt");
+    my $tr_output = catdir($work_dir, param('xml') ? "QP.xml" : "P.txt");
     my $user_output = catdir($work_dir, $outfilename);
     param('trace', "$work_dir/trace");
     
@@ -456,7 +464,7 @@ sub checkFile {
 # Check the validity of the source file as TMX file, return the number
 # of translateble segments. This is based on ce_tmx.pl.
 
-sub checkTMX {
+sub checkXML {
     my ($infile) = @_;
 
     my $cmd = "ce_tmx.pl check \"${infile}\"";
