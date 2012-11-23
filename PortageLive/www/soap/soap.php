@@ -286,7 +286,6 @@ else
 if ( $button == "MonitorJob" && !empty($monitor_token) ) {
    try {
       $client = new SoapClient($WSDL);
-      # TODO: Monitor SDLXLIFF Status.
       if ( $button == "TranslateTMX") {
          $reply = $client->translateTMXCE_Status($monitor_token);
       }

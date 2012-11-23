@@ -290,7 +290,7 @@ sub processXLIFF {
             ept => sub { my( $t, $elt)= @_; },
             ph  => sub { my( $t, $elt)= @_; },
             it  => sub { my( $t, $elt)= @_; },
-            'seg-source//mrk[@mtype="seg"]' => sub { my( $t, $elt)= @_; debug("\ttest MRK mid=" . $elt->{att}->{mid} . "\n"); },
+            'seg-source//mrk[@mtype="seg"]' => sub { my( $t, $elt)= @_; debug("\ttest MRK mid=%s\n", $elt->{att}->{mid}); },
             } );
    }
    elsif ($parser->{action} eq 'replace') {
@@ -347,7 +347,7 @@ sub xmlFlush {
           : $parser->purge();
     }
     elsif ($parser->{InputFormat} eq 'tmx') {
-       debug("  xmlflush tmx: " . $parser->{action});
+       debug("  xmlflush tmx: %s\n", $parser->{action});
        $parser->{action} eq 'check'
           ? $parser->purge()
           : $parser->flush($parser->{xml_out});
@@ -361,15 +361,15 @@ sub xmlFlush {
 sub processTag {
    my ($parser, $tag) = @_;
    my $tag_id = $tag->{att}{id};
-   veryVerbose("processing tag id=$tag_id\n");
-   #debug($tag->xml_string, "\n");
+   veryVerbose("processing tag id=%s\n", $tag_id);
+   #debug("%s\n", $tag->xml_string);
 
    if ($tag->get_xpath('ph[@word-end="false" and string()=~/softbreakhyphen/]')) {
       my $text = $tag->has_child('ph')->{att}{name};
       $parser->setTwigHandler("x[\@id=\"$tag_id\"]",
          sub {
             my ($parser, $x) = @_;
-            veryVerbose("Special handler for $tag_id");
+            veryVerbose("Special handler for %s\n", $tag_id);
             $x->delete();
          });
    }
@@ -379,7 +379,7 @@ sub processTag {
       $parser->setTwigHandler("x[\@id=\"$tag_id\"]",
          sub {
             my ($parser, $x) = @_;
-            veryVerbose("Special handler for $tag_id");
+            veryVerbose("Special handler for %s\n", $tag_id);
             $x->set_text($text);
             $x->erase();
          });
@@ -393,7 +393,7 @@ sub processTransUnit {
    # Get the docid for this translation pair
    my $trans_unit_id = $trans_unit->{att}{id};
    die "Each trans-unit should have its mandatory id." unless defined $trans_unit_id;
-   debug("trans_unit_id: $trans_unit_id\n");
+   debug("trans_unit_id: %s\n", $trans_unit_id);
 
    # Extraction mode: find src-lang text segments and replace with placeholder ID
    # This translation unit is marked as not to be translated.
@@ -413,7 +413,7 @@ sub processTransUnit {
    my @mrks = $source->descendants('mrk[@mtype="seg"]') or warn "Can't find any mrk for $trans_unit_id\n\tcontent:", $source->xml_string, "\n";
    foreach my $mrk (@mrks) {
       my $src_sub = $mrk->text();
-      veryVerbose("\tMRK: $src_sub\n");
+      veryVerbose("\tMRK: %s\n", $src_sub);
       my $id =  "$trans_unit_id." . (defined($mrk->{att}{mid}) ? $mrk->{att}{mid} : $mrk_id++);
       $parser->{seg_id} = ixAdd($parser->{ix}, $src_sub, $mrk->xml_string(), $id);
       $parser->{seg_count}++;
@@ -429,7 +429,7 @@ sub replaceTransUnit {
    # Get the docid for this translation pair
    my $trans_unit_id = $trans_unit->{att}{id};
    die "Each trans-unit should have its mandatory id." unless defined $trans_unit_id;
-   debug("trans_unit_id: $trans_unit_id\n");
+   debug("trans_unit_id: %s\n", $trans_unit_id);
 
    # Replacement mode: find placeholder ID, replace with text
    return if ($trans_unit->{att}->{translate} and $trans_unit->{att}->{translate} eq "no");
@@ -446,6 +446,13 @@ sub replaceTransUnit {
    $target->del_atts();  # Make sure there is no attributs.
    $target->paste(after => $source);
 
+   my $sdl_defs = $trans_unit->get_xpath("sdl:seg-defs", 0);
+   unless (defined($sdl_defs)) {
+      warn "Unable to find sdl:seg-defs for $trans_unit_id, adding one...";
+      $sdl_defs = XML::Twig::Elt ->new('sdl:seg-defs');
+      $sdl_defs->paste(last_child => $trans_unit);
+   }
+
    my $mrk_id = 0;  # Fallback id.
    my @mrks = $target->descendants('mrk[@mtype="seg"]') or warn "Can't find any mrk for $trans_unit_id\n\tcontent:", $target->xml_string, "\n";
    foreach my $mrk (@mrks) {
@@ -456,13 +463,6 @@ sub replaceTransUnit {
       $mrk->set_inner_xml($out);  # Looks to be safe if $out doesn't contain any markup/tags.
       ++$parser->{seg_count};
 
-
-      my $sdl_defs = $trans_unit->get_xpath("sdl:seg-defs", 0);
-      unless (defined($sdl_defs)) {
-         warn "Unable to find sdl:seg-defs for $trans_unit_id, adding one...";
-         $sdl_defs = XML::Twig::Elt ->new('sdl:seg-defs');
-         $sdl_defs->paste(last_child => $trans_unit);
-      }
 
       my $sdl_seg = $sdl_defs->get_xpath("sdl:seg[\@id=\"$mid\"]", 0);
       unless(defined($sdl_seg)) {
@@ -487,17 +487,16 @@ sub replaceTransUnit {
       #   <sdl:seg-defs><sdl:seg id="560" /></sdl:seg-defs>
       #      <sdl:seg conf="Draft" id="56" origin="mt" origin-system="Portage-1.5.0" percent="99" >
       #   </sdl:seg-defs>
-      debug("Confidence estimation for $xid: CE=%s %s\n", defined $ce ? $ce : "undef", $parser->{filter} ? $parser->{filter} : "undef");
+      debug("Confidence estimation for %s: CE=%s %s\n", $xid, defined $ce ? $ce : "undef", $parser->{filter} ? $parser->{filter} : "undef");
       $sdl_seg->del_att('percent');       # Make sure there is no previous value for the attribut percent.
       if ($parser->{score} and defined($ce)) {
-         $ce *= 100;
          $ce  = 0 if ($ce < 0);
-         $ce  = 100 if ($ce > 100);
-         $sdl_seg->{att}->{'percent'} = sprintf("%.0f", $ce);  # %.0f will properly round numbers.
+         $ce = 1 if ($ce > 1);
+         $sdl_seg->{att}->{'percent'} = sprintf("%.0f", 100*$ce);  # %.0f will properly round numbers.
       }
 
       if (defined $parser->{filter} and defined($ce) and $ce < $parser->{filter}) {
-         debug("Filtering out $xid\n");
+         debug("Filtering out %s\n", $xid);
          $sdl_seg->del_atts();
          $sdl_seg->{att}->{id} = $mid;
          $mrk->delete();
@@ -517,7 +516,7 @@ sub replaceTransUnit {
 sub processX {
    my ($parser, $x) = @_;
    my $x_id = $x->{att}{id};
-   veryVerbose("X id=$x_id\n");
+   veryVerbose("X id=%s\n", $x_id);
    if (defined($parser->{tag}{$x_id})) {
       $x->set_text($parser->{tag}{$x_id});
       $x->erase();
@@ -529,7 +528,7 @@ sub processX {
 sub processG {
    my ($parser, $g) = @_;
    my $text = join(" ", map(normalize($_->text(no_recurse=>1)), $g));
-   veryVerbose("G id=" . $g->{att}{id} . ":  $text\n" . $g->xml_string . "\n");
+   veryVerbose("G id=%s: %s\n%s\n", $g->{att}{id},  $text, $g->xml_string);
    #$g->set_text($text);
    # Erase the element: the element is deleted and all of its children are pasted in its place.
    # TODO: disabled to extract tags.
@@ -622,7 +621,7 @@ sub processTU {
         $id = $parser->{seg_id};
         $ce = $id ? ixGetCE($parser->{ix}, $id) : undef;
 
-        debug("Confidence estimation for $id: CE=%s\n", defined $ce ? $ce : "undef");
+        debug("Confidence estimation for %s: CE=%s\n", $id, defined $ce ? $ce : "undef");
         if ($parser->{score}
             and defined($ce)) {
             XML::Twig::Elt
@@ -633,7 +632,7 @@ sub processTU {
         if (defined $parser->{filter}
             and defined($ce)
             and $ce < $parser->{filter}) {
-            debug("Filtering out $id\n");
+            debug("Filtering out %s\n", $id);
             $tu->delete();       # BOOM!
             $parser->{filter_count}++;
         }
@@ -783,15 +782,15 @@ sub ixGetID {
 }
 
 sub ixGetSegment {
-    my ($ix, $id) = @_;
-    $id = normalize($id);
-    my $tagged = $ix->{tagged}{$id};
-    if (defined($tagged)) {
-       return $tagged;
-    }
-    else {
-    return exists($ix->{segment}{$id}) ? $ix->{segment}{$id} : undef;
-    }
+   my ($ix, $id) = @_;
+   $id = normalize($id);
+   my $tagged = $ix->{tagged}{$id};
+   if (defined($tagged)) {
+      return $tagged;
+   }
+   else {
+      return exists($ix->{segment}{$id}) ? $ix->{segment}{$id} : undef;
+   }
 }
 
 sub ixGetCE {

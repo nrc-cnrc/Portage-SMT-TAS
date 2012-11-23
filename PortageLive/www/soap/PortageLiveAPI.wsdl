@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<definitions 
-  name="PortageLiveService"
-  targetNamespace="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.wsdl"
-  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
-  xmlns:tns="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.wsdl"
-  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns="http://schemas.xmlsoap.org/wsdl/">
+<definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.wsdl" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.xmlsoap.org/wsdl/" name="PortageLiveService" targetNamespace="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.wsdl">
   <!-- Understanding WSDL: http://msdn.microsoft.com/en-us/library/ms996486.aspx -->
   <!-- http://www.w3.org/TR/wsdl20 -->
   <documentation>
@@ -128,7 +122,7 @@
     context.  TMXContentsBase64 is its contents in base64 encoding and
     TMXFilename is its name.  IF CETreshold is greater than 0, confidence
     estimation is used to filter out translations with confidence score below
-    the threshold (valid value are between 0 and 1).
+    the threshold (valid values are between 0 and 1).
     Returns a token used to monitor the job.  The token can be used in one of
     two ways: it is a URL you can use to interactively monitor the job in a
     browser.  Or you can pass it as argument to translateTMXCE_Status().
@@ -166,7 +160,7 @@
     context.  SDLXLIFFContentsBase64 is its contents in base64 encoding and
     SDLXLIFFFilename is its name.  IF CETreshold is greater than 0, confidence
     estimation is used to filter out translations with confidence score below
-    the threshold (valid value are between 0 and 1).
+    the threshold (valid values are between 0 and 1).
     Returns a token used to monitor the job.  The token can be used in one of
     two ways: it is a URL you can use to interactively monitor the job in a
     browser.  Or you can pass it as argument to translateSDLXLIFFCE_Status().
