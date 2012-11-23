@@ -138,11 +138,15 @@ catch (SoapFault $exception) {
 }
 
 
+# @param type  either translateTMXCE or translateSDLXLIFFCE which represent
+#              what function to call depending on what is the type of the file
+#              argument.
+# @paran file  $_FILES["sdlxliff_filename"] or $_FILES["tmx_filename"]
 function processFile($type, $file) {
    global $context;
    global $ce_threshold;
    $filename = $file["name"];
-   print "<hr/><b>Translating $type file: </b> $filename <br/>";
+   print "<hr/><b>Translating using $type and file: </b> $filename <br/>";
    print "<b>Context: </b> $context <br/>";
    print "<b>Processed on: </b> " . `date` . "<br/>";
 
@@ -159,16 +163,8 @@ function processFile($type, $file) {
          $client = new SoapClient($WSDL);
 
          $ce_threshold += 0;
-         if ($type == "tmx") {
-            $reply = $client->translateTMXCE($tmp_contents_base64, $filename, $context, $ce_threshold);
-         }
-         else
-         if ($type == "sdlxliff") {
-            $reply = $client->translateSDLXLIFFCE($tmp_contents_base64, $filename, $context, $ce_threshold);
-         }
-         else {
-            print "<B>Unknown type: $type</B><BR/>\n";
-         }
+         $reply = $client->$type($tmp_contents_base64, $filename, $context, $ce_threshold);
+
          print "<hr/><b>Portage replied: </b>$reply";
          print "<br/><a href=\"$reply\">Monitor job interactively</a>";
          global $monitor_token;
@@ -280,11 +276,11 @@ if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
 }
 else
 if ( $button == "TranslateTMX" && $_FILES["tmx_filename"]["name"] != "") {
-   processFile("tmx", $_FILES["tmx_filename"]);
+   processFile("translateTMXCE", $_FILES["tmx_filename"]);
 }
 else
 if ($button == "TranslateSDLXLIFF" && $_FILES["sdlxliff_filename"]["name"] != "") {
-   processFile("sdlxliff", $_FILES["sdlxliff_filename"]);
+   processFile("translateSDLXLIFFCE", $_FILES["sdlxliff_filename"]);
 }
 else
 if ( $button == "MonitorJob" && !empty($monitor_token) ) {
