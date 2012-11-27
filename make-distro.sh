@@ -12,6 +12,8 @@
 
 echo 'make-distro.sh, NRC-CNRC, (c) 2007 - 2008, Her Majesty in Right of Canada'
 
+GIT_PATH=balzac.iit.nrc.ca:/home/git
+
 usage() {
    for msg in "$@"; do
       echo $msg
@@ -19,11 +21,11 @@ usage() {
    cat <<==EOF==
 
 Usage: make-distro.sh [-h(elp)] [-bin] [-nosrc] [-licence PROJECT] [-n]
-       [-compile-only] [-compile-host HOST] [-rCVS_TAG|-DCVS_DATE]
+       [-compile-only] [-compile-host HOST] [-r GIT_TAG]
        [-patch-from OLD_CD_DIR:PREREQ_TOKEN
           [-patch-from OLD_CD_DIR2:PREREQ_TOKEN2 [...]]]
        [-aachen] [-smart-bin] [-smart-src] [-can-univ] [-can-biz]
-       [-d cvs_dir] [-framework FRAMEWORK]
+       [-d GIT_PATH] [-framework FRAMEWORK]
        -dir OUTPUT_DIR
 
   Make a PORTAGEshared distribution folder, ready to burn on CD or copy to a
@@ -31,14 +33,13 @@ Usage: make-distro.sh [-h(elp)] [-bin] [-nosrc] [-licence PROJECT] [-n]
 
 Arguments:
 
-  -r or -D      What source to use for this distro, as a well formatted CVS
-                option: either -rCVS_TAG, with CVS_TAG (typically vX_Y) having
-                been created first using "cvs tag -R CVS_TAG" on the whole
-                PORTAGEshared repository, or:
-                   cvs rtag -Dnow v1_5_0 PORTAGEshared
-                   cvs rtag -Dnow v1_5_0 portage.simple.framework.2
-                Such a tag is recommended, but any valid cvs -r or -D option
-                can be used, if necessary.
+  -r            What source to use for this distro, as a valid argument to git
+                clone's --branch option: a branch or a tag, typically a
+                tag having been created first using "git tag v1_X_Y COMMIT;
+                git push --tags", e.g.,:
+                   git tag v1_5_0 master
+                   git push --tags
+                run in both PORTAGEshared and portage.framework.
 
   -dir          The distro will be created in OUTPUT_DIR, which must not
                 already exist.
@@ -54,7 +55,7 @@ Options:
                 when compiling and linking with ICU.  If PATH_TO_ICU includes
                 the special token _ARCH_, that token will be replaced by the
                 output of calling arch.
-  -d            cvs root repository
+  -d            Git server host and dirname [$GIT_PATH]
   -compile-only use this to compile code on a different architecture, with an
                 OUTPUT_DIR where -bin has already been used.  All other options
                 are ignored, except -dir.
@@ -79,7 +80,7 @@ Options:
                 For cutting and pasting for the -can-univ distro:
                   -patch-from v1.0:2004-2006,
                   -patch-from v1.1:PORTAGEshared_v1.1
-  -framework    Include framework from CVS repository FRAMEWORK.
+  -framework    Include framework from Git repository FRAMEWORK.
 
 Canned options for specific licensees:
 
@@ -152,14 +153,14 @@ ICU=yes
 ICU_ROOT=$PORTAGE
 while [ $# -gt 0 ]; do
    case "$1" in
-   -d)                  arg_check 1 $# $1; CVS_DIR="-d $2"; shift;;
+   -d)                  arg_check 1 $# $1; GIT_PATH="$2"; shift;;
    -bin)                INCLUDE_BIN=1;;
    -icu)                arg_check 1 $# $1; ICU=$2; ICU_OPT="$1 $2"; shift;;
    -icu-root)           arg_check 1 $# $1; ICU_ROOT=$2; shift;;
    -compile-only)       COMPILE_ONLY=1;;
    -compile-host)       arg_check 1 $# $1; COMPILE_HOST=$2; shift;;
    -nosrc)              NO_SOURCE=1;;
-   -r*|-D*)             VERSION_TAG="$1";;
+   -r)                  arg_check 1 $# $1; VERSION_TAG="$2"; shift;;
    -dir)                arg_check 1 $# $1; OUTPUT_DIR=$2; shift;;
    -licence|-license)   arg_check 1 $# $1; LICENCE=$2; shift;;
    -patch-from)         arg_check 1 $# $1; PATCH_FROM="$PATCH_FROM $2"; shift;;
@@ -237,15 +238,16 @@ do_checkout() {
    run_cmd echo "$0 $SAVED_COMMAND_LINE" \> $OUTPUT_DIR/make-distro-cmd-used
    run_cmd echo Ran on `hostname` \>\> $OUTPUT_DIR/make-distro-cmd-used
    run_cmd pushd ./$OUTPUT_DIR
-      run_cmd cvs $CVS_DIR co -P \"$VERSION_TAG\" PORTAGEshared '>&' cvs.log
+      run_cmd git clone --branch $VERSION_TAG $GIT_PATH/PORTAGEshared.git '>&' git-clone.log
       run_cmd chmod 755 PORTAGEshared/logs
       run_cmd chmod 777 PORTAGEshared/logs/accounting
       if [[ $FRAMEWORK ]]; then
          run_cmd pushd PORTAGEshared
-            run_cmd cvs $CVS_DIR co -P \"$VERSION_TAG\" -d framework $FRAMEWORK '>&' ../cvs.framework.log
+            run_cmd git clone --branch $VERSION_TAG $GIT_PATH/$FRAMEWORK.git framework '>&' ../git-clone.framework.log
          run_cmd popd
       fi
-      run_cmd find PORTAGEshared -name CVS \| xargs rm -rf
+      run_cmd 'find PORTAGEshared -name .git\* | xargs rm -rf'
+      run_cmd 'rm PORTAGEshared/.[a-z]*'
 
       if [ "$LICENCE" = SMART ]; then
          echo Keeping only SMART licence info.
@@ -267,7 +269,7 @@ do_checkout() {
          run_cmd find PORTAGEshared -maxdepth 1 -name LICENCE\* \| \
                  grep -v -x PORTAGEshared/LICENCE_COMPANY \| xargs rm -f
       else
-         error_exit "Invalid -licence specfication"
+         error_exit "Invalid -licence specification"
       fi
 
       echo Removing -Werror from src/build/Makefile.incl.
@@ -358,11 +360,12 @@ make_usage() {
    print_header make_usage
    echo Generating usage information.
    run_cmd pushd ./$OUTPUT_DIR/PORTAGEshared
-      run_cmd cvs $CVS_DIR co -P \"$VERSION_TAG\" -d SRC_FOR_USAGE PORTAGEshared/src '>&' ../cvs_for_usage.log
+      run_cmd git clone --branch $VERSION_TAG $GIT_PATH/PORTAGEshared.git FOR_USAGE '>&' ../git-clone.for_usage.log
+      run_cmd mv FOR_USAGE/src SRC_FOR_USAGE
       run_cmd pushd ./SRC_FOR_USAGE
          run_cmd make ICU= LOG4CXX=NONE CF=-Wno-error -j 3 usage '>&' ../../make_usage.log
       run_cmd popd
-      run_cmd rm -r SRC_FOR_USAGE
+      run_cmd rm -rf SRC_FOR_USAGE FOR_USAGE
    run_cmd popd
 }
 
@@ -434,7 +437,7 @@ test $OUTPUT_DIR  || error_exit "Missing mandatory -dir argument"
 
 if [[ ! $COMPILE_ONLY ]]; then
    if [[ ! $VERSION_TAG ]]; then
-      error_exit "Missing mandatory -rCVS_TAG or -DCVS_DATE argument"
+      error_exit "Missing mandatory -r GIT_TAG argument"
    fi
 
    do_checkout
@@ -472,7 +475,7 @@ if [[ ! $COMPILE_ONLY ]]; then
    if [[ $NO_SOURCE ]]; then
       run_cmd pushd ./$OUTPUT_DIR/PORTAGEshared
          run_cmd rm ./doc/code-documentation.html
-         run_cmd rm -r src
+         run_cmd rm -rf src
       run_cmd popd
    fi
 
