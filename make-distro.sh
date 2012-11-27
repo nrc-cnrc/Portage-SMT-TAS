@@ -1,5 +1,4 @@
 #!/bin/bash
-# $Id$
 
 # make-distro.sh - Make a CD or a copyable distro of PORTAGEshared.
 # 
@@ -294,7 +293,7 @@ get_user_manual() {
    # http://wiki-ilt/PORTAGEshared/scripts/restricted/ywiki.cgi?act=snapshot
    print_header get_user_manual
    run_cmd pushd ./$OUTPUT_DIR
-      run_cmd rsync -arz ilt.iit.nrc.ca:/export/projets/Lizzy/PORTAGEshared/snapshot/ \
+      run_cmd rsync -arz wiki-ilt:/export/projets/Lizzy/PORTAGEshared/snapshot/ \
                          PORTAGEshared/doc/user-manual
       run_cmd find PORTAGEshared/doc/user-manual/uploads -name Layout* \| xargs rm -f
       run_cmd find PORTAGEshared/doc/user-manual/uploads -name \*.gif.1 \| xargs rm -f
