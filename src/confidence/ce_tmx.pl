@@ -444,7 +444,6 @@ sub replaceTransUnit {
    $target = $source->copy();
    $target->set_tag('target');  # rename it to target.
    $target->del_atts();  # Make sure there is no attributs.
-   $target->paste(after => $source);
 
    my $sdl_defs = $trans_unit->get_xpath("sdl:seg-defs", 0);
    unless (defined($sdl_defs)) {
@@ -503,6 +502,9 @@ sub replaceTransUnit {
          ++$parser->{filter_count};
       }
    }
+
+   # If we didn't filter out all translations, we can add the target object to the tree.
+   $target->paste(after => $source) if ($target->descendants('mrk[@mtype="seg"]'));
 
    xmlFlush($parser);
 }
