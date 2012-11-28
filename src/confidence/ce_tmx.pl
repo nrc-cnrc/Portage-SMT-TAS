@@ -842,13 +842,14 @@ sub ixLoad {
     my $count = 0;
     verbose("[Reading index from $seg_file, $tag_file and $id_file]\n");
     verbose("[Reading CE from $ce_file]\n") if defined $ce_file;
-    while (my $id = <$id_in>) {
+    while (defined (my $id = <$id_in>)) {
         chomp $id;
         my $seg = readline($seg_in);
         die "Not enough lines in text file $seg_file" unless defined $seg;
         chomp $seg;
-        my $tag = readline($tag_in) or die "Not enough lines in text file $tag_file";
-        chomp $seg;
+        my $tag = readline($tag_in);
+        die "Not enough lines in text file $tag_file" unless defined $tag;
+        chomp $tag;
         my $ce = 0;
         if ($ce_file) {
             $ce = readline($ce_in);
