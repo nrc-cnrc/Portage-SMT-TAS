@@ -1,5 +1,4 @@
 #!/usr/bin/env perl
-# $Id$
 #
 # @file truecase.pl
 # @brief Script to truecase target language text.
@@ -158,7 +157,7 @@ if (defined $src_file) {
       not defined $encoding
          or die "ERROR: '-enc' option cannot be used with '-loc'.\n";
       ($srclang, my $rest) = split(/_/, $locale, 2);
-      ($encoding) = split(/./, $rest, 2);
+      ($rest, $encoding) = split(/\./, $rest, 2);
    } else {
       $srclang = "en" unless defined $srclang;
       $encoding = "utf-8" unless defined $encoding;
@@ -173,7 +172,7 @@ if (defined $src_file) {
       or die "ERROR: '-srclm' option can only be used with '-src'.\n";
    not defined $locale
       or die "ERROR: '-loc' option can only be used with '-src'.\n";
-   not defined $locale
+   not defined $srclang
       or die "ERROR: '-srclang' option can only be used with '-src'.\n";
    not defined $xtra_cm_opts
       or die "ERROR: '-xtra_cm_opts' option can only be used with '-src'.\n";
@@ -292,6 +291,7 @@ if (defined $src_file) {
    # Preload the C++ standard library to ensure that C++ exceptions and I/O 
    # are properly initialized when calling a C++ shared library from Python.
    my $ld_preload = "LD_PRELOAD=libstdc++.so:\$LD_PRELOAD";
+   die "Encoding not defined" unless(defined($encoding));
    run("$ld_preload casemark.py $v $d $t -a -lm $srclm_file -enc $encoding $nc1_file $cmark_file", WITH_BASH);
    run("markup_canoe_output $v -n OOV $cmark_file $tc_file $pal_file "
        . "2> $cmark_log_file $gzip > $cmark_out_file");
