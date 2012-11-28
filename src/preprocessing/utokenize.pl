@@ -1,6 +1,5 @@
 #!/usr/bin/perl -sw
 
-# $Id$
 #
 # @file utokenize.pl
 # @brief Tokenize and sentence split UTF-8 text.

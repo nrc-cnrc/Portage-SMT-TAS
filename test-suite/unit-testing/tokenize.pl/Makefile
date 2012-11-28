@@ -37,7 +37,7 @@ ch-punc: $(foreach EXT, 000 001 010 011 100 101 110 111, compare.chinese-punc.de
 .PHONY: en-prices
 en-prices: compare.eng-prices.detok compare.eng-prices.detok.utf8
 
-TEMP_FILES=accent.* hyphens.* periods.* chinese-punc.* eng-prices.* es.*
+TEMP_FILES=accent.* hyphens.* periods.* chinese-punc.* eng-prices.* es.* da.*
 include ../Makefile.incl
 
 accent.utf8: accent
@@ -226,4 +226,29 @@ es.tok: es.source
 
 es.detok: es.tok
 	udetokenize.pl -lang=es < $< | tee $@
+
+
+
+
+################################################################################
+# DANISH
+test: danish
+
+SOURCE_DA := »…« \
+             ›…‹ \
+				 „…“ \
+				 “…” \
+				 ‚…‘
+
+.PHONY: danish
+danish:  compare.da.tok compare.da.detok
+
+da.source:
+	echo "${SOURCE_DA}" > $@
+
+da.tok:  da.source
+	utokenize.pl -lang=da -noss < $< | tee $@
+
+da.detok:  da.tok
+	udetokenize.pl -lang=da < $< | tee $@
 
