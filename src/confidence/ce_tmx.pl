@@ -649,18 +649,22 @@ sub processTU {
 sub processSegment {
     my ($parser, $seg) = @_;
 
+    my $seg_xml = $seg->xml_string();
+
     my @children = $seg->cut_children();
     my @src_seg = ();
 
     foreach my $child (@children) {
         if ($child->is_text()) {
             push @src_seg, $child->text();
-        } else {
+        }
+	else {
             my $name = $child->name();
             warn "Unknown element in a seg: $name\n" unless ($name =~ /^(bpt|ept|it|ph|ut)$/);
+	    # TODO: there is no <sub> descendants?!!?!?
             foreach my $sub ($child->descendants(qr/sub/)) {
                 my $src_sub = $sub->text();
-                $sub->set_text(processText($parser, $src_sub));
+                $sub->set_text(processText($parser, $src_sub, $sub->xml_string()));
                 $parser->{seg_count}++;
                 if ($Verbose) {
                     veryVerbose("[replacing sub source ``%s'' --> ``%s'']\n",
@@ -675,7 +679,7 @@ sub processSegment {
     }
 
     my $old_text = join("", @src_seg);
-    my $new_text = processText($parser, $old_text);
+    my $new_text = processText($parser, $old_text, $seg_xml);
     $parser->{seg_count}++;
     if ($Verbose) {
         veryVerbose("[replacing sub source ``%s'' --> ``%s'']\n",
@@ -689,11 +693,11 @@ sub processSegment {
 }
 
 sub processText {
-   my ($parser, $in) = @_;
+   my ($parser, $in, $tagged) = @_;
    my $out = "";
 
    if ($parser->{action} eq 'extract') {
-      $out = ixAdd($parser->{ix}, $in);
+      $out = ixAdd($parser->{ix}, $in, $tagged);
       $parser->{seg_id} = $out; # Ugly side-effect
    }
    elsif ($parser->{action} eq 'replace') {
@@ -745,6 +749,7 @@ sub newIx {
 sub ixAdd {
     my ($ix, $segment, $tagged, $id, $ce) = @_;
     $segment = normalize($segment);
+    $tagged  = "EMPTY" unless(defined($tagged));
     $tagged  = normalize($tagged);
 
     if (defined $id or not exists($ix->{id}{$segment})) {
