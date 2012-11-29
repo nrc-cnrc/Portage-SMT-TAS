@@ -24,7 +24,8 @@ namespace rescore_translate {
 
    /// Program rescore_translate usage.
    static char help_message[] = "\n\
-rescore_translate [-vnsc][-p ff-pref][-a F][-dyn][-kout k][-co f] model src nbest\n\
+rescore_translate [-vnsc][-p ff-pref][-a F][-dyn][-kout k][-co f][-fv f][-sc f]\n\
+                  model src nbest\n\
 \n\
 Translate a src text using a rescoring model to choose the best candidate\n\
 translation from the given nbest list.  Output is written to stdout, one\n\
@@ -48,6 +49,10 @@ Options:\n\
 -co   Read entries from file <f> that is line-aligned with nbest, and write \n\
       corresponding rescored entries to <f>.resc. This doesn't work with -mbr,\n\
       nor with variable-sized nbest lists.\n\
+-fv   Write feature value vectors, line-aligned with output, to file <f>. No\n\
+      sentence-index prefix. Same restrictions as for -co.\n\
+-sc   Write hypothesis scores, line-aligned with output, to file <f>. This is\n\
+      the same value written by -s. SAme restrictions as for -co.\n\
 -mbr  Minimum Bayes risk: Determine hypothesis with min risk rather than max\n\
       score.  Note that this gives you 1-best output only! [don't]\n\
 -gf   Scale all sentence probabilities by global factor <f> in MBR calculation [1]\n\
@@ -61,7 +66,7 @@ Options:\n\
    // ARGUMENTS PROCESSING CLASS
    /// Program rescore_translate allowed command line switches.
    const char* const switches[] = {
-      "dyn", "max:", "p:", "a:", "v", "K:", "n", "s", "c", "kout:", "co:",
+      "dyn", "max:", "p:", "a:", "v", "K:", "n", "s", "c", "kout:", "co:", "fv:", "sc:",
       "mbr", "gf:", "bs:", "l:", "dump-for-mira:"
    };
    /// Specific argument processing class for rescore_translate program
@@ -80,6 +85,8 @@ Options:\n\
          bool     bMbr;             ///< print Minimum Bayes risk hyp. rather than max. prob. one
          Uint     kout;             ///< Number of output hyps per source
          string   cofile;           ///< File that is line-aligned with nbest
+         string   fvfile;           ///< Name of output feature-value file
+         string   scfile;           ///< Name of output score file
          Uint     kmbr;             ///< Number of hyps per source used in MBR
          Uint     K;                ///< Number of hypotheses per source
          Uint     S;                ///< Number of sources
@@ -110,6 +117,8 @@ Options:\n\
          , bMbr(false)
          , kout(1)
          , cofile("")
+         , fvfile("")
+         , scfile("")
          , kmbr(0)
          , K(0)
          , S(0)
@@ -156,6 +165,8 @@ Options:\n\
          mp_arg_reader->testAndSet("c", conf_scores);
          mp_arg_reader->testAndSet("kout", kout);
          mp_arg_reader->testAndSet("co", cofile);
+         mp_arg_reader->testAndSet("fv", fvfile);
+         mp_arg_reader->testAndSet("sc", scfile);
          mp_arg_reader->testAndSet("l", kmbr);
          mp_arg_reader->testAndSet("mbr", bMbr);
          mp_arg_reader->testAndSet("gf", glob_scale);
