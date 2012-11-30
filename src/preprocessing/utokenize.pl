@@ -1,6 +1,5 @@
 #!/usr/bin/perl -sw
 
-# $Id$
 #
 # @file utokenize.pl
 # @brief Tokenize and sentence split UTF-8 text.
@@ -58,7 +57,7 @@ Options:
       often caused unexpected behaviour.
 -notok Don't tokenize the output. [do tokenize]
 -pretok Already tokenized. Don't re-tokenize the input. [do tokenize]
--lang Specify two-letter language code: en or es or fr [en]
+-lang Specify two-letter language code: en, fr, es, or da [en]
 -paraline
       File is in one-paragraph-per-line format [no]
 

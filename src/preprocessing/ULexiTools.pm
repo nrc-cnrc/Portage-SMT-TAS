@@ -8,7 +8,6 @@
 # See http://iit-iti.nrc-cnrc.gc.ca/locations-bureaux/gatineau_e.html
 
 
-# $Id$
 #
 # LexiTools.pm
 # PROGRAMMER: George Foster / UTF-8 adaptation by Michel Simard / Eric Joanis / Samuel Larkin
@@ -38,7 +37,7 @@ our (@ISA, @EXPORT);
 @EXPORT = (
    "get_para", "tokenize", "split_sentences",
    "get_tokens", "get_token", "get_collapse_token",
-   "matches_known_abbr_en", "matches_known_abbr_fr", "matches_known_abbr_es",
+   "matches_known_abbr_en", "matches_known_abbr_fr", "matches_known_abbr_es", "matches_known_abbr_da",
    "good_turing_estm", "get_sentence",
    "setDetokenizationLang", "detokenize", "detokenize_array"
 );
@@ -56,9 +55,11 @@ sub len(\$); #(string)
 my %known_abbr_hash_en;
 my %known_abbr_hash_fr;
 my %known_abbr_hash_es;
+my %known_abbr_hash_da;
 my %short_stops_hash_en;
 my %short_stops_hash_fr;
 my %short_stops_hash_es;
+my %short_stops_hash_da;
 
 # Single quotes: ascii ` and ', cp-1252 145 (U+2018) and 146 (U+2019), cp-1252/iso-8859-1 180
 my $apostrophes = quotemeta("\`\'‘’´");
@@ -119,6 +120,10 @@ my @known_abbrs_fr = qw {
 # mm.      39            126        700
 my @known_abbrs_es = qw {
    av avda c d da dr dra esq gob gral ing lic prof profa sr sra srta st
+};
+
+my @known_abbrs_da = qw {
+   hr frk frøken fr fru
 };
 
 # short words and abbreviation-like words that can end a sentence
@@ -185,13 +190,22 @@ my @short_stops_es = qw {
    si ss sé sí ti tv ue uu va ve vi xx ya yo él 
 };
 
+my @short_stops_da = qw {
+   æf æg af åg al ål am ar år at bb bi bo cd cm co cv da de dø dr
+   ed eg ej el en én er et ét få fe ff fr µg gå gr hk hl hu ii iv
+   ja jf jo jr km ko kø lå le ly µm må mg ml mm mø mr mv nå næ ni nr nu ny
+   og øl om op os på pt rå ro ry så si sø sr tå tb te ti ud ug ve vi vu
+};
+
 # funky hash initializations...
 @known_abbr_hash_en{@known_abbrs_en} = (1) x @known_abbrs_en;
 @known_abbr_hash_fr{@known_abbrs_fr} = (1) x @known_abbrs_fr;
 @known_abbr_hash_es{@known_abbrs_es} = (1) x @known_abbrs_es;
+@known_abbr_hash_da{@known_abbrs_da} = (1) x @known_abbrs_da;
 @short_stops_hash_en{@short_stops_en} = (1) x @short_stops_en;
 @short_stops_hash_fr{@short_stops_fr} = (1) x @short_stops_fr;
 @short_stops_hash_es{@short_stops_es} = (1) x @short_stops_es;
+@short_stops_hash_da{@short_stops_da} = (1) x @short_stops_da;
 
 # Get the next paragraph from a file. Return: text in para (including trailing
 # markup, if any)
@@ -245,6 +259,13 @@ sub tokenize #(paragraph, lang, notok, pretok)
    } elsif ($lang eq "es") {
       $split_word = \&split_word_es;
       $matches_known_abbr = \&matches_known_abbr_es;
+   } elsif ($lang eq "da") {
+      $split_word = \&split_word_da;
+      $matches_known_abbr = \&matches_known_abbr_da;
+      $leftquotes  = quotemeta("»›„“‚");
+      $rightquotes = quotemeta("«‹“”‘");
+      $splitleft   = qr/[\"»›„“‚\$\#¡¿]|[$hyphens]+|‘‘?|\'\'?|\`\`?/;
+      $splitright  = qr/\.{2,}|[\"«‹“”‘!,:;\?%.]|[$hyphens]+|’’?|\'\'?|´´?|…/;
    }
    else {die "unknown lang in tokenizer: $lang";}
 
@@ -478,6 +499,15 @@ sub matches_known_abbr_es #(word)
    return $known_abbr_hash_es{lc($word)} ? 1 : 0;
 }
 
+# Determine if a word matches a Danish known abbreviation.
+
+sub matches_known_abbr_da #(word)
+{
+   my $word = shift;
+   $word =~ s/[.]//go;
+   return $known_abbr_hash_da{lc($word)} ? 1 : 0;
+}
+
 # Does the current token look like it is an abbreviation?
 
 sub looks_like_abbr($\$$\@) # (lang, para_string, index_of_abbr, token_positions)
@@ -502,6 +532,8 @@ sub looks_like_abbr($\$$\@) # (lang, para_string, index_of_abbr, token_positions
       if (exists($short_stops_hash_fr{lc($word)})) {return 0;}
    } elsif ($lang eq "es") {
       if (exists($short_stops_hash_es{lc($word)})) {return 0;}
+   } elsif ($lang eq "da") {
+      if (exists($short_stops_hash_da{lc($word)})) {return 0;}
    }
    else {die "unknown lang in tokenizer: $lang";}
    return 1;
@@ -659,6 +691,23 @@ sub split_word_es #(word, offset)
    return @atom_positions;
 }
 
+# Split an Danish word into parts, eg ?????
+# Return list of (start,len) atom positions.
+
+sub split_word_da #(word, offset)
+{
+   my $word = shift;
+   my $os = shift || 0;
+   my @atom_positions = ();
+
+   if ($word !~ /^it[$apostrophes]s/i && $word =~ /^([[:alpha:]]+)([$apostrophes][Ss])$/o) {
+      push(@atom_positions, $os, len($1), $os+len($1), len($2));
+   } else {
+      push(@atom_positions, $os, len($word));
+   }
+   return @atom_positions;
+}
+
 # Return length of a possibly-undefined string.
 
 sub len(\$) #(string)
@@ -694,11 +743,35 @@ my ($word_pre, $word_before, $word_after);
 my @double_quote=();
 my @single_quote=();
 my @out_sentence;
+my $detok_left_bracket;
+my $detok_right_bracket;
+
 
 my $detokenizationLang;
 sub setDetokenizationLang($) # Two letters language id
 {
    $detokenizationLang = shift or die "You must provide a detokenization language id.";
+   #print ref($detokenizationLang), "\n";
+   if ($detokenizationLang eq "es") {
+      $detok_left_bracket  = quotemeta("[({“‘`¡¿");
+      $detok_right_bracket = quotemeta("])}”’´!?");
+   }
+   elsif ($detokenizationLang eq "da") {
+      # NOTE: there is ambiguity for <“> which could probably be resolved by
+      # keeping track of the opening quote for that pair „…“ or “…”.
+      $detok_left_bracket  = quotemeta("[({»›„“‚");
+      $detok_right_bracket = quotemeta("])}«‹“”‘");
+   }
+   else {
+      # Includes left double and single quotes, since they require the same
+      # treatment as brackets
+      # Excludes < and ‹ since we don't split them in utokenize.pl
+      $detok_left_bracket = quotemeta("[({“‘`");
+      # Includes right double and single quotes, since they require the same
+      # treatment as brackets
+      # Excludes > and › since we don't split them in utokenize.pl
+      $detok_right_bracket = quotemeta("])}”’´");
+   }
 }
 
 sub detokenize(\$) # Sentence to be detokenized
@@ -722,10 +795,8 @@ sub detokenize_array(\@) # Ref Array containing words of sentence to be detokeni
 
    # Reset global array.
    $#out_sentence=-1;
-   my $delme = 0;
    while( defined (my $word_pre=shift @$tokens_ref) )
    {
-      ++$delme;
       if ($word_pre eq "..") {$word_pre = "...";}
 
       if( $#out_sentence == -1 ){ # first word just push in
@@ -892,6 +963,7 @@ sub process_quote #ch1 ,ch2
       }
    }
 }
+
 sub check_quote #$ch
 {
    my $ch_pre=shift;
@@ -912,11 +984,13 @@ sub check_quote #$ch
       }
    }
 }
+
 sub is_quote # ch
 {
    my $ch_pre=shift;
    return is_double_quote($ch_pre) || is_single_quote($ch_pre);
 }
+
 sub is_double_quote # $ch
 {
    my $ch_pre=shift;
@@ -941,6 +1015,7 @@ sub is_single_quote # $ch
    # out: we treat them as brackets instead, since they are left/right specific
    return ((defined $ch_pre)&&($ch_pre eq "'"));
 }
+
 sub double_quote_not_empty
 {
    return ( $#double_quote>= 0);
@@ -950,11 +1025,13 @@ sub single_quote_not_empty
 {
    return ( $#single_quote>= 0);
 }
+
 sub is_special # $var1
 {
    my $ch=shift;
    return (is_bracket($ch) || is_punctuation($ch) );
 }
+
 sub is_punctuation # $var1
 {
    my $ch_pre=shift;
@@ -969,26 +1046,23 @@ sub is_punctuation # $var1
       return $ch_pre =~ m/^[,.:!?;]$/;
    }
 }
+
 sub is_bracket # $ch
 {
    my $ch_pre=shift;
    return ( is_left_bracket($ch_pre) || is_right_bracket($ch_pre) );
 }
+
 sub is_left_bracket # $ch
 {
    my $ch=shift;
-   # Includes left double and single quotes, since they require the same
-   # treatment as brackets
-   # Excludes < and ‹ since we don't split them in utokenize.pl
-   return ( $detokenizationLang eq "es" ? ($ch =~ m/^[[({“‘`¡¿]$/) : ($ch =~ m/^[[({“‘`]$/) );
+   return ($ch =~ /^[$detok_left_bracket]$/o);
 }
+
 sub is_right_bracket #ch
 {
    my $ch=shift;
-   # Includes right double and single quotes, since they require the same
-   # treatment as brackets
-   # Excludes > and › since we don't split them in utokenize.pl
-   return ( $detokenizationLang eq "es" ? ($ch =~ m/^[])}”’´!?]$/) : ($ch =~ m/^[])}”’´]$/) );
+   return ($ch =~ /^[$detok_right_bracket]$/o);
 }
 
 sub is_prefix # ch
@@ -1016,7 +1090,7 @@ sub process_poss # ch1, ch2
 sub is_poss # ch
 {
    my $ch=shift;
-   return ($detokenizationLang eq "en" &&
+   return (($detokenizationLang eq "en" or $detokenizationLang eq "da") &&
            $ch =~ /^${apos}s/oi);
 }
 
