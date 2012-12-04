@@ -233,12 +233,12 @@ int main(int argc, char* argv[])
 
    if (verbose) {
       cerr << nphrases << " phrases written, total count = " << totfreq
-           << ", ppx = " << exp(-ll / (2 * nphrases)) << endl;
+           << ", ppx = " << exp(-ll / (2 * totfreq)) << endl;
    }
    if (eval.size()) {
       cerr << "eval file " << eval << ": " 
            << nphrases_eval << "/" << nphrases_eval_tot << " phrases used, total count = "
-           << totfreq_eval << ", ppx = " << exp(-ll_eval / (2 * nphrases_eval)) << endl;
+           << totfreq_eval << ", ppx = " << exp(-ll_eval / (2 * totfreq_eval)) << endl;
    }
 }
 
