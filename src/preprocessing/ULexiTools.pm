@@ -7,9 +7,6 @@
 # Conseil national de recherches Canada / National Research Council Canada
 # See http://iit-iti.nrc-cnrc.gc.ca/locations-bureaux/gatineau_e.html
 
-
-# $Id$
-#
 # LexiTools.pm
 # PROGRAMMER: George Foster / UTF-8 adaptation by Michel Simard / Eric Joanis / Samuel Larkin
 #             / Adding Spanish Samuel Larkin
@@ -47,6 +44,7 @@ our (@ISA, @EXPORT);
 sub get_token(\$$\@); #(para_string, index, token_positions)
 sub tok_abuts_prev($\@); #(index, token_positions)
 sub tok_is_dot(\$$\@); #(para_string, index, token_positions)
+sub tok_is_xtag(\$$\@); #($para_string, index, token_positions)
 sub context_says_abbr(\$$\@); #($para_string, index_of_dot, token_positions)
 sub looks_like_abbr($\$$\@); # (lang, para_string, index_of_abbr, token_positions)
 sub len(\$); #(string)
@@ -61,6 +59,8 @@ my %short_stops_hash_en;
 my %short_stops_hash_fr;
 my %short_stops_hash_es;
 my %short_stops_hash_da;
+
+my $debug_xtags = 0;
 
 # Single quotes: ascii ` and ', cp-1252 145 (U+2018) and 146 (U+2019), cp-1252/iso-8859-1 180
 my $apostrophes = quotemeta("\`\'‘’´");
@@ -188,7 +188,7 @@ my @short_stops_fr = qw {
 #   él     134           8626       42908
 my @short_stops_es = qw {
    al ap at cc ce cp da ed ee ep es eu fe ff gm ii ir iu iv mw mí no pc pp se
-   si ss sé sí ti tv ue uu va ve vi xx ya yo él 
+   si ss sé sí ti tv ue uu va ve vi xx ya yo él
 };
 
 my @short_stops_da = qw {
@@ -243,11 +243,12 @@ sub get_para #(\*FILEHANDLE, $one_para_per_line)
 
 # EJJ note: can't use the signature (\$$) here, because $para is modified in
 # this method, and we don't want the changes reflected for the caller.
-sub tokenize #(paragraph, lang, notok, pretok)
+sub tokenize #(paragraph, lang, pretok, xtags)
 {
    my $para = shift;
    my $lang = shift || "en";
    my $pretok = shift || 0;
+   my $xtags = shift || 1;
    my @tok_posits = ();
 
    my ($split_word, $matches_known_abbr);
@@ -277,7 +278,16 @@ sub tokenize #(paragraph, lang, notok, pretok)
    # even if it's represented differently in utf-8!)
    $para =~ s/\xA0/ /g;
 
-   while ($para =~ /(<[^>]+>)|([[:^space:]]+)/go) {
+   my $token_re = $xtags ?
+      # closer to "proper" XML markup parsing, will parse correctly formed
+      # XML tags correctly, unbalanced > is taken literally, as per XML
+      # specifications, unbalanced < should be rejected, but is parsed as a
+      # stand-alone token because we don't want the Portage pipeline to crash.
+      qr/(<[^>]+>)|(<|[^<[:space:]]+)/ :
+      # In non-XML mode, tags in angle braces are recognized and protected, as
+      # long as they are preceded by whitespace.
+      qr/(<[^>]+>)|([[:^space:]]+)/;
+   while ($para =~ /$token_re/g) {
       if (defined $1) {
          push(@tok_posits, pos($para)-len($1), len($1)); # markup
       } elsif ($pretok) {
@@ -292,21 +302,167 @@ sub tokenize #(paragraph, lang, notok, pretok)
          }
       }
    }
-   
-   return @tok_posits if ($pretok);
 
    # Merge trailing dots with previous tokens if called for
-   for (my $i = 0; $i < $#tok_posits; $i += 2) {
-      if (tok_is_dot($para, $i, @tok_posits) && tok_abuts_prev($i, @tok_posits)) {
-         if (context_says_abbr($para, $i, @tok_posits) ||
-               &$matches_known_abbr(get_token($para, $i-2, @tok_posits)) ||
-               looks_like_abbr($lang, $para, $i-2, @tok_posits)) {
-            $tok_posits[$i-1]++;
-            splice(@tok_posits, $i, 2);
-            $i -= 2;    # account for splice
+   if (!$pretok) {
+      for (my $i = 0; $i < $#tok_posits; $i += 2) {
+         if (tok_is_dot($para, $i, @tok_posits) && tok_abuts_prev($i, @tok_posits)) {
+            if (context_says_abbr($para, $i, @tok_posits) ||
+                  &$matches_known_abbr(get_token($para, $i-2, @tok_posits)) ||
+                  looks_like_abbr($lang, $para, $i-2, @tok_posits)) {
+               $tok_posits[$i-1]++;
+               splice(@tok_posits, $i, 2);
+               $i -= 2;    # account for splice
+            }
          }
       }
    }
+
+
+   if ($xtags) {
+      setDetokenizationLang($lang); # We use some functions from the detokenizer
+      for (my $i = 0; $i < $#tok_posits;) {
+         my $j = $i+2;
+         for (; $j < $#tok_posits; $j += 2) {
+            last unless tok_abuts_prev($j, @tok_posits)
+         }
+         if ($j == $i + 2) {
+            $i += 2;
+            next;
+         }
+         # Now we know tokens [$i, $j) abut each other
+         my @open_stack;
+         my @left_tags;
+         my @right_tags;
+         my @inner_tags;
+         my $found_non_tag = 0;
+         for (my $k = $i; $k < $j; $k += 2) {
+            if (tok_is_xtag($para, $k, @tok_posits)) {
+               if ($found_non_tag) {
+                  push @right_tags, $k;
+               } else {
+                  push @left_tags, $k;
+               }
+            } else {
+               $found_non_tag = 1;
+               if (@right_tags) {
+                  push @inner_tags, @right_tags;
+                  @right_tags = ();
+               }
+            }
+         }
+         my @inner_matched = (0) x scalar(@inner_tags);
+         FOR_INNER_I: for (my $inner_i = 0; $inner_i <= $#inner_tags; ++$inner_i) {
+            next if ($inner_matched[$inner_i]); # already found match, no need to look again.
+            my $tag = get_token($para, $inner_tags[$inner_i], @tok_posits);
+            if ($tag =~ /^<([a-z]+)[^>]*>$/i) { # Opening tag
+               my $tagname = $1;
+               # tag is opening tag, see if it's closed later in the same string
+               for (my $inner_j = $inner_i+1; $inner_j <= $#inner_tags; ++$inner_j) {
+                  my $othertag = get_token($para, $inner_tags[$inner_j], @tok_posits);
+                  if ($othertag =~ m#^</$tagname>$#) {
+                     $inner_matched[$inner_i] = $inner_matched[$inner_j] = 1;
+                     next FOR_INNER_I;
+                  }
+               }
+               for (my $right_j = 0; $right_j <= $#right_tags; ++$right_j) {
+                  my $othertag = get_token($para, $right_tags[$right_j], @tok_posits);
+                  if ($othertag =~ m#^</$tagname>$#) {
+                     $inner_matched[$inner_i] = 1;
+                     next FOR_INNER_I;
+                  }
+               }
+            } elsif ($tag =~ /^<\/([a-z]+)>$/i) { # Closing tag
+               my $tagname = $1;
+               # tag is closing tag, see if it's opened earlier in the same string
+               for (my $inner_j = 0; $inner_j < $inner_i; ++$inner_j) {
+                  my $othertag = get_token($para, $inner_tags[$inner_j], @tok_posits);
+                  if ($othertag =~ /^<$tagname\b[^>]*>$/) {
+                     $inner_matched[$inner_i] = $inner_matched[$inner_j] = 1;
+                     next FOR_INNER_I;
+                  }
+               }
+               for (my $left_j = 0; $left_j <= $#left_tags; ++$left_j) {
+                  my $othertag = get_token($para, $left_tags[$left_j], @tok_posits);
+                  if ($othertag =~ /^<$tagname\b[^>]*>$/) {
+                     $inner_matched[$inner_i] = 1;
+                     next FOR_INNER_I;
+                  }
+               }
+            }
+         }
+
+         if ($debug_xtags) {
+            print STDOUT "LEFT: @left_tags  INNER: @inner_tags  RIGHT: @right_tags\n";
+            print STDOUT "INNER MATCHES: @inner_matched\n";
+            print STDOUT "BEFORE: ", get_token($para, $i, @tok_posits);
+            for (my $k = $i+2; $k < $j; $k += 2) {
+               print STDOUT " | ", get_token($para, $k, @tok_posits);
+            }
+            print STDOUT "\n";
+         }
+
+         # If all inner tags are matched, glue the whole thing back as one token
+         if (@inner_tags && !grep {$_ == 0} @inner_matched) {
+            # But leave out punctuation at either end of the string
+            my $merge_start = $i;
+            while (1) {
+               my $token = get_token($para, $merge_start, @tok_posits);
+               if (is_punctuation($token) || is_bracket($token)) {
+                  $merge_start += 2;
+               } else {
+                  last;
+               }
+            }
+            die unless $merge_start < $j;
+            my $merge_end = $j;
+            while (1) {
+               my $token = get_token($para, $merge_end-2, @tok_posits);
+               if (is_punctuation($token) || is_bracket($token)) {
+                  $merge_end -= 2;
+               } else {
+                  last;
+               }
+            }
+            die unless $merge_end > $merge_start;
+
+            for (my $k = $merge_start + 2; $k < $merge_end; $k += 2) {
+               $tok_posits[$merge_start+1] += $tok_posits[$k+1];
+            }
+            splice(@tok_posits, $merge_start+2, $merge_end-$merge_start-2);
+            $j -= $merge_end - $merge_start - 2;
+            @left_tags = @right_tags = ();
+         }
+
+         # glue the right tags back on, if any
+         if (@right_tags) {
+            my $k = $right_tags[0]-2;
+            for (@right_tags) {
+               $tok_posits[$k+1] += $tok_posits[$_+1];
+            }
+            splice(@tok_posits, $k+2, 2*scalar(@right_tags));
+            $j -= 2*scalar(@right_tags);
+         }
+         # glue the left tags back on, if any
+         if (@left_tags) {
+            die unless $left_tags[0] == $i;
+            for (@left_tags) {
+               $tok_posits[$i+1] += $tok_posits[$_+2+1];
+            }
+            splice(@tok_posits, $i+2, 2*scalar(@left_tags));
+            $j -= 2*scalar(@left_tags);
+         }
+         if ($debug_xtags) {
+            print STDOUT "AFTER: ", get_token($para, $i, @tok_posits);
+            for (my $k = $i+2; $k < $j; $k += 2) {
+               print STDOUT " | ", get_token($para, $k, @tok_posits);
+            }
+            print STDOUT "\n";
+         }
+         $i = $j;
+      }
+   }
+
    return @tok_posits;
 }
 
@@ -377,7 +533,7 @@ sub get_token(\$$\@) #(para_string, index, token_positions)
 # hyphens and elipsis collapse.
 # Return a string.
 
-sub get_collapse_token(\$$\@$) #(para_string, index, token_positions)
+sub get_collapse_token(\$$\@$) #(para_string, index, token_positions, nocollapse)
 {
    my $string = shift;
    my $index = shift;
@@ -433,6 +589,16 @@ sub tok_is_dot(\$$\@) #($para_string, index, token_positions)
           get_token($$string, $index, @$token_positions) eq ".";
 }
 
+sub tok_is_xtag(\$$\@) #($para_string, index, token_positions)
+{
+   my $string = shift;
+   my $index = shift;
+   my $token_positions = shift;
+   return $token_positions->[$index+1] > 2 &&
+          get_token($$string, $index, @$token_positions) =~ /^<[^>]*>/;
+}
+
+
 # Is there hard evidence from upcoming tokens (ignoring the current one), that
 # we should treat current word + "." combo as an abbr (ie tokenize as
 # "word.")?
@@ -467,7 +633,7 @@ sub context_says_abbr(\$$\@) #($para_string, index_of_dot, token_positions)
    } elsif ($tok =~ /^[¡¿]$/) {
       # TODO: what if UU.EE. ¿a question?
       # Let's assume that this is not a mid sentence question even if it is allowed in spanish.
-      return 0;  
+      return 0;
    } else {
       return $tok !~ /^[[:upper:]]/o;   # next real word not cap'd
    }
@@ -583,11 +749,16 @@ sub split_punc #(string, offset[0])
          push(@atoms, split_punc(substr($tok, len($1)), $offset+len($1)));
       }
    } elsif ($tok =~ /($splitright)$/o) {
-      my $l1 = $tok_len - len($1);
-      if ($l1 > 0) {
-         push(@atoms, split_punc(substr($tok, 0, $l1), $offset));
+      if ($1 eq ";" and $tok =~ /&[a-z]+;$/i) {
+         # Leave a trailing ; intact when it looks like an XML entity
+         push(@atoms, $offset, $tok_len);
+      } else {
+         my $l1 = $tok_len - len($1);
+         if ($l1 > 0) {
+            push(@atoms, split_punc(substr($tok, 0, $l1), $offset));
+         }
+         push(@atoms, $offset+$l1, $tok_len - $l1);
       }
-      push(@atoms, $offset+$l1, $tok_len - $l1);
    }
    # next 4 clauses do this:  abc) -> abc )
    #                but this: ab(c) -> ab(c)

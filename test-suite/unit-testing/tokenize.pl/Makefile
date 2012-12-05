@@ -37,7 +37,7 @@ ch-punc: $(foreach EXT, 000 001 010 011 100 101 110 111, compare.chinese-punc.de
 .PHONY: en-prices
 en-prices: compare.eng-prices.detok compare.eng-prices.detok.utf8
 
-TEMP_FILES=accent.* hyphens.* periods.* chinese-punc.* eng-prices.* es.*
+TEMP_FILES=accent.* hyphens.* periods.* chinese-punc.* eng-prices.* es.* xtags.*
 include ../Makefile.incl
 
 accent.utf8: accent
@@ -227,3 +227,14 @@ es.tok: es.source
 es.detok: es.tok
 	udetokenize.pl -lang=es < $< | tee $@
 
+
+
+################################################################################
+# Handling tags
+test: tags
+
+.PHONY: tags
+tags: compare.xtags.tok
+
+xtags.tok: xtags
+	utokenize.pl -noss -xtags < $< | tee $@

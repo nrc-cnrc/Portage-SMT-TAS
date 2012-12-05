@@ -1,7 +1,5 @@
 #!/usr/bin/perl -sw
 
-# $Id$
-#
 # @file utokenize.pl
 # @brief Tokenize and sentence split UTF-8 text.
 #
@@ -61,6 +59,7 @@ Options:
 -lang Specify two-letter language code: en, fr, es, or da [en]
 -paraline
       File is in one-paragraph-per-line format [no]
+-xtags Handle XML tags from TMX and SDLXLIFF file formats [don't]
 
 Caveat:
 
@@ -74,9 +73,14 @@ Caveat:
   one-sentence-per-line, use -noss, otherwise your sentence breaks will be
   modified in ways that are almost certainly undesirable.
 
+  Without -xtags, basic tag handling is still available: strings that match
+  / <[^>]+>/ will be left untouched.  With -xtags, mid-token tags are also
+  supported, and attempts are made to do tokenization as if the tags were not
+  really there, while not actually stripping any tags out.
+
 ";
 
-our ($help, $h, $lang, $v, $p, $ss, $noss, $paraline, $notok, $pretok);
+our ($help, $h, $lang, $v, $p, $ss, $noss, $paraline, $notok, $pretok, $xtags);
 
 if ($help || $h) {
    print $HELP;
@@ -90,6 +94,7 @@ $noss = 0 unless defined $noss;
 $notok = 0 unless defined $notok;
 $pretok = 0 unless defined $pretok;
 $paraline = 0 unless defined $paraline;
+$xtags = 0 unless defined $xtags;
  
 my $in = shift || "-";
 my $out = shift || "-";
@@ -126,21 +131,17 @@ select(OUT); $| = 1;
 while (1)
 {
    my $para;
-   if ($noss)
-   {
-      unless (defined($para = <IN>))
-      {
+   if ($noss) {
+      unless (defined($para = <IN>)) {
          last;
       }
-   } else
-   {
-      unless ($para = get_para(\*IN, $paraline))
-      {
+   } else {
+      unless ($para = get_para(\*IN, $paraline)) {
          last;
       }
    }
 
-   my @token_positions = tokenize($para, $lang, $pretok);
+   my @token_positions = tokenize($para, $lang, $pretok, $xtags);
    my @sent_positions = split_sentences($para, @token_positions) unless ($noss);
 
    if ($notok || $pretok) {
