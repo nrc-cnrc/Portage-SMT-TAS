@@ -32,3 +32,5 @@ out.%: in.%
 
 TEMP_FILES=out.* in.latin1 ref/out.latin1
 include ../Makefile.incl
+gitignore:
+	echo ref/out.latin1 >> .gitignore

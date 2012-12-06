@@ -915,11 +915,35 @@ my ($word_pre, $word_before, $word_after);
 my @double_quote=();
 my @single_quote=();
 my @out_sentence;
+my $detok_left_bracket;
+my $detok_right_bracket;
+
 
 my $detokenizationLang;
 sub setDetokenizationLang($) # Two letters language id
 {
    $detokenizationLang = shift or die "You must provide a detokenization language id.";
+   #print ref($detokenizationLang), "\n";
+   if ($detokenizationLang eq "es") {
+      $detok_left_bracket  = quotemeta("[({“‘`¡¿");
+      $detok_right_bracket = quotemeta("])}”’´!?");
+   }
+   elsif ($detokenizationLang eq "da") {
+      # NOTE: there is ambiguity for <“> which could probably be resolved by
+      # keeping track of the opening quote for that pair „…“ or “…”.
+      $detok_left_bracket  = quotemeta("[({»›„“‚");
+      $detok_right_bracket = quotemeta("])}«‹“”‘");
+   }
+   else {
+      # Includes left double and single quotes, since they require the same
+      # treatment as brackets
+      # Excludes < and ‹ since we don't split them in utokenize.pl
+      $detok_left_bracket = quotemeta("[({“‘`");
+      # Includes right double and single quotes, since they require the same
+      # treatment as brackets
+      # Excludes > and › since we don't split them in utokenize.pl
+      $detok_right_bracket = quotemeta("])}”’´");
+   }
 }
 
 sub detokenize(\$) # Sentence to be detokenized
@@ -943,10 +967,8 @@ sub detokenize_array(\@) # Ref Array containing words of sentence to be detokeni
 
    # Reset global array.
    $#out_sentence=-1;
-   my $delme = 0;
    while( defined (my $word_pre=shift @$tokens_ref) )
    {
-      ++$delme;
       if ($word_pre eq "..") {$word_pre = "...";}
 
       if( $#out_sentence == -1 ){ # first word just push in
@@ -1113,6 +1135,7 @@ sub process_quote #ch1 ,ch2
       }
    }
 }
+
 sub check_quote #$ch
 {
    my $ch_pre=shift;
@@ -1133,11 +1156,13 @@ sub check_quote #$ch
       }
    }
 }
+
 sub is_quote # ch
 {
    my $ch_pre=shift;
    return is_double_quote($ch_pre) || is_single_quote($ch_pre);
 }
+
 sub is_double_quote # $ch
 {
    my $ch_pre=shift;
@@ -1162,6 +1187,7 @@ sub is_single_quote # $ch
    # out: we treat them as brackets instead, since they are left/right specific
    return ((defined $ch_pre)&&($ch_pre eq "'"));
 }
+
 sub double_quote_not_empty
 {
    return ( $#double_quote>= 0);
@@ -1171,11 +1197,13 @@ sub single_quote_not_empty
 {
    return ( $#single_quote>= 0);
 }
+
 sub is_special # $var1
 {
    my $ch=shift;
    return (is_bracket($ch) || is_punctuation($ch) );
 }
+
 sub is_punctuation # $var1
 {
    my $ch_pre=shift;
@@ -1190,26 +1218,23 @@ sub is_punctuation # $var1
       return $ch_pre =~ m/^[,.:!?;]$/;
    }
 }
+
 sub is_bracket # $ch
 {
    my $ch_pre=shift;
    return ( is_left_bracket($ch_pre) || is_right_bracket($ch_pre) );
 }
+
 sub is_left_bracket # $ch
 {
    my $ch=shift;
-   # Includes left double and single quotes, since they require the same
-   # treatment as brackets
-   # Excludes < and ‹ since we don't split them in utokenize.pl
-   return ( $detokenizationLang eq "es" ? ($ch =~ m/^[[({“‘`¡¿]$/) : ($ch =~ m/^[[({“‘`]$/) );
+   return ($ch =~ /^[$detok_left_bracket]$/o);
 }
+
 sub is_right_bracket #ch
 {
    my $ch=shift;
-   # Includes right double and single quotes, since they require the same
-   # treatment as brackets
-   # Excludes > and › since we don't split them in utokenize.pl
-   return ( $detokenizationLang eq "es" ? ($ch =~ m/^[])}”’´!?]$/) : ($ch =~ m/^[])}”’´]$/) );
+   return ($ch =~ /^[$detok_right_bracket]$/o);
 }
 
 sub is_prefix # ch
@@ -1237,7 +1262,7 @@ sub process_poss # ch1, ch2
 sub is_poss # ch
 {
    my $ch=shift;
-   return ($detokenizationLang eq "en" &&
+   return (($detokenizationLang eq "en" or $detokenizationLang eq "da") &&
            $ch =~ /^${apos}s/oi);
 }
 

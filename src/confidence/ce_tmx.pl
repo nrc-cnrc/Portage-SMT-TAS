@@ -489,7 +489,7 @@ sub replaceTransUnit {
       debug("Confidence estimation for %s: CE=%s %s\n", $xid, defined $ce ? $ce : "undef", $parser->{filter} ? $parser->{filter} : "undef");
       $sdl_seg->del_att('percent');       # Make sure there is no previous value for the attribut percent.
       if ($parser->{score} and defined($ce)) {
-         $ce  = 0 if ($ce < 0);
+         $ce = 0 if ($ce < 0);
          $ce = 1 if ($ce > 1);
          $sdl_seg->{att}->{'percent'} = sprintf("%.0f", 100*$ce);  # %.0f will properly round numbers.
       }

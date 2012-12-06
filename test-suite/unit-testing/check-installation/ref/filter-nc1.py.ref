@@ -1,7 +1,3 @@
-
-filter-nc1.py, NRC-CNRC, (c) 2011, Her Majesty in Right of Canada
-Please run "portage_info -notice" for Copyright notices of 3rd party libraries.
-
 usage: filter-nc1.py [options] [infile [outfile]]
 
 Filter out words up to the first cased word inclusive (if title cased) in

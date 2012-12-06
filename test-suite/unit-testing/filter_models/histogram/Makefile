@@ -9,6 +9,9 @@
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
 
+# Stabilize the output
+export PORTAGE_INTERNAL_CALL=1
+
 all: multi.probs.no-src-grep.gz multi.probs.src.gz
 	diff --ignore-matching 'Her Majesty' --ignore-matching 'one in' log.multi.probs.no-src-grep log.multi.probs.no-src-grep.ref
 	diff --ignore-matching 'Her Majesty' --ignore-matching 'one in' log.multi.probs.src log.multi.probs.src.ref

@@ -2,8 +2,6 @@
  * @author Aaron Tikuisis / George Foster / Samuel Larkin / Eric Joanis
  * @file featurefunction.h  K-Best Rescoring Module - Sets of Feature functions
  *
- * $Id$
- *
  * This class was moved out of featurefunction.h to remove spurious
  * dependencies that slowed down compiling.
  *
@@ -79,7 +77,7 @@ public:
    /// Information for each feature function in this set.
    /// We also internally keep the commented feature function to reinsert them
    /// in the outputed model.
-   struct FF_INFO : public vector<ff_info>
+   struct FF_INFOS : public vector<ff_info>
    {
       /// Keeps track of the commented feature functions in the model
       vector<ff_info>  commented_ff;

@@ -1,8 +1,4 @@
-cow.sh, NRC-CNRC, (c) 2004 - 2011, Her Majesty in Right of Canada
-Please run "portage_info -notice" for Copyright notices of 3rd party libraries.
-
 
 Usage: cow.sh [-v] [-Z] [-nbest-list-size N] [-maxiter MAX]
        [-filt] [-ttable-limit T] [-filt-no-ttable-limit] [-lb|-no-lb]
        [-floor index|-nofloor] [-model MODEL] [-mad SEED] [-e] [-path P]
-       [-s SEED] [-nr] [-micro M] [-microsm S] [-micropar N]
