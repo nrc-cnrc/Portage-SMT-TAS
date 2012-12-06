@@ -184,7 +184,8 @@ elsif ($action eq 'replace') {
    die "No such directory: $dir" unless -d $dir;
 
    my $ce_file = (-r "${dir}/pr.ce") ? "${dir}/pr.ce" : undef;
-   my $ix = ixLoad("${dir}/P.txt", "${dir}/P.tags", "${dir}/Q.ix", $ce_file);
+   my $tags_file = (-r "${dir}/P.tags") ? "${dir}/P.tags" : undef;
+   my $ix = ixLoad("${dir}/P.txt", $tags_file, "${dir}/Q.ix", $ce_file);
 
    open(my $xml_out, ">${output_layers}", "${dir}/QP.xml")
       or die "Can open output xml_out file";
@@ -255,19 +256,18 @@ sub processFile {
 # If this xml file is a tmx, set the proper handlers for it.
 sub processTMX {
    my ($parser, $elt) = @_;
-   $parser->setTwigHandlers( {
-      tu  => \&processTU,
-      ph  => \&processNativeCode,
-      bpt => \&processNativeCode,
-      ept => \&processNativeCode,
-      it  => \&processNativeCode,
-      hi  => \&processHI,
-      } );
-   $parser->{InputFormat} = 'tmx';
+
    if($parser->{action} eq 'extract') {
       open($parser->{xml_out}, ">${output_layers}", $parser->{xml_out_name})
          or die "Can open output xml_out file";
+      $parser->setTwigHandlers( { tu => \&processTU, } );
    }
+   else {
+      # NOTE: we should NOT change the source segment thsu we should NOT have to unwrapped element in the source segment.
+      $parser->setTwigHandlers( { tu => \&replaceTU, } );
+   }
+
+   $parser->{InputFormat} = 'tmx';
 }
 
 use File::Copy;
@@ -308,6 +308,43 @@ sub processXLIFF {
    $parser->{InputFormat} = 'sdlxliff';
 }
 
+
+
+sub wrapSelfClosingTag {
+   my ($parser, $elt) = @_;
+   XML::Twig::Elt->new(tag_wrap => { content => $elt->sprint})->replace($elt);
+}
+
+
+sub wrapOpeningTag {
+   my ($parser, $elt) = @_;
+   XML::Twig::Elt->new(open_wrap => {
+        id => $elt->{att}->{i},
+        content => $elt->sprint,
+        })->replace($elt);
+}
+
+
+sub wrapClosingTag {
+   my ($parser, $elt) = @_;
+   XML::Twig::Elt->new(close_wrap => {
+        id => $elt->{att}->{i},
+        content => $elt->sprint,
+        })->replace($elt);
+}
+
+
+sub unWrapTag {
+   my ($parser, $elt) = @_;
+   my $content = $elt->{att}->{content};
+   if ($content) {
+      #print STDERR "CONTENT: ", $content, "\n";
+      $elt->parse($content)->replace($elt);
+   }
+   else {
+      die "Invalid wrapper tag format.\n";
+   }
+}
 
 
 sub processNativeCode {
@@ -412,10 +449,10 @@ sub processTransUnit {
    my $mrk_id = 0;
    my @mrks = $source->descendants('mrk[@mtype="seg"]') or warn "Can't find any mrk for $trans_unit_id\n\tcontent:", $source->xml_string, "\n";
    foreach my $mrk (@mrks) {
-      my $src_sub = $mrk->text();
-      veryVerbose("\tMRK: %s\n", $src_sub);
+      my $mrk_text = $mrk->text();
+      veryVerbose("\tMRK: %s\n", $mrk_text);
       my $id =  "$trans_unit_id." . (defined($mrk->{att}{mid}) ? $mrk->{att}{mid} : $mrk_id++);
-      $parser->{seg_id} = ixAdd($parser->{ix}, $src_sub, $mrk->xml_string(), $id);
+      $parser->{seg_id} = ixAdd($parser->{ix}, $mrk_text, $mrk->xml_string(), $id);
       $parser->{seg_count}++;
    }
 
@@ -448,7 +485,7 @@ sub replaceTransUnit {
    my $sdl_defs = $trans_unit->get_xpath("sdl:seg-defs", 0);
    unless (defined($sdl_defs)) {
       warn "Unable to find sdl:seg-defs for $trans_unit_id, adding one...";
-      $sdl_defs = XML::Twig::Elt ->new('sdl:seg-defs');
+      $sdl_defs = XML::Twig::Elt->new('sdl:seg-defs');
       $sdl_defs->paste(last_child => $trans_unit);
    }
 
@@ -456,10 +493,14 @@ sub replaceTransUnit {
    my @mrks = $target->descendants('mrk[@mtype="seg"]') or warn "Can't find any mrk for $trans_unit_id\n\tcontent:", $target->xml_string, "\n";
    foreach my $mrk (@mrks) {
       my $mid = (defined($mrk->{att}{mid}) ? $mrk->{att}{mid} : $mrk_id++);
-      my $xid  = "$trans_unit_id.$mid";
-      my $out = getTranslatedText($parser, $xid);
-      #$mrk->set_text($out);  # Escapes xml markup in out which is not the behaviour we want for the tag project.
-      $mrk->set_inner_xml($out);  # Looks to be safe if $out doesn't contain any markup/tags.
+      my $xid = "$trans_unit_id.$mid";
+      my $translatoin = getTranslation($parser, $xid);
+      eval {
+         #$mrk->set_text($translatoin);  # Escapes xml markup in translatoin which is not the behaviour we want for the tag project.
+         $mrk->set_inner_xml($translatoin);  # Looks to be safe if $translatoin doesn't contain any markup/tags.
+         1;
+      }
+      or die "XMLERROR: $translatoin\n$@\n";
       ++$parser->{seg_count};
 
 
@@ -486,7 +527,7 @@ sub replaceTransUnit {
       #   <sdl:seg-defs><sdl:seg id="560" /></sdl:seg-defs>
       #      <sdl:seg conf="Draft" id="56" origin="mt" origin-system="Portage-1.5.0" percent="99" >
       #   </sdl:seg-defs>
-      debug("Confidence estimation for %s: CE=%s %s\n", $xid, defined $ce ? $ce : "undef", $parser->{filter} ? $parser->{filter} : "undef");
+      debug("Confidence estimation for %s: CE=%s %s\n", $xid, $ce, $parser->{filter});
       $sdl_seg->del_att('percent');       # Make sure there is no previous value for the attribut percent.
       if ($parser->{score} and defined($ce)) {
          $ce = 0 if ($ce < 0);
@@ -557,164 +598,126 @@ sub processHeader {
 
 
 sub processTU {
-    my ($parser, $tu) = @_;
+   my ($parser, $tu) = @_;
 
-    my @tuvs = $tu->children('tuv');
-    warn("Missing variants in TU") unless @tuvs;
+   my @tuvs = $tu->children('tuv');
+   warn("Missing variants in TU") unless @tuvs;
 
-    $parser->{seg_id} = ""; # will be set in processText()
+   $parser->{seg_id} = ""; # will be set later.
 
-    # Extraction mode: find src-lang text segments and replace with placeholder ID
-    if ($parser->{action} eq 'extract' or $parser->{action} eq 'check') {
-        my $new_tgt_tuv = 0;
-        my $old_tgt_tuv = 0;
-        foreach my $tuv (@tuvs) {
-            my $lang = $tuv->{att}->{'xml:lang'};
-            warn("Missing language attribute in TU") unless $lang;
+   # Extraction mode: find src-lang text segments and replace with placeholder ID
+   my $new_tgt_tuv = 0;
+   my $old_tgt_tuv = 0;
+   foreach my $tuv (@tuvs) {
+      my $lang = $tuv->{att}->{'xml:lang'};
+      warn("Missing language attribute in TU") unless $lang;
 
-            # Use the src-lang TUV as a template for the new tgt-lang TUV
-            if (lc($lang) eq lc($parser->{src_lang})) {
-                warn("Duplicate source-language tuv\n") if $new_tgt_tuv;
-                $new_tgt_tuv = $tuv->copy();
-                $new_tgt_tuv->set_att('xml:lang' => $parser->{tgt_lang});
-                my $seg = $new_tgt_tuv->first_child('seg'); # There should be exactly one
-                processSegment($parser, $seg) if $seg;
+      # Use the src-lang TUV as a template for the new tgt-lang TUV
+      if (lc($lang) eq lc($parser->{src_lang})) {
+         warn("Duplicate source-language tuv\n") if $new_tgt_tuv;
+         $new_tgt_tuv = $tuv->copy();
+         $new_tgt_tuv->set_att('xml:lang' => $parser->{tgt_lang});
+         my $seg = $new_tgt_tuv->first_child('seg'); # There should be exactly one
+         if ($seg) {
+            $parser->{seg_id} = ixAdd($parser->{ix}, $seg->text(), $seg->xml_string());
+            $seg->set_text($parser->{seg_id});  # Mark translation's placeholder.
+         }
+      }
+      # Keep a handle on the old tgt-lang TUV: it will be replaced
+      elsif (lc($lang) eq lc($parser->{tgt_lang})) {
+         $old_tgt_tuv = $tuv;
+      }
+   }
 
-            # Keep a handle on the old tgt-lang TUV: it will be replaced
-            } elsif (lc($lang) eq lc($parser->{tgt_lang})) {
-                $old_tgt_tuv = $tuv;
+   if ($new_tgt_tuv) {
+      if ($old_tgt_tuv) {
+         $new_tgt_tuv->replace($old_tgt_tuv);
+      }
+      else {
+         $new_tgt_tuv->paste(last_child => $tu);
+      }
+   }
+   else {
+      warn("Missing source-language version in TU");
+   }
+   xmlFlush($parser);
+
+   $parser->{tu_count}++;
+}
+
+sub replaceTU {
+   my ($parser, $tu) = @_;
+
+   my @tuvs = $tu->children('tuv');
+   warn("Missing variants in TU") unless @tuvs;
+
+   $parser->{seg_id} = ""; # will be set later.
+
+   # Replacement mode: find placeholder ID, replace with text
+   foreach my $tuv (@tuvs) {
+      my $lang = $tuv->{att}->{'xml:lang'};
+      warn("Missing language attribute in TU") unless $lang;
+
+      if (lc($lang) eq lc($parser->{tgt_lang})) {
+         my $seg = $tuv->first_child('seg'); # There should be exactly one
+         if (not $seg) {
+            warn "No SEG element in target language TUV";
+         }
+         else {
+            my $id = $seg->text();
+            my $translation = getTranslation($parser, $id);
+            eval {
+               $seg->set_inner_xml($translation);
+               1;
             }
-        }
+            or die "XMLERROR: $translation\n$@\n";
+         }
+      }
+      $tu->set_att(changeid => 'MT!');
+      $tu->set_att(changedate => timeStamp());
+      $tu->set_att(usagecount => '0');
+   }
 
-        if ($new_tgt_tuv) {
-            if ($old_tgt_tuv) {
-                $new_tgt_tuv->replace($old_tgt_tuv);
-            } else {
-                $new_tgt_tuv->paste(last_child => $tu);
-            }
-        } else {
-            warn("Missing source-language version in TU");
-        }
-        xmlFlush($parser);
-    }
+   # Confidence estimation:
+   my ($id, $ce);
+   $id = $parser->{seg_id};
+   $ce = $id ? ixGetCE($parser->{ix}, $id) : undef;
 
-    # Replacement mode: find placeholder ID, replace with text
-    elsif ($parser->{action} eq 'replace') {
+   debug("Confidence estimation for %s: CE=%s\n", $id, $ce);
+   if ($parser->{score}
+         and defined($ce)) {
+      XML::Twig::Elt
+         ->new(prop=>{type=>'Txt::CE'}, sprintf("%.4f", $ce))
+         ->paste(first_child => $tu);
+   }
 
-        foreach my $tuv (@tuvs) {
-            my $lang = $tuv->{att}->{'xml:lang'};
-            warn("Missing language attribute in TU") unless $lang;
-
-            if (lc($lang) eq lc($parser->{tgt_lang})) {
-                my $seg = $tuv->first_child('seg'); # There should be exactly one
-                if (not $seg) {
-                    warn "No SEG element in target language TUV";
-                } else {
-                    processSegment($parser, $seg) if $seg;
-                }
-            }
-            $tu->set_att(changeid => 'MT!');
-            $tu->set_att(changedate => timeStamp());
-            $tu->set_att(usagecount => '0');
-        }
-
-        # Confidence estimation:
-        my ($id, $ce);
-        $id = $parser->{seg_id};
-        $ce = $id ? ixGetCE($parser->{ix}, $id) : undef;
-
-        debug("Confidence estimation for %s: CE=%s\n", $id, defined $ce ? $ce : "undef");
-        if ($parser->{score}
-            and defined($ce)) {
-            XML::Twig::Elt
-                ->new(prop=>{type=>'Txt::CE'}, sprintf("%.4f", $ce))
-                ->paste(first_child => $tu);
-        }
-
-        if (defined $parser->{filter}
-            and defined($ce)
-            and $ce < $parser->{filter}) {
-            debug("Filtering out %s\n", $id);
-            $tu->delete();       # BOOM!
-            $parser->{filter_count}++;
-        }
-        else {
-           xmlFlush($parser);
-        }
-    }
+   if (defined $parser->{filter}
+         and defined($ce)
+         and $ce < $parser->{filter}) {
+      debug("Filtering out %s\n", $id);
+      $tu->delete();       # BOOM!
+         $parser->{filter_count}++;
+   }
+   else {
+      xmlFlush($parser);
+   }
 
     $parser->{tu_count}++;
 }
 
-sub processSegment {
-    my ($parser, $seg) = @_;
 
-    my $seg_xml = $seg->xml_string();
+# Returns from the database, the translation for id.
+sub getTranslation {
+   my ($parser, $id) = @_;
+   my $translation = "";
 
-    my @children = $seg->cut_children();
-    my @src_seg = ();
+   die "getTranslation should be use in replace mode."  unless($parser->{action} eq 'replace');
 
-    foreach my $child (@children) {
-        if ($child->is_text()) {
-            push @src_seg, $child->text();
-        }
-	else {
-            my $name = $child->name();
-            warn "Unknown element in a seg: $name\n" unless ($name =~ /^(bpt|ept|it|ph|ut)$/);
-	    # TODO: there is no <sub> descendants?!!?!?
-            foreach my $sub ($child->descendants(qr/sub/)) {
-                my $src_sub = $sub->text();
-                $sub->set_text(processText($parser, $src_sub, $sub->xml_string()));
-                $parser->{seg_count}++;
-                if ($Verbose) {
-                    veryVerbose("[replacing sub source ``%s'' --> ``%s'']\n",
-                                $src_sub, $sub->text());
-                } elsif ($verbose) {
-                    verbose("\r[%d%s...]", $parser->{seg_count},
-                            exists $parser->{total} ? "/".$parser->{total} : "" );
-                }
-            }
-            $child->paste(last_child => $seg);
-        }
-    }
+   $translation = ixGetSegment($parser->{ix}, $id);
+   $parser->{seg_id} = $id;# Ugly side-effect
+   warn("Can't find ID $id in index") unless defined($translation);
 
-    my $old_text = join("", @src_seg);
-    my $new_text = processText($parser, $old_text, $seg_xml);
-    $parser->{seg_count}++;
-    if ($Verbose) {
-        veryVerbose("[replacing sub source ``%s'' --> ``%s'']\n",
-                    $old_text, $new_text);
-    } elsif ($verbose) {
-        verbose("\r[%d%s...]", $parser->{seg_count},
-                exists $parser->{total} ? "/".$parser->{total} : "" );
-    }
-    XML::Twig::Elt->new('#PCDATA', $new_text)->paste(first_child => $seg);
-    return $seg;
-}
-
-sub processText {
-   my ($parser, $in, $tagged) = @_;
-   my $out = "";
-
-   if ($parser->{action} eq 'extract') {
-      $out = ixAdd($parser->{ix}, $in, $tagged);
-      $parser->{seg_id} = $out; # Ugly side-effect
-   }
-   elsif ($parser->{action} eq 'replace') {
-      $out = ixGetSegment($parser->{ix}, $in);
-      $parser->{seg_id} = $in;# Ugly side-effect
-      warn("Can't find ID $in in index") unless defined($out);
-   }
-
-   return $out;
-}
-
-
-# Alias for processText which make the intent clearer.
-sub getTranslatedText {
-   my ($parser, $in) = @_;
-   warn "getTranslatedText should be use in replace mode."  unless($parser->{action} eq 'replace');
-   return processText($parser, $in);
+   return $translation
 }
 
 
@@ -747,26 +750,27 @@ sub newIx {
 }
 
 sub ixAdd {
-    my ($ix, $segment, $tagged, $id, $ce) = @_;
-    $segment = normalize($segment);
-    $tagged  = "EMPTY" unless(defined($tagged));
-    $tagged  = normalize($tagged);
+   my ($ix, $segment, $tagged, $id, $ce) = @_;
+   $segment = normalize($segment);
+   $tagged  = normalize($tagged) if defined $tagged;
 
-    if (defined $id or not exists($ix->{id}{$segment})) {
-        if (defined $id) {
-            $id = normalize($id);
-        } else {
-            $id = ixNewID($ix);
-        }
-        veryVerbose("ixAdd: INSERTING id=%s, ce=%s, segment=\"%s\" : tagged=\"%s\"\n", $id, defined $ce ? $ce : "undef", $segment, $tagged);
-        $ix->{id}{$segment} = $id;
-        $ix->{segment}{$id} = $segment;
-        $ix->{tagged}{$id}  = $tagged;
-        $ix->{ce}{$id} = $ce if defined $ce;
-    } else {
-        veryVerbose("ixAdd: EXISTS id=%s, ce=%s, segment=\"%s\" : tagged=\"%s\"\n", defined $id ? $id : "undef", defined $ce ? $ce : "undef", $segment, $tagged);
-    }
-    return $ix->{id}{$segment};
+   if (defined $id or not exists($ix->{id}{$segment})) {
+      if (defined $id) {
+         $id = normalize($id);
+      }
+      else {
+         $id = ixNewID($ix);
+      }
+      veryVerbose("ixAdd: INSERTING id=%s, ce=%s, segment=\"%s\" : tagged=\"%s\"\n", $id, $ce, $segment, $tagged);
+      $ix->{id}{$segment} = $id;
+      $ix->{segment}{$id} = $segment;
+      $ix->{tagged}{$id}  = $tagged;
+      $ix->{ce}{$id}      = $ce if defined $ce;
+   }
+   else {
+      veryVerbose("ixAdd: EXISTS id=%s, ce=%s, segment=\"%s\" : tagged=\"%s\"\n", $id, $ce, $segment, $tagged);
+   }
+   return $ix->{id}{$segment};
 }
 
 sub ixNewID {
@@ -807,80 +811,123 @@ sub ixGetCE {
 }
 
 sub ixSave {
-    my ($ix, $seg_file, $tag_file, $id_file) = @_;
+   my ($ix, $seg_file, $tag_file, $id_file) = @_;
 
-    open(my $seg_out, ">${output_layers}", $seg_file)
-        or die "Can't open output file $seg_file";
-    open(my $tag_out, ">${output_layers}", $tag_file)
-        or die "Can't open output file $tag_file";
-    open(my $id_out, ">${output_layers}", $id_file)
-        or die "Can't open output file $id_file";
+   open(my $seg_out, ">${output_layers}", $seg_file)
+      or die "Can't open output file $seg_file";
+   open(my $tag_out, ">${output_layers}", $tag_file)
+      or die "Can't open output file $tag_file"
+      if defined $tag_file;
+   open(my $id_out, ">${output_layers}", $id_file)
+      or die "Can't open output file $id_file";
 
-    for my $id (sort keys %{$ix->{segment}}) {
-        my $seg = $ix->{segment}{$id};
-        my $tag = $ix->{tagged}{$id};
-        print {$seg_out} $seg, "\n";
-        print {$tag_out} $tag, "\n";
-        print {$id_out} $id, "\n";
-    }
+   for my $id (sort keys %{$ix->{segment}}) {
+      my $seg = $ix->{segment}{$id};
+      my $tag = $ix->{tagged}{$id};
+      print {$seg_out} $seg, "\n";
+      print {$id_out} $id, "\n";
+      if (defined($tag_file)) {
+         if (defined($tag)) {
+            print {$tag_out} 
+               XML::Twig->new(
+                  twig_handlers => {
+                     bpt => \&wrapOpeningTag,
+                     ept => \&wrapClosingTag,
+                     ph  => \&wrapSelfClosingTag,
+                     it  => \&wrapSelfClosingTag,
+                     hi  => \&wrapSelfClosingTag,
+                  })
+               ->parse("<dummy>$tag</dummy>")
+               ->root
+               ->xml_string, "\n";
+         }
+         else {
+            print {$tag_out} "PORTAGE_NULL\n";
+         }
+      }
+   }
 
-    close $seg_out;
-    close $tag_out;
-    close $id_out;
+   close $seg_out;
+   close $tag_out if defined $tag_file;
+   close $id_out;
 }
 
 # TODO: Is there any point in loading back the segment version when all we need
 # is the tagged translation?
 sub ixLoad {
-    my ($seg_file, $tag_file, $id_file, $ce_file) = @_;
-    my $ix = newIx();
+   my ($seg_file, $tag_file, $id_file, $ce_file) = @_;
+   my $ix = newIx();
 
-    open(my $seg_in, "<$input_layers", $seg_file)
-        or die "Can open input file $seg_file";
-    open(my $tag_in, "<$input_layers", $tag_file)
-        or die "Can open input file $tag_file";
-    open(my $id_in, "<$input_layers", $id_file)
-        or die "Can open input file $id_file";
-    open(my $ce_in, "<$input_layers", $ce_file)
-        or die "Can open input file $ce_file"
-        if defined $ce_file;
+   open(my $seg_in, "<$input_layers", $seg_file)
+      or die "Can open input file $seg_file";
+   open(my $tag_in, "<$input_layers", $tag_file)
+      or die "Can open input file $tag_file"
+      if defined $tag_file;
+   open(my $id_in, "<$input_layers", $id_file)
+      or die "Can open input file $id_file";
+   open(my $ce_in, "<$input_layers", $ce_file)
+      or die "Can open input file $ce_file"
+      if defined $ce_file;
 
-    my $count = 0;
-    verbose("[Reading index from $seg_file, $tag_file and $id_file]\n");
-    verbose("[Reading CE from $ce_file]\n") if defined $ce_file;
-    while (defined (my $id = <$id_in>)) {
-        chomp $id;
-        my $seg = readline($seg_in);
-        die "Not enough lines in text file $seg_file" unless defined $seg;
-        chomp $seg;
-        my $tag = readline($tag_in);
-        die "Not enough lines in text file $tag_file" unless defined $tag;
-        chomp $tag;
-        my $ce = 0;
-        if ($ce_file) {
-            $ce = readline($ce_in);
-            die "Not enough lines in CE file $ce_file" unless defined $ce;
-            chomp $ce;
-        }
-        veryVerbose("ixLoad: read $id <<%s>> {{%s}} ($ce)\n", $seg, $tag);
-        ixAdd($ix, $seg, $tag, $id, $ce);
-        verbose("\r[%d lines...]", $count) if (++$count % 1 == 0);
-    }
-    verbose("\r[%d lines; done.]\n", $count);
-    die "Too many lines in text file $seg_file" unless eof $seg_in;
-    die "Too many lines in text file $tag_file" unless eof $tag_in;
+   my $count = 0;
+   verbose("[Reading index from $seg_file and $id_file]\n");
+   verbose("[Reading CE from $tag_file]\n") if defined $tag_file;
+   verbose("[Reading CE from $ce_file]\n") if defined $ce_file;
+   my $tag = undef;
+   while (defined (my $id = <$id_in>)) {
+      chomp $id;
+      my $seg = readline($seg_in);
+      die "Not enough lines in text file $seg_file" unless defined $seg;
+      chomp $seg;
+      if ($tag_file) {
+         $tag = readline($tag_in);
+         die "Not enough lines in text file $tag_file" unless defined $tag;
+         chomp $tag;
+         if ($tag =~ m/^PORTAGE_NULL$/) {
+            $tag = undef;
+         }
+         else {
+            # Remove Portage's wrapping tags.
+            if ($tag =~ m/open_wrap|close_wrap|tag_wrap/) {
+               $tag = XML::Twig->new(
+                     twig_handlers => {
+                        open_wrap  => \&unWrapTag,
+                        close_wrap => \&unWrapTag,
+                        tag_wrap   => \&unWrapTag,
+                     })
+                  ->parse("<dummy>$tag</dummy>")
+                  ->root
+                  ->xml_string;
+            }
+         }
+      }
+      my $ce = 0;
+      if ($ce_file) {
+         $ce = readline($ce_in);
+         die "Not enough lines in CE file $ce_file" unless defined $ce;
+         chomp $ce;
+      }
+      veryVerbose("ixLoad: read $id <<%s>> {{%s}} ($ce)\n", $seg, $tag);
+      ixAdd($ix, $seg, $tag, $id, $ce);
+      verbose("\r[%d lines...]", $count) if (++$count % 1 == 0);
+   }
+   verbose("\r[%d lines; done.]\n", $count);
+   die "Too many lines in text file $seg_file" unless eof $seg_in;
+   if (defined($tag_file)) {
+      die "Too many lines in text file $tag_file" unless eof $tag_in;
+   }
 
-    close $seg_in;
-    close $tag_in;
-    close $id_in;
-    close $ce_in if defined $ce_file;
+   close $seg_in;
+   close $tag_in if defined $tag_file;
+   close $id_in;
+   close $ce_in if defined $ce_file;
 
-    return $ix;
+   return $ix;
 }
 
-sub verbose { printf STDERR (@_) if ($verbose or $Verbose) ; }
-sub veryVerbose { printf STDERR (@_) if $Verbose; }
-sub debug { printf STDERR (@_) if $debug; }
+sub verbose { printf STDERR (map { $_ = defined $_ ? $_ : "undef" } @_) if ($verbose or $Verbose) ; }
+sub veryVerbose { printf STDERR (map { $_ = defined $_ ? $_ : "undef" } @_) if $Verbose; }
+sub debug { printf STDERR (map { $_ = defined $_ ? $_ : "undef" } @_) if $debug; }
 sub displayHelp {
    -t STDOUT ? system "pod2usage -verbose 3 $0" : system "pod2text $0 >&2";
 }

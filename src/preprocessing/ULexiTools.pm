@@ -595,7 +595,7 @@ sub tok_is_xtag(\$$\@) #($para_string, index, token_positions)
    my $index = shift;
    my $token_positions = shift;
    return $token_positions->[$index+1] > 2 &&
-          get_token($$string, $index, @$token_positions) =~ /^<[^>]*>/;
+          get_token($$string, $index, @$token_positions) =~ /^<[^>]+>$/;
 }
 
 
