@@ -1,6 +1,5 @@
 #!/usr/bin/make -f
 # vim:noet:ts=3:nowrap:filetype=make
-# $Id$
 
 # @file Makefile
 # @brief Validate all dependencies for Portage.
@@ -19,6 +18,9 @@
 
 # Generic error message
 EXPLAIN := Can not run your program.
+
+# Stabilize the output
+export PORTAGE_INTERNAL_CALL=1
 
 SHELL = bash
 .PHONY: all
@@ -103,7 +105,7 @@ filter-nc1.py: EXPLAIN:=Check your Python version and PYTHONPATH variable.
 # We simply make sure we can invoke the help message to trigger the dependencies.
 ${VALIDATE_PGMS}:
 	@which $@ &> /dev/null || ! echo "Can't locate $@ in your PATH." >&2
-	@$@ -h 2>&1 | head -8 | diff --ignore-matching-lines='Her Majesty in Right of Canada' - ref/$@.ref || ! echo "$@ -h FAILED: ${EXPLAIN}  Refer to \$$PORTAGE/INSTALL." >&2
+	@$@ -h 2>&1 | head -4 | diff --ignore-matching-lines='Her Majesty in Right of Canada' - ref/$@.ref || ! echo "$@ -h FAILED: ${EXPLAIN}  Refer to \$$PORTAGE/INSTALL." >&2
 
 post_installation: check_casemark
 

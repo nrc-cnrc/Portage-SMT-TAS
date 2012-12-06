@@ -17,6 +17,9 @@ all: test
 
 .SECONDARY:
 
+# Stabilize the output
+export PORTAGE_INTERNAL_CALL=1
+
 DIFF_IGNORE = --ignore-blank-lines --ignore-matching-lines=TTable --ignore-matching-lines=NRC-CNRC --ignore-matching-lines=portage_info
 
 TEMP_FILES=ibm[12]* phrases* hmm-* log.hmm* log.phrases*

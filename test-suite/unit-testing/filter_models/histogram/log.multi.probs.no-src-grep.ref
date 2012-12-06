@@ -1,7 +1,3 @@
-
-filter_models, NRC-CNRC, (c) 2006 - 2012, Her Majesty in Right of Canada
-Please run "portage_info -notice" for Copyright notices of 3rd party libraries.
-
 Warning: Loading models in memory - make sure you have enough RAM to hold them all.
   Running in load all in memory
   Running without source sentences => processing all table entries

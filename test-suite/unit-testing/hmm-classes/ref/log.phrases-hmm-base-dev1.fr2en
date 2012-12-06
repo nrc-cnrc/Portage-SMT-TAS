@@ -1,7 +1,3 @@
-
-gen_phrase_tables, NRC-CNRC, (c) 2004 - 2012, Her Majesty in Right of Canada
-Please run "portage_info -notice" for Copyright notices of 3rd party libraries.
-
 Loading HMM models
 Read TTable in N seconds
 Loaded HMM model with p0: 0.05 up0: 0.1 alpha: 0.01 lambda: 0 anchor: 0 end-dist: 0 max-jump: 0
