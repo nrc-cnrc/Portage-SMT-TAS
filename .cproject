@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?fileVersion 4.0.0?>
-
-<cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.346614542.2143170451">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.346614542.2143170451" moduleId="org.eclipse.cdt.core.settings" name="Mac GCC">
@@ -759,6 +757,237 @@
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 		</cconfiguration>
+		<cconfiguration id="cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.725833023.978864841.1315210944.222563001.1251169994.1386087907">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.725833023.978864841.1315210944.222563001.1251169994.1386087907" moduleId="org.eclipse.cdt.core.settings" name="Cygwin GCC">
+				<externalSettings/>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.Cygwin_PE" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactName="Portage" buildProperties="" description="" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.725833023.978864841.1315210944.222563001.1251169994.1386087907" name="Cygwin GCC" parent="org.eclipse.cdt.build.core.emptycfg">
+					<folderInfo id="cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.725833023.978864841.1315210944.222563001.1251169994.1386087907." name="/" resourcePath="">
+						<toolChain id="cdt.managedbuild.toolchain.gnu.cygwin.base.589806459" name="Cygwin GCC" resourceTypeBasedDiscovery="false" superClass="cdt.managedbuild.toolchain.gnu.cygwin.base">
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.Cygwin_PE" id="cdt.managedbuild.target.gnu.platform.cygwin.base.825339157" name="Debug Platform" osList="win32" superClass="cdt.managedbuild.target.gnu.platform.cygwin.base"/>
+							<builder buildPath="${build_project}/src" id="cdt.managedbuild.target.gnu.builder.cygwin.base.1897771032" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="5" superClass="cdt.managedbuild.target.gnu.builder.cygwin.base">
+								<outputEntries>
+									<entry flags="VALUE_WORKSPACE_PATH" kind="outputPath" name="src"/>
+								</outputEntries>
+							</builder>
+							<tool id="cdt.managedbuild.tool.gnu.assembler.cygwin.base.816219004" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.cygwin.base">
+								<option id="gnu.both.asm.option.include.paths.1774568944" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++\i686-pc-cygwin&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\ssp&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include-fixed&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\usr\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/adaptation&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/canoe&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/confidence&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/distortion&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/eval&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/lm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/logging&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/preprocessing&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/rescoring&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/textutils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tp_models&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tpt&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/truecasing&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/utils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/word_align&quot;"/>
+								</option>
+								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.2046721797" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.archiver.cygwin.base.1930388772" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.cygwin.base"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.cygwin.base.1851857990" name="Cygwin C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.cygwin.base">
+								<option id="gnu.cpp.compiler.option.include.paths.858604344" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\ssp&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include-fixed&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\usr\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/adaptation&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/canoe&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/confidence&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/distortion&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/eval&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/lm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/logging&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/preprocessing&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/rescoring&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/textutils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tp_models&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tpt&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/truecasing&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/utils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/word_align&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++\i686-pc-cygwin&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include&quot;"/>
+								</option>
+								<option id="gnu.cpp.compiler.option.preprocessor.def.116902156" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="IN_PORTAGE=1"/>
+									<listOptionValue builtIn="false" value="NO_LOGGING"/>
+									<listOptionValue builtIn="false" value="Linux"/>
+								</option>
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.cygwin.176107323" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input.cygwin"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.c.compiler.cygwin.base.455931606" name="Cygwin C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.cygwin.base">
+								<option id="gnu.c.compiler.option.include.paths.221988340" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\ssp&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include-fixed&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\usr\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/adaptation&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/canoe&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/confidence&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/distortion&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/eval&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/lm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/logging&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/preprocessing&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/rescoring&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/textutils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tp_models&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tpt&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/truecasing&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/utils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/word_align&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++\i686-pc-cygwin&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include&quot;"/>
+								</option>
+								<option id="gnu.c.compiler.option.preprocessor.def.symbols.10856627" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="IN_PORTAGE=1"/>
+									<listOptionValue builtIn="false" value="NO_LOGGING"/>
+									<listOptionValue builtIn="false" value="Linux"/>
+								</option>
+								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.cygwin.1701172357" superClass="cdt.managedbuild.tool.gnu.c.compiler.input.cygwin"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.c.linker.cygwin.base.1074076039" name="Cygwin C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.cygwin.base"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.cygwin.base.534039310" name="Cygwin C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.cygwin.base">
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1104439355" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
+									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
+									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
+								</inputType>
+							</tool>
+						</toolChain>
+					</folderInfo>
+					<folderInfo id="cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.725833023.978864841.1315210944.222563001.1251169994.1386087907.test-suite/unit-testing/joint2cond" name="/" resourcePath="test-suite/unit-testing/joint2cond">
+						<toolChain id="cdt.managedbuild.toolchain.gnu.cygwin.base.1151330072" name="Cygwin GCC" superClass="cdt.managedbuild.toolchain.gnu.cygwin.base">
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.Cygwin_PE" id="cdt.managedbuild.target.gnu.platform.cygwin.base" name="Debug Platform" osList="win32" superClass="cdt.managedbuild.target.gnu.platform.cygwin.base"/>
+							<tool id="cdt.managedbuild.tool.gnu.assembler.cygwin.base.1903252600" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.cygwin.base">
+								<option id="gnu.both.asm.option.include.paths.314515640" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++\i686-pc-cygwin&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\ssp&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include-fixed&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\usr\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/adaptation&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/canoe&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/confidence&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/distortion&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/eval&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/lm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/logging&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/preprocessing&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/rescoring&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/textutils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tp_models&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tpt&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/truecasing&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/utils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/word_align&quot;"/>
+								</option>
+								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1064673094" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.archiver.cygwin.base.1931597114" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.cygwin.base"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.cygwin.base.1156614344" name="Cygwin C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.cygwin.base">
+								<option id="gnu.cpp.compiler.option.include.paths.1605619454" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\ssp&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include-fixed&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\usr\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/adaptation&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/canoe&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/confidence&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/distortion&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/eval&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/lm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/logging&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/preprocessing&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/rescoring&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/textutils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tp_models&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tpt&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/truecasing&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/utils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/word_align&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++\i686-pc-cygwin&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include&quot;"/>
+								</option>
+								<option id="gnu.cpp.compiler.option.preprocessor.def.269726983" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="IN_PORTAGE=1"/>
+									<listOptionValue builtIn="false" value="NO_LOGGING"/>
+									<listOptionValue builtIn="false" value="Linux"/>
+								</option>
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.cygwin.60776005" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input.cygwin"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.c.compiler.cygwin.base.184737716" name="Cygwin C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.cygwin.base">
+								<option id="gnu.c.compiler.option.include.paths.1245359066" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\ssp&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include-fixed&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\usr\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/adaptation&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/canoe&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/confidence&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/distortion&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/eval&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/lm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/logging&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/preprocessing&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/rescoring&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/textutils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tp_models&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tpt&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/truecasing&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/utils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/word_align&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++\i686-pc-cygwin&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include&quot;"/>
+								</option>
+								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1568751925" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="IN_PORTAGE=1"/>
+									<listOptionValue builtIn="false" value="NO_LOGGING"/>
+									<listOptionValue builtIn="false" value="Linux"/>
+								</option>
+								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.cygwin.1747589093" superClass="cdt.managedbuild.tool.gnu.c.compiler.input.cygwin"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.c.linker.cygwin.base.1036323899" name="Cygwin C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.cygwin.base"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.cygwin.base.1114219111" name="Cygwin C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.cygwin.base"/>
+						</toolChain>
+					</folderInfo>
+					<sourceEntries>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
+					</sourceEntries>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
+		</cconfiguration>
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="PORTAGEshared.null.1189599447" name="PORTAGEshared"/>
@@ -776,11 +1005,41 @@
 		<configuration configurationName="Linux GCC Verlaine">
 			<resource resourceType="PROJECT" workspacePath="/PORTAGEshared"/>
 		</configuration>
+		<configuration configurationName="Cygwin GCC"/>
 		<configuration configurationName="Linux GCC Balzac">
 			<resource resourceType="PROJECT" workspacePath="/PORTAGEshared"/>
 		</configuration>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
+		<buildTargets>
+			<target name="all" path="src" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>make</buildCommand>
+				<buildArguments>LOGGING=${LOGGING} ACE=${ACE} CF=${CF} -j5</buildArguments>
+				<buildTarget>all</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>true</useDefaultCommand>
+				<runAllBuilders>false</runAllBuilders>
+			</target>
+			<target name="clean" path="src" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>make</buildCommand>
+				<buildArguments>LOGGING=${LOGGING} ACE=${ACE} CF=${CF} -j5</buildArguments>
+				<buildTarget>clean</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>true</useDefaultCommand>
+				<runAllBuilders>false</runAllBuilders>
+			</target>
+			<target name="install" path="src" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>make</buildCommand>
+				<buildArguments>LOGGING=${LOGGING} ACE=${ACE} CF=${CF} -j5</buildArguments>
+				<buildTarget>install</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>true</useDefaultCommand>
+				<runAllBuilders>false</runAllBuilders>
+			</target>
+		</buildTargets>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
@@ -823,8 +1082,8 @@
 				<parser enabled="true"/>
 			</scannerInfoProvider>
 		</profile>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.346614542.2143170451;cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.346614542.2143170451.409968626;cdt.managedbuild.tool.gnu.cpp.compiler.macosx.base.2048231573.1240821660;cdt.managedbuild.tool.gnu.cpp.compiler.input.1935174392">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.346614542.2143170451;cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.346614542.2143170451.1208485710;cdt.managedbuild.tool.gnu.c.compiler.macosx.base.2082543766;cdt.managedbuild.tool.gnu.c.compiler.input.1029653445">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
 			<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
 				<buildOutputProvider>
 					<openAction enabled="true" filePath=""/>
@@ -866,8 +1125,8 @@
 				</scannerInfoProvider>
 			</profile>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.346614542.2143170451;cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.346614542.2143170451.1208485710;cdt.managedbuild.tool.gnu.c.compiler.macosx.base.2082543766;cdt.managedbuild.tool.gnu.c.compiler.input.1029653445">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.725833023.978864841.1315210944.222563001.1251169994.1386087907;cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.725833023.978864841.1315210944.222563001.1251169994.1386087907.;cdt.managedbuild.tool.gnu.c.compiler.cygwin.base.455931606;cdt.managedbuild.tool.gnu.c.compiler.input.cygwin.1701172357">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCWinManagedMakePerProjectProfileC"/>
 			<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
 				<buildOutputProvider>
 					<openAction enabled="true" filePath=""/>
@@ -1161,6 +1420,231 @@
 				</scannerInfoProvider>
 			</profile>
 		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.769260484.217719869.25919460.1213161919">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+			<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.cpp" command="g++" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.346614542.2143170451;cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.346614542.2143170451.;cdt.managedbuild.tool.gnu.cpp.compiler.macosx.base.2048231573;cdt.managedbuild.tool.gnu.cpp.compiler.input.2043241530">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+			<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.cpp" command="g++" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.725833023.978864841.1315210944.222563001.1251169994.1386087907">
+			<autodiscovery enabled="false" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+			<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerFileProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="makefileGenerator">
+					<runAction arguments="-f ${project_name}_scd.mk" command="make" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.cpp" command="g++" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.725833023.978864841.1315210944.222563001.1251169994.1386087907;cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.725833023.978864841.1315210944.222563001.1251169994.1386087907.;cdt.managedbuild.tool.gnu.cpp.compiler.cygwin.base.1851857990;cdt.managedbuild.tool.gnu.cpp.compiler.input.cygwin.176107323">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCWinManagedMakePerProjectProfileCPP"/>
+			<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.cpp" command="g++" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.346614542.2143170451;cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.346614542.2143170451.409968626;cdt.managedbuild.tool.gnu.cpp.compiler.macosx.base.2048231573.1240821660;cdt.managedbuild.tool.gnu.cpp.compiler.input.1935174392">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+			<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfile">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.cpp" command="g++" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC">
+				<buildOutputProvider>
+					<openAction enabled="true" filePath=""/>
+					<parser enabled="true"/>
+				</buildOutputProvider>
+				<scannerInfoProvider id="specsFile">
+					<runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
+					<parser enabled="true"/>
+				</scannerInfoProvider>
+			</profile>
+		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.346614542.2143170451;cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.346614542.2143170451.;cdt.managedbuild.tool.gnu.c.compiler.macosx.base.1860474769;cdt.managedbuild.tool.gnu.c.compiler.input.2077345406">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
 			<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
@@ -1287,119 +1771,5 @@
 				</scannerInfoProvider>
 			</profile>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.769260484.217719869.25919460.1213161919">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
-			<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
-				<buildOutputProvider>
-					<openAction enabled="true" filePath=""/>
-					<parser enabled="true"/>
-				</buildOutputProvider>
-				<scannerInfoProvider id="specsFile">
-					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
-					<parser enabled="true"/>
-				</scannerInfoProvider>
-			</profile>
-			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfile">
-				<buildOutputProvider>
-					<openAction enabled="true" filePath=""/>
-					<parser enabled="true"/>
-				</buildOutputProvider>
-				<scannerInfoProvider id="specsFile">
-					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
-					<parser enabled="true"/>
-				</scannerInfoProvider>
-			</profile>
-			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP">
-				<buildOutputProvider>
-					<openAction enabled="true" filePath=""/>
-					<parser enabled="true"/>
-				</buildOutputProvider>
-				<scannerInfoProvider id="specsFile">
-					<runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.cpp" command="g++" useDefault="true"/>
-					<parser enabled="true"/>
-				</scannerInfoProvider>
-			</profile>
-			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC">
-				<buildOutputProvider>
-					<openAction enabled="true" filePath=""/>
-					<parser enabled="true"/>
-				</buildOutputProvider>
-				<scannerInfoProvider id="specsFile">
-					<runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
-					<parser enabled="true"/>
-				</scannerInfoProvider>
-			</profile>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.346614542.2143170451;cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.346614542.2143170451.;cdt.managedbuild.tool.gnu.cpp.compiler.macosx.base.2048231573;cdt.managedbuild.tool.gnu.cpp.compiler.input.2043241530">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
-			<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
-				<buildOutputProvider>
-					<openAction enabled="true" filePath=""/>
-					<parser enabled="true"/>
-				</buildOutputProvider>
-				<scannerInfoProvider id="specsFile">
-					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
-					<parser enabled="true"/>
-				</scannerInfoProvider>
-			</profile>
-			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfile">
-				<buildOutputProvider>
-					<openAction enabled="true" filePath=""/>
-					<parser enabled="true"/>
-				</buildOutputProvider>
-				<scannerInfoProvider id="specsFile">
-					<runAction arguments="-E -P -v -dD ${plugin_state_location}/${specs_file}" command="gcc" useDefault="true"/>
-					<parser enabled="true"/>
-				</scannerInfoProvider>
-			</profile>
-			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP">
-				<buildOutputProvider>
-					<openAction enabled="true" filePath=""/>
-					<parser enabled="true"/>
-				</buildOutputProvider>
-				<scannerInfoProvider id="specsFile">
-					<runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.cpp" command="g++" useDefault="true"/>
-					<parser enabled="true"/>
-				</scannerInfoProvider>
-			</profile>
-			<profile id="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC">
-				<buildOutputProvider>
-					<openAction enabled="true" filePath=""/>
-					<parser enabled="true"/>
-				</buildOutputProvider>
-				<scannerInfoProvider id="specsFile">
-					<runAction arguments="-E -P -v -dD ${plugin_state_location}/specs.c" command="gcc" useDefault="true"/>
-					<parser enabled="true"/>
-				</scannerInfoProvider>
-			</profile>
-		</scannerConfigBuildInfo>
-	</storageModule>
-	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
-		<buildTargets>
-			<target name="all" path="src" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-				<buildCommand>make</buildCommand>
-				<buildArguments>LOGGING=${LOGGING} ACE=${ACE} CF=${CF} -j5</buildArguments>
-				<buildTarget>all</buildTarget>
-				<stopOnError>true</stopOnError>
-				<useDefaultCommand>true</useDefaultCommand>
-				<runAllBuilders>false</runAllBuilders>
-			</target>
-			<target name="clean" path="src" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-				<buildCommand>make</buildCommand>
-				<buildArguments>LOGGING=${LOGGING} ACE=${ACE} CF=${CF} -j5</buildArguments>
-				<buildTarget>clean</buildTarget>
-				<stopOnError>true</stopOnError>
-				<useDefaultCommand>true</useDefaultCommand>
-				<runAllBuilders>false</runAllBuilders>
-			</target>
-			<target name="install" path="src" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-				<buildCommand>make</buildCommand>
-				<buildArguments>LOGGING=${LOGGING} ACE=${ACE} CF=${CF} -j5</buildArguments>
-				<buildTarget>install</buildTarget>
-				<stopOnError>true</stopOnError>
-				<useDefaultCommand>true</useDefaultCommand>
-				<runAllBuilders>false</runAllBuilders>
-			</target>
-		</buildTargets>
 	</storageModule>
 </cproject>
