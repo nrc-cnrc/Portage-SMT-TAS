@@ -176,6 +176,10 @@ int main(int argc, char* argv[])
          total_memmap_size += TPPT::totalMemmapSize(c.tpptFiles[i]);
       for ( Uint i = 0; i < c.lmFiles.size(); ++i )
          total_memmap_size += PLM::totalMemmapSize(c.lmFiles[i]);
+      for ( Uint i = 0; i < c.LDMFiles.size(); ++i )
+         if (isSuffix(".tpldm", c.LDMFiles[i])) {
+            total_memmap_size += TPPT::totalMemmapSize(c.LDMFiles[i]);
+         }
       os << (total_memmap_size/1024/1024) << endl;
    } else if (cmd == "nb") {
       int n = 1 // length is always a basic feature
