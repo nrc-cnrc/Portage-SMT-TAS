@@ -87,6 +87,8 @@ if ($help || $h) {
    exit 0;
 }
 $lang = "en" unless defined $lang;
+setTokenizationLang($lang);
+
 $v = 0 unless defined $v;
 $p = 0 unless defined $p;
 $ss = 0 unless defined $ss;
@@ -141,7 +143,7 @@ while (1)
       }
    }
 
-   my @token_positions = tokenize($para, $lang, $pretok, $xtags);
+   my @token_positions = tokenize($para, $pretok, $xtags);
    my @sent_positions = split_sentences($para, @token_positions) unless ($noss);
 
    if ($notok || $pretok) {

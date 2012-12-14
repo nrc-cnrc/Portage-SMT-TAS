@@ -15,6 +15,7 @@
 
 
 .PHONY: all french-hyphens dots ch-punc
+.SECONDARY:
 
 all: test
 	@echo All tests PASSED
@@ -37,7 +38,9 @@ ch-punc: $(foreach EXT, 000 001 010 011 100 101 110 111, compare.chinese-punc.de
 .PHONY: en-prices
 en-prices: compare.eng-prices.detok compare.eng-prices.detok.utf8
 
-TEMP_FILES=accent.* hyphens.* periods.* chinese-punc.* eng-prices.* es.* da.* xtags.*
+TEMP_FILES=accent.* hyphens.* periods.* chinese-punc.* eng-prices.* \
+           es.* da.* xtags.* \
+           brackets.utf8.detok-??
 include ../Makefile.incl
 
 accent.utf8: accent
@@ -260,4 +263,14 @@ tags: compare.xtags.tok
 
 xtags.tok: xtags
 	utokenize.pl -noss -xtags < $< | tee $@
+
+################################################################################
+# Detokenizing with brackets of all kinds
+test: brackets
+
+.PHONY: brackets
+brackets: $(foreach l,en es fr da,compare.brackets.utf8.detok-$l)
+
+brackets.utf8.detok-%: brackets.utf8
+	udetokenize.pl -lang=$* $< > $@
 
