@@ -75,20 +75,27 @@ struct Elem {
 
    string name;                 // element name
    string lstring;              // left tag string, eg '<name atr="xxx">'
+   string rstring;              // right tag string, eg '</name>'
    Uint btok;                   // index of 1st src tok to the right of left tag
-   Uint etok;                   // index of 1st src tok to the right of rt tag
-   bool complete;               // true if rt tag seen (& etok is valid)
+   Uint etok;                   // index of 1st src tok to the right of right tag
+   bool complete;               // true if right tag seen (& etok is valid)
+   bool lwsl;                   // true if whitespace to left of left tag
+   bool lwsr;                   // true if whitespace to right of left tag
+   bool rwsl;                   // true if whitespace to left of right tag
+   bool rwsr;                   // true if whitespace to right of right tag
 
    bool palign;                 // elem is aligned w/ src-side phrase boundaries
    bool contig;                 // elem's tgt phrases are contiguous
    Uint btok_tgt;               // index of 1st tgt tok to the right of left tag
-   Uint etok_tgt;               // index of 1st tgt tok to the right of rt tag
+   Uint etok_tgt;               // index of 1st tgt tok to the right of right tag
 
    // create, from left tag positions within line
-   Elem(const string& line, Uint beg, Uint end, Uint btok) :
+   Elem(const string& line, Uint beg, Uint end, Uint btok, bool wsl, bool wsr) :
       name(getName(line, beg, end)),
-      lstring(line.substr(beg, end-beg)),
-      btok(btok), etok(0), complete(false)
+      lstring(line.substr(beg, end-beg)), rstring(""),
+      btok(btok), etok(0), complete(false),
+      lwsl(wsl), lwsr(wsr), rwsl(true), rwsr(true),
+      btok_tgt(0), etok_tgt(0)
    {}
 
    static bool isLeft(const string& line, Uint beg, Uint end) {
@@ -102,16 +109,37 @@ struct Elem {
    static string getName(const string& line, Uint beg, Uint end) {
       Uint s = line[beg+1] == '/' ? beg+2 : beg+1;
       Uint e = line.find_first_of(" >\t\n", s);
+      assert (e != string::npos && e < end);
       return line.substr(s, e-s);
    }
    
    void dump() {
-      cerr << lstring << " src:(" << btok << "," << etok << ")" 
-           << " tgt:(" << btok_tgt << "," << etok_tgt << ")" << endl;
+      cerr << name << ": " << lstring << " " << rstring << " " << complete
+           << " src:(" << btok << "," << etok << ")"
+           << " tgt:(" << btok_tgt << "," << etok_tgt << ")"
+           << " whitespace: " << lwsl << lwsr << rwsl << rwsr << endl;
    }
 
    bool empty() {return btok == etok;}
 
+   bool isIntraTokenLeft() {
+      return !lwsl && !lwsr;
+   }
+
+   bool isIntraTokenRight() {
+      return !rwsl && !rwsr;
+   }
+
+   // update, from right tag positions within line
+   void update(const string& line, Uint beg, Uint end, Uint etok_tag,
+               bool wsl, bool wsr)
+   {
+      rstring = line.substr(beg, end-beg);
+      etok = etok_tag;
+      complete = true;
+      rwsl = wsl;
+      rwsr = wsr;
+   }
 };
 
 // Initial stab at a bilingual dictionary, customized with a few ad hoc en/fr
@@ -241,6 +269,15 @@ pair<Uint,Uint> targetSpan(const vector<Uint>& src_al, const PhrasePair& pp,
 }
 
 /**
+ * Return true if this tag should be ignored.
+ */
+inline bool ignoreTag(const string &tag_name)
+{
+   return find(tags_to_ignore.begin(), tags_to_ignore.end(), tag_name) !=
+          tags_to_ignore.end();
+}
+
+/**
  * Convert a target token into an XML-escaped version.
  */
 string escape(string& tok)
@@ -250,9 +287,7 @@ string escape(string& tok)
    if (tok.size() > 0 && tok[0] == '<') {
       string::size_type end = tok.find_first_of(" \t/>");
       if (end == string::npos) end = tok.size();
-      string tag = tok.substr(1, end-1);
-      if (find(tags_to_ignore.begin(), tags_to_ignore.end(), tag) !=
-          tags_to_ignore.end())
+      if (ignoreTag(tok.substr(1, end-1)))
          return tok;
    }
 
@@ -266,6 +301,20 @@ string escape(string& tok)
          ret += tok[i];
 
    return ret;
+}
+
+/**
+ * Split a string into tokens appending to previously extracted toks,
+ * merging the first one with the previous last token if indicated.
+ */
+void splitAndMerge(const string &s, vector<string> &toks, bool merge_needed)
+{
+   Uint mtok = merge_needed ? toks.size() : 0;
+   split(s, toks);
+   if (mtok && toks.size() > mtok) {
+      toks[mtok-1].append(toks[mtok]);
+      toks.erase(toks.begin() + mtok);
+   }
 }
 
 
@@ -308,6 +357,8 @@ int main(int argc, char* argv[])
    Uint num_elems = 0;
    Uint num_elems_aligned = 0;
    Uint num_elems_contig = 0;
+   bool is_intra_tok_tag = false;
+   const string whitespace(" \t\n");
 
    while (getline(msrc, line)) {
 
@@ -318,27 +369,37 @@ int main(int argc, char* argv[])
       src_toks.clear();
       elems.clear();
       string::size_type p = 0, beg = 0, end = 0;
+      bool wsl = true, wsr = true;
       while (findXMLishTag(line, p, beg, end)) {
-         string::size_type tag_end =  line.find_first_of(" \t/>", beg);
-         assert (tag_end != string::npos);
-         string::size_type tag_beg = beg + (line[beg+1] == '/' ? 2 : 1);
-         string tag = line.substr(tag_beg, tag_end-tag_beg);
-         if (find(tags_to_ignore.begin(), tags_to_ignore.end(), tag) !=
-             tags_to_ignore.end()) {
-            split(line.substr(p, end-p), src_toks);
+         // Determine wsl and wsr for a sequence of tags when the first tag
+         // in the sequence is encountered.
+         if (beg != p || beg == 0) {
+            wsl = beg > 0 ? (whitespace.find(line[beg-1]) != string::npos) : true;
+            string::size_type p2 = end, b2, e2;
+            while (findXMLishTag(line, p2, b2, e2)) {
+               if (b2 != p2) break;
+               if( ignoreTag(Elem::getName(line, beg, end))) break;
+               p2 = e2;
+            }
+            wsr = whitespace.find(line[p2]) != string::npos;
+         }
+         string name = Elem::getName(line, beg, end);
+         if (ignoreTag(name)) {
+            splitAndMerge(line.substr(p, end-p), src_toks, is_intra_tok_tag);
             p = end;
             continue;
-         }         
-         split(line.substr(p, beg-p), src_toks);
-         if (Elem::isLeft(line, beg, end))
-            elems.push_back(Elem(line, beg, end, src_toks.size()));
+         }
+         splitAndMerge(line.substr(p, beg-p), src_toks, is_intra_tok_tag);
+         if (Elem::isLeft(line, beg, end)) {
+            elems.push_back(Elem(line, beg, end, src_toks.size(), wsl, wsr));
+            is_intra_tok_tag = elems.back().isIntraTokenLeft();
+         }
          if (Elem::isRight(line, beg, end)) { // find a match
-            string name = Elem::getName(line, beg, end);
             Uint i = elems.size();
             for (; i > 0; --i) {
                if (!elems[i-1].complete && elems[i-1].name == name) {
-                  elems[i-1].etok = src_toks.size();
-                  elems[i-1].complete = true;
+                  elems[i-1].update(line, beg, end, src_toks.size(), wsl, wsr);
+                  is_intra_tok_tag = elems[i-1].isIntraTokenRight();
                   break;
                }
             }
@@ -352,7 +413,7 @@ int main(int argc, char* argv[])
          }
          p = end;
       }
-      split(line.substr(p), src_toks); // add remaining tokens
+      splitAndMerge(line.substr(p), src_toks, is_intra_tok_tag); // add remaining tokens
 
       // read and tokenize tgt line
 
