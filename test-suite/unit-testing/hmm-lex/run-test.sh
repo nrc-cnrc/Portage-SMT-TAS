@@ -11,7 +11,7 @@
 
 make clean
 if [[ $PBS_JOBID ]]; then
-   make -B -j 2 all
+   make -B -j all
 else
    make -B all
 fi
