@@ -16,7 +16,6 @@ SHELL=bash
 all: test
 
 test: test-a test-ca test-c test-tp
-	@echo All tests PASSED.
 
 TEMP_FILES=log.* 1sent.out-* *.fr2en.gz \
            canoe.ini.tp-* 1sent.out.tp-* \

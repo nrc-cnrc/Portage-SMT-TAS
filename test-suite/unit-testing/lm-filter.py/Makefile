@@ -35,9 +35,6 @@ testsuite:  unittest1
 testsuite:  unittest2
 testsuite:  unittest3
 
-testsuite:
-	@echo All tests PASSED.
-
 
 
 ########################################

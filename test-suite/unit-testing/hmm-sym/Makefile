@@ -23,6 +23,8 @@ cmp: cmp_ibm2
 cmp: cmp_liang
 cmp: cmp_heb
 cmp: cmp_ibm1
+
+cmp:
 	@echo
 	@echo All tests PASSED \(assuming you gave make the -B option\)
 	@echo using `which train_ibm`

@@ -18,7 +18,6 @@ all: \
    cmp_map-cat.fr_given_en \
    cmp_map-sym.fr_given_en \
    cmp_map-sym-cat.fr_given_en
-	@echo All tests PASSED
 
 cmp_%.fr_given_en: %.fr_given_en
 	@$(MAKE) --no-print-directory do_cmp_$*.fr_given_en{,.dist}
@@ -29,22 +28,31 @@ cmp_%.fr_given_en: %.fr_given_en
 do_cmp_%:
 	diff-round.pl -p 5 -sort $* ref/$*.gz -q
 
+GLOBAL_OPTIONS=-n1 3 -n2 3 -p 1e-3 -p2 1e-4
+
+ifdef PBS_JOBID
+   # When running in a job, use run-parallel.sh to submit jobs so that we can
+   # use make -j.  Note that the last target, map-sym-cat.fr_given_en, does not
+   # use RUN_SHELL, so that the master still runs one of the actual jobs.
+   RUN_SHELL=run-parallel.sh -c
+endif
+
 map.fr_given_en: $(CORPUS)
 	$(RM) $@ $@.dist
-	train_ibm -filter-singletons 0 -v -mimic he-lex $@ $+ >& log.$@
+	${RUN_SHELL} train_ibm ${GLOBAL_OPTIONS} -v -mimic he-lex $@ $+ >& log.$@
 
 map-cat.fr_given_en: $(CORPUS)
 	$(RM) $@ $@.dist
-	cat.sh -filter-singletons 0 -v -mimic he-lex $@ $+ >& log.$@
+	${RUN_SHELL} cat.sh ${GLOBAL_OPTIONS} -v -mimic he-lex $@ $+ >& log.$@
 
 map-sym.fr_given_en: $(CORPUS)
 	$(RM) $@ $@.dist $(subst fr_given_en,en_given_fr,$@){,.dist}
-	train_ibm -filter-singletons 0 -v -symmetrized liang -mimic he-lex $@ $+ >& log.$@
+	${RUN_SHELL} train_ibm ${GLOBAL_OPTIONS} -v -symmetrized liang -mimic he-lex $@ $+ >& log.$@
 
 map-sym-cat.fr_given_en: $(CORPUS)
 	$(RM) $@ $@.dist $(subst fr_given_en,en_given_fr,$@){,.dist}
-	cat.sh -filter-singletons 0 -v -symmetrized liang -mimic he-lex $@ $+ >& log.$@
+	cat.sh ${GLOBAL_OPTIONS} -v -symmetrized liang -mimic he-lex $@ $+ >& log.$@
 
 TEMP_FILES=log.map* run-parallel-logs*
-TEMP_DIRS=map*_given_*
+TEMP_DIRS=map*_given_* run-p.*
 include ../Makefile.incl

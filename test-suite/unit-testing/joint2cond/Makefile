@@ -44,7 +44,6 @@ GEN_PHRASE_TABLES ?= gen_phrase_tables
 .PHONY: all clean cpt multi gen
 
 all: cpt multi gen prune1_2
-	@echo All tests PASSED.
 
 cpt: cpt.ibm2-${SMOOTHERS_DESC}.train.en2fr.gz
 

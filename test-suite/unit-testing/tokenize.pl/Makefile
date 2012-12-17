@@ -18,7 +18,6 @@
 .SECONDARY:
 
 all: test
-	@echo All tests PASSED
 
 .PHONY: test
 test: display.accent \

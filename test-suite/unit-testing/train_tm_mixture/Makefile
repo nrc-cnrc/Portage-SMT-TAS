@@ -11,7 +11,6 @@
 
 .PHONY: all
 all: test1 test2 test3 test4 test_PI
-	@echo All tests PASSED.
 
 TEMP_FILES=cpt.mix.test* log.cpt.mix.test*
 include ../Makefile.incl

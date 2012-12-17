@@ -1,6 +1,5 @@
 #!/usr/bin/make -f
 # vim:noet:ts=3
-# $Id$
 
 # Makefile - Test STDERR and STDOUT capturing in run-parallel.sh.
 #
@@ -23,7 +22,6 @@ PRINT_XX = -e 'print \"<outputXX>\n\";' -e 'print STDERR \"<errorXX>\n\"'
 .PHONY: all clean
 
 all: dash_c dash_c+dash_v dash_e
-	@echo All tests PASSED
 
 dash_c:
 	run-parallel.sh -nocluster -c "perl $(subst XX,,${PRINT_XX})" 1>out 2>err
@@ -46,6 +44,6 @@ dash_e:
 	cat err | perl -ne ${FILTER_ERR} | diff -q - ref.err-e.alt
 	${RM} out err
 
-clean:
-	${RM} out err
-	${RM} -r run-p.*
+TEMP_FILES=out err
+TEMP_DIRS=run-p.*
+include ../Makefile.incl

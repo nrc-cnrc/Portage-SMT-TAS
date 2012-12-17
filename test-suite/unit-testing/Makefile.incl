@@ -11,6 +11,11 @@
 
 # In all test suites, "make all" should create the .gitignore file
 all: gitignore
+	@echo All tests PASSED.
+
+# Having testsuite also depend on gitignore should get the .gitignore file
+# created earlier in the process
+testsuite: gitignore
 
 # The .gitignore file will include all files listed under TEMP_FILES and/or
 # TEMP_DIRS, as well as .gitignore itself.
@@ -19,7 +24,7 @@ all: gitignore
 .PHONY: gitignore gitignore.temp_files_and_dirs
 gitignore: gitignore.temp_files_and_dirs
 gitignore.temp_files_and_dirs:
-	echo "${TEMP_FILES} ${TEMP_DIRS} .gitignore !src/* !ref/*" | tr ' ' '\n' > .gitignore
+	echo "${TEMP_FILES} ${TEMP_DIRS} core core.* .gitignore !src/* !ref/*" | tr ' ' '\n' > .gitignore
 
 # The "make clean" target in all test suites will remove files listed under
 # TEMP_FILES and/or TEMP_DIRS.
@@ -28,7 +33,7 @@ gitignore.temp_files_and_dirs:
 .PHONY: clean clean.temp_files
 clean: clean.temp_files
 clean.temp_files:
-	${RM} ${TEMP_FILES} .gitignore
+	${RM} ${TEMP_FILES} core core.* .gitignore
 
 ifdef TEMP_DIRS
 .PHONY: clean.temp_dirs
