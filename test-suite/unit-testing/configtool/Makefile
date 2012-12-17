@@ -21,9 +21,6 @@ all: test.check.text.good
 all: test.check.tp.good
 all: test.check.tp.bad
 
-all:
-	@echo All tests PASSED.
-
 LINKS = models/cpt.tppt.ok models/ldm.tpldm.bad models/lm.tplm.bad
 
 test.check.tp.bad: ${LINKS}

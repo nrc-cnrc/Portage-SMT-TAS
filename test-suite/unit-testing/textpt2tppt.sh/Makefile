@@ -14,7 +14,6 @@
 
 .PHONY: all
 all: test_general test_float_limit test_sizes
-	@echo All tests PASSED \(assuming you ran with -B\)
 
 
 # Convenient target to run the test using the executable in ${SANDBOX}

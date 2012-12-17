@@ -10,5 +10,9 @@
 # Copyright 2008, Her Majesty in Right of Canada
 
 make clean
-make -B all
+if [[ $PBS_JOBID ]]; then
+   make -B -j 2 all
+else
+   make -B all
+fi
 exit

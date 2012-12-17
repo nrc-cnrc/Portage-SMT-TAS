@@ -34,7 +34,7 @@ FIND_SIMILAR_SENTENCES ?= find_similar_sentences
 all: test
 
 TEMP_FILES=test.vcb test.tdx test.mct test.msa similar.txt small.* log.*
-TEMP_DIRS=test_en.tpsa
+TEMP_DIRS=test_en.tpsa*
 include ../Makefile.incl
 
 .PHONY: test test1 test2 test3 test4 test5

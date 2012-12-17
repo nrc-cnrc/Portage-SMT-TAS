@@ -26,10 +26,7 @@ all: tpt_utf8
 all: tpt_ucbos_cp1252
 all: tpt_ucbos_utf8
 
-all:
-	@echo All tests PASSED.
-
-TEMP_FILES=ref_* src_* ${LM}_*.gz vocabMap2tpt.*
+TEMP_FILES=ref_* src_* ${LM}_*.gz vocabMap2tpt.* tc_tmp_canoe_*
 TEMP_DIRS=${LM}_*.tplm* ${MAP}_*.tppt* ${LM}_utf8* ${MAP}_*
 include ../Makefile.incl
 

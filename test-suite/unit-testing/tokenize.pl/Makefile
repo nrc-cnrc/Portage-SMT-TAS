@@ -17,7 +17,6 @@
 .PHONY: all french-hyphens dots ch-punc
 
 all: test
-	@echo All tests PASSED
 
 .PHONY: test
 test: display.accent \

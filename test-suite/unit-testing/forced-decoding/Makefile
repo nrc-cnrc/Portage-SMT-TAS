@@ -13,7 +13,6 @@ SHELL=bash
 .SECONDARY:
 
 all: canoe_all emptyjpt
-	@echo All tests PASSED.
 
 canoe_all: check_canoe-small check_canoe-long
 

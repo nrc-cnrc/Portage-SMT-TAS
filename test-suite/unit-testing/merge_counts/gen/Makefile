@@ -18,7 +18,7 @@ DIFF ?= diff -sq
 
 .PHONY: all
 all: empty_file one_file twice_file 3_file 4_file one_file_empty_file big
-	@echo All tests PASSED
+	echo All tests PASSED.
 
 
 .PHONY: one_file

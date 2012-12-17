@@ -14,11 +14,13 @@ TRAIN ?= ${CORPUS_DIR}/lc/europarl.fr-en.fr.lowercase ${CORPUS_DIR}/lc/europarl.
 SRC ?= ${CORPUS_DIR}/lc/test2000.fr.lowercase
 LM ?= ${CORPUS_DIR}/europarl.en.srilm
 
-all: DIFF gitignore
+all: gitignore DIFF
 
 TEMP_FILES=1best.* nbest* lattice* ffvals* pal* para.* run-parallel-logs-*
+TEMP_DIRS=canoe-parallel.*
 clean:
 	${RM} ${TEMP_FILES} $(DIR)/*
+	${TM} -r ${TEMP_DIRS}
 
 SETUP_FILES=ibm1.fr_given_en.gz ibm2.fr_given_en.gz ibm1.en_given_fr.gz ibm2.en_given_fr.gz \
             ibm2.fr_given_en.pos.gz ibm2.en_given_fr.pos.gz phrases-GT-KN.fr2en.gz \
@@ -29,7 +31,7 @@ distclean: clean
 	${RM} -r $(DIR)
 
 gitignore:
-	echo "${TEMP_FILES} ${SETUP_FILES} ${DIR}/" | tr ' ' '\n' > .gitignore
+	echo "${TEMP_FILES} ${TEMP_DIRS} ${SETUP_FILES} ${DIR}/" | tr ' ' '\n' > .gitignore
 
 ############################################################
 ## SETUP

@@ -8,7 +8,6 @@
 # Copyright 2010, Her Majesty in Right of Canada
 
 all: test_filtering
-	@echo All tests PASSED
 
 test_filtering: bad.filteredlm
 	diff-round.pl -sort $< ref/$<

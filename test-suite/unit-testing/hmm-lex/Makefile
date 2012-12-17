@@ -18,7 +18,6 @@ all: \
    cmp_map-cat.fr_given_en \
    cmp_map-sym.fr_given_en \
    cmp_map-sym-cat.fr_given_en
-	@echo All tests PASSED
 
 cmp_%.fr_given_en: %.fr_given_en
 	@$(MAKE) --no-print-directory do_cmp_$*.fr_given_en{,.dist}

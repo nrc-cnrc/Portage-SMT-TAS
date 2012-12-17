@@ -17,7 +17,6 @@ LM = ${LMPREFIX}.${LMEXT}
 
 # runs the test suite over a variety of input files and lms.
 all: case1 case2 case3 case4 case5 case6 case7
-	@echo All tests PASSED \(assuming you ran with -B\)
 
 # case2 uses the same LMs as case1, prevent parallelism via a dependence.
 case1: case2

@@ -48,9 +48,6 @@ testsuite: unittest8
 testsuite: test_find_vtab test_sig_vtab
 testsuite: unittest_j
 
-testsuite:
-	@echo All tests PASSED.
-
 
 
 # Not the reference sigprune jpt but the counts required to create the sigpruned jpt.

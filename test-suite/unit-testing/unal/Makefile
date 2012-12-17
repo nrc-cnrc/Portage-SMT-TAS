@@ -12,7 +12,6 @@
 SHELL=bash
 
 all: configtool canoe filter_models
-	@echo All tests PASSED.
 
 TEMP_FILES=cpt.top.fr2en.gz log.* \
            1sent.out 1sent.out.2 \

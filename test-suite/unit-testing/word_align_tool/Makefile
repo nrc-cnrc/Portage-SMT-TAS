@@ -8,7 +8,6 @@
 # Copyright 2010, Her Majesty in Right of Canada
 
 all: cmp_all read_all error
-	@echo All tests PASSED.
 
 .SECONDARY:
 

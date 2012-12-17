@@ -12,23 +12,18 @@
 # Copyright 2010, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2010, Her Majesty in Right of Canada
 
-all: gen merge cpt pcpt pcpt_rmem count gitignore
-	@echo All tests PASSED
+all: gen merge cpt pcpt pcpt_rmem count
 
-clean: clean_gen clean_cpt clean_merge clean_pcpt clean_pcpt_rmem clean_count clean_ext
-	${RM} log.* .gitignore
-
-gitignore:
-	echo "log.* .gitignore ibm2.* jpt.* pjpt.* cpt.* merge[12].* pcpt.* c-cpt.* ca-cpt.* c-pcpt.* ca-pcpt.* pcpt_rmem.* externalAligner.*.gz JPTPAR*/" | \
-	tr ' ' '\n' > .gitignore
+TEMP_FILES=log.* ibm2.* jpt.* pjpt.* cpt.* merge[12].* pcpt.* pcpt_rmem.* \
+           c-cpt.* ca-cpt.* c-pcpt.* ca-pcpt.* \
+           externalAligner.*.gz
+TEMP_DIRS=JPTPAR[1-9]*
+include ../Makefile.incl
 
 .SECONDARY:
 
 .PHONY: gen
 gen: cmp_jpt.top cmp_jpt.all cmp_pjpt.all cmp_pjpt.top
-clean_gen:
-	${RM} ibm2.* jpt.* pjpt.*
-	${RM} -r JPTPAR[1-9]*
 
 IBM2=ibm2.en_given_fr.gz ibm2.fr_given_en.gz
 CORPUS=corpus_en corpus_fr
@@ -58,8 +53,6 @@ cmp_dir_%: %
 
 .PHONY: cpt
 cpt: cmp_dir_cpt.all cmp_dir_cpt.top
-clean_cpt:
-	${RM} cpt.*
 
 cpt.%: ${IBM2}
 	gen_phrase_tables -write-al $* -multipr both -o $@ -1 en -2 fr -v \
@@ -68,8 +61,6 @@ cpt.%: ${IBM2}
 
 .PHONY: merge
 merge: cmp_merge1.jptpar.all cmp_merge1.jptpar.top cmp_merge2.jptpar.all cmp_merge2.jptpar.top
-clean_merge:
-	${RM} merge1.* merge2.*
 
 merge1.%:
 	merge_multi_column_counts -a $@ $*/aaa*.jpt.gz 2> log.$@
@@ -83,8 +74,6 @@ merge.%_cmp: merge1.% merge2.%
 
 .PHONY: pcpt
 pcpt: cmp_dir_pcpt.all cmp_dir_pcpt.top
-clean_pcpt:
-	${RM} pcpt.*
 
 pcpt.%: pjpt.%
 	${RM} $@.*
@@ -93,8 +82,6 @@ pcpt.%: pjpt.%
 
 .PHONY: pcpt_rmem
 pcpt_rmem: pcpt_rmem.all pcpt_rmem.top
-clean_pcpt_rmem:
-	${RM} pcpt_rmem.*
 
 pcpt_rmem.%: pjpt.% pcpt.%
 	${RM} $@.*
@@ -105,8 +92,6 @@ pcpt_rmem.%: pjpt.% pcpt.%
 
 .PHONY: count
 count: cmp_dir_c-cpt cmp_dir_ca-cpt cmp_dir_c-pcpt cmp_dir_ca-pcpt
-clean_count:
-	${RM} {c,ca}-{cpt,pcpt}.*
 
 c-cpt: ${IBM2}
 	gen_phrase_tables -write-count -multipr both -o $@ -1 en -2 fr -v \
@@ -131,8 +116,6 @@ ca-pcpt: pjpt.top
 # external aligner
 .PHONY: externalAligner
 all:  externalAligner
-clean_ext:
-	${RM} externalAligner.*.gz
 
 externalAligner:  SHELL=bash
 externalAligner:  externalAligner.X.gz externalAligner.a.gz

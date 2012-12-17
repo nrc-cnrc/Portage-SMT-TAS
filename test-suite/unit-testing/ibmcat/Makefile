@@ -9,7 +9,6 @@
 # Copyright 2008, Her Majesty in Right of Canada
 
 all: test_ibm1 test_ibm2 test_hmm test_sort
-	@echo All tests PASSED \(assuming you ran with -B\)
 
 .SECONDARY:
 

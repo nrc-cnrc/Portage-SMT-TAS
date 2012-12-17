@@ -13,7 +13,6 @@
 
 .PHONY: all
 all: gen jpt freq bad
-	@echo All tests PASSED
 
 .PHONY: gen jpt freq bad
 gen jpt freq bad:

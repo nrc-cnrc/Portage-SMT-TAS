@@ -18,7 +18,6 @@ vpath %.4grams data
 
 .PHONY: all
 all: full two one
-	@echo All tests PASSED
 
 TEMP_FILES=test.* REF.*
 include ../../Makefile.incl

@@ -10,7 +10,6 @@
 # Copyright 2012, Her Majesty in Right of Canada
 
 all: mix12 mix56 round_trip detect-bad
-	@echo All tests PASSED.
 
 mix12: cmp_cpt_cpt cmp_cpt_tppt cmp_tppt_cpt cmp_tppt_tppt
 
