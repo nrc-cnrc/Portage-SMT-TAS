@@ -1,5 +1,5 @@
-# Copyright (c) 2004 - 2009, Sa Majeste la Reine du Chef du Canada /
-# Copyright (c) 2004 - 2009, Her Majesty in Right of Canada
+# Copyright (c) 2004 - 2013, Sa Majeste la Reine du Chef du Canada /
+# Copyright (c) 2004 - 2013, Her Majesty in Right of Canada
 #
 # For further information, please contact :
 # Technologies langagieres interactives / Interactive Language Technologies
@@ -324,16 +324,60 @@ sub tokenize #(paragraph, pretok, xtags)
 
 
    if ($xtags) {
+      use constant {
+         OPEN_TAG       => 0,
+         CLOSE_TAG      => 1,
+         SELF_CLOSE_TAG => 2,
+         PUNCT_TOKEN    => 3,
+         TEXT_TOKEN     => 4,
+      };
       for (my $i = 0; $i < $#tok_posits;) {
-         my $j = $i+2;
+         my $j = $i;
+         my @tok_types;
          for (; $j < $#tok_posits; $j += 2) {
-            last unless tok_abuts_prev($j, @tok_posits)
+            last unless $j == $i || tok_abuts_prev($j, @tok_posits);
+            my $token = get_token($para, $j, @tok_posits);
+            if ($token =~ /^<\/[a-z]+>$/i) {
+               push @tok_types, CLOSE_TAG;
+            } elsif ($token =~ /^<[a-z][^>]*\/>$/i) {
+               push @tok_types, SELF_CLOSE_TAG;
+            } elsif ($token =~ /^$tag_re$/) {
+               push @tok_types, OPEN_TAG;
+            } elsif (is_punctuation($token) || is_bracket($token)) {
+               print STDOUT "TYPE SEQ BEFORE \"$token\": @tok_types\n" if $debug_xtags;
+               if (grep { $_ != OPEN_TAG && $_ != SELF_CLOSE_TAG } @tok_types) {
+                  print STDOUT "GREP SAID YES\n" if $debug_xtags;
+                  while (@tok_types && $tok_types[-1] == OPEN_TAG) {
+                     $j -= 2;
+                     pop @tok_types;
+                  }
+               } else {
+                  print STDOUT "GREP SAID NO\n" if $debug_xtags;
+                  push @tok_types, PUNCT_TOKEN;
+                  for ($j += 2; $j < $#tok_posits; $j += 2) {
+                     last unless tok_abuts_prev($j, @tok_posits);
+                     my $next_token = get_token($para, $j, @tok_posits);
+                     if ($next_token =~ /^<\/[a-z]+>$/i) {
+                        push @tok_types, CLOSE_TAG;
+                     } elsif ($next_token =~ /^<[a-z][^>]*\/>$/i) {
+                        push @tok_types, SELF_CLOSE_TAG;
+                     } else {
+                        last;
+                     }
+                  }
+               }
+               last;
+            } else {
+               push @tok_types, TEXT_TOKEN;
+            }
          }
          if ($j == $i + 2) {
+            print STDOUT "STAND-ALONE: ", get_token($para, $i, @tok_posits), "\n" if $debug_xtags;
             $i += 2;
             next;
          }
-         # Now we know tokens [$i, $j) abut each other
+         # Now we know tokens [$i, $j) abut each other and the non-tag content
+         # is either a single punctuation mark or all non-punctuation text.
          my @open_stack;
          my @left_tags;
          my @right_tags;
@@ -408,32 +452,12 @@ sub tokenize #(paragraph, pretok, xtags)
          # If all inner tags are matched, glue the whole thing back as one token
          if (@inner_tags && !grep {$_ == 0} @inner_matched) {
             # But leave out punctuation at either end of the string
-            my $merge_start = $i;
-            while (1) {
-               my $token = get_token($para, $merge_start, @tok_posits);
-               if (is_punctuation($token) || is_bracket($token)) {
-                  $merge_start += 2;
-               } else {
-                  last;
-               }
-            }
-            die unless $merge_start < $j;
             my $merge_end = $j;
-            while (1) {
-               my $token = get_token($para, $merge_end-2, @tok_posits);
-               if (is_punctuation($token) || is_bracket($token)) {
-                  $merge_end -= 2;
-               } else {
-                  last;
-               }
+            for (my $k = $i + 2; $k < $j; $k += 2) {
+               $tok_posits[$i+1] += $tok_posits[$k+1];
             }
-            die unless $merge_end > $merge_start;
-
-            for (my $k = $merge_start + 2; $k < $merge_end; $k += 2) {
-               $tok_posits[$merge_start+1] += $tok_posits[$k+1];
-            }
-            splice(@tok_posits, $merge_start+2, $merge_end-$merge_start-2);
-            $j -= $merge_end - $merge_start - 2;
+            splice(@tok_posits, $i+2, $j-$i-2);
+            $j = $i + 2;
             @left_tags = @right_tags = ();
          }
 

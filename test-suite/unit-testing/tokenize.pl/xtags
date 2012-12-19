@@ -10,7 +10,7 @@ Tags on the edges are glued back on: under the <g id="46">Canadian Environmental
 Tag sequences too: <g id="34"><x id="12"/>a b c</g><x id="45"><g id="1"></g> <g id="34"><x id="12"/>abc</g><x id="45"/><g id="1"></g>
 And unmatched inner tags don't break that: <g id="34"><x id="12"/>ab<x id="78"/>c</g><x id="45"/><g id="1"></g>
 While matched inner tags get to merge the whole shebang: <g id="34"><x id="12"/>ab<x id="78">c</x><g id="3">d</g><x id="45"/><g id="1"></g></g>
-But a punctuation at the end breaks it because the right tags become inner tags... <g id="34"><x id="12"/>ab<x id="78">c</x><g id="3">d</g><x id="45"/><g id="1"></g></g>.
+Punctuation at the end not longer breaks it up: with the latest code revision, the right tags remain right tags... <g id="34"><x id="12"/>ab<x id="78">c</x><g id="3">d</g><x id="45"/><g id="1"></g></g>.
 <g id="pt39">Headings</g>: Should keep the colon tokenized.
 
 Now I need to add a section for TMX tags.
