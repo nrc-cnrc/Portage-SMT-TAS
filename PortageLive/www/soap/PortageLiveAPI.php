@@ -203,7 +203,7 @@ class PortageLiveAPI {
    # $ce_threshold.  A threshold of 0 means keep everything.
    # $XML_contents_base64 is a string containing the full content of the xml file, in Base64 encoding.
    # $XML_filename is the name of the XML file.
-   function translateXMLCE($XML_contents_base64, $XML_filename, $context, $ce_threshold, $type) {
+   function translateXMLCE($XML_contents_base64, $XML_filename, $context, $ce_threshold, $xtags, $type) {
       $i = $this->getContextInfo($context);
       $this->validateContext($i, $ce_threshold > 0);
 
@@ -233,6 +233,7 @@ class PortageLiveAPI {
 
       #$xml_lang = array("fr" => "FR-CA", "en" => "EN-CA"); # add more languages here as needed
       $command = "$i[script] -xml -nl=s -dir=\"$work_dir\" -out=\"$work_dir/P.out\" " .
+                 ($xtags ? " -xtags " : "") .
                  (!empty($i["ce_model"]) ? "-with-ce " : "-decode-only ") .
                  ($ce_threshold > 0 ? "-filter=$ce_threshold " : "") .
                  "\"$work_dir/Q.in\" >& \"$work_dir/trace\" ";
@@ -250,12 +251,12 @@ class PortageLiveAPI {
       return $monitor;
    }
 
-   function translateTMXCE($TMX_contents_base64, $TMX_filename, $context, $ce_threshold) {
-      return $this->translateXMLCE($TMX_contents_base64, $TMX_filename, $context, $ce_threshold, "tmx");
+   function translateTMXCE($TMX_contents_base64, $TMX_filename, $context, $ce_threshold, $xtags) {
+      return $this->translateXMLCE($TMX_contents_base64, $TMX_filename, $context, $ce_threshold, $xtags, "tmx");
    }
 
-   function translateSDLXLIFFCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, $ce_threshold) {
-      return $this->translateXMLCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, $ce_threshold, "sdlxliff");
+   function translateSDLXLIFFCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, $ce_threshold, $xtags) {
+      return $this->translateXMLCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, $ce_threshold, $xtags, "sdlxliff");
    }
 
    function translateXMLCE_Status($monitor_token) {

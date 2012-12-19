@@ -41,6 +41,7 @@
     <part name="XMLFilename" type="xsd:string"/>
     <part name="context" type="xsd:string"/>
     <part name="CETreshold" type="xsd:decimal"/>
+    <part name="xtags" type="xsd:boolean"/>
   </message>
   <!-- ============================================================
                       P O R T T Y P E S

@@ -219,6 +219,13 @@ sub printForm {
                 "-- Check this box if input file is TMX or SDLXLIFF.")),
           Tr({valign=>'top'},
              td({align=>'right'}, 
+                checkbox(-name=>'xtags',
+                         -checked=>0,
+                         -label=>'')),
+             td(strong("xtags"), 
+                "-- Check this box if input file contains tags and you want to process & transfer them.")),
+          Tr({valign=>'top'},
+             td({align=>'right'}, 
                 scrolling_list(-name=>'filter',
                                -default=>'no filtering',
                                -values=>[ 'no filtering', map(sprintf("%0.2f", $_), @filter_values) ],
@@ -325,6 +332,9 @@ sub processText {
     }
     if (param('xml')) {
         push @tr_opt, ("-xml", "-nl=s");
+        if (param('xtags')) {
+           push @tr_opt, "-xtags";
+        }
     }
     else {
         push @tr_opt, param('notok') ? "-notok": "-tok";

@@ -20,6 +20,7 @@ $WSDL="PortageLiveAPI.wsdl";
 $context = "";
 $button = "";
 $monitor_token = "";
+$xtags = 0;
 #print_r( $_POST);  // Nice for debug POST's values.
 if ( $_POST ) {
    if ( array_key_exists('context', $_POST) ) {
@@ -42,6 +43,11 @@ if ( $_POST ) {
       $ce_threshold = $_POST['ce_threshold'] + 0;
    else
       $ce_threshold = 0;
+
+   if ( array_key_exists('xtags', $_POST) )
+      $xtags = 1;
+   else
+      $xtags = 0;
 
    if ( array_key_exists('monitor_token', $_POST) )
       $monitor_token = $_POST['monitor_token'];
@@ -120,6 +126,9 @@ Prime:
 <br/> Alternatively, use a SDLXLIFF file:
 <INPUT TYPE = "file"   Name = "sdlxliff_filename"/>
 <INPUT TYPE = "Submit" Name = "TranslateSDLXLIFF"  VALUE = "Translate SDLXLIFF File"/>
+<br/>
+<INPUT TYPE = "checkbox" Name = "xtags" VALUE = "Process and transfer tags."/>
+Process and transfer tags.
 <br/>CE threshold for filtering (between 0 and 1; 0.0 = no filter)
 <INPUT TYPE = "TEXT"   Name = "ce_threshold"  VALUE = "<?=$ce_threshold?>" SIZE="4" />
 
@@ -145,6 +154,7 @@ catch (SoapFault $exception) {
 function processFile($type, $file) {
    global $context;
    global $ce_threshold;
+   global $xtags;
    $filename = $file["name"];
    print "<hr/><b>Translating using $type and file: </b> $filename <br/>";
    print "<b>Context: </b> $context <br/>";
@@ -163,7 +173,7 @@ function processFile($type, $file) {
          $client = new SoapClient($WSDL);
 
          $ce_threshold += 0;
-         $reply = $client->$type($tmp_contents_base64, $filename, $context, $ce_threshold);
+         $reply = $client->$type($tmp_contents_base64, $filename, $context, $ce_threshold, $xtags);
 
          print "<hr/><b>Portage replied: </b>$reply";
          print "<br/><a href=\"$reply\">Monitor job interactively</a>";

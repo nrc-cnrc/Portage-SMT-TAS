@@ -29,7 +29,7 @@ use strict;
 use warnings;
 require Exporter;
 
-our (@ISA, @EXPORT);
+our (@ISA, @EXPORT, @EXPORT_OK);
 
 @ISA = qw(Exporter);
 @EXPORT = (
@@ -40,6 +40,7 @@ our (@ISA, @EXPORT);
    "setTokenizationLang", "setDetokenizationLang",
    "detokenize", "detokenize_array"
 );
+@EXPORT_OK = qw( get_tag_re );
 
 # Signatures so the array refs work correctly everywhere
 sub get_token(\$$\@); #(para_string, index, token_positions)
@@ -73,6 +74,10 @@ my $debug_xtags = 0;
 # Ref: http://www.w3.org/TR/REC-xml/#sec-starttags
 my $tag_inner_re = qr/(?:"[^"]*"|[^">])/;
 my $tag_re = qr/(?:<$tag_inner_re+>)/;
+sub get_tag_re {
+   return $tag_re;
+}
+
 # XML tag names - the standard is not fully followed here - I only keep the
 # ASCII subset of allowed characters.
 # Ref: http://www.w3.org/TR/REC-xml/#NT-NameStartChar
