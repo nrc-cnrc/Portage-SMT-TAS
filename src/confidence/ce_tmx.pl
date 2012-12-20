@@ -617,9 +617,16 @@ sub processTU {
          warn("Duplicate source-language tuv\n") if $new_tgt_tuv;
          $new_tgt_tuv = $tuv->copy();
          $new_tgt_tuv->set_att('xml:lang' => $parser->{tgt_lang});
+
          my $seg = $new_tgt_tuv->first_child('seg'); # There should be exactly one
          if ($seg) {
-            $parser->{seg_id} = ixAdd($parser->{ix}, $seg->text(), $seg->xml_string());
+            my $clean = XML::Twig->new(
+                     twig_handlers => {
+                        ph  => \&processNativeCode,
+                     })
+                  ->parse("<dummy>" . $seg->xml_string() . "</dummy>")
+                  ->root;
+            $parser->{seg_id} = ixAdd($parser->{ix}, $clean->text(), $clean->xml_string());
             $seg->set_text($parser->{seg_id});  # Mark translation's placeholder.
          }
       }
