@@ -630,7 +630,14 @@ sub processTU {
          if ($seg) {
             my $clean = XML::Twig->new(
                      twig_handlers => {
+                        #'ph[string() =~ /\s*\\-\s*$/]' => sub { print STDERR "\tFOUND PH:", $_->text, ":\n" },
+                        #'ph[string()=~/^\s*\\-\s*$/]' => sub { print STDERR "\tFOUND PH\-" },
                         ph  => \&processNativeCode,
+                        #bpt => \&processNativeCode,
+                        #ept => \&processNativeCode,
+                        #it  => \&processNativeCode,
+                        #hi  => \&processHI,
+                        #hi  => sub { $_->erase(); },  # Simply remove the tag but keep the content.
                      })
                   ->parse("<dummy>" . $seg->xml_string() . "</dummy>")
                   ->root;
