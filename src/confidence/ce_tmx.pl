@@ -257,14 +257,17 @@ sub processFile {
 sub processTMX {
    my ($parser, $elt) = @_;
 
-   if($parser->{action} eq 'extract') {
+   if($parser->{action} eq 'extract' or $parser->{action} eq 'check') {
       open($parser->{xml_out}, ">${output_layers}", $parser->{xml_out_name})
          or die "Can open output xml_out file";
       $parser->setTwigHandlers( { tu => \&processTU, } );
    }
-   else {
+   elsif ($parser->{action} eq 'replace') {
       # NOTE: we should NOT change the source segment thsu we should NOT have to unwrapped element in the source segment.
       $parser->setTwigHandlers( { tu => \&replaceTU, } );
+   }
+   else {
+      die "Invalid action.\n";
    }
 
    $parser->{InputFormat} = 'tmx';
@@ -453,10 +456,12 @@ sub processTransUnit {
       veryVerbose("\tMRK: %s\n", $mrk_text);
       my $id =  "$trans_unit_id." . (defined($mrk->{att}{mid}) ? $mrk->{att}{mid} : $mrk_id++);
       $parser->{seg_id} = ixAdd($parser->{ix}, $mrk_text, $mrk->xml_string(), $id);
-      $parser->{seg_count}++;
+      ++$parser->{seg_count};
    }
 
    xmlFlush($parser);
+
+   ++$parser->{tu_count};
 }
 
 
@@ -498,10 +503,10 @@ sub replaceTransUnit {
       eval {
          #$mrk->set_text($translatoin);  # Escapes xml markup in translatoin which is not the behaviour we want for the tag project.
          $mrk->set_inner_xml($translatoin);  # Looks to be safe if $translatoin doesn't contain any markup/tags.
+         ++$parser->{seg_count};
          1;
       }
       or die "XMLERROR: $translatoin\n$@\n";
-      ++$parser->{seg_count};
 
 
       my $sdl_seg = $sdl_defs->get_xpath("sdl:seg[\@id=\"$mid\"]", 0);
@@ -548,6 +553,8 @@ sub replaceTransUnit {
    $target->paste(after => $source) if ($target->descendants('mrk[@mtype="seg"]'));
 
    xmlFlush($parser);
+
+   ++$parser->{tu_count};
 }
 
 
@@ -626,8 +633,11 @@ sub processTU {
                      })
                   ->parse("<dummy>" . $seg->xml_string() . "</dummy>")
                   ->root;
-            $parser->{seg_id} = ixAdd($parser->{ix}, $clean->text(), $clean->xml_string());
-            $seg->set_text($parser->{seg_id});  # Mark translation's placeholder.
+            unless ($parser->{action} eq 'check') {
+               $parser->{seg_id} = ixAdd($parser->{ix}, $clean->text(), $clean->xml_string());
+               $seg->set_text($parser->{seg_id});  # Mark translation's placeholder.
+            }
+            ++$parser->{seg_count};
          }
       }
       # Keep a handle on the old tgt-lang TUV: it will be replaced
@@ -647,9 +657,10 @@ sub processTU {
    else {
       warn("Missing source-language version in TU");
    }
+
    xmlFlush($parser);
 
-   $parser->{tu_count}++;
+   ++$parser->{tu_count};
 }
 
 sub replaceTU {
@@ -675,6 +686,7 @@ sub replaceTU {
             my $translation = getTranslation($parser, $id);
             eval {
                $seg->set_inner_xml($translation);
+               ++$parser->{seg_count};
                1;
             }
             or die "XMLERROR: $translation\n$@\n";
@@ -709,7 +721,7 @@ sub replaceTU {
       xmlFlush($parser);
    }
 
-    $parser->{tu_count}++;
+    ++$parser->{tu_count};
 }
 
 
