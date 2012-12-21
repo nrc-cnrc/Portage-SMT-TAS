@@ -129,6 +129,7 @@ binmode(STDERR, ":encoding(UTF-8)");
 my $score = 0;
 my $pretty_print = 'none';
 use Getopt::Long;
+Getopt::Long::Configure("no_ignore_case");
 Getopt::Long::GetOptions(
    help           => sub { displayHelp(); exit 0 },
    "verbose=i"    => \my $verbose,
