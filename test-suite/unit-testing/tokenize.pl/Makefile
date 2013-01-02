@@ -258,10 +258,13 @@ da.detok:  da.tok
 test: tags
 
 .PHONY: tags
-tags: compare.xtags.tok
+tags: compare.xtags.tok compare.xtags.detok
 
 xtags.tok: xtags
 	utokenize.pl -noss -xtags < $< | tee $@
+
+xtags.detok: xtags.tok
+	udetokenize.pl < $< | tee $@
 
 ################################################################################
 # Detokenizing with brackets of all kinds

@@ -69,9 +69,17 @@ my $splitright = qr/\.{2,}|[\"”»!,:;\?%.]|[$hyphens]+|’’?|\'\'?|´´?|…
 
 my $debug_xtags = 0;
 
-# This regular expression comes back often...
-my $tag_re = qr/(?:<[^>]+>)/;
-my $tag_re2 = qr/(<[^>]+>)/;
+# Regular expressions for parsing XML tags
+# Ref: http://www.w3.org/TR/REC-xml/#sec-starttags
+my $tag_inner_re = qr/(?:"[^"]*"|[^">])/;
+my $tag_re = qr/(?:<$tag_inner_re+>)/;
+# XML tag names - the standard is not fully followed here - I only keep the
+# ASCII subset of allowed characters.
+# Ref: http://www.w3.org/TR/REC-xml/#NT-NameStartChar
+my $tag_name_re = qr/(?:[a-zA-Z_:][a-zA-Z_:.0-9-]*)/;
+# Spaces within an XML tag
+# Ref: http://www.w3.org/TR/REC-xml/#NT-S
+my $tag_space_re = qr/[ \x09\x0D\x0A]/;
 
 my @known_abbrs_en = qw {
    acad adm aka al apr aug ba bc blvd bsc btw c ca capt cdn ceo cf
@@ -291,7 +299,7 @@ sub tokenize #(paragraph, pretok, xtags)
       # In non-XML mode, tags in angle braces are recognized and protected, as
       # long as they are preceded by whitespace.
       qr/($tag_re)|([[:^space:]]+)/;
-   while ($para =~ /$token_re/g) {
+   while ($para =~ /$token_re/go) {
       if (defined $1) {
          push(@tok_posits, pos($para)-len($1), len($1)); # markup
       } elsif ($pretok) {
@@ -337,11 +345,15 @@ sub tokenize #(paragraph, pretok, xtags)
          for (; $j < $#tok_posits; $j += 2) {
             last unless $j == $i || tok_abuts_prev($j, @tok_posits);
             my $token = get_token($para, $j, @tok_posits);
-            if ($token =~ /^<\/[a-z]+>$/i) {
+            if ($token =~ /^<\/$tag_name_re$tag_space_re*>$/o) {
                push @tok_types, CLOSE_TAG;
-            } elsif ($token =~ /^<[a-z][^>]*\/>$/i) {
+            } elsif ($token =~ /^<open_wrap $tag_inner_re+\/>$/o) {
+               push @tok_types, OPEN_TAG;
+            } elsif ($token =~ /^<close_wrap $tag_inner_re+\/>$/o) {
+               push @tok_types, CLOSE_TAG;
+            } elsif ($token =~ /^<$tag_inner_re+\/>$/o) {
                push @tok_types, SELF_CLOSE_TAG;
-            } elsif ($token =~ /^$tag_re$/) {
+            } elsif ($token =~ /^$tag_re$/o) {
                push @tok_types, OPEN_TAG;
             } elsif (is_punctuation($token) || is_bracket($token)) {
                print STDOUT "TYPE SEQ BEFORE \"$token\": @tok_types\n" if $debug_xtags;
@@ -357,12 +369,16 @@ sub tokenize #(paragraph, pretok, xtags)
                   for ($j += 2; $j < $#tok_posits; $j += 2) {
                      last unless tok_abuts_prev($j, @tok_posits);
                      my $next_token = get_token($para, $j, @tok_posits);
-                     if ($next_token =~ /^<\/[a-z]+>$/i) {
+                     if ($next_token =~ /^<\/$tag_name_re$tag_space_re*>$/o) {
                         push @tok_types, CLOSE_TAG;
-                     } elsif ($next_token =~ /^<[a-z][^>]*\/>$/i) {
+                     } elsif ($next_token =~ /^<close_wrap $tag_inner_re+\/>$/o) {
+                        push @tok_types, CLOSE_TAG;
+                     } elsif ($next_token =~ /^<open_wrap $tag_inner_re+\/>$/o) {
+                        last; # we stop at an open tag
+                     } elsif ($next_token =~ /^<$tag_inner_re+\/>$/o) {
                         push @tok_types, SELF_CLOSE_TAG;
                      } else {
-                        last;
+                        last; # text, or other open tags
                      }
                   }
                }
@@ -402,40 +418,66 @@ sub tokenize #(paragraph, pretok, xtags)
          FOR_INNER_I: for (my $inner_i = 0; $inner_i <= $#inner_tags; ++$inner_i) {
             next if ($inner_matched[$inner_i]); # already found match, no need to look again.
             my $tag = get_token($para, $inner_tags[$inner_i], @tok_posits);
-            if ($tag =~ /^<([a-z]+)[^>]*>$/i) { # Opening tag
+            if ($tag =~ /^<open_wrap $tag_inner_re*\bid="(\d+)"$tag_inner_re*\/>$/o) {
+               # TMX opening tag, wrapped in an open_wrap tag.
+               foreach my $subsequent_tag (@inner_tags[$inner_i+1 .. $#inner_tags], @right_tags) {
+               }
+            } elsif ($tag =~ /^<close_wrap $tag_inner_re*\bid="(\d+)"$tag_inner_re*\/>$/o) {
+               # TMX closing tag, wrapped in a close_wrap tag.
+            } elsif ($tag =~ /^<($tag_name_re)$tag_inner_re*>$/o) {
+               # Regular opening tag (e.g., XLIFF)
                my $tagname = $1;
+               print "INNER OPEN TAG $tagname\n" if $debug_xtags;
                # tag is opening tag, see if it's closed later in the same string
-               for (my $inner_j = $inner_i+1; $inner_j <= $#inner_tags; ++$inner_j) {
-                  my $othertag = get_token($para, $inner_tags[$inner_j], @tok_posits);
-                  if ($othertag =~ m#^</$tagname>$#) {
-                     $inner_matched[$inner_i] = $inner_matched[$inner_j] = 1;
-                     next FOR_INNER_I;
-                  }
-               }
-               for (my $right_j = 0; $right_j <= $#right_tags; ++$right_j) {
-                  my $othertag = get_token($para, $right_tags[$right_j], @tok_posits);
-                  if ($othertag =~ m#^</$tagname>$#) {
+               foreach my $subsequent_tag (@inner_tags[$inner_i+1 .. $#inner_tags], @right_tags) {
+                  my $othertag = get_token($para, $subsequent_tag, @tok_posits);
+                  if ($othertag =~ /^<\/$tagname$tag_space_re*>$/) {  # Don't put /o here!
                      $inner_matched[$inner_i] = 1;
+                     print "MATCHING INNER CLOSING TAG $othertag\n" if $debug_xtags;
                      next FOR_INNER_I;
                   }
                }
-            } elsif ($tag =~ /^<\/([a-z]+)>$/i) { # Closing tag
+               #for (my $inner_j = $inner_i+1; $inner_j <= $#inner_tags; ++$inner_j) {
+               #   my $othertag = get_token($para, $inner_tags[$inner_j], @tok_posits);
+               #   if ($othertag =~ /^<\/$tagname$tag_space_re*>$/) {  # Don't put /o here!
+               #      $inner_matched[$inner_i] = $inner_matched[$inner_j] = 1;
+               #      print "MATCHING INNER CLOSING TAG $othertag\n" if $debug_xtags;
+               #      next FOR_INNER_I;
+               #   }
+               #}
+               #for (my $right_j = 0; $right_j <= $#right_tags; ++$right_j) {
+               #   my $othertag = get_token($para, $right_tags[$right_j], @tok_posits);
+               #   if ($othertag =~ /^<\/$tagname$tag_space_re*>$/) {  # Don't put /o here!
+               #      $inner_matched[$inner_i] = 1;
+               #      print "MATCHING RIGHT CLOSING TAG $othertag\n" if $debug_xtags;
+               #      next FOR_INNER_I;
+               #   }
+               #}
+            } elsif ($tag =~ /^<\/($tag_name_re)$tag_space_re*>$/o) {
+               # Regular closing tag (e.g., XLIFF)
                my $tagname = $1;
                # tag is closing tag, see if it's opened earlier in the same string
-               for (my $inner_j = 0; $inner_j < $inner_i; ++$inner_j) {
-                  my $othertag = get_token($para, $inner_tags[$inner_j], @tok_posits);
-                  if ($othertag =~ /^<$tagname\b[^>]*>$/) {
-                     $inner_matched[$inner_i] = $inner_matched[$inner_j] = 1;
-                     next FOR_INNER_I;
-                  }
-               }
-               for (my $left_j = 0; $left_j <= $#left_tags; ++$left_j) {
-                  my $othertag = get_token($para, $left_tags[$left_j], @tok_posits);
-                  if ($othertag =~ /^<$tagname\b[^>]*>$/) {
+               foreach my $preceeding_tag (@left_tags, @inner_tags[0 .. $inner_i-1]) {
+                  my $othertag = get_token($para, $preceeding_tag, @tok_posits);
+                  if ($othertag =~ /^<$tagname(?:$tag_space_re$tag_inner_re*|)>$/) {  # Don't put /o here!
                      $inner_matched[$inner_i] = 1;
                      next FOR_INNER_I;
                   }
                }
+               #for (my $inner_j = 0; $inner_j < $inner_i; ++$inner_j) {
+               #   my $othertag = get_token($para, $inner_tags[$inner_j], @tok_posits);
+               #   if ($othertag =~ /^<$tagname(?:$tag_space_re$tag_inner_re*|)>$/) {  # Don't put /o here!
+               #      $inner_matched[$inner_i] = $inner_matched[$inner_j] = 1;
+               #      next FOR_INNER_I;
+               #   }
+               #}
+               #for (my $left_j = 0; $left_j <= $#left_tags; ++$left_j) {
+               #   my $othertag = get_token($para, $left_tags[$left_j], @tok_posits);
+               #   if ($othertag =~ /^<$tagname(?:$tag_space_re$tag_inner_re*|)>$/) {  # Don't put /o here!
+               #      $inner_matched[$inner_i] = 1;
+               #      next FOR_INNER_I;
+               #   }
+               #}
             }
          }
 
