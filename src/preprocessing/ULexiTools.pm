@@ -437,22 +437,6 @@ sub tokenize #(paragraph, pretok, xtags)
                      next FOR_INNER_I;
                   }
                }
-               #for (my $inner_j = $inner_i+1; $inner_j <= $#inner_tags; ++$inner_j) {
-               #   my $othertag = get_token($para, $inner_tags[$inner_j], @tok_posits);
-               #   if ($othertag =~ /^<\/$tagname$tag_space_re*>$/) {  # Don't put /o here!
-               #      $inner_matched[$inner_i] = $inner_matched[$inner_j] = 1;
-               #      print "MATCHING INNER CLOSING TAG $othertag\n" if $debug_xtags;
-               #      next FOR_INNER_I;
-               #   }
-               #}
-               #for (my $right_j = 0; $right_j <= $#right_tags; ++$right_j) {
-               #   my $othertag = get_token($para, $right_tags[$right_j], @tok_posits);
-               #   if ($othertag =~ /^<\/$tagname$tag_space_re*>$/) {  # Don't put /o here!
-               #      $inner_matched[$inner_i] = 1;
-               #      print "MATCHING RIGHT CLOSING TAG $othertag\n" if $debug_xtags;
-               #      next FOR_INNER_I;
-               #   }
-               #}
             } elsif ($tag =~ /^<\/($tag_name_re)$tag_space_re*>$/o) {
                # Regular closing tag (e.g., XLIFF)
                my $tagname = $1;
@@ -464,20 +448,6 @@ sub tokenize #(paragraph, pretok, xtags)
                      next FOR_INNER_I;
                   }
                }
-               #for (my $inner_j = 0; $inner_j < $inner_i; ++$inner_j) {
-               #   my $othertag = get_token($para, $inner_tags[$inner_j], @tok_posits);
-               #   if ($othertag =~ /^<$tagname(?:$tag_space_re$tag_inner_re*|)>$/) {  # Don't put /o here!
-               #      $inner_matched[$inner_i] = $inner_matched[$inner_j] = 1;
-               #      next FOR_INNER_I;
-               #   }
-               #}
-               #for (my $left_j = 0; $left_j <= $#left_tags; ++$left_j) {
-               #   my $othertag = get_token($para, $left_tags[$left_j], @tok_posits);
-               #   if ($othertag =~ /^<$tagname(?:$tag_space_re$tag_inner_re*|)>$/) {  # Don't put /o here!
-               #      $inner_matched[$inner_i] = 1;
-               #      next FOR_INNER_I;
-               #   }
-               #}
             }
          }
 
@@ -501,26 +471,43 @@ sub tokenize #(paragraph, pretok, xtags)
             splice(@tok_posits, $i+2, $j-$i-2);
             $j = $i + 2;
             @left_tags = @right_tags = ();
+         } else {
+            # glue the right tags back on, if any
+            if (@right_tags) {
+               my $k = $right_tags[0]-2;
+               for (@right_tags) {
+                  $tok_posits[$k+1] += $tok_posits[$_+1];
+               }
+               splice(@tok_posits, $k+2, 2*scalar(@right_tags));
+               $j -= 2*scalar(@right_tags);
+            }
+            # inner tags are glued to the following token if they're opening or
+            # self-closing, or to the previous token if they're closing
+            if (@inner_tags) {
+               print "TYPE SEQ @tok_types\n" if $debug_xtags;
+               foreach my $k (reverse @inner_tags) {
+                  print "INNER TAG $k TYPE $tok_types[($k-$i)/2]\n" if $debug_xtags;
+                  if ($tok_types[($k-$i)/2] == CLOSE_TAG) {
+                     $tok_posits[$k-1] += $tok_posits[$k+1];
+                     splice(@tok_posits, $k, 2);
+                  } else {
+                     $tok_posits[$k+1] += $tok_posits[$k+3];
+                     splice(@tok_posits, $k+2, 2);
+                  }
+                  $j -= 2;
+               }
+            }
+            # glue the left tags back on, if any
+            if (@left_tags) {
+               die unless $left_tags[0] == $i;
+               for (@left_tags) {
+                  $tok_posits[$i+1] += $tok_posits[$_+2+1];
+               }
+               splice(@tok_posits, $i+2, 2*scalar(@left_tags));
+               $j -= 2*scalar(@left_tags);
+            }
          }
 
-         # glue the right tags back on, if any
-         if (@right_tags) {
-            my $k = $right_tags[0]-2;
-            for (@right_tags) {
-               $tok_posits[$k+1] += $tok_posits[$_+1];
-            }
-            splice(@tok_posits, $k+2, 2*scalar(@right_tags));
-            $j -= 2*scalar(@right_tags);
-         }
-         # glue the left tags back on, if any
-         if (@left_tags) {
-            die unless $left_tags[0] == $i;
-            for (@left_tags) {
-               $tok_posits[$i+1] += $tok_posits[$_+2+1];
-            }
-            splice(@tok_posits, $i+2, 2*scalar(@left_tags));
-            $j -= 2*scalar(@left_tags);
-         }
          if ($debug_xtags) {
             print STDOUT "AFTER: ", get_token($para, $i, @tok_posits);
             for (my $k = $i+2; $k < $j; $k += 2) {

@@ -1,14 +1,14 @@
 This part of the input tests XLIFF tags . 
 December 31<g id="3">st</g> should keep 31st together . 
 But ( 31<g id="3">st</g> ) should still tokenize its parentheses away . 
-An unbalanced tag breaks this up <g id="4">: 31 </g> <g id="5"> st</g> . Oh well , garbage in garbage out . 
+An unbalanced tag breaks this up <g id="4">: 31</g> <g id="5">st</g> . Oh well , garbage in garbage out . 
 Global CO<g id="pt13">2</g>e emissions 
 we will :</g> 
 Sometimes we resolve ambiguity wrong : ( CO<g id="55">2</g>e) Oh well , it happens . 
-Token-internal self-closing and unmatched tags stay on their own : go <x id="23"/> boy ; year )<x id="57"/> . Test abc <g id="3"> def ghi </g> jhk . 
+Token-internal self-closing and unmatched tags stay on their own : go <x id="23"/>boy ; year )<x id="57"/> . Test abc <g id="3">def ghi</g> jhk . 
 Tags on the edges are glued back on : under the <g id="46">Canadian Environmental Protection Act , 1999</g> ( CEPA 1999 ) . 
 Tag sequences too : <g id="34"><x id="12"/>a b c</g><x id="45"><g id="1"></g> <g id="34"><x id="12"/>abc</g><x id="45"/><g id="1"></g> 
-And unmatched inner tags don't break that : <g id="34"><x id="12"/>ab <x id="78"/> c</g><x id="45"/><g id="1"></g> 
+And unmatched inner tags don't break that : <g id="34"><x id="12"/>ab <x id="78"/>c</g><x id="45"/><g id="1"></g> 
 While matched inner tags get to merge the whole shebang : <g id="34"><x id="12"/>ab<x id="78">c</x><g id="3">d</g><x id="45"/><g id="1"></g></g> 
 Punctuation at the end no longer breaks it up : with the latest code revision , the right tags remain right tags .. <g id="34"><x id="12"/>ab<x id="78">c</x><g id="3">d</g><x id="45"/><g id="1"></g></g> . 
 <g id="pt39">Headings</g> : Should keep the colon tokenized . 
