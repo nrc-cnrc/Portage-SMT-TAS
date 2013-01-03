@@ -1,0 +1,11 @@
+This is a test of whitespace placement in the presence of tags .
+<g id="1">This is a test</g> of whitespace <x id="2" />placement in the presence of tags .
+<x id="2" />This is a test of whitespace placement <g id="1">in</g> the presence of tags .
+This is a test of <g id="1">whitespace</g> placement in the presence of tags .
+This is a test of <g id="1"></g>whitespace placement in the presence of tags .
+This is a test of <g id="1"></g>whitespace placement in the presence of tags .
+This is a test of whitespace<g id="1"></g> placement in the presence of tags .
+This is a test of<g id="1"> whitespace placement </g> in the presence of tags .
+This is a test of<g id="1"> whitespace </g> placement in the presence of tags .
+This is a test of whitespace placement in the presence of tags .
+This is a test of whitespace placement in the presence of tags .
