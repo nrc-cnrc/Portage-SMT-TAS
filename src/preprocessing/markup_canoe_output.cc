@@ -127,6 +127,11 @@ struct Elem {
 
    bool empty() {return btok == etok;}
 
+   bool emptyTgt() {return btok_tgt == etok_tgt;}
+
+   // Does this tag element meet the requirements for transfer to target text?
+   bool shouldTransfer() {return complete && (xtags || !empty());}
+
    bool isIntraTokenLeft() {
       return !lwsl && !lwsr;
    }
@@ -233,7 +238,9 @@ void alignPhrasePair(const Dict& dict, const Dict& anti_dict,
              && !anti_dict.match(stok, ttok))
             score += 1;  // cognate match
          if(verbose)
-             cerr << "alignPhrasePair: stok: " << stok << " ttok: " << ttok << " score: " << score << " src_scores[" << i << "]=" << src_scores[i] << endl;
+             cerr << "alignPhrasePair: stok: " << stok << " ttok: " << ttok
+                  << " score: " << score << " src_scores[" << i << "]=" << src_scores[i]
+                  << endl;
          if (score > src_scores[i]) {
             if(verbose)
                 cerr << "alignPhrasePair: setting src_all[" << i << "]=" << j << endl;
@@ -556,30 +563,49 @@ int main(int argc, char* argv[])
       }
       // write out target toks, with elements 
 
+      bool need_ws = false;
       for (Uint i = 0; i < tgt_toks.size(); ++i) {
-         bool tag_out = false;
          for (Uint j = 0; j < elems.size(); ++j) {
-            if (elems[j].complete && (xtags || !elems[j].empty()) && elems[j].btok_tgt==i) {
-               if (elems[j].lwsl || (!tag_out && elems[j].isIntraTokenLeft()))
-                  if (i != 0) cout << ' ';
-               cout << elems[j].lstring;
-               if (elems[j].btok_tgt == elems[j].etok_tgt && !elems[j].rstring.empty())
-                  cout << elems[j].rstring;
-               if (elems[j].lwsr)
-                  cout << ' ';
-               tag_out = true;
+            if (elems[j].shouldTransfer() && elems[j].btok_tgt==i) {
+               if (!elems[j].isIntraTokenLeft()) {
+                  if (elems[j].lwsl && i != 0)
+                     cout << ' ';
+                  cout << elems[j].lstring;
+                  // Move intra-token right tag to start of the token
+                  if (elems[j].emptyTgt())
+                     cout << elems[j].rstring;
+                  if (elems[j].lwsr)
+                     cout << ' ';
+                  need_ws = false;
+               }
             }
          }
-         if (!tag_out && i != 0)
+         if (need_ws)
             cout << ' ';
          cout << escape(tgt_toks[i]);
-         for (Uint j = 0; j < elems.size(); ++j)
-            if (elems[j].complete && (xtags || !elems[j].empty()) && elems[j].etok_tgt==i+1)
-               if (elems[j].btok_tgt != elems[j].etok_tgt && !elems[j].rstring.empty()) {
+         need_ws = true;
+         // Move intra-token left tags to end of the token
+         for (Uint j = 0; j < elems.size(); ++j) {
+            if (elems[j].shouldTransfer() && elems[j].btok_tgt==i) {
+               if (elems[j].isIntraTokenLeft()) {
+                  cout << elems[j].lstring;
+               }
+            }
+         }
+         for (Uint j = 0; j < elems.size(); ++j) {
+            Uint k = elems[j].empty() ? i : i + 1;
+            if (elems[j].shouldTransfer() && elems[j].etok_tgt==k)
+               if ((!elems[j].emptyTgt() || elems[j].isIntraTokenLeft())
+                     && !elems[j].rstring.empty()) {
                   if (elems[j].rwsl)
                      cout << ' ';
                   cout << elems[j].rstring;
+                  if (elems[j].rwsr)
+                     cout << ' ';
+                  if (!elems[j].isIntraTokenRight())
+                     need_ws = false;
                }
+         }
       }
       cout << endl;
    }

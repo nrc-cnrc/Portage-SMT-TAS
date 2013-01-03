@@ -9,8 +9,6 @@
 
 .SECONDARY:
 
-export PATH:=~/workspace/PORTAGEshared/src/preprocessing:${PATH}
-
 .PHONY: all
 all: whitespace_test
 
