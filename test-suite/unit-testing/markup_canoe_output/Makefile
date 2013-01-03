@@ -19,7 +19,7 @@ include ../Makefile.incl
 
 export PORTAGE_INTERNAL_CALL=1
 
-whitespace_test: OPTS=-v -d -xtags
+whitespace_test: OPTS=-v -xtags
 
 .PHONY: whitespace_test
 
