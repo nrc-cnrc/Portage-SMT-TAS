@@ -33,7 +33,8 @@ use FileHandle;
 
 # globals
 my $phrase_re = qr/\"([^\\\"]*(?:(?:\\.)[^\\\"]*)*)\"/;
-my $align_re = qr/a=\[([^;\]]+;[^-;\]]+[-;][^;\]]+[^]]*)\]/;
+#my $align_re = qr/a=\[([^;\]]+;[^-;\]]+[-;][^;\]]+[^]]*)\]/;
+my $align_re  = qr/a=\[([^\]]+)\]/;
 my $ffvals_re = qr/v=\[([^\]]+)\]/;
 my $legacy_re = qr/\(([^\)]+)\)/;
 
@@ -53,9 +54,8 @@ Options:
   -ffout=FF	Specify output feature functions file; implies -ff [none]
   -palout=PAL	Specify output phrase alignment file; implies -pal [none]
 
-  -ff		Output feature function values [don't, but implied by -ffout]
-  -pal		Output phrase alignments [don't, but implied by -palout]
   -oov          Output OOV status in -palout file [don't]
+  -wal          Output word-alignment info in the -palout file (implies -oov) [don't]
   -tagoov       Tag each OOV phrase in target text, eg <OOV>oov-phrase</OOV> [don't]
 
   -nbest=N	Only print N best translations for each source [0 means all]
@@ -66,12 +66,12 @@ Options:
   -canoe	Expect direct output from canoe, i.e. not a N-best list,
 		and therefore with only one level of backslash's [don't]
 
-Note: all output can be directed to stdout by specifying '-' as output
-file; each translation then produces up to three lines of output:
-translation, alignment info, and ff values info (in that order).
+Note: all output can be directed to stdout by specifying '-' as output file;
+each translation then produces up to four lines of output: translation, phrase
+alignment info, word alignment info, and ff values (in that order).
 ";
 
-our ($h, $help, $in, $out, $ff, $ffout, $pal, $palout, $nbest, $format, $legacy, $canoe, $oov, $tagoov, $append);
+our ($h, $help, $in, $out, $ffout, $palout, $wal, $nbest, $format, $legacy, $canoe, $oov, $tagoov, $append);
 
 if (defined($h) or defined($help)) {
     print STDERR $HELP;
@@ -79,20 +79,20 @@ if (defined($h) or defined($help)) {
 }
 $in = "-" unless defined $in;
 $out = "-" unless defined $out;
-$ff = $ffout unless defined $ff;
 $ffout = 0 unless defined $ffout;
-$pal = $palout unless defined $pal;
 $palout = 0 unless defined $palout;
+$wal = 0 unless defined $wal;
 $nbest = 0 unless defined $nbest;
 $format = "rescore" unless defined $format;
 $legacy = 0 unless defined $legacy;
 $canoe = 0 unless defined $canoe;
 $oov = 0 unless defined $oov;
+$oov = 1 if $wal;
 $tagoov = 0 unless defined $tagoov;
 my $mode = ">";
 $mode = ">>" if (defined($append));
 
-die "Don't know what to do with all these arguments."
+die "Don't know what to do with these extra arguments: @ARGV"
     if @ARGV;
 
 
@@ -105,14 +105,14 @@ zopen($out_stream, "$mode$out")
    or die "Error: nbest2rescore.pl can't open output file $mode'$out': $!\n";
 
 my $ff_stream;
-if ($ff && $ffout) {
+if ($ffout) {
    $ff_stream = new FileHandle;
    zopen($ff_stream, "$mode$ffout")
       or die "Error: nbest2rescore.pl can't open output ff file $mode'$ffout': $!\n";
 }
 
 my $pal_stream;
-if ($pal && $palout) {
+if ($palout) {
    $pal_stream = new FileHandle;
    zopen($pal_stream, "$mode$palout")
       or die "Error: nbest2rescore.pl can't open output phrase alignment file $mode'$palout': $!\n";
@@ -192,20 +192,24 @@ sub parseTranslation {
 
 	# Process the data part
 	if ($alignment) {
-	    $alignment =~ s/\\(.)/$1/go;	# remove inner level of backslashification
-            my @tokens = split(/;/o, $alignment, 4);
-            my ($score, $begin, $end, $oovstatus);
-            if (scalar(@tokens) == 4) {
-               ($score, $begin, $end, $oovstatus) = @tokens;
+	    #$alignment =~ s/\\(.)/$1/go;	# remove inner level of backslashification
+            my @tokens = split(/;/o, $alignment, 5);
+            my ($score, $begin, $end, $oovstatus, $walign);
+            if ($tokens[1] =~ /^(\d+)-(\d+)$/) {
+                $score = $tokens[0];
+                $begin = $1;
+                $end = $2;
+                $oovstatus = $tokens[2];
+                $walign = ($tokens[3] || "");
             } else {
-               $score = $tokens[0];
-               ($begin, $end) = split(/-/o, $tokens[1], 2);
-               $oovstatus = $tokens[2];
+                ($score, $begin, $end, $oovstatus) = @tokens;
+                $walign = "";
             }
 	    $record{score} = $score;
 	    $record{begin} = $begin;
 	    $record{end} = $end;
             $record{oov} = $oovstatus;
+            $record{walign} = $walign;
 	}
 	if ($ffvals) {
 	    $ffvals  =~ s/\\(.)/$1/go;	# remove inner level of backslashification
@@ -265,7 +269,7 @@ sub printXML {
 }
 
 sub printRescore {
-    my ($translation, $count, $outstream, $outff, $outpal, $outoov) = @_;
+    my ($translation, $count, $outstream, $outff, $outpal) = @_;
 
     return if ! $translation;
 
@@ -292,12 +296,13 @@ sub printRescore {
 	    $pcount++;
 	    my $psz = scalar @{$phrase->{phrase}};
 
-	    print $outpal ' ' unless $pcount == 1; # phrase separator
-	    printf($outpal "%d:%d-%d:%d-%d%s", 
-		   $pcount, 	# phrase count
+	    print $outpal ' ' unless $pcount == 1;   # phrase separator
+	    printf($outpal "%d:%d-%d:%d-%d%s%s", 
+		   $pcount, 	                     # phrase count
 		   $phrase->{begin}, $phrase->{end}, # src range
 		   $tgt_pos, $tgt_pos + $psz - 1,    # tgt range
-                   $oov ? ":$phrase->{oov}" : "");      # oov status
+                   $oov ? ":$phrase->{oov}" : "",    # oov status
+                   $wal ? ":$phrase->{walign}" : "");# word-alignment info
 	    $tgt_pos += $psz;	# update tgt position
 	}
 	print $outpal "\n";
