@@ -749,13 +749,13 @@ TRANS:{
          $decoder = "canoe-parallel.sh $v -n $n $xtra_cp_opts canoe";
       }
       my $decoder_opts = $verbose ? "-v $verbose" : "";
-      $decoder_opts .= " -palign" if (defined $tcsrclm or $with_ce);
+      $decoder_opts .= " -walign -palign" if (defined $tcsrclm or $with_ce);
       $decoder_opts .= " -ffvals" if $with_ce;
       $decoder_opts .= " $xtra_decode_opts";
       my $p_out = (defined $tcsrclm or $with_ce) ? $p_raw : $p_dec;
       call("$decoder $decoder_opts -f ${canoe_ini} < '${q_dec}' > '${p_out}'");
       if (defined $tcsrclm) {
-         call("nbest2rescore.pl -canoe -tagoov -palout='${p_pal}' < '${p_raw}' " . 
+         call("nbest2rescore.pl -canoe -tagoov -wal -palout='${p_pal}' < '${p_raw}' " .
               "| perl -pe 's/ +\$//;' > '${p_decoov}'");
       }
       if ($with_ce) {
