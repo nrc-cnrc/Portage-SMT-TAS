@@ -193,22 +193,13 @@ sub parseTranslation {
 	# Process the data part
 	if ($alignment) {
 	    #$alignment =~ s/\\(.)/$1/go;	# remove inner level of backslashification
-            my @tokens = split(/;/o, $alignment, 5);
-            my ($score, $begin, $end, $oovstatus, $walign);
-            if ($tokens[1] =~ /^(\d+)-(\d+)$/) {
-                $score = $tokens[0];
-                $begin = $1;
-                $end = $2;
-                $oovstatus = $tokens[2];
-                $walign = ($tokens[3] || "");
-            } else {
-                ($score, $begin, $end, $oovstatus) = @tokens;
-                $walign = "";
-            }
+            my ($score, $range, $oovflag, $walign) = split(/;/, $alignment, 4);
+            my ($begin, $end) = split(/-/, $range, 2);
+            $walign = "" unless defined $walign;
 	    $record{score} = $score;
 	    $record{begin} = $begin;
 	    $record{end} = $end;
-            $record{oov} = $oovstatus;
+            $record{oov} = $oovflag;
             $record{walign} = $walign;
 	}
 	if ($ffvals) {
