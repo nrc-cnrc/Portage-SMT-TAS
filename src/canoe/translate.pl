@@ -475,8 +475,6 @@ $nl eq "w" or $nl eq "s" or $nl eq "p"
 !$xml or $nl eq "s"
    or die "ERROR: -xml requires -nl=s.\nStopped";
 
-$xtags and !$xml and die "ERROR: you can only use -xtags when using -xml!";
-
 !defined $tc || !defined $tctp
    or die "ERROR: Specify only one of: -notc, -tc, -tctp.\nStopped";
 $tc = 0 unless defined $tc;
@@ -554,6 +552,9 @@ if (defined $encoding) {
    $utf8 or $lc_enc eq "cp1252"
       or die "ERROR: -encoding must be one of: 'utf8' or 'cp1252'.\nStopped";
 }
+if ($xtags && !$utf8) {
+   die "ERROR: -xtags is not compatible with encoding $encoding: only utf8 is supported";
+}
 
 # Locate the Plugins directory
 my $plugins_dir = defined $plugins ? $plugins : "$models_dir/plugins";
@@ -582,8 +583,9 @@ if ($xml) {
       $xtgt =~ tr/a-z/A-Z/;
    }
 } else {
-   !defined $xsrc and !defined $xtgt and !defined $filter
-      or warn "Warning: ignoring -xsrc, -xtgt and -filter, which are meaningful only with -xml.\n"
+   !defined $xsrc and !defined $xtgt and !defined $filter and !defined $xtags
+      or warn "Warning: ignoring -xsrc, -xtgt, -xtags and -filter, which are meaningful only with -xml.\n";
+   undef $xtags;
 }
 
 # CE specific options
@@ -739,18 +741,15 @@ IN:{
 PREP:{
    my $in;
    if ($xtags) {
-      my $Q_se = "${dir}/Q.se";
       plugin("preprocess", $src, $Q_tags, $Q_pre);
       tokenize($src, $Q_pre, $Q_tok_tags);
-      strip_entity($Q_tok_tags, $Q_se);
-      $in = $Q_se;
+      strip_entity($Q_tok_tags, $Q_tok);
    }
    else {
       plugin("preprocess", $src, $Q_txt, $Q_pre);
       tokenize($src, $Q_pre, $Q_tok);
-      $in = $Q_tok;
    }
-   lowercase($in, $q_tok);
+   lowercase($Q_tok, $q_tok);
 }
 
 # Translate
@@ -829,13 +828,12 @@ TRANS:{
 POST:{
    my $in = defined $tcsrclm ? $p_tokoov : $p_tok;
 
-   #TODO: Should truecase use Q_tok_tags instead of Q_tok when in xml mode?
    # lang, in, out, source, pal
    truecase($tgt, $in, $P_tok, $Q_tok, $p_pal);
 
    # Transfer tags from source to target.
    if ($xtags) {
-      my $out = "${dir}/P.mco";
+      my $out = "${dir}/P.tok.tags";
       call("markup_canoe_output -v -xtags $Q_tok_tags $P_tok $p_pal > $out");
       $in = $out;
    }
@@ -1005,10 +1003,12 @@ sub tokenize {
          $tokopt .= $nl eq 's' ? " -noss" : " -ss";
          $tokopt .= " -paraline" if $nl eq 'p';
          $tokopt .= " -pretok" if !$tok;
+         $tokopt .= " -xtags" if $xtags;
          my $u = $utf8 ? "u" : "";
          call("${u}tokenize.pl ${tokopt} '${in}' '${out}'", $out);
       } else {
          # Other languages must provide sentsplit_plugin and tokenize_plugin.
+         $xml and $xtags and die "ERROR: xtags only supported for src=en, fr, es, or da";
          my $tok_input = $nl ne 's' ? "$in.ospl" : $in;
          my $ss_output = $tok ? $tok_input : $out;
          if ($nl ne 's') {
@@ -1051,9 +1051,9 @@ sub strip_entity {
 
    while (<IN>) {
       s/$tag_re//g;  # Remove tags
-      s/&amp/&/g;    # unescape ampersand
-      s/&gt/>/g;     # unescape greater than
-      s/&lt/</g;     # unescape less than
+      s/&gt;/>/g;    # unescape greater than
+      s/&lt;/</g;    # unescape less than
+      s/&amp;/&/g;   # unescape ampersand
       print OUT $_;
    }
    close(IN);
@@ -1071,9 +1071,9 @@ sub escape_entity {
       or cleanupAndDie("Can't open $out for writing.\n");
 
    while (<IN>) {
-      s/&amp;/&/g;
-      s/&gt;/>/g;
-      s/&lt;/</g;
+      s/&/&amp;/g;
+      s/>/&gt;/g;
+      s/</&lt;/g;
       print OUT $_;
    }
    close(IN);
