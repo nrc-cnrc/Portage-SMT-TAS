@@ -1,0 +1,180 @@
+digraph G {
+   input_text [shape=box, color=blue];
+   dir [shape=box, color=blue];
+   Q_txt [shape=box, color=blue];
+   Q_tags [shape=box, color=blue];
+   Q_pre [shape=box, color=blue];
+   Q_tok [shape=box, color=blue];
+   Q_tok_tags [shape=box, color=blue];
+   q_tok [shape=box, color=blue];
+   q_dec [shape=box, color=blue];
+   p_raw [shape=box, color=blue];
+   p_decoov [shape=box, color=blue];
+   p_dec [shape=box, color=blue];
+   p_pal [shape=box, color=blue];
+   p_tokoov [shape=box, color=blue];
+   p_tok [shape=box, color=blue];
+   P_tok [shape=box, color=blue];
+   P_tok_tags [shape=box, color=blue];
+   P_dtk [shape=box, color=blue];
+   P_txt [shape=box, color=blue];
+   pr_ce [shape=box, color=blue];
+   Q_filt [shape=box, color=blue];
+   out [shape=box, color=blue];
+   ffvals [shape=box, color=blue];
+
+   subgraph legend {
+      xml [color="red"];
+      xtags [color="orange"];
+      tcsrclm [color="green"];
+      with_ce [color="purple"];
+   }
+
+########################################
+   subgraph IN {
+      subgraph if_xml {
+         edge [color="red"];
+         input_text->"ce_tmx.pl extract";
+         "ce_tmx.pl extract"->dir;
+         "ce_tmx.pl extract"->Q_txt;
+         "ce_tmx.pl extract"->Q_tags;
+      }
+      subgraph else {
+         input_text->"copy_IN";
+         "copy_IN"->Q_txt;
+      }
+   }
+
+
+########################################
+   subgraph PREP {
+      subgraph xtags {
+         edge [color="orange"];
+         Q_tags->"preprocess_plugin";
+         "preprocess_plugin"->Q_pre;
+         Q_pre->"tokenize";
+         "tokenize"->Q_tok_tags;
+         Q_tok_tags->"strip_entity";
+         "strip_entity"->Q_tok;
+         Q_tok->"lowercase";
+         "lowercase"->q_tok;
+      }
+      subgraph else {
+         Q_txt->"preprocess_plugin";
+         "preprocess_plugin"->Q_pre;
+         Q_pre->"tokenize";
+         "tokenize"->Q_tok;
+         Q_tok->"lowercase";
+         "lowercase"->q_tok;
+      }
+   }
+
+
+########################################
+   subgraph TRANS {
+      q_tok->"predecode_plugin";
+      "predecode_plugin"->q_dec;
+
+      subgraph xtags {
+         edge [color="orange"];
+         q_dec->"canoe";
+         "canoe"->p_raw;
+
+         p_raw->"nbest2rescore.pl";
+         "nbest2rescore.pl"->p_pal;
+         "nbest2rescore.pl"->p_decoov;
+
+         p_decoov->"postdecode_plugin";
+         "postdecode_plugin"->p_tokoov;
+
+         p_tokoov->"Strip OOV";
+         "Strip OOV"->p_tok;
+      }
+      subgraph with_ce {
+         edge [color="purple"];
+         dir->"ce_canoe2ffvals.pl";
+         p_raw->"ce_canoe2ffvals.pl";
+         "ce_canoe2ffvals.pl"->p_dec;
+         "ce_canoe2ffvals.pl"->ffvals;
+      }
+      subgraph tcsrclm {
+         edge [color="green"];
+         p_decoov->"postdecode_plugin";
+         "postdecode_plugin"->p_tokoov;
+
+         p_tokoov->"Strip OOV";
+         "Strip OOV"->p_tok;
+      }
+      "canoe"->p_dec;
+
+      p_dec->"postdecode_plugin";
+      "postdecode_plugin"->p_tok;
+   }
+
+
+########################################
+   subgraph POST {
+      subgraph if_tcsrclm {
+         edge [color="green"];
+         p_tokoov->"truecase";
+      }
+      subgraph else {
+         p_tok->"truecase";
+         Q_tok->"truecase";
+         p_pal->"truecase";
+         "truecase"->P_tok;
+      }
+
+      subgraph xtags {
+         edge [color="orange"];
+         Q_tok_tags->"markup_canoe_output";
+         P_tok->"markup_canoe_output";
+         p_pal->"markup_canoe_output";
+         "markup_canoe_output"->P_tok_tags;
+
+         P_tok_tags->"detokenize";
+      }
+      subgraph else {
+         P_tok->"detokenize";
+      }
+
+      "detokenize"->P_dtk;
+
+      P_dtk->"postprocess_plugin";
+      "postprocess_plugin"->P_txt;
+   }
+
+
+########################################
+   subgraph CE {
+      subgraph with_ce {
+         edge [color="purple"];
+         dir->"ce.pl";
+         "ce.pl"->pr_ce;
+      }
+   }
+
+
+########################################
+   subgraph OUT {
+      subgraph unless_xml {
+         subgraph with_ce {
+            edge [color="purple"];
+            pr_ce->"paste";
+            "paste"->P_txt;
+         }
+         subgraph else {
+            P_txt->"copy_OUT";
+            "copy_OUT"->out;
+         }
+      }
+      subgraph else {
+         edge [color="red"];
+# P_txt which will contain tags
+         P_txt->"ce_tmx.pl replace";
+         dir->"ce_tmx.pl replace";
+         "ce_tmx.pl replace"->out;
+      }
+   }
+}
+

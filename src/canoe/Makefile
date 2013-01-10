@@ -1,4 +1,3 @@
-# $Id$# @file Makefile
 #
 # Canoe Decoder
 # Aaron Tikuisis
@@ -101,3 +100,8 @@ canoe.dvi: uml.eps canoe.bib
 
 uml.eps: uml.fig
 	fig2dev -L eps $^ $@
+
+all:  translate.pl.svg
+translate.pl.svg:  translate.dot
+	-@dot -Tsvg < $< > $@
+
