@@ -221,11 +221,24 @@ else {
 
 exit 0;
 
+
+
 sub processFile {
    my %args = @_;
 
+   sub my_output_filter ($) {
+      my $content = shift;
+      if (defined($content)) {
+         no warnings qw(utf8);
+         $content =~ s/\x{FDD0}/&#x1E;/g;
+         $content =~ s/\x{FDD1}/&#x1F;/g;
+      }
+      return $content;
+   }
+
    my $parser = XML::Twig->new(
-         pretty_print => $pretty_print,
+         pretty_print  => $pretty_print,
+         output_filter => \&my_output_filter,
          start_tag_handlers => { xliff => \&processXLIFF, tmx => \&processTMX },
          );
 
@@ -239,7 +252,26 @@ sub processFile {
    $parser->{'tool-company'} = 'CNRC-NRC';
 
    verbose("[Processing file %s ...]\n", $parser->{xml_in});
-   $parser->parsefile($parser->{xml_in});
+   my $content;
+   {
+      sub my_input_filter ($) {
+         my $content = shift;
+         if (defined($content)) {
+            no warnings qw(utf8);
+            $content =~ s/&#x1[eE];/\x{FDD0}/g;
+            $content =~ s/&#x1[fF];/\x{FDD1}/g;
+         }
+         return $content;
+      }
+
+      local $/=undef;
+      open(IN, $parser->{xml_in}) or die;
+      $content = <IN>;
+      $content = my_input_filter($content);
+      close(IN);
+   }
+
+   $parser->parse($content);
 
    xmlFlush($parser);
 
@@ -848,9 +880,23 @@ sub ixSave {
    open(my $id_out, ">${output_layers}", $id_file)
       or die "Can't open output file $id_file";
 
+   sub fix_1E_1F($) {
+      my $content = shift;
+      if (defined($content)) {
+         #print STDERR "fix_1E_1F: $content\n";
+         no warnings qw(utf8);
+         # This string was extracted with xml_string, print or sprint.
+         # This string was extracted with text which doesn't apply output_filter.
+         $content =~ s/&#x1[eE];|\x{FDD0}/\x{2011}/g;
+         $content =~ s/&#x1[fF];|\x{FDD1}//g;
+      }
+      #print STDERR "fix_1E_1F: $content\n";
+      return $content;
+   }
+
    for my $id (sort keys %{$ix->{segment}}) {
-      my $seg = $ix->{segment}{$id};
-      my $tag = $ix->{tagged}{$id};
+      my $seg = fix_1E_1F($ix->{segment}{$id});
+      my $tag = fix_1E_1F($ix->{tagged}{$id});
       print {$seg_out} $seg, "\n";
       print {$id_out} $id, "\n";
       if (defined($tag_file)) {
