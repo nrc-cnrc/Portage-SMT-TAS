@@ -201,6 +201,11 @@ The input and output files are in XML format.
 
 Process and transfer tags in xml
 
+=item -hwal
+
+Use heuristic word alignment for -xtags and for -tcsrclm, even if work
+alignment is available in the phrase table.  (For baseline evaluation only.)
+
 =item -xsrc=XSRC
 
 Use XSRC as the XML source language name. [EN-CA]
@@ -382,6 +387,7 @@ Getopt::Long::GetOptions(
    #XML specific options
    "xml"            => \my $xml,
    "xtags"          => \my $xtags,
+   "hwal"           => \my $hwal,
    "xsrc=s"         => \my $xsrc,
    "xtgt=s"         => \my $xtgt,
 
@@ -390,7 +396,7 @@ Getopt::Long::GetOptions(
    "xtra-ce-opts=s" => \my $xtra_ce_opts,
 
    #Development options
-   "skipto=s"    => \my $skipto,
+   "skipto=s"       => \my $skipto,
 ) or (print(STDERR "ERROR: translate.pl aborted due to bad option.\nRun with -h for help.\n"), exit 1);
 
 $quiet = 0 unless defined $quiet;
@@ -776,7 +782,8 @@ TRANS:{
       my $p_out = (defined $tcsrclm or $with_ce or $xtags) ? $p_raw : $p_dec;
       call("$decoder $decoder_opts -f ${canoe_ini} < '${q_dec}' > '${p_out}'");
       if (defined $tcsrclm or $xtags) {
-         call("nbest2rescore.pl -canoe -tagoov -wal -palout='${p_pal}' < '${p_raw}' " .
+         my $wal_opt = $hwal ? "" : "-wal";
+         call("nbest2rescore.pl -canoe -tagoov -oov $wal_opt -palout='${p_pal}' < '${p_raw}' " .
               "| perl -pe 's/ +\$//;' > '${p_decoov}'");
       }
       if ($with_ce) {
