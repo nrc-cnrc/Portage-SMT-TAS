@@ -48,8 +48,8 @@ all: nbest2rescore_test
 nbest2rescore_test: \
    nbest2rescore_check_trace \
    nbest2rescore_check_trace-wal \
-   nbest2rescore_check_trace-only \
-   nbest2rescore_check_trace-old
+   nbest2rescore_check_trace-only
+   #nbest2rescore_check_trace-old
 
 nbest2rescore_check_%: nbest2rescore.out.% nbest2rescore.palout.% nbest2rescore.walout.% nbest2rescore.ffout.%
 	@true
