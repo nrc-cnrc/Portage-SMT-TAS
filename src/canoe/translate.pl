@@ -1050,29 +1050,9 @@ sub strip_entity {
 
    while (<IN>) {
       s/$tag_re//g;  # Remove tags
-      s/&amp;/&/g;   # unescape ampersand
       s/&gt;/>/g;    # unescape greater than
       s/&lt;/</g;    # unescape less than
-      print OUT $_;
-   }
-   close(IN);
-   close(OUT);
-}
-
-sub escape_entity {
-   my ($in, $out) = @_;
-   die "You need to provide in and out" unless (defined($in) and defined($out));
-   warn "escape_entity should be used in xml mode." unless ($xml);
-
-   open(IN, "< :encoding(utf-8)", $in)
-      or cleanupAndDie("Can't open $in for reading.\n");
-   open(OUT, "> :encoding(utf-8)", $out)
-      or cleanupAndDie("Can't open $out for writing.\n");
-
-   while (<IN>) {
-      s/&/&amp;/g;
-      s/>/&gt;/g;
-      s/</&lt;/g;
+      s/&amp;/&/g;   # unescape ampersand
       print OUT $_;
    }
    close(IN);
