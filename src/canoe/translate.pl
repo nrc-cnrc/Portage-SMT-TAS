@@ -739,7 +739,6 @@ IN:{
 
 # Preprocess, tokenize and lowercase
 PREP:{
-   my $in;
    if ($xtags) {
       plugin("preprocess", $src, $Q_tags, $Q_pre);
       tokenize($src, $Q_pre, $Q_tok_tags);
@@ -830,12 +829,12 @@ POST:{
 
    # lang, in, out, source, pal
    truecase($tgt, $in, $P_tok, $Q_tok, $p_pal);
+   $in = $P_tok;
 
    # Transfer tags from source to target.
    if ($xtags) {
-      my $out = "${dir}/P.tok.tags";
-      call("markup_canoe_output -v -xtags $Q_tok_tags $P_tok $p_pal > $out");
-      $in = $out;
+      call("markup_canoe_output -v -xtags $Q_tok_tags $in $p_pal > $P_tok_tags");
+      $in = $P_tok_tags;
    }
    detokenize($tgt, $in, $P_dtk);
    plugin("postprocess", $tgt, $P_dtk, $P_txt);
@@ -1051,9 +1050,9 @@ sub strip_entity {
 
    while (<IN>) {
       s/$tag_re//g;  # Remove tags
+      s/&amp;/&/g;   # unescape ampersand
       s/&gt;/>/g;    # unescape greater than
       s/&lt;/</g;    # unescape less than
-      s/&amp;/&/g;   # unescape ampersand
       print OUT $_;
    }
    close(IN);
