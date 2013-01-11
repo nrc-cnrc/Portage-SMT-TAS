@@ -843,6 +843,13 @@ POST:{
       call("markup_canoe_output -v -xtags $Q_tok_tags $in $p_pal > $P_tok_tags");
       $in = $P_tok_tags;
    }
+   else {
+      if ($xml) {
+         my $P_ee = "${dir}/P.ee";
+         escape_entity($in, $P_ee);
+         $in = $P_ee;
+      }
+   }
    detokenize($tgt, $in, $P_dtk);
    plugin("postprocess", $tgt, $P_dtk, $P_txt);
 }
@@ -1060,6 +1067,28 @@ sub strip_entity {
       s/&gt;/>/g;    # unescape greater than
       s/&lt;/</g;    # unescape less than
       s/&amp;/&/g;   # unescape ampersand
+      print OUT $_;
+   }
+   close(IN);
+   close(OUT);
+}
+
+sub escape_entity {
+   my ($in, $out) = @_;
+   warn "escape_entity should be used in xml mode." unless ($xml);
+   die "You need to provide in and out" unless (defined($in) and defined($out));
+
+   verbose("Stripping Entities\n");
+
+   open(IN, "< :encoding(utf-8)", $in)
+      or cleanupAndDie("Can't open $in for reading.\n");
+   open(OUT, "> :encoding(utf-8)", $out)
+      or cleanupAndDie("Can't open $out for writing.\n");
+
+   while (<IN>) {
+      s/&/&amp;/g;   # unescape ampersand
+      s/>/&gt;/g;    # unescape greater than
+      s/</&lt;/g;    # unescape less than
       print OUT $_;
    }
    close(IN);
