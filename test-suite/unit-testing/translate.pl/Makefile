@@ -16,6 +16,9 @@
 
 vpath %.sdlxliff ../../data/sdlxliff
 
+SHELL = bash
+
+.SUFFIXES:
 .DEFAULT_GOAL := all
 .PHONY: all
 all:
@@ -23,11 +26,34 @@ all:
 
 .PHONY: clean
 clean:
+	${RM} *.xml log.*
+	${RM} -r workdir
 
-workdir:
-	@mkdir $@
 
-test:  UnknownSegments_en-CA_fr-CA.sdlxliff  | workdir
+workdir%:
+	@mkdir -p $@
+
+
+test:  UnknownSegments_en-CA_fr-CA.v5.xml  ref/UnknownSegments_en-CA_fr-CA.v5.xtags.xml
+	@diff --brief $< <(sed -e 's#<\/\?g[^>]*>##g' $(filter %.xtags.xml, $+))
+
+UnknownSegments_en-CA_fr-CA.v5.xml:  %.xml:  %.sdlxliff  | workdir
+	../../data/toy-regress/soap-translate.sh \
+		-verbose \
+		-out=$|/P.out \
+		-dir=$| \
+		-decode-only \
+		-nl=s \
+		-xml \
+		$< \
+		2> log.$@
+	ln -fs $|/QP.xml $@
+
+
+test_xtags:  UnknownSegments_en-CA_fr-CA.v5.xtags.xml  ref/UnknownSegments_en-CA_fr-CA.v5.xtags.xml
+	@diff --brief $+
+
+UnknownSegments_en-CA_fr-CA.v5.xtags.xml:  %.xtags.xml:  %.sdlxliff  | workdir.xtags
 	../../data/toy-regress/soap-translate.sh \
 		-verbose \
 		-out=$|/P.out \
@@ -36,7 +62,10 @@ test:  UnknownSegments_en-CA_fr-CA.sdlxliff  | workdir
 		-nl=s \
 		-xml \
 		-xtags \
-		$<
+		$< \
+		2> log.$@
+	ln -fs $|/QP.xml $@
+
 
 #: UnknownSegments_en-CA_fr-CA.sdlxliff
 #/opt/Portage/bin/translate.pl \
