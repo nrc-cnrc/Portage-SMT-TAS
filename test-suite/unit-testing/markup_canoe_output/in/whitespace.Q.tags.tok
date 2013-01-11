@@ -6,6 +6,7 @@ This is a test of <g id="1">white</g>space placement in the presence of tags .
 This is a test of whit<g id="1">e</g>space placement in the presence of tags . 
 This is a test of white<g id="1">space</g> placement in the presence of tags . 
 This is a test of whitespace<g id="1"></g> placement in the presence of tags . 
+This is a test of white <g id="1">space place</g> ment in the presence of tags . 
 This is a test of<g id="1"> whitespace placement </g>in the presence of tags . 
 This is a test of<g id="1"> whitespace </g>placement in the presence of tags . 
 This is a test of <g id="1">whitespace placement in the presence of tags . 

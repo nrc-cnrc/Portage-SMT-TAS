@@ -92,11 +92,18 @@ struct Elem {
    string rstring;              // right tag string, eg '</name>'
    Uint btok;                   // index of 1st src tok to the right of left tag
    Uint etok;                   // index of 1st src tok to the right of right tag
+   Uint nest;                   // index+1 of elem this one is nested in
    bool complete;               // true if right tag seen (& etok is valid)
    bool lwsl;                   // true if whitespace to left of left tag
    bool lwsr;                   // true if whitespace to right of left tag
+   bool lwslseq;                // true if whitespace to left of sequence of left tags
+   bool lwsrseq;                // true if whitespace to right of sequence of left tags
    bool rwsl;                   // true if whitespace to left of right tag
    bool rwsr;                   // true if whitespace to right of right tag
+   bool rwslseq;                // true if whitespace to left of sequence of right tags
+   bool rwsrseq;                // true if whitespace to right of sequence of right tags
+
+   bool lout;                   // true if left tag has been output already
 
    bool palign;                 // elem is aligned w/ src-side phrase boundaries
    bool contig;                 // elem's tgt phrases are contiguous
@@ -104,12 +111,14 @@ struct Elem {
    Uint etok_tgt;               // index of 1st tgt tok to the right of right tag
 
    // create, from left tag positions within line
-   Elem(const string& line, Uint beg, Uint end, Uint btok, bool wsl, bool wsr) :
+   Elem(const string& line, Uint beg, Uint end, Uint btok, bool wslseq, bool wsrseq, Uint nest) :
       name(getName(line, beg, end)),
       lstring(line.substr(beg, end-beg)), rstring(""),
-      btok(btok), etok(0), complete(false),
-      lwsl(wsl), lwsr(wsr), rwsl(true), rwsr(true),
-      btok_tgt(0), etok_tgt(0)
+      btok(btok), etok(0), nest(nest), complete(false),
+      lwsl(beg==0 || line[beg-1]==' '), lwsr(end==line.size() || line[end]==' '),
+      lwslseq(wslseq), lwsrseq(wsrseq),
+      rwsl(true), rwsr(true), rwslseq(false), rwsrseq(false),
+      lout(false), btok_tgt(0), etok_tgt(0)
    {}
 
    static bool isLeft(const string& line, Uint beg, Uint end) {
@@ -131,7 +140,9 @@ struct Elem {
       cerr << name << ": " << lstring << " " << rstring << " " << complete
            << " src:(" << btok << "," << etok << ")"
            << " tgt:(" << btok_tgt << "," << etok_tgt << ")"
-           << " whitespace: " << lwsl << lwsr << rwsl << rwsr << endl;
+           << " whitespace: " << lwsl << lwsr << rwsl << rwsr
+           << " seq ws: " << lwslseq << lwsrseq << rwslseq << rwsrseq
+           << " nest: " << nest << endl;
    }
 
    bool empty() {return btok == etok;}
@@ -141,24 +152,22 @@ struct Elem {
    // Does this tag element meet the requirements for transfer to target text?
    bool shouldTransfer() {return complete && (xtags || !empty());}
 
-   bool isIntraTokenLeft() {
-      return !lwsl && !lwsr;
-   }
+   bool isIntraTokenLeft() { return !lwslseq && !lwsrseq; }
 
-   bool isIntraTokenRight() {
-      return !rwsl && !rwsr;
-   }
+   bool isIntraTokenRight() { return !rwslseq && !rwsrseq; }
 
    // update, from right tag positions within line
    void update(const string& line, Uint beg, Uint end, Uint etok_tag,
-               bool wsl, bool wsr)
+               bool wslseq, bool wsrseq)
    {
       if (line[beg+1] == '/')
          rstring = line.substr(beg, end-beg);
       etok = etok_tag;
       complete = true;
-      rwsl = wsl;
-      rwsr = wsr;
+      rwsl = beg==0 || line[beg-1]==' ';
+      rwsr = end==line.size() || line[end]==' ';
+      rwslseq = wslseq;
+      rwsrseq = wsrseq;
    }
 };
 
@@ -396,6 +405,7 @@ int main(int argc, char* argv[])
    // read all three input files line-synchronously
 
    vector<Elem> elems;
+   vector<Uint> nested;     // stack of nested elems during output
    vector<string> src_toks;
    vector<string> tgt_toks;
    vector<vector<Uint> > src_al;
@@ -404,6 +414,7 @@ int main(int argc, char* argv[])
    string line;
    Uint lineno = 0;
    Uint num_unmatched_tags = 0;
+   Uint num_bad_nesting = 0;
    Uint num_empty_elems = 0;
    Uint num_elems = 0;
    Uint num_elems_aligned = 0;
@@ -421,6 +432,7 @@ int main(int argc, char* argv[])
 
       src_toks.clear();
       elems.clear();
+      nested.clear();
       string::size_type p = 0, beg = 0, end = 0;
       bool wsl = true, wsr = true;
       while (findXMLishTag(line, p, beg, end)) {
@@ -434,7 +446,7 @@ int main(int argc, char* argv[])
                if( ignoreTag(Elem::getName(line, beg, end))) break;
                p2 = e2;
             }
-            wsr = whitespace.find(line[p2]) != string::npos;
+            wsr = p2 < line.size() ? (whitespace.find(line[p2]) != string::npos) : true;
          }
          string name = Elem::getName(line, beg, end);
          if (ignoreTag(name)) {
@@ -444,17 +456,19 @@ int main(int argc, char* argv[])
          }
          splitAndMerge(line.substr(p, beg-p), src_toks, is_intra_tok_tag);
          if (Elem::isLeft(line, beg, end)) {
-            Uint btok = (!wsl && !wsr) ? src_toks.size()-1 : src_toks.size();
-            elems.push_back(Elem(line, beg, end, btok, wsl, wsr));
-            is_intra_tok_tag = elems.back().isIntraTokenLeft();
+            is_intra_tok_tag = !wsl && !wsr;
+            Uint btok = src_toks.size() - (is_intra_tok_tag ? 1 : 0);
+            Uint nest = nested.empty() ? 0 : nested.back()+1;
+            nested.push_back(elems.size());
+            elems.push_back(Elem(line, beg, end, btok, wsl, wsr, nest));
          }
          if (Elem::isRight(line, beg, end)) { // find a match
             Uint i = elems.size();
             for (; i > 0; --i) {
                if (!elems[i-1].complete && elems[i-1].name == name) {
-                  Uint etok = (!wsl && !wsr) ? src_toks.size()-1 : src_toks.size();
+                  is_intra_tok_tag = !wsl && !wsr;
+                  Uint etok = src_toks.size() - (is_intra_tok_tag ? 1 : 0);
                   elems[i-1].update(line, beg, end, etok, wsl, wsr);
-                  is_intra_tok_tag = elems[i-1].isIntraTokenRight();
                   break;
                }
             }
@@ -464,6 +478,18 @@ int main(int argc, char* argv[])
                   error(ETWarn, "line %d: %s has no matching left tag - ignoring",
                         lineno, tag.c_str());
                ++num_unmatched_tags;
+            } else if (!nested.empty() && nested.back() == i-1) {
+               nested.pop_back();
+            } else {
+               for (Uint j=nested.size(); j > 0; --j)
+                  if (nested[j-1] == i-1) {
+                     nested.erase(nested.begin()+j-1);
+                     break;
+                  }
+               if (verbose)
+                  error(ETWarn, "line %d: XML tag nesting bad within element %i: %s",
+                        lineno, i, elems[i-1].lstring.c_str());
+               ++num_bad_nesting;
             }
          }
          p = end;
@@ -597,54 +623,92 @@ int main(int argc, char* argv[])
                   !elems[i].contig ? "translation not contiguous" : "");
          if (verbose) elems[i].dump();
       }
-      // write out target toks, with elements 
 
+      // write out target tokens, with elements
+
+      nested.clear();
       bool need_ws = false;
       for (Uint i = 0; i < tgt_toks.size(); ++i) {
+         // Output left tags for elements beginning at this token.
+         bool seq_start = true;
          for (Uint j = 0; j < elems.size(); ++j) {
             if (elems[j].shouldTransfer() && elems[j].btok_tgt==i) {
-               if (!elems[j].isIntraTokenLeft()) {
-                  if (elems[j].lwsl && i != 0)
+               if (!elems[j].isIntraTokenLeft() && !elems[j].lout) {
+                  if (need_ws && (elems[j].lwsl || (seq_start && elems[j].lwslseq))) {
                      cout << ' ';
+                     need_ws = false;
+                  }
                   cout << elems[j].lstring;
-                  // Move intra-token right tag to start of the token
+                  elems[j].lout = true;
+                  // Output (move) intra-token right tag before this token
                   if (elems[j].emptyTgt())
                      cout << elems[j].rstring;
-                  if (elems[j].lwsr)
+                  else
+                     nested.push_back(j);
+                  if (elems[j].lwsr) {
                      cout << ' ';
-                  need_ws = false;
+                     need_ws = false;
+                  }
+                  seq_start = false;
                }
             }
          }
+         // Output the token, preceded by whitespace if needed.
          if (need_ws)
             cout << ' ';
          cout << escape(tgt_toks[i]);
          need_ws = true;
-         // Move intra-token left tags to end of the token
+         // Output (move) intra-token left tags after this token.
          for (Uint j = 0; j < elems.size(); ++j) {
             if (elems[j].shouldTransfer() && elems[j].btok_tgt==i) {
-               if (elems[j].isIntraTokenLeft()) {
+               if (elems[j].isIntraTokenLeft() && !elems[j].lout) {
                   cout << elems[j].lstring;
+                  elems[j].lout = true;
+                  if (!elems[j].rstring.empty())
+                     nested.push_back(j);
                }
             }
          }
-         for (Uint j = 0; j < elems.size(); ++j) {
-            Uint k = elems[j].empty() ? i : i + 1;
-            if (elems[j].shouldTransfer() && elems[j].etok_tgt==k)
-               if ((!elems[j].emptyTgt() || elems[j].isIntraTokenLeft())
-                     && !elems[j].rstring.empty()) {
-                  if (elems[j].rwsl)
-                     cout << ' ';
-                  cout << elems[j].rstring;
-                  if (elems[j].rwsr)
-                     cout << ' ';
-                  if (!elems[j].isIntraTokenRight())
-                     need_ws = false;
+         // Output right tags for elements ending at this token.
+         // Note: Proper XML nesting order is maintained in the output, but
+         // some right tags may be output (moved to) later than indicated by
+         // the alignment in order to remove overlap between elements.
+         bool rwsr = false;     // rwsr for last right tag output
+         while (!nested.empty()) {
+            Uint j = nested.back();
+            if (elems[j].etok_tgt > i + (elems[j].empty() ? 0 : 1))
+               break;
+            // Output empty (point) elements that must precede this right tag
+            for (Uint k=j; k < elems.size(); ++k) {
+               if (elems[k].shouldTransfer() && elems[k].nest == j+1) {
+                  if (elems[k].emptyTgt() && !elems[k].lout) {
+                     if (need_ws && elems[k].lwsl) {
+                        cout << ' ';
+                        need_ws = false;
+                     }
+                     cout << elems[k].lstring;
+                     elems[k].lout = true;
+                     cout << elems[k].rstring;
+                  }
                }
+            }
+            // Output this right tag.
+            if (elems[j].rwsl) {
+               cout << ' ';
+               need_ws = false;
+            }
+            cout << elems[j].rstring;
+            rwsr = elems[j].rwsr || elems[j].rwsrseq;
+            nested.pop_back();
          }
-      }
+         if (rwsr && i < tgt_toks.size()-1) {
+            cout << ' ';
+            need_ws = false;
+         }
+      } // for each token
       cout << endl;
-   }
+
+   } // for each line of input
 
    bool outlong = getline(out, line);
    bool pallong = getline(pal, line);
@@ -656,6 +720,7 @@ int main(int argc, char* argv[])
 
    cerr << lineno << " lines read, "
         << num_unmatched_tags << " unmatched tags, "
+        << num_bad_nesting << " improperly nested elements, "
         << num_empty_elems << " empty elements, "
         << num_elems << " complete elements: "
         << num_elems_aligned << " aligned with phrase boundaries, "

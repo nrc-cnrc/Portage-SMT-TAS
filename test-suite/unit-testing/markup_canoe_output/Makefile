@@ -1,5 +1,5 @@
 # @file Makefile to test markup_canoe_output
-# @author Darlene Stewart
+# @author Darlene Stewart and Eric Joanis
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Tech. de l'information et des communications / Information and Communications Tech.
@@ -10,22 +10,31 @@
 .SECONDARY:
 
 .PHONY: all
-all: whitespace_test
 
-TEMP_FILES=whitespace.P.tags.tok log.* tc_tmp_text_28315.cmark.out wal-*.out
+TAGS_XFER_TESTS = whitespace_test nested1_test nested2_test
+
+TEMP_FILES=$(TAGS_XFER_TESTS:_test=.P.tags.tok) log.* tc_tmp_text_28315.cmark.out wal-*.out
 include ../Makefile.incl
 
 export PORTAGE_INTERNAL_CALL=1
 
+########################################
+# Markup transfer tests for transfering TMS/XLIFF tags markup
+
+all: ${TAGS_XFER_TESTS}
+
 whitespace_test: OPTS=-v -xtags
+nested1_test: OPTS=-v -xtags
+nested2_test: OPTS=-v -xtags
 
-.PHONY: whitespace_test
+.PHONY: ${TAGS_XFER_TESTS}
 
-whitespace_test: %_test: in/%.Q.tags.tok in/%.P.tok in/%.p.pal
+${TAGS_XFER_TESTS}: %_test: in/%.Q.tags.tok in/%.P.tok in/%.p.pal
 	markup_canoe_output ${OPTS} $+ > $*.P.tags.tok 2> log.$*
-	diff $*.P.tags.tok ref/$*.P.tags.tok -q
+	diff ref/$*.P.tags.tok $*.P.tags.tok -q
 
-in/whitespace.Q.tags.tok: in/whitespace.Q.tags.txt
+# Create correctly tokenized input
+$(foreach TST, $(TESTS:_test=), in/${TST}.Q.tags.tok): in/%.Q.tags.tok: in/%.Q.tags.txt
 	utokenize.pl -noss -xtags $< > $@
 
 ########################################
