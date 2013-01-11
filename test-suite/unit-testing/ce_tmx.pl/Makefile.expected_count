@@ -1,0 +1,3 @@
+xliff/unittest_missing_seg-defs/%:  override EXPECTED_SIZE = 26
+xliff/UnknownSegments_en-CA_fr-CA.v5/%:  override EXPECTED_SIZE = 38
+
