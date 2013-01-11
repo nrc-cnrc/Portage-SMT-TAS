@@ -33,7 +33,6 @@ translations.
 
 jav = "java"
 jar=os.path.abspath(os.path.dirname(sys.argv[0]))+"/cherrycSMT.jar"
-jmem="-Xmx16000m"
 
 logdir = "logs"
 
@@ -42,12 +41,15 @@ eval_log = logdir + "/log.eval"
 aggr_log = logdir + "/log.aggregate"
 optimizer_log = logdir + "/log.optimize"
 all_logs = (decoder_log, eval_log, aggr_log, optimizer_log)
-find_score_log_optimize = re.compile('Best BLEU found on it# \d+, score ([\d\.]+)')
 
 history = "summary"
 history_wts = "summary.wts"
 
 # arguments
+
+def maxmem():
+   """This function should automatically calculate the maximum available memory."""
+   return "16000"
 
 parser = OptionParser(usage=usage, description=help)
 parser.add_option("--postLattice", dest="postProcessorLattice", type="string", default=None,
@@ -56,6 +58,8 @@ parser.add_option("--post", dest="postProcessor", type="string", default=None,
                   help="Apply post processing the nbest lists before optimizing [%default]")
 parser.add_option("--workdir", dest="workdir", type="string", default="foos",
                   help="Change the working directory [%default]")
+parser.add_option("--clean", dest="clean", action="store_true", default=False,
+                  help="Remove the working directory after successful completion [%default]")
 parser.add_option("--debug", dest="debug", action="store_true", default=False,
                   help="write debug output to stderr [%default]")
 parser.add_option("-v", dest="verbose", action="store_true", default=False,
@@ -73,6 +77,8 @@ parser.add_option("-p", dest="numpar", type="int", default=30,
                   help="number of parallel decoding jobs [%default]")
 parser.add_option("-c", dest="numcpus", type="int", default=1,
                   help="number of cpus per decoding job [%default]")
+parser.add_option("-j", dest="jmem", type="string", default=maxmem(),
+                  help="java memory - depends on 'cpus' for tune.py job (eg 16000 for 4) [%default]")
 parser.add_option("-d", dest="decodeopts", type="string", default="",
                   help="general decoding options [%default]")
 parser.add_option("-a", dest="optcmd", type="string", default="powell",
@@ -81,7 +87,7 @@ parser.add_option("-a", dest="optcmd", type="string", default="powell",
                   "mira [C [I [E]]]], " \
                   "pro [alg [curwt [bleucol [orig [reg]]]]], " \
                   "svm [C [B [A]]], " \
-                  "lmira [C decay bg density], " \
+                  "lmira [C decay bg density num_it], " \
                   "expsb [L] "\
                   "[%default]")
 #parser.add_option("-b", dest="bestbleu", type="string", default="1",
@@ -142,6 +148,9 @@ for f in refs:
         parser.error("reference file " + f + " doesn't exist")
 if not os.path.isfile(opts.config):
     parser.error("decoder config file " + opts.config + " doesn't exist")
+
+if not opts.jmem.startswith("-"):
+    opts.jmem = "-Xmx" + opts.jmem + "m"
 
 # utilities
 
@@ -422,7 +431,7 @@ def decode(wts):
     else: 
        cmd.append("-ffvals")
     if alg == "lmira":
-        cmd.extend(["-palign", "-lattice", workdir+"/lat.gz"])
+       cmd.extend(["-palign", "-lattice", workdir+"/lat.gz"])
     elif alg == "olmira" :
         cmd.extend([""]) # intentionally blank, only need sentences
     else:
@@ -549,12 +558,10 @@ def optimizePowell(iter, wts, args, logfile):
 
 def optimizeMIRA(iter, wts, args, logfile):
     """Optimize weights using MIRA over current aggregate nbest lists."""
-    C = "1e-04" # learning rate
-    if opts.bestbleu == "-1": C = "1e-02"
-    elif opts.bestbleu == "2":  C = "1e-08"
-    I = "30"  # number of iterations
-    E = "1"     # number of neg examples
-    B = "-4" if opts.bestbleu == "-1" else "1"  # if >0, col to find BLEU in allbleus file
+    C = "1e-02"  # learning rate; 1e-4 recommended fomr B=1, 1e-8 for B=2
+    I = "30"     # number of iterations
+    E = "1"      # number of neg examples
+    B = "-4"     # if >0, col to find BLEU in allbleus file
     H = "true"   # hope update?
     O = "Oracle" # use Model, Oracle or Orange as background
     D = "0.999"  # Rate at which to decay Model or Oracle BG
@@ -569,7 +576,7 @@ def optimizeMIRA(iter, wts, args, logfile):
     if len(args_vals) > 7:
        print >> logfile, "warning: ignoring values past first 3 tokens in " + args
     refglob = ','.join(refs)
-    cmd = ["time-mem", jav, jmem, "-enableassertions", "-jar", jar, "MiraTrainNbestDecay", optimizer_in, \
+    cmd = ["time-mem", jav, opts.jmem, "-enableassertions", "-jar", jar, "MiraTrainNbestDecay", optimizer_in, \
            allff, allbleus, allnb, refglob, C, I, E, B, H, O, D]
     outfile = open(optimizer_out, 'w')
     print >> logfile, ' '.join(cmd)
@@ -592,7 +599,7 @@ def optimizeSVM(iter, wts, args, logfile):
     if len(args_vals) > 3 :
         print >> logfile, "warning: ignoring values past first 3 tokens in " + args
     refglob = ','.join(refs)
-    cmd = ["time-mem", jav, jmem, "-enableassertions", "-jar", jar, "SvmTrainNbest", optimizer_in, \
+    cmd = ["time-mem", jav, opts.jmem, "-enableassertions", "-jar", jar, "SvmTrainNbest", optimizer_in, \
            allff, allbleus, allnb, refglob, C, B, A]
     outfile = open(optimizer_out, 'w')
     print >> logfile, ' '.join(cmd)
@@ -613,7 +620,7 @@ def optimizeExpSentBleu(iter, wts, args, logfile):
     if len(args_vals) > 2 : 
         print >> logfile, "warning, ignoring values past first token in " + args
     refglob = ",".join(refs)
-    cmd = ["time-mem", jav, jmem, "-enableassertions", "-jar", jar, "ExpLinGainNbest", optimizer_in, \
+    cmd = ["time-mem", jav, opts.jmem, "-enableassertions", "-jar", jar, "ExpLinGainNbest", optimizer_in, \
            allff, allbleus, allnb, refglob, L, BFGS]
     outfile = open(optimizer_out, 'w')
     print >> logfile, ' '.join(cmd)
@@ -626,11 +633,12 @@ def optimizeExpSentBleu(iter, wts, args, logfile):
 
 def optimizePRO(iter, wts, args, logfile):
     """Optimize weights using PRO over current aggregate nbest lists."""
-    alg = "MaxentZero" # values are SVM, MIRA, Pagasos (=SVM), MegaM (not on cluster)
+    alg = "MaxentZero" # values are SVM, MIRA, Pagasos (=SVM), MegaM (not on cluster), 
+                       # Maxent (regularizes to initializer), MaxentZero (regularizes to 0)
     curwt = "0.1"  # interp coeff on current wts vs prev
     b = "-2"       # if 1, column if bestbleus file; if < 0, internal metric
     o = "false"    # switch to true to switch off multiple samples
-    r = "1e-4"     # regularization parameter, C for SVM and Pegasos, ignored for others
+    r = "1e-4"     # regularization parameter, C for SVM, Pegasos, Maxent*; ignored for others
     args_vals = args.split()
     if len(args_vals) > 0: alg = args_vals[0]
     if len(args_vals) > 1: curwt = args_vals[1]
@@ -640,7 +648,7 @@ def optimizePRO(iter, wts, args, logfile):
     if len(args_vals) > 5:
         print >> logfile, "warning: ignoring values past fourth token in " + args
     refglob = ','.join(refs)
-    cmd = ["time-mem", jav, jmem, "-enableassertions", "-jar", jar, "ProTrainNbest", optimizer_in, \
+    cmd = ["time-mem", jav, opts.jmem, "-enableassertions", "-jar", jar, "ProTrainNbest", optimizer_in, \
            allff, allbleus, allnb, refglob, alg, o, curwt, \
            b, r, str(iter), optimizer_out]
     print >> logfile, ' '.join(cmd)
@@ -657,6 +665,8 @@ def optimizeLMIRA(iter, wts, args, logfile):
     bg = "Oracle"                # BLEU background=Oracle|Model|Orange
     density = "50"                   # lattices will be f-b pruned to this density
     numIt = "30"                     # max number of iterations
+    seed = "1"
+    if(opts.seed>0): seed = str(opts.seed * 10000 + iter);
     args_vals = args.split()
     if len(args_vals) > 0: C = args_vals[0]
     if len(args_vals) > 1: decay = args_vals[1]
@@ -666,8 +676,8 @@ def optimizeLMIRA(iter, wts, args, logfile):
     if len(args_vals) > 5:
        print >> logfile, "warning: ignoring values past first 4 tokens in " + args
     refglob = ','.join(refs)
-    cmd = ["time-mem", jav, jmem, "-enableassertions", "-jar", jar, "MiraTrainLattice", optimizer_in, \
-           workdir, refglob, src, hypmem, C, decay, bg, density, numIt]
+    cmd = ["time-mem", jav, opts.jmem, "-enableassertions", "-jar", jar, "MiraTrainLattice", optimizer_in, \
+           workdir, refglob, src, hypmem, C, decay, bg, density, numIt, seed]
     outfile = open(optimizer_out, 'w')
     print >> logfile, ' '.join(cmd)
     logfile.flush()
@@ -703,7 +713,7 @@ def optimizeOnlineLMIRA(iter, wts, args, logfile):
     #Shard corpus on first iteration, and set up shard-specific initial config files
     if iter==0 :
         #Shard source, save shard names
-        cmd = [jav, jmem, "-enableassertions", "-jar", jar, "ShardCorpus", src]
+        cmd = [jav, opts.jmem, "-enableassertions", "-jar", jar, "ShardCorpus", src]
         cmd.extend(srcShards)
         print >> logfile, ' '.join(cmd)
         logfile.flush()
@@ -712,7 +722,7 @@ def optimizeOnlineLMIRA(iter, wts, args, logfile):
         #Shard refs, save ref names
         refShardList = [[shardAnnotate(pref,"xx",i) for i in range(opts.numpar)] for pref in refPrefixes]
         for i in range(len(refs)):
-            cmd = [jav, jmem, "-enableassertions", "-jar", jar, "ShardCorpus", refs[i]]
+            cmd = [jav, opts.jmem, "-enableassertions", "-jar", jar, "ShardCorpus", refs[i]]
             cmd.extend(refShardList[i])
             print >> logfile, ' '.join(cmd)
             logfile.flush()
@@ -760,35 +770,35 @@ def optimizeOnlineLMIRA(iter, wts, args, logfile):
     rpcmds = workdir + "/rpcmds"
     with open(rpcmds,"w") as rpfile :
         for conf in miraConfig :
-            rpfile.write(" ".join([jav, jmem, "-enableassertions", "-jar", jar, "MiraLatticeStep", conf, str(iter),"\n"]))
+            rpfile.write(" ".join([jav, opts.jmem, "-enableassertions", "-jar", jar, "MiraLatticeStep", conf, str(iter),"\n"]))
     cmd = ["run-parallel.sh","-nolocal","-psub","-4","-psub", "-memmap 4", rpcmds,str(opts.numpar)]
     print >> logfile, ' '.join(cmd)
     logfile.flush()
     if call(cmd, stdout=logfile, stderr=logfile) is not 0:
         error("run-parallel failed: {}".format(' '.join(cmd)))
     #Merge configs into a combined file for next iteration
-    cmd = [jav, jmem, "-enableassertions", "-jar", jar, "CombineModels", shardAnnotate(model,iter,"xx")]
+    cmd = [jav, opts.jmem, "-enableassertions", "-jar", jar, "CombineModels", shardAnnotate(model,iter,"xx")]
     cmd.extend([shardAnnotate(model,iter,shard) for shard in range(opts.numpar)])
     print >> logfile, ' '.join(cmd)
     logfile.flush()
     if call(cmd, stdout=logfile, stderr=logfile) is not 0:
         error("merge failed: {}".format(' '.join(cmd)))
     #Average combined file into a Portage-consumable framework
-    cmd = [jav, jmem, "-enableassertions", "-jar", jar, "AverageModel", portageIniWeights, shardAnnotate(model,iter,"xx"), optimizer_out]
+    cmd = [jav, opts.jmem, "-enableassertions", "-jar", jar, "AverageModel", portageIniWeights, shardAnnotate(model,iter,"xx"), optimizer_out]
     print >> logfile, ' '.join(cmd)
     logfile.flush()
     if call(cmd, stdout=logfile, stderr=logfile) is not 0:
         error("averaging failed: {}".format(' '.join(cmd)))
     normalize(olmiraModel2wts(optimizer_out), wts)
     #Combine background BLEU counts
-    cmd = [jav, jmem, "-enableassertions", "-jar", jar, "CombineBleuCounts", shardAnnotate(count,iter,"xx")]
+    cmd = [jav, opts.jmem, "-enableassertions", "-jar", jar, "CombineBleuCounts", shardAnnotate(count,iter,"xx")]
     cmd.extend([shardAnnotate(count,iter,shard) for shard in range(opts.numpar)])
     print >> logfile, ' '.join(cmd)
     logfile.flush()
     if call(cmd, stdout=logfile, stderr=logfile) is not 0:
         error("bleu combination failed: {}".format(' '.join(cmd)))
     #Use combined background BLEU to get a score estimate
-    cmd = [jav, jmem, "-enableassertions", "-jar", jar, "ScoreCountFile", shardAnnotate(count,iter,"xx")]
+    cmd = [jav, opts.jmem, "-enableassertions", "-jar", jar, "ScoreCountFile", shardAnnotate(count,iter,"xx")]
     print >> logfile, ' '.join(cmd)
     logfile.flush()
     try:
@@ -870,3 +880,5 @@ if opts.lastiter:
     best_wts = wts
 wts2decoderConfig(best_wts, opts.configout)
 
+if opts.clean and os.path.exists(workdir):
+   shutil.rmtree(workdir)
