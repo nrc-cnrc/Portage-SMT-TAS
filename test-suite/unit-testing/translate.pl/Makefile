@@ -15,29 +15,30 @@
 -include Makefile.params
 
 vpath %.sdlxliff ../../data/sdlxliff
+vpath %.tmx ../../data/tmx
 
 SHELL = bash
 
 .SUFFIXES:
 .DEFAULT_GOAL := all
 .PHONY: all
-all:
+all: test
 
 
-.PHONY: clean
-clean:
-	${RM} *.xml log.*
-	${RM} -r workdir
+TEMP_FILES=*.xml log.*
+TEMP_DIRS=workdir.*
+include ../Makefile.incl
 
 
-workdir%:
+workdir.%:
 	mkdir -p $@
 
 
-test:  UnknownSegments_en-CA_fr-CA.v5.xml  ref/UnknownSegments_en-CA_fr-CA.v5.xtags.xml
-	diff --brief $< <(sed -e 's#<\/\?g[^>]*>##g' $(filter %.xtags.xml, $+))
+test: test_xliff
+test_xliff:  UnknownSegments_en-CA_fr-CA.v5.xml  ref/UnknownSegments_en-CA_fr-CA.v5.xml
+	diff $< <(sed -e 's#<\/\?g[^>]*>##g' $(filter ref/%, $+)) --brief
 
-UnknownSegments_en-CA_fr-CA.v5.xml:  %.xml:  %.sdlxliff  | workdir
+UnknownSegments_en-CA_fr-CA.v5.xml:  %.xml:  %.sdlxliff  | workdir.xliff
 	../../data/toy-regress/soap-translate.sh \
 		-verbose \
 		-out=$|/P.out \
@@ -50,10 +51,11 @@ UnknownSegments_en-CA_fr-CA.v5.xml:  %.xml:  %.sdlxliff  | workdir
 	ln -fs $|/QP.xml $@
 
 
+test: test_xtags
 test_xtags:  UnknownSegments_en-CA_fr-CA.v5.xtags.xml  ref/UnknownSegments_en-CA_fr-CA.v5.xtags.xml
-	diff --brief $+
+	diff $+ --brief
 
-UnknownSegments_en-CA_fr-CA.v5.xtags.xml:  %.xtags.xml:  %.sdlxliff  | workdir.xtags
+UnknownSegments_en-CA_fr-CA.v5.xtags.xml:  %.xtags.xml:  %.sdlxliff  | workdir.xliff.xtags
 	../../data/toy-regress/soap-translate.sh \
 		-verbose \
 		-out=$|/P.out \
@@ -65,6 +67,43 @@ UnknownSegments_en-CA_fr-CA.v5.xtags.xml:  %.xtags.xml:  %.sdlxliff  | workdir.x
 		$< \
 		2> log.$@
 	ln -fs $|/QP.xml $@
+
+
+test: test_tmx
+test_tmx: TestMemory_Unknown.tmx.xml ref/TestMemory_Unknown.tmx.xml
+	diff $+ --brief
+
+TestMemory_Unknown.tmx.xml: %.xml: % | workdir.tmx
+	../../data/toy-regress/soap-translate.sh \
+		-verbose \
+		-out=$|/P.out \
+		-dir=$| \
+		-decode-only \
+		-nl=s \
+		-xml \
+		$< \
+		2> log.$@
+	ln -fs $|/QP.xml $@
+
+
+test: test_tmx_xtags
+test_tmx_xtags: TestMemory_Unknown.tmx.xtags.xml ref/TestMemory_Unknown.tmx.xtags.xml
+	diff $+ --brief
+
+TestMemory_Unknown.tmx.xtags.xml: %.xtags.xml: % | workdir.tmx.xtags
+	../../data/toy-regress/soap-translate.sh \
+		-verbose \
+		-out=$|/P.out \
+		-dir=$| \
+		-decode-only \
+		-nl=s \
+		-xml \
+		-xtags \
+		$< \
+		2> log.$@
+	ln -fs $|/QP.xml $@
+
+
 
 
 #: UnknownSegments_en-CA_fr-CA.sdlxliff
