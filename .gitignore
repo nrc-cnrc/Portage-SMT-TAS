@@ -18,6 +18,7 @@ _log.cvs*
 *.blg
 *.log
 *.eps
+*.svg
 
 # patterns for files created while running the unit test suites
 _log.run-test
