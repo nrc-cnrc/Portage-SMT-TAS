@@ -1,0 +1,34 @@
+This is a test for 12,456 units.
+This is a <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf bold=&quot;on&quot;>&lt;/bpt>" id="1"/>test<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/> for 12,456 units.
+We will be conducting a <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf italic=&quot;on&quot;>&lt;/bpt>" id="1"/>trial<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/> for the vice president.
+This is a <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf underlinestyle=&quot;single&quot;>&lt;/bpt>" id="1"/>test<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/> for $12,456.
+This is a test for a part number <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf fontcolor=&quot;00B050&quot;>&lt;/bpt>" id="1"/>A-2<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/>.
+This is a test for <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf highlight=&quot;yellow&quot;>&lt;/bpt>" id="1"/>12 V<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/>.
+This is to advise the vice<open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf font=&quot;Arial&quot; complexscriptsfont=&quot;Arial&quot; asiantextfont=&quot;Arial&quot;>&lt;/bpt>" id="1"/><close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/>president of the situation.
+Non breaking space
+Optionalhyphen
+em—dash
+en–dash
+We will be conducting a trial for the vice president.
+non<tag_wrap content="&lt;ph>&amp;lt;nobreakhyphen/>&lt;/ph>"/>breaking hyphen
+em<tag_wrap content="&lt;ph>{\emspace }&lt;/ph>"/> space
+en<tag_wrap content="&lt;ph>{\enspace }&lt;/ph>"/> space<tag_wrap content="&lt;ph>&amp;lt;bookmarkstart name=&quot;_GoBack&quot;/>&lt;/ph>"/><tag_wrap content="&lt;ph>&amp;lt;bookmarkend name=&quot;_GoBack&quot;/>&lt;/ph>"/>
+¼ em space
+Testing the encoding of &lt; and > in xliff and tmx, with spaces, and &lt;without> spaces.
+Adding / slash, \ backslash, &amp; ampersand.
+This is a <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf bold=&quot;on&quot;>&lt;/bpt>" id="1"/>test to <close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/><open_wrap content="&lt;bpt i=&quot;2&quot;>&amp;lt;cf bold=&quot;on&quot; italic=&quot;on&quot;>&lt;/bpt>" id="2"/>see how <close_wrap content="&lt;ept i=&quot;2&quot;>&amp;lt;/cf>&lt;/ept>" id="2"/><open_wrap content="&lt;bpt i=&quot;3&quot;>&amp;lt;cf fontcolor=&quot;FF0000&quot; bold=&quot;on&quot; italic=&quot;on&quot;>&lt;/bpt>" id="3"/>overlapping formatting<close_wrap content="&lt;ept i=&quot;3&quot;>&amp;lt;/cf>&lt;/ept>" id="3"/><open_wrap content="&lt;bpt i=&quot;4&quot;>&amp;lt;cf fontcolor=&quot;FF0000&quot; italic=&quot;on&quot;>&lt;/bpt>" id="4"/> tags are<close_wrap content="&lt;ept i=&quot;4&quot;>&amp;lt;/cf>&lt;/ept>" id="4"/><open_wrap content="&lt;bpt i=&quot;5&quot;>&amp;lt;cf fontcolor=&quot;FF0000&quot;>&lt;/bpt>" id="5"/> handled by <close_wrap content="&lt;ept i=&quot;5&quot;>&amp;lt;/cf>&lt;/ept>" id="5"/>tmx and xliff files.
+This <open_wrap content="&lt;bpt i=&quot;1&quot;>{\b &lt;/bpt>" id="1"/>is a<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/><open_wrap content="&lt;bpt i=&quot;2&quot;>{\b\i &lt;/bpt>" id="2"/> test 1 <close_wrap content="&lt;ept i=&quot;2&quot;>}&lt;/ept>" id="2"/><open_wrap content="&lt;bpt i=&quot;3&quot;>{\b\i\cf1 &lt;/bpt>" id="3"/>2 3 4 5 <close_wrap content="&lt;ept i=&quot;3&quot;>}&lt;/ept>" id="3"/><open_wrap content="&lt;bpt i=&quot;4&quot;>{\i\cf1 &lt;/bpt>" id="4"/>6 76 <close_wrap content="&lt;ept i=&quot;4&quot;>}&lt;/ept>" id="4"/><open_wrap content="&lt;bpt i=&quot;5&quot;>{\cf1 &lt;/bpt>" id="5"/>7 78 <close_wrap content="&lt;ept i=&quot;5&quot;>}&lt;/ept>" id="5"/>8 9 90
+And while we're here, other stuff in rtf: &lt; > &amp;
+Non-breaking space?
+This is a test for $12,456.
+Super<open_wrap content="&lt;bpt i=&quot;1&quot;>{\super &lt;/bpt>" id="1"/>script<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/>.
+And Sub<open_wrap content="&lt;bpt i=&quot;1&quot;>{\sub &lt;/bpt>" id="1"/>script<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/>.
+And sub<open_wrap content="&lt;bpt i=&quot;1&quot;>{\super &lt;/bpt>" id="1"/>script<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/><open_wrap content="&lt;bpt i=&quot;2&quot;>{\sub &lt;/bpt>" id="2"/>insuper<close_wrap content="&lt;ept i=&quot;2&quot;>}&lt;/ept>" id="2"/><open_wrap content="&lt;bpt i=&quot;3&quot;>{\super &lt;/bpt>" id="3"/>script<close_wrap content="&lt;ept i=&quot;3&quot;>}&lt;/ept>" id="3"/>
+non-breaking hyphen
+en<tag_wrap content="&lt;ph>{\enspace }&lt;/ph>"/> space
+This is a test for a part number A-2.
+This is a test for 12 V.
+This is a test for "12,456 units".
+This is a test for a list:.
+It is supplied in 200mL vials.
+This is to advise the vice-president of the situation.

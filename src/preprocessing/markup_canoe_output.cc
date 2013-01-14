@@ -262,10 +262,20 @@ void alignPhrasePair(const Dict& dict, const Dict& anti_dict,
                  dict.match(stok, ttok)) 
                 && !anti_dict.match(stok, ttok))
                score += 1;  // cognate match
-            if(extra_verbose)
+            if(extra_verbose) {
+                cerr << "alignPhrasePair: i=" << i
+                     << " slen=" << slen
+                     << " first=" << pp.src_pos.first << " second=" << pp.src_pos.second
+                     << " src_toks.size()=" << src_toks.size()
+                     << " j=" << j
+                     << " tlen=" << tlen
+                     << " first=" << pp.tgt_pos.first << " second=" << pp.tgt_pos.second
+                     << " tgt_toks.size()=" << tgt_toks.size()
+                     << endl;
                 cerr << "alignPhrasePair: stok: " << stok << " ttok: " << ttok
                      << " score: " << score << " src_scores[" << i << "]=" << src_scores[i]
                      << endl;
+            }
             if (score > src_scores[i]) {
                if(extra_verbose)
                    cerr << "alignPhrasePair: setting src_all[" << i << "]=" << j << endl;
@@ -521,10 +531,18 @@ int main(int argc, char* argv[])
          error(ETFatal, "line %d: source phrases not contiguous in %s", 
                lineno, palfile.c_str());
       if (phrase_pairs.size() && phrase_pairs.back().src_pos.second != src_toks.size())
-         error(ETFatal, "line %d: %s specifies wrong number of source tokens", 
-               lineno, palfile.c_str());
-      // assign target positions to elements
+         error(ETFatal, "line %d: %s specifies wrong number of source tokens.  Expected %d tokens, got %d tokens: %s",
+               lineno, palfile.c_str(),
+               phrase_pairs.size() ? phrase_pairs.back().src_pos.second : 0,
+               src_toks.size(),
+               join(src_toks, " | ").c_str());
 
+      if (extra_verbose) {
+         cerr << "src tokens: " << join(src_toks, " | ") << endl;
+         cerr << "tgt tokens: " << join(tgt_toks, " | ") << endl;
+      }
+
+      // assign target positions to elements
       for (Uint i = 0; i < elems.size(); ++i) {
          if (verbose) elems[i].dump();
          if (!elems[i].complete) {

@@ -1,0 +1,34 @@
+C' est une à de ces unités . 12,456
+C' est une <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf bold=&quot;on&quot;>&lt;/bpt>" id="1"/>à<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/> de ces unités . 12,456
+On sera un vice . <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf italic=&quot;on&quot;>&lt;/bpt>" id="1"/>Procès<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/> firme du conseil
+C' est une <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf underlinestyle=&quot;single&quot;>&lt;/bpt>" id="1"/>à<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/> de . $ 12,456
+REFERENCE REMOVED PENDING OPEN/CLOSE HANDLING
+REFERENCE REMOVED PENDING OPEN/CLOSE HANDLING
+REFERENCE REMOVED PENDING OPEN/CLOSE HANDLING
+Leur espace non
+Optionalhyphen
+Em — dash
+En – dash
+On sera un vice . Procès firme du conseil
+Non <tag_wrap content="&lt;ph>&amp;lt;nobreakhyphen/>&lt;/ph>"/>leur hyphen
+<tag_wrap content="&lt;ph>{\emspace }&lt;/ph>"/> Espace em
+REFERENCE REMOVED PENDING SEG FAULT PATCH
+Espace ¼ em
+Les essais encoding de &lt; et > en xliff tmx et , avec spaces &lt;without> . , Et spaces
+Adjonction / sabrer \ &amp; . , Backslash , ampersand
+REFERENCE REMOVED PENDING OPEN/CLOSE HANDLING
+REFERENCE REMOVED PENDING OPEN/CLOSE HANDLING
+Et pendant we're ici , d' autres mis en rtf > &amp; &lt; :
+? Non-breaking espace
+C' est une à de . $ 12,456
+<open_wrap content="&lt;bpt i=&quot;1&quot;>{\super &lt;/bpt>" id="1"/>Script<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/> . Super
+Et <open_wrap content="&lt;bpt i=&quot;1&quot;>{\sub &lt;/bpt>" id="1"/>script<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/> . Sub
+REFERENCE REMOVED PENDING SEG FAULT PATCH
+Non-breaking hyphen
+En<tag_wrap content="&lt;ph>{\enspace }&lt;/ph>"/> espace
+C' est un nombre . Pour à une partie a-2
+C' est une à de v. 12
+C' est une de ces unités . À " 12,456 "
+C' est une à une liste . De :
+Il est supplied 200ml . En vials
+C' est à laquelle le vice-président de . La situation

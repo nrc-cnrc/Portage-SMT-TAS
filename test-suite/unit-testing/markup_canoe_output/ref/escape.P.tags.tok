@@ -1,0 +1,2 @@
+A <tag stuff="asdf ' <asdf> asdf ' asdf" nonsense='asdf " asdf " '/>B C D
+C' est une <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf bold=&quot;on&quot;>&lt;/bpt>" id="1"/>à<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/> de ces unités . 12,456
