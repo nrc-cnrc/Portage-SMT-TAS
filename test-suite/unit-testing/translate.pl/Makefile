@@ -31,11 +31,11 @@ clean:
 
 
 workdir%:
-	@mkdir -p $@
+	mkdir -p $@
 
 
 test:  UnknownSegments_en-CA_fr-CA.v5.xml  ref/UnknownSegments_en-CA_fr-CA.v5.xtags.xml
-	@diff --brief $< <(sed -e 's#<\/\?g[^>]*>##g' $(filter %.xtags.xml, $+))
+	diff --brief $< <(sed -e 's#<\/\?g[^>]*>##g' $(filter %.xtags.xml, $+))
 
 UnknownSegments_en-CA_fr-CA.v5.xml:  %.xml:  %.sdlxliff  | workdir
 	../../data/toy-regress/soap-translate.sh \
@@ -51,7 +51,7 @@ UnknownSegments_en-CA_fr-CA.v5.xml:  %.xml:  %.sdlxliff  | workdir
 
 
 test_xtags:  UnknownSegments_en-CA_fr-CA.v5.xtags.xml  ref/UnknownSegments_en-CA_fr-CA.v5.xtags.xml
-	@diff --brief $+
+	diff --brief $+
 
 UnknownSegments_en-CA_fr-CA.v5.xtags.xml:  %.xtags.xml:  %.sdlxliff  | workdir.xtags
 	../../data/toy-regress/soap-translate.sh \
