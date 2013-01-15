@@ -460,7 +460,6 @@ int main(int argc, char* argv[])
          cerr << "line " << lineno << endl;
 
       // tokenize source line and record elements
-
       src_toks.clear();
       elems.clear();
       nested.clear();
@@ -549,13 +548,11 @@ int main(int argc, char* argv[])
       splitAndMerge(line.substr(p), src_toks, is_intra_tok_tag); // add remaining tokens
 
       // read and tokenize tgt line
-
       if (!getline(out, line))
          error(ETFatal, "%s too short", outfile.c_str());
       splitZ(line, tgt_toks);
 
       // read, parse, and check pal line
-
       if (!getline(pal, line))
          error(ETFatal, "%s too short", palfile.c_str());
       if (!parsePhraseAlign(line, phrase_pairs))
@@ -584,7 +581,6 @@ int main(int argc, char* argv[])
          cerr << "tgt tokens: " << join(tgt_toks, " | ") << endl;
       }
 
-
       // assign target positions to elements
       for (Uint i = 0; i < elems.size(); ++i) {
          if (verbose) elems[i].dump();
@@ -603,7 +599,6 @@ int main(int argc, char* argv[])
          ++num_elems;
 
          // find bracketing phrase pairs
-
          Uint lp = 0;  // leftmost phrase that overlaps with elem
          for (; lp < phrase_pairs.size(); ++lp)
             if (phrase_pairs[lp].src_pos.second > elems[i].btok)
@@ -618,63 +613,69 @@ int main(int argc, char* argv[])
             --rp;  // index of actual rightmost phrase
          }
 
-         // check for target-side contiguity
+         if (lp < phrase_pairs.size()) {
+            // check for target-side contiguity
+            pp_span.assign(phrase_pairs.begin()+lp, phrase_pairs.begin()+rp+1);  // copy span
+            sortByTarget(pp_span.begin(), pp_span.end());
+            if ((elems[i].contig = targetContig(pp_span.begin(), pp_span.end())))
+               ++num_elems_contig;
 
-         pp_span.assign(phrase_pairs.begin()+lp, phrase_pairs.begin()+rp+1);  // copy span
-         sortByTarget(pp_span.begin(), pp_span.end());
-         if ((elems[i].contig = targetContig(pp_span.begin(), pp_span.end())))
+            // check for source-side span match
+            Uint btok = phrase_pairs[lp].src_pos.first;
+            Uint etok = phrase_pairs[rp].src_pos.second;
+            Uint btok_tgt = pp_span.begin()->tgt_pos.first;
+            Uint etok_tgt = pp_span.back().tgt_pos.second;
+            if (verbose)
+               cerr << "pp src: " << btok << "," << etok << " tgt: " << btok_tgt << "," << etok_tgt << endl;
+            if ((elems[i].palign = btok == elems[i].btok && etok == elems[i].etok))
+               ++num_elems_aligned;
+
+            // find element's first target token
+            PhrasePair& begpp = *pp_span.begin();  // phrase pair w/ 1st tgt phrase
+            if (begpp.src_pos.first == btok) { // 1st tgt phr alig'd to 1st src phr
+               if (verbose) cerr << "begin case 1" << endl;
+               alignPhrasePair(dict, anti_dict, begpp, src_toks, tgt_toks, src_al);
+               elems[i].btok_tgt =
+                  targetSpan(src_al, begpp, elems[i].btok,
+                             min(elems[i].etok, begpp.src_pos.second)).first;
+            } else if (begpp.src_pos.second == etok) { // 1st tgt "" end src phr
+               if (verbose) cerr << "begin case 2" << endl;
+               alignPhrasePair(dict, anti_dict, begpp, src_toks, tgt_toks, src_al);
+               elems[i].btok_tgt =
+                  targetSpan(src_al, begpp,
+                             begpp.src_pos.first, elems[i].etok).first;
+            } else {  // 1st tgt phrase is aligned to middle src phrase
+               if (verbose) cerr << "begin case 3" << endl;
+               elems[i].btok_tgt = btok_tgt;
+            }
+
+            // find element's last+1 target token
+            PhrasePair& endpp = pp_span.back(); // phrase pair w/ last tgt phrase
+            if (endpp.src_pos.second == etok) { // end tgt phr alg'd to end src phr
+               if (verbose) cerr << "end case 1" << endl;
+               alignPhrasePair(dict, anti_dict, endpp, src_toks, tgt_toks, src_al);
+               elems[i].etok_tgt =
+                  targetSpan(src_al, endpp,
+                             max(endpp.src_pos.first, elems[i].btok),
+                             elems[i].etok).second;
+            } else if (endpp.src_pos.first == btok) { // end tgt phr "" 1st src phr
+               if (verbose) cerr << "end case 2" << endl;
+               alignPhrasePair(dict, anti_dict, endpp, src_toks, tgt_toks, src_al);
+               elems[i].etok_tgt =
+                  targetSpan(src_al, endpp,
+                             elems[i].btok, endpp.src_pos.second).second;
+            } else {  // end tgt phrase is aligned to middle src phrase
+               if (verbose) cerr << "end case 3" << endl;
+               elems[i].etok_tgt = etok_tgt;
+            }
+
+         } else {
+            // There can be (point) tags can be at after last token.
+            elems[i].contig = true;
             ++num_elems_contig;
-
-         // check for source-side span match
-        
-         Uint btok = phrase_pairs[lp].src_pos.first;
-         Uint etok = phrase_pairs[rp].src_pos.second;
-         Uint btok_tgt = pp_span.begin()->tgt_pos.first;
-         Uint etok_tgt = pp_span.back().tgt_pos.second;
-         if (verbose)
-            cerr << "pp src: " << btok << "," << etok << " tgt: " << btok_tgt << "," << etok_tgt << endl;
-         if ((elems[i].palign = btok == elems[i].btok && etok == elems[i].etok))
+            elems[i].palign = true;
             ++num_elems_aligned;
-
-         // find element's first target token
-
-         PhrasePair& begpp = *pp_span.begin();  // phrase pair w/ 1st tgt phrase
-         if (begpp.src_pos.first == btok) { // 1st tgt phr alig'd to 1st src phr
-            if (verbose) cerr << "begin case 1" << endl;
-            alignPhrasePair(dict, anti_dict, begpp, src_toks, tgt_toks, src_al);
-            elems[i].btok_tgt = 
-               targetSpan(src_al, begpp, elems[i].btok, 
-                          min(elems[i].etok, begpp.src_pos.second)).first;
-         } else if (begpp.src_pos.second == etok) { // 1st tgt "" end src phr
-            if (verbose) cerr << "begin case 2" << endl;
-            alignPhrasePair(dict, anti_dict, begpp, src_toks, tgt_toks, src_al);
-            elems[i].btok_tgt = 
-               targetSpan(src_al, begpp,
-                          begpp.src_pos.first, elems[i].etok).first;
-         } else {  // 1st tgt phrase is aligned to middle src phrase
-            if (verbose) cerr << "begin case 3" << endl;
-            elems[i].btok_tgt = btok_tgt;
-         }
-
-         // find element's last+1 target token
-
-         PhrasePair& endpp = pp_span.back(); // phrase pair w/ last tgt phrase
-         if (endpp.src_pos.second == etok) { // end tgt phr alg'd to end src phr
-            if (verbose) cerr << "end case 1" << endl;
-            alignPhrasePair(dict, anti_dict, endpp, src_toks, tgt_toks, src_al);
-            elems[i].etok_tgt = 
-               targetSpan(src_al, endpp,
-                          max(endpp.src_pos.first, elems[i].btok), 
-                          elems[i].etok).second;
-         } else if (endpp.src_pos.first == btok) { // end tgt phr "" 1st src phr
-            if (verbose) cerr << "end case 2" << endl;
-            alignPhrasePair(dict, anti_dict, endpp, src_toks, tgt_toks, src_al);
-            elems[i].etok_tgt = 
-               targetSpan(src_al, endpp,
-                          elems[i].btok, endpp.src_pos.second).second;
-         } else {  // end tgt phrase is aligned to middle src phrase
-            if (verbose) cerr << "end case 3" << endl;
-            elems[i].etok_tgt = etok_tgt;
+            elems[i].btok_tgt = elems[i].etok_tgt = tgt_toks.size();
          }
 
          if (verbose && (elems[i].palign == false || elems[i].contig == false))
@@ -683,7 +684,7 @@ int main(int argc, char* argv[])
                   !elems[i].palign && !elems[i].contig ? "; " : "",
                   !elems[i].contig ? "translation not contiguous" : "");
          if (verbose) elems[i].dump();
-      }
+      } // for each element
 
       // Now that the target spans are set, restore the btok, etok and
       // btok_tgt, etok_tgt fields for paired elements such that that pair
@@ -701,7 +702,6 @@ int main(int argc, char* argv[])
       }
 
       // write out target tokens, with elements
-
       nested.clear();
       bool need_ws = false;
       for (Uint i = 0; i < tgt_toks.size(); ++i) {
@@ -799,6 +799,27 @@ int main(int argc, char* argv[])
             need_ws = false;
          }
       } // for each token
+
+      // Finally, output any tags that follow the last token.
+      bool seq_start = true;
+      for (Uint j = 0; j < elems.size(); ++j) {
+         if (!elems[j].lout && elems[j].shouldTransfer() && elems[j].btok_tgt==tgt_toks.size()) {
+            if (need_ws && (elems[j].lwsl || (seq_start && elems[j].lwslseq))) {
+               cout << ' ';
+               need_ws = false;
+            }
+            cout << elems[j].lstring;
+            elems[j].lout = true;
+            if (!elems[j].rstring.empty()) {
+               if (elems[j].rwsl) {
+                  cout << ' ';
+                  need_ws = false;
+               }
+               cout << elems[j].rstring;
+            }
+            seq_start = false;
+         }
+      }
       cout << endl;
 
    } // for each line of input

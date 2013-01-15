@@ -1,6 +1,6 @@
 This is a simple test of the transfer of nested tags . 
 <g id="1">This is a simple test</g> of the <x id="2" />transfer of nested tags . 
-<x id="2" /><g id="1">This is a simple test</g> of the <x id="2" />transfer of nested tags . 
+<x id="2" /><g id="1">This is a simple test</g> of the <x id="2" />transfer of nested tags . <x id="3" /> 
 <g id="1">This is a <x id="2" />simple test</g> of the <x id="2" />transfer of nested tags . 
 <g id="1"><x id="2" />This is a simple test</g> of the <x id="2" />transfer of nested tags . 
 <g id="1">This is a simple test<x id="5" /></g> of the <x id="2" />transfer of nested tags . 
