@@ -23,13 +23,17 @@ CORPORA_DIR := ../../data
 XLIFF_DIR   := ${CORPORA_DIR}/sdlxliff
 TMX_DIR     := ${CORPORA_DIR}/tmx
 
-XLIFF := $(subst ${XLIFF_DIR}/,,$(shell find ${XLIFF_DIR} -name \*.sdlxliff)) $(wildcard *.sdlxliff)
-TMX   := $(subst ${TMX_DIR}/,,$(shell find ${TMX_DIR} -name \*.tmx -type f)) $(wildcard *.tmx)
+XLIFF := $(subst ${XLIFF_DIR}/,,$(shell find ${XLIFF_DIR} -name \*.sdlxliff))
+TMX   := $(subst ${TMX_DIR}/,,$(shell find ${TMX_DIR} -name \*.tmx -type f))
 DIRS  := $(dir ${XLIFF} ${TMX})
+
+TEMP_DIRS  := tmx xliff
+TEMP_FILES := *.tmx *.sdlxliff
 
 -include Makefile.params
 -include Makefile.expected_count
 include /home/portage/pkgs/gmsl-1.1.1/gmsl  # Needed for EXPECTED_FILTER
+include ../Makefile.incl
 
 $(shell mkdir -p ${LOGS})
 
@@ -43,6 +47,7 @@ vpath %.tmx ${TMX_DIR}
 .PHONY: all
 all:  xliff
 all:  tmx
+all:  testSuite
 
 
 .PHONY: clean
@@ -116,13 +121,17 @@ xliff/%/Q.txt xliff/%/Q.tags:  %.sdlxliff
 
 
 # Validate TMX format.
-${TMX_LIST}:  tmx/%/val:  tmx/%/QP.xml  %.tmx
+#${TMX_LIST}:  tmx/%/val:  tmx/%/QP.xml  %.tmx
+tmx/%/val:  tmx/%/QP.xml  %.tmx
 	[[ `xpath <(sed -e 's/<!DOCTYPE tmx SYSTEM "tmx14.dtd">//' < $<) 'count(//tuv[@xml:lang="FR-CA" or @xml:lang="fr-CA"])' 2> /dev/null` -eq $(call EXPECTED_FILTER, ${EXPECTED_SIZE}, $(or ${FILTER_100}, ${FILTER})) ]]
 	$(and ${SCORE}, ${FILTER}, [[ "`xpath <(sed -e 's/<!DOCTYPE tmx SYSTEM "tmx14.dtd">//' < $<) 'count(//tu/prop[@type=\"Txt::CE\"])' 2> /dev/null`" -eq $(call EXPECTED_FILTER, ${EXPECTED_SIZE}, $(or ${FILTER_100}, ${FILTER})) ]])
+	diff --ignore-matching-lines="^<file filename" <(xml_grep --nodate '//tuv[@xml:lang="EN-CA"]' $(filter %/QP.xml, $+)) <(xml_grep --nodate '//tuv[@xml:lang="EN-CA"]' $(filter %.tmx, $+)) \
+	|| ! echo "the source sentence was altered" >&2
 	echo "validate that the source sentence is unaltered: viewdiff <(xmllint --format --recover - 2>/dev/null < $(filter %.tmx,$+))  <(xmllint --format --recover - 2>/dev/null < $(<:xml=template.xml))  <(xmllint --format --recover - 2>/dev/null < $<)"
 
 # Validate sdlxliff format.
-$(filter-out xliff/unittest1/val, ${XLIFF_LIST}):  xliff/%/val:  xliff/%/QP.xml
+#$(filter-out xliff/unittest1/val, ${XLIFF_LIST}):  xliff/%/val:  xliff/%/QP.xml
+xliff/%/val:  xliff/%/QP.xml
 	[[ "`xpath $< 'count(//target[not(@*)]//mrk[@mtype=\"seg\"])' 2> /dev/null`" -eq "$(call EXPECTED_FILTER, ${EXPECTED_SIZE}, ${FILTER_100})" ]] \
 	|| ! echo "ERROR: There are some target with attributs" >&2
 	[[ "`xpath $< 'count(//target//mrk)' 2> /dev/null`" -eq "$(call EXPECTED_FILTER, ${EXPECTED_SIZE}, ${FILTER_100})" ]] \
@@ -151,22 +160,17 @@ tmx/%/check:  %.tmx
 # ${SCORE} and ${FILTER} ?
 #    $1 > $2 ? $1 - $2 + 1 : 0
 #    $1 (= EXPECTED_SIZE)
+# where $1 = EXPECTED_SIZE
+#       $2 = FILTER_100
 EXPECTED_FILTER = $(or $(and ${SCORE}, ${FILTER}, $(or $(and $(call gt, $1, $2), $(call inc, $(call subtract, $1, $2))), 0)), $1)
 
 
 
 ########################################
-# TEST
-.PHONY:  test
-test:  test4
-test:  test5
+# UNITTEST'S DEFINITION.
+.PHONY:  testSuite
 
-# Simple hand made test
-.PHONY:  test1
-test1:  KEEPTAGS=1
-test1:  xliff/v2/test_numbers_hyphens_2.docx/QP.xml
-
-# Test <seg-source><><><mrk mtype="seg">
+# TODO: Test <seg-source><><><mrk mtype="seg">
 .PHONY:  test2 test2s test2sf
 test2:  xliff/TestSet/Target-sdlxliff/WNv_report_-_WEEK_39_graphs_and_tables_4th_Oct_2012.xlsx/val
 test2s:  SCORE=1
@@ -176,64 +180,94 @@ test2sf:  FILTER=0.44
 test2sf:  FILTER_100=44
 test2sf:  xliff/TestSet/Target-sdlxliff/WNv_report_-_WEEK_39_graphs_and_tables_4th_Oct_2012.xlsx/val
 
-# Source SDLXLIFF file doesn't have target.
-# Verify that filtering results in 15 = (58 - 44 + 1) mrk segments.
-.PHONY:  test3
-test3:  override SCORE=1
-test3:  override FILTER=0.44
-test3:  override FILTER_100=44
-test3:  xliff/TestSet/Unknown-sdlxliff/WNv_report_-_WEEK_39_graphs_and_tables_4th_Oct_2012/val
-	[[ "`xpath $@ 'count(//sdl:seg-defs/sdl:seg/@percent)' 2> /dev/null`" -le "15" ]] || ! echo "ERROR: Filtering" >&2
 
+# Create a file to score sdlxliff
+%.s.sdlxliff:  %.sdlxliff
+	@cp $< $@
+
+# Create a file to score tmx
+%.s.tmx:  %.tmx
+	@cp $< $@
+
+# Create a file to score and filter sdlxliff
+%.s.f.sdlxliff:  %.sdlxliff
+	@cp $< $@
+
+# Create a file to score and filter tmx
+%.s.f.tmx:  %.tmx
+	@cp $< $@
+
+
+########################################
+# Score all SDLXLIFF examples
+testSuite:  unittest_sdlxliff_score
+.PHONY:  unittest_sdlxliff_score
+unittest_sdlxliff_score:  override SCORE = 1
+unittest_sdlxliff_score:  $(foreach c,${XLIFF}, xliff/${c:.sdlxliff=.s}/val)
+
+########################################
 # Score and filter all SDLXLIFF examples
-.PHONY:  test4
-test4:  override SCORE=1
-test4:  override FILTER=0.44
-test4:  override FILTER_100=44
-test4:  ${XLIFF_LIST}
+testSuite:  unittest_sdlxliff_score_filter
+.PHONY:  unittest_sdlxliff_score_filter
+unittest_sdlxliff_score_filter:  override SCORE = 1
+unittest_sdlxliff_score_filter:  override FILTER = 0.14
+unittest_sdlxliff_score_filter:  override FILTER_100 = 14
+unittest_sdlxliff_score_filter:  $(foreach c,${XLIFF}, xliff/${c:.sdlxliff=.s.f}/val)
 
+
+########################################
+# Score all TMX examples
+testSuite:  unittest_tmx_score
+.PHONY:  unittest_tmx_score
+unittest_tmx_score:  override SCORE=1
+unittest_tmx_score:  $(foreach c,${TMX}, tmx/${c:.tmx=.s}/val)
+
+
+########################################
 # Score and filter all TMX examples
-.PHONY:  test5
-test5:  override SCORE=1
-test5:  override FILTER=0.44
-test5:  override FILTER_100=44
-test5:  ${TMX_LIST}
+testSuite:  unittest_tmx_score_filter
+.PHONY:  unittest_tmx_score_filter
+unittest_tmx_score_filter:  override SCORE=1
+unittest_tmx_score_filter:  override FILTER=0.44
+unittest_tmx_score_filter:  override FILTER_100=44
+unittest_tmx_score_filter:  $(foreach c,${TMX}, tmx/${c:.tmx=.s.f}/val)
 
 
 # This test is use to evaluate how well we wrap bpt tags into open_wrap & close_wrap.
-.PHONY: bpt
-bpt:  tmx/TestSet/Unknown-TMX/12090574-E-Guidance_Document_-_Coal-fired_electricity_-_2012-09-14_callout/val
+testSuite:  unittest_wrap
+.PHONY: unittest_wrap
+unittest_wrap:  tmx/TestMemory_Unknown/Q.tags
+	[[ `egrep -o 'open_wrap' $+ | \wc -l` -eq 21 ]]
+	[[ `egrep -o 'close_wrap' $+ | \wc -l` -eq 21 ]]
+	[[ `egrep -o 'tag_wrap' $+ | \wc -l` -eq 6 ]]
 
 
 ########################################
 # UNITTEST1
 # Make sure there is an error message when we are missing one entry.
-unittest1.sdlxliff:  test_numbers_hyphens_2.docx.sdlxliff
+unittest1.sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.sdlxliff
 	@cp $< $@
+
+xliff/unittest1/Q.txt xliff/unittest1/Q.tags:  override EXPECTED_SIZE = 39
 
 # Deletes the first line of P.txt & Q.ix to simulate a missing entry.
 xliff/unittest1/QP.xml:  %/QP.xml:  %/P.txt  %/P.tags  %/pr.ce
-	sed -i '1d' $*/P.txt $*/Q.ix
-	set -o pipefail; ${CE_TMX_PL} replace $* 2>&1 | egrep "Can't find ID 0d314dfb-cbb7-41a5-810e-02207e7d1e9e.13"
+	sed -i '1d' $*/P.txt $*/Q.ix $*/P.tags
+	set -o pipefail; ${CE_TMX_PL} replace $* 2>&1 | egrep "Can't find ID 0050212b-4890-4b01-9164-dadcc6bddc91.20"
 
 xliff/unittest1/val:  %/val:  %/QP.xml
 	@true
 
+testSuite:  unittest1
 unittest1:  xliff/unittest1/QP.xml
 
 
 
-########################################
-# 
-.PHONY:  rsync
-VERSION := $(shell git log --pretty=format:'%h' -n 1)
-rsync:  xliff/UnknownSegments_en-CA_fr-CA/rsync
-rsync:  xliff/UnknownSegments_en-CA_fr-CA-2/rsync
-xliff/%/rsync:  xliff/%/QP.xml
-	rsync -arz $< ilt:~/exp/Lexitech/xliff/$*.${VERSION}.sdlxliff
 
 
 
+################################################################################
+# HELPERS
 ########################################
 # create the expected count for the number of mrk mtype="seg" in a sdlxliff files.
 # create the expected count for the number of tuv xml:lang=English in tmx files.
