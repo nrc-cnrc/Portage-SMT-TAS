@@ -716,7 +716,7 @@ def optimizeOnlineLMIRA(iter, wts, args, logfile):
     #Shard corpus on first iteration, and set up shard-specific initial config files
     if iter==0 :
         #Shard source, save shard names
-        cmd = [jav, opts.jmem, "-enableassertions", "-jar", jar, "ShardCorpus", src]
+        cmd = ["time-mem", jav, opts.jmem, "-enableassertions", "-jar", jar, "ShardCorpus", src]
         cmd.extend(srcShards)
         print >> logfile, ' '.join(cmd)
         logfile.flush()
@@ -725,7 +725,7 @@ def optimizeOnlineLMIRA(iter, wts, args, logfile):
         #Shard refs, save ref names
         refShardList = [[shardAnnotate(pref,"xx",i) for i in range(opts.numpar)] for pref in refPrefixes]
         for i in range(len(refs)):
-            cmd = [jav, opts.jmem, "-enableassertions", "-jar", jar, "ShardCorpus", refs[i]]
+            cmd = ["time-mem", jav, opts.jmem, "-enableassertions", "-jar", jar, "ShardCorpus", refs[i]]
             cmd.extend(refShardList[i])
             print >> logfile, ' '.join(cmd)
             logfile.flush()
@@ -773,7 +773,7 @@ def optimizeOnlineLMIRA(iter, wts, args, logfile):
     rpcmds = workdir + "/rpcmds"
     with open(rpcmds,"w") as rpfile :
         for conf in miraConfig :
-            rpfile.write(" ".join([jav, opts.jmem, "-enableassertions", "-jar", jar, "MiraLatticeStep", conf, str(iter),"\n"]))
+            rpfile.write(" ".join(["time-mem", jav, opts.jmem, "-enableassertions", "-jar", jar, "MiraLatticeStep", conf, str(iter),"\n"]))
     cmd = ["run-parallel.sh","-nolocal","-psub","-4","-psub", "-memmap 4", rpcmds,str(opts.numpar)]
     print >> logfile, ' '.join(cmd)
     logfile.flush()
