@@ -109,6 +109,7 @@ struct Elem {
    bool contig;                 // elem's tgt phrases are contiguous
    Uint btok_tgt;               // index of 1st tgt tok to the right of left tag
    Uint etok_tgt;               // index of 1st tgt tok to the right of right tag
+   string pair_id;              // pair-id if elem is paired with another (e.g. bx/ex)
 
    // create, from left tag positions within line
    Elem(const string& line, Uint beg, Uint end, Uint btok, bool wslseq, bool wsrseq, Uint nest) :
@@ -118,8 +119,16 @@ struct Elem {
       lwsl(beg==0 || line[beg-1]==' '), lwsr(end==line.size() || line[end]==' '),
       lwslseq(wslseq), lwsrseq(wsrseq),
       rwsl(true), rwsr(true), rwslseq(false), rwsrseq(false),
-      lout(false), btok_tgt(0), etok_tgt(0)
-   {}
+      lout(false), btok_tgt(0), etok_tgt(0), pair_id("")
+   {
+      if (xtags)
+         if (name == "open_wrap" || name == "close_wrap" ||
+             name == "bx" || name == "ex") {
+            XMLishTag tag;
+            parseXMLishTag(lstring.c_str(), tag, NULL, NULL);
+            pair_id = tag.attrVal("id");
+         }
+   }
 
    static bool isLeft(const string& line, Uint beg, Uint end) {
       return line[beg+1] != '/';
@@ -137,7 +146,11 @@ struct Elem {
    }
    
    void dump() {
-      cerr << name << ": " << lstring << " " << rstring << " " << complete
+      cerr << name << ": " << lstring << " " << rstring
+           << (complete ? " " : "in") << "complete,"
+           << (pair_id.empty() ? "" : " pair id: ") << pair_id
+           << (isOpenPair() ? " (open)" : "")
+           << (isClosePair() ? " (close)" : "")
            << " src:(" << btok << "," << etok << ")"
            << " tgt:(" << btok_tgt << "," << etok_tgt << ")"
            << " whitespace: " << lwsl << lwsr << rwsl << rwsr
@@ -155,6 +168,14 @@ struct Elem {
    bool isIntraTokenLeft() { return !lwslseq && !lwsrseq; }
 
    bool isIntraTokenRight() { return !rwslseq && !rwsrseq; }
+
+   bool isPaired() { return !pair_id.empty(); }
+
+   // open_wrap or bx ?
+   bool isOpenPair() { return isPaired() && (name[0] == 'o' || name[0] == 'b'); }
+
+   // close_wrap of ex ?
+   bool isClosePair() { return isPaired() && (name[0] == 'c' || name[0] == 'e'); }
 
    // update, from right tag positions within line
    void update(const string& line, Uint beg, Uint end, Uint etok_tag,
@@ -488,18 +509,39 @@ int main(int argc, char* argv[])
                   error(ETWarn, "line %d: %s has no matching left tag - ignoring",
                         lineno, tag.c_str());
                ++num_unmatched_tags;
-            } else if (!nested.empty() && nested.back() == i-1) {
-               nested.pop_back();
             } else {
-               for (Uint j=nested.size(); j > 0; --j)
-                  if (nested[j-1] == i-1) {
-                     nested.erase(nested.begin()+j-1);
-                     break;
+               // i-1 is the index of the element we are working with
+               if (!nested.empty() && nested.back() == i-1) {
+                  nested.pop_back();
+               } else {
+                  for (Uint j=nested.size(); j > 0; --j)
+                     if (nested[j-1] == i-1) {
+                        nested.erase(nested.begin()+j-1);
+                        break;
+                     }
+                  if (verbose)
+                     error(ETWarn, "line %d: XML tag nesting bad within element %i: %s",
+                           lineno, i, elems[i-1].lstring.c_str());
+                  ++num_bad_nesting;
+               }
+               if (elems[i-1].isClosePair() ) {  // find match for paired element
+                  Uint j = i-1;
+                  for (; j > 0; --j) {
+                     if (elems[j-1].pair_id == elems[i-1].pair_id) {
+                        // set src token span for both paired elements.
+                        // after the tgt span is determined, these will be restored.
+                        elems[j-1].etok = elems[i-1].etok;
+                        elems[i-1].btok = elems[j-1].btok;
+                        break;
+                     }
                   }
-               if (verbose)
-                  error(ETWarn, "line %d: XML tag nesting bad within element %i: %s",
-                        lineno, i, elems[i-1].lstring.c_str());
-               ++num_bad_nesting;
+                  if (j == 0) {
+                     if (verbose)
+                        error(ETWarn, "line %d: Paired element %s has no matching opening element",
+                              lineno, elems[i-1].lstring.c_str());
+                     ++num_unmatched_tags;
+                  }
+               }
             }
          }
          p = end;
@@ -541,6 +583,7 @@ int main(int argc, char* argv[])
          cerr << "src tokens: " << join(src_toks, " | ") << endl;
          cerr << "tgt tokens: " << join(tgt_toks, " | ") << endl;
       }
+
 
       // assign target positions to elements
       for (Uint i = 0; i < elems.size(); ++i) {
@@ -642,6 +685,21 @@ int main(int argc, char* argv[])
          if (verbose) elems[i].dump();
       }
 
+      // Now that the target spans are set, restore the btok, etok and
+      // btok_tgt, etok_tgt fields for paired elements such that that pair
+      // open tag will be output before the pair close tag.
+      if (xtags) {
+         for (Uint i = 0; i < elems.size(); ++i) {
+            if (elems[i].isOpenPair()) {
+               elems[i].etok = elems[i].btok;
+               elems[i].etok_tgt = elems[i].btok_tgt;
+            } else if (elems[i].isClosePair()) {
+               elems[i].btok = elems[i].etok;
+               elems[i].btok_tgt = elems[i].etok_tgt;
+            }
+         }
+      }
+
       // write out target tokens, with elements
 
       nested.clear();
@@ -663,7 +721,8 @@ int main(int argc, char* argv[])
                      cout << elems[j].rstring;
                   else
                      nested.push_back(j);
-                  if (elems[j].lwsr) {
+                  // Note: usually, don't want whitespace before the first token.
+                  if (elems[j].lwsr && (i != 0 || elems[j].btok == 0)) {
                      cout << ' ';
                      need_ws = false;
                   }
@@ -719,6 +778,22 @@ int main(int argc, char* argv[])
             rwsr = elems[j].rwsr || elems[j].rwsrseq;
             nested.pop_back();
          }
+         // Output tags for closing paired elements ending at this token.
+         // Paired elements are handled outside the nesting structure.
+         for (Uint j = 0; j < elems.size(); ++j) {
+            if (elems[j].isClosePair() && !elems[j].lout) {
+               if (elems[j].shouldTransfer() && elems[j].btok_tgt==i+1) {
+                  if (elems[j].lwsl) {
+                     cout << ' ';
+                     need_ws = false;
+                  }
+                  cout << elems[j].lstring;
+                  elems[j].lout = true;
+                  rwsr = elems[j].rwsr || elems[j].rwsrseq;
+               }
+            }
+         }
+         // Output whitespace if needed after right/pair-closing tags.
          if (rwsr && i < tgt_toks.size()-1) {
             cout << ' ';
             need_ws = false;
