@@ -125,8 +125,8 @@ xliff/%/Q.txt xliff/%/Q.tags:  %.sdlxliff
 tmx/%/val:  tmx/%/QP.xml  %.tmx
 	[[ `xpath <(sed -e 's/<!DOCTYPE tmx SYSTEM "tmx14.dtd">//' < $<) 'count(//tuv[@xml:lang="FR-CA" or @xml:lang="fr-CA"])' 2> /dev/null` -eq $(call EXPECTED_FILTER, ${EXPECTED_SIZE}, $(or ${FILTER_100}, ${FILTER})) ]]
 	$(and ${SCORE}, ${FILTER}, [[ "`xpath <(sed -e 's/<!DOCTYPE tmx SYSTEM "tmx14.dtd">//' < $<) 'count(//tu/prop[@type=\"Txt::CE\"])' 2> /dev/null`" -eq $(call EXPECTED_FILTER, ${EXPECTED_SIZE}, $(or ${FILTER_100}, ${FILTER})) ]])
-	diff --ignore-matching-lines="^<file filename" <(xml_grep --nodate '//tuv[@xml:lang="EN-CA"]' $(filter %/QP.xml, $+)) <(xml_grep --nodate '//tuv[@xml:lang="EN-CA"]' $(filter %.tmx, $+)) \
-	|| ! echo "the source sentence was altered" >&2
+	$(if ${FILTER},, diff --ignore-matching-lines="^<file filename" <(xml_grep --nodate '//tuv[@xml:lang="EN-CA"]' $(filter %/QP.xml, $+)) <(xml_grep --nodate '//tuv[@xml:lang="EN-CA"]' $(filter %.tmx, $+)) \
+	|| ! echo "the source sentence was altered" >&2)
 	echo "validate that the source sentence is unaltered: viewdiff <(xmllint --format --recover - 2>/dev/null < $(filter %.tmx,$+))  <(xmllint --format --recover - 2>/dev/null < $(<:xml=template.xml))  <(xmllint --format --recover - 2>/dev/null < $<)"
 
 # Validate sdlxliff format.
@@ -253,7 +253,7 @@ xliff/unittest1/Q.txt xliff/unittest1/Q.tags:  override EXPECTED_SIZE = 39
 # Deletes the first line of P.txt & Q.ix to simulate a missing entry.
 xliff/unittest1/QP.xml:  %/QP.xml:  %/P.txt  %/P.tags  %/pr.ce
 	sed -i '1d' $*/P.txt $*/Q.ix $*/P.tags
-	set -o pipefail; ${CE_TMX_PL} replace $* 2>&1 | egrep "Can't find ID 0050212b-4890-4b01-9164-dadcc6bddc91.20"
+	set -o pipefail; ${CE_TMX_PL} replace $* 2>&1 | egrep --quiet "Can't find ID 0050212b-4890-4b01-9164-dadcc6bddc91.20"
 
 xliff/unittest1/val:  %/val:  %/QP.xml
 	@true
