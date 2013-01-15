@@ -130,8 +130,8 @@ struct Elem {
    }
 
    static string getName(const string& line, Uint beg, Uint end) {
-      Uint s = line[beg+1] == '/' ? beg+2 : beg+1;
-      Uint e = line.find_first_of(" >\t\n", s);
+      const size_t s = line[beg+1] == '/' ? beg+2 : beg+1;
+      const size_t e = line.find_first_of(" >\t\n", s);
       assert (e != string::npos && e < end);
       return line.substr(s, e-s);
    }
