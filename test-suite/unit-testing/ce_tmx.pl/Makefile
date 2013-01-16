@@ -91,11 +91,13 @@ xliff/%/Q.txt xliff/%/Q.tags:  %.sdlxliff
 
 # Instead of translating, let's reverse the source sentence and pretend it is our translation.
 %/P.txt:  %/Q.txt
+	! LC_ALL=C egrep '&#x1[eEfF];' $+
 	perl -nle 'BEGIN{use encoding "UTF-8";}; print scalar reverse' < $< > $@
 
 
 # Reversing the tagged source sentence doesn't work when reinserting thus we'll change case instead.
 %/P.tags:  %/Q.tags
+	! LC_ALL=C egrep '&#x1[eEfF];' $+
 	sed 's/^/TRANSLATION: /' $< > $@
 	#perl -ple 'BEGIN{use encoding "UTF-8";}; chomp; y/A-Za-z/a-zA-Z/; s/&(LT|AMP);/lc($$1);/ge' < $< > $@
 
@@ -131,12 +133,14 @@ tmx/%/val:  tmx/%/QP.xml  %.tmx
 
 # Validate sdlxliff format.
 #$(filter-out xliff/unittest1/val, ${XLIFF_LIST}):  xliff/%/val:  xliff/%/QP.xml
-xliff/%/val:  xliff/%/QP.xml
+xliff/%/val:  xliff/%/QP.xml  %.sdlxliff
 	[[ "`xpath $< 'count(//target[not(@*)]//mrk[@mtype=\"seg\"])' 2> /dev/null`" -eq "$(call EXPECTED_FILTER, ${EXPECTED_SIZE}, ${FILTER_100})" ]] \
 	|| ! echo "ERROR: There are some target with attributs" >&2
 	[[ "`xpath $< 'count(//target//mrk)' 2> /dev/null`" -eq "$(call EXPECTED_FILTER, ${EXPECTED_SIZE}, ${FILTER_100})" ]] \
 	|| ! echo "ERROR: There is not the right number of mrk segments." >&2 
 	$(and ${SCORE}, ${FILTER}, [[ "`xpath $< 'count(//sdl:seg-defs/sdl:seg[@percent >=0 and @percent<=100])' 2> /dev/null`" -le "$(call EXPECTED_FILTER, ${EXPECTED_SIZE}, ${FILTER_100})" ]] || ! echo "ERROR: Filtering" >&2)
+	$(if ${FILTER},, diff --ignore-matching-lines="^<file filename" <(xml_grep --nodate '//source' $(filter %/QP.xml, $+)) <(xml_grep --nodate '//source' $(filter %.sdlxliff, $+)) \
+	|| ! echo "the source sentence was altered" >&2)
 
 
 

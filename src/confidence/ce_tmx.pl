@@ -226,19 +226,8 @@ exit 0;
 sub processFile {
    my %args = @_;
 
-   sub my_output_filter ($) {
-      my $content = shift;
-      if (defined($content)) {
-         no warnings qw(utf8);
-         $content =~ s/\x{FDD0}/&#x1E;/g;
-         $content =~ s/\x{FDD1}/&#x1F;/g;
-      }
-      return $content;
-   }
-
    my $parser = XML::Twig->new(
          pretty_print  => $pretty_print,
-         output_filter => \&my_output_filter,
          start_tag_handlers => { xliff => \&processXLIFF, tmx => \&processTMX },
          );
 
@@ -274,6 +263,21 @@ sub processFile {
    $parser->parse($content);
 
    xmlFlush($parser);
+   if (defined($parser->{xml_out}))
+   {
+      sub my_output_filter ($) {
+         my $content = shift;
+         #print STDERR "\tmy_output_filter: $content\n";
+         if (defined($content)) {
+            no warnings qw(utf8);
+            $content =~ s/\x{FDD0}/&#x1E;/g;
+            $content =~ s/\x{FDD1}/&#x1F;/g;
+         }
+         return $content;
+      }
+
+      print {$parser->{xml_out}} my_output_filter($parser->sprint);
+   }
 
    die "Unrecognized format.\n" unless(defined($parser->{InputFormat}));
 
@@ -416,14 +420,14 @@ sub xmlFlush {
     my ($parser) = @_;
     if ($parser->{InputFormat} eq 'sdlxliff') {
        $parser->{action} eq 'replace'
-          ? $parser->flush($parser->{xml_out})
+          ? 1 #$parser->flush($parser->{xml_out})
           : $parser->purge();
     }
     elsif ($parser->{InputFormat} eq 'tmx') {
        debug("  xmlflush tmx: %s\n", $parser->{action});
        $parser->{action} eq 'check'
           ? $parser->purge()
-          : $parser->flush($parser->{xml_out});
+          : 1; #$parser->flush($parser->{xml_out});
     }
     else {
        die "xmlFlush on a undefined format!";
