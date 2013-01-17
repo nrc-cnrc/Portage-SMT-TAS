@@ -16,17 +16,20 @@
 
 vpath %.sdlxliff ../../data/sdlxliff
 vpath %.tmx ../../data/tmx
+vpath ref.% ref
 
 SHELL = bash
 
 .SUFFIXES:
+.SECONDARY:
 .DEFAULT_GOAL := all
 .PHONY: all
-all: test
+all:  sdlxliff
+all:  tmx
 
 
-TEMP_FILES=*.xml log.*
-TEMP_DIRS=workdir.*
+TEMP_FILES = U*.sdlxliff T*.tmx log.*
+TEMP_DIRS = workdir.*
 include ../Makefile.incl
 
 
@@ -34,74 +37,114 @@ workdir.%:
 	mkdir -p $@
 
 
-test: test_xliff
-test_xliff:  UnknownSegments_en-CA_fr-CA.v5.xml  ref/UnknownSegments_en-CA_fr-CA.v5.xml
+########################################
+# SDLXLIFF
+.PHONY:  sdlxliff  trans_sdlxliff
+UnknownSegments_en-CA_fr-CA.v5.%.sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.sdlxliff  | workdir.%.sdlxliff
+	../../data/toy-regress/soap-translate.sh \
+		-verbose \
+		-out=$|/P.out \
+		-dir=$| \
+		-nl=s \
+		-xml \
+		${OPTIONS} \
+		$< \
+		2> log.$@
+	ln -fs $|/QP.xml $@
+
+
+# Make sure we translated all sdlxliff examples first then try to validate them.
+sdlxliff:  trans_sdlxliff
+
+sdlxliff: validate_sdlxliff
+validate_sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.translated.sdlxliff  ref.UnknownSegments_en-CA_fr-CA.v5.sdlxliff
+	! egrep '(open|clsoe|tag)_wrap' $<
 	diff $< <(sed -e 's#<\/\?g[^>]*>##g' $(filter ref/%, $+)) --brief
 
-UnknownSegments_en-CA_fr-CA.v5.xml:  %.xml:  %.sdlxliff  | workdir.xliff
-	../../data/toy-regress/soap-translate.sh \
-		-verbose \
-		-out=$|/P.out \
-		-dir=$| \
-		-decode-only \
-		-nl=s \
-		-xml \
-		$< \
-		2> log.$@
-	ln -fs $|/QP.xml $@
+trans_sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.translated.sdlxliff
+UnknownSegments_en-CA_fr-CA.v5.translated.sdlxliff:  override OPTIONS = -decode-only
 
 
-test: test_xtags
-test_xtags:  UnknownSegments_en-CA_fr-CA.v5.xtags.xml  ref/UnknownSegments_en-CA_fr-CA.v5.xtags.xml
+sdlxliff: validate_sdlxliff_tags
+validate_sdlxliff_tags:  UnknownSegments_en-CA_fr-CA.v5.xtags.sdlxliff  ref.UnknownSegments_en-CA_fr-CA.v5.xtags.sdlxliff
+	! egrep '(open|clsoe|tag)_wrap' $<
 	diff $+ --brief
 
-UnknownSegments_en-CA_fr-CA.v5.xtags.xml:  %.xtags.xml:  %.sdlxliff  | workdir.xliff.xtags
-	../../data/toy-regress/soap-translate.sh \
-		-verbose \
-		-out=$|/P.out \
-		-dir=$| \
-		-decode-only \
-		-nl=s \
-		-xml \
-		-xtags \
-		$< \
-		2> log.$@
-	ln -fs $|/QP.xml $@
+trans_sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.xtags.sdlxliff
+UnknownSegments_en-CA_fr-CA.v5.xtags.sdlxliff:  override OPTIONS = -decode-only -xtags
 
 
-test: test_tmx
-test_tmx: TestMemory_Unknown.tmx.xml ref/TestMemory_Unknown.tmx.xml
+sdlxliff: validate_sdlxliff_tags_CE
+validate_sdlxliff_tags_CE:  UnknownSegments_en-CA_fr-CA.v5.xtags.ce.sdlxliff  ref.UnknownSegments_en-CA_fr-CA.v5.xtags.sdlxliff
+	! egrep '(open|clsoe|tag)_wrap' $<
 	diff $+ --brief
 
-TestMemory_Unknown.tmx.xml: %.xml: % | workdir.tmx
-	../../data/toy-regress/soap-translate.sh \
-		-verbose \
-		-out=$|/P.out \
-		-dir=$| \
-		-decode-only \
-		-nl=s \
-		-xml \
-		$< \
-		2> log.$@
-	ln -fs $|/QP.xml $@
+
+trans_sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.xtags.ce.sdlxliff
+UnknownSegments_en-CA_fr-CA.v5.xtags.ce.sdlxliff:  override OPTIONS = -with-ce -xtags
 
 
-test: test_tmx_xtags
-test_tmx_xtags: TestMemory_Unknown.tmx.xtags.xml ref/TestMemory_Unknown.tmx.xtags.xml
+sdlxliff: validate_sdlxliff_tags_CE_filter
+validate_sdlxliff_tags_CE_filter:  UnknownSegments_en-CA_fr-CA.v5.xtags.ce.filter.sdlxliff  ref.UnknownSegments_en-CA_fr-CA.v5.xtags.sdlxliff
+	! egrep '(open|clsoe|tag)_wrap' $<
 	diff $+ --brief
 
-TestMemory_Unknown.tmx.xtags.xml: %.xtags.xml: % | workdir.tmx.xtags
+trans_sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.xtags.ce.filter.sdlxliff
+UnknownSegments_en-CA_fr-CA.v5.xtags.ce.filter.sdlxliff:  override OPTIONS = -with-ce -filter=0.2 -xtags
+
+
+
+########################################
+# TMX
+.PHONY:  tmx  trans_tmx
+TestMemory_Unknown.%.tmx:  TestMemory_Unknown.tmx  | workdir.%.tmx
 	../../data/toy-regress/soap-translate.sh \
 		-verbose \
 		-out=$|/P.out \
 		-dir=$| \
-		-decode-only \
 		-nl=s \
 		-xml \
-		-xtags \
+		${OPTIONS} \
 		$< \
 		2> log.$@
 	ln -fs $|/QP.xml $@
+
+tmx:  trans_tmx
+
+tmx: validate_tmx
+validate_tmx: TestMemory_Unknown.translated.tmx ref.TestMemory_Unknown.tmx
+	! egrep '(open|clsoe|tag)_wrap' $<
+	diff $+ --brief
+
+trans_tmx:  TestMemory_Unknown.translated.tmx
+TestMemory_Unknown.translated.tmx:  override OPTIONS = -decode-only
+
+
+tmx: validate_tmx_xtags
+validate_tmx_xtags: TestMemory_Unknown.xtags.tmx ref.TestMemory_Unknown.xtags.tmx
+	! egrep '(open|clsoe|tag)_wrap' $<
+	diff $+ --brief
+
+trans_tmx:  TestMemory_Unknown.xtags.tmx
+TestMemory_Unknown.xtags.tmx:  override OPTIONS = -decode-only -xtags
+
+
+tmx: validate_tmx_xtags_CE
+validate_tmx_xtags_CE: TestMemory_Unknown.xtags.ce.tmx ref.TestMemory_Unknown.xtags.tmx
+	! egrep '(open|clsoe|tag)_wrap' $<
+	diff $+ --brief
+
+trans_tmx:  TestMemory_Unknown.xtags.ce.tmx
+TestMemory_Unknown.xtags.ce.tmx:  override OPTIONS = -with-ce -xtags
+
+
+tmx: validate_tmx_xtags_CE_filter
+validate_tmx_xtags_CE_filter: TestMemory_Unknown.xtags.ce.filter.tmx ref.TestMemory_Unknown.xtags.tmx
+	! egrep '(open|clsoe|tag)_wrap' $<
+	diff $+ --brief
+
+trans_tmx:  TestMemory_Unknown.xtags.ce.filter.tmx
+TestMemory_Unknown.xtags.ce.filter.tmx:  override OPTIONS = -with-ce -xtags -filter=0.27
 
 
 
