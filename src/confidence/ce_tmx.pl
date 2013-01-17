@@ -185,8 +185,7 @@ elsif ($action eq 'replace') {
    die "No such directory: $dir" unless -d $dir;
 
    my $ce_file = (-r "${dir}/pr.ce") ? "${dir}/pr.ce" : undef;
-   my $tags_file = (-r "${dir}/P.tags") ? "${dir}/P.tags" : undef;
-   my $ix = ixLoad("${dir}/P.txt", $tags_file, "${dir}/Q.ix", $ce_file);
+   my $ix = ixLoad("${dir}/P.txt", "${dir}/Q.ix", $ce_file);
 
    open(my $xml_out, ">${output_layers}", "${dir}/QP.xml")
       or die "Can open output xml_out file";
@@ -228,6 +227,7 @@ sub processFile {
 
    my $parser = XML::Twig->new(
          pretty_print  => $pretty_print,
+         keep_atts_order => 1,
          start_tag_handlers => { xliff => \&processXLIFF, tmx => \&processTMX },
          );
 
@@ -932,14 +932,11 @@ sub ixSave {
 # TODO: Is there any point in loading back the segment version when all we need
 # is the tagged translation?
 sub ixLoad {
-   my ($seg_file, $tag_file, $id_file, $ce_file) = @_;
+   my ($seg_file, $id_file, $ce_file) = @_;
    my $ix = newIx();
 
    open(my $seg_in, "<$input_layers", $seg_file)
       or die "Can open input file $seg_file";
-   open(my $tag_in, "<$input_layers", $tag_file)
-      or die "Can open input file $tag_file"
-      if defined $tag_file;
    open(my $id_in, "<$input_layers", $id_file)
       or die "Can open input file $id_file";
    open(my $ce_in, "<$input_layers", $ce_file)
@@ -948,34 +945,27 @@ sub ixLoad {
 
    my $count = 0;
    verbose("[Reading index from $seg_file and $id_file]\n");
-   verbose("[Reading CE from $tag_file]\n") if defined $tag_file;
    verbose("[Reading CE from $ce_file]\n") if defined $ce_file;
-   my $tag = undef;
    while (defined (my $id = <$id_in>)) {
       chomp $id;
       my $seg = readline($seg_in);
       die "Not enough lines in text file $seg_file" unless defined $seg;
       chomp $seg;
-      if ($tag_file) {
-         $tag = readline($tag_in);
-         die "Not enough lines in text file $tag_file" unless defined $tag;
-         chomp $tag;
-         if ($tag =~ m/^PORTAGE_NULL$/) {
-            $tag = undef;
-         }
-         else {
-            # Remove Portage's wrapping tags.
-            if ($tag =~ m/open_wrap|close_wrap|tag_wrap/) {
-               $tag = XML::Twig->new(
-                     twig_handlers => {
-                        open_wrap  => \&unWrapTag,
-                        close_wrap => \&unWrapTag,
-                        tag_wrap   => \&unWrapTag,
-                     })
-                  ->parse("<dummy>$tag</dummy>")
-                  ->root
-                  ->xml_string;
-            }
+      if ($seg =~ m/^PORTAGE_NULL$/) {
+         $seg = undef;
+      }
+      else {
+         # Remove Portage's wrapping tags.
+         if ($seg =~ m/(open|close|tag)_wrap/) {
+            $seg = XML::Twig->new(
+                  twig_handlers => {
+                     open_wrap  => \&unWrapTag,
+                     close_wrap => \&unWrapTag,
+                     tag_wrap   => \&unWrapTag,
+                  })
+               ->parse("<dummy>$seg</dummy>")
+               ->root
+               ->xml_string;
          }
       }
       my $ce = 0;
@@ -984,18 +974,14 @@ sub ixLoad {
          die "Not enough lines in CE file $ce_file" unless defined $ce;
          chomp $ce;
       }
-      veryVerbose("ixLoad: read $id <<%s>> {{%s}} ($ce)\n", $seg, $tag);
-      ixAdd($ix, $seg, $tag, $id, $ce);
+      veryVerbose("ixLoad: read $id <<%s>> {{%s}} ($ce)\n", $seg);
+      ixAdd($ix, $seg, $id, $ce);
       verbose("\r[%d lines...]", $count) if (++$count % 1 == 0);
    }
    verbose("\r[%d lines; done.]\n", $count);
    die "Too many lines in text file $seg_file" unless eof $seg_in;
-   if (defined($tag_file)) {
-      die "Too many lines in text file $tag_file" unless eof $tag_in;
-   }
 
    close $seg_in;
-   close $tag_in if defined $tag_file;
    close $id_in;
    close $ce_in if defined $ce_file;
 
