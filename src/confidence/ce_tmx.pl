@@ -253,7 +253,7 @@ sub processFile {
          return $content;
       }
 
-      local $/=undef;
+      local $/ = undef;
       open(IN, $parser->{xml_in}) or die;
       $content = <IN>;
       $content = my_input_filter($content);
@@ -536,14 +536,14 @@ sub replaceTransUnit {
    foreach my $mrk (@mrks) {
       my $mid = (defined($mrk->{att}{mid}) ? $mrk->{att}{mid} : $mrk_id++);
       my $xid = "$trans_unit_id.$mid";
-      my $translatoin = getTranslation($parser, $xid);
+      my $translation = getTranslation($parser, $xid);
       eval {
-         #$mrk->set_text($translatoin);  # Escapes xml markup in translatoin which is not the behaviour we want for the tag project.
-         $mrk->set_inner_xml($translatoin);  # Looks to be safe if $translatoin doesn't contain any markup/tags.
+         #$mrk->set_text($translation);  # Escapes xml markup in translation which is not the behaviour we want for the tag project.
+         $mrk->set_inner_xml($translation);  # Looks to be safe if $translation doesn't contain any markup/tags.
          ++$parser->{seg_count};
          1;
       }
-      or die "XMLERROR: $translatoin\n$@\n";
+      or die "XMLERROR: $translation\n$@\n";
 
 
       my $sdl_seg = $sdl_defs->get_xpath("sdl:seg[\@id=\"$mid\"]", 0);
@@ -827,7 +827,7 @@ sub ixAdd {
       veryVerbose("ixAdd: INSERTING id=%s, ce=%s, segment=\"%s\" : tagged=\"%s\"\n", $id, $ce, $segment, $tagged);
       $ix->{id}{$segment} = $id;
       $ix->{segment}{$id} = $segment;
-      $ix->{tagged}{$id}  = $tagged;
+      $ix->{tagged}{$id}  = $tagged if defined $tagged;
       $ix->{ce}{$id}      = $ce if defined $ce;
    }
    else {
@@ -974,8 +974,8 @@ sub ixLoad {
          die "Not enough lines in CE file $ce_file" unless defined $ce;
          chomp $ce;
       }
-      veryVerbose("ixLoad: read $id <<%s>> {{%s}} ($ce)\n", $seg);
-      ixAdd($ix, $seg, $id, $ce);
+      veryVerbose("ixLoad: read $id <<%s>> ($ce)\n", $seg);
+      ixAdd($ix, $seg, undef, $id, $ce);
       verbose("\r[%d lines...]", $count) if (++$count % 1 == 0);
    }
    verbose("\r[%d lines; done.]\n", $count);
@@ -988,9 +988,9 @@ sub ixLoad {
    return $ix;
 }
 
-sub verbose { printf STDERR (map { $_ = defined $_ ? $_ : "undef" } @_) if ($verbose or $Verbose) ; }
-sub veryVerbose { printf STDERR (map { $_ = defined $_ ? $_ : "undef" } @_) if $Verbose; }
-sub debug { printf STDERR (map { $_ = defined $_ ? $_ : "undef" } @_) if $debug; }
+sub verbose { printf STDERR (map { defined $_ ? $_ : "undef" } @_) if ($verbose or $Verbose) ; }
+sub veryVerbose { printf STDERR (map { defined $_ ? $_ : "undef" } @_) if $Verbose; }
+sub debug { printf STDERR (map { defined $_ ? $_ : "undef" } @_) if $debug; }
 sub displayHelp {
    -t STDOUT ? system "pod2usage -verbose 3 $0" : system "pod2text $0 >&2";
 }
