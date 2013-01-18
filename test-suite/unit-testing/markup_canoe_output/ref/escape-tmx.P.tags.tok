@@ -2,28 +2,28 @@ C' est une à de ces unités . 12,456
 C' est une <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf bold=&quot;on&quot;>&lt;/bpt>" id="1"/>à<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/> de ces unités . 12,456
 On sera un vice . <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf italic=&quot;on&quot;>&lt;/bpt>" id="1"/>Procès<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/> firme du conseil
 C' est une <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf underlinestyle=&quot;single&quot;>&lt;/bpt>" id="1"/>à<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/> de . $ 12,456
-REFERENCE REMOVED PENDING OPEN/CLOSE HANDLING
-REFERENCE REMOVED PENDING OPEN/CLOSE HANDLING
-REFERENCE REMOVED PENDING OPEN/CLOSE HANDLING
+C' est un nombre . Pour à une partie <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf fontcolor=&quot;00B050&quot;>&lt;/bpt>" id="1"/>a-2<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/>
+C' est une à <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf highlight=&quot;yellow&quot;>&lt;/bpt>" id="1"/>12 . De v<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/>
+C' est à laquelle le<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/> <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf font=&quot;Arial&quot; complexscriptsfont=&quot;Arial&quot; asiantextfont=&quot;Arial&quot;>&lt;/bpt>" id="1"/>conseil vice de . La situation
 Leur espace non
 Optionalhyphen
 Em — dash
 En – dash
 On sera un vice . Procès firme du conseil
 Non <tag_wrap content="&lt;ph>&amp;lt;nobreakhyphen/>&lt;/ph>"/>leur hyphen
-<tag_wrap content="&lt;ph>{\emspace }&lt;/ph>"/> Espace em
-REFERENCE REMOVED PENDING SEG FAULT PATCH
+<tag_wrap content="&lt;ph>{\emspace }&lt;/ph>"/>Espace em
+En<tag_wrap content="&lt;ph>{\enspace }&lt;/ph>"/> espace<tag_wrap content="&lt;ph>&amp;lt;bookmarkstart name=&quot;_GoBack&quot;/>&lt;/ph>"/><tag_wrap content="&lt;ph>&amp;lt;bookmarkend name=&quot;_GoBack&quot;/>&lt;/ph>"/>
 Espace ¼ em
 Les essais encoding de &lt; et > en xliff tmx et , avec spaces &lt;without> . , Et spaces
 Adjonction / sabrer \ &amp; . , Backslash , ampersand
-REFERENCE REMOVED PENDING OPEN/CLOSE HANDLING
-REFERENCE REMOVED PENDING OPEN/CLOSE HANDLING
+C' est une <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf bold=&quot;on&quot;>&lt;/bpt>" id="1"/>à <open_wrap content="&lt;bpt i=&quot;2&quot;>&amp;lt;cf bold=&quot;on&quot; italic=&quot;on&quot;>&lt;/bpt>" id="2"/>voir <close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/>comment <close_wrap content="&lt;ept i=&quot;2&quot;>&amp;lt;/cf>&lt;/ept>" id="2"/><open_wrap content="&lt;bpt i=&quot;3&quot;>&amp;lt;cf fontcolor=&quot;FF0000&quot; bold=&quot;on&quot; italic=&quot;on&quot;>&lt;/bpt>" id="3"/>overlapping formatting<close_wrap content="&lt;ept i=&quot;3&quot;>&amp;lt;/cf>&lt;/ept>" id="3"/> <open_wrap content="&lt;bpt i=&quot;4&quot;>&amp;lt;cf fontcolor=&quot;FF0000&quot; italic=&quot;on&quot;>&lt;/bpt>" id="4"/> tags sont<close_wrap content="&lt;ept i=&quot;4&quot;>&amp;lt;/cf>&lt;/ept>" id="4"/> <open_wrap content="&lt;bpt i=&quot;5&quot;>&amp;lt;cf fontcolor=&quot;FF0000&quot;>&lt;/bpt>" id="5"/> géré par les <close_wrap content="&lt;ept i=&quot;5&quot;>&amp;lt;/cf>&lt;/ept>" id="5"/>dossiers . Et tmx xliff
+Il s' <open_wrap content="&lt;bpt i=&quot;1&quot;>{\b &lt;/bpt>" id="1"/>agit d' un<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/> <open_wrap content="&lt;bpt i=&quot;2&quot;>{\b\i &lt;/bpt>" id="2"/> million de <open_wrap content="&lt;bpt i=&quot;3&quot;>{\b\i\cf1 &lt;/bpt>" id="3"/>3 de 5 à <close_wrap content="&lt;ept i=&quot;2&quot;>}&lt;/ept>" id="2"/>2 4 <close_wrap content="&lt;ept i=&quot;3&quot;>}&lt;/ept>" id="3"/><open_wrap content="&lt;bpt i=&quot;4&quot;>{\i\cf1 &lt;/bpt>" id="4"/>6 <open_wrap content="&lt;bpt i=&quot;5&quot;>{\cf1 &lt;/bpt>" id="5"/>7 76 <close_wrap content="&lt;ept i=&quot;4&quot;>}&lt;/ept>" id="4"/>78 <close_wrap content="&lt;ept i=&quot;5&quot;>}&lt;/ept>" id="5"/>9 8 90
 Et pendant we're ici , d' autres mis en rtf > &amp; &lt; :
 ? Non-breaking espace
 C' est une à de . $ 12,456
 <open_wrap content="&lt;bpt i=&quot;1&quot;>{\super &lt;/bpt>" id="1"/>Script<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/> . Super
 Et <open_wrap content="&lt;bpt i=&quot;1&quot;>{\sub &lt;/bpt>" id="1"/>script<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/> . Sub
-REFERENCE REMOVED PENDING SEG FAULT PATCH
+Et sub <open_wrap content="&lt;bpt i=&quot;1&quot;>{\super &lt;/bpt>" id="1"/>script<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/> <open_wrap content="&lt;bpt i=&quot;2&quot;>{\sub &lt;/bpt>" id="2"/>insuper<close_wrap content="&lt;ept i=&quot;2&quot;>}&lt;/ept>" id="2"/> <open_wrap content="&lt;bpt i=&quot;3&quot;>{\super &lt;/bpt>" id="3"/>script<close_wrap content="&lt;ept i=&quot;3&quot;>}&lt;/ept>" id="3"/>
 Non-breaking hyphen
 En<tag_wrap content="&lt;ph>{\enspace }&lt;/ph>"/> espace
 C' est un nombre . Pour à une partie a-2
