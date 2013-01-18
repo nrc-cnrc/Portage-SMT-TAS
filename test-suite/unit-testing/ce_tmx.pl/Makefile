@@ -90,16 +90,10 @@ xliff/%/Q.txt xliff/%/Q.tags:  %.sdlxliff
 
 
 # Instead of translating, let's reverse the source sentence and pretend it is our translation.
-%/P.txt:  %/Q.txt
-	! LC_ALL=C egrep '&#x1[eEfF];' $+
-	perl -nle 'BEGIN{use encoding "UTF-8";}; print scalar reverse' < $< > $@
-
-
-# Reversing the tagged source sentence doesn't work when reinserting thus we'll change case instead.
-%/P.tags:  %/Q.tags
+%/P.txt:  %/Q.tags %/Q.txt
 	! LC_ALL=C egrep '&#x1[eEfF];' $+
 	sed 's/^/TRANSLATION: /' $< > $@
-	#perl -ple 'BEGIN{use encoding "UTF-8";}; chomp; y/A-Za-z/a-zA-Z/; s/&(LT|AMP);/lc($$1);/ge' < $< > $@
+	#perl -nle 'BEGIN{use encoding "UTF-8";}; print scalar reverse' < $< > $@
 
 
 # Let's pretend the line number is our confidence estimation (must be deterministic for unittesting).
@@ -108,7 +102,7 @@ xliff/%/Q.txt xliff/%/Q.tags:  %.sdlxliff
 
 
 # Insert translation back into either a TMX or a SDLXLIFF file.
-%/QP.xml:  %/P.txt  %/pr.ce  %/P.tags
+%/QP.xml:  %/P.txt  %/pr.ce
 	${CE_TMX_PL} \
 		-verbose=1 \
 		$(and ${KEEPTAGS}, -keeptags) \
@@ -257,8 +251,8 @@ unittest1.sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.sdlxliff
 xliff/unittest1/Q.txt xliff/unittest1/Q.tags:  override EXPECTED_SIZE = 39
 
 # Deletes the first line of P.txt & Q.ix to simulate a missing entry.
-xliff/unittest1/QP.xml:  %/QP.xml:  %/P.txt  %/P.tags  %/pr.ce
-	sed -i '1d' $*/P.txt $*/Q.ix $*/P.tags
+xliff/unittest1/QP.xml:  %/QP.xml:  %/P.txt  %/pr.ce
+	sed -i '1d' $*/P.txt $*/Q.ix
 	set -o pipefail; ${CE_TMX_PL} replace $* 2>&1 | egrep --quiet "Can't find ID 0050212b-4890-4b01-9164-dadcc6bddc91.20"
 
 xliff/unittest1/val:  %/val:  %/QP.xml
