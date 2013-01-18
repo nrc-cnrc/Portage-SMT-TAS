@@ -3,9 +3,9 @@ A B C <a>D E F G</a> H I J
 A B <a>C D E F G H</a> I J
 A B <a>C D E F G</a> H I J
 A B <a>C D E F</a> G H I J
-A B C D E <a></a>F G H I J
+A B C D E <a></a> F G H I J
 A B <a>C D E F G H</a> I J
-A B C D E F G H <a></a>I J
+A B C D E F G H <a></a> I J
 A B C D E<x /> F G H I J
 A B C D E<x /> F G H I J
 A B C D E<x /> F G H I J

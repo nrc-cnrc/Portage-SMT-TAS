@@ -90,9 +90,10 @@ struct Elem {
    string name;                 // element name
    string lstring;              // left tag string, eg '<name atr="xxx">'
    string rstring;              // right tag string, eg '</name>'
+   Uint lid;                    // id of left tag (used for tag ordering)
+   Uint rid;                    // id of right tag (used for tag ordering)
    Uint btok;                   // index of 1st src tok to the right of left tag
    Uint etok;                   // index of 1st src tok to the right of right tag
-   Uint nest;                   // index+1 of elem this one is nested in
    bool complete;               // true if right tag seen (& etok is valid)
    bool lwsl;                   // true if whitespace to left of left tag
    bool lwsr;                   // true if whitespace to right of left tag
@@ -111,11 +112,13 @@ struct Elem {
    Uint etok_tgt;               // index of 1st tgt tok to the right of right tag
    string pair_id;              // pair-id if elem is paired with another (e.g. bx/ex)
 
+   static Uint next_id;         // Next tag id to assign
+
    // create, from left tag positions within line
    Elem(const string& line, Uint beg, Uint end, Uint btok, bool wslseq, bool wsrseq, Uint nest) :
       name(getName(line, beg, end)),
-      lstring(line.substr(beg, end-beg)), rstring(""),
-      btok(btok), etok(0), nest(nest), complete(false),
+      lstring(line.substr(beg, end-beg)), rstring(""), lid(next_id++), rid(0),
+      btok(btok), etok(0), complete(false),
       lwsl(beg==0 || line[beg-1]==' '), lwsr(end==line.size() || line[end]==' '),
       lwslseq(wslseq), lwsrseq(wsrseq),
       rwsl(true), rwsr(true), rwslseq(false), rwsrseq(false),
@@ -146,7 +149,8 @@ struct Elem {
    }
    
    void dump() {
-      cerr << name << ": " << lstring << " " << rstring
+      cerr << name << " " << "(" << lid << "," << rid << "): "
+           << lstring << " " << rstring
            << (complete ? " " : "in") << "complete,"
            << (pair_id.empty() ? "" : " pair id: ") << pair_id
            << (isOpenPair() ? " (open)" : "")
@@ -155,19 +159,21 @@ struct Elem {
            << " tgt:(" << btok_tgt << "," << etok_tgt << ")"
            << " whitespace: " << lwsl << lwsr << rwsl << rwsr
            << " seq ws: " << lwslseq << lwsrseq << rwslseq << rwsrseq
-           << " nest: " << nest << endl;
+           << endl;
    }
 
-   bool empty() {return btok == etok;}
+   bool empty() { return btok == etok; }
 
-   bool emptyTgt() {return btok_tgt == etok_tgt;}
+   bool emptyTgt() { return btok_tgt == etok_tgt; }
 
    // Does this tag element meet the requirements for transfer to target text?
-   bool shouldTransfer() {return complete && (xtags || !empty());}
+   bool shouldTransfer() { return complete && (xtags || !empty()); }
 
    bool isIntraTokenLeft() { return !lwslseq && !lwsrseq; }
 
    bool isIntraTokenRight() { return !rwslseq && !rwsrseq; }
+
+   bool isIntraToken() { return isIntraTokenLeft() || isIntraTokenRight(); }
 
    bool isPaired() { return !pair_id.empty(); }
 
@@ -177,12 +183,17 @@ struct Elem {
    // close_wrap of ex ?
    bool isClosePair() { return isPaired() && (name[0] == 'c' || name[0] == 'e'); }
 
+   // is tag identified by id nested within this element in the source?
+   bool nested(Uint id) { return id > lid && id < rid; }
+
    // update, from right tag positions within line
    void update(const string& line, Uint beg, Uint end, Uint etok_tag,
                bool wslseq, bool wsrseq)
    {
-      if (line[beg+1] == '/')
+      if (line[beg+1] == '/') {
          rstring = line.substr(beg, end-beg);
+         rid = next_id++;
+      }
       etok = etok_tag;
       complete = true;
       rwsl = beg==0 || line[beg-1]==' ';
@@ -191,6 +202,8 @@ struct Elem {
       rwsrseq = wsrseq;
    }
 };
+
+Uint Elem::next_id = 1;         // tag ids start at 1
 
 // Initial stab at a bilingual dictionary, customized with a few ad hoc en/fr
 // entries. TODO: normalize case before comparing, allow spec of coding scheme,
@@ -704,32 +717,85 @@ int main(int argc, char* argv[])
       // write out target tokens, with elements
       nested.clear();
       bool need_ws = false;
+      bool seq_start = true;
+      Uint nested_mark = 0;     // used to mark a spot in the nested stack
+      bool rwsr = false;        // rwsr for last right tag output
+      bool sp_out = false;      // was last output character a space?
       for (Uint i = 0; i < tgt_toks.size(); ++i) {
-         // Output left tags for elements beginning at this token.
-         bool seq_start = true;
+         // Output left tags for elements beginning at this token;
+         // include right tags for empty elements before this token.
+         // Obey the nesting of empty tags.
+         seq_start = true;
+         nested_mark = nested.size();   // mark this spot in the nested stack
+         rwsr = false;    // rwsr for last right tag output
+         sp_out = false;  // was last output character a space?
          for (Uint j = 0; j < elems.size(); ++j) {
             if (elems[j].shouldTransfer() && elems[j].btok_tgt==i) {
                if (!elems[j].isIntraTokenLeft() && !elems[j].lout) {
+                  // Output right tags if needed for empty tags in sequence,
+                  // including moving intra-token right tag before this token.
+                  while (nested.size() > nested_mark) {
+                     Uint k = nested.back();
+                     if (elems[k].nested(elems[j].lid))
+                        break;
+                     if (elems[k].rwsl && !sp_out) {
+                        cout << ' ';
+                        need_ws = false;
+                     }
+                     cout << elems[k].rstring;
+                     sp_out = false;
+                     if (i != 0 || elems[k].btok == 0)
+                        rwsr = elems[k].rwsr || elems[k].rwsrseq;
+                     nested.pop_back();
+                  }
                   if (need_ws && (elems[j].lwsl || (seq_start && elems[j].lwslseq))) {
                      cout << ' ';
                      need_ws = false;
                   }
+                  // Output this left tag.
                   cout << elems[j].lstring;
+                  sp_out = false;
                   elems[j].lout = true;
-                  // Output (move) intra-token right tag before this token
-                  if (elems[j].emptyTgt())
-                     cout << elems[j].rstring;
-                  else
+                  if (!elems[j].rstring.empty()) {
+                     // Push element on nested stack to output right tag later.
                      nested.push_back(j);
-                  // Note: usually, don't want whitespace before the first token.
-                  if (elems[j].lwsr && (i != 0 || elems[j].btok == 0)) {
-                     cout << ' ';
-                     need_ws = false;
+                     if (!elems[j].emptyTgt())
+                        nested_mark = nested.size();   // mark this spot in the nested stack
+                     // Note: usually, don't want whitespace before the first token.
+                     if (elems[j].lwsr && (i != 0 || elems[j].btok == 0)) {
+                        cout << ' ';
+                        sp_out = true;
+                        need_ws = false;
+                     }
+                  } else {
+                     // Point tag - track whitespace needs to right.
+                     if (i != 0 || elems[j].btok == 0)
+                        rwsr = elems[j].rwsr || elems[j].rwsrseq;
                   }
                   seq_start = false;
                }
             }
          }
+
+         // Finish outputting right tags for empty tags before this token,
+         // including moving intra-token right tag before this token.
+         while (nested.size() > nested_mark) {
+            Uint k = nested.back();
+            if (elems[k].rwsl && !sp_out) {
+               cout << ' ';
+               need_ws = false;
+            }
+            cout << elems[k].rstring;
+            sp_out = false;
+            if (i != 0 || elems[k].btok == 0)
+               rwsr = elems[k].rwsr || elems[k].rwsrseq;
+            nested.pop_back();
+         }
+         if (rwsr) {
+            cout << ' ';
+            need_ws = false;
+         }
+
          // Output the token, preceded by whitespace if needed.
          if (need_ws)
             cout << ' ';
@@ -746,26 +812,36 @@ int main(int argc, char* argv[])
                }
             }
          }
+
          // Output right tags for elements ending at this token.
          // Note: Proper XML nesting order is maintained in the output, but
          // some right tags may be output (moved to) later than indicated by
          // the alignment in order to remove overlap between elements.
-         bool rwsr = false;     // rwsr for last right tag output
+         rwsr = false;     // rwsr for last right tag output
+         nested_mark = nested.size();   // mark this spot in the nested stack
          while (!nested.empty()) {
             Uint j = nested.back();
-            if (elems[j].etok_tgt > i + (elems[j].empty() ? 0 : 1))
+            if (nested.size() <= nested_mark &&
+                  elems[j].etok_tgt > i + (elems[j].empty() ? 0 : 1))
                break;
+            if (nested.size() == nested_mark)
+               --nested_mark;
             // Output empty (point) elements that must precede this right tag
             for (Uint k=j; k < elems.size(); ++k) {
-               if (elems[k].shouldTransfer() && elems[k].nest == j+1) {
-                  if (elems[k].emptyTgt() && !elems[k].lout) {
+               if (elems[k].shouldTransfer() && elems[k].empty() && !elems[k].lout) {
+                  if (((!elems[k].isPaired() && elems[k].btok == elems[j].etok) ||
+                       (elems[k].isClosePair() && elems[k].btok_tgt == i+1))
+                      && elems[j].nested(elems[k].lid)) {
                      if (need_ws && elems[k].lwsl) {
                         cout << ' ';
                         need_ws = false;
                      }
                      cout << elems[k].lstring;
                      elems[k].lout = true;
-                     cout << elems[k].rstring;
+                     if (!elems[k].rstring.empty()) {
+                        nested.push_back(k);
+                        j = k;
+                     }
                   }
                }
             }
@@ -778,8 +854,10 @@ int main(int argc, char* argv[])
             rwsr = elems[j].rwsr || elems[j].rwsrseq;
             nested.pop_back();
          }
-         // Output tags for closing paired elements ending at this token.
-         // Paired elements are handled outside the nesting structure.
+         // Output tags for any closing paired elements ending at this token
+         // not output by the right tag processing above.
+         // Paired elements are handled outside the nesting structure
+         // i.e. paired elements are not pushed on the nested stack.
          for (Uint j = 0; j < elems.size(); ++j) {
             if (elems[j].isClosePair() && !elems[j].lout) {
                if (elems[j].shouldTransfer() && elems[j].btok_tgt==i+1) {
@@ -801,25 +879,46 @@ int main(int argc, char* argv[])
       } // for each token
 
       // Finally, output any tags that follow the last token.
-      bool seq_start = true;
+      seq_start = true;
+      rwsr = false;    // rwsr for last right tag output
+      sp_out = false;  // was last output character a space?
       for (Uint j = 0; j < elems.size(); ++j) {
-         if (!elems[j].lout && elems[j].shouldTransfer() && elems[j].btok_tgt==tgt_toks.size()) {
-            if (need_ws && (elems[j].lwsl || (seq_start && elems[j].lwslseq))) {
+         // Output right tags if needed for empty tags in sequence.
+         while (!nested.empty()) {
+            Uint k = nested.back();
+            if (elems[k].nested(elems[j].lid))
+               break;
+            if (elems[k].rwsl && !sp_out)
                cout << ' ';
-               need_ws = false;
-            }
+            cout << elems[k].rstring;
+            sp_out = false;
+            nested.pop_back();
+         }
+         if (!elems[j].lout && elems[j].shouldTransfer() && elems[j].btok_tgt==tgt_toks.size()) {
+            if (need_ws && (elems[j].lwsl || (seq_start && elems[j].lwslseq)))
+               cout << ' ';
             cout << elems[j].lstring;
             elems[j].lout = true;
             if (!elems[j].rstring.empty()) {
-               if (elems[j].rwsl) {
+               nested.push_back(j);
+               if (elems[j].lwsr) {
                   cout << ' ';
-                  need_ws = false;
+                  sp_out = true;
                }
-               cout << elems[j].rstring;
             }
             seq_start = false;
          }
       }
+      // Finish outputting right tags for empty tags.
+      while (!nested.empty()) {
+         Uint k = nested.back();
+         if (elems[k].rwsl && !sp_out)
+            cout << ' ';
+         cout << elems[k].rstring;
+         nested.pop_back();
+      }
+
+      // Finally, we are at the end of the line!
       cout << endl;
 
    } // for each line of input

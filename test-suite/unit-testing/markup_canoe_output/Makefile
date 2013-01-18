@@ -4,14 +4,15 @@
 # Technologies langagieres interactives / Interactive Language Technologies
 # Tech. de l'information et des communications / Information and Communications Tech.
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2012, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2012, Her Majesty in Right of Canada
+# Copyright 2013, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2013, Her Majesty in Right of Canada
 
 .SECONDARY:
 
 .PHONY: all
 
-TAGS_XFER_TESTS = whitespace_test nested1_test nested2_test escape_test escape-tmx_test paired_test
+TAGS_XFER_TESTS = whitespace_test nested1_test nested2_test \
+                  escape_test escape-tmx_test paired_test emptytags_test
 
 TEMP_FILES=$(TAGS_XFER_TESTS:_test=.P.tags.tok) log.* tc_tmp_text_28315.cmark.out wal-*.out
 include ../Makefile.incl
@@ -29,6 +30,7 @@ nested2_test: OPTS=-v -xtags
 escape-tmx_test: OPTS=-v -xtags
 escape_test: OPTS=-v -xtags
 paired_test: OPTS=-v -xtags
+emptytags_test: OPTS=-v -xtags
 
 .PHONY: ${TAGS_XFER_TESTS}
 
