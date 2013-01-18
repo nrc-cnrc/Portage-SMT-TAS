@@ -2,8 +2,6 @@
  * @author Aaron Tikuisis
  * @file canoe_help.h  Contains the help message for canoe.
  *
- * $Id$ *
- *
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -164,11 +162,19 @@ Options (in command-line format):\n\
  -seed N                                Seed for -random-weights  [0]\n\
      Set (positive integer) random seed (see -random-weights).\n\
 \n\
- -stack|-s S                            Hypothesis stack size  [100]\n\
-     The maximum number of hypotheses to keep in the same stack, i.e., covering\n\
-     the same number of source words.  With the default decoder, recombined\n\
-     states are not counted; with the cube pruning decoder, recombined states\n\
-     *are* counted, so a much larger value of S is recommended.\n\
+ -stack|-s S                            Cube pruning hypothesis stack size  [10000]\n\
+     The maximum number of hypotheses to keep in each cube-pruning decoder\n\
+     stack, i.e., covering the same number of source words.  With the cube\n\
+     pruning decoder, recombined states are counted, so a much larger value\n\
+     of S is recommended than RS (see below).  Note: it is an error to specify\n\
+     -stack without -cube-pruning.\n\
+\n\
+ -regular-stack|-rs RS                  Regular decoder hypothesis stack size  [1000]\n\
+     The maximum number of hypotheses to keep in each regular decoder stack,\n\
+     i.e., covering the same number of source words.  With the default decoder,\n\
+     recombined states are not counted, so a much smaller value of RS is\n\
+     recommended than S (see above).  Note: it is an error to specify\n\
+     -regular-stack with -cube-pruning.\n\
 \n\
  -beam-threshold|-b T                   Beam threshold (per stack)  [0.0001]\n\
      The hypothesis stack relative threshold: max ratio of probability between\n\
@@ -189,10 +195,10 @@ Options (in command-line format):\n\
      Keep at least MIN_DIVERSITY hypotheses for each coverage in the stack.\n\
      (Not compatible with cube pruning)\n\
 \n\
- -diversity-stack-increment DSI         Max hyps added to each stack by the -diversity option [S]\n\
-     Notwithstanding MIN_DIVERSITY, don't keep more than S+DSI hypotheses in\n\
+ -diversity-stack-increment DSI         Max hyps added to each stack by the -diversity option [RS]\n\
+     Notwithstanding MIN_DIVERSITY, don't keep more than RS+DSI hypotheses in\n\
      any given stack, so the search does not become exponential.  (Use 0 for no\n\
-     limit, -1 for DSI=S, or a positive value to set DSI explicitly.)\n\
+     limit, -1 for DSI=RS, or a positive value to set DSI explicitly.)\n\
 \n\
  -ttable-limit L                        Max candidates per source phrase  [0, i.e., no limit]\n\
      The number of target phrases to keep in translation table pruning; 0\n\
@@ -441,10 +447,10 @@ Options (in command-line format):\n\
  -cube-pruning                          Use cube pruning  [don't]\n\
      Use the cube pruning decoder, a la Huang+Chiang (ACL 2007), instead of\n\
      the regular stack decoder.  (Not compatible yet with coverage pruning).\n\
-     Note that with regular decoding, each stack gets up to S elements, not\n\
+     Note that with regular decoding, each stack gets up to RS elements, not\n\
      counting recombined states, whereas with cube pruning recombined states\n\
      are counted.  Recomended S values are therefore around 10000-30000 with\n\
-     cube pruning, rather than 100-300.\n\
+     cube pruning, rather than 100-1000 for RS.\n\
 \n\
  -future-score-use-ftm                  Include forward TMs in future score  [do]\n\
      Also use forward translation model probabilities to compute the\n\

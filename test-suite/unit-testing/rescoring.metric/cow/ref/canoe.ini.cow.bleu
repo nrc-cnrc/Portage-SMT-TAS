@@ -6,7 +6,7 @@
 [weight-t] 0.2620283663
 [ttable-limit] 30
 [ttable-threshold] 0.001
-[stack] 70
+[regular-stack] 70
 [beam-threshold] 0.01
 [distortion-limit] 7
 [weight-d] 0.1679873466

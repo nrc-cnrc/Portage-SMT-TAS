@@ -246,7 +246,7 @@ if ($use_srilm) { # using disambig
                 . "cat $in_file | canoe-escapes.pl -add "
                 . "| canoe -f /dev/null -v $vb -load-first"
                 . " -ttable-$ttable_type $ttable_file -lmodel-file $model_file"
-                . " -lmodel-order $lmOrder -ttable-limit 100 -stack 100"
+                . " -lmodel-order $lmOrder -ttable-limit 100 -regular-stack 100"
                 . " -ftm 1.0  -lm 2.302585 -tm 0.0 -distortion-limit 0";
 }
 

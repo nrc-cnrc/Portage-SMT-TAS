@@ -3,8 +3,6 @@
  * @file config_io.h  Read and write canoe config files, and perform error
  * checking and parameter initialization on them.
  *
- * $Id$
- *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
@@ -183,7 +181,8 @@ public:
    double phraseTableThreshold;     ///< Prob threshold for pruning PTs.
    string phraseTablePruneType;     ///< Which probs to use for pruning PTs
    double phraseTableLogZero;       ///< Logprob for missing or 0-prob PT entries
-   Uint maxStackSize;               ///< s = stack size limit
+   Uint maxStackSize;               ///< s = stack size limit for cube pruning decoding
+   Uint maxRegularStackSize;        ///< rs = stack size limit for regular decoding
    double pruneThreshold;           ///< b = prob-based stack pruning threshold
    Uint covLimit;                   ///< Coverage pruning limit
    double covThreshold;             ///< Coverage pruning prob threshold

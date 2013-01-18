@@ -3,8 +3,6 @@
  * @file decoder.cc  This file contains the implementation of the core decoder
  * algorithm, as well as a couple wrapper functions.
  *
- * $Id$
- *
  * A note about the DecoderState graph created: all paths (translations) begin
  * with a common "empty" state (created by makeEmptyState()), because this
  * makes the decoder code less messy.
@@ -57,10 +55,10 @@ namespace Portage
       const bool discardRecomb = (!c.masse && !c.latticeOut && !c.nbestOut);
 
       // The size of the last stack can be reduced in some cases
-      Uint last_stack_size = c.maxStackSize;
+      Uint last_stack_size = c.maxRegularStackSize;
       if ( discardRecomb )
          last_stack_size = 1;
-      else if ( !c.masse && !c.latticeOut && c.nbestSize < c.maxStackSize )
+      else if ( !c.masse && !c.latticeOut && c.nbestSize < c.maxRegularStackSize )
          last_stack_size = c.nbestSize;
 
       // Create the hypothesis stacks
@@ -68,7 +66,7 @@ namespace Portage
       for (Uint i = 0; i < sourceLength + 1; i++)
       {
          hStacks[i] = new HistogramThresholdHypStack(model,
-               (i == sourceLength ? last_stack_size : c.maxStackSize),
+               (i == sourceLength ? last_stack_size : c.maxRegularStackSize),
                log(c.pruneThreshold), c.covLimit, log(c.covThreshold),
                c.diversity, c.diversityStackIncrement, discardRecomb);
       } // for

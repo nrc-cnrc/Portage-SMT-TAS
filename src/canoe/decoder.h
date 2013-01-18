@@ -3,8 +3,6 @@
  * @file decoder.h  This file contains a declaration of the DecoderState class
  * (used by the decoder algorithm) and of the decoder algorithm itself.
  *
- * $Id$
- *
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -167,8 +165,10 @@ namespace Portage
     *       it is relevant.
     *
     * @param model  The PhraseDecoderModel to be used by the decoder.
-    * @param c.maxStackSize  The number of states to keep on each hypothesis
-    *         stack.
+    * @param c.maxRegularStackSize  The number of states to keep on each regular
+    *         hypothesis stack.
+    * @param c.maxStackSize  The number of states to keep on each cube pruning
+    *         hypothesis stack.
     * @param log(c.pruneThreshold)  The relative threshold that states must be
     *         above to be kept on each hypothesis stack.
     *         (must be in log space, and negative)
