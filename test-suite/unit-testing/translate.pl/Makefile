@@ -37,6 +37,11 @@ workdir.%:
 	mkdir -p $@
 
 
+# Only performs translation.
+.PHONY:  trans
+trans:  trans_sdlxliff
+trans:  trans_tmx
+
 ########################################
 # SDLXLIFF
 .PHONY:  sdlxliff  trans_sdlxliff
