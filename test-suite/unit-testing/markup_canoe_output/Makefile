@@ -101,6 +101,6 @@ nbest2rescore.ffout.ref: in/testTC.out.trace-wal
 all: compare.wal-in-pal.out compare.wal-using-heuristic.out
 
 wal-in-pal.out: in/wal.Q.tags.tok in/wal.p.tok in/wal.p.pal
-	markup_canoe_output -xtags $+ > $@
+	markup_canoe_output -xtags -wal pal $+ > $@
 wal-using-heuristic.out: in/wal.Q.tags.tok in/wal.p.tok in/wal.p.pal
-	markup_canoe_output -xtags -hwal $+ > $@
+	markup_canoe_output -xtags -wal h $+ > $@

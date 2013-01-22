@@ -84,7 +84,7 @@ static bool xtags = false;
 static string msrcfile;
 static string outfile;
 static string palfile;
-static string wal;
+static string wal = "mixed";
 static bool hwal = false;
 static bool pal_wal = false;
 static vector<string> tags_to_ignore;
