@@ -37,7 +37,7 @@ Arguments:
                 clone's --branch option: a branch or a tag, typically a
                 tag having been created first using "git tag v1_X_Y COMMIT;
                 git push --tags", e.g.,:
-                   git tag v1_5_0 master
+                   git tag v1_5_1 master
                    git push --tags
                 run in both PORTAGEshared and portage.framework.
 
@@ -301,12 +301,12 @@ get_user_manual() {
       run_cmd find PORTAGEshared/doc/user-manual/uploads -name \*.gif.1 \| xargs rm -f
       run_cmd pushd PORTAGEshared/doc/user-manual/pages
          for x in *.html; do
-            echo Making images relative in $x and renaming PORTAGE shared '->' Portage 1.5.0.
+            echo Making images relative in $x and renaming PORTAGE shared '->' Portage 1.5.1.
             if [[ ! $NOT_REALLY ]]; then
                perl -e 'print '"'"'%s/IMG SRC="http:\/\/wiki-ilt\/PORTAGEshared\/uploads/img src="..\/uploads/'"'"'."\nw\nq\n"' | ed $x
                perl -e 'print '"'"'%s/img src="http:\/\/wiki-ilt\/PORTAGEshared\/uploads/img src="..\/uploads/'"'"'."\nw\nq\n"' | ed $x
                if grep -q 'PORTAGE shared' $x; then
-                  perl -e 'print '"'"'%s/PORTAGE shared/Portage 1.5.0/g'"'"'."\nw\nq\n"' | ed $x
+                  perl -e 'print '"'"'%s/PORTAGE shared/Portage 1.5.1/g'"'"'."\nw\nq\n"' | ed $x
                fi
             fi
          done
@@ -424,8 +424,8 @@ make_iso_and_tar() {
       fi
       run_cmd mkisofs -V $ISO_VOLID -joliet-long -o $ARCHIVE_FILE.iso \
               PORTAGEshared $PATCH_FILES '&>' iso.log
-      run_cmd mv PORTAGEshared Portage1.5.0
-      run_cmd tar -cvzf $ARCHIVE_FILE.tar.gz Portage1.5.0 '>&' tar.log
+      run_cmd mv PORTAGEshared Portage1.5.1
+      run_cmd tar -cvzf $ARCHIVE_FILE.tar.gz Portage1.5.1 '>&' tar.log
       run_cmd md5sum $ARCHIVE_FILE.* \> $ARCHIVE_FILE.md5
    run_cmd popd
 }

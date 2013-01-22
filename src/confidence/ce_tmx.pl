@@ -235,9 +235,9 @@ sub processFile {
    $parser->{tu_count} = 0;
    $parser->{seg_count} = 0;
    $parser->{filter_count} = 0;
-   $parser->{'tool-id'} = 'Portage-1.5.0';
+   $parser->{'tool-id'} = 'Portage-1.5.1';
    $parser->{'tool-name'} = 'Portage';
-   $parser->{'tool-version'} = '1.5.0';
+   $parser->{'tool-version'} = '1.5.1';
    $parser->{'tool-company'} = 'CNRC-NRC';
 
    verbose("[Processing file %s ...]\n", $parser->{xml_in});
@@ -567,7 +567,7 @@ sub replaceTransUnit {
       #   <sdl:seg-defs><sdl:seg id="560" /></sdl:seg-defs>
       # Defined:
       #   <sdl:seg-defs><sdl:seg id="560" /></sdl:seg-defs>
-      #      <sdl:seg conf="Draft" id="56" origin="mt" origin-system="Portage-1.5.0" percent="99" >
+      #      <sdl:seg conf="Draft" id="56" origin="mt" origin-system="Portage-1.5.1" percent="99" >
       #   </sdl:seg-defs>
       debug("Confidence estimation for %s: CE=%s %s\n", $xid, $ce, $parser->{filter});
       $sdl_seg->del_att('percent');       # Make sure there is no previous value for the attribut percent.
@@ -627,7 +627,7 @@ sub processG {
 sub processHeader {
    my ($parser, $header) = @_;
 
-   my @tools = $header->children('tool[@tool-id="Portage-1.5.0"]');
+   my @tools = $header->children('tool[@tool-id="Portage-1.5.1"]');
 
    unless (@tools) {
       XML::Twig::Elt->new(

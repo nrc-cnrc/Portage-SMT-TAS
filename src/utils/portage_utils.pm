@@ -1,7 +1,5 @@
 #!/usr/bin/perl -w
 
-# $Id$
-
 # @file portage_utils.pm
 # @brief Library to transparently use compressed file formats, plus some other common perl methods.
 #
@@ -59,7 +57,7 @@ B< =============================================
 
 =cut
 
-my $current_year = 2012;
+my $current_year = 2013;
 
 sub printCopyright($$) {
    if ( !$ENV{PORTAGE_INTERNAL_CALL} ) {
