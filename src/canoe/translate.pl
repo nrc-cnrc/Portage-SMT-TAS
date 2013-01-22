@@ -201,10 +201,19 @@ The input and output files are in XML format.
 
 Process and transfer tags in xml
 
-=item -hwal
+=item -wal=WAL
 
-Use heuristic word alignment for -xtags and for -tcsrclm, even if work
+-wal=h: Use heuristic word alignment for -xtags and for -tcsrclm, even if work
 alignment is available in the phrase table.  (For baseline evaluation only.)
+
+-wal=pal: Use the word alignment from the a field in the phrase table (via the
+PAL file).  In this case, it is an error if the word alignments are missing for
+multi-word phrases.
+
+-wal=mixed: Use the word alignment from the a field if found, falling back to
+the heuristic otherwise.
+
+[mixed]
 
 =item -xsrc=XSRC
 
@@ -387,7 +396,7 @@ Getopt::Long::GetOptions(
    #XML specific options
    "xml"            => \my $xml,
    "xtags"          => \my $xtags,
-   "hwal"           => \my $hwal,
+   "wal=s"          => \my $wal,
    "xsrc=s"         => \my $xsrc,
    "xtgt=s"         => \my $xtgt,
 
@@ -403,6 +412,10 @@ $quiet = 0 unless defined $quiet;
 $debug = 0 unless defined $debug;
 $dryrun = 0 unless defined $dryrun;
 $timing = 0 unless defined $timing;
+
+$wal = "mixed" unless defined $wal;
+$wal eq "h" or $wal eq "pal" or $wal eq "mixed"
+   or die "ERROR: unrecognized value for -wal: $wal; valid values are h, pal, and mixed\n";
 
 if ( !$quiet || $verbose ) {
    print STDERR "$saved_command_line\n\n";
@@ -782,7 +795,7 @@ TRANS:{
       my $p_out = (defined $tcsrclm or $with_ce or $xtags) ? $p_raw : $p_dec;
       call("$decoder $decoder_opts -f ${canoe_ini} < '${q_dec}' > '${p_out}'");
       if (defined $tcsrclm or $xtags) {
-         my $wal_opt = $hwal ? "" : "-wal";
+         my $wal_opt = ($wal eq "h") ? "" : "-wal";
          call("nbest2rescore.pl -canoe -tagoov -oov $wal_opt -palout='${p_pal}' < '${p_raw}' " .
               "| perl -pe 's/ +\$//;' > '${p_decoov}'");
       }
@@ -840,7 +853,8 @@ POST:{
 
    # Transfer tags from source to target.
    if ($xtags) {
-      call("markup_canoe_output -v -xtags $Q_tok_tags $in $p_pal > $P_tok_tags");
+      my $markup_verbose = $verbose > 2 ? "-vv" : $verbose == 2 ? "-v" : "";
+      call("markup_canoe_output $markup_verbose -wal $wal -xtags $Q_tok_tags $in $p_pal > $P_tok_tags");
       $in = $P_tok_tags;
    }
    else {
@@ -1138,7 +1152,7 @@ sub truecase {
       my $v = $verbose ? "-verbose" : "";
       my $d = $debug ? "-debug" : "";
       my $t = $timing ? "-time" : "";
-      call("truecase.pl $v $d $t -text '${in}' -bos -enc ${enc} -out '${out}' $model_opts $src_opts", $out);
+      call("truecase.pl -wal $wal $v $d $t -text '${in}' -bos -enc ${enc} -out '${out}' $model_opts $src_opts", $out);
    }
 }
 

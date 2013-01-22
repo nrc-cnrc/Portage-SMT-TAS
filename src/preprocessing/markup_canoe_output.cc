@@ -56,8 +56,14 @@ Options:\n\
   -vv   Be extra verbose.\n\
   -a    Do word alignment to determine target span even when phrase boundaries\n\
         line up with tag boundaries [word-align only when boundaries don't align]\n\
-  -hwal Use heuristic word-alignment, even if the PAL file has word-alignments\n\
-        [use word-alignment from the PAL file when found, heuristics otherwise]\n\
+  -wal WAL    Indicate how to obtain word-alignment information.  One of:\n\
+        h     Use heuristic word alignment only.\n\
+        pal   Use word alignments from the PAL file only (ultimately from the\n\
+              a= field in phrase tables); with pal, it is an error if the PAL\n\
+              file is missing the word alignment of a multi-word phrase.\n\
+        mixed Use word alingments from the PAL file when found, heuristics\n\
+              otherwise.\n\
+        [mixed]\n\
   -n T  Treat all tags of the form <T...> or </T> as ordinary tokens.  May be\n\
         repeated to specify multiple tags. Warning: the tokenization implied by\n\
         this option must match that described in the PAL file - beware of\n\
@@ -78,7 +84,9 @@ static bool xtags = false;
 static string msrcfile;
 static string outfile;
 static string palfile;
+static string wal;
 static bool hwal = false;
+static bool pal_wal = false;
 static vector<string> tags_to_ignore;
 static void getArgs(int argc, char* argv[]);
 
@@ -281,6 +289,9 @@ void alignPhrasePair(const Dict& dict, const Dict& anti_dict,
       
       Uint slen = pp.src_pos.second - pp.src_pos.first;
       Uint tlen = pp.tgt_pos.second - pp.tgt_pos.first;
+
+      if (pal_wal && (slen != 1 || tlen != 1))
+         error(ETFatal, "Missing word-alignment information in the PAL file.  Make sure your phrase table has the a= field, that canoe has -walign, and that nbest2rescore.pl has -wal.");
 
       src_al.resize(slen, vector<Uint>(1,0));
       vector<double> src_scores(slen, 0.0);
@@ -596,7 +607,7 @@ int main(int argc, char* argv[])
 
       // assign target positions to elements
       for (Uint i = 0; i < elems.size(); ++i) {
-         if (verbose) elems[i].dump();
+         if (extra_verbose) elems[i].dump();
          if (!elems[i].complete) {
             error(ETWarn, "line %d: %s has no matching right tag - ignoring",
                   lineno, elems[i].lstring.c_str());
@@ -696,7 +707,7 @@ int main(int argc, char* argv[])
                   !elems[i].palign ? "not aligned with source phrase boundaries" : "", 
                   !elems[i].palign && !elems[i].contig ? "; " : "",
                   !elems[i].contig ? "translation not contiguous" : "");
-         if (verbose) elems[i].dump();
+         if (extra_verbose) elems[i].dump();
       } // for each element
 
       // Now that the target spans are set, restore the btok, etok and
@@ -945,7 +956,7 @@ int main(int argc, char* argv[])
 
 void getArgs(int argc, char* argv[])
 {
-   const char* switches[] = {"v", "vv", "e", "a", "n:", "xtags", "hwal"};
+   const char* switches[] = {"v", "vv", "e", "a", "n:", "xtags", "wal:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 3, 4, help_message);
    arg_reader.read(argc-1, argv+1);
 
@@ -956,7 +967,12 @@ void getArgs(int argc, char* argv[])
    arg_reader.testAndSet("a", align_boundary_phrases);
    arg_reader.testAndSet("n", tags_to_ignore);
    arg_reader.testAndSet("xtags", xtags);
-   arg_reader.testAndSet("hwal", hwal);
+   arg_reader.testAndSet("wal", wal);
+
+   if (wal == "h") hwal = true;
+   else if (wal == "pal") pal_wal = true;
+   else if (wal != "mixed")
+      error(ETFatal, "Unrecognized value for -wal: '%s'; valid values are h, pal, and mixed", wal.c_str());
 
    arg_reader.testAndSet(0, "msrc", msrcfile);
    arg_reader.testAndSet(1, "out", outfile);
