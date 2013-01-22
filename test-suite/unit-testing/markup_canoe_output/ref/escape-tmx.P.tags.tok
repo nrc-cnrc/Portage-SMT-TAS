@@ -4,7 +4,7 @@ On sera un vice . <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf italic=
 C' est une <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf underlinestyle=&quot;single&quot;>&lt;/bpt>" id="1"/>à<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/> de . $ 12,456
 C' est un nombre . Pour à une partie <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf fontcolor=&quot;00B050&quot;>&lt;/bpt>" id="1"/>a-2<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/>
 C' est une à <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf highlight=&quot;yellow&quot;>&lt;/bpt>" id="1"/>12 . De v<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/>
-C' est à laquelle le<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/> <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf font=&quot;Arial&quot; complexscriptsfont=&quot;Arial&quot; asiantextfont=&quot;Arial&quot;>&lt;/bpt>" id="1"/>conseil vice de . La situation
+The previous reference on this line had a close tag before its opening tag.  Needs to be fixed.
 Leur espace non
 Optionalhyphen
 Em — dash
