@@ -44,7 +44,7 @@
     <part name="xtags" type="xsd:boolean"/>
   </message>
   <!-- ============================================================
-                      P O R T T Y P E S
+                      P O R T   T Y P E S
 ============================================================ -->
   <portType name="PortageLive_Interface">
     <operation name="primeModels">
@@ -123,7 +123,8 @@
     context.  TMXContentsBase64 is its contents in base64 encoding and
     TMXFilename is its name.  IF CETreshold is greater than 0, confidence
     estimation is used to filter out translations with confidence score below
-    the threshold (valid values are between 0 and 1).
+    the threshold (valid values are between 0 and 1).  If xtags is true, tags
+    in the source sentences are transfered to the target sentence.
     Returns a token used to monitor the job.  The token can be used in one of
     two ways: it is a URL you can use to interactively monitor the job in a
     browser.  Or you can pass it as argument to translateTMXCE_Status().
@@ -161,7 +162,8 @@
     context.  SDLXLIFFContentsBase64 is its contents in base64 encoding and
     SDLXLIFFFilename is its name.  IF CETreshold is greater than 0, confidence
     estimation is used to filter out translations with confidence score below
-    the threshold (valid values are between 0 and 1).
+    the threshold (valid values are between 0 and 1).  If xtags is true, tags
+    in the source sentences are transfered to the target sentence.
     Returns a token used to monitor the job.  The token can be used in one of
     two ways: it is a URL you can use to interactively monitor the job in a
     browser.  Or you can pass it as argument to translateSDLXLIFFCE_Status().

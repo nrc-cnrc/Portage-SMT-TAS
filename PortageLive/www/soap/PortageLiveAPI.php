@@ -203,6 +203,8 @@ class PortageLiveAPI {
    # $ce_threshold.  A threshold of 0 means keep everything.
    # $XML_contents_base64 is a string containing the full content of the xml file, in Base64 encoding.
    # $XML_filename is the name of the XML file.
+   # If $xtags is true, transfer tags from the source-language segments to the translations.
+   # $type indicates the type of XML file we're translating
    function translateXMLCE($XML_contents_base64, $XML_filename, $context, $ce_threshold, $xtags, $type) {
       $i = $this->getContextInfo($context);
       $this->validateContext($i, $ce_threshold > 0);
