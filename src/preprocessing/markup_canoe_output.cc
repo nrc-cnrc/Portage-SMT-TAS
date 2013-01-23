@@ -1,13 +1,13 @@
 /**
- * @author George Foster
+ * @author George Foster; major enhancements by Darlene Stewart & Eric Joanis
  * @file markup_canoe_output.cc
  * @brief Add source-side bracketing markup to canoe output, in the right places.
  * 
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2010, Sa Majeste la Reine du Chef du Canada /
- * Copyright 2010, Her Majesty in Right of Canada
+ * Copyright 2010, 2013 Sa Majeste la Reine du Chef du Canada /
+ * Copyright 2010, 2013 Her Majesty in Right of Canada
  */
 
 #include <limits>
@@ -102,6 +102,8 @@ struct Elem {
    Uint rid;                    // id of right tag (used for tag ordering)
    Uint btok;                   // index of 1st src tok to the right of left tag
    Uint etok;                   // index of 1st src tok to the right of right tag
+   Uint lip;                    // insertion point within src tok for left tag
+   Uint rip;                    // insertion point within src tok for right tag
    bool complete;               // true if right tag seen (& etok is valid)
    bool lwsl;                   // true if whitespace to left of left tag
    bool lwsr;                   // true if whitespace to right of left tag
@@ -111,6 +113,7 @@ struct Elem {
    bool rwsr;                   // true if whitespace to right of right tag
    bool rwslseq;                // true if whitespace to left of sequence of right tags
    bool rwsrseq;                // true if whitespace to right of sequence of right tags
+   bool intratok;               // true if an intra-token element
 
    bool lout;                   // true if left tag has been output already
 
@@ -123,13 +126,15 @@ struct Elem {
    static Uint next_id;         // Next tag id to assign
 
    // create, from left tag positions within line
-   Elem(const string& line, Uint beg, Uint end, Uint btok, bool wslseq, bool wsrseq, Uint nest) :
+   Elem(const string& line, Uint beg, Uint end, Uint btok,
+        bool wslseq, bool wsrseq, Uint ip) :
       name(getName(line, beg, end)),
       lstring(line.substr(beg, end-beg)), rstring(""), lid(next_id++), rid(0),
-      btok(btok), etok(0), complete(false),
+      btok(btok), etok(0), lip(ip), rip(0), complete(false),
       lwsl(beg==0 || line[beg-1]==' '), lwsr(end==line.size() || line[end]==' '),
       lwslseq(wslseq), lwsrseq(wsrseq),
       rwsl(true), rwsr(true), rwslseq(false), rwsrseq(false),
+      intratok(!wslseq && !wsrseq),
       lout(false), btok_tgt(0), etok_tgt(0), pair_id("")
    {
       if (xtags)
@@ -167,7 +172,8 @@ struct Elem {
            << " tgt:(" << btok_tgt << "," << etok_tgt << ")"
            << " whitespace: " << lwsl << lwsr << rwsl << rwsr
            << " seq ws: " << lwslseq << lwsrseq << rwslseq << rwsrseq
-           << endl;
+           << (intratok ? " (intra-token)" : "")
+           << " lip: " << lip << " rip: " << rip << endl;
    }
 
    bool empty() { return btok == etok; }
@@ -181,7 +187,7 @@ struct Elem {
 
    bool isIntraTokenRight() { return !rwslseq && !rwsrseq; }
 
-   bool isIntraToken() { return isIntraTokenLeft() || isIntraTokenRight(); }
+   bool isIntraToken() { return intratok; }
 
    bool isPaired() { return !pair_id.empty(); }
 
@@ -194,9 +200,15 @@ struct Elem {
    // is tag identified by id nested within this element in the source?
    bool nested(Uint id) { return id > lid && id < rid; }
 
+   // is this element nested inside another element?
+   bool nestedIn(Elem& other) { return lid > other.lid && lid < other.rid; }
+
+   // is this element nested inside another intra-token element?
+   bool nestedIntraToken(Elem& other) { return other.isIntraToken() && nestedIn(other); }
+
    // update, from right tag positions within line
    void update(const string& line, Uint beg, Uint end, Uint etok_tag,
-               bool wslseq, bool wsrseq)
+               bool wslseq, bool wsrseq, Uint ip)
    {
       if (line[beg+1] == '/') {
          rstring = line.substr(beg, end-beg);
@@ -208,6 +220,9 @@ struct Elem {
       rwsr = end==line.size() || line[end]==' ';
       rwslseq = wslseq;
       rwsrseq = wsrseq;
+      if (!rwslseq && !rwsrseq)
+         intratok = true;
+      rip = ip;
    }
 };
 
@@ -395,7 +410,7 @@ inline bool ignoreTag(const string &tag_name)
 /**
  * Convert a target token into an XML-escaped version.
  */
-string escape(string& tok)
+string escape(const string& tok)
 {
    if (no_escaping) 
       return tok;
@@ -416,6 +431,17 @@ string escape(string& tok)
          ret += tok[i];
 
    return ret;
+}
+
+/**
+ * Escape and output a substring of a token [beg, end).
+ */
+void outputFragment(string &tok, Uint beg, Uint end) {
+   if (end > tok.size())
+      end = tok.size();
+   if (beg >= end)
+      return;
+   cout << escape(tok.substr(beg, end-beg));
 }
 
 /**
@@ -486,6 +512,7 @@ int main(int argc, char* argv[])
       // tokenize source line and record elements
       src_toks.clear();
       elems.clear();
+      Elem::next_id = 1;        // reset at the start of each line.
       nested.clear();
       string::size_type p = 0, beg = 0, end = 0;
       bool wsl = true, wsr = true;
@@ -509,20 +536,20 @@ int main(int argc, char* argv[])
             continue;
          }
          splitAndMerge(line.substr(p, beg-p), src_toks, is_intra_tok_tag);
+         is_intra_tok_tag = !wsl && !wsr;
          if (Elem::isLeft(line, beg, end)) {
-            is_intra_tok_tag = !wsl && !wsr;
             Uint btok = src_toks.size() - (is_intra_tok_tag ? 1 : 0);
-            Uint nest = nested.empty() ? 0 : nested.back()+1;
             nested.push_back(elems.size());
-            elems.push_back(Elem(line, beg, end, btok, wsl, wsr, nest));
+            Uint ip = is_intra_tok_tag ? src_toks.back().size() : 0;
+            elems.push_back(Elem(line, beg, end, btok, wsl, wsr, ip));
          }
          if (Elem::isRight(line, beg, end)) { // find a match
             Uint i = elems.size();
             for (; i > 0; --i) {
                if (!elems[i-1].complete && elems[i-1].name == name) {
-                  is_intra_tok_tag = !wsl && !wsr;
                   Uint etok = src_toks.size() - (is_intra_tok_tag ? 1 : 0);
-                  elems[i-1].update(line, beg, end, etok, wsl, wsr);
+                  Uint ip = src_toks.size() > 0 ? src_toks.back().size() : 0;
+                  elems[i-1].update(line, beg, end, etok, wsl, wsr, ip);
                   break;
                }
             }
@@ -571,6 +598,32 @@ int main(int argc, char* argv[])
       }
       splitAndMerge(line.substr(p), src_toks, is_intra_tok_tag); // add remaining tokens
 
+      // Make a second pass over the tags patching some element info based on
+      // information that was not available during the input pass.
+      // In particular, fix empty tags at token start/end that should be
+      // marked as intra-token.
+      nested.clear();
+      Uint i = 0;
+      for (Uint id = 1; id < Elem::next_id; ++id) {
+         if (i < elems.size() && elems[i].lid == id) {
+            // Fix non-intra-token empty elements nested within intra-token elements
+            if (!elems[i].intratok && elems[i].empty())
+               if (!nested.empty() && elems[i].nestedIntraToken(elems[nested.back()])) {
+                  Uint j = nested.back();
+                  elems[i].intratok = true;
+                  elems[i].lip = elems[i].rip = elems[j].lip ? elems[j].rip : 0;
+                  if (elems[i].lip)
+                     elems[i].btok = elems[i].etok = elems[j].btok;
+               }
+            if (elems[i].rid)
+               nested.push_back(i);
+            i++;
+         } else if (!nested.empty() && elems[nested.back()].rid == id)
+            nested.pop_back();
+         else
+            error(ETFatal, "Uable to locate tag id %i", id);
+      }
+
       // read and tokenize tgt line
       if (!getline(out, line))
          error(ETFatal, "%s too short", outfile.c_str());
@@ -589,7 +642,7 @@ int main(int argc, char* argv[])
       if (phrase_pairs.size() && phrase_pairs.back().tgt_pos.second != tgt_toks.size())
          error(ETFatal, "line %d: %s specifies wrong number of target tokens", 
                lineno, palfile.c_str());
-      sortBySource(phrase_pairs); // code below assumes this ppty
+      sortBySource(phrase_pairs); // code below assumes this property
       if (!sourceContig(phrase_pairs))
          error(ETFatal, "line %d: source phrases not contiguous in %s", 
                lineno, palfile.c_str());
@@ -732,9 +785,21 @@ int main(int argc, char* argv[])
       Uint nested_mark = 0;     // used to mark a spot in the nested stack
       bool rwsr = false;        // rwsr for last right tag output
       bool sp_out = false;      // was last output character a space?
+      sortByTarget(phrase_pairs); // code below assumes this property
+      Uint oov_p = 0;   // index in pharse_pairs of oov
       for (Uint i = 0; i < tgt_toks.size(); ++i) {
+         // Determine OOV status of this tgt token
+         bool oov = false;
+         for (; oov_p < phrase_pairs.size(); ++oov_p) {
+            if (phrase_pairs[oov_p].tgt_pos.second > i) {
+               if (phrase_pairs[oov_p].tgt_pos.first == i && phrase_pairs[oov_p].oov)
+                  oov = true;
+               break;
+            }
+         }
+
          // Output left tags for elements beginning at this token;
-         // include right tags for empty elements before this token.
+         // include right tags for empty elements before this token if not an OOV.
          // Obey the nesting of empty tags.
          seq_start = true;
          nested_mark = nested.size();   // mark this spot in the nested stack
@@ -742,12 +807,15 @@ int main(int argc, char* argv[])
          sp_out = false;  // was last output character a space?
          for (Uint j = 0; j < elems.size(); ++j) {
             if (elems[j].shouldTransfer() && elems[j].btok_tgt==i) {
+               // Handle intra-token tags for OOVs later, when outputting OOV token itself.
+               if (oov && elems[j].isIntraToken())
+                  break;
                if (!elems[j].isIntraTokenLeft() && !elems[j].lout) {
                   // Output right tags if needed for empty tags in sequence,
                   // including moving intra-token right tag before this token.
                   while (nested.size() > nested_mark) {
                      Uint k = nested.back();
-                     if (elems[k].nested(elems[j].lid))
+                     if (elems[j].nestedIn(elems[k]))
                         break;
                      if (elems[k].rwsl && !sp_out) {
                         cout << ' ';
@@ -789,7 +857,7 @@ int main(int argc, char* argv[])
          }
 
          // Finish outputting right tags for empty tags before this token,
-         // including moving intra-token right tag before this token.
+         // including moving intra-token right tag before this token if not an OOV.
          while (nested.size() > nested_mark) {
             Uint k = nested.back();
             if (elems[k].rwsl && !sp_out) {
@@ -810,9 +878,57 @@ int main(int argc, char* argv[])
          // Output the token, preceded by whitespace if needed.
          if (need_ws)
             cout << ' ';
-         cout << escape(tgt_toks[i]);
-         need_ws = true;
-         // Output (move) intra-token left tags after this token.
+         if (!oov)
+            cout << escape(tgt_toks[i]);
+         else {
+            // Output OOV token with embedded intra-token tags matching original.
+            nested_mark = nested.size();   // mark this spot in the nested stack
+            Uint tok_idx = 0;
+            for (Uint j = 0; j < elems.size(); ++j) {
+               // Note: empty elements at token end are attached to next token, hence i+1
+               if (!elems[j].lout && elems[j].shouldTransfer() && elems[j].btok_tgt==i) {
+                  if (elems[j].isIntraToken()) {
+                     while (nested.size() > nested_mark) {
+                        Uint k = nested.back();
+                        if (elems[j].nestedIn(elems[k]))
+                           break;
+                        // Output token fragment before a right tag
+                        if (tok_idx < elems[k].rip) {
+                           outputFragment(tgt_toks[i], tok_idx, elems[k].rip);
+                           tok_idx = elems[k].rip;
+                        }
+                        // Output right tag of intra-token element
+                        cout << elems[k].rstring;
+                        nested.pop_back();
+                     }
+                     // Output token fragment before a left tag
+                     if (tok_idx < elems[j].lip) {
+                        outputFragment(tgt_toks[i], tok_idx, elems[j].lip);
+                        tok_idx = elems[j].lip;
+                     }
+                     // Output left tag of this intra-token element
+                     cout << elems[j].lstring;
+                     elems[j].lout = true;
+                     if (!elems[j].rstring.empty())
+                        nested.push_back(j);
+                  }
+               }
+            }
+            // Finish outputting right tags and token fragments for the OOV.
+            while (nested.size() > nested_mark) {
+               Uint k = nested.back();
+               if (tok_idx < elems[k].rip) {
+                  outputFragment(tgt_toks[i], tok_idx, elems[k].rip);
+                  tok_idx = elems[k].rip;
+               }
+               cout << elems[k].rstring;
+               nested.pop_back();
+            }
+            if (tok_idx < tgt_toks[i].size())
+               outputFragment(tgt_toks[i], tok_idx, tgt_toks[i].size());
+         }
+
+         // Output (move) intra-token left tags after this token if not an OOV.
          for (Uint j = 0; j < elems.size(); ++j) {
             if (elems[j].shouldTransfer() && elems[j].btok_tgt==i) {
                if (elems[j].isIntraTokenLeft() && !elems[j].lout) {
@@ -824,6 +940,7 @@ int main(int argc, char* argv[])
             }
          }
 
+         need_ws = true;
          // Output right tags for elements ending at this token.
          // Note: Proper XML nesting order is maintained in the output, but
          // some right tags may be output (moved to) later than indicated by
@@ -842,7 +959,7 @@ int main(int argc, char* argv[])
                if (elems[k].shouldTransfer() && elems[k].empty() && !elems[k].lout) {
                   if (((!elems[k].isPaired() && elems[k].btok == elems[j].etok) ||
                        (elems[k].isClosePair() && elems[k].btok_tgt == i+1))
-                      && elems[j].nested(elems[k].lid)) {
+                      && elems[k].nestedIn(elems[j])) {
                      if (need_ws && elems[k].lwsl) {
                         cout << ' ';
                         need_ws = false;
@@ -897,7 +1014,7 @@ int main(int argc, char* argv[])
          // Output right tags if needed for empty tags in sequence.
          while (!nested.empty()) {
             Uint k = nested.back();
-            if (elems[k].nested(elems[j].lid))
+            if (elems[j].nestedIn(elems[k]))
                break;
             if (elems[k].rwsl && !sp_out)
                cout << ' ';

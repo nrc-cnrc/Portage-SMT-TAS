@@ -12,7 +12,7 @@
 .PHONY: all
 
 TAGS_XFER_TESTS = whitespace_test nested1_test nested2_test \
-                  escape_test escape-tmx_test paired_test emptytags_test
+                  escape_test escape-tmx_test paired_test emptytags_test oov_test
 
 TEMP_FILES=$(TAGS_XFER_TESTS:_test=.P.tags.tok) log.* tc_tmp_text_28315.cmark.out wal-*.out
 include ../Makefile.incl
@@ -31,6 +31,7 @@ escape-tmx_test: OPTS=-v -xtags
 escape_test: OPTS=-v -xtags
 paired_test: OPTS=-v -xtags
 emptytags_test: OPTS=-v -xtags
+oov_test: OPTS=-v -xtags
 
 .PHONY: ${TAGS_XFER_TESTS}
 
