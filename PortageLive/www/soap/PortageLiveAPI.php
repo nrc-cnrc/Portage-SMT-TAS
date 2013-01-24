@@ -184,19 +184,19 @@ class PortageLiveAPI {
    # Returns the name of the directory created.
    function makeWorkDir($filename) {
       $timestamp = date("Ymd\THis\Z");
-      $base = "SOAP_{$filename}_{$timestamp}";
+      $base = $this->normalizeName("SOAP_{$filename}_{$timestamp}");
       global $base_web_dir;
       $work_path = "$base_web_dir/plive/";
       $dir = `mktemp -d $work_path{$base}_XXXXXX 2>&1`;
       if ( strpos($dir, "$work_path$base") === 0 )
-         return rtrim($dir);
+	 return rtrim($dir);
       else
-         throw new SoapFault("PortageServer", "can't create temp work dir for $filename: $dir");
+	 throw new SoapFault("PortageServer", "can't create temp work dir for $filename: $dir : $base");
    }
 
    # Normalize a name to keep only alphanumeric, dash, underscore, dot and plus
    function normalizeName($filename) {
-      return preg_replace("/[^-_.+a-zA-Z0-9]/", "", $filename);
+      return preg_replace(array("/[^-_.+a-zA-Z0-9]/", '/[ .]$/', '/^[ .]/'), array("", '', ''), $filename);
    }
 
    # Translate a XML file using model $context and the confidence threshold
