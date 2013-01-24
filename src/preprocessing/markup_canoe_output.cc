@@ -815,9 +815,7 @@ int main(int argc, char* argv[])
          for (Uint j = 0; j < elems.size(); ++j) {
             if (elems[j].shouldTransfer() && elems[j].btok_tgt==i) {
                // Handle intra-token tags later, when outputting the token itself.
-               if (elems[j].isIntraToken())
-                  break;
-               if (!elems[j].lout) {
+               if (!elems[j].isIntraToken() && !elems[j].lout) {
                   // Output right tags if needed for empty tags in sequence.
                   while (nested.size() > nested_mark) {
                      Uint k = nested.back();
