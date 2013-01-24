@@ -114,6 +114,7 @@ struct Elem {
    bool rwslseq;                // true if whitespace to left of sequence of right tags
    bool rwsrseq;                // true if whitespace to right of sequence of right tags
    bool intratok;               // true if an intra-token element
+   bool pair_empty;             // true if a set of paired elements is identified as empty
 
    bool lout;                   // true if left tag has been output already
 
@@ -134,7 +135,7 @@ struct Elem {
       lwsl(beg==0 || line[beg-1]==' '), lwsr(end==line.size() || line[end]==' '),
       lwslseq(wslseq), lwsrseq(wsrseq),
       rwsl(true), rwsr(true), rwslseq(false), rwsrseq(false),
-      intratok(!wslseq && !wsrseq),
+      intratok(!wslseq && !wsrseq), pair_empty(false),
       lout(false), btok_tgt(0), etok_tgt(0), pair_id("")
    {
       if (xtags)
@@ -168,6 +169,7 @@ struct Elem {
            << (pair_id.empty() ? "" : " pair id: ") << pair_id
            << (isOpenPair() ? " (open)" : "")
            << (isClosePair() ? " (close)" : "")
+           << (pair_empty ? " (pair empty)" : "")
            << " src:(" << btok << "," << etok << ")"
            << " tgt:(" << btok_tgt << "," << etok_tgt << ")"
            << " whitespace: " << lwsl << lwsr << rwsl << rwsr
@@ -766,12 +768,16 @@ int main(int argc, char* argv[])
       // Now that the target spans are set, restore the btok, etok and
       // btok_tgt, etok_tgt fields for paired elements such that that pair
       // open tag will be output before the pair close tag.
+      // Flag empty pairs.
       if (xtags) {
          for (Uint i = 0; i < elems.size(); ++i) {
+            if (!elems[i].isPaired())
+               continue;
+            elems[i].pair_empty = elems[i].etok_tgt == elems[i].btok_tgt;
             if (elems[i].isOpenPair()) {
                elems[i].etok = elems[i].btok;
                elems[i].etok_tgt = elems[i].btok_tgt;
-            } else if (elems[i].isClosePair()) {
+            } else {
                elems[i].btok = elems[i].etok;
                elems[i].btok_tgt = elems[i].etok_tgt;
             }
@@ -808,7 +814,7 @@ int main(int argc, char* argv[])
          sp_out = false;  // was last output character a space?
          for (Uint j = 0; j < elems.size(); ++j) {
             if (elems[j].shouldTransfer() && elems[j].btok_tgt==i) {
-               // Handle intra-token tags for OOVs later, when outputting OOV token itself.
+               // Handle intra-token tags later, when outputting the token itself.
                if (elems[j].isIntraToken())
                   break;
                if (!elems[j].lout) {
@@ -901,6 +907,9 @@ int main(int argc, char* argv[])
                      nested.pop_back();
                   }
                   // Output token fragment before this intra-token element
+                  // or for non-OOVs output the whole token if we're finished
+                  // outputting the nested intra-token elements from the
+                  // start of the token.
                   if (tok_idx < elems[j].lip) {
                      if (oov) {
                         outputFragment(tgt_toks[i], tok_idx, elems[j].lip);
@@ -919,6 +928,8 @@ int main(int argc, char* argv[])
             }
          }
          // Finish outputting right tags and token fragments for the OOV.
+         // If necessary, finish with a final fragment after the last tag
+         // (possibly the whole token for a non-OOV).
          while (nested.size() > nested_mark) {
             Uint k = nested.back();
             if (oov && tok_idx < elems[k].rip) {
@@ -949,7 +960,7 @@ int main(int argc, char* argv[])
             for (Uint k=j; k < elems.size(); ++k) {
                if (elems[k].shouldTransfer() && elems[k].empty() && !elems[k].lout) {
                   if (((!elems[k].isPaired() && elems[k].btok == elems[j].etok) ||
-                       (elems[k].isClosePair() && elems[k].btok_tgt == i+1))
+                       (elems[k].isClosePair() && !elems[k].pair_empty && elems[k].btok_tgt == i+1))
                       && elems[k].nestedIn(elems[j])) {
                      if (need_ws && elems[k].lwsl) {
                         cout << ' ';
@@ -977,8 +988,9 @@ int main(int argc, char* argv[])
          // not output by the right tag processing above.
          // Paired elements are handled outside the nesting structure
          // i.e. paired elements are not pushed on the nested stack.
+         // Skip handling empty paired tags - use normal empty tag handling instead.
          for (Uint j = 0; j < elems.size(); ++j) {
-            if (elems[j].isClosePair() && !elems[j].lout) {
+            if (elems[j].isClosePair() && !elems[j].pair_empty && !elems[j].lout) {
                if (elems[j].shouldTransfer() && elems[j].btok_tgt==i+1) {
                   if (elems[j].lwsl) {
                      cout << ' ';
