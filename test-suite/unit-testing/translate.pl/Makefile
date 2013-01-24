@@ -11,6 +11,7 @@
 # Copyright 2013, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2013, Her Majesty in Right of Canada
 
+SOAP_TRANSLATE := $$PORTAGE/test-suite/systems/toy-regress/soap-translate.sh
 
 -include Makefile.params
 
@@ -46,7 +47,7 @@ trans:  trans_tmx
 # SDLXLIFF
 .PHONY:  sdlxliff  trans_sdlxliff
 UnknownSegments_en-CA_fr-CA.v5.%.sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.sdlxliff  | workdir.%.sdlxliff
-	../../data/toy-regress/soap-translate.sh \
+	${SOAP_TRANSLATE} \
 		-verbose \
 		-out=$|/P.out \
 		-dir=$| \
@@ -103,7 +104,7 @@ UnknownSegments_en-CA_fr-CA.v5.xtags.ce.filter.sdlxliff:  override OPTIONS = -wi
 # TMX
 .PHONY:  tmx  trans_tmx
 TestMemory_Unknown.%.tmx:  TestMemory_Unknown.tmx  | workdir.%.tmx
-	../../data/toy-regress/soap-translate.sh \
+	${SOAP_TRANSLATE} \
 		-verbose \
 		-out=$|/P.out \
 		-dir=$| \
