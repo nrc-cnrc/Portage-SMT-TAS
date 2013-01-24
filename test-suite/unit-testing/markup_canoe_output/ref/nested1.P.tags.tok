@@ -13,6 +13,7 @@ This is a simple test of the transfer of nested tags .
 <g id="1">This is a simple<h id="3"><g id="4"></g></h> test of the transfer</g> <x id="2" />of nested tags .
 <g id="1">This is a <h id="3"><g id="4"></g>simple test </h>of the transfer</g> <x id="2" />of nested tags .
 <g id="1">This is a <h id="3">simple<g id="4"></g></h> test of the transfer</g> <x id="2" />of nested tags .
-<g id="1">This is a <h id="3"></h>simple<g id="4"></g> test of the transfer</g> <x id="2" />of nested tags .
+<g id="1">This is a <h id="3"><g id="4"></g></h>simple test of the transfer</g> <x id="2" />of nested tags .
+<g id="1">This is a <h id="3"><z/></h>simple<g id="4"></g> test of the transfer</g> <x id="2" />of nested tags .
 This is a simple test of the transfer of nested tags .
 This is a simple test of the transfer of nested tags .

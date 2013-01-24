@@ -780,6 +780,7 @@ int main(int argc, char* argv[])
 
       // write out target tokens, with elements
       nested.clear();
+      Uint max_ip = line.size();        // for non OOV tokens
       bool need_ws = false;
       bool seq_start = true;
       Uint nested_mark = 0;     // used to mark a spot in the nested stack
@@ -798,9 +799,9 @@ int main(int argc, char* argv[])
             }
          }
 
-         // Output left tags for elements beginning at this token;
-         // include right tags for empty elements before this token if not an OOV.
-         // Obey the nesting of empty tags.
+         // Output left tags for non intra-token elements beginning at this token;
+         // include right tags for non intra-token empty elements before this token.
+         // Maintain the proper nesting of empty tags.
          seq_start = true;
          nested_mark = nested.size();   // mark this spot in the nested stack
          rwsr = false;    // rwsr for last right tag output
@@ -808,11 +809,10 @@ int main(int argc, char* argv[])
          for (Uint j = 0; j < elems.size(); ++j) {
             if (elems[j].shouldTransfer() && elems[j].btok_tgt==i) {
                // Handle intra-token tags for OOVs later, when outputting OOV token itself.
-               if (oov && elems[j].isIntraToken())
+               if (elems[j].isIntraToken())
                   break;
-               if (!elems[j].isIntraTokenLeft() && !elems[j].lout) {
-                  // Output right tags if needed for empty tags in sequence,
-                  // including moving intra-token right tag before this token.
+               if (!elems[j].lout) {
+                  // Output right tags if needed for empty tags in sequence.
                   while (nested.size() > nested_mark) {
                      Uint k = nested.back();
                      if (elems[j].nestedIn(elems[k]))
@@ -856,8 +856,7 @@ int main(int argc, char* argv[])
             }
          }
 
-         // Finish outputting right tags for empty tags before this token,
-         // including moving intra-token right tag before this token if not an OOV.
+         // Finish outputting right tags for empty tags before this token.
          while (nested.size() > nested_mark) {
             Uint k = nested.back();
             if (elems[k].rwsl && !sp_out) {
@@ -875,63 +874,43 @@ int main(int argc, char* argv[])
             need_ws = false;
          }
 
-         // Output the token, preceded by whitespace if needed.
+         // Output this token and its intra-token elements, preceded by whitespace if needed.
+         // For OOVs, embed the intra-token elements to match the original.
+         // For non-OOVs, output before the token an intra-token element that
+         // has a left tag at the token start in the source and any intra-token
+         // elements nested within that element; output all other intra-token
+         // elements after the token.
          if (need_ws)
             cout << ' ';
-         if (!oov)
-            cout << escape(tgt_toks[i]);
-         else {
-            // Output OOV token with embedded intra-token tags matching original.
-            nested_mark = nested.size();   // mark this spot in the nested stack
-            Uint tok_idx = 0;
-            for (Uint j = 0; j < elems.size(); ++j) {
-               // Note: empty elements at token end are attached to next token, hence i+1
-               if (!elems[j].lout && elems[j].shouldTransfer() && elems[j].btok_tgt==i) {
-                  if (elems[j].isIntraToken()) {
-                     while (nested.size() > nested_mark) {
-                        Uint k = nested.back();
-                        if (elems[j].nestedIn(elems[k]))
-                           break;
-                        // Output token fragment before a right tag
-                        if (tok_idx < elems[k].rip) {
-                           outputFragment(tgt_toks[i], tok_idx, elems[k].rip);
-                           tok_idx = elems[k].rip;
-                        }
-                        // Output right tag of intra-token element
-                        cout << elems[k].rstring;
-                        nested.pop_back();
+         nested_mark = nested.size();   // mark this spot in the nested stack
+         Uint tok_idx = 0;
+         for (Uint j = 0; j < elems.size(); ++j) {
+            if (!elems[j].lout && elems[j].shouldTransfer() && elems[j].btok_tgt==i) {
+               if (elems[j].isIntraToken()) {
+                  while (nested.size() > nested_mark) {
+                     Uint k = nested.back();
+                     if (elems[j].nestedIn(elems[k]))
+                        break;
+                     // Output token fragment before a right tag
+                     if ( oov && tok_idx < elems[k].rip) {
+                        outputFragment(tgt_toks[i], tok_idx, elems[k].rip);
+                        tok_idx = elems[k].rip;
                      }
-                     // Output token fragment before a left tag
-                     if (tok_idx < elems[j].lip) {
+                     // Output right tag of intra-token element
+                     cout << elems[k].rstring;
+                     nested.pop_back();
+                  }
+                  // Output token fragment before this intra-token element
+                  if (tok_idx < elems[j].lip) {
+                     if (oov) {
                         outputFragment(tgt_toks[i], tok_idx, elems[j].lip);
                         tok_idx = elems[j].lip;
+                     } else if (nested.size() == nested_mark) {
+                        cout << escape(tgt_toks[i]);
+                        tok_idx = max_ip;
                      }
-                     // Output left tag of this intra-token element
-                     cout << elems[j].lstring;
-                     elems[j].lout = true;
-                     if (!elems[j].rstring.empty())
-                        nested.push_back(j);
                   }
-               }
-            }
-            // Finish outputting right tags and token fragments for the OOV.
-            while (nested.size() > nested_mark) {
-               Uint k = nested.back();
-               if (tok_idx < elems[k].rip) {
-                  outputFragment(tgt_toks[i], tok_idx, elems[k].rip);
-                  tok_idx = elems[k].rip;
-               }
-               cout << elems[k].rstring;
-               nested.pop_back();
-            }
-            if (tok_idx < tgt_toks[i].size())
-               outputFragment(tgt_toks[i], tok_idx, tgt_toks[i].size());
-         }
-
-         // Output (move) intra-token left tags after this token if not an OOV.
-         for (Uint j = 0; j < elems.size(); ++j) {
-            if (elems[j].shouldTransfer() && elems[j].btok_tgt==i) {
-               if (elems[j].isIntraTokenLeft() && !elems[j].lout) {
+                  // Output left tag of this intra-token element
                   cout << elems[j].lstring;
                   elems[j].lout = true;
                   if (!elems[j].rstring.empty())
@@ -939,6 +918,18 @@ int main(int argc, char* argv[])
                }
             }
          }
+         // Finish outputting right tags and token fragments for the OOV.
+         while (nested.size() > nested_mark) {
+            Uint k = nested.back();
+            if (oov && tok_idx < elems[k].rip) {
+               outputFragment(tgt_toks[i], tok_idx, elems[k].rip);
+               tok_idx = elems[k].rip;
+            }
+            cout << elems[k].rstring;
+            nested.pop_back();
+         }
+         if (tok_idx < tgt_toks[i].size())
+            outputFragment(tgt_toks[i], tok_idx, tgt_toks[i].size());
 
          need_ws = true;
          // Output right tags for elements ending at this token.

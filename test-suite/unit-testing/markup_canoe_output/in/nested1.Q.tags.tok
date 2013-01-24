@@ -14,5 +14,6 @@ This is a simple test of the transfer of nested tags .
 <g id="1">This is a <h id="3"><g id="4">sim</g>ple test </h>of the transfer</g> <x id="2" />of nested tags . 
 <g id="1">This is a <h id="3">si<g id="4">m</g>ple</h> test of the transfer</g> <x id="2" />of nested tags . 
 <g id="1">This is a <h id="3">si<g id="4">m</g></h>ple test of the transfer</g> <x id="2" />of nested tags . 
+<g id="1">This is a <h id="3">sim<z/></h><g id="4">p</g>le test of the transfer</g> <x id="2" />of nested tags . 
 This is a simple <g id="1">test of the transfer of nested tags . 
 This is a simple test of the</g> transfer of nested tags . 
