@@ -97,8 +97,10 @@ Canned options for specific licensees:
   -can-biz	Same as: -licence CanBiz -archive-name CanBiz
 
 Distro creation check list:
-  - Change the version number in src/utils/portage_info.cc, SETUP.{bash,tcsh}
-  - Change the version number in all the README files
+  - Change the version number and year in src/utils/portage_info.cc,
+    SETUP.{bash,tcsh}, the Wiki, the INSTALL file, all the README files
+  - Change the value of current_year in portage_utils.{pm,py} and printCopyright.h
+  - Change the year on the Wiki in /export/projets/Lizzy/PORTAGEshared/resources/layout/LayoutSnapshotFrench.html
   - Update the RELEASES file
   - Make a fresh snapshot of the wiki by loading this link:
     http://wiki-ilt/PORTAGEshared/scripts/restricted/ywiki.cgi?act=snapshot
