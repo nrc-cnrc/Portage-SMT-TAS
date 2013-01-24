@@ -17,6 +17,7 @@ $base_portage_dir = "/opt/Portage";
 # produce debugging information
 function debug($i) {
    if ( 0 ) {
+      error_log($i, 3, '/tmp/PortageLiveAPI.debug.log');
       return " " . print_r($i, true);
    }
 }
