@@ -324,13 +324,13 @@ sub processXLIFF {
             tag => \&processTag,
             g   => \&processG,
             x   => \&processX,
-            bx  => sub { my( $t, $elt)= @_; },
-            ex  => sub { my( $t, $elt)= @_; },
-            bpt => sub { my( $t, $elt)= @_; },
-            ept => sub { my( $t, $elt)= @_; },
-            ph  => sub { my( $t, $elt)= @_; },
-            it  => sub { my( $t, $elt)= @_; },
-            'seg-source//mrk[@mtype="seg"]' => sub { my( $t, $elt)= @_; debug("\ttest MRK mid=%s\n", $elt->{att}->{mid}); },
+            #bx  => sub { my( $t, $elt)= @_; },
+            #ex  => sub { my( $t, $elt)= @_; },
+            #bpt => sub { my( $t, $elt)= @_; },
+            #ept => sub { my( $t, $elt)= @_; },
+            #ph  => sub { my( $t, $elt)= @_; },
+            #it  => sub { my( $t, $elt)= @_; },
+            #'seg-source//mrk[@mtype="seg"]' => sub { my( $t, $elt)= @_; debug("\ttest MRK mid=%s\n", $elt->{att}->{mid}); },
             } );
    }
    elsif ($parser->{action} eq 'replace') {
@@ -393,21 +393,23 @@ sub processNativeCode {
    my $text = normalize($e->text(no_recurse=>1));
 
    # Special treatment for \- \_ in compounded words.
-   if (($name =~ /^ph$/i) and ($text =~ /^\s*\\([-_])\s*$/)) {
-       # \_ is the RTF and Trados encoding for a non-breaking hyphen; replace it
-       # by -, the regular hyphen, since it is generally used in ad-hoc ways,
-       # when an author or translator doesn't like a particular line-splitting
-       # choice their software has made.
-       $e->set_text("-") if ($1 eq '_');
-       # \- is the rtf and Trados encoding for an optional hyphen; remove it
-       $e->set_text("") if ($1 eq '-');
-       $e->erase();
+   if ($name =~ /^ph$/i) {
+      if ($text =~ /^\s*\\([-_])\s*$/) {
+          # \_ is the RTF and Trados encoding for a non-breaking hyphen; replace it
+          # by -, the regular hyphen, since it is generally used in ad-hoc ways,
+          # when an author or translator doesn't like a particular line-splitting
+          # choice their software has made.
+          $e->set_text("-") if ($1 eq '_');
+          # \- is the rtf and Trados encoding for an optional hyphen; remove it
+          $e->set_text("") if ($1 eq '-');
+          $e->erase();
+       }
+       else {
+          $e->delete();
+       }
    }
-   elsif (not $parser->{keeptags}) {
-       # Only applies within target language TUVs:
-       my $tuv = $e->parent('tuv');
-       my $lang = $tuv->att('xml:lang') if $tuv;
-       $e->delete() if $lang and (lc($lang) eq lc($parser->{tgt_lang}));
+   else {
+       $e->delete();
    }
 }
 
@@ -489,10 +491,10 @@ sub processTransUnit {
    my $mrk_id = 0;
    my @mrks = $source->descendants('mrk[@mtype="seg"]') or warn "Can't find any mrk for $trans_unit_id\n\tcontent:", $source->xml_string, "\n";
    foreach my $mrk (@mrks) {
-      my $mrk_text = $mrk->text();
-      veryVerbose("\tMRK: %s\n", $mrk_text);
+      my $xml = $mrk->xml_string();
+      veryVerbose("\tMRK: %s\n", $xml);
       my $id =  "$trans_unit_id." . (defined($mrk->{att}{mid}) ? $mrk->{att}{mid} : $mrk_id++);
-      $parser->{seg_id} = ixAdd($parser->{ix}, $mrk_text, $mrk->xml_string(), $id);
+      $parser->{seg_id} = ixAdd($parser->{ix}, $xml, $id);
       ++$parser->{seg_count};
    }
 
@@ -664,21 +666,9 @@ sub processTU {
 
          my $seg = $new_tgt_tuv->first_child('seg'); # There should be exactly one
          if ($seg) {
-            my $clean = XML::Twig->new(
-                     twig_handlers => {
-                        #'ph[string() =~ /\s*\\-\s*$/]' => sub { print STDERR "\tFOUND PH:", $_->text, ":\n" },
-                        #'ph[string()=~/^\s*\\-\s*$/]' => sub { print STDERR "\tFOUND PH\-" },
-                        ph  => \&processNativeCode,
-                        #bpt => \&processNativeCode,
-                        #ept => \&processNativeCode,
-                        #it  => \&processNativeCode,
-                        #hi  => \&processHI,
-                        #hi  => sub { $_->erase(); },  # Simply remove the tag but keep the content.
-                     })
-                  ->parse("<dummy>" . $seg->xml_string() . "</dummy>")
-                  ->root;
+            my $xml = $seg->xml_string();
             unless ($parser->{action} eq 'check') {
-               $parser->{seg_id} = ixAdd($parser->{ix}, $clean->text(), $clean->xml_string());
+               $parser->{seg_id} = ixAdd($parser->{ix}, $xml);
                $seg->set_text($parser->{seg_id});  # Mark translation's placeholder.
             }
             ++$parser->{seg_count};
@@ -809,13 +799,12 @@ sub normalize {
 ########################################
 # Database functions.
 sub newIx {
-    return { id_seed=>0, id=>{}, segment=>{}, tagged=>{}, ce=>{} };
+    return { id_seed=>0, id=>{}, segment=>{}, ce=>{} };
 }
 
 sub ixAdd {
-   my ($ix, $segment, $tagged, $id, $ce) = @_;
+   my ($ix, $segment, $id, $ce) = @_;
    $segment = normalize($segment);
-   $tagged  = normalize($tagged) if defined $tagged;
 
    if (defined $id or not exists($ix->{id}{$segment})) {
       if (defined $id) {
@@ -824,14 +813,13 @@ sub ixAdd {
       else {
          $id = ixNewID($ix);
       }
-      veryVerbose("ixAdd: INSERTING id=%s, ce=%s, segment=\"%s\" : tagged=\"%s\"\n", $id, $ce, $segment, $tagged);
+      veryVerbose("ixAdd: INSERTING id=%s, ce=%s, segment=\"%s\"\n", $id, $ce, $segment);
       $ix->{id}{$segment} = $id;
       $ix->{segment}{$id} = $segment;
-      $ix->{tagged}{$id}  = $tagged if defined $tagged;
       $ix->{ce}{$id}      = $ce if defined $ce;
    }
    else {
-      veryVerbose("ixAdd: EXISTS id=%s, ce=%s, segment=\"%s\" : tagged=\"%s\"\n", $id, $ce, $segment, $tagged);
+      veryVerbose("ixAdd: EXISTS id=%s, ce=%s, segment=\"%s\"\n", $id, $ce, $segment);
    }
    return $ix->{id}{$segment};
 }
@@ -858,13 +846,7 @@ sub ixGetID {
 sub ixGetSegment {
    my ($ix, $id) = @_;
    $id = normalize($id);
-   my $tagged = $ix->{tagged}{$id};
-   if (defined($tagged)) {
-      return $tagged;
-   }
-   else {
-      return exists($ix->{segment}{$id}) ? $ix->{segment}{$id} : undef;
-   }
+   return exists($ix->{segment}{$id}) ? $ix->{segment}{$id} : undef;
 }
 
 sub ixGetCE {
@@ -898,25 +880,71 @@ sub ixSave {
       return $content;
    }
 
+   sub extractContent($) {
+      my $xml = shift or die;
+      my $tag = XML::Twig->new(
+               twig_handlers => {
+                  'ph[string() =~ /\s*\\-\s*$/]' =>
+                     sub {
+                        my $content = $_->text();
+                        debug("\tFOUND PH:$content:\n");
+                        $_->set_text("");
+                        $_->erase();
+                     },
+                  'ph[string() =~ /\s*\\_\s*$/]' =>
+                     sub {
+                        my $content = $_->text();
+                        debug("\tFOUND PH:$content:\n");
+                        $_->set_text("-");
+                        $_->erase();
+                     },
+                  bpt => \&wrapOpeningTag,
+                  ept => \&wrapClosingTag,
+                  ph  => \&wrapSelfClosingTag,
+                  it  => \&wrapSelfClosingTag,
+                  hi  => \&wrapSelfClosingTag,
+               })
+            ->parse("<dummy>" . $xml . "</dummy>")
+            ->root
+            ->xml_string();
+      my $text = XML::Twig->new(
+               twig_handlers => {
+                  # PORTAGE'S WRAPPERS
+                  open_wrap  => sub { $_->delete(); },
+                  close_wrap => sub { $_->delete(); },
+                  tag_wrap   => sub { $_->delete(); },
+                  # TMX & SDLXLIFF
+                  bpt => sub { $_->delete(); },
+                  ept => sub { $_->delete(); },
+                  it  => sub { $_->delete(); },
+                  ph  => sub { $_->delete(); },
+                  # TMX SPECIFIC
+                  hi  => sub { $_->erase(); },  # Simply remove the tag but keep the content.
+                  # SDLXLIFF SPECIFIC
+                  #bx  => sub { my( $t, $elt)= @_; },
+                  #ex  => sub { my( $t, $elt)= @_; },
+                  #g   => sub { my( $t, $elt)= @_; },
+                  #x   => sub { my( $t, $elt)= @_; },
+               })
+            ->parse("<dummy>" . $tag . "</dummy>")
+            ->root
+            ->text();
+
+      $text = normalize($text);
+      $tag  = normalize($tag); 
+      debug("xml: $xml\n\ttag: $tag\n\ttext: $text\n");
+
+      return ($text, $tag); 
+   }
+
    for my $id (sort keys %{$ix->{segment}}) {
       my $seg = fix_1E_1F($ix->{segment}{$id});
-      my $tag = fix_1E_1F($ix->{tagged}{$id});
-      print {$seg_out} $seg, "\n";
+      my ($text, $tag) = extractContent($seg);
+      print {$seg_out} $text, "\n";
       print {$id_out} $id, "\n";
       if (defined($tag_file)) {
          if (defined($tag)) {
-            print {$tag_out} 
-               XML::Twig->new(
-                  twig_handlers => {
-                     bpt => \&wrapOpeningTag,
-                     ept => \&wrapClosingTag,
-                     ph  => \&wrapSelfClosingTag,
-                     it  => \&wrapSelfClosingTag,
-                     hi  => \&wrapSelfClosingTag,
-                  })
-               ->parse("<dummy>$tag</dummy>")
-               ->root
-               ->xml_string, "\n";
+            print {$tag_out} $tag, "\n"; 
          }
          else {
             print {$tag_out} "PORTAGE_NULL\n";
@@ -975,7 +1003,7 @@ sub ixLoad {
          chomp $ce;
       }
       veryVerbose("ixLoad: read $id <<%s>> ($ce)\n", $seg);
-      ixAdd($ix, $seg, undef, $id, $ce);
+      ixAdd($ix, $seg, $id, $ce);
       verbose("\r[%d lines...]", $count) if (++$count % 1 == 0);
    }
    verbose("\r[%d lines; done.]\n", $count);
