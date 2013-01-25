@@ -810,7 +810,7 @@ int main(int argc, char* argv[])
          // Maintain the proper nesting of empty tags.
          seq_start = true;
          nested_mark = nested.size();   // mark this spot in the nested stack
-         rwsr = false;    // rwsr for last right tag output
+         rwsr = false;    // rwsr for last tag output if a right tag; otherwise false
          sp_out = false;  // was last output character a space?
          for (Uint j = 0; j < elems.size(); ++j) {
             if (elems[j].shouldTransfer() && elems[j].btok_tgt==i) {
@@ -850,6 +850,7 @@ int main(int argc, char* argv[])
                         sp_out = true;
                         need_ws = false;
                      }
+                     rwsr = false;      // not a right tag
                   } else {
                      // Point tag - track whitespace needs to right.
                      if (i != 0 || elems[j].btok == 0)

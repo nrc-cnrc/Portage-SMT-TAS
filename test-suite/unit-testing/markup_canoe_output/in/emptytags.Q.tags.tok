@@ -22,3 +22,9 @@ a b c <a><b><c><d>d e</d> f g</c><x></x></b> h i j</a> k l
 a b c <a><b><x><z></z></x><c><d>d e</d> f g</c></b> h i j</a> k l 
 a b c <a><b><c><d>d e<x><z></z></x></d> f g</c></b> h i j</a> k l 
 a b c <a><b><c><d>d e</d> f g</c><x><z></z></x></b> h i j</a> k l 
+p <a>q <b>r s</b><x/></a> t u v 
+p <a>q <b>r s</b><x/></a> t u v 
+p <a>q <b>r s</b><x/></a> t u v 
+p <a>q <b>r s</b><x/></a> <c>t u</c> v 
+p <a>q <b>r s</b><x/></a> <c>t u</c> v 
+p <a>q <b>r s</b><x/></a> <c>t u</c> v 

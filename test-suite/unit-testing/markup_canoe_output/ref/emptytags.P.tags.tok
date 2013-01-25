@@ -22,3 +22,9 @@ A B C <a><b><c><d>D E</d> F G</c><x><z></z></x></b> H I J</a> K L
 <a><b><c><d>E A B C <x><z></z></x>D</d> G H F</c></b> I J</a> K L
 <a><b><c><d>E A B C D<x><z></z></x></d> G H F</c></b> I J</a> K L
 <a><b><c><d>E A B C D</d> G<x><z></z></x> H F</c></b> I J</a> K L
+P <a>Q<x/> T <b>S R</b></a> U V
+P<x/> T <a><b>R S</b> Q</a> U V
+P<x/> T <a><b>S R</b> Q</a> U V
+P <a>Q<x/> <c>T <b>S R</b> U</c></a> V
+P<x/> <c>T <a><b>R S</b> Q</a> U</c> V
+P<x/> <c>T <a><b>S R</b> Q</a> U</c> V
