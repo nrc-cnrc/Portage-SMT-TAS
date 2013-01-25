@@ -277,15 +277,16 @@ sub setTokenizationLang($) {
 
 # Split a paragraph into tokens. Return list of (start,len) token positions.
 
-# EJJ note: can't use the signature (\$$) here, because $para is modified in
-# this method, and we don't want the changes reflected for the caller.
-sub tokenize #(paragraph, pretok, xtags)
+# EJJ note: We use the signature ($$$) instead of (\$$$) here because $para is
+# modified in this method, and we don't want the changes reflected for the
+# caller.
+sub tokenize($$$) #(paragraph, pretok?, xtags?)
 {
    die "You must call setTokenizationLang(\$lang_id) first." unless(defined($tokenizationLang));
 
    my $para = shift;
-   my $pretok = shift || 0;
-   my $xtags = shift || 1;
+   my $pretok = shift;
+   my $xtags = shift;
    my @tok_posits = ();
 
    # break up into whitespace-separated chunks, pull off punc, and break up
@@ -466,9 +467,9 @@ sub tokenize #(paragraph, pretok, xtags)
             print STDOUT "\n";
          }
 
-         # If all inner tags are matched, glue the whole thing back as one token
-         if (@inner_tags && !grep {$_ == 0} @inner_matched) {
-            # But leave out punctuation at either end of the string
+         if ((@inner_tags && !grep {$_ == 0} @inner_matched) || !$found_non_tag) {
+            # If all inner tags are matched, or if there is no non-tag part,
+            # glue the whole thing back as one token
             my $merge_end = $j;
             for (my $k = $i + 2; $k < $j; $k += 2) {
                $tok_posits[$i+1] += $tok_posits[$k+1];
