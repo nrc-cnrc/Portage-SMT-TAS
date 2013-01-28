@@ -115,6 +115,7 @@ struct Elem {
    bool rwsrseq;                // true if whitespace to right of sequence of right tags
    bool intratok;               // true if an intra-token element
    bool pair_empty;             // true if a set of paired elements is identified as empty
+   bool close_tag;              // true if empty element to be treated like a close (right) tag
 
    bool lout;                   // true if left tag has been output already
 
@@ -135,7 +136,7 @@ struct Elem {
       lwsl(beg==0 || line[beg-1]==' '), lwsr(end==line.size() || line[end]==' '),
       lwslseq(wslseq), lwsrseq(wsrseq),
       rwsl(true), rwsr(true), rwslseq(false), rwsrseq(false),
-      intratok(!wslseq && !wsrseq), pair_empty(false),
+      intratok(!wslseq && !wsrseq), pair_empty(false), close_tag(false),
       lout(false), btok_tgt(0), etok_tgt(0), pair_id("")
    {
       if (xtags)
@@ -170,6 +171,7 @@ struct Elem {
            << (isOpenPair() ? " (open)" : "")
            << (isClosePair() ? " (close)" : "")
            << (pair_empty ? " (pair empty)" : "")
+           << (close_tag ? " (treat as close)" : "")
            << " src:(" << btok << "," << etok << ")"
            << " tgt:(" << btok_tgt << "," << etok_tgt << ")"
            << " whitespace: " << lwsl << lwsr << rwsl << rwsr
@@ -577,6 +579,7 @@ int main(int argc, char* argv[])
                   ++num_bad_nesting;
                }
                if (elems[i-1].isClosePair() ) {  // find match for paired element
+                  elems[i-1].close_tag = true;  // treat as close tag
                   Uint j = i-1;
                   for (; j > 0; --j) {
                      if (elems[j-1].pair_id == elems[i-1].pair_id) {
@@ -600,7 +603,7 @@ int main(int argc, char* argv[])
       }
       splitAndMerge(line.substr(p), src_toks, is_intra_tok_tag); // add remaining tokens
 
-      // Make a second pass over the tags patching some element info based on
+      // Make a second pass over all tags patching some element info based on
       // information that was not available during the input pass.
       // In particular, fix empty tags at token start/end that should be
       // marked as intra-token.
@@ -608,8 +611,9 @@ int main(int argc, char* argv[])
       Uint i = 0;
       for (Uint id = 1; id < Elem::next_id; ++id) {
          if (i < elems.size() && elems[i].lid == id) {
-            // Fix non-intra-token empty elements nested within intra-token elements
-            if (!elems[i].intratok && elems[i].empty())
+            // Fix non-intra-token empty elements nested within intra-token elements:
+            // mark them as intra-token elements.
+            if (!elems[i].intratok && elems[i].empty()) {
                if (!nested.empty() && elems[i].nestedIntraToken(elems[nested.back()])) {
                   Uint j = nested.back();
                   elems[i].intratok = true;
@@ -617,6 +621,7 @@ int main(int argc, char* argv[])
                   if (elems[i].lip)
                      elems[i].btok = elems[i].etok = elems[j].btok;
                }
+            }
             if (elems[i].rid)
                nested.push_back(i);
             i++;
@@ -782,6 +787,46 @@ int main(int argc, char* argv[])
                elems[i].btok_tgt = elems[i].etok_tgt;
             }
          }
+      }
+
+      // Make a third pass over all tags patching some element info based on
+      // information involving target positions.
+      // In particular, fix the target token range for non-intra-token empty
+      // elements in left or right tag sequences.
+      nested.clear();
+      i = 0;
+      Uint next_ne = 0;       // "next" non-empty element
+      for (Uint id = 1; id < Elem::next_id; ++id) {
+         if (i < elems.size() && elems[i].lid == id) {
+            // Fix non-intra-token empty elements in right tag sequence after a token:
+            // treat them as close tags after the token
+            if (!elems[i].intratok && elems[i].empty()) {
+               if (!nested.empty() && !elems[i].nestedIntraToken(elems[nested.back()])) {
+                  Uint j = nested.back();
+                  if ((!elems[j].empty() && elems[i].btok == elems[j].etok) || elems[j].close_tag) {
+                     elems[i].close_tag = true;
+                     elems[i].btok_tgt = elems[i].etok_tgt = elems[j].etok_tgt;
+                  }
+               }
+            }
+            // Fix non-intra-token empty (non-paired) elements in left tag sequence before a token:
+            // maintain ordering in target if before a non-empty tag.
+            if (!elems[i].intratok && elems[i].empty() && !elems[i].close_tag && !elems[i].isPaired()) {
+               // Find next non-empty element
+               if (next_ne < i)
+                  next_ne = i;
+               for (; next_ne < elems.size() && elems[next_ne].empty(); ++next_ne) ;
+               // Adjust target token range if a non-empty element follows at the same token.
+               if (next_ne < elems.size() && elems[i].btok == elems[next_ne].btok)
+                  elems[i].btok_tgt = elems[i].etok_tgt = elems[next_ne].btok_tgt;
+            }
+            if (elems[i].rid)
+               nested.push_back(i);
+            i++;
+         } else if (!nested.empty() && elems[nested.back()].rid == id)
+            nested.pop_back();
+         else
+            error(ETFatal, "Uable to locate tag id %i", id);
       }
 
       // write out target tokens, with elements

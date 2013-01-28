@@ -10,21 +10,21 @@ A B C <a><b><c><d>D E</d> F G</c><x></x></b> H I J</a> K L
 A B C <a><b><x><z></z></x><c><d>D E</d> F G</c></b> H I J</a> K L
 A B C <a><b><c><d>D E<x><z></z></x></d> F G</c></b> H I J</a> K L
 A B C <a><b><c><d>D E</d> F G</c><x><z></z></x></b> H I J</a> K L
-<a><b><c><d>E A B C <x/>D</d> G H F</c></b> I J</a> K L
+<a><b><x/><c><d>E A B C D</d> G H F</c></b> I J</a> K L
 <a><b><c><d>E A B C D<x/></d> G H F</c></b> I J</a> K L
-<a><b><c><d>E A B C D</d> G<x/> H F</c></b> I J</a> K L
-<a><b><c><d>E A B C <x><z/></x>D</d> G H F</c></b> I J</a> K L
+<a><b><c><d>E A B C D</d> G H F</c><x/></b> I J</a> K L
+<a><b><x><z/></x><c><d>E A B C D</d> G H F</c></b> I J</a> K L
 <a><b><c><d>E A B C D<x><z/></x></d> G H F</c></b> I J</a> K L
-<a><b><c><d>E A B C D</d> G<x><z/></x> H F</c></b> I J</a> K L
-<a><b><c><d>E A B C <x></x>D</d> G H F</c></b> I J</a> K L
+<a><b><c><d>E A B C D</d> G H F</c><x><z/></x></b> I J</a> K L
+<a><b><x></x><c><d>E A B C D</d> G H F</c></b> I J</a> K L
 <a><b><c><d>E A B C D<x></x></d> G H F</c></b> I J</a> K L
-<a><b><c><d>E A B C D</d> G<x></x> H F</c></b> I J</a> K L
-<a><b><c><d>E A B C <x><z></z></x>D</d> G H F</c></b> I J</a> K L
+<a><b><c><d>E A B C D</d> G H F</c><x></x></b> I J</a> K L
+<a><b><x><z></z></x><c><d>E A B C D</d> G H F</c></b> I J</a> K L
 <a><b><c><d>E A B C D<x><z></z></x></d> G H F</c></b> I J</a> K L
-<a><b><c><d>E A B C D</d> G<x><z></z></x> H F</c></b> I J</a> K L
-P <a>Q<x/> T <b>S R</b></a> U V
-P<x/> T <a><b>R S</b> Q</a> U V
-P<x/> T <a><b>S R</b> Q</a> U V
-P <a>Q<x/> <c>T <b>S R</b> U</c></a> V
-P<x/> <c>T <a><b>R S</b> Q</a> U</c> V
-P<x/> <c>T <a><b>S R</b> Q</a> U</c> V
+<a><b><c><d>E A B C D</d> G H F</c><x><z></z></x></b> I J</a> K L
+P <a>Q T <b>S R</b><x/></a> U V
+P T <a><b>R S</b> Q<x/></a> U V
+P T <a><b>S R</b> Q<x/></a> U V
+P <a>Q <c>T <b>S R</b> <x/> U</c></a> V
+P <c>T <a><b>R S</b> Q<x/></a> U</c> V
+P <c>T <a><b>S R</b> Q<x/></a> U</c> V
