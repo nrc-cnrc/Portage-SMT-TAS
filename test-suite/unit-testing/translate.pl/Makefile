@@ -62,17 +62,27 @@ UnknownSegments_en-CA_fr-CA.v5.%.sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.sdlxl
 # Make sure we translated all sdlxliff examples first then try to validate them.
 sdlxliff:  trans_sdlxliff
 
+# Translate only, no xtags, no CE
 sdlxliff: validate_sdlxliff
 validate_sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.translated.sdlxliff  ref.UnknownSegments_en-CA_fr-CA.v5.sdlxliff
 	! egrep '(open|close|tag)_wrap' $<
 	diff $+ --brief
 
-	#diff $< <(sed -e 's#<\/\?g[^>]*>##g' $(filter ref/%, $+)) --brief
-
 trans_sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.translated.sdlxliff
 UnknownSegments_en-CA_fr-CA.v5.translated.sdlxliff:  override OPTIONS = -decode-only
 
 
+# With CE
+sdlxliff: validate_sdlxliff_ce
+validate_sdlxliff_ce:  UnknownSegments_en-CA_fr-CA.v5.ce.sdlxliff  ref.UnknownSegments_en-CA_fr-CA.v5.ce.sdlxliff
+	! egrep '(open|close|tag)_wrap' $<
+	diff $+ --brief
+
+trans_sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.ce.sdlxliff
+UnknownSegments_en-CA_fr-CA.v5.ce.sdlxliff:  override OPTIONS = -with-ce
+
+
+# With tags
 sdlxliff: validate_sdlxliff_tags
 validate_sdlxliff_tags:  UnknownSegments_en-CA_fr-CA.v5.xtags.sdlxliff  ref.UnknownSegments_en-CA_fr-CA.v5.xtags.sdlxliff
 	! egrep '(open|close|tag)_wrap' $<
@@ -82,16 +92,17 @@ trans_sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.xtags.sdlxliff
 UnknownSegments_en-CA_fr-CA.v5.xtags.sdlxliff:  override OPTIONS = -decode-only -xtags
 
 
+# With tags and CE
 sdlxliff: validate_sdlxliff_tags_CE
 validate_sdlxliff_tags_CE:  UnknownSegments_en-CA_fr-CA.v5.xtags.ce.sdlxliff  ref.UnknownSegments_en-CA_fr-CA.v5.xtags.ce.sdlxliff
 	! egrep '(open|close|tag)_wrap' $<
 	diff $+ --brief
 
-
 trans_sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.xtags.ce.sdlxliff
 UnknownSegments_en-CA_fr-CA.v5.xtags.ce.sdlxliff:  override OPTIONS = -with-ce -xtags
 
 
+# With tags and CE based filtering
 sdlxliff: validate_sdlxliff_tags_CE_filter
 validate_sdlxliff_tags_CE_filter:  UnknownSegments_en-CA_fr-CA.v5.xtags.ce.filter.sdlxliff  ref.UnknownSegments_en-CA_fr-CA.v5.xtags.ce.filter.sdlxliff
 	! egrep '(open|close|tag)_wrap' $<
@@ -117,45 +128,61 @@ TestMemory_Unknown.%.tmx:  TestMemory_Unknown.tmx  | workdir.%.tmx
 		2> log.$@
 	ln -fs $|/QP.xml $@
 
+
 tmx:  trans_tmx
 
 tmx_diff_%: % ref/ref.%
 	diff <(sed 's/changedate="[^"]*"//g' $*) <(sed 's/changedate="[^"]*"//g' ref/ref.$*) --brief
 
+
+# Translate only, no xtags, no CE
 tmx: validate_tmx
 validate_tmx: TestMemory_Unknown.translated.tmx ref.TestMemory_Unknown.translated.tmx
 	! egrep '(open|close|tag)_wrap' $<
-	@make --no-print-directory tmx_diff_$<
+	@${MAKE} --no-print-directory tmx_diff_$<
 
 trans_tmx:  TestMemory_Unknown.translated.tmx
 TestMemory_Unknown.translated.tmx:  override OPTIONS = -decode-only
 
 
+# With CE
+tmx: validate_tmx_ce
+validate_tmx_ce: TestMemory_Unknown.ce.tmx ref.TestMemory_Unknown.ce.tmx
+	! egrep '(open|close|tag)_wrap' $<
+	@${MAKE} --no-print-directory tmx_diff_$<
+
+trans_tmx:  TestMemory_Unknown.ce.tmx
+TestMemory_Unknown.ce.tmx:  override OPTIONS = -with-ce
+
+
+# With tags
 tmx: validate_tmx_xtags
 validate_tmx_xtags: TestMemory_Unknown.xtags.tmx ref.TestMemory_Unknown.xtags.tmx
 	! egrep '(open|close|tag)_wrap' $<
-	@make --no-print-directory tmx_diff_$<
+	@${MAKE} --no-print-directory tmx_diff_$<
 
 trans_tmx:  TestMemory_Unknown.xtags.tmx
 TestMemory_Unknown.xtags.tmx:  override OPTIONS = -decode-only -xtags
 
 
+# With tags and CE
 tmx: validate_tmx_xtags_CE
 validate_tmx_xtags_CE: TestMemory_Unknown.xtags.ce.tmx ref.TestMemory_Unknown.xtags.ce.tmx
 	! egrep '(open|close|tag)_wrap' $<
-	@make --no-print-directory tmx_diff_$<
+	@${MAKE} --no-print-directory tmx_diff_$<
 
 trans_tmx:  TestMemory_Unknown.xtags.ce.tmx
 TestMemory_Unknown.xtags.ce.tmx:  override OPTIONS = -with-ce -xtags
 
 
+# With tags and CE-based filtering
 tmx: validate_tmx_xtags_CE_filter
 validate_tmx_xtags_CE_filter: TestMemory_Unknown.xtags.ce.filter.tmx ref.TestMemory_Unknown.xtags.ce.filter.tmx
 	! egrep '(open|close|tag)_wrap' $<
-	@make --no-print-directory tmx_diff_$<
+	@${MAKE} --no-print-directory tmx_diff_$<
 
 trans_tmx:  TestMemory_Unknown.xtags.ce.filter.tmx
-TestMemory_Unknown.xtags.ce.filter.tmx:  override OPTIONS = -with-ce -xtags -filter=0.27
+TestMemory_Unknown.xtags.ce.filter.tmx:  override OPTIONS = -with-ce -xtags -filter=0.20
 
 
 
