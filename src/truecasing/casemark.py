@@ -380,7 +380,7 @@ def attr(name, grp=True):
     """
     return '(?: +{0}="({1}[^"]+)")'.format(name, "" if grp else "?:")
 
-srccase_re = re.compile('<srccase{0}{1}> *((?:(?!<srccase).)+?) *</srccase>'.
+srccase_re = re.compile('<srccase{0}{1}> *((?:(?!<srccase).)*?) *</srccase>'.
                         format(attr("case"), attr("src")))
 
 def oov_src(grp):
