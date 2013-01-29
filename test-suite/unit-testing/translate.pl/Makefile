@@ -11,7 +11,7 @@
 # Copyright 2013, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2013, Her Majesty in Right of Canada
 
-SOAP_TRANSLATE := $$PORTAGE/test-suite/systems/toy-regress/soap-translate.sh
+SOAP_TRANSLATE := $$PORTAGE/test-suite/systems/toy-regress-en2fr/soap-translate.sh
 
 -include Makefile.params
 
