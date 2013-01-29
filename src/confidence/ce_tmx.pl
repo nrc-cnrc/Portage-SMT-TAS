@@ -217,7 +217,6 @@ sub processFile {
 
    my $parser = XML::Twig->new(
          pretty_print  => $pretty_print,
-         keep_atts_order => 1,
          start_tag_handlers => { xliff => \&processXLIFF, tmx => \&processTMX },
          );
 
