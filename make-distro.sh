@@ -292,6 +292,14 @@ do_checkout() {
    run_cmd popd
 }
 
+get_test_systems() {
+   # Some test suites rely on data in $PORTAGE/test-suite/systems
+   print_header get_test_systems
+   run_cmd pushd ./$OUTPUT_DIR
+      run_cmd rsync -arz balzac.iit.nrc.ca:/home/portage/test-suite/systems/ PORTAGEshared/test-suite/systems
+   run_cmd popd
+}
+
 get_user_manual() {
    # Note: the user manual snapshot is created by loading this link:
    # http://wiki-ilt/PORTAGEshared/scripts/restricted/ywiki.cgi?act=snapshot
@@ -443,6 +451,7 @@ if [[ ! $COMPILE_ONLY ]]; then
    fi
 
    do_checkout
+   get_test_systems
    get_user_manual
    make_pdfs
    if [[ ! $NO_SOURCE && ! $NO_DOXY ]]; then
