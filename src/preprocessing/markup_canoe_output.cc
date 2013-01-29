@@ -371,11 +371,24 @@ pair<Uint,Uint> targetSpan(const vector<vector<Uint> >& src_al, const PhrasePair
 
    // point tag
    if (beg == end) {
-      Uint min_j = pp.tgt_pos.second-pp.tgt_pos.first;
-      for (Uint i = beg-pp.src_pos.first; i < src_al.size(); ++i)
-         for (Uint k = 0; k < src_al[i].size(); ++k)
-            min_j = min(min_j, src_al[i][k]);
-      return make_pair(min_j+pp.tgt_pos.first, min_j+pp.tgt_pos.first);
+      if (beg == pp.src_pos.first && !align_boundary_phrases) {
+         // point tag at the beginning of the src phrase goes at the beginning
+         // of the target phrase
+         return make_pair(pp.tgt_pos.first, pp.tgt_pos.first);
+      } else if (beg == pp.src_pos.second && !align_boundary_phrases) {
+         // point tag at the end of the src phrase goes at the end of the
+         // target phrase
+         return make_pair(pp.tgt_pos.second, pp.tgt_pos.second);
+      } else {
+         // point tag inside the source phrase goes before the first word in
+         // the target phrase aligned to a word after the tag in the source
+         // phrase.
+         Uint min_j = pp.tgt_pos.second-pp.tgt_pos.first;
+         for (Uint i = beg-pp.src_pos.first; i < src_al.size(); ++i)
+            for (Uint k = 0; k < src_al[i].size(); ++k)
+               min_j = min(min_j, src_al[i][k]);
+         return make_pair(min_j+pp.tgt_pos.first, min_j+pp.tgt_pos.first);
+      }
    }
 
    assert(pp.tgt_pos.second > pp.tgt_pos.first);
@@ -385,6 +398,10 @@ pair<Uint,Uint> targetSpan(const vector<vector<Uint> >& src_al, const PhrasePair
          if (src_al[i][j] < ret.first) ret.first = src_al[i][j];
          if (src_al[i][j] >= ret.second) ret.second = src_al[i][j] + 1;
       }
+   }
+   if (!align_boundary_phrases) {
+      if (beg == pp.src_pos.first) ret.first = 0;
+      if (end == pp.src_pos.second) ret.second = pp.tgt_pos.second-pp.tgt_pos.first;
    }
 
    // Gracefully (though not always correctly) handle the case where no word

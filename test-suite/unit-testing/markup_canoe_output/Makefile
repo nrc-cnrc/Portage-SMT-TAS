@@ -11,7 +11,7 @@
 
 .PHONY: all
 
-TAGS_XFER_TESTS = whitespace_test nested1_test nested2_test \
+TAGS_XFER_TESTS = whitespace_test nested1_test nested2_test phrase-boundary_test \
                   escape_test escape-tmx_test paired_test emptytags_test oov_test
 
 TEMP_FILES=$(TAGS_XFER_TESTS:_test=.P.tags.tok) log.* tc_tmp_text_28315.cmark.out wal-*.out
@@ -32,12 +32,13 @@ escape_test: OPTS=-v -xtags
 paired_test: OPTS=-v -xtags
 emptytags_test: OPTS=-v -xtags
 oov_test: OPTS=-v -xtags
+phrase-boundary_test: OPTS=-v -xtags
 
 .PHONY: ${TAGS_XFER_TESTS}
 
 ${TAGS_XFER_TESTS}: %_test: in/%.Q.tags.tok in/%.P.tok in/%.p.pal
 	markup_canoe_output ${OPTS} $+ > $*.P.tags.tok 2> log.$*
-	diff ref/$*.P.tags.tok $*.P.tags.tok -q
+	diff ref/$*.P.tags.tok $*.P.tags.tok
 
 # Create correctly tokenized input
 $(foreach TST, $(TESTS:_test=), in/${TST}.Q.tags.tok): in/%.Q.tags.tok: in/%.Q.tags.txt
