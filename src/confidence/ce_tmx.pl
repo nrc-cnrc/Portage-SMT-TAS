@@ -55,11 +55,6 @@ Specify TMX source language (case insensitive within TMX file) [EN-CA]
 
 Specify TMX target language (case insensitive within TMX file) [FR-CA]
 
-=item -keeptags
-
-Retain keeptags code (BPT, EPT, IT and PH elements) within target
-language TUs. (default is to delete it)
-
 =item -score/-noscore
 
 In 'replace' mode, do/don't insert confidence scores inside TUV's,
@@ -138,7 +133,6 @@ Getopt::Long::GetOptions(
    "src=s"        => \my $src,
    "tgt=s"        => \my $tgt,
    "filter=s"     => \my $filter,
-   keeptags       => \my $keeptags,
    'score!'       => \$score,
    'pp|pretty_print' => sub { $pretty_print = 'indented' },
 ) or do { displayHelp(); exit 1 };
@@ -156,7 +150,6 @@ $Verbose = 0 unless defined $Verbose;
 $debug = 0 unless defined $debug;
 $pretty_print = 'indented' if ($debug);
 
-$keeptags = 0 unless defined $keeptags;
 $filter = undef unless defined $filter;
 $src = $DEFAULT_SRC unless defined $src;
 $tgt = $DEFAULT_TGT unless defined $tgt;
@@ -174,8 +167,7 @@ if ($action eq 'extract') {
          xml_out_name => "${dir}/QP.template.xml",  # May or may not be open later.
          ix => $ix,
          src_lang => $src,
-         tgt_lang => $tgt,
-         keeptags => $keeptags);
+         tgt_lang => $tgt);
    close $parser->{xml_out} if(defined($parser->{xml_out}));
    ixSave($ix, "${dir}/Q.txt", "${dir}/Q.tags", "${dir}/Q.ix");
 }
@@ -196,7 +188,6 @@ elsif ($action eq 'replace') {
          filter => $filter,
          src_lang => $src,
          tgt_lang => $tgt,
-         keeptags => $keeptags,
          score => $score);
    close $xml_out;
    # TODO: should we rename tne output to its proper extension or leave it to PortageLive.php?
@@ -207,7 +198,6 @@ elsif ($action eq 'check') {
    my $xml_file = shift || "-";
    my $info = processFile(action => 'check',
          xml_in => $xml_file,
-         keeptags => $keeptags,
          src_lang => $src,
          tgt_lang => $tgt);
    print $info->{seg_count}, "\n";
