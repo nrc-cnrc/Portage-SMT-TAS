@@ -221,6 +221,9 @@ sub processFile {
          start_tag_handlers => { xliff => \&processXLIFF, tmx => \&processTMX },
          );
 
+   # Use keep_atts_order only if the Tie::IxHash is present.
+   $parser->set_keep_atts_order(1) if (eval("use Tie::IxHash"));
+
    @{$parser}{keys %args} = values %args; # Merge args into parser
    $parser->{tu_count} = 0;
    $parser->{seg_count} = 0;
