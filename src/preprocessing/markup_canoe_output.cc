@@ -1144,6 +1144,14 @@ int main(int argc, char* argv[])
       // Finally, we are at the end of the line!
       cout << endl;
 
+      // Verify that all tags that should be transferred were actually output.
+      for (Uint i = 0; i < elems.size(); ++i) {
+         if (elems[i].shouldTransfer() && !elems[i].lout)
+            error(ETWarn, "line %d: Failed to transfer tag%s: %s %s",
+                  lineno, elems[i].rstring.empty() ? "" : " pair",
+                  elems[i].lstring.c_str(), elems[i].rstring.c_str());
+      }
+
    } // for each line of input
 
    bool outlong = getline(out, line);

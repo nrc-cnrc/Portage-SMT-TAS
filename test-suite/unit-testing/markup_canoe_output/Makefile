@@ -39,6 +39,7 @@ phrase-boundary_test: OPTS=-v -xtags
 ${TAGS_XFER_TESTS}: %_test: in/%.Q.tags.tok in/%.P.tok in/%.p.pal
 	markup_canoe_output ${OPTS} $+ > $*.P.tags.tok 2> log.$*
 	diff ref/$*.P.tags.tok $*.P.tags.tok
+	@! grep -q "Failed to transfer tag" log.$* || ! echo "Error: Failed to transfer some tags."
 
 # Create correctly tokenized input
 $(foreach TST, $(TESTS:_test=), in/${TST}.Q.tags.tok): in/%.Q.tags.tok: in/%.Q.tags.txt
