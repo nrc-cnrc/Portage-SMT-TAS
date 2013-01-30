@@ -114,6 +114,7 @@ struct Elem {
    bool rwslseq;                // true if whitespace to left of sequence of right tags
    bool rwsrseq;                // true if whitespace to right of sequence of right tags
    bool intratok;               // true if an intra-token element
+   bool oov;                    // true if intra-token element for an oov(-look-alike)
    bool pair_empty;             // true if a set of paired elements is identified as empty
    bool close_tag;              // true if empty element to be treated like a close (right) tag
 
@@ -136,7 +137,8 @@ struct Elem {
       lwsl(beg==0 || line[beg-1]==' '), lwsr(end==line.size() || line[end]==' '),
       lwslseq(wslseq), lwsrseq(wsrseq),
       rwsl(true), rwsr(true), rwslseq(false), rwsrseq(false),
-      intratok(!wslseq && !wsrseq), pair_empty(false), close_tag(false),
+      intratok(!wslseq && !wsrseq), oov(false),
+      pair_empty(false), close_tag(false),
       lout(false), btok_tgt(0), etok_tgt(0), pair_id("")
    {
       if (xtags)
@@ -176,7 +178,7 @@ struct Elem {
            << " tgt:(" << btok_tgt << "," << etok_tgt << ")"
            << " whitespace: " << lwsl << lwsr << rwsl << rwsr
            << " seq ws: " << lwslseq << lwsrseq << rwslseq << rwsrseq
-           << (intratok ? " (intra-token)" : "")
+           << (intratok ? " (intra-token" : "") << (oov ? " oov)" : ")")
            << " lip: " << lip << " rip: " << rip << endl;
    }
 
@@ -568,7 +570,8 @@ int main(int argc, char* argv[])
             Uint i = elems.size();
             for (; i > 0; --i) {
                if (!elems[i-1].complete && elems[i-1].name == name) {
-                  Uint etok = src_toks.size() - (is_intra_tok_tag ? 1 : 0);
+//                  Uint etok = src_toks.size() - (is_intra_tok_tag ? 1 : 0);
+                  Uint etok = src_toks.size();
                   Uint ip = src_toks.size() > 0 ? src_toks.back().size() : 0;
                   elems[i-1].update(line, beg, end, etok, wsl, wsr, ip);
                   break;
@@ -635,8 +638,10 @@ int main(int argc, char* argv[])
                   Uint j = nested.back();
                   elems[i].intratok = true;
                   elems[i].lip = elems[i].rip = elems[j].lip ? elems[j].rip : 0;
-                  if (elems[i].lip)
-                     elems[i].btok = elems[i].etok = elems[j].btok;
+                  if (elems[i].lip) {
+                     elems[i].btok = elems[j].btok;
+                     elems[i].etok = elems[j].etok;
+                  }
                }
             }
             if (elems[i].rid)
@@ -808,13 +813,51 @@ int main(int argc, char* argv[])
 
       // Make a third pass over all tags patching some element info based on
       // information involving target positions.
-      // In particular, fix the target token range for non-intra-token empty
+      // In particular, determine the OOV status of tokens for intra-token
+      // elements and fix the target token range for non-intra-token empty
       // elements in left or right tag sequences.
       nested.clear();
       i = 0;
       Uint next_ne = 0;       // "next" non-empty element
+      sortBySource(phrase_pairs); // OOV status code below assumes this property
+      Uint oov_p = 0;             // index in pharse_pairs of OOV
       for (Uint id = 1; id < Elem::next_id; ++id) {
          if (i < elems.size() && elems[i].lid == id) {
+            // Determine the OOV(-look-alike) status of tokens for intra-token elements
+            if (elems[i].intratok) {
+               // Is the token for this intra-token element an actual OOV?
+               for (; oov_p < phrase_pairs.size(); ++oov_p) {
+                  if (phrase_pairs[oov_p].src_pos.second > elems[i].btok) {
+                     if (phrase_pairs[oov_p].src_pos.first == elems[i].btok
+                           && phrase_pairs[oov_p].oov)
+                        elems[i].oov = true;
+                     break;
+                  }
+               }
+               // If not an OOV, does it look like an OOV?
+               if (!elems[i].oov) {
+                  Uint etgt = elems[i].etok_tgt + (elems[i].emptyTgt() ? 1 : 0);
+                  string &src_tok(src_toks[elems[i].btok]);
+                  Uint j = elems[i].btok_tgt;
+                  for(; j < etgt && tgt_toks[j] != src_tok; ++j) {};
+                  if (j < etgt) {
+                     elems[i].oov = true;
+                     // update tgt range to attach element to the oov look-alike.
+                     elems[i].btok_tgt = j;
+                     elems[i].etok_tgt = j + 1;
+                  } else if (etgt - elems[i].btok_tgt > 1) {
+                     // Non-OOV with than one target token:
+                     // update tgt range to move intra-token elements to the
+                     // the first or last token of the target phrase depending
+                     // on whether the element's left tag is at the start of
+                     // the source token or not.
+                     if (elems[i].lip == 0)
+                        elems[i].etok_tgt = elems[i].btok_tgt + 1;
+                     else
+                        elems[i].btok_tgt = elems[i].etok_tgt - 1;
+                  }
+               }
+            }
             // Fix non-intra-token empty elements in right tag sequence after a token:
             // treat them as close tags after the token
             if (!elems[i].intratok && elems[i].empty()) {
@@ -854,19 +897,7 @@ int main(int argc, char* argv[])
       Uint nested_mark = 0;     // used to mark a spot in the nested stack
       bool rwsr = false;        // rwsr for last right tag output
       bool sp_out = false;      // was last output character a space?
-      sortByTarget(phrase_pairs); // code below assumes this property
-      Uint oov_p = 0;   // index in pharse_pairs of oov
       for (Uint i = 0; i < tgt_toks.size(); ++i) {
-         // Determine OOV status of this tgt token
-         bool oov = false;
-         for (; oov_p < phrase_pairs.size(); ++oov_p) {
-            if (phrase_pairs[oov_p].tgt_pos.second > i) {
-               if (phrase_pairs[oov_p].tgt_pos.first == i && phrase_pairs[oov_p].oov)
-                  oov = true;
-               break;
-            }
-         }
-
          // Output left tags for non intra-token elements beginning at this token;
          // include right tags for non intra-token empty elements before this token.
          // Maintain the proper nesting of empty tags.
@@ -959,7 +990,7 @@ int main(int argc, char* argv[])
                      if (elems[j].nestedIn(elems[k]))
                         break;
                      // Output token fragment before a right tag
-                     if ( oov && tok_idx < elems[k].rip) {
+                     if ( elems[k].oov && tok_idx < elems[k].rip) {
                         outputFragment(tgt_toks[i], tok_idx, elems[k].rip);
                         tok_idx = elems[k].rip;
                      }
@@ -972,7 +1003,7 @@ int main(int argc, char* argv[])
                   // outputting the nested intra-token elements from the
                   // start of the token.
                   if (tok_idx < elems[j].lip) {
-                     if (oov) {
+                     if (elems[j].oov) {
                         outputFragment(tgt_toks[i], tok_idx, elems[j].lip);
                         tok_idx = elems[j].lip;
                      } else if (nested.size() == nested_mark) {
@@ -993,7 +1024,7 @@ int main(int argc, char* argv[])
          // (possibly the whole token for a non-OOV).
          while (nested.size() > nested_mark) {
             Uint k = nested.back();
-            if (oov && tok_idx < elems[k].rip) {
+            if (elems[k].oov && tok_idx < elems[k].rip) {
                outputFragment(tgt_toks[i], tok_idx, elems[k].rip);
                tok_idx = elems[k].rip;
             }
