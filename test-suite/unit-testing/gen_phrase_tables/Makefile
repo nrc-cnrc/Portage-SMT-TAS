@@ -17,7 +17,7 @@ all: gen merge cpt pcpt pcpt_rmem count
 TEMP_FILES=log.* ibm2.* jpt.* pjpt.* cpt.* merge[12].* pcpt.* pcpt_rmem.* \
            c-cpt.* ca-cpt.* c-pcpt.* ca-pcpt.* \
            externalAligner.*.gz
-TEMP_DIRS=JPTPAR[1-9]*
+TEMP_DIRS=JPTPAR[1-9]* run-p.*
 include ../Makefile.incl
 
 .SECONDARY:
