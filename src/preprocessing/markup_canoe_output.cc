@@ -125,6 +125,7 @@ struct Elem {
    Uint btok_tgt;               // index of 1st tgt tok to the right of left tag
    Uint etok_tgt;               // index of 1st tgt tok to the right of right tag
    string pair_id;              // pair-id if elem is paired with another (e.g. bx/ex)
+   string it_pos;               // value of pos attribute for <it> tag
 
    static Uint next_id;         // Next tag id to assign
 
@@ -139,15 +140,28 @@ struct Elem {
       rwsl(true), rwsr(true), rwslseq(false), rwsrseq(false),
       intratok(!wslseq && !wsrseq), oov(false),
       pair_empty(false), close_tag(false),
-      lout(false), btok_tgt(0), etok_tgt(0), pair_id("")
+      lout(false), btok_tgt(0), etok_tgt(0), pair_id(""), it_pos("")
    {
-      if (xtags)
+      if (xtags) {
          if (name == "open_wrap" || name == "close_wrap" ||
              name == "bx" || name == "ex") {
             XMLishTag tag;
             parseXMLishTag(lstring.c_str(), tag, NULL, NULL);
             pair_id = tag.attrVal("id");
+            if (isClosePair())
+               close_tag = true;
+         } else if (name == "tag_wrap") {
+            XMLishTag tag;
+            parseXMLishTag(lstring.c_str(), tag, NULL, NULL);
+            string content;
+            XMLunescape(tag.attrVal("content").c_str(), content);
+            parseXMLishTag(content.c_str(), tag, NULL, NULL);
+            if (tag.name == "it")
+               it_pos = tag.attrVal("pos");
+            if (isCloseIT())
+               close_tag = true;
          }
+      }
    }
 
    static bool isLeft(const string& line, Uint beg, Uint end) {
@@ -170,9 +184,12 @@ struct Elem {
            << lstring << " " << rstring
            << (complete ? " " : "in") << "complete,"
            << (pair_id.empty() ? "" : " pair id: ") << pair_id
-           << (isOpenPair() ? " (open)" : "")
-           << (isClosePair() ? " (close)" : "")
+           << (isOpenPair() ? " (open pair)" : "")
+           << (isClosePair() ? " (close pair)" : "")
            << (pair_empty ? " (pair empty)" : "")
+           << (isIsolatedTag() ? "(isolated " : "")
+           << (isOpenIT() ? " open)" : "")
+           << (isCloseIT() ? " close)" : "")
            << (close_tag ? " (treat as close)" : "")
            << " src:(" << btok << "," << etok << ")"
            << " tgt:(" << btok_tgt << "," << etok_tgt << ")"
@@ -200,8 +217,19 @@ struct Elem {
    // open_wrap or bx ?
    bool isOpenPair() { return isPaired() && (name[0] == 'o' || name[0] == 'b'); }
 
-   // close_wrap of ex ?
+   // close_wrap or ex ?
    bool isClosePair() { return isPaired() && (name[0] == 'c' || name[0] == 'e'); }
+
+   bool isIsolatedTag() { return !it_pos.empty(); }
+
+   // <it> tag with pos="open" or pos="begin" ?
+   bool isOpenIT() { return isIsolatedTag() && (it_pos[0] == 'o' || it_pos[0] == 'b'); }
+
+   // <it> tag with pos="close" or pos="end" ?
+   bool isCloseIT() { return isIsolatedTag() && (it_pos[0] == 'c' || it_pos[0] == 'e'); }
+
+   // is this a plain ordinary empty (point) tag, not a wrapped <it> or paired tag?
+   bool isOrdinaryEmpty() { return empty() && !isPaired() && !isIsolatedTag(); }
 
    // is tag identified by id nested within this element in the source?
    bool nested(Uint id) { return id > lid && id < rid; }
@@ -599,7 +627,6 @@ int main(int argc, char* argv[])
                   ++num_bad_nesting;
                }
                if (elems[i-1].isClosePair() ) {  // find match for paired element
-                  elems[i-1].close_tag = true;  // treat as close tag
                   Uint j = i-1;
                   for (; j > 0; --j) {
                      if (elems[j-1].pair_id == elems[i-1].pair_id) {
@@ -626,7 +653,7 @@ int main(int argc, char* argv[])
       // Make a second pass over all tags patching some element info based on
       // information that was not available during the input pass.
       // In particular, fix empty tags at token start/end that should be
-      // marked as intra-token.
+      // marked as intra-token; also fix the token span for isolated tags.
       nested.clear();
       Uint i = 0;
       for (Uint id = 1; id < Elem::next_id; ++id) {
@@ -643,6 +670,14 @@ int main(int argc, char* argv[])
                      elems[i].etok = elems[j].etok;
                   }
                }
+            }
+            // Fix the token span for isolated tags to refer to the beginning
+            // portion or end portion of the line as appropriate.
+            if (elems[i].isIsolatedTag()) {
+               if (elems[i].isOpenIT())
+                  elems[i].etok = src_toks.size();
+               else
+                  elems[i].btok = 0;
             }
             if (elems[i].rid)
                nested.push_back(i);
@@ -793,20 +828,29 @@ int main(int argc, char* argv[])
       } // for each element
 
       // Now that the target spans are set, restore the btok, etok and
-      // btok_tgt, etok_tgt fields for paired elements such that that pair
-      // open tag will be output before the pair close tag.
-      // Flag empty pairs.
+      // btok_tgt, etok_tgt fields:
+      // - for paired elements such that that pair open tag will be output
+      //   before the pair close tag; also flag empty pairs.
+      // - for isolated tags to return them to being point tags
       if (xtags) {
          for (Uint i = 0; i < elems.size(); ++i) {
-            if (!elems[i].isPaired())
-               continue;
-            elems[i].pair_empty = elems[i].etok_tgt == elems[i].btok_tgt;
-            if (elems[i].isOpenPair()) {
-               elems[i].etok = elems[i].btok;
-               elems[i].etok_tgt = elems[i].btok_tgt;
-            } else {
-               elems[i].btok = elems[i].etok;
-               elems[i].btok_tgt = elems[i].etok_tgt;
+            if (elems[i].isPaired()) {
+               elems[i].pair_empty = elems[i].etok_tgt == elems[i].btok_tgt;
+               if (elems[i].isOpenPair()) {
+                  elems[i].etok = elems[i].btok;
+                  elems[i].etok_tgt = elems[i].btok_tgt;
+               } else {
+                  elems[i].btok = elems[i].etok;
+                  elems[i].btok_tgt = elems[i].etok_tgt;
+               }
+            } else if (elems[i].isIsolatedTag()){
+               if (elems[i].isOpenIT()) {
+                  elems[i].etok = elems[i].btok;
+                  elems[i].etok_tgt = elems[i].btok_tgt;
+               } else {
+                  elems[i].btok = elems[i].etok;
+                  elems[i].btok_tgt = elems[i].etok_tgt;
+               }
             }
          }
       }
@@ -871,7 +915,7 @@ int main(int argc, char* argv[])
             }
             // Fix non-intra-token empty (non-paired) elements in left tag sequence before a token:
             // maintain ordering in target if before a non-empty tag.
-            if (!elems[i].intratok && elems[i].empty() && !elems[i].close_tag && !elems[i].isPaired()) {
+            if (!elems[i].intratok && elems[i].isOrdinaryEmpty() && !elems[i].close_tag) {
                // Find next non-empty element
                if (next_ne < i)
                   next_ne = i;
@@ -1050,9 +1094,10 @@ int main(int argc, char* argv[])
                --nested_mark;
             // Output empty (point) elements that must precede this right tag
             for (Uint k=j; k < elems.size(); ++k) {
-               if (elems[k].shouldTransfer() && elems[k].empty() && !elems[k].lout) {
-                  if (((!elems[k].isPaired() && elems[k].btok == elems[j].etok) ||
-                       (elems[k].isClosePair() && !elems[k].pair_empty && elems[k].btok_tgt == i+1))
+               if (elems[k].shouldTransfer() && !elems[k].lout) {
+                  if (((elems[k].isOrdinaryEmpty() && elems[k].btok == elems[j].etok) ||
+                       (elems[k].isClosePair() && !elems[k].pair_empty && elems[k].btok_tgt == i+1) ||
+                       (elems[k].isCloseIT() && elems[k].btok_tgt == i+1))
                       && elems[k].nestedIn(elems[j])) {
                      if (need_ws && elems[k].lwsl) {
                         cout << ' ';
@@ -1078,12 +1123,12 @@ int main(int argc, char* argv[])
          }
          // Output tags for any closing paired elements ending at this token
          // not output by the right tag processing above.
-         // Paired elements are handled outside the nesting structure
-         // i.e. paired elements are not pushed on the nested stack.
+         // Paired elements and isolated tags are handled outside the nesting
+         // structure, i.e. such elements are not pushed on the nested stack.
          // Skip handling empty paired tags - use normal empty tag handling instead.
          for (Uint j = 0; j < elems.size(); ++j) {
-            if (elems[j].isClosePair() && !elems[j].pair_empty && !elems[j].lout) {
-               if (elems[j].shouldTransfer() && elems[j].btok_tgt==i+1) {
+            if ((elems[j].isClosePair() && !elems[j].pair_empty) || elems[j].isCloseIT()) {
+               if (elems[j].shouldTransfer() && !elems[j].lout && elems[j].btok_tgt==i+1) {
                   if (elems[j].lwsl) {
                      cout << ' ';
                      need_ws = false;

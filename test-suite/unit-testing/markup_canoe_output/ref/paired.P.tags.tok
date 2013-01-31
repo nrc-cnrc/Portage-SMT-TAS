@@ -10,3 +10,15 @@ A <bx id="1"/>B C <a>D <b>E</b> <bx id="2"/><c>F<ex id="1"/> <x /> G</c> H I J</
 <bx id="1"/><a><b><c><d><bx id="2"/>E A B C D</d> G H F<ex id="1"/></c></b> I J</a> K<ex id="2"/> L
 <a><bx id="2"/>I J K L <bx id="1"/>A B C <b><c><d>D F E</d> G<ex id="1"/></c></b> H</a><ex id="2"/>
 <open_wrap content="&lt;bpt i=&quot;1&quot; type=&quot;6&quot;/>" id="1"/><a><b>E</b> A B C D <c><x /> G H F<close_wrap content="&lt;ept i=&quot;1&quot;/>" id="1"/></c> I J</a> K L
+<tag_wrap content="&lt;it pos=&quot;begin&quot;>&amp;lt;/cf>&lt;/it>"/>E A B C D G H F I J K L
+E A B C D <tag_wrap content="&lt;it pos=&quot;begin&quot;>&amp;lt;/cf>&lt;/it>"/> G H F I J K L
+E A B C D <tag_wrap content="&lt;it pos=&quot;begin&quot;>&amp;lt;/cf>&lt;/it>"/>G H F I J K L
+E A B C D <tag_wrap content="&lt;it pos=&quot;end&quot;>&amp;lt;/cf>&lt;/it>"/> G H F I J K L
+E A B C D <tag_wrap content="&lt;it pos=&quot;end&quot;>&amp;lt;/cf>&lt;/it>"/> G H F I J K L
+E A B C D G H F<tag_wrap content="&lt;it pos=&quot;end&quot;>&amp;lt;/cf>&lt;/it>"/> I J K L
+<tag_wrap content="&lt;it id=&quot;1&quot; pos=&quot;open&quot;>&amp;lt;/cf>&lt;/it>"/>E A B C D G H F I J K L
+E A B C D <tag_wrap content="&lt;it id=&quot;1&quot; pos=&quot;open&quot;>&amp;lt;/cf>&lt;/it>"/> G H F I J K L
+E A B C D <tag_wrap content="&lt;it id=&quot;1&quot; pos=&quot;open&quot;>&amp;lt;/cf>&lt;/it>"/>G H F I J K L
+E A B C D <tag_wrap content="&lt;it id=&quot;1&quot; pos=&quot;close&quot;>&amp;lt;/cf>&lt;/it>"/> G H F I J K L
+E A B C D <tag_wrap content="&lt;it id=&quot;1&quot; pos=&quot;close&quot;>&amp;lt;/cf>&lt;/it>"/> G H F I J K L
+E A B C D G H F<tag_wrap content="&lt;it id=&quot;1&quot; pos=&quot;close&quot;>&amp;lt;/cf>&lt;/it>"/> I J K L

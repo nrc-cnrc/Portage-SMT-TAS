@@ -10,3 +10,15 @@ a <bx id="1"/>b c <a>d <b>e</b> <bx id="2"/><c>f<ex id="1"/> <x /> g</c> h i j</
 <bx id="1"/>a b c <a><b><c><d>d<bx id="2"/> e</d> f g<ex id="1"/></c></b> h i j</a> k<ex id="2"/> l 
 <bx id="1"/>a b c <a><b><c><d>d<bx id="2"/> e</d> f g<ex id="1"/></c></b> h i j</a> k<ex id="2"/> l 
 a <open_wrap content="&lt;bpt i=&quot;1&quot; type=&quot;6&quot;/>" id="1"/>b c <a>d <b>e</b> <c>f<close_wrap content="&lt;ept i=&quot;1&quot;/>" id="1"/> <x /> g</c> h i j</a> k l 
+a b c d <tag_wrap content="&lt;it pos=&quot;begin&quot;>&amp;lt;/cf>&lt;/it>"/> e f g h i j k l 
+a b c d e <tag_wrap content="&lt;it pos=&quot;begin&quot;>&amp;lt;/cf>&lt;/it>"/> f g h i j k l 
+a b c d e f <tag_wrap content="&lt;it pos=&quot;begin&quot;>&amp;lt;/cf>&lt;/it>"/>g h i j k l 
+a b c d <tag_wrap content="&lt;it pos=&quot;end&quot;>&amp;lt;/cf>&lt;/it>"/> e f g h i j k l 
+a b c d e <tag_wrap content="&lt;it pos=&quot;end&quot;>&amp;lt;/cf>&lt;/it>"/> f g h i j k l 
+a b c d e f<tag_wrap content="&lt;it pos=&quot;end&quot;>&amp;lt;/cf>&lt;/it>"/> g h i j k l 
+a b c d <tag_wrap content="&lt;it id=&quot;1&quot; pos=&quot;open&quot;>&amp;lt;/cf>&lt;/it>"/> e f g h i j k l 
+a b c d e <tag_wrap content="&lt;it id=&quot;1&quot; pos=&quot;open&quot;>&amp;lt;/cf>&lt;/it>"/> f g h i j k l 
+a b c d e f <tag_wrap content="&lt;it id=&quot;1&quot; pos=&quot;open&quot;>&amp;lt;/cf>&lt;/it>"/>g h i j k l 
+a b c d <tag_wrap content="&lt;it id=&quot;1&quot; pos=&quot;close&quot;>&amp;lt;/cf>&lt;/it>"/> e f g h i j k l 
+a b c d e <tag_wrap content="&lt;it id=&quot;1&quot; pos=&quot;close&quot;>&amp;lt;/cf>&lt;/it>"/> f g h i j k l 
+a b c d e f<tag_wrap content="&lt;it id=&quot;1&quot; pos=&quot;close&quot;>&amp;lt;/cf>&lt;/it>"/> g h i j k l 
