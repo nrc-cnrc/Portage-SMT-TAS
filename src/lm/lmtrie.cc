@@ -34,6 +34,13 @@ PLM* LMTrie::Creator::Create(VocabFilter* vocab,
                             ostream *const os_filtered,
                             bool quiet)
 {
+   if (!check_if_exists(lm_physical_filename))
+      error(ETFatal, "Unable to open %s for reading: No such file or directory",
+            lm_physical_filename.c_str());
+   else if (is_directory(lm_physical_filename))
+      error(ETFatal, "Unable to open %s for reading: It is a directory, not a file",
+            lm_physical_filename.c_str());
+
    if ( LMBin::isA(lm_physical_filename) ) {
       //cerr << "BinLM v1.0" << endl;
       assert(vocab);
