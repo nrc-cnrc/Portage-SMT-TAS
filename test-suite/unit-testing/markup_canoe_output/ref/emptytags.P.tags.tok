@@ -28,3 +28,16 @@ P T <a><b>S R</b> Q<x/></a> U V
 P <a>Q <c>T <b>S R</b> <x/> U</c></a> V
 P <c>T <a><b>R S</b> Q<x/></a> U</c> V
 P <c>T <a><b>S R</b> Q<x/></a> U</c> V
+<a>Q P <b>R S</b><x/></a> T V U<z/>
+<a>Q P <b>R S</b><x/></a> T <c>V</c> U<z/>
+<a>Q P <b>R S</b><x/></a> T <c>V<z/></c> U
+<c><a>Q P <b>R S</b><x/></a> T V U</c>
+<z/><c><a>Q P <b>R S</b><x/></a> T V U</c>
+<c><a>Q <z/>P <b>R S</b><x/></a> T V U</c>
+<z/>Q P <a><b>R S</b><x/></a> T V U
+<z/>Q <a>P</a> <b>R S</b> <x/>T V U
+Q <a><z/>P</a> <b>R S</b> <x/>T V U
+<z/><y/>Q <a>P</a> <b>R S</b> <x/>T V U
+<z/>Q <a><y/>P</a> <b>R S</b> <x/>T V U
+<z/><a><y/></a>Q P <b>R S</b> <x/>T V U
+<z/><y/><a>Q P <b>R S</b><x/></a> T V U

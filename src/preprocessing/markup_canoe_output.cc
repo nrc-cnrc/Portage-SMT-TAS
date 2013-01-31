@@ -862,7 +862,8 @@ int main(int argc, char* argv[])
       // elements in left or right tag sequences.
       nested.clear();
       i = 0;
-      Uint next_ne = 0;       // "next" non-empty element
+      Uint first_ne = 0;      // first non-empty element in the source
+      Uint next_ne = 0;       // "next" non-empty element in the source
       sortBySource(phrase_pairs); // OOV status code below assumes this property
       Uint oov_p = 0;             // index in pharse_pairs of OOV
       for (Uint id = 1; id < Elem::next_id; ++id) {
@@ -915,13 +916,21 @@ int main(int argc, char* argv[])
             }
             // Fix non-intra-token empty (non-paired) elements in left tag sequence before a token:
             // maintain ordering in target if before a non-empty tag.
+            // Exception - empty (point) elements before the first non-empty
+            // element or token at the start of the line should stay at the
+            // start of the line.
             if (!elems[i].intratok && elems[i].isOrdinaryEmpty() && !elems[i].close_tag) {
                // Find next non-empty element
                if (next_ne < i)
                   next_ne = i;
                for (; next_ne < elems.size() && elems[next_ne].empty(); ++next_ne) ;
+               if (i == 0)
+                  first_ne = next_ne;
+               // Adjust target token range for empty elements at the start of the line to stay there.
+               if (i < first_ne && elems[i].btok == 0)
+                  elems[i].btok_tgt = elems[i].etok_tgt = 0;
                // Adjust target token range if a non-empty element follows at the same token.
-               if (next_ne < elems.size() && elems[i].btok == elems[next_ne].btok)
+               else if (next_ne < elems.size() && elems[i].btok == elems[next_ne].btok)
                   elems[i].btok_tgt = elems[i].etok_tgt = elems[next_ne].btok_tgt;
             }
             if (elems[i].rid)
