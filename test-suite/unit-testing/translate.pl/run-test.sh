@@ -10,7 +10,5 @@
 # Copyright 2013, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2013, Her Majesty in Right of Canada
 
-\make clean
-\make all -B
-
-exit
+make clean
+make all -B
