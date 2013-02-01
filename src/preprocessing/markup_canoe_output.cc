@@ -11,6 +11,7 @@
  */
 
 #include <limits>
+#include <climits>
 #include <iostream>
 #include <fstream>
 #include "file_utils.h"
@@ -90,6 +91,15 @@ static bool pal_wal = false;
 static vector<string> tags_to_ignore;
 static void getArgs(int argc, char* argv[]);
 
+// Global stats
+Uint num_unmatched_tags = 0;
+Uint num_bad_nesting = 0;
+Uint num_empty_elems = 0;
+Uint num_elems = 0;
+Uint num_elems_aligned = 0;
+Uint num_elems_contig = 0;
+
+
 // represent an XML element: pair of tags, with token positions, possibly
 // identical (if element is empty)
 
@@ -164,6 +174,25 @@ struct Elem {
       }
    }
 
+   // update, from right tag positions within line
+   void update(const string& line, Uint beg, Uint end, Uint etok_tag,
+               bool wslseq, bool wsrseq, Uint ip)
+   {
+      if (line[beg+1] == '/') {
+         rstring = line.substr(beg, end-beg);
+         rid = next_id++;
+      }
+      etok = etok_tag;
+      complete = true;
+      rwsl = beg==0 || line[beg-1]==' ';
+      rwsr = end==line.size() || line[end]==' ';
+      rwslseq = wslseq;
+      rwsrseq = wsrseq;
+      if (!rwslseq && !rwsrseq)
+         intratok = true;
+      rip = ip;
+   }
+
    static bool isLeft(const string& line, Uint beg, Uint end) {
       return line[beg+1] != '/';
    }
@@ -195,7 +224,7 @@ struct Elem {
            << " tgt:(" << btok_tgt << "," << etok_tgt << ")"
            << " whitespace: " << lwsl << lwsr << rwsl << rwsr
            << " seq ws: " << lwslseq << lwsrseq << rwslseq << rwsrseq
-           << (intratok ? " (intra-token" : "") << (oov ? " oov)" : ")")
+           << (intratok ? " (intra-token" : "") << (oov ? " oov" : "") << (intratok ? ")" : "")
            << " lip: " << lip << " rip: " << rip << endl;
    }
 
@@ -212,6 +241,7 @@ struct Elem {
 
    bool isIntraToken() { return intratok; }
 
+   // is this element paired with another, e.g. open_wrap/close_wrap or bx/ex?
    bool isPaired() { return !pair_id.empty(); }
 
    // open_wrap or bx ?
@@ -222,10 +252,10 @@ struct Elem {
 
    bool isIsolatedTag() { return !it_pos.empty(); }
 
-   // <it> tag with pos="open" or pos="begin" ?
+   // wrapped <it> tag with pos="open" or pos="begin" ?
    bool isOpenIT() { return isIsolatedTag() && (it_pos[0] == 'o' || it_pos[0] == 'b'); }
 
-   // <it> tag with pos="close" or pos="end" ?
+   // wrapped <it> tag with pos="close" or pos="end" ?
    bool isCloseIT() { return isIsolatedTag() && (it_pos[0] == 'c' || it_pos[0] == 'e'); }
 
    // is this a plain ordinary empty (point) tag, not a wrapped <it> or paired tag?
@@ -239,28 +269,10 @@ struct Elem {
 
    // is this element nested inside another intra-token element?
    bool nestedIntraToken(Elem& other) { return other.isIntraToken() && nestedIn(other); }
-
-   // update, from right tag positions within line
-   void update(const string& line, Uint beg, Uint end, Uint etok_tag,
-               bool wslseq, bool wsrseq, Uint ip)
-   {
-      if (line[beg+1] == '/') {
-         rstring = line.substr(beg, end-beg);
-         rid = next_id++;
-      }
-      etok = etok_tag;
-      complete = true;
-      rwsl = beg==0 || line[beg-1]==' ';
-      rwsr = end==line.size() || line[end]==' ';
-      rwslseq = wslseq;
-      rwsrseq = wsrseq;
-      if (!rwslseq && !rwsrseq)
-         intratok = true;
-      rip = ip;
-   }
 };
 
 Uint Elem::next_id = 1;         // tag ids start at 1
+
 
 // Initial stab at a bilingual dictionary, customized with a few ad hoc en/fr
 // entries. TODO: normalize case before comparing, allow spec of coding scheme,
@@ -292,12 +304,205 @@ struct Dict {
    }
 };
 
-// Estimate the score for a word pair within a phrase pair of length (I>0, J>0)
-// by comparing its position to a diagonal line that connects (0,0) to (I,J).
-// Calculate horizontal and vertical distances to the diagonal, sum them, add
-// one, then return their inverse, so that higher scores are better. Scores are
-// in (0,1].
 
+/**
+ * Return true if this tag should be ignored.
+ */
+inline bool ignoreTag(const string &tag_name)
+{
+   return find(tags_to_ignore.begin(), tags_to_ignore.end(), tag_name) !=
+          tags_to_ignore.end();
+}
+
+/**
+ * Split a string into tokens appending to previously extracted toks,
+ * merging the first one with the previous last token if indicated.
+ */
+void splitAndMerge(const string &s, vector<string> &toks, bool merge_needed)
+{
+   Uint mtok = merge_needed ? toks.size() : 0;
+   split(s, toks);
+   if (mtok && toks.size() > mtok) {
+      toks[mtok-1].append(toks[mtok]);
+      toks.erase(toks.begin() + mtok);
+   }
+}
+
+/**
+ * Tokenize a source line and record the XML elements.
+ * @param line the source sentence
+ * @param lineno line number for error messages
+ * @param src_toks source sentence tokens
+ * @param elems vector of XML elements for the sentence
+ */
+void tokenizeSource(const string line, const Uint lineno,
+                    vector<string> &src_toks, vector<Elem> &elems)
+{
+   vector<Uint> nested;     // stack of nested elems during output
+   nested.reserve(32);
+   bool is_intra_tok_tag = false;
+   const string whitespace(" \t\n");
+   src_toks.clear();
+   elems.clear();
+   Elem::next_id = 1;        // reset at the start of each line.
+   nested.clear();
+   string::size_type p = 0, beg = 0, end = 0;
+   bool wsl = true, wsr = true;
+
+   while (findXMLishTag(line, p, beg, end)) {
+      // Determine wsl and wsr for a sequence of tags when the first tag
+      // in the sequence is encountered.
+      if (beg != p || beg == 0) {
+         wsl = beg > 0 ? (whitespace.find(line[beg-1]) != string::npos) : true;
+         string::size_type p2 = end, b2, e2;
+         while (findXMLishTag(line, p2, b2, e2)) {
+            if (b2 != p2) break;
+            if( ignoreTag(Elem::getName(line, beg, end))) break;
+            p2 = e2;
+            if (extra_verbose)
+               cerr << "p2: " << p2 << endl;
+         }
+         wsr = p2 < line.size() ? (whitespace.find(line[p2]) != string::npos) : true;
+      }
+      string name = Elem::getName(line, beg, end);
+      if (extra_verbose) {
+         cerr << "p:" << p << " beg:" << beg << " end:" << end << " "
+              << line.substr(beg, end-beg) << " name:" << name << endl;
+      }
+      if (ignoreTag(name)) {
+         splitAndMerge(line.substr(p, end-p), src_toks, is_intra_tok_tag);
+         p = end;
+         continue;
+      }
+      splitAndMerge(line.substr(p, beg-p), src_toks, is_intra_tok_tag);
+      is_intra_tok_tag = !wsl && !wsr;
+      if (Elem::isLeft(line, beg, end)) {
+         Uint btok = src_toks.size() - (is_intra_tok_tag ? 1 : 0);
+         nested.push_back(elems.size());
+         Uint ip = is_intra_tok_tag ? src_toks.back().size() : 0;
+         elems.push_back(Elem(line, beg, end, btok, wsl, wsr, ip));
+      }
+      if (Elem::isRight(line, beg, end)) { // find a match
+         Uint i = elems.size();
+         for (; i > 0; --i) {
+            if (!elems[i-1].complete && elems[i-1].name == name) {
+               Uint etok = src_toks.size();
+               Uint ip = src_toks.size() > 0 ? src_toks.back().size() : 0;
+               elems[i-1].update(line, beg, end, etok, wsl, wsr, ip);
+               break;
+            }
+         }
+         if (i == 0) {
+            string tag = line.substr(beg, end-beg);
+            if (verbose)
+               error(ETWarn, "line %d: %s has no matching left tag - ignoring",
+                     lineno, tag.c_str());
+            ++num_unmatched_tags;
+         } else {
+            // i-1 is the index of the element we are working with
+            if (!nested.empty() && nested.back() == i-1) {
+               nested.pop_back();
+            } else {
+               for (Uint j=nested.size(); j > 0; --j)
+                  if (nested[j-1] == i-1) {
+                     nested.erase(nested.begin()+j-1);
+                     break;
+                  }
+               if (verbose)
+                  error(ETWarn, "line %d: XML tag nesting bad within element %i: %s",
+                        lineno, i, elems[i-1].lstring.c_str());
+               ++num_bad_nesting;
+            }
+            if (extra_verbose) {
+               cerr << "updated element" << i-1 << ":" << endl;
+               elems[i-1].dump();
+            }
+            if (elems[i-1].isClosePair() ) {  // find match for paired element
+               Uint j = i-1;
+               for (; j > 0; --j) {
+                  if (elems[j-1].pair_id == elems[i-1].pair_id) {
+                     // set src token span for both paired elements.
+                     // after the tgt span is determined, these will be restored.
+                     elems[j-1].etok = elems[i-1].etok;
+                     elems[i-1].btok = elems[j-1].btok;
+                     if (extra_verbose) {
+                        cerr << "element " << i-1 << " paired with " << j-1 << endl;
+                        elems[i-1].dump();
+                        elems[j-1].dump();
+                     }
+                     break;
+                  }
+               }
+               if (j == 0) {
+                  if (verbose)
+                     error(ETWarn, "line %d: Paired element %s has no matching opening element",
+                           lineno, elems[i-1].lstring.c_str());
+                  ++num_unmatched_tags;
+               }
+            }
+         }
+      }
+      p = end;
+   }
+   splitAndMerge(line.substr(p), src_toks, is_intra_tok_tag); // add remaining tokens
+
+   if (extra_verbose) {
+      cerr << "Elements after tokenizing source (initial pass)..." << endl;
+      for (Uint i = 0; i < elems.size(); ++i)
+         elems[i].dump();
+   }
+
+   // Make a second pass over all tags patching some element info based on
+   // information that was not available during the input pass.
+   // In particular, fix empty tags at token start/end that should be
+   // marked as intra-token; also fix the token span for isolated tags.
+   nested.clear();
+   Uint i = 0;
+   for (Uint id = 1; id < Elem::next_id; ++id) {
+      if (i < elems.size() && elems[i].lid == id) {
+         // Fix non-intra-token empty elements nested within intra-token elements:
+         // mark them as intra-token elements.
+         if (!elems[i].intratok && elems[i].empty()) {
+            if (!nested.empty() && elems[i].nestedIntraToken(elems[nested.back()])) {
+               Uint j = nested.back();
+               elems[i].intratok = true;
+               elems[i].lip = elems[i].rip = elems[j].lip ? elems[j].rip : 0;
+               if (elems[i].lip) {
+                  elems[i].btok = elems[j].btok;
+                  elems[i].etok = elems[j].etok;
+               }
+            }
+         }
+         // Fix the token span for isolated tags to refer to the beginning
+         // portion or end portion of the line as appropriate.
+         if (elems[i].isIsolatedTag()) {
+            if (elems[i].isOpenIT())
+               elems[i].etok = src_toks.size();
+            else
+               elems[i].btok = 0;
+         }
+         if (elems[i].rid)
+            nested.push_back(i);
+         i++;
+      } else if (!nested.empty() && elems[nested.back()].rid == id)
+         nested.pop_back();
+      else
+         error(ETFatal, "line %d: Unable to locate tag id %i", lineno, id);
+   }
+
+} // tokenizeSource
+
+/**
+ * Estimate the score for a word pair within a phrase pair of length (I>0, J>0)
+ * by comparing its position to a diagonal line that connects (0,0) to (I,J).
+ * Calculate horizontal and vertical distances to the diagonal, sum them, add
+ * one, then return their inverse, so that higher scores are better. Scores are
+ * in (0,1].
+ * @param i source word index in source phrase
+ * @param j target word index in target phrase
+ * @param I source phrase length
+ * @param J target phrase length
+ */
 double positionScore(Uint i, Uint j, Uint I, Uint J)
 {
    double slope = J/(double)I;
@@ -450,16 +655,260 @@ pair<Uint,Uint> targetSpan(const vector<vector<Uint> >& src_al, const PhrasePair
 }
 
 /**
- * Return true if this tag should be ignored.
+ * Assign target span to each element based on its source span and other properties.
+ * @param lineno line number for error messages
+ * @param dict word-pair dictionary
+ * @param anti_dict word-pair anti-dictionary
+ * @param src_toks source sentence tokens
+ * @param tgt_toks target sentence tokens
+ * @param phrase_pairs vector of phrase pairs for the sentence from PAL file
+ * @param elems vector of XML elements for the sentence
  */
-inline bool ignoreTag(const string &tag_name)
+void assignTargetSpans(Uint lineno, Dict &dict, Dict &anti_dict,
+                       vector<string> &src_toks, vector<string> &tgt_toks,
+                       vector<PhrasePair> &phrase_pairs, vector<Elem> &elems)
 {
-   return find(tags_to_ignore.begin(), tags_to_ignore.end(), tag_name) !=
-          tags_to_ignore.end();
-}
+   vector<vector<Uint> > src_al;
+   vector<PhrasePair> pp_span;
+
+   // assign target positions to elements
+   for (Uint i = 0; i < elems.size(); ++i) {
+      if (extra_verbose) elems[i].dump();
+      if (!elems[i].complete) {
+         error(ETWarn, "line %d: %s has no matching right tag - ignoring",
+               lineno, elems[i].lstring.c_str());
+         ++num_unmatched_tags;
+         continue;
+      }
+      if (!xtags && elems[i].empty()) {
+         error(ETWarn, "line %d: %s is empty - ignoring",
+            lineno, elems[i].lstring.c_str());
+         ++num_empty_elems;
+         continue;
+      }
+      ++num_elems;
+
+      // find bracketing phrase pairs
+      Uint lp = 0;  // leftmost phrase that overlaps with elem
+      for (; lp < phrase_pairs.size(); ++lp)
+         if (phrase_pairs[lp].src_pos.second > elems[i].btok)
+            break;
+      Uint rp = phrase_pairs.size(); // rightmost phrase that overlaps w/ elem
+      if (elems[i].btok == elems[i].etok)
+         rp = lp;       // point tag
+      else {
+         for (; rp > 0; --rp)
+            if (phrase_pairs[rp-1].src_pos.first < elems[i].etok)
+               break;
+         --rp;  // index of actual rightmost phrase
+      }
+      if (extra_verbose)
+         cerr << "lp: " << lp << " rp: " << rp << endl;
+
+      if (lp < phrase_pairs.size()) {
+         // check for target-side contiguity
+         pp_span.assign(phrase_pairs.begin()+lp, phrase_pairs.begin()+rp+1);  // copy span
+         sortByTarget(pp_span.begin(), pp_span.end());
+         if ((elems[i].contig = targetContig(pp_span.begin(), pp_span.end())))
+            ++num_elems_contig;
+         if (extra_verbose) cerr << "...target-side contiguity checked" << endl;
+
+         // check for source-side span match
+         Uint btok = phrase_pairs[lp].src_pos.first;
+         Uint etok = phrase_pairs[rp].src_pos.second;
+         Uint btok_tgt = pp_span.begin()->tgt_pos.first;
+         Uint etok_tgt = pp_span.back().tgt_pos.second;
+         if (verbose)
+            cerr << "pp src: " << btok << "," << etok << " tgt: " << btok_tgt << "," << etok_tgt << endl;
+         if ((elems[i].palign = btok == elems[i].btok && etok == elems[i].etok))
+            ++num_elems_aligned;
+         if (extra_verbose) cerr << "...source-side span match done" << endl;
+
+         // find element's first target token
+         PhrasePair& begpp = *pp_span.begin();  // phrase pair w/ 1st tgt phrase
+         if (begpp.src_pos.first == btok) { // 1st tgt phr alig'd to 1st src phr
+            if (verbose) cerr << "begin case 1" << endl;
+            alignPhrasePair(dict, anti_dict, begpp, src_toks, tgt_toks, src_al);
+            elems[i].btok_tgt =
+               targetSpan(src_al, begpp, elems[i].btok,
+                          min(elems[i].etok, begpp.src_pos.second)).first;
+         } else if (begpp.src_pos.second == etok) { // 1st tgt "" end src phr
+            if (verbose) cerr << "begin case 2" << endl;
+            alignPhrasePair(dict, anti_dict, begpp, src_toks, tgt_toks, src_al);
+            elems[i].btok_tgt =
+               targetSpan(src_al, begpp,
+                          begpp.src_pos.first, elems[i].etok).first;
+         } else {  // 1st tgt phrase is aligned to middle src phrase
+            if (verbose) cerr << "begin case 3" << endl;
+            elems[i].btok_tgt = btok_tgt;
+         }
+         if (extra_verbose) cerr << "...setting first target token done" << endl;
+
+         // find element's last+1 target token
+         PhrasePair& endpp = pp_span.back(); // phrase pair w/ last tgt phrase
+         if (endpp.src_pos.second == etok) { // end tgt phr alg'd to end src phr
+            if (verbose) cerr << "end case 1" << endl;
+            alignPhrasePair(dict, anti_dict, endpp, src_toks, tgt_toks, src_al);
+            elems[i].etok_tgt =
+               targetSpan(src_al, endpp,
+                          max(endpp.src_pos.first, elems[i].btok),
+                          elems[i].etok).second;
+         } else if (endpp.src_pos.first == btok) { // end tgt phr "" 1st src phr
+            if (verbose) cerr << "end case 2" << endl;
+            alignPhrasePair(dict, anti_dict, endpp, src_toks, tgt_toks, src_al);
+            elems[i].etok_tgt =
+               targetSpan(src_al, endpp,
+                          elems[i].btok, endpp.src_pos.second).second;
+         } else {  // end tgt phrase is aligned to middle src phrase
+            if (verbose) cerr << "end case 3" << endl;
+            elems[i].etok_tgt = etok_tgt;
+         }
+         if (extra_verbose) cerr << "...setting last+1 target token done" << endl;
+
+      } else {
+         // There can be (point) tags can be at after last token.
+         elems[i].contig = true;
+         ++num_elems_contig;
+         elems[i].palign = true;
+         ++num_elems_aligned;
+         elems[i].btok_tgt = elems[i].etok_tgt = tgt_toks.size();
+      }
+
+      if (verbose && (elems[i].palign == false || elems[i].contig == false))
+         error(ETWarn, "line %d, tag pair %d: %s%s%s", lineno, i+1,
+               !elems[i].palign ? "not aligned with source phrase boundaries" : "",
+               !elems[i].palign && !elems[i].contig ? "; " : "",
+               !elems[i].contig ? "translation not contiguous" : "");
+      if (extra_verbose) elems[i].dump();
+   } // for each element
+
+   if (extra_verbose) {
+      cerr << "Elements after assigning target spans (initial pass)..." << endl;
+      for (Uint i = 0; i < elems.size(); ++i)
+         elems[i].dump();
+   }
+
+   // Now that the target spans are set, restore the btok, etok and
+   // btok_tgt, etok_tgt fields:
+   // - for paired elements such that that pair open tag will be output
+   //   before the pair close tag; also flag empty pairs.
+   // - for isolated tags to return them to being point tags
+   if (xtags) {
+      for (Uint i = 0; i < elems.size(); ++i) {
+         if (elems[i].isPaired()) {
+            elems[i].pair_empty = elems[i].etok_tgt == elems[i].btok_tgt;
+            if (elems[i].isOpenPair()) {
+               elems[i].etok = elems[i].btok;
+               elems[i].etok_tgt = elems[i].btok_tgt;
+            } else {
+               elems[i].btok = elems[i].etok;
+               elems[i].btok_tgt = elems[i].etok_tgt;
+            }
+         } else if (elems[i].isIsolatedTag()){
+            if (elems[i].isOpenIT()) {
+               elems[i].etok = elems[i].btok;
+               elems[i].etok_tgt = elems[i].btok_tgt;
+            } else {
+               elems[i].btok = elems[i].etok;
+               elems[i].btok_tgt = elems[i].etok_tgt;
+            }
+         }
+      }
+   }
+
+   // Make a third pass over all tags patching some element info based on
+   // information involving target positions.
+   // In particular, determine the OOV status of tokens for intra-token
+   // elements and fix the target token range for non-intra-token empty
+   // elements in left or right tag sequences.
+   vector<Uint> nested;     // stack of nested elems
+   nested.reserve(32);
+   Uint i = 0;
+   Uint first_ne = 0;      // first non-empty element in the source
+   Uint next_ne = 0;       // "next" non-empty element in the source
+   sortBySource(phrase_pairs); // OOV status code below assumes this property
+   Uint oov_p = 0;             // index in pharse_pairs of OOV
+   for (Uint id = 1; id < Elem::next_id; ++id) {
+      if (i < elems.size() && elems[i].lid == id) {
+         // Determine the OOV(-look-alike) status of tokens for intra-token elements
+         if (elems[i].intratok) {
+            // Is the token for this intra-token element an actual OOV?
+            for (; oov_p < phrase_pairs.size(); ++oov_p) {
+               if (phrase_pairs[oov_p].src_pos.second > elems[i].btok) {
+                  if (phrase_pairs[oov_p].src_pos.first == elems[i].btok
+                        && phrase_pairs[oov_p].oov)
+                     elems[i].oov = true;
+                  break;
+               }
+            }
+            // If not an OOV, does it look like an OOV?
+            if (!elems[i].oov) {
+               Uint etgt = elems[i].etok_tgt + (elems[i].emptyTgt() ? 1 : 0);
+               string &src_tok(src_toks[elems[i].btok]);
+               Uint j = elems[i].btok_tgt;
+               for(; j < etgt && tgt_toks[j] != src_tok; ++j) {};
+               if (j < etgt) {
+                  elems[i].oov = true;
+                  // update tgt range to attach element to the oov look-alike.
+                  elems[i].btok_tgt = j;
+                  elems[i].etok_tgt = j + 1;
+               } else if (etgt - elems[i].btok_tgt > 1) {
+                  // Non-OOV with than one target token:
+                  // update tgt range to move intra-token elements to the
+                  // the first or last token of the target phrase depending
+                  // on whether the element's left tag is at the start of
+                  // the source token or not.
+                  if (elems[i].lip == 0)
+                     elems[i].etok_tgt = elems[i].btok_tgt + 1;
+                  else
+                     elems[i].btok_tgt = elems[i].etok_tgt - 1;
+               }
+            }
+         }
+         // Fix non-intra-token empty elements in right tag sequence after a token:
+         // treat them as close tags after the token
+         if (!elems[i].intratok && elems[i].empty()) {
+            if (!nested.empty() && !elems[i].nestedIntraToken(elems[nested.back()])) {
+               Uint j = nested.back();
+               if ((!elems[j].empty() && elems[i].btok == elems[j].etok) || elems[j].close_tag) {
+                  elems[i].close_tag = true;
+                  elems[i].btok_tgt = elems[i].etok_tgt = elems[j].etok_tgt;
+               }
+            }
+         }
+         // Fix non-intra-token empty (non-paired) elements in left tag sequence before a token:
+         // maintain ordering in target if before a non-empty tag.
+         // Exception - empty (point) elements before the first non-empty
+         // element or token at the start of the line should stay at the
+         // start of the line.
+         if (!elems[i].intratok && elems[i].isOrdinaryEmpty() && !elems[i].close_tag) {
+            // Find next non-empty element
+            if (next_ne < i)
+               next_ne = i;
+            for (; next_ne < elems.size() && elems[next_ne].empty(); ++next_ne) ;
+            if (i == 0)
+               first_ne = next_ne;
+            // Adjust target token range for empty elements at the start of the line to stay there.
+            if (i < first_ne && elems[i].btok == 0)
+               elems[i].btok_tgt = elems[i].etok_tgt = 0;
+            // Adjust target token range if a non-empty element follows at the same token.
+            else if (next_ne < elems.size() && elems[i].btok == elems[next_ne].btok)
+               elems[i].btok_tgt = elems[i].etok_tgt = elems[next_ne].btok_tgt;
+         }
+         if (elems[i].rid)
+            nested.push_back(i);
+         i++;
+      } else if (!nested.empty() && elems[nested.back()].rid == id)
+         nested.pop_back();
+      else
+         error(ETFatal, "Line %i: Unable to locate tag id %i", lineno, id);
+   } // for each id - end of "third" pass
+} // assignTargetSpans
 
 /**
  * Convert a target token into an XML-escaped version.
+ * @param tok token to the XML-escaped
+ * @return XML-escaped version of the token
  */
 string escape(const string& tok)
 {
@@ -486,8 +935,11 @@ string escape(const string& tok)
 
 /**
  * Escape and output a substring of a token [beg, end).
+ * @param tok token with fragment to output
+ * @param beg index of first character to output
+ * @param end index+1 of last character to output
  */
-void outputFragment(string &tok, Uint beg, Uint end) {
+void outputFragment(const string &tok, Uint beg, Uint end) {
    if (end > tok.size())
       end = tok.size();
    if (beg >= end)
@@ -496,18 +948,269 @@ void outputFragment(string &tok, Uint beg, Uint end) {
 }
 
 /**
- * Split a string into tokens appending to previously extracted toks,
- * merging the first one with the previous last token if indicated.
+ * Output a target line with XML tags transferred from the source.
+ * @param tgt_toks target sentence tokens
+ * @param elems vector of XML elements for the sentence
  */
-void splitAndMerge(const string &s, vector<string> &toks, bool merge_needed)
+void outputWithXMLTags(const vector<string> &tgt_toks, vector<Elem> &elems)
 {
-   Uint mtok = merge_needed ? toks.size() : 0;
-   split(s, toks);
-   if (mtok && toks.size() > mtok) {
-      toks[mtok-1].append(toks[mtok]);
-      toks.erase(toks.begin() + mtok);
+   vector<Uint> nested;     // stack of nested elems during output
+   nested.reserve(32);
+   Uint max_ip = UINT_MAX;      // for non-OOV tokens
+   bool need_ws = false;
+   bool seq_start = true;
+   Uint nested_mark = 0;        // used to mark a spot in the nested stack
+   bool rwsr = false;           // rwsr for last right tag output
+   bool sp_out = false;         // was last output character a space?
+
+   for (Uint i = 0; i < tgt_toks.size(); ++i) {
+      // Output left tags for non intra-token elements beginning at this token;
+      // include right tags for non intra-token empty elements before this token.
+      // Maintain the proper nesting of empty tags.
+      seq_start = true;
+      nested_mark = nested.size();   // mark this spot in the nested stack
+      rwsr = false;    // rwsr for last tag output if a right tag; otherwise false
+      sp_out = false;  // was last output character a space?
+      for (Uint j = 0; j < elems.size(); ++j) {
+         if (elems[j].shouldTransfer() && elems[j].btok_tgt==i) {
+            // Handle intra-token tags later, when outputting the token itself.
+            if (!elems[j].isIntraToken() && !elems[j].lout) {
+               // Output right tags if needed for empty tags in sequence.
+               while (nested.size() > nested_mark) {
+                  Uint k = nested.back();
+                  if (elems[j].nestedIn(elems[k]))
+                     break;
+                  if (elems[k].rwsl && !sp_out) {
+                     cout << ' ';
+                     need_ws = false;
+                  }
+                  cout << elems[k].rstring;
+                  sp_out = false;
+                  if (i != 0 || elems[k].btok == 0)
+                     rwsr = elems[k].rwsr || elems[k].rwsrseq;
+                  nested.pop_back();
+               }
+               if (need_ws && (elems[j].lwsl || (seq_start && elems[j].lwslseq))) {
+                  cout << ' ';
+                  need_ws = false;
+               }
+               // Output this left tag.
+               cout << elems[j].lstring;
+               sp_out = false;
+               elems[j].lout = true;
+               if (!elems[j].rstring.empty()) {
+                  // Push element on nested stack to output right tag later.
+                  nested.push_back(j);
+                  if (!elems[j].emptyTgt())
+                     nested_mark = nested.size();   // mark this spot in the nested stack
+                  // Note: usually, don't want whitespace before the first token.
+                  if (elems[j].lwsr && (i != 0 || elems[j].btok == 0)) {
+                     cout << ' ';
+                     sp_out = true;
+                     need_ws = false;
+                  }
+                  rwsr = false;      // not a right tag
+               } else {
+                  // Point tag - track whitespace needs to right.
+                  if (i != 0 || elems[j].btok == 0)
+                     rwsr = elems[j].rwsr || elems[j].rwsrseq;
+               }
+               seq_start = false;
+            }
+         }
+      }
+
+      // Finish outputting right tags for empty tags before this token.
+      while (nested.size() > nested_mark) {
+         Uint k = nested.back();
+         if (elems[k].rwsl && !sp_out) {
+            cout << ' ';
+            need_ws = false;
+         }
+         cout << elems[k].rstring;
+         sp_out = false;
+         if (i != 0 || elems[k].btok == 0)
+            rwsr = elems[k].rwsr || elems[k].rwsrseq;
+         nested.pop_back();
+      }
+      if (rwsr) {
+         cout << ' ';
+         need_ws = false;
+      }
+
+      // Output this token and its intra-token elements, preceded by whitespace if needed.
+      // For OOVs, embed the intra-token elements to match the original.
+      // For non-OOVs, output before the token an intra-token element that
+      // has a left tag at the token start in the source and any intra-token
+      // elements nested within that element; output all other intra-token
+      // elements after the token.
+      if (need_ws)
+         cout << ' ';
+      nested_mark = nested.size();   // mark this spot in the nested stack
+      Uint tok_idx = 0;
+      for (Uint j = 0; j < elems.size(); ++j) {
+         if (!elems[j].lout && elems[j].shouldTransfer() && elems[j].btok_tgt==i) {
+            if (elems[j].isIntraToken()) {
+               while (nested.size() > nested_mark) {
+                  Uint k = nested.back();
+                  if (elems[j].nestedIn(elems[k]))
+                     break;
+                  // Output token fragment before a right tag
+                  if ( elems[k].oov && tok_idx < elems[k].rip) {
+                     outputFragment(tgt_toks[i], tok_idx, elems[k].rip);
+                     tok_idx = elems[k].rip;
+                  }
+                  // Output right tag of intra-token element
+                  cout << elems[k].rstring;
+                  nested.pop_back();
+               }
+               // Output token fragment before this intra-token element
+               // or for non-OOVs output the whole token if we're finished
+               // outputting the nested intra-token elements from the
+               // start of the token.
+               if (tok_idx < elems[j].lip) {
+                  if (elems[j].oov) {
+                     outputFragment(tgt_toks[i], tok_idx, elems[j].lip);
+                     tok_idx = elems[j].lip;
+                  } else if (nested.size() == nested_mark) {
+                     cout << escape(tgt_toks[i]);
+                     tok_idx = max_ip;
+                  }
+               }
+               // Output left tag of this intra-token element
+               cout << elems[j].lstring;
+               elems[j].lout = true;
+               if (!elems[j].rstring.empty())
+                  nested.push_back(j);
+            }
+         }
+      }
+      // Finish outputting right tags and token fragments for the OOV.
+      // If necessary, finish with a final fragment after the last tag
+      // (possibly the whole token for a non-OOV).
+      while (nested.size() > nested_mark) {
+         Uint k = nested.back();
+         if (elems[k].oov && tok_idx < elems[k].rip) {
+            outputFragment(tgt_toks[i], tok_idx, elems[k].rip);
+            tok_idx = elems[k].rip;
+         }
+         cout << elems[k].rstring;
+         nested.pop_back();
+      }
+      if (tok_idx < tgt_toks[i].size())
+         outputFragment(tgt_toks[i], tok_idx, tgt_toks[i].size());
+
+      need_ws = true;
+      // Output right tags for elements ending at this token.
+      // Note: Proper XML nesting order is maintained in the output, but
+      // some right tags may be output (moved to) later than indicated by
+      // the alignment in order to remove overlap between elements.
+      rwsr = false;     // rwsr for last right tag output
+      nested_mark = nested.size();   // mark this spot in the nested stack
+      while (!nested.empty()) {
+         Uint j = nested.back();
+         if (nested.size() <= nested_mark &&
+               elems[j].etok_tgt > i + (elems[j].empty() ? 0 : 1))
+            break;
+         if (nested.size() == nested_mark)
+            --nested_mark;
+         // Output empty (point) elements that must precede this right tag
+         for (Uint k=j; k < elems.size(); ++k) {
+            if (elems[k].shouldTransfer() && !elems[k].lout) {
+               if (((elems[k].isOrdinaryEmpty() && elems[k].btok == elems[j].etok) ||
+                    (elems[k].isClosePair() && !elems[k].pair_empty && elems[k].btok_tgt == i+1) ||
+                    (elems[k].isCloseIT() && elems[k].btok_tgt == i+1))
+                   && elems[k].nestedIn(elems[j])) {
+                  if (need_ws && elems[k].lwsl) {
+                     cout << ' ';
+                     need_ws = false;
+                  }
+                  cout << elems[k].lstring;
+                  elems[k].lout = true;
+                  if (!elems[k].rstring.empty()) {
+                     nested.push_back(k);
+                     j = k;
+                  }
+               }
+            }
+         }
+         // Output this right tag.
+         if (elems[j].rwsl) {
+            cout << ' ';
+            need_ws = false;
+         }
+         cout << elems[j].rstring;
+         rwsr = elems[j].rwsr || elems[j].rwsrseq;
+         nested.pop_back();
+      }
+      // Output tags for any closing paired elements ending at this token
+      // not output by the right tag processing above.
+      // Paired elements and isolated tags are handled outside the nesting
+      // structure, i.e. such elements are not pushed on the nested stack.
+      // Skip handling empty paired tags - use normal empty tag handling instead.
+      for (Uint j = 0; j < elems.size(); ++j) {
+         if ((elems[j].isClosePair() && !elems[j].pair_empty) || elems[j].isCloseIT()) {
+            if (elems[j].shouldTransfer() && !elems[j].lout && elems[j].btok_tgt==i+1) {
+               if (elems[j].lwsl) {
+                  cout << ' ';
+                  need_ws = false;
+               }
+               cout << elems[j].lstring;
+               elems[j].lout = true;
+               rwsr = elems[j].rwsr || elems[j].rwsrseq;
+            }
+         }
+      }
+      // Output whitespace if needed after right/pair-closing tags.
+      if (rwsr && i < tgt_toks.size()-1) {
+         cout << ' ';
+         need_ws = false;
+      }
+   } // for each token
+
+   // Finally, output any tags that follow the last token.
+   seq_start = true;
+   rwsr = false;    // rwsr for last right tag output
+   sp_out = false;  // was last output character a space?
+   for (Uint j = 0; j < elems.size(); ++j) {
+      // Output right tags if needed for empty tags in sequence.
+      while (!nested.empty()) {
+         Uint k = nested.back();
+         if (elems[j].nestedIn(elems[k]))
+            break;
+         if (elems[k].rwsl && !sp_out)
+            cout << ' ';
+         cout << elems[k].rstring;
+         sp_out = false;
+         nested.pop_back();
+      }
+      if (!elems[j].lout && elems[j].shouldTransfer() && elems[j].btok_tgt==tgt_toks.size()) {
+         if (need_ws && (elems[j].lwsl || (seq_start && elems[j].lwslseq)))
+            cout << ' ';
+         cout << elems[j].lstring;
+         elems[j].lout = true;
+         if (!elems[j].rstring.empty()) {
+            nested.push_back(j);
+            if (elems[j].lwsr) {
+               cout << ' ';
+               sp_out = true;
+            }
+         }
+         seq_start = false;
+      }
+   } // for each element
+   // Finish outputting right tags for empty tags.
+   while (!nested.empty()) {
+      Uint k = nested.back();
+      if (elems[k].rwsl && !sp_out)
+         cout << ' ';
+      cout << elems[k].rstring;
+      nested.pop_back();
    }
-}
+
+   // Finally, we are at the end of the line!
+   cout << endl;
+} // outputWithXMLTags
 
 
 // main
@@ -537,158 +1240,29 @@ int main(int argc, char* argv[])
    // read all three input files line-synchronously
 
    vector<Elem> elems;
-   vector<Uint> nested;     // stack of nested elems during output
    vector<string> src_toks;
    vector<string> tgt_toks;
-   vector<vector<Uint> > src_al;
    vector<PhrasePair> phrase_pairs;
-   vector<PhrasePair> pp_span;
    string line;
    Uint lineno = 0;
-   Uint num_unmatched_tags = 0;
-   Uint num_bad_nesting = 0;
-   Uint num_empty_elems = 0;
-   Uint num_elems = 0;
-   Uint num_elems_aligned = 0;
-   Uint num_elems_contig = 0;
-   bool is_intra_tok_tag = false;
-   const string whitespace(" \t\n");
+
+   num_unmatched_tags = 0;
+   num_bad_nesting = 0;
+   num_empty_elems = 0;
+   num_elems = 0;
+   num_elems_aligned = 0;
+   num_elems_contig = 0;
 
    while (getline(msrc, line)) {
 
       ++lineno;
       if (verbose)
-         cerr << "line " << lineno << endl;
+         cerr << "line " << lineno << ": " << line << endl;
 
       // tokenize source line and record elements
-      src_toks.clear();
-      elems.clear();
-      Elem::next_id = 1;        // reset at the start of each line.
-      nested.clear();
-      string::size_type p = 0, beg = 0, end = 0;
-      bool wsl = true, wsr = true;
-      while (findXMLishTag(line, p, beg, end)) {
-         // Determine wsl and wsr for a sequence of tags when the first tag
-         // in the sequence is encountered.
-         if (beg != p || beg == 0) {
-            wsl = beg > 0 ? (whitespace.find(line[beg-1]) != string::npos) : true;
-            string::size_type p2 = end, b2, e2;
-            while (findXMLishTag(line, p2, b2, e2)) {
-               if (b2 != p2) break;
-               if( ignoreTag(Elem::getName(line, beg, end))) break;
-               p2 = e2;
-            }
-            wsr = p2 < line.size() ? (whitespace.find(line[p2]) != string::npos) : true;
-         }
-         string name = Elem::getName(line, beg, end);
-         if (ignoreTag(name)) {
-            splitAndMerge(line.substr(p, end-p), src_toks, is_intra_tok_tag);
-            p = end;
-            continue;
-         }
-         splitAndMerge(line.substr(p, beg-p), src_toks, is_intra_tok_tag);
-         is_intra_tok_tag = !wsl && !wsr;
-         if (Elem::isLeft(line, beg, end)) {
-            Uint btok = src_toks.size() - (is_intra_tok_tag ? 1 : 0);
-            nested.push_back(elems.size());
-            Uint ip = is_intra_tok_tag ? src_toks.back().size() : 0;
-            elems.push_back(Elem(line, beg, end, btok, wsl, wsr, ip));
-         }
-         if (Elem::isRight(line, beg, end)) { // find a match
-            Uint i = elems.size();
-            for (; i > 0; --i) {
-               if (!elems[i-1].complete && elems[i-1].name == name) {
-//                  Uint etok = src_toks.size() - (is_intra_tok_tag ? 1 : 0);
-                  Uint etok = src_toks.size();
-                  Uint ip = src_toks.size() > 0 ? src_toks.back().size() : 0;
-                  elems[i-1].update(line, beg, end, etok, wsl, wsr, ip);
-                  break;
-               }
-            }
-            if (i == 0) {
-               string tag = line.substr(beg, end-beg);
-               if (verbose)
-                  error(ETWarn, "line %d: %s has no matching left tag - ignoring",
-                        lineno, tag.c_str());
-               ++num_unmatched_tags;
-            } else {
-               // i-1 is the index of the element we are working with
-               if (!nested.empty() && nested.back() == i-1) {
-                  nested.pop_back();
-               } else {
-                  for (Uint j=nested.size(); j > 0; --j)
-                     if (nested[j-1] == i-1) {
-                        nested.erase(nested.begin()+j-1);
-                        break;
-                     }
-                  if (verbose)
-                     error(ETWarn, "line %d: XML tag nesting bad within element %i: %s",
-                           lineno, i, elems[i-1].lstring.c_str());
-                  ++num_bad_nesting;
-               }
-               if (elems[i-1].isClosePair() ) {  // find match for paired element
-                  Uint j = i-1;
-                  for (; j > 0; --j) {
-                     if (elems[j-1].pair_id == elems[i-1].pair_id) {
-                        // set src token span for both paired elements.
-                        // after the tgt span is determined, these will be restored.
-                        elems[j-1].etok = elems[i-1].etok;
-                        elems[i-1].btok = elems[j-1].btok;
-                        break;
-                     }
-                  }
-                  if (j == 0) {
-                     if (verbose)
-                        error(ETWarn, "line %d: Paired element %s has no matching opening element",
-                              lineno, elems[i-1].lstring.c_str());
-                     ++num_unmatched_tags;
-                  }
-               }
-            }
-         }
-         p = end;
-      }
-      splitAndMerge(line.substr(p), src_toks, is_intra_tok_tag); // add remaining tokens
+      tokenizeSource(line, lineno, src_toks, elems);
 
-      // Make a second pass over all tags patching some element info based on
-      // information that was not available during the input pass.
-      // In particular, fix empty tags at token start/end that should be
-      // marked as intra-token; also fix the token span for isolated tags.
-      nested.clear();
-      Uint i = 0;
-      for (Uint id = 1; id < Elem::next_id; ++id) {
-         if (i < elems.size() && elems[i].lid == id) {
-            // Fix non-intra-token empty elements nested within intra-token elements:
-            // mark them as intra-token elements.
-            if (!elems[i].intratok && elems[i].empty()) {
-               if (!nested.empty() && elems[i].nestedIntraToken(elems[nested.back()])) {
-                  Uint j = nested.back();
-                  elems[i].intratok = true;
-                  elems[i].lip = elems[i].rip = elems[j].lip ? elems[j].rip : 0;
-                  if (elems[i].lip) {
-                     elems[i].btok = elems[j].btok;
-                     elems[i].etok = elems[j].etok;
-                  }
-               }
-            }
-            // Fix the token span for isolated tags to refer to the beginning
-            // portion or end portion of the line as appropriate.
-            if (elems[i].isIsolatedTag()) {
-               if (elems[i].isOpenIT())
-                  elems[i].etok = src_toks.size();
-               else
-                  elems[i].btok = 0;
-            }
-            if (elems[i].rid)
-               nested.push_back(i);
-            i++;
-         } else if (!nested.empty() && elems[nested.back()].rid == id)
-            nested.pop_back();
-         else
-            error(ETFatal, "Uable to locate tag id %i", id);
-      }
-
-      // read and tokenize tgt line
+      // read and tokenize target line
       if (!getline(out, line))
          error(ETFatal, "%s too short", outfile.c_str());
       splitZ(line, tgt_toks);
@@ -721,482 +1295,22 @@ int main(int argc, char* argv[])
          cerr << "src tokens: " << join(src_toks, " | ") << endl;
          cerr << "tgt tokens: " << join(tgt_toks, " | ") << endl;
       }
-
-      // assign target positions to elements
-      for (Uint i = 0; i < elems.size(); ++i) {
-         if (extra_verbose) elems[i].dump();
-         if (!elems[i].complete) {
-            error(ETWarn, "line %d: %s has no matching right tag - ignoring",
-                  lineno, elems[i].lstring.c_str());
-            ++num_unmatched_tags;
-            continue;
-         }
-         if (!xtags && elems[i].empty()) {
-            error(ETWarn, "line %d: %s is empty - ignoring", 
-               lineno, elems[i].lstring.c_str());
-            ++num_empty_elems;
-            continue;
-         }
-         ++num_elems;
-
-         // find bracketing phrase pairs
-         Uint lp = 0;  // leftmost phrase that overlaps with elem
-         for (; lp < phrase_pairs.size(); ++lp)
-            if (phrase_pairs[lp].src_pos.second > elems[i].btok)
-               break;
-         Uint rp = phrase_pairs.size(); // rightmost phrase that overlaps w/ elem
-         if (elems[i].btok == elems[i].etok)
-            rp = lp;       // point tag
-         else {
-            for (; rp > 0; --rp)
-               if (phrase_pairs[rp-1].src_pos.first < elems[i].etok)
-                  break;
-            --rp;  // index of actual rightmost phrase
-         }
-
-         if (lp < phrase_pairs.size()) {
-            // check for target-side contiguity
-            pp_span.assign(phrase_pairs.begin()+lp, phrase_pairs.begin()+rp+1);  // copy span
-            sortByTarget(pp_span.begin(), pp_span.end());
-            if ((elems[i].contig = targetContig(pp_span.begin(), pp_span.end())))
-               ++num_elems_contig;
-
-            // check for source-side span match
-            Uint btok = phrase_pairs[lp].src_pos.first;
-            Uint etok = phrase_pairs[rp].src_pos.second;
-            Uint btok_tgt = pp_span.begin()->tgt_pos.first;
-            Uint etok_tgt = pp_span.back().tgt_pos.second;
-            if (verbose)
-               cerr << "pp src: " << btok << "," << etok << " tgt: " << btok_tgt << "," << etok_tgt << endl;
-            if ((elems[i].palign = btok == elems[i].btok && etok == elems[i].etok))
-               ++num_elems_aligned;
-
-            // find element's first target token
-            PhrasePair& begpp = *pp_span.begin();  // phrase pair w/ 1st tgt phrase
-            if (begpp.src_pos.first == btok) { // 1st tgt phr alig'd to 1st src phr
-               if (verbose) cerr << "begin case 1" << endl;
-               alignPhrasePair(dict, anti_dict, begpp, src_toks, tgt_toks, src_al);
-               elems[i].btok_tgt =
-                  targetSpan(src_al, begpp, elems[i].btok,
-                             min(elems[i].etok, begpp.src_pos.second)).first;
-            } else if (begpp.src_pos.second == etok) { // 1st tgt "" end src phr
-               if (verbose) cerr << "begin case 2" << endl;
-               alignPhrasePair(dict, anti_dict, begpp, src_toks, tgt_toks, src_al);
-               elems[i].btok_tgt =
-                  targetSpan(src_al, begpp,
-                             begpp.src_pos.first, elems[i].etok).first;
-            } else {  // 1st tgt phrase is aligned to middle src phrase
-               if (verbose) cerr << "begin case 3" << endl;
-               elems[i].btok_tgt = btok_tgt;
-            }
-
-            // find element's last+1 target token
-            PhrasePair& endpp = pp_span.back(); // phrase pair w/ last tgt phrase
-            if (endpp.src_pos.second == etok) { // end tgt phr alg'd to end src phr
-               if (verbose) cerr << "end case 1" << endl;
-               alignPhrasePair(dict, anti_dict, endpp, src_toks, tgt_toks, src_al);
-               elems[i].etok_tgt =
-                  targetSpan(src_al, endpp,
-                             max(endpp.src_pos.first, elems[i].btok),
-                             elems[i].etok).second;
-            } else if (endpp.src_pos.first == btok) { // end tgt phr "" 1st src phr
-               if (verbose) cerr << "end case 2" << endl;
-               alignPhrasePair(dict, anti_dict, endpp, src_toks, tgt_toks, src_al);
-               elems[i].etok_tgt =
-                  targetSpan(src_al, endpp,
-                             elems[i].btok, endpp.src_pos.second).second;
-            } else {  // end tgt phrase is aligned to middle src phrase
-               if (verbose) cerr << "end case 3" << endl;
-               elems[i].etok_tgt = etok_tgt;
-            }
-
-         } else {
-            // There can be (point) tags can be at after last token.
-            elems[i].contig = true;
-            ++num_elems_contig;
-            elems[i].palign = true;
-            ++num_elems_aligned;
-            elems[i].btok_tgt = elems[i].etok_tgt = tgt_toks.size();
-         }
-
-         if (verbose && (elems[i].palign == false || elems[i].contig == false))
-            error(ETWarn, "line %d, tag pair %d: %s%s%s", lineno, i+1,
-                  !elems[i].palign ? "not aligned with source phrase boundaries" : "", 
-                  !elems[i].palign && !elems[i].contig ? "; " : "",
-                  !elems[i].contig ? "translation not contiguous" : "");
-         if (extra_verbose) elems[i].dump();
-      } // for each element
-
-      // Now that the target spans are set, restore the btok, etok and
-      // btok_tgt, etok_tgt fields:
-      // - for paired elements such that that pair open tag will be output
-      //   before the pair close tag; also flag empty pairs.
-      // - for isolated tags to return them to being point tags
-      if (xtags) {
-         for (Uint i = 0; i < elems.size(); ++i) {
-            if (elems[i].isPaired()) {
-               elems[i].pair_empty = elems[i].etok_tgt == elems[i].btok_tgt;
-               if (elems[i].isOpenPair()) {
-                  elems[i].etok = elems[i].btok;
-                  elems[i].etok_tgt = elems[i].btok_tgt;
-               } else {
-                  elems[i].btok = elems[i].etok;
-                  elems[i].btok_tgt = elems[i].etok_tgt;
-               }
-            } else if (elems[i].isIsolatedTag()){
-               if (elems[i].isOpenIT()) {
-                  elems[i].etok = elems[i].btok;
-                  elems[i].etok_tgt = elems[i].btok_tgt;
-               } else {
-                  elems[i].btok = elems[i].etok;
-                  elems[i].btok_tgt = elems[i].etok_tgt;
-               }
-            }
-         }
+      if (verbose) {
+         cerr << "Elements after tokenizing source (with adjustments)..." << endl;
+         for (Uint i = 0; i < elems.size(); ++i)
+            elems[i].dump();
       }
 
-      // Make a third pass over all tags patching some element info based on
-      // information involving target positions.
-      // In particular, determine the OOV status of tokens for intra-token
-      // elements and fix the target token range for non-intra-token empty
-      // elements in left or right tag sequences.
-      nested.clear();
-      i = 0;
-      Uint first_ne = 0;      // first non-empty element in the source
-      Uint next_ne = 0;       // "next" non-empty element in the source
-      sortBySource(phrase_pairs); // OOV status code below assumes this property
-      Uint oov_p = 0;             // index in pharse_pairs of OOV
-      for (Uint id = 1; id < Elem::next_id; ++id) {
-         if (i < elems.size() && elems[i].lid == id) {
-            // Determine the OOV(-look-alike) status of tokens for intra-token elements
-            if (elems[i].intratok) {
-               // Is the token for this intra-token element an actual OOV?
-               for (; oov_p < phrase_pairs.size(); ++oov_p) {
-                  if (phrase_pairs[oov_p].src_pos.second > elems[i].btok) {
-                     if (phrase_pairs[oov_p].src_pos.first == elems[i].btok
-                           && phrase_pairs[oov_p].oov)
-                        elems[i].oov = true;
-                     break;
-                  }
-               }
-               // If not an OOV, does it look like an OOV?
-               if (!elems[i].oov) {
-                  Uint etgt = elems[i].etok_tgt + (elems[i].emptyTgt() ? 1 : 0);
-                  string &src_tok(src_toks[elems[i].btok]);
-                  Uint j = elems[i].btok_tgt;
-                  for(; j < etgt && tgt_toks[j] != src_tok; ++j) {};
-                  if (j < etgt) {
-                     elems[i].oov = true;
-                     // update tgt range to attach element to the oov look-alike.
-                     elems[i].btok_tgt = j;
-                     elems[i].etok_tgt = j + 1;
-                  } else if (etgt - elems[i].btok_tgt > 1) {
-                     // Non-OOV with than one target token:
-                     // update tgt range to move intra-token elements to the
-                     // the first or last token of the target phrase depending
-                     // on whether the element's left tag is at the start of
-                     // the source token or not.
-                     if (elems[i].lip == 0)
-                        elems[i].etok_tgt = elems[i].btok_tgt + 1;
-                     else
-                        elems[i].btok_tgt = elems[i].etok_tgt - 1;
-                  }
-               }
-            }
-            // Fix non-intra-token empty elements in right tag sequence after a token:
-            // treat them as close tags after the token
-            if (!elems[i].intratok && elems[i].empty()) {
-               if (!nested.empty() && !elems[i].nestedIntraToken(elems[nested.back()])) {
-                  Uint j = nested.back();
-                  if ((!elems[j].empty() && elems[i].btok == elems[j].etok) || elems[j].close_tag) {
-                     elems[i].close_tag = true;
-                     elems[i].btok_tgt = elems[i].etok_tgt = elems[j].etok_tgt;
-                  }
-               }
-            }
-            // Fix non-intra-token empty (non-paired) elements in left tag sequence before a token:
-            // maintain ordering in target if before a non-empty tag.
-            // Exception - empty (point) elements before the first non-empty
-            // element or token at the start of the line should stay at the
-            // start of the line.
-            if (!elems[i].intratok && elems[i].isOrdinaryEmpty() && !elems[i].close_tag) {
-               // Find next non-empty element
-               if (next_ne < i)
-                  next_ne = i;
-               for (; next_ne < elems.size() && elems[next_ne].empty(); ++next_ne) ;
-               if (i == 0)
-                  first_ne = next_ne;
-               // Adjust target token range for empty elements at the start of the line to stay there.
-               if (i < first_ne && elems[i].btok == 0)
-                  elems[i].btok_tgt = elems[i].etok_tgt = 0;
-               // Adjust target token range if a non-empty element follows at the same token.
-               else if (next_ne < elems.size() && elems[i].btok == elems[next_ne].btok)
-                  elems[i].btok_tgt = elems[i].etok_tgt = elems[next_ne].btok_tgt;
-            }
-            if (elems[i].rid)
-               nested.push_back(i);
-            i++;
-         } else if (!nested.empty() && elems[nested.back()].rid == id)
-            nested.pop_back();
-         else
-            error(ETFatal, "Uable to locate tag id %i", id);
+      // assign target positions to elements
+      assignTargetSpans(lineno, dict, anti_dict, src_toks, tgt_toks, phrase_pairs, elems);
+      if (verbose) {
+         cerr << "Elements after assigning target spans (final)..." << endl;
+         for (Uint i = 0; i < elems.size(); ++i)
+            elems[i].dump();
       }
 
       // write out target tokens, with elements
-      nested.clear();
-      Uint max_ip = line.size();        // for non OOV tokens
-      bool need_ws = false;
-      bool seq_start = true;
-      Uint nested_mark = 0;     // used to mark a spot in the nested stack
-      bool rwsr = false;        // rwsr for last right tag output
-      bool sp_out = false;      // was last output character a space?
-      for (Uint i = 0; i < tgt_toks.size(); ++i) {
-         // Output left tags for non intra-token elements beginning at this token;
-         // include right tags for non intra-token empty elements before this token.
-         // Maintain the proper nesting of empty tags.
-         seq_start = true;
-         nested_mark = nested.size();   // mark this spot in the nested stack
-         rwsr = false;    // rwsr for last tag output if a right tag; otherwise false
-         sp_out = false;  // was last output character a space?
-         for (Uint j = 0; j < elems.size(); ++j) {
-            if (elems[j].shouldTransfer() && elems[j].btok_tgt==i) {
-               // Handle intra-token tags later, when outputting the token itself.
-               if (!elems[j].isIntraToken() && !elems[j].lout) {
-                  // Output right tags if needed for empty tags in sequence.
-                  while (nested.size() > nested_mark) {
-                     Uint k = nested.back();
-                     if (elems[j].nestedIn(elems[k]))
-                        break;
-                     if (elems[k].rwsl && !sp_out) {
-                        cout << ' ';
-                        need_ws = false;
-                     }
-                     cout << elems[k].rstring;
-                     sp_out = false;
-                     if (i != 0 || elems[k].btok == 0)
-                        rwsr = elems[k].rwsr || elems[k].rwsrseq;
-                     nested.pop_back();
-                  }
-                  if (need_ws && (elems[j].lwsl || (seq_start && elems[j].lwslseq))) {
-                     cout << ' ';
-                     need_ws = false;
-                  }
-                  // Output this left tag.
-                  cout << elems[j].lstring;
-                  sp_out = false;
-                  elems[j].lout = true;
-                  if (!elems[j].rstring.empty()) {
-                     // Push element on nested stack to output right tag later.
-                     nested.push_back(j);
-                     if (!elems[j].emptyTgt())
-                        nested_mark = nested.size();   // mark this spot in the nested stack
-                     // Note: usually, don't want whitespace before the first token.
-                     if (elems[j].lwsr && (i != 0 || elems[j].btok == 0)) {
-                        cout << ' ';
-                        sp_out = true;
-                        need_ws = false;
-                     }
-                     rwsr = false;      // not a right tag
-                  } else {
-                     // Point tag - track whitespace needs to right.
-                     if (i != 0 || elems[j].btok == 0)
-                        rwsr = elems[j].rwsr || elems[j].rwsrseq;
-                  }
-                  seq_start = false;
-               }
-            }
-         }
-
-         // Finish outputting right tags for empty tags before this token.
-         while (nested.size() > nested_mark) {
-            Uint k = nested.back();
-            if (elems[k].rwsl && !sp_out) {
-               cout << ' ';
-               need_ws = false;
-            }
-            cout << elems[k].rstring;
-            sp_out = false;
-            if (i != 0 || elems[k].btok == 0)
-               rwsr = elems[k].rwsr || elems[k].rwsrseq;
-            nested.pop_back();
-         }
-         if (rwsr) {
-            cout << ' ';
-            need_ws = false;
-         }
-
-         // Output this token and its intra-token elements, preceded by whitespace if needed.
-         // For OOVs, embed the intra-token elements to match the original.
-         // For non-OOVs, output before the token an intra-token element that
-         // has a left tag at the token start in the source and any intra-token
-         // elements nested within that element; output all other intra-token
-         // elements after the token.
-         if (need_ws)
-            cout << ' ';
-         nested_mark = nested.size();   // mark this spot in the nested stack
-         Uint tok_idx = 0;
-         for (Uint j = 0; j < elems.size(); ++j) {
-            if (!elems[j].lout && elems[j].shouldTransfer() && elems[j].btok_tgt==i) {
-               if (elems[j].isIntraToken()) {
-                  while (nested.size() > nested_mark) {
-                     Uint k = nested.back();
-                     if (elems[j].nestedIn(elems[k]))
-                        break;
-                     // Output token fragment before a right tag
-                     if ( elems[k].oov && tok_idx < elems[k].rip) {
-                        outputFragment(tgt_toks[i], tok_idx, elems[k].rip);
-                        tok_idx = elems[k].rip;
-                     }
-                     // Output right tag of intra-token element
-                     cout << elems[k].rstring;
-                     nested.pop_back();
-                  }
-                  // Output token fragment before this intra-token element
-                  // or for non-OOVs output the whole token if we're finished
-                  // outputting the nested intra-token elements from the
-                  // start of the token.
-                  if (tok_idx < elems[j].lip) {
-                     if (elems[j].oov) {
-                        outputFragment(tgt_toks[i], tok_idx, elems[j].lip);
-                        tok_idx = elems[j].lip;
-                     } else if (nested.size() == nested_mark) {
-                        cout << escape(tgt_toks[i]);
-                        tok_idx = max_ip;
-                     }
-                  }
-                  // Output left tag of this intra-token element
-                  cout << elems[j].lstring;
-                  elems[j].lout = true;
-                  if (!elems[j].rstring.empty())
-                     nested.push_back(j);
-               }
-            }
-         }
-         // Finish outputting right tags and token fragments for the OOV.
-         // If necessary, finish with a final fragment after the last tag
-         // (possibly the whole token for a non-OOV).
-         while (nested.size() > nested_mark) {
-            Uint k = nested.back();
-            if (elems[k].oov && tok_idx < elems[k].rip) {
-               outputFragment(tgt_toks[i], tok_idx, elems[k].rip);
-               tok_idx = elems[k].rip;
-            }
-            cout << elems[k].rstring;
-            nested.pop_back();
-         }
-         if (tok_idx < tgt_toks[i].size())
-            outputFragment(tgt_toks[i], tok_idx, tgt_toks[i].size());
-
-         need_ws = true;
-         // Output right tags for elements ending at this token.
-         // Note: Proper XML nesting order is maintained in the output, but
-         // some right tags may be output (moved to) later than indicated by
-         // the alignment in order to remove overlap between elements.
-         rwsr = false;     // rwsr for last right tag output
-         nested_mark = nested.size();   // mark this spot in the nested stack
-         while (!nested.empty()) {
-            Uint j = nested.back();
-            if (nested.size() <= nested_mark &&
-                  elems[j].etok_tgt > i + (elems[j].empty() ? 0 : 1))
-               break;
-            if (nested.size() == nested_mark)
-               --nested_mark;
-            // Output empty (point) elements that must precede this right tag
-            for (Uint k=j; k < elems.size(); ++k) {
-               if (elems[k].shouldTransfer() && !elems[k].lout) {
-                  if (((elems[k].isOrdinaryEmpty() && elems[k].btok == elems[j].etok) ||
-                       (elems[k].isClosePair() && !elems[k].pair_empty && elems[k].btok_tgt == i+1) ||
-                       (elems[k].isCloseIT() && elems[k].btok_tgt == i+1))
-                      && elems[k].nestedIn(elems[j])) {
-                     if (need_ws && elems[k].lwsl) {
-                        cout << ' ';
-                        need_ws = false;
-                     }
-                     cout << elems[k].lstring;
-                     elems[k].lout = true;
-                     if (!elems[k].rstring.empty()) {
-                        nested.push_back(k);
-                        j = k;
-                     }
-                  }
-               }
-            }
-            // Output this right tag.
-            if (elems[j].rwsl) {
-               cout << ' ';
-               need_ws = false;
-            }
-            cout << elems[j].rstring;
-            rwsr = elems[j].rwsr || elems[j].rwsrseq;
-            nested.pop_back();
-         }
-         // Output tags for any closing paired elements ending at this token
-         // not output by the right tag processing above.
-         // Paired elements and isolated tags are handled outside the nesting
-         // structure, i.e. such elements are not pushed on the nested stack.
-         // Skip handling empty paired tags - use normal empty tag handling instead.
-         for (Uint j = 0; j < elems.size(); ++j) {
-            if ((elems[j].isClosePair() && !elems[j].pair_empty) || elems[j].isCloseIT()) {
-               if (elems[j].shouldTransfer() && !elems[j].lout && elems[j].btok_tgt==i+1) {
-                  if (elems[j].lwsl) {
-                     cout << ' ';
-                     need_ws = false;
-                  }
-                  cout << elems[j].lstring;
-                  elems[j].lout = true;
-                  rwsr = elems[j].rwsr || elems[j].rwsrseq;
-               }
-            }
-         }
-         // Output whitespace if needed after right/pair-closing tags.
-         if (rwsr && i < tgt_toks.size()-1) {
-            cout << ' ';
-            need_ws = false;
-         }
-      } // for each token
-
-      // Finally, output any tags that follow the last token.
-      seq_start = true;
-      rwsr = false;    // rwsr for last right tag output
-      sp_out = false;  // was last output character a space?
-      for (Uint j = 0; j < elems.size(); ++j) {
-         // Output right tags if needed for empty tags in sequence.
-         while (!nested.empty()) {
-            Uint k = nested.back();
-            if (elems[j].nestedIn(elems[k]))
-               break;
-            if (elems[k].rwsl && !sp_out)
-               cout << ' ';
-            cout << elems[k].rstring;
-            sp_out = false;
-            nested.pop_back();
-         }
-         if (!elems[j].lout && elems[j].shouldTransfer() && elems[j].btok_tgt==tgt_toks.size()) {
-            if (need_ws && (elems[j].lwsl || (seq_start && elems[j].lwslseq)))
-               cout << ' ';
-            cout << elems[j].lstring;
-            elems[j].lout = true;
-            if (!elems[j].rstring.empty()) {
-               nested.push_back(j);
-               if (elems[j].lwsr) {
-                  cout << ' ';
-                  sp_out = true;
-               }
-            }
-            seq_start = false;
-         }
-      }
-      // Finish outputting right tags for empty tags.
-      while (!nested.empty()) {
-         Uint k = nested.back();
-         if (elems[k].rwsl && !sp_out)
-            cout << ' ';
-         cout << elems[k].rstring;
-         nested.pop_back();
-      }
-
-      // Finally, we are at the end of the line!
-      cout << endl;
+      outputWithXMLTags(tgt_toks, elems);
 
       // Verify that all tags that should be transferred were actually output.
       for (Uint i = 0; i < elems.size(); ++i) {
@@ -1205,6 +1319,7 @@ int main(int argc, char* argv[])
                   lineno, elems[i].rstring.empty() ? "" : " pair",
                   elems[i].lstring.c_str(), elems[i].rstring.c_str());
       }
+      if (verbose) cerr <<  endl;
 
    } // for each line of input
 
@@ -1231,7 +1346,7 @@ int main(int argc, char* argv[])
 void getArgs(int argc, char* argv[])
 {
    const char* switches[] = {"v", "vv", "e", "a", "n:", "xtags", "wal:"};
-   ArgReader arg_reader(ARRAY_SIZE(switches), switches, 3, 4, help_message);
+   ArgReader arg_reader(ARRAY_SIZE(switches), switches, 3, 3, help_message);
    arg_reader.read(argc-1, argv+1);
 
    arg_reader.testAndSet("v", verbose);
