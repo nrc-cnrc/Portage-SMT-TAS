@@ -25,7 +25,8 @@ not indicate an real problem.  In particular, these test suites are known to be
 especially sensitive to floating point variance: align.posteriors, joint2cond,
 hmm-*, rescoring.metric. 
 
-Contents of this directory:
+Contents of this directory
+==========================
 
 Scripts:
  - run-all-tests.sh     Master script running all fully automated suites.
@@ -68,3 +69,76 @@ Test suites:
                         (*not* recommended as an experimental starting point).
  - truecasing/          Test suite for truecasing.
  - word_align_tool/     Test suite for word_align_tool.
+
+
+Types of unit tests in PortageII
+================================
+
+There are two types of unit tests in PortageII:
+ - The CxxTest tool is used to create closely integrated unit tests, calling
+   individual functions, linked with your code directly.  These are found in
+   the src/ hierarchy, under tests/ subdirectories and are exercised when you
+   run "make test" in the PortageII/src/ directory.  See the annotated example
+   in src/utils/tests/test_your_class.h for further details.
+
+ - This directory is used to create loosely integrated unit tests, calling your
+   actual programs via scripts and/or Makefiles.
+
+
+Running the unit tests
+======================
+
+The unit tests in this directory are exercised by the nightly autobuild, and
+can be launched manually this way:
+   ./run-all-tests.sh -j 30
+This will launch all tests, 30-ways parallel, and report on the success or
+failure of each tests.
+
+On a non-clustered machine, you probably don't want to use -j at all.
+
+To clean up all tests, you can run
+   ./clean-all-tests.sh
+
+
+Minimum requirements
+====================
+
+In order for a unit test to work properly in this directory, you should:
+
+1. Create an executable file called run-test.sh which runs the test and exits
+with a 0 status on success, non-0 status on failure.  Doing so will make
+./run-all-tests.sh run your test and report on its success or failure.
+
+2. Create a Makefile that contains at least this code:
+   TEMP_FILES=<list of temp files that might be created when the test is run>
+   TEMP_DIRS=<list of temp directories that might be created when the test is run>
+   include ../Makefile.incl
+Doing so will give you a "clean" target so that "make clean" will remove all
+temporary files, and it will give you a "gitignore" target that is
+automatically called by "make all" so that Git will not see these temporary
+files as untracked.  You can omit TEST_FILES or TEMP_DIRS if you don't create
+temporary files or directories, but you should still include ../Makefile.incl
+in all cases.
+
+3. Write some unit tests.
+
+If you write your unit test in the Makefile, make sure the "all" target runs
+them. A typical run-test.sh file might then simply say
+   make clean
+   make all -j 2
+
+If you write your unit tests in bash, your run-test.sh file should first say
+   make gitignore
+and then proceed to run your tests.
+
+
+Additional suggestions
+======================
+
+Many test suites put their input data in a subdirectory called src/, and their
+reference output in ref/.
+
+The typical way to check for correctness is to manually inspect the output
+while you create the test suite, save it in ref/ once you're happy with it, and
+use diff for automatic subsequent validation.
+
