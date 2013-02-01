@@ -82,6 +82,7 @@ Types of unit tests in PortageII
 ================================
 
 There are two types of unit tests in PortageII:
+
  - The CxxTest tool is used to create closely integrated unit tests, calling
    individual functions, linked with your code directly.  These are found in
    the src/ hierarchy, under tests/ subdirectories and are exercised when you
@@ -99,7 +100,7 @@ The unit tests in this directory are exercised by the nightly autobuild, and
 can be launched manually this way:
    ./run-all-tests.sh -j 30
 This will launch all tests, 30-ways parallel, and report on the success or
-failure of each tests.
+failure of each test.
 
 On a non-clustered machine, you probably want to use -j with a third to half
 the number of hyperthreaded cores on the machine (e.g., -j 12 to 15 on a
