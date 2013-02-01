@@ -2,14 +2,14 @@ Technologies langagieres interactives / Interactive Language Technologies
 Technologies de l'information et des communications /
    Information and Communications Technologies
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2008-2012, Sa Majeste la Reine du Chef du Canada
-Copyright 2008-2012, Her Majesty in Right of Canada
+Copyright 2008-2013, Sa Majeste la Reine du Chef du Canada
+Copyright 2008-2013, Her Majesty in Right of Canada
 
 Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
 
 
-                         Portage 1.5 tutorial data
+                         PortageII tutorial data
 
 This directory the data for running the tutorial experiment using our
 experiment framework.  See framework/tutorial.pdf for details.

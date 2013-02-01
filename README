@@ -1,4 +1,4 @@
-                               Portage 1.5.1
+                              PortageII 2.0
  
 Technologies langagieres interactives / Interactive Language Technologies
 Technologies de l'information et des communications /
@@ -12,12 +12,6 @@ license agreement for details.
 
 See NOTICE for the Copyright notices of 3rd party libraries.
 
-Note that PORTAGEshared has been renamed "Portage" with a version number, i.e.,
-this package is now known as "Portage 1.5".  References to PORTAGEshared within
-the documentation or the code are considered to refer to Portage 1.5, Portage
-1.4 or PORTAGEshared 1.0 to 1.3 if the context refers to older versions.
-Portage 1.4 or 1.5 refers to any of the minor releases (currently, 1.4.0 to
-1.4.3 exist, as well as 1.5.0 to 1.5.1).
 
                              Brief Description
 
@@ -25,13 +19,24 @@ Portage is a project to explore new techniques in Statistical Machine
 Translation (SMT), and to develop state-of-the-art SMT technology that can be
 used commercially, as well as to support other projects at NRC and elsewhere.
 
-The SMT system developed under the Portage project is also called "Portage";
-this distribution for various partners used to be called PORTAGEshared, and is
-now known simply as Portage with a version number.  Portage 1.5 includes a
-complete suite of software tools required for phrase-based statistical machine
-translation, including:
- - preprocessing of French, English, Spanish (tokenization, detokenization,
-   lowercasing, aligning) and Chinese (handling of dates and numbers);
+Various SMT systems were developed under the Portage project.  PORTAGEshared
+was first released to Canadian universities to build and train a community of
+users.  Commercial releases of PORTAGEshared 1.1 to 1.3 were made, followed by
+Portage 1.4.
+
+PortageII marks a leap forward in NRC's SMT technology.  With version 1.0, we
+brought in significant improvements to translation engine itself that result in
+better translations, and contributed to our success at the NIST Open Machine
+Translation 2012 Evaluation (OpenMT12).  With version 2.0, we are adding two
+important features to help translators: the transfer of markup tags from the
+source sentence to the machine translation output, as well as handling of the
+increasingly common xliff file format.
+
+PortageII 2.0 includes a complete suite of software tools required for
+phrase-based statistical machine translation, including:
+ - preprocessing of French, English, Spanish, Danish (tokenization,
+   detokenization, lowercasing, aligning) and Chinese (handling of dates and
+   numbers);
  - training lexical translation models (IBM models 1 and 2, HMM) from aligned
    corpora;
  - training phrase-based translation models from aligned corpora and lexical
@@ -59,6 +64,8 @@ translation, including:
    a web-ready demo;
  - PortageLive -- tools to setup a runtime SMT server using Portage, accessible
    via a SOAP API, via CGI scripts or a command line interface;
+ - Code to handle translation projects in the TMX and XLIFF format, with
+   optional transfer of formatting tags from the source text to the output.
  - an experimental framework -- a collection of tools to automate running all
    the components required to train a full machine translation system;
  - generic en->fr and fr->en models to supplement in-domain training corpora,
@@ -80,7 +87,7 @@ translation, including:
    README       this file
    INSTALL      installation instructions
    RELEASES     release history
-   LICENCE      notes about your PORTAGEshared licence agreement
+   LICENCE      notes about your PortageII licence agreement
    NOTICE       third party Copyright notices
    SETUP.bash   config file for bash users
    SETUP.tcsh   config file for tcsh users
@@ -94,23 +101,23 @@ The framework subdirectory provides a template experimental framework.  This is
 intended as a reasonable experimental starting point.  We recommend you use
 this framework as your starting point for real experiments.  A tutorial is
 included showing how to run a toy experiment with this framework: tutorial.pdf.
-Even if you used PORTAGEshared before, we recommend you read through this
-document, as it highlight the currently recommended procedures for using
-PORTAGEshared.  If you used our old toy example as a starting point previously,
-it may be worth starting again from the new framework instead.
+Even if you used Portage 1.4 or earlier before, we recommend you read through
+this document, as it highlight the currently recommended procedures for using
+PortageII.  Please do not use our old toy example as a starting point, start
+from the framework instead.
 
 For further documentation, look at the contents of doc/.
 
 
                                Contacting us
 
-If you have any question about PORTAGEshared, be it technical, legal or
+If you have any question about PortageII, be it technical, legal or
 otherwise, you can contact us by e-mail at PORTAGEshared@nrc-cnrc.gc.ca.
 
 
-                      PORTAGEshared Users mailing list
+                       PortageII Users mailing list
 
-We have created a mailing list for PORTAGEshared users, where questions of
-general interest can be asked and answered publicly.  If you would like to be
-added to this list, please e-mail PORTAGEshared@nrc-cnrc.gc.ca.
+We have created a mailing list for PortageII users, where questions of general
+interest can be asked and answered publicly.  If you would like to be added to
+this list, please e-mail PORTAGEshared@nrc-cnrc.gc.ca.
 

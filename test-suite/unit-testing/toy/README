@@ -2,8 +2,8 @@ Technologies langagieres interactives / Interactive Language Technologies
 Technologies de l'information et des communications /
    Information and Communications Technologies
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2004-2012, Sa Majeste la Reine du Chef du Canada
-Copyright 2004-2012, Her Majesty in Right of Canada
+Copyright 2004-2008, Sa Majeste la Reine du Chef du Canada
+Copyright 2004-2008, Her Majesty in Right of Canada
 
 Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
@@ -11,9 +11,12 @@ license agreement for details.
 
                   PORTAGEshared toy example and tutorial 
 
-This is a toy example of a complete Portage run, documented in the file
-toy.tex in this directory. Do "make doc" to generate a pdf file. Do "make
-clean" to remove non-essential files.
+         *** OBSOLETE WARNING - DO NOT USE AS STARTING POINT! ***
+
+This is a toy example of a complete PORTAGEshared (versions 1.0 through 1.2,
+not Portage 1.x nor PortageII) run, documented in the file toy.tex in this
+directory. Do "make doc" to generate a pdf file. Do "make clean" to remove
+non-essential files.
 
 WARNING: this is only a toy example, and is not suitable as a starting point
 for real experiments.  Use the framework provided with PORTAGEshared instead.

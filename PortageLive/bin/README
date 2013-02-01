@@ -2,24 +2,24 @@ Technologies langagieres interactives / Interactive Language Technologies
 Technologies de l'information et des communications /
    Information and Communications Technologies
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2004-2012, Sa Majeste la Reine du Chef du Canada
-Copyright 2004-2012, Her Majesty in Right of Canada
+Copyright 2004-2013, Sa Majeste la Reine du Chef du Canada
+Copyright 2004-2013, Her Majesty in Right of Canada
 
 Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
 
 
                                 PortageLive
-                      Portage runtine software layout
+                     PortageII runtine software layout
 
 This directory includes scripts that can help you reproduce the structure we
 use to package the Portage software for PortageLive virtual appliances.
-Detailed instructions are in the PortageLive Manual part of the Portage 1.5
+Detailed instructions are in the PortageLive Manual part of the PortageII
 User Manual.
 
 In this directory:
 
-Make sure you have compiled and installed Portage 1.5 already, and set the
+Make sure you have compiled and installed PortageII already, and set the
 path properly by calling $PORTAGE/SETUP.bash.
 
 Run

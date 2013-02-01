@@ -1,4 +1,4 @@
-All text files on this CD are in Unix-style end of line markers.
+All text files on this CD have Unix-style end of line markers.
 
 You can use WordPad to open individual text files, but not Notepad.
 
