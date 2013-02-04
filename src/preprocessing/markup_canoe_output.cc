@@ -594,11 +594,14 @@ void alignPhrasePair(const Dict& dict, const Dict& anti_dict,
  * @param pp phrase pair that src_al pertains to 
  * @param beg index of beg src word in span, in range of pp.src_pos
  * @param beg index of end+1 src word in span, in range of pp.src_pos
+ * @param align_boundary_phrases if true, do word alignment to determine target
+ * span even when phrase boundaries line up with tag boundaries; otherwise,
+ * word-align only when boundaries don't align
  * @return [beg,end) of target span aligned with given source span, in range of
  * pp.tgt_pos
  */
 pair<Uint,Uint> targetSpan(const vector<vector<Uint> >& src_al, const PhrasePair& pp,
-                           Uint beg, Uint end)
+                           Uint beg, Uint end, bool align_boundary_phrases)
 {
    if (!align_boundary_phrases && 
        beg == pp.src_pos.first && end == pp.src_pos.second)
@@ -724,46 +727,56 @@ void assignTargetSpans(Uint lineno, Dict &dict, Dict &anti_dict,
             ++num_elems_aligned;
          if (extra_verbose) cerr << "...source-side span match done" << endl;
 
-         // find element's first target token
-         PhrasePair& begpp = *pp_span.begin();  // phrase pair w/ 1st tgt phrase
-         if (begpp.src_pos.first == btok) { // 1st tgt phr alig'd to 1st src phr
-            if (verbose) cerr << "begin case 1" << endl;
+         if (elems[i].intratok && pp_span.size() == 1 && !elems[i].palign) {
+            // Special case for intra-token tags: single word and don't respect
+            // the phrase boundaries -- use the actual word alignment instead.
+            PhrasePair& begpp = *pp_span.begin();  // phrase pair w/ 1st tgt phrase
             alignPhrasePair(dict, anti_dict, begpp, src_toks, tgt_toks, src_al);
-            elems[i].btok_tgt =
-               targetSpan(src_al, begpp, elems[i].btok,
-                          min(elems[i].etok, begpp.src_pos.second)).first;
-         } else if (begpp.src_pos.second == etok) { // 1st tgt "" end src phr
-            if (verbose) cerr << "begin case 2" << endl;
-            alignPhrasePair(dict, anti_dict, begpp, src_toks, tgt_toks, src_al);
-            elems[i].btok_tgt =
-               targetSpan(src_al, begpp,
-                          begpp.src_pos.first, elems[i].etok).first;
-         } else {  // 1st tgt phrase is aligned to middle src phrase
-            if (verbose) cerr << "begin case 3" << endl;
-            elems[i].btok_tgt = btok_tgt;
-         }
-         if (extra_verbose) cerr << "...setting first target token done" << endl;
+            pair<Uint,Uint> tgt_span = targetSpan(src_al, begpp, elems[i].btok,
+                                                  elems[i].etok, true);
+            elems[i].btok_tgt = tgt_span.first;
+            elems[i].etok_tgt = tgt_span.second;
+            if (extra_verbose) cerr << "...setting target tokens for intra-token element done" << endl;
+         } else {
+            // find element's first target token
+            PhrasePair& begpp = *pp_span.begin();  // phrase pair w/ 1st tgt phrase
+            if (begpp.src_pos.first == btok) { // 1st tgt phr alig'd to 1st src phr
+               if (verbose) cerr << "begin case 1" << endl;
+               alignPhrasePair(dict, anti_dict, begpp, src_toks, tgt_toks, src_al);
+               elems[i].btok_tgt = targetSpan(src_al, begpp, elems[i].btok,
+                                      min(elems[i].etok, begpp.src_pos.second),
+                                      align_boundary_phrases).first;
+            } else if (begpp.src_pos.second == etok) { // 1st tgt "" end src phr
+               if (verbose) cerr << "begin case 2" << endl;
+               alignPhrasePair(dict, anti_dict, begpp, src_toks, tgt_toks, src_al);
+               elems[i].btok_tgt = targetSpan(src_al, begpp, begpp.src_pos.first,
+                                      elems[i].etok, align_boundary_phrases).first;
+            } else {  // 1st tgt phrase is aligned to middle src phrase
+               if (verbose) cerr << "begin case 3" << endl;
+               elems[i].btok_tgt = btok_tgt;
+            }
+            if (extra_verbose) cerr << "...setting first target token done" << endl;
 
-         // find element's last+1 target token
-         PhrasePair& endpp = pp_span.back(); // phrase pair w/ last tgt phrase
-         if (endpp.src_pos.second == etok) { // end tgt phr alg'd to end src phr
-            if (verbose) cerr << "end case 1" << endl;
-            alignPhrasePair(dict, anti_dict, endpp, src_toks, tgt_toks, src_al);
-            elems[i].etok_tgt =
-               targetSpan(src_al, endpp,
-                          max(endpp.src_pos.first, elems[i].btok),
-                          elems[i].etok).second;
-         } else if (endpp.src_pos.first == btok) { // end tgt phr "" 1st src phr
-            if (verbose) cerr << "end case 2" << endl;
-            alignPhrasePair(dict, anti_dict, endpp, src_toks, tgt_toks, src_al);
-            elems[i].etok_tgt =
-               targetSpan(src_al, endpp,
-                          elems[i].btok, endpp.src_pos.second).second;
-         } else {  // end tgt phrase is aligned to middle src phrase
-            if (verbose) cerr << "end case 3" << endl;
-            elems[i].etok_tgt = etok_tgt;
+            // find element's last+1 target token
+            PhrasePair& endpp = pp_span.back(); // phrase pair w/ last tgt phrase
+            if (endpp.src_pos.second == etok) { // end tgt phr alg'd to end src phr
+               if (verbose) cerr << "end case 1" << endl;
+               alignPhrasePair(dict, anti_dict, endpp, src_toks, tgt_toks, src_al);
+               elems[i].etok_tgt = targetSpan(src_al, endpp,
+                                      max(endpp.src_pos.first, elems[i].btok),
+                                      elems[i].etok, align_boundary_phrases).second;
+            } else if (endpp.src_pos.first == btok) { // end tgt phr "" 1st src phr
+               if (verbose) cerr << "end case 2" << endl;
+               alignPhrasePair(dict, anti_dict, endpp, src_toks, tgt_toks, src_al);
+               elems[i].etok_tgt = targetSpan(src_al, endpp,
+                                      elems[i].btok, endpp.src_pos.second,
+                                      align_boundary_phrases).second;
+            } else {  // end tgt phrase is aligned to middle src phrase
+               if (verbose) cerr << "end case 3" << endl;
+               elems[i].etok_tgt = etok_tgt;
+            }
+            if (extra_verbose) cerr << "...setting last+1 target token done" << endl;
          }
-         if (extra_verbose) cerr << "...setting last+1 target token done" << endl;
 
       } else {
          // There can be (point) tags can be at after last token.
