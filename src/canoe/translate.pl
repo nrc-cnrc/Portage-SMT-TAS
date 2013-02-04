@@ -750,7 +750,7 @@ goto $skipto if $skipto;
 IN:{
    if ($xml) {
       call("ce_tmx.pl -verbose=$verbose -src=$xsrc -tgt=$xtgt extract '$dir' '$input_text'");
-      cleanupAndDie("XML file $input_text has no sentence in language $xsrc.\n") unless -s $Q_txt;
+      cleanupAndDie("XML file $input_text has no sentence in language $xsrc.\n") unless -s $Q_txt or $dryrun;
    } else {
       copy($input_text, $Q_txt);
    }
@@ -792,11 +792,12 @@ TRANS:{
       $decoder_opts .= " -walign -palign" if (defined $tcsrclm or $with_ce or $xtags);
       $decoder_opts .= " -ffvals" if $with_ce;
       $decoder_opts .= " $xtra_decode_opts";
+      my $decoder_log = $verbose ? "2> '${dir}/log.decode'" : "";
       my $p_out = (defined $tcsrclm or $with_ce or $xtags) ? $p_raw : $p_dec;
-      call("$decoder $decoder_opts -f ${canoe_ini} < '${q_dec}' > '${p_out}'");
+      call("$decoder $decoder_opts -f ${canoe_ini} < '${q_dec}' > '${p_out}' ${decoder_log}");
       if (defined $tcsrclm or $xtags) {
          my $wal_opt = ($wal eq "h") ? "" : "-wal";
-         call("nbest2rescore.pl -canoe -tagoov -oov $wal_opt -palout='${p_pal}' < '${p_raw}' " .
+         call("nbest2rescore.pl -canoe -tagoov -oov $wal_opt -palout='${p_pal}' < '${p_raw}'" .
               "| perl -pe 's/ +\$//;' > '${p_decoov}'");
       }
       if ($with_ce) {
@@ -854,7 +855,8 @@ POST:{
    # Transfer tags from source to target.
    if ($xtags) {
       my $markup_verbose = $verbose > 2 ? "-vv" : $verbose == 2 ? "-v" : "";
-      call("markup_canoe_output $markup_verbose -wal $wal -xtags $Q_tok_tags $in $p_pal > $P_tok_tags");
+      my $markup_log = $markup_verbose ? "2> '${dir}/log.markup'" : "";
+      call("markup_canoe_output $markup_verbose -wal $wal -xtags $Q_tok_tags $in $p_pal > $P_tok_tags $markup_log");
       $in = $P_tok_tags;
    }
    else {
@@ -969,6 +971,7 @@ sub plogUpdate {
 
 sub sourceWordCount {
    my ($filter) = @_;
+   return 0 if $dryrun;
    my $count_file;
    if (defined $filter) {
        open(my $tfh, "<${Q_pre}") or cleanupAndDie("Can't open text file ${Q_pre}");
@@ -1070,6 +1073,8 @@ sub strip_entity {
    die "You need to provide in and out" unless (defined($in) and defined($out));
 
    verbose("Stripping Entities\n");
+   
+   return if $dryrun;
 
    open(IN, "< :encoding(utf-8)", $in)
       or cleanupAndDie("Can't open $in for reading.\n");
@@ -1092,7 +1097,9 @@ sub escape_entity {
    warn "escape_entity should be used in xml mode." unless ($xml);
    die "You need to provide in and out" unless (defined($in) and defined($out));
 
-   verbose("Stripping Entities\n");
+   verbose("Escaping Entities\n");
+
+   return if $dryrun;
 
    open(IN, "< :encoding(utf-8)", $in)
       or cleanupAndDie("Can't open $in for reading.\n");
