@@ -10,7 +10,7 @@
 	 srclang="EN-CA"
 	 datatype="rtf"
 	 creationdate="20121024T185330Z"
-	 creationid="LACOMEAU"
+	 creationid="SOMEONE"
 >
 <prop type="RTFFontTable">
 {\fonttbl 
@@ -18,13 +18,13 @@
 <prop type="RTFStyleSheet">
 {\stylesheet 
 {\St \s0 {\StN Normal}}}</prop>
-<prop type="Name">Enter Translation Memory Name Here</prop>
-<prop type="Copyright">2013 by CNRC-NRC</prop>
-<prop type="Description">Enter Description Here</prop>
+<prop type="Name">Test Memory</prop>
+<prop type="Copyright">None</prop>
+<prop type="Description">Used for unit testing</prop>
 </header>
 
 <body>
-<tu usagecount="1" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="1" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>This is a test for 12,456 units.</seg>
 </tuv>
@@ -33,7 +33,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="1" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="1" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>We will be conducting a trial for the vice president.</seg>
 </tuv>
@@ -42,7 +42,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="1" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="1" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>This is a test for $12,456.</seg>
 </tuv>
@@ -51,7 +51,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="1" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="1" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>This is a test for a part number A-2.</seg>
 </tuv>
@@ -60,7 +60,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="1" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="1" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>This is a test for 12 V.</seg>
 </tuv>
@@ -69,7 +69,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="2" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="2" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>This is a test for &quot;12,456 units&quot;.</seg>
 </tuv>
@@ -78,7 +78,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="2" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="2" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>This is a test for a list:.</seg>
 </tuv>
@@ -87,7 +87,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="2" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="2" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>It is supplied in 200mL vials.</seg>
 </tuv>
@@ -96,7 +96,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="1" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="1" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>This is to advise the vice-president of the situation.</seg>
 </tuv>
@@ -105,7 +105,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="1" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="1" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>This is a <bpt i="1">&lt;cf bold=&quot;on&quot;&gt;</bpt>test<ept i="1">&lt;/cf&gt;</ept> for 12,456 units.</seg>
 </tuv>
@@ -114,7 +114,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="1" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="1" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>We will be conducting a <bpt i="1">&lt;cf italic=&quot;on&quot;&gt;</bpt>trial<ept i="1">&lt;/cf&gt;</ept> for the vice president.</seg>
 </tuv>
@@ -123,7 +123,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="1" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="1" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>This is a <bpt i="1">&lt;cf underlinestyle=&quot;single&quot;&gt;</bpt>test<ept i="1">&lt;/cf&gt;</ept> for $12,456.</seg>
 </tuv>
@@ -132,7 +132,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="1" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="1" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>This is a test for a part number <bpt i="1">&lt;cf fontcolor=&quot;00B050&quot;&gt;</bpt>A-2<ept i="1">&lt;/cf&gt;</ept>.</seg>
 </tuv>
@@ -141,7 +141,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="1" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="1" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>This is a test for <bpt i="1">&lt;cf highlight=&quot;yellow&quot;&gt;</bpt>12 V<ept i="1">&lt;/cf&gt;</ept>.</seg>
 </tuv>
@@ -150,7 +150,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="1" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="1" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>This is to advise the vice<bpt i="1">&lt;cf font=&quot;Arial&quot; complexscriptsfont=&quot;Arial&quot; asiantextfont=&quot;Arial&quot;&gt;</bpt><ph>\-</ph><ept i="1">&lt;/cf&gt;</ept>president of the situation.</seg>
 </tuv>
@@ -159,7 +159,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="2" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="2" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>Non breaking space</seg>
 </tuv>
@@ -168,7 +168,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="2" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="2" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>Optionalhyphen</seg>
 </tuv>
@@ -177,7 +177,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="2" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="2" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>em—dash</seg>
 </tuv>
@@ -186,7 +186,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="2" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="2" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>en–dash</seg>
 </tuv>
@@ -195,7 +195,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="1" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="1" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>non<ph>&lt;nobreakhyphen/&gt;</ph>breaking hyphen</seg>
 </tuv>
@@ -204,7 +204,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="2" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="2" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>em<ph>{\emspace  }</ph> space</seg>
 </tuv>
@@ -213,7 +213,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="1" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="1" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>en<ph>{\enspace  }</ph> space<ph>&lt;bookmarkstart name=&quot;_GoBack&quot;/&gt;</ph><ph>&lt;bookmarkend name=&quot;_GoBack&quot;/&gt;</ph></seg>
 </tuv>
@@ -222,7 +222,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="2" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="2" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>¼ em space</seg>
 </tuv>
@@ -231,7 +231,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="2" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="2" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>Testing the encoding of &lt; and &gt; in xliff and tmx, with spaces, and &lt;without&gt; spaces.</seg>
 </tuv>
@@ -240,7 +240,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="2" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="2" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>Adding / slash, \ backslash, &amp; ampersand.</seg>
 </tuv>
@@ -249,7 +249,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="1" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="1" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>This is a <bpt i="1">&lt;cf bold=&quot;on&quot;&gt;</bpt>test to <ept i="1">&lt;/cf&gt;</ept><bpt i="2">&lt;cf bold=&quot;on&quot; italic=&quot;on&quot;&gt;</bpt>see how <ept i="2">&lt;/cf&gt;</ept><bpt i="3">&lt;cf fontcolor=&quot;FF0000&quot; bold=&quot;on&quot; italic=&quot;on&quot;&gt;</bpt>overlapping formatting<ept i="3">&lt;/cf&gt;</ept><bpt i="4">&lt;cf fontcolor=&quot;FF0000&quot; italic=&quot;on&quot;&gt;</bpt> tags are<ept i="4">&lt;/cf&gt;</ept><bpt i="5">&lt;cf fontcolor=&quot;FF0000&quot;&gt;</bpt> handled by <ept i="5">&lt;/cf&gt;</ept>tmx and xliff files.</seg>
 </tuv>
@@ -258,7 +258,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="1" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="1" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>This <bpt i="1">{\b </bpt>is a<ept i="1">}</ept><bpt i="2">{\b\i </bpt> test 1 <ept i="2">}</ept><bpt i="3">{\b\i\cf1 </bpt>2 3 4 5 <ept i="3">}</ept><bpt i="4">{\i\cf1 </bpt>6 76 <ept i="4">}</ept><bpt i="5">{\cf1 </bpt>7 78 <ept i="5">}</ept>8 9 90</seg>
 </tuv>
@@ -267,7 +267,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="1" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="1" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>And while we&apos;re here, other stuff in rtf: &lt; &gt; &amp;</seg>
 </tuv>
@@ -276,7 +276,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="1" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="1" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>Non-breaking space?</seg>
 </tuv>
@@ -285,7 +285,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="1" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="1" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>Super<bpt i="1">{\super </bpt>script<ept i="1">}</ept>.</seg>
 </tuv>
@@ -294,7 +294,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="1" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="1" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>And Sub<bpt i="1">{\sub </bpt>script<ept i="1">}</ept>.</seg>
 </tuv>
@@ -303,7 +303,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="1" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="1" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>And sub<bpt i="1">{\super </bpt>script<ept i="1">}</ept><bpt i="2">{\sub </bpt>insuper<ept i="2">}</ept><bpt i="3">{\super </bpt>script<ept i="3">}</ept></seg>
 </tuv>
@@ -312,7 +312,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="1" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="1" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>non<ph>\_</ph>breaking hyphen</seg>
 </tuv>
@@ -321,7 +321,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="1" changedate="20121212T123011Z" changeid="LACOMEAU">
+<tu usagecount="1" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>en<ph>{\enspace  }</ph> space</seg>
 </tuv>
@@ -330,7 +330,7 @@
 </tuv>
 </tu>
 
-<tu usagecount="2" changedate="20121023T194212Z" changeid="LACOMEAU">
+<tu usagecount="2" changedate="20121023T194212Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
 <seg>Newfoundland and Labrador</seg>
 </tuv>
