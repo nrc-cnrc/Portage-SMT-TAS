@@ -782,6 +782,7 @@ sub normalize {
    $text =~ s/ +/ /g;         # Multiple spaces are compressed;
    $text =~ s/^ +//g;          # Remove leading and trailing spaces
    $text =~ s/ +$//g;          # Remove leading and trailing spaces
+   $text =~ s/ *\x{2011}/-/g;
 
    return $text;
 }
@@ -887,7 +888,14 @@ sub ixSave {
                      sub {
                         my $content = $_->text();
                         debug("\tFOUND PH:$content:\n");
-                        $_->set_text("-");
+                        $_->set_text("\x{2011}");
+                        $_->erase();
+                     },
+                  'ph[string() =~ /nobreakhyphen/]' =>
+                     sub {
+                        my $content = $_->text();
+                        debug("\tFOUND PH:$content:\n");
+                        $_->set_text("\x{2011}");
                         $_->erase();
                      },
                   bpt => \&wrapOpeningTag,
