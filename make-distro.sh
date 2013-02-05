@@ -37,7 +37,7 @@ Arguments:
                 clone's --branch option: a branch or a tag, typically a
                 tag having been created first using "git tag v1_X_Y COMMIT;
                 git push --tags", e.g.,:
-                   git tag v1_5_1 master
+                   git tag PortageII-2.0 master
                    git push --tags
                 run in both PORTAGEshared and portage.framework.
 
@@ -72,11 +72,7 @@ Options:
                 install.  May be repeated.  Patches will be included in the
                 .iso file.  PREREQ_TOKEN must be a word that exists in the old
                 INSTALL but in no other distributed versions of INSTALL, past
-                or future.  For v1.0, it should be "2004-2006,", for v1.1 (and
-                subsequent) it should be PORTAGEshared_v1.1 (or vX.Y)
-                For cutting and pasting for the -can-univ distro:
-                  -patch-from v1.0:2004-2006,
-                  -patch-from v1.1:PORTAGEshared_v1.1
+                or future.
   -framework    Include framework from Git repository FRAMEWORK.
 
 Canned options for specific licensees:
@@ -272,12 +268,12 @@ get_user_manual() {
       run_cmd find PORTAGEshared/doc/user-manual/uploads -name \*.gif.1 \| xargs rm -f
       run_cmd pushd PORTAGEshared/doc/user-manual/pages
          for x in *.html; do
-            echo Making images relative in $x and renaming PORTAGE shared '->' Portage 1.5.1.
+            echo Making images relative in $x and renaming PORTAGE shared '->' PortageII 2.0.
             if [[ ! $NOT_REALLY ]]; then
                perl -e 'print '"'"'%s/IMG SRC="http:\/\/wiki-ilt\/PORTAGEshared\/uploads/img src="..\/uploads/'"'"'."\nw\nq\n"' | ed $x
                perl -e 'print '"'"'%s/img src="http:\/\/wiki-ilt\/PORTAGEshared\/uploads/img src="..\/uploads/'"'"'."\nw\nq\n"' | ed $x
                if grep -q 'PORTAGE shared' $x; then
-                  perl -e 'print '"'"'%s/PORTAGE shared/Portage 1.5.1/g'"'"'."\nw\nq\n"' | ed $x
+                  perl -e 'print '"'"'%s/PORTAGE shared/PortageII 2.0/g'"'"'."\nw\nq\n"' | ed $x
                fi
             fi
          done
@@ -395,8 +391,8 @@ make_iso_and_tar() {
       fi
       run_cmd mkisofs -V $ISO_VOLID -joliet-long -o $ARCHIVE_FILE.iso \
               PORTAGEshared $PATCH_FILES '&>' iso.log
-      run_cmd mv PORTAGEshared Portage1.5.1
-      run_cmd tar -cvzf $ARCHIVE_FILE.tar.gz Portage1.5.1 '>&' tar.log
+      run_cmd mv PORTAGEshared PortageII-2.0
+      run_cmd tar -cvzf $ARCHIVE_FILE.tar.gz PortageII-2.0 '>&' tar.log
       run_cmd md5sum $ARCHIVE_FILE.* \> $ARCHIVE_FILE.md5
    run_cmd popd
 }

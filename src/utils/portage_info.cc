@@ -41,7 +41,7 @@ static bool notice = false;
 static bool version = false;
 static bool with_icu = false;
 static bool build_options = false;
-static const char VERSION[] = "Portage 1.5.1";
+static const char VERSION[] = "PortageII 2.0";
 
 // main
 

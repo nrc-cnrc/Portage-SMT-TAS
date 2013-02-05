@@ -3,7 +3,7 @@ ${app.name} - ${app.version}
 To manage this VM browse to ${vami.url}
 
 This Virtual Appliance (VA) implements a translation engine that uses the
-Portage 1.5.0 SMT system from the Interactive Language Technologies group (ILT)
+PortageII 2.0 SMT system from the Interactive Language Technologies group (ILT)
 of the NRC's Information and Communications Technologies Portfolio, with models
 trained on the client_corpus_name corpus.
 
@@ -14,8 +14,8 @@ Web use: http(s)://${app.ip}/
 Definition of a web service (WSDL): http(s)://${app.ip}/PortageLiveAPI.wsdl 
 
 Technologies langagieres interactives / Interactive Language Technologies
-Technologies de l’information et des communications /
+Technologies de l'information et des communications /
    Information and Communications Technologies
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2012, Sa Majeste la Reine du Chef du Canada /
-Copyright 2012, Her Majesty in Right of Canada
+Copyright 2013, Sa Majeste la Reine du Chef du Canada /
+Copyright 2013, Her Majesty in Right of Canada

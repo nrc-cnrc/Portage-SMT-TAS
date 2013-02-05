@@ -1,4 +1,4 @@
-                               Portage 1.5.1
+                               PortageII 2.0
 
 Technologies langagieres interactives / Interactive Language Technologies
 Technologies de l'information et des communications /
@@ -13,40 +13,39 @@ license agreement for details.
 See NOTICE for the Copyright notices of 3rd party libraries.
 
 
-                           Installing Portage 1.5
+                          Installing PortageII 2.0
 
 We don't use autoconf, so the installation is done manually, but we tried to
 keep it as simple as possible.
 
 Copy the full contents of the CD to a directory of your choice, say
-$HOME/Portage1.5.1.
-   cp -prd /CDlocation $HOME/Portage1.5.1
+$HOME/PortageII-2.0
+   cp -prd /CDlocation $HOME/PortageII-2.0
 or
-   rsync -av /CDlocation $HOME/Portage1.5.1
+   rsync -av /CDlocation $HOME/PortageII-2.0
 
 Some users have reported needing to run "chmod +w" on some files or directories
-after the cp or rsync above.  Running "chmod -R +w $HOME/Portage1.5.1" might
+after the cp or rsync above.  Running "chmod -R +w $HOME/PortageII-2.0" might
 solve this problem.
 
-If you chose a location other than $HOME/Portage1.5.1, edit SETUP.bash and
+If you chose a location other than $HOME/PortageII-2.0, edit SETUP.bash and
 SETUP.tcsh and change the value of the PORTAGE variable to the actual location
-where your installed Portage 1.5, and adjust the next steps below
-accordingly.
+where your installed PortageII, and adjust the next steps below accordingly.
 
-Add $HOME/Portage1.5.1/{bin,lib,include} to the appropriate environment
-variables by sourcing $HOME/Portage1.5.1/SETUP.bash or SETUP.tcsh (depending
+Add $HOME/PortageII-2.0/{bin,lib,include} to the appropriate environment
+variables by sourcing $HOME/PortageII-2.0/SETUP.bash or SETUP.tcsh (depending
 on your preferred shell - if you use a shell other than bash or csh/tcsh,
 you're on your own):
-   source $HOME/Portage1.5.1/SETUP.bash
+   source $HOME/PortageII-2.0/SETUP.bash
 or
-   source $HOME/Portage1.5.1/SETUP.tcsh
+   source $HOME/PortageII-2.0/SETUP.tcsh
 
 For source code distributions :
 
    Resolve any dependencies (see External dependencies, below).
    Review src/Makefile.user-conf and make any changes needed to reflect your
    system configuration and choices.
-   Compile and install Portage 1.5:
+   Compile and install PortageII:
       cd src
       make -j 5
       make -j 5 install
@@ -57,11 +56,11 @@ For source code distributions :
 
                         Verifying your installation
 
-Once Portage 1.5 is installed, execute the following command to make sure you can
+Once PortageII is installed, execute the following command to make sure you can
 run the software:
-   make -C $HOME/Portage1.5.1/test-suite/unit-testing/check-installation
+   make -C $HOME/PortageII-2.0/test-suite/unit-testing/check-installation
 This script invokes programs that are each installed differently, and exercise
-the key parts of Portage 1.5 installation.  If everything is OK, you should see
+the key parts of PortageII installation.  If everything is OK, you should see
 the following message: "Everything is correctly installed!" otherwise you will
 get some indication of what could be missing or mis-configured.  Repeat the
 command until you solved all errors.
@@ -69,7 +68,7 @@ command until you solved all errors.
 If you get "command not found" for any of these, your PATH is not correctly set
 or your installation failed.  Check your SETUP.bash/tcsh file and make sure you
 are sourcing it properly, ideally in your .<shell>rc file.  Your $PATH variable
-should include Portage1.5.1/bin.  Also check that Portage1.5.1/bin contains
+should include PortageII-2.0/bin.  Also check that PortageII-2.0/bin contains
 tokenize.pl.  If that's not the case, "make install" probably didn't complete
 successfully.
 
@@ -77,7 +76,7 @@ If tokenize.pl -h or ce.pl -h says "Can't locate <SomeFile>.pm in @INC ...",
 then your PERL5LIB is not correctly set or your installation partially failed.
 Check your SETUP.bash/tcsh file and make sure you are sourcing it properly,
 ideally in your .<shell>rc file.  Your $PERL5LIB variable should include
-Portage1.5.1/lib.  That directory should also contain LexiTools.pm and a
+PortageII-2.0/lib.  That directory should also contain LexiTools.pm and a
 subdirectory called CE containing several .pm files.  If it doesn't, "make
 install" probably didn't complete successfully.
 
@@ -88,9 +87,9 @@ files.
 
 If canoe -h says "command not found" but the other two commands work:
  - with binary distributions, your $PATH variable must also include the
-   architecture specific folder Portage1.5.1/bin/<arch>.  Check your
+   architecture specific folder PortageII-2.0/bin/<arch>.  Check your
    SETUP.bash/tcsh file and make sure you have set the PRECOMP_PORTAGE_ARCH
-   appropriately.  The Portage1.5.1/bin/<arch> directory contains all the
+   appropriately.  The PortageII-2.0/bin/<arch> directory contains all the
    compiled C++ executables.
  - with source distributions, canoe is installed in the same directory as
    cow.sh and tokenize.pl, so compilation probably failed if only canoe doesn't
@@ -100,17 +99,17 @@ Binary distributions only:
  - If canoe -h complains about a lib*.so* file not being found, some external
    dependency might be missing or you have the wrong version of a dynamic
    library.  An error about libstdc++.so, GLIBCXX or libgomp.so probably means
-   your version of g++ is older than the one we used to compile Portage 1.5.
-   You might need a newer version: you won't use the compiler, but you still
-   need its dynamic libraries.  See the ICU section below if your get an error
-   about libicu*.so.
+   your version of g++ is older than the one we used to compile PortageII.  You
+   might need a newer version: you won't use the compiler, but you still need
+   its dynamic libraries.  See the ICU section below if your get an error about
+   libicu*.so.
  - If canoe -h says "cannot execute binary file", then we might not have built
    an executable compatible with your computing hardware.  Contact us.
 
 
                               Getting Started
 
-Now you're ready to run the Portage 1.5 suite of programs.
+Now you're ready to run the PortageII suite of programs.
 
 We also provide a template experimental framework in subdirectory framework.
 This is intended as a reasonable out-of-the-box baseline system.  We recommend
@@ -118,24 +117,9 @@ you use this framework as your starting point for real experiments.
 
 In framework, you will also find the document framework-toy.pdf.  This document
 walks you through a complete experiment using a toy corpus.  It is intended as
-a tutorial to get you started with Portage 1.5.
+a tutorial to get you started with PortageII.
 
 For further documentation, see doc/user-manual.html.
-
-
-                              Applying a patch
-
-If you have already installed Portage 1.5 before and wish to upgrade to this
-version, you can apply a patch instead of making a fresh copy, if a suitable
-one is provided with your distribution:
-   cd $HOME/Portage1.5.1
-   patch -p2 < /CDlocation/OLD_REV_to_NEW_REV.patch
-
-Use patches with care if you have made any changes to Portage 1.5!  Any changes
-you made *should* be merged with changes we made between releases, but such
-merging might lead to problems and/or conflicts, so it is strongly advised that
-you work on a backup, and carefully read the patch man page to see how
-conflicts are handled and how you can resolve them.
 
 
                            Hardware requirements
@@ -147,7 +131,7 @@ performance on some sample datasets.
 
                            External dependencies
 
-Before installing Portage 1.5 itself, you need to make sure you have the
+Before installing PortageII itself, you need to make sure you have the
 following dependencies installed.
 
 Note that in the following, we show instructions for installing all external
@@ -160,13 +144,13 @@ packages.
 
 Mandatory dependencies for all distributions:
 
- - Linux - we have tested Portage 1.5 on various Linux distributions and it
-   runs without problems, as long as the rest of the dependencies are
-   installed.  We tested an older version of PORTAGEshared on PC-BSD and Mac OS
-   X.  It worked reasonably well on those platforms then, but these are not our
-   regular working platforms and we make no guarantees everything will work
-   correctly.  Things also work reasonably well on Cygwin, but again we make no
-   guarantees.  We have not tested on Solaris at all.
+ - Linux - we have tested PortageII on various Linux distributions and it runs
+   without problems, as long as the rest of the dependencies are installed.  We
+   tested older versions on PC-BSD and Mac OS X.  It worked reasonably well on
+   those platforms then, but these are not our regular working platforms and we
+   make no guarantees everything will work correctly.  Things also work
+   reasonably well on Cygwin, but again we make no guarantees.  We have not
+   tested on Solaris at all.
 
  - A large swap file.  Your system should be configured to have twice as much
    swap space as RAM.  Yes, this is contrary to what most system administrators
@@ -184,9 +168,9 @@ Mandatory dependencies for all distributions:
    comes first on your PATH, or add its bin directory to EXTRA_PROGRAM_PATH in
    SETUP.bash/tcsh.
 
- - GNU make 3.81 or more recent - when compiling Portage 1.5 and when running
-   the experimental framework, our Makefiles use GNU extensions to make, as
-   well as features that were introduced in version 3.81.
+ - GNU make 3.81 or more recent - when compiling PortageII and when running the
+   experimental framework, our Makefiles use GNU extensions to make, as well as
+   features that were introduced in version 3.81.
 
  - Python 2.7 - our new tuning script, tune.py, the new truecasing module, as
    well as some some convenience scripts, use python.  In most distros, Python
@@ -229,11 +213,11 @@ Mandatory dependencies for all distributions:
 
 Optional dependencies for all distributions:
 
- - MGIZA++ - Portage 1.5 supports combining IBM4 alignments with its own HMM
-   and IBM2 alignments for improved phrase table extraction.  IBM4 alignments
-   must be generated by an external word-alignment toolkit.  Although any
-   toolkit in the giza family should work, we have only tested MGIZA++, a
-   multi-threaded implementation of Giza++.  You can obtain it here:
+ - MGIZA++ - PortageII supports combining IBM4 alignments with its own HMM and
+   IBM2 alignments for improved phrase table extraction.  IBM4 alignments must
+   be generated by an external word-alignment toolkit.  Although any toolkit in
+   the giza family should work, we have only tested MGIZA++, a multi-threaded
+   implementation of Giza++.  You can obtain it here:
    http://sourceforge.net/projects/mgizapp/.
 
    As we write this, MGIZA++ versions 0.6.3 and 0.7.2 are available and
@@ -274,7 +258,7 @@ Optional dependencies for all distributions:
       # $PORTAGE/pkgs/mgizapp-0.7.2/scripts to EXTRA_PROGRAM_PATH in
       # SETUP.bash/tcsh.
 
- - ICU - Portage 1.5 includes a few tools that use ICU to correctly do
+ - ICU - PortageII includes a few tools that use ICU to correctly do
    case-mapping on utf-8 data.  This functionality will be disabled if ICU is
    not available.  We recommend you install ICU if you can, but if you have
    difficulties with it, you can leave it out.  In this case, for source
@@ -402,12 +386,12 @@ Optional dependencies for all distributions:
 
 Mandatory dependencies for source code distributions:
 
- - GNU g++ - Portage 1.5 compilation has only been tested with g++, and makes
-   use of some g++ extensions to C++.  We currently use versions between 4.2.0
-   and 4.6.2.  You need 4.2.0 or more recent to take advantage of multi-
-   threading via OpenMP, used in some parts of Portage.
+ - GNU g++ - PortageII compilation has only been tested with g++, and makes use
+   of some g++ extensions to C++.  We currently use versions between 4.2.0 and
+   4.6.2.  You need 4.2.0 or more recent to take advantage of multi-threading
+   via OpenMP, used in some parts of Portage.
 
- - boost - Portage 1.5 makes use of some libraries in the boost C++ libraries
+ - boost - PortageII makes use of some libraries in the boost C++ libraries
    collection, including the Boost Graph Library, uBLAS, smart pointers,
    iostreams, etc.
 
@@ -425,8 +409,8 @@ Mandatory dependencies for source code distributions:
    It is recommended you have your sys admin install boost, but you can also
    install it in your own user space.  Either way, you need to edit
    src/Makefile.user-conf and set BOOST_ROOT to the root directory of your
-   boost installation.  The Portage 1.5 makefiles are configured to look for
-   the boost include files in $BOOST_ROOT/include, and the boost libraries in
+   boost installation.  The PortageII makefiles are configured to look for the
+   boost include files in $BOOST_ROOT/include, and the boost libraries in
    $BOOST_ROOT/lib.
 
    Boost home page: http://www.boost.org or http://boost.sourceforge.net
@@ -451,7 +435,7 @@ Mandatory dependencies for source code distributions:
 
 Optional dependencies for source code distributions:
 
- - TCMalloc - Portage 1.5 will run much faster if you use this very efficient
+ - TCMalloc - PortageII will run much faster if you use this very efficient
    memory allocation library from Google.  You can obtain it here:
    http://code.google.com/p/gperftools/.  After you download and install it,
    set the variable TCMALLOC in src/Makefile.user-conf to enable its use.
@@ -504,8 +488,8 @@ Optional dependencies for source code distributions:
 
    If you don't install CxxTest, set CXXTEST=NONE in src/Makefile.user-conf.
 
- - log4cxx - some programs in Portage 1.5 use log4cxx to produce debugging
-   information.  By default, the use of logging is disabled in Portage 1.5.
+ - log4cxx - some programs in PortageII use log4cxx to produce debugging
+   information.  By default, the use of logging is disabled in PortageII.
    To enable logging, make sure you have log4cxx installed, edit
    src/Makefile.user-conf to set LOG4CXX to the full path with log4cxx is
    installed, and compile again.  The logging facilities are not well
@@ -533,7 +517,7 @@ Optional dependencies for source code distributions:
    programs.  These programs will build the databases needed to enable
    cross-links in these editors.  See your editor's manual for details.
 
-   Portage 1.5 uses both ctags and etags by default, but you can disable their
+   PortageII uses both ctags and etags by default, but you can disable their
    use by defining PORTAGE_NO_CTAGS and/or PORTAGE_NO_ETAGS to 1 in your
    .<shell>rc file, or by uncommenting the lines "PORTAGE_NO_CTAGS=1" and/or
    "PORTAGE_NO_ETAGS=1" in src/Makefile.user-conf.

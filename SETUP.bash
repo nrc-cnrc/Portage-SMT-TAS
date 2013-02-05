@@ -1,4 +1,4 @@
-# Portage 1.5 setup file for bash users.
+# PortageII setup file for bash users.
 # Source this file in bash to set all Portage environment variables
 #
 # Eric Joanis
@@ -14,14 +14,14 @@
 # =======================================================================
 # USER CONFIGURABLE VARIABLES
 
-# The PORTAGE environment variable points the the root of the Portage 1.5
+# The PORTAGE environment variable points the the root of the PortageII
 # package.
 # Change this variable to indicate where this package is actually located.
-PORTAGE=$HOME/Portage1.5.1
+PORTAGE=$HOME/PortageII-2.0
 
 # Extra dynamic libraries.  If you had to install dynamic libraries in custom
-# locations to get Portage 1.5 running, list the PATHs where the .so files
-# are located in this variable.  Multiple directories should be separated by
+# locations to get PortageII running, list the PATHs where the .so files are
+# located in this variable.  Multiple directories should be separated by
 # colons.  The sample value shown here would apply if you installed g++ 4.6.0
 # in /opt/gcc-4.6.0 on a 64 bit machine.
 #EXTRA_DYNLIB_PATH=/opt/gcc-4.6.0/lib64:/opt/gcc-4.6.0/lib
@@ -47,7 +47,7 @@ PORTAGE=$HOME/Portage1.5.1
 # END OF USER CONFIGURABLE VARIABLES
 # =======================================================================
 
-echo 'Portage 1.5.1, NRC-CNRC, (c) 2004 - 2013, Her Majesty in Right of Canada' >&2
+echo 'PortageII 2.0, NRC-CNRC, (c) 2004 - 2013, Her Majesty in Right of Canada' >&2
 
 PATH=$PORTAGE/bin${PATH:+:$PATH}
 if [[ $EXTRA_PROGRAM_PATH ]]; then

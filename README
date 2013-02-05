@@ -83,7 +83,7 @@ phrase-based statistical machine translation, including:
    logs/        place-holder for runtime logs
    test-suite/  various test suites
    PortageLive/ files needed to setup a runtime translation server
-   third-party/ Non-NRC software distributed with Portage 1.5 for convenience
+   third-party/ Non-NRC software distributed with PortageII for convenience
    README       this file
    INSTALL      installation instructions
    RELEASES     release history

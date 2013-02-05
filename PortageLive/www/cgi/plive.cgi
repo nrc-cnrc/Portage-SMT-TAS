@@ -615,7 +615,7 @@ sub NRCFooter {
                     td({valign=>'top', align=>'center'},
                        small(
                           "Technologies langagi&egrave;res interactives / Interactive Language Technologies", br(),
-                          "Technologies de l’information et des communications / Information and Communications Technologies", br(),
+                          "Technologies de l'information et des communications / Information and Communications Technologies", br(),
                           "Conseil national de recherches Canada / National Research Council Canada", br(),
                           "Copyright 2004&ndash;2012, Sa Majest&eacute; la Reine du Chef du Canada / ",
                           "Her Majesty in Right of Canada", br(),

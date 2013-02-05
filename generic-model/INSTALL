@@ -11,13 +11,13 @@ Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
 
 
-                   Installing the Portage Generic Model 1.0
+                  Installing the PortageII Generic Model 1.0
 
-If you have licensed the Portage Generic Model DVD, you can install it in the
+If you have licensed the PortageII Generic Model DVD, you can install it in the
 generic-model directory.
 
-Copy the full contents of the DVD to the generic-model directory within Portage
-or some other directory of your choice; the usual location is:
+Copy the full contents of the DVD to the generic-model directory within
+PortageII or some other directory of your choice; the usual location is:
 $PORTAGE/generic-model.
    cp -prd /DVDlocation/* $PORTAGE/generic-model/
 or
@@ -26,7 +26,7 @@ or
                               Getting Started
 
 Please refer to the README file within this directory for instructions on
-how to incorporate the generic models into your Portage translation system.
+how to incorporate the generic models into your PortageII translation system.
 
 DVD Contents:
    lm/      English and French Language Models

@@ -1,4 +1,4 @@
-                                Portage 1.5
+                               PortageII 2.0
 
 Technologies langagieres interactives / Interactive Language Technologies
 Technologies de l'information et des communications /
@@ -13,8 +13,7 @@ license agreement for details.
 
                        Third Party Copyright Notices
 
-Portage 1.5 may be linked with some or all of the following 3rd party
-libraries:
+PortageII may be linked with some or all of the following 3rd party libraries:
  - Boost C++ Libraries
  - g++ runtime libraries
  - ICU - International Components for Unicode
@@ -22,7 +21,7 @@ libraries:
  - Log4cxx (Apache)
  - Tightly Packed Tries, suffix arrays and related software
  - google-perftools - TCMalloc and the Google profiler
- - libunwind - binary distributions of Portage 1.5 might include libunwind
+ - libunwind - binary distributions of PortageII might include libunwind
  - GMSL - GNU Make Standard Library
 
 Here are their respective Copyright notices.

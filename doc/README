@@ -9,13 +9,13 @@ Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
 
 
-                         Portage 1.5 documentation
+                          PortageII documentation
 
 Contents of this directory:
 
-   tutorial.pdf             Portage 1.5 tutorial using our framework
+   tutorial.pdf             PortageII tutorial using our framework
                             Note: read this tutorial *first*
-   user-manual.html         Portage 1.5 user manual
+   user-manual.html         PortageII user manual
    system-requirements.pdf  Sys reqs and recommended hardware
    usage.html               Usage information for each program
    adaptation.README        Documentation for the adaptation module

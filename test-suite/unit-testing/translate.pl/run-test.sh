@@ -11,4 +11,4 @@
 # Copyright 2013, Her Majesty in Right of Canada
 
 make clean
-make all -B -j 2
+make all -B -j 2 -k
