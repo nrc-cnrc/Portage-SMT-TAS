@@ -984,17 +984,16 @@ sub ixLoad {
       }
       else {
          # Remove Portage's wrapping tags.
-         if ($seg =~ m/(open|close|tag)_wrap/) {
-            $seg = XML::Twig->new(
-                  twig_handlers => {
-                     open_wrap  => \&unWrapTag,
-                     close_wrap => \&unWrapTag,
-                     tag_wrap   => \&unWrapTag,
-                  })
-               ->parse("<dummy>$seg</dummy>")
-               ->root
-               ->xml_string;
+         sub clean {
+            my $seg = shift;
+            $seg =~ s/&gt;/>/g;    # unescape greater than
+            $seg =~ s/&lt;/</g;    # unescape less than
+            $seg =~ s/&quot;/"/g;  # unescape quote
+            $seg =~ s/&apos;/'/g;  # unescape apos
+            $seg =~ s/&amp;/&/g;   # unescape ampersand
+            return $seg;
          }
+         $seg =~ s/<(?:open|close|tag)_wrap(?:\s+id="\d+")?\s+content="([^"]+)"\s*(?:id="\d+")?\/>/clean($1)/eg;
       }
       my $ce = 0;
       if ($ce_file) {
