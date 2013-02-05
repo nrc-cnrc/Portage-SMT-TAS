@@ -107,7 +107,7 @@
 
 <tu usagecount="1" changedate="20121212T123011Z" changeid="SOMEONE">
 <tuv xml:lang="EN-CA">
-<seg>This is a <bpt i="1">&lt;cf bold=&quot;on&quot;&gt;</bpt>test<ept i="1">&lt;/cf&gt;</ept> for 12,456 units.</seg>
+<seg>This is a <bpt i='1'>&lt;cf bold=&quot;on&quot;&gt;</bpt>test<ept i='1'>&lt;/cf&gt;</ept> for 12,456 units.</seg>
 </tuv>
 <tuv xml:lang="FR-CA">
 <seg>This is a <bpt i="1">&lt;cf bold=&quot;on&quot;&gt;</bpt>test<ept i="1">&lt;/cf&gt;</ept> for 12,456 units.</seg>
