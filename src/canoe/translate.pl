@@ -2,7 +2,7 @@
 # @file translate.pl
 # @brief Script to translate text.
 #
-# @author Darlene Stewart (adapted from Michel Simard's ce_translate.pl)
+# @author Darlene Stewart & Samuel Larkin (adapted from Michel Simard's ce_translate.pl)
 #
 # COMMENTS:
 #
