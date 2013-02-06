@@ -426,10 +426,24 @@ sub tokenize($$$) #(paragraph, pretok?, xtags?)
             my $tag = get_token($para, $inner_tags[$inner_i], @tok_posits);
             if ($tag =~ /^<open_wrap $tag_inner_re*\bid="(\d+)"$tag_inner_re*\/>$/o) {
                # TMX opening tag, wrapped in an open_wrap tag.
+               my $open_id = $1;
                foreach my $subsequent_tag (@inner_tags[$inner_i+1 .. $#inner_tags], @right_tags) {
+                  my $othertag = get_token($para, $subsequent_tag, @tok_posits);
+                  if ($othertag =~ /^<close_wrap $tag_inner_re*\bid="(\d+)"$tag_inner_re*\/>$/o &&
+                      $open_id eq $1) {
+                     $inner_matched[$inner_i] = 1;
+                  }
                }
             } elsif ($tag =~ /^<close_wrap $tag_inner_re*\bid="(\d+)"$tag_inner_re*\/>$/o) {
                # TMX closing tag, wrapped in a close_wrap tag.
+               my $close_id = $1;
+               foreach my $preceeding_tag (@left_tags, @inner_tags[0 .. $inner_i-1]) {
+                  my $othertag = get_token($para, $preceeding_tag, @tok_posits);
+                  if ($othertag =~ /^<open_wrap $tag_inner_re*\bid="(\d+)"$tag_inner_re*\/>$/o &&
+                      $close_id eq $1) {
+                     $inner_matched[$inner_i] = 1;
+                  }
+               }
             } elsif ($tag =~ /^<($tag_name_re)$tag_inner_re*>$/o) {
                # Regular opening tag (e.g., XLIFF)
                my $tagname = $1;

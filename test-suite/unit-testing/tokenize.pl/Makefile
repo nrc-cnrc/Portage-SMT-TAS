@@ -16,6 +16,7 @@
 
 .PHONY: all french-hyphens dots ch-punc
 .SECONDARY:
+export PORTAGE_INTERNAL_CALL=1
 
 all: test
 
@@ -225,10 +226,10 @@ es.source:
 	echo "${SOURCE_ES}" > $@
 
 es.tok: es.source
-	utokenize.pl -lang=es -ss < $< | tee $@
+	utokenize.pl -lang=es -ss < $< > $@
 
 es.detok: es.tok
-	udetokenize.pl -lang=es < $< | tee $@
+	udetokenize.pl -lang=es < $< > $@
 
 
 ################################################################################
@@ -248,10 +249,10 @@ da.source:
 	echo "${SOURCE_DA}" > $@
 
 da.tok:  da.source
-	utokenize.pl -lang=da -noss < $< | tee $@
+	utokenize.pl -lang=da -noss < $< > $@
 
 da.detok:  da.tok
-	udetokenize.pl -lang=da < $< | tee $@
+	udetokenize.pl -lang=da < $< > $@
 
 
 ################################################################################
@@ -262,10 +263,10 @@ test: tags
 tags: compare.xtags.tok compare.xtags.detok
 
 xtags.tok: xtags
-	utokenize.pl -noss -xtags < $< | tee $@
+	utokenize.pl -noss -xtags < $< > $@
 
 xtags.detok: xtags.tok
-	udetokenize.pl < $< | tee $@
+	udetokenize.pl < $< > $@
 
 ################################################################################
 # Detokenizing with brackets of all kinds
