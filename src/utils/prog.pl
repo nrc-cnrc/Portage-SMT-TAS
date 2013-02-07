@@ -15,6 +15,9 @@
 use strict;
 use warnings;
 
+# Make sure STDIN, STDOUT & STDERR are in UTF-8 mode.
+BEGIN{use encoding "UTF-8";}
+
 BEGIN {
    # If this script is run from within src/ rather than being properly
    # installed, we need to add utils/ to the Perl library include path (@INC).
@@ -91,7 +94,9 @@ if ( $debug ) {
 }
 
 open(IN, "<$in") or die "Can't open $in for reading: $!\n";
+binmode(IN, ":encoding(UTF-8)");
 open(OUT, ">$out") or die "Can't open $out for writing: $!\n";
+binmode(OUT, ":encoding(UTF-8)");
 
 while (<IN>) {
    print OUT;
