@@ -419,21 +419,31 @@ void tokenizeSource(const string line, const Uint lineno,
             }
             if (elems[i-1].isClosePair() ) {  // find match for paired element
                Uint j = i-1;
-               for (; j > 0; --j) {
-                  if (elems[j-1].pair_id == elems[i-1].pair_id) {
-                     // set src token span for both paired elements.
-                     // after the tgt span is determined, these will be restored.
+               for (; j > 0 && elems[j-1].pair_id != elems[i-1].pair_id; --j) ;
+               if (j > 0) {
+                  // Set src token span for both paired elements.
+                  // After the tgt span is determined, these will be restored.
+                  // If either paired element is detected to be intra-token,
+                  // then treat both elements as intra-token.
+                  if (elems[j-1].intratok && !elems[i-1].intratok && elems[i-1].btok == elems[j-1].btok+1) {
+                     elems[i-1].intratok = true;
+                     elems[i-1].btok = elems[j-1].btok;
+                     elems[i-1].etok = elems[j-1].etok;
+                     elems[i-1].lip = src_toks.back().size();  // correct the insertion point
+                  } else if (elems[i-1].intratok && elems[i-1].btok == elems[j-1].btok) {
+                     elems[j-1].intratok = true;
+                     elems[j-1].btok = elems[i-1].btok;
+                     elems[j-1].etok = elems[i-1].etok;
+                  } else {
                      elems[j-1].etok = elems[i-1].etok;
                      elems[i-1].btok = elems[j-1].btok;
-                     if (extra_verbose) {
-                        cerr << "element " << i-1 << " paired with " << j-1 << endl;
-                        elems[i-1].dump();
-                        elems[j-1].dump();
-                     }
-                     break;
                   }
-               }
-               if (j == 0) {
+                  if (extra_verbose) {
+                     cerr << "element " << i-1 << " paired with " << j-1 << endl;
+                     elems[i-1].dump();
+                     elems[j-1].dump();
+                  }
+               } else {
                   if (verbose)
                      error(ETWarn, "line %d: Paired element %s has no matching opening element",
                            lineno, elems[i-1].lstring.c_str());
@@ -803,12 +813,14 @@ void assignTargetSpans(Uint lineno, Dict &dict, Dict &anti_dict,
 
    // Now that the target spans are set, restore the btok, etok and
    // btok_tgt, etok_tgt fields:
-   // - for paired elements such that that pair open tag will be output
-   //   before the pair close tag; also flag empty pairs.
+   // - for non-intra-token paired elements such that the pair open tag will be
+   //   output before the pair close tag; also flag empty pairs. Leave any
+   //   intra-token paired elements alone: they are handled by the OOV
+   //   processing below.
    // - for isolated tags to return them to being point tags
    if (xtags) {
       for (Uint i = 0; i < elems.size(); ++i) {
-         if (elems[i].isPaired()) {
+         if (elems[i].isPaired() && !elems[i].intratok) {
             elems[i].pair_empty = elems[i].etok_tgt == elems[i].btok_tgt;
             if (elems[i].isOpenPair()) {
                elems[i].etok = elems[i].btok;
@@ -865,15 +877,32 @@ void assignTargetSpans(Uint lineno, Dict &dict, Dict &anti_dict,
                   // update tgt range to attach element to the oov look-alike.
                   elems[i].btok_tgt = j;
                   elems[i].etok_tgt = j + 1;
-               } else if (etgt - elems[i].btok_tgt > 1) {
-                  // Non-OOV with than one target token:
+               } else {
+                  // Not an OOV or OOV-look-alike.
+                  // Non-OOV with more than one target token:
                   // update tgt range to move intra-token elements to the
                   // the first or last token of the target phrase depending
                   // on whether the element's left tag is at the start of
                   // the source token or not.
-                  if (elems[i].lip == 0)
+                  // Pair open at start of token: adjust insertion point of the
+                  // corresponding pair close, so it will be moved to the start too.
+                  if (elems[i].lip == 0) {
                      elems[i].etok_tgt = elems[i].btok_tgt + 1;
-                  else
+                     if (elems[i].isOpenPair()) {
+                        // Move the corresponding close pair to the start too.
+                        Uint j;
+                        for (j = i+1; j < elems.size() && elems[j].pair_id != elems[i].pair_id; ++j) ;
+                        if (j < elems.size()) {
+                           elems[j].etok_tgt = elems[j].btok_tgt + 1;
+                           elems[j].lip = 0;
+                        } else {
+                           if (verbose)
+                              error(ETWarn, "line %d: Paired element %s has no matching closing element",
+                                    lineno, elems[i].lstring.c_str());
+                           ++num_unmatched_tags;
+                        }
+                     }
+                  } else
                      elems[i].btok_tgt = elems[i].etok_tgt - 1;
                }
             }
@@ -1128,10 +1157,12 @@ void outputWithXMLTags(const vector<string> &tgt_toks, vector<Elem> &elems)
          if (nested.size() == nested_mark)
             --nested_mark;
          // Output empty (point) elements that must precede this right tag
+         // Skip handling intra-token paired tags - use normal intra-token tag handling instead.
          for (Uint k=j; k < elems.size(); ++k) {
             if (elems[k].shouldTransfer() && !elems[k].lout) {
                if (((elems[k].isOrdinaryEmpty() && elems[k].btok == elems[j].etok) ||
-                    (elems[k].isClosePair() && !elems[k].pair_empty && elems[k].btok_tgt == i+1) ||
+                    (elems[k].isClosePair()&& elems[k].btok_tgt == i+1
+                       && !elems[k].intratok && !elems[k].pair_empty ) ||
                     (elems[k].isCloseIT() && elems[k].btok_tgt == i+1))
                    && elems[k].nestedIn(elems[j])) {
                   if (need_ws && elems[k].lwsl) {
@@ -1161,8 +1192,10 @@ void outputWithXMLTags(const vector<string> &tgt_toks, vector<Elem> &elems)
       // Paired elements and isolated tags are handled outside the nesting
       // structure, i.e. such elements are not pushed on the nested stack.
       // Skip handling empty paired tags - use normal empty tag handling instead.
+      // Skip handling intra-token paired tags - use normal intra-token tag handling instead.
       for (Uint j = 0; j < elems.size(); ++j) {
-         if ((elems[j].isClosePair() && !elems[j].pair_empty) || elems[j].isCloseIT()) {
+         if ((elems[j].isClosePair() && !elems[j].intratok && !elems[j].pair_empty)
+               || elems[j].isCloseIT()) {
             if (elems[j].shouldTransfer() && !elems[j].lout && elems[j].btok_tgt==i+1) {
                if (elems[j].lwsl) {
                   cout << ' ';

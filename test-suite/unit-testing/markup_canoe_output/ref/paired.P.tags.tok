@@ -22,4 +22,4 @@ E A B C D <tag_wrap content="&lt;it id=&quot;1&quot; pos=&quot;open&quot;>&amp;l
 E A B C D <tag_wrap content="&lt;it id=&quot;1&quot; pos=&quot;close&quot;>&amp;lt;/cf>&lt;/it>"/> G H F I J K L
 E A B C D <tag_wrap content="&lt;it id=&quot;1&quot; pos=&quot;close&quot;>&amp;lt;/cf>&lt;/it>"/> G H F I J K L
 E A B C D G H F<tag_wrap content="&lt;it id=&quot;1&quot; pos=&quot;close&quot;>&amp;lt;/cf>&lt;/it>"/> I J K L
-PLACEHOLDER - CURRENT OUTPUT IS WRONG.
+Et sub<open_wrap content="&lt;bpt i=&quot;1&quot;>{\super &lt;/bpt>" id="1"/>script<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/><open_wrap content="&lt;bpt i=&quot;2&quot;>{\sub &lt;/bpt>" id="2"/>insuper<close_wrap content="&lt;ept i=&quot;2&quot;>}&lt;/ept>" id="2"/><open_wrap content="&lt;bpt i=&quot;3&quot;>{\super &lt;/bpt>" id="3"/>script<close_wrap content="&lt;ept i=&quot;3&quot;>}&lt;/ept>" id="3"/>

@@ -4,7 +4,7 @@ Nous conducting un vice <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf i
 C'est une <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf underlinestyle=&quot;single&quot;>&lt;/bpt>" id="1"/>test<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/> 12,456 $.
 C'est une partie test pour un certain nombre de <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf fontcolor=&quot;00B050&quot;>&lt;/bpt>" id="1"/>A-2<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/>.
 C'est une test de <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf highlight=&quot;yellow&quot;>&lt;/bpt>" id="1"/>12 V<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/>.
-THE CURRENT OUTPUT SEEMS WRONG
+C'est le advise vice<open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf font=&quot;Arial&quot; complexscriptsfont=&quot;Arial&quot; asiantextfont=&quot;Arial&quot;>&lt;/bpt>" id="1"/><close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/>president de la situation.
 Non breaking espace
 Optionalhyphen
 em — dash
@@ -23,7 +23,7 @@ Non-breaking espace?
 C'est une test 12,456 $.
 Super<open_wrap content="&lt;bpt i=&quot;1&quot;>{\super &lt;/bpt>" id="1"/>script<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/>.
 Et Sub<open_wrap content="&lt;bpt i=&quot;1&quot;>{\sub &lt;/bpt>" id="1"/>script<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/>.
-THE CURRENT OUTPUT IS WRONG.
+Et sub<open_wrap content="&lt;bpt i=&quot;1&quot;>{\super &lt;/bpt>" id="1"/>script<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/><open_wrap content="&lt;bpt i=&quot;2&quot;>{\sub &lt;/bpt>" id="2"/>insuper<close_wrap content="&lt;ept i=&quot;2&quot;>}&lt;/ept>" id="2"/><open_wrap content="&lt;bpt i=&quot;3&quot;>{\super &lt;/bpt>" id="3"/>script<close_wrap content="&lt;ept i=&quot;3&quot;>}&lt;/ept>" id="3"/>
 non-breaking hyphen
 en<tag_wrap content="&lt;ph>{\enspace }&lt;/ph>"/> espace
 Terre-Neuve-et-Labrador
