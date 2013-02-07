@@ -1,0 +1,35 @@
+C'est une test pour 12,456 unités.
+C'est une <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf bold=&quot;on&quot;>&lt;/bpt>" id="1"/>test<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/> pour 12,456 unités.
+Nous conducting un vice <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf italic=&quot;on&quot;>&lt;/bpt>" id="1"/>trial<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/> le président.
+C'est une <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf underlinestyle=&quot;single&quot;>&lt;/bpt>" id="1"/>test<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/> 12,456 $.
+C'est une partie test pour un certain nombre de <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf fontcolor=&quot;00B050&quot;>&lt;/bpt>" id="1"/>A-2<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/>.
+C'est une test de <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf highlight=&quot;yellow&quot;>&lt;/bpt>" id="1"/>12 V<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/>.
+THE CURRENT OUTPUT SEEMS WRONG
+Non breaking espace
+Optionalhyphen
+em — dash
+en – dash
+Nous conducting un vice trial le président.
+non-breaking hyphen
+em<tag_wrap content="&lt;ph>{\emspace }&lt;/ph>"/> espace
+en<tag_wrap content="&lt;ph>{\enspace }&lt;/ph>"/> espace<tag_wrap content="&lt;ph>&amp;lt;bookmarkstart name=&quot;_GoBack&quot;/>&lt;/ph>"/><tag_wrap content="&lt;ph>&amp;lt;bookmarkend name=&quot;_GoBack&quot;/>&lt;/ph>"/>
+¼ em espace
+Les essais encoding de &lt; et > en xliff et tmx, spaces et &lt;without> spaces.
+Ajouter / sabrer, \ backslash, &amp; ampersand.
+C'est une <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf bold=&quot;on&quot;>&lt;/bpt>" id="1"/>test à <close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/><open_wrap content="&lt;bpt i=&quot;2&quot;>&amp;lt;cf bold=&quot;on&quot; italic=&quot;on&quot;>&lt;/bpt>" id="2"/>voir <close_wrap content="&lt;ept i=&quot;2&quot;>&amp;lt;/cf>&lt;/ept>" id="2"/><open_wrap content="&lt;bpt i=&quot;3&quot;>&amp;lt;cf fontcolor=&quot;FF0000&quot; bold=&quot;on&quot; italic=&quot;on&quot;>&lt;/bpt>" id="3"/>overlapping formatting<close_wrap content="&lt;ept i=&quot;3&quot;>&amp;lt;/cf>&lt;/ept>" id="3"/> <open_wrap content="&lt;bpt i=&quot;4&quot;>&amp;lt;cf fontcolor=&quot;FF0000&quot; italic=&quot;on&quot;>&lt;/bpt>" id="4"/> tags sont<close_wrap content="&lt;ept i=&quot;4&quot;>&amp;lt;/cf>&lt;/ept>" id="4"/> <open_wrap content="&lt;bpt i=&quot;5&quot;>&amp;lt;cf fontcolor=&quot;FF0000&quot;>&lt;/bpt>" id="5"/> géré par <close_wrap content="&lt;ept i=&quot;5&quot;>&amp;lt;/cf>&lt;/ept>" id="5"/>tmx et xliff dossiers.
+C'<open_wrap content="&lt;bpt i=&quot;1&quot;>{\b &lt;/bpt>" id="1"/>est une<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/> <open_wrap content="&lt;bpt i=&quot;2&quot;>{\b\i &lt;/bpt>" id="2"/> test million de <close_wrap content="&lt;ept i=&quot;2&quot;>}&lt;/ept>" id="2"/><open_wrap content="&lt;bpt i=&quot;3&quot;>{\b\i\cf1 &lt;/bpt>" id="3"/>3 2 4 5 <close_wrap content="&lt;ept i=&quot;3&quot;>}&lt;/ept>" id="3"/><open_wrap content="&lt;bpt i=&quot;4&quot;>{\i\cf1 &lt;/bpt>" id="4"/>6 76 <close_wrap content="&lt;ept i=&quot;4&quot;>}&lt;/ept>" id="4"/><open_wrap content="&lt;bpt i=&quot;5&quot;>{\cf1 &lt;/bpt>" id="5"/>7 78 <close_wrap content="&lt;ept i=&quot;5&quot;>}&lt;/ept>" id="5"/>8 9 90
+Pendant we're ici, et d'autres stuff en rtf : &lt; > &amp;
+Non-breaking espace?
+C'est une test 12,456 $.
+Super<open_wrap content="&lt;bpt i=&quot;1&quot;>{\super &lt;/bpt>" id="1"/>script<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/>.
+Et Sub<open_wrap content="&lt;bpt i=&quot;1&quot;>{\sub &lt;/bpt>" id="1"/>script<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/>.
+THE CURRENT OUTPUT IS WRONG.
+non-breaking hyphen
+en<tag_wrap content="&lt;ph>{\enspace }&lt;/ph>"/> espace
+Terre-Neuve-et-Labrador
+C'est une partie test pour un certain nombre de A-2.
+C'est une test de 12 V.
+C'est une test pour "12,456 unités".
+C'est une test une liste :.
+Il est supplied en 200mL vials.
+C'est advise le vice-président aux affaires publiques de la situation.

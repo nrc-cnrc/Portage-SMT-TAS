@@ -1,0 +1,39 @@
+C'est une test une liste :.
+3 > 4
+C'est une test de 12 V.
+Nous conducting un vice trial le président.
+1 &lt; 2
+Nous conducting un vice <g id="2">trial</g> le président.
+Non-breaking espace?
+emspace
+Pendant we're ici, et d'autres stuff en rtf : &lt; > &amp;
+Et Sub<g id="pt11">script</g>.
+em — dash
+Les essais encoding de &lt; et > en xliff et tmx, spaces et &lt;without> spaces.
+C'est advise le vice-président aux affaires publiques de la situation.
+non-breaking hyphen
+em espace
+C'est une <g id="1">test</g> pour 12,456 unités.
+Ajouter / sabrer, \ backslash, &amp; ampersand.
+C'est une <g id="9">test à <g id="10">voir <g id="11">overlapping formatting</g></g></g> <g id="12"> tags sont</g> <g id="13"> géré par </g>tmx et xliff dossiers.
+Optionalhyphen
+Non breaking espace
+C'est une test pour 12,456 unités.
+C'est une test de <g id="5">12 V</g>.
+C'<g id="pt2">est une</g> <g id="pt3"> test million de </g><g id="pt4">3 2 4 5 </g><g id="pt5">6 76 </g><g id="pt6">7 78 </g>8 9 90
+C'est une test pour "12,456 unités".
+Et sub<g id="pt12">script</g><g id="pt13">insuper</g><g id="pt14">script</g>
+en
+C'est une test 12,456 $.
+Optionalhyphen
+Il est supplied en 200mL vials.
+en espace
+en – dash
+C'est une partie test pour un certain nombre de A-2.
+Le rapport semaines d'ici 2012
+C'est une <g id="3">test</g> 12,456 $.
+C'est advise le vice-président aux affaires publiques<g id="6"></g> de la situation.
+non-breaking hyphen
+Super<g id="pt10">script</g>.
+¼ em espace
+C'est une partie test pour un certain nombre de <g id="4">A-2</g>.
