@@ -873,7 +873,8 @@ sub ixSave {
    }
 
    sub extractContent($) {
-      my $xml = shift or die;
+      my $xml = shift;
+      die "You must provide a content\n" unless(defined($xml));
       my $tag = XML::Twig->new(
                twig_handlers => {
                   'ph[string() =~ /\s*\\-\s*$/]' =>
