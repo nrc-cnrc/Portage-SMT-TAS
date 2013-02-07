@@ -151,15 +151,15 @@ endif
 
 # In the Makefile.user-conf we autodetect the presence of lzma on the current
 # system.  If lzma is not available, we will skip everything related to lzma in
-# Portage.
+# PortageII.
 HAS_LZMA ?= $(or $(shell test -x "`which lzma 2> /dev/null`" && echo DEFAULT-DEFINED), NONE)
 ifeq ($(HAS_LZMA),NONE)
    ifeq (${MAKELEVEL},0)
-      #$(info Compiling Portage without lzma support.)
+      #$(info Compiling PortageII without lzma support.)
    endif
 else
    ifeq (${MAKELEVEL},0)
-      #$(info Compiling Portage with lzma support.)
+      #$(info Compiling PortageII with lzma support.)
    endif
    CFLAG_LZMA := -DUSE_LZMA
 endif
@@ -317,7 +317,7 @@ new: clean
 install: all install_perl_lib install_python_lib install_bin
 
 # put the include files and static libraries where they belong, as needed for
-# an external program using Portage libraries.
+# an external program using PortageII libraries.
 export: all install_inc install_static_lib install_dyn_lib
 
 # compose for top-level makefile

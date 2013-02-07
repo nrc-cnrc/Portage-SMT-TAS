@@ -25,7 +25,7 @@ use warnings;
 B< >
 
  This Perl module is intended to contain common utility functions for all Perl
- scripts in the Portage project.
+ scripts in the PortageII project.
 
 B< >
 
@@ -160,7 +160,7 @@ B< =============================================
 
 =item B<DESCRIPTION>
 
- Portage's perl magicstream.  Tries to deduce if the stream is input or output,
+ PortageII's perl magicstream.  Tries to deduce if the stream is input or output,
  if it is compressed (.gz,z,Z,bz2,bzip2,bz,lzma), piped or just a normal file,
  and does the proper thing to open the stream.
 
@@ -226,7 +226,7 @@ B< =============================================
 
 =item B<DESCRIPTION>
 
- Portage's perl magicstream.  Tries to deduce if the input is compressed, piped
+ PortageII's perl magicstream.  Tries to deduce if the input is compressed, piped
  or just a normal file and does the proper thing to open the stream.
 
 =item B<SYNOPSIS>
@@ -317,7 +317,7 @@ B< =============================================
 
 =item B<DESCRIPTION>
 
- Portage's perl magicstream.  Tries to deduce if the output is compressed, piped
+ PortageII's perl magicstream.  Tries to deduce if the output is compressed, piped
  or just a normal file and does the proper thing to open the stream.
 
 =item B<SYNOPSIS>

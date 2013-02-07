@@ -33,10 +33,10 @@ which the translated text is replaced.
 
 By default, the program creates a temporary working directory, where it stores
 intermediate results, including tokenized and lowercased versions of the text
-files, PORTAGE translations, and for C<-with-ce>, value files for the features
-used by the CE model. Normally this temporary directory is deleted at the
-end of the process, unless something goes wrong or if the C<-dir=D>option or
-the C<-d> option is specified.
+files, PortageII translations, and for C<-with-ce>, value files for the
+features used by the CE model. Normally this temporary directory is deleted at
+the end of the process, unless something goes wrong or if the C<-dir=D>option
+or the C<-d> option is specified.
 
 =head1 OPTIONS
 

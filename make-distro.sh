@@ -268,12 +268,21 @@ get_user_manual() {
       run_cmd find PORTAGEshared/doc/user-manual/uploads -name \*.gif.1 \| xargs rm -f
       run_cmd pushd PORTAGEshared/doc/user-manual/pages
          for x in *.html; do
-            echo Making images relative in $x and renaming PORTAGE shared '->' PortageII 2.0.
+            echo Making images relative in $x and renaming PORTAGE shared '->' PortageII.
             if [[ ! $NOT_REALLY ]]; then
                perl -e 'print '"'"'%s/IMG SRC="http:\/\/wiki-ilt\/PORTAGEshared\/uploads/img src="..\/uploads/'"'"'."\nw\nq\n"' | ed $x
                perl -e 'print '"'"'%s/img src="http:\/\/wiki-ilt\/PORTAGEshared\/uploads/img src="..\/uploads/'"'"'."\nw\nq\n"' | ed $x
                if grep -q 'PORTAGE shared' $x; then
-                  perl -e 'print '"'"'%s/PORTAGE shared/PortageII 2.0/g'"'"'."\nw\nq\n"' | ed $x
+                  perl -e 'print '"'"'%s/PORTAGE shared/PortageII/g'"'"'."\nw\nq\n"' | ed $x
+               fi
+               if grep -q 'Portage II' $x; then
+                  perl -e 'print '"'"'%s/Portage II/PortageII/g'"'"'."\nw\nq\n"' | ed $x
+               fi
+               if grep -q 'Portage Live' $x; then
+                  perl -e 'print '"'"'%s/Portage Live/PortageLive/g'"'"'."\nw\nq\n"' | ed $x
+               fi
+               if grep -q 'Portage Machine Translation' $x; then
+                  perl -e 'print '"'"'%s/Portage Machine Translation/PortageII Machine Translation/g'"'"'."\nw\nq\n"' | ed $x
                fi
             fi
          done
