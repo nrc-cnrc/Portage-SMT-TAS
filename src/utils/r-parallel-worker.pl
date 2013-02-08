@@ -1,5 +1,4 @@
 #!/usr/bin/env perl
-# $Id$
 
 # @file r-parallel-worker.pl 
 # @brief This is a generic worker program that requests a command and executes
@@ -200,7 +199,7 @@ while(defined $reply_rcvd and $reply_rcvd !~ /^\*\*\*EMPTY\*\*\*/i
       # Ubuntu and Debian)
       my $rc = system("/bin/bash", "-c", $job_command);
       #my $rc = system($job_command);
-      $SIG{INT} = $SIG{QUIT} = $SIG{TERM} = 'ignore_signal';
+      $SIG{INT} = $SIG{QUIT} = $SIG{TERM} = "IGNORE";
       if ( $rc == -1 ) {
          log_msg "System return code = $rc, means couldn't start job: $!";
          $exit_status = -1;
