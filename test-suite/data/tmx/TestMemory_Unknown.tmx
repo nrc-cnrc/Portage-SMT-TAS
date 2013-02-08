@@ -339,5 +339,14 @@
 </tuv>
 </tu>
 
+<tu usagecount="2" changedate="20121023T194212Z" changeid="SOMEONE">
+<tuv xml:lang="EN-CA">
+<seg>0</seg>
+</tuv>
+<tuv xml:lang="FR-CA">
+<seg>0</seg>
+</tuv>
+</tu>
+
 </body>
 </tmx>

@@ -27,6 +27,7 @@ Et subscriptinsuperscript
 non-breaking hyphen
 en espace
 Terre-Neuve-et-Labrador
+0
 C'est une partie test pour un certain nombre de A-2.
 C'est une test de 12 V.
 C'est une test pour "12,456 unités".
