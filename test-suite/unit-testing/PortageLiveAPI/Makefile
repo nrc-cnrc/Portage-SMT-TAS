@@ -38,12 +38,7 @@ endif
 
 
 TEMP_FILES = U*.sdlxliff T*.tmx log.*
-TEMP_DIRS = workdir.*
 include ../Makefile.incl
-
-
-workdir.%:
-	mkdir -p $@
 
 
 # Only performs translation.
@@ -54,7 +49,7 @@ trans:  trans_tmx
 ########################################
 # SDLXLIFF
 .PHONY:  sdlxliff  trans_sdlxliff
-UnknownSegments_en-CA_fr-CA.v5.%.sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.sdlxliff  | workdir.%.sdlxliff
+UnknownSegments_en-CA_fr-CA.v5.%.sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.sdlxliff
 	PortageLiveAPI.pl \
 		-server=${SERVER} \
 		-context=${CONTEXT} \
@@ -67,15 +62,18 @@ UnknownSegments_en-CA_fr-CA.v5.%.sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.sdlxl
 # Make sure we translated all sdlxliff examples first then try to validate them.
 sdlxliff:  trans_sdlxliff
 
-validate_sdlxlif%:
-	! egrep '(open|close|tag)_wrap' $<
+%.sdlxliff.validate:  %.sdlxliff.wrap  %.sdlxliff.diff
+	@:
+%.sdlxliff.diff:  %.sdlxliff
 	diff $+ --brief
+%.wrap:  %
+	! egrep '(open|close|tag)_wrap' $<
 
 
 # Translate only, no xtags, no CE
 sdlxliff: validate_sdlxliff
-#validate_sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.translated.sdlxliff  ref.UnknownSegments_en-CA_fr-CA.v5.sdlxliff
-validate_sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.translated.sdlxliff  ref.UnknownSegments_en-CA_fr-CA.v5.CE.sdlxliff
+validate_sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.translated.sdlxliff.validate
+UnknownSegments_en-CA_fr-CA.v5.translated.sdlxliff.diff:  ref.UnknownSegments_en-CA_fr-CA.v5.CE.sdlxliff
 
 trans_sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.translated.sdlxliff
 UnknownSegments_en-CA_fr-CA.v5.translated.sdlxliff:  override OPTIONS =
@@ -83,7 +81,8 @@ UnknownSegments_en-CA_fr-CA.v5.translated.sdlxliff:  override OPTIONS =
 
 # With CE
 sdlxliff: validate_sdlxliff_CE
-validate_sdlxliff_CE:  UnknownSegments_en-CA_fr-CA.v5.CE.sdlxliff  ref.UnknownSegments_en-CA_fr-CA.v5.CE.sdlxliff
+validate_sdlxliff_CE:  UnknownSegments_en-CA_fr-CA.v5.CE.sdlxliff.validate
+UnknownSegments_en-CA_fr-CA.v5.CE.sdlxliff.diff:  ref.UnknownSegments_en-CA_fr-CA.v5.CE.sdlxliff
 
 trans_sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.CE.sdlxliff
 UnknownSegments_en-CA_fr-CA.v5.CE.sdlxliff:  override OPTIONS = -filter=0.0
@@ -91,8 +90,8 @@ UnknownSegments_en-CA_fr-CA.v5.CE.sdlxliff:  override OPTIONS = -filter=0.0
 
 # With xtags
 sdlxliff: validate_sdlxliff_xtags
-#validate_sdlxliff_xtags:  UnknownSegments_en-CA_fr-CA.v5.xtags.sdlxliff  ref.UnknownSegments_en-CA_fr-CA.v5.xtags.sdlxliff
-validate_sdlxliff_xtags:  UnknownSegments_en-CA_fr-CA.v5.xtags.sdlxliff  ref.UnknownSegments_en-CA_fr-CA.v5.xtags.CE.sdlxliff
+validate_sdlxliff_xtags:  UnknownSegments_en-CA_fr-CA.v5.xtags.sdlxliff.validate
+UnknownSegments_en-CA_fr-CA.v5.xtags.sdlxliff.diff:  ref.UnknownSegments_en-CA_fr-CA.v5.xtags.CE.sdlxliff
 
 trans_sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.xtags.sdlxliff
 UnknownSegments_en-CA_fr-CA.v5.xtags.sdlxliff:  override OPTIONS = -xtags
@@ -100,7 +99,8 @@ UnknownSegments_en-CA_fr-CA.v5.xtags.sdlxliff:  override OPTIONS = -xtags
 
 # With xtags and CE
 sdlxliff: validate_sdlxliff_xtags_CE
-validate_sdlxliff_xtags_CE:  UnknownSegments_en-CA_fr-CA.v5.xtags.CE.sdlxliff  ref.UnknownSegments_en-CA_fr-CA.v5.xtags.CE.sdlxliff
+validate_sdlxliff_xtags_CE:  UnknownSegments_en-CA_fr-CA.v5.xtags.CE.sdlxliff.validate
+UnknownSegments_en-CA_fr-CA.v5.xtags.CE.sdlxliff.diff:  ref.UnknownSegments_en-CA_fr-CA.v5.xtags.CE.sdlxliff
 
 trans_sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.xtags.CE.sdlxliff
 UnknownSegments_en-CA_fr-CA.v5.xtags.CE.sdlxliff:  override OPTIONS = -filter=0.0 -xtags
@@ -108,7 +108,8 @@ UnknownSegments_en-CA_fr-CA.v5.xtags.CE.sdlxliff:  override OPTIONS = -filter=0.
 
 # With xtags and CE based filtering
 sdlxliff: validate_sdlxliff_xtags_CE_filter
-validate_sdlxliff_xtags_CE_filter:  UnknownSegments_en-CA_fr-CA.v5.xtags.CE.filter.sdlxliff  ref.UnknownSegments_en-CA_fr-CA.v5.xtags.CE.filter.sdlxliff
+validate_sdlxliff_xtags_CE_filter:  UnknownSegments_en-CA_fr-CA.v5.xtags.CE.filter.sdlxliff.validate
+UnknownSegments_en-CA_fr-CA.v5.xtags.CE.filter.sdlxliff.diff:  ref.UnknownSegments_en-CA_fr-CA.v5.xtags.CE.filter.sdlxliff
 
 trans_sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.xtags.CE.filter.sdlxliff
 UnknownSegments_en-CA_fr-CA.v5.xtags.CE.filter.sdlxliff:  override OPTIONS = -filter=0.2 -xtags
@@ -118,7 +119,7 @@ UnknownSegments_en-CA_fr-CA.v5.xtags.CE.filter.sdlxliff:  override OPTIONS = -fi
 ########################################
 # TMX
 .PHONY:  tmx  trans_tmx
-TestMemory_Unknown.%.tmx:  TestMemory_Unknown.tmx  | workdir.%.tmx
+TestMemory_Unknown.%.tmx:  TestMemory_Unknown.tmx
 	PortageLiveAPI.pl \
 		-server=${SERVER} \
 		-context=${CONTEXT} \
@@ -130,14 +131,16 @@ TestMemory_Unknown.%.tmx:  TestMemory_Unknown.tmx  | workdir.%.tmx
 
 tmx:  trans_tmx
 
-validate_tm%:
-	! egrep '(open|close|tag)_wrap' $<
+%.tmx.validate:  %.tmx.diff  %.tmx.wrap
+	@:
+%.tmx.diff:  %.tmx
 	diff <(sed 's/changedate="[^"]*"//g' $<) <(sed 's/changedate="[^"]*"//g' $(filter-out $<,$+)) --brief
 
 
 # Translate only, no xtags, no CE
 tmx: validate_tmx
-validate_tmx: TestMemory_Unknown.translated.tmx ref.TestMemory_Unknown.CE.tmx
+validate_tmx: TestMemory_Unknown.translated.tmx.validate
+TestMemory_Unknown.translated.tmx.diff:  ref.TestMemory_Unknown.CE.tmx
 
 trans_tmx:  TestMemory_Unknown.translated.tmx
 TestMemory_Unknown.translated.tmx:  override OPTIONS =
@@ -145,7 +148,8 @@ TestMemory_Unknown.translated.tmx:  override OPTIONS =
 
 # With CE
 tmx: validate_tmx_CE
-validate_tmx_CE: TestMemory_Unknown.CE.tmx ref.TestMemory_Unknown.CE.tmx
+validate_tmx_CE: TestMemory_Unknown.CE.tmx.validate
+TestMemory_Unknown.CE.tmx.diff:  ref.TestMemory_Unknown.CE.tmx
 
 trans_tmx:  TestMemory_Unknown.CE.tmx
 TestMemory_Unknown.CE.tmx:  override OPTIONS = -filter=0.0
@@ -153,7 +157,8 @@ TestMemory_Unknown.CE.tmx:  override OPTIONS = -filter=0.0
 
 # With xtags
 tmx: validate_tmx_xtags
-validate_tmx_xtags: TestMemory_Unknown.xtags.tmx ref.TestMemory_Unknown.xtags.CE.tmx
+validate_tmx_xtags: TestMemory_Unknown.xtags.tmx.validate
+TestMemory_Unknown.xtags.tmx.diff:  ref.TestMemory_Unknown.xtags.CE.tmx
 
 trans_tmx:  TestMemory_Unknown.xtags.tmx
 TestMemory_Unknown.xtags.tmx:  override OPTIONS = -xtags
@@ -161,7 +166,8 @@ TestMemory_Unknown.xtags.tmx:  override OPTIONS = -xtags
 
 # With xtags and CE
 tmx: validate_tmx_xtags_CE
-validate_tmx_xtags_CE: TestMemory_Unknown.xtags.CE.tmx ref.TestMemory_Unknown.xtags.CE.tmx
+validate_tmx_xtags_CE: TestMemory_Unknown.xtags.CE.tmx.validate
+TestMemory_Unknown.xtags.CE.tmx.diff:  ref.TestMemory_Unknown.xtags.CE.tmx
 
 trans_tmx:  TestMemory_Unknown.xtags.CE.tmx
 TestMemory_Unknown.xtags.CE.tmx:  override OPTIONS = -filter=0.0 -xtags
@@ -169,7 +175,8 @@ TestMemory_Unknown.xtags.CE.tmx:  override OPTIONS = -filter=0.0 -xtags
 
 # With xtags and CE-based filtering
 tmx: validate_tmx_xtags_CE_filter
-validate_tmx_xtags_CE_filter: TestMemory_Unknown.xtags.CE.filter.tmx ref.TestMemory_Unknown.xtags.CE.filter.tmx
+validate_tmx_xtags_CE_filter: TestMemory_Unknown.xtags.CE.filter.tmx.validate
+TestMemory_Unknown.xtags.CE.filter.tmx.diff:  ref.TestMemory_Unknown.xtags.CE.filter.tmx
 
 trans_tmx:  TestMemory_Unknown.xtags.CE.filter.tmx
 TestMemory_Unknown.xtags.CE.filter.tmx:  override OPTIONS = -xtags -filter=0.20
