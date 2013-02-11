@@ -181,3 +181,100 @@ TestMemory_Unknown.xtags.CE.filter.tmx.diff:  ref.TestMemory_Unknown.xtags.CE.fi
 trans_tmx:  TestMemory_Unknown.xtags.CE.filter.tmx
 TestMemory_Unknown.xtags.CE.filter.tmx:  override OPTIONS = -xtags -filter=0.20
 
+
+
+
+
+
+
+################################################################################
+# EXTRAS
+# translate with EC or EC-walh arbitrary tmx & sdlxliff input files.
+LOGS ?= .logs/
+$(shell mkdir -p ${LOGS})
+
+EXTRA_SOURCE_DIR ?= /some/path/where/to/get/extra/inputs
+
+TMX      := $(notdir $(wildcard ${EXTRA_SOURCE_DIR}/TMX/*.tmx))
+SDLXLIFF := $(notdir $(wildcard ${EXTRA_SOURCE_DIR}/XLIFF/*.sdlxliff))
+
+vpath %.tmx ${EXTRA_SOURCE_DIR}/TMX
+vpath %.sdlxliff ${EXTRA_SOURCE_DIR}/XLIFF
+
+.PHONY:  extra
+extra:  ${TMX:.tmx=.EC.xtags.CE.filter.tmx.e_validate}
+extra:  ${TMX:.tmx=.EC-walh.xtags.CE.filter.tmx.e_validate}
+extra:  ${SDLXLIFF:.sdlxliff=.EC.xtags.CE.filter.sdlxliff.e_validate}
+extra:  ${SDLXLIFF:.sdlxliff=.EC-walh.xtags.CE.filter.sdlxliff.e_validate}
+
+# What do we need to validate for extra sdlxliff files?
+%.sdlxliff.e_validate:  %.sdlxliff.wrap  %.sdlxliff.tool_name  %.sdlxliff.target  %.sdlxliff.origin  %.sdlxliff.e_diff
+	@:
+# Finding the tool-company to be CNRC-NRC let us believe that the input file was processed by Portage.
+%.sdlxliff.tool_name:  %.sdlxliff
+	grep 'tool-company="CNRC-NRC"' $<  --quiet
+# In a non-degenerative case we want to find a target which indicates a translation.
+%.sdlxliff.target:  %.sdlxliff
+	grep '<target>' $<  --quiet
+# Finding the origin to be mt would alsindicate that Portage was involved.
+%.sdlxliff.origin:  %.sdlxliff
+	grep 'origin="mt"' $< --quiet
+
+# What do we need to validate for extra tmx files?
+%.tmx.e_validate:  %.tmx.wrap  %.tmx.id  %.tmx.CE  %.tmx.e_diff
+	@:
+# Finding the changeid to be MT! would indicate that Portage was involved.
+%.tmx.id:  %.tmx
+	grep 'changeid="MT!"' $< --quiet
+# NOTE: This is not the safest test since we are filtering and in a
+# degenerative case, all translations would be empty with no CE.
+%.tmx.CE:  %.tmx
+	grep '<prop type="Txt::CE">' $< --quiet
+
+
+# The translation output file must not be the same as the input file.
+${TMX:.tmx=.EC.xtags.CE.filter.tmx.e_diff}:  %.EC.xtags.CE.filter.tmx.e_diff:  %.tmx
+${TMX:.tmx=.EC-walh.xtags.CE.filter.tmx.e_diff}:  %.EC-walh.xtags.CE.filter.tmx.e_diff:  %.tmx
+${SDLXLIFF:.sdlxliff=.EC.xtags.CE.filter.sdlxliff.e_diff}:  %.EC.xtags.CE.filter.sdlxliff.e_diff:  %.sdlxliff
+${SDLXLIFF:.sdlxliff=.EC-walh.xtags.CE.filter.sdlxliff.e_diff}:  %.EC-walh.xtags.CE.filter.sdlxliff.e_diff:  %.sdlxliff
+# Requires the translation output file and the input file.
+%.e_diff:  %
+	! diff $+ --brief
+
+
+%.EC.xtags.CE.filter.sdlxliff:  %.sdlxliff
+	PortageLiveAPI.pl \
+		-server=${SERVER} \
+		-context=EC \
+		-file=$< \
+		-xtags -filter=0.20 \
+		2> ${LOGS}log.$@ \
+		> $@
+
+%.EC-walh.xtags.CE.filter.sdlxliff:  %.sdlxliff
+	PortageLiveAPI.pl \
+		-server=${SERVER} \
+		-context=EC-walh \
+		-file=$< \
+		-xtags -filter=0.20 \
+		2> ${LOGS}log.$@ \
+		> $@
+
+%.EC.xtags.CE.filter.tmx:  %.tmx
+	PortageLiveAPI.pl \
+		-server=${SERVER} \
+		-context=EC \
+		-file=$< \
+		-xtags -filter=0.20 \
+		2> ${LOGS}log.$@ \
+		> $@
+
+%.EC-walh.xtags.CE.filter.tmx:  %.tmx
+	PortageLiveAPI.pl \
+		-server=${SERVER} \
+		-context=EC-walh \
+		-file=$< \
+		-xtags -filter=0.20 \
+		2> ${LOGS}log.$@ \
+		> $@
+
