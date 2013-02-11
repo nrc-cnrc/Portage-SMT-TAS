@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 # @file PortageLiveAPI.pl
-# @brief
+# @brief Simple wrapper to invoke PortageLive's API and return the translations.
 #
 # @author Samuel Larkin
 #
