@@ -28,13 +28,14 @@ SHELL = bash
 .DEFAULT_GOAL := all
 .PHONY: all
 $(info SERVER: $(word 1,$(subst :, ,${SERVER})))
-ifeq ($(shell ping -c 1 $(word 1,$(subst :, ,${SERVER})) &> /dev/null && echo TRUE),TRUE)
+ifneq ($(shell ping -c 1 $(word 1,$(subst :, ,${SERVER})) &> /dev/null && echo TRUE),TRUE)
+$(info Could not find a server thus no translation was produce.)
+all extra:
+	echo "No server available thus cannot run unittests."
+else
 # Performs this unittest only if the server is reachable.
 all:  sdlxliff
 all:  tmx
-else
-all:
-endif
 
 
 TEMP_FILES = U*.sdlxliff T*.tmx log.*
@@ -278,3 +279,4 @@ ${SDLXLIFF:.sdlxliff=.EC-walh.xtags.CE.filter.sdlxliff.e_diff}:  %.EC-walh.xtags
 		2> ${LOGS}log.$@ \
 		> $@
 
+endif
