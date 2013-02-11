@@ -328,7 +328,7 @@ Optional dependencies for all distributions:
       # Find the one matching your architecture, say x86_64:
       yum install libsvm.x86_64
 
- - XML::Twig version 3.28 or later - this Perl module is used by tmx2lfl.pl to
+ - XML::Twig version 3.32 or later - this Perl module is used by tmx2lfl.pl to
    extract text out of TMX files.  It has a number of further dependencies that
    need to be installed as well, and that should be handled automatically by
    the following methods.
