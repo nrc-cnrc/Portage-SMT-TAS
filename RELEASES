@@ -24,7 +24,9 @@ PortageII 2.0 2013-02-??
 
  Major changes:
   - Support for the transfer of tags found in the source sentence by applying
-    them to the corresponding text in the target sentence.
+    them to the corresponding text in the target sentence.  To enable this
+    functionality, set xtags to true when calling translateTMXCE() or
+    translateSDLXLIFFCE() in the SOAP PortageLive API.
   - Support for the xliff file format via the PortageLive API.
 
  Minor changes:
