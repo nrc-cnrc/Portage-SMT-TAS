@@ -79,7 +79,7 @@ DOCUMENTS=rescoring_overview.pdf ochlinemax.pdf
 
 EXTRA_LIBS=$(LOGGING_LIB)
 
-DYNLIBS=-lpthread $(LIBICU)
+DYNLIBS=-lpthread $(LIBICU) -lboost_system
 
 PGM_WITH_ALTERNATIVE_HELP = rescore_train
 

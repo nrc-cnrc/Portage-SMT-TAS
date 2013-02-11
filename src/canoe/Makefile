@@ -86,7 +86,7 @@ DOCUMENTS=canoe.pdf
 
 EXTRA_LIBS=$(LOGGING_LIB)
 
-DYNLIBS=$(LIBICU)
+DYNLIBS=$(LIBICU) -lboost_system
 
 canoe: DYNLIBS += -lpthread
 
