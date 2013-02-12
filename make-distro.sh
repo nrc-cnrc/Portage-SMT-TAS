@@ -221,11 +221,21 @@ do_checkout() {
    run_cmd echo Ran on `hostname` \>\> $OUTPUT_DIR/make-distro-cmd-used
    run_cmd pushd ./$OUTPUT_DIR
       run_cmd git clone --branch $VERSION_TAG $GIT_PATH/PORTAGEshared.git '>&' git-clone.log
+
+      run_cmd pushd PORTAGEshared
+         run_cmd git remote show origin '2>&1' '>' ../git-show.log
+         run_cmd git show --no-abbrev-commit --format=fuller HEAD '2>&1' '>>' ../git-show.log
+      run_cmd popd
+
       run_cmd chmod 755 PORTAGEshared/logs
       run_cmd chmod 777 PORTAGEshared/logs/accounting
       if [[ $FRAMEWORK ]]; then
          run_cmd pushd PORTAGEshared
             run_cmd git clone --branch $VERSION_TAG $GIT_PATH/$FRAMEWORK.git framework '>&' ../git-clone.framework.log
+            run_cmd pushd framework
+               run_cmd git remote show origin '2>&1' '>>' ../../git-show.log
+               run_cmd git show --no-abbrev-commit --format=fuller HEAD '2>&1' '>>' ../../git-show.log
+            run_cmd popd
          run_cmd popd
       fi
       run_cmd 'find PORTAGEshared -name .git\* | xargs rm -rf'
