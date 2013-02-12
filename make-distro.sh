@@ -105,7 +105,8 @@ error_exit() {
    exit 1
 }
 
-run_cmd() {
+# verbosely run a command, echoing was it was and its exit status if non-zero
+r() {
    if [ "$1" = "-no-error" ]; then
       shift
       RUN_CMD_NO_ERROR=1
@@ -216,30 +217,30 @@ do_checkout() {
          error_exit "$OUTPUT_DIR exists - won't overwrite -delete it first."
    fi
 
-   run_cmd mkdir $OUTPUT_DIR
-   run_cmd echo "$0 $SAVED_COMMAND_LINE" \> $OUTPUT_DIR/make-distro-cmd-used
-   run_cmd echo Ran on `hostname` \>\> $OUTPUT_DIR/make-distro-cmd-used
-   run_cmd pushd ./$OUTPUT_DIR
-      run_cmd git clone --branch $VERSION_TAG $GIT_PATH/PORTAGEshared.git '>&' git-clone.log
+   r mkdir $OUTPUT_DIR
+   r echo "$0 $SAVED_COMMAND_LINE" \> $OUTPUT_DIR/make-distro-cmd-used
+   r echo Ran on `hostname` \>\> $OUTPUT_DIR/make-distro-cmd-used
+   r pushd ./$OUTPUT_DIR
+      r git clone --branch $VERSION_TAG $GIT_PATH/PORTAGEshared.git '>&' git-clone.log
 
-      run_cmd pushd PORTAGEshared
-         run_cmd git remote show origin '2>&1' '>' ../git-show.log
-         run_cmd git show --no-abbrev-commit --format=fuller HEAD '2>&1' '>>' ../git-show.log
-      run_cmd popd
+      r pushd PORTAGEshared
+         r git remote show origin '2>&1' '>' ../git-show.log
+         r git show --no-abbrev-commit --format=fuller HEAD '2>&1' '>>' ../git-show.log
+      r popd
 
-      run_cmd chmod 755 PORTAGEshared/logs
-      run_cmd chmod 777 PORTAGEshared/logs/accounting
+      r chmod 755 PORTAGEshared/logs
+      r chmod 777 PORTAGEshared/logs/accounting
       if [[ $FRAMEWORK ]]; then
-         run_cmd pushd PORTAGEshared
-            run_cmd git clone --branch $VERSION_TAG $GIT_PATH/$FRAMEWORK.git framework '>&' ../git-clone.framework.log
-            run_cmd pushd framework
-               run_cmd git remote show origin '2>&1' '>>' ../../git-show.log
-               run_cmd git show --no-abbrev-commit --format=fuller HEAD '2>&1' '>>' ../../git-show.log
-            run_cmd popd
-         run_cmd popd
+         r pushd PORTAGEshared
+            r git clone --branch $VERSION_TAG $GIT_PATH/$FRAMEWORK.git framework '>&' ../git-clone.framework.log
+            r pushd framework
+               r git remote show origin '2>&1' '>>' ../../git-show.log
+               r git show --no-abbrev-commit --format=fuller HEAD '2>&1' '>>' ../../git-show.log
+            r popd
+         r popd
       fi
-      run_cmd 'find PORTAGEshared -name .git\* | xargs rm -rf'
-      run_cmd 'rm PORTAGEshared/.[a-z]*'
+      r 'find PORTAGEshared -name .git\* | xargs rm -rf'
+      r 'rm PORTAGEshared/.[a-z]*'
 
       echo Removing -Werror from src/build/Makefile.incl.
       if [[ ! $NOT_REALLY ]]; then
@@ -253,30 +254,30 @@ do_checkout() {
             ed PORTAGEshared/src/Makefile.user-conf
       fi
 
-      run_cmd rm -f PORTAGEshared/src/.log.klocwork*
-      run_cmd rm -f PORTAGEshared/make-distro.sh
-      run_cmd rm -f PORTAGEshared/generic-model/make-distro.sh
-   run_cmd popd
+      r rm -f PORTAGEshared/src/.log.klocwork*
+      r rm -f PORTAGEshared/make-distro.sh
+      r rm -f PORTAGEshared/generic-model/make-distro.sh
+   r popd
 }
 
 get_test_systems() {
    # Some test suites rely on data in $PORTAGE/test-suite/systems
    print_header get_test_systems
-   run_cmd pushd ./$OUTPUT_DIR
-      run_cmd rsync -arz balzac.iit.nrc.ca:/home/portage/test-suite/systems/ PORTAGEshared/test-suite/systems
-   run_cmd popd
+   r pushd ./$OUTPUT_DIR
+      r rsync -arz balzac.iit.nrc.ca:/home/portage/test-suite/systems/ PORTAGEshared/test-suite/systems
+   r popd
 }
 
 get_user_manual() {
    # Note: the user manual snapshot is created by loading this link:
    # http://wiki-ilt/PORTAGEshared/scripts/restricted/ywiki.cgi?act=snapshot
    print_header get_user_manual
-   run_cmd pushd ./$OUTPUT_DIR
-      run_cmd rsync -arz wiki-ilt:/export/projets/Lizzy/PORTAGEshared/snapshot/ \
+   r pushd ./$OUTPUT_DIR
+      r rsync -arz wiki-ilt:/export/projets/Lizzy/PORTAGEshared/snapshot/ \
                          PORTAGEshared/doc/user-manual
-      run_cmd find PORTAGEshared/doc/user-manual/uploads -name Layout* \| xargs rm -f
-      run_cmd find PORTAGEshared/doc/user-manual/uploads -name \*.gif.1 \| xargs rm -f
-      run_cmd pushd PORTAGEshared/doc/user-manual/pages
+      r find PORTAGEshared/doc/user-manual/uploads -name Layout* \| xargs rm -f
+      r find PORTAGEshared/doc/user-manual/uploads -name \*.gif.1 \| xargs rm -f
+      r pushd PORTAGEshared/doc/user-manual/pages
          for x in *.html; do
             echo Making images relative in $x and renaming PORTAGE shared '->' PortageII.
             if [[ ! $NOT_REALLY ]]; then
@@ -296,63 +297,63 @@ get_user_manual() {
                fi
             fi
          done
-      run_cmd popd
-      run_cmd rm PORTAGEshared/doc/user-manual/uploads/{cameleon_07.gif,images,notices,styles}
-   run_cmd popd
+      r popd
+      r rm PORTAGEshared/doc/user-manual/uploads/{cameleon_07.gif,images,notices,styles}
+   r popd
 }
 
 make_pdfs() {
    print_header make_pdfs
-   run_cmd pushd ./$OUTPUT_DIR/PORTAGEshared
+   r pushd ./$OUTPUT_DIR/PORTAGEshared
 
-      run_cmd pushd ./src
-         run_cmd make docs '>&' ../../docs.log
-         run_cmd cp */*.pdf ../doc/
-         run_cmd make clean '>&' /dev/null
-         run_cmd rm -f canoe/uml.eps
-         run_cmd cp -p adaptation/README ../doc/adaptation.README
-         run_cmd mkdir -p ../doc/confidence
-         run_cmd cp -p confidence/README confidence/ce*.ini ../doc/confidence/
-         run_cmd cp -p rescoring/README ../doc/rescoring.README
-      run_cmd popd
+      r pushd ./src
+         r make docs '>&' ../../docs.log
+         r cp */*.pdf ../doc/
+         r make clean '>&' /dev/null
+         r rm -f canoe/uml.eps
+         r cp -p adaptation/README ../doc/adaptation.README
+         r mkdir -p ../doc/confidence
+         r cp -p confidence/README confidence/ce*.ini ../doc/confidence/
+         r cp -p rescoring/README ../doc/rescoring.README
+      r popd
 
-      run_cmd pushd ./test-suite/unit-testing/toy
-         run_cmd make doc
-         run_cmd make clean
-      run_cmd popd
+      r pushd ./test-suite/unit-testing/toy
+         r make doc
+         r make clean
+      r popd
 
-      run_cmd pushd ./framework
-         run_cmd make doc
-         run_cmd make clean.doc
-         run_cmd cp tutorial.pdf ../doc
-      run_cmd popd
+      r pushd ./framework
+         r make doc
+         r make clean.doc
+         r cp tutorial.pdf ../doc
+      r popd
 
-   run_cmd popd
+   r popd
 }
 
 make_doxy() {
    print_header make_doxy
    echo Including source code documentation.
-   run_cmd pushd ./$OUTPUT_DIR/PORTAGEshared/src
-      run_cmd make doxy '>&' ../../doxy.log
-      run_cmd mv htmldoc htmldoc_tmp
-      run_cmd mkdir htmldoc
-      run_cmd mv htmldoc_tmp htmldoc/files
+   r pushd ./$OUTPUT_DIR/PORTAGEshared/src
+      r make doxy '>&' ../../doxy.log
+      r mv htmldoc htmldoc_tmp
+      r mkdir htmldoc
+      r mv htmldoc_tmp htmldoc/files
       echo '<META HTTP-EQUIV="refresh" CONTENT="0; URL=files/index.html">' > htmldoc/index.html
-   run_cmd popd
+   r popd
 }
 
 make_usage() {
    print_header make_usage
    echo Generating usage information.
-   run_cmd pushd ./$OUTPUT_DIR/PORTAGEshared
-      run_cmd git clone --branch $VERSION_TAG $GIT_PATH/PORTAGEshared.git FOR_USAGE '>&' ../git-clone.for_usage.log
-      run_cmd mv FOR_USAGE/src SRC_FOR_USAGE
-      run_cmd pushd ./SRC_FOR_USAGE
-         run_cmd make ICU= LOG4CXX=NONE CF=-Wno-error -j 3 usage '>&' ../../make_usage.log
-      run_cmd popd
-      run_cmd rm -rf SRC_FOR_USAGE FOR_USAGE
-   run_cmd popd
+   r pushd ./$OUTPUT_DIR/PORTAGEshared
+      r git clone --branch $VERSION_TAG $GIT_PATH/PORTAGEshared.git FOR_USAGE '>&' ../git-clone.for_usage.log
+      r mv FOR_USAGE/src SRC_FOR_USAGE
+      r pushd ./SRC_FOR_USAGE
+         r make ICU= LOG4CXX=NONE CF=-Wno-error -j 3 usage '>&' ../../make_usage.log
+      r popd
+      r rm -rf SRC_FOR_USAGE FOR_USAGE
+   r popd
 }
 
 make_bin() {
@@ -365,26 +366,26 @@ make_bin() {
       ICU_LIB=""
       ELFDIR=$ELFDIR
    fi
-   run_cmd pushd ./$OUTPUT_DIR/PORTAGEshared
-      run_cmd pushd ./src
-         run_cmd make install -j 3 $ICU_LIB '>&' ../../make_$ELFDIR.log
-         run_cmd make clean '>&' /dev/null
-      run_cmd popd
-      run_cmd pushd ./bin
-         run_cmd mkdir -p $ELFDIR
-         run_cmd file \* \| grep ELF \| sed "'s/:.*//'" \| xargs -i{} mv {} $ELFDIR
-      run_cmd popd
-      run_cmd pushd ./lib
-         run_cmd mkdir -p $ELFDIR
-         run_cmd file \* \| grep ELF \| sed "'s/:.*//'" \| xargs -i{} mv {} $ELFDIR
+   r pushd ./$OUTPUT_DIR/PORTAGEshared
+      r pushd ./src
+         r make install -j 3 $ICU_LIB '>&' ../../make_$ELFDIR.log
+         r make clean '>&' /dev/null
+      r popd
+      r pushd ./bin
+         r mkdir -p $ELFDIR
+         r file \* \| grep ELF \| sed "'s/:.*//'" \| xargs -i{} mv {} $ELFDIR
+      r popd
+      r pushd ./lib
+         r mkdir -p $ELFDIR
+         r file \* \| grep ELF \| sed "'s/:.*//'" \| xargs -i{} mv {} $ELFDIR
          if [[ $ICU = yes ]]; then
             LD_LIBRARY_PATH=$ICU_ROOT/lib:$LD_LIBRARY_PATH ldd ../bin/$ELFDIR/canoe | egrep -o '/[^ ]*(icu|portage)[^ ]*.so[^ ]*' | xargs -i cp {} $ELFDIR
          else
             ldd ../bin/$ELFDIR/canoe | egrep -o '/[^ ]*portage[^ ]*.so[^ ]*' | xargs -i cp {} $ELFDIR
          fi
-         run_cmd rmdir --ignore-fail-on-non-empty $ELFDIR
-      run_cmd popd
-   run_cmd popd
+         r rmdir --ignore-fail-on-non-empty $ELFDIR
+      r popd
+   r popd
 }
 
 make_iso_and_tar() {
@@ -402,18 +403,18 @@ make_iso_and_tar() {
    else
       ARCHIVE_FILE=$VOLID
    fi
-   run_cmd pushd ./$OUTPUT_DIR
+   r pushd ./$OUTPUT_DIR
       if [ -n "$PATCH_FROM" ]; then
          PATCH_FILES=*_to_*.patch
       else
          PATCH_FILES=
       fi
-      run_cmd mkisofs -V $ISO_VOLID -joliet-long -o $ARCHIVE_FILE.iso \
+      r mkisofs -V $ISO_VOLID -joliet-long -o $ARCHIVE_FILE.iso \
               PORTAGEshared $PATCH_FILES '&>' iso.log
-      run_cmd mv PORTAGEshared PortageII-2.0
-      run_cmd tar -cvzf $ARCHIVE_FILE.tar.gz PortageII-2.0 '>&' tar.log
-      run_cmd md5sum $ARCHIVE_FILE.* \> $ARCHIVE_FILE.md5
-   run_cmd popd
+      r mv PORTAGEshared PortageII-2.0
+      r tar -cvzf $ARCHIVE_FILE.tar.gz PortageII-2.0 '>&' tar.log
+      r md5sum $ARCHIVE_FILE.* \> $ARCHIVE_FILE.md5
+   r popd
 }
 
 
@@ -453,17 +454,17 @@ fi
 
 if [[ $COMPILE_HOST ]]; then
    print_header "Logging on to $COMPILE_HOST to compile code."
-   run_cmd ssh $COMPILE_HOST cd `pwd` \\\; $0 -compile-only -dir $OUTPUT_DIR $ICU_OPT
+   r ssh $COMPILE_HOST cd `pwd` \\\; $0 -compile-only -dir $OUTPUT_DIR $ICU_OPT
 fi
 
 if [[ ! $COMPILE_ONLY ]]; then
 
    print_header "Cleaning up source and source-doc"
    if [[ $NO_SOURCE ]]; then
-      run_cmd pushd ./$OUTPUT_DIR/PORTAGEshared
-         run_cmd rm ./doc/code-documentation.html
-         run_cmd rm -rf src
-      run_cmd popd
+      r pushd ./$OUTPUT_DIR/PORTAGEshared
+         r rm ./doc/code-documentation.html
+         r rm -rf src
+      r popd
    fi
 
    if [[ $PATCH_FROM ]]; then
@@ -471,9 +472,9 @@ if [[ ! $COMPILE_ONLY ]]; then
       for PATCH_ARG in $PATCH_FROM; do
          OLD_DIR=${PATCH_ARG%:*}
          PATCHLEVEL_TOKEN=${PATCH_ARG##*:}
-         run_cmd echo Prereq: $PATCHLEVEL_TOKEN \
+         r echo Prereq: $PATCHLEVEL_TOKEN \
                  \> $OUTPUT_DIR/${OLD_DIR}_to_${OUTPUT_DIR}.patch
-         run_cmd -no-error LC_ALL=C TZ=UTC0 diff -Naur \
+         r -no-error LC_ALL=C TZ=UTC0 diff -Naur \
                  $OLD_DIR/PORTAGEshared $OUTPUT_DIR/PORTAGEshared \
                  \>\> $OUTPUT_DIR/${OLD_DIR}_to_${OUTPUT_DIR}.patch
          if head -2 $OUTPUT_DIR/${OLD_DIR}_to_${OUTPUT_DIR}.patch |
