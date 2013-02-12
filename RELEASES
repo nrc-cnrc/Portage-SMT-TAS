@@ -17,6 +17,8 @@ See NOTICE for the Copyright notices of 3rd party libraries.
                    (with a summary of important changes)
 
 
+PortageII is the second generation of SMT software released by the NRC.
+
 PortageII 2.0 2013-02-??
  This release provides significant user improvements for translators through
  the handling of markup tags and the XML Localization Interchange File Format
@@ -165,6 +167,10 @@ PortageII 1.0 2012-09-04
  - In PortageLive setup, pre-linking of external libraries must be undone when
    making the server copy.
 
+
+Portage 1.x is the first generation of SMT software released by the NRC.  We
+keep its history here to document how our SMT technology evolved over the
+years.
 
 Portage 1.4.3 2011-10-03
  This release is primarily intended distribute our improved truecasing module,
