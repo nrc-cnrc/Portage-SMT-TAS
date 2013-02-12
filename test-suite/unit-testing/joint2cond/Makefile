@@ -141,7 +141,7 @@ all: arg_checking
 
 # Prune1 is invalid when generating multiprobs in both direction.
 prune1_both: ibm2.train.fr_given_en.gz ibm2.train.en_given_fr.gz jpt.ibm2.train.en-fr.gz
-	[[ `${JOINT2COND_PHRASE_TABLES} \
+	${JOINT2COND_PHRASE_TABLES} \
 		-prune1 10 \
 		-ibm 2 \
 		-v -i -z -no-sort \
@@ -152,11 +152,12 @@ prune1_both: ibm2.train.fr_given_en.gz ibm2.train.en_given_fr.gz jpt.ibm2.train.
 		-ibm_l2_given_l1  $(filter %.fr_given_en.gz, $+) \
 		-ibm_l1_given_l2  $(filter %.en_given_fr.gz, $+) \
 		${REDUCE_MEMORY} \
-		$(filter %.en-fr.gz, $+) 2>&1` =~ "Error: prune1\(w\) is not valid with -multipr rev or -multipr both." ]]
+		$(filter %.en-fr.gz, $+) 2>&1 \
+	| egrep "Error: prune1\(w\) is not valid with -multipr rev or -multipr both." --quiet
 
 # Prune1 is invalid when generating multiprobs in rev direction.
 prune1_rev: ibm2.train.fr_given_en.gz ibm2.train.en_given_fr.gz jpt.ibm2.train.en-fr.gz
-	[[ `${JOINT2COND_PHRASE_TABLES} \
+	${JOINT2COND_PHRASE_TABLES} \
 		-prune1 10 \
 		-ibm 2 \
 		-v -i -z -no-sort \
@@ -167,7 +168,8 @@ prune1_rev: ibm2.train.fr_given_en.gz ibm2.train.en_given_fr.gz jpt.ibm2.train.e
 		-ibm_l2_given_l1  $(filter %.fr_given_en.gz, $+) \
 		-ibm_l1_given_l2  $(filter %.en_given_fr.gz, $+) \
 		${REDUCE_MEMORY} \
-		$(filter %.en-fr.gz, $+) 2>&1` =~ "Error: prune1\(w\) is not valid with -multipr rev or -multipr both." ]]
+		$(filter %.en-fr.gz, $+) 2>&1 \
+	| egrep "Error: prune1\(w\) is not valid with -multipr rev or -multipr both." --quiet
 
 # Prune1 is only valid when generating multiprobs in fwd direction.
 prune1_fwd: ibm2.train.fr_given_en.gz ibm2.train.en_given_fr.gz jpt.ibm2.train.en-fr.gz
