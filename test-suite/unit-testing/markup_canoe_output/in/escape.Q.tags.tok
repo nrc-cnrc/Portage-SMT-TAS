@@ -1,0 +1,2 @@
+a <tag stuff="asdf ' <asdf> asdf ' asdf" nonsense='asdf " asdf " '/>b c d
+This is a <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf bold=&quot;on&quot;>&lt;/bpt>" id="1"/>test<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/> for 12,456 units . 

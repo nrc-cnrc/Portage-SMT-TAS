@@ -13,7 +13,7 @@ for DL in 0 1 2 3 4 5 6 7 -1; do
    echo -n DL=$DL
    for DIST_TYPE in "" -dist-limit-ext -dist-phrase-swap "-dist-limit-ext -dist-phrase-swap" -dist-limit-simple "-dist-limit-simple -dist-phrase-swap"; do
       echo > out.0000.10000best
-      canoe -f canoe.ini -input in -nbest out:10000 -b 1e-80 -s 100000 \
+      canoe -f canoe.ini -input in -nbest out:10000 -b 1e-80 -rs 100000 \
          -distortion-limit $DL $DIST_TYPE >& /dev/null
       echo -n $'\t'
       echo -n `grep -v '^$' out.0000.10000best | wc -l`
@@ -48,7 +48,7 @@ exit
 for DIST_TYPE in "" -dist-limit-ext -dist-phrase-swap "-dist-limit-ext -dist-phrase-swap"; do
    echo DIST_TYPE=$DIST_TYPE
    for DL in 0 1 2 3 4 5 6 7 -1; do
-      canoe -f canoe.ini -input in -nbest out:10000 -b 1e-30 -s 100000 \
+      canoe -f canoe.ini -input in -nbest out:10000 -b 1e-30 -rs 100000 \
          -distortion-limit $DL $DIST_TYPE >& /dev/null
       echo -n DL=$DL$'\t'
       grep -v '^$' out.0000.10000best | wc -l

@@ -57,7 +57,7 @@ static const char* sep = PHRASE_TABLE_SEP;
 static Uint seplen;
 
 static bool verbose = false;
-static bool norm = false;
+static bool bNormalize = false;
 static Uint norm_smooth = 1;
 static const Uint PHRASE_LENGTH_INFINITY = 10000;
 static Uint max_phrase_len = PHRASE_LENGTH_INFINITY;
@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
 
    vector<Uint> freqs;
    vector< vector<Uint> > norm_sums(pts.size()); // phrasetable,column -> sum of vals in column
-   if (norm) {
+   if (bNormalize) {
       for (Uint i = 0; i < pts.size(); ++i) {
 	 iSafeMagicStream ifs(pts[i]);
 	 norm_sums[i].assign(num_probs, norm_smooth);
@@ -184,7 +184,7 @@ int main(int argc, char* argv[])
                   pts[i].c_str());
          ofs << line.substr(0, pos+seplen-1);   // !!
 	 double wt = srctoks.size() <= max_phrase_len ? wts[i] : 1.0 / pts.size();
-         if (norm) {
+         if (bNormalize) {
             vector<Uint>::iterator it_norm = norm_sums[i].begin();
             for (vector<double>::iterator it = probs.begin(); it != probs.end(); ++it, ++it_norm)
                ofs << ' ' << *it * wt / *it_norm;
@@ -313,7 +313,7 @@ void getArgs(int argc, char* argv[])
       error(ETFatal, "Can't specify both -w and -wf");
 
    arg_reader.testAndSet("v", verbose);
-   arg_reader.testAndSet("n", norm);
+   arg_reader.testAndSet("n", bNormalize);
    arg_reader.testAndSet("s", norm_smooth);
    arg_reader.testAndSet("w", wts_string);
    arg_reader.testAndSet("wf", wts_file);

@@ -1,4 +1,3 @@
-# $Id$# @file Makefile
 #
 # Canoe Decoder
 # Aaron Tikuisis
@@ -87,7 +86,7 @@ DOCUMENTS=canoe.pdf
 
 EXTRA_LIBS=$(LOGGING_LIB)
 
-DYNLIBS=$(LIBICU)
+DYNLIBS=$(LIBICU) -lboost_system
 
 canoe: DYNLIBS += -lpthread
 
@@ -101,3 +100,8 @@ canoe.dvi: uml.eps canoe.bib
 
 uml.eps: uml.fig
 	fig2dev -L eps $^ $@
+
+all:  translate.pl.svg
+translate.pl.svg:  translate.dot
+	-@dot -Tsvg < $< > $@
+

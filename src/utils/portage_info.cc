@@ -1,8 +1,7 @@
-// $Id$
 /**
  * @author Eric Joanis
  * @file portage_info.cc
- * @brief Print global Portage copyright and version information.
+ * @brief Print global PortageII copyright and version information.
  * 
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
@@ -23,15 +22,15 @@ using namespace std;
 static char help_message[] = "\n\
 portage_info [-options]\n\
 \n\
-  Print global Portage Copyright and version information.\n\
+  Print global PortageII Copyright and version information.\n\
 \n\
 Options:\n\
 \n\
-  -version   Print the current Portage version\n\
+  -version   Print the current PortageII version\n\
   -notice    Display the 3rd party Copyright notices\n\
-  -with-icu  Indicates whether Portage was compiled with ICU or not,\n\
+  -with-icu  Indicates whether PortageII was compiled with ICU or not,\n\
              exiting with 0 status iff it was.\n\
-  -build-options  Display build options used when compiling Portage\n\
+  -build-options  Display build options used when compiling PortageII\n\
 \n\
 ";
 
@@ -42,7 +41,7 @@ static bool notice = false;
 static bool version = false;
 static bool with_icu = false;
 static bool build_options = false;
-static const char VERSION[] = "Portage 1.5.0";
+static const char VERSION[] = "PortageII 2.0";
 
 // main
 
@@ -96,7 +95,7 @@ int main(int argc, char* argv[])
          const char* const PORTAGE = getenv("PORTAGE");
          if ( !PORTAGE ) {
             cerr << "The PORTAGE environment variable is not set, please set it before" << endl
-                 << "running any Portage software." << endl
+                 << "running any PortageII software." << endl
                  << "The 3rd party Copyright notices should be located in $PORTAGE/NOTICE." << endl;
             exit(1);
          }

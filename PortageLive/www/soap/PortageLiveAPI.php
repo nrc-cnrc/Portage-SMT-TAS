@@ -17,6 +17,7 @@ $base_portage_dir = "/opt/Portage";
 # produce debugging information
 function debug($i) {
    if ( 0 ) {
+      error_log($i, 3, '/tmp/PortageLiveAPI.debug.log');
       return " " . print_r($i, true);
    }
 }
@@ -184,26 +185,28 @@ class PortageLiveAPI {
    # Returns the name of the directory created.
    function makeWorkDir($filename) {
       $timestamp = date("Ymd\THis\Z");
-      $base = "SOAP_{$filename}_{$timestamp}";
+      $base = $this->normalizeName("SOAP_{$filename}_{$timestamp}");
       global $base_web_dir;
       $work_path = "$base_web_dir/plive/";
       $dir = `mktemp -d $work_path{$base}_XXXXXX 2>&1`;
       if ( strpos($dir, "$work_path$base") === 0 )
-         return rtrim($dir);
+	 return rtrim($dir);
       else
-         throw new SoapFault("PortageServer", "can't create temp work dir for $filename: $dir");
+	 throw new SoapFault("PortageServer", "can't create temp work dir for $filename: $dir : $base");
    }
 
    # Normalize a name to keep only alphanumeric, dash, underscore, dot and plus
    function normalizeName($filename) {
-      return preg_replace("/[^-_.+a-zA-Z0-9]/", "", $filename);
+      return preg_replace(array("/[^-_.+a-zA-Z0-9]/", '/[ .]$/', '/^[ .]/'), array("", '', ''), $filename);
    }
 
    # Translate a XML file using model $context and the confidence threshold
    # $ce_threshold.  A threshold of 0 means keep everything.
    # $XML_contents_base64 is a string containing the full content of the xml file, in Base64 encoding.
    # $XML_filename is the name of the XML file.
-   function translateXMLCE($XML_contents_base64, $XML_filename, $context, $ce_threshold, $type) {
+   # If $xtags is true, transfer tags from the source-language segments to the translations.
+   # $type indicates the type of XML file we're translating
+   function translateXMLCE($XML_contents_base64, $XML_filename, $context, $ce_threshold, $xtags, $type) {
       $i = $this->getContextInfo($context);
       $this->validateContext($i, $ce_threshold > 0);
 
@@ -233,6 +236,7 @@ class PortageLiveAPI {
 
       #$xml_lang = array("fr" => "FR-CA", "en" => "EN-CA"); # add more languages here as needed
       $command = "$i[script] -xml -nl=s -dir=\"$work_dir\" -out=\"$work_dir/P.out\" " .
+                 ($xtags ? " -xtags " : "") .
                  (!empty($i["ce_model"]) ? "-with-ce " : "-decode-only ") .
                  ($ce_threshold > 0 ? "-filter=$ce_threshold " : "") .
                  "\"$work_dir/Q.in\" >& \"$work_dir/trace\" ";
@@ -250,12 +254,12 @@ class PortageLiveAPI {
       return $monitor;
    }
 
-   function translateTMXCE($TMX_contents_base64, $TMX_filename, $context, $ce_threshold) {
-      return $this->translateXMLCE($TMX_contents_base64, $TMX_filename, $context, $ce_threshold, "tmx");
+   function translateTMXCE($TMX_contents_base64, $TMX_filename, $context, $ce_threshold, $xtags) {
+      return $this->translateXMLCE($TMX_contents_base64, $TMX_filename, $context, $ce_threshold, $xtags, "tmx");
    }
 
-   function translateSDLXLIFFCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, $ce_threshold) {
-      return $this->translateXMLCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, $ce_threshold, "sdlxliff");
+   function translateSDLXLIFFCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, $ce_threshold, $xtags) {
+      return $this->translateXMLCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, $ce_threshold, $xtags, "sdlxliff");
    }
 
    function translateXMLCE_Status($monitor_token) {

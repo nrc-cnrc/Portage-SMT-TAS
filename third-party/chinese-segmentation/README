@@ -11,7 +11,7 @@ well as an improved version modified at NRC.  In compliance with the terms of
 the mansegment.perl licence, this code is "free" (see the Copyright notice in
 ldc-cn-seg/mansegment.perl for a precise definition of what we mean here), but
 included with the Portage distribution for convenience.  It is not covered by
-the terms of the Portage 1.x licence.
+the terms of the PortageII licence.
 
 The script chinese_segmenter.pl is a complete rewrite of mansegment.perl.
 The accompanying database, manseg.fre, is simply ldc-cn-seg/Mandarin.fre

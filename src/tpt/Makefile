@@ -55,7 +55,7 @@ MODULE_CF = -DIN_PORTAGE=1 -ggdb
 
 MODULE_DEPENDS =
 
-DYNLIBS = -lboost_program_options
+DYNLIBS = -lboost_program_options -lboost_system
 
 install: clean_moved_programs
 .PHONY: clean_moved_programs

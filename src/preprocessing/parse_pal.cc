@@ -63,6 +63,7 @@ bool Portage::parsePhraseAlign(const string& line, vector<PhrasePair>& phrase_pa
       if (!parseRange(pp_parts[2], phrase_pairs[i].tgt_pos))
 	 return false;
       phrase_pairs[i].oov = pp_parts.size() >= 4 && pp_parts[3] == "O";
+      phrase_pairs[i].alignment = (pp_parts.size() >= 5 ? pp_parts[4] : "");
    }
 
    return true;
@@ -72,10 +73,12 @@ string& Portage::unParsePhraseAlign(const vector<PhrasePair>& phrase_pairs, stri
 {
    ostringstream oss;
    for (Uint i = 0; i < phrase_pairs.size(); ++i)
-      oss << i+1 << ':' 
-	  << phrase_pairs[i].src_pos.first << '-' << phrase_pairs[i].src_pos.second-1 << ':' 
-	  << phrase_pairs[i].tgt_pos.first << '-' << phrase_pairs[i].tgt_pos.second-1 << ':'
-	  << (phrase_pairs[i].oov ? 'O' : 'I') << (i+1 < phrase_pairs.size() ? " " : "");
+      oss << i+1
+	  << ':'  << phrase_pairs[i].src_pos.first << '-' << phrase_pairs[i].src_pos.second-1
+	  << ':'  << phrase_pairs[i].tgt_pos.first << '-' << phrase_pairs[i].tgt_pos.second-1
+	  << ':'  << (phrase_pairs[i].oov ? 'O' : 'I')
+          << ':'  << phrase_pairs[i].alignment
+          << (i+1 < phrase_pairs.size() ? " " : "");
    return s = oss.str();
 }
 

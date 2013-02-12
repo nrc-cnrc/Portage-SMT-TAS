@@ -1,0 +1,25 @@
+A <bx id="1"/>B C <a>D <b>E</b> <bx id="2"/><c>F<ex id="1"/> <x /> G</c> H I J</a> K<ex id="2"/> L
+<bx id="1"/><a><b>E</b> <bx id="2"/><c>F A B C D<ex id="1"/> <x /> G</c> H I J</a> K<ex id="2"/> L
+A <bx id="1"/>B C <a>D <b>E</b> <bx id="2"/><c>F<ex id="1"/> <x /> G</c> H I J</a> K<ex id="2"/> L
+<bx id="1"/><a><b>E</b> A B C D <bx id="2"/><c><x /> G H F<ex id="1"/></c> I J</a> K<ex id="2"/> L
+<a><bx id="2"/>I J K L A <bx id="1"/>B C D <c>F <b>E</b><ex id="1"/> <x /> G</c> H</a><ex id="2"/>
+<bx id="1"/><d>A B C <a>D <b>E</b> <c><bx id="2"/>F<ex id="1"/> <x /> G</c> H I J</a><ex id="2"/> K L</d>
+<bx id="1"/><d><a><b>E</b> A B C D <c><bx id="2"/><x /> G H F<ex id="1"/></c> I J</a><ex id="2"/> K L</d>
+<d><a><bx id="2"/>I J K L <bx id="1"/>A B C D <c>F <b>E</b><ex id="1"/> <x /> G</c> H<ex id="2"/></a></d>
+<bx id="1"/>A B C <a><b><c><d>D<bx id="2"/> E</d> F G<ex id="1"/></c></b> H I J</a> K<ex id="2"/> L
+<bx id="1"/><a><b><c><d><bx id="2"/>E A B C D</d> G H F<ex id="1"/></c></b> I J</a> K<ex id="2"/> L
+<a><bx id="2"/>I J K L <bx id="1"/>A B C <b><c><d>D F E</d> G<ex id="1"/></c></b> H</a><ex id="2"/>
+<open_wrap content="&lt;bpt i=&quot;1&quot; type=&quot;6&quot;/>" id="1"/><a><b>E</b> A B C D <c><x /> G H F<close_wrap content="&lt;ept i=&quot;1&quot;/>" id="1"/></c> I J</a> K L
+<tag_wrap content="&lt;it pos=&quot;begin&quot;>&amp;lt;/cf>&lt;/it>"/>E A B C D G H F I J K L
+E A B C D <tag_wrap content="&lt;it pos=&quot;begin&quot;>&amp;lt;/cf>&lt;/it>"/> G H F I J K L
+E A B C D <tag_wrap content="&lt;it pos=&quot;begin&quot;>&amp;lt;/cf>&lt;/it>"/>G H F I J K L
+E A B C D <tag_wrap content="&lt;it pos=&quot;end&quot;>&amp;lt;/cf>&lt;/it>"/> G H F I J K L
+E A B C D <tag_wrap content="&lt;it pos=&quot;end&quot;>&amp;lt;/cf>&lt;/it>"/> G H F I J K L
+E A B C D G H F<tag_wrap content="&lt;it pos=&quot;end&quot;>&amp;lt;/cf>&lt;/it>"/> I J K L
+<tag_wrap content="&lt;it id=&quot;1&quot; pos=&quot;open&quot;>&amp;lt;/cf>&lt;/it>"/>E A B C D G H F I J K L
+E A B C D <tag_wrap content="&lt;it id=&quot;1&quot; pos=&quot;open&quot;>&amp;lt;/cf>&lt;/it>"/> G H F I J K L
+E A B C D <tag_wrap content="&lt;it id=&quot;1&quot; pos=&quot;open&quot;>&amp;lt;/cf>&lt;/it>"/>G H F I J K L
+E A B C D <tag_wrap content="&lt;it id=&quot;1&quot; pos=&quot;close&quot;>&amp;lt;/cf>&lt;/it>"/> G H F I J K L
+E A B C D <tag_wrap content="&lt;it id=&quot;1&quot; pos=&quot;close&quot;>&amp;lt;/cf>&lt;/it>"/> G H F I J K L
+E A B C D G H F<tag_wrap content="&lt;it id=&quot;1&quot; pos=&quot;close&quot;>&amp;lt;/cf>&lt;/it>"/> I J K L
+Et sub<open_wrap content="&lt;bpt i=&quot;1&quot;>{\super &lt;/bpt>" id="1"/>script<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/><open_wrap content="&lt;bpt i=&quot;2&quot;>{\sub &lt;/bpt>" id="2"/>insuper<close_wrap content="&lt;ept i=&quot;2&quot;>}&lt;/ept>" id="2"/><open_wrap content="&lt;bpt i=&quot;3&quot;>{\super &lt;/bpt>" id="3"/>script<close_wrap content="&lt;ept i=&quot;3&quot;>}&lt;/ept>" id="3"/>

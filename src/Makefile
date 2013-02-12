@@ -1,4 +1,4 @@
-# Portage top-level Makefile
+# PortageII top-level Makefile
 #
 # @author George Foster, Eric Joanis, Samuel Larkin, Darlene Stewart
 #
@@ -52,8 +52,8 @@ ALL_SUBDIRS = $(SUBDIRS)
 subdirs: validate_subdir_dependencies utils $(SUBDIRS)
 ifeq (${OT},install)
 	$(MAKE) install_summary
-# Here, we want to list Portage's pgms that are obsolete but are still present
-# in the installation directory of the user unless the user installed Portage
+# Here, we want to list PortageII's pgms that are obsolete but are still present
+# in the installation directory of the user unless the user installed PortageII
 # in his home/bin in which case we prefer to be silent.
 ifneq (${BIN_DIR},${HOME}/bin)
 	@LIST_OBSOLETE=`find ${BIN_DIR} $(dir ${BIN_DIR})lib -ctime +1`; \
@@ -199,7 +199,7 @@ index.html: make_module_usage
 	| sed 's#.*/##' \
 	| tr " " "\n" \
 	| sort \
-	| ./utils/pgm_usage_2_html.pl -main "Portage 1.5.0: Usage information by program" \
+	| ./utils/pgm_usage_2_html.pl -main "PortageII 2.0: Usage information by program" \
 	> ${USAGE_DIR}/$@
 	cp build/*.gif build/*.jpg ${USAGE_DIR}
 

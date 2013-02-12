@@ -47,7 +47,6 @@ test-suite: unittest_ci
 
 
 # General unittest clean up.
-.PHONY: clean gitignore
 TEMP_FILES=unittest* test.utf8.tmx prepro.out test3.utf8.tmx test5.utf8.tmx
 TEMP_DIRS=ce_tmx_test ce_tmx_test_ci
 include ../Makefile.incl

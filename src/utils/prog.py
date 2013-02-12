@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# $Id$
 
 # @file prog.py
 # @brief Briefly describe your script here.
@@ -9,8 +8,8 @@
 # Technologies langagieres interactives / Interactive Language Technologies
 # Tech. de l'information et des communications / Information and Communications Tech.
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2012, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2012, Her Majesty in Right of Canada
+# Copyright 2013, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2013, Her Majesty in Right of Canada
 
 """
 This program shows how to:
@@ -107,7 +106,7 @@ def get_args():
    return cmd_args
 
 def main():
-   printCopyright("prog.py", 2012);
+   printCopyright("prog.py", 2013);
    os.environ['PORTAGE_INTERNAL_CALL'] = '1';   # add this if needed
    
    cmd_args = get_args()

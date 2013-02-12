@@ -24,6 +24,7 @@ SHELL := bash
 all: testsuite
 
 TEMP_FILES=log.* tm-train*lc.gz
+TEMP_DIRS=ibm2.tm-train.fr_given_en.gz.tmp*
 include ../Makefile.incl
 
 

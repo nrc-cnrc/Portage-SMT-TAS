@@ -1,5 +1,4 @@
 #!/usr/bin/perl -sw
-# $Id$
 
 # @file ce_canoe2ffvals.pl 
 # @brief Parses canoe output and generates FileFF-style files.
@@ -165,7 +164,7 @@ sub parseCanoeOutput {
         my $phrase = $1;
         my $align = $2;
         my $v = $3;
-        my ($score, $range, $oov) = split(/;/, $align, 3);
+        my ($score, $range, $oov, $walign) = split(/;/, $align, 4);
         my ($from, $to) = split(/-/, $range, 2);
         $phrase =~ s/\\(.)/$1/go;	# remove inner level of backslashification
         push @phrases, $phrase;

@@ -33,6 +33,7 @@ struct PhrasePair {
    pair<Uint,Uint> tgt_pos;	///< first, last+1
    bool oov;                    ///< oov flag set for the phrase
    int ne_id;                   ///< -1 means not an NE
+   string alignment;            ///< optional green-format (with _ separator) alignment string
    /// Empty PhrasePair constructor.
    PhrasePair() : ne_id(-1) {}
    /**
@@ -72,7 +73,7 @@ struct PhrasePair {
  * these are converted to [b,e+1), ie 1 is added to all end markers.
  * @param line          line to be parsed
  * @param phrase_pairs  returned list of parsed PhrasePair
- * @return Returns true if the operation was successful
+ * @return true iff the operation was successful
  */
 bool parsePhraseAlign(const string& line, vector<PhrasePair>& phrase_pairs);
 

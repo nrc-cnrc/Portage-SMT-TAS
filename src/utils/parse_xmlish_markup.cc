@@ -280,9 +280,19 @@ bool Portage::findXMLishTag(const string& s, string::size_type beg,
    tbeg = s.find_first_of("<", beg);
    if (tbeg == string::npos) 
       return false;
-   tend = s.find_first_of(">", tbeg+1);
-   if (tend == string::npos)
-      return false;
-   ++tend;
-   return true;
+   tend = tbeg+1;
+   while (tend < s.size()) {
+      if (s[tend] == '>') { ++tend; return true; }
+      if (s[tend] == '"' || s[tend] == '\'') {
+         char quotechar = s[tend];
+         ++tend;
+         while (1) {
+            if (tend >= s.size()) return false;
+            if (s[tend] == quotechar) break;
+            ++tend;
+         }
+      }
+      ++tend;
+   }
+   return false;
 }

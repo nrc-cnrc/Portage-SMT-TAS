@@ -17,10 +17,10 @@ LM ?= ${CORPUS_DIR}/europarl.en.srilm
 all: gitignore DIFF
 
 TEMP_FILES=1best.* nbest* lattice* ffvals* pal* para.* run-parallel-logs-*
-TEMP_DIRS=canoe-parallel.*
+TEMP_DIRS=canoe-parallel.* run-p.*
 clean:
 	${RM} ${TEMP_FILES} $(DIR)/*
-	${TM} -r ${TEMP_DIRS}
+	${RM} -r ${TEMP_DIRS}
 
 SETUP_FILES=ibm1.fr_given_en.gz ibm2.fr_given_en.gz ibm1.en_given_fr.gz ibm2.en_given_fr.gz \
             ibm2.fr_given_en.pos.gz ibm2.en_given_fr.pos.gz phrases-GT-KN.fr2en.gz \

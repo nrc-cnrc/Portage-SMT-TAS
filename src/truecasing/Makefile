@@ -27,7 +27,7 @@ BINSCRIPTS= \
 
 EXTRA_LIBS = $(LOGGING_LIB)
 
-DYNLIBS = $(LIBICU)
+DYNLIBS = $(LIBICU) -lboost_system
 
 MODULE_DEPENDS = lm logging tp_models tpt
 

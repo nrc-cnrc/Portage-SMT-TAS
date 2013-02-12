@@ -15,7 +15,7 @@ help:
 
 TEMP_FILES=canoe.ini.cow.* log.cow.* rescore-results.* \
            rescore-results run-parallel-logs-local
-TEMP_DIRS=foos.*
+TEMP_DIRS=foos.* run-p.*
 include ../../Makefile.incl
 
 .PHONY: cow

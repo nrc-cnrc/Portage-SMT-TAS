@@ -1,0 +1,20 @@
+A B C <a>D <b>E</b> <c>F <x /> G</c> H I J</a> K L
+<a><b>E</b> <c>F A B C D <x /> G</c> H I J</a> K L
+A B C <a>D <b>E</b> <c>F <x /> G</c> H I J</a> K L
+<a><b>E</b> A B C D <c><x /> G H F</c> I J</a> K L
+<a>I J K L A B C D <c>F <b>E</b> <x /> G</c> H</a>
+<d>A B C <a>D <b>E</b> <c>F <x /> G</c> H I J</a> K L</d>
+<d><a><b>E</b> A B C D <c><x /> G H F</c> I J</a> K L</d>
+<d><a>I J K L A B C D <c>F <b>E</b> <x /> G</c> H</a></d>
+A B C <a><b><c><d>D E</d> F G</c></b> H I J</a> K L
+<a><b><c><d>E A B C D</d> G H F</c></b> I J</a> K L
+<a>I J K L A B C <b><c><d>D F E</d> G</c></b> H</a>
+A B C <a><b><c><d>DINTRA<i></i> E</d> F GINTRA<i></i></c></b> H I J</a> K L
+<a><b><c><d>E A B C DINTRA<i></i></d> GINTRA<i></i> H F</c></b> I J</a> K L
+<a>I J K L A B C <b><c><d>DINTRA<i></i> F E</d> GINTRA<i></i></c></b> H</a>
+A B C <a><b><c><d>DINTRA<i></i> E</d> F GINTRA<i></i></c></b> H I J</a> K L
+<a><b><c><d>E A B C DINTRA<i></i></d> GINTRA<i></i> H F</c></b> I J</a> K L
+<a>I J K L A B C <b><c><d>DINTRA<i></i> F E</d> GINTRA<i></i></c></b> H</a>
+A B C <a><b><c><d><i></i>DINTRA E</d> F <i></i>GINTRA</c></b> H I J</a> K L
+<a><b><c><d>E A B C <i></i>DINTRA</d> <i></i>GINTRA H F</c></b> I J</a> K L
+<a>I J K L A B C <b><c><d><i></i>DINTRA F E</d> <i></i>GINTRA</c></b> H</a>

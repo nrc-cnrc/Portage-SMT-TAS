@@ -37,6 +37,6 @@ MODULE_CF =
 
 MODULE_DEPENDS = tp_models tpt
 
-DYNLIBS = $(LIBICU)
+DYNLIBS = $(LIBICU) -lboost_system
 
 include ../build/Makefile.incl

@@ -2,8 +2,6 @@
  * @author George Foster
  * @file config_io.cc  Implementation of CanoeConfig.
  *
- * $Id$ *
- *
  * Read and write canoe config files
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -121,7 +119,8 @@ CanoeConfig::CanoeConfig()
    phraseTableThreshold   = 0;
    phraseTablePruneType   = "forward-weights";
    phraseTableLogZero     = LOG_ALMOST_0;
-   maxStackSize           = 100;
+   maxStackSize           = 10000;
+   maxRegularStackSize    = 1000;
    pruneThreshold         = 0.0001;
    covLimit               = 0;
    covThreshold           = 0.0;
@@ -206,6 +205,7 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("ttable-threshold", "double", &phraseTableThreshold));
    param_infos.push_back(ParamInfo("ttable-prune-type", "string", &phraseTablePruneType));
    param_infos.push_back(ParamInfo("ttable-log-zero", "double", &phraseTableLogZero));
+   param_infos.push_back(ParamInfo("regular-stack rs", "Uint", &maxRegularStackSize));
    param_infos.push_back(ParamInfo("stack s", "Uint", &maxStackSize));
    param_infos.push_back(ParamInfo("beam-threshold b", "double", &pruneThreshold));
    param_infos.push_back(ParamInfo("cov-limit", "Uint", &covLimit));
@@ -844,7 +844,7 @@ void CanoeConfig::check()
       if ( diversityStackIncrement < -1 )
          error(ETFatal, "-diversity-stack-increment must be non-negative, or -1 for DSI=I");
       else if ( diversityStackIncrement == -1 )
-         diversityStackIncrement = maxStackSize;
+         diversityStackIncrement = maxRegularStackSize;
    }
 
    if ( bCubePruning )
@@ -889,6 +889,18 @@ void CanoeConfig::check()
    if (!featureGroup("bilm")->args.empty()) {
       if (!tpptFiles.empty())
          error(ETFatal, "Can't combine -bilm-file with -ttable-tppt, since TPPTs don't store alignment information.");
+   }
+
+   if (bCubePruning) {
+      map<string,ParamInfo*>::iterator it = param_map.find("regular-stack");
+      assert(it != param_map.end());
+      if (it->second->set_from_config || it->second->set_from_cmdline)
+         error(ETFatal, "Cube pruning requires -stack, and does not allow -regular-stack.  This is because the regular stack counts states after recombining, whereas the cube pruning stack counts states before recombining.  Thus, with -cube-pruning, you need a larger stack.  To avoid confusion and keeping inappropriate stack parameters when altering a canoe.ini file, we now require the right type of stack parameter for the decoder you choose.");
+   } else {
+      map<string,ParamInfo*>::iterator it = param_map.find("stack");
+      assert(it != param_map.end());
+      if (it->second->set_from_config || it->second->set_from_cmdline)
+         error(ETFatal, "Not cube pruning requires -regular-stack, and does not allow -stack.  This is because the regular stack counts states after recombining, whereas the cube pruning stack counts states before recombining.  Thus without cube pruning, you need a smaller stack.  To avoid confusion and keeping inappropriate stack parameters when altering a canoe.ini file, we now require the right type of stack parameter for the decoder you choose.");
    }
 } //check()
 

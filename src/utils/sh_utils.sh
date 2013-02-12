@@ -1,5 +1,4 @@
 #!/bin/bash
-# $Id$
 
 # @file sh_utils.sh 
 # @brief Library of useful bash commands.
@@ -110,14 +109,14 @@ run_cmd() {
 
 # Print the standard NRC Copyright notice
 # Usage: print_nrc_copyright program_name year
-CURRENT_COPYRIGHT_YEAR=2012
+current_year=2013
 print_nrc_copyright() {
    prog_name=$1
    year=$2
    if [[ ! $PORTAGE_INTERNAL_CALL ]]; then
       echo -n "$prog_name, NRC-CNRC, (c) $year"
-      if [[ $year != $CURRENT_COPYRIGHT_YEAR ]]; then
-         echo -n " - $CURRENT_COPYRIGHT_YEAR"
+      if [[ $year != $current_year ]]; then
+         echo -n " - $current_year"
       fi
       echo ", Her Majesty in Right of Canada";
       echo "Please run \"portage_info -notice\" for Copyright notices of 3rd party libraries."

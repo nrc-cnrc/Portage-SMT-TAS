@@ -15,6 +15,8 @@
 
 
 .PHONY: all french-hyphens dots ch-punc
+.SECONDARY:
+export PORTAGE_INTERNAL_CALL=1
 
 all: test
 
@@ -36,7 +38,10 @@ ch-punc: $(foreach EXT, 000 001 010 011 100 101 110 111, compare.chinese-punc.de
 .PHONY: en-prices
 en-prices: compare.eng-prices.detok compare.eng-prices.detok.utf8
 
-TEMP_FILES=accent.* hyphens.* periods.* chinese-punc.* eng-prices.* es.* da.*
+TEMP_FILES=accent.* hyphens.* periods.* chinese-punc.* eng-prices.* \
+           es.* da.* xtags.* \
+           brackets.utf8.detok-?? \
+           with_tags.in with_tags.out
 include ../Makefile.incl
 
 accent.utf8: accent
@@ -221,12 +226,10 @@ es.source:
 	echo "${SOURCE_ES}" > $@
 
 es.tok: es.source
-	utokenize.pl -lang=es -ss < $< | tee $@
+	utokenize.pl -lang=es -ss < $< > $@
 
 es.detok: es.tok
-	udetokenize.pl -lang=es < $< | tee $@
-
-
+	udetokenize.pl -lang=es < $< > $@
 
 
 ################################################################################
@@ -246,8 +249,52 @@ da.source:
 	echo "${SOURCE_DA}" > $@
 
 da.tok:  da.source
-	utokenize.pl -lang=da -noss < $< | tee $@
+	utokenize.pl -lang=da -noss < $< > $@
 
 da.detok:  da.tok
-	udetokenize.pl -lang=da < $< | tee $@
+	udetokenize.pl -lang=da < $< > $@
+
+
+################################################################################
+# Handling tags
+test: tags
+
+.PHONY: tags
+tags: compare.xtags.tok compare.xtags.detok
+
+xtags.tok: xtags
+	utokenize.pl -noss -xtags < $< > $@
+
+xtags.detok: xtags.tok
+	udetokenize.pl < $< > $@
+
+################################################################################
+# Detokenizing with brackets of all kinds
+test: brackets
+
+.PHONY: brackets
+brackets: $(foreach l,en es fr da,compare.brackets.utf8.detok-$l)
+
+brackets.utf8.detok-%: brackets.utf8
+	udetokenize.pl -lang=$* $< > $@
+
+
+
+################################################################################
+# Tokenizing a string with markup with tokenize in xtags or not mode has an uninitialized value.
+# Second TU from 12090617-E-20120926_merged_LDV2_CG1_RIASESBRAVD_clean.tmx
+# NOTE: the output is missing a "f" the "f" of "of".
+test: with_tags
+.PHONY: with_tags
+with_tags:  with_tags.out
+	egrep ' of ' $<
+	diff $< ref/$<
+
+with_tags.in:
+	echo "<cf font=\"Verdana\" size=\"8\" complexscriptssize=\"8\" asiantextfont=\"Verdana\" bold=\"on\"> Page </cf><field/><cf font=\"Verdana\" size=\"8\" complexscriptssize=\"8\" asiantextfont=\"Verdana\" bold=\"on\"> of </cf><field/>" > $@
+
+with_tags.out:  SHELL = bash
+with_tags.out:  with_tags.in
+	utokenize.pl -lang=en -noss -xtags $< $@ 2>&1 \
+	| { ! egrep 'Use of uninitialized value in addition'; }
 

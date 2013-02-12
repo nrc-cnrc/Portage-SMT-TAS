@@ -1,5 +1,4 @@
 #!/usr/bin/env perl
-# $Id$
 
 # @file pgm_usage_2_html.pl 
 # @brief Creates html page from a program's help message.
@@ -113,11 +112,11 @@ if (defined($main_index)) {
 elsif (defined($full_index)) {
    $title = $full_index;
    $NRC_logo_path = ".";
-   $hierarchy = " <A HREF=\"index.html\">Portage 1.5.0</A>";
+   $hierarchy = " <A HREF=\"index.html\">PortageII 2.0</A>";
 }
 else {
    $NRC_logo_path = "..";
-   $hierarchy = "<A HREF=\"../index.html\">Portage 1.5.0</A> /";
+   $hierarchy = "<A HREF=\"../index.html\">PortageII 2.0</A> /";
    if (defined($module_index)) {
       $title = "Module: $module_index";
       $hierarchy .= " $module_index /";
@@ -139,7 +138,7 @@ my $header = <<HEADER;
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD>
-  <TITLE>Portage 1.5.0 - $title</TITLE>
+  <TITLE>PortageII 2.0 - $title</TITLE>
   </HEAD>
   <BODY BGCOLOR="#FFFFFF" LINK="#0000ff" VLINK="#006600">
 
@@ -172,9 +171,9 @@ my $footer = <<FOOTER;
   <td valign="top" align="center">
   <font size=-1>
 Technologies langagi&egrave;res interactives / Interactive Language Technologies<BR>
-Technologies de l’information et des communications / Information and Communications Technologies<BR>
+Technologies de l'information et des communications / Information and Communications Technologies<BR>
 Conseil national de recherches Canada / National Research Council Canada<BR>
-Copyright &copy; 2004-2012, Sa Majest&eacute; la Reine du Chef du Canada / Her Majesty in Right of Canada
+Copyright &copy; 2004-2013, Sa Majest&eacute; la Reine du Chef du Canada / Her Majesty in Right of Canada
   </font>
   </td>
 </tr>
@@ -226,7 +225,7 @@ if (defined($module_index)) {
 }
 # Compile a list of all available module in Portage.
 elsif (defined($main_index)) {
-   print OUT "<H2>Portage 1.5.0 programs by module:</H2><BR>
+   print OUT "<H2>PortageII 2.0 programs by module:</H2><BR>
    <UL>
    ";
    while (<IN>) {

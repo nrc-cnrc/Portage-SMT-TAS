@@ -1,25 +1,49 @@
-                               Portage 1.5.0
+                              PortageII 2.0
 
 Technologies langagieres interactives / Interactive Language Technologies
 Technologies de l'information et des communications /
    Information and Communications Technologies
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2004-2012, Sa Majeste la Reine du Chef du Canada
-Copyright 2004-2012, Her Majesty in Right of Canada
+Copyright 2004-2013, Sa Majeste la Reine du Chef du Canada
+Copyright 2004-2013, Her Majesty in Right of Canada
 
 Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
+
+See NOTICE for the Copyright notices of 3rd party libraries.
 
 
                               Release History
                    (with a summary of important changes)
 
-v1.5.0 2012-09-04
 
- This release brings together important new modules and features that have
- contributed to our success at the NIST Open Machine Translation 2012
- Evaluation (OpenMT12), as well as a number of other improvements we have made
- to the system.
+PortageII is the second generation of SMT software released by the NRC.
+
+PortageII 2.0 2013-02-??
+ This release provides significant user improvements for translators through
+ the handling of markup tags and the XML Localization Interchange File Format
+ (xliff) often used to package translation projects.
+
+ Major changes:
+  - Support for the transfer of tags found in the source sentence by applying
+    them to the corresponding text in the target sentence.  To enable this
+    functionality, set xtags to true when calling translateTMXCE() or
+    translateSDLXLIFFCE() in the SOAP PortageLive API.
+  - Support for the xliff file format via the PortageLive API.
+
+ Minor changes:
+  - Support for Danish tokenization and detokenization.
+  - Updated software for weight tuning is more stable.
+  - Minor bug fixes.
+
+
+PortageII 1.0 2012-09-04
+ PortageII marks a significant leap forward in NRC's statistical machine
+ translation technology.  With version 1.0, described here, we bring in
+ significant improvements to translation engine itself that result in better
+ translations, and contributed to our success at the NIST Open Machine
+ Translation 2012 Evaluation (OpenMT12), as well as a number of other
+ improvements we have made to the system.
 
  Major changes:
  - Added the key features of our NIST 2012 Chinese system:
@@ -143,7 +167,12 @@ v1.5.0 2012-09-04
  - In PortageLive setup, pre-linking of external libraries must be undone when
    making the server copy.
 
-v1.4.3 2011-10-03
+
+Portage 1.x is the first generation of SMT software released by the NRC.  We
+keep its history here to document how our SMT technology evolved over the
+years.
+
+Portage 1.4.3 2011-10-03
  This release is primarily intended distribute our improved truecasing module,
  and its integration in the experimental framework.  It also includes
  improvements we've made in various parts of the system since the last release.
@@ -213,7 +242,8 @@ v1.4.3 2011-10-03
  - On rare occasions, the presence of ||| in the training corpus would cause an
    invalid phrase table to be generated; this is now fixed.
 
-v1.4.2 2010-10-01
+
+Portage 1.4.2 2010-10-01
  This is a maintenance release.
 
  Minor changes:
@@ -236,7 +266,8 @@ v1.4.2 2010-10-01
  - Made arpalm2tplm.sh robust to extra white space in the ARPA LM files.
  - Fixed cow.sh to remove unintended 10000 line limit in dev set.
 
-v1.4.1 2010-07-30
+
+Portage 1.4.1 2010-07-30
  This is a maintenance release, fixing several issues in v1.4.0.
 
  Minor changes:
@@ -264,7 +295,8 @@ v1.4.1 2010-07-30
  - Fixed issue where TPTs might be corrupted when the file was larger than 4GB.
  - Fixed several more minor issues.
 
-v1.4.0 2010-05-31
+
+Portage 1.4.0 2010-05-31
  This update incorporates improvements intended to help the performance of
  Portage as an online translation service, as well as scientific progress we've
  made in the last year.
@@ -436,7 +468,8 @@ v1.4.0 2010-05-31
  - Quench the Copyright notices that were printed much too often.
  - The obsolete src/api/ directory was deleted; PortageLive supercedes it.
 
-v1.3 2009-01-21
+
+PORTAGEshared 1.3 2009-01-21
  This update to PORTAGEshared is primarily intended to incorporate the new HMM
  word alignment module, and related functionality.  We have also taken the
  opportunity to migrate many improvements from Portage, add a new experimental
@@ -626,7 +659,7 @@ v1.3 2009-01-21
      stable.
 
 
-v1.2 2008-01-28
+PORTAGEshared 1.2 2008-01-28
  This is a significant update to PORTAGEshared, incorporating most of the
  changes we have made to Portage since the initial release of PORTAGEshared.
 
@@ -885,7 +918,7 @@ v1.2 2008-01-28
  - rescoring feature IBM1Deletion was available but not hooked in properly.
 
 
-v1.1 2007-04-01
+PORTAGEshared 1.1 2007-04-01
  - Added the BinLM format for fast loading of LMs, supported by all
    programs loading LMs, with utility lmtext2binlm to generate them.
  - Made ibm model 2 the default in gen_phrase_tables.
@@ -894,5 +927,5 @@ v1.1 2007-04-01
  - Added -o option to rat.sh, which no longer generates .w files.
 
 
-v1.0 2006-10-31
+PORTAGEshared 1.0 2006-10-31
    Initial release.

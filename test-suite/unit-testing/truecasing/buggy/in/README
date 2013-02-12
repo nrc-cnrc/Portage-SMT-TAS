@@ -1,0 +1,22 @@
+Filenames starting with 'Q' or 'q' = query text = source language input.
+Filenames starting with 'P' or 'p' = product text = target language output.
+
+Filenames starting with an uppercase letter contain (possibly) truecased text
+i.e. before lowercasing or after truecasing has been applied.
+Filenames starting with a lowercase letter contain lowercase text
+i.e. after lowercasing and before truecasing has been applied.
+
+Extensions:
+.txt = raw source text / final translation (post-processed) output text
+.pre = pre-processed (pre-tokenization) source
+.filt = post-filtering source
+.tok = tokenized source / translation (after post-decoder plugin)
+.dec = decoder ready source / raw decoder translation (OOV markup removed)
+.dec.oov = raw decoder translation with OOV markup
+.tok.oov = tokenized translation with OOV markup (after post-decoder plugin)
+.pal = phrase alignments from the decoder used with truecasing
+.raw = raw decoder output (with trace) for -with-ce and truecasing
+.dtk = detokenized translation
+pr.ce = confidence estimation
+
+Final translation output is in P.txt

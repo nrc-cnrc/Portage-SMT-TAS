@@ -219,6 +219,13 @@ sub printForm {
                 "-- Check this box if input file is TMX or SDLXLIFF.")),
           Tr({valign=>'top'},
              td({align=>'right'}, 
+                checkbox(-name=>'xtags',
+                         -checked=>0,
+                         -label=>'')),
+             td(strong("xtags"), 
+                "-- Check this box if input file contains tags and you want to process & transfer them.")),
+          Tr({valign=>'top'},
+             td({align=>'right'}, 
                 scrolling_list(-name=>'filter',
                                -default=>'no filtering',
                                -values=>[ 'no filtering', map(sprintf("%0.2f", $_), @filter_values) ],
@@ -325,6 +332,9 @@ sub processText {
     }
     if (param('xml')) {
         push @tr_opt, ("-xml", "-nl=s");
+        if (param('xtags')) {
+           push @tr_opt, "-xtags";
+        }
     }
     else {
         push @tr_opt, param('notok') ? "-notok": "-tok";
@@ -605,7 +615,7 @@ sub NRCFooter {
                     td({valign=>'top', align=>'center'},
                        small(
                           "Technologies langagi&egrave;res interactives / Interactive Language Technologies", br(),
-                          "Technologies de l’information et des communications / Information and Communications Technologies", br(),
+                          "Technologies de l'information et des communications / Information and Communications Technologies", br(),
                           "Conseil national de recherches Canada / National Research Council Canada", br(),
                           "Copyright 2004&ndash;2012, Sa Majest&eacute; la Reine du Chef du Canada / ",
                           "Her Majesty in Right of Canada", br(),

@@ -1,0 +1,88 @@
+X Y Z <t>SOME</t>TEXT XX YY ZZ
+X Y Z SOME<t>TEXT</t> XX YY ZZ
+X Y Z SOME<t>T</t>EXT XX YY ZZ
+X Y Z SOME<t></t>TEXT XX YY ZZ
+X Y Z SOME<t/>TEXT XX YY ZZ
+X Y Z <t>SO</t>ME<u>TE</u><v>XT</v> XX YY ZZ
+X Y Z <t>SO</t>ME<u>TE<v>XT</v></u> XX YY ZZ
+X Y Z <t>SO</t>ME<z/><u>TE</u><v>XT</v> XX YY ZZ
+X Y Z <t>SO</t>ME<u><z/>TE</u><v>XT</v> XX YY ZZ
+X Y Z <t>SO</t>ME<u>TE<z/></u><v>XT</v> XX YY ZZ
+X Y Z <t>SO</t>ME<u>TE</u><z/><v>XT</v> XX YY ZZ
+X Y Z <z/><t>SO</t>ME<u>TE</u><v>XT</v> XX YY ZZ
+X Y Z <t><z/>SO</t>ME<u>TE</u><v>XT</v> XX YY ZZ
+X Y Z <t>SO</t>ME<u>TE</u><v>XT<z/></v> XX YY ZZ
+X Y Z <t>SO</t>ME<u>TE</u><v>XT</v><z/> XX YY ZZ
+X Y Z <a><b><t>SOME</t>TE<u>XT</u></b></a> XX YY ZZ
+X Y Z <a><b><t>SO</t>ME<u>TE</u><v>XT</v></b></a> XX YY ZZ
+X Y Z <a><b><t>SO</t>ME<u>TE<v>XT</v></u></b></a> XX YY ZZ
+<a><b><t>SO</t>ME<u>TE<v>XT</v></u></b></a> X Y Z XX YY ZZ
+X Y Z XX YY ZZ <a><b><t>SO</t>ME<u>TE<v>XT</v></u></b></a>
+X Y Z <t></t>SOMETEXT XX YY ZZ
+X Y Z SOMETEXT<t></t> XX YY ZZ
+X Y Z SOMETEXT<t></t> XX YY ZZ
+X Y Z SOMETEXT<t></t> XX YY ZZ
+X Y Z SOMETEXT<t/> XX YY ZZ
+X Y Z <t></t>SOMETEXT<u></u><v></v> XX YY ZZ
+X Y Z <t></t>SOMETEXT<u><v></v></u> XX YY ZZ
+X Y Z <t></t>SOMETEXT<z/><u></u><v></v> XX YY ZZ
+X Y Z <t></t>SOMETEXT<u><z/></u><v></v> XX YY ZZ
+X Y Z <t></t>SOMETEXT<u><z/></u><v></v> XX YY ZZ
+X Y Z <t></t>SOMETEXT<u></u><z/><v></v> XX YY ZZ
+X Y Z <z/><t></t>SOMETEXT<u></u><v></v> XX YY ZZ
+X Y Z <t><z/></t>SOMETEXT<u></u><v></v> XX YY ZZ
+X Y Z <t></t>SOMETEXT<u></u><v><z/></v> XX YY ZZ
+X Y Z <t></t>SOMETEXT<u></u><v></v><z/> XX YY ZZ
+X Y Z <a><b><t></t>SOMETEXT<u></u></b></a> XX YY ZZ
+X Y Z <a><b><t></t>SOMETEXT<u></u><v></v></b></a> XX YY ZZ
+X Y Z <a><b><t></t>SOMETEXT<u><v></v></u></b></a> XX YY ZZ
+<a><b><t></t>SOMETEXT<u><v></v></u></b></a> X Y Z XX YY ZZ
+X Y Z XX YY ZZ <a><b><t></t>SOMETEXT<u><v></v></u></b></a>
+X Y Z <t>some</t>text XX YY ZZ
+X Y Z some<t>text</t> XX YY ZZ
+X Y Z some<t>t</t>ext XX YY ZZ
+X Y Z some<t></t>text XX YY ZZ
+X Y Z some<t/>text XX YY ZZ
+X Y Z <t>so</t>me<u>te</u><v>xt</v> XX YY ZZ
+X Y Z <t>so</t>me<u>te<v>xt</v></u> XX YY ZZ
+X Y Z <t>so</t>me<z/><u>te</u><v>xt</v> XX YY ZZ
+X Y Z <t>so</t>me<u><z/>te</u><v>xt</v> XX YY ZZ
+X Y Z <t>so</t>me<u>te<z/></u><v>xt</v> XX YY ZZ
+X Y Z <t>so</t>me<u>te</u><z/><v>xt</v> XX YY ZZ
+X Y Z <z/><t>so</t>me<u>te</u><v>xt</v> XX YY ZZ
+X Y Z <t><z/>so</t>me<u>te</u><v>xt</v> XX YY ZZ
+X Y Z <t>so</t>me<u>te</u><v>xt<z/></v> XX YY ZZ
+X Y Z <t>so</t>me<u>te</u><v>xt</v><z/> XX YY ZZ
+X Y Z <a><b><t>some</t>te<u>xt</u></b></a> XX YY ZZ
+X Y Z <a><b><t>so</t>me<u>te</u><v>xt</v></b></a> XX YY ZZ
+X Y Z <a><b><t>so</t>me<u>te<v>xt</v></u></b></a> XX YY ZZ
+<a><b><t>so</t>me<u>te<v>xt</v></u></b></a> X Y Z XX YY ZZ
+X Y Z XX YY ZZ <a><b><t>so</t>me<u>te<v>xt</v></u></b></a>
+X Y Z qqq <t>so</t>me<u>te</u><v>xt</v> XX YY ZZ
+X Y Z <t></t>qqq SOMETEXT<u></u><v></v> XX YY ZZ
+X Y Z <bx id="1"/>SOME<ex id="1"/>TEXT XX YY ZZ
+X Y Z SOME<bx id="1"/>TEXT<ex id="1"/> XX YY ZZ
+X Y Z SOME<bx id="1"/>TE<ex id="1"/>XT XX YY ZZ
+X Y Z <bx id="1"/>SOME<bx id="2"/><ex id="1"/>TE<ex id="2"/>XT XX YY ZZ
+X Y Z <bx id="1"/><ex id="1"/>SOMETEXT XX YY ZZ
+X Y Z SOMETEXT<bx id="1"/><ex id="1"/> XX YY ZZ
+X Y Z SOME<bx id="1"/>T<g>E<ex id="1"/></g>XT XX YY ZZ
+X Y Z SOME<bx id="1"/>T<g>E</g><ex id="1"/>XT XX YY ZZ
+X Y Z <bx id="1"/><ex id="1"/>SOMETEXT XX YY ZZ
+X Y Z SOMETEXT<bx id="1"/><ex id="1"/> XX YY ZZ
+X Y Z SOMETEXT<bx id="1"/><ex id="1"/> XX YY ZZ
+X Y Z <bx id="1"/>SOMETEXT<bx id="2"/><ex id="1"/><ex id="2"/> XX YY ZZ
+X Y Z <bx id="1"/><ex id="1"/>SOMETEXT XX YY ZZ
+X Y Z SOMETEXT<bx id="1"/><ex id="1"/> XX YY ZZ
+X Y Z SOMETEXT<bx id="1"/><g><ex id="1"/></g> XX YY ZZ
+X Y Z SOMETEXT<bx id="1"/><g></g><ex id="1"/> XX YY ZZ
+X Y Z <bx id="1"/>some<ex id="1"/>text XX YY ZZ
+X Y Z some<bx id="1"/>text<ex id="1"/> XX YY ZZ
+X Y Z some<bx id="1"/>te<ex id="1"/>xt XX YY ZZ
+X Y Z <bx id="1"/>some<bx id="2"/><ex id="1"/>te<ex id="2"/>xt XX YY ZZ
+X Y Z <bx id="1"/><ex id="1"/>sometext XX YY ZZ
+X Y Z sometext<bx id="1"/><ex id="1"/> XX YY ZZ
+X Y Z some<bx id="1"/>t<g>e<ex id="1"/></g>xt XX YY ZZ
+X Y Z some<bx id="1"/>t<g>e</g><ex id="1"/>xt XX YY ZZ
+X Y Z qqq <bx id="1"/>some<bx id="2"/><ex id="1"/>te<ex id="2"/>xt XX YY ZZ
+X Y Z <bx id="1"/><ex id="1"/>qqq SOMETEXT<bx id="2"/><ex id="2"/> XX YY ZZ

@@ -4,6 +4,9 @@
 #TRUECASER = perl -I ../../../src/truecasing ../../../src/truecasing/truecase.pl
 TRUECASER = truecase.pl
 
+# We don't want subjobs submitted here, since they're too small.
+export PORTAGE_NOCLUSTER=1
+
 UCBOS = -bos -enc $*
 VERBOSE = --verbose
 
@@ -26,7 +29,7 @@ all: tpt_utf8
 all: tpt_ucbos_cp1252
 all: tpt_ucbos_utf8
 
-TEMP_FILES=ref_* src_* ${LM}_*.gz vocabMap2tpt.* tc_tmp_canoe_*
+TEMP_FILES=ref_* src_* ${LM}_*.gz vocabMap2tpt.* tc_tmp_* log.* testTC.out.tc buggy.*.out
 TEMP_DIRS=${LM}_*.tplm* ${MAP}_*.tppt* ${LM}_utf8* ${MAP}_*
 include ../Makefile.incl
 
@@ -103,3 +106,37 @@ src_utf8 ref_utf8 src_ucbos_utf8 ref_ucbos_utf8 ${LM}_utf8 ${MAP}_utf8: %_utf8: 
 
 %.tppt: %
 	vocabMap2tpt.sh $<
+
+
+########################################
+# This part of the unit test suite exercises truecasing with transfer of case
+# information from the source text.
+
+all: compare.testTC.out.tc
+
+compare.%: %
+	diff $< ref/$< -q
+
+testTC.out.tc: src/testTC.out.oov src/train_en-kn-3g.binlm.gz src/train_en.map.gz src/testTC_fr.al src/testTC.out.pal src/train_fr.nc1.binlm.gz
+	truecase.pl -bos -encoding UTF-8 -srclang fr \
+	   -text src/testTC.out.oov -pal src/testTC.out.pal -src src/testTC_fr.al \
+	   -lm src/train_en-kn-3g.binlm.gz -map src/train_en.map.gz \
+	   -srclm src/train_fr.nc1.binlm.gz -v -d > $@ 2> log.$@
+
+
+########################################
+# This part of the test suite handles a specific bug detected when integrating
+# WAL info into truecasing.
+
+.PHONY: buggy
+all: buggy
+buggy: buggycmp.buggy.markup.out buggycmp.buggy.casemark.out
+
+buggycmp.%: %
+	diff $< buggy/ref/$<
+
+buggy.markup.out: buggy/in/tc_tmp_text_25951.cmark.in buggy/in/tc_tmp_text_25951.tc buggy/in/p.pal
+	markup_canoe_output  -n OOV $+ > $@
+
+buggy.casemark.out: buggy/in/tc_tmp_text_25951.cmark.out
+	casemark.py -r -enc utf-8 $+ > $@

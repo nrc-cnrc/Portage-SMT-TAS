@@ -37,7 +37,7 @@ canoe.ini: dummy.lm
 	 echo "[weight-t] 1:1" >> $@
 	 echo "[ttable-limit] 30" >> $@
 	 echo "[ttable-threshold] 0" >> $@
-	 echo "[stack] 300" >> $@
+	 echo "[regular-stack] 300" >> $@
 	 echo "[beam-threshold] 0.0001" >> $@
 	 echo "[distortion-limit] 7" >> $@
 	 echo "[bypass-marked]" >> $@

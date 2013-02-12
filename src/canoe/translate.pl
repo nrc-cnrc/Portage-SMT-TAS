@@ -2,7 +2,7 @@
 # @file translate.pl
 # @brief Script to translate text.
 #
-# @author Darlene Stewart (adapted from Michel Simard's ce_translate.pl)
+# @author Darlene Stewart & Samuel Larkin (adapted from Michel Simard's ce_translate.pl)
 #
 # COMMENTS:
 #
@@ -25,18 +25,18 @@ translate.pl - Translate text
 
 =head1 DESCRIPTION
 
-This program translates a source text file SRC_TEXT to the target language 
-according to the current trained models. If SRC_TEXT is not specified, the 
+This program translates a source text file SRC_TEXT to the target language
+according to the current trained models. If SRC_TEXT is not specified, the
 source text is read from standard input (STDIN). With the C<-xml> option,
-SRC_TEXT is a TMX format file from which the source text is extracted and to 
+SRC_TEXT is a TMX format file from which the source text is extracted and to
 which the translated text is replaced.
 
 By default, the program creates a temporary working directory, where it stores
 intermediate results, including tokenized and lowercased versions of the text
-files, PORTAGE translations, and for C<-with-ce>, value files for the features
-used by the CE model. Normally this temporary directory is deleted at the
-end of the process, unless something goes wrong or if the C<-dir=D>option or
-the C<-d> option is specified.
+files, PortageII translations, and for C<-with-ce>, value files for the
+features used by the CE model. Normally this temporary directory is deleted at
+the end of the process, unless something goes wrong or if the C<-dir=D>option
+or the C<-d> option is specified.
 
 =head1 OPTIONS
 
@@ -120,7 +120,7 @@ Detokenize the text on output. Use --nodetok to skip detokenization. [detok]
 
 =item -[no]tc | -tctp
 
-If -tc, truecase the text on output using a text LM and map for the truecasing 
+If -tc, truecase the text on output using a text LM and map for the truecasing
 model.
 If -tctp, truecase using tightly packed LMs and map for the truecasing model.
 For -tc or -tctp, the LM and map files, if not specified using -tclm and -tcmap,
@@ -140,8 +140,8 @@ Use map file MAP for the truecasing model (valid for -tc or -tctp).
 
 =item -tcsrclm=SRCLM
 
-If present, use source sentence-initial case normalization (NC1) language model 
-file SRCLM to provide addition source language information for the truecasing 
+If present, use source sentence-initial case normalization (NC1) language model
+file SRCLM to provide addition source language information for the truecasing
 model (valid for -tc or -tctp).
 [source LM file located in F<models/tc> directory relative to the F<canoe.ini> location, if present]
 
@@ -166,13 +166,13 @@ Use OUTPUT as the output file name. [STDOUT]
 
 Use DIR as the working directory for all intermediate files.
 DIR is not deleted at the end of processing, while the default temp directory is.
-[temp directory F<./translate_work_XXXXXX> or F</tmp/translate_work_XXXXXX> 
+[temp directory F<./translate_work_XXXXXX> or F</tmp/translate_work_XXXXXX>
 if cannot mkdir in F<.>]
 
 =item -plugins=PLUGINS
 
-Add PLUGINS to $PATH as the directory for the plugins (PLUGINS will be searched 
-first for the executable for each plugin). (See PLUGINS section below.) 
+Add PLUGINS to $PATH as the directory for the plugins (PLUGINS will be searched
+first for the executable for each plugin). (See PLUGINS section below.)
 [directory F<plugins> in the F<canoe.ini> location]
 
 =item -xtra-decode-opts=OPTS
@@ -196,6 +196,24 @@ Specify additional C<rat.sh> options (valid for -with-rescoring only).
 =item -xml
 
 The input and output files are in XML format.
+
+=item -xtags
+
+Process and transfer tags in xml
+
+=item -wal=WAL
+
+-wal=h: Use heuristic word alignment for -xtags and for -tcsrclm, even if work
+alignment is available in the phrase table.  (For baseline evaluation only.)
+
+-wal=pal: Use the word alignment from the a field in the phrase table (via the
+PAL file).  In this case, it is an error if the word alignments are missing for
+multi-word phrases.
+
+-wal=mixed: Use the word alignment from the a field if found, falling back to
+the heuristic otherwise.
+
+[mixed]
 
 =item -xsrc=XSRC
 
@@ -270,7 +288,7 @@ and should require no command-line arguments.
 
 For -with-rescoring, in order for rat.sh to work correctly, either the
 rescoring model must use absolute paths or its model paths must be of the
-form C<models/subpath> and be accessible from the current directory 
+form C<models/subpath> and be accessible from the current directory
 (i.e. C<./models/subpath> references the corresponding model).
 This is the way PortageLive and the framework work.
 
@@ -314,6 +332,8 @@ use portage_utils;
 printCopyright("translate.pl", 2010);
 $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
+use ULexiTools qw(get_tag_re);
+my $tag_re = get_tag_re;
 
 use File::Temp qw(tempdir);
 use File::Path qw(rmtree);
@@ -339,7 +359,7 @@ Getopt::Long::GetOptions(
    "debug"          => \my $debug,
    "dryrun"         => \my $dryrun,
    "time"           => \my $timing,
-   
+
    "decode-only"    => \my $decode_only,
    "with-rescoring" => \my $with_rescoring,
    "with-ce"        => \my $with_ce,
@@ -347,12 +367,12 @@ Getopt::Long::GetOptions(
    "w=i"            => \my $w,
    "ini|f=s"        => \my $canoe_ini,
    "model=s"        => \my $model,
-   
+
    "tok!"           => \my $tok,
    "nl=s"           => \my $nl,
    "lc!"            => \my $lc,
    "detok!"         => \my $detok,
-   
+
    "tc!"            => \my $tc,
    "tctp"           => \my $tctp,
    "tclm=s"         => \my $tclm,
@@ -363,33 +383,39 @@ Getopt::Long::GetOptions(
    "tgt=s"          => \my $tgt,
 
    "encoding=s"     => \my $encoding,
-   
+
    "out=s"          => \my $out,
-   
+
    "dir=s"          => \my $dir,
    "plugins=s"      => \my $plugins,
-   
+
    "xtra-decode-opts=s"  => \my $xtra_decode_opts,
    "xtra-cp-opts=s"      => \my $xtra_cp_opts,
    "xtra-rat-opts=s"     => \my $xtra_rat_opts,
 
    #XML specific options
    "xml"            => \my $xml,
+   "xtags"          => \my $xtags,
+   "wal=s"          => \my $wal,
    "xsrc=s"         => \my $xsrc,
    "xtgt=s"         => \my $xtgt,
 
    #CE specific options
    "filter=f"       => \my $filter,
    "xtra-ce-opts=s" => \my $xtra_ce_opts,
-   
+
    #Development options
-   "skipto=s"    => \my $skipto,
+   "skipto=s"       => \my $skipto,
 ) or (print(STDERR "ERROR: translate.pl aborted due to bad option.\nRun with -h for help.\n"), exit 1);
 
 $quiet = 0 unless defined $quiet;
 $debug = 0 unless defined $debug;
 $dryrun = 0 unless defined $dryrun;
 $timing = 0 unless defined $timing;
+
+$wal = "mixed" unless defined $wal;
+$wal eq "h" or $wal eq "pal" or $wal eq "mixed"
+   or die "ERROR: unrecognized value for -wal: $wal; valid values are h, pal, and mixed\n";
 
 if ( !$quiet || $verbose ) {
    print STDERR "$saved_command_line\n\n";
@@ -404,7 +430,7 @@ $decode_only + $with_rescoring + $with_ce == 1
 
 $n = 1 unless defined $n;
 $n >= 1 or die "ERROR: n must be a positive integer (n-ways-parallel)";
-$n > 1 or !defined $xtra_cp_opts 
+$n > 1 or !defined $xtra_cp_opts
    or die "ERROR: -xtra-cp-opts is valid only when using canoe parallel (n>1).\nStopped";
 
 unless (defined $canoe_ini) {
@@ -490,11 +516,11 @@ if ($tc and !defined $tclm) {
    -d $tc_dir
       or die "ERROR: '$tc_dir' does not exist; ", $use_msg;
    foreach my $ext ($tctp ? (".tplm", ".tppt") : (".binlm.gz", ".map")) {
-      my @files = grep !/\/log\.[^\/]+$/ && !/[\/.-_]nc1[\.-_][^\/]+$/, 
+      my @files = grep !/\/log\.[^\/]+$/ && !/[\/.-_]nc1[\.-_][^\/]+$/,
                   glob "$tc_dir/*{.,-,_}$tgt*$ext";
       @files > 0
          or die "ERROR: Unable to locate a $tgt TC $ext file in '$tc_dir'; ",
-                "perhaps you need the " , $tctp ? "-tc" : "-tctp",  
+                "perhaps you need the " , $tctp ? "-tc" : "-tctp",
                 " option instead of ", $tctp ? "-tctp" : "-tc",
                 ".\nStopped";
       @files == 1
@@ -505,7 +531,7 @@ if ($tc and !defined $tclm) {
    unless ($with_rescoring) {
       # New truecasing workflow using source info currently not compatible with rescoring.
       my $ext = $tctp ? ".tplm" : ".binlm.gz";
-      my @files = grep !/\/log\.[^\/]+$/ && /[\/.\-_]nc1[\.\-_][^\/]+$/, 
+      my @files = grep !/\/log\.[^\/]+$/ && /[\/.\-_]nc1[\.\-_][^\/]+$/,
                   glob "$tc_dir/*{.,-,_}$src*$ext";
       @files <= 1
          or die "ERROR: Found multiple $src NC1 $ext files in '$tc_dir'; ", $use_msg;
@@ -514,26 +540,26 @@ if ($tc and !defined $tclm) {
 }
 if ($tc) {
    if ($tctp) {
-      -d $tclm && -x _ 
+      -d $tclm && -x _
          or die "ERROR: Tightly packed truecasing $tgt model '$tclm' ",
                 "is not a readable directory.\nStopped";
-      -d $tcmap && -x _ 
+      -d $tcmap && -x _
          or die "ERROR: Tightly packed truecasing map '$tcmap' ",
-                "is not a readable directory.\nStopped";      
+                "is not a readable directory.\nStopped";
    } else {
-      -f $tclm && -r _ 
+      -f $tclm && -r _
          or die "ERROR: Truecasing $tgt model '$tclm' is not a readable file.\nStopped";
-      -f $tcmap && -r _ 
+      -f $tcmap && -r _
          or die "ERROR: Truecasing map '$tcmap' is not a readable file.\nStopped";
    }
    if (defined $tcsrclm) {
       if ($tcsrclm =~ /.tplm$/) {
-         -d $tcsrclm && -x _ 
+         -d $tcsrclm && -x _
             or die "ERROR: Tightly packed truecasing $src model '$tcsrclm' ",
                    "is not a readable directory.\nStopped";
       } else {
-         -f $tcsrclm && -r _ 
-            or die "ERROR: Truecasing $src model '$tcsrclm' is not a readable file.\nStopped";      
+         -f $tcsrclm && -r _
+            or die "ERROR: Truecasing $src model '$tcsrclm' is not a readable file.\nStopped";
       }
    }
 }
@@ -542,14 +568,17 @@ my $utf8 = 1;
 if (defined $encoding) {
    my $lc_enc = lc $encoding;
    $utf8 = $lc_enc eq "utf8" || $lc_enc eq "utf-8";
-   $utf8 or $lc_enc eq "cp1252" 
+   $utf8 or $lc_enc eq "cp1252"
       or die "ERROR: -encoding must be one of: 'utf8' or 'cp1252'.\nStopped";
+}
+if ($xtags && !$utf8) {
+   die "ERROR: -xtags is not compatible with encoding $encoding: only utf8 is supported";
 }
 
 # Locate the Plugins directory
 my $plugins_dir = defined $plugins ? $plugins : "$models_dir/plugins";
 if (defined $plugins) {
-   -d $plugins_dir 
+   -d $plugins_dir
       or warn "WARNING: plugins directory '$plugins_dir' is not a readable directory";
 }
 
@@ -573,8 +602,9 @@ if ($xml) {
       $xtgt =~ tr/a-z/A-Z/;
    }
 } else {
-   !defined $xsrc and !defined $xtgt and !defined $filter
-      or warn "Warning: ignoring -xsrc, -xtgt and -filter, which are meaningful only with -xml.\n"
+   !defined $xsrc and !defined $xtgt and !defined $filter and !defined $xtags
+      or warn "Warning: ignoring -xsrc, -xtgt, -xtags and -filter, which are meaningful only with -xml.\n";
+   undef $xtags;
 }
 
 # CE specific options
@@ -632,7 +662,7 @@ if ($dryrun) {
    }
    if ($quiet) {
       # Make terminal output as quiet as possible by redirecting STDERR.
-      open(STDERR, ">", "${dir}/log.translate.pl") 
+      open(STDERR, ">", "${dir}/log.translate.pl")
          or warn "WARNING: Unable to redirect STDERR to '${dir}/log.translate.pl'";
    }
    $plog_file = plogCreate("File:${input_text}; Context:".File::Spec->rel2abs($models_dir));
@@ -673,7 +703,7 @@ unless ($dryrun) {
       "\n",
       "Final translation output is in P.txt\n",
    );
-   close README;   
+   close README;
 }
 
 # File names - the naming scheme required for use with CE is adhered to.
@@ -681,11 +711,13 @@ my $ostype = `uname -s`;
 chomp $ostype;
 my $ci = ($ostype eq "Darwin") ? "l" : ""; # for case insensitive file systems
 
-my $Q_txt = "${dir}/Q.txt";     # Raw source text
+my $Q_txt  = "${dir}/Q.txt";     # Raw source text
+my $Q_tags = "${dir}/Q.tags";     # Raw source text with tags
 # --> preprocessor plugin
 my $Q_pre = "${dir}/Q.pre";     # Pre-processed (pre-tokenization) source
 # --> tokenize
 my $Q_tok = "${dir}/Q.tok";     # Tokenized source
+my $Q_tok_tags = "${dir}/Q.tok.tags";     # Tokenized source with tags
 # --> lowercase
 my $q_tok = "${dir}/q${ci}.tok";    # Lowercased tokenized source
 # --> predecoder plugin
@@ -701,6 +733,7 @@ my $p_tokoov = "${dir}/p.tok.oov";  # Post-decoder plugin processed translation 
 my $p_tok = "${dir}/p${ci}.tok";    # Post-decoder plugin processed translation (OOV markup removed)
 # --> truecasing
 my $P_tok = "${dir}/P.tok";     # Truecased tokenized translation
+my $P_tok_tags = "${dir}/P.tok.tags";     # Truecased tokenized translation with tags
 # --> detokenization
 my $P_dtk = "${dir}/P.dtk";     # Truecased detokenized translation
 # --> postprocessor plugin
@@ -717,7 +750,7 @@ goto $skipto if $skipto;
 IN:{
    if ($xml) {
       call("ce_tmx.pl -verbose=$verbose -src=$xsrc -tgt=$xtgt extract '$dir' '$input_text'");
-      cleanupAndDie("XML file $input_text has no sentence in language $xsrc.\n") unless -s $Q_txt;
+      cleanupAndDie("XML file $input_text has no sentence in language $xsrc.\n") unless -s $Q_txt or $dryrun;
    } else {
       copy($input_text, $Q_txt);
    }
@@ -725,8 +758,15 @@ IN:{
 
 # Preprocess, tokenize and lowercase
 PREP:{
-   plugin("preprocess", $src, $Q_txt, $Q_pre);
-   tokenize($src, $Q_pre, $Q_tok);
+   if ($xtags) {
+      plugin("preprocess", $src, $Q_tags, $Q_pre);
+      tokenize($src, $Q_pre, $Q_tok_tags);
+      strip_entity($Q_tok_tags, $Q_tok);
+   }
+   else {
+      plugin("preprocess", $src, $Q_txt, $Q_pre);
+      tokenize($src, $Q_pre, $Q_tok);
+   }
    lowercase($Q_tok, $q_tok);
 }
 
@@ -741,7 +781,7 @@ TRANS:{
          $n > 0 or $n = 1;
       }
    }
-   
+
    unless ($with_rescoring) {
       my $decoder = "canoe";
       if ($n > 1) {
@@ -749,20 +789,23 @@ TRANS:{
          $decoder = "canoe-parallel.sh $v -n $n $xtra_cp_opts canoe";
       }
       my $decoder_opts = $verbose ? "-v $verbose" : "";
-      $decoder_opts .= " -palign" if (defined $tcsrclm or $with_ce);
+      $decoder_opts .= " -walign -palign" if (defined $tcsrclm or $with_ce or $xtags);
       $decoder_opts .= " -ffvals" if $with_ce;
       $decoder_opts .= " $xtra_decode_opts";
-      my $p_out = (defined $tcsrclm or $with_ce) ? $p_raw : $p_dec;
-      call("$decoder $decoder_opts -f ${canoe_ini} < '${q_dec}' > '${p_out}'");
-      if (defined $tcsrclm) {
-         call("nbest2rescore.pl -canoe -tagoov -palout='${p_pal}' < '${p_raw}' " . 
+      my $decoder_log = $verbose ? "2> '${dir}/log.decode'" : "";
+      my $p_out = (defined $tcsrclm or $with_ce or $xtags) ? $p_raw : $p_dec;
+      call("$decoder $decoder_opts -f ${canoe_ini} < '${q_dec}' > '${p_out}' ${decoder_log}");
+      if (defined $tcsrclm or $xtags) {
+         my $wal_opt = ($wal eq "h") ? "" : "-wal";
+         call("nbest2rescore.pl -canoe -tagoov -oov $wal_opt -palout='${p_pal}' < '${p_raw}'" .
               "| perl -pe 's/ +\$//;' > '${p_decoov}'");
       }
       if ($with_ce) {
          # ce_canoe2ffvals.pl generates $p_dec from $p_raw, among other things
          call("ce_canoe2ffvals.pl -verbose=${verbose} -dir='${dir}' '${p_raw}'");
       }
-   } else {  # $with_rescoring
+   }
+   else {  # $with_rescoring
       # We run rat.sh from the working directory to have it create its working
       # directory inside ours to avoid name clashes.
       #
@@ -775,7 +818,7 @@ TRANS:{
       # We link to the models directory from the working directory
       # so rat.sh can access its models as "models/subpath".
       symlink(Cwd::realpath("$models_dir/models"), "$dir/models");
-      
+
       # We need to modify our paths to run in the working directory.
       if ($canoe_ini !~ /^\//) {
          $dir =~ /^\//;
@@ -791,19 +834,39 @@ TRANS:{
       rename("q.dec.rat", "p.dec");
       chdir($cwd);
    }
-   
-   if (not defined $tcsrclm) {
-      plugin("postdecode", $tgt, $p_dec, $p_tok);   
-   } else {
+
+   if (not (defined $tcsrclm or $xtags)) {
+      plugin("postdecode", $tgt, $p_dec, $p_tok);
+   }
+   else {
       plugin("postdecode", $tgt, $p_decoov, $p_tokoov);
-      call("cat '${p_tokoov}' | perl -pe 's/<OOV>(.+?)<\\/OOV>/\\1/g;' >'${p_tok}'"); 
+      call("cat '${p_tokoov}' | perl -pe 's/<OOV>(.+?)<\\/OOV>/\\1/g;' > '${p_tok}'");
    }
 }
 
 # Truecase, detokenize, and postprocess
 POST:{
-   truecase($tgt, defined $tcsrclm ? $p_tokoov : $p_tok, $P_tok, $Q_tok, $p_pal);
-   detokenize($tgt, $P_tok, $P_dtk);
+   my $in = defined $tcsrclm ? $p_tokoov : $p_tok;
+
+   # lang, in, out, source, pal
+   truecase($tgt, $in, $P_tok, $Q_tok, $p_pal);
+   $in = $P_tok;
+
+   # Transfer tags from source to target.
+   if ($xtags) {
+      my $markup_verbose = $verbose > 2 ? "-vv" : $verbose == 2 ? "-v" : "";
+      my $markup_log = $markup_verbose ? "2> '${dir}/log.markup'" : "";
+      call("markup_canoe_output $markup_verbose -wal $wal -xtags $Q_tok_tags $in $p_pal > $P_tok_tags $markup_log");
+      $in = $P_tok_tags;
+   }
+   else {
+      if ($xml) {
+         my $P_ee = "${dir}/P.ee";
+         escape_entity($in, $P_ee);
+         $in = $P_ee;
+      }
+   }
+   detokenize($tgt, $in, $P_dtk);
    plugin("postprocess", $tgt, $P_dtk, $P_txt);
 }
 
@@ -823,7 +886,8 @@ OUT:{
       } else {
          copy($P_txt, $out);
       }
-   } else {
+   }
+   else {
       my $fopt = defined $filter ? "-filter=$filter" : "";
       my $sopt = $with_ce ? "-score" : "-noscore";
       call("ce_tmx.pl -verbose=${verbose} -src=${xsrc} -tgt=${xtgt} ${fopt} ${sopt} replace '$dir'");
@@ -848,14 +912,14 @@ exit 0; # All done!
 ## Subroutines
 
 sub displayHelp
-{  
+{
    -t STDERR ? system "pod2text -t -o $0 >&2" : system "pod2text $0 >&2";
 }
 
 sub copy {
    my ($in, $out) = @_;
 
-   my $cmd = $out eq "-" ? qq(cat "$in") 
+   my $cmd = $out eq "-" ? qq(cat "$in")
                          : $in eq "-" ? qq(cat >"$out") : qq(cp "$in" "$out");
    call($cmd, $out ne "-" ? $out : "");
 }
@@ -884,7 +948,7 @@ sub plogCreate {
       my $cmd = "plog.pl ".join(" ", @plog_opt)." \"${job_name}\"";
       $plog_file = callOutput($cmd);
    }
-    
+
    return $plog_file;
 }
 
@@ -907,6 +971,7 @@ sub plogUpdate {
 
 sub sourceWordCount {
    my ($filter) = @_;
+   return 0 if $dryrun;
    my $count_file;
    if (defined $filter) {
        open(my $tfh, "<${Q_pre}") or cleanupAndDie("Can't open text file ${Q_pre}");
@@ -968,10 +1033,12 @@ sub tokenize {
          $tokopt .= $nl eq 's' ? " -noss" : " -ss";
          $tokopt .= " -paraline" if $nl eq 'p';
          $tokopt .= " -pretok" if !$tok;
+         $tokopt .= " -xtags" if $xtags;
          my $u = $utf8 ? "u" : "";
          call("${u}tokenize.pl ${tokopt} '${in}' '${out}'", $out);
       } else {
          # Other languages must provide sentsplit_plugin and tokenize_plugin.
+         $xml and $xtags and die "ERROR: xtags only supported for src=en, fr, es, or da";
          my $tok_input = $nl ne 's' ? "$in.ospl" : $in;
          my $ss_output = $tok ? $tok_input : $out;
          if ($nl ne 's') {
@@ -998,6 +1065,55 @@ sub tokenize {
          }
       }
    }
+}
+
+sub strip_entity {
+   my ($in, $out) = @_;
+   warn "strip_entity should be used in xml mode." unless ($xml);
+   die "You need to provide in and out" unless (defined($in) and defined($out));
+
+   verbose("Stripping Entities\n");
+   
+   return if $dryrun;
+
+   open(IN, "< :encoding(utf-8)", $in)
+      or cleanupAndDie("Can't open $in for reading.\n");
+   open(OUT, "> :encoding(utf-8)", $out)
+      or cleanupAndDie("Can't open $out for writing.\n");
+
+   while (<IN>) {
+      s/$tag_re//g;  # Remove tags
+      s/&gt;/>/g;    # unescape greater than
+      s/&lt;/</g;    # unescape less than
+      s/&amp;/&/g;   # unescape ampersand
+      print OUT $_;
+   }
+   close(IN);
+   close(OUT);
+}
+
+sub escape_entity {
+   my ($in, $out) = @_;
+   warn "escape_entity should be used in xml mode." unless ($xml);
+   die "You need to provide in and out" unless (defined($in) and defined($out));
+
+   verbose("Escaping Entities\n");
+
+   return if $dryrun;
+
+   open(IN, "< :encoding(utf-8)", $in)
+      or cleanupAndDie("Can't open $in for reading.\n");
+   open(OUT, "> :encoding(utf-8)", $out)
+      or cleanupAndDie("Can't open $out for writing.\n");
+
+   while (<IN>) {
+      s/&/&amp;/g;   # unescape ampersand
+      s/>/&gt;/g;    # unescape greater than
+      s/</&lt;/g;    # unescape less than
+      print OUT $_;
+   }
+   close(IN);
+   close(OUT);
 }
 
 sub detokenize {
@@ -1043,7 +1159,7 @@ sub truecase {
       my $v = $verbose ? "-verbose" : "";
       my $d = $debug ? "-debug" : "";
       my $t = $timing ? "-time" : "";
-      call("truecase.pl $v $d $t -text '${in}' -bos -enc ${enc} -out '${out}' $model_opts $src_opts", $out);
+      call("truecase.pl -wal $wal $v $d $t -text '${in}' -bos -enc ${enc} -out '${out}' $model_opts $src_opts", $out);
    }
 }
 
@@ -1087,7 +1203,7 @@ sub cleanupAndDie {
    if ($quiet) {
       # Notify the user via the original STDERR.
       print SAVE_STDERR "ERROR: ", $message;
-      print SAVE_STDERR "See '${dir}/log.translate.pl' for details.\n";      
+      print SAVE_STDERR "See '${dir}/log.translate.pl' for details.\n";
    }
    unlink @files;
    die "ERROR: ", $message;

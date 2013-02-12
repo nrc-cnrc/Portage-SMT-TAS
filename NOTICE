@@ -1,11 +1,11 @@
-                                Portage 1.5
+                               PortageII 2.0
 
 Technologies langagieres interactives / Interactive Language Technologies
 Technologies de l'information et des communications /
    Information and Communications Technologies
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2004-2012, Sa Majeste la Reine du Chef du Canada
-Copyright 2004-2012, Her Majesty in Right of Canada
+Copyright 2004-2013, Sa Majeste la Reine du Chef du Canada
+Copyright 2004-2013, Her Majesty in Right of Canada
 
 Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
@@ -13,8 +13,7 @@ license agreement for details.
 
                        Third Party Copyright Notices
 
-Portage 1.5 may be linked with some or all of the following 3rd party
-libraries:
+PortageII may be linked with some or all of the following 3rd party libraries:
  - Boost C++ Libraries
  - g++ runtime libraries
  - ICU - International Components for Unicode
@@ -22,7 +21,7 @@ libraries:
  - Log4cxx (Apache)
  - Tightly Packed Tries, suffix arrays and related software
  - google-perftools - TCMalloc and the Google profiler
- - libunwind - binary distributions of Portage 1.5 might include libunwind
+ - libunwind - binary distributions of PortageII might include libunwind
  - GMSL - GNU Make Standard Library
 
 Here are their respective Copyright notices.
@@ -228,7 +227,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 -------------------------------------------------------------------------------
-libunwind - might be included in some binary distributions of Portage 1.x
+libunwind - might be included in some binary distributions of PortageII
 -------------------------------------------------------------------------------
 
 Permission is hereby granted, free of charge, to any person obtaining

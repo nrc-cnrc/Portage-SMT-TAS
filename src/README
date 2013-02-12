@@ -2,18 +2,18 @@ Technologies langagieres interactives / Interactive Language Technologies
 Technologies de l'information et des communications /
    Information and Communications Technologies
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2004-2012, Sa Majeste la Reine du Chef du Canada /
-Copyright 2004-2012, Her Majesty in Right of Canada
+Copyright 2004-2013, Sa Majeste la Reine du Chef du Canada /
+Copyright 2004-2013, Her Majesty in Right of Canada
 
 Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
 
 
-                          Portage 1.5 source code
+                          PortageII 2.0 source code
 
 Contents of this directory:
 
-   Makefile         top-level Makefile for building Portage 1.5
+   Makefile         top-level Makefile for building PortageII 2.0
    Makefile.user-conf  user-configurable build parameters
 
    adaptation/      mixture-model adaptation (training of mixture LMs and TMs)
@@ -29,8 +29,9 @@ Contents of this directory:
                     text processing
    rescoring/       nbest list reordering using a variety of features
    textutils/       basic text processing utilities
-   tm/              code for creating translation models (phrase based as well
-                    as phrase based with lexical smoothing)
+   tm/              code for creating translation models
+   tp_models/       tightly packed models: TPPTs, TPLMs
    tpt/             tightly packed tries, suffix arrays and related code
    truecasing/      restore natural case to text
    utils/           basic tools for other modules to use
+   word_align/      word-alignment related code

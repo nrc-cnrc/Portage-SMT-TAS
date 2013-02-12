@@ -13,43 +13,44 @@
 
 echo 'make-distro.sh, NRC-CNRC, (c) 2012, Her Majesty in Right of Canada'
 
+GIT_PATH=balzac.iit.nrc.ca:/home/git
+
 usage() {
    for msg in "$@"; do
       echo $msg
    done
    cat <<==EOF==
 
-Usage: make-distro.sh [-h(elp)] [-licence PROJECT] [-n]
-       [-rCVS_TAG|-DCVS_DATE] [-d cvs_dir] -models MODELS
-       -dir OUTPUT_DIR
+Usage: make-distro.sh [-h(elp)] [-n] [-d GIT_PATH] -r GIT_TAG
+       -models MODELS -dir OUTPUT_DIR
 
   Make a generic-model distribution folder, ready to burn on CD or copy to a
   remote site as is.
 
 Arguments:
 
-  -r or -D      What source to use for this distro, as a well formatted CVS
-                option: either -rCVS_TAG, with CVS_TAG (typically vX_Y) having
-                been created first using "cvs tag -R CVS_TAG" on the whole
-                PORTAGEshared repository, or:
-                   cvs rtag -Dnow v1_5_0 PORTAGEshared
-                   cvs rtag -Dnow v1_5_0 portage.simple.framework.2
-                Such a tag is recommended, but any valid cvs -r or -D option
-                can be used, if necessary.
+  -r            What source to use for this distro, as a valid argument to git
+                clone's --branch option: a branch or a tag, typically a
+                tag having been created first using "git tag v1_X_Y COMMIT;
+                git push --tags", e.g.,:
+                   git tag PortageII-2.0 master
+                   git push --tags
+                run in both PORTAGEshared and portage.framework.
                 
-    -models     Include models from directory MODELS.
+  -models       Include models from directory MODELS.
 
-    -dir        The distro will be created in OUTPUT_DIR, which must not
+  -dir          The distro will be created in OUTPUT_DIR, which must not
                 already exist.
 
 Options:
 
   -h(elp):      print this help message
-  -d            cvs root repository
-  -licence      Copy the LICENCE file for PROJECT. []
+  -d            Git server host and dirname [$GIT_PATH]
   -n            Not Really: just show what will be done.
   -no-archives  Don't generate the tar ball or iso files [do]
   -archive-name Infix to insert in .tar and .iso filenames. []
+  -v(erbose)    Increment the verbosity level by 1 (may be repeated)
+  -debug        Print debugging information
 
 ==EOF==
 
@@ -99,8 +100,8 @@ done
 
 while [ $# -gt 0 ]; do
    case "$1" in
-   -d)                  arg_check 1 $# $1; CVS_DIR="-d $2"; shift;;
-   -r*|-D*)             VERSION_TAG="$1";;
+   -d)                  arg_check 1 $# $1; GIT_PATH="$2"; shift;;
+   -r)                  arg_check 1 $# $1; VERSION_TAG="$2"; shift;;
    -dir)                arg_check 1 $# $1; OUTPUT_DIR=$2; shift;;
    -models)             arg_check 1 $# $1; MODELS=$2; shift;;
    -archive-name)       arg_check 1 $# $1; ARCHIVE_NAME=$2; shift;;
@@ -140,9 +141,9 @@ do_checkout() {
    run_cmd echo "$0 $SAVED_COMMAND_LINE" \> $OUTPUT_DIR/make-distro-cmd-used
    run_cmd echo Ran on `hostname` \>\> $OUTPUT_DIR/make-distro-cmd-used
    run_cmd pushd ./$OUTPUT_DIR
-      run_cmd cvs $CVS_DIR co -P \"$VERSION_TAG\" -d generic-model PORTAGEshared/generic-model '>&' cvs.log
-      run_cmd find generic-model -name CVS \| xargs rm -rf
-
+      run_cmd git clone --branch $VERSION_TAG $GIT_PATH/PORTAGEshared.git '>&' git-clone.log
+      run_cmd mv PORTAGEshared/generic-model .
+      run_cmd rm -rf PORTAGEshared
       run_cmd rm -f generic-model/make-distro.sh
    run_cmd popd
 }
@@ -182,7 +183,7 @@ check_reliable_host
 test $OUTPUT_DIR  || error_exit "Missing mandatory -dir argument"
 
 if [[ ! $VERSION_TAG ]]; then
-   error_exit "Missing mandatory -rCVS_TAG or -DCVS_DATE argument"
+   error_exit "Missing mandatory -r GIT_TAG argument"
 fi
 
 do_checkout
