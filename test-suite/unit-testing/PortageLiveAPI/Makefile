@@ -27,19 +27,22 @@ SHELL = bash
 .NOTPARALLEL:
 .DEFAULT_GOAL := all
 .PHONY: all
+
+TEMP_FILES = U*.sdlxliff T*.tmx log.*
+include ../Makefile.incl
+
 $(info SERVER: $(word 1,$(subst :, ,${SERVER})))
 ifneq ($(shell ping -c 1 $(word 1,$(subst :, ,${SERVER})) &> /dev/null && echo TRUE),TRUE)
-$(info Could not find a server thus no translation was produce.)
-all extra:
-	echo "No server available thus cannot run unittests."
+all: all_no_server
+
+.PHONY: all_no_server
+all_no_server extra:
+	@echo "Server not available, so PortageLiveAPI unittests were NOT run."
 else
 # Performs this unittest only if the server is reachable.
 all:  sdlxliff
 all:  tmx
 
-
-TEMP_FILES = U*.sdlxliff T*.tmx log.*
-include ../Makefile.incl
 
 
 # Only performs translation.
