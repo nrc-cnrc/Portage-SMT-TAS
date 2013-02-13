@@ -10,7 +10,7 @@
 # Copyright 2007, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2007, Her Majesty in Right of Canada
 
-echo 'make-distro.sh, NRC-CNRC, (c) 2007 - 2008, Her Majesty in Right of Canada'
+echo 'make-distro.sh, NRC-CNRC, (c) 2007 - 2013, Her Majesty in Right of Canada'
 
 GIT_PATH=balzac.iit.nrc.ca:/home/git
 
@@ -208,6 +208,7 @@ check_reliable_host() {
    print_header check_reliable_host
    [[ `hostname` = joyce ]] &&
       error_exit "This script does not work on Joyce.  Use Verlaine instead."
+   echo Using `hostname`.  Should be OK.
 }
 
 do_checkout() {
@@ -421,6 +422,9 @@ make_iso_and_tar() {
 check_reliable_host
 
 test $OUTPUT_DIR  || error_exit "Missing mandatory -dir argument"
+
+#get_user_manual
+#exit
 
 if [[ ! $COMPILE_ONLY ]]; then
    if [[ ! $VERSION_TAG ]]; then
