@@ -14,31 +14,32 @@
 MERGE_COUNTS ?= merge_counts
 
 COUNT_FILES ?= $(subst data/,,$(wildcard data/*4grams))
+
 vpath %.4grams data
+vpath REF.% ref
 
 .PHONY: all
 all: full two one
 
-TEMP_FILES=test.* REF.*
+TEMP_FILES=test.*
 include ../../Makefile.incl
 
-.PHONY: full
-full: ${COUNT_FILES}
-	ngram-merge -write REF.$@ $+
-	${MERGE_COUNTS} -t test.$@ $+
-	diff -q test.$@ REF.$@
+.PHONY: full two one
 
-.PHONY: two
-two: afp_eng.tok.4grams apw_eng.tok.4grams
-	ngram-merge -write REF.$@ $+
-	${MERGE_COUNTS} -t test.$@ $+
-	diff -q test.$@ REF.$@
+full two one:  %:  test.% REF.%
+	diff $+ --brief
 
-.PHONY: one
-one: afp_eng.tok.4grams
-	${MERGE_COUNTS} -t test.$@ $+
-	diff -q test.$@ $+
+test.full:  ${COUNT_FILES}
+test.two:  afp_eng.tok.4grams apw_eng.tok.4grams
+test.one:  afp_eng.tok.4grams
 
+test.%:
+	${MERGE_COUNTS} -t $@ $+
+
+
+
+################################################################################
+# DEBUG
 .PHONY: debug
 debug: afp_eng.tok.4grams
 	${MERGE_COUNTS} -t -d - $+ 2>&1 | less
