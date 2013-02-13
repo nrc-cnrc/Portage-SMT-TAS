@@ -246,12 +246,13 @@ ${SDLXLIFF:.sdlxliff=.EC-walh.xtags.CE.filter.sdlxliff.e_diff}:  %.EC-walh.xtags
 	! diff $+ --brief
 
 
+FILTER ?= -filter=0.20
 %.EC.xtags.CE.filter.sdlxliff:  %.sdlxliff
 	PortageLiveAPI.pl \
 		-server=${SERVER} \
 		-context=EC \
 		-file=$< \
-		-xtags -filter=0.20 \
+		-xtags ${FILTER} \
 		2> ${LOGS}log.$@ \
 		> $@
 
@@ -260,7 +261,7 @@ ${SDLXLIFF:.sdlxliff=.EC-walh.xtags.CE.filter.sdlxliff.e_diff}:  %.EC-walh.xtags
 		-server=${SERVER} \
 		-context=EC-walh \
 		-file=$< \
-		-xtags -filter=0.20 \
+		-xtags ${FILTER} \
 		2> ${LOGS}log.$@ \
 		> $@
 
@@ -269,7 +270,7 @@ ${SDLXLIFF:.sdlxliff=.EC-walh.xtags.CE.filter.sdlxliff.e_diff}:  %.EC-walh.xtags
 		-server=${SERVER} \
 		-context=EC \
 		-file=$< \
-		-xtags -filter=0.20 \
+		-xtags ${FILTER} \
 		2> ${LOGS}log.$@ \
 		> $@
 
@@ -278,7 +279,7 @@ ${SDLXLIFF:.sdlxliff=.EC-walh.xtags.CE.filter.sdlxliff.e_diff}:  %.EC-walh.xtags
 		-server=${SERVER} \
 		-context=EC-walh \
 		-file=$< \
-		-xtags -filter=0.20 \
+		-xtags ${FILTER} \
 		2> ${LOGS}log.$@ \
 		> $@
 
