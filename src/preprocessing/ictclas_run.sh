@@ -21,15 +21,16 @@ fi
 source $BIN/sh_utils.sh || { echo "Error: Unable to source sh_utils.sh" >&2; exit 1; }
 
 # Change the program name and year here
-print_nrc_copyright prog.sh 2012
+print_nrc_copyright ictclas_run.sh 2012
 
 usage() {
    for msg in "$@"; do
       echo $msg >&2
    done
+   [[ $0 =~ [^/]*$ ]] && PROG=$BASH_REMATCH || PROG=$0
    cat <<==EOF== >&2
 
-Usage: $0 [INPUT [OUTPUT]]
+Usage: $PROG [INPUT [OUTPUT]]
 
   Run ictclas_preprocessing.pl, ictclas & ictclas_postprocessing.pl.
   This script will completely process the input even though ictclas may have

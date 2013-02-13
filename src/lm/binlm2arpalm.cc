@@ -1,7 +1,7 @@
 /**
  * @author Samuel Larkin
  * @file binlm2arpalm.cc  
- * @brief Convert an NRC Portage's binary language model to an ARPA LM format.
+ * @brief Convert an NRC PortageII's binary language model to an ARPA LM format.
  *
  * $Id$
  *
@@ -22,7 +22,7 @@
 static char help_message[] = "\n\
 binlm2arpalm [-vocab VOC] [-order ORDER] BINLM_FILE [ARPALM_FILE]\n\
 \n\
- Convert a language model file BINLM_FILE in NRC Portage's binary\n\
+ Convert a language model file BINLM_FILE in NRC PortageII's binary\n\
  language model format to Doug Paul's ARPA file format.\n\
  The output is written to ARPALM_FILE.\n\
  Valid extensions for BINLM_FILE are .binlm and .binlm.gz.\n\
@@ -50,7 +50,7 @@ int MAIN(argc,argv)
 
    time_t start = time(NULL);
 
-   cerr << "Converting NRC Portage's binary LM " << binlm_filename
+   cerr << "Converting NRC PortageII's binary LM " << binlm_filename
         << " to ARPA LM format " << arpalm_filename << endl;
 
    VocabFilter vocab(0);

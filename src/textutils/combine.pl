@@ -1,12 +1,12 @@
 #!/usr/bin/perl -sw
 
-# @file combine.pl 
+# @file combine.pl
 # @brief Combines the contents of the files, one line at a time.
-# 
+#
 # @author Aaron Tikuisis
-# 
+#
 # COMMENTS:
-# 
+#
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
@@ -31,14 +31,15 @@ $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
 
 my $HELP =
-"Usage: $0 [-warn] [-force] [file1 [file2 ...]]
+"Usage: combine.pl [-warn] [-force] [file1 [file2 ...]]
 
-Combines the contents of the files, one line at a time.  That is, the output contains line
-1 of each file, followed by line 2 of each file, and so on.  
+Combines the contents of the files, one line at a time.  That is, the output
+contains line 1 of each file, followed by line 2 of each file, and so on.
 
 Options:
  -warn	Outputs a warning if the file sizes differ.
- -force	Force file sizes to be treated as the same by outputting blanks after end-of-file.
+ -force	Force file sizes to be treated as the same by outputting blanks after
+        end-of-file.
 
 ";
 

@@ -71,9 +71,6 @@ BINSCRIPTS = \
         diff-round.pl \
         load-balancing.pl \
         monitor-process.sh \
-        mteval2ospl.pl \
-        mteval2ospl.sed \
-        ospl2mteval.pl \
         parallelize.pl \
         parse-monitor.pl \
         plog.pl \

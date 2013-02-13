@@ -1,7 +1,8 @@
 /**
  * @author Eric Joanis
- * @file tp_alignment_build.cc - Program to read green alignment and build a
- *       tightly packed, indexed file to store them for fast and compact access.
+ * @file tp_alignment_build.cc
+ * @brief Read green alignment and build a tightly packed, indexed file to
+ *        store them for fast and compact access.
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology

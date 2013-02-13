@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # @file plive-monitor.cgi
-# @brief PORTAGE live monitor CGI script
+# @brief PortageLive monitor CGI script
 #
 # @author Michel Simard
 #
@@ -21,9 +21,9 @@
 =head1 DESCRIPTION
 
 This program is a companion to F<plive.cgi>; together, they implement
-an HTTP interface to PORTAGE live.
+an HTTP interface to PortageLive.
 
-Translation jobs submitted to PORTAGE live through the F<plive.cgi>
+Translation jobs submitted to PortageLive through the F<plive.cgi>
 script are sometimes run in the background.  This script allows the
 user to monitor the progression of the job, and ultimately to
 recuperate the result.
@@ -54,17 +54,17 @@ use warnings;
 ##
 ## NOTE: if you change any of this, also change it in plive.cgi
 
-## Where PORTAGE files reside -- standard is /opt/Portage 
-my $PORTAGE_PATH = "/opt/Portage";
+## Where PortageII files reside -- standard is /opt/PortageII
+my $PORTAGE_PATH = "/opt/PortageII";
 
-## Where PORTAGE executables reside -- standard is ${PORTAGE_PATH}/bin
+## Where PortageII executables reside -- standard is ${PORTAGE_PATH}/bin
 my $PORTAGE_BIN = "${PORTAGE_PATH}/bin";
 
-## Where PORTAGE code libraries reside -- standard is ${PORTAGE_PATH}/lib
+## Where PortageII code libraries reside -- standard is ${PORTAGE_PATH}/lib
 my $PORTAGE_LIB = "${PORTAGE_PATH}/lib";
 
 ## Top of web
-my $WEB_PATH = "/var/www/html"; 
+my $WEB_PATH = "/var/www/html";
 
 # Set this to 1 if you want the working directory to be cleaned up after successful runs.
 my $DO_CLEAN_UP = 0;
@@ -94,13 +94,13 @@ sub time_delta($$) {
     my @stats = stat($file);
     $stats[9] - $start_time;
 }
-        
+
 ## Script expects these parameters: file, dir, time, ce and context
 if (my $filename = param('file')     # The name of the file we are monitoring
     and my $work_dir = param('dir')  # The work directory
     and my $start_time = param('time')  # The start time
     and my $context = param('context')) {  # What context (model)
-    
+
     my $ce = int(param('ce'));  # Are we estimating confidence?
 
     my $filepath = catdir($WEB_PATH, $work_dir, $filename);
@@ -119,7 +119,7 @@ if (my $filename = param('file')     # The name of the file we are monitoring
         my $job_done = catdir($WEB_PATH, $work_dir, "done");
         my $trace_file = catdir($WEB_PATH, $work_dir, "trace");
         my $monitor_log = catdir($WEB_PATH, $work_dir, "monitor_log");
-        
+
         my $trace_url = catdir("", $work_dir, "trace");
 
         if (-e $job_done) {
@@ -145,7 +145,7 @@ if (my $filename = param('file')     # The name of the file we are monitoring
                 print br("Preparing to translate ${in_count} segments...");
             } else {
                 my $in_count = int(`wc --lines < $canoe_in`) + 0;
-                my $out_count = int(`wc --lines < $canoe_out`) + 0;   
+                my $out_count = int(`wc --lines < $canoe_out`) + 0;
                 if ($in_count != $out_count) { # Means decoding in progress
                     print br("Translated ${out_count} of ${in_count} segments...");
                 } else { # Means decoding is done
@@ -181,13 +181,13 @@ if (my $filename = param('file')     # The name of the file we are monitoring
                         unlink $file unless ($file =~ /${filename}/);
                     }
                 }
-                print 
+                print
                     p("Output file is ready.  Right-click this link to save the file:",
                     a({-href=>$url}, $filename));
             } else { # The output file doesn't exist, so something went wrong
-                print 
+                print
                     p("Translation job terminated with no output.");
-            } 
+            }
             print p(a({-href=>"plive.cgi"}, "Translate more text"));
             if (open MONITOR, ">$monitor_log") {
                 my $wc_output = `wc --lines < $canoe_out 2> /dev/null`;
@@ -197,7 +197,7 @@ if (my $filename = param('file')     # The name of the file we are monitoring
             }
         }
         print p("In case of problems, have a look at the job's ", a({-href=>$trace_url}, "trace file"), ".");
-    }         
+    }
 } else {
     print pageHead(0);
 }
@@ -221,7 +221,7 @@ sub pageHead {
     return (start_html(%start),
             NRCBanner(),
             h1("PORTAGELive"),
-            $filename 
+            $filename
             ? p("Processing file $filename with system $context")
             : p("No job to monitor.  " , a({-href=>"plive.cgi"}, "Submit a job")));
 }
@@ -233,8 +233,8 @@ sub pageTail {
 }
 
 sub NRCBanner {
-    return 
-        p({align=>'center'}, 
+    return
+        p({align=>'center'},
           img({src=>'/images/NRC_banner_e.jpg'}));
 }
 
@@ -262,10 +262,10 @@ sub NRCFooter {
                           "<a href=\"/portage_notices.html\">Third party Copyright notices</a>"))));
 }
 
-        
+
 sub getTrace {
     my ($trace_file) = @_;
-    return (-r $trace_file     
+    return (-r $trace_file
             ? h1("Trace File").pre(`cat $trace_file`)
             : h1("No readable trace file"));
 }

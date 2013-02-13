@@ -2,10 +2,10 @@
 
 #
 # @file udetokenize.pl 
-# @brief Transform tokenized English back to normal English text, with some
-# support of French text too.  This version is intended to detokenize utf-8
-# text from French<->English SMT, rather than from Chinese or Arabic -> English
-# SMT.
+# @brief Transform tokenized UTF-8 text in normal text.
+#
+# We now support English, French, Spanish and Danish text tokenized with
+# utokenize.pl.
 #
 # @author original detokenize.pl: SongQiang Fang and George Foster
 #              UTF-8 adaptation and improved handling of French: Eric Joanis
@@ -52,7 +52,7 @@ Warning: ASCII quotes are handled assuming there is only one level of quotation.
 
 Options:
 
--lang=L        Specify two-letter language code: en, es, fr or da [en]
+-lang=L        Specify two-letter language code: en, es, fr, or da [en]
 -latin1        Replace utf-8 characters that map to cp-1252 but not to
                iso-8859-1 by their closest utf-8 equivalents that do
 -chinesepunc   Normalize Chinese punctuation to characters that map back to

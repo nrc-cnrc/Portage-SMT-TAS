@@ -217,7 +217,9 @@ process_line(TMEntry& entry, ostream& prelimScoresFile,
       // the alignment information for the given phrase pair.
       prelimScoresFile.write(reinterpret_cast<char*>(&prelimAlignmentPosn),sizeof(prelimAlignmentPosn));
       if (debug_scr_file)
-         fprintf(stderr, "SCR size_t: %lu (\\x%016lx)\n", prelimAlignmentPosn, prelimAlignmentPosn);
+         fprintf(stderr, "SCR size_t: %lu (\\x%016lx)\n",
+            static_cast<long unsigned int>(prelimAlignmentPosn),
+            static_cast<long unsigned int>(prelimAlignmentPosn));
 
       /*
       if (!al || !*al) {

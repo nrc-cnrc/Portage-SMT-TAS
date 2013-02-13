@@ -30,7 +30,7 @@ $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
 
 my $HELP =
-"Usage: $0 [infile [outfile]]
+"Usage: reverse.pl [infile [outfile]]
 
   Reverses the words in each line of input, outputting the result.  Words in a
   line must be delimited by spaces (other forms of whitespace are counted as

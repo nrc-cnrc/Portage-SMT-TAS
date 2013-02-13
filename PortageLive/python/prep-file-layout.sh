@@ -1,5 +1,4 @@
 #!/bin/bash
-# $Id$
 # @file prep-file-layoyt.sh
 # @brief Put the Python into the installed structure for portageLive
 # 
@@ -23,7 +22,7 @@ Usage: ./prep-file-layout.sh
   installing manually on a translation server.
 
   The python installation is put in /opt/python-2.7.1 and 
-  /opt/Portage/bin/python is linked to the python /opt/python-2.7.1/bin/pyton.
+  /opt/PortageII/bin/python is linked to the python /opt/python-2.7.1/bin/pyton.
 
   Once the layout has been prepared, you can package it into an RPM using
   ../scripts/make-rpm.sh
@@ -62,7 +61,7 @@ DEST=rpm.build.root/opt/${PYTHON_VERSION}
 
 # Create directory structure
 mkdir -p ${DEST}
-mkdir -p rpm.build.root/opt/Portage/bin
+mkdir -p rpm.build.root/opt/PortageII/bin
 
 if [[ $PYTHON_DIR =~ : ]]; then
    CP_CMD="rsync -avrzlp"
@@ -74,8 +73,8 @@ fi
 ${CP_CMD} ${PYTHON_DIR}/opt/${PYTHON_VERSION}/* $DEST
 
 
-# Create the link in /opt/Portage/bin
-ln -s /opt/${PYTHON_VERSION}/bin/python rpm.build.root/opt/Portage/bin/
+# Create the link in /opt/PortageII/bin
+ln -s /opt/${PYTHON_VERSION}/bin/python rpm.build.root/opt/PortageII/bin/
 
 
 # Set proper permissions on the directory and file structure

@@ -1,6 +1,5 @@
 #!/bin/bash
 # vim:nowrap
-# $Id$
 
 # @file textldm2tpldm.sh
 # @brief Convert a text LDM to a TPLDM.
@@ -27,9 +26,10 @@ usage() {
    for msg in "$@"; do
       echo $msg >&2
    done
+   [[ $0 =~ [^/]*$ ]] && PROG=$BASH_REMATCH || PROG=$0
    cat <<==EOF== >&2
 
-Usage: $0 <textldm_filename> [TPLDM_prefix]
+Usage: $PROG <textldm_filename> [TPLDM_prefix]
 
   Converts your textldm into a TPLDM: a lexicalized distortion model encoded
   using Uli Germann's Tightly Packed tries.

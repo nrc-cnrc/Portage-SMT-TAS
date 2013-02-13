@@ -9,8 +9,8 @@
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2010, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2010, Her Majesty in Right of Canada
+# Copyright 2010-2013, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2010-2013, Her Majesty in Right of Canada
 
 =pod
 
@@ -305,8 +305,8 @@ Darlene Stewart
  Technologies langagieres interactives / Interactive Language Technologies
  Inst. de technologie de l'information / Institute for Information Technology
  Conseil national de recherches Canada / National Research Council Canada
- Copyright (c) 2010, Sa Majeste la Reine du Chef du Canada /
- Copyright (c) 2010, Her Majesty in Right of Canada
+ Copyright (c) 2010-2013, Sa Majeste la Reine du Chef du Canada /
+ Copyright (c) 2010-2013, Her Majesty in Right of Canada
 
 =cut
 
@@ -324,7 +324,7 @@ BEGIN {
    if ( $0 !~ m#/bin/[^/]*$# ) {
       my $bin_path = $0;
       $bin_path =~ s#/[^/]*$##;
-      unshift @INC, "$bin_path/../utils", $bin_path;
+      unshift @INC, "$bin_path/../utils", "$bin_path/../preprocessing", $bin_path;
    }
 }
 

@@ -1,9 +1,7 @@
 /**
  * @author Samuel Larkin
  * @file test_lm_order.cc
- * @brief Convert an NRC Portage's binary language model to an ARPA LM format.
- *
- * $Id$
+ * @brief Convert an NRC PortageII's binary language model to an ARPA LM format.
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology

@@ -1,10 +1,7 @@
 #!/bin/bash
-# $Id$
 
 # @file multi-ngram-ppx 
-# @brief Run each ngram model listed in file <ngram-models> on text file
-# <testfile>, and write the resulting perplexities to standard output, one per
-# line.
+# @brief Calculate the perplexity of multiple LMs on a test file.
 # 
 # @author George Foster
 # 

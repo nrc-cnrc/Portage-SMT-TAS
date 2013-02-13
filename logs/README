@@ -9,5 +9,5 @@ Copyright 2004-2013, Her Majesty in Right of Canada
 
                                     Logs
 
-This directory will contain logs that get created by Portage.  So far, only
+This directory will contain logs that get created by PortageII.  So far, only
 accounting logs are saved here.  See accounting/README.

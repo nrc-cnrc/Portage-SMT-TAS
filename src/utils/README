@@ -38,11 +38,8 @@ MagicStream.{cc,h}            SL  Transparently open pipes and compressed files.
 matrix_solver.{cc,h}          GF  Solve simple matrix equations.
 meanvar (.cc)                 GF  Mean & variance of a set of numbers, with confidence.
 monitor-process.sh            EJ  Monitor a process's memory and CPU usage.
-mteval2ospl.pl                GF  Convert NIST MT text to one-sent-per-line, documentwise.
-mteval2ospl.sed               AT  Convert NIST MT text to one-sent-per-line.
 multi_voc.{cc,h}              EJ  List of vocabularies, stored efficiently.
 number_mapper.{cc,h}          SL  Replaces digits of a number into a token (@).
-ospl2mteval.pl                GF  Convert one-sent-per-line text to NIST MT format.
 parallelize.pl                SL  Generic parallelization tool for non-parallel commands.
 parse-monitor.pl              EJ  Summarize monitor-process.sh's output.
 parse_xmlish_markup.{cc,h}    GF  Parse XML-like markup (caveat: not true XML).

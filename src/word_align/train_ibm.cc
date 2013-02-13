@@ -123,7 +123,7 @@ Options for symmetrized training:\n\
   -rev-model REV_MODEL  Output reverse model [inferred from MODEL]\n\
   -word-classes-l2 L2WC Word classes for the reverse model []\n\
 \n\
-TTable conversions between Portage binary format and Giza++ format:\n\
+TTable conversions between PortageII binary format and Giza++ format:\n\
   train_ibm -frombin BIN_TTABLE_FILE TEXT_TTABLE_FILE\n\
   train_ibm -tobin TEXT_TTABLE_FILE BIN_TTABLE_FILE\n\
 \n\

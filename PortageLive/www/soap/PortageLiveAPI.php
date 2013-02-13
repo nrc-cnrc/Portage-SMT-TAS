@@ -1,6 +1,6 @@
 <?php
 # @file PortageLiveAPI.php 
-# @brief Implementation of the API to the Portage SMT software suite.
+# @brief Implementation of the API to the PortageII SMT software suite.
 # 
 # @author Patrick Paul, Eric Joanis and Samuel Larkin
 # 
@@ -12,7 +12,7 @@
 
 
 $base_web_dir = "/var/www/html";
-$base_portage_dir = "/opt/Portage";
+$base_portage_dir = "/opt/PortageII";
 
 # produce debugging information
 function debug($i) {
@@ -49,7 +49,7 @@ class PortageLiveAPI {
          $cmdline = `tail -n -1 < $info[script]`;
          if ( preg_match('/(-decode-only|-with-ce|-with-rescoring)/', $cmdline, $matches) ) {
             $info["good"] = false;
-            $info["label"] = "$context: context from a previous, incompatible version of Portage";
+            $info["label"] = "$context: context from a previous, incompatible version of PortageII";
          } else {
             $src = "";
             if ( preg_match('/-xsrc=([-a-zA-Z]+)/', $cmdline, $matches) )

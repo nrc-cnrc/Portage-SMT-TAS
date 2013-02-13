@@ -2,7 +2,7 @@
 # vim:noet:ts=3:nowrap
 # $Id$
 # @file prep-file-layoyt.sh
-# @brief Fetch trained Portage models and create the proper layout for
+# @brief Fetch trained PortageII models and create the proper layout for
 #        portageLive.
 # 
 # @author Samuel Larkin
@@ -22,12 +22,12 @@ usage() {
 Usage: prep-file-layout.sh <source> [<context_label>]
 
   Fetch trained models from <source>, which has to be the directory where
-  a Portage system was trained using the experimental framework.
+  a PortageII system was trained using the experimental framework.
   The files are placed in the proper structure for building an RPM to install
   on a translation server.
 
   <context_label> is the label of the context: models are prepared for
-  installation under /opt/Portage/models/<context_label>.  ["context"]
+  installation under /opt/PortageII/models/<context_label>.  ["context"]
 
 ==EOF==
 
@@ -80,7 +80,7 @@ fi
 
 [[ $# -gt 0 ]] && usage "Superfluous argument(s) $*"
 
-DESTINATION=rpm.build.root/opt/Portage/models/$CONTEXT
+DESTINATION=rpm.build.root/opt/PortageII/models/$CONTEXT
 mkdir -p $DESTINATION
 if [[ $SOURCE =~ : ]]; then
    CP_CMD="scp -r"
@@ -90,7 +90,7 @@ fi
 $CP_CMD $SOURCE/models/portageLive/* $DESTINATION/
 
 # Let's add a md5sum since building a rpm for the models is error prone.
-pushd rpm.build.root/opt/Portage/models/$CONTEXT && find -type f | egrep -v md5 | xargs md5sum > md5 && popd
+pushd rpm.build.root/opt/PortageII/models/$CONTEXT && find -type f | egrep -v md5 | xargs md5sum > md5 && popd
 
 # Set proper permissions on the directory and file structure
 find rpm.build.root -type d | xargs chmod 755

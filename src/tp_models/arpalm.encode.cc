@@ -18,8 +18,8 @@
 /**
  * @author Ulrich Germann
  * @file arpalm.encode.cc
- * @brief Creates the TokenIndex and codebook from LM file in standard arpa
- * text format, and encodes n-gram information for assembly.
+ * @brief Create the TokenIndex and codebook from LM file in standard arpa
+ * text format, and encode n-gram information for assembly.
  * 
  * First step in arpalm2tplm conversion. Normally called via arpalm2tplm.sh.
  */

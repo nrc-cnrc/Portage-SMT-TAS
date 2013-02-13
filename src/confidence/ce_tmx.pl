@@ -22,7 +22,7 @@
 
 =head1 DESCRIPTION
 
-TMX pre- and post-processing tools for translation with PORTAGE within
+TMX pre- and post-processing tools for translation with PortageII within
 the confidence estimation framework.
 
 The first form extracts the
@@ -617,7 +617,7 @@ sub processG {
 }
 
 
-# Adds a tool description for Portage.
+# Adds a tool description for PortageII.
 sub processHeader {
    my ($parser, $header) = @_;
 
@@ -983,7 +983,7 @@ sub ixLoad {
          $seg = undef;
       }
       else {
-         # Remove Portage's wrapping tags.
+         # Remove PortageII's wrapping tags.
          sub clean {
             my $seg = shift;
             $seg =~ s/&gt;/>/g;    # unescape greater than

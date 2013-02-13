@@ -1,6 +1,4 @@
 #!/bin/bash
-# $Id$
-#############################################################
 #
 # @file postprocess_plugin
 # @brief Default post-processor plugin
@@ -14,7 +12,6 @@
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2010, Conseil national de recherches du Canada /
 # Copyright 2010, National Research Council of Canada
-#############################################################
 
 ## 
 ## Usage: postprocess_plugin TGT_LANG < in > out

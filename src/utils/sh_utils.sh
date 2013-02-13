@@ -146,7 +146,7 @@ Functions available:
    grep -o '^[a-z][a-z_]*()' $0 | sed 's/^/   /'
 
    echo "
-Documentation for these functions is found within $0
+Documentation for these functions is found within sh_utils.sh
 "
    } >&2
 }

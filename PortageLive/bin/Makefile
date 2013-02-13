@@ -21,7 +21,7 @@
 
 # Where we want to put the minimum set of software required for PortageLive to
 # package it into a rpm.
-DEST_BASE_DIR ?= rpm.build.root/opt/Portage
+DEST_BASE_DIR ?= rpm.build.root/opt/PortageII
 
 
 ################################################################################
@@ -41,21 +41,21 @@ OTHER_BIN ?= configtool portage_info
 RESCORE ?= feature_function_tool gen-features-parallel.pl gen_feature_values nbest2rescore.pl rat.sh rescore_translate
 TOKENIZATION ?= udetokenize.pl utf8_casemap utokenize.pl
 TRUECASING ?= truecase.pl casemark.py boscap.py boscap-nosrc.py normc1 markup_canoe_output
-#Define EXTRAS in Makefile.params to include extra Portage programs
+#Define EXTRAS in Makefile.params to include extra PortageII programs
 EXTRAS ?=
 
-# Must contain programs from Portage only.
+# Must contain programs from PortageII only.
 PORTAGE_BINS ?= ${CE} ${DECODE} ${OTHER_BIN} ${RESCORE} ${TOKENIZATION} ${TRANSLATE} ${TRUECASING} ${EXTRAS}
 CLUSTER_BINS ?= ${CLUSTER}
 BINARIES ?= ${PORTAGE_BINS} ${CLUSTER_BINS} ${CE_EXTERNAL}
 
 
-# Make sure all Portage's binaries are from the same source build.
+# Make sure all PortageII's binaries are from the same source build.
 SRC_PORTAGE_BIN_DIR := $(sort $(dir $(shell which ${PORTAGE_BINS} 2> /dev/null)))
 ifeq ("$(words ${SRC_PORTAGE_BIN_DIR})","0")
-$(error Problem finding Portage software, maybe it's not installed)
+$(error Problem finding PortageII software, maybe it's not installed)
 else ifneq ("$(words ${SRC_PORTAGE_BIN_DIR})","1")
-$(error Problem finding Portage software, maybe it's not installed, or the PORTAGE_BINS variable lists non-Portage programs)
+$(error Problem finding PortageII software, maybe it's not installed, or the PORTAGE_BINS variable lists non-PortageII programs)
 endif
 
 # Where are we supposed to copy the binaires?
@@ -135,15 +135,15 @@ PORTAGE_LIBS ?= portage_utils.pm portage_utils.pyc ULexiTools.pm libportage_true
 PORTAGE_LIBS += $(if $(filter chinese_segmenter.pl, ${CHINESE}), manseg.fre)
 
 # Define DO_EXTERNAL_LIBS if you want to bundle all external libs need by
-# Portage's software.
+# PortageII's software.
 ifdef DO_EXTERNAL_LIBS
-# Here, we fetch the libraries related to Portage's pgm only.
+# Here, we fetch the libraries related to PortageII's pgm only.
 EXTERNAL_LIBS := $(sort $(notdir $(shell ldd `which ${PORTAGE_BINS} ${CLUSTER_BINS} 2> /dev/null` | grep -v ' /lib' | perl -nle 'print $$1 if /=> ([^ ]+)/;' | sort | uniq)))
 EXTERNAL_LIBS_DIR := $(sort $(dir $(shell ldd `which ${PORTAGE_BINS} ${CLUSTER_BINS} 2> /dev/null` | grep -v ' /lib' | perl -nle 'print $$1 if /=> ([^ ]+)/;' | sort | uniq)))
 vpath % ${EXTERNAL_LIBS_DIR}
 endif
 
-# Portage's libraries are just beside the binaries' directory.
+# PortageII's libraries are just beside the binaries' directory.
 # Note: this can represent more than one directory.
 SRC_PORTAGE_LIB_DIR ?= ${SRC_PORTAGE_BIN_DIR:bin/=lib}
 
@@ -213,7 +213,7 @@ notice: notices_head.html notices_tail.html
 	portage_info -notice >> rpm.build.root/var/www/html/portage_notices.html
 	cat notices_tail.html >> rpm.build.root/var/www/html/portage_notices.html
 	chmod 0644 rpm.build.root/var/www/html/portage_notices.html
-	portage_info -notice >> rpm.build.root/opt/Portage/NOTICE
+	portage_info -notice >> rpm.build.root/opt/PortageII/NOTICE
 
 
 

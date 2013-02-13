@@ -26,9 +26,10 @@ usage() {
    for msg in "$@"; do
       echo $msg >&2
    done
+   [[ $0 =~ [^/]*$ ]] && PROG=$BASH_REMATCH || PROG=$0
    cat <<==EOF== >&2
 
-Usage: $0 PROG_ARGUMENT1 PROG_ARGUMENT2
+Usage: $PROG PROG_ARGUMENT1 PROG_ARGUMENT2
 
   Brief description
 

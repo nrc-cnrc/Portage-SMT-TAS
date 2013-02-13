@@ -1,28 +1,28 @@
-CONFIDENCE ESTIMATION IN PORTAGE
+CONFIDENCE ESTIMATION IN PORTAGEII
 
 
 1. INTRODUCTION
 
-This is PORTAGE's sentence-level confidence estimation (CE) layer.
+This is PortageII's sentence-level confidence estimation (CE) layer.
 The purpose of CE in this context is to produce a value -- typically a
 real-valued number between 0 and 1 -- that reflects the translation
 system's belief that it has done a Good Job.  This number can then be
 used for various things, for example filtering out lower-quality or
 dubious machine translations, prioritizing post-editing effort, etc.
 
-Schematically, a source-language sentence Q is submitted to PORTAGE,
+Schematically, a source-language sentence Q is submitted to PortageII,
 which produces a translation P.  The CE component then produces a
 value Z, based on examination of the whole process. 
 
-  +---------------------------+
-  |        +---------+        |      +----+
-  | Q ---> | PORTAGE | ---> P | ---> | CE | ---> Z
-  |        +---------+        |      +----+
-  +---------------------------+
+  +-----------------------------+
+  |        +-----------+        |      +----+
+  | Q ---> | PortageII | ---> P | ---> | CE | ---> Z
+  |        +-----------+        |      +----+
+  +-----------------------------+
 
 In this context, the term "examination" really means "feature
 extraction": Characteristics of Q, P, the relation between Q and P, as
-well as the internal state of the PORTAGE system after translation are
+well as the internal state of the PortageII system after translation are
 extracted as feature values X_1, X_2, ..., X_N, and fed to the CE
 system for computing the value of Z.  For example, the following
 features could be used:
@@ -33,14 +33,14 @@ X_3  = p.clen           Number of characters in P
 X_4  = p.wlen           Number of words in P
 X_5  = qp.clen.ratio    q.clen / p.clen
 X_6  = qp.wlen.ratio    q.wlen / p.wlen
-X_7  = p.score          The loglinear model score computed by PORTAGE
+X_7  = p.score          The loglinear model score computed by PortageII
                         for P 
 X_8  = q.oov            Number of out-of-vocabulary (unknown to
-                        PORTAGE) words in Q
-X_9  = p.plen           Number of phrases used by PORTAGE to translate
+                        PortageII) words in Q
+X_9  = p.plen           Number of phrases used by PortageII to translate
                         Q into P 
 X_10 = p.pmax           Length (in words) of the longest phrase used
-                        by PORTAGE to translate Q into P
+                        by PortageII to translate Q into P
 X_11 = q.lm             prob(Q), as estimated by a source-language
                         ngram model 
 X_12 = p.lm             prob(P), as estimated by a target-language
@@ -67,7 +67,7 @@ of labeled examples of the form < X_1, X_2, ..., X_N, Y >.
 
 Where do these learning examples come from?  One way to obtain them
 would be to take a sample source text, have it translated into target
-language by PORTAGE, then ask a human judge to manually label each
+language by PortageII, then ask a human judge to manually label each
 translation with a score Y reflecting how good he/she thinks the
 translation is.
 
@@ -83,7 +83,7 @@ or WER, and use these values as training labels Y.  Formally:
 
 - each sentence Q is machine-tranlated --> P
 
-- features are extracted from Q, P and PORTAGE's state after
+- features are extracted from Q, P and PortageII's state after
   translation:  X = X_1, ..., X_N
 
 - the "quality" of P is measured by means of an automatic quality
@@ -118,14 +118,14 @@ You also need the LIBSVM package
 and svm-predict are in your path.
 
 Then, cd to this directory and do "make install".  (This was already done
-automatically if you installed all of Portage.)
+automatically if you installed all of PortageII.)
 
 
 
 3. USING THIS TOOLKIT.
 
 This CE toolkit has been implemented somewhat in the same spirit as
-PORTAGE's rescoring component (in fact, it relies on some rescoring
+PortageII's rescoring component (in fact, it relies on some rescoring
 programs, most notably gen_feature_values).  This means that it is
 designed to operate in "batch" mode: all input and output is done
 through files, and many intermediate values (feature values,
@@ -141,7 +141,7 @@ To train a CE component:
 
   % ce_translate.pl -train -desc=ce_desc canoe_ini ce_model source_text target_text
 
-Argument canoe_ini points to a PORTAGE config file; ce_model is the
+Argument canoe_ini points to a PortageII config file; ce_model is the
 name of the file in which the trained model will be saved; the source
 text file (source_text) is assumed to be plain (truecase, untokenized)
 text, in one-sentence-per-line format, as is the target_text, and both
@@ -155,7 +155,7 @@ file is documented in the on-line documentation of program
   % ce_train.pl -help=desc
 
 You can also find example files in this directory, called "ce.ini" and
-"ce-notm.ini".  (Also in /doc/confidence on the PORTAGE CD.)
+"ce-notm.ini".  (Also in /doc/confidence on the PortageII CD.)
 
 Once you have trained a CE model, you can use it to compute CE values
 for a new text file.  To do this, you can call ce_tranlate.pl like
@@ -186,18 +186,18 @@ of the process.  Within this directory:
 
 - Q.txt is the source-language text, in plain-text format
 - p.tok is in lowercase tokenized format
-- P.txt is PORTAGE's output, truecased and tokenized, but you need to
+- P.txt is PortageII's output, truecased and tokenized, but you need to
   specify truecasing model files with options -tclm and -tcmap
   for this to work. 
 - R.txt is the reference translation, in plain-text format
 - {Q,P,R}.tok are tokenized versions of these texts
 - {q,p,r}.tok are lowercase, tokenized versions of these texts
-- p.raw is the  raw output from PORTAGE's canoe
+- p.raw is the  raw output from PortageII's canoe
 
 ce_translate.pl is a wrapper, which calls a number of programs.  We
 briefly describe the most important of these below:
 
-- ce_canoe2ffvals.pl: Parse the output of PORTAGE's canoe (assuming
+- ce_canoe2ffvals.pl: Parse the output of PortageII's canoe (assuming
   the -trace and -ffvals options) to produce individual text and
   feature value files required by this toolkit.
 - ce_train.pl: performs CE model training.

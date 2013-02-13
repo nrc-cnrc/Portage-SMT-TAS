@@ -1,9 +1,8 @@
 /**
  * @author George Foster
  * @file phrase_oracle.cc 
- * @brief Program that derives an oracle joint phrase table from a source text
- * and its reference translations, using an Och-style phrase induction
- * algorithm.
+ * @brief Derive an oracle JPT from a source text and its reference
+ * translations, using an Och-style phrase induction algorithm.
  *
  *
  * COMMENTS:

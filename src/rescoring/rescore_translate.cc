@@ -1,8 +1,8 @@
 /**
  * @author Samuel Larkin based on George Foster, based on "rescore" by Aaron Tikuisis
  * @file rescore_translate.cc
- * @brief Program rescore_translate which picks the best translation for a
- * source given an nbest list a feature functions weights vector.
+ * @brief Pick the best translation for a source given an nbest list a feature
+ * functions weights vector.
  *
  *
  * Technologies langagieres interactives / Interactive Language Technologies

@@ -30,10 +30,10 @@ $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
 
 my $HELP =
-"Usage: $0 [-h] STOP_WORDS [INPUT [OUTPUT]]
+"Usage: remove_stop.pl [-h] STOP_WORDS [INPUT [OUTPUT]]
 
-Removes all stopwords listed in STOP_WORDS from INPUT.  Ignores blank lines, but if a line 
-contained all stop words before, then returns back a blank line.
+Removes all stopwords listed in STOP_WORDS from INPUT.  Ignores blank lines,
+but if a line contained all stop words before, then returns back a blank line.
 
 ";
 

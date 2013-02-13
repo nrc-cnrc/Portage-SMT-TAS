@@ -37,9 +37,10 @@ usage() {
    for msg in "$@"; do
       echo $msg >&2
    done
+   [[ $0 =~ [^/]*$ ]] && PROG=$BASH_REMATCH || PROG=$0
    cat <<==EOF== >&2
 
-Usage: $0 [OPTIONS] -threshold TH JPT SRC TGT [SIG]
+Usage: $PROG [OPTIONS] -threshold TH JPT SRC TGT [SIG]
 
   Given a threshold TH, JPT, SRC & TGT, filter the JPT according to Howard's significance pruning.
   JPT a joint frequency phrase table [IN].

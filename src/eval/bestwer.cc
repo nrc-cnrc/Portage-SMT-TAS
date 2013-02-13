@@ -1,11 +1,8 @@
 /**
  * @author Aaron Tikuisis
  * @file bestwer.cc 
- * @brief Program that finds the best possible wer score given a set of source
- * and nbest.
+ * @brief Find the best possible wer score given a set of source and nbest.
  *
- * $Id$
- * 
  * Evaluation Module
  * 
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -29,7 +26,7 @@ using namespace std;
 using namespace Portage;
 
 static const char *HELP =
-"Usage: %s [-v] [-n nbest [-n nbest [ .. ]]] [-per] -best-trans-files tfile1 tfile2 ... tfile\n\
+"Usage: bestwer [-v] [-n nbest [-n nbest [ .. ]]] [-per] -best-trans-files tfile1 tfile2 ... tfile\n\
 	-ref-files rfile1 rfile2 ... rfileR\n\
 Outputs the best mWER or mPER score for the given data.\n\
 Each tfiles should contain a set of k best translation candidates (for constant k)\n\

@@ -1,7 +1,7 @@
 /**
  * @author Eric Joanis
- * @file tp_alignment_dump.cc - Program to dump a tp alignment file back in green
- *       format.
+ * @file tp_alignment_dump.cc
+ * @brief Dump a TP alignment file back in green format.
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # @file plive.cgi
-# @brief PORTAGE live CGI script
+# @brief PortageLive CGI script
 #
 # @author Michel Simard
 #
@@ -21,7 +21,7 @@
 =head1 DESCRIPTION
 
 This program and its companion F<plive-monitor.cgi> implement an HTTP
-interface to PORTAGE live.
+interface to PortageLive.
 
 Users can either submit translations through a text box, or through
 file upload.  In the latter case, the translation job is performed in
@@ -33,7 +33,7 @@ awaiting job completion.
 For this script to work for your application, you will likely have to
 modify some internal variables. The most important of these are near
 the top of the script.  Look for a comment saying "USER
-CONFIGURATION".  Variables you are likely to want to change are 
+CONFIGURATION".  Variables you are likely to want to change are
 <PORTAGE_PATH> and <WEB_PATH>.
 
 =head1 SEE ALSO
@@ -65,34 +65,34 @@ use warnings;
 ## --------------------- USER CONFIGURATION ------------------------------
 ##
 
-## Where PORTAGE files reside -- standard is /opt/Portage 
+## Where PortageII files reside -- standard is /opt/PortageII
 ## NOTE: if you change this, also change it in plive-monitor.cgi
-my $PORTAGE_PATH = "/opt/Portage";
+my $PORTAGE_PATH = "/opt/PortageII";
 
-## Where PORTAGE executables reside -- standard is ${PORTAGE_PATH}/bin
+## Where PortageII executables reside -- standard is ${PORTAGE_PATH}/bin
 ## NOTE: if you change this, also change it in plive-monitor.cgi
 my $PORTAGE_BIN = "${PORTAGE_PATH}/bin";
 
-## Where PORTAGE code libraries reside -- standard is ${PORTAGE_PATH}/lib
+## Where PortageII code libraries reside -- standard is ${PORTAGE_PATH}/lib
 ## NOTE: if you change this, also change it in plive-monitor.cgi
 my $PORTAGE_LIB = "${PORTAGE_PATH}/lib";
 
-## Where the PORTAGE contexts (trained models) reside 
+## Where the PortageII contexts (trained models) reside
 ## -- standard is ${PORTAGE_PATH}/models
 my $PORTAGE_MODEL_DIR = "${PORTAGE_PATH}/models";
 
 ## The list of available contexts (trained models):
-## -- if you leave an empty list, this script will find out by itself 
+## -- if you leave an empty list, this script will find out by itself
 ##    what's available in $PORTAGE_MODEL_DIR
 my @PORTAGE_CONTEXTS = ();
 
-## PORTAGE Live work directory
+## PortageLive work directory
 ## NOTE: Make sure HTTP server has rw-access to this directory
 ## NOTE: if you change this, also change it in plive-monitor.cgi
 my $WEB_PATH = "/var/www/html";
 
 # plive's work directory location.
-my $WORK_PATH = "${WEB_PATH}/plive"; 
+my $WORK_PATH = "${WEB_PATH}/plive";
 
 # Because text box translations are performed "on the spot", there is
 # a risk for the page to time-out.  Hence this practical limit on
@@ -112,20 +112,20 @@ my $LANG = { iso2=>{ fr=>'fr', en=>'en' },
 
 $ENV{PORTAGE} = $PORTAGE_PATH;
 $ENV{PATH} = `source $PORTAGE_PATH/SETUP.bash; echo -n \$PATH`;
-$ENV{PERL5LIB} = `source $PORTAGE_PATH/SETUP.bash; echo -n \$PERL5LIB`; 
-$ENV{LD_LIBRARY_PATH} = `source $PORTAGE_PATH/SETUP.bash; echo -n \$LD_LIBRARY_PATH`; 
-$ENV{PYTHONPATH} = `source $PORTAGE_PATH/SETUP.bash; echo -n \$PYTHONPATH`; 
+$ENV{PERL5LIB} = `source $PORTAGE_PATH/SETUP.bash; echo -n \$PERL5LIB`;
+$ENV{LD_LIBRARY_PATH} = `source $PORTAGE_PATH/SETUP.bash; echo -n \$LD_LIBRARY_PATH`;
+$ENV{PYTHONPATH} = `source $PORTAGE_PATH/SETUP.bash; echo -n \$PYTHONPATH`;
 push @INC, $PORTAGE_LIB;
 
 # We used to hard-code the environment variables here, but now we use
 # SETUP.bash, as above.  Trade-off: using SETUP.bash means several system calls
 # (via ` `), which is not as efficient.  Might be worth benchmarking some day...
 #$ENV{PATH} = join(":", $PORTAGE_BIN, $ENV{PATH});
-#$ENV{PERL5LIB} = (exists $ENV{PERL5LIB} 
-#                  ? join(":", $PORTAGE_LIB, $ENV{PERL5LIB}) 
+#$ENV{PERL5LIB} = (exists $ENV{PERL5LIB}
+#                  ? join(":", $PORTAGE_LIB, $ENV{PERL5LIB})
 #                  : $PORTAGE_LIB);
-#$ENV{LD_LIBRARY_PATH} = (exists $ENV{LD_LIBRARY_PATH} 
-#                         ? join(":", $PORTAGE_LIB, $ENV{LD_LIBRARY_PATH}) 
+#$ENV{LD_LIBRARY_PATH} = (exists $ENV{LD_LIBRARY_PATH}
+#                         ? join(":", $PORTAGE_LIB, $ENV{LD_LIBRARY_PATH})
 #                         : $PORTAGE_LIB);
 
 use CGI qw(:standard);
@@ -172,12 +172,12 @@ sub printForm {
     my @actions = qw(preview translate);
 
 # Start a multipart form.
-    
+
     my @filter_values = ();
     for (my $v = 0; $v <= 1; $v += 0.05) { push @filter_values, $v; }
     my %context_labels = ();
     for my $c (sort keys %CONTEXT) { $context_labels{$c} = $CONTEXT{$c}->{label}; }
-    
+
     print start_multipart_form(),
     table({align=>'center', width=>600},
           Tr(td(strong("Select a system:")),
@@ -185,14 +185,14 @@ sub printForm {
                            -values=>["", sort keys %CONTEXT],
                            -labels=>{ ""=>'-- Please pick one --',
                                       %context_labels }))),
-          Tr(td({colspan=>2, align=>'left', border=>0}, 
+          Tr(td({colspan=>2, align=>'left', border=>0},
                 p("Either type in some text, or select a text file to translate (plain text or TMX or SDLXLIFF).<BR /> Press the <em>Translate Text</em> or the <em>Translate File</em> button to have PORTAGELive <br /> translate your text or file."),
                 br())),
           ## Text-box (textarea) interface:
 
-          Tr(td({colspan=>2, align=>'left'}, 
+          Tr(td({colspan=>2, align=>'left'},
                 strong("Type in source-language text:"))),
-          Tr(td({colspan=>2, align=>'left'}, 
+          Tr(td({colspan=>2, align=>'left'},
                 textarea(-name=>'textbox',
                          -value=>'',
                          -columns=>60, -rows=>10))),
@@ -202,30 +202,30 @@ sub printForm {
 
           ## File-upload interface:
 
-          Tr(td({colspan=>2, align=>'center'}, 
+          Tr(td({colspan=>2, align=>'center'},
                 h3("-- OR --"))),
-          Tr(td({align=>'right'}, 
+          Tr(td({align=>'right'},
                 strong("Select a file:")),
              td(filefield(-name=>'filename',
                           -value=>'',
                           -default=>'',
                           -size=>60))),
           Tr({valign=>'top'},
-             td({align=>'right'}, 
+             td({align=>'right'},
                 checkbox(-name=>'xml',
                          -checked=>0,
                          -label=>'')),
-             td(strong("TMX/SDLXLIFF"), 
+             td(strong("TMX/SDLXLIFF"),
                 "-- Check this box if input file is TMX or SDLXLIFF.")),
           Tr({valign=>'top'},
-             td({align=>'right'}, 
+             td({align=>'right'},
                 checkbox(-name=>'xtags',
                          -checked=>0,
                          -label=>'')),
-             td(strong("xtags"), 
+             td(strong("xtags"),
                 "-- Check this box if input file contains tags and you want to process & transfer them.")),
           Tr({valign=>'top'},
-             td({align=>'right'}, 
+             td({align=>'right'},
                 scrolling_list(-name=>'filter',
                                -default=>'no filtering',
                                -values=>[ 'no filtering', map(sprintf("%0.2f", $_), @filter_values) ],
@@ -236,17 +236,17 @@ sub printForm {
              td({colspan=>2, align=>'center'},
                 submit(-name=>'TranslateFile', -value=>'Translate File'))),
           Tr(td({colspan=>2, align=>'center'}, hr())),
-          Tr(td({colspan=>2, align=>'left'}, 
+          Tr(td({colspan=>2, align=>'left'},
                 strong("Advanced Options:"))),
           Tr({valign=>'top'},
-             td({align=>'right'}, 
+             td({align=>'right'},
                 checkbox(-name=>'noss',
                          -checked=>0,
                          -label=>'')),
              td(strong("pre-segmented"),
                 "-- Check this box if sentences are already newline-separated in the source text file.")),
           Tr({valign=>'top'},
-             td({align=>'right'}, 
+             td({align=>'right'},
                 checkbox(-name=>'notok',
                          -checked=>0,
                          -label=>'')),
@@ -275,20 +275,20 @@ sub processText {
 
     # Create the work dir, get the source text in there:
     } elsif (param('TranslateFile') and param('filename')) {  # File upload
-        my $src_file = tmpFileName(param('filename')) 
+        my $src_file = tmpFileName(param('filename'))
             || problem("Can't get tmpFileName()");
         my @src_file_parts = split(/[:\\\/]+/, param('filename'));
         $work_name = normalizeName(join("_", $context, $src_file_parts[-1]));
-        $work_dir = makeWorkDir($work_name) 
+        $work_dir = makeWorkDir($work_name)
             || problem("Can't make work directory for $work_name");
         system("cp",  $src_file, "$work_dir/Q.in") == 0
             || problem("Can't copy input file $src_file into $work_dir/Q.in");
 
     } elsif (param('TranslateBox') and param('textbox')) {  # Text box
-        problem("Input text too large (limit = ${MAX_TEXTBOX}).  Try file upload instead.") 
+        problem("Input text too large (limit = ${MAX_TEXTBOX}).  Try file upload instead.")
             if length(param('textbox')) > $MAX_TEXTBOX;
         $work_name = join("_", $context, "Text-Box");
-        $work_dir = makeWorkDir($work_name) 
+        $work_dir = makeWorkDir($work_name)
             || problem("Can't make work directory for $work_name");
         open(my $fh, "> $work_dir/Q.in")
             || problem("Can't create input file Q.in in work directory $work_dir");
@@ -310,7 +310,7 @@ sub processText {
     else {
        checkFile("$work_dir/Q.in", param('notok'), param('noss'));
     }
-    
+
     # Prepare the ground for translate.pl:
     my $outfilename = "PLive-${work_name}";
     my @tr_opt = ("-verbose",
@@ -319,15 +319,15 @@ sub processText {
     push @tr_opt, ($CONTEXT{$context}->{ce_model}
                    ? "-with-ce"
                    : "-decode-only");
-    my $filter_threshold = (!defined param('filter') ? 0 
-                            : param('filter') eq 'no filtering' ? 0 
+    my $filter_threshold = (!defined param('filter') ? 0
+                            : param('filter') eq 'no filtering' ? 0
                             : param('filter') + 0);
     if ($filter_threshold > 0) {
         problem("Confidence-based filtering is only currently compatible with TMX input.")
             unless param('xml');
         problem("Confidence-based filtering not available with system %s", $context)
             unless $CONTEXT{$context}->{ce_model};
-        
+
         push @tr_opt, "-filter=$filter_threshold";
     }
     if (param('xml')) {
@@ -347,17 +347,17 @@ sub processText {
     my $tr_output = catdir($work_dir, param('xml') ? "QP.xml" : "P.txt");
     my $user_output = catdir($work_dir, $outfilename);
     param('trace', "$work_dir/trace");
-    
+
     # Launch translation
     if (param('TranslateFile') and param('filename')) {
         monitor($work_name, $work_dir, $outfilename, $context);
-    
+
         # Launch translate.pl in the background for uploaded files, in order to return to
 	# webserver as soon as possible, and avoid potential timeout.
 
         close STDIN;
         close STDOUT;
-        system("/bin/bash", "-c", "(if (${tr_cmd}); then ln -s ${tr_output} ${user_output}; fi; touch $work_dir/done)&") == 0 
+        system("/bin/bash", "-c", "(if (${tr_cmd}); then ln -s ${tr_output} ${user_output}; fi; touch $work_dir/done)&") == 0
             or die("Call returned with error code: ${tr_cmd} (error = %d)", $?>>8);
     } else {
         # Perform job here for text box
@@ -371,7 +371,7 @@ sub processText {
 }
 
 # monitor(work_name, work_dir, outfilename, context)
-# 
+#
 # Redirect the user to a job monitoring page (see plive-monitor.cgi)
 # - work_name:  user-recognizable name for the job (typically the uploaded source text file name)
 # - work_dir: translate.pl's work directory
@@ -393,7 +393,7 @@ sub monitor {
                      -head=>meta({-http_equiv => 'refresh',
                                   -content => "0;url=${redirect}"}));
 
-    print 
+    print
         NRCBanner(),
         h1("PORTAGELive"),
         "\n";
@@ -401,8 +401,8 @@ sub monitor {
 }
 
 # textBoxOutput($source, @target)
-# 
-# Produce an HTML page with source text and target translation 
+#
+# Produce an HTML page with source text and target translation
 # - $source: source-language text, as a single string of text
 # - @target: target language translation, as a list of text segments
 
@@ -414,7 +414,7 @@ sub textBoxOutput {
 
     print start_html(-title=>"PORTAGELive");
 
-    print 
+    print
         NRCBanner(),
         h1("PORTAGELive"),
         h2("Source text:"),
@@ -435,7 +435,7 @@ sub textBoxOutput {
 # Make a work directory to translate file filename
 sub makeWorkDir {
     my ($filename) = @_;
-    
+
     my $template = join("_","CE", $filename, timeStamp(),"XXXXXX");
     return tempdir($template,
                    DIR=>$WORK_PATH,
@@ -486,18 +486,18 @@ sub checkXML {
 
 # getContexts()
 #
-# Gather information about available "contexts" (trained Portage systems)
+# Gather information about available "contexts" (trained PortageII systems)
 # -- if argument list is empty, find out what's available in $PORTAGE_MODEL_DIR
 sub getContexts {
     my (@list) = @_;
 
     if (!@list) {
-        opendir(my $dh, $PORTAGE_MODEL_DIR) 
+        opendir(my $dh, $PORTAGE_MODEL_DIR)
             or problem("Can't open directory $PORTAGE_MODEL_DIR");
         @list = readdir($dh);
         closedir $dh;
     }
-    
+
     my %context = ();
     for my $model (@list) {
         if (my $info = getContextInfo($model)) {
@@ -532,8 +532,8 @@ sub getContextInfo {
     if ($cmdline =~ /-xtgt=([-a-zA-Z]+)/) { $tgt = $1 }
     elsif ($cmdline =~ /-tgt=(\w+)/) { $tgt = $1 }
     return undef unless $tgt; # Can't find target language in command line $cmdline
-    
-    #$info{canoe_ini} = (-r "$D/canoe.ini.cow") ? "$D/canoe.ini.cow" 
+
+    #$info{canoe_ini} = (-r "$D/canoe.ini.cow") ? "$D/canoe.ini.cow"
     #    : return undef; # Can't find canoe.ini file $D/canoe.ini.cow
     #$info{rescore_ini} = (-r "$D/rescore.ini") ? "$D/rescore.ini" : "";
     $info{ce_model} = (-r "$D/ce_model.cem") ? "$D/ce_model.cem" : "";
@@ -550,13 +550,13 @@ sub normalizeName {
     my ($name) = @_;
 
     $name =~ s/[^-_\.+a-zA-Z0-9]//g;
-    
+
     return $name;
 }
 
 
 # problem
-# 
+#
 # Produce an HTML page describing a problem and exit
 sub problem {
     my ($message, @args) = @_;
@@ -565,7 +565,7 @@ sub problem {
                  -charset=>'utf-8');
     print start_html(-title=>"PORTAGELive Problem");
 
-    print 
+    print
         NRCBanner(),
         h1("PORTAGELive PROBLEM"),
         p(sprintf($message, @args)),
@@ -587,7 +587,7 @@ sub problem {
 # Return a ISO timestamp for "now"
 sub timeStamp() {
     my $time = gmtime();
-    
+
     return sprintf("%04d%02d%02dT%02d%02d%02dZ",
                    $time->year + 1900, $time->mon+1, $time->mday,
                    $time->hour, $time->min, $time->sec);

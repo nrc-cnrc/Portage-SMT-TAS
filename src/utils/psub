@@ -1,9 +1,8 @@
 #!/bin/bash
-# $Id$
 
 # @file psub 
 # @brief Wrapper for qsub with simplified interface and other options to
-# support integration in Portage scripts.
+# support integration in PortageII scripts.
 #
 # Wrapper for qsub intended to do, by default, what we usually want, and to
 # simplify options we often use.  This script is intended to contain all the

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
-# $Id$
 # @file summarize-canoe-results.py
-# @brief Summarize the results of a set of Portage training runs.
+# @brief Summarize the results of a set of PortageII training runs.
 # 
 # @author George Foster; updated by Darlene Stewart
 #

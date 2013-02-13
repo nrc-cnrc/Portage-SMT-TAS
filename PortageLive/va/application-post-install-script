@@ -5,11 +5,11 @@ echo "post-install shell code"
 # 3.1 Setting the timezone
 ln -sf /usr/share/zoneinfo/America/Montreal /etc/localtime
 
-# 3.2 Customize the user's "portage" environment
-echo 'export PORTAGE=/opt/Portage' >> /home/portage/.bashrc
+# 3.2 Customize the user's "PortageII" environment
+echo 'export PORTAGE=/opt/PortageII' >> /home/portage/.bashrc
 echo 'test -f $PORTAGE/SETUP.bash && source $PORTAGE/SETUP.bash' >> /home/portage/.bashrc
 
-# 3.3 Pre-populate the user's "portage" with a public key
+# 3.3 Pre-populate the user's "PortageII" with a public key
 mkdir /home/portage/.ssh
 chown portage.portage /home/portage/.ssh
 chmod 700 /home/portage/.ssh
@@ -29,15 +29,15 @@ chkconfig httpd on
 # 3.6 Fetch huge models from a "publicly" accessible website.
 wget --recursive --no-parent --no-host-directories --reject 'index.html*' --directory-prefix=/ --cut-dirs=5 --level=inf 'http://leclerc.iit-iti.priv/PortageLive/rpms/Hansard-HOC-fr2en-2/models/rpm.build.root/'
 
-find /opt/Portage/models -type d | xargs chmod 755
-find /opt/Portage/models -type f | xargs chmod 644
-find /opt/Portage/models -type f -name \*.sh | xargs chmod 755
-if [[ '/opt/Portage/models/*/plugins' != '/opt/Portage/models/\*/plugins' ]]; then
-   find /opt/Portage/models/*/plugins -type f | xargs -r chmod 755
+find /opt/PortageII/models -type d | xargs chmod 755
+find /opt/PortageII/models -type f | xargs chmod 644
+find /opt/PortageII/models -type f -name \*.sh | xargs chmod 755
+if [[ '/opt/PortageII/models/*/plugins' != '/opt/PortageII/models/\*/plugins' ]]; then
+   find /opt/PortageII/models/*/plugins -type f | xargs -r chmod 755
 fi
 
 # 3.7 Set the default context:
-[ -e /opt/Portage/models/context ] || ln -s `ls /opt/Portage/models | head -1` /opt/Portage/models/context
+[ -e /opt/PortageII/models/context ] || ln -s `ls /opt/PortageII/models | head -1` /opt/PortageII/models/context
 
 # 3.8 Disable SELinux because PortageLive doesn't work with the default policy.
 sed -i -e 's/^SELINUX=.*$/SELINUX=disabled/' /etc/selinux/config

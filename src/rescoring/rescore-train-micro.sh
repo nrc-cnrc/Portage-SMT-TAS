@@ -2,8 +2,7 @@
 
 # @file rescore-train-micro.sh
 # @author George Foster
-# @brief Train a rescoring model for each source sentence in SRC, using the
-# corresponding nbest list in NBEST and references in REFS.
+# @brief Train a separate rescoring model for each source sentence in SRC.
 #
 # COMMENTS:
 #

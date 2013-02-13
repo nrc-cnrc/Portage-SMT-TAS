@@ -102,7 +102,7 @@ Options (in command-line format):\n\
      correcting it requires multiplying the desired -weight-l values by\n\
      log(10), which MERT corrects for implicitly.  We chose not to fix this bug\n\
      to avoid having to adjust all previously tuned sets of weights.  Note that\n\
-     throughout Portage, logs are natural by default, not base 10.\n\
+     throughout PortageII, logs are natural by default, not base 10.\n\
 \n\
  -lmodel-order LMORDER                  Global LM order limit  [0, i.e., none]\n\
      If non-zero, globally limits the order of all language models.\n\

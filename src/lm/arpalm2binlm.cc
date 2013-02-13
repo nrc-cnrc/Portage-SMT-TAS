@@ -1,7 +1,7 @@
 /**
  * @author Eric Joanis
  * @file arpalm2binlm.cc  
- * @brief Convert an ARPA LM file to the Portage BinLM format.
+ * @brief Convert an ARPA LM file to the PortageII BinLM format.
  *
  * $Id$
  *
@@ -26,7 +26,7 @@ static char help_message[] = "\n\
 arpalm2binlm [-vocab VOC] [-order ORDER] lm_file [binlm_file]\n\
 \n\
  Convert language model file lm_file from Doug Paul's ARPA file format to\n\
- NRC Portage's binary language model file format.\n\
+ NRC PortageII's binary language model file format.\n\
  The output is written to binlm_file, or lm_file.binlm in the current directory\n\
  if not specified.  Valid extensions for binlm_file are .binlm and .binlm.gz.\n\
 \n\

@@ -1,9 +1,7 @@
 /**
  * @author George Foster
  * @file count_phrasefreqs.cc
- * @brief For each phrase in \<phrasefile\>, sum the relative frequencies in
- * joint phrasetable \<jpt\> of all pairs in which that phrase appears on the
- * source side.
+ * @brief Tally source-phrase relative frequencies in <jpt> for phrases in <phrasefile>.
  * 
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology

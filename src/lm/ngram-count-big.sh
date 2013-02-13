@@ -2,10 +2,11 @@
 
 # @file ngram-count-big.sh 
 # @brief Wrapper around SRILM's ngram-count to make large n-gram count files
-# using the sorted-count / merge process.  Intended to replace SRILM's
-# make-big-lm script, dealing with all the bookkeeping automatically, and
-# splitting very large files automatically.  Use only if you have a valid SRILM
-# license.
+# using the sorted-count / merge process.
+#
+# Intended to replace SRILM's make-big-lm script, dealing with all the
+# bookkeeping automatically, and splitting very large files automatically.  Use
+# only if you have a valid SRILM license.
 #
 # @author Eric Joanis and Samuel Larkin
 #
@@ -59,11 +60,6 @@ Options:
    exit 1
 }
 
-echo ""
-echo $0 $*
-
-echo "Using $TMPDIR as TMPDIR"
-
 ORDER=3
 CHUNK_SIZE=250m
 N=3
@@ -82,6 +78,8 @@ while [ $# -gt 0 ]; do
    esac
    shift
 done
+
+echo "Using $TMPDIR as TMPDIR"
 
 if [ "`expr $ORDER + 0 2> /dev/null`" != "$ORDER" ]; then
    error_exit "$ORDER is not an integer."

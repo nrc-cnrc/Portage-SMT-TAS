@@ -1,5 +1,4 @@
 #!/usr/bin/env perl
-# $Id$
 
 # @file fix-en-fr-numbers.pl
 # @brief post-processing script to reformat English-style numbers for French.
@@ -18,7 +17,7 @@
 use strict;
 use warnings;
 
-if ( $#ARGV > 0 && ($ARGV[0] eq "-h" || $ARGV[0] eq "-help" ) ) {
+if (@ARGV > 0 && ($ARGV[0] eq "-h" || $ARGV[0] eq "-help")) {
    print STDERR "
 fix-en-fr-numbers.pl [INPUT FILE(S)]
 

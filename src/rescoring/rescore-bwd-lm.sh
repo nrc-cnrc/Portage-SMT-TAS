@@ -1,5 +1,4 @@
 #!/bin/bash
-# $Id$
 
 # @file rescore-bwd-lm.sh 
 # @brief bash script using gen_feature_values to score the nbest according to
@@ -19,11 +18,14 @@
 # Copyright 2008, Her Majesty in Right of Canada
 
 
-if [ $# -ne 3 ]; then
-    echo "Usage: $0  <src corpus>  <N-best list>  <backward LM file>"
+if [[ $# -ne 3 ]]; then
+    [[ $0 =~ [^/]*$ ]] && PROG=$BASH_REMATCH || PROG=$0
+    echo "Usage: $PROG  <src corpus>  <N-best list>  <backward LM file>"
     echo ""
     echo "Inverts all translations in N-best list and rescores with given backward LM"
-    echo "Your call: $*"
+    if [[ $1 != "-h" ]]; then
+        echo "Your call: $*"
+    fi
     exit 1
 fi
 

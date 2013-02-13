@@ -26,8 +26,8 @@
 ## with an extra blank line at the end of each paragraph.
 ##
 ## Warning: currently, the sent split plugin is only used by translate.pl if the
-## source language is not one of "en", "fr", or "es", the languages supported by
-## utokenize.pl.
+## source language is not one of "en", "fr", "es", or "da", the languages
+## supported by utokenize.pl.
 ##
 
 if [ "$1" == "-help" -o "$1" == "-h" ]; then
@@ -45,7 +45,7 @@ if [[ "$SOURCE_LANGUAGE" == "ch" ]]; then
    # insert code or call program to do sentence splitting for language "xy"
    # here, reading STDIN and writing to STDOUT.
 
-elif [ "$SOURCE_LANGUAGE" == "fr" -o "$SOURCE_LANGUAGE" == "en" -o "$SOURCE_LANGUAGE" == "es" ]; then
+elif [ "$SOURCE_LANGUAGE" == "fr" -o "$SOURCE_LANGUAGE" == "en" -o "$SOURCE_LANGUAGE" == "es" -o "$SOURCE_LANGUAGE" == "da" ]; then
    echo "Language $SOURCE_LANGUAGE is supported by utokenize.pl, don't use the plugin" >&2
    exit 1
 

@@ -21,7 +21,7 @@ using namespace Portage;
 using namespace std;
 
 static char help_message[] = "\n\
-merge_sigprune_counts.cc [options] jpt sigprune_count [sigprune_count ..]\n\
+merge_sigprune_counts [options] jpt sigprune_count [sigprune_count ..]\n\
 \n\
   Tally significance pruning counts and prepends them to jpt\n\
   and outputs the result to stdout.\n\

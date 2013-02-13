@@ -603,7 +603,7 @@ MODULE_USAGE_DIR = ${USAGE_DIR}/${MODULE_NAME}
 # Main alias to create the web pages.
 .PHONY: usage
 
-USAGE_PROGRAMS   = $(filter-out $(TESTPROGS), $(PROGRAMS)) ${BINSCRIPTS} $(wildcard README)
+USAGE_PROGRAMS   = $(filter-out $(TESTPROGS) $(PGM_WITH_NO_HELP), $(PROGRAMS) $(BINSCRIPTS)) $(wildcard README)
 
 # usage: index per module of all available programs
 # usage in each modules will require lib in dependent modules

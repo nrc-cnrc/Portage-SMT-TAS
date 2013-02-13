@@ -30,7 +30,7 @@ using namespace Portage;
 static char help_message[] = "\n\
 lm_eval [options] LMFILE TESTFILE\n\
 \n\
-  General program for using or testing LMs in any format supported by Portage.\n\
+  General program for using or testing LMs in any format supported by PortageII.\n\
   By default, outputs the log-prob of each word in TESTFILE.\n\
 \n\
 Options:\n\

@@ -3,8 +3,10 @@
 
 # @file append-uniq.pl 
 # @brief Appends non duplicate lines from addnbest and addffvals files to nbest
-# and ffvals, where a duplicate is a line which is identical to another in
-# *both* files at the same time.
+#        and ffvals.
+#
+# A duplicate is a line which is identical to another in *both* files at the
+# same time.
 #
 # @author Samuel Larkin
 #

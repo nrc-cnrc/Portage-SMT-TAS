@@ -13,7 +13,7 @@ license agreement for details.
                      PortageII runtine software layout
 
 This directory includes scripts that can help you reproduce the structure we
-use to package the Portage software for PortageLive virtual appliances.
+use to package the PortageII software for PortageLive virtual appliances.
 Detailed instructions are in the PortageLive Manual part of the PortageII
 User Manual.
 
@@ -41,17 +41,17 @@ procedure for your own environment.
 
 Note (2): if your PortageLive machine (virtual or physical) has a different
 operating system version, or a different Linux distro, than the machine where
-Portage was compiled, you might have some difficulties with shared libraries
+PortageII was compiled, you might have some difficulties with shared libraries
 (`.so` files).  If that is the case, you can try defining DO_EXTERNAL_LIBS=1 in
-the Makefile, which will bundle some .so files along with Portage.  Or else try
-following this procedure on a machine that is more like your runtime
+the Makefile, which will bundle some .so files along with PortageII.  Or else
+try following this procedure on a machine that is more like your runtime
 translation server(s).
 
 Note (3): even with the same OS, you may need to do some work to get the ICU
 .so files installed correctly.  DO_EXTERNAL_LIBS=1 might fix that (it does on
 our systems), but if not, run "ldd `which canoe`" and make a copy of the .so
-files related to ICU into rpm.build.root/opt/Portage/lib.  Do the same for any
-other .so files that the system can't find on your translation server.
+files related to ICU into rpm.build.root/opt/PortageII/lib.  Do the same for
+any other .so files that the system can't find on your translation server.
 On the translation server, running the command
-   ldd /opt/Portage/bin/* | grep "not found"
+   ldd /opt/PortageII/bin/* | grep "not found"
 will tell you which .so files you need to install along with PortageLive.

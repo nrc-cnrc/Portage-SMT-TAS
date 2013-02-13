@@ -30,7 +30,7 @@ $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
 
 my $HELP =
-"Usage: $0 [infile [outfile]]
+"Usage: reverseffvals.pl [infile [outfile]]
 
 Reverses the output of ffvals (\"phrase1\" (params) \"phrase1\" (params) etc...) into the forward version of the 
 output (ie reverses phrase orders and words inside phrases).

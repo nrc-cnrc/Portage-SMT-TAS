@@ -1,5 +1,4 @@
 #!/bin/bash
-# $Id$
 # @file prep-file-layoyt.sh
 # @brief Put the CGI and SOAP files into the installed structure.
 # 
@@ -22,7 +21,7 @@ Usage: ./prep-file-layout.sh [-ip FIXED_IP_ADDRESS]
   Copy the CGI and SOAP files into the structure for packaging into an RPM or
   installing manually on a translation server.
 
-  By default, the SOAP files are put in a staging location, /opt/Portage/www,
+  By default, the SOAP files are put in a staging location, /opt/PortageII/www,
   and are then copied to the web server structure at each boot of the Virtual
   Appliance, with the IP address inserted in the right place.
 
@@ -68,7 +67,7 @@ done
 if [[ $FIXED_IP ]]; then
    SOAP_DEST=rpm.build.root/var/www/html
 else
-   SOAP_DEST=rpm.build.root/opt/Portage/www
+   SOAP_DEST=rpm.build.root/opt/PortageII/www
 fi
 
 # Create directory structure

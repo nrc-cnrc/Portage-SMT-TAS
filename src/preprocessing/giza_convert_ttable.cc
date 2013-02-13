@@ -1,8 +1,7 @@
-// $Id$
 /**
  * @author Samuel Larkin
  * @file giza_convert_ttable.cc
- * @brief Convert a giza ttable into a format Portage can read.
+ * @brief Convert a giza ttable into a format PortageII can read.
  *
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -22,11 +21,11 @@ using namespace Portage;
 using namespace std;
 
 static char help_message[] = "\n\
-prog [options] src_vocab tgt_vocab giza_ttable [OUT]\n\
+giza_convert_ttable [options] src_vocab tgt_vocab giza_ttable [OUT]\n\
 \n\
-  Convert a Giza ttable into a format Portage can read.\n\
-  Giza's format uses integer id for word where as Portage's format uses string\n\
-  for word.\n\
+  Convert a Giza ttable into a format PortageII can read.\n\
+  Giza's format uses integer id for word where as PortageII's format uses\n\
+  string for word.\n\
 \n\
 Options:\n\
 \n\

@@ -1,7 +1,6 @@
 #!/usr/bin/perl -s -w
-# $Id$
 # @file plog.pl
-# @brief manage PORTAGE's accounting log
+# @brief Manage PortageII's accounting log
 #
 # @author Michel Simard, Eric Joanis
 #
@@ -31,7 +30,7 @@ use strict;
 
 =head1 DESCRIPTION
 
-This program is used to manage PORTAGE's accounting log.  Each log
+This program is used to manage PortageII's accounting log.  Each log
 entry corresponds to a specific translation "job", and contains the
 following fields:
 

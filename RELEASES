@@ -19,7 +19,7 @@ See NOTICE for the Copyright notices of 3rd party libraries.
 
 PortageII is the second generation of SMT software released by the NRC.
 
-PortageII 2.0 2013-02-12
+PortageII 2.0 2013-02-13
  This release provides significant user improvements for translators through
  the handling of markup tags and the XML Localization Interchange File Format
  (xliff) often used to package translation projects.

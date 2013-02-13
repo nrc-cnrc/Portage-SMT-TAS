@@ -82,6 +82,7 @@ EXTRA_LIBS=$(LOGGING_LIB)
 DYNLIBS=-lpthread $(LIBICU) -lboost_system
 
 PGM_WITH_ALTERNATIVE_HELP = rescore_train
+PGM_WITH_NO_HELP = cherrycSMT.jar
 
 MODULE_DEPENDS=lm eval word_align tp_models tpt preprocessing logging
 

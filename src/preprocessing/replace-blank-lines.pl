@@ -27,7 +27,7 @@ $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
 
 my $HELP =
-"Usage: $0 main-trans backup-trans
+"Usage: replace-blank-lines.pl main-trans backup-trans
 
 Write to stdout a copy of main-trans in which blank lines have been replaced by
 corresponding lines in backup-trans.

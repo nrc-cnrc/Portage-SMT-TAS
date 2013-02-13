@@ -23,13 +23,13 @@ Two forms:
 
 =head1 DESCRIPTION
 
-This program does confidence estimation (CE) for the PORTAGE
+This program does confidence estimation (CE) for the PortageII
 system. It can be used to obtain CE values for the translation of the
 sentences of the given F<source_text> (first form) or to learn a new
 CE model using the F<source_text> and its reference (human)
 translation F<ref_text> as training data (second form).
 
-In both forms: F<canoe_ini> is a PORTAGE decoder config file;
+In both forms: F<canoe_ini> is a PortageII decoder config file;
 F<ce_model> is the name of a CE model file.  These files have a
 C<.cem> extension, which may or may not be specified on the command
 line.  Argument F<source_text> is a source-language text, in
@@ -52,7 +52,7 @@ file, do:
 
 By default, the program creates a temporary directory, where it stores
 a number of intermediate results, most notably tokenized and
-lowercased versions of the text files, PORTAGE translations, and
+lowercased versions of the text files, PortageII translations, and
 individual value files for each feature used by the CE model.  The
 temporary directory is normally deleted at the end of the process,
 unless something goes wrong, or if the C<-dir=D> option is specified.

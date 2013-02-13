@@ -1,9 +1,7 @@
 /**
  * @author Aaron Tikuisis
  * @file canoe.cc
- * @brief Program canoe, Portage's decoder.
- *
- * $Id$
+ * @brief canoe, PortageII's decoder.
  *
  * Canoe Decoder
  *
@@ -33,6 +31,7 @@
 #include "process_bind.h"
 #include "timer.h"
 #include "stats.h"
+#include "str_utils.h"
 #include <boost/optional/optional.hpp>
 #include <cstring>
 #include <unistd.h>  // sleep
@@ -425,8 +424,12 @@ int MAIN(argc, argv)
    const char* switches[args.size()];
    for (Uint i = 0; i < args.size(); ++i)
       switches[i] = args[i].c_str();
-   char help[strlen(HELP) + strlen(argv[0])];
-   sprintf(help, HELP, argv[0]);
+   vector<string> prog_path_parts;
+   split(argv[0], prog_path_parts, "/");
+   assert(!prog_path_parts.empty());
+   string basename = prog_path_parts.back();
+   char help[strlen(HELP) + basename.size() + 1];
+   sprintf(help, HELP, basename.c_str());
    ArgReader argReader(ARRAY_SIZE(switches), switches, 0, 0, help, "-h", false);
    argReader.read(argc - 1, argv + 1);
 

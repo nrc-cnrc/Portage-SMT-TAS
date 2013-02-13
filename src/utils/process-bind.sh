@@ -1,5 +1,4 @@
 #!/bin/bash
-# $Id$
 
 # @file process-bind.sh
 # @brief Bind a process to a master process, killing the bound process when
@@ -22,9 +21,10 @@ usage() {
    for msg in "$@"; do
       echo $msg >&2
    done
+   [[ $0 =~ [^/]*$ ]] && PROG=$BASH_REMATCH || PROG=$0
    cat <<==EOF== >&2
 
-Usage: $0 -pid PID [options] COMMAND ARGUMENTS
+Usage: $PROG -pid PID [options] COMMAND ARGUMENTS
 
   Run "COMMAND ARGUMENTS", killing it if master process PID disappears.
 
