@@ -70,28 +70,33 @@ endif
 
 BIN_DIR = ../bin
 INSTALL_PATH = $(if ${MODULE_NAME}, $(abspath ${MODULE_NAME}), ${CURDIR})
-INSTALL_SRC_DIR = $(subst $(dir ${CURDIR}),,${INSTALL_PATH})
-SRC_DIR = $(notdir ${CURDIR})
 
 .PHONY: install_summary
 ifneq ("$(shell git rev-parse --is-inside-work-tree 2> /dev/null)","true")
 install_summary:
 	@:
 else
+GIT_BRANCH := $(shell git name-rev --name-only HEAD)
+GIT_REMOTE := $(shell git config branch.${GIT_BRANCH}.remote)
+GIT_RBRANCH := $(notdir $(shell git config branch.${GIT_BRANCH}.merge))
+
 install_summary: SHELL=/bin/bash
 install_summary:
 	$(if ${MODULE_NAME},echo "" >>,cat /dev/null >) ${BIN_DIR}/INSTALL_SUMMARY
 	date >> ${BIN_DIR}/INSTALL_SUMMARY
 	echo "$(if ${MODULE_NAME},Module installed,Sandbox): ${INSTALL_PATH}" >> ${BIN_DIR}/INSTALL_SUMMARY
 	echo "Git working directory: `git rev-parse --show-toplevel`" >> ${BIN_DIR}/INSTALL_SUMMARY
-	echo "" >> ${BIN_DIR}/INSTALL_SUMMARY
-	git remote show origin >> ${BIN_DIR}/INSTALL_SUMMARY
-	echo "" >> ${BIN_DIR}/INSTALL_SUMMARY
+	@echo "" >> ${BIN_DIR}/INSTALL_SUMMARY
+	git remote show ${GIT_REMOTE} >> ${BIN_DIR}/INSTALL_SUMMARY
+	@echo "" >> ${BIN_DIR}/INSTALL_SUMMARY
 	git branch -r -v --no-abbrev >> ${BIN_DIR}/INSTALL_SUMMARY
-	echo "" >> ${BIN_DIR}/INSTALL_SUMMARY
-	echo "HEAD:" >> ${BIN_DIR}/INSTALL_SUMMARY
+	@echo "" >> ${BIN_DIR}/INSTALL_SUMMARY
+	@echo "HEAD:" >> ${BIN_DIR}/INSTALL_SUMMARY
 	git show HEAD --no-abbrev --format=fuller >> ${BIN_DIR}/INSTALL_SUMMARY
-	git status -u ${INSTALL_SRC_DIR} >> ${BIN_DIR}/INSTALL_SUMMARY
+	git status -u ${INSTALL_PATH} >> ${BIN_DIR}/INSTALL_SUMMARY
+	@echo "" >> ${BIN_DIR}/INSTALL_SUMMARY
+	@echo "git diff -p --stat ${GIT_REMOTE}/${GIT_RBRANCH} -- ${INSTALL_PATH}" >> ${BIN_DIR}/INSTALL_SUMMARY
+	git diff -p --stat ${GIT_REMOTE}/${GIT_RBRANCH} -- ${INSTALL_PATH} >> ${BIN_DIR}/INSTALL_SUMMARY
 endif
 
 
