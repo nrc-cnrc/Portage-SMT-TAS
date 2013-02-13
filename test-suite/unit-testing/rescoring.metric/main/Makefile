@@ -22,4 +22,4 @@ bleu:; ${MAKE} scoremain.bleu SCOREMAIN=bleumain
 
 .PHONY: scoremain
 scoremain.%: rescore_ON_test_fr.out test_en1.al test_en2.al test_en3.al
-	${SCOREMAIN} -c -detail 2 $+ | diff - ref/$*main -q
+	${SCOREMAIN} -c -detail 2 $+ | sed -e 's/-nan/nan/g' | diff - ref/$*main -q
