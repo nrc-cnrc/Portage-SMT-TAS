@@ -138,29 +138,29 @@ para.nbest.gz: canoe.ini
 
 DIFF: ZIP UNZIP para.nbest.gz
 	@echo "The following files must be identical:"
-	@zdiff -sq ffvals ffvals.gz
-	@zdiff -sq ffvals $(DIR)/nbest.88best.ffvals
-	@zdiff -sq ffvals $(DIR)/nbest.88best.ffvals.gz
-	@zdiff -sq pal pal.gz
-	@zdiff -sq pal $(DIR)/nbest.88best.pal
-	@zdiff -sq pal $(DIR)/nbest.88best.pal.gz
-	@zdiff -sq lattice lattice.gz
-	@zdiff -sq lattice $(DIR)/lattice
-	@zdiff -sq lattice $(DIR)/lattice.gz
-	@zdiff -sq lattice.state lattice.state.gz
-	@zdiff -sq lattice.state $(DIR)/lattice.state
-	@zdiff -sq lattice.state $(DIR)/lattice.state.gz
-	@zdiff -sq nbest nbest.gz
-	@zdiff -sq nbest $(DIR)/nbest.88best
-	@zdiff -sq nbest $(DIR)/nbest.88best.gz
-	@zdiff -sq 1best.default 1best.append
-	@zdiff -sq 1best.default 1best.default-gz
-	@zdiff -sq 1best.default 1best.append-gz
+	zdiff -q ffvals ffvals.gz
+	zdiff -q ffvals $(DIR)/nbest.88best.ffvals
+	zdiff -q ffvals $(DIR)/nbest.88best.ffvals.gz
+	zdiff -q pal pal.gz
+	zdiff -q pal $(DIR)/nbest.88best.pal
+	zdiff -q pal $(DIR)/nbest.88best.pal.gz
+	zdiff -q lattice lattice.gz
+	zdiff -q lattice $(DIR)/lattice
+	zdiff -q lattice $(DIR)/lattice.gz
+	zdiff -q lattice.state lattice.state.gz
+	zdiff -q lattice.state $(DIR)/lattice.state
+	zdiff -q lattice.state $(DIR)/lattice.state.gz
+	zdiff -q nbest nbest.gz
+	zdiff -q nbest $(DIR)/nbest.88best
+	zdiff -q nbest $(DIR)/nbest.88best.gz
+	zdiff -q 1best.default 1best.append
+	zdiff -q 1best.default 1best.default-gz
+	zdiff -q 1best.default 1best.append-gz
 	@echo "Comparing the parallel run with based run"
-	@zdiff -sq nbest para.nbestnbest.gz
-	@zdiff -sq ffvals para.nbestffvals.gz
-	@zdiff -sq pal para.nbestpal.gz
-	@zdiff -sq 1best.default 1best.append.para
+	zdiff -q nbest para.nbestnbest.gz
+	zdiff -q ffvals para.nbestffvals.gz
+	zdiff -q pal para.nbestpal.gz
+	zdiff -q 1best.default 1best.append.para
 
 DIFF_ORIG: nbest
-	@zdiff -sq nbest original.nbest.gz
+	zdiff -q nbest original.nbest.gz
