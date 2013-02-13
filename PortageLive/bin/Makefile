@@ -174,11 +174,16 @@ ${INSTALL_LIB_LIST}: ${DEST_LIB_DIR}/%: %
 ALL_FILES += ${PORTAGE_LIB_LIST}
 
 # Special rule to install external libraries
+ifeq ($(shell which /usr/sbin/prelink),"/usr/sbin/prelink")
 # Note: must first copy the file because prelink wants to retain the original owner
 ${EXTERNAL_LIB_LIST}: ${DEST_LIB_DIR}/%:
 	cp $< $@.tmp
 	/usr/sbin/prelink -uo $@ $@.tmp
 	rm $@.tmp
+else
+${EXTERNAL_LIB_LIST}: ${DEST_LIB_DIR}/%:
+	cp $< $@
+endif
 
 # Special rule to install Confidence Estimation's plugins.
 ${DEST_LIB_DIR}/CE: ${DEST_LIB_DIR}/%: ${SRC_PORTAGE_LIB_DIR}/%
