@@ -114,7 +114,9 @@ if (my $filename = param('file')     # The name of the file we are monitoring
     } else {
         my $input = catdir($WEB_PATH, $work_dir, "Q.in");
         my $canoe_in = catdir($WEB_PATH, $work_dir, "q.tok");
-        my $canoe_out = catdir($WEB_PATH, $work_dir, param('ce') ? "p.raw" : "p.dec");
+        my $p_raw = catdir($WEB_PATH, $work_dir, "p.raw");
+        my $canoe_out = catdir($WEB_PATH, $work_dir, "p.dec");
+        $canoe_out = $p_raw if (-r $p_raw);
         my $ce_out = catdir($WEB_PATH, $work_dir, "pr.ce");
         my $job_done = catdir($WEB_PATH, $work_dir, "done");
         my $trace_file = catdir($WEB_PATH, $work_dir, "trace");
