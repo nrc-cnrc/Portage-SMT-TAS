@@ -12,8 +12,8 @@ license agreement for details.
                                 PortageLive
                          Runtime translation server
 
-This directory contains the files you need to install a trained Portage system
-on a translation server.  We call this PortageLive.  Please read the
+This directory contains the files you need to install a trained PortageII
+system on a translation server.  We call this PortageLive.  Please read the
 "PortageLive Manual" section of the PortageII User Manual for instructions.
 
 Contents:
