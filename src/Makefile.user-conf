@@ -76,9 +76,7 @@ ICU=$(PORTAGE)# AT NRC
 #                  $(CXXTEST)/include/cxxtest/*.h exist.
 
 CXXTEST?=NONE
-#CXXTEST=$(PORTAGE)
-#CXXTEST=$(PORTAGE) # CxxTest 3.10.1 # AT NRC
-CXXTEST=/home/portage/pkgs/cxxtest-4.0.3 # AT NRC
+#CXXTEST=$(PORTAGE)/pkgs/cxxtest
 
 # ------------------------------------
 # Variable:        PORTAGE_OPENMP

@@ -392,8 +392,7 @@ clean_testrunners:
 .PHONY: run_tests/%
 run_tests/%: tests/%
 	$<
-CXXTESTGEN?=$(word 1,$(wildcard $(strip ${CXXTEST})/bin/cxxtestgen*))
-#CXXTESTGEN?=cxxtestgen.pl
+CXXTESTGEN?=$(word 1,$(wildcard $(strip ${CXXTEST})/bin/cxxtestgen*) cxxtestgen)
 $(CXXTEST_RUNNERS_CC): %.cc: %.h
 	${CXXTESTGEN} --error-printer -o $@ $<
 endif
