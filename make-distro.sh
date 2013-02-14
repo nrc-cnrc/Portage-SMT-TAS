@@ -226,7 +226,7 @@ do_checkout() {
 
       r pushd PORTAGEshared
          r git remote show origin '2>&1' '>' ../git-show.log
-         r git show --no-abbrev-commit --format=fuller HEAD '2>&1' '>>' ../git-show.log
+         r git show --abbrev=40 --format=fuller HEAD '2>&1' '>>' ../git-show.log
       r popd
 
       r chmod 755 PORTAGEshared/logs
@@ -236,7 +236,7 @@ do_checkout() {
             r git clone --branch $VERSION_TAG $GIT_PATH/$FRAMEWORK.git framework '>&' ../git-clone.framework.log
             r pushd framework
                r git remote show origin '2>&1' '>>' ../../git-show.log
-               r git show --no-abbrev-commit --format=fuller HEAD '2>&1' '>>' ../../git-show.log
+               r git show --abbrev=40 --format=fuller HEAD '2>&1' '>>' ../../git-show.log
             r popd
          r popd
       fi
