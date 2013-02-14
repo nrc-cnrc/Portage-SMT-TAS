@@ -1,5 +1,5 @@
 \documentclass[11pt]{article}
-\usepackage{isolatin1}
+\usepackage{alltt}
 
 \newcommand{\phs}{\tild{s}}   % source phrase
 \newcommand{\pht}{\tild{t}}   % target phrase
@@ -312,12 +312,12 @@ where {\tt fr} is a French source phrase, {\tt en} is an English target phrase,
 reverse phrasetable {\tt phrases.en2fr}, used for English to French
 translation, contains the same information but with {\tt en} and {\tt fr}
 reversed. Here is a sample line from these files:
-\begin{verbatim}
+\begin{alltt}
    > egrep "r.glements propos.s" phrases.fr2en
-   règlements proposés ||| proposed regulations ||| 0.5 1
+   r{\`e}glements propos{\'e}s ||| proposed regulations ||| 0.5 1
    > egrep "r.glements propos.s" phrases.en2fr
-   proposed regulations ||| règlements proposés ||| 1 0.5
-\end{verbatim}
+   proposed regulations ||| r{\`e}glements propos{\'e}s ||| 1 0.5
+\end{alltt}
 (This example is carefully chosen; because of the small size of the training
 corpus, many other entries in the phrase table are incorrect.)
 
