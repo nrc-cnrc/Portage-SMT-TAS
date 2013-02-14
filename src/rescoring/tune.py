@@ -568,6 +568,8 @@ def optimizeMIRA(iter, wts, args, logfile):
     H = "true"   # hope update?
     O = "Oracle" # use Model, Oracle or Orange as background
     D = "0.999"  # Rate at which to decay Model or Oracle BG
+    seed = "1"   # Random seed
+    if(opts.seed>0): seed = str(opts.seed * 10000 + iter)
     args_vals = args.split()
     if len(args_vals) > 0: C = args_vals[0]
     if len(args_vals) > 1: I = args_vals[1]
@@ -580,7 +582,7 @@ def optimizeMIRA(iter, wts, args, logfile):
        print >> logfile, "warning: ignoring values past first 3 tokens in " + args
     refglob = ','.join(refs)
     cmd = ["time-mem", jav, opts.jmem, "-enableassertions", "-jar", jar, "MiraTrainNbestDecay", optimizer_in, \
-           allff, allbleus, allnb, refglob, C, I, E, B, H, O, D]
+           allff, allbleus, allnb, refglob, C, I, E, B, H, O, D, seed]
     outfile = open(optimizer_out, 'w')
     print >> logfile, ' '.join(cmd)
     logfile.flush()
@@ -669,7 +671,7 @@ def optimizeLMIRA(iter, wts, args, logfile):
     density = "50"                   # lattices will be f-b pruned to this density
     numIt = "30"                     # max number of iterations
     seed = "1"
-    if(opts.seed>0): seed = str(opts.seed * 10000 + iter);
+    if(opts.seed>0): seed = str(opts.seed * 10000 + iter)
     args_vals = args.split()
     if len(args_vals) > 0: C = args_vals[0]
     if len(args_vals) > 1: decay = args_vals[1]
