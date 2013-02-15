@@ -1,5 +1,5 @@
 # PortageII setup file for bash users.
-# Source this file in bash to set all Portage environment variables
+# Source this file in bash to set all PortageII environment variables
 #
 # Eric Joanis
 #

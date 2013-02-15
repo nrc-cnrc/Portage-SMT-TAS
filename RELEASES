@@ -19,22 +19,32 @@ See NOTICE for the Copyright notices of 3rd party libraries.
 
 PortageII is the second generation of SMT software released by the NRC.
 
-PortageII 2.0 2013-02-14
+PortageII 2.0 2013-02-15
  This release provides significant user improvements for translators through
  the handling of markup tags and the XML Localization Interchange File Format
  (xliff) often used to package translation projects.
 
  Major changes:
   - Support for the transfer of tags found in the source sentence by applying
-    them to the corresponding text in the target sentence.  To enable this
-    functionality, set xtags to true when calling translateTMXCE() or
-    translateSDLXLIFFCE() in the SOAP PortageLive API.
+    them to the corresponding text in the target sentence.
+     - To enable this functionality, set xtags to true when calling
+       translateTMXCE() or translateSDLXLIFFCE() in the SOAP PortageLive API.
+     - To support this functionality, store word alignments in phrase tables
+       (regular and tightly packed) and output it in the decoder's output
+     - As a side effect, the transfer of source case information in truecase.pl
+       is improved when the word-alignment is available.
   - Support for the xliff file format via the PortageLive API.
 
  Minor changes:
   - Support for Danish tokenization and detokenization.
   - Updated software for weight tuning is more stable.
+  - New Huffman encoding class with memory-mapped IO implementation
+  - Improved the parallelism configuration for sigprune.sh
+  - joint2cond_phrase_tables, joint2multi_cpt and train_ibm now overwrite
+    existing files when found, instead of aborting with an error message.
+  - Support for training and using sentence-level LM mixture adaptation.
   - Minor bug fixes.
+  - Clean up of documentation.
 
 
 PortageII 1.0 2012-09-04
@@ -121,7 +131,7 @@ PortageII 1.0 2012-09-04
    better.
  - An alternative alignment symmetrization method, grow-diag-final-and, which
    is becoming the standard in SMT, and yields better results, has been
-   implemented in Portage and is now enabled by default.
+   implemented in PortageII and is now enabled by default.
  - When PortageLive processes a TMX file, as well as when tmx2lfl.pl extracts
    training data from one, handle Trados and MS Word style non-breaking and
    optional hyphens better: replace the non-breaking hyphen by a regular one,
