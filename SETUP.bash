@@ -32,17 +32,14 @@ PORTAGE=$HOME/PortageII-2.0
 # EXTRA_PROGRAM_PATH variable here.
 #EXTRA_PROGRAM_PATH=/path/to/python2.7/bin:/path/to/other/dependency/bin
 
-# Binary distributions only: PRECOMP_PORTAGE_ARCH must be i686 (32 bits) or
-# x86_64 (64 bits), depending on your architecture.  We only provide
-# pre-compilied executables for those two architectures, though they may be
-# compatible with other Linux 32 and 64 bit architectures.
-#PRECOMP_PORTAGE_ARCH=`arch`
-
-# Binary distributions only: we also provide executables compiled with and
-# without ICU, in order to make that dependency be optional.  Uncomment the
-# following line instead of the previous one if you have installed and wish to
-# use ICU.
-#PRECOMP_PORTAGE_ARCH=`arch`-icu
+# Binary distributions only: we used to include 32 and 64 bits pre-compiled
+# executable, with and without ICU.  We no longer support 32 bits since tuning
+# requires more than 4GB of RAM.  We no longer provide non-ICU binaries since
+# we distribute ICU libraries with PortageII.
+# Nonetheless, PRECOMP_PORTAGE_ARCH continues to be required for binary
+# distributions, in case we distribute new pre-compiles variants in the future.
+# Uncomment the following line if your distribution is binary:
+#PRECOMP_PORTAGE_ARCH=x86_64-icu
 
 # END OF USER CONFIGURABLE VARIABLES
 # =======================================================================
