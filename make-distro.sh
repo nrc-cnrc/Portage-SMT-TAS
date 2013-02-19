@@ -105,13 +105,27 @@ error_exit() {
    exit 1
 }
 
-# verbosely run a command, echoing was it was and its exit status if non-zero
+# Verbosely run a command, echoing was it was.
+# If the command has a non-zero exit status, report it and abort.
+# Options:
+#  -m MODULENAME   print MODULENAME: in front of echoed commands
+#  -no-error       ignore errors (i.e., don't abort of command has non-zero
+#                  exit status)
+NESTING_LEVEL=0
 r() {
+   NESTING_LEVEL=$((NESTING_LEVEL + 1))
    if [ "$1" = "-no-error" ]; then
       shift
-      RUN_CMD_NO_ERROR=1
+      local RUN_CMD_NO_ERROR=1
+   else
+      local RUN_CMD_NO_ERROR=
    fi
-   echo "$*"
+   if [[ $1 = -m ]]; then
+      local MODULE="$2: " ; shift ; shift
+   else
+      local MODULE=
+   fi
+   echo "$MODULE$*"
    if [ -z "$NOT_REALLY" ]; then
       eval $*
       rc=$?
@@ -120,9 +134,14 @@ r() {
    fi
    if [ -z "$RUN_CMD_NO_ERROR" -a "$rc" != 0 ]; then
       echo "Exit status: $rc is not zero - aborting."
-      exit 1
+      if (( $NESTING_LEVEL > 1 )); then
+         NESTING_LEVEL=$((NESTING_LEVEL - 1))
+         return $rc
+      else
+         exit 1
+      fi
    fi
-   RUN_CMD_NO_ERROR=
+   NESTING_LEVEL=$((NESTING_LEVEL - 1))
 }
 
 arg_check() {
@@ -222,21 +241,23 @@ do_checkout() {
    r echo "$0 $SAVED_COMMAND_LINE" \> $OUTPUT_DIR/make-distro-cmd-used
    r echo Ran on `hostname` \>\> $OUTPUT_DIR/make-distro-cmd-used
    r pushd ./$OUTPUT_DIR
-      r git clone --branch $VERSION_TAG $GIT_PATH/PORTAGEshared.git '>&' git-clone.log
-
+      # Note: "r r git" gives us the echo in both the git.log and make-distro logs.
+      r r git clone -v --no-checkout $GIT_PATH/PORTAGEshared.git '>&' git.log
       r pushd PORTAGEshared
-         r git remote show origin '2>&1' '>' ../git-show.log
-         r git show --abbrev=40 --format=fuller HEAD '2>&1' '>>' ../git-show.log
+         r r git checkout $VERSION_TAG '>>' ../git.log '2>&1'
+         r r git remote show origin '>>' ../git.log '2>&1'
+         r r git show --abbrev=40 --format=fuller HEAD '>>' ../git.log '2>&1'
       r popd
 
       r chmod 755 PORTAGEshared/logs
       r chmod 777 PORTAGEshared/logs/accounting
       if [[ $FRAMEWORK ]]; then
          r pushd PORTAGEshared
-            r git clone --branch $VERSION_TAG $GIT_PATH/$FRAMEWORK.git framework '>&' ../git-clone.framework.log
+            r r git clone -v --no-checkout $GIT_PATH/$FRAMEWORK.git framework '>&' ../git.framework.log
             r pushd framework
-               r git remote show origin '2>&1' '>>' ../../git-show.log
-               r git show --abbrev=40 --format=fuller HEAD '2>&1' '>>' ../../git-show.log
+               r r git checkout $VERSION_TAG '>>' ../../git.framework.log '2>&1'
+               r r git remote show origin '>>' ../../git.framework.log '2>&1'
+               r r git show --abbrev=40 --format=fuller HEAD '>>' ../../git.framework.log '2>&1'
             r popd
          r popd
       fi
@@ -308,7 +329,7 @@ make_pdfs() {
    r pushd ./$OUTPUT_DIR/PORTAGEshared
 
       r pushd ./src
-         r make docs '>&' ../../docs.log
+         r r make docs '>&' ../../docs.log
          r cp */*.pdf ../doc/
          r make clean '>&' /dev/null
          r rm -f canoe/uml.eps
@@ -333,25 +354,28 @@ make_pdfs() {
 }
 
 make_doxy() {
-   print_header make_doxy
+   print_header "make_doxy (working in the background)"
    echo Including source code documentation.
    r pushd ./$OUTPUT_DIR/PORTAGEshared/src
-      r make doxy '>&' ../../doxy.log
-      r mv htmldoc htmldoc_tmp
-      r mkdir htmldoc
-      r mv htmldoc_tmp htmldoc/files
+      r r make doxy '>&' ../../doxy.log
+      r -m DOXY mv htmldoc htmldoc_tmp
+      r -m DOXY mkdir htmldoc
+      r -m DOXY mv htmldoc_tmp htmldoc/files
       echo '<META HTTP-EQUIV="refresh" CONTENT="0; URL=files/index.html">' > htmldoc/index.html
-   r popd
+   r -m DOXY popd
 }
 
 make_usage() {
    print_header make_usage
    echo Generating usage information.
    r pushd ./$OUTPUT_DIR/PORTAGEshared
-      r git clone --branch $VERSION_TAG $GIT_PATH/PORTAGEshared.git FOR_USAGE '>&' ../git-clone.for_usage.log
+      r r git clone -v --no-checkout $GIT_PATH/PORTAGEshared.git FOR_USAGE '>&' ../git.for_usage.log
+      r pushd FOR_USAGE
+         r r git checkout $VERSION_TAG '>>' ../../git.for_usage.log '2>&1'
+      r popd
       r mv FOR_USAGE/src SRC_FOR_USAGE
       r pushd ./SRC_FOR_USAGE
-         r make ICU= LOG4CXX=NONE CF=-Wno-error -j 3 usage '>&' ../../make_usage.log
+         r r make ICU= LOG4CXX=NONE CF=-Wno-error -j 3 usage '>&' ../../make_usage.log
       r popd
       r rm -rf SRC_FOR_USAGE FOR_USAGE
    r popd
@@ -369,7 +393,7 @@ make_bin() {
    fi
    r pushd ./$OUTPUT_DIR/PORTAGEshared
       r pushd ./src
-         r make install -j 3 $ICU_LIB '>&' ../../make_$ELFDIR.log
+         r r make install -j 4 $ICU_LIB '>&' ../../make_$ELFDIR.log
          r make clean '>&' /dev/null
       r popd
       r pushd ./bin
@@ -380,10 +404,12 @@ make_bin() {
          r mkdir -p $ELFDIR
          r file \* \| grep ELF \| sed "'s/:.*//'" \| xargs -i{} mv {} $ELFDIR
          if [[ $ICU = yes ]]; then
-            LD_LIBRARY_PATH=$ICU_ROOT/lib:$LD_LIBRARY_PATH ldd ../bin/$ELFDIR/canoe | egrep -o '/[^ ]*(icu|portage)[^ ]*.so[^ ]*' | xargs -i cp {} $ELFDIR
+            LD_LIBRARY_PATH=$ICU_ROOT/lib:$LD_LIBRARY_PATH ldd ../bin/$ELFDIR/canoe
          else
-            ldd ../bin/$ELFDIR/canoe | egrep -o '/[^ ]*portage[^ ]*.so[^ ]*' | xargs -i cp {} $ELFDIR
-         fi
+            ldd ../bin/$ELFDIR/canoe
+         fi |
+            egrep -o '/[^ ]*(portage|libtcmalloc|libprofiler|libicu)[^ ]*.so[^ ]*' |
+            xargs -i cp {} $ELFDIR
          r rmdir --ignore-fail-on-non-empty $ELFDIR
       r popd
    r popd
@@ -410,10 +436,10 @@ make_iso_and_tar() {
       else
          PATCH_FILES=
       fi
-      r mkisofs -V $ISO_VOLID -joliet-long -o $ARCHIVE_FILE.iso \
-              PORTAGEshared $PATCH_FILES '&>' iso.log
+      r r mkisofs -V $ISO_VOLID -joliet-long -o $ARCHIVE_FILE.iso \
+              PORTAGEshared $PATCH_FILES '>&' iso.log
       r mv PORTAGEshared PortageII-2.0
-      r tar -cvzf $ARCHIVE_FILE.tar.gz PortageII-2.0 '>&' tar.log
+      r r tar -cvzf $ARCHIVE_FILE.tar.gz PortageII-2.0 '>&' tar.log
       r md5sum $ARCHIVE_FILE.* \> $ARCHIVE_FILE.md5
    r popd
 }
@@ -436,7 +462,12 @@ if [[ ! $COMPILE_ONLY ]]; then
    get_user_manual
    make_pdfs
    if [[ ! $NO_SOURCE && ! $NO_DOXY ]]; then
-      make_doxy
+      # We launch doxy in the background because it can't be parallelized and
+      # it takes a long time.
+      make_doxy &
+      MAKE_DOXY_PID=$!
+      # Wait a second so that the log is more-or-less linear
+      sleep 1
    fi
    if [[ ! $NO_USAGE ]]; then
       make_usage
@@ -454,6 +485,12 @@ if [[ $INCLUDE_BIN || $COMPILE_ONLY ]]; then
    else
       make_bin
    fi
+fi
+
+if [[ $MAKE_DOXY_PID ]]; then
+   print_header "Wait for background make_doxy to finish"
+   # wait for the background make_doxy process
+   r wait $MAKE_DOXY_PID
 fi
 
 if [[ $COMPILE_HOST ]]; then
@@ -498,4 +535,4 @@ if [[ ! $COMPILE_ONLY ]]; then
    fi
 fi
 
-
+print_header "All done successfully"

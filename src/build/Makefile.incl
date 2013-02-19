@@ -1,6 +1,5 @@
 # vim:noet:ts=3
 # =============================================================================
-# $Id$
 # @file Makefile.incl
 # @brief Include file for lower-level Makefiles
 # @author George Foster, Aaron Tikuisis, Eric Joanis, Patrick Paul, 
@@ -307,7 +306,7 @@ endif
            .info .dvi .tex .texinfo .texi .txinfo .w .ch .web .elc .el .cpp
 
 # make everything that can be made, except doxy, which spews too many messages
-all: lib bin python_lib TAGS tags info test .cvsignore .gitignore
+all: lib bin python_lib TAGS tags info test .gitignore
 
 # make everything from scratch
 new: clean
@@ -339,12 +338,6 @@ clean: clean_testrunners
         $(OTHER_GENERATED_FILES) \
 	$(LEGACY_TESTS) $(foreach legacy_test, $(LEGACY_TESTS), $(legacy_test).o)
 	\rm -rf .deps
-
-# make the .cvsignore file, used by CVS to ignore certain files when updating
-.cvsignore: Makefile ../build/Makefile.incl
-	echo $(PROGRAMS) Makefile.depend .cvsignore .gitignore *.pdf *.dvi *.aux *.bbl *.blg *.log *.eps .deps | tr ' ' '\n' > $@
-	if [[ -d tests ]]; then echo .cvsignore $(notdir $(CXXTEST_RUNNERS) $(CXXTEST_RUNNERS_O) $(CXXTEST_RUNNERS_CC)) | tr ' ' '\n' > tests/$@; fi
-	if [[ -d tests/legacy ]]; then echo .cvsignore $(foreach legacy_test, $(notdir $(LEGACY_TESTS)), $(legacy_test){,.o}) | tr ' ' '\n' > tests/legacy/$@; fi
 
 # make the .gitignore file, used by Git to ignore certain files when updating/reporting
 # The project .gitignore file contains general file patterns to ignore, this
