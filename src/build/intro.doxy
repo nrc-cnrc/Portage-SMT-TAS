@@ -38,6 +38,9 @@
 /**
  * \dir canoe
  * \brief Decoder, including code for using phrase tables.
+ *
+ * This is the most important component of PortageII: the decoder and all its
+ * features.
  */
 
 /**
@@ -50,7 +53,9 @@
 
 /**
  * \dir distortion
- * \brief Lexicalized Distortion
+ * \brief Lexicalized and Hierarchical Distortion models
+ *
+ * This module has the code required to train distortion models.
  */
 
 /**
@@ -85,21 +90,32 @@
  */
 
 /**
+ * \dir textutils
+ * \brief Basic text processing utilities.
+ */
+
+/**
  * \dir tm
  * \brief Translation model training.
  *
- * This module contains all the code relevant to train translation models,
- * including the IBM1/2/HMM word alignment models and the phrase tables.
- * It also includes the code relevant to using word alignment models.
+ * This module contains all the code relevant to build phrase tables.
+ */
+
+/**
+ * \dir tp_models
+ * \brief Tightly packed models: TPPTs, TPLMs.
+ *
+ * This module contains all the code relevant to convert language models,
+ * translation models, lexicalized distortion models into their tightly-packed
+ * equivalents, as well as code to use these models.
  */
 
 /**
  * \dir tpt
  * \brief Tightly packed tries, suffix arrays and related code.
  *
- * This module contains all the code relevant to convert language models,
- * translation models, lexicalized distortion models into their tightly-packed
- * equivalents, as well as code to use these models.
+ * This module contains the tightly-packed data structures, i.e., the building
+ * blocks for the tightly-packed models found in tp_models.
  */
 
 /**
@@ -120,5 +136,13 @@
  * A number of utilities in this directory are in bash, perl and python; this
  * document only includes C++ code: documentation for the scripts can be found
  * within the scripts themselves.
+ */
+
+/**
+ * \dir word_align
+ * \brief Word alignment models
+ *
+ * This module contains all the code relevant to train and use word-alignment
+ * models: the IBM1/2/HMM word alignment models.
  */
 
