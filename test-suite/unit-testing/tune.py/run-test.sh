@@ -17,7 +17,7 @@ make clean
 if [[ $PBS_JOBID ]]; then
    make all -j
 else
-   make all -j 2
+   make all
 fi
 
 exit
