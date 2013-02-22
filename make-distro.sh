@@ -381,9 +381,20 @@ make_usage() {
    r popd
 }
 
+# Examine /etc/redhat-release to determine if we're building for el5 or el6
+determine_distro_level() {
+   local RELEASE_FILE=/etc/redhat-release
+   if [[ -r $RELEASE_FILE ]]; then
+      local GREP_OUT=`grep -o ' [0-9]\.[0-9]' $RELEASE_FILE | grep -o '[0-9]' | head -1`
+      if [[ $GREP_OUT != "" ]]; then
+         echo -n -el$GREP_OUT
+      fi
+   fi
+}
+
 make_bin() {
    print_header "make_bin ICU=$ICU"
-   ELFDIR=`arch`
+   ELFDIR=`arch``determine_distro_level`
    if [[ $ICU = yes ]]; then
       ICU_LIB="ICU=$ICU_ROOT NO_ICU_RPATH=1"
       ELFDIR=$ELFDIR-icu
