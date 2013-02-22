@@ -1,6 +1,6 @@
 /**
  * @author Samuel Larkin
- * @file Prog.h  This file servers as a guide on how to use the argProcessor class.
+ * @file Program.h  This file serves as a guide on how to use the argProcessor class.
  *
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -8,9 +8,6 @@
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2004, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2004, Her Majesty in Right of Canada
- *
- * Description:
- *
  */
 
 #ifndef YOUR_APPLICATION_GUARD_H

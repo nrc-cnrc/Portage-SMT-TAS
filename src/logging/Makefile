@@ -7,7 +7,7 @@
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
 
-INCLUDES = $(filter-out Prog.h, $(wildcard *.h))
+INCLUDES = $(filter-out Program.h, $(wildcard *.h))
 
 PROGRAMS =
 

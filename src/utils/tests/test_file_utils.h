@@ -72,8 +72,11 @@ public:
       TS_ASSERT(!is_directory(tmp_file_name));
       unlink(tmp_file_name);
       TS_ASSERT(!is_directory(tmp_file_name));
-      TS_ASSERT(symlink(cwd, tmp_file_name) == 0);
-      TS_ASSERT(is_directory(tmp_file_name));
+      // We used to assert symlink() did not fail - now we check instead so we
+      // can compile PortageII on a samba mount.
+      if (symlink(cwd, tmp_file_name) == 0) {
+         TS_ASSERT(is_directory(tmp_file_name));
+      }
       unlink(tmp_file_name);
       TS_ASSERT(!is_directory(tmp_file_name));
    }

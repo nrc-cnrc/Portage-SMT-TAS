@@ -1,8 +1,8 @@
 /**
  * @author Samuel Larkin
- * @file Prog.cc  Example of program using argProcessor.
- * 
- * This file servers as a guide on how to use the argProcessor class
+ * @file Program.cc  Example of program using argProcessor.
+ *
+ * This file serves as a guide on how to use the argProcessor class
  *
  *
  * Technologies langagieres interactives / Interactive Language Technologies
