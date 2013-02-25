@@ -1,7 +1,6 @@
 /**
- * $Id$
  * @author George Foster, updated by Darlene Stewart to reduce memory footprint
- * @file train_tm_mixture.cc 
+ * @file train_tm_mixture.cc
  * @brief  Learn linear weights on the probability columns of a set of input cpts.
  *
  * The input cpts must be sorted with LC_ALL=C.
@@ -76,7 +75,7 @@ struct Probs {
          for (Uint cpt = 0; cpt < num_cpts; ++cpt)
             probs[cpt].resize(num_phrases);
    }
-      
+
    void setProb(Uint cpt, Uint phrase, Uint col, Uint ncols, float prob) {
       assert(cpt < probs.size());
       if (phrase >= probs[cpt].size())  // no-op when sized in constructor
@@ -174,7 +173,7 @@ int MAIN(argc, argv)
    printCopyright(2010, "train_tm_mixture");
    getArgs(argc, argv);
 
-   for (vector<string>::iterator p = input_cpt_files.begin(); 
+   for (vector<string>::iterator p = input_cpt_files.begin();
 	p != input_cpt_files.end(); ++p) {
       error_unless_exists(*p, true, "cpt");
    }
@@ -277,7 +276,7 @@ int MAIN(argc, argv)
                }
             }
             if (verbose)
-               cerr << "iter " << iter+1 << " done: ppx = " 
+               cerr << "iter " << iter+1 << " done: ppx = "
                     << exp(-lp / tot_jpt_freq) << endl;
             if (em.estimate() < prec)
                break;
@@ -293,7 +292,7 @@ int MAIN(argc, argv)
    }
 
 
-   // Read the cpts again, merging them using the weights computed above and
+   // Read the cpts again, merging them using the weights computed above, and
    // write the output cpt.
    Datum::initWeights(wts);
    mergeStream<Datum> ms(input_cpt_files);

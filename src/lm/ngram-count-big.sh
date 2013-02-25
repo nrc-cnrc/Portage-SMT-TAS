@@ -60,6 +60,11 @@ Options:
    exit 1
 }
 
+echo ""
+echo $0 $*
+
+echo "Using $TMPDIR as TMPDIR"
+
 ORDER=3
 CHUNK_SIZE=250m
 N=3
@@ -78,8 +83,6 @@ while [ $# -gt 0 ]; do
    esac
    shift
 done
-
-echo "Using $TMPDIR as TMPDIR"
 
 if [ "`expr $ORDER + 0 2> /dev/null`" != "$ORDER" ]; then
    error_exit "$ORDER is not an integer."

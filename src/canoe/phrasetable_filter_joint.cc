@@ -2,8 +2,6 @@
  * @author Samuel Larkin
  * @file phrasetable_filter_joint.cc  phrase table filter based on filter_joint
  *
- * $Id$
- *
  * Implements the phrase table filter based on filter_joint algorithm
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -25,15 +23,15 @@ Logging::logger ptLogger_filter_joint(Logging::getLogger("debug.canoe.phraseTabl
 
 
 PhraseTableFilterJoint::PhraseTableFilterJoint(bool limitPhrases,
-   VocabFilter &tgtVocab,
-   const pruningStyle* const pruning_type,
-   const char* pruningTypeStr,
-   const vector<double>* const hard_filter_weights)
-: Parent(limitPhrases, tgtVocab, pruningTypeStr)
-, visitor(NULL)
-, tgtTable(NULL)
-, pruning_type(pruning_type)
-, online_filter_output(NULL)
+                                               VocabFilter &tgtVocab,
+                                               const pruningStyle* const pruning_type,
+                                               const char* pruningTypeStr,
+                                               const vector<double>* const hard_filter_weights) :
+   Parent(limitPhrases, tgtVocab, pruningTypeStr)
+   , visitor(NULL)
+   , tgtTable(NULL)
+   , pruning_type(pruning_type)
+   , online_filter_output(NULL)
 {
    // Keep a reference on the pruning style.
    assert(pruning_type);

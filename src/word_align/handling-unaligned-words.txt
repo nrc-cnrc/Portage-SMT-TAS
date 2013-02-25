@@ -30,8 +30,8 @@ process.
    alignment in which some words are linked, some are not linked (if the
    algorithm is stopped after the 1st or 2nd step), and some are linked to
    NULL. These possibilities correspond to states 1, 2, and 3 above,
-   respectively. The "exclude" option can be used to assign all words in state
-   2 to state 3 after alignment.
+   respectively. The "exclude" option can be used to convert all unlinked
+   (state 2) words to untranslated (state 3) words.
 
    PosteriorAligner first computes posterior probabilities for all possible
    links using each of the input alignments. It then multiplies the posteriors

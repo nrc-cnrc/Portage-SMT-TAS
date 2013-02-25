@@ -3,8 +3,6 @@
  * @file pylm.cc
  * @brief Provide LM access from python via a C language interface.
  *
- * $Id$
- *
  * No corresponding pylm.h file is provided because these functions are
  * intended to be called from python, not from C/C++.
  *
@@ -15,7 +13,8 @@
  * Copyright 2011, Her Majesty in Right of Canada
  */
 #include <iostream>
-#include <lm.h>
+#include "lm.h"
+#include "logging.h"
 
 using namespace Portage;
 using namespace std;
@@ -107,6 +106,11 @@ extern "C" {
     */
    PLM* PLM_create(char* lmfile, VocabFilter* vf)
    {
+      static bool logging_init = false;
+      if (!logging_init) {
+         Logging::init();
+         logging_init = true;
+      }
       return PLM::Create(lmfile, vf, PLM::SimpleAutoVoc, -INFINITY, true, 0, NULL);
    }
 

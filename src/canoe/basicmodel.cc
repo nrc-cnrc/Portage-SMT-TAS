@@ -4,7 +4,6 @@
  * class, which provides a log-linear model comprised of translation models,
  * language models, and built-in distortion and length penalties.
  *
- * $Id$
  *
  * Canoe Decoder
  *
@@ -45,7 +44,7 @@ void BasicModelGenerator::InitDecoderFeatures(const CanoeConfig& c)
       const CanoeConfig::FeatureGroup *f = it->second;
       assert(!f->need_args || f->weights.size() == f->args.size());
       for (Uint i(0); i < f->size(); ++i) {
-         string args = f->need_args ? f->args[i] : "";
+         const string args = f->need_args ? f->args[i] : "";
          LOG_VERBOSE2(bmgLogger, "Creating a %s model with >%s<",
             f->group.c_str(), args.c_str());
          decoder_features.push_back(DecoderFeature::create(this, f->group, args));

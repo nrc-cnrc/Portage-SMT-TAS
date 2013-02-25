@@ -750,7 +750,7 @@ goto $skipto if $skipto;
 IN:{
    if ($xml) {
       call("ce_tmx.pl -verbose=$verbose -src=$xsrc -tgt=$xtgt extract '$dir' '$input_text'");
-      cleanupAndDie("XML file $input_text has no sentence in language $xsrc.\n") unless -s $Q_txt or $dryrun;
+      cleanupAndDie("XML file $input_text has no sentences in language $xsrc.\n") unless -s $Q_txt or $dryrun;
    } else {
       copy($input_text, $Q_txt);
    }
@@ -1073,7 +1073,7 @@ sub strip_entity {
    die "You need to provide in and out" unless (defined($in) and defined($out));
 
    verbose("Stripping Entities\n");
-   
+
    return if $dryrun;
 
    open(IN, "< :encoding(utf-8)", $in)

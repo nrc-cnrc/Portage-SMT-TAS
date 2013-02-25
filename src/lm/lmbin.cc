@@ -1,9 +1,7 @@
 /**
  * @author Eric Joanis
- * @file lmbin.cc - LMBin implementation.
- * $Id$
- *
- * COMMENTS:
+ * @file lmbin.cc
+ * @brief LMBin implementation
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
@@ -76,7 +74,7 @@ void LMBin::read_binary(const string& binlm_filename, Uint limit_order)
             binlm_filename.c_str());
    getline(ifs, line);
    splitZ(line,tokens,"=");
-   Uint internal_nodes_in_file= 0;
+   Uint internal_nodes_in_file = 0;
    if ( tokens.size() != 2 ||
         tokens[0] != "End of Portage BinLM file.  Internal node count" ||
         !conv(tokens[1], internal_nodes_in_file) )

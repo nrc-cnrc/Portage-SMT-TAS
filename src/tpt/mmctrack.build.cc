@@ -139,7 +139,7 @@ int MAIN(argc, argv)
   while (getline(cin,line))
     {
       Tdx.toIdSeq(snt, line);
-      id_type prev_totalWords = totalWords;
+      const id_type prev_totalWords = totalWords;
       totalWords += snt.size();
       if (totalWords < prev_totalWords)
         cerr << efatal << "overflow writing corpus track file " << ctrackFile

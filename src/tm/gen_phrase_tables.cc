@@ -204,9 +204,6 @@ namespace genPhraseTable {
 
 /// Specific argument processing class for gen_phrase_table program.
 class ARG : public argProcessor {
-private:
-   Logging::logger m_logger;
-
 public:
    /**
     * Default constructor.
@@ -215,16 +212,13 @@ public:
     * @param alt_help  alternate help message
     */
    ARG(const int argc, const char* const argv[], const char* alt_help) :
-      argProcessor(ARRAY_SIZE(switches), switches, 1, -1, help_message, "-h", false, alt_help, "-H"),
-      m_logger(Logging::getLogger("verbose.main.arg"))
+      argProcessor(ARRAY_SIZE(switches), switches, 1, -1, help_message, "-h", false, alt_help, "-H")
    {
       argProcessor::processArgs(argc, argv);
    }
 
    /// See argProcessor::processArgs()
    virtual void processArgs() {
-      LOG_INFO(m_logger, "Processing arguments");
-
       if (mp_arg_reader->getSwitch("v")) {ppe.verbose = 1; smoothing_verbose = 1;}
       if (mp_arg_reader->getSwitch("vv")) ppe.verbose = 2;
       if (mp_arg_reader->getSwitch("vs")) smoothing_verbose = 2;

@@ -344,9 +344,9 @@ namespace ugdiss
    TpPhraseTable::Node::
    value(bool cacheValue)
    {
-      const uint32_t num_floats = root->third_col_count + root->fourth_col_count;
       if (root && valStart && !valPtr)
       {
+         const uint32_t num_floats = root->third_col_count + root->fourth_col_count;
          typedef map<char const*,TpPhraseTable::val_ptr_t>::iterator myIter;
          myIter m = root->cache.find(valStart);
          if (m != root->cache.end())

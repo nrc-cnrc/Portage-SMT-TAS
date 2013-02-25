@@ -258,6 +258,69 @@ string Portage::extractFilename(const string& path)
       return path.substr(pos+1);
 }
 
+string Portage::path2file(const string& path)
+{
+   string ret;
+   if (path[0] == '.') ret = "r";
+   else if (path[0] == '/') ret = "a";
+   for (Uint i = 0; i < path.size(); ++i)
+      if (path[i] == '/') ret += "_";
+      else ret += path[i];
+   return ret;
+}
+
+/**
+ * Create a directory.
+ * Create a directory if it doesn't exist or validate that a directory exists
+ * if there is an entry for that name.
+ * @param:  dir   directory's name.
+ * @param:  permissions  permissions for dir.
+ * @return Return true if the directory is present/created.
+ */
+static bool mkDirHelper(const char *directory, mode_t permissions) {
+   struct stat st;
+
+   if (stat(directory, &st) != 0) {
+      // Looks like the directory does not exist.  Let's create it.
+      if (mkdir(directory, permissions) != 0) {
+         int errnum = errno;
+         error(ETWarn, "Can't create directory %s: %s", directory, strerror(errnum));
+         return false;
+      }
+   }
+   // There is already something with the name directory, let's make sure it is a directory.
+   else if (!S_ISDIR(st.st_mode)) {
+      error(ETWarn, "%s already exists and is not a directory", directory);
+      return false;
+   }
+
+   return true;
+}
+
+bool Portage::mkDirectories(const char* const directory, const mode_t permissions)
+{
+    char* subDirectory = strdup(directory);
+    assert(subDirectory);
+    char* previousSlash = subDirectory;
+    char* nextSlash;
+    bool  status = true;
+
+    while (status && (nextSlash = strchr(previousSlash, '/')) != NULL) {
+       // skip over empty path like top/////lower.
+       if (nextSlash != previousSlash) {
+          *nextSlash = '\0';  // Creates a subPath.
+          status = mkDirHelper(subDirectory, permissions);
+          *nextSlash = '/';   // Restores the full Path.
+       }
+       previousSlash = nextSlash + 1;
+    }
+    if (status) {
+        status = mkDirHelper(directory, permissions);
+    }
+    free(subDirectory);
+    return status;
+}
+
 string Portage::swap_languages(
       const string& s, const string& separator,
       string* out_l1, string* out_l2, string* out_prefix, string* out_suffix

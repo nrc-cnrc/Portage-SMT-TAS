@@ -1,5 +1,4 @@
 #!/usr/bin/perl -s
-# $Id$
 # @file ce_ttx2ospl.pl 
 # @brief Handle TTX files for confidence estimation
 # 
@@ -103,7 +102,7 @@ use Time::gmtime;
 
 $|=1;
 
-my $output_layers = ":utf8"; # ':raw:encoding(UTF8):crlf:utf8';
+my $output_layers = ":encoding(UTF-8)"; # ':raw:encoding(UTF8):crlf:utf8';
 
 my $DEFAULT_SRC="EN-CA";
 my $DEFAULT_TGT="FR-CA";

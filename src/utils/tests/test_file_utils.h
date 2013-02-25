@@ -73,7 +73,7 @@ public:
       unlink(tmp_file_name);
       TS_ASSERT(!is_directory(tmp_file_name));
       // We used to assert symlink() did not fail - now we check instead so we
-      // can compile PortageII on a samba mount.
+      // can compile on a samba mount.
       if (symlink(cwd, tmp_file_name) == 0) {
          TS_ASSERT(is_directory(tmp_file_name));
       }
@@ -82,7 +82,7 @@ public:
    }
 
    void testGetAppPath() {
-      string my_app_path = GetAppPath();
+      const string my_app_path = GetAppPath();
       TS_ASSERT_EQUALS(BaseName(my_app_path).substr(0,5), "test_");
       TS_ASSERT_EQUALS(BaseName(DirName(my_app_path)), "tests");
       TS_ASSERT_EQUALS(BaseName(DirName(DirName(my_app_path))), "utils");
@@ -97,6 +97,30 @@ public:
       TS_ASSERT_EQUALS(adjustRelativePath("a/b/c", ""), "");
       TS_ASSERT_EQUALS(adjustRelativePath("", "test_file"), "test_file");
       TS_ASSERT_EQUALS(adjustRelativePath("", ""), "");
+   }
+
+   void testMkDirectories() {
+      char tmp_dir_name_template[] = "./tmp_test_mk_directories.XXXXXX";
+      char* tmp_dir_name = mkdtemp(tmp_dir_name_template);
+      assert(tmp_dir_name != NULL);
+      TS_ASSERT(is_directory(tmp_dir_name));
+
+      const string hierarchy = tmp_dir_name;
+      TS_ASSERT(mkDirectories((hierarchy + "/A/B/C").c_str()));
+      TS_ASSERT(is_directory(hierarchy));
+      TS_ASSERT(is_directory(hierarchy + "/A"));
+      TS_ASSERT(is_directory(hierarchy + "/A/B"));
+      TS_ASSERT(is_directory(hierarchy + "/A/B/C"));
+      TS_ASSERT(mkDirectories((hierarchy + "/A").c_str()));
+      TS_ASSERT(mkDirectories((hierarchy + "/A/D/E").c_str()));
+      TS_ASSERT(is_directory(hierarchy + "/A/D/E"));
+
+      rmdir((hierarchy + "/A/B/C").c_str());
+      rmdir((hierarchy + "/A/B").c_str());
+      rmdir((hierarchy + "/A/D/E").c_str());
+      rmdir((hierarchy + "/A/D").c_str());
+      rmdir((hierarchy + "/A").c_str());
+      rmdir(hierarchy.c_str());
    }
 }; // TestFileUtils
 

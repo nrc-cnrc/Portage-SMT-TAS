@@ -19,6 +19,8 @@
 #include "str_utils.h"
 #include "portage_defs.h"
 #include "MagicStream.h" // We include MagicStream because we want it to be part of the file_utils
+#include <sys/types.h>   // mode_t
+#include <sys/stat.h>    // mkdir S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH
 
 namespace Portage {
 
@@ -265,6 +267,21 @@ string addExtension(const string& filename, const string& toBeAdded);
  * @return Return the file name
  */
 string extractFilename(const string& path);
+
+/**
+ * Convert a path name into a file name. Eg:
+ * /path/to/file.ext -> a_path_to_file.ext
+ * ../path/to/file.ext -> r_.._path_to_file.ext
+ */
+string path2file(const string& path);
+
+/**
+ * Create all directory paths a la mkdir -p.
+ * @param directory  directory's path.
+ * @param permissions permission defaults to user read,write&execute, group read,write&execute, other execute&search.
+ * @return true if the directory was created.
+ */
+bool mkDirectories(const char* const directory, const mode_t permissions = S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
 /**
  * Parse s, typically a file name, and swap its two languages.

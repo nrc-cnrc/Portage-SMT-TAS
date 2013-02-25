@@ -48,7 +48,7 @@ sub tok_abuts_prev($\@); #(index, token_positions)
 sub tok_is_dot(\$$\@); #(para_string, index, token_positions)
 sub tok_is_xtag(\$$\@); #($para_string, index, token_positions)
 sub context_says_abbr(\$$\@); #($para_string, index_of_dot, token_positions)
-sub looks_like_abbr(\$$\@); # (lang, para_string, index_of_abbr, token_positions)
+sub looks_like_abbr(\$$\@); # (para_string, index_of_abbr, token_positions)
 sub len(\$); #(string)
 sub matches_known_abbr($); #(word)
 
@@ -890,7 +890,7 @@ sub split_word_fr #(word, offset)
    return @atom_positions;
 }
 
-# Split an Spanish word into parts, eg ?????
+# Split a Spanish word into parts, eg ?????
 # Return list of (start,len) atom positions.
 
 sub split_word_es #(word, offset)
@@ -904,7 +904,7 @@ sub split_word_es #(word, offset)
    return @atom_positions;
 }
 
-# Split an Danish word into parts, eg ?????
+# Split a Danish word into parts, eg ?????
 # Return list of (start,len) atom positions.
 
 sub split_word_da #(word, offset)
@@ -1306,7 +1306,7 @@ sub is_price_abut_left # ch1, ch2
 {
    my $ch_pre=shift;
    my $ch_before=shift;
-   return (($detokenizationLang eq "en" or $detokenizationLang eq "es") && 
+   return (($detokenizationLang eq "en" or $detokenizationLang eq "es") &&
            $ch_before =~ /^$tag_re*\$$tag_re*$/ && $ch_pre =~ /^$tag_re*\.?\d/oi);
 }
 

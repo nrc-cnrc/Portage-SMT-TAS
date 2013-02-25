@@ -9,8 +9,8 @@
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2009, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2009, Her Majesty in Right of Canada
+# Copyright 2009-2013, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2009-2013, Her Majesty in Right of Canada
 
 =pod
 
@@ -93,8 +93,8 @@ Michel Simard & Samuel Larkin
  Technologies langagieres interactives / Interactive Language Technologies
  Inst. de technologie de l'information / Institute for Information Technology
  Conseil national de recherches Canada / National Research Council Canada
- Copyright 2009, Sa Majeste la Reine du Chef du Canada /
- Copyright 2009, Her Majesty in Right of Canada
+ Copyright 2009-2013, Sa Majeste la Reine du Chef du Canada /
+ Copyright 2009-2013, Her Majesty in Right of Canada
 
 =cut
 
@@ -931,10 +931,10 @@ sub ixSave {
             ->text();
 
       $text = normalize($text);
-      $tag  = normalize($tag); 
+      $tag  = normalize($tag);
       debug("xml: $xml\n\ttag: $tag\n\ttext: $text\n");
 
-      return ($text, $tag); 
+      return ($text, $tag);
    }
 
    for my $id (sort keys %{$ix->{segment}}) {
@@ -944,7 +944,7 @@ sub ixSave {
       print {$id_out} $id, "\n";
       if (defined($tag_file)) {
          if (defined($tag)) {
-            print {$tag_out} $tag, "\n"; 
+            print {$tag_out} $tag, "\n";
          }
          else {
             print {$tag_out} "PORTAGE_NULL\n";

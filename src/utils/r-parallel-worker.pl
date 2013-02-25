@@ -141,14 +141,35 @@ if ( defined $subst ) {
 #            acknowledge completion
 #
 
+log_msg "Starting $0";
+
 my $start_time = time;
 my $reply_rcvd = send_recv "GET ($me)";
 chomp $reply_rcvd;
 
+my $sleeping = 0;
 sub report_signal($) {
-   log_msg "Caught signal $_[0], Aborting job";
-   send_recv "SIGNALED ($me) ***(rc=$_[0])*** $reply_rcvd";
-   exit;
+   log_msg "Caught signal $_[0].";
+   if ($sleeping) {
+      log_msg "Currently sleeping, ignoring repeated signal";
+   } else {
+      if ( $_[0] == 10 ) {
+         my $delay = int(rand(5));
+         log_msg "Caught signal USR1 (10); sleeping $delay seconds and aborting job";
+         $sleeping = 1;
+         sleep $delay;
+         $sleeping = 0;
+      } elsif ( $_[0] == 12 ) {
+         my $delay = int(rand(10));
+         log_msg "Caught signal USR2 (12); sleeping $delay seconds and aborting job";
+         $sleeping = 1;
+         sleep $delay;
+         $sleeping = 0;
+      }
+      log_msg "Caught signal $_[0]. Aborting job";
+      send_recv "SIGNALED ($me) ***(rc=$_[0])*** (signal=$_[0]) $reply_rcvd";
+      exit;
+   }
 }
 
 my $mon_pid;
@@ -181,6 +202,12 @@ if ( $mon ) {
    #log_msg "Monitor PID $mon_pid";
 }
 
+$SIG{INT} = sub { report_signal(2) };
+$SIG{QUIT} = sub { report_signal(3) };
+$SIG{USR1} = sub { report_signal(10) };
+$SIG{USR2} = sub { report_signal(12) };
+$SIG{TERM} = sub { report_signal(15) };
+
 while(defined $reply_rcvd and $reply_rcvd !~ /^\*\*\*EMPTY\*\*\*/i
          and $reply_rcvd ne ""){
    log_msg "Executing $reply_rcvd";
@@ -190,9 +217,6 @@ while(defined $reply_rcvd and $reply_rcvd !~ /^\*\*\*EMPTY\*\*\*/i
       log_msg "Received ill-formatted command: $reply_rcvd";
       $exit_status = -2;
    } else {
-      $SIG{INT} = sub { report_signal(2) };
-      $SIG{QUIT} = sub { report_signal(3) };
-      $SIG{TERM} = sub { report_signal(15) };
       if ( defined $subst ) {
          $job_command =~ s/\Q$subst_match\E/\Q$subst_replacement\E/go;
          log_msg "Substitued command: $job_command";
@@ -201,7 +225,6 @@ while(defined $reply_rcvd and $reply_rcvd !~ /^\*\*\*EMPTY\*\*\*/i
       # Ubuntu and Debian)
       my $rc = system("/bin/bash", "-c", $job_command);
       #my $rc = system($job_command);
-      $SIG{INT} = $SIG{QUIT} = $SIG{TERM} = "IGNORE";
       if ( $rc == -1 ) {
          log_msg "System return code = $rc, means couldn't start job: $!";
          $exit_status = -1;

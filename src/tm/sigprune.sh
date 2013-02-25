@@ -1,6 +1,5 @@
 #!/bin/bash
 # vim:nowrap
-# $Id$
 
 # @file sigprune.sh
 # @brief Wraps Howard's significance pruning into one script.
@@ -141,6 +140,9 @@ TGT=$1; shift
 SIG=$1; shift || SIG="-"
 test $# -gt 0   && error_exit "Superfluous arguments $*"
 
+[[ -r $JPT && -s $JPT ]] || error_exit "JPT file $JPT empty or non-existent or not readable"
+[[ -r $SRC && -s $SRC ]] || error_exit "SRC file $SRC empty or non-existent or not readable"
+[[ -r $TGT && -s $TGT ]] || error_exit "TGT file $TGT empty or non-existent or not readable"
 
 if [[ $THRESHOLD == "a-e" ]]; then
    # Keeps <1,1,1>

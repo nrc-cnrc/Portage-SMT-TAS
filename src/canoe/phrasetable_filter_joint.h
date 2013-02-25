@@ -2,8 +2,6 @@
  * @author Samuel Larkin
  * @file phrasetable_filter_joint.h  Interface for filtering phrase table based on filter_joint
  *
- * $Id$
- *
  * Interface for filtering phrase table based on filter_joint
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -51,10 +49,10 @@ class PhraseTableFilterJoint : public PhraseTableFilter {
        * @param hard_filter_weights             TM weights for hard filtering
        */
       PhraseTableFilterJoint(bool limitPhrases,
-         VocabFilter& tgtVocab,
-         const pruningStyle* const pruning_type,
-         const char* pruningTypeStr = NULL,
-         const vector<double>* const hard_filter_weights = NULL);
+                             VocabFilter& tgtVocab,
+                             const pruningStyle* const pruning_type,
+                             const char* pruningTypeStr = NULL,
+                             const vector<double>* const hard_filter_weights = NULL);
 
       /// Destructor.
       virtual ~PhraseTableFilterJoint();

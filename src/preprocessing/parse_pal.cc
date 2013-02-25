@@ -1,16 +1,16 @@
 /**
  * @author George Foster
  * @file parse_pal.cc  Implementation that parses canoe's phrase-alignment files.
- * 
- * 
- * COMMENTS: 
+ *
+ *
+ * COMMENTS:
  *
  * Parse canoe's phrase-alignment files.
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2006, Sa Majeste la Reine du Chef du Canada / 
+ * Copyright 2006, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2006, Her Majesty in Right of Canada
  */
 
@@ -74,10 +74,10 @@ string& Portage::unParsePhraseAlign(const vector<PhrasePair>& phrase_pairs, stri
    ostringstream oss;
    for (Uint i = 0; i < phrase_pairs.size(); ++i)
       oss << i+1
-	  << ':'  << phrase_pairs[i].src_pos.first << '-' << phrase_pairs[i].src_pos.second-1
-	  << ':'  << phrase_pairs[i].tgt_pos.first << '-' << phrase_pairs[i].tgt_pos.second-1
-	  << ':'  << (phrase_pairs[i].oov ? 'O' : 'I')
-          << ':'  << phrase_pairs[i].alignment
+          << ':' << phrase_pairs[i].src_pos.first << '-' << phrase_pairs[i].src_pos.second-1
+          << ':' << phrase_pairs[i].tgt_pos.first << '-' << phrase_pairs[i].tgt_pos.second-1
+          << ':' << (phrase_pairs[i].oov ? 'O' : 'I')
+          << ':' << phrase_pairs[i].alignment
           << (i+1 < phrase_pairs.size() ? " " : "");
    return s = oss.str();
 }
@@ -94,19 +94,19 @@ struct CompareTargetPositions {
    }
 };
 
-void Portage::sortBySource(vector<PhrasePair>::iterator beg, 
+void Portage::sortBySource(vector<PhrasePair>::iterator beg,
                            vector<PhrasePair>::iterator end)
 {
    sort(beg, end, CompareSourcePositions());
 }
 
 void Portage::sortByTarget(vector<PhrasePair>::iterator beg,
-                           vector<PhrasePair>::iterator end) 
+                           vector<PhrasePair>::iterator end)
 {
    sort(beg, end, CompareTargetPositions());
 }
 
-bool Portage::sourceContig(vector<PhrasePair>::iterator beg, 
+bool Portage::sourceContig(vector<PhrasePair>::iterator beg,
                            vector<PhrasePair>::iterator end)
 {
    for (vector<PhrasePair>::iterator p = beg+1; p < end; ++p)
@@ -115,7 +115,7 @@ bool Portage::sourceContig(vector<PhrasePair>::iterator beg,
    return true;
 }
 
-bool Portage::targetContig(vector<PhrasePair>::iterator beg, 
+bool Portage::targetContig(vector<PhrasePair>::iterator beg,
                            vector<PhrasePair>::iterator end)
 {
    for (vector<PhrasePair>::iterator p = beg+1; p < end; ++p)
@@ -127,7 +127,7 @@ bool Portage::targetContig(vector<PhrasePair>::iterator beg,
 PalReader::PalReader(const string& srcfile, const string& outfile, const string& palfile,
                      bool verbose) :
    srcfile(srcfile), outfile(outfile), palfile(palfile),
-   src(srcfile), out(outfile), pal(palfile), 
+   src(srcfile), out(outfile), pal(palfile),
    output_is_nbest(false), n(1), i(0)
 {
    if (srcfile == "-" || outfile == "-" || palfile == "-")
@@ -138,19 +138,19 @@ PalReader::PalReader(const string& srcfile, const string& outfile, const string&
    Uint plines = countFileLines(palfile);
    n = plines / slines;
    if (n * slines != plines)
-      error(ETFatal, "number of lines in palfile %s must be an integer multiple of lines in srcfile %s", 
+      error(ETFatal, "number of lines in palfile %s must be an integer multiple of lines in srcfile %s",
             palfile.c_str(), srcfile.c_str());
    if (olines == plines)
       output_is_nbest = true;
    else if (olines != slines)
-      error(ETFatal, "number of lines in outfile %s must match either srcfile %s or palfile %s", 
+      error(ETFatal, "number of lines in outfile %s must match either srcfile %s or palfile %s",
             outfile.c_str(), srcfile.c_str(), palfile.c_str());
 
    if (verbose) {
       cerr << "reading source file " << srcfile << endl;
-      cerr << "reading output file " << outfile << ", with " 
+      cerr << "reading output file " << outfile << ", with "
            << (output_is_nbest ? n : 1) << "-best hyps " << endl;
-      cerr << "reading phrase-alignment file " << palfile << ", with " 
+      cerr << "reading phrase-alignment file " << palfile << ", with "
            << n << "-best alignments" << endl;
    }
 }

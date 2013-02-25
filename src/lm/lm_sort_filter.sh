@@ -1,5 +1,4 @@
 #!/bin/bash
-# $Id$
 
 # @author Samuel Larkin
 # @file lm_sort_filter.sh

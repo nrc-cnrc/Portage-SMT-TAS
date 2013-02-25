@@ -272,14 +272,14 @@ CanoeConfig::CanoeConfig()
       // BMG::InitDecoderFeatures()!!!
    };
    for (Uint i = 0; i+2 < ARRAY_SIZE(weight_names_other); i += 3) {
-      string shortname = weight_names_other[i];
-      string longname = weight_names_other[i+1];
+      const string shortname = weight_names_other[i];
+      const string longname = weight_names_other[i+1];
       weight_params_other.push_back(shortname);
-      FeatureGroup *f = features[shortname] =
+      FeatureGroup * const f = features[shortname] =
          new FeatureGroup(shortname, weight_names_other[i+2]);
 
-      string weight_names = "weight-" + longname + " " + shortname;
-      string random_names = "random-" + longname + " r" + shortname;
+      const string weight_names = "weight-" + longname + " " + shortname;
+      const string random_names = "random-" + longname + " r" + shortname;
       param_infos.push_back(ParamInfo(weight_names, "doubleVect", &f->weights));
       param_infos.push_back(ParamInfo(random_names, "stringVect", &f->rnd_weights));
    }

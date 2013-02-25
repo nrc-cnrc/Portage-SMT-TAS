@@ -1,12 +1,12 @@
 #!/usr/bin/perl -sw
 
-# @file nbest2rescore.pl 
+# @file nbest2rescore.pl
 # @brief Parses nbest lists.
-# 
+#
 # @author Michel Simard
-# 
+#
 # COMMENTS:
-# 
+#
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
@@ -39,7 +39,7 @@ my $ffvals_re = qr/v=\[([^\]]+)\]/;
 my $legacy_re = qr/\(([^\)]+)\)/;
 
 # command-line
-my $HELP = 
+my $HELP =
 "Usage: nbest2rescore.pl [options]
 
 Read N-best translation files, as produced by the canoe decoder, and produce
@@ -97,7 +97,7 @@ die "Don't know what to do with these extra arguments: @ARGV"
 
 
 # Do it.
-open(my $in_stream, "<$in") 
+open(my $in_stream, "<$in")
     or die "Error: nbest2rescore.pl can't open input nbest file <'$in': $!\n";
 
 my $out_stream = new FileHandle;
@@ -124,14 +124,14 @@ my $max_ff_vals = 0;		# Ugly global var to keep track of
 while (my $line = <$in_stream>) {
     chomp $line;
     my $translation = parseTranslation($line, $legacy);
-    printOutput($format, $translation, ++$count, 
+    printOutput($format, $translation, ++$count,
 		$out_stream, $ff_stream, $pal_stream);
     last if ($nbest && $translation && ($count >= $nbest));
 }
 
 close $in_stream;
 close $out_stream;
-close $ff_stream 
+close $ff_stream
     if $ff_stream;
 close $pal_stream
     if $pal_stream;
@@ -207,7 +207,7 @@ sub parseTranslation {
 	    my @v = ();
 	    @v = $legacy ? split(/\s*,\s*/o, $ffvals) : split(/;/o, $ffvals);
 	    $record{ffvals} = [ @v ];
-	    $max_ff_vals = @v if @v > $max_ff_vals; # Ugly global var to keep track of number of features 
+	    $max_ff_vals = @v if @v > $max_ff_vals; # Ugly global var to keep track of number of features
 	}
 	
 	push @phrases, { %record };
@@ -242,8 +242,8 @@ sub printXML {
     return unless $translation;
 
     print $outstream "<translation>\n";
-    print $outstream (" <target no=\"$count\">", 
-		      join(" ", @{$translation->{target}}), 
+    print $outstream (" <target no=\"$count\">",
+		      join(" ", @{$translation->{target}}),
 		      "</target>\n");
     print $outstream " <phrases>\n";
     foreach my $phrase (@{$translation->{phrases}}) {
@@ -288,7 +288,7 @@ sub printRescore {
 	    my $psz = scalar @{$phrase->{phrase}};
 
 	    print $outpal ' ' unless $pcount == 1;   # phrase separator
-	    printf($outpal "%d:%d-%d:%d-%d%s%s", 
+	    printf($outpal "%d:%d-%d:%d-%d%s%s",
 		   $pcount, 	                     # phrase count
 		   $phrase->{begin}, $phrase->{end}, # src range
 		   $tgt_pos, $tgt_pos + $psz - 1,    # tgt range
