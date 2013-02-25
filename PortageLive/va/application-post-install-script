@@ -2,7 +2,7 @@
 # Sample Post-Install Script; see section 3 of PLiveVA.pdf for documentation.
 echo "post-install shell code"
 
-# 3.1 Setting the timezone
+# 3.1 Set the timezone
 ln -sf /usr/share/zoneinfo/America/Montreal /etc/localtime
 
 # 3.2 Customize the user's "PortageII" environment
@@ -27,14 +27,14 @@ chkconfig httpd on
 
 # EXPERIMENTAL MODEL POPULATING
 # 3.6 Fetch huge models from a "publicly" accessible website.
-wget --recursive --no-parent --no-host-directories --reject 'index.html*' --directory-prefix=/ --cut-dirs=5 --level=inf 'http://leclerc.iit-iti.priv/PortageLive/rpms/Hansard-HOC-fr2en-2/models/rpm.build.root/'
+wget --recursive --execute robots=off --wait=0.25 --no-parent --no-host-directories \
+   --reject 'index.html*' --directory-prefix=/ --cut-dirs=6 --level=inf --no-verbose \
+   'http://balzac/PortageLive/rpms/Generic-Model-1.1/PortageLive/models/rpm.build.root/'
 
-find /opt/PortageII/models -type d | xargs chmod 755
-find /opt/PortageII/models -type f | xargs chmod 644
-find /opt/PortageII/models -type f -name \*.sh | xargs chmod 755
-if [[ '/opt/PortageII/models/*/plugins' != '/opt/PortageII/models/\*/plugins' ]]; then
-   find /opt/PortageII/models/*/plugins -type f | xargs -r chmod 755
-fi
+find /opt/PortageII/models -type d | xargs -r chmod 755
+find /opt/PortageII/models -type f | xargs -r chmod 644
+find /opt/PortageII/models -type f -name \*.sh | xargs -r chmod 755
+find /opt/PortageII/models/*/plugins -type f 2> /dev/null | xargs -r chmod 755
 
 # 3.7 Set the default context:
 [ -e /opt/PortageII/models/context ] || ln -s `ls /opt/PortageII/models | head -1` /opt/PortageII/models/context

@@ -1,11 +1,73 @@
-Recipe for creating python-2.7.1-install directory:
+This README describes how to build an RPM for Python 2.7.1 that can be used in
+PortageLive VMs built on CentOS 5.8 using VMware Studio 2.6.
 
-ln -s /home/portage/downloads/Python-2.7.1.tar.bz2
-tar -xjf Python-2.7.1.tar.bz2
-cd Python-2.7.1
-#Edit Makefile.pre.in to change 2 instances of "--root=/$(DESTDIR)" to "--root=$(DESTDIR)".
-#Edit Lib/cgi.py to change first line from "#! /usr/local/bin/python" to "#! /usr/bin/env python".
-./configure --prefix=/opt/python-2.7.1
-make
-DESTDIR=../python-2.7.1-install make install
-cd -
+Originally, we build the Python 2.7.1 on leclerc, where we build all the RPMs
+for PortageLive VMs. This RPM worked fine with CentOS-5.4 through CentOS-5.8;
+it can be found in:
+balzac:/home/portage/PortageLive/rpms/python-2.7.1/leclerc.PortageLive-python_2.7.1-1_x86_64.rpm
+
+With the decommissioning of leclerc, we need an alternative way to re-build the
+Python RPM. Building on balzac results in a half-dozen unresolved dependencies
+when Studio tries to install the RPM in the PortageLive VM; these dependencies
+don't seem easy to resolve. Building on iltautobuild results in fewer unresolved
+dependencies because a number of the packages in question are not installed on
+iltautobuild so python is built without the modules needing those packages.
+
+1. Extract the python 2.7.1 files from the tar archive:
+        mkdir ~/python-2.7.1
+        cd ~/python-2.7.1
+        
+        tar -xjf /home/portage/downloads/Python-2.7.1.tar.bz2
+        
+        cd Python-2.7.1
+
+2. Edit Makefile.pre.in, changing instances of '--root=/$(DESTDIR)' to
+   '--root=$(DESTDIR)', i.e. remove the leading slash. Note: there are 2
+   instances that need to be patched.
+
+   This allows us to use a relative path as the DESTDIR.
+
+3. Edit Lib/cgi.py to change the first line from:
+        #! /usr/local/bin/python
+   to:
+        #! /usr/bin/env python
+
+   This is because we don't install python in /usr/local/bin.
+
+4. If building on iltautobuild, which is CentOS 6.3, we need to disable the
+   requirement for tcl/tk because it builds a python with dependencies on
+   tcl-8.5 and tk-8.5, but the CentOS-5.8 ISO has only tcl-8.4 and tk-8.4, so
+   there are unresolved dependencies when VMware Studio installs the Python
+   2.7.1 RPM resulting in a VM build failure.
+
+   To disable tcl/tk, edit setup.py and add:
+        return
+   at the top of the detect_tkinter function.
+
+5. Configure and build Python 2.7.1:
+        ./configure --prefix=/opt/python-2.7.1
+        make
+        DESTDIR=../python-2.7.1-install make install
+
+6. Do a Git sparse checkout of PortageLive/python and PortageLive/scripts
+   directories from balzac:/home/git/PORTAGEshared.git for building the RPM:
+        cd ~/python-2.7.1
+        git clone -n balzac:/home/git/PORTAGEshared.git python-rpm
+        cd python-rpm
+        git config core.sparsecheckout true
+        echo PortageLive/python > .git/info/sparse-checkout
+        echo PortageLive/scripts >> .git/info/sparse-checkout
+        git read-tree -m -u HEAD
+
+7. If building on iltautobuild, you need to copy over mkpkg if its not already
+   there:
+        cd ~/python-2.7.1
+        mkdir rpm-scripts
+        rsync balzac:/home/portage/PortageLive/rpms/scripts/mkpkg rpm-scripts/
+
+8. Build the python RPM:
+        cd ~/python-2.7.1/python-rpm/PortageLive/python
+        ln -s ../../../python-2.7.1-install
+        ./prep-file-layout.sh
+        PATH=../../../rpm-scripts:$PATH ../scripts/make-rpm
+      
