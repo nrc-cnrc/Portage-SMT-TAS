@@ -76,7 +76,7 @@ ifneq ("$(shell git rev-parse --is-inside-work-tree 2> /dev/null)","true")
 install_summary:
 	@:
 else
-GIT_BRANCH := $(shell git name-rev --name-only HEAD)
+GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE := $(shell git config branch.${GIT_BRANCH}.remote)
 GIT_RBRANCH := $(notdir $(shell git config branch.${GIT_BRANCH}.merge))
 
@@ -96,7 +96,7 @@ install_summary:
 	git status -u ${INSTALL_PATH} >> ${BIN_DIR}/INSTALL_SUMMARY
 	@echo "" >> ${BIN_DIR}/INSTALL_SUMMARY
 	@echo "git diff -p --stat ${GIT_REMOTE}/${GIT_RBRANCH} -- ${INSTALL_PATH}" >> ${BIN_DIR}/INSTALL_SUMMARY
-	git diff -p --stat ${GIT_REMOTE}/${GIT_RBRANCH} -- ${INSTALL_PATH} >> ${BIN_DIR}/INSTALL_SUMMARY
+	-git diff -p --stat ${GIT_REMOTE}/${GIT_RBRANCH} -- ${INSTALL_PATH} >> ${BIN_DIR}/INSTALL_SUMMARY
 endif
 
 
