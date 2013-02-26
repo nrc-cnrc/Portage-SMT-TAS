@@ -557,7 +557,7 @@ void alignPhrasePair(const Dict& dict, const Dict& anti_dict,
       if (pal_wal && (slen != 1 || tlen != 1))
          error(ETFatal, "Missing word-alignment information in the PAL file.  Make sure your phrase table has the a= field, that canoe has -walign, and that nbest2rescore.pl has -wal.");
 
-      src_al.resize(slen, vector<Uint>(1,0));
+      src_al.assign(slen, vector<Uint>(1,0));
       vector<double> src_scores(slen, 0.0);
 
       for (Uint i = 0; i < slen; ++i) {

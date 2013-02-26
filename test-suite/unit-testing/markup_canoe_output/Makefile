@@ -14,7 +14,7 @@
 TAGS_XFER_TESTS = whitespace_test nested1_test nested2_test phrase-boundary_test \
                   escape_test escape-tmx_test paired_test emptytags_test oov_test
 
-TEMP_FILES=$(TAGS_XFER_TESTS:_test=.P.tags.tok) log.* tc_tmp_text_28315.cmark.out wal-*.out
+TEMP_FILES=$(TAGS_XFER_TESTS:_test=.P.tags.tok) log.* tc_tmp_text_*.cmark.out wal-*.out
 include ../Makefile.incl
 
 export PORTAGE_INTERNAL_CALL=1
@@ -47,11 +47,16 @@ $(foreach TST, $(TESTS:_test=), in/${TST}.Q.tags.tok): in/%.Q.tags.tok: in/%.Q.t
 
 ########################################
 # Regression test for transfering markup for truecasing
+# tc_tmp_text_28315: 30 lines, general text
+# tc_tmp_text_17060: 1 line, testing mix of wal present/non-present in pal file
 
-all: compare.tc_tmp_text_28315.cmark.out
+all: compare.tc_tmp_text_28315.cmark.out compare.tc_tmp_text_17060.cmark.out
 
 tc_tmp_text_28315.cmark.out: in/tc_tmp_text_28315.cmark in/tc_tmp_text_28315.tc in/testTC.out.pal
 	markup_canoe_output -n OOV $+ 2> log.$@ > $@
+
+tc_tmp_text_17060.cmark.out: in/tc_tmp_text_17060.cmark in/tc_tmp_text_17060.tc in/tc_tmp_text_17060.pal
+	markup_canoe_output -wal mixed -n OOV $+ 2> log.$@ > $@
 
 compare.%: %
 	diff ref/$* $* -q
