@@ -19,6 +19,7 @@ _log.cvs*
 *.log
 *.eps
 *.svg
+*.rpm
 
 # patterns for files created while running the unit test suites
 _log.run-test
@@ -31,6 +32,7 @@ lib/
 include/
 usage/
 rpm.build.root/
+!PortageLive/bin/
 
 # Klocwork generated directories
 .kwlp/
