@@ -17,6 +17,10 @@
 .PHONY: all french-hyphens dots ch-punc
 .SECONDARY:
 export PORTAGE_INTERNAL_CALL=1
+UTOKENIZE := utokenize.pl
+UDETOKENIZE := udetokenize.pl
+TOKENIZE := tokenize.pl
+DETOKENIZE := detokenize.pl
 
 all: test
 
@@ -33,7 +37,7 @@ french-hyphens: compare.hyphens.tok compare.hyphens.tok.utf8 \
 dots: compare.periods.tok compare.periods.tok.utf8 \
       compare.periods.detok compare.periods.detok.utf8
 
-ch-punc: $(foreach EXT, 000 001 010 011 100 101 110 111, compare.chinese-punc.detok.$(EXT))
+ch-punc: $(addprefix compare.chinese-punc.detok., 000 001 010 011 100 101 110 111)
 
 .PHONY: en-prices
 en-prices: compare.eng-prices.detok compare.eng-prices.detok.utf8
@@ -48,10 +52,10 @@ accent.utf8: accent
 	iconv -f iso-8859-1 -t UTF-8 < $< > $@
 
 accent.tok: accent
-	tokenize.pl -ss $< $@
+	${TOKENIZE} -ss $< $@
 
 accent.utf8.tok: accent.utf8
-	utokenize.pl -ss $< $@
+	${UTOKENIZE} -ss $< $@
 
 display.%: %
 	file $*
@@ -67,32 +71,32 @@ hyphens.utf8: hyphens
 	iconv -f cp1252 -t utf-8 < $< > $@
 
 hyphens.tok: hyphens
-	tokenize.pl -lang=fr -ss $< > $@
+	${TOKENIZE} -lang=fr -ss $< > $@
 
 hyphens.detok: hyphens.tok
-	detokenize.pl -lang=fr $< > $@
+	${DETOKENIZE} -lang=fr $< > $@
 
 hyphens.tok.utf8: hyphens.utf8
-	utokenize.pl -ss -lang=fr < $< > $@
+	${UTOKENIZE} -ss -lang=fr < $< > $@
 
 hyphens.detok.utf8: hyphens.tok.utf8
-	udetokenize.pl -lang=fr $< > $@
+	${UDETOKENIZE} -lang=fr $< > $@
 
 # periods specific.
 periods.utf8: periods
 	iconv -f cp1252 -t utf-8 < $< > $@
 
 periods.tok: periods
-	tokenize.pl -lang=fr -ss -paraline $< > $@
+	${TOKENIZE} -lang=fr -ss -paraline $< > $@
 
 periods.detok: periods.tok
-	detokenize.pl -lang=fr $< > $@
+	${DETOKENIZE} -lang=fr $< > $@
 
 periods.tok.utf8: periods.utf8
-	utokenize.pl -ss -paraline -lang=fr < $< > $@
+	${UTOKENIZE} -ss -paraline -lang=fr < $< > $@
 
 periods.detok.utf8: periods.tok.utf8
-	udetokenize.pl -lang=fr $< > $@
+	${UDETOKENIZE} -lang=fr $< > $@
 
 
 # Short cut to execute all targets that test skipping sub-tasks in tokenize.pl.
@@ -111,91 +115,91 @@ french-hyphens: compare_not_option
 
 # No sentence splitting.
 hyphens.noss: hyphens
-	tokenize.pl -lang=fr -noss < $< > $@
+	${TOKENIZE} -lang=fr -noss < $< > $@
 
 hyphens.noss.utf8: hyphens.utf8
-	utokenize.pl -lang=fr -noss < $< > $@
+	${UTOKENIZE} -lang=fr -noss < $< > $@
 
 periods.noss: periods
-	tokenize.pl -lang=en -noss < $< > $@
+	${TOKENIZE} -lang=en -noss < $< > $@
 
 periods.noss.utf8: periods.utf8
-	utokenize.pl -lang=en -noss < $< > $@
+	${UTOKENIZE} -lang=en -noss < $< > $@
 
 # No tokenization.
 hyphens.notok: hyphens
-	tokenize.pl -lang=fr -ss -notok < $< > $@
+	${TOKENIZE} -lang=fr -ss -notok < $< > $@
 
 hyphens.notok.utf8: hyphens.utf8
-	utokenize.pl -lang=fr -ss -notok < $< > $@
+	${UTOKENIZE} -lang=fr -ss -notok < $< > $@
 
 periods.notok: periods
-	tokenize.pl -lang=en -ss -paraline -notok < $< > $@
+	${TOKENIZE} -lang=en -ss -paraline -notok < $< > $@
 
 periods.notok.utf8: periods.utf8
-	utokenize.pl -lang=en -ss -paraline -notok < $< > $@
+	${UTOKENIZE} -lang=en -ss -paraline -notok < $< > $@
 
 # Pre-tokenized.
 hyphens.pretok: hyphens
-	tokenize.pl -lang=fr -noss < $< | tokenize.pl -lang=fr -ss -pretok > $@
+	${TOKENIZE} -lang=fr -noss < $< | ${TOKENIZE} -lang=fr -ss -pretok > $@
 
 hyphens.pretok.utf8: hyphens.utf8
-	utokenize.pl -lang=fr -noss < $< | utokenize.pl -lang=fr -ss -pretok > $@
+	${UTOKENIZE} -lang=fr -noss < $< | ${UTOKENIZE} -lang=fr -ss -pretok > $@
 
 periods.pretok: periods
-	tokenize.pl -lang=en -noss < $< | tokenize.pl -lang=fr -ss -paraline -pretok > $@
+	${TOKENIZE} -lang=en -noss < $< | ${TOKENIZE} -lang=fr -ss -paraline -pretok > $@
 
 periods.pretok.utf8: periods.utf8
-	utokenize.pl -lang=en -noss < $< | utokenize.pl -lang=en -ss -paraline -pretok > $@
+	${UTOKENIZE} -lang=en -noss < $< | ${UTOKENIZE} -lang=en -ss -paraline -pretok > $@
 
 # No sentence splitting & no tokenization.
 hyphens.noss.notok: hyphens
-	tokenize.pl -lang=fr -noss -notok < $< > $@
+	${TOKENIZE} -lang=fr -noss -notok < $< > $@
 
 hyphens.noss.notok.utf8: hyphens.utf8
-	utokenize.pl -lang=fr -noss -notok < $< > $@
+	${UTOKENIZE} -lang=fr -noss -notok < $< > $@
 
 periods.noss.notok: periods
-	tokenize.pl -lang=en -noss -notok < $< > $@
+	${TOKENIZE} -lang=en -noss -notok < $< > $@
 
 periods.noss.notok.utf8: periods.utf8
-	utokenize.pl -lang=en -noss -notok < $< > $@
+	${UTOKENIZE} -lang=en -noss -notok < $< > $@
 
 
 # Chinese specific.
 chinese-punc.detok.000: chinese-punc
-	udetokenize.pl < $< > $@
+	${UDETOKENIZE} < $< > $@
 
 chinese-punc.detok.001: chinese-punc
-	udetokenize.pl -stripchinese < $< > $@
+	${UDETOKENIZE} -stripchinese < $< > $@
 
 chinese-punc.detok.010: chinese-punc
-	udetokenize.pl -chinesepunc < $< > $@
+	${UDETOKENIZE} -chinesepunc < $< > $@
 
 chinese-punc.detok.011: chinese-punc
-	udetokenize.pl -chinesepunc -stripchinese < $< > $@
+	${UDETOKENIZE} -chinesepunc -stripchinese < $< > $@
 
 chinese-punc.detok.100: chinese-punc
-	udetokenize.pl -latin1 < $< > $@
+	${UDETOKENIZE} -latin1 < $< > $@
 
 chinese-punc.detok.101: chinese-punc
-	udetokenize.pl -latin1 -stripchinese < $< > $@
+	${UDETOKENIZE} -latin1 -stripchinese < $< > $@
 
 chinese-punc.detok.110: chinese-punc
-	udetokenize.pl -latin1 -chinesepunc < $< > $@
+	${UDETOKENIZE} -latin1 -chinesepunc < $< > $@
 
 chinese-punc.detok.111: chinese-punc
-	udetokenize.pl -latin1 -chinesepunc -stripchinese < $< > $@
+	${UDETOKENIZE} -latin1 -chinesepunc -stripchinese < $< > $@
 	
 # Price specific ($ processing in English).
 eng-prices.utf8: eng-prices
 	iconv -f iso-8859-1 -t UTF-8 < $< > $@
 
 eng-prices.detok: eng-prices
-	detokenize.pl -lang=en $< > $@
+	${DETOKENIZE} -lang=en $< > $@
 	
 eng-prices.detok.utf8: eng-prices.utf8
-	udetokenize.pl -lang=en $< > $@
+	${UDETOKENIZE} -lang=en $< > $@
 
 
 
@@ -226,10 +230,10 @@ es.source:
 	echo "${SOURCE_ES}" > $@
 
 es.tok: es.source
-	utokenize.pl -lang=es -ss < $< > $@
+	${UTOKENIZE} -lang=es -ss < $< | tee $@
 
 es.detok: es.tok
-	udetokenize.pl -lang=es < $< > $@
+	${UDETOKENIZE} -lang=es < $< | tee $@
 
 
 ################################################################################
