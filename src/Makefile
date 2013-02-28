@@ -76,29 +76,69 @@ ifneq ("$(shell git rev-parse --is-inside-work-tree 2> /dev/null)","true")
 install_summary:
 	@:
 else
-GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
-GIT_REMOTE_T := $(shell git config branch.${GIT_BRANCH}.remote)
-GIT_REMOTE ?= ${GIT_REMOTE_T}
-GIT_RBRANCH_T := $(notdir $(shell git config branch.${GIT_BRANCH}.merge))
-GIT_RBRANCH ?= ${GIT_RBRANCH_T}
 
-install_summary: SHELL=/bin/bash
+# GIT_BRANCH, GIT_REMOTE and GIT_RBRANCH can be defined by the caller to bypass
+# automatic detection:
+# GIT_BRANCH:  name of the local branch (default: currently active branch);
+#              when working on a private branch, the best choice is the remote
+#              tracking branch you branched off of.
+# GIT_REMOTE:  name of the remote (default: remote of GIT_BRANCH, if it is
+#              a remote-tracking branch, origin otherwise).
+# GIT_RBRANCH: name of the remote branch (default: name of remote branch
+#              that GIT_BRANCH is the remote-tracking branch of).
+
+ifdef CALCULATE_GIT_RBRANCH_BASE
+   GIT_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
+   ifndef GIT_REMOTE
+      GIT_REMOTE := $(shell git config branch.${GIT_BRANCH}.remote)
+      ifeq (${GIT_REMOTE},)
+         GIT_REMOTE := origin
+      endif
+   endif
+   $(info GIT_REMOTE: ${GIT_REMOTE})
+
+   ifdef GIT_RBRANCH
+      GIT_RBRANCH_BASE := $(shell git merge-base HEAD ${GIT_REMOTE}/${GIT_RBRANCH})
+   else
+      GIT_RBRANCH_T := $(notdir $(shell git config branch.${GIT_BRANCH}.merge))
+      $(info GIT_RBRANCH_T: ${GIT_RBRANCH_T})
+      ifneq (${GIT_RBRANCH_T},)
+         GIT_RBRANCH_BASE := $(shell git merge-base HEAD ${GIT_REMOTE}/${GIT_RBRANCH_T})
+      else
+         GIT_REMOTE_BRANCHES := $(shell git branch -r | sed -e 's/ *->.*//')
+         $(info GIT_REMOTE_BRANCHES: ${GIT_REMOTE_BRANCHES})
+         GIT_MERGE_BASES := $(shell for branch in ${GIT_REMOTE_BRANCHES}; do git merge-base HEAD $$branch; done)
+         $(info GIT_MERGE_BASES: ${GIT_MERGE_BASES})
+         TOP_MERGE_BASE := $(shell git rev-list HEAD | grep -m 1 -f <(echo ${GIT_MERGE_BASES} | tr ' ' '\n'))
+         $(info TOP_MERGE_BASE: ${TOP_MERGE_BASE})
+         GIT_RBRANCH_BASE := ${TOP_MERGE_BASE}
+      endif
+   endif
+   $(info GIT_RBRANCH_BASE: ${GIT_RBRANCH_BASE})
+endif
+
 install_summary:
 	$(if ${MODULE_NAME},echo "" >>,cat /dev/null >) ${BIN_DIR}/INSTALL_SUMMARY
-	date >> ${BIN_DIR}/INSTALL_SUMMARY
-	echo "$(if ${MODULE_NAME},Module installed,Sandbox): ${INSTALL_PATH}" >> ${BIN_DIR}/INSTALL_SUMMARY
-	echo "Git working directory: `git rev-parse --show-toplevel`" >> ${BIN_DIR}/INSTALL_SUMMARY
-	@echo "" >> ${BIN_DIR}/INSTALL_SUMMARY
-	git remote show ${GIT_REMOTE} >> ${BIN_DIR}/INSTALL_SUMMARY
-	@echo "" >> ${BIN_DIR}/INSTALL_SUMMARY
-	git branch -r -v --no-abbrev >> ${BIN_DIR}/INSTALL_SUMMARY
-	@echo "" >> ${BIN_DIR}/INSTALL_SUMMARY
-	@echo "HEAD:" >> ${BIN_DIR}/INSTALL_SUMMARY
-	git show HEAD --no-abbrev --format=fuller >> ${BIN_DIR}/INSTALL_SUMMARY
-	git status -u ${INSTALL_PATH} >> ${BIN_DIR}/INSTALL_SUMMARY
-	@echo "" >> ${BIN_DIR}/INSTALL_SUMMARY
-	@echo "git diff -p --stat ${GIT_REMOTE}/${GIT_RBRANCH} -- ${INSTALL_PATH}" >> ${BIN_DIR}/INSTALL_SUMMARY
-	-git diff -p --stat ${GIT_REMOTE}/${GIT_RBRANCH} -- ${INSTALL_PATH} >> ${BIN_DIR}/INSTALL_SUMMARY
+	${MAKE} SHELL=/bin/bash CALCULATE_GIT_RBRANCH_BASE=1 --no-print-directory install_summary_helper >> ${BIN_DIR}/INSTALL_SUMMARY 2>&1
+
+install_summary_helper: SHELL=/bin/bash
+install_summary_helper:
+	@date
+	@echo "$(if ${MODULE_NAME},Module installed,Sandbox): ${INSTALL_PATH}"
+	@echo "Git working directory: `git rev-parse --show-toplevel`"
+	@echo "Git branch: ${GIT_BRANCH}"
+	@echo "Git remote: ${GIT_REMOTE}"
+	@echo "Git branch base: ${GIT_RBRANCH_BASE}"
+	@echo ""
+	git remote show ${GIT_REMOTE}
+	@echo ""
+	git branch -r -v --no-abbrev
+	@echo ""
+	@echo "HEAD:"
+	git show HEAD --no-abbrev --format=fuller
+	git status -u ${INSTALL_PATH}
+	@echo ""
+	-git diff -p --stat ${GIT_RBRANCH_BASE} -- ${INSTALL_PATH}
 endif
 
 
