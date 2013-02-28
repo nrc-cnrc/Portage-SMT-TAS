@@ -12,15 +12,17 @@
 # Copyright 2008, Her Majesty in Right of Canada
 
 .PHONY: all
-all: gen jpt freq bad
+all: gen jpt jpt2 freq bad
+	@echo All tests PASSED
 
 .PHONY: gen jpt freq bad
-gen jpt freq bad:
+gen jpt jpt2 freq bad:
 	${MAKE} -j 1 -C $@
 
 clean:
 	${MAKE} -C gen clean
 	${MAKE} -C jpt clean
+	${MAKE} -C jpt2 clean
 	${MAKE} -C freq clean
 	${MAKE} -C bad clean
 
