@@ -69,7 +69,11 @@ sdlxliff:  trans_sdlxliff
 %.sdlxliff.validate:  %.sdlxliff.diff  %.sdlxliff.txt_diff  %.sdlxliff.wrap
 	@:
 %.sdlxliff.diff:  %.sdlxliff  ref/ref.%.sdlxliff
-	diff $+ --brief
+	diff <( \
+	   sed -e 's/="Portage[^"]*"/="PortageXYZ"/g' \
+	       -e 's/tool-version="[^"]*"/tool-version="y.z"/g' \
+	       $*.sdlxliff \
+	   ) ref/ref.$*.sdlxliff --brief
 %.txt_diff:  %.P.txt  ref/ref.%.P.txt
 	diff $+
 
