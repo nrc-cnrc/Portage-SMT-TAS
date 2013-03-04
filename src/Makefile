@@ -77,8 +77,10 @@ install_summary:
 	@:
 else
 GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
-GIT_REMOTE := $(shell git config branch.${GIT_BRANCH}.remote)
-GIT_RBRANCH := $(notdir $(shell git config branch.${GIT_BRANCH}.merge))
+GIT_REMOTE_T := $(shell git config branch.${GIT_BRANCH}.remote)
+GIT_REMOTE ?= ${GIT_REMOTE_T}
+GIT_RBRANCH_T := $(notdir $(shell git config branch.${GIT_BRANCH}.merge))
+GIT_RBRANCH ?= ${GIT_RBRANCH_T}
 
 install_summary: SHELL=/bin/bash
 install_summary:
