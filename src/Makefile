@@ -88,6 +88,10 @@ else
 #              that GIT_BRANCH is the remote-tracking branch of).
 
 ifdef CALCULATE_GIT_RBRANCH_BASE
+   # These calculations can be expensive, since they invoke git in various ways
+   # a bunch of times.  I couldn't figure out how to turn them into a function,
+   # so I cheated and shielded them in a variable that is only defined when we
+   # make install_summary_helper, where we need these variables defined. ---EJ
    GIT_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
    ifndef GIT_REMOTE
       GIT_REMOTE := $(shell git config branch.${GIT_BRANCH}.remote)
@@ -95,26 +99,20 @@ ifdef CALCULATE_GIT_RBRANCH_BASE
          GIT_REMOTE := origin
       endif
    endif
-   $(info GIT_REMOTE: ${GIT_REMOTE})
 
    ifdef GIT_RBRANCH
       GIT_RBRANCH_BASE := $(shell git merge-base HEAD ${GIT_REMOTE}/${GIT_RBRANCH})
    else
-      GIT_RBRANCH_T := $(notdir $(shell git config branch.${GIT_BRANCH}.merge))
-      $(info GIT_RBRANCH_T: ${GIT_RBRANCH_T})
-      ifneq (${GIT_RBRANCH_T},)
-         GIT_RBRANCH_BASE := $(shell git merge-base HEAD ${GIT_REMOTE}/${GIT_RBRANCH_T})
+      GIT_RBRANCH := $(notdir $(shell git config branch.${GIT_BRANCH}.merge))
+      ifneq (${GIT_RBRANCH},)
+         GIT_RBRANCH_BASE := $(shell git merge-base HEAD ${GIT_REMOTE}/${GIT_RBRANCH})
       else
          GIT_REMOTE_BRANCHES := $(shell git branch -r | sed -e 's/ *->.*//')
-         $(info GIT_REMOTE_BRANCHES: ${GIT_REMOTE_BRANCHES})
          GIT_MERGE_BASES := $(shell for branch in ${GIT_REMOTE_BRANCHES}; do git merge-base HEAD $$branch; done)
-         $(info GIT_MERGE_BASES: ${GIT_MERGE_BASES})
          TOP_MERGE_BASE := $(shell git rev-list HEAD | grep -m 1 -f <(echo ${GIT_MERGE_BASES} | tr ' ' '\n'))
-         $(info TOP_MERGE_BASE: ${TOP_MERGE_BASE})
          GIT_RBRANCH_BASE := ${TOP_MERGE_BASE}
       endif
    endif
-   $(info GIT_RBRANCH_BASE: ${GIT_RBRANCH_BASE})
 endif
 
 install_summary:
@@ -128,6 +126,9 @@ install_summary_helper:
 	@echo "Git working directory: `git rev-parse --show-toplevel`"
 	@echo "Git branch: ${GIT_BRANCH}"
 	@echo "Git remote: ${GIT_REMOTE}"
+ifdef GIT_RBRANCH
+	@echo "Git remote branch: ${GIT_RBRANCH}"
+endif
 	@echo "Git branch base: ${GIT_RBRANCH_BASE}"
 	@echo ""
 	git remote show ${GIT_REMOTE}
