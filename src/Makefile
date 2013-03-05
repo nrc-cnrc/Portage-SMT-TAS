@@ -81,43 +81,43 @@ else
 # automatic detection:
 # GIT_BRANCH:  name of the local branch (default: currently active branch);
 #              when working on a private branch, the best choice is the remote
-#              tracking branch you branched off of.
+#              tracking branch that your private branch was branched off of.
 # GIT_REMOTE:  name of the remote (default: remote of GIT_BRANCH, if it is
 #              a remote-tracking branch, origin otherwise).
 # GIT_RBRANCH: name of the remote branch (default: name of remote branch
 #              that GIT_BRANCH is the remote-tracking branch of).
 
-ifdef CALCULATE_GIT_RBRANCH_BASE
+ifneq ($(filter install_summary_helper,${MAKECMDGOALS}),)
    # These calculations can be expensive, since they invoke git in various ways
-   # a bunch of times.  I couldn't figure out how to turn them into a function,
-   # so I cheated and shielded them in a variable that is only defined when we
-   # make install_summary_helper, where we need these variables defined. ---EJ
-   GIT_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
-   ifndef GIT_REMOTE
+   # a bunch of times, so shield them so they're only evaluated when needed.
+   # Use := and ifndef, so they're only evaluated once, and only if needed.
+   SHELL=/bin/bash
+   ifndef GIT_BRANCH
+      GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+   endif
+   ifndef GIT_BRANCH
       GIT_REMOTE := $(shell git config branch.${GIT_BRANCH}.remote)
-      ifeq (${GIT_REMOTE},)
-         GIT_REMOTE := origin
-      endif
+   endif
+   ifeq (${GIT_REMOTE},)
+      GIT_REMOTE := origin
    endif
 
-   ifdef GIT_RBRANCH
+   ifndef GIT_RBRANCH
+      GIT_RBRANCH := $(notdir $(shell git config branch.${GIT_BRANCH}.merge))
+   endif
+   ifneq (${GIT_RBRANCH},)
       GIT_RBRANCH_BASE := $(shell git merge-base HEAD ${GIT_REMOTE}/${GIT_RBRANCH})
    else
-      GIT_RBRANCH := $(notdir $(shell git config branch.${GIT_BRANCH}.merge))
-      ifneq (${GIT_RBRANCH},)
-         GIT_RBRANCH_BASE := $(shell git merge-base HEAD ${GIT_REMOTE}/${GIT_RBRANCH})
-      else
-         GIT_REMOTE_BRANCHES := $(shell git branch -r | sed -e 's/ *->.*//')
-         GIT_MERGE_BASES := $(shell for branch in ${GIT_REMOTE_BRANCHES}; do git merge-base HEAD $$branch; done)
-         TOP_MERGE_BASE := $(shell git rev-list HEAD | grep -m 1 -f <(echo ${GIT_MERGE_BASES} | tr ' ' '\n'))
-         GIT_RBRANCH_BASE := ${TOP_MERGE_BASE}
-      endif
+      GIT_REMOTE_BRANCHES := $(shell git ls-remote --heads ${GIT_REMOTE} | sed 's|.*refs/heads/||')
+      GIT_MERGE_BASES := $(shell for branch in ${GIT_REMOTE_BRANCHES}; do git merge-base HEAD ${GIT_REMOTE}/$$branch; done)
+      TOP_MERGE_BASE := $(shell git rev-list HEAD | grep -m 1 -f <(echo ${GIT_MERGE_BASES} | tr ' ' '\n'))
+      GIT_RBRANCH_BASE := ${TOP_MERGE_BASE}
    endif
 endif
 
 install_summary:
 	$(if ${MODULE_NAME},echo "" >>,cat /dev/null >) ${BIN_DIR}/INSTALL_SUMMARY
-	${MAKE} SHELL=/bin/bash CALCULATE_GIT_RBRANCH_BASE=1 --no-print-directory install_summary_helper >> ${BIN_DIR}/INSTALL_SUMMARY 2>&1
+	-${MAKE} --no-print-directory install_summary_helper >> ${BIN_DIR}/INSTALL_SUMMARY 2>&1
 
 install_summary_helper: SHELL=/bin/bash
 install_summary_helper:
