@@ -108,8 +108,8 @@ ifneq ($(filter install_summary_helper,${MAKECMDGOALS}),)
    ifneq (${GIT_RBRANCH},)
       GIT_RBRANCH_BASE := $(shell git merge-base HEAD ${GIT_REMOTE}/${GIT_RBRANCH})
    else
-      GIT_REMOTE_BRANCHES := $(shell git ls-remote --heads ${GIT_REMOTE} | sed 's|.*refs/heads/||')
-      GIT_MERGE_BASES := $(shell for branch in ${GIT_REMOTE_BRANCHES}; do git merge-base HEAD ${GIT_REMOTE}/$$branch; done)
+      GIT_REMOTE_BRANCHES := $(shell git for-each-ref --format="%(refname)" refs/remotes/${GIT_REMOTE})
+      GIT_MERGE_BASES := $(shell for branch in ${GIT_REMOTE_BRANCHES}; do git merge-base HEAD $$branch; done)
       TOP_MERGE_BASE := $(shell git rev-list HEAD | grep -m 1 -f <(echo ${GIT_MERGE_BASES} | tr ' ' '\n'))
       GIT_RBRANCH_BASE := ${TOP_MERGE_BASE}
    endif
