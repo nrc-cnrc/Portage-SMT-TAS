@@ -409,7 +409,8 @@ def main():
       for r in results: 
          if r.name == cmd_args.delta:
             baseline_score = r.avgScore(cmd_args.alts != None)
-            print("baseline:",baseline_score)
+            if cmd_args.verbose:
+               print("baseline:", baseline_score)
             break
 
    DirInfo.printHeader(cmd_args.prec, baseline_score is not None)
