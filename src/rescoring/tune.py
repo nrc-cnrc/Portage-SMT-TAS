@@ -105,6 +105,8 @@ parser.add_option("-s", dest="seed", type="int", default=0,
                   help="start seed for random number generator [%default]")
 parser.add_option("--no_ag", dest="no_ag", action="store_true", default=False,
                   help="turn off n-best aggregation [%default]")
+parser.add_option("--bleuOrder", dest="bleuOrder", type="int", default=4,
+                  help="(l)mira optimizes BLEU using this order of ngrams [%default]")
 (opts, args) = parser.parse_args()
 
 if len(args) < 2:
@@ -127,6 +129,8 @@ src = args[0]
 refs = args[1:]
 
 alg = opts.optcmd.split()[0]
+if opts.bleuOrder!=4 and not(alg!="mira" or alg!="lmira"):
+   parser.error("bleuOrder only works with mira and lmira")
 
 # allff is the aggregated feature-value file output from canoe, in sparse or
 # dense format 
@@ -457,7 +461,7 @@ def eval():
 
    try:
       score_string="BLEU score"
-      cmd = ["bleumain", decoder_1best] + refs
+      cmd = ["bleumain", "-y", str(opts.bleuOrder), decoder_1best] + refs
 
       if opts.debug: print >> sys.stderr, ' '.join(cmd)
 
@@ -470,7 +474,7 @@ def eval():
               score = line.split()[2]
 
       if alg not in ["powell", "lmira", "olmira"]:
-          cmd = ["bestbleu", "-dyn", "-o", "nbest", allnb] + refs
+          cmd = ["bestbleu", "-y", str(opts.bleuOrder), "-dyn", "-o", "nbest", allnb] + refs
           # if opts.bestbleu == "1": cmd[1:1] = ["-s", "2"]
           # if opts.bestbleu == "1x": cmd[1:1] = ["-x"]
 
@@ -582,7 +586,7 @@ def optimizeMIRA(iter, wts, args, logfile):
        print >> logfile, "warning: ignoring values past first 3 tokens in " + args
     refglob = ','.join(refs)
     cmd = ["time-mem", jav, opts.jmem, "-enableassertions", "-jar", jar, "MiraTrainNbestDecay", optimizer_in, \
-           allff, allbleus, allnb, refglob, C, I, E, B, H, O, D, seed]
+           allff, allbleus, allnb, refglob, C, I, E, B, H, O, D, str(opts.bleuOrder), seed]
     outfile = open(optimizer_out, 'w')
     print >> logfile, ' '.join(cmd)
     logfile.flush()
@@ -682,7 +686,7 @@ def optimizeLMIRA(iter, wts, args, logfile):
        print >> logfile, "warning: ignoring values past first 4 tokens in " + args
     refglob = ','.join(refs)
     cmd = ["time-mem", jav, opts.jmem, "-enableassertions", "-jar", jar, "MiraTrainLattice", optimizer_in, \
-           workdir, refglob, src, hypmem, C, decay, bg, density, numIt, seed]
+           workdir, refglob, src, hypmem, C, decay, bg, density, numIt, str(opts.bleuOrder), seed]
     outfile = open(optimizer_out, 'w')
     print >> logfile, ' '.join(cmd)
     logfile.flush()
