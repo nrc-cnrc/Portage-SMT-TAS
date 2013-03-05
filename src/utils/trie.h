@@ -26,6 +26,7 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 
 //#define DEBUG_PORTAGE_TRIE
 #ifdef DEBUG_PORTAGE_TRIE

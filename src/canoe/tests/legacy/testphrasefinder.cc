@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
    const Uint NUMPHRASES = 10;
    const Uint SENTLENGTH = 5;
    const Uint NUMFINDSETS = 3;
-   const Uint DISTLIMIT[] = {NO_MAX_DISTORTION, 1, 2};
+   const Uint DISTLIMIT[] = {(const Uint) NO_MAX_DISTORTION, 1, 2};
    const Uint PHRASEEND = 2;
 /*
 Phrase range table:

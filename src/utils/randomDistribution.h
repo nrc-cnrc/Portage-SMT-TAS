@@ -42,7 +42,8 @@ class rnd_distribution
             s += 16;
             assert(s >= 16);
             assert(11*s >= 16);
-            const int v[] = { 7*s, s, 11*s, 3*s };
+            const int int_s = s;
+            const int v[] = { 7*int_s, int_s, 11*int_s, 3*int_s };
             const int* p = &v[0];
             getGen()->seed(p, v+sizeof(v)/sizeof(int));
             //cerr << "  Seeded: " << (*getGen()) << endl;  // Usefull for debugging

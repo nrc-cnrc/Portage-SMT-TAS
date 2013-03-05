@@ -80,7 +80,7 @@ namespace Portage
       {
          iterator it = find(key);
          if (it == end()) {
-            push_back(make_pair(key, DataT()));
+            this-> push_back(make_pair(key, DataT()));
             return back().second;
          } else {
             return it->second;

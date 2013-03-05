@@ -158,7 +158,7 @@ namespace Portage
             std::lower_bound(begin(), end(), key, KeyLessThan());
          if ( it == end() || it->first != key ) {
             if ( !UseMemmove ) {
-               it = insert(it, make_pair(key, ValueT()));
+               it = this-> insert(it, make_pair(key, ValueT()));
             } else {
                size_t i = it - begin();
                const size_t old_size = basetype::size();

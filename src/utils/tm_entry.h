@@ -19,6 +19,7 @@
 #include "errors.h"
 #include "str_utils.h"
 #include <string>
+#include <cmath>
 
 namespace Portage {
 

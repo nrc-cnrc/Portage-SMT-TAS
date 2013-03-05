@@ -63,8 +63,8 @@ static const char* const nf_endl = "\n";
 
 // If you get a compiler error telling you "no matching function for call to
 // same_type...", then you probably called ARRAY_SIZE on a non-array variable.
-template <class T> bool must_be_an_array(T a) { return same_type(a,&a[0]); }
 template <class T> bool same_type(T, T) { return true; }
+template <class T> bool must_be_an_array(T a) { return same_type(a,&a[0]); }
 
 /**
  * Returns the maximum between a and b.
