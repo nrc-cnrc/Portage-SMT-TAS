@@ -120,6 +120,7 @@ allnb = workdir + "/allnbests.gz"  # cumulative nbest lists
 allbleus = workdir + "/allbleus.gz"
 allnb_new = workdir + "/allnbests-new.gz"
 nbpattern = workdir + "/nbest.%04d.%dbest.gz"
+hierarchy = " -no-hierarchy "
 
 powellwts = workdir + "/powellwts."   # iter-specific wt record
 optimizer_in = workdir + "/curmodel.ini"  # dummy model in
@@ -432,8 +433,8 @@ def shardAnnotate(s, iter, shard) :
 def decode(wts):
     """Decode current source file using given weight vector."""
     wts2decoderConfig(wts, "decode-config")
-    cmd = ["canoe-parallel.sh", "-cleanup", "-psub", "-" + str(opts.numcpus), \
-           "-n", str(opts.numpar), "canoe", "-v", "1", "-f", "decode-config"]
+    cmd = ["set -o pipefail;", "canoe-parallel.sh", "-cleanup", "-psub", "-" + str(opts.numcpus), \
+           "-n", str(opts.numpar), "canoe", hierarchy, "-v", "1", "-f", "decode-config"]
     outcmd = ["nbest2rescore.pl", "-canoe"]
     if opts.sparse: 
        cmd.append("-sfvals")
