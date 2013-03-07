@@ -77,42 +77,12 @@ install_summary:
 	@:
 else
 
-# GIT_BRANCH, GIT_REMOTE and GIT_RBRANCH can be defined by the caller to bypass
-# automatic detection:
-# GIT_BRANCH:  name of the local branch (default: currently active branch);
-#              when working on a private branch, the best choice is the remote
-#              tracking branch that your private branch was branched off of.
-# GIT_REMOTE:  name of the remote (default: remote of GIT_BRANCH, if it is
-#              a remote-tracking branch, origin otherwise).
-# GIT_RBRANCH: name of the remote branch (default: name of remote branch
-#              that GIT_BRANCH is the remote-tracking branch of).
-
 ifneq ($(filter install_summary_helper,${MAKECMDGOALS}),)
-   # These calculations can be expensive, since they invoke git in various ways
-   # a bunch of times, so shield them so they're only evaluated when needed.
-   # Use := and ifndef, so they're only evaluated once, and only if needed.
-   SHELL=/bin/bash
-   ifndef GIT_BRANCH
-      GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
-   endif
-   ifndef GIT_BRANCH
-      GIT_REMOTE := $(shell git config branch.${GIT_BRANCH}.remote)
-   endif
-   ifeq (${GIT_REMOTE},)
-      GIT_REMOTE := origin
-   endif
-
-   ifndef GIT_RBRANCH
-      GIT_RBRANCH := $(notdir $(shell git config branch.${GIT_BRANCH}.merge))
-   endif
-   ifneq (${GIT_RBRANCH},)
-      GIT_RBRANCH_BASE := $(shell git merge-base HEAD ${GIT_REMOTE}/${GIT_RBRANCH})
-   else
-      GIT_REMOTE_BRANCHES := $(shell git for-each-ref --format="%(refname)" refs/remotes/${GIT_REMOTE})
-      GIT_MERGE_BASES := $(shell for branch in ${GIT_REMOTE_BRANCHES}; do git merge-base HEAD $$branch; done)
-      TOP_MERGE_BASE := $(shell git rev-list HEAD | grep -m 1 -f <(echo ${GIT_MERGE_BASES} | tr ' ' '\n'))
-      GIT_RBRANCH_BASE := ${TOP_MERGE_BASE}
-   endif
+   # These calculations can be expensive, in particular setting GIT_RBRANCH, so
+   # shield them so they're only evaluated when needed.
+   GIT_RBRANCH := $(strip $(shell git rev-list HEAD | xargs -n 1 git branch -r --contains | grep -m 1 -v -- '->'))
+   GIT_REMOTE := $(notdir $(patsubst %/,%,$(dir $(GIT_RBRANCH))))
+   GIT_RBRANCH_BASE := $(shell git merge-base HEAD ${GIT_RBRANCH})
 endif
 
 install_summary:
@@ -124,19 +94,16 @@ install_summary_helper:
 	@date
 	@echo "$(if ${MODULE_NAME},Module installed,Sandbox): ${INSTALL_PATH}"
 	@echo "Git working directory: `git rev-parse --show-toplevel`"
-	@echo "Git branch: ${GIT_BRANCH}"
-	@echo "Git remote: ${GIT_REMOTE}"
-ifdef GIT_RBRANCH
-	@echo "Git remote branch: ${GIT_RBRANCH}"
-endif
-	@echo "Git branch base: ${GIT_RBRANCH_BASE}"
+	@echo "Git branch:            `git rev-parse --abbrev-ref HEAD`"
+	@echo "Closest remote branch: ${GIT_RBRANCH}"
+	@echo "Git branch base:       ${GIT_RBRANCH_BASE}"
 	@echo ""
 	git remote show ${GIT_REMOTE}
 	@echo ""
 	git branch -r -v --no-abbrev
 	@echo ""
 	@echo "HEAD:"
-	git show HEAD --no-abbrev --format=fuller
+	git show HEAD --no-abbrev --format=fuller --summary --decorate
 	git status -u ${INSTALL_PATH}
 	@echo ""
 	-git diff -p --stat ${GIT_RBRANCH_BASE} -- ${INSTALL_PATH}
