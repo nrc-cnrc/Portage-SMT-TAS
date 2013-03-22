@@ -144,23 +144,28 @@
 							<tool id="cdt.managedbuild.tool.gnu.archiver.base.974679061" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.1744366193" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base">
 								<option id="gnu.cpp.compiler.option.include.paths.1992785177" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/adaptation}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/canoe}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/confidence}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/distortion}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/eval}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/lm}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/logging}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/preprocessing}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/rescoring}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/textutils}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/tm}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/tpt}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/truecasing}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/utils}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/adaptation&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/canoe&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/confidence&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/distortion&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/eval&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/lm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/logging&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/preprocessing&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/rescoring&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/textutils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tp_models&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tpt&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/truecasing&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/utils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/word_align&quot;"/>
 									<listOptionValue builtIn="false" value="/home/portage/g4.4/pkgs/boost-1_48_0/include"/>
 									<listOptionValue builtIn="false" value="/home/portage/g4.2/include"/>
-									<listOptionValue builtIn="false" value="/home/portage/g4.4/pkgs/gperftools-2.0/include/gperftools/"/>
+									<listOptionValue builtIn="false" value="/home/portage/pkgs/google-perftools-1.7/include"/>
+									<listOptionValue builtIn="false" value="/home/portage/pkgs/thrax/include"/>
+									<listOptionValue builtIn="false" value="/home/portage/pkgs/openfst/include"/>
+									<listOptionValue builtIn="false" value="/home/portage/pkgs/svdlibc/include"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.712803614" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="IN_PORTAGE=1"/>
@@ -171,23 +176,28 @@
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.926623690" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base">
 								<option id="gnu.c.compiler.option.include.paths.846625143" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/adaptation}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/canoe}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/confidence}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/distortion}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/eval}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/lm}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/logging}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/preprocessing}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/rescoring}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/textutils}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/tm}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/tpt}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/truecasing}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/utils}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/adaptation&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/canoe&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/confidence&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/distortion&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/eval&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/lm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/logging&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/preprocessing&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/rescoring&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/textutils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tp_models&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tpt&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/truecasing&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/utils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/word_align&quot;"/>
 									<listOptionValue builtIn="false" value="/home/portage/g4.4/pkgs/boost-1_48_0/include"/>
 									<listOptionValue builtIn="false" value="/home/portage/g4.2/include"/>
-									<listOptionValue builtIn="false" value="/home/portage/g4.4/pkgs/gperftools-2.0/include/gperftools/"/>
+									<listOptionValue builtIn="false" value="/home/portage/pkgs/google-perftools-1.7/include"/>
+									<listOptionValue builtIn="false" value="/home/portage/pkgs/thrax/include"/>
+									<listOptionValue builtIn="false" value="/home/portage/pkgs/openfst/include"/>
+									<listOptionValue builtIn="false" value="/home/portage/pkgs/svdlibc/include"/>
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1714214315" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="IN_PORTAGE=1"/>
@@ -205,23 +215,28 @@
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.base.1656069325" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base">
 								<option id="gnu.both.asm.option.include.paths.107973869" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/adaptation}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/canoe}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/confidence}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/distortion}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/eval}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/lm}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/logging}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/preprocessing}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/rescoring}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/textutils}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/tm}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/tpt}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/truecasing}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/utils}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/adaptation&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/canoe&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/confidence&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/distortion&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/eval&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/lm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/logging&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/preprocessing&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/rescoring&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/textutils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tp_models&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tpt&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/truecasing&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/utils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/word_align&quot;"/>
 									<listOptionValue builtIn="false" value="/home/portage/g4.4/pkgs/boost-1_48_0/include"/>
 									<listOptionValue builtIn="false" value="/home/portage/g4.2/include"/>
-									<listOptionValue builtIn="false" value="/home/portage/g4.4/pkgs/gperftools-2.0/include/gperftools/"/>
+									<listOptionValue builtIn="false" value="/home/portage/pkgs/google-perftools-1.7/include"/>
+									<listOptionValue builtIn="false" value="/home/portage/pkgs/thrax/include"/>
+									<listOptionValue builtIn="false" value="/home/portage/pkgs/openfst/include"/>
+									<listOptionValue builtIn="false" value="/home/portage/pkgs/svdlibc/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.215634062" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
@@ -233,23 +248,28 @@
 							<tool id="cdt.managedbuild.tool.gnu.archiver.base.93046669" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.1517992498" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base">
 								<option id="gnu.cpp.compiler.option.include.paths.524270046" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/adaptation}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/canoe}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/confidence}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/distortion}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/eval}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/lm}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/logging}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/preprocessing}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/rescoring}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/textutils}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/tm}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/tpt}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/truecasing}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/utils}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/adaptation&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/canoe&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/confidence&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/distortion&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/eval&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/lm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/logging&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/preprocessing&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/rescoring&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/textutils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tp_models&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tpt&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/truecasing&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/utils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/word_align&quot;"/>
 									<listOptionValue builtIn="false" value="/home/portage/g4.4/pkgs/boost-1_48_0/include"/>
 									<listOptionValue builtIn="false" value="/home/portage/g4.2/include"/>
-									<listOptionValue builtIn="false" value="/home/portage/g4.4/pkgs/gperftools-2.0/include/gperftools/"/>
+									<listOptionValue builtIn="false" value="/home/portage/pkgs/google-perftools-1.7/include"/>
+									<listOptionValue builtIn="false" value="/home/portage/pkgs/thrax/include"/>
+									<listOptionValue builtIn="false" value="/home/portage/pkgs/openfst/include"/>
+									<listOptionValue builtIn="false" value="/home/portage/pkgs/svdlibc/include"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.1202402253" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="IN_PORTAGE=1"/>
@@ -260,23 +280,28 @@
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.1333424882" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base">
 								<option id="gnu.c.compiler.option.include.paths.549914914" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/adaptation}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/canoe}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/confidence}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/distortion}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/eval}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/lm}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/logging}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/preprocessing}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/rescoring}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/textutils}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/tm}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/tpt}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/truecasing}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/utils}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/adaptation&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/canoe&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/confidence&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/distortion&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/eval&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/lm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/logging&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/preprocessing&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/rescoring&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/textutils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tp_models&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tpt&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/truecasing&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/utils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/word_align&quot;"/>
 									<listOptionValue builtIn="false" value="/home/portage/g4.4/pkgs/boost-1_48_0/include"/>
 									<listOptionValue builtIn="false" value="/home/portage/g4.2/include"/>
-									<listOptionValue builtIn="false" value="/home/portage/g4.4/pkgs/gperftools-2.0/include/gperftools/"/>
+									<listOptionValue builtIn="false" value="/home/portage/pkgs/google-perftools-1.7/include"/>
+									<listOptionValue builtIn="false" value="/home/portage/pkgs/thrax/include"/>
+									<listOptionValue builtIn="false" value="/home/portage/pkgs/openfst/include"/>
+									<listOptionValue builtIn="false" value="/home/portage/pkgs/svdlibc/include"/>
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1996101" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="IN_PORTAGE=1"/>
@@ -289,23 +314,28 @@
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.1215866739" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.base.76212050" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base">
 								<option id="gnu.both.asm.option.include.paths.540218383" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/adaptation}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/canoe}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/confidence}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/distortion}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/eval}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/lm}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/logging}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/preprocessing}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/rescoring}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/textutils}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/tm}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/tpt}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/truecasing}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${build_project}/src/utils}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/adaptation&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/canoe&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/confidence&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/distortion&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/eval&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/lm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/logging&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/preprocessing&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/rescoring&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/textutils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tp_models&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/tpt&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/truecasing&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/utils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/word_align&quot;"/>
 									<listOptionValue builtIn="false" value="/home/portage/g4.4/pkgs/boost-1_48_0/include"/>
 									<listOptionValue builtIn="false" value="/home/portage/g4.2/include"/>
-									<listOptionValue builtIn="false" value="/home/portage/g4.4/pkgs/gperftools-2.0/include/gperftools/"/>
+									<listOptionValue builtIn="false" value="/home/portage/pkgs/google-perftools-1.7/include"/>
+									<listOptionValue builtIn="false" value="/home/portage/pkgs/thrax/include"/>
+									<listOptionValue builtIn="false" value="/home/portage/pkgs/openfst/include"/>
+									<listOptionValue builtIn="false" value="/home/portage/pkgs/svdlibc/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1482004654" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
@@ -782,12 +812,6 @@
 							</builder>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.cygwin.base.816219004" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.cygwin.base">
 								<option id="gnu.both.asm.option.include.paths.1774568944" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++\i686-pc-cygwin&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\ssp&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include-fixed&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\usr\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/adaptation&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/canoe&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/confidence&quot;"/>
@@ -804,16 +828,18 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/truecasing&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/utils&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/word_align&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++\i686-pc-cygwin&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\ssp&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include-fixed&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\usr\include&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.2046721797" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.cygwin.base.1930388772" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.cygwin.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.cygwin.base.1851857990" name="Cygwin C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.cygwin.base">
 								<option id="gnu.cpp.compiler.option.include.paths.858604344" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\ssp&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include-fixed&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\usr\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/adaptation&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/canoe&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/confidence&quot;"/>
@@ -832,20 +858,20 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/word_align&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++\i686-pc-cygwin&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\ssp&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include-fixed&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\usr\include&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.116902156" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="IN_PORTAGE=1"/>
 									<listOptionValue builtIn="false" value="NO_LOGGING"/>
-									<listOptionValue builtIn="false" value="Linux"/>
+									<listOptionValue builtIn="false" value="CYGWIN"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.cygwin.176107323" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input.cygwin"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.cygwin.base.455931606" name="Cygwin C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.cygwin.base">
 								<option id="gnu.c.compiler.option.include.paths.221988340" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\ssp&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include-fixed&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\usr\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/adaptation&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/canoe&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/confidence&quot;"/>
@@ -864,11 +890,15 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/word_align&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++\i686-pc-cygwin&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\ssp&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include-fixed&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\usr\include&quot;"/>
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.10856627" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="IN_PORTAGE=1"/>
 									<listOptionValue builtIn="false" value="NO_LOGGING"/>
-									<listOptionValue builtIn="false" value="Linux"/>
+									<listOptionValue builtIn="false" value="CYGWIN"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.cygwin.1701172357" superClass="cdt.managedbuild.tool.gnu.c.compiler.input.cygwin"/>
 							</tool>
@@ -886,12 +916,6 @@
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.Cygwin_PE" id="cdt.managedbuild.target.gnu.platform.cygwin.base" name="Debug Platform" osList="win32" superClass="cdt.managedbuild.target.gnu.platform.cygwin.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.cygwin.base.1903252600" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.cygwin.base">
 								<option id="gnu.both.asm.option.include.paths.314515640" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++\i686-pc-cygwin&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\ssp&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include-fixed&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\usr\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/adaptation&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/canoe&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/confidence&quot;"/>
@@ -908,16 +932,18 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/truecasing&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/utils&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/word_align&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++\i686-pc-cygwin&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\ssp&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include-fixed&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\usr\include&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1064673094" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.cygwin.base.1931597114" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.cygwin.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.cygwin.base.1156614344" name="Cygwin C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.cygwin.base">
 								<option id="gnu.cpp.compiler.option.include.paths.1605619454" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\ssp&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include-fixed&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\usr\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/adaptation&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/canoe&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/confidence&quot;"/>
@@ -936,20 +962,20 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/word_align&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++\i686-pc-cygwin&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\ssp&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include-fixed&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\usr\include&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.269726983" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="IN_PORTAGE=1"/>
 									<listOptionValue builtIn="false" value="NO_LOGGING"/>
-									<listOptionValue builtIn="false" value="Linux"/>
+									<listOptionValue builtIn="false" value="CYGWIN"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.cygwin.60776005" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input.cygwin"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.cygwin.base.184737716" name="Cygwin C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.cygwin.base">
 								<option id="gnu.c.compiler.option.include.paths.1245359066" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\ssp&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include-fixed&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\usr\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/adaptation&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/canoe&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/confidence&quot;"/>
@@ -968,11 +994,15 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/src/word_align&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++\i686-pc-cygwin&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\c++&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include\ssp&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\lib\gcc\i686-pc-cygwin\4.5.3\include-fixed&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\Tools\cygwin-1.7.16\usr\include&quot;"/>
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1568751925" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="IN_PORTAGE=1"/>
 									<listOptionValue builtIn="false" value="NO_LOGGING"/>
-									<listOptionValue builtIn="false" value="Linux"/>
+									<listOptionValue builtIn="false" value="CYGWIN"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.cygwin.1747589093" superClass="cdt.managedbuild.tool.gnu.c.compiler.input.cygwin"/>
 							</tool>
@@ -1295,7 +1325,7 @@
 			</profile>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.769260484.217719869.25919460">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+			<autodiscovery enabled="false" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 			<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
 				<buildOutputProvider>
 					<openAction enabled="true" filePath=""/>
@@ -1338,7 +1368,7 @@
 			</profile>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.725833023.978864841.1315210944.222563001.1658507725">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+			<autodiscovery enabled="false" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 			<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
 				<buildOutputProvider>
 					<openAction enabled="true" filePath=""/>
@@ -1421,7 +1451,7 @@
 			</profile>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.769260484.217719869.25919460.1213161919">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+			<autodiscovery enabled="false" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 			<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
 				<buildOutputProvider>
 					<openAction enabled="true" filePath=""/>
@@ -1689,7 +1719,7 @@
 			</profile>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.toolchain.gnu.cygwin.base.525435734.346614542.2143170451">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+			<autodiscovery enabled="false" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 			<profile id="org.eclipse.cdt.make.core.GCCStandardMakePerProjectProfile">
 				<buildOutputProvider>
 					<openAction enabled="true" filePath=""/>
