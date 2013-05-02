@@ -43,6 +43,8 @@ workdir.%:
 trans:  trans_sdlxliff
 trans:  trans_tmx
 
+.PHONY:  decode_only
+
 ########################################
 # SDLXLIFF
 .PHONY:  sdlxliff  trans_sdlxliff
@@ -84,6 +86,7 @@ validate_sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.translated.sdlxliff.validate
 	@true
 
 trans_sdlxliff:  UnknownSegments_en-CA_fr-CA.v5.translated.sdlxliff
+decode_only:  UnknownSegments_en-CA_fr-CA.v5.translated.sdlxliff
 UnknownSegments_en-CA_fr-CA.v5.translated.sdlxliff:  override OPTIONS = -decode-only
 
 
@@ -159,6 +162,7 @@ validate_tmx: TestMemory_Unknown.translated.tmx.validate
 	@true
 
 trans_tmx:  TestMemory_Unknown.translated.tmx
+decode_only:  TestMemory_Unknown.translated.tmx
 TestMemory_Unknown.translated.tmx:  override OPTIONS = -decode-only
 
 
