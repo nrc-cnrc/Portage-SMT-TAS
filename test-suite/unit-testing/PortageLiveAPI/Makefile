@@ -28,7 +28,7 @@ SHELL = bash
 .DEFAULT_GOAL := all
 .PHONY: all
 
-TEMP_FILES = U*.sdlxliff T*.tmx log.*
+TEMP_FILES = *.sdlxliff *.tmx log.*
 include ../Makefile.incl
 
 $(info SERVER: $(word 1,$(subst :, ,${SERVER})))
