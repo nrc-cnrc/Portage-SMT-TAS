@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LogiTransOutput>
+  <References src="en" tgt="fr" bropt="0">
+    <Ref id="1" weight="33.4" timestamp="1366055435">C:\Demo\Documents\Sustainability\7625-English_ENG-FRA_BT.xml</Ref>
+    <Ref id="2" weight="26.2" timestamp="1366055403">C:\Demo\Documents\Brochures\teva-cb-2011-en_ENG-FRA_BT.xml</Ref>
+    <Ref id="3" weight="26.2" timestamp="1366771855">C:\Demo\Documents\Brochures\teva-cb-en_ENG-FRA_BT.xml</Ref>
+    <Ref id="4" weight="25.3" timestamp="1366768444">C:\Demo\Documents\Press Release\Help_ENG-FRA_BT.xml</Ref>
+  </References>
+  <Queries>
+    <Query id="1" pid="0">
+      <OriginalText>Please contact your sales representative or Customer Care for those items.</OriginalText>
+      <AppliedText type="ref">0</AppliedText>
+      <Matches>
+        <Match score="100" weight="9.5" words="12" matchratio="1" lenfactor="1" seqfactor="1">
+          <RefId>4</RefId>
+          <RefSrc>Please contact your sales representative or Customer Care for those items.</RefSrc>
+          <RefTgt>Pour ce faire, veuillez communiquer avec votre représentant des ventes ou avec notre service Assistance clientèle.</RefTgt>
+        </Match>
+      </Matches>
+    </Query>
+    <Query id="2" pid="1">
+      <OriginalText>Please note that Teva Canada Narcotics and Animal Health products, are not offered through the online ordering system.</OriginalText>
+      <AppliedText type="xaml"><Span xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xml:space="preserve" xml:lang="en-us" FlowDirection="LeftToRight" NumberSubstitution.CultureSource="Text" NumberSubstitution.Substitution="AsCulture" FontFamily="Segoe UI" FontStyle="Normal" FontWeight="Normal" FontStretch="Normal" FontSize="16" Foreground="#FF000000" Typography.StandardLigatures="True" Typography.ContextualLigatures="True" Typography.DiscretionaryLigatures="False" Typography.HistoricalLigatures="False" Typography.AnnotationAlternates="0" Typography.ContextualAlternates="True" Typography.HistoricalForms="False" Typography.Kerning="True" Typography.CapitalSpacing="False" Typography.CaseSensitiveForms="False" Typography.StylisticSet1="False" Typography.StylisticSet2="False" Typography.StylisticSet3="False" Typography.StylisticSet4="False" Typography.StylisticSet5="False" Typography.StylisticSet6="False" Typography.StylisticSet7="False" Typography.StylisticSet8="False" Typography.StylisticSet9="False" Typography.StylisticSet10="False" Typography.StylisticSet11="False" Typography.StylisticSet12="False" Typography.StylisticSet13="False" Typography.StylisticSet14="False" Typography.StylisticSet15="False" Typography.StylisticSet16="False" Typography.StylisticSet17="False" Typography.StylisticSet18="False" Typography.StylisticSet19="False" Typography.StylisticSet20="False" Typography.Fraction="Normal" Typography.SlashedZero="False" Typography.MathematicalGreek="False" Typography.EastAsianExpertForms="False" Typography.Variants="Normal" Typography.Capitals="Normal" Typography.NumeralStyle="Normal" Typography.NumeralAlignment="Normal" Typography.EastAsianWidths="Normal" Typography.EastAsianLanguage="Normal" Typography.StandardSwashes="0" Typography.ContextualSwashes="0" Typography.StylisticAlternates="0" BaselineAlignment="Baseline" TextDecorations=""><Run>Veuillez toutefois noter que les narcotiques et les produits vétérinaires de Teva Canada ne </Run><Run xml:lang="fr-ca">sont pas offerts</Run><Run> </Run><Run xml:lang="fr-ca">via notre </Run><Run>système de commande en ligne</Run><Run>.</Run></Span></AppliedText>
+      <Matches>
+        <Match score="92.31" weight="15.8" words="20" matchratio="0.94" lenfactor="1" seqfactor="0.91">
+          <RefId>4</RefId>
+          <RefSrc>Please note that Teva Canada Narcotics and Animal Health products, are not available through the online ordering system.</RefSrc>
+          <RefTgt>Veuillez toutefois noter que les narcotiques et les produits vétérinaires de Teva Canada ne peuvent pas être commandés en ligne.</RefTgt>
+        </Match>
+      </Matches>
+    </Query>
+    <Query id="3" pid="2" rpt-pid="4">
+      <OriginalText>I repeat myself when under stress</OriginalText>
+      <Matches />
+    </Query>
+    <Query id="4" pid="3">
+      <OriginalText>We contribute to improved health</OriginalText>
+      <AppliedText type="ref">0</AppliedText>
+      <Matches>
+        <Match score="100" weight="4.2" words="5" matchratio="1" lenfactor="1" seqfactor="1">
+          <RefId>2</RefId>
+          <RefSrc>We contribute to improved health</RefSrc>
+          <RefTgt>Nous contribuons à améliorer la santé</RefTgt>
+        </Match>
+        <Match score="99" weight="4.2" words="5" matchratio="1" lenfactor="1" seqfactor="1">
+          <RefId>3</RefId>
+          <RefSrc>WE CONTRIBUTE TO IMPROVED HEALTH</RefSrc>
+          <RefTgt>NOUS CONTRIBUONS À AMÉLIORER LA SANTÉ</RefTgt>
+        </Match>
+      </Matches>
+    </Query>
+    <Query id="5" pid="4" repeated-from="2" />
+    <Query id="6" pid="5">
+      <OriginalText>The approval of a generic pharmaceutical product ensures that it has been thoroughly tested to prove that it meets the same safety and efficacy standards as the brand product, and is bioequivalent to.</OriginalText>
+      <AppliedText type="ref">0</AppliedText>
+      <Matches>
+        <Match score="98.32" weight="22" words="35" matchratio="1" lenfactor="1" seqfactor="0.97">
+          <RefId>2</RefId>
+          <RefSrc>The approval of a generic pharmaceutical product ensures that it has been thoroughly tested to prove that it meets the same safety and efficacy standards as, and is bioequivalent to, the brand product.</RefSrc>
+          <RefTgt>L’approbation d’un produit pharmaceutique générique est la preuve que ce produit a été évalué à fond, qu’il répond aux mêmes exigences en matière d’innocuité et d’efficacité que le produit de marque, et qu’il est bioéquivalent.</RefTgt>
+        </Match>
+        <Match score="96.79" weight="22" words="35" matchratio="0.99" lenfactor="0.99" seqfactor="0.96">
+          <RefId>3</RefId>
+          <RefSrc>The approval of a generic pharmaceutical product ensures that it has been thoroughly tested to prove that it meets the same safety and efficacy standards and is bioequivalent to the brand product.</RefSrc>
+          <RefTgt>L’approbation d’un produit pharmaceutique générique est la preuve que ce produit a été évalué à fond, qu’il répond aux mêmes exigences en matière d’innocuité et d’efficacité que le produit de marque, et qu’il est bioéquivalent.</RefTgt>
+        </Match>
+      </Matches>
+    </Query>
+    <Query id="7" pid="6">
+      <OriginalText>Five of our sites worldwide are ISO 14001 certified, a rigorous international process for recognizing environmental objectives.</OriginalText>
+      <AppliedText type="ref">0</AppliedText>
+      <Matches>
+        <Match score="100" weight="13.9" words="19" matchratio="1" lenfactor="1" seqfactor="1">
+          <RefId>1</RefId>
+          <RefSrc>Five of our sites worldwide are ISO 14001 certified, a rigorous international process for recognizing environmental objectives.</RefSrc>
+          <RefTgt>Cinq de nos sites internationaux sont certifiés ISO 14001, une norme internationale rigoureuse qui sert à réaliser des objectifs en matière de gestion environnementale.</RefTgt>
+        </Match>
+      </Matches>
+    </Query>
+    <Query id="8" pid="7">
+      <OriginalText>600 Tonnes from being released each year lessening our impact on the environment we share We’re working to lessen our impact on the environment.</OriginalText>
+      <AppliedText type="ref">0</AppliedText>
+      <Matches>
+        <Match score="99.49" weight="19.5" words="27" matchratio="0.99" lenfactor="1" seqfactor="0.99">
+          <RefId>1</RefId>
+          <RefSrc>500 Tonnes from being released each year lessening our impact on the environment we share We’re working to lessen our impact on the environment.</RefSrc>
+          <RefTgt>500 TONNES DE MOINS ÉMISES DANS L’ATMOSPHÈRE CHAQUE ANNÉE RÉDUIRE L’IMPACT SUR L’ENVIRONNEMENT QUE NOUS PARTAGEONS Nous nous efforçons de réduire l’impact que nous avons sur l’environnement.</RefTgt>
+        </Match>
+      </Matches>
+    </Query>
+  </Queries>
+  <Terminology>
+    <Term pids="1">
+      <Source>online ordering system</Source>
+      <Target>système de commande en ligne</Target>
+    </Term>
+    <Term pids="0">
+      <Source>Customer Care</Source>
+      <Target>service Assistance clientèle</Target>
+    </Term>
+    <Term pids="5">
+      <Source>brand product</Source>
+      <Target>approbation</Target>
+    </Term>
+  </Terminology>
+</LogiTransOutput>

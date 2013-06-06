@@ -22,13 +22,15 @@ CE_TMX_PL := ce_tmx.pl
 CORPORA_DIR := ../../data
 XLIFF_DIR   := ${CORPORA_DIR}/sdlxliff
 TMX_DIR     := ${CORPORA_DIR}/tmx
+LOGI.TRANS.OUTPUT_DIR     := ${CORPORA_DIR}/logitransoutput
 
 XLIFF := $(subst ${XLIFF_DIR}/,,$(shell find ${XLIFF_DIR} -name \*.sdlxliff))
 TMX   := $(subst ${TMX_DIR}/,,$(shell find ${TMX_DIR} -name \*.tmx -type f))
-DIRS  := $(dir ${XLIFF} ${TMX})
+LOGI.TRANS.OUTPUT   := $(subst ${LOGI.TRANS.OUTPUT_DIR}/,,$(shell find ${LOGI.TRANS.OUTPUT_DIR} -maxdepth 1 -name \*.LogiTransOutput -type f)) 
+DIRS  := $(dir ${XLIFF} ${TMX} ${LOGI.TRANS.OUTPUT})
 
-TEMP_DIRS  := tmx xliff
-TEMP_FILES := *.tmx *.sdlxliff
+TEMP_DIRS  := tmx xliff logitransoutput ${LOGS}
+TEMP_FILES := *.tmx *.sdlxliff *.LogiTransOutput
 
 -include Makefile.params
 -include Makefile.expected_count
@@ -41,12 +43,14 @@ SHELL = bash
 
 vpath %.sdlxliff ${XLIFF_DIR}
 vpath %.tmx ${TMX_DIR}
+vpath %.LogiTransOutput ${LOGI.TRANS.OUTPUT_DIR}
 
 .SECONDARY:
 .DEFAULT_GOAL := all
 .PHONY: all
 all:  xliff
 all:  tmx
+all:  logitransoutput
 all:  testSuite
 
 
@@ -56,7 +60,7 @@ clean:
 
 
 
-.PHONY:  xliff tmx
+.PHONY:  xliff tmx logitransoutput
 
 # Perform TMX file extraction.
 TMX_LIST := $(foreach c, $(basename ${TMX}), tmx/$c/val)
@@ -89,6 +93,22 @@ xliff/%/Q.txt xliff/%/Q.tags:  %.sdlxliff
 	[[ `\wc -l < $@` -eq ${EXPECTED_SIZE} ]]
 
 
+# Perform LogiTransOutput file extraction.
+LOGI.TRANS.OUTPUT_LIST :=  $(foreach c, $(basename ${LOGI.TRANS.OUTPUT}), logitransoutput/$c/val)
+logitransoutput:  ${LOGI.TRANS.OUTPUT_LIST}
+logitransoutput/%/Q.txt logitransoutput/%/Q.tags:  %.LogiTransOutput
+	@mkdir -p $(dir $@)
+	-@rm $(dir $@)/*
+	${CE_TMX_PL} \
+		-verbose=1 \
+		$(and ${KEEPTAGS}, -keeptags) \
+		$(and ${DEBUG}, -d) \
+		$(and ${PP}, -pretty_print) \
+		extract $(dir $@) $< \
+		2> ${LOGS}/$(basename $(subst /,.,$@)).log
+	#[[ `\wc -l < $@` -eq ${EXPECTED_SIZE} ]]
+
+
 # Instead of translating, let's reverse the source sentence and pretend it is our translation.
 %/P.txt:  %/Q.tags %/Q.txt
 	! LC_ALL=C egrep '&#x1[eEfF];' $+
@@ -101,7 +121,7 @@ xliff/%/Q.txt xliff/%/Q.tags:  %.sdlxliff
 	perl -nle 'BEGIN{use encoding "UTF-8";}; print $$./100' < $< > $@
 
 
-# Insert translation back into either a TMX or a SDLXLIFF file.
+# Insert translation back into either a TMX or a LogiTransOutput or a SDLXLIFF file.
 %/QP.xml:  %/P.txt  %/pr.ce
 	${CE_TMX_PL} \
 		-verbose=1 \
@@ -138,6 +158,12 @@ xliff/%/val:  xliff/%/QP.xml  %.sdlxliff
 	$(if ${FILTER},, diff --ignore-all-space <($(call GET_SOURCES, $(filter %/QP.xml, $+))) <($(call GET_SOURCES, $(filter %.sdlxliff, $+))); \
 		echo "Visually make sure the sources are identical except for > &gt;" >&2)
 
+
+# Validate logi.trans.output format.
+# TODO Perform so sort of automatic validation.
+logitransoutput/%/val:  logitransoutput/%/QP.xml  %.LogiTransOutput
+	[[ `xpath $< 'count(//Matches)' 2> /dev/null` -le `xpath $< 'count(//Query)' 2> /dev/null` ]] \
+		|| ! echo "Missing Matches section." >&2
 
 
 ########################################

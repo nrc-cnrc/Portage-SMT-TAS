@@ -217,7 +217,11 @@ sub processFile {
 
    my $parser = XML::Twig->new(
          pretty_print  => $pretty_print,
-         start_tag_handlers => { xliff => \&processXLIFF, tmx => \&processTMX },
+         start_tag_handlers => {
+                xliff => \&processXLIFF,
+                tmx => \&processTMX,
+                LogiTransOutput => \&processLogiTransOutput,
+         },
          );
 
    # Use keep_atts_order only if the Tie::IxHash is present.
@@ -340,6 +344,129 @@ sub processXLIFF {
    $parser->{InputFormat} = 'sdlxliff';
 }
 
+sub processLogiTransOutput {
+   my ($parser, $elt) = @_;
+
+   # Extracts source segments to be translated.
+   sub processQuery {
+      my ($parser, $OriginalText) = @_;
+
+      # Skip Queries that are a repeat of some other Query.
+      return if (defined($OriginalText->parent()->{att}{'repeated-from'}));
+
+      # Get the query for id
+      my $query_id = $OriginalText->parent()->{att}{id};
+      die "Each query should have its mandatory id." unless defined $query_id;
+      debug("query_id: %s\n", $query_id);
+
+      my $source = $OriginalText->xml_string();
+      $parser->{seg_id} = ixAdd($parser->{ix}, $source, $query_id);
+      ++$parser->{seg_count};
+
+      xmlFlush($parser);
+
+      ++$parser->{tu_count};
+   }
+
+   # Inserts translations back into the xml file.
+   sub replaceQuery {
+      my ($parser, $query) = @_;
+
+      # Skip Queries that are a repeat of some other Query.
+      return if (defined($query->{att}{'repeated-from'}));
+
+      # Get the query for id
+      my $query_id = $query->{att}{id};
+      die "Each query should have its mandatory id." unless defined $query_id;
+      debug("query_id: %s\n", $query_id);
+
+      # Confidence estimation:
+      my $ce = $query_id ? ixGetCE($parser->{ix}, $query_id) : undef;
+
+      # Don't bother with this Query if the translation doesn't pass filtering.
+      # TODO Is the Matches node mandatory which would mean that we need to
+      # make sure it exists before leaving here.
+      return if (defined $parser->{filter} and defined($ce) and $ce < $parser->{filter});
+
+      debug("Confidence estimation for %s: CE=%s %s\n", $query_id, $ce, $parser->{filter});
+      if ($parser->{score} and defined($ce)) {
+         $ce = 0 if ($ce < 0);
+         $ce = 1 if ($ce > 1);
+         $ce = sprintf("%.0f", 100*$ce);  # %.0f will properly round numbers.
+      }
+      else {
+         # Either we don't have confidence estimatin or we don't want the score
+         # but in either case let's set it to 0.
+         $ce = 0;
+      }
+
+      # Get the translation from our database.
+      my $translation = getTranslation($parser, $query_id);
+
+      # Build a matches section that looks like this:
+#      <Matches>
+#        <Match score="100" weight="9.5" words="12" matchratio="1" lenfactor="1" seqfactor="1">
+#          <RefId>4</RefId>
+#
+#          <RefSrc>Please contact your sales representative or Customer Care for those items.</RefSrc>
+#
+#          <RefTgt>Pour ce faire, veuillez communiquer avec votre représentant des ventes ou avec notre service Assistance
+#          clientèle.</RefTgt>
+#        </Match>
+#      </Matches>
+
+      # Find the Matches node or create a new one.
+      my $matches = $query->get_xpath('Matches', 0);
+      if (not defined($matches)) {
+         $matches = XML::Twig::Elt->new('Matches')->paste(last_child => $query);
+      }
+
+      # Create a match node to add Portage's translation.
+      # TODO figure out what to put in match's attributs?
+      # TODO when the user doesn't want the score, is the attribut score optional? or we need to put 0?
+      my $match = XML::Twig::Elt->new('Match',
+          {
+             score => $ce,      # Can we use this for confidence estimation? Is this optional?
+             weight => 9.5,     # What is weight?  Is this optional?
+             words => 12,       # How to we count the words attribut?  Is it for RefSrc?  Is this optional?
+             matchratio => 1,   # What is matchratio?  Is this optional?
+             lenfactor => 1,    # What is lenfactor?  Is this optional?
+             seqfactor => 1,    # What is seqfactor?  Is this optional?
+          })->paste(last_child => $matches);
+
+      # TODO figure out what value to put into RefId?
+      XML::Twig::Elt->new('RefId', 4)->paste(last_child => $match);
+
+      # TODO figure out what value to put into RefSrc when the translation comes from Portage?
+      my $refsrc = 'From Portage: ' . $query->get_xpath('OriginalText', 0)->text();
+      XML::Twig::Elt->new('RefSrc', $refsrc)->paste(last_child => $match);
+
+      # TODO Do we need to handle tags in the source aka OriginalText and the translation aka Match/RefTgt?
+      XML::Twig::Elt->new('RefTgt', $translation)->paste(last_child => $match);
+
+      ++$parser->{seg_count};
+   }
+
+
+   if ($parser->{action} eq 'extract' or $parser->{action} eq 'check') {
+      $parser->setTwigHandlers( {
+            'OriginalText' => \&processQuery,
+            } );
+   }
+   elsif ($parser->{action} eq 'replace') {
+      $parser->setTwigHandlers( {
+            'Query' => \&replaceQuery,
+            } );
+   }
+   else {
+      die "Invalid action.\n";
+   }
+   # Create a template for LogiTransOutput
+   copy($parser->{xml_in}, $parser->{xml_out_name}) if($parser->{action} eq 'extract');
+
+   $parser->{InputFormat} = 'LogiTransOutput';
+}
+
 
 
 sub wrapSelfClosingTag {
@@ -422,6 +549,11 @@ sub xmlFlush {
        $parser->{action} eq 'check'
           ? $parser->purge()
           : 1; #$parser->flush($parser->{xml_out});
+    }
+    elsif ($parser->{InputFormat} eq 'LogiTransOutput') {
+       $parser->{action} eq 'replace'
+          ? 1 #$parser->flush($parser->{xml_out})
+          : $parser->purge();
     }
     else {
        die "xmlFlush on a undefined format!";
