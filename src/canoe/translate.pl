@@ -1179,7 +1179,7 @@ sub call {
 sub callOutput {
    my ($cmd) = @_;
 
-   my ($fh, $fname) = File::Temp->tempfile("callOutput-XXXXXX", UNLINK=>1);
+   my ($fh, $fname) = File::Temp::tempfile("callOutput-XXXXXX", UNLINK=>1);
    close $fh;
 
    system("$cmd > $fname") == 0 or cleanupAndDie(explainSystemRC($?,$cmd,$0));
