@@ -1,0 +1,4 @@
+starting arpalm.encode
+
+arpalm.encode [options] [--lm] LM_FILE [-o] OUTPUT_BASE_NAME [[-u] UNKNOWN_TOKEN]
+
