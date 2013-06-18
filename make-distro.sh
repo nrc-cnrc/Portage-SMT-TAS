@@ -406,7 +406,7 @@ make_bin() {
          if [[ $ICU = yes ]]; then
             LD_LIBRARY_PATH=$ICU_ROOT/lib:$LD_LIBRARY_PATH ldd ../bin/$ELFDIR/canoe
          else
-            ldd ../bin/$ELFDIR/canoe
+            ldd ../bin/$ELFDIR/canoe ../bin/$ELFDIR/arpalm.encode
          fi |
             egrep -o '/[^ ]*(portage|libtcmalloc|libprofiler|libicu)[^ ]*.so[^ ]*' |
             xargs -i cp {} $ELFDIR
