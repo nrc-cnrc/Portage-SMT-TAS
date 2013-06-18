@@ -1,9 +1,10 @@
 #!/usr/bin/make -f
 # vim:noet:ts=3:nowrap
-# $Id$
 
 # @file Makefile.bin
 # @brief Assembles all the minimal set of software that is required for PortageLive.
+#
+# Invoke as "make DO_EXTERNAL_LIBS=1" to include external libraries in the result.
 #
 # @author Samuel Larkin
 #
@@ -25,37 +26,57 @@ DEST_BASE_DIR ?= rpm.build.root/opt/PortageII
 
 
 ################################################################################
-# BINARIES
+# BINARIES AND EXECUTABLE SCRIPTS
 #If NRC's rewrite of the LDC/UPENN Chinese segmenter is installed, include it.
 CHINESE ?= chinese_rule_create.pl chinese_rule_markup.pl ictclas_postprocessing.pl ictclas_preprocessing.pl ictclas_run.sh \
            $(notdir $(shell which chinese_segmenter.pl 2> /dev/null))
 CE ?= ce_canoe2ffvals.pl ce_gen_features.pl ce.pl ce_tmx.pl ce_train.pl ce_translate.pl ce_ttx2ospl.pl plog.pl
 CE_EXTERNAL ?= svm-predict
 CLUSTER ?= parallelize.pl psub r-parallel-d.pl r-parallel-worker.pl run-parallel.sh which-test.sh
-DECODE ?= canoe canoe-escapes.pl canoe-parallel.sh
+DECODE_BIN ?= canoe
+DECODE_SCRIPTS ?= canoe-escapes.pl canoe-parallel.sh
 # NOTE: DO NOT add detokenize_plugin script to the BINSCRIPTS variable since
 # it exists only to illustrate what a detokenie_plugin could look like.
 TRANSLATE ?= postdecode_plugin postprocess_plugin predecode_plugin preprocess_plugin sentsplit_plugin tokenize_plugin \
-             translate.pl ridbom.sh crlf2lf.sh utf8_filter fix-en-fr-numbers.pl ${CHINESE}
-OTHER_BIN ?= configtool portage_info
-RESCORE ?= feature_function_tool gen-features-parallel.pl gen_feature_values nbest2rescore.pl rat.sh rescore_translate
-TOKENIZATION ?= udetokenize.pl utf8_casemap utokenize.pl
-TRUECASING ?= truecase.pl casemark.py boscap.py boscap-nosrc.py normc1 markup_canoe_output
+             translate.pl ridbom.sh crlf2lf.sh fix-en-fr-numbers.pl
+OTHER_BIN ?= utf8_filter utf8_casemap configtool portage_info normc1 markup_canoe_output
+RESCORE_BIN ?= feature_function_tool gen_feature_values rescore_translate
+RESCORE_SCRIPTS ?= gen-features-parallel.pl nbest2rescore.pl rat.sh
+TOKENIZATION ?= udetokenize.pl utokenize.pl
+TRUECASING ?= truecase.pl casemark.py boscap.py boscap-nosrc.py
 #Define EXTRAS in Makefile.params to include extra PortageII programs
 EXTRAS ?=
 
 # Must contain programs from PortageII only.
-PORTAGE_BINS ?= ${CE} ${DECODE} ${OTHER_BIN} ${RESCORE} ${TOKENIZATION} ${TRANSLATE} ${TRUECASING} ${EXTRAS}
+PORTAGE_SCRIPTS ?= ${CHINESE} ${CE} ${DECODE_SCRIPTS} ${TRANSLATE} ${RESCORE_SCRIPTS} ${TOKENIZATION} ${TRUECASING}
+PORTAGE_BINS ?= ${DECODE_BIN} ${OTHER_BIN} ${RESCORE_BIN} ${EXTRAS}
 CLUSTER_BINS ?= ${CLUSTER}
-BINARIES ?= ${PORTAGE_BINS} ${CLUSTER_BINS} ${CE_EXTERNAL}
+BINARIES ?= ${PORTAGE_SCRIPTS} ${PORTAGE_BINS} ${CLUSTER_BINS} ${CE_EXTERNAL}
 
 
 # Make sure all PortageII's binaries are from the same source build.
 SRC_PORTAGE_BIN_DIR := $(sort $(dir $(shell which ${PORTAGE_BINS} 2> /dev/null)))
+SRC_PORTAGE_BIN_DIR := ${SRC_PORTAGE_BIN_DIR:/=}
 ifeq ("$(words ${SRC_PORTAGE_BIN_DIR})","0")
-$(error Problem finding PortageII software, maybe it's not installed)
+   $(error Problem finding PortageII binary software, maybe it's not installed)
 else ifneq ("$(words ${SRC_PORTAGE_BIN_DIR})","1")
-$(error Problem finding PortageII software, maybe it's not installed, or the PORTAGE_BINS variable lists non-PortageII programs)
+   $(error Finding PortageII binary software in multiple directories, make sure you're pointing to a single consistent installation)
+endif
+
+# Make sure all PortageII's scripts are from the same source build.
+SRC_PORTAGE_SCRIPT_DIR := $(sort $(dir $(shell which ${PORTAGE_SCRIPTS} 2> /dev/null)))
+SRC_PORTAGE_SCRIPT_DIR := ${SRC_PORTAGE_SCRIPT_DIR:/=}
+ifeq ("$(words ${SRC_PORTAGE_SCRIPT_DIR})","0")
+   $(error Problem finding PortageII scripts, maybe it's not installed)
+else ifneq ("$(words ${SRC_PORTAGE_SCRIPT_DIR})","1")
+   $(error Finding PortageII scripts in multiple directories, make sure you're pointing to a single consistent installation)
+endif
+
+ifneq (${SRC_PORTAGE_SCRIPT_DIR},${SRC_PORTAGE_BIN_DIR})
+   ifneq (${SRC_PORTAGE_SCRIPT_DIR}/,$(dir ${SRC_PORTAGE_BIN_DIR}))
+      $(error PortageII scripts and binary programs should be either in the same folder or in a bin folder and an architecture-specific subfolder)
+   endif
+   ARCH_TOKEN=$(notdir ${SRC_PORTAGE_BIN_DIR})
 endif
 
 # Where are we supposed to copy the binaires?
@@ -87,7 +108,7 @@ ${DEST_BASE_DIR}/logs/accounting:
 
 ########################################
 # Handle the INSTALL_SUMMARY file, if present.
-ifneq ("$(wildcard ${SRC_PORTAGE_BIN_DIR:/=}/INSTALL_SUMMARY)","")
+ifneq ("$(wildcard ${SRC_PORTAGE_SCRIPT_DIR}/INSTALL_SUMMARY)","")
 INSTALL_SUMMARY_LIST := $(addprefix ${DEST_BIN_DIR}/, INSTALL_SUMMARY)
 
 .PHONY: install_summary
@@ -96,7 +117,7 @@ install_summary: ${INSTALL_SUMMARY_LIST}
 	chmod 0644 $+
 
 # INSTALL_SUMMARY dependencies
-${INSTALL_SUMMARY_LIST}: ${DEST_BIN_DIR}/%: ${SRC_PORTAGE_BIN_DIR:/=}/%
+${INSTALL_SUMMARY_LIST}: ${DEST_BIN_DIR}/%: ${SRC_PORTAGE_SCRIPT_DIR}/%
 
 ALL_FILES += ${INSTALL_SUMMARY_LIST}
 endif
@@ -145,14 +166,18 @@ endif
 
 # PortageII's libraries are just beside the binaries' directory.
 # Note: this can represent more than one directory.
-SRC_PORTAGE_LIB_DIR ?= ${SRC_PORTAGE_BIN_DIR:bin/=lib}
+SRC_PORTAGE_LIB_DIR ?= ${SRC_PORTAGE_SCRIPT_DIR:bin=lib}
 
 # Where are we supposed to copy the libraries.
 DEST_LIB_DIR ?= ${DEST_BASE_DIR}/lib
 
 ########################################
 # How to handle libraries.
-vpath % ${SRC_PORTAGE_LIB_DIR}
+ifdef ARCH_TOKEN
+   vpath % ${SRC_PORTAGE_LIB_DIR} ${SRC_PORTAGE_LIB_DIR}/${ARCH_TOKEN}
+else
+   vpath % ${SRC_PORTAGE_LIB_DIR}
+endif
 
 # Where and what are the libraries needed.
 PORTAGE_LIB_LIST := $(addprefix ${DEST_LIB_DIR}/, ${PORTAGE_LIBS})
