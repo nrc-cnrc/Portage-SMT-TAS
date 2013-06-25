@@ -93,18 +93,18 @@ ln -s ../favicon.ico rpm.build.root/var/www/html/secure/
 cp soap/{index.html,PortageLiveAPI.*,test.php,soap.php} $SOAP_DEST
 # Copy them into secure/ as well, for use with ssl/https.
 cp soap/{index.html,PortageLiveAPI.php,test.php,soap.php} $SOAP_DEST/secure
-perl -ple 's/(http)(:\/\/__REPLACE_THIS_WITH_YOUR_IP__)/$1s$2/' \
+perl -ple 's/(http)(:\/\/__REPLACE_THIS_WITH_YOUR_IP__)/$1s$2/g' \
    < soap/PortageLiveAPI.wsdl \
    > $SOAP_DEST/secure/PortageLiveAPI.wsdl
 
 # For fixed IP, replace the token by the given IP
 if [[ $FIXED_IP ]]; then
-   sed "s/__REPLACE_THIS_WITH_YOUR_IP__/$FIXED_IP/" \
+   sed "s/__REPLACE_THIS_WITH_YOUR_IP__/$FIXED_IP/g" \
       < soap/PortageLiveAPI.wsdl \
       > $SOAP_DEST/PortageLiveAPI.wsdl
-   perl -ple 's/(http)(:\/\/__REPLACE_THIS_WITH_YOUR_IP__)/$1s$2/' \
+   perl -ple 's/(http)(:\/\/__REPLACE_THIS_WITH_YOUR_IP__)/$1s$2/g' \
       < soap/PortageLiveAPI.wsdl \
-   | sed "s/__REPLACE_THIS_WITH_YOUR_IP__/$FIXED_IP/" \
+   | sed "s/__REPLACE_THIS_WITH_YOUR_IP__/$FIXED_IP/g" \
       > $SOAP_DEST/secure/PortageLiveAPI.wsdl
 fi
 
