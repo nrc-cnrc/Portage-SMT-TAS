@@ -786,7 +786,7 @@ TRANS:{
       my $decoder = "canoe";
       if ($n > 1) {
          my $v = $verbose ? "-v" : "";
-         $decoder = "canoe-parallel.sh $v -n $n $xtra_cp_opts canoe";
+         $decoder = "cd $dir && canoe-parallel.sh $v -n $n $xtra_cp_opts canoe";
       }
       my $decoder_opts = $verbose ? "-v $verbose" : "";
       $decoder_opts .= " -walign -palign" if (defined $tcsrclm or $with_ce or $xtags);

@@ -1,6 +1,4 @@
 #!/bin/bash
-# $Id$
-#
 # @file canoe-parallel.sh
 # @brief wrapper to run canoe on a parallel machine or on a cluster.
 #
@@ -173,8 +171,7 @@ CMDS_FILE=$WORK_DIR/commands
 [[ $GOTCANOE ]] || error_exit "The 'canoe' argument and the canoe options are missing."
 
 # Make sure we have a working directory
-test -e $WORK_DIR || mkdir $WORK_DIR
-
+test -e $WORK_DIR || mkdir $WORK_DIR || error_exit "$WORD_DIR does not exist and cannot be created."
 
 #
 if [ $NUMBER_OF_JOBS -ne 1 -a -z "$LOAD_BALANCING" ]; then
