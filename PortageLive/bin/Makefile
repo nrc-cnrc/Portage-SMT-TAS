@@ -34,7 +34,7 @@ CE ?= ce_canoe2ffvals.pl ce_gen_features.pl ce.pl ce_tmx.pl ce_train.pl ce_trans
 CE_EXTERNAL ?= svm-predict
 CLUSTER ?= parallelize.pl psub r-parallel-d.pl r-parallel-worker.pl run-parallel.sh which-test.sh
 DECODE_BIN ?= canoe
-DECODE_SCRIPTS ?= canoe-escapes.pl canoe-parallel.sh
+DECODE_SCRIPTS ?= canoe-escapes.pl canoe-parallel.sh sh_utils.sh
 # NOTE: DO NOT add detokenize_plugin script to the BINSCRIPTS variable since
 # it exists only to illustrate what a detokenie_plugin could look like.
 TRANSLATE ?= postdecode_plugin postprocess_plugin predecode_plugin preprocess_plugin sentsplit_plugin tokenize_plugin \

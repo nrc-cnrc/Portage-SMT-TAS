@@ -117,6 +117,7 @@ if (my $filename = param('file')     # The name of the file we are monitoring
         my $p_raw = catdir($WEB_PATH, $work_dir, "p.raw");
         my $canoe_out = catdir($WEB_PATH, $work_dir, "p.dec");
         $canoe_out = $p_raw if (-r $p_raw);
+        my $canoe_parallel_out = catdir($WEB_PATH, $work_dir, "canoe-parallel*", "out*");
         my $ce_out = catdir($WEB_PATH, $work_dir, "pr.ce");
         my $job_done = catdir($WEB_PATH, $work_dir, "done");
         my $trace_file = catdir($WEB_PATH, $work_dir, "trace");
@@ -149,6 +150,8 @@ if (my $filename = param('file')     # The name of the file we are monitoring
                 my $in_count = int(`wc --lines < $canoe_in`) + 0;
                 my $out_count = int(`wc --lines < $canoe_out`) + 0;
                 if ($in_count != $out_count) { # Means decoding in progress
+                    my $parallel_out_count = int(`cat $canoe_parallel_out 2> /dev/null | wc --lines`) + 0;
+                    if ($parallel_out_count > $out_count) { $out_count = $parallel_out_count; }
                     print br("Translated ${out_count} of ${in_count} segments...");
                 } else { # Means decoding is done
                     print br("Translated ${out_count} of ${in_count} segments... elapsed time: "
