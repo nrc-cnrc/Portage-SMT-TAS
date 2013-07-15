@@ -24,7 +24,7 @@ all: test
 test: display.accent \
      $(addprefix compare., accent.tok accent.utf8 accent.utf8.tok) \
      $(addprefix display., accent.tok accent.utf8 accent.utf8.tok) \
-     french-hyphens dots ch-punc en-prices
+     french-hyphens dots ch-punc en-prices smart-apos
 
 
 french-hyphens: compare.hyphens.tok compare.hyphens.tok.utf8 \
@@ -186,17 +186,41 @@ chinese-punc.detok.110: chinese-punc
 
 chinese-punc.detok.111: chinese-punc
 	udetokenize.pl -latin1 -chinesepunc -stripchinese < $< > $@
-	
+
 # Price specific ($ processing in English).
 eng-prices.utf8: eng-prices
 	iconv -f iso-8859-1 -t UTF-8 < $< > $@
 
 eng-prices.detok: eng-prices
 	detokenize.pl -lang=en $< > $@
-	
+
 eng-prices.detok.utf8: eng-prices.utf8
 	udetokenize.pl -lang=en $< > $@
 
+
+#####################
+# Make sure the apostrophe from CP1252 and its utf-8 counterpart are
+# detokenized correctly
+test: test-smart-apos
+
+.PHONY: test-smart-apos
+test-smart-apos: compare.smart-apos.detok.utf8 compare.smart-apos.detok \
+                 compare.smart-apos.tok.utf8 compare.smart-apos.tok
+
+smart-apos.utf8: smart-apos
+	iconv -f cp1252 -t utf-8 < $< > $@
+
+smart-apos.detok.utf8: smart-apos.utf8
+	udetokenize.pl -lang=en $< > $@
+
+smart-apos.detok: smart-apos
+	detokenize.pl -lang=en $< > $@
+
+smart-apos.tok.utf8: smart-apos.detok.utf8
+	utokenize.pl -lang=en -noss $< > $@
+
+smart-apos.tok: smart-apos.detok
+	tokenize.pl -lang=en -noss $< > $@
 
 
 ################################################################################
