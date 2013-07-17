@@ -469,7 +469,7 @@ int MAIN(argc, argv)
    vector<string> initial_lines;
    // how many lines we look at to decide the number of count fields, and
    // whether there are alignments.
-   const uint32_t header_size = 100;
+   const uint32_t header_size = 10000;
 
    for (uint32_t i = 0; i < header_size; ++i) {
       if (!getline(in, line)) break;
