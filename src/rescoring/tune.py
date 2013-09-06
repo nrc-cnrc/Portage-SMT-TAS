@@ -90,7 +90,7 @@ parser.add_option("-a", dest="optcmd", type="string", default="powell",
                   "mira [C [I [E]]]], " \
                   "pro [alg [curwt [bleucol [orig [reg]]]]], " \
                   "svm [C [B [A]]], " \
-                  "lmira [C decay bg density num_it], " \
+                  "lmira [C decay bg density num_it faux], " \
                   "expsb [L] "\
                   "[%default]")
 #parser.add_option("-b", dest="bestbleu", type="string", default="1",
@@ -679,6 +679,7 @@ def optimizeLMIRA(iter, wts, args, logfile):
     bg = "Oracle"                # BLEU background=Oracle|Model|Orange
     density = "100000"                   # lattices will be f-b pruned to this density
     numIt = "30"                     # max number of iterations
+    faux = "false"               # Whether to do Faux LMIRA or not
     seed = "1"
     if(opts.seed>0): seed = str(opts.seed * 10000 + iter)
     args_vals = args.split()
@@ -687,11 +688,12 @@ def optimizeLMIRA(iter, wts, args, logfile):
     if len(args_vals) > 2: bg = args_vals[2]
     if len(args_vals) > 3: density = args_vals[3]
     if len(args_vals) > 4: numIt = args_vals[4]
-    if len(args_vals) > 5:
-       print >> logfile, "warning: ignoring values past first 4 tokens in " + args
+    if len(args_vals) > 5: faux = args_vals[5]
+    if len(args_vals) > 6:
+       print >> logfile, "warning: ignoring values past first 5 tokens in " + args
     refglob = ','.join(refs)
     cmd = ["time-mem", jav, opts.jmem, "-enableassertions", "-jar", jar, "MiraTrainLattice", optimizer_in, \
-           workdir, refglob, src, hypmem, C, decay, bg, density, numIt, str(opts.bleuOrder), seed]
+           workdir, refglob, src, hypmem, C, decay, bg, density, numIt, str(opts.bleuOrder), faux, seed]
     outfile = open(optimizer_out, 'w')
     print >> logfile, ' '.join(cmd)
     logfile.flush()
