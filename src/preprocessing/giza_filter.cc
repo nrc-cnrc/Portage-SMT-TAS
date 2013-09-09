@@ -55,7 +55,7 @@ static void getArgs(int argc, char* argv[]);
 
 /// DummyConverter for calling split to simply count tokens.
 struct DummyConverter {
-   void operator()(const char* src, char& dest) { dest = 1; }
+   bool operator()(const char* src, char& dest) { dest = 1; return true; }
 };
 
 // main
