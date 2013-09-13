@@ -88,6 +88,7 @@ depending on <cmd>, one of:\n\
   list-tm            - List all translation model file names.\n\
   args:<args>        - Apply canoe command-line arguments <args> to <config>, and\n\
                        write resulting new configuration.\n\
+  prime_tpt          - Quickly loads tpt in memory\n\
 \n\
 Options:\n\
 \n\
@@ -131,6 +132,8 @@ static void getArgs(int argc, char* argv[]);
  * @return Returns a RescoreResult which contains the BLEU score and the associated weights
  */
 static RescoreResult parseRescoreResultsLine(const string& line);
+
+static void gulpFile(const string& filename);
 
 } // ends namespace ConfigTool
 } // ends namespace Portage
@@ -393,6 +396,15 @@ int main(int argc, char* argv[])
       vector<string> alltms(c.multiProbTMFiles);
       alltms.insert(alltms.end(), c.tpptFiles.begin(), c.tpptFiles.end());
       cout << join(alltms) << endl;
+   } else if (cmd == "prime_tpt") {
+      for ( Uint i = 0; i < c.LDMFiles.size(); ++i )
+         if (isSuffix(".tpldm", c.LDMFiles[i]))
+            gulpFile(c.LDMFiles[i] + "/tppt");
+      for ( Uint i = 0; i < c.tpptFiles.size(); ++i )
+         gulpFile(c.tpptFiles[i] + "/tppt");
+      for ( Uint i = 0; i < c.lmFiles.size(); ++i )
+         if (isSuffix(".tplm", c.lmFiles[i]))
+            gulpFile(c.lmFiles[i] + "/tplm");
    } else
       error(ETFatal, "unknown command: %s", cmd.c_str());
 }
@@ -466,5 +478,15 @@ void getArgs(int argc, char* argv[])
    arg_reader.testAndSet(1, "config", config_in);
    arg_reader.testAndSet(2, "out", &osp, ofs);
 }
+
+void gulpFile(const string& filename) {
+   const streamsize length = 8192;
+   char buffer[length];
+   iSafeMagicStream in(filename);
+   while (in) {
+      in.read(buffer, length);
+   }
 }
-}
+
+}  // ends namespace ConfigTool
+}  // ends namespace Portage
