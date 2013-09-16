@@ -24,7 +24,7 @@ XLIFF_DIR   := ${CORPORA_DIR}/sdlxliff
 TMX_DIR     := ${CORPORA_DIR}/tmx
 LOGI.TRANS.OUTPUT_DIR     := ${CORPORA_DIR}/logitransoutput
 
-XLIFF := $(subst ${XLIFF_DIR}/,,$(shell find ${XLIFF_DIR} -name \*.sdlxliff))
+XLIFF := $(subst ${XLIFF_DIR}/,,$(shell find ${XLIFF_DIR} -name \*.sdlxliff))  unittest_missing_seg-defs.sdlxliff
 TMX   := $(subst ${TMX_DIR}/,,$(shell find ${TMX_DIR} -name \*.tmx -type f))
 LOGI.TRANS.OUTPUT   := $(subst ${LOGI.TRANS.OUTPUT_DIR}/,,$(shell find ${LOGI.TRANS.OUTPUT_DIR} -maxdepth 1 -name \*.LogiTransOutput -type f)) 
 DIRS  := $(dir ${XLIFF} ${TMX} ${LOGI.TRANS.OUTPUT})
@@ -41,7 +41,7 @@ $(shell mkdir -p ${LOGS})
 
 SHELL = bash
 
-vpath %.sdlxliff ${XLIFF_DIR}
+vpath %.sdlxliff ${XLIFF_DIR} src
 vpath %.tmx ${TMX_DIR}
 vpath %.LogiTransOutput ${LOGI.TRANS.OUTPUT_DIR}
 
@@ -146,13 +146,15 @@ tmx/%/val:  tmx/%/QP.xml  %.tmx
 	echo "validate that the source sentence is unaltered: viewdiff <(xmllint --format --recover - 2>/dev/null < $(filter %.tmx,$+))  <(xmllint --format --recover - 2>/dev/null < $(<:xml=template.xml))  <(xmllint --format --recover - 2>/dev/null < $<) +/xml:lang=\\\"EN-CA\\\""
 
 # Validate sdlxliff format.
-GET_SOURCES = perl -nle 'BEGIN{$$/=undef}; s/<mrk[^>]+>//g; while (m/(<source.*?\/source>|<seg-source.*?\/seg-source>)/g) {print "line $$1\n"}' $1
+GET_SOURCES = perl -nle 'BEGIN{$$/=undef}; s/<mrk[^>]+>//g; s/\n//gs; while (m/(<source.*?\/source>|<seg-source.*?\/seg-source>)/gs) {print "line $$1\n"}' $1
 STRIP_1E_1f = <(sed 's/&\#x1[eEfF];//g;' $1)
 xliff/%/val:  xliff/%/QP.xml  %.sdlxliff
 	[[ "`xpath $(call STRIP_1E_1f, $<) 'count(//target[not(@*)]//mrk[@mtype=\"seg\"])' 2> /dev/null`" -eq "$(call EXPECTED_FILTER, ${EXPECTED_SIZE}, ${FILTER_100})" ]] \
 		|| ! echo "ERROR: There are some target with attributs" >&2
 	[[ "`xpath $(call STRIP_1E_1f, $<) 'count(//target//mrk)' 2> /dev/null`" -eq "$(call EXPECTED_FILTER, ${EXPECTED_SIZE}, ${FILTER_100})" ]] \
 		|| ! echo "ERROR: There is not the right number of mrk segments." >&2 
+	[[ "`xpath $(call STRIP_1E_1f, $<) 'count(//sdl:seg-defs[not(node())])' 2> /dev/null`" -eq "0" ]] \
+		|| ! echo "ERROR: Empty sdl:seg-defs are not allowed in sdlxliff." >&2 
 	$(and ${SCORE}, ${FILTER}, [[ "`xpath $(call STRIP_1E_1f, $<) 'count(//sdl:seg-defs/sdl:seg[@percent >=0 and @percent<=100])' 2> /dev/null`" -le "$(call EXPECTED_FILTER, ${EXPECTED_SIZE}, ${FILTER_100})" ]] \
 		|| ! echo "ERROR: Filtering" >&2)
 	$(if ${FILTER},, diff --ignore-all-space <($(call GET_SOURCES, $(filter %/QP.xml, $+))) <($(call GET_SOURCES, $(filter %.sdlxliff, $+))); \
