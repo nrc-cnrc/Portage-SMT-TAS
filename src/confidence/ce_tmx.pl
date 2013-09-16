@@ -580,6 +580,8 @@ sub replaceTransUnit {
       }
    }
 
+   $sdl_defs->delete unless (@mrks);
+
    # If we didn't filter out all translations, we can add the target object to the tree.
    $target->paste(after => $source) if ($target->descendants('mrk[@mtype="seg"]'));
 
