@@ -328,7 +328,7 @@ sub processXLIFF {
    elsif ($parser->{action} eq 'replace') {
       $parser->setTwigHandlers( {
             'trans-unit' => \&replaceTransUnit,
-            header => \&processHeader,
+            #header => \&processHeader,
             } );
    }
    else {
@@ -551,7 +551,7 @@ sub replaceTransUnit {
       $sdl_seg->{att}->{id}              = $mid;
       $sdl_seg->{att}->{conf}            = 'Draft';
       $sdl_seg->{att}->{origin}          = 'mt';
-      $sdl_seg->{att}->{'origin-system'} = $parser->{'tool-id'};
+      #$sdl_seg->{att}->{'origin-system'} = $parser->{'tool-id'};
 
       # Confidence estimation:
       my $ce = $xid ? ixGetCE($parser->{ix}, $xid) : undef;
@@ -622,6 +622,8 @@ sub processG {
 # Adds a tool description for PortageII.
 sub processHeader {
    my ($parser, $header) = @_;
+
+   #return;  # Do not add the tool tag to the header.
 
    my @tools = $header->children('tool[@tool-id="PortageII-2.0"]');
 
