@@ -88,7 +88,8 @@ depending on <cmd>, one of:\n\
   list-tm            - List all translation model file names.\n\
   args:<args>        - Apply canoe command-line arguments <args> to <config>, and\n\
                        write resulting new configuration.\n\
-  prime_tpt          - Quickly loads tpt in memory\n\
+  prime_partial      - Quickly loads a minimal set of tpt in memory\n\
+  prime_full         - Quickly loads all tpt in memory\n\
 \n\
 Options:\n\
 \n\
@@ -396,15 +397,26 @@ int main(int argc, char* argv[])
       vector<string> alltms(c.multiProbTMFiles);
       alltms.insert(alltms.end(), c.tpptFiles.begin(), c.tpptFiles.end());
       cout << join(alltms) << endl;
-   } else if (cmd == "prime_tpt") {
+   } else if (cmd == "prime_partial" or cmd == "prime_full") {
       for ( Uint i = 0; i < c.LDMFiles.size(); ++i )
-         if (isSuffix(".tpldm", c.LDMFiles[i]))
-            gulpFile(c.LDMFiles[i] + "/tppt");
-      for ( Uint i = 0; i < c.tpptFiles.size(); ++i )
-         gulpFile(c.tpptFiles[i] + "/tppt");
+         if (isSuffix(".tpldm", c.LDMFiles[i])) {
+            gulpFile(c.LDMFiles[i] + "/trg.repos.dat");
+            gulpFile(c.LDMFiles[i] + "/cbk");
+            if (cmd =="prime_full") gulpFile(c.LDMFiles[i] + "/tppt");
+         }
+
+      for ( Uint i = 0; i < c.tpptFiles.size(); ++i ) {
+         gulpFile(c.tpptFiles[i] + "/trg.repos.dat");
+         gulpFile(c.tpptFiles[i] + "/cbk");
+         if (cmd =="prime_full") gulpFile(c.tpptFiles[i] + "/tppt");
+      }
+
       for ( Uint i = 0; i < c.lmFiles.size(); ++i )
-         if (isSuffix(".tplm", c.lmFiles[i]))
+         if (isSuffix(".tplm", c.lmFiles[i])) {
+            gulpFile(c.lmFiles[i] + "/tdx");
+            gulpFile(c.lmFiles[i] + "/cbk");
             gulpFile(c.lmFiles[i] + "/tplm");
+         }
    } else
       error(ETFatal, "unknown command: %s", cmd.c_str());
 }
