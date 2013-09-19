@@ -199,7 +199,8 @@ The input and output files are in XML format.
 
 =item -xtags
 
-Process and transfer tags in xml
+Process and transfer tags, either in the XML file input, or in plain input text
+with XMLish markup.
 
 =item -wal=WAL
 
@@ -602,9 +603,8 @@ if ($xml) {
       $xtgt =~ tr/a-z/A-Z/;
    }
 } else {
-   !defined $xsrc and !defined $xtgt and !defined $filter and !defined $xtags
-      or warn "Warning: ignoring -xsrc, -xtgt, -xtags and -filter, which are meaningful only with -xml.\n";
-   undef $xtags;
+   !defined $xsrc and !defined $xtgt and !defined $filter
+      or warn "Warning: ignoring -xsrc, -xtgt and -filter, which are meaningful only with -xml.\n";
 }
 
 # CE specific options
@@ -752,7 +752,12 @@ IN:{
       call("ce_tmx.pl -verbose=$verbose -src=$xsrc -tgt=$xtgt extract '$dir' '$input_text'");
       cleanupAndDie("XML file $input_text has no sentence in language $xsrc.\n") unless -s $Q_txt or $dryrun;
    } else {
-      copy($input_text, $Q_txt);
+      if ($xtags) {
+         copy($input_text, $Q_tags);
+      }
+      else {
+         copy($input_text, $Q_txt);
+      }
    }
 }
 
@@ -1031,7 +1036,8 @@ sub tokenize {
          # These languages are supported by utokenize.pl
          my $tokopt = " -lang=${lang}";
          $tokopt .= $nl eq 's' ? " -noss" : " -ss";
-         $tokopt .= " -paraline" if $nl eq 'p';
+         $tokopt .= " -paraline -p" if $nl eq 'p';
+         $tokopt .= " -p" if $nl eq 'w';
          $tokopt .= " -pretok" if !$tok;
          $tokopt .= " -xtags" if $xtags;
          my $u = $utf8 ? "u" : "";
@@ -1069,7 +1075,6 @@ sub tokenize {
 
 sub strip_entity {
    my ($in, $out) = @_;
-   warn "strip_entity should be used in xml mode." unless ($xml);
    die "You need to provide in and out" unless (defined($in) and defined($out));
 
    verbose("Stripping Entities\n");
@@ -1131,8 +1136,10 @@ sub detokenize {
          plugin("detokenize", $tgt, $P_tok, $P_dtk);
       }
       else {
+         my $options;
+         $options = " -deparaline" if ($nl eq "p");
          my $u = $utf8 ? "u" : "";
-         call("${u}detokenize.pl -lang=${lang} < '${in}' > '${out}'", $out);
+         call("${u}detokenize.pl -lang=${lang} $options < '${in}' > '${out}'", $out);
       }
    }
 }

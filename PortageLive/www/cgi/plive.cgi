@@ -62,6 +62,8 @@ Michel Simard
 use strict;
 use warnings;
 
+use HTML::Entities;
+
 ## --------------------- USER CONFIGURATION ------------------------------
 ##
 
@@ -171,6 +173,12 @@ sub printForm {
 
     my @actions = qw(preview translate);
 
+    my %labels = (
+          's' => 'one sentence per line -- Check this box if input text has one sentence per line.',
+          'p' => 'one paragraph per line -- Check this box if input text has one paragraph per line.',
+          'w' => 'blank lines mark paragraphs -- Check this box if input text has two consecutive newlines mark the end of a paragraph, otherwise newline is just whitespace.'
+          );
+
 # Start a multipart form.
 
     my @filter_values = ();
@@ -195,7 +203,14 @@ sub printForm {
           Tr(td({colspan=>2, align=>'left'},
                 textarea(-name=>'textbox',
                          -value=>'',
-                         -columns=>60, -rows=>10))),
+                         -columns=>66,
+                         -rows=>10))),
+          Tr(td({align=>'center'},
+                checkbox(-name=>'textbox_xtags',
+                         -checked=>0,
+                         -label=>'')),
+             td(strong("xtags"),
+                "-- Check this box if input text contains tags and you want to process & transfer them.")),
           Tr(td({colspan=>2, align=>'center'},
                 submit(-name=>'TranslateBox', -value=>'Translate Text'))),
 
@@ -219,7 +234,7 @@ sub printForm {
                 "-- Check this box if input file is TMX or SDLXLIFF.")),
           Tr({valign=>'top'},
              td({align=>'right'},
-                checkbox(-name=>'xtags',
+                checkbox(-name=>'file_xtags',
                          -checked=>0,
                          -label=>'')),
              td(strong("xtags"),
@@ -237,14 +252,15 @@ sub printForm {
                 submit(-name=>'TranslateFile', -value=>'Translate File'))),
           Tr(td({colspan=>2, align=>'center'}, hr())),
           Tr(td({colspan=>2, align=>'left'},
-                strong("Advanced Options:"))),
+                strong("Advanced Options (plain text input):"))),
           Tr({valign=>'top'},
-             td({align=>'right'},
-                checkbox(-name=>'noss',
-                         -checked=>0,
-                         -label=>'')),
-             td(strong("pre-segmented"),
-                "-- Check this box if sentences are already newline-separated in the source text file.")),
+             td({align=>'left', colspan=>2},
+                radio_group(-name=>'newline',
+                   -values=>['s', 'p', 'w'],
+                   -default=>'s',
+                   -linebreak=>'true',
+                   -labels=>\%labels,
+                   ))),
           Tr({valign=>'top'},
              td({align=>'right'},
                 checkbox(-name=>'notok',
@@ -268,13 +284,15 @@ sub printForm {
 sub processText {
     my $work_name;              # User-recognizable jobname
     my $work_dir;               # For translate.pl
+    my @tr_opt = ();            # Translate.pl options
 
     my $context = param('context');
     if (not $context) {
         problem("No system (\"context\") specified.");
+    }
 
     # Create the work dir, get the source text in there:
-    } elsif (param('TranslateFile') and param('filename')) {  # File upload
+    if (param('TranslateFile') and param('filename')) {  # File upload
         my $src_file = tmpFileName(param('filename'))
             || problem("Can't get tmpFileName()");
         my @src_file_parts = split(/[:\\\/]+/, param('filename'));
@@ -295,6 +313,8 @@ sub processText {
         print {$fh} param('textbox'), "\n";
         close $fh;
 
+        push @tr_opt, "-xtags" if (param('textbox_xtags'));
+
     } else {
         problem("No text or file to translate");
     }
@@ -313,7 +333,7 @@ sub processText {
 
     # Prepare the ground for translate.pl:
     my $outfilename = "PLive-${work_name}";
-    my @tr_opt = ("-verbose",
+    push @tr_opt, ("-verbose",
                   "-out=\"$work_dir/P.out\"",
                   "-dir=\"$work_dir\"");
     push @tr_opt, ($CONTEXT{$context}->{ce_model}
@@ -330,15 +350,14 @@ sub processText {
 
         push @tr_opt, "-filter=$filter_threshold";
     }
+
     if (param('xml')) {
         push @tr_opt, ("-xml", "-nl=s");
-        if (param('xtags')) {
-           push @tr_opt, "-xtags";
-        }
+        push @tr_opt, "-xtags" if (param('file_xtags'));
     }
     else {
         push @tr_opt, param('notok') ? "-notok": "-tok";
-        push @tr_opt, param('noss') ? "-nl=s" : "-nl=p";
+        push @tr_opt, "-nl=" . param('newline');
     }
 
     my $tr_opt = join(" ", @tr_opt);
@@ -414,13 +433,15 @@ sub textBoxOutput {
 
     print start_html(-title=>"PORTAGELive");
 
+    $source = HTML::Entities::encode_entities($source, '<>&');
+    $source =~ s/\n/<br \/>/g;
     print
         NRCBanner(),
         h1("PORTAGELive"),
         h2("Source text:"),
         p($source),
         h2("Translation:"),
-        p(join("<br>", @target));
+        p(join("<br>", map { HTML::Entities::encode_entities($_, '<>&') } @target));
     print p(a({-href=>"plive.cgi?context=".param('context')}, "Translate more text"));
     #my @params = param();
     #print "<PRE> @params </PRE>";

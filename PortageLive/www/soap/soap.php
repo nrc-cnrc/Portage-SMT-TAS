@@ -20,7 +20,9 @@ $WSDL="PortageLiveAPI.wsdl";
 $context = "";
 $button = "";
 $monitor_token = "";
-$xtags = 0;
+$file_xtags = 0;
+$to_translate_xtags = 0;
+$newline = "";
 #print_r( $_POST);  // Nice for debug POST's values.
 if ( $_POST ) {
    if ( array_key_exists('context', $_POST) ) {
@@ -31,6 +33,8 @@ if ( $_POST ) {
          $button = "TranslateTMX";
       if ( array_key_exists('TranslateSDLXLIFF', $_POST) )
          $button = "TranslateSDLXLIFF";
+      if ( array_key_exists('TranslatePlainText', $_POST) )
+         $button = "TranslatePlainText";
    }
 
    if ( array_key_exists('context', $_POST) ) {
@@ -39,15 +43,23 @@ if ( $_POST ) {
          $button = "Prime";
    }
 
+   if ( array_key_exists('newline', $_POST) )
+      $newline = $_POST['newline'];
+
    if ( array_key_exists('ce_threshold', $_POST) )
       $ce_threshold = $_POST['ce_threshold'] + 0;
    else
       $ce_threshold = 0;
 
-   if ( array_key_exists('xtags', $_POST) )
-      $xtags = 1;
+   if ( array_key_exists('file_xtags', $_POST) )
+      $file_xtags = 1;
    else
-      $xtags = 0;
+      $file_xtags = 0;
+
+   if ( array_key_exists('to_translate_xtags', $_POST) )
+      $to_translate_xtags = 1;
+   else
+      $to_translate_xtags = 0;
 
    if ( array_key_exists('monitor_token', $_POST) )
       $monitor_token = $_POST['monitor_token'];
@@ -57,24 +69,69 @@ if ( $_POST ) {
    $ce_threshold = 0;
 }
 
+function displayFault($exception, $title = "SOAP Fault:") {
+   print "<div class='displayFault'>\n";
+   print "<header class='ERROR'>$title</header>\n";
+   print "<ul>\n";
+   print "<li>\n";
+   print "faultcode: {$exception->faultcode},\n";
+   print "</li>\n";
+   print "<li>\n";
+   print "faultstring: " . nl2br($exception->faultstring) . "\n";
+   print "</li>\n";
+   print "</ul>\n";
+   print "</div>\n";
+}
 
 ?>
 
+<!DOCTYPE HTML>
 <html>
 <head>
 <title>PortageLiveAPI</title>
 <STYLE type="text/css">
-   div.PRIME { width: 70%;}
-   .PRIME {border-width: 1; border: solid; text-align: center; font-size:1.2em; background-color: #FAFAD2; padding: 1px; margin: 1px}
+   div.PRIME {
+      width: 70%;
+      margin-left: auto;
+      margin-right: auto;
+   }
+   .PRIME {
+      border-width: 1;
+      border: solid;
+      text-align: center;
+      font-size: 1.2em;
+      background-color: #FAFAD2;
+      padding: 1px;
+      margin: 1px
+   }
    .SUCCESS {color: green}
    .ERROR { color: red; text-decoration: blink; font-weight: bold; }
+   section {
+      background-color: #89CCFF;
+      /*border: solid;*/
+      padding: 1px;
+      margin: 3px
+   }
+   section header {color: #FF2130; background-color:#002253; font-size: 1.2em}
+   #Portage_main {width:60%; margin-left:auto; margin-right:auto;}
+   div.displayFault header {
+      background-color: white;
+   }
+   div.displayFault header.ERROR ul li {
+      text-align: left;
+   }
 </STYLE>
 </head>
 
 <body>
+<header>
 <p align="center"><img src="/images/NRC_banner_e.jpg" /></p>
+</header>
 
+<div id="Portage_main">
+<header>
 <h1>PortageLive SOAP API test</h1>
+</header>
 
 This page demonstrates how the appliance can be used as a web service.
 
@@ -83,6 +140,8 @@ Link to <a href="<?=$WSDL?>">the WSDL</a>.
 
 <FORM action="" enctype="multipart/form-data" method="post" name="formulaire" target="_self">
 
+<section id='context'>
+<header>Context</header>
 <br/> Context:
 <SELECT NAME = "context">
 <?php
@@ -100,51 +159,161 @@ try {
    }
 }
 catch (SoapFault $exception) {
-   print "<BR/><SPAN class=\"ERROR\">SOAP Fault trying to list contexts: </SPAN>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}\n";
+   displayFault($exception, "SOAP Fault trying to list contexts:");
 }
 ?>
 <OPTION VALUE="InvalidContext">Invalid context for debugging</OPTION>
 </SELECT>
-<BR />
+</section>
 
+<section id='prime'>
+<header>Prime</header>
 Prime:
 <INPUT TYPE = "RADIO" NAME = "PrimeMode" VALUE="partial" CHECKED="checked" /> Partial
 <INPUT TYPE = "RADIO" NAME = "PrimeMode" VALUE="full" /> Full
 <INPUT TYPE = "RADIO" NAME = "PrimeMode" VALUE="bogus" /> Unsupported
 <INPUT TYPE = "Submit" Name = "Prime"  VALUE = "Prime context"/>
+</section>
 
 
+<section id="plain_text">
+<header>Plain text</header>
 <!-- INPUT TYPE = "TEXT"   Name = "context"       VALUE = "<?=$context?>" / -->
-<hr/> Enter text here:
-<INPUT TYPE = "TEXT"   Name = "to_translate" />
-<INPUT TYPE = "Submit" Name = "TranslateBox"  VALUE = "Translate Text"/>
+ Enter text here:
+<table width="60%" border="0">
+<tr>
+<td>
+<textarea name="to_translate" rows="10" cols="50"></textarea>
+</td>
+<td rowspan='2'>
+OR
+</td>
+<td>
+ Alternatively, use a plain text file:
+<INPUT TYPE = "file"   Name = "plain_text_filename"/>
+</td>
 
+</tr>
+<td>
+<INPUT TYPE = "Submit" Name = "TranslateBox"  VALUE = "Translate Text"/>
+</td>
+<td>
+<INPUT TYPE = "Submit" Name = "TranslatePlainText"  VALUE = "Translate plain text File"/>
+</td>
+</tr>
+</table>
+
+<div>
+<hr/>
+<i>Advanced options</i>
+<table>
+<tr valign="top">
+<td>
+<INPUT TYPE = "checkbox" Name = "to_translate_xtags" VALUE = "Process and transfer tags."/>
+</td>
+<td>
+<b>xtags</b>
+-- Check this box if input text contains tags and you want to process & transfer them.
+</td>
+</tr>
+<tr valign="top">
+<td>
+<INPUT TYPE = "radio" Name = "newline" VALUE = "s" checked = "checked"/>
+</td>
+<td>
+<b>one sentence per line</b>
+-- Check this box if input text has one sentence per line.
+</td>
+</tr>
+<tr valign="top">
+<td>
+<INPUT TYPE = "radio" Name = "newline" VALUE = "p"/>
+</td>
+<td>
+<b>one paragraph per line</b>
+-- Check this box if input text has one paragraph per line.
+</td>
+</tr>
+<tr valign="top">
+<td>
+<INPUT TYPE = "radio" Name = "newline" VALUE = "w"/>
+</td>
+<td>
+<b>blank lines mark paragraphs</b>
+-- Check this box if input text has two consecutive newlines mark the end of a paragraph, otherwise newline is just whitespace.
+</td>
+</tr>
+</table>
+</div>
+</section>
+
+<section id='translating_xml_file'>
+<header>XML File</header>
 <INPUT TYPE = "hidden" Name = "MAX_FILE_SIZE" VALUE = "2000000" />
-<hr/> Alternatively, use a TMX file:
+<table>
+<tr>
+<td>
+ Alternatively, use a TMX file:
 <INPUT TYPE = "file"   Name = "tmx_filename"/>
-<INPUT TYPE = "Submit" Name = "TranslateTMX"  VALUE = "Translate TMX File"/>
-<br/> Alternatively, use a SDLXLIFF file:
+</td>
+<td>
+ Alternatively, use a SDLXLIFF file:
 <INPUT TYPE = "file"   Name = "sdlxliff_filename"/>
+</td>
+</tr>
+<tr>
+<td>
+<INPUT TYPE = "Submit" Name = "TranslateTMX"  VALUE = "Translate TMX File"/>
+</td>
+<td>
 <INPUT TYPE = "Submit" Name = "TranslateSDLXLIFF"  VALUE = "Translate SDLXLIFF File"/>
-<br/>
-<INPUT TYPE = "checkbox" Name = "xtags" VALUE = "Process and transfer tags."/>
-Process and transfer tags.
-<br/>CE threshold for filtering (between 0 and 1; 0.0 = no filter)
+</td>
+</tr>
+</table>
+
+<div>
+<hr/>
+<i>Advanced options</i>
+<table>
+<tbody>
+<tr>
+<td>
+<INPUT TYPE = "checkbox" Name = "file_xtags" VALUE = "Process and transfer tags."/>
+</td>
+<td>
+<b>xtags</b>
+-- Check this box if input text contains tags and you want to process & transfer them.
+</td>
+</tr>
+<tr>
+<td>
 <INPUT TYPE = "TEXT"   Name = "ce_threshold"  VALUE = "<?=$ce_threshold?>" SIZE="4" />
+</td>
+<td>
+CE threshold for filtering (between 0 and 1; 0.0 = no filter)
+</td>
+</tbody>
+</tr>
+</table>
+</div>
+</section>
 
 </FORM>
 
 
 <?php
 
+print "<section id='getAllContexts'>\n";
+print "<header>getAllContexts()</header>\n";
 try {
    $client = new SoapClient($WSDL);
-   print "<hr/><b>Contexts: </b>" . $client->getAllContexts(false) . "</br>";
+   print "<b>Contexts: </b>" . $client->getAllContexts(false) . "</br>";
    print "<br/><b>Verbose contexts: </b>" . $client->getAllContexts(true) . "</br>";
 }
 catch (SoapFault $exception) {
-   print "<br/><span class=\"ERROR\">SOAP Fault trying to list contexts: </span>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
+   displayFault($exception, "SOAP Fault trying to list contexts: </span>faultcode:");
 }
+print "</section>\n";
 
 
 # @param type  either translateTMXCE or translateSDLXLIFFCE which represent
@@ -154,9 +323,11 @@ catch (SoapFault $exception) {
 function processFile($type, $file) {
    global $context;
    global $ce_threshold;
-   global $xtags;
+   global $file_xtags;
    $filename = $file["name"];
-   print "<hr/><b>Translating using $type and file: </b> $filename <br/>";
+   print "<section id='file_translation'>\n";
+   print "<header>$type</header>\n";
+   print "<b>Translating using $type and file: </b> $filename <br/>";
    print "<b>Context: </b> $context <br/>";
    print "<b>Processed on: </b> " . `date` . "<br/>";
 
@@ -173,15 +344,15 @@ function processFile($type, $file) {
          $client = new SoapClient($WSDL);
 
          $ce_threshold += 0;
-         $reply = $client->$type($tmp_contents_base64, $filename, $context, $ce_threshold, $xtags);
+         $reply = $client->$type($tmp_contents_base64, $filename, $context, $ce_threshold, $file_xtags);
 
-         print "<hr/><b>Portage replied: </b>$reply";
+         print "<b>Portage replied: </b>$reply";
          print "<br/><a href=\"$reply\">Monitor job interactively</a>";
          global $monitor_token;
          $monitor_token=$reply;
          //print "<br/><b>Trace: </b>"; var_dump($client);
       } catch (SoapFault $exception) {
-         print "<HR/><span class=\"ERROR\">SOAP Fault: </span>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
+         displayFault($exception);
       }
 
    } else {
@@ -199,73 +370,106 @@ function processFile($type, $file) {
       print "<br/><b>Error code description: </b> {$file_error_codes[$file["error"]]}";
    }
 
-
    print "<hr/><b>Done processing on: </b>" . `date`;
+   print "</section>\n";
 }
 
 if ( $button == "Prime"  && $_POST['Prime'] != "" ) {
+   print "<section id='prime'>\n";
+   print "<header>Prime</header>\n";
    try {
       $PrimeMode = $_POST['PrimeMode'];
       $client = new SoapClient($WSDL);
       $rc = $client->primeModels($context, $PrimeMode);
       //print "Prime Models ($context, $PrimeMode) rc = $rc<br />";  // DEBUGGING
-      print "<span class=\"PRIME SUCCESS\">Primed successfully!</span></br>";
+      print "<div class=\"PRIME SUCCESS\">Primed successfully!</div>";
       if ($rc != "OK")
          print "<div class=\"PRIME ERROR\">INVALID return code.</div>";
    }
    catch (SoapFault $exception) {
-      print "<div class=\"PRIME ERROR\">Error with primeModels:<br/><b>{$exception->faultcode}</b><br/>{$exception->faultstring}</div>";
+      print "<div class=\"PRIME ERROR\">\n";
+      displayFault($exception, "Error with primeModels");
+      print "</div>\n";
+      //print "<div class=\"PRIME ERROR\">Error with primeModels:<br/><b>{$exception->faultcode}</b><br/>{$exception->faultstring}</div>";
    }
+   print "</section\n>";
 }
 else
 if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
    $to_translate = $_POST['to_translate'];
-   print "<hr/><b>Translating: </b> $to_translate <br/>";
+
+   print "<section id='source_text'>\n";
+   print "<header>Source text</header>\n";
+   print "<b>Translating: </b>";
+   print "<div><code>" . nl2br(htmlspecialchars($to_translate)) . "</code></div>";
    print "<b>Context: </b> $context <br/>";
    print "<b>Processed on: </b> " . `date` . "<br/>";
+   print "</section>\n";
+
    $client = "";
    try {
       $client = new SoapClient($WSDL);
    }
    catch (SoapFault $exception) {
-      print "<HR/><span class=\"ERROR\">SOAP Fault: </span>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
+      displayFault($exception);
    }
 
+   print "<section id='getTranslation_result'>\n";
    $start_time = microtime(true);
    try {
-      print "<hr/><b>Portage getTranslation() replied: </b>";
-      print $client->getTranslation($to_translate);
+      print "<header>getTranslation()</header>\n";
+      print "<b>Portage getTranslation() replied: </b>";
+      $reply = nl2br(htmlspecialchars($client->getTranslation($to_translate, $newline, $to_translate_xtags)));
+      print "<div><code>\n";
+      print "$reply\n";
+      print "</code></div>\n";
       //print "<br/><b>Trace: </b>"; var_dump($client);
-   } catch (SoapFault $exception) {
-      print "<span class=\"ERROR\">SOAP Fault: </span>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
+   }
+   catch (SoapFault $exception) {
+      displayFault($exception);
    }
    $end_time = microtime(true);
-   printf("<br/><b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
+   printf("<b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
    print "<b>Finished at: </b>" . `date` . "<br/>";
+   print "</section>\n";
 
+   print "<section id='getTranslation2_result'>\n";
    $start_time = microtime(true);
    try {
-      print "<hr/><b>getTranslation2() replied: </b>";
-      print $client->getTranslation2($to_translate, $context);
+      print "<header>getTranslation2()</header>\n";
+      print "<b>getTranslation2() replied: </b>";
+      $reply = nl2br(htmlspecialchars($client->getTranslation2($to_translate, $context, $newline, $to_translate_xtags)));
+      print "<div><code>\n";
+      print "$reply\n";
+      print "</code></div>\n";
       //print "<br/><b>Trace: </b>"; var_dump($client);
-   } catch (SoapFault $exception) {
-      print "<span class=\"ERROR\">SOAP Fault: </span>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
+   }
+   catch (SoapFault $exception) {
+      displayFault($exception);
    }
    $end_time = microtime(true);
-   printf("<br/><b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
+   printf("<b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
    print "<b>Finished at: </b>" . `date` . "<br/>";
+   print "</section>\n";
 
+   print "<section id='getTranslationCE_result'>\n";
    $start_time = microtime(true);
    try {
-      print "<hr/><b>getTranslationCE() replied: </b>";
-      print $client->getTranslationCE($to_translate, $context);
+      print "<header>getTranslationCE()</header>\n";
+      print "<b>getTranslationCE() replied: </b>";
+      $reply = nl2br(htmlspecialchars($client->getTranslationCE($to_translate, $context, $newline, $to_translate_xtags)));
+      print "<div><code>\n";
+      print "$reply\n";
+      print "</code></div>\n";
       //print "<br/><b>Trace: </b>"; var_dump($client);
-   } catch (SoapFault $exception) {
-      print "<span class=\"ERROR\">SOAP Fault: </span>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
+   }
+   catch (SoapFault $exception) {
+      displayFault($exception);
    }
    $end_time = microtime(true);
-   printf("<br/><b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
+   printf("<b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
    print "<b>Finished at: </b>" . `date` . "<br/>";
+   print "</section>\n";
 
 
 
@@ -293,6 +497,10 @@ if ($button == "TranslateSDLXLIFF" && $_FILES["sdlxliff_filename"]["name"] != ""
    processFile("translateSDLXLIFFCE", $_FILES["sdlxliff_filename"]);
 }
 else
+if ($button == "TranslatePlainText" && $_FILES["plain_text_filename"]["name"] != "") {
+   //processFile("TranslatePlainText", $_FILES["plain_text_filename"]);
+}
+else
 if ( $button == "MonitorJob" && !empty($monitor_token) ) {
    try {
       $client = new SoapClient($WSDL);
@@ -310,23 +518,27 @@ if ( $button == "MonitorJob" && !empty($monitor_token) ) {
       if ( preg_match("/^0 Done: (\S*)/", $reply, $matches) )
          print "<br/>Right click and save: <a href=\"$matches[1]\">Translated content</a>";
       print "<br/><a href=\"$monitor_token\">Switch to interactive job monitoring</a>";
-   } catch (SoapFault $exception) {
-      print "<HR/><span class=\"ERROR\">SOAP Fault: </span>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}";
+   }
+   catch (SoapFault $exception) {
+      displayFault($exception);
    }
 }
 
 
 ?>
 
-<hr/>
+<section id='monitor_job'>
+<header>Monitor a job</header>
 <FORM action="" method="post" name="formulaire2" target="_self">
 Job Token:
 <INPUT TYPE = "TEXT"   Name = "monitor_token" VALUE = "<?=$monitor_token?>" />
 <INPUT TYPE = "Submit" Name = "MonitorJob"    VALUE = "Monitor Job via SOAP"/>
 </FORM>
+</section>
+</div>
 
 
-<hr/>
+<footer>
 <table width="100%" cellspacing="0" cellpadding="0" border="0">
    <tr>
       <td width="20%" align="right" valign="bottom">
@@ -349,6 +561,7 @@ Job Token:
       </td>
    </tr>
 </table>
+</footer>
 
 </body>
 </html>

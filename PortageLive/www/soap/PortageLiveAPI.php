@@ -32,7 +32,7 @@ class PortageLiveAPI {
       $this->runCommand("prime.sh $PrimeMode", "", $i, $rc, false);
 
       if ( $rc != 0 )
-         throw new SoapFault("PortagePrimeError", "Failed to prime, something went wrong in prime.sh.<br />rc=$rc; Command=$command $PrimeMode");
+         throw new SoapFault("PortagePrimeError", "Failed to prime, something went wrong in prime.sh.\nrc=$rc; Command=$command $PrimeMode");
 
       return "OK";
    }
@@ -101,13 +101,13 @@ class PortageLiveAPI {
       $context = $i["context"];
       if ( ! $i["good"] ) {
          if (!file_exists($i["context_dir"])) {
-            throw new SoapFault("PortageContext", "Context \"$context\" does not exist.<br/>" . debug($i));
+            throw new SoapFault("PortageContext", "Context \"$context\" does not exist.\n" . debug($i));
          } else {
-            throw new SoapFault("PortageContext", "Context \"$context\" is broken.<br/>" . debug($i));
+            throw new SoapFault("PortageContext", "Context \"$context\" is broken.\n" . debug($i));
          }
       }
       if ( $need_ce && empty($i["ce_model"]) ) {
-         throw new SoapFault("PortageContext", "Context \"$context\" does not support confidence estimation.<br/>" . debug($i));
+         throw new SoapFault("PortageContext", "Context \"$context\" does not support confidence estimation.\n" . debug($i));
       }
    }
 
@@ -166,7 +166,7 @@ class PortageLiveAPI {
          if ( $return_value != 0 ) {
             if ( is_null($exit_status) )
                throw new SoapFault("PortageServer",
-                  "non-zero return code from $command: $return_value<br/>".debug($i));
+                  "non-zero return code from $command: $return_value\n".debug($i));
             else
                $exit_status = $return_value;
          } else {
@@ -174,7 +174,7 @@ class PortageLiveAPI {
                $exit_status = 0;
          }
       } else {
-         throw new SoapFault("PortageServer", "failed to run $translate_script: $!<br/>".debug($i));
+         throw new SoapFault("PortageServer", "failed to run $translate_script: $!\n".debug($i));
       }
 
       return $my_retval . debug($i);
@@ -315,23 +315,51 @@ class PortageLiveAPI {
       return $this->translateXMLCE_Status($monitor_token);
    }
 
-   # Translate $src_string using model $context and confidence estimation
-   function getTranslationCE($src_string, $context) {
+   # This function would be nice to use but we have case aka "a<1>b</1>" is not
+   # valid xml since tag aren't allowed to start with digits.
+   function checkIsThisXML($string) {
+      $test = "<?xml version='1.0'" . "?" . ">\n<document>" . $string . "</document>";
+      #$test = "<document>" . $string . "</document>";
+      if (simplexml_load_string($test) == FALSE) {
+         throw new SoapFault("PortageNotXML", "This is invalid xml.\n" . htmlspecialchars($string) . htmlspecialchars($test));
+      }
+   }
+
+   # param src_string:  input to translate
+   # param context:  translate src_string using what context
+   # param newline:  what is the interpretation of newline in the input
+   # param xtags:  Transfer tags
+   # param withCE:  Should we use confidence estimation?
+   function translateText($src_string, $context, $newline, $xtags, $withCE) {
+      #$this->checkIsThisXML($src_string);
+      if (!($newline == "s" or $newline == "p" or $newline == "w"))
+         throw new SoapFault("PortageBadArgs", "Illegal newline type " . $newline . "\nAllowed newline types are: s, p or w");
+
       $i = $this->getContextInfo($context);
-      $this->validateContext($i, true);
-      return $this->runCommand($i["script"]." -with-ce", $src_string, $i);
+      $this->validateContext($i, $withCE);
+
+      $options = " -verbose";
+      $options .= ($withCE ? " -with-ce" : " -decode-only");
+      $options .= ($xtags ? " -xtags" : "");
+      $options .= " -nl=" . $newline;
+      #$options .= " -dir=/tmp/";  # SAM DEBUGGING
+
+      return $this->runCommand($i["script"] . $options, $src_string, $i);
+   }
+
+   # Translate $src_string using model $context and confidence estimation
+   function getTranslationCE($src_string, $context, $newline, $xtags) {
+      return $this->translateText($src_string, $context, $newline, $xtags, true);
    }
 
    # Translate $src_string using model $context
-   function getTranslation2($src_string, $context) {
-      $i = $this->getContextInfo($context);
-      $this->validateContext($i);
-      return $this->runCommand($i["script"]." -decode-only", $src_string, $i);
+   function getTranslation2($src_string, $context, $newline, $xtags) {
+      return $this->translateText($src_string, $context, $newline, $xtags, false);
    }
 
    # Translate $src_string using the default context
-   function getTranslation($src_string) {
-      return $this->getTranslation2($src_string, "context");
+   function getTranslation($src_string, $newline, $xtags) {
+      return $this->translateText($src_string, "context", $newline, $xtags, false);
    }
 }
 

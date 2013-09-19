@@ -25,6 +25,8 @@
   </message>
   <message name="getTranslationRequest">
     <part name="srcString" type="xsd:string"/>
+    <part name="newline" type="xsd:string"/>
+    <part name="xtags" type="xsd:boolean"/>
   </message>
   <message name="getTranslationResponse">
     <part name="Result" type="xsd:string"/>
@@ -35,6 +37,8 @@
   <message name="getTranslation2Request">
     <part name="srcString" type="xsd:string"/>
     <part name="context" type="xsd:string"/>
+    <part name="newline" type="xsd:string"/>
+    <part name="xtags" type="xsd:boolean"/>
   </message>
   <message name="translateXMLCERequest">
     <part name="XMLContentsBase64" type="xsd:string"/>
@@ -84,6 +88,7 @@
     "PortageServer", the problem is with Portage server, otherwise some other
     problem occurred, normally described by the faultcode and explained by the
     faulstring.
+    "PortageBadArgs" if newline isn't one of {s, p, w}
     </documentation>
       <input message="tns:getTranslationRequest"/>
       <output message="tns:getTranslationResponse"/>
@@ -97,6 +102,7 @@
     "PortageServer", the problem is with Portage server, otherwise some other
     problem occurred, normally described by the faultcode and explained by the
     faulstring.
+    "PortageBadArgs" if newline isn't one of {s, p, w}
     </documentation>
       <input message="tns:getTranslation2Request"/>
       <output message="tns:getTranslationResponse"/>
@@ -113,6 +119,7 @@
     "PortageServer", the problem is with Portage server, otherwise some other
     problem occurred, normally described by the faultcode and explained by the
     faulstring.
+    "PortageBadArgs" if newline isn't one of {s, p, w}
     </documentation>
       <input message="tns:getTranslation2Request"/>
       <output message="tns:getTranslationResponse"/>
