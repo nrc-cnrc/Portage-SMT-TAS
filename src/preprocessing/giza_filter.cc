@@ -36,6 +36,8 @@ Options:\n\
   -r R  drop sentence pairs where the length ratio is greater or equal to R [9]\n\
   -iid <I_ID> Input id file [none]\n\
   -oid <O_ID> Output id file [none]\n\
+  -ifd <I_ID> Input fid file [none]\n\
+  -ofd <O_ID> Output fid file [none]\n\
 \n\
   -v    Write progress reports to cerr.\n\
 ";
@@ -48,9 +50,11 @@ static float max_ratio(9.0f);
 static iMagicStream insrc;
 static iMagicStream intgt;
 static iMagicStream inid;
+static iMagicStream infid;
 static oMagicStream outsrc;
 static oMagicStream outtgt;
 static oMagicStream outid;
+static oMagicStream outfid;
 static void getArgs(int argc, char* argv[]);
 
 /// DummyConverter for calling split to simply count tokens.
@@ -66,9 +70,11 @@ int main(int argc, char* argv[])
    getArgs(argc, argv);
 
    Uint num_filter_out_sentence_pairs = 0;
-   string src, tgt, id;
+   string src, tgt, id, fid;
    vector<char> tokens;  ///< The current token indicators in that current line.
-   while (getline(insrc, src) and getline(intgt, tgt) and (!inid.is_open() or getline(inid, id))) {
+   while (getline(insrc, src) and getline(intgt, tgt)  
+          and (!inid.is_open() or getline(inid, id)) 
+          and (!infid.is_open() or getline(infid, fid))) {
       tokens.clear();
       const Uint num_src_token = split(src.c_str(), tokens, DummyConverter());
       tokens.clear();
@@ -89,11 +95,13 @@ int main(int argc, char* argv[])
          outsrc << src << '\n';
          outtgt << tgt << '\n';
          outid << id << '\n';
+         outfid << fid << '\n';
       }
    }
    if (getline(insrc, src)) error(ETFatal, "There is still some source.");
    if (getline(intgt, tgt)) error(ETFatal, "There is still some target.");
    if (inid.is_open() and getline(inid, id)) error(ETFatal, "There is still some id.");
+   if (infid.is_open() and getline(infid, fid)) error(ETFatal, "There is still some fid.");
 
    cerr << num_filter_out_sentence_pairs << " sentence pairs were dropped." << endl;
 }
@@ -102,7 +110,7 @@ int main(int argc, char* argv[])
 
 void getArgs(int argc, char* argv[])
 {
-   const char* switches[] = {"v", "n:", "m:", "r:", "iid:", "oid:"};
+   const char* switches[] = {"v", "n:", "m:", "r:", "iid:", "oid:", "ifd:", "ofd:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 4, 4, help_message);
    arg_reader.read(argc-1, argv+1);
 
@@ -117,7 +125,11 @@ void getArgs(int argc, char* argv[])
 
    arg_reader.testAndSet("iid", inid);
    arg_reader.testAndSet("oid", outid);
+   arg_reader.testAndSet("ifd", infid);
+   arg_reader.testAndSet("ofd", outfid);
 
    if (inid.is_open() and !outid.is_open())
       error(ETFatal, "You've provided an input file for ids but neglected to provide the output file for ids.");
+   if (infid.is_open() and !outfid.is_open())
+      error(ETFatal, "You've provided an input file for fids but neglected to provide the output file for fids.");
 }
