@@ -81,28 +81,44 @@
     </operation>
     <operation name="getTranslation">
       <documentation>
-    Translate text using the default context.  The result is the translation,
-    one sentence per line.
-    Throws SoapFault in case of problems.  If the faultcode is
-    "PortageContext", the problem is with the context, if it is
-    "PortageServer", the problem is with Portage server, otherwise some other
-    problem occurred, normally described by the faultcode and explained by the
-    faulstring.
-    "PortageBadArgs" if newline isn't one of {s, p, w}
+    Same as getTranslation2(), but using the default context.  See
+    getTranslation2() for documentation.
     </documentation>
       <input message="tns:getTranslationRequest"/>
       <output message="tns:getTranslationResponse"/>
     </operation>
     <operation name="getTranslation2">
       <documentation>
-    Translate text using the specified context.  The result is the translation,
-    one sentence per line.
-    Throws SoapFault in case of problems.  If the faultcode is
-    "PortageContext", the problem is with the context, if it is
-    "PortageServer", the problem is with Portage server, otherwise some other
-    problem occurred, normally described by the faultcode and explained by the
-    faulstring.
-    "PortageBadArgs" if newline isn't one of {s, p, w}
+    Translate text using the specified context.
+
+    Arguments:
+     - srcString is the sentence to translate.
+     - context is the name of the system to use to translate the document, and
+       must match one of the context names returned by getAllContexts().
+     - newline indicates the interpretation that should be given to newline
+       characters in srcString, and must be one of:
+        - "w": newline characters are just whitespace and should be replaced by
+          spaces; an empty line marks a paragraph boundary; sentence splitting
+          is performed within each paragraph; the result will have one
+          translated sentence per line with an empty line after each paragraph.
+        - "p": newline characters mark paragraph boundaries; sentence splitting
+          is performed within each paragraph for translation but the paragraphs
+          are reconstructed in the output; the result will have one translated
+          paragraph per line, matching srcString line by line.
+        - "s": newline characters mark sentence boundaries; no sentence splitting
+          will be performed; the result will have one translated sentence per
+          line, matching srcString line by line.
+     - xtags: if true, XMLish tags (typically representing markup in the
+       original document, as some translation memory software does) will be
+       transferred into the translation using our tag transfer module.
+
+    Throws SoapFault in case of problems.
+    Possible faultcode values:
+     - PortageContext: the problem is with the context;
+     - PortageBadArgs: newline is not one of {s, p, w};
+     - PortageServer: the problem is with Portage server;
+     - otherwise some other problem occurred, normally described by the
+       faultcode and explained by the faulstring.
     </documentation>
       <input message="tns:getTranslation2Request"/>
       <output message="tns:getTranslationResponse"/>
@@ -112,14 +128,16 @@
     Translate text using the specified context, and calculate confidence scores
     on the translation.  The result is the translation, one sentence per line,
     with the confidence score preceeding each translation, separated by a tab
-    character.
-    Throws SoapFault in case of problems.  If the faultcode is
-    "PortageContext", the problem is with the context (including the case where
-    the context does not support confidence estimation), if it is
-    "PortageServer", the problem is with Portage server, otherwise some other
-    problem occurred, normally described by the faultcode and explained by the
-    faulstring.
-    "PortageBadArgs" if newline isn't one of {s, p, w}
+    character.  Note that blank lines in the input will also get a confidence
+    score in the output; this score is meaningless and should be ignored.
+
+    See getTranslation2() for argument and SoapFault documentation, with the
+    following exceptions:
+     - the newline="p" mode does not currently work correctly with confidence
+       estimation: the confidence scores will not be attached to the right
+       sentence.  Use "s" or "w" only.
+     - a SoapFault with faultcode="PortageContext" will also be thrown if the
+       context does not support confidence estimation.
     </documentation>
       <input message="tns:getTranslation2Request"/>
       <output message="tns:getTranslationResponse"/>
