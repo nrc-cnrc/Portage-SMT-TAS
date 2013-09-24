@@ -76,27 +76,37 @@ ifneq ("$(shell git rev-parse --is-inside-work-tree 2> /dev/null)","true")
 install_summary:
 	@:
 else
-GIT_BRANCH := $(shell git name-rev --name-only HEAD)
-GIT_REMOTE := $(shell git config branch.${GIT_BRANCH}.remote)
-GIT_RBRANCH := $(notdir $(shell git config branch.${GIT_BRANCH}.merge))
 
-install_summary: SHELL=/bin/bash
+ifneq ($(filter install_summary_helper,${MAKECMDGOALS}),)
+   # These calculations can be expensive, in particular setting GIT_RBRANCH, so
+   # shield them so they're only evaluated when needed.
+   GIT_RBRANCH := $(strip $(shell git rev-list HEAD | xargs -n 1 git branch -r --contains | grep -m 1 -v -- '->'))
+   GIT_REMOTE := $(notdir $(patsubst %/,%,$(dir $(GIT_RBRANCH))))
+   GIT_RBRANCH_BASE := $(shell git merge-base HEAD ${GIT_RBRANCH})
+endif
+
 install_summary:
 	$(if ${MODULE_NAME},echo "" >>,cat /dev/null >) ${BIN_DIR}/INSTALL_SUMMARY
-	date >> ${BIN_DIR}/INSTALL_SUMMARY
-	echo "$(if ${MODULE_NAME},Module installed,Sandbox): ${INSTALL_PATH}" >> ${BIN_DIR}/INSTALL_SUMMARY
-	echo "Git working directory: `git rev-parse --show-toplevel`" >> ${BIN_DIR}/INSTALL_SUMMARY
-	@echo "" >> ${BIN_DIR}/INSTALL_SUMMARY
-	git remote show ${GIT_REMOTE} >> ${BIN_DIR}/INSTALL_SUMMARY
-	@echo "" >> ${BIN_DIR}/INSTALL_SUMMARY
-	git branch -r -v --no-abbrev >> ${BIN_DIR}/INSTALL_SUMMARY
-	@echo "" >> ${BIN_DIR}/INSTALL_SUMMARY
-	@echo "HEAD:" >> ${BIN_DIR}/INSTALL_SUMMARY
-	git show HEAD --no-abbrev --format=fuller >> ${BIN_DIR}/INSTALL_SUMMARY
-	git status -u ${INSTALL_PATH} >> ${BIN_DIR}/INSTALL_SUMMARY
-	@echo "" >> ${BIN_DIR}/INSTALL_SUMMARY
-	@echo "git diff -p --stat ${GIT_REMOTE}/${GIT_RBRANCH} -- ${INSTALL_PATH}" >> ${BIN_DIR}/INSTALL_SUMMARY
-	git diff -p --stat ${GIT_REMOTE}/${GIT_RBRANCH} -- ${INSTALL_PATH} >> ${BIN_DIR}/INSTALL_SUMMARY
+	-${MAKE} --no-print-directory install_summary_helper >> ${BIN_DIR}/INSTALL_SUMMARY 2>&1
+
+install_summary_helper: SHELL=/bin/bash
+install_summary_helper:
+	@date
+	@echo "$(if ${MODULE_NAME},Module installed,Sandbox): ${INSTALL_PATH}"
+	@echo "Git working directory: `git rev-parse --show-toplevel`"
+	@echo "Git branch:            `git rev-parse --abbrev-ref HEAD`"
+	@echo "Closest remote branch: ${GIT_RBRANCH}"
+	@echo "Git branch base:       ${GIT_RBRANCH_BASE}"
+	@echo ""
+	git remote show ${GIT_REMOTE}
+	@echo ""
+	git branch -r -v --no-abbrev
+	@echo ""
+	@echo "HEAD:"
+	git show HEAD --no-abbrev --format=fuller --summary --decorate
+	git status -u ${INSTALL_PATH}
+	@echo ""
+	-git diff -p --stat ${GIT_RBRANCH_BASE} -- ${INSTALL_PATH}
 endif
 
 
