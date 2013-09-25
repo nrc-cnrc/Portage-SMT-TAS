@@ -19,6 +19,31 @@ See NOTICE for the Copyright notices of 3rd party libraries.
 
 PortageII is the second generation of SMT software released by the NRC.
 
+PortageII 2.0 maintenance stream
+ So far, several small patches have been released by sending individual patched
+ files to the client, to deliver the following changes.
+
+ Minor changes:
+  - PortageLiveAPI:
+     - Now supports handling markup tags in getTranslation(), the method to
+       translate one or a few sentences of plain text at a time in a
+       synchronous way.
+     - Now supports three interpretations of newline characters, that can be
+       selected by the user: paragraph end, sentence end, or just plain
+       whitespace.  The output returned follows the same interpretation for
+       newline characters.
+  - Support submitting PortageLive translation requests with more than one
+    thread.
+
+ Bug fixes:
+  - Binary distro creation, as well as PortageLive installation scripts, now
+    include previously omitted required libraries.
+  - Fixed bug in PortageLive web layout installation script.
+  - Detokenizer patch for correct handling of smart-quote style apostrophes for
+    contractions like 's in English and qu' in French.
+  - SDLXLIFF handling patched to avoid generating illegal empty sdl:seg-defs
+    entities.
+
 PortageII 2.0 2013-02-15
  This release provides significant user improvements for translators through
  the handling of markup tags and the XML Localization Interchange File Format
