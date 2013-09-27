@@ -670,10 +670,14 @@ if ($dryrun) {
 
 # Past this point, do not call die() directly; call cleanupAndDie() instead.
 
+# Further down, we assume $dir is an absolute path, in particular when decoding
+# in parallel.
+$dir = Cwd::realpath($dir);
+
 $keep_dir = $dir if $debug;
-verbose("[Work directory: \"${dir}\"]\n");
-verbose("[models_dir: '$models_dir' (" . Cwd::realpath($models_dir) . ")]\n");
-verbose("[Processing input text \"${input_text}\"]\n");
+verbose("Work directory: \"$dir\"");
+verbose("models_dir: \"$models_dir\" (" . Cwd::realpath($models_dir) . ")");
+verbose("Processing input text \"${input_text}\"");
 
 # Generate a README file for the working directory.
 unless ($dryrun) {
@@ -905,7 +909,7 @@ CLEANUP:{
     my $words_out = defined($filter) ? sourceWordCount($filter) : $words_in;
     plogUpdate($plog_file, 'success', $words_in, $words_out);
     unless ($keep_dir) {
-        verbose("[Cleaning up and deleting work directory $dir]\n");
+        verbose("Cleaning up and deleting work directory $dir");
         rmtree($dir);
     }
 }
@@ -1077,7 +1081,7 @@ sub strip_entity {
    my ($in, $out) = @_;
    die "You need to provide in and out" unless (defined($in) and defined($out));
 
-   verbose("Stripping Entities\n");
+   verbose("Stripping Entities");
    
    return if $dryrun;
 
@@ -1102,7 +1106,7 @@ sub escape_entity {
    warn "escape_entity should be used in xml mode." unless ($xml);
    die "You need to provide in and out" unless (defined($in) and defined($out));
 
-   verbose("Escaping Entities\n");
+   verbose("Escaping Entities");
 
    return if $dryrun;
 
@@ -1136,7 +1140,7 @@ sub detokenize {
          plugin("detokenize", $tgt, $P_tok, $P_dtk);
       }
       else {
-         my $options;
+         my $options = "";
          $options = " -deparaline" if ($nl eq "p");
          my $u = $utf8 ? "u" : "";
          call("${u}detokenize.pl -lang=${lang} $options < '${in}' > '${out}'", $out);
@@ -1173,7 +1177,7 @@ sub truecase {
 sub call {
    my ($cmd, @outfiles) = @_;
    my $start = time if $timing;
-   verbose("[call: %s]\n", $cmd);
+   verbose("call: $cmd");
    if ($dryrun) {
       print $cmd, "\n";
    } else {
@@ -1216,4 +1220,4 @@ sub cleanupAndDie {
    die "ERROR: ", $message;
 }
 
-sub verbose { printf STDERR @_ if $verbose; }
+sub verbose { print STDERR "[", @_, "]\n" if $verbose; }
