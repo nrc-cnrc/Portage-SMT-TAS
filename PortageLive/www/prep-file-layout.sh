@@ -90,9 +90,9 @@ ln -s ../images rpm.build.root/var/www/html/secure/
 ln -s ../favicon.ico rpm.build.root/var/www/html/secure/
 
 # Copy the php and SOAP files
-cp soap/{index.html,PortageLiveAPI.*,test.php,soap.php} $SOAP_DEST
+cp soap/{index.html,PortageLiveAPI.*,wsdl-viewer.xsl,test.php,soap.php} $SOAP_DEST
 # Copy them into secure/ as well, for use with ssl/https.
-cp soap/{index.html,PortageLiveAPI.php,test.php,soap.php} $SOAP_DEST/secure
+cp soap/{index.html,PortageLiveAPI.php,wsdl-viewer.xsl,test.php,soap.php} $SOAP_DEST/secure
 perl -ple 's/(http)(:\/\/__REPLACE_THIS_WITH_YOUR_IP__)/$1s$2/g' \
    < soap/PortageLiveAPI.wsdl \
    > $SOAP_DEST/secure/PortageLiveAPI.wsdl
@@ -107,6 +107,11 @@ if [[ $FIXED_IP ]]; then
    | sed "s/__REPLACE_THIS_WITH_YOUR_IP__/$FIXED_IP/g" \
       > $SOAP_DEST/secure/PortageLiveAPI.wsdl
 fi
+
+# Generate the XML copy of the WSDL, as human-readable documentation
+for wsdl in `find $SOAP_DEST -name PortageLiveAPI.wsdl`; do
+    soap/gen-xml.pl < $wsdl > $wsdl.xml
+done
 
 # Set proper permissions on the directory and file structure
 find rpm.build.root -type d | xargs chmod 755

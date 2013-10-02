@@ -12,3 +12,6 @@ while (<>) {
         $wrote_a_docline = 1;
     }
 }
+print "<!-- WSDL version information:\n",
+      `git log --decorate HEAD^..HEAD`,
+      " -->\n";

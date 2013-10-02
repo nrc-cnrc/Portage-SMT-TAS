@@ -135,8 +135,9 @@ function displayFault($exception, $title = "SOAP Fault:") {
 
 This page demonstrates how the appliance can be used as a web service.
 
-Link to <a href="<?=$WSDL?>">the WSDL</a>.
-
+Link to <a href="<?=$WSDL?>">the WSDL</a> and its
+<a href="<?=$WSDL?>".xml>auto-generated documentation</a>
+(requires an XSLT interpreter, e.g., IE or Chrome).
 
 <FORM action="" enctype="multipart/form-data" method="post" name="formulaire" target="_self">
 
