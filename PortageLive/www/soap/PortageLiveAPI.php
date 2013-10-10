@@ -200,49 +200,58 @@ class PortageLiveAPI {
       return preg_replace(array("/[^-_.+a-zA-Z0-9]/", '/[ .]$/', '/^[ .]/'), array("", '', ''), $filename);
    }
 
-   # Translate a XML file using model $context and the confidence threshold
+   # Translate a file using model $context and the confidence threshold
    # $ce_threshold.  A threshold of 0 means keep everything.
-   # $XML_contents_base64 is a string containing the full content of the xml file, in Base64 encoding.
-   # $XML_filename is the name of the XML file.
+   # $contents_base64 is a string containing the full content of the xml file, in Base64 encoding.
+   # $filename is the name of the XML file.
    # If $xtags is true, transfer tags from the source-language segments to the translations.
    # $type indicates the type of XML file we're translating
-   function translateXMLCE($XML_contents_base64, $XML_filename, $context, $ce_threshold, $xtags, $type) {
+   function translateFileCE($contents_base64, $filename, $context, $ce_threshold, $xtags, $type) {
       $i = $this->getContextInfo($context);
       $this->validateContext($i, $ce_threshold > 0);
+      $is_xml = $type === "tmx" or $type === "sdlxliff";
 
-      $work_dir = $this->makeWorkDir("{$context}_$XML_filename");
-      $work_name = $this->normalizeName("{$context}_$XML_filename");
-      $XML_contents = base64_decode($XML_contents_base64);
-      $info = "len: " . strlen($XML_contents) . " base64 len: " .
-              strlen($XML_contents_base64) . "<br/>";
+      $work_dir = $this->makeWorkDir("{$context}_$filename");
+      $work_name = $this->normalizeName("{$context}_$filename");
+      $contents = base64_decode($contents_base64);
+      $info = "len: " . strlen($contents) . " base64 len: " .
+              strlen($contents_base64) . "<br/>";
       #return $info;
-      $local_xml_file = fopen("$work_dir/Q.in", "w");
-      if ( !is_resource($local_xml_file) )
+      $local_file = fopen("$work_dir/Q.in", "w");
+      if ( !is_resource($local_file) )
          throw new SoapFault("PortageServer", "failed to write $type to local file");
-      $bytes_written = fwrite($local_xml_file, $XML_contents);
-      if ( $bytes_written != strlen($XML_contents) )
+      $bytes_written = fwrite($local_file, $contents);
+      if ( $bytes_written != strlen($contents) )
          throw new SoapFault("PortageServer", "incomplete write of $type to local file " .
-                             "(wrote $bytes_written; expected ".strlen($XML_contents).")");
-      fclose($local_xml_file);
-      $XML_contents="";
-      $XML_contents_base64="";
+                             "(wrote $bytes_written; expected ".strlen($contents).")");
+      fclose($local_file);
+      $contents="";
+      $contents_base64="";
 
-      $xml_check_rc = "";
-      $xml_check_log = $this->runCommand("ce_tmx.pl check $work_dir/Q.in 2>&1",
-         "", $i, $xml_check_rc);
-      #return "TMX check log: $xml_check_log; xml_check_rc: $xml_check_rc";
-      if ( $xml_check_rc != 0 )
-         throw new SoapFault("Client", "$type check failed for $XML_filename: $xml_check_log");
+      if ($is_xml) {
+         $xml_check_rc = "";
+         $xml_check_log = $this->runCommand("ce_tmx.pl check $work_dir/Q.in 2>&1",
+               "", $i, $xml_check_rc);
+         #return "TMX check log: $xml_check_log; xml_check_rc: $xml_check_rc";
+         if ( $xml_check_rc != 0 )
+            throw new SoapFault("Client", "$type check failed for $filename: $xml_check_log");
+      }
 
       #$xml_lang = array("fr" => "FR-CA", "en" => "EN-CA"); # add more languages here as needed
-      $command = "$i[script] -xml -nl=s -dir=\"$work_dir\" -out=\"$work_dir/P.out\" " .
+      $command = "$i[script] ";  # Requires that last space.
+      $command .= ($is_xml ? "-xml" : "");
+      $command .= "-nl=s -dir=\"$work_dir\" -out=\"$work_dir/P.out\" " .
                  ($xtags ? " -xtags " : "") .
                  (!empty($i["ce_model"]) ? "-with-ce " : "-decode-only ") .
                  ($ce_threshold > 0 ? "-filter=$ce_threshold " : "") .
                  "\"$work_dir/Q.in\" >& \"$work_dir/trace\" ";
+      if ($is_xml)
+         $command = "(if ($command); then ln -s QP.xml $work_dir/PLive-$work_name; fi; touch $work_dir/done)& disown %1";
+      else
+         $command = "(if ($command); then ln -s $work_dir/P.out $work_dir/PLive-$work_name; fi; touch $work_dir/done)& disown %1";
+
       $start_time = time();
-      $exit_status = NULL;
-      $result = $this->runCommand("(if ($command); then ln -s QP.xml $work_dir/PLive-$work_name; fi; touch $work_dir/done)& disown %1", "", $i, $exit_status, false);
+      $result = $this->runCommand($command, "", $i, $exit_status, false);
       $info2 = "result len: " . strlen($result) . "<br/>";
       $monitor = "http://" . $_SERVER['SERVER_NAME'] .
                  "/cgi-bin/plive-monitor.cgi?" .
@@ -255,14 +264,18 @@ class PortageLiveAPI {
    }
 
    function translateTMXCE($TMX_contents_base64, $TMX_filename, $context, $ce_threshold, $xtags) {
-      return $this->translateXMLCE($TMX_contents_base64, $TMX_filename, $context, $ce_threshold, $xtags, "tmx");
+      return $this->translateFileCE($TMX_contents_base64, $TMX_filename, $context, $ce_threshold, $xtags, "tmx");
    }
 
    function translateSDLXLIFFCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, $ce_threshold, $xtags) {
-      return $this->translateXMLCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, $ce_threshold, $xtags, "sdlxliff");
+      return $this->translateFileCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, $ce_threshold, $xtags, "sdlxliff");
    }
 
-   function translateXMLCE_Status($monitor_token) {
+   function translatePlainTextCE($PlainText_contents_base64, $PlainText_filename, $context, $ce_threshold, $xtags) {
+      return $this->translateFileCE($PlainText_contents_base64, $PlainText_filename, $context, $ce_threshold, $xtags, "plaintext");
+   }
+
+   function translateFileCE_Status($monitor_token) {
       $tokens = preg_split("/[?&]/", $monitor_token);
       $info = array();
       foreach ($tokens as $token) {
@@ -308,11 +321,15 @@ class PortageLiveAPI {
    }
 
    function translateTMXCE_Status($monitor_token) {
-      return $this->translateXMLCE_Status($monitor_token);
+      return $this->translateFileCE_Status($monitor_token);
    }
 
    function translateSDLXLIFFCE_Status($monitor_token) {
-      return $this->translateXMLCE_Status($monitor_token);
+      return $this->translateFileCE_Status($monitor_token);
+   }
+
+   function translatePlainTextCE_Status($monitor_token) {
+      return $this->translateFileCE_Status($monitor_token);
    }
 
    # This function would be nice to use but we have case aka "a<1>b</1>" is not
