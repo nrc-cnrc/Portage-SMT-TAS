@@ -499,7 +499,7 @@ if ($button == "TranslateSDLXLIFF" && $_FILES["sdlxliff_filename"]["name"] != ""
 }
 else
 if ($button == "TranslatePlainText" && $_FILES["plain_text_filename"]["name"] != "") {
-   //processFile("TranslatePlainText", $_FILES["plain_text_filename"]);
+   processFile("TranslatePlainTextCE", $_FILES["plain_text_filename"]);
 }
 else
 if ( $button == "MonitorJob" && !empty($monitor_token) ) {

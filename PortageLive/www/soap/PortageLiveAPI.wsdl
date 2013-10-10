@@ -42,9 +42,9 @@
     <part name="newline" type="xsd:string"/>
     <part name="xtags" type="xsd:boolean"/>
   </message>
-  <message name="translateXMLCERequest">
-    <part name="XMLContentsBase64" type="xsd:string"/>
-    <part name="XMLFilename" type="xsd:string"/>
+  <message name="translateFileCERequest">
+    <part name="ContentsBase64" type="xsd:string"/>
+    <part name="Filename" type="xsd:string"/>
     <part name="context" type="xsd:string"/>
     <part name="CETreshold" type="xsd:decimal"/>
     <part name="xtags" type="xsd:boolean"/>
@@ -183,7 +183,7 @@
         otherwise some other problem occurred, normally described by the
         faultcode and explained by the faulstring.
       </documentation>
-      <input message="tns:translateXMLCERequest"/>
+      <input message="tns:translateFileCERequest"/>
       <output message="tns:translationToken"/>
     </operation>
     <operation name="translateTMXCE_Status">
@@ -219,10 +219,27 @@
         Does the same thing as translateTMXCE(), but for SDLXLIFF file.
         See the documentation of translateTMXCE() for details.
       </documentation>
-      <input message="tns:translateXMLCERequest"/>
+      <input message="tns:translateFileCERequest"/>
       <output message="tns:translationToken"/>
     </operation>
     <operation name="translateSDLXLIFFCE_Status">
+      <documentation>
+        Works the same as translateTMXCE_Status(), accepting the token returned
+        by translateSDLXLIFFCE().
+        See the documentation of translateTMXCE_Status() for details.
+      </documentation>
+      <input message="tns:translationToken"/>
+      <output message="tns:getTranslationResponse"/>
+    </operation>
+    <operation name="translatePlainTextCE">
+      <documentation>
+        Does the same thing as translateTMXCE(), but for SDLXLIFF file.
+        See the documentation of translateTMXCE() for details.
+      </documentation>
+      <input message="tns:translateFileCERequest"/>
+      <output message="tns:translationToken"/>
+    </operation>
+    <operation name="translatePlainTextCE_Status">
       <documentation>
         Works the same as translateTMXCE_Status(), accepting the token returned
         by translateSDLXLIFFCE().
@@ -311,6 +328,24 @@
     </operation>
     <operation name="translateSDLXLIFFCE_Status">
       <soap:operation soapAction="translateSDLXLIFFCE_Status"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+    <operation name="translatePlainTextCE">
+      <soap:operation soapAction="translatePlainTextCE"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+    <operation name="translatePlainTextCE_Status">
+      <soap:operation soapAction="translatePlainTextCE_Status"/>
       <input>
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </input>
