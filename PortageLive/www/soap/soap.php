@@ -72,14 +72,12 @@ if ( $_POST ) {
 function displayFault($exception, $title = "SOAP Fault:") {
    print "<div class='displayFault'>\n";
    print "<header class='ERROR'>$title</header>\n";
-   print "<ul>\n";
-   print "<li>\n";
-   print "faultcode: {$exception->faultcode},\n";
-   print "</li>\n";
-   print "<li>\n";
-   print "faultstring: " . nl2br($exception->faultstring) . "\n";
-   print "</li>\n";
-   print "</ul>\n";
+   echo "<pre>";
+   echo "Fault code: " . $exception->faultcode . "\n";
+   echo "Fault message: " . $exception->getMessage() . "\n";
+   echo "Fault trace: " . var_dump($exception->getTrace()) . "\n";
+   echo "Fault line: " . $exception->getLine() . "\n";
+   echo "</pre>";
    print "</div>\n";
 }
 
@@ -125,7 +123,7 @@ function displayFault($exception, $title = "SOAP Fault:") {
 
 <body>
 <header>
-<p align="center"><img src="/images/NRC_banner_e.jpg" /></p>
+<p align="center"><img src="images/NRC_banner_e.jpg" /></p>
 </header>
 
 <div id="Portage_main">
@@ -135,8 +133,8 @@ function displayFault($exception, $title = "SOAP Fault:") {
 
 This page demonstrates how the appliance can be used as a web service.
 
-Link to <a href="<?=$WSDL?>">the WSDL</a> and its
-<a href="<?=$WSDL?>".xml>auto-generated documentation</a>
+Link to <a href="<?php echo $WSDL;?>">the WSDL</a> and its
+<a href="<?php echo $WSDL;?>".xml>auto-generated documentation</a>
 (requires an XSLT interpreter, e.g., IE or Chrome).
 
 <FORM action="" enctype="multipart/form-data" method="post" name="formulaire" target="_self">
@@ -179,7 +177,7 @@ Prime:
 
 <section id="plain_text">
 <header>Plain text</header>
-<!-- INPUT TYPE = "TEXT"   Name = "context"       VALUE = "<?=$context?>" / -->
+<!-- INPUT TYPE = "TEXT"   Name = "context"       VALUE = "<?php echo $context;?>" / -->
  Enter text here:
 <table width="60%" border="0">
 <tr>
@@ -288,7 +286,7 @@ OR
 </tr>
 <tr>
 <td>
-<INPUT TYPE = "TEXT"   Name = "ce_threshold"  VALUE = "<?=$ce_threshold?>" SIZE="4" />
+<INPUT TYPE = "TEXT"   Name = "ce_threshold"  VALUE = "<?php echo $ce_threshold;?>" SIZE="4" />
 </td>
 <td>
 CE threshold for filtering (between 0 and 1; 0.0 = no filter)
@@ -312,7 +310,7 @@ try {
    print "<br/><b>Verbose contexts: </b>" . $client->getAllContexts(true) . "</br>";
 }
 catch (SoapFault $exception) {
-   displayFault($exception, "SOAP Fault trying to list contexts: </span>faultcode:");
+   displayFault($exception, "SOAP Fault trying to list contexts:");
 }
 print "</section>\n";
 
@@ -532,7 +530,7 @@ if ( $button == "MonitorJob" && !empty($monitor_token) ) {
 <header>Monitor a job</header>
 <FORM action="" method="post" name="formulaire2" target="_self">
 Job Token:
-<INPUT TYPE = "TEXT"   Name = "monitor_token" VALUE = "<?=$monitor_token?>" />
+<INPUT TYPE = "TEXT"   Name = "monitor_token" VALUE = "<?php echo $monitor_token;?>" />
 <INPUT TYPE = "Submit" Name = "MonitorJob"    VALUE = "Monitor Job via SOAP"/>
 </FORM>
 </section>
@@ -543,21 +541,21 @@ Job Token:
 <table width="100%" cellspacing="0" cellpadding="0" border="0">
    <tr>
       <td width="20%" align="right" valign="bottom">
-	 <img alt="NRC-ICT" src="/images/sidenav_graphictop_e.gif" height="54" />
+	 <img alt="NRC-ICT" src="images/sidenav_graphictop_e.gif" height="54" />
       </td>
       <td width="60%" align="center" valign="bottom">
-	 <img width="286" alt="National Research Council Canada" src="/images/mainf1.gif" height="44" />
+	 <img width="286" alt="National Research Council Canada" src="images/mainf1.gif" height="44" />
       </td>
       <td width="20%" align="left" valign="center">
-	 <img width="93" alt="Government of Canada" src="/images/mainWordmark.gif" height="44" />
+	 <img width="93" alt="Government of Canada" src="images/mainWordmark.gif" height="44" />
       </td>
    </tr>
    <tr>
       <td align="right" valign="top">
-	 <img alt="NRC-ICT" src="/images/sidenav_graphicbottom_e.gif" />
+	 <img alt="NRC-ICT" src="images/sidenav_graphicbottom_e.gif" />
       </td>
       <td align="center" valign="top">
-	 <small>Technologies langagi&egrave;res interactives / Interactive Language Technologies <br /> Technologies de l'information et des communications / Information and Communications Technologies <br /> Conseil national de recherches Canada / National Research Council Canada <br /> Copyright 2004&ndash;2013, Sa Majest&eacute; la Reine du Chef du Canada /  Her Majesty in Right of Canada <br /> <a href="/portage_notices.html">Third party Copyright notices</a>
+	 <small>Technologies langagi&egrave;res interactives / Interactive Language Technologies <br /> Technologies de l'information et des communications / Information and Communications Technologies <br /> Conseil national de recherches Canada / National Research Council Canada <br /> Copyright 2004&ndash;2013, Sa Majest&eacute; la Reine du Chef du Canada /  Her Majesty in Right of Canada <br /> <a href="portage_notices.html">Third party Copyright notices</a>
 	 </small>
       </td>
    </tr>
