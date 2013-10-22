@@ -1,0 +1,590 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:soapui-project activeEnvironment="Default" name="PortageLiveAPI" resourceRoot="" soapui-version="4.6.0" abortOnError="false" runType="SEQUENTIAL" xmlns:con="http://eviware.com/soapui/config"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.actions.iface.tools.soapui.TestRunnerAction@values-local"><![CDATA[<xml-fragment xmlns:con="http://eviware.com/soapui/config">
+  <con:entry key="Environment" value="Default"/>
+  <con:entry key="Global Properties" value=""/>
+  <con:entry key="TestSuite" value="PortageLive_SoapHttpBinding TestSuite"/>
+  <con:entry key="Password" value=""/>
+  <con:entry key="soapui-setings.xml Password" value=""/>
+  <con:entry key="TestRunner Path" value=""/>
+  <con:entry key="Tool Args" value=""/>
+  <con:entry key="Ignore Errors" value="false"/>
+  <con:entry key="Host:Port" value="ilt-build01"/>
+  <con:entry key="WSS Password Type" value=""/>
+  <con:entry key="Save Project" value="false"/>
+  <con:entry key="Enable UI" value="false"/>
+  <con:entry key="System Properties" value=""/>
+  <con:entry key="Domain" value=""/>
+  <con:entry key="Coverage Report" value="false"/>
+  <con:entry key="Export JUnit Results" value="false"/>
+  <con:entry key="Open Report" value="false"/>
+  <con:entry key="Project Properties" value=""/>
+  <con:entry key="Export All" value="false"/>
+  <con:entry key="Project Password" value=""/>
+  <con:entry key="Report Format(s)" value=""/>
+  <con:entry key="TestCase" value="getAllContexts TestCase"/>
+  <con:entry key="Print Report" value="false"/>
+  <con:entry key="Username" value=""/>
+  <con:entry key="Root Folder" value=""/>
+  <con:entry key="Save After" value="false"/>
+  <con:entry key="Add Settings" value="false"/>
+  <con:entry key="Endpoint" value="http://ilt-build01/~ilt_build01/PortageLiveAPI.php"/>
+  <con:entry key="Select Report Type" value=""/>
+</xml-fragment>]]></con:setting></con:settings><con:interface xsi:type="con:WsdlInterface" wsaVersion="NONE" name="PortageLive_SoapHttpBinding" type="wsdl" bindingName="{http://132.246.236.199/PortageLiveAPI.wsdl}PortageLive_SoapHttpBinding" soapVersion="1_1" anonymous="optional" definition="http://portagelive-sandbox2/PortageLiveAPI.wsdl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:settings/><con:definitionCache type="TEXT" rootPart="http://portagelive-sandbox2/PortageLiveAPI.wsdl"><con:part><con:url>http://portagelive-sandbox2/PortageLiveAPI.wsdl</con:url><con:content><![CDATA[<?xml-stylesheet type="text/xsl" href="wsdl-viewer.xsl"?>
+<definitions name="PortageLiveService" targetNamespace="http://132.246.236.199/PortageLiveAPI.wsdl" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://132.246.236.199/PortageLiveAPI.wsdl" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.xmlsoap.org/wsdl/">
+  <!--Understanding WSDL: http://msdn.microsoft.com/en-us/library/ms996486.aspx-->
+  <!--http://www.w3.org/TR/wsdl20-->
+  <documentation>file: PortageLiveAPI.wsdl
+    brief: Definition of the API to the Portage SMT software suite.
+    author: Patrick Paul, Eric Joanis and Samuel Larkin
+
+    Technologies langagières interactives / Interactive Language Technologies
+    Technologies de l'information et des communications / Information and Communications Technologies
+    Conseil national de recherches Canada / National Research Council Canada
+    Copyright 2009 - 2013, Sa Majesté la Reine du Chef du Canada /
+    Copyright 2009 - 2013, Her Majesty in Right of Canada</documentation>
+  <!--============================================================
+                         M E S S A G E S
+============================================================-->
+  <message name="primeModelsRequest">
+    <part name="context" type="xsd:string"/>
+    <part name="PrimeMode" type="xsd:string"/>
+  </message>
+  <message name="getAllContextsRequest">
+    <part name="verbose" type="xsd:boolean"/>
+  </message>
+  <message name="getTranslationRequest">
+    <part name="srcString" type="xsd:string"/>
+    <part name="newline" type="xsd:string"/>
+    <part name="xtags" type="xsd:boolean"/>
+  </message>
+  <message name="getTranslationResponse">
+    <part name="Result" type="xsd:string"/>
+  </message>
+  <message name="translationToken">
+    <part name="token" type="xsd:string"/>
+  </message>
+  <message name="getTranslation2Request">
+    <part name="srcString" type="xsd:string"/>
+    <part name="context" type="xsd:string"/>
+    <part name="newline" type="xsd:string"/>
+    <part name="xtags" type="xsd:boolean"/>
+  </message>
+  <message name="translateXMLCERequest">
+    <part name="XMLContentsBase64" type="xsd:string"/>
+    <part name="XMLFilename" type="xsd:string"/>
+    <part name="context" type="xsd:string"/>
+    <part name="CETreshold" type="xsd:decimal"/>
+    <part name="xtags" type="xsd:boolean"/>
+  </message>
+  <!--============================================================
+                      P O R T   T Y P E S
+============================================================-->
+  <portType name="PortageLive_Interface">
+    <operation name="primeModels">
+      <documentation>For a given context, load its models in memory according to PrimeMode.
+
+        Legal value for PrimeMode are "partial" and "full".
+        Recommended use: call this method with "partial" before the first time
+        you use a given context, or after it's been left unused for a long
+        time.  This will normally result in faster response times afterwards.
+
+        Priming is accomplished by calling the prime.sh script installed with
+        the context on the server.  The default prime.sh uses PrimeMode to
+        partially (partial) or fully (full) load the models in memory.  The
+        actual behaviour of this function can be customized on the server side
+        if desired.
+
+        Throws SoapFault in case of problems.
+        Possible faultcode values:
+         - PortageContext: the context is not valid.
+         - PortagePrimeError: the prime.sh script failed.
+         - PortageNoPrimeScript: the context exists but doesn't have a prime.sh script.
+         - otherwise some other problem occurred, e.g., a protocol or connection
+           error, normally described by the faultcode and explained by the faulstring.</documentation>
+      <input message="tns:primeModelsRequest"/>
+      <output message="tns:getTranslationResponse"/>
+    </operation>
+    <operation name="getAllContexts">
+      <documentation>Get the list of contexts installed on the PortageLive server.
+
+        If verbose is true, each context includes a short description.
+        If verbose is false, only the name of each context is provided.
+        In all cases, the results are provided in a semi-colon separated list.
+        See the overall PortageLive_Service documentation for more details
+        about contexts.
+
+        Throws a SoapFault exception in case of a protocol or connection error.</documentation>
+      <input message="tns:getAllContextsRequest"/>
+      <output message="tns:getTranslationResponse"/>
+    </operation>
+    <operation name="getTranslation">
+      <documentation>Same as getTranslation2(), but using the default context.  See
+        getTranslation2() for documentation.</documentation>
+      <input message="tns:getTranslationRequest"/>
+      <output message="tns:getTranslationResponse"/>
+    </operation>
+    <operation name="getTranslation2">
+      <documentation>Translate text using the specified context.
+
+        Arguments:
+         - srcString is the sentence to translate.
+         - context is the name of the system to use to translate the document, and
+           must match one of the context names returned by getAllContexts().
+         - newline indicates the interpretation that should be given to newline
+           characters in srcString, and must be one of:
+            - "w": newline characters are just whitespace and should be replaced by
+              spaces; an empty line marks a paragraph boundary; sentence splitting
+              is performed within each paragraph; the result will have one
+              translated sentence per line with an empty line after each paragraph.
+            - "p": newline characters mark paragraph boundaries; sentence splitting
+              is performed within each paragraph for translation but the paragraphs
+              are reconstructed in the output; the result will have one translated
+              paragraph per line, matching srcString line by line.
+            - "s": newline characters mark sentence boundaries; no sentence splitting
+              will be performed; the result will have one translated sentence per
+              line, matching srcString line by line.
+         - xtags: if true, XMLish tags (typically representing markup in the
+           original document, as some translation memory software does) will be
+           transferred into the translation using our tag transfer module.
+
+        Throws SoapFault in case of problems.
+        Possible faultcode values:
+         - PortageContext: the problem is with the context;
+         - PortageBadArgs: newline is not one of {s, p, w};
+         - PortageServer: the problem is with Portage server;
+         - otherwise some other problem occurred, normally described by the
+           faultcode and explained by the faulstring.</documentation>
+      <input message="tns:getTranslation2Request"/>
+      <output message="tns:getTranslationResponse"/>
+    </operation>
+    <operation name="getTranslationCE">
+      <documentation>Translate text using the specified context, and calculate confidence scores
+        on the translation.  The result is the translation, one sentence per line,
+        with the confidence score preceeding each translation, separated by a tab
+        character.  Note that blank lines in the input will also get a confidence
+        score in the output; this score is meaningless and should be ignored.
+
+        See getTranslation2() for argument and SoapFault documentation, with the
+        following exceptions:
+         - the newline="p" mode does not currently work correctly with confidence
+           estimation: the confidence scores will not be attached to the right
+           sentence.  Use "s" or "w" only.
+         - a SoapFault with faultcode="PortageContext" will also be thrown if the
+           context does not support confidence estimation.</documentation>
+      <input message="tns:getTranslation2Request"/>
+      <output message="tns:getTranslationResponse"/>
+    </operation>
+    <operation name="translateTMXCE">
+      <documentation>Submit a request to translate a TMX file using the specified context.
+
+        Arguments:
+         - context must be a valid context identifier as returned by getAllContexts().
+         - TMXContentsBase64 is the contents of the TMX file in base64 encoding.
+         - TMXFilename is the name of the TMX file.
+         - IF CETreshold is greater than 0, confidence estimation is used to
+           filter out translations with confidence score below the threshold
+           (valid values are between 0 and 1).
+         - If xtags is true, tags in the source sentences are transfered to the
+           target sentences.
+
+        Returns a token used to monitor the job.  The token can be used in one of
+        two ways: it is a URL you can use to interactively monitor the job in a
+        browser.  Or you can pass it as argument to translateTMXCE_Status().
+
+        Throws SoapFault in case of problems.
+        If the faultcode is "PortageContext", the problem is with the context
+        (including the case where the context does not support confidence
+        estimation and CETreshold>0),
+        if it is "PortageServer", the problem is with PortageLive server,
+        otherwise some other problem occurred, normally described by the
+        faultcode and explained by the faulstring.</documentation>
+      <input message="tns:translateXMLCERequest"/>
+      <output message="tns:translationToken"/>
+    </operation>
+    <operation name="translateTMXCE_Status">
+      <documentation>Get the status of a job submitted using translateTMXCE().
+
+        token must be the token returned by a previous call to translateTMXCE().
+
+        Returns a string containing a one digit code followed by a human readable
+        description of the status.
+        Valid codes are:
+         - 0: job completed successfully,
+         - 1: job in progress,
+         - 2: job finished but failed,
+         - 3: something is wrong with the token.
+
+        If the code is 0, the result string will be "0 Done: result_url", where
+        result_url is the URL where you can fetch the translated TMX via HTTP.
+        If the code is 1, the result string will include an indication of progress.
+        If the code is 2, the result string will be "2 Failed: trace_url", where
+        trace_url will let you see the error log for your job.
+
+        If you are going to poll a job status repeatedly, it is recommended you
+        insert a 5 second delay between successive requests.
+
+        Throws a SoapFault exception in case of a protocol or connection error.</documentation>
+      <input message="tns:translationToken"/>
+      <output message="tns:getTranslationResponse"/>
+    </operation>
+    <operation name="translateSDLXLIFFCE">
+      <documentation>Does the same thing as translateTMXCE(), but for SDLXLIFF file.
+        See the documentation of translateTMXCE() for details.</documentation>
+      <input message="tns:translateXMLCERequest"/>
+      <output message="tns:translationToken"/>
+    </operation>
+    <operation name="translateSDLXLIFFCE_Status">
+      <documentation>Works the same as translateTMXCE_Status(), accepting the token returned
+        by translateSDLXLIFFCE().
+        See the documentation of translateTMXCE_Status() for details.</documentation>
+      <input message="tns:translationToken"/>
+      <output message="tns:getTranslationResponse"/>
+    </operation>
+  </portType>
+  <!--============================================================
+                         B I N D I N G S
+============================================================-->
+  <binding name="PortageLive_SoapHttpBinding" type="tns:PortageLive_Interface">
+    <soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <operation name="primeModels">
+      <soap:operation soapAction="primeModels"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+    <operation name="getAllContexts">
+      <soap:operation soapAction="getAllContexts"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+    <operation name="getTranslation">
+      <soap:operation soapAction="getTranslation"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+    <operation name="getTranslation2">
+      <soap:operation soapAction="getTranslation2"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+    <operation name="getTranslationCE">
+      <soap:operation soapAction="getTranslationCE"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+    <operation name="translateTMXCE">
+      <soap:operation soapAction="translateTMXCE"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+    <operation name="translateTMXCE_Status">
+      <soap:operation soapAction="translateTMXCE_Status"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+    <operation name="translateSDLXLIFFCE">
+      <soap:operation soapAction="translateSDLXLIFFCE"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+    <operation name="translateSDLXLIFFCE_Status">
+      <soap:operation soapAction="translateSDLXLIFFCE_Status"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+  </binding>
+  <!--============================================================
+                         S E R V I C E
+============================================================-->
+  <service name="PortageLive_Service">
+    <documentation><![CDATA[Definition of the PortageLive Service, providing an API to the PortageII
+      software suite.
+
+      Typical usage: call getAllContexts() to obtain the list of trained
+      systems available on the server, and then call getTranslation2() for each
+      unit of text you need to translate.
+
+      The context embeds a number of parameters that are configured on the
+      server when the system is trained, and not directly accessible to the
+      client: source and target language, training data and all training
+      options, etc.  It is recommended that meaningful names be used when
+      installing systems ("contexts") on the server, e.g., indicating at
+      least the domain and the language direction.
+
+      The client software can obtain the list of contexts by calling
+      getAllContexts().  The non-verbose mode is meant for machine
+      processing, listing just the contexts installed on the server, while
+      the verbose mode adds human-readable details such as language
+      direction and whether confidence estimation is available. (See
+      getTranslationCE()).
+
+      To translate text, call getTranslation2() with the desired
+      context.  getTranslation() does the same thing, using the default
+      context on the server.
+      In both cases, srcString is the raw text to be translated.  It should
+      be plain text, optionally with markup.  The text will be split in
+      sentences and translated.  The result will respect the paragraph
+      structure specified by the newline parameter.
+
+      See individual function documentation for further details.
+
+      <b>Simple usage example</b>
+
+      You are about to submit a series of requests to a particular system, for
+      text where newline characters delimit paragraphs.  The context name
+      is provided to you by the server administrator.
+      Before the series of requests starts:
+      primeModels(context, "partial");
+      loop: getTranslation2(srcText, context, "p", false);
+
+      <b>Constraints</b>
+      <b>Time-out issues</b>: because the SOAP API calls are made through the HTTP
+      protocol, any time-out in the chain could cause the result to be lost:
+      Apache server time-out, browser or other client time-out, etc.  If
+      you're submitting large amounts of text for translation that might
+      exceed typical time-outs, you should split the input into smaller
+      chunks, e.g., paragraphs, and make several calls to getTranslation2().
+      Asynchronous methods exist for translating TMX and XLIFF files, but
+      not yet for plain text.
+
+      <b>Performance issues</b>: typical systems run on the order of one sentence
+      per second per CPU.  Adequate server capacity should be secured for the
+      volume of translation required.
+      Some parameters can be tweaked at training time to speed up translation,
+      in a trade-off with translation quality.]]]]>><![CDATA[</documentation>
+    <port name="PortageLive_Library" binding="tns:PortageLive_SoapHttpBinding">
+      <soap:address location="http://132.246.236.199/PortageLiveAPI.php"/>
+    </port>
+  </service>
+</definitions>]]></con:content><con:type>http://schemas.xmlsoap.org/wsdl/</con:type></con:part></con:definitionCache><con:endpoints><con:endpoint>http://132.246.236.197/PortageLiveAPI.php</con:endpoint><con:endpoint>http://IITGATNB1538:8088/mockPortageLive_SoapHttpBinding</con:endpoint><con:endpoint>http://132.246.236.199/PortageLiveAPI.php</con:endpoint><con:endpoint>http://132.246.236.197/PortageLiveAPI.php</con:endpoint></con:endpoints><con:operation isOneWay="false" action="getAllContexts" name="getAllContexts" bindingOperationName="getAllContexts" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call name="Request 1"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://132.246.236.199/PortageLiveAPI.php</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:getAllContexts soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <verbose xsi:type="xsd:boolean">?</verbose>
+      </urn:getAllContexts>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="getAllContexts"/><con:wsrmConfig version="1.2"/></con:call></con:operation><con:operation isOneWay="false" action="getTranslation" name="getTranslation" bindingOperationName="getTranslation" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call name="Request 1"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://132.246.236.199/PortageLiveAPI.php</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:getTranslation soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <srcString xsi:type="xsd:string">?</srcString>
+         <newline xsi:type="xsd:string">?</newline>
+         <xtags xsi:type="xsd:boolean">?</xtags>
+      </urn:getTranslation>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:wsaConfig mustUnderstand="NONE" version="200508" action="getTranslation"/></con:call></con:operation><con:operation isOneWay="false" action="getTranslation2" name="getTranslation2" bindingOperationName="getTranslation2" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call name="Request 1"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://132.246.236.199/PortageLiveAPI.php</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:getTranslation2 soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <srcString xsi:type="xsd:string">?</srcString>
+         <context xsi:type="xsd:string">?</context>
+         <newline xsi:type="xsd:string">?</newline>
+         <xtags xsi:type="xsd:boolean">?</xtags>
+      </urn:getTranslation2>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:wsaConfig mustUnderstand="NONE" version="200508" action="getTranslation2"/></con:call></con:operation><con:operation isOneWay="false" action="getTranslationCE" name="getTranslationCE" bindingOperationName="getTranslationCE" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call name="Request 1"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://132.246.236.199/PortageLiveAPI.php</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:getTranslationCE soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <srcString xsi:type="xsd:string">?</srcString>
+         <context xsi:type="xsd:string">?</context>
+         <newline xsi:type="xsd:string">?</newline>
+         <xtags xsi:type="xsd:boolean">?</xtags>
+      </urn:getTranslationCE>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:wsaConfig mustUnderstand="NONE" version="200508" action="getTranslationCE"/></con:call></con:operation><con:operation isOneWay="false" action="primeModels" name="primeModels" bindingOperationName="primeModels" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call name="Request 1"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://132.246.236.199/PortageLiveAPI.php</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:primeModels soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <context xsi:type="xsd:string">?</context>
+         <PrimeMode xsi:type="xsd:string">?</PrimeMode>
+      </urn:primeModels>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="primeModels"/><con:wsrmConfig version="1.2"/></con:call></con:operation><con:operation isOneWay="false" action="translateSDLXLIFFCE" name="translateSDLXLIFFCE" bindingOperationName="translateSDLXLIFFCE" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call name="Request 1"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://132.246.236.199/PortageLiveAPI.php</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translateSDLXLIFFCE soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <XMLContentsBase64 xsi:type="xsd:string">?</XMLContentsBase64>
+         <XMLFilename xsi:type="xsd:string">?</XMLFilename>
+         <context xsi:type="xsd:string">?</context>
+         <CETreshold xsi:type="xsd:decimal">?</CETreshold>
+         <xtags xsi:type="xsd:boolean">?</xtags>
+      </urn:translateSDLXLIFFCE>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:wsaConfig mustUnderstand="NONE" version="200508" action="translateSDLXLIFFCE"/></con:call></con:operation><con:operation isOneWay="false" action="translateSDLXLIFFCE_Status" name="translateSDLXLIFFCE_Status" bindingOperationName="translateSDLXLIFFCE_Status" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call name="Request 1"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://132.246.236.199/PortageLiveAPI.php</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translateSDLXLIFFCE_Status soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <token xsi:type="xsd:string">?</token>
+      </urn:translateSDLXLIFFCE_Status>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:wsaConfig mustUnderstand="NONE" version="200508" action="translateSDLXLIFFCE_Status"/></con:call></con:operation><con:operation isOneWay="false" action="translateTMXCE" name="translateTMXCE" bindingOperationName="translateTMXCE" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call name="Request 1"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://132.246.236.199/PortageLiveAPI.php</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translateTMXCE soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <XMLContentsBase64 xsi:type="xsd:string">?</XMLContentsBase64>
+         <XMLFilename xsi:type="xsd:string">?</XMLFilename>
+         <context xsi:type="xsd:string">?</context>
+         <CETreshold xsi:type="xsd:decimal">?</CETreshold>
+         <xtags xsi:type="xsd:boolean">?</xtags>
+      </urn:translateTMXCE>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:wsaConfig mustUnderstand="NONE" version="200508" action="translateTMXCE"/></con:call></con:operation><con:operation isOneWay="false" action="translateTMXCE_Status" name="translateTMXCE_Status" bindingOperationName="translateTMXCE_Status" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call name="Request 1"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://132.246.236.199/PortageLiveAPI.php</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translateTMXCE_Status soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <token xsi:type="xsd:string">?</token>
+      </urn:translateTMXCE_Status>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:wsaConfig mustUnderstand="NONE" version="200508" action="translateTMXCE_Status"/></con:call></con:operation></con:interface><con:testSuite name="PortageLive_SoapHttpBinding TestSuite"><con:description>PortageLive API testSuite</con:description><con:settings/><con:runType>SEQUENTIAL</con:runType><con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="getAllContexts TestCase" searchProperties="true" id="cd532337-f3ad-4c58-89f6-3847fbd4eff0"><con:settings/><con:testStep type="request" name="getAllContexts - request"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>PortageLive_SoapHttpBinding</con:interface><con:operation>getAllContexts</con:operation><con:request name="getAllContexts - request" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType=""><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://132.246.236.197/PortageLiveAPI.php</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:getAllContexts soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <verbose xsi:type="xsd:boolean">?</verbose>
+      </urn:getAllContexts>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:assertion type="SOAP Response" name="SOAP Response"/><con:assertion type="XPath Match" name="XPath Match: Result"><con:configuration><path>declare namespace ns1="urn:cnrc-nrc:portageliveservice";
+//ns1:getAllContextsResponse/Result</path><content>Hansard-HOC-en2fr-1;Hansard-HOC-en2fr-2;context;generic1.0.en2fr;generic1.0.fr2en;toy.en2fr</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences><ignoreComments>false</ignoreComments></con:configuration></con:assertion><con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="getAllContexts"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:properties/></con:testCase><con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="getTranslation TestCase - no arg" searchProperties="true" id="f173b0f2-759a-493e-9fde-e9a0c19b1840"><con:settings/><con:testStep type="request" name="getTranslation - no arg"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>PortageLive_SoapHttpBinding</con:interface><con:operation>getTranslation</con:operation><con:request name="getTranslation - no arg"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://132.246.236.197/PortageLiveAPI.php</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:getTranslation soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <srcString xsi:type="xsd:string">?</srcString>
+         <newline xsi:type="xsd:string">?</newline>
+         <xtags xsi:type="xsd:boolean">?</xtags>
+      </urn:getTranslation>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:assertion type="SOAP Response" name="SOAP Response"/><con:assertion type="Not SOAP Fault Assertion" name="SOAP Fault"/><con:assertion type="XPath Match" name="XPath Match: faultcode"><con:configuration><path>declare namespace SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/";
+//SOAP-ENV:Fault/faultcode</path><content>PortageBadArgs</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences><ignoreComments>false</ignoreComments></con:configuration></con:assertion><con:assertion type="XPath Match" name="XPath Match: faultstring"><con:configuration><path>declare namespace SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/";
+//SOAP-ENV:Fault/faultstring</path><content>Illegal newline type ?
+Allowed newline types are: s, p or w</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences><ignoreComments>false</ignoreComments></con:configuration></con:assertion><con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig action="getTranslation" mustUnderstand="NONE" version="200508"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:properties/></con:testCase><con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="getTranslation2 TestCase" searchProperties="true" id="7b78188e-0e5e-4262-9502-8ccda517e683"><con:settings/><con:testStep type="request" name="getTranslation2"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>PortageLive_SoapHttpBinding</con:interface><con:operation>getTranslation2</con:operation><con:request name="getTranslation2"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://132.246.236.197/PortageLiveAPI.php</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:getTranslation2 soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <srcString xsi:type="xsd:string">?</srcString>
+         <context xsi:type="xsd:string">?</context>
+         <newline xsi:type="xsd:string">?</newline>
+         <xtags xsi:type="xsd:boolean">?</xtags>
+      </urn:getTranslation2>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig action="getTranslation2" mustUnderstand="NONE" version="200508"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:properties/></con:testCase><con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="getTranslationCE TestCase" searchProperties="true" id="9820d290-2ef2-4785-8a17-429a6164fdf3"><con:settings/><con:testStep type="request" name="getTranslationCE"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>PortageLive_SoapHttpBinding</con:interface><con:operation>getTranslationCE</con:operation><con:request name="getTranslationCE"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://132.246.236.197/PortageLiveAPI.php</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:getTranslationCE soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <srcString xsi:type="xsd:string">?</srcString>
+         <context xsi:type="xsd:string">?</context>
+         <newline xsi:type="xsd:string">?</newline>
+         <xtags xsi:type="xsd:boolean">?</xtags>
+      </urn:getTranslationCE>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:wsaConfig action="getTranslationCE"/></con:request></con:config></con:testStep><con:properties/></con:testCase><con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="primeModels TestCase" searchProperties="true" id="06dd5fd2-573b-43c8-8e2f-9fb4d86f47ed"><con:settings/><con:testStep type="request" name="primeModels - no arg"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>PortageLive_SoapHttpBinding</con:interface><con:operation>primeModels</con:operation><con:request name="primeModels - no arg" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType=""><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://132.246.236.197/PortageLiveAPI.php</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:primeModels soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <context xsi:type="xsd:string">?</context>
+         <PrimeMode xsi:type="xsd:string">?</PrimeMode>
+      </urn:primeModels>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:assertion type="SOAP Response" name="SOAP Response"/><con:assertion type="Not SOAP Fault Assertion" name="SOAP Fault"/><con:assertion type="XPath Match" name="XPath Match: faultcode"><con:configuration><path>declare namespace SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/";
+//SOAP-ENV:Fault/faultcode</path><content>PortageContext</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences><ignoreComments>false</ignoreComments></con:configuration></con:assertion><con:assertion type="XPath Match" name="XPath Match: faultstring"><con:configuration><path>declare namespace SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/";
+//SOAP-ENV:Fault/faultstring</path><content>Context "?" does not exist.</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences><ignoreComments>false</ignoreComments></con:configuration></con:assertion><con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="primeModels"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:testStep type="request" name="primeModels - context - nomode"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>PortageLive_SoapHttpBinding</con:interface><con:operation>primeModels</con:operation><con:request name="primeModels - context - nomode"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://132.246.236.197/PortageLiveAPI.php</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:primeModels soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <context xsi:type="xsd:string">toy.en2fr</context>
+         <PrimeMode xsi:type="xsd:string">?</PrimeMode>
+      </urn:primeModels>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:assertion type="SOAP Response" name="SOAP Response"/><con:assertion type="Not SOAP Fault Assertion" name="SOAP Fault"/><con:assertion type="XPath Match" name="XPath Match: faultcode"><con:configuration><path>declare namespace SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/";
+//SOAP-ENV:Fault/faultcode</path><content>PortagePrimeError</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences><ignoreComments>false</ignoreComments></con:configuration></con:assertion><con:assertion type="XPath Match" name="XPath Match: faultstring"><con:configuration><path>declare namespace SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/";
+//SOAP-ENV:Fault/faultstring</path><content>Failed to prime, something went wrong in prime.sh.
+rc=3; Command= ?</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences><ignoreComments>false</ignoreComments></con:configuration></con:assertion><con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig action="primeModels" mustUnderstand="NONE" version="200508"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:testStep type="request" name="primeModels - context - badmode"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>PortageLive_SoapHttpBinding</con:interface><con:operation>primeModels</con:operation><con:request name="primeModels - context - badmode"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://132.246.236.197/PortageLiveAPI.php</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:primeModels soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <context xsi:type="xsd:string">toy.en2fr</context>
+         <PrimeMode xsi:type="xsd:string">bogus</PrimeMode>
+      </urn:primeModels>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:assertion type="SOAP Response" name="SOAP Response"/><con:assertion type="Not SOAP Fault Assertion" name="SOAP Fault"/><con:assertion type="XPath Match" name="XPath Match: faultcode"><con:configuration><path>declare namespace SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/";
+//SOAP-ENV:Fault/faultcode</path><content>PortagePrimeError</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences><ignoreComments>false</ignoreComments></con:configuration></con:assertion><con:assertion type="XPath Match" name="XPath Match: faultstring"><con:configuration><path>declare namespace SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/";
+//SOAP-ENV:Fault/faultstring</path><content>Failed to prime, something went wrong in prime.sh.
+rc=3; Command= bogus</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences><ignoreComments>false</ignoreComments></con:configuration></con:assertion><con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig action="primeModels" mustUnderstand="NONE" version="200508"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:testStep type="request" name="Copy of primeModels - context - partial"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>PortageLive_SoapHttpBinding</con:interface><con:operation>primeModels</con:operation><con:request name="Copy of primeModels - context - partial"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://132.246.236.197/PortageLiveAPI.php</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:primeModels soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <context xsi:type="xsd:string">toy.en2fr</context>
+         <PrimeMode xsi:type="xsd:string">partial</PrimeMode>
+      </urn:primeModels>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:assertion type="SOAP Response" name="SOAP Response"/><con:assertion type="SOAP Fault Assertion" name="Not SOAP Fault"/><con:assertion type="XPath Match" name="XPath Match"><con:configuration><path>//Result</path><content>OK</content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences><ignoreComments>false</ignoreComments></con:configuration></con:assertion><con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig action="primeModels" mustUnderstand="NONE" version="200508"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:properties/></con:testCase><con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="translateSDLXLIFFCE TestCase" searchProperties="true" id="fd37983b-ed3b-4867-a3c9-b88793e825c4"><con:settings/><con:testStep type="request" name="translateSDLXLIFFCE"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>PortageLive_SoapHttpBinding</con:interface><con:operation>translateSDLXLIFFCE</con:operation><con:request name="translateSDLXLIFFCE"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://132.246.236.197/PortageLiveAPI.php</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translateSDLXLIFFCE soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <XMLContentsBase64 xsi:type="xsd:string">?</XMLContentsBase64>
+         <XMLFilename xsi:type="xsd:string">?</XMLFilename>
+         <context xsi:type="xsd:string">?</context>
+         <CETreshold xsi:type="xsd:decimal">?</CETreshold>
+         <xtags xsi:type="xsd:boolean">?</xtags>
+      </urn:translateSDLXLIFFCE>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:wsaConfig action="translateSDLXLIFFCE"/></con:request></con:config></con:testStep><con:properties/></con:testCase><con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="translateSDLXLIFFCE_Status TestCase" searchProperties="true" id="ccb4718e-1d81-41b9-b82a-85f59c290962"><con:settings/><con:testStep type="request" name="translateSDLXLIFFCE_Status"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>PortageLive_SoapHttpBinding</con:interface><con:operation>translateSDLXLIFFCE_Status</con:operation><con:request name="translateSDLXLIFFCE_Status"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://132.246.236.197/PortageLiveAPI.php</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translateSDLXLIFFCE_Status soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <token xsi:type="xsd:string">?</token>
+      </urn:translateSDLXLIFFCE_Status>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:wsaConfig action="translateSDLXLIFFCE_Status"/></con:request></con:config></con:testStep><con:properties/></con:testCase><con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="translateTMXCE TestCase" searchProperties="true" id="6490627b-948a-48db-9921-8583a5900fac"><con:settings/><con:testStep type="request" name="translateTMXCE"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>PortageLive_SoapHttpBinding</con:interface><con:operation>translateTMXCE</con:operation><con:request name="translateTMXCE"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://132.246.236.197/PortageLiveAPI.php</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translateTMXCE soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <XMLContentsBase64 xsi:type="xsd:string">?</XMLContentsBase64>
+         <XMLFilename xsi:type="xsd:string">?</XMLFilename>
+         <context xsi:type="xsd:string">?</context>
+         <CETreshold xsi:type="xsd:decimal">?</CETreshold>
+         <xtags xsi:type="xsd:boolean">?</xtags>
+      </urn:translateTMXCE>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:wsaConfig action="translateTMXCE"/></con:request></con:config></con:testStep><con:properties/></con:testCase><con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="translateTMXCE_Status TestCase" searchProperties="true" id="bbf508e7-863d-4109-82e9-ef9a4507d9db"><con:settings/><con:testStep type="request" name="translateTMXCE_Status"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>PortageLive_SoapHttpBinding</con:interface><con:operation>translateTMXCE_Status</con:operation><con:request name="translateTMXCE_Status"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://132.246.236.197/PortageLiveAPI.php</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translateTMXCE_Status soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <token xsi:type="xsd:string">?</token>
+      </urn:translateTMXCE_Status>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:wsaConfig action="translateTMXCE_Status"/></con:request></con:config></con:testStep><con:properties/></con:testCase><con:properties/></con:testSuite><con:testSuite name="Web TestSuite"><con:settings/><con:runType>SEQUENTIAL</con:runType><con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="true" maxResults="0" name="Web TestCase" searchProperties="true" id="ac8028f6-b4a3-4c09-b277-fc468ec25efb"><con:settings/><con:testStep type="httprequest" name="http://portagelive-sandbox2/soap.php"><con:settings/><con:config method="GET" xsi:type="con:HttpRequest" name="http://portagelive-sandbox2/soap.php" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:endpoint>http://portagelive-sandbox2/soap.php</con:endpoint><con:request/><con:credentials><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:parameters/></con:config></con:testStep><con:properties/></con:testCase><con:properties/></con:testSuite><con:properties/><con:wssContainer/><con:sensitiveInformation/></con:soapui-project>
