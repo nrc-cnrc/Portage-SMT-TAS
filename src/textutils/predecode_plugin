@@ -38,7 +38,8 @@ canoe-escapes.pl -add | utf8_filter
 # The following sample code maps numbers of the following forms, from English
 # to French:
 #  - 420K -> 420 000
-#  - 12,345,678.90 -> 12 345 678,90
+#  - 14.5M -> 14,5 millions
+#  - 12,345,678.90 -> 12 345,678 90
 #  - An optional + or - in front is allowed and preserved
 #  - The number has to be the whole token, so that we don't accidentally grab
 #    longer codes
