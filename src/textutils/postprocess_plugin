@@ -47,8 +47,8 @@ TARGET_LANGUAGE=$1; shift
 #             $nbhy = "\\_";        # RTF non-break hyphen
 #             $nbhy = "<ph>\_</ph>";# Trados might like this better???
 #          }
-#          s/ ([:»%\$€¥£])/$nbsp$1/g; # Make the space before :, », %, etc, non-breakable
-#          s/([«]) /$1$nbsp/g;      # Make the space after « non-breakable
+#          s/ (:|»|%|\$|€|¥|£)/$nbsp$1/g; # Make the space before :, », %, etc, non-breakable
+#          s/(«) /$1$nbsp/g;      # Make the space after « non-breakable
 #          # Make the space before some units, when preceeded by a number, unbreakable;
 #          # add all the units you want to this list!
 #          s/(\d) (V|volts|ml|mm|cm)\b/$1$nbsp$2/g;
