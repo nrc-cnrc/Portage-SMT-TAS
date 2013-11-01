@@ -20,7 +20,7 @@ TEMP_FILES=small.* long.* log.* cpt.top.fr2en.gz
 include ../Makefile.incl
 
 emptyjpt: small_fr small_en
-	! canoe -forced -f canoe.ini -ttable-multi-prob /dev/null -ref small_fr < small_en
+	! canoe -forced -f canoe.ini.small -ttable-multi-prob /dev/null -ref small_fr < small_en
 	@echo Bad input \(empty phrase table\) test PASSED.
 
 cpt.top.fr2en.gz:
