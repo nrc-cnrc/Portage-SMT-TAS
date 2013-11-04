@@ -496,6 +496,10 @@ if [[ $INCLUDE_BIN || $COMPILE_ONLY ]]; then
    else
       make_bin
    fi
+
+   # Change SETUP.bash and SETUP.tcsh to have a default PRECOMP_PORTAGE_ARCH active
+   perl -e 'print "%s/#\\(PRECOMP_PORTAGE_ARCH=\\)/\\1/\nw\nq\n"' | ed SETUP.bash
+   perl -e 'print "%s/#\\(set PRECOMP_PORTAGE_ARCH=\\)/\\1/\nw\nq\n"' | ed SETUP.tcsh
 fi
 
 if [[ $MAKE_DOXY_PID ]]; then
