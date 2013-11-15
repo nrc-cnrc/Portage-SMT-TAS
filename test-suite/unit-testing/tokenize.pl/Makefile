@@ -43,7 +43,7 @@ ch-punc: $(addprefix compare.chinese-punc.detok., 000 001 010 011 100 101 110 11
 en-prices: compare.eng-prices.detok compare.eng-prices.detok.utf8
 
 TEMP_FILES=accent.* hyphens.* periods.* chinese-punc.* eng-prices.* \
-           es.* da.* xtags.* \
+           es.* da.* xtags.* smart-apos.* \
            brackets.utf8.detok-?? \
            with_tags.in with_tags.out
 include ../Makefile.incl
