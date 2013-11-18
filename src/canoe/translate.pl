@@ -333,8 +333,7 @@ use portage_utils;
 printCopyright(2010);
 $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
-use ULexiTools qw(get_tag_re);
-my $tag_re = get_tag_re;
+use ULexiTools qw(strip_xml_entities);
 
 use File::Temp qw(tempdir);
 use File::Path qw(rmtree);
@@ -1091,10 +1090,7 @@ sub strip_entity {
       or cleanupAndDie("Can't open $out for writing.\n");
 
    while (<IN>) {
-      s/$tag_re//g;  # Remove tags
-      s/&gt;/>/g;    # unescape greater than
-      s/&lt;/</g;    # unescape less than
-      s/&amp;/&/g;   # unescape ampersand
+      strip_xml_entities($_);
       print OUT $_;
    }
    close(IN);
