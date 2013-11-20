@@ -1,5 +1,4 @@
 #!/bin/bash
-# $Id$
 
 # @file tokenize_plugin
 # @brief This script is provided as an example of tokenize_plugin script, as
@@ -44,7 +43,7 @@ if [[ "$SOURCE_LANGUAGE" == "ch" ]]; then
    #   ictclas_postprocessing.pl |
    #   iconv -c -f CN-GB -t UTF-8
 
-#elif [[ "SOURCE_LANGUAGE" == "xy" ]]; then
+#elif [[ "$SOURCE_LANGUAGE" == "xy" ]]; then
    # insert code or call program to tokenize text in language "xy" here,
    # reading STDIN and writing to STDOUT.
 
