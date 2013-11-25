@@ -49,6 +49,7 @@ Michel Simard
 use strict;
 use strict 'refs';
 use warnings;
+use utf8;
 
 ## --------------------- USER CONFIGURATION ------------------------------
 ##
@@ -85,7 +86,7 @@ use File::Spec::Functions qw(splitdir catdir);
 
 $|=1;
 
-print header(-type=>'text/html');
+print header(-type=>'text/html; charset=utf8');
 
 # Calculate the number of seconds from $start_time to the modification time of
 # $file
@@ -188,7 +189,7 @@ if (my $filename = param('file')     # The name of the file we are monitoring
                 }
                 print
                     p("Output file is ready.  Right-click this link to save the file:",
-                    a({-href=>$url}, $filename));
+                    a({-href=>$url, -id=>"translations_file"}, $filename));
             } else { # The output file doesn't exist, so something went wrong
                 print
                     p("Translation job terminated with no output.");
@@ -218,7 +219,7 @@ sub pageHead {
     my($filename, $context, $refresh) = @_;
     $refresh = 0 unless defined $refresh;
 
-    my %start = (-title=>"PORTAGELive");
+    my %start = (-title=>"PORTAGELive", -encoding=>'UTF8', -lang=>'fr-CA');
     $start{-head} = meta({-http_equiv=>'refresh',
                           -content =>$refresh})
         if $refresh > 0;
@@ -259,10 +260,10 @@ sub NRCFooter {
                             alt=>'NRC-ICT'})),
                     td({valign=>'top', align=>'center'},
                        small(
-                          "Technologies langagi&egrave;res interactives / Interactive Language Technologies", br(),
+                          "Technologies langagières interactives / Interactive Language Technologies", br(),
                           "Technologies de l'information et des communications / Information and Communications Technologies", br(),
                           "Conseil national de recherches Canada / National Research Council Canada", br(),
-                          "Copyright 2004&ndash;2013, Sa Majest&eacute; la Reine du Chef du Canada / ",
+                          "Copyright 2004–2013, Sa Majesté la Reine du Chef du Canada / ",
                           "Her Majesty in Right of Canada", br(),
                           "<a href=\"/portage_notices.html\">Third party Copyright notices</a>"))));
 }
