@@ -47,6 +47,62 @@ if [[ "$SOURCE_LANGUAGE" == "ch" ]]; then
    # insert code or call program to tokenize text in language "xy" here,
    # reading STDIN and writing to STDOUT.
 
+elif [[ "$SOURCE_LANGUAGE" == "ar" ]]; then
+   export PATH=`dirname $0`:$PATH
+
+   TMPFILE=`mktemp -d /tmp/ar_tokenization.XXXXXXXXXX` || exit 1
+   #trap "rm -fr ${TMPFILE}" 0
+
+   # TODO: fix the character set switching between Arabic and non Arabic
+   cat | perl -ple '
+      BEGIN {
+         binmode( STDIN,  ":encoding(UTF-8)" );
+         binmode( STDOUT, ":encoding(UTF-8)" );
+      };
+
+      s/[\r]?\n$/ /;
+      s/^/ /;
+      s/([\p{Arabic}])([^\p{Arabic}])/$1 $2/g;
+      s/([^\p{Arabic}])([\p{Arabic}])/$1 $2/g;
+      s/  +/ /g;
+      s/^ //;
+      s/ $//;
+   ' > ${TMPFILE}/src
+
+   # On balzac we define MADA.
+   # On our vm, in our web stack we don't define MADA but we install it under $PORTAGE/bin.
+   # FYI $PORTAGE on our vm doesn't have the same semantic as on balzac
+   MADA_HOME=${MADA:-$PORTAGE/bin}
+
+   # May be we could use a config that output simply FORM1 of ATB4MT but this
+   # doesn't remove parse_tokan since we still need to do normalization and
+   # tokenization of English.
+   MADAX="perl ${MADA_HOME}/MADA+TOKAN.pl";
+   CONFIG="${MADA_HOME}/config-files/template.madaconfig";
+   ${MADAX} \
+      config=${CONFIG} \
+      file=${TMPFILE}/src \
+      outputdir=${TMPFILE} \
+      TOKAN_SCHEME="SCHEME=ATB4MT MARKNOANALYSIS" \
+      2> ${TMPFILE}/log
+   rc=$?
+   if [ "$rc" != "0" -o ! -e "${TMPFILE}/src.bw.mada.tok" ]; then
+      echo "ERROR: with MADA (tokenize_plugin)" >&2
+      cat ${TMPFILE}/log >&2
+      exit 1
+   fi
+
+
+   export PORTAGE_INTERNAL_CALL=1
+   parse_tokan.pl 6 1 < ${TMPFILE}/src.bw.mada.tok
+   rc=$?
+   if [[ "$rc" != 0 ]]; then
+      echo "ERROR: with parse_tokan.pl (tokenize_plugin)" >&2
+      cat ${TMPFILE}/log >&2
+      exit 1
+   fi
+
+
 elif [ "$SOURCE_LANGUAGE" == "fr" -o "$SOURCE_LANGUAGE" == "en" -o "$SOURCE_LANGUAGE" == "es" ]; then
    echo "Language $SOURCE_LANGUAGE is supported by utokenize.pl, don't use the plugin" >&2
    exit 1
