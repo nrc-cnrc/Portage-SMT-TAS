@@ -96,7 +96,7 @@ function displayFault($exception, $title = "SOAP Fault:") {
    .PRIME {
       border-width: 1;
       border: solid;
-      text-align: center;
+      //text-align: center;
       font-size: 1.2em;
       background-color: #FAFAD2;
       padding: 1px;
@@ -497,7 +497,7 @@ if ($button == "TranslateSDLXLIFF" && $_FILES["sdlxliff_filename"]["name"] != ""
 }
 else
 if ($button == "TranslatePlainText" && $_FILES["plain_text_filename"]["name"] != "") {
-   processFile("TranslatePlainTextCE", $_FILES["plain_text_filename"]);
+   processFile("translatePlainTextCE", $_FILES["plain_text_filename"]);
 }
 else
 if ( $button == "MonitorJob" && !empty($monitor_token) ) {
