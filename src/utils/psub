@@ -68,6 +68,7 @@ Options:
 }
 
 error_exit() {
+   echo -n "psub fatal error: " >&2
    for msg in "$@"; do
       echo $msg >&2
    done
@@ -93,13 +94,14 @@ arg_check() {
 }
 
 # Set some virtual memory constant per cpu.
-VMEM_LIMIT_GB_PER_CPU=8
-VMEM_HARD_LIMIT_GB_PER_CPU=7
+VMEM_LIMIT_GB_PER_CPU=7
+VMEM_HARD_LIMIT_GB_PER_CPU=6
 
 PSUB_CMD=`echo "$0 $*" | perl -pe 'print "# " if $. > 1'`
 CPU_COUNT=
 MEMORY_POLLING_DELAY=6
 
+NODES=notest
 while [ $# -gt 0 ]; do
    case "$1" in
    -h|-help)        usage;;
@@ -120,6 +122,7 @@ while [ $# -gt 0 ]; do
    -nodes)          arg_check 1 $# $!
                     if [[ $NODES ]]; then NODES="$NODES:$2"
                                      else NODES=$2; fi
+                    EXPLICIT_NODES=1
                     shift;;
    -qsparams)       arg_check 1 $# $!; QSPARAMS=$2; shift;;
    -p|-t)           arg_check 1 $# $!; QSUB_OPTS="$QSUB_OPTS $1 $2"; shift;;
@@ -275,7 +278,9 @@ if [ $BALZAC ]; then
    if [ -n "$INTMODE" ]; then
       # We are in interactive mode thus we need to make sure we reserved the
       # entire node
-      if [ $CPU_COUNT -gt 4 ]; then
+      if [ $EXPLICIT_NODES ]; then
+         true # the user provided an explicit -nodes specification, don't override
+      elif [ $CPU_COUNT -gt 4 ]; then
          true # >4 CPUs can only go to a fat node, no need for explicit request
       elif [ $CPU_COUNT -gt 2 ]; then
          PPN_NODES="${PPN_NODES}:c4"
