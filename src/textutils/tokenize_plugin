@@ -51,9 +51,18 @@ elif [[ $SOURCE_LANGUAGE = ar ]]; then
    export PATH=`dirname $0`:$PATH
 
    TMPFILE=`mktemp -d /tmp/ar_tokenization.XXXXXXXXXX` || exit 1
-   #trap "rm -fr ${TMPFILE}" 0
+   [[ -n "$DEBUG_TOKENIZE_PLUGIN" ]] || trap "rm -fr ${TMPFILE}" 0
+   mkdir -p ${TMPFILE}/pretok
+   PRETOK_FILE="${TMPFILE}/pretok/file"
 
-   # TODO: fix the character set switching between Arabic and non Arabic
+   # Character set switching between Arabic and non Arabic
+   # http://www.regular-expressions.info/unicode.html
+   # See Unicode Categories
+   # To match a letter including any diacritics, use \p{L}\p{M}*+.  This last
+   # regex will always match à, regardless of how it is encoded. The possessive
+   # quantifier makes sure that backtracking doesn't cause \P{M}\p{M}*+ to
+   # match a non-mark without the combining marks that follow it, which \X
+   # would never do.
    cat | perl -ple '
       BEGIN {
          binmode( STDIN,  ":encoding(UTF-8)" );
@@ -62,12 +71,12 @@ elif [[ $SOURCE_LANGUAGE = ar ]]; then
 
       s/[\r]?\n$/ /;
       s/^/ /;
-      s/([\p{Arabic}])([^\p{Arabic}])/$1 $2/g;
-      s/([^\p{Arabic}])([\p{Arabic}])/$1 $2/g;
+      s/(\p{Script:Arabic}\p{General_Category:Mark}*+)(\P{Script:Arabic})/$1 $2/g;
+      s/(\P{Script:Arabic})(\p{Script:Arabic}\p{General_Category:Mark}*+)/$1 $2/g;
       s/  +/ /g;
       s/^ //;
       s/ $//;
-   ' > ${TMPFILE}/src
+   ' > ${PRETOK_FILE}
 
    # On balzac we define MADA.
    # On our vm, in our web stack we don't define MADA but we install it under $PORTAGE/bin.
@@ -81,7 +90,7 @@ elif [[ $SOURCE_LANGUAGE = ar ]]; then
    CONFIG="${MADA_HOME}/config-files/template.madaconfig";
    ${MADAX} \
       config=${CONFIG} \
-      file=${TMPFILE}/src \
+      file=${PRETOK_FILE} \
       outputdir=${TMPFILE} \
       TOKAN_SCHEME="SCHEME=ATB4MT MARKNOANALYSIS" \
       2> ${TMPFILE}/log
@@ -101,6 +110,8 @@ elif [[ $SOURCE_LANGUAGE = ar ]]; then
       cat ${TMPFILE}/log >&2
       exit 1
    fi
+
+   unset PRETOK_FILE
 
 
 else
