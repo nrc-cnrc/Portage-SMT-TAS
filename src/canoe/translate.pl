@@ -330,7 +330,7 @@ BEGIN {
 }
 
 use portage_utils;
-printCopyright("translate.pl", 2010);
+printCopyright(2010);
 $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
 use ULexiTools qw(get_tag_re);
@@ -1213,11 +1213,11 @@ sub cleanupAndDie {
    plogUpdate($plog_file, 'failure');
    if ($quiet) {
       # Notify the user via the original STDERR.
-      print SAVE_STDERR "ERROR: ", $message;
+      print SAVE_STDERR "translate.pl fatal error: ", $message;
       print SAVE_STDERR "See '${dir}/log.translate.pl' for details.\n";
    }
    unlink @files;
-   die "ERROR: ", $message;
+   die "translate.pl fatal error: ", $message;
 }
 
 sub verbose { print STDERR "[", @_, "]\n" if $verbose; }
