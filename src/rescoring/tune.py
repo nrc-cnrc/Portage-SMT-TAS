@@ -77,13 +77,15 @@ parser.add_option("-o", dest="configout", type="string", default="canoe.tune",
 parser.add_option("-n", dest="nbsize", type="int", default=100,
                   help="nbest list size [%default]")
 parser.add_option("-p", dest="numpar", type="int", default=30,
-                  help="number of parallel decoding jobs [%default]")
+                  help="number of parallel decoding jobs (-n arg to canoe-parallel.sh) [%default]")
 parser.add_option("-c", dest="numcpus", type="int", default=1,
                   help="number of cpus per decoding job [%default]")
+parser.add_option("--cpopts", dest="cpopts", type="string", default="",
+                  help="additional options for canoe-parallel.sh [%default]")
 parser.add_option("-j", dest="jmem", type="string", default=maxmem(),
                   help="java memory - depends on 'cpus' for tune.py job (eg 16000 for 4) [%default]")
 parser.add_option("-d", dest="decodeopts", type="string", default="",
-                  help="general decoding options [%default]")
+                  help="general canoe decoding options [%default]")
 parser.add_option("-a", dest="optcmd", type="string", default="powell",
                   help="optimizer algorithm and argument string, one of: " + \
                   "powell [switches], " \
@@ -433,13 +435,16 @@ def shardAnnotate(s, iter, shard) :
 def decode(wts):
     """Decode current source file using given weight vector."""
     wts2decoderConfig(wts, "decode-config")
-    cmd = ["set -o pipefail;", "canoe-parallel.sh", "-cleanup", "-psub", "-" + str(opts.numcpus), \
-           "-n", str(opts.numpar), "canoe", hierarchy, "-v", "1", "-f", "decode-config"]
-    outcmd = ["nbest2rescore.pl", "-canoe"]
+    cmd = ["set -o pipefail;", "canoe-parallel.sh", "-cleanup",
+           "-psub", "-" + str(opts.numcpus), "-n", str(opts.numpar)]
+    if opts.cpopts != "":
+        cmd.extend(opts.cpopts.split())
+    cmd.extend(["canoe", hierarchy, "-v", "1", "-f", "decode-config"])
     if opts.sparse: 
        cmd.append("-sfvals")
     else: 
        cmd.append("-ffvals")
+    outcmd = ["nbest2rescore.pl", "-canoe"]
     if alg == "lmira":
        cmd.extend(["-palign", "-lattice", workdir+"/lat.gz"])
        if opts.density > 0 :
