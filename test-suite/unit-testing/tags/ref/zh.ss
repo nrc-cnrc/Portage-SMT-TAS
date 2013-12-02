@@ -46,11 +46,9 @@
 
 
 
-图<open_wrap content="&lt;bpt i=&quot;1&quot;>{\f2 &lt;/bpt>" id="1"/>5<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/>：<open_wrap content="&lt;bpt i=&quot;2&quot;>{\f2 &lt;/bpt>" id="2"/>08-10.
-10<close_wrap content="&lt;ept i=&quot;2&quot;>}&lt;/ept>" id="2"/>灵便型油船新船价格走势 （百万美元）
+图<open_wrap content="&lt;bpt i=&quot;1&quot;>{\f2 &lt;/bpt>" id="1"/>5<close_wrap content="&lt;ept i=&quot;1&quot;>}&lt;/ept>" id="1"/>：<open_wrap content="&lt;bpt i=&quot;2&quot;>{\f2 &lt;/bpt>" id="2"/>08-10.10<close_wrap content="&lt;ept i=&quot;2&quot;>}&lt;/ept>" id="2"/>灵便型油船新船价格走势 （百万美元）
 
-图5：08-10.
-10灵便型油船新船价格走势 （百万美元）
+图5：08-10.10灵便型油船新船价格走势 （百万美元）
 
 
 

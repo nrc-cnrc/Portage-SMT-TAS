@@ -103,12 +103,9 @@ elif [[ "$SOURCE_LANGUAGE" == "ar" ]]; then
    fi
 
 
-elif [ "$SOURCE_LANGUAGE" == "fr" -o "$SOURCE_LANGUAGE" == "en" -o "$SOURCE_LANGUAGE" == "es" ]; then
-   echo "Language $SOURCE_LANGUAGE is supported by utokenize.pl, don't use the plugin" >&2
-   exit 1
-
 else
    echo "Unsupported language: $SOURCE_LANGUAGE" >&2
+   echo "tokenize_plugin fatal error: Unsupported language: $SOURCE_LANGUAGE; use utokenize.pl for languages it supports, or modify this plugin to call a third-party tokenizer." >&2
    exit 1
 
 fi
