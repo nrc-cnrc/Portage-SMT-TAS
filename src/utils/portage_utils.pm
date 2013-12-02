@@ -48,8 +48,10 @@ B< =============================================
 
 =item B<SYNOPSIS>
 
+ printCopyright(START_YEAR);
  printCopyright("PROGRAM_NAME", START_YEAR);
 
+ PROGRAM_NAME is the basename of the $0 if left unspecified.
  START_YEAR should be the first year of Copyright for PROGRAM_NAME;
  the Crown Copyright will be asserted for START_YEAR to latest release year.
  
@@ -59,9 +61,15 @@ B< =============================================
 
 my $current_year = 2013;
 
-sub printCopyright($$) {
+sub printCopyright($;$) {
    if ( !$ENV{PORTAGE_INTERNAL_CALL} ) {
-      my $name = shift;
+      my $name;
+      if (@_ == 2) {
+         $name = shift;
+      } else {
+         $name = $0;
+         $name =~ s/.*\///;
+      }
       my $year = shift;
       print STDERR
          "\n$name, NRC-CNRC, (c) $year",
