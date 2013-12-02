@@ -18,15 +18,15 @@ make gitignore
 
 STRIP_ENTITY="perl -MULexiTools -ple 'strip_xml_entities(\$_)'"
 
-tok-with-tags-split.pl xtags xtags.text_only xtags.tags
-utokenize.pl -noss -lang=en < xtags.text_only > xtags.text_tok
-tok-with-tags-combine.pl xtags.text_tok xtags.tags xtags.out
+make -B xtags.tok
+make -B xtags.baseline.tok
 
-utokenize.pl -noss -lang=en -xtags < xtags > xtags.baseline.tok
-
-$STRIP_ENTITY < xtags.out > xtags.strip
+$STRIP_ENTITY < xtags.tok > xtags.strip
 $STRIP_ENTITY < xtags.baseline.tok > xtags.baseline.strip
 # gvimdiff xtags.baseline.strip xtags.strip
+
+make -B xtags.baseline.ss.cmp
+
 
 if which-test.sh chinese_segmenter.pl; then
    ZH_SEG=chinese_segmenter.pl
@@ -38,21 +38,24 @@ else
    exit 1
 fi
 
-tok-with-tags-split.pl zh zh.text_only zh.tags
-$ZH_SEG < zh.text_only > zh.text_tok
-tok-with-tags-combine.pl zh.text_tok zh.tags zh.out
+make -B zh.tok ZH_SEG="$ZH_SEG"
 
 #utokenize.pl -noss -lang=en -xtags < zh > zh.baseline.tok
 
-$STRIP_ENTITY < zh.out > zh.strip
+$STRIP_ENTITY < zh.tok > zh.strip
 
 $STRIP_ENTITY < zh > zh-notags
 $ZH_SEG < zh-notags > zh-notags.tok
 # gvimdiff zh-notags.tok zh.strip
 
+make -B zh.ss
+
+make errors
+
+set +o verbose
 for x in ref/*; do
-   echo "diff $x `basename $x`"
-   diff $x `basename $x`
+   echo "diff $x `basename $x` -q"
+   diff $x `basename $x` -q
 done
 
 echo All tests PASSED.

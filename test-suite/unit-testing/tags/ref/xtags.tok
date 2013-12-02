@@ -21,3 +21,5 @@ E <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf subscript=&quot;on&quot
 E <open_wrap content="&lt;bpt i=&quot;1&quot;>&amp;lt;cf subscript=&quot;on&quot;>&lt;/bpt>" id="1"/>s<close_wrap content="&lt;ept i=&quot;1&quot;>&amp;lt;/cf>&lt;/ept>" id="2"/> = a x 234/ZZ <open_wrap content="&lt;bpt i=&quot;2&quot;>&amp;lt;cf subscript=&quot;on&quot;>&lt;/bpt>" id="2"/>s<close_wrap content="&lt;ept i=&quot;2&quot;>&amp;lt;/cf>&lt;/ept>" id="1"/>
 
 ( <g id="3">test</g> )
+
+Let 's give a shot at sentence splitting <tag_wrap content="crap with a period. That should not cause a sent split"> but here is a real sentence split . With a second sentence .

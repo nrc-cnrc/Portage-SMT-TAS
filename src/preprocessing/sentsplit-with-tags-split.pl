@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
-# @file tok-with-tags-split.pl
-# @brief Tokenize text with an external tokenizer, while handling tags (part 1)
+# @file sentsplit-with-tags-split.pl
+# @brief Sent split text with an external sentence splitter, while handling tags (part 1)
 #
 # @author Eric Joanis
 #
@@ -26,9 +26,10 @@ use portage_utils;
 printCopyright(2013);
 $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
-use ULexiTools;
+use ULexiTools qw/get_tag_re/;
 my $tag_re = get_tag_re();
-setTokenizationLang("en"); # for tokenizing tags themselves, not real text
+
+my $tag_placeholder = "__PORTAGE_XTAG_PLACEHOLDER__";
 
 sub usage {
    local $, = "\n";
@@ -37,29 +38,28 @@ sub usage {
    print STDERR "
 Usage: $0 INPUT TEXTOUT TAGSOUT
 
-  Handle XML tags in tokenizing languages not supported by utokenize.pl, or
-  when using an alternative tokenizer.
+  Handle XML tags in splitting sentences for languages not supported by
+  utokenize.pl, or when using an alternative sentence splitter.
 
-  tok-with-tags-split.pl takes the input text with its tags and splits it in
-  two streams for separate tokenization:
-   - The tag stream is tokenized internally using ULexiTools directly, with the
-     results saved in TAGSOUT.  By tokenizing the tag stream, we mean adding
-     spaces before or after tags, as required depending on the sequence of
-     tags, and which ones are open, close or stand-alone tags.
-   - The text stream contains the text between tags and is saved to TEXTOUT.
+  sentsplit-with-tags-split.pl takes the input text with its tags and splits it
+  in two streams for separate processing:
+   - The text stream has the tags replaces by $tag_placeholder,
+     with the results saved to TEXTOUT.
+   - The tag stream TAGSOUT will have one tag per line, giving the full
+     contents of each tag for reinsertion in the final output.
 
-  You should pipe TEXTOUT through your language-specific tokenizer to produce
-  TEXTTOK, and then call:
-     tok-with-tags-combine.pl TEXTTOK TAGSOUT OUTPUT
-  OUTPUT will then be your tokenized text with tags correctly handled.
+  You should pipe TEXTOUT through your language-specific sentence splitter to
+  produce TEXTSS, and then call:
+     sentsplit-with-tags-combine.pl TEXTSS TAGSOUT OUTPUT
+  OUTPUT will then be your sentence-split text with tags correctly handled.
 
 Arguments:
 
-  INPUT: file to tokenize, with tags mixed in the stream
+  INPUT: file to sentence split, with tags mixed in the stream
 
-  TEXTOUT: output file that will contain only text to tokenize
+  TEXTOUT: output file that will contain only text to sentence split
 
-  TAGSOUT: output file for the tags, with spaces already added where necessary.
+  TAGSOUT: output file for the tags, with one tag per line
 
 Options:
 
@@ -90,30 +90,15 @@ open INPUT, "<$input"  or die "Cannot open input file $input: $!";
 while (<INPUT>) {
    chomp;
    my $tags_to_tok = "";
-   while (/(.*?)( *$tag_re *|$)/go) {
+   while (/(.*?)($tag_re|$)/go) {
       my $text = $1;
       my $tag = $2;
-      if ($text !~ /^ *$/) {
-         ++$text_id;
-         #print "TEXT ID$text_id";
-         $tags_to_tok .= "TEXT ID$text_id";
-         print TEXT $text, "\n";
-      }
+      print TEXT $text;
      last if ($tag eq "");
-      #print $tag;
-      $tags_to_tok .= $tag;
+      print TEXT $tag_placeholder;
+      print TAGS "$tag\n";
    }
-   #print "\n";
-
-   # Call tokenizer methods directly: this code inserts spaces where needed
-   # around the tags.
-   my @token_positions = tokenize($tags_to_tok, 0, 1); # $pretok=0, $xtags=1
-   my $tags_toked = "";
-   for (my $i = 0; $i < $#token_positions; $i += 2) {
-      $tags_toked .= " " if ($i > 0);
-      $tags_toked .= get_collapse_token($tags_to_tok, $i, @token_positions, 0);
-   }
-   print TAGS $tags_toked, "\n";
+   print TEXT "\n";
 }
 close TEXT or die "Error closing text output file $textout: $!";
 close TAGS or die "Error closing tags output file $tagsout: $!";
