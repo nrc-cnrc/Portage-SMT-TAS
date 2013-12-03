@@ -84,6 +84,7 @@ BINSCRIPTS = \
         run-parallel.sh \
         r-parallel-d.pl \
         r-parallel-worker.pl \
+        rp-mon-totals.pl \
         sh_utils.sh \
         stripe.py \
         sum.pl \
