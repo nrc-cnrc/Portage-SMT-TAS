@@ -1047,7 +1047,6 @@ sub tokenize {
          call("${u}tokenize.pl ${tokopt} '${in}' '${out}'", $out);
       } else {
          # Other languages must provide sentsplit_plugin and tokenize_plugin.
-         $xml and $xtags and die "ERROR: xtags only supported for src=en, fr, es, or da";
          my $tok_input = $nl ne 's' ? "$in.ospl" : $in;
          my $ss_output = $tok ? $tok_input : $out;
          if ($nl ne 's') {
@@ -1067,10 +1066,22 @@ sub tokenize {
                close PARA_INPUT;
                close PARA_OUTPUT;
             }
-            plugin("sentsplit", $src, $ss_input, $ss_output);
+            if ($xtags) {
+               call("sentsplit-with-tags-split.pl $ss_input $ss_output-text $ss_output-tags", "$ss_output-text", "$ss_output-tags");
+               plugin("sentsplit", $src, "$ss_output-text", "$ss_output-textss");
+               call("sentsplit-with-tags-combine.pl $ss_output-textss $ss_output-tags $ss_output", $ss_output);
+            } else {
+               plugin("sentsplit", $src, $ss_input, $ss_output);
+            }
          }
          if ($tok) {
-            plugin("tokenize", $src, $tok_input, $out);
+            if ($xtags) {
+               call("tok-with-tags-split.pl $tok_input $out-text $out-tags", "$out-text", "$out-tags");
+               plugin("tokenize", $src, "$out-text", "$out-texttok");
+               call("tok-with-tags-combine.pl $out-texttok $out-tags $out", $out);
+            } else {
+               plugin("tokenize", $src, $tok_input, $out);
+            }
          }
       }
    }

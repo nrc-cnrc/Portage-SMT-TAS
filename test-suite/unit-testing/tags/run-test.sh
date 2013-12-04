@@ -50,12 +50,15 @@ $ZH_SEG < zh-notags > zh-notags.tok
 
 make -B zh.ss
 
-make errors
-
 set +o verbose
 for x in ref/*; do
    echo "diff $x `basename $x` -q"
    diff $x `basename $x` -q
 done
+set -o verbose
+
+make errors
+
+make trx.diff
 
 echo All tests PASSED.

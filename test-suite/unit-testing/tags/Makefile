@@ -10,7 +10,9 @@
 # Copyright 2013, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2013, Her Majesty in Right of Canada
 
-TEMP_FILES=zh.* xtags.* zh-notags*
+TEMP_FILES=zh.* xtags.* zh-notags* trx.baseline \
+           en2fr/canoe.ini.* en2fr/models en2fr/soap-translate.sh
+TEMP_DIRS=workdir-xtags
 include ../Makefile.incl
 
 SHELL=/bin/bash
@@ -63,3 +65,20 @@ errors.ss: xtags.ss
 	! sentsplit-with-tags-combine.pl <(head xtags.ss-text.ss) xtags.ss-tags /dev/null
 
 
+translate_setup:
+	ln -fs $$PORTAGE/test-suite/systems/toy-regress-en2fr/{canoe.ini.cow,models,soap-translate.sh} en2fr/
+	cd en2fr && configtool args:"-stack 2000" canoe.ini.cow  > canoe.ini.fast
+
+trx: translate_setup xtags
+	${RM} -r workdir-xtags
+	mkdir workdir-xtags
+	en2fr/soap-translate.sh -src=xy -v -decode-only -dir=workdir-xtags \
+	   -xtags -nl=p xtags -f en2fr/canoe.ini.fast \
+	   > workdir-xtags/out
+
+trx.diff: trx
+	diff workdir-xtags/Q.pre.ospl en2fr/ref
+	diff workdir-xtags/Q.tok.tags en2fr/ref
+
+trx.baseline: xtags
+	utokenize.pl -ss -paraline -lang=en -xtags < $< | sed 's/ $$//' > $@
