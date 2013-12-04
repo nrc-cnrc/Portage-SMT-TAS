@@ -11,8 +11,9 @@
 # Copyright 2013, Her Majesty in Right of Canada
 
 TEMP_FILES=zh.* xtags.* zh-notags* trx.baseline \
-           en2fr/canoe.ini.* en2fr/models en2fr/soap-translate.sh
-TEMP_DIRS=workdir-xtags
+           en2fr/canoe.ini.* en2fr/models en2fr/soap-translate.sh \
+           ch2en/canoe.ini.* ch2en/models ch2en/soap-translate.sh
+TEMP_DIRS=workdir-xtags workdir-zh
 include ../Makefile.incl
 
 SHELL=/bin/bash
@@ -65,16 +66,17 @@ errors.ss: xtags.ss
 	! sentsplit-with-tags-combine.pl <(head xtags.ss-text.ss) xtags.ss-tags /dev/null
 
 
-translate_setup:
+trx_setup:
 	ln -fs $$PORTAGE/test-suite/systems/toy-regress-en2fr/{canoe.ini.cow,models,soap-translate.sh} en2fr/
 	cd en2fr && configtool args:"-stack 2000" canoe.ini.cow  > canoe.ini.fast
+	configtool prime_full en2fr/canoe.ini.fast
 
-trx: translate_setup xtags
+trx: trx_setup xtags
 	${RM} -r workdir-xtags
 	mkdir workdir-xtags
 	en2fr/soap-translate.sh -src=xy -v -decode-only -dir=workdir-xtags \
-	   -xtags -nl=p xtags -f en2fr/canoe.ini.fast \
-	   > workdir-xtags/out
+	   -xtags -nl=p -f en2fr/canoe.ini.fast \
+	   xtags > workdir-xtags/out
 
 trx.diff: trx
 	diff workdir-xtags/Q.pre.ospl en2fr/ref
@@ -82,3 +84,19 @@ trx.diff: trx
 
 trx.baseline: xtags
 	utokenize.pl -ss -paraline -lang=en -xtags < $< | sed 's/ $$//' > $@
+
+trzh_setup:
+	ln -fs $$PORTAGE/test-suite/systems/toy-regress-ch2en/{canoe.ini.cow,models,soap-translate.sh} ch2en/
+	cd ch2en && configtool args:"-stack 2000" canoe.ini.cow  > canoe.ini.fast
+	configtool prime_full ch2en/canoe.ini.fast
+
+trzh: trzh_setup zh
+	${RM} -r workdir-zh
+	mkdir workdir-zh
+	ch2en/soap-translate.sh -v -decode-only -dir=workdir-zh \
+	   -xtags -nl=p -f ch2en/canoe.ini.fast \
+	   zh > workdir-zh/out
+
+trzh.diff: trzh
+	diff workdir-zh/Q.pre.ospl ch2en/ref
+	diff workdir-zh/Q.tok.tags ch2en/ref

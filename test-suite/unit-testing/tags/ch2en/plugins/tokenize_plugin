@@ -1,0 +1,4 @@
+#!/bin/bash
+
+SEGPATH=`readlink -f ../../../third-party/chinese-segmentation`
+exec $SEGPATH/chinese_segmenter.pl -dic $SEGPATH/manseg.fre

@@ -58,7 +58,7 @@ done
 set -o verbose
 
 make errors
-
 make trx.diff
+make trzh.diff
 
 echo All tests PASSED.
