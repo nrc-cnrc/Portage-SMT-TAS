@@ -36,8 +36,9 @@ CLUSTER ?= parallelize.pl psub r-parallel-d.pl r-parallel-worker.pl run-parallel
 DECODE_BIN ?= canoe
 DECODE_SCRIPTS ?= canoe-escapes.pl canoe-parallel.sh sh_utils.sh
 # NOTE: DO NOT add detokenize_plugin script to the BINSCRIPTS variable since
-# it exists only to illustrate what a detokenie_plugin could look like.
+# it exists only to illustrate what a detokenize_plugin could look like.
 TRANSLATE ?= postdecode_plugin postprocess_plugin predecode_plugin preprocess_plugin sentsplit_plugin tokenize_plugin \
+             sentsplit-with-tags-combine.pl sentsplit-with-tags-split.pl tok-with-tags-combine.pl tok-with-tags-split.pl \
              translate.pl ridbom.sh crlf2lf.sh fix-en-fr-numbers.pl
 OTHER_BIN ?= utf8_filter utf8_casemap configtool portage_info normc1 markup_canoe_output
 RESCORE_BIN ?= feature_function_tool gen_feature_values rescore_translate
