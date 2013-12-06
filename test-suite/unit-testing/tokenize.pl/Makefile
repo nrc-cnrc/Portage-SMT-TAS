@@ -14,7 +14,7 @@
 # Copyright 2008, Her Majesty in Right of Canada
 
 
-.PHONY: all french-hyphens dots ch-punc
+.PHONY: all french-hyphens dots ch-punc newline
 .SECONDARY:
 export PORTAGE_INTERNAL_CALL=1
 UTOKENIZE := utokenize.pl
@@ -43,7 +43,7 @@ ch-punc: $(addprefix compare.chinese-punc.detok., 000 001 010 011 100 101 110 11
 en-prices: compare.eng-prices.detok compare.eng-prices.detok.utf8
 
 TEMP_FILES=accent.* hyphens.* periods.* chinese-punc.* eng-prices.* \
-           es.* da.* xtags.* smart-apos.* \
+           es.* da.* xtags.* smart-apos.* paragraph.* \
            brackets.utf8.detok-?? \
            with_tags.in with_tags.out
 include ../Makefile.incl
@@ -325,4 +325,34 @@ with_tags.out:  SHELL = bash
 with_tags.out:  with_tags.in
 	utokenize.pl -lang=en -noss -xtags $< $@ 2>&1 \
 	| { ! egrep 'Use of uninitialized value in addition'; }
+
+
+################################################################################
+# Handling all the newline semantic variants
+test: newline
+newline: $(foreach s,ss noss,$(foreach p,w wp p pp,compare.paragraph.$s-$p))
+
+paragraph.ss-w: paragraph
+	utokenize.pl -lang=en -ss < $< > $@
+
+paragraph.ss-wp: paragraph
+	utokenize.pl -lang=en -ss -p < $< > $@
+
+paragraph.ss-p: paragraph
+	utokenize.pl -lang=en -ss -paraline < $< > $@
+
+paragraph.ss-pp: paragraph
+	utokenize.pl -lang=en -ss -paraline -p < $< > $@
+
+paragraph.noss-w: paragraph
+	utokenize.pl -lang=en -noss < $< > $@
+
+paragraph.noss-wp: paragraph
+	! utokenize.pl -lang=en -noss -p < $< > $@
+
+paragraph.noss-p: paragraph
+	! utokenize.pl -lang=en -noss -paraline < $< > $@
+
+paragraph.noss-pp: paragraph
+	! utokenize.pl -lang=en -noss -paraline -p < $< > $@
 
