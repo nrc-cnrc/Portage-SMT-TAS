@@ -702,6 +702,7 @@ unless ($dryrun) {
       ".pal = phrase alignments from the decoder used with truecasing\n",
       ".raw = raw decoder output (with trace) for -with-ce and truecasing\n",
       ".dtk = detokenized translation\n",
+      ".oppl = detokenized translation returned to one-paragraph per line\n",
       "pr.ce = confidence estimation\n",
       "\n",
       "Final translation output is in P.txt\n",
@@ -739,6 +740,7 @@ my $P_tok = "${dir}/P.tok";     # Truecased tokenized translation
 my $P_tok_tags = "${dir}/P.tok.tags";     # Truecased tokenized translation with tags
 # --> detokenization
 my $P_dtk = "${dir}/P.dtk";     # Truecased detokenized translation
+my $P_oppl = "${dir}/P.oppl";   # Truecased, detok'd, oppl'd translation
 # --> postprocessor plugin
 my $P_txt = "${dir}/P.txt";     # translation
 
@@ -874,8 +876,18 @@ POST:{
          $in = $P_ee;
       }
    }
+
    detokenize($tgt, $in, $P_dtk);
-   plugin("postprocess", $tgt, $P_dtk, $P_txt);
+
+   # Reconstruct paragraphs if necessary.
+   if ($nl eq "p") {
+      deparaline($P_dtk, $P_oppl);
+      $in = $P_oppl;
+   } else {
+      $in = $P_dtk;
+   }
+
+   plugin("postprocess", $tgt, $in, $P_txt);
 }
 
 # Predict CE
@@ -1038,9 +1050,11 @@ sub tokenize {
       if ($lang eq "en" or $lang eq "fr" or $lang eq "es" or $lang eq "da") {
          # These languages are supported by utokenize.pl
          my $tokopt = " -lang=${lang}";
-         $tokopt .= $nl eq 's' ? " -noss" : " -ss";
-         $tokopt .= " -paraline -p" if $nl eq 'p';
-         $tokopt .= " -p" if $nl eq 'w';
+         for ($nl) {
+            $_ eq "s" and $tokopt .= " -noss";
+            $_ eq "w" and $tokopt .= " -ss -p";
+            $_ eq "p" and $tokopt .= " -ss -paraline -p";
+         }
          $tokopt .= " -pretok" if !$tok;
          $tokopt .= " -xtags" if $xtags;
          my $u = $utf8 ? "u" : "";
@@ -1144,15 +1158,40 @@ sub detokenize {
       $ENV{PATH} = $old_path;
       chomp($cmd);
       if ( $cmd ) {
-         plugin("detokenize", $tgt, $P_tok, $P_dtk);
+         plugin("detokenize", $tgt, $in, $out);
       }
       else {
-         my $options = "";
-         $options = " -deparaline" if ($nl eq "p");
          my $u = $utf8 ? "u" : "";
-         call("${u}detokenize.pl -lang=${lang} $options < '${in}' > '${out}'", $out);
+         call("${u}detokenize.pl -lang=${lang} < '${in}' > '${out}'", $out);
       }
    }
+}
+
+sub deparaline {
+   my ($in, $out) = @_;
+   verbose("Rebuilding paragraphs from OSPL file $in into OPPL file $out");
+   open IN, $in or cleanupAndDie("Can't open $in for reading: $!");
+   open OUT, ">$out" or cleanupAndDie("Can't open $out for writing: $!", $out);
+
+   PARA: while (1) {
+      $_ = <IN>;
+      last if !defined $_;
+      chomp;
+      print OUT;
+      SENT: while (1) {
+         $_ = <IN>;
+         if (!defined $_) {
+            print OUT "\n";
+            last PARA;
+         }
+         chomp;
+         last SENT if /^\s*$/;
+         print OUT " ", $_;
+      }
+      print OUT "\n";
+   }
+   close IN;
+   close OUT;
 }
 
 sub lowercase {

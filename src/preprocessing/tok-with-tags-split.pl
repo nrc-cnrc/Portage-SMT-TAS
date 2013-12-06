@@ -99,7 +99,7 @@ while (<INPUT>) {
          $tags_to_tok .= "TEXT ID$text_id";
          print TEXT $text, "\n";
       }
-     last if ($tag eq "");
+    last if ($tag eq "");
       #print $tag;
       $tags_to_tok .= $tag;
    }

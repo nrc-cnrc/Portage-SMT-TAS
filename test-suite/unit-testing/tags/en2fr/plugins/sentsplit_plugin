@@ -1,3 +1,3 @@
 #!/bin/bash
 
-exec utokenize.pl -lang=en -notok -paraline -ss
+exec utokenize.pl -lang=en -notok -paraline -p -ss

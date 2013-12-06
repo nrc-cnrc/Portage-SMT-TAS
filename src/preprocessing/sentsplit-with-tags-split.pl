@@ -43,10 +43,10 @@ Usage: $0 INPUT TEXTOUT TAGSOUT
 
   sentsplit-with-tags-split.pl takes the input text with its tags and splits it
   in two streams for separate processing:
-   - The text stream has the tags replaces by $tag_placeholder,
+   - The text stream has the tags replaced by $tag_placeholder,
      with the results saved to TEXTOUT.
    - The tag stream TAGSOUT will have one tag per line, giving the full
-     contents of each tag for reinsertion in the final output.
+     content of each tag for reinsertion in the final output.
 
   You should pipe TEXTOUT through your language-specific sentence splitter to
   produce TEXTSS, and then call:
@@ -94,7 +94,7 @@ while (<INPUT>) {
       my $text = $1;
       my $tag = $2;
       print TEXT $text;
-     last if ($tag eq "");
+    last if ($tag eq "");
       print TEXT $tag_placeholder;
       print TAGS "$tag\n";
    }
