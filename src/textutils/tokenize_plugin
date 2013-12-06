@@ -49,6 +49,7 @@ if [[ $SOURCE_LANGUAGE = ch || $SOURCE_LANGUAGE = zh ]]; then
 
 elif [[ $SOURCE_LANGUAGE = ar ]]; then
    export PATH=`dirname $0`:$PATH
+   set -o pipefail
 
    TMPFILE=`mktemp -d /tmp/ar_tokenization.XXXXXXXXXX` || exit 1
    [[ -n "$DEBUG_TOKENIZE_PLUGIN" ]] || trap "rm -fr ${TMPFILE}" 0
@@ -71,12 +72,17 @@ elif [[ $SOURCE_LANGUAGE = ar ]]; then
 
       s/[\r]?\n$/ /;
       s/^/ /;
-      s/(\p{Script:Arabic}\p{General_Category:Mark}*+)(\P{Script:Arabic})/$1 $2/g;
-      s/(\P{Script:Arabic})(\p{Script:Arabic}\p{General_Category:Mark}*+)/$1 $2/g;
+      s/(\p{Script:Arabic}\p{General_Category:Mark}*)([^\p{Script:Arabic}\p{General_Category:Mark}])/$1 $2/g;
+      s/([^\p{Script:Arabic}\p{General_Category:Mark}])(\p{Script:Arabic}\p{General_Category:Mark}*)/$1 $2/g;
       s/  +/ /g;
       s/^ //;
       s/ $//;
    ' > ${PRETOK_FILE}
+   rc=$?
+   if [ "$rc" != "0" ]; then
+      echo "ERROR: with perl (tokenize_plugin)" >&2
+      exit 1
+   fi
 
    # On balzac we define MADA.
    # On our vm, in our web stack we don't define MADA but we install it under $PORTAGE/bin.
@@ -95,7 +101,7 @@ elif [[ $SOURCE_LANGUAGE = ar ]]; then
       TOKAN_SCHEME="SCHEME=ATB4MT MARKNOANALYSIS" \
       2> ${TMPFILE}/log
    rc=$?
-   if [ "$rc" != "0" -o ! -e "${TMPFILE}/src.bw.mada.tok" ]; then
+   if [ "$rc" != "0" -o ! -e "${TMPFILE}/file.bw.mada.tok" ]; then
       echo "ERROR: with MADA (tokenize_plugin)" >&2
       cat ${TMPFILE}/log >&2
       exit 1
@@ -103,7 +109,7 @@ elif [[ $SOURCE_LANGUAGE = ar ]]; then
 
 
    export PORTAGE_INTERNAL_CALL=1
-   parse_tokan.pl 6 1 < ${TMPFILE}/src.bw.mada.tok
+   parse_tokan.pl 6 1 < ${TMPFILE}/file.bw.mada.tok
    rc=$?
    if [[ "$rc" != 0 ]]; then
       echo "ERROR: with parse_tokan.pl (tokenize_plugin)" >&2
