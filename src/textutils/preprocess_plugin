@@ -19,12 +19,12 @@
 ## Default preprocessing plugin, to be called prior to tokenization
 ##
 
-if [ "$1" == "-help" -o "$1" == "-h" ]; then
+if [[ $1 = -help || $1 = -h ]]; then
     cat $0 | grep "^##" | cut -c4-
     exit 1
 fi
 
-test $# -eq 0 && echo "Missing language code argument" >&2 && exit 1
+[[ $# = 0 ]] && echo "Missing language code argument" >&2 && exit 1
 SOURCE_LANGUAGE=$1; shift
 
 # The following does minimalist preprocessing: remove the UTF8 bit-order mark,
