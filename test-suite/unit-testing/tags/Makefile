@@ -10,7 +10,7 @@
 # Copyright 2013, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2013, Her Majesty in Right of Canada
 
-TEMP_FILES=zh.* xtags.* zh-notags* trx.baseline \
+TEMP_FILES=zh.* xtags.* zh-notags* trx.baseline arabic.ss \
            en2fr/canoe.ini.* en2fr/models en2fr/soap-translate.sh \
            ch2en/canoe.ini.* ch2en/models ch2en/soap-translate.sh
 TEMP_DIRS=workdir-xtags workdir-zh
@@ -79,8 +79,8 @@ trx: trx_setup xtags
 	   xtags > workdir-xtags/out
 
 trx.diff: trx
-	diff workdir-xtags/Q.pre.ospl en2fr/ref
-	diff workdir-xtags/Q.tok.tags en2fr/ref
+	diff workdir-xtags/Q.pre.ospl ref/en2fr
+	diff workdir-xtags/Q.tok.tags ref/en2fr
 
 trx.baseline: xtags
 	utokenize.pl -ss -paraline -lang=en -xtags < $< | sed 's/ $$//' > $@
@@ -98,5 +98,15 @@ trzh: trzh_setup zh
 	   zh > workdir-zh/out
 
 trzh.diff: trzh
-	diff workdir-zh/Q.pre.ospl ch2en/ref
-	diff workdir-zh/Q.tok.tags ch2en/ref
+	diff workdir-zh/Q.pre.ospl ref/ch2en
+	diff workdir-zh/Q.tok.tags ref/ch2en
+
+
+# Minimal test of Arabic sentence splitting
+all: arabic.ss.diff
+
+arabic.ss: arabic
+	sentsplit_plugin ar < $< > $@
+
+arabic.ss.diff: arabic.ss
+	diff $< ref/ -q
