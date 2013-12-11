@@ -62,32 +62,35 @@ while [ $# -gt 0 ]; do
 done
 [[ $# -gt 0 ]] && usage "Superfluous argument(s) $*"
 
+ROOT_DIR="rpm.build.root"
+HTML_DIR="${ROOT_DIR}/var/www/html"
+
 # Set to the IP address if it is going to fixed, leave blank for a machine
 # using DHCP or a VM.
 if [[ $FIXED_IP ]]; then
-   SOAP_DEST=rpm.build.root/var/www/html
+   SOAP_DEST=${HTML_DIR}
 else
-   SOAP_DEST=rpm.build.root/opt/PortageII/www
+   SOAP_DEST=${ROOT_DIR}/opt/PortageII/www
 fi
 
 # Create directory structure
-mkdir -p rpm.build.root/var/www/html/plive   # working directory
-mkdir -p rpm.build.root/var/www/html/images  # to hold all images
-mkdir -p rpm.build.root/var/www/html/secure  # to hold all images
-mkdir -p rpm.build.root/var/www/cgi-bin      # cgi scripts
+mkdir -p ${HTML_DIR}/plive   # working directory
+mkdir -p ${HTML_DIR}/images  # to hold all images
+mkdir -p ${HTML_DIR}/secure  # to hold all images
+mkdir -p ${ROOT_DIR}/var/www/cgi-bin      # cgi scripts
 mkdir -p $SOAP_DEST/secure                   # directory for SOAP stuff
 
 # Copy the CGI scripts
-cp cgi/*.cgi rpm.build.root/var/www/cgi-bin
+cp cgi/*.cgi ${ROOT_DIR}/var/www/cgi-bin
 
 # Copy the images needed by the CGI scripts
-cp images/*.gif images/*.jpg rpm.build.root/var/www/html/images
+cp images/*.gif images/*.jpg ${HTML_DIR}/images
 
 # Copy the icon needed by the CGI scripts
-cp images/*.ico rpm.build.root/var/www/html
+cp images/*.ico ${HTML_DIR}
 
-ln -s ../images rpm.build.root/var/www/html/secure/
-ln -s ../favicon.ico rpm.build.root/var/www/html/secure/
+ln -s ../images ${HTML_DIR}/secure/
+ln -s ../favicon.ico ${HTML_DIR}/secure/
 
 # Copy the php and SOAP files
 cp soap/{index.html,PortageLiveAPI.*,wsdl-viewer.xsl,test.php,soap.php} $SOAP_DEST
@@ -114,8 +117,11 @@ for wsdl in `find $SOAP_DEST -name PortageLiveAPI.wsdl`; do
 done
 
 # Set proper permissions on the directory and file structure
-find rpm.build.root -type d | xargs chmod 755
-find rpm.build.root -type f | xargs chmod 644
+find ${ROOT_DIR} -type d | xargs chmod 755
+find ${ROOT_DIR} -type f | xargs chmod 644
 find -name \*.cgi | xargs chmod o+x
-chmod o+w rpm.build.root/var/www/html/plive
+chmod o+w ${HTML_DIR}/plive
+
+# Create a tarball of portagelive's www.
+cd ${ROOT_DIR} && tar zchvf ../portagelive.www.tgz * && cd ..
 
