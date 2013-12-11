@@ -1,6 +1,6 @@
 #!/bin/bash
 # vim:noet:ts=3:nowrap
-# $Id$
+
 # @file prep-file-layoyt.sh
 # @brief Fetch trained PortageII models and create the proper layout for
 #        portageLive.
@@ -90,7 +90,7 @@ fi
 $CP_CMD $SOURCE/models/portageLive/* $DESTINATION/
 
 # Let's add a md5sum since building a rpm for the models is error prone.
-pushd rpm.build.root/opt/PortageII/models/$CONTEXT && find -type f | egrep -v md5 | xargs md5sum > md5 && popd
+pushd ${DESTINATION} && find -type f | egrep -v md5 | xargs md5sum > md5 && popd
 
 # Set proper permissions on the directory and file structure
 find rpm.build.root -type d | xargs chmod 755
