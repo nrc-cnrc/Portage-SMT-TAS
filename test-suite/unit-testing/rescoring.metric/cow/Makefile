@@ -13,8 +13,7 @@ help:
 	@cat $(firstword $(MAKEFILE_LIST)) | egrep '^.PHONY:' | sed 's#^.PHONY: ##'
 
 
-TEMP_FILES=canoe.ini.cow.* log.cow.* rescore-results.* \
-           rescore-results run-parallel-logs-local
+TEMP_FILES=canoe.ini.cow.* log.cow.* rescore-results* run-parallel-logs-*
 TEMP_DIRS=foos.* run-p.*
 include ../../Makefile.incl
 
