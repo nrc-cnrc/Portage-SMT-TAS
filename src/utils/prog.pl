@@ -8,8 +8,8 @@
 # Technologies langagieres interactives / Interactive Language Technologies
 # Tech. de l'information et des communications / Information and Communications Tech.
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2013, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2013, Her Majesty in Right of Canada
+# Copyright 2014, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2014, Her Majesty in Right of Canada
 
 use strict;
 use warnings;
@@ -24,7 +24,7 @@ BEGIN {
    }
 }
 use portage_utils;
-printCopyright 2013;
+printCopyright 2014;
 $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
 
