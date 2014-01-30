@@ -179,8 +179,6 @@ error_exit() {
    exit 1
 }
 
-MY_HOST=`hostname`
-
 # Return 1 (false) if we're running a PBS job, and therefore are on a compute
 # node, 0 (true) otherwise, in which case we assume we're on a head/login node.
 on_head_node()
@@ -546,6 +544,8 @@ elif [[ $NUM = 0 ]]; then
 fi
 
 if [[ $CLUSTER ]]; then
+   MY_HOST=`hostname`
+
    if [[ $PSUBOPTS =~ '.*(^| )-([0-9]+)($| )' ]]; then
       NCPUS=${BASH_REMATCH[2]}
       test -n $DEBUG && echo Requested $NCPUS CPUs per worker >&2
@@ -737,6 +737,7 @@ else
    # Not running on a cluster
    NOLOCAL=
    FIRST_PSUB=$NUM
+   MY_HOST=localhost
 fi
 
 if [[ $UNIT_TEST ]]; then
