@@ -162,10 +162,9 @@ Mandatory dependencies for all distributions:
  - Standard utilities: awk, bash (3.0 or more recent), bzip2, (e)grep, gzip,
    head, sed, sort, tail, tar, etc.
 
- - Perl 5.8.8 or more recent.  Version 5.8.5 is mostly usable, but some
-   functionality involving XML files (in particular, TMX files) will not work
-   with 5.8.5.  If you install Perl in a non-standard location, make sure it
-   comes first on your PATH, or add its bin directory to EXTRA_PROGRAM_PATH in
+ - Perl 5.10 or more recent. Older versions do not handle UTF-8 data correctly.
+   If you install Perl in a non-standard location, make sure it comes first on
+   your PATH, or add its bin directory to EXTRA_PROGRAM_PATH in
    SETUP.bash/tcsh.
 
  - GNU make 3.81 or more recent - when compiling PortageII and when running the
