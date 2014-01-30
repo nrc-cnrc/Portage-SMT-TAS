@@ -66,6 +66,7 @@ elif [[ $SOURCE_LANGUAGE = ar ]]; then
    # would never do.
    cat | perl -ple '
       BEGIN {
+         use 5.10.0;
          binmode( STDIN,  ":encoding(UTF-8)" );
          binmode( STDOUT, ":encoding(UTF-8)" );
       };
