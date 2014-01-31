@@ -16,7 +16,7 @@ SHELL = bash
 run-parallel.sh ?= run-parallel.sh
 #run-parallel.sh = ../../../src/iit_shared_utils/run-parallel.sh
 
-FILTER_ERR = 'print $$_ if /^={10}.+={10}$$/ || /^<output.*>$$/ || /^<error.*>$$/ ;'
+FILTER_ERR = 'print $$_ if (/^={10}.+={10}$$/ && !/mon.worker/) || /^<output.*>$$/ || /^<error.*>$$/ ;'
 PRINT_XX = -e 'print \"<outputXX>\n\";' -e 'print STDERR \"<errorXX>\n\"'
 
 .PHONY: all clean
@@ -25,14 +25,14 @@ all: dash_c dash_c+dash_v dash_e
 
 dash_c:
 	run-parallel.sh -nocluster -c "perl $(subst XX,,${PRINT_XX})" 1>out 2>err
-	diff -q out <(echo "<output>")
-	cat err | perl -ne ${FILTER_ERR} | diff -q - <(echo "<error>")
+	diff out <(echo "<output>") -q
+	cat err | perl -ne ${FILTER_ERR} | diff - <(echo "<error>") -q
 	${RM} out err
 
 dash_c+dash_v:
 	run-parallel.sh -nocluster -v -c "perl $(subst XX,,${PRINT_XX})" 1>out 2>err
-	diff -q out <(echo "<output>")
-	cat err | perl -ne ${FILTER_ERR} | diff -q - ref.err-cv
+	diff out <(echo "<output>") -q
+	cat err | perl -ne ${FILTER_ERR} | diff - ref.err-cv -q
 	${RM} out err
 
 dash_e:
@@ -40,8 +40,8 @@ dash_e:
 		-e "sleep 1; perl $(subst XX,0,${PRINT_XX})" \
 		-e "perl $(subst XX,1,${PRINT_XX})" \
 		2 1>out 2>err
-	cat err | perl -ne ${FILTER_ERR} | diff -q - ref.err-e || \
-	cat err | perl -ne ${FILTER_ERR} | diff -q - ref.err-e.alt
+	cat err | perl -ne ${FILTER_ERR} | diff - ref.err-e -q || \
+	cat err | perl -ne ${FILTER_ERR} | diff - ref.err-e.alt -q
 	${RM} out err
 
 TEMP_FILES=out err
