@@ -689,18 +689,14 @@ def optimizeLMIRA(iter, wts, args, logfile):
     seed = "1"
     if(opts.seed>0): seed = str(opts.seed * 10000 + iter)
     args_vals = args.split()
-    if len(args_vals) > 0: C = args_vals[0]
-    if len(args_vals) > 1: decay = args_vals[1]
-    if len(args_vals) > 2: bg = args_vals[2]
-    if len(args_vals) > 3: density = args_vals[3]
-    if len(args_vals) > 4: numIt = args_vals[4]
-    if len(args_vals) > 5: faux = args_vals[5]
-    if len(args_vals) > 6: rlen = args_vals[6]
-    if len(args_vals) > 7:
-       print >> logfile, "warning: ignoring values past first 5 tokens in " + args
     refglob = ','.join(refs)
-    cmd = ["time-mem", jav, opts.jmem, "-enableassertions", "-jar", jar, "MiraTrainLattice", optimizer_in, \
-           workdir, refglob, src, hypmem, C, decay, bg, density, numIt, str(opts.bleuOrder), faux, rlen, seed]
+    cmd = ["time-mem", jav, opts.jmem, "-enableassertions", "-cp", jar, "ca.nrc.iit.cherryc.SMT.SMTMiraLatticeTrain", \
+           "--modelIn", optimizer_in, \
+           "--lats", workdir, \
+           "--refs", refglob, \
+           "--src", src, \
+           "--mem", hypmem]
+    cmd.extend(args_vals);
     outfile = open(optimizer_out, 'w')
     print >> logfile, ' '.join(cmd)
     logfile.flush()
