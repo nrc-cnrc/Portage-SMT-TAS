@@ -695,7 +695,8 @@ def optimizeLMIRA(iter, wts, args, logfile):
            "--lats", workdir, \
            "--refs", refglob, \
            "--src", src, \
-           "--mem", hypmem]
+           "--mem", hypmem, \
+           "--bleuOrder", str(opts.bleuOrder)]
     cmd.extend(args_vals);
     outfile = open(optimizer_out, 'w')
     print >> logfile, ' '.join(cmd)
