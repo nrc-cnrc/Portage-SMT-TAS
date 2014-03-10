@@ -679,13 +679,6 @@ def optimizePRO(iter, wts, args, logfile):
 
 def optimizeLMIRA(iter, wts, args, logfile):
     """Optimize weights using lattice MIRA over current lattices."""
-    C = "0.01"                   # learning rate
-    decay = "0.999"              # effective number of context sentences
-    bg = "Oracle"                # BLEU background=Oracle|Model|Orange
-    density = "100000"           # lattices will be f-b pruned to this density
-    numIt = "30"                 # max number of iterations
-    faux = "false"               # Whether to do Faux LMIRA or not
-    rlen = "closest"             # Whether to use closest or shortest reference len
     seed = "1"
     if(opts.seed>0): seed = str(opts.seed * 10000 + iter)
     args_vals = args.split()
@@ -696,6 +689,7 @@ def optimizeLMIRA(iter, wts, args, logfile):
            "--refs", refglob, \
            "--src", src, \
            "--mem", hypmem, \
+           "--seed", seed, \
            "--bleuOrder", str(opts.bleuOrder)]
     cmd.extend(args_vals);
     outfile = open(optimizer_out, 'w')
