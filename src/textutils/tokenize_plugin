@@ -88,7 +88,7 @@ elif [[ $SOURCE_LANGUAGE = ar ]]; then
    # On balzac we define MADA.
    # On our vm, in our web stack we don't define MADA but we install it under $PORTAGE/bin.
    # FYI $PORTAGE on our vm doesn't have the same semantic as on balzac
-   MADA_HOME=${MADA:-$PORTAGE/bin}
+   MADA_HOME=${MADA_HOME:-$PORTAGE/bin}
 
    # May be we could use a config that output simply FORM1 of ATB4MT but this
    # doesn't remove parse_tokan since we still need to do normalization and
