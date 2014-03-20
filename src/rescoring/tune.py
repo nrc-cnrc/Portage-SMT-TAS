@@ -92,8 +92,8 @@ parser.add_option("-a", dest="optcmd", type="string", default="powell",
                   "mira [C [I [E]]]], " \
                   "pro [alg [curwt [bleucol [orig [reg]]]]], " \
                   "svm [C [B [A]]], " \
-                  "lmira [C decay bg density num_it faux rlen], " \
-                  "expsb [L] "\
+                  "lmira [--options], " \
+                  "expsb [L bleucol] "\
                   "[%default]")
 #parser.add_option("-b", dest="bestbleu", type="string", default="1",
 #                  help="type of nbest BLEU calculation for mira: " + \
@@ -630,17 +630,23 @@ def optimizeSVM(iter, wts, args, logfile):
     return getOptimizedScore(re.compile('Best obj found on it# \d+, score it   \d+ : BLEU = ([\d\.]+)').search)
 
 def optimizeExpSentBleu(iter, wts, args, logfile):
-    """Optimize weights according to expected sum of Oranges"""
+    """Optimize weights according to expected sum of sentence-level BLEU scores"""
     L = "50"
-    BFGS = "false"
+    BleuCol = "-2"
+    Eps = "1e-4"
+    MaxIter = "100"
+    seed = "1"
+    if(opts.seed>0): seed = str(opts.seed * 10000 + iter)
     args_vals = args.split();
     if len(args_vals) > 0 : L = args_vals[0]
-    if len(args_vals) > 1 : BFGS = args_vals[1]
-    if len(args_vals) > 2 : 
+    if len(args_vals) > 1 : BleuCol = args_vals[1]
+    if len(args_vals) > 2 : Eps = args_vals[2]
+    if len(args_vals) > 3 : MaxIter = args_vals[3]
+    if len(args_vals) > 4 : 
         print >> logfile, "warning, ignoring values past first token in " + args
     refglob = ",".join(refs)
     cmd = ["time-mem", jav, opts.jmem, "-enableassertions", "-jar", jar, "ExpLinGainNbest", optimizer_in, \
-           allff, allbleus, allnb, refglob, L, BFGS]
+           allff, allbleus, allnb, refglob, L, BleuCol, Eps, MaxIter, seed]
     outfile = open(optimizer_out, 'w')
     print >> logfile, ' '.join(cmd)
     logfile.flush()
