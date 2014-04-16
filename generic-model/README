@@ -22,6 +22,11 @@ translation models in a tuned PortageII system. The generic models were trained
 on a large general language corpus and then pruned, keeping the most relevant
 data while shrinking the models to a usable size.
 
+The training corpus used to create these models consists of 31 millions
+sentences collected from all Government of Canada web sites (our "gc.ca"
+corpus). It covers a multitude of domains since the federal government is
+concerned with a lot of different subjects.
+
 Using the generic models in conjunction with your in-domain models can
 significantly improve translation quality of new text, especially for small
 in-domain corpora: the generic models will help the system handle the general
