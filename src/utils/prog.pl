@@ -5,7 +5,7 @@
 #
 # @author Write your name here
 #
-# Technologies langagieres interactives / Interactive Language Technologies
+# Traitement multilingue de textes / Multilingual Text Processing
 # Tech. de l'information et des communications / Information and Communications Tech.
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2014, Sa Majeste la Reine du Chef du Canada /
