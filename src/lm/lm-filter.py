@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# $Id$
 
 # @file lm-filter.py
 # @brief Filters out lm entries based on a minimum ngram counts.
@@ -18,6 +17,7 @@ from __future__ import print_function, unicode_literals, division, absolute_impo
 import sys
 import os.path
 from argparse import ArgumentParser
+from argparse import RawDescriptionHelpFormatter
 import codecs
 from subprocess import call, check_output, CalledProcessError
 from tempfile import NamedTemporaryFile
@@ -41,19 +41,21 @@ from portage_utils import *
 def get_args():
    """Command line argument processing."""
    
-   usage="lm-filter.py [options] languageModel counts thresholds"
+   usage="lm-filter.py [options] languageModel counts [thresholds]"
    help="""
-   Filter a Language Model based on some Ngram count threshold.
+   Filter a Language Model based on some Ngram count thresholds.
    The languageModel and count files must be sorted in the same order.  This
    can esaily be achieved by invoking estimate-ngram -write-lm lm.gz
    -write-count counts.gz.
 
-   example:
-      lm-filter.py lm.gz counts.gz
+   example with language model of order 5:
+      lm-filter.py lm.gz counts.gz  # No pruning is done
+      lm-filter.py lm.gz counts.gz 1 1 2  # order 4 & 5 will be prune at 2
+      lm-filter.py lm.gz counts.gz 1 1 2 3 4
    """
    
    # Use the argparse module, not the deprecated optparse module.
-   parser = ArgumentParser(usage=usage, description=help, add_help=False)
+   parser = ArgumentParser(formatter_class=RawDescriptionHelpFormatter, usage=usage, description=help, add_help=False)
 
    # Use our standard help, verbose and debug support.
    parser.add_argument("-h", "-help", "--help", action=HelpAction)
@@ -66,7 +68,7 @@ def get_args():
    parser.add_argument("languageModel", type=open, help="ARPA Language Model")
    parser.add_argument("counts", type=open, help="ngram count file.")
    parser.add_argument("threshold", nargs="*", type=str, default=[],
-                       help="ngram count file.")
+                       help="ngram thresholds for 1-grams upto X-grams where X is the order of your lm.  N-grams with count greater or equal to the threshold for a given order N will be kept.")
 
    # The following use the portage_utils version of open to open files.
    parser.add_argument("-o", dest="outfile", type=lambda f: open(f,'w'), 
