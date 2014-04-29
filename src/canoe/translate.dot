@@ -1,4 +1,6 @@
-digraph G {
+digraph "translate.pl workflow" {
+   size="10,16";
+
    input_text [shape=box, color=blue];
    dir [shape=box, color=blue];
    Q_txt [shape=box, color=blue];
@@ -23,7 +25,9 @@ digraph G {
    out [shape=box, color=blue];
    ffvals [shape=box, color=blue];
 
-   subgraph legend {
+   subgraph cluster_legend {
+      label = "legend";
+
       xml [color="red"];
       xtags [color="orange"];
       tcsrclm [color="green"];
@@ -113,6 +117,26 @@ digraph G {
 
 
 ########################################
+   subgraph cluster_detokenize {
+      label = "detokenize";
+
+      "d_in" [shape=box, color=blue];
+      "d_out" [shape=box, color=blue];
+      "detok?" [shape=diamond, style=filled, color=magenta];
+      "detokenize_plugin?" [shape=diamond, style=filled, color=magenta];
+
+      "d_in" [label="in"];
+      "d_out" [label="out"];
+
+      "d_in" -> "detok?";
+      "detok?" -> "d_out" [color=red, label="false", len=1.00];
+      "detok?" -> "detokenize_plugin?" [color=green, label="true", len=1.00];
+      "detokenize_plugin?" -> "detokenize_plugin" [color=green, label="true", len=1.00]
+      "detokenize_plugin" -> "d_out";
+      "detokenize_plugin?" -> "udetokenize.pl" [color=red, label="false", len=1.00];
+      "udetokenize.pl" -> "d_out";
+   }
+
    subgraph POST {
       subgraph if_tcsrclm {
          edge [color="green"];
@@ -176,5 +200,33 @@ digraph G {
          "ce_tmx.pl replace"->out;
       }
    }
+
+
+########################################
+   subgraph cluster_Tokenization {
+      label = "tokenize";
+
+      "t_in" [shape=box, color=blue];
+      "t_out" [shape=box, color=blue];
+      "!tok && nl == s" [shape=diamond, style=filled, color=magenta];
+      "lang &#8712; { en, fr, es, da }" [shape=diamond, style=filled, color=magenta];
+
+      "t_in" [label="in"];
+      "t_out" [label="out"];
+
+      "t_in" -> "!tok && nl == s";
+      "!tok && nl == s" -> "t_out" [color=green, label="true",len=1.00];
+
+      "!tok && nl == s" -> "lang &#8712; { en, fr, es, da }" [color=red, label="false",len=1.00];
+      "lang &#8712; { en, fr, es, da }" -> "utokenize" [color=green, label="true",len=1.00];
+      "utokenize" -> "t_out";
+      "lang &#8712; { en, fr, es, da }" -> "sentsplit_plugin" [color=red, label="false",len=1.00];
+      "sentsplit_plugin" -> "tokenize_plugin";
+      "tokenize_plugin" -> "t_out";
+   }
+
+
+   label = "\n\ntranslate.pl workflow";
+   fontsize=20;
 }
 
