@@ -460,8 +460,15 @@ check_reliable_host
 
 test $OUTPUT_DIR  || error_exit "Missing mandatory -dir argument"
 
-#get_user_manual
-#exit
+# Block for manually calling just parts of this script - uncomment "true ||" to
+# activate.
+if
+   #true ||
+   false; then
+   #do_checkout
+   get_user_manual
+   exit
+fi
 
 if [[ ! $COMPILE_ONLY ]]; then
    if [[ ! $VERSION_TAG ]]; then
