@@ -17,9 +17,6 @@
 
 # This is the directory where PortageLive's temporary folders are all created
 my $PLiveTempDir = "/var/www/html/plive";
-# This file will be used so successive data collection runs don't collect the
-# same contents multiple times.
-my $TimeStampFile = "plive-last-collect";
 # This data file drives what gets collected
 my $ConfigFile = "plive-stats.txt";
 
@@ -53,11 +50,24 @@ sub usage {
    print STDERR "
 Usage: $0 [options]
 
+Summary:
+
+  First time:
+  - analyze-plive-data.pl > plive-stats.txt
+  - Edit plive-stats.txt and add a + in front of each system for which to
+    collect data.
+  - collect-plive-data.pl
+
+  Subsequent times:
+  - collect-plive-data.pl -newer <log created by last run>
+
+Details:
+
   Collect the temp files created by PortageLive for offline analysis
 
-  This script collects all temporary PortageLive working directories created
-  since file $TimeStampFile was last modified (which, by default, marks
-  the last time this script was called).
+  This script collects all temporary PortageLive working directories.
+  Specify \"-newer log-from-previous-run\" to collect only those created
+  since the last time this script was called.
 
   The script first reads $ConfigFile (or CFILE, if -config CFILE is used)
   and collects data only from those systems with a + before the system name.
@@ -74,9 +84,7 @@ Usage: $0 [options]
 
 Options:
 
-  -all          Count all files [default: count only files more recent than
-                $TimeStampFile]
-  -newer TFILE  Count only files more recent than TFILE [$TimeStampFile]
+  -newer TFILE  Collect only files more recent than TFILE
 
   -config CFILE read CFILE to decide which systems to collect from
                 [$ConfigFile]
@@ -111,25 +119,21 @@ if (defined $config) {
    $ConfigFile = $config;
 }
 
-if (defined $newer) {
-   -r $newer or die "Cannot read file $newer: $!\n";
-   $TimeStampFile = $newer;
-}
-
 open CONFIG, "$ConfigFile" or die "Cannot read file $ConfigFile: $!\n";
-my $context_line = <CONFIG>;
-$context_line =~ /^\s*Context\s/
-   or die "Invalid format in $ConfigFile: expected header lnie starting with Context\n";
 my %contexts;
 while (<CONFIG>) {
    my ($context, $doc, $lines, $words) = split;
+   next if ($context eq "Context" and $doc eq "Docs");
    if ($context =~ /^\s*\+\s*(\S+)/) {
       $context = $1;
-      print "Collecting data from context $context\n";
+      print "Collecting data from context: $context\n";
       $contexts{$context}{collect} = "yes";
+      $contexts{$context}{n} = 0;
+      $contexts{$context}{lines} = 0;
+      $contexts{$context}{words} = 0;
    } elsif ($context =~ /^\s*(\S+)/) {
       $context = $1;
-      print "*NOT* collecting from $context\n";
+      print "Excluding $context\n";
       $contexts{$context}{collect} = "no";
    } else {
       print "Ignoring ill-formatted line in $ConfigFile: $_";
@@ -137,17 +141,20 @@ while (<CONFIG>) {
 }
 
 my $find_cmd = "find $PLiveTempDir -name trace";
-if (!$all and -r $TimeStampFile) {
+if (defined $newer) {
+   -r $newer or die "Cannot read file time stamp file $newer: $!\n";
    print STDERR "Collecting data only from files modified or created since ",
-                `stat -c\%y $TimeStampFile | sed 's/\\.00*//'`;
-   $find_cmd .= " -newer $TimeStampFile";
+                `stat -c\%y $newer | sed 's/\\.00*//'`;
+   $find_cmd .= " -newer $newer";
 }
 
 open IN, "$find_cmd |"
    or die "Can't open pipe to read $PLiveTempDir\n";
 
-my $date = `date +%Y%m%d-%H%M`;
+my $date = `date +%Y%m%d-%H%M%S`;
 chomp $date;
+my $dir = "plive-data-$date";
+mkdir $dir or die "Cannot create collection directory $dir: $!\n";
 
 my @tarlists;
 my ($docs, $lines, $words) = (0,0,0);
@@ -161,7 +168,8 @@ while (<IN>) {
       if (/ -f=.*?models\/(.*?)\/canoe.ini.cow/) {
          my $context = $1;
          if (!exists $contexts{$context}) {
-            print "NOT collecting data from unknown context $context; add it to $ConfigFile to start collecting from this context\n";
+            print "Excluding unknown context $context\n";
+            $contexts{$context}{collect} = "no";
          } elsif ($contexts{$context}{collect} eq "yes") {
             ++$contexts{$context}{n};
             ++$docs;
@@ -174,16 +182,13 @@ while (<IN>) {
                my $w = `wc -w $tracedir/Q.pre`;
                $contexts{$context}{words} += $w;
                $words += $w;
-            } else {
-               $contexts{$context}{lines} += 0;
-               $contexts{$context}{words} += 0;
             }
 
-            my $tarlist = "collect-$context-$date.list";
+            my $tarlist = "$dir/$context.list";
             -r $tarlist || push @tarlists, $tarlist;
             system("echo $tracedir >> $tarlist") == 0
                or warn "Error appending to $tarlist: $!\n";
-            print "Add $tracedir to $tarlist for collection\n";
+            #print "Add $tracedir to $tarlist for collection\n";
          }
          last;
       }
@@ -200,11 +205,16 @@ for my $tarlist (@tarlists) {
 
 close IN or warn "Error closing pipe to read $PLiveTempDir - output is probably wrong.\n";
 
-print "Collected From\tDocs\tLines\tSrc Words\n";
-print "Total\t$docs\t$lines\t$words\n";
+open OUT, "| expand-auto.pl | tee $dir.log" or die "Cannot find expand-auto.pl - was Portage installed?\n";
+
+print OUT "\nCollected From\tDocs\tLines\tSrc Words\n\n";
 
 foreach my $key (sort keys %contexts) {
    if ($contexts{$key}{collect} eq "yes") {
-      print "$key\t$contexts{$key}{n}\t$contexts{$key}{lines}\t$contexts{$key}{words}\n";
+      print OUT "$key\t$contexts{$key}{n}\t$contexts{$key}{lines}\t$contexts{$key}{words}\n";
    }
 }
+
+print OUT "\nTotal\t$docs\t$lines\t$words\n";
+
+close OUT or die "Error closing output pipe, report probably not complete: $!\n";

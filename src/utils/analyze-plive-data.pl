@@ -17,9 +17,6 @@
 
 # This is the directory where PortageLive's temporary folders are all created
 my $PLiveTempDir = "/var/www/html/plive";
-# This file will be used so successive data collection runs don't collect the
-# same contents multiple times.
-my $TimeStampFile = "plive-last-collect";
 
 ###############################################################################
 # END CONFIGURATION SECTION
@@ -55,8 +52,6 @@ Usage: $0 [options]
 
 Options:
 
-  -all          Count all files [default: count only files more recent than
-                $TimeStampFile]
   -newer TFILE  Count only files more recent than TFILE
 
   -h(elp)       print this help message
@@ -70,7 +65,6 @@ Getopt::Long::Configure("no_ignore_case");
 # abbreviations for all options.
 my $verbose = 1;
 GetOptions(
-   all         => \my $all,
    "newer=s"   => \my $newer,
    help        => sub { usage },
    verbose     => sub { ++$verbose },
@@ -83,16 +77,12 @@ GetOptions(
 -d $PLiveTempDir ||
    die "$PLiveTempDir is not a directory.\nPlease edit $0 and set PLiveTempDir to the directory where PortageLive creates its temporary files, typically /var/www/html/plive.\n";
 
-if (defined $newer) {
-   -r $newer or die "Cannot read file $newer: $!\n";
-   $TimeStampFile = $newer;
-}
-
 my $find_cmd = "find $PLiveTempDir -name trace";
-if (!$all and -r $TimeStampFile) {
+if (defined $newer) {
+   -r $newer or die "Cannot read time stamp file $newer: $!\n";
    print STDERR "Counting only data files modified or created since ",
-                `stat -c\%y $TimeStampFile | sed 's/\\.00*//'`;
-   $find_cmd .= " -newer $TimeStampFile";
+                `stat -c\%y $newer | sed 's/\\.00*//'`;
+   $find_cmd .= " -newer $newer";
 }
 
 open IN, "$find_cmd |"
@@ -129,8 +119,12 @@ close IN or die "Error closing pipe to read $PLiveTempDir - output is probably w
 if (!%contexts) {
    print STDERR "No data found.\n";
 } else {
-   print "Context\tDocs\tLines\tSrc Words\n";
+   open OUT, "| expand-auto.pl" or die "Cannot find expand-auto.pl - was Portage installed?\n";
+
+   print OUT "Context\tDocs\tLines\tSrc Words\n";
    foreach my $key (sort keys %contexts) {
-      print "$key\t$contexts{$key}{n}\t$contexts{$key}{lines}\t$contexts{$key}{words}\n";
+      print OUT "$key\t$contexts{$key}{n}\t$contexts{$key}{lines}\t$contexts{$key}{words}\n";
    }
+
+   close OUT or die "Error closing output pipe, report probably not complete: $!\n";
 }
