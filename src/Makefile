@@ -80,7 +80,7 @@ else
 ifneq ($(filter install_summary_helper,${MAKECMDGOALS}),)
    # These calculations can be expensive, in particular setting GIT_RBRANCH, so
    # shield them so they're only evaluated when needed.
-   GIT_RBRANCH := $(strip $(shell for rev in $(shell git rev-list HEAD); do if git branch -r --contains $$rev | grep -m 1 -v -- '->'; then break; fi done))
+   GIT_RBRANCH := $(strip $(shell for rev in $(shell git rev-list HEAD | head -1000); do if git branch -r --contains $$rev | grep -m 1 -v -- '->'; then break; fi done))
    GIT_REMOTE := $(notdir $(patsubst %/,%,$(dir $(GIT_RBRANCH))))
    GIT_RBRANCH_BASE := $(shell git merge-base HEAD ${GIT_RBRANCH})
 endif
