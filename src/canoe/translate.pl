@@ -948,11 +948,14 @@ sub plugin {
    my ($name, $lang, $in, $out) = @_;
    my $old_path = $ENV{PATH};
    $ENV{PATH} = "${plugins_dir}:".$ENV{PATH};
+   my $old_perl5lib_path = $ENV{PERL5LIB};
+   $ENV{PERL5LIB} = "${plugins_dir}:".$ENV{PERL5LIB};
    my $actual_prog = `which ${name}_plugin`;
    chomp($actual_prog);
    print STDERR "Using plugin: ${actual_prog}\n";
    call("${actual_prog} ${lang} < '${in}' > '${out}'", $out);
    $ENV{PATH} = $old_path;
+   $ENV{PERL5LIB} = $old_perl5lib_path;
 }
 
 sub plogCreate {
@@ -1154,8 +1157,11 @@ sub detokenize {
    else {
       my $old_path = $ENV{PATH};
       $ENV{PATH} = "${plugins_dir}:".$ENV{PATH};
+      my $old_perl5lib_path = $ENV{PERL5LIB};
+      $ENV{PERL5LIB} = "${plugins_dir}:".$ENV{PERL5LIB};
       my $cmd = `which detokenize_plugin 2> /dev/null`;
       $ENV{PATH} = $old_path;
+      $ENV{PERL5LIB} = $old_perl5lib_path;
       chomp($cmd);
       if ( $cmd ) {
          plugin("detokenize", $tgt, $in, $out);

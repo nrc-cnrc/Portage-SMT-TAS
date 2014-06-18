@@ -26,7 +26,20 @@ BINSCRIPTS = $(wildcard *.sh *.pl *.py) \
 	sentsplit_plugin \
 	select-line
 
+test: check_perl_dependencies
+
+check_perl_dependencies:
+	perldoc -l FindBin
+
 include ../build/Makefile.incl
+
+# Custom install target for tokenize Arabic Data Perl module.
+install_perl_lib:   $(PERL_LIB_DIR)/tokenize/Arabic/Data.pm
+
+$(PERL_LIB_DIR)/tokenize/Arabic/Data.pm:  tokenize/Arabic/Data.pm
+	install -d -m0750 $(dir $@)
+	install -p -m0640 $< $(dir $@)
+
 
 # Some programs need extra dynamic libraries
 utf8_casemap: DYNLIBS += $(LIBICU)
