@@ -22,6 +22,7 @@ BINSCRIPTS = $(wildcard *.sh *.pl *.py) \
 	postdecode_plugin \
 	postprocess_plugin \
 	tokenize_plugin \
+	tokenize_plugin_ar \
 	sentsplit_plugin \
 	select-line
 
