@@ -26,6 +26,7 @@ use FindBin qw($Bin);  # Figures out this script location directory.
 BEGIN { push(@INC, $Bin) }
 #warn join(" : ", @INC);
 use tokenize::Arabic::Data;
+warn "Using ", $INC{'tokenize/Arabic/Data.pm'}, " for the tokenization\n";
 
 
 # This is a utf8 handling script => io should be in utf8 format
