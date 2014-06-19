@@ -400,6 +400,9 @@ Getopt::Long::GetOptions(
    "xsrc=s"         => \my $xsrc,
    "xtgt=s"         => \my $xtgt,
 
+   # JSON
+   "json-output"    => \my $json_output,
+
    #CE specific options
    "filter=f"       => \my $filter,
    "xtra-ce-opts=s" => \my $xtra_ce_opts,
@@ -904,7 +907,13 @@ OUT:{
          my $ce_output = $out ne "-" ? "> '$out'" : "";
          call("paste ${dir}/pr.ce '${P_txt}' ${ce_output}");
       } else {
-         copy($P_txt, $out);
+         # For now this mode only works if there is an one-sentence-per-line file.
+         if ($json_output and -e "$Q_pre.ospl") {
+            outputJson("$Q_pre.ospl", $P_txt, $out);
+         }
+         else {
+            copy($P_txt, $out);
+         }
       }
    }
    else {
@@ -931,8 +940,7 @@ exit 0; # All done!
 
 ## Subroutines
 
-sub displayHelp
-{
+sub displayHelp {
    -t STDERR ? system "pod2text -t -o $0 >&2" : system "pod2text $0 >&2";
 }
 
@@ -1273,3 +1281,23 @@ sub cleanupAndDie {
 }
 
 sub verbose { print STDERR "[", @_, "]\n" if $verbose; }
+
+sub outputJson {
+   my ($file_orig, $file_trans, $file_out) = @_;
+   use JSON;
+   open(ORIG, "<$file_orig") or die "Can't open $file_orig";
+   open(TRANS, "<$file_trans") or die "Can't open $file_trans";
+   open(OUT, ">$out") or die "Can't open output $out";
+   while (defined(my $orig = <ORIG>) and defined(my $trans = <TRANS>)) {
+      chomp($orig);
+      chomp($trans);
+      # Do not perform UTF-8 encoding.
+      print OUT to_json({original => $orig, translation => $trans}), "\n" if ($orig ne '' or $trans ne '');
+   }
+   # Make sure all content is read from both files.
+   die "Original text file too long" if (defined(<ORIG>));
+   die "Translation text file too long" if (defined(<ORIG>));
+   close(ORIG);
+   close(TRANS);
+   close(OUT);
+}
