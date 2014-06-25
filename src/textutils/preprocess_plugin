@@ -59,5 +59,7 @@ perl -ple '
    # Remove trailing whitespace
    s/\s+$//g;
 '
-
+# To separate slash-separated words, add "| fix-slashes.pl" at the end of the
+# line above, so that it looks like the following, minus the #:
+#' | fix-slashes.pl
 
