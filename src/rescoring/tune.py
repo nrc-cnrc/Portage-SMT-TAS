@@ -531,6 +531,8 @@ def optimize(iter, wts):
     logfile = open(optimizer_log, 'a')
     if iter == 0 and alg != "powell":
        shutil.copyfile(optimizer_in0, optimizer_in)
+       call(["which", jav], stdout=logfile, stderr=logfile)
+       call([jav, opts.jmem, "-version"], stdout=logfile, stderr=logfile)
 
     if alg == "powell":
         ret = optimizePowell(iter, wts, args, logfile)
