@@ -52,7 +52,7 @@ Options:\n\
 -fv   Write feature value vectors, line-aligned with output, to file <f>. No\n\
       sentence-index prefix. Same restrictions as for -co.\n\
 -sc   Write hypothesis scores, line-aligned with output, to file <f>. This is\n\
-      the same value written by -s. SAme restrictions as for -co.\n\
+      the same value written by -s. Same restrictions as for -co.\n\
 -mbr  Minimum Bayes risk: Determine hypothesis with min risk rather than max\n\
       score.  Note that this gives you 1-best output only! [don't]\n\
 -gf   Scale all sentence probabilities by global factor <f> in MBR calculation [1]\n\
