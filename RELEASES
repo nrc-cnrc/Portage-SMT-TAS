@@ -19,9 +19,9 @@ See NOTICE for the Copyright notices of 3rd party libraries.
 
 PortageII is the second generation of SMT software released by the NRC.
 
-PortageII 2.0 maintenance stream
- So far, several small patches have been released by sending individual patched
- files to the client, to deliver the following changes.
+PortageII 2.1 2014-10-20
+ This is a maintenance release, rolling in all the small patches that have been
+ released since PortageII 2.0 was published.
 
  Minor changes:
   - PortageLiveAPI:
