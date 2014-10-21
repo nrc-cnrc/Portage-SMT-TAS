@@ -1,11 +1,12 @@
 #!/bin/bash
 # @file prep-file-layoyt.sh
 # @brief Put the Python into the installed structure for portageLive
-# 
+#
 # @author Darlene Stewart, based on other portageLive prep-file-layoyt.sh scripts
-# 
-# Technologies langagieres interactives / Interactive Language Technologies
-# Inst. de technologie de l'information / Institute for Information Technology
+#
+# Traitement multilingue de textes / Multilingual Text Processing
+# Technologies de l'information et des communications /
+#   Information and Communications Technologies
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2011, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2011, Her Majesty in Right of Canada

@@ -3,7 +3,7 @@
  * @file portage_info.cc
  * @brief Print global PortageII copyright and version information.
  * 
- * Technologies langagieres interactives / Interactive Language Technologies
+ * Traitement multilingue de textes / Multilingual Text Processing
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
  * Copyright 2010, Sa Majeste la Reine du Chef du Canada /
@@ -41,7 +41,7 @@ static bool notice = false;
 static bool version = false;
 static bool with_icu = false;
 static bool build_options = false;
-static const char VERSION[] = "PortageII 2.0";
+static const char VERSION[] = "PortageII 2.1";
 
 // main
 

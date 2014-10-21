@@ -1,11 +1,11 @@
-                               PortageII 2.0
+                               PortageII 2.1
  
-Technologies langagieres interactives / Interactive Language Technologies
+Traitement multilingue de textes / Multilingual Text Processing
 Technologies de l'information et des communications /
    Information and Communications Technologies
 Conseil national de recherches Canada / National Research Council Canada
-Copyright 2004-2013, Sa Majeste la Reine du Chef du Canada
-Copyright 2004-2013, Her Majesty in Right of Canada
+Copyright 2004-2014, Sa Majeste la Reine du Chef du Canada
+Copyright 2004-2014, Her Majesty in Right of Canada
 
 Distributed under specific licensing terms.  Please refer to your signed
 license agreement for details.
@@ -32,7 +32,7 @@ important features to help translators: the transfer of markup tags from the
 source sentence to the machine translation output, as well as handling of the
 increasingly common xliff file format.
 
-PortageII 2.0 includes a complete suite of software tools required for
+PortageII 2.x includes a complete suite of software tools required for
 phrase-based statistical machine translation, including:
  - preprocessing of French, English, Spanish, Danish (tokenization,
    detokenization, lowercasing, aligning) and Chinese (handling of dates and

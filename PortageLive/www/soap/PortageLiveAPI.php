@@ -1,14 +1,15 @@
 <?php
-# @file PortageLiveAPI.php 
+# @file PortageLiveAPI.php
 # @brief Implementation of the API to the PortageII SMT software suite.
 # 
 # @author Patrick Paul, Eric Joanis and Samuel Larkin
 # 
-# Technologies langagieres interactives / Interactive Language Technologies
-# Inst. de technologie de l'information / Institute for Information Technology
+# Traitement multilingue de textes / Multilingual Text Processing
+# Technologies de l'information et des communications /
+#   Information and Communications Technologies
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2009 - 2011, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2009 - 2011, Her Majesty in Right of Canada
+# Copyright 2009 - 2014, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2009 - 2014, Her Majesty in Right of Canada
 
 
 $base_web_dir = "/var/www/html";
