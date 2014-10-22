@@ -41,8 +41,8 @@ PORTAGE=$HOME/PortageII-2.1
 # Binary distributions only: we also provide executables compiled with and
 # without ICU, in order to make that dependency be optional.  Uncomment the
 # following line instead of the previous one if you have installed and wish to
-# use ICU.
-#PRECOMP_PORTAGE_ARCH=`arch`-icu
+# use ICU. Enabled by default since we now distribute ICU libs with PortageII.
+PRECOMP_PORTAGE_ARCH=`arch`-icu
 
 # END OF USER CONFIGURABLE VARIABLES
 # =======================================================================
