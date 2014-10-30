@@ -518,7 +518,7 @@ sub markup {
 
    $content =~ s/^/ /;
    $content =~ s/$/ /;
-   $content =~ s/[ \n](${mall})[ \n]/&helper($&)/eg;
+   $content =~ s/[ \n](${mall})(?=[ \n])/&helper($&)/eg;
    $content =~ s/  +/ /g;
    $content =~ s/^ //;
    $content =~ s/ $//;
