@@ -98,6 +98,12 @@ find rpm.build.root -type f | xargs chmod 644
 find -type f -name \*.sh | xargs chmod 755
 if [[ -d $DESTINATION/plugins ]]; then
    [[ `find $DESTINATION/plugins -type f` ]] && chmod 755 $DESTINATION/plugins/*
+	if [[ -d $DESTINATION/plugins/fixedTerms ]];
+	then
+	   chmod 777 $DESTINATION/plugins/fixedTerms
+		[[ -e $DESTINATION/plugins/fixedTerms/lm ]] && chmod 644 $DESTINATION/plugins/fixedTerms/lm
+		[[ -e $DESTINATION/plugins/fixedTerms/tm ]] && chmod 777 $DESTINATION/plugins/fixedTerms/tm
+	fi
 fi
 
 exit

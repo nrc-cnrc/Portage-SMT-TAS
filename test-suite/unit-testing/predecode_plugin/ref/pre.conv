@@ -1,0 +1,12 @@
+these <FT target="lois relatives à l’ administration de la justice">laws in relation to the administration of justice</FT> are too long .
+chemical compound <FT target="\<symbole a\>">\<symbol a\></FT> , is quite explosif .
+never mix <FT target="\<symbole \\b\>">\<symbol \\b\></FT> with water .
+we love big <FT target="\\arbre">\\tree</FT> in our backyard .
+julien spoke and <FT target="son son son son son">although the recommendations were sound</FT> , we heard nothing .
+z <FT target="z y x q">a b c d</FT> e f
+<FT target="compte 701k">710k account</FT>
+<NUMK target="710 000">710k</NUMK>
+<NUMK target="410 000">410k</NUMK> \<a\> z <NUMK target="420 000">420k</NUMK> v\</a\> <NUMK target="430 000">430k</NUMK>
+number must not be changed but ft tagged <FT target="\<c\> z 420k v\</c\>">\<b\> z 420k v\</b\></FT>
+\<num whatever\> blah\</num\>
+\<ft whatever\> blah <NUMK target="742 000">742k</NUMK> blah\</ft\>

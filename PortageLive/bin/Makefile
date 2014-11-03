@@ -46,7 +46,7 @@ RESCORE_SCRIPTS ?= gen-features-parallel.pl nbest2rescore.pl rat.sh
 TOKENIZATION ?= udetokenize.pl utokenize.pl
 TRUECASING ?= truecase.pl casemark.py boscap.py boscap-nosrc.py
 #Define EXTRAS in Makefile.params to include extra PortageII programs
-EXTRAS ?=
+EXTRAS ?= mark-english-number.pl  fixed_term2tm.pl
 
 # Must contain programs from PortageII only.
 PORTAGE_SCRIPTS ?= ${CHINESE} ${CE} ${DECODE_SCRIPTS} ${TRANSLATE} ${RESCORE_SCRIPTS} ${TOKENIZATION} ${TRUECASING}

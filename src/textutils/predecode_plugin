@@ -3,7 +3,7 @@
 # @file predecode_plugin
 # @brief Default pre-decoder plugin
 #
-# @author Michel Simard
+# @author Michel Simard extended by Samuel Larkin
 #
 # COMMENTS:
 #
@@ -13,9 +13,9 @@
 # Copyright 2010, Conseil national de recherches du Canada /
 # Copyright 2010, National Research Council of Canada
 
-## 
+##
 ## Usage: predecode_plugin SRC_LANG < in > out
-## 
+##
 ## Default predecoding plugin: to be called immediately prior to
 ## decoding (but after tokenization, lowercasing, etc.).
 ## Among other things, the predecoding plugin must apply the rules parser.
@@ -29,8 +29,51 @@ fi
 test $# -eq 0 && echo "Missing language code argument" >&2 && exit 1
 SOURCE_LANGUAGE=$1; shift
 
-# If you have a rules parser, replace the canoe-escapes.pl call by a call to your
-# rules parser. The rules parser must also escape literal use of the following 
-# characters in the input text: '<', '>', '\'.
-canoe-escapes.pl -add | utf8_filter
+# TODO: How to pickup the proper plugins/fixedTerms if this is the default script located in /opt/PortageII/bin/?
+FIXED_TERMS_MODEL_DIRECTORY=${FIXED_TERMS_MODEL_DIRECTORY:-$(dirname $0)}
 
+# Uncomment if you want to mark English number to there French notation.
+#MARK_ENGLISH_NUMBERS=1
+
+set -o pipefail
+
+if [[ -s ${FIXED_TERMS_MODEL_DIRECTORY}/fixedTerms/tm ]]; then
+   if [[ ! -s ${FIXED_TERMS_MODEL_DIRECTORY}/fixedTerms/lm ]]; then
+      echo -e '\n\\data\\\nngram 1=2\n\n\\1-grams:\n0\t</s>\n-99\t<s>\n\n\\end\\' > ${FIXED_TERMS_MODEL_DIRECTORY}/fixedTerms/lm
+   fi
+
+   # If fixed terms are available, apply them.
+   #perl -ple 's/<([^>]+)>(?:.*?)<\/\1>/$a=$&; $a=s#([\\<>])#\\\1#g/gex' |
+   # IMPORTANT NOTE: YES we double canoe-escaple here if we want the
+   # original xmlish markup to be escape while it passes through canoe
+   # which unescapes them.
+   canoe-escapes.pl -add | canoe-escapes.pl -add \
+   | utf8_filter \
+   | flock --shared ${FIXED_TERMS_MODEL_DIRECTORY}/fixedTerms/tm.lock --command "canoe \
+      -f /dev/null \
+      -v 1 \
+      -load-first \
+      -oov pass \
+      -ttable-multi-prob ${FIXED_TERMS_MODEL_DIRECTORY}/fixedTerms/tm \
+      -lmodel-file ${FIXED_TERMS_MODEL_DIRECTORY}/fixedTerms/lm \
+      -ttable-limit 100 \
+      -regular-stack 100 \
+      -ftm 1.0 \
+      -lm 0.0 \
+      -tm 1.0 \
+      -distortion-limit 0 \
+   2> /dev/null"
+else
+   # If you have a rules parser, replace the canoe-escapes.pl call by a call to
+   # your rules parser. The rules parser must also escape literal use of the
+   # following characters in the input text: '<', '>', '\'.
+   # TODO should this be in front of the fixed terms regardless?
+   canoe-escapes.pl -add | utf8_filter
+fi \
+| if [[ -n "$MARK_ENGLISH_NUMBERS" ]]; then
+   if [[ $SOURCE_LANGUAGE -eq "en" ]]; then
+      mark-english-number.pl $SOURCE_LANGUAGE
+   fi
+else
+   cat
+fi

@@ -24,7 +24,7 @@ $monitor_token = "";
 $file_xtags = 0;
 $to_translate_xtags = 0;
 $newline = "";
-#print_r( $_POST);  // Nice for debug POST's values.
+#print_r($_POST);  // Nice for debug POST's values.
 if ( $_POST ) {
    if ( array_key_exists('context', $_POST) ) {
       $context = $_POST['context'];
@@ -36,6 +36,10 @@ if ( $_POST ) {
          $button = "TranslateSDLXLIFF";
       if ( array_key_exists('TranslatePlainText', $_POST) )
          $button = "TranslatePlainText";
+      if ( array_key_exists('fixedTermsUpdate', $_POST) )
+         $button = "fixedTermsUpdate";
+      if ( array_key_exists('fixedTermsGet', $_POST) )
+         $button = "fixedTermsGet";
    }
 
    if ( array_key_exists('context', $_POST) ) {
@@ -177,6 +181,30 @@ Prime:
 </section>
 
 
+<section id='updateFixedTermsRequest'>
+<header>Fixed Terms Update</header>
+<label for="fixedTermsSourceColumn">Source Column Index (1-base): </label>
+<INPUT TYPE = "TEXT"   Name = "fixedTermsSourceColumn"  VALUE = "1" SIZE="4" />
+<label for="fixedTermsSourceLanguage">Source Language: </label>
+<INPUT TYPE = "TEXT"   Name = "fixedTermsSourceLanguage"  VALUE = "en" SIZE="4" />
+<label for="fixedTermsTargetLanguage">Target Language: </label>
+<INPUT TYPE = "TEXT"   Name = "fixedTermsTargetLanguage"  VALUE = "fr" SIZE="4" />
+<label for="fixedTermsFilename">Fixed terms file: </label>
+<SELECT NAME = "encoding">
+   <OPTION SELECTED="selected" VALUE="UTF-8">UTF-8</OPTION>;
+   <OPTION VALUE="cp-1252">cp-1252</OPTION>;
+</SELECT>
+<INPUT TYPE = "file"   Name = "fixedTermsFilename"/>
+<INPUT TYPE = "Submit" Name = "fixedTermsUpdate"  VALUE = "Update Fixed Terms"/>
+</section>
+
+
+<section id='updateFixedTermsRequest'>
+<header>Fixed Terms Get</header>
+<INPUT TYPE = "Submit" Name = "fixedTermsGet"  VALUE = "Get Fixed Terms"/>
+</section>
+
+
 <section id="plain_text">
 <header>Plain text</header>
 <!-- INPUT TYPE = "TEXT"   Name = "context"       VALUE = "<?=$context?>" / -->
@@ -214,7 +242,7 @@ OR
 </td>
 <td>
 <b>xtags</b>
--- Check this box if input text contains tags and you want to process & transfer them.
+-- Check this box if input text contains tags and you want to process &amp; transfer them.
 </td>
 </tr>
 <tr valign="top">
@@ -283,7 +311,7 @@ OR
 </td>
 <td>
 <b>xtags</b>
--- Check this box if input text contains tags and you want to process & transfer them.
+-- Check this box if input text contains tags and you want to process &amp; transfer them.
 </td>
 </tr>
 <tr>
@@ -394,6 +422,111 @@ if ( $button == "Prime"  && $_POST['Prime'] != "" ) {
       //print "<div class=\"PRIME ERROR\">Error with primeModels:<br/><b>{$exception->faultcode}</b><br/>{$exception->faultstring}</div>";
    }
    print "</section\n>";
+}
+else
+if ( $button == "fixedTermsUpdate" && $_FILES['fixedTermsFilename']['name'] != "") {
+   #print_r($_POST);  // Nice for debug POST's values.
+   #print_r($_FILES);  // Nice for debug POST's values.
+   global $context;
+   $file = $_FILES["fixedTermsFilename"];
+   $filename = $file["name"];
+   print "<section id='fixedTermesUpdateResponse'>\n";
+   print "<header>Fixed Terms Update</header>\n";
+   print "<b>Updating fixed terms using file: </b> $filename <br/>";
+   print "<b>Context: </b> $context <br/>";
+   print "<b>Processed on: </b> " . `date` . "<br/>";
+
+   $sourceColumnIndex = -1;
+   if ( array_key_exists('fixedTermsSourceColumn', $_POST) ) {
+      $sourceColumnIndex = $_POST['fixedTermsSourceColumn'];
+   }
+   else {
+   }
+
+   $sourceLanguage = 'UNDEF';
+   if ( array_key_exists('fixedTermsSourceLanguage', $_POST) ) {
+      $sourceLanguage = $_POST['fixedTermsSourceLanguage'];
+   }
+   else {
+   }
+
+   $targetLanguage = 'UNDEF';
+   if ( array_key_exists('fixedTermsTargetLanguage', $_POST) ) {
+      $targetLanguage = $_POST['fixedTermsTargetLanguage'];
+   }
+   else {
+   }
+
+   $encoding = 'UNDEF';
+   if ( array_key_exists('encoding', $_POST) ) {
+      $encoding = $_POST['encoding'];
+   }
+   else {
+   }
+
+   if ( is_uploaded_file($file["tmp_name"]) ) {
+      $tmp_file = $file["tmp_name"];
+      //print "<br/><b>$type Upload OK.  Trace: </b> " . print_r($file, true);
+      $tmp_contents = file_get_contents($tmp_file);
+      //print "<br/><b>file contents len: </b> " . strlen($tmp_contents) .
+      //      " <b>base64 len: </b> " . strlen($tmp_contents);
+
+      try {
+         global $WSDL;
+         $client = new SoapClient($WSDL);
+
+         $reply = $client->updateFixedTerms($tmp_contents, $filename, $encoding, $context, $sourceColumnIndex, $sourceLanguage, $targetLanguage);
+
+         if ($reply)
+            print "<div class=\"SUCCESS\">Fixed terms update successfully!</div>";
+         else
+            print "<div class=\"ERROR\">Error updating fixed terms.</div>";
+      }
+      catch (SoapFault $exception) {
+         displayFault($exception);
+      }
+   }
+   else {
+      print "<br/><b>$type Upload error.  Trace: </b> " . print_r($file, true);
+      $file_error_codes = array(
+            0=>"There is no error, the file uploaded with success",
+            1=>"The uploaded file exceeds the upload_max_filesize directive in php.ini",
+            2=>"The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form",
+            3=>"The uploaded file was only partially uploaded",
+            4=>"No file was uploaded",
+            6=>"Missing a temporary folder",
+            7=>"Failed to write file to disk",
+            8=>"A PHP extension stopped the file upload",
+            );
+      print "<br/><b>Error code description: </b> {$file_error_codes[$file["error"]]}";
+   }
+
+   print "<hr/><b>Done processing on: </b>" . `date`;
+   print "</section>\n";
+}
+else
+if ( $button == "fixedTermsGet") {
+   print "<section id='fixedTermsGetResponse'>\n";
+   print "<header>Fixed Terms List</header>\n";
+   try {
+      global $WSDL;
+      #global $context;
+      $context = $_POST['context'];
+      $client = new SoapClient($WSDL);
+
+      $reply = $client->getFixedTerms($context);
+
+      if ($reply) {
+         print "<div class=\"SUCCESS\">Fixed terms get successfully!</div>";
+         print "<textarea name=\"fixed terms list\" rows=\"10\" cols=\"50\">$reply</textarea>\n";
+      }
+      else
+         print "<div class=\"ERROR\">Error getting fixed terms.</div>";
+   }
+   catch (SoapFault $exception) {
+      displayFault($exception);
+   }
+   print "</section>\n";
 }
 else
 if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {

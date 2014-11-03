@@ -1,7 +1,7 @@
 <?php
 # @file PortageLiveAPI.php
 # @brief Implementation of the API to the PortageII SMT software suite.
-# 
+#
 # @author Patrick Paul, Eric Joanis and Samuel Larkin
 # 
 # Traitement multilingue de textes / Multilingual Text Processing
@@ -30,10 +30,11 @@ class PortageLiveAPI {
       $rc = 0;
       $i = $this->getContextInfo($context);
       $this->validateContext($i);
-      $this->runCommand("prime.sh $PrimeMode", "", $i, $rc, false);
+      $command = "prime.sh $PrimeMode";
+      $this->runCommand($command, "", $i, $rc, false);
 
       if ( $rc != 0 )
-         throw new SoapFault("PortagePrimeError", "Failed to prime, something went wrong in prime.sh.\nrc=$rc; Command=$command $PrimeMode");
+         throw new SoapFault("PortagePrimeError", "Failed to prime, something went wrong in prime.sh.\nrc=$rc; Command=$command");
 
       return "OK";
    }
@@ -124,13 +125,17 @@ class PortageLiveAPI {
       $cwd = "/tmp";
       global $base_portage_dir;
       $context_dir = $i["context_dir"];
+      $PYTHON_HOME = '/opt/Python-2.7.6';
       $env = array(
          'PORTAGE'         => "$base_portage_dir",
-         'LD_LIBRARY_PATH' => "$context_dir/lib:$base_portage_dir/lib:/lib:/usr/lib",
-         'PATH'            => "$context_dir/bin:$i[context_dir]:$base_portage_dir/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+         'LD_LIBRARY_PATH' => "$context_dir/lib:$base_portage_dir/lib:/$PYTHON_HOME/lib:/lib:/usr/lib",
+         'PATH'            => "$context_dir/bin:$i[context_dir]:$base_portage_dir/bin:$PYTHON_HOME/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
          'PERL5LIB'        => "$context_dir/lib:$base_portage_dir/lib",
-         'PYTHONPATH'      => "$context_dir/lib:$base_portage_dir/lib"
+         'PYTHONPATH'      => "$context_dir/lib:$base_portage_dir/lib",
+         'PORTAGE_INTERNAL_CALL' => 1
       );
+
+      #error_log(print_r($env, true), 3, '/tmp/PortageLiveAPI.debug.log');
 
       $descriptorspec = array(
          0 => array("pipe", "r"),  // stdin is a pipe that the child will read from
@@ -139,8 +144,10 @@ class PortageLiveAPI {
          // stdout is a pipe that the child will write to
          $descriptorspec[1] = array("pipe", "w");
          // stderr is a file to write to
-         $descriptorspec[2] = array("file", "/tmp/error-output.txt", "a");
-      } else {
+         #$descriptorspec[2] = array("file", "/tmp/error-output.txt", "a");
+         $descriptorspec[2] = array("pipe", "w");
+      }
+      else {
          $descriptorspec[1] = array("file", "/dev/null", "a");
          $descriptorspec[2] = array("file", "/dev/null", "a");
       }
@@ -156,9 +163,12 @@ class PortageLiveAPI {
          fclose($pipes[0]);
 
          $my_retval = "";
+         $error_message = '';
          if ( $wantoutput ) {
             $my_retval = stream_get_contents($pipes[1]);
             fclose($pipes[1]);
+            $error_message = stream_get_contents($pipes[2]);
+            fclose($pipes[2]);
          }
 
          // It is important that you close any pipes before calling
@@ -167,9 +177,17 @@ class PortageLiveAPI {
          if ( $return_value != 0 ) {
             if ( is_null($exit_status) )
                throw new SoapFault("PortageServer",
-                  "non-zero return code from $command: $return_value\n".debug($i));
-            else
+                  "non-zero return code from $command: $return_value\n".debug($i),
+                  "PortageLiveAPI",
+                  $error_message);
+            else {
                $exit_status = $return_value;
+               if ( $wantoutput ) {
+                  error_log($error_message . "\n", 3, '/tmp/error-output.txt');
+                  $my_retval = rtrim($my_retval);
+                  $my_retval .= $error_message;
+               }
+            }
          } else {
             if (!is_null($exit_status))
                $exit_status = 0;
@@ -185,6 +203,7 @@ class PortageLiveAPI {
    # Throws SoapFault (faultcode=PortageServer) in case of error.
    # Returns the name of the directory created.
    function makeWorkDir($filename) {
+      date_default_timezone_set("UTC");
       $timestamp = date("Ymd\THis\Z");
       $base = $this->normalizeName("SOAP_{$filename}_{$timestamp}");
       global $base_web_dir;
@@ -378,6 +397,79 @@ class PortageLiveAPI {
    # Translate $src_string using the default context
    function getTranslation($src_string, $newline, $xtags) {
       return $this->translateText($src_string, "context", $newline, $xtags, false);
+   }
+
+   function updateFixedTerms($content, $filename, $encoding, $context, $sourceColumnIndex, $sourceLanguage, $targetLanguage) {
+      #error_log(func_get_args(), 3, '/tmp/PortageLiveAPI.debug.log');
+      $encoding = strtolower($encoding);
+      if (!($encoding == 'cp-1252' or $encoding == 'utf-8')) {
+         throw new SoapFault("PortageBadArgs", "Unsupported encoding ($encoding)");
+      }
+
+      $sourceLanguage = strtolower($sourceLanguage);
+      $targetLanguage = strtolower($targetLanguage);
+
+      $contextInfo = $this->getContextInfo($context);
+      $this->validateContext($contextInfo);
+
+      if ($content == '') {
+         throw new SoapFault("PortageBadArgs", "There is no file content ($filename).");
+      }
+      $work_dir = $this->makeWorkDir("fixedTermUpdate_{$context}_$filename");
+      $localFilename = "$work_dir/fixedTerms.in";
+      $local_file = fopen($localFilename, "w");
+      if ( !is_resource($local_file) )
+         throw new SoapFault("PortageServer", "failed to write to local file");
+      $bytes_written = fwrite($local_file, $content);
+      if ( $bytes_written != strlen($content) )
+         throw new SoapFault("PortageServer", "incomplete write to local file " .
+                             "(wrote $bytes_written; expected ".strlen($content).")");
+      fclose($local_file);
+      $content = "";
+
+      if ($encoding == 'cp-1252') {
+         $this->runCommand("iconv -f cp1252 -t UTF-8 < $localFilename > $localFilename" . ".utf8", "", $contextInfo, $exit_status, false);
+         if ($exit_status != 0) {
+            throw new SoapFault("PortageServer", "Error converting fixed terms to UTF-8");
+         }
+         $localFilename = $localFilename . ".utf8";
+      }
+
+      $tm = $contextInfo["context_dir"] . "/plugins/fixedTerms/tm";
+      $fixedTerms = $contextInfo["context_dir"] . "/plugins/fixedTerms/fixedTerms";
+      #$command = "PORTAGE_INTERNAL_CALL=1 flock " . $contextInfo["context_dir"] . "/plugins/fixedTerms/tm -c \"set -o pipefail; fixed_term2tm.pl -source_column=$sourceColumnIndex -source=$sourceLanguage -target=$targetLanguage $localFilename";
+      $command = "flock $tm.lock --command \"set -o pipefail;";
+      $command .= " cp $localFilename $fixedTerms";
+      $command .= " && fixed_term2tm.pl -source_column=$sourceColumnIndex -source=$sourceLanguage -target=$targetLanguage $fixedTerms";
+      $command .= " | sort --unique > $tm\"";
+      #error_log($command . "\n", 3, '/tmp/PortageLiveAPI.debug.log');
+
+      $exit_status = NULL;
+      $result = $this->runCommand($command, "", $contextInfo, $exit_status, true);
+      if ($exit_status != 0)
+         throw new SoapFault("PortageServer",
+            "non-zero return code from $command: $exit_status\n" . $result);
+
+      if (is_file($tm) === FALSE)
+         throw new SoapFault("PortageServer", "Phrase table not properly generated for $context");
+
+      # May be it would be wiser to return the number of fixed term pairs that were processed by fixed_term2tm.pl?
+      return true;
+   }
+
+   function getFixedTerms($context) {
+      $contextInfo = $this->getContextInfo($context);
+      $this->validateContext($contextInfo);
+
+      $fixedTerms = $contextInfo["context_dir"] . "/plugins/fixedTerms/fixedTerms";
+      if (is_file($fixedTerms) === FALSE)
+         throw new SoapFault("PortageServer", "$context doesn't have fixed terms.", "PortageLiveAPI");
+
+      $content = file_get_contents($fixedTerms);
+      if ( $content === FALSE)
+         throw new SoapFault("PortageServer", "incomplete read of fixed terms local file ($fixedTerms)");
+
+      return $content;
    }
 }
 
