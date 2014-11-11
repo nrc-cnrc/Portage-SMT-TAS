@@ -7,6 +7,7 @@
 # Copyright 2005, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2005, Her Majesty in Right of Canada
 
+SHELL := /bin/bash
 DIR ?= src_out
 PORTAGE ?= /home/portage/i686-g3.4.6
 CORPUS_DIR ?= ../../regress-small-voc
