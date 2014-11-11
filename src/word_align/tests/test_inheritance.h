@@ -18,6 +18,7 @@ class TestInheritance : public CxxTest::TestSuite
 {
    struct Base {
       virtual int foo() { return 0; }
+      virtual ~Base() {}
    };
    struct Sub : public Base {
       virtual int foo() { return 1; }
