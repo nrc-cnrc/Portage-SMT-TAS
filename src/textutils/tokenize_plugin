@@ -24,10 +24,19 @@
 ## source language is not one of "en", "fr", or "es", the languages supported by
 ## utokenize.pl.
 ##
+## Additional option for ar:
+##    -m      pring MADA's database instead of the normal form.
+##    -d      activate debugging and keep MADA's work dir.
+##    -t dir  use dir as the temporary directory for MADA.
 
-if [[ $1 = -help || $1 = -h ]]; then
+usage() {
     cat $0 | grep "^##" | cut -c4-
     exit 1
+}
+
+
+if [[ $1 = -help || $1 = -h ]]; then
+   usage;
 fi
 
 [[ $# = 0 ]] && echo "Missing language code argument" >&2 && exit 1
@@ -48,13 +57,25 @@ if [[ $SOURCE_LANGUAGE = ch || $SOURCE_LANGUAGE = zh ]]; then
    # reading STDIN and writing to STDOUT.
 
 elif [[ $SOURCE_LANGUAGE = ar ]]; then
+   while getopts mdt: opt ; do
+      case "$opt" in
+         h) usage ;;
+         m) DATABASE=1 ;;
+         d) DEBUG_TOKENIZE_PLUGIN=1 ;;
+         t) TOKENIZE_PLUGIN_TMP_FILE=$OPTARG ;;
+         \?) usage ;;
+      esac
+   done
+
    export PATH=`dirname $0`:$PATH
    set -o pipefail
 
-   TMPFILE=`mktemp -d /tmp/ar_tokenization.XXXXXXXXXX` || exit 1
-   [[ -n "$DEBUG_TOKENIZE_PLUGIN" ]] || trap "rm -fr ${TMPFILE}" 0
-   mkdir -p ${TMPFILE}/pretok
-   PRETOK_FILE="${TMPFILE}/pretok/file"
+   if [[ -z "${TOKENIZE_PLUGIN_TMP_FILE}" ]]; then
+      TOKENIZE_PLUGIN_TMP_FILE=`mktemp -d /tmp/ar_tokenization.XXXXXXXXXX` || exit 1
+   fi
+   [[ -n "$DEBUG_TOKENIZE_PLUGIN" ]] || trap "rm -fr ${TOKENIZE_PLUGIN_TMP_FILE}" 0
+   mkdir -p ${TOKENIZE_PLUGIN_TMP_FILE}/pretok
+   PRETOK_FILE="${TOKENIZE_PLUGIN_TMP_FILE}/pretok/file"
 
    # Character set switching between Arabic and non Arabic
    # http://www.regular-expressions.info/unicode.html
@@ -98,24 +119,28 @@ elif [[ $SOURCE_LANGUAGE = ar ]]; then
    ${MADAX} \
       config=${CONFIG} \
       file=${PRETOK_FILE} \
-      outputdir=${TMPFILE} \
+      outputdir=${TOKENIZE_PLUGIN_TMP_FILE} \
       TOKAN_SCHEME="SCHEME=ATB4MT MARKNOANALYSIS" \
-      2> ${TMPFILE}/log
+      2> ${TOKENIZE_PLUGIN_TMP_FILE}/log
    rc=$?
-   if [ "$rc" != "0" -o ! -e "${TMPFILE}/file.bw.mada.tok" ]; then
+   if [ "$rc" != "0" -o ! -e "${TOKENIZE_PLUGIN_TMP_FILE}/file.bw.mada.tok" ]; then
       echo "ERROR: with MADA (tokenize_plugin)" >&2
-      cat ${TMPFILE}/log >&2
+      cat ${TOKENIZE_PLUGIN_TMP_FILE}/log >&2
       exit 1
    fi
 
 
-   export PORTAGE_INTERNAL_CALL=1
-   parse_tokan.pl 6 1 < ${TMPFILE}/file.bw.mada.tok
-   rc=$?
-   if [[ "$rc" != 0 ]]; then
-      echo "ERROR: with parse_tokan.pl (tokenize_plugin)" >&2
-      cat ${TMPFILE}/log >&2
-      exit 1
+   if [[ $DATABASE ]]; then
+      cat ${TOKENIZE_PLUGIN_TMP_FILE}/file.bw.mada.tok
+   else
+      export PORTAGE_INTERNAL_CALL=1
+         parse_tokan.pl 6 1 < ${TOKENIZE_PLUGIN_TMP_FILE}/file.bw.mada.tok
+      rc=$?
+      if [[ "$rc" != 0 ]]; then
+         echo "ERROR: with parse_tokan.pl (tokenize_plugin)" >&2
+            cat ${TOKENIZE_PLUGIN_TMP_FILE}/log >&2
+         exit 1
+      fi
    fi
 
    unset PRETOK_FILE
