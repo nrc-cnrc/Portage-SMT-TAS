@@ -82,12 +82,12 @@ while (<>) {
       else {
          $3 .
          "<NUMK target=\"" .
-         join(" ", (map { my $num = $_; $num =~ s#,# #g; $num } ($4))) .
+         do { my $num = $4; $num =~ s#,# #g; $num } .
          ($5 eq "k"
             ? " 000"
             : ($7 eq "m"
-               ? join(" ", (map { my $num = $_; $num =~ s#^\.#,#; $num } ($6))) . " millions"
-               : join(" ", (map { my $num = $_; $num =~ s#,# #g; $num =~ s#^\.#,#; $num } ($5)))
+               ? do { my $num = $6; $num =~ s#^\.#,#; $num } . " millions"
+               : do { my $num = $5; $num =~ s#,# #g; $num =~ s#^\.#,#; $num }
               )
          ) .
          "\">$4$5<\/NUMK>"

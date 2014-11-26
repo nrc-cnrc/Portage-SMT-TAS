@@ -35,8 +35,10 @@
   </con:settings>
   <con:interface xsi:type="con:WsdlInterface" wsaVersion="NONE" name="PortageLive_SoapHttpBinding" type="wsdl" bindingName="{http://132.246.128.219/PortageLiveAPI.wsdl}PortageLive_SoapHttpBinding" soapVersion="1_1" anonymous="optional" definition="http://132.246.128.219/PortageLiveAPI.wsdl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <con:settings/>
-    
-    <con:definitionCache type="TEXT" rootPart="http://132.246.128.219/PortageLiveAPI.wsdl"><con:part><con:url>http://132.246.128.219/PortageLiveAPI.wsdl</con:url><con:content><![CDATA[<?xml-stylesheet type="text/xsl" href="wsdl-viewer.xsl"?>
+    <con:definitionCache type="TEXT" rootPart="http://132.246.128.219/PortageLiveAPI.wsdl">
+      <con:part>
+        <con:url>http://132.246.128.219/PortageLiveAPI.wsdl</con:url>
+        <con:content><![CDATA[<?xml-stylesheet type="text/xsl" href="wsdl-viewer.xsl"?>
 <definitions name="PortageLiveService" targetNamespace="http://132.246.128.219/PortageLiveAPI.wsdl" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://132.246.128.219/PortageLiveAPI.wsdl" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.xmlsoap.org/wsdl/">
   <!--Understanding WSDL: http://msdn.microsoft.com/en-us/library/ms996486.aspx-->
   <!--http://www.w3.org/TR/wsdl20-->
@@ -289,27 +291,27 @@
          - Filename is the fixed term file name.
          - encoding is the fixed term file's encoding and can be either UTF-8 or CP-1252.
          - context must be a valid context identifier as returned by getAllContexts().
-         - sourceColumnIndex is the 1-based index of the source column.
+         - sourceColumnIndex is the 1-based index of the source column. {1 or 2}
          - sourceLanguage is the source term's language code {en, fr, es, da}
          - targetLanguage is the target term's language code {en, fr, es, da}
 
-         Fixed term's file format is comprised of an header and a body.
-         The header is a single line of the following format:
+         The Fixed Term file format is comprised of a header and a body.
+         The header is a single line in the following format:
          sourceLanguage&lt;TAB>targetLanguage
-         The body is several line of the following format:
+         The body is several lines in the following format:
          sourceTerm&lt;TAB>targetTerm
 
          Important considerations about the fixed term list:
          - No morphological transformation will be applied.  You have to
-           provide all inflected forms.
+           provide all inflected forms if any.
          - A given term can only have one translation.
-         - There is no disambiguation of terms done.  It is upto the user to
+         - There is no disambiguation of terms done.  It is up to the user to
            provide unambiguous terms.
          - Fixed term replacement is done after lowercasing.  This means that
-           it is not possible to distinguish between "Rice" and "rice" nor "US"
-           and "us".
+           it is not possible to distinguish between "Rice" and "rice", nor
+           between "US" and "us".
 
-         This function always return true or raises and exception otherwise.
+         This function returns true on success, or raises an exception otherwise.
 
          Throws a SoapFault exception in case of a protocol or connection error.</documentation>
       <input message="tns:updateFixedTermRequest"/>
@@ -364,7 +366,7 @@
     <operation name="getTranslation2">
       <soap:operation soapAction="getTranslation2"/>
       <input>
-        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://132.246.128.219/PortageLiveAPI.wsdl" use="encoded"/>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </input>
       <output>
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
@@ -515,7 +517,11 @@
       <soap:address location="http://132.246.128.219/PortageLiveAPI.php"/>
     </port>
   </service>
-</definitions>]]></con:content><con:type>http://schemas.xmlsoap.org/wsdl/</con:type></con:part></con:definitionCache><con:endpoints>
+</definitions>]]></con:content>
+        <con:type>http://schemas.xmlsoap.org/wsdl/</con:type>
+      </con:part>
+    </con:definitionCache>
+    <con:endpoints>
       <con:endpoint>http://132.246.128.219/PortageLiveAPI.php</con:endpoint>
       <con:endpoint>http://132.246.236.197/PortageLiveAPI.php</con:endpoint>
       <con:endpoint>http://132.246.236.197/PortageLiveAPI.php</con:endpoint>
@@ -907,7 +913,6 @@
           <con:size>4745</con:size>
           <con:contentId>817321072532</con:contentId>
           <con:part>817321072532</con:part>
-          
           <con:data>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</con:data>
           <con:id>ac7e6eeb-6d76-47f8-bfdb-1e7784ac99b0</con:id>
         </con:attachment>
@@ -1692,7 +1697,7 @@ rc=3; Command=prime.sh bogus</content>
                 <allowWildcards>true</allowWildcards>
               </con:configuration>
             </con:assertion>
-            <con:assertion type="XQuery Match" name="Validate detail">
+            <con:assertion type="XQuery Match" name="Validate detail" disabled="true">
               <con:configuration>
                 <path>//*:Fault/detail</path>
                 <content>Corrupted file, missing the language header. *</content>
@@ -1800,6 +1805,8 @@ rc=3; Command=prime.sh bogus</content>
               </con:configuration>
             </con:assertion>
             <con:credentials>
+              <con:selectedAuthProfile>NTLM</con:selectedAuthProfile>
+              <con:addedBasicAuthenticationTypes>NTLM</con:addedBasicAuthenticationTypes>
               <con:authType>NTLM</con:authType>
             </con:credentials>
             <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
@@ -1851,11 +1858,13 @@ rc=3; Command=prime.sh bogus</content>
             <con:assertion type="XQuery Match" name="Validate faultstring">
               <con:configuration>
                 <path>//*:Fault/faultstring</path>
-                <content>Unsupported encoding (invalid.encoding)</content>
+                <content>Unsupported encoding (invalid.encoding): use either UTF-8 or CP-1252.</content>
                 <allowWildcards>false</allowWildcards>
               </con:configuration>
             </con:assertion>
             <con:credentials>
+              <con:selectedAuthProfile>NTLM</con:selectedAuthProfile>
+              <con:addedBasicAuthenticationTypes>NTLM</con:addedBasicAuthenticationTypes>
               <con:authType>NTLM</con:authType>
             </con:credentials>
             <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
@@ -1967,7 +1976,7 @@ rc=3; Command=prime.sh bogus</content>
                 <allowWildcards>true</allowWildcards>
               </con:configuration>
             </con:assertion>
-            <con:assertion type="XQuery Match" name="Validate detail">
+            <con:assertion type="XQuery Match" name="Validate detail" disabled="true">
               <con:configuration>
                 <path>//*:Fault/detail</path>
                 <content>Invalid source column index (0)*</content>
@@ -2032,7 +2041,7 @@ rc=3; Command=prime.sh bogus</content>
                 <allowWildcards>true</allowWildcards>
               </con:configuration>
             </con:assertion>
-            <con:assertion type="XQuery Match" name="Validate detail">
+            <con:assertion type="XQuery Match" name="Validate detail" disabled="true">
               <con:configuration>
                 <path>//*:Fault/detail</path>
                 <content>Invalid source column index (3) *</content>
@@ -2097,7 +2106,7 @@ rc=3; Command=prime.sh bogus</content>
                 <allowWildcards>true</allowWildcards>
               </con:configuration>
             </con:assertion>
-            <con:assertion type="XQuery Match" name="Validate detail">
+            <con:assertion type="XQuery Match" name="Validate detail" disabled="true">
               <con:configuration>
                 <path>//*:Fault/detail</path>
                 <content>Unsupported source language (zz) *</content>
@@ -2162,7 +2171,7 @@ rc=3; Command=prime.sh bogus</content>
                 <allowWildcards>true</allowWildcards>
               </con:configuration>
             </con:assertion>
-            <con:assertion type="XQuery Match" name="Validating detail">
+            <con:assertion type="XQuery Match" name="Validating detail" disabled="true">
               <con:configuration>
                 <path>//*:Fault/detail</path>
                 <content>Unsupported target language (yy) *</content>
@@ -2222,7 +2231,7 @@ rc=3; Command=prime.sh bogus</content>
                 <allowWildcards>true</allowWildcards>
               </con:configuration>
             </con:assertion>
-            <con:assertion type="XQuery Match" name="Validate detail">
+            <con:assertion type="XQuery Match" name="Validate detail" disabled="true">
               <con:configuration>
                 <path>//*:Fault/detail</path>
                 <content>Language mismatch for source language(file: eng, cli: fr).*</content>
@@ -2397,6 +2406,8 @@ rc=3; Command=prime.sh bogus</content>
               </con:configuration>
             </con:assertion>
             <con:credentials>
+              <con:selectedAuthProfile>NTLM</con:selectedAuthProfile>
+              <con:addedBasicAuthenticationTypes>NTLM</con:addedBasicAuthenticationTypes>
               <con:authType>NTLM</con:authType>
             </con:credentials>
             <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
@@ -2406,7 +2417,18 @@ rc=3; Command=prime.sh bogus</content>
           </con:request>
         </con:config>
       </con:testStep>
-      <con:testStep type="request" name="updateFixedTerms - Request - UTF-8 file"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>PortageLive_SoapHttpBinding</con:interface><con:operation>updateFixedTerms</con:operation><con:request name="updateFixedTerms - Request - UTF-8 file" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType=""><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://132.246.128.219/PortageLiveAPI.php</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:por="http://132.246.128.219/PortageLiveAPI.wsdl">
+      <con:testStep type="request" name="updateFixedTerms - Request - UTF-8 file">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>updateFixedTerms</con:operation>
+          <con:request name="updateFixedTerms - Request - UTF-8 file" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>http://132.246.128.219/PortageLiveAPI.php</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:por="http://132.246.128.219/PortageLiveAPI.wsdl">
    <soapenv:Header/>
    <soapenv:Body>
       <por:updateFixedTerms soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
@@ -2419,20 +2441,38 @@ rc=3; Command=prime.sh bogus</content>
          <targetLanguage xsi:type="xsd:string">fr</targetLanguage>
       </por:updateFixedTerms>
    </soapenv:Body>
-</soapenv:Envelope>]]></con:request><con:assertion type="SOAP Response" name="SOAP Response"/><con:assertion type="SOAP Fault Assertion" name="Not SOAP Fault"/><con:assertion type="XQuery Match" name="Validate status is true"><con:configuration><path>//*:updateFixedTermsResponse/status</path><content>true</content><allowWildcards>false</allowWildcards></con:configuration></con:assertion><con:credentials>
-          <con:selectedAuthProfile>NTLM</con:selectedAuthProfile>
-          <con:addedBasicAuthenticationTypes>NTLM</con:addedBasicAuthenticationTypes>
-          <con:authType>NTLM</con:authType>
-        </con:credentials><con:attachment>
-          <con:name>fiches_termino.utf8.txt</con:name>
-          <con:contentType>text/plain</con:contentType>
-          <con:size>4745</con:size>
-          <con:contentId>817321072532</con:contentId>
-          <con:part>817321072532</con:part>
-          
-          <con:data>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</con:data>
-          <con:id>ac7e6eeb-6d76-47f8-bfdb-1e7784ac99b0</con:id>
-        </con:attachment><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="updateFixedTerms"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:properties/>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:assertion type="SOAP Fault Assertion" name="Not SOAP Fault"/>
+            <con:assertion type="XQuery Match" name="Validate status is true">
+              <con:configuration>
+                <path>//*:updateFixedTermsResponse/status</path>
+                <content>true</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:selectedAuthProfile>NTLM</con:selectedAuthProfile>
+              <con:addedBasicAuthenticationTypes>NTLM</con:addedBasicAuthenticationTypes>
+              <con:authType>NTLM</con:authType>
+            </con:credentials>
+            <con:attachment>
+              <con:name>fiches_termino.utf8.txt</con:name>
+              <con:contentType>text/plain</con:contentType>
+              <con:size>4745</con:size>
+              <con:contentId>817321072532</con:contentId>
+              <con:part>817321072532</con:part>
+              <con:data>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</con:data>
+              <con:id>ac7e6eeb-6d76-47f8-bfdb-1e7784ac99b0</con:id>
+            </con:attachment>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="updateFixedTerms"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
+      <con:properties/>
     </con:testCase>
     <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="getFixedTerms TestCase" searchProperties="true" id="a1838e2d-44cb-42e4-a9ae-206b6edd8207">
       <con:settings/>
@@ -2502,7 +2542,9 @@ rc=3; Command=prime.sh bogus</content>
               </con:configuration>
             </con:assertion>
             <con:credentials>
-              <con:selectedAuthProfile>NTLM</con:selectedAuthProfile><con:addedBasicAuthenticationTypes>NTLM</con:addedBasicAuthenticationTypes><con:authType>NTLM</con:authType>
+              <con:selectedAuthProfile>NTLM</con:selectedAuthProfile>
+              <con:addedBasicAuthenticationTypes>NTLM</con:addedBasicAuthenticationTypes>
+              <con:authType>NTLM</con:authType>
             </con:credentials>
             <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
             <con:jmsPropertyConfig/>
@@ -2553,8 +2595,6 @@ rc=3; Command=prime.sh bogus</content>
           </con:request>
         </con:config>
       </con:testStep>
-      
-      
       <con:testStep type="request" name="getTranslation2 - Request">
         <con:settings/>
         <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -2593,7 +2633,9 @@ number must not be changed but ft tagged <b>Z 420k V</b>
             <con:assertion type="SOAP Response" name="SOAP Response"/>
             <con:assertion type="SOAP Fault Assertion" name="Not SOAP Fault"/>
             <con:assertion type="XQuery Match" name="Validate translations">
-              <con:configuration><path>//*:getTranslation2Response/Result</path><content><![CDATA[<Result xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><![CDATA[Ces lois relatives à l’administration de la Justice sont trop longtemps.
+              <con:configuration>
+                <path>//*:getTranslation2Response/Result</path>
+                <content><![CDATA[<Result xsi:type="xsd:string" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><![CDATA[Ces lois relatives à l’administration de la Justice sont trop longtemps.
 Chemical compound <symbole a>, est assez explosif.
 Jamais torchons <symbole \b> avec potable.
 Nous amour grandes \arbre dans notre backyard.
@@ -2604,7 +2646,9 @@ compte 701k
 410 000 <a> Z 420 000 V</a> 430 000
 nombre ne doivent pas être modifiée, mais ft tagged <c> z 420k v</c>
 <NUM whatever> blah</NUM>
-<FT whatever> blah 742 000 blah</FT>]]]]>><![CDATA[</Result>]]></content><allowWildcards>false</allowWildcards></con:configuration>
+<FT whatever> blah 742 000 blah</FT>]]]]>><![CDATA[</Result>]]></content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
             </con:assertion>
             <con:credentials>
               <con:selectedAuthProfile>NTLM</con:selectedAuthProfile>
@@ -2617,7 +2661,8 @@ nombre ne doivent pas être modifiée, mais ft tagged <c> z 420k v</c>
             <con:wsrmConfig version="1.2"/>
           </con:request>
         </con:config>
-      </con:testStep><con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
+      </con:testStep>
+      <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
 import org.apache.commons.codec.binary.Base64
 
 def input = context.expand( '${#TestCase#input_txt}' )

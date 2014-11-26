@@ -3,7 +3,7 @@
 # @brief Implementation of the API to the PortageII SMT software suite.
 #
 # @author Patrick Paul, Eric Joanis and Samuel Larkin
-# 
+#
 # Traitement multilingue de textes / Multilingual Text Processing
 # Technologies de l'information et des communications /
 #   Information and Communications Technologies
@@ -125,11 +125,10 @@ class PortageLiveAPI {
       $cwd = "/tmp";
       global $base_portage_dir;
       $context_dir = $i["context_dir"];
-      $PYTHON_HOME = '/opt/Python-2.7.6';
       $env = array(
          'PORTAGE'         => "$base_portage_dir",
-         'LD_LIBRARY_PATH' => "$context_dir/lib:$base_portage_dir/lib:/$PYTHON_HOME/lib:/lib:/usr/lib",
-         'PATH'            => "$context_dir/bin:$i[context_dir]:$base_portage_dir/bin:$PYTHON_HOME/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+         'LD_LIBRARY_PATH' => "$context_dir/lib:$base_portage_dir/lib:/lib:/usr/lib",
+         'PATH'            => "$context_dir/bin:$i[context_dir]:$base_portage_dir/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
          'PERL5LIB'        => "$context_dir/lib:$base_portage_dir/lib",
          'PYTHONPATH'      => "$context_dir/lib:$base_portage_dir/lib",
          'PORTAGE_INTERNAL_CALL' => 1
@@ -144,8 +143,7 @@ class PortageLiveAPI {
          // stdout is a pipe that the child will write to
          $descriptorspec[1] = array("pipe", "w");
          // stderr is a file to write to
-         #$descriptorspec[2] = array("file", "/tmp/error-output.txt", "a");
-         $descriptorspec[2] = array("pipe", "w");
+         $descriptorspec[2] = array("file", "/tmp/error-output.txt", "a");
       }
       else {
          $descriptorspec[1] = array("file", "/dev/null", "a");
@@ -163,12 +161,9 @@ class PortageLiveAPI {
          fclose($pipes[0]);
 
          $my_retval = "";
-         $error_message = '';
          if ( $wantoutput ) {
             $my_retval = stream_get_contents($pipes[1]);
             fclose($pipes[1]);
-            $error_message = stream_get_contents($pipes[2]);
-            fclose($pipes[2]);
          }
 
          // It is important that you close any pipes before calling
@@ -178,16 +173,9 @@ class PortageLiveAPI {
             if ( is_null($exit_status) )
                throw new SoapFault("PortageServer",
                   "non-zero return code from $command: $return_value\n".debug($i),
-                  "PortageLiveAPI",
-                  $error_message);
-            else {
+                  "PortageLiveAPI");
+            else
                $exit_status = $return_value;
-               if ( $wantoutput ) {
-                  error_log($error_message . "\n", 3, '/tmp/error-output.txt');
-                  $my_retval = rtrim($my_retval);
-                  $my_retval .= $error_message;
-               }
-            }
          } else {
             if (!is_null($exit_status))
                $exit_status = 0;
@@ -403,7 +391,7 @@ class PortageLiveAPI {
       #error_log(func_get_args(), 3, '/tmp/PortageLiveAPI.debug.log');
       $encoding = strtolower($encoding);
       if (!($encoding == 'cp-1252' or $encoding == 'utf-8')) {
-         throw new SoapFault("PortageBadArgs", "Unsupported encoding ($encoding)");
+         throw new SoapFault("PortageBadArgs", "Unsupported encoding ($encoding): use either UTF-8 or CP-1252.");
       }
 
       $sourceLanguage = strtolower($sourceLanguage);
@@ -465,9 +453,13 @@ class PortageLiveAPI {
       if (is_file($fixedTerms) === FALSE)
          throw new SoapFault("PortageServer", "$context doesn't have fixed terms.", "PortageLiveAPI");
 
+      $tm = $contextInfo["context_dir"] . "/plugins/fixedTerms/tm";
+      if (is_file($tm) === FALSE)
+         throw new SoapFault("PortageServer", "$context has incorrectly installed fixed terms.", "PortageLiveAPI");
+
       $content = file_get_contents($fixedTerms);
       if ( $content === FALSE)
-         throw new SoapFault("PortageServer", "incomplete read of fixed terms local file ($fixedTerms)");
+         throw new SoapFault("PortageServer", "incomplete read of fixed terms local file ($fixedTerms).");
 
       return $content;
    }

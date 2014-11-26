@@ -280,27 +280,27 @@
          - Filename is the fixed term file name.
          - encoding is the fixed term file's encoding and can be either UTF-8 or CP-1252.
          - context must be a valid context identifier as returned by getAllContexts().
-         - sourceColumnIndex is the 1-based index of the source column.
+         - sourceColumnIndex is the 1-based index of the source column. {1 or 2}
          - sourceLanguage is the source term's language code {en, fr, es, da}
          - targetLanguage is the target term's language code {en, fr, es, da}
 
-         Fixed term's file format is comprised of an header and a body.
-         The header is a single line of the following format:
+         The Fixed Term file format is comprised of a header and a body.
+         The header is a single line in the following format:
          sourceLanguage&lt;TAB&gt;targetLanguage
-         The body is several line of the following format:
+         The body is several lines in the following format:
          sourceTerm&lt;TAB&gt;targetTerm
 
          Important considerations about the fixed term list:
          - No morphological transformation will be applied.  You have to
-           provide all inflected forms.
+           provide all inflected forms if any.
          - A given term can only have one translation.
-         - There is no disambiguation of terms done.  It is upto the user to
+         - There is no disambiguation of terms done.  It is up to the user to
            provide unambiguous terms.
          - Fixed term replacement is done after lowercasing.  This means that
-           it is not possible to distinguish between "Rice" and "rice" nor "US"
-           and "us".
+           it is not possible to distinguish between "Rice" and "rice", nor
+           between "US" and "us".
 
-         This function always return true or raises and exception otherwise.
+         This function returns true on success, or raises an exception otherwise.
 
          Throws a SoapFault exception in case of a protocol or connection error.
       </documentation>

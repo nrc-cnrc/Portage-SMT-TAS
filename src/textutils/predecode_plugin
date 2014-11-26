@@ -32,7 +32,7 @@ SOURCE_LANGUAGE=$1; shift
 # TODO: How to pickup the proper plugins/fixedTerms if this is the default script located in /opt/PortageII/bin/?
 FIXED_TERMS_MODEL_DIRECTORY=${FIXED_TERMS_MODEL_DIRECTORY:-$(dirname $0)}
 
-# Uncomment if you want to mark English number to there French notation.
+# Uncomment if you want to mark English number for rule-based translation to their French format.
 #MARK_ENGLISH_NUMBERS=1
 
 set -o pipefail
@@ -51,7 +51,6 @@ if [[ -s ${FIXED_TERMS_MODEL_DIRECTORY}/fixedTerms/tm ]]; then
    | utf8_filter \
    | flock --shared ${FIXED_TERMS_MODEL_DIRECTORY}/fixedTerms/tm.lock --command "canoe \
       -f /dev/null \
-      -v 1 \
       -load-first \
       -oov pass \
       -ttable-multi-prob ${FIXED_TERMS_MODEL_DIRECTORY}/fixedTerms/tm \
