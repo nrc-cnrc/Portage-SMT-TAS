@@ -17,7 +17,7 @@
 # The PORTAGE environment variable points the the root of the PortageII
 # package.
 # Change this variable to indicate where this package is actually located.
-setenv PORTAGE $HOME/PortageII-2.1
+setenv PORTAGE $HOME/PortageII-2.2
 
 # Extra dynamic libraries.  If you had to install dynamic libraries in custom
 # locations to get PortageII running, list the PATHs where the .so files are
@@ -47,7 +47,7 @@ setenv PORTAGE $HOME/PortageII-2.1
 # END OF USER CONFIGURABLE VARIABLES
 # =======================================================================
 
-echo 'PortageII 2.1, NRC-CNRC, (c) 2004 - 2014, Her Majesty in Right of Canada' > /dev/stderr
+echo 'PortageII 2.2, NRC-CNRC, (c) 2004 - 2014, Her Majesty in Right of Canada' > /dev/stderr
 
 if (! $?PATH) then
    setenv PATH $PORTAGE/bin

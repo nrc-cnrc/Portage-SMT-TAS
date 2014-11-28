@@ -1,4 +1,4 @@
-                              PortageII 2.1
+                              PortageII 2.2
 
 Traitement multilingue de textes / Multilingual Text Processing
 Technologies de l'information et des communications /
@@ -18,6 +18,21 @@ See NOTICE for the Copyright notices of 3rd party libraries.
 
 
 PortageII is the second generation of SMT software released by the NRC.
+
+PortageII 2.2 2014-10-20
+ This is a feature release, adding fixed terms handling.
+
+ Changes:
+  - PortageLiveAPI:
+    - Extended the API with updateFixedTerms to populate a context with fixed
+      terms.
+    - Extended the API with getFixedTerms to retrieve a context's fixed terms
+      list.
+    - soap.php was augmented to facilitate exerting updateFixedTerms &&
+      getFixedTerms.
+  - Adds fixed_term2tm.pl to create a phrase table from a list of fixed terms.
+  - framework:
+    - Prepares a new system to handle fixed terms.
 
 PortageII 2.1 2014-10-20
  This is a maintenance release, rolling in all the small patches that have been
