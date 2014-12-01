@@ -11,7 +11,7 @@ BuildArchitectures: noarch
 
 %description
 This package contains the full set of models required to translate from src_lang
-to tgt_lang using PortageII 2.2 and trained context context_description.
+to tgt_lang using PortageII_cur and trained context context_description.
 
 #
 # Do not put anything below the %defattr line; the list of files

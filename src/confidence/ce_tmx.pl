@@ -231,7 +231,7 @@ sub processFile {
    $parser->{tu_count} = 0;
    $parser->{seg_count} = 0;
    $parser->{filter_count} = 0;
-   $parser->{'tool-id'} = 'PortageII-2.2';
+   $parser->{'tool-id'} = 'PortageII-cur';
    $parser->{'tool-name'} = 'PortageII';
    $parser->{'tool-version'} = '2.2';
    $parser->{'tool-company'} = 'CNRC-NRC';
@@ -693,7 +693,7 @@ sub replaceTransUnit {
       #   <sdl:seg-defs><sdl:seg id="560" /></sdl:seg-defs>
       # Defined:
       #   <sdl:seg-defs><sdl:seg id="560" /></sdl:seg-defs>
-      #      <sdl:seg conf="Draft" id="56" origin="mt" origin-system="PortageII-2.2" percent="99" >
+      #      <sdl:seg conf="Draft" id="56" origin="mt" origin-system="PortageII-cur" percent="99" >
       #   </sdl:seg-defs>
       debug("Confidence estimation for %s: CE=%s %s\n", $xid, $ce, $parser->{filter});
       $sdl_seg->del_att('percent');       # Make sure there is no previous value for the attribut percent.
@@ -757,7 +757,7 @@ sub processHeader {
 
    #return;  # Do not add the tool tag to the header.
 
-   my @tools = $header->children('tool[@tool-id="PortageII-2.2"]');
+   my @tools = $header->children('tool[@tool-id="PortageII-cur"]');
 
    unless (@tools) {
       XML::Twig::Elt->new(

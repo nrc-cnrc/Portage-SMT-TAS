@@ -17,7 +17,7 @@
 # The PORTAGE environment variable points the the root of the PortageII
 # package.
 # Change this variable to indicate where this package is actually located.
-PORTAGE=$HOME/PortageII-2.2
+PORTAGE=$HOME/PortageII-cur
 
 # Extra dynamic libraries.  If you had to install dynamic libraries in custom
 # locations to get PortageII running, list the PATHs where the .so files are
@@ -44,7 +44,7 @@ PORTAGE=$HOME/PortageII-2.2
 # END OF USER CONFIGURABLE VARIABLES
 # =======================================================================
 
-echo 'PortageII 2.2, NRC-CNRC, (c) 2004 - 2014, Her Majesty in Right of Canada' >&2
+echo 'PortageII_cur, NRC-CNRC, (c) 2004 - 2013, Her Majesty in Right of Canada' >&2
 
 PATH=$PORTAGE/bin${PATH:+:$PATH}
 if [[ $EXTRA_PROGRAM_PATH ]]; then

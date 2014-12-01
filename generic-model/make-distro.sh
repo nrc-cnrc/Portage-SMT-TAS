@@ -33,7 +33,7 @@ Arguments:
                 clone's --branch option: a branch or a tag, typically a
                 tag having been created first using "git tag v1_X_Y COMMIT;
                 git push --tags", e.g.,:
-                   git tag PortageII-2.0 master
+                   git tag PortageII-cur master
                    git push --tags
                 run in both PORTAGEshared and portage.framework.
                 

@@ -11,7 +11,7 @@ BuildArchitectures: x86_64
 
 %description
 This package contains the full set of tools require to translate using
-PortageII 2.2
+PortageII_cur
 
 #
 # Do not put anything below the %defattr line; the list of files

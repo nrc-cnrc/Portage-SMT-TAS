@@ -1,4 +1,4 @@
-                               PortageII 2.2
+                               PortageII_cur
 
 Traitement multilingue de textes / Multilingual Text Processing
 Technologies de l'information et des communications /
@@ -13,32 +13,32 @@ license agreement for details.
 See NOTICE for the Copyright notices of 3rd party libraries.
 
 
-                          Installing PortageII 2.2
+                          Installing PortageII_cur
 
 We don't use autoconf, so the installation is done manually, but we tried to
 keep it as simple as possible.
 
 Copy the full contents of the CD to a directory of your choice, say
-$HOME/PortageII-2.2
-   cp -prd /CDlocation $HOME/PortageII-2.2
+$HOME/PortageII-cur
+   cp -prd /CDlocation $HOME/PortageII-cur
 or
-   rsync -av /CDlocation $HOME/PortageII-2.2
+   rsync -av /CDlocation $HOME/PortageII-cur
 
 Some users have reported needing to run "chmod +w" on some files or directories
-after the cp or rsync above.  Running "chmod -R +w $HOME/PortageII-2.2" might
+after the cp or rsync above.  Running "chmod -R +w $HOME/PortageII-cur" might
 solve this problem.
 
-If you chose a location other than $HOME/PortageII-2.2, edit SETUP.bash and
+If you chose a location other than $HOME/PortageII-cur, edit SETUP.bash and
 SETUP.tcsh and change the value of the PORTAGE variable to the actual location
 where your installed PortageII, and adjust the next steps below accordingly.
 
-Add $HOME/PortageII-2.2/{bin,lib,include} to the appropriate environment
-variables by sourcing $HOME/PortageII-2.2/SETUP.bash or SETUP.tcsh (depending
+Add $HOME/PortageII-cur/{bin,lib,include} to the appropriate environment
+variables by sourcing $HOME/PortageII-cur/SETUP.bash or SETUP.tcsh (depending
 on your preferred shell - if you use a shell other than bash or csh/tcsh,
 you're on your own):
-   source $HOME/PortageII-2.2/SETUP.bash
+   source $HOME/PortageII-cur/SETUP.bash
 or
-   source $HOME/PortageII-2.2/SETUP.tcsh
+   source $HOME/PortageII-cur/SETUP.tcsh
 
 For source code distributions :
 
@@ -58,7 +58,7 @@ For source code distributions :
 
 Once PortageII is installed, execute the following command to make sure you can
 run the software:
-   make -C $HOME/PortageII-2.2/test-suite/unit-testing/check-installation
+   make -C $HOME/PortageII-cur/test-suite/unit-testing/check-installation
 This script invokes programs that are each installed differently, and exercise
 the key parts of PortageII installation.  If everything is OK, you should see
 the following message: "Everything is correctly installed!" otherwise you will
@@ -68,7 +68,7 @@ command until you solved all errors.
 If you get "command not found" for any of these, your PATH is not correctly set
 or your installation failed.  Check your SETUP.bash/tcsh file and make sure you
 are sourcing it properly, ideally in your .<shell>rc file.  Your $PATH variable
-should include PortageII-2.2/bin.  Also check that PortageII-2.2/bin contains
+should include PortageII-cur/bin.  Also check that PortageII-cur/bin contains
 tokenize.pl.  If that's not the case, "make install" probably didn't complete
 successfully.
 
@@ -76,7 +76,7 @@ If tokenize.pl -h or ce.pl -h says "Can't locate <SomeFile>.pm in @INC ...",
 then your PERL5LIB is not correctly set or your installation partially failed.
 Check your SETUP.bash/tcsh file and make sure you are sourcing it properly,
 ideally in your .<shell>rc file.  Your $PERL5LIB variable should include
-PortageII-2.2/lib.  That directory should also contain LexiTools.pm and a
+PortageII-cur/lib.  That directory should also contain LexiTools.pm and a
 subdirectory called CE containing several .pm files.  If it doesn't, "make
 install" probably didn't complete successfully.
 
@@ -87,9 +87,9 @@ files.
 
 If canoe -h says "command not found" but the other two commands work:
  - with binary distributions, your $PATH variable must also include the
-   architecture specific folder PortageII-2.2/bin/<arch>.  Check your
+   architecture specific folder PortageII-cur/bin/<arch>.  Check your
    SETUP.bash/tcsh file and make sure you have set the PRECOMP_PORTAGE_ARCH
-   appropriately.  The PortageII-2.2/bin/<arch> directory contains all the
+   appropriately.  The PortageII-cur/bin/<arch> directory contains all the
    compiled C++ executables.
  - with source distributions, canoe is installed in the same directory as
    cow.sh and tokenize.pl, so compilation probably failed if only canoe doesn't

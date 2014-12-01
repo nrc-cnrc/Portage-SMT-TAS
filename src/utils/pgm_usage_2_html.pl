@@ -113,11 +113,11 @@ if (defined($main_index)) {
 elsif (defined($full_index)) {
    $title = $full_index;
    $NRC_logo_path = ".";
-   $hierarchy = " <A HREF=\"index.html\">PortageII 2.2</A>";
+   $hierarchy = " <A HREF=\"index.html\">PortageII_cur</A>";
 }
 else {
    $NRC_logo_path = "..";
-   $hierarchy = "<A HREF=\"../index.html\">PortageII 2.2</A> /";
+   $hierarchy = "<A HREF=\"../index.html\">PortageII_cur</A> /";
    if (defined($module_index)) {
       $title = "Module: $module_index";
       $hierarchy .= " $module_index /";
@@ -139,7 +139,7 @@ my $header = <<HEADER;
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD>
-  <TITLE>PortageII 2.2 - $title</TITLE>
+  <TITLE>PortageII_cur - $title</TITLE>
   </HEAD>
   <BODY BGCOLOR="#FFFFFF" LINK="#0000ff" VLINK="#006600">
 
@@ -226,7 +226,7 @@ if (defined($module_index)) {
 }
 # Compile a list of all available module in Portage.
 elsif (defined($main_index)) {
-   print OUT "<H2>PortageII 2.2 programs by module:</H2><BR>
+   print OUT "<H2>PortageII_cur programs by module:</H2><BR>
    <UL>
    ";
    while (<IN>) {

@@ -1,4 +1,4 @@
-                               PortageII 2.2
+                               PortageII_cur
  
 Traitement multilingue de textes / Multilingual Text Processing
 Technologies de l'information et des communications /
@@ -32,7 +32,7 @@ important features to help translators: the transfer of markup tags from the
 source sentence to the machine translation output, as well as handling of the
 increasingly common xliff file format.
 
-PortageII 2.x includes a complete suite of software tools required for
+PortageII_cur includes a complete suite of software tools required for
 phrase-based statistical machine translation, including:
  - preprocessing of French, English, Spanish, Danish (tokenization,
    detokenization, lowercasing, aligning) and Chinese (handling of dates and

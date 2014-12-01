@@ -38,7 +38,7 @@ Arguments:
                 clone's --branch option: a branch or a tag, typically a
                 tag having been created first using "git tag v1_X_Y COMMIT;
                 git push --tags", e.g.,:
-                   git tag PortageII-2.2 master
+                   git tag PortageII-cur master
                    git push --tags
                 run in both PORTAGEshared and portage.framework.
 
@@ -85,6 +85,9 @@ Canned options for specific licensees:
   -bin2013      Same as: -bin -nosrc -archive-name bin
 
 Distro creation check list:
+  - Substitue PortageII-cur for PortageII-2.3
+  - Substitue PortageII cur for PortageII 2.3
+  - Change src/build/Doxyfile PROJECT_NUMBER = 2.2 for PROJECT_NUMBER = 2.3
   - Change the version number and year in src/utils/portage_info.cc,
     SETUP.{bash,tcsh}, the Wiki, the INSTALL file, all the README files
   - Change the value of current_year in portage_utils.{pm,py} and printCopyright.h
@@ -450,8 +453,8 @@ make_iso_and_tar() {
       fi
       r r mkisofs -V $ISO_VOLID -joliet-long -o $ARCHIVE_FILE.iso \
               PORTAGEshared $PATCH_FILES '>&' iso.log
-      r mv PORTAGEshared PortageII-2.2
-      r r tar -cvzf $ARCHIVE_FILE.tar.gz PortageII-2.2 '>&' tar.log
+      r mv PORTAGEshared PortageII-cur
+      r r tar -cvzf $ARCHIVE_FILE.tar.gz PortageII-cur '>&' tar.log
       r md5sum $ARCHIVE_FILE.* \> $ARCHIVE_FILE.md5
    r popd
 }

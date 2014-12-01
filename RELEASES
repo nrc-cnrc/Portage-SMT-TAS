@@ -1,4 +1,4 @@
-                              PortageII 2.2
+                              PortageII_cur
 
 Traitement multilingue de textes / Multilingual Text Processing
 Technologies de l'information et des communications /
@@ -19,47 +19,7 @@ See NOTICE for the Copyright notices of 3rd party libraries.
 
 PortageII is the second generation of SMT software released by the NRC.
 
-PortageII 2.2 2014-12-01
- This is a feature release, adding fixed terms handling.
-
- Changes:
-  - PortageLiveAPI:
-    - Extended the API with updateFixedTerms to populate a context with fixed
-      terms.
-    - Extended the API with getFixedTerms to retrieve a context's fixed terms
-      list.
-    - soap.php was augmented to facilitate testing updateFixedTerms &&
-      getFixedTerms.
-  - Added fixed_term2tm.pl to create a phrase table from a list of fixed terms.
-  - framework:
-    - Updated to prepare new systems to handle fixed terms.
-
-PortageII 2.1 2014-10-20
- This is a maintenance release, rolling in all the small patches that have been
- released since PortageII 2.0 was published.
-
- Minor changes:
-  - PortageLiveAPI:
-     - Now supports handling markup tags in getTranslation(), the method to
-       translate one or a few sentences of plain text at a time in a
-       synchronous way.
-     - Now supports three interpretations of newline characters, that can be
-       selected by the user: paragraph end, sentence end, or just plain
-       whitespace.  The output returned follows the same interpretation for
-       newline characters.
-  - Support submitting PortageLive translation requests with more than one
-    thread.
-
- Bug fixes:
-  - Binary distro creation, as well as PortageLive installation scripts, now
-    include previously omitted required libraries.
-  - Fixed bug in PortageLive web layout installation script.
-  - Detokenizer patch for correct handling of smart-quote style apostrophes for
-    contractions like 's in English and qu' in French.
-  - SDLXLIFF handling patched to avoid generating illegal empty sdl:seg-defs
-    entities.
-
-PortageII 2.0 2013-02-15
+PortageII_cur 2013-02-15
  This release provides significant user improvements for translators through
  the handling of markup tags and the XML Localization Interchange File Format
  (xliff) often used to package translation projects.
