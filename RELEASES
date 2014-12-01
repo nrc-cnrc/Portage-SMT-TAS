@@ -28,11 +28,11 @@ PortageII 2.2 2014-12-01
       terms.
     - Extended the API with getFixedTerms to retrieve a context's fixed terms
       list.
-    - soap.php was augmented to facilitate exerting updateFixedTerms &&
+    - soap.php was augmented to facilitate testing updateFixedTerms &&
       getFixedTerms.
-  - Adds fixed_term2tm.pl to create a phrase table from a list of fixed terms.
+  - Added fixed_term2tm.pl to create a phrase table from a list of fixed terms.
   - framework:
-    - Prepares a new system to handle fixed terms.
+    - Updated to prepare new systems to handle fixed terms.
 
 PortageII 2.1 2014-10-20
  This is a maintenance release, rolling in all the small patches that have been
