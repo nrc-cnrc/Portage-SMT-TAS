@@ -46,8 +46,9 @@
     brief: Definition of the API to the Portage SMT software suite.
     author: Patrick Paul, Eric Joanis and Samuel Larkin
 
-    Technologies langagières interactives / Interactive Language Technologies
-    Technologies de l'information et des communications / Information and Communications Technologies
+  Traitement multilingue de textes / Multilingual Text Processing
+  Technologies de l'information et des communications /
+    Information and Communications Technologies
     Conseil national de recherches Canada / National Research Council Canada
     Copyright 2009 - 2014, Sa Majesté la Reine du Chef du Canada /
     Copyright 2009 - 2014, Her Majesty in Right of Canada</documentation>
@@ -102,6 +103,12 @@
   </message>
   <message name="getFixedTermResponse">
     <part name="ContentsBase64" type="xsd:base64Binary"/>
+  </message>
+  <message name="removeFixedTermRequest">
+    <part name="context" type="xsd:string"/>
+  </message>
+  <message name="removeFixedTermResponse">
+    <part name="status" type="xsd:boolean"/>
   </message>
   <!--============================================================
                       P O R T   T Y P E S
@@ -330,6 +337,18 @@
       <input message="tns:getFixedTermRequest"/>
       <output message="tns:getFixedTermResponse"/>
     </operation>
+    <operation name="removeFixedTerms">
+      <documentation>Given a translation system that is instrumented to process fixed
+         terms, delete its list of fixed terms.
+
+         - context must be a valid context identifier as returned by getAllContexts().
+
+         This function returns true on success, or raises an exception otherwise.
+
+         Throws a SoapFault exception in case of a protocol or connection error.</documentation>
+      <input message="tns:getFixedTermRequest"/>
+      <output message="tns:getFixedTermResponse"/>
+    </operation>
   </portType>
   <!--============================================================
                          B I N D I N G S
@@ -446,6 +465,15 @@
     </operation>
     <operation name="getFixedTerms">
       <soap:operation soapAction="getFixedTerms"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+    <operation name="removeFixedTerms">
+      <soap:operation soapAction="removeFixedTerms"/>
       <input>
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </input>
@@ -945,6 +973,23 @@
         <con:jmsPropertyConfig/>
         <con:wsaConfig mustUnderstand="NONE" version="200508" action="getFixedTerms"/>
         <con:wsrmConfig version="1.2"/>
+      </con:call>
+    </con:operation>
+    <con:operation isOneWay="false" action="removeFixedTerms" name="removeFixedTerms" bindingOperationName="removeFixedTerms" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional">
+      <con:settings/>
+      <con:call name="Request 1">
+        <con:settings/>
+        <con:encoding>UTF-8</con:encoding>
+        <con:endpoint>http://132.246.128.219/PortageLiveAPI.php</con:endpoint>
+        <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:removeFixedTerms soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <context xsi:type="xsd:string">?</context>
+      </urn:removeFixedTerms>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+        <con:wsaConfig mustUnderstand="NONE" version="200508" action="removeFixedTerms"/>
       </con:call>
     </con:operation>
   </con:interface>
@@ -1672,7 +1717,7 @@ rc=3; Command=prime.sh bogus</content>
    <soapenv:Body>
       <urn:updateFixedTerms soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
          <ContentsBase64 xsi:type="xsd:base64Binary">BADFILE</ContentsBase64>
-         <Filename xsi:type="xsd:string">empty</Filename>
+         <Filename xsi:type="xsd:string">header only</Filename>
          <encoding xsi:type="xsd:string">UTF-8</encoding>
          <context xsi:type="xsd:string">toy.en2fr</context>
          <sourceColumnIndex xsi:type="xsd:decimal">1</sourceColumnIndex>
@@ -1702,6 +1747,52 @@ rc=3; Command=prime.sh bogus</content>
                 <path>//*:Fault/detail</path>
                 <content>Corrupted file, missing the language header. *</content>
                 <allowWildcards>true</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:selectedAuthProfile>NTLM</con:selectedAuthProfile>
+              <con:addedBasicAuthenticationTypes>NTLM</con:addedBasicAuthenticationTypes>
+              <con:authType>NTLM</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="updateFixedTerms"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="request" name="updateFixedTerms - header only - Request">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>updateFixedTerms</con:operation>
+          <con:request name="updateFixedTerms - header only - Request" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>http://132.246.128.219/PortageLiveAPI.php</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:updateFixedTerms soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <ContentsBase64 xsi:type="xsd:base64Binary">${#TestSuite#fiches_termino_header_only}</ContentsBase64>
+         <Filename xsi:type="xsd:string">empty</Filename>
+         <encoding xsi:type="xsd:string">UTF-8</encoding>
+         <context xsi:type="xsd:string">toy.en2fr</context>
+         <sourceColumnIndex xsi:type="xsd:decimal">1</sourceColumnIndex>
+         <sourceLanguage xsi:type="xsd:string">en</sourceLanguage>
+         <targetLanguage xsi:type="xsd:string">fr</targetLanguage>
+      </urn:updateFixedTerms>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:assertion type="SOAP Fault Assertion" name="Not SOAP Fault"/>
+            <con:assertion type="XQuery Match" name="Validate status">
+              <con:configuration>
+                <path>//*:updateFixedTermsResponse/status</path>
+                <content>true</content>
+                <allowWildcards>false</allowWildcards>
               </con:configuration>
             </con:assertion>
             <con:credentials>
@@ -2712,6 +2803,10 @@ testCase.setPropertyValue( "input", encodedData )
       <con:property>
         <con:name>input</con:name>
         <con:value>ZW5nXHRmcmEgaGVhcmluZyBmZWVzICAgIEZyYWlzIGSSYXVkaWVuY2UgTGFib3VyIFN0YW5kYXJkcyAgICAgICAgTm9ybWVzIGR1IHRyYXZhaWwgQXR0b3JuZXkgR2VuZXJhbCAgICAgICAgUHJvY3VyZXVyIGfpbulyYWwgc3Vydml2aW5nIGNvbnNvcnQgICAgICAgY29uam9pbnQgc3Vydml2YW50IG9jY3VwYXRpb25hbCBkaXNlYXNlICAgIG1hbGFkaWUgcHJvZmVzc2lvbm5lbGxlIGxlZ2FsIHBlcnNvbiAgICBwZXJzb25uZSBtb3JhbGUgcnVsZSBvZiBsYXcgICAgIHByaW1hdXTpIGR1IGRyb2l0IHBlcm1pc3NpYmxlIGV4ZXJjaXNlIG9mIHRoZSBQcm92aW5jZZJzIGp1cmlzZGljdGlvbiAgICAgYWNjZXB0YWJsZSBkZSBsYSBjb21w6XRlbmNlIHJlY29ubnVlIOAgbGEgUHJvdmluY2UgYWdyZWVtZW50IG9mIHRoZSBwYXJ0aWVzICAgICAgICBhY2NvcmQgZGVzIHBhcnRpZXMgQWR2b2NhdGVzkiBTb2NpZXR5ICAgICAgQWR2b2NhdGVzkiBTb2NpZXR5IHBlcnNwZWN0aXZlIG9mIHJlbnVuY2lhdGlvbiAgICAgYW5nbGUgZGUgbGEgcmVub25jaWF0aW9uIHllYXJzIG9mIHVuaW50ZXJydXB0ZWQgc2VydmljZSAgYW5zIGRlIHNlcnZpY2UgY29udGludSBhcHBlbGxhbnQvcmVzcG9uZGVudCBvbiBjcm9zcy1hcHBlYWwgICAgYXBwZWxhbnRlL2ludGlt6WUgYXUgcG91cnZvaSBpbmNpZGVudCBBc3BoYWx0ZSBEZXNqYXJkaW5zIGluYyBBc3BoYWx0ZSBEZXNqYXJkaW5zIGluYyBDYW5hZGlhbiBCYXIgQXNzb2NpYXRpb24gICAgICAgIEFzc29jaWF0aW9uIGR1IEJhcnJlYXUgY2FuYWRpZW4gaGVhcmluZyBmZWVzIGluIGFwcHJvcHJpYXRlICAgICBhdWRpZW5jZSBkYW5zIGxlcyBjYXMgcXVpIHOSeSBwcup0ZW50IENhbmFkaWFuIFBhY2lmaWMgUmFpbHdheSAgICAgICAgQ2FuYWRpYW4gUGFjaWZpYyBSYWlsd2F5IENoZW1BY3Rpb24gaW5jICBDaGVtQWN0aW9uIEluYy4gY29tbW9uIGxhdyAgICAgIGNvbW1vbiBsYXcgQ29tcG9nZXN0IEluYyAgIENvbXBvZ2VzdCBJbmMgY29yZSBqdXJpc2RpY3Rpb24gb2YgcHJvdmluY2lhbCBzdXBlcmlvciBjb3VydHMgY29tcOl0ZW5jZSBmb25kYW1lbnRhbGUgZGVzIGNvdXJzIHN1cOlyaWV1cmVzIHByb3ZpbmNpYWxlcyBhbm51YWwgbGVhdmUgICAgY29uZ+kgYW5udWVsIENvbnRyYWN0IG9mIGVtcGxveW1lbnQgIENvbnRyYXQgZGUgdHJhdmFpbCBDb3VydCBvZiBRdeliZWMgQ291ciBkdSBRdeliZWMgbGluZSBvZiBhdXRob3JpdHkgICAgICAgY291cmFudCBqdXJpc3BydWRlbnRpZWwgY291cnRzIG9mIHN1cGVyaW9yIGp1cmlzZGljdGlvbiBjb3VycyBkZSBqdXJpZGljdGlvbiBzdXDpcmlldXJlIHByb3ZpbmNpYWwgc3VwZXJpb3IgY291cnRzICAgICAgY291cnMgc3Vw6XJpZXVyZXMgcHJvdmluY2lhbGVzIGRlcGFydHVyZSBkYXRlIGFubm91bmNlZCAgICAgICAgZGF0ZSBkZSBk6XBhcnQgYW5ub25j6WUgRGVzamFyZGlucyBpbmMgIERlc2phcmRpbnMgaW5jIHVuZHVlIGhhcmRzaGlwIG9uIGxpdGlnYW50cyBhbmQgaW1wZWRlcyB0aGUgcmlnaHQgICAgICAgZGlmZmljdWx06XMgZXhjZXNzaXZlcyBhdXggcGxhaWRldXJzIGRlIGxhIENvbG9tYmllLUJyaXRhbm5pcXVlIGF2YWlsYWJsZSBvbiBDYW5MSUkgICAgIGRpc3BvbmlibGUgc3VyIENhbkxJSSBicmFuY2ggb2YgdGhlIENhbmFkaWFuIEJhciBBc3NvY2lhdGlvbiAgRGl2aXNpb24gZGUgbGEgQ29sb21iaWUtQnJpdGFubmlxdWUgZGUgbJJBc3NvY2lhdGlvbiBnZW5lcmFsIGxhdyAgICAgZHJvaXQgY29tbXVuIHJpZ2h0IG9mIHJlYXNvbmFibGUgYWNjZXNzICAgICAgZHJvaXQgZJJhY2PocyByYWlzb25uYWJsZSBSaWdodHMgYW5kIEZyZWVkb21zICAgICBkcm9pdHMgZXQgbGliZXJ06XMgbmVjZXNzYXJ5IGltcGxpY2F0aW9uICAgZOlkdWN0aW9uIG7pY2Vzc2FpcmUgbm90aWNlIG9mIHRlcm1pbmF0aW9uICAgZOlsYWkgZGUgY29uZ+kgdHVybiBoYXZpbmcgdG8gZ2l2ZSAgICAgZOlsYWkgZGUgY29uZ+kgZJJ1biBzYWxhcmnpIGRlbW9jcmF0aWNhbGx5IGVsZWN0ZWQgIGTpbW9jcmF0aXF1ZW1lbnQg6Wx1cyBlbXBsb3llciB3aG8gcmVjZWl2ZXMgICBlbXBsb3lldXIgcXVpIHJl529pdCBoZWFyaW5nIGZlZXMgICAgZnJhaXMgZJJhdWRpZW5jZSBHYXJjaWEgVHJhbnNwb3J0IEx06WUgICBHYXJjaWEgVHJhbnNwb3J0IEx06WUgSUJNIENhbmFkYSBsdOllIElCTSBDYW5hZGEgbHTpZSBJbXBlcmlhbCBUb2JhY2NvICAgICAgICBJbXBlcmlhbCBUb2JhY2NvIGluZGVtbml0eSBwcm92aWRlZCBmb3IgaW4gc3MgICAgaW5kZW1uaXTpIHBy6XZ1ZSBhdXggYXJ0IHBsYWNlcyBhbiB1bmR1ZSBoYXJkc2hpcCBvbiBsaXRpZ2FudHMgYW5kIGltcGVkZXMgICAgICAgaW50ZW50ZXIgZGVzIHJlY291cnMgbOlnaXRpbWVzIGRldmFudCBsZXMgdHJpYnVuYXV4IGludGVydmVuZXIgdGhlIEF0dG9ybmV5IEdlbmVyYWwgaW50ZXJ2ZW5hbnQgbGUgcHJvY3VyZXVyIGfpbulyYWwgUmVzcG9uZGVudC9BcHBlbGxhbnQgb24gY3Jvc3MtYXBwZWFsICAgIEludGlt6S9BcHBlbGFudCBhdSBwb3Vydm9pIGluY2lkZW50IElzaWRvcmUgR2Fyb24gbHTpZSAgICAgIElzaWRvcmUgR2Fyb24gbHTpZSBsYXcgICAgIGp1c3RpY2UgY2l2aWwganVzdGljZSAgIGp1c3RpY2UgY2l2aWxlIExhd3MgaW4gcmVsYXRpb24gICAgICAgIGxvaXMgcmVsYXRpdmVzIGxhd3MgaW4gcmVsYXRpb24gdG8gdGhlIGFkbWluaXN0cmF0aW9uIG9mIGp1c3RpY2UgICAgICAgbG9pcyByZWxhdGl2ZXMg4CBskmFkbWluaXN0cmF0aW9uIGRlIGxhIGp1c3RpY2UgZ2VzdGlvbm5haXJlICAgIG1hbmFnZXIgdGVybWluYXRlcyB0aGUgY29udHJhY3QgbWV0IGZpbiBMYWJvdXIgU3RhbmRhcmRzICAgICAgICBOb3JtZXMgZHUgdHJhdmFpbCBOdXJ1biBJbmMgICAgICAgTnVydW4gSW5jIGVmZmVjdGl2ZSBpbW1lZGlhdGVseSAgIG7pYW5tb2lucyBkZSByZXN0ZXIgY29udHJhY3R1YWwgb2JsaWdhdGlvbnMgb2JsaWdhdGlvbnMgY29udHJhY3R1ZWxsZXMgcHVibGljIG9yZGVyICAgIG9yZHJlIHB1YmxpYyBjb3ZlciBwZW9wbGUgb2YgbW9kZXN0IG1lYW5zICAgIHBlcnNvbm5lcyBxdWkgZGlzcG9zZW50IGRlIG1veWVucyBtb2Rlc3RlcyBhcHBlYWwgcmFpc2VzICAgcG91cnZvaSBzb3Vs6HZlIGZpcnN0IHRocmVlIGRheXMgICAgICAgIHByZW1pZXJzIGpvdXJzIHVud3JpdHRlbiBwcmluY2lwbGUgb2YgdGhlIHJ1bGUgb2YgbGF3ICBwcmluY2lwZSBub24g6WNyaXQgZGUgbGEgcHJpbWF1dOkgZHUgZHJvaXQgdW53cml0dGVuIHByaW5jaXBsZXMgICAgcHJpbmNpcGVzIG5vbiDpY3JpdHMgU29saWNpdG9yIGZvciB0aGUgaW50ZXJ2ZW5lciB0aGUgQXR0b3JuZXkgR2VuZXJhbCAgICAgICBQcm9jdXJldXIgZGUgbJJpbnRlcnZlbmFudCBsZSBwcm9jdXJldXIgZ+lu6XJhbCBBdHRvcm5leSBHZW5lcmFsICAgICAgICBQcm9jdXJldXIgZ+lu6XJhbCBBdHRvcm5leSBHZW5lcmFsIG9mIEJyaXRpc2ggQ29sdW1iaWEgICAgUHJvY3VyZXVyIGfpbulyYWwgZGUgbGEgQ29sb21iaWUtQnJpdGFubmlxdWUgQXR0b3JuZXkgR2VuZXJhbCBvZiBBbGJlcnRhICAgICBwcm9jdXJldXIgZ+lu6XJhbCBkZSBskkFsYmVydGEgQXR0b3JuZXkgR2VuZXJhbCBvZiBPbnRhcmlvICAgICBwcm9jdXJldXIgZ+lu6XJhbCBkZSBskk9udGFyaW8gQXR0b3JuZXkgR2VuZXJhbCBvZiBDYW5hZGEgICAgICBQcm9jdXJldXIgZ+lu6XJhbCBkdSBDYW5hZGEgc2luY2UgdGhlIHRlcm1pbmF0aW9uICAgcHVpc3F1ZSBsYSBmaW4gUUMgQ0EgICBRQyBDQSBRQyBDUSAgIFFDIENRIFF16WJlYyBpbmMgICAgICBRdeliZWMgaW5jIGJhc2VkIG9uIGl0cyBjb250ZW50ICAgIHJhaXNvbiBkZSBzb24gY29udGVudSByZW51bmNpYXRpb24gb2YgdGhlIGluZGVtbml0eSAgIHJlbm9uY2lhdGlvbiDgIGySaW5kZW1uaXTpIFJlZmVyZW5jZSByZSBNYW5pdG9iYSBMYW5ndWFnZSBSaWdodHMgICBSZW52b2kgcmVsYXRpZiBhdXggZHJvaXRzIGxpbmd1aXN0aXF1ZXMgYXUgTWFuaXRvYmEgVW5pdGVkIEtpbmdkb20gIFJveWF1bWUtVW5pIHVuaWxhdGVyYWwgcmVzaWxpYXRpb24gIHLpc2lsaWF0aW9uIHVuaWxhdOlyYWxlIGVtcGxveWVlIGFubm91bmNlcyAgICAgIHNhbGFyaekgYW5ub25jZSB1bmludGVycnVwdGVkIHNlcnZpY2UgICBzZXJ2aWNlIGNvbnRpbnUgU2xhaWdodCBjb21tdW5pY2F0aW9ucyBpbmMgICAgICBTbGFpZ2h0IGNvbW11bmljYXRpb25zIGluYyBTdXByZW1lIENvdXJ0IENpdmlsIFJ1bGVzICAgICAgIFN1cHJlbWUgQ291cnQgQ2l2aWwgUnVsZXMganVzdGljZSBzeXN0ZW0gIHN5c3TobWUgZGUganVzdGljZSBUcmFuc2ZvcmNlIGluYyAgVHJhbnNmb3JjZSBpbmMgY2l2aWwgY291cnRzICAgIHRyaWJ1bmF1eCBjaXZpbHMgdWx0cmEgdmlyZXMgdGhlIENvdXJ0IFJ1bGVzIEFjdCB1bHRyYSB2aXJlcyBkZSBsYSBDb3VydCBSdWxlcyBBY3QgVW5pdGVkIEdyYWluIEdyb3dlcnMgTHRkICAgICAgICBVbml0ZWQgR3JhaW4gR3Jvd2VycyBMdGQgZWZmaWNpZW50IHVzZSAgIHV0aWxpc2F0aW9uIGVmZmljaWVudGUgcGxhY2UgYXQgdGhlIHRpbWUgICAgICAgdmlndWV1ciBhdSBtb21lbnQgcGxhY2UgYXQgdGhlIHRpbWUgdGhpcyBjYXNlIGJlZ2FuICAgICAgIHZpZ3VldXIgYXUgbW9tZW50IG/5IGxhIHBy6XNlbnRlIGFmZmFpcmUgIDxzeW1ib2wgYT4gICAgICA8c3ltYm9sZSBhPiBcdHJlZSAgIFxhcmJyZSA8c3ltYm9sIFxiPiAgICAgPHN5bWJvbGUgXGI+IHNwb25zb3JzaGlwIHByb2dyYW0gICAgIG1hcmdvcnAgcGloc3Jvc25vcHMgYWx0aG91Z2ggdGhlIHJlY29tbWVuZGF0aW9ucyB3ZXJlIHNvdW5kIHNvbiBzb24gc29uIHNvbiBzb24gICBhIGIgYyBkIHogeSB4IHEgYSBiICAgICAxIDIgYyBkICAgICAzIDQgIDcxMGsgYWNjb3VudCAgICBjb21wdGUgNzAxayBaIDQyMGsgViAgICAgICAgcyA0MjBrIHQgPGI+WiA0MjBrIFY8L2I+IDxjPlogNDIwayBWPC9jPiAg</con:value>
+      </con:property>
+      <con:property>
+        <con:name>fiches_termino_header_only</con:name>
+        <con:value>ZW5nCWZyYQo=</con:value>
       </con:property>
     </con:properties>
     <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html

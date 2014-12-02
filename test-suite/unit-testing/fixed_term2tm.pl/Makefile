@@ -16,16 +16,14 @@ FIXED_TERM2TM := fixed_term2tm.pl
 
 -include Makefile.params
 
+TEMP_FILES := header.txt
+
 include ../Makefile.incl
 
 
 .DEFAULT_GOAL := all
 .PHONY: all
 all:
-
-
-.PHONY: clean
-clean:
 
 
 .PHONY: no_input_file
@@ -103,3 +101,14 @@ test:  src/fiches_termino.utf8.txt
 	${FIXED_TERM2TM} -source_column=1 -source=en -target=fr $< \
 	| sort --unique \
 	| diff - ref/fiches_termino.utf8.tm --brief
+
+
+header.txt:  src/fiches_termino.utf8.txt
+	head -n 1 $< > $@
+
+.PHONY:  header_only
+all:  header_only
+header_only:  header.txt
+	${FIXED_TERM2TM} -source_column=1 -source=en -target=fr $< \
+	| sort --unique \
+	| diff - ref/header_only.tm --brief

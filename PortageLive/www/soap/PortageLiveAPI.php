@@ -463,6 +463,27 @@ class PortageLiveAPI {
 
       return $content;
    }
+
+   function removeFixedTerms($context) {
+      $contextInfo = $this->getContextInfo($context);
+      $this->validateContext($contextInfo);
+
+      $fixedTerms = $contextInfo["context_dir"] . "/plugins/fixedTerms/fixedTerms";
+      if (is_file($fixedTerms)) {
+         if ( !unlink($fixedTerms) ) {
+            throw new SoapFault("PortageServer", "Unable to delete fixed terms' list ($fixedTerms).");
+         }
+      }
+
+      $tm = $contextInfo["context_dir"] . "/plugins/fixedTerms/tm";
+      if (is_file($tm)) {
+         if ( !unlink($tm) ) {
+            throw new SoapFault("PortageServer", "Unable to delete fixed terms' translation model ($fixedTerms).");
+         }
+      }
+
+      return true;
+   }
 }
 
 try {

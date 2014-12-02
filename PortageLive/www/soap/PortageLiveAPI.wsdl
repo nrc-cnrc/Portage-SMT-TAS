@@ -67,6 +67,12 @@
   <message name="getFixedTermResponse">
     <part name="ContentsBase64" type="xsd:base64Binary"/>
   </message>
+  <message name="removeFixedTermRequest">
+    <part name="context" type="xsd:string"/>
+  </message>
+  <message name="removeFixedTermResponse">
+    <part name="status" type="xsd:boolean"/>
+  </message>
   <!-- ============================================================
                       P O R T   T Y P E S
 ============================================================ -->
@@ -322,6 +328,20 @@
       <input message="tns:getFixedTermRequest"/>
       <output message="tns:getFixedTermResponse"/>
     </operation>
+    <operation name="removeFixedTerms">
+      <documentation>
+         Given a translation system that is instrumented to process fixed
+         terms, delete its list of fixed terms.
+
+         - context must be a valid context identifier as returned by getAllContexts().
+
+         This function returns true on success, or raises an exception otherwise.
+
+         Throws a SoapFault exception in case of a protocol or connection error.
+      </documentation>
+      <input message="tns:getFixedTermRequest"/>
+      <output message="tns:getFixedTermResponse"/>
+    </operation>
   </portType>
   <!-- ============================================================
                          B I N D I N G S
@@ -438,6 +458,15 @@
     </operation>
     <operation name="getFixedTerms">
       <soap:operation soapAction="getFixedTerms"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+    <operation name="removeFixedTerms">
+      <soap:operation soapAction="removeFixedTerms"/>
       <input>
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </input>

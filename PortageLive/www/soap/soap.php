@@ -36,10 +36,12 @@ if ( $_POST ) {
          $button = "TranslateSDLXLIFF";
       if ( array_key_exists('TranslatePlainText', $_POST) )
          $button = "TranslatePlainText";
-      if ( array_key_exists('fixedTermsUpdate', $_POST) )
-         $button = "fixedTermsUpdate";
-      if ( array_key_exists('fixedTermsGet', $_POST) )
-         $button = "fixedTermsGet";
+      if ( array_key_exists('updateFixedTerms', $_POST) )
+         $button = "updateFixedTerms";
+      if ( array_key_exists('getFixedTerms', $_POST) )
+         $button = "getFixedTerms";
+      if ( array_key_exists('removeFixedTerms', $_POST) )
+         $button = "removeFixedTerms";
    }
 
    if ( array_key_exists('context', $_POST) ) {
@@ -182,7 +184,7 @@ Prime:
 
 
 <section id='updateFixedTermsRequest'>
-<header>Fixed Terms Update</header>
+<header>Update Fixed Terms</header>
 <label for="fixedTermsSourceColumn">Source Column Index (1-base): </label>
 <INPUT TYPE = "TEXT"   Name = "fixedTermsSourceColumn"  VALUE = "1" SIZE="4" />
 <label for="fixedTermsSourceLanguage">Source Language: </label>
@@ -195,13 +197,19 @@ Prime:
    <OPTION VALUE="cp-1252">cp-1252</OPTION>;
 </SELECT>
 <INPUT TYPE = "file"   Name = "fixedTermsFilename"/>
-<INPUT TYPE = "Submit" Name = "fixedTermsUpdate"  VALUE = "Update Fixed Terms"/>
+<INPUT TYPE = "Submit" Name = "updateFixedTerms"  VALUE = "Update Fixed Terms"/>
 </section>
 
 
-<section id='updateFixedTermsRequest'>
-<header>Fixed Terms Get</header>
-<INPUT TYPE = "Submit" Name = "fixedTermsGet"  VALUE = "Get Fixed Terms"/>
+<section id='getFixedTermsRequest'>
+<header>Get Fixed Terms</header>
+<INPUT TYPE = "Submit" Name = "getFixedTerms"  VALUE = "Get Fixed Terms"/>
+</section>
+
+
+<section id='removeFixedTermsRequest'>
+<header>Remove Fixed Terms</header>
+<INPUT TYPE = "Submit" Name = "removeFixedTerms"  VALUE = "Remove Fixed Terms"/>
 </section>
 
 
@@ -424,14 +432,14 @@ if ( $button == "Prime"  && $_POST['Prime'] != "" ) {
    print "</section\n>";
 }
 else
-if ( $button == "fixedTermsUpdate" && $_FILES['fixedTermsFilename']['name'] != "") {
+if ( $button == "updateFixedTerms" && $_FILES['fixedTermsFilename']['name'] != "") {
    #print_r($_POST);  // Nice for debug POST's values.
    #print_r($_FILES);  // Nice for debug POST's values.
    global $context;
    $file = $_FILES["fixedTermsFilename"];
    $filename = $file["name"];
-   print "<section id='fixedTermesUpdateResponse'>\n";
-   print "<header>Fixed Terms Update</header>\n";
+   print "<section id='updateFixedTermesResponse'>\n";
+   print "<header>Update Fixed Terms</header>\n";
    print "<b>Updating fixed terms using file: </b> $filename <br/>";
    print "<b>Context: </b> $context <br/>";
    print "<b>Processed on: </b> " . `date` . "<br/>";
@@ -478,7 +486,7 @@ if ( $button == "fixedTermsUpdate" && $_FILES['fixedTermsFilename']['name'] != "
          $reply = $client->updateFixedTerms($tmp_contents, $filename, $encoding, $context, $sourceColumnIndex, $sourceLanguage, $targetLanguage);
 
          if ($reply)
-            print "<div class=\"SUCCESS\">Fixed terms update successfully!</div>";
+            print "<div class=\"SUCCESS\">Updated fixed terms successfully!</div>";
          else
             print "<div class=\"ERROR\">Error updating fixed terms.</div>";
       }
@@ -505,9 +513,9 @@ if ( $button == "fixedTermsUpdate" && $_FILES['fixedTermsFilename']['name'] != "
    print "</section>\n";
 }
 else
-if ( $button == "fixedTermsGet") {
-   print "<section id='fixedTermsGetResponse'>\n";
-   print "<header>Fixed Terms List</header>\n";
+if ( $button == "getFixedTerms") {
+   print "<section id='getFixedTermsResponse'>\n";
+   print "<header>Get Fixed Terms List</header>\n";
    try {
       global $WSDL;
       #global $context;
@@ -517,11 +525,34 @@ if ( $button == "fixedTermsGet") {
       $reply = $client->getFixedTerms($context);
 
       if ($reply) {
-         print "<div class=\"SUCCESS\">Fixed terms get successfully!</div>";
+         print "<div class=\"SUCCESS\">Get Fixed terms successfully!</div>";
          print "<textarea name=\"fixed terms list\" rows=\"10\" cols=\"50\">$reply</textarea>\n";
       }
       else
          print "<div class=\"ERROR\">Error getting fixed terms.</div>";
+   }
+   catch (SoapFault $exception) {
+      displayFault($exception);
+   }
+   print "</section>\n";
+}
+else
+if ( $button == "removeFixedTerms") {
+   print "<section id='removeFixedTermsResponse'>\n";
+   print "<header>Remove Fixed Terms List</header>\n";
+   try {
+      global $WSDL;
+      #global $context;
+      $context = $_POST['context'];
+      $client = new SoapClient($WSDL);
+
+      $reply = $client->removeFixedTerms($context);
+
+      if ($reply) {
+         print "<div class=\"SUCCESS\">Remove fixed terms successfully!</div>";
+      }
+      else
+         print "<div class=\"ERROR\">Error removing fixed terms.</div>";
    }
    catch (SoapFault $exception) {
       displayFault($exception);
