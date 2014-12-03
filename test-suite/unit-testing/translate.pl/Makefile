@@ -69,7 +69,7 @@ sdlxliff:  trans_sdlxliff
 %.sdlxliff.validate:  %.sdlxliff.diff  %.sdlxliff.txt_diff  %.sdlxliff.wrap
 	@:
 %.sdlxliff.diff:  %.sdlxliff  ref/ref.%.sdlxliff
-	diff $+ --brief
+	diff --ignore-all-space $+ --brief
 %.txt_diff:  %.P.txt  ref/ref.%.P.txt
 	diff $+
 
