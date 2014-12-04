@@ -70,7 +70,6 @@ parser.add_argument("tgtfile", type=FileType('r'),
 parser.add_argument("outfile", nargs='?', type=FileType('w'), default=sys.stdout, 
                     help="truecased target language text with BOS capitalization")
 
-
 cmd_args = parser.parse_args()
 title_unk_case = cmd_args.unk_case.startswith("title")
 title_unk_ext_case = cmd_args.unk_case == "title-all"
@@ -174,7 +173,7 @@ def add_tgt_bos_markup(tgt_line, line_number):
     line_number: line number of the sentence (for error messages)
     returns: target language text with BOS markup added
     """
-    tgt_toks = tgt_line.split()
+    tgt_toks = split(tgt_line)
     
     # Add BOS case markup as needed within the target text.
     bos_i = None

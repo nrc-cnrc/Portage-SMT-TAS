@@ -362,7 +362,7 @@ def add_markup_line(line):
     returns: marked up text string
     """
     debug("add_markup_line:", line_number)
-    toks = line.replace('\t', ' ').split(' ')
+    toks = split(line)
     idx = 0
     results = []
     while idx < len(toks):

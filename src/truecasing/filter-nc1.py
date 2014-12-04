@@ -52,6 +52,7 @@ parser.add_argument("infile", nargs='?', type=FileType('r'), default=sys.stdin,
 parser.add_argument("outfile", nargs='?', type=FileType('w'), default=sys.stdout, 
                     help="output text file with case markup added/removed")
 
+
 def first_upper(s):
     """Return the index of the first uppercase character in string s."""
     for idx, c in enumerate(s):
@@ -113,7 +114,7 @@ def main():
     sys.stderr = codecs.getwriter(cmd_args.encoding)(sys.stderr)  # for  utf-8 debug msgs
     
     for line in infile:
-        toks = line.split()
+        toks = split(line)
         skip = None
         for i,tok in enumerate(toks):
             if is_cased(tok):

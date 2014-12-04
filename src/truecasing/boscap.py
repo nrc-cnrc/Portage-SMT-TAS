@@ -88,7 +88,6 @@ parser.add_argument("palfile", type=FileType('r'),
 parser.add_argument("outfile", nargs='?', type=FileType('w'), default=sys.stdout, 
                     help="truecased target language text with BOS capitalization")
 
-
 cmd_args = parser.parse_args()
 title_unk_case = cmd_args.unk_case.startswith("title")
 title_unk_ext_case = cmd_args.unk_case == "title-all"
@@ -228,8 +227,8 @@ def add_bos_markup(nc1_line, orig_line, line_number):
     line_number: line number of the sentence (for error messages)
     returns: norm cased source language text with BOS markup added
     """
-    toks = nc1_line.split()
-    orig_toks = orig_line.split()
+    toks = split(nc1_line)
+    orig_toks = split(orig_line)
     start = True
     for i, tok in enumerate(toks):
         debug("add_bos_markup: i", i, "tok:", tok, "orig_tok:", orig_toks[i], "start:", start)
@@ -237,6 +236,9 @@ def add_bos_markup(nc1_line, orig_line, line_number):
         if is_cased(tok):
             if orig_toks[i] != tok:         # original: title case; norm: lowercase
                 if orig_toks[i].lower() != tok.lower():
+                    info("orig_line: ~",orig_line,"~",sep='')
+                    info("nc1_line: ~",nc1_line,"~",sep='')
+                    info("i: ",i," orig_tok: ~", orig_toks[i].lower(), "~ tok: ~", tok.lower(),"~",sep='')
                     fatal_error("Text mismatch at line", line_number)
                 prev = toks[i-1] if i else ''
                 numbered = '*' if is_number(prev) or is_time(prev) else ''
@@ -283,7 +285,7 @@ def move_bos_markup(src_line, tgt_line, pal_line, line_number):
     returns: target language text with BOS markup added
     """
     src_toks = tok_re.findall(src_line)
-    tgt_toks = tgt_line.split()
+    tgt_toks = split(tgt_line)
     #Parse the phrase alignment record
     pal = []
     for m in pal_re.finditer(pal_line):
@@ -337,6 +339,11 @@ def move_bos_markup(src_line, tgt_line, pal_line, line_number):
     if src_i != ((pal[-1].src.end + 1) if len(pal) else 0):
         fatal_error("# src tokens mismatch with pal info at line", line_number)
     if len(tgt_toks) != ((max(pal, key=lambda x:x.tgt.end).tgt.end + 1) if len(pal) else 0):
+        info("src_line: ~",src_line,"~",sep='')
+        info("src_toks: ",src_toks)
+        info("tgt_line: ~",tgt_line,"~",sep='')
+        info("tgt_toks: ",tgt_toks)
+        info("expected length: ",(max(pal, key=lambda x:x.tgt.end).tgt.end + 1))
         fatal_error("# tgt tokens mismatch with pal info at line", line_number)
 
     # Add BOS case markup in target for sentences that did not have markup
