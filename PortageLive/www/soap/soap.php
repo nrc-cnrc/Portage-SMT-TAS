@@ -4,8 +4,9 @@
 #
 # @author Patrick Paul, Eric Joanis and Samuel Larkin
 #
-# Technologies langagieres interactives / Interactive Language Technologies
-# Inst. de technologie de l'information / Institute for Information Technology
+# Traitement multilingue de textes / Multilingual Text Processing
+# Technologies de l'information et des communications /
+#   Information and Communications Technologies
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2009 - 2011, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2009 - 2011, Her Majesty in Right of Canada
@@ -35,6 +36,12 @@ if ( $_POST ) {
          $button = "TranslateSDLXLIFF";
       if ( array_key_exists('TranslatePlainText', $_POST) )
          $button = "TranslatePlainText";
+      if ( array_key_exists('updateFixedTerms', $_POST) )
+         $button = "updateFixedTerms";
+      if ( array_key_exists('getFixedTerms', $_POST) )
+         $button = "getFixedTerms";
+      if ( array_key_exists('removeFixedTerms', $_POST) )
+         $button = "removeFixedTerms";
    }
 
    if ( array_key_exists('context', $_POST) ) {
@@ -74,6 +81,7 @@ function displayFault($exception, $title = "SOAP Fault:") {
    print "<header class='ERROR'>$title</header>\n";
    echo "<pre>";
    echo "Fault code: " . $exception->faultcode . "\n";
+   echo "Fault string: " . $exception->faultstring . "\n";
    echo "Fault message: " . $exception->getMessage() . "\n";
    echo "Fault trace: " . var_dump($exception->getTrace()) . "\n";
    echo "Fault line: " . $exception->getLine() . "\n";
@@ -172,6 +180,36 @@ Prime:
 <INPUT TYPE = "RADIO" NAME = "PrimeMode" VALUE="full" /> Full
 <INPUT TYPE = "RADIO" NAME = "PrimeMode" VALUE="bogus" /> Unsupported
 <INPUT TYPE = "Submit" Name = "Prime"  VALUE = "Prime context"/>
+</section>
+
+
+<section id='updateFixedTermsRequest'>
+<header>Update Fixed Terms</header>
+<label for="fixedTermsSourceColumn">Source Column Index (1-base): </label>
+<INPUT TYPE = "TEXT"   Name = "fixedTermsSourceColumn"  VALUE = "1" SIZE="4" />
+<label for="fixedTermsSourceLanguage">Source Language: </label>
+<INPUT TYPE = "TEXT"   Name = "fixedTermsSourceLanguage"  VALUE = "en" SIZE="4" />
+<label for="fixedTermsTargetLanguage">Target Language: </label>
+<INPUT TYPE = "TEXT"   Name = "fixedTermsTargetLanguage"  VALUE = "fr" SIZE="4" />
+<label for="fixedTermsFilename">Fixed terms file: </label>
+<SELECT NAME = "encoding">
+   <OPTION SELECTED="selected" VALUE="UTF-8">UTF-8</OPTION>;
+   <OPTION VALUE="cp-1252">cp-1252</OPTION>;
+</SELECT>
+<INPUT TYPE = "file"   Name = "fixedTermsFilename"/>
+<INPUT TYPE = "Submit" Name = "updateFixedTerms"  VALUE = "Update Fixed Terms"/>
+</section>
+
+
+<section id='getFixedTermsRequest'>
+<header>Get Fixed Terms</header>
+<INPUT TYPE = "Submit" Name = "getFixedTerms"  VALUE = "Get Fixed Terms"/>
+</section>
+
+
+<section id='removeFixedTermsRequest'>
+<header>Remove Fixed Terms</header>
+<INPUT TYPE = "Submit" Name = "removeFixedTerms"  VALUE = "Remove Fixed Terms"/>
 </section>
 
 
@@ -281,7 +319,7 @@ OR
 </td>
 <td>
 <b>xtags</b>
--- Check this box if input text contains tags and you want to process & transfer them.
+-- Check this box if input text contains tags and you want to process &amp; transfer them.
 </td>
 </tr>
 <tr>
@@ -392,6 +430,134 @@ if ( $button == "Prime"  && $_POST['Prime'] != "" ) {
       //print "<div class=\"PRIME ERROR\">Error with primeModels:<br/><b>{$exception->faultcode}</b><br/>{$exception->faultstring}</div>";
    }
    print "</section\n>";
+}
+else
+if ( $button == "updateFixedTerms" && $_FILES['fixedTermsFilename']['name'] != "") {
+   #print_r($_POST);  // Nice for debug POST's values.
+   #print_r($_FILES);  // Nice for debug POST's values.
+   global $context;
+   $file = $_FILES["fixedTermsFilename"];
+   $filename = $file["name"];
+   print "<section id='updateFixedTermesResponse'>\n";
+   print "<header>Update Fixed Terms</header>\n";
+   print "<b>Updating fixed terms using file: </b> $filename <br/>";
+   print "<b>Context: </b> $context <br/>";
+   print "<b>Processed on: </b> " . `date` . "<br/>";
+
+   $sourceColumnIndex = -1;
+   if ( array_key_exists('fixedTermsSourceColumn', $_POST) ) {
+      $sourceColumnIndex = $_POST['fixedTermsSourceColumn'];
+   }
+   else {
+   }
+
+   $sourceLanguage = 'UNDEF';
+   if ( array_key_exists('fixedTermsSourceLanguage', $_POST) ) {
+      $sourceLanguage = $_POST['fixedTermsSourceLanguage'];
+   }
+   else {
+   }
+
+   $targetLanguage = 'UNDEF';
+   if ( array_key_exists('fixedTermsTargetLanguage', $_POST) ) {
+      $targetLanguage = $_POST['fixedTermsTargetLanguage'];
+   }
+   else {
+   }
+
+   $encoding = 'UNDEF';
+   if ( array_key_exists('encoding', $_POST) ) {
+      $encoding = $_POST['encoding'];
+   }
+   else {
+   }
+
+   if ( is_uploaded_file($file["tmp_name"]) ) {
+      $tmp_file = $file["tmp_name"];
+      //print "<br/><b>$type Upload OK.  Trace: </b> " . print_r($file, true);
+      $tmp_contents = file_get_contents($tmp_file);
+      //print "<br/><b>file contents len: </b> " . strlen($tmp_contents) .
+      //      " <b>base64 len: </b> " . strlen($tmp_contents);
+
+      try {
+         global $WSDL;
+         $client = new SoapClient($WSDL);
+
+         $reply = $client->updateFixedTerms($tmp_contents, $filename, $encoding, $context, $sourceColumnIndex, $sourceLanguage, $targetLanguage);
+
+         if ($reply)
+            print "<div class=\"SUCCESS\">Updated fixed terms successfully!</div>";
+         else
+            print "<div class=\"ERROR\">Error updating fixed terms.</div>";
+      }
+      catch (SoapFault $exception) {
+         displayFault($exception);
+      }
+   }
+   else {
+      print "<br/><b>$type Upload error.  Trace: </b> " . print_r($file, true);
+      $file_error_codes = array(
+            0=>"There is no error, the file uploaded with success",
+            1=>"The uploaded file exceeds the upload_max_filesize directive in php.ini",
+            2=>"The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form",
+            3=>"The uploaded file was only partially uploaded",
+            4=>"No file was uploaded",
+            6=>"Missing a temporary folder",
+            7=>"Failed to write file to disk",
+            8=>"A PHP extension stopped the file upload",
+            );
+      print "<br/><b>Error code description: </b> {$file_error_codes[$file["error"]]}";
+   }
+
+   print "<hr/><b>Done processing on: </b>" . `date`;
+   print "</section>\n";
+}
+else
+if ( $button == "getFixedTerms") {
+   print "<section id='getFixedTermsResponse'>\n";
+   print "<header>Get Fixed Terms List</header>\n";
+   try {
+      global $WSDL;
+      #global $context;
+      $context = $_POST['context'];
+      $client = new SoapClient($WSDL);
+
+      $reply = $client->getFixedTerms($context);
+
+      if ($reply) {
+         print "<div class=\"SUCCESS\">Get Fixed terms successfully!</div>";
+         print "<textarea name=\"fixed terms list\" rows=\"10\" cols=\"50\">$reply</textarea>\n";
+      }
+      else
+         print "<div class=\"ERROR\">Error getting fixed terms.</div>";
+   }
+   catch (SoapFault $exception) {
+      displayFault($exception);
+   }
+   print "</section>\n";
+}
+else
+if ( $button == "removeFixedTerms") {
+   print "<section id='removeFixedTermsResponse'>\n";
+   print "<header>Remove Fixed Terms List</header>\n";
+   try {
+      global $WSDL;
+      #global $context;
+      $context = $_POST['context'];
+      $client = new SoapClient($WSDL);
+
+      $reply = $client->removeFixedTerms($context);
+
+      if ($reply) {
+         print "<div class=\"SUCCESS\">Remove fixed terms successfully!</div>";
+      }
+      else
+         print "<div class=\"ERROR\">Error removing fixed terms.</div>";
+   }
+   catch (SoapFault $exception) {
+      displayFault($exception);
+   }
+   print "</section>\n";
 }
 else
 if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
@@ -555,7 +721,7 @@ Job Token:
 	 <img alt="NRC-ICT" src="images/sidenav_graphicbottom_e.gif" />
       </td>
       <td align="center" valign="top">
-	 <small>Traitement multilingue de textes / Multilingual Text Processing  <br /> Technologies de l'information et des communications / Information and Communications Technologies <br /> Conseil national de recherches Canada / National Research Council Canada <br /> Copyright 2004&ndash;2014, Sa Majest&eacute; la Reine du Chef du Canada /  Her Majesty in Right of Canada <br /> <a href="/portage_notices.html">Third party Copyright notices</a>
+	 <small>Traitement multilingue de textes / Multilingual Text Processing <br /> Technologies de l'information et des communications / Information and Communications Technologies <br /> Conseil national de recherches Canada / National Research Council Canada <br /> Copyright 2004&ndash;2014, Sa Majest&eacute; la Reine du Chef du Canada /  Her Majesty in Right of Canada <br /> <a href="/portage_notices.html">Third party Copyright notices</a>
 	 </small>
       </td>
    </tr>

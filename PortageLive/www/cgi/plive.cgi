@@ -6,8 +6,9 @@
 #
 # COMMENTS:
 #
-# Technologies langagieres interactives / Interactive Language Technologies
-# Inst. de technologie de l'information / Institute for Information Technology
+# Traitement multilingue de textes / Multilingual Text Processing
+# Technologies de l'information et des communications /
+#   Information and Communications Technologies
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2010, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2010, Her Majesty in Right of Canada
@@ -46,8 +47,9 @@ Michel Simard
 
 =head1 COPYRIGHT
 
- Technologies langagieres interactives / Interactive Language Technologies
- Inst. de technologie de l'information / Institute for Information Technology
+ Traitement multilingue de textes / Multilingual Text Processing
+ Technologies de l'information et des communications /
+   Information and Communications Technologies
  Conseil national de recherches Canada / National Research Council Canada
  Copyright 2010, Sa Majeste la Reine du Chef du Canada /
  Copyright 2010, Her Majesty in Right of Canada
@@ -635,10 +637,10 @@ sub NRCFooter {
                             alt=>'NRC-ICT'})),
                     td({valign=>'top', align=>'center'},
                        small(
-                          "Technologies langagi&egrave;res interactives / Interactive Language Technologies", br(),
+                          "Traitement multilingue de textes / Multilingual Text Processing", br(),
                           "Technologies de l'information et des communications / Information and Communications Technologies", br(),
                           "Conseil national de recherches Canada / National Research Council Canada", br(),
-                          "Copyright 2004&ndash;2013, Sa Majest&eacute; la Reine du Chef du Canada / ",
+                          "Copyright 2004&ndash;2014, Sa Majest&eacute; la Reine du Chef du Canada / ",
                           "Her Majesty in Right of Canada", br(),
                           "<a href=\"/portage_notices.html\">Third party Copyright notices</a>"))));
 }

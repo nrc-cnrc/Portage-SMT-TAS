@@ -1,0 +1,109 @@
+eng	fra
+hearing fees	Frais d’audience
+Labour Standards	Normes du travail
+Attorney General	Procureur général
+surviving consort	conjoint survivant
+occupational disease	maladie professionnelle
+legal person	personne morale
+rule of law	primauté du droit
+permissible exercise of the Province’s jurisdiction	acceptable de la compétence reconnue à la Province
+agreement of the parties	accord des parties
+Advocates’ Society	Advocates’ Society
+perspective of renunciation	angle de la renonciation
+years of uninterrupted service	ans de service continu
+appellant/respondent on cross-appeal	appelante/intimée au pourvoi incident
+Asphalte Desjardins inc	Asphalte Desjardins inc
+Canadian Bar Association	Association du Barreau canadien
+hearing fees in appropriate	audience dans les cas qui s’y prêtent
+Canadian Pacific Railway	Canadian Pacific Railway
+ChemAction inc	ChemAction Inc.
+common law	common law
+Compogest Inc	Compogest Inc
+core jurisdiction of provincial superior courts	compétence fondamentale des cours supérieures provinciales
+annual leave	congé annuel
+Contract of employment	Contrat de travail
+Court of Québec	Cour du Québec
+line of authority	courant jurisprudentiel
+courts of superior jurisdiction	cours de juridiction supérieure
+provincial superior courts	cours supérieures provinciales
+departure date announced	date de départ annoncée
+Desjardins inc	Desjardins inc
+undue hardship on litigants and impedes the right	difficultés excessives aux plaideurs de la Colombie-Britannique
+available on CanLII	disponible sur CanLII
+branch of the Canadian Bar Association	Division de la Colombie-Britannique de l’Association
+general law	droit commun
+right of reasonable access	droit d’accès raisonnable
+Rights and Freedoms	droits et libertés
+necessary implication	déduction nécessaire
+notice of termination	délai de congé
+turn having to give	délai de congé d’un salarié
+democratically elected	démocratiquement élus
+employer who receives	employeur qui reçoit
+hearing fees	frais d’audience
+Garcia Transport Ltée	Garcia Transport Ltée
+IBM Canada ltée	IBM Canada ltée
+Imperial Tobacco	Imperial Tobacco
+indemnity provided for in ss	indemnité prévue aux art
+places an undue hardship on litigants and impedes	intenter des recours légitimes devant les tribunaux
+intervener the Attorney General	intervenant le procureur général
+Respondent/Appellant on cross-appeal	Intimé/Appelant au pourvoi incident
+Isidore Garon ltée	Isidore Garon ltée
+law	justice
+civil justice	justice civile
+Laws in relation	lois relatives
+laws in relation to the administration of justice	lois relatives à l’administration de la justice
+gestionnaire	manager
+terminates the contract	met fin
+Labour Standards	Normes du travail
+Nurun Inc	Nurun Inc
+effective immediately	néanmoins de rester
+contractual obligations	obligations contractuelles
+public order	ordre public
+cover people of modest means	personnes qui disposent de moyens modestes
+appeal raises	pourvoi soulève
+first three days	premiers jours
+unwritten principle of the rule of law	principe non écrit de la primauté du droit
+unwritten principles	principes non écrits
+Solicitor for the intervener the Attorney General	Procureur de l’intervenant le procureur général
+Attorney General	Procureur général
+Attorney General of British Columbia	Procureur général de la Colombie-Britannique
+Attorney General of Alberta	procureur général de l’Alberta
+Attorney General of Ontario	procureur général de l’Ontario
+Attorney General of Canada	Procureur général du Canada
+since the termination	puisque la fin
+QC CA	QC CA
+QC CQ	QC CQ
+Québec inc	Québec inc
+based on its content	raison de son contenu
+renunciation of the indemnity	renonciation à l’indemnité
+Reference re Manitoba Language Rights	Renvoi relatif aux droits linguistiques au Manitoba
+United Kingdom	Royaume-Uni
+unilateral resiliation	résiliation unilatérale
+employee announces	salarié annonce
+uninterrupted service	service continu
+Slaight communications inc	Slaight communications inc
+Supreme Court Civil Rules	Supreme Court Civil Rules
+justice system	système de justice
+Transforce inc	Transforce inc
+civil courts	tribunaux civils
+ultra vires the Court Rules Act	ultra vires de la Court Rules Act
+United Grain Growers Ltd	United Grain Growers Ltd
+efficient use	utilisation efficiente
+place at the time	vigueur au moment
+place at the time this case began	vigueur au moment où la présente affaire
+
+<symbol a>	<symbole a>
+\tree	\arbre
+<symbol \b>	<symbole \b>
+sponsorship program	margorp pihsrosnops
+although the recommendations were sound	son son son son son
+
+
+a b c d	z y x q
+a b	1 2
+c d	3 4
+
+710k account	compte 701k
+Z 420k V	s 420k t
+<b>Z 420k V</b>	<c>Z 420k V</c>
+

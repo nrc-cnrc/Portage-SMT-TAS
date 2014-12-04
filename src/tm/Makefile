@@ -35,6 +35,7 @@ PROGRAMS = $(TESTPROGS) \
 
 BINSCRIPTS = \
         add-indicator-to-multiprob-pt.pl \
+        fixed_term2tm.pl \
         gen-jpt-parallel.sh \
         sigprune.sh \
         tmtext-apply-weights.pl \

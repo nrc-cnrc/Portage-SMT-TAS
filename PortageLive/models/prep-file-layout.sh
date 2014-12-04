@@ -4,11 +4,12 @@
 # @file prep-file-layoyt.sh
 # @brief Fetch trained PortageII models and create the proper layout for
 #        portageLive.
-# 
+#
 # @author Samuel Larkin
-# 
-# Technologies langagieres interactives / Interactive Language Technologies
-# Inst. de technologie de l'information / Institute for Information Technology
+#
+# Traitement multilingue de textes / Multilingual Text Processing
+# Technologies de l'information et des communications /
+#   Information and Communications Technologies
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2010, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2010, Her Majesty in Right of Canada
@@ -99,6 +100,8 @@ find -type f -name \*.sh | xargs chmod 755
 if [[ -d $DESTINATION/plugins ]]; then
    [[ `find $DESTINATION/plugins -type f` ]] && chmod 755 $DESTINATION/plugins/*
 fi
+
+prep-fixedTerms-layout.sh ${DESTINATION}
 
 exit
 

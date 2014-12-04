@@ -3,12 +3,12 @@
 #
 # Eric Joanis
 #
-# Technologies langagieres interactives / Interactive Language Technologies
+# Traitement multilingue de textes / Multilingual Text Processing
 # Technologies de l'information et des communications /
 #   Information and Communications Technologies
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2006 - 2013, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2006 - 2013, Her Majesty in Right of Canada
+# Copyright 2006 - 2014, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2006 - 2014, Her Majesty in Right of Canada
 
 
 # =======================================================================
@@ -17,7 +17,7 @@
 # The PORTAGE environment variable points the the root of the PortageII
 # package.
 # Change this variable to indicate where this package is actually located.
-setenv PORTAGE $HOME/PortageII-2.0
+setenv PORTAGE $HOME/PortageII-2.2
 
 # Extra dynamic libraries.  If you had to install dynamic libraries in custom
 # locations to get PortageII running, list the PATHs where the .so files are
@@ -44,7 +44,7 @@ setenv PORTAGE $HOME/PortageII-2.0
 # END OF USER CONFIGURABLE VARIABLES
 # =======================================================================
 
-echo 'PortageII 2.0, NRC-CNRC, (c) 2004 - 2013, Her Majesty in Right of Canada' > /dev/stderr
+echo 'PortageII 2.2, NRC-CNRC, (c) 2004 - 2014, Her Majesty in Right of Canada' > /dev/stderr
 
 if (! $?PATH) then
    setenv PATH $PORTAGE/bin

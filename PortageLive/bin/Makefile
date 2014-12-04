@@ -8,8 +8,9 @@
 #
 # @author Samuel Larkin
 #
-# Technologies langagieres interactives / Interactive Language Technologies
-# Inst. de technologie de l'information / Institute for Information Technology
+# Traitement multilingue de textes / Multilingual Text Processing
+# Technologies de l'information et des communications /
+#   Information and Communications Technologies
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2010, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2010, Her Majesty in Right of Canada
@@ -49,7 +50,7 @@ RESCORE_SCRIPTS ?= gen-features-parallel.pl nbest2rescore.pl rat.sh
 TOKENIZATION ?= udetokenize.pl utokenize.pl parse_tokan.pl
 TRUECASING ?= truecase.pl casemark.py boscap.py boscap-nosrc.py
 #Define EXTRAS in Makefile.params to include extra PortageII programs
-EXTRAS ?=
+EXTRAS ?= mark-english-number.pl  fixed_term2tm.pl
 
 # Must contain programs from PortageII only.
 PORTAGE_SCRIPTS ?= ${CHINESE} ${CE} ${DECODE_SCRIPTS} ${TRANSLATE} ${RESCORE_SCRIPTS} ${TOKENIZATION} ${TRUECASING}

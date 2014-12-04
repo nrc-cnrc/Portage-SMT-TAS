@@ -8,11 +8,12 @@
     brief: Definition of the API to the Portage SMT software suite.
     author: Patrick Paul, Eric Joanis and Samuel Larkin
 
-    Technologies langagières interactives / Interactive Language Technologies
-    Technologies de l'information et des communications / Information and Communications Technologies
-    Conseil national de recherches Canada / National Research Council Canada
-    Copyright 2009 - 2013, Sa Majesté la Reine du Chef du Canada /
-    Copyright 2009 - 2013, Her Majesty in Right of Canada
+  Traitement multilingue de textes / Multilingual Text Processing
+  Technologies de l'information et des communications /
+    Information and Communications Technologies
+  Conseil national de recherches Canada / National Research Council Canada
+  Copyright 2009 - 2014, Sa Majesté la Reine du Chef du Canada /
+  Copyright 2009 - 2014, Her Majesty in Right of Canada
   </documentation>
   <!-- ============================================================
                          M E S S A G E S
@@ -48,10 +49,39 @@
     <part name="CETreshold" type="xsd:decimal"/>
     <part name="xtags" type="xsd:boolean"/>
   </message>
+  <message name="updateFixedTermRequest">
+    <part name="ContentsBase64" type="xsd:base64Binary"/>
+    <part name="Filename" type="xsd:string"/>
+    <part name="encoding" type="xsd:string"/>
+    <part name="context" type="xsd:string"/>
+    <part name="sourceColumnIndex" type="xsd:decimal"/>
+    <part name="sourceLanguage" type="xsd:string"/>
+    <part name="targetLanguage" type="xsd:string"/>
+  </message>
+  <message name="updateFixedTermResponse">
+    <part name="status" type="xsd:boolean"/>
+  </message>
+  <message name="getFixedTermRequest">
+    <part name="context" type="xsd:string"/>
+  </message>
+  <message name="getFixedTermResponse">
+    <part name="ContentsBase64" type="xsd:base64Binary"/>
+  </message>
+  <message name="removeFixedTermRequest">
+    <part name="context" type="xsd:string"/>
+  </message>
+  <message name="removeFixedTermResponse">
+    <part name="status" type="xsd:boolean"/>
+  </message>
   <!-- ============================================================
                       P O R T   T Y P E S
 ============================================================ -->
   <portType name="PortageLive_Interface">
+    <!--
+    <wsdl:documentation>
+       Portage's translation web API.
+    </wsdl:documentation>
+    -->
     <operation name="primeModels">
       <documentation>
         For a given context, load its models in memory according to PrimeMode.
@@ -232,7 +262,7 @@
     </operation>
     <operation name="translatePlainTextCE">
       <documentation>
-        Does the same thing as translateTMXCE(), but for SDLXLIFF file.
+        Does the same thing as translateTMXCE(), but for plain text file.
         See the documentation of translateTMXCE() for details.
       </documentation>
       <input message="tns:translateFileCERequest"/>
@@ -241,11 +271,76 @@
     <operation name="translatePlainTextCE_Status">
       <documentation>
         Works the same as translateTMXCE_Status(), accepting the token returned
-        by translateSDLXLIFFCE().
+        by translatePlainTextCE().
         See the documentation of translateTMXCE_Status() for details.
       </documentation>
       <input message="tns:translationToken"/>
       <output message="tns:getTranslationResponse"/>
+    </operation>
+    <operation name="updateFixedTerms">
+      <documentation>
+         Given a translation system that is instrumented to process fixed
+         terms, update its list of fixed terms.
+
+         - ContentsBase64 is the contents of the fixed term file in base64 encoding.
+         - Filename is the fixed term file name.
+         - encoding is the fixed term file's encoding and can be either UTF-8 or CP-1252.
+         - context must be a valid context identifier as returned by getAllContexts().
+         - sourceColumnIndex is the 1-based index of the source column. {1 or 2}
+         - sourceLanguage is the source term's language code {en, fr, es, da}
+         - targetLanguage is the target term's language code {en, fr, es, da}
+
+         The Fixed Term file format is comprised of a header and a body.
+         The header is a single line in the following format:
+         sourceLanguage&lt;TAB&gt;targetLanguage
+         The body is several lines in the following format:
+         sourceTerm&lt;TAB&gt;targetTerm
+
+         Important considerations about the fixed term list:
+         - No morphological transformation will be applied.  You have to
+           provide all inflected forms if any.
+         - A given term can only have one translation.
+         - There is no disambiguation of terms done.  It is up to the user to
+           provide unambiguous terms.
+         - Fixed term replacement is done after lowercasing.  This means that
+           it is not possible to distinguish between "Rice" and "rice", nor
+           between "US" and "us".
+
+         This function returns true on success, or raises an exception otherwise.
+
+         Throws a SoapFault exception in case of a protocol or connection error.
+      </documentation>
+      <input message="tns:updateFixedTermRequest"/>
+      <output message="tns:updateFixedTermResponse"/>
+    </operation>
+    <operation name="getFixedTerms">
+      <documentation>
+         Given a translation system that is instrumented to process fixed
+         terms, retrive its list of fixed terms.
+
+         - context must be a valid context identifier as returned by getAllContexts().
+
+         Returns the UTF-8 fixed term list base64 encoded in the format
+         described by updateFixedTerms.
+
+         Throws a SoapFault exception in case of a protocol or connection error.
+      </documentation>
+      <input message="tns:getFixedTermRequest"/>
+      <output message="tns:getFixedTermResponse"/>
+    </operation>
+    <operation name="removeFixedTerms">
+      <documentation>
+         Given a translation system that is instrumented to process fixed
+         terms, delete its list of fixed terms.
+
+         - context must be a valid context identifier as returned by getAllContexts().
+
+         This function returns true on success, or raises an exception otherwise.
+
+         Throws a SoapFault exception in case of a protocol or connection error.
+      </documentation>
+      <input message="tns:getFixedTermRequest"/>
+      <output message="tns:getFixedTermResponse"/>
     </operation>
   </portType>
   <!-- ============================================================
@@ -345,6 +440,33 @@
     </operation>
     <operation name="translatePlainTextCE_Status">
       <soap:operation soapAction="translatePlainTextCE_Status"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+    <operation name="updateFixedTerms">
+      <soap:operation soapAction="updateFixedTerms"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://__REPLACE_THIS_WITH_YOUR_IP__/PortageLiveAPI.wsdl" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+    <operation name="getFixedTerms">
+      <soap:operation soapAction="getFixedTerms"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
+    <operation name="removeFixedTerms">
+      <soap:operation soapAction="removeFixedTerms"/>
       <input>
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </input>

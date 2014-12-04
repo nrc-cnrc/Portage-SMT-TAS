@@ -74,6 +74,7 @@ BINSCRIPTS = \
         parallelize.pl \
         parse-monitor.pl \
         plog.pl \
+        prep-fixedTerms-layout.sh \
         process-bind.sh \
         process-memory-usage.pl \
         psub \

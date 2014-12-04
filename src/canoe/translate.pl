@@ -1175,8 +1175,10 @@ sub detokenize {
          plugin("detokenize", $tgt, $in, $out);
       }
       else {
+         my $options = "";
+         $options = " -deparaline" if ($nl eq "p");
          my $u = $utf8 ? "u" : "";
-         call("${u}detokenize.pl -lang=${lang} < '${in}' > '${out}'", $out);
+         call("${u}detokenize.pl -lang=${lang} $options < '${in}' > '${out}'", $out);
       }
    }
 }

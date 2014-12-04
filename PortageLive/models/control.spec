@@ -2,7 +2,7 @@ Summary: This package contains all required models to translate from src_lang to
 Name: PortageLive-models-context
 Version: 1.0.0.0
 Release: 0
-License: Copyright © 2004-2013 Her Majesty in Right of Canada. see { commercial, research, evaluation } LICENCE
+License: Copyright © 2004-2014 Her Majesty in Right of Canada. see { commercial, research, evaluation } LICENCE
 Vendor: National Research Council Canada
 Group: translation
 URL: http://www.nrc-cnrc.gc.ca/
@@ -11,7 +11,7 @@ BuildArchitectures: noarch
 
 %description
 This package contains the full set of models required to translate from src_lang
-to tgt_lang using PortageII 2.0 and trained context context_description.
+to tgt_lang using PortageII 2.2 and trained context context_description.
 
 #
 # Do not put anything below the %defattr line; the list of files

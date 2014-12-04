@@ -226,6 +226,30 @@ smart-apos.tok.utf8: smart-apos.detok.utf8
 smart-apos.tok: smart-apos.detok
 	tokenize.pl -lang=en -noss $< > $@
 
+#####################
+# Make sure the apostrophe from CP1252 and its utf-8 counterpart are
+# detokenized correctly
+test: test-smart-apos
+
+.PHONY: test-smart-apos
+test-smart-apos: compare.smart-apos.detok.utf8 compare.smart-apos.detok \
+                 compare.smart-apos.tok.utf8 compare.smart-apos.tok
+
+smart-apos.utf8: smart-apos
+	iconv -f cp1252 -t utf-8 < $< > $@
+
+smart-apos.detok.utf8: smart-apos.utf8
+	udetokenize.pl -lang=en $< > $@
+
+smart-apos.detok: smart-apos
+	detokenize.pl -lang=en $< > $@
+
+smart-apos.tok.utf8: smart-apos.detok.utf8
+	utokenize.pl -lang=en -noss $< > $@
+
+smart-apos.tok: smart-apos.detok
+	tokenize.pl -lang=en -noss $< > $@
+
 
 ################################################################################
 # SPANISH

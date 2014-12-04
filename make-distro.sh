@@ -4,8 +4,9 @@
 # 
 # PROGRAMMER: Eric Joanis
 # 
-# Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Traitement multilingue de textes / Multilingual Text Processing
+# Technologies de l'information et des communications /
+#   Information and Communications Technologies
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2007, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2007, Her Majesty in Right of Canada
@@ -37,7 +38,7 @@ Arguments:
                 clone's --branch option: a branch or a tag, typically a
                 tag having been created first using "git tag v1_X_Y COMMIT;
                 git push --tags", e.g.,:
-                   git tag PortageII-2.0 master
+                   git tag PortageII-2.2 master
                    git push --tags
                 run in both PORTAGEshared and portage.framework.
 
@@ -449,8 +450,8 @@ make_iso_and_tar() {
       fi
       r r mkisofs -V $ISO_VOLID -joliet-long -o $ARCHIVE_FILE.iso \
               PORTAGEshared $PATCH_FILES '>&' iso.log
-      r mv PORTAGEshared PortageII-2.0
-      r r tar -cvzf $ARCHIVE_FILE.tar.gz PortageII-2.0 '>&' tar.log
+      r mv PORTAGEshared PortageII-2.2
+      r r tar -cvzf $ARCHIVE_FILE.tar.gz PortageII-2.2 '>&' tar.log
       r md5sum $ARCHIVE_FILE.* \> $ARCHIVE_FILE.md5
    r popd
 }
@@ -507,6 +508,12 @@ if [[ $INCLUDE_BIN || $COMPILE_ONLY ]]; then
    # Change SETUP.bash and SETUP.tcsh to have a default PRECOMP_PORTAGE_ARCH active
    perl -e 'print "%s/#\\(PRECOMP_PORTAGE_ARCH=\\)/\\1/\nw\nq\n"' | ed SETUP.bash
    perl -e 'print "%s/#\\(set PRECOMP_PORTAGE_ARCH=\\)/\\1/\nw\nq\n"' | ed SETUP.tcsh
+fi
+
+if [[ $MAKE_DOXY_PID ]]; then
+   print_header "Wait for background make_doxy to finish"
+   # wait for the background make_doxy process
+   r wait $MAKE_DOXY_PID
 fi
 
 if [[ $MAKE_DOXY_PID ]]; then
