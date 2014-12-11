@@ -25,7 +25,6 @@ use FindBin qw($Bin);  # Figures out this script location directory.
 BEGIN { push(@INC, $Bin) }
 #warn join(" : ", @INC);
 use tokenize::Arabic::Data;
-warn "Using ", $INC{'tokenize/Arabic/Data.pm'}, " for the tokenization\n";
 
 
 binmode( STDIN,  ":encoding(UTF-8)" );
@@ -142,7 +141,7 @@ sub HowardsPrepro {
 
 sub MADAsPrepro {
    my $input = shift or return;
-   my $result;
+   my $result = 1;
    ($result, $input) =  &MADATools::cleanUTF8String($input);
 
    die "$0: Error - Empty UTF8 cleaning map file discovered.\n" if ( $result != 1 );
@@ -156,28 +155,27 @@ sub MADAsPrepro {
 
 
 sub normalize {
-    my ($in) = @_;
-    my $out = $in;
-    if ($out =~ m/\@\@LAT\@\@/) {
-	$out =~ s/\@\@LAT\@\@//g;
-        unless ($skipTokenization) {
-           my $para = $out;
-           $out = '';
-           my @token_positions = tokenize($para, $pretok, $xtags);
-           for (my $i = 0; $i < $#token_positions; $i += 2) {
-              $out .= " " if ($i > 0);
-              $out .= get_collapse_token($para, $i, @token_positions, $notok || $pretok);
-           }
-           chomp($out);
-        }
-        $out = lc($out) unless($nolc);
-    }
-    elsif ($oov) {
-       return undef;
-    }
+   my ($in) = @_;
+   my $out = $in;
+   if ($out =~ s/\@\@LAT\@\@//g) {
+      unless ($skipTokenization) {
+         my $para = $out;
+         $out = '';
+         my @token_positions = tokenize($para, $pretok, $xtags);
+         for (my $i = 0; $i < $#token_positions; $i += 2) {
+            $out .= " " if ($i > 0);
+            $out .= get_collapse_token($para, $i, @token_positions, $notok || $pretok);
+         }
+         chomp($out);
+      }
+      $out = lc($out) unless($nolc);
+   }
+   elsif ($oov) {
+      return undef;
+   }
 
-    $out =~ s/\@\@//g;
-    return $out;
+   $out =~ s/\@\@//g;
+   return $out;
 }
 
 
@@ -214,8 +212,10 @@ sub tokenizeArabic {
    return unless(defined($input));
 
    chomp($input);
-   $input =~ s/(?<! )\+ /+/g;
-   $input =~ s/ \+(?! )/+/g;
+   # Glue words that ends with a sinble + to its successor.
+   $input =~ s/(?<!^)(?<! )(?<!\+)\+ /+/g;
+   # Glue words that starts with a sinble + to its predecessor.
+   $input =~ s/ \+(?! |\+$)/+/g;
 
 
    return join(" ",
@@ -261,92 +261,11 @@ sub loadMappingData {
    my $map = undef;
    unless ($preproOnly) {
       # Load Buckwalter's map.
+      warn "Using ", $INC{'tokenize/Arabic/Data.pm'}, " for the tokenization\n";
       my $now_fractions = time;
       $map  = decode_json( do { local $/; <tokenize::Arabic::Data::DATA>; } );
       printf(STDERR "Loaded map in %3.3fms\n", 1000 * (time - $now_fractions));
    }
    return $map;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
