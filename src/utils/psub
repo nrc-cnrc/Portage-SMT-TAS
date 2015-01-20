@@ -378,6 +378,7 @@ else
 fi
 
 TMPSCRIPT=/tmp/psub.`whoami`.`date +%s`.$$
+TMPSCRIPT=`mktemp $TMPSCRIPT.XXX` || error_exit "Cannot create temp file."
 trap "rm -f $TMPSCRIPT $TMPSCRIPT.jobid; exit" 0 2 3 13 14 15
 
 cat <<==EOF== > $TMPSCRIPT

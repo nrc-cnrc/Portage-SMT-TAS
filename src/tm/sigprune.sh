@@ -201,8 +201,7 @@ fi
 MMSUFA_SRC=mmsufa.`basename $SRC`
 MMSUFA_TGT=mmsufa.`basename $TGT`
 
-WORKDIR=sigprune.sh.$$
-mkdir $WORKDIR || error_exit "Cannot create workdir $WORDIR"
+WORKDIR=`mktemp -d sigprune.sh.$$.XXX` || error_exit "Cannot create temp workdir."
 MMSUFA_CMDS=cmd.mmsufa
 CONTINGENCY_CMDS=cmd.contingency
 MERGE_CMDS=cmd.merge

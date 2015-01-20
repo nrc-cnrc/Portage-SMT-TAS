@@ -163,7 +163,10 @@ done
 if [ -n "$RESUME" ]; then
    PID=$RESUME
 fi
-WORK_DIR=canoe-parallel.$PID
+# EJJ This breaks the resume mode, but is necessary on the GPSC to avoid file
+# name clashes between different jobs running in similarly-initialized
+# containers
+WORK_DIR=`mktemp -d canoe-parallel.$PID.XXX` || error_exit "Cannot create temp workdir."
 INPUT="$WORK_DIR/input"
 CMDS_FILE=$WORK_DIR/commands
 
@@ -171,6 +174,7 @@ CMDS_FILE=$WORK_DIR/commands
 [[ $GOTCANOE ]] || error_exit "The 'canoe' argument and the canoe options are missing."
 
 # Make sure we have a working directory
+# TODO shouldn't we strictly rely on mktemp here and not use mkdir?
 test -e $WORK_DIR || mkdir $WORK_DIR || error_exit "$WORD_DIR does not exist and cannot be created."
 
 #

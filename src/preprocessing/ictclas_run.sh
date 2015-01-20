@@ -75,16 +75,14 @@ if [ $DEBUG ]; then
 " >&2
 fi
 
-WORKDIR="ictclas.wd.$$"
+WORKDIR=`mktemp -d ictclas.wd.$$.XXX` || error_exit "Cannot create temp workdir."
 if [[ "$INPUT" == "-" ]] || [[ "$INPUT" == "/dev/stdin" ]]; then
-   mkdir -p $WORKDIR
    TMP_INPUT="$WORKDIR/in"
    zcat -f $INPUT > $TMP_INPUT
    INPUT=$TMP_INPUT
 fi
 
 if [[ "$OUTPUT" == "-" ]] || [[ "$OUTPUT" == "/dev/stdout" ]]; then
-   mkdir -p $WORKDIR
    OUTPUT="$WORKDIR/out"
 else
    warn "Overwriting $OUTPUT"

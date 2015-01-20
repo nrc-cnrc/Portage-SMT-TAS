@@ -13,6 +13,7 @@
 
 use strict;
 use warnings;
+use File::Temp;
 
 BEGIN {
    # If this script is run from within src/ rather than being properly
@@ -47,9 +48,7 @@ my $JOBS_PER_FF = -1;
 my $RESCORING_MODEL_OUT = undef;
 my $N = 3;
 
-my $OUTPUT_FILE_PATTERN = "gen-features-parallel-output.$$";
-my $CMDS_FILE = "$OUTPUT_FILE_PATTERN.commands";
-unlink $CMDS_FILE if -f $CMDS_FILE;
+my ($CMDS_FILE_HANDLE, $CMDS_FILE_NAME) = File::Temp::tempfile("gen-features-parallel-output.$$-XXXX", SUFFIX => ".commands", UNLINK=>1);
 
 
 sub usage {
@@ -284,7 +283,6 @@ rename_old $RESCORING_MODEL_OUT if(defined($RESCORING_MODEL_OUT));
 
 # Prepare the require streams
 open(MODEL_FILE, $MODEL) or die "Unable to open $MODEL";
-open(CMDS_FILE, ">$CMDS_FILE") or die "Unable to open command file";
 if (defined($RESCORING_MODEL_OUT)) {
    open(RESCORING_MODEL_OUT_FILE, ">$RESCORING_MODEL_OUT") or die "Unable to open $RESCORING_MODEL_OUT";
 }
@@ -452,7 +450,7 @@ while (my $LINE = <MODEL_FILE>) {
       }
       else {
          # Queue the requested command
-         print CMDS_FILE map {"$_\n"} @CMDS;
+         print $CMDS_FILE_HANDLE map {"$_\n"} @CMDS;
       }
 
       next;
@@ -515,22 +513,22 @@ while (my $LINE = <MODEL_FILE>) {
    }
 
    # Queue the requested command
-   print CMDS_FILE map {"$_\n"} @CMDS;
+   print $CMDS_FILE_HANDLE map {"$_\n"} @CMDS;
 }
 
 close(MODEL_FILE);
-close(CMDS_FILE);
+close($CMDS_FILE_HANDLE);
 close(RESCORING_MODEL_OUT_FILE) if (defined($RESCORING_MODEL_OUT));
 
 printf STDERR "Processing $MODEL in %ds\n", time - $start_time;
 
 
 # Now that we have the processes' list, we can execute them
-if ( -s $CMDS_FILE ) {
-   verbose "run-parallel.sh $VERBOSE $CMDS_FILE $N";
+if ( -s $CMDS_FILE_NAME ) {
+   verbose "run-parallel.sh $VERBOSE $CMDS_FILE_NAME $N";
    my $RC = 0;
    if (not defined($NOEXEC)) {
-      $RC = system("run-parallel.sh $VERBOSE $CMDS_FILE $N");
+      $RC = system("run-parallel.sh $VERBOSE $CMDS_FILE_NAME $N");
    }
 
    # Now merge feature functions' values that were generated horizontally.
@@ -555,8 +553,8 @@ if ( -s $CMDS_FILE ) {
 
 # Finally, delete the commands' file
 # Always delete the file, it might be empty.
-debug "Removing commands' file: $CMDS_FILE";
-unlink $CMDS_FILE;
+# Deletion is done through automatic tempfile mechanism.
+debug "Removing commands' file: $CMDS_FILE_NAME";
 
 # Everything is fine if we get to this point
 exit 0;

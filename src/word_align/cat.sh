@@ -230,12 +230,9 @@ if [[ $PBS_JOBID ]]; then
 else
    TMPPFX=$MODEL.tmp$$
 fi
-while [[ -d $TMPPFX ]]; do
-   TMPPFX=$TMPPFX.1
-done
-TMPPFX=$TMPPFX/
 
-mkdir $TMPPFX || error_exit "Can't create directory $TMPPFX - aborting."
+TMPPFX=`mktemp -d $TMPPFX.XXXXX` || error_exit "Cannot create temp workdir."
+TMPPFX=$TMPPFX/
 
 if [[ $NUM_ITERS2 -lt 1 && -n "$SAVE_IBM1" && "$SAVE_IBM1" != "$MODEL" ]]; then
    echo "-n2 0 used, -s option ignored, saving to $MODEL" >&2

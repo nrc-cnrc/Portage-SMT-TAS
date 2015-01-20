@@ -95,8 +95,7 @@ fi
 mkdir -p $OUTPUTPT$TPT_EXTENSION ||
    error_exit "Can't create output dir $OUTPUTPT$TPT_EXTENSION, giving up."
 
-TMPDIR=$OUTPUTPT$TPT_EXTENSION.tmp.$$
-run_cmd mkdir $TMPDIR || error_exit "Can't create temp workdir, giving up."
+TMPDIR=`mktemp -d $OUTPUTPT$TPT_EXTENSION.tmp.$$.XXX` || error_exit "Cannot create temp workdir."
 run_cmd cd $TMPDIR || error_exit "Can't cd into $TMPDIR, giving up."
 
 if [[ ! -r $TEXTPT ]]; then

@@ -4,13 +4,13 @@
 # @brief Script to truecase target language text.
 #
 # Two truecasing workflows are supported. The first (old) workflow involves
-# truecasing using just target language information to truecase the target 
+# truecasing using just target language information to truecase the target
 # text; the second (new) workflow involves additionaly using source language
 # information to improve the target text truecasing.
 #
-# In both workflows, the first step is to truecase the target language text 
-# using a target language truecasing language model and vocabulary map. The 
-# old workflow finishes with an optional step of very simple (and quite dumb) 
+# In both workflows, the first step is to truecase the target language text
+# using a target language truecasing language model and vocabulary map. The
+# old workflow finishes with an optional step of very simple (and quite dumb)
 # beginning-of-sentence capitalization.
 #
 # The new workflow, on the other hand, performs two additional steps.
@@ -49,6 +49,7 @@ $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
 use utf8;
 use File::Basename;
+use File::Temp;
 
 use Time::HiRes qw( time );
 
@@ -114,22 +115,22 @@ if ($use_srilm) {
    not defined $tplm and not defined $tppt
       or die "ERROR: '-tplm' and '-tppt' cannot be used with '-srilm'.\n";
    defined $lm_file or die "ERROR: LM must be specified using '-lm'.\n";
-   defined $map_file or defined $use_lmOnly 
+   defined $map_file or defined $use_lmOnly
       or die "ERROR: MAP must be specified using '-map' or '-useLMOnly' must be used.\n";
-   not defined $map_file or not defined $use_lmOnly 
+   not defined $map_file or not defined $use_lmOnly
       or die "ERROR: only one of '-map' or '-useLMOnly' can be used.\n";
 } else {
-   not defined $use_viterbi 
+   not defined $use_viterbi
       or die "ERROR: '-[no]viterbi' option can only be used with '-srilm'.\n";
-   not defined $use_lmOnly 
+   not defined $use_lmOnly
       or die "ERROR: '-[no]useLMOnly' option can only be used with '-srilm'.\n";
-   defined $tplm or defined $lm_file 
+   defined $tplm or defined $lm_file
       or die "ERROR: LM must be specified using '-tplm' or '-lm'.\n";
-   not defined $tplm or not defined $lm_file 
+   not defined $tplm or not defined $lm_file
       or die "ERROR: only one of '-tplm' and '-lm' can be used.\n";
-   defined $tppt or defined $map_file 
+   defined $tppt or defined $map_file
       or die "ERROR: MAP must be specified using '-tppt' or '-map'.\n";
-   not defined $tppt or not defined $map_file 
+   not defined $tppt or not defined $map_file
       or die "ERROR: only one of '-tppt' and '-map' can be used.\n";
    defined $tplm and defined $tppt or not defined $tplm and not defined $tppt
       or die "ERROR: LM and MAP must both be tightly packed (use '-tplm' and '-tppt') ",
@@ -191,23 +192,20 @@ $lmOrder = 3 if (!defined $lmOrder && $use_srilm);
 
 print STDERR "truecase.pl: truecasing '$in_file' starting\n" if $verbose;
 
-my @tmp_files = ();     # Temporary files collection
-my $tmp_txt = "tc_tmp_text_$$";
-
 # Make sure the input files exist
-$in_file eq '-' or -f $in_file && -r _ 
+$in_file eq '-' or -f $in_file && -r _
    or die "ERROR: Input text file '$in_file' is not a readable file.\n";
-not defined $src_file or -f $src_file && -r _ 
+not defined $src_file or -f $src_file && -r _
    or die "ERROR: Source language file '$src_file' is not a readable file.\n";
-not defined $pal_file or -f $pal_file && -r _ 
+not defined $pal_file or -f $pal_file && -r _
    or die "ERROR: PAL file '$pal_file' is not a readable file.\n";
-not defined $lm_file or -f $lm_file && -r _ 
+not defined $lm_file or -f $lm_file && -r _
    or die "ERROR: Truecasing model '$lm_file' is not a readable file.\n";
-not defined $map_file or -f $map_file && -r _ 
+not defined $map_file or -f $map_file && -r _
    or die "ERROR: Truecasing MAP '$lm_file' is not a readable file.\n";
-not defined $tplm or -d $tplm && -x _ 
+not defined $tplm or -d $tplm && -x _
    or die "ERROR: Tightly packed truecasing model '$tplm' is not a readable directory.\n";
-not defined $tppt or -d $tppt && -x _ 
+not defined $tppt or -d $tppt && -x _
    or die "ERROR: Tightly packed truecasing phrase table '$tppt' is not a readable directory.\n";
 not defined $srclm_file or (-f $srclm_file && -r _) or (-d $srclm_file && -x _)
    or die "ERROR: Source NC1 language model '$srclm_file' is not readable.\n";
@@ -221,6 +219,10 @@ if ($out_file) {
 }
 my $gz = substr($out_file, -3, 3) eq ".gz" ? ".gz" : ""; # output to be gzipped?
 my $gzip = $gz ? "| gzip" : "";
+
+my @tmp_files = ();     # Temporary files collection
+my ($tmp_txt_fh, $tmp_txt) = File::Temp::tempfile("$work_dir/tc_tmp_text_$$-XXXX", UNLINK=>1);
+#close $tmp_txt_fh; # Don't close it now: let it happen when the program exits so deletion happens then too.
 
 # Step 1: Basic truecasing using target language TC LM and map
 my $cmd_part1;
@@ -242,7 +244,7 @@ if ($use_srilm) { # using disambig
       print STDERR "truecase.pl: using canoe with on-the-fly phrase table.\n" if $verbose;
       $ttable_type = "multi-prob";
       $model_file = $lm_file;
-      $ttable_file = "${work_dir}/tc_tmp_canoe_$$.tm";
+      $ttable_file = "${tmp_txt}.canoe.tm";
       push @tmp_files, $ttable_file;
       convert_map_to_phrase_table($map_file, $ttable_file);
    }
@@ -257,7 +259,7 @@ if ($use_srilm) { # using disambig
 }
 
 my $bos = $bos_cap && !defined $src_file ? " | boscap-nosrc.py -enc $encoding - - " : "";
-my $tc_file = defined $src_file ? "${work_dir}/${tmp_txt}.tc$gz" : $out_file;
+my $tc_file = defined $src_file ? "${tmp_txt}.tc$gz" : $out_file;
 (push @tmp_files, $tc_file) if defined $src_file;
 my $cmd = $cmd_part1
           . " | perl -n -e 's/^<s>\\s*//o; s/\\s*<\\/s>[ ]*//o; print;' $bos"
@@ -274,9 +276,9 @@ my $t = $timing ? "-time" : "";
 if (defined $src_file) {
    # Step 2: Normalize the case of sentence-initial characters in the source text.
    # (needed by steps 3 and 4).
-   my $nc1_file = "${work_dir}/${tmp_txt}.nc1$gz";
+   my $nc1_file = "${tmp_txt}.nc1$gz";
    my $nc1ss_file = $nc1_file;
-   my $nc1sj_file = "${work_dir}/${tmp_txt}.nc1sj$gz";   # sentence joined
+   my $nc1sj_file = "${tmp_txt}.nc1sj$gz";   # sentence joined
    push @tmp_files, $nc1_file, $nc1sj_file;
    my $tee_file = $gz ? ">(gzip > $nc1_file)" : "$nc1_file";
    run("normc1 $v -ignore 1 -extended -notitle -loc $locale $srclm_file $src_file "
@@ -288,13 +290,13 @@ if (defined $src_file) {
    $nc1_file = $nc1sj_file if $nc1_lc != $pal_lc;
 
    # Step 3: Transfer case from source language to target language text.
-   my $cmark_file = "${work_dir}/${tmp_txt}.cmark$gz";
-   my $cmark_out_file = "${work_dir}/${tmp_txt}.cmark.out$gz";
-   my $cmark_log_file = "${work_dir}/${tmp_txt}.cmark.log";
+   my $cmark_file     = "${tmp_txt}.cmark$gz";
+   my $cmark_out_file = "${tmp_txt}.cmark.out$gz";
+   my $cmark_log_file = "${tmp_txt}.cmark.log";
    push @tmp_files, $cmark_file, $cmark_out_file, $cmark_log_file;
-   my $cmark_tc_file = $bos_cap ? "${work_dir}/${tmp_txt}.cmark.tc$gz" : $out_file;
+   my $cmark_tc_file = $bos_cap ? "${tmp_txt}.cmark.tc$gz" : $out_file;
    (push @tmp_files, $cmark_tc_file) if defined $bos_cap;
-   # Preload the C++ standard library to ensure that C++ exceptions and I/O 
+   # Preload the C++ standard library to ensure that C++ exceptions and I/O
    # are properly initialized when calling a C++ shared library from Python.
    my $ld_preload = "LD_PRELOAD=libstdc++.so:\$LD_PRELOAD";
    die "Encoding not defined" unless(defined($encoding));
@@ -307,8 +309,8 @@ if (defined $src_file) {
    if ($bos_cap) {
       my $opts = ($nc1_lc != $pal_lc ? "-ssp " : "") . "-enc $encoding $xtra_bos_opts";
       if ($debug) {
-         my $bos_file = "${work_dir}/${tmp_txt}.bos$gz";
-         my $bos_out_file = "${work_dir}/${tmp_txt}.bos.out$gz";
+         my $bos_file = "${tmp_txt}.bos$gz";
+         my $bos_out_file = "${tmp_txt}.bos.out$gz";
          push @tmp_files, $bos_file, $bos_out_file;
          $opts .= "$d -srcbos $bos_file -tgtbos $bos_out_file";
       }
@@ -334,7 +336,7 @@ sub convert_map_to_phrase_table
    my ($map_file, $pt_file) = @_;
    my $start = time if $timing;
    portage_utils::zin(*MAP, $map_file);
-   open( TM,  ">", "$pt_file" ) 
+   open( TM,  ">", "$pt_file" )
       or die "ERROR: unable to open '$pt_file' for writing";
 
    # Need to be locale agnostic when converting map file (MAP) to the phrase table (TM).
@@ -378,7 +380,7 @@ sub run_with_output
 }
 
 sub display_help
-{  
+{
    -t STDERR ? system "pod2text -t -o $0 >&2" : system "pod2text $0 >&2";
 }
 
@@ -527,7 +529,7 @@ Specify additional C<boscap.py> options. Valid only with both -src and -bos.
 
 DEPRECATED.
 
-If defined, then uppercase the beginning of each sentence using the specified 
+If defined, then uppercase the beginning of each sentence using the specified
 encoding (e.g. C<utf8>). Correctly uppercases accented characters.
 
 =back
@@ -607,9 +609,9 @@ Produce detailed timing info.
 =head1 CAVEATS
 
  The following may or may not be relevant.
- If you experience errors related to malformed UTF-8 when processing non-UTF8 
- data, the solution is to adjust the value of your "$LANG" Environment variable. 
- Example: if "LANG==en_CA.UTF-8", set "LANG=en_CA" and export it. 
+ If you experience errors related to malformed UTF-8 when processing non-UTF8
+ data, the solution is to adjust the value of your "$LANG" Environment variable.
+ Example: if "LANG==en_CA.UTF-8", set "LANG=en_CA" and export it.
  If the problem persists, try setting LC_ALL instead.
 
 =head1 AUTHOR

@@ -8,8 +8,6 @@
 # See http://iit-iti.nrc-cnrc.gc.ca/locations-bureaux/gatineau_e.html
 
 
-# $Id$
-#
 # LexiTools.pm
 # PROGRAMMER: George Foster / Michel Simard / Eric Joanis / Samuel Larkin
 #
@@ -27,6 +25,7 @@ package LexiTools;
 
 use strict;
 use warnings;
+use File::Temp;
 require Exporter;
 
 our (@ISA, @EXPORT);
@@ -567,7 +566,7 @@ sub len(\$) #(string)
 
 sub good_turing #(freq-list)
 {
-   my $tmpfile = "/tmp/TMP$$";
+   my $tmpfile = File::Temp::tempdir("/tmp/TPM$$-XXXX") . "/estimate";
    open(TMP, "| good_turing_estm > $tmpfile");
    print TMP join("\n", @_), "\n";
    close(TMP);

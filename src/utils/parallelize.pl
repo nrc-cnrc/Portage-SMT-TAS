@@ -41,6 +41,7 @@ use strict;
 use warnings;
 use POSIX qw(ceil);
 use File::Basename;
+use File::Temp;
 
 BEGIN {
    # If this script is run from within src/ rather than being properly
@@ -278,8 +279,12 @@ if ( $debug ) {
 }
 
 # Create a working directory to prevent polluting the environment.
-$workdir = "parallelize.pl.$$" unless(defined($workdir));
-mkdir($workdir);
+if (defined($workdir)) {
+   mkdir($workdir);
+}
+else {
+   $workdir = File::Temp::tempdir("parallelize.pl.$$-XXXX");
+}
 
 
 

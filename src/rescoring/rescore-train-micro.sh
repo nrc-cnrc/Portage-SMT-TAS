@@ -111,11 +111,10 @@ done
 
 # Build parallel command file
 
-WORKDIR=rescore-train-micro.$$
-mkdir $WORKDIR
+WORKDIR=`mktemp -d rescore-train-micro.$$.XXX` || error_exit "Cannot create temp workdir."
 if [ $? != 0 ]; then error_exit "Can't create workdir $WORKDIR"; fi   
 
-CMDFILE="cmds.$$"
+CMDFILE=`mktemp cmds.$$.XXX` || error_exit "Cannot create temp file."
 cat /dev/null > $CMDFILE
 if [ $? != 0 ]; then error_exit "Can't write command file"; fi   
 

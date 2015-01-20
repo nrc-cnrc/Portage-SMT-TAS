@@ -88,7 +88,7 @@ if [ "`expr $ORDER + 0 2> /dev/null`" != "$ORDER" ]; then
    error_exit "$ORDER is not an integer."
 fi
 
-WORK_DIR=ngram-count-big.$$
+WORK_DIR=`mktemp -d ngram-count-big.$$.XXX` || error_exit "Cannot create temp workdir."
 COUNT_CMDS_FILE=$WORK_DIR/cmds.count
 MERGE_CMDS_FILE=$WORK_DIR/cmds.merge
 

@@ -102,8 +102,7 @@ fi
 mkdir -p $OUTPUT_TPSA.tpsa ||
    error_exit "Can't create output dir $OUTPUT_TPSA.tpsa, giving up."
 
-TMPDIR=$OUTPUT_TPSA.tpsa.tmp.$$
-mkdir $TMPDIR || error_exit "Can't create temp workdir, giving up."
+TMPDIR=`mktemp -d $OUTPUT_TPSA.tpsa.tmp.$$.XXX` || error_exit "Cannot create temp workdir."
 cd $TMPDIR || error_exit "Can't cd into $TMPDIR, giving up."
 
 if [[ ! -r $CORPUS ]]; then
