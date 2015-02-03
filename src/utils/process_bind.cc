@@ -1,4 +1,3 @@
-// $Id$
 /**
  * @author Samuel Larkin
  * @file process_bind.cc
@@ -13,6 +12,7 @@
  */
 
 #include "process_bind.h"
+#include "errors.h"
 #include <pthread.h>
 #include <sys/types.h>
 #include <signal.h>
@@ -66,8 +66,7 @@ void process_bind(pid_t& pid) {
    pthread_t thread;
    printf("process_bind: %d\n", pid);
    if (pthread_create(&thread, NULL, process_bind_thread, (void*)&(pid)) != 0) {
-      fprintf(stderr, "Unable to create watch me thread");
-      exit(45);
+      error(ETFatal, "Unable to create watch me thread");
    }
 }
 

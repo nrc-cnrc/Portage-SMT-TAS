@@ -250,8 +250,8 @@ void MagicStreamBase::makeFile(const string& filename)
    log("Using files");
    std::filebuf* tmp = new std::filebuf;
    assert(tmp);
-   tmp->open(filename.c_str(), bufferMode());
-   stream = stream_type(tmp, close_deleter());
+   if (tmp->open(filename.c_str(), bufferMode()))
+      stream = stream_type(tmp, close_deleter());
 }
 
 bool MagicStreamBase::isLzma(const string& cmd)
@@ -483,7 +483,9 @@ void oMagicStream::open(const string& s)
          filtering_streambuf<output>* out = new filtering_streambuf<output>();
          assert(out != NULL);
          out->push(gzip_compressor());
-         out->push(file_sink(s.c_str()));
+         file_sink sink(s.c_str());
+         if (!sink.is_open()) return;
+         out->push(sink);
 
          stream = stream_type(out, gzip_deleter());
       }

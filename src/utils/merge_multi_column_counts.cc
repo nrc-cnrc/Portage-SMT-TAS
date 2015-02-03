@@ -36,12 +36,14 @@ Options:\n\
 \n\
 -d  Write debugging info. [don't]\n\
 -v  Write progress reports to cerr. [don't]\n\
+-r  Expect floating-point counts [expect integer counts]\n\
 -a  Expect alignments with counts instead of multiple columns of counts\n\
     In this case, the result is the multi-set union of the alignments.\n\
     The format is a=<align>:<count>(;<align>:<count>)*.\n\
 -top-a  Same as -a, but prints only the globally most frequent alignment,\n\
         without its count.  Ties are resolved arbitrarily.\n\
 -fillup retains the first value encountered for a given key.\n\
+-PI Add PureIndicator feature values.\n\
 ";
 
 // globals
@@ -51,23 +53,29 @@ const Uint sep_len = strlen(PHRASE_TABLE_SEP);
 
 static bool bDebug = false;
 static bool verbose = false;
+static bool realcounts = false;
 static bool process_alignments = false;
 static bool top_alignment = false;
 static bool fillup = false;
+static bool PureIndicator = false;
 static vector<string> infiles;
 static string outfile("-");
 
 static void getArgs(int argc, char* argv[]);
 
 /**
- * Bundles the phrase and its counts.
+ * Bundles the phrase and its counts. T is indended to be Uint or float.
  */
+template<class T>
 struct Datum {
+   static Uint nj;
+
    string key;       ///< phrase
 
-   vector<Uint> counts;    ///< phrase's counts
+   vector<T> counts;    ///< phrase's counts
    vector_map<string,Uint> alignments; ///< phrase's alignments
    Uint  stream_positional_id;   ///< This Datum is from what positional stream?
+   vector<Uint> jointCounts;
 
    Datum()
    : stream_positional_id(0)
@@ -96,11 +104,24 @@ struct Datum {
             }
          }
       }
+
+      if (PureIndicator) {
+         out << PHRASE_TABLE_SEP << (jointCounts[0] > 0 ? 1 : 0.3);
+         for (Uint i(1); i<jointCounts.size(); ++i) {
+            out << ' ' << (jointCounts[i] > 0 ? 1 : 0.3);
+         }
+      }
+
       out << endl;
    }
 
    bool parse(const string& buffer, Uint pId) {
       stream_positional_id = pId;
+
+      jointCounts.resize(nj);
+      fill(jointCounts.begin(), jointCounts.end(), 0);
+      assert(stream_positional_id < jointCounts.size());
+      jointCounts[stream_positional_id] = 1;
 
       const string::size_type pos = buffer.rfind(PHRASE_TABLE_SEP);
       if (pos == string::npos)
@@ -115,7 +136,7 @@ struct Datum {
       counts.clear();
       alignments.clear();
 
-      Uint intcount;
+      T intcount;
       for (int j =0; j < int(allcounts.size()); j++){
 
          if (process_alignments && allcounts[j].compare(0,2,"a=") == 0) {
@@ -158,6 +179,7 @@ struct Datum {
          print(cerr);
       }
    }
+
    /**
     * Combines two keys.
     */
@@ -170,6 +192,10 @@ struct Datum {
          }
       }
       else {
+         assert(jointCounts.size() == other.jointCounts.size());
+         for (Uint i(0); i<jointCounts.size(); ++i)
+            jointCounts[i] += other.jointCounts[i];
+
          for (Uint i = 0; i < other.counts.size(); ++i) {
             counts[i] += other.counts[i];
          }
@@ -193,6 +219,9 @@ struct Datum {
    }
 };
 
+template<class T>
+Uint Datum<T>::nj;
+
 
 // main
 int main(int argc, char* argv[])
@@ -202,11 +231,14 @@ int main(int argc, char* argv[])
 
    cerr << "Merging: " << endl << join(infiles) << endl;
 
-   mergeStream<Datum>  ms(infiles);
    oSafeMagicStream    out(outfile);
-
-   while (!ms.eof()) {
-      ms.next().print(out);
+   Datum<Uint>::nj =  infiles.size();
+   if (!realcounts) {
+      mergeStream< Datum<Uint> >  ms(infiles);
+      while (!ms.eof()) { ms.next().print(out); }
+   } else {
+      mergeStream< Datum<float> >  ms(infiles);
+      while (!ms.eof()) { ms.next().print(out); }
    }
 }
 
@@ -214,15 +246,17 @@ int main(int argc, char* argv[])
 
 void getArgs(int argc, char* argv[])
 {
-   const char* switches[] = {"v", "d", "a", "top-a", "fillup"};
+   const char* switches[] = {"v", "r", "d", "a", "top-a", "fillup", "PI"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 2, -1, help_message);
    arg_reader.read(argc-1, argv+1);
 
    arg_reader.testAndSet("v", verbose);
+   arg_reader.testAndSet("r", realcounts);
    arg_reader.testAndSet("d", bDebug);
    arg_reader.testAndSet("a", process_alignments);
    arg_reader.testAndSet("top-a", top_alignment);
    arg_reader.testAndSet("fillup", fillup);
+   arg_reader.testAndSet("PI", PureIndicator);
    if ( top_alignment ) process_alignments = true;
 
    arg_reader.testAndSet(0, "outfile", outfile);

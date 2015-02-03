@@ -202,6 +202,8 @@ for ( ; $paddr = accept(Client, Server); close Client) {
          print "KILLED\n";
          close Client;
          exit 2;
+      } elsif ($cmd_rcvd =~ /^NUM_WORKER/i) {
+         print "NUM_WORKER w:$num_workers q:$quench_count a:$add_count\n";
       } elsif ($cmd_rcvd =~ /^GET/i) {
          log_msg $cmd_rcvd;
          if ( $cmd_rcvd !~ /GET \(PRIMARY/i and $quench_count > 0 ) {
@@ -225,7 +227,7 @@ for ( ; $paddr = accept(Client, Server); close Client) {
             } else {
                print "***EMPTY***\n";
                log_msg "returning: ***EMPTY***";
-               --$num_workers
+               --$num_workers;
             }
          }
       } elsif ($cmd_rcvd =~ /^DONE|^SIGNALED/i) {
@@ -233,6 +235,9 @@ for ( ; $paddr = accept(Client, Server); close Client) {
             $caught_signal = 1;
          }
          if ( $cmd_rcvd =~ /^DONE-STOPPING|^SIGNALED/i ) {
+            --$num_workers;
+         } elsif ($job_no >= $num || $caught_signal) {
+            print "ALLSTARTED\n";
             --$num_workers;
          }
          ++$done_count;
@@ -403,6 +408,9 @@ Valid messages -- response:
           run-parallel.sh clean up.
 
   PING -- PONG
+
+  NUM_WORKER -- Request status of how many workers are: actively working, been
+                quenched and been added.
 
 EOF
 

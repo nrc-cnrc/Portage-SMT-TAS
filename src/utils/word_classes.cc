@@ -1,5 +1,4 @@
 /**
- * $Id$
  * @author Eric Joanis
  * @file word_classes.cc Implementation of class to store word classes
  *
@@ -61,7 +60,7 @@ bool WordClasses::add(const char* word, Uint class_id) {
    return true;
 }
 
-void WordClasses::read(const string& class_file) {
+void WordClasses::read(const string& class_file, Voc* vocab, bool verbose) {
    iSafeMagicStream in(class_file);
    string line;
    vector<string> toks;
@@ -78,10 +77,18 @@ void WordClasses::read(const string& class_file) {
          error(ETFatal, "Error in class file %d line %d: "
                "%s can't be converted to a number",
                class_file.c_str(), line_no, toks[1].c_str());
-      if ( ! add(toks[0].c_str(), class_id) )
-         error(ETFatal, "Error in class file %s line %d: "
-               "%s occurs twice with different class ids.", 
-               class_file.c_str(), line_no, toks[0].c_str());
+      if (!vocab || (vocab->index(toks[0].c_str()) != vocab->size()))
+         if ( ! add(toks[0].c_str(), class_id) )
+            error(ETFatal, "Error in class file %s line %d: "
+                  "%s occurs twice with different class ids.",
+                  class_file.c_str(), line_no, toks[0].c_str());
+   }
+
+   if (verbose) {
+      cerr << "WordClasses: kept " << size() << " of " << line_no << " words";
+      if (vocab)
+         cerr << " (vocab size = " << vocab->size() << ")";
+      cerr << endl;
    }
 } // read()
 

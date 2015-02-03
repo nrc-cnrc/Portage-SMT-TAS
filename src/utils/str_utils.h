@@ -322,6 +322,15 @@ template <class T> bool convCheck(const char* s, T& val)
 // Makes compilation of convCheck<T>  ambiguous
 //template <class T> bool convCheck(const string& s, T& val);
 
+/// Convert any type to a string via an ostringstream
+/// This is slow but convenient - avoid in tight loops
+template <class T>
+string toString(const T& val)
+{
+   ostringstream oss;
+   oss << val;
+   return oss.str();
+}
 
 /**
  * Join a vector of strings into a single string, appending the results to s.
@@ -488,6 +497,9 @@ Uint split(const char* s, vector<T>& dest, Converter converter, const char* sep 
    const Uint init_size(dest.size());
    // Make a copy to work on
    const Uint len = strlen(s);
+   // This arbitrary limit is close to default stack size; issue fatal error instead of seg fault.
+   if (len > 1000000)
+      error(ETFatal, "Trying to split a line that is longer 1 million characters - there's probably something wrong with your input.\n");
    char work[len+1];
    strcpy(work, s);
    assert(work[len] == '\0');
@@ -496,7 +508,8 @@ Uint split(const char* s, vector<T>& dest, Converter converter, const char* sep 
    const char* tok = strtok_r(work, sep, &strtok_state);
    while (tok != NULL && (!max_toks || dest.size()-init_size+1 < max_toks)) {
       dest.push_back(T());
-      converter(tok, dest.back());
+      if (!converter(tok, dest.back()))
+         error(ETFatal, "Unable to convert %s into %s", tok, typeName<T>().c_str());
       tok = strtok_r(NULL, sep, &strtok_state);
    }
    // Last token will contain the remainder of the string
@@ -526,6 +539,14 @@ Uint split(const char* s, vector<T>& dest, const char* sep = " \t\n", Uint max_t
    return split(s, dest, convT<T>, sep, max_toks);
 }
 
+template<class T>
+vector<T> split(const char* s, const char* sep = " \t\n", Uint max_toks = 0)
+{
+   vector<T> dest;
+   split(s, dest, convT<T>, sep, max_toks);
+   return dest;
+}
+
 /**
  * Split an input string into a sequence of whitespace-delimited tokens.
  * The * splitZ() version clears the output vector first.
@@ -542,6 +563,14 @@ template<class T>
 Uint split(const string& s, vector<T>& dest, const char* sep = " \t\n", Uint max_toks = 0)
 {
    return split(s.c_str(), dest, convT<T>, sep, max_toks);
+}
+
+template<class T>
+vector<T> split(const string& s, const char* sep = " \t\n", Uint max_toks = 0)
+{
+   vector<T> dest;
+   split(s.c_str(), dest, convT<T>, sep, max_toks);
+   return dest;
 }
 
 /// Same as split(const string& s, vector<T> &dest, const string& sep),
@@ -597,7 +626,7 @@ Uint destructive_split(char* s, char* tokens[], Uint max_tokens, const char* sep
 
 /// Same as argument destructive_split(), but without a maximum number of tokens
 /// tokens is cleared before adding the tokens from s to it.
-Uint destructive_splitZ(char* s, vector<const char*>& tokens, const char* sep = " \t\n");
+Uint destructive_splitZ(char* s, vector<char*>& tokens, const char* sep = " \t\n");
 
 /**
  * Gets the next token.

@@ -264,6 +264,43 @@ public:
 #endif
    }
 
+   // Testing failing to open files for various external reasons
+   void testOpenFails() {
+      iMagicStream is;
+      is.open("no-such-file");
+      TS_ASSERT(!is);
+      is.close();
+      is.open("no-such-file.gz");
+      TS_ASSERT(!is);
+      is.close();
+      is.open("no-such-file.bz2");
+      TS_ASSERT(!is);
+      is.close();
+
+      oMagicStream os;
+      os.open("/not-allowed-to-write-here");
+      TS_ASSERT(!os);
+      os.close();
+      os.open("/not-allowed-to-write-here.gz");
+      TS_ASSERT(!os);
+      os.close();
+      os.open("/not-allowed-to-write-here.bz2");
+      // Just like we can't detect pipe failures until close(), we can't detect
+      // failing to write to .bz2 until close()
+      //TS_ASSERT(!os);
+      os.close();
+
+      using namespace Portage::Error_ns;
+      tmp_val<ErrorCallback> tmp(Current::errorCallback, countErrorCallBack);
+      iSafeMagicStream is2("no-such-file");
+      iSafeMagicStream is3("no-such-file.gz");
+      iSafeMagicStream is4("no-such-file.bz2");
+      oSafeMagicStream os2("/not-allowed-to-write-here");
+      oSafeMagicStream os3("/not-allowed-to-write-here.gz");
+      TS_ASSERT_EQUALS(ErrorCounts::Total, 5u);
+      oSafeMagicStream os4("/not-allowed-to-write-here.bz2"); // does not fail
+   }
+
    // Testing File Descriptor
    string filename_fd;
    const string msg_fd;

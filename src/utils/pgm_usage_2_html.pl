@@ -113,11 +113,11 @@ if (defined($main_index)) {
 elsif (defined($full_index)) {
    $title = $full_index;
    $NRC_logo_path = ".";
-   $hierarchy = " <A HREF=\"index.html\">PortageII_cur</A>";
+   $hierarchy = " <A HREF=\"index.html\">PortageII cur</A>";
 }
 else {
    $NRC_logo_path = "..";
-   $hierarchy = "<A HREF=\"../index.html\">PortageII_cur</A> /";
+   $hierarchy = "<A HREF=\"../index.html\">PortageII cur</A> /";
    if (defined($module_index)) {
       $title = "Module: $module_index";
       $hierarchy .= " $module_index /";
@@ -139,7 +139,7 @@ my $header = <<HEADER;
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD>
-  <TITLE>PortageII_cur - $title</TITLE>
+  <TITLE>PortageII cur - $title</TITLE>
   </HEAD>
   <BODY BGCOLOR="#FFFFFF" LINK="#0000ff" VLINK="#006600">
 
@@ -174,7 +174,7 @@ my $footer = <<FOOTER;
 Technologies langagi&egrave;res interactives / Interactive Language Technologies<BR>
 Technologies de l'information et des communications / Information and Communications Technologies<BR>
 Conseil national de recherches Canada / National Research Council Canada<BR>
-Copyright &copy; 2004-2014, Sa Majest&eacute; la Reine du Chef du Canada / Her Majesty in Right of Canada
+Copyright &copy; 2004-2015, Sa Majest&eacute; la Reine du Chef du Canada / Her Majesty in Right of Canada
   </font>
   </td>
 </tr>
@@ -226,7 +226,7 @@ if (defined($module_index)) {
 }
 # Compile a list of all available module in Portage.
 elsif (defined($main_index)) {
-   print OUT "<H2>PortageII_cur programs by module:</H2><BR>
+   print OUT "<H2>PortageII cur programs by module:</H2><BR>
    <UL>
    ";
    while (<IN>) {

@@ -173,10 +173,16 @@ run_cmd() {
    (( $VERBOSE > 0 )) && echo "$@" >&2
    if [[ ! $NOTREALLY ]]; then
       START_TIME=`date +"%s"`
-      MON_FILE=`mktemp $WORKDIR_ABSOLUTE/mon.run_cmd.XXXXXXXX`
-      trap "rm -f $MON_FILE; exit $rc" 0
+      if [[ $USER_MON_FILE ]]; then
+         MON_FILE=$USER_MON_FILE
+         DELETE_MON_FILE=""
+      else
+         MON_FILE=`mktemp $WORKDIR_ABSOLUTE/mon.run_cmd.XXXXXXXX`
+         DELETE_MON_FILE="rm -f $MON_FILE;"
+      fi
+      trap "$DELETE_MON_FILE exit $rc" 0
       for signal in 1 2 3 5 10 13 14 15; do
-         trap "echo Caught signal $signal >&2; rc=$((128 + signal)); report; rm -f $MON_FILE; exit $rc" $signal
+         trap "echo Caught signal $signal >&2; rc=$((128 + signal)); report; $DELETE_MON_FILE exit $rc" $signal
       done
       process-memory-usage.pl -s 1 $MON_PERIOD $$ > $MON_FILE &
       sleep 1
@@ -218,6 +224,8 @@ Options:
   -p(eriod) P  Sleep for P seconds between monitoring samples. [30]
   -T(ally)     Tally results.
   -m(eta) NAME Label the tally line with NAME, e.g., for hierarchical reports.
+  -mon FILE    Put the monitor output in FILE and leave around when done
+  -timefmt FMT Override the default TIMEFORMAT
   -h(elp)      Print this help message
   -v(erbose)   Increment the verbosity level by 1 (may be repeated)
   -d(ebug)     Print debugging information
@@ -236,6 +244,8 @@ while [ $# -gt 0 ]; do
    -p|-period)          arg_check 1 $# $1; arg_check_pos_int $2 $1;
                         MON_PERIOD=$2; shift;;
    -m|-meta)            META=$2;shift;;
+   -mon)                arg_check 1 $# $1; USER_MON_FILE=$2; shift;;
+   -timefmt)            arg_check 1 $# $1; TIMEFORMAT="$2"; shift;;
    -T|Tally)            TALLY=1;;
    -v|-verbose)         VERBOSE=$(( $VERBOSE + 1 ));;
    -d|-debug)           DEBUG=1;;

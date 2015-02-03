@@ -77,6 +77,11 @@ my $pow_prec = 1/(10**$prec);
 
 2 == @ARGV or usage "Must specify exactly two input files.";
 
+if (-d $ARGV[1] && -f $ARGV[0]) {
+   $ARGV[1] .= "/" . `basename $ARGV[0]`;
+   $ARGV[1] =~ s/\s*$//;
+}
+
 # Will hold the maximum numerical difference found
 my $max_diff = 0;
 # Will be true if an infinite numerical difference was found (i.e., one value

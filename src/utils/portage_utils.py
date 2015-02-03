@@ -3,9 +3,9 @@
 
 # @file portage_utils.py
 # @brief Useful common Python classes and functions
-# 
+#
 # @author Darlene Stewart & Samuel Larkin
-# 
+#
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
@@ -16,42 +16,38 @@ from __future__ import print_function, unicode_literals, division, absolute_impo
 
 import sys
 import argparse
+import re
 import __builtin__
-import os
 from subprocess import Popen, PIPE
 
 __all__ = ["printCopyright",
-           "HelpAction", "VerboseAction", "DebugAction", 
-           "set_debug","set_verbose", 
+           "HelpAction", "VerboseAction", "VerboseMultiAction", "DebugAction",
+           "set_debug","set_verbose",
            "error", "fatal_error", "warn", "info", "debug", "verbose",
-           "open",
+           "open", "split",
           ]
 
 current_year = 2015
 
 def printCopyright(program_name, start_year):
    """Print the standard NRC Copyright notice.
-   
+
    The Crown Copyright will be asserted for start_year to latest release year.
-   
+
    program_name: name of the program
    start_year: the first year of Copyright for the program;
    """
-   if os.environ.get('PORTAGE_INTERNAL_CALL','0') == '0':
-      print("\n{0}, NRC-CNRC, (c) {1}{2}, Her Majesty in Right of Canada".format(
-            program_name, start_year,
-            " - {0}".format(current_year) if current_year > start_year else ""),
-            file=sys.stderr)
-      print('Please run "portage_info -notice" for Copyright notices of 3rd party libraries.\n', 
-            file=sys.stderr)
+   # Just like in sh_utils.sh, we don't actually bother with the Copyright
+   # statement within Portage.
+   pass
 
 
 class HelpAction(argparse.Action):
-   """argparse action class for displaying the help message to stderr.    
+   """argparse action class for displaying the help message to stderr.
    e.g: parser.add_argument("-h", "-help", "--help", action=HelpAction)
    """
    def __init__(self, option_strings, dest, help="print this help message to stderr and exit"):
-      super(HelpAction, self).__init__(option_strings, dest, nargs=0, 
+      super(HelpAction, self).__init__(option_strings, dest, nargs=0,
                                        default=argparse.SUPPRESS,
                                        required=False, help=help)
    def __call__(self, parser, namespace, values, option_string=None):
@@ -63,12 +59,27 @@ class VerboseAction(argparse.Action):
    e.g: parser.add_argument("-v", "--verbose", action=VerboseAction)
    """
    def __init__(self, option_strings, dest, help="print verbose output to stderr [False]"):
-      super(VerboseAction, self).__init__(option_strings, dest, nargs=0, 
-                                          const=True, default=False, 
+      super(VerboseAction, self).__init__(option_strings, dest, nargs=0,
+                                          const=True, default=False,
                                           required=False, help=help)
 
    def __call__(self, parser, namespace, values, option_string=None):
       setattr(namespace, self.dest, True)
+      set_verbose(True)
+
+class VerboseMultiAction(argparse.Action):
+   """argparse action class increase level of verbosity in output.
+   e.g: parser.add_argument("-v", "--verbose", action=VerboseMultiAction)
+   Using multiple flags increase the verbosity multiple levels.
+   """
+   def __init__(self, option_strings, dest,
+                help="increase level of verbosity output to stderr [0]"):
+      super(VerboseMultiAction, self).__init__(option_strings, dest, nargs=0,
+                                               type=int, default=0,
+                                               required=False, help=help)
+
+   def __call__(self, parser, namespace, values, option_string=None):
+      setattr(namespace, self.dest, getattr(namespace, self.dest, 0) + 1)
       set_verbose(True)
 
 class DebugAction(argparse.Action):
@@ -76,8 +87,8 @@ class DebugAction(argparse.Action):
    e.g: parser.add_argument("-d", "--debug", action=DebugAction)
    """
    def __init__(self, option_strings, dest, help="print debug output to stderr [False]"):
-      super(DebugAction, self).__init__(option_strings, dest, nargs=0, 
-                                        const=True, default=False, 
+      super(DebugAction, self).__init__(option_strings, dest, nargs=0,
+                                        const=True, default=False,
                                         required=False, help=help)
 
    def __call__(self, parser, namespace, values, option_string=None):
@@ -98,19 +109,19 @@ def set_verbose(flag):
    global verbose_flag
    verbose_flag = flag
 
-def error(*args):
+def error(*args, **kwargs):
    """Print an error message to stderr."""
-   print("Error:", *args, file=sys.stderr)
+   print("Error:", *args, file=sys.stderr, **kwargs)
    return
 
-def fatal_error(*args):
+def fatal_error(*args, **kwargs):
    """Print a fatal error message to stderr and exit with code 1."""
-   print("Fatal error:", *args, file=sys.stderr)
+   print("Fatal error:", *args, file=sys.stderr, **kwargs)
    sys.exit(1)
 
-def warn(*args):
+def warn(*args, **kwargs):
    """Print an warning message to stderr."""
-   print("Warning:", *args, file=sys.stderr)
+   print("Warning:", *args, file=sys.stderr, **kwargs)
    return
 
 def info(*args, **kwargs):
@@ -172,6 +183,20 @@ def open(filename, mode='r', quiet=True):
       theFile = __builtin__.open(filename, mode)
 
    return theFile
+
+# Regular expression to match whitespace the same way that split() in
+# str_utils.cc does, i.e. sequence of spaces, tabs, and/or newlines.
+split_re = re.compile('[ \t\n]+')
+
+def split(s):
+   """Split s into tokens the same way split() in str_utils.cc does, i.e.
+   using any sequence of spaces, tabs, and/or newlines as a delimiter, and
+   ignoring leading and trailing whitespace.
+
+   s: string to be split into token
+   returns: list of string tokens
+   """
+   return split_re.split(s.strip(' \t\n'))
 
 
 if __name__ == '__main__':

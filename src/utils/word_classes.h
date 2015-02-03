@@ -1,5 +1,4 @@
 /**
- * $Id$
  * @author Eric Joanis
  * @file word_classes.h Class to store word classes
  *
@@ -16,6 +15,7 @@
 #include "portage_defs.h"
 #include "array_mem_pool.h"
 #include "string_hash.h"
+#include "voc.h"
 
 namespace Portage {
 
@@ -84,8 +84,9 @@ public:
     * The file is read from beginning to end and may not contain anything else.
     * @param class_file  file containing word classes: each line containing
     *                    word<tab>class_id
+    * @param vocab       if non-NULL, add entries only for words also in vocab
     */
-   void read(const string& class_file);
+   void read(const string& class_file, Voc* vocab = NULL, bool verbose = false);
 
    /**
     * Write the word classes in format that can be incorporated in a stream

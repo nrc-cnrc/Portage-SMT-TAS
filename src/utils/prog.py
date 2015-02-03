@@ -2,9 +2,9 @@
 
 # @file prog.py
 # @brief Briefly describe your script here.
-# 
+#
 # @author Write your name here
-# 
+#
 # Traitement multilingue de textes / Multilingual Text Processing
 # Tech. de l'information et des communications / Information and Communications Tech.
 # Conseil national de recherches Canada / National Research Council Canada
@@ -51,14 +51,14 @@ from portage_utils import *
 
 def get_args():
    """Command line argument processing."""
-   
+
    usage="prog [options] mandatoryFile1 mandatoryFile2 [infile [outfile]]"
    help="""
    A brief description of what this program does. (Don't bother trying to format
    this text by including blank lines, etc: ArgumentParser is a control freak and
    will reformat to suit its tastes.)
    """
-   
+
    # Use the argparse module, not the deprecated optparse module.
    parser = ArgumentParser(usage=usage, description=help, add_help=False)
 
@@ -78,7 +78,7 @@ def get_args():
                        help="some float option [%(default)s]")
    parser.add_argument("-l", dest="list_opt", nargs="*", type=str, default=[],
                        help="list of string operands [%(default)s]")
-   parser.add_argument("-c", dest="choice_opt", nargs="?", 
+   parser.add_argument("-c", dest="choice_opt", nargs="?",
                        choices=("choice1","choice2"), const="choice1", default=None,
                        help="one of choice1, choice2; -c alone implies %(const)s "
                             "[%(default)s]")
@@ -89,14 +89,14 @@ def get_args():
    parser.add_argument("mandatoryFile2", type=open, help="file 2")
 
    # The following use the portage_utils version of open to open files.
-   parser.add_argument("infile", nargs='?', type=open, default=sys.stdin, 
+   parser.add_argument("infile", nargs='?', type=open, default=sys.stdin,
                        help="input file [sys.stdin]")
-   parser.add_argument("outfile", nargs='?', type=lambda f: open(f,'w'), 
-                       default=sys.stdout, 
+   parser.add_argument("outfile", nargs='?', type=lambda f: open(f,'w'),
+                       default=sys.stdout,
                        help="output file [sys.stdout]")
 
    cmd_args = parser.parse_args()
-   
+
    # info, verbose, debug all print to stderr.
    info("arguments are:")
    for arg in cmd_args.__dict__:
@@ -108,20 +108,20 @@ def get_args():
 def main():
    printCopyright("prog.py", 2015);
    os.environ['PORTAGE_INTERNAL_CALL'] = '1';   # add this if needed
-   
+
    cmd_args = get_args()
-   
+
    # Handle file encodings:
    try:
       codecs.lookup(cmd_args.encoding)
    except LookupError:
       fatal_error("Illegal encoding specified for -enc (--encoding) option: '{0}'".format(cmd_args.encoding))
-   
+
    infile = codecs.getreader(cmd_args.encoding)(cmd_args.infile)
    outfile = codecs.getwriter(cmd_args.encoding)(cmd_args.outfile)
    # The following allows stderr to handle non-ascii characters:
    sys.stderr = codecs.getwriter(cmd_args.encoding)(sys.stderr)
-   
+
    # Call an external program without invoking a shell and checking the return code:
    verbose("Calling 'ls xxxx' not using a shell.")
    ret_code = call(["ls", "xxxx"])
@@ -133,7 +133,7 @@ def main():
    ret_code = call("ls | wc -l", shell=True)
    if ret_code is not 0:
       error("'ls | wc -l' failed, returned:", ret_code)
-      
+
    # Call an external program not invoking a shell and checking the output:
    verbose("Calling 'ls .' checking the output.")
    try:
