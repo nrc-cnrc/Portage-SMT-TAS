@@ -119,6 +119,12 @@ int main(int argc, char* argv[])
    PhraseTableBase::ToksIter b1, e1, b2, e2, v, a, f;
    DistortionCount dc;
 
+   // Open the STDOUT pipe now, so we fork while the memory footprint is still small.
+   string outname("-");
+   if (sorting)
+      outname = "| LC_ALL=C TMPDIR=. sort";
+   oSafeMagicStream os(outname);
+
    // read eval counts into pteval if required
 
    Uint nphrases_eval_tot = 0;
@@ -177,11 +183,6 @@ int main(int argc, char* argv[])
 
    // Estimate and output. (This could be sped up by pre-computing and storing
    // the smoothed prior counts for each l1 and l2 phrase.)
-
-   string outname("-");
-   if (sorting) 
-      outname = "| LC_ALL=C TMPDIR=. sort";
-   oSafeMagicStream os(outname);
 
    vector<float> l1_prior(DistortionCount::size());
    vector<float> l2_prior(DistortionCount::size());
