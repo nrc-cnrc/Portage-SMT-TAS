@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
-# @file
-# @brief
+# @file parse_tokan.pl
+# @brief Given MADA's database output, extract different form for each words.
 #
 # @author Samuel Larkin based on Marine Carpuat's work.
 #
@@ -18,7 +18,25 @@ use warnings;
 
 use ULexiTools;
 
-die <<USAGE
+BEGIN {
+   # If this script is run from within src/ rather than being properly
+   # installed, we need to add utils/ to the Perl library include path (@INC).
+   if ( $0 !~ m#/bin/[^/]*$# ) {
+      my $bin_path = $0;
+      $bin_path =~ s#/[^/]*$##;
+      unshift @INC, "$bin_path/../utils";
+   }
+}
+use portage_utils;
+printCopyright "parse_tokan.pl", 2014;
+$ENV{PORTAGE_INTERNAL_CALL} = 1;
+
+
+sub usage {
+   local $, = "\n";
+   print STDERR @_, "";
+   $0 =~ s#.*/##;
+   print STDERR "
     extract one field from the Tokan 1- or 6-tiered format
     in addition, remove markers for latin words and Arabic words that could not be buckwalter analyzed (?)
 
@@ -30,23 +48,46 @@ die <<USAGE
     - in is a file in the 6-tiered format that Tokan outputs
     - out is the output file
 
-USAGE
-    unless (@ARGV == 2);
+   Options:
+     -o(ov)       Extract oovs only from a 6 tiers's field 1.
+     -nolc        Do not perform lowercasing on latin words.
+     -skipTokenization  Do not perform tokenization on latin words.
 
-my ($tiers, $field) = @ARGV;
+";
+   exit 1;
+}
 
+use Getopt::Long;
+Getopt::Long::Configure("no_ignore_case");
+# Note to programmer: Getopt::Long automatically accepts unambiguous
+# abbreviations for all options.
+GetOptions(
+   oov       => \my $oov,
+   nolc      => \my $nolc,
+   skipTokenization => \my $skipTokenization,
+) or usage;
+
+my $tiers = shift or die "You must provide a tiers!";
+my $field = shift or die "You must provide a field!";
+
+0 == @ARGV or usage "Superfluous parameter(s): @ARGV";
+
+die "-oov must have tiers=6 and field<3" if ($oov and ($tiers != 1 and ($field < 0 or $field > 2)));
+
+# Make ULexitools arguments explicit by giving them variable names.
 my $notok  = 0;
 my $pretok = 0;
 my $xtags  = 0;
 setTokenizationLang("en");
 
-binmode( STDIN,  ":encoding(UTF-8)" );
-binmode( STDOUT, ":encoding(UTF-8)" );
+#binmode( STDIN,  ":encoding(UTF-8)" );
+#binmode( STDOUT, ":encoding(UTF-8)" );
 
 my $sep="·";
 while(<STDIN>) {
    my @in = split(/\s+/);
-   # remove the <\/?non-MSA> tags which are part of a token, or the entire token if there is no content over than the tag
+    # remove the <\/?non-MSA> tags which are part of a token, or the entire
+    # token if there is no content over than the tag
    my @inclean = ();
    foreach my $i (@in) {
       $i =~ s/\<non-MSA\>//g;
@@ -56,7 +97,8 @@ while(<STDIN>) {
       }
    }
 
-   # escape the middle dots that are not used as separators.But occur within words that have not been analyzed
+    # escape the middle dots that are not used as separators.But occur within
+    # words that have not been analyzed
    my @out = ();
    foreach my $i (@inclean) {
       my @fields = ($i);
@@ -74,15 +116,22 @@ while(<STDIN>) {
             die "Expecting 6 fields in input:$i\n";
          }
       }
-      push(@out, &normalize($fields[$field]));
+        if ($oov) {
+           my $normed = &normalize($fields[$field]);
+           push(@out, $normed) if (defined($normed));
+        }
+        else {
+           push(@out,&normalize($fields[$field]));
+        }
    }
-   print join(" ", @out), "\n";
+    print join(" ",@out),"\n";
 }
 
 sub normalize {
    my ($in) = @_;
    my $out = $in;
    if ($out =~ s/\@\@LAT\@\@//g) {
+      unless ($skipTokenization) {
       my $para = $out;
       $out = '';
       my @token_positions = tokenize($para, $pretok, $xtags);
@@ -91,8 +140,13 @@ sub normalize {
          $out .= get_collapse_token($para, $i, @token_positions, $notok || $pretok);
       }
       chomp($out);
-      $out = lc($out);
    }
+      $out = lc($out) unless($nolc);
+   }
+   elsif ($oov) {
+      return undef;
+   }
+
    $out =~ s/\@\@//g;
    return $out;
 }
