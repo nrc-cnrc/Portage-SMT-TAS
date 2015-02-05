@@ -332,6 +332,7 @@ int MAIN(argc, argv)
          << help_message << exit_1;
   string datFileName = string(argv[2])+".tplm";
   string tdxFileName = string(argv[2])+".tdx";
+  tidx = new TokenIndex(tdxFileName, "<unk>"); // To print legible warnings; not used otherwise
   ofstream out(datFileName.c_str());
   if (out.fail())
     cerr << efatal << "Unable to open '" << datFileName << "' for writing."

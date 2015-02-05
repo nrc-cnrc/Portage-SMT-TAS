@@ -29,9 +29,8 @@ namespace ugdiss
                 }
               else
                 {
-                  cerr << "Error: File'" << cfgFile 
-                       << "' cannot be found!" << endl;
-                  exit(1);
+                  cerr << "Error: File '" << cfgFile
+                       << "' cannot be found!" << endl << exit_1;
                 }
             }
         }

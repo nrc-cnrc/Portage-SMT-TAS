@@ -48,6 +48,9 @@ namespace ugdiss {
 extern const char* const efatal;
 extern const char* const ewarn;
 
+/// set this to true to make exit_1 catchable by a signal handler
+extern bool exit_1_use_abort;
+
 /**
  * Output stream I/O manipulator to add a newline and exit with error code 1.
  * @param os output stream

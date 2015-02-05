@@ -233,7 +233,7 @@ sub processFile {
    $parser->{filter_count} = 0;
    $parser->{'tool-id'} = 'PortageII-cur';
    $parser->{'tool-name'} = 'PortageII';
-   $parser->{'tool-version'} = '2.2';
+   $parser->{'tool-version'} = '3.0';
    $parser->{'tool-company'} = 'CNRC-NRC';
 
    verbose("[Processing file %s ...]\n", $parser->{xml_in});
@@ -754,8 +754,6 @@ sub processG {
 # Adds a tool description for PortageII.
 sub processHeader {
    my ($parser, $header) = @_;
-
-   #return;  # Do not add the tool tag to the header.
 
    my @tools = $header->children('tool[@tool-id="PortageII-cur"]');
 
