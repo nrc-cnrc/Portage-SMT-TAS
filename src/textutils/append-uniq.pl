@@ -1,7 +1,6 @@
 #!/usr/bin/env perl
-# $Id$
 
-# @file append-uniq.pl 
+# @file append-uniq.pl
 # @brief Appends non duplicate lines from addnbest and addffvals files to nbest
 #        and ffvals.
 #
