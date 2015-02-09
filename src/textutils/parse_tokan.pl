@@ -40,7 +40,7 @@ sub usage {
     extract one field from the Tokan 1- or 6-tiered format
     in addition, remove markers for latin words and Arabic words that could not be buckwalter analyzed (?)
 
-    parse_tokan.pl format field < in > out
+    parse_tokan.pl [options] format field < in > out
 
     where
     - format is 1 or 6 (number of tiers in the Tokan output)
@@ -68,7 +68,8 @@ GetOptions(
 ) or usage;
 
 my $tiers = shift or die "You must provide a tiers!";
-my $field = shift or die "You must provide a field!";
+my $field = shift;  # Can be 0
+die "You must provide a field!" unless (defined($field));
 
 0 == @ARGV or usage "Superfluous parameter(s): @ARGV";
 
@@ -113,7 +114,7 @@ while(<STDIN>) {
             }
          }
          elsif(@fields < 6) {
-            die "Expecting 6 fields in input:$i\n";
+            die "Expecting 6 fields in input: <$i> ", scalar(@fields), "\n";
          }
       }
       if ($oov) {
