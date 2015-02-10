@@ -14,6 +14,7 @@
 
 use strict;
 use warnings;
+use utf8;  # This script has a unicode code point \xB7
 use MADA::MADATools;
 use ULexiTools;
 use JSON;
@@ -27,9 +28,12 @@ BEGIN { push(@INC, $Bin) }
 use tokenize::Arabic::Data;
 
 
-binmode( STDIN,  ":encoding(UTF-8)" );
-binmode( STDOUT, ":encoding(UTF-8)" );
-binmode( STDERR, ":encoding(UTF-8)" );
+# This is a utf8 handling script => io should be in utf8 format
+# ref: http://search.cpan.org/~tty/kurila-1.7_0/lib/open.pm
+# We need UTF-8 to be able to properly lowercase the input.
+use open IO => ':encoding(utf-8)';
+use open ':std';  # <= indicates that STDIN and STDOUT are utf8
+
 
 sub usage {
    local $, = "\n";
@@ -114,7 +118,6 @@ my $notok  = 0;
 my $pretok = 0;
 my $xtags  = 0;
 setTokenizationLang("en");
-
 
 
 loadMADACleanUpMap("$MADA_HOME/common-tasks/clean-utf8-MAP");
