@@ -51,8 +51,9 @@ public:
 
    struct Creator : public PLM::Creator {
       Creator(const string& lm_physical_filename, Uint naming_limit_order);
-      virtual bool checkFileExists();
+      virtual bool checkFileExists(vector<string>* list);
       virtual Uint64 totalMemmapSize();
+      void listAllFiles(vector<string>* list);
       virtual PLM* Create(VocabFilter* vocab,
                           OOVHandling oov_handling,
                           float oov_unigram_prob,
@@ -99,6 +100,7 @@ public:
          bool notreally, vector<string>* model_names);
 
    virtual float wordProb(Uint word, const Uint context[], Uint context_length);
+   virtual Uint minContextSize(const Uint context[], Uint context_length);
 
    virtual void newSrcSent(const vector<string>& src_sent,
                            Uint external_src_sent_id);

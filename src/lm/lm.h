@@ -1,9 +1,8 @@
 /**
  * @author Bruno Laferriere / Eric Joanis
  * @file lm.h  Abstract class for a language model.
- * $Id$
  *
- * Superclass LM to do abstracts / concrete implementation of language models
+ * Superclass LM to do abstract/concrete implementations of language models
  *
  * Note: the convention throughout this module is to use "probability"
  * in place of "log probability". For example, wordProb() actually returns a
@@ -58,6 +57,8 @@ public:
       /// @param other  ride-hand side operand
       /// @return Returns a new hits containing the sum for each N.
       Hits& operator+=(const Hits& other);
+      /// Regular addition operator
+      Hits operator+(const Hits& other) const;
       /// Displays the hits per ngrams.
       /// @param out  where to display [cerr]
       void display(ostream& out = cerr) const;
@@ -238,9 +239,10 @@ protected:
        * The base class implemention simply checks that lm_physical_filename
        * exists, and should be overridden in classes where that is not a
        * sufficient check.
+       * @param list  if list is non-NULL, names of all files required will be added to *list
        * @return Returns true if the file exists (and associated files, if any)
        */
-      virtual bool checkFileExists();
+      virtual bool checkFileExists(vector<string>* list);
 
       /**
        * Calculate the total size of memory mapped files in lm_filename, if any.
@@ -350,6 +352,18 @@ public:
                                 Uint context_length);
 
    /**
+    * Calculate the minimum part of context that has to be kept to be able to
+    * correctly calculate the probability of future queries with this context
+    * as context. Based on Li and Khudanpur 2008: if context is not the prefix
+    * of an entry in the LM and has no back-off weight, it will not be fully
+    * used in future queries.
+    * @param context            context for future queries, in reserve order
+    * @param context_length     length of context
+    * @return min suffix of context that is enough to calculate future queries.
+    */
+   virtual Uint minContextSize(const Uint context[], Uint context_length) = 0;
+
+   /**
     * Get the order of the language model
     * @return Order of the LM
     */
@@ -390,9 +404,10 @@ public:
    /**
     * Checks if a language model's file exists
     * @param  lm_filename  canoe.ini LM's filename
+    * @param list  if list is non-NULL, names of all files required will be added to *list
     * @return Returns true if the file exists
     */
-   static bool checkFileExists(const string& lm_filename);
+   static bool checkFileExists(const string& lm_filename, vector<string>* list = NULL);
 
    /// Destructor, virtual since we have subclasses
    virtual ~PLM();
@@ -431,6 +446,15 @@ public:
     * Clear the hits statistics.
     */
    virtual void clearHits() { hits.clear(); }
+
+   /**
+    * Get the depth where the latest n-gram query was found, i.e., how much of the
+    * word plus its context was found.
+    */
+   virtual Uint getLatestNgramDepth() const {
+      error(ETFatal, "getLatestNgramDepth() not supported by all LM classes");
+      return 0;
+   }
 
 }; // PLM
 

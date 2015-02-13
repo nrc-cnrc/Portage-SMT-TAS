@@ -3,8 +3,6 @@
  * @file arpalm2binlm.cc  
  * @brief Convert an ARPA LM file to the PortageII BinLM format.
  *
- * $Id$
- *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada

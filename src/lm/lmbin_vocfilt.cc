@@ -1,9 +1,6 @@
 /**
  * @author Eric Joanis
  * @file lmbin_vocfilt.cc - LMBinVocFilt implementation.
- * $Id$
- *
- * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology

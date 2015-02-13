@@ -22,12 +22,20 @@ PortageII is the second generation of SMT software released by the NRC.
 PortageII cur
  Work in progress
 
+ Changes:
+  - New RestCostLMs give better LM heuristic during decoding.
+
  Minor changes:
   - Added support for SRI format for word alignment files (for fastalign)
   - align-words: added GDF and GDFA as self-documenting aliases for
     IBMOchAligner 3 and 4.
   - General clean up of the eval module, with addition of per-sentence BLEU
     and NIST's 2009 BLEU definition, as published in mteval-v13a.pl.
+
+ Minor bug fixes:
+  - When writing LM files in ARPA format, explicitly write the 0-backoff
+    weights where they are required; binlm2arpalm can also be used to add them
+    back to a file where they are missing.
 
 
 PortageII 2.2 2014-12-01

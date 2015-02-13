@@ -3,8 +3,6 @@
  * @file binlm2arpalm.cc  
  * @brief Convert an NRC PortageII's binary language model to an ARPA LM format.
  *
- * $Id$
- *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada

@@ -16,6 +16,7 @@
 #include "lmmix.h"
 #include "lmdynmap.h"
 #include "tplm.h"
+#include "lmrestcost.h"
 #include "str_utils.h"
 
 using namespace std;
@@ -61,8 +62,9 @@ PLM::Creator::Creator(const string& lm_physical_filename,
    , naming_limit_order(naming_limit_order)
 {}
 
-bool PLM::Creator::checkFileExists()
+bool PLM::Creator::checkFileExists(vector<string>* list)
 {
+   if (list) list->push_back(lm_physical_filename);
    return (check_if_exists(lm_physical_filename) && !is_directory(lm_physical_filename));
 }
 
@@ -83,13 +85,15 @@ shared_ptr<PLM::Creator> PLM::getCreator(const string& lm_filename)
    }
 
    Creator* cr;
-   if ( isPrefix(LMDynMap::header, lm_physical_filename) ) {
+   if (LMDynMap::isA(lm_physical_filename)) {
       cr = new LMDynMap::Creator(lm_physical_filename, naming_limit_order);
-   } else if ( isSuffix(".mixlm", lm_physical_filename) ) {
+   } else if (isSuffix(".mixlm", lm_physical_filename)) {
       cr = new LMMix::Creator(lm_physical_filename, naming_limit_order);
-   } else if ( isSuffix(".tplm", lm_physical_filename) or
-               isSuffix(".tplm/", lm_physical_filename) ) {
+   } else if (isSuffix(".tplm", lm_physical_filename) or
+              isSuffix(".tplm/", lm_physical_filename)) {
       cr = new TPLM::Creator(lm_physical_filename, naming_limit_order);
+   } else if (LMRestCost::isA(lm_physical_filename)) {
+      cr = new LMRestCost::Creator(lm_physical_filename, naming_limit_order);
    } else {
       cr = new LMTrie::Creator(lm_physical_filename, naming_limit_order);
    }
@@ -262,34 +266,38 @@ void PLM::readLine(istream &in, float &prob, string &ph, float &bo_wt,
 } // readLine
 
 
-bool PLM::checkFileExists(const string& lm_filename)
+bool PLM::checkFileExists(const string& lm_filename, vector<string>* list)
 {
-   return getCreator(lm_filename)->checkFileExists();
+   return getCreator(lm_filename)->checkFileExists(list);
 }
 
 float PLM::cachedWordProb(Uint word, const Uint context[],
                           Uint context_length)
 {
-   if ( !cache ) cache = new LMCache;
-   
-   // If the query is too large for this model's order, truncate it up front.
-   if ( context_length >= getOrder() )
-      context_length = getOrder() - 1;
+   if (false) {
+   }
+   else {
+      if ( !cache ) cache = new LMCache;
+      
+      // If the query is too large for this model's order, truncate it up front.
+      if ( context_length >= getOrder() )
+         context_length = getOrder() - 1;
 
-   // Prepare cache query
-   Uint query[context_length+1];
-   query[0] = word;
-   for (Uint i=0;i<context_length;++i)
-      query[i+1] = context[i];
+      // Prepare cache query
+      Uint query[context_length+1];
+      query[0] = word;
+      for (Uint i=0;i<context_length;++i)
+         query[i+1] = context[i];
 
-   // Search in cache for matching Uint query
-   float query_result(0);
-   if ( cache->find(query, context_length+1, query_result) )
-      return query_result;
+      // Search in cache for matching Uint query
+      float query_result(0);
+      if ( cache->find(query, context_length+1, query_result) )
+         return query_result;
 
-   const float result = wordProb(word, context, context_length);
-   cache->insert(query, context_length+1, result);
-   return result;
+      const float result = wordProb(word, context, context_length);
+      cache->insert(query, context_length+1, result);
+      return result;
+   }
 }
 
 
@@ -310,6 +318,12 @@ PLM::Hits& PLM::Hits::operator+=(const Hits& other) {
       values[i] += other.values[i];
    if ( other.latest_hit > latest_hit ) latest_hit = other.latest_hit;
    return *this;
+}
+
+PLM::Hits PLM::Hits::operator+(const Hits& other) const {
+   Hits total(*this);
+   total += other;
+   return total;
 }
 
 void PLM::Hits::display(ostream& out) const {
