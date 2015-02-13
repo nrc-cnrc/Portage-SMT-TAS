@@ -99,6 +99,6 @@ debug_tally:
 time-mem.bloater:
 	OUT=`time-mem -p 1 bloater -maxiter 32 10000000 2>&1`; \
 	echo $$OUT; \
-	[[ "$$OUT" =~ "Real ([0-9.]+)" ]] && [[ "$${BASH_REMATCH[1]}" > 32 ]] \
-	&& [[ "$$OUT" =~ "VMEM ([0-9.]+)" ]] && [[ "$${BASH_REMATCH[1]}" > 0.30 ]]
+	[[ "$$OUT" =~ Real\ ([0-9.]+) ]] && [[ "$${BASH_REMATCH[1]}" > 32 ]] \
+	&& [[ "$$OUT" =~ VMEM\ ([0-9.]+) ]] && [[ "$${BASH_REMATCH[1]}" > 0.30 ]]
 
