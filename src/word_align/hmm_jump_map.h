@@ -22,7 +22,7 @@
 namespace Portage {
 
 /**
- * Jump strategyu conditioning jump probabilities on individual words, using
+ * Jump strategy conditioning jump probabilities on individual words, using
  * Bayesian MAP training, with non-lexicalized jump probs as a prior.
  * This class implements the approach presented by Xiadong He at ACL-WMT07.
  */

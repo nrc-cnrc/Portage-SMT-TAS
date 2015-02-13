@@ -4,7 +4,6 @@
  * @brief Program that aligns words in a set of line-aligned files using IBM
  * models.
  *
- *
  * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -29,7 +28,7 @@ static char help_message[] = "\n\
 align-words [Options]\n\
             ibm-model_lang2_given_lang1 ibm-model_lang1_given_lang2\n\
             file1_lang1 file1_lang2 [ ... fileN_lang1 fileN_lang2]\n\
-align-words [-giza|-giza2] -ibm 0 [Options]\n\
+align-words [-giza|-giza2|-sri] -ibm 0 [Options]\n\
             file1_lang1 file1_lang2 align1_1_to_2 align1_2_to_1\n\
             [ ... fileN_lang1 fileN_lang2 alignN_1_to_2 alignN_2_to_1]\n\
 \n\
@@ -57,22 +56,26 @@ Options:\n\
 -H     List available word-alignment methods and quit.\n\
 -v     Write progress reports to cerr. Use -vv to get more.\n\
 -i     Ignore case (actually: lowercase everything).\n\
+-b b   Begin aligning at line b in input files (1st seg is 1). [1]\n\
+-e e   End aligning at line e-1 in input files. [0=last]\n\
 -o     Specify output format, one of:\n\
        "WORD_ALIGNMENT_WRITER_FORMATS" [aachen]\n\
        Use -H for documentation of each format.\n\
--a     Word-alignment method and optional args.\n\
-       Use -H for the list of methods with documentation.  [IBMOchAligner]\n\
+-a     Word-alignment method and optional args.  GDF and GDFA are two of many\n\
+       possible values; use -H for the full list. [GDF]\n\
 -post  Also print link posterior probabilities according to each model.\n\
+       Not compatible with -b/-e options.\n\
 -ibm   Use IBM model <n>: 1 or 2\n\
 -hmm   Use an HMM model instead of an IBM model (only works with IBMOchAligner).\n\
        [if, for both models, <model>.pos doesn't exist and <model>.dist does,\n\
        -hmm is assumed, otherwise -ibm 2 is the default]\n\
 -twist With IBM1, assume one language has reverse word order.\n\
        No effect with IBM2 or HMM.\n\
--giza|-giza2  IBM-style alignments are to be read from files in GIZA++ format,\n\
-       rather than computed at run-time.  -giza is for the old giza format,\n\
-       while -giza2 is for the current giza format.  Corresponding alignment\n\
-       files should be specified after each pair of text files:\n\
+-giza|-giza2|-sri  IBM-style alignments are to be read from files in GIZA++/SRI\n\
+       format, rather than computed at run-time.  -giza is for the old giza\n\
+       format, while -giza2 is for the current giza format. -sri is for non-\n\
+       symmetrized alignments stored in SRI alignment format.  Corresponding\n\
+       alignment files should be specified after each pair of text files:\n\
        ... fileN_lang1 fileN_lang2 alignN_1_to_2 alignN_2_to_1 ...\n\
        Notes:\n\
         - only works with IBMOchAligner,\n\
@@ -93,7 +96,8 @@ HMM only options:\n\
 // globals
 
 static const char* const switches[] = {
-   "v", "vv", "i", "z", "a:", "o:", "hmm", "ibm:", "twist", "giza", "giza2", "post",
+   "v", "vv", "i", "b:", "e:",
+   "z", "a:", "o:", "hmm", "ibm:", "twist", "giza", "giza2", "sri", "post",
    "p0:", "up0:", "alpha:", "lambda:", "max-jump:",
    "anchor", "noanchor", "end-dist", "noend-dist",
    "p0_2:", "up0_2:", "alpha_2:", "lambda_2:", "max-jump_2:",
@@ -102,10 +106,14 @@ static const char* const switches[] = {
 
 static Uint verbose = 0;
 static bool lowercase = false;
+static Uint beg = 1;
+static Uint end = 0;
 static string align_method;
 static bool twist = false;
 static bool giza_alignment = false;
-static Uint giza_version = 1;
+static bool giza2_alignment = false;
+static bool sri_alignment = false;
+static bool file_alignment = false;
 static bool posteriors = false;
 static string model1, model2;
 static Uint ibm_num = 42; // 42 means not initialized - ARG will set its value
@@ -130,7 +138,6 @@ static optional<double> lambda_2;
 static optional<bool> anchor_2;
 static optional<bool> end_dist_2;
 static optional<Uint> max_jump_2;
-
 
 static inline char ToLower(char c) { return tolower(c); }
 
@@ -162,6 +169,8 @@ public:
       if (mp_arg_reader->getSwitch("vv")) verbose = 2;
       
       mp_arg_reader->testAndSet("i", lowercase);
+      mp_arg_reader->testAndSet("b", beg);
+      mp_arg_reader->testAndSet("e", end);
       mp_arg_reader->testAndSet("a", align_method);
       mp_arg_reader->testAndSet("z", compress_output);
       mp_arg_reader->testAndSet("o", output_format);
@@ -171,9 +180,9 @@ public:
       mp_arg_reader->testAndSet("post", posteriors);
       // Check Giza
       mp_arg_reader->testAndSet("giza", giza_alignment);
-      if (mp_arg_reader->getSwitch("giza")) giza_version = 1;
-      mp_arg_reader->testAndSet("giza2", giza_alignment);
-      if (mp_arg_reader->getSwitch("giza2")) giza_version = 2;
+      mp_arg_reader->testAndSet("giza2", giza2_alignment);
+      mp_arg_reader->testAndSet("sri", sri_alignment);
+      file_alignment = (giza_alignment || giza2_alignment || sri_alignment);
 
       mp_arg_reader->testAndSet("p0", p0);
       mp_arg_reader->testAndSet("up0", up0);
@@ -201,8 +210,8 @@ public:
       if (!end_dist_2) end_dist_2 = end_dist;
 
       if (ibm_num == 0) {
-         if (!giza_alignment)
-            error(ETFatal, "Can't use -ibm=0 trick unless -giza is used");
+         if (!file_alignment)
+            error(ETFatal, "Can't use -ibm=0 trick unless -giza, -giza2 or -sri is used");
          first_file_arg = 0;
       } else {
          mp_arg_reader->testAndSet(0, "model1", model1);
@@ -267,19 +276,19 @@ int MAIN(argc, argv)
    WordAlignerFactory* aligner_factory = NULL;
    WordAligner* aligner = NULL;
 
-   if (!giza_alignment) {
-     aligner_factory =
-       new WordAlignerFactory(ibm_1, ibm_2, verbose, twist, false);
-     aligner = aligner_factory->createAligner(align_method);
-     assert(aligner);
+   if (!file_alignment) {
+      aligner_factory =
+         new WordAlignerFactory(ibm_1, ibm_2, verbose, twist, false);
+      aligner = aligner_factory->createAligner(align_method);
+      assert(aligner);
    }
 
    string in_f1, in_f2;
    string alfile1, alfile2;
    Uint fpair = 0;
 
-   GizaAlignmentFile* al_1 = NULL;
-   GizaAlignmentFile* al_2 = NULL;
+   IBMAlignmentFile* al_1 = NULL;
+   IBMAlignmentFile* al_2 = NULL;
 
    WordAlignerStats stats;
 
@@ -295,33 +304,37 @@ int MAIN(argc, argv)
       iSafeMagicStream in1(in_f1);
       iSafeMagicStream in2(in_f2);
 
-      if (giza_alignment) {
-        arg+=2;
-        if (arg+1 >= args.numVars())
-          error(ETFatal, "Missing arguments: alignment files");
-        args.testAndSet(arg, "alfile1", alfile1);
-        args.testAndSet(arg+1, "alfile2", alfile2);
-        if (verbose) 
-          cerr << "reading aligment files " << alfile1 << "/" << alfile2 << endl;
-        if (al_1) delete al_1;
-        if (al_2) delete al_2;
-        if (giza_version == 1) {
-           al_1 = new GizaAlignmentFile(alfile1);
-           al_2 = new GizaAlignmentFile(alfile2);
-        }
-        else if (giza_version == 2) {
-           al_1 = new Giza2AlignmentFile(alfile1);
-           al_2 = new Giza2AlignmentFile(alfile2);
-        }
-        else
-           error(ETFatal, "Invalid giza version (%d)", giza_version);
+      if (file_alignment) {
+         arg+=2;
+         if (arg+1 >= args.numVars())
+            error(ETFatal, "Missing arguments: alignment files");
+         args.testAndSet(arg, "alfile1", alfile1);
+         args.testAndSet(arg+1, "alfile2", alfile2);
+         if (verbose)
+            cerr << "reading aligment files " << alfile1 << "/" << alfile2 << endl;
+         if (al_1) delete al_1;
+         if (al_2) delete al_2;
+         if (giza_alignment) {
+            al_1 = new GizaAlignmentFile(alfile1);
+            al_2 = new GizaAlignmentFile(alfile2);
+         }
+         else if (giza2_alignment) {
+            al_1 = new Giza2AlignmentFile(alfile1);
+            al_2 = new Giza2AlignmentFile(alfile2);
+         }
+         else if (sri_alignment) {
+            al_1 = new SRIAlignmentFile(alfile1, false);
+            al_2 = new SRIAlignmentFile(alfile2, true);
+         }
+         else
+            assert(false && "Coding error, exhausted all file alignment possibilities");
 
-        if (aligner_factory) delete aligner_factory;
-        aligner_factory = new WordAlignerFactory(al_1, al_2, verbose, twist, false);
+         if (aligner_factory) delete aligner_factory;
+         aligner_factory = new WordAlignerFactory(al_1, al_2, verbose, twist, false);
 
-        if (aligner) delete aligner;
-        aligner = aligner_factory->createAligner(align_method);
-        assert(aligner);
+         if (aligner) delete aligner;
+         aligner = aligner_factory->createAligner(align_method);
+         assert(aligner);
       }
 
       Uint line_no = 0;
@@ -335,6 +348,7 @@ int MAIN(argc, argv)
             break;
          }
          ++line_no;
+         if (end && line_no >= end) break;
 
          if (verbose > 1) cerr << "--- " << line_no << " ---" << endl;
 
@@ -353,14 +367,14 @@ int MAIN(argc, argv)
          sets1.clear();
          aligner->align(toks1, toks2, sets1);
          if (verbose) stats.tally(sets1, toks1.size(), toks2.size());
-
          if (verbose > 1) {
             cerr << "---" << endl;
             aligner_factory->showAlignment(toks1, toks2, sets1);
             cerr << "---" << endl;
          }
-
-         (*print)(cout, toks1, toks2, sets1);
+         if (line_no >= beg && (end == 0 || line_no < end)) {
+            (*print)(cout, toks1, toks2, sets1);
+         }
          cout.flush();
 
          if (posteriors) {
@@ -403,12 +417,11 @@ int MAIN(argc, argv)
          }
 
          if (verbose > 1) cerr << endl; // end of block
-         if (verbose == 1 && line_no % 1000 == 0)
+         if (verbose == 1 && line_no % 100000 == 0)
             cerr << "line: " << line_no << endl;
       }
-
-      if (getline(in2, line2))
-         error(ETFatal, "Line counts differ in file pair %s/%s", in_f1.c_str(), in_f2.c_str());
+      if (in1.eof() && getline(in2, line2))
+         error(ETFatal, "Line counts differ in file pair %s : %s", in_f1.c_str(), in_f2.c_str());
 
       ++fpair;
    }

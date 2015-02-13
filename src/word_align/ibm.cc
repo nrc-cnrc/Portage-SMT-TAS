@@ -18,17 +18,24 @@
 #include "ibm.h"
 #include "tmp_val.h"
 #include "hmm_aligner.h"
+#include "word_align_io.h"
 
 using namespace Portage;
+
+/*----------------------------------------------------------------------------
+IBMAlignmentFile
+----------------------------------------------------------------------------*/
+
+IBMAlignmentFile::IBMAlignmentFile()
+   : sent_count(0)
+{}
 
 /*----------------------------------------------------------------------------
 Giza2AlignmentFile
 ----------------------------------------------------------------------------*/
 
 Giza2AlignmentFile::Giza2AlignmentFile(string& filename)
-   : GizaAlignmentFile()
 {
-   sent_count = 0;
    p_in = new iMagicStream(filename);
    if (!p_in)
       error(ETFatal, "GizaAlignmentFile: Failed to open alignment file "
@@ -36,10 +43,8 @@ Giza2AlignmentFile::Giza2AlignmentFile(string& filename)
 }
 
 Giza2AlignmentFile::Giza2AlignmentFile(istream* in)
-   : GizaAlignmentFile()
-   , p_in(in)
+   : p_in(in)
 {
-   sent_count = 0;
    assert(in != NULL);
 }
 
@@ -139,12 +144,10 @@ GizaAlignmentFile
 ----------------------------------------------------------------------------*/
 
 GizaAlignmentFile::GizaAlignmentFile()
-   : sent_count(0)
 {}
 
 GizaAlignmentFile::GizaAlignmentFile(string& filename)
    : in(filename)
-   , sent_count(0)
 {
    if (!in)
       error(ETFatal, "GizaAlignmentFile: Failed to open alignment file "
@@ -200,6 +203,94 @@ GizaAlignmentFile::align(const vector<string>& src, const vector<string>& tgt,
          error(ETFatal, "GizaAlignmentFile (sent %d): tgt position %d exceeds tgt sent size %d",
                sent_count, pos[1], tgt.size());
       tgt_al[pos[1]] = pos[0];
+   }
+}
+
+/*----------------------------------------------------------------------------
+SRIAlignmentFile
+----------------------------------------------------------------------------*/
+
+static const bool debug_sri_alignment_file = false;
+
+SRIAlignmentFile::SRIAlignmentFile(const string& filename, bool reversed)
+   : filename(filename)
+   , reversed(reversed)
+{
+   p_in = new iMagicStream(filename);
+   if (!p_in)
+      error(ETFatal, "SRIAlignmentFile: Failed to open alignment file "
+                     +filename);
+}
+
+SRIAlignmentFile::~SRIAlignmentFile()
+{
+   delete p_in;
+   p_in = NULL;
+}
+
+void
+SRIAlignmentFile::align(const vector<string>& src, const vector<string>& tgt,
+                        vector<Uint>& tgt_al, bool twist,
+                        vector<double>* tgt_al_probs)
+{
+   ++sent_count;
+   const Uint src_size = src.size();
+   const Uint tgt_size = tgt.size();
+   tgt_al.clear();
+   tgt_al.resize(tgt_size, Uint(-1));
+   if (tgt_al_probs) {
+      tgt_al_probs->clear();
+      tgt_al_probs->resize(tgt_size, 0);
+   }
+
+   // SRI is normally a symmetrized alignment format, not a one-way format.
+   // Here we re-use the regular symmetrized alignmetn reader and convert it
+   // to the one-way format expected for IBM aligners.
+   vector<vector<Uint> > sets;
+
+   if (!reversed) {
+      if (!SRIReader()(*p_in, src, tgt, sets))
+         error(ETFatal, "SRI alignment file %s is too short; failed trying to read line %u",
+               filename.c_str(), sent_count);
+      if (sets.size() != src_size)
+         error(ETFatal, "SRI alignment file %s line %u has invalid format",
+               filename.c_str(), sent_count);
+      for (Uint i = 0; i < src_size; ++i) {
+         for (Uint j = 0; j < sets[i].size(); ++j) {
+            if (tgt_al[sets[i][j]] != Uint(-1))
+               error(ETFatal, "SRI alignment file %s line %u has multiple links into %u",
+                     filename.c_str(), sent_count, sets[i][j]);
+            tgt_al[sets[i][j]] = i;
+         }
+      }
+      for (Uint i = 0; i < tgt_size; ++i) {
+         if (tgt_al[i] == Uint(-1)) {
+            if (debug_sri_alignment_file)
+               error(ETWarn, "SRI alignment file %s line %u has 0 links out of %u",
+                     filename.c_str(), sent_count, i);
+            tgt_al[i] = src_size;
+         }
+      }
+   } else {
+      if (!SRIReader()(*p_in, tgt, src, sets))
+         error(ETFatal, "SRI alignment file %s is too short; failed trying to read line %u",
+               filename.c_str(), sent_count);
+      if (sets.size() != tgt_size)
+         error(ETFatal, "SRI alignment file %s line %u has invalid format",
+               filename.c_str(), sent_count);
+      for (Uint i = 0; i < tgt_size; ++i) {
+         if (sets[i].empty()) {
+            if (debug_sri_alignment_file)
+               error(ETWarn, "SRI alignment file %s line %u has no links out of %u",
+                     filename.c_str(), sent_count, i);
+            tgt_al[i] = src_size;
+         } else {
+            if (sets[i].size() > 1)
+               error(ETFatal, "SRI alignment file %s line %u has %u links out of %u",
+                     filename.c_str(), sent_count, sets[i].size(), i);
+            tgt_al[i] = sets[i][0];
+         }
+      }
    }
 }
 

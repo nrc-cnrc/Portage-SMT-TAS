@@ -40,6 +40,15 @@ public:
    /// Returns false, without modifying sets, if i is out of range.
    virtual bool get(Uint i, vector< vector<Uint> >& sets) const = 0;
 
+   /// Get matrix-format word alignment for sentence pair i.
+   /// Returns false, without modifying links, if i is out of range.
+   virtual bool get(Uint i, vector< vector<float> >& links) const {assert(false);}
+
+   /// Return true if this class instantiates the matrix version of get().
+   virtual bool isMatrix() {return false;}
+
+   virtual Uint matrixFormat() {return 0;}
+
    /// Get the number of alignments in this file
    virtual Uint size() const = 0;
 

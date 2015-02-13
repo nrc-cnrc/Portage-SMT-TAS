@@ -32,6 +32,7 @@ PROGRAMS = $(TESTPROGS) \
         eval_word_alignment \
         ibm_entropy \
         ibmcat \
+        merge_ttables \
         run_ibm \
         tp_alignment_build \
         tp_alignment_dump \

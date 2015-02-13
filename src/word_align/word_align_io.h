@@ -278,7 +278,7 @@ public:
    virtual bool operator()(istream &in, 
                            const vector<string>& toks1, const vector<string>& toks2,
                            vector< vector<Uint> >& sets) = 0;
-   
+
    /**
     * Create a new writer using the given format.
     * @param format see WORD_ALIGNMENT_READER_FORMATS for list

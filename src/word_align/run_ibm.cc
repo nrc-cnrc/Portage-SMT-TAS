@@ -72,8 +72,8 @@ int main(int argc, char* argv[])
 
    for (Uint arg = 1; arg+1 < arg_reader.numVars(); arg += 2) {
 
-      Uint a1 = reverse_dir ? 1 : 0, a2 = reverse_dir ? 0 : 1;
-      string file1 = arg_reader.getVar(arg+a1), file2 = arg_reader.getVar(arg+a2);
+      const Uint a1 = reverse_dir ? 1 : 0, a2 = reverse_dir ? 0 : 1;
+      const string file1 = arg_reader.getVar(arg+a1), file2 = arg_reader.getVar(arg+a2);
       if (verbose)
          cerr << "reading " << file1 << "/" << file2 << endl;
       arg_reader.testAndSet(arg+a1, "file1", in_f1);

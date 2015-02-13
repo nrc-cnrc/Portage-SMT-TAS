@@ -22,6 +22,11 @@ PortageII is the second generation of SMT software released by the NRC.
 PortageII cur
  Work in progress
 
+ Minor changes:
+  - Added support for SRI format for word alignment files (for fastalign)
+  - align-words: added GDF and GDFA as self-documenting aliases for
+    IBMOchAligner 3 and 4.
+
 
 PortageII 2.2 2014-12-01
  This is a feature release, adding fixed terms handling.

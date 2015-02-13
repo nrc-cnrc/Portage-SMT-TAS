@@ -76,14 +76,18 @@ namespace Portage {
     virtual ~IBMAligner() {}
   };
 
+  /// Base class for alignment file readers.
+  class IBMAlignmentFile : public IBMAligner {
+  protected:
+    Uint sent_count;       ///< Keeps count of the number of sentences.
+    IBMAlignmentFile(); ///< Constructor for use by subclasses
+  };
 
   /// Reads GIZA alignment from a file.
-  class GizaAlignmentFile : public IBMAligner {
+  class GizaAlignmentFile : public IBMAlignmentFile {
   private:
     iMagicStream in;   ///< Input stream containing the GIZA alignments.
   protected:
-    Uint sent_count;   ///< Keeps count of the number of sentences.
-
     GizaAlignmentFile();
 
   public:
@@ -106,8 +110,7 @@ namespace Portage {
 
 
   /// Reads GIZA++-v2 alignment from a file.
-  class Giza2AlignmentFile : public GizaAlignmentFile, private NonCopyable {
-  protected:
+  class Giza2AlignmentFile : public IBMAlignmentFile, private NonCopyable {
     istream* p_in;   ///< Input stream containing the GIZA alignments.
 
   public:
@@ -129,6 +132,29 @@ namespace Portage {
                        vector<double>* tgt_al_probs = NULL);
   };
 
+
+  /// Reads non-symmetric alignment from a file in SRI format
+  class SRIAlignmentFile : public IBMAlignmentFile, private NonCopyable {
+    string filename; ///< save the filename, for error messages
+    istream* p_in;   ///< Input stream containing the GIZA alignments.
+    bool reversed;   ///< Whether to reverse the interpretation of the alignment
+  public:
+    /// Constructor
+    /// @param filename  SRI-formatted one-way alignment file
+    /// @param reversed  Reverse the alignment interpretation
+    SRIAlignmentFile(const string& filename, bool reversed);
+    virtual ~SRIAlignmentFile(); ///< Destructor
+
+    /**
+     * This is a read, really; src and tgt are used only to check
+     * the validity of the alignment.
+     * @copydoc IBMAligner::align()
+     */
+    virtual void align(const vector<string>& src, const vector<string>& tgt,
+                       vector<Uint>& tgt_al,
+                       bool twist = false,
+                       vector<double>* tgt_al_probs = NULL);
+  };
 
   /// IBM1 alignments from a ttable.
   class IBM1 : public IBMAligner {
