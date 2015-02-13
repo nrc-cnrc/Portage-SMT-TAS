@@ -41,6 +41,8 @@ PLM::PLM(VocabFilter* vocab, OOVHandling oov_handling, float oov_unigram_prob)
    , complex_open_voc_lm(oov_handling == FullOpenVoc)
    , gram_order(0)
    , oov_unigram_prob(oov_unigram_prob)
+   , clearCacheEveryXHit(0)
+   , clearCacheHit(0)
 {}
 
 PLM::PLM()
@@ -49,6 +51,8 @@ PLM::PLM()
    , complex_open_voc_lm(false)
    , gram_order(0)
    , oov_unigram_prob(-INFINITY)
+   , clearCacheEveryXHit(0)
+   , clearCacheHit(0)
 {}
 
 PLM::~PLM() {
@@ -79,8 +83,28 @@ shared_ptr<PLM::Creator> PLM::getCreator(const string& lm_filename)
    string lm_physical_filename(lm_filename);
    const size_t hash_pos = lm_filename.rfind(lm_order_separator);
    Uint naming_limit_order = 0;
+   Uint clearCacheEveryXHit = 0;  // Default: turn caching off altogether (1 would clear it at every sentence)
    if ( hash_pos != string::npos ) {
-      naming_limit_order = conv<Uint>(lm_filename.substr(hash_pos+1));
+      string option;
+      if (conv(lm_filename.substr(hash_pos+1), option)) {
+         if (isPrefix("CACHING", option)) {
+            clearCacheEveryXHit = 1;  // In case parsing the clearing frequency fails, lets clear on every sentence.
+            const size_t freq_pos = option.rfind(",");  // #CACHING,<freq>
+            if ( freq_pos != string::npos ) {
+               const string hit = option.substr(freq_pos+1);
+               if (!conv(hit, clearCacheEveryXHit)) {
+                  error(ETWarn, "Unable to convert to digit: %s", hit.c_str());
+                  clearCacheEveryXHit = 1;  // Fallback on clear on every sentence.
+               }
+            }
+            else {
+               error(ETWarn, "Using default clear cache frequency value which is: %d\n", clearCacheEveryXHit);
+            }
+         }
+         else {
+            naming_limit_order = conv<Uint>(option);
+         }
+      }
       lm_physical_filename.resize(hash_pos);
    }
 
@@ -98,6 +122,7 @@ shared_ptr<PLM::Creator> PLM::getCreator(const string& lm_filename)
       cr = new LMTrie::Creator(lm_physical_filename, naming_limit_order);
    }
    assert(cr);
+   cr->clearCacheEveryXHit = clearCacheEveryXHit;
    return shared_ptr<PLM::Creator>(cr);
 }
 
@@ -126,6 +151,10 @@ PLM* PLM::Create(const string& lm_filename,
    PLM* lm = creator->Create(vocab, oov_handling, oov_unigram_prob, limit_vocab,
                              limit_order, os_filtered, quiet);
    assert(lm != NULL);
+
+   // If the creator detects in the filename that the lm must not use the
+   // caching, let the lm know.
+   lm->clearCacheEveryXHit = creator->clearCacheEveryXHit;
 
    static const bool debug_auto_voc = false;
 
@@ -194,7 +223,12 @@ Uint PLM::getOrder()
 }
 
 void PLM::clearCache() {
-   if ( cache ) cache->clear();
+   // If we are using the cache and we've processed enough sentence that the
+   // user asked use to clear the cache then clear the cache.
+   if ( cache != NULL && ++clearCacheHit >= clearCacheEveryXHit ) {
+      cache->clear();
+      clearCacheHit = 0;
+   }
 }
 
 //----------------------------------------------------------------------------
@@ -274,7 +308,9 @@ bool PLM::checkFileExists(const string& lm_filename, vector<string>* list)
 float PLM::cachedWordProb(Uint word, const Uint context[],
                           Uint context_length)
 {
-   if (false) {
+   // Are we even using the cache?
+   if (clearCacheEveryXHit == 0) {
+      return wordProb(word, context, context_length);
    }
    else {
       if ( !cache ) cache = new LMCache;

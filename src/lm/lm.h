@@ -195,6 +195,13 @@ public:
     */
    static const OOVHandling FullOpenVoc;
 
+   /// Should we ignore the cache.  This was implemented for debugging mainly.
+   /// Where 0 means no caching.
+   /// Default is 0: disable the cache.
+   Uint clearCacheEveryXHit;
+   /// Keeps track of how many times the class was asked to clear its cache.
+   Uint clearCacheHit;
+
 protected:
    /**
     * Contructor - only called by children classes' constructors
@@ -225,6 +232,9 @@ protected:
       const string lm_physical_filename;
       /// If the filename of the LM had a \#N marker, N; 0 otherwise
       const Uint naming_limit_order;
+      /// Should we ignore the cache.  This was implemented for debugging mainly.
+      /// Where 0 means no caching.
+      Uint clearCacheEveryXHit;
 
       /**
        * This constructor must be called by subclass constructors.
@@ -347,6 +357,12 @@ public:
     * override this method and have it simply call wordProb().
     * Subclasses which override this method to do specialized caching should
     * probably also override clearCache() to maintain consistency.
+    *
+    * Important note: by default, all caching is now turned off, following
+    * experiments in 2009 which showed that caching slowed down decoding,
+    * rather than speeding it up. To turn it back on for a specific model, one
+    * must append #CACHING to its name, with an optional ,n where n says after
+    * how many sentences the cache should be cleared.
     */
    virtual float cachedWordProb(Uint word, const Uint context[],
                                 Uint context_length);
