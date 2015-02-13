@@ -2,8 +2,6 @@
  * @author Samuel Larkin
  * @file scoremain.h  Program that calculates the score of a given source and nbest set.
  *
- * $Id$
- *
  * Evaluation Module
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -19,10 +17,9 @@
 #include "portage_defs.h"
 #include "basic_data_structure.h"
 #include "file_utils.h"
-#include "fileReader.h"
+#include "translationReader.h"
 #include "referencesReader.h"
 #include "bootstrap.h"
-#include "logging.h"
 
 
 namespace Portage
@@ -52,21 +49,20 @@ namespace Portage
          { }
       };
 
-      template<class ScoreStats>
-      void score(const ARG& arg)
+      template<class ScoreMetric>
+      void score(const ARG& arg, FileReader::FileReaderBase<Translation>& inputReader, referencesReader& rReader, istream* wts_file = NULL)
       {
-         LOG_VERBOSE2(verboseLogger, "Creating references Reader");
-         referencesReader  rReader(arg.sRefFiles);
          const Uint numRefs(arg.sRefFiles.size());
 
-         ScoreStats total;
-         vector<ScoreStats> indiv;
+         ScoreMetric total;
+         vector<ScoreMetric> indiv;
 
-         FileReader::FixReader<Sentence> inputReader(arg.sTestFile, 1);
+         string wts_line;
+
          Uint compteur(0);
          while (inputReader.pollable()) {
             LOG_VERBOSE3(verboseLogger, "Reading Sentence(%d)", compteur);
-            Sentence tstSentence;
+            Translation tstSentence;
             inputReader.poll(tstSentence);
 
             LOG_VERBOSE3(verboseLogger, "Reading reference(%d)", compteur);
@@ -86,8 +82,16 @@ namespace Portage
                error(ETWarn, "All references are empty! Ignoring sentence %i", compteur);
             }
             else {
-               LOG_VERBOSE3(verboseLogger, "Calculating ScoreStats(%d)", compteur);
-               ScoreStats cur(tstSentence, refSentences);
+               LOG_VERBOSE3(verboseLogger, "Calculating ScoreMetric(%d)", compteur);
+               ScoreMetric cur(tstSentence, refSentences);
+               if (wts_file != NULL) {
+                  if (!getline(*wts_file, wts_line)) {
+                     error(ETFatal, "Missing some weights");
+                  }
+
+                  double wts = conv<double>(wts_line);
+                  cur = cur * wts;
+               }
                if (arg.bDoConf)
                   indiv.push_back(cur);
 
@@ -97,7 +101,7 @@ namespace Portage
                if (arg.iDetail>0 && !tstSentence.empty()) {        
                   if (arg.iDetail > 1)
                      cur.output();
-                  printf("Sentence %d %s score: %g\n", compteur, ScoreStats::name(), ScoreStats::convertToDisplay(cur.score()));
+                  printf("Sentence %d %s score: %g\n", compteur, ScoreMetric::name(), ScoreMetric::convertToDisplay(cur.score()));
                }
             }
          }
@@ -105,18 +109,24 @@ namespace Portage
          LOG_VERBOSE3(verboseLogger, "Checking integrity");
          rReader.integrityCheck();
 
+         if (wts_file != NULL) {
+            if (getline(*wts_file, wts_line)) {
+               error(ETFatal, "Weight file too long.");
+            }
+         }
+
          total.output();
 
          double conf_interval(0);
          if (arg.bDoConf) {
-            typename ScoreStats::CIcomputer wc;
+            typename ScoreMetric::CIcomputer wc;
             conf_interval = bootstrapConfInterval(indiv.begin(), indiv.end(), wc, 0.95, 1000);
          }
 
-         printf("%s score: %f", ScoreStats::name(), ScoreStats::convertToDisplay(total.score()));
+         printf("%s score: %f", ScoreMetric::name(), ScoreMetric::convertToDisplay(total.score()));
          if (arg.bDoConf) cout << " +/- " << conf_interval;
          cout << endl;
-         printf("Human readable value: %.2f", 100*ScoreStats::convertToDisplay(total.score()));
+         printf("Human readable value: %.2f", 100*ScoreMetric::convertToDisplay(total.score()));
          if (arg.bDoConf) printf(" +/- %.2f", 100*conf_interval);
          cout << endl;
       }

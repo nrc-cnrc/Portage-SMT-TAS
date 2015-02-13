@@ -43,8 +43,7 @@ namespace Portage {
          protected:
             mutable iMagicStream   m_file;     ///< file from which to read.
             const Uint             m_K;        ///< number of hypotheses per source.
-            Uint                   m_nSentNo;  ///< keep track of hypothesis number.
-
+            Uint                   m_nGroupNo; ///< keep track of hypothesis group number.
 
          protected:
             /**
@@ -64,21 +63,22 @@ namespace Portage {
              * Checks if there is some hypothesis left in the stream.
              * @return Returns true if there is still some hypothesis left to be read.
              */
-            bool pollable() const { return !!m_file && (m_file.peek() != EOF);}
+            virtual bool pollable() const { return !!m_file && (m_file.peek() != EOF);}
 
             /**
              * Reads one hypothesis and returns its index
-             * @param[out] index  hypothesis's index
-             * @param[out] s      hypothesis
+             * @param[out] s        hypothesis
+             * @param[out] groupId  hypothesis group's index
              * @return  Returns true if there is some hypothesis still available in the stream.
              */
-            virtual bool poll(string& s, Uint* index = NULL) = 0;
+            virtual bool poll(T& s, Uint* groupId = NULL) = 0;
             /**
              * Reads a group of sentence AKA a nBest list.
-             * @param[out] g  returned read group aka nbest list.
+             * @param[out] g      returned read group aka nbest list.
+             * @param[out] index  hypothesis group's index
              * @return  Returns true if there is some hypothesis still available in the stream.
              */
-            virtual bool poll(Group& g) = 0;
+            virtual bool poll(Group& g, Uint* groupId = NULL) = 0;
 
          private:
             /// Deactivated default constructor.
@@ -92,6 +92,8 @@ namespace Portage {
       template<class T>
       class FixReader : public FileReaderBase<T>
       {
+            Uint                   m_nSentNo;  ///< keep track of hypothesis number within group.
+
          public:
             /// Definition of Parent's type
             typedef FileReaderBase<T>   Parent;
@@ -105,8 +107,8 @@ namespace Portage {
             /// Destructor.
             virtual ~FixReader();
 
-            virtual bool poll(string& s, Uint* index = NULL);
-            virtual bool poll(Group& g);
+            virtual bool poll(T& s, Uint* groupId = NULL);
+            virtual bool poll(Group& g, Uint* groupId = NULL);
       };
 
       /**
@@ -129,8 +131,8 @@ namespace Portage {
             /// Destructor.
             virtual ~DynamicReader();
 
-            virtual bool poll(string& s, Uint* index = NULL);
-            virtual bool poll(Group& g);
+            virtual bool poll(T& s, Uint* groupId = NULL);
+            virtual bool poll(Group& g, Uint* groupId = NULL);
       };
 
       /**

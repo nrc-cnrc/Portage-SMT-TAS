@@ -2,9 +2,6 @@
  * @author Michel Simard
  * @file basic_data_structure.cc  Implementation of the eval basic type functionalities.
  *
- * $Id$
- *
- * 
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology 
  * Conseil national de recherches Canada / National Research Council Canada 
@@ -17,6 +14,7 @@
 #include <str_utils.h>
 
 using namespace Portage;
+
 
 void References::tokenize() const {
    for (const_iterator it(begin()); it!=end(); ++it) {
@@ -40,7 +38,7 @@ void Nbest::tokenize() const {
 
 
 bool
-Alignment::read(istream &in) {
+PhraseAlignment::read(istream &in) {
   string line;
   vector<string> pairs;
   vector<Uint> data;
@@ -58,7 +56,8 @@ Alignment::read(istream &in) {
     data.clear();
     split((*p), data, ":-");
     if (data.size() != 5) {
-      error(ETFatal, "Something went wrong while reading alignments...\n");
+      cerr << line << endl;
+      error(ETFatal, "Something went wrong while reading alignments... (size=%d)\n", data.size());
       return false;
     }
     push_back(AlignedPair(data[1], data[2], data[3], data[4])); // 0 is just a count
@@ -69,11 +68,45 @@ Alignment::read(istream &in) {
 }
 
 void
-Alignment::write(ostream &out) {
-  for (Uint i = 0; i < size(); i++)
-    out << (i ? " " : "") 
-	<< i 
-	<< ':' << (*this)[i].source.first << '-' << (*this)[i].source.last
-	<< ':' << (*this)[i].target.first << '-' << (*this)[i].target.last;
+PhraseAlignment::write(ostream &out) const {
+   for (Uint i = 0; i < size(); i++) {
+      out << (i ? " " : "") << i << ":"; 
+      (*this)[i].write(out);
+   }
+}
+
+Uint PhraseAlignment::sourceLength() const {
+   Uint length(0);
+   for (vector<AlignedPair>::const_iterator it(begin()); it != end(); ++it)
+      length = max(length, it->source.last);
+   return length + 1;
+}
+
+Uint PhraseAlignment::targetLength() const {
+   Uint length(0);
+   for (vector<AlignedPair>::const_iterator it(begin()); it != end(); ++it)
+      length = max(length, it->target.last);
+   return length + 1;
+}
+
+
+void AlignedPair::write(ostream &out) const {
+   out << source.first << '-' << source.last
+       << ':' 
+       << target.first << '-' << target.last;
+}
+
+
+Translation::~Translation() {
+}
+
+
+void Translation::write(ostream& out) const {
+   out << *this << endl;
+   // Phrase alignment.
+   if (!phraseAlignment.empty()) {
+      out << "alignment ";
+      phraseAlignment.write(out);
+   }
 }
 

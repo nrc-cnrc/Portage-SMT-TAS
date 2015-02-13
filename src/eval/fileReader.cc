@@ -3,8 +3,6 @@
  * @file fileReader.cc  Implementation of objects that transparently allow
  *                      reading in fix block size or in dynamic sized blocks.
  *
- * $Id$
- *
  * Evaluation Module
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -15,13 +13,11 @@
  */
 #include <fileReader.h>
 #include <str_utils.h>
-#include <logging.h>
 
 using namespace Portage;
 using namespace Portage::FileReader;
 using namespace std;
 
-static Logging::logger myLogger(Logging::getLogger("verbose.dynamicsizereader"));
 
 
 ////////////////////////////////////////
@@ -30,7 +26,7 @@ template<class T>
 FileReaderBase<T>::FileReaderBase(const string& szFileName, Uint K)
 : m_file(szFileName)
 , m_K(K)
-, m_nSentNo(0)
+, m_nGroupNo(0)
 {
    if (!m_file)
    {
@@ -51,6 +47,7 @@ FileReaderBase<T>::~FileReaderBase()
 template<class T>
 FixReader<T>::FixReader(const string& szFileName, Uint K)
 : Parent(szFileName, K)
+, m_nSentNo(0)
 {}
 
 
@@ -60,23 +57,25 @@ FixReader<T>::~FixReader()
 
 
 template<class T>
-bool FixReader<T>::poll(string& s, Uint* index)
+bool FixReader<T>::poll(T& s, Uint* groupId)
 {
-   if (index != NULL) *index = Parent::m_nSentNo;
-   ++Parent::m_nSentNo;
-   if (Parent::m_nSentNo == Parent::m_K) Parent::m_nSentNo = 0;
+   if (groupId != NULL) *groupId = Parent::m_nGroupNo;
+   ++m_nSentNo;
+   if (m_nSentNo == Parent::m_K) {
+      m_nSentNo = 0;
+      ++Parent::m_nGroupNo;
+   }
 
-   getline(Parent::m_file, s);
-
-   return Parent::pollable();
+   return getline(Parent::m_file, s) && Parent::pollable();
 }
 
 
 template<class T>
-bool FixReader<T>::poll(Group& g)
+bool FixReader<T>::poll(Group& g, Uint* groupId)
 {
    g.clear();
    g.reserve(Parent::m_K);
+   if (groupId) *groupId = Parent::m_nGroupNo;
    for (Uint k(0); k<Parent::m_K; ++k)
    {
       g.push_back(T());
@@ -87,13 +86,14 @@ bool FixReader<T>::poll(Group& g)
 }
 
 
+
 ////////////////////////////////////////
 // DYNAMIC CLASS
 template<class T>
 DynamicReader<T>::DynamicReader(const string& szFileName, Uint K)
 : Parent(szFileName, K)
 {
-   Parent::m_file >> Parent::m_nSentNo;
+   Parent::m_file >> Parent::m_nGroupNo;
 }
 
 
@@ -103,20 +103,24 @@ DynamicReader<T>::~DynamicReader()
 
 
 template<class T>
-bool DynamicReader<T>::poll(string& s, Uint* index)
+bool DynamicReader<T>::poll(T& s, Uint* groupId)
 {
-   if (index != NULL) *index = Parent::m_nSentNo;
-   const Uint previous = Parent::m_nSentNo;
+   const Uint current = Parent::m_nGroupNo;
+   if (groupId != NULL) *groupId = Parent::m_nGroupNo;
 
-   bool bRetour((Parent::m_file.get() == '\t') && (getline(Parent::m_file, s)) && (Parent::m_file >> Parent::m_nSentNo));
+   bool bRetour((Parent::m_file.get() == '\t')
+                && (getline(Parent::m_file, s))
+                && (Parent::m_file >> Parent::m_nGroupNo));  // Reads next translation ID.
 
-   return bRetour && (Parent::m_nSentNo == previous);
+   // Parent::m_nGroupNo holds the next sentence number
+   return bRetour && (Parent::m_nGroupNo == current);
 }
 
 
 template<class T>
-bool DynamicReader<T>::poll(Group& g)
+bool DynamicReader<T>::poll(Group& g, Uint* groupId)
 {
+   if (groupId) *groupId = Parent::m_nGroupNo;
    g.clear();
    g.reserve(Parent::m_K);
    do
@@ -131,6 +135,7 @@ bool DynamicReader<T>::poll(Group& g)
 }
 
 
+
 ////////////////////////////////////////
 // FACTORY FOR FILE READER
 template<class T>
@@ -138,12 +143,12 @@ std::auto_ptr<FileReaderBase<T> > FileReader::create(const string& szFileName, U
 {
    if (K == 0)
    {
-      LOG_VERBOSE3(myLogger, "Using Dynamic File Reader");
+      //LOG_VERBOSE3(myLogger, "Using Dynamic File Reader");
       return std::auto_ptr<FileReaderBase<T> >(new DynamicReader<T>(szFileName, K));
    }
    else
    {
-      LOG_VERBOSE3(myLogger, "Using Fix File Reader");
+      //LOG_VERBOSE3(myLogger, "Using Fix File Reader");
       return std::auto_ptr<FileReaderBase<T> >(new FixReader<T>(szFileName, K));
    }
 }

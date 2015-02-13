@@ -2,8 +2,6 @@
  * @author Samuel Larkin
  * @file bleumain.h  Program that calculates the BLEU score of a given source and nbest set.
  *
- * $Id$
- *
  * Evaluation Module
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -42,6 +40,7 @@ Options:\n\
 -v         Write progress reports to cerr [don't].\n\
 -c         Compute a 95% confidence interval around the score using bootstrap\n\
            resampling.\n\
+-p         Use per sentence BLEU [don't].\n\
 -detail d  d=1: Print the (smoothed) BLEU score for each single sentence.\n\
            d=2: Also print the n-gram statistics for each single sentence.\n\
 -smooth s  Smoothing method: [1]\n\
@@ -49,9 +48,12 @@ Options:\n\
            s=1: Replace 0 n-gram matches by fixed epsilon\n\
            s=2: Increase the count by 1 for all n-grams with n>1\n\
                 (cf. Lin and Och, Coling 2004)\n\
+           s=3: Something else which someone wrote without documenting it\n\
+           s=4: match[n] == 0 => match[n] = 1/2^k (see mteval-v13a.pl smoothing)\n\
 -y         maximum NGRAMS for calculating BLEUstats matches [4]\n\
 -u         maximum NGRAMS for calculating BLEUstats score [y]\n\
            where 1 <= y, 1 <= u <= y\n\
+-w wts     a weight file\n\
 \n\
 Hack:\n\
            To compute NIST-style BLEU scores, define the environment variable\n\
@@ -59,7 +61,7 @@ Hack:\n\
 ";
 
       /// Program bleumain command line switches.
-      const char* const switches[] = {"c", "detail:", "smooth:", "y:", "u:", "v"};
+      const char* const switches[] = {"c", "p", "detail:", "smooth:", "y:", "u:", "v", "w:"};
 
       /// Specific argument processing class for bleumain program.
       class ARG : public argProcessor, public scoremain::ARG
@@ -72,6 +74,8 @@ Hack:\n\
             int   iSmooth;
             Uint  maxNgrams;         ///< holds the max ngrams size for the BLEUstats
             Uint  maxNgramsScore;    ///< holds the max ngrams size when BLEUstats::score
+            bool  perSentenceBLEU;   ///< use per sentence BLEU instead of document BLEU.
+            iMagicStream*  wts_file; ///< holds the weight file.
 
          public:
          /**
@@ -86,8 +90,14 @@ Hack:\n\
             , iSmooth(DEFAULT_SMOOTHING_VALUE)
             , maxNgrams(4)
             , maxNgramsScore(0)
+            , perSentenceBLEU(false)
+            , wts_file(NULL)
          {
             argProcessor::processArgs(argc, argv);
+         }
+
+         virtual ~ARG() {
+            delete wts_file, wts_file = NULL;
          }
 
          /// See argProcessor::printSwitchesValue()
@@ -121,11 +131,9 @@ Hack:\n\
 
             // Taking care of general flags
             //
-            mp_arg_reader->testAndSet("v", bVerbose);
-            if ( getVerboseLevel() > 0 ) bVerbose = true;
-            if ( bVerbose && getVerboseLevel() < 1 ) setVerboseLevel(1);
-
+            bVerbose = checkVerbose("v");
             mp_arg_reader->testAndSet("c", bDoConf);
+            mp_arg_reader->testAndSet("p", perSentenceBLEU);
             mp_arg_reader->testAndSet("detail", iDetail);
             mp_arg_reader->testAndSet("smooth", iSmooth);
             mp_arg_reader->testAndSet("y", maxNgrams);
@@ -137,14 +145,15 @@ Hack:\n\
             if (!(maxNgrams > 0) || !(maxNgramsScore))
                error(ETFatal, "You must specify value for y and u greater then 0!");
 
+            if (mp_arg_reader->getSwitch("w:")) {
+               wts_file = new iMagicStream;
+               mp_arg_reader->testAndSet("w:", *wts_file);
+            }
             mp_arg_reader->testAndSet(0, "testfile", sTestFile);
             mp_arg_reader->getVars(1, sRefFiles);
 
-            if (iSmooth<0 || iSmooth>2)
-            {
-               cerr << "Invalid smoothing type: " << iSmooth << endl;
-               exit(1);
-            }
+            if (iSmooth<0 || iSmooth>4)
+               error(ETFatal, "Invalid smoothing type: %d", iSmooth);
          }
 
       }; // ends class ARG

@@ -2,8 +2,6 @@
  * @author Samuel Larkin
  * @file wermain.h  Program that calculates the wer score of a given source and nbest set.
  *
- * $Id$
- *
  * Evaluation Module
  *
  * This file contains some stuff needed for WER computation.
@@ -23,8 +21,6 @@
 #include "PERstats.h"
 #include "WERstats.h"
 #include "scoremain.h"
-#include <vector>
-#include <numeric>
 
 namespace Portage
 {

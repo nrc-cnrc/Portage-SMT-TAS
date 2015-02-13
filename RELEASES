@@ -26,6 +26,8 @@ PortageII cur
   - Added support for SRI format for word alignment files (for fastalign)
   - align-words: added GDF and GDFA as self-documenting aliases for
     IBMOchAligner 3 and 4.
+  - General clean up of the eval module, with addition of per-sentence BLEU
+    and NIST's 2009 BLEU definition, as published in mteval-v13a.pl.
 
 
 PortageII 2.2 2014-12-01

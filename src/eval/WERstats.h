@@ -96,8 +96,15 @@ struct WERstats : public ErrorRateStats {
       tmp -= other;
       return tmp;
    }
-};
+};  // ends struct WERstats
 
+WERstats operator*(WERstats s, double c) {
+   s._changes       *= c;
+   s._reflen        *= c;
+   s._source_length *= c;
+   return s;
 }
+
+}  // ends namespace Portage
 
 #endif // __WER_STATS_H__

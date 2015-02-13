@@ -19,6 +19,7 @@
 #include "bleu.h"
 #include "PERstats.h"
 #include "WERstats.h"
+#include "perSentenceStats.h"
 #include "printCopyright.h"
 #include "basic_data_structure.h"
 #include "referencesReader.h"
@@ -31,10 +32,10 @@ namespace bleuCompare {
 
 /// Program bleuCompare usage.
 static char help_message[] = "\n\
-bleucompare [-v][-n n] [-bleu | -per | -wer]\n\
+bleucompare [-v][-n n] [-PsBLEU | -bleu | -per | -wer]\n\
     testfile1 .. testfile_n REFS ref1 .. ref_m\n\
 \n\
-Compare BLEU scores over a set of testfiles using bootstrap resampling.\n\
+Compare scores over a set of testfiles using bootstrap resampling.\n\
 List the test files first, followed by the REFS keyword, followed by the\n\
 reference files.\n\
 \n\
@@ -45,12 +46,15 @@ Options:\n\
 -bleu   train using bleu as the scoring metric [do]\n\
 -wer    train using wer as the scoring metric [don't]\n\
 -per    train using per as the scoring metric [don't]\n\
+-PsBLEU train using perSentence BLEU as the scoring metric [don't]\n\
 ";
 
 
 enum TRAINING_TYPE {
+   NONE,
    BLEU,
    WER,
+   PsBLEU,
    PER
 };
 
@@ -60,7 +64,7 @@ static Uint num_iters = 1000;
 static vector<string> filenames;
 static vector<istream*> testfiles;
 static vector<istream*> reffiles;
-static TRAINING_TYPE training_type;
+static TRAINING_TYPE training_type = BLEU;
 
 static void getArgs(int argc, const char* const argv[]);
 
@@ -114,6 +118,7 @@ using namespace bleuCompare;
 template<class ScoreStats>
 void compute();
 
+typedef perSentenceStats<BLEUstats> psBLEU;
 
 // main
 int MAIN(argc, argv)
@@ -122,6 +127,9 @@ int MAIN(argc, argv)
    getArgs(argc, argv);
 
    switch (training_type) {
+   case PsBLEU:
+      compute<psBLEU>();
+      break;
    case BLEU:
       compute<BLEUstats>();
       break;
@@ -194,13 +202,14 @@ void compute()
 
 void Portage::bleuCompare::getArgs(int argc, const char* const argv[])
 {
-   const char* const switches[] = {"v", "n:", "bleu", "per", "wer"};
+   const char* const switches[] = {"v", "n:", "PsBLEU", "bleu", "per", "wer"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 3, -1, help_message);
    arg_reader.read(argc-1, argv+1);
 
    arg_reader.testAndSet("v", verbose);
    arg_reader.testAndSet("n:", num_iters);
 
+   if (arg_reader.getSwitch("PsBLEU")) training_type = PsBLEU;
    if (arg_reader.getSwitch("bleu")) training_type = BLEU;
    if (arg_reader.getSwitch("per"))  training_type = PER;
    if (arg_reader.getSwitch("wer"))  training_type = WER;

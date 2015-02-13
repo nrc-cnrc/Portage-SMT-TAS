@@ -3,8 +3,6 @@
  * @file bleumain.cc 
  * @brief Program that calculates BLEU for a given set of source and nbest.
  *
- * $Id$
- *
  * Evaluation Module
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
@@ -20,6 +18,7 @@
 #include "bleumain.h"
 #include "exception_dump.h"
 #include "printCopyright.h"
+#include "perSentenceStats.h"
 
 
 using namespace std;
@@ -34,9 +33,20 @@ int MAIN(argc, argv)
 
    BLEUstats::setMaxNgrams(arg.maxNgrams);
    BLEUstats::setMaxNgramsScore(arg.maxNgramsScore);
-   BLEUstats::setDefaultSmoothing(arg.iSmooth);
  
+   FileReader::FixReader<Translation> inputReader(arg.sTestFile, 1);
+
+   //LOG_VERBOSE2(verboseLogger, "Creating references Reader");
+   referencesReader  rReader(arg.sRefFiles);
+
    using namespace scoremain;
-   score<BLEUstats>(arg);
+   if (arg.perSentenceBLEU) {
+      BLEUstats::setDefaultSmoothing(1);
+      score<perSentenceStats<BLEUstats> >(arg, inputReader, rReader);
+   }
+   else {
+      BLEUstats::setDefaultSmoothing(arg.iSmooth);
+      score<BLEUstats>(arg, inputReader, rReader, arg.wts_file);
+   }
 } END_MAIN
 
