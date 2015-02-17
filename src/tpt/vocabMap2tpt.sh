@@ -79,7 +79,7 @@ test $# -gt 0   && error_exit "Superfluous arguments $*"
 
 
 # We need a intermediate model to hold the textpt.
-tmpModel=`mktemp vocabMap2tpt.$$.XXX` || error_exit "Cannot create temp file."
+tmpModel=`mktemp vocabMap2tpt.XXX` || error_exit "Cannot create temp file."
 # Set automatic clean up unless we are debugging.
 test -n $debug || trap "rm -f $tmpModel" 0 2 3 5 10 13 15
 verbose 2 "Intermediate model is $tmpModel"

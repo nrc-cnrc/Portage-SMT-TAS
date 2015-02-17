@@ -57,9 +57,10 @@ Usage: canoe-parallel.sh [options] canoe [canoe options] < <input>
 
 Options:
 
-  -resume pid   Tries to rerun parts that failed aka parts that aren't the
+  -resume jid   Tries to rerun parts that failed aka parts that aren't the
                 expected size.  You must reuse the same original command
-                that failed plus -resume <failed_PID>.
+                that failed plus -resume <failed_JID> which looks like
+                canoe-parallel.XXX.
 
   -[no-]lb      run in load balancing mode: split input into J [=2N] blocks,
                 N roughly even "heavy" ones, and J-N lighter ones; run them in
@@ -127,7 +128,6 @@ SAVE_ARGS="$@"
 REF=
 LOAD_BALANCING=
 RESUME=
-PID=$$
 while [ $# -gt 0 ]; do
    case "$1" in
    -noc|-nocluster)RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS -nocluster";;
@@ -160,22 +160,20 @@ while [ $# -gt 0 ]; do
 done
 
 
-if [ -n "$RESUME" ]; then
-   PID=$RESUME
-fi
 # EJJ This breaks the resume mode, but is necessary on the GPSC to avoid file
 # name clashes between different jobs running in similarly-initialized
 # containers
-WORK_DIR=`mktemp -d canoe-parallel.$PID.XXX` || error_exit "Cannot create temp workdir."
+if [[ -n "$RESUME" ]]; then
+   WORK_DIR=$RESUME
+   test -d $WORK_DIR || error_exit "$WORD_DIR does not exist, cannot resume."
+else
+   WORK_DIR=`mktemp -d canoe-parallel.XXX` || error_exit "Cannot create temp workdir."
+fi
 INPUT="$WORK_DIR/input"
 CMDS_FILE=$WORK_DIR/commands
 
 # Make sure there is canoe on the command line.
 [[ $GOTCANOE ]] || error_exit "The 'canoe' argument and the canoe options are missing."
-
-# Make sure we have a working directory
-# TODO shouldn't we strictly rely on mktemp here and not use mkdir?
-test -e $WORK_DIR || mkdir $WORK_DIR || error_exit "$WORD_DIR does not exist and cannot be created."
 
 #
 if [ $NUMBER_OF_JOBS -ne 1 -a -z "$LOAD_BALANCING" ]; then

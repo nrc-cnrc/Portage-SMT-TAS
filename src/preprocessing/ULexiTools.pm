@@ -947,7 +947,7 @@ sub len(\$) #(string)
 
 sub good_turing #(freq-list)
 {
-   my $tmpfile = File::Temp::tempdir("/tmp/TPM$$-XXXX") . "/estimate";
+   my $tmpfile = File::Temp::tempdir("/tmp/TPM-XXXX") . "/estimate";
    open(TMP, "| good_turing_estm > $tmpfile");
    print TMP join("\n", @_), "\n";
    close(TMP);

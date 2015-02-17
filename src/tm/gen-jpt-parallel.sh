@@ -204,7 +204,7 @@ for file in ${FILE1[@]} ${FILE2[@]} ${FILE3[@]}; do
    [[ -e $file ]] || error_exit "Input file $file doesn't exist"
 done
 
-WORKDIR=`mktemp -d JPTPAR$$.XXX` || error_exit "Cannot create temp workdir."
+WORKDIR=`mktemp -d JPTPAR.XXX` || error_exit "Cannot create temp workdir."
 
 
 # Start timing from this point.

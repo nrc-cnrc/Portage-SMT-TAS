@@ -1,5 +1,4 @@
 #!/bin/bash
-# $Id$
 
 # @file ictclas_run.sh
 # @brief Add robustness to the ictclas pipeline.
@@ -75,7 +74,7 @@ if [ $DEBUG ]; then
 " >&2
 fi
 
-WORKDIR=`mktemp -d ictclas.wd.$$.XXX` || error_exit "Cannot create temp workdir."
+WORKDIR=`mktemp -d ictclas.wd.XXX` || error_exit "Cannot create temp workdir."
 if [[ "$INPUT" == "-" ]] || [[ "$INPUT" == "/dev/stdin" ]]; then
    TMP_INPUT="$WORKDIR/in"
    zcat -f $INPUT > $TMP_INPUT

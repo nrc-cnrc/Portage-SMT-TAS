@@ -221,7 +221,7 @@ my $gz = substr($out_file, -3, 3) eq ".gz" ? ".gz" : ""; # output to be gzipped?
 my $gzip = $gz ? "| gzip" : "";
 
 my @tmp_files = ();     # Temporary files collection
-my ($tmp_txt_fh, $tmp_txt) = File::Temp::tempfile("$work_dir/tc_tmp_text_$$-XXXX", UNLINK=>1);
+my ($tmp_txt_fh, $tmp_txt) = File::Temp::tempfile("$work_dir/tc_tmp_text_XXXX", UNLINK=>1);
 #close $tmp_txt_fh; # Don't close it now: let it happen when the program exits so deletion happens then too.
 
 # Step 1: Basic truecasing using target language TC LM and map

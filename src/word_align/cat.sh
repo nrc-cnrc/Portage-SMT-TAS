@@ -69,7 +69,7 @@ run_cmd() {
    date >&2
    echo "$*" >&2
    if [[ ! $NOTREALLY ]]; then
-      MON_FILE=`mktemp ${TMPPFX}mon.run_cmd.XXXXXXXX`
+      MON_FILE=`mktemp ${TMPPFX}mon.run_cmd.XXXXXXXX` || error_exit "Cannot create temp file."
       process-memory-usage.pl -s 1 30 $$ > $MON_FILE &
       MON_PID=$!
       eval time $*
@@ -228,9 +228,8 @@ if [[ $PBS_JOBID ]]; then
       TMPPFX=$MODEL.tmp$PBS_JOBID
    fi
 else
-   TMPPFX=$MODEL.tmp$$
+   TMPPFX=$MODEL.tmp
 fi
-
 TMPPFX=`mktemp -d $TMPPFX.XXXXX` || error_exit "Cannot create temp workdir."
 TMPPFX=$TMPPFX/
 

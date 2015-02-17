@@ -97,8 +97,7 @@ START_LINE=$(gzip -cdqf $INPUT | egrep -m1 -n '^\\1-gram' | cut -f1 -d':')
 
 
 # ALWAYS work in a work directory
-WORKDIR=`mktemp -d lm_sort_filter.$$.XXX` || error_exit "Cannot create temp workdir."
-test -d $WORKDIR || mkdir -p $WORKDIR
+WORKDIR=`mktemp -d lm_sort_filter.XXX` || error_exit "Cannot create temp workdir."
 verbose 1 "Created a tmp workdir: $WORKDIR"
 
 # Split the input in parts based on Ngram size.

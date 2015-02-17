@@ -127,7 +127,7 @@ set -o errexit
 
 mkdir -p $OUTPUTLM.tplm ||
    error_exit "Can't create output dir $OUTPUTLM.tplm, giving up."
-TMPDIR=`mktemp -d $OUTPUTLM.tplm.tmp.$$.XXX` || error_exit "Cannot create temp workdir."
+TMPDIR=`mktemp -d $OUTPUTLM.tplm.tmp.XXX` || error_exit "Cannot create temp workdir."
 cd $TMPDIR
 
 if [[ ! -r $TEXTLM ]]; then

@@ -88,7 +88,7 @@ if [ "`expr $ORDER + 0 2> /dev/null`" != "$ORDER" ]; then
    error_exit "$ORDER is not an integer."
 fi
 
-WORK_DIR=`mktemp -d ngram-count-big.$$.XXX` || error_exit "Cannot create temp workdir."
+WORK_DIR=`mktemp -d ngram-count-big.XXX` || error_exit "Cannot create temp workdir."
 COUNT_CMDS_FILE=$WORK_DIR/cmds.count
 MERGE_CMDS_FILE=$WORK_DIR/cmds.merge
 
@@ -173,7 +173,6 @@ global_counts_out=$1; shift
 input_files=$@
 merge_files=
 if [ ! $MERGE_ONLY ]; then
-   test -d $WORK_DIR || mkdir $WORK_DIR
    for in_file in $input_files; do
       out_file=`basename $in_file`
       out_file=${out_file%.gz}.${ORDER}grams.gz

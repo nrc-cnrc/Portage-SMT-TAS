@@ -48,7 +48,7 @@ my $JOBS_PER_FF = -1;
 my $RESCORING_MODEL_OUT = undef;
 my $N = 3;
 
-my ($CMDS_FILE_HANDLE, $CMDS_FILE_NAME) = File::Temp::tempfile("gen-features-parallel-output.$$-XXXX", SUFFIX => ".commands", UNLINK=>1);
+my ($CMDS_FILE_HANDLE, $CMDS_FILE_NAME) = File::Temp::tempfile("gen-features-parallel-output.XXXX", SUFFIX => ".commands", UNLINK=>1);
 
 
 sub usage {

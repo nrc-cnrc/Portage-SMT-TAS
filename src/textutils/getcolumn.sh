@@ -46,11 +46,8 @@ TMPFILE=
 
 # If using standard input, put it into a temporary file
 if [ $# -lt 2 -o "$file" == "-" ]; then
-    TMPFILE=`mktemp /tmp/$$.in.XXX` || error_exit "Cannot create temp file."
+    TMPFILE=`mktemp /tmp/in.XXX` || error_exit "Cannot create temp file."
     filename="the input"
-    while [ -e $TMPFILE ]; do
-	$TMPFILE=$TMPFILE.
-    done
     cat - > $TMPFILE
     file=$TMPFILE
 fi
