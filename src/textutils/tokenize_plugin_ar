@@ -3,7 +3,7 @@
 # @brief  A special tokenize_plugin to replace MADA's slow preprocessing.  This
 # scrpts combines all preprocessing steps done for a NIST evaluation.
 #
-# @author Samuel Larkin
+# @author Samuel Larkin -- hacks by Michel Simard
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -29,6 +29,7 @@ use tokenize::Arabic::Data;
 
 binmode( STDIN,  ":encoding(UTF-8)" );
 binmode( STDOUT, ":encoding(UTF-8)" );
+binmode( STDERR, ":encoding(UTF-8)" );
 
 sub usage {
    local $, = "\n";
@@ -36,6 +37,9 @@ sub usage {
    $0 =~ s#.*/##;
    print STDERR "
 Usage: $0 ar [options] [IN [OUT]]
+
+  Specialized tokenize_plugin for Arabic that make use of a precompiled map
+  instead of MADA.
 
   Tokenization for Arabic text.  This does:
   - Howard's preprocessing to split Arabic from non-Arabic characters
@@ -54,7 +58,18 @@ Notes:
 
 Options:
 
-  -p(repoOnly)  do not perform tokenization (do Howard's preprocessing, MADA's preprocessing & parse tokan).
+  -p(repoOnly)  do not perform tokenization (do Howard's preprocessing, MADA's
+                preprocessing & parse tokan).
+  -n            Mark non Arabic words.  [don't]
+                Convert MADA's markup form:
+                \@\@LAT\@\@WORD
+                to:
+                __ascii__WORD
+                You will need to change predecode_plugin to process __ascii__.
+  -w            Remove beginning of sentence's w+. [don't]
+  -m            xmlishify hashtags. [don't]
+                You will need to enalbe xml2hashtag.pl in postprocess_plugin.
+
   -h(elp)       print this help message
   -v(erbose)    increment the verbosity level by 1 (may be repeated)
   -d(ebug)      print debugging information
@@ -69,11 +84,15 @@ Getopt::Long::Configure("no_ignore_case");
 # abbreviations for all options.
 my $verbose = 1;
 GetOptions(
+   preproOnly  => \my $preproOnly,
+   n           => \my $markNonArabicWord,
+   w           => \my $removeWa,
+   m           => \my $markHashTag,
+
    help        => sub { usage },
    verbose     => sub { ++$verbose },
    quiet       => sub { $verbose = 0 },
    debug       => \my $debug,
-   preproOnly  => \my $preproOnly,
 ) or usage;
 
 my $SOURCE_LANGUAGE = shift or die "You must provide ar as the language code.";
@@ -103,18 +122,51 @@ my $map = loadMappingData();
 
 my $now_fractions = time;
 while (my $input = <STDIN>) {
-   # Howard's preprocessing where we split Arabic characters from non-Arabic characters.
+   # Howard's preprocessing where we split Arabic characters from non-Arabic
+   # characters.
+
+   debug("[[Input = \n\"$input\" ]]\n");
+
    $input = HowardsPrepro($input);
+   debug("[[ --> HowardsPrepro \n--> \"$input\" ]]\n");
 
    # MADA's preprocessing.
    $input = MADAsPrepro($input);
+   debug("[[ --> MADAsPrepro \n--> \"$input\" ]]\n");
+
+   # Prefix non-Arabic (@@LAT@@) tokens with "__ascii__". This is later handled
+   # in predecode_plugin. [MS]
+   unless ($preproOnly) {
+      if ($markNonArabic) {
+         $input = markNonArabic($input);
+      }
+   }
 
    # Parse tokan.
    $input = parse_tokan($input);
+   debug("[[ --> parse_tokan \n--> \"$input\" ]]\n");
 
    # Apply the map
    unless ($preproOnly) {
       $input = tokenizeArabic($input, $map);
+
+      debug("[[ --> tokenizeArabic \n--> \"$input\" ]]\n");
+
+      # Remove initial "w+" -- moved here from predecode_plugin [MS]
+      if (defined($removeWa)) {
+         $input =~ s/^w\+\s+//;
+      }
+
+      # Protect xml entity from the decoder.
+      $input =~ s/&/&amp;/g;
+      $input =~ s/</&lt;/g;
+      $input =~ s/>/&gt;/g;
+
+      # Treat hashtags as markup [MS]
+      if (defined($markHashTag)) {
+         $input = markHashtags($input);
+         debug("[[ --> markHashtags \n--> \"$input\" ]]\n");
+      }
    }
 
    print $input if (defined($input));
@@ -193,16 +245,9 @@ sub parse_tokan {
       }
    }
 
-   return join(" ", map { &normalize($_) } @inclean);
-
 #   # Escape the middle dots that are not used as separators.  But occur within
 #   # words that have not been analyzed
-#   my @out = ();
-#   foreach my $token (@inclean){
-#      push(@out, &normalize($token));
-#   }
-#
-#   return join(" ", @out);
+   return join(" ", map { &normalize($_) } @inclean);
 }
 
 
@@ -269,3 +314,92 @@ sub loadMappingData {
    return $map;
 }
 
+
+# Convert hashtags to XML markup: "# nice _ hash" --> "<hashtag> nice hash </hashtag>"
+# These will be transfered to the translation via Portage's tag transfer mechanism,
+# then converted back to standard hashtag format in postprocess_plugin
+
+sub markHashtags {
+   my ($input) = @_;
+
+   # Yes, that's a finite-state machine with operations on transitions :-)
+   my $automaton = {
+      start => {
+         '#' => { op => \&skipToken, opname=>'skip', state => 'hashtagBegin' },
+         '_' => { op => \&outputToken, opname=>'output', state => 'start' },
+         'any' => { op => \&outputToken, opname=>'output', state => 'start' } },
+      hashtagBegin => {
+         '#' => { op => \&skipToken, opname=>'skip', , state => 'hashtagBegin' },
+         '_' => { op => \&skipToken, opname=>'skip', , state => 'hashtagContinue' },
+         'any' => { op => \&storeToken, opname=>'store', state => 'hashtagEnd' } },
+      hashtagContinue => {
+         '#' => { op => \&flushHashtag, opname=>'flush', state => 'hashtagBegin' },
+         '_' => { op => \&skipToken, opname=>'skip', , state => 'hashtagContinue' },
+         'any' => { op => \&storeToken, opname=>'store', state => 'hashtagEnd' } },
+      hashtagEnd => {
+         '#' => { op => \&flushHashtag, opname=>'flush', , state => 'hashtagBegin' },
+         '_' => { op => \&skipToken, opname=>'skip', , state => 'hashtagContinue' },
+         'any' => { op => \&flushAndOutput, opname=>'flush+output', state => 'start' } },
+   };
+
+   my @output = ();
+   my @tag = ();
+   my $state = 'start';
+   for my $token (split(/\s+/, $input)) {
+      my $transition = ($token eq '#' or $token eq '_') ? $token : 'any';
+      my $op = $automaton->{$state}->{$transition}->{op};
+      my $opname = $automaton->{$state}->{$transition}->{opname};
+      $op->($token, \@output, \@tag);
+#        print STDERR "[$state($token) = $opname";
+      $state = $automaton->{$state}->{$transition}->{state};
+#        print STDERR " --> $state]\n";
+   }
+   flushHashtag('', \@output, \@tag);
+
+   return join(" ", @output);
+}
+
+sub outputToken {
+   my ($tok, $out, $tag) = @_;
+   push @$out, $tok;
+}
+
+sub skipToken {
+   my ($tok, $out, $tag) = @_;
+}
+
+sub storeToken {
+   my ($tok, $out, $tag) = @_;
+
+   push @$tag, $tok;
+}
+
+sub flushHashtag {
+   my ($tok, $out, $tag) = @_;
+
+   push @$out, "<hashtag>", @$tag, "</hashtag>"
+      if @$tag;
+   @$tag = ();
+}
+
+sub flushAndOutput {
+   flushHashtag(@_);
+   outputToken(@_);
+}
+
+# Mark tokens containing ascii characters -- these will generate rules in predecode_plugin
+
+sub markNonArabic {
+   my ($s) = @_;
+
+   my @out = ();
+   for my $token (split(/\s+/, $s)) {
+      $token =~ s{^\@\@LAT\@\@(.*)$}{__ascii__$1}g;
+      push @out, $token;
+   }
+
+   return join(" ", @out);
+}
+
+
+sub debug { printf STDERR @_ if $debug }

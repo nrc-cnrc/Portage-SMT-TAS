@@ -75,4 +75,15 @@ fi \
    fi
 else
    cat
+fi \
+| if [[ -n "$CONVERT_ASCII_TO_MARKUP" ]]; then
+   # The Perl line in the middle is used to wrap non-Arabic tokens
+   # (actually: tokens that MADA labelled as non-Arabic because they
+   # contained at least one ASCII letter) into Portage "translate as-is"
+   # rules. This to avoid unwanted translations when Buckwalter
+   # transliterations accidentally collide with English words. Initial
+   # "__ascii__" prefixing is performed within tokenize_plugin. [MS]
+   perl -pe 'sub escapeQuotes { my ($s)=@_; $s =~ s/\"/\\\"/g; return $s };$_=~s{__ascii__([^\s]+)}{"<ascii target=\"".escapeQuotes($1)."\"> $1 </ascii>"}ge;'
+else
+   cat
 fi

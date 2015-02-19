@@ -56,5 +56,11 @@ TARGET_LANGUAGE=$1; shift
 #          s/­/<ph>\_</ph>/g; # Warning: there is a literal \xAD in utf8 here.
 #         ' |
 
+# Suggestion: To convert sequences of tokens within <hashtag>...</hashtag> into
+# a proper, twitter style hashtag. Initial source-text markup is performed in
+# tokenize_plugin, and tags are transfered via Portage's tag-transfer mechanism
+# (translate.pl -xtags).
+#xml2hashtag.pl |
+
 # Default is to just copy the input to the output.
 cat
