@@ -1,0 +1,9 @@
+test :
+« blah »
+200 %
+200 $
+Euro 200 €
+Yen 200 ¥
+Pound 200 £
+Unit 254 ml 20 V but not 200 volts.
+<1 id="34">1 id="34"</1> This must protect the tag but process the non-tag.

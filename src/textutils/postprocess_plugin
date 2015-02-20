@@ -32,14 +32,17 @@ TARGET_LANGUAGE=$1; shift
 # Uncomment the following line to activate:
 #fix-en-fr-numbers.pl |
 
-# Suggestion: for French, some punctuation is best separated by non-breakable spaces.
-# Careful: the space between the quotes after nbsp is a non-breaking space, not
-# a regular one.  Make sure it's still an NBSP if you cut and paste this
-# anywhere...
+# Suggestion: insert non-breaking spaces where needed in French.
+#if [[ $TARGET_LANGUAGE = fr ]]; then
+#   add-fr-nbsp.pl
+#else
+#   cat
+#fi |
+
+# Suggestion: make some hyphens non-breaking (warning: code not tag safe)
 # Uncomment the following block of lines to activate, and modify to suit your
 # needs; you can leave lines that don't apply to you in comments.
 #perl -pe 'BEGIN{ use encoding "UTF-8"; use utf8;
-#             $nbsp = " "; # There is a literal non-break space, \xA0, in the quotes here
 #             # Choose only one of the following non-break hyphen definitions:
 #             $nbhy = "\x{2011}";   # This is the unicode non-break hyphen
 #             $nbhy = "\x1E";       # This is the old MS Word non-break hyphen
@@ -47,14 +50,6 @@ TARGET_LANGUAGE=$1; shift
 #             $nbhy = "\\_";        # RTF non-break hyphen
 #             $nbhy = "<ph>\_</ph>";# Trados might like this better???
 #          }
-#          s/ (:|»|%|\$|€|¥|£)/$nbsp$1/g; # Make the space before :, », %, etc, non-breakable
-#          s/(«) /$1$nbsp/g;      # Make the space after « non-breakable
-#          # Make the space before some units, when preceeded by a number, unbreakable;
-#          # add all the units you want to this list!
-#          s/(\d) (V|volts|ml|mm|cm)\b/$1$nbsp$2/g;
-#          # Make the space before a 1 or 2 letter word, which is likely to be a unit,
-#          # non-breakable; more general solution but might cover too many cases.
-#          s/(\d) ([a-zA-Z]{1,2})\b/$1$nbsp$2/g;
 #          # Make the hyphen in codes like A-2 non-breakable
 #          s/\b([a-zA-Z0-9])-([a-zA-Z0-9])\b/$1$nbhy$2/g;
 #          # Replace the soft hyphen (\xAD or alt-0173) by <ph>\_</ph> for Trados
