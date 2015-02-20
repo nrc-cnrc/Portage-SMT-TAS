@@ -41,9 +41,9 @@ Usage: $0 < INPUT > OUTPUT
   Add non-breaking spaces in French output without breaking XML tags.
 
   Applies these rules:
-   - non-breaking space before colon (:), closing French quotes (»), percent
-     (%), and four currencies: dollar (\$), euro (€), yen (¥), pound (£).
-   - non-breaking space after opening French quotes («).
+   - non-breaking space before colon, closing French quotes, percent and
+     currencies: :, », %, \$, €, ¥, £
+   - non-breaking space after opening French quotes: «
    - non-breaking space between a digit and a one or two-letter symbol, e.g.,
      V, cm, ml.
 
