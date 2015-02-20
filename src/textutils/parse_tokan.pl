@@ -86,8 +86,8 @@ setTokenizationLang("en");
 my $sep="·";
 while(<STDIN>) {
    my @in = split(/\s+/);
-    # remove the <\/?non-MSA> tags which are part of a token, or the entire
-    # token if there is no content over than the tag
+   # remove the <\/?non-MSA> tags which are part of a token, or the entire
+   # token if there is no content over than the tag
    my @inclean = ();
    foreach my $i (@in) {
       $i =~ s/\<non-MSA\>//g;
@@ -97,8 +97,8 @@ while(<STDIN>) {
       }
    }
 
-    # escape the middle dots that are not used as separators.But occur within
-    # words that have not been analyzed
+   # escape the middle dots that are not used as separators.But occur within
+   # words that have not been analyzed
    my @out = ();
    foreach my $i (@inclean) {
       my @fields = ($i);
@@ -116,31 +116,33 @@ while(<STDIN>) {
             die "Expecting 6 fields in input:$i\n";
          }
       }
-        if ($oov) {
-           my $normed = &normalize($fields[$field]);
-           push(@out, $normed) if (defined($normed));
-        }
-        else {
-           push(@out,&normalize($fields[$field]));
-        }
+      if ($oov) {
+         my $normed = &normalize($fields[$field]);
+         push(@out, $normed) if (defined($normed));
+      }
+      else {
+         push(@out, &normalize($fields[$field]));
+      }
    }
-    print join(" ",@out),"\n";
+   print join(" ", @out), "\n";
 }
+
+
 
 sub normalize {
    my ($in) = @_;
    my $out = $in;
    if ($out =~ s/\@\@LAT\@\@//g) {
       unless ($skipTokenization) {
-      my $para = $out;
-      $out = '';
-      my @token_positions = tokenize($para, $pretok, $xtags);
-      for (my $i = 0; $i < $#token_positions; $i += 2) {
-         $out .= " " if ($i > 0);
-         $out .= get_collapse_token($para, $i, @token_positions, $notok || $pretok);
+         my $para = $out;
+         $out = '';
+         my @token_positions = tokenize($para, $pretok, $xtags);
+         for (my $i = 0; $i < $#token_positions; $i += 2) {
+            $out .= " " if ($i > 0);
+            $out .= get_collapse_token($para, $i, @token_positions, $notok || $pretok);
+         }
+         chomp($out);
       }
-      chomp($out);
-   }
       $out = lc($out) unless($nolc);
    }
    elsif ($oov) {
@@ -150,6 +152,8 @@ sub normalize {
    $out =~ s/\@\@//g;
    return $out;
 }
+
+
 
 sub normalize2 {
    my ($in )= @_;
