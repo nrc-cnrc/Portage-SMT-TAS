@@ -16,7 +16,7 @@
 all: test
 
 test: test-regular
-test-regular: diff-test1 test4
+test-regular: diff-test1 test4 test5 test6
 
 # These two test cases only pass if the non-breaking space code is uncommented
 # (and thereby activated) in postprocess_plugin:
@@ -38,5 +38,16 @@ test3: test1 test2
 test4: currency.txt
 	postprocess_plugin en < $< | diff - $< -q
 
-TEMP_FILES=test1 test2
+# regression testing: this script should not affect the xtags files from the
+# tags unit test suite.
+test5:
+	add-fr-nbsp.pl < ../tags/xtags > xtags.out
+	diff ../tags/xtags xtags.out -q
+
+test6:
+	cat ../tags/xtags | sed -e 's/<g/<1/g' -e 's/<\/g>/<\/1>/g' > xtags.1
+	add-fr-nbsp.pl < xtags.1 > xtags.1.out
+	diff xtags.1 xtags.1.out -q
+
+TEMP_FILES=test1 test2 xtags.*
 include ../Makefile.incl
