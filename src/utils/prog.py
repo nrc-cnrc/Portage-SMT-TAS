@@ -8,8 +8,8 @@
 # Traitement multilingue de textes / Multilingual Text Processing
 # Tech. de l'information et des communications / Information and Communications Tech.
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2014, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2014, Her Majesty in Right of Canada
+# Copyright 2015, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2015, Her Majesty in Right of Canada
 
 """
 This program shows how to:
@@ -106,7 +106,7 @@ def get_args():
    return cmd_args
 
 def main():
-   printCopyright("prog.py", 2014);
+   printCopyright("prog.py", 2015);
    os.environ['PORTAGE_INTERNAL_CALL'] = '1';   # add this if needed
    
    cmd_args = get_args()
