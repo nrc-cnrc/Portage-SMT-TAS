@@ -23,12 +23,12 @@ BEGIN {
    }
 }
 use portage_utils;
-printCopyright(2015);
+printCopyright("add-fr-nbsp.pl", 2015);
 $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
 use encoding "UTF-8";
 use utf8; # This script uses literal utf-8 characters.
-use ULexiTools;
+use ULexiTools qw/get_tag_re/;
 my $tag_re = get_tag_re();
 
 sub usage {
@@ -41,9 +41,9 @@ Usage: $0 < INPUT > OUTPUT
   Add non-breaking spaces in French output without breaking XML tags.
 
   Applies these rules:
-   - non-breaking space before colon, closing French quotes, percent and
-     currencies: :, », %, \$, €, ¥, £
-   - non-breaking space after opening French quotes: «
+   - non-breaking space before colon (:), closing French quotes (»), percent
+     (%), and four currencies: dollar (\$), euro (€), yen (¥), pound (£).
+   - non-breaking space after opening French quotes («).
    - non-breaking space between a digit and a one or two-letter symbol, e.g.,
      V, cm, ml.
 
