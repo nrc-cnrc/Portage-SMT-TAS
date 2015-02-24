@@ -17,7 +17,7 @@ using namespace Portage;
 
 namespace Portage {
 
-class TestStrUtils : public CxxTest::TestSuite 
+class TestStrUtils : public CxxTest::TestSuite
 {
 public:
    void testTrimChar() {
@@ -86,11 +86,22 @@ public:
       TS_ASSERT_EQUALS(string("1 2 3"), join(a, a+3));
    }
 
+   void testSplitIntoArray() {
+      const char* s = "1 -0.4 5.3e-21";
+      float toks[3];
+
+      const Uint numTok = split(s, toks, convT<float>);
+      TS_ASSERT_EQUALS(numTok, 3);
+      TS_ASSERT_DELTA(toks[0], 1, 1e-35);
+      TS_ASSERT_DELTA(toks[1], -0.4, 1e-5);
+      TS_ASSERT_DELTA(toks[2], 5.3e-21, 1e-25);
+   }
+
    void testSplitString() {
       string s("a ||| b ||| c");
       vector<string> toks;
       string sep(" ||| ");
-      
+
       splitString(s, toks, sep);
       TS_ASSERT_EQUALS(toks.size(), 3);
       TS_ASSERT_EQUALS(toks[0], "a");
