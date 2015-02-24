@@ -39,7 +39,7 @@ DECODE_SCRIPTS ?= canoe-escapes.pl canoe-parallel.sh sh_utils.sh
 # NOTE: DO NOT add detokenize_plugin script to the BINSCRIPTS variable since
 # it exists only to illustrate what a detokenie_plugin could look like.
 TRANSLATE ?= postdecode_plugin postprocess_plugin predecode_plugin preprocess_plugin sentsplit_plugin tokenize_plugin \
-             translate.pl ridbom.sh crlf2lf.sh fix-en-fr-numbers.pl
+             translate.pl ridbom.sh crlf2lf.sh fix-en-fr-numbers.pl add-fr-nbsp.pl
 OTHER_BIN ?= utf8_filter utf8_casemap configtool portage_info normc1 markup_canoe_output
 RESCORE_BIN ?= feature_function_tool gen_feature_values rescore_translate
 RESCORE_SCRIPTS ?= gen-features-parallel.pl nbest2rescore.pl rat.sh
