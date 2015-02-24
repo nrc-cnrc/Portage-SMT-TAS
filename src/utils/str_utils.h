@@ -441,6 +441,48 @@ extern string decodeRFC2396(const string& s);
  * @return the number of tokens found
  */
 template<class T, class Converter>
+Uint split(const char* s, T* dest, Converter converter, const char* sep = " \t\n", Uint max_toks = 0)
+{
+   Uint init_size(0);
+   // Make a copy to work on
+   const Uint len = strlen(s);
+   char work[len+1];
+   strcpy(work, s);
+   assert(work[len] == '\0');
+
+   char* strtok_state;
+   const char* tok = strtok_r(work, sep, &strtok_state);
+   while (tok != NULL && (!max_toks || init_size < max_toks)) {
+      conv(tok, dest[init_size++]);
+      tok = strtok_r(NULL, sep, &strtok_state);
+   }
+   // Last token will contain the remainder of the string
+   if (max_toks && tok != NULL && init_size < max_toks) {
+      conv(&s[tok-work], dest[init_size++]);
+   }
+
+   return init_size;
+}
+
+
+
+/**
+ * Split an input string into a sequence of whitespace-delimited tokens.
+ * The * splitZ() version clears the output vector first.
+ *
+ * @see Uint split(const char* s, vector<T>& dest, Converter converter, const char* sep, Uint max_toks)
+ * @param s          input string
+ * @param dest       vector that tokens get appended to
+ * @param converter  a mapper from a string to desire T type (Applied to every token found)
+ *                   definition: Converter(const char* src, T dest)
+ * @param sep        the set of characters that are considered to be whitespace
+ * @param max_toks   the maximum number of tokens to extract; if > 0, then
+ *                   only the 1st max_toks-1 delimited tokens will be
+ *                   extracted, and the remainder of the string will be the
+ *                   last token; 0 means extract everything.
+ * @return the number of tokens found
+ */
+template<class T, class Converter>
 Uint split(const char* s, vector<T>& dest, Converter converter, const char* sep = " \t\n", Uint max_toks = 0)
 {
    const Uint init_size(dest.size());
