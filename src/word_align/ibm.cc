@@ -766,15 +766,29 @@ void IBM2::read(const string& pos_file)
    if ( ifs.eof() )
       error(ETFatal, "Unexpected end of file in %s", pos_file.c_str());
 
+   string line;
+   // Swallow the  newline from the 3 integers.
+   assert(ifs.get() == '\n');
+   if (!ifs)
+      error(ETFatal, "Unexpected end of file in %s after reading 3 parameters.", pos_file.c_str());
+
    for (Uint tlen = 1; tlen <= max_tlen; ++tlen)
       for (Uint tpos = 0; tpos < tlen; ++tpos)
          for (Uint slen = 1; slen <= max_slen; ++slen) {
             double sum = 0.0;
-            Uint os = posOffset(tpos, tlen, slen);
-            for (Uint j = 0; j < slen; ++j) {
-               ifs >> pos_probs[os+j];
+            const Uint os = posOffset(tpos, tlen, slen);
+
+            line.clear();
+            if (!getline(ifs, line))
+               error(ETFatal, "Unexpected end of file in %s", pos_file.c_str());
+
+            const Uint numElements = split(line.c_str(), &pos_probs[os], convT<float>);
+            if (slen != numElements)
+               error(ETFatal, "Invalid number of elements in %s (%d, %d)", pos_file.c_str(), slen, numElements);
+
+            for (Uint j = 0; j < slen; ++j)
                sum += pos_probs[os+j];
-            }
+
             if (abs(sum - 1.0) > .05)
                error(ETWarn, "non-normalized distribution for tpos=%d, tlen=%d, slen=%d",
                      tpos, tlen, slen);
