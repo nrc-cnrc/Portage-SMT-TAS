@@ -120,6 +120,7 @@ my $xtags  = 0;
 setTokenizationLang("en");
 
 
+
 loadMADACleanUpMap("$MADA_HOME/common-tasks/clean-utf8-MAP");
 my $map = loadMappingData();
 
