@@ -70,8 +70,11 @@ Options:
                 to:
                 __ascii__WORD
                 You will need to change predecode_plugin to process __ascii__.
+                This option has no effect when used with -prepoOnly.
   -w            Remove beginning of sentence's w+. [don't]
+                This option has no effect when used with -prepoOnly.
   -m            xmlishify hashtags. [don't]
+                This option has no effect when used with -prepoOnly.
                 You will need to enalbe xml2hashtag.pl in postprocess_plugin.
 
   -h(elp)       print this help message
@@ -122,10 +125,19 @@ setTokenizationLang("en");
 
 
 loadMADACleanUpMap("$MADA_HOME/common-tasks/clean-utf8-MAP");
-my $map = loadMappingData();
+my $word2morpho = undef;
+unless ($preproOnly) {
+   $word2morpho = loadMappingData();
+}
 
 my $now_fractions = time;
-while (my $input = <STDIN>) {
+while (defined(my $input = <STDIN>)) {
+   chomp($input);
+   if ($input eq '') {
+      print $input, "\n";
+      next;
+   }
+
    # Howard's preprocessing where we split Arabic characters from non-Arabic
    # characters.
 
@@ -141,7 +153,7 @@ while (my $input = <STDIN>) {
    # Prefix non-Arabic (@@LAT@@) tokens with "__ascii__". This is later handled
    # in predecode_plugin. [MS]
    unless ($preproOnly) {
-      if ($markNonArabic) {
+      if ($markNonArabicWord) {
          $input = markNonArabic($input);
       }
    }
@@ -152,7 +164,7 @@ while (my $input = <STDIN>) {
 
    # Apply the map
    unless ($preproOnly) {
-      $input = tokenizeArabic($input, $map);
+      $input = tokenizeArabic($input, $word2morpho);
 
       debug("[[ --> tokenizeArabic \n--> \"$input\" ]]\n");
 
@@ -182,7 +194,9 @@ printf(STDERR "Map in %3.3fms\n", 1000 * (time - $now_fractions));
 
 
 sub HowardsPrepro {
-   my $input = shift or die "You need to provide a sentence.";
+   my $input = shift;
+   die "You need to provide a sentence." unless(defined($input));
+
    $input =~ s/[\r]?\n$/ /;
    $input =~ s/^/ /;
    $input =~ s/(\p{Script:Arabic}\p{General_Category:Mark}*)([^\p{Script:Arabic}\p{General_Category:Mark}])/$1 $2/g;
@@ -196,7 +210,9 @@ sub HowardsPrepro {
 
 
 sub MADAsPrepro {
-   my $input = shift or return;
+   my $input = shift;
+   die "You need to provide a sentence." unless(defined($input));
+
    my $result = 1;
    ($result, $input) =  &MADATools::cleanUTF8String($input);
 
@@ -236,7 +252,9 @@ sub normalize {
 
 
 sub parse_tokan {
-   my $in = shift or return;
+   my $in = shift;
+   die "You need to provide a sentence." unless(defined($in));
+
    my @in = split(/\s+/, $in);
    # Remove the <\/?non-MSA> tags which are part of a token, or the entire
    # token if there is no content other than the tag.
@@ -256,9 +274,11 @@ sub parse_tokan {
 
 
 sub tokenizeArabic {
-   my $input = shift or return;
-   my $map = shift or die "You need to provide a mapping.";
-   return unless(defined($input));
+   my $input = shift;
+   die "You need to provide a sentence." unless(defined($input));
+
+   my $word2morpho = shift;
+   die "You need to provide a mapping." unless(defined($word2morpho));
 
    chomp($input);
    # Glue words that ends with a sinble + to its successor.
@@ -271,7 +291,7 @@ sub tokenizeArabic {
         map {
            s/\+/+ /g;
            s/\+/ +/g;
-           $map->{$_} or $_
+           $word2morpho->{$_} or $_
          } split(/ /, $input));
 
    my @tok = map { s/\+/+ /g; s/\+/ +/g; $_ } split(/ /, $input);
@@ -280,7 +300,7 @@ sub tokenizeArabic {
    foreach my $tok (@tok) {
        # NOTE: using this instead of the if exists means that a word mapping to
        # the empty string will behave has a passthrough instead of a deletion.
-       push(@output, ($map->{$tok} or $tok));
+       push(@output, ($word2morpho->{$tok} or $tok));
 
 #      if (exists($map->{$tok})) {
 #         push(@output, $map->{$tok});
@@ -307,15 +327,15 @@ sub loadMADACleanUpMap {
 
 
 sub loadMappingData {
-   my $map = undef;
+   my $word2morpho = undef;
    unless ($preproOnly) {
       # Load Buckwalter's map.
       warn "Using ", $INC{'tokenize/Arabic/Data.pm'}, " for the tokenization\n";
       my $now_fractions = time;
-      $map  = decode_json( do { local $/; <tokenize::Arabic::Data::DATA>; } );
-      printf(STDERR "Loaded map in %3.3fms\n", 1000 * (time - $now_fractions));
+      $word2morpho  = decode_json( do { local $/; <tokenize::Arabic::Data::DATA>; } );
+      printf(STDERR "Loaded morphology in %3.3fms\n", 1000 * (time - $now_fractions));
    }
-   return $map;
+   return $word2morpho;
 }
 
 
