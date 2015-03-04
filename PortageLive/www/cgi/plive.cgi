@@ -65,6 +65,7 @@ use strict;
 use warnings;
 
 use HTML::Entities;
+use plive_lib;
 
 ## --------------------- USER CONFIGURATION ------------------------------
 ##
@@ -615,36 +616,6 @@ sub timeStamp() {
                    $time->year + 1900, $time->mon+1, $time->mday,
                    $time->hour, $time->min, $time->sec);
 }
-
-
-sub NRCBanner {
-    return p({align=>'center'}, img({src=>'/images/NRC_banner_e.jpg'}));
-}
-
-sub NRCFooter {
-    return table({border=>0, cellpadding=>0, cellspacing=>0, width=>'100%'},
-                 Tr(td({width=>'20%', valign=>'bottom', align=>'right'},
-                       img({src=>'/images/sidenav_graphictop_e.gif', height=>54,
-                            alt=>'NRC-ICT'})),
-                    td({width=>'60%', valign=>'bottom', align=>'center'},
-                       img({src=>'/images/mainf1.gif', height=>44, width=>286,
-                            alt=>'National Research Council Canada'})),
-                    td({width=>'20%', valign=>'center', align=>'left'},
-                       img({src=>'/images/mainWordmark.gif', height=>44, width=>93,
-                            alt=>'Government of Canada'}))),
-                 Tr(td({valign=>'top', align=>'right'},
-                       img({src=>'/images/sidenav_graphicbottom_e.gif',
-                            alt=>'NRC-ICT'})),
-                    td({valign=>'top', align=>'center'},
-                       small(
-                          "Traitement multilingue de textes / Multilingual Text Processing", br(),
-                          "Technologies de l'information et des communications / Information and Communications Technologies", br(),
-                          "Conseil national de recherches Canada / National Research Council Canada", br(),
-                          "Copyright 2004&ndash;2014, Sa Majest&eacute; la Reine du Chef du Canada / ",
-                          "Her Majesty in Right of Canada", br(),
-                          "<a href=\"/portage_notices.html\">Third party Copyright notices</a>"))));
-}
-
 
 
 sub copyright() {

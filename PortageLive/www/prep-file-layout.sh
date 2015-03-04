@@ -82,10 +82,10 @@ mkdir -p ${ROOT_DIR}/var/www/cgi-bin      # cgi scripts
 mkdir -p $SOAP_DEST/secure                   # directory for SOAP stuff
 
 # Copy the CGI scripts
-cp cgi/*.cgi ${ROOT_DIR}/var/www/cgi-bin
+cp cgi/*.{pm,cgi} ${ROOT_DIR}/var/www/cgi-bin
 
 # Copy the images needed by the CGI scripts
-cp images/*.gif images/*.jpg ${HTML_DIR}/images
+cp images/*.{gif,jpg,png} ${HTML_DIR}/images
 
 # Copy the icon needed by the CGI scripts
 cp images/*.ico ${HTML_DIR}
