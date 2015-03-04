@@ -27,6 +27,32 @@ This library contains common functions for plive's scripts.
 
 =over
 
+=item getTrace
+
+Returns a complex html element that contains the trace of Portage's execution.
+The trace's content will be escaped and colorized.  Colors are user defined in
+plive.css.
+
+=over
+
+=item *
+
+ERROR: lines will be marked with the '.error' class;
+
+=item *
+
+COMMAND: lines will be marked with the '.command' class;
+
+=item *
+
+[call: lines will be marked with the '.call' class;
+
+=item *
+
+Using plugin: lines will be marked with the '.plugin' class;
+
+=back
+
 =item NRCBanner
 
 Returns a html element containing NRC's logo.
@@ -65,16 +91,18 @@ use strict;
 use warnings;
 use CGI qw(:standard);
 use CGI::Carp qw/fatalsToBrowser/;
+use HTML::Entities;
 require Exporter;
 
 our (@ISA, @EXPORT, @EXPORT_OK);
 
 @ISA = qw(Exporter);
 @EXPORT = (
+      "getTrace",
       "NRCBanner",
       "NRCFooter"
       );
-@EXPORT_OK = qw( NRCBanner NRCFooter );
+@EXPORT_OK = qw( getTrace NRCBanner NRCFooter );
 
 
 sub NRCBanner {
@@ -107,6 +135,32 @@ sub NRCFooter {
                           ))));
 }
 
+
+sub getTrace {
+   my ($trace_file) = @_;
+   if (-r $trace_file) {
+      open(TRACE, "$trace_file")
+         || return h1("Can't open trace file $trace_file.");
+      my $trace = do { local $/; <TRACE>; };
+      close(TRACE);
+
+      $trace = HTML::Entities::encode_entities($trace, '<>&');  # MUST be done before we add our spans.
+      $trace =~ s#^(ERROR: .+)$#<span class="error">$1</span>#mg;
+      $trace =~ s#^(.*fatal error: .+)$#<span class="error">$1</span>#mg;
+      $trace =~ s#^(.+command not found.*)$#<span class="error">$1</span>#mg;
+      $trace =~ s#^(COMMAND: .+)$#<span class="command">$1</span>#mg;
+      $trace =~ s#^(\[call: .+)$#<span class="call">$1</span>#mg;
+      $trace =~ s#^(Using plugin: .+)$#<span class="plugin">$1</span>#mg;
+
+      return h2("Trace File")
+         .pre($trace);
+   }
+   else {
+      return p()
+         .h2("No readable trace file")
+         .h3($trace_file);
+   }
+}
 
 
 1;

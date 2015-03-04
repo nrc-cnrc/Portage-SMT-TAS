@@ -1114,7 +1114,7 @@ sub tokenize {
 
 sub strip_entity {
    my ($in, $out) = @_;
-   die "You need to provide in and out" unless (defined($in) and defined($out));
+   die "ERROR: You need to provide in and out" unless (defined($in) and defined($out));
 
    verbose("Stripping Entities");
 
@@ -1136,7 +1136,7 @@ sub strip_entity {
 sub escape_entity {
    my ($in, $out) = @_;
    warn "escape_entity should be used in xml mode." unless ($xml);
-   die "You need to provide in and out" unless (defined($in) and defined($out));
+   die "ERROR: You need to provide in and out" unless (defined($in) and defined($out));
 
    verbose("Escaping Entities");
 
@@ -1287,9 +1287,9 @@ sub verbose { print STDERR "[", @_, "]\n" if $verbose; }
 sub outputJson {
    my ($file_orig, $file_trans, $file_out) = @_;
    use JSON;
-   open(ORIG, "<$file_orig") or die "Can't open $file_orig";
-   open(TRANS, "<$file_trans") or die "Can't open $file_trans";
-   open(OUT, ">$out") or die "Can't open output $out";
+   open(ORIG, "<$file_orig") or die "ERROR: Can't open $file_orig";
+   open(TRANS, "<$file_trans") or die "ERROR: Can't open $file_trans";
+   open(OUT, ">$out") or die "ERROR: Can't open output $out";
    while (defined(my $orig = <ORIG>) and defined(my $trans = <TRANS>)) {
       chomp($orig);
       chomp($trans);
@@ -1297,8 +1297,8 @@ sub outputJson {
       print OUT to_json({original => $orig, translation => $trans}), "\n" if ($orig ne '' or $trans ne '');
    }
    # Make sure all content is read from both files.
-   die "Original text file too long" if (defined(<ORIG>));
-   die "Translation text file too long" if (defined(<ORIG>));
+   die "ERROR: Original text file too long" if (defined(<ORIG>));
+   die "ERROR: Translation text file too long" if (defined(<ORIG>));
    close(ORIG);
    close(TRANS);
    close(OUT);

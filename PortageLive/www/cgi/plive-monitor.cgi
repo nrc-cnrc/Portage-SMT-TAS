@@ -205,9 +205,26 @@ if (my $filename = param('file')     # The name of the file we are monitoring
                 close MONITOR;
             }
         }
-        print p("In case of problems, have a look at the job's ", a({-href=>$trace_url}, "trace file"), ".");
+        print p("In case of problems, have a look at the job's ",
+                 a({-href=>"plive-monitor.cgi?traceFile=$trace_url"}, "trace file"),
+                 ".");
     }
-} else {
+}
+elsif (my $traceFile = param('traceFile')) {
+    my %start = (
+       -title=>"PORTAGELive",
+       -encoding=>'UTF8',
+       -lang=>'fr-CA',
+       -style => {-src => '/plive.css'}
+    );
+
+    print start_html(%start),
+           NRCBanner(),
+           h1("PORTAGELive");
+
+    print getTrace($WEB_PATH . $traceFile);
+}
+else {
     print pageHead(0);
 }
 
@@ -239,13 +256,6 @@ sub pageTail {
     return (hr(),
             NRCFooter(),
             end_html());
-}
-
-sub getTrace {
-    my ($trace_file) = @_;
-    return (-r $trace_file
-            ? h1("Trace File").pre(`cat $trace_file`)
-            : h1("No readable trace file"));
 }
 
 1;

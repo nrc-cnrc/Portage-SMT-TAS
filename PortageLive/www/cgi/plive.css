@@ -1,0 +1,33 @@
+.command {
+   bgcolor: yellow;
+   color: green;
+}
+
+.error {
+   bgcolor: white;
+   color: red;
+   font-weight: bold;
+   font-size: 125%;
+}
+
+.call {
+   bgcolor: white;
+   color: orange;
+}
+
+.plugin {
+   bgcolor: white;
+   color: darkblue;
+}
+
+pre {
+   display: block;
+   font-family: monospace;
+   white-space: pre-line;
+   margin: 1em 0;
+}
+
+pre > span {
+   font-family: inherit;
+}
+

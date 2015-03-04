@@ -84,6 +84,9 @@ mkdir -p $SOAP_DEST/secure                   # directory for SOAP stuff
 # Copy the CGI scripts
 cp cgi/*.{pm,cgi} ${ROOT_DIR}/var/www/cgi-bin
 
+# Copy the css
+cp cgi/*.css ${HTML_DIR}
+
 # Copy the images needed by the CGI scripts
 cp images/*.{gif,jpg,png} ${HTML_DIR}/images
 

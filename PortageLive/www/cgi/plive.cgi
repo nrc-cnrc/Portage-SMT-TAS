@@ -587,7 +587,7 @@ sub problem {
 
     print header(-type=>'text/html',
                  -charset=>'utf-8');
-    print start_html(-title=>"PORTAGELive Problem");
+    print start_html(-title=>"PORTAGELive Problem", -style => {-src => '/plive.css'});
 
     print
         NRCBanner(),
@@ -596,9 +596,8 @@ sub problem {
         "\n";
 
     if (param('trace') and -r param('trace')) {
-        my $trace = param('trace');
-        print(hr(),h1("Trace File"),
-              pre(`cat $trace`));
+        my $traceFile = param('trace');
+        print getTrace($traceFile);
     }
 
     print copyright();
