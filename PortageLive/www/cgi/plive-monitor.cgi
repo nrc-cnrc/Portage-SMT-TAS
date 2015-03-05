@@ -197,7 +197,7 @@ if (my $filename = param('file')     # The name of the file we are monitoring
                 print
                     p("Translation job terminated with no output.");
             }
-            print p(a({-href=>"plive.cgi"}, "Translate more text"));
+            print p(a({-href=>"plive.cgi?context=$context"}, "Translate more text"));
             if (open MONITOR, ">$monitor_log") {
                 my $wc_output = `wc --lines < $canoe_out 2> /dev/null`;
                 my $out_count = $wc_output ? (int($wc_output)+0) : 0;

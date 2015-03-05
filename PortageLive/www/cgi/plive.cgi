@@ -189,11 +189,13 @@ sub printForm {
     my %context_labels = ();
     for my $c (sort keys %CONTEXT) { $context_labels{$c} = $CONTEXT{$c}->{label}; }
 
+    my $context = param('context');
     print start_multipart_form(),
     table({align=>'center', width=>600},
           Tr(td(strong("Select a system:")),
              td(popup_menu(-name=>'context',
                            -values=>["", sort keys %CONTEXT],
+                           -default => $context ? [$context, $context_labels{$context}] : ["", '-- Please pick one --'],
                            -labels=>{ ""=>'-- Please pick one --',
                                       %context_labels }))),
           Tr(td({colspan=>2, align=>'left', border=>0},
