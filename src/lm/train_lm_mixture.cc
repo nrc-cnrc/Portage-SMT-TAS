@@ -162,6 +162,9 @@ int main(int argc, char* argv[])
 
       while (getline(textfile, line)) {
 
+         for (Uint m = 0; m < models.size(); ++m)
+            models[m]->newSrcSent(toks, lineno);
+
          for (Uint j = 0; j < order - 1; ++j) 
             context[j] = vocab.index(PLM::SentStart);
 

@@ -26,6 +26,7 @@ PROGRAMS = \
 	train_lm_mixture
 
 BINSCRIPTS = \
+	gen-word-given-wcl-lm.py \
 	lm-filter.py \
 	lm-order.pl \
 	lm_sort.pl \
