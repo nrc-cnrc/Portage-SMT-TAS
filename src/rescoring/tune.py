@@ -29,6 +29,9 @@ Generic SMT tuning loop. Call with a source text and one or more reference
 translations.
 """
 
+# workaround for Java writing locale-sensitive numbers by default
+os.environ['LC_ALL'] = 'C'
+
 # constants
 
 jav = "java"
