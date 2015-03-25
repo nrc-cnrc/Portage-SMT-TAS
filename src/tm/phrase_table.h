@@ -30,7 +30,6 @@
 #include "portage_defs.h"
 #include "ttable.h"
 #include "ibm.h"
-#include "length.h"
 
 namespace Portage {
 
