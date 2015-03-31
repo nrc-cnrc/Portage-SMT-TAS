@@ -48,6 +48,8 @@ Options:\n\
 -H    List available smoothing methods and quit.\n\
 -v    Write progress reports to cerr.\n\
 -i    Counts are integers [counts are floating point]\n\
+-max m Ignore phrase pairs where either side is longer than m tokens when\n\
+      reading input. [0 = no limit]\n\
 -x    Swap left/right phrases when reading them in. Not compatible with joint\n\
       tables containing alignment info. This option is meant for use with the\n\
       -prune* options, when the source language is language2 (right column).\n\
@@ -69,8 +71,8 @@ Options:\n\
 -ibm  Use IBM model <n> for lexical smoothing: 1 or 2\n\
 -hmm  Use HMM model for lexical smoothing\n\
       [if, for both models provided with -ibm_l2_given_l1 and -ibm_l1_given_l2,\n\
-      <model>.pos doesn't exist and <model>.dist does, -hmm is assumed,\n\
-      otherwise -ibm 2 is the default]\n\
+      <model>.pos exists, then -ibm 2 is assumed; else if <model>.dist exists,\n\
+      then -hmm is assumed; otherwise -ibm 1 is assumed]\n\
 -ibm_l2_given_l1  Name of IBM model for language 2 given language 1 [none]\n\
 -ibm_l1_given_l2  Name of IBM model for language 1 given language 2 [none]\n\
 -lc1  Do lowercase mapping of lang 1 words to match IBM/HMM models, using\n\
@@ -93,7 +95,9 @@ Options:\n\
             information found in <jtable> is copied through as is.  \"none\" is\n\
             the same as not specifying -write-al.  [none]\n\
 -write-count Show the joint count in the 3rd column of multi-prob phrase tables\n\
-            in the format c=<count>.  [don't]\n\
+             in the format c=<count>.  [don't]\n\
+-write-smoother-state Show the internal state of the smoothers for each phrase\n\
+                      pair.  Use -H to see what are the internal states. [don't]\n\
 -[no-]reduce-mem  Reduce/don't reduce memory usage. Memory reduction is\n\
                   achieved by not keeping the phrase tables entirely in memory.\n\
                   This requires reading the jpt file multiple times, once for\n\
@@ -111,6 +115,7 @@ Options:\n\
 static bool verbose = false;
 static bool int_counts = false;
 static bool joint = false;
+static Uint max_len_on_read = 0;
 static bool swap_on_read = false;
 static Uint prune1 = 0;
 static Uint prune1w = 0;
@@ -133,6 +138,7 @@ static bool reduce_memory(false);
 static string store_alignment_option = "";
 static Uint display_alignments = 0; // 0=none, 1=top, 2=all/keep
 static bool write_count(false);
+static bool write_smoother_state(false);
 
 static void getArgs(int argc, const char* const argv[]);
 
@@ -182,7 +188,7 @@ static void doEverything(const char* prog_name)
 {
    time_t start_time(time(NULL));
    PhraseTableGen<T> pt;
-   pt.readJointTable(in_file, reduce_memory, swap_on_read);
+   pt.readJointTable(in_file, reduce_memory, swap_on_read, max_len_on_read);
 
    if (verbose && !reduce_memory) {
       cerr << "read joint table: "
@@ -261,10 +267,10 @@ static void doEverything(const char* prog_name)
    start_time = time(NULL);
    for (typename PhraseTableGen<T>::iterator it(pt.begin()); it != pt.end(); ++it) {
       if (fwd)
-         if (dumpMultiProb(mp_fwd_ofs, 1, it, smoothers, display_alignments, write_count, verbose))
+         if (dumpMultiProb(mp_fwd_ofs, 1, it, smoothers, display_alignments, write_count, write_smoother_state, verbose))
             ++mp_fwd_non_zero;
       if (rev)
-         if (dumpMultiProb(mp_rev_ofs, 2, it, smoothers, display_alignments, write_count, verbose))
+         if (dumpMultiProb(mp_rev_ofs, 2, it, smoothers, display_alignments, write_count, write_smoother_state, verbose))
             ++mp_rev_non_zero;
       ++total;
    }
@@ -292,10 +298,10 @@ static void getArgs(int argc, const char* const argv[])
 {
    const string alt_help = PhraseSmootherFactory<Uint>::help();
    const char* switches[] = {
-      "v", "i", "j", "z", "x", "prune1:", "prune1w:", "s:", "1:", "2:", "o:", "force",
+      "v", "i", "j", "z", "max:", "x", "prune1:", "prune1w:", "s:", "1:", "2:", "o:", "force",
       "ibm:", "hmm", "ibm_l1_given_l2:", "ibm_l2_given_l1:",
       "lc1:", "lc2:",
-      "write-al:", "write-count",
+      "write-al:", "write-count", "write-smoother-state",
       "tmtext", "multipr:", "sort", "no-sort",
       "reduce-mem", "no-reduce-mem"
    };
@@ -307,6 +313,7 @@ static void getArgs(int argc, const char* const argv[])
    arg_reader.testAndSet("v", verbose);
    arg_reader.testAndSet("i", int_counts);
    arg_reader.testAndSet("j", joint);
+   arg_reader.testAndSet("max", max_len_on_read);
    arg_reader.testAndSet("x", swap_on_read);
    arg_reader.testAndSet("prune1", prune1);
    arg_reader.testAndSet("prune1w", prune1w);
@@ -330,6 +337,7 @@ static void getArgs(int argc, const char* const argv[])
    arg_reader.testAndSetOrReset("reduce-mem", "no-reduce-mem", reduce_memory);
    arg_reader.testAndSet("write-al", store_alignment_option);
    arg_reader.testAndSet("write-count", write_count);
+   arg_reader.testAndSet("write-smoother-state", write_smoother_state);
 
    arg_reader.testAndSet(0, "jtable", in_file);
    if (in_file.empty()) in_file = "-";
@@ -340,9 +348,7 @@ static void getArgs(int argc, const char* const argv[])
    if ( (ibm_l2_given_l1 != "" || ibm_l1_given_l2 != "") &&
         ibm_num == 42 && !use_hmm ) {
       // neither -hmm nor -ibm specified; default is IBM2 if .pos files
-      // exist, or else HMM if .dist files exist, or error otherwise: we
-      // never assume IBM1, because it is so seldom used, it's probably
-      // an error; we want the user to assert its use explicitly.
+      // exist, or HMM if .dist files exist, else IBM1
       if ( check_if_exists(IBM2::posParamFileName(ibm_l2_given_l1)) &&
            check_if_exists(IBM2::posParamFileName(ibm_l1_given_l2)) )
          ibm_num = 2;
@@ -350,7 +356,7 @@ static void getArgs(int argc, const char* const argv[])
                 check_if_exists(HMMAligner::distParamFileName(ibm_l1_given_l2)) )
          use_hmm = true;
       else
-         error(ETFatal, "Models are neither IBM2 nor HMM, specify -ibm N or -hmm explicitly.");
+         ibm_num = 1;
    }
 
    if (smoothing_methods.empty())

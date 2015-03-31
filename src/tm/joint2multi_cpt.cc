@@ -42,7 +42,7 @@ jpts <jpti>/jpt.* will be concatenated (summing counts), so the directory plays\
 the same role as a single jpt in the argument list. Output is written to the\n\
 file(s) specified by the -o and -dir options.  Columns in the output cpt are:\n\
 \n\
-   RG RJ1..RJn RL   FG FJ1..FJn FL   [AG AJ1..AJn AL]\n\
+RG RJ1..RJn RL   FG FJ1..FJn FL   [AG AJ1..AJn AL]\n\
 \n\
 where RG is 0 or more columns of 'reverse' (src given tgt) probability estimates\n\
 based on global frequencies (summed over all input jpts), RJi is 0 or more\n\
@@ -52,7 +52,7 @@ columns are 'forward' estimates in the same order as the 'R' ones.  The contents
 of the columns are determined by the arguments to the -s switch.  Note that\n\
 'lexical' estimates always come last, regardless of the order in which they are\n\
 specified, so it is good practice to list them last. The A* estimates are\n\
-optional adirectional ('4th column') probabilities specified by -a switches\n\
+optional adirectional ('4th-column') probabilities specified by -a switches\n\
 using the same syntax as -s. In the A* columns, reverse and forward estimates\n\
 from each smoother are written consecutively, and symmetrical smoothers write\n\
 only one value.\n\
@@ -65,6 +65,7 @@ Options:\n\
 \n\
 -H        List available smoothing methods and quit.\n\
 -v        Write progress reports to cerr.\n\
+-n        Notreally: just write a summary of the output table and quit.\n\
 -i        Counts are integers [counts are floating point]\n\
 -1 l1     Name of language 1 (one in left column of jpts) [en]\n\
 -2 l2     Name of language 2 (one in right column of jpts) [fr]\n\
@@ -79,13 +80,18 @@ Options:\n\
           each listed smoother will be applied to global frequencies and to\n\
           frequencies from each individual jpt, resulting in (n+1)*2 probability\n\
           columns. This may be limited by preceding each smoother with a list of\n\
-          the columns to which it should be applied. Eg, '-s 0,2-4,6:RFSmoother'\n\
+          the jpts to which it should be applied. Eg, '-s 0,2-4,6:RFSmoother'\n\
           means to make RF estimates from global frequencies (id 0) as well as \n\
-          from jpts 2, 3, 4, and 6. Use 'NONE' for no smoothers. [RFSmoother]\n\
--a sm     Smoothers for adirectional (4th column) output; syntax is same as -s.\n\
+          from jpts 2, 3, 4, and 6. Use 'NONE' for no smoothers. The 0th column\n\
+          will be used as an external 'prior' for smoothers that require this,\n\
+          eg MAPSmoother (if multiple smoothers are applied to global counts,\n\
+          only the first will be used as a prior). [RFSmoother]\n\
+-a sm     Smoothers for adirectional (4th-column) output; syntax is same as -s.\n\
 -0 cols   Input jpts to sum over when establishing global frequencies. These are\n\
           specified in the same format as the lists of jpts for smoothers in -s,\n\
           except 0 is not legal. NB: jpts may be duplicated in the list. [1-n]\n\
+-sc0      Scaling factors to use when establishing global frequencies. If -0 is\n\
+          specified, these must correspond to the jpts listed [1,...]\n\
 -max0     Take the max instead of the sum when establishing global frequencies.\n\
 -eps0 e   Epsilon value to use for missing phrase pairs when establishing global\n\
           frequencies. For example, if there are three input jpts, then a phrase\n\
@@ -102,27 +108,47 @@ Options:\n\
           locale <loc>, eg: C, en_US.UTF-8, fr_CA.88591 [don't map]\n\
 -lc2 loc  Do lowercase mapping of lang 2 words to match IBM/HMM models, using\n\
           locale <loc>, eg: C, en_US.UTF-8, fr_CA.88591 [don't map]\n\
--o cpt    Set base name for output tables [cpt]\n\
--w cols   Write only the columns in <cols> to <cpt>, where <cols> is a list of\n\
-          1-based indexes, eg '1,2,4,6', into the vector of output probability\n\
-          columns that would normally get written by -s. NB: columns are written\n\
-          in the order they appear on <cols>. [write all]\n\
--dir d    Direction for output tables(s). One of: 'fwd' = output <cpt>.<l1>2<l2>\n\
-          for translating from <l1> to <l2>; 'rev' = output <cpt>.<l2>2<l1>; or\n\
-          'both' = output both. [fwd]\n\
 -write-al A  Write alignment information for all phrase pairs having alignments\n\
           in input jpts, after summing frequencies across jpts. If A is 'top',\n\
           write only the most frequent alignment without its frequency; if 'keep',\n\
           write all alignments with summed frequencies; if 'none', write nothing.\n\
 -write-count Write the total joint count for each phrase pair in c=<cnt> format.\n\
+-write-best L For each phrase pair, write only the information from the 'best'\n\
+          jpt in which it occurs, where best is determined by the ordering <L>,\n\
+          which may either be the keyword 'ASLISTED' to indicate argument-list\n\
+          order, or a comma-separated list of substrings that uniquely match jpt\n\
+          names. This option does not affect global estimates (see -noglobal),\n\
+          nor alignments (-write-al). If -write-count is specified, the count\n\
+          from the best jpt is written. See -write-best-scope for further info\n\
+          about the scope of this option.\n\
+-write-best-scope S  Specifies the classes of estimate to which -write-best \n\
+          applies. <S> may be any combination of the following letters:\n\
+          c - conditional estimates, 4 - 4th-column estimates, l - lexical\n\
+          estimates. If 'l' is included, the list of lexical smoothers (eg\n\
+          ZNSmoother) must correspond one-to-one with input jpts, unless it\n\
+          is empty. [cl]\n\
+-noglobal Don't write any estimates from global frequencies (the RG and FG columns\n\
+          above). This can be useful when global estimates are needed for priors,\n\
+          but are not wanted in the final output.\n\
+-w cols   Write only the columns in <cols> to <cpt>, where <cols> is a list of\n\
+          1-based indexes, eg '1,2,4,6', into the vector of output probability\n\
+          columns that would normally get written by -s. NB: columns are written\n\
+          in the order they appear in <cols>. Does not affect 4th column. This\n\
+          option is not compatible with -write-best and -noglobal. [write all]\n\
 -nofwd    Write only 'reverse' estimates, not 'forward' ones.\n\
+-o cpt    Set base name for output tables [cpt]\n\
+-dir d    Direction for output tables(s). One of: 'fwd' = output <cpt>.<l1>2<l2>\n\
+          for translating from <l1> to <l2>; 'rev' = output <cpt>.<l2>2<l1>; or\n\
+          'both' = output both. [fwd]\n\
 -z        Compress the output files [don't]\n\
 ";
 
 // globals
 
-static bool verbose = false;
+static Uint verbose = 0;
+static bool notreally = false;
 static bool int_counts = false;
+static bool noglobal = false;
 static bool nofwd = false;
 static string lang1("en");
 static string lang2("fr");
@@ -131,6 +157,7 @@ static Uint prune1w = 0;
 static vector<string> smoothing_methods;
 static vector<string> adir_smoothing_methods;
 static string jpts0;
+static vector<double> sc0;
 static bool max0 = false;
 static double eps0 = 0;
 static vector<string> ibm_l2_given_l1;
@@ -139,10 +166,14 @@ static string ibmtype;
 static string lc1;
 static string lc2;
 static string name("cpt");
-static vector<Uint> output_cols;
 static string output_drn("fwd");
 static Uint write_al = 0;
 static bool write_count = false;
+static vector<Uint> output_cols;
+static vector<Uint> write_best;  // if non-empty, jpt index -> rank
+static bool write_best_cond = true;
+static bool write_best_adir = false;
+static bool write_best_lex = true;
 static bool compress_output = false;
 static bool sorted(true);
 static vector<string> input_jpt_files;
@@ -313,6 +344,7 @@ void doEverything(const char* prog_name)
       } else
          noncount_smoothing_methods.push_back(smoother);
    }
+
    // a copy of the above block, for -a.
    vector<string> adir_counting_smoothing_methods; // need jpt counts
    vector<string> adir_noncount_smoothing_methods; // eg, IBM estimates
@@ -329,25 +361,73 @@ void doEverything(const char* prog_name)
       } else
          adir_noncount_smoothing_methods.push_back(smoother);
    }
+
+   // number of output columns per adir smoother depends on whether it's symmetrical
+   vector<Uint> adir_column_smoother_colcount(input_jpt_files.size()+1);
+   for (Uint i = 0; i < adir_column_smoothers.size(); ++i)
+      for (Uint j = 0; j < adir_column_smoothers[i].size(); ++j)
+         adir_column_smoother_colcount[i] += 
+            PhraseSmootherFactory<T>::
+            isSymmetrical(adir_counting_smoothing_methods[adir_column_smoothers[i][j]]) ? 1 : 2;
+
+
+   // consistency checks for -write-best
+   if (write_best.size()) {
+      if (write_best_lex) {
+         if (noncount_smoothing_methods.size() &&
+             noncount_smoothing_methods.size() != input_jpt_files.size())
+            error(ETFatal, "when using -write-best for lexical estimates, %s", 
+                  "# of lexical smoothers must be 0 or same as # of input jpts.");
+         if (write_best_adir && adir_noncount_smoothing_methods.size() &&
+             adir_noncount_smoothing_methods.size() != input_jpt_files.size())
+            error(ETFatal, "when using -write-best for 4th-column lexical estimates, %s", 
+                  "# of 4th-column lexical smoothers must be 0 or same as # of input jpts.");
+      }
+      // following checks not strictly necessary, but there to keep users sane
+      // (and to make -v output coherent)
+      if (write_best_cond)
+         for (Uint i = 1; i+1 < column_smoothers.size(); ++i)
+            if (column_smoothers[i].size() != column_smoothers[i+1].size())
+               error(ETFatal, "all jpts must have the same number of smoothers for -write-best");
+      if (write_best_adir)
+         for (Uint i = 1; i+1 < adir_column_smoother_colcount.size(); ++i)
+            if (adir_column_smoother_colcount[i] != adir_column_smoother_colcount[i+1])
+               error(ETFatal, "all jpts must have the same number of 4th-column smoothers for -write-best");
+   }
+
+   // info about output columns
    if (verbose) {
       Uint col = 0;
       cerr << "output probability columns:" << endl;
+      if (output_cols.size())
+         cerr << "(does not include effect of -w)" << endl;
       for (Uint d = 0; d < 2; ++d) {
-         for (Uint i = 0; i < column_smoothers.size(); ++i) {
+         for (Uint i = noglobal ? 1 : 0; i < column_smoothers.size(); ++i) {
+            bool wb = i && write_best.size() && write_best_cond;
             for (Uint j = 0; j < column_smoothers[i].size(); ++j) {
                cerr << "column " << ++col << ": jpt " << i << " "
                     << (i == 0 ? "global" : input_jpt_files[i-1].c_str()) << " "
                     << counting_smoothing_methods[column_smoothers[i][j]]
-                    << (d == 0 ? " (reverse)" : " (forward)") << endl;
+                    << (d == 0 ? " (reverse)" : " (forward)")
+                    << (wb && j == 0 ? " - if best" : "")
+                    << endl;
             }
+            if (wb && i+1 < column_smoothers.size())
+               col -= column_smoothers[i].size();
          }
          for (Uint i = 0; i < noncount_smoothing_methods.size(); ++i) {
             cerr << "column " << ++col << ": " << noncount_smoothing_methods[i]
-                 << (d == 0 ? " (reverse)" : " (forward)") << endl;
+                 << (d == 0 ? " (reverse)" : " (forward)");
+            if (write_best.size() && write_best_lex) {
+               cerr << " - if best";
+               if (i+1 < noncount_smoothing_methods.size()) --col;
+            }
+            cerr << endl;
          }
       }
       col = 0;
-      for (Uint i = 0; i < adir_column_smoothers.size(); ++i) {
+      for (Uint i = noglobal ? 1 : 0; i < adir_column_smoothers.size(); ++i) {
+         bool wb = i && write_best.size() && write_best_adir;
          for (Uint j = 0; j < adir_column_smoothers[i].size(); ++j) {
             bool symm = PhraseSmootherFactory<T>::isSymmetrical(
                adir_counting_smoothing_methods[adir_column_smoothers[i][j]]);
@@ -356,21 +436,34 @@ void doEverything(const char* prog_name)
                     << (i == 0 ? "global" : input_jpt_files[i-1].c_str()) << " "
                     << adir_counting_smoothing_methods[adir_column_smoothers[i][j]]
                     << (d == 0 ? (symm ? " (symmetrical)" : " (reverse)") : " (forward)")
+                    << (wb && j == 0 && d == 0 ? " - if best" : "")
                     << endl;
                if (symm) break;
             }
          }
+         if (wb && i+1 < adir_column_smoothers.size())
+            col -= adir_column_smoother_colcount[i];
       }
       for (Uint i = 0; i < adir_noncount_smoothing_methods.size(); ++i) {
-         if (PhraseSmootherFactory<T>::isSymmetrical(adir_noncount_smoothing_methods[i]))
-            cerr << "4thcolumn " << ++col << ": " << noncount_smoothing_methods[i] << " (symmetrical)" << endl;
-         else {
-            cerr << "4thcolumn " << ++col << ": " << noncount_smoothing_methods[i] << " (reverse)" << endl;
-            cerr << "4thcolumn " << ++col << ": " << noncount_smoothing_methods[i] << " (forward)" << endl;
+         if (PhraseSmootherFactory<T>::isSymmetrical(adir_noncount_smoothing_methods[i])) {
+            cerr << "4thcolumn " << ++col << ": " << adir_noncount_smoothing_methods[i] << " (symmetrical)";
+            if (write_best.size() && write_best_adir && write_best_lex) {
+               cerr << " - if best";
+               --col;
+            }
+            cerr << endl;
+         } else {
+            cerr << "4thcolumn " << ++col << ": " << adir_noncount_smoothing_methods[i] << " (reverse)" 
+                 << (write_best.size() && write_best_adir && write_best_lex ? " - if best" : "") << endl;
+            cerr << "4thcolumn " << ++col << ": " << adir_noncount_smoothing_methods[i] << " (forward)" << endl;
+            if (write_best.size() && write_best_adir && write_best_lex) col -= 2;
          }
       }
       cerr << endl;
    }
+
+   if (notreally)
+      exit(0);
 
    // read contents of all jpts into pt, storing the freqs of the ith jpt in
    // jointfreqs[i+1], indexed by the index member of the phrases' ValIndex
@@ -427,12 +520,23 @@ void doEverything(const char* prog_name)
       if (verbose) cerr << input_jpt_files[jpt0_list[i]-1] << " ";
    }
    if (verbose) cerr << endl;
+   if (sc0.size()) {
+      if (sc0.size() != jpt0_list.size())
+         error(ETFatal, "-sc0 list doesn't match number of jpts for 0th column");
+      if (verbose) {
+         cerr << "scaling jpts for column 0: ";
+         for (Uint i = 0; i < sc0.size(); ++i)
+            cerr << jpt0_list[i] << '*' << sc0[i] << ' ';
+         cerr << endl;
+      }
+   }
 
    jointfreqs[0].resize(num_phrases, 0);
    for (Uint i = 0; i < num_phrases; ++i)
       for (Uint k = 0; k < jpt0_list.size(); ++k) {
          Uint j = jpt0_list[k];
          T freq = i < jointfreqs[j].size() ? jointfreqs[j][i] : 0;
+         if (sc0.size()) freq *= sc0[k];
          if (eps0 && freq == 0) freq = eps0;
          if (max0) 
             jointfreqs[0][i] = max(jointfreqs[0][i], freq);
@@ -505,18 +609,24 @@ void doEverything(const char* prog_name)
       for (Uint j = 0; j < column_smoothers[i].size(); ++j) {
          string& sm = counting_smoothing_methods[column_smoothers[i][j]];
          smoothers[i].push_back(smoother_factory.createSmootherAndTally(sm));
+         if (i == 0 && smoothers[i].back()->needsPrior())
+            error(ETFatal, "%s requires external prior, and hence can't be used for 0th column", 
+                  sm.c_str());
       }
       for (Uint j = 0; j < adir_column_smoothers[i].size(); ++j) {
          string& sm = adir_counting_smoothing_methods[adir_column_smoothers[i][j]];
          adir_smoothers[i].push_back(smoother_factory.createSmootherAndTally(sm));
+         if (i == 0 && adir_smoothers[i].back()->needsPrior())
+            error(ETFatal, "%s requires external prior, and hence can't be used for 0th column", 
+                  sm.c_str());
       }
-
    }
    if (verbose && 
        (counting_smoothing_methods.size() || adir_counting_smoothing_methods.size()))
       cerr << "created count-dependent smoother(s)" << endl;
 
    // Now make the smoothers that don't depend on joint counts.
+
    vector<Smoother*> noncount_smoothers(noncount_smoothing_methods.size());
    smoother_factory.createSmoothersAndTally(noncount_smoothers, 
                                             noncount_smoothing_methods);
@@ -542,14 +652,12 @@ void doEverything(const char* prog_name)
       out_fwd = new oSafeMagicStream(makeFinalFileName(fwd_output_filename));
       if (out_fwd == NULL || out_fwd->fail())
          error(ETFatal, "Unable to open %s for writing", fwd_output_filename.c_str());
-      //out_fwd->precision(9);
    }
    if (output_drn == "rev" || output_drn == "both") {
       if (verbose) cerr << "writing to " << rev_output_filename << endl;
       out_rev = new oSafeMagicStream(makeFinalFileName(rev_output_filename));
       if (out_rev == NULL || out_rev->fail())
          error(ETFatal, "Unable to open %s for writing", rev_output_filename.c_str());
-      //out_rev->precision(9);
    }
 
    vector<double> vals_fwd;
@@ -566,32 +674,72 @@ void doEverything(const char* prog_name)
       it.getPhrase(1, p1);
       it.getPhrase(2, p2);
       ValAndIndex<T>& vi = it.getJointFreqRef();
+      Uint wbjf = 0; // jointfreqs index of jpt to use for write_best; 0 if none
+      if (write_best.size()) {
+         for (Uint i = 1; i < jointfreqs.size(); ++i)
+            if (vi.index < jointfreqs[i].size() && jointfreqs[i][vi.index] &&
+                (wbjf == 0 || write_best[i-1] < write_best[wbjf-1]))
+                  wbjf = i;
+         assert(wbjf);
+      }
       for (Uint i = 0; i < jointfreqs.size(); ++i) {
 	 vi.val = vi.index < jointfreqs[i].size() ? jointfreqs[i][vi.index] : 0;
-	 for (Uint j = 0; j < smoothers[i].size(); ++j) {
-	    vals_rev.push_back(smoothers[i][j]->probLang1GivenLang2(it));
-	    vals_fwd.push_back(smoothers[i][j]->probLang2GivenLang1(it));
-	 }
-	 for (Uint j = 0; j < adir_smoothers[i].size(); ++j) {
-	    adir_vals.push_back(adir_smoothers[i][j]->probLang1GivenLang2(it));
-            if (!adir_smoothers[i][j]->isSymmetrical())
-               adir_vals.push_back(adir_smoothers[i][j]->probLang2GivenLang1(it));
+         if (!write_best_cond || write_best.size() == 0 || i == 0 || i == wbjf) {
+	    for (Uint j = 0; j < smoothers[i].size(); ++j) {
+               if (smoothers[i][j]->needsPrior()) {  // special case 
+                  assert(vals_rev.size());
+                  assert(vals_fwd.size());
+	          vals_rev.push_back(smoothers[i][j]->probLang1GivenLang2(it, vals_rev[0]));
+	          vals_fwd.push_back(smoothers[i][j]->probLang2GivenLang1(it, vals_fwd[0]));
+               } else {
+	          vals_rev.push_back(smoothers[i][j]->probLang1GivenLang2(it));
+	          vals_fwd.push_back(smoothers[i][j]->probLang2GivenLang1(it));
+               }
+	    }
+         }
+         if (!write_best_adir || write_best.size() == 0 || i == 0 || i == wbjf) {
+	    for (Uint j = 0; j < adir_smoothers[i].size(); ++j) {
+               if (adir_smoothers[i][j]->needsPrior()) {
+                  assert(adir_vals.size());
+                  adir_vals.push_back(adir_smoothers[i][j]->probLang1GivenLang2(it, adir_vals[0]));
+                  if (!adir_smoothers[i][j]->isSymmetrical()) { // assume paired priors
+                     assert(adir_vals.size() >= 2);
+                     adir_vals.push_back(adir_smoothers[i][j]->probLang2GivenLang1(it, adir_vals[1]));
+                  }
+               } else {
+	          adir_vals.push_back(adir_smoothers[i][j]->probLang1GivenLang2(it));
+                  if (!adir_smoothers[i][j]->isSymmetrical())
+                     adir_vals.push_back(adir_smoothers[i][j]->probLang2GivenLang1(it));
+               }
+            }
          }
       }
       for (Uint i = 0; i < noncount_smoothers.size(); ++i) {
-         vals_rev.push_back(noncount_smoothers[i]->probLang1GivenLang2(it));
-         vals_fwd.push_back(noncount_smoothers[i]->probLang2GivenLang1(it));
+         if (!write_best_lex || write_best.size() == 0 || i+1 == wbjf) {
+            vals_rev.push_back(noncount_smoothers[i]->probLang1GivenLang2(it));
+            vals_fwd.push_back(noncount_smoothers[i]->probLang2GivenLang1(it));
+         }
       }
       for (Uint i = 0; i < adir_noncount_smoothers.size(); ++i) {
-         adir_vals.push_back(adir_noncount_smoothers[i]->probLang1GivenLang2(it));
-         if (!adir_noncount_smoothers[i]->isSymmetrical()) 
-            adir_vals.push_back(adir_noncount_smoothers[i]->probLang2GivenLang1(it));
+         if (!(write_best_lex && write_best_adir) || write_best.size() == 0 || i+1 == wbjf) {
+            adir_vals.push_back(adir_noncount_smoothers[i]->probLang1GivenLang2(it));
+            if (!adir_noncount_smoothers[i]->isSymmetrical()) 
+               adir_vals.push_back(adir_noncount_smoothers[i]->probLang2GivenLang1(it));
+         }
       }
 
-      double jfreq = vi.index < jointfreqs[0].size() ? jointfreqs[0][vi.index] : 0;
+      double jfreq = vi.index < jointfreqs[wbjf].size() ? jointfreqs[wbjf][vi.index] : 0;
       string align_str;
       if (write_al) 
          it.getAlignmentString(align_str, false, write_al == 1);
+
+      // do this only after filling in entire vector because 0'th column values may be needed
+      // for prior calculation
+      if (noglobal) {
+         vals_rev.erase(vals_rev.begin(), vals_rev.begin() + column_smoothers[0].size());
+         vals_fwd.erase(vals_fwd.begin(), vals_fwd.begin() + column_smoothers[0].size());
+         adir_vals.erase(adir_vals.begin(), adir_vals.begin() + adir_column_smoother_colcount[0]);
+      }
 
       if (out_fwd) {
 	 vals = vals_rev;
@@ -631,18 +779,22 @@ void getArgs(int argc, char* argv[])
 {
    const string alt_help = PhraseSmootherFactory<Uint>::help();
    const char* switches[] = {
-      "v", "i", "1:", "2:", "prune1:", "prune1w:", "s:", "a:", "0:", "max0", "eps0:",
+      "v", "n", "i", "1:", "2:", "prune1:", "prune1w:", "s:", "a:", "0:", "sc0:", "max0", "eps0:",
       "ibm_l1_given_l2:", "ibm_l2_given_l1:", "ibm:", "lc1:", "lc2:", 
-      "o:", "w:", "dir:", "write-al:", "write-count", "nofwd", "z", "force",
-      "sort", "no-sort",
+      "o:", "dir:", "write-al:", "write-count", "w:", "write-best:", "write-best-scope:",
+      "noglobal", "nofwd", "z", "force", "sort", "no-sort",
    };
-   string output_cols_string, write_al_str;
+   string output_cols_string, write_al_str, write_best_str, write_best_scope;
 
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 1, -1, help_message,
                         "-h", true, alt_help.c_str(), "-H");
    arg_reader.read(argc-1, argv+1);
 
-   arg_reader.testAndSet("v", verbose);
+   vector<string> verboses;
+   string sc0_str;
+   arg_reader.testAndSet("v", verboses);
+   verbose = verboses.size();
+   arg_reader.testAndSet("n", notreally);
    arg_reader.testAndSet("i", int_counts);
    arg_reader.testAndSet("1", lang1);
    arg_reader.testAndSet("2", lang2);
@@ -651,6 +803,7 @@ void getArgs(int argc, char* argv[])
    arg_reader.testAndSet("s", smoothing_methods);
    arg_reader.testAndSet("a", adir_smoothing_methods);
    arg_reader.testAndSet("0", jpts0);
+   arg_reader.testAndSet("sc0", sc0_str);
    arg_reader.testAndSet("max0", max0);
    arg_reader.testAndSet("eps0", eps0);
    arg_reader.testAndSet("ibm_l2_given_l1", ibm_l2_given_l1);
@@ -659,10 +812,13 @@ void getArgs(int argc, char* argv[])
    arg_reader.testAndSet("lc1", lc1);
    arg_reader.testAndSet("lc2", lc2);
    arg_reader.testAndSet("o", name);
-   arg_reader.testAndSet("w", output_cols_string);
    arg_reader.testAndSet("dir", output_drn);
    arg_reader.testAndSet("write-al", write_al_str);
    arg_reader.testAndSet("write-count", write_count);
+   arg_reader.testAndSet("w", output_cols_string);
+   arg_reader.testAndSet("write-best", write_best_str);
+   arg_reader.testAndSet("write-best-scope", write_best_scope);
+   arg_reader.testAndSet("noglobal", noglobal);
    arg_reader.testAndSet("nofwd", nofwd);
    arg_reader.testAndSet("z", compress_output);
    arg_reader.testAndSetOrReset("sort", "no-sort", sorted);
@@ -671,12 +827,18 @@ void getArgs(int argc, char* argv[])
    arg_reader.testAndSet("force", force);
    if (force) error(ETWarn, "ignoring obsolete -force option - existing files are now always overwritten");
 
+
    arg_reader.getVars(0, input_jpt_files);
+
+   if (notreally) verbose = 1;
 
    if (smoothing_methods.empty())
       smoothing_methods.push_back("RFSmoother");
    else if (smoothing_methods.size() == 1 && smoothing_methods[0] == "NONE")
       smoothing_methods.clear();
+
+   if (sc0_str != "")
+      split(sc0_str, sc0, ", ");
 
    if (ibmtype != "" && ibmtype != "1" && ibmtype != "2" && ibmtype != "hmm")
       error(ETFatal, "Bad value for -ibm switch: %s", ibmtype.c_str());
@@ -694,6 +856,10 @@ void getArgs(int argc, char* argv[])
             error(ETFatal, "-w output columns must be > 0");
          --output_cols[i];
       }
+      if (noglobal)
+         error(ETFatal, "-w and -noglobal options are not compatible");
+      if (write_best.size())
+         error(ETFatal, "-w and -write-best options are not compatible");
    }
    if (write_al_str != "") {
       if (write_al_str == "none") write_al = 0;
@@ -702,6 +868,52 @@ void getArgs(int argc, char* argv[])
       else
          error(ETFatal, "Bad value for -write-al switch: %s", 
                write_al_str.c_str());
+   }
+   if (write_best_str != "") {
+      if (write_best_str == "ASLISTED")
+         for (Uint i = 0; i < input_jpt_files.size(); ++i)
+            write_best.push_back(i);
+      else {
+         write_best.resize(input_jpt_files.size(), input_jpt_files.size());
+         vector<string> toks;
+         if (split(write_best_str, toks, ",") != input_jpt_files.size())
+            error(ETFatal, 
+                  "number of tokens in -write-best string doesn't match number of input jpts");
+         for (Uint i = 0; i < input_jpt_files.size(); ++i) {
+            for (Uint j = 0; j < toks.size(); ++j)
+               if (input_jpt_files[i].find(toks[j]) != std::string::npos) {
+                  write_best[i] = j;
+                  break;
+               }
+            if (write_best[i] == input_jpt_files.size())
+               error(ETFatal, "no match for jpt %s in -write-best string", input_jpt_files[i].c_str());
+            if (count(write_best.begin(), write_best.end(), write_best[i]) != 1)
+               error(ETFatal, "-write-best key '%s' matches multiple input jpts", toks[write_best[i]].c_str());
+         }
+         if (verbose) {
+            cerr << "write-best order: ";
+            for (Uint i = 0; i < write_best.size(); ++i)
+               for (Uint j = 0; j < write_best.size(); ++j)
+                  if (write_best[j] == i) {
+                     cerr << input_jpt_files[j] << (i+1 == write_best.size() ? "" : ", ");
+                     break;
+                  }
+            cerr << endl;
+         }
+      }
+   }
+   if (write_best_scope != "") {
+      if (write_best_str == "")
+         error(ETWarn, "-write-best-scope has no effect without -write-best - ignoring");
+      else {
+         write_best_cond = write_best_adir = write_best_lex = false;
+         for (Uint i = 0; i < write_best_scope.size(); ++i)
+            if (write_best_scope[i] == 'c') write_best_cond = true;
+            else if (write_best_scope[i] == '4') write_best_adir = true;
+            else if (write_best_scope[i] == 'l') write_best_lex = true;
+            else 
+               error(ETFatal, "-write-best-scope argument can contain only the letters 'c', '4', 'l'");
+      }
    }
 }
 

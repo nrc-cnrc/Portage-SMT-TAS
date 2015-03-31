@@ -1,6 +1,7 @@
 /**
  * @author George Foster, with reduced memory usage mods by Darlene Stewart
- * @file phrase_smoother.h  Abstract interface and factory for phrase-table smoothing techniques.
+ * @file phrase_smoother.h  Abstract interface and factory for phrase-table
+ * smoothing techniques.
  *
  *
  * COMMENTS:
@@ -23,7 +24,9 @@
 
 #include <good_turing.h>
 #include <cfloat>
+#include "ngram_counts.h"
 #include "phrase_table.h"
+#include "word_classes.h"
 
 namespace Portage {
 
@@ -72,6 +75,7 @@ public:
     */
    virtual double probLang1GivenLang2(
       const typename PhraseTableGen<T>::iterator& it) = 0;
+
    /**
     * Given a phrase pair (phrase1, phrase2), return smoothed estimates for
     * P(phrase2|phrase1).
@@ -92,6 +96,26 @@ public:
     */
    virtual bool isSymmetrical() = 0;
 
+   /**
+    * Return true if this class defines the alternative prob*() virtuals below,
+    * requiring an external "prior" probability. See joint2multi_cpt for
+    * example use.
+    */
+   virtual bool needsPrior() {return false;}
+
+   /** 
+    * Optional alternative probability functions that make use of an external
+    * prior.
+    */
+   virtual double probLang1GivenLang2(
+      const typename PhraseTableGen<T>::iterator& it, double prior) {return 0.0;}
+   virtual double probLang2GivenLang1(
+      const typename PhraseTableGen<T>::iterator& it, double prior) {return 0.0;}
+
+   /**
+    * 
+    */
+   virtual string getInternalState(const typename PhraseTableGen<T>::iterator& it) const { return ""; }
 };
 
 //-----------------------------------------------------------------------------
@@ -287,6 +311,28 @@ public:
    virtual bool isSymmetrical() {return false;}
 };
 
+//-----------------------------------------------------------------------------
+/**
+ * MAP smoothing, with externally-supplied prior probability for each phrase
+ * pair. 
+ */
+template<class T>
+class MAPSmoother : public RFSmoother<T>
+{
+public:
+
+   /**
+    * Constructor.
+    * @param factory
+    * @param args [alpha] - alpha is weight on prior [0]
+    */
+   MAPSmoother(PhraseSmootherFactory<T>& factory, const string& args) :
+      RFSmoother<T>(factory, args) {}
+
+   virtual bool needsPrior() {return true;}
+   virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it, double pr);
+   virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it, double pr);
+};
 
 //-----------------------------------------------------------------------------
 /**
@@ -295,22 +341,68 @@ public:
 template<class T>
 class JointFreqs : public PhraseSmoother<T>
 {
+   double discount;
+   double m;
+   double m2;
+
+   double disc(double jfreq) {
+      if (discount == 0.0) return jfreq;
+      return jfreq >= 1 ? jfreq-discount : jfreq * ((m-m2) * jfreq + m2);
+   }
+
 public:
 
    /**
-    * Constructor does nothing.
+    * Constructor.
     * @param factory
     * @param args
     */
-   JointFreqs(PhraseSmootherFactory<T>& factory, const string& args) {}
+   JointFreqs(PhraseSmootherFactory<T>& factory, const string& args) : 
+      discount(0.0) 
+   {
+      if (!args.empty()) {
+         discount = conv<double>(args);
+         if (discount >= 1.0) error(ETFatal, "JointFreqs: discount must be <= 1");
+         m = 1.0 - discount;
+         m2 = m * m;
+      }
+   }
 
    virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it) {
-      return it.getJointFreq();
+      return disc(it.getJointFreq());
    }
    virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it) {
-      return it.getJointFreq();
+      return disc(it.getJointFreq());
    }
    virtual bool usesCounts() {return true;}
+   virtual bool isSymmetrical() {return true;}
+};
+
+//-----------------------------------------------------------------------------
+/**
+ * NGram counts from external files
+ */
+template<class T>
+class NGCounts : public PhraseSmoother<T>
+{
+   Uint lang;  // 1 or 2
+   Voc voc;  // voc for use with ngrams
+   NgramCounts* ng;
+   vector<string> phrase;
+
+public:
+
+   NGCounts(PhraseSmootherFactory<T>& factory, const string& args);
+
+   virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it) {
+      it.getPhrase(lang, phrase);
+      return ng->count(phrase);
+   }
+   virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it) {
+      it.getPhrase(lang, phrase);
+      return ng->count(phrase);
+   }
+   virtual bool usesCounts() {return false;}
    virtual bool isSymmetrical() {return true;}
 };
 
@@ -374,6 +466,37 @@ public:
 
 //-----------------------------------------------------------------------------
 /**
+ * Convert scores from Howard's significance tests into (joint) probabilities.
+ */
+template<class T>
+class Sig2Probs : public PhraseSmoother<T>
+{
+public:
+
+   /**
+    * Constructor does nothing.
+    * @param factory
+    * @param args
+    */
+   Sig2Probs(PhraseSmootherFactory<T>& factory, const string& args) {}
+
+   virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it) {
+      double lp = it.getJointFreq();
+      if (lp >= 0) lp = -0.6931;    // assume it's a frequency, not a sig score
+      return 1.0 - exp(lp / 100.0 - 1.0e-06);
+   }
+   virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it) {
+      double lp = it.getJointFreq();
+      if (lp >= 0) lp = -0.6931;    // assume it's a frequency, not a sig score
+      return 1.0 - exp(lp / 100.0 - 1.0e-06);
+   }
+   virtual bool usesCounts() {return true;}
+   virtual bool isSymmetrical() {return true;}
+};
+
+
+//-----------------------------------------------------------------------------
+/**
  * Simulated leave-one-out.
  */
 template<class T>
@@ -392,6 +515,51 @@ public:
     */
    LeaveOneOutSmoother(PhraseSmootherFactory<T>& factory, const string& args);
 
+   virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it);
+   virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
+   virtual bool usesCounts() {return true;}
+   virtual bool isSymmetrical() {return false;}
+};
+
+//-----------------------------------------------------------------------------
+/**
+ * Absolute discounting
+ */
+template<class T>
+class AbsoluteDiscountSmoother : public PhraseSmoother<T>
+{
+   // Discount parameters
+   Uint numD;                        // number of discounting coeffs
+   vector<Uint> global_event_counts; // c-1 -> num pairs with freq c, c = 1..numD+1
+   vector<double> D;                 // c-1 -> D(c), c = 1..numD
+   bool given;                       // true if discount was provided
+   Uint verbose;                     // non-zero to print some debugging info
+
+   // numD is currently fixed at one, discount = D[0]
+   double discount;
+
+   Voc voc;  // voc for use with ngrams
+   NgramCounts* ng1;  // ngrams for alternative l1 marginals
+   NgramCounts* ng2;  // ngrams for alternative l2 marginals
+
+   // RF statistics
+   vector<T> lang1_marginals;   // l1 phrase -> total frequency
+   vector<T> lang2_marginals;   // l2 phrase -> total frequency
+
+   double estm(T jointfreq, T margefreq);
+
+public:
+
+   /**
+    * Constructor.
+    * @param factory
+    * @param args
+    */
+   AbsoluteDiscountSmoother(PhraseSmootherFactory<T>& factory, const string& args);
+
+   virtual void tallyMarginals(const typename PhraseTableGen<T>::iterator& it);
+   virtual void tallyMarginalsFinishPass();
+   
    virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it);
    virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
    virtual bool usesCounts() {return true;}
@@ -454,8 +622,10 @@ public:
 template<class T>
 class KNSmoother : public PhraseSmoother<T>
 {
-   vector<double> lang1_marginals;
-   vector<double> lang2_marginals;
+protected:
+
+   vector<double> lang1_marginals; ///< frequency of s
+   vector<double> lang2_marginals; ///< frequency of t
 
    Uint numD;                   ///< number of discounting coeffs
    bool given;                  ///< coeffs were specified by user
@@ -485,9 +655,20 @@ class KNSmoother : public PhraseSmoother<T>
    void dumpProbInfo(const char* desc,
                      T jointfreq, double disc, double gamma, double lower_order, double marge)
    {
-      cerr << desc << ": " <<
-         jointfreq << "-" << disc << "+" << gamma << "*" << lower_order << "/" << marge << "  " <<
-         jointfreq / marge << " -> " << (jointfreq - disc + gamma * lower_order) / marge << endl;
+      cerr << desc << ": ("
+           << jointfreq
+           << "-"
+           << disc
+           << "+"
+           << gamma
+           << "*"
+           << lower_order
+           << ")/"
+           << marge
+           << "  "
+           << jointfreq / marge
+           << " -> "
+           << (jointfreq - disc + gamma * lower_order) / marge << endl;
    }
 
 public:
@@ -508,8 +689,79 @@ public:
    virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
    virtual bool usesCounts() {return true;}
    virtual bool isSymmetrical() {return false;}
+   virtual string getInternalState(const typename PhraseTableGen<T>::iterator& it) const;
 };
 
+//-----------------------------------------------------------------------------
+/**
+ * Kneser-Ney with external backoff distribution.
+ */
+template<class T>
+class KNXSmoother : public KNSmoother<T>
+{
+public:
+   
+   KNXSmoother(PhraseSmootherFactory<T>& factory, const string& args) :
+      KNSmoother<T>(factory, args) {}
+
+   virtual bool needsPrior() {return true;}
+   virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it,
+                                      double prior);
+   virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it,
+                                      double prior);
+};
+
+// Variant that uses external backoff only for 0 counts
+
+template<class T>
+class KNXZSmoother : public KNSmoother<T>
+{
+public:
+   
+   KNXZSmoother(PhraseSmootherFactory<T>& factory, const string& args) :
+      KNSmoother<T>(factory, args) {}
+
+   virtual bool needsPrior() {return true;}
+   virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it,
+                                      double prior);
+   virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it,
+                                      double prior);
+};
+
+//-----------------------------------------------------------------------------
+/**
+ * Event counts. 
+ */
+
+template<class T>
+class EventCounts : public PhraseSmoother<T>
+{
+   Uint thresh;
+
+   // i -> num L2 phrases with freq >= thres paired with L1 phrase with index i
+   // and vice versa
+   vector<Uint> lang1_counts;   
+   vector<Uint> lang2_counts;
+
+public:
+
+   /**
+    * Constructor.
+    * @param factory
+    * @param args
+    */
+   EventCounts(PhraseSmootherFactory<T>& factory, const string& args);
+
+   /// Destructor.
+   ~EventCounts() {}
+
+   virtual void tallyMarginals(const typename PhraseTableGen<T>::iterator& it);
+
+   virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it);
+   virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
+   virtual bool usesCounts() {return true;}
+   virtual bool isSymmetrical() {return false;}
+};
 
 //-----------------------------------------------------------------------------
 /**
@@ -652,6 +904,39 @@ public:
    virtual bool usesCounts() {return true;}
    virtual bool isSymmetrical() {return false;}
 };
+
+//-----------------------------------------------------------------------------
+/**
+ * Use forward and backward probabilities provided in a coarse model where
+ * each word of a phrase has been mapped to a corresponding word-class
+ */
+template<class T>
+class CoarseModel : public PhraseSmoother<T>
+{
+   PhraseTableGen<Uint> cm_pt;          // use 'freq' field as index into cm_probs
+   vector< pair<float,float> > cm_probs; // index -> pair of conditional probs
+   WordClasses l1_classes;
+   WordClasses l2_classes;
+
+public:
+
+   /**
+    * Constructor.
+    * @param factory
+    * @param args
+    */
+   CoarseModel(PhraseSmootherFactory<T>& factory, const string& args);
+
+private:
+   Uint getCMPhrasePairIndex(const typename PhraseTableGen<T>::iterator& it);
+public:
+
+   virtual double probLang1GivenLang2(const typename PhraseTableGen<T>::iterator& it);
+   virtual double probLang2GivenLang1(const typename PhraseTableGen<T>::iterator& it);
+   virtual bool usesCounts() {return true;}
+   virtual bool isSymmetrical() {return false;}
+};
+
 
 } // Portage
 

@@ -60,8 +60,9 @@ Options:\n\
 -prune1w  Same as prune1, but multiply nw by the number of words in the current\n\
        source phrase.  When using both -prune1 and -prune1w, keep n + nw*len\n\
        tranlations for a source phrase of len words.\n\
--a     Word-alignment method and optional args. Use -H for list of methods.\n\
-       Multiple methods may be specified by using -a repeatedly. [IBMOchAligner]\n\
+-a     Word-alignment method and optional args.  GDF and GDFA are two of many\n\
+       possible values; use -H for the full list.\n\
+       Multiple methods may be specified by using -a repeatedly. [GDF]\n\
 -s     Smoothing method for conditional probs. Use -H for list of methods.\n\
        Multiple methods may be specified by using -s repeatedly, but these are\n\
        only useful if -multipr output is selected. [RFSmoother]\n\
@@ -155,7 +156,8 @@ Output selection options (specify as many as you need):\n\
 // globals
 
 static const char* const switches[] = {
-   "v", "vv", "vs", "i", "j", "z", "prune1:", "prune1w:", "a:", "s:",
+   "v", "vv", "vs", "i", "j", "z", "prune1:", "prune1w:",
+   "a:", "s:",
    "m:", "min:", "d:", "ali", "w:", "wf:", "wfvoc:", "1:", "2:", "ibm:",
    "hmm", "p0:", "up0:", "alpha:", "lambda:", "max-jump:",
    "anchor", "noanchor", "end-dist", "noend-dist",
@@ -431,12 +433,6 @@ void doEverything(const char* prog_name, ARG& args)
 {
    const string z_ext(compress_output ? ".gz" : "");
 
-   if ((indiv_tables || joint) && lang1 >= lang2)
-      error(ETWarn, "%s\n%s\n%s",
-         "violating standard convention for joint phrasetables: language with",
-         "lexicographically earlier name goes in left column. Fix by giving",
-         "this language as the -1 argument.");
-
    if (smoothing_methods.empty())
       smoothing_methods.push_back("RFSmoother");
 
@@ -526,13 +522,7 @@ void doEverything(const char* prog_name, ARG& args)
             ppe.aligners.push_back(ppe.aligner_factory->createAligner(ppe.align_methods[i]));
       }
 
-      ppe.alignFilePair(file1,
-	    file2,
-	    pt,
-	    algo,
-	    word_voc_1,
-	    word_voc_2);
-
+      ppe.alignFilePair(file1, file2, pt, algo, word_voc_1, word_voc_2);
 
       if (indiv_tables) {
 
@@ -604,17 +594,18 @@ void doEverything(const char* prog_name, ARG& args)
          vector< PhraseSmoother<Uint>* > smoothers;
          smoother_factory.createSmoothersAndTally(smoothers, smoothing_methods);
 
+         const bool write_smoother_state = false;
          if (multipr_output == "fwd" || multipr_output == "both") {
             string filename = name + "." + lang1 + "2" + lang2 + z_ext;
             if (ppe.verbose) cerr << "Writing " << filename << endl;
             oSafeMagicStream ofs(filename);
-            dumpMultiProb(ofs, 1, pt, smoothers, ppe.display_alignments, write_count, ppe.verbose);
+            dumpMultiProb(ofs, 1, pt, smoothers, ppe.display_alignments, write_count, write_smoother_state, ppe.verbose);
          }
          if (multipr_output == "rev" || multipr_output == "both") {
             string filename = name + "." + lang2 + "2" + lang1 + z_ext;
             if (ppe.verbose) cerr << "Writing " << filename << endl;
             oSafeMagicStream ofs(filename);
-            dumpMultiProb(ofs, 2, pt, smoothers, ppe.display_alignments, write_count, ppe.verbose);
+            dumpMultiProb(ofs, 2, pt, smoothers, ppe.display_alignments, write_count, write_smoother_state, ppe.verbose);
          }
       }
       if (joint)
@@ -632,5 +623,3 @@ void doEverything(const char* prog_name, ARG& args)
    if (ppe.verbose) cerr << "done" << endl;
 
 }
-
-// vim:sw=3:

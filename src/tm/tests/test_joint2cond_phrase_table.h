@@ -303,7 +303,7 @@ public:
       createSmoothersAndTally(smoothers, ptg);
 
       ostringstream out;
-      dumpMultiProb(out, 1, ptg, smoothers, 0, false, false);
+      dumpMultiProb(out, 1, ptg, smoothers, 0, false, false, false);
 
       ostringstream expected_out;
       //expected_out.precision(9);
@@ -318,7 +318,7 @@ public:
       TS_ASSERT_EQUALS(out.str(), expected_out.str());
 
       out.str("");
-      dumpMultiProb(out, 2, ptg, smoothers, 0, false, false);
+      dumpMultiProb(out, 2, ptg, smoothers, 0, false, false, false);
 
       expected_out.str("");
       for (Uint i=0; i < expected_length; ++i) {

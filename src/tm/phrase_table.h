@@ -2,10 +2,16 @@
  * @author George Foster, with reduced memory usage mods to by Darlene Stewart
  * @file phrase_table.h  Represent a phrase table with joint frequencies.
  *
- *
  * COMMENTS:
  *
- * Represent a phrase table with joint frequencies.
+ * Two designs are competing here: a general-purpose container that maps phrase
+ * pairs to arbitrary types; and the "class that is used to represent joint
+ * phrase tables in canoe". The latter view leads to oddities that aren't
+ * consistent with a container design, such as a completely separate,
+ * possibly empty, map from phrase pairs to word alignments embedded within
+ * each object. At some point it might make sense to factor out the container
+ * part into a separate class, either with or without the reduced memory
+ * capability.
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
@@ -40,6 +46,7 @@ namespace Portage {
 struct PhraseTableBase
 {
    typedef vector<string>::const_iterator ToksIter;
+   typedef vector<Uint>::const_iterator IndIter;  // voc indexes of tokens
 
    static const string sep;     // separate words in a phrase
    static const string psep;    // separate phrases in a pair
@@ -56,11 +63,13 @@ struct PhraseTableBase
       string encodings of voc indexes of the tokens in the sequence.
     */
    static void compressPhrase(ToksIter beg, ToksIter end, string& coded, Voc& voc);
+   static void compressPhrase(IndIter beg, IndIter end, string& coded, Voc& voc);
 
    /**
     * Decode packed string representation of a token sequence.
     */
    static void decompressPhrase(const char* coded, vector<string>& toks, Voc& voc);
+   static void decompressPhrase(const char* coded, vector<Uint>& toks, Voc& voc);
 
    /**
     * Recode a phrase from a packed string representation to a a phrase string.
@@ -107,7 +116,7 @@ struct PhraseTableBase
    static void writePhrasePair(ostream& os, const char* p1, const char* p2,
                                const char* alignment_info,
                                vector<T>& vals, bool write_count, T count,
-                               vector<T>* avals = NULL);
+                               vector<T>* avals = NULL, const char * extra = NULL);
 
    /**
     * Convert a phrase pair read from a stream into a token sequence.
@@ -150,7 +159,7 @@ struct PhraseTableBase
  */
 template<class T> class PhraseTableGen : public PhraseTableBase, private NonCopyable
 {
-   typedef vector_map<Uint,T> PhraseFreqs; // l2-index -> frequency
+   typedef vector_map<Uint,T> PhraseFreqs; ///< l2-index -> frequency
    typedef vector<PhraseFreqs*> PhraseTable;
 
    Voc lang1_voc;		// l1compressedphrase <-> l1index
@@ -163,7 +172,13 @@ template<class T> class PhraseTableGen : public PhraseTableBase, private NonCopy
    Uint num_lang1_phrases;      // number of language 1 phrases.
 
    bool keep_phrase_table_in_memory; // set if phrase table is kept fully in memory
+   Uint limit_len_on_read;           // if non-0, read only phrases not longer than this value
    bool swap_on_read;                // swap lt/rt phrases when reading jpt
+   bool zero_counts_on_read;         // zero counts and clear alignment info on read
+   bool locked;                      // addPhrasePair only increments counts for existing pairs
+                                     // - prohibited if keep_phrase_table_in_memory false (for 
+                                     // no particular reason, just hedging; EJJ says: well, it
+                                     // would be incompatible, so it was a good idea.)
 
    // pruning: no pruning if prune1_fixed == prune1_per_word == 0
    Uint prune1_fixed;           // fixed part of pruning factor;
@@ -227,6 +242,7 @@ public:
       string getPhrase(Uint lang) const { string s; return getPhrase(lang, s); }
       string& getPhrase(Uint lang, string& phrase) const; // lang is 1 or 2
       void getPhrase(Uint lang, vector<string>& toks) const; // lang is 1 or 2
+      void getPhrase(Uint lang, vector<Uint>& toks) const; // lang is 1 or 2
       Uint getPhraseLength(Uint lang) const; // lang is 1 or 2
       Uint getPhraseIndex(Uint lang) const; // unique contiguous index for L1 or L2 phrase
       /// Get the alignments in expanded format; works only with an in-memory phrase table.
@@ -258,6 +274,7 @@ public:
          bool operator==(const IteratorStrategy& it) const;
          bool operator!=(const IteratorStrategy& it) const { return ! operator==(it); }
          virtual void getPhrase(Uint lang, vector<string>& toks) const; // lang is 1 or 2
+         virtual void getPhrase(Uint lang, vector<Uint>& toks) const; // lang is 1 or 2
          virtual string& getPhrase(Uint lang, string& phrase) const; // lang is 1 or 2
          virtual Uint getPhraseLength(Uint lang) const; // lang is 1 or 2
          Uint getPhraseIndex(Uint lang) const { return lang == 1 ? id1 : id2; }
@@ -335,6 +352,7 @@ public:
          virtual File2IteratorStrategy& operator=(const IteratorStrategy& it);
          virtual File2IteratorStrategy& operator++(); // increment
          virtual void getPhrase(Uint lang, vector<string>& toks) const; // lang is 1 or 2
+         virtual void getPhrase(Uint lang, vector<Uint>& toks) const; // lang is 1 or 2
          virtual string& getPhrase(Uint lang, string& phrase) const; // lang is 1 or 2
          virtual Uint getPhraseLength(Uint lang) const; // lang is 1 or 2
       }; // class File2IteratorStrategy
@@ -410,6 +428,7 @@ public:
    };
 
    PhraseTableGen() : num_lang1_phrases(0), keep_phrase_table_in_memory(true),
+                      zero_counts_on_read(false), locked(false),
                       prune1_fixed(0), prune1_per_word(0),
                       jpt_stream(NULL), phrase_table_read(false) {}
 
@@ -427,9 +446,11 @@ public:
     * Read contents as a joint table, in the format produced by dump_joint_freqs.
     */
    void readJointTable(istream& in, bool reduce_memory=false,
-                       bool swap_on_read=false);
+                       bool swap_on_read=false, Uint limit_len_on_read=0,
+                       bool zero_counts_on_read=false);
    void readJointTable(const string& infile, bool reduce_memory=false,
-                       bool swap_on_read=false);
+                       bool swap_on_read=false, Uint limit_len_on_read=0,
+                       bool zero_counts_on_read=false);
 
    /**
     * Remap psep so it doesn't get output as a token in the resulting phrase table.
@@ -447,9 +468,11 @@ public:
     * @param display_alignments if 0, don't display alignments; if 1, display only
     *                           the most frequent alignment (ties are broken
     *                           arbitrarily); if 2, display all alignments with counts.
+    * @param no_zeros if true, don't write phrase pairs for which T(freq) == 0.
     */
    void dump_joint_freqs(ostream& ostr, T thresh = 0, bool reverse = false,
-                         bool filt = true, Uint display_alignments = 0);
+                         bool filt = true, Uint display_alignments = 0, 
+                         bool no_zeros = false);
 
    /**
     * Write relative-frequency conditional distributions to stream, in TMText
@@ -489,16 +512,23 @@ public:
    void clear();
 
    /**
+    * Lock
+    */
+   void lock() {assert(keep_phrase_table_in_memory); locked = true;}
+   void unlock() {locked = false;}
+
+   /**
     * Add a pair of phrases (represented as ptrs into token sequences) with a given count.
     * If pair exists already, increment its count by val.
     * @param green_alignment if non-NULL, represents the alignment between the
     *                        sequences in "green" format. This alignment will
     *                        be added to the list of known alignments for the
     *                        phrase pair, and its count will be incremented by val.
+    * @return pair of indexes for l1,l2 phrases
     */
-   void addPhrasePair(ToksIter beg1, ToksIter end1,
-                      ToksIter beg2, ToksIter end2,
-                      T val=1, const char* green_alignment=NULL);
+   pair<Uint,Uint> addPhrasePair(ToksIter beg1, ToksIter end1,
+                                 ToksIter beg2, ToksIter end2,
+                                 T val=1, const char* green_alignment=NULL);
 
    /// Functor to add phrase pairs
    class PhraseAdder {
@@ -507,6 +537,13 @@ public:
       const vector<string>& toks2;
       T val;
     public:
+      // Construct with val == 0 in order to be able to use the 2nd
+      // addPhrasePair() function below to add weights other than val. This
+      // function is intended for use with WAM extraction, and having its
+      // behaviour be conditional in this way gives us a mechanism for
+      // distinguishing between integer tables (where we just want to add 1)
+      // and float tables (where we want to add the WAM wt) without the WAM
+      // extractor itself needing to be aware of this.
       PhraseAdder(PhraseTableGen* pt, const vector<string>& toks1, const vector<string>& toks2, T val)
          : pt(pt), toks1(toks1), toks2(toks2), val(val) {}
       void operator()(Uint b1, Uint e1, Uint b2, Uint e2, const char* green_alignment) {
@@ -514,11 +551,24 @@ public:
                            toks2.begin()+b2, toks2.begin()+e2,
                            val, green_alignment);
       }
+      void operator()(Uint b1, Uint e1, Uint b2, Uint e2, const char* green_alignment, T newval) {
+         pt->addPhrasePair(toks1.begin()+b1, toks1.begin()+e1,
+                           toks2.begin()+b2, toks2.begin()+e2,
+                           val ? val : newval, green_alignment);
+      }
    };
    /// Get a PhraseAdder for this phrase table with given token sequences and count value.
    PhraseAdder getPhraseAdder(const vector<string>& toks1, const vector<string>& toks2, T val) {
       return PhraseAdder(this, toks1, toks2, val);
    }
+
+   /**
+    * Attach a given alignment to an existing phrase pair. The alignment will
+    * be entered into the list of known alignments for the pair with count
+    * equal to the pair's current total count.
+    */
+   void attachAlignment(ToksIter beg1, ToksIter end1, ToksIter beg2, ToksIter end2,
+                        const char* green_alignment);
 
 private:
    /**
@@ -553,6 +603,47 @@ public:
     * @param val set to frequency on return
     */
    bool exists(ToksIter beg1, ToksIter end1, ToksIter beg2, ToksIter end2, T &val);
+   bool exists(IndIter beg1, IndIter end1, IndIter beg2, IndIter end2, T &val);
+
+   /**
+    * If given phrase pair exists in the table, AND has associated alignment
+    * information, retrieve that information and return true.  Since alignment
+    * info is optional, it is possible that the above version of exists()
+    * returns true and this one returns false (but not vice versa). There is
+    * not too much inefficiency in performing these two lookups separately,
+    * since separate tables are used to store counts and alignments (sad but
+    * true).
+    * @param beg1 first lang1 token
+    * @param end1 end lang1 token
+    * @param beg2 first lang2 token
+    * @param end2 end lang2 token
+    * @param alignments set to pairs <green-al,freq> on return, where green-al
+    * is a character representation of an alignment in green format (see
+    * word_align_io.h to parse), and freq is the number of occurrences.
+    */
+   bool exists(ToksIter beg1, ToksIter end1, ToksIter beg2, ToksIter end2, 
+               vector< pair<const char*, T> >& alignments);
+
+
+   /**
+    * Query a set of potential translations for a given lang1 phrase, and
+    * return info about which are actual translations. All phrases are
+    * represented as vectors of voc indexes for efficiency.
+    * @param beg1 first token in lang1 phrase
+    * @param end1 end token in lang1 phrase
+    * @param qos list of queries and responses
+    * @return true if lang1 phrase exists
+    */
+   struct QueryObj {
+      IndIter beg2;   // first token in lang2 phrase
+      IndIter end2;   // end token in lang2 phrase
+      bool found;     // set to true if found
+      Uint l2_index;  // set to l2 phrase index if found
+      T val;          // set to phrase pair's val if found
+      QueryObj(IndIter beg2, IndIter end2) : beg2(beg2), end2(end2), found(false) {}
+      QueryObj() {}
+   };
+   bool query(IndIter beg1, IndIter end1, vector<QueryObj>& qos);
 
    /**
     * Number of phrases in each language.
@@ -577,12 +668,44 @@ public:
     */
    string& getPhrase(Uint lang, Uint id, string &phrase);
    void  getPhrase(Uint lang, Uint id, vector<string>& toks);
+   void  getPhrase(Uint lang, Uint id, vector<Uint>& toks); // toks are wvoc indexes
+
 private:
+
    string& getPhrase(Uint lang, const char* coded, string &phrase);
    void  getPhrase(Uint lang, const char* coded, vector<string>& toks);
+   void  getPhrase(Uint lang, const char* coded, vector<Uint>& toks);
 
    Uint getPhraseLength(Uint lang, Uint id);
    Uint getPhraseLength(Uint lang, const char* coded);
+
+   /**
+    * Convert alignments to a string for printing
+    * @param out output
+    * @param alignments the alignments to display
+    * @param p1_len the length of the original toks1 sequence in lang1
+    * @param p2_len the length of the original toks2 sequence in lang2
+    * @param reverse  if true, reverse all alignments before displaying (expensive!)
+    * @param top_only  if true, only show the most frequent alignment, keeping
+    *                  the one occurring first if there is a tie; if false, show
+    *                  all alignments, with counts.
+    */
+   /*
+   void displayAlignments(string& out, const AlignmentFreqs<T>& alignments,
+                          Uint p1_len, Uint p2_len, bool reverse, bool top_only) const {
+      Portage::displayAlignments(out, alignments, alignment_voc,
+                                 p1_len, p2_len, reverse, top_only);
+   }
+   */
+
+   /**
+    * Parse and tally alignments as printed using displayAlignments()
+    * Side effect: alignments found in s are added to alignment_voc.
+    * @param[in/out] alignments  tally parsed alignments and counts here,
+    *                            adding to existing counts if any
+    * @param in  alignments in display format
+    */
+   //void parseAndTallyAlignments(AlignmentFreqs<T>& alignments, const string& in);
 
 }; // class PhraseTableGen
 

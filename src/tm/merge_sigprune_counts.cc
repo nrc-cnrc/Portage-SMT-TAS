@@ -1,4 +1,3 @@
-// $Id$
 /**
  * @author Samuel Larkin
  * @file merge_sigprune_counts.cc

@@ -59,31 +59,153 @@ bool PhraseTableGen<T>::exists(ToksIter beg1, ToksIter end1, ToksIter beg2, Toks
 }
 
 template<class T>
-void PhraseTableGen<T>::addPhrasePair(ToksIter beg1, ToksIter end1, ToksIter beg2, ToksIter end2, T val,
-                                      const char* green_alignment)
+bool PhraseTableGen<T>::exists(IndIter beg1, IndIter end1, IndIter beg2, IndIter end2, T &val)
 {
    string phrase1, phrase2;
    compressPhrase(beg1, end1, phrase1, wvoc1);
    compressPhrase(beg2, end2, phrase2, wvoc2);
 
-   Uint id1 = lang1_voc.add(phrase1.c_str());
-   num_lang1_phrases = lang1_voc.size();
-   Uint id2 = lang2_voc.add(phrase2.c_str(), val);
-   if (keep_phrase_table_in_memory) {
-      if (id1 == phrase_table.size()) {
-         phrase_table.push_back(new PhraseFreqs());
+   const Uint id1 = lang1_voc.index(phrase1.c_str());
+   if (id1 == lang1_voc.size())
+      return false;
 
-         if ( green_alignment )
-            while ( phrase_alignment_table.size() <= id1 )
-               phrase_alignment_table.push_back(new PhraseAlignments());
-      }
-      (*phrase_table[id1])[id2] += val;
+   const Uint id2 = lang2_voc.index(phrase2.c_str());
+   if (id2 == lang2_voc.size())
+      return false;
 
-      if (green_alignment) {
-         Uint alignment_id = alignment_voc.add(green_alignment);
-         (*phrase_alignment_table[id1])[id2][alignment_id] += val;
+   const typename PhraseFreqs::iterator iter = phrase_table[id1]->find(id2);
+   if (iter == phrase_table[id1]->end())
+      return false;
+
+   val = iter->second;
+   return true;
+}
+
+template<class T>
+bool PhraseTableGen<T>::exists(ToksIter beg1, ToksIter end1, ToksIter beg2, ToksIter end2,
+                               vector< pair<const char*, T> >& alignments)
+
+{
+   string phrase1, phrase2;
+   compressPhrase(beg1, end1, phrase1, wvoc1);
+   compressPhrase(beg2, end2, phrase2, wvoc2);
+
+   const Uint id1 = lang1_voc.index(phrase1.c_str());
+   if (id1 == lang1_voc.size() || id1 >= phrase_alignment_table.size())
+      return false;
+
+   const Uint id2 = lang2_voc.index(phrase2.c_str());
+   if (id2 == lang2_voc.size())
+      return false;
+
+   const typename PhraseAlignments::iterator iter = phrase_alignment_table[id1]->find(id2);
+   if (iter == phrase_alignment_table[id1]->end())
+      return false;
+
+   // Convert the internal vector_map into a simple list for user convenience,
+   // with no dependence on alignment_voc (which isn't publicly accessible in
+   // any case).
+ 
+   alignments.clear();
+   typename AlignmentFreqs<T>::iterator p;
+   for (p = iter->second.begin(); p != iter->second.end(); ++p)
+      alignments.push_back(make_pair(alignment_voc.word(p->first), p->second));
+
+   return true;
+}
+
+template<class T>
+bool PhraseTableGen<T>::query(IndIter beg1, IndIter end1, vector<QueryObj>& qos)
+{
+   string phrase1, phrase2;
+   compressPhrase(beg1, end1, phrase1, wvoc1);
+   const Uint id1 = lang1_voc.index(phrase1.c_str());
+   if (id1 == lang1_voc.size())
+      return false;
+
+   PhraseFreqs* const pf = phrase_table[id1];
+   for (Uint i = 0; i < qos.size(); ++i) {
+      compressPhrase(qos[i].beg2, qos[i].end2, phrase2, wvoc2);
+      const Uint id2 = lang2_voc.index(phrase2.c_str());
+      typename PhraseFreqs::iterator it;
+      if (id2 < lang2_voc.size() && (it = pf->find(id2)) != pf->end()) {
+         qos[i].found = true;
+         qos[i].l2_index = id2;
+         qos[i].val = it->second;
+      } else {
+         qos[i].found = false;
       }
    }
+   return true;
+}
+
+template<class T>
+pair<Uint,Uint> PhraseTableGen<T>::addPhrasePair(ToksIter beg1, ToksIter end1, ToksIter beg2, ToksIter end2, T val, 
+                                                 const char* green_alignment)
+{
+   string phrase1, phrase2;
+   compressPhrase(beg1, end1, phrase1, wvoc1);
+   compressPhrase(beg2, end2, phrase2, wvoc2);
+
+   if (locked) {
+      const Uint id1 = lang1_voc.index(phrase1.c_str());
+      const Uint id2 = lang2_voc.index(phrase2.c_str());
+      if (id1 < lang1_voc.size() && id2 < lang2_voc.size()) {
+         const typename PhraseFreqs::iterator iter = phrase_table[id1]->find(id2);
+         if (iter != phrase_table[id1]->end()) {
+            iter->second += val;
+            if (green_alignment) {
+               const Uint alignment_id = alignment_voc.add(green_alignment);
+               while (phrase_alignment_table.size() <= id1) // can't assume alignments exist
+                  phrase_alignment_table.push_back(new PhraseAlignments());
+               (*phrase_alignment_table[id1])[id2][alignment_id] += val;
+            }
+         }
+      }
+      return make_pair(id1,id2);
+   } else {
+      const Uint id1 = lang1_voc.add(phrase1.c_str());
+      num_lang1_phrases = lang1_voc.size();
+      const Uint id2 = lang2_voc.add(phrase2.c_str(), val);
+      if (keep_phrase_table_in_memory) {
+         if (id1 == phrase_table.size()) {
+            phrase_table.push_back(new PhraseFreqs());
+            if ( green_alignment )
+               while ( phrase_alignment_table.size() <= id1 )
+                  phrase_alignment_table.push_back(new PhraseAlignments());
+         }
+         (*phrase_table[id1])[id2] += val;
+         if (green_alignment) {
+            const Uint alignment_id = alignment_voc.add(green_alignment);
+            (*phrase_alignment_table[id1])[id2][alignment_id] += val;
+         }
+      }
+      return make_pair(id1,id2);
+   }
+}
+
+template<class T>
+void PhraseTableGen<T>::attachAlignment(ToksIter beg1, ToksIter end1, ToksIter beg2, ToksIter end2, 
+                                        const char* green_alignment)
+{
+   assert(keep_phrase_table_in_memory);
+
+   string phrase1, phrase2;
+   compressPhrase(beg1, end1, phrase1, wvoc1);
+   compressPhrase(beg2, end2, phrase2, wvoc2);
+
+   const Uint id1 = lang1_voc.index(phrase1.c_str());
+   const Uint id2 = lang2_voc.index(phrase2.c_str());
+   assert(id1 != lang1_voc.size());
+   assert(id2 != lang2_voc.size());
+
+   while (phrase_alignment_table.size() <= id1)
+      phrase_alignment_table.push_back(new PhraseAlignments());
+   const Uint alignment_id = alignment_voc.add(green_alignment);
+
+   const typename PhraseFreqs::iterator iter = phrase_table[id1]->find(id2);
+   assert (iter != phrase_table[id1]->end());
+   (*phrase_alignment_table[id1])[id2][alignment_id] = iter->second;
 }
 
 template<class T>
@@ -94,6 +216,8 @@ void PhraseTableGen<T>::lookupPhrasePair(const string &line, Uint& id1, Uint& id
    string phrase1, phrase2;
 
    extractTokens(line, toks, b1, e1, b2, e2, v, a, f);
+   if (limit_len_on_read && (e1-b1 > limit_len_on_read || e2-b1 > limit_len_on_read))
+      return; // phrase pair too long
    if (swap_on_read) {
       swap(b1, b2);
       swap(e1, e2);
@@ -101,8 +225,8 @@ void PhraseTableGen<T>::lookupPhrasePair(const string &line, Uint& id1, Uint& id
    compressPhrase(b1, e1, phrase1, wvoc1);
    compressPhrase(b2, e2, phrase2, wvoc2);
 
-   val = conv<T>(*v);
-   if ( a != f ) {
+   val = zero_counts_on_read ? T(0) : conv<T>(*v);
+   if (a != f) {
       assert((*a)[0] == 'a');
       alignments = a->substr(2);
       if (swap_on_read)
@@ -128,8 +252,9 @@ void PhraseTableGen<T>::lookupPhrasePair(const string &line, Uint& id1, Uint& id
          if ( !alignments.empty() ) {
             while ( phrase_alignment_table.size() <= id1 )
                phrase_alignment_table.push_back(new PhraseAlignments());
-            parseAndTallyAlignments((*phrase_alignment_table[id1])[id2],
-                                    alignment_voc, alignments);
+            if (!zero_counts_on_read)
+               parseAndTallyAlignments((*phrase_alignment_table[id1])[id2],
+                                       alignment_voc, alignments);
             /*
             parseAndTallyAlignments(phrase_alignment_table.find(id1).find(id2),
                                     alignment_voc, alignments);
@@ -149,6 +274,8 @@ void PhraseTableGen<T>::lookupPhrasePair(const string &line, string& phrase1, Ui
    assert(! keep_phrase_table_in_memory);
 
    extractTokens(line, toks, b1, e1, b2, e2, v, a, f);
+   if (limit_len_on_read && (e1-b1 > limit_len_on_read || e2-b1 > limit_len_on_read))
+      return; // phrase pair too long
    if (swap_on_read) {
       swap(b1, b2);
       swap(e1, e2);
@@ -156,8 +283,8 @@ void PhraseTableGen<T>::lookupPhrasePair(const string &line, string& phrase1, Ui
    compressPhrase(b1, e1, phrase1, wvoc1);
    compressPhrase(b2, e2, phrase2, wvoc2);
 
-   val = conv<T>(*v);
-   if ( a != f ) {
+   val = zero_counts_on_read ? T(0) : conv<T>(*v);
+   if (a != f) {
       assert((*a)[0] == 'a');
       alignments = a->substr(2);
       if (swap_on_read)
@@ -216,6 +343,17 @@ void PhraseTableGen<T>::getPhrase(Uint lang, Uint id, vector<string>& toks) {
 }
 
 template<class T>
+void PhraseTableGen<T>::getPhrase(Uint lang, Uint id, vector<Uint>& toks) {
+   toks.clear();
+   if (lang == 1) {
+      if (id > lang1_voc.size())
+         error(ETFatal, "Phrase for index %d in lang 1 not stored in memory.", id);
+      decompressPhrase(lang1_voc.word(id), toks, wvoc1);
+   } else
+      decompressPhrase(lang2_voc.word(id), toks, wvoc2);
+}
+
+template<class T>
 string& PhraseTableGen<T>::getPhrase(Uint lang, const char* coded, string& phrase) {
    phrase = recodePhrase(coded, (lang == 1) ? wvoc1 : wvoc2, sep);
    return phrase;
@@ -223,6 +361,12 @@ string& PhraseTableGen<T>::getPhrase(Uint lang, const char* coded, string& phras
 
 template<class T>
 void PhraseTableGen<T>::getPhrase(Uint lang, const char* coded, vector<string>& toks) {
+   toks.clear();
+   decompressPhrase(coded, toks, (lang == 1) ? wvoc1 : wvoc2);
+}
+
+template<class T>
+void PhraseTableGen<T>::getPhrase(Uint lang, const char* coded, vector<Uint>& toks) {
    toks.clear();
    decompressPhrase(coded, toks, (lang == 1) ? wvoc1 : wvoc2);
 }
@@ -253,7 +397,7 @@ void PhraseTableGen<T>::dump_prob_lang2_given_lang1(ostream& ostr)
       for (pf = phrase_table[i]->begin(); pf != phrase_table[i]->end(); ++pf)
          sum += pf->second;
       for (pf = phrase_table[i]->begin(); pf != phrase_table[i]->end(); ++pf) {
-         double value = pf->second / sum;
+         const double value = pf->second / sum;
          if (value != 0)
             writePhrasePair(ostr, lang2_voc.word(pf->first), lang1_voc.word(i),
         	            NULL, value, wvoc2, wvoc1);
@@ -269,7 +413,7 @@ void PhraseTableGen<T>::dump_prob_lang1_given_lang2(ostream& ostr)
    for (Uint i = 0; i < phrase_table.size(); ++i) {
       typename PhraseFreqs::iterator pf;
       for (pf = phrase_table[i]->begin(); pf != phrase_table[i]->end(); ++pf) {
-         double value = pf->second / (double) lang2_voc.freq(pf->first);
+         const double value = pf->second / (double) lang2_voc.freq(pf->first);
          if (value != 0)
             writePhrasePair(ostr, lang1_voc.word(i), lang2_voc.word(pf->first),
 			    NULL, value, wvoc1, wvoc2);
@@ -364,14 +508,14 @@ void PhraseTableGen<T>::dump_freqs_lang2(ostream& ostr)
 template<class T>
 void PhraseTableGen<T>::remap_psep_helper(Voc& voc, const string& token, const string& replacement)
 {
-   Uint sep_index = voc.index(token.c_str());
+   const Uint sep_index = voc.index(token.c_str());
    if (sep_index != voc.size()) {
       if (voc.word(sep_index) == token) { // otherwise remap_psep() was already done!
          if (voc.index(replacement.c_str()) != voc.size()) {
             // replacement already exists, replace it too, recursively until there are no collisions.
             remap_psep_helper(voc, replacement, "_" + replacement);
          }
-         bool rc = voc.remap(token.c_str(), replacement.c_str());
+         const bool rc = voc.remap(token.c_str(), replacement.c_str());
          assert(rc);
       }
    }
@@ -388,14 +532,15 @@ void PhraseTableGen<T>::remap_psep()
 template<class T>
 void PhraseTableGen<T>::dump_joint_freqs(ostream& ostr,
       T thresh, bool reverse, bool filt,
-      Uint display_alignments)
+      Uint display_alignments, bool no_zeros)
 {
    remap_psep();
 
    string p1, p2, alignments_s;
    const char* alignments_cstr(NULL);
    for (iterator it = begin(); it != end(); ++it) {
-      if (!filt || it.getJointFreq() >= thresh) {
+      if ((!filt || it.getJointFreq() >= thresh) && 
+          (!no_zeros || it.getJointFreq() != T(0))) {
          it.getPhrase(1, p1);
          it.getPhrase(2, p2);
          if ( display_alignments ) {
@@ -411,12 +556,15 @@ void PhraseTableGen<T>::dump_joint_freqs(ostream& ostr,
 }
 
 template<class T>
-void PhraseTableGen<T>::readJointTable(istream& in, bool reduce_memory, bool swap_on_read)
+void PhraseTableGen<T>::readJointTable(istream& in, bool reduce_memory, bool swap_on_read,
+                                       Uint limit_len_on_read, bool zero_counts_on_read)
 {
    string line, alignments;
    Uint id1, id2;
    T val;
    this->swap_on_read = swap_on_read;
+   this->limit_len_on_read = limit_len_on_read;
+   this->zero_counts_on_read = zero_counts_on_read;
 
    if (phrase_table_read && !keep_phrase_table_in_memory)
       error(ETFatal, "Cannot read multiple phrase table files "
@@ -442,11 +590,12 @@ void PhraseTableGen<T>::readJointTable(istream& in, bool reduce_memory, bool swa
 }
 
 template<class T>
-void PhraseTableGen<T>::readJointTable(const string& infile, bool reduce_memory, bool swap_on_read)
+void PhraseTableGen<T>::readJointTable(const string& infile, bool reduce_memory, bool swap_on_read,
+                                       Uint limit_len_on_read, bool zero_counts_on_read)
 {
    jpt_file = infile;
    iSafeMagicStream in(infile);
-   readJointTable(in, reduce_memory, swap_on_read);
+   readJointTable(in, reduce_memory, swap_on_read, limit_len_on_read, zero_counts_on_read);
 
    // jpt_stream is saved for unit testing, where readJointTable(istream&...)
    // is called directly, but it is not valid when readJointTable(string&...) is
@@ -475,8 +624,8 @@ void PhraseTableBase::writePhrasePair(ostream& os, const char* p1, const char* p
                                       const char* alignment_info,
                                       T val, Voc& voc1, Voc& voc2)
 {
-   string s1 = recodePhrase(p1, voc1);
-   string s2 = recodePhrase(p2, voc2);
+   const string s1 = recodePhrase(p1, voc1);
+   const string s2 = recodePhrase(p2, voc2);
    writePhrasePair(os, s1.c_str(), s2.c_str(), alignment_info, val);
 }
 
@@ -504,7 +653,7 @@ template<class T>
 void PhraseTableBase::writePhrasePair(ostream& os, const char* p1, const char* p2,
                                       const char* alignment_info,
                                       vector<T>& vals, bool write_count, T count, 
-                                      vector<T>* avals)
+                                      vector<T>* avals, const char * extra)
 {
    os << p1 << " " << psep << " " << p2 << " " << psep;
    for (Uint i = 0; i < vals.size(); ++i)
@@ -522,6 +671,9 @@ void PhraseTableBase::writePhrasePair(ostream& os, const char* p1, const char* p
    }
    if ( write_count )
       os << " c=" << count;
+   if (extra) {
+      os << extra;
+   }
    if (avals && avals->size()) {
       os << ' ' << psep;
       for (Uint i = 0; i < avals->size(); ++i)
@@ -655,6 +807,12 @@ void PhraseTableGen<T>::iterator::getPhrase(Uint lang, vector<string>& toks) con
 }
 
 template<class T>
+void PhraseTableGen<T>::iterator::getPhrase(Uint lang, vector<Uint>& toks) const
+{
+   iterator_strategy->getPhrase(lang, toks);
+}
+
+template<class T>
 string& PhraseTableGen<T>::iterator::getPhrase(Uint lang, string& phrase) const
 {
    return iterator_strategy->getPhrase(lang, phrase);
@@ -723,6 +881,12 @@ bool PhraseTableGen<T>::iterator::IteratorStrategy::operator==(const IteratorStr
 
 template<class T>
 void PhraseTableGen<T>::iterator::IteratorStrategy::getPhrase(Uint lang, vector<string>& toks) const
+{
+   pt->getPhrase(lang, getPhraseIndex(lang), toks);
+}
+
+template<class T>
+void PhraseTableGen<T>::iterator::IteratorStrategy::getPhrase(Uint lang, vector<Uint>& toks) const
 {
    pt->getPhrase(lang, getPhraseIndex(lang), toks);
 }
@@ -815,8 +979,46 @@ PhraseTableGen<T>::iterator::MemoryIteratorStrategy::operator++()
       elem_iter = (*row_iter)->begin();
       elem_iter_end = (*row_iter)->end();
       if ( al_row_iter != al_row_iter_end ) ++al_row_iter;
+      /*
+      if ( al_row_iter != al_row_iter_end && ++al_row_iter != al_row_iter_end ) {
+         al_elem_iter = (*al_row_iter).begin();
+         al_elem_iter_end = (*al_row_iter).end();
+      }
+   } else {
+      if ( al_row_iter != al_row_iter_end && al_elem_iter != al_elem_iter_end )
+         ++al_elem_iter;
+      */
    }
    id2 = elem_iter->first;
+   /*
+   if ( al_row_iter != al_row_iter_end && al_elem_iter != al_elem_iter_end ) {
+      if ( id2 != al_elem_iter->first ) {
+         error(ETWarn, "Phrase alignments and phrase frequencies out of synch.");
+         string buffer;
+         cerr << "id1 = " << id1 << " (" << pt->getPhrase(1, id1, buffer) << ")" << endl;
+         cerr << "phrase_table[id1]->size() = " << pt->phrase_table[id1]->size() << endl;
+         cerr << "phrase_alignment_table[id1].size() = " << pt->phrase_alignment_table[id1].size() << endl;
+         cerr << "phrase_table[" << id1 << "] =" << endl;
+         for ( typename PhraseFreqs::iterator
+                     it(pt->phrase_table[id1]->begin()),
+                     end(pt->phrase_table[id1]->end());
+               it != end; ++it )
+            cerr << it->first << " (" << pt->getPhrase(2,it->first,buffer) << ") -> "
+                 << it->second << endl;
+
+         cerr << "PhraseAlignmentTable[" << id1 << "] =" << endl;
+         for ( typename PhraseAlignments::iterator
+                     it(pt->phrase_alignment_table[id1].begin()),
+                     end(pt->phrase_alignment_table[id1].end());
+               it != end; ++it ) {
+            cerr << it->first << " (" << pt->getPhrase(2,it->first,buffer) << ") -> "
+                 << it->second.size() << " alignment(s)." << endl;
+         }
+
+         error(ETFatal, "Phrase alignments and phrase frequencies out of synch.");
+      }
+   }
+   */
    return *this;
 }
 
@@ -994,6 +1196,15 @@ PhraseTableGen<T>::iterator::File2IteratorStrategy::operator++()
 
 template<class T>
 void PhraseTableGen<T>::iterator::File2IteratorStrategy::getPhrase(Uint lang, vector<string>& toks) const
+{
+   if (lang == 1)
+      pt->getPhrase(lang, phrase1.c_str(), toks);
+   else
+      pt->getPhrase(lang, getPhraseIndex(lang), toks);
+}
+
+template<class T>
+void PhraseTableGen<T>::iterator::File2IteratorStrategy::getPhrase(Uint lang, vector<Uint>& toks) const
 {
    if (lang == 1)
       pt->getPhrase(lang, phrase1.c_str(), toks);

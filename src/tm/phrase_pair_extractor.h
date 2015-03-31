@@ -29,7 +29,6 @@ class WordAligner;
 class WordAlignerStats;
 class IBM1;
 class PhraseTableUint;
-//struct PhrasePair;
 
 struct PhrasePairExtractor {
    bool check_args_called;  ///< For internal validation
@@ -182,39 +181,40 @@ struct PhrasePairExtractor {
     * @param os  is non-NULL, the pairs get written to os instead of being inserted into the phrasetable.
     */
    template <class PT>
-      void add_ibm1_translations(Uint lang, PT& pt,
-            Voc& src_word_voc, Voc& tgt_word_voc,
-            ostream* os = NULL)
-      {
-         const TTable& tt = (lang == 1 ? ibm_1->getTTable() : ibm_2->getTTable());
-         vector<string> words, trans;
-         vector<float> probs;
+   void add_ibm1_translations(Uint lang, PT& pt,
+         Voc& src_word_voc, Voc& tgt_word_voc,
+         ostream* os = NULL)
+   {
+      const TTable& tt = (lang == 1 ? ibm_1->getTTable() : ibm_2->getTTable());
+      vector<string> words, trans;
+      vector<float> probs;
+      string green_al(display_alignments > 0 ? " a=0" : "");
 
-         tt.getSourceVoc(words);
-         for (vector<string>::const_iterator p = words.begin(); p != words.end(); ++p) {
-            bool in_phrase_voc = lang == 1 ? pt.inVoc1(*p) : pt.inVoc2(*p);
-            if (!in_phrase_voc && src_word_voc.index(p->c_str()) != src_word_voc.size()) {
-               tt.getSourceDistnByDecrProb(*p, trans, probs);
-               Uint num_added = 0;
-               for (Uint i = 0; num_added < add_word_translations && i < trans.size(); ++i) {
-                  if (tgt_word_voc.index(trans[i].c_str()) == tgt_word_voc.size()) {
-                     //if (verbose > 1) cerr << "D:" << *p << "/" << trans[i] << endl;
-                     continue;
-                  }
-                  if (lang == 1) {
-                     if (os) (*os) << remap(*p) << " ||| " << remap(trans[i]) << " ||| " << 1 << endl;
-                     else pt.addPhrasePair(p, p+1, trans.begin()+i, trans.begin()+i+1);
-                  }
-		  else {
-                     if (os) (*os) << remap(trans[i]) << " ||| " << remap(*p) << " ||| " << 1 << endl;
-                     else pt.addPhrasePair(trans.begin()+i, trans.begin()+i+1, p, p+1);
-                  }
-                  ++num_added;
-                  if (verbose > 1) cerr << *p << "/" << trans[i] << endl;
+      tt.getSourceVoc(words);
+      for (vector<string>::const_iterator p = words.begin(); p != words.end(); ++p) {
+         bool in_phrase_voc = lang == 1 ? pt.inVoc1(*p) : pt.inVoc2(*p);
+         if (!in_phrase_voc && src_word_voc.index(p->c_str()) != src_word_voc.size()) {
+            tt.getSourceDistnByDecrProb(*p, trans, probs);
+            Uint num_added = 0;
+            for (Uint i = 0; num_added < add_word_translations && i < trans.size(); ++i) {
+               if (tgt_word_voc.index(trans[i].c_str()) == tgt_word_voc.size()) {
+                  //if (verbose > 1) cerr << "D:" << *p << "/" << trans[i] << endl;
+                  continue;
                }
+               if (lang == 1) {
+                  if (os) (*os) << remap(*p) << " ||| " << remap(trans[i]) << " ||| " << 1 << green_al << endl;
+                  else pt.addPhrasePair(p, p+1, trans.begin()+i, trans.begin()+i+1, 1, "0");
+               }
+               else {
+                  if (os) (*os) << remap(trans[i]) << " ||| " << remap(*p) << " ||| " << 1 << green_al << endl;
+                  else pt.addPhrasePair(trans.begin()+i, trans.begin()+i+1, p, p+1, 1, "0");
+               }
+               ++num_added;
+               if (verbose > 1) cerr << *p << "/" << trans[i] << endl;
             }
          }
       }
+   }
 
    /**
     * Reads the line aligned file pair, performs alginment with all aligners

@@ -69,11 +69,15 @@ int main(int argc, char* argv[])
    iSafeMagicStream phrasefile(phrasefilename);
 
    while (getline(phrasefile, line)) {
-      if (splitZ(line, toks) != 6)
-         error(ETFatal, "expecting lines in format 'count src ||| tgt ||| 1' in phrasefile");
+      Uint tok_count = splitZ(line, toks);
+      if (tok_count != 6 && (tok_count != 7 && toks[6] != "a=0"))
+         error(ETFatal, "expecting lines in format 'src ||| tgt ||| 1' in phrasefile, with optional 'a=0' at the end");
       const string& word = lang == 1 ? toks[1] : toks[3];
-      if (voc.freq(word.c_str()) == conv<Uint>(toks[0]))
-         cout << toks[1] << " ||| " << toks[3] << " ||| " << 1 << "\n";
+      if (voc.freq(word.c_str()) == conv<Uint>(toks[0])) {
+         cout << toks[1] << " ||| " << toks[3] << " ||| " << 1;
+         if (tok_count == 7) cout << " " << toks[6];
+         cout << "\n";
+      }
 
       if (verbose)
          cerr << "matching on " << word << ": " 
