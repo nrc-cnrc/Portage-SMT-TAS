@@ -20,7 +20,10 @@
 #include "printCopyright.h"
 #include "ibm.h"
 #include "casemap_strings.h"
+#include "banded_matrix.h"
 #include <memory> // for auto_ptr
+#include <limits>  // numeric_limits::max
+#include <utility>  // pair
 
 using namespace Portage;
 
@@ -41,6 +44,8 @@ the output.\n\
 Options:\n\
 \n\
 -v  Write progress reports to cerr.\n\
+-d  Write debugging info to cerr.\n\
+-x  Write alignment matrix to trace what happened.\n\
 -H  Print some guidelines on multi-pass alignment, then quit.\n\
 -hm Interpret <mark>, when alone on a line, as hard markup: align sentence\n\
     pairs between consecutive marks, never across them. It is an error for one\n\
@@ -70,6 +75,14 @@ Options:\n\
     region, even empty ones. This means, for instance, that it must contain 1\n\
     line if file1/file2 are empty. Due to the line-alignment requirement for\n\
     output, however, id lines for empty regions are not written to <idfile>.al.\n\
+-o1 output filename for file 1 [basename(file1).al].\n\
+-o2 output filename for file 2 [basename(file2).al].\n\
+-ne Replace empty alignment with the tag <EMPTY> [no]\n\
+-b  Beam width [0.0, 1.0) which is the number of line over and under the diagonal [0.005].\n\
+-g  Growth factor (1.0, inf) by which ssal should increase the beam width [1.5].\n\
+-mw Minimum beam width in number of lines [5].\n\
+-c  How close, in number of lines, we can get from the edge of the explored\n\
+    band without triggering a growth of the band.[2]\n\
 ";
 
 static char alt_help[] = "\n\
@@ -121,14 +134,53 @@ involve tuning ssal's -w parameter using al-diff.py, and training the HMM on\n\
 only high-confidence len-based alignments from step 4.\n\
 ";
 
+/**
+ * A class to automatically set double's default initial value to -inf.
+ */
+class Double
+{
+   public :
+      Double() : x(-numeric_limits<double>::infinity()) {}
+      Double(double x) : x(x) {}
+
+      operator double const &() const { return x ; }
+      operator double&() { return x ; }
+
+      Double& operator = (double v) {
+         x = v;
+         return *this;
+      }
+
+   private :
+      double x;
+};
+
+typedef pair<Uint, Uint>      Coord;
+typedef BandedMatrix<Double>  ScoreMatrix;
+typedef BandedMatrix<Coord>   BacklinkMatrix;
+
+namespace std {
+   /**
+    * Writes a Coord object to an output stream.
+    */
+   ostream& operator<<(ostream& s, const Coord& c) {
+      s << "(" << c.first << ", " << c.second << ")";
+      return s;
+   }
+};
+
 // globals
 
+static bool debug = false;
 static bool verbose = false;
+static bool showMatrix = false;
 static bool filt = false;
 static bool filt_mark = false;
 static string filename1, filename2;
+static string ofilename1, ofilename2;
 static string alfilename;
 static string idfilename;
+static string oidfilename;
 static Uint maxsegs1 = 3;      ///< max # file1 segs that can participate in an alignment
 static Uint maxsegs2 = 3;      ///< max # file2 segs that can participate in an alignment
 static bool len_mismatch_set = false;
@@ -139,8 +191,17 @@ static string ibm_2g1_filename;
 static bool lowercase = false;
 static string lc_locale;
 const string default_locale = "en_US.UTF-8";
-static IBM1 *ibm_1g2, *ibm_2g1;
+static IBM1 *ibm_1g2 = NULL;
+static IBM1 *ibm_2g1 = NULL;
 static auto_ptr<CaseMapStrings> mapr;
+static bool noEmpty = false;
+
+static float beamWidth = 0.005f;
+static double growthFactor = 1.5;
+static Uint minimumWidth = 100;
+static Uint closeness = 10;
+
+
 
 static void getArgs(int argc, char* argv[]);
 static double alignScore(const vector<string>& lines1, const vector<string>& lines2,
@@ -149,15 +210,16 @@ static double alignScore(const vector<string>& lines1, const vector<string>& lin
 static bool keep(const vector<string>& lines1, const vector<string>& lines2,
                  Uint beg1, Uint end1, Uint beg2, Uint end2);
 static bool read(istream& file, vector<string>& lines);
-static void align(const vector<string>& lines1, const vector<string>& lines2,
-                  vector<double> &score_matrix, vector<Uint>& backlink_matrix,
-                  vector<Uint>& connections);
+static bool align(const vector<string>& lines1, const vector<string>& lines2,
+                  ScoreMatrix& score_matrix, BacklinkMatrix& backlink_matrix,
+                  vector<Coord>& connections, bool reversed);
 static void write(Uint region_num,
                   const vector<string>& lines1, const vector<string>& lines2,
-                  const vector<double> &score_matrix, const vector<Uint>& backlink_matrix,
-                  vector<Uint>& connections,
+                  const ScoreMatrix& score_matrix,
+                  vector<Coord>& connections,
                   ostream& file1, ostream& file2, ostream* alfile,
-                  const string& idline, ostream* oidfile);
+                  const string& idline, ostream* oidfile,
+                  bool reversed);
 
 // main
 
@@ -174,12 +236,12 @@ int main(int argc, char* argv[])
       new iSafeMagicStream(idfilename) : NULL;
 
 
-   oSafeMagicStream ofile1(filename1 + ".al");
-   oSafeMagicStream ofile2(filename2 + ".al");
-   oSafeMagicStream* alfile = alfilename != "" ?
-      new oSafeMagicStream(alfilename) : NULL;
-   oSafeMagicStream* oidfile = idfilename != "" ?
-      new oSafeMagicStream(idfilename + ".al") : NULL;
+   oSafeMagicStream ofile1(ofilename1);
+   oSafeMagicStream ofile2(ofilename2);
+   oSafeMagicStream* alfile = alfilename.empty() ? NULL :
+      new oSafeMagicStream(alfilename);
+   oSafeMagicStream* oidfile = oidfilename.empty() ? NULL :
+      new oSafeMagicStream(oidfilename);
 
    if (ibm_1g2_filename != "") ibm_1g2 = new IBM1(ibm_1g2_filename);
    if (ibm_2g1_filename != "") ibm_2g1 = new IBM1(ibm_2g1_filename);
@@ -188,9 +250,9 @@ int main(int argc, char* argv[])
 
    // align and write output
 
-   vector<double> score_matrix;
-   vector<Uint> backlink_matrix;
-   vector<Uint> connections;
+   ScoreMatrix score_matrix;
+   BacklinkMatrix backlink_matrix;
+   vector<Coord> connections;
    vector<string> lines1, lines2;
    string idline;
    Uint region_num = 0;
@@ -201,12 +263,45 @@ int main(int argc, char* argv[])
       if (s1 && s2 && si) {
          ++region_num;
          if (verbose) cerr << "aligning region " << region_num << endl;
-         align(lines1, lines2, score_matrix, backlink_matrix, connections);
-         write(region_num, lines1, lines2, score_matrix, backlink_matrix,
-               connections, ofile1, ofile2, alfile, idline, oidfile);
-      } else if (s1 == false && s2 == false && (idfile == NULL || si == false)) {
+
+         // We need the bigger set of segments to be the rows for the BandedMatrix.
+         const bool reversed = lines1.size() < lines2.size();
+         //cerr << (reversed ? "" : "NOT ") << "reversed" << endl;  // SAM DEBUGGING
+         const vector<string>& rlines1 = !reversed ? lines1 : lines2;
+         const vector<string>& rlines2 = !reversed ? lines2 : lines1;
+
+         double growth = 1.0;
+         Uint numGrowth = 0;
+         do {
+//            // Make sure that we will not overflow when storing the backlink.
+//            if (static_cast<Uint64>(rlines1.size()+1) * static_cast<Uint64>(rlines2.size()+1) > numeric_limits<Uint>::max())
+//               error(ETFatal, "Overflow of matrix sizes.  Cannot safely create matrix (%d, %d).", rlines1.size()+1, rlines2.size()+1);
+
+            const Uint width = growth*max(Uint(beamWidth*rlines2.size()), minimumWidth);
+            if (growth > 1.0) {
+               cerr << "Widening the beam to width " << width << " for the " << numGrowth << " times";
+               if (idfile) cerr << " for id " << idline;
+               cerr << endl;
+            }
+
+            score_matrix.resize(rlines1.size()+1, rlines2.size()+1, width);
+            backlink_matrix.resize(rlines1.size()+1, rlines2.size()+1, width);
+
+            if (debug) {
+               cerr << "growth: " << growth << endl;  // SAM DEBUGGING
+               cerr << "width: " << width << endl;  // SAM DEBUGGING
+            }
+            growth *= growthFactor;
+            ++numGrowth;
+         } while (!align(rlines1, rlines2, score_matrix, backlink_matrix, connections, reversed));
+
+         write(region_num, lines1, lines2, score_matrix,
+               connections, ofile1, ofile2, alfile, idline, oidfile, reversed);
+      }
+      else if (s1 == false && s2 == false && (idfile == NULL || si == false)) {
          break;  // end of file
-      } else {   // asymmetric eof
+      }
+      else {   // asymmetric eof
          string shortones;
          if (!s1) shortones += filename1 + " ";
          if (!s2) shortones += filename2 + " ";
@@ -220,7 +315,21 @@ int main(int argc, char* argv[])
    delete alfile;
    delete idfile;
    delete oidfile;
+   delete ibm_1g2;
+   delete ibm_2g1;
 }
+
+
+/**
+ * Change a filename to its align form.
+ * @param file  original filename to convert to align filename.
+ * @return  alignment filename.
+ */
+string getAlignFilename(const string& file) {
+   // repalce .arc.gz with .al.gz
+   return file.empty() ? "" : addExtension(extractFilename(file), ".al");
+}
+
 
 /**
  * Parses the command line arguments.
@@ -229,15 +338,41 @@ int main(int argc, char* argv[])
  */
 static void getArgs(int argc, char* argv[])
 {
-   const char* switches[] = {"v", "f", "fm", "hm:", "a:", "i:", "m1:", "m2:",
-                             "w:", "ibm_1g2:", "ibm_2g1:", "l", "lc:"};
+   const char* switches[] = {"d", "v", "f", "fm", "hm:", "a:", "i:", "m1:", "m2:",
+                             "w:", "ibm_1g2:", "ibm_2g1:", "l", "lc:",
+                             "o1:", "o2:", "oid:", "ne", "x",
+                             "b:", "g:", "c:", "mw:"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 2, 2, help_message, "-h",
                         false, alt_help, "-H");
    arg_reader.read(argc-1, argv+1);
 
    arg_reader.testAndSet("v", verbose);
+   arg_reader.testAndSet("v", debug);
+   arg_reader.testAndSet("x", showMatrix);
    arg_reader.testAndSet("f", filt);
    arg_reader.testAndSet("fm", filt_mark);
+
+   arg_reader.testAndSet("d", debug);
+
+   // Search speed optimization related values.
+   arg_reader.testAndSet("b", beamWidth);
+   arg_reader.testAndSet("g", growthFactor);
+   arg_reader.testAndSet("mw", minimumWidth);
+   arg_reader.testAndSet("c", closeness);
+   // Valid cases:
+   // - beamwidth = 0% && minimumWidth > 0
+   // - minimumWidth = 0 && beamWidth > 0
+   if (minimumWidth == 0 && beamWidth == 0)
+      error(ETFatal, "Beam width and minimum width must be greater than 0!");
+   // 0 <= beamWidth < 1.0
+   if (0.0 > beamWidth || beamWidth >= 1.0)
+      error(ETFatal, "Beam width's value (%f) must be [0.0, 1.0)", beamWidth);
+   // 0 < closeness < beamWidth
+   if (closeness >= minimumWidth)
+      error(ETFatal, "Beam's minimum width (%d) must be greater than the closeness factor (%d)\n 0 < %d < %d", minimumWidth, closeness, closeness, minimumWidth);
+   // 1.0 < growthFactor
+   if (growthFactor <= 1.0) 
+      error(ETFatal, "The growth factor (%f) must always be greater than 1!", growthFactor);
 
    static string markstring;
    if (arg_reader.getSwitch("hm", &markstring))
@@ -253,6 +388,7 @@ static void getArgs(int argc, char* argv[])
    arg_reader.testAndSet("ibm_2g1", ibm_2g1_filename);
    arg_reader.testAndSet("l", lowercase);
    arg_reader.testAndSet("lc", lc_locale);
+   noEmpty = arg_reader.getSwitch("ne");
    if ( lowercase ) {
       if ( !lc_locale.empty() && lc_locale != default_locale )
          error(ETWarn, "Specified conflicting options -l and -lc %s; using locale %s for lowercasing.",
@@ -272,6 +408,13 @@ static void getArgs(int argc, char* argv[])
 
    arg_reader.testAndSet(0, "file1", filename1);
    arg_reader.testAndSet(1, "file2", filename2);
+
+   ofilename1 = getAlignFilename(filename1);
+   arg_reader.testAndSet("o1", ofilename1);
+   ofilename2 = getAlignFilename(filename2);
+   arg_reader.testAndSet("o2", ofilename2);
+   oidfilename = getAlignFilename(idfilename);
+   arg_reader.testAndSet("oid", oidfilename);
 }
 
 
@@ -305,6 +448,8 @@ static bool keep(const vector<string>& lines1, const vector<string>& lines2,
         ( b2 != string::npos && lines2[beg2][b2] == '<' &&
           e2 != string::npos && lines2[end2-1][e2] == '>' ) );
 }
+
+
 
 /**
  * Calulate a log-domain score for aligning the text in lines1 from [beg1,end1)
@@ -340,6 +485,7 @@ static double alignScore(const vector<string>& lines1, const vector<string>& lin
       if (ibm_1g2) split(lines1[i], toks1);
    }
    for (Uint i = beg2; i < end2; ++i) {
+      assert(i<lines2.size());   // SAM DEBUGGING
       len2 += lines2[i].length();
       if (ibm_1g2) split(lines2[i], toks2);
    }
@@ -352,15 +498,17 @@ static double alignScore(const vector<string>& lines1, const vector<string>& lin
 
    double match_score = 0.0;
    if (!ibm_1g2) {
-      double n = max(max(len1,len2), max(totlen1,totlen2)); // largest component
-      double l1 = len1/n, l2 = len2/n, tl1 = totlen1/n, tl2 = totlen2/n;
-      double z = sqrt(l1*l1 + l2*l2) * sqrt(tl1*tl1 + tl2*tl2);
+      const double n = max(max(len1,len2), max(totlen1,totlen2)); // largest component
+      const double l1 = len1/n, l2 = len2/n, tl1 = totlen1/n, tl2 = totlen2/n;
+      const double z = sqrt(l1*l1 + l2*l2) * sqrt(tl1*tl1 + tl2*tl2);
       match_score = log(l1*tl1 + l2*tl2) - log(z);
    } else {
       match_score = ibm_1g2->logpr(toks2, toks1) + ibm_2g1->logpr(toks1, toks2);
    }
    return len_mismatch_wt * match_score - prior;
 }
+
+
 
 /**
  * Read next section (up to next mark, if supplied) from file.
@@ -381,6 +529,7 @@ bool read(istream& file, vector<string>& lines)
    return true;
 }
 
+
 /**
  * Align two regions of text.
  * @param lines1 lines in the 1st region
@@ -391,10 +540,11 @@ bool read(istream& file, vector<string>& lines)
  * position.
  * @param connections set to list of indexes into matrix variables of positions
  * on best global alignment.
+ * @return true if the alignemnt didn't come to close to an edge.
  */
-void align(const vector<string>& lines1, const vector<string>& lines2,
-           vector<double> &score_matrix, vector<Uint>& backlink_matrix,
-           vector<Uint>& connections)
+bool align(const vector<string>& lines1, const vector<string>& lines2,
+           ScoreMatrix& score_matrix, BacklinkMatrix& backlink_matrix,
+           vector<Coord>& connections, bool reversed)
 {
    Uint totlen1 = 0;
    for (vector<string>::const_iterator p = lines1.begin(); p != lines1.end(); ++p)
@@ -403,54 +553,125 @@ void align(const vector<string>& lines1, const vector<string>& lines2,
    for (vector<string>::const_iterator p = lines2.begin(); p != lines2.end(); ++p)
       totlen2 += p->length();
 
-   const Uint dim2 = lines2.size()+1;
-   Uint size = (lines1.size()+1) * dim2;
-   if (score_matrix.size() < size) {
-      score_matrix.resize(size);
-      backlink_matrix.resize(size);
-   }
-// Workaround to avoid warning "error: statement has no effect"
-// with gcc 4.5.0 on OpenSuSE 11.3 (JHJ)
-   typedef double array_size_dim2_of_doubles[dim2];
-   typedef Uint   array_size_dim2_of_Uint[dim2];
-   array_size_dim2_of_doubles *
-      score_mat = (array_size_dim2_of_doubles *) &score_matrix[0];
-   array_size_dim2_of_Uint *
-      backlink_mat = (array_size_dim2_of_Uint *) &backlink_matrix[0];
-// replaces:
-//   double (*score_mat)[dim2] = (double(*)[dim2]) &score_matrix[0];
-//   Uint (*backlink_mat)[dim2] = (Uint(*)[dim2]) &backlink_matrix[0];
-
-   score_mat[0][0] = 0.0;    // no cost starting point
+   score_matrix.set(0, 0, 0.0);    // no cost starting point
 
    // dynamic programming
-
    for (Uint i = 0; i <= lines1.size(); ++i) {
-      for (Uint j = 0; j <= lines2.size(); ++j) {
-         if (i != 0 || j != 0) score_mat[i][j] = -DBL_MAX;
+      for (Uint j = score_matrix.minRange(i); j < score_matrix.maxRange(i); ++j) {
+         if (i != 0 || j != 0) score_matrix.set(i, j, -DBL_MAX);
+         if (showMatrix) cerr << "i=" << i << " j=" << j;
          for (Uint ibeg = i > maxsegs1 ? i-maxsegs1 : 0; ibeg <= i; ++ibeg) {
             for (Uint jbeg = j > maxsegs2 ? j-maxsegs2 : 0; jbeg <= j; ++jbeg) {
                if (jbeg == j && ibeg == i) continue;
-               double score = score_mat[ibeg][jbeg] +
-                  alignScore(lines1, lines2, ibeg, i, jbeg, j, totlen1, totlen2);
-               if (score > score_mat[i][j]) {
-                  score_mat[i][j] = score;
-                  backlink_mat[i][j] = ibeg * dim2 + jbeg;
+               const double score = score_matrix.get(ibeg, jbeg) +
+                  (reversed
+                  ? alignScore(lines2, lines1, jbeg, j, ibeg, i, totlen2, totlen1)
+                  : alignScore(lines1, lines2, ibeg, i, jbeg, j, totlen1, totlen2));
+               if (showMatrix) cerr << " (m=" << ibeg << " n=" << jbeg << " s=" << score << ")";
+               if (score > score_matrix.get(i, j)) {
+                  score_matrix.set(i, j, score);
+                  backlink_matrix.set(i, j, Coord(ibeg, jbeg));
                }
             }
+         }
+         if (showMatrix) {
+            const Coord backIndex = backlink_matrix.get(i, j);
+            const Uint m =  backIndex.first;
+            const Uint n =  backIndex.second;
+            cerr << " bs: " << score_matrix.get(i, j) << " bl: " << m << "," << n << endl;
          }
       }
    }
 
-   // backtrack
-
-   connections.clear();
-   Uint pos = lines1.size() * dim2 + lines2.size();
-   while (pos > 0) {
-      connections.push_back(pos);
-      pos = backlink_mat[pos / dim2][pos % dim2];
+   if (debug) {
+      if (!reversed) {
+         score_matrix.print(cerr);
+      }
+      else {
+         const streamsize old = cerr.precision();
+         cerr.precision(5);
+         cerr << "size1:" << score_matrix.size1() << "; size2:" << score_matrix.size2() << "; m:" << score_matrix.getM() << "; b:" << score_matrix.getB();
+         cerr << "; data.size:" << score_matrix.getDataSize() << "/" << score_matrix.size1()*score_matrix.size2() << endl;
+         //for (Uint i(0); i<index.size(); ++i) cerr << index[i] << endl;  // SAM DEBUGGING
+         for (Uint i(0); i<score_matrix.size2(); ++i) {
+            cerr << score_matrix.get(0, i);
+            for (Uint j(1); j<score_matrix.size1(); ++j) {
+               cerr << "\t" << score_matrix.get(j, i);
+            }
+            cerr << endl;
+         }
+         cerr.precision(old);  // Reset the precision to what it was.
+      }
+      backlink_matrix.print(cerr);
    }
+
+   // backtrack
+   connections.clear();
+   Coord pos(lines1.size(), lines2.size());
+   while (pos.first > 0 && pos.second > 0) {
+      connections.push_back(pos);
+
+      const Uint i = pos.first;
+      const Uint j = pos.second;
+
+      if (debug) cerr << "[" << pos.first << ", " << pos.second << "]\t";
+
+      // i & j must always be in range or else there is a problem with the
+      // alignment algorithn or the BandedMatrix class.
+      if (!score_matrix.inRange(i, j)) {
+         if (debug) {
+            score_matrix.print(cerr);
+            backlink_matrix.print(cerr);
+         }
+         error(ETFatal, "Something went horribly wrong with the alignment process (%d, %d).", i, j);
+      }
+
+      // We went outside the the band, this iteration is no longer valid.  We
+      // must widen the band and restart aligning.
+      if (score_matrix.get(i, j) == -numeric_limits<double>::infinity()) {
+         if (score_matrix.inRange(i,j)) cerr << "says in range" << endl;
+         // SAM DEBUGGING START
+         if (debug) {
+            cerr << "We went outside the band." << endl;
+            cerr << score_matrix.minRange(i) << ", " << score_matrix.maxRange(i) << endl;
+            cerr << "Hitting a wall at " << i << ", " << j << endl;  // SAM DEBUGGING
+            cerr << score_matrix.get(i, j) << endl;
+            cerr << backlink_matrix.get(i, j) << endl;
+         }
+         // SAM DEBUGGING END
+         return false;
+      }
+
+      // We've walked to close to the edge we should widen the band and restart aligning.
+      // NOTE: if there is no room to grown the beam, we keep on truckin.
+      // TODO: check that the type of the operands are not going to cause problems in the calculation.
+      if (score_matrix.getB()+1 < score_matrix.size2()  // Still room to grow the beam?
+          // are we too close to the edge?
+          && score_matrix.getB() - closeness < Uint(abs(int(j)-int(score_matrix.diag(i))))) {
+         // SAM DEBUGGING START
+         if (debug) {
+            cerr << endl;
+            cerr << "We went too close to the edge." << endl;
+            cerr << "i: " << i << " j: " << j << endl;
+            cerr << "B: " << score_matrix.getB() << endl;
+            cerr << "closeness: " << closeness << endl;
+            cerr << "diag: " << score_matrix.diag(i) << endl;
+            cerr << "|j-diag(i)| = " << abs(int(j)-int(score_matrix.diag(i))) << endl;
+            cerr << "b-|j-diag(i)| = " << score_matrix.getB() - abs(int(j)-int(score_matrix.diag(i))) << endl;
+         }
+         // SAM DEBUGGING END
+         return false;
+      }
+
+      pos = backlink_matrix.get(i, j);
+   }
+
+   // For completeness sake.
+   if (debug) cerr << "[" << pos.first << ", " << pos.second << "]\t";
+
+   return true;
 }
+
 
 /**
  * Write an alignment.
@@ -465,19 +686,12 @@ void align(const vector<string>& lines1, const vector<string>& lines2,
  */
 void write(Uint region_num,
            const vector<string>& lines1, const vector<string>& lines2,
-           const vector<double> &score_matrix, const vector<Uint>& backlink_matrix,
-           vector<Uint>& connections,
+           const ScoreMatrix& score_matrix,
+           vector<Coord>& connections,
            ostream& ofile1, ostream& ofile2, ostream* alfile,
-           const string& idline, ostream* oidfile)
+           const string& idline, ostream* oidfile,
+           bool reversed)
 {
-   const Uint dim2 = lines2.size()+1;
-// Workaround to avoid warning "error: statement has no effect"
-// with gcc 4.5 (JHJ)
-   typedef double array_size_dim2_of_doubles[dim2];
-   array_size_dim2_of_doubles *
-      score_mat = (array_size_dim2_of_doubles *) &score_matrix[0];
-//   double (*score_mat)[dim2] = (double(*)[dim2]) &score_matrix[0];
-
    if (region_num > 1 and mark and !filt_mark) {
       ofile1 << mark << endl;
       ofile2 << mark << endl;
@@ -490,19 +704,24 @@ void write(Uint region_num,
    Uint ibeg = 0, jbeg = 0;
    double begscore = 0.0;
    while (!connections.empty()) {
-      Uint i = connections.back() / dim2;
-      Uint j = connections.back() % dim2;
+      const Uint i = reversed ? connections.back().second : connections.back().first;
+      const Uint j = reversed ? connections.back().first  : connections.back().second;
+      const double score = reversed ? score_matrix.get(j, i) : score_matrix.get(i, j);
       if (!filt || keep(lines1, lines2, ibeg, i, jbeg, j)) {
          if (alfile)
             (*alfile) << ibeg << "-" << i << " " << jbeg << "-" << j << " "
                       << i-ibeg << "-" << j-jbeg << " "
-                      << score_mat[i][j] - begscore << endl;
+                      << score - begscore << endl;
          if (oidfile)
             (*oidfile) << idline << endl;
+
+         if (noEmpty && ibeg == i) ofile1 << "<EMPTY>";
          while (ibeg < i) {
             ofile1 << lines1[ibeg++];
             ofile1 << (ibeg == i ? "" : " ");
          }
+
+         if (noEmpty && jbeg == j) ofile2 << "<EMPTY>";
          while (jbeg < j) {
             ofile2 << lines2[jbeg++];
             ofile2 << (jbeg == j ? "" : " ");
@@ -513,7 +732,8 @@ void write(Uint region_num,
          ibeg = i;
          jbeg = j;
       }
-      begscore = score_mat[i][j];
+      begscore = score;
       connections.pop_back();
    }
 }
+

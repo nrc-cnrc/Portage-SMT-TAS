@@ -109,7 +109,7 @@ static void doBootstrap(Uint numlines)
       if (contents.size() != numlines)
          error(ETFatal, "file %s has the wrong number of lines", p->c_str());
 
-      string outfile = addExtension(*p, suffix);
+      const string outfile = addExtension(*p, suffix);
       oSafeMagicStream ostr(outfile);
 
       for (Uint i = 0; i < lines.size(); ++i)

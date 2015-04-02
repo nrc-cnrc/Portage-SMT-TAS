@@ -33,6 +33,8 @@ PortageII cur
     and NIST's 2009 BLEU definition, as published in mteval-v13a.pl.
   - New Zens pruning of phrase tables is quick and simple, and quite effective.
   - Added a number of experimental phrase table smoothers
+  - Sentence aligner, ssal, now runs faster, using Moore's diagonal beam
+    approach.
 
  Minor bug fixes:
   - When writing LM files in ARPA format, explicitly write the 0-backoff
