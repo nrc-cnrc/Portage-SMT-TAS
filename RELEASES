@@ -24,6 +24,7 @@ PortageII cur
 
  Changes:
   - New RestCostLMs give better LM heuristic during decoding.
+  - Arabic is now supported as a source language.
 
  Minor changes:
   - Added support for SRI format for word alignment files (for fastalign)
@@ -35,11 +36,14 @@ PortageII cur
   - Added a number of experimental phrase table smoothers
   - Sentence aligner, ssal, now runs faster, using Moore's diagonal beam
     approach.
+  - Added -s option to dmcount to sort its output.
 
  Minor bug fixes:
   - When writing LM files in ARPA format, explicitly write the 0-backoff
     weights where they are required; binlm2arpalm can also be used to add them
     back to a file where they are missing.
+  - Python scripts within PortageII now token-split on spaces and tabs only,
+    like the rest of PortageII does; fixes a bug found in truecasing.
 
 
 PortageII 2.2 2014-12-01
