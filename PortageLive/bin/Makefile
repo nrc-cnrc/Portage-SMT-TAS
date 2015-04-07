@@ -37,16 +37,16 @@ CLUSTER ?= parallelize.pl psub r-parallel-d.pl r-parallel-worker.pl run-parallel
 DECODE_BIN ?= canoe
 DECODE_SCRIPTS ?= canoe-escapes.pl canoe-parallel.sh sh_utils.sh
 # NOTE: DO NOT add detokenize_plugin script to the BINSCRIPTS variable since
-# it exists only to illustrate what a detokenie_plugin could look like.
+# it exists only to illustrate what a detokenize_plugin could look like.
 TRANSLATE ?= postdecode_plugin postprocess_plugin predecode_plugin preprocess_plugin sentsplit_plugin tokenize_plugin \
-             translate.pl ridbom.sh crlf2lf.sh fix-en-fr-numbers.pl add-fr-nbsp.pl
+             translate.pl ridbom.sh crlf2lf.sh fix-en-fr-numbers.pl add-fr-nbsp.pl mark-english-number.pl fixed_term2tm.pl
 OTHER_BIN ?= utf8_filter utf8_casemap configtool portage_info normc1 markup_canoe_output
 RESCORE_BIN ?= feature_function_tool gen_feature_values rescore_translate
 RESCORE_SCRIPTS ?= gen-features-parallel.pl nbest2rescore.pl rat.sh
 TOKENIZATION ?= udetokenize.pl utokenize.pl
 TRUECASING ?= truecase.pl casemark.py boscap.py boscap-nosrc.py
 #Define EXTRAS in Makefile.params to include extra PortageII programs
-EXTRAS ?= mark-english-number.pl  fixed_term2tm.pl
+EXTRAS ?=
 
 # Must contain programs from PortageII only.
 PORTAGE_SCRIPTS ?= ${CHINESE} ${CE} ${DECODE_SCRIPTS} ${TRANSLATE} ${RESCORE_SCRIPTS} ${TOKENIZATION} ${TRUECASING}
