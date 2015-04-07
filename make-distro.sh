@@ -509,8 +509,13 @@ if [[ $INCLUDE_BIN || $COMPILE_ONLY ]]; then
    fi
 
    # Change SETUP.bash and SETUP.tcsh to have a default PRECOMP_PORTAGE_ARCH active
-   perl -e 'print "%s/#\\(PRECOMP_PORTAGE_ARCH=\\)/\\1/\nw\nq\n"' | ed SETUP.bash
-   perl -e 'print "%s/#\\(set PRECOMP_PORTAGE_ARCH=\\)/\\1/\nw\nq\n"' | ed SETUP.tcsh
+   DEFAULT_ARCH=`arch``determine_distro_level`
+   if [[ $ICU != no ]]; then DEFAULT_ARCH="$DEFAULT_ARCH-icu"; fi
+   r pushd ./$OUTPUT_DIR/PORTAGEshared
+      echo Setting default PRECOMP_PORTAGE_ARCH=$DEFAULT_ARCH in SETUP.bash and SETUP.tcsh.
+      perl -e 'print "%s/#\\(PRECOMP_PORTAGE_ARCH=\\).*/\\1'"$DEFAULT_ARCH"'/\nw\nq\n"' | ed SETUP.bash
+      perl -e 'print "%s/#\\(set PRECOMP_PORTAGE_ARCH=\\).*/\\1'"$DEFAULT_ARCH"'/\nw\nq\n"' | ed SETUP.tcsh
+   r popd
 fi
 
 if [[ $MAKE_DOXY_PID ]]; then
