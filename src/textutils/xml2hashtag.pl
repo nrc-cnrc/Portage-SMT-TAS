@@ -46,6 +46,7 @@ Usage: $0 < IN > OUT
    exit 1;
 }
 
+usage() if (@ARGV && $ARGV[0] eq "-h");
 
 while (my $line = <STDIN>) {
     chop $line;
