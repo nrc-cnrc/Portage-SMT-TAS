@@ -85,8 +85,8 @@ Canned options for specific licensees:
   -bin2013      Same as: -bin -nosrc -archive-name bin
 
 Distro creation check list:
-  - Substitue PortageII-cur for PortageII-2.3
-  - Substitue PortageII cur for PortageII 2.3
+  - Substitute PortageII-cur for PortageII-2.3
+  - Substitute PortageII cur for PortageII 2.3
   - Change src/build/Doxyfile PROJECT_NUMBER = 2.2 for PROJECT_NUMBER = 2.3
   - Change the version number and year in src/utils/portage_info.cc,
     SETUP.{bash,tcsh}, the Wiki, the INSTALL file, all the README files
@@ -516,12 +516,6 @@ if [[ $INCLUDE_BIN || $COMPILE_ONLY ]]; then
       perl -e 'print "%s/#\\(PRECOMP_PORTAGE_ARCH=\\).*/\\1'"$DEFAULT_ARCH"'/\nw\nq\n"' | ed SETUP.bash
       perl -e 'print "%s/#\\(set PRECOMP_PORTAGE_ARCH=\\).*/\\1'"$DEFAULT_ARCH"'/\nw\nq\n"' | ed SETUP.tcsh
    r popd
-fi
-
-if [[ $MAKE_DOXY_PID ]]; then
-   print_header "Wait for background make_doxy to finish"
-   # wait for the background make_doxy process
-   r wait $MAKE_DOXY_PID
 fi
 
 if [[ $MAKE_DOXY_PID ]]; then
