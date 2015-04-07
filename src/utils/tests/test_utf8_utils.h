@@ -36,10 +36,8 @@ public:
    void testToUpper() {
       UTF8Utils utf8;
       string out;
-      #ifdef NOICU
-      TS_ASSERT_EQUALS(ErrorCounts::Total, 1);
-      #else
       TS_ASSERT_EQUALS(ErrorCounts::Total, 0);
+      #ifndef NOICU
       TS_ASSERT_EQUALS(utf8.toUpper("a", out), string("A"));
       TS_ASSERT_EQUALS(utf8.toUpper("\u00e0", out), string("\u00c0")); // a/A accent grave
       // Greek small letter upsilon with dialytika and tonos ->
@@ -59,10 +57,8 @@ public:
    void testToLower() {
       UTF8Utils utf8;
       string out;
-      #ifdef NOICU
-      TS_ASSERT_EQUALS(ErrorCounts::Total, 1);
-      #else
       TS_ASSERT_EQUALS(ErrorCounts::Total, 0);
+      #ifndef NOICU
       TS_ASSERT_EQUALS(utf8.toUpper("a", out), string("A"));
       TS_ASSERT_EQUALS(utf8.toUpper("\u00e0", out), string("\u00c0")); // a/A accent grave
       #endif
@@ -71,10 +67,8 @@ public:
    void testCapitalize() {
       UTF8Utils utf8;
       string out;
-      #ifdef NOICU
-      TS_ASSERT_EQUALS(ErrorCounts::Total, 1);
-      #else
       TS_ASSERT_EQUALS(ErrorCounts::Total, 0);
+      #ifndef NOICU
       TS_ASSERT_EQUALS(utf8.capitalize("a", out), string("A"));
       TS_ASSERT_EQUALS(utf8.capitalize("abc", out), string("Abc"));
       TS_ASSERT_EQUALS(utf8.capitalize("\u00e0", out), string("\u00c0")); // a/A accent grave
@@ -95,10 +89,8 @@ public:
    void TestDecapitalize() {
       UTF8Utils utf8;
       string out;
-      #ifdef NOICU
-      TS_ASSERT_EQUALS(ErrorCounts::Total, 1);
-      #else
       TS_ASSERT_EQUALS(ErrorCounts::Total, 0);
+      #ifndef NOICU
       TS_ASSERT_EQUALS(utf8.decapitalize("A", out), string("a"));
       TS_ASSERT_EQUALS(utf8.decapitalize("ABC", out), string("aBC"));
       TS_ASSERT_EQUALS(utf8.decapitalize("\u00c0", out), string("\u00e0")); // A/a accent grave
