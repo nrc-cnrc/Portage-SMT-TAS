@@ -33,9 +33,8 @@ BackwardsModelGenerator::BackwardsModelGenerator(const CanoeConfig& c)
 
 BackwardsModelGenerator::BackwardsModelGenerator(
                          const CanoeConfig& c,
-                         const vector< vector<string> > &src_sents,
-                         const vector< vector<MarkedTranslation> > &marks)
-   : BasicModelGenerator(c, src_sents, marks)
+                         const VectorPSrcSent &sents)
+   : BasicModelGenerator(c, sents)
 {}
 
 BackwardsModelGenerator::~BackwardsModelGenerator()

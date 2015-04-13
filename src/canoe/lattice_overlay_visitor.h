@@ -2,8 +2,6 @@
  * @author Samuel Larkin
  * @file lattice_overlay_visitor.h  
  *
- * $Id$
- *
  * Object used when processing the lattice overlay that outputs the nbest list,
  * ffvals and pal info.
  *
@@ -18,21 +16,25 @@
 #define __LATTICE_OVERLAY_VISITOR_H__
 
 #include <vector>
+#include <set>
+#include "sparsemodel.h"        // sigh
 
 namespace Portage {
 /**
  * Visitor object of a nbest lattice.  It will extract nbest list, ffvals,
- * and pal info from the lattice and writes it to the attached stream.
+ * sfvals, and pal info from the lattice and writes it to the attached stream.
  */
 class NbestPrinter {
    protected:
       vector<bool>* oovs;             ///< source sentence OOVs
-      PhraseDecoderModel&   model;    ///< Model which created the states
+      BasicModel&   model;            ///< Model which created the states
       ostream*   nbest_stream;        ///< print nbest to this stream
       ostream*   ffvals_stream;       ///< print ffvals to this stream
+      ostream*   sfvals_stream;       ///< print sfvals to this stream
       ostream*   pal_stream;          ///< print pal to this stream
       ostream*   debug_stream;        ///< print debugging information to this stream
       vector<double>  global_ffvals;  ///< We need to cumulate each phrase ffval
+      map<Uint,double> global_sfvals; ///< Ditto for sparse values
       Uint pal_counter;               ///< Keeps track of the phrase number for pal
       Uint pal_tgt;                   ///< Keeps track of target word count
 
@@ -42,11 +44,12 @@ class NbestPrinter {
        * @param model  model used to create the lattice we are about to print its nbest
        * @param oovs   oovs for that source sentence
        */
-      NbestPrinter(PhraseDecoderModel& model, vector<bool>* oovs = NULL)
+      NbestPrinter(BasicModel& model, vector<bool>* oovs = NULL)
       : oovs(oovs)
       , model(model)
       , nbest_stream(NULL)
       , ffvals_stream(NULL)
+      , sfvals_stream(NULL)
       , pal_stream(NULL)
       , debug_stream(NULL)
       , pal_counter(0)
@@ -64,6 +67,12 @@ class NbestPrinter {
        * @param stream  the stream to output the ffvals
        */
       void attachFfvalsStream(ostream* stream) { ffvals_stream = stream; }
+      /*
+       * Attaches a stream to output the sfvals.
+       * @param stream  the stream to output the sfvals
+       */
+      void attachSfvalsStream(ostream* stream) { sfvals_stream = stream; }
+
       /**
        * Attaches a stream to output the pal.
        * @param stream  the stream to output the pal
@@ -96,6 +105,15 @@ class NbestPrinter {
             fill(global_ffvals.begin(), global_ffvals.end(), 0.0f);
             *ffvals_stream << endl;
          }  
+         if (sfvals_stream) {
+            for (map<Uint,double>::iterator p = global_sfvals.begin(); 
+                 p != global_sfvals.end(); ++p) {
+               if (p != global_sfvals.begin()) *sfvals_stream << ' ';
+               *sfvals_stream << p->first << ':' << p->second;
+            }   
+            global_sfvals.clear();
+            *sfvals_stream << endl;
+         }
          if (debug_stream)
             *debug_stream << endl << endl;
       }
@@ -136,6 +154,39 @@ class NbestPrinter {
                global_ffvals.resize(ffvals.size(), 0.0f);
             for (Uint i(0); i< global_ffvals.size(); ++i)   
                global_ffvals[i] += ffvals[i];
+         }
+
+         // accumulate sparse values (same basic code as PrintFunc::appendSFValues()
+         if (sfvals_stream) {
+            vector<double> ffvals;
+            set<Uint> smvals;
+            model.getFeatureFunctionVals(ffvals, *state->trans);
+            assert(ffvals.size() > 0);
+            Uint sf_offset = ffvals.size();
+            for (Uint i = 0; i < ffvals.size(); ++i) {
+
+               // test if this is a SparseModel feature
+               SparseModel* sf = dynamic_cast<SparseModel*>(model.getDecoderFeature(i));
+               if (sf) {
+
+                  // add SparseModel sub-features IN PLACE OF ith feature
+                  sf->getComponents(*state->trans, smvals);
+                  for (set<Uint>::iterator p = smvals.begin(); p != smvals.end(); ++p) {
+                     pair < map<Uint,double>::iterator, bool> r = 
+                        global_sfvals.insert(make_pair(*p + sf_offset, 0));
+                     ++r.first->second;
+                  }
+                  sf_offset += sf->numFeatures();  // in case > 1 SparseModel
+               } else {
+
+                  // add normal feature, if non-zero
+                  if (ffvals[i] != 0) {
+                     pair < map<Uint,double>::iterator, bool> r = 
+                        global_sfvals.insert(make_pair(i, 0));
+                     r.first->second += ffvals[i];
+                  }
+               }
+            }
          }
 
          if (debug_stream) {

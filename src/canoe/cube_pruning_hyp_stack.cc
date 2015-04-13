@@ -2,8 +2,6 @@
  * @author Eric Joanis
  * @file cube_pruning_hyp_stack.cc Implementation of cube pruning hyp stack
  *
- * $Id$
- *
  * Technologies langagieres interactives / Interactive Language Technoogies
  * Inst. de technologie de l'information / Institute for Information Technoloy
  * Conseil national de recherches Canada / National Research Council Canada
@@ -142,7 +140,7 @@ void Hyperedge::DisplayAllItems(Uint s) {
               << phrases[j].second->phrase_trans_prob << " (";
          phrases[j].second->display();
          cerr << ") "
-              << model.phrasePartialScore(phrases[j].second) << " "
+              << phrases[j].second->partial_score << " "
               << "=> "                          // output
               << hitem.ds->score << " "
               << hitem.ds->futureScore
@@ -224,51 +222,59 @@ void CubePruningHypStack::KBest(Uint K, double pruningThreshold,
    RecombHypStack buffer(model, discardRecombined);
    double best_score = cand_heap.front()->ds->futureScore;
 
+   const Uint sourceLength = hyperedges[0]->sourceLength;
+
    // Get the K best items off the heap
-   while ( ! cand_heap.empty() &&
-           (buffer.size() + buffer.getNumRecombined()) < K ) {
+   Uint pop_count = 0;
+   while ( ! cand_heap.empty() && pop_count < K ) {
       HyperedgeItem* item = lazy::pop_heap(cand_heap, heap_cmp);
+      ++pop_count;
 
-      // threshold-based stack pruning
-      if ( item->ds->futureScore < best_score + pruningThreshold ) {
+      if ( item->ds->futureScore >= best_score + pruningThreshold ) {
+         // DS passes threshold-based stack pruning
+         if ( item->ds->futureScore > best_score )
+            best_score = item->ds->futureScore;
+
+         // Apply coverage pruning criteria here.
+         //NOT IMPLEMENTED YET
+
+         // If we got this far, we're keeping this item
+         if ( verbosity >= 3 ) {
+            cerr << "Keeping hypothesis ";
+            item->ds->display(cerr, &model, sourceLength);
+            cerr << "\thyperedge coordinates "
+                 << item->state_index << "," << item->phrase_index << endl
+                 << "\tbase score            " << item->ds->score << endl
+                 << "\tfuture score          " << item->ds->futureScore << endl;
+         }
+
+         // This line must follow the verbose 3 block above, since it might actually
+         // delete item->ds under some circumstances.
+         buffer.push(item->ds);
+      } else {
+         if (verbosity >= 3)
+            cerr << "Beam pruning " << item->ds->id << " future score " << item->ds->futureScore << endl;
          delete item->ds;
-         delete item;
-         continue;
+         // EXPERIMENTAL: a futureScore of -INFINITY means late pruning
+         // happened using filter features. In that case, we give a chance to
+         // that state's neighbours.
+         const bool explore_neighbours_of_minus_infinity = true;
+         if (!explore_neighbours_of_minus_infinity || item->ds->futureScore != -INFINITY) {
+            delete item;
+            continue;
+         }
       }
-      if ( item->ds->futureScore > best_score )
-         best_score = item->ds->futureScore;
-
-      // Apply coverage pruning criteria here.
-      //NOT IMPLEMENTED YET
-
-      // If we got this far, we're keeping this item
-      if ( verbosity >= 3 ) {
-         cerr << "Keeping hypothesis " << item->ds->id
-              << " from " << item->ds->back->id << " ("
-              << item->state_index << "," << item->phrase_index << ")" << endl
-              << "\tbase score " << item->ds->score << endl
-              << "\tfuture score " << item->ds->futureScore << endl
-              << "\tprev coverage "
-                 << displayUintSet(
-                       item->ds->back->trans->sourceWordsNotCovered,
-                       false, hyperedges[0]->sourceLength)
-                 << endl
-              << "\tsource range "
-                 << item->ds->trans->lastPhrase->src_words.toString() << endl;
-         cerr << "\ttarget phrase "
-              << model.getStringPhrase(item->ds->trans->lastPhrase->phrase)
-              << endl;
-      }
-
-      // This line must follow the verbose 3 block above, since it might actually
-      // delete item->ds under some circumstances.
-      buffer.push(item->ds);
 
       // and we need to expand its neighbours and push them into the heap
       Uint old_size = cand_heap.size();
       item->getAllSuccessors(cand_heap, true);
       vector<HyperedgeItem*>::iterator cand_heap_end(cand_heap.begin()+old_size);
       while ( cand_heap_end < cand_heap.end() ) {
+         if (verbosity >= 3)
+            cerr << "Pushing hyperedge item " << (*cand_heap_end)->ds->id
+                 << " -> (" << (*cand_heap_end)->state_index
+                 << "," << (*cand_heap_end)->phrase_index << ") h "
+                 << (*cand_heap_end)->heuristic_score << endl;
          ++cand_heap_end;
          push_heap(cand_heap.begin(), cand_heap_end, heap_cmp);
          ++numEvaluatedStates;

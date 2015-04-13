@@ -44,12 +44,10 @@ namespace Portage
          /**
           * Constructor.
           * @param c          Global canoe configuration object.
-          * @param src_sents  The source sentences, used to determine the phrases to limit to (if c.loadFirst is false).
-          * @param marks      All the marked translations.
+          * @param sents      The source sentences, used to determine the phrases to limit to (if c.loadFirst is false).
           */
          BackwardsModelGenerator(const CanoeConfig& c,
-                                 const vector< vector<string> > &src_sents,
-                                 const vector< vector<MarkedTranslation> > &marks);
+                                 const VectorPSrcSent &sents);
 
          /// Destructor.
          virtual ~BackwardsModelGenerator();

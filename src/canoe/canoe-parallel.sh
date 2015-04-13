@@ -1,4 +1,5 @@
 #!/bin/bash
+#
 # @file canoe-parallel.sh
 # @brief wrapper to run canoe on a parallel machine or on a cluster.
 #
@@ -46,9 +47,9 @@ usage() {
 
 Usage: canoe-parallel.sh [options] canoe [canoe options] < <input>
 
-  Divide the input into several blocks and run canoe (one instance per block)
-  in parallel on them; the final output is reassembled to be identical to what
-  a single canoe would have output with the same options and input.
+  Divide the sentences to translate among several canoe instances running in
+  parallel; the final output is reassembled to be identical to what a single
+  canoe would have output with the same options and input.
 
   NB: if you are generating nbest lists and associated files (eg alignments,
   feature values), and concatenating them with canoe's -append option, all
@@ -62,11 +63,21 @@ Options:
                 that failed plus -resume <failed_JID> which looks like
                 canoe-parallel.XXX.
 
-  -[no-]lb      run in load balancing mode: split input into J [=2N] blocks,
-                N roughly even "heavy" ones, and J-N lighter ones; run them in
-                heavy to light order. [don't]
+  -lb           Run in block-oriented load-balancing mode: split input into
+                J [=2N] blocks, N roughly even "heavy" ones, and J-N lighter
+                ones; run them in heavy to light order.
 
-  -j(obs) J     Used with -lb to specify the number of jobs J >= N.  [2N]
+  -lb-by-sent   Run in sentence-oriented load-balancing mode: each canoe worker
+                reads all input sentences, but defers to a demon to get one
+                sentence ID to translate at a time.
+
+  -no-lb        Disable all load balancing: negates -lb and -lb-by-sent.
+                Split input into roughly equal-sized contiguous blocks.
+
+                [-lb-by-sent, but -no-lb if -f or canoe -append is used.]
+
+  -j(ob) J      Used with -lb to specify the number of jobs J >= N.  [2N]
+                (Meaningless without -lb.)
 
   -cleanup      Cleanup the run-parallel* logs after completion [don't]
 
@@ -76,6 +87,9 @@ Options:
 
   -n(um) N:     split the input into N blocks. [# input sentences / $HIGH_SENT_PER_BLOCK,
                 but in [$MIN_DEFAULT_NUM,$MAX_DEFAULT_NUM] in cluster mode; otherwise number of CPUs]
+
+  -pn PN:       the number of jobs to run simultaneously in cluster mode.
+                Useful if you want more blocks than parallel workers.
 
   -h(elp):      print this help message
 
@@ -114,6 +128,15 @@ Cluster mode options (ignored on non-clustered machines):
 }
 
 
+START_TIME=`date +"%s"`
+
+trap '
+   RC=$?
+   echo "Master-Wall-Time $((`date +%s` - $START_TIME))s" >&2
+   exit $RC
+' 0
+
+
 
 # Command line processing ; "declare -a" declares array variables
 declare -a CANOEOPTS
@@ -126,13 +149,14 @@ DEBUG=
 GOTCANOE=
 SAVE_ARGS="$@"
 REF=
-LOAD_BALANCING=
+LOAD_BALANCING=default
 RESUME=
 while [ $# -gt 0 ]; do
    case "$1" in
    -noc|-nocluster)RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS -nocluster";;
    -resume)        arg_check 1 $# $1; RESUME=$2; shift;;
-   -lb)            LOAD_BALANCING=1;;
+   -lb)            LOAD_BALANCING=byblock;;
+   -lb-by-sent)    LOAD_BALANCING=bysent;;
    -no-lb)         LOAD_BALANCING=;;
    -ref)           arg_check 1 $# $1; REF=$2; shift;;
    -n|-num)        arg_check 1 $# $1; NUM=$2; shift;;
@@ -141,6 +165,7 @@ while [ $# -gt 0 ]; do
    -cleanup)       RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
    -highmem)       RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
    -nolocal)       RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS $1";;
+   -local)         arg_check 1 $# $1; RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS -local $2"; shift;;
    -psub|-psub-opts|-psub-options)
                    arg_check 1 $# $1; PSUBOPTS="$PSUBOPTS $2"; shift;;
    -qsub|-qsub-opts|-qsub-options)
@@ -159,6 +184,30 @@ while [ $# -gt 0 ]; do
    shift
 done
 
+# Disable load balancing if using append mode
+APPEND=`echo $@ | egrep -oe '-append'`
+debug "APPEND: $APPEND"
+# Note: we used to disable -lb when -append was present, but now the two
+# options are supported together - this script does the -append function at the
+# end; not efficient for very large amounts of data, though.
+
+if [[ $LOAD_BALANCING == default ]]; then
+   if [[ $APPEND ]]; then
+      # append mode is more efficient without any load balancing, and is
+      # usually used with very large input anyway, which is also better handled
+      # without load balancing.
+      LOAD_BALANCING=
+   else
+      # I'm guessing this is going to be most efficient by default.
+      LOAD_BALANCING=bysent
+   fi
+fi
+
+debug LOAD_BALANCING=$LOAD_BALANCING
+
+if [[ $VERBOSE == 1 && $LOAD_BALANCING == bysent ]]; then
+   RUN_PARALLEL_OPTS="$RUN_PARALLEL_OPTS -quiet-daemon"
+fi
 
 # EJJ This breaks the resume mode, but is necessary on the GPSC to avoid file
 # name clashes between different jobs running in similarly-initialized
@@ -175,17 +224,10 @@ CMDS_FILE=$WORK_DIR/commands
 # Make sure there is canoe on the command line.
 [[ $GOTCANOE ]] || error_exit "The 'canoe' argument and the canoe options are missing."
 
-#
-if [ $NUMBER_OF_JOBS -ne 1 -a -z "$LOAD_BALANCING" ]; then
-   warn "-job option is only available for load-balancing"
+# -j is only for byblock load balancing (-lb option)
+if [[ $NUMBER_OF_JOBS -ne 1 && $LOAD_BALANCING != byblock ]]; then
+   warn "-j(ob) option is only available for regular load-balancing (-lb)"
 fi
-
-# Disable load balancing if using append mode
-APPEND=`echo $@ | egrep -oe '-append'`
-debug "APPEND: $APPEND"
-# Note: we used to disable -lb when -append was present, but now the two
-# options are supported together - this script does the -append function at the
-# end; not efficient for very large amounts of data, though.
 
 
 # Make sure the path to self is on the PATH variable: if an explicit path to
@@ -193,16 +235,18 @@ debug "APPEND: $APPEND"
 # the same directory, rather than find it on the path.
 export PATH=`dirname "$0"`:$PATH
 
-if [ $VERBOSE -gt 0 ]; then
+if [[ $VERBOSE -gt 0 ]]; then
    echo "" >&2
    echo Starting $$ on `hostname` on `date` >&2
    echo $0 $SAVE_ARGS >&2
    echo Using `which $CANOE` >&2
    echo "" >&2
-   if [ -n "$LOAD_BALANCING" ]; then
-      echo "Using load-balancing" >&2
+   if [[ $LOAD_BALANCING == bysent ]]; then
+      echo "Using by-sentence load balancing" >&2
+   elif [[ $LOAD_BALANCING ]]; then
+      echo "Using load balancing" >&2
    else
-      echo "NOT using load-balancing" >&2
+      echo "NOT using load balancing" >&2
    fi
 fi
 
@@ -220,11 +264,17 @@ fi
    fi
    MEMMAP_SIZE=`configtool memmap $CONFIGFILE`
    debug MEMMAP_SIZE=$MEMMAP_SIZE
-   if [[ $MEMMAP_SIZE -ge 1024 ]]; then
-      PSUBOPTS="-memmap $((MEMMAP_SIZE / 1024)) $PSUBOPTS"
+   if [ $VERBOSE -gt 0 ]; then
+      echo "Using memory-mapped files totaling "$(bc <<< "scale=3; $MEMMAP_SIZE / 1024")"G" >&2
+   fi
+   if [[ $MEMMAP_SIZE -ge 2048 ]]; then
+      PSUBOPTS="-memmap $((MEMMAP_SIZE / 1024 / 2)) $PSUBOPTS"
    fi
 
 if [ $DEBUG ]; then
+   for f in "${CANOEOPTS[@]}"; do
+     echo $f
+   done
    echo "
    NUM=$NUM
    PSUBOPTS=$PSUBOPTS
@@ -235,8 +285,8 @@ if [ $DEBUG ]; then
    DEBUG=$DEBUG
    LOAD_BALANCING=$LOAD_BALANCING
    RESUME=$RESUME
-" >&2
-fi
+"
+fi >&2
 
 
 if [ -n "$PSUBOPTS" ]; then
@@ -247,9 +297,28 @@ if [ -n "$QSUBOPTS" ]; then
 fi
 debug "RUN_PARALLEL_OPTS=$RUN_PARALLEL_OPTS"
 
+function create_hierarchy
+{
+   HIERARCHY_SIZE=$1
+   # Let's create the directory hierarchy.
+   # This is to prevent race conditions between workers.
+   if [[ $NBEST_PREFIX ]]; then
+      DIRNAME=`dirname $NBEST_PREFIX`
+      echo "Creating hierarchy $DIRNAME/%03.f" >&2
+      mkdir -p `seq --format="$DIRNAME/%03.f" 0 $(($HIERARCHY_SIZE/1000))` \
+      || error_exit "Unable to create the directory hierarchy."
+   fi
+   if [[ $LATTICE_PREFIX ]] && [[ $LATTICE_PREFIX != $NBEST_PREFIX ]]; then
+      DIRNAME=`dirname $LATTICE_PREFIX`
+      echo "Creating hierarchy $DIRNAME/%03.f" >&2
+      mkdir -p `seq --format="$DIRNAME/%03.f" 0 $(($HIERARCHY_SIZE/1000))` \
+      || error_exit "Unable to create the directory hierarchy."
+   fi
+}
+
 function full_translation
 {
-   # Calculate the number of nodes/CPUs to use if user hasn't specified
+   # Calculate the number of jobs/workers to use if user hasn't specified it,
    min () { if [ $1 -lt $2 ]; then echo $1; else echo $2; fi }
    if [ ! $NUM ]; then
       if which-test.sh qsub; then
@@ -278,25 +347,28 @@ function full_translation
    LINES_PER_BLOCK=$(( ( $INPUT_LINES + $NUM - 1 ) / $NUM ))
    debug "LINES_PER_BLOCK=$LINES_PER_BLOCK"
 
-   # the .commands file will have the list of commands to execute
+   # the commands file will have the list of commands to execute
    CMDS_FILE=$WORK_DIR/commands
-   test -f "$CMDS_FILE" && \rm -f $CMDS_FILE
+   test -f "$CMDS_FILE" && rm -f $CMDS_FILE
 
-   if [ -n "$LOAD_BALANCING" ]; then
-      # Make sure there are at least as many jobs as there are nodes
+   # LOAD BALANCING mode
+   if [[ $LOAD_BALANCING ]]; then
+      # Make sure there are at least as many jobs as there are workers
       if [ $NUM -gt $NUMBER_OF_JOBS ]; then
          NUMBER_OF_JOBS=$NUM
       fi
 
-      # Load balancing command
-      LB_CMD="cat $INPUT | load-balancing.pl -output="$INPUT" -node=$NUM -job=$NUMBER_OF_JOBS"
-      test -n "$REF" && LB_CMD="$LB_CMD -ref=$REF"
-      debug "load-balancing: $LB_CMD"
-      eval "$LB_CMD"
-      RC=$?
-      if ((RC != 0)); then
-         echo "Error spliting the input for load-balancing" >&2
-         exit -7;
+      if [[ $LOAD_BALANCING == byblock ]]; then
+         # Load balancing command
+         LB_CMD="cat $INPUT | load-balancing.pl -output="$INPUT" -node=$NUM -job=$NUMBER_OF_JOBS"
+         test -n "$REF" && LB_CMD="$LB_CMD -ref=$REF"
+         debug "load-balancing: $LB_CMD"
+         eval "$LB_CMD"
+         RC=$?
+         if ((RC != 0)); then
+            echo "Error spliting the input for load-balancing" >&2
+            exit -7;
+         fi
       fi
 
       # Canoe cannot do load-balancing and append at the same time, so
@@ -317,47 +389,55 @@ function full_translation
          fi
       done
 
-      for (( i = 0 ; i < $NUMBER_OF_JOBS ; ++i )); do
-         CANOE_INPUT=`printf "$INPUT.%4.4d" $i`
-         OUT=$WORK_DIR/out.$i
-         ERR=$WORK_DIR/err.$i
-         CMD="time $CANOE ${CONFIGARG[@]} -lb"
-         test -n "$REF" && CMD="$CMD -ref "`printf "$INPUT.ref.%4.4d" $i`
-         CMD="cat $CANOE_INPUT | $CMD > $OUT 2> $ERR"
+      [[ $HIERARCHY ]] && create_hierarchy $INPUT_LINES
 
-         # add to commands file or run
-         debug "LB canoe cmd: $CMD"
-         echo "test ! -f $CANOE_INPUT || ($CMD && rm $CANOE_INPUT)" >> $CMDS_FILE
-      done
+      if [[ $LOAD_BALANCING == byblock ]]; then
+         # regular load balancing: by blocks
+         for (( i = 0 ; i < $NUMBER_OF_JOBS ; ++i )); do
+            CANOE_INPUT=`printf "$INPUT.%4.4d" $i`
+            OUT=$WORK_DIR/out.$i
+            ERR=$WORK_DIR/err.$i
+            CMD="time $CANOE ${CONFIGARG[@]} -lb"
+            test -n "$REF" && CMD="$CMD -ref "`printf "$INPUT.ref.%4.4d" $i`
+            CMD="cat $CANOE_INPUT | $CMD > $OUT 2> $ERR"
+
+            # add to commands file or run
+            debug "LB canoe cmd: $CMD"
+            echo "test -f $CANOE_INPUT.done || ($CMD && mv $CANOE_INPUT ${CANOE_INPUT}.done)"
+         done > $CMDS_FILE
+      else
+         # load balancing sentence by sentence
+         seq 0 $((INPUT_LINES - 1)) > $CMDS_FILE
+         WORKER_CMD="$CANOE ${CONFIGARG[@]} -input $INPUT -canoe-daemon __HOST__:__PORT__"
+      fi
+   # NOT in load-balancing.
    else
       # When running in append mode we need to create intermediate files that
       # we need to keep track of
       # Remove the -nbest option from the list
       CANOEOPTS_APPEND=`echo "${CANOEOPTS[*]}" | perl -pe 's/(^| )-nbest \S+/ /'`
+      # Remove the -lattice option from the list
+      CANOEOPTS_APPEND=`echo "${CANOEOPTS_APPEND[*]}" | perl -pe 's/(^| )-lattice \S+/ /'`
       debug "CANOEOPTS_APPEND: ${CANOEOPTS_APPEND[*]}"
+
+      [[ $HIERARCHY ]] && create_hierarchy $INPUT_LINES
 
       # Run or prepare all job blocks
       for (( i = 0 ; i < $NUM ; ++i )); do
-         INDEX=`printf ".%4.4d" $i`   # Build the chunk's index
-
          if [ $INPUT_LINES -le $(( (i + 1) * LINES_PER_BLOCK)) ]; then
             # input file small - this block will cover all remaining lines
             NUM=$((i + 1))
          fi
 
          # set up the canoe command string
-         FIRST_SENT_NUM=$(( $i * $LINES_PER_BLOCK ))
+         CONFIGARG=
+            FIRST_SENT_NUM=$(( $i * $LINES_PER_BLOCK ))
 
-         CANOE_CMD="time $CANOE $CANOEOPTS_APPEND -first-sentnum $FIRST_SENT_NUM"
-         if [ -n "$APPEND" ]; then
-            if [ -n "$NBEST_PREFIX" ]; then
-               CANOE_CMD="$CANOE_CMD -nbest ${NBEST_PREFIX}${INDEX}${NBEST_COMPRESS}${NBEST_SIZE}"
-            fi
-         else
-            if [ -n "$NBEST_PREFIX" ]; then
-               CANOE_CMD="$CANOE_CMD -nbest ${NBEST_PREFIX}${NBEST_COMPRESS}${NBEST_SIZE}"
-            fi
-         fi
+         CANOE_CMD="time $CANOE ${CANOEOPTS_APPEND[*]} $CONFIGARG -first-sentnum $FIRST_SENT_NUM"
+         PRECISION=${PRECISION:-3}
+         [[ $APPEND ]] && INDEX=`printf ".%${PRECISION}.${PRECISION}d" $i`   # Build the chunk's index
+         [[ $NBEST_PREFIX ]] && CANOE_CMD="$CANOE_CMD -nbest ${NBEST_PREFIX}${INDEX}${NBEST_COMPRESS}${NBEST_SIZE}"
+         [[ $LATTICE_PREFIX ]] && CANOE_CMD="$CANOE_CMD -lattice ${LATTICE_PREFIX}${INDEX}${LATTICE_COMPRESS}"
          debug "CANOE_CMD $i=$CANOE_CMD"
          CANOE_INPUT=$INPUT.$i
          OUT=$WORK_DIR/out.$i
@@ -365,27 +445,27 @@ function full_translation
 
          # select the input to feed to this job
          SELECT_LINES_CMD_R=""
-         SELECT_LINES_CMD_XV=""
-         if [ $i -lt $((NUM - 1)) ]; then
-            LAST_LINE=$(( (i + 1) * LINES_PER_BLOCK ))
-            head -$LAST_LINE $INPUT | tail -$LINES_PER_BLOCK > $CANOE_INPUT
-            if [ $REF ]; then
-               SELECT_LINES_CMD_R="-ref \"gzip -cdqf < $REF | head -$LAST_LINE | tail -$LINES_PER_BLOCK |\""
-            fi
-         else
-            LINES_IN_LAST_BLOCK=$(( INPUT_LINES - i * LINES_PER_BLOCK ))
-            tail -$LINES_IN_LAST_BLOCK $INPUT > $CANOE_INPUT
-            if [ $REF ]; then
-               SELECT_LINES_CMD_R="-ref \"gzip -cdqf < $REF | tail -$LINES_IN_LAST_BLOCK |\""
-            fi
-         fi
 
-         CMD="cat $CANOE_INPUT | $CANOE_CMD $SELECT_LINES_CMD_R $SELECT_LINES_CMD_XV > $OUT 2> $ERR"
+            if [ $i -lt $((NUM - 1)) ]; then
+               LAST_LINE=$(( (i + 1) * LINES_PER_BLOCK ))
+               head -$LAST_LINE $INPUT | tail -$LINES_PER_BLOCK > $CANOE_INPUT
+               if [ $REF ]; then
+                  SELECT_LINES_CMD_R="-ref \"gzip -cdqf < $REF | head -$LAST_LINE | tail -$LINES_PER_BLOCK |\""
+               fi
+            else
+               LINES_IN_LAST_BLOCK=$(( INPUT_LINES - i * LINES_PER_BLOCK ))
+               tail -$LINES_IN_LAST_BLOCK $INPUT > $CANOE_INPUT
+               if [ $REF ]; then
+                  SELECT_LINES_CMD_R="-ref \"gzip -cdqf < $REF | tail -$LINES_IN_LAST_BLOCK |\""
+               fi
+            fi
+
+         CMD="cat $CANOE_INPUT | $CANOE_CMD $SELECT_LINES_CMD_R > $OUT 2> $ERR"
 
          # add to commands file or run
          # NOTE that if the block is successful we flag it at is by deleting its input
-         echo "test ! -f $CANOE_INPUT || ($CMD && rm $CANOE_INPUT)" >> $CMDS_FILE
-      done
+         echo "test -f $CANOE_INPUT.done || ($CMD && mv $CANOE_INPUT ${CANOE_INPUT}.done)"
+      done > $CMDS_FILE
    fi
 }
 
@@ -426,6 +506,10 @@ debug "NBEST_PREFIX:$NBEST_PREFIX"
 debug "NBEST_SIZE: $NBEST_SIZE"
 debug "NBEST_COMPRESS: $NBEST_COMPRESS"
 
+# Are we using hierarchy?
+[[ "${CANOEOPTS[*]}" =~ "(^| )-hierarchy" ]] && HIERARCHY=" -hierarchy"
+debug "HIERARCHY:$HIERARCHY"
+[[ $APPEND ]] && [[ $HIERARCHY ]] && error_exit "-hierarchy and -append mode are incompatible."
 
 # Autoresume of failed jobs or to translation
 if [ -n "$RESUME" ]; then
@@ -446,8 +530,14 @@ if [ ! $PARNUM ]; then PARNUM=$NUM; fi
 
 
 # Submit the jobs to run-parallel.sh, which will take care of parallizing them
-debug "run-parallel.sh $RUN_PARALLEL_OPTS $CMDS_FILE $PARNUM"
-eval run-parallel.sh $RUN_PARALLEL_OPTS $CMDS_FILE $PARNUM
+if [[ $WORKER_CMD ]]; then
+   WORKER_ARG="-worker-cmd \"$WORKER_CMD\" -unordered-cat"
+   debug "run-parallel.sh $WORKER_ARG $RUN_PARALLEL_OPTS $CMDS_FILE $PARNUM > $WORK_DIR/out.unordered"
+   eval run-parallel.sh $WORKER_ARG $RUN_PARALLEL_OPTS $CMDS_FILE $PARNUM > $WORK_DIR/out.unordered
+else
+   debug "run-parallel.sh $RUN_PARALLEL_OPTS $CMDS_FILE $PARNUM"
+   eval run-parallel.sh $RUN_PARALLEL_OPTS $CMDS_FILE $PARNUM
+fi
 RC=$?
 if (( $RC != 0 )); then
    echo "problems with run-parallel.sh(RC=$RC) - quitting!" >&2
@@ -458,9 +548,10 @@ fi
 
 
 # Reassemble the program's STDOUT
-if [ -n "$LOAD_BALANCING" ]; then
+if [[ $LOAD_BALANCING ]]; then
    # Sort translation by src sent id and then remove id
-   time { cat $WORK_DIR/out.* | sort -g | cut -f2; }
+   echo "Rebuilding STDOUT" >&2
+   time { cat $WORK_DIR/out.* | sort -n | cut -f2; }
    TOTAL_LINES_OUTPUT=`cat $WORK_DIR/out.* | wc -l`
 else
    TOTAL_LINES_OUTPUT=0
@@ -472,7 +563,7 @@ fi
 
 # Reassemble the program's STDERR
 if [ $VERBOSE -gt 0 ]; then
-   for f_err in `ls -v $WORK_DIR/err.*`;
+   for f_err in `ls -v $WORK_DIR/err.* 2> /dev/null`;
    do
       i=`echo "$f_err" | egrep -o "[0-9]*$"`
       echo "" >&2
@@ -500,12 +591,14 @@ if [ $TOTAL_LINES_OUTPUT -ne $INPUT_LINES ]; then
 fi
 
 
-# Merging output chunks (nbest, ffvals, pal, and lattice)
+# Merging output chunks (nbest, ffvals, sfvals, pal, and lattice)
 if [ -n "$APPEND" ]; then
    FFVALS_CREATED=`echo ${CANOEOPTS[*]} | egrep -oe '-ffvals'`
+   SFVALS_CREATED=`echo ${CANOEOPTS[*]} | egrep -oe '-sfvals'`
    PAL_CREATED=`echo ${CANOEOPTS[*]} | egrep -oe '-palign' -e '-t ' -e '-trace'`
 
    K=${NBEST_SIZE#:}
+   K=${K:-100}
    if [ -n "$LOAD_BALANCING" ]; then
       NUM_MERGE=$INPUT_LINES
    else
@@ -513,70 +606,111 @@ if [ -n "$APPEND" ]; then
    fi
 
    ### concatenating separate lists into one big file
+   DIRNAME=`dirname ${NBEST_PREFIX}`
+   BASENAME=`basename ${NBEST_PREFIX}`
 
    # merge ffvals files
-   if [ -n "$FFVALS_CREATED" ]; then
+   if [ -n "$FFVALS_CREATED" ] && [ -n "$NBEST_PREFIX" ]; then
+      [[ `find $DIRNAME -name $BASENAME.\*.${K}best.ffvals$NBEST_COMPRESS | \wc -l` -eq $NUM_MERGE ]] \
+      || error_exit "There are some missing ffvals files."
+
       OUTPUT="${NBEST_PREFIX}ffvals$NBEST_COMPRESS"
       debug "LB FFVALS output: $OUTPUT"
       test -f $OUTPUT && \rm $OUTPUT
-      s=0;
-      time { while [ $s -lt $NUM_MERGE ]; do
-         base_filename=`printf "${NBEST_PREFIX}.%4.4d.${K}best.ffvals$NBEST_COMPRESS" $s`
-         cat ${base_filename} >> $OUTPUT
-         \rm ${base_filename}
-         s=$((s + 1));
-      done; }
+      time { find $DIRNAME -name $BASENAME.\*.${K}best.ffvals$NBEST_COMPRESS \
+         | sed "s/\(.\+\.\([0-9]\+\)\.${K}best.ffvals$NBEST_COMPRESS\)/\2\t\1/" \
+         | LC_ALL=C sort -g -k1,1 \
+         | cut -f2- \
+         | xargs --no-run-if-empty cat > $OUTPUT; }
+      [[ $DEBUG ]] || find $DIRNAME -name $BASENAME.\*.${K}best.ffvals$NBEST_COMPRESS | xargs \rm
+   fi
+
+   # merge sfvals files
+   if [ -n "$SFVALS_CREATED" ] && [ -n "$NBEST_PREFIX" ]; then
+      [[ `find $DIRNAME -name $BASENAME.\*.${K}best.sfvals$NBEST_COMPRESS | \wc -l` -eq $NUM_MERGE ]] \
+      || error_exit "There are some missing sfvals files."
+
+      OUTPUT="${NBEST_PREFIX}sfvals$NBEST_COMPRESS"
+      debug "LB SFVALS output: $OUTPUT"
+      test -f $OUTPUT && \rm $OUTPUT
+      time { find $DIRNAME -name $BASENAME.\*.${K}best.sfvals$NBEST_COMPRESS \
+         | sed "s/\(.\+\.\([0-9]\+\)\.${K}best.sfvals$NBEST_COMPRESS\)/\2\t\1/" \
+         | LC_ALL=C sort -g -k1,1 \
+         | cut -f2- \
+         | xargs --no-run-if-empty cat > $OUTPUT; }
+      [[ $DEBUG ]] || find $DIRNAME -name $BASENAME.\*.${K}best.sfvals$NBEST_COMPRESS | xargs \rm
    fi
 
    # merge pal files
-   if [ -n "$PAL_CREATED" ]; then
+   if [ -n "$PAL_CREATED" ] && [ -n "$NBEST_PREFIX" ]; then
+      [[ `find $DIRNAME -name $BASENAME.\*.${K}best.pal$NBEST_COMPRESS | \wc -l` -eq $NUM_MERGE ]] \
+      || error_exit "There are some missing pal files."
+
       OUTPUT="${NBEST_PREFIX}pal$NBEST_COMPRESS"
       debug "LB PAL output: $OUTPUT"
       test -f $OUTPUT && \rm $OUTPUT
-      s=0;
-      time { while [ $s -lt $NUM_MERGE ]; do
-         base_filename=`printf "${NBEST_PREFIX}.%4.4d.${K}best.pal$NBEST_COMPRESS" $s`
-         cat ${base_filename} >> $OUTPUT
-         \rm ${base_filename}
-         s=$((s + 1));
-      done; }
+      time { find $DIRNAME -name $BASENAME.\*.${K}best.pal$NBEST_COMPRESS \
+         | sed "s/\(.\+\.\([0-9]\+\)\.${K}best.pal$NBEST_COMPRESS\)/\2\t\1/" \
+         | LC_ALL=C sort -g -k1,1 \
+         | cut -f2- \
+         | xargs --no-run-if-empty cat > $OUTPUT; }
+      [[ $DEBUG ]] || find $DIRNAME -name $BASENAME.\*.${K}best.pal$NBEST_COMPRESS | xargs \rm
    fi
 
    # merge the nbest files
    if [ -n "$NBEST_PREFIX" ]; then
+      [[ `find $DIRNAME -name $BASENAME.\*.${K}best$NBEST_COMPRESS | \wc -l` -eq $NUM_MERGE ]] \
+      || error_exit "There are some missing Nbest files."
+
       OUTPUT="${NBEST_PREFIX}nbest$NBEST_COMPRESS"
       debug "LB NBEST output: $OUTPUT"
       test -f $OUTPUT && \rm $OUTPUT
-      s=0;
-      time { while [ $s -lt $NUM_MERGE ]; do
-         base_filename=`printf "${NBEST_PREFIX}.%4.4d.${K}best$NBEST_COMPRESS" $s`
-         cat ${base_filename} >> $OUTPUT
-         \rm ${base_filename}
-         s=$((s + 1));
-      done; }
+      time { find $DIRNAME -name $BASENAME.\*.${K}best$NBEST_COMPRESS \
+         | sed "s/\(.\+\.\([0-9]\+\)\.${K}best$NBEST_COMPRESS\)/\2\t\1/" \
+         | LC_ALL=C sort -g -k1,1 \
+         | cut -f2- \
+         | xargs --no-run-if-empty cat > $OUTPUT; }
+      [[ $DEBUG ]] || find $DIRNAME -name $BASENAME.\*.${K}best$NBEST_COMPRESS | xargs \rm
    fi
+
+   #[[ $DEBUG ]] || rm -r $DIRNAME
 
    # merge lattice and lattice state files
    if [ -n "$LATTICE_PREFIX" ]; then
+      DIRNAME=`dirname ${LATTICE_PREFIX}`
+      BASENAME=`basename ${LATTICE_PREFIX}`
+
+      [[ `find $DIRNAME -name $BASENAME.\*[0-9]$LATTICE_COMPRESS | \wc -l` -eq $NUM_MERGE ]] \
+      || error_exit "There are some missing lattice files."
+
       OUTPUT="${LATTICE_PREFIX}$LATTICE_COMPRESS"
-      OUTPUT_ST="${LATTICE_PREFIX}.state$LATTICE_COMPRESS"
       test -f $OUTPUT && \rm $OUTPUT
-      test -f $OUTPUT_ST && \rm $OUTPUT_ST
-      s=0;
-      time { while [ $s -lt $NUM_MERGE ]; do
-         base_filename=`printf "${LATTICE_PREFIX}.%4.4d$LATTICE_COMPRESS" $s`
-         base_filename_st=`printf "${LATTICE_PREFIX}.%4.4d.state$LATTICE_COMPRESS" $s`
-         cat ${base_filename} >> $OUTPUT
-         cat ${base_filename_st} >> $OUTPUT_ST
-         \rm ${base_filename}
-         \rm ${base_filename_st}
-         s=$((s + 1));
-      done; }
+      time { find $DIRNAME -name $BASENAME.\*[0-9]$LATTICE_COMPRESS \
+         | sed "s/\(.\+\.\([0-9]\+\)$LATTICE_COMPRESS\)/\2\t\1/" \
+         | LC_ALL=C sort -g -k1,1 \
+         | cut -f2- \
+         | xargs --no-run-if-empty cat > $OUTPUT; }
+      [[ $DEBUG ]] || find $DIRNAME -name $BASENAME.\*[0-9]$LATTICE_COMPRESS | xargs \rm
+
+      # Concatenate only if there are some state files.
+      LATTICE_STATE_COUNT=`find $DIRNAME -name $BASENAME.\*[0-9].state$LATTICE_COMPRESS | \wc -l`
+      if [[ $LATTICE_STATE_COUNT -gt 0 ]]; then
+         [[ $LATTICE_STATE_COUNT -eq $NUM_MERGE ]] || error_exit "There are some missing lattice state files."
+
+         OUTPUT="${LATTICE_PREFIX}.state$LATTICE_COMPRESS"
+         test -f $OUTPUT && \rm $OUTPUT
+         time { find $DIRNAME -name $BASENAME.\*[0-9].state$LATTICE_COMPRESS \
+            | sed "s/\(.\+\.\([0-9]\+\).state$LATTICE_COMPRESS\)/\2\t\1/" \
+            | LC_ALL=C sort -g -k1,1 \
+            | cut -f2- \
+            | xargs --no-run-if-empty cat > $OUTPUT; }
+         [[ $DEBUG ]] || find $DIRNAME -name $BASENAME.\*[0-9].state$LATTICE_COMPRESS | xargs \rm
+      fi
+
+      #[[ $DEBUG ]] || rm -r $DIRNAME
    fi
-
-
 fi
 
 # Everything went fine, clean up
-test -e $WORK_DIR && rm -rf $WORK_DIR
+[[ -e $WORK_DIR ]] && rm -rf $WORK_DIR
 exit 0;

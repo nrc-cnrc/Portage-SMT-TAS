@@ -21,6 +21,8 @@
 #include "voc.h"
 #include <vector>
 #include <string>
+#include <boost/shared_ptr.hpp>
+
 
 namespace Portage {
 
@@ -28,6 +30,38 @@ using namespace std;
 
 // Forward declaration
 class PhraseInfo;
+class BasicModel;
+
+/// A SrcWall describes an occurrence of <wall name="name"/> in the input sentence.
+struct SrcWall {
+   Uint pos;
+   string name;
+   SrcWall() : pos(0) {}
+   explicit SrcWall(Uint pos, const string& name = "") : pos(pos), name(name) {}
+};
+/// A SrcZone describes a section of an input sentence marked with <zone name="name"> blah </zone>
+struct SrcZone {
+   Range range;
+   string name;
+   SrcZone() {}
+   explicit SrcZone(Range range, const string& name = "") : range(range), name(name) {}
+};
+/// A SrcLocalWall describes an occurrence of <localwall name="name"/> inside a zone.
+struct SrcLocalWall {
+   Uint pos;
+   Range zone;
+   string name;
+   SrcLocalWall() {}
+   explicit SrcLocalWall(Uint pos, const string& name = "") :
+      pos(pos), zone(0,0), name(name) {}
+};
+
+inline ostream& operator<<(ostream& o, const SrcWall& w) { o << w.pos; return o; }
+inline ostream& operator<<(ostream& o, const SrcZone& z) { o << z.range; return o; }
+inline ostream& operator<<(ostream& o, const SrcLocalWall& lw) {
+   o << "[" << lw.zone.start << "|" << lw.pos << "|" << lw.zone.end << ")";
+   return o;
+}
 
 /**
  * Groups all the information about a source sentence needed by a decoder
@@ -35,15 +69,18 @@ class PhraseInfo;
  */
 struct newSrcSentInfo {
 
+   /// The BasicModel for this source sentence, as soon as it's known.
+   BasicModel* model;
+
    /// A unique index for source sentences as internally processed by this
    /// instance of canoe.  Must correspond sequentially to the order in which
    /// that instance of canoe has processed each sentence.
    Uint internal_src_sent_seq;
 
    /// The external source sentence ID, typically the line number in the input
-   /// file to, say, canoe-parallel.sh.  Used by to create output file names.
+   /// file to, say, canoe-parallel.sh.  Used to create output file names.
    /// May be used by models to select the appropriate line in any data files
-   /// line-aligned with the global input.
+   /// line-aligned with the global input. Zero-based.
    Uint external_src_sent_id;
 
    /// The source sentence.
@@ -56,12 +93,11 @@ struct newSrcSentInfo {
    /// Filled by BasicModelGenerator::createModel.
    vector<PhraseInfo *>** potential_phrases;
 
-   /// Target sentence (in training).
-   /// Optional target sentence.
+   /// Optional target sentence, for Levenshtein and NGramMatch features.
    /// Provided by the user of canoe.
    const vector<string>* tgt_sent;
 
-   /// Optional uint representation of the target sentence.
+   /// Optional Uint representation of the target sentence.
    /// Filled by BasicModelGenerator::createModel.
    vector<Uint> tgt_sent_ids;
 
@@ -71,12 +107,22 @@ struct newSrcSentInfo {
    /// contains an out-of-vocabulary word.
    vector<bool>* oovs;
 
-   /// Default constructor.
+   /// List of walls
+   vector<SrcWall> walls;
+   /// List of zones
+   vector<SrcZone> zones;
+   /// List of local walls
+   vector<SrcLocalWall> local_walls;
+
+   /// Default constructor initializes everything to NULL/0/empty.
    newSrcSentInfo() { clear(); }
+   /// Destructor NULLs all the pointers, just to be safe
+   ~newSrcSentInfo() { clear(); }
 
    /// Resets this new source sentence info to an empty state.
    void clear()
    {
+      model             = NULL;
       internal_src_sent_seq = 0;
       external_src_sent_id = 0;
       src_sent.clear();
@@ -85,6 +131,9 @@ struct newSrcSentInfo {
       tgt_sent          = NULL;
       tgt_sent_ids.clear();
       oovs              = NULL;
+      walls.clear();
+      zones.clear();
+      local_walls.clear();
    }
 
    /**
@@ -114,6 +163,12 @@ struct newSrcSentInfo {
          out << join(*oovs) << endl;
    }
 }; // ends newSrcSentInfo
+
+typedef boost::shared_ptr<newSrcSentInfo> PSrcSent;
+
+// this is like a typedef, but it allows forward declarations.
+struct VectorPSrcSent : public vector<PSrcSent> {};
+//equivalent to: typedef vector<PSrcSent> VectorPSrcSent;
 
 } // ends namespace Portage
 

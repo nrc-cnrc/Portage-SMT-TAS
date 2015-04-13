@@ -65,13 +65,31 @@ namespace Portage {
          TS_ASSERT(!ShiftReducer::isRecombinable(sr1,sr3));
       }
 
+      void test_fake_reduce()
+      {
+         Range r1[5] = {Range(3,4),Range(0,1),Range(1,2),
+                        Range(2,3),Range(4,5)};
+         parseRanges(r1,5,Range(0,5));
+      }
+
    private:
       ShiftReducer* parseRanges(Range ranges[], Uint size, Range answer)
       {
          ShiftReducer* sr = new ShiftReducer(10);
          for(Uint i=0;i<size;i++)
          {
+            ShiftReducer* fakeTail = sr; Range fakeTop(ranges[i].start,ranges[i].end);
+            Range nTop; ShiftReducer* nTail;
+            do{
+               nTop.start=fakeTop.start; nTop.end=fakeTop.end; nTail = fakeTail;
+               ShiftReducer::fake_reduce(nTop,nTail,fakeTop,fakeTail);
+            } while(fakeTop!=nTop);
+            
             sr = new ShiftReducer(ranges[i],sr);
+           
+            TS_ASSERT_EQUALS(sr->start(),fakeTop.start);
+            TS_ASSERT_EQUALS(sr->end(),fakeTop.end);
+            if(fakeTail==NULL) TS_ASSERT(sr->isOneElement()); 
          }
          TS_ASSERT_EQUALS(sr->start(),answer.start);
          TS_ASSERT_EQUALS(sr->end(),answer.end);

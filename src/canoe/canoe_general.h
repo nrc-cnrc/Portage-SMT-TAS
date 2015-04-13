@@ -3,8 +3,6 @@
  * @file canoe_general.h  This file contains commonly used structures and
  *                        simple functions.
  *
- * $Id$
- *
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -24,6 +22,7 @@
 #include <sstream>
 #include <cassert>
 #include <compact_phrase.h>
+#include <boost/static_assert.hpp>
 
 using namespace std;
 using namespace Portage;
@@ -44,6 +43,12 @@ namespace Portage
 
    /// Indicates no limit on maximum itg distortion
    extern const int NO_MAX_ITG;
+
+   /// Indicates no limit on maximum (printed) lattice density
+   extern const double BIG_LAT_DENSITY;
+
+   /// Indicates no limit on minimum edge score
+   extern const double SMALL_MIN_EDGE;
 
    /// Definition of a Phrase.
    /// Can be VectorPhrase or CompactPhrase, both defined in
@@ -153,15 +158,29 @@ namespace Portage
     */
    void intersectRange(UintSet &result, const UintSet &s, const Range &r);
 
+   //@{
+   /**
+    * Test whether a set is a subset of another.
+    * @return  true iff s1 is a subset of s2
+    */
+   bool isSubset(Range s1, const UintSet &s2);
+   bool isSubset(const UintSet &s1, const UintSet &s2);
+   //@}
+
+   /**
+    * Test whether r and s are disjoint
+    * @return  true iff the intersection of r and s is empty
+    */
+   bool isDisjoint(Range r, const UintSet &s);
+
    /**
     * Test whether a Range and a UintSet are equivalent
     * @param s  UintSet
     * @param r  range
     * @return true iff, conceptually, s == r
     */
-   inline bool operator==(const UintSet &s, Range r) {
-      return s.size() == 1 && s[0] == r;
-   }
+   inline bool operator==(const UintSet &s, Range r) { return s.size() == 1 && s[0] == r; }
+   inline bool operator!=(const UintSet &s, Range r) { return !(s == r); }
 
    /**
     * Count the number of possible contiguous subranges in a UintSet
@@ -310,6 +329,14 @@ namespace Portage
    template<class T, class U>
    T dotProduct(const vector<T> &a, const vector<U> &b, Uint size)
    {
+      // Create a compile error if U is the type with the higher precision
+      // The compiler will issue an incomprehensible error message looking like
+      //    error: invalid application of 'sizeof' to incomplete type 'boost::STATIC_ASSERTION_FAILURE<false>'
+      // Above this message should be a message saying "instantiated from here": that
+      // should point to a line where dotproduct is called with U bigger than T, and
+      // needs to have its first two arguments reversed.
+      BOOST_STATIC_ASSERT(sizeof(T) >= sizeof(U));
+
       assert(size <= a.size());
       assert(size <= b.size());
       T result = T(0);
@@ -319,6 +346,21 @@ namespace Portage
       return result;
    } // dotProduct
 
+   class Voc;
+   /// Singleton pointer to the global vocabulary. We need this so often and in so many
+   /// places, let's factor it out. Normally, this is &BasicModelGenerator::tgt_vocab,
+   /// but other applications that need a global vocabulary can also use it.
+   class GlobalVoc {
+      /// The singleton global voc pointer
+      static const Voc* the_voc;
+   public:
+      /// Set the global voc; it is an error to call this twice without calling clear()
+      static void set(const Voc* voc);
+      /// Clear the global voc; use this when you're about to destroy it
+      static void clear();
+      /// Get the global voc; it is an error to call this if set() was not called first.
+      static inline const Voc* get() { assert(the_voc != NULL); return the_voc; }
+   };
 } // Portage
 
 

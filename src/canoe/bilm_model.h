@@ -15,6 +15,7 @@
 #define _BILM_MODEL_H_
 
 #include "decoder_feature.h"
+#include "bilm_annotation.h"
 
 
 namespace Portage {
@@ -24,14 +25,22 @@ class VocabFilter;
 
 class BiLMModel : public DecoderFeature {
    BasicModelGenerator* bmg;
-   const string filename;
+   BiLMAnnotation::Annotator* annotator;
+   const string model_string;
+   string filename;
    PLM* bilm;
    Uint order;
-   VocabFilter& voc;
+   VocabFilter* biVoc;
    Uint sentStartID;
    void getLastBiWordsBackwards(VectorPhrase &biWords, Uint num, const PartialTranslation& trans);
 public:
-   BiLMModel(BasicModelGenerator* bmg, const string& filename);
+   /// Check that all files exist, appending each file to *list if list != NULL
+   static bool checkFileExists(const string& bilm_specification, vector<string>* list = NULL);
+   /// Calculate the total memmap size of a model
+   static Uint64 totalMemmapSize(const string& bilm_specification);
+   /// Fix the relative path of file and subfiles it requires, e.g., class files
+   static string fix_relative_path(const string& path, string file);
+   BiLMModel(BasicModelGenerator* bmg, const string& model_string);
    ~BiLMModel();
    virtual void finalizeInitialization(); // the real loading is done here, since we need TMs first
    virtual void newSrcSent(const newSrcSentInfo& info);

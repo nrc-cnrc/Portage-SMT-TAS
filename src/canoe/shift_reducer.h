@@ -54,6 +54,14 @@ namespace Portage
       /// inside its computeRecombHash() 
       Uint computeRecombHash();
 
+      /// Perform a fake reduction
+      ///
+      /// Given a newTop and newTail, this function returns the
+      /// result of performing a single reduction (if possible)
+      /// using return-by-reference on oTop and oTail
+      static void fake_reduce(const Range& newTop, ShiftReducer* newTail,
+                              Range& oTop, ShiftReducer*& oTail);
+      
       /// Check parser equality
       /// 
       /// Any feature that relies on the parser should call this
@@ -100,6 +108,12 @@ namespace Portage
       /// Are we allowed to perform non-ITG reductions?
       static bool allowNonITG;
    };
+
+   /// Print a ShiftReducer to a stream
+   inline ostream& operator<<(ostream& os, const ShiftReducer* s) {
+      os << (s==NULL?"NULL":s->toString());
+      return os;
+   }
 }
 
 #endif

@@ -183,7 +183,7 @@ class HyperedgeItem {
 /**
  * Hypothesis stack designed to support the cube pruning algorithm.
  * Normal usage:
- *  1) call add() on all the incoming hyperdges.
+ *  1) call add() on all the incoming hyperedges.
  *  2) call KBest() to find the K best states among these hyperedges.
  *  3) call getAllStates() to get those K best states for further processing.
  * For the first stack, you should call push() on an empty state instead of

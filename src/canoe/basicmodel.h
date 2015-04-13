@@ -5,8 +5,6 @@
  * phrase translation probability, and distortion probability in order to
  * compute the overall probability.
  *
- * $Id$
- *
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -112,6 +110,27 @@ namespace Portage
             const char *word);
 
       /**
+       * For each phrase pair in phrases, compute the phrase heuristic using
+       * phrasePartialScore(), and save it in the PhraseInfo object.
+       */
+      virtual void computePhrasePartialScores(vector<PhraseInfo *> **phrases,
+            Uint sentLength);
+
+      /// Verbose logging helper for applyPhraseTablePruning
+      /// SPI stands for scored phrase info.
+      void displaySPI(const char* msg, PhraseInfo* pi);
+
+      /**
+       * Apply full-type phrase table pruning on the phrase candidates, using
+       * the log-linear combination of all decoder features that can produce a
+       * heuristic score knowing only the phrase pair, out of context.
+       * @param phrases    The triangular array of phrase options: gets changed in place.
+       * @param sentLength The number of words in the source sentence.
+       */
+      virtual void applyPhraseTablePruning(vector<PhraseInfo *> **phrases,
+            Uint sentLength);
+
+      /**
        * Future score pre-computation using dynamic programming.
        *
        * Computes the estimated future translation probability for each range
@@ -130,6 +149,35 @@ namespace Portage
        */
       virtual double **precomputeFutureScores(vector<PhraseInfo *> **phrases,
             Uint sentLength);
+
+      /**
+       * Partial scoring function based on range, for cube pruning.
+       *
+       * Estimates the incremental score, in so far as can be calculated if one
+       * only takes into account the source range of the last phrase in trans.
+       * Does not consider TMs and LMs - only considers features that override
+       * DecoderFeature::partialScore(), e.g., distortion.
+       *
+       * The sum rangePartialScore(trans) + phrasePartialScore(trans.src_words)
+       * is used as a heuristic for scoreTranslation(trans).
+       *
+       * This method also queries filter features, returning -INFINITY if any
+       * filter feature's partialScore() returns a value < 0.0
+       *
+       * @param trans           The previous partial translation
+       * @return  the part of the incremental score than can be estimated
+       */
+      double rangePartialScore(const PartialTranslation& trans);
+
+      /**
+       * Partial scoring function based on the phrase, for cube pruning.
+       * Only considers the TM and other features that implement
+       * precomputeFutureScore().
+       * @param phrase  The phrase to score
+       * @return the future score for phrase_info, taking into account all
+       *         models except the LMs.
+       */
+      double phrasePartialScore(const PhraseInfo* phrase);
 
       /**
        * @brief Initialize all the decoder features other than LMs and TMs.
@@ -157,15 +205,18 @@ namespace Portage
       VocabFilter tgt_vocab;
 
       /**
-       * The vocab to store bi-words (for BiLM queries) that will constitute bi_phrase
-       */
-      VocabFilter biPhraseVocab;
-
-      /**
        * All decoder features other than LMs and TMs (e.g., distortion,
        * length, segmentation, and any feature added in the future).
        */
       vector<DecoderFeature*> decoder_features;
+
+      /**
+       * Filter features - these are used as hard constraints: whenever they
+       * return a negative value the decoder state is pruned. Their score is
+       * not added to the log-linear model, they are not printed with the
+       * feature vector, and their value is not seen in weight tuning.
+       */
+      vector<DecoderFeature*> filter_features;
 
       /**
        * The language model(s)
@@ -228,10 +279,15 @@ namespace Portage
        */
       Uint lm_numwords;
 
+      /**
+       * For use with -minimize-lm-context-size, smallest context size we're
+       * allowed to go down to. Typically 1, but, e.g., NNJMs force this to 3.
+       */
+      Uint lm_min_context;
+
    protected:
       /// Possible LM Heuristic types
-      enum LMHeuristicType { LMH_NONE, LMH_UNIGRAM, LMH_INCREMENTAL,
-                             LMH_SIMPLE };
+      enum LMHeuristicType { LMH_NONE, LMH_UNIGRAM, LMH_INCREMENTAL, LMH_SIMPLE };
 
       /**
        * Convenient method to encapsulate converting "none", "unigram", "incr",
@@ -243,8 +299,6 @@ namespace Portage
       LMHeuristicType futureScoreLMHeuristic;
       /// LM heuristic to use in cube pruning
       LMHeuristicType cubePruningLMHeuristic;
-      /// future Score Use Forward tm
-      bool futureScoreUseFtm;
 
       // These compute the raw feature function values of different sorts.
       /**
@@ -300,30 +354,27 @@ namespace Portage
             const PartialTranslation &trans);
       /**
        * @brief Get weighted, combined translation model score.
-       * @param weights       individual model weights.
        * @param trans         partial translation to score.
        * @return              the combined score.
        */
-      virtual double dotProductTrans(const vector<double> &weights,
-            const PartialTranslation &trans);
+      // Note: the weights parameter was removed because it was not actually used
+      virtual double dotProductTrans(const PartialTranslation &trans);
       /**
        * @brief Get weighted, combined forward translation model score.
-       * @param weights       individual model weights.
        * @param trans         partial translation to score.
        * @return              the combined score.
        */
-      virtual double dotProductForwardTrans(const vector<double> &weights,
-            const PartialTranslation &trans);
+      // Note: the weights parameter was removed because it was not actually used
+      virtual double dotProductForwardTrans(const PartialTranslation &trans);
 
       //boxing
       /**
        * @brief Get weighted, combined adirectional translation model score.
-       * @param weights       individual model weights.
        * @param trans         partial translation to score.
        * @return              the combined score.
        */
-      virtual double dotProductAdirTrans(const vector<double> &weights,
-            const PartialTranslation &trans);
+      // Note: the weights parameter was removed because it was not actually used
+      virtual double dotProductAdirTrans(const PartialTranslation &trans);
       //boxing
 
       /**
@@ -335,6 +386,7 @@ namespace Portage
       virtual double dotProductFeatures(const vector<double> &weights,
             const PartialTranslation &trans);
 
+   public:
       /**
        * Convert a phrase from vector<Uint> representation to string.
        * Subclasses may override as needed to change the semantics of a phrase.
@@ -343,6 +395,7 @@ namespace Portage
        */
       virtual string getStringPhrase(const Phrase &uPhrase) const;
 
+   protected:
       /**
        * @brief Get the Uint representation of word
        * @param word      The string representation of the word
@@ -378,13 +431,10 @@ namespace Portage
        * @param sents         The source sentences, used to determine the
        *                      phrases to limit to (if c.loadFirst is
        *                      false).  (Can be NULL if c.loadFirst is true)
-       * @param marks         All the marked translations. (Can be NULL if
-       *                      c.loadFirst is true)
-       * @pre c.loadFirst || sents != NULL && marks != NULL
+       * @pre c.loadFirst || sents != NULL
        */
       static BasicModelGenerator* create(const CanoeConfig& c,
-            const vector<vector<string> > *sents = NULL,
-            const vector<vector<MarkedTranslation> > *marks = NULL);
+            const VectorPSrcSent *sents = NULL);
 
       /**
        * Constructor, creates a new BasicModelGenerator.
@@ -446,10 +496,9 @@ namespace Portage
        * @param c             Global canoe configuration object.  See the
        *                      documention of the other constructor for this
        *                      class for details of relevant member variables.
-       * @param src_sents     The source sentences, used to determine the
+       * @param sents         The source sentences, used to determine the
        *                      phrases to limit to (if c.loadFirst is
        *                      false).
-       * @param marks         All the marked translations.
        * c.loadFirst          If false, limit the phrases loaded to ones
        *                      prespecified using src_sents.  The language
        *                      model is then also limited to words found in
@@ -459,8 +508,7 @@ namespace Portage
        *                      language model.
        */
       BasicModelGenerator(const CanoeConfig &c,
-            const vector< vector<string> > &src_sents,
-            const vector< vector<MarkedTranslation> > &marks);
+            const VectorPSrcSent &sents);
 
       /**
        * Destructor.
@@ -570,9 +618,6 @@ namespace Portage
       // So much for read-only.
       Voc* getOpenVoc() {return &tgt_vocab;}
 
-      /// Get a reference to the bi-phrase vocabulary
-      VocabFilter& getBiPhraseVoc() { return biPhraseVocab; }
-
       /// Prints how many times each N where hit with the lm queries.
       /// @param out  where to display the hits
       void displayLMHits(ostream& out = cerr);
@@ -586,21 +631,15 @@ namespace Portage
       /// Glocal configuration object
       const CanoeConfig* const c;
 
-      /// Optional target sentence.
-      const vector<string>* const tgt_sent;
-
    private:
-      /// The source sentence (in the order it occurs in the input).
-      const vector<string> &src_sent;
+      /// Let's keep all the source sentence info - it's silly to ditch it!
+      const newSrcSentInfo& info;
+
+      /// We reuse info.src_sent.size() frequently - cache it here
+      const Uint src_len;
 
       /// Language model weights
       const vector<double> lmWeights;
-      /// Translation model weights
-      const vector<double> transWeights;
-      /// Forward translation model weights
-      const vector<double> forwardWeights;
-      /// Adirectional translation model weights
-      const vector<double> adirTransWeights; //boxing
       /// Other feature weights
       const vector<double> featureWeights;
 
@@ -608,9 +647,14 @@ namespace Portage
        * @brief A triangular array containing all the phrases.
        *
        * The (i, j)-th entry contains the phrase translation options for the
-       * range [i, i + j + 1), 0 <= i < src_sent.size(), 0 <= j < (size-i).
+       * range [i, i + j + 1), 0 <= i < src_len, 0 <= j < (size-i).
        */
       vector<PhraseInfo *> **phrases;
+
+      /// Triangular array of the heuristically scored candidate target phrases
+      /// for cube pruning decoding - only iniatilized if using cube pruning
+      /// decoding.
+      vector<pair<double, PhraseInfo*> > **scored_phrases;
 
       /**
        * @brief A triangular array containing precomputed future scores.
@@ -631,9 +675,9 @@ namespace Portage
       /**
        * @brief Constructor, creates a BasicModel.
        *
-       * @param src_sent  The source sentence.
-       * @param tgt_sent  Optional reference sentence in the target language.
-       * @param phrases   The triangular array of phrase translation options;
+       * @param info.src_sent  The source sentence.
+       * @param info.tgt_sent  Optional reference sentence in the target language.
+       * @param info.potential_phrases   The triangular array of phrase translation options;
        *                  the (i, j)-th entry contains phrase translation
        *                  options for the source range [i, i + j + 1).
        * @param futureScore  The triangular array of future scores.  The (i,
@@ -643,9 +687,7 @@ namespace Portage
        *                  assumed to be initialized for current sentence.
        *                  All model weights will be initialized from parent.
        */
-      BasicModel(const vector<string> &src_sent,
-            const vector<string> *tgt_sent,
-            vector<PhraseInfo *> **phrases,
+      BasicModel(const newSrcSentInfo& info,
             double **futureScore,
             BasicModelGenerator &parent);
 
@@ -663,20 +705,20 @@ namespace Portage
          return parent.getUintWord(word);
       }
 
-      /**
-       * Gets a reference to the phrase table object of this model.
-       * @return the phrase table.
-       */
+      /// Gets a reference to the phrase table object of this model.
       PhraseTable& getPhraseTable() { return *(parent.phraseTable); }
 
-      /// Get a reference to the bi-phrase vocabulary
-      VocabFilter& getBiPhraseVoc() { return parent.biPhraseVocab; }
+      /// Get the length of the source sentence being translated.
+      virtual Uint getSourceLength() { return src_len; }
+
+      /// Get the max LM order in effect currently
+      Uint getLMNumWords() { return parent.lm_numwords; }
 
       /**
-       * Get the length of the source sentence being translated.
-       * @return          The number of words in the source sentence.
+       * Get the target sentence
+       * @return pointer to target sentence of available, NULL otherwise.
        */
-      virtual Uint getSourceLength() { return src_sent.size(); }
+      const vector<string>* getTargetSent() const { return info.tgt_sent; }
 
       /**
        * @brief Get all the phrase options.
@@ -692,6 +734,10 @@ namespace Portage
        *
        * Calculates the incremental score, log P(trans | *trans.back) =
        * log P(trans) - log P(*trans.back).
+       *
+       * This method also queries filter features, returning -INFINITY if any
+       * filter feature's score() returns a value < 0.0
+       *
        * @param trans  The translation to score
        * @param verbosity  Verbose level
        * @return       The incremental log score
@@ -710,29 +756,15 @@ namespace Portage
       virtual double computeFutureScore(const PartialTranslation &trans);
 
       /**
-       * Partial scoring function based on range, for cube pruning.
-       *
-       * Estimates the incremental score, in so far as can be calculated if one
-       * only takes into account the source range of the last phrase in trans.
-       * Does not consider TMs and LMs - only considers features that override
-       * DecoderFeature::partialScore(), e.g., distortion.
-       *
-       * The sum rangePartialScore(trans) + phrasePartialScore(trans.src_words)
-       * is used as a heuristic for scoreTranslation(trans).
-       * @param trans           The previous partial translation
-       * @return  the part of the incremental score than can be estimated
+       * Estimate future score, not knowing what the current target phrase is,
+       * only the history and what the current source phrase is.
        */
-      virtual double rangePartialScore(const PartialTranslation& trans);
+      virtual double computePartialFutureScore(const PartialTranslation &trans);
 
-      /**
-       * Partial scoring function based on the phrase, for cube pruning.
-       * Only considers the TM and other features that implement
-       * precomputeFutureScore().
-       * @param phrase  The phrase to score
-       * @return the future score for phrase_info, taking into account all
-       *         models except the LMs.
-       */
-      virtual double phrasePartialScore(const PhraseInfo* phrase);
+      /// See BasicModelGenerator::rangePartialScore() for documentation
+      double rangePartialScore(const PartialTranslation& trans) {
+         return parent.rangePartialScore(trans);
+      }
 
       /** -- Functions to manage recombining hypotheses. -- */
 
@@ -756,6 +788,39 @@ namespace Portage
             const PartialTranslation &trans2);
 
       /** -- Bonus functions -- */
+
+      /**
+       * Call back for cube pruning decoder to tell the model what the
+       * heuristically scored phrases are.
+       */
+      void setScoredPhrases(vector<pair<double, PhraseInfo*> > **scored_phrases) {
+         this->scored_phrases = scored_phrases;
+      }
+
+      /**
+       * Query the filter features for early filtering: if any filter feature's
+       * partialScore() return a negative value for a successor prev_pt
+       * covering src_words with its next phrase, this function returns true,
+       * in which case this combination should be pruned from the search graph.
+       *
+       * @param prev_pt    context
+       * @param src_words  next source phrase to consider covering
+       * @return true iff the combination should be filtered out.
+       */
+      bool earlyFilterFeatureViolation(const PartialTranslation& prev_pt, Range src_words);
+
+      /**
+       * Determine if there is no violation of the distortion limit, taking into
+       * account all the variants and parameters that control the distortion
+       * limit.
+       *
+       * @param prev_pt    context
+       * @param src_words  next source phrase to consider covering
+       * @param out_cov    coverage of prev_pt + src_words (optional: will be calculated if not provided)
+       * @return true iff adding src_words to prev_pt respects all DL criteria
+       */
+      bool respectsDistortionLimit(const PartialTranslation& prev_pt, Range src_words, const UintSet* out_cov = NULL);
+
       /**
        * @brief Get the feature function values, for the last phrase in the
        * translation
@@ -766,6 +831,17 @@ namespace Portage
        */
       virtual void getFeatureFunctionVals(vector<double> &vals,
             const PartialTranslation &trans);
+
+      /**
+       * Get the DecoderFeature that generates the ith value in the vector
+       * created by getFeatureFunctionVals().
+       * @param i index into global feature vector
+       * @return NULL if i doesn't index a valid DecoderFeature, ie if an LM or
+       * TM is at that spot, otherwise the requested DecoderFeature.
+       */
+      DecoderFeature* getDecoderFeature(Uint i) {
+         return i < parent.decoder_features.size() ? parent.decoder_features[i] : NULL;
+      }
 
       /**
        * @brief Get the feature weights in the conventional order

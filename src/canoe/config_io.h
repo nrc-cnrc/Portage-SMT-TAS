@@ -31,14 +31,14 @@ class rnd_distribution; // No need to actually include randomDistribution.h here
  * To add a new argument to canoe:
  *
  * If the new argument is a feature in the log-linear model:
- *  1) Add it short, long and group name to weight_names_other in config_io.cc
+ *  1) Add its short, long and group name to weight_names_other in config_io.cc
  *
  *  2) If the feature only has a weight, set its need_args value to false; if
  *     it also has a string argument, add a corresponding ParamInfo object to
  *     the param_infos list (see 3 below for more details, and existing
  *     features for examples).  Note that all log-linear weights are now
  *     doubleVect, and their arguments are all stringVect.  Restrictions on the
- *     number of isntances are enforced in CanoeConfig::check().
+ *     number of instances are enforced in CanoeConfig::check().
  *
  * If the new argument is not a log-linear feature:
  *  1) Add a parameter member to the set below.
@@ -155,6 +155,7 @@ public:
    vector<string> tpptFiles;        ///< TPPT phrase table file names
    vector<string> lmFiles;          ///< Language model file names
    Uint lmOrder;                    ///< Maximum LM order (0 == no limit)
+   bool minimizeLmContextSize;      ///< Keep as little context as needed for future queries
    string nbestProcessor;           ///< A script that will be invoked for all nbest.
 
    // WEIGHTS
@@ -195,34 +196,48 @@ public:
    bool distLimitSimple;            ///< Use the simple definition of dist limit
    bool distPhraseSwap;             ///< Allow swapping contiguous phrases
    bool distLimitITG;               ///< Enable ITG constraint
+   bool forceShiftReduce;           ///< ShiftReducer included regardless of limits/features
    bool shiftReduceOnlyITG;         ///< ShiftReducer can perform only ITG reductions
+   vector<string> filterFeatures;   ///< Filter features (DMs used a hard constraints)
    bool bypassMarked;               ///< Look in PT even for marked trans
    double weightMarked;             ///< Constant discount for marked probs
+   bool nosent;                     ///< Don't use LM sentence beg/end context.
+   bool appendJointCounts;          ///< Append joint counts from different phrase tables
    string oov;                      ///< OOV handling method
    bool tolerateMarkupErrors;       ///< Whether to proceed despite markup err
    bool checkInputOnly;             ///< If true, only check the input for markup errors
+   bool describeModelOnly;          ///< If true, only describe the model, don't translate or load models.
    bool trace;                      ///< Whether to output alignment info
    bool walign;                     ///< Whether to include word alignment in alignment info
    bool ffvals;                     ///< Whether to output feature fn values
+   bool sfvals;                     ///< Whether to output sparse feature values
+   bool sparseModelAllowNonLocalWts;///< Whether canoe is allowed to look for non-local sparse weights
    bool masse;                      ///< Whether to output total lattice weight
    Uint verbosity;                  ///< Verbosity level
    string latticeFilePrefix;        ///< Prefix for all lattice output files
    bool latticeOut;                 ///< Whether to output the lattices
+   string latticeOutputOptions;     ///< Style of lattice output
+   double latticeDensity;           ///< Density of overlay lattices
+   double latticeMinEdge;           ///< Minimum edge score for overlay lattices
+   bool latticeLogProb;             ///< Overlay prints log probs instead of probs
+   bool latticeSourceDensity;       ///< Calculate overlay density based on length of source sentence
    string nbestFilePrefix;          ///< Prefix for all n-best output files
    Uint nbestSize;                  ///< Number of hypotheses in n-best lists
    bool nbestOut;                   ///< Whether to output n-best hypotheses
    Uint firstSentNum;               ///< Index of the first input sentence
    bool backwards;                  ///< Whether to translate backwards
    bool loadFirst;                  ///< Whether to load models before input
+   string canoeDaemon;              ///< Sentence by sentence mode specifications
    string input;                    ///< Source sentences input file name
    string refFile;                  ///< Reference file name
    bool bAppendOutput;              ///< Flag to output one single file instead of multiple files.
    bool bLoadBalancing;             ///< Running in load-balancing mode => parse source sentences ids
-   bool bCubePruning;               ///< Run the cube pruning decoder
+   bool bStackDecoding;             ///< Explicitly request the regular stack decoder
+   bool bCubePruning;               ///< Run the cube-pruning decoder
    string cubeLMHeuristic;          ///< What LM heuristic to use in cube pruning
    string futLMHeuristic;           ///< What LM heuristic to use when calculating future scores
    bool useFtm;                     ///< Use FTMs even if no weights are given
-   bool futScoreUseFtm;             ///< Whether to use forward translation probabilities to compute the future costs
+   bool hierarchy;                  ///< canoe will output its nbest in a hierarchy.
    bool forcedDecoding;             ///< Indicates if decoding is forced to match the reference
    bool forcedDecodingNZ;           ///< Forced decoding without zeroing lm, length and ibm1 weights
    Uint maxlen;                     ///< Skip sentences longer than max len (0 means do all)
@@ -351,6 +366,43 @@ public:
    void setFeatureWeights(const vector<double>& weights);
 
    /**
+    * Get current sparse feature weights. The first n weights in the returned
+    * vector will match the n weights returned by getFeatureWeights(), except
+    * those on any SparseModel features, which are set to 0. Component weights
+    * for each successive SparseModel are then appended to the vector. The ith
+    * weight in the resulting vector will match the ith feature in -sfvals
+    * output from canoe.
+    * @param weights vector to receive the weights
+    */
+   void getSparseFeatureWeights(vector<double>& weights) const;
+
+   /**
+    * Set current sparse feature weights from a given vector, which should be
+    * the same size as returned by getSparseFeatureWeights(). The first n
+    * weights in the vector will be transferred to the current decoder model,
+    * except for those on any SparseModel features, which are set to 1.
+    * Component weights for each successive SparseModel are saved to that
+    * SparseModel - this involves disk i/o; see SparseModel::writeWeights().
+    */
+   void setSparseFeatureWeights(const vector<double>& weights);
+
+   /**
+    * Get the list of primary weight names
+    * For future use: intended to drive BMG::InitDecoderFeatures(),
+    * setWeightsFromString(), and anything else that has to respect the
+    * ordering of features in the model.
+    */
+   const vector<string>* getPrimaryFeatureWeights() const { return &weight_params_primary; }
+
+   /**
+    * Get the list of other weight names
+    * For future use: intended to drive BMG::InitDecoderFeatures(),
+    * setWeightsFromString(), and anything else that has to respect the
+    * ordering of features in the model.
+    */
+   const vector<string>* getOtherFeatureWeights() const { return &weight_params_other; }
+
+   /**
     * Write parameters to stream.
     *
     * The output is written in the format expected by read().
@@ -402,8 +454,10 @@ private:
          check_file_name            = relative_path_modification << 1,
          /// Specific LM file name check because some LMs need a special treatment
          lm_check_file_name         = check_file_name << 1,
+         /// Specific file name check for BiLM
+         bilm_check_file_name       = lm_check_file_name << 1,
          /// Specific file name check for TPPTs
-         tppt_check_file_name       = lm_check_file_name << 1,
+         tppt_check_file_name       = bilm_check_file_name << 1,
          /// Specific file name check for LDMs and TPLDMs
          ldm_check_file_name        = tppt_check_file_name << 1,
          /// Check that the name is an accessible directory

@@ -1,6 +1,6 @@
 /**
  * @author George Foster
- * @file configtool.cc 
+ * @file configtool.cc
  * @brief Program that reads canoe config file and writes selected information
  * to out.
  *
@@ -9,7 +9,7 @@
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
- * Copyright 2005, Sa Majeste la Reine du Chef du Canada / 
+ * Copyright 2005, Sa Majeste la Reine du Chef du Canada /
  * Copyright 2005, Her Majesty in Right of Canada
  */
 
@@ -27,6 +27,7 @@
 #include "tppt.h"
 #include "basicmodel.h"
 #include "printCopyright.h"
+#include "bilm_model.h"
 
 using namespace Portage;
 using namespace std;
@@ -61,6 +62,12 @@ depending on <cmd>, one of:\n\
                        names\n\
   rep-ttable-files-local:s - a copy of <config>, with s appended to all\n\
                        phrasetable names, and their path stripped\n\
+  rep-sparse-models-local:s - a copy of <config>, with any sparse model names\n\
+                       converted to local symlinked versions with s appended.\n\
+                       Eg: [sparse-model] ../../d/m -> [sparse-model] d.<s>/m\n\
+                       (with ln -s ../../d d.<s> performed automatically).\n\
+  rep-sparse-models-suff:s - a copy of <config>, with any sparse model names\n\
+                       replaced by the same name but with <s> appended.\n\
   check              - check that all feature files can be read: write ok if\n\
                        so, otherwise list ones that can't\n\
   set-weights:rr     - A copy of <config>, with weights replaced by optimum\n\
@@ -75,8 +82,20 @@ depending on <cmd>, one of:\n\
                        configfile), and w is the weight associated with the\n\
                        ith feature. Features are written in the same order\n\
                        that canoe writes them to an ffvals file.\n\
+  get-all-wts:x      - A listing of all weights in the model, in the form 'i w'.\n\
+                       If <config> contains no SparseModels, output is identical\n\
+                       to rescore-model:ff with 'FileFF:ff,' prefixes omitted and\n\
+                       0-based indexing. Otherwise, wts for decoder SparseModel\n\
+                       features are set to 0, and SparseModel component wts are\n\
+                       appended. The ith wt matches the ith feature in -sfvals\n\
+                       output from canoe.\n\
+  set-all-wts:sw     - A copy of <config>, with weights replaced by those in\n\
+                       <sw>, which is in the format written by get-all-wts.\n\
+                       This also replaces weights in any SparseModels referred\n\
+                       to by <config>, and saves results to disk.\n\
   rule:<file|->      - List all rule classes from <file|->.\n\
   rep-multi-prob:cpt - Replace all multiprobs with cpt.\n\
+  rep-ldm:ldm        - Replace all ldms with ldm.\n\
   applied-weights:tppt:w-tm:w-ftm\n\
                      - Change the forward and backward weights to w-tm and w-ftm\n\
                        respectively and replaces multi-probs for tppt.\n\
@@ -86,6 +105,10 @@ depending on <cmd>, one of:\n\
   list-lm            - List language model file names.\n\
   list-ldm           - List lexicalized distortion model file names.\n\
   list-tm            - List all translation model file names.\n\
+  list-all-files     - List all files used by this canoe.ini.\n\
+                       Intended for deep copying of models, e.g.:\n\
+                       configtool list-all-files canoe.ini.cow > list\n\
+                       rsync -aLr --files-from=list --no-implied-dirs . DESTINATION_DIR\n\
   args:<args>        - Apply canoe command-line arguments <args> to <config>, and\n\
                        write resulting new configuration.\n\
   prime_partial      - Quickly loads a minimal set of tpt in memory\n\
@@ -180,10 +203,19 @@ int main(int argc, char* argv[])
          total_memmap_size += TPPT::totalMemmapSize(c.tpptFiles[i]);
       for ( Uint i = 0; i < c.lmFiles.size(); ++i )
          total_memmap_size += PLM::totalMemmapSize(c.lmFiles[i]);
-      for ( Uint i = 0; i < c.LDMFiles.size(); ++i )
+      for ( Uint i = 0; i < c.LDMFiles.size(); ++i ) {
          if (isSuffix(".tpldm", c.LDMFiles[i])) {
             total_memmap_size += TPPT::totalMemmapSize(c.LDMFiles[i]);
          }
+      }
+      for (CanoeConfig::FeatureGroupMap::const_iterator it(c.features.begin()),
+           end(c.features.end()); it != end; ++it) {
+         const CanoeConfig::FeatureGroup *f = it->second;
+         for (Uint i(0); i < f->size(); ++i) {
+            const string args = f->need_args ? f->args[i] : "";
+            total_memmap_size += DecoderFeature::totalMemmapSize(f->group, args);
+         }
+      }
       os << (total_memmap_size/1024/1024) << endl;
    } else if (cmd == "nb") {
       int n = 1 // length is always a basic feature
@@ -218,6 +250,30 @@ int main(int argc, char* argv[])
       for (Uint i = 0; i < c.multiProbTMFiles.size(); ++i)
          c.multiProbTMFiles[i] = addExtension(BaseName(c.multiProbTMFiles[i].c_str()), toks[1]);
       c.write(os,0,pretty);
+   } else if (isPrefix("rep-sparse-models-local:", cmd)) { // this is pretty hacky
+      if (split(cmd, toks, ":") != 2)
+         error(ETFatal, "bad format for rep-sparse-models-local command");
+      vector<string>& sparseModels(c.featureGroup("sparse")->args);
+      for (Uint i = 0; i < sparseModels.size(); ++i) {
+         string dir = DirName(sparseModels[i]);
+         string linkname = BaseName(dir);
+         if (linkname == "" || linkname == ".") linkname = toks[1];
+         else linkname += toks[1];
+         string cmd = "ln -s " + dir + " " + linkname;
+         if (check_if_exists(linkname))
+            error(ETWarn, "%s exists already - won't create", linkname.c_str());
+         else if (system(cmd.c_str()) != 0)
+            error(ETFatal, "can't run command: " + cmd);
+         sparseModels[i] = linkname + "/" + BaseName(sparseModels[i]);
+      }
+      c.write(os, 0, pretty);
+   } else if (isPrefix("rep-sparse-models-suff:", cmd)) { // this is pretty hacky
+      if (split(cmd, toks, ":") != 2)
+         error(ETFatal, "bad format for rep-sparse-models-suff command");
+      vector<string>& sparseModels(c.featureGroup("sparse")->args);
+      for (Uint i = 0; i < sparseModels.size(); ++i)
+         sparseModels[i] += toks[1];
+      c.write(os, 0, pretty);
    } else if (isPrefix("set-weights:", cmd)) {
       if (split(cmd, toks, ":") != 2)
          error(ETFatal, "bad format for set-weights command");
@@ -246,6 +302,28 @@ int main(int argc, char* argv[])
       c.getFeatureWeights(wts);
       for (Uint i = 0; i < wts.size(); ++i)
          os << "FileFF:" << toks[1] << "," << i+1 << " " << wts[i] << endl;
+   } else if (isPrefix("get-all-wts:", cmd)) {
+      if (split(cmd, toks, ":") != 2)
+         error(ETFatal, "bad format for get-all-wts command");
+      vector <double> wts;
+      c.getSparseFeatureWeights(wts);
+      for (Uint i = 0; i < wts.size(); ++i)
+         os << i << ' ' << wts[i] << endl;
+   } else if (isPrefix("set-all-wts:", cmd)) {
+      if (split(cmd, toks, ":") != 2)
+         error(ETFatal, "bad format for set-all-wts command");
+      vector <double> wts;
+      iMagicStream ifs(toks[1].c_str());
+      string line;
+      vector<string> ltoks;
+      while (getline(ifs,line)) {
+         if (splitZ(line, ltoks) != 2)
+            error(ETFatal, "expecting only 2 tokens in sparse-weights file %s",
+                  toks[1].c_str());
+         wts.push_back(conv<double>(ltoks[1]));
+      }
+      c.setSparseFeatureWeights(wts);
+      c.write(os, 0, pretty);
    } else if (isPrefix("arg-weights:", cmd)) {
       if (split(cmd, toks, ":") != 2)
          error(ETFatal, "bad format for arg-weights command");
@@ -275,7 +353,7 @@ int main(int argc, char* argv[])
       c.setFeatureWeights(wts);
       c.write(os,0,pretty);
    } else if (isPrefix("args:", cmd)) {
-      if (split(cmd, toks, ":", 2) != 2) 
+      if (split(cmd, toks, ":", 2) != 2)
          error(ETFatal, "bad format for args command");
       vector<string> params = c.getParamList();
       const char* switches[params.size()];
@@ -292,32 +370,14 @@ int main(int argc, char* argv[])
       if (split(cmd, toks, ":") != 2)
          error(ETFatal, "bad format for rule command");
 
-      newSrcSentInfo nss_info;
       vector<string> rule_classes_names;
       iSafeMagicStream input(toks[1]);
       InputParser reader(input, c.bLoadBalancing);
-                     
+
       // Process all input sentences
-      while (!(reader.eof() && nss_info.src_sent.empty())) {
-         // All we care about are the rule classes.
-         // We can reuse the same new source sentence info.
-         nss_info.clear();
-         if ( ! reader.readMarkedSent(nss_info.src_sent,
-               nss_info.marks,
-               &rule_classes_names,
-               &nss_info.external_src_sent_id) )
-         {
-            if ( c.tolerateMarkupErrors )
-               error(ETWarn, "Tolerating ill-formed markup.  Source sentence "
-                     "%d will be interpreted as having %d valid mark%s and "
-                     "this token sequence: %s",
-                     nss_info.external_src_sent_id, nss_info.marks.size(),
-                     (nss_info.marks.size() == 1 ? "" : "s"),
-                     join(nss_info.src_sent).c_str());
-            else
-               error(ETFatal, "Aborting because of ill-formed markup");
-         }
-      }
+      // All we care about are the rule classes.
+      while (reader.getMarkedSent(&rule_classes_names))
+         ;
 
       // Print the rule's info if any class was found
       if (!rule_classes_names.empty()) {
@@ -339,11 +399,16 @@ int main(int argc, char* argv[])
          c.readStatus("ttable-multi-prob") = false;
          c.readStatus("ttable-tppt") = true;
          c.tpptFiles.push_back(cpt);
-      }
-      else {
+      } else {
          c.multiProbTMFiles.push_back(cpt);
       }
-
+      c.write(os, 0, pretty);
+   } else if (isPrefix("rep-ldm:", cmd)) {
+      if (split(cmd, toks, ":") != 2)
+         error(ETFatal, "bad format for rep-ldm command");
+      const string& ldm = toks[1];
+      c.LDMFiles.clear();
+      c.LDMFiles.push_back(ldm);
       c.write(os, 0, pretty);
    } else if (isPrefix("applied-weights", cmd)) {
       if (split(cmd, toks, ":") != 4)
@@ -397,6 +462,47 @@ int main(int argc, char* argv[])
       vector<string> alltms(c.multiProbTMFiles);
       alltms.insert(alltms.end(), c.tpptFiles.begin(), c.tpptFiles.end());
       cout << join(alltms) << endl;
+   } else if (isPrefix("list-all-files", cmd)) {
+      // arghhh. I (EJ) wrote this, but it's gross.  I should use the ParamInfo
+      // flags to determine which things to print here, not have specific code
+      // here knowing what to print.  Maybe I should piggy back on ::check()
+      // for everything, the way I do with PLM::checkFileExists() below...
+      bool ok = true;
+      cout << config_in << nf_endl;
+      // LMs
+      vector<string> lmlist;
+      for (Uint i = 0; i < c.lmFiles.size(); ++i)
+         PLM::checkFileExists(c.lmFiles[i], &lmlist) || (ok = false);
+      cout << join(lmlist, nf_endl) << nf_endl;
+      // (H)LDMs
+      for (Uint i = 0; i < c.LDMFiles.size(); ++i) {
+         cout << c.LDMFiles[i] << nf_endl;
+         if (!isSuffix(".tpldm", c.LDMFiles[i]))
+            cout << removeZipExtension(c.LDMFiles[i]) << ".bkoff" << nf_endl;
+      }
+      // BILMs
+      vector<string>& bilm_args = c.featureGroup("bilm")->args;
+      if (!bilm_args.empty()) {
+         vector<string> bilmlist;
+         for (Uint i = 0; i < bilm_args.size(); ++i)
+            BiLMModel::checkFileExists(bilm_args[i], &bilmlist) || (ok = false);
+         cout << join(bilmlist, nf_endl) << nf_endl;
+      }
+      // Other files
+      vector<string> otherfiles;
+      otherfiles.insert(otherfiles.end(), c.multiProbTMFiles.begin(), c.multiProbTMFiles.end());
+      otherfiles.insert(otherfiles.end(), c.tpptFiles.begin(), c.tpptFiles.end());
+      otherfiles.insert(otherfiles.end(), c.featureGroup("sparse")->args.begin(), c.featureGroup("sparse")->args.end());
+      otherfiles.insert(otherfiles.end(), c.featureGroup("ibm1f")->args.begin(), c.featureGroup("ibm1f")->args.end());
+      cout << join(otherfiles, nf_endl) << nf_endl;
+      if (!c.sentWeights.empty()) cout << c.sentWeights << nf_endl;
+      if (!c.refFile.empty()) cout << c.refFile << nf_endl;
+      if (!c.featureGroup("sparse")->args.empty()) {
+         error(ETWarn, "list-all-files does not yet know how to list sparse model components");
+         ok = false;
+      }
+      if (!ok)
+         error(ETFatal, "There was some problem, the list is probably incomplete");
    } else if (cmd == "prime_partial" or cmd == "prime_full") {
       for ( Uint i = 0; i < c.LDMFiles.size(); ++i )
          if (isSuffix(".tpldm", c.LDMFiles[i])) {
@@ -411,12 +517,18 @@ int main(int argc, char* argv[])
          if (cmd =="prime_full") gulpFile(c.tpptFiles[i] + "/tppt");
       }
 
-      for ( Uint i = 0; i < c.lmFiles.size(); ++i )
-         if (isSuffix(".tplm", c.lmFiles[i])) {
-            gulpFile(c.lmFiles[i] + "/tdx");
-            gulpFile(c.lmFiles[i] + "/cbk");
-            gulpFile(c.lmFiles[i] + "/tplm");
+      vector<string> lmlist;
+      for ( Uint i = 0; i < c.lmFiles.size(); ++i ) {
+         lmlist.clear();
+         PLM::checkFileExists(c.lmFiles[i], &lmlist);
+         for (Uint j = 0; j < lmlist.size(); ++j) {
+            if (isSuffix(".tplm", lmlist[j])) {
+               gulpFile(lmlist[j] + "/tdx");
+               gulpFile(lmlist[j] + "/cbk");
+               gulpFile(lmlist[j] + "/tplm");
+            }
          }
+      }
    } else
       error(ETFatal, "unknown command: %s", cmd.c_str());
 }
@@ -445,7 +557,7 @@ RescoreResult parseRescoreResultsLine(const string& line)
          return RescoreResult(-conv<double>(ltoks[2]), ltoks[3]);
       }
    }
-   
+
 //    int word_wts_count = 0;
 //    rr.seg_active = rr.dist_active = false;
 //    rr.bleu = conv<double>(ltoks[2]);

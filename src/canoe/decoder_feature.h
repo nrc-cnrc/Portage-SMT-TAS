@@ -3,8 +3,6 @@
  * @file decoder_feature.h  Abstract parent class for all features used
  *                          in the decoder, except LMs and TMs.
  *
- * $Id$
- * 
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
@@ -65,17 +63,29 @@ class BasicModelGenerator;
        * @brief Virtual constructor: creates a designated derived class with
        *        given arguments.
        *        The returned DecoderFeature* MUST be valid aka not NULL.
-       * @param bmg   
+       * @param bmg
        * @param group  name of derived type group (sub class)
        * @param args   argument string for derived constructor or name of sub sub class, if any.
        * @param fail   if true, die with error message when problems occur on
        *               construction 
+       * @param verbose standard verbosity levels
        * @return the new feature, which the caller should free with delete when
        *        it is no longer needed
        */
       static DecoderFeature* create(BasicModelGenerator* bmg,
                                     const string& group,
-                                    const string& args, bool fail = true);
+                                    const string& args, bool fail = true,
+                                    Uint verbose = 0);
+
+      /**
+       * Calculate the total size of memory mapped files in feature group:args,
+       * if any.
+       * @param group  name of derived type group (sub class)
+       * @param args   argument string for derived constructor or name of sub sub class, if any.
+       * @return total size of memory mapped files associated with the feature; 0
+       *         in case of problems or if the model does not use memory mapped IO.
+       */
+      static Uint64 totalMemmapSize(const string& group, const string& args);
 
       /**
        * Finalize the initialization of a feature.  create() is called before
@@ -84,7 +94,7 @@ class BasicModelGenerator;
        * to load properly, do that work here instead of in your constructor.
        */
       virtual void finalizeInitialization() {}
-    
+
       /**
        * Initialize the feature on a new sentence.
        *
@@ -96,36 +106,29 @@ class BasicModelGenerator;
       virtual void newSrcSent(const newSrcSentInfo& info) {}
 
       /**
-       * Precompute this feature's future score for a single phrase.
-       *
-       * Precompute the future score based on a given contiguous input range
-       * and suggested translation.  By definition, the precomputed
-       * future score for any union of disjoint ranges is simply the sum of
-       * those precomputed future scores.  You must respect this rule in the
-       * implementation of every feature.  This function will be called for
-       * each feature by BasicModelGenerator::precomputeFutureScores() when it
+       * Precompute this feature's score for a single phrase pair.
+       * 
+       * Compute the highest score for the given source range and translation,
+       * independent of target context. Return 0 if the context-independent
+       * computation can't be factored out for this feature. This function will
+       * be called by BasicModelGenerator::precomputeFutureScores() when it
        * applies the dynamic programming technique of precomputing future
-       * scores.  It is called for a given source phrase and a candidate target
-       * phrase to translate it.
+       * scores.
        *
-       * @param phrase_info the phrase for which to precompute a future score
-       * @return the precomputed future score
+       * @param phrase_info phrase pair for which to precompute
+       * @return precomputed score
        */
       virtual double precomputeFutureScore(const PhraseInfo& phrase_info) = 0;
 
       /**
        * Compute this feature's future score for a partial translation.
        *
-       * Compute the future score based on a current partial translation
-       * Any aspects of the future score that apply to contiguous
-       * source ranges are handled by precomputeFutureScore(), whereas this
-       * function can deal with aspects of the future score that are the result
-       * of discontinuous non-convered ranges in a partial translation.
-       * This function will be called for each feature by
-       * BasicModel::computeFutureScore() to add information to the precomputed
-       * future score, and should not duplicate any scoring already accounted
-       * for by precomputeFutureScore(), since the final future score will be
-       * the sum of what the two methods provide.
+       * Compute the highest score that this feature can assign to any complete
+       * extension of the given partial translation (scoring the extension
+       * only). This should not duplicate any scoring already accounted for by
+       * precomputeFutureScore(), since the final future score will be the sum
+       * of what the two methods provide.  This function will be called for
+       * each feature by BasicModel::computeFutureScore().
        *
        * Note: it is an error to return a non-zero future score for a complete
        * translation.
@@ -136,12 +139,11 @@ class BasicModelGenerator;
       virtual double futureScore(const PartialTranslation &pt) = 0;
 
       /**
-       * Compute the marginal score for a partial translation.
+       * Compute the score for adding a new phrase pair to a partial
+       * translation.
+       *
        * The score returned should be the marginal cost of the last phrase
        * added, pt.lastPhrase, not the score of the whole partial translation.
-       *
-       * Assign a score to a particular hypothesis according to your feature.
-       * By convention, higher scores indicate better hypotheses.
        *
        * @param pt the partial translation to score
        * @return the score
@@ -156,8 +158,8 @@ class BasicModelGenerator;
        * the target words in pt.lastPhrase!
        *
        * The sum partialScore(pt) + precomputeFutureScore(pt.lastPhrase)
-       * is used as a heuristic for score(pt), so those two methods should
-       * not take into account the same information.
+       * is used by cube pruning as a heuristic for score(pt), so those two
+       * methods should not take into account the same information.
        *
        * In the base class, we return 0, because it is expected that most
        * features can't do anything with only the last source range.  Should be
@@ -168,6 +170,22 @@ class BasicModelGenerator;
        */
       virtual double partialScore(const PartialTranslation &pt)
       { return 0.0; }
+
+      /**
+       * Compute this feature's partial future score, for cube pruning decoding.
+       *
+       * This method is like futureScore(), except it's now allowed to take into
+       * account pt.lastPhrase's target words. Just like partialScore(), this
+       * is used by cube pruning for heuristically calculating the future score
+       * when knowing pt.lastPhrase's src_words, but before deciding which target
+       * phrase will be used to translate those source words.
+       *
+       * The default implementation calls futureScore(); override only if your
+       * futureScore() implementation needs pt.lastPhrase->phrase or other
+       * target phrase dependant information.
+       */
+      virtual double partialFutureScore(const PartialTranslation &pt)
+      { return futureScore(pt); }
 
       /**
        * Compute a recombining hash value.
@@ -204,6 +222,19 @@ class BasicModelGenerator;
       virtual bool isRecombinable(const PartialTranslation &pt1,
                                   const PartialTranslation &pt2) = 0;
 
+      /**
+       * Special case for features that rely on the previous words.
+       *
+       * If your feature relies on the identity of the previous n words, such
+       * as n-gram LM models do, implement this method to return the number of
+       * words of context your feature needs from the previous decoder state,
+       * instead of considering that context in isRecombinable() and
+       * computeRecombHash().
+       *
+       * This way, the test will be done efficiently by BasicModel itself,
+       * over the maximum context required by all features and LMs.
+       */
+      virtual Uint lmLikeContextNeeded() { return 0; }
 
       /**
        * @brief Get a human readable description of the feature.

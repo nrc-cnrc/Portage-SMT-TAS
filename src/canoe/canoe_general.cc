@@ -3,8 +3,6 @@
  * @file canoe_general.cc  This file contains the implementation of commonly
  *                         used simple functions.
  *
- * $Id$
- *
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -106,6 +104,33 @@ namespace Portage {
       }
    }
 
+   bool isSubset(Range s1, const UintSet &s2) {
+      UintSet::const_iterator it2 = s2.begin();
+      while (it2 != s2.end() && it2->end < s1.end) ++it2;
+      if (it2 == s2.end()) return false;
+      assert(it2->end >= s1.end);
+      if (it2->start > s1.start) return false;
+      return true;
+   }
+
+   bool isSubset(const UintSet &s1, const UintSet &s2) {
+      UintSet::const_iterator it2 = s2.begin();
+      for (UintSet::const_iterator it1 = s1.begin(); it1 != s1.end(); ++it1) {
+         while (it2 != s2.end() && it2->end < it1->end) ++it2;
+         if (it2 == s2.end()) return false;
+         assert(it2->end >= it1->end);
+         if (it2->start > it1->start) return false;
+      }
+      return true;
+   }
+
+   bool isDisjoint(Range r, const UintSet &s) {
+      UintSet::const_iterator it = s.begin();
+      while (it != s.end() && r.start >= it->end) ++it;
+      if (it == s.end()) return true;
+      return (r.end <= it->start);
+   }
+
    Uint countSubRanges(const UintSet &set) {
       Uint subRanges = 0;
       for (UintSet::const_iterator it = set.begin(); it < set.end(); ++it) {
@@ -118,7 +143,7 @@ namespace Portage {
    Uint countWords(const UintSet &set) {
       Uint count(0);
       for (UintSet::const_iterator it = set.begin(); it < set.end(); ++it) {
-         assert (it->end > it->start);
+         assert (it->end >= it->start);
          count += it->end - it->start;
       }
       return count;
@@ -139,4 +164,9 @@ namespace Portage {
          result += in_is_1 ? "-" : "1";
       return result;
    }
+
+   const Voc* GlobalVoc::the_voc = NULL;
+   void GlobalVoc::set(const Voc* voc) { assert(the_voc == NULL); the_voc = voc; }
+   void GlobalVoc::clear() { assert(the_voc != NULL); the_voc = NULL; }
+
 } // namespace Portage

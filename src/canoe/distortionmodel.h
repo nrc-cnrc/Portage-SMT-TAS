@@ -25,6 +25,8 @@
 
 namespace Portage {
 
+class CanoeConfig;
+
 /// Common class for distortion model decoder features.
 class DistortionModel : public DecoderFeature
 {
@@ -38,14 +40,15 @@ public:
     * arguments.
     * @param name_and_arg name of derived type, with optional argument
     *                     introduced by # if appropriate.
+    * @param c    global config object, for further info as required
     * @param fail die with error message if true and problems occur on
     * construction 
     * @return new model; free with delete
     */
    static DistortionModel* create(const string& name_and_arg,
-         bool fail = true);
+         const CanoeConfig* c, bool fail);
 
-   // Override DecoreFuture::newSrcSent() to save the sentennce length
+   // Override DecoreFuture::newSrcSent() to save the sentence length
    virtual void newSrcSent(const newSrcSentInfo& new_src_sent_info) {
       sentLength = new_src_sent_info.src_sent.size();
    }
@@ -81,7 +84,7 @@ public:
     * word in cov, as long as 1) it starts within the distortion limit from the
     * first non-covered word in cov, and 2) there exists a sequence of jumps
     * that respects the distortion limit and can complete the sentence.
-
+    *
     * @param cov Coverage set (i.e., words not translated yet) of previous
     *   partial translation, not including new_phrase (i.e., the range
     *   new_phrase must be in cov as words not translated yet).
@@ -98,8 +101,10 @@ public:
     * @return whether the distortion limit is respected if new_phrase is added.
     */
    static inline bool respectsDistLimit(const UintSet& cov,
-         Range last_phrase, Range new_phrase, int distLimit, Uint sourceLength,
-         bool distLimitSimple, bool distLimitExt, const UintSet* resulting_cov = NULL)
+         Range last_phrase, Range new_phrase,
+         int distLimit, Uint sourceLength,
+         bool distLimitSimple, bool distLimitExt,
+         const UintSet* resulting_cov = NULL)
    {
       if ( distLimitSimple )
          return respectsDistLimitSimple(cov, new_phrase, distLimit);
@@ -153,7 +158,7 @@ public:
       // sentence
       else {
          assert(cov.size() <= 2);
-         // Case 2a: new_phrase is continguous to and preceedes last_phrase,
+         // Case 2a: new_phrase is continguous to and precedes last_phrase,
          // and the result of adding new_phrase will leave no holes.
          if ( new_phrase == cov[0] && 
               last_phrase.start == cov[0].end &&
@@ -302,7 +307,7 @@ protected:
    } ReorderingType;
    ReorderingType type;
    Uint offset;
-   LexicalizedDistortion(const string& arg);
+   LexicalizedDistortion(const string& arg, const vector<string>& LDMFiles);
    
 public:
 
@@ -320,13 +325,14 @@ private:
    double scoreHelper(const PartialTranslation& pt);
 
 public:  
-   FwdLexDistortion(const string& arg);
+   FwdLexDistortion(const string& arg, const vector<string>& LDMFiles);
    virtual double score(const PartialTranslation& pt);
    virtual double partialScore(const PartialTranslation& trans);
    virtual Uint computeRecombHash(const PartialTranslation &pt);
    virtual bool isRecombinable(const PartialTranslation &pt1, const PartialTranslation &pt2);
    virtual double precomputeFutureScore(const PhraseInfo& phrase_info);
    virtual double futureScore(const PartialTranslation &trans);
+   virtual double partialFutureScore(const PartialTranslation &trans);
 };
 
 class BackLexDistortion : public LexicalizedDistortion
@@ -335,7 +341,7 @@ private:
    double scoreHelper(const PartialTranslation& pt);
 
 public:  
-   BackLexDistortion(const string& arg);
+   BackLexDistortion(const string& arg, const vector<string>& LDMFiles);
    virtual double score(const PartialTranslation& pt);
    virtual double partialScore(const PartialTranslation& trans);
    virtual Uint computeRecombHash(const PartialTranslation &pt);
@@ -347,7 +353,7 @@ public:
 class FwdHierLDM : public FwdLexDistortion
 {
 public:
-   FwdHierLDM(const string& arg);
+   FwdHierLDM(const string& arg, const vector<string>& LDMFiles);
    virtual Uint computeRecombHash(const PartialTranslation &pt);
    virtual bool isRecombinable(const PartialTranslation &pt1, const PartialTranslation &pt2);
    virtual ReorderingType determineReorderingType(const PartialTranslation& pt);
@@ -356,7 +362,7 @@ public:
 class BackHierLDM : public BackLexDistortion
 {
 public:
-   BackHierLDM(const string& args);
+   BackHierLDM(const string& arg, const vector<string>& LDMFiles);
    virtual Uint computeRecombHash(const PartialTranslation &pt);
    virtual bool isRecombinable(const PartialTranslation &pt1, const PartialTranslation &pt2);
    virtual ReorderingType determineReorderingType(const PartialTranslation& pt);
@@ -368,7 +374,7 @@ public:
 class BackFakeHierLDM : public BackLexDistortion
 {
 public:
-   BackFakeHierLDM(const string& args);
+   BackFakeHierLDM(const string& arg, const vector<string>& LDMFiles);
    virtual ReorderingType determineReorderingType(const PartialTranslation& pt);
 };
 

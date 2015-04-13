@@ -118,8 +118,6 @@ bool RuleFeature::isRecombinable(const PartialTranslation &pt1,
 
 void RuleFeature::print_rules(Uint src_id) const
 {
-   typedef vector<ruleInfo>::const_iterator  RULE_IT;
-
    if (!rule_infos.empty()) {
       fprintf(stderr, "%s rules for sentence %d are: \n", class_name.c_str(), src_id);
       for_each(rule_infos.begin(), rule_infos.end(), mem_fun_ref(&ruleInfo::print));

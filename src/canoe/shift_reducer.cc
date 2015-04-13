@@ -55,6 +55,7 @@ ShiftReducer::ShiftReducer(const Range& r, ShiftReducer* parent)
 ShiftReducer::ShiftReducer(Uint sentSize)
    :top(Range(0,0))
    ,tail(NULL)
+   ,hashCache(0)
    ,leftBound(0)
    ,rightBound(sentSize)
 {}
@@ -75,7 +76,7 @@ string ShiftReducer::toString() const {
 
 Uint ShiftReducer::computeRecombHash()
 {
-   if(hashCache!=0) {
+   if(hashCache==0) {
       hashCache = start()+17*end();
       if(tail!=NULL) {
          hashCache*=17;
@@ -127,9 +128,39 @@ void ShiftReducer::reduce()
    }
 }
 
+void ShiftReducer::fake_reduce(const Range& newTop, ShiftReducer* newTail, Range& oTop, ShiftReducer*& oTail)
+{
+   oTop.start=newTop.start; oTop.end=newTop.end; oTail=newTail;
+   // Pretend to shift on newTop; return what the resulting stack would look like, one reduction at a time
+   Uint imax = newTop.end;
+   Uint imin = newTop.start;
+   Uint size = newTop.end - newTop.start;
+   ShiftReducer* prev = newTail;
+   Uint idepth = 1;
+   while( prev != NULL && (allowNonITG || idepth==1) ) {
+      imax = max(prev->end(), imax);
+      imin = min(prev->start(), imin);
+      size += (prev->end() - prev->start());
+      idepth++;
+      if(size == (imax - imin)) {
+         // Reduce
+         oTop.start = imin;
+         oTop.end = imax;
+         oTail = prev->tail;
+         // cerr << "Fake reduce with nTop=" << newTop<< " nTail=" << newTail
+         //      << " oTop=" << oTop<< " oTail=" << oTail << endl;
+         return;
+      }
+      prev = prev->tail;
+   }
+   // cerr << "Fake reduce with nTop=" << newTop<< " nTail=" << newTail
+   //      << " oTop=" << oTop<< " oTail=" << oTail << endl;
+}
+
 bool ShiftReducer::usingSR(const CanoeConfig& c)
 {
    if(c.distLimitITG) return true;
+   if(c.forceShiftReduce) return true;
    
    const vector<string>& distortionModel(c.featureGroup("d")->args);
    for(Uint i=0; i<distortionModel.size(); i++)

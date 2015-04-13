@@ -375,7 +375,7 @@ Expected phrases (final state, path, phrase, score = sum of words in phrase):
    TestPDM model;
 
    // Run the decoder algorithm
-   runDecoder(model, hStacks, SRC_LENGTH, finder, false, false, 1);
+   runStackDecoder(model, hStacks, SRC_LENGTH, finder, false, false, 1);
 
    // Delete all stacks but the last one
    for (int i = 0; i < SRC_LENGTH; i++)

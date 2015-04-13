@@ -26,30 +26,60 @@ using namespace std;
 InputParser::InputParser(istream &in, bool withId)
    : in(in)
    , lineNum(0)
+   , _done(false)
    , withId(withId)
 {
    in.unsetf(ios::skipws);
 }
 
-bool InputParser::eof()
+bool InputParser::done() const
 {
-   return in.eof();
+   return _done;
 }
 
-bool InputParser::readMarkedSent(vector<string> &sent,
-      vector<MarkedTranslation> &marks,
-      vector<string>* class_names,
-      Uint* sourceSentenceId)
+bool InputParser::skipMarkedSent()
 {
+   if (in.eof()) {
+      _done = true;
+      return false;
+   }
+
+   ++lineNum;
+   char c;
+   in >> c;
+   while (!(in.eof() || c == '\n'))
+      in >> c;
+
+   return true;
+}
+
+PSrcSent InputParser::getMarkedSent(vector<string>* class_names)
+{
+   PSrcSent ss(new newSrcSentInfo);
+   if (!readMarkedSent(*ss, class_names))
+      error(ETFatal, "Aborting due to ill-formatted input at line %u.", lineNum);
+   if (done()) ss.reset();
+   return ss;
+}
+
+bool InputParser::readMarkedSent(newSrcSentInfo& nss,
+      vector<string>* class_names)
+{
+   nss.clear();
+
+   // Alias for sent because we use the src_sent variable a lot of times!
+   vector<string> &sent(nss.src_sent);
+
    // Parse the source sentence id
    // integer \t SourceSentence
-   if (withId && sourceSentenceId) {
-      in >> *sourceSentenceId;
-   }
-   else if (sourceSentenceId) {
-      *sourceSentenceId = lineNum;
-   }
-   lineNum++;
+   if (withId)
+      in >> nss.external_src_sent_id;
+   else 
+      nss.external_src_sent_id = lineNum;
+
+   ++lineNum;
+   vector<Uint> open_zones;
+   vector<Uint> open_localwalls;
    char c;
    in >> c;
    skipSpaces(c);
@@ -58,32 +88,128 @@ bool InputParser::readMarkedSent(vector<string> &sent,
       if (c == '<')
       {
          in >> c;
-         if ( in.eof() || c == ' ' || c == '\t' || c == '\r' || c == '\n' )
-         {
+         if (in.eof() || c == ' ' || c == '\t' || c == '\r' || c == '\n') {
             if ( inc_warning(STAND_ALONE_LEFT_ANGLE) <= max_warn )
                error(ETWarn, "Format warning in input line %d: "
                      "interpreting stand-alone '<' as regular character "
                      "(use '\\<' to suppress this warning).", lineNum);
             sent.push_back(string("<"));
-         } else
-         {
-            if ( ! readMark(sent, marks, c, class_names) )
-            {
-               //skipRestOfLine(c);
-               //return false;
-               // Changed behaviour: on invalid input, we attempt to interpret
-               // the rest of the line literally, skipping whatever was already
-               // consumed.  We still return false, so canoe will normally
-               // abort, but with -tolerate-markup-errors, it will still get
-               // most of the input line.
+         } else {
+            string tagName;
+            readString(tagName, c, '<', '>');
+            if (tagName == "zone") {
                skipSpaces(c);
-               while (!in.eof() && c != '\n') {
-                  sent.push_back(string());
-                  readString(sent.back(), c, (char)0, (char)0, true, true);
-                  skipSpaces(c);
+               SrcZone zone;
+               zone.range.start = sent.size();
+               if (c != '>') {
+                  string buf1, buf2;
+                  if (!readString(buf1, c, '=') || buf1 != "name" || c != '=' ||
+                      !(in >> c) || c != '"' ||
+                      !(in >> c) ||
+                      !readString(buf2, c, '"') || c != '"' ||
+                      !(in >> c) || c != '>') {
+                     error(ETWarn, "syntax error around <zone on line %d.\nThe syntax is strict: <zone name=\"name\"> with no slash or extra spaces.", lineNum);
+                     return false;
+                  }
+                  //cerr << "zone starting at " << sent.size() << " name: '" << buf2 << "'" << endl;
+                  zone.name = buf2;
                }
-               //cerr << "SENT: " << join(sent.begin(), sent.end()) << endl;
-               return false;
+               open_zones.push_back(nss.zones.size());
+               nss.zones.push_back(zone);
+               in >> c;
+            } else if (tagName == "/zone") {
+               if (open_zones.empty()) {
+                  error(ETWarn, "Closing a zone that was not previously opened on line %d.", lineNum);
+                  return false;
+               }
+               if (c != '>') {
+                  error(ETWarn, "syntax error around </zone on line %d.", lineNum);
+                  return false;
+               }
+               assert(nss.zones.size() > open_zones.back());
+               assert(nss.zones[open_zones.back()].range.end == 0);
+               nss.zones[open_zones.back()].range.end = sent.size();
+
+               while (!open_localwalls.empty()) {
+                  if (nss.local_walls[open_localwalls.back()].pos > nss.zones[open_zones.back()].range.start) {
+                     nss.local_walls[open_localwalls.back()].zone = nss.zones[open_zones.back()].range;
+                     open_localwalls.pop_back();
+                  }
+                  else break;
+               }
+
+               open_zones.pop_back();
+
+               in >> c;
+            } else if (tagName == "wall") {
+               skipSpaces(c);
+               string buf1, buf2;
+               if (!readString(buf1, c, '=') || buf1 != "name" || c != '=' ||
+                   !(in >> c) || c != '"' ||
+                   !(in >> c) ||
+                   !readString(buf2, c, '"') || c != '"' ||
+                   !(in >> c) || c != '/' ||
+                   !(in >> c) || c != '>') {
+                  error(ETWarn, "syntax error around <wall on line %d.\nThe syntax is strict: <wall name=\"name\"/> with slash and no extra spaces.", lineNum);
+                  return false;
+               }
+               //cerr << "wall at " << sent.size() << " name: '" << buf2 << "'" << endl;
+               nss.walls.push_back(SrcWall(sent.size(), buf2));
+               in >> c;
+            } else if (tagName == "wall/") {
+               if (c == '>') {
+                  // Save the wall position
+                  nss.walls.push_back(SrcWall(sent.size()));
+                  in >> c;
+               } else {
+                  error(ETWarn, "syntax error around <wall/ on line %d.", lineNum);
+                  return false;
+               }
+            } else if (tagName == "localwall") {
+               skipSpaces(c);
+               string buf1, buf2;
+               if (!readString(buf1, c, '=') || buf1 != "name" || c != '=' ||
+                   !(in >> c) || c != '"' ||
+                   !(in >> c) ||
+                   !readString(buf2, c, '"') || c != '"' ||
+                   !(in >> c) || c != '/' ||
+                   !(in >> c) || c != '>') {
+                  error(ETWarn, "syntax error around <localwall on line %d.\nThe syntax is strict: <localwall name=\"name\"/> with slash and no extra spaces.", lineNum);
+                  return false;
+               }
+               open_localwalls.push_back(nss.local_walls.size());
+               nss.local_walls.push_back(SrcLocalWall(sent.size(), buf2));
+               in >> c;
+            } else if (tagName == "localwall/") {
+               if (open_zones.empty()) {
+                  error(ETWarn, "<localwall/> must be contained within a zone at line %d.", lineNum);
+                  return false;
+               } else if (c != '>') {
+                  error(ETWarn, "Syntax error around <localwall/ on line %d. Only <localwall/> is accepted.", lineNum);
+                  return false;
+               }
+               open_localwalls.push_back(nss.local_walls.size());
+               nss.local_walls.push_back(SrcLocalWall(sent.size()));
+               in >> c;
+            } else {
+               // Regular mark uses the old mark parser.
+               if (! readMark(sent, nss.marks, tagName, c, class_names)) {
+                  //skipRestOfLine(c);
+                  //return false;
+                  // Changed behaviour: on invalid input, we attempt to interpret
+                  // the rest of the line literally, skipping whatever was already
+                  // consumed.  We still return false, so canoe will normally
+                  // abort, but with -tolerate-markup-errors, it will still get
+                  // most of the input line.
+                  skipSpaces(c);
+                  while (!in.eof() && c != '\n') {
+                     sent.push_back(string());
+                     readString(sent.back(), c, (char)0, (char)0, true, true);
+                     skipSpaces(c);
+                  }
+                  //cerr << "SENT: " << join(sent.begin(), sent.end()) << endl;
+                  return false;
+               }
             }
          }
       } else
@@ -97,16 +223,24 @@ bool InputParser::readMarkedSent(vector<string> &sent,
       skipSpaces(c);
    }
 
-   if ( sent.empty() and !in.eof() )
-   {
-      error(ETWarn, "Empty input on line %d.", lineNum);
+   if (!open_zones.empty() || !open_localwalls.empty()) {
+      error(ETWarn, "Opened <zone> was not closed on line %d.", lineNum);
+      nss.zones.pop_back();
+      return false;
    }
+
+   if (sent.empty() and !in.eof())
+      error(ETWarn, "Empty input on line %d.", lineNum);
+
+   if (in.eof() && sent.empty())
+      _done = true;
 
    return true;
 } // readMarkedSent
 
 bool InputParser::readMark(vector<string> &sent,
       vector<MarkedTranslation> &marks,
+      const string& tagName,
       char &lastChar,
       vector<string>* class_names)
 {
@@ -121,9 +255,8 @@ bool InputParser::readMark(vector<string> &sent,
    // space character starts a marked phrase.
    //skipSpaces(c);
 
-   // Read tag name
-   string tagName;
-   readString(tagName, c, '<', '>');
+   // EJJ 06JAN2014: Tag name was read by caller, so we don't read it here
+   // anymore, but we pick up the check just after.
    if (c == '>' || c == '<')
    {
       error(ETWarn, "Format error in input line %d: invalid mark format "
@@ -412,7 +545,7 @@ void InputParser::skipSpaces(char &c)
       if (c == '\0') {
          if (inc_warning(NULL_CHARACTER) <= max_warn) {
             error(ETWarn,
-               "NULL characters in plain text input files are invalid.");
+               "NULL characters in plain text input files are invalid on line %d.", lineNum);
          }
       }
       in >> c;

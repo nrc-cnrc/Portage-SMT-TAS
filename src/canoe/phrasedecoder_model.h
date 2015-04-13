@@ -5,8 +5,6 @@
  * + language model) to be used in decoding.  It also contains the declaration
  * of some general structures used: PhraseInfo and PartialTranslation.
  *
- * $Id$
- *
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -21,26 +19,26 @@
 
 #include "canoe_general.h"
 #include "shift_reducer.h"
+#include "annotation_list.h"
 #include <vector>
+#include <cmath> // NAN
 #include <boost/dynamic_bitset.hpp>
 
 using namespace std;
 
 namespace Portage
 {
-
    /**
-    * Structure to represent a phrase translation option.  We may need to
-    * rethink what probabilities are stored here when we implement the actual
-    * scoring functions.
+    * Structure to represent a phrase translation option.
     */
    struct PhraseInfo
    {
-      /// Default constructor makes an empty phraseinfo
-      PhraseInfo() : src_words(0,0), phrase_trans_prob(0) {}
-
-      /// Destructor
-      virtual ~PhraseInfo() {}
+      /// Default constructor makes an empty phrase info
+      PhraseInfo()
+         : src_words(0,0), phrase_trans_prob(0)
+         , forward_trans_prob(0), adir_prob(0)
+         , partial_score(NAN)
+      {}
 
       /// The source words that this is a translation of
       Range src_words;
@@ -50,12 +48,35 @@ namespace Portage
       /// word of the phrase.
       Phrase phrase;
 
-      /// The translation model probability of this phrase.
-      double phrase_trans_prob;
+      /// The backward translation model probability of this phrase.
+      double         phrase_trans_prob;
+      /// Backward probabilities for this phrase
+      vector<float>  phrase_trans_probs;
 
-      /// Display self for debugging purposes
+      /// forward probability score
+      double         forward_trans_prob;
+      /// forward probabilities for this phrase
+      vector<float>  forward_trans_probs;
+
+      /// adirectional probability score
+      double         adir_prob; //boxing
+      /// adirectional probabilities for this phrase
+      vector<float>  adir_probs; //boxing
+
+      /// lexicalized distortion probabilities for this phrase
+      vector<float>  lexdis_probs; //boxing
+
+      /// cache for phrasePartialScore(): Partial score combining the heuristic
+      /// precomputeFutureScore() from all features.
+      double partial_score;
+
+      /// Annotation trail left by various features, to find their way later, stored
+      /// for each phrase pair in an annotation list
+      AnnotationList annotations;
+
       virtual void display() const {
          cerr << src_words << " " << phrase_trans_prob;
+         cerr << " " << forward_trans_prob << " " << adir_prob;
       }
    }; // PhraseInfo
 
@@ -109,6 +130,19 @@ namespace Portage
 
       /// The number of source words that have been covered.
       Uint numSourceWordsCovered;
+
+      /**
+       * The right context size, following Li & Khudanpur, 2008: A Scalable
+       * Decoder for Parsing-based Machine Translation with Equivalent Language
+       * Model State Maintenance.
+       * recombination and LM queries on subsequent partial translations only
+       * need to consider the last lmContextSize of this PT.
+       */
+      mutable int lmContextSize;
+
+      // EJJ Packing note: numSourceWordsCovered and lmContextSize are placed
+      // together to pack well, filling exactly a Word slot between pointers
+      // (assuming a 64 bit word, which we now always use).
 
       /// Info to calculate the levenshtein distance.
       levenshteinInfo* levInfo;

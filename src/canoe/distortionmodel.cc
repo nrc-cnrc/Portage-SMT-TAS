@@ -15,6 +15,8 @@
 #include "distortionmodel.h"
 #include "str_utils.h"
 #include "phrasetable.h"
+#include "config_io.h"
+#include "walls_zones.h"
 #include <iostream>
 #include <algorithm>
 #include <cmath>
@@ -33,7 +35,7 @@ void DistortionModel::splitNameAndArg(const string& name_and_arg,
    arg.assign(arg_split.size() < 2 ? "" : arg_split[1]);
 }
 
-DistortionModel* DistortionModel::create(const string& name_and_arg, bool fail)
+DistortionModel* DistortionModel::create(const string& name_and_arg, const CanoeConfig* c, bool fail)
 {
    DistortionModel* m = NULL;
 
@@ -49,17 +51,22 @@ DistortionModel* DistortionModel::create(const string& name_and_arg, bool fail)
    else if (name == "PhraseDisplacement")
       m = new PhraseDisplacement();
    else if (name == "fwd-lex")
-      m = new FwdLexDistortion(arg);
+      m = new FwdLexDistortion(arg, c->LDMFiles);
    else if (name == "back-lex")
-      m = new BackLexDistortion(arg);
+      m = new BackLexDistortion(arg, c->LDMFiles);
    else if (name == "fwd-hlex")
-      m = new FwdHierLDM(arg);
+      m = new FwdHierLDM(arg, c->LDMFiles);
    else if (name == "back-hlex")
-      m = new BackHierLDM(arg);
+      m = new BackHierLDM(arg, c->LDMFiles);
    else if (name == "back-fhlex")
-      m = new BackFakeHierLDM(arg);
+      m = new BackFakeHierLDM(arg, c->LDMFiles);
+   else if (name == "Walls" || name == "Zones" || name == "LocalWalls")
+      m = WallOrZone::Create(name, arg, fail);
    else if (fail)
       error(ETFatal, "unknown distortion model: " + name);
+
+   if (dynamic_cast<LexicalizedDistortion*>(m))
+      m->description = "DistortionModel:" + name + m->description;
 
    return m;
 }
@@ -68,7 +75,7 @@ bool DistortionModel::respectsDistLimitCons(const UintSet& cov,
       Range last_phrase, Range new_phrase, int distLimit, Uint sourceLength,
       const UintSet* resulting_cov)
 {
-   if ( distLimit == NO_MAX_DISTORTION ) return true;
+   if (distLimit == NO_MAX_DISTORTION) return true;
 
    // distortion limit test 1: start of new phrase can't be too far from end of
    // last phrase
@@ -124,11 +131,11 @@ bool DistortionModel::respectsDistLimitExt(const UintSet& cov,
       Range last_phrase, Range new_phrase, int distLimit, Uint sourceLength,
       const UintSet* resulting_cov)
 {
-   if ( distLimit == NO_MAX_DISTORTION ) return true;
+   if (distLimit == NO_MAX_DISTORTION) return true;
 
    // distortion limit test 1: start of new phrase can't be too far from end of
    // last phrase
-   if ( abs(int(last_phrase.end) - int(new_phrase.start)) > distLimit )
+   if (abs(int(last_phrase.end) - int(new_phrase.start)) > distLimit)
       return false;
 
    // distortion limit test 2: start of new phrase can't be too far from first
@@ -149,8 +156,8 @@ bool DistortionModel::respectsDistLimitExt(const UintSet& cov,
    // limit from the end of the new phrase.
    if ( new_phrase.end > cov.front().start + distLimit ) {
       // case 3a: new phrase is too long, so it's not possible to have 2
-      // non-covered postions in the jump back space
-      if ( new_phrase.end - new_phrase.start + 1 > Uint(distLimit) )
+      // non-covered positions in the jump back space
+      if (new_phrase.end - new_phrase.start + 1 > Uint(distLimit))
          return false;
    }
 
@@ -168,27 +175,27 @@ bool DistortionModel::respectsDistLimitExt(const UintSet& cov,
    // This final case is cheaper to calculate than case 3b, so do it first.
    // Final case: make sure we can jump forward through all the covered blocks.
    Uint last_end = resulting_cov->front().end;
-   for ( Uint i(1), end(resulting_cov->size()); i < end; ++i ) {
-      if ( (*resulting_cov)[i].start > last_end + distLimit )
+   for (Uint i(1), end(resulting_cov->size()); i < end; ++i) {
+      if ((*resulting_cov)[i].start > last_end + distLimit)
          return false;
       last_end = (*resulting_cov)[i].end;
    }
+   if (sourceLength > last_end + distLimit)
+      return false;
 
    // And now let's get back and finish distortion limit test 3:
-   if ( new_phrase.end > cov.front().start + distLimit ) {
+   if (new_phrase.end > cov.front().start + distLimit) {
       // Case 3b: we need to actually count the number of free positions in the
       // jump back space.
       UintSet jump_back_space;
       assert(int(new_phrase.end)-distLimit-1 >= 0);
       intersectRange(jump_back_space, *resulting_cov,
                      Range(new_phrase.end-distLimit-1, new_phrase.start));
-      if ( jump_back_space.empty() ||
+      if (jump_back_space.empty() ||
            (jump_back_space.size() == 1 &&
               jump_back_space.front().end - jump_back_space.front().start < 2 ))
          return false;
    }
-   if ( int(sourceLength) - int(last_end) > distLimit )
-      return false;
 
    // Whew, we passed all tests.  Yay!
    return true;
@@ -197,7 +204,7 @@ bool DistortionModel::respectsDistLimitExt(const UintSet& cov,
 bool DistortionModel::respectsDistLimitSimple(const UintSet& cov,
       Range new_phrase, int distLimit)
 {
-   if ( distLimit == NO_MAX_DISTORTION ) return true;
+   if (distLimit == NO_MAX_DISTORTION) return true;
    assert(!cov.empty());
    return new_phrase.start <= cov.front().start + distLimit;
 }
@@ -375,32 +382,37 @@ double PhraseDisplacement::futureScore(const PartialTranslation &pt)
 }
 
 /************************** LexicalizedDistortion ******************************/
-LexicalizedDistortion::LexicalizedDistortion(const string& arg)
+LexicalizedDistortion::LexicalizedDistortion(const string& arg, const vector<string>& LDMFiles)
 {
-   if(arg.empty()) {
+   description = "";
+   if (arg.empty()) {
       type = Combined;
       offset = 0;
+   } else {
+      vector<string> toks;
+      split(arg,toks,"#");
+      string stype = toks[0];
+      if ( stype == "m" )
+         type = M;
+      else if (stype == "s" )
+         type = S;
+      else if (stype == "d" )
+         type = D;
+      else
+         type = Combined;
+      if (type != Combined) description = "#" + stype;
+
+      offset = 0;
+      string str_num;
+      if(toks.size()==1 && type==Combined) str_num = toks[0];
+      if(toks.size()==2) str_num = toks[1];
+      Uint uint_num;
+      if (conv(str_num, uint_num))
+         offset = 6 * uint_num;
    }
-
-   vector<string> toks;
-   split(arg,toks,"#");
-   string stype = toks[0];
-   if ( stype == "m" )
-      type = M;
-   else if (stype == "s" )
-      type = S;
-   else if (stype == "d" )
-      type = D;
-   else
-      type = Combined;
-
-   offset = 0;
-   string str_num;
-   if(toks.size()==1 && type==Combined) str_num = toks[0];
-   if(toks.size()==2) str_num = toks[1];
-   Uint uint_num;
-   if (conv(str_num, uint_num))
-      offset = 6 * uint_num;
+   Uint file_id = offset/6;
+   assert(file_id < LDMFiles.size());
+   description = description + "#" + LDMFiles[file_id];
 }
 
 void LexicalizedDistortion::readDefaults(const char* file_dflt)
@@ -449,22 +461,20 @@ LexicalizedDistortion::ReorderingType LexicalizedDistortion::determineReordering
 vector<float>::const_iterator
 LexicalizedDistortion::getLexDisProb(const PhraseInfo& phrase_info) const
 {
-   const ForwardBackwardPhraseInfo* pi = dynamic_cast<const ForwardBackwardPhraseInfo *>(&phrase_info);
-
-   if ( pi && pi->lexdis_probs.size() % 6 == 0 &&
-        pi->lexdis_probs.size()>=offset+6){
-      return pi->lexdis_probs.begin()+offset;
+   if (phrase_info.lexdis_probs.size() % 6 == 0 &&
+       phrase_info.lexdis_probs.size() >= offset+6){
+      return phrase_info.lexdis_probs.begin()+offset;
    }
    else {
-      assert(!pi || pi->lexdis_probs.size() <= offset);
+      assert(phrase_info.lexdis_probs.size() <= offset);
       return defaultValues.begin()+offset;
    }
 }
 
 /************************** FwdLexDistortion ******************************/
 
-FwdLexDistortion::FwdLexDistortion(const string& arg)
-   : LexicalizedDistortion(arg)
+FwdLexDistortion::FwdLexDistortion(const string& arg, const vector<string>& LDMFiles)
+   : LexicalizedDistortion(arg, LDMFiles)
 {}
 
 double FwdLexDistortion::scoreHelper(const PartialTranslation& pt)
@@ -522,7 +532,7 @@ bool FwdLexDistortion::isRecombinable(const PartialTranslation &pt1, const Parti
 
 double FwdLexDistortion::precomputeFutureScore(const PhraseInfo& phrase_info)
 {
-   if ( type != Combined ) return 0;
+   if (type != Combined) return 0;
 
    const vector<float>::const_iterator lexdis_probs = getLexDisProb(phrase_info);
    return *max_element(lexdis_probs+3,lexdis_probs+6);
@@ -539,9 +549,17 @@ double FwdLexDistortion::futureScore(const PartialTranslation& pt)
    return FwdLexDistortion::precomputeFutureScore(*pt.lastPhrase);
 }
 
+double FwdLexDistortion::partialFutureScore(const PartialTranslation& pt)
+{
+   // By definition, FwdLexDistortion::futureScore() uses the target phrase, so
+   // partialFutureScore() has to be defined and return 0.
+
+   return 0.0;
+}
+
 /************************** BackLexDistortion ******************************/
-BackLexDistortion::BackLexDistortion(const string& arg)
-   : LexicalizedDistortion(arg)
+BackLexDistortion::BackLexDistortion(const string& arg, const vector<string>& LDMFiles)
+   : LexicalizedDistortion(arg, LDMFiles)
 {}
 
 double BackLexDistortion::scoreHelper(const PartialTranslation& pt)
@@ -564,7 +582,7 @@ double BackLexDistortion::scoreHelper(const PartialTranslation& pt)
          result = (type == Combined || type == D) ? *(lexdis_probs+2) : 0;
          break;
       default:
-         error(ETFatal, "wrong reordering type: %s",Rtype);
+         error(ETFatal, "wrong reordering type: %u",Rtype);
    }
 
    return result;
@@ -620,8 +638,8 @@ static bool containsRange(const UintSet& set, Range query)
 
 /********************* HierFwdLDM *********************************/
 
-FwdHierLDM::FwdHierLDM(const string& arg)
-   : FwdLexDistortion(arg)
+FwdHierLDM::FwdHierLDM(const string& arg, const vector<string>& LDMFiles)
+   : FwdLexDistortion(arg, LDMFiles)
 {}
 
 Uint FwdHierLDM::computeRecombHash(const PartialTranslation &pt)
@@ -678,21 +696,22 @@ LexicalizedDistortion::ReorderingType FwdHierLDM::determineReorderingType(const 
 
 /***************** BackHierLDM **********************/
 
-BackHierLDM::BackHierLDM(const string& arg)
-   : BackLexDistortion(arg)
+BackHierLDM::BackHierLDM(const string& arg, const vector<string>& LDMFiles)
+   : BackLexDistortion(arg, LDMFiles)
 {}
 
 Uint BackHierLDM::computeRecombHash(const PartialTranslation &pt)
 {
-   assert(pt.shiftReduce!=NULL);
-   return pt.shiftReduce->computeRecombHash();
+   // Moved to BasicModel::computeRecombHash()
+   //return pt.shiftReduce->computeRecombHash();
+   return 0;
 }
 
 bool BackHierLDM::isRecombinable(const PartialTranslation &pt1, const PartialTranslation &pt2)
 {
-   assert(pt1.shiftReduce!=NULL);
-   assert(pt2.shiftReduce!=NULL);
-   return ShiftReducer::isRecombinable(pt1.shiftReduce, pt2.shiftReduce);
+   // Moved to BasicModel::isRecombinable()
+   //return ShiftReducer::isRecombinable(pt1.shiftReduce, pt2.shiftReduce);
+   return true;
 }
 
 LexicalizedDistortion::ReorderingType BackHierLDM::determineReorderingType(const PartialTranslation& pt)
@@ -715,8 +734,8 @@ LexicalizedDistortion::ReorderingType BackHierLDM::determineReorderingType(const
 
 /*************** BackFakeHierLDM ********************/
 
-BackFakeHierLDM::BackFakeHierLDM(const string& arg)
-   : BackLexDistortion(arg)
+BackFakeHierLDM::BackFakeHierLDM(const string& arg, const vector<string>& LDMFiles)
+   : BackLexDistortion(arg, LDMFiles)
 {}
 
 LexicalizedDistortion::ReorderingType

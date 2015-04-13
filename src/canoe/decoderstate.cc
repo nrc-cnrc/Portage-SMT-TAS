@@ -4,8 +4,6 @@
  * DecoderState class and the functions makeEmptyState() and
  * extendDecoderState().
  *
- * $Id$
- *
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -91,19 +89,17 @@ void DecoderState::display(ostream& out, PhraseDecoderModel *model, Uint sourceL
    out << trans->lastPhrase->src_words << " = ";
    out << displayUintSet(trans->sourceWordsNotCovered, false, sourceLength) << endl;
    out << "\tnum covered words     " << trans->numSourceWordsCovered << endl;
+   if (trans->lmContextSize >= 0)
+      out << "\tlm context size       " << trans->lmContextSize << endl;
+
    if (model) {
       out << "\ttarget phrase         "
           << model->getStringPhrase(trans->lastPhrase->phrase);
       out << endl;
-      const ForwardBackwardPhraseInfo* fbpi = dynamic_cast<const ForwardBackwardPhraseInfo*>(trans->lastPhrase);
-      BasicModel* bm = dynamic_cast<BasicModel*>(model);
-      if (bm && fbpi && fbpi->alignment)
-         out << "\talignment             "
-             << bm->getPhraseTable().alignmentVoc.word(fbpi->alignment) << endl;
-      if (bm && fbpi && !fbpi->bi_phrase.empty())
-         out << "\tbi phrase             "
-             << phrase2string(fbpi->bi_phrase, bm->getBiPhraseVoc()) << endl;
    }
+
+   // display the contents of the annotations stored with the phrase pair.
+   trans->lastPhrase->annotations.display(out);
 }
 
 Uint DecoderState::pruneRecombinedStates(double threshold)

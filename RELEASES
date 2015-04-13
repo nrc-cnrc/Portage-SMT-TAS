@@ -24,6 +24,10 @@ PortageII cur
 
  Changes:
   - New RestCostLMs give better LM heuristic during decoding.
+  - Added sparse features, including the discriminative reordering model, a
+    significant improvement over previous reordering models.
+  - New coarse BiLM features take into account source word classes in the
+    context and give good empirical results, improving translation quality.
   - Arabic is now supported as a source language.
 
  Minor changes:
@@ -37,6 +41,39 @@ PortageII cur
   - Sentence aligner, ssal, now runs faster, using Moore's diagonal beam
     approach.
   - Added -s option to dmcount to sort its output.
+  - Many new options and features in the canoe decoder, including:
+     - canoe can now prune its lattices before outputting them, for faster
+       handling by the lattice MIRA tuning algorithm. (-lattice-* options)
+     - -filter-features option to use some distortion models as hard
+       constraints instead of soft ones.
+     - New walls and zones features allows imposing specific reordering
+       constraints during decoding. Can be treated as soft constraints (via
+       -distortion-model) or as hard constraints (via -filter-features).
+     - The decoder's phrase table limit can now take into account all features,
+       including the LM heuristic ("-ttable-prune-type full" decoder option).
+     - Implemented LM context minimization, for faster decoding, following Li &
+       Khudanpur (2008).
+     - -nosent option to decode sentence fragments.
+     - -describe-model-only option describes the model in a canoe.ini file.
+     - -hierarchy option to create the output files in a hierarchical way when
+       there are too many to hold in one directory.
+     - canoe-parallel.sh now supports sentence-level load balancing, helping
+       parallel decoding finish faster.
+  - Many design improvements to the decoder (canoe module), with clean up of
+    code in many places, more flexibility for future extensions, etc.
+    To mention just a few examples:
+     - Save the phrase partial score with the phrase info, so it does not need
+       to be recomputed each time the phrase is used.
+     - Annotation lists allow phrase pairs to be augmented with arbitrary
+       annotations within the decoder, making for more flexible and faster
+       decoder features.
+     - Singleton pointer to the global vocabulary so it's accessible everywhere
+       it's needed without needed to be passed all over the place.
+     - Removed obsolete reversing of phrase tables via #REVERSED.
+     - Input reader significantly streamlined, making it much easier to use.
+  - configtool:
+     - "configtool memmap" now accounts for all models, including BiLMs.
+     - many new commands to support sparse features and other changes
 
  Minor bug fixes:
   - When writing LM files in ARPA format, explicitly write the 0-backoff
