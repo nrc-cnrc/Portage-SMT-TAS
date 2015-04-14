@@ -3,10 +3,6 @@
  * @file hard_filter_tm_visitor.cc  hard-limit phrase table filter based on
  *                                  filter_joint
  *
- * $Id$
- *
- * 
- *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
@@ -19,14 +15,14 @@
 using namespace Portage;
 using namespace Portage::Joint_Filtering;
 
-/// Phrase Table filter joint logger
-//Logging::logger ptLogger_hardFilterTMVisitor(Logging::getLogger("debug.canoe.hardFilterTMVisitor"));
 
 
 hardFilterTMVisitor::PhraseInfo4HardFiltering::PhraseInfo4HardFiltering(const pair<const Phrase, TScore>* ref, 
    const Uint numTextTransModels, 
    double log_almost_0, 
-   const vector<double>& hard_filter_weights)
+   const vector<double>& hard_filter_forward_weights,
+   const vector<double>& hard_filter_backward_weights,
+   bool combined)
 : Parent(ref)
 {
    assert(numTextTransModels>0);
@@ -36,8 +32,20 @@ hardFilterTMVisitor::PhraseInfo4HardFiltering::PhraseInfo4HardFiltering(const pa
    MakeLogProbs(forward_trans_probs, tScores.forward, numTextTransModels, log_almost_0);
    MakeLogProbs(phrase_trans_probs, tScores.backward, numTextTransModels, log_almost_0);
 
-   forward_trans_prob  = dotProduct(forward_trans_probs, hard_filter_weights, numTextTransModels);
-   phrase_trans_prob   = dotProduct(phrase_trans_probs,  hard_filter_weights, numTextTransModels);
+   forward_trans_prob  = dotProduct(hard_filter_forward_weights, forward_trans_probs, numTextTransModels);
+   phrase_trans_prob   = dotProduct(hard_filter_backward_weights, phrase_trans_probs, numTextTransModels);
+
+   if (combined) {
+      // In combined and full mode, the main filtering score is the sum of both forward
+      // and backward probs, i.e., all the information we have available in filter_models.
+      // TODO: For full, we would also like to add the LM heuristic score, but we don't
+      // have that in place yet.
+      partial_score = forward_trans_prob + phrase_trans_prob;
+   } else {
+      // in backward-weights and forward-weights, the main filtering score is the
+      // log-linear forward score
+      partial_score = forward_trans_prob;
+   }
 }
 
 
@@ -45,23 +53,43 @@ hardFilterTMVisitor::PhraseInfo4HardFiltering::PhraseInfo4HardFiltering(const pa
 hardFilterTMVisitor::hardFilterTMVisitor(
         const PhraseTable &parent,
         double log_almost_0,
-        const vector<double>* const hard_filter_weights)
+        const string& pruningTypeStr,
+        vector<double> forwardWeights,
+        const vector<double>& transWeights)
 : Parent(parent, log_almost_0, "HARD")
-, hard_filter_weights(hard_filter_weights)
 {
-   //LOG_VERBOSE4(ptLogger_hardFilterTMVisitor, "hard filter_joint LOG probs with resized converted");
-   cerr << join(*hard_filter_weights) << endl;
+   hard_filter_backward_weights = transWeights;
+
+   if (forwardWeights.empty())
+      forwardWeights = transWeights;
+
+   if (pruningTypeStr == "backward-weights") {
+      hard_filter_forward_weights = transWeights;
+      combined = false;
+      cerr << "Filter forward scores on backward weights: " << join(hard_filter_forward_weights) << endl;
+   } else if (pruningTypeStr == "forward-weights") {
+      hard_filter_forward_weights = forwardWeights;
+      combined = false;
+      cerr << "Main filter weights (forward): " << join(hard_filter_forward_weights) << endl;
+      cerr << "Backward weights: " << join(hard_filter_backward_weights) << endl;
+   } else {
+      assert(pruningTypeStr == "combined" || pruningTypeStr == "full");
+      combined = true;
+      hard_filter_forward_weights = forwardWeights;
+      cerr << "Combined weights B: " << join(hard_filter_backward_weights) << " + F: " << join(hard_filter_forward_weights) << endl;
+   }
 }
 
 
 void hardFilterTMVisitor::operator()(TargetPhraseTable& tgtTable)
 {
-   assert(hard_filter_weights);
-
    // only applicable if there is more than L entries in the table
    if (tgtTable.size() > L) {
-      if (!hard_filter_weights->empty() && hard_filter_weights->size() != numTextTransModels)
-         error(ETFatal, "Invalid number of TM weights for filter_joint hard (%d, %d)", hard_filter_weights->size(), numTextTransModels);
+      if (hard_filter_backward_weights.size() != numTextTransModels ||
+          hard_filter_forward_weights.size() != numTextTransModels)
+         error(ETFatal, "Invalid number of TM weights (%d/%d) for filter_joint hard on %d trans models)",
+            hard_filter_forward_weights.size(), hard_filter_backward_weights.size(),
+            numTextTransModels);
 
       // Store all phrases into a vector, along with their weight
       typedef vector<pair<double, PhraseInfo4filtering*> > FilteringInfo;
@@ -71,8 +99,9 @@ void hardFilterTMVisitor::operator()(TargetPhraseTable& tgtTable)
       // for each entry in tgtTable create an object with enough info to sort
       // them all in a way that the dynamic algo will work correctly
       for (TargetPhraseTable::const_iterator it = tgtTable.begin(); it != tgtTable.end(); ++it) {
-         PhraseInfo4HardFiltering* newPI = new PhraseInfo4HardFiltering(&(*it), numTextTransModels, log_almost_0, *hard_filter_weights);
-         phrases.push_back(make_pair(newPI->forward_trans_prob, newPI));
+         PhraseInfo4HardFiltering* newPI = new PhraseInfo4HardFiltering(&(*it), numTextTransModels,
+               log_almost_0, hard_filter_forward_weights, hard_filter_backward_weights, combined);
+         phrases.push_back(make_pair(newPI->partial_score, newPI));
       }
 
       // Keep the first L which we are sure to keep

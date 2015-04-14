@@ -613,7 +613,7 @@ namespace Portage
       /// vocab initially, until the phrase tables are loaded at which point
       /// it contains the union of the source and target language
       /// vocabularies.
-      const Voc& get_voc() const { return tgt_vocab; }
+      const VocabFilter& get_voc() const { return tgt_vocab; }
 
       // So much for read-only.
       Voc* getOpenVoc() {return &tgt_vocab;}

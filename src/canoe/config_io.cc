@@ -110,6 +110,7 @@ CanoeConfig::CanoeConfig()
    //tpptFiles;
    //lmFiles;
    lmOrder                = 0;
+   maxLmContextSize       = -1;
    minimizeLmContextSize  = false;
    //lmWeights;
    //transWeights;
@@ -198,6 +199,7 @@ CanoeConfig::CanoeConfig()
       ParamInfo::relative_path_modification | ParamInfo::lm_check_file_name));
    param_infos.push_back(ParamInfo("nbestProcessor", "string", &nbestProcessor));
    param_infos.push_back(ParamInfo("lmodel-order", "Uint", &lmOrder));
+   param_infos.push_back(ParamInfo("max-lm-context-size", "int", &maxLmContextSize));
    param_infos.push_back(ParamInfo("minimize-lm-context-size", "bool", &minimizeLmContextSize));
 
    // WEIGHTS of primary features
@@ -592,7 +594,6 @@ void CanoeConfig::read(const char* configFile) {
                string& f = *(string*)(it->val);
                efn(f);
             }
-            }
          }
       }
    }
@@ -928,7 +929,7 @@ void CanoeConfig::check()
       bStackDecoding = true;
 
    if ((bStackDecoding ? 1 : 0) +
-       (bCubePruning ? 1 : 0) +
+       (bCubePruning ? 1 : 0)
        > 1)
       error(ETFatal, "Can only run one decoder! Chose only one of -stack-decoding, -cube-pruning.");
 

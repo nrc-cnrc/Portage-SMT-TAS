@@ -24,27 +24,31 @@ Logging::logger ptLogger_filter_joint(Logging::getLogger("debug.canoe.phraseTabl
 
 PhraseTableFilterJoint::PhraseTableFilterJoint(bool limitPhrases,
                                                VocabFilter &tgtVocab,
-                                               const pruningStyle* const pruning_type,
-                                               const char* pruningTypeStr,
-                                               const vector<double>* const hard_filter_weights) :
-   Parent(limitPhrases, tgtVocab, pruningTypeStr)
+                                               const pruningStyle* const pruning_style,
+                                               const string& pruningTypeStr,
+                                               const vector<double>& forwardWeights,
+                                               const vector<double>& transWeights,
+                                               bool tm_hard_limit,
+                                               bool appendJointCounts) : 
+   Parent(limitPhrases, tgtVocab, pruningTypeStr, appendJointCounts)
    , visitor(NULL)
    , tgtTable(NULL)
-   , pruning_type(pruning_type)
+   , pruning_style(pruning_style)
    , online_filter_output(NULL)
 {
    // Keep a reference on the pruning style.
-   assert(pruning_type);
+   assert(pruning_style);
 
-   if (hard_filter_weights != NULL)   {
-      visitor = new Joint_Filtering::hardFilterTMVisitor(*this, log_almost_0, hard_filter_weights);
+   if (tm_hard_limit) {
+      visitor = new Joint_Filtering::hardFilterTMVisitor(*this, log_almost_0, pruningTypeStr,
+                                                         forwardWeights, transWeights);
    }
    else {
-      visitor = new Joint_Filtering::softFilterTMVisitor(*this, log_almost_0);
+      visitor = new Joint_Filtering::softFilterTMVisitor(*this, log_almost_0, pruningTypeStr);
    }
    assert(visitor);
 
-   LOG_VERBOSE1(ptLogger_filter_joint, "Creating/Using PhraseTableFilterJoint %s mode", visitor->style);
+   LOG_VERBOSE1(ptLogger_filter_joint, "Creating/Using PhraseTableFilterJoint %s mode", visitor->style.c_str());
 }
 
 
@@ -66,7 +70,7 @@ void PhraseTableFilterJoint::outputForOnlineProcessing(const string& filtered_TM
    LOG_VERBOSE2(ptLogger_filter_joint,
         "Setting output for online processing: %s, %s",
         filtered_TM_filename.c_str(),
-        pruning_type->description().c_str());
+        pruning_style->description().c_str());
 }
 
 
@@ -90,22 +94,22 @@ void PhraseTableFilterJoint::filter(const string& filtered_TM_filename)
    assert(visitor);
 
    // Keep a reference on the pruning style.
-   assert(pruning_type);
+   assert(pruning_style);
 
    LOG_VERBOSE2(ptLogger_filter_joint,
         "Applying %s filter_joint to: %s, pruningStyle=%s, n=%d",
-        visitor->style, 
-        filtered_TM_filename.c_str(), 
-        pruning_type->description().c_str(), 
+        visitor->style.c_str(),
+        filtered_TM_filename.c_str(),
+        pruning_style->description().c_str(),
         numTextTransModels);
 
-   visitor->set(pruning_type, numTextTransModels);
+   visitor->set(pruning_style, numTextTransModels);
    visitor->numKeptEntry = 0;
    textTable.traverse(*visitor);
 
    oSafeMagicStream multi(filtered_TM_filename);
    write(multi);
-   fprintf(stderr, "There are %d entries left after applying %s filtering\n", visitor->numKeptEntry, visitor->style);
+   fprintf(stderr, "There are %d entries left after applying %s filtering\n", visitor->numKeptEntry, visitor->style.c_str());
 
    //textTable.getSizeOfs();   // debugging
    //cerr << textTable.getStats() << endl;  // debugging
@@ -128,13 +132,13 @@ Uint PhraseTableFilterJoint::processTargetPhraseTable(const string& src,
    if (!online_filter_output) return 0;
 
    // Calculate the proper L for this source sentence.
-   assert(pruning_type);
-   const Uint L = (*pruning_type)(src_word_count);
+   assert(pruning_style);
+   const Uint L = (*pruning_style)(src_word_count);
 
    // Processing TargetPhraseTable online
    LOG_VERBOSE3(ptLogger_filter_joint,
       "Online processing of one entry (%s) L=%d n=%d",
-      visitor->style,
+      visitor->style.c_str(),
       L,
       tgtTable->begin()->second.backward.size()); // => numTextTransModels
 
@@ -153,7 +157,7 @@ Uint PhraseTableFilterJoint::processTargetPhraseTable(const string& src,
 }
 
 
-TargetPhraseTable* PhraseTableFilterJoint::getTargetPhraseTable(Entry& entry, bool limitPhrases)
+TargetPhraseTable* PhraseTableFilterJoint::getTargetPhraseTable(PhraseTableEntry& entry, bool limitPhrases)
 {
    // if we are in offline processing or online but not complete we need to
    // fill out the trie

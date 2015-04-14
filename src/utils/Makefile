@@ -32,6 +32,7 @@ OBJECTS = \
         portage_defs.o \
         process_bind.o \
         quick_set.o \
+        socket_utils.o \
         stats.o \
         str_utils.o \
         timer.o \

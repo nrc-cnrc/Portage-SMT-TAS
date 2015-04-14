@@ -304,6 +304,9 @@ public:
    void extractVocabFromTPPTs(Uint verbosity);
 
    /**
+    * OBSOLETE - #REVERSED is no longer supported. This method is only here to
+    * facilitate issueing meaningful error messages when that format is used.
+    *
     * Determine if a multi-prob file name says it's reversed.
     * A normal multi-prob files has lines like:
     *    "src ||| tgt ||| backward_probs forward_probs"
@@ -375,9 +378,7 @@ public:
     * Any probability value <= 0 is considered illegal (because you can't take
     * its log), and will be replaced by ALMOST_0, with a warning to the user.
     *
-    * @param multi_prob_TM_filename  file name; if the file name ends with
-    *                       "#REVERSED", it will be considered a reversed
-    *                       phrase table.  See isReversed() for details.
+    * @param multi_prob_TM_filename  file name
     * @param limitPhrases   Whether to store all phrase translations or only
     *                       those for source phrases that are already in the
     *                       table.
@@ -395,9 +396,7 @@ public:
     * Any probability value <= 0 is considered illegal (because you can't take
     * its log), and will be replaced by ALMOST_0, with a warning to the user.
     *
-    * @param lexicalized_DM_filename  file name; if the file name ends with
-    *                       "#REVERSED", it will be considered a reversed
-    *                       phrase table.  See isReversed() for details.
+    * @param lexicalized_DM_filename  file name
     * @param limitPhrases   Whether to store all phrase translations or only
     *                       those for source phrases that are already in the
     *                       table.

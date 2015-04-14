@@ -2,9 +2,6 @@
  * @author Samuel Larkin
  * @file soft_filter_tm_visitor.h  Interface for soft filtering phrase table
  *
- * $Id$
- *
- *
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
@@ -54,17 +51,20 @@ struct softFilterTMVisitor : public filterTMVisitor
    /// Definition of the inherited Parent
    typedef filterTMVisitor Parent;
 
+   /// true iff filtering is in "combined" or "full" mode, i.e., look at all TM models,
+   /// not just forward ones.
+   bool combined;
+
    /**
     * Constructor.
     * @param parent    The parent phrase table, whose getStringPhrase
     *                  function will be used to convert Uint sequence to
     *                  readable, and lexicographically comparable, text
-    * this information since not all entries have the same size, we need to
-    * make them the same size=> the same number of probs for each (forward
-    * and/or backward).
     * @param log_almost_0
+    * @param pruningTypeStr  pruning type: "forward-weights", "backward-weights",
+    *                        "combined" or "full"
     */
-   softFilterTMVisitor(const PhraseTable &parent, double log_almost_0);
+   softFilterTMVisitor(const PhraseTable &parent, double log_almost_0, const string& pruningTypeStr);
 
    virtual void operator()(TargetPhraseTable& tgtTable);
 
@@ -74,7 +74,7 @@ struct softFilterTMVisitor : public filterTMVisitor
     * @param jn  right-hand side operand
     * return Returns true if in is less than jn
     */
-   bool lessdot(ForwardBackwardPhraseInfo& in, ForwardBackwardPhraseInfo& jn) const;
+   bool lessdot(PhraseInfo& in, PhraseInfo& jn) const;
 
 };
 }; // ends namespace Joint_Filtering

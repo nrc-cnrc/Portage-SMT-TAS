@@ -2,8 +2,6 @@
  * @author Samuel Larkin
  * @file phrasetable_filter_lm.h  Interface for phrase table when filtering LMs.
  *
- * $Id$
- *
  * Interface for phrase table when filtering LMs.
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -35,12 +33,14 @@ class PhraseTableFilterLM : public PhraseTableFilter {
        * @param tgtVocab            target vocaulary
        * @param pruningTypeStr      pruning type
        */
-      PhraseTableFilterLM(bool _limitPhrases, VocabFilter& tgtVocab, const char* pruningTypeStr = NULL);
+      PhraseTableFilterLM(bool _limitPhrases, VocabFilter& tgtVocab,
+                          const string& pruningTypeStr,
+                          bool appendJointCounts = false);
 
       /// Destructor.
       virtual ~PhraseTableFilterLM();
 
-      virtual bool processEntry(TargetPhraseTable* tgtTable, Entry& entry);
+      virtual bool processEntry(PhraseTableEntry& entry);
 
 }; // ends class PhraseTableFilterLM
 } // ends namespace Portage

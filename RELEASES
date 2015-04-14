@@ -71,9 +71,13 @@ PortageII cur
        it's needed without needed to be passed all over the place.
      - Removed obsolete reversing of phrase tables via #REVERSED.
      - Input reader significantly streamlined, making it much easier to use.
+     - PhraseInfo and ForwardBackwardPhraseInfo classes merged.
   - configtool:
      - "configtool memmap" now accounts for all models, including BiLMs.
      - many new commands to support sparse features and other changes
+  - filter_models:
+     - supports for "combined" and "full" phrase table pruning types
+     - -plp switch to have filtered (H)LDM names preserve path info
 
  Minor bug fixes:
   - When writing LM files in ARPA format, explicitly write the 0-backoff

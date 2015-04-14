@@ -155,6 +155,7 @@ public:
    vector<string> tpptFiles;        ///< TPPT phrase table file names
    vector<string> lmFiles;          ///< Language model file names
    Uint lmOrder;                    ///< Maximum LM order (0 == no limit)
+   int maxLmContextSize;            ///< Maximum LM context from history (-1 == no limit)
    bool minimizeLmContextSize;      ///< Keep as little context as needed for future queries
    string nbestProcessor;           ///< A script that will be invoked for all nbest.
 

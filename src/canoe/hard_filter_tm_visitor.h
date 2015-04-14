@@ -2,8 +2,6 @@
  * @author Samuel Larkin
  * @file hard_filter_tm_visitor.h  Defines the hard filter visitor for phrase tables
  *
- * $Id$
- *
  * Defines the hard filter visitor for filtering phrase tables based on
  * filter_joint algorithm
  *
@@ -47,31 +45,41 @@ struct hardFilterTMVisitor : public filterTMVisitor
       * make them the same size=> the same number of probs for each (forward
       * and/or backward).
       * @param log_almost_0  user defined 0
-      * @param hard_filter_weights  phrasetable weights
+      * @param hard_filter_forward_weights  phrasetable weights for filtering forward scores
+      * @param hard_filter_backward_weights  phrasetable weights for filtering backward scores
+      * @param combined: if true, use the log-linear sum of both backward and forward
+      * score, not just forward, as primary filtering score.
       */
       PhraseInfo4HardFiltering(const pair<const Phrase, TScore>* ref, 
          const Uint numTextTransModels, 
          double log_almost_0, 
-         const vector<double>& hard_filter_weights);
+         const vector<double>& hard_filter_forward_weights,
+         const vector<double>& hard_filter_backward_weights,
+         bool combined);
    };
 
    /// Definition of the Parent inherited
    typedef filterTMVisitor Parent;
 
-   const vector<double>* const hard_filter_weights;  ///< TM weights for hard filtering
+   vector<double> hard_filter_forward_weights;  ///< Weights for hard filtering forward scores
+   vector<double> hard_filter_backward_weights; ///< Weights for hard filtering backward scores
+   bool combined; ///< true iff type was "combined" or "full"
 
    /**
     * Constructor.
     * @param parent    The parent phrase table, whose getStringPhrase
     *                  function will be used to convert Uint sequence to
-    *                  readable, and lexicographically comparable, text
-    * this information since not all entries have the same size, we need to
-    * make them the same size=> the same number of probs for each (forward
-    * and/or backward).
+    *                  readable, and lexicographically comparable, text.
     * @param log_almost_0
-    * @param hard_filter_weights
+    * @param pruningTypeStr  pruning type: "forward-weights", "backward-weights",
+    *                        "combined" or "full"
+    * @param forwardWeights  The decoder's forward weights (c.forwardWeights)
+    * @param backwardWeights The decoder's backward weights (c.transWeights)
     */
-   hardFilterTMVisitor(const PhraseTable &parent, double log_almost_0, const vector<double>* const hard_filter_weights);
+   hardFilterTMVisitor(const PhraseTable &parent, double log_almost_0,
+                       const string& pruningTypeStr,
+                       vector<double> forwardWeights,
+                       const vector<double>& transWeights);
 
    virtual void operator()(TargetPhraseTable& tgtTable);
 };

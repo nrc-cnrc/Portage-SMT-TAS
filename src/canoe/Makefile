@@ -82,6 +82,7 @@ PROGRAMS=$(TESTPROGS) \
 	mix_phrasetables
 
 BINSCRIPTS= \
+	build-sparse-model.sh \
 	canoe-parallel.sh \
 	canoe-timing-stats.pl \
 	nbest2rescore.pl \
@@ -94,7 +95,7 @@ DOCUMENTS=canoe.pdf
 
 EXTRA_LIBS=$(LOGGING_LIB)
 
-DYNLIBS=$(LIBICU) -lboost_system
+DYNLIBS=$(LIBICU) -lboost_system -lboost_filesystem
 
 canoe: DYNLIBS += -lpthread
 
