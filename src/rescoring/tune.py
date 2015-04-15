@@ -35,7 +35,7 @@ os.environ['LC_ALL'] = 'C'
 # constants
 
 jav = "java"
-jar=os.path.abspath(os.path.dirname(sys.argv[0]))+"/cherrycSMT.jar"
+jar=os.path.abspath(os.path.dirname(sys.argv[0]))+"/structpred.jar"
 
 logdir = "logs"
 
@@ -691,7 +691,7 @@ def optimizeLMIRA(iter, wts, args, logfile):
     if(opts.seed>0): seed = str(opts.seed * 10000 + iter)
     args_vals = args.split()
     refglob = ','.join(refs)
-    cmd = ["time-mem", jav, opts.jmem, "-enableassertions", "-cp", jar, "ca.nrc.iit.cherryc.SMT.SMTMiraLatticeTrain", \
+    cmd = ["time-mem", jav, opts.jmem, "-enableassertions", "-cp", jar, "ca.nrc.ict.nlp.structpred.SMT.SMTMiraLatticeTrain", \
            "--modelIn", optimizer_in, \
            "--lats", workdir, \
            "--refs", refglob, \
