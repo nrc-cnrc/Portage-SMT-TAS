@@ -1,6 +1,5 @@
 #!/bin/bash
 # vim:nowrap
-# $Id$
 #
 # @file canoe-optimize-weight, a.k.a., cow.sh
 # @brief Optimizer for canoe's weights renamed from rescoreloop.sh
@@ -628,7 +627,7 @@ while [[ 1 ]]; do
    # Run decoder
    echo ""
    echo Running decoder on `date`
-   RUNSTR="$CANOE $CANOE_OPTS $RANDOM_WEIGHTS -f $CFILE $wtvec -nbest $WORKDIR/foo$COMPRESS_EXT:$N -ffvals"
+   RUNSTR="$CANOE -no-hierarchy $CANOE_OPTS $RANDOM_WEIGHTS -f $CFILE $wtvec -nbest $WORKDIR/foo$COMPRESS_EXT:$N -ffvals"
    if [[ $MICRO -gt 0 ]]; then RUNSTR="$RUNSTR -sent-weights $MICRO_WTS"; fi
    if [[ "$PARALLEL" == 1 ]]; then
       RUNSTR="$CANOE_PARALLEL $PARALLEL_OPTS $RUNSTR"
