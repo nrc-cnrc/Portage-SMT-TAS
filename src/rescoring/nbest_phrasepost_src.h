@@ -2,9 +2,6 @@
  * @author Nicola Ueffing
  * @file nbest_phrasepost_src.h
  *
- * $Id$
- *
- *
  * COMMENTS: derived class for calculating phrase posterior probabilities over N-best lists
  * based on the aligned source phrase
  *
@@ -50,7 +47,7 @@ namespace Portage {
 
   private:
     map< pair<Tokens,PhraseRange>, ConfScore, phrasePairLessThan > PhrasePair2Posterior;
-    Alignment alig;
+    PhraseAlignment alig;
 
   public:
     /// Constructor.
@@ -61,7 +58,7 @@ namespace Portage {
       PhrasePair2Posterior.clear();
     };
 
-    virtual void   setAlig(Alignment &al);
+    virtual void   setAlig(PhraseAlignment &al);
 
     virtual void   computePosterior(Uint src_sent_id);
     virtual void   normalizePosterior();

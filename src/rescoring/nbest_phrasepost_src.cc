@@ -18,7 +18,7 @@
 
 using namespace Portage;
 
-void NBestPhrasePostSrc::setAlig(Alignment &al) {
+void NBestPhrasePostSrc::setAlig(PhraseAlignment &al) {
    alig = al;
 }
 
@@ -36,7 +36,7 @@ void NBestPhrasePostSrc::computePosterior(Uint src_sent_id) {
       totalProb.update(scores[n],n);
 
       const Tokens&     hypn  = nbest[n].getTokens();
-      Alignment         align = *(nbest[n].alignment);
+      PhraseAlignment&  align = nbest[n].phraseAlignment;
       align.sortOnTarget();
 
       for (uint k=0; k<align.size(); k++) {
@@ -136,8 +136,8 @@ void NBestPhrasePostSrc::tagPosteriorAll(ostream &out, int format) {
    assert(PhrasePair2Posterior.size());
 
    for (uint n=0; n<min(N,Ntag); n++) {
-      trg  =   nbest[n].getTokens();
-      alig = *(nbest[n].alignment);
+      trg  = nbest[n].getTokens();
+      alig = nbest[n].phraseAlignment;
 
       tagPosteriorOne(out,format);
    }
@@ -155,8 +155,8 @@ void NBestPhrasePostSrc::tagSentPosteriorAll(ostream &out) {
    vector<ConfScore> conf;
    for (uint n=0; n<min(N,Ntag); n++) {
 
-      trg  =   nbest[n].getTokens();
-      alig = (*nbest[n].alignment);
+      trg  = nbest[n].getTokens();
+      alig = nbest[n].phraseAlignment;
       conf.clear();
       conf.reserve(alig.size());
 

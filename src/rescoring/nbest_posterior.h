@@ -4,8 +4,6 @@
  * probabilities over N-best lists; different variants are implemented in
  * nbest_wordpost_lev.h, nbest_wordpost_src.h, ...
  *
- * $Id$
- *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
@@ -84,7 +82,7 @@ namespace Portage
           * Sets a new alignment
           * @param al  alignment
           */
-         virtual void   setAlig(Alignment &al) {}
+         virtual void   setAlig(PhraseAlignment &al) {}
 
          /**
           * Sets a new maximum N for Ngram

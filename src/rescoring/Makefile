@@ -42,7 +42,6 @@ OBJECTS = \
 	wer_postedit_ff.o
 
 BINSCRIPTS = \
-	cow.sh \
 	cowpie.py \
 	cow-timing.pl \
 	cow-timing-full.pl \

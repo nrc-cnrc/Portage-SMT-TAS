@@ -88,10 +88,7 @@ bool RiskBleu::parseAndCheckArgs()
       }
    }
    else {
-     if (!check_if_exists(ff_wts_file)){
-       error(ETFatal, "File is not accessible: %s", ff_wts_file.c_str());
-       return false;
-     }
+     error_unless_exists(ff_wts_file);
    }
 
    // Prefix

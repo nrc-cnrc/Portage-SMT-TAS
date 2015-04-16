@@ -2,9 +2,6 @@
  * @author Aaron Tikuisis / George Foster / Samuel Larkin / Eric Joanis
  * @file file_ff.cc  Read-from-file feature function and its dynamic version
  *
- * $Id$
- *
- *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
@@ -99,9 +96,13 @@ bool FileDFF::loadModelsImpl()
    vector<string> fields;
    FileReader::DynamicReader<string> dr(m_filename, 1);
    vector<string> gc;
+   int prev_index = -1;
    while (dr.pollable())
    {
-      dr.poll(gc);
+      Uint index(0);
+      dr.poll(gc, &index);
+      while (++prev_index < int(index))
+         m_vals.push_back(vector<double>());
       const Uint K(gc.size());
       m_vals.push_back(vector<double>(K, 0.0f));
       for (Uint k(0); k<K; ++k)

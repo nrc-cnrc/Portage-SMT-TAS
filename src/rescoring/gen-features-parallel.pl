@@ -32,6 +32,7 @@ $ENV{PORTAGE_INTERNAL_CALL} = 1;
 my $SRC_TAG = "<src>";
 my $FFVAL_WTS_TAG = "<ffval-wts>";
 my $NBEST_TAG = "<nbest>";
+my $PAL_TAG = "<pal>";
 my $PFX_TAG = "<pfx>";
 my $NUM_PROC_TAG = "<NP>";
 
@@ -47,6 +48,7 @@ my $CANOEFILE = undef;
 my $JOBS_PER_FF = -1;
 my $RESCORING_MODEL_OUT = undef;
 my $N = 3;
+my @RP_OPTS = ();
 
 my ($CMDS_FILE_HANDLE, $CMDS_FILE_NAME) = File::Temp::tempfile("gen-features-parallel-output.XXXX", SUFFIX => ".commands", UNLINK=>1);
 
@@ -58,6 +60,7 @@ sub usage {
    print STDERR "
  Usage: gen-features-parallel.pl [-v][-n][-s sproxy][-p pref][-a pal-file]
         [-o RESCORING-MODEL][-N #nodes][-J #jobs_per_ff][-F]
+        [-rpopts run-parallel-options]
         [-c canoe-file-with-weights] MODEL SFILE NBEST
 
  Generate a set of feature-value files in parallel, as required by the
@@ -88,6 +91,8 @@ sub usage {
  -J  Number of jobs per feature function when running in parallel {expert mode}.
      [2*ceil(N/#computable FF)]
  -F  Force feature function files overwrite. [don't]
+ -rpopts  Additional options for run-parallel.sh (e.g. '-psub -2'). May be
+          repeated. ['']
 
  For example, if the contents of MODEL are:
 
@@ -195,6 +200,7 @@ GetOptions(
    "o=s"       => \$RESCORING_MODEL_OUT,
    "N=i"       => \$N,
    "J=i"       => \$JOBS_PER_FF,
+   "rpopts=s"  => \@RP_OPTS,
 ) or usage;
 
 
@@ -218,6 +224,8 @@ if ( $NOEXEC ) {
    my $VERBOSE=undef;
 }
 
+my $RUN_PARALLEL_OPTS = join(' ', @RP_OPTS);
+
 
 # Get the nbest list and source file's size for later consistency check.
 my $WC_NBEST=`gzip -cqfd $NBEST | wc -l`;
@@ -234,7 +242,7 @@ if( defined($RESCORING_MODEL_OUT) and $RESCORING_MODEL_OUT eq $MODEL) {
 # Calculate the proper number of jobs per feature function if not specified by
 # the user.
 if ( $JOBS_PER_FF == -1 ) {
-   # Computable feature functions are does that are not commented or FileFF
+   # Computable feature functions are those that are not commented or FileFF
    my $L = `cat $MODEL | egrep -v '^\\s*#' | egrep -v "FileFF" | wc -l`;
    debug "L: $L";
    use POSIX qw(ceil);
@@ -354,6 +362,7 @@ while (my $LINE = <MODEL_FILE>) {
       $ARGS =~ s/$FFVAL_WTS_TAG/$CANOEWEIGHTFILE/g;
       $ARGS =~ s/$PFX_TAG/$PREF/g;
       $ARGS =~ s/$NBEST_TAG/$NBEST/g;
+      $ARGS =~ s/$PAL_TAG/$ALIGFILE/g;
       $ARGS =~ s/$NUM_PROC_TAG/$N/g;
    }
    else {
@@ -370,6 +379,7 @@ while (my $LINE = <MODEL_FILE>) {
       $FILE =~ s/#?$FFVAL_WTS_TAG//g;
       $FILE =~ s/#?$PFX_TAG//g;
       $FILE =~ s/$NBEST_TAG/$NBEST/g;
+      $FILE =~ s/$PAL_TAG/$ALIGFILE/g;
       $FILE =~ s/$NUM_PROC_TAG/N/g;
       $FILE =~ s/:/./ unless $FILE =~ /FileFF/;
       # Replace slash, backslash and semi-colon by underscore
@@ -525,10 +535,10 @@ printf STDERR "Processing $MODEL in %ds\n", time - $start_time;
 
 # Now that we have the processes' list, we can execute them
 if ( -s $CMDS_FILE_NAME ) {
-   verbose "run-parallel.sh $VERBOSE $CMDS_FILE_NAME $N";
+   verbose "run-parallel.sh $VERBOSE $RUN_PARALLEL_OPTS $CMDS_FILE_NAME $N";
    my $RC = 0;
    if (not defined($NOEXEC)) {
-      $RC = system("run-parallel.sh $VERBOSE $CMDS_FILE_NAME $N");
+      $RC = system("run-parallel.sh $VERBOSE $RUN_PARALLEL_OPTS $CMDS_FILE_NAME $N");
    }
 
    # Now merge feature functions' values that were generated horizontally.

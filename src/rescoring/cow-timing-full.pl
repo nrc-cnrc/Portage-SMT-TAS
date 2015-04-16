@@ -1,5 +1,4 @@
 #!/usr/bin/env perl
-# $Id$
 # @file cow-timing-full.pl
 # @brief Provide timing information for a cow run.
 #
@@ -87,7 +86,7 @@ sub parsetime($) {
 sub parsemem($) {
    my $ram = "";
    my $vmem = "";
-   if ( /Max VMEM ([0-9.]+G) Max RAM ([0-9.]+G)/ ) {
+   if ( $_[0] =~ /Max VMEM ([0-9.]+G) Max RAM ([0-9.]+G)/ ) {
       $vmem = $1;
       $ram = $2;
    }
@@ -113,6 +112,7 @@ sub processlog($$) {
       # Non-parallel programs
       if ( /run_cmd finished \(rc=\d+\): ([^ ]+)/ ) {
          $_ = <LOG>;
+         last unless defined $_;
          parse_run_cmd_output $prev_line, $_, $1;
       }
       # Canoe-parallel produces an RP-Total line
@@ -124,6 +124,7 @@ sub processlog($$) {
          while (<LOG>) {
             last if /Single-job-total/;
          }
+         last unless defined $_;
          parse_run_cmd_output($_, "", "Uniq n-bests");
       }
       # Appending all n-best lists together
@@ -131,6 +132,7 @@ sub processlog($$) {
          while (<LOG>) {
             last if /Single-job-total/;
          }
+         last unless defined $_;
          parse_run_cmd_output($_, "", "Cat n-bests");
       }
       

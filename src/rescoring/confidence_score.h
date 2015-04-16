@@ -2,9 +2,6 @@
  * @author Nicola Ueffing
  * @file confidence_score.h  Class for storing word confidence measures.
  *
- * $Id$ 
- *
- *
  * COMMENTS: class for storing word confidence measures calculated over N-best lists
  * contains word posterior probability, rank weighted frequency, and relative frequency
  *

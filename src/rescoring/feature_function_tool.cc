@@ -15,6 +15,7 @@
 
 #include "exception_dump.h"
 #include "arg_reader.h"
+#include "logging.h"
 #include "file_utils.h"
 #include "featurefunction_set.h"
 #include <printCopyright.h>
@@ -24,7 +25,7 @@ using namespace std;
 
 /// Program gen_feature_values usage.
 static char help_message[] = "\n\
-feature_function_tool [-v][-p Prefix] -check rescoring-model\n\
+feature_function_tool [-v][-p prefix] -check rescoring-model\n\
 \n\
    Verifies the rescoring-model integrity.\n\
 \n\

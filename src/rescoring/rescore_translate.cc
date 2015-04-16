@@ -21,6 +21,8 @@
 #include "rescoring_general.h"
 #include "printCopyright.h"
 #include "bleu.h"
+#include "translationReader.h"
+#include "file_utils.h"
 
 #include <queue>
 #include <stack>
@@ -106,15 +108,13 @@ int MAIN(argc, argv)
 
 
    ////////////////////////////////////////
-   // ALIGNMENT
-   ifstream astr;
-   const bool bNeedsAlignment = ffset.requires() & FF_NEEDS_ALIGNMENT;
-   if (bNeedsAlignment) {
+   // Create a NBest reader that will also read alignments if needed.
+   LOG_VERBOSE2(verboseLogger, "Creating NBest reader");
+   NbestReader  nbestReader(FileReader::createT(arg.nbest_file, arg.alignment_file, arg.K));
+
+   if (ffset.requires() & FF_NEEDS_ALIGNMENT) {
       if (arg.alignment_file.empty())
          error(ETFatal, "At least one of feature function requires the alignment");
-      LOG_VERBOSE2(verboseLogger, "Reading alignments from %s", arg.alignment_file.c_str());
-      astr.open(arg.alignment_file.c_str());
-      if (!astr) error(ETFatal, "unable to open alignment file %s", arg.alignment_file.c_str());
    }
 
    boost::scoped_ptr<istream> co_in;
@@ -140,22 +140,12 @@ int MAIN(argc, argv)
          cerr << "Maximum a-posteriori (MAP) rescoring (default behaviour)" << endl;
    }
 
-   NbestReader  pfrN(FileReader::create<Translation>(arg.nbest_file, arg.K));
    Uint s(0);
-   for (; pfrN->pollable(); ++s)
+   for (; nbestReader->pollable(); ++s)
    {
       Nbest  nbest;
-      pfrN->poll(nbest);
+      nbestReader->poll(nbest);
       Uint K(nbest.size());
-
-      vector<Alignment> alignments(K);
-      Uint k(0);
-      for (; bNeedsAlignment && k < K && alignments[k].read(astr); ++k)
-      {
-         nbest[k].alignment = &alignments[k];
-      }
-      if (bNeedsAlignment && (k != K))
-         error(ETFatal, "unexpected end of nbests file after %d lines (expected %dx%d=%d lines)", s*K+k, S, K, S*K);
 
       LOG_VERBOSE3(verboseLogger, "Computing FF matrix");
       uMatrix H;
@@ -327,7 +317,7 @@ int MAIN(argc, argv)
       } // else (MBR)
    }
 
-   astr.close();
+   nbestReader.reset();
    if (s != S) error(ETFatal, "File inconsistency s=%d, S=%d", s, S);
 
 } END_MAIN

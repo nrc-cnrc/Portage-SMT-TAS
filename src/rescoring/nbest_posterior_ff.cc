@@ -1,6 +1,5 @@
 /**
  * @author Nicola Ueffing
- * $Id$
  * @file nbest_posterior_ff.cc
  * 
  * N-best Rescoring Module
@@ -81,10 +80,7 @@ bool nbestPosteriorBase_ff::parseAndCheckArgs()
       }
    }
    else {
-      if (!check_if_exists(ff_wts_file)){
-         error(ETFatal, "File is not accessible: %s", ff_wts_file.c_str());
-         return false;
-      }
+      error_unless_exists(ff_wts_file);
    }
 
    // Prefix
@@ -147,13 +143,13 @@ nbestWordPostSrc_ff::nbestWordPostSrc_ff(const string& args)
 
 double
 nbestWordPostSrc_ff::computeValue(const Translation& trans) {
-   nbconf->setAlig(*trans.alignment);
+   nbconf->setAlig(trans.phraseAlignment);
    return nbestPosteriorBase_ff::computeValue(trans);
 }
 
 vector<double>
 nbestWordPostSrc_ff::computeValues(const Translation& trans) {
-   nbconf->setAlig(*trans.alignment);
+   nbconf->setAlig(trans.phraseAlignment);
    return nbestPosteriorBase_ff::computeValues(trans);
 }
 
@@ -173,13 +169,13 @@ nbestPhrasePostSrc_ff::nbestPhrasePostSrc_ff(const string& args)
 
 double
 nbestPhrasePostSrc_ff::computeValue(const Translation& trans) {
-   nbconf->setAlig(*trans.alignment);
+   nbconf->setAlig(trans.phraseAlignment);
    return nbestPosteriorBase_ff::computeValue(trans);
 }
 
 vector<double>
 nbestPhrasePostSrc_ff::computeValues(const Translation& trans) {
-   nbconf->setAlig(*trans.alignment);
+   nbconf->setAlig(trans.phraseAlignment);
    return nbestPosteriorBase_ff::computeValues(trans);
 }
 
@@ -192,13 +188,13 @@ nbestPhrasePostTrg_ff::nbestPhrasePostTrg_ff(const string& args)
 
 double
 nbestPhrasePostTrg_ff::computeValue(const Translation& trans) {
-   nbconf->setAlig(*trans.alignment);
+   nbconf->setAlig(trans.phraseAlignment);
    return nbestPosteriorBase_ff::computeValue(trans);
 }
 
 vector<double>
 nbestPhrasePostTrg_ff::computeValues(const Translation& trans) {
-   nbconf->setAlig(*trans.alignment);
+   nbconf->setAlig(trans.phraseAlignment);
    return nbestPosteriorBase_ff::computeValues(trans);
 }
 

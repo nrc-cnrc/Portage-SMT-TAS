@@ -3,8 +3,6 @@
  * @file featurefunction_set.cc  K-Best Rescoring Module - Sets of Feature
  *                               functions
  *
- * $Id$
- *
  * This class was moved out of featurefunction.h to remove spurious
  * dependencies that slowed down compiling.
  *
@@ -18,6 +16,7 @@
 #include "featurefunction_set.h"
 #include "file_ff.h"
 #include "feature_function_grammar.h"
+#include "logging.h"
 #include <errors.h>
 #include <str_utils.h>
 #include <file_utils.h>
@@ -161,8 +160,6 @@ void FeatureFunctionSet::computeFFMatrix(uMatrix& H, Uint s, Nbest &nbest)
       if (!nbest[k].empty()) {
          if (required & FF_NEEDS_TGT_TOKENS ) // Target tokenization
             nbest[k].getTokens();
-         if ((required & FF_NEEDS_ALIGNMENT) && !nbest[k].alignment) // Alignment
-            error(ETFatal, "Alignment needed and not found in nbest[%d][%d]\n", s, k);
 
          for (Uint m = 0; m < M(); ++m)
             H(l, m) = ff_infos[m].function->value(k);
