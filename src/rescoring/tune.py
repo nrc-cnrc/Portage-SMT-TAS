@@ -58,7 +58,7 @@ parser = OptionParser(usage=usage, description=help)
 parser.add_option("--postLattice", dest="postProcessorLattice", type="string", default=None,
                   help="Apply post processing to the lattice before optimizing [%default]")
 parser.add_option("--post", dest="postProcessor", type="string", default=None,
-                  help="Apply post processing the nbest lists before optimizing [%default]")
+                  help="Apply post processing to the nbest lists before optimizing [%default]")
 parser.add_option("--workdir", dest="workdir", type="string", default="foos",
                   help="Change the working directory [%default]")
 parser.add_option("--clean", dest="clean", action="store_true", default=False,
@@ -95,6 +95,7 @@ parser.add_option("-a", dest="optcmd", type="string", default="powell",
                   "lmira [--options], " \
                   "expsb [L bleucol] "\
                   "[%default]")
+#                  "olmira [C decay bg density combineCounts(t/f)], "
 #parser.add_option("-b", dest="bestbleu", type="string", default="1",
 #                  help="type of nbest BLEU calculation for mira: " + \
 #                  "1 - smoothed sentence-level, 1x - same as 1, but scaled by " + \
@@ -150,7 +151,7 @@ opts.bestbleu = "1"
 if opts.bestbleu not in ("1", "1x", "2", "-1"):
     parser.error("bad value for -b switch: " + opts.bestbleu)
 
-if alg not in ("powell", "mira", "pro", "svm", "lmira", "expsb"):
+if alg not in ("powell", "mira", "pro", "svm", "lmira", "olmira", "expsb"):
     parser.error("unknown optimization algorithm: " + alg)
 
 if not os.path.isfile(src):
@@ -410,7 +411,7 @@ def decoderConfig2wts(config):
        error("configtool program not found ", err)
 
 def wts2decoderConfigStr(config, input_config = opts.config):
-    """Helper for wts2decoderConfi"""
+    """Helper for wts2decoderConfig"""
     if opts.sparse: configtool_cmd = "set-all-wts:-"
     else: configtool_cmd = "set-weights-rm:-"
     return ["configtool", configtool_cmd, input_config, config]
@@ -503,9 +504,8 @@ def eval():
    except OSError, err:
       error("Command not found ", ' '.join(cmd), err)
 
-
 def optimizerModel2wts(model):
-    """Convert an optimizer model file into a weight vector."""
+    """Convert an optimizer model file into a flat weight vector."""
     wts = []
     with open(model) as f:
         for line in f:
