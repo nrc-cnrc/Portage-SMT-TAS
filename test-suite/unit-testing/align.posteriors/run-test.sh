@@ -9,9 +9,9 @@
 # Copyright 2008, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2008, Her Majesty in Right of Canada
 
-DIFF_IGNORE="--ignore-blank-lines --ignore-space-change --ignore-matching-lines=TTable --ignore-matching-lines=NRC-CNRC --ignore-matching-lines=portage_info"
+make gitignore
+
 ./align-cmd.sh 2>&1 |
    sed 's/in [0-9][0-9]* second/in N second/' |
-   sed 's/ 0.0001 /  1e-04 /' |
-   diff ${DIFF_IGNORE} ref/align.out -
+   diff-round.pl -min -p -1.2 ref/align.out -
 exit
