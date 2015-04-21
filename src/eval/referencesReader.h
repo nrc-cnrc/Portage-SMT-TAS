@@ -15,16 +15,16 @@
 #ifndef __REFERENCES_READER_H__
 #define __REFERENCES_READER_H__
 
-#include <basic_data_structure.h>
+#include "basic_data_structure.h"
 
 namespace Portage {
 using namespace std;
 
 /// Handles reading references from multiple files for a source sentence.
-class referencesReader
+class referencesReader : private NonCopyable
 {
    private:
-      const unsigned int  m_R;       ///< Number of reference files
+      const unsigned int  m_R;       ///< Number of reference files.
       vector<istream*>    m_ifRefs;  ///< m_R input streams
 
    public:

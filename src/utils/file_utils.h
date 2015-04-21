@@ -115,6 +115,14 @@ inline void readFileLines(const string& filename, vector<string>& lines) {
 void writeFileLines(std::ostream& ostr, const vector<string>& lines);
 
 /**
+ * Read the header of a file and check if it matches the given magic number
+ * @param filename      file to check
+ * @param magic_number  expected header
+ * @return true iff filename exists, can be read, and starts with magic_number
+ */
+bool matchMagicNumber(const string& filename, const string& magic_number);
+
+/**
  * Count the lines in a file (equivalent to wc -l).
  * @param istr  input stream to count lines
  * @return Returns the number of line in istr

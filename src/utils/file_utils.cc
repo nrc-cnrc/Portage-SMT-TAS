@@ -53,6 +53,15 @@ void Portage::writeFileLines(std::ostream& ostr, const vector<string>& lines)
       ostr << *p << endl;
 }
 
+bool Portage::matchMagicNumber(const string& filename, const string& magic_number)
+{
+   iMagicStream in(filename, true);
+   char buffer[magic_number.size()+1];
+   in.read(buffer, magic_number.size());
+   return in.good() &&
+          0 == strncmp(buffer, magic_number.c_str(), magic_number.size());
+}
+
 Uint Portage::countFileLines(std::istream& istr)
 {
    string line;

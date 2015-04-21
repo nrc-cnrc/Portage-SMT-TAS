@@ -54,6 +54,7 @@ Options:\n\
 -v     Write progress reports to cerr.\n\
 -r     Reverse the roles of the languages: assume lang2 is the source. This is\n\
        equivalent to swapping the positions of all language-dependent arguments.\n\
+-s     Sort the output file.\n\
 -a     Word-alignment method and optional args. Use -H for list of methods.\n\
        Multiple methods may be specified by using -a repeatedly. [IBMOchAligner]\n\
 -w     Add <nw> best IBM1 translations for src and tgt words that occur in the\n\
@@ -122,6 +123,7 @@ static string lc2;
 static bool giza_alignment = false;
 static bool hierarchical = false;
 static bool externalAlignerMode = false;
+static bool sorting = false;
 
 // HMM post-load parameters (intentionally left uninitialized).
 
@@ -174,6 +176,7 @@ namespace genPhraseTable {
 
             mp_arg_reader->testAndSet("v", verboses);
             mp_arg_reader->testAndSet("r", rev);
+            mp_arg_reader->testAndSet("s", sorting);
             mp_arg_reader->testAndSet("a", ppe.align_methods);
             mp_arg_reader->testAndSet("w", ppe.add_word_translations);
             mp_arg_reader->testAndSet("m", ppe.max_phrase_string);
@@ -330,7 +333,12 @@ void doEverything(ARG& args) {
       ppe.add_ibm1_translations(2, pt, word_voc_2, word_voc_1);
    }
 
-   pt.dump_joint_freqs(cout);
+   string outname("-");
+   if (sorting) 
+      outname = "| LC_ALL=C TMPDIR=. sort";
+   oSafeMagicStream os(outname);
+
+   pt.dump_joint_freqs(os);
 }
 
 // main

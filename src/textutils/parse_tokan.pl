@@ -13,8 +13,7 @@
 
 use strict;
 use warnings;
-# DON'T use utf8 since the input is Buckwalter.
-#use utf8;
+use utf8;  # This script has a unicode code point \xB7
 
 use ULexiTools;
 
@@ -32,6 +31,15 @@ printCopyright "parse_tokan.pl", 2014;
 $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
 
+# This is a utf8 handling script => io should be in utf8 format
+# ref: http://search.cpan.org/~tty/kurila-1.7_0/lib/open.pm
+# We need utf-8 streams and we need to open them correctly in order to perform
+# lowercasing properly.
+# MADA should not break utf-8 encoding.  There is a patch to fix TOKAN.pl that
+# breaks utf8.
+use open IO => ':encoding(utf-8)';
+use open ':std';  # <= indicates that STDIN and STDOUT are utf8
+
 sub usage {
    local $, = "\n";
    print STDERR @_, "";
@@ -40,7 +48,7 @@ sub usage {
     extract one field from the Tokan 1- or 6-tiered format
     in addition, remove markers for latin words and Arabic words that could not be buckwalter analyzed (?)
 
-    parse_tokan.pl format field < in > out
+    parse_tokan.pl [options] format field < in > out
 
     where
     - format is 1 or 6 (number of tiers in the Tokan output)
@@ -68,7 +76,8 @@ GetOptions(
 ) or usage;
 
 my $tiers = shift or die "You must provide a tiers!";
-my $field = shift or die "You must provide a field!";
+my $field = shift;  # Can be 0
+die "You must provide a field!" unless (defined($field));
 
 0 == @ARGV or usage "Superfluous parameter(s): @ARGV";
 
@@ -79,9 +88,6 @@ my $notok  = 0;
 my $pretok = 0;
 my $xtags  = 0;
 setTokenizationLang("en");
-
-#binmode( STDIN,  ":encoding(UTF-8)" );
-#binmode( STDOUT, ":encoding(UTF-8)" );
 
 my $sep="·";
 while(<STDIN>) {
@@ -113,7 +119,7 @@ while(<STDIN>) {
             }
          }
          elsif(@fields < 6) {
-            die "Expecting 6 fields in input:$i\n";
+            die "Expecting 6 fields in input: <$i> ", scalar(@fields), "\n";
          }
       }
       if ($oov) {
@@ -149,19 +155,6 @@ sub normalize {
       return undef;
    }
 
-   $out =~ s/\@\@//g;
-   return $out;
-}
-
-
-
-sub normalize2 {
-   my ($in )= @_;
-   my $out = $in;
-   if ($out =~ s/\@\@LAT\@\@//g) {
-      $out=`echo "$out" | utokenize.pl --lang-en -noss | utf8_casemap -c l`;
-      chomp($out);
-   }
    $out =~ s/\@\@//g;
    return $out;
 }

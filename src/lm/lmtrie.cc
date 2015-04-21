@@ -227,6 +227,17 @@ void LMTrie::write_binary(const string& binlm_file_name) const
 
 } // LMTrie::write_binary
 
+
+bool LMTrie::rawProb(const Uint context[], Uint length, float& prob)
+{
+  return trie.find(context, length, prob);
+}
+
+float LMTrie::wordsBW(const Uint context[], Uint length)
+{
+   return trie.get_internal_node_value(context, length);
+}
+
 void LMTrie::displayStats() const
 {
    cerr << trie.getStats() << endl;
@@ -238,7 +249,8 @@ void LMTrie::rec_dump_trie_arpa(
    vector<Uint>& key_prefix,
    PTrie<float, Wrap<float>, false>::iterator begin,
    const PTrie<float, Wrap<float>, false>::iterator& end,
-   const Uint maxDepth
+   const Uint maxDepth,
+   ToArpaPrepVisitor& visitor
 ) {
    for ( ; begin != end; ++begin ) {
       key_prefix.push_back(begin.get_key());
@@ -257,12 +269,19 @@ void LMTrie::rec_dump_trie_arpa(
          const float backoff = begin.get_internal_node_value();
          if (backoff != 0.0f)
             os << "\t" << backoff;
+         else {
+            // a 0 backoff should still get printed when it is for a context
+            // (or suffix of a context) of another n-gram in the LM
+            Uint prefixCount = 0;
+            if (visitor.contexts.find(&key_prefix[0], key_prefix.size(), prefixCount) && prefixCount > 0)
+               os << "\t" << backoff;
+         }
          os << endl;
       }
 
       // Process the children.
       if ( begin.has_children() )
-         rec_dump_trie_arpa(os, key_prefix, begin.begin_children(), begin.end_children(), maxDepth - 1);
+         rec_dump_trie_arpa(os, key_prefix, begin.begin_children(), begin.end_children(), maxDepth - 1, visitor);
       key_prefix.pop_back();
    }
 }
@@ -272,7 +291,7 @@ void LMTrie::write2arpalm(ostream& os, Uint maxNgram)
    const Uint depth = min(maxNgram, getOrder());
 
    // Cumulate counts for each n-gram.
-   CountVisitor visitor(depth);
+   ToArpaPrepVisitor visitor(depth);
    trie.traverse(visitor);
 
    const streamsize saved_precision = os.precision();
@@ -287,7 +306,7 @@ void LMTrie::write2arpalm(ostream& os, Uint maxNgram)
    vector<Uint> key_prefix;
    for (Uint i(0); i<visitor.counts.size(); ++i) {
       os << "\\" << i+1 << "-grams:" << endl;
-      rec_dump_trie_arpa(os, key_prefix, trie.begin_children(), trie.end_children(), i);
+      rec_dump_trie_arpa(os, key_prefix, trie.begin_children(), trie.end_children(), i, visitor);
       os << endl;
    }
    os << "\\end\\" << endl;

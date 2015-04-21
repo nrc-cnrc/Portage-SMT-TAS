@@ -139,20 +139,37 @@ interpret_args(int ac, char* av[])
            << exit_1;
 }
 
+/// The AlignmentCountHandler accepts the alignment and the count field from
+/// phrase table, and rejects anything else.
+struct AlignmentCountHandler {
+   const char* alignment;
+   const char* count;
+   AlignmentCountHandler() : alignment(NULL), count(NULL) {}
+   bool operator()(const char* name, const char* value) {
+      if (strcmp(name, "a") == 0) alignment = value;
+      else if (strcmp(name, "c") == 0) count = value;
+      else {
+         error(ETWarn, "ptable.encode-scores only supports the a= and c= field in phrase tables; %s=%s found but not supported",
+               name, value);
+         return false;
+      }
+      return true;
+   }
+};
+
 void
 count_scores_per_line(TMEntry& entry, uint32_t& third_col_count, uint32_t& adir_scores, bool& has_alignment, uint32_t& num_counts)
 {
    third_col_count = entry.ThirdCount();
    adir_scores = entry.FourthCount();
    double v[third_col_count];
-   const char *a;
-   char *c;
-   entry.parseThird(v, &a, &c);
+   AlignmentCountHandler handler;
+   entry.parseThird(v, handler);
    if (third_col_count > 0 && v[third_col_count-1] > 2.7179 && v[third_col_count-1] < 2.7181)
       --third_col_count; // moses-style phrase table
-   has_alignment = (a != NULL);
-   vector<uint32_t> counts;
-   num_counts = c ? split(c, counts, ",") : 0;
+   has_alignment = (handler.alignment != NULL);
+   vector<double> dummy_counts;
+   num_counts = handler.count ? split(handler.count, dummy_counts, ",") : 0;
 }
 
 // Convert a double to a number than can be represented by a float without
@@ -180,9 +197,8 @@ process_line(TMEntry& entry, ostream& prelimScoresFile,
 {
    assert(third_col_scores <= entry.ThirdCount());
    double v[entry.ThirdCount()];
-   const char *al;
-   char *c;
-   entry.parseThird(v, &al, &c);
+   AlignmentCountHandler handler;
+   entry.parseThird(v, handler);
    for (uint32_t i = 0; i < third_col_scores; ++i) {
       float s = trim_double_to_float(v[i]);
       prelimScoresFile.write(reinterpret_cast<char*>(&s),sizeof(s));
@@ -199,7 +215,24 @@ process_line(TMEntry& entry, ostream& prelimScoresFile,
    }
    if (num_counts) {
       vector<uint32_t> counts;
-      if (c) split(c, counts, ",");
+
+      if (handler.count) {
+         // Read counts has double in order to support counts written in scientific notation.
+         vector<double> temp_counts;
+         split(handler.count, temp_counts, ",");
+         if (!temp_counts.empty()) {
+            counts.reserve(temp_counts.size());
+            // Counts in tppt models are stored as integer thus lets convert our double to integer.
+            for (Uint i(0); i<temp_counts.size(); ++i) {
+               const uint32_t converted = (uint32_t) temp_counts[i];
+               // This doesn't cover all cases but most likely will catch a
+               // frational count before the end of the conversion.
+               if (fabs(temp_counts[i] - converted) > 0.001)
+                  error(ETFatal, "TPPT's count fields cannot be fractional: %f", temp_counts[i]);
+               counts.push_back(converted);
+            }
+         }
+      }
       if (counts.size() > num_counts)
          cerr << efatal << "Too many counts on line " << entry.LineNo()
               << " in file " << entry.File() << exit_1;
@@ -221,19 +254,9 @@ process_line(TMEntry& entry, ostream& prelimScoresFile,
             static_cast<long unsigned int>(prelimAlignmentPosn),
             static_cast<long unsigned int>(prelimAlignmentPosn));
 
-      /*
-      if (!al || !*al) {
-         // No alignment info for this phrase pair.  Assume "0" - a one-word
-         // phrase aligned to a one-word phrase in the obvious way.
-         if (strchr(entry.Src(), ' ') || strchr(entry.Tgt(), ' '))
-            error(ETFatal, "Phrase pair with missing alignment info is not a one-word to one-word pair in file %s line %u: %s ||| %s\n", entry.File(), entry.LineNo(), entry.Src(), entry.Tgt());
-         static const char *basic_al = "0";
-         al = basic_al;
-      }
-      */
       static vector< vector<Uint> > sets;
-      if (al && *al)
-         GreenReader('_')(al, sets);
+      if (handler.alignment && *handler.alignment)
+         GreenReader('_')(handler.alignment, sets);
       else
          sets.clear();
       // alignment_links is a vector of 64-bit uint, not 16, to detect and

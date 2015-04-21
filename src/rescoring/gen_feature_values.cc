@@ -16,6 +16,7 @@
 
 #include <exception_dump.h>
 #include <arg_reader.h>
+#include <logging.h>
 #include <file_utils.h>
 #include <featurefunction_set.h>
 #include <rescore_io.h>
@@ -135,10 +136,10 @@ int MAIN(argc, argv)
       const Uint K(nbest.size());
 
       // READING ALIGNMENT
-      vector<Alignment> alignments(K);
+      vector<PhraseAlignment> alignments(K);
       Uint k(0);
       for (; bNeedAligment && k < K && alignments[k].read(astr); ++k) {
-         nbest[k].alignment = &alignments[k];
+         nbest[k].phraseAlignment = alignments[k];
       }
       if (bNeedAligment && (k != K ))
          error(ETFatal, "unexpected end of nbests file after %d lines (expected %dx%d=%d lines)", s*K+k, S, K, S*K);

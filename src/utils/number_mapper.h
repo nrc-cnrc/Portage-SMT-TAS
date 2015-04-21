@@ -65,9 +65,10 @@ class baseNumberMapper {
           * @param in   the input string to map.
           * @param out  the mapped string.
           */
-         void operator()(const string& in, string& out) {
+         bool operator()(const string& in, string& out) {
             assert(mapper);
             mapper->map(in, out);
+            return true;
          }
       };
 
@@ -90,7 +91,7 @@ class baseNumberMapper {
        * @param in   the input string
        * @param out  the mapped string
        */
-      void operator()(const string& in, string& out);
+      bool operator()(const string& in, string& out);
 
 }; // ends class mapNumber
 

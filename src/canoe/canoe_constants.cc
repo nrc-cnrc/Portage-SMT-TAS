@@ -2,8 +2,6 @@
  * @author Aaron Tikuisis
  * @file canoe_constants.cc  This file contains constant values.
  * 
- * $Id$
- * 
  * Canoe Decoder
  * 
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -42,4 +40,11 @@ namespace Portage
 
     // Indicates no limit on max itg distortion
     const int NO_MAX_ITG = -1;
+
+    // Default lattice density, effectively no limit on density
+    const double BIG_LAT_DENSITY = 1e10;
+
+    // Default minimum edge, effectively no minimum edge
+    const double SMALL_MIN_EDGE = -1e10;
+
 } // Portage

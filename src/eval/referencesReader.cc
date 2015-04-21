@@ -37,6 +37,7 @@ referencesReader::~referencesReader()
    for (viit it(m_ifRefs.begin()); it!=m_ifRefs.end(); ++it)
    {
       delete (*it);
+      (*it) = NULL;
    }
 }
 
@@ -48,9 +49,9 @@ void referencesReader::poll(References& gr)
 
    for (unsigned int r(0); r<m_R; ++r)
    {
-      istream& myStream(*m_ifRefs[r]);
-      if (myStream.eof()) error(ETFatal, "Premature end of reference file(%d)", r);
-      getline(myStream, gr[r]);
+      istream& refStream(*m_ifRefs[r]);
+      if (refStream.eof()) error(ETFatal, "Premature end of reference file(%d)", r);
+      getline(refStream, gr[r]);
    }
 }
 

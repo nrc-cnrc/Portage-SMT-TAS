@@ -16,21 +16,6 @@
 
 using namespace Portage;
 
-double EM::count(const vector<double>& probs, Uint freq)
-{
-   double sum = 0.0;
-   for (Uint i = 0; i < numModels(); ++i) {
-      scratch[i] = weights[i] * probs[i];
-      sum += scratch[i];
-   }
-
-   if (sum != 0.0)
-      for (Uint i = 0; i < numModels(); ++i)
-         counts[i] += freq * scratch[i] / sum;
-
-   return sum;
-}
-
 /**
  * Estimate weights from counts.
  */

@@ -3,8 +3,6 @@
  * @file filter_models.cc 
  * @brief Program that filters TMs and LMs.
  *
- * $Id$
- *
  * LMs & TMs filtering
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -37,19 +35,19 @@ using namespace Portage::filter_models;
 /******************************************************************************
  Here's a graph of all possible LM/TM filtering
 
- +-LM-+-filter_LM
+ ,-LM-+-filter_LM
  |
--+    +-filter_grep
+-+    ,-filter_grep
  |    |
  |    +-online--+-tm_hard_limit-+-complete
- |    |         |               +-src-grep
- +-TM-+         +-tm_soft_limit-+-complete
-      |                         +-src-grep
+ |    |         |               `-src-grep
+ `-TM-+         `-tm_soft_limit-+-complete
+      |                         `-src-grep
       |
-      +-general-+-tm_hard_limit-+-complete
-                |               +-src-grep
-                +-tm_soft_limit-+-complete
-                                +-src-grep
+      `-general-+-tm_hard_limit-+-complete
+                |               `-src-grep
+                `-tm_soft_limit-+-complete
+                                `-src-grep
 
  online  => not in memory, processing on the fly TMs must be sorted
  general => loaded in memory before processing
@@ -68,7 +66,7 @@ Logging::logger filter_models_Logger(Logging::getLogger("verbose.canoe.filter_mo
  * @return Returns true if a filtered CPT was created.
  */
 bool processOnline(const CanoeConfig& c, const ARG& arg,
-   VocabFilter& tgt_vocab, const vector< vector<string> >& src_sents)
+   VocabFilter& tgt_vocab, const VectorPSrcSent& src_sents)
 {
    LOG_VERBOSE1(filter_models_Logger, "Processing online/streaming");
 
@@ -99,22 +97,18 @@ bool processOnline(const CanoeConfig& c, const ARG& arg,
    error_unless_exists(filename, true, "translation model");
 
    // Instanciate the proper pruning style.
-   const pruningStyle* pruning_type = pruningStyle::create(arg.pruning_type_switch, c.phraseTableSizeLimit);
-   assert(pruning_type);
+   const pruningStyle* pruning_style = pruningStyle::create(arg.pruning_strategy_switch, c.phraseTableSizeLimit);
+   assert(pruning_style);
 
    PhraseTableFilterJoint  phraseTable(
          arg.limitPhrases(),
          tgt_vocab,
-         pruning_type,
-         c.phraseTablePruneType.c_str(),
-         ( arg.tm_hard_limit
-            ? ( (c.phraseTablePruneType == "forward-weights" && !c.forwardWeights.empty())
-                 ? &c.forwardWeights
-                 : &c.transWeights
-              )
-            : NULL
-         )
-   );
+         pruning_style,
+         arg.phraseTablePruneType,
+         c.forwardWeights,
+         c.transWeights,
+         arg.tm_hard_limit,
+         c.appendJointCounts);
 
    // Parses the input source sentences
    phraseTable.addSourceSentences(src_sents);
@@ -122,7 +116,7 @@ bool processOnline(const CanoeConfig& c, const ARG& arg,
    // Do the actual online filtering.
    phraseTable.filter(filename, filtered_cpt_filename);
 
-   delete pruning_type; pruning_type = NULL;
+   delete pruning_style; pruning_style = NULL;
 
    return true;
 }
@@ -143,25 +137,29 @@ int MAIN(argc, argv)
    CanoeConfig c;
    c.read(arg.config.c_str());
    c.check();   // Check that the canoe.ini file is coherent
-   // Make sure we are running in backward-weights mode
-   if ( arg.limit() && !c.forwardWeights.empty() &&
-        c.phraseTablePruneType != "backward-weights" &&
-        c.phraseTablePruneType != "forward-weights" )
-      error(ETFatal, "Filter models only supports filtering with "
-            "[ttable-prune-type] backward-weights or forward-weigths "
-            "(requested: %s)",
-            c.phraseTablePruneType.c_str());
+
+   if (arg.phraseTablePruneType.empty())
+      arg.phraseTablePruneType = c.phraseTablePruneType;
 
    const Uint ttable_limit_from_config = c.phraseTableSizeLimit; // save for write-back
    if (arg.ttable_limit >= 0) // use ttable_limit for pruning, instead of config file value
       c.phraseTableSizeLimit = Uint(arg.ttable_limit);
 
+   if (arg.limit() && arg.phraseTablePruneType == "full") {
+      error(ETWarn, "filter_models -tm-soft-limit or -tm-hard-limit implements \"-ttable-prune-type full\" approximately.\n");
+
+      if (arg.ttable_limit < 0 && arg.pruning_strategy_switch.empty()) {
+         c.phraseTableSizeLimit = (1.0 + arg.full_prune_extra/100.0) * c.phraseTableSizeLimit;
+         error(ETWarn, "Increasing -ttable-limit by %u%% -- to %u -- to compensate for approximated \"full\" implementation.",
+               arg.full_prune_extra, c.phraseTableSizeLimit);
+      }
+   }
+
    if (arg.filterLDMs and c.LDMFiles.empty()) {
-      error(ETWarn, "You ask to filter Lexicalized Distortion Models but you config file doesn't contain any.");
+      error(ETWarn, "You asked to filter lexicalized DMs but your config file doesn't contain any.");
       // Disable filtering LDMs since there are no LDMs in the canoe.ini file.
       arg.filterLDMs = false;
    }
-
 
    // Print the requested running mode from user
    if (arg.verbose) {
@@ -179,20 +177,15 @@ int MAIN(argc, argv)
    PhraseTable::log_almost_0 = c.phraseTableLogZero;
 
    // Prepares the source sentences
-   vector< vector<string> > src_sents;
+   VectorPSrcSent src_sents;
    if (arg.limitPhrases()) {
       LOG_VERBOSE1(filter_models_Logger, "Loading source sentences");
       string line;
       iSafeMagicStream is(arg.input);
       InputParser reader(is);
-      vector<MarkedTranslation> dummy; // Required to call readMarkedSent()
-      while (!reader.eof()) {
-         src_sents.push_back(vector<string>());
-         reader.readMarkedSent(src_sents.back(), dummy);
-      }
-      reader.reportWarningCounts();
-      if ( !src_sents.empty() && src_sents.back().empty() )
-         src_sents.pop_back();
+      PSrcSent ss;
+      while (ss = reader.getMarkedSent())
+         src_sents.push_back(ss);
 
       if (src_sents.empty())
          error(ETFatal, "No source sentences, nothing to do! (or did you forget to say -no-src-grep?");
@@ -207,7 +200,7 @@ int MAIN(argc, argv)
    if (arg.limit() and !c.tpptFiles.empty())
       error(ETFatal, "You can't use limit aka filter30 with TPPTs");
    if (arg.limit() and !(c.phraseTableSizeLimit > NO_SIZE_LIMIT))
-      error(ETFatal, "You're using filter TM, please set a value greater then 0 to [ttable-limit]");
+      error(ETFatal, "You're using filter TM, please set a value greater than 0 to [ttable-limit]");
    // When using tm hard limit, user must provide the tms-weights
    if (arg.tm_hard_limit and c.transWeights.empty())
       error(ETFatal, "You must provide the TMs weights when doing a tm_hard_limit");
@@ -282,9 +275,7 @@ int MAIN(argc, argv)
    else if (arg.limitPhrases()) {
       if (c.multiProbTMFiles.size() == 1) {
          string& file = c.multiProbTMFiles.front();
-         string physical_file_name;
-         const bool reversed = PhraseTable::isReversed(file, &physical_file_name);
-         const string translationModelFilename = physical_file_name;
+         const string translationModelFilename = file;
          const string filteredTranslationModelFilename = arg.prepareFilename(translationModelFilename);
 
          error_unless_exists(translationModelFilename, true, "translation model");
@@ -292,7 +283,7 @@ int MAIN(argc, argv)
          if (arg.readonly && check_if_exists(filteredTranslationModelFilename)) {
             // The filtered version exists let's use the much faster tm vocab loading mechanism with PhraseTable_filter_lm.
             if (arg.filterLMs) arg.no_src_grep = true;
-            file = filteredTranslationModelFilename + (reversed ? "#REVERSED" : "");
+            file = filteredTranslationModelFilename;
             error(ETWarn, "Translation Model %s has already been filtered.  Skipping...",
                   filteredTranslationModelFilename.c_str());
          }
@@ -311,6 +302,7 @@ int MAIN(argc, argv)
 
 
    VocabFilter tgt_vocab(src_sents.size());
+   GlobalVoc::set(&tgt_vocab);
 
 
    ////////////////////////////////////////
@@ -329,22 +321,18 @@ int MAIN(argc, argv)
          LOG_VERBOSE1(filter_models_Logger, "Creating the models");
 
          // Get the proper pruning specifier.
-         const pruningStyle* pruning_type = pruningStyle::create(arg.pruning_type_switch, c.phraseTableSizeLimit);
-         assert(pruning_type != NULL);
+         const pruningStyle* pruning_style = pruningStyle::create(arg.pruning_strategy_switch, c.phraseTableSizeLimit);
+         assert(pruning_style != NULL);
 
          PhraseTableFilterJoint  phraseTable(
                arg.limitPhrases(),
                tgt_vocab,
-               pruning_type,
-               c.phraseTablePruneType.c_str(),
-               ( arg.tm_hard_limit
-                 ? ( (c.phraseTablePruneType == "forward-weights" && !c.forwardWeights.empty())
-                    ? &c.forwardWeights
-                    : &c.transWeights
-                   )
-                 : NULL
-               )
-               );
+               pruning_style,
+               arg.phraseTablePruneType,
+               c.forwardWeights,
+               c.transWeights,
+               arg.tm_hard_limit,
+               c.appendJointCounts);
 
          // Parses the input source sentences
          phraseTable.addSourceSentences(src_sents);
@@ -371,7 +359,7 @@ int MAIN(argc, argv)
 
          weve_created_a_cpt = true;
 
-         delete pruning_type; pruning_type = NULL;
+         delete pruning_style; pruning_style = NULL;
 
          if (arg.verbose) {
             cerr << " ... done in " << (time(NULL) - start_time) << "s" << endl;
@@ -387,7 +375,8 @@ int MAIN(argc, argv)
    else if (arg.limitPhrases()) {
       // Creating what will be needed for filtering
       LOG_VERBOSE1(filter_models_Logger, "Creating the models");
-      PhraseTableFilterGrep phraseTable(arg.limitPhrases(), tgt_vocab, c.phraseTablePruneType.c_str());
+      PhraseTableFilterGrep phraseTable(arg.limitPhrases(), tgt_vocab,
+                                        arg.phraseTablePruneType, c.appendJointCounts);
 
       // Parses the input source sentences
       phraseTable.addSourceSentences(src_sents);
@@ -396,9 +385,7 @@ int MAIN(argc, argv)
       // Add multi-prob TMs to vocab and filter them
       LOG_VERBOSE1(filter_models_Logger, "Processing multi-probs");
       for (FL_iterator file(c.multiProbTMFiles.begin()); file!=c.multiProbTMFiles.end(); ++file) {
-         string physical_file_name;
-         const bool reversed = PhraseTable::isReversed(*file, &physical_file_name);
-         const string translationModelFilename = physical_file_name;
+         const string translationModelFilename = *file;
          const string filteredTranslationModelFilename = arg.prepareFilename(translationModelFilename);
 
          LOG_VERBOSE2(filter_models_Logger,
@@ -418,19 +405,19 @@ int MAIN(argc, argv)
                   filteredTranslationModelFilename.c_str());
          }
          else {
-            phraseTable.filter(translationModelFilename, 
-                  filteredTranslationModelFilename + (reversed ? "#REVERSED" : ""));
+            phraseTable.filter(translationModelFilename, filteredTranslationModelFilename);
             weve_created_a_cpt = true;
          }
 
-         *file = filteredTranslationModelFilename + (reversed ? "#REVERSED" : "");
+         *file = filteredTranslationModelFilename;
       }
    }
    // Reading the vocabulary in the TMs in order to filter LMs.
    // Here, we don't create a new TM.
    else if (arg.filterLMs) {
       // PhraseTableFilterLM will not load the phrase table in memory but it will simply populate tgt_vocab.
-      PhraseTableFilterLM phraseTable(arg.limitPhrases(), tgt_vocab, c.phraseTablePruneType.c_str());
+      PhraseTableFilterLM phraseTable(arg.limitPhrases(),
+                                      tgt_vocab, arg.phraseTablePruneType, c.appendJointCounts);
 
       // Parses the input source sentences
       phraseTable.addSourceSentences(src_sents);
@@ -467,8 +454,7 @@ int MAIN(argc, argv)
          const time_t start_time = time(NULL);
          if (arg.verbose)
             cerr << "Extracting target vocabulary from TPPTs";
-         VocabFilter dummy_voc(0);
-         PhraseTable  phraseTable(tgt_vocab, dummy_voc, NULL);
+         PhraseTable  phraseTable(tgt_vocab, NULL, c.appendJointCounts);
          phraseTable.extractVocabFromTPPTs(0);  // Will extract the TPPT voc into tgt_vocab.
          if (arg.verbose) {
             cerr << " ... done in " << (time(NULL) - start_time) << "s" << endl;
@@ -556,10 +542,10 @@ int MAIN(argc, argv)
          error_unless_exists(*file, true, "Lexicalized Distortion Model");
 
          // Don't redo work if there exists a filtered ldm.
-         const string filtered_ldm = arg.prepareFilename(*file);
+         const string filtered_ldm = arg.prepareFilename(*file, arg.preserve_ldm_paths);
          if (arg.readonly && check_if_exists(filtered_ldm)) {
             if (weve_created_a_cpt)
-               error(ETFatal, "%s hasn't been filtered eventhough a new cpt was created (%s) since you asked not to override models.",
+               error(ETFatal, "%s hasn't been filtered even though a new cpt was created (%s) since you asked not to overwrite models.",
                      file->c_str(),
                      cpt_filename.c_str());
             else
@@ -571,7 +557,9 @@ int MAIN(argc, argv)
          else {
             if (c.multiProbTMFiles.size() != 1 || !c.tpptFiles.empty()) {
                assert(arg.limitPhrases());
-               PhraseTableFilterGrep phraseTable(arg.limitPhrases(), tgt_vocab, c.phraseTablePruneType.c_str());
+               PhraseTableFilterGrep phraseTable(arg.limitPhrases(),
+                                                 tgt_vocab, arg.phraseTablePruneType, 
+                                                 c.appendJointCounts);
                phraseTable.addSourceSentences(src_sents);
                error_unless_exists(*file, true, "LDM");
                phraseTable.filter(*file, filtered_ldm);
@@ -609,7 +597,7 @@ int MAIN(argc, argv)
       }
       if (tgt_vocab.per_sentence_vocab) {
          fprintf(stderr, "Average vocabulary size per source sentences: %f\n",
-               tgt_vocab.per_sentence_vocab->averageVocabSizePerSentence());
+                 tgt_vocab.per_sentence_vocab->averageVocabSizePerSentence());
       }
       oSafeMagicStream os_vocab(arg.vocab_file);
       tgt_vocab.write(os_vocab);

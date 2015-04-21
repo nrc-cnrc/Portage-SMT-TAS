@@ -87,7 +87,7 @@ int MAIN(argc, argv)
       K = nbest.size();    // IMPORTANT K might change if computeFFMatrix finds empty lines
 
       LOG_VERBOSE3(verboseLogger, "Computing BLEU (s=%d, K=%d, R=%d)", s, K, rReader.getR());
-      computeBLEUArrayRow(bleu[s], nbest, refs);
+      computeArrayRow(bleu[s], nbest, refs);
 
       // Determine which translation is chosen by the model, and add its stats to total
       const uVector scores = boost::numeric::ublas::prec_prod(H, modelP);

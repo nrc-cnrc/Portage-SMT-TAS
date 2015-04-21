@@ -1,13 +1,20 @@
 /**
  * @author Aaron Tikuisis
  * @file phrasetable.h  This file contains the definition of the PhraseTable
- * class, which uses a trie to store mappings from source phrases to target
- * phrases. Among other things. Not for the faint of heart.
+ * class and some associated classes. PhraseTable is a bit of a misnomer,
+ * because this is really a collection of heterogenous representations for 
+ * mappings between souce/target phrase pairs and various kinds of scores,
+ * including lexicalized distortion. It basically groups together many (but not
+ * all) kinds of services for reading, writing, storing and accessing
+ * phrasal information in the decoder.
  *
- * $Id$
- *
- * Canoe Decoder
- *
+ * Here are some useful associated include files:
+ * ../utils/tm_entry.h - parse all supported phrase-pair formats from text
+ * ../tm/phrase_table.h - represention used during training, with read/write to
+ *    text format - can be more convenient for standalone manipulation
+ * - see below for others, especially ones used implicitly via the forward
+ *   declarations right after "namespace Portage"
+ * 
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
@@ -24,6 +31,8 @@
 #include "trie.h"
 #include "vocab_filter.h"
 #include "tm_entry.h"
+#include "annotation_list.h"
+#include "new_src_sent_info.h"
 #include <vector>
 #include <string>
 #include <iostream>
@@ -41,47 +50,11 @@ namespace Portage
 {
 class Voc;
 class CanoeConfig;
+struct PhraseTableEntry;
 
 /// Token that seperates items in a phrase table
 extern const char *PHRASE_TABLE_SEP; // = " ||| "
 
-
-/// PhraseInfo with forward and backward probs from multiple phrase tables
-struct ForwardBackwardPhraseInfo : public PhraseInfo
-{
-   /// Backward probabilities for this phrase
-   vector<float> phrase_trans_probs;
-
-   /// forward probability score
-   double         forward_trans_prob;
-   /// forward probabilities for this phrase
-   vector<float>  forward_trans_probs;
-
-   /// adirectional probability score
-   double         adir_prob; //boxing
-   /// adirectional probabilities for this phrase
-   vector<float>  adir_probs; //boxing
-
-   /// lexicalized distortion probabilities for this phrase
-   vector<float>  lexdis_probs; //boxing
-
-   /// joint count(s)
-   vector<float>  joint_counts;
-
-   /// Alignment information -- indirectly via PhraseTable::alignmentVoc
-   Uint           alignment;
-
-   /// bi-phrase: the encoding of the phrase with its tgt words aligned to
-   /// their source words, for BiLM queries.
-   Phrase         bi_phrase;        
-
-   ForwardBackwardPhraseInfo() : alignment(0) {}
-
-   virtual void display() const {
-      PhraseInfo::display();
-      cerr << " " << forward_trans_prob << " " << adir_prob;
-   }
-}; // ForwardBackwardPhraseInfo
 
 
 /// Leaf sub-structure for phrase tables: holds the probs for the phrase pair.
@@ -98,32 +71,9 @@ struct TScore
    /// lexicalized distortion scores from all DM tables
    vector<float> lexdis; //boxing
 
-   /// joint count(s)
-   vector<float> joint_counts;
-
-   /// alignment information -- indirectly via PhraseTable::alignmentVoc
-   Uint alignment;
-
-   /// bi-phrase: the encoding of the phrase with its tgt words aligned to
-   /// their source words, for BiLM queries.
-   Phrase bi_phrase;        
-
-   /// Constructor
-   TScore() : alignment(0) {}
-
-   /**
-    * Check if two TScore are equal.
-    * @param  rhs  right-hand side operand.
-    * @return  true if both TScore are equal
-    */
-   bool operator==(const TScore& rhs) const
-   {
-      return (forward == rhs.forward
-           && backward == rhs.backward
-           && adir == rhs.adir
-           && joint_counts == rhs.joint_counts
-           && lexdis == rhs.lexdis); //boxing
-   }
+   /// Annotation trail left by various features, to find their way later, stored
+   /// for each phrase pair in an annotation list.
+   AnnotationList annotations;
 
    /**
     * Display the content of a TScore in ascii format.
@@ -138,8 +88,7 @@ struct TScore
       backward.clear();
       adir.clear();
       lexdis.clear();
-      joint_counts.clear();
-      alignment = 0;
+      annotations.clear();
    } //boxing
 }; // TScore
 
@@ -174,19 +123,17 @@ public:
    /// Log value to use for missing or 0-prob entries (default is LOG_ALMOST_0)
    static double log_almost_0;
 
-   /// A vocab to store alignment info (TScore::alignment)
-   Voc alignmentVoc;
+   typedef vector_map<string, PhrasePairAnnotator*> AnnotatorRegistry;
 
 protected:
 
    /// The vocab for the target and source languages combined
    VocabFilter &tgtVocab;
 
-   /// The vocab to store bi-words (for BiLM queries) that will constitute bi_phrase
-   VocabFilter &biPhraseVocab;
-
-   /// Whether we need the bi_phrase for each phrase
-   bool needBiPhrases;
+   /// The annotations that need to be initialized while loading the phrase table
+   // Use of vector_map here is critical: it preserves elements in the order
+   // they were first inserted, which is what we want and need.
+   AnnotatorRegistry annotatorRegistry;
 
    /**
     * The mapping from source phrases to target phrases.
@@ -194,6 +141,9 @@ protected:
     * tables, i.e., excludes information from the TPPTs.
     */
    PTrie<TargetPhraseTable> textTable;
+
+   /// Number of text files that have been read so far by readMultiProb().
+   Uint numTextFilesRead;
 
    /// The number of translation models that have been loaded from text files.
    Uint numTextTransModels;
@@ -237,7 +187,13 @@ protected:
        * Prune on the log-linear combination of forward and backward probs with
        * their respective weights
        */
-      COMBINED_SCORE
+      COMBINED_SCORE,
+      /**
+       * EXTERNAL_PRUNING means pruning is done by the BasicModelGenerator,
+       * e.g., so it can take into account all the decoder features in "full"
+       * mode.
+       */
+      EXTERNAL_PRUNING
    } PruningType;
 
    /// Type of pruning to use
@@ -264,19 +220,38 @@ public:
    /**
     * Constructor creates a new PhraseTable using the given vocab.
     * @param tgtVocab vocab object to used - can be shared with other models
-    * @param biPhraseVocab vocab object for biphrases
-    * @param pruningTypeStr NULL or "forward-weights" or "backward-weights"
-    *                    or "combined" - see PruningType enum documentation for
+    * @param pruningTypeStr "forward-weights" or "backward-weights", "combined",
+    *                    or "full" - see PruningType enum documentation for
     *                    details.
-    * @param needBiPhrases  Whether to construct the biPhrase for each phrase pair
+    * @param appendJointCounts Whether to append joint counts from different
+    *        incoming tables (default is to add them element-wise).
     */
-   PhraseTable(VocabFilter &tgtVocab, VocabFilter& biPhraseVocab,
-               const char* pruningTypeStr = NULL, bool needBiPhrases = false);
+   PhraseTable(VocabFilter &tgtVocab,
+               const string& pruningTypeStr = "",
+               bool appendJointCounts = false);
 
    /**
     * Destructor.
     */
    virtual ~PhraseTable();
+
+   /**
+    * Register that a particular annotation type should be initialized while
+    * loading a phrase table.  Annotations are created in the order in which
+    * annotators are registered, so if your annotator needs another annotation
+    * to have been initialized first, register that annotator first.
+    * Registering the same annotator (i.e., with same answer to
+    * annotator->getName()) multiple times is OK and will result in only the
+    * last instance being kept.
+    * Object ownership: PhraseTable will not delete the annotator, it is up to
+    * the caller to do so.
+    * @param annotator  Factory class used to create the desired annotation
+    *                   for each phrase pair.
+    */
+   void registerAnnotator(PhrasePairAnnotator* annotator);
+
+   /// Get access to the registered annotators, to run them
+   const AnnotatorRegistry& getAnnotators() { return annotatorRegistry; }
 
    /**
     * Clear all caches kept by this or submodels.
@@ -329,6 +304,9 @@ public:
    void extractVocabFromTPPTs(Uint verbosity);
 
    /**
+    * OBSOLETE - #REVERSED is no longer supported. This method is only here to
+    * facilitate issueing meaningful error messages when that format is used.
+    *
     * Determine if a multi-prob file name says it's reversed.
     * A normal multi-prob files has lines like:
     *    "src ||| tgt ||| backward_probs forward_probs"
@@ -400,15 +378,16 @@ public:
     * Any probability value <= 0 is considered illegal (because you can't take
     * its log), and will be replaced by ALMOST_0, with a warning to the user.
     *
-    * @param multi_prob_TM_filename  file name; if the file name ends with
-    *                       "#REVERSED", it will be considered a reversed
-    *                       phrase table.  See isReversed() for details.
+    * @param multi_prob_TM_filename  file name
     * @param limitPhrases   Whether to store all phrase translations or only
     *                       those for source phrases that are already in the
     *                       table.
+    * @param describeModelOnly  If true, don't load anything, just fill the model
+    *                       description variables.
     * @return The number of probability columns in the file.
     */
-   virtual Uint readMultiProb(const char* multi_prob_TM_filename, bool limitPhrases);
+   virtual Uint readMultiProb(const char* multi_prob_TM_filename,
+                              bool limitPhrases, bool describeModelOnly);
 
    /**
     * Read a lexicalized distortion model file.  The file must be formatted as for
@@ -417,9 +396,7 @@ public:
     * Any probability value <= 0 is considered illegal (because you can't take
     * its log), and will be replaced by ALMOST_0, with a warning to the user.
     *
-    * @param lexicalized_DM_filename  file name; if the file name ends with
-    *                       "#REVERSED", it will be considered a reversed
-    *                       phrase table.  See isReversed() for details.
+    * @param lexicalized_DM_filename  file name
     * @param limitPhrases   Whether to store all phrase translations or only
     *                       those for source phrases that are already in the
     *                       table.
@@ -449,7 +426,7 @@ public:
     * building structures needed for LM filtering based on per sentence vocab.
     * @param  sentences  tokenized sentences to be added to the vocab.
     */
-   virtual void addSourceSentences(const vector<vector<string> >& sentences);
+   virtual void addSourceSentences(const VectorPSrcSent& sentences);
 
    /**
     * Get all phrase translations from all phrase tables for a given sentence.
@@ -522,49 +499,20 @@ public:
     */
    bool containsSrcPhrase(Uint num_tokens, char* tokens[]);
 
-protected:
+   /**
+    * Find out how many text files have been read so far
+    */
+   Uint getNumTextFilesRead() const { return numTextFilesRead; }
+
+public:
    /// Direction of phrase table to load
    enum dir {
       multi_prob,            ///< src ||| tgt ||| backward probs forward probs
-      multi_prob_reversed,   ///< tgt ||| src ||| forward probs backward probs
+      //multi_prob_reversed,   ///< tgt ||| src ||| forward probs backward probs -- OBSOLETE
       lexicalized_distortion ///< src ||| tgt ||| pm ps pd nm ns nd
    };
 
-   /**
-    * Container for holding one entry when reading a either a single or multi probs.
-    * The code to parse a line in a TM is in TMEntry, this class just adds other
-    * variables that PhraseTable methods need to pass around with entries.
-    */
-   struct Entry : public TMEntry
-   {
-      const dir d;                ///< direction of the prob file
-      const bool limitPhrases;    ///< parameter copied from PhraseTable::readFile()'s
-      string* line;               ///< raw entry
-      char* src_buffer;           ///< storage for src_tokens
-      Uint src_buffer_size;       ///< size of src_buffer
-      vector<const char*> src_tokens; ///< source tokens, split from Src() -- reset when Src() changes, not at every entry.
-      VectorPhrase tgtPhrase;     ///< phrase representation of the target string (vector<Uint>)
-      Uint src_word_count;        ///< the number of words in src
-      Uint zero_prob_err_count;   ///< Number of prob <= 0 errors detected
-
-      /**
-       * Constructor.
-       * @param d     direction of _file
-       * @param limitPhrases  whether we're filtering as we're loading.
-       * @param file  current file we are processing
-       */
-      Entry(dir d, bool limitPhrases, const string& file)
-      : TMEntry(file)
-      , d(d)
-      , limitPhrases(limitPhrases)
-      , line(NULL)
-      , src_buffer(NULL)
-      , src_buffer_size(0)
-      , src_word_count(0)
-      , zero_prob_err_count(0)
-      {}
-   };
-
+protected:
    /**
     * Helper for readFile, with changing behaviour in filtering subclasses.
     * When doing a hard filtering, this will process one block of entries at a
@@ -588,7 +536,7 @@ protected:
     * @param limitPhrases whether to restrict the processing to phrases
     *                     pre-entered into the trie.
     */
-   virtual TargetPhraseTable* getTargetPhraseTable(Entry& entry, bool limitPhrases);
+   virtual TargetPhraseTable* getTargetPhraseTable(PhraseTableEntry& entry, bool limitPhrases);
 
    /**
     * Search for a src phrase in text format PTs (in the Trie) and in TPPT
@@ -612,9 +560,9 @@ protected:
     *                   determines the order of the phrases as well).
     * @param limitPhrases  Whether to store only the phrases already in the
     *                   table (as opposed to storing everything).
-    * @return The number of probability columns in the file: 1 for traditional
-    *         1 figure ones, the number of actual prob figures for multi-prob
-    *         files.
+    * @return The number of probability columns in the file: 1 for obsolete
+    *         1-figure files, the number of third-column prob figures for
+    *         multi-prob files.
     */
    Uint readFile(const char *file, dir d, bool limitPhrases);
 
@@ -650,11 +598,11 @@ protected:
    /**
     * When reading a file containing a phrase table, process one entry.
     * Depending on normal mode or filtering mode, we handle entries differently.
-    * @param tgtTable  target Table (trie leaf) to which entry belongs.
+    * @param entry.tgtTable  target Table (trie leaf) to which entry belongs.
     * @param entry  current entry we are processing.
     * @return Returns true if the entry was added to the TargetPhraseTable.
     */
-   virtual bool processEntry(TargetPhraseTable* tgtTable, Entry& entry);
+   virtual bool processEntry(PhraseTableEntry& entry);
 
    /**
     * Converts a float value to its value in log prob if needed.
@@ -769,23 +717,14 @@ public:
    : public binary_function<pair<double, PhraseInfo *>, pair<double, PhraseInfo *>, bool>
    {
       private:
-         const PhraseTable &parent;   ///< parent PhraseTable object
-
          /**
           * Hash function for strings which should be stable between 32/64 bits.
           * @param  param the string to hash.
           * @return Returns a stable hash of param.
           */
          Uint mHash(const string& param) const;
-      public:
-         /**
-          * Constructor.
-          * @param parent    The parent phrase table, whose getStringPhrase
-          *                  function will be used to convert Uint sequence to
-          *                  readable, and lexicographically comparable, text
-          */
-         PhraseScorePairLessThan(const PhraseTable &parent) : parent(parent) {}
 
+      public:
          /**
           * Less ("smaller than") operator for phrases.
           * Returns true iff ph1 is "smaller than" ph2, for the purpose of
@@ -810,15 +749,18 @@ public:
           * @param ph2        right-hand side operand
           * @return           true iff ph1 < ph2
           */
-         bool operator() (const pair<double, PhraseInfo *>& ph1,
-                          const pair<double, PhraseInfo *>& ph2) const;
+         bool operator() (const pair<double, PhraseInfo *> ph1,
+                          const pair<double, PhraseInfo *> ph2) const;
+         /// This variant uses ph{1,2}->partial_score as the primary score
+         bool operator() (PhraseInfo* ph1, PhraseInfo* ph2) const {
+            return operator()(make_pair(ph1->partial_score, ph1),
+                              make_pair(ph2->partial_score, ph2));
+         }
    };
 
    /// Same as PhraseScorePairLessThan but for sorting in descending order.
    class PhraseScorePairGreaterThan : public PhraseScorePairLessThan {
       public:
-         PhraseScorePairGreaterThan(const PhraseTable &parent)
-            : PhraseScorePairLessThan(parent) {}
          /// Greater than operator for phrases.
          /// See PhraseScorePairLessThan::operator()() for details.
          /// @return true iff ph1 > ph2
@@ -827,6 +769,43 @@ public:
    };
 
 }; // PhraseTable
+
+/**
+ * Container for holding one entry when reading a either a single or multi probs.
+ * The code to parse a line in a TM is in TMEntry, this class just adds other
+ * variables that PhraseTable methods need to pass around with entries.
+ */
+struct PhraseTableEntry : public TMEntry
+{
+   const PhraseTable::dir d;   ///< direction of the prob file
+   const bool limitPhrases;    ///< parameter copied from PhraseTable::readFile()'s
+   string* line;               ///< raw entry
+   char* src_buffer;           ///< storage for src_tokens
+   Uint src_buffer_size;       ///< size of src_buffer
+   vector<char*> src_tokens;   ///< source tokens, split from Src() -- reset when Src() changes, not at every entry.
+   VectorPhrase tgtPhrase;     ///< phrase representation of the target string (vector<Uint>)
+   Uint src_word_count;        ///< the number of words in src
+   Uint zero_prob_err_count;   ///< Number of prob <= 0 errors detected
+   TargetPhraseTable *tgtTable;///< the target phrase table object for this entry
+
+   /**
+    * Constructor.
+    * @param d     direction of _file
+    * @param limitPhrases  whether we're filtering as we're loading.
+    * @param file  current file we are processing
+    */
+   PhraseTableEntry(PhraseTable::dir d, bool limitPhrases, const string& file)
+   : TMEntry(file)
+   , d(d)
+   , limitPhrases(limitPhrases)
+   , line(NULL)
+   , src_buffer(NULL)
+   , src_buffer_size(0)
+   , src_word_count(0)
+   , zero_prob_err_count(0)
+   {}
+};
+
 } // Portage
 
 #endif // PHRASETABLE_H

@@ -96,8 +96,15 @@ struct PERstats : public ErrorRateStats {
       tmp -= other;
       return tmp;
    }
-};
+};  // ends struct PERstats
 
+PERstats operator*(PERstats s, double c) {
+   s._changes       *= c;
+   s._reflen        *= c;
+   s._source_length *= c;
+   return s;
 }
+
+}   // ends namespace Portage
 
 #endif // __PER_STATS_H__

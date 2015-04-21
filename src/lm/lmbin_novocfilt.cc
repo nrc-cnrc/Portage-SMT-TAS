@@ -26,7 +26,7 @@ namespace Portage {
 /// Filter functor for just filtering based on the order of the LM.
 class OrderFilter {
    /// Limit the to LM order, (non-zero if requested)
-   Uint limit_order;
+   const Uint limit_order;
 
  public:
    /// Constructor

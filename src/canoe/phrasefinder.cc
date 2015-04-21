@@ -4,8 +4,6 @@
  * RangePhraseFinder, which is an abstraction of the method used to find the
  * set of phrases which can be added to a partial translation.
  * 
- * $Id$
- * 
  * Canoe Decoder
  * 
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -19,27 +17,22 @@
 #include "canoe_general.h"
 #include "phrasedecoder_model.h"
 #include "distortionmodel.h"
+#include "basicmodel.h"
 
 #include <iostream>
 
 using namespace Portage;
 
-RangePhraseFinder::RangePhraseFinder(vector<PhraseInfo *> **phrases,
-   Uint sentLength,
-   int	distLimit,
-   int  itgLimit,
-   bool distLimitSimple,
-   bool distLimitExt,
-   bool distPhraseSwap,
-   bool distLimitITG)
-: phrases(phrases)
-, sentLength(sentLength)
-, distLimit(distLimit)
-, itgLimit(itgLimit)
-, distLimitSimple(distLimitSimple)
-, distLimitExt(distLimitExt)
-, distPhraseSwap(distPhraseSwap)
-, distLimitITG(distLimitITG)
+RangePhraseFinder::RangePhraseFinder(vector<PhraseInfo *> **phrases, BasicModel& model)
+: model(&model)
+, phrases(phrases)
+, sentLength(model.getSourceLength())
+, distLimit(model.c->distLimit)
+, itgLimit(model.c->itgLimit)
+, distLimitSimple(model.c->distLimitSimple)
+, distLimitExt(model.c->distLimitExt)
+, distPhraseSwap(model.c->distPhraseSwap)
+, distLimitITG(model.c->distLimitITG)
 {
    assert(distLimit >= 0 || distLimit == NO_MAX_DISTORTION);
 }
@@ -72,33 +65,26 @@ void RangePhraseFinder::findPhrases(vector<PhraseInfo *> &p, PartialTranslation 
    for ( vector< const vector<PhraseInfo *>*>::const_iterator it = picks.begin();
          it < picks.end(); ++it)
    {
+      if ((*it)->empty()) continue;
+
+      // Early detection of filter-feature constraint violations
+      if (model->earlyFilterFeatureViolation(t, (*it)->front()->src_words))
+         continue;
+
+      // Early detection of ITG constraint temporarily here, until it gets
+      // turned into a filter feature.
+      if (distLimitITG &&
+          !DistortionModel::respectsITG(itgLimit, t.shiftReduce, (*it)->front()->src_words))
+         continue;
+
       // Do the distortion limit tests outside the jt loop, since we know that
       // all phrases in a given "pick" share the same source range.
-      if ( ! (*it)->empty() &&
-           (
-            (
-             (!distLimitITG
-              || DistortionModel::respectsITG(itgLimit,
-                                              t.shiftReduce,
-                                              (*it)->front()->src_words))
-             &&
-             DistortionModel::respectsDistLimit(t.sourceWordsNotCovered,
-                 t.lastPhrase->src_words, (*it)->front()->src_words, distLimit,
-                 sentLength, distLimitSimple, distLimitExt)
-             )
-            ||
-              (distPhraseSwap && DistortionModel::isPhraseSwap(
-                 t.sourceWordsNotCovered, t.lastPhrase->src_words,
-                 (*it)->front()->src_words, sentLength, phrases))
-           )
-         )
-      {
-         for ( vector<PhraseInfo *>::const_iterator jt = (*it)->begin();
-               jt < (*it)->end(); ++jt)
-         {
-            p.push_back(*jt);
-         }
-      }
+      if (!model->respectsDistortionLimit(t, (*it)->front()->src_words))
+         continue;
+
+      // All filters passed, keep these phrases as candidates.
+      for (vector<PhraseInfo *>::const_iterator jt = (*it)->begin(); jt < (*it)->end(); ++jt)
+         p.push_back(*jt);
    }
 } // findPhrases
 

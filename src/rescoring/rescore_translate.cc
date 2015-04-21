@@ -21,6 +21,8 @@
 #include "rescoring_general.h"
 #include "printCopyright.h"
 #include "bleu.h"
+#include "translationReader.h"
+#include "file_utils.h"
 
 #include <queue>
 #include <stack>
@@ -42,6 +44,16 @@ static double logNorm(const uVector& v)
    for (Uint i = 0; i < v.size(); ++i)
       sum += exp(v[i] - max);
    return log(sum) + max;
+}
+
+// Write to os the vector of features for the kth hypothesis in feature matrix
+// H, containing M features.
+static void writeFeatureVector(const uMatrix& H, Uint M, Uint k, ostream& os)
+{
+   for (Uint m = 0; m < M; ++m) {
+      if (m) os << '\t';
+      os << (isfinite(H(k,m)) ? H(k,m) : -9999);
+   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -96,24 +108,28 @@ int MAIN(argc, argv)
 
 
    ////////////////////////////////////////
-   // ALIGNMENT
-   ifstream astr;
-   const bool bNeedsAlignment = ffset.requires() & FF_NEEDS_ALIGNMENT;
-   if (bNeedsAlignment) {
+   // Create a NBest reader that will also read alignments if needed.
+   LOG_VERBOSE2(verboseLogger, "Creating NBest reader");
+   NbestReader  nbestReader(FileReader::createT(arg.nbest_file, arg.alignment_file, arg.K));
+
+   if (ffset.requires() & FF_NEEDS_ALIGNMENT) {
       if (arg.alignment_file.empty())
          error(ETFatal, "At least one of feature function requires the alignment");
-      LOG_VERBOSE2(verboseLogger, "Reading alignments from %s", arg.alignment_file.c_str());
-      astr.open(arg.alignment_file.c_str());
-      if (!astr) error(ETFatal, "unable to open alignment file %s", arg.alignment_file.c_str());
    }
 
    boost::scoped_ptr<istream> co_in;
    boost::scoped_ptr<ostream> co_out;
    if (arg.cofile != "") {
       co_in.reset(new iSafeMagicStream(arg.cofile));
-      co_out.reset(new oSafeMagicStream(arg.cofile + ".resc"));
+      co_out.reset(new oSafeMagicStream(addExtension(arg.cofile, ".resc")));
    }
    vector<string> colines(arg.K);
+   boost::scoped_ptr<ostream> fv_out;
+   if (arg.fvfile != "")
+      fv_out.reset(new oSafeMagicStream(arg.fvfile));
+   boost::scoped_ptr<ostream> sc_out;
+   if (arg.scfile != "")
+      sc_out.reset(new oSafeMagicStream(arg.scfile));
 
    LOG_VERBOSE2(verboseLogger, "Processing Nbest lists");
 
@@ -124,22 +140,12 @@ int MAIN(argc, argv)
          cerr << "Maximum a-posteriori (MAP) rescoring (default behaviour)" << endl;
    }
 
-   NbestReader  pfrN(FileReader::create<Translation>(arg.nbest_file, arg.K));
    Uint s(0);
-   for (; pfrN->pollable(); ++s)
+   for (; nbestReader->pollable(); ++s)
    {
       Nbest  nbest;
-      pfrN->poll(nbest);
+      nbestReader->poll(nbest);
       Uint K(nbest.size());
-
-      vector<Alignment> alignments(K);
-      Uint k(0);
-      for (; bNeedsAlignment && k < K && alignments[k].read(astr); ++k)
-      {
-         nbest[k].alignment = &alignments[k];
-      }
-      if (bNeedsAlignment && (k != K))
-         error(ETFatal, "unexpected end of nbests file after %d lines (expected %dx%d=%d lines)", s*K+k, S, K, S*K);
 
       LOG_VERBOSE3(verboseLogger, "Computing FF matrix");
       uMatrix H;
@@ -147,16 +153,10 @@ int MAIN(argc, argv)
       if (dump_for_mira) {
          static Uint M = ffset.M(); // number of features
          for (Uint k = 0; k < nbest.size(); ++k) {
-            ffmatrix << s;
-            for (Uint m = 0; m < M; ++m)
-               if (isfinite(H(k,m)))
-                  ffmatrix << '\t' << H(k,m);
-               else
-                  ffmatrix << '\t' << -9999;
+            ffmatrix << s << '\t';
+            writeFeatureVector(H, M, k, ffmatrix);
             ffmatrix << nf_endl;
-
             nbestmatrix << s << '\t' << nbest[k] << nf_endl;
-
             bleumatrix << s << ' ' << 0 << nf_endl;
          }
          continue;
@@ -175,8 +175,9 @@ int MAIN(argc, argv)
             if (K==0) {
                cout << endl;
                if (co_out) (*co_out) << endl;
-            }
-            else {
+               if (fv_out) (*fv_out) << nf_endl;
+               if (sc_out) (*sc_out) << nf_endl;
+            } else {
                const uVector Scores = boost::numeric::ublas::prec_prod(H, wts);
                const double logz = arg.conf_scores ? logNorm(Scores) : 0.0;
                const Uint bestIndex = my_vector_max_index(Scores);         // k = sentence which is scored highest
@@ -184,9 +185,14 @@ int MAIN(argc, argv)
                if (arg.print_scores) cout << Scores[bestIndex] - logz << " ";
                cout << nbest.at(bestIndex) << endl;  // DISPLAY best hypothesis
                if (co_out) (*co_out) << colines[bestIndex] << endl;
+               if (fv_out) {
+                  static Uint M = ffset.M();
+                  writeFeatureVector(H, M, bestIndex, (*fv_out));
+                  (*fv_out) << nf_endl;
+               }
+               if (sc_out) (*sc_out) << Scores[bestIndex] - logz << nf_endl;
             }
-         }
-         else {                  // ouptput k best hypotheses
+         } else {                  // ouptput k best hypotheses
             const uVector Scores = boost::numeric::ublas::prec_prod(H, wts);
             const double logz = arg.conf_scores ? logNorm(Scores) : 0.0;
             priority_queue< pair<float, Uint> > best_scores;
@@ -206,16 +212,23 @@ int MAIN(argc, argv)
                if (arg.print_scores) cout << Scores[p.second] - logz << " ";
                cout << nbest.at(p.second) << endl;  // DISPLAY best hypothesis
                if (co_out) (*co_out) << colines[p.second] << endl;
+               if (fv_out) {
+                  static Uint M = ffset.M();
+                  writeFeatureVector(H, M, p.second, (*fv_out));
+                  (*fv_out) << nf_endl;
+               }
+               if (sc_out) (*sc_out) << Scores[p.second] - logz << nf_endl;
                best_scores_stack.pop();
             }
             if (arg.K)             // pad with blank lines if necessary
                for (; kout < arg.kout; ++kout) {
                   cout << endl;
                   if (co_out) (*co_out) << endl;
+                  if (fv_out) (*fv_out) << nf_endl;
+                  if (sc_out) (*sc_out) << nf_endl;
                }
          }
-      }
-      else { // Minimum Bayes risk rescoring using BLEU as loss function
+      } else { // Minimum Bayes risk rescoring using BLEU as loss function
 
         // Sort hypotheses by sentence score
         const uVector Scores = boost::numeric::ublas::prec_prod(H, wts) * arg.glob_scale;
@@ -304,7 +317,7 @@ int MAIN(argc, argv)
       } // else (MBR)
    }
 
-   astr.close();
+   nbestReader.reset();
    if (s != S) error(ETFatal, "File inconsistency s=%d, S=%d", s, S);
 
 } END_MAIN

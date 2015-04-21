@@ -35,7 +35,7 @@ LMMix::Creator::Creator(
    , lmmix_relative(true)
 {}
 
-bool LMMix::Creator::checkFileExists()
+bool LMMix::Creator::checkFileExists(vector<string>* list)
 {
    if (!check_if_exists(lm_physical_filename)) return false;
 
@@ -87,6 +87,8 @@ bool LMMix::Creator::checkFileExists()
       return false;
    }
 
+   if (ok && list) listAllFiles(list);
+
    return ok;
 }
 
@@ -109,6 +111,25 @@ Uint64 LMMix::Creator::totalMemmapSize()
    return total_size;
 }
 
+void LMMix::Creator::listAllFiles(vector<string>* list)
+{
+   list->push_back(lm_physical_filename);
+
+   iSafeMagicStream file(lm_physical_filename);
+   string lmmix_dir = lmmix_relative ? DirName(lm_physical_filename) : "";
+   string line;
+   while (getline(file, line)) {
+      if (isPrefix(LMMIX_COOKIE_V1_0, line))
+         break;
+      vector<string> toks;
+      if (split(line, toks) != 2)
+         error(ETFatal, "syntax error in %s; expected 2 tokens in %s",
+               lm_physical_filename.c_str(), line.c_str());
+
+      PLM::checkFileExists(adjustRelativePath(lmmix_dir, toks[0]), list);
+   }
+}
+
 PLM* LMMix::Creator::Create(VocabFilter* vocab,
                             OOVHandling oov_handling,
                             float oov_unigram_prob,
@@ -117,7 +138,7 @@ PLM* LMMix::Creator::Create(VocabFilter* vocab,
                             ostream *const os_filtered,
                             bool quiet)
 {
-   if (!checkFileExists())
+   if (!checkFileExists(NULL))
       error(ETFatal, "Unable to open MIXLM %s or one of its associated files.",
             lm_physical_filename.c_str());
    return new LMMix(lm_physical_filename, vocab, oov_handling, oov_unigram_prob,
@@ -205,6 +226,16 @@ float LMMix::wordProb(Uint word, const Uint context[], Uint context_length)
       if (wts[i] != log0)
          p += exp(wts[i] + models[i]->wordProb(word, context, context_length));
    return log(p);
+}
+
+Uint LMMix::minContextSize(const Uint context[], Uint context_length)
+{
+   static double log0 = log(0.0);
+   Uint result = 0;
+   for (Uint i = 0; i < models.size(); ++i)
+      if (wts[i] != log0)
+         result = max(result, models[i]->minContextSize(context, context_length));
+   return result;
 }
 
 void LMMix::newSrcSent(const vector<string>& src_sent,

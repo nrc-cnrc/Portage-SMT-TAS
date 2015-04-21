@@ -49,12 +49,12 @@ namespace Portage {
 template<class T>
 void dumpMultiProb(ostream& ofs, Uint left_lang, PhraseTableGen<T>& pt,
                    vector< PhraseSmoother<T>* >& smoothers,
-                   Uint display_alignments, bool write_count, bool verbose)
+                   Uint display_alignments, bool write_count, bool write_smoother_state, bool verbose)
 {
    Uint total = 0;
 
    for (typename PhraseTableGen<T>::iterator it = pt.begin(); it != pt.end(); ++it) {
-      dumpMultiProb(ofs, left_lang, it, smoothers, display_alignments, write_count, verbose);
+      dumpMultiProb(ofs, left_lang, it, smoothers, display_alignments, write_count, write_smoother_state, verbose);
       ++total;
    }
    ofs.flush();
@@ -85,7 +85,7 @@ template<class T>
 bool dumpMultiProb(ostream& ofs, Uint left_lang,
                    typename PhraseTableGen<T>::iterator& it,
                    vector< PhraseSmoother<T>* >& smoothers,
-                   Uint display_alignments, bool write_count, bool verbose)
+                   Uint display_alignments, bool write_count, bool write_smoother_state, bool verbose)
 {
    // EJJ High precision is fine and all, but costs us in space in CPT files,
    // as well as in TPPT files, where the encoding is more expensive to keep
@@ -111,15 +111,27 @@ bool dumpMultiProb(ostream& ofs, Uint left_lang,
    }
    if (find_if(vals.begin(), vals.end(), bind2nd(greater<double>(), 0.0)) == vals.end())
       return false;
+
    const char* alignments = NULL;
    string alignments_s;
    if ( display_alignments ) {
       it.getAlignmentString(alignments_s, (left_lang != 1), (display_alignments == 1));
       alignments = alignments_s.c_str();
    }
-   double count = write_count ? it.getJointFreq() : 0;
+
+   const char* extra_c = NULL;
+   string extra;
+   if (write_smoother_state) {
+      for (Uint i = 0; i < smoothers.size(); ++i)
+         extra += smoothers[i]->getInternalState(it);
+      if (!extra.empty())
+         extra_c = extra.c_str();
+   }
+
+   vector<double>* avals = NULL;
+   const double count = write_count ? it.getJointFreq() : 0;
    PhraseTableBase::writePhrasePair(ofs, p1.c_str(), p2.c_str(), alignments,
-                                    vals, write_count, count);
+                                    vals, write_count, count, avals, extra_c);
    return true;
 }
 

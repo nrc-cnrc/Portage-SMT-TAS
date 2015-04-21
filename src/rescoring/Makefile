@@ -1,5 +1,3 @@
-# $Id$
-
 # K-Best Rescoring Module
 # Aaron Tikuisis
 # Technologies langagieres interactives / Interactive Language Technologies
@@ -13,13 +11,13 @@ INCLUDES = $(filter-out rescore_train.h rescore_translate.h \
 
 OBJECTS = \
 	bleu_postedit_ff.o \
-        backward_lm_ff.o \
+	backward_lm_ff.o \
 	bleurisk.o \
 	cache_lm_ff.o \
 	confidence_score.o \
 	consensus.o \
 	featurefunction_set.o \
-        file_ff.o \
+	file_ff.o \
 	fmax.o \
 	ibm1wtrans.o \
 	ibm1del.o \
@@ -44,18 +42,17 @@ OBJECTS = \
 	wer_postedit_ff.o
 
 BINSCRIPTS = \
-	cow.sh \
-        cowpie.py \
+	cowpie.py \
 	cow-timing.pl \
 	cow-timing-full.pl \
 	gen-features-parallel.pl \
 	rat.sh \
-        rescore-bwd-lm.sh \
-        rescore-train-micro.sh \
+	rescore-bwd-lm.sh \
+	rescore-train-micro.sh \
 	rescoremodel2canoearg.sh \
-        stub-feature-function.sh \
-        tune.py \
-	cherrycSMT.jar
+	stub-feature-function.sh \
+	tune.py \
+	structpred.jar
 
 LIBRARY=libportage_rescoring
 
@@ -72,7 +69,7 @@ PROGRAMS=$(TESTPROGS) \
 	rescore_test \
 	rescore_train \
 	rescore_translate \
-        uniq_nbest \
+	uniq_nbest \
 	word_align_phrasepairs
 
 DOCUMENTS=rescoring_overview.pdf ochlinemax.pdf
@@ -82,9 +79,9 @@ EXTRA_LIBS=$(LOGGING_LIB)
 DYNLIBS=-lpthread $(LIBICU) -lboost_system
 
 PGM_WITH_ALTERNATIVE_HELP = rescore_train
-PGM_WITH_NO_HELP = cherrycSMT.jar
+PGM_WITH_NO_HELP = structpred.jar
 
-MODULE_DEPENDS=lm eval word_align tp_models tpt preprocessing logging
+MODULE_DEPENDS=lm tp_models tpt eval word_align preprocessing logging
 
 ifdef NO_PORTAGE_OPENMP
 MODULE_CF=-Wno-unknown-pragmas

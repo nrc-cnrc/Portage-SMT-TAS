@@ -22,6 +22,7 @@
 #include "ngrammatch_feature.h"
 #include "rule_feature.h"
 #include "unal_feature.h"
+#include "sparsemodel.h"
 #include "bilm_model.h"
 #include "basicmodel.h"
 #include "errors.h"
@@ -30,14 +31,14 @@ using namespace Portage;
 
 DecoderFeature* DecoderFeature::create(BasicModelGenerator* bmg,
                                        const string& group,
-                                       const string& args, bool fail)
+                                       const string& args, bool fail, Uint verbose)
 {
    DecoderFeature* f = NULL;
 
    if ( group == "SegmentationModel" ) {
       f = SegmentationModel::create(args, fail);
    } else if ( group == "DistortionModel" ) {
-      f = DistortionModel::create(args, fail);
+      f = DistortionModel::create(args, bmg->c, fail);
    } else if ( group == "IBM1FwdFeature" ) {
       f = new IBM1FwdFeature(bmg, args);
    } else if ( group == "LengthFeature" ) {
@@ -49,7 +50,10 @@ DecoderFeature* DecoderFeature::create(BasicModelGenerator* bmg,
    } else if ( group == RuleFeature::name ) {
       f = new RuleFeature(bmg, args);
    } else if ( group == "UnalFeature" ) {
-      f = new UnalFeature(bmg->getPhraseTable().alignmentVoc, args);
+      f = new UnalFeature(args);
+   } else if ( group == "SparseModel" ) {
+      f = new SparseModel(args, DirName(bmg->c->configFile), verbose, bmg->getOpenVoc(),
+                          true, bmg->c->sparseModelAllowNonLocalWts, false, true);
    } else if ( group == "BiLMModel" ) {
       f = new BiLMModel(bmg, args);
    } else {
@@ -71,4 +75,12 @@ DecoderFeature* DecoderFeature::create(BasicModelGenerator* bmg,
    }
 
    return f;
+}
+
+Uint64 DecoderFeature::totalMemmapSize(const string& group, const string& args)
+{
+   if ( group == "BiLMModel" )
+      return BiLMModel::totalMemmapSize(args);
+   else
+      return 0;
 }

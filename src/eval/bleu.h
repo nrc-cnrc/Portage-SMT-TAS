@@ -41,7 +41,7 @@ namespace Portage
 // negative.  However, it is illegal to compute a score when any of the
 // values are negative.
 //typedef Uint BLEU_STAT_TYPE;
-typedef signed int BLEU_STAT_TYPE;
+typedef double BLEU_STAT_TYPE;
 
 /// A class which maintains statistics for the BLEU score.
 class BLEUstats
@@ -181,6 +181,8 @@ public:
     */
    double score(Uint maxN = MAX_NGRAMS_SCORE, double epsilon = 1e-30) const;
 
+   BLEU_STAT_TYPE getBestMatchLength() const { return bmlength; }
+
    /// What is this metric's name.
    /// @return Returns this metric's name => BLEU.
    static const char* const name() {
@@ -263,6 +265,11 @@ public:
    /// Callable entity for booststrap confidence interval. 
    struct CIcomputer
    {
+      // Seamingly pointless constructor quiets spurious warning from g++ 4.4.4
+      CIcomputer() {}
+      // Seamingly pointless copy constructor quiets spurious warning from g++ 4.4.4
+      CIcomputer(const CIcomputer&) {}
+
       /// Define what is an iterator for a CIcomputer.
       typedef vector<BLEUstats>::const_iterator iterator;
 
@@ -313,6 +320,11 @@ bool operator==(const BLEUstats &s1, const BLEUstats &s2);
 bool operator!=(const BLEUstats &s1, const BLEUstats &s2);
 
 /**
+ * Scale BLEUstats by a constant.
+ */
+BLEUstats operator*(BLEUstats s, double c);
+
+/**
  * Calculates the BLEUstats for a set of nbest lists and their references.
  * Fills in the 2-D array bleu in accordance with the input requirement for
  * powell() (and linemax()).
@@ -324,7 +336,7 @@ bool operator!=(const BLEUstats &s1, const BLEUstats &s2);
  * @param tgt_sents  list of list of hypotheses
  * @param ref_sents  list of list of references.
  */
-void computeBLEUArray(MatrixBLEUstats& bleu,
+void computeArray(MatrixBLEUstats& bleu,
       const vector< vector<string> >& tgt_sents,
       const vector< vector<string> >& ref_sents);
 
@@ -339,7 +351,7 @@ void computeBLEUArray(MatrixBLEUstats& bleu,
  * @param max     maximum number of hypotheses to calculate their BLEUstats.
  * @param smooth  smoothing type.
  */
-void computeBLEUArrayRow(RowBLEUstats& bleu,
+void computeArrayRow(RowBLEUstats& bleu,
       const Nbest& nbest,
       const References& refs,
       Uint max = numeric_limits<Uint>::max(),
@@ -356,7 +368,7 @@ void computeBLEUArrayRow(RowBLEUstats& bleu,
  * @param max        maximum number of hypotheses to calculate their BLEUstats.
  * @param smooth     smoothing type.
  */
-void computeBLEUArrayRow(RowBLEUstats& bleu,
+void computeArrayRow(RowBLEUstats& bleu,
       const vector<string>& tgt_sents,
       const vector<string>& ref_sents,
       Uint max = numeric_limits<Uint>::max(),

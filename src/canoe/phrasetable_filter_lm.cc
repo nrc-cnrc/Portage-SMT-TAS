@@ -2,8 +2,6 @@
  * @author Samuel Larkin
  * @file phrasetable_filter_lm.cc  Implements phrase table for filtering LMs.
  *
- * $Id$
- *
  * Special phrase table which only creates the vocab in memory without
  * filtering.  Used for filtering LMs.
  *
@@ -23,8 +21,10 @@ using namespace Portage;
 Logging::logger ptLogger_filter_LM(Logging::getLogger("debug.canoe.phraseTable_filter_LM"));
 
 
-PhraseTableFilterLM::PhraseTableFilterLM(bool _limitPhrases, VocabFilter &tgtVocab, const char* pruningTypeStr)
-: Parent(_limitPhrases, tgtVocab, pruningTypeStr)
+PhraseTableFilterLM::PhraseTableFilterLM(bool _limitPhrases,
+                                         VocabFilter &tgtVocab, const string& pruningTypeStr,
+                                         bool appendJointCounts)
+   : Parent(_limitPhrases, tgtVocab, pruningTypeStr, appendJointCounts)
 {
    LOG_VERBOSE2(ptLogger_filter_LM, "Creating/Using PhraseTableFilterLM");
 }
@@ -34,7 +34,7 @@ PhraseTableFilterLM::~PhraseTableFilterLM()
 {}
 
 
-bool PhraseTableFilterLM::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
+bool PhraseTableFilterLM::processEntry(PhraseTableEntry& entry)
 {
    return false;
 }

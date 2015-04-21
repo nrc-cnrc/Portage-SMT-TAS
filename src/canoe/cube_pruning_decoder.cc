@@ -2,8 +2,6 @@
  * @author Eric Joanis
  * @file cube_pruning_decoder.cc Implementation of cube pruning decoder.
  *
- * $Id$
- *
  * Technologies langagieres interactives / Interactive Language Technoogies
  * Inst. de technologie de l'information / Institute for Information Technoloy
  * Conseil national de recherches Canada / National Research Council Canada
@@ -92,7 +90,7 @@ static void MakeHyperedges(
 
          Range src_words((*pick_it)->front().second->src_words);
          subRange(out_cov, cov, src_words);
-         
+
          // Future score for all states + phrase pair in this hyperedge will be
          // the same, since they have the same resulting coverage and last
          // source word covered.  We calculate it with the first state that
@@ -110,55 +108,52 @@ static void MakeHyperedges(
          // the phrase score or the combination score.
          for ( Uint i(0); i < states.size(); ++i ) {
             // Skip this decoder state if it fails on the distortion limit
-            if ( !
-                 (
-                  (
-                   (!model.c->distLimitITG ||
-                    DistortionModel::respectsITG(model.c->itgLimit,
-                                                 states[i]->trans->shiftReduce,
-                                                 src_words))
-                   &&
-                    DistortionModel::respectsDistLimit(cov, 
-                       states[i]->trans->lastPhrase->src_words,
-                       src_words, model.c->distLimit, sourceLength,
-                       model.c->distLimitSimple, model.c->distLimitExt,
-                       &out_cov)
-                   )
-                  ||
-                   (model.c->distPhraseSwap &&
-                    DistortionModel::isPhraseSwap(cov, 
-                       states[i]->trans->lastPhrase->src_words,
-                       src_words, sourceLength, scored_phrases))
-                 )
-               )
+            if (!model.respectsDistortionLimit(*states[i]->trans, src_words, &out_cov))
+               continue;
+
+            // Early detection of ITG constraint temporarily here, until it
+            // gets turned into a filter feature.
+            if (model.c->distLimitITG &&
+                !DistortionModel::respectsITG(model.c->itgLimit,
+                                              states[i]->trans->shiftReduce,
+                                              src_words))
                continue;
 
             assert(states[i]->trans);
             assert(states[i]->trans->lastPhrase);
 
             // We use the first phrase in the candidate list to call
-            // rangePartialScore, but only its src_words is used, not its
+            // rangePartialScore, knowing only its src_words is used, not its
             // translation
             PartialTranslation pt(states[i]->trans,
                                   (*pick_it)->front().second, &out_cov);
             if ( !futureScoreCalculated ) {
-               futureScore = model.computeFutureScore(pt);
+               futureScore = model.computePartialFutureScore(pt);
                futureScoreCalculated = true;
+               // If a filter feature causes the future score to be -INFINITY,
+               // all elements of the current states vector will be pruned, so
+               // break right away, which will cause the whole hyperedge to be
+               // pruned, as should be the case.
+               if (futureScore == -INFINITY) break;
             } else {
                // expensive, keep it only for early debugging!
+               // And no longer relevant, since I added computePartialFutureScore().
                /*
-               if ( abs(futureScore - model.computeFutureScore(pt)) > 0.00001 )
+               if ( abs(futureScore - model.computePartialFutureScore(pt)) > 0.00001 )
                   cerr << "futureScore = " << futureScore
-                       << " model.computeFutureScore(pt) = "
-                       << model.computeFutureScore(pt)
+                       << " model.computePartialFutureScore(pt) = "
+                       << model.computePartialFutureScore(pt)
                        << endl;
                */
-               //assert(futureScore == model.computeFutureScore(pt));
+               //assert(futureScore == model.computePartialFutureScore(pt));
             }
             double partial_score =
                states[i]->score + model.rangePartialScore(pt) + futureScore;
 
-            scored_states.push_back(make_pair(partial_score, states[i]));
+            // Filter-feature early pruning: if a filter feature said to prune
+            // early, model.rangePartialScore() will have returned -INFINITY.
+            if (partial_score > -INFINITY)
+               scored_states.push_back(make_pair(partial_score, states[i]));
          }
 
          if ( scored_states.empty() ) {
@@ -167,7 +162,7 @@ static void MakeHyperedges(
             if ( verbosity >= 3 )
                cerr << "  Discarding "
                     << displayUintSet(cov, false, sourceLength)
-                    << " x " << src_words.toString()
+                    << " x " << src_words
                     << ": " << scored_states.size() << "/" << states.size()
                     << " states, " << (*pick_it)->size() << " phrases"
                     << endl;
@@ -207,7 +202,7 @@ static void MakeHyperedges(
          if ( verbosity >= 3 )
             cerr << "  Hyperedge "
                  << displayUintSet(cov, false, sourceLength)
-                 << " x " << src_words.toString()
+                 << " x " << src_words
                  << ": " << scored_states.size() << "/" << states.size()
                  << " states, " << (*pick_it)->size() << " phrases"
                  << endl;
@@ -240,6 +235,7 @@ HypothesisStack* runCubePruningDecoder(BasicModel &model, const CanoeConfig& c,
    vector<PhraseInfo*> **phrases = model.getPhraseInfo();
    vector<pair<double, PhraseInfo*> > **scored_phrases =
       TriangArray::Create<vector<pair<double,PhraseInfo*> > >()(sourceLength);
+   model.setScoredPhrases(scored_phrases);
 
    // Pre-sort the PhraseInfos in decreasing order of their local future score.
    for ( Uint i(0); i < sourceLength; ++i ) {
@@ -254,15 +250,19 @@ HypothesisStack* runCubePruningDecoder(BasicModel &model, const CanoeConfig& c,
          for ( vector<PhraseInfo*>::const_iterator it(phrases[i][j].begin()),
                end(phrases[i][j].end()); it != end; ++it ) {
             assert((*it)->src_words == source_range);
-            double score = model.phrasePartialScore(*it);
-            scored_phrases[i][j].push_back(make_pair(score, *it));
+            double score = (*it)->partial_score;
+            assert(!isnan(score));
+            // If score is -INFINITY, some filter feature said to discard that
+            // phrase pair via its precomputeFutureScore() method.
+            if (score > -INFINITY)
+               scored_phrases[i][j].push_back(make_pair(score, *it));
          }
 
          // Sort these phrase info pointers in a stable way using the same
          // (arbitrary but stable) tie breaking rules as for picking the L best
          // phrase table entries.
          sort(scored_phrases[i][j].begin(), scored_phrases[i][j].end(),
-              PhraseTable::PhraseScorePairGreaterThan(model.getPhraseTable()));
+              PhraseTable::PhraseScorePairGreaterThan());
       }
    }
 
@@ -291,7 +291,7 @@ HypothesisStack* runCubePruningDecoder(BasicModel &model, const CanoeConfig& c,
       // Construct the next stack by applying KBest on its incoming hyperedges
       stacks[s]->KBest(c.maxStackSize, threshold, s, c.verbosity);
    }
-      
+
    if ( c.verbosity >= 2 ) {
       Uint hyperedge_count(0), potential_states(0), evaluated_states(0),
            kept_states(0), recomb_states(0);
@@ -325,7 +325,7 @@ HypothesisStack* runCubePruningDecoder(BasicModel &model, const CanoeConfig& c,
    TriangArray::Delete<vector<pair<double, PhraseInfo*> > >()(
       scored_phrases, sourceLength);
 
-   // Clean out all the stacks, except the last one, which we return 
+   // Clean out all the stacks, except the last one, which we return
    for ( Uint s(0); s < sourceLength; ++s )
       delete stacks[s];
 

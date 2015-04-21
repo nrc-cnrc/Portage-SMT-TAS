@@ -4,8 +4,6 @@
  * writeWordGraph() function, used to create lattice output that may be used by
  * your favorite lattice processing package.
  *
- * $Id$
- *
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -19,7 +17,9 @@
 #include <decoder.h>
 #include <phrasedecoder_model.h>
 #include <basicmodel.h>
+#include <sparsemodel.h>
 #include <math.h>
+#include "alignment_annotation.h"
 #include <vector>
 #include <map>
 #include <iostream>
@@ -89,11 +89,10 @@ PrintFunc::appendAlignmentInfo(const DecoderState *state, PhraseDecoderModel &mo
            << (phrase->src_words.end - 1)         << ';'
            << (oov ? "O" : "I");
       if (walign) {
-         const ForwardBackwardPhraseInfo* fbpi =
-            dynamic_cast<const ForwardBackwardPhraseInfo*>(state->trans->lastPhrase);
-         assert(fbpi);
-         sout << ';'
-              << dynamic_cast<BasicModel&>(model).getPhraseTable().alignmentVoc.word(fbpi->alignment);
+         const PhraseInfo* fbpi = state->trans->lastPhrase;
+         sout << ';';
+         AlignmentAnnotation* a_ann = AlignmentAnnotation::get(fbpi->annotations);
+         if (a_ann) sout << a_ann->getAlignment();
       }
       sout << ']';
    }
@@ -113,6 +112,47 @@ PrintFunc::appendFFValues(const DecoderState *state, BasicModel &model) {
       }
       sout << ']';
    }
+}
+
+// same basic code as operator() in NbestPrinter class:
+
+void 
+PrintFunc::appendSFValues(const DecoderState *state, BasicModel &model) {
+   if (state == NULL) return;
+      
+   vector<double> ffvals;
+   model.getFeatureFunctionVals(ffvals, *state->trans);
+   assert(ffvals.size() > 0);
+   sout << "v=[";
+   bool firstval = true;
+   
+   // write normal features, and record SparseModels
+
+   vector<SparseModel*> sparselist;
+   for (Uint i = 0; i < ffvals.size(); ++i) {
+      DecoderFeature* ff = model.getDecoderFeature(i);
+      if (ff && dynamic_cast<SparseModel*>(ff)) {
+         sparselist.push_back((SparseModel*)ff);
+      } else if (ffvals[i] != 0) {   // print normal feature, if non-zero
+         if (!firstval) sout << ";";
+         else firstval = false;
+         sout << i << ":" << ffvals[i];
+      }
+   }
+   // write SparseModel component features
+
+   Uint offset = ffvals.size();
+   for (Uint i = 0; i < sparselist.size(); ++i) {
+      set<Uint> smvals;
+      sparselist[i]->getComponents(*state->trans, smvals);
+      for (set<Uint>::iterator p = smvals.begin(); p != smvals.end(); ++p) {
+         if (!firstval) sout << ";";
+         else firstval = false;
+         sout << (*p + offset) << ":1";
+      }
+      offset += sparselist[i]->numFeatures();
+   }
+   sout << ']';
 }
 
 PrintPhraseOnly::PrintPhraseOnly(PhraseDecoderModel &m, vector<bool>* oovs)
@@ -142,21 +182,22 @@ string PrintTrace::operator()(const DecoderState *state) {
    return sout.str();
 }
 
-PrintFFVals::PrintFFVals(BasicModel &m, vector<bool>* oovs):
-   PrintFunc(oovs), model(m) {}
+PrintFFVals::PrintFFVals(BasicModel &m, bool sfvals, vector<bool>* oovs):
+   PrintFunc(oovs), model(m), sfvals(sfvals) {}
 
 string PrintFFVals::operator()(const DecoderState *state) {
    clear();
    if (state != NULL) {
       appendQuotedPhrase(state, model);
       sout << ' ';
-      appendFFValues(state, model);
+      if (sfvals) appendSFValues(state, model);
+      else appendFFValues(state, model);
    }
    return sout.str();
 }
 
-PrintAll::PrintAll(BasicModel &m, bool _walign, vector<bool>* oovs):
-   PrintFunc(oovs), model(m)
+PrintAll::PrintAll(BasicModel &m, bool sfvals, bool _walign, vector<bool>* oovs):
+   PrintFunc(oovs), model(m), sfvals(sfvals)
 {
    walign = _walign;
 }
@@ -168,7 +209,8 @@ string PrintAll::operator()(const DecoderState *state) {
       sout << ' ';
       appendAlignmentInfo(state, model);
       sout << ' ';
-      appendFFValues(state, model);
+      if (sfvals) appendSFValues(state, model);
+      else appendFFValues(state, model);
    }
    return sout.str();
 }

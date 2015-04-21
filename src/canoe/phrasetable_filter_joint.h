@@ -34,7 +34,7 @@ class PhraseTableFilterJoint : public PhraseTableFilter {
       /// Use for complete online filtering (save trie's query)
       TargetPhraseTable* tgtTable;
 
-      const pruningStyle* const pruning_type;
+      const pruningStyle* const pruning_style;
 
       /// output file name when processing online
       oSafeMagicStream* online_filter_output;
@@ -44,15 +44,22 @@ class PhraseTableFilterJoint : public PhraseTableFilter {
        * Default constructor.
        * @param limitPhrases        limiting
        * @param tgtVocab            target vocaulary
-       * @param pruning_type
-       * @param pruningTypeStr      pruning type
+       * @param pruning_style
+       * @param pruningTypeStr      pruning type: "forward-weights", "backward-weights",
+       *                            "combined" or "full"
+       * @param forwardWeights      forward TM weights
+       * @param transWeights        backward TM weights
+       * @param tm_hard_limit       true=>we're doing hard filtering; false=>soft filtering
        * @param hard_filter_weights             TM weights for hard filtering
        */
       PhraseTableFilterJoint(bool limitPhrases,
                              VocabFilter& tgtVocab,
-                             const pruningStyle* const pruning_type,
-                             const char* pruningTypeStr = NULL,
-                             const vector<double>* const hard_filter_weights = NULL);
+                             const pruningStyle* const pruning_style,
+                             const string& pruningTypeStr,
+                             const vector<double>& forwardWeights,
+                             const vector<double>& transWeights,
+                             bool tm_hard_limit,
+                             bool appendJointCounts);
 
       /// Destructor.
       virtual ~PhraseTableFilterJoint();
@@ -71,7 +78,7 @@ class PhraseTableFilterJoint : public PhraseTableFilter {
        */
       virtual Uint filter(const string& TM_filename, const string& filtered_TM_filename) {
          outputForOnlineProcessing(filtered_TM_filename);
-         return PhraseTable::readMultiProb(TM_filename.c_str(), limitPhrases);
+         return PhraseTable::readMultiProb(TM_filename.c_str(), limitPhrases, false);
       }
 
       /**
@@ -84,7 +91,7 @@ class PhraseTableFilterJoint : public PhraseTableFilter {
       virtual float convertToWrite(float value) const;
 
       virtual Uint processTargetPhraseTable(const string& src, Uint src_word_count, TargetPhraseTable* tgtTable);
-      virtual TargetPhraseTable* getTargetPhraseTable(Entry& entry, bool limitPhrases);
+      virtual TargetPhraseTable* getTargetPhraseTable(PhraseTableEntry& entry, bool limitPhrases);
 
 }; // ends class PhraseTableFilterJoint
 }; // ends namespace Portage

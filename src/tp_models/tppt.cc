@@ -149,7 +149,7 @@ namespace ugdiss
                   bad = true;
                }
             }
-            if (bad) exit(1);
+            if (bad) cerr << exit_1;
          }
          p += numVals;
       }

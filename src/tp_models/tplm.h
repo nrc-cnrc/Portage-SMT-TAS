@@ -151,7 +151,7 @@ public:
 #if IN_PORTAGE
   struct Creator : public PLM::Creator {
     Creator(const string& lm_physical_filename, Uint naming_limit_order);
-    virtual bool checkFileExists();
+    virtual bool checkFileExists(vector<string>* list);
     virtual Uint64 totalMemmapSize();
     virtual PLM* Create(VocabFilter* vocab,
                         OOVHandling oov_handling,
@@ -206,6 +206,8 @@ public:
     */
   virtual float wordProb(Uint word, const Uint context[], Uint context_length);
 
+  virtual Uint minContextSize(const Uint context[], Uint context_length);
+
   /** @return a string that describes a wordProb lookup request */
   string describeRequest(Uint word, const Uint ctxt[], Uint context_length);
 
@@ -216,6 +218,8 @@ public:
 
   /** Has no effect for this LM */
   //virtual void clearCache(){};
+
+  virtual Uint getLatestNgramDepth() const { return longest_ngram; }
 
   // Additional functions specific to this LM
   /** @return the longest ngram found in the most recent call to wordProb(id,ctxt,ctxt_len) */
@@ -240,7 +244,7 @@ LMtpt<valIdType>::Creator::Creator(
 }
 
 template<typename valIdType>
-bool LMtpt<valIdType>::Creator::checkFileExists()
+bool LMtpt<valIdType>::Creator::checkFileExists(vector<string>* list)
 {
   bool ok = true;
   for ( int i = 0; i < 3; ++i )
@@ -252,9 +256,10 @@ bool LMtpt<valIdType>::Creator::checkFileExists()
       ok = false;
       // if the .tplm file itself is missing, don't complain about the others,
       // since they're nearly guaranteed not to exist either.
-      if ( i == 0 ) break; 
+      if ( i == 0 ) break;
     }
   }
+  if (list) list->push_back(lm_physical_filename);
   return ok;
 }
 
@@ -276,7 +281,7 @@ PLM* LMtpt<valIdType>::Creator::Create(VocabFilter* vocab,
                             ostream *const os_filtered,
                             bool quiet)
 {
-   if ( ! checkFileExists() )
+   if ( ! checkFileExists(NULL) )
       cerr << efatal << "Unable to open TPLM " << lm_physical_filename
            << " or one of its associated files." << exit_1;
    if ( limit_order )
@@ -490,7 +495,7 @@ wordProb(Uint word)
   assert(w >= wid_shift);
   assert(w < wid_shift+numTokens);
 #if LMTPTQ_DEBUG_LOOKUP
-  cout << "unigram pvalId=" << uniprob[w] << " pval=" << pval[0][uniprob[w]] << endl;
+  cerr << "unigram pvalId=" << uniprob[w] << " pval=" << pval[0][uniprob[w]] << endl;
 #endif
   return pval[0][uniprob[w]];
 }
@@ -555,7 +560,7 @@ private_wordProb(Uint word, const Uint context[], Uint context_length)
 {
 
 #if LMTPTQ_DEBUG_LOOKUP
-  cout << "\n" << describeRequest(word,context,context_length) << endl;
+  cerr << "\n" << describeRequest(word,context,context_length) << endl;
 #endif
 
   if (context_length == 0)
@@ -635,9 +640,9 @@ private_wordProb(Uint word, const Uint context[], Uint context_length)
       while (flags)
         {
 #if LMTPTQ_DEBUG_LOOKUP
-          cout << "found " << tindex[cwid] << " i=" << i << " cx=" << cx
+          cerr << "found " << tindex[cwid] << " i=" << i << " cx=" << cx
                << " cl=" << context_length << " flags=" << Uint(flags)
-               << " offset=" << offset 
+               << " offset=" << offset
                << " order=" << gram_order
                << endl;
 #endif
@@ -653,10 +658,10 @@ private_wordProb(Uint word, const Uint context[], Uint context_length)
           if (cwid == tindex.getUnkId())
             break;
           cx++;
-          // cout << "[1] " << cwid << endl;
+          // cerr << "[1] " << cwid << endl;
           char const* iStart = iStop - diff;
           p = tightfind(iStart,iStop,cwid,flags);
-          // cout << "[2] " << int(p) << endl;
+          // cerr << "[2] " << int(p) << endl;
           if (!p)
             break;
           tightread(p,iStop,diff);
@@ -665,9 +670,9 @@ private_wordProb(Uint word, const Uint context[], Uint context_length)
           else
             {
 #if LMTPTQ_DEBUG_LOOKUP
-              cout << "found " << tindex[cwid] << " i=" << i << " cx=" << cx
+              cerr << "found " << tindex[cwid] << " i=" << i << " cx=" << cx
                    << " cl=" << context_length << " flags=" << Uint(flags)
-                   << " offset=" << offset 
+                   << " offset=" << offset
                    << " order=" << gram_order
                    << endl;
 #endif
@@ -678,7 +683,7 @@ private_wordProb(Uint word, const Uint context[], Uint context_length)
     }
 
 #if LMTPTQ_DEBUG_LOOKUP
-  cout << "i = " << i << " cx = " << cx << endl;
+  cerr << "i = " << i << " cx = " << cx << endl;
 #endif
 
   // We've found the longest matching context, we now backtrack until we find a
@@ -695,21 +700,21 @@ private_wordProb(Uint word, const Uint context[], Uint context_length)
         {
           this->longest_ngram = i+2;
 #if LMTPTQ_DEBUG_LOOKUP
-          cout << longest_ngram << "-gram pvalId=" << pvalId;
-          cout << " pval=" << pval[i+1][pvalId] 
-               << " bowsum=" << bowsum 
+          cerr << longest_ngram << "-gram pvalId=" << pvalId;
+          cerr << " pval=" << pval[i+1][pvalId]
+               << " bowsum=" << bowsum
                << endl;
 #endif
           // if (longest_ngram == gram_order)
           return pval[i+1][pvalId]+bowsum; // [i][E.bo_idx];
-          // else 
+          // else
           // return pval[i+1][pvalId]+bow[i][E.bo_idx];
         }
       else
         bowsum += bow[i][E.bo_idx];
 
 #if LMTPTQ_DEBUG_LOOKUP
-      cout << i << " bow=" << bow[i][E.bo_idx] << endl;
+      cerr << i << " bow=" << bow[i][E.bo_idx] << endl;
 #endif
       for (--i; i >= 0; i--)
         {
@@ -723,7 +728,7 @@ private_wordProb(Uint word, const Uint context[], Uint context_length)
             }
           bowsum += bow[i][E.bo_idx];
 #if LMTPTQ_DEBUG_LOOKUP
-          cout << i << " bow=" << bow[i][E.bo_idx] << endl;
+          cerr << i << " bow=" << bow[i][E.bo_idx] << endl;
 #endif
         }
     }
@@ -733,18 +738,122 @@ private_wordProb(Uint word, const Uint context[], Uint context_length)
       this->longest_ngram = 1;
     }
 #if LMTPTQ_DEBUG_LOOKUP
-  cout << "returning ";
+  cerr << "returning ";
   if (this->longest_ngram==1)
-    cout << uniGramProb+bowsum;
+    cerr << uniGramProb+bowsum;
   else
-    cout << pval[this->longest_ngram-1][pvalId]+bowsum;
-  cout << endl;
+    cerr << pval[this->longest_ngram-1][pvalId]+bowsum;
+  cerr << endl;
 #endif
   if (this->longest_ngram==1)
     return uniGramProb+bowsum;
   else
     return pval[this->longest_ngram-1][pvalId]+bowsum;
 } // end of function private_wordProb
+
+template<class valIdType>
+Uint
+LMtpt<valIdType>::
+minContextSize(const Uint context[], Uint context_length)
+{
+
+#if LMTPTQ_DEBUG_LOOKUP
+  cerr << "\nminContextSize: " << describeRequest(0,context,context_length) << endl;
+#endif
+
+  if (context_length == 0)
+    return 0;
+
+  this->longest_context=777; /* nonsense initialization for tracking failure to set it
+                              * properly; for debugging */
+
+  // the following code is a bit ugly but optimized for speed
+  filepos_type   offset;
+  uint64_t diff;
+  uchar flags;
+  Uint cwid = mapId(context[0]);
+  if (cwid==tindex.getUnkId()
+#if IN_PORTAGE
+      && !(oov_policy == FullOpenVoc)
+#endif
+      )
+    {
+      return 0;
+    }
+
+
+  // f.seekg(trie.idxStart+(sizeof(filepos_type)+1)*cwid); // +1 is for the /flags/ uchar
+  char const *p = numread(idxStart + (cwid * topLevelRecSize),offset);
+  if (!offset)
+    {
+      return 0;
+    }
+  Uint cx=1;
+  flags  = *p;
+  if (flags)
+    {
+      char const* iStop = file.data()+offset;
+      while (flags)
+        {
+#if LMTPTQ_DEBUG_LOOKUP
+          cerr << "found " << tindex[cwid] << " cx=" << cx
+               << " cl=" << context_length << " flags=" << Uint(flags)
+               << " offset=" << offset
+               << " order=" << gram_order
+               << endl;
+#endif
+          bool has_child = flags & HAS_CHILD_MASK;
+          char const* p = (has_child
+                           ? binread(iStop,diff)
+                           : iStop);
+#if LMTPTQ_DEBUG_LOOKUP
+          cerr << "   has_child: " << has_child;
+#endif
+          if (!has_child || cx == context_length)
+            break;
+          cwid = mapId(context[cx]);
+#if LMTPTQ_DEBUG_LOOKUP
+          cerr << "   cwid: " << cwid << (cwid == tindex.getUnkId() ? "(unk)" : "") << endl;
+#endif
+          if (cwid == tindex.getUnkId())
+            break;
+          // cerr << "[1] " << cwid << endl;
+          char const* iStart = iStop - diff;
+          p = tightfind(iStart,iStop,cwid,flags);
+          // cerr << "[2] " << int(p) << endl;
+          if (!p)
+            break;
+          ++cx;
+          tightread(p,iStop,diff);
+          if (flags)
+            iStop = iStart - diff;
+          else
+            {
+#if LMTPTQ_DEBUG_LOOKUP
+              cerr << "found " << tindex[cwid] << " cx=" << cx
+                   << " cl=" << context_length << " flags=" << Uint(flags)
+                   << " offset=" << offset
+                   << " order=" << gram_order
+                   << endl;
+#endif
+              break;
+            }
+        }
+    }
+
+#if LMTPTQ_DEBUG_LOOKUP
+  cerr << " cx = " << cx << endl;
+#endif
+
+  // We've found the longest matching context, return it.
+
+  // We could backtrack until we find a node that has continuations or a
+  // non-zero back-off weight, but if the substring assumption holds, every
+  // context node has continuations by definition, so we don't bother with the
+  // actual check.
+
+  return cx;
+} // end if function minContextSize
 
 template<typename valIdType>
 class

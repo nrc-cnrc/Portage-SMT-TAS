@@ -2,8 +2,6 @@
  * @author Samuel Larkin
  * @file filter_models.h  Program that filters TMs and LMs.
  *
- * $Id$
- *
  * LMs & TMs filtering
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -38,14 +36,16 @@ file <config>.FILT that refers to them. Filtering currently applies to TMs\n\
 TM filtering is controlled by 3 separate parameters:\n\
 1) Unless -no-src-grep is given, phrase pairs are filtered to match a source\n\
    text supplied on stdin.\n\
-2) For each retained source phrase, a set of allowed translations is determined\n\
+2) For each source phrase retained in 1), a set of allowed translations is determined\n\
    by either hard filtering (-tm-hard-limit), soft filtering (-tm-soft-limit), or no\n\
    filtering (the default). Hard filtering uses the parameters in <config> to\n\
    mimic canoe's filtering. Soft filtering eliminates phrase pairs that will\n\
    never receive high scores, no matter what (non-negative) weights are\n\
-   assigned to forward phrase probabilities. e weights used for hard or soft\n\
-   filtering are specified by [ttable-prune-type] in <config>: either\n\
-   'forward-weights' or 'backward-weights' can be used, but not 'combined'.\n\
+   assigned to forward phrase probabilities. The weights used for hard or soft\n\
+   filtering are specified by [ttable-prune-type] in <config>: 'combined',\n\
+   'forward-weights' or 'backward-weights' can be used exactly; if 'full' is used,\n\
+   some information is missing for an exact calculation, so extra phrases are kept,\n\
+   as specified using -full-prune-extra.\n\
 3) If doing either hard or soft filtering, the number of translations to retain\n\
    is determined by the [ttable-limit] parameter in <config>. This may be\n\
    overridden by the local -tm-prune switch, as described below. The\n\
@@ -68,28 +68,34 @@ Use -H for examples, and further details.\n\
 \n\
 Options:\n\
 \n\
--f c  canoe config file [canoe.ini]\n\
--c    do not output a new canoe.ini [do]\n\
--z    compress outputs [don't, unless filename in <config> is compressed]\n\
--s    don't strip the path from model file names [do]\n\
--r    don't overwrite existing filtered files [do]\n\
--suffix s  use <s> as suffix for filtered models and config files [.FILT]\n\
--no-src-grep  don't filter phrase table(s) for current source text [do]\n\
--tm-hard-limit|-tm-soft-limit out  use hard or soft TM filtering as described above,\n\
-      writing filtered phrase table to out.FILT(.gz?).\n\
--ttable-limit Use T instead of the ttable-limit parameter in CONFIG_FILE. This\n\
-             value does not get written back to CONFIG_FILE.FILT.\n\
--tm-prune s#n  TM pruning strategy, overrides [ttable-limit] in <config>. Retains n \n\
-      top translations for each source phrase if style is 'fix', and n * w if\n\
+-f c  Canoe config file [canoe.ini]\n\
+-c    Do not output a new canoe.ini [do]\n\
+-z    Compress outputs [don't, unless filename in <config> is compressed]\n\
+-s    Don't strip the path from model file names [do]\n\
+-plp  Preserve path info in local filtered ldm filenames [don't]\n\
+-r    Don't overwrite existing filtered files [do]\n\
+-suffix s      Use <s> as suffix for filtered models and config files [.FILT]\n\
+-no-src-grep   Don't filter phrase table(s) for current source text [do]\n\
+-tm-hard-limit|-tm-soft-limit cpt_prefix  Use hard or soft TM filtering as\n\
+      described above, writing filtered phrase table to cpt_prefix.FILT(.gz?).\n\
+-ttable-limit  Use T instead of the ttable-limit parameter in <config>.\n\
+      This value does not get written back to <config>.FILT.\n\
+-tm-prune s#n  TM pruning strategy, overrides [ttable-limit] in <config>. Retains\n\
+      n top translations for each source phrase if style is 'fix', and n * w if\n\
       style is 'linear', where w is the number of words in the source phrase.\n\
--tm-online   If -*-limit is specified, process one source phrase at a time to\n\
+-ttable-prune-type PT  Override the [ttable-prune-type] value in <config>.\n\
+      This value does not get written back to <config>.FILT.\n\
+-full-prune-extra R  If -ttable-prune-type full is given (in <config> or on cmd\n\
+      line), -tm-hard-limit and -tm-soft-limit cannot be implemented exactly,\n\
+      so keep R% more than <config>'s [ttable-limit] says. (Has no effect if\n\
+      -ttable-limit or -tm-prune is given as a filter_model option.) [50]\n\
+-tm-online     If -*-limit is specified, process one source phrase at a time to\n\
       save memory. Requires that <config> contain only one TM, sorted on source\n\
       phrases (use tmtext_sort.sh and join_phrasetables).\n\
--ldm  filter lexicalized DMs as described above [don't]\n\
--lm   filter language models as described avove [don't]\n\
--no-per-sent|-phaseIIb  LM filtering strategy, either global (less filtering\n\
-      than default) or 'phaseIIb' (more filtering) [filter with per-sent voc]\n\
--vocab v  write the target language vocab for <src> to file <v> [don't]\n\
+-ldm  Filter lexicalized DMs as described above [don't]\n\
+-lm   Filter language models as described avove [don't]\n\
+-no-per-sent   Global-voc LM filtering strategy (less filtering than default)\n\
+-vocab v       Write the target language vocab for <src> to file <v> [don't]\n\
 \n\
 ";
 
@@ -126,8 +132,10 @@ Examples:\n\
 
        /// Program filter_models' allowed command line arguments
        const char* const switches[] = {
-          "z", "s", "r", "lm", "no-per-sent", "no-src-grep",
-          "tm-online", "c", "tm-hard-limit:", "tm-soft-limit:", "f:", "suffix:",
+          "z", "s", "plp", "r", "lm", "no-per-sent", "no-src-grep",
+          "tm-online", "c", "tm-hard-limit:",
+          "tm-soft-limit:", "f:", "suffix:",
+          "full-prune-extra:", "ttable-prune-type:",
           "ttable-limit:", "vocab:", "input:", "tm-prune:", "ldm", "v"
        };
 
@@ -140,18 +148,21 @@ Examples:\n\
              string vocab_file;   ///< vocabulary file name if requested.
              bool   compress;     ///< should we compress the outputs.
              bool   strip;        ///< should we strip the path from the models file name
+             bool   preserve_ldm_paths; ///< filtered ldm filenames keep path info
              bool   readonly;     ///< treat existing filt files as readonly
              bool   filterLMs;    ///< filter language models
-             bool   tm_soft_limit;   ///< soft filter limit the phrase table;
+             bool   tm_soft_limit;///< soft filter limit the phrase table;
              bool   nopersent;    ///< disables per-sentence vocab LM filt
              string limit_file;   ///< multi probs filename for filter30
              int    ttable_limit; ///< ttable limit override if >= 0
-             bool   tm_hard_limit;   ///< perform the tm hard limit filter
+             bool   tm_hard_limit;///< perform the tm hard limit filter
+             Uint   full_prune_extra;     ///< percent more more to keep with -ttable-prune-type full
+             string phraseTablePruneType; ///< Override for canoe.ini's -ttable-prune-type value
              bool   no_src_grep;  ///< process all entries disregarding the source sentences.
              bool   tm_online;    ///< indicates to process source tm in a streaming mode
              bool   output_config;///< indicates to output the modified canoe.ini
              string input;        ///< Source sentences to filter on
-             string pruning_type_switch;  ///< What kind of pruning was specified by the user.
+             string pruning_strategy_switch;  ///< What kind of pruning was specified by the user.
              bool   filterLDMs;   ///< Should we filter Lexicalized Distortion Models?
              bool   verbose;      ///< Should we display process on screen?
 
@@ -166,17 +177,19 @@ Examples:\n\
              , vocab_file("")
              , compress(false)
              , strip(false)
+             , preserve_ldm_paths(false)
              , readonly(false)
              , filterLMs(false)
              , tm_soft_limit(false)
              , nopersent(false)
              , ttable_limit(-1.0)
              , tm_hard_limit(false)
+             , full_prune_extra(50)
              , no_src_grep(false)
              , tm_online(false)
              , output_config(true)
              , input("-")
-             , pruning_type_switch("")
+             , pruning_strategy_switch("")
              , filterLDMs(false)
              , verbose(false)
              {
@@ -196,6 +209,8 @@ Examples:\n\
                 mp_arg_reader->testAndSet("tm-hard-limit", tm_hard_limit);
                 mp_arg_reader->testAndSet("tm-hard-limit", limit_file);
                 mp_arg_reader->testAndSet("ttable-limit", ttable_limit);
+                mp_arg_reader->testAndSet("full-prune-extra", full_prune_extra);
+                mp_arg_reader->testAndSet("ttable-prune-type", phraseTablePruneType);
                 mp_arg_reader->testAndSet("f", config);
                 mp_arg_reader->testAndSet("suffix", suffix);
                 mp_arg_reader->testAndSet("vocab", vocab_file);
@@ -204,9 +219,10 @@ Examples:\n\
                 mp_arg_reader->testAndSet("no-src-grep", no_src_grep);
                 mp_arg_reader->testAndSet("tm-online", tm_online);
                 mp_arg_reader->testAndSet("input", input);
-                mp_arg_reader->testAndSet("tm-prune", pruning_type_switch);
+                mp_arg_reader->testAndSet("tm-prune", pruning_strategy_switch);
                 mp_arg_reader->testAndSet("ldm", filterLDMs);
                 mp_arg_reader->testAndSet("v", verbose);
+                mp_arg_reader->testAndSet("plp", preserve_ldm_paths);
                 // if the option is set we don't want to strip.
                 strip         = !mp_arg_reader->getSwitch("s");
                 output_config = !mp_arg_reader->getSwitch("c");
@@ -228,6 +244,13 @@ Examples:\n\
                    error(ETFatal, "Cannot do soft_limit and hard_limit at the same time.");
                 if (no_src_grep && !tm_soft_limit && !tm_hard_limit)
                    error(ETWarn, "no TM filtering will be performed");
+
+                if (!phraseTablePruneType.empty() &&
+                    phraseTablePruneType != "forward-weights" &&
+                    phraseTablePruneType != "backward-weights" &&
+                    phraseTablePruneType != "combined" &&
+                    phraseTablePruneType != "full")
+                   error(ETFatal, "Invalid ttable-prune-type (%s); must be one of: 'forward-weights', 'backward-weights', 'combined', or 'full'", phraseTablePruneType.c_str());
              }
 
              /// Checks if the user requested the vocab
@@ -238,16 +261,19 @@ Examples:\n\
              }
 
              /**
-              * Helper function that strips the path from the file name, added
+              * Helper function that strips the path from the file name, adds
               * the suffix and the .gz extension.
               * @param source original file name.
+              * @param localpath create a local representation of the full path
+              * name, rather than stripping the path
               * @return Returns modified source file name.
               */
-             string prepareFilename(const string& source) const
+             string prepareFilename(const string& source, bool localpath = false) const
              {
                 if ( source == "-" ) return source;
                 string filename(source);
-                if (strip) filename = extractFilename(filename);
+                if (localpath) filename = path2file(filename);
+                else if (strip) filename = extractFilename(filename);
                 if (compress && !isZipFile(filename)) filename += ".gz";
                 return addExtension(filename, suffix);
              }

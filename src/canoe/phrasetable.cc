@@ -4,8 +4,6 @@
  * PhraseTable class, which uses a trie to store mappings from source phrases
  * to target phrases.
  *
- * $Id$
- *
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -22,13 +20,14 @@
 #include "voc.h"
 #include "tppt.h"
 #include "pruning_style.h"
-#include "alignment_freqs.h"
 #include <cmath>
 #include <algorithm>
 
 #include "compact_phrase.h"
 #include "string_hash.h"
 #include "config_io.h"
+#include "alignment_annotation.h"
+#include "count_annotation.h"
 
 namespace std { namespace tr1 {
    template<> class hash<CompactPhrase> {
@@ -58,10 +57,7 @@ void TScore::print(ostream& os) const
       os << "adirectional: " << join(adir) << endl;
    if (!lexdis.empty())
       os << "lexicalized distortion: " << join(lexdis) << endl;
-   if (!joint_counts.empty())
-      os << "joint count(s): " << join(joint_counts) << endl;
-   if (alignment)
-      os << "alignment: " << alignment << endl;
+   annotations.display(os);
 }
 
 
@@ -88,10 +84,11 @@ void TargetPhraseTable::print(ostream& os, const VocabFilter* const tgtVocab) co
 /********************* PhraseTable **********************/
 double PhraseTable::log_almost_0 = LOG_ALMOST_0;
 
-PhraseTable::PhraseTable(VocabFilter& _tgtVocab, VocabFilter& _biPhraseVocab, const char* pruningTypeStr, bool needBiPhrases) :
+PhraseTable::PhraseTable(VocabFilter& _tgtVocab,
+                         const string& pruningTypeStr,
+                         bool appendJointCounts) :
    tgtVocab(_tgtVocab),
-   biPhraseVocab(_biPhraseVocab),
-   needBiPhrases(needBiPhrases),
+   numTextFilesRead(0),
    numTextTransModels(0),
    numTextAdirModels(0),
    numTransModels(0),
@@ -100,27 +97,36 @@ PhraseTable::PhraseTable(VocabFilter& _tgtVocab, VocabFilter& _biPhraseVocab, co
    forwardsProbsAvailable(true),
    num_sents(tgtVocab.getNumSourceSents())
 {
-   if (pruningTypeStr == NULL) {
+   if (pruningTypeStr == "forward-weights" || pruningTypeStr.empty()) {
       pruningType = FORWARD_WEIGHTS;
-      //error(ETWarn, "No pruning type");
-   } else if (0 == strcmp(pruningTypeStr, "forward-weights")) {
-      pruningType = FORWARD_WEIGHTS;
-   } else if (0 == strcmp(pruningTypeStr, "backward-weights")) {
+   } else if (pruningTypeStr == "backward-weights") {
       pruningType = BACKWARD_WEIGHTS;
-   } else if (0 == strcmp(pruningTypeStr, "combined")) {
+   } else if (pruningTypeStr == "combined") {
       pruningType = COMBINED_SCORE;
+   } else if (pruningTypeStr == "full") {
+      pruningType = EXTERNAL_PRUNING;
    } else {
       assert(false);
    }
 
-   Uint empty_alignment = alignmentVoc.add("");
-   assert(empty_alignment == 0);
+   if (appendJointCounts)
+      CountAnnotation::setAppendJointCountsMode(this);
 }
 
 
 PhraseTable::~PhraseTable()
-{}
+{
+   annotatorRegistry.clear();
+}
 
+void PhraseTable::registerAnnotator(PhrasePairAnnotator* annotator)
+{
+   // If a previous instance of the same annotator exists, we just overwrite
+   // it.  We don't delete the old one, because a model might depend on
+   // using it.  For example, if there are two BiLMs, each will register its
+   // own (identical) annotator.
+   annotatorRegistry[annotator->getName()] = annotator;
+}
 
 void PhraseTable::clearCache()
 {
@@ -173,7 +179,7 @@ void PhraseTable::openTPLDM(const char *lexicalized_dm_file)
    tpldmTables.push_back(p_tppt);
 }
 
-TargetPhraseTable* PhraseTable::getTargetPhraseTable(Entry& entry, bool limitPhrases)
+TargetPhraseTable* PhraseTable::getTargetPhraseTable(PhraseTableEntry& entry, bool limitPhrases)
 {
    TargetPhraseTable *tgtTable = NULL;
 
@@ -216,7 +222,7 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
    assert(tpptTables.empty());
    Uint numKept(0);
    Uint numFiltered(0);
-   Entry entry(d, limitPhrases, file);
+   PhraseTableEntry entry(d, limitPhrases, file);
    iSafeMagicStream in(file);
 
    if (d == lexicalized_distortion){
@@ -232,7 +238,7 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
 
    // Don't look the tgtTable up again if src hasn't changed
    string prev_src;
-   TargetPhraseTable *tgtTable = NULL;
+   entry.tgtTable = NULL;
    while (in.good())
    {
       getline(in, line);
@@ -251,7 +257,7 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
       if (entry.Src() != prev_src) {
          //cerr << "NEW entry " << entry.Src() << " line " << entry << endl; //SAM DEBUG
          // The source phrase has changed, process the previous target table.
-         numFiltered  += processTargetPhraseTable(prev_src, entry.src_word_count, tgtTable);
+         numFiltered  += processTargetPhraseTable(prev_src, entry.src_word_count, entry.tgtTable);
          prev_src = entry.Src();
 
          // Tokenize the new source phrase
@@ -267,10 +273,10 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
          entry.src_word_count = destructive_splitZ(entry.src_buffer, entry.src_tokens, " ");
 
          // Get the new target table.
-         tgtTable = getTargetPhraseTable(entry, limitPhrases);
+         entry.tgtTable = getTargetPhraseTable(entry, limitPhrases);
       }
 
-      if (tgtTable != NULL) // i.e., if src in trie
+      if (entry.tgtTable != NULL) // i.e., if src in trie
       {
          // Tokenize target and add to tgt_vocab
          entry.tgtPhrase.clear();
@@ -285,17 +291,17 @@ Uint PhraseTable::readFile(const char *file, dir d, bool limitPhrases)
             continue;
          }
          if (limitPhrases && d != lexicalized_distortion) {
-            tgtVocab.addPerSentenceVocab(entry.tgtPhrase, &tgtTable->input_sent_set);
+            tgtVocab.addPerSentenceVocab(entry.tgtPhrase, &entry.tgtTable->input_sent_set);
          }
          // Add entry to the trie's leaf
-         if (processEntry(tgtTable, entry)) ++numKept;
+         if (processEntry(entry)) ++numKept;
       }
    }
 
    // In online processing we process after all the entries for a particular
    // source phrase were read thus it is necessary to process the last source
    // phrase as a particular case.
-   numFiltered += processTargetPhraseTable(prev_src, entry.src_word_count, tgtTable);
+   numFiltered += processTargetPhraseTable(prev_src, entry.src_word_count, entry.tgtTable);
 
    cerr << endl << entry.LineNo() << " lines read, " << numKept << " entries kept.";
    if (numFiltered > 0)
@@ -323,14 +329,14 @@ float PhraseTable::convertToWrite(float value) const
    return (value == log_almost_0) ? 0.0f : exp(value);
 }
 
-bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
+bool PhraseTable::processEntry(PhraseTableEntry& entry)
 {
    // ZERO's value depends on the subclass's implementation of convertFromRead
    const float ZERO(convertFromRead(0.0f));
 
    if (entry.d == lexicalized_distortion) {
-      TargetPhraseTable::iterator it = tgtTable->find(entry.tgtPhrase);
-      if (it == tgtTable->end()) {
+      TargetPhraseTable::iterator it = entry.tgtTable->find(entry.tgtPhrase);
+      if (it == entry.tgtTable->end()) {
          return false;
       }
       else {
@@ -358,13 +364,14 @@ bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
       }
    }
    else {
+      // Get the object with all the information about this phrase pair.
+      TScore* curProbs = &( (*entry.tgtTable)[entry.tgtPhrase] );
+
       // Determine probabilities for multi-prob phrase table, possibly with
-      // adirectional scores, and/or alignment information, and/or count information
+      // named annotation fields.
       const Uint col_count = entry.ThirdCount();
       float probs[col_count];
-      const char *alignment = NULL;
-      char *count = NULL;
-      entry.parseThird(probs, &alignment, &count);
+      entry.parseThird(probs, curProbs->annotations);
 
       for ( Uint i = 0 ; i < col_count; ++i ) {
          if (probs[i] <= 0) {
@@ -378,18 +385,9 @@ bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
 
       const Uint multi_prob_model_count = col_count / 2;
       float *forward_probs, *backward_probs;
-      if (entry.d == multi_prob_reversed) {
-         backward_probs = &(probs[multi_prob_model_count]);
-         forward_probs = &(probs[0]);
-      }
-      else {
-         assert(entry.d == multi_prob);
-         backward_probs = &(probs[0]);
-         forward_probs = &(probs[multi_prob_model_count]);
-      }
-
-      // Get the vectors of current probabilities
-      TScore* curProbs = &( (*tgtTable)[entry.tgtPhrase] );
+      assert(entry.d == multi_prob);
+      backward_probs = &(probs[0]);
+      forward_probs = &(probs[multi_prob_model_count]);
 
       if (curProbs->backward.size() > numTextTransModels ||
           curProbs->forward.size() > numTextTransModels)
@@ -408,53 +406,6 @@ bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
                                   forward_probs + multi_prob_model_count);
       }
 
-      if (alignment) {
-         if (curProbs->alignment) {
-            static bool warningDisplayed = false;
-            if (!warningDisplayed) {
-               warningDisplayed = true;
-               error(ETWarn, "Duplicate alignment information found; new occurrence in %s line %d.  Combining alignment information from multiple phrase tables is not supported; retaining only the last alignment read.  (This message will only be printed once even if there are many cases.)",
-                     entry.File(), entry.LineNo());
-            }
-         }
-         if (entry.d == multi_prob_reversed) {
-            // we have to parse and reverse all the alignment information
-            AlignmentFreqs<float> alignment_freqs;
-            parseAndTallyAlignments(alignment_freqs, alignmentVoc, alignment);
-            string reversed_al;
-            displayAlignments(reversed_al, alignment_freqs, alignmentVoc,
-                              entry.tgtPhrase.size(), entry.src_word_count,
-                              true, (alignment_freqs.size() == 1));
-            curProbs->alignment = alignmentVoc.add(reversed_al.c_str());
-         } else {
-            curProbs->alignment = alignmentVoc.add(alignment);
-         }
-      }
-
-      if (count) {
-         if (!curProbs->joint_counts.empty()) {
-            static bool warningDisplayed = false;
-            if (!warningDisplayed) {
-               warningDisplayed = true;
-               error(ETWarn, "Duplicate joint count(s) information found; second occurrence in %s line %d.\n%s%s",
-                     entry.File(), entry.LineNo(), "- Adding counts together. ",
-                     "(This message will only be printed once even if there are many cases.)");
-            }
-         }
-         Uint nc = 0;
-         char* strtok_state;
-         for (char* pch = strtok_r(count, ",", &strtok_state); pch;
-              pch = strtok_r(NULL, ",", &strtok_state), ++nc) {
-            if (nc >= curProbs->joint_counts.size())
-               curProbs->joint_counts.push_back(0.0);
-            float count_val(0);
-            if (!conv(pch, count_val))
-               error(ETFatal, "Invalid joint_freq count value (%s) in %s line %d.",
-                     pch, entry.File(), entry.LineNo());
-            curProbs->joint_counts[nc] += count_val;
-         }
-      }
-            
       //boxing
       const Uint adir_count = entry.FourthCount();
       if (adir_count > 0) {
@@ -477,63 +428,11 @@ bool PhraseTable::processEntry(TargetPhraseTable* tgtTable, Entry& entry)
       }
       //boxing
 
-      if (needBiPhrases) {
-         if (!curProbs->bi_phrase.empty() && alignment) {
-            static bool warning_printed = false;
-            if (!warning_printed) {
-               error(ETWarn, "When using -bilm-file with multiple phrase tables, the first phrase table where a phrase pair is encountered determines the alignment used to construct the bi-phrase.  Ignoring the second instance found.  This message will only be printed once even if there are many such occurrences.");
-               warning_printed = true;
-            }
-         } else {
-            Uint tgt_size = entry.tgtPhrase.size();
-            VectorPhrase bi_phrase(entry.tgtPhrase.size());
-            if (alignment) {
-               // construct the bi_phrase from the phrase pair and its alignment
-               vector<vector<Uint> > reversed_sets;
-               if (entry.d == multi_prob_reversed) {
-                  AlignmentFreqs<float> alignment_freqs;
-                  parseAndTallyAlignments(alignment_freqs, alignmentVoc, alignment);
-                  assert(!alignment_freqs.empty());
-                  const char* top_reversed_alignment_string = alignmentVoc.word(alignment_freqs.max()->first);
-                  GreenReader('_').operator()(top_reversed_alignment_string, reversed_sets);
-               } else {
-                  AlignmentFreqs<float> alignment_freqs;
-                  parseAndTallyAlignments(alignment_freqs, alignmentVoc, alignmentVoc.word(curProbs->alignment));
-                  assert(!alignment_freqs.empty());
-                  const char* top_alignment_string = alignmentVoc.word(alignment_freqs.max()->first);
-                  string reversed_al;
-                  GreenWriter::reverse_alignment(reversed_al, top_alignment_string, 
-                        entry.src_word_count, tgt_size, '_');
-                  GreenReader('_').operator()(reversed_al, reversed_sets);
-               }
-               assert(reversed_sets.size() >= tgt_size);
-               string bi_word;
-               for (Uint i = 0; i < tgt_size; ++i) {
-                  bi_word = tgtVocab.word(entry.tgtPhrase[i]);
-                  if (reversed_sets[i].empty()) bi_word += BiLMWriter::sep;
-                  for (Uint j = 0; j < reversed_sets[i].size(); ++j) {
-                     bi_word += BiLMWriter::sep;
-                     if (reversed_sets[i][j] >= entry.src_word_count)
-                        bi_word += "NULL";
-                     else
-                        bi_word += entry.src_tokens[reversed_sets[i][j]];
-                  }
-                  bi_phrase[i] = biPhraseVocab.add(bi_word.c_str());
-               }
-            } else {
-               // when the alignment information is missing, just assume all
-               // target words are aligned to all source words - this is a fine
-               // default for the most common case, the single-word phrase pair
-               // that came from the TTable.
-               string sep_src_words = BiLMWriter::sep + join(entry.src_tokens, BiLMWriter::sep.c_str());
-               for (Uint i = 0; i < entry.tgtPhrase.size(); ++i)
-                  bi_phrase[i] = biPhraseVocab.add((tgtVocab.word(entry.tgtPhrase[i]) + sep_src_words).c_str());
-            }
-            curProbs->bi_phrase = bi_phrase;
-            if (entry.limitPhrases)
-               biPhraseVocab.addPerSentenceVocab(bi_phrase, &tgtTable->input_sent_set);
-         }
-      }
+      // Call all the registered annotators to do what they need with the phrase pair
+      for (AnnotatorRegistry::iterator it(annotatorRegistry.begin()), end(annotatorRegistry.end());
+           it != end; ++it)
+         it->second->annotate(curProbs, entry);
+
    } // if ; end deal with multi-prob line
 
    // In this class, the entry is always added to the TargetPhraseTable.
@@ -562,11 +461,9 @@ bool PhraseTable::isReversed(const string& multi_prob_TM_filename,
 
 Uint PhraseTable::countProbColumns(const char* multi_prob_TM_filename)
 {
-   string physical_filename;
-   isReversed(multi_prob_TM_filename, &physical_filename);
-   iMagicStream in(physical_filename, true);  // make this a silent stream
+   iMagicStream in(multi_prob_TM_filename, true);  // make this a silent stream
    if (in.fail()) return 0;
-   TMEntry entry(physical_filename);
+   TMEntry entry(multi_prob_TM_filename);
    string line;
    if (!getline(in, line)) {
       error(ETWarn, "Multi-prob phrase table %s is empty.", multi_prob_TM_filename);
@@ -578,11 +475,9 @@ Uint PhraseTable::countProbColumns(const char* multi_prob_TM_filename)
 
 Uint PhraseTable::countAdirScoreColumns(const char* multi_prob_TM_filename)
 {
-   string physical_filename;
-   isReversed(multi_prob_TM_filename, &physical_filename);
-   iMagicStream in(physical_filename, true);  // make this a silent stream
+   iMagicStream in(multi_prob_TM_filename, true);  // make this a silent stream
    if (in.fail()) return 0;
-   TMEntry entry(physical_filename);
+   TMEntry entry(multi_prob_TM_filename);
    string line;
    if (!getline(in, line)) {
       error(ETWarn, "Multi-prob phrase table %s is empty.", multi_prob_TM_filename);
@@ -611,14 +506,15 @@ Uint PhraseTable::countTPPTAdirModels(const char* tppt_filename)
 }
 
 Uint PhraseTable::readMultiProb(const char* multi_prob_TM_filename,
-   bool limitPhrases)
+   bool limitPhrases, bool describeModelOnly)
 {
-   string physical_filename;
-   bool reversed = isReversed(multi_prob_TM_filename, &physical_filename);
+   assert(!isReversed(multi_prob_TM_filename, NULL) && "#REVERSED is no longer support - configtool check should have already said so and we should not get here in the code");
 
-   const Uint col_count = readFile(physical_filename.c_str(),
-                           (reversed ? multi_prob_reversed : multi_prob ),
-                           limitPhrases);
+   Uint col_count;
+   if (describeModelOnly)
+      col_count = countProbColumns(multi_prob_TM_filename);
+   else
+      col_count = readFile(multi_prob_TM_filename, multi_prob, limitPhrases);
 
    const Uint model_count = col_count / 2;
    //assert(col_count>0);
@@ -629,13 +525,13 @@ Uint PhraseTable::readMultiProb(const char* multi_prob_TM_filename,
    ostringstream adir_description; //boxing
    for (Uint i = 0; i < model_count; ++i) {
       back_description << "TranslationModel:" << multi_prob_TM_filename
-         << "(col=" << (reversed ? i + model_count : i) << ")" << endl;
+         << "(col=" << i << ")" << endl;
       for_description << "ForwardTranslationModel:" << multi_prob_TM_filename
-         << "(col=" << (reversed ? i : i + model_count) << ")" << endl;
+         << "(col=" << (i + model_count) << ")" << endl;
    }
 
    //boxing
-   Uint adir_score_count = countAdirScoreColumns(physical_filename.c_str());
+   Uint adir_score_count = countAdirScoreColumns(multi_prob_TM_filename);
    for (Uint i = 0; i < adir_score_count; ++i) {
       adir_description << "AdirectionalModel:" << multi_prob_TM_filename
                        << "(col=" << i << ")" << endl; //boxing
@@ -649,6 +545,7 @@ Uint PhraseTable::readMultiProb(const char* multi_prob_TM_filename,
    numTextTransModels += model_count;
    numAdirTransModels += adir_score_count; //boxing
    numTextAdirModels += adir_score_count;
+   numTextFilesRead += 1;
 
    return col_count;
 }
@@ -702,7 +599,8 @@ void PhraseTable::tgtStringToPhrase(VectorPhrase& tgtPhrase, const char* tgtStri
 void PhraseTable::write(ostream& multi_src_given_tgt_out)
 {
    LOG_VERBOSE2(ptLogger, "PhraseTable::write multi-prob");
-   // 9 digits is enough to keep all the precision of a float
+   // 9 digits is enough to keep all the precision of a float; but it's
+   // artificial precision we don't need.
    multi_src_given_tgt_out.precision(9);
    vector<string> prefix;
    write(multi_src_given_tgt_out,
@@ -741,11 +639,8 @@ void PhraseTable::write(ostream& multi_src_given_tgt_out, const string& src,
          multi_src_given_tgt_out << " " << 0.0f;
       }
 
-      if (tgt_p->second.alignment != 0)
-         multi_src_given_tgt_out << " a=" << alignmentVoc.word(tgt_p->second.alignment);
-      
-      if (!tgt_p->second.joint_counts.empty())
-         multi_src_given_tgt_out << " c=" << join(tgt_p->second.joint_counts, ",");
+      // Write all the annotations out
+      tgt_p->second.annotations.write(multi_src_given_tgt_out);
 
       //boxing
       if (numAdirTransModels > 0 || !tgt_p->second.adir.empty()) {
@@ -840,27 +735,24 @@ void PhraseTable::readLine(istream &in, string &ph1, string &ph2, string &prob,
 } // readLine
 
 
-void PhraseTable::addSourceSentences(const vector<vector<string> >& sentences)
+void PhraseTable::addSourceSentences(const VectorPSrcSent& sentences)
 {
    LOG_VERBOSE2(ptLogger, "Adding %d source sentences", sentences.size());
-   tgtVocab.addSentences(sentences);
    for (Uint s(0); s<sentences.size(); ++s) {
-      const vector<string>& src_sent = sentences[s];
+      const vector<string>& src_sent = sentences[s]->src_sent;
+
+      tgtVocab.addSentence(src_sent, s);
+
+      // Add each sub sequence of the source sentence as a possible source phrase
       const Uint sent_no(s % VocabFilter::maxSourceSentence4filtering);
       assert(sent_no < VocabFilter::maxSourceSentence4filtering);
 
       const char* words[src_sent.size()];
-      for (Uint i(0); i<src_sent.size(); ++i) {
+      for (Uint i(0); i<src_sent.size(); ++i)
          words[i] = src_sent[i].c_str();
-      }
 
       for (Uint i(0); i<src_sent.size(); ++i)
          addPhrase(words + i, src_sent.size() - i, sent_no);
-
-      // Add BiLM words for each potential no-trans option, if BiLM features are used.
-      if (needBiPhrases)
-         for (Uint i(0); i<src_sent.size(); ++i)
-            biPhraseVocab.addWord((words[i] + BiLMWriter::sep + words[i]).c_str(), s);
    }
 }
 
@@ -958,7 +850,8 @@ void PhraseTable::getPhraseInfos(vector<PhraseInfo *> **phraseInfos,
             // Do phrase table pruning based on the [ttable-limit] parameter
             vector<PhraseInfo *> &target =
                phraseInfos[curRange.start][curRange.end - curRange.start - 1];
-            if (pruneSize == NO_SIZE_LIMIT || phrases.size() <= pruneSize)
+            if (pruningType == EXTERNAL_PRUNING || pruneSize == NO_SIZE_LIMIT ||
+                phrases.size() <= pruneSize)
             {
                // With no prune size, store all the phrases
                for (vector<pair<double, PhraseInfo *> >::const_iterator it =
@@ -972,10 +865,10 @@ void PhraseTable::getPhraseInfos(vector<PhraseInfo *> **phraseInfos,
                        << pruneSize << ")" << endl;
                }
                // Use a heap to extract the pruneSize best items
-               make_heap(phrases.begin(), phrases.end(), PhraseScorePairLessThan(*this));
+               make_heap(phrases.begin(), phrases.end(), PhraseScorePairLessThan());
                for (Uint i = 0; i < pruneSize; i++)
                {
-                  pop_heap(phrases.begin(), phrases.end(), PhraseScorePairLessThan(*this));
+                  pop_heap(phrases.begin(), phrases.end(), PhraseScorePairLessThan());
                   if (verbosity >= 4) {
                      cerr << "\tKeeping " << getStringPhrase(phrases.back().second->phrase)
                           << " " << phrases.back().first << endl;
@@ -1080,22 +973,11 @@ shared_ptr<TargetPhraseTable> PhraseTable::findInAllTables(
                // Joint counts have a vector addition semantics, if they appear
                // in multiple phrase tables.
                assert(it->counts.size() == numCounts);
-               if (tScores->joint_counts.size() < numCounts)
-                  tScores->joint_counts.resize(numCounts, 0);
-               for (Uint j = 0; j < numCounts; ++j)
-                  tScores->joint_counts[j] += it->counts[j];
+               CountAnnotation::getOrCreate(tScores->annotations)->updateValue(it->counts);
             }
 
-            if (hasAlignments) {
-               if (tScores->alignment && tScores->alignment != alignmentVoc.add(it->alignment.c_str())) {
-                  static bool warning_printed = false;
-                  if (!warning_printed) {
-                     error(ETWarn, "Contradictory alignment information found in two phrase tables for the same phrase pair (printing this message only once even if other occurrences are found).");
-                     warning_printed = true;
-                  }
-               }
-               tScores->alignment = alignmentVoc.add(it->alignment.c_str());
-            }
+            if (hasAlignments)
+               tScores->annotations.initAnnotation("a", it->alignment.c_str());
          }
       }
       prob_offset += numModels;
@@ -1108,7 +990,7 @@ shared_ptr<TargetPhraseTable> PhraseTable::findInAllTables(
 
    // Lexicalized Distortion models.
    for (Uint tpldm = 0; tpldm < tpldmTables.size(); ++tpldm) {
-      const Uint currentNumLexDisModels = tpldm*6;
+      const Uint currentNumLexDisModels = numLexDisModels + tpldm*6;
       // Get all lexicalized distortion score for the source phrase.
       assert(range.start <= range.end);
       TPPT::val_ptr_t targetPhrases =
@@ -1140,8 +1022,8 @@ shared_ptr<TargetPhraseTable> PhraseTable::findInAllTables(
                         join(str_key).c_str());
                }
                else {
-                  tScores->lexdis.resize(currentNumLexDisModels, ZERO);
                   tScores->lexdis.reserve(currentNumLexDisModels+6);
+                  tScores->lexdis.resize(currentNumLexDisModels, ZERO);
                   for (Uint p(0); p<it->score.size(); ++p) {
                      // Make the probs log_probs.
                      tScores->lexdis.push_back(convertFromRead(it->score[p]));
@@ -1171,31 +1053,33 @@ void PhraseTable::getPhrases(vector<pair<double, PhraseInfo *> > &phrases,
       tscore.backward.resize(numTransModels, log_almost_0);
       tscore.adir.resize(numAdirTransModels, log_almost_0); //boxing
 
-      double pruningScore;
-      if (forwardsProbsAvailable) {
-         assert(numTransModels >= tscore.forward.size());
-         tscore.forward.resize(numTransModels, log_almost_0);
+      double pruningScore = 0;
+      if (pruningType != EXTERNAL_PRUNING) {
+         if (forwardsProbsAvailable) {
+            assert(numTransModels >= tscore.forward.size());
+            tscore.forward.resize(numTransModels, log_almost_0);
 
-         if (forward_weights && pruningType == FORWARD_WEIGHTS) {
-            pruningScore = dotProduct(*forward_weights, tscore.forward, forward_weights->size());
-         } else if (forward_weights && pruningType == COMBINED_SCORE) {
-            pruningScore = dotProduct(*forward_weights, tscore.forward, forward_weights->size())
-                         + dotProduct(weights, tscore.backward, weights.size());
+            if (forward_weights && pruningType == FORWARD_WEIGHTS) {
+               pruningScore = dotProduct(*forward_weights, tscore.forward, forward_weights->size());
+            } else if (forward_weights && pruningType == COMBINED_SCORE) {
+               pruningScore = dotProduct(*forward_weights, tscore.forward, forward_weights->size())
+                            + dotProduct(weights, tscore.backward, weights.size());
+            } else {
+               pruningScore = dotProduct(weights, tscore.forward, weights.size());
+            }
          } else {
-            pruningScore = dotProduct(weights, tscore.forward, weights.size());
+            pruningScore = dotProduct(weights, tscore.backward, weights.size());
          }
-      } else {
-         pruningScore = dotProduct(weights, tscore.backward, weights.size());
       }
 
-      if (verbosity >= 4) {
+      if (verbosity >= 4 && pruningType != EXTERNAL_PRUNING) {
          cerr << "\tConsidering " << src_words.toString()
               << " " << getStringPhrase(it->first) << " " << pruningScore;
       }
-      if (pruningScore > logPruneThreshold)
+      if (pruningScore > logPruneThreshold || pruningType == EXTERNAL_PRUNING)
       {
          // If it passes threshold pruning, add it to the vector phrases.
-         ForwardBackwardPhraseInfo* newPI = new ForwardBackwardPhraseInfo;
+         PhraseInfo* newPI = new PhraseInfo;
          if (forward_weights) {
             newPI->forward_trans_probs = tscore.forward;
             newPI->forward_trans_prob =
@@ -1211,16 +1095,14 @@ void PhraseTable::getPhrases(vector<pair<double, PhraseInfo *> > &phrases,
             newPI->adir_prob = 0;
 
          newPI->lexdis_probs = tscore.lexdis; //boxing
-         newPI->joint_counts = tscore.joint_counts;
-         newPI->alignment = tscore.alignment;
-         newPI->bi_phrase = tscore.bi_phrase;
+         newPI->annotations  = tscore.annotations;
 
          newPI->src_words = src_words;
          newPI->phrase = it->first;
          newPI->phrase_trans_probs = tscore.backward;
          newPI->phrase_trans_prob = dotProduct(weights, tscore.backward, weights.size());
          phrases.push_back(make_pair(pruningScore, newPI));
-         if (verbosity >= 4) cerr << " Keeping it" << endl;
+         if (verbosity >= 4 && pruningType != EXTERNAL_PRUNING) cerr << " Keeping it" << endl;
       } else
       {
          numPruned++;
@@ -1239,7 +1121,7 @@ Uint PhraseTable::PhraseScorePairLessThan::mHash(const string& param) const
 }
 
 bool PhraseTable::PhraseScorePairLessThan::operator()(
-   const pair<double, PhraseInfo *>& ph1, const pair<double, PhraseInfo *>& ph2
+   const pair<double, PhraseInfo *> ph1, const pair<double, PhraseInfo *> ph2
 ) const {
    // First comparison criterion: the score (forward probs)
    if (ph1.first < ph2.first) return true;
@@ -1258,8 +1140,9 @@ bool PhraseTable::PhraseScorePairLessThan::operator()(
          return false;
       else {
          // For third criterion, hashing the phrase words to add some controlled randomness.
-         const string s1 = parent.getStringPhrase(ph1.second->phrase);
-         const string s2 = parent.getStringPhrase(ph2.second->phrase);
+         const Voc* global_voc = GlobalVoc::get();
+         const string s1 = phrase2string(ph1.second->phrase, *global_voc);
+         const string s2 = phrase2string(ph2.second->phrase, *global_voc);
          const unsigned int h1 = mHash(s1);
          const unsigned int h2 = mHash(s2);
          if (h1 > h2) {
@@ -1277,13 +1160,7 @@ bool PhraseTable::PhraseScorePairLessThan::operator()(
 bool PhraseTable::PhraseScorePairGreaterThan::operator()(
    const pair<double, PhraseInfo *>& ph1, const pair<double, PhraseInfo *>& ph2
 ) const {
-   if (PhraseScorePairLessThan::operator()(ph1, ph2))
-      return false; // < holds
-   else if (ph1.first == ph2.first &&
-            ph1.second->phrase == ph2.second->phrase)
-      return false; // == holds
-   else
-      return true;  // > holds
+   return PhraseScorePairLessThan::operator()(ph2, ph1);
 }
 
 

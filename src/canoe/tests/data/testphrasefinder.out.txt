@@ -1,9 +1,0 @@
-Phrases found: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
-Phrases found: 1, 2, 3, 4, 7
-Phrases found: 1, 7, 8, 9
-Phrases found: 
-Phrases found: 1, 2, 3
-Phrases found: 1
-Phrases found: 0, 1
-Phrases found: 1, 2, 3, 4
-Phrases found: 1

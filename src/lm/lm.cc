@@ -16,6 +16,7 @@
 #include "lmmix.h"
 #include "lmdynmap.h"
 #include "tplm.h"
+#include "lmrestcost.h"
 #include "str_utils.h"
 
 using namespace std;
@@ -40,6 +41,8 @@ PLM::PLM(VocabFilter* vocab, OOVHandling oov_handling, float oov_unigram_prob)
    , complex_open_voc_lm(oov_handling == FullOpenVoc)
    , gram_order(0)
    , oov_unigram_prob(oov_unigram_prob)
+   , clearCacheEveryXHit(0)
+   , clearCacheHit(0)
 {}
 
 PLM::PLM()
@@ -48,6 +51,8 @@ PLM::PLM()
    , complex_open_voc_lm(false)
    , gram_order(0)
    , oov_unigram_prob(-INFINITY)
+   , clearCacheEveryXHit(0)
+   , clearCacheHit(0)
 {}
 
 PLM::~PLM() {
@@ -61,8 +66,9 @@ PLM::Creator::Creator(const string& lm_physical_filename,
    , naming_limit_order(naming_limit_order)
 {}
 
-bool PLM::Creator::checkFileExists()
+bool PLM::Creator::checkFileExists(vector<string>* list)
 {
+   if (list) list->push_back(lm_physical_filename);
    return (check_if_exists(lm_physical_filename) && !is_directory(lm_physical_filename));
 }
 
@@ -77,23 +83,46 @@ shared_ptr<PLM::Creator> PLM::getCreator(const string& lm_filename)
    string lm_physical_filename(lm_filename);
    const size_t hash_pos = lm_filename.rfind(lm_order_separator);
    Uint naming_limit_order = 0;
+   Uint clearCacheEveryXHit = 0;  // Default: turn caching off altogether (1 would clear it at every sentence)
    if ( hash_pos != string::npos ) {
-      naming_limit_order = conv<Uint>(lm_filename.substr(hash_pos+1));
+      string option;
+      if (conv(lm_filename.substr(hash_pos+1), option)) {
+         if (isPrefix("CACHING", option)) {
+            clearCacheEveryXHit = 1;  // In case parsing the clearing frequency fails, lets clear on every sentence.
+            const size_t freq_pos = option.rfind(",");  // #CACHING,<freq>
+            if ( freq_pos != string::npos ) {
+               const string hit = option.substr(freq_pos+1);
+               if (!conv(hit, clearCacheEveryXHit)) {
+                  error(ETWarn, "Unable to convert to digit: %s", hit.c_str());
+                  clearCacheEveryXHit = 1;  // Fallback on clear on every sentence.
+               }
+            }
+            else {
+               error(ETWarn, "Using default clear cache frequency value which is: %d\n", clearCacheEveryXHit);
+            }
+         }
+         else {
+            naming_limit_order = conv<Uint>(option);
+         }
+      }
       lm_physical_filename.resize(hash_pos);
    }
 
    Creator* cr;
-   if ( isPrefix(LMDynMap::header, lm_physical_filename) ) {
+   if (LMDynMap::isA(lm_physical_filename)) {
       cr = new LMDynMap::Creator(lm_physical_filename, naming_limit_order);
-   } else if ( isSuffix(".mixlm", lm_physical_filename) ) {
+   } else if (isSuffix(".mixlm", lm_physical_filename)) {
       cr = new LMMix::Creator(lm_physical_filename, naming_limit_order);
-   } else if ( isSuffix(".tplm", lm_physical_filename) or
-               isSuffix(".tplm/", lm_physical_filename) ) {
+   } else if (isSuffix(".tplm", lm_physical_filename) or
+              isSuffix(".tplm/", lm_physical_filename)) {
       cr = new TPLM::Creator(lm_physical_filename, naming_limit_order);
+   } else if (LMRestCost::isA(lm_physical_filename)) {
+      cr = new LMRestCost::Creator(lm_physical_filename, naming_limit_order);
    } else {
       cr = new LMTrie::Creator(lm_physical_filename, naming_limit_order);
    }
    assert(cr);
+   cr->clearCacheEveryXHit = clearCacheEveryXHit;
    return shared_ptr<PLM::Creator>(cr);
 }
 
@@ -122,6 +151,10 @@ PLM* PLM::Create(const string& lm_filename,
    PLM* lm = creator->Create(vocab, oov_handling, oov_unigram_prob, limit_vocab,
                              limit_order, os_filtered, quiet);
    assert(lm != NULL);
+
+   // If the creator detects in the filename that the lm must not use the
+   // caching, let the lm know.
+   lm->clearCacheEveryXHit = creator->clearCacheEveryXHit;
 
    static const bool debug_auto_voc = false;
 
@@ -190,7 +223,12 @@ Uint PLM::getOrder()
 }
 
 void PLM::clearCache() {
-   if ( cache ) cache->clear();
+   // If we are using the cache and we've processed enough sentence that the
+   // user asked use to clear the cache then clear the cache.
+   if ( cache != NULL && ++clearCacheHit >= clearCacheEveryXHit ) {
+      cache->clear();
+      clearCacheHit = 0;
+   }
 }
 
 //----------------------------------------------------------------------------
@@ -262,34 +300,40 @@ void PLM::readLine(istream &in, float &prob, string &ph, float &bo_wt,
 } // readLine
 
 
-bool PLM::checkFileExists(const string& lm_filename)
+bool PLM::checkFileExists(const string& lm_filename, vector<string>* list)
 {
-   return getCreator(lm_filename)->checkFileExists();
+   return getCreator(lm_filename)->checkFileExists(list);
 }
 
 float PLM::cachedWordProb(Uint word, const Uint context[],
                           Uint context_length)
 {
-   if ( !cache ) cache = new LMCache;
-   
-   // If the query is too large for this model's order, truncate it up front.
-   if ( context_length >= getOrder() )
-      context_length = getOrder() - 1;
+   // Are we even using the cache?
+   if (clearCacheEveryXHit == 0) {
+      return wordProb(word, context, context_length);
+   }
+   else {
+      if ( !cache ) cache = new LMCache;
+      
+      // If the query is too large for this model's order, truncate it up front.
+      if ( context_length >= getOrder() )
+         context_length = getOrder() - 1;
 
-   // Prepare cache query
-   Uint query[context_length+1];
-   query[0] = word;
-   for (Uint i=0;i<context_length;++i)
-      query[i+1] = context[i];
+      // Prepare cache query
+      Uint query[context_length+1];
+      query[0] = word;
+      for (Uint i=0;i<context_length;++i)
+         query[i+1] = context[i];
 
-   // Search in cache for matching Uint query
-   float query_result(0);
-   if ( cache->find(query, context_length+1, query_result) )
-      return query_result;
+      // Search in cache for matching Uint query
+      float query_result(0);
+      if ( cache->find(query, context_length+1, query_result) )
+         return query_result;
 
-   const float result = wordProb(word, context, context_length);
-   cache->insert(query, context_length+1, result);
-   return result;
+      const float result = wordProb(word, context, context_length);
+      cache->insert(query, context_length+1, result);
+      return result;
+   }
 }
 
 
@@ -310,6 +354,12 @@ PLM::Hits& PLM::Hits::operator+=(const Hits& other) {
       values[i] += other.values[i];
    if ( other.latest_hit > latest_hit ) latest_hit = other.latest_hit;
    return *this;
+}
+
+PLM::Hits PLM::Hits::operator+(const Hits& other) const {
+   Hits total(*this);
+   total += other;
+   return total;
 }
 
 void PLM::Hits::display(ostream& out) const {

@@ -83,6 +83,12 @@ class PrintFunc {
     * @param model  model from which the state was created
     */
    void appendFFValues(const DecoderState *state, BasicModel &model);
+   /**
+    * Append the state's feature values to sout, in sparse format.
+    * @param state  current state
+    * @param model  model from which the state was created
+    */
+   void appendSFValues(const DecoderState *state, BasicModel &model);
 }; // PrintFunc
 
 
@@ -118,11 +124,13 @@ public:
 /// (lattice information extraction).
 class PrintFFVals: public PrintFunc {
    BasicModel &model;  ///< Model which created the states
+   bool sfvals;
 public:
    /// Constructor.
    /// @param model model from which the states were created 
+   /// @param sfvals write ffvals in sparse format
    /// @param oovs  source sentence oov vector 
-   PrintFFVals(BasicModel &model, vector<bool>* oovs);
+   PrintFFVals(BasicModel &model, bool sfvals, vector<bool>* oovs);
    virtual string operator()(const DecoderState *state);
 }; // PrintFFVals
 
@@ -132,12 +140,14 @@ public:
 /// (lattice information extraction).
 class PrintAll: public PrintFunc {
    BasicModel &model;  ///< Model which created the states
+   bool sfvals;
 public:
    /// Constructor.
    /// @param model model from which the states were created 
+   /// @param sfvals write ffvals in sparse format
    /// @param walign whether to include word alignments in trace
    /// @param oovs  source sentence oov vector 
-   PrintAll(BasicModel &model, bool walign, vector<bool>* oovs);
+   PrintAll(BasicModel &model, bool sfvals, bool walign, vector<bool>* oovs);
    virtual string operator()(const DecoderState *state);
 }; // PrintAll
 

@@ -3,8 +3,6 @@
  * @file worderrors.cc
  * @brief Tagging each word as correct/incorrect based on WER or PER.
  *
- * $Id$
- *
  * COMMENTS: Tag each word in a translation as correct/incorrect based on WER or PER
  * If several references are given, the one with minimal distance is used.
  *
@@ -43,10 +41,8 @@ int main(int argc, const char* const argv[]) {
    referencesReader  rReader(arg.sRefFiles);
    const Uint numRefs(arg.sRefFiles.size());
 
-   if (arg.bDoPer) {
-     cerr << "PER-based tagging is not implemented yet!!!" << endl << endl;
-     exit(1);
-   }
+   if (arg.bDoPer)
+     error(ETFatal, "PER-based tagging is not implemented yet!!!");
 
    Levenshtein<string> lev;
    Uint   n      = 0;

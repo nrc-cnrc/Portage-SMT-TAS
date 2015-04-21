@@ -93,11 +93,24 @@ WordAlignerFactory::TInfo WordAlignerFactory::tinfos[] = {
       DCon<IBMOchAligner>::create,
       "IBMOchAligner", "[-2|-1|1|2|3|4][exclude]\n\
      Standard Och algorithm (better to use exclude with 1 or 2):\n\
+     See Och and Ney (CL 2003)\n\
      -1 = forward IBM alignment only, -2 = reverse IBM alignment only,\n\
      1 = use intersection only, 2 = expand to connected points in union, \n\
      3 = try to align all words,\n\
      4 = like 3, but only add links for which both words were unlinked [3].\n\
      exclude = exclude unlinked words from phrases [include them]"
+   },
+   {
+      DCon<IBMOchAligner>::create,
+      "GDF", "\n\
+     Synonym for IBMOchAligner 3, which is roughly the same as the standard\n\
+     grow-diag-final (e.g., see Koehn et al, IWSLT 2005)"
+   },
+   {
+      DCon<GDFAAligner>::create,
+      "GDFA", "\n\
+     Synonym for IBMOchAligner 4, which is roughly the same as the standard\n\
+     grow-diag-final-and (e.g., see Koehn et al, IWSLT 2005)"
    },
    {
       DCon<IBMDiagAligner>::create,
@@ -156,7 +169,6 @@ WordAlignerFactory::TInfo WordAlignerFactory::tinfos[] = {
       "InternalAligner", "\n\
      For programmatic use only - do not use via the command line."
    },
-
    {NULL, "", ""}
 };
 
@@ -175,8 +187,8 @@ WordAlignerFactory::WordAlignerFactory(IBM1* ibm_lang2_given_lang1,
 {
 }
 
-WordAlignerFactory::WordAlignerFactory(GizaAlignmentFile* file_lang2_given_lang1,
-                                       GizaAlignmentFile* file_lang1_given_lang2,
+WordAlignerFactory::WordAlignerFactory(IBMAlignmentFile* file_lang2_given_lang1,
+                                       IBMAlignmentFile* file_lang1_given_lang2,
                                        Uint verbose, bool twist, bool addSingleWords,
                                        bool allow_linkless_pairs)
    : ibm_lang2_given_lang1(NULL)
@@ -538,6 +550,17 @@ void IBMOchAligner::showAlignment(const vector<string>& toks1,
       cerr << toks2[i] << "/" << t << "(" << al2[i] << ")" << " ";
    }
    cerr << endl;
+}
+
+/*----------------------------------------------------------------------------
+  GDFAAligner
+  --------------------------------------------------------------------------*/
+
+GDFAAligner::GDFAAligner(WordAlignerFactory& factory, const string& args)
+   : IBMOchAligner(factory, "4")
+{
+   if (!args.empty())
+      error(ETFatal, "The GDFA aligner does not take any arguments");
 }
 
 /*----------------------------------------------------------------------------

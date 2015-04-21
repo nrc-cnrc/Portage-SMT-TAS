@@ -17,8 +17,8 @@ namespace Portage {
 class TestInheritance : public CxxTest::TestSuite 
 {
    struct Base {
-      virtual int foo() { return 0; }
       virtual ~Base() {}
+      virtual int foo() { return 0; }
    };
    struct Sub : public Base {
       virtual int foo() { return 1; }

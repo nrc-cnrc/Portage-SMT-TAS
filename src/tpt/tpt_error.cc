@@ -15,11 +15,15 @@ namespace ugdiss {
 
 const char* const efatal = "Error: ";
 const char* const ewarn = "Warning: ";
+bool exit_1_use_abort = false;
 
 ostream& exit_1(ostream& os)
 {
    os << endl;
-   exit(1);
+   if (exit_1_use_abort)
+      abort();
+   else
+      exit(1);
    #ifdef __KLOCWORK__
       abort();
    #endif

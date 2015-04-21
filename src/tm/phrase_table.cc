@@ -33,12 +33,30 @@ void PhraseTableBase::compressPhrase(ToksIter beg, ToksIter end, string& coded, 
    }
 }
 
+void PhraseTableBase::compressPhrase(IndIter beg, IndIter end, string& coded, Voc& voc)
+{
+   coded.clear();
+   coded.reserve((end-beg) * num_code_bytes + 1);
+   for (; beg != end; ++beg) {
+      assert (*beg <= max_code);
+      pack(*beg, coded, code_base, num_code_bytes);
+   }
+}
+
 void PhraseTableBase::decompressPhrase(const char* coded, vector<string>& toks, Voc& voc)
 {
    toks.clear();
    const Uint len = strlen(coded);
    for (Uint pos = 0; pos < len; pos += num_code_bytes)
       toks.push_back(voc.word(unpack(coded, pos, num_code_bytes, code_base)));
+}
+
+void PhraseTableBase::decompressPhrase(const char* coded, vector<Uint>& toks, Voc& voc)
+{
+   toks.clear();
+   const Uint len = strlen(coded);
+   for (Uint pos = 0; pos < len; pos += num_code_bytes)
+      toks.push_back(unpack(coded, pos, num_code_bytes, code_base));
 }
 
 string PhraseTableBase::recodePhrase(const char* coded, Voc& voc,

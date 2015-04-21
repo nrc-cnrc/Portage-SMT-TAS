@@ -29,8 +29,8 @@ all: tpt_utf8
 all: tpt_ucbos_cp1252
 all: tpt_ucbos_utf8
 
-TEMP_FILES=ref_* src_* ${LM}_*.gz vocabMap2tpt.* tc_tmp_* log.* testTC.out.tc buggy.*.out
-TEMP_DIRS=${LM}_*.tplm* ${MAP}_*.tppt* ${LM}_utf8* ${MAP}_*
+TEMP_FILES=ref_* src_* vocabMap2tpt.* tc_tmp_* log.* testTC.out.tc buggy.*.out *_test_nbsp.*
+TEMP_DIRS=${LM}_* ${MAP}_*.tppt* ${LM}_utf8* ${MAP}_*
 include ../Makefile.incl
 
 canoe1_%: src_% ref_% ${LM}_% ${MAP}_%
@@ -140,3 +140,33 @@ buggy.markup.out: buggy/in/tc_tmp_text_25951.cmark.in buggy/in/tc_tmp_text_25951
 
 buggy.casemark.out: buggy/in/tc_tmp_text_25951.cmark.out
 	casemark.py -r -enc utf-8 $+ > $@
+
+
+########################################
+# This part of the test suite suite exercises casemark.py and boscap.py.
+# Specifically, it tests token-splitting of input lines containing whitespace
+# characters other than '\t' and ' ', e.g. non-breaking spaces.
+# We want to split only on '\t' and ' '.
+
+.PHONY: casemark_test
+all: casemark_test
+casemark_test: cmp.casemark_test_nbsp.cmark
+
+cmp.casemark_test_nbsp.cmark: cmp.%: %
+	diff $< ref/$< -q
+
+casemark_test_nbsp.cmark: src/test_nbsp.nc1
+	casemark.py -v -a -enc UTF-8 $< >$@
+
+.PHONY: boscap_tests
+all: boscap_tests
+boscap_tests: cmp.boscap_test_nbsp.out.tc cmp.boscap_nosrc_test_nbsp.out.tc
+
+cmp.boscap_test_nbsp.out.tc cmp.boscap_nosrc_test_nbsp.out.tc: cmp.%: %
+	diff $< ref/$< -q
+
+boscap_test_nbsp.out.tc: src/test_nbsp.cmark.tc src/test_nbsp.nc1 src/test_nbsp.nc1 src/test_nbsp.pal
+	boscap.py -v -enc UTF-8 $+ >$@
+
+boscap_nosrc_test_nbsp.out.tc: src/test_nbsp.cmark.tc
+	boscap-nosrc.py -v -enc UTF-8 $+ >$@

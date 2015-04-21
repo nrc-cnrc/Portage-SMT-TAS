@@ -4,8 +4,6 @@
  * PartialTranslation object, representing a translation prefix, not
  * necessarily covering all source words.
  *
- * $Id$
- *
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -30,6 +28,8 @@ const PhraseInfo PartialTranslation::EmptyPhraseInfo;
 PartialTranslation::PartialTranslation(PhraseInfo* phrase)
    : back(NULL)
    , lastPhrase(phrase)
+   , numSourceWordsCovered(0)
+   , lmContextSize(-1) // == uninit
    , levInfo(NULL)
    , shiftReduce(NULL)
 {}
@@ -40,15 +40,20 @@ PartialTranslation::PartialTranslation(Uint sourceLen,
    : back(NULL)
    , lastPhrase(&EmptyPhraseInfo)
    , numSourceWordsCovered(0)
+   , lmContextSize(1) // the initial empty state always provides <s> as context
    , levInfo(usingLev ? new PartialTranslation::levenshteinInfo() : NULL)
-   , shiftReduce(usingSR ? new ShiftReducer(sourceLen): NULL)
+   , shiftReduce(usingSR ? new ShiftReducer(sourceLen) : NULL)
 {
    // Set the range of words not covered to be the full range of words
    if ( sourceLen > 0 ) {
       Range fullRange(0, sourceLen);
       sourceWordsNotCovered.push_back(fullRange);
    }
-   
+
+   // Initialize the empty Levenshtein info
+   if (usingLev)
+      levInfo->levDistance = 0;
+
    /*static bool hasBeen = false;
    if (!hasBeen) {
       hasBeen = true;
@@ -63,6 +68,7 @@ PartialTranslation::PartialTranslation(const PartialTranslation* trans0,
       const PhraseInfo* phrase, const UintSet* preCalcSourceWordsCovered)
    : back(trans0)
    , lastPhrase(phrase)
+   , lmContextSize(-1) // == uninit
    , levInfo(trans0->levInfo ? new PartialTranslation::levenshteinInfo() : NULL)
    , shiftReduce(trans0->shiftReduce
                  ? new ShiftReducer(phrase->src_words,trans0->shiftReduce)

@@ -68,6 +68,21 @@ void Portage::Error_ns::defaultErrorCallBack(ErrorType et, const string& msg)
    }
 }
 
+void Portage::Error_ns::abortOnErrorCallBack(ErrorType et, const string& msg)
+{
+   if (et == ETFatal) {
+      cerr << "Error: " << msg << endl;
+      abort();
+      assert(false);
+   } else if (et == ETWarn) {
+      cerr << "Warning: " << msg << endl;
+   } else {
+      cerr << msg << endl;
+      exit(0);
+      assert(false);
+   }
+}
+
 void Portage::error(ErrorType et, const string& msg)
 {
    if (Error_ns::Current::errorCallback) {

@@ -1,4 +1,3 @@
-// $Id$
 /**
  * @author J Howard Johnson
  * @file sigprune_fet.cc
@@ -40,6 +39,9 @@ sigprune_fet [options] [INFILE [OUTFILE]]\n\
 Options:\n\
 \n\
   -v    Write progress reports to cerr.\n\
+  -c    Don't cap anti-linked p_levels at 0.5. Using this\n\
+        flag ensures monotonic scores as joint frequency decreases while\n\
+        marginals are held constant.\n\
   -l    Minimum flag value to output (for pruning)\n\
   -n NL Copy only first NL lines [0 = all]\n\
 ";
@@ -47,6 +49,7 @@ Options:\n\
 // globals
 
 static bool verbose = false;
+static bool no_cap = false;
 static Uint num_lines = 0;
 static Uint flag_threshold = 0;
 static string infile( "-" );
@@ -56,11 +59,12 @@ static string outfile( "-" );
 
 void getArgs( int argc, char* argv[] )
 {
-   const char* switches[] = { "v", "n:", "l:" };
+   const char* switches[] = { "v", "c", "n:", "l:" };
    ArgReader arg_reader( ARRAY_SIZE( switches ), switches, 0, 2, help_message );
    arg_reader.read( argc - 1, argv + 1 );
 
    arg_reader.testAndSet( "v", verbose );
+   arg_reader.testAndSet( "c", no_cap );
    arg_reader.testAndSet( "n", num_lines );
    arg_reader.testAndSet( "l", flag_threshold );
 
@@ -204,13 +208,6 @@ int main( int argc, char* argv[] )
            || C_fr > nn
            || C_en > nn ) {
          error(ETFatal, "Illegal contingency table\n%d : %d : %d : %d : %d", lineno, C_fr_en, C_fr, C_en, nn);
-         cerr << "Illegal contingency table" << endl ;
-         cerr << lineno
-              << ": " << C_fr_en
-              << ": " << C_fr
-              << ": " << C_en
-              << ": " << nn << endl;
-         exit( 1 );
       }
       double minus_ln_nn = -log( nn );
       Uint flag;
@@ -219,7 +216,7 @@ int main( int argc, char* argv[] )
 // Anti-linked
       if ( C_fr_en * nn < C_fr * C_en ) {
          flag = 0;
-         p_value = -log( 2.0 );
+         p_value = no_cap ? ln_p_value( C_fr_en, C_fr, C_en, nn ) : -log( 2.0 );
       }
 
 // 1-1-1 's

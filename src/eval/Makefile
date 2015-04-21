@@ -1,4 +1,3 @@
-# $Id$# @file Makefile
 # @file Makefile
 # 
 # Evaluation Module
@@ -10,14 +9,14 @@
 # Copyright 2004, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2004, Her Majesty in Right of Canada 
 
-INCLUDES=$(filter-out bestbleu.h bleumain.h wermain.h worderrors.h, \
+INCLUDES=$(filter-out bestscore.h bleumain.h wermain.h worderrors.h, \
            $(wildcard *.h))
 
 OBJECTS = \
 	basic_data_structure.o \
-	bestbleucompute.o \
 	bleu.o \
 	referencesReader.o \
+	translationReader.o \
 	wer.o
 
 PROGRAMS = \
@@ -45,3 +44,4 @@ else
 MODULE_CF=-fopenmp
 MODULE_LF=-fopenmp
 endif
+

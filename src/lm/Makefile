@@ -14,6 +14,7 @@ OBJECTS = \
 	lmbin_novocfilt.o \
 	lmdynmap.o \
 	lmmix.o \
+	lmrestcost.o \
 	lmtext.o \
 	lmtrie.o
 
@@ -25,11 +26,14 @@ PROGRAMS = \
 	train_lm_mixture
 
 BINSCRIPTS = \
+	gen-word-given-wcl-lm.py \
 	lm-filter.py \
 	lm-order.pl \
 	lm_sort.pl \
 	lm_sort_filter.sh \
-	ngram-count-big.sh
+	ngram-count-big.sh \
+	sri-mix-lms.py \
+	train-rest-cost-lm.sh
 
 LIBRARY = libportage_lm
 

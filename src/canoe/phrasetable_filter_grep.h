@@ -2,8 +2,6 @@
  * @author Samuel Larkin
  * @file phrasetable_filter_grep.h  Interface for filtering phrase table based on source phrases
  *
- * $Id$
- *
  * Interface for filtering phrase table based on source phrases
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -37,12 +35,14 @@ class PhraseTableFilterGrep : public PhraseTableFilter {
        * @param tgtVocab            target vocaulary
        * @param pruningTypeStr      pruning type
        */
-      PhraseTableFilterGrep(bool _limitPhrases, VocabFilter& tgtVocab, const char* pruningTypeStr = NULL);
+      PhraseTableFilterGrep(bool _limitPhrases, VocabFilter& tgtVocab,
+                            const string& pruningTypeStr,
+                            bool appendJointCounts = false);
 
       /// Destructor.
       virtual ~PhraseTableFilterGrep();
       
-      virtual bool processEntry(TargetPhraseTable* tgtTable, Entry& entry);
+      virtual bool processEntry(PhraseTableEntry& entry);
       virtual Uint filter(const string& TM_filename, const string& filtered_TM_filename);
 
 }; // ends class PhraseTableFilterGrep

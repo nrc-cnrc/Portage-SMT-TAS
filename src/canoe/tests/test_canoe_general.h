@@ -69,6 +69,90 @@ public:
       TS_ASSERT(!(s1 < s2));
       TS_ASSERT(!(s2 == s1));
    }
+
+   void test_isSubset() {
+      UintSet s1(1,Range(3,4));
+      UintSet s2(1,Range(2,6));
+      TS_ASSERT(isSubset(s1,s2));
+      TS_ASSERT(!isSubset(s2,s1));
+
+      s1.push_back(Range(5,6));
+      TS_ASSERT(isSubset(s1,s2));
+      TS_ASSERT(!isSubset(s2,s1));
+
+      s1.push_back(Range(7,8));
+      TS_ASSERT(!isSubset(s1,s2));
+      TS_ASSERT(!isSubset(s2,s1));
+
+      TS_ASSERT(isSubset(Range(2,6), s2));
+      TS_ASSERT(!isSubset(Range(3,7), s2));
+      TS_ASSERT(isSubset(s2, UintSet(1,Range(1,8))));
+      TS_ASSERT(isSubset(s1, UintSet(1,Range(3,9))));
+      TS_ASSERT(isSubset(UintSet(), UintSet(1,Range(2,3))));
+      TS_ASSERT(isSubset(UintSet(), s1));
+      TS_ASSERT(!isSubset(s1, UintSet()));
+
+      TS_ASSERT(isSubset(Range(3,5), UintSet(1,Range(2,6))));
+      TS_ASSERT(!isSubset(Range(3,5), UintSet(1,Range(4,6))));
+      TS_ASSERT(!isSubset(Range(4,6), UintSet(1,Range(3,5))));
+      TS_ASSERT(isSubset(Range(4,6), UintSet(1,Range(3,6))));
+      TS_ASSERT(!isSubset(Range(3,6), UintSet(1,Range(4,6))));
+      TS_ASSERT(!isSubset(Range(3,6), UintSet(1,Range(3,5))));
+      TS_ASSERT(isSubset(Range(3,5), UintSet(1,Range(3,6))));
+
+      UintSet s3(1,Range(1,5));
+      s3.push_back(Range(7,9));
+      s3.push_back(Range(12,15));
+      TS_ASSERT(isSubset(Range(2,3),s3));
+      TS_ASSERT(isSubset(Range(7,8),s3));
+      TS_ASSERT(isSubset(Range(12,13),s3));
+      TS_ASSERT(isSubset(Range(13,14),s3));
+      TS_ASSERT(isSubset(Range(14,15),s3));
+      TS_ASSERT(isSubset(Range(12,15),s3));
+      TS_ASSERT(!isSubset(Range(0,1),s3));
+      TS_ASSERT(!isSubset(Range(4,6),s3));
+      TS_ASSERT(!isSubset(Range(6,7),s3));
+      TS_ASSERT(!isSubset(Range(16,17),s3));
+   }
+
+   void test_isSubset_Range() {
+      UintSet s2(1,Range(2,6));
+      TS_ASSERT(isSubset(Range(3,4),s2));
+      TS_ASSERT(!isSubset(Range(0,1),s2));
+      TS_ASSERT(!isSubset(Range(1,3),s2));
+      TS_ASSERT(!isSubset(Range(5,7),s2));
+      TS_ASSERT(!isSubset(Range(7,9),s2));
+
+      s2.push_back(Range(7,9));
+      TS_ASSERT(isSubset(Range(7,8),s2));
+      TS_ASSERT(isSubset(Range(4,6),s2));
+      TS_ASSERT(!isSubset(Range(5,8),s2));
+      TS_ASSERT(!isSubset(Range(11,12),s2));
+      TS_ASSERT(!isSubset(Range(0,1),s2));
+      TS_ASSERT(!isSubset(Range(6,7),s2));
+   }
+
+   void test_isDisjoint() {
+      UintSet s(1,Range(2,4));
+      s.push_back(Range(7,9));
+      TS_ASSERT(isDisjoint(Range(0,1),s));
+      TS_ASSERT(isDisjoint(Range(0,2),s));
+      TS_ASSERT(isDisjoint(Range(4,5),s));
+      TS_ASSERT(isDisjoint(Range(4,7),s));
+      TS_ASSERT(isDisjoint(Range(6,7),s));
+      TS_ASSERT(isDisjoint(Range(9,10),s));
+      TS_ASSERT(isDisjoint(Range(10,11),s));
+      TS_ASSERT(!isDisjoint(Range(1,3),s));
+      TS_ASSERT(!isDisjoint(Range(2,3),s));
+      TS_ASSERT(!isDisjoint(Range(3,4),s));
+      TS_ASSERT(!isDisjoint(Range(3,5),s));
+      TS_ASSERT(!isDisjoint(Range(3,8),s));
+      TS_ASSERT(!isDisjoint(Range(6,8),s));
+      TS_ASSERT(!isDisjoint(Range(7,8),s));
+      TS_ASSERT(!isDisjoint(Range(6,10),s));
+      TS_ASSERT(!isDisjoint(Range(8,10),s));
+      TS_ASSERT(!isDisjoint(Range(1,10),s));
+   }
 }; // class TestCanoeGeneral
 
 } // namespace Portage

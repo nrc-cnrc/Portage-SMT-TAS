@@ -2,7 +2,6 @@
  * @author Eric Joanis
  * @file unal_feature.cc  Feature counting unaligned words
  *
- * $Id$
  * 
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
@@ -12,40 +11,26 @@
  */
 
 #include "unal_feature.h"
-#include "alignment_freqs.h"
 #include "phrasetable.h"
+#include "alignment_annotation.h"
 
-Uint UnalFeature::count_unal_words(const ForwardBackwardPhraseInfo* fbpi)
+Uint UnalFeature::count_unal_words(const PhraseInfo& phrase_info)
 {
-   const char* alignment_string = alignmentVoc->word(fbpi->alignment);
-   const Uint src_len = fbpi->src_words.size();
-   const Uint tgt_len = fbpi->phrase.size();
+   const AlignmentAnnotation* a_ann = AlignmentAnnotation::get(phrase_info.annotations);
+   if (!a_ann) return 0;
 
-   // we use a static variable so multiple unal features queried consecutively
-   // with the same phrase will share this expensive block of parsing the
-   // alignment info.
-   static vector<vector<Uint > > sets;
-   static Uint prev_alignment = Uint(-1);
-   if ( prev_alignment != fbpi->alignment ) {
-      AlignmentFreqs<float> alignment_freqs;
-      // Note: we use alignmentVoc to store both the full string found in the
-      // phrase table and the individual alignment strings.  When only the top
-      // alignment is present, these are in fact the same thing.
-      parseAndTallyAlignments(alignment_freqs, *alignmentVoc, alignment_string);
-      if ( alignment_freqs.empty() )
-         return 0;
-      const char* top_alignment_string = alignmentVoc->word(alignment_freqs.max()->first);
-      GreenReader('_').operator()(top_alignment_string, sets);
-      if ( sets.size() < src_len )
-         sets.resize(src_len); // pad with empty sets of some are missing.
-      prev_alignment = fbpi->alignment;
-   }
+   const Uint src_len = phrase_info.src_words.size();
+   const Uint tgt_len = phrase_info.phrase.size();
+
+   const vector<vector<Uint > >* sets = AlignmentAnnotation::getAlignmentSets
+      (a_ann->getAlignmentID(),src_len);
+   if (sets->empty()) return 0;
 
    Uint result(0);
    for (Uint i = 0; i < type.size(); ++i)
-      result += count_unal_words(src_len, tgt_len, sets, type[i]);
+      result += count_unal_words(src_len, tgt_len, *sets, type[i]);
    return result;
-} // count_unal_words(fbpi)
+} // count_unal_words(phrase_info)
 
 Uint UnalFeature::count_unal_words(Uint src_len, Uint tgt_len,
       const vector<vector<Uint> >& sets, UnalType cur_type)
@@ -137,31 +122,31 @@ Uint UnalFeature::count_unal_words(Uint src_len, Uint tgt_len,
 
 double UnalFeature::precomputeFutureScore(const PhraseInfo& phrase_info)
 {
-   const ForwardBackwardPhraseInfo* fbpi = dynamic_cast<const ForwardBackwardPhraseInfo *>(&phrase_info);
-   assert(fbpi);
-   const Uint src_len = fbpi->src_words.size();
-   const Uint tgt_len = fbpi->phrase.size();
-   const Uint alignment = fbpi->alignment;
+   const AlignmentAnnotation* a_ann = AlignmentAnnotation::get(phrase_info.annotations);
+   if (!a_ann) return 0;
+
+   const Uint src_len = phrase_info.src_words.size();
+   const Uint tgt_len = phrase_info.phrase.size();
+   const Uint alignment = a_ann->getAlignmentID();
    /*
    if ( cache.size() <= alignment ) {
       cache.resize(alignmentVoc->size(), cache_not_set);
       assert(alignment < cache.size());
    }
    if ( cache[alignment] == cache_not_set )
-      cache[alignment] = count_unal_words(fbpi);
+      cache[alignment] = count_unal_words(phrase_info);
    */
 
    Cache::iterator res = cache.find(CacheKey(src_len, tgt_len, alignment));
    if ( res == cache.end() ) {
-      Uint count = count_unal_words(fbpi);
+      Uint count = count_unal_words(phrase_info);
       res = cache.insert(make_pair(CacheKey(src_len, tgt_len, alignment), count)).first;
       assert(res->second == count);
    }
    return 0.0 - double(res->second);
 }
 
-UnalFeature::UnalFeature(Voc& alignmentVoc, const string& name)
-   : alignmentVoc(&alignmentVoc)
+UnalFeature::UnalFeature(const string& name)
 {
    vector<string> types;
    split(name, types, "+");

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # @file summarize-canoe-results.py
-# @brief Summarize the results of a set of PortageII training runs.
+# @brief Summarize the results of a set of Portage or PortageII training runs.
 # 
 # @author George Foster; updated by Darlene Stewart
 #
@@ -28,7 +28,6 @@ if sys.argv[0] not in ('', '-c'):
         sys.path.insert(1, os.path.normpath(os.path.join(bin_path, "..", "utils")))
 
 from portage_utils import *
-
 
 def get_args():
    """Command line argument processing"""
@@ -64,6 +63,10 @@ def get_args():
                             "NB: scores in the 'avg' column are averages ONLY over these "
                             "results; this column isn't displayed if only one result is chosen "
                             "for sorting [average over all results specified by -t except MERT]")
+   parser.add_argument("-g", dest="genre_suff", type=str, default="",
+                       help="suffix to indicate results that are specific to genre or other characteristics; "
+                       "if set to some value 'x', then scores will be displayed only for files of the "
+                       "form *.bleu.x.* [look for *.bleu]")
    parser.add_argument("-delta", dest="delta", type=str, default=None,
                        help="also show delta BLEU score against a baseline [%(default)s]")
    parser.add_argument("-s", dest="alts", nargs="?", choices=("avg","trimmed", "max"), const="avg", default=None,
@@ -251,18 +254,21 @@ class DirInfo:
             print(fmt_score(self.getSDev(test_set), test_set), end='')
          if len(DirInfo.sort_test_sets) > 1:
             print(fmt_score(self.testavg_sdev, DirInfo.avg_header), end='')
+         if baseline_score is not None:
+            print(" " * (DirInfo.colWidth(prec, DirInfo.delta_header) + 2), end='')
          n = len(self.subdirs)
          runs = "{0}/{1}".format(n-1,n+1) if avg == "trimmed" and n > 3 else n+1
          print("    std devs over {0} run{1}".format(runs, "s" if len(self.subdirs) else ""))
 
 
-def readDirInfo(di, d, in_test_sets_to_list):
+def readDirInfo(di, d, in_test_sets_to_list, genre_suff):
    """Initialize a DirInfo object from the contents of a directory.
    
    di: DirInfo object to be initialized
    d: name of the directory to process
    in_test_sets_to_list(test_set): function returning true if the named test_set 
        should be included (i.e. listed in the results)
+   genre_suff if non-empty, look for files of the form *.bleu.suff*
    """
    decode_dir = "decode"
    if di.name.startswith("translate"):
@@ -300,8 +306,14 @@ def readDirInfo(di, d, in_test_sets_to_list):
          di.addScore(devname, devbleu)
          m = re.search("\((\d+) iters, best = (\d+)\)", s);
          di.cow_iter = "{0}/{1} iters".format(m.group(2), m.group(1))
-   for f in glob.glob(d + "/*.bleu") + glob.glob(d + "/translate/*.bleu"):
-      test = splitext(basename(f))[0]
+   suff = "bleu."+genre_suff+"."
+   globstr = "/*."+suff+"*" if genre_suff else "/*.bleu"
+   for f in glob.glob(d + globstr) + glob.glob(d + "/translate" + globstr):
+      if genre_suff:
+         p = basename(f).find(suff)
+         test = basename(f)[0:p] + basename(f)[p+len(suff):]
+      else:
+         test = splitext(basename(f))[0]
       if splitext(test)[1] == ".out":
          test = splitext(test)[0]
       if in_test_sets_to_list(test):
@@ -354,7 +366,7 @@ def main():
    results = []
    for d in cmd_args.dirs:
       di = DirInfo(basename(d), long_name=d)
-      readDirInfo(di, d, in_test_sets_to_list)
+      readDirInfo(di, d, in_test_sets_to_list, cmd_args.genre_suff)
       results.append(di)
       # check for sub-dirs containing alternative runs if called for
       if cmd_args.alts:
@@ -363,7 +375,7 @@ def main():
             # Note: translate subdir was already processed by readDirInfo(di) above
             if sd not in ("translate", "foos", "logs") and isdir(sdir):
                sdi = DirInfo(sd)
-               readDirInfo(sdi, sdir, in_test_sets_to_list)
+               readDirInfo(sdi, sdir, in_test_sets_to_list, cmd_args.genre_suff)
                if sdi.hasRun():
                   di.subdirs.append(sdi)
    

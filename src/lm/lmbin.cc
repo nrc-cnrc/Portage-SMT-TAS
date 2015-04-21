@@ -18,13 +18,11 @@ using namespace Portage;
 using namespace std;
 
 
-bool LMBin::isA(const string& file) {
-   string line;
-   iSafeMagicStream is(file, true);
-   getline(is, line);
-   return line == "Portage BinLM file, format v1.0";
-}
+static const string MagicNumber = "Portage BinLM file, format v1.0";
 
+bool LMBin::isA(const string& file) {
+   return matchMagicNumber(file, MagicNumber);
+}
 
 void LMBin::read_binary(const string& binlm_filename, Uint limit_order)
 {
@@ -34,7 +32,7 @@ void LMBin::read_binary(const string& binlm_filename, Uint limit_order)
 
    // "Magic string" line
    getline(ifs, line);
-   if ( line != "Portage BinLM file, format v1.0" )
+   if ( line != MagicNumber )
       error(ETFatal, "File %s not in Portage's BinLM format: bad first line",
             binlm_filename.c_str());
 

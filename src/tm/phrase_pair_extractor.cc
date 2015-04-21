@@ -158,13 +158,13 @@ bool PhrasePairExtractor::checkArgs(bool errors_are_fatal)
    if (min_phrase_len1 == 0) min_phrase_len1 = 1;
    if (min_phrase_len2 == 0) min_phrase_len2 = 1;
    if (ok && (min_phrase_len1 > max_phrase_len1 || min_phrase_len2 > max_phrase_len2)) {
-      cerr << "Minimal phrase length is greater than the maximal one!" << endl
-           << "lang1 : " << min_phrase_len1 << " " << max_phrase_len1 << endl
-           << "lang2 : " << min_phrase_len2 << " " << max_phrase_len2 << endl;
-      if ( errors_are_fatal )
-         exit(1);
-      else
-         ok = false;
+      ok = false;
+      error(errors_are_fatal ? ETFatal : ETWarn,
+            "Minimal phrase length is greater than the maximal one!\n"
+            "lang1 : %u %u\n"
+            "lang2 : %u %u",
+            min_phrase_len1, max_phrase_len1,
+            min_phrase_len2, max_phrase_len2);
    }
 
    if (align_methods.empty())

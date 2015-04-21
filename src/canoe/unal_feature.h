@@ -2,7 +2,6 @@
  * @author Eric Joanis
  * @file unal_feature.h  Feature counting unaligned words
  *
- * $Id$
  * 
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
@@ -19,8 +18,6 @@
 
 namespace Portage {
 
-   class ForwardBackwardPhraseInfo;
-
    class UnalFeature : public DecoderFeature {
 
    public:  // open up for use by SparseModel's lexicalized unal features
@@ -28,7 +25,7 @@ namespace Portage {
       /// Cache for the results, since they depend only on the alignments,
       /// which are expected to be frequently repeated.  The cache id, i.e.,
       /// offset into this vector is the alignment id from
-      /// PhraseTable::alignmentVoc (== this->alignmentVoc).
+      /// AlignmentAnnotation::alignmentVoc.
       struct CacheKey {
          Ushort src_len; Ushort tgt_len; Uint alignmentId;
          CacheKey(Ushort src_len, Ushort tgt_len, Uint alignmentId)
@@ -56,10 +53,6 @@ namespace Portage {
       /// value signifying uninitialized cache entry
       //static const Uint cache_not_set = Uint(-1);
 
-      /// reference to the alignment vocabulary from the PhraseTable
-      /// May get additional entries added to it as the alignments are parsed.
-      Voc* alignmentVoc;
-
       /// The valid minimal types (others are composed by adding these together)
       enum UnalType { SrcAny, SrcEdges, SrcLeft, SrcRight,
                       TgtAny, TgtEdges, TgtLeft, TgtRight,
@@ -70,7 +63,7 @@ namespace Portage {
 
       /// This method does the real calculations and depends on the type of unal feature
       /// selected.
-      Uint count_unal_words(const ForwardBackwardPhraseInfo* fbpi);
+      Uint count_unal_words(const PhraseInfo& phrase_info);
 
       /// Helper used once we parsed the alignment info from string to sets
       Uint count_unal_words(Uint src_len, Uint tgt_len,
@@ -78,10 +71,9 @@ namespace Portage {
 
    public:
       /// constructor
-      /// @param alignmentVoc  voc for interpreting alignment IDs.
       /// @param name  the name of the unal feature variant to instantiate
       ///              see canoe -h for documentation of valid names
-      UnalFeature(Voc& alignmentVoc, const string& name);
+      UnalFeature(const string& name);
 
       // the score and precomputed future score are the same, since they both
       // depend solely on the last phrase pair added.

@@ -25,12 +25,14 @@ OBJECTS = \
         MagicStream.o \
         matrix_solver.o \
         multi_voc.o \
+        ngram_counts.o \
         number_mapper.o \
         parse_xmlish_markup.o \
         perm_iterator.o \
         portage_defs.o \
         process_bind.o \
         quick_set.o \
+        socket_utils.o \
         stats.o \
         str_utils.o \
         timer.o \

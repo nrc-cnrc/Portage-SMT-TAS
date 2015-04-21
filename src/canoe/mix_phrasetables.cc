@@ -19,11 +19,9 @@
 #include "arg_reader.h"
 #include "basicmodel.h"
 #include "inputparser.h"
-#include "phrase_table_reader.h"
 #include "logging.h"
 
 using namespace Portage;
-using namespace std;
 
 static char help_message[] = "\n\
 mix_phrasetables [-vn][-s s][-w wts|-wf wtsfile][-m len][-f src] pt1 pt2 ...\n\
@@ -57,7 +55,7 @@ static const char* sep = PHRASE_TABLE_SEP;
 static Uint seplen;
 
 static bool verbose = false;
-static bool bNormalize = false;
+static bool calc_norm = false;
 static Uint norm_smooth = 1;
 static const Uint PHRASE_LENGTH_INFINITY = 10000;
 static Uint max_phrase_len = PHRASE_LENGTH_INFINITY;
@@ -96,7 +94,7 @@ int main(int argc, char* argv[])
 
    vector<Uint> freqs;
    vector< vector<Uint> > norm_sums(pts.size()); // phrasetable,column -> sum of vals in column
-   if (bNormalize) {
+   if (calc_norm) {
       for (Uint i = 0; i < pts.size(); ++i) {
 	 iSafeMagicStream ifs(pts[i]);
 	 norm_sums[i].assign(num_probs, norm_smooth);
@@ -124,26 +122,17 @@ int main(int argc, char* argv[])
 
    PhraseTable* srcphrases = NULL;
    if (srcname != "") {
-      vector< vector<string> > sents;
-      vector<vector<MarkedTranslation> > marks;
+      VectorPSrcSent sents;
       CanoeConfig c;
       c.loadFirst = false;
       iSafeMagicStream input(srcname);
       InputParser reader(input);
-      while (true) {
-	 sents.push_back(vector<string>());
-	 marks.push_back(vector<MarkedTranslation>());
-	 if (!reader.readMarkedSent(sents.back(), marks.back()))
-	    error(ETWarn, "Ill-formed markup - part of last input line has been discarded");
-	 if (reader.eof() && sents.back().empty()) {
-	    sents.pop_back();
-	    marks.pop_back();
-	    break;
-	 }
-      }
-      reader.reportWarningCounts();
+      PSrcSent nss;
+      while (nss = reader.getMarkedSent())
+         sents.push_back(nss);
+
       // NB: impossible to delete bmg, but not necessary anyway
-      BasicModelGenerator* bmg = new BasicModelGenerator(c, sents, marks);
+      BasicModelGenerator* bmg = new BasicModelGenerator(c, sents);
       srcphrases = &bmg->getPhraseTable();
       if (verbose)
 	 cerr << "Filtering with source file " << srcname << endl;
@@ -184,7 +173,7 @@ int main(int argc, char* argv[])
                   pts[i].c_str());
          ofs << line.substr(0, pos+seplen-1);   // !!
 	 double wt = srctoks.size() <= max_phrase_len ? wts[i] : 1.0 / pts.size();
-         if (bNormalize) {
+         if (calc_norm) {
             vector<Uint>::iterator it_norm = norm_sums[i].begin();
             for (vector<double>::iterator it = probs.begin(); it != probs.end(); ++it, ++it_norm)
                ofs << ' ' << *it * wt / *it_norm;
@@ -313,7 +302,7 @@ void getArgs(int argc, char* argv[])
       error(ETFatal, "Can't specify both -w and -wf");
 
    arg_reader.testAndSet("v", verbose);
-   arg_reader.testAndSet("n", bNormalize);
+   arg_reader.testAndSet("n", calc_norm);
    arg_reader.testAndSet("s", norm_smooth);
    arg_reader.testAndSet("w", wts_string);
    arg_reader.testAndSet("wf", wts_file);

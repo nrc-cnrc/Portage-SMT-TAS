@@ -3,9 +3,6 @@
  * @file filter_tm_visitor.h  Generic interface for filtering phrase table
  *                            based on filter_joint
  *
- * $Id$
- *
- *
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
@@ -33,7 +30,7 @@ struct filterTMVisitor : private NonCopyable
    /**
    * Yet another PhraseInfo which will be used for filter_joint.
    */
-   struct PhraseInfo4filtering : public ForwardBackwardPhraseInfo
+   struct PhraseInfo4filtering : public PhraseInfo
    {
       /// holds a pointer to the entry this was constructed from to later,
       /// during filter_joint, rewrite the original object.
@@ -96,11 +93,11 @@ struct filterTMVisitor : private NonCopyable
    const PhraseTable::PhraseScorePairGreaterThan phraseGreaterThan;  ///< to order item for dynamic filtering algo
    Uint numTextTransModels;              ///< number of text translation models, known after all models were loaded
    const double log_almost_0;            ///< log(0), almost
-   const char* const style;              ///< Should indicate hard or soft filtering
+   const string style;                   ///< Should indicate hard or soft filtering
    Uint numKeptEntry;                    ///< Keeps track of how many entries were kept
 
-   /// reference on the pruning type.
-   const pruningStyle* pruning_type;
+   /// reference on the pruning style.
+   const pruningStyle* pruning_style;
 
    /// Gathers stats on number leaves and number of entries per leaves.
    SimpleHistogram<Uint>* stats_unfiltered;
@@ -113,16 +110,16 @@ struct filterTMVisitor : private NonCopyable
     * @param log_almost_0  value of what will be considered log(-0)
     * @param style         a string representing the derived class type for generic msg printing
     */
-   filterTMVisitor(const PhraseTable &parent, double log_almost_0, const char* const style)
+   filterTMVisitor(const PhraseTable &parent, double log_almost_0, const string& style)
       : parent(parent)
       , L(0)
-      , phraseLessThan(parent)
-      , phraseGreaterThan(parent)
+      , phraseLessThan()
+      , phraseGreaterThan()
       , numTextTransModels(0)
       , log_almost_0(log_almost_0)
       , style(style)
       , numKeptEntry(0)
-      , pruning_type(NULL)
+      , pruning_style(NULL)
       , stats_unfiltered(NULL)
       , stats_filtered(NULL)
    {}
@@ -135,12 +132,12 @@ struct filterTMVisitor : private NonCopyable
 
    /**
     * Simply sets the pruning style and the number of text translation models.
-    * @param _pruning_type  pruning style.
+    * @param _pruning_style  pruning style.
     * @param n      number of text translation models.
     */
-   void set(const pruningStyle* const _pruning_type, Uint n) 
+   void set(const pruningStyle* const _pruning_style, Uint n)
    {
-      pruning_type = _pruning_type;
+      pruning_style = _pruning_style;
       set(Uint(0), n);
    }
 
@@ -193,8 +190,8 @@ struct filterTMVisitor : private NonCopyable
       stats_unfiltered->add(tgtTable.size());
 
       // Calculate the proper L for the given source phrase.
-      if (pruning_type != NULL) {
-         L = (*pruning_type)(key_stack.size());
+      if (pruning_style != NULL) {
+         L = (*pruning_style)(key_stack.size());
       }
 
       operator()(tgtTable);

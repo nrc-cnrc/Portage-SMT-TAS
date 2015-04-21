@@ -74,6 +74,7 @@ namespace Error_ns {
       extern Uint Help;
       extern Uint Total;
       extern string last_msg;
+      inline void clear() { Fatal = Warn = Help = Total = 0; last_msg.clear(); }
    };
    /// This callback counts errors, also disabling error() but having it
    /// leave a trace -- useful for unit testing.
@@ -81,6 +82,8 @@ namespace Error_ns {
    /// This default call back does the normal work advertized in the
    /// documentation of error().
    void defaultErrorCallBack(ErrorType et, const string& msg);
+   /// This call back uses abort() instead of exit(1) on error
+   void abortOnErrorCallBack(ErrorType et, const string& msg);
    /// The signature required of a valid errorCallback.
    typedef void (*ErrorCallback)(ErrorType et, const string& msg);
    namespace Current {

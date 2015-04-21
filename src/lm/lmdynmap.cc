@@ -31,6 +31,8 @@ Syntax for LMDynMap: DynMap;MAP;LMDESC, where:\n\
    - simpleNumber Substitute @ for digits in words that only contains digits\n\
      and punctuation.\n\
    - prefixNumber Substitute @ for digits which are prefix of a word.\n\
+   - wordClasses-CLASSES Map a word to a corresponding word class;\n\
+     <CLASSES> names a text file mapping word to class # as from mkcls.\n\
 <LMDESC> is a normal LM filename.\n\
 \n\
 Examples:\n\
@@ -39,6 +41,7 @@ Examples:\n\
    DynMap;lower-fr_CA.iso88591;file.lm.gz\n\
    DynMap;simpleNumber;file.lm.gz\n\
    DynMap;prefixNumber;file.lm.gz\n\
+   DynMap;wordClasses-en.100.classes;file.lm.gz\n\
 ";
 
 LMDynMap::Creator::Creator(
@@ -49,14 +52,33 @@ LMDynMap::Creator::Creator(
    assert(lm_physical_filename.substr(0,strlen(header)) == header);
 }
 
-bool LMDynMap::Creator::checkFileExists()
+bool LMDynMap::Creator::checkFileExists(vector<string>* list)
 {
    // Removing the map type
    const string::size_type p = lm_physical_filename.find(separator);
    if (p == string::npos || p+1 == lm_physical_filename.size())
       error(ETFatal, "LMDynMap name not in the form: maptype;name\n%s", 
                help_the_poor_user);
-   return check_if_exists(lm_physical_filename.substr(p+1));
+   const string embedded_lm = lm_physical_filename.substr(p+1);
+   const string map_type = lm_physical_filename.substr(0, p);
+
+   bool ok = true;
+
+   if (isPrefix("wordClasses", map_type)) {      // word classes mapping
+      const Uint keylen = strlen("wordClasses");
+      string classesFile;
+      if (map_type.size() > keylen + 1) {
+         classesFile = map_type.substr(keylen+1);
+         if (list) list->push_back(classesFile);
+         if (!check_if_exists(classesFile)) {
+            ok = false;
+            error(ETWarn, "Can't access class file %s in DynMap LM %s",
+                  classesFile.c_str(), lm_physical_filename.c_str());
+         }
+      }
+   }
+
+   return PLM::checkFileExists(embedded_lm, list) && ok;
 }
 
 Uint64 LMDynMap::Creator::totalMemmapSize()
@@ -92,6 +114,7 @@ LMDynMap::LMDynMap(const string& name, VocabFilter* vocab,
    local_voc(NULL),
    mapping(NULL)
 {
+   time_t start = time(NULL);
    const string::size_type p = name.find(separator);
    if (p == string::npos || p+1 == name.size())
       error(ETFatal, "LMDynMap name not in the form: maptype;name\n%s", 
@@ -113,12 +136,21 @@ LMDynMap::LMDynMap(const string& name, VocabFilter* vocab,
       mapping = new LowerCaseMap(loc.c_str());
    } else if (isSuffix("Number", map_type.c_str())) {
       mapping = new Number(map_type);
+   } else if (isPrefix("wordClasses", map_type)) {      // word classes mapping
+      const Uint keylen = strlen("wordClasses");
+      string classesFile;
+      if (map_type.size() > keylen + 1)
+         classesFile = map_type.substr(keylen+1);
+      else
+         error(ETFatal, "syntax error in LMDynMap map type spec: " + map_type);
+      mapping = new WordClassesMap(classesFile, limit_vocab ? vocab : NULL);
    } else
       error(ETFatal, "unknown LMDynMap map type: %s\n%s",
             map_type.c_str(), help_the_poor_user);
    assert(mapping);
 
    local_voc = new VocabFilter(*vocab, *mapping, index_map);
+   cerr << "LMDynMap: Mapping initialization took " << (time(NULL) - start) << "s." << endl;
 
    // Construct the wrapped model
 
@@ -163,10 +195,20 @@ float LMDynMap::wordProb(Uint word, const Uint context[], Uint context_length)
 float LMDynMap::cachedWordProb(Uint word, const Uint context[],
                                Uint context_length)
 {
+   // We override cachedWordProb in this class so that we can cache queries in
+   // the mapped space, which should mean a smaller cache.
    Uint local_context[context_length];
    for (Uint i = 0; i < context_length; ++i)
       local_context[i] = localIndex(context[i]);
    return m->cachedWordProb(localIndex(word), local_context, context_length);
+}
+
+Uint LMDynMap::minContextSize(const Uint context[], Uint context_length)
+{
+   Uint local_context[context_length];
+   for (Uint i = 0; i < context_length; ++i)
+      local_context[i] = localIndex(context[i]);
+   return m->minContextSize(local_context, context_length);
 }
 
 void LMDynMap::newSrcSent(const vector<string>& src_sent,
@@ -188,6 +230,36 @@ string LMDynMap::fix_relative_path(const string& path, string file)
    if (!file.empty() && file[p+1] != '/')
       file.insert(p+1, path + "/");
 
+   // If we have a word-class map, apply the relative path modification to that too
+   if (isPrefix("wordClasses", file.substr(strlen(header)))) {
+      Uint classFilePos = strlen(header)+strlen("wordClasses")+1;
+      assert(classFilePos < file.size());
+      if (file[classFilePos] != '/')
+         file.insert(classFilePos, path + "/");
+   }
+
    return file;
+}
+
+const string LMDynMap::WordClassesMap::UNK_Symbol(PLM::UNK_Symbol);
+const string LMDynMap::WordClassesMap::SentStart(PLM::SentStart);
+const string LMDynMap::WordClassesMap::SentEnd(PLM::SentEnd);
+
+LMDynMap::WordClassesMap::WordClassesMap(const string& classesFile, Voc *vocab)
+: classesFile(classesFile)
+{
+   word_classes.read(classesFile, vocab, true);
+   class_str.reserve(word_classes.getHighestClassId()+1);
+   char buf[24];
+   for (Uint i = 0; i <= word_classes.getHighestClassId(); ++i) {
+      sprintf(buf, "%d", i);
+      class_str.push_back(buf);
+   }
+}
+
+const string& LMDynMap::WordClassesMap::operator()(string& in) {
+   if (in == SentStart || in == SentEnd || in == UNK_Symbol)
+      return in;
+   return getClassString(word_classes.classOf(in.c_str()));
 }
 

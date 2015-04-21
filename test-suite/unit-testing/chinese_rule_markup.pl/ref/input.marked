@@ -1,0 +1,9 @@
+<NUM value="80"> 八 十 </NUM>
+<NUM value="80 %"> 百分之 八十 </NUM>
+<NUM value="80 %"> 百分之 八十 </NUM> <NUM value="80 %"> 百分之 八十 </NUM>
+<NUM value="100"> 百 </NUM> <NUM value="80 %"> 百分之 八十 </NUM>
+说 容易 也 很 容易 , 我 去年 考 了 <NUM value="100"> 百 </NUM> <NUM value="80 %"> 百分之 八十 </NUM> 的 分儿 吧 .
+%well 没有 , 我 这 我 这 一 门儿 考 到 <NUM value="80 %"> 百分之 八十 </NUM> , 但是 那个 reading comprehensive 我 考 得 低 .
+
+诶 , 他们 <DATE value="NULL:8:NULL|xx月"> 八月 </DATE> 一号 .
+所以 想 用 <DATE value="NULL:7:NULL|xx月"> 7 月 </DATE> <DATE value="NULL:8:NULL|xx月"> 8 月 </DATE> 找 房

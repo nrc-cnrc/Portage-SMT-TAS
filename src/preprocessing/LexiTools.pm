@@ -528,7 +528,7 @@ sub split_word_fr #(word, offset)
    my $os = shift || 0;
    my @atom_positions = ();
 
-   if ($word !~ /^(d[$apostrophes]ailleurs|d[$apostrophes]abord|d[$apostrophes]autant|quelqu[$apostrophes]un(e|s|es)?)$/oi &&
+   if ($word !~ /^(d[$apostrophes]ailleurs|d[$apostrophes]abord|d[$apostrophes]autant|quelqu[$apostrophes]un(e|s|es)?|n[$apostrophes]djamena)$/oi &&
        $word =~ /^([cdjlmnst][$apostrophes]|[a-z]*qu[$apostrophes]|y-)(.+)/oi) {
       # y-a-t-il is actually wrong, so we replace it by y a-t-il.
       my $l1 = ($1 eq "y-" || $1 eq "Y-") ? 1 : len($1);

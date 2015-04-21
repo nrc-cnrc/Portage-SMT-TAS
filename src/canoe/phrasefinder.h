@@ -27,7 +27,7 @@ using namespace std;
 
 namespace Portage
 {
-   class PhraseDecoderModel;
+   class BasicModel;
    class PhraseInfo;
    class PartialTranslation;
 
@@ -61,6 +61,8 @@ namespace Portage
    class RangePhraseFinder: public PhraseFinder
    {
       private:
+
+         BasicModel* model;
 
          /**
           * The phrases, organized by the range that they cover.
@@ -100,24 +102,23 @@ namespace Portage
           *                      covered.  The (i, j)-th entry of the array
           *                      contains all the translation options for
           *                      the source range [i, i + j + 1).
-          * @param sentLength    The length of the source sentence that
+          * @param model         The current BasicModel used by the decoder
+          * @param model.getSourceLength()  The length of the source sentence that
           *                      phrases are coming from.
-          * @param distLimit     The maximum distortion distance allowed
+          * @param model.c->distLimit     The maximum distortion distance allowed
           *                      between two phrases.  NO_MAX_DISTORTION
           *                      (default) indicates no limit.
-          * @param itgLimit      The maximum distance we can travel from the
+          * @param model.c->itgLimit      The maximum distance we can travel from the
           *                      top of the shift-reduce stack in ITG mode
-          * @param distLimitSimple Whether to use the simple distortion limit
+          * @param model.c->distLimitSimple Whether to use the simple distortion limit
           *                      definition
-          * @param distLimitExt  Whether to use the extended distortion limit
+          * @param model.c->distLimitExt  Whether to use the extended distortion limit
           *                      definition
-          * @param distPhraseSwap Whether to allow swapping continguous
+          * @param model.c->distPhraseSwap Whether to allow swapping continguous
           *                      phrases, on top of whatever distLimit allows.
-          * @param distLimitITG  Whether to use ITG constraints
+          * @param model.c->distLimitITG  Whether to use ITG constraints
           */
-         RangePhraseFinder(vector<PhraseInfo *> **phrases, Uint sentLength,
-                           int distLimit, int itgLimit, bool distLimitSimple, bool distLimitExt,
-                           bool distPhraseSwap, bool distLimitITG);
+         RangePhraseFinder(vector<PhraseInfo *> **phrases, BasicModel& model);
 
          virtual void findPhrases(vector<PhraseInfo *> &p,
                                   PartialTranslation &t);

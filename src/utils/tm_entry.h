@@ -1,4 +1,3 @@
-// $Id$
 /**
  * @author Eric Joanis
  * @file tm_entry.h
@@ -76,34 +75,34 @@ public:
     * Parse the third column into a vector of T, destroying the internal
     * buffer in the process.
     * @param elements  Array of T's of size ThirdCount() 
-    * @param a_field   If non-NULL, an a= field will be allowed and, if found, stored in *a_field
-    * @param c_field   If non-NULL, a c= field will be allowed and, if found, stored in *c_field
+    * @param handler   Function that should implement operator()(const char* name, const char* value)
+    *                  and handle all named fields, and return true if the name/value pair is valid,
+    *                  false otherwise, in which case processing will stop with a fatal error.
+    *                  If handler is omitted, such extra fields are not allowed.
     */
-   template <class T> void parseThird(T* elements,
-         const char **a_field=NULL, char **c_field=NULL)
+   template <class T, class NamedFieldHandler> void parseThird(T* elements,
+         NamedFieldHandler& handler)
    {
-      if (a_field) *a_field = NULL;
-      if (c_field) *c_field = NULL;
-      char* tokens[third_count+3];
+      static vector<char*> tokens;
       // fast, destructive split
-      Uint actual_count = destructive_split(third, tokens, third_count+3);
+      Uint actual_count = destructive_splitZ(third, tokens);
       while (actual_count > third_count) {
-         if (a_field && strncmp(tokens[actual_count-1], "a=", 2) == 0) {
-            *a_field = tokens[actual_count-1] + 2;
-            --actual_count;
-         }
-         else if (c_field && strncmp(tokens[actual_count-1], "c=", 2) == 0) {
-            *c_field = tokens[actual_count-1] + 2;
-            --actual_count;
-         }
-         else {
+         char* token = tokens[actual_count-1];
+         char* equal_pos = strchr(token, '=');
+         if (!equal_pos) {
             // Issue an extra warning, as well as the ETFatal error that
             // will necessary get issued just after this while loop.
             error(ETWarn, "bad extra field (%s) in 3rd column in %s at line %u",
                   tokens[actual_count-1], File(), lineno);
             break;
          }
+         *equal_pos = 0;
+         if (handler(token, equal_pos+1))
+            --actual_count;
+         else
+            break; // handler rejected the field; error ETFatal will be issued just after this loop
       }
+
       if (actual_count != third_count)
          error(ETFatal, "Wrong number of 3rd column fields (%u instead of %u) in %s at line %u",
                actual_count, third_count, File(), lineno);
@@ -117,6 +116,17 @@ public:
             elements[i] = T(); // 0
          }
       }
+   }
+
+   /// Default handler for parseThird() does not accept named fields.
+   struct NoNamedFieldsHandler {
+      bool operator()(const char* name, const char* value) { return false; }
+   };
+
+   /// One argument version of parseThird does not accept named fields.
+   template <class T> void parseThird(T* elements) {
+      NoNamedFieldsHandler handler;
+      parseThird(elements, handler);
    }
 
    /**

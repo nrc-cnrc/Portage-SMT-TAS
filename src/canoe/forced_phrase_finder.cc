@@ -71,9 +71,7 @@ ForcedTargetPhraseFinder::ForcedTargetPhraseFinder(BasicModel &model,
             }
          }
       }
-      finderByTargetWord.push_back(RangePhraseFinder(curPhrases, srcLength,
-               model.c->distLimit, model.c->itgLimit, model.c->distLimitSimple,
-               model.c->distLimitExt, model.c->distPhraseSwap,model.c->distLimitITG));
+      finderByTargetWord.push_back(RangePhraseFinder(curPhrases, model));
    }
 } // ForcedTargetPhraseFinder
 

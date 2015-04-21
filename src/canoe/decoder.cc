@@ -33,21 +33,24 @@ namespace Portage
    HypothesisStack *runDecoder(BasicModel &model, const CanoeConfig& c,
                                bool usingLev, bool usingSR)
    {
-      if ( c.bCubePruning )
+      if (c.bCubePruning)
          return runCubePruningDecoder(model, c, usingLev, usingSR);
+      else
+         return runStackDecoder(model, c, usingLev, usingSR);
+   }
 
+   HypothesisStack *runStackDecoder(BasicModel &model, const CanoeConfig& c,
+                                    bool usingLev, bool usingSR)
+   {
       const Uint sourceLength = model.getSourceLength();
 
       // Create the phrase finder
       PhraseFinder* finder(NULL);
       if ( c.forcedDecoding || c.forcedDecodingNZ ) {
-         assert(model.tgt_sent);
-         finder = new ForcedTargetPhraseFinder(model, *model.tgt_sent);
+         assert(model.getTargetSent());
+         finder = new ForcedTargetPhraseFinder(model, *model.getTargetSent());
       } else {
-         finder = new RangePhraseFinder(model.getPhraseInfo(), sourceLength,
-               c.distLimit, c.itgLimit, c.distLimitSimple,
-               c.distLimitExt, c.distPhraseSwap,
-               c.distLimitITG);
+         finder = new RangePhraseFinder(model.getPhraseInfo(), model);
       }
 
       // If we only need to top hypothesis, there is no point in keeping
@@ -72,7 +75,7 @@ namespace Portage
       } // for
 
       // Run the decoder algorithm
-      runDecoder(model, hStacks, sourceLength, *finder, usingLev, usingSR, c.verbosity);
+      runStackDecoder(model, hStacks, sourceLength, *finder, usingLev, usingSR, c.verbosity);
 
       // Keep the final hypothesis stack
       HypothesisStack *result = hStacks[sourceLength];
@@ -88,11 +91,11 @@ namespace Portage
 
       delete finder;
       return result;
-   } // runDecoder
+   } // runStackDecoder
 
-   void runDecoder(PhraseDecoderModel &model, HypothesisStack **hStacks,
-           Uint sourceLength, PhraseFinder &finder,
-           bool usingLev, bool usingSR, Uint verbosity)
+   void runStackDecoder(PhraseDecoderModel &model, HypothesisStack **hStacks,
+         Uint sourceLength, PhraseFinder &finder,
+         bool usingLev, bool usingSR, Uint verbosity)
    {
       // Put the empty hypothesis on the first stack
       //assert(hStacks[0]->isEmpty());
@@ -208,6 +211,6 @@ namespace Portage
               << endl;
          cerr.precision(saved_precision);
       }
-   } // runDecoder
+   } // runStackDecoder
 
 } // ends namespace Portage

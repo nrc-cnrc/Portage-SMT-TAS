@@ -35,6 +35,8 @@
 #include "casemap_strings.h"
 #include "lm.h"
 #include "number_mapper.h"
+#include "word_classes.h"
+#include <stdio.h>
 
 namespace Portage
 {
@@ -93,6 +95,43 @@ class LMDynMap : public PLM
       }
    };
 
+   /**
+    * Map words to word classes.
+    */
+   struct WordClassesMap : public Mapping, private NonCopyable {
+      string classesFile;       ///< Word classes file name
+      WordClasses word_classes; ///< Word to class mapping
+      vector<string> class_str; ///< strings for class numbers
+
+      static const string UNK_Symbol;   ///< "<unk>";
+      static const string SentStart;    ///< "<s>";
+      static const string SentEnd;      ///< "</s>";
+
+      /**
+       * Default constructor.
+       * @param classesFile name of the classes file mapping words to class numbers.
+       * @param vocab       if non-NULL, add entries only for words also in vocab
+       */
+      WordClassesMap(const string& classesFile, Voc *vocab);
+
+      /**
+       * Makes this class a proper functor for VocabFilter.
+       * @param in  the input word.
+       * @return Returns the class for the input word as a string.
+       */
+      virtual const string& operator()(string& in);
+
+      /**
+       * Map a class number to its string representation; "<unk>" is returned
+       * for unknown classes.
+       * @param cls class number
+       * @return Returns the string representation of a class number.
+       */
+      const string& getClassString(Uint cls) {
+         return cls < class_str.size() ? class_str[cls] : UNK_Symbol;
+      }
+   };
+
    // contents
 
    bool limit_vocab;            ///< remember value on construction
@@ -115,9 +154,14 @@ class LMDynMap : public PLM
    }
 
 public:
+   /// Return true if lm_physical_filename describes an LMDynMap
+   static bool isA(const string& lm_physical_filename) {
+      return isPrefix(header, lm_physical_filename);
+   }
+
    struct Creator : public PLM::Creator {
       Creator(const string& lm_physical_filename, Uint naming_limit_order);
-      virtual bool checkFileExists();
+      virtual bool checkFileExists(vector<string>* list);
       virtual Uint64 totalMemmapSize();
       virtual PLM* Create(VocabFilter* vocab,
                           OOVHandling oov_handling,
@@ -144,6 +188,8 @@ public:
     *    - simpleNumber Substitute @ for digits in words that only contains
     *      digits and punctuation.
     *    - prefixNumber Substitute @ for digits which are prefix of a word.
+    *    - wordClasses-CLASSES Map a word to a corresponding word class;
+    *      <CLASSES> names a text file mapping word to class # as from mkcls.
     * @param vocab         shared vocab object for all models
     * @param oov_handling  whether the LM is open or closed voc.  See enum
     *                      OOVHandling's documentation for details.
@@ -173,6 +219,7 @@ public:
    virtual float wordProb(Uint word, const Uint context[], Uint context_length);
    virtual float cachedWordProb(Uint word, const Uint context[],
                                 Uint context_length);
+   virtual Uint minContextSize(const Uint context[], Uint context_length);
    virtual void clearCache() { m->clearCache(); }
    virtual void newSrcSent(const vector<string>& src_sent,
                            Uint external_src_sent_id);

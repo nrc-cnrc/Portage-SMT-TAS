@@ -3,7 +3,6 @@
  * @file prog.cc
  * @brief Briefly describe your program here.
  *
- *
  * Traitement multilingue de textes / Multilingual Text Processing
  * Tech. de l'information et des communications / Information and Communications Tech.
  * Conseil national de recherches Canada / National Research Council Canada
@@ -15,6 +14,7 @@
 #include <fstream>
 #include "file_utils.h"
 #include "arg_reader.h"
+#include "printCopyright.h"
 
 using namespace Portage;
 using namespace std;
@@ -42,6 +42,7 @@ static void getArgs(int argc, char* argv[]);
 
 int main(int argc, char* argv[])
 {
+   printCopyright(2015, "prog");
    getArgs(argc, argv);
 
    iSafeMagicStream istr(infile);

@@ -1,6 +1,7 @@
 #!/bin/bash
 
 MODELDIR=models
+export PORTAGE_INTERNAL_CALL=1
 
 run_cmd() {
    echo "$*"

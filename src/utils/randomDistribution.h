@@ -2,8 +2,6 @@
  * @author Samuel Larkin
  * @file randomDistribution.h  Contains three random distributions: normal, uniform and fix
  *
- * $Id$
- *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
@@ -34,6 +32,8 @@ class rnd_distribution
       rnd_distribution(const char * const name)
       : name(name)
       {}
+      /// Destructor.
+      virtual ~rnd_distribution() {}
       /// Seed the random number generator.
       /// @param s  seed
       void seed(unsigned int s) {
@@ -84,6 +84,7 @@ class normal : public rnd_distribution
       : rnd_distribution("normal")
       , rnd(generator(), distribution(mean, sigma))
       {}
+      virtual ~normal() {}
       virtual boost::taus88* getGen() { return &rnd.engine(); };
       virtual double get() { return rnd(); }
 };
@@ -108,6 +109,7 @@ class uniform : public rnd_distribution
       : rnd_distribution("uniform")
       , rnd(generator(), distribution(min, max))
       {}
+      virtual ~uniform() {}
       virtual boost::taus88* getGen() { return &rnd.engine(); };
       virtual double get() { return rnd(); }
 };
@@ -125,6 +127,7 @@ class constant_distribution : public rnd_distribution
       : rnd_distribution("constant")
       , value(value)
       {}
+      virtual ~constant_distribution() {}
       virtual boost::taus88* getGen() { return NULL; };
       virtual double get() { return value; }
 };
@@ -142,6 +145,7 @@ class weight_distribution : public rnd_distribution
       : rnd_distribution("weight")
       , value(value)
       {}
+      virtual ~weight_distribution() {}
       virtual boost::taus88* getGen() { return NULL; };
       virtual double get() { return value; }
       virtual void set(double v) { value = v; }

@@ -4,7 +4,6 @@
  * @brief The word alignment module used in gen_phrase_tables:
  * includes abstract interface, factory class, and aligner classes.
  *
- *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
@@ -105,8 +104,8 @@ class WordAlignerFactory
    IBM1* ibm_lang2_given_lang1;
    IBM1* ibm_lang1_given_lang2;
 
-   GizaAlignmentFile* file_lang2_given_lang1;
-   GizaAlignmentFile* file_lang1_given_lang2;
+   IBMAlignmentFile* file_lang2_given_lang1;
+   IBMAlignmentFile* file_lang1_given_lang2;
 
    Uint verbose;
    bool twist;
@@ -175,8 +174,8 @@ public:
     * @param allow_linkless_pairs during phrase extraction, allow phrase pairs
     *        that consist only of unaligned words in each language
     */
-   WordAlignerFactory(GizaAlignmentFile* file_lang2_given_lang1,
-                      GizaAlignmentFile* file_lang1_given_lang2,
+   WordAlignerFactory(IBMAlignmentFile* file_lang2_given_lang1,
+                      IBMAlignmentFile* file_lang1_given_lang2,
                       Uint verbose, bool twist, bool addSingleWords,
                       bool allow_linkless_pairs = false);
 
@@ -241,8 +240,8 @@ public:
    /// @name Get the GIZA alignment file.
    /// @return Returns the GIZA alignment file.
    //@{
-   GizaAlignmentFile* getFileLang1GivenLang2() {return file_lang1_given_lang2;}
-   GizaAlignmentFile* getFileLang2GivenLang1() {return file_lang2_given_lang1;}
+   IBMAlignmentFile* getFileLang1GivenLang2() {return file_lang1_given_lang2;}
+   IBMAlignmentFile* getFileLang2GivenLang1() {return file_lang2_given_lang1;}
    //@}
 
    /// @name Get the aligner
@@ -264,9 +263,9 @@ public:
 
    /// @name self explanatorily named get methods.
    //@{
-   Uint getVerbose() {return verbose;}
-   bool getTwist() {return twist;}
-   bool getAddSingleWords() {return addSingleWords;}
+   Uint getVerbose() const {return verbose;}
+   bool getTwist() const {return twist;}
+   bool getAddSingleWords() const {return addSingleWords;}
    //@}
 
    /**
@@ -283,16 +282,16 @@ public:
       PhrasePair(Uint beg1, Uint end1, Uint beg2, Uint end2) :
          beg1(beg1), end1(end1), beg2(beg2), end2(end2) {}
 
-      bool overlap(PhrasePair& pp) {
+      bool overlap(PhrasePair& pp) const {
          return
             (pp.beg1 < end1 && beg1 < pp.end1) ||
             (pp.beg2 < end2 && beg2 < pp.end2);
       }
 
-      void dump(ostream& os) {
+      void dump(ostream& os) const {
          os << "[" << beg1 << "," << end1 << ")[" << beg2 << "," << end2 << ")";
       }
-      void dump(ostream& os, const vector<string>& toks1, const vector<string>& toks2) {
+      void dump(ostream& os, const vector<string>& toks1, const vector<string>& toks2) const {
          os << join(toks1.begin()+beg1, toks1.begin()+end1, "_") << "/"
             << join(toks2.begin()+beg2, toks2.begin()+end2, "_");
       }
@@ -446,6 +445,15 @@ public:
    virtual double align(const vector<string>& toks1,
                         const vector<string>& toks2,
                         vector< vector<Uint> >& sets1);
+};
+
+/**
+ * GDFAAligner is an alias for IBMOchAligner 4
+ */
+class GDFAAligner : public IBMOchAligner
+{
+public:
+   GDFAAligner(WordAlignerFactory& factory, const string& args);
 };
 
 /**

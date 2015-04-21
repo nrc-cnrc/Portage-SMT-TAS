@@ -1,4 +1,3 @@
-// $Id$
 /**
  * @author Samuel Larkin
  * @file strip_non_printing.cc

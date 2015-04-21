@@ -166,8 +166,8 @@ namespace Portage
     *
     * @param model  The PhraseDecoderModel to be used by the decoder.
     * @param c.maxRegularStackSize  The number of states to keep on each regular
-    *         hypothesis stack.
-    * @param c.maxStackSize  The number of states to keep on each cube pruning
+    *         hypothesis stack (for stack decoding only).
+    * @param c.maxStackSize  The number of states to keep on each cube-pruning
     *         hypothesis stack.
     * @param log(c.pruneThreshold)  The relative threshold that states must be
     *         above to be kept on each hypothesis stack.
@@ -191,9 +191,13 @@ namespace Portage
    HypothesisStack *runDecoder(BasicModel &model, const CanoeConfig& c,
                                bool usingLev, bool usingSR);
 
+   /// Run the regular stack-based decoder (2004 style decoding)
+   HypothesisStack *runStackDecoder(BasicModel &model, const CanoeConfig& c,
+                                    bool usingLev, bool usingSR);
+
    /**
-    * Runs the decoder algorithm.  Uses the hypothesis stacks given, emptying
-    * all but the last one.
+    * Runs the stack decoder algorithm.  Uses the hypothesis stacks given,
+    * emptying all but the last one.
     * @param model  The PhraseDecoderModel to be used to score phrases.
     * @param hStacks   An array of length (sourceLength + 1) containing
     *         pointers to hypothesis stacks.  Each stack should initially be
@@ -203,9 +207,9 @@ namespace Portage
     * @param usingLev Specifies if the decoder is using levenshtein
     * @param verbosity  Indicates the level of verbosity
     */
-   void runDecoder(PhraseDecoderModel &model, HypothesisStack **hStacks,
-                   Uint sourceLength, PhraseFinder &phraseFinder,
-                   bool usingLev, bool usingSR, Uint verbosity);
+   void runStackDecoder(PhraseDecoderModel &model, HypothesisStack **hStacks,
+                        Uint sourceLength, PhraseFinder &phraseFinder,
+                        bool usingLev, bool usingSR, Uint verbosity);
 
 } // Portage
 

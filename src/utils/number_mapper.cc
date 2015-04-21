@@ -44,9 +44,10 @@ void NumberMapper::baseNumberMapper::map(const string& in, string& out)
    out = in; 
 }
 
-void NumberMapper::baseNumberMapper::operator()(const string& in, string& out)
+bool NumberMapper::baseNumberMapper::operator()(const string& in, string& out)
 {
    map(in, out);
+   return true;
 }
 
 

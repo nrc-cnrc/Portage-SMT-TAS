@@ -2,9 +2,9 @@
  * @author George Foster
  * @file word_align_tool.cc
  * @brief Reformat and perform other operations on word alignments.
- * 
- * 
- * COMMENTS: 
+ *
+ *
+ * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
@@ -65,7 +65,7 @@ static string text1, text2, al_in, al_out;
 
 static void getArgs(int argc, char* argv[]);
 static void transpose(vector<string>& toks1, vector<string>& toks2, vector< vector<Uint> >& sets1);
-static void writePatterns(ostream& al_out_file, 
+static void writePatterns(ostream& al_out_file,
                           const vector<string>& toks1, const vector<string>& toks2,
                           vector< vector<Uint> >& sets,
                           vector< vector<Uint> >& csets);
@@ -88,11 +88,12 @@ int main(int argc, char* argv[])
       crp_file = new oSafeMagicStream(crp);
 
    WordAlignmentReader* wal_reader = WordAlignmentReader::create(fin);
-   WordAlignmentWriter* wal_writer = fout == "patterns" ? 
+   WordAlignmentWriter* wal_writer = fout == "patterns" ?
       NULL : WordAlignmentWriter::create(fout);
+   assert(wal_reader);
 
    if (fout == "patterns") do_closure = true;
-   
+
    string line1, line2;
    vector<string> toks1, toks2;
 
@@ -100,7 +101,7 @@ int main(int argc, char* argv[])
    vector< vector<Uint> > csets;
 
    Uint line_num = 0;
-   
+
    while (getline(text1_file, line1)) {
       ++line_num;
       if (!getline(text2_file, line2))
@@ -118,7 +119,7 @@ int main(int argc, char* argv[])
          (*wal_writer)(al_out_file, toks1, toks2, sets1);
       else
          writePatterns(al_out_file, toks1, toks2, sets1, csets);
-      
+
       if (crp_file) {
          const string& l1 = do_transpose ? line2 : line1;
          const string& l2 = do_transpose ? line1 : line2;
@@ -147,9 +148,9 @@ void transpose(vector<string>& toks1, vector<string>& toks2, vector< vector<Uint
    swap(toks1, toks2);
 }
 
-// Produce an alignment pattern; pos_set is assumed to be sorted ascending 
+// Produce an alignment pattern; pos_set is assumed to be sorted ascending
 
-string& alignPattern(const vector<Uint>& pos_set, Uint ntoks, string& str, 
+string& alignPattern(const vector<Uint>& pos_set, Uint ntoks, string& str,
                      const vector<string>* toks = NULL)
 {
    assert(pos_set.size());
@@ -171,7 +172,7 @@ string& alignPattern(const vector<Uint>& pos_set, Uint ntoks, string& str,
 
 // NB: contents of sets and csets are sorted ascending in place
 
-void writePatterns(ostream& al_out_file, 
+void writePatterns(ostream& al_out_file,
                    const vector<string>& toks1, const vector<string>& toks2,
                    vector< vector<Uint> >& sets,
                    vector< vector<Uint> >& csets)
@@ -181,7 +182,7 @@ void writePatterns(ostream& al_out_file,
    string s1, s2;
 
    ++line_num;
-  
+
    for (Uint i = 0; i < csets.size(); ++i) {
 
       sort(csets[i].begin(), csets[i].end());
@@ -200,16 +201,16 @@ void writePatterns(ostream& al_out_file,
 
       // write L1 positions
       for (Uint j = 0; j < csets[i].size(); ++j) {
-         al_out_file << csets[i][j] 
+         al_out_file << csets[i][j]
                      << (j+1 < csets[i].size() ? ',' : ':');
       }
       // write L2 positions
       for (Uint j = 0; j < sets[k].size(); ++j)
-         al_out_file << sets[k][j] 
+         al_out_file << sets[k][j]
                      << (j+1 < sets[k].size() ? ',' : ' ');
 
       // write phrases
-      al_out_file << "||| " 
+      al_out_file << "||| "
                   << alignPattern(csets[i], toks1.size(), s1, &toks1) << " ||| "
                   << alignPattern(sets[k], toks2.size(), s2, &toks2) << endl;
    }

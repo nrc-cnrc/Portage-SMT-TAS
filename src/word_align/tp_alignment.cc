@@ -24,11 +24,7 @@ const string TPAlignment::final_marker = ": end of index and file.";
 
 bool TPAlignment::isTPAlignmentFile(const string& filename)
 {
-   ifstream in(filename.c_str());
-   char buffer[magic_number.size()+1];
-   in.read(buffer, magic_number.size());
-   return in.good() &&
-          0 == strncmp(buffer, magic_number.c_str(), magic_number.size());
+   return matchMagicNumber(filename, magic_number);
 }
 
 TPAlignment::TPAlignment(const string& filename)

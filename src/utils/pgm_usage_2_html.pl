@@ -174,7 +174,7 @@ my $footer = <<FOOTER;
 Technologies langagi&egrave;res interactives / Interactive Language Technologies<BR>
 Technologies de l'information et des communications / Information and Communications Technologies<BR>
 Conseil national de recherches Canada / National Research Council Canada<BR>
-Copyright &copy; 2004-2014, Sa Majest&eacute; la Reine du Chef du Canada / Her Majesty in Right of Canada
+Copyright &copy; 2004-2015, Sa Majest&eacute; la Reine du Chef du Canada / Her Majesty in Right of Canada
   </font>
   </td>
 </tr>

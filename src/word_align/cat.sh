@@ -54,6 +54,16 @@ Options to control parallel processing:
 
 Model training options are documented in "train_ibm -h".
 
+Building very large models:
+  When training IBM1 models on very large corpora, you should:
+    - Allocate lots of RAM (>=32GB) for the master, and thus iteration 0
+    - Use -filter-singletons 50: this significantly reduces the memory bubble
+      that happens during iteration 0
+    - Allocate >=16GB RAM per worker for iteration 1.
+    (On Balzac: psub -8 cat.sh -rp '-psub -4' -filter-singletons 50 ...)
+  IBM2 and HMM models for the same corpus should only need 8GB of RAM per
+  worker.  (On Balzac: psub -2 cat.sh ...)
+
 ==EOF==
 
    exit 1

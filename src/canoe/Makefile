@@ -1,3 +1,4 @@
+# @file Makefile
 #
 # Canoe Decoder
 # Aaron Tikuisis
@@ -22,12 +23,16 @@ INCLUDES=$(filter-out canoe_help.h filter_models.h, \
 
 OBJECTS= \
     alignedphrase.o \
+    alignment_annotation.o \
     backwardsmodel.o \
     basicmodel.o \
+    bilm_annotation.o \
     bilm_model.o \
     canoe_general.o \
     canoe_constants.o \
     config_io.o \
+    count_annotation.o \
+    annotation_list.o \
     cube_pruning_decoder.o \
     cube_pruning_hyp_stack.o \
     decoder.o \
@@ -52,10 +57,13 @@ OBJECTS= \
     pruning_style.o \
     rule_feature.o \
     segmentmodel.o \
+    simple_overlay.o \
     shift_reducer.o \
     soft_filter_tm_visitor.o \
+    sparsemodel.o \
     translationProb.o \
     unal_feature.o \
+    walls_zones.o \
     wordgraph.o
 
 LIBRARY=libportage_canoe
@@ -74,6 +82,7 @@ PROGRAMS=$(TESTPROGS) \
 	mix_phrasetables
 
 BINSCRIPTS= \
+	build-sparse-model.sh \
 	canoe-parallel.sh \
 	canoe-timing-stats.pl \
 	nbest2rescore.pl \
@@ -86,13 +95,13 @@ DOCUMENTS=canoe.pdf
 
 EXTRA_LIBS=$(LOGGING_LIB)
 
-DYNLIBS=$(LIBICU) -lboost_system
+DYNLIBS=$(LIBICU) -lboost_system -lboost_filesystem
 
 canoe: DYNLIBS += -lpthread
 
 MODULE_CF=
 
-MODULE_DEPENDS=logging tm word_align lm tp_models tpt
+MODULE_DEPENDS=logging tm word_align lm tp_models tpt preprocessing
 
 include ../build/Makefile.incl
 

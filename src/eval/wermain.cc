@@ -30,12 +30,17 @@ int MAIN(argc, argv)
    printCopyright(2004, "wermain");
    wermain::ARG arg(argc, argv);
 
+   FileReader::FixReader<Translation> inputReader(arg.sTestFile, 1);
+
+   //LOG_VERBOSE2(verboseLogger, "Creating references Reader");
+   referencesReader  rReader(arg.sRefFiles);
+
    using namespace scoremain;
    if (arg.bDoPer) {
-      score<PERstats>(arg);
+      score<PERstats>(arg, inputReader, rReader);
    }
    else {
-      score<WERstats>(arg);
+      score<WERstats>(arg, inputReader, rReader);
    }
 } END_MAIN
 

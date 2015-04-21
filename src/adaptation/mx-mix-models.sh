@@ -31,7 +31,7 @@ usage() {
    done
    cat <<==EOF== >&2
 
-mx-mix-models.sh [-v][-nofilt][-a args][-d pfx][-e ext]
+mx-mix-models.sh [-v][-nofilt][-a args][-d pfx][-e ext][-o outfile]
                  type wts components textfile
 
 Generate a mixture model of a specified type, by applying given weights to a
@@ -40,10 +40,12 @@ weights; <components> contains basenames of curresponding models (complete
 paths for models are specified by -d and -e). <type> is one of:
 
    mixlm  - mix language models by writing mixlm file
+   srimix - mix language models by writing static lm file
+            (requires a valid SRILM licence)
    rf     - mix relative-frequency phrase tables, using:
             mix_phrasetables args -wf wts -f textfile models
 
-The resulting mixture model is written to stdout.
+The resulting mixture model is written to stdout unless -o is specified.
 
 Options:
 
@@ -52,6 +54,7 @@ Options:
 -d  prepend <pfx> to the pathname for component files
 -e  append <ext> to the pathname for component files
 -a  pass argument(s) <args> to mixing program
+-o  write output to outfile
 
 ==EOF==
 
@@ -64,6 +67,7 @@ VERBOSE=0
 cmpt_pfx=
 cmpt_ext=
 args=
+ofile=
 filt="-f"
 
 while [ $# -gt 0 ]; do
@@ -74,6 +78,7 @@ while [ $# -gt 0 ]; do
    -d)                  arg_check 1 $# $1; cmpt_pfx=$2; shift;;
    -e)                  arg_check 1 $# $1; cmpt_ext=$2; shift;;
    -a)                  arg_check 1 $# $1; args=$2; shift;;
+   -o)                  arg_check 1 $# $1; ofile=$2; shift;;
    --)                  shift; break;;
    -*)                  error_exit "Unknown option $1.";;
    *)                   break;;
@@ -110,12 +115,24 @@ models="models.$tmp"
 # Run
 
 case $type in
-    mixlm)
-	paste $models $wts ;;
-    rf)
-	eval mix_phrasetables $args -wf $wts $filter_opt `cat $models` ;;
-    *)        
-	error_exit "Unknown metric <$metric>!"
+   mixlm)
+      if [[ -n $ofile ]]; then paste $models $wts > $ofile
+      else paste $models $wts
+      fi ;;
+   srimix)
+      if [[ -z $ofile ]]; then 
+         error_exit "srimix requires explicit -o"
+      else
+         sri-mix-lms.py -v $models $wts $ofile
+      fi ;;
+   rf)
+      if [[ -n $ofile ]]; then
+         eval mix_phrasetables $args -wf $wts $filter_opt `cat $models` > $ofile 
+      else 
+         eval mix_phrasetables $args -wf $wts $filter_opt `cat $models`
+      fi ;;
+   *)        
+      error_exit "Unknown metric <$metric>!"
 esac
 
 # Cleanup 

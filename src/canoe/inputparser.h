@@ -15,7 +15,9 @@
  */
 
 #include "canoe_general.h"
+#include "new_src_sent_info.h"
 #include <iostream>
+#include <boost/shared_ptr.hpp>
 
 #ifndef INPUTPARSER_H
 #define INPUTPARSER_H
@@ -34,6 +36,8 @@ namespace Portage
       istream &in;   ///< Stream we are reading from
 
       Uint lineNum;  ///< Current line number
+
+      bool _done;    ///< set when readMarkedSent() has nothing to return because of eof()
 
       /// Doing load balancing thus each source sentence has an id
       const bool withId;
@@ -64,7 +68,8 @@ namespace Portage
       static const Uint max_warn = 3;
 
       /**
-       * Assuming that '<' was just read, reads an entire mark of the format:
+       * Assuming that '<' and the tag name was just read, reads an entire mark
+       * of the format:
        * <MARKNAME target = "TGTPHRASE(|TGTPHRASE)*" (prob = "PROB(|PROB)*"|) >
        * SRCPHRASE "</MARKNAME >"
        *
@@ -76,14 +81,17 @@ namespace Portage
        *
        * @param sent      Used to store the source sentence being read.
        * @param marks     Used to store marks.
-       * @param lastChar  The last character read; should initially be '<',
-       *                  and at the end will be the first character after
-       *                  the final >.
-       * @param class_names will contain the rule's class name.
+       * @param tagName   The name of the tag, which has just been read from in.
+       * @param lastChar  The last character read; should be the character
+       *                  after the tag name on entry; will be the character
+       *                  following the final '>' on successful exit.
+       * @param class_names  If non-NULL, the class-name of all rules
+       *                     found will be added (only once per class name)
        * @return  true iff no error was encountered
        */
       bool readMark(vector<string> &sent,
             vector<MarkedTranslation> &marks,
+            const string& tagName,
             char &lastChar,
             vector<string>* class_names = NULL);
 
@@ -142,10 +150,24 @@ namespace Portage
       InputParser(istream &in, bool withId=false);
 
       /**
-       * Tests whether the end of file has been reached.
-       * @return  true iff the end of file has been reached.
+       * Tests whether all input sentences have been processed.
+       *
+       * Unlike the old eof(), done() returns true once readMarkedSent() has
+       * failed to read a sentence because it was at eof(), rather than by just
+       * looking at the input stream's eof() flag.
+       *
+       * Now, one can write a loop like this:
+       *    newSrcSentInfo nss;
+       *    reader.readMarkedSent(nss)
+       *    while (!reader.done()) {
+       *       process nss
+       *       reader.readMarkedSent(nss)
+       *    }
+       *
+       * @return  true iff the last call to readMarkedSent() returned an empty
+       *          sentence because of eof.
        */
-      bool eof();
+      bool done() const;
 
       /**
        * lineNum accessor
@@ -154,19 +176,44 @@ namespace Portage
       Uint getLineNum() const { return lineNum; }
 
       /**
-       * Reads and parses a line of input.  If the line is improperly
-       * formatted, terminates the program with an error.
-       * @param sent      A vector containing all the words in the
-       *                  sentence in order.
-       * @param marks     A vector containing the marks in the sentence.
-       * @param[out] sourceSentenceId  source senctence id
-       * @param class_names will contain the rule's class name.
-       * @return  true iff no error was encountered
+       * Reads and parses a line of input.
+       *
+       * @param[out] nss  Groups most parameters to this option; will be
+       *                  cleared before use.
+       * @param[out] nss.src_sent A vector containing all the words in the
+       *                          sentence in order.
+       * @param[out] nss.marks    A vector containing the marks in the sentence.
+       * @param[out] nss.external_src_sent_id  Source sentence ID
+       * @param[out] nss.zones    Will contain the zones found in the sentence
+       * @param[out] nss.walls    Will contain the walls found in the sentence
+       * @param[out] class_names  If non-NULL, the class-name of all rules
+       *                          found will be added (only once per class name)
+       * @return  true iff no error was encountered and the line is properly formatted.
        */
-      bool readMarkedSent(vector<string> &sent,
-            vector<MarkedTranslation> &marks,
-            vector<string>* class_names = NULL,
-            Uint* sourceSentenceId = NULL);
+      bool readMarkedSent(newSrcSentInfo& nss, vector<string>* class_names = NULL);
+
+      /**
+       * wrapper for readMarkedSent() with getline()-like semantics, and a
+       * fatal error in case of bad input.
+       * Allows for use of the reader with this simplified loop:
+       *    PSrcSent ss;
+       *    while (ss = reader.getMarkedSent()) {
+       *       process *ss
+       *    }
+       * @param[out] class_names  If non-NULL, the class-name of all rules
+       *                          found will be added (only once per class name)
+       * @return a shared_ptr to a newly allocated newSrcSentInfo object that
+       *         contains all the info of the sentence that was read; on end of
+       *         input, that shared pointer will evaluate as false in boolean
+       *         context.
+       */
+      PSrcSent getMarkedSent(vector<string>* class_names = NULL);
+
+      /**
+       * Skips a line of input
+       * @return true iff no error was encountered
+       */
+      bool skipMarkedSent();
 
       /**
        * Report occurrence counts for warnings that are only reported a limited

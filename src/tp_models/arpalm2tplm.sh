@@ -41,6 +41,7 @@ Options:
    -h(elp)      Print this help message
    -v(erbose)   Increment the verbosity level by 1 (may be repeated)
    -d(ebug)     Debug mode - don't delete tmp directory.
+   -q(uiet)     Quietish mode
 
 ==EOF==
 
@@ -73,14 +74,16 @@ check_pos_int() {
    fi
 }
 
-NUM_PAR=1
-VERBOSE=0
+# default behaviour for NUM_PAR depends on LM size
+NUM_PAR=
+VERBOSE=1
 while [ $# -gt 0 ]; do
    case "$1" in
    -h|-help)     usage;;
    -n)           arg_check 1 $# $!; arg_check_pos_int $2 $1; NUM_PAR=$2; shift;;
    -v|-verbose)  VERBOSE=$(( $VERBOSE + 1 ));;
    -d|-debug)    DEBUG=1;;
+   -q|-quiet)    VERBOSE=0;;
    --)           shift; break;;
    -*)           error_exit "Unknown option $1.";;
    *)            break;;
@@ -110,7 +113,7 @@ fi
 
 OUTPUTLM=`basename $OUTPUTLM .tplm`
 
-echo "Building TPLM $OUTPUTLM.tplm of order $LMORDER for LM $TEXTLM, using $NUM_PAR parallel job(s)." >&2
+echo "Building TPLM $OUTPUTLM.tplm of order $LMORDER for LM $TEXTLM." >&2
 
 if [[ `basename $TEXTLM` == $TEXTLM ]]; then
    #TEXTLM is in current directory
@@ -149,7 +152,16 @@ ${TIME_MEM} arpalm.encode $TEXTLM ../$OUTPUTLM.tplm/ >& $(redirect arpalm.encode
 perl -nle '@tokens = split; print "@tokens &> log.$tokens[-1]"' \
    < sng-av.jobs > sng-av.jobs.logging
 
-verbose 1 "Running sub jobs in parallel."
+if [[ ! $NUM_PAR ]]; then
+   if (( `wc -l < sng-av.jobs` < 8 )); then
+      NUM_PAR=1
+      export PORTAGE_NOCLUSTER=1
+   else
+      NUM_PAR=4
+   fi
+fi
+
+verbose 1 "Running sub jobs $NUM_PAR-way(s) parallel."
 verbose 1 "run-parallel.sh ${RP_OPTS} sng-av.jobs.logging $NUM_PAR >& $(redirect arpalm.sng-av)"
 run-parallel.sh ${RP_OPTS} sng-av.jobs.logging $NUM_PAR >& $(redirect arpalm.sng-av)
 

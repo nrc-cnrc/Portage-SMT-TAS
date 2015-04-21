@@ -73,39 +73,16 @@ int main(int argc, char* argv[])
    getArgs(argc, argv);
 
    // create IBM models if needed
-
-   if (verbose) cerr << "reading IBM models" << endl;
-   if ( (ibm_tgt_given_src != "" || ibm_src_given_tgt != "")  && ibmtype == "") {
-      if (check_if_exists(HMMAligner::distParamFileName(ibm_tgt_given_src)) &&
-	  check_if_exists(HMMAligner::distParamFileName(ibm_src_given_tgt)))
-         ibmtype = "hmm";
-      else if (check_if_exists(IBM2::posParamFileName(ibm_tgt_given_src)) &&
-	       check_if_exists(IBM2::posParamFileName(ibm_src_given_tgt)))
-         ibmtype = "2";
-      else
-	 ibmtype = "1";
-   }
-   IBM1* ibm_1 = NULL;		// tgt_given_src
-   IBM1* ibm_2 = NULL;		// src_given_tgt
-   if ( ibm_tgt_given_src != "" && ibm_src_given_tgt != "" ) {
-      if (ibmtype == "hmm") {
-         if (verbose) cerr << "loading HMM models" << endl;
-         if (ibm_tgt_given_src != "") ibm_1 = new HMMAligner(ibm_tgt_given_src);
-         if (ibm_src_given_tgt != "") ibm_2 = new HMMAligner(ibm_src_given_tgt);
-      } else if (ibmtype == "1") {
-         if (verbose) cerr << "loading IBM1 models" << endl;
-         if (ibm_tgt_given_src != "") ibm_1 = new IBM1(ibm_tgt_given_src);
-         if (ibm_src_given_tgt != "") ibm_2 = new IBM1(ibm_src_given_tgt);
-      } else if (ibmtype == "2") {
-         if (verbose) cerr << "loading IBM2 models" << endl;
-         if (ibm_tgt_given_src != "") ibm_1 = new IBM2(ibm_tgt_given_src);
-         if (ibm_src_given_tgt != "") ibm_2 = new IBM2(ibm_src_given_tgt);
-      }
+   IBM1* ibm_1 = NULL;         // tgt_given_src
+   IBM1* ibm_2 = NULL;         // src_given_tgt
+   if (ibm_tgt_given_src != "" && ibm_src_given_tgt != "") {
+      if (verbose) cerr << "reading IBM models" << endl;
+      IBM1::createIBMModelPair(ibm_1, ibm_2, ibm_tgt_given_src, ibm_src_given_tgt,
+                               ibmtype, verbose);
    }
 
    WordAlignerFactory alfactory(ibm_1, ibm_2, 0, false, false);
    WordAligner* aligner = alfactory.createAligner(align_method);
-   assert(aligner);
 
    WordAlignmentWriter* alwriter = WordAlignmentWriter::create(output_format);
    GALEWriter* galewriter = NULL;

@@ -362,7 +362,7 @@ def add_markup_line(line):
     returns: marked up text string
     """
     debug("add_markup_line:", line_number)
-    toks = line.split()
+    toks = split(line)
     idx = 0
     results = []
     while idx < len(toks):
@@ -579,7 +579,7 @@ class PyLM(object):
         """
         self.__vf = self.__lib_pylm.VocabFilter_new()
         for line in infile:
-            for tok in line.split():
+            for tok in line.replace('\t', ' ').split(' '):
                 tok_lower = tok.lower()
                 tok_cap = capitalize_token(tok.lower())
                 self.__lib_pylm.VocabFilter_add(self.__vf, self.__encode(tok))

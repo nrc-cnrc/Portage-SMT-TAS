@@ -92,9 +92,9 @@ int main(int argc, char* argv[])
      cerr << "minimal phrase length has to be at least 1 -> changing this!" << endl;
    }
    if ( minlen > maxlen ) {
-     cerr << "Minimal phrase length is greater than the maximal one! This doesn't make sense -> exit!!!" << endl
-          << "min: " << minlen << " max: " << maxlen << endl;
-     exit(1);
+     error(ETFatal, "Minimal phrase length is greater than the maximal one! "
+                    "This doesn't make sense -> exit!!!\n"
+                    "min: %u max: %u", minlen, maxlen);
    }
 
    IBM1* ibm_src_given_tgt;

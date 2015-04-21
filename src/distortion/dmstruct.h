@@ -69,6 +69,14 @@ struct DistortionCount {
 
    DistortionCount() {clear();}
    DistortionCount(int x) {clear();}
+   DistortionCount( Uint prevmono, Uint prevswap, Uint prevdisc, Uint nextmono, Uint nextswap, Uint nextdisc)
+      : prevmono(prevmono)
+      , prevswap(prevswap)
+      , prevdisc(prevdisc)
+      , nextmono(nextmono)
+      , nextswap(nextswap)
+      , nextdisc(nextdisc)
+   {}
 
    DistortionCount& operator+=(const DistortionCount& dc) {
       for (Uint i = 0; i < size(); ++i) val(i) += dc.val(i);
@@ -86,6 +94,7 @@ struct DistortionCount {
    // NB: used during sorting for phrasetable pruning. Not applicable in all
    // contexts!
    bool operator==(const DistortionCount& dc) const {return freq() == dc.freq();}
+   bool operator!=(const DistortionCount& dc) const {return freq() == dc.freq();}
 
    // Read from a token sequence
    void read(vector<string>::const_iterator b, vector<string>::const_iterator e) {

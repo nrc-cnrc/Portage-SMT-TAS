@@ -3,8 +3,6 @@
  * @file soft_filter_tm_visitor.cc  soft-limit phrase table filter based on
  *                                  filter_joint
  *
- * $Id$
- *
  * Implements the soft filtering of phrase table
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -47,8 +45,10 @@ softFilterTMVisitor::PhraseInfo4SoftFiltering::PhraseInfo4SoftFiltering(const pa
 
 softFilterTMVisitor::softFilterTMVisitor(
       const PhraseTable &parent,
-      double log_almost_0)
+      double log_almost_0,
+      const string& pruningTypeStr)
 : Parent(parent, log_almost_0, "SOFT")
+, combined(pruningTypeStr == "combined" || pruningTypeStr == "full")
 {
    LOG_VERBOSE4(ptLogger_softFilterTMVisitor, "soft filter_joint LOG probs with resized converted");
 }
@@ -67,7 +67,10 @@ void softFilterTMVisitor::operator()(TargetPhraseTable& tgtTable)
       // them all in a way that the dynamic algo will work correctly
       for (TargetPhraseTable::const_iterator it = tgtTable.begin(); it != tgtTable.end(); ++it) {
          PhraseInfo4SoftFiltering* newPI = new PhraseInfo4SoftFiltering(&*it, numTextTransModels, log_almost_0);
-         phrases.push_back(make_pair(newPI->forward_trans_prob, newPI));
+         double filter_sorting_score =
+            (combined ? (newPI->forward_trans_prob + newPI->phrase_trans_prob)
+                      : newPI->forward_trans_prob);
+         phrases.push_back(make_pair(filter_sorting_score, newPI));
       }
 
       // Sorting for the dynamic algo to work
@@ -106,8 +109,10 @@ void softFilterTMVisitor::operator()(TargetPhraseTable& tgtTable)
                cerr << "result is false" << endl;
             }// */
 
-            // Is j's count greater then L with don't keep this phrase
-            // or is there enough phrase before j that would make discarding j possible
+            // If j's count is greater then L then we know we won't keep this phrase, so
+            // stop.
+            // If count+j < L, we know we don't have enough phrases left before j to make
+            // discarding j possible, so stop too.
             if (count >= L || count + j < L) {
                break;
             }
@@ -145,7 +150,7 @@ void softFilterTMVisitor::operator()(TargetPhraseTable& tgtTable)
 }
 
 
-bool softFilterTMVisitor::lessdot(ForwardBackwardPhraseInfo& in, ForwardBackwardPhraseInfo& jn) const
+bool softFilterTMVisitor::lessdot(PhraseInfo& in, PhraseInfo& jn) const
 {
    assert(in.forward_trans_probs.size() == jn.forward_trans_probs.size());
    assert(in.phrase_trans_probs.size()  == jn.phrase_trans_probs.size());
@@ -156,22 +161,42 @@ bool softFilterTMVisitor::lessdot(ForwardBackwardPhraseInfo& in, ForwardBackward
    cerr << "jn: " << parent.getStringPhrase(jn.phrase) << endl;
    cerr << "forward: " << join(jn.forward_trans_probs) << " ";
    cerr << "backward: " << join(jn.phrase_trans_probs) << endl;
-   //*/
-   
-   // First comparison criterion is forward score:
-   //  - false if any in.forward > jn.forward
-   //  - true if all in.forward < jn.forward 
-   //  - go on to next criterion if all in.forward <= jn.forward but not all <
-   bool bX(true);
-   for (Uint i(0); i<in.forward_trans_probs.size(); ++i) {
-      if (in.forward_trans_probs[i] > jn.forward_trans_probs[i]) return false;
-      bX = bX && (in.forward_trans_probs[i] < jn.forward_trans_probs[i]);
+   // */
+
+   if (combined) {
+      // In combined mode, the first comparison is over all forward and backward scores.
+      bool bC(true);
+      for (Uint i(0); i<in.forward_trans_probs.size(); ++i) {
+         if (in.forward_trans_probs[i] > jn.forward_trans_probs[i]) return false;
+         bC = bC && (in.forward_trans_probs[i] < jn.forward_trans_probs[i]);
+      }
+      for (Uint i(0); i<in.phrase_trans_probs.size(); ++i) {
+         if (in.phrase_trans_probs[i] > jn.phrase_trans_probs[i]) return false;
+         bC = bC && (in.phrase_trans_probs[i] < jn.phrase_trans_probs[i]);
+      }
+      if (bC == true) return true;
+
+      // Note: even in combined mode, the second comparison is the same as in non-combined
+      // mode, which means we're reversing the comparison direction for
+      // phrase_trans_probs. This is what the decoder really does, like it or not, so we
+      // have to follow suite in filtering. This means soft filtering is likely to keep
+      // more phrase pairs than necessary in combined mode; we just have to live with it.
+   } else {
+      // First comparison criterion is forward score:
+      //  - false if any in.forward > jn.forward
+      //  - true if all in.forward < jn.forward
+      //  - go on to next criterion if all in.forward <= jn.forward but not all <
+      bool bX(true);
+      for (Uint i(0); i<in.forward_trans_probs.size(); ++i) {
+         if (in.forward_trans_probs[i] > jn.forward_trans_probs[i]) return false;
+         bX = bX && (in.forward_trans_probs[i] < jn.forward_trans_probs[i]);
+      }
+      if (bX == true) return true;
    }
-   if (bX == true) return true;
 
    // Second comparison criterion is backward score in reverse order:
    //  - false if any in.backward < jn.backward
-   //  - true if all in.backward > jn.backward 
+   //  - true if all in.backward > jn.backward
    //  - go on to next criterion if all in.backward >= jn.backward but not all >
    bool bY(true);
    for (Uint i(0); i<in.phrase_trans_probs.size(); ++i) {

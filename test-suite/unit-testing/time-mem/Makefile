@@ -77,8 +77,8 @@ detect_invalid: detect_%:
 # For log.canoe.ini.cow we should be tallying on the fly.
 # But for log.canoe.ini.cow.tallied we MUSTn't tallying on the fly since it has already been tallied.
 tally_canoe:
-	[[ `time-mem -T -d  log.canoe.ini.cow 2>&1` =~ "Calculating on the fly" ]]
-	time-mem -T log.canoe.ini.cow | diff - log.canoe.ini.cow.ref -q
+	shopt -s compat31; [[ `time-mem -T -d  log.canoe.ini.cow 2>&1` =~ "Calculating on the fly" ]]
+	time-mem -T log.canoe.ini.cow | diff - log.canoe.ini.cow.ref-old -q
 	time-mem-tally.pl -no-dir log.canoe.ini.cow | second-to-hms.pl | diff - log.canoe.ini.cow.ref -q
 	! [[ `time-mem -T -d log.canoe.ini.cow.tallied 2>&1` =~ "Calculating on the fly" ]]
 
@@ -97,6 +97,7 @@ debug_tally:
 # This unittest uses bloater and verify that the time & memory are approximately correctly reported.
 # Sometimes the mem checking happens a bit too soon, so test for > 0.30 GB instead of > 0.32 GB
 time-mem.bloater:
+	shopt -s compat31; \
 	OUT=`time-mem -p 1 bloater -maxiter 32 10000000 2>&1`; \
 	echo $$OUT; \
 	[[ "$$OUT" =~ Real\ ([0-9.]+) ]] && [[ "$${BASH_REMATCH[1]}" > 32 ]] \

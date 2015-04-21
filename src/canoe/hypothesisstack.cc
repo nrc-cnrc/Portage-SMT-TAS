@@ -51,6 +51,13 @@ bool WorseScore::operator()(const DecoderState *s1, const DecoderState *s2) cons
          // Third comparison criterion, if still a tie: sequential unique id
          // earlier hypotheses are artitrarily considered "better", so ">"
          // on id means "worse than".
+         // With cube pruning, this is not a bad choice because decoder states
+         // are expanded is reverse order of heuristics.
+         // With regular decoding the ID is not as good a choice, but we always
+         // use cube pruning so it's not worth trying to improve on this
+         // choice.
+         // In all cases, WorseScore must define a complete ordering, and using
+         // the id guarantees that.
          return s1->id > s2->id;
       }
    }
@@ -129,6 +136,7 @@ void RecombHypStack::push(DecoderState *s)
 
 void RecombHypStack::getAllStates(vector<DecoderState *> &states)
 {
+   states.reserve(states.size() + recombHash.size());
    states.insert(states.end(), recombHash.begin(), recombHash.end());
 } // getAllStates()
 

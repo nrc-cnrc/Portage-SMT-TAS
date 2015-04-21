@@ -50,7 +50,25 @@ public:
     * @return the probability of the instance under current weights (this is
     * the prob assigned to just one instance, regardless of freq)
     */
-   double count(const vector<double>& probs, Uint freq = 1);
+   template<class T>
+   double count(const vector<double>& probs, T& freq)
+   {
+      double sum = 0.0;
+      for (Uint i = 0; i < numModels(); ++i) {
+         scratch[i] = weights[i] * probs[i];
+         sum += scratch[i];
+      }
+   
+      if (sum != 0.0)
+         for (Uint i = 0; i < numModels(); ++i)
+            counts[i] += freq * scratch[i] / sum;
+   
+      return sum;
+   }
+   double count(const vector<double>& probs) {
+      Uint freq = 1;
+      return count(probs, freq);
+   }   
    
    /**
     * Estimate weights from counts. The M-step.

@@ -98,10 +98,13 @@ float* norm(float* counts)
 }
 
 // Calculate the log likelihood incr due to the counts in <dc> under <distn>.
-double logLikelihood(float* distn, const DistortionCount& dc)
+double logLikelihood(float* distn, const DistortionCount& dc, Uint what = 0)
 {
    double like = 0.0;
-   for (Uint i = 0; i < dc.size(); ++i)
+   Uint b = 0, e = dc.size();
+   if (what == 1) e = dc.size() / 2;       // prev probs
+   else if (what == 2) b = dc.size() / 2;  // next probs
+   for (Uint i = b; i < e; ++i)
       if (dc.val(i))
          like += dc.val(i) * log(distn[i]);
    return like;
@@ -188,7 +191,7 @@ int main(int argc, char* argv[])
    vector<float> l2_prior(DistortionCount::size());
    string p1, p2;
    vector<string> toks1, toks2;
-   double ll = 0.0, ll_eval = 0.0;
+   double ll = 0.0, ll_eval = 0.0, ll_eval_prev = 0.0, ll_eval_next = 0.0;
    Uint totfreq = 0, totfreq_eval = 0.0;
    Uint nphrases = 0, nphrases_eval = 0.0;
 
@@ -211,6 +214,8 @@ int main(int argc, char* argv[])
          p.getPhrase(2, toks2);
          if (pteval.exists(toks1.begin(), toks1.end(), toks2.begin(), toks2.end(), dc)) {
             ll_eval += logLikelihood(&l1_prior[0], dc);
+            ll_eval_prev += logLikelihood(&l1_prior[0], dc, 1);
+            ll_eval_next += logLikelihood(&l1_prior[0], dc, 2);
             totfreq_eval += dc.freq();
             ++nphrases_eval;
          }
@@ -233,12 +238,15 @@ int main(int argc, char* argv[])
 
    if (verbose) {
       cerr << nphrases << " phrases written, total count = " << totfreq
-           << ", ppx = " << exp(-ll / (2 * nphrases)) << endl;
+           << ", ppx = " << exp(-ll / (2 * totfreq)) << endl;
    }
    if (eval.size()) {
       cerr << "eval file " << eval << ": " 
            << nphrases_eval << "/" << nphrases_eval_tot << " phrases used, total count = "
-           << totfreq_eval << ", ppx = " << exp(-ll_eval / (2 * nphrases_eval)) << endl;
+           << totfreq_eval 
+           << ", ppx = " << exp(-ll_eval / (2 * totfreq_eval))
+           << ", ppx-prev = " << exp(-ll_eval_prev / (totfreq_eval))
+           << ", ppx-next = " << exp(-ll_eval_next / (totfreq_eval)) << endl;
    }
 }
 

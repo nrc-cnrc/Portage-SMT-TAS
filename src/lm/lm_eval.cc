@@ -4,8 +4,6 @@
  * @brief Program for testing language model implementations and their
  * funtionalities.
  *
- * $Id$
- *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
@@ -40,6 +38,7 @@ Options:\n\
   -sent            sentence: only output sentence log-probs.\n\
   -q|-ppl          quiet: only output document log-prob and perplexity\n\
   -ppls            write perplexity (counting eos) instead of logprob for -sent\n\
+  -1qpl            1-query-per-line: log prob of the last token in its context\n\
   -p-unk P_UNK     if LMFILE is a closed-vocabulary LM (i.e., P(<unk>) is not\n\
                    defined), set P(<unk>) = P_UNK. [0]\n\
   -log10-p-unk LOG10_P_UNK  equivalent to -p-unk 10 ** LOG10_P_UNK [-infinity]\n\
@@ -84,6 +83,7 @@ static bool verbose = false;
 static bool quiet = false;
 static bool ppls = false;
 static bool sent = false;
+static bool one_qpl = false;
 static double p_unk = 0;
 static double log10_p_unk = -INFINITY;
 static string voc_type = "";
@@ -111,6 +111,7 @@ static void getArgs(int argc, const char* const argv[]);
  * @return Returns the logprob for line
  */
 static float processOneLine_fast(const string& line, PLM* lm, Voc& voc, Uint& num_toks, Uint& Noov);
+
 
 int MAIN(argc,argv)
 {
@@ -190,7 +191,7 @@ int MAIN(argc,argv)
 
    cerr << "End (Total time: " << (time(NULL) - start) << " secs)" << endl;
 
-   if ( quiet || verbose ) {
+   if ( (quiet && !one_qpl) || verbose ) {
       // WARNING: since our lm models are using log_10 instead of ln for probs,
       // we must make sure to use 10^H(p) when calculating the perplexity.
       cout << "Document contains " 
@@ -222,7 +223,7 @@ int MAIN(argc,argv)
 void getArgs(int argc, const char* const argv[])
 {
    const char* const switches[] = {
-      "v", "q", "ppl", "sent", "ppls", "limit", "per-sent-limit", "order:",
+      "v", "q", "ppl", "sent", "ppls", "1qpl", "limit", "per-sent-limit", "order:",
       "log10-p-unk:", "p-unk:", "voc-type:",
       "final-cleanup",
    };
@@ -231,10 +232,12 @@ void getArgs(int argc, const char* const argv[])
 
    arg_reader.testAndSet("v", verbose);
    arg_reader.testAndSet("q", quiet);
+   if ( quiet ) verbose = false;
    arg_reader.testAndSet("ppl", quiet);
    arg_reader.testAndSet("ppls", ppls);
-   if ( quiet ) verbose = false;
    arg_reader.testAndSet("sent", sent);
+   arg_reader.testAndSet("1qpl", one_qpl);
+   if (one_qpl && !verbose) quiet = true;
    arg_reader.testAndSet("log10-p-unk", log10_p_unk);
    arg_reader.testAndSet("p-unk", p_unk);
    arg_reader.testAndSet("order", limit_order);
@@ -256,6 +259,9 @@ void getArgs(int argc, const char* const argv[])
    if ( test_filename == "-" || test_filename == "/dev/stdin" )
       error(ETFatal, "TESTFILE cannot be stdin, since it is read multiple times.");
 
+   if ( one_qpl && (ppls || sent) )
+      error(ETFatal, "-1qpl cannot be combined with -ppl, -ppls or -sent");
+
    if ( !voc_type.empty() ) {
       bool valid = false;
       PLM::OOVHandling VocType(voc_type, valid);
@@ -272,13 +278,14 @@ void getArgs(int argc, const char* const argv[])
  * P(word | context)
  * @param word      word
  * @param context   context for word to be evaluated in
+ * @param context_len  lenght of context
  * @param lm        language model object
  * @param voc       vocabulairy object
  * @return Returns the prob of word in context P(word | context)
  */
-inline float getProb(Uint word, Uint context[], PLM* lm, const Voc& voc)
+inline float getProb(Uint word, Uint context[], Uint context_len, PLM* lm, const Voc& voc)
 {
-   const float wordLogProb = lm->wordProb(word, context, order-1);
+   const float wordLogProb = lm->wordProb(word, context, context_len);
    if ( verbose) cout << "p( " << voc.word(word) << " | "
                       << voc.word(context[0]) << " ...)\t= ";
    if ( !quiet && !sent ) cout << wordLogProb;
@@ -298,34 +305,61 @@ float processOneLine_fast(const string& line, PLM* lm, Voc& voc, Uint& num_toks,
    strcpy(buf, line.c_str());
    char* strtok_state; // state variable for strtok_r
    char* tok = strtok_r(buf, " ", &strtok_state);
+   if (!tok) return 0; // effectively empty line - contains no tokens.
    Uint nt = num_toks;
    Uint noov = Noov;
-   while (tok != NULL) {
-      ++num_toks;
-      const Uint word = limit_vocab ? voc.index(tok) : voc.add(tok);
-      const float wordLogProb = getProb(word, context, lm, voc);
-      sentLogProb += wordLogProb;
-      if (wordLogProb == 0.0f)
-         ++Noov;
+   Uint word = 0;
+   float wordLogProb = 0.0;
+   if (one_qpl) {
+      // -1qpl mode just queries the last word and returns
+      Uint context_len = 0;
+      while (tok != NULL) {
+         word = limit_vocab ? voc.index(tok) : voc.add(tok);
+         tok = strtok_r(NULL, " ", &strtok_state);
+       if (!tok) break;
+         for ( Uint i = order - 1; i > 0; --i ) context[i] = context[i-1];
+         context[0] = word;
+         ++context_len;
+      }
+      if (context_len >= order)
+         context_len = order - 1;
+      wordLogProb = getProb(word, context, context_len, lm, voc);
+      cout << wordLogProb << "\t" << line << endl;
+      return wordLogProb;
 
-      // Shift the context
-      for ( Uint i = order - 1; i > 0; --i ) context[i] = context[i-1];
-      context[0] = word;
+   } else {
+      // regular (not -1qpl) model
+      Uint context_len = 1; // We initially have SentStart (<s>) as context.
+      while (tok != NULL) {
+         ++num_toks;
+         word = limit_vocab ? voc.index(tok) : voc.add(tok);
+         wordLogProb = getProb(word, context, context_len, lm, voc);
+         sentLogProb += wordLogProb;
+         if (wordLogProb == 0.0f)
+            ++Noov;
 
-      tok = strtok_r(NULL, " ", &strtok_state);
+         tok = strtok_r(NULL, " ", &strtok_state);
+
+         // Shift the context
+         for ( Uint i = order - 1; i > 0; --i ) context[i] = context[i-1];
+         context[0] = word;
+         if (context_len + 1 < order)
+            ++context_len;
+      }
+      nt = num_toks - nt; // number of toks in sentence
+      noov = Noov - noov; // number of oovs in sentence
+
+      // Do the end of sentence
+      sentLogProb += getProb(voc.index(PLM::SentEnd), context, context_len, lm, voc);
+
+      if (verbose)
+         cout << "logProb = " << sentLogProb << endl << endl;
+      else if (sent) {
+         if (ppls)
+            cout << pow(10, (-sentLogProb / (nt + 1 - noov))) << endl;
+         else
+            cout << sentLogProb << endl;
+      }
+      return sentLogProb;
    }
-   nt = num_toks - nt; // number of toks in sentence
-   noov = Noov - noov; // number of oovs in sentence
-   // Do the end of sentence
-   sentLogProb += getProb(voc.index(PLM::SentEnd), context, lm, voc);
-
-   if (verbose)
-      cout << "logProb = " << sentLogProb << endl << endl;
-   else if (sent) {
-      if (ppls) 
-         cout << pow(10, (-sentLogProb / (nt + 1 - noov))) << endl;
-      else
-         cout << sentLogProb << endl;
-   }
-   return sentLogProb;
 }

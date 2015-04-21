@@ -1,5 +1,4 @@
 #!/usr/bin/env perl
-# $Id$
 #
 # @file diff-round.pl 
 # @brief diff two ff files, i.e., files of floating point numbers, where
@@ -28,6 +27,11 @@ BEGIN {
 use portage_utils;
 printCopyright "diff-round.pl", 2006;
 $ENV{PORTAGE_INTERNAL_CALL} = 1;
+
+# We want locale-insensitive processing
+use POSIX qw(locale_h);
+use locale;
+setlocale(LC_ALL, "POSIX");
 
 
 sub usage {
@@ -76,6 +80,11 @@ GetOptions(
 my $pow_prec = 1/(10**$prec);
 
 2 == @ARGV or usage "Must specify exactly two input files.";
+
+if (-d $ARGV[1] && -f $ARGV[0]) {
+   $ARGV[1] .= "/" . `basename $ARGV[0]`;
+   $ARGV[1] =~ s/\s*$//;
+}
 
 # Will hold the maximum numerical difference found
 my $max_diff = 0;

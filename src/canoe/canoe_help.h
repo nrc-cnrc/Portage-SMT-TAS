@@ -63,15 +63,23 @@ Options (in command-line format):\n\
      only the most frequent one is used.\n\
 \n\
      One or more counts in float or int format can also be stored at the end of\n\
-     the 3rd column, in the format c=<count>{,<count>}. The interpretation of\n\
-     these counts is left to individual features.  Intended for future use:\n\
-     no feature uses these yet.\n\
+     the 3rd column, in the format c=<count>{,<count>}. The first count is\n\
+     interpreted as a joint frequency when using -leave-one-out, and is required\n\
+     in this context. Other features may assign other interpretations.\n\
      If the same phrase pair occurs in multiple phrase tables, any count\n\
-     vectors are added element-wise, eg [1] + [1,2,3] = [2,2,3].\n\
+     vectors are added element-wise, eg [1] + [1,2,3] = [2,2,3], unless the\n\
+     -append-joint-counts flag is set.\n\
 \n\
      All combinations of presence/absence of forward and backward probs (3rd\n\
      column), alignment, count (end of 3rd column) or adirectional scores (4th\n\
      column) are allowed.\n\
+\n\
+ -append-joint-counts                   Append joint counts [add element-wise]\n\
+     Append joint counts from 'c=' fields in multiple successive phrase tables,\n\
+     using negative table index as start marker for all tables after the 0th.\n\
+     For example, if a phrase has count vectors [5], [1,2], and [4,2] in tables\n\
+     0, 2, and 3 respectively, the result will be [5,-2,1,2,-3,4,2]. NB: not yet\n\
+     implemented for TPPTs.\n\
 \n\
  -ttable-tppt FILE1[:FILE2[:..]]        Tightly Packed phrase table(s)\n\
      Phrase translation model file(s) in TPPT format (Tightly Packed Phrase\n\
@@ -82,14 +90,18 @@ Options (in command-line format):\n\
      backward weights and, if they are supplied, N forward weights.\n\
 \n\
  Phrase table notes:\n\
-     At least one translation model must be specified (through -ttable-tppt or\n\
-     -ttable-multi-prob).  The number of translation models must match the\n\
-     number of translation model weights.\n\
+     At least one translation model must be specified (through -ttable-multi-prob\n\
+     or -ttable-tppt).  The total number of translation models must match the\n\
+     total number of translation model weights.\n\
 \n\
  -use-ftm                               Enable forward TMs  [don't, unless -ftm is used]\n\
      By default, forward translation model are only used as decoder features\n\
      when given weights via -weight-t|-ftm.  With -use-ftm, they are always\n\
      used, with a default weight of 1.0 each if no weights are provided.\n\
+\n\
+ -nosent                                Don't consider input to be sentences\n\
+     Suppress the normal addition of implicit sentence begin/end context when\n\
+     computing LM scores for complete hypotheses.\n\
 \n\
  -lmodel-file FILE1[:FILE2[:..]]        Language model(s)  (required)\n\
      At least one LM is required.  The number of LM files must match the number\n\
@@ -106,6 +118,11 @@ Options (in command-line format):\n\
 \n\
  -lmodel-order LMORDER                  Global LM order limit  [0, i.e., none]\n\
      If non-zero, globally limits the order of all language models.\n\
+\n\
+ -minimize-lm-context-size              Minimize decoder state right context [don't]\n\
+     Turn on optimization from Li & Khudanpur (2008): remember the shortest\n\
+     context necessary for the purpose of recombination and future LM queries.\n\
+     (Not compatible with LMs in ARPA or binlm format; use TPLMs instead.)\n\
 \n\
  -weight-t|-tm W1[:W2[:..]]             Backward TM weight(s)  [1.0 for each feature]\n\
      The translation model weight(s).  If this option is used, the number of\n\
@@ -145,6 +162,8 @@ Options (in command-line format):\n\
  -weight-s|-sm W                        Segmentation model weight  [1.0 for each feature]\n\
 \n\
  -weight-unal|-unal W1[:W2[:..]]        Unal feature weight(s)  [1.0 for each feature]\n\
+\n\
+ -weight-sparse|-sparse W1[:W2[:..]]    Sparse model weight(s)  [1.0 for each feature]\n\
 \n\
  -weight-ibm1-fwd|-ibm1f W              Forward IBM1 feature weight  [1.0 for each feature]\n\
      The forward IBM1 feature weight (see -ibm1-fwd-file).\n\
@@ -218,6 +237,8 @@ Options (in command-line format):\n\
      'forward-weights': forward probs with forward weights\n\
      'combined': the combination of forward and backward probs with their\n\
      respective weights.\n\
+     'full': use the log-linear sum of all decoder feature that provide a\n\
+     phrase pair score or heuristic, each with their respective weight.\n\
      [forward-weights if -weight-f is supplied, backward-weights otherwise]\n\
 \n\
  -ttable-log-zero LZ                    Log(epsilon)  [-18]\n\
@@ -289,6 +310,11 @@ Options (in command-line format):\n\
      a lot of sense if we are also enforcing -dist-limit-itg.\n\
      This flag is used without -dist-limit-itg mostly to replicate historical results.\n\
 \n\
+ -force-shift-reduce                    Force inclusion of a shift-reduce parser\n\
+     Normally, the shift-reduce parser will be switched on only if a feature or\n\
+     constraint that needs it is switched on. This switches it on anyway.\n\
+     Currently necessary to use the Sparse HRM without also using the normal HRM.\n\
+\n\
  -dist-phrase-swap                      Allow phrase swaps  [don't]\n\
      Allow swapping two contiguous source phrases of any length.\n\
      Applied as an OR with the distortion limit:  meaningless if L = -1,\n\
@@ -302,11 +328,21 @@ Options (in command-line format):\n\
      [0,10) can be added next, completing the phrase swap, but under simple\n\
      distortion any new phrase that respects c <= v + L will also be allowed.\n\
 \n\
+ -filter-features DM1[#ARGS][:DM2[#ARGS][:..]]  Dist. model(s) used as constraints  [none]\n\
+     Use DMs as hard constraints: if a DM used as a filter feature returns a\n\
+     negative score for a decoder state, that state is pruned from the search\n\
+     graph. The DMs must be valid -distortion-model arguments (see below).\n\
+     To enable hard walls and/or zones in the decoder, use Zones[#TYPE[#NAME]]\n\
+     and/or use Walls[#TYPE[#NAME]] (details below).\n\
+\n\
  -distortion-model MODEL[#ARGS][:MODEL2[#ARGS][:..]]  Dist. model(s)  [WordDisplacement]\n\
      The distortion model(s) and their arguments. Zero or more of:\n\
-     WordDisplacement, LeftDistance, PhraseDisplacement, fwd-lex[#dir],\n\
-     back-lex[#dir], fwd-hlex[#dir], back-hlex[#dir], back-fhlex[#dir],\n\
-     ZeroInfo.  To get no distortion model, use 'none'.\n\
+        WordDisplacement, LeftDistance, PhraseDisplacement,\n\
+        fwd-lex[#dir], back-lex[#dir],\n\
+        fwd-hlex[#dir], back-hlex[#dir], back-fhlex[#dir],\n\
+        Walls[#TYPE[#NAME]], Zones[#TYPE[#NAME]], LocalWalls[#TYPE[#NAME]]\n\
+        ZeroInfo.\n\
+     To get no distortion model, use 'none'.\n\
 \n\
      The lexicalized distortion models (LDM), fwd-*lex and back-*lex, take\n\
      an optional direction argument, which can be m (monotone), s (swap) or\n\
@@ -328,6 +364,28 @@ Options (in command-line format):\n\
      Note that this final instance tags each LDM feature with either #L or #H.\n\
      These tags tell the feature what file to use to retrieve probabilities.\n\
      They must match tags annotating filenames in -lex-dist-model-file\n\
+\n\
+     The Walls, Zones, and LocalWalls features return -1 for each violation.\n\
+     Types determine how to handle phrases straddling boundaries:\n\
+      - Strict: phrases may not straddle wall, zone or local-zone boundaries\n\
+        (default).\n\
+      - Loose: phrases may straddle boundaries.\n\
+      - WordStrict: phrases may straddle boundaries provided no word-alignment\n\
+        links cross them.\n\
+     Besides the straddling phrase considerations, a wall requires all words\n\
+     left of the wall be covered before all words right of the wall; a zone\n\
+     requires that once a word inside the zone is covered, the zone must be\n\
+     completed before a word outside the zone is covered again; a local wall is\n\
+     a wall that only considers the words in the inner-most zone it occurs in.\n\
+     Note that local walls and zones are named and tested independently, so you\n\
+     can activate then independently.\n\
+     Examples:\n\
+        Walls#Strict:Walls#WordStrict:Walls#Loose\n\
+        Zones#Strict:Zones#WordStrict:Zones#Loose\n\
+        LocalWalls#Strict:LocalWalls#WordStrict:LocalWalls#Loose\n\
+     If the optional NAME qualifier is given, e.g., Walls#Strict#my_wall_name,\n\
+     consider only Walls, Zones or LocalWalls with a matching name attribute,\n\
+     e.g., <wall name=\"my_wall_name\"/>. [consider all walls, zones or local walls]\n\
 \n\
  -lex-dist-model-file FILELIST             Lexicalized distortion model file(s)  [none]\n\
      A list of lexicalized distortion model files in multi-prob text format.\n\
@@ -353,6 +411,19 @@ Options (in command-line format):\n\
      Eg: srcleft+tgtany = count unaligned words on left side of source phrase,\n\
      and anywhere in target phrase.\n\
 \n\
+ -sparse-model FILE{#flag}              Sparse model file [none]\n\
+     Use SparseModel saved to FILE to generate a feature value. One or more of\n\
+     the following flags may be appended:\n\
+     #pfs - precompute future scores\n\
+     #ID - use id file ID, line-aligned with current source\n\
+     #colN=T - activate only when the Nth column in ID matches tag T\n\
+     #_tag - append 'tag' to local weights file\n\
+\n\
+ -sparse-model-allow-non-local-wts      Allow using non-local sparse weights\n\
+     An untuned model (with [weight-sparse] unset) gets initial sparse weights\n\
+     non-locally; a tuned models gets tuned sparse wts locally: it is an error\n\
+     to use a tuned model without local sparse wts unless this option is set.\n\
+\n\
  -ibm1-fwd-file FILE                    Forward IBM1 feature file  [none]\n\
      Use 'forward' IBM1 feature - FILE should be an IBM1 model trained for\n\
      target language given source language. [none]\n\
@@ -361,6 +432,18 @@ Options (in command-line format):\n\
      Bilingual language model file, following Niehues et al, WMT-2011.\n\
      Must be an LM trained on the output of align-words -o bilm, with the\n\
      source language as its lang2 and the target language as its lang1.\n\
+\n\
+     To specify a coarse BiLM model, the FILEi spec should have this format:\n\
+        bilmfile[;cls(src)=src_map][;cls(tgt)=tgt_map][;cls(tgt/src)=src2tgt_map]\n\
+     where:\n\
+        - src_map and tgt_map are the word-class files (a la mkcls) for the\n\
+          source and target language, respectively, that were used to prepare\n\
+          the training data for bilmfile; and\n\
+        - src2tgt_map is the class file for bitoken classes.\n\
+     All combinations of 1 to 3 of these cls() options are allowed, and must\n\
+     match the training data used to create bilmfile.\n\
+     If cls(tgt/src) is used with one or both of cls(src) or cls(tgt), it must\n\
+     list classes of bitokens of the classes implied by cls(tgt)/cls(src).\n\
 \n\
  -bypass-marked                         Allow bypassing marked translations  [don't]\n\
      When marked translations are found in the source text, translation\n\
@@ -386,6 +469,10 @@ Options (in command-line format):\n\
      anything.  With this option, a non-zero exit status indicates fatal\n\
      format errors were found.\n\
 \n\
+ -describe-model-only                   Describe the model - no translation\n\
+     Just print the list of models and their weights. Use with -v 2 (or higher)\n\
+     to describe individual sparse features (instead of templates).\n\
+\n\
  -backwards                             Translate from end to start\n\
      Forms the translation from end to start instead of start to end.\n\
      The language model should be trained on a backwards corpus.\n\
@@ -395,6 +482,11 @@ Options (in command-line format):\n\
      translations are produced on the fly.  If this is not used, source\n\
      sentences are read first and only applicable entries are stored from\n\
      the phrase table and language model files.\n\
+\n\
+ -canoe-daemon HOST:PORT                Sentence-by-sentence parallel mode\n\
+     In canoe-daemon mode, canoe loads its input file, but translates only the\n\
+     sentences whose ID (0-based) is returned by the daemon running on\n\
+     HOST:PORT.\n\
 \n\
  -palign|-trace|-t                      Output alignment and OOV info  [don't]\n\
      Produce alignment and OOV output. If -lattice is given, this info\n\
@@ -409,19 +501,51 @@ Options (in command-line format):\n\
      Produce feature function output. If -lattice or -nbest is given,\n\
      this info will also be written to the lattice or nbest list.\n\
 \n\
+ -sfvals                                Output sparse-format feature values [don't]\n\
+     Same as -ffvals, but write values in sparse format f:v, where f is a\n\
+     feature index, and v is a non-0 value. Also, any sparse-model features\n\
+     will be 'unpacked' into their constituent values, with indexes starting\n\
+     after the last regular-feature index.  If -ffvals and -sfvals are both\n\
+     specified, 1best and lattice output is written in sparse format, and nbest\n\
+     output is written in both formats.\n\
+\n\
  -lattice LPREFIX[.gz]                  Output lattices  [don't]\n\
      Produces word graph output into files LPREFIX.SENTNUM[.gz], where SENTNUM\n\
      is a 4+ digit representation of the sentence number, starting at 0000 (or\n\
      the value of -first-sentnum).  State coverage vectors are output into\n\
-     LPREFIX.SENTNUM.state[.gz].  If -trace or -ffvals is specified then this\n\
-     form of output is used in the wordgraph as well.  Even if -backwards is\n\
+     LPREFIX.SENTNUM.state[.gz].  If -trace or -ffvals/-sfvals is specified\n\
+     then this form of output is used in the wordgraph as well (if both -ffvals\n\
+     and -sfvals are given, -sfvals is assumed). Even if -backwards is\n\
      specified, the word graph gives forwards sentences.  If .gz is specified,\n\
      the output will be gzipped.\n\
+\n\
+ -lattice-output-options OPTION-STRING  Format to use for -lattice output  [carmel]\n\
+     carmel  : legacy format compatible with carmel. [DEFAULT]\n\
+     overlay : invokes the new overlay to create a carmel lattice.\n\
+\n\
+ -lattice-density D                     Density for overlay lattices [1e10]\n\
+     Overlay lattices (see [lattice-output-options]) can be pruned in memory before\n\
+     being printed to disk. The density D specifies that the resulting lattice be\n\
+     pruned to D*LEN edges. LEN is the length of the Viterbi translation in tokens.\n\
+\n\
+ -lattice-min-edge D                    Min edge score for overlay lattices [-1e10]\n\
+     Overlay lattices (see [lattice-output-options]) can truncate low edge\n\
+     values to a minimum value before performing their operations (pruning, printing)\n\
+\n\
+ -lattice-log-prob                      Overlay prints log edge scores [does not]\n\
+     Overlay lattices usually print in Carmel format, with edge scores interpreted\n\
+     as probabilities. This flag allows higher precision by printing log scores\n\
+\n\
+ -lattice-source-density                Overlay prunes based on source len [Viterbi len]\n\
+     Typically, overlay lattice prune based on D*LEN, where LEN is the length of the\n\
+     Viterbi translation in tokens. This switches it to the length of the source sentence.\n\
 \n\
  -nbest NPREFIX[.gz][:N]                Output N-best lists  [don't]\n\
      Produces nbest output into files NPREFIX.SENTNUM.Nbest[.gz]. If N is\n\
      not specified, 100 is used. If -ffvals is also specified, feature\n\
      function values are written to NPREFIX.SENTNUM.Nbest.ffvals[.gz].\n\
+     If -sfvals is given, sparse-format values are written to\n\
+     NPREFIX.SENTNUM.Nbest.sfvals[.gz].\n\
      With -trace, alignment info is written to NPREFIX.SENTNUM.Nbest.pal[.gz].\n\
      If .gz is specified, the outputs will be gzipped.\n\
 \n\
@@ -438,24 +562,27 @@ Options (in command-line format):\n\
  -append                                Don't split output files by sentence\n\
      The decoder will output its results in a single file instead of one\n\
      file per source sentences.  This will automatically be applied to\n\
-     nbest, ffvals, pal, lattice and lattice_state.\n\
+     nbest, ffvals, sfvals, pal, lattice and lattice_state.\n\
+\n\
+ -hierarchy                             Output files in a hierarchy\n\
+     Instead of output all nbest & lattice related files in a directory,\n\
+     the decoder creates its outputs in a hierarchy of directories and files.\n\
+     rootdir/(source_sentence_number/1000)/file.\n\
 \n\
  -lb                                    Use load-balancing mode  [don't]\n\
      Indicates that canoe is running in load-balancing mode: source sentences\n\
      are preceded by an external id and a tab.  Used by canoe-parallel.sh\n\
 \n\
- -cube-pruning                          Use cube pruning  [don't]\n\
-     Use the cube pruning decoder, a la Huang+Chiang (ACL 2007), instead of\n\
-     the regular stack decoder.  (Not compatible yet with coverage pruning).\n\
-     Note that with regular decoding, each stack gets up to RS elements, not\n\
-     counting recombined states, whereas with cube pruning recombined states\n\
-     are counted.  Recomended S values are therefore around 10000-30000 with\n\
-     cube pruning, rather than 100-1000 for RS.\n\
+ -stack-decoding                        Use the stack decoder  [default]\n\
+     Use the original stack decoder, as we first coded it in 2004.\n\
+     Each stack gets up to RS elements, not counting recombined states.\n\
 \n\
- -future-score-use-ftm                  Include forward TMs in future score  [do]\n\
-     Also use forward translation model probabilities to compute the\n\
-     future costs during decoding.  [do] (use -no-future-score-use-ftm to\n\
-     turn this behaviour off).\n\
+ -cube-pruning                          Use the cube pruning decoder  [don't]\n\
+     Use the cube pruning decoder, a la Huang+Chiang (ACL 2007).\n\
+     Unlike with the stack decoder, recombined states are counted toward the\n\
+     stack limit S.  Recommended S values are therefore around 10000-30000\n\
+     with cube pruning, rather than 100-1000 for RS.\n\
+     (Not compatible with coverage pruning).\n\
 \n\
  -future-score-lm-heuristic HEURISTIC   LM heuristic for future score  [incremental]\n\
      Specify the LM heuristic to use for the future score.  One of:\n\

@@ -150,8 +150,6 @@ BLEUstats::BLEUstats(const Sentence& trans, const References& refs, int sm)
 
 void BLEUstats::init(const Sentence &trans, const References& refs, int sm)
 {
-   typedef Tokens::const_iterator SIT;
-   typedef References::const_iterator RIT;
    // Optimization: calculate the BLEU stats on Uints instead of strings
    Voc vocab;
    Voc::addConverter aConverter(vocab);
@@ -394,6 +392,58 @@ double BLEUstats::score(Uint maxN, double epsilon) const
          result += log(epsilon) / N;
       }
    }
+   else if (smooth == 3) // score = sum_{i=1}N {i-BLEU(x,y) / 2^{N-i+1}
+   {
+      double result1 = 0;
+
+      for (Uint i = 1; i <= N ; i++){
+         // calculating i-BLEU
+         result = min(1 - (double)bmlength / length, 0);
+         for (Uint n = 0; n < i; n++){
+            if (match[n] == 0)
+            {
+               result += log(epsilon) / N;
+            }
+            else
+            {
+               assert(match[n] >= 0);
+               assert(total[n] > 0);
+               result += log((double)match[n] / total[n]) / N;
+               // cerr << n+1 << "-gram match: " << match[n] << "/" << total[n] << " -> " << result << endl;
+            }
+         }
+         result1 += result1 + (exp(result) / pow((double)2,(double)(N-i+1)) );
+      }
+      result = log(result1);
+   }
+   // New smoothing from mteval-v13a.pl.
+   // Documentation from mteval-v13a.pl:
+   // The smoothing is computed by taking 1 / ( 2^k ), instead of 0, for each precision score whose matching n-gram count is null
+   // k is 1 for the first 'n' value for which the n-gram match count is null
+   // For example, if the text contains:
+   //   - one 2-gram match
+   //   - and (consequently) two 1-gram matches
+   // the n-gram count for each individual precision score would be:
+   //   - n=1  =>  prec_count = 2     (two unigrams)
+   //   - n=2  =>  prec_count = 1     (one bigram)
+   //   - n=3  =>  prec_count = 1/2   (no trigram,  taking 'smoothed' value of 1 / ( 2^k ), with k=1)
+   //   - n=4  =>  prec_count = 1/4   (no fourgram, taking 'smoothed' value of 1 / ( 2^k ), with k=2)
+   else if (smooth == 4) {
+      Uint smooth = 1;
+      for (Uint n = 0; n < N; ++n) {
+         // Cannot divide by zero => this ngram contribures for 0 to the result aka result += 0;
+         if (total[n] > 0) {
+            assert(match[n] >= 0);
+            if (match[n] == 0) {
+               smooth *= 2;
+               result += log(1.0f / (smooth * total[n])) / N;
+            }
+            else {
+               result += log((double)match[n] / total[n]) / N;
+            }
+         }
+      }
+   }
    else {
       error(ETFatal, "Unsupported smoothing type %d", smooth);
    }
@@ -531,9 +581,20 @@ bool operator!=(const BLEUstats &s1, const BLEUstats &s2)
    return !(s1 == s2);
 }
 
+BLEUstats operator*(BLEUstats s, double c)
+{
+   for (Uint n = 0; n < BLEUstats::MAX_NGRAMS; n++) {
+      s.match[n] *= c;
+      s.total[n] *= c;
+   }
+   s.length   *= c;
+   s.bmlength *= c;
+
+   return s;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
-void computeBLEUArrayRow(RowBLEUstats& bleu,
+void computeArrayRow(RowBLEUstats& bleu,
       const Nbest& nbest,
       const References& refs,
       Uint max,
@@ -554,9 +615,9 @@ void computeBLEUArrayRow(RowBLEUstats& bleu,
    for (k=0; k<(int)K; ++k) {
       bleu[k].init(nbest_uint[k], refs_uint, smooth);
    }
-} // computeBLEUArrayRow
+} // computeArrayRow
 
-void computeBLEUArrayRow(RowBLEUstats& bleu,
+void computeArrayRow(RowBLEUstats& bleu,
       const vector<string>& tgt_sents,
       const vector<string>& ref_sents,
       Uint max,
@@ -577,7 +638,7 @@ void computeBLEUArrayRow(RowBLEUstats& bleu,
    for (k=0; k<(int)K; ++k) {
       bleu[k].init(nbest_uint[k], refs_uint, smooth);
    }
-} // computeBLEUArrayRow
+} // computeArrayRow
 
 void computeBLEUArray(MatrixBLEUstats& bleu,
       const vector< vector<string> >& tgt_sents,
@@ -588,7 +649,7 @@ void computeBLEUArray(MatrixBLEUstats& bleu,
 
    const Uint S(tgt_sents.size());
    for (Uint s(0); s<S; ++s) {
-      computeBLEUArrayRow(bleu[s], tgt_sents[s], ref_sents[s]);
+      computeArrayRow(bleu[s], tgt_sents[s], ref_sents[s]);
    }
 } // computeBLEUArray
 

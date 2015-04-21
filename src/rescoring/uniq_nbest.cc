@@ -31,7 +31,8 @@ Options:\n\
        lists. [10]\n\
 -p     Given phrase-alignment file <pal> corresponding to <nbest>, write the\n\
        alignments for the selected hypotheses to <pal>.uniq. This works with\n\
-       any file that is line-aligned with <nbest>.\n\
+       any file that is line-aligned with <nbest> It may be repeated multiple\n\
+       times with different files.\n\
 ";
 
 // globals
@@ -41,7 +42,7 @@ static Uint K;
 static Uint KOUT = 10;
 static string nbests("-");
 static string nbestsout("-");
-static string pal;
+static vector<string> pals;
 static void getArgs(int argc, char* argv[]);
 
 // main
@@ -60,22 +61,22 @@ int main(int argc, char* argv[])
    iSafeMagicStream nbestsfile(nbests);
    oSafeMagicStream nbestsoutfile(nbestsout);
 
-   iMagicStream palfile;
-   oMagicStream paloutfile;
-   const bool has_pal = !pal.empty();
-   if (has_pal) {
-      palfile.safe_open(pal);
-      paloutfile.safe_open(pal + ".uniq");
+   vector<istream*> pals_in(pals.size());
+   vector<ostream*> pals_out(pals.size());
+   for (Uint i = 0; i < pals.size(); ++i) {
+      pals_in[i] = new iSafeMagicStream(pals[i]);
+      pals_out[i] = new oSafeMagicStream(addExtension(pals[i], ".uniq"));
    }
 
    vector<string> nbout;
-   vector<string> palout;
-   string line, palline;
+   vector< vector<string> > palouts(pals_in.size());  // pal index, k -> hyp side info
+   string line;
+   vector<string> pallines(pals_in.size()); // pal index -> curr line
 
    while (true) {		// for each nbest list
 
       nbout.clear();
-      palout.clear();
+      for (Uint i = 0; i < pals_in.size(); ++i) palouts[i].clear();
 
       Uint i = 0;
       for (; i < K; ++i) {	// for each hyp
@@ -83,9 +84,9 @@ int main(int argc, char* argv[])
 	 if (!getline(nbestsfile, line))
 	    break;
 
-	 if (has_pal) 
-	    if (!getline(palfile, palline)) 
-	       error(ETFatal, "pal file %s too short", pal.c_str());
+         for (Uint j = 0; j < pals_in.size(); ++j)
+            if (!getline((*pals_in[j]), pallines[j]))
+	       error(ETFatal, "pal file %s too short", pals[j].c_str());
 
 	 if (nbout.size() != K) { // try to add this hyp
 
@@ -97,7 +98,8 @@ int main(int argc, char* argv[])
 	       }
 	    if (!dup) {
 	       nbout.push_back(line);
-	       if (has_pal) palout.push_back(palline);
+	       for (Uint j = 0; j < pals_in.size(); ++j)
+                  palouts[j].push_back(pallines[j]);
 	    }
 	 }
       }
@@ -110,11 +112,19 @@ int main(int argc, char* argv[])
       for (Uint i = 0; i < KOUT; ++i) {
          if (i < nbout.size()) {
             nbestsoutfile << nbout[i];
-	    if (has_pal) paloutfile << palout[i];
+            for (Uint j = 0; j < pals_in.size(); ++j)
+               (*pals_out[j]) << palouts[j][i];
 	 }
          nbestsoutfile << "\n";
-	 if (has_pal) paloutfile << "\n";
+	 for (Uint j = 0; j < pals_in.size(); ++j)
+            (*pals_out[j]) << "\n";
       }
+   }
+
+   // close output files (& flush buffer)
+   for (Uint i = 0; i < pals_in.size(); ++i) {
+      delete pals_in[i];
+      delete pals_out[i];
    }
 }
 
@@ -128,7 +138,7 @@ void getArgs(int argc, char* argv[])
 
    arg_reader.testAndSet("v", verbose);
    arg_reader.testAndSet("kout", KOUT);
-   arg_reader.testAndSet("p", pal);
+   arg_reader.testAndSet("p", pals);
 
    arg_reader.testAndSet(0, "K", K);
    arg_reader.testAndSet(1, "nbests", nbests);

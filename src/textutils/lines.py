@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
-# $Id$
-
-# @file lines.py 
+# @file lines.py
 # @brief extract the given lines from a file.
 #
 # @author Nicola Ueffing

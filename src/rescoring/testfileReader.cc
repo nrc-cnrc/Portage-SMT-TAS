@@ -50,7 +50,6 @@ void nbestListBased(Portage::FileReader::FileReaderBase<string>& reader)
 
 int main(const int argc, const char * const argv[])
 {
-   typedef unsigned int Uint;
    if (argc > 1 && !strcmp(argv[1], "-h")) {
       cerr << "Usage: testfileReader <F1> <F2>" << endl;
       cerr << "Unit test for file reader." << endl;
@@ -89,7 +88,7 @@ int main(const int argc, const char * const argv[])
       Portage::FileReader::DynamicReader<string> dr(argv[1], 10);
       dr.poll(s);
       cout << s.size() << endl;
-      for (Uint i(0); i<s.size(); ++i)
+      for (unsigned int i(0); i<s.size(); ++i)
       {
          cout << i << "->" << s[i].size() << endl;
       }
@@ -107,7 +106,7 @@ int main(const int argc, const char * const argv[])
       Portage::FileReader::FixReader<string> dr(argv[2], 3);
       dr.poll(s);
       cout << s.size() << endl;
-      for (Uint i(0); i<s.size(); ++i)
+      for (unsigned int i(0); i<s.size(); ++i)
       {
          cout << i << "->" << s[i].size() << endl;
       }

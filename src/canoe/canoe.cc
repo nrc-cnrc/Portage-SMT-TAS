@@ -32,10 +32,14 @@
 #include "timer.h"
 #include "stats.h"
 #include "str_utils.h"
+#include "simple_overlay.h"
+#include "socket_utils.h"
+#include "tpt_error.h"
 #include <boost/optional/optional.hpp>
 #include <cstring>
 #include <unistd.h>  // sleep
-#include <stdlib.h> // rand
+#include <cstdlib> // getenv(), rand()
+#include <signal.h> // sigaction
 
 using namespace Portage;
 using namespace std;
@@ -45,101 +49,254 @@ using boost::optional;
  * This object keeps track of the File when the user wants to output one file
  * instead of separate files.
  */
-class OneFileInfo {
-   const bool append;                  ///< Keeps track of the user request to make one file
-   oSafeMagicStream* f_nbest;          ///< nbestlist Stream
-   oSafeMagicStream* f_ffvals;         ///< ffvals stream
-   oSafeMagicStream* f_pal;            ///< pal stream
-   oSafeMagicStream* f_lattice;        ///< lattice stream
-   oSafeMagicStream* f_lattice_state;  ///< lattice state stream
-   private:
-      OneFileInfo(const OneFileInfo&);            ///< Non-copyable
-      OneFileInfo& operator=(const OneFileInfo&); ///< Non-copyable
+class IFileInfo : private NonCopyable {
+   protected:
+      const CanoeConfig& c;               ///< Canoe's config.
+      oSafeMagicStream* f_nbest;          ///< nbestlist Stream
+      oSafeMagicStream* f_ffvals;         ///< ffvals stream
+      oSafeMagicStream* f_sfvals;         ///< sfvals stream
+      oSafeMagicStream* f_pal;            ///< pal stream
+      oSafeMagicStream* f_lattice;        ///< lattice stream
+      oSafeMagicStream* f_lattice_state;  ///< lattice state stream
+
+   public:
+      string s_nbest;          ///< nbestlist Stream
+      string s_ffvals;         ///< ffvals stream
+      string s_sfvals;         ///< sfvals stream
+      string s_pal;            ///< pal stream
+      string s_lattice;        ///< lattice stream
+      string s_lattice_state;  ///< lattice state stream
+
+   public:
+      /**
+       * Default constructor.
+       * @param  c  canoe config to get the file names.
+       */
+      IFileInfo(const CanoeConfig& c)
+      : c(c)
+      , f_nbest(NULL)
+      , f_ffvals(NULL)
+      , f_sfvals(NULL)
+      , f_pal(NULL)
+      , f_lattice(NULL)
+      , f_lattice_state(NULL)
+      { }
+      /// Destructor.
+      virtual ~IFileInfo() {
+         freeFiles();
+      }
+
+      virtual void currentSourceSentenceId(Uint id) {}
+
+      void freeFiles() {
+         if (f_nbest) delete f_nbest; f_nbest = NULL;
+         if (f_ffvals) delete f_ffvals; f_ffvals = NULL;
+         if (f_sfvals) delete f_sfvals; f_sfvals = NULL;
+         if (f_pal) delete f_pal; f_pal = NULL;
+         if (f_lattice) delete f_lattice; f_lattice = NULL;
+         if (f_lattice_state) delete f_lattice_state; f_lattice_state = NULL;
+      }
+
+      /// Did the user request a single file
+      /// @return Returns true if the user requested one file
+      oSafeMagicStream* nbest() {
+         if (f_nbest == NULL) {
+            if (!c.nbestProcessor.empty()) {
+               const string filename =
+                  "| "
+                  + c.nbestProcessor
+                  + (isSuffix(".gz", s_nbest) ? "| gzip > " : ">")
+                  + s_nbest;
+               f_nbest = new oSafeMagicStream(filename);
+            }
+            else {
+               f_nbest = new oSafeMagicStream(s_nbest);
+            }
+         }
+         return f_nbest;
+      }
+      oSafeMagicStream* ffvals() {
+         if (c.ffvals && f_ffvals == NULL) f_ffvals = new oSafeMagicStream(s_ffvals);
+         return f_ffvals;
+      }
+      oSafeMagicStream* sfvals() {
+         if (c.sfvals && f_sfvals == NULL) f_sfvals = new oSafeMagicStream(s_sfvals);
+         return f_sfvals;
+      }
+      oSafeMagicStream* pal() {
+         if (c.trace && f_pal == NULL) f_pal = new oSafeMagicStream(s_pal);
+         return f_pal;
+      }
+      oSafeMagicStream* lattice() {
+         if (c.latticeOut && f_lattice == NULL) f_lattice = new oSafeMagicStream(s_lattice);
+         return f_lattice;
+      }
+      oSafeMagicStream* lattice_state() {
+         if (c.latticeOut && f_lattice_state == NULL) f_lattice_state = new oSafeMagicStream(s_lattice_state);
+         return f_lattice_state;
+      }
+};
+
+class OneFileInfo : public IFileInfo {
+   protected:
+      const bool append;                  ///< Keeps track of the user request to make one file
+
    public:
       /**
        * Default constructor.
        * @param  c  canoe config to get the file names.
        */
       OneFileInfo(const CanoeConfig& c)
-      : append(c.bAppendOutput)
-      , f_nbest(NULL)
-      , f_ffvals(NULL)
-      , f_pal(NULL)
-      , f_lattice(NULL)
-      , f_lattice_state(NULL)
+      : IFileInfo(c)
+      , append(c.bAppendOutput)
       {
-         if (append && c.latticeOut) {
-            f_lattice       = new oSafeMagicStream(c.latticeFilePrefix);
-            f_lattice_state = new oSafeMagicStream(addExtension(c.latticeFilePrefix, ".state"));
-         }
+         assert(append);
 
          ostringstream ext;
          ext << "." << c.nbestSize << "best";
-         const string curNbestFile  = addExtension(c.nbestFilePrefix, ext.str());
-         if (append && c.nbestOut)
-         {
-            if (!c.nbestProcessor.empty()) {
-               const string filename =
-                  "| "
-                  + c.nbestProcessor
-                  + (isSuffix(".gz", curNbestFile) ? "| gzip > " : ">")
-                  + curNbestFile;
-               f_nbest = new oSafeMagicStream(filename);
-            }
-            else {
-               f_nbest = new oSafeMagicStream(curNbestFile);
-            }
+         s_nbest  = addExtension(c.nbestFilePrefix, ext.str());
+         s_ffvals = addExtension(s_nbest, ".ffvals");
+         s_sfvals = addExtension(s_nbest, ".sfvals");
+         s_pal    = addExtension(s_nbest, ".pal");
 
-            if (c.ffvals) f_ffvals = new oSafeMagicStream(addExtension(curNbestFile, ".ffvals"));
-            if (c.trace)  f_pal    = new oSafeMagicStream(addExtension(curNbestFile, ".pal"));
-         }
+         s_lattice       = c.latticeFilePrefix;
+         s_lattice_state = addExtension(s_lattice, ".state");
       }
-      /// Destructor.
-      ~OneFileInfo()
-      {
-         if (f_nbest) delete f_nbest; f_nbest = NULL;
-         if (f_ffvals) delete f_ffvals; f_ffvals = NULL;
-         if (f_pal) delete f_pal; f_pal = NULL;
-         if (f_lattice) delete f_lattice; f_lattice = NULL;
-         if (f_lattice_state) delete f_lattice_state; f_lattice_state = NULL;
+};
+
+
+/**
+ *
+ */
+class MultipleFileInfo : public IFileInfo {
+   public:
+      MultipleFileInfo(const CanoeConfig& c)
+      : IFileInfo(c)
+      {}
+
+      virtual void currentSourceSentenceId(Uint id) {
+         freeFiles();
+
+         // Create Nbest file names.
+         s_nbest  = generateNbestName(id);
+         s_ffvals = addExtension(s_nbest, ".ffvals");
+         s_sfvals = addExtension(s_nbest, ".sfvals");
+         s_pal    = addExtension(s_nbest, ".pal");
+
+         // Create Lattice file names.
+         s_lattice       = generateLatticeName(id);
+         s_lattice_state = addExtension(s_lattice, ".state");
       }
-      /// Did the user request a single file
-      /// @return Returns true if the user requested one file
-      bool one() { return append; }
-      oSafeMagicStream* nbest() const { return f_nbest; }
-      oSafeMagicStream* ffvals() const { return f_ffvals; }
-      oSafeMagicStream* pal() const { return f_pal; }
-      oSafeMagicStream* lattice() const { assert(f_lattice); return f_lattice; }
-      oSafeMagicStream* lattice_state() const { assert(f_lattice_state); return f_lattice_state; }
+   protected:
+      virtual string generateNbestName(Uint num) const = 0;
+      virtual string generateLatticeName(Uint num) const = 0;
+};
+
+
+/**
+ *
+ */
+class FlatFileInfo : public MultipleFileInfo {
+   public:
+      FlatFileInfo(const CanoeConfig& c)
+      : MultipleFileInfo(c)
+      {}
+
+      virtual string generateNbestName(Uint num) const {
+         const Uint buffer_size = 31;
+         char  sent_num[buffer_size+1];
+         snprintf(sent_num, buffer_size, ".%.4d.", num);
+         ostringstream ext;
+         ext << sent_num << c.nbestSize << "best";
+         return addExtension(c.nbestFilePrefix, ext.str());
+      }
+
+      virtual string generateLatticeName(Uint num) const {
+         char  sent_num[7];
+         snprintf(sent_num, 7, ".%.4d", num);
+         return  addExtension(c.latticeFilePrefix, sent_num);
+      }
+};
+
+
+/**
+ *
+ */
+class HierarchyFileInfo : public MultipleFileInfo {
+   public:
+      /**
+       * Default constructor.
+       * @param  c  canoe config to get the file names.
+       */
+      HierarchyFileInfo(const CanoeConfig& c)
+      : MultipleFileInfo(c)
+      { }
+
+      virtual string generateNbestName(Uint num) const {
+         string dirname, filename;
+         DecomposePath(c.nbestFilePrefix, &dirname, &filename);
+
+         const Uint buffer_size = 1024;
+         char  name[buffer_size+1];
+         snprintf(name, buffer_size, "%s%.3d/%s.%.6d.%dbest%s",
+            (dirname.empty() ? "" : (dirname + "/").c_str()),
+            num / 1000,
+            removeZipExtension(filename).c_str(),
+            num,
+            c.nbestSize,
+            (isZipFile(filename) ? ".gz" : ""));
+
+         if (!mkDirectories(DirName(name).c_str()))
+            error(ETFatal, "Failed to create a directory since %s is not a directory!", DirName(name).c_str());
+
+         return name;
+      }
+
+      virtual string generateLatticeName(Uint num) const {
+         string dirname, filename;
+         DecomposePath(c.latticeFilePrefix, &dirname, &filename);
+
+         const Uint buffer_size = 1024;
+         char  name[buffer_size+1];
+         snprintf(name, buffer_size, "%s%.3d/%s.%.6d%s",
+            (dirname.empty() ? "" : (dirname + "/").c_str()),
+            num / 1000,
+            removeZipExtension(filename).c_str(),
+            num,
+            (isZipFile(filename) ? ".gz" : ""));
+
+         if (!mkDirectories(DirName(name).c_str()))
+            error(ETFatal, "Failed to create a directory since %s is not a directory!", DirName(name).c_str());
+
+         return name;
+      }
 };
 
 
 /**
  * Once the hypotheses stacks are created in memory, this function outputs its
  * content in the proper format the user required.  Outputs the lattice files,
- * nbest files, ffvals files and/or pal files.
+ * nbest files, ffvals files, sfvals, and/or pal files.
  * @param h      final hypothesis stack, which contains the best complete translations.
- * @param model  the PhraseDecoderModel model used to generate the hypotheses in the stack.
+ * @param model  the BasicModel used to generate the hypotheses in the stack.
  * @param num    current source index [0,S).
  * @param oovs   Source Out-of-Vocabulary.
  * @param c      Global canoe configuration object.
- * @param one_file_info  Specifies to output just one nbest containing all nbests
+ * @param file_info  Specifies to output just one nbest containing all nbests
  */
-static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
+static void doOutput(HypothesisStack &h, BasicModel &model,
                      Uint num, vector<bool>* oovs, const CanoeConfig& c,
-                     OneFileInfo& one_file_info)
+                     IFileInfo& file_info)
 {
    bool masse(c.masse); // MUST declare a new masse to be able to disable it only for this function
 
    // Create print function used for outputting
    PrintFunc *printPtr = NULL;
-   if (c.ffvals) {
-      BasicModel *bmodel = dynamic_cast<BasicModel *>(&model);
-      assert(bmodel != NULL);
+   if (c.ffvals || c.sfvals) {
       if (c.trace) {
-         printPtr = new PrintAll(*bmodel, c.walign, oovs);
+         printPtr = new PrintAll(model, c.sfvals, c.walign, oovs);
       } else {
-         printPtr = new PrintFFVals(*bmodel, oovs);
+         printPtr = new PrintFFVals(model, c.sfvals, oovs);
       }
    } else if (c.trace) {
       printPtr = new PrintTrace(model, c.walign, oovs);
@@ -181,7 +338,7 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
    }
 
    // Output the best sentence to the primary output, cout
-   if (c.bLoadBalancing) cout << num << '\t';
+   if (c.bLoadBalancing || !c.canoeDaemon.empty()) cout << num << '\t';
    cout << s << endl;
 
    if ( c.verbosity >=1 && ShiftReducer::usingSR(c))
@@ -191,7 +348,7 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
       if(!cur->trans->shiftReduce->isOneElement())
          ShiftReducer::incompleteStackCnt++;
    }
-   
+
    if ( c.verbosity >= 2 )
    {
       // With verbosity >= 2, output the score assigned to the best translation
@@ -199,9 +356,9 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
       cerr << "BEST: " << s << " " << cur->score << endl;
    }
 
-   if (c.verbosity >= 3)
+   if (c.verbosity >= 2)
    {
-      // With verbosity >= 3, output the path taken for the best translation as
+      // With verbosity >= 2, output the path taken for the best translation as
       // well.
       DecoderState *travBack = cur;
       while (travBack->back != NULL)
@@ -209,6 +366,13 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
          cerr << "[ " << travBack->id << " => ";
          travBack = travBack->back;
          cerr << travBack->id << " ]" << endl;
+      }
+
+      // Also output the full details for each state on the 1-best path
+      for (travBack = cur; travBack != NULL; travBack = travBack->back) {
+         travBack->display(cerr, &model, oovs->size());
+         if (travBack->back)
+            model.scoreTranslation(*travBack->trans, 3);
       }
    }
 
@@ -231,43 +395,50 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
    Uint iteration(0);
    const Uint maxTries(3);
    bool good = true;
+   file_info.currentSourceSentenceId(num);
 
    do {
       vector<string>  openedFile;
 
-      if (c.latticeOut)
-      {
-            if (one_file_info.one()) {
-               const double dMasse = writeWordGraph(
-                     one_file_info.lattice(), one_file_info.lattice_state(),
-                     print, finalStates, c.backwards, masse);
-               if (masse) {
-                  fprintf(stderr, "Weight for sentence(%4.4d): %32.32g\n", num, dMasse);
-                  masse = false;
-               }
+      if (c.latticeOut) {
+         if ( c.latticeOutputOptions == "carmel" ) {
+            const double dMasse = writeWordGraph(
+                  file_info.lattice(), file_info.lattice_state(),
+                  print, finalStates, c.backwards, masse);
+            openedFile.push_back(file_info.s_lattice);
+            openedFile.push_back(file_info.s_lattice_state);
+            if (masse) {
+               fprintf(stderr, "Weight for sentence(%4.4d): %32.32g\n", num, dMasse);
+               masse = false;
             }
-            else {
-               // Create file names
-               char  sent_num[7];
-               snprintf(sent_num, 7, ".%.4d", num);
-               const string curLatticeFile
-                  = addExtension(c.latticeFilePrefix, sent_num);
-               const string curCoverageFile
-                  = addExtension(c.latticeFilePrefix, string(sent_num) + ".state");
+         }
+         else if ( c.latticeOutputOptions == "overlay" ) {
+            LatticeEdge::setMinScore(c.latticeMinEdge);
+            // Length to use for density calculation
+            Uint len;
+            if(c.latticeSourceDensity) {
+               // Density based on source length
+               len  = finalStates[0]->trans->numSourceWordsCovered;
+            } else {
+               // Density based on length of Viterbi translation
+               vector<string> toks;
+               DecoderState* plainSnt = *finalStates.begin();
+               PrintPhraseOnly plain(model, oovs);
+               while(plainSnt != NULL) {
+                  split(plain(plainSnt), toks, " ");
+                  plainSnt = plainSnt->back;
+               }
+               len = toks.size();
+            }
 
-               // Open files for output
-               oSafeMagicStream latticeOut(curLatticeFile);
-               openedFile.push_back(curLatticeFile);
-               oSafeMagicStream covOut(curCoverageFile);
-               openedFile.push_back(curCoverageFile);
-               // Produce lattice output
-               const double dMasse = writeWordGraph(&latticeOut, &covOut, print,
-                     finalStates, c.backwards, masse);
-               if (masse) {
-                  fprintf(stderr, "Weight for sentence(%4.4d): %32.32g\n", num, dMasse);
-                  masse = false;
-               }
-            }
+            // Build the lattice
+            SimpleOverlay overlay(finalStates.begin(), finalStates.end(), model, c.latticeLogProb);
+            overlay.print_pruned_lattice(*file_info.lattice(), print, c.latticeDensity, len, c.verbosity);
+            openedFile.push_back(file_info.s_lattice);
+         }
+         else {
+            error(ETFatal, "Illegal -lattice-output-options  Use -h for help.");
+         }
       }
 
       if (c.nbestOut) {
@@ -280,56 +451,26 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
          if (c.verbosity >= 3)
             printer.attachDebugStream(&cerr);
 
-         if (one_file_info.one()) {
-            // Attach the one file output stream
-            printer.attachNbestStream(one_file_info.nbest());
-            printer.attachFfvalsStream(one_file_info.ffvals());
-            printer.attachPalStream(one_file_info.pal());
-
-            print_nbest( theLatticeOverlay, c.nbestSize, printer, c.backwards );
+         if (c.ffvals) {
+            openedFile.push_back(file_info.s_ffvals);
+            printer.attachFfvalsStream(file_info.ffvals());
          }
-         else {
-            // Here we need to create some temp file stream just long enough to
-            // output the request data.
-            const Uint buffer_size = 31;
-            char  sent_num[buffer_size+1];
-            snprintf(sent_num, buffer_size, ".%.4d.", num);
-            ostringstream ext;
-            ext << sent_num << c.nbestSize << "best";
-            const string curNbestFile  = addExtension(c.nbestFilePrefix, ext.str());
 
-            oMagicStream  ffvals_stream;
-            if (c.ffvals) {
-               ffvals_stream.safe_open(addExtension(curNbestFile, ".ffvals"));
-               openedFile.push_back(addExtension(curNbestFile, ".ffvals"));
-               printer.attachFfvalsStream(&ffvals_stream);
-            }
-
-            oMagicStream  pal_stream;
-            if (c.trace) {
-               pal_stream.safe_open(addExtension(curNbestFile, ".pal"));
-               openedFile.push_back(addExtension(curNbestFile, ".pal"));
-               printer.attachPalStream(&pal_stream);
-            }
-
-            oMagicStream  nbest_stream;
-            if (!c.nbestProcessor.empty()) {
-               const string filename =
-                  "| "
-                  + c.nbestProcessor
-                  + (isSuffix(".gz", curNbestFile) ? "| gzip > " : ">")
-                  + curNbestFile;
-               nbest_stream.safe_open(filename);
-            }
-            else {
-               nbest_stream.safe_open(curNbestFile);
-            }
-            openedFile.push_back(curNbestFile);
-            printer.attachNbestStream(&nbest_stream);
-
-            // Must print here since the streams only exist in this scope on purpose
-            print_nbest(theLatticeOverlay, c.nbestSize, printer, c.backwards);
+         if (c.sfvals) {
+            openedFile.push_back(file_info.s_sfvals);
+            printer.attachSfvalsStream(file_info.sfvals());
          }
+
+         if (c.trace) {
+            openedFile.push_back(file_info.s_pal);
+            printer.attachPalStream(file_info.pal());
+         }
+
+         openedFile.push_back(file_info.s_nbest);
+         printer.attachNbestStream(file_info.nbest());
+
+         // Must print here since the streams only exist in this scope on purpose
+         print_nbest(theLatticeOverlay, c.nbestSize, printer, c.backwards);
       }
 
       if (masse)
@@ -355,7 +496,7 @@ static void doOutput(HypothesisStack &h, PhraseDecoderModel &model,
             good = false;
          }
       }
-      // Let's wait between 15 to 30 seconds 
+      // Let's wait between 15 to 30 seconds
    } while (!good && (++iteration < maxTries) && (sleep(rand() % 5 + 1), true));
 
    delete printPtr;
@@ -405,6 +546,104 @@ static void writeSrc(bool del, const vector<string>& src_sent, const vector<bool
    cout << endl;
 }
 
+static bool debugDaemon = false;
+
+/**
+ * Send a command to the canoe daemon
+ * @param canoeDaemonSpec  c.canoeDaemon
+ * @param message          message to send (e.g., GET, DONE, PING)
+ * @param responseExpected set this iff you expect a non-empty answer from the daemon
+ * @return the daemon's response
+ */
+static string sendMessageToDaemon(const string& canoeDaemonSpec, const string& message, bool responseExpected)
+{
+   if (debugDaemon) cerr << "Send message to daemon: " << message << endl;
+   static const SocketUtils daemon(canoeDaemonSpec);
+
+   string response;
+   bool success = daemon.sendRecv(message + daemon.selfDescription(), response);
+   if ((!success || response.empty()) && responseExpected)
+      error(ETWarn, "No response for message %s to %s",
+            message.c_str(), canoeDaemonSpec.c_str());
+   trim(response, "\n");
+   if (debugDaemon) cerr << "Received response from daemon: " << response << endl;
+
+   return response;
+}
+
+/// Signal handler to report problems to daemon if there's an error
+void reportSignalToDaemon(int s) {
+   ostringstream oss;
+   if (s == SIGINT) {
+      oss << "SIGNALED ***(rc=2)*** (caught SIGINT/Ctrl-C)";
+   } else if (s == SIGQUIT) {
+      oss << "SIGNALED ***(rc=3)*** (caught SIGQUIT/Ctrl-\\)";
+   } else if (s == SIGABRT) {
+      oss << "SIGNALED ***(rc=6)*** (SIGABRT: assertion failure, ETFatal error, memory problem or other call to abort. Look for this string in worker logs for details)";
+   } else if (s == SIGFPE) {
+      oss << "SIGNALED ***(rc=8)*** (SIGFPE: numerical error of some kind)";
+   } else if (s == SIGUSR1) {
+      oss << "SIGNALED ***(rc=10)*** (caught SIGUSR1)";
+   } else if (s == SIGUSR2) {
+      oss << "SIGNALED ***(rc=12)*** (caught SIGUSR2)";
+   } else if (s == SIGTERM) {
+      oss << "SIGNALED ***(rc=15)*** (caught SIGTERM/kill/qdel)";
+   } else {
+      oss << "SIGNALED ***(rc=" << s << ")*** (signal=" << s << ")";
+   }
+   sendMessageToDaemon("", oss.str(), false);
+   cerr << "reporting signal to daemon and exiting: " << oss.str() << endl;
+   exit(128+s);
+}
+
+/// Get the next sentence number to translate, from the canoe daemon
+/// Returns next sentence to translate, or Uint(-1) if the daemon said done.
+static Uint getNextSentenceIDFromDaemon(const string& canoeDaemonSpec)
+{
+   string response = sendMessageToDaemon(canoeDaemonSpec, "GET", false);
+   if (response == "***EMPTY***" || response == "")
+      return Uint(-1);
+
+   vector<string> tokens;
+   if (split(response, tokens, " ", 3) != 2)
+      error(ETFatal, "Bad response (should be two tokens) from canoe daemon for GET message: %s",
+            response.c_str());
+
+   Uint sentenceID;
+   if (!conv(tokens[1], sentenceID))
+      error(ETFatal, "Bad response (should be sent ID) from canoe daemon for GET message: %s",
+            response.c_str());
+
+   return sentenceID;
+}
+
+/// Get the current host name, for logging purposes.
+string getHostName() {
+   const char* hostname = getenv("HOSTNAME");
+   if (hostname) {
+      return hostname;
+   } else {
+      // in some circumstances, HOSTNAME is not defined, e.g, in a crontab, so
+      // we fall back to calling the hostname command.
+      iMagicStream in("hostname |");
+      string line;
+      if (getline(in, line)) {
+         trim(line, " \t\n");
+         return line;
+      } else {
+         return "MysteryHost";
+      }
+   }
+}
+
+/// For logging purposes
+static void logTime(const char* type) {
+   time_t now = time(0);
+   tm* localtm = localtime(&now);
+   static const string hostname = getHostName();
+
+   cerr << "canoe " << type << " on " << hostname << " on " << asctime(localtm) << endl;
+}
 
 /**
  * Program canoe's entry point.
@@ -454,6 +693,10 @@ int MAIN(argc, argv)
    c.check();
    PhraseTable::log_almost_0 = c.phraseTableLogZero;
 
+   // we log the start time after the checks, so it's not produced when the
+   // command line or canoe.ini is rejected.
+   if (c.verbosity >= 1) logTime("starting");
+
    // Binds the pid.
    if (c.bind_pid > 0)
       process_bind(c.bind_pid);
@@ -461,77 +704,79 @@ int MAIN(argc, argv)
    if (c.verbosity >= 2)
       c.write(cerr, 2);
 
+   // Check if we have a canoe daemon to talk to
+   struct sigaction sigHandler;
+   bool useCanoeDaemon = !c.canoeDaemon.empty();
+   if (useCanoeDaemon) {
+      if (sendMessageToDaemon(c.canoeDaemon, "PING", true) == "PONG") {
+         // set signal handlers so we report errors to the daemon too.
+         sigHandler.sa_handler = reportSignalToDaemon;
+         sigemptyset(&sigHandler.sa_mask);
+         sigHandler.sa_flags = 0;
+
+         sigaction(0, &sigHandler, NULL);
+         sigaction(SIGINT, &sigHandler, NULL);
+         sigaction(SIGQUIT, &sigHandler, NULL);
+         sigaction(SIGILL, &sigHandler, NULL);
+         sigaction(SIGTRAP, &sigHandler, NULL);
+         sigaction(SIGABRT, &sigHandler, NULL);
+         sigaction(SIGFPE, &sigHandler, NULL);
+         sigaction(SIGUSR1, &sigHandler, NULL);
+         sigaction(SIGSEGV, &sigHandler, NULL);
+         sigaction(SIGUSR2, &sigHandler, NULL);
+         sigaction(SIGTERM, &sigHandler, NULL);
+
+         // Make error(ETFatal) use abort() so we can catch it with SIGABRT.
+         Error_ns::Current::errorCallback = Error_ns::abortOnErrorCallBack;
+         ugdiss::exit_1_use_abort = true;
+      } else {
+         error(ETFatal, "Error PINGing canoe daemon; job might already have been completed by other workers, so this error might not be a problem.");
+      }
+   }
+
    // If the user request a single file, this object will keep track of the
    // required files
-   OneFileInfo  one_file_info(c);
+   IFileInfo* file_info = NULL;
+   if (c.bAppendOutput) {
+      file_info = new OneFileInfo(c);
+   }
+   else {
+      if (c.hierarchy)
+         file_info = new HierarchyFileInfo(c);
+      else
+         file_info = new FlatFileInfo(c);
+   }
 
    // Set random number seed
    srand(time(NULL));
 
    BasicModelGenerator *gen;
-   vector<vector<string> > sents;
-   vector<vector<MarkedTranslation> > marks;
-   vector<Uint> sourceSentenceIds;
+   VectorPSrcSent sents;
    iSafeMagicStream input(c.input);
    InputParser reader(input, c.bLoadBalancing);
    if (c.checkInputOnly) {
       cerr << "Checking input sentences for markup errors." << endl;
       Uint error_count(0);
+      newSrcSentInfo nss;
       do {
-         vector<string> sent;
-         vector<MarkedTranslation> marks;
-         if ( ! reader.readMarkedSent(sent, marks) )
+         if (!reader.readMarkedSent(nss))
             ++error_count;
-      } while (!reader.eof());
+      } while (!reader.done());
       reader.reportWarningCounts();
-      if ( error_count )
-         cerr << "Found a total of " << error_count << " fatal format errors." << endl;
-      else
-         cerr << "No fatal format errors found." << endl;
       cerr << "Total line count: " << reader.getLineNum() - 1 << endl;
-      exit(error_count ? 1 : 0);
+      if (error_count) {
+         error(ETFatal, "Found %u fatal format errors.", error_count);
+      } else {
+         cerr << "No fatal format errors found." << endl;
+         exit(0);
+      }
    }
-   if (!c.loadFirst)
+   if (!c.loadFirst && !c.describeModelOnly)
    {
       cerr << "Reading input sentences." << endl;
-      while (true)
-      {
-         sents.push_back(vector<string>());
-         marks.push_back(vector<MarkedTranslation>());
-         sourceSentenceIds.push_back(Uint());
-         if ( ! reader.readMarkedSent(sents.back(), marks.back(), NULL, &sourceSentenceIds.back()) )
-         {
-            if ( c.tolerateMarkupErrors )
-               error(ETWarn, "Tolerating ill-formed markup.  Source sentence "
-                     "%d will be interpreted as having %d valid mark%s and "
-                     "this token sequence: %s",
-                     sourceSentenceIds.back(), marks.back().size(),
-                     (marks.back().size() == 1 ? "" : "s"),
-                     join(sents.back()).c_str());
-            else
-               error(ETFatal, "Aborting because of ill-formed markup");
-         }
-
-         // EJJ 12JUL2005 debugging output - might be useful again later.
-         //cerr << "INPUT SENTENCE:" << sents.back().size() << " tokens, "
-         //     << marks.back().size() << " marks:";
-         //for (int i = 0; i < sents.back().size(); i++)
-         //{
-         //   cerr << sents.back().at(i) << "|";
-         //}
-         //cerr << "\n";
-
-         if (reader.eof() && sents.back().empty())
-         {
-            sents.pop_back();
-            marks.pop_back();
-            sourceSentenceIds.pop_back();
-            break;
-         }
-      }
-      reader.reportWarningCounts();
-      assert(sents.size() == marks.size());
-      assert(sents.size() == sourceSentenceIds.size());
+      PSrcSent nss;
+      while (nss = reader.getMarkedSent())
+         sents.push_back(nss);
    }
 
    // get reference (target sentences) if levenshtein or n-gram is used
@@ -550,7 +795,7 @@ int MAIN(argc, argv)
                 : "Forced decoding cannot work without!");
       ref.safe_open(c.refFile);
 
-      if (!c.loadFirst)
+      if (!c.loadFirst && !c.describeModelOnly)
       {
          // Read reference (target) sentences.
          readRefSentences(ref, tgt_sents);
@@ -562,7 +807,13 @@ int MAIN(argc, argv)
 
    time_t start;
    time(&start);
-   gen = BasicModelGenerator::create(c, &sents, &marks);
+   gen = BasicModelGenerator::create(c, &sents);
+
+   if (c.describeModelOnly) {
+      cout << gen->describeModel();
+      exit(0);
+   }
+
    cerr << "Loaded data structures in " << difftime(time(NULL), start)
         << " seconds." << endl;
 
@@ -570,9 +821,6 @@ int MAIN(argc, argv)
    if ( c.verbosity >= 1 )
       cerr << endl << "Log-linear model used:"
            << endl << gen->describeModel() << endl;
-
-   if ( c.futScoreUseFtm > 0)
-      cerr << endl << "Including forward translation probs in future score calculation." << endl;
 
    if (c.randomWeights)
       cerr << "NOTE: using random weights (ignoring given weights); init seed="
@@ -589,6 +837,7 @@ int MAIN(argc, argv)
    }
    time(&start);
    Uint i = 0;
+   Uint num_translated = 0;
    Uint lastCanoe = 1000;
    Timer centisecondTimer;
    AvgVarTotalStat createStats("createModel"), decodeStats("runDecoder"), outputStats("doOutput");
@@ -596,49 +845,73 @@ int MAIN(argc, argv)
    {
       centisecondTimer.reset();
 
-      newSrcSentInfo nss_info;
-      nss_info.internal_src_sent_seq = i;
+      Uint save_i = i;
+      if (useCanoeDaemon) {
+         i = getNextSentenceIDFromDaemon(c.canoeDaemon);
+         /*
+         if (i == 0)
+            error(ETFatal, "Testing fatal error catching");
+         else if (i == 1)
+            assert(false && "Testing assertion failure catching");
+         else if (i == 2)
+            i = i / num_translated; // forces a division by 0
+         */
 
-      vector<bool> oovs;
-      nss_info.oovs = &oovs;
+         if (i == Uint(-1))
+            break;
+         if (c.verbosity > 1)
+            cerr << "Daemon says do sentence " << i << ".\n";
+         else
+            cerr << i;
+      }
 
-      Uint sourceSentenceId(0);
+      PSrcSent nss;
+
       vector<string> tgt_sent; // for loadfirst, if refs are needed
       if (c.loadFirst) {
-         if ( ! reader.readMarkedSent(nss_info.src_sent, nss_info.marks, NULL, &sourceSentenceId) ) {
-            if ( c.tolerateMarkupErrors ) {
-               error(ETWarn, "Tolerating ill-formed markup.  Source sentence "
-                     "%d will be interpreted as having %d valid mark%s and "
-                     "this token sequence: %s",
-                     sourceSentenceId, nss_info.marks.size(),
-                     (nss_info.marks.size() == 1 ? "" : "s"),
-                     join(nss_info.src_sent).c_str());
-            } else {
-               error(ETFatal, "Aborting because of ill-formed markup");
+         if (useCanoeDaemon) {
+            if (i < save_i)
+               error(ETFatal, "Daemon asked for earlier sentence - can't go back in -load-first mode.");
+            while (save_i < i) {
+               if (!reader.skipMarkedSent())
+                  error(ETFatal, "Error skipping input sentence - maybe daemon gave index (%u) past end of input file?", i);
+               if (needRef) {
+                  string line;
+                  if (!getline(ref, line))
+                     error(ETFatal, "Unexpected end of reference file before end of source file while skipping to daemon supplied line ID.");
+               }
+               ++save_i;
             }
          }
-         //TODO: maybe some test here for tgt_sents like phrase alignment when k is used????
-         if (reader.eof()) break;
+         nss = reader.getMarkedSent();
+         if (!nss)
+            break;
 
          if (needRef) {
             string line;
             if (!getline(ref, line))
                error(ETFatal, "Unexpected end of reference file before end of source file.");
             split(line, tgt_sent, " ");
-            nss_info.tgt_sent = &tgt_sent;
+            nss->tgt_sent = &tgt_sent;
          }
       } else {
+         if (useCanoeDaemon && i >= sents.size())
+            error(ETFatal, "Canoe daemon provided sentence ID (%u) beyond end of input file (%u)", i, sents.size());
          if (i == sents.size()) break;
          // Gather the proper information for the current sentence we want to process.
-         nss_info.src_sent = sents[i];
-         nss_info.marks    = marks[i];
-         if (!tgt_sents.empty()) nss_info.tgt_sent = &tgt_sents[i];
-         sourceSentenceId = sourceSentenceIds[i];
+         nss = sents[i];
+         if (!tgt_sents.empty()) nss->tgt_sent = &tgt_sents[i];
       }
+
+      Uint sourceSentenceId = nss->external_src_sent_id;
       if (!c.bLoadBalancing) sourceSentenceId += c.firstSentNum;
 
+      vector<bool> oovs;
+      nss->oovs = &oovs;
+      nss->internal_src_sent_seq = i;
+
       if (c.verbosity > 1)
-         cerr << "INPUT: " << join(nss_info.src_sent) << endl;
+         cerr << "INPUT: " << join(nss->src_sent) << endl;
 
       if (c.randomWeights)
          gen->setRandomWeights((c.randomSeed + 1) * sourceSentenceId);
@@ -651,15 +924,15 @@ int MAIN(argc, argv)
                   sourceSentenceId, "using global weights");
       }
 
-      nss_info.external_src_sent_id = sourceSentenceId;
-      if (forcedDecoding) gen->lm_numwords = nss_info.tgt_sent->size() + 1;
-      BasicModel *model = gen->createModel(nss_info, false);
+      nss->external_src_sent_id = sourceSentenceId;
+      if (forcedDecoding) gen->lm_numwords = nss->tgt_sent->size() + 1;
+      BasicModel *model = gen->createModel(*nss, false);
 
       const double createTime = centisecondTimer.secsElapsed(1);
       createStats.add(createTime);
 
       if (c.oov != "pass") {  // skip translation; just write back source, with oov handling
-         writeSrc(c.oov == "write-src-deleted", nss_info.src_sent, oovs);
+         writeSrc(c.oov == "write-src-deleted", nss->src_sent, oovs);
          delete model;
          ++i;
          continue;
@@ -667,13 +940,10 @@ int MAIN(argc, argv)
 
       HypothesisStack *h = NULL;
 
-      const Uint sourceLength = nss_info.src_sent.size();
+      const Uint sourceLength = nss->src_sent.size();
       if (c.maxlen && sourceLength > c.maxlen) {
-         //cout << endl;
          error(ETWarn, "Skipping source sentence longer than maxlen (%u>%u).",
                sourceLength, c.maxlen);
-         //++i;
-         //continue;
          h = new HistogramThresholdHypStack(*model, 1, -1, 1, -1, 0, 0, true);
          h->push(makeEmptyState(sourceLength, usingLev, usingSR));
       } else {
@@ -683,7 +953,7 @@ int MAIN(argc, argv)
       const double decodeTime = centisecondTimer.secsElapsed(1) - createTime;
       decodeStats.add(decodeTime);
 
-      switch (i - lastCanoe)
+      switch (num_translated - lastCanoe)
       {
          case 0:
             cerr << '\\' << flush;
@@ -697,7 +967,7 @@ int MAIN(argc, argv)
          default:
             cerr << '.' << flush;
             if (((double)rand() / (double)RAND_MAX) < 0.01)
-               lastCanoe = i + 1;
+               lastCanoe = num_translated + 1;
             break;
       } // switch
 
@@ -717,11 +987,14 @@ int MAIN(argc, argv)
 
       assert(!h->isEmpty());
 
-      doOutput(*h, *model, sourceSentenceId, &oovs, c, one_file_info);
+      doOutput(*h, *model, sourceSentenceId, &oovs, c, *file_info);
 
+      nss.reset();
       delete h;
       delete model;
+
       ++i;
+      ++num_translated;
 
       const double outputTime = centisecondTimer.secsElapsed(1) - createTime - decodeTime;
       outputStats.add(outputTime);
@@ -730,9 +1003,15 @@ int MAIN(argc, argv)
          cerr << "Timing: create models + decode + output = total: "
               << createTime << " + " << decodeTime << " + " << outputTime << " = "
               << createTime + decodeTime + outputTime << " seconds." << endl;
+
+      if (useCanoeDaemon) {
+         string response =
+            sendMessageToDaemon(c.canoeDaemon, "DONE " + toString(i) + " (rc=0)", false);
+         if (response.substr(0,10) == "ALLSTARTED")
+            break;
+      }
    } // while
-   if ( c.loadFirst ) reader.reportWarningCounts();
-   cerr << "Translated " << i << " sentences in "
+   cerr << endl << "Translated " << num_translated << " sentences in "
         << difftime(time(NULL), start) << " seconds." << endl;
    if (c.verbosity >= 1 || c.timing) {
       cerr << "TimingStats over per-sentence model creation, decoding, and output times, in seconds:" << endl;
@@ -753,6 +1032,9 @@ int MAIN(argc, argv)
    }
 
    delete gen;
+   delete file_info;
+
+   if (c.verbosity >= 1) logTime("done");
 
    return 0;
 }

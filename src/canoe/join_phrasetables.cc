@@ -17,7 +17,6 @@
 #include "str_utils.h"
 #include "arg_reader.h"
 #include "basicmodel.h"
-#include "phrase_table_reader.h"
 #include "printCopyright.h"
 #include "logging.h"
 
