@@ -7,10 +7,10 @@ ngram 3=0
 \1-grams:
 0	</s>
 -99	<s>
--33     aa    -4
+-33	aa	-4
 
 \2-grams:
--33     aa a   -3
+-33	aa a	-3
 
 \3-grams:
 

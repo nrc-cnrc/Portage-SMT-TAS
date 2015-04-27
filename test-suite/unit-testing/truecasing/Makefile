@@ -82,6 +82,8 @@ ref_ucbos_cp1252:
 # users.
 #${LM}_cp1252:
 #	env echo -e "${REF}" | ngram-count -text - -order 3 -lm $@
+${LM}_cp1252:
+	cp src/$@ $@
 
 ${MAP}_cp1252:
 	env echo -e\
