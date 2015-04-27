@@ -102,7 +102,7 @@ my $WORK_PATH = "${WEB_PATH}/plive";
 # Because text box translations are performed "on the spot", there is
 # a risk for the page to time-out.  Hence this practical limit on
 # job size:
-my $MAX_TEXTBOX = 1000;
+my $MAX_TEXTBOX = 3000;
 
 # ISO-639 language name stuff -- you may want to add languages.
 my $LANG = { iso2=>{ fr=>'fr', en=>'en' },
@@ -262,7 +262,7 @@ sub printForm {
              td({align=>'left', colspan=>2},
                 radio_group(-name=>'newline',
                    -values=>['s', 'p', 'w'],
-                   -default=>'s',
+                   -default=>'p',
                    -linebreak=>'true',
                    -labels=>\%labels,
                    ))),
@@ -307,6 +307,14 @@ sub processText {
         system("cp",  $src_file, "$work_dir/Q.in") == 0
             || problem("Can't copy input file $src_file into $work_dir/Q.in");
 
+        # Do some basic checks on source text:
+        if (param('xml')) {
+            checkXML("$work_dir/Q.in");
+        }
+        else {
+            checkFile("$work_dir/Q.in", param('notok'), param('noss'));
+        }
+
     } elsif (param('TranslateBox') and param('textbox')) {  # Text box
         problem("Input text too large (limit = ${MAX_TEXTBOX}).  Try file upload instead.")
             if length(param('textbox')) > $MAX_TEXTBOX;
@@ -328,14 +336,6 @@ sub processText {
     $ENV{PERL5LIB} = "$PORTAGE_MODEL_DIR/$context/lib:$ENV{PERL5LIB}";
     $ENV{LD_LIBRARY_PATH} = "$PORTAGE_MODEL_DIR/$context/lib:$ENV{LD_LIBRARY_PATH}";
 
-    # Get some basic info on source text:
-    if (param('xml')) {
-       checkXML("$work_dir/Q.in");
-    }
-    else {
-       checkFile("$work_dir/Q.in", param('notok'), param('noss'));
-    }
-
     # Prepare the ground for translate.pl:
     my $outfilename = "PLive-${work_name}";
     push @tr_opt, ("-verbose",
@@ -356,7 +356,7 @@ sub processText {
         push @tr_opt, "-filter=$filter_threshold";
     }
 
-    if (param('xml')) {
+    if (param('TranslateFile') and param('xml')) {
         push @tr_opt, ("-xml", "-nl=s");
         push @tr_opt, "-xtags" if (param('file_xtags'));
     }
