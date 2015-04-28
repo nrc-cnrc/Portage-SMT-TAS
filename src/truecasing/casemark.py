@@ -259,6 +259,8 @@ def is_acronym(toks, idx):
     tok_cap = capitalize_token(tok_lower)
     lm_order = pylm.get_lm_order()
     pycontext = toks[idx+1:idx+lm_order]
+    if len(pycontext) < lm_order-1:
+       pycontext.append('<s>')   # nc1 LM is reversed, so we add <s>, not </s>
     uc_prob = pylm.get_word_prob(tok, pycontext)
     nc_prob = pylm.get_word_prob(tok_lower, pycontext)
     if tok_cap != tok:
@@ -579,7 +581,7 @@ class PyLM(object):
         """
         self.__vf = self.__lib_pylm.VocabFilter_new()
         for line in infile:
-            for tok in line.replace('\t', ' ').split(' '):
+            for tok in split(line):
                 tok_lower = tok.lower()
                 tok_cap = capitalize_token(tok.lower())
                 self.__lib_pylm.VocabFilter_add(self.__vf, self.__encode(tok))

@@ -450,7 +450,10 @@ mapId(Uint id)
     }
   Uint& x = idmap[id];
   if (x == UNMAPPED)
-    x = tindex[vocab->word(id)];
+    {
+      assert(id < vocab->size());
+      x = tindex[vocab->word(id)];
+    }
   return x;
 #else
   return id;
