@@ -14,7 +14,8 @@
 # Copyright 2008, Her Majesty in Right of Canada
 
 
-.PHONY: all french-hyphens dots ch-punc newline
+.SUFFIXES:
+.PHONY: all french-hyphens dots ch-punc ch-punc-map newline
 .SECONDARY:
 export PORTAGE_INTERNAL_CALL=1
 UTOKENIZE := utokenize.pl
@@ -28,7 +29,7 @@ all: test
 test: display.accent \
      $(addprefix compare., accent.tok accent.utf8 accent.utf8.tok) \
      $(addprefix display., accent.tok accent.utf8 accent.utf8.tok) \
-     french-hyphens dots ch-punc en-prices smart-apos
+     french-hyphens dots ch-punc ch-punc-map en-prices smart-apos
 
 
 french-hyphens: compare.hyphens.tok compare.hyphens.tok.utf8 \
@@ -39,12 +40,14 @@ dots: compare.periods.tok compare.periods.tok.utf8 \
 
 ch-punc: $(addprefix compare.chinese-punc.detok., 000 001 010 011 100 101 110 111)
 
+ch-punc-map: $(addprefix compare.ch-punc-utf8., cp1252 latin1 ascii)
+
 .PHONY: en-prices
 en-prices: compare.eng-prices.detok compare.eng-prices.detok.utf8
 
 TEMP_FILES=accent.* hyphens.* periods.* chinese-punc.* eng-prices.* \
            es.* da.* xtags.* smart-apos.* paragraph.* \
-           brackets.utf8.detok-?? \
+           brackets.utf8.detok-?? ch-punc-utf8.* \
            with_tags.in with_tags.out
 include ../Makefile.incl
 
@@ -201,6 +204,12 @@ eng-prices.detok: eng-prices
 eng-prices.detok.utf8: eng-prices.utf8
 	${UDETOKENIZE} -lang=en $< > $@
 
+
+#####################
+# Test map-chinese-punct.pl, a separate script just for that purpose
+
+ch-punc-utf8.%: ch-punc-utf8
+	map-chinese-punct.pl -$* < $< > $@
 
 #####################
 # Make sure the apostrophe from CP1252 and its utf-8 counterpart are
