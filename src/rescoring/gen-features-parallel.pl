@@ -450,7 +450,7 @@ while (my $LINE = <MODEL_FILE>) {
    if ( $FEATURE eq "SCRIPT" ) {
       # Prepare the commands script
       # Grab the stdout of that script
-      push @CMDS, "$ARGS | gzip > $FF_FILE";
+      push @CMDS, "set -o pipefail; $ARGS | gzip > $FF_FILE";
 
       debug "Script feature, command is $CMDS[0]";
 
