@@ -733,6 +733,7 @@ my $q_dec = "${dir}/q.dec";     # Decoder-ready source
 my $p_raw = "${dir}/p.raw";     # Raw decoder output (with trace)
 # --> decoder output parsing
 my $p_decoov = "${dir}/p.dec.oov";  # Raw decoder translation with OOV markup
+my $oov_html = "${dir}/oov.html";  # Html page with highlighted OOVs.
 my $p_dec = "${dir}/p.dec";     # Raw decoder translation (OOV markup removed)
 my $p_pal = "${dir}/p.pal";     # Phrase alignments used with truecasing
 # --> postdecoder plugin
@@ -808,11 +809,13 @@ TRANS:{
       my $decoder_log = $verbose ? "2> '${dir}/log.decode'" : "";
       my $p_out = (defined $tcsrclm or $with_ce or $xtags) ? $p_raw : $p_dec;
       call("$decoder $decoder_opts -f ${canoe_ini} < '${q_dec}' > '${p_out}' ${decoder_log}");
-      if (defined $tcsrclm or $xtags) {
-         my $wal_opt = ($wal eq "h") ? "" : "-wal";
-         call("nbest2rescore.pl -canoe -tagoov -oov $wal_opt -palout='${p_pal}' < '${p_raw}'" .
-              "| perl -pe 's/ +\$//;' > '${p_decoov}'");
-      }
+
+      my $wal_opt = ($wal eq "h") ? "" : "-wal";
+      call("nbest2rescore.pl -canoe -tagoov -oov $wal_opt -palout='${p_pal}' < '${p_raw}'" .
+           "| perl -pe 's/ +\$//;' > '${p_decoov}'");
+
+      generateOOVsPage(${p_decoov}, ${oov_html});
+
       if ($with_ce) {
          # ce_canoe2ffvals.pl generates $p_dec from $p_raw, among other things
          call("ce_canoe2ffvals.pl -verbose=${verbose} -dir='${dir}' '${p_raw}'");
@@ -1302,4 +1305,30 @@ sub outputJson {
    close(ORIG);
    close(TRANS);
    close(OUT);
+}
+
+# Given a file containing sentences marked with OOVs (<OOV>words</OOV>),
+# genereate an html page where the OOVs are colored red.
+sub generateOOVsPage {
+   my ($oov, $html) = @_;
+   print STDERR "Generating oov.html\n";
+
+   # TODO: We might want to be less harsh when we can't create the oov.html
+   open(OOV, "<${oov}") or die "ERROR: can't open ${oov} to create the OOV html page. ($!)";
+   open(HTML, ">${html}")   or die "ERROR: can't open ${html} to create the OOV html page. ($!)";
+
+   print HTML '<!DOCTYPE html><html><head><style>.OOV { color: red;} </style></head><body>';
+   while (<OOV>) {
+      s/&/\&amp;/g;
+      s/</\&lt;/g;
+      s/>/\&gt;/g;
+      s/&lt;OOV&gt;/<span class="OOV">/g;
+      s/&lt;\/OOV&gt;/<\/span>/g;
+      s/$/<br\/>/;
+      print HTML;
+   }
+   print HTML '</body></html>';
+
+   close(HTML);
+   close(OOV);
 }

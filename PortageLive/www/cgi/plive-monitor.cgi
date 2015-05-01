@@ -128,6 +128,7 @@ if (my $filename = param('file')     # The name of the file we are monitoring
         my $monitor_log = catdir($WEB_PATH, $work_dir, "monitor_log");
 
         my $trace_url = catdir("", $work_dir, "trace");
+        my $oov_url = catdir("", $work_dir, "oov.html");
 
         if (-e $job_done) {
             print pageHead($filename, $context); # Background process is done
@@ -204,6 +205,10 @@ if (my $filename = param('file')     # The name of the file we are monitoring
                 print MONITOR "Translated ${out_count} segments in ${elapsed_time} seconds.";
                 close MONITOR;
             }
+
+           print p("To view the out-of-vocabulary words click here: ",
+                    a({-href=>"$oov_url"}, "OOVs"),
+                    ".");
         }
         print p("In case of problems, have a look at the job's ",
                  a({-href=>"plive-monitor.cgi?traceFile=$trace_url"}, "trace file"),
