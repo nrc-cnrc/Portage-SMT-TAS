@@ -88,7 +88,7 @@ ram_vs_swap:
 # What needs to work after a successful installation of Portage.
 testsuite: post_installation
 
-VALIDATE_PGMS := canoe cow.sh tokenize.pl ce.pl tmx2lfl.pl filter-nc1.py arpalm.encode
+VALIDATE_PGMS := canoe tune.py tokenize.pl ce.pl tmx2lfl.pl filter-nc1.py arpalm.encode
 .PHONY: post_installation
 post_installation: ${VALIDATE_PGMS}
 	@echo "Portage itself is correctly installed." >&2
@@ -96,7 +96,7 @@ post_installation: ${VALIDATE_PGMS}
 
 canoe: EXPLAIN:=Make sure Portage is correctly installed.  Check your PATH.
 ce.pl: EXPLAIN:=Check your PERL5LIB or XML::Twig may not be correctly installed.
-cow.sh: EXPLAIN:=Make sure Portage is correctly installed.  Check your PATH.
+tune.py: EXPLAIN:=Make sure Portage is correctly installed.  Check your PATH.
 tmx2lfl.pl: EXPLAIN:=Check your PERL5LIB or you're missing XML::Twig or your version is not greater or equal to XML::Twig-3.28.
 tokenize.pl: EXPLAIN:=Check your PERL5LIB.
 filter-nc1.py: EXPLAIN:=Check your Python version and PYTHONPATH variable.

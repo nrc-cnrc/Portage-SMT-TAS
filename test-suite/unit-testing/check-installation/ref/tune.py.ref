@@ -1,0 +1,4 @@
+Usage: tune.py [options] src ref1 [ref2...] [ref1_al ref2_al...]
+
+ Generic SMT tuning loop. Call with a source text and one or more reference
+translations.
