@@ -732,6 +732,7 @@ my $q_dec = "${dir}/q.dec";     # Decoder-ready source
 my $p_raw = "${dir}/p.raw";     # Raw decoder output (with trace)
 # --> decoder output parsing
 my $p_decoov = "${dir}/p.dec.oov";  # Raw decoder translation with OOV markup
+my $p_json = "${dir}/p.json";  # pal + source info in a json format for phraseAlignment.html.
 my $oov_html = "${dir}/oov.html";  # Html page with highlighted OOVs.
 my $p_dec = "${dir}/p.dec";     # Raw decoder translation (OOV markup removed)
 my $p_pal = "${dir}/p.pal";     # Phrase alignments used with truecasing
@@ -810,10 +811,12 @@ TRANS:{
       call("$decoder $decoder_opts -f ${canoe_ini} < '${q_dec}' > '${p_out}' ${decoder_log}");
 
       my $wal_opt = ($wal eq "h") ? "" : "-wal";
-      call("nbest2rescore.pl -canoe -tagoov -oov $wal_opt -palout='${p_pal}' < '${p_raw}'" .
+      call("nbest2rescore.pl -canoe -tagoov -oov $wal_opt -palout='${p_pal}' -source=${q_dec} -json=${p_json} < '${p_raw}'" .
            "| perl -pe 's/ +\$//;' > '${p_decoov}'");
 
       generateOOVsPage(${p_decoov}, ${oov_html});
+
+      symlink(${dir}."/../../phraseAlignmentVisualization.html", ${dir}."/pal.html");
 
       if ($with_ce) {
          # ce_canoe2ffvals.pl generates $p_dec from $p_raw, among other things

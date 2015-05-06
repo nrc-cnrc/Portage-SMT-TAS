@@ -129,6 +129,7 @@ if (my $filename = param('file')     # The name of the file we are monitoring
 
         my $trace_url = catdir("", $work_dir, "trace");
         my $oov_url = catdir("", $work_dir, "oov.html");
+        my $pal_url = catdir("", $work_dir, "pal.html");
 
         if (-e $job_done) {
             print pageHead($filename, $context); # Background process is done
@@ -209,6 +210,8 @@ if (my $filename = param('file')     # The name of the file we are monitoring
            print p("To view the out-of-vocabulary words click here: ",
                     a({-href=>"$oov_url"}, "OOVs"),
                     ".");
+
+           print p(a({-href=>"$pal_url"}, "To view the phrase aligments click here."));
         }
         print p("In case of problems, have a look at the job's ",
                  a({-href=>"plive-monitor.cgi?traceFile=$trace_url"}, "trace file"),

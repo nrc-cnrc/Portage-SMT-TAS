@@ -13,6 +13,7 @@
 
 use strict;
 use warnings;
+use JSON;
 
 BEGIN {
    # If this script is run from within src/ rather than being properly
@@ -51,6 +52,8 @@ Options:
   -out=O	Specify output text file [stdout]
   -ffout=FF	Specify output feature functions file; implies -ff [none]
   -palout=PAL	Specify output phrase alignment file; implies -pal [none]
+  -source=source Specify the source sentence file; [none]
+  -json=file     Output the phrase alignment in a json format to file.  requires -source  [don't]
 
   -oov          Output OOV status in -palout file [don't]
   -wal          Output word-alignment info in the -palout file (implies -oov) [don't]
@@ -69,7 +72,7 @@ each translation then produces up to four lines of output: translation, phrase
 alignment info, word alignment info, and ff values (in that order).
 ";
 
-our ($h, $help, $in, $out, $ffout, $palout, $wal, $nbest, $format, $legacy, $canoe, $oov, $tagoov, $append);
+our ($h, $help, $in, $out, $ffout, $palout, $wal, $nbest, $format, $legacy, $canoe, $oov, $tagoov, $append, $source, $json);
 
 if (defined($h) or defined($help)) {
     print STDERR $HELP;
@@ -85,10 +88,14 @@ $format = "rescore" unless defined $format;
 $legacy = 0 unless defined $legacy;
 $canoe = 0 unless defined $canoe;
 $oov = 0 unless defined $oov;
+$json =0 unless defined $json;
+$source = 0 unless defined $source;
 $oov = 1 if $wal;
 $tagoov = 0 unless defined $tagoov;
 my $mode = ">";
 $mode = ">>" if (defined($append));
+
+die "Error: You must specify the source when using -json." if ($json and not $source);
 
 die "Error: Don't know what to do with these extra arguments: @ARGV"
     if @ARGV;
@@ -97,16 +104,19 @@ die "Error: Don't know what to do with these extra arguments: @ARGV"
 # Do it.
 open(my $in_stream, "<$in")
     or die "Error: nbest2rescore.pl can't open input nbest file <'$in': $!\n";
+binmode($in_stream, ":encoding(utf-8)");
 
 my $out_stream = new FileHandle;
 zopen($out_stream, "$mode$out")
    or die "Error: nbest2rescore.pl can't open output file $mode'$out': $!\n";
+binmode($out_stream, ":encoding(utf-8)");
 
 my $ff_stream;
 if ($ffout) {
    $ff_stream = new FileHandle;
    zopen($ff_stream, "$mode$ffout")
       or die "Error: nbest2rescore.pl can't open output ff file $mode'$ffout': $!\n";
+   binmode($ff_stream, ":encoding(utf-8)");
 }
 
 my $pal_stream;
@@ -114,8 +124,27 @@ if ($palout) {
    $pal_stream = new FileHandle;
    zopen($pal_stream, "$mode$palout")
       or die "Error: nbest2rescore.pl can't open output phrase alignment file $mode'$palout': $!\n";
+   binmode($pal_stream, ":encoding(utf-8)");
 }
 
+my $source_stream;
+if ($source) {
+   $source_stream = new FileHandle;
+   zopen($source_stream, "<$source")
+      or die "Error: nbest2rescore.pl can't open input source file '$source': $!\n";
+   binmode($source_stream, ":encoding(utf-8)");
+}
+
+my $json_stream;
+if ($json) {
+   $json_stream = new FileHandle;
+   zopen($json_stream, "$mode$json")
+      or die "Error: nbest2rescore.pl can't open output phrase alignment json file $mode'$json': $!\n";
+   # No need to open this file in UTF-8 since the JSON library takes care of this.
+   #binmode($json_stream, ":encoding(utf-8)");
+}
+
+my @alignments;
 my $count = 0;
 my $max_ff_vals = 0;		# Ugly global var to keep track of
 				# number of feature functions
@@ -124,8 +153,11 @@ while (my $line = <$in_stream>) {
     my $translation = parseTranslation($line, $legacy);
     printOutput($format, $translation, ++$count,
 		$out_stream, $ff_stream, $pal_stream);
+    push(@alignments, $translation) if ($json);
     last if ($nbest && $translation && ($count >= $nbest));
 }
+
+print $json_stream encode_json(\@alignments), "\n" if ($json);
 
 close $in_stream;
 close $out_stream;
@@ -133,6 +165,11 @@ close $ff_stream
     if $ff_stream;
 close $pal_stream
     if $pal_stream;
+if ($source) {
+   warn("Warning: Source file too long!") if (defined(<$source_stream>));
+   close $source_stream if $source;
+}
+close $json_stream if $json;
 
 exit 0;
 
@@ -140,6 +177,7 @@ exit 0;
 
 # Subs
 
+my $sourceTooShort = undef;
 sub parseTranslation {
     my ($string, $legacy) = @_;
 
@@ -210,7 +248,22 @@ sub parseTranslation {
 	
 	push @phrases, { %record };
     }
+
     $translation = { target=>[ @target ], phrases=>[ @phrases ] };
+
+    if ($source) {
+       # TODO: What about unbalanced source / input stream.  Should be unlikely but we should still check it.
+       if (defined(my $s = <$source_stream>)) {
+          chomp($s);
+          $translation->{source} = [split(/ +/, $s)];
+       }
+       else {
+          $translation->{source} = [split(/ +/, "Error: The source file is too short!")];
+          warn("Warning: The source file is too short!") unless(defined($sourceTooShort));
+          $sourceTooShort = 1;
+       }
+    }
+
     if ($line) {
 	warn "Warning: Junk at end of line <<$string>>: <<$line>>\n";
 	return 0;
@@ -223,6 +276,7 @@ sub parseTranslation {
 # Output functions
 sub printOutput {
     my ($how, @what) = @_;
+
     if ($how eq "xml") {
 	printXML(@what);
     } elsif ($how eq "phrase") {
