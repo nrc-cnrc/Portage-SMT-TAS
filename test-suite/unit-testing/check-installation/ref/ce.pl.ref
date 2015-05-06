@@ -2,3 +2,4 @@ SYNOPSIS
     ce.pl {options} ce_model [ data_dir ]
 
 DESCRIPTION
+    Compute confidence estimation, using the given ce_model. All input files

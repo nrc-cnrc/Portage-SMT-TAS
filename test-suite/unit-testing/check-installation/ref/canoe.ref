@@ -2,3 +2,4 @@ Usage: canoe -f CONFIG [options] < marked_up_src
 
 Translate text, reading from standard input and writing to standard output.
 Translation is controlled by the options listed below, which may be specified
+in the CONFIG file or as command-line switches (the latter take precedence).

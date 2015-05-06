@@ -2,3 +2,4 @@ starting arpalm.encode
 
 arpalm.encode [options] [--lm] LM_FILE [-o] OUTPUT_BASE_NAME [[-u] UNKNOWN_TOKEN]
 
+  Create the TokenIndex file OUTPUT_BASE_NAME.tdx and the codebook file

@@ -26,10 +26,7 @@ SHELL = bash
 .PHONY: all
 all: testsuite
 
-
-.PHONY: clean
-clean:
-	@true
+include ../Makefile.incl
 
 .PHONY: testsuite
 testsuite:
@@ -106,11 +103,11 @@ arpalm.encore: EXPLAIN:=Check that all boost libraries are installed.
 # We simply make sure we can invoke the help message to trigger the dependencies.
 ${VALIDATE_PGMS}:
 	@which $@ &> /dev/null || ! echo "Can't locate $@ in your PATH." >&2
-	@$@ -h 2>&1 | head -4 | diff --ignore-matching-lines='Her Majesty in Right of Canada' - ref/$@.ref || ! echo "$@ -h FAILED: ${EXPLAIN}  Refer to \$$PORTAGE/INSTALL." >&2
+	@$@ -h 2>&1 | head -5 | diff - ref/$@.ref || ! echo "$@ -h FAILED: ${EXPLAIN}  Refer to \$$PORTAGE/INSTALL." >&2
 
 post_installation: check_casemark
 
 .PHONY: check_casemark
 check_casemark: EXPLAIN:=Check your LD_LIBRARY_PATH: it should point to the location of libportage_truecasing.so.  Check your PYTHONPATH: it should point to the location of portage_utils.py.
 check_casemark:
-	@casemark.py -lm /dev/null /dev/null 2>&1 | diff --ignore-matching-lines='Her Majesty in Right of Canada' - ref/casemark.py.error-ref || ! echo "casemark.py -lm /dev/null /dev/null FAILED: ${EXPLAIN}  Refer to \$$PORTAGE/INSTALL." >&2
+	@casemark.py -lm /dev/null /dev/null 2>&1 | diff - ref/casemark.py.error-ref || ! echo "casemark.py -lm /dev/null /dev/null FAILED: ${EXPLAIN}  Refer to \$$PORTAGE/INSTALL." >&2

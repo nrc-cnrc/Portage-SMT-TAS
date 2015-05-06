@@ -2,3 +2,4 @@ usage: filter-nc1.py [options] [infile [outfile]]
 
 Filter out words up to the first cased word inclusive (if title cased) in
 <infile> for the purpose of producing text for building an nc1 language model.
+
