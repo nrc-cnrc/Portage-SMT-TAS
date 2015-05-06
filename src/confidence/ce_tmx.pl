@@ -134,7 +134,7 @@ Getopt::Long::GetOptions(
    "filter=s"     => \my $filter,
    'score!'       => \$score,
    'pp|pretty_print' => sub { $pretty_print = 'indented' },
-) or do { displayHelp(); exit 1 };
+) or do { print STDERR "Error: Invalid option(s).\n"; displayHelp(); exit 1 };
 
 $|=1;
 
@@ -632,7 +632,7 @@ sub replaceTransUnit {
 
    # Get the docid for this translation pair
    my $trans_unit_id = $trans_unit->{att}{id};
-   die "Each trans-unit should have its mandatory id." unless defined $trans_unit_id;
+   die "Error: Each trans-unit should have its mandatory id." unless defined $trans_unit_id;
    debug("trans_unit_id: %s\n", $trans_unit_id);
 
    # Replacement mode: find placeholder ID, replace with text
@@ -640,7 +640,7 @@ sub replaceTransUnit {
 
    my $source = $trans_unit->first_child('seg-source');
    $source = $trans_unit->first_child('source') unless($source);
-   die "No source for $trans_unit_id.\n" unless ($source);
+   die "Error: No source for $trans_unit_id.\n" unless ($source);
 
    # Create a target element.
    my $target = $trans_unit->get_xpath('target', 0);
@@ -668,7 +668,7 @@ sub replaceTransUnit {
          ++$parser->{seg_count};
          1;
       }
-      or die "XMLERROR: $translation\n$@\n";
+      or die "XML Error: $translation\n$@\n";
 
 
       my $sdl_seg = $sdl_defs->get_xpath("sdl:seg[\@id=\"$mid\"]", 0);
@@ -826,7 +826,7 @@ sub replaceTU {
    my ($parser, $tu) = @_;
 
    my @tuvs = $tu->children('tuv');
-   warn("Missing variants in TU") unless @tuvs;
+   warn("Warning: Missing variants in TU") unless @tuvs;
 
    $parser->{seg_id} = ""; # will be set later.
 
@@ -848,7 +848,7 @@ sub replaceTU {
                ++$parser->{seg_count};
                1;
             }
-            or die "XMLERROR: $translation\n$@\n";
+            or die "XML Error: $translation\n$@\n";
          }
       }
       $tu->set_att(changeid => 'MT!');
@@ -889,7 +889,7 @@ sub getTranslation {
    my ($parser, $id) = @_;
    my $translation = "";
 
-   die "getTranslation should be use in replace mode."  unless($parser->{action} eq 'replace');
+   die "Error: getTranslation should be use in replace mode."  unless($parser->{action} eq 'replace');
 
    $translation = ixGetSegment($parser->{ix}, $id);
    $parser->{seg_id} = $id;# Ugly side-effect
@@ -984,12 +984,12 @@ sub ixSave {
    my ($ix, $seg_file, $tag_file, $id_file) = @_;
 
    open(my $seg_out, ">${output_layers}", $seg_file)
-      or die "Can't open output file $seg_file";
+      or die "Error: Can't open output file $seg_file";
    open(my $tag_out, ">${output_layers}", $tag_file)
-      or die "Can't open output file $tag_file"
+      or die "Error: Can't open output file $tag_file"
       if defined $tag_file;
    open(my $id_out, ">${output_layers}", $id_file)
-      or die "Can't open output file $id_file";
+      or die "Error: Can't open output file $id_file";
 
    sub fix_1E_1F($) {
       my $content = shift;
@@ -1007,7 +1007,7 @@ sub ixSave {
 
    sub extractContent($) {
       my $xml = shift;
-      die "You must provide a content\n" unless(defined($xml));
+      die "Error: You must provide content\n" unless(defined($xml));
       my $tag = XML::Twig->new(
                twig_handlers => {
                   'ph[string() =~ /\s*\\-\s*$/]' =>
@@ -1097,11 +1097,11 @@ sub ixLoad {
    my $ix = newIx();
 
    open(my $seg_in, "<$input_layers", $seg_file)
-      or die "Can open input file $seg_file";
+      or die "Error: Can open input file $seg_file";
    open(my $id_in, "<$input_layers", $id_file)
-      or die "Can open input file $id_file";
+      or die "Error: Can open input file $id_file";
    open(my $ce_in, "<$input_layers", $ce_file)
-      or die "Can open input file $ce_file"
+      or die "Error: Can open input file $ce_file"
       if defined $ce_file;
 
    my $count = 0;
@@ -1110,7 +1110,7 @@ sub ixLoad {
    while (defined (my $id = <$id_in>)) {
       chomp $id;
       my $seg = readline($seg_in);
-      die "Not enough lines in text file $seg_file" unless defined $seg;
+      die "Error: Not enough lines in text file $seg_file" unless defined $seg;
       chomp $seg;
       if ($seg =~ m/^PORTAGE_NULL$/) {
          $seg = undef;
@@ -1131,7 +1131,7 @@ sub ixLoad {
       my $ce = 0;
       if ($ce_file) {
          $ce = readline($ce_in);
-         die "Not enough lines in CE file $ce_file" unless defined $ce;
+         die "Error: Not enough lines in CE file $ce_file" unless defined $ce;
          chomp $ce;
       }
       veryVerbose("ixLoad: read $id <<%s>> ($ce)\n", $seg);
@@ -1139,7 +1139,7 @@ sub ixLoad {
       verbose("\r[%d lines...]", $count) if (++$count % 1 == 0);
    }
    verbose("\r[%d lines; done.]\n", $count);
-   die "Too many lines in text file $seg_file" unless eof $seg_in;
+   die "Error: Too many lines in text file $seg_file" unless eof $seg_in;
 
    close $seg_in;
    close $id_in;
