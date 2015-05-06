@@ -1,21 +1,15 @@
 #!/usr/bin/env perl
 
-# $Id$
-#
 # @file chinese_rule_create.pl
 # @brief Convert marked-up utf8 Chinese files to Canoe format
 #
-# Usage: trans_gb_en.pl <input file>
+# @author Song Qiang Fang, overhauled by Howard Johnson in 2006
 #
-# Programmer: Song Qiang Fang - overhauled by Howard Johnson in 2006
-#
-# Copyright (c) 2004, 2005, 2006, Conseil national de recherches Canada / National Research Council Canada
-#
-# For further information, please contact :
-# Technologies langagieres interactives / Interactive Language Technologies
-# Inst. de technologie de l'information / Institute for Information Technology
+# Traitement multilingue de textes / Multilingual Text Processing
+# Tech. de l'information et des communications / Information and Communications Tech.
 # Conseil national de recherches Canada / National Research Council Canada
-# See http://iit-iti.nrc-cnrc.gc.ca/locations-bureaux/gatineau_e.html
+# Copyright 2004, 2005, 2006, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2004, 2005, 2006, Her Majesty in Right of Canada
 
 use strict;
 use warnings;
@@ -66,12 +60,12 @@ use Getopt::Long;
 my $verbose = 1;
 GetOptions(
    help        => sub { usage },
-) or usage;
+) or usage "Error: Invalid option(s).";
 
 my $in  = shift || "-";
 my $out = shift || "-";
 
-0 == @ARGV or usage "Superfluous parameter(s): @ARGV";
+0 == @ARGV or usage "Error: Superfluous argument(s): @ARGV";
 
 
 
@@ -171,7 +165,7 @@ my $num_mark_up = "<NUM [^>]*[>][^<]*<\/NUM>";
 sub tran_num {
    my ( $number ) = @_;
    unless ( $number =~ m/(.*)<NUM value=\"(.*)\">(.*)<\/NUM>(.*)/ ) {
-      die "error in this num expression!";
+      die "Error: error in this num expression!";
    }
    my $pre_stuff = $1;
    my $save_num = $2;
@@ -195,7 +189,7 @@ sub tran_num {
          } elsif ( $number =~ m/$percent_b/ ) {
             $orig_num = $orig_num . " " . $&;
          } else{
-            die " error in percentage expression";
+            die "Error: error in percentage expression";
          }
       } elsif ( $number =~ /$more_wan_yi/ ) {
          $num_english = "more than " . $num_english;
@@ -204,7 +198,7 @@ sub tran_num {
          } elsif ( $number =~ /$more_yi/ ) {
             $orig_num .= " $&";
          } else {
-            die " error in duo wan or duo yi expression";
+            die "Error: error in duo wan or duo yi expression";
          }
       } elsif ( $number =~ m/$us_dollar/ ) {
          $num_english .= " us dollars";
@@ -241,7 +235,7 @@ sub tran_date {
          $date_100_dai => \&yyd,
          );
    unless ( $date =~m/<DATE value=\"([\w:]+)\|(.*)\">(.*)<\/DATE>/ ) {
-      die "error in this date expression!";
+      die "Error: error in this date expression!";
    }
 
    my $field1 = $1;
@@ -377,8 +371,8 @@ sub rules {
 
 #==================== mainline ====================
 
-zopen(*IN, "< $in") or die "Can't open $in for reading: $!\n";
-zopen(*OUT, "> $out") or die "Can't open $out for writing: $!\n";
+zopen(*IN, "< $in") or die "Error: Can't open $in for reading: $!\n";
+zopen(*OUT, "> $out") or die "Error: Can't open $out for writing: $!\n";
 
 binmode( IN,  ":encoding(UTF-8)" );
 binmode( OUT, ":encoding(UTF-8)" );

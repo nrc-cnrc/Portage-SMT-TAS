@@ -4,8 +4,6 @@
 # @brief Preprocess Hansard HTML format files.
 # 
 # @author George Foster
-# 
-# COMMENTS: 
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -49,8 +47,8 @@ if ($help || $h) {
 $in = shift || "-";
 $out = shift || "-";
 
-if (!open(IN, "<$in")) {die "Can't open $in for writing";}
-if (!open(OUT, ">$out")) {die "Can't open $out for reading";}
+if (!open(IN, "<$in")) {die "Error: Can't open $in for writing";}
+if (!open(OUT, ">$out")) {die "Error: Can't open $out for reading";}
 
 $p = HTML::TokeParser->new(\*IN);
 

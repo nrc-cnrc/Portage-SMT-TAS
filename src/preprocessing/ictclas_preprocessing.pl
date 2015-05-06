@@ -1,10 +1,11 @@
 #!/usr/bin/env perl
-# $Id$
 
 # @file ictclas_preprocessing.pl
 # @brief This script preprocesses Chinese for ICTCLAS.
 # 
 # @author Boxing Chen & Samuel Larkin
+#
+# NOTE: Latin1 file encoding
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -50,12 +51,12 @@ use Getopt::Long;
 my $verbose = 1;
 GetOptions(
    help => sub { usage },
-) or usage;
+) or usage "Error: Invalid option(s).";
 
 my $in_file  = shift || "-";
 my $out_file = shift || "-";
 
-0 == @ARGV or usage "Superfluous parameter(s): @ARGV";
+0 == @ARGV or usage "Error: Superfluous argument(s): @ARGV";
 
 
 
@@ -63,8 +64,8 @@ my $xiexian="||";
 my $dot="_dot_";
 #my $dash="_dash_";
 
-zopen(*IN, "< $in_file") or die "Can't open $in_file for reading: $!\n";
-zopen(*OUT, "> $out_file") or die "Can't open $out_file for writing: $!\n";
+zopen(*IN, "< $in_file") or die "Error: Can't open $in_file for reading: $!\n";
+zopen(*OUT, "> $out_file") or die "Error: Can't open $out_file for writing: $!\n";
 
 while (<IN>) {
    chomp;

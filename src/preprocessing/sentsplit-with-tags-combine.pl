@@ -1,4 +1,5 @@
 #!/usr/bin/env perl
+
 # @file sentsplit-with-tags-combine.pl
 # @brief Tokenize text with an external tokenizer, while handling tags (part 2)
 #
@@ -68,25 +69,25 @@ GetOptions(
    verbose     => sub { ++$verbose },
    quiet       => sub { $verbose = 0 },
    debug       => \my $debug,
-) or usage;
+) or usage "Error: Invalid option(s).";
 
-3 == @ARGV or usage "You must provide exactly three file names as arguments.";
+3 == @ARGV or usage "Error: You must provide exactly three file names as arguments.";
 my ($textss, $tagsin, $output) = @ARGV;
 
 my $text_id = 0;
-open TEXTSS, "<$textss"  or die "Cannot open input sentence-split-text file $textss: $!";
-open TAGSIN, "<$tagsin"  or die "Cannot open input tags file $tagsin: $!";
-open OUT, ">$output" or die "Cannot open output file $output: $!";
+open TEXTSS, "<$textss"  or die "Error: Cannot open input sentence-split-text file $textss: $!";
+open TAGSIN, "<$tagsin"  or die "Error: Cannot open input tags file $tagsin: $!";
+open OUT, ">$output" or die "Error: Cannot open output file $output: $!";
 
 while (<TEXTSS>) {
    s/$tag_placeholder/
       my $tag = <TAGSIN>;
-      die "File $tagsin too short" if (!defined $tag);
+      die "Error: File $tagsin too short" if (!defined $tag);
       chomp $tag;
       $tag
    /ego;
    print OUT;
 }
 if (defined <TAGSIN>) {
-   die "File $tagsin too long";
+   die "Error: File $tagsin too long";
 }

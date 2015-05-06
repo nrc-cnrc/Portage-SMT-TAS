@@ -1,14 +1,10 @@
 #!/usr/bin/env perl
-# $Id$
 
 # @file filter-latin.pl 
 # @brief Filter out invalid characters from an iso-latin1 encoded file.
 #
 # @author George Foster
 #
-# COMMENTS:
-#
-# George Foster
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
@@ -52,15 +48,15 @@ my $verbose = 1;
 GetOptions(
     help        => sub { usage },
     verbose     => sub { ++$verbose },
-) or usage;
+) or usage "Error: Invalid option(s).";
 
 my $in = shift || "-";
 my $out = shift || "-";
 
-0 == @ARGV or usage "Superfluous parameter(s): @ARGV";
+0 == @ARGV or usage "Error: Superfluous argument(s): @ARGV";
 
-open(IN, "<$in") or die "Can't open $in for reading: $!\n";
-open(OUT, ">$out") or die "Can't open $out for writing: $!\n";
+open(IN, "<$in") or die "Error: Can't open $in for reading: $!\n";
+open(OUT, ">$out") or die "Error: Can't open $out for writing: $!\n";
 
 while (<IN>) {
     s/[\000-\010\013-\014\016-\037\177-\237]//go;

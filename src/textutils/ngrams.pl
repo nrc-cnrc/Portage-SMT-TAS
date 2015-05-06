@@ -5,10 +5,6 @@
 # 
 # @author George Foster
 # 
-# COMMENTS: 
-#
-
-# George Foster
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
@@ -47,13 +43,13 @@ if ($help || $h) {
     exit 0;
 }
 
-my $n = shift or die "missing n argument!\n$HELP";
+my $n = shift or die "Error: Missing n argument!\n$HELP";
  
 my $in = shift || "-";
 my $out = shift || "-";
  
-open(IN, "<$in") or die "Can't open $in for reading\n";
-open(OUT, ">$out") or die "Can't open $out for writing\n";
+open(IN, "<$in") or die "Error: Can't open $in for reading.\n";
+open(OUT, ">$out") or die "Error: Can't open $out for writing.\n";
 
 while (<IN>) {
    my @words = split;

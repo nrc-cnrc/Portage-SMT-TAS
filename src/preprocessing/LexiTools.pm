@@ -1,17 +1,17 @@
-# Copyright (c) 2004 - 2009, Sa Majeste la Reine du Chef du Canada /
-# Copyright (c) 2004 - 2009, Her Majesty in Right of Canada
+# @file LexiTools.pm
+# @brief Library for tokenizing, detokenizing and sentence-splitting.
+# 
+# @author George Foster, Michel Simard, Eric Joanis, Samuel Larkin
 #
-# For further information, please contact :
+# See POD at end of file.
+#
+# NOTE: Latin1 file encoding
+#
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# See http://iit-iti.nrc-cnrc.gc.ca/locations-bureaux/gatineau_e.html
-
-
-# LexiTools.pm
-# PROGRAMMER: George Foster / Michel Simard / Eric Joanis / Samuel Larkin
-#
-# COMMENTS: POD at end of file.
+# Copyright 2004 - 2009, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2004 - 2009, Her Majesty in Right of Canada
 
 
 # TODO:
@@ -178,7 +178,7 @@ sub tokenize #(paragraph, lang, notok, pretok)
       $split_word = \&split_word_fr;
       $matches_known_abbr = \&matches_known_abbr_fr;
    }
-   else {die "unknown lang in tokenizer: $lang";}
+   else {die "Error: Unknown lang in tokenizer: $lang";}
 
    # break up into whitespace-separated chunks, pull off punc, and break up
    # words (don't switch order of subexps in main match expr!)

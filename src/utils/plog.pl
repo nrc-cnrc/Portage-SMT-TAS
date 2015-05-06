@@ -1,10 +1,9 @@
 #!/usr/bin/perl -s -w
+
 # @file plog.pl
 # @brief Manage PortageII's accounting log
 #
 # @author Michel Simard, Eric Joanis
-#
-# COMMENTS:
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -193,56 +192,56 @@ if ($man or $HELP or $Help or $H) {
     exit 0;
 }
 
-die "You can't specify more than one of -create, -update, -extract and -stats\n" 
+die "Error: You can't specify more than one of -create, -update, -extract and -stats\n" 
     if defined($update) + defined($create) + defined($extract) + defined($stats) > 1;
 
 $dir = $DEFAULT_LOG unless defined $dir;
 $comment = undef unless defined $comment; # Yes, this is totally useless, except as documentation
-die "Option -comment only appicable with -create or -update" 
+die "Error: Option -comment only appicable with -create or -update" 
     if defined($comment) and not ($create or $update);
 
 $header = 0 unless defined $header;
-die "Option -header only appicable with -extract" 
+die "Error: Option -header only appicable with -extract" 
     if $header and not $extract;
 $raw = 0 unless defined $raw;
-die "Option -raw only appicable with -extract" 
+die "Error: Option -raw only appicable with -extract" 
     if $raw and not $extract;
-die "Options -raw and -header can't be used together" 
+die "Error: Options -raw and -header can't be used together" 
     if $raw and $header;
 $wout = 0 unless defined $wout;
 
 $verbose = 0 unless defined $verbose;
 $debug = 0 unless defined $debug;
 
-die "Can't access logging directory $dir\n" unless -d $dir and -r $dir;
+die "Error: Can't access logging directory $dir\n" unless -d $dir and -r $dir;
 
 ## Command-line arguments are specific to actions (extract, create, update)
 ## and so are fetched later on
 
 if ($create) {
-    defined(my $job_name = shift) or die "Missing argument: job_name\n";
-    die "Too many arguments\n" if shift;
+    defined(my $job_name = shift) or die "Error: Missing argument: job_name\n";
+    die "Error: Too many arguments\n" if shift;
 
     print STDOUT logCreate($dir, $job_name, $comment), "\n";
 
 } elsif ($update) {
-    defined(my $log_file = shift) or die "Missing argument: log_file\n";
-    defined(my $job_status = shift) or die "Missing argument: status\n";
-    defined(my $words_in = shift) or die "Missing argument: words_in\n";
+    defined(my $log_file = shift) or die "Error: Missing argument: log_file\n";
+    defined(my $job_status = shift) or die "Error: Missing argument: status\n";
+    defined(my $words_in = shift) or die "Error: Missing argument: words_in\n";
     my $words_out = shift;      # Don't care if it's undef -- handled by logUpdate()
 
-    die "Too many arguments\n" if shift;
+    die "Error: Too many arguments\n" if shift;
 
     logUpdate($dir, $log_file, $job_status, $words_in, $words_out, $comment);
 
 } elsif ($extract) {  
     my $period = shift || "";
-    die "Too many arguments\n" if shift;
+    die "Error: Too many arguments\n" if shift;
 
     logExtract($dir, $period, $header, $raw);
 } else {                        # -stats
     my $period = shift || "";
-    die "Too many arguments\n" if shift;
+    die "Error: Too many arguments\n" if shift;
 
     logStats($dir, $period);
 }
@@ -258,7 +257,7 @@ sub logCreate {
     my $now = gmtime();         # Greenwich time
     my @pw = getpwuid($<);
     lockLog($dir) 
-        or die "*** All attempts to acquire exclusive access to $dir failed ",
+        or die "*** Error: All attempts to acquire exclusive access to $dir failed ",
                "-- please contact your administrator.\n";
     my $job = logNew(NO=>getNO($dir),
                      JOB=>$job_name,
@@ -289,7 +288,7 @@ sub logCreate {
     logWrite($job, $log_fh);
     close $log_fh;
 
-    unlockLog($dir) or die "*** Something went wrong while unlocking $dir: errno=$!\n";
+    unlockLog($dir) or die "*** Error: Something went wrong while unlocking $dir: errno=$!\n";
 
     chmod 0644, $full_filename;
 
@@ -305,21 +304,21 @@ sub logUpdate {
 
     verbose("[Updating log entry \"${log_file}\" status to $job_status]\n");
 
-    die "Status must be one of \"pending\", \"success\" or \"failure\" ; got \"$job_status\"\n"
+    die "Error: Status must be one of \"pending\", \"success\" or \"failure\" ; got \"$job_status\"\n"
         unless $job_status =~ /^(pending|success|failure)$/;
 
-    die "words_in must be a non-negative integer value; got \"$words_in\"\n"
+    die "Error: words_in must be a non-negative integer value; got \"$words_in\"\n"
         unless $words_in =~ /^[0-9]+$/;
-    die "words_out must be a non-negative integer value; got \"$words_out\"\n"
+    die "Error: words_out must be a non-negative integer value; got \"$words_out\"\n"
         unless $words_out =~ /^[0-9]+$/;
-    die "words_out must be less or equal than words_in\n"
+    die "Error: words_out must be less or equal than words_in\n"
         unless $words_out <= $words_in;
 
     my $full_filename = File::Spec->catfile($dir, $log_file);
     open(my $log_fh, "<$full_filename") 
-        or die "No read-access to log entry $full_filename\n";
+        or die "Error: No read-access to log entry $full_filename\n";
     my $job = logRead($log_fh) 
-        or die "Can't read log entry from $full_filename\n";
+        or die "Error: Can't read log entry from $full_filename\n";
     warn "**Warning: Extra material in log file $full_filename\n" 
         if defined readline($log_fh);
     close $log_fh;
@@ -331,8 +330,8 @@ sub logUpdate {
     logValue($job, 'COMMENT', $comment) 
         if defined $comment;    # Overwrite only if defined!
 
-    open($log_fh, ">$full_filename") or die "No write-access to log file $full_filename\n";
-    logWrite($job, $log_fh) or die "Can't write to log file $full_filename\n";
+    open($log_fh, ">$full_filename") or die "Error: No write-access to log file $full_filename\n";
+    logWrite($job, $log_fh) or die "Error: Can't write to log file $full_filename\n";
     close $log_fh;
 
     verbose("[Done.]\n");
@@ -348,7 +347,7 @@ sub logExtract {
             ? "[Extracting log entries for period $period]\n"
             : "[Extracting all log entries]\n");
 
-    die "Invalid format for period \"$period\"\n"
+    die "Error: Invalid format for period \"$period\"\n"
         unless $period =~ m{^(\d\d\d\d(/\d\d(/\d\d)?)?)?$};
 
     my $full_dir = File::Spec->catdir($dir, $period);
@@ -357,7 +356,7 @@ sub logExtract {
         logCSVHeader(*STDOUT) if $header;
         # We could just do "find ... -exec cat"; instead, we read and validate each entry:
         my $cmd = "find $full_dir -name '*.log' | sort -n |";
-        open(my $log_files, $cmd) or die "Can't do \"$cmd\"";
+        open(my $log_files, $cmd) or die "Error: Can't do \"$cmd\"";
 
       LOG_FILES: while (my $log_file = <$log_files>) {
             open(my $log_fh, "<$log_file")
@@ -384,7 +383,7 @@ sub logStats {
     my ($dir, $period) = @_;
 
     my $plog_call = "$0 -extract -raw -dir=$dir -verbose=$verbose $period";
-    open(my $plog_fh, "$plog_call |") or die "Call failed: $plog_call\n";
+    open(my $plog_fh, "$plog_call |") or die "Error: Call failed: $plog_call\n";
 
     my $words_in = 0;
     my $words_out = 0;
@@ -453,7 +452,7 @@ sub logNew {                    # constructor
         # unlockLog(), which means failing here is not permitted.
         #$log->{$field} = (exists($log->{$field}) # check validity of field names
         #                  ? $kv{$field}
-        #                  : die "logNew: unsupported log field \"$field\"");
+        #                  : die "Error: logNew: unsupported log field \"$field\"");
     }
     return $log;
 }
@@ -461,7 +460,7 @@ sub logNew {                    # constructor
 sub logValue {                  # get/set field values
     my ($log, $field, $value)=@_;
     # This is sometimes called between lockLog() and unlockLog(), not allowed to die.
-    #die "Invalid log field name $field" unless exists $log->{$field};
+    #die "Error: Invalid log field name $field" unless exists $log->{$field};
     $log->{$field} = $value if defined $value;
     return $log->{$field};
 }
@@ -518,7 +517,7 @@ sub logRead {
     else { 
         for my $f (@fields) {
             if ($f !~ /^([^=]+)=(.*)$/) {
-                die "Invalid field ($f) in line ($line)";
+                die "Error: Invalid field ($f) in line ($line)";
                 return undef;
             }
             $kv{$1} = $2;
@@ -536,7 +535,7 @@ sub getNO {
 
     my $no = 1;                # Default value
     
-    die "No such logging directory: $dir\n"  unless -d $dir;
+    die "Error: No such logging directory: $dir\n"  unless -d $dir;
 
     my $lastyear = dirGetLast($dir, qr/^\d\d\d\d$/);
     
@@ -567,7 +566,7 @@ sub dirGetLast {
     my ($dir, $pattern) = @_;
     $pattern = qr/.*/ unless defined $pattern; 
 
-    opendir(my $D, $dir) or die "Can't read $dir";
+    opendir(my $D, $dir) or die "Error: Can't read $dir";
     my @subdirs = sort grep { /$pattern/ } readdir $D;
     closedir $D;
 
@@ -585,7 +584,7 @@ sub lockLog {
 
     for my $a (1..$attempts) {
         if (mkdir $lockdir) {
-            debug("Succeded in acquiring lock $lockdir\n");
+            debug("Succeeded in acquiring lock $lockdir\n");
             return 1;
         }
         verbose("[Attempt no $a to acquire lock $lockdir failed.]\n");

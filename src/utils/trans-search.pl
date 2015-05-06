@@ -5,10 +5,7 @@
 # matching sentences along with their translations.
 # 
 # @author George Foster
-# 
-# COMMENTS: 
 #
-# George Foster
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
@@ -51,16 +48,16 @@ if ($help || $h) {
 
 my $location_of_aligned_hansard = "/export/echange/corpora/hansard/aligned";
 chdir $location_of_aligned_hansard or 
-    die "Can't chdir to $location_of_aligned_hansard";
+    die "Error: Can't chdir to $location_of_aligned_hansard";
  
-my $expr = shift or die "missing <expr> arg\n$HELP\n";
+my $expr = shift or die "Error: Missing <expr> arg\n$HELP\n";
 
 foreach my $en_file (glob "*_en*") {
     my $fr_file = $en_file;
     $fr_file =~ s/_en.al/_fr.al/go;
 
     if (!(open(EN_FILE, $en_file) && open(FR_FILE, $fr_file))) {
-	print STDERR "Can't open file pair $en_file/$fr_file\n";
+	print STDERR "Warning: Can't open file pair $en_file/$fr_file\n";
 	next;
     }
 
@@ -69,7 +66,7 @@ foreach my $en_file (glob "*_en*") {
 
     while ($en_line = <EN_FILE>) {
 	if (!($fr_line = <FR_FILE>)) {
-	    print STDERR "file $fr_file too short - skipping\n";
+	    print STDERR "Warning: File $fr_file too short - skipping\n";
 	    next;
 	}
 
@@ -79,7 +76,7 @@ foreach my $en_file (glob "*_en*") {
 	}
     }
     if (defined <FR_FILE>) {
-	print STDERR "file $fr_file too long\n";
+	print STDERR "Warning: File $fr_file too long\n";
     }
 
     # print "$en_file/$fr_file\n";

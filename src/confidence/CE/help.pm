@@ -1,11 +1,9 @@
 #!/usr/bin/perl -s
-# $Id$
+
 # @file help.pm 
 # @brief Help object for confidence estimation
 # 
 # @author Michel Simard
-# 
-# COMMENTS:
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -70,7 +68,7 @@ sub keyword {
     my $help = { kw=>$kw, pkg=>"", title=>"" }; 
 
     my @parts = split(/::/, $section);
-    $help->{title} = pop @parts || die "No section specified for keyword $kw";
+    $help->{title} = pop @parts || die "Error: No section specified for keyword $kw";
     $help->{pkg} = @parts ? join("::", @parts) : $0;
 
     push @{$HELP{$kw}}, $help;

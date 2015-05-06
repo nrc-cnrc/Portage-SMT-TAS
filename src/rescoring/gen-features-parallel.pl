@@ -1,10 +1,11 @@
 #!/usr/bin/env perl
-#
+
 # @file gen-features-parallel.pl 
 # @brief Generate a set of feature-value files in parallel, as required by the
 # rescoring model file MODEL.
 #
-# George Foster / Samuel Larkin
+# @author George Foster, Samuel Larkin
+#
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
@@ -158,7 +159,7 @@ sub error_exit {
 
 # Print warning message to sderr
 sub warn_user {
-   print STDERR "WARNING: @_\n";
+   print STDERR "Warning: @_\n";
 }
 
 # Print debugging information if debugging is enabled
@@ -201,24 +202,24 @@ GetOptions(
    "N=i"       => \$N,
    "J=i"       => \$JOBS_PER_FF,
    "rpopts=s"  => \@RP_OPTS,
-) or usage;
+) or usage "Error: Invalid option(s).";
 
 
 debug "ARGC: $#ARGV";
 debug "ARGV: @ARGV";
 
 # Get the mandatory arguments
-$MODEL = shift or error_exit("Missing rescoring model");
-$SFILE = shift or error_exit("Missing source file");
-$NBEST = shift or error_exit("Missing Nbest list file");
+$MODEL = shift or error_exit("Error: Missing rescoring model");
+$SFILE = shift or error_exit("Error: Missing source file");
+$NBEST = shift or error_exit("Error: Missing Nbest list file");
 
 # Verify that the mandatory arguments are accessible.
 error_exit("Error: Cannot read MODEL file $MODEL.") unless (-r $MODEL);
 error_exit("Error: Cannot read SFILE file $SFILE.") unless (-r $SFILE);
 error_exit("Error: Cannot read NBEST file $NBEST.") unless (-r $NBEST);
-error_exit("You should specify a number of nodes greater than 0") unless ($N > 0);
+error_exit("Error: You should specify a number of nodes greater than 0") unless ($N > 0);
 
-0 == @ARGV or usage "Superfluous parameter(s): @ARGV";
+0 == @ARGV or usage "Error: Superfluous argument(s): @ARGV";
 
 if ( $NOEXEC ) {
    my $VERBOSE=undef;
@@ -236,7 +237,7 @@ chomp($NUM_SRC_SENT);
 
 # Make sure the rescore-model in and out are different.
 if( defined($RESCORING_MODEL_OUT) and $RESCORING_MODEL_OUT eq $MODEL) {
-   error_exit "Specify a different output name $MODEL $RESCORING_MODEL_OUT"
+   error_exit "Error: Specify a different output name $MODEL $RESCORING_MODEL_OUT"
 }
 
 # Calculate the proper number of jobs per feature function if not specified by
@@ -250,7 +251,7 @@ if ( $JOBS_PER_FF == -1 ) {
    $JOBS_PER_FF = 2 * ceil($N / $L);
    debug "JOBS_PER_FF: $JOBS_PER_FF";
 }
-error_exit "Number of jobs per feature function must be greater than 0" unless($JOBS_PER_FF > 0);
+error_exit "Error: Number of jobs per feature function must be greater than 0" unless($JOBS_PER_FF > 0);
 
 
 # Make it easy to recover the command line from saved logs by printing the
@@ -275,7 +276,7 @@ if ( system("cat $MODEL | grep -v '^#' | grep -m1 '$FFVAL_WTS_TAG' > /dev/null")
       `configtool rescore-model:ffvals.gz $CANOEFILE > $CANOEWEIGHTFILE`;
    }
    else {
-      error_exit "Canoe weights file needed by at least one feature";
+      error_exit "Error: Canoe weights file needed by at least one feature";
    }
 }
 
@@ -290,9 +291,9 @@ rename_old $RESCORING_MODEL_OUT if(defined($RESCORING_MODEL_OUT));
 
 
 # Prepare the require streams
-open(MODEL_FILE, $MODEL) or die "Unable to open $MODEL";
+open(MODEL_FILE, $MODEL) or die "Error: Unable to open $MODEL";
 if (defined($RESCORING_MODEL_OUT)) {
-   open(RESCORING_MODEL_OUT_FILE, ">$RESCORING_MODEL_OUT") or die "Unable to open $RESCORING_MODEL_OUT";
+   open(RESCORING_MODEL_OUT_FILE, ">$RESCORING_MODEL_OUT") or die "Error: Unable to open $RESCORING_MODEL_OUT";
 }
 
 
@@ -323,7 +324,7 @@ while (my $LINE = <MODEL_FILE>) {
    # Parse the line to extract the feature's name, argument and weight
    # FEATURE[:ARGUMENTS] [WEIGHT]
    $LINE =~ /^([^:\t ]+)(:\S+|:".*")?(\s+[^"]+)?\s*$/;
-   my $FEATURE = $1 or die "Invalid syntaxe, no FF found in: $LINE";
+   my $FEATURE = $1 or die "Error: Invalid syntax, no FF found in: $LINE";
    my $ARGS    = $2;
    my $FILE    = $2;
    my $WEIGHT  = $3 || "";
@@ -513,7 +514,7 @@ while (my $LINE = <MODEL_FILE>) {
       }
    }
    else {
-      warn "Unknown complexity: $COMPLEXITY\n";
+      warn "Warning: Unknown complexity: $COMPLEXITY\n";
    }
 
    # noexec stuff
@@ -555,7 +556,7 @@ if ( -s $CMDS_FILE_NAME ) {
    }
 
    if ( $RC != 0 ) {
-      error_exit "problems with run-parallel.sh(RC=$RC) - quitting!",
+      error_exit "Error: problems with run-parallel.sh(RC=$RC) - quitting!",
                  "The failed outputs will not be merged or deleted to give",
                  "the user a chance to salvage as much data as possible.";
    }

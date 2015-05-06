@@ -1,11 +1,9 @@
 #!/usr/bin/perl -w -s
-# $Id$
+
 # @file ce.pl 
 # @brief Compute confidence estimation
 # 
 # @author Michel Simard
-# 
-# COMMENTS:
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -132,7 +130,7 @@ if ($H) {
     exit 0;
 }
 
-my $model_name = shift or die "Missing argument: model";
+my $model_name = shift or die "Error: Missing argument: model";
 my $data_dir = shift || ".";
 
 $output = "${data_dir}/pr.ce" unless defined $output;
@@ -154,7 +152,7 @@ if ($stats) {
 my @ce = $model->predict(tmpdir=>$data_dir);
 
 $model->verbose("[Writing output to $output]\n");
-open(my $out, ">$output") or die "Can't open output file ${output}";
+open(my $out, ">$output") or die "Error: Can't open output file ${output}";
 for my $y (@ce) {
     print {$out} $y, "\n";
 }

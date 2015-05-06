@@ -5,8 +5,6 @@
 # 
 # @author Michel Simard
 # 
-# COMMENTS:
-# 
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
@@ -113,7 +111,7 @@ $prefix = "" unless defined $prefix;
 
 my $infile = shift || "-";
 
-open(my $in, "< $infile") or die "Can't open input file $infile";
+open(my $in, "< $infile") or die "Error: Can't open input file $infile";
 my $p_text_file = "${dir}/${prefix}p.dec";
 my $p_oov_file = "${dir}/${prefix}p.oov";
 my $p_plen_file = "${dir}/${prefix}p.plen";
@@ -121,12 +119,12 @@ my $p_pmax_file = "${dir}/${prefix}p.pmax";
 my $p_score_file = "${dir}/${prefix}p.score";
 my $p_ffvals_file = "${dir}/${prefix}p.ffvals";
 
-open(my $p_text, "> ${p_text_file}") or die "Can't open output file ${p_text_file}";
-open(my $p_oov, "> ${p_oov_file}") or die "Can't open output file ${p_oov_file}";
-open(my $p_plen, "> ${p_plen_file}") or die "Can't open output file ${p_plen_file}";
-open(my $p_pmax, "> ${p_pmax_file}") or die "Can't open output file ${p_pmax_file}";
-open(my $p_score, "> ${p_score_file}") or die "Can't open output file ${p_score_file}";
-open(my $p_ffvals, "> ${p_ffvals_file}") or die "Can't open output file ${p_ffvals_file}";
+open(my $p_text, "> ${p_text_file}") or die "Error: Can't open output file ${p_text_file}";
+open(my $p_oov, "> ${p_oov_file}") or die "Error: Can't open output file ${p_oov_file}";
+open(my $p_plen, "> ${p_plen_file}") or die "Error: Can't open output file ${p_plen_file}";
+open(my $p_pmax, "> ${p_pmax_file}") or die "Error: Can't open output file ${p_pmax_file}";
+open(my $p_score, "> ${p_score_file}") or die "Error: Can't open output file ${p_score_file}";
+open(my $p_ffvals, "> ${p_ffvals_file}") or die "Error: Can't open output file ${p_ffvals_file}";
 
 while (my $line = <$in>) {
     chop $line;
@@ -174,7 +172,7 @@ sub parseCanoeOutput {
         my $plen = int(@words);
         $pmax = $plen if $plen > $pmax;
         if ($v) {
-            die "Unexpected v= format: $v"
+            die "Error: Unexpected v= format: $v"
                 unless ($v =~ /v=\[([^\]]+)\]/);
             my $fv = $1;
             my @fv = split(/;/, $fv);

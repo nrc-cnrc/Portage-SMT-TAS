@@ -1,11 +1,9 @@
 #!/usr/bin/perl -w -s
-# $Id$
+
 # @file ce_gen_features.pl 
 # @brief Generate feature values for confidence estimation
 # 
 # @author Michel Simard
-# 
-# COMMENTS:
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -116,7 +114,7 @@ $new = 0 unless defined $new;
 $verbose = 0 unless defined $verbose;
 $debug = 0 unless defined $debug;
 
-my $model_name = shift || die "Missing argument: ce_model";
+my $model_name = shift || die "Error: Missing argument: ce_model";
 my $data_dir = shift || ".";
 
 my $model;

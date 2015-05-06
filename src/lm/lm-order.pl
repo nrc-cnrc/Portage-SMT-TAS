@@ -20,13 +20,13 @@ if ($#ARGV >= 0 && $ARGV[0] eq "-h") {
    exit;
 }
 
-open FILE, "gzip -cqfd $ARGV[0]|" or die "lm-order.pl: Can't open $ARGV[0]: $!\n";
+open FILE, "gzip -cqfd $ARGV[0]|" or die "Error: lm-order.pl: Can't open $ARGV[0]: $!\n";
 my $order = 0;
 while (<FILE>) {
    last if /^\\1-grams:/;
    if ( /\s*ngram\s*(\d+)\s*=\s*(\d+)/ ) {
       ++$order;
-      warn "Expected order $order ngram count, got: $_" if $1 != $order;
+      warn "Warning: Expected order $order ngram count, got: $_" if $1 != $order;
    }
 }
 print $order, "\n";

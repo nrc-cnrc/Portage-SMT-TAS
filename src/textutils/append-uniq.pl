@@ -9,9 +9,6 @@
 #
 # @author Samuel Larkin
 #
-# COMMENTS:
-#
-# Samuel Larkin
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
@@ -82,7 +79,7 @@ GetOptions(
    verbose       => sub { ++$verbose },
    quiet         => sub { $verbose = 0 },
    debug         => \my $debug,
-) or usage;
+) or usage "Error: Invalid option(s).";
 
 if ( $debug ) {
    no warnings;
@@ -100,20 +97,20 @@ if ( $debug ) {
 ";
 }
 
-die "You must define i" unless (defined($index));
-die "You must define m" unless (defined($modulo));
-die "You must define S" unless (defined($S));
+die "Error: You must define index using -i" unless (defined($index));
+die "Error: You must define modulo using -m" unless (defined($modulo));
+die "Error: You must define number_of_NBest using -S" unless (defined($S));
 
 sub process($$$$) {
    my ($nbest, $ffvals, $addnbest, $addffvals) = @_;
    print STDERR "Appending $nbest, $ffvals, $addnbest, $addffvals\n" if ($debug);
    for ( $nbest, $ffvals, $addnbest, $addffvals ) {
-      defined $_ or die "append-uniq.pl: -nbest, -ffvals, -addnbest and -addffvals are all required.\n";
-      -r $_ or die "append-uniq.pl: Can't open $_ for reading: $!\n";
+      defined $_ or die "Error: append-uniq.pl: -nbest, -ffvals, -addnbest and -addffvals are all required.\n";
+      -r $_ or die "Error: append-uniq.pl: Can't open $_ for reading: $!\n";
    }
 
-   open(NBEST, "gzip -cqfd $nbest |") or die "Can't open $nbest for reading: $!\n";
-   open(FFVALS, "gzip -cqfd $ffvals |") or die "Can't open $ffvals for reading: $!\n";
+   open(NBEST, "gzip -cqfd $nbest |") or die "Error: Can't open $nbest for reading: $!\n";
+   open(FFVALS, "gzip -cqfd $ffvals |") or die "Error: Can't open $ffvals for reading: $!\n";
 
 # hash of hashes: $seen{$line1}{$line2} exists if $line1 exists in $file1 at
 # the same position as $line2 in $file2.
@@ -138,7 +135,7 @@ sub process($$$$) {
          }
       }
    }
-   die "FATAL ERROR: $nbest is not of the same length as $ffvals\n"
+   die "Error: $nbest is not of the same length as $ffvals\n"
       if (defined(<NBEST>) or defined(<FFVALS>));
 
    close(NBEST);
@@ -150,24 +147,24 @@ sub process($$$$) {
    if ($nbest =~ /.gz/) {
       $nbest =~ s/(.*\.gz)\s*$/| gzip -cqf >> $1/;
       open($NBESTDF, $nbest)
-         or die "Can't open output file $nbest\n";
+         or die "Error: Can't open output file $nbest\n";
    }
    else {
       open($NBESTDF, ">>$nbest")
-         or die "Can't open output file $nbest\n";
+         or die "Error: Can't open output file $nbest\n";
    }
    my $FFVALSDF;
    if ($ffvals =~ /.gz/) {
       $ffvals =~ s/(.*\.gz)\s*$/| gzip -cqf >> $1/;
       open($FFVALSDF, $ffvals)
-         or die "Can't open output file $ffvals\n";
+         or die "Error: Can't open output file $ffvals\n";
    }
    else {
       open($FFVALSDF, ">>$ffvals")
-         or die "Can't open output file $ffvals\n";
+         or die "Error: Can't open output file $ffvals\n";
    }
-   open(ADDNBEST, "gzip -cqfd $addnbest |") or die "cannot open $addnbest to read\n";
-   open(ADDFFVALS, "gzip -cqfd $addffvals |") or die "cannot open $addffvals to read\n";
+   open(ADDNBEST, "gzip -cqfd $addnbest |") or die "Error: Can't open $addnbest to read\n";
+   open(ADDFFVALS, "gzip -cqfd $addffvals |") or die "Error: Can't open $addffvals to read\n";
 
    my $addedLine = 0;
    while (defined($n = <ADDNBEST>) and defined($f = <ADDFFVALS>)) {
@@ -180,7 +177,7 @@ sub process($$$$) {
          print($FFVALSDF "$f\n");
       }
    }
-   die "FATAL ERROR: $addnbest is not of the same length as $addffvals\n"
+   die "Error: $addnbest is not of the same length as $addffvals\n"
       if (defined(<ADDNBEST>) or defined(<ADDFFVALS>));
 
    close($NBESTDF);

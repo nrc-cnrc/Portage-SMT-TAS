@@ -1,4 +1,5 @@
 #!/usr/bin/env perl
+
 # @file cow-timing-full.pl
 # @brief Provide timing information for a cow run.
 #
@@ -56,13 +57,13 @@ GetOptions(
    verbose     => sub { ++$verbose },
    pretty      => \my $pretty,
    debug       => \my $debug,
-) or usage;
+) or usage "Error: Invalid option(s).";
 
 if ( $pretty ) {
    open OUT, "| second-to-hms.pl | expand-auto.pl"
-      or die "Can't open to pretty printing pipe: $!\n"
+      or die "Error: Can't open to pretty printing pipe: $!\n"
 } else {
-   open OUT, ">-" or die "Can't open STDOUT for writing: $!\n";
+   open OUT, ">-" or die "Error: Can't open STDOUT for writing: $!\n";
 }
 
 sub sum(\@) {
@@ -106,7 +107,7 @@ sub processlog($$) {
    my @loadtime;
    my @translatetime;
    my @sentences;
-   open LOG, $logfile or die "Can't open $logfile: $!\n";
+   open LOG, $logfile or die "Error: Can't open $logfile: $!\n";
    my $prev_line = "";
    while (<LOG>) {
       # Non-parallel programs
@@ -151,6 +152,6 @@ if ( @ARGV < 1 ) {
    }
 }
 
-close OUT or warn $! ? "Error closing pretty-print pipe: $!"
-                     : "Exit status $? from pretty-print pipe.";
+close OUT or warn $! ? "Warning: Error closing pretty-print pipe: $!"
+                     : "Warning: Exit status $? from pretty-print pipe.";
 

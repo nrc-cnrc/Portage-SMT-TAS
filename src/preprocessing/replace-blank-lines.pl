@@ -4,10 +4,13 @@
 # @brief Write to stdout a copy of main-trans in which blank lines have been
 # replaced by corresponding lines in backup-trans.
 #
-# @author George Foster.
+# @author George Foster
 #
-# Copyright (c) 2006, Sa Majeste la Reine du Chef du Canada /
-# Copyright (c) 2006, Her Majesty in Right of Canada
+# Technologies langagieres interactives / Interactive Language Technologies
+# Inst. de technologie de l'information / Institute for Information Technology
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2006, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2006, Her Majesty in Right of Canada
 
 use strict;
 use warnings;
@@ -42,21 +45,21 @@ if (defined $h || defined $help)
     exit;
 } # if
 
-my $mainfile = shift || die "missing main-trans\n$HELP";
-my $backfile = shift || die "missing back-trans\n$HELP";
+my $mainfile = shift || die "Error: Missing main-trans\n$HELP";
+my $backfile = shift || die "Error: Missing back-trans\n$HELP";
 
-open(MAIN, "<$mainfile") or die "can't open $mainfile for reading\n";
-open(BACK, "<$backfile") or die "can't open $backfile for reading\n";
+open(MAIN, "<$mainfile") or die "Error: Can't open $mainfile for reading\n";
+open(BACK, "<$backfile") or die "Error: Can't open $backfile for reading\n";
 
 my $mainline;
 while ($mainline = <MAIN>) {
 
     my $backline;
 
-    if (!($backline = <BACK>)) {die "$backfile too short!\n";}
+    if (!($backline = <BACK>)) {die "Error: $backfile too short!\n";}
     
     if ($mainline !~ /^\s*$/o) {print $mainline;}
     else {print $backline;}
 }
 
-if (<BACK>) {die "$mainfile too short!\n";}
+if (<BACK>) {die "Error: $mainfile too short!\n";}

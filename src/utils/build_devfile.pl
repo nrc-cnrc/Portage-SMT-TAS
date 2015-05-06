@@ -1,10 +1,9 @@
 #!/usr/bin/perl -sw
 
-#  Build randomly a dev file based on a certain number of lines 
+# @file build_devfile.pl
+# @brief Build randomly a dev file based on a certain number of lines 
 #
-# PROGRAMMER: Fatiha Sadat
-# 
-# COMMENTS: 
+# @author Fatiha Sadat
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -51,8 +50,8 @@ my $p = shift || "-";
 my $in = shift || "-";   
 my $out = shift || "-";
 
-open(IN, $in) || die "Can't open $in for reading";
-open(OUT, ">$out") || die "Can't open $out for writing";
+open(IN, $in) || die "Error: Can't open $in for reading";
+open(OUT, ">$out") || die "Error: Can't open $out for writing";
 my $i=0;
 
 while(<IN>){
@@ -70,6 +69,3 @@ if (($k=$x+1) && ($k < $q)){ print OUT "$tab{$k}"; $x=$x+2; }
 
 close(IN);
 close(OUT);
-
-
-

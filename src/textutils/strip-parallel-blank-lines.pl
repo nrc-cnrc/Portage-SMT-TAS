@@ -6,9 +6,6 @@
 # 
 # @author George Foster
 # 
-# COMMENTS: 
-#
-# George Foster
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
@@ -47,8 +44,8 @@ if ($help || $h) {
     exit 0;
 }
  
-my $in1 = shift or die $HELP;
-my $in2 = shift or die $HELP;
+my $in1 = shift or die "Error: Missing input file.\n", $HELP;
+my $in2 = shift or die "Error: Missing input file.\n", $HELP;
  
 sub getOutputFilename($) {
    my ($out) = @_;
@@ -61,20 +58,20 @@ sub getOutputFilename($) {
    return $out;
 }
 
-zopen(*IN1, "$in1") or die "Can't open $in1 for reading\n";
-zopen(*IN2, "$in2") or die "Can't open $in2 for reading\n";
+zopen(*IN1, "$in1") or die "Error: Can't open $in1 for reading.\n";
+zopen(*IN2, "$in2") or die "Error: Can't open $in2 for reading.\n";
 my $out1 = getOutputFilename($in1);
 my $out2 = getOutputFilename($in2);
-zopen(*OUT1, ">$out1") or die "Can't open $out1 for writing\n";
-zopen(*OUT2, ">$out2") or die "Can't open $out2 for writing\n";
+zopen(*OUT1, ">$out1") or die "Error: Can't open $out1 for writing.\n";
+zopen(*OUT2, ">$out2") or die "Error: Can't open $out2 for writing.\n";
 
 my ($line1, $line2);
 while ($line1 = <IN1>) {
-    if (!($line2 = <IN2>)) {die "file $in2 is too short!\n";}
+    if (!($line2 = <IN2>)) {die "Error: File $in2 is too short!\n";}
     if ($line1 !~ /^\s*$/o || $line2 !~ /^\s*$/o) {
         print OUT1 $line1;
         print OUT2 $line2;
     }
 }
 
-if (<IN2>) {die "file $in1 is too short!\n";}
+if (<IN2>) {die "Error: File $in1 is too short!\n";}

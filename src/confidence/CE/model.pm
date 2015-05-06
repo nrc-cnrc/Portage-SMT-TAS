@@ -1,11 +1,9 @@
 #!/usr/bin/perl -s
-# $Id$
+
 # @file model.pm
 # @brief Confidence Estimation Model
 # 
 # @author Michel Simard
-# 
-# COMMENTS: 
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -330,8 +328,8 @@ sub stats {
   my ($this, %args) = @_;
 
   my $D = $this->{dataset};
-  die "No data to get stats from" unless $D and not $D->empty();
-  die "Can't get stats from unlabeled data" unless defined $D->label(0);
+  die "Error: No data to get stats from" unless $D and not $D->empty();
+  die "Error: Can't get stats from unlabeled data" unless defined $D->label(0);
 
   my @ce = $this->predict(%args);
 
@@ -423,7 +421,7 @@ sub readDesc {
     $this->{model_dir} = File::Spec->rel2abs($dir);
 
     $this->verbose("[Reading model description file $file]\n");
-    open(my $in, "<$file") or die "Can't open CE model description file $file";
+    open(my $in, "<$file") or die "Error: Can't open CE model description file $file";
 
     $this->{features} = [ ];
     my $target_feature = undef;
@@ -439,8 +437,7 @@ sub readDesc {
                 my ($opt_name, $opt_value) = trim(split(/=/, $opt, 2));
                 $args{$opt_name} = $opt_value || 1;
                 if ($opt_name eq 'target') {
-                    die "Non-unique CE target feature in $file"
-                        if $target_feature;
+                    die "Error: Non-unique CE target feature in $file" if $target_feature;
                     $target_feature = $name;
                 }
             }
@@ -449,7 +446,7 @@ sub readDesc {
     }
     close $in;
 
-    die "Missing CE target feature in $file" unless $target_feature;
+    die "Error: Missing CE target feature in $file" unless $target_feature;
 
     return $this;
 }
@@ -466,7 +463,7 @@ sub writeDesc {
     my ($this, $filename, %args) = @_;
 
     $this->verbose("[Writing model description file $filename]\n");
-    open(my $out, ">$filename") or die "Can't open output model file $filename";
+    open(my $out, ">$filename") or die "Error: Can't open output model file $filename";
 
     for my $f (@{$this->{features}}) {
         print {$out} $f->{name};
@@ -502,7 +499,7 @@ sub readDataset {
                        $feature->name(), 
                        $feature->isTarget() ? "label" : $feature_index+1, 
                        $filename);
-        open(my $in, "<$filename") or die "Can't open feature value file $filename";
+        open(my $in, "<$filename") or die "Error: Can't open feature value file $filename";
 
         my @values = ();
         my $count = 0;
@@ -519,7 +516,7 @@ sub readDataset {
                 $dataset->add(CE::data->new());
             }
         } else {
-            die "Wrong number of values in $filename"
+            die "Error: Wrong number of values in $filename"
                 unless int(@values) == $dataset->size();
         }
         if ($feature->isTarget()) {
@@ -544,7 +541,7 @@ sub learnNormalize {
     my ($this, %args) = @_;
     $this->{norm_method} = $args{norm} if defined $args{norm};
 
-    die "No data to learn normalization from"
+    die "Error: No data to learn normalization from"
         if $this->{dataset}->empty();
     my $f_count = $this->{dataset}->data(0)->size();
 
@@ -576,7 +573,7 @@ sub writeNormalize {
     my ($this, @norm) = @_;
     my $norm_file = $this->{norm_file};
 
-    open(my $out, ">$norm_file") or die "Can't open normalization file $norm_file";
+    open(my $out, ">$norm_file") or die "Error: Can't open normalization file $norm_file";
 
     for my $norm (@norm) {
         print {$out} CE::normalize::toString($norm), "\n";
@@ -591,7 +588,7 @@ sub readNormalize {
 
     my @norm = ();
 
-    open(my $in, "<$norm_file") or die "Can't open normalization file $norm_file";
+    open(my $in, "<$norm_file") or die "Error: Can't open normalization file $norm_file";
 
     while (my $line = <$in>) {
         chop $line;

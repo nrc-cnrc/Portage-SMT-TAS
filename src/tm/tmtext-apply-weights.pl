@@ -1,12 +1,9 @@
 #!/usr/bin/env perl
-# $Id$
 
 # @file tmtext-apply-weights.pl 
-# @brief Apply know weights to a multi-probs tm.
+# @brief Apply known weights to a multi-probs tm.
 #
-# @author Eric Joanis / Samuel Larkin
-#
-# COMMENTS:
+# @author Eric Joanis, Samuel Larkin
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -107,22 +104,22 @@ GetOptions(
    verbose     => sub { ++$verbose },
    quiet       => sub { $verbose = 0 },
    debug       => \my $debug,
-) or usage;
+) or usage "Error: Invalid option(s).";
 
-defined ($opt_src_lang) or usage("-src option mandatory");
-defined ($opt_tgt_lang) or usage("-tgt option mandatory");
+defined ($opt_src_lang) or usage("Error: -src option is mandatory.");
+defined ($opt_tgt_lang) or usage("Error: -tgt option is mandatory.");
 
 my $in = shift || "-";
 
 if ($do_hardFilter or defined($hardFilter_model)) {
-   die "You must provide a canoe.ini file through -f.\n" unless (defined($canoe_ini));
+   die "Error: You must provide a canoe.ini file through -f.\n" unless (defined($canoe_ini));
 
    my $rc = system("configtool check $canoe_ini &> /dev/null");
-   error_exit "Invalid canoe.ini $canoe_ini\n" unless ($rc == 0);
+   error_exit "Error: Invalid canoe.ini $canoe_ini\n" unless ($rc == 0);
 
    if ($hardFilter_model) {
       my $rc = system("filter_models -f $canoe_ini -no-src-grep -tm-online -c -tm-hard-limit $hardFilter_model");
-      error_exit "error hard filtering!\n" unless ($rc == 0);
+      error_exit "Error: Error hard filtering!\n" unless ($rc == 0);
       if ($hardFilter_model =~ /\.gz$/) {
          $hardFilter_model =~ s/(.+)(\.gz)$/$1.FILT$2/;
       }
@@ -136,11 +133,11 @@ if ($do_hardFilter or defined($hardFilter_model)) {
    }
 }
 
-0 == @ARGV or usage "Superfluous parameter(s): @ARGV";
+0 == @ARGV or usage "Error: Superfluous argument(s): @ARGV";
 
 my %ini;
 if ( $canoe_ini ) {
-   open CANOE_INI, $canoe_ini or error_exit "Can't open $canoe_ini: $!";
+   open CANOE_INI, $canoe_ini or error_exit "Error: Can't open $canoe_ini: $!";
    local $/ = '[';
    %ini = map { 
       s/\#.*$//mg; # remove comments
@@ -162,7 +159,7 @@ if ( defined $opt_tm_weights ) {
 } elsif ( exists $ini{"tm"} ) {
    $tm_weights = $ini{"tm"};
 } else {
-   error_exit "No weights specified";
+   error_exit "Error: No weights specified";
 }
 
 my $ftm_weights;
@@ -173,7 +170,7 @@ if ( defined $opt_ftm_weights ) {
 } elsif ( exists $ini{"ftm"} ) {
    $ftm_weights = $ini{"ftm"};
 } else {
-   warn "Setting forward weights to backward weights";
+   warn "Warning: Setting forward weights to backward weights";
    $ftm_weights = $tm_weights;
 }
 
@@ -181,32 +178,32 @@ my @ftm_weights = split /:|\s+/, $ftm_weights;
 foreach (@ftm_weights) {
    no warnings;
    s/^(\.[0-9]+)$/0$1/;
-   error_exit "Invalid weight: $_" if $_ + 0 ne $_
+   error_exit "Error: Invalid weight: $_" if $_ + 0 ne $_
 }
 
 my @tm_weights = split /:|\s+/, $tm_weights;
 foreach (@tm_weights) {
    no warnings;
    s/^(\.[0-9]+)$/0$1/;
-   error_exit "Invalid weight: $_" if $_ + 0 ne $_
+   error_exit "Error: Invalid weight: $_" if $_ + 0 ne $_
 }
 
-die "Uneven number of weights" unless (scalar(@tm_weights) == scalar(@ftm_weights));
+die "Error: Uneven number of weights" unless (scalar(@tm_weights) == scalar(@ftm_weights));
 
 my $expected_prob_count = scalar(@ftm_weights) + scalar(@tm_weights);
 my $fwd_offset = scalar @tm_weights;
-open(IN, "$in") or die "Can't open $in for reading: $!\n";
+open(IN, "$in") or die "Error: Can't open $in for reading: $!\n";
 
 # Preparing the output/outputs.
 my $file = "$name.${opt_src_lang}2${opt_tgt_lang}.gz";
 my $fwd_file = "$name.${opt_tgt_lang}_given_$opt_src_lang.gz";
 my $bwd_file = "$name.${opt_src_lang}_given_$opt_tgt_lang.gz";
 if ($tmdb) {
-   open(FWD, "| gzip > $fwd_file") or die "Can't open $fwd_file for writing: $!\n";
-   open(BWD, "| gzip > $bwd_file") or die "Can't open $bwd_file for writing: $!\n";
+   open(FWD, "| gzip > $fwd_file") or die "Error: Can't open $fwd_file for writing: $!\n";
+   open(BWD, "| gzip > $bwd_file") or die "Error: Can't open $bwd_file for writing: $!\n";
 }
 else {
-   open(OUT, "| gzip > $file") or die "Can't open $file for writing: $!\n";
+   open(OUT, "| gzip > $file") or die "Error: Can't open $file for writing: $!\n";
 }
 
 # We need to sum up the backward weights to change the canoe.ini's weights.
@@ -242,7 +239,7 @@ while (<IN>) {
       print STDERR "tgt=$tgt:\n";
       print STDERR "probs=$probs:\n";
       print STDERR ":@probs:\n";
-      die "Unexpected number of probs at $.: $_";
+      die "Error: Unexpected number of probs at $.: $_";
    }
 
    my $bwd_prob = 0;
@@ -273,7 +270,7 @@ while (<IN>) {
       printf OUT "%s ||| %s ||| %.9g %.9g\n", $src, $tgt, $bwd_prob, $fwd_prob;
    }
 }
-close(IN) or die "An ERROR occurred while processing \"$in\"";
+close(IN) or die "Error: An ERROR occurred while processing \"$in\"";
 
 $verbose and print STDERR "$file creation completed.\n";
 

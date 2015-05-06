@@ -70,23 +70,23 @@ GetOptions(
    verbose     => sub { ++$verbose },
    quiet       => sub { $verbose = 0 },
    debug       => \my $debug,
-) or usage;
+) or usage "Error: Invalid option(s).";
 
-0 == @ARGV or usage "Superfluous parameter(s): @ARGV";
+0 == @ARGV or usage "Error: Superfluous argument(s): @ARGV";
 
 -d $PLiveTempDir ||
-   die "$PLiveTempDir is not a directory.\nPlease edit $0 and set PLiveTempDir to the directory where PortageLive creates its temporary files, typically /var/www/html/plive.\n";
+   die "Error: $PLiveTempDir is not a directory.\nPlease edit $0 and set PLiveTempDir to the directory where PortageLive creates its temporary files, typically /var/www/html/plive.\n";
 
 my $find_cmd = "find $PLiveTempDir -name trace";
 if (defined $newer) {
-   -r $newer or die "Cannot read time stamp file $newer: $!\n";
+   -r $newer or die "Error: Cannot read time stamp file $newer: $!\n";
    print STDERR "Counting only data files modified or created since ",
                 `stat -c\%y $newer | sed 's/\\.00*//'`;
    $find_cmd .= " -newer $newer";
 }
 
 open IN, "$find_cmd |"
-   or die "Can't open pipe to read $PLiveTempDir\n";
+   or die "Error: Can't open pipe to read $PLiveTempDir\n";
 
 my %contexts;
 while (<IN>) {
@@ -94,7 +94,7 @@ while (<IN>) {
    chomp $tracefile;
    my $tracedir = $tracefile;
    $tracedir =~ s/\/trace$//;
-   open TRACE, $tracefile or die "Can't open $tracefile: $!\n";
+   open TRACE, $tracefile or die "Error: Can't open $tracefile: $!\n";
    while (<TRACE>) {
       if (/ -f=.*?models\/(.*?)\/canoe.ini.cow/) {
          my $context = $1;
@@ -119,12 +119,12 @@ close IN or die "Error closing pipe to read $PLiveTempDir - output is probably w
 if (!%contexts) {
    print STDERR "No data found.\n";
 } else {
-   open OUT, "| expand-auto.pl" or die "Cannot find expand-auto.pl - was Portage installed?\n";
+   open OUT, "| expand-auto.pl" or die "Error: Cannot find expand-auto.pl - was Portage installed?\n";
 
    print OUT "Context\tDocs\tLines\tSrc Words\n";
    foreach my $key (sort keys %contexts) {
       print OUT "$key\t$contexts{$key}{n}\t$contexts{$key}{lines}\t$contexts{$key}{words}\n";
    }
 
-   close OUT or die "Error closing output pipe, report probably not complete: $!\n";
+   close OUT or die "Error: Error closing output pipe, report probably not complete: $!\n";
 }

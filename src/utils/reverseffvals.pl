@@ -1,11 +1,9 @@
 #!/usr/bin/perl -sw
 
 # @file reverseffvals.pl 
-# @brief Reverses the words in each line of input of -ffvals text.
+# @brief Reverse the words in each line of input of -ffvals text.
 #
 # @author Matthew Arnold
-#
-# COMMENTS:
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -32,12 +30,13 @@ $ENV{PORTAGE_INTERNAL_CALL} = 1;
 my $HELP =
 "Usage: reverseffvals.pl [infile [outfile]]
 
-Reverses the output of ffvals (\"phrase1\" (params) \"phrase1\" (params) etc...) into the forward version of the 
-output (ie reverses phrase orders and words inside phrases).
+Reverse the output of ffvals (\"phrase1\" (params) \"phrase1\" (params) etc...)
+into the forward version of the output (i.e. reverse phrase orders and words
+inside phrases).
 
 Options:
-infile  The input file; if not specified, standard input is used.
-outfile The output file; if not specified, standard output is used.
+infile  Input file; if not specified, standard input is used.
+outfile Output file; if not specified, standard output is used.
 
 ";
 
@@ -52,8 +51,8 @@ if ($help || $h)
 my $in = shift || "-";
 my $out = shift || "-";
 
-open(IN, "<$in") || die "Can't open $in for reading";
-open(OUT, ">$out") || die "Can't open $out for writing";
+open(IN, "<$in") || die "Error: Can't open $in for reading";
+open(OUT, ">$out") || die "Error: Can't open $out for writing";
 
 # Enable immediate flush when piping
 select(OUT); $| = 1;

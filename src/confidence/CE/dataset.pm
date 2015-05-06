@@ -1,11 +1,9 @@
 #!/usr/bin/perl -s
-# $Id$
+
 # @file dataset.pm 
 # @brief Dataset representation for confidence estimation
 # 
 # @author Michel Simard
-# 
-# COMMENTS:
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -137,8 +135,8 @@ add a data object to this dataset
 sub add {
     my ($this, $data) = @_;
 
-    die "Nothing to add" unless $data;
-    die "Thing to add is not a CE::data" unless $data->isa('CE::data');
+    die "Error: Nothing to add" unless $data;
+    die "Error: Thing to add is not a CE::data" unless $data->isa('CE::data');
 
     push @{$this->{data}}, $data;
 }
@@ -185,9 +183,9 @@ Get/set the k_th data object in this dataset; $k must be within range
 sub data {
     my ($this, $k, $data) = @_;
 
-    die "$k out of range [0, ".$this->size().")" unless 0 <= $k and $k < $this->size();
+    die "Error: $k out of range [0, ".$this->size().")" unless 0 <= $k and $k < $this->size();
     if (defined $data) {
-        die "Data argument is not a CE::data" unless $data->isa('CE::data');
+        die "Error: Data argument is not a CE::data" unless $data->isa('CE::data');
         $this->{data}->[$k] = $data;
     }
 

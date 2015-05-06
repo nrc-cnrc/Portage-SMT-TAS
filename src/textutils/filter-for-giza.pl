@@ -1,10 +1,10 @@
 #!/usr/bin/perl -s -w
 #
 # @file filter-for-giza.pl 
-# @brief Produces a pair of line-aligned files for giza.
+# @brief Produce a pair of line-aligned files for giza.
 #
-# Takes as input a line-aligned bilingual corpus in the form of a pair
-# of source and target files, and produces a corresponding pair of files
+# Take as input a line-aligned bilingual corpus in the form of a pair
+# of source and target files, and produce a corresponding pair of files
 # "f.giza" and "e.giza", in which the following pairs of lines have been
 # eliminated:
 # - either line is empty
@@ -14,9 +14,6 @@
 #
 # @author Michel Simard but don't blame me
 #
-# COMMENTS:
-#
-# Michel Simard
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
@@ -70,27 +67,26 @@ $ratio = 2 unless defined $ratio;
 my $min_ratio = 1/$ratio;
 my $max_ratio = $ratio;
 
-my $srcfile = shift or die "Missing arg: source file";
-my $tgtfile = shift or die "Missing arg: target file";
+my $srcfile = shift or die "Error: Missing arg: source file";
+my $tgtfile = shift or die "Error: Missing arg: target file";
 
 $outsrc = "f.giza" unless defined $outsrc;
 $outtgt = "e.giza" unless defined $outtgt;
 
 verbose("[Reading in files $srcfile and $tgtfile]\n");
 
-open(SRC, "<$srcfile") or die "Can't open source file $srcfile";
-open(TGT, "<$tgtfile") or die "Can't open target file $tgtfile";
+open(SRC, "<$srcfile") or die "Error: Can't open source file $srcfile";
+open(TGT, "<$tgtfile") or die "Error: Can't open target file $tgtfile";
 
 verbose("[Writing output to $outsrc and $outtgt]\n");
 
-open(OUTSRC, ">$outsrc") or die "Can't open output source file $outsrc";
-open(OUTTGT, ">$outtgt") or die "Can't open output target file $outtgt";
+open(OUTSRC, ">$outsrc") or die "Error: Can't open output source file $outsrc";
+open(OUTTGT, ">$outtgt") or die "Error: Can't open output target file $outtgt";
 
 my $line_count = 0;
 my $out_count = 0;
 while (my $src_line = <SRC>) {
-    die "Unequal number of source and target lines"
-        if eof(TGT);
+    die "Error: Unequal number of source and target lines" if eof(TGT);
     my $tgt_line = <TGT>;
     ++$line_count;
     chop $src_line;
@@ -117,7 +113,7 @@ while (my $src_line = <SRC>) {
 
 verbose("[Done (read $line_count pairs of lines, output $out_count)]\n");
 
-die "Unequal number of source and target lines"
+die "Error: Unequal number of source and target lines"
     unless eof(TGT);
 
 close OUTSRC;

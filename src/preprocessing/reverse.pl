@@ -5,8 +5,6 @@
 # 
 # @author Aaron Tikuisis
 # 
-# COMMENTS:
-# 
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
@@ -53,8 +51,8 @@ if ($help || $h)
 my $in = shift || "-";
 my $out = shift || "-";
 
-open(IN, "<$in") || die "Can't open $in for reading";
-open(OUT, ">$out") || die "Can't open $out for writing";
+open(IN, "<$in") || die "Error: Can't open $in for reading";
+open(OUT, ">$out") || die "Error: Can't open $out for writing";
 
 # Enable immediate flush when piping
 select(OUT); $| = 1;

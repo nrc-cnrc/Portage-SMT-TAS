@@ -129,12 +129,12 @@ my $verbose = 1;
 GetOptions(
    help        => sub { usage },
    "dic=s"     => \my $dictfile,
-) or usage;
+) or usage "Error: Invalid option(s).";
 
 my $in  = shift || "-";
 my $out = shift || "-";
 
-0 == @ARGV or usage "Superfluous parameter(s): @ARGV";
+0 == @ARGV or usage "Superfluous argument(s): @ARGV";
 
 
 
@@ -161,8 +161,8 @@ my $log_prob_oov = -log( ( 1 - $prob_iv ) / 1000 );
 # frequently occuring combination of zi (hanzi) that are very much
 # like a word (or morpheme) grammatically.
 #
-die "Unable to find dictionary file manseg.fre" unless(-e $dictfile);
-open( DICT, "< :encoding(UTF-8)", $dictfile ) || die "Dictonary file $dictfile not found";
+die "Error: Unable to find dictionary file manseg.fre" unless(-e $dictfile);
+open( DICT, "< :encoding(UTF-8)", $dictfile ) || die "Error: Dictonary file $dictfile not found";
 while ( <DICT> ) {
    chomp;
    s/^ *//;
@@ -186,8 +186,8 @@ my $first_node;
 my $free_node = 0;
 my @next;
 
-zopen(*IN, "< $in") or die "Can't open $in for reading: $!\n";
-zopen(*OUT, "> $out") or die "Can't open $out for writing: $!\n";
+zopen(*IN, "< $in") or die "Error: Can't open $in for reading: $!\n";
+zopen(*OUT, "> $out") or die "Error: Can't open $out for writing: $!\n";
 
 binmode( IN,  ":encoding(UTF-8)" );
 binmode( OUT, ":encoding(UTF-8)" );

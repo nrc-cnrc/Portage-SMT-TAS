@@ -1,5 +1,4 @@
 #!/usr/bin/env perl
-# $Id$
 
 # @file chinese_recode.pl
 # @brief Recode frequent bad characters flagged by utf8_filter to something usable.
@@ -55,12 +54,12 @@ use Getopt::Long;
 my $verbose = 1;
 GetOptions(
    help        => sub { usage },
-) or usage;
+) or usage "Error: Invalid option(s).";
 
 my $in  = shift || "-";
 my $out = shift || "-";
 
-0 == @ARGV or usage "Superfluous parameter(s): @ARGV";
+0 == @ARGV or usage "Error: Superfluous argument(s): @ARGV";
 
 my %map_to = (
 
@@ -123,8 +122,8 @@ my %map_to = (
 
 my %tabulate;
 
-zopen(*IN, "< $in") or die "Can't open $in for reading: $!\n";
-zopen(*OUT, "> $out") or die "Can't open $out for writing: $!\n";
+zopen(*IN, "< $in") or die "Error: Can't open $in for reading: $!\n";
+zopen(*OUT, "> $out") or die "Error: Can't open $out for writing: $!\n";
 
 binmode( IN,  ":encoding(UTF-8)" );
 binmode( OUT, ":encoding(UTF-8)" );

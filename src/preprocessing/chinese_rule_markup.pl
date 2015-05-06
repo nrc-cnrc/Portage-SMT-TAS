@@ -1,26 +1,17 @@
 #!/usr/bin/env perl
 
-# $Id$
+# @file chinese_rule_markup.pl
+# @brief Mark up date and number in pseudo-XML format in Chinese text
 #
-# @file        chinese_rule_markup.pl
-# @brief       Mark up date and number in pseudo-XML format in Chinese text
-
-# @author      Howard Johnson
+# @author Howard Johnson
 #
-# Note:        This script replaces gb-markup.pl.
+# Note: This script replaces gb-markup.pl.
 #
-# Copyright (c) 2006, Conseil national de recherches Canada / National
-# Research Council Canada
-#
-# Technologies langagieres interactives / Interactive Language Technologies
-# Inst. de technologie de l'information / Institute for Information Technology
+# Traitement multilingue de textes / Multilingual Text Processing
+# Tech. de l'information et des communications / Information and Communications Tech.
 # Conseil national de recherches Canada / National Research Council Canada
-# See http://iit-iti.nrc-cnrc.gc.ca/locations-bureaux/gatineau_e.html
-#
-# Usage: gb-markup.pl [-mainland] < in > out
-#        With the -mainland option, 兆 is interpreted using its modern/mainland
-#        interpretation of million, otherwise it is the traditional/Taiwan
-#        interpretation of trillion.
+# Copyright 2006, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2006, Her Majesty in Right of Canada
 
 use strict;
 use warnings;
@@ -68,12 +59,12 @@ my $verbose = 1;
 GetOptions(
    help        => sub { usage },
    mainland    => \my $mainland,
-) or usage;
+) or usage "Error: Invalid option(s).";
 
 my $in  = shift || "-";
 my $out = shift || "-";
 
-0 == @ARGV or usage "Superfluous parameter(s): @ARGV";
+0 == @ARGV or usage "Error: Superfluous argument(s): @ARGV";
 
 
 
@@ -541,8 +532,8 @@ sub unfreeze {
 
 #==================== mainline ====================
 
-zopen(*IN, "< $in") or die "Can't open $in for reading: $!\n";
-zopen(*OUT, "> $out") or die "Can't open $out for writing: $!\n";
+zopen(*IN, "< $in") or die "Error: Can't open $in for reading: $!\n";
+zopen(*OUT, "> $out") or die "Error: Can't open $out for writing: $!\n";
 
 binmode( IN,  ":encoding(UTF-8)" );
 binmode( OUT, ":encoding(UTF-8)" );

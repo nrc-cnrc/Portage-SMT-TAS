@@ -1,11 +1,9 @@
 #!/usr/bin/perl -sw
 
 # @file remove_stop.pl 
-# @brief Removes all stopwords listed in STOP_WORDS from INPUT.
+# @brief Remove all stopwords listed in STOP_WORDS from INPUT.
 #
 # @author Matthew Arnold
-#
-# COMMENTS:
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -32,7 +30,7 @@ $ENV{PORTAGE_INTERNAL_CALL} = 1;
 my $HELP =
 "Usage: remove_stop.pl [-h] STOP_WORDS [INPUT [OUTPUT]]
 
-Removes all stopwords listed in STOP_WORDS from INPUT.  Ignores blank lines,
+Remove all stopwords listed in STOP_WORDS from INPUT. Ignores blank lines,
 but if a line contained all stop words before, then returns back a blank line.
 
 ";
@@ -51,9 +49,9 @@ my $st_in = shift;
 my $in = shift || "-";
 my $out = shift || "-";
 
-open(ST_IN, "<$st_in") or die "Cannot open $st_in to read stop words";
-open(IN, "<$in") or die "Cannot open $in for input";
-open(OUT, ">$out") or die "Cannot open $out for output";
+open(ST_IN, "<$st_in") or die "Error: Cannot open $st_in to read stop words";
+open(IN, "<$in") or die "Error: Cannot open $in for input";
+open(OUT, ">$out") or die "Error: Cannot open $out for output";
 
 #read in stop words
 while (my $line = <ST_IN>)

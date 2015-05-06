@@ -1,4 +1,5 @@
 #!/usr/bin/env perl
+
 # @file PortageLiveAPI.pl
 # @brief Simple wrapper to invoke PortageLive's API and return the translations.
 #
@@ -35,16 +36,17 @@ sub usage {
    print STDERR @_, "";
    $0 =~ s#.*/##;
    print STDERR "
-Usage: $0 [options] [IN [OUT]]
+Usage: $0 [options] -file FILE
 
-  Briefly describe what your program does here
+  Invoke PortageLive's API and return the translations.
 
 Options:
 
-  -f(lag)       set some flag
-  -opt_with_string_arg ARG  set ... to ...
-  -opt_with_integer_arg N   set ... to ...
-  -opt_with_float_arg VAL   set ... to ...
+  -x(tags)
+  -context CONTEXT
+  -file FILE
+  -filter CE_THRESHOLD
+  -server SERVER
   -h(elp)       print this help message
   -v(erbose)    increment the verbosity level by 1 (may be repeated)
   -d(ebug)      print debugging information
@@ -70,10 +72,10 @@ GetOptions(
    "filter=f"       => \my $ce_threshold,
 
    "server=s"  => \$server,
-) or usage;
+) or usage "Error: Invalid option(s).";
 
-0 == @ARGV or usage "Superfluous parameter(s): @ARGV";
-die unless(defined($file));
+0 == @ARGV or usage "Error: Superfluous argument(s): @ARGV";
+die "Error: file required." unless(defined($file));
 
 my $command = "curl";
 if ($file =~ m/\.tmx$/i) {
@@ -85,7 +87,7 @@ elsif ($file =~ m/\.sdlxliff$/i) {
    $command .= " --form 'TranslateSDLXLIFF=8'";
 }
 else {
-   die;
+   die "Error: Invalid file type.";
 }
 $command .= " --form 'ce_threshold=$ce_threshold'" if (defined($ce_threshold));
 $command .= " --form 'context=$context'";
@@ -96,7 +98,7 @@ print STDERR "command: $command\n";
 # Send the translation request.
 my $monitor;
 {
-   open (IN, "$command |") or die;
+   open (IN, "$command |") or die "Error: opening piped output from command.";
    local $/ = undef;
    my $content = <IN>;
    # Extract the monitoring token.
@@ -106,7 +108,7 @@ my $monitor;
       print STDERR "monitor token: $monitor\n";
    }
    else {
-      die;
+      die "Error: Unable to extract monitor token.";
    }
    close(IN);
 }
@@ -118,8 +120,8 @@ my $timeout = 600;
 while ($content !~ m/Output file is ready/) {
    sleep 5;
    $content = get($monitor);
-   die "Couldn't get it!" unless defined $content;
-   die "Timeout\n" if(($timeout -= 5) < 0);
+   die "Error: Couldn't get it!" unless defined $content;
+   die "Error: Timeout\n" if(($timeout -= 5) < 0);
 }
 
 # Print out the translation.
@@ -129,7 +131,7 @@ if ($content =~ m/Right-click this link to save the file: <a href="([^>]+)">/) {
    print get("$doc");
 }
 else {
-   die;
+   die "Error: Unable to determine translation file.";
 }
 
 #print STDERR "vimdiff <(sed 's/changedate=\"[^\"]*\"//g' soap.php.reply ) <(sed 's/changedate=\"[^\"]*\"//g' PORTAGEshared/test-suite/unit-testing/translate.pl/ref/ref.TestMemory_Unknown.xtags.CE.tmx )", "\n";

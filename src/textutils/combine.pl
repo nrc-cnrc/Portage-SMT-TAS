@@ -5,8 +5,6 @@
 #
 # @author Aaron Tikuisis
 #
-# COMMENTS:
-#
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
@@ -56,13 +54,13 @@ my @files = ();
 # Open all files
 my $f = shift || "-";
 my $F = IO::File->new();
-open ($F, "<$f") or die "Cannot open $f for reading";
+open ($F, "<$f") or die "Error: Cannot open $f for reading";
 push @files, $F;
 
 while (my $f = shift)
 {
     my $F = IO::File->new();
-    open ($F, "<$f") or die "Cannot open $f for reading";
+    open ($F, "<$f") or die "Error: Cannot open $f for reading";
     push @files, $F;
 } # while
 

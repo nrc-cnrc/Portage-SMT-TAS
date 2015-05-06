@@ -1,11 +1,9 @@
 #!/usr/bin/perl -w -s
-# $Id$
+
 # @file ce_train.pl 
 # @brief Learn a confidence estimation model
 # 
 # @author Michel Simard
-# 
-# COMMENTS:
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -145,7 +143,7 @@ $max = 0 unless defined $max;
 $verbose = 0 unless defined $verbose;
 $debug = 0 unless defined $debug;
 
-my $model_name = shift || die "Missing argument: model_name";
+my $model_name = shift || die "Error: Missing argument: model_name";
 my $data_dir = shift || ".";
 
 my $model;

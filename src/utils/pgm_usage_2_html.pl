@@ -72,15 +72,17 @@ GetOptions(
    "module=s"  => \my $module_index,
    "main=s"    => \my $main_index,
    "index=s"   => \my $full_index,
-) or usage;
+) or usage "Error: Invalid option(s).";
 
-die "You must provide either -pgm|-module|-main|-index!" if (not(defined($name) or defined($module_index) or defined($main_index) or defined($full_index)));
-die "You cannot make both main_index and module_index at the same time." if (defined($module_index) and defined($main_index));
+die "Error: You must provide either -pgm|-module|-main|-index!"
+   if (not(defined($name) or defined($module_index) or defined($main_index) or defined($full_index)));
+die "Error: You cannot make both main_index and module_index at the same time."
+   if (defined($module_index) and defined($main_index));
 
 my $in = shift || "-";
 my $out = shift || "-";
 
-0 == @ARGV or usage "Superfluous parameter(s): @ARGV";
+0 == @ARGV or usage "Error: Superfluous argument(s): @ARGV";
 
 #$verbose and print STDERR "Mildly verbose output\n";
 #$verbose > 1 and print STDERR "Very verbose output\n";
@@ -100,8 +102,8 @@ if ( $debug ) {
 ";
 }
 
-open(IN, "<$in") or die "Can't open $in for reading: $!\n";
-open(OUT, ">$out") or die "Can't open $out for writing: $!\n";
+open(IN, "<$in") or die "Error: Can't open $in for reading: $!\n";
+open(OUT, ">$out") or die "Error: Can't open $out for writing: $!\n";
 
 my $NRC_logo_path;
 my $hierarchy;
@@ -200,7 +202,7 @@ if (defined($module_index)) {
             $pgm_name .= ".cc";
          }
          local( $/, *CODE ) ;
-         open( CODE, "head -23 $pgm_name | egrep '^[ ]*(#|\\*)' |" ) or die "sudden flaming death\n";
+         open( CODE, "head -23 $pgm_name | egrep '^[ ]*(#|\\*)' |" ) or die "Error: Sudden flaming death\n";
          $code = <CODE>;
          print STDERR "head -23 $pgm_name | egrep '^[ ]*(#|\\*)' |\n" if ($debug);
       }

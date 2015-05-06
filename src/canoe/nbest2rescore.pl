@@ -5,8 +5,6 @@
 #
 # @author Michel Simard
 #
-# COMMENTS:
-#
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
@@ -92,7 +90,7 @@ $tagoov = 0 unless defined $tagoov;
 my $mode = ">";
 $mode = ">>" if (defined($append));
 
-die "Don't know what to do with these extra arguments: @ARGV"
+die "Error: Don't know what to do with these extra arguments: @ARGV"
     if @ARGV;
 
 
@@ -182,7 +180,7 @@ sub parseTranslation {
 	$phrase =~ s/\\(.)/$1/go;	# remove inner level of backslashification
 	my @words = split(/\s+/o, $phrase);
 	if (!@words) {
-	    warn "Empty phrase in line <<$string>>\n";
+	    warn "Warning: Empty phrase in line <<$string>>\n";
             @words = ("empty");
 #	    return 0;
 	}
@@ -214,7 +212,7 @@ sub parseTranslation {
     }
     $translation = { target=>[ @target ], phrases=>[ @phrases ] };
     if ($line) {
-	warn "Junk at end of line <<$string>>: <<$line>>\n";
+	warn "Warning: Junk at end of line <<$string>>: <<$line>>\n";
 	return 0;
     }
 
@@ -232,7 +230,7 @@ sub printOutput {
     } elsif ($how eq "rescore") {
 	printRescore(@what);
     } else {
-	die "Don't know how to write output in \"$how\" format\n";
+	die "Error: Don't know how to write output in \"$how\" format\n";
     }
 }
 

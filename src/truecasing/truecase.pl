@@ -102,62 +102,62 @@ Getopt::Long::GetOptions(
 
    # Output arguments
    'out=s'           => \my $out_file,
-)  or (print(STDERR "ERROR: truecase.pl aborted due to bad option.\nRun 'truecase.pl -h' for help.\n"), exit 1);
+) or die "Error: truecase.pl aborted due to bad option.\nRun 'truecase.pl -h' for help.\n";
 
 $timing = 0 unless defined $timing;
 
 @ARGV < (defined $in_file ? 1 : 2)
-   or die "ERROR: truecase.pl: too many arguments. Only one INPUT_FILE permitted.\n";
+   or die "Error: truecase.pl: too many arguments. Only one INPUT_FILE permitted.\n";
 $in_file = $ARGV[0] unless defined $in_file or @ARGV == 0;
 $in_file = '-' unless defined $in_file;
 
 if ($use_srilm) {
    not defined $tplm and not defined $tppt
-      or die "ERROR: '-tplm' and '-tppt' cannot be used with '-srilm'.\n";
-   defined $lm_file or die "ERROR: LM must be specified using '-lm'.\n";
+      or die "Error: '-tplm' and '-tppt' cannot be used with '-srilm'.\n";
+   defined $lm_file or die "Error: LM must be specified using '-lm'.\n";
    defined $map_file or defined $use_lmOnly
-      or die "ERROR: MAP must be specified using '-map' or '-useLMOnly' must be used.\n";
+      or die "Error: MAP must be specified using '-map' or '-useLMOnly' must be used.\n";
    not defined $map_file or not defined $use_lmOnly
-      or die "ERROR: only one of '-map' or '-useLMOnly' can be used.\n";
+      or die "Error: only one of '-map' or '-useLMOnly' can be used.\n";
 } else {
    not defined $use_viterbi
-      or die "ERROR: '-[no]viterbi' option can only be used with '-srilm'.\n";
+      or die "Error: '-[no]viterbi' option can only be used with '-srilm'.\n";
    not defined $use_lmOnly
-      or die "ERROR: '-[no]useLMOnly' option can only be used with '-srilm'.\n";
+      or die "Error: '-[no]useLMOnly' option can only be used with '-srilm'.\n";
    defined $tplm or defined $lm_file
-      or die "ERROR: LM must be specified using '-tplm' or '-lm'.\n";
+      or die "Error: LM must be specified using '-tplm' or '-lm'.\n";
    not defined $tplm or not defined $lm_file
-      or die "ERROR: only one of '-tplm' and '-lm' can be used.\n";
+      or die "Error: only one of '-tplm' and '-lm' can be used.\n";
    defined $tppt or defined $map_file
-      or die "ERROR: MAP must be specified using '-tppt' or '-map'.\n";
+      or die "Error: MAP must be specified using '-tppt' or '-map'.\n";
    not defined $tppt or not defined $map_file
-      or die "ERROR: only one of '-tppt' and '-map' can be used.\n";
+      or die "Error: only one of '-tppt' and '-map' can be used.\n";
    defined $tplm and defined $tppt or not defined $tplm and not defined $tppt
-      or die "ERROR: LM and MAP must both be tightly packed (use '-tplm' and '-tppt') ",
+      or die "Error: LM and MAP must both be tightly packed (use '-tplm' and '-tppt') ",
              "or both not be tightly packed (use '-lm' and '-map').\n";
 }
 
 if (defined $ucBOSEncoding) {
-   warn "WARNING: '-ucBOSEncoding' is deprecated. Use '-bos' and '-encoding' instead!\n",
+   warn "Warning: '-ucBOSEncoding' is deprecated. Use '-bos' and '-encoding' instead!\n",
         "Run 'truecase.pl -h' for help.\n";
    not defined $src_file
-      or die "ERROR: '-ucBOSEncoding' option cannot be used with '-src'.\n";
+      or die "Error: '-ucBOSEncoding' option cannot be used with '-src'.\n";
    not defined $bos_cap and not defined $encoding
-      or die "ERROR: '-ucBOSEncoding' option cannot be used with '-bos' or '-encoding'.\n";
+      or die "Error: '-ucBOSEncoding' option cannot be used with '-bos' or '-encoding'.\n";
    $bos_cap = 1;
    $encoding = $ucBOSEncoding;
 }
 
 if (defined $src_file) {
    defined $pal_file
-      or die "ERROR: '-src' requires PAL_FILE to be specified with '-pal' option.\n";
+      or die "Error: '-src' requires PAL_FILE to be specified with '-pal' option.\n";
    defined $srclm_file
-      or die "ERROR: '-src' requires SRC_NC1_LM_FILE to be specified with '-srclm' option.\n";
+      or die "Error: '-src' requires SRC_NC1_LM_FILE to be specified with '-srclm' option.\n";
    if (defined $locale) {
       not defined $srclang
-         or die "ERROR: '-srclang' option cannot be used with '-loc'.\n";
+         or die "Error: '-srclang' option cannot be used with '-loc'.\n";
       not defined $encoding
-         or die "ERROR: '-enc' option cannot be used with '-loc'.\n";
+         or die "Error: '-enc' option cannot be used with '-loc'.\n";
       ($srclang, my $rest) = split(/_/, $locale, 2);
       ($rest, $encoding) = split(/\./, $rest, 2);
    } else {
@@ -170,20 +170,20 @@ if (defined $src_file) {
 
    $wal = "mixed" unless defined $wal;
    $wal eq "h" or $wal eq "pal" or $wal eq "mixed"
-      or die "ERROR: unrecognized value for '-wal': $wal; valid values are h, pal, and mixed\n";
+      or die "Error: unrecognized value for '-wal': $wal; valid values are h, pal, and mixed\n";
 } else {
    not defined $pal_file
-      or die "ERROR: '-pal' option can only be used with '-src'.\n";
+      or die "Error: '-pal' option can only be used with '-src'.\n";
    not defined $srclm_file
-      or die "ERROR: '-srclm' option can only be used with '-src'.\n";
+      or die "Error: '-srclm' option can only be used with '-src'.\n";
    not defined $locale
-      or die "ERROR: '-loc' option can only be used with '-src'.\n";
+      or die "Error: '-loc' option can only be used with '-src'.\n";
    not defined $srclang
-      or die "ERROR: '-srclang' option can only be used with '-src'.\n";
+      or die "Error: '-srclang' option can only be used with '-src'.\n";
    not defined $xtra_cm_opts
-      or die "ERROR: '-xtra_cm_opts' option can only be used with '-src'.\n";
+      or die "Error: '-xtra_cm_opts' option can only be used with '-src'.\n";
    not defined $xtra_bos_opts
-      or die "ERROR: '-xtra_bos_opts' option can only be used with both '-src' and '-bos'.\n";
+      or die "Error: '-xtra_bos_opts' option can only be used with both '-src' and '-bos'.\n";
    $encoding = "utf-8" unless defined $encoding;
 }
 
@@ -194,21 +194,21 @@ print STDERR "truecase.pl: truecasing '$in_file' starting\n" if $verbose;
 
 # Make sure the input files exist
 $in_file eq '-' or -f $in_file && -r _
-   or die "ERROR: Input text file '$in_file' is not a readable file.\n";
+   or die "Error: Input text file '$in_file' is not a readable file.\n";
 not defined $src_file or -f $src_file && -r _
-   or die "ERROR: Source language file '$src_file' is not a readable file.\n";
+   or die "Error: Source language file '$src_file' is not a readable file.\n";
 not defined $pal_file or -f $pal_file && -r _
-   or die "ERROR: PAL file '$pal_file' is not a readable file.\n";
+   or die "Error: PAL file '$pal_file' is not a readable file.\n";
 not defined $lm_file or -f $lm_file && -r _
-   or die "ERROR: Truecasing model '$lm_file' is not a readable file.\n";
+   or die "Error: Truecasing model '$lm_file' is not a readable file.\n";
 not defined $map_file or -f $map_file && -r _
-   or die "ERROR: Truecasing MAP '$lm_file' is not a readable file.\n";
+   or die "Error: Truecasing MAP '$lm_file' is not a readable file.\n";
 not defined $tplm or -d $tplm && -x _
-   or die "ERROR: Tightly packed truecasing model '$tplm' is not a readable directory.\n";
+   or die "Error: Tightly packed truecasing model '$tplm' is not a readable directory.\n";
 not defined $tppt or -d $tppt && -x _
-   or die "ERROR: Tightly packed truecasing phrase table '$tppt' is not a readable directory.\n";
+   or die "Error: Tightly packed truecasing phrase table '$tppt' is not a readable directory.\n";
 not defined $srclm_file or (-f $srclm_file && -r _) or (-d $srclm_file && -x _)
-   or die "ERROR: Source NC1 language model '$srclm_file' is not readable.\n";
+   or die "Error: Source NC1 language model '$srclm_file' is not readable.\n";
 
 # Establish that the output file can be written.
 $out_file = "" unless defined $out_file;
@@ -337,7 +337,7 @@ sub convert_map_to_phrase_table
    my $start = time if $timing;
    portage_utils::zin(*MAP, $map_file);
    open( TM,  ">", "$pt_file" )
-      or die "ERROR: unable to open '$pt_file' for writing";
+      or die "Error: unable to open '$pt_file' for writing";
 
    # Need to be locale agnostic when converting map file (MAP) to the phrase table (TM).
    binmode(TM);
@@ -366,7 +366,7 @@ sub run
    $with_bash = 0 unless defined $with_bash;
    print STDERR "COMMAND: $cmd\n" if $verbose;
    system($with_bash ? ("/bin/bash", "-c", $cmd) : $cmd) == 0
-      or die "ERROR: truecase.pl failed (error $?) running '$cmd'.\n";
+      or die "Error: truecase.pl failed (error $?) running '$cmd'.\n";
    (print STDERR "truecase.pl: Running ", (split(' ', $cmd, 2))[0], " took ", time - $start, " seconds.\n") if $timing;
 }
 
@@ -374,7 +374,7 @@ sub run_with_output
 {
    my ($cmd) = @_;
    my $output = `$cmd`;
-   die "ERROR: truecase.pl failed (error $?) running '$cmd'.\n" if $?;
+   die "Error: truecase.pl failed (error $?) running '$cmd'.\n" if $?;
    chomp $output;     # remove last \n
    return $output;
 }

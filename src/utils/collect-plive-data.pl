@@ -107,19 +107,19 @@ GetOptions(
    verbose     => sub { ++$verbose },
    quiet       => sub { $verbose = 0 },
    debug       => \my $debug,
-) or usage;
+) or usage "Error: Invalid option(s).";
 
-0 == @ARGV or usage "Superfluous parameter(s): @ARGV";
+0 == @ARGV or usage "Error: Superfluous argument(s): @ARGV";
 
 -d $PLiveTempDir ||
-   die "$PLiveTempDir is not a directory.\nPlease edit $0 and set PLiveTempDir to the directory where PortageLive creates its temporary files, typically /var/www/html/plive.\n";
+   die "Error: $PLiveTempDir is not a directory.\nPlease edit $0 and set PLiveTempDir to the directory where PortageLive creates its temporary files, typically /var/www/html/plive.\n";
 
 if (defined $config) {
-   -r $config or die "Cannot read file $config: $!\n";
+   -r $config or die "Error: Cannot read file $config: $!\n";
    $ConfigFile = $config;
 }
 
-open CONFIG, "$ConfigFile" or die "Cannot read file $ConfigFile: $!\n";
+open CONFIG, "$ConfigFile" or die "Error: Cannot read file $ConfigFile: $!\n";
 my %contexts;
 while (<CONFIG>) {
    my ($context, $doc, $lines, $words) = split;
@@ -142,19 +142,19 @@ while (<CONFIG>) {
 
 my $find_cmd = "find $PLiveTempDir -name trace";
 if (defined $newer) {
-   -r $newer or die "Cannot read file time stamp file $newer: $!\n";
+   -r $newer or die "Error: Cannot read file time stamp file $newer: $!\n";
    print STDERR "Collecting data only from files modified or created since ",
                 `stat -c\%y $newer | sed 's/\\.00*//'`;
    $find_cmd .= " -newer $newer";
 }
 
 open IN, "$find_cmd |"
-   or die "Can't open pipe to read $PLiveTempDir\n";
+   or die "Error: Can't open pipe to read $PLiveTempDir\n";
 
 my $date = `date +%Y%m%d-%H%M%S`;
 chomp $date;
 my $dir = "plive-data-$date";
-mkdir $dir or die "Cannot create collection directory $dir: $!\n";
+mkdir $dir or die "Error: Cannot create collection directory $dir: $!\n";
 
 my @tarlists;
 my ($docs, $lines, $words) = (0,0,0);
@@ -163,7 +163,7 @@ while (<IN>) {
    chomp $tracefile;
    my $tracedir = $tracefile;
    $tracedir =~ s/\/trace$//;
-   open TRACE, $tracefile or die "Can't open $tracefile: $!\n";
+   open TRACE, $tracefile or die "Error: Can't open $tracefile: $!\n";
    while (<TRACE>) {
       if (/ -f=.*?models\/(.*?)\/canoe.ini.cow/) {
          my $context = $1;
@@ -187,7 +187,7 @@ while (<IN>) {
             my $tarlist = "$dir/$context.list";
             -r $tarlist || push @tarlists, $tarlist;
             system("echo $tracedir >> $tarlist") == 0
-               or warn "Error appending to $tarlist: $!\n";
+               or warn "Warning: Error appending to $tarlist: $!\n";
             #print "Add $tracedir to $tarlist for collection\n";
          }
          last;
@@ -200,12 +200,12 @@ for my $tarlist (@tarlists) {
    my $tarball = $tarlist;
    $tarball =~ s/list$/tgz/;
    system("tar -czf $tarball --files-from $tarlist") == 0
-      or warn "Error creating tar ball $tarball: $!\n";
+      or warn "Warning: Error creating tar ball $tarball: $!\n";
 }
 
-close IN or warn "Error closing pipe to read $PLiveTempDir - output is probably wrong.\n";
+close IN or warn "Warning: Error closing pipe to read $PLiveTempDir - output is probably wrong.\n";
 
-open OUT, "| expand-auto.pl | tee $dir.log" or die "Cannot find expand-auto.pl - was Portage installed?\n";
+open OUT, "| expand-auto.pl | tee $dir.log" or die "Error: Cannot find expand-auto.pl - was Portage installed?\n";
 
 print OUT "\nCollected From\tDocs\tLines\tSrc Words\n\n";
 
@@ -217,4 +217,4 @@ foreach my $key (sort keys %contexts) {
 
 print OUT "\nTotal\t$docs\t$lines\t$words\n";
 
-close OUT or die "Error closing output pipe, report probably not complete: $!\n";
+close OUT or die "Error: Error closing output pipe, report probably not complete: $!\n";

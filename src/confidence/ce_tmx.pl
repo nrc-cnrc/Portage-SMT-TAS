@@ -1,10 +1,9 @@
 #!/usr/bin/env perl
+
 # @file ce_tmx.pl
 # @brief Handle TMX files for confidence estimation
 #
 # @author Michel Simard & Samuel Larkin
-#
-# COMMENTS:
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -154,11 +153,11 @@ $filter = undef unless defined $filter;
 $src = $DEFAULT_SRC unless defined $src;
 $tgt = $DEFAULT_TGT unless defined $tgt;
 
-my $action = shift or die "Missing argument: action";
+my $action = shift or die "Error: Missing argument: action";
 
 if ($action eq 'extract') {
-   my $dir = shift or die "Missing argument: dir";
-   die "No such directory: $dir" unless -d $dir;
+   my $dir = shift or die "Error: Missing argument: dir";
+   die "Error: No such directory: $dir" unless -d $dir;
 
    my $xml_file = shift || "-";
    my $ix = newIx();
@@ -173,14 +172,14 @@ if ($action eq 'extract') {
 }
 
 elsif ($action eq 'replace') {
-   my $dir = shift or die "Missing argument: dir";
-   die "No such directory: $dir" unless -d $dir;
+   my $dir = shift or die "Error: Missing argument: dir";
+   die "Error: No such directory: $dir" unless -d $dir;
 
    my $ce_file = (-r "${dir}/pr.ce") ? "${dir}/pr.ce" : undef;
    my $ix = ixLoad("${dir}/P.txt", "${dir}/Q.ix", $ce_file);
 
    open(my $xml_out, ">${output_layers}", "${dir}/QP.xml")
-      or die "Can open output xml_out file";
+      or die "Error: Can open output xml_out file";
    my $parser = processFile(action => 'replace',
          xml_in => "${dir}/QP.template.xml",
          xml_out => $xml_out,
@@ -204,7 +203,7 @@ elsif ($action eq 'check') {
 }
 
 else {
-   die "Unsupported action $action";
+   die "Error: Unsupported action $action";
 }
 
 
@@ -250,7 +249,7 @@ sub processFile {
       }
 
       local $/ = undef;
-      open(IN, $parser->{xml_in}) or die;
+      open(IN, $parser->{xml_in}) or die "Error: Can't open $parser->{xml_in}";
       $content = <IN>;
       $content = my_input_filter($content);
       close(IN);
@@ -275,7 +274,7 @@ sub processFile {
       print {$parser->{xml_out}} my_output_filter($parser->sprint);
    }
 
-   die "Unrecognized format.\n" unless(defined($parser->{InputFormat}));
+   die "Error: Unrecognized format.\n" unless(defined($parser->{InputFormat}));
 
    verbose("\r[%d%s segments processed. Done]\n",
          $parser->{seg_count},
@@ -292,7 +291,7 @@ sub processTMX {
 
    if($parser->{action} eq 'extract' or $parser->{action} eq 'check') {
       open($parser->{xml_out}, ">${output_layers}", $parser->{xml_out_name})
-         or die "Can open output xml_out file";
+         or die "Error: Can open output xml_out file";
       $parser->setTwigHandlers( { tu => \&processTU, } );
    }
    elsif ($parser->{action} eq 'replace') {
@@ -300,7 +299,7 @@ sub processTMX {
       $parser->setTwigHandlers( { tu => \&replaceTU, } );
    }
    else {
-      die "Invalid action.\n";
+      die "Error: Invalid action.\n";
    }
 
    $parser->{InputFormat} = 'tmx';
@@ -336,7 +335,7 @@ sub processXLIFF {
             } );
    }
    else {
-      die "Invalid action.\n";
+      die "Error: Invalid action.\n";
    }
    # Create a template for sdlxliff
    copy($parser->{xml_in}, $parser->{xml_out_name}) if($parser->{action} eq 'extract');
@@ -356,7 +355,7 @@ sub processLogiTransOutput {
 
       # Get the query for id
       my $query_id = $OriginalText->parent()->{att}{id};
-      die "Each query should have its mandatory id." unless defined $query_id;
+      die "Error: Each query should have its mandatory id." unless defined $query_id;
       debug("query_id: %s\n", $query_id);
 
       my $source = $OriginalText->xml_string();
@@ -377,7 +376,7 @@ sub processLogiTransOutput {
 
       # Get the query for id
       my $query_id = $query->{att}{id};
-      die "Each query should have its mandatory id." unless defined $query_id;
+      die "Error: Each query should have its mandatory id." unless defined $query_id;
       debug("query_id: %s\n", $query_id);
 
       # Confidence estimation:
@@ -388,7 +387,7 @@ sub processLogiTransOutput {
       # make sure it exists before leaving here.
       return if (defined $parser->{filter} and defined($ce) and $ce < $parser->{filter});
 
-      debug("Confidence estimation for %s: CE=%s %s\n", $query_id, $ce, $parser->{filter});
+      debug("Error: Confidence estimation for %s: CE=%s %s\n", $query_id, $ce, $parser->{filter});
       if ($parser->{score} and defined($ce)) {
          $ce = 0 if ($ce < 0);
          $ce = 1 if ($ce > 1);
@@ -459,7 +458,7 @@ sub processLogiTransOutput {
             } );
    }
    else {
-      die "Invalid action.\n";
+      die "Error: Invalid action.\n";
    }
    # Create a template for LogiTransOutput
    copy($parser->{xml_in}, $parser->{xml_out_name}) if($parser->{action} eq 'extract');
@@ -501,7 +500,7 @@ sub unWrapTag {
       $elt->parse($content)->replace($elt);
    }
    else {
-      die "Invalid wrapper tag format.\n";
+      die "Error: Invalid wrapper tag format.\n";
    }
 }
 
@@ -556,7 +555,7 @@ sub xmlFlush {
           : $parser->purge();
     }
     else {
-       die "xmlFlush on a undefined format!";
+       die "Error: xmlFlush on a undefined format!";
     }
 }
 
@@ -595,7 +594,7 @@ sub processTransUnit {
 
    # Get the docid for this translation pair
    my $trans_unit_id = $trans_unit->{att}{id};
-   die "Each trans-unit should have its mandatory id." unless defined $trans_unit_id;
+   die "Error: Each trans-unit should have its mandatory id." unless defined $trans_unit_id;
    debug("trans_unit_id: %s\n", $trans_unit_id);
 
    # Extraction mode: find src-lang text segments and replace with placeholder ID
@@ -610,10 +609,10 @@ sub processTransUnit {
    # divided into segments through the use of <mrk mtype="seg"> elements.
    my $source = $trans_unit->first_child('seg-source');
    $source = $trans_unit->first_child('source') unless($source);
-   die "No source for $trans_unit_id.\n" unless ($source);
+   die "Error: No source for $trans_unit_id.\n" unless ($source);
 
    my $mrk_id = 0;
-   my @mrks = $source->descendants('mrk[@mtype="seg"]') or warn "Can't find any mrk for $trans_unit_id\n\tcontent:", $source->xml_string, "\n";
+   my @mrks = $source->descendants('mrk[@mtype="seg"]') or warn "Warning: Can't find any mrk for $trans_unit_id\n\tcontent:", $source->xml_string, "\n";
    foreach my $mrk (@mrks) {
       my $xml = $mrk->xml_string();
       veryVerbose("\tMRK: %s\n", $xml);
@@ -652,13 +651,13 @@ sub replaceTransUnit {
 
    my $sdl_defs = $trans_unit->get_xpath("sdl:seg-defs", 0);
    unless (defined($sdl_defs)) {
-      warn "Unable to find sdl:seg-defs for $trans_unit_id, adding one...";
+      warn "Warning: Unable to find sdl:seg-defs for $trans_unit_id, adding one...";
       $sdl_defs = XML::Twig::Elt->new('sdl:seg-defs');
       $sdl_defs->paste(last_child => $trans_unit);
    }
 
    my $mrk_id = 0;  # Fallback id.
-   my @mrks = $target->descendants('mrk[@mtype="seg"]') or warn "Can't find any mrk for $trans_unit_id\n\tcontent:", $target->xml_string, "\n";
+   my @mrks = $target->descendants('mrk[@mtype="seg"]') or warn "Warning: Can't find any mrk for $trans_unit_id\n\tcontent:", $target->xml_string, "\n";
    foreach my $mrk (@mrks) {
       my $mid = (defined($mrk->{att}{mid}) ? $mrk->{att}{mid} : $mrk_id++);
       my $xid = "$trans_unit_id.$mid";
@@ -674,7 +673,7 @@ sub replaceTransUnit {
 
       my $sdl_seg = $sdl_defs->get_xpath("sdl:seg[\@id=\"$mid\"]", 0);
       unless(defined($sdl_seg)) {
-         warn "Unable to find sdl:seg for $trans_unit_id, adding one...";
+         warn "Warning: Unable to find sdl:seg for $trans_unit_id, adding one...";
          $sdl_seg = XML::Twig::Elt->new('sdl:seg-seg');
          $sdl_seg->paste(last_child => $sdl_defs);
       }
@@ -773,7 +772,7 @@ sub processTU {
    my ($parser, $tu) = @_;
 
    my @tuvs = $tu->children('tuv');
-   warn("Missing variants in TU") unless @tuvs;
+   warn("Warning: Missing variants in TU") unless @tuvs;
 
    $parser->{seg_id} = ""; # will be set later.
 
@@ -782,11 +781,11 @@ sub processTU {
    my $old_tgt_tuv = 0;
    foreach my $tuv (@tuvs) {
       my $lang = $tuv->{att}->{'xml:lang'};
-      warn("Missing language attribute in TU") unless $lang;
+      warn("Warning: Missing language attribute in TU") unless $lang;
 
       # Use the src-lang TUV as a template for the new tgt-lang TUV
       if (lc($lang) eq lc($parser->{src_lang})) {
-         warn("Duplicate source-language tuv\n") if $new_tgt_tuv;
+         warn("Warning: Duplicate source-language tuv\n") if $new_tgt_tuv;
          $new_tgt_tuv = $tuv->copy();
          $new_tgt_tuv->set_att('xml:lang' => $parser->{tgt_lang});
 
@@ -815,7 +814,7 @@ sub processTU {
       }
    }
    else {
-      warn("Missing source-language version in TU");
+      warn("Warning: Missing source-language version in TU");
    }
 
    xmlFlush($parser);
@@ -834,12 +833,12 @@ sub replaceTU {
    # Replacement mode: find placeholder ID, replace with text
    foreach my $tuv (@tuvs) {
       my $lang = $tuv->{att}->{'xml:lang'};
-      warn("Missing language attribute in TU") unless $lang;
+      warn("Warning: Missing language attribute in TU") unless $lang;
 
       if (lc($lang) eq lc($parser->{tgt_lang})) {
          my $seg = $tuv->first_child('seg'); # There should be exactly one
          if (not $seg) {
-            warn "No SEG element in target language TUV";
+            warn "Warning: No SEG element in target language TUV";
          }
          else {
             my $id = $seg->text();
@@ -894,7 +893,7 @@ sub getTranslation {
 
    $translation = ixGetSegment($parser->{ix}, $id);
    $parser->{seg_id} = $id;# Ugly side-effect
-   warn("Can't find ID $id in index") unless defined($translation);
+   warn("Warning: Can't find ID $id in index") unless defined($translation);
 
    return $translation
 }

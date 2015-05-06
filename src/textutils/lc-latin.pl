@@ -4,8 +4,6 @@
 # @brief Lowercase mapping for iso-latin1.
 # 
 # @author George Foster
-# 
-# COMMENTS: 
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -35,8 +33,8 @@ if ($help || $h) {
 $in = shift || "-";
 $out = shift || "-";
  
-if (!open(IN, "<$in")) {die "Can't open $in for reading";}
-if (!open(OUT, ">$out")) {die "Can't open $out for writing";}
+if (!open(IN, "<$in")) {die "Error: Can't open $in for reading";}
+if (!open(OUT, ">$out")) {die "Error: Can't open $out for writing";}
 
 # Enable immediate flush even when piping
 select(OUT); $| = 1;

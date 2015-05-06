@@ -1,15 +1,15 @@
 #!/usr/bin/env perl
-# @file convertEnglishNumber.pl
-# @brief
+
+# @file mark-english-number.pl
+# @brief Mark up English numbers with their French equivalents.
 #
 # @author Samuel Larkin
 #
-# Technologies langagieres interactives / Interactive Language Technologies
-# Inst. de technologie de l'information / Institute for Information Technology
+# Traitement multilingue de textes / Multilingual Text Processing
+# Tech. de l'information et des communications / Information and Communications Tech.
 # Conseil national de recherches Canada / National Research Council Canada
 # Copyright 2014, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2014, Her Majesty in Right of Canada
-#
 
 use strict;
 use warnings;
@@ -62,11 +62,11 @@ Getopt::Long::Configure("no_ignore_case");
 # abbreviations for all options.
 GetOptions(
    help        => sub { usage },
-) or usage;
+) or usage "Error: Invalid option(s).";
 
 
-my $SOURCE_LANGUAGE = shift or die "Missing language code argument";
-die "This number parser only works with English input" unless ($SOURCE_LANGUAGE eq 'en');
+my $SOURCE_LANGUAGE = shift or die "Error: Missing language code argument";
+die "Error: This number parser only works with English input" unless ($SOURCE_LANGUAGE eq 'en');
 
 
 while (<>) {

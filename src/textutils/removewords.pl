@@ -1,11 +1,9 @@
 #!/usr/bin/perl -sw
 
 # @file removewords.pl 
-# @brief Filters out words from a file.
+# @brief Filter out words from a file.
 # 
 # @author Aaron Tikuisis
-# 
-# COMMENTS:
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -33,7 +31,7 @@ $ENV{PORTAGE_INTERNAL_CALL} = 1;
 my $HELP =
 "Usage: removewords.pl WORDLISTFILE [INFILE [OUTFILE]]
 
-Filters out all of the words in WORDLISTFILE, using INFILE as input and OUTFILE for
+Filter out all of the words in WORDLISTFILE, using INFILE as input and OUTFILE for
 output.
 
 Options:
@@ -53,12 +51,12 @@ if (defined $h or defined $help)
     exit 1;
 } # if
 
-my $wordfile = shift || die "No word list given.  Use -h for help.";
+my $wordfile = shift || die "Error: No word list given.  Use -h for help.";
 my $in = shift || "-";
 my $out = shift || "-";
-open(WIN, "<$wordfile") || die "Cannot open $wordfile for input";
-open(IN, "<$in") || die "Cannot open $in for input";
-open(OUT, ">$out") || die "Cannot open $out for output";
+open(WIN, "<$wordfile") || die "Error: Cannot open $wordfile for input";
+open(IN, "<$in") || die "Error: Cannot open $in for input";
+open(OUT, ">$out") || die "Error: Cannot open $out for output";
 
 # Read word list and store as hash
 my %rwords = ();

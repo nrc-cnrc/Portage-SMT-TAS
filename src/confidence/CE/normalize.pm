@@ -1,11 +1,9 @@
 #!/usr/bin/perl -s
-# $Id$
+
 # @file normalize.pm
 # @brief Feature Normalization for confidence estimation
 # 
 # @author Michel Simard
-# 
-# COMMENTS:
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -113,7 +111,7 @@ sub initialize {
             $this->{$arg} = 0+$args{$arg};
         } else {
             my $method = $this->method();
-            die "Unknown arg $arg for $method normalization";
+            die "Error: Unknown arg $arg for $method normalization";
         }
     }
 
@@ -137,7 +135,7 @@ sub learn {
         $this->learnZeroMean(@values);
     } elsif ($this->method() eq 'none') {
     } else {
-        die "Unsupported normalization method ".$this->method();;
+        die "Error: Unsupported normalization method ".$this->method();;
     }
     return $this;
 }
@@ -159,7 +157,7 @@ sub apply {
         @values = $this->applyZeroMean(@values);
     } elsif ($this->method() eq 'none') {
     } else {
-        die;
+        die "Error: Invalid method";
     }
     return @values;
 }
@@ -228,11 +226,11 @@ sub fromString {
             $this->{upper} = @v ? 0+shift @v :  1;
             $this->{min} = @v ? 0+shift @v : -1;
             $this->{max} = @v ? 0+shift @v : 1;
-            die "Too many arguments for min-max normalization" if @v;
+            die "Error: Too many arguments for min-max normalization" if @v;
         } elsif ($method eq 'zeromean') {
             $this->{mean} = @v ? 0+shift @v : 0;
             $this->{sd} = @v ? 0+shift @v : 1;
-            die "Too many arguments for zero-mean normalization" if @v;
+            die "Error: Too many arguments for zero-mean normalization" if @v;
         }
     }
     return $this;

@@ -1,11 +1,9 @@
 #!/usr/bin/perl -s
-# $Id$
+
 # @file feature.pm
 # @brief Feature functions for confidence estimation.
 # 
 # @author Michel Simard
-# 
-# COMMENTS: 
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -93,7 +91,7 @@ sub initialize {
 
     undef %$this;
 
-    die "Unspecified feature name in initialize()" unless defined $name;
+    die "Error: Unspecified feature name in initialize()" unless defined $name;
     $this->name($name);
     $this->type(exists($args{type}) ? $args{type} : $name);
     $this->isTarget(exists($args{target}) ? $args{target} : 0);
@@ -218,7 +216,7 @@ Get/set the value of a feature-specific argument.
 sub arg {
     my ($this, $key, $val) = @_;
 
-    die "Unspecified $key in feature arg()" unless defined $key;
+    die "Error: Unspecified $key in feature arg()" unless defined $key;
 
     if (defined $val) {
         $this->{args}{$key} = $val;
@@ -299,9 +297,9 @@ sub generate {
         or $type eq 'p.pmax') {
         if (not -r $fout) {
             if ($depend) {
-                die "Missing feature value file for feature $type: $fout";
+                die "Error: Missing feature value file for feature $type: $fout";
             } else {
-                warn "Missing feature value file for feature $type: $fout";
+                warn "Warning: Missing feature value file for feature $type: $fout";
             }
         }
         # Any feature whose values must be read from a file
@@ -320,8 +318,8 @@ sub generate {
     } elsif ($type =~ /^([qptr])\.wlen$/) {
         my $x = $1;
         my $fin = "${dir}/${prefix}${x}.tok";
-        open(my $in, "< ${fin}") or die "Can't open ${fin}";
-        open(my $out, "> ${fout}") or die "Can't open ${fout}";
+        open(my $in, "< ${fin}") or die "Error: Can't open ${fin}";
+        open(my $out, "> ${fout}") or die "Error: Can't open ${fout}";
         while (my $line=<$in>) {
             chop $line;
             my $wlen = my @tokens = split(/\s+/, $line);
@@ -333,7 +331,7 @@ sub generate {
         # Language model log prob
     } elsif ($type =~ /^([qptr])\.lm$/) {
         my $x = $1;
-        die "Missing feature argument: lm" unless $feature->arg('lm');
+        die "Error: Missing feature argument: lm" unless $feature->arg('lm');
         my $lm = findFile($feature->arg('lm'), @search_path);
         my $fin = "${dir}/${prefix}${x}.tok";
         call("$GEN NgramFF ${lm} ${fin} ${fin}", $fout);
@@ -343,9 +341,9 @@ sub generate {
         my ($x,$f) = ($1,$2);
         my $fin1 = $feature->depend("${x}.${f}", %args);
         my $fin2 = $feature->depend("${x}.wlen", %args);
-        open(my $in1, "< ${fin1}") or die "Can't open ${fin1}";
-        open(my $in2, "< ${fin2}") or die "Can't open ${fin2}";
-        open(my $out, "> ${fout}") or die "Can't open ${fout}";
+        open(my $in1, "< ${fin1}") or die "Error: Can't open ${fin1}";
+        open(my $in2, "< ${fin2}") or die "Error: Can't open ${fin2}";
+        open(my $out, "> ${fout}") or die "Error: Can't open ${fout}";
         while (my $value=<$in1>) {
             my $M=<$in2> || cleanupAndDie("Too few input lines in ${fin2}", $fout);
             my $norm_value = $value / ($M + 0.0001);
@@ -362,10 +360,10 @@ sub generate {
         my $fin1 = $feature->depend("${x}${y}.${f}", %args);
         my $fin2 = $feature->depend("${x}.wlen", %args);
         my $fin3 = $feature->depend("${y}.wlen", %args);
-        open(my $in1, "< ${fin1}") or die "Can't open ${fin1}";
-        open(my $in2, "< ${fin2}") or die "Can't open ${fin2}";
-        open(my $in3, "< ${fin3}") or die "Can't open ${fin3}";
-        open(my $out, "> ${fout}") or die "Can't open ${fout}";
+        open(my $in1, "< ${fin1}") or die "Error: Can't open ${fin1}";
+        open(my $in2, "< ${fin2}") or die "Error: Can't open ${fin2}";
+        open(my $in3, "< ${fin3}") or die "Error: Can't open ${fin3}";
+        open(my $out, "> ${fout}") or die "Error: Can't open ${fout}";
         while (my $value=<$in1>) {
             my $M=<$in2> || cleanupAndDie("Too few input lines in ${fin2}", $fout);
             my $N=<$in3> || cleanupAndDie("Too few input lines in ${fin3}", $fout);
@@ -386,9 +384,9 @@ sub generate {
 
         my $fin1 = $feature->depend("${x}.${unit}len", %args);
         my $fin2 = $feature->depend("${y}.${unit}len", %args);
-        open(my $in1, "< ${fin1}") or die "Can't open ${fin1}";
-        open(my $in2, "< ${fin2}") or die "Can't open ${fin2}";
-        open(my $out, "> ${fout}") or die "Can't open ${fout}";
+        open(my $in1, "< ${fin1}") or die "Error: Can't open ${fin1}";
+        open(my $in2, "< ${fin2}") or die "Error: Can't open ${fin2}";
+        open(my $out, "> ${fout}") or die "Error: Can't open ${fout}";
         while (my $len1=<$in1>) {
             my $len2=<$in2> || cleanupAndDie("Too few input lines in ${fin2}", $fout);
             my $ratio = $len1/($len2+.01);
@@ -410,7 +408,7 @@ sub generate {
                   $tm eq 'ibm2' ? 'IBM2' :
                   'HMM');
         $ff .= ($rev ? 'SrcGivenTgt' : 'TgtGivenSrc');
-        die "Missing feature argument: tm" unless $feature->arg('tm');
+        die "Error: Missing feature argument: tm" unless $feature->arg('tm');
         my $model = findFile($feature->arg('tm'), @search_path);
         call("$GEN ${ff} ${model} ${fin1} ${fin2}", $fout);
 
@@ -421,9 +419,9 @@ sub generate {
         my $rev = $4 || "";
         my $fin1 = $feature->depend("q${x}.${tm}${rev}", %args);
         my $fin2 = $feature->depend("q${y}.${tm}${rev}", %args);
-        open(my $in1, "< ${fin1}") or die "Can't open ${fin1}";
-        open(my $in2, "< ${fin2}") or die "Can't open ${fin2}";
-        open(my $out, "> ${fout}") or die "Can't open ${fout}";
+        open(my $in1, "< ${fin1}") or die "Error: Can't open ${fin1}";
+        open(my $in2, "< ${fin2}") or die "Error: Can't open ${fin2}";
+        open(my $out, "> ${fout}") or die "Error: Can't open ${fout}";
         while (my $p1=<$in1>) {
             my $p2=<$in2> || cleanupAndDie("Too few input lines in ${fin2}", $fout);
             my $ratio = $p1 - $p2; # these are log probs, really
@@ -439,9 +437,9 @@ sub generate {
         my ($x, $y) = ($1, $2);
         my $fin1 = "${dir}/${prefix}${x}.tok";
         my $fin2 = "${dir}/${prefix}${y}.tok";
-        open(my $in1, "< ${fin1}") or die "Can't open ${fin1}";
-        open(my $in2, "< ${fin2}") or die "Can't open ${fin2}";
-        open(my $out, "> ${fout}") or die "Can't open ${fout}";
+        open(my $in1, "< ${fin1}") or die "Error: Can't open ${fin1}";
+        open(my $in2, "< ${fin2}") or die "Error: Can't open ${fin2}";
+        open(my $out, "> ${fout}") or die "Error: Can't open ${fout}";
         while (my $line1=<$in1>) {
             chop $line1;
             my @t1 = split(/\s+/, $line1);
@@ -461,9 +459,9 @@ sub generate {
         my ($x, $y) = ($1, $2);
         my $fin1 = "${dir}/${prefix}${x}.tok";
         my $fin2 = "${dir}/${prefix}${y}.tok";
-        open(my $in1, "< ${fin1}") or die "Can't open ${fin1}";
-        open(my $in2, "< ${fin2}") or die "Can't open ${fin2}";
-        open(my $out, "> ${fout}") or die "Can't open ${fout}";
+        open(my $in1, "< ${fin1}") or die "Error: Can't open ${fin1}";
+        open(my $in2, "< ${fin2}") or die "Error: Can't open ${fin2}";
+        open(my $out, "> ${fout}") or die "Error: Can't open ${fout}";
         while (my $line1=<$in1>) {
             chop $line1;
             my @t1 = split(/\s+/, $line1);
@@ -484,9 +482,9 @@ sub generate {
         my $n = $3;
         my $fin1 = "${dir}/${prefix}${x}.tok";
         my $fin2 = "${dir}/${prefix}${y}.tok";
-        open(my $in1, "< ${fin1}") or die "Can't open ${fin1}";
-        open(my $in2, "< ${fin2}") or die "Can't open ${fin2}";
-        open(my $out, "> ${fout}") or die "Can't open ${fout}";
+        open(my $in1, "< ${fin1}") or die "Error: Can't open ${fin1}";
+        open(my $in2, "< ${fin2}") or die "Error: Can't open ${fin2}";
+        open(my $out, "> ${fout}") or die "Error: Can't open ${fout}";
         while (my $line1=<$in1>) {
             chop $line1;
             my @t1 = split(/\s+/, $line1);
@@ -506,9 +504,9 @@ sub generate {
         my ($x, $y, $K) = ($1, $2, $3);
         my $fin1 = $feature->depend("${x}${y}.lcs", %args);
         my $fin2 = $feature->depend("${x}.wlen", %args);
-        open(my $in1, "< ${fin1}") or die "Can't open ${fin1}";
-        open(my $in2, "< ${fin2}") or die "Can't open ${fin2}";
-        open(my $out, "> ${fout}") or die "Can't open ${fout}";
+        open(my $in1, "< ${fin1}") or die "Error: Can't open ${fin1}";
+        open(my $in2, "< ${fin2}") or die "Error: Can't open ${fin2}";
+        open(my $out, "> ${fout}") or die "Error: Can't open ${fout}";
         while (my $lcs=<$in1>) {
             my $N=<$in2> || cleanupAndDie("Too few input lines in ${fin2}", $fout);
             my $U=(min($lcs, $K)/$K)*(min(2*$lcs,$N)/$N);
@@ -533,7 +531,7 @@ sub generate {
         call("${WER} -detail 1 ${fin1} ${fin2} | grep 'Sentence.*WER score:' | cut -f5 -d' '", $fout);
         # Unknown feature: die
     } else {
-        die "Can't handle feature $type";
+        die "Error: Can't handle feature $type";
     }
 
     return $fout;
@@ -575,7 +573,7 @@ sub cleanupAndDie {
     my ($message, @files) = @_;
     
     unlink @files;
-    die $message;
+    die "Error: ", $message;
 }
 
 

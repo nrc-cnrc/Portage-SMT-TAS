@@ -64,12 +64,12 @@ GetOptions(
    "opt_with_string_arg=s"  => \my $opt_with_string_arg_value,
    "opt_with_integer_arg=i" => \my $opt_with_integer_arg_value,
    "opt_with_float_arg=f"   => \my $opt_with_float_arg_value,
-) or usage;
+) or usage "Error: Invalid option(s).";
 
 my $in = shift || "-";
 my $out = shift || "-";
 
-0 == @ARGV or usage "Superfluous parameter(s): @ARGV";
+0 == @ARGV or usage "Error: Superfluous argument(s): @ARGV";
 
 $verbose and print STDERR "Mildly verbose output\n";
 $verbose > 1 and print STDERR "Very verbose output\n";
@@ -90,8 +90,8 @@ if ( $debug ) {
 ";
 }
 
-zopen(*IN, "<$in") or die "Can't open $in for reading: $!\n";
-zopen(*OUT, ">$out") or die "Can't open $out for writing: $!\n";
+zopen(*IN, "<$in") or die "Error: Can't open $in for reading: $!\n";
+zopen(*OUT, ">$out") or die "Error: Can't open $out for writing: $!\n";
 
 binmode( IN,  ":encoding(UTF-8)" );
 binmode( OUT, ":encoding(UTF-8)" );

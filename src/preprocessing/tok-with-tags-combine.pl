@@ -1,4 +1,5 @@
 #!/usr/bin/env perl
+
 # @file tok-with-tags-combine.pl
 # @brief Tokenize text with an external tokenizer, while handling tags (part 2)
 #
@@ -66,20 +67,20 @@ GetOptions(
    verbose     => sub { ++$verbose },
    quiet       => sub { $verbose = 0 },
    debug       => \my $debug,
-) or usage;
+) or usage "Error: Invalid option(s).";
 
-3 == @ARGV or usage "You must provide exactly three file names as arguments.";
+3 == @ARGV or usage "Error: You must provide exactly three file names as arguments.";
 my ($texttok, $tagsin, $output) = @ARGV;
 
 my $text_id = 0;
-open TEXTTOK, "<$texttok"  or die "Cannot open input tokenized-text file $texttok: $!";
-open TAGSIN, "<$tagsin"  or die "Cannot open input tags file $tagsin: $!";
-open OUT, ">$output" or die "Cannot open output file $output: $!";
+open TEXTTOK, "<$texttok"  or die "Error: Cannot open input tokenized-text file $texttok: $!";
+open TAGSIN, "<$tagsin"  or die "Error: Cannot open input tags file $tagsin: $!";
+open OUT, ">$output" or die "Error: Cannot open output file $output: $!";
 
 while (<TAGSIN>) {
    s/TEXT ID([0-9]+)/
       my $contents = <TEXTTOK>;
-      die "Missing line in $texttok for TEXT ID$1" if (!defined $contents);
+      die "Error: Missing line in $texttok for TEXT ID$1" if (!defined $contents);
       chomp $contents;
       $contents =~ s# $##;
       $contents
@@ -89,5 +90,5 @@ while (<TAGSIN>) {
    print OUT;
 }
 if (defined <TEXTTOK>) {
-   die "File $texttok too long";
+   die "Error: File $texttok too long";
 }

@@ -1,13 +1,10 @@
 #!/usr/bin/env perl
-# $Id$
-#
+
 # @file load-balancing.pl
-# @brief Splits the input into blocks where the first block should be the
+# @brief Split the input into blocks where the first block should be the
 # hardest to translate and the last block, the easiest.
 #
 # @author Samuel Larkin
-#
-# COMMENTS:
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -43,7 +40,7 @@ Usage: $0 [-h(elp)] [-v(erbose)]
           [-input <ifile>]
           [-ref <rfile>]
 
-   Sorts by decreasing order of source sentences' length then the N/J longest
+   Sort by decreasing order of source sentences' length, then the N/J longest
    sentences are striped into N similar size jobs and the rest are split into
    (J - N) jobs.
    Output:
@@ -77,20 +74,20 @@ GetOptions(
    "help|h|?"       => sub { usage },
    "debug|d"        => \my $DEBUG,
    "verbose|v"      => sub { ++$verbose },
-) or usage;
+) or usage "Error: Invalid option(s).";
 
 
 ##################################################
 # CHECKING PARAMETERS
-die "You must specify the node's parameter" if (!defined($node));
-die "You must specify the job's parameter" if (!defined($job));
+die "Error: You must specify the node's parameter" if (!defined($node));
+die "Error: You must specify the job's parameter" if (!defined($job));
 
 
 ##################################################
 # READING THE INPUT AND REFERENCE
-open(INPUT, "<$input") or die "Unable to open $input for reading\n";
+open(INPUT, "<$input") or die "Error: Unable to open $input for reading\n";
 if (defined($ref)) {
-   zopen(*REF, "<$ref") or die "Unable to open $ref for reading\n";
+   zopen(*REF, "<$ref") or die "Error: Unable to open $ref for reading\n";
 }
 
 my $line;
@@ -138,11 +135,11 @@ if (0) {
 # Silently reajust $head and $tail to some appropriate sizes that will fit in $index
 if ($node > $index) {
    $node = $index;
-   warn "You are asking for more blocks than there are lines => reajusting node=$node";
+   warn "Warning: You are asking for more blocks than there are lines => reajusting node=$node";
 }
 if ($job > $index) {
    $job = $index;
-   warn "You are asking for more blocks than there are lines => reajusting job=$job";
+   warn "Warning: You are asking for more blocks than there are lines => reajusting job=$job";
 }
 $job=$node if ($job<$node);
 
@@ -157,10 +154,10 @@ printf STDERR "midpoint $midpoint\n" if (defined($DEBUG));
 for (my $m=0; $m<$node; ++$m)
 {
    my $filename = sprintf("$output.%4.4d", $file_index);
-   open(OUT, ">$filename") or die "Unable to open $filename to write output\n";
+   open(OUT, ">$filename") or die "Error: Unable to open $filename to write output\n";
    if (defined($ref)) {
       my $reffile = sprintf("$output.ref.%4.4d", $file_index);
-      open(REF, ">$reffile") or die "Unable to open $reffile to write output\n";
+      open(REF, ">$reffile") or die "Error: Unable to open $reffile to write output\n";
    }
    for (my $i=$m; $i<$midpoint; $i=$i+$node)
    {
@@ -181,7 +178,7 @@ for (my $m=0; $m<$node; ++$m)
 my $rest = $index - $midpoint;  # What's left to split between jobs
 $job = $job - $node;            # How many jobs left for the rest
 if ($rest > 0) {
-   die "ASSERTION: there should be some jobs left" unless ($job > 0);
+   die "Error: ASSERTION: there should be some jobs left" unless ($job > 0);
 
    # The first few blocks may contain more sentences per block.
    my $block_size = ceil($rest/$job);
@@ -189,10 +186,10 @@ if ($rest > 0) {
    for (; $t<($rest%$job); ++$t)
    {
       my $filename = sprintf("$output.%4.4d", $file_index);
-      open(OUT, ">$filename") or die "Unable to open $filename to write output\n";
+      open(OUT, ">$filename") or die "Error: Unable to open $filename to write output\n";
       if (defined($ref)) {
          my $reffile = sprintf("$output.ref.%4.4d", $file_index);
-         open(REF, ">$reffile") or die "Unable to open $reffile to write output\n";
+         open(REF, ">$reffile") or die "Error: Unable to open $reffile to write output\n";
       }
       for (my $i=0; $i<$block_size; ++$i)
       {
@@ -210,10 +207,10 @@ if ($rest > 0) {
    for (; $t<$job; ++$t)
    {
       my $filename = sprintf("$output.%4.4d", $file_index);
-      open(OUT, ">$filename") or die "Unable to open $filename to write output\n";
+      open(OUT, ">$filename") or die "Error: Unable to open $filename to write output\n";
       if (defined($ref)) {
          my $reffile = sprintf("$output.ref.%4.4d", $file_index);
-         open(REF, ">$reffile") or die "Unable to open $reffile to write output\n";
+         open(REF, ">$reffile") or die "Error: Unable to open $reffile to write output\n";
       }
       for (my $i=0; $i<$block_size; ++$i)
       {
@@ -227,5 +224,5 @@ if ($rest > 0) {
    }
 }
 
-die "OOPS: load-balancing problem: $processed $index" if ($processed != $index);
+die "Error: load-balancing problem: $processed $index" if ($processed != $index);
 

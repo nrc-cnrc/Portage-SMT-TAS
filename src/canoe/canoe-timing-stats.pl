@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# $Id$
+
 # @file canoe-timing-stats.pl
 # @brief Provide timing statistics for a canoe or cow or rat run.
 #
@@ -53,7 +53,7 @@ GetOptions(
    help        => sub { usage },
    verbose     => sub { ++$verbose },
    debug       => \my $debug,
-) or usage;
+) or usage "Error: Invalid option(s).";
 
 sub sum(\@) {
    my $sum = 0;
@@ -71,7 +71,7 @@ sub processlog($$) {
    my @loadtime;
    my @translatetime;
    my @sentences;
-   open LOG, $logfile or die "Can't open $logfile: $!\n";
+   open LOG, $logfile or die "Error: Can't open $logfile: $!\n";
    while (<LOG>) {
       if ( /Loaded data structures in (\d+) seconds./ ) {
          push @loadtime, $1;

@@ -5,9 +5,6 @@
 # 
 # @author George Foster
 # 
-# COMMENTS: 
-#
-# George Foster
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
@@ -53,22 +50,22 @@ if ($help || $h) {
     exit 0;
 }
  
-my $n = shift || die "Error: missing n parameter.\n$HELP";
-my $in = shift || die "Error: missing infile parameter\n$HELP";
+my $n = shift || die "Error: Missing n parameter.\n$HELP";
+my $in = shift || die "Error: Missing infile parameter\n$HELP";
 
-open(IN, "<$in") or die "Can't read from $in\n";
+open(IN, "<$in") or die "Error: Can't read from $in\n";
 my @lines = <IN>;
 close IN;
 
 if (($#lines+1) % $n != 0) {
-    die "Error: can't split $in evenly into files of size $n\n";
+    die "Error: Can't split $in evenly into files of size $n\n";
 }
 
 my $s = ($#lines+1) / $n;
 
 
 foreach my $i (1 .. $s) {
-    open(OUT, ">$in.$i") or die "Can't write to $in.$i\n";
+    open(OUT, ">$in.$i") or die "Error: Can't write to $in.$i\n";
     for (my $j = $i-1; $j <= $#lines; $j += $s) {
 	print OUT $lines[$j];
     }

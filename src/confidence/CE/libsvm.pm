@@ -1,11 +1,9 @@
 #!/usr/bin/perl -s
-# $Id$
+
 # @file libsvm.pm 
 # @brief Quick-and-dirty Perl API for libsvm
 # 
 # @author Michel Simard
-# 
-# COMMENTS:
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -97,13 +95,13 @@ sub train {
         debug("Calling: $cmd\n");
 
         system($cmd) == 0 
-            or die sprintf("Command \"%s\" failed: $?", $cmd);
+            or die sprintf("Error: Command \"%s\" failed: $?", $cmd);
     }
     my $cmd = "svm-train ${options} ${datafile} ${model} 1>&2"; # because svm-predict writes verbose-style output to stdout";
     debug("Calling: $cmd\n");
 
     system($cmd) == 0 
-        or die sprintf("Command \"%s\" failed: $?", $cmd);
+        or die sprintf("Error: Command \"%s\" failed: $?", $cmd);
 }
 
 # predict labels for dataset using model (filename)
@@ -130,9 +128,9 @@ sub predict {
     debug("Calling: $cmd\n");
 
     system($cmd) == 0 
-        or die sprintf("Command \"%s\" failed: $?", $cmd);
+        or die sprintf("Error: Command \"%s\" failed: $?", $cmd);
 
-    open(my $out, "<$outfile") or die "Can't open ${outfile}";
+    open(my $out, "<$outfile") or die "Error: Can't open ${outfile}";
     my @ce = ();
     while (my $line = <$out>) {
         push @ce, $line + 0;

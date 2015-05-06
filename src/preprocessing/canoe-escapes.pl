@@ -40,10 +40,10 @@ usage if ($help || $h);
 
 my $in = shift || "-";
 my $out = shift || "-";
-0 == @ARGV or usage "Superfluous parameter(s): @ARGV";
+0 == @ARGV or usage "Error: Superfluous argument(s): @ARGV";
  
-open(IN, "<$in") or die "Can't open $in for reading: $!\n";
-open(OUT, ">$out") or die "Can't open $out for writing: $!\n";
+open(IN, "<$in") or die "Error: Can't open $in for reading: $!\n";
+open(OUT, ">$out") or die "Error: Can't open $out for writing: $!\n";
 
 if ( $remove || $r ) {
    while (<IN>) {

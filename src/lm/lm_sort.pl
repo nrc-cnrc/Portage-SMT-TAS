@@ -1,10 +1,9 @@
 #!/usr/bin/env perl
-# $Id$
 
-# @author Samuel Larkin
 # @file lm_sort.pl
 # @brief Sort and filter an LM optimally for maximal compression.
 #
+# @author Samuel Larkin
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -61,12 +60,12 @@ GetOptions(
    verbose     => sub { ++$verbose },
    quiet       => sub { $verbose = 0 },
    debug       => \my $debug,
-) or usage;
+) or usage "Error: Invalid option(s).";
 
 my $in = shift || "-";
 my $out = shift || "-";
 
-0 == @ARGV or usage "Superfluous parameter(s): @ARGV";
+0 == @ARGV or usage "Error: Superfluous argument(s): @ARGV";
 
 
 if ( $debug ) {
@@ -91,29 +90,29 @@ my %header = ();
 
 # TODO: replace all this with zin/zout in utils.pm
 if ($in =~ /\|\s*$/) {
-   open(IN, "$in") or die "Can't open $in for reading: $!\n";
+   open(IN, "$in") or die "Error: Can't open $in for reading: $!\n";
 }
 elsif ($in =~ /\.gz$/) {
-   open(IN, "gzip -cqfd $in |") or die "Can't open $in for reading: $!\n";
+   open(IN, "gzip -cqfd $in |") or die "Error: Can't open $in for reading: $!\n";
 }
 else {
-   open(IN, "<$in") or die "Can't open $in for reading: $!\n";
+   open(IN, "<$in") or die "Error: Can't open $in for reading: $!\n";
 }
 
 if ($out =~ /^\s*\|/) {
-   open(OUT, "$out") or die "Can't open $out for writing: $!\n";
+   open(OUT, "$out") or die "Error: Can't open $out for writing: $!\n";
 }
 elsif ($out =~ /\.gz$/) {
-   open(OUT, "| gzip > $out") or die "Can't open $out for writing: $!\n";
+   open(OUT, "| gzip > $out") or die "Error: Can't open $out for writing: $!\n";
 }
 else {
-   open(OUT, ">$out") or die "Can't open $out for writing: $!\n";
+   open(OUT, ">$out") or die "Error: Can't open $out for writing: $!\n";
 }
 
-#open(IN, "<$in") or die "Can't open $in for reading: $!\n";
-#open(OUT, ">$out") or die "Can't open $out for writing: $!\n";
+#open(IN, "<$in") or die "Error: Can't open $in for reading: $!\n";
+#open(OUT, ">$out") or die "Error: Can't open $out for writing: $!\n";
 
-local $SIG{PIPE} = sub { die "sort pipe broke" };
+local $SIG{PIPE} = sub { die "Error: sort pipe broke" };
 while (1) {
    print STDERR "." if ($debug);
    $line = <IN>;
@@ -130,7 +129,7 @@ while (1) {
       my $number_input_entry  = 0;
       my $number_output_entry = 0;
 
-      warn "Couldn't find ${N}gram in the header" unless (defined($header{$N}));
+      warn "Warning: Can't find ${N}gram in the header" unless (defined($header{$N}));
 
       $line = <IN>;
 
@@ -159,8 +158,8 @@ while (1) {
          print STDERR "read: $number_input_entry\n";
          print STDERR "writen: $number_output_entry\n";
       }
-      die "$N-gram counts doesn't match after sorting." unless ($number_input_entry == $number_output_entry);
-      warn "$N-gram counts doesn't match the expected number of entries stated in the header" unless ($header{$N} == $number_output_entry);
+      die "Error: $N-gram counts doesn't match after sorting." unless ($number_input_entry == $number_output_entry);
+      warn "Warning: $N-gram counts doesn't match the expected number of entries stated in the header" unless ($header{$N} == $number_output_entry);
    }
 }
 print OUT "\\end\\\n";

@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# $Id$
+
 # @file cow-timing.pl
 # @brief Provide timing information for a cow run.
 #
@@ -51,13 +51,13 @@ GetOptions(
    help        => sub { usage },
    verbose     => sub { ++$verbose },
    debug       => \my $debug,
-) or usage;
+) or usage "Error: Invalid option(s).";
 
 sub processlog($$) {
    my $logfile = shift;
    my $displayname = shift;
    open IN, "cow-timing-full.pl $logfile |"
-      or die "Can't call cow-timing-full.pl: $!\n";
+      or die "Error: Can't call cow-timing-full.pl: $!\n";
    my ($canoe, $uniq, $cat, $rtrain) = ("","","","");
    my $header_printed = 0;
    while (<IN>) {
@@ -87,8 +87,8 @@ sub processlog($$) {
    # Print the last line - usually partial.  Will be all blank if empty.
    print "\t$canoe\t$uniq\t$cat\t$rtrain\n";
 
-   close IN or warn $! ? "Error closing cow-timing-full.pl pipe: $!\n"
-                       : "Exit status $? from cow-timing-full.pl pipe.\n";
+   close IN or warn $! ? "Warning: Error closing cow-timing-full.pl pipe: $!\n"
+                       : "Warning: Exit status $? from cow-timing-full.pl pipe.\n";
 }
 
 if ( @ARGV < 1 ) {

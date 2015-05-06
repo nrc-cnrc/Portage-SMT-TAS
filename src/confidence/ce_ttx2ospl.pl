@@ -1,10 +1,9 @@
 #!/usr/bin/perl -s
+
 # @file ce_ttx2ospl.pl 
 # @brief Handle TTX files for confidence estimation
 # 
 # @author Michel Simard
-# 
-# COMMENTS:
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -124,15 +123,15 @@ $sim = "qs.sim" unless defined $sim;
 $src = $DEFAULT_SRC unless defined $src;
 $tgt = $DEFAULT_TGT unless defined $tgt;
 
-my $infile = shift or die "Missing argument: infile";
+my $infile = shift or die "Error: Missing argument: infile";
 
 if (not -d $dir) {
-    mkdir $dir or die "Can't make directory $dir: errno=$!";
+    mkdir $dir or die "Error: Can't make directory $dir: errno=$!";
 }
 
-open(my $qout, ">${output_layers}", "$dir/$q") or die "Can't open output $dir/$q";
-open(my $tout, ">${output_layers}", "$dir/$t") or die "Can't open output $dir/$t";
-open(my $simout, ">${output_layers}", "$dir/$sim") or die "Can't open output $dir/$sim";
+open(my $qout, ">${output_layers}", "$dir/$q") or die "Error: Can't open output $dir/$q";
+open(my $tout, ">${output_layers}", "$dir/$t") or die "Error: Can't open output $dir/$t";
+open(my $simout, ">${output_layers}", "$dir/$sim") or die "Error: Can't open output $dir/$sim";
 
 processTTX(infile=>$infile, qout=>$qout, tout=>$tout, simout=>$simout, src_lang=>$src, tgt_lang=>$tgt);
 
@@ -172,20 +171,20 @@ sub processTU {
     $match_percent = 0 unless defined $match_percent;
 
     my @tuvs = $tu->children('Tuv');
-    warn("Missing variants in TU $tuid") if (!@tuvs);
+    warn("Warning: Missing variants in TU $tuid") if (!@tuvs);
 
     my $src_tuv = 0;
     my $tm_tuv = 0;
     foreach my $tuv (@tuvs) {
         my $lang = $tuv->{att}->{'Lang'};
-        warn("Missing language attribute in TU $tuid") unless $lang;
+        warn("Warning: Missing language attribute in TU $tuid") unless $lang;
         
         if ($lang eq $parser->{src_lang}) {
-            warn("Duplicate source-language tuv\n") if $src_tuv;
+            warn("Warning: Duplicate source-language tuv\n") if $src_tuv;
             $src_tuv = $tuv;
             
         } elsif ($lang eq $parser->{tgt_lang}) {
-            warn("Duplicate target-language tuv\n") if $tm_tuv;
+            warn("Warning: Duplicate target-language tuv\n") if $tm_tuv;
             $tm_tuv = $tuv;
         }
     }
@@ -228,7 +227,7 @@ sub harvestText {
 #            debug(" harvestText: df -- going recursive\n");
             push @text, harvestText($child);
         } elsif ($child->name() ne 'ut') {
-            warn "Unknown element in a Tuv:", $child->name(), "\n";
+            warn "Warning: Unknown element in a Tuv:", $child->name(), "\n";
         }
     }
 

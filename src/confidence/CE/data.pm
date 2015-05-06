@@ -1,11 +1,9 @@
 #!/usr/bin/perl -s
-# $Id$
+
 # @file data.pm 
 # @brief Datapoint representation for confidence estimation
 # 
 # @author Michel Simard
-# 
-# COMMENTS:
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -138,8 +136,8 @@ Note: index >= 1
 sub value {
   my ($this, $index, $value) = @_;
 
-  die "No index specified" unless defined $index;
-  die "non-positive index" if $index < 1; 
+  die "Error: No index specified" unless defined $index;
+  die "Error: Non-positive index" if $index < 1; 
 
   return (defined $value 
           ? $this->{values}[$index-1] = $value + 0 

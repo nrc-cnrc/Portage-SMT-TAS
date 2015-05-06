@@ -1,11 +1,9 @@
 #!/usr/bin/perl -sw
 
-# $Id$
-#
 # @file tokenize.pl 
 # @brief Tokenize and sentence split latin-1 text.
 #
-# @author George Foster, with minor modifications by Aaron Tikuisis
+# @author George Foster, with minor modifications by Aaron Tikuisis,
 #         Samuel Larkin
 #
 # Technologies langagieres interactives / Interactive Language Technologies
@@ -87,23 +85,23 @@ my $out = shift || "-";
 
 my $psep = $p ? "\n\n" : "\n";
 
-open(IN, "<$in") || die "tokenize.pl: Can't open $in for reading";
-open(OUT, ">$out") || die "tokenize.pl: Can't open $out for writing";
+open(IN, "<$in") || die "Error: tokenize.pl: Can't open $in for reading";
+open(OUT, ">$out") || die "Error: tokenize.pl: Can't open $out for writing";
 
 if ( !$ss && !$noss ) {
-   die "tokenize.pl: One of -ss and -noss is now required.\n";
+   die "Error: tokenize.pl: One of -ss and -noss is now required.\n";
 }
 if ( $notok && $pretok ) {
-   die "tokenize.pl: Specify only one of -notok or -pretok.\n";
+   die "Error: tokenize.pl: Specify only one of -notok or -pretok.\n";
 }
 if ( $ss && $noss ) {
-   die "tokenize.pl: Specify only one of -ss or -noss.\n";
+   die "Error: tokenize.pl: Specify only one of -ss or -noss.\n";
 }
 if ( $noss && $notok ) {
-   warn "Just copying the input since -noss and -notok are both specified.\n";
+   warn "Warning: Just copying the input since -noss and -notok are both specified.\n";
 }
 if ( $noss && $pretok ) {
-   warn "Just copying the input since -noss and -pretok are both specified.\n";
+   warn "Warning: Just copying the input since -noss and -pretok are both specified.\n";
 }
 
 # Enable immediate flush when piping

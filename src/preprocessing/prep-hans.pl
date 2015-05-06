@@ -4,8 +4,8 @@
 # @brief Preprocess Hansard files in old (non-HTML) format.
 # 
 # @author George Foster
-# 
-# COMMENTS: 
+#
+# NOTE: Latin1 file encoding
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -46,8 +46,8 @@ if ($help || $h) {
 $in = shift || "-";
 $out = shift || "-";
  
-if (!open(IN, "<$in")) {die "Can't open $in for writing";}
-if (!open(OUT, ">$out")) {die "Can't open $out for reading";}
+if (!open(IN, "<$in")) {die "Error: Can't open $in for writing";}
+if (!open(OUT, ">$out")) {die "Error: Can't open $out for reading";}
 
 # regexp for .BLABLA things to filter out. Need a list, because sometimes these
 # codes are stuck to the following word. Don't forget to double escape (\\)

@@ -1,4 +1,5 @@
 #!/usr/bin/env perl
+
 # @file tok-with-tags-split.pl
 # @brief Tokenize text with an external tokenizer, while handling tags (part 1)
 #
@@ -78,15 +79,15 @@ GetOptions(
    verbose     => sub { ++$verbose },
    quiet       => sub { $verbose = 0 },
    debug       => \my $debug,
-) or usage;
+) or usage "Error: Invalid option(s).";
 
-3 == @ARGV or usage "You must provide exactly three file names as arguments.";
+3 == @ARGV or usage "Error: You must provide exactly three file names as arguments.";
 my ($input, $textout, $tagsout) = @ARGV;
 
 my $text_id = 0;
-open TEXT, ">$textout" or die "Cannot open text output file $textout: $!";
-open TAGS, ">$tagsout" or die "Cannot open tags output file $tagsout: $!";
-open INPUT, "<$input"  or die "Cannot open input file $input: $!";
+open TEXT, ">$textout" or die "Error: Cannot open text output file $textout: $!";
+open TAGS, ">$tagsout" or die "Error: Cannot open tags output file $tagsout: $!";
+open INPUT, "<$input"  or die "Error: Cannot open input file $input: $!";
 while (<INPUT>) {
    chomp;
    my $tags_to_tok = "";
@@ -115,6 +116,6 @@ while (<INPUT>) {
    }
    print TAGS $tags_toked, "\n";
 }
-close TEXT or die "Error closing text output file $textout: $!";
-close TAGS or die "Error closing tags output file $tagsout: $!";
-close INPUT or die "Error closing input file $input: $!";
+close TEXT or die "Error: Error closing text output file $textout: $!";
+close TAGS or die "Error: Error closing tags output file $tagsout: $!";
+close INPUT or die "Error: Error closing input file $input: $!";

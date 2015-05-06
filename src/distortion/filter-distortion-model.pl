@@ -1,5 +1,4 @@
 #!/usr/bin/env perl
-# $Id$
 
 # @file filter-distortion-model.pl
 # @brief Filter a distortion model based on a conditional phrase table.
@@ -61,16 +60,16 @@ GetOptions(
    verbose     => sub { ++$verbose },
    quiet       => sub { $verbose = 0 },
    debug       => \my $debug,
-) or usage;
+) or usage "Error: Invalid option(s).";
 
 # Make sure that the user provided us with at least a conditional phrase table.
 0 == @ARGV and usage "Missing parameter(s): you must provide at least the CPT.";
 
-my $CPT   = shift or die "Missing your Conditional Phrase Table!";  # What is the conditional phrase table.
-my $DM    = shift or die "Missing your Lexicalized Distortion Model!";  # What is the distortion model to filter.
-my $FILT  = shift or die "Missing your output filtered filename!";  # Where should we send the output.
+my $CPT   = shift or die "Error: Missing your Conditional Phrase Table!";  # What is the conditional phrase table.
+my $DM    = shift or die "Error: Missing your Lexicalized Distortion Model!";  # What is the distortion model to filter.
+my $FILT  = shift or die "Error: Missing your output filtered filename!";  # Where should we send the output.
 
-0 == @ARGV or usage "Superfluous parameter(s): @ARGV";
+0 == @ARGV or usage "Error: Superfluous argument(s): @ARGV";
 
 if ( $debug ) {
    no warnings;
@@ -84,31 +83,31 @@ if ( $debug ) {
 ";
 }
 
-$DM !~ /.tpldm$/ or die "Can't filter tightly packed distortion models (TPLDMs).\n";
+$DM !~ /.tpldm$/ or die "Error: Can't filter tightly packed distortion models (TPLDMs).\n";
 
 if (system("zcat -f $CPT | LC_ALL=C sort -c >& /dev/null") != 0) {
    print STDERR "$CPT is NOT sorted\n" if ($debug || $verbose > 1);
-   open(CPT, "zcat -f $CPT | LC_ALL=C sort |") or die "Can't open conditional phrase table ($CPT) for reading: $!\n";
+   open(CPT, "zcat -f $CPT | LC_ALL=C sort |") or die "Error: Can't open conditional phrase table ($CPT) for reading: $!\n";
 }
 else {
    print STDERR "$CPT is sorted\n" if ($debug || $verbose > 1);
-   open(CPT, "zcat -f $CPT |") or die "Can't open conditional phrase table ($CPT) for reading: $!\n";
+   open(CPT, "zcat -f $CPT |") or die "Error: Can't open conditional phrase table ($CPT) for reading: $!\n";
 }
 
 if (system("zcat -f $DM  | LC_ALL=C sort -c >& /dev/null") != 0) {
    print STDERR "$DM is NOT sorted\n" if ($debug || $verbose > 1);
-   open(DM, "zcat -f $DM  | LC_ALL=C sort |") or die "Can't open distortion model ($DM) for reading: $!\n";
+   open(DM, "zcat -f $DM  | LC_ALL=C sort |") or die "Error: Can't open distortion model ($DM) for reading: $!\n";
 }
 else {
    print STDERR "$DM is sorted\n" if ($debug || $verbose > 1);
-   open(DM, "zcat -f $DM  |") or die "Can't open distortion model ($DM) for reading: $!\n";
+   open(DM, "zcat -f $DM  |") or die "Error: Can't open distortion model ($DM) for reading: $!\n";
 }
 
 if ($FILT =~ /\.gz$/) {
-   open(FILT, "| gzip > $FILT") or die "Can't open output ($FILT) for writing: $!\n";
+   open(FILT, "| gzip > $FILT") or die "Error: Can't open output ($FILT) for writing: $!\n";
 }
 else {
-   open(FILT, ">$FILT") or die "Can't open output ($FILT) for writing: $!\n";
+   open(FILT, ">$FILT") or die "Error: Can't open output ($FILT) for writing: $!\n";
 }
 
 my $cpt = "";  # Will ultimately contain the source ||| target ||| of the conditional phrase table.
@@ -125,7 +124,7 @@ mainloop: while (defined ($cpt = <CPT>)) {
    # Keep only the first two columns.
    $cpt = join(" ||| ", (split(/ \|\|\| /, $cpt))[0,1]) . " ||| ";
 
-   #if ( $prev_cpt ge $cpt ) { warn "CPT $prev_cpt >= $cpt"; }
+   #if ( $prev_cpt ge $cpt ) { warn "Warning: CPT $prev_cpt >= $cpt"; }
 
    # TODO: should I also remove the spaces to make the cpt and dm more likely
    # to be equal and white space independent.
@@ -149,7 +148,7 @@ mainloop: while (defined ($cpt = <CPT>)) {
       # Keep only the first two columns.
       $dm = join(" ||| ", (split(/ \|\|\| /, $dm))[0,1]) . " ||| ";
 
-      #if ( $prev_dm gt $dm ) { warn "LDM $prev_dm > $dm"; }
+      #if ( $prev_dm gt $dm ) { warn "Warning: LDM $prev_dm > $dm"; }
 
       print STDERR "\tCPT: $cpt\n\tDM: $dm\n\n" if ($debug);
 
@@ -171,9 +170,9 @@ unless ($FILT eq "-") {
    $FILT  =~ s/(\.gz)?$/.bkoff/;
    my $cmd = "cp $DM $FILT";
    print STDERR "$cmd\n" if ($debug);
-   system("$cmd") == 0 or die "Problem creating the bkoff file ($?)."
+   system("$cmd") == 0 or die "Error: Problem creating the bkoff file ($?)."
 }
 else {
-   warn "WARNING: You need to copy the proper bkoff model for $FILT\n";
+   warn "Warning: You need to copy the proper bkoff model for $FILT\n";
 }
 

@@ -1,11 +1,9 @@
 #!/usr/bin/perl -w -s
-# $Id$
+
 # @file ce_distance.pl 
 # @brief Compute per sentence distance (various metrics)
 # 
 # @author Michel Simard
-# 
-# COMMENTS:
 # 
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -99,17 +97,17 @@ $norm = "non" unless defined $norm;
 $verbose = 0 unless defined $verbose;
 $debug = 0 unless defined $debug;
 
-my $text1 = shift or die "Missing argument: text1";
-my $text2 = shift or die "Missing argument: text2";
+my $text1 = shift or die "Error: Missing argument: text1";
+my $text2 = shift or die "Error: Missing argument: text2";
 
 warn "**Warning: ignoring extract arguments ".join(' ', @ARGV)."\n" if @ARGV;
 
-open(my $t1, "<$text1") or die "Can't open text1 file $text1";
-open(my $t2, "<$text2") or die "Can't open text2 file $text2";
+open(my $t1, "<$text1") or die "Error: Can't open text1 file $text1";
+open(my $t2, "<$text2") or die "Error: Can't open text2 file $text2";
 
 my $splitfun = ($unit eq 'word' ? \&splitWords : 
                 $unit eq 'char' ? \&splitChars :
-                die "Unsupported unit $unit");
+                die "Error: Unsupported unit $unit");
 
 my $dfun;
 my $n = 1;
@@ -125,7 +123,7 @@ if ($metric eq 'lev') {
 } elsif ($metric eq 'tgt') {
     $dfun = \&normTgt;           # Ugly
 } else {
-    die "Unsupported metric $metric";
+    die "Error: Unsupported metric $metric";
 }
 
 my $normfun = ($norm eq 'non' ? \&normNon : 
@@ -134,7 +132,7 @@ my $normfun = ($norm eq 'non' ? \&normNon :
                $norm eq 'min' ? \&normMin : 
                $norm eq 'max' ? \&normMax : 
                $norm eq 'sum' ? \&normSum : 
-               die "Unsupported normalization $norm");
+               die "Error: Unsupported normalization $norm");
 
 verbose("[Computing $unit-based, $norm-normalized $metric, on $text1 and $text2]\n");
 
@@ -143,7 +141,7 @@ my $cnt=0;
 while (my $line1 = <$t1>) {
     verbose("\r[%d lines...]", $cnt) if (++$cnt % 100 == 0);
     defined (my $line2 = readline($t2)) 
-        or die "Too many lines in text1 $text1";
+        or die "Error: Too many lines in text1 $text1";
     my @s1 = &$splitfun($line1);
     debug("|s1| = %d\n", int(@s1));
     my @s2 = &$splitfun($line2);
@@ -153,7 +151,7 @@ while (my $line1 = <$t1>) {
     debug("$distance / $norm = %.6f\n", $distance/$norm);
     printf("%.6g\n", $distance/$norm);
 }
-die "Too many lines in text2 $text2" unless eof $t2;
+die "Error: Too many lines in text2 $text2" unless eof $t2;
 
 verbose("\r[%d lines. Done.]\n", $cnt);
 

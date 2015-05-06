@@ -1,15 +1,11 @@
 #!/usr/bin/env perl
-# $Id$
 
 # @file alignment-stats.pl 
-# @brief produce some statistics that might suggest the quality of alignment
+# @brief Produce some statistics that might suggest the quality of alignment
 # sentence aligned files.
 #
 # @author Eric Joanis
 #
-# COMMENTS:
-#
-# Eric Joanis
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
@@ -64,12 +60,12 @@ GetOptions(
     debug       => \my $debug,
     "ratio=f"   => \my $ratio,
     0           => \my $nozeros,
-) or usage;
+) or usage "Error: Invalid option(s).";
 
 my $file1 = shift || "-";
 my $file2 = shift || "-";
 
-0 == @ARGV or usage "Superfluous parameter(s): @ARGV";
+0 == @ARGV or usage "Error: Superfluous argument(s): @ARGV";
 
 if ( $debug ) {
     no warnings;
@@ -82,8 +78,8 @@ if ( $debug ) {
 ";
 }
 
-open(FILE1, "$file1") or die "Can't open $file1 for reading: $!\n";
-open(FILE2, "$file2") or die "Can't open $file2 for writing: $!\n";
+open(FILE1, "$file1") or die "Error: Can't open $file1 for reading: $!\n";
+open(FILE2, "$file2") or die "Error: Can't open $file2 for writing: $!\n";
 
 # count the number of tokens in corresponding lines of each input file, and
 # then count how often matching counts occur.

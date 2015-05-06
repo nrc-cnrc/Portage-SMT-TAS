@@ -1,10 +1,9 @@
 #!/usr/bin/perl -s
+
 # @file ce_translate.pl
 # @brief Confidence Estimation wrapper program
 #
 # @author Michel Simard
-#
-# COMMENTS:
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -250,17 +249,17 @@ $skipto = "" unless defined $skipto;
 $plugin = "" unless defined $plugin;
 
 
-die "Can't both -train and -test" if $train and $test;
-die "Can't train from XML (yet)" if $train and $xml;
-die "Can't train from TTX (yet)" if $train and $ttx;
-die "Can't have both -ttx and -xml" if $xml and $ttx;
+die "Error: Can't both -train and -test" if $train and $test;
+die "Error: Can't train from XML (yet)" if $train and $xml;
+die "Error: Can't train from TTX (yet)" if $train and $ttx;
+die "Error: Can't have both -ttx and -xml" if $xml and $ttx;
 
-my $canoe_ini = shift || die "Missing argument: canoe_ini";
-my $ce_model = shift || die "Missing argument: ce_model";
-my $input_text = shift || die "Missing argument: input_text";
+my $canoe_ini = shift || die "Error: Missing argument: canoe_ini";
+my $ce_model = shift || die "Error: Missing argument: ce_model";
+my $input_text = shift || die "Error: Missing argument: input_text";
 my $ref_text = "";
 if ($train) {
-    $ref_text = shift || die "Missing argument in training mode: ref_text";
+    $ref_text = shift || die "Error: Missing argument in training mode: ref_text";
 } elsif ($test) {
     $ref_text = $test;
 }
@@ -284,12 +283,12 @@ my $plog_file;
 if ($dryrun) {
    $dir = "ce_work_temp_dir" unless $dir;
 } elsif ($skipto) {
-   die "Use -dir with -skipto" unless $dir;
-   die "Unreadable directory $dir with -skipto" unless -d $dir;
+   die "Error: Use -dir with -skipto" unless $dir;
+   die "Error: Unreadable directory $dir with -skipto" unless -d $dir;
 } else {
    if ($dir) {
       if (not -d $dir) {
-         mkdir $dir or die "ERROR: Can't make directory '$dir': errno=$!.\nStopped";
+         mkdir $dir or die "Error: Can't make directory '$dir': errno=$!.\nStopped";
       }
    } else {
       $dir = "";
@@ -513,24 +512,23 @@ sub plogUpdate {
    push @plog_opt, "-comment=\"$comment\"" if defined $comment;
    my $cmd = "plog.pl ".join(" ", @plog_opt)." '${plog_file}' $status $words_in $words_out";
    # Don't use call(): potential recursive loop!!
-   system($cmd) == 0 or warn "WARNING: ", explainSystemRC($?,$cmd,$0);
+   system($cmd) == 0 or warn "Warning: ", explainSystemRC($?,$cmd,$0);
 }
 
 sub sourceWordCount {
    my ($filter) = @_;
    my $count_file;
    if (defined $filter) {
-       open(my $tfh, "<${Q_pre}") or die "Can't open text file ${Q_pre}";
-       open(my $cfh, "<${pr_ce}") or die "Can't open CE file ${pr_ce}";
-       open(my $ffh, ">${Q_filt}") or die "Can't open filtered source ${Q_filt}";
+       open(my $tfh, "<${Q_pre}") or die "Error: Can't open text file ${Q_pre}";
+       open(my $cfh, "<${pr_ce}") or die "Error: Can't open CE file ${pr_ce}";
+       open(my $ffh, ">${Q_filt}") or die "Error: Can't open filtered source ${Q_filt}";
 
        while (my $t = <$tfh>) {
            my $y = readline($cfh);
-           die "Not enough lines in CE file ${pr_ce}"
-               unless defined $y;
+           die "Error: Not enough lines in CE file ${pr_ce}" unless defined $y;
            print {$ffh} $t unless ($y < $filter);
        }
-       warn "Too many lines in CE file ${pr_ce}" if readline($cfh);
+       warn "Warning: Too many lines in CE file ${pr_ce}" if readline($cfh);
 
        close $tfh;
        close $cfh;
@@ -664,7 +662,7 @@ sub cleanupAndDie {
 
    plogUpdate($plog_file, undef, 'failure');
    unlink @files unless $debug;
-   die $message;
+   die "Error: ", $message;
 }
 
 sub verbose { printf STDERR @_ if $verbose; }

@@ -5,9 +5,6 @@
 # 
 # @author George Foster
 # 
-# COMMENTS: 
-#
-# George Foster
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
@@ -46,11 +43,11 @@ if ($help || $h) {
 }
 
 our $with_replacement = 0 unless defined $with_replacement;
- 
-my $n = shift or die "n must be specified\n";
+
+my $n = shift or die "Error: n must be specified.\n";
 
 if (!$with_replacement && $n > $#ARGV+1) {
-   die "n cannot be greater than number of args\n";
+   die "Error: n cannot be greater than number of args.\n";
 }
 
 foreach my $i (1..$n) {

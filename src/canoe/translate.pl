@@ -1,10 +1,9 @@
 #!/usr/bin/env perl
+
 # @file translate.pl
 # @brief Script to translate text.
 #
 # @author Darlene Stewart & Samuel Larkin (adapted from Michel Simard's ce_translate.pl)
-#
-# COMMENTS:
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -409,7 +408,7 @@ Getopt::Long::GetOptions(
 
    #Development options
    "skipto=s"       => \my $skipto,
-) or (print(STDERR "ERROR: translate.pl aborted due to bad option.\nRun with -h for help.\n"), exit 1);
+) or (print(STDERR "Error: translate.pl aborted due to bad option.\nRun with -h for help.\n"), exit 1);
 
 $quiet = 0 unless defined $quiet;
 $debug = 0 unless defined $debug;
@@ -418,7 +417,7 @@ $timing = 0 unless defined $timing;
 
 $wal = "mixed" unless defined $wal;
 $wal eq "h" or $wal eq "pal" or $wal eq "mixed"
-   or die "ERROR: unrecognized value for -wal: $wal; valid values are h, pal, and mixed\n";
+   or die "Error: unrecognized value for -wal: $wal; valid values are h, pal, and mixed\n";
 
 if ( !$quiet || $verbose ) {
    print STDERR "$saved_command_line\n\n";
@@ -428,24 +427,24 @@ $decode_only = 0 unless defined $decode_only;
 $with_rescoring = 0 unless defined $with_rescoring;
 $with_ce = 0 unless defined $with_ce;
 $decode_only + $with_rescoring + $with_ce == 1
-   or die "ERROR: Missing or extra switch; specify exactly one of: ",
+   or die "Error: Missing or extra switch; specify exactly one of: ",
           "-decode-only, -with-rescoring, -with-ce.\nStopped";
 
 $n = 1 unless defined $n;
-$n >= 1 or die "ERROR: n must be a positive integer (n-ways-parallel)";
+$n >= 1 or die "Error: n must be a positive integer (n-ways-parallel)";
 $n > 1 or !defined $xtra_cp_opts
-   or die "ERROR: -xtra-cp-opts is valid only when using canoe parallel (n>1).\nStopped";
+   or die "Error: -xtra-cp-opts is valid only when using canoe parallel (n>1).\nStopped";
 
 unless (defined $canoe_ini) {
    $canoe_ini = "canoe.ini.cow";
    $canoe_ini = "$ENV{PORTAGE}/models/canoe.ini.cow" unless -f $canoe_ini;
-   -f $canoe_ini or die "ERROR: Unable to locate a canoe.ini.cow file; ",
+   -f $canoe_ini or die "Error: Unable to locate a canoe.ini.cow file; ",
                         "use -f or -ini to specify the canoe.ini file.\nStopped"
 }
--f $canoe_ini && -r _ or die "ERROR: canoe.ini file '$canoe_ini' is not a readable file.\nStopped";
+-f $canoe_ini && -r _ or die "Error: canoe.ini file '$canoe_ini' is not a readable file.\nStopped";
 
 my $models_dir = dirname($canoe_ini);
--d $models_dir or die "ERROR: models directory '$models_dir' is not a readable directory.\nStopped";
+-d $models_dir or die "Error: models directory '$models_dir' is not a readable directory.\nStopped";
 
 # Locate the rescoring or CE model, if needed.
 my ($rs_model, $ce_model) = ("", "");
@@ -456,29 +455,29 @@ if ($with_rescoring) {
    } else {
       my $rescoring_dir = "$models_dir/models/rescore";
       my @files = grep !(/\.ini$/ || /\.template$/), glob "$rescoring_dir/rescore-model*";
-      @files > 0 or die "ERROR: Unable to locate a rescore-model file in '$rescoring_dir'; ",
+      @files > 0 or die "Error: Unable to locate a rescore-model file in '$rescoring_dir'; ",
                         -d $rescoring_dir ? "" : "'$rescoring_dir' does not exist; ",
                         "use -model to specify the rescoring model.\nStopped";
-      @files == 1 or die "ERROR: Found multiple rescore-model files in '$rescoring_dir'; ",
+      @files == 1 or die "Error: Found multiple rescore-model files in '$rescoring_dir'; ",
                          "use -model to specify the rescoring model.\nStopped";
       $rs_model = shift @files;
    }
-   -f $rs_model && -r _ or die "ERROR: Rescoring model '$rs_model' is not a readable file.\nStopped";
+   -f $rs_model && -r _ or die "Error: Rescoring model '$rs_model' is not a readable file.\nStopped";
 } elsif ($with_ce) {
    # Locate the CE model.
    if (defined $model) {
       $ce_model = $model
    } else {
       my @files = grep !/^.*\/log\.[^\/]+/, glob "$models_dir/*.cem";
-      @files > 0 or die "ERROR: Unable to locate a .cem file in '$models_dir'; ",
+      @files > 0 or die "Error: Unable to locate a .cem file in '$models_dir'; ",
                         "use -model to specify the CE model.\nStopped";
-      @files == 1 or die "ERROR: Found multiple .cem files in '$models_dir'; ",
+      @files == 1 or die "Error: Found multiple .cem files in '$models_dir'; ",
                          "use -model to specify the CE model.\nStopped";
       $ce_model = shift @files;
    }
-   -f $ce_model && -r _ or die "ERROR: CE model '$ce_model' is not a readable file.\nStopped";
+   -f $ce_model && -r _ or die "Error: CE model '$ce_model' is not a readable file.\nStopped";
 } else {
-   !defined $model or die "ERROR: -model option is invalid with -decode-only; "
+   !defined $model or die "Error: -model option is invalid with -decode-only; "
                         . "use -f or -ini to specify the canoe.ini file.\nStopped";
 }
 
@@ -491,25 +490,25 @@ $detok = 1 unless defined $detok;
 
 $nl = ($xml || !$tok ? "s" : "w") unless defined $nl;
 $nl eq "w" or $nl eq "s" or $nl eq "p"
-   or die "ERROR: -nl option must be one of: 's', 'p', 'w', or ''.\nStopped";
+   or die "Error: -nl option must be one of: 's', 'p', 'w', or ''.\nStopped";
 #$tok or $nl eq "s"
-#   or die "ERROR: -notok requires -nl=s to be specified.\nStopped";
+#   or die "Error: -notok requires -nl=s to be specified.\nStopped";
 !$xml or $nl eq "s"
-   or die "ERROR: -xml requires -nl=s.\nStopped";
+   or die "Error: -xml requires -nl=s.\nStopped";
 
 !defined $tc || !defined $tctp
-   or die "ERROR: Specify only one of: -notc, -tc, -tctp.\nStopped";
+   or die "Error: Specify only one of: -notc, -tc, -tctp.\nStopped";
 $tc = 0 unless defined $tc;
 $tctp = 0 unless defined $tctp;
 $tc = 1 if $tctp;
 $tc or (!defined $tclm && !defined $tcmap && !defined $tcsrclm)
-   or die "ERROR: Do not specify -tclm, -tctp or -tcsrclm with -notc.\nStopped";
+   or die "Error: Do not specify -tclm, -tctp or -tcsrclm with -notc.\nStopped";
 (defined $tclm && defined $tcmap) or (!defined $tclm && !defined $tcmap)
-   or die "ERROR: Specify neither or both of -tclm and -tcmap.\nStopped";
+   or die "Error: Specify neither or both of -tclm and -tcmap.\nStopped";
 (defined $tcsrclm && defined $tclm) or (!defined $tcsrclm)
-   or die "ERROR: Do not specify -tcsrc without -tclm specified.\nStopped";
+   or die "Error: Do not specify -tcsrc without -tclm specified.\nStopped";
 !defined $tcsrclm or !$with_rescoring
-   or die "ERROR: -tcsrclm cannot be used with -with-rescoring.\nStopped";
+   or die "Error: -tcsrclm cannot be used with -with-rescoring.\nStopped";
 
 # Locate the Truecasing model.
 if ($tc and !defined $tclm) {
@@ -517,17 +516,17 @@ if ($tc and !defined $tclm) {
    my $tc_dir = "$models_dir/models/tc";
    my $use_msg = "use -tclm, -tcmap and -tcsrclm to specify the truecasing files.\nStopped";
    -d $tc_dir
-      or die "ERROR: '$tc_dir' does not exist; ", $use_msg;
+      or die "Error: '$tc_dir' does not exist; ", $use_msg;
    foreach my $ext ($tctp ? (".tplm", ".tppt") : (".binlm.gz", ".map")) {
       my @files = grep !/\/log\.[^\/]+$/ && !/[\/.-_]nc1[\.-_][^\/]+$/,
                   glob "$tc_dir/*{.,-,_}$tgt*$ext";
       @files > 0
-         or die "ERROR: Unable to locate a $tgt TC $ext file in '$tc_dir'; ",
+         or die "Error: Unable to locate a $tgt TC $ext file in '$tc_dir'; ",
                 "perhaps you need the " , $tctp ? "-tc" : "-tctp",
                 " option instead of ", $tctp ? "-tctp" : "-tc",
                 ".\nStopped";
       @files == 1
-         or die "ERROR: Found multiple $tgt TC $ext files in '$tc_dir'; ", $use_msg;
+         or die "Error: Found multiple $tgt TC $ext files in '$tc_dir'; ", $use_msg;
       push @tc_files, @files;
    }
    ($tclm, $tcmap) = @tc_files;
@@ -537,32 +536,32 @@ if ($tc and !defined $tclm) {
       my @files = grep !/\/log\.[^\/]+$/ && /[\/.\-_]nc1[\.\-_][^\/]+$/,
                   glob "$tc_dir/*{.,-,_}$src*$ext";
       @files <= 1
-         or die "ERROR: Found multiple $src NC1 $ext files in '$tc_dir'; ", $use_msg;
+         or die "Error: Found multiple $src NC1 $ext files in '$tc_dir'; ", $use_msg;
       $tcsrclm = $files[0] unless @files == 0;
    }
 }
 if ($tc) {
    if ($tctp) {
       -d $tclm && -x _
-         or die "ERROR: Tightly packed truecasing $tgt model '$tclm' ",
+         or die "Error: Tightly packed truecasing $tgt model '$tclm' ",
                 "is not a readable directory.\nStopped";
       -d $tcmap && -x _
-         or die "ERROR: Tightly packed truecasing map '$tcmap' ",
+         or die "Error: Tightly packed truecasing map '$tcmap' ",
                 "is not a readable directory.\nStopped";
    } else {
       -f $tclm && -r _
-         or die "ERROR: Truecasing $tgt model '$tclm' is not a readable file.\nStopped";
+         or die "Error: Truecasing $tgt model '$tclm' is not a readable file.\nStopped";
       -f $tcmap && -r _
-         or die "ERROR: Truecasing map '$tcmap' is not a readable file.\nStopped";
+         or die "Error: Truecasing map '$tcmap' is not a readable file.\nStopped";
    }
    if (defined $tcsrclm) {
       if ($tcsrclm =~ /.tplm$/) {
          -d $tcsrclm && -x _
-            or die "ERROR: Tightly packed truecasing $src model '$tcsrclm' ",
+            or die "Error: Tightly packed truecasing $src model '$tcsrclm' ",
                    "is not a readable directory.\nStopped";
       } else {
          -f $tcsrclm && -r _
-            or die "ERROR: Truecasing $src model '$tcsrclm' is not a readable file.\nStopped";
+            or die "Error: Truecasing $src model '$tcsrclm' is not a readable file.\nStopped";
       }
    }
 }
@@ -572,23 +571,23 @@ if (defined $encoding) {
    my $lc_enc = lc $encoding;
    $utf8 = $lc_enc eq "utf8" || $lc_enc eq "utf-8";
    $utf8 or $lc_enc eq "cp1252"
-      or die "ERROR: -encoding must be one of: 'utf8' or 'cp1252'.\nStopped";
+      or die "Error: -encoding must be one of: 'utf8' or 'cp1252'.\nStopped";
 }
 if ($xtags && !$utf8) {
-   die "ERROR: -xtags is not compatible with encoding $encoding: only utf8 is supported";
+   die "Error: -xtags is not compatible with encoding $encoding: only utf8 is supported";
 }
 
 # Locate the Plugins directory
 my $plugins_dir = defined $plugins ? $plugins : "$models_dir/plugins";
 if (defined $plugins) {
    -d $plugins_dir
-      or warn "WARNING: plugins directory '$plugins_dir' is not a readable directory";
+      or warn "Warning: plugins directory '$plugins_dir' is not a readable directory";
 }
 
 $decode_only or $with_ce or !defined $xtra_decode_opts
-   or die "ERROR: -xtra-decode-opts is valid only with -decode-only or -with-ce.\nStopped";
+   or die "Error: -xtra-decode-opts is valid only with -decode-only or -with-ce.\nStopped";
 $with_rescoring or !defined $xtra_rat_opts
-   or die "ERROR: -xtra-rat-opts is valid only with -with-rescoring.\nStopped";
+   or die "Error: -xtra-rat-opts is valid only with -with-rescoring.\nStopped";
 $xtra_cp_opts = "" unless defined $xtra_cp_opts;
 $xtra_decode_opts = "" unless defined $xtra_decode_opts;
 $xtra_rat_opts = "" unless defined $xtra_rat_opts;
@@ -614,20 +613,20 @@ if ($with_ce) {
    $xtra_ce_opts = "" unless defined $xtra_ce_opts;
 } else {
    !defined $filter
-      or die "ERROR: -filter is valid only with -with-ce.\nStopped";
+      or die "Error: -filter is valid only with -with-ce.\nStopped";
    !defined $xtra_ce_opts
-      or die "ERROR: -xtra-ce-opts is valid only with -with-ce.\nStopped";
+      or die "Error: -xtra-ce-opts is valid only with -with-ce.\nStopped";
 }
 
-@ARGV <= 1 or die "ERROR: Too many arguments.\nStopped";
-@ARGV > 0 or die "ERROR: Too few arguments. SRC_TEXT file required.\nStopped" if $xml;
+@ARGV <= 1 or die "Error: Too many arguments.\nStopped";
+@ARGV > 0 or die "Error: Too few arguments. SRC_TEXT file required.\nStopped" if $xml;
 my $input_text = @ARGV > 0 ? shift : "-";
 
 unless (defined $out) {
    $out = "-";
 } else {
    system("echo '' >$out") == 0
-      or die "ERROR: '$out' is not a writable file.\nStopped";
+      or die "Error: '$out' is not a writable file.\nStopped";
 }
 
 # Make working directory and the log file.
@@ -639,18 +638,18 @@ open(SAVE_STDERR, ">&STDERR");   # later, STDERR may be redirected to a log file
 if ($dryrun) {
    $dir = "translate_work_temp_dir" unless $dir;
 } elsif ($skipto) {
-   $dir or die "ERROR: Use -dir with -skipto.\nStopped";
-   -d $dir or die "ERROR: Unreadable directory '$dir' with -skipto.\nStopped";
+   $dir or die "Error: Use -dir with -skipto.\nStopped";
+   -d $dir or die "Error: Unreadable directory '$dir' with -skipto.\nStopped";
    if ($quiet) {
       # Make terminal output as quiet as possible by redirecting STDERR.
       open(STDERR, ">>", "${dir}/log.translate.pl");
       print STDERR "\n---------- " . localtime() . "skipto $skipto ----------\n"
-         or warn "WARNING: Unable to redirect STDERR to append to '${dir}/log.translate.pl'";
+         or warn "Warning: Unable to redirect STDERR to append to '${dir}/log.translate.pl'";
    }
 } else {
    if ($dir) {
       if (not -d $dir) {
-         mkdir $dir or die "ERROR: Can't make directory '$dir': errno=$!.\nStopped";
+         mkdir $dir or die "Error: Can't make directory '$dir': errno=$!.\nStopped";
       }
    } else {
       $dir = "";
@@ -665,7 +664,7 @@ if ($dryrun) {
    if ($quiet) {
       # Make terminal output as quiet as possible by redirecting STDERR.
       open(STDERR, ">", "${dir}/log.translate.pl")
-         or warn "WARNING: Unable to redirect STDERR to '${dir}/log.translate.pl'";
+         or warn "Warning: Unable to redirect STDERR to '${dir}/log.translate.pl'";
    }
    $plog_file = plogCreate("File:${input_text}; Context:".File::Spec->rel2abs($models_dir));
 }
@@ -1000,7 +999,7 @@ sub plogUpdate {
    push @plog_opt, "-comment=\"$comment\"" if defined $comment;
    my $cmd = "plog.pl ".join(" ", @plog_opt)." '${plog_file}' $status $words_in $words_out";
    # Don't use call(): potential recursive loop!!
-   system($cmd) == 0 or warn "WARNING: ", explainSystemRC($?,$cmd,$0);
+   system($cmd) == 0 or warn "Warning: ", explainSystemRC($?,$cmd,$0);
 }
 
 sub sourceWordCount {
@@ -1017,7 +1016,7 @@ sub sourceWordCount {
            cleanupAndDie("Not enough lines in CE file ${pr_ce}") unless defined $y;
            print {$ffh} $t unless ($y < $filter);
        }
-       warn "Too many lines in CE file ${pr_ce}" if readline($cfh);
+       warn "Warning: Too many lines in CE file ${pr_ce}" if readline($cfh);
 
        close $tfh;
        close $cfh;
@@ -1117,7 +1116,7 @@ sub tokenize {
 
 sub strip_entity {
    my ($in, $out) = @_;
-   die "ERROR: You need to provide in and out" unless (defined($in) and defined($out));
+   die "Error: You need to provide in and out" unless (defined($in) and defined($out));
 
    verbose("Stripping Entities");
 
@@ -1138,8 +1137,8 @@ sub strip_entity {
 
 sub escape_entity {
    my ($in, $out) = @_;
-   warn "escape_entity should be used in xml mode." unless ($xml);
-   die "ERROR: You need to provide in and out" unless (defined($in) and defined($out));
+   warn "Warning: escape_entity should be used in xml mode." unless ($xml);
+   die "Error: You need to provide in and out" unless (defined($in) and defined($out));
 
    verbose("Escaping Entities");
 
@@ -1290,9 +1289,9 @@ sub verbose { print STDERR "[", @_, "]\n" if $verbose; }
 sub outputJson {
    my ($file_orig, $file_trans, $file_out) = @_;
    use JSON;
-   open(ORIG, "<$file_orig") or die "ERROR: Can't open $file_orig";
-   open(TRANS, "<$file_trans") or die "ERROR: Can't open $file_trans";
-   open(OUT, ">$out") or die "ERROR: Can't open output $out";
+   open(ORIG, "<$file_orig") or die "Error: Can't open $file_orig";
+   open(TRANS, "<$file_trans") or die "Error: Can't open $file_trans";
+   open(OUT, ">$out") or die "Error: Can't open output $out";
    while (defined(my $orig = <ORIG>) and defined(my $trans = <TRANS>)) {
       chomp($orig);
       chomp($trans);
@@ -1300,8 +1299,8 @@ sub outputJson {
       print OUT to_json({original => $orig, translation => $trans}), "\n" if ($orig ne '' or $trans ne '');
    }
    # Make sure all content is read from both files.
-   die "ERROR: Original text file too long" if (defined(<ORIG>));
-   die "ERROR: Translation text file too long" if (defined(<ORIG>));
+   die "Error: Original text file too long" if (defined(<ORIG>));
+   die "Error: Translation text file too long" if (defined(<ORIG>));
    close(ORIG);
    close(TRANS);
    close(OUT);
@@ -1314,8 +1313,8 @@ sub generateOOVsPage {
    print STDERR "Generating oov.html\n";
 
    # TODO: We might want to be less harsh when we can't create the oov.html
-   open(OOV, "<${oov}") or die "ERROR: can't open ${oov} to create the OOV html page. ($!)";
-   open(HTML, ">${html}")   or die "ERROR: can't open ${html} to create the OOV html page. ($!)";
+   open(OOV, "<${oov}") or die "Error: can't open ${oov} to create the OOV html page. ($!)";
+   open(HTML, ">${html}")   or die "Error: can't open ${html} to create the OOV html page. ($!)";
 
    print HTML '<!DOCTYPE html><html><head><style>.OOV { color: red;} </style></head><body>';
    while (<OOV>) {

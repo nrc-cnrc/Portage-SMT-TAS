@@ -1,7 +1,5 @@
 #!/usr/bin/perl -sw
 
-# $Id$
-#
 # @file detokenize.pl 
 # @brief Transform tokenized English back to normal English text, with some
 # support of French text too.
@@ -60,8 +58,8 @@ if ($help || $h) {
 
 my $apos = qr/['\x92\xB4]/;
 
-open IN, "<$in" or die " Can not open $in for reading";
-open OUT,">$out" or die " Can not open $out for writing";
+open IN, "<$in" or die "Error: Cannot open $in for reading";
+open OUT,">$out" or die "Error: Cannot open $out for writing";
 my $space=" ";
 my ( $word_pre, $word_before , $word_after);
 my @double_quote=();

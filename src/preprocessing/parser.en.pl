@@ -1,18 +1,19 @@
 #!/usr/bin/env perl
 
-use vars qw($VERSION @ISA @EXPORT);
-use Exporter;
-
 # @file parser.en.pl 
 # @brief Detect dates and numbers in an English text corpus, convert them to a
-#        standard format and marks them up. 
+# standard format and marks them up. 
 #
+# @author Fatiha Sadat, LTRC-NRC
+#
+# Traitement multilingue de textes / Multilingual Text Processing
+# Tech. de l'information et des communications / Information and Communications Tech.
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2005, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2005, Her Majesty in Right of Canada
 
-#Author:	Fatiha Sadat, LTRC-NRC
-#Usage:		perl detectmarkup-eng2fr.date-number.NIST05.pl $infile $outfile 
-#Date:		March 20, 2005
-# just a dumb comment
-# ----------------------------------------------------------------------------
+use vars qw($VERSION @ISA @EXPORT);
+use Exporter;
 
 BEGIN {
    # If this script is run from within src/ rather than being properly
@@ -50,7 +51,7 @@ use Getopt::Long;
 my $verbose = 1;
 GetOptions(
    help        => sub { usage },
-) or usage;
+) or usage "Error: Invalid option(s).";
 
 $direng = "/export/projets/portage/models/parsing-dictionaries/English/";
 #$dirf= "/export/projets/portage/corpora/NIST-05/processed-v1/";
@@ -59,17 +60,17 @@ $direng = "/export/projets/portage/models/parsing-dictionaries/English/";
 #$file = $dirf . $e;
 
 $file = shift || "-";
-open (FILE, $file) || die "$file : couldn't open file \n";
+open (FILE, $file) || die "Error: $file : couldn't open file \n";
 
 #$result1= $dirmark ."dates_" . $e;   
 #$result2= $dirmark ."numbers_" .$e;   
 
-#open (RESULT1, ">" . $result1) || die "$result1 : couldn't create file \n";
-#open (RESULT2, ">" . $result2) || die "$result2 : couldn't create file \n";
+#open (RESULT1, ">" . $result1) || die "Error: $result1 : couldn't create file \n";
+#open (RESULT2, ">" . $result2) || die "Error: $result2 : couldn't create file \n";
 
 #$result= $dirmark . $e . "_marked";   
 $result = shift || "-";
-open (RESULTMARKED, ">" . $result) || die "$result : couldn't create file \n";
+open (RESULTMARKED, ">" . $result) || die "Error: $result : couldn't create file \n";
 
 
 # -- START the parsing script for English ... --
@@ -208,7 +209,7 @@ my @datequantifiers = qw(many few a some last next);
 # Loading the dictionary of English Date ordinals ry : first, second, ..., thirty-ninth
 $dicodateord = $direng . "DictionaryEnglishDateOrdinals.txt";
 
-open(ORD, $dicodateord) || die "$dicodateord : couldn't open file \n";
+open(ORD, $dicodateord) || die "Error: $dicodateord : couldn't open file \n";
 while(<ORD>) {
 chop;
 @a=split(/[\s\t\n]+/,$_);
@@ -219,7 +220,7 @@ close ORD;
 # Loading the Dictionary of English Dates quantities  : day, week, month, year, "seasons", minutes, seconds, ...
 $dicodatequantity = $direng . "DictionaryEnglishDateQuantities.txt";
 
-open(DQUANT, $dicodatequantity) || die "$dicodatequantity : couldn't open file \n";
+open(DQUANT, $dicodatequantity) || die "Error: $dicodatequantity : couldn't open file \n";
 while(<DQUANT>) {
 chop;
 @a=split(/[\s\t\n]+/,$_);
@@ -230,7 +231,7 @@ close DQUANT;
 
 # Loading the Dictionaries for Alphabetical numbers and their sufixes (million, hundred, ..)                                
 $diconumberalphab = $direng . "DictionaryEnglishNumbersAlphabet.txt";
-open(NUMALPH, $diconumberalphab) || die "$diconumberalphab : couldn't open file \n";
+open(NUMALPH, $diconumberalphab) || die "Error: $diconumberalphab : couldn't open file \n";
 while(<NUMALPH>) {
 chop;
 @a=split(/[\s\t\n]+/,$_);
@@ -271,7 +272,7 @@ my $percentpat= $percentpat0."|".$percentpat1."|".$percentpat2;
 #load dictionaries for currencies and measurement units 
 
 $dicocurrencies = $direng . "DictionaryEnglishMoneyCurrencies.txt";
-open(CURRENCY, $dicocurrencies) || die "$dicocurrencies   : couldn't open file \n";
+open(CURRENCY, $dicocurrencies) || die "Error: $dicocurrencies   : couldn't open file \n";
 while(<CURRENCY>) {
 chop;
 @a=split(/[\s\t\n]+/,$_);
@@ -282,7 +283,7 @@ close CURRENCY;
 
 #---
 $dicocurrenciesacronym = $direng . "DictionaryEnglishMoneyCurrenciesAcronyms.txt";
-open(CURRENCYACRONYM, $dicocurrenciesacronym) || die "$dicocurrenciesacronym   : couldn't open file \n";
+open(CURRENCYACRONYM, $dicocurrenciesacronym) || die "Error: $dicocurrenciesacronym   : couldn't open file \n";
 while(<CURRENCYACRONYM>) {
 chop;
 @a=split(/[\s\t\n]+/,$_);
@@ -297,7 +298,7 @@ my $currency = join ("|", keys %currency);
 #---
 
 $dicomeasure = $direng . "DictionaryEnglishMeasurementUnits.txt";
-open(MEASURE, $dicomeasure) || die "$dicomeasure   : couldn't open file \n";
+open(MEASURE, $dicomeasure) || die "Error: $dicomeasure   : couldn't open file \n";
 while(<MEASURE>) {
 chop;
 @a=split(/[\s\t\n]+/,$_);
@@ -695,7 +696,7 @@ $instwday =""; $instmonth = "";
 	#print RESULT1 "$raw";
 	print  RESULT1 "\t$wdaystr $yearstr:$monthstr:$daystr\n";
 	$memSTN{$STNmask} = "$wdaystr $yearstr:$monthstr:$daystr";
-#$line =~ s/($monthpat|$monthabrevpat)\s*(,)?\s* ($digitday)\s* (,)?\s* (\d\d+)/<DATE>$mask<\/DATE>/;
+#$line =~ s/($monthpat|$monthabrevpat)\s*(,)?\s*ï¿½($digitday)\s* (,)?\s* (\d\d+)/<DATE>$mask<\/DATE>/;
 	$line =~ s/($monthpat|$monthabrevpat)\s*(,)?\s*($digitday)\s*(,)?\s+(\d\d+)/<DATE standard\=\"$STNmask\">$mask<\/DATE>/;
 }
 

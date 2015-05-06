@@ -5,8 +5,6 @@
 # contained inlistfile.
 # 
 # @author George Foster
-# 
-# COMMENTS: 
 #
 # Technologies langagieres interactives / Interactive Language Technologies
 # Inst. de technologie de l'information / Institute for Information Technology
@@ -51,19 +49,19 @@ if ($help || $h) {
 
 $d = "." unless defined $d;
 
-my $listfile = shift || die "Missing <listfile> arg\n$HELP";
+my $listfile = shift || die "Error: Missing <listfile> arg\n$HELP";
 my $in = shift || "-";
 
-open(SF, "<$listfile") or die "Can't open $listfile for reading\n";
-open(IN, "<$in") or die "Can't open $in for reading\n";
+open(SF, "<$listfile") or die "Error: Can't open $listfile for reading\n";
+open(IN, "<$in") or die "Error: Can't open $in for reading\n";
 
 while (<SF>) {
     my ($nl, $out) = split;
-    open(OUT, ">>$d/$out") or die "Can't open $d/$out for writing\n";
+    open(OUT, ">>$d/$out") or die "Error: Can't open $d/$out for writing\n";
     
     for (my $i = 0; $i < $nl || $nl < 0; ++$i) {
 	if (!($line = <IN>)) {
-           if ($nl >= 0) {die "No more lines left in input $in!\n";}
+           if ($nl >= 0) {die "Error: No more lines left in input $in!\n";}
            else {last;}
         }
 	print OUT $line;
@@ -72,4 +70,4 @@ while (<SF>) {
     close OUT;
 }
 
-if (<IN>) {die "No more lines left in listfile $listfile!\n";}
+if (<IN>) {die "Error: No more lines left in listfile $listfile!\n";}

@@ -1,4 +1,5 @@
 #!/usr/bin/env perl
+
 # @file parse_tokan.pl
 # @brief Given MADA's database output, extract different form for each words.
 #
@@ -73,15 +74,16 @@ GetOptions(
    oov       => \my $oov,
    nolc      => \my $nolc,
    skipTokenization => \my $skipTokenization,
-) or usage;
+) or usage "Error: Invalid option(s).";
 
-my $tiers = shift or die "You must provide a tiers!";
+my $tiers = shift or die "Error: You must provide a tiers!";
 my $field = shift;  # Can be 0
-die "You must provide a field!" unless (defined($field));
+die "Error: You must provide a field!" unless (defined($field));
 
-0 == @ARGV or usage "Superfluous parameter(s): @ARGV";
+0 == @ARGV or usage "Error: Superfluous argument(s): @ARGV";
 
-die "-oov must have tiers=6 and field<3" if ($oov and ($tiers != 1 and ($field < 0 or $field > 2)));
+die "Error: -oov must have tiers=6 and field<3"
+   if ($oov and ($tiers != 1 and ($field < 0 or $field > 2)));
 
 # Make ULexitools arguments explicit by giving them variable names.
 my $notok  = 0;
@@ -115,11 +117,11 @@ while(<STDIN>) {
             $i = join("\@\@$sep\@\@", @clean);
             @fields = @clean;
             if (@fields != 6) {
-               die "Incorrect format: $i should have 6 fields separated by $sep, but it has ", $#fields+1, " \n";
+               die "Error: Incorrect format: $i should have 6 fields separated by $sep, but it has ", $#fields+1, " \n";
             }
          }
          elsif(@fields < 6) {
-            die "Expecting 6 fields in input: <$i> ", scalar(@fields), "\n";
+            die "Error: Expecting 6 fields in input: <$i> ", scalar(@fields), "\n";
          }
       }
       if ($oov) {

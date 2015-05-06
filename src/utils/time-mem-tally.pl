@@ -66,7 +66,7 @@ GetOptions(
    "ignore"       => sub { $ignore_master_wall_time = 1 },
    "no-ignore"    => sub { $ignore_master_wall_time = 0 },
    "meta=s"     => \my $meta,
-) or usage;
+) or usage "Invalid option(s).";
 
 
 sub format_time_mem($$$$$$$$) {
@@ -92,8 +92,8 @@ my %dirs;
 my ($total_wall_time, $total_cpu_time, $total_cpu_wait_time, $max_vmem, $max_ram, $max_uss) = (0,0,0,0,0,0);
 my $total_do_pcpu = 1;
 foreach my $file (@ARGV) { 
-   if ( $file eq "-" ) { usage "Can't use - as input file.\n"; }
-   zopen(*FILE, $file) or die "Can't read $file: $!\n";
+   if ( $file eq "-" ) { usage "Error: Can't use - as input file.\n"; }
+   zopen(*FILE, $file) or die "Error: Can't read $file: $!\n";
    my ($wall_time, $cpu_time, $cpu_wait_time, $vmem, $ram, $uss) = (0,0,0,0,0,0);
    my $output_line = "";
    my $do_pcpu = 1;
@@ -159,7 +159,7 @@ foreach my $file (@ARGV) {
          $wall_time = $1 unless $ignore_master_wall_time;
       }
    }
-   close FILE or warn "Error closing file $file: $!\n";
+   close FILE or warn "Warning: Error closing file $file: $!\n";
 
    $total_wall_time += $wall_time;
    $total_cpu_time += $cpu_time;

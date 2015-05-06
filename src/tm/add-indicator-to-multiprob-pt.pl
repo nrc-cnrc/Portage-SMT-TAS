@@ -1,12 +1,9 @@
 #!/usr/bin/env perl
-# $Id$
 
 # @file add-indicator-column-to-pt.pl 
 # @brief Add column with fixed indictor values to a multiprob phrasetable.
 #
 # @author George Foster
-#
-# COMMENTS:
 #
 # George Foster
 # Technologies langagieres interactives / Interactive Language Technologies
@@ -59,23 +56,23 @@ GetOptions(
    debug       => \my $debug,
    flag        => \my $flag,
    "val=f"     => \my $val,
-) or usage;
+) or usage "Error: Invalid option(s).";
 
 $val = 2.7183 unless defined $val;
 
 my $in = shift || "-";
 my $out = shift || "-";
 
-0 == @ARGV or usage "Superfluous parameter(s): @ARGV";
+0 == @ARGV or usage "Error: Superfluous argument(s): @ARGV";
 
-open(IN, "<$in") or die "Can't open $in for reading: $!\n";
-open(OUT, ">$out") or die "Can't open $out for writing: $!\n";
+open(IN, "<$in") or die "Error: Can't open $in for reading: $!\n";
+open(OUT, ">$out") or die "Error: Can't open $out for writing: $!\n";
 
 while (<IN>) {
     chomp;
     my ($s,$t,$p) = split / \|\|\| /;
     my @probs = split / /, $p;
-    $#probs % 2 or die "Expecting even number of columns in multiprob table\n";
+    $#probs % 2 or die "Error: Expecting even number of columns in multiprob table\n";
 
     print OUT "$s ||| $t |||";
     for (my $i = 0; $i <= $#probs; ++$i) {
