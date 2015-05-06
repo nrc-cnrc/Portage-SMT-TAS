@@ -35,6 +35,9 @@ FIXED_TERMS_MODEL_DIRECTORY=${FIXED_TERMS_MODEL_DIRECTORY:-$(dirname $0)}
 # Uncomment if you want to mark English number for rule-based translation to their French format.
 #MARK_ENGLISH_NUMBERS=1
 
+# Uncomment to turn on ascii markup processing for Arabic
+#CONVERT_ASCII_TO_MARKUP=1
+
 set -o pipefail
 
 if [[ -s ${FIXED_TERMS_MODEL_DIRECTORY}/fixedTerms/tm ]]; then

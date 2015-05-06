@@ -135,11 +135,11 @@ elif [[ $SOURCE_LANGUAGE = ar ]]; then
       cat ${TOKENIZE_PLUGIN_WORKDIR}/file.bw.mada.tok
    else
       export PORTAGE_INTERNAL_CALL=1
-         parse_tokan.pl 6 1 < ${TOKENIZE_PLUGIN_WORKDIR}/file.bw.mada.tok
+      parse_tokan.pl 6 1 < ${TOKENIZE_PLUGIN_WORKDIR}/file.bw.mada.tok
       rc=$?
       if [[ "$rc" != 0 ]]; then
          echo "ERROR: with parse_tokan.pl (tokenize_plugin)" >&2
-            cat ${TOKENIZE_PLUGIN_WORKDIR}/log >&2
+         cat ${TOKENIZE_PLUGIN_WORKDIR}/log >&2
          exit 1
       fi
    fi

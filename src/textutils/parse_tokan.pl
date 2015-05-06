@@ -133,8 +133,6 @@ while(<STDIN>) {
    print join(" ", @out), "\n";
 }
 
-
-
 sub normalize {
    my ($in) = @_;
    my $out = $in;
