@@ -9,6 +9,9 @@
 # Copyright 2009, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2009, Her Majesty in Right of Canada
 
+set -o errexit
+
 make clean
-make -j 2 SETUP
-make -j 5 all
+#make SETUP
+make -j 5 run_canoe
+make all

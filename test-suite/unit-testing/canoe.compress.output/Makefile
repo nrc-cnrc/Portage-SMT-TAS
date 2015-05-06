@@ -1,167 +1,137 @@
-# @file Makefile Creates multiple kinds of nbest and make sure they are all equivalent
+#!/usr/bin/make -f
+# vim:noet:ts=3:nowrap:filetype=make
+# @file
+# @brief
+#
 # @author Samuel Larkin
 #
 # Technologies langagieres interactives / Interactive Language Technologies
-# Institut de technologie de l'information / Institute for Information Technology
+# Inst. de technologie de l'information / Institute for Information Technology
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2005, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2005, Her Majesty in Right of Canada
-
-SHELL := /bin/bash
-DIR ?= src_out
-PORTAGE ?= /home/portage/i686-g3.4.6
-CORPUS_DIR ?= ../../regress-small-voc
-TRAIN ?= ${CORPUS_DIR}/lc/europarl.fr-en.fr.lowercase ${CORPUS_DIR}/lc/europarl.fr-en.en.lowercase
-SRC ?= ${CORPUS_DIR}/lc/test2000.fr.lowercase
-LM ?= ${CORPUS_DIR}/europarl.en.srilm
-
-all: gitignore DIFF
-
-TEMP_FILES=1best.* nbest* lattice* ffvals* pal* para.* run-parallel-logs-*
-TEMP_DIRS=canoe-parallel.* run-p.*
-clean:
-	${RM} ${TEMP_FILES} $(DIR)/*
-	${RM} -r ${TEMP_DIRS}
-
-SETUP_FILES=ibm1.fr_given_en.gz ibm2.fr_given_en.gz ibm1.en_given_fr.gz ibm2.en_given_fr.gz \
-            ibm2.fr_given_en.pos.gz ibm2.en_given_fr.pos.gz phrases-GT-KN.fr2en.gz \
-            canoe.ini log.gen* log.train* .gitignore
-
-distclean: clean
-	${RM} ${SETUP_FILES}
-	${RM} -r $(DIR)
-
-gitignore:
-	echo "${TEMP_FILES} ${TEMP_DIRS} ${SETUP_FILES} ${DIR}/" | tr ' ' '\n' > .gitignore
-
-############################################################
-## SETUP
-ibm2.fr_given_en.gz:
-	LANG=en_US.ISO-8859-1; \
-	train_ibm -vr -s       \
-	  ibm1.fr_given_en.gz  \
-	  ibm2.fr_given_en.gz  \
-          ${TRAIN} \
-	  >& log.train_ibm.fr_given_en
-
-ibm2.en_given_fr.gz:
-	LANG=en_US.ISO-8859-1; \
-	train_ibm -v  -s       \
-	  ibm1.en_given_fr.gz  \
-	  ibm2.en_given_fr.gz  \
-          ${TRAIN} \
-	  >& log.train_ibm.en_given_fr
-
-phrases-GT-KN.fr2en.gz: ibm2.fr_given_en.gz ibm2.en_given_fr.gz
-	gen_phrase_tables -v -w1 -m8 -1 fr -2 en -ibm 2 -z \
-	  -s GTSmoother -s KNSmoother   \
-	  -multipr fwd                  \
-	  -o phrases-GT-KN              \
-	  ibm2.en_given_fr.gz           \
-	  ibm2.fr_given_en.gz           \
-          ${TRAIN} \
-	  >& log.gen_multi_prob_phrase_tables
-
-canoe.ini:
-	env echo -e "[ttable-multi-prob] \n \
-	phrases-GT-KN.fr2en.gz\n \
-	[lmodel-file]\n \
-	${LM}\n \
-	[weight-d] 0.3200787604\n \
-	[weight-w] 0.3201824725\n \
-	[weight-l] 1\n \
-	[weight-t] 0.4:1\n \
-	[ttable-limit] 30\n \
-	[ttable-prune-type] backward-weights\n\
-	[distortion-limit] 7\n \
-	[distortion-model] WordDisplacement\n" > $@
-
-SETUP: canoe.ini phrases-GT-KN.fr2en.gz
-	[ -e $(DIR) ] || mkdir $(DIR);
+# Copyright 2013, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2013, Her Majesty in Right of Canada
 
 
-UNZIP: nbest $(DIR)/nbest
-$(DIR)/nbest: canoe.ini
-	canoe \
-	  -append \
-	  -f canoe.ini \
-	  -lattice $(DIR)/lattice \
-	  -nbest $(DIR)/nbest:88 \
-	  -ffvals \
-	  -palign \
-	  < $(SRC) > 1best.append
-nbest: canoe.ini
-	canoe \
-	  -f canoe.ini \
-	  -lattice $(DIR)/lattice \
-	  -nbest $(DIR)/nbest:88 \
-	  -ffvals \
-	  -palign \
-	  < $(SRC) > 1best.default
-	cat $(DIR)/nbest.????.88best.ffvals > ffvals
-	cat $(DIR)/nbest.????.88best.pal > pal
-	cat $(DIR)/lattice.???? > lattice
-	cat $(DIR)/lattice.????.state > lattice.state
-	cat $(DIR)/nbest.????.88best > $@
+CANOE_INI := canoe.ini.cow
+CANOE_INI_DIR := ${PORTAGE}/test-suite/systems/toy-regress-en2fr
+MAX := 111
 
-ZIP: nbest.gz $(DIR)/nbest.gz
-$(DIR)/nbest.gz: canoe.ini
-	canoe \
-	  -append \
-	  -f canoe.ini \
-	  -lattice $(DIR)/lattice.gz \
-	  -nbest $(DIR)/nbest.gz:88 \
-	  -ffvals \
-	  -palign \
-	  < $(SRC) > 1best.append-gz
-nbest.gz: canoe.ini
-	canoe \
-	  -f canoe.ini \
-	  -lattice $(DIR)/lattice.gz \
-	  -nbest $(DIR)/nbest.gz:88 \
-	  -ffvals \
-	  -palign \
-	  < $(SRC) > 1best.default-gz
-	cat $(DIR)/nbest.????.88best.ffvals.gz > ffvals.gz
-	cat $(DIR)/nbest.????.88best.pal.gz > pal.gz
-	cat $(DIR)/lattice.????.gz > lattice.gz
-	cat $(DIR)/lattice.????.state.gz > lattice.state.gz
-	cat $(DIR)/nbest.????.88best.gz > $@
+-include Makefile.params
 
-para.nbest.gz: canoe.ini
-	canoe-parallel.sh canoe \
-	  -append \
-	  -f canoe.ini \
-	  -nbest para.nbest.gz:88 \
-	  -ffvals \
-	  -palign \
-	  < $(SRC) > 1best.append.para
+vpath ${CANOE_INI} ${CANOE_INI_DIR}
 
-DIFF: ZIP UNZIP para.nbest.gz
-	@echo "The following files must be identical:"
-	zdiff -q ffvals ffvals.gz
-	zdiff -q ffvals $(DIR)/nbest.88best.ffvals
-	zdiff -q ffvals $(DIR)/nbest.88best.ffvals.gz
-	zdiff -q pal pal.gz
-	zdiff -q pal $(DIR)/nbest.88best.pal
-	zdiff -q pal $(DIR)/nbest.88best.pal.gz
-	zdiff -q lattice lattice.gz
-	zdiff -q lattice $(DIR)/lattice
-	zdiff -q lattice $(DIR)/lattice.gz
-	zdiff -q lattice.state lattice.state.gz
-	zdiff -q lattice.state $(DIR)/lattice.state
-	zdiff -q lattice.state $(DIR)/lattice.state.gz
-	zdiff -q nbest nbest.gz
-	zdiff -q nbest $(DIR)/nbest.88best
-	zdiff -q nbest $(DIR)/nbest.88best.gz
-	zdiff -q 1best.default 1best.append
-	zdiff -q 1best.default 1best.default-gz
-	zdiff -q 1best.default 1best.append-gz
-	@echo "Comparing the parallel run with based run"
-	zdiff -q nbest para.nbestnbest.gz
-	zdiff -q ffvals para.nbestffvals.gz
-	zdiff -q pal para.nbestpal.gz
-	zdiff -q 1best.default 1best.append.para
+.DEFAULT_GOAL := all
+.PHONY: all
+all: run_canoe test
+run_canoe:  append
+run_canoe:  no_append
+run_canoe:  cp
 
-DIFF_ORIG: nbest
-	zdiff -q nbest original.nbest.gz
+
+TEMP_FILES=
+TEMP_DIRS=*lattice* *best* log.* *.wk canoe-parallel.*
+include ../Makefile.incl
+
+
+# Add compressed extension when appropriate.
+%.compressed:  GZ := .gz
+# Where wW means with working directory.
+1best.append.wW:  WORKDIR := append.uncompressed.wk/
+1best.append.wW.compressed:  WORKDIR := append.compressed.wk/
+append:  1best.append  1best.append.compressed  1best.append.wW 1best.append.wW.compressed
+1best.append  1best.append.compressed  1best.append.wW 1best.append.wW.compressed:  1best.%:  ${CANOE_INI}
+	$(and ${WORKDIR}, mkdir -p ${WORKDIR})
+	seq 1 ${MAX} \
+	| canoe \
+		-append \
+		-f $< \
+		-lattice ${WORKDIR}$*.lattice${GZ} \
+		-nbest ${WORKDIR}$*.nbest${GZ}:88 \
+		-ffvals \
+		-palign \
+		> $@ \
+		2> log.$@
+
+
+# Note: defN: use default Nbest size (which is 100)
+cp:  1best.cp.88  1best.cp.88.compressed
+cp:  1best.cp.100  1best.cp.100.compressed
+cp:  1best.cp.defN 1best.cp.defN.compressed
+1best.cp.88 1best.cp.88.compressed:  NBEST_SZ:=:88
+1best.cp.100 1best.cp.100.compressed:  NBEST_SZ:=:100
+1best.cp.defN 1best.cp.defN.compressed:  NBEST_SZ:=
+1best.cp.100: WORKDIR := cp.100.uncompressed.wk/
+1best.cp.100.compressed: WORKDIR := cp.100.compressed.wk/
+1best.cp.defN: WORKDIR := cp.defN.uncompressed.wk/
+1best.cp.defN.compressed: WORKDIR := cp.defN.compressed.wk/
+1best.cp.88 1best.cp.88.compressed 1best.cp.100 1best.cp.100.compressed 1best.cp.defN 1best.cp.defN.compressed:  1best.%:  ${CANOE_INI}
+	$(and ${WORKDIR}, mkdir -p ${WORKDIR})
+	seq 1 ${MAX} \
+	| canoe-parallel.sh \
+		canoe \
+			-append \
+			-f $< \
+			-lattice ${WORKDIR}$*.lattice${GZ} \
+			-nbest ${WORKDIR}$*.nbest.${GZ}${NBEST_SZ} \
+			-ffvals \
+			-palign \
+		> $@ \
+		2> log.$@
+
+
+no_append:  1best.no_append.compressed 1best.no_append
+1best.no_append:  WORKDIR := no_append.uncompressed.wk/
+1best.no_append.compressed:  WORKDIR := no_append.compressed.wk/
+1best.no_append  1best.no_append.compressed:  1best.%:  ${CANOE_INI}
+	$(and ${WORKDIR}, mkdir -p ${WORKDIR})
+	seq 1 ${MAX} \
+	| canoe \
+		-f $< \
+		-lattice ${WORKDIR}$*.lattice${GZ} \
+		-nbest ${WORKDIR}$*.nbest${GZ}:88 \
+		-ffvals \
+		-palign \
+		> $@ \
+		2> log.$@
+	zcat -f ${WORKDIR}$*.nbest.????.88best.ffvals${GZ} $(and ${GZ}, | gzip ) > $*.nbest.88best.ffvals${GZ}
+	zcat -f ${WORKDIR}$*.nbest.????.88best.pal${GZ} $(and ${GZ}, | gzip ) > $*.nbest.88best.pal${GZ}
+	zcat -f ${WORKDIR}$*.lattice.????${GZ} $(and ${GZ}, | gzip ) > $*.lattice${GZ}
+	zcat -f ${WORKDIR}$*.lattice.????.state${GZ} $(and ${GZ}, | gzip ) > $*.lattice.state${GZ}
+	zcat -f ${WORKDIR}$*.nbest.????.88best${GZ} $(and ${GZ}, | gzip ) > $*.nbest.88best${GZ}
+
+
+
+
+.PHONY:  test  $(addsuffix _test, 1best nbest ffvals pal lattice lattice_state cp_append)
+test:  1best_test
+1best_test:  append cp no_append
+	[[ `md5sum 1best.*append* 1best.cp.88* | cut -f 1 -d ' ' | sort -u | \wc -l` -eq 1 ]]
+
+test: other_files_test
+other_files_test: append cp no_append
+	for f in nbest.88best nbest.88best.ffvals nbest.88best.pal lattice lattice.state; do \
+	   zd="zdiff -q append.$$f"; \
+	   for t in append no_append; do \
+	      for x in $$t.$$f $$t.compressed.$$f.gz; do \
+	         echo $$zd $$x; $$zd $$x; \
+	      done; \
+	   done; \
+	   g=$${f/88best.}; g=$${g/88/n}; \
+	   for x in cp.88.$$g cp.88.compressed.$$g.gz; do \
+	      echo $$zd $$x; $$zd $$x; \
+	   done; \
+	   for x in append.uncompressed.wk/append.wW.$$f append.compressed.wk/append.wW.compressed.$$f.gz; do \
+	      echo $$zd $$x; $$zd $$x; \
+	   done; \
+	done
+
+test:  cp_append_test
+cp_append_test: cp
+	for t in nbest.nbest nbest.ffvals nbest.pal lattice lattice.state; do \
+	   zd="zdiff -q cp.100.uncompressed.wk/cp.100.$$t"; \
+	   for n in 100 defN; do \
+	      for x in cp.$$n.uncompressed.wk/cp.$$n.$$t cp.$$n.compressed.wk/cp.$$n.compressed.$$t.gz; do \
+	         echo $$zd $$x; $$zd $$x; \
+	      done; \
+	   done; \
+	done
