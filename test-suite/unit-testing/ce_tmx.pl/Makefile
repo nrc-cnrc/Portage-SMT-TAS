@@ -34,7 +34,7 @@ TEMP_FILES := *.tmx *.sdlxliff *.LogiTransOutput
 
 -include Makefile.params
 -include Makefile.expected_count
-include /home/portage/pkgs/gmsl-1.1.1/gmsl  # Needed for EXPECTED_FILTER
+include gmsl-1.1.1/gmsl  # Needed for EXPECTED_FILTER
 include ../Makefile.incl
 
 $(shell mkdir -p ${LOGS})
@@ -67,7 +67,7 @@ TMX_LIST := $(foreach c, $(basename ${TMX}), tmx/$c/val)
 tmx:  ${TMX_LIST}
 tmx/%/Q.txt tmx/%/Q.tags:  %.tmx
 	@mkdir -p $(dir $@)
-	-@rm $(dir $@)/*
+	-@rm -f $(dir $@)/*
 	${CE_TMX_PL} \
 		-verbose=1 \
 		$(and ${KEEPTAGS}, -keeptags) \
@@ -82,7 +82,7 @@ XLIFF_LIST :=  $(foreach c, $(basename ${XLIFF}), xliff/$c/val)
 xliff:  ${XLIFF_LIST}
 xliff/%/Q.txt xliff/%/Q.tags:  %.sdlxliff
 	@mkdir -p $(dir $@)
-	-@rm $(dir $@)/*
+	-@rm -f $(dir $@)/*
 	${CE_TMX_PL} \
 		-verbose=1 \
 		$(and ${KEEPTAGS}, -keeptags) \
@@ -98,7 +98,7 @@ LOGI.TRANS.OUTPUT_LIST :=  $(foreach c, $(basename ${LOGI.TRANS.OUTPUT}), logitr
 logitransoutput:  ${LOGI.TRANS.OUTPUT_LIST}
 logitransoutput/%/Q.txt logitransoutput/%/Q.tags:  %.LogiTransOutput
 	@mkdir -p $(dir $@)
-	-@rm $(dir $@)/*
+	-@rm -f $(dir $@)/*
 	${CE_TMX_PL} \
 		-verbose=1 \
 		$(and ${KEEPTAGS}, -keeptags) \
