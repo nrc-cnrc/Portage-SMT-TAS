@@ -267,7 +267,7 @@ testSuite:  unittest_wrap
 unittest_wrap:  tmx/TestMemory_Unknown/Q.tags
 	[[ `egrep -o 'open_wrap' $+ | \wc -l` -eq 21 ]]
 	[[ `egrep -o 'close_wrap' $+ | \wc -l` -eq 21 ]]
-	[[ `egrep -o 'tag_wrap' $+ | \wc -l` -eq 6 ]]
+	[[ `egrep -o 'tag_wrap' $+ | \wc -l` -eq 5 ]]
 
 
 ########################################

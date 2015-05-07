@@ -11,12 +11,8 @@
 # Copyright 2013, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2013, Her Majesty in Right of Canada
 
-# Do not run this unittest, it is to convoluted.
-exit 
+set -o errexit
 
-if [[ `perldoc -l XML::XPath 2> /dev/null` ]]; then
-   make clean
-   make -Bj all
-fi
-
-exit
+perldoc -l XML::XPath
+make clean
+make -B all
