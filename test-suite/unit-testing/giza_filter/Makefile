@@ -1,6 +1,5 @@
 #!/usr/bin/make -f
 # vim:noet:ts=3:nowrap:filetype=make
-# $Id$
 
 # @file Makefile
 # @brief TestSuite for giza_filter
@@ -26,9 +25,8 @@ SHELL := bash
 all:  testSuite
 
 
-.PHONY: clean
-clean:
-	${RM} unittest*
+TEMP_FILES=unittest*
+include ../Makefile.incl
 
 
 .PHONY:  testSuite
