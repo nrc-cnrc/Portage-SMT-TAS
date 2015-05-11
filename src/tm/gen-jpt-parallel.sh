@@ -258,6 +258,15 @@ for i in ${!GPTARGS[@]}; do
    fi
 done
 
+[[ $DEBUG ]] && echo "Making sure line-aligned inputs have the same number of lines." >&2
+SRC_LINES=`zcat -f ${FILE1[@]} | wc -l`
+TGT_LINES=`zcat -f ${FILE2[@]} | wc -l`
+[[ $SRC_LINES = $TGT_LINES ]] || error_exit "Different number of lines in SRC file(s) ${FILE1[@]} and TGT file(s) ${FILE2[@]}"
+if [[ $EXTERNAL_ALIGNER ]]; then
+   ALI_LINES=`zcat -f ${FILE3[@]} | wc -l`
+   [[ $SRC_LINES = $ALI_LINES ]] || error_exit "Different number of lines in SRC file(s) ${FILE1[@]} and Alignment file(s) ${FILE3[@]}"
+fi
+
 [[ $VERBOSE ]] && echo "Building command list." >&2
 # Build the command list.
 for idx in `seq -w 0 $(($NUM_JOBS-1))`; do

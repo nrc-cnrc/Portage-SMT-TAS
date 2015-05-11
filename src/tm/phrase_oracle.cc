@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
 
       while (getline(src, src_line)) {
          if (!getline(ref, ref_line)) {
-            error(ETFatal, "Line counts differ in file pair %s/%s", 
+            error(ETFatal, "Line counts differ in file pair %s / %s", 
                   srcfname.c_str(), refnames[i].c_str());
             break;
          }
@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
       }
 
       if (getline(ref, ref_line))
-         error(ETFatal, "Line counts differ in file pair %s/%s", 
+         error(ETFatal, "Line counts differ in file pair %s / %s", 
                srcfname.c_str(), refnames[i].c_str());
    }
 

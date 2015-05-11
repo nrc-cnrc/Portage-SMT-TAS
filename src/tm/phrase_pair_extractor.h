@@ -246,7 +246,7 @@ struct PhrasePairExtractor {
 
       while (getline(in1, line1)) {
          if (!getline(in2, line2)) {
-            error(ETFatal, "Line counts differ in file pair %s/%s", file1.c_str(), file2.c_str());
+            error(ETFatal, "Line counts differ in file pair %s / %s", file1.c_str(), file2.c_str());
             break;
          }
          ++line_no;
@@ -285,7 +285,7 @@ struct PhrasePairExtractor {
       }
 
       if (getline(in2, line2))
-         error(ETFatal, "Line counts differ in file pair %s/%s", file1.c_str(), file2.c_str());
+         error(ETFatal, "Line counts differ in file pair %s / %s", file1.c_str(), file2.c_str());
    }
 
 }; // class PhrasePairExtractor

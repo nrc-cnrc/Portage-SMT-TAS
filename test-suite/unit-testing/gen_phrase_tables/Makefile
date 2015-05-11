@@ -17,7 +17,7 @@ all: gen merge cpt pcpt pcpt_rmem count
 TEMP_FILES=log.* ibm2.* jpt.* pjpt.* cpt.* merge[12].* pcpt.* pcpt_rmem.* \
            c-cpt.* ca-cpt.* c-pcpt.* ca-pcpt.* \
            externalAligner.*.gz
-TEMP_DIRS=JPTPAR[1-9]* run-p.*
+TEMP_DIRS=JPTPAR.* run-p.*
 include ../Makefile.incl
 
 .SECONDARY:
@@ -94,7 +94,7 @@ pcpt_rmem.%: pjpt.% pcpt.%
 count: cmp_dir_c-cpt cmp_dir_ca-cpt cmp_dir_c-pcpt cmp_dir_ca-pcpt
 
 c-cpt: ${IBM2}
-	gen_phrase_tables -write-count -multipr both -o $@ -1 en -2 fr -v \
+	gen_phrase_tables -write-count -write-al none -multipr both -o $@ -1 en -2 fr -v \
 	   ${IBM2} ${CORPUS} 2> log.$@
 
 ca-cpt: ${IBM2}
@@ -103,7 +103,7 @@ ca-cpt: ${IBM2}
 
 c-pcpt: pjpt.top
 	${RM} $@.*
-	joint2cond_phrase_tables -write-count -multipr both -o $@ -1 en -2 fr -v \
+	joint2cond_phrase_tables -write-count -write-al none -multipr both -o $@ -1 en -2 fr -v \
 	   $< 2> log.$@
 
 ca-pcpt: pjpt.top
@@ -123,11 +123,11 @@ externalAligner:  externalAligner.X.gz externalAligner.a.gz
 	cmp <(zcat $(word 1, $+)) <(zcat $(word 2, $+))
 
 externalAligner.X.gz:  corpus_en corpus_fr  ibm2.en2fr.align.gz
-	gen_phrase_tables  -j -m 8 -1 en -2 fr -ext $+ | LC_ALL=C sort | gzip > $@
+	gen_phrase_tables  -write-al none -j -m 8 -1 en -2 fr -ext $+ | LC_ALL=C sort | gzip > $@
 
 # This is our reference create using the -a switch.
 externalAligner.a.gz:  ibm2.en2fr.align.gz  corpus_en corpus_fr
-	gen_phrase_tables -ibm 1 -j -m 8 -1 en -2 fr -a "ExternalAligner $(filter %.en2fr.align.gz, $+)" /dev/null /dev/null $(filter corpus%, $+) | LC_ALL=C sort | gzip > $@
+	gen_phrase_tables -write-al none -ibm 1 -j -m 8 -1 en -2 fr -a "ExternalAligner $(filter %.en2fr.align.gz, $+)" /dev/null /dev/null $(filter corpus%, $+) | LC_ALL=C sort | gzip > $@
 
 ibm2.en2fr.align.gz:  ibm2.fr_given_en.gz ibm2.en_given_fr.gz  corpus_en corpus_fr
 	align-words -o sri -ibm 2 $+ | gzip > $@
