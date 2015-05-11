@@ -1,0 +1,18 @@
+9 candidate phrases for range [0,1)
+9 candidate phrases for range [1,2)
+17 candidate phrases for range [2,3)
+1 candidate phrases for range [3,4)
+	Keeping(T) [0, 1) a -9.383546352
+	Keeping(T) [0, 1) c -15.91517067
+	Keeping(T) [0, 1) d -13.40555668
+	Keeping(T) [0, 1) g -16.38966274
+	Keeping(T) [0, 1) h -14.33007526
+	Keeping(T) [1, 2) a -9.383546352
+	Keeping(T) [1, 2) c -15.91517067
+	Keeping(T) [1, 2) d -13.40555668
+	Keeping(T) [1, 2) g -16.38966274
+	Keeping(T) [1, 2) h -14.33007526
+	Keeping(T) [2, 3) a -9.383546352
+	Keeping(T) [2, 3) c -20.52034092
+	Keeping(T) [2, 3) g -20.99483299
+	No phrase passed threshold, keeping top candidate [3, 4) oov -72

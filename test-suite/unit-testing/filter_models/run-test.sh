@@ -21,4 +21,11 @@ if [[ ! $RET2 == 0 ]]; then
    RET=$RET2
 fi
 
+if [[ $RET == 0 ]]; then
+   echo "All tests and sub-tests PASSED."
+else
+   echo ""
+   echo "At least one test or sub-test FAILED."
+fi
+
 exit $RET

@@ -1,0 +1,10 @@
+9 candidate phrases for range [0,1)
+9 candidate phrases for range [1,2)
+17 candidate phrases for range [2,3)
+1 candidate phrases for range [3,4)
+	Keeping(L) [0, 1) a -9.383546352
+	Keeping(L) [0, 1) d -13.40555668
+	Keeping(L) [1, 2) a -9.383546352
+	Keeping(L) [1, 2) d -13.40555668
+	Keeping(L) [2, 3) a -9.383546352
+	Keeping(L) [2, 3) c -20.52034092

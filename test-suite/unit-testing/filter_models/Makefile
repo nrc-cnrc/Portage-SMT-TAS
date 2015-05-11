@@ -9,29 +9,33 @@
 
 SHELL = bash
 
+export PORTAGE_INTERNAL_CALL=1
 FILTER_MODELS := filter_models
 HEAD_SIZE ?= 100
 FILES     ?= online.hard.complete online.hard.incomplete online.soft.complete online.soft.incomplete notonline.hard.complete notonline.hard.incomplete notonline.soft.complete notonline.soft.incomplete
 CLEAN_PATH ?= ~/sandBoxes/CleanVersion/Portage/src/canoe
 #PORTAGE ?= /home/portage
-PORTAGE = ../../..
+PORTAGE ?= ../../..
 
 
 .PHONY: clean small check all online online_hard online_soft notonline notonline_hard notonline_soft FORCE
 .PRECIOUS: $(foreach f, $(FILES), trans.$f)
 
-all: gitignore small check phrases-GT-KN.fr2en.FILT.gz
+all: gitignore small prune-type-full check phrases-GT-ZN.fr2en.FILT.gz
 
 ############################################################
 ## CLEAN
-TEMP_FILES=log.canoe.* log.gen* log.notonline.* log.online.* log.phrases* log.train_ibm.* \
+TEMP_FILES=log.* core.* tm.*.ttpt-* \
            notonline* online* \
+           europarl.en.srilm.FILT \
+           phrases-GT-ZN.fr2en.FILT.gz phrases-GT-ZN.fr2en.ORIG.GREP.gz phrases-GT-ZN.fr2en.ORIG.LIMIT.gz \
            phrases-GT-KN.fr2en.FILT.gz phrases-GT-KN.fr2en.ORIG.GREP.gz phrases-GT-KN.fr2en.ORIG.LIMIT.gz \
-           canoe.ini* phrases.small.* trans.* core.* tmp.online.* tmp.notonline.*
+           canoe.ini* phrases.small.* trans.* tmp.* prune-full.*
+
 clean:
 	${RM} ${TEMP_FILES}
 
-SETUP_FILES= src ibm[12].* phrases-GT-KN.fr2en.gz .gitignore
+SETUP_FILES= src ibm[12].* phrases-GT-ZN.fr2en.gz .gitignore
 distclean: clean
 	[ ! -a src ] || chmod +w src
 	${RM} ${SETUP_FILES}
@@ -59,11 +63,11 @@ ibm2.en_given_fr.gz:
 	  ${PORTAGE}/test-suite/regress-small-voc/lc/europarl.fr-en.en.lowercase \
 	  >& log.train_ibm.en_given_fr
 
-phrases-GT-KN.fr2en.gz: ibm2.fr_given_en.gz ibm2.en_given_fr.gz
+phrases-GT-ZN.fr2en.gz: ibm2.fr_given_en.gz ibm2.en_given_fr.gz
 	gen_phrase_tables -v -w1 -m8 -1 fr -2 en -ibm 2 -z \
-	  -s GTSmoother -s KNSmoother   \
+	  -s GTSmoother -s ZNSmoother   \
 	  -multipr fwd                  \
-	  -o phrases-GT-KN              \
+	  -o phrases-GT-ZN              \
 	  ibm2.en_given_fr.gz           \
 	  ibm2.fr_given_en.gz           \
 	  ${PORTAGE}/test-suite/regress-small-voc/lc/europarl.fr-en.fr.lowercase \
@@ -72,7 +76,7 @@ phrases-GT-KN.fr2en.gz: ibm2.fr_given_en.gz ibm2.en_given_fr.gz
 
 canoe.ini:
 	env echo -e "[ttable-multi-prob] \n \
-	phrases-GT-KN.fr2en.gz\n \
+	phrases-GT-ZN.fr2en.gz\n \
 	[lmodel-file]\n \
 	${PORTAGE}/test-suite/regress-small-voc/europarl.en.srilm\n \
 	[weight-d] 0.3200787604\n \
@@ -83,6 +87,11 @@ canoe.ini:
 	[ttable-prune-type] backward-weights\n\
 	[distortion-limit] 7\n \
 	[distortion-model] WordDisplacement\n" > $@
+
+canoe.ini.ttpt-%: canoe.ini phrases-GT-ZN.fr2en.gz phrases-GT-ZN.fr2en.gz
+	configtool -c args:"-ttable-multi-prob phrases-GT-ZN.fr2en.gz \
+	  -weight-f 0.8:0.01 -ttable-limit 4 \
+	  -ttable-prune-type $* " $< > $@
 
 canoe.ini_:
 	env echo -e "[lmodel-file]\n \
@@ -95,7 +104,7 @@ canoe.ini_:
 	[distortion-limit] 7\n \
 	[distortion-model] WordDisplacement\n" > $@
 
-SETUP: phrases-GT-KN.fr2en.gz canoe.ini canoe.ini_
+SETUP: phrases-GT-ZN.fr2en.gz canoe.ini canoe.ini_
 
 
 ############################################################
@@ -121,50 +130,75 @@ src:
 ############################################################
 ## GENERATING PHRASE TABLES
 FILT_CMD := ${FILTER_MODELS} -c -f canoe.ini -suffix ".NEW"
-online.hard.complete: canoe.ini phrases-GT-KN.fr2en.gz
+online.hard.complete: canoe.ini phrases-GT-ZN.fr2en.gz
 	{ time $(FILT_CMD) -no-src-grep -tm-online -tm-hard-limit tmp.$@; LC_ALL=C wc tmp.$@.NEW; } &> log.$@
 	@mv tmp.$@.NEW $@
 
-online.hard.incomplete: src canoe.ini phrases-GT-KN.fr2en.gz
+online.hard.incomplete: src canoe.ini phrases-GT-ZN.fr2en.gz
 	{ time $(FILT_CMD) -tm-online -tm-hard-limit tmp.$@ < $<; LC_ALL=C wc tmp.$@.NEW; } &> log.$@
 	@mv tmp.$@.NEW $@
 
-online.soft.complete: canoe.ini phrases-GT-KN.fr2en.gz
+online.soft.complete: canoe.ini phrases-GT-ZN.fr2en.gz
 	{ time $(FILT_CMD) -no-src-grep -tm-online -tm-soft-limit tmp.$@; LC_ALL=C wc tmp.$@.NEW; } &> log.$@
 	@mv tmp.$@.NEW $@
 
-online.soft.incomplete: src canoe.ini phrases-GT-KN.fr2en.gz
+online.soft.incomplete: src canoe.ini phrases-GT-ZN.fr2en.gz
 	{ time $(FILT_CMD) -tm-online -tm-soft-limit tmp.$@ < $<; LC_ALL=C wc tmp.$@.NEW; } &> log.$@
 	@mv tmp.$@.NEW $@
 
 
-notonline.hard.complete: canoe.ini phrases-GT-KN.fr2en.gz
+notonline.hard.complete: canoe.ini phrases-GT-ZN.fr2en.gz
 	{ time $(FILT_CMD) -no-src-grep -tm-hard-limit tmp.$@; LC_ALL=C wc tmp.$@.NEW; } &> log.$@
 	@mv tmp.$@.NEW $@
 
-notonline.hard.incomplete: src canoe.ini phrases-GT-KN.fr2en.gz
+notonline.hard.incomplete: src canoe.ini phrases-GT-ZN.fr2en.gz
 	{ time $(FILT_CMD) -tm-hard-limit tmp.$@ < $<; LC_ALL=C wc tmp.$@.NEW; } &> log.$@
 	@mv tmp.$@.NEW $@
 
-notonline.soft.complete: canoe.ini phrases-GT-KN.fr2en.gz
+notonline.soft.complete: canoe.ini phrases-GT-ZN.fr2en.gz
 	{ time $(FILT_CMD) -no-src-grep -tm-soft-limit tmp.$@; LC_ALL=C wc tmp.$@.NEW; } &> log.$@
 	@mv tmp.$@.NEW $@
 
-notonline.soft.incomplete: src canoe.ini phrases-GT-KN.fr2en.gz
+notonline.soft.incomplete: src canoe.ini phrases-GT-ZN.fr2en.gz
 	{ time $(FILT_CMD) -tm-soft-limit tmp.$@ < $<; LC_ALL=C wc tmp.$@.NEW; } &> log.$@
 	@mv tmp.$@.NEW $@
 
+# This unittest makes sure the precision is the same between the online and offline version [BUG 1067].
+.PHONY: diff
+diff: hard.complete.diff
+diff: hard.incomplete.diff
+diff: soft.complete.diff
+diff: soft.incomplete.diff
+%.diff: online.% notonline.%
+	diff <(sort $(filter online.%, $+)) <(sort $(filter notonline.%, $+)) -q
 
-phrases-GT-KN.fr2en.FILT.gz: src canoe.ini phrases-GT-KN.fr2en.gz
+
+phrases-GT-ZN.fr2en.FILT.gz: src canoe.ini phrases-GT-ZN.fr2en.gz
 	{ time ${FILTER_MODELS} -f canoe.ini < $<; zcat -f $@ | LC_ALL=C \wc; } &> log.$(basename $@)
 
 ## Generate filter_models with code previous to april 3rd 2007
-phrases-GT-KN.fr2en.ORIG.GREP.gz: src canoe.ini phrases-GT-KN.fr2en.gz
+phrases-GT-ZN.fr2en.ORIG.GREP.gz: src canoe.ini phrases-GT-ZN.fr2en.gz
 	{ time $(CLEAN_PATH)/filter_models -f canoe.ini -suffix .ORIG.GREP < src; zcat -f $@ | LC_ALL=C \wc; } &> log.$(basename $@)
 
 ## Generate filter_models with code previous to april 3rd 2007
-phrases-GT-KN.fr2en.ORIG.LIMIT.gz: src canoe.ini phrases-GT-KN.fr2en.gz
-	{ time $(CLEAN_PATH)/filter_models -z -f canoe.ini -limit phrases-GT-KN.fr2en -suffix .ORIG.LIMIT < src; zcat -f $@ | LC_ALL=C \wc; } &> log.$(basename $@)
+phrases-GT-ZN.fr2en.ORIG.LIMIT.gz: src canoe.ini phrases-GT-ZN.fr2en.gz
+	{ time $(CLEAN_PATH)/filter_models -z -f canoe.ini -limit phrases-GT-ZN.fr2en -suffix .ORIG.LIMIT < src; zcat -f $@ | LC_ALL=C \wc; } &> log.$(basename $@)
+
+###########################################################
+# Generating phrase tables with different -ttable-prune-type values
+# TODO: Figure out how to check these
+all: prune-types
+prune-types: prune-types-hard prune-types-soft
+prune-types-hard: tm.hard.ttpt-backward-weights tm.hard.ttpt-forward-weights tm.hard.ttpt-combined tm.hard.ttpt-full
+prune-types-soft: tm.soft.ttpt-backward-weights tm.soft.ttpt-forward-weights tm.soft.ttpt-combined tm.soft.ttpt-full
+
+tm.hard.ttpt-%: canoe.ini.ttpt-% src phrases-GT-ZN.fr2en.gz
+	{ time ${FILTER_MODELS} -c -f $< -suffix .NEW -tm-online -tm-hard-limit tmp.$@ < src; LC_ALL=C wc tmp.$@.NEW; } >& log.$@
+	mv tmp.$@.NEW $@
+
+tm.soft.ttpt-%: canoe.ini.ttpt-% src phrases-GT-ZN.fr2en.gz
+	{ time ${FILTER_MODELS} -c -f $< -suffix .NEW -tm-online -tm-soft-limit tmp.$@ < src; LC_ALL=C wc tmp.$@.NEW; } >& log.$@
+	mv tmp.$@.NEW $@
 
 
 ############################################################
@@ -197,45 +231,59 @@ SRC_PHRASE: $(foreach f, $(FILES), $f.src)
 trans.%: %  canoe.ini_ src
 	canoe -f canoe.ini_ -ttable-multi-prob $< < src > $@ 2> log.canoe.$@
 
-trans.src: phrases-GT-KN.fr2en.gz src canoe.ini_
+trans.src: phrases-GT-ZN.fr2en.gz src canoe.ini_
 	canoe -f canoe.ini_ -ttable-multi-prob $< < src > $@ 2> log.canoe.$@
 
 %.diff:	trans.% trans.src
 	@diff -sq trans.src $<
 
 trans: $(foreach f, $(FILES), $f.diff)
-	#-@zdiff -sq phrases-GT-KN.fr2en.FILT.gz phrases-GT-KN.fr2en.ORIG.GREP.gz
-	#-@zdiff -sq phrases-GT-KN.fr2en.ORIG.LIMIT.gz notonline.soft.incomplete
+	#-@zdiff -sq phrases-GT-ZN.fr2en.FILT.gz phrases-GT-ZN.fr2en.ORIG.GREP.gz
+	#-@zdiff -sq phrases-GT-ZN.fr2en.ORIG.LIMIT.gz notonline.soft.incomplete
 	#@-export LC_ALL=C; \
-	#  zcat phrases-GT-KN.fr2en.ORIG.LIMIT.gz | sort > tmp; \
+	#  zcat phrases-GT-ZN.fr2en.ORIG.LIMIT.gz | sort > tmp; \
 	#  cat online.soft.incomplete | sort | diff -sq - tmp; \
 	#  rm tmp;
 
 
 ############################################################
 ## SMALL TTABLE FITLERING
-small: phrases.small.soft.fwd.FILT phrases.small.soft.FILT \
-       phrases.small.hard.fwd.FILT phrases.small.hard.FILT
+small: phrases.small.soft.FILT phrases.small.soft.fwd.FILT \
+       phrases.small.soft.comb.FILT phrases.small.soft.full.FILT \
+       phrases.small.hard.FILT phrases.small.hard.fwd.FILT \
+       phrases.small.hard.comb.FILT phrases.small.hard.full.FILT
 	diff-round.pl -q -sort phrases.small.soft.fwd.FILT phrases.small.soft.FILT
 
-phrases.small.soft.fwd.FILT: FORCE canoe.ini.small.fwd phrases.small.fr2en
-	${FILTER_MODELS} -f canoe.ini.small.fwd \
-	   -tm-soft-limit phrases.small.soft.fwd -no-src-grep
+phrases.small.soft.FILT:  %.FILT:  FORCE canoe.ini.small phrases.small.fr2en
+	${FILTER_MODELS} -c -f canoe.ini.small -ttable-prune-type backward-weights -tm-soft-limit $* -no-src-grep
 	diff-round.pl -q -sort $@ ref/$@
 
-phrases.small.soft.FILT: FORCE canoe.ini.small phrases.small.fr2en
-	${FILTER_MODELS} -f canoe.ini.small \
-	   -tm-soft-limit phrases.small.soft -no-src-grep
+phrases.small.soft.fwd.FILT:  %.FILT:  FORCE canoe.ini.small phrases.small.fr2en
+	${FILTER_MODELS} -c -f canoe.ini.small -ttable-prune-type forward-weights -tm-soft-limit $* -no-src-grep
 	diff-round.pl -q -sort $@ ref/$@
 
-phrases.small.hard.fwd.FILT: FORCE canoe.ini.small.fwd phrases.small.fr2en
-	${FILTER_MODELS} -f canoe.ini.small.fwd \
-	   -tm-hard-limit phrases.small.hard.fwd -no-src-grep
+phrases.small.soft.comb.FILT:  %.FILT:  FORCE canoe.ini.small phrases.small.fr2en
+	${FILTER_MODELS} -c -f canoe.ini.small -ttable-prune-type combined -tm-soft-limit $* -no-src-grep
 	diff-round.pl -q -sort $@ ref/$@
 
-phrases.small.hard.FILT: FORCE canoe.ini.small phrases.small.fr2en
-	${FILTER_MODELS} -f canoe.ini.small \
-	   -tm-hard-limit phrases.small.hard -no-src-grep
+phrases.small.soft.full.FILT:  %.FILT:  FORCE canoe.ini.small phrases.small.fr2en
+	${FILTER_MODELS} -c -f canoe.ini.small -ttable-prune-type full -tm-soft-limit $* -no-src-grep
+	diff-round.pl -q -sort $@ ref/$@
+
+phrases.small.hard.FILT:  %.FILT:  FORCE canoe.ini.small phrases.small.fr2en
+	${FILTER_MODELS} -c -f canoe.ini.small -tm-hard-limit $* -no-src-grep
+	diff-round.pl -q -sort $@ ref/$@
+
+phrases.small.hard.fwd.FILT:  %.FILT:  FORCE canoe.ini.small phrases.small.fr2en
+	${FILTER_MODELS} -c -f canoe.ini.small -ttable-prune-type forward-weights -tm-hard-limit $* -no-src-grep
+	diff-round.pl -q -sort $@ ref/$@
+
+phrases.small.hard.comb.FILT:  %.FILT:  FORCE canoe.ini.small phrases.small.fr2en
+	${FILTER_MODELS} -c -f canoe.ini.small -ttable-prune-type combined -tm-hard-limit $* -no-src-grep
+	diff-round.pl -q -sort $@ ref/$@
+
+phrases.small.hard.full.FILT:  %.FILT:  FORCE canoe.ini.small phrases.small.fr2en
+	${FILTER_MODELS} -c -f canoe.ini.small -ttable-prune-type full -tm-hard-limit $* -no-src-grep
 	diff-round.pl -q -sort $@ ref/$@
 
 canoe.ini.small:
@@ -243,20 +291,12 @@ canoe.ini.small:
 [ttable-multi-prob] phrases.small.fr2en\n\
 [lmodel-file]\n\
     ${PORTAGE}/test-suite/regress-small-voc/europarl.en.srilm.binlm\n\
-[ttable-prune-type] forward-weights\n\
+[ttable-prune-type] backward-weights\n\
 [distortion-limit] 0\n\
 [ftm] 0:1" > $@
 
-canoe.ini.small.fwd:
-	env echo -e "[ttable-limit] 2\n\
-[ttable-multi-prob] phrases.small.fr2en\n\
-[lmodel-file]\n\
-    ${PORTAGE}/test-suite/regress-small-voc/europarl.en.srilm.binlm\n\
-[ttable-prune-type] backward-weights\n\
-[distortion-limit] 0" > $@
-
 phrases.small.fr2en:
-	env echo -e "ceci ||| a ||| 0.1 0.1 0.1 0.1\n\
+	@env echo -e "ceci ||| a ||| 0.1 0.1 0.1 0.1\n\
 ceci ||| b ||| 0.1 0.1 0.01 1e-10\n\
 ceci ||| c ||| 0.1 0.1 0.001 0.001\n\
 ceci ||| d ||| 0.1 0.1 1e-10 0.01\n\
@@ -290,5 +330,106 @@ encore ||| e ||| 0.003 1e-9 0.1 0.1\n\
 encore ||| b2 ||| 0.01 1e-10 0.1 0.1\n\
 encore ||| c2 ||| 0.001 0.001 0.1 0.1\n\
 encore ||| d2 ||| 1e-10 0.01 0.1 0.1\n\
-encore ||| e2 ||| 0.003 1e-9 0.1 0.1" > $@
+encore ||| e2 ||| 0.003 1e-9 0.1 0.1\n\
+both ||| a ||| 0.1 0.1 0.1 0.1\n\
+both ||| f ||| 0.01 1e-10 0.01 1e-10\n\
+both ||| g ||| 0.001 0.001 0.001 0.001\n\
+both ||| h ||| 1e-10 0.01 1e-10 0.01\n\
+both ||| i ||| 0.003 1e-9 0.003 1e-9\n\
+both ||| f2 ||| 0.01 1e-10 0.01 1e-10\n\
+both ||| g2 ||| 0.001 0.001 0.001 0.001\n\
+both ||| h2 ||| 1e-10 0.01 1e-10 0.01\n\
+both ||| i2 ||| 0.003 1e-9 0.003 1e-9\n\
+both ||| b ||| 0.01 1e-10 0.01 1e-10\n\
+both ||| c ||| 0.001 0.001 0.001 0.001\n\
+both ||| d ||| 1e-10 0.01 1e-10 0.01\n\
+both ||| e ||| 0.003 1e-9 0.003 1e-9\n\
+both ||| b2 ||| 0.01 1e-10 0.01 1e-10\n\
+both ||| c2 ||| 0.001 0.001 0.001 0.001\n\
+both ||| d2 ||| 1e-10 0.01 1e-10 0.01\n\
+both ||| e2 ||| 0.003 1e-9 0.003 1e-9" > $@
 
+
+
+
+canoe.ini.small.binlm:
+	env echo -e "[ttable-limit] 2\n\
+[ttable-multi-prob] phrases.small.fr2en\n\
+[lmodel-file]\n\
+    ${PORTAGE}/test-suite/regress-small-voc/europarl.en.srilm.binlm#2\n\
+[ttable-prune-type] backward-weights\n\
+[distortion-limit] 0" > $@
+
+all: filter.binlm
+# This should fail with binlm
+filter.binlm:  canoe.ini.small.binlm src phrases.small.fr2en
+	${FILTER_MODELS} -f $< -lm < src 2>&1 | egrep 'Warning: Cannot filter Language Models of binlm type (.*)!  Skipping...' -q
+
+
+canoe.ini.small.lm:
+	env echo -e "[ttable-limit] 2\n\
+[ttable-multi-prob] phrases.small.fr2en\n\
+[lmodel-file]\n\
+    ${PORTAGE}/test-suite/regress-small-voc/europarl.en.srilm\n\
+[lmodel-order] 2\n\
+[ttable-prune-type] backward-weights\n\
+[distortion-limit] 0" > $@
+
+all: europarl.en.srilm.FILT
+# NOTE: you cannot use egrep in quiet mode or else it closes the pipe and
+# filter_models gets killed before it gets the chance to write its output.
+europarl.en.srilm.FILT: canoe.ini.small.lm src FORCE
+	{ ${FILTER_MODELS} -f $< -lm < src; } 2>&1 | egrep 'Warning: Treating order 3 LM .* as order 2'
+	[[ -s "$@" ]] || ! echo "No filtered language model was produced" >&2
+	! { grep 'ngram 3=' $@; }
+
+
+.PHONY: old_switch
+old_switch:  old_switch.phrases.small.soft.FILT
+old_switch:  old_switch.phrases.small.hard.FILT
+old_switch:  old_switch.europarl.en.srilm.FILT
+old_switch:  old_switch.phrases.small.soft.tm-prune.FILT
+
+all:  old_switch
+
+old_switch.phrases.small.soft.FILT:  %.FILT:  FORCE canoe.ini.small phrases.small.fr2en
+	${FILTER_MODELS} -f canoe.ini.small -soft-limit $* -no-src-grep 2>&1 \
+	| grep 'Error:.*soft-limit' --quiet
+
+old_switch.phrases.small.hard.FILT:  %.FILT:  FORCE canoe.ini.small phrases.small.fr2en
+	${FILTER_MODELS} -f canoe.ini.small -hard-limit $* -no-src-grep 2>&1 \
+	| grep 'Filter models used by' --quiet
+
+old_switch.europarl.en.srilm.FILT:  canoe.ini.small.lm src FORCE
+	${FILTER_MODELS} -f $< -L < src 2>&1 | grep 'Error:.*L' --quiet
+
+old_switch.phrases.small.soft.tm-prune.FILT:  %.FILT:  FORCE canoe.ini.small phrases.small.fr2en
+	${FILTER_MODELS} -f canoe.ini.small -T linear#5 -tm-soft-limit $* -no-src-grep 2>&1 \
+	| grep 'Error:.*T' --quiet
+
+
+prune-type-full:
+	${MAKE} prune-full T=0 L=30
+	${MAKE} prune-full T=0 L=10
+	${MAKE} prune-full T=0 L=2
+	${MAKE} prune-full T=0 L=0
+	${MAKE} prune-full T=1e-3 L=2
+	${MAKE} prune-full T=1e-3 L=0
+	${MAKE} prune-full T=1e-6 L=2
+	${MAKE} prune-full T=1e-6 L=1
+	${MAKE} prune-full T=1e-6 L=0
+	${MAKE} prune-full T=1e-12 L=10
+	${MAKE} prune-full T=1e-12 L=3
+	${MAKE} prune-full T=1e-12 L=0
+
+L?=0
+T?=0
+prune-full.T$T-L$L: canoe.ini.small phrases.small.fr2en
+	echo ceci cela encore oov | \
+	   canoe -f canoe.ini.small -ttable-prune-type full -v 4 \
+	   -ttable-limit $L -ttable-threshold $T >& $@
+
+check_prune-full.%: prune-full.%
+	egrep '(candidate phrases|Keeping|Discarding|top candidate)' $< | diff - ref/$<
+
+prune-full: check_prune-full.T$T-L$L
