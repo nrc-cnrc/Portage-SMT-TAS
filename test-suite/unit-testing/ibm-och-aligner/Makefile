@@ -13,11 +13,22 @@
 AL_FORMAT?=matrix
 all: $(foreach x,-2 -1 1 2 3 4,cmp_ch2en.al$x.${AL_FORMAT})
 
-clean:
-	${RM} ch2en.*.${AL_FORMAT}
+TEMP_FILES=ch2en.*.${AL_FORMAT}
+include ../Makefile.incl
 
 ch2en.al%.${AL_FORMAT}: ch.lc en.lc en-ch.giza ch-en.giza
 	align-words -a 'IBMOchAligner $*' -o ${AL_FORMAT} -ibm 0 -giza2 $+ > $@
+
+all: GDF GDFA
+
+GDF: ch2en.syn-GDF.${AL_FORMAT} ch2en.al3.${AL_FORMAT}
+	diff $+
+
+GDFA: ch2en.syn-GDFA.${AL_FORMAT} ch2en.al4.${AL_FORMAT}
+	diff $+
+
+ch2en.syn-%.${AL_FORMAT}: ch.lc en.lc en-ch.giza ch-en.giza
+	align-words -a $* -o ${AL_FORMAT} -ibm 0 -giza2 $+ > $@
 
 cmp_%: %
 	diff $* ref/$*
