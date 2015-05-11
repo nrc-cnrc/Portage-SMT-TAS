@@ -6,3 +6,4 @@ Warning: File 'models/cpt.tppt.bad.tppt' does not exist.
 Error: Can't access TPPT: models/cpt.tppt.bad
 Error: Directory found when file expected for LM: models/lm.tplm.bad
 NOTE: for a TPLM, the directory name must end with '.tplm'.
+Error: At least one file error with canoe configuration.
