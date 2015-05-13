@@ -9,4 +9,9 @@
 # Copyright 2008, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2008, Her Majesty in Right of Canada
 
+# Prevent arpalm2tplm.sh from using psub, since we're only doing small LMs that
+# are slower parallelized on the cluster than done sequentially.
+export PORTAGE_NOCLUSTER=1
+
+make clean
 make -B -j 2
