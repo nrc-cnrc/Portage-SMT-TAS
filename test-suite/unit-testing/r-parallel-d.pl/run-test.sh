@@ -1,5 +1,4 @@
 #!/bin/bash
-# $Id$
 
 # @file run-test.sh
 # @brief Unittest for r-parallel-d.pl.
