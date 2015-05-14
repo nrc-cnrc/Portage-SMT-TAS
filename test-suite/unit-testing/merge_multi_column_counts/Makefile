@@ -30,6 +30,7 @@ include ../Makefile.incl
 .PHONY: testsuite
 testsuite:  unittest1
 testsuite:  unittest2
+testsuite:  pi
 
 
 .PHONY: unittest1 unittest2
@@ -45,4 +46,8 @@ unittest2.out:  input1 input2 input3
 	${MERGE} -fillup $@ $+
 
 
+
+.PHONY: pi
+pi:
+	${MAKE} -j 1 -C $@
 
