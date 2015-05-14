@@ -1,7 +1,8 @@
 #!/usr/bin/make -f
-# vim:noet:ts=3
+# vim:noet:ts=3:nowrap
 #
 # @file Makefile run this test suite
+# @brief Comparing merge_counts to ngram-merge.
 #
 # @author Samuel Larkin
 #
@@ -11,35 +12,57 @@
 # Copyright 2008, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2008, Her Majesty in Right of Canada
 
-MERGE_COUNTS ?= merge_counts
+SHELL = bash
 
-COUNT_FILES ?= $(subst data/,,$(wildcard data/*4grams))
+MERGE_COUNTS ?= merge_counts
+MERGE_COUNTS_T ?= ${MERGE_COUNTS} -t
+
+COUNT_FILES ?= $(notdir $(wildcard data/*4grams))
 
 vpath %.4grams data
-vpath REF.% ref
 
 .PHONY: all
 all: full two one
+	@echo All tests PASSED
 
-TEMP_FILES=test.*
-include ../../Makefile.incl
 
-.PHONY: full two one
+.PHONY: clean
+clean:
+	# Nothing to do
 
-full two one:  %:  test.% REF.%
-	diff $+ --brief
 
-test.full:  ${COUNT_FILES}
-test.two:  afp_eng.tok.4grams apw_eng.tok.4grams
-test.one:  afp_eng.tok.4grams
+# Make sure the inputs are LC_ALL=C sort which is a requirement from merge_counts.
+.PHONY: validate
+validate: $(addsuffix .validate, ${COUNT_FILES})
+%.validate: %
+	LC_ALL=C sort -c $<
 
-test.%:
-	${MERGE_COUNTS} -t $@ $+
+
+# Cannot be PHONY.
+full: ${COUNT_FILES}
+
+# Cannot be PHONY.
+two: afp_eng.tok.4grams apw_eng.tok.4grams
+
+# Make sure merge_counts's output is identical to ngream-merge's output.
+full two: %: validate
+full two: %:
+	diff ref/$@ <(${MERGE_COUNTS_T} - $(filter %.4grams, $+)) -q
+
+# Special case since ngram-merge requires at least 2 input files.
+.PHONY: one
+one: afp_eng.tok.4grams afp_eng.tok.4grams.validate
+	${MERGE_COUNTS_T} - $(filter %.4grams, $+) | diff -q - $(filter %.4grams, $+)
 
 
 
 ################################################################################
-# DEBUG
+# HELPERS
+.PHONY: list
+list:
+	echo "${COUNT_FILES}"
+	echo "$(wildcard data/*4grams)"
+
 .PHONY: debug
 debug: afp_eng.tok.4grams
-	${MERGE_COUNTS} -t -d - $+ 2>&1 | less
+	${MERGE_COUNTS_T} -t -d - $+ 2>&1 | less

@@ -11,6 +11,8 @@
 # Copyright 2008, Sa Majeste la Reine du Chef du Canada /
 # Copyright 2008, Her Majesty in Right of Canada
 
+export MERGE_COUNTS = merge_counts
+
 .PHONY: all
 all: gen jpt jpt2 freq bad
 	@echo All tests PASSED

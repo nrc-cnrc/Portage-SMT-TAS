@@ -51,10 +51,10 @@ big: $(wildcard data/*gram)
 
 all: twice_file 3_file 4_file one_file_empty_file big
 twice_file 3_file 4_file one_file_empty_file big: %:
-	diff -q <(${MERGE_COUNTS} - $+) <(ngram-merge $+ | tr '\t' ' ')
+	diff <(${MERGE_COUNTS} - $+) ref/$@ -q
 
 all: unordered
 unordered:
-	merge_counts - <(echo -e "a 1\na 2\nb 4\na 1") 2>&1 \
+	${MERGE_COUNTS} - <(env echo -e "a 1\na 2\nb 4\na 1") 2>&1 \
 	| grep Error \
 	| grep -q 'is not LC_ALL=C sorted'
