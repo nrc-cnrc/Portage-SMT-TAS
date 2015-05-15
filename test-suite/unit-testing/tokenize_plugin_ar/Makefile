@@ -132,9 +132,10 @@ all:  entities.validate
 # "A"
 # tail -n 1 tokenize/Arabic/Data.pm | jq '.[">"]'
 # "A"
+# This test intentionally fails, as a reminded to fix the problem someday.
 entities.validate:  entities.tok
 	[[ `\wc -l < $<` -eq 1 ]]
-	diff $< <(echo "A &amps; A") --brief
+	diff $< <(echo "A &amp; A") --brief
 	! echo "There is an error in the map.  We shouldn't be mapping < and > to A." >&2
 entities.tok:
 	${TOKENIZE_PLUGIN} ar <<< "<&>"  > $@
