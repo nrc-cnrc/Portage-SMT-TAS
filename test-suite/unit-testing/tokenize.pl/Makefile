@@ -336,6 +336,18 @@ with_tags.out:  with_tags.in
 	| { ! egrep 'Use of uninitialized value in addition'; }
 
 
+# When using sentence splitting the output when tokenized should contain the
+# same number of lines as the output not tokenized.
+UNITTEST_INPUT := ---. 1983.
+# Disabled since notok != tok because tok also collapses --- to --
+test: unittest1
+.PHONY: unittest1
+unittest1: SHELL=bash
+unittest1:
+	[[ `echo "${UNITTEST_INPUT}" | ${UTOKENIZE} -ss -notok | \wc -l` == `echo "${UNITTEST_INPUT}" | ${UTOKENIZE} -ss | \wc -l` ]] \
+	|| ! echo "Doing sentence splitting on a string should produce the same number of output lines in either tokenized mode or not." >&2
+
+
 ################################################################################
 # Handling all the newline semantic variants
 test: newline
