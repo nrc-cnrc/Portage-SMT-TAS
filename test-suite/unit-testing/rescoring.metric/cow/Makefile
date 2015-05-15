@@ -24,6 +24,7 @@ bleu: diff.bleu
 per: diff.per
 wer: diff.wer
 
+# Since tune.py doesn't support wer and per yet, we still have to use cow.sh here.
 vpath dev1_%.al ${DATA_DIR}
 cow.%: dev1_fr.al dev1_en.al
 	test -d foos.$* || mkdir foos.$*
@@ -40,5 +41,5 @@ cow.%: dev1_fr.al dev1_en.al
 	mv canoe.ini.cow canoe.ini.cow.$*
 
 diff.%: cow.%
-	diff ref/rescore-results.$* rescore-results.$* -q
+	diff ref/rescore-results.$* rescore-results.$* -q || diff ref/rescore-results.$*-alt rescore-results.$*
 	diff ref/canoe.ini.cow.$* canoe.ini.cow.$* -q

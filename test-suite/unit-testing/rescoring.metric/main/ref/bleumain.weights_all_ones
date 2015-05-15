@@ -1,0 +1,809 @@
+1-gram (match/total) 22/37 0.594595
+2-gram (match/total) 9/36 0.25
+3-gram (match/total) 4/35 0.114286
+4-gram (match/total) 2/34 0.0588235
+Sentence length: 37; Best-match sentence length: 32
+Brevity penalty: exp(0) = 1
+Score: -1.72711
+Sentence 1 BLEU score: 0.177798
+1-gram (match/total) 21/36 0.583333
+2-gram (match/total) 12/35 0.342857
+3-gram (match/total) 8/34 0.235294
+4-gram (match/total) 6/33 0.181818
+Sentence length: 36; Best-match sentence length: 29
+Brevity penalty: exp(0) = 1
+Score: -1.19028
+Sentence 2 BLEU score: 0.304137
+1-gram (match/total) 7/10 0.7
+2-gram (match/total) 2/9 0.222222
+3-gram (match/total) 0/8 0
+4-gram (match/total) 0/7 0
+Sentence length: 10; Best-match sentence length: 10
+Brevity penalty: exp(0) = 1
+Score: -35.004
+Sentence 3 BLEU score: 6.28017e-16
+1-gram (match/total) 10/13 0.769231
+2-gram (match/total) 3/12 0.25
+3-gram (match/total) 1/11 0.0909091
+4-gram (match/total) 0/10 0
+Sentence length: 13; Best-match sentence length: 16
+Brevity penalty: exp(-0.230769) = 0.793923
+Score: -18.5118
+Sentence 4 BLEU score: 9.12913e-09
+1-gram (match/total) 28/34 0.823529
+2-gram (match/total) 13/33 0.393939
+3-gram (match/total) 7/32 0.21875
+4-gram (match/total) 4/31 0.129032
+Sentence length: 34; Best-match sentence length: 31
+Brevity penalty: exp(0) = 1
+Score: -1.17331
+Sentence 5 BLEU score: 0.309342
+1-gram (match/total) 15/17 0.882353
+2-gram (match/total) 3/16 0.1875
+3-gram (match/total) 0/15 0
+4-gram (match/total) 0/14 0
+Sentence length: 17; Best-match sentence length: 19
+Brevity penalty: exp(-0.117647) = 0.88901
+Score: -35.1062
+Sentence 6 BLEU score: 5.6698e-16
+1-gram (match/total) 26/42 0.619048
+2-gram (match/total) 12/41 0.292683
+3-gram (match/total) 7/40 0.175
+4-gram (match/total) 4/39 0.102564
+Sentence length: 42; Best-match sentence length: 36
+Brevity penalty: exp(0) = 1
+Score: -1.43212
+Sentence 7 BLEU score: 0.238802
+1-gram (match/total) 24/54 0.444444
+2-gram (match/total) 9/53 0.169811
+3-gram (match/total) 4/52 0.0769231
+4-gram (match/total) 2/51 0.0392157
+Sentence length: 54; Best-match sentence length: 48
+Brevity penalty: exp(0) = 1
+Score: -2.09691
+Sentence 8 BLEU score: 0.122836
+1-gram (match/total) 21/38 0.552632
+2-gram (match/total) 6/37 0.162162
+3-gram (match/total) 3/36 0.0833333
+4-gram (match/total) 2/35 0.0571429
+Sentence length: 38; Best-match sentence length: 42
+Brevity penalty: exp(-0.105263) = 0.900088
+Score: -2.0451
+Sentence 9 BLEU score: 0.129368
+1-gram (match/total) 9/18 0.5
+2-gram (match/total) 0/17 0
+3-gram (match/total) 0/16 0
+4-gram (match/total) 0/15 0
+Sentence length: 18; Best-match sentence length: 16
+Brevity penalty: exp(0) = 1
+Score: -51.9815
+Sentence 10 BLEU score: 2.65915e-23
+1-gram (match/total) 11/31 0.354839
+2-gram (match/total) 0/30 0
+3-gram (match/total) 0/29 0
+4-gram (match/total) 0/28 0
+Sentence length: 31; Best-match sentence length: 35
+Brevity penalty: exp(-0.129032) = 0.878946
+Score: -52.1962
+Sentence 11 BLEU score: 2.14521e-23
+1-gram (match/total) 10/19 0.526316
+2-gram (match/total) 0/18 0
+3-gram (match/total) 0/17 0
+4-gram (match/total) 0/16 0
+Sentence length: 19; Best-match sentence length: 13
+Brevity penalty: exp(0) = 1
+Score: -51.9686
+Sentence 12 BLEU score: 2.69347e-23
+1-gram (match/total) 15/29 0.517241
+2-gram (match/total) 3/28 0.107143
+3-gram (match/total) 0/27 0
+4-gram (match/total) 0/26 0
+Sentence length: 29; Best-match sentence length: 30
+Brevity penalty: exp(-0.0344828) = 0.966105
+Score: -35.2965
+Sentence 13 BLEU score: 4.68747e-16
+1-gram (match/total) 5/13 0.384615
+2-gram (match/total) 1/12 0.0833333
+3-gram (match/total) 0/11 0
+4-gram (match/total) 0/10 0
+Sentence length: 13; Best-match sentence length: 11
+Brevity penalty: exp(0) = 1
+Score: -35.3989
+Sentence 14 BLEU score: 4.23118e-16
+1-gram (match/total) 20/41 0.487805
+2-gram (match/total) 4/40 0.1
+3-gram (match/total) 1/39 0.025641
+4-gram (match/total) 0/38 0
+Sentence length: 41; Best-match sentence length: 41
+Brevity penalty: exp(0) = 1
+Score: -18.9404
+Sentence 15 BLEU score: 5.94697e-09
+1-gram (match/total) 19/32 0.59375
+2-gram (match/total) 4/31 0.129032
+3-gram (match/total) 1/30 0.0333333
+4-gram (match/total) 0/29 0
+Sentence length: 32; Best-match sentence length: 39
+Brevity penalty: exp(-0.21875) = 0.803523
+Score: -18.9807
+Sentence 16 BLEU score: 5.71207e-09
+1-gram (match/total) 4/4 1
+2-gram (match/total) 3/3 1
+3-gram (match/total) 2/2 1
+4-gram (match/total) 1/1 1
+Sentence length: 4; Best-match sentence length: 4
+Brevity penalty: exp(0) = 1
+Score: 0
+Sentence 17 BLEU score: 1
+1-gram (match/total) 7/8 0.875
+2-gram (match/total) 5/7 0.714286
+3-gram (match/total) 3/6 0.5
+4-gram (match/total) 2/5 0.4
+Sentence length: 8; Best-match sentence length: 10
+Brevity penalty: exp(-0.25) = 0.778801
+Score: -0.76986
+Sentence 18 BLEU score: 0.463078
+1-gram (match/total) 14/33 0.424242
+2-gram (match/total) 2/32 0.0625
+3-gram (match/total) 0/31 0
+4-gram (match/total) 0/30 0
+Sentence length: 33; Best-match sentence length: 32
+Brevity penalty: exp(0) = 1
+Score: -35.4463
+Sentence 19 BLEU score: 4.03528e-16
+1-gram (match/total) 2/4 0.5
+2-gram (match/total) 0/3 0
+3-gram (match/total) 0/2 0
+4-gram (match/total) 0/1 0
+Sentence length: 4; Best-match sentence length: 9
+Brevity penalty: exp(-1.25) = 0.286505
+Score: -53.2315
+Sentence 20 BLEU score: 7.61859e-24
+1-gram (match/total) 20/43 0.465116
+2-gram (match/total) 6/42 0.142857
+3-gram (match/total) 2/41 0.0487805
+4-gram (match/total) 1/40 0.025
+Sentence length: 43; Best-match sentence length: 44
+Brevity penalty: exp(-0.0232558) = 0.977013
+Score: -2.37843
+Sentence 21 BLEU score: 0.0926963
+1-gram (match/total) 22/33 0.666667
+2-gram (match/total) 7/32 0.21875
+3-gram (match/total) 2/31 0.0645161
+4-gram (match/total) 0/30 0
+Sentence length: 33; Best-match sentence length: 33
+Brevity penalty: exp(0) = 1
+Score: -18.4359
+Sentence 22 BLEU score: 9.84875e-09
+1-gram (match/total) 10/14 0.714286
+2-gram (match/total) 2/13 0.153846
+3-gram (match/total) 0/12 0
+4-gram (match/total) 0/11 0
+Sentence length: 14; Best-match sentence length: 11
+Brevity penalty: exp(0) = 1
+Score: -35.0908
+Sentence 23 BLEU score: 5.75758e-16
+1-gram (match/total) 13/17 0.764706
+2-gram (match/total) 4/16 0.25
+3-gram (match/total) 2/15 0.133333
+4-gram (match/total) 1/14 0.0714286
+Sentence length: 17; Best-match sentence length: 12
+Brevity penalty: exp(0) = 1
+Score: -1.57713
+Sentence 24 BLEU score: 0.206567
+1-gram (match/total) 12/28 0.428571
+2-gram (match/total) 1/27 0.037037
+3-gram (match/total) 0/26 0
+4-gram (match/total) 0/25 0
+Sentence length: 28; Best-match sentence length: 31
+Brevity penalty: exp(-0.107143) = 0.898397
+Score: -35.6817
+Sentence 25 BLEU score: 3.18884e-16
+1-gram (match/total) 3/4 0.75
+2-gram (match/total) 2/3 0.666667
+3-gram (match/total) 1/2 0.5
+4-gram (match/total) 0/1 0
+Sentence length: 4; Best-match sentence length: 4
+Brevity penalty: exp(0) = 1
+Score: -17.616
+Sentence 26 BLEU score: 2.23607e-08
+1-gram (match/total) 25/37 0.675676
+2-gram (match/total) 10/36 0.277778
+3-gram (match/total) 6/35 0.171429
+4-gram (match/total) 3/34 0.0882353
+Sentence length: 37; Best-match sentence length: 31
+Brevity penalty: exp(0) = 1
+Score: -1.46608
+Sentence 27 BLEU score: 0.230829
+1-gram (match/total) 17/22 0.772727
+2-gram (match/total) 5/21 0.238095
+3-gram (match/total) 1/20 0.05
+4-gram (match/total) 0/19 0
+Sentence length: 22; Best-match sentence length: 23
+Brevity penalty: exp(-0.0454545) = 0.955563
+Score: -18.487
+Sentence 28 BLEU score: 9.35828e-09
+1-gram (match/total) 1/1 1
+2-gram (match/total) 0/0 nan
+3-gram (match/total) 0/0 nan
+4-gram (match/total) 0/0 nan
+Sentence length: 1; Best-match sentence length: 1
+Brevity penalty: exp(0) = 1
+Score: -51.8082
+Sentence 29 BLEU score: 3.16228e-23
+1-gram (match/total) 11/11 1
+2-gram (match/total) 10/10 1
+3-gram (match/total) 9/9 1
+4-gram (match/total) 8/8 1
+Sentence length: 11; Best-match sentence length: 11
+Brevity penalty: exp(0) = 1
+Score: 0
+Sentence 30 BLEU score: 1
+1-gram (match/total) 15/24 0.625
+2-gram (match/total) 4/23 0.173913
+3-gram (match/total) 1/22 0.0454545
+4-gram (match/total) 0/21 0
+Sentence length: 24; Best-match sentence length: 21
+Brevity penalty: exp(0) = 1
+Score: -18.5969
+Sentence 31 BLEU score: 8.38392e-09
+1-gram (match/total) 42/86 0.488372
+2-gram (match/total) 14/85 0.164706
+3-gram (match/total) 7/84 0.0833333
+4-gram (match/total) 4/83 0.0481928
+Sentence length: 86; Best-match sentence length: 74
+Brevity penalty: exp(0) = 1
+Score: -2.00943
+Sentence 32 BLEU score: 0.134065
+1-gram (match/total) 23/45 0.511111
+2-gram (match/total) 7/44 0.159091
+3-gram (match/total) 3/43 0.0697674
+4-gram (match/total) 1/42 0.0238095
+Sentence length: 45; Best-match sentence length: 48
+Brevity penalty: exp(-0.0666667) = 0.935507
+Score: -2.29409
+Sentence 33 BLEU score: 0.100853
+1-gram (match/total) 12/15 0.8
+2-gram (match/total) 4/14 0.285714
+3-gram (match/total) 1/13 0.0769231
+4-gram (match/total) 0/12 0
+Sentence length: 15; Best-match sentence length: 16
+Brevity penalty: exp(-0.0666667) = 0.935507
+Score: -18.3463
+Sentence 34 BLEU score: 1.07725e-08
+1-gram (match/total) 9/13 0.692308
+2-gram (match/total) 2/12 0.166667
+3-gram (match/total) 0/11 0
+4-gram (match/total) 0/10 0
+Sentence length: 13; Best-match sentence length: 14
+Brevity penalty: exp(-0.0769231) = 0.925961
+Score: -35.1556
+Sentence 35 BLEU score: 5.39672e-16
+1-gram (match/total) 5/9 0.555556
+2-gram (match/total) 1/8 0.125
+3-gram (match/total) 0/7 0
+4-gram (match/total) 0/6 0
+Sentence length: 9; Best-match sentence length: 8
+Brevity penalty: exp(0) = 1
+Score: -35.2056
+Sentence 36 BLEU score: 5.13345e-16
+1-gram (match/total) 7/10 0.7
+2-gram (match/total) 3/9 0.333333
+3-gram (match/total) 2/8 0.25
+4-gram (match/total) 1/7 0.142857
+Sentence length: 10; Best-match sentence length: 10
+Brevity penalty: exp(0) = 1
+Score: -1.19687
+Sentence 37 BLEU score: 0.302138
+1-gram (match/total) 37/56 0.660714
+2-gram (match/total) 20/55 0.363636
+3-gram (match/total) 10/54 0.185185
+4-gram (match/total) 6/53 0.113208
+Sentence length: 56; Best-match sentence length: 57
+Brevity penalty: exp(-0.0178571) = 0.982301
+Score: -1.3406
+Sentence 38 BLEU score: 0.261689
+1-gram (match/total) 13/19 0.684211
+2-gram (match/total) 5/18 0.277778
+3-gram (match/total) 3/17 0.176471
+4-gram (match/total) 1/16 0.0625
+Sentence length: 19; Best-match sentence length: 18
+Brevity penalty: exp(0) = 1
+Score: -1.5419
+Sentence 39 BLEU score: 0.213973
+1-gram (match/total) 17/25 0.68
+2-gram (match/total) 7/24 0.291667
+3-gram (match/total) 3/23 0.130435
+4-gram (match/total) 1/22 0.0454545
+Sentence length: 25; Best-match sentence length: 26
+Brevity penalty: exp(-0.04) = 0.960789
+Score: -1.72643
+Sentence 40 BLEU score: 0.177918
+1-gram (match/total) 4/5 0.8
+2-gram (match/total) 0/4 0
+3-gram (match/total) 0/3 0
+4-gram (match/total) 0/2 0
+Sentence length: 5; Best-match sentence length: 5
+Brevity penalty: exp(0) = 1
+Score: -51.864
+Sentence 41 BLEU score: 2.9907e-23
+1-gram (match/total) 8/11 0.727273
+2-gram (match/total) 1/10 0.1
+3-gram (match/total) 0/9 0
+4-gram (match/total) 0/8 0
+Sentence length: 11; Best-match sentence length: 18
+Brevity penalty: exp(-0.636364) = 0.529213
+Score: -35.8304
+Sentence 42 BLEU score: 2.74824e-16
+1-gram (match/total) 12/20 0.6
+2-gram (match/total) 4/19 0.210526
+3-gram (match/total) 1/18 0.0555556
+4-gram (match/total) 0/17 0
+Sentence length: 20; Best-match sentence length: 19
+Brevity penalty: exp(0) = 1
+Score: -18.5092
+Sentence 43 BLEU score: 9.15264e-09
+1-gram (match/total) 6/10 0.6
+2-gram (match/total) 4/9 0.444444
+3-gram (match/total) 3/8 0.375
+4-gram (match/total) 2/7 0.285714
+Sentence length: 10; Best-match sentence length: 7
+Brevity penalty: exp(0) = 1
+Score: -0.888837
+Sentence 44 BLEU score: 0.411134
+1-gram (match/total) 12/14 0.857143
+2-gram (match/total) 4/13 0.307692
+3-gram (match/total) 2/12 0.166667
+4-gram (match/total) 0/11 0
+Sentence length: 14; Best-match sentence length: 12
+Brevity penalty: exp(0) = 1
+Score: -18.0505
+Sentence 45 BLEU score: 1.44795e-08
+1-gram (match/total) 12/27 0.444444
+2-gram (match/total) 2/26 0.0769231
+3-gram (match/total) 0/25 0
+4-gram (match/total) 0/24 0
+Sentence length: 27; Best-match sentence length: 27
+Brevity penalty: exp(0) = 1
+Score: -35.3827
+Sentence 46 BLEU score: 4.3e-16
+1-gram (match/total) 9/22 0.409091
+2-gram (match/total) 0/21 0
+3-gram (match/total) 0/20 0
+4-gram (match/total) 0/19 0
+Sentence length: 22; Best-match sentence length: 21
+Brevity penalty: exp(0) = 1
+Score: -52.0316
+Sentence 47 BLEU score: 2.52904e-23
+1-gram (match/total) 21/38 0.552632
+2-gram (match/total) 6/37 0.162162
+3-gram (match/total) 1/36 0.0277778
+4-gram (match/total) 0/35 0
+Sentence length: 38; Best-match sentence length: 45
+Brevity penalty: exp(-0.184211) = 0.831761
+Score: -18.9525
+Sentence 48 BLEU score: 5.87515e-09
+1-gram (match/total) 18/41 0.439024
+2-gram (match/total) 4/40 0.1
+3-gram (match/total) 1/39 0.025641
+4-gram (match/total) 0/38 0
+Sentence length: 41; Best-match sentence length: 50
+Brevity penalty: exp(-0.219512) = 0.80291
+Score: -19.1862
+Sentence 49 BLEU score: 4.65075e-09
+1-gram (match/total) 10/14 0.714286
+2-gram (match/total) 2/13 0.153846
+3-gram (match/total) 0/12 0
+4-gram (match/total) 0/11 0
+Sentence length: 14; Best-match sentence length: 21
+Brevity penalty: exp(-0.5) = 0.606531
+Score: -35.5908
+Sentence 50 BLEU score: 3.49215e-16
+1-gram (match/total) 8/13 0.615385
+2-gram (match/total) 1/12 0.0833333
+3-gram (match/total) 0/11 0
+4-gram (match/total) 0/10 0
+Sentence length: 13; Best-match sentence length: 10
+Brevity penalty: exp(0) = 1
+Score: -35.2814
+Sentence 51 BLEU score: 4.75873e-16
+1-gram (match/total) 15/22 0.681818
+2-gram (match/total) 3/21 0.142857
+3-gram (match/total) 2/20 0.1
+4-gram (match/total) 1/19 0.0526316
+Sentence length: 22; Best-match sentence length: 21
+Brevity penalty: exp(0) = 1
+Score: -1.89398
+Sentence 52 BLEU score: 0.150471
+1-gram (match/total) 20/34 0.588235
+2-gram (match/total) 6/33 0.181818
+3-gram (match/total) 2/32 0.0625
+4-gram (match/total) 0/31 0
+Sentence length: 34; Best-match sentence length: 41
+Brevity penalty: exp(-0.205882) = 0.813929
+Score: -18.7273
+Sentence 53 BLEU score: 7.35959e-09
+1-gram (match/total) 20/34 0.588235
+2-gram (match/total) 7/33 0.212121
+3-gram (match/total) 2/32 0.0625
+4-gram (match/total) 1/31 0.0322581
+Sentence length: 34; Best-match sentence length: 42
+Brevity penalty: exp(-0.235294) = 0.790338
+Score: -2.30724
+Sentence 54 BLEU score: 0.0995351
+1-gram (match/total) 15/15 1
+2-gram (match/total) 14/14 1
+3-gram (match/total) 13/13 1
+4-gram (match/total) 12/12 1
+Sentence length: 15; Best-match sentence length: 15
+Brevity penalty: exp(0) = 1
+Score: 0
+Sentence 55 BLEU score: 1
+1-gram (match/total) 22/39 0.564103
+2-gram (match/total) 13/38 0.342105
+3-gram (match/total) 5/37 0.135135
+4-gram (match/total) 2/36 0.0555556
+Sentence length: 39; Best-match sentence length: 31
+Brevity penalty: exp(0) = 1
+Score: -1.63425
+Sentence 56 BLEU score: 0.195098
+1-gram (match/total) 19/36 0.527778
+2-gram (match/total) 8/35 0.228571
+3-gram (match/total) 2/34 0.0588235
+4-gram (match/total) 0/33 0
+Sentence length: 36; Best-match sentence length: 28
+Brevity penalty: exp(0) = 1
+Score: -18.5064
+Sentence 57 BLEU score: 9.17817e-09
+1-gram (match/total) 15/33 0.454545
+2-gram (match/total) 5/32 0.15625
+3-gram (match/total) 0/31 0
+4-gram (match/total) 0/30 0
+Sentence length: 33; Best-match sentence length: 26
+Brevity penalty: exp(0) = 1
+Score: -35.2
+Sentence 58 BLEU score: 5.16237e-16
+1-gram (match/total) 12/25 0.48
+2-gram (match/total) 1/24 0.0416667
+3-gram (match/total) 0/23 0
+4-gram (match/total) 0/22 0
+Sentence length: 25; Best-match sentence length: 26
+Brevity penalty: exp(-0.04) = 0.960789
+Score: -35.5568
+Sentence 59 BLEU score: 3.61315e-16
+1-gram (match/total) 7/11 0.636364
+2-gram (match/total) 2/10 0.2
+3-gram (match/total) 0/9 0
+4-gram (match/total) 0/8 0
+Sentence length: 11; Best-match sentence length: 12
+Brevity penalty: exp(-0.0909091) = 0.913101
+Score: -35.145
+Sentence 60 BLEU score: 5.45384e-16
+1-gram (match/total) 10/26 0.384615
+2-gram (match/total) 2/25 0.08
+3-gram (match/total) 0/24 0
+4-gram (match/total) 0/23 0
+Sentence length: 26; Best-match sentence length: 26
+Brevity penalty: exp(0) = 1
+Score: -35.4091
+Sentence 61 BLEU score: 4.18822e-16
+1-gram (match/total) 27/60 0.45
+2-gram (match/total) 10/59 0.169492
+3-gram (match/total) 4/58 0.0689655
+4-gram (match/total) 2/57 0.0350877
+Sentence length: 60; Best-match sentence length: 48
+Brevity penalty: exp(0) = 1
+Score: -2.14938
+Sentence 62 BLEU score: 0.116557
+1-gram (match/total) 35/55 0.636364
+2-gram (match/total) 15/54 0.277778
+3-gram (match/total) 8/53 0.150943
+4-gram (match/total) 4/52 0.0769231
+Sentence length: 55; Best-match sentence length: 53
+Brevity penalty: exp(0) = 1
+Score: -1.54718
+Sentence 63 BLEU score: 0.212847
+1-gram (match/total) 16/20 0.8
+2-gram (match/total) 7/19 0.368421
+3-gram (match/total) 3/18 0.166667
+4-gram (match/total) 1/17 0.0588235
+Sentence length: 20; Best-match sentence length: 23
+Brevity penalty: exp(-0.15) = 0.860708
+Score: -1.61166
+Sentence 64 BLEU score: 0.199556
+1-gram (match/total) 16/26 0.615385
+2-gram (match/total) 5/25 0.2
+3-gram (match/total) 3/24 0.125
+4-gram (match/total) 2/23 0.0869565
+Sentence length: 26; Best-match sentence length: 27
+Brevity penalty: exp(-0.0384615) = 0.962269
+Score: -1.69265
+Sentence 65 BLEU score: 0.184032
+1-gram (match/total) 10/16 0.625
+2-gram (match/total) 5/15 0.333333
+3-gram (match/total) 2/14 0.142857
+4-gram (match/total) 1/13 0.0769231
+Sentence length: 16; Best-match sentence length: 16
+Brevity penalty: exp(0) = 1
+Score: -1.51987
+Sentence 66 BLEU score: 0.218741
+1-gram (match/total) 19/32 0.59375
+2-gram (match/total) 5/31 0.16129
+3-gram (match/total) 1/30 0.0333333
+4-gram (match/total) 0/29 0
+Sentence length: 32; Best-match sentence length: 29
+Brevity penalty: exp(0) = 1
+Score: -18.7061
+Sentence 67 BLEU score: 7.51662e-09
+1-gram (match/total) 24/62 0.387097
+2-gram (match/total) 4/61 0.0655738
+3-gram (match/total) 2/60 0.0333333
+4-gram (match/total) 1/59 0.0169492
+Sentence length: 62; Best-match sentence length: 45
+Brevity penalty: exp(0) = 1
+Score: -2.7881
+Sentence 68 BLEU score: 0.0615381
+1-gram (match/total) 22/37 0.594595
+2-gram (match/total) 5/36 0.138889
+3-gram (match/total) 2/35 0.0571429
+4-gram (match/total) 1/34 0.0294118
+Sentence length: 37; Best-match sentence length: 29
+Brevity penalty: exp(0) = 1
+Score: -2.22063
+Sentence 69 BLEU score: 0.108541
+1-gram (match/total) 20/32 0.625
+2-gram (match/total) 10/31 0.322581
+3-gram (match/total) 6/30 0.2
+4-gram (match/total) 4/29 0.137931
+Sentence length: 32; Best-match sentence length: 29
+Brevity penalty: exp(0) = 1
+Score: -1.29796
+Sentence 70 BLEU score: 0.273088
+1-gram (match/total) 17/24 0.708333
+2-gram (match/total) 7/23 0.304348
+3-gram (match/total) 3/22 0.136364
+4-gram (match/total) 2/21 0.0952381
+Sentence length: 24; Best-match sentence length: 26
+Brevity penalty: exp(-0.0833333) = 0.920044
+Score: -1.55289
+Sentence 71 BLEU score: 0.211635
+1-gram (match/total) 17/29 0.586207
+2-gram (match/total) 2/28 0.0714286
+3-gram (match/total) 0/27 0
+4-gram (match/total) 0/26 0
+Sentence length: 29; Best-match sentence length: 30
+Brevity penalty: exp(-0.0344828) = 0.966105
+Score: -35.3665
+Sentence 72 BLEU score: 4.37024e-16
+1-gram (match/total) 18/21 0.857143
+2-gram (match/total) 9/20 0.45
+3-gram (match/total) 4/19 0.210526
+4-gram (match/total) 0/18 0
+Sentence length: 21; Best-match sentence length: 27
+Brevity penalty: exp(-0.285714) = 0.751477
+Score: -18.1828
+Sentence 73 BLEU score: 1.26855e-08
+1-gram (match/total) 29/40 0.725
+2-gram (match/total) 13/39 0.333333
+3-gram (match/total) 7/38 0.184211
+4-gram (match/total) 3/37 0.0810811
+Sentence length: 40; Best-match sentence length: 41
+Brevity penalty: exp(-0.025) = 0.97531
+Score: -1.43104
+Sentence 74 BLEU score: 0.239059
+1-gram (match/total) 19/32 0.59375
+2-gram (match/total) 4/31 0.129032
+3-gram (match/total) 0/30 0
+4-gram (match/total) 0/29 0
+Sentence length: 32; Best-match sentence length: 31
+Brevity penalty: exp(0) = 1
+Score: -35.181
+Sentence 75 BLEU score: 5.26109e-16
+1-gram (match/total) 19/22 0.863636
+2-gram (match/total) 8/21 0.380952
+3-gram (match/total) 3/20 0.15
+4-gram (match/total) 1/19 0.0526316
+Sentence length: 22; Best-match sentence length: 21
+Brevity penalty: exp(0) = 1
+Score: -1.48831
+Sentence 76 BLEU score: 0.225754
+1-gram (match/total) 15/27 0.555556
+2-gram (match/total) 3/26 0.115385
+3-gram (match/total) 1/25 0.04
+4-gram (match/total) 0/24 0
+Sentence length: 27; Best-match sentence length: 26
+Brevity penalty: exp(0) = 1
+Score: -18.7609
+Sentence 77 BLEU score: 7.11597e-09
+1-gram (match/total) 17/35 0.485714
+2-gram (match/total) 5/34 0.147059
+3-gram (match/total) 2/33 0.0606061
+4-gram (match/total) 1/32 0.03125
+Sentence length: 35; Best-match sentence length: 32
+Brevity penalty: exp(0) = 1
+Score: -2.22704
+Sentence 78 BLEU score: 0.107847
+1-gram (match/total) 23/32 0.71875
+2-gram (match/total) 10/31 0.322581
+3-gram (match/total) 5/30 0.166667
+4-gram (match/total) 3/29 0.103448
+Sentence length: 32; Best-match sentence length: 33
+Brevity penalty: exp(-0.03125) = 0.969233
+Score: -1.41177
+Sentence 79 BLEU score: 0.243711
+1-gram (match/total) 4/4 1
+2-gram (match/total) 3/3 1
+3-gram (match/total) 2/2 1
+4-gram (match/total) 1/1 1
+Sentence length: 4; Best-match sentence length: 4
+Brevity penalty: exp(0) = 1
+Score: 0
+Sentence 80 BLEU score: 1
+1-gram (match/total) 8/10 0.8
+2-gram (match/total) 6/9 0.666667
+3-gram (match/total) 4/8 0.5
+4-gram (match/total) 2/7 0.285714
+Sentence length: 10; Best-match sentence length: 11
+Brevity penalty: exp(-0.1) = 0.904837
+Score: -0.74363
+Sentence 81 BLEU score: 0.475385
+1-gram (match/total) 13/20 0.65
+2-gram (match/total) 5/19 0.263158
+3-gram (match/total) 3/18 0.166667
+4-gram (match/total) 2/17 0.117647
+Sentence length: 20; Best-match sentence length: 18
+Brevity penalty: exp(0) = 1
+Score: -1.4244
+Sentence 82 BLEU score: 0.240652
+1-gram (match/total) 4/7 0.571429
+2-gram (match/total) 1/6 0.166667
+3-gram (match/total) 0/5 0
+4-gram (match/total) 0/4 0
+Sentence length: 7; Best-match sentence length: 7
+Brevity penalty: exp(0) = 1
+Score: -35.1266
+Sentence 83 BLEU score: 5.55524e-16
+1-gram (match/total) 25/45 0.555556
+2-gram (match/total) 6/44 0.136364
+3-gram (match/total) 1/43 0.0232558
+4-gram (match/total) 0/42 0
+Sentence length: 45; Best-match sentence length: 41
+Brevity penalty: exp(0) = 1
+Score: -18.8547
+Sentence 84 BLEU score: 6.47872e-09
+1-gram (match/total) 17/30 0.566667
+2-gram (match/total) 6/29 0.206897
+3-gram (match/total) 3/28 0.107143
+4-gram (match/total) 2/27 0.0740741
+Sentence length: 30; Best-match sentence length: 31
+Brevity penalty: exp(-0.0333333) = 0.967216
+Score: -1.77828
+Sentence 85 BLEU score: 0.168928
+1-gram (match/total) 16/22 0.727273
+2-gram (match/total) 10/21 0.47619
+3-gram (match/total) 7/20 0.35
+4-gram (match/total) 5/19 0.263158
+Sentence length: 22; Best-match sentence length: 19
+Brevity penalty: exp(0) = 1
+Score: -0.861304
+Sentence 86 BLEU score: 0.422611
+1-gram (match/total) 4/6 0.666667
+2-gram (match/total) 1/5 0.2
+3-gram (match/total) 0/4 0
+4-gram (match/total) 0/3 0
+Sentence length: 6; Best-match sentence length: 7
+Brevity penalty: exp(-0.166667) = 0.846482
+Score: -35.2092
+Sentence 87 BLEU score: 5.11508e-16
+1-gram (match/total) 3/6 0.5
+2-gram (match/total) 1/5 0.2
+3-gram (match/total) 0/4 0
+4-gram (match/total) 0/3 0
+Sentence length: 6; Best-match sentence length: 8
+Brevity penalty: exp(-0.333333) = 0.716531
+Score: -35.4478
+Sentence 88 BLEU score: 4.02935e-16
+1-gram (match/total) 7/12 0.583333
+2-gram (match/total) 1/11 0.0909091
+3-gram (match/total) 0/10 0
+4-gram (match/total) 0/9 0
+Sentence length: 12; Best-match sentence length: 14
+Brevity penalty: exp(-0.166667) = 0.846482
+Score: -35.4397
+Sentence 89 BLEU score: 4.06208e-16
+1-gram (match/total) 6/13 0.461538
+2-gram (match/total) 0/12 0
+3-gram (match/total) 0/11 0
+4-gram (match/total) 0/10 0
+Sentence length: 13; Best-match sentence length: 11
+Brevity penalty: exp(0) = 1
+Score: -52.0015
+Sentence 90 BLEU score: 2.60647e-23
+1-gram (match/total) 1/5 0.2
+2-gram (match/total) 0/4 0
+3-gram (match/total) 0/3 0
+4-gram (match/total) 0/2 0
+Sentence length: 5; Best-match sentence length: 5
+Brevity penalty: exp(0) = 1
+Score: -52.2105
+Sentence 91 BLEU score: 2.11474e-23
+1-gram (match/total) 10/20 0.5
+2-gram (match/total) 3/19 0.157895
+3-gram (match/total) 0/18 0
+4-gram (match/total) 0/17 0
+Sentence length: 20; Best-match sentence length: 18
+Brevity penalty: exp(0) = 1
+Score: -35.1735
+Sentence 92 BLEU score: 5.30071e-16
+1-gram (match/total) 4/4 1
+2-gram (match/total) 3/3 1
+3-gram (match/total) 2/2 1
+4-gram (match/total) 1/1 1
+Sentence length: 4; Best-match sentence length: 4
+Brevity penalty: exp(0) = 1
+Score: 0
+Sentence 93 BLEU score: 1
+1-gram (match/total) 11/14 0.785714
+2-gram (match/total) 7/13 0.538462
+3-gram (match/total) 5/12 0.416667
+4-gram (match/total) 3/11 0.272727
+Sentence length: 14; Best-match sentence length: 16
+Brevity penalty: exp(-0.142857) = 0.866878
+Score: -0.901595
+Sentence 94 BLEU score: 0.405922
+1-gram (match/total) 13/16 0.8125
+2-gram (match/total) 7/15 0.466667
+3-gram (match/total) 4/14 0.285714
+4-gram (match/total) 2/13 0.153846
+Sentence length: 16; Best-match sentence length: 15
+Brevity penalty: exp(0) = 1
+Score: -1.02359
+Sentence 95 BLEU score: 0.359304
+1-gram (match/total) 18/36 0.5
+2-gram (match/total) 5/35 0.142857
+3-gram (match/total) 2/34 0.0588235
+4-gram (match/total) 1/33 0.030303
+Sentence length: 36; Best-match sentence length: 30
+Brevity penalty: exp(0) = 1
+Score: -2.24219
+Sentence 96 BLEU score: 0.106225
+1-gram (match/total) 4/4 1
+2-gram (match/total) 3/3 1
+3-gram (match/total) 2/2 1
+4-gram (match/total) 1/1 1
+Sentence length: 4; Best-match sentence length: 4
+Brevity penalty: exp(0) = 1
+Score: 0
+Sentence 97 BLEU score: 1
+1-gram (match/total) 13/13 1
+2-gram (match/total) 12/12 1
+3-gram (match/total) 11/11 1
+4-gram (match/total) 10/10 1
+Sentence length: 13; Best-match sentence length: 14
+Brevity penalty: exp(-0.0769231) = 0.925961
+Score: -0.0769231
+Sentence 98 BLEU score: 0.925961
+1-gram (match/total) 15/17 0.882353
+2-gram (match/total) 10/16 0.625
+3-gram (match/total) 7/15 0.466667
+4-gram (match/total) 6/14 0.428571
+Sentence length: 17; Best-match sentence length: 18
+Brevity penalty: exp(-0.0588235) = 0.942873
+Score: -0.609975
+Sentence 99 BLEU score: 0.543365
+1-gram (match/total) 7/10 0.7
+2-gram (match/total) 4/9 0.444444
+3-gram (match/total) 1/8 0.125
+4-gram (match/total) 0/7 0
+Sentence length: 10; Best-match sentence length: 8
+Brevity penalty: exp(0) = 1
+Score: -18.0811
+Sentence 100 BLEU score: 1.40429e-08
+1-gram (match/total) 1445/2431 0.594406
+2-gram (match/total) 515/2331 0.220935
+3-gram (match/total) 238/2232 0.106631
+4-gram (match/total) 130/2133 0.060947
+Sentence length: 2431; Best-match sentence length: 2368
+Brevity penalty: exp(0) = 1
+Score: -1.76655
+BLEU score: 0.170921 +/- 0.0304382
+Human readable value: 17.09 +/- 3.04
