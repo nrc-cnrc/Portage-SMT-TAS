@@ -16,6 +16,11 @@
 
 -include Makefile.params
 
+TEMP_FILES=run-parallel-logs-*
+TEMP_DIRS=canoe-parallel.*
+include ../Makefile.incl
+
+
 # We need bash -O compat31 on bash versions that support it, but earlier
 # versions crash when one provides that option.  So we set SHELL with or
 # without it, depending on whether it fails to start with -O compat31 or not.
@@ -26,17 +31,15 @@ SHELL := $(shell if bash -O compat31 -c true 2> /dev/null; \
 all: testsuite
 
 
-TEMP_FILES=run-parallel-logs-*
-include ../Makefile.incl
-
 
 ########################################
 # Defining the testsuite.
 .PHONY: testsuite
+testsuite: time-mem.bloater
 testsuite: error_code
 testsuite: detect
 testsuite: tally_canoe
-testsuite: time-mem.bloater
+testsuite: tally_dirs
 
 
 
@@ -69,7 +72,7 @@ detect_%:
 	[[ `time-mem -d $* 2>&1` =~ "Parsing command $*" ]]
 
 detect_invalid: detect_%:
-	[[ `time-mem -d $* 2>&1` =~ "invalid: command not found" ]]
+	[[ `LC_ALL=C time-mem -d $* 2>&1` =~ "$*: command not found" ]]
 
 
 
@@ -77,9 +80,9 @@ detect_invalid: detect_%:
 # For log.canoe.ini.cow we should be tallying on the fly.
 # But for log.canoe.ini.cow.tallied we MUSTn't tallying on the fly since it has already been tallied.
 tally_canoe:
-	shopt -s compat31; [[ `time-mem -T -d  log.canoe.ini.cow 2>&1` =~ "Calculating on the fly" ]]
-	time-mem -T log.canoe.ini.cow | diff - log.canoe.ini.cow.ref-old -q
-	time-mem-tally.pl -no-dir log.canoe.ini.cow | second-to-hms.pl | diff - log.canoe.ini.cow.ref -q
+	[[ `time-mem -T -d  log.canoe.ini.cow 2>&1` =~ "Calculating on the fly" ]]
+	time-mem -T log.canoe.ini.cow | diff - log.canoe.ini.cow.ref -q
+	time-mem-tally.pl -no-dir log.canoe.ini.cow | diff - log.canoe.ini.cow.time-mem-tally.ref -q
 	! [[ `time-mem -T -d log.canoe.ini.cow.tallied 2>&1` =~ "Calculating on the fly" ]]
 
 debug_tally:
@@ -91,15 +94,15 @@ debug_tally:
 	egrep 'Single-|RP-Totals|run_cmd rc=0' log.canoe.ini.cow | egrep -o '(RAM) [0-9.]+' | egrep -o '[0-9.]+' | sum.pl -m
 	time-mem -T log.canoe.ini.cow
 
-
+tally_dirs:
+	time-mem-tally.pl test{1,2}/logs/log* | diff - tally.test1_2.ref -q
 
 ########################################
 # This unittest uses bloater and verify that the time & memory are approximately correctly reported.
 # Sometimes the mem checking happens a bit too soon, so test for > 0.30 GB instead of > 0.32 GB
 time-mem.bloater:
-	shopt -s compat31; \
 	OUT=`time-mem -p 1 bloater -maxiter 32 10000000 2>&1`; \
 	echo $$OUT; \
-	[[ "$$OUT" =~ Real\ ([0-9.]+) ]] && [[ "$${BASH_REMATCH[1]}" > 32 ]] \
-	&& [[ "$$OUT" =~ VMEM\ ([0-9.]+) ]] && [[ "$${BASH_REMATCH[1]}" > 0.30 ]]
+	[[ "$$OUT" =~ "Real ([0-9.]+)" ]] && [[ "$${BASH_REMATCH[1]}" > 32 ]] \
+	&& [[ "$$OUT" =~ "VMEM ([0-9.]+)" ]] && [[ "$${BASH_REMATCH[1]}" > 0.30 ]]
 

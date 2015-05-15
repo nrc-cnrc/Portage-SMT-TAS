@@ -12,6 +12,6 @@
 # Copyright 2010, Her Majesty in Right of Canada
 
 make clean
-make -Bj all
+make -B -j 2 all
 
 exit
