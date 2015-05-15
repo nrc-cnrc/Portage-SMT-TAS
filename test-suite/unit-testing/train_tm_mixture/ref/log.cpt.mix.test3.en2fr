@@ -1,6 +1,7 @@
 read in/jpt.dev.en-fr.gz - 593 pairs
-read in/cpt.hans1.en2fr.gz - probabilities for 0 pairs retained
-read in/cpt.hans2.en2fr.gz - probabilities for 0 pairs retained
+number of jpt columns: 1 - mixing conditional phrase tables
+read in/cpt.hans1.en2fr.gz - probabilities for 0/1 pairs retained
+read in/cpt.hans2.en2fr.gz - probabilities for 0/1 pairs retained
 EM for column 1: 
 (skipping - using fixed weights)
 column 1 wts = 0.1 0.9 

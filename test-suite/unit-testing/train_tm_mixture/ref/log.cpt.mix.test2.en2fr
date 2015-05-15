@@ -1,30 +1,34 @@
 read in/jpt.dev.en-fr.gz - 593 pairs
-read in/cpt.hans1.en2fr.gz - probabilities for 184 pairs retained
-read in/cpt.hans2.en2fr.gz - probabilities for 176 pairs retained
+number of jpt columns: 1 - mixing conditional phrase tables
+read in/cpt.hans1.en2fr.gz - probabilities for 184/18431 pairs retained
+read in/cpt.hans2.en2fr.gz - probabilities for 176/29506 pairs retained
 EM for column 1: 
-iter 1 done: ppx = 0.546556
-iter 2 done: ppx = 0.546589
-iter 3 done: ppx = 0.546613
-iter 4 done: ppx = 0.546632
-iter 5 done: ppx = 0.546646
-iter 6 done: ppx = 0.546656
-iter 7 done: ppx = 0.546664
-iter 8 done: ppx = 0.54667
+column 1 ppxs/%non-zero = 3.06931/86.7925% 3.63971/83.0189% 
+iter 1 done: ppx = 3.20108
+iter 2 done: ppx = 3.20071
+iter 3 done: ppx = 3.2005
+iter 4 done: ppx = 3.20039
+iter 5 done: ppx = 3.20032
+iter 6 done: ppx = 3.20028
+iter 7 done: ppx = 3.20026
+iter 8 done: ppx = 3.20025
 column 1 wts = 0.520646 0.479354 
 EM for column 2: 
 (skipping - using fixed weights)
 column 2 wts = 0.1 0.9 
 EM for column 3: 
-iter 1 done: ppx = 0.621154
-iter 2 done: ppx = 0.621195
-iter 3 done: ppx = 0.621226
-iter 4 done: ppx = 0.621248
-iter 5 done: ppx = 0.621265
+column 3 ppxs/%non-zero = 5.25725/86.7925% 4.98979/83.0189% 
+iter 1 done: ppx = 4.95403
+iter 2 done: ppx = 4.9539
+iter 3 done: ppx = 4.95382
+iter 4 done: ppx = 4.95378
+iter 5 done: ppx = 4.95376
 column 3 wts = 0.508465 0.491535 
 EM for column 4: 
-iter 1 done: ppx = 0.631462
-iter 2 done: ppx = 0.631458
-iter 3 done: ppx = 0.631456
-iter 4 done: ppx = 0.631455
+column 4 ppxs/%non-zero = 375.683/86.7925% 11.9605/83.0189% 
+iter 1 done: ppx = 73.0774
+iter 2 done: ppx = 73.076
+iter 3 done: ppx = 73.0753
+iter 4 done: ppx = 73.0749
 column 4 wts = 0.506066 0.493934 
 wrote 44517 phrase pairs
