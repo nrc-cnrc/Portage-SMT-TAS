@@ -13,6 +13,6 @@
 
 
 make clean
-make -j all
+make all
 
 exit

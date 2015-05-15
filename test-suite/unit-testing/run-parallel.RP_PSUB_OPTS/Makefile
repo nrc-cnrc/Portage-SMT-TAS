@@ -17,6 +17,6 @@
 all:
 	make -f Makefile.rp all 2>&1 | egrep '^ *<D>' | diff ref -
 
-clean:
-	rm -rf run-p.*.*
-	rm -f delme run-parallel-logs-*
+TEMP_FILES=delme run-parallel-logs-*
+TEMP_DIRS=run-p.*.*
+include ../Makefile.incl

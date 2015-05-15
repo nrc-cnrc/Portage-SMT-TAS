@@ -31,7 +31,7 @@ all: testsuite
 TEMP_FILES=log.* runpara_cmds run-parallel-logs-local unittest*.gz \
            sig.cnts.jpt.ibm2.tm-train.en-fr.gz sig.cnts.jpt.vtab.gz \
            jpt.unittest_j_option_?.gz
-TEMP_DIRS=run-p.*  *.tpsa  parallelize.pl.* TEST.* sigprune.sh.*
+TEMP_DIRS=run-p.*  *.tpsa *.tpsa.tmp.* parallelize.pl.* TEST.* sigprune.sh.*
 include ../Makefile.incl
 
 

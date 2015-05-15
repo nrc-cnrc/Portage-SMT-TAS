@@ -12,6 +12,9 @@
 # Copyright 2010, Her Majesty in Right of Canada
 
 SHELL = bash
+Q=-q
+
+.SECONDARY:
 
 run-parallel.sh ?= run-parallel.sh
 #run-parallel.sh = ../../../src/iit_shared_utils/run-parallel.sh
@@ -25,24 +28,24 @@ all: dash_c dash_c+dash_v dash_e
 
 dash_c:
 	run-parallel.sh -nocluster -c "perl $(subst XX,,${PRINT_XX})" 1>out 2>err
-	diff out <(echo "<output>") -q
-	cat err | perl -ne ${FILTER_ERR} | diff - <(echo "<error>") -q
-	${RM} out err
+	diff $Q out <(echo "<output>")
+	cat err | perl -ne ${FILTER_ERR} | diff $Q - <(echo "<error>")
+#	${RM} out err
 
 dash_c+dash_v:
 	run-parallel.sh -nocluster -v -c "perl $(subst XX,,${PRINT_XX})" 1>out 2>err
-	diff out <(echo "<output>") -q
-	cat err | perl -ne ${FILTER_ERR} | diff - ref.err-cv -q
-	${RM} out err
+	diff $Q out <(echo "<output>")
+	cat err | perl -ne ${FILTER_ERR} | diff $Q - ref.err-cv
+#	${RM} out err
 
 dash_e:
 	run-parallel.sh -nocluster \
 		-e "sleep 1; perl $(subst XX,0,${PRINT_XX})" \
 		-e "perl $(subst XX,1,${PRINT_XX})" \
 		2 1>out 2>err
-	cat err | perl -ne ${FILTER_ERR} | diff - ref.err-e -q || \
-	cat err | perl -ne ${FILTER_ERR} | diff - ref.err-e.alt -q
-	${RM} out err
+	cat err | perl -ne ${FILTER_ERR} | diff $Q - ref.err-e || \
+	cat err | perl -ne ${FILTER_ERR} | diff $Q - ref.err-e.alt
+#	${RM} out err
 
 TEMP_FILES=out err
 TEMP_DIRS=run-p.*
