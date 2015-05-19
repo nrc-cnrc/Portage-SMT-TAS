@@ -16,6 +16,9 @@ SHELL:=/bin/bash
 all: gitignore
 	@echo All tests PASSED.
 
+# Silence Copyright notices for all test suites
+export PORTAGE_INTERNAL_CALL=1
+
 # Having testsuite also depend on gitignore should get the .gitignore file
 # created earlier in the process
 testsuite: gitignore
