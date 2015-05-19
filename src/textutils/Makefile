@@ -9,6 +9,7 @@
 
 PROGRAMS = \
 	asciify \
+	filter_word_classes \
 	get_voc \
 	strip_non_printing \
 	utf8_casemap \
