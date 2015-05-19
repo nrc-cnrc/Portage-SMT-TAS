@@ -1,0 +1,11 @@
+the test file contains 4 lines
+Filtering on vocab
+Read input (cumul time: 0 secs)
+WordClasses: kept 10 of 14 words (vocab size = 14)
+LMDynMap: Mapping initialization took 0s.
+Reading 6 1-grams. ... kept: 5 in 0s.
+Reading 10 2-grams. ... kept: 8 in 0s.
+Reading 3 3-grams. ... kept: 1 in 0s.
+LM loading completed in: 0s.
+Loaded 3-gram model in 0s.(cumul time: 0 secs)
+End (Total time: 0 secs)

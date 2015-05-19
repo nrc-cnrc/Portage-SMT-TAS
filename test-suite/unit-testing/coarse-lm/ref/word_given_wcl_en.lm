@@ -1,0 +1,19 @@
+\data\
+ngram 1=13
+
+\1-grams:
+0.0000000	.
+-0.6532125	about
+-0.6020600	are
+-0.3010300	battalions
+-0.6020600	colleagues
+-0.6020600	environment
+-0.9542425	report
+-0.9542425	seventh
+-0.4771213	several
+-0.6020600	talk
+-0.9542425	talks
+-0.3010300	the
+-0.9542425	there
+
+\end\

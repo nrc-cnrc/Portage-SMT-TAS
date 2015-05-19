@@ -1,0 +1,21 @@
+\data\
+ngram 1=15
+
+\1-grams:
+0.0000000	.
+-0.7781513	a
+-0.6020600	bataillons
+-0.9030900	collègues
+-0.7781513	d'
+-0.7781513	de
+-0.9030900	environnement
+-0.7781513	il
+-0.7781513	le
+-0.4771213	parle
+-0.4771213	parler
+-0.4259687	plusieurs
+-0.4771213	rapport
+-0.9030900	septième
+-0.7781513	y
+
+\end\
