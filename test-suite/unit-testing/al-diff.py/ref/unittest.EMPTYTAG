@@ -1,0 +1,2 @@
+[(1, 2), (2, 3)] vs [(1, 1), (1, 2), (1, 2)]  at src seg 2 ~ tgt seg 2
+[(1, 1), (1, 1)] vs [(2, 2)]  at src seg 7 ~ tgt seg 10

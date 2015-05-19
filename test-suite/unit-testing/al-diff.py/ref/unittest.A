@@ -1,0 +1,11 @@
+[(1, 2), (2, 3)] vs [(1, 1), (1, 2), (1, 2)]  at data/A.source seg 2 ~ data/A.target seg 2
+B
+C
+D
+---
+b
+c
+d
+e
+f
+
