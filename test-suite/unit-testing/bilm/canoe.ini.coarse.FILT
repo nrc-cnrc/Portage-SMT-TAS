@@ -1,0 +1,11 @@
+[ttable-multi-prob] 
+   cpt.ibm2.en2fr.FILT.gz
+[lmodel-file] 
+   lm
+[weight-l] 0
+[cube-pruning]
+[use-ftm]
+[weight-d] 0
+[bilm-file] 
+   bilm
+   bilm.coarse.gz;cls(src)=en.cls.gz;cls(tgt)=fr.cls.gz

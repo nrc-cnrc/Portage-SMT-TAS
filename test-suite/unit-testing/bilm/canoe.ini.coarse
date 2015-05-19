@@ -1,0 +1,7 @@
+[lmodel-file] lm
+[bilm-file] bilm:bilm.coarse.gz;cls(src)=en.cls.gz;cls(tgt)=fr.cls.gz
+[ttable-multi-prob] ../dynamic-pt/cpt.ibm2.en2fr.gz
+[use-ftm]
+[lm] 0
+[d] 0
+[cube-pruning]
