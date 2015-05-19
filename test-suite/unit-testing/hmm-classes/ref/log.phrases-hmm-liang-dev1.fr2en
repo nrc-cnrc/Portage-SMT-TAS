@@ -15,7 +15,7 @@ avg(en exclude count / en length) = 0 stdev = 0
 
 smoothing:
 Done PT smoother pass 0
-created 2 smoother:s:
+created 2 smoothers:
   created 'RFSmoother' smoother using 1 phrase table pass.
   created 'IBMSmoother' smoother using 0 phrase table passes.
 Writing phrases-hmm-liang-dev1.fr2en
