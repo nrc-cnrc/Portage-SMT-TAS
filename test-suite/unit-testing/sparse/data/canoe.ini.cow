@@ -1,0 +1,19 @@
+[ttable-multi-prob] ../data/cpt.all.fr2en.gz
+[lex-dist-model-file] ../data/dm.all.fr2en.gz
+[ttable-tppt] --
+[lmodel-file] ../data/all.lm.gz
+[weight-l] 1
+[weight-t] 0.09556491335:0.2026449009
+[weight-f] 0.1406727111:0.05866401967
+[ttable-limit] 30
+[ttable-prune-type] backward-weights
+[stack] 10000
+[distortion-limit] 7
+[bypass-marked]
+[cube-pruning]
+[use-ftm]
+[weight-d] 0.2072538092:-0.02516568991:0.1199053102:0.1880539368:0.04198588327:0.129292398:-0.0785738597
+[weight-w] -0.3789176884
+[weight-sparse] 1
+[distortion-model] WordDisplacement back-hlex#m#0 back-hlex#s#0 back-hlex#d#0 fwd-hlex#m#0 fwd-hlex#s#0 fwd-hlex#d#0
+[sparse-model] ../ref1/sparsemodel

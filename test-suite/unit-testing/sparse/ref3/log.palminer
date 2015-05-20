@@ -1,0 +1,38 @@
+Loaded data structures in 0 seconds.
+SparseModel learning parameters: 
+   not learning conjunctions
+   max features for conjoin = 2000
+   min freq for conjoin = 2
+   not pruning 0-wt features
+SparseModel active templates:
+[PhrasePairAllBiLengthBins] 7 7
+[PhrasePairAllSrcLengthBins] 7
+[PhrasePairAllTgtLengthBins] 7
+[LexUnalTgtAny] ../data/freq-unal-words.en
+[LexUnalSrcAny] ../data/freq-unal-words.fr
+[AlignedWordPair] ../data/freq-words.fr ../data/freq-words.en
+[PhrasePairCountMultiBin] ../data/bins11
+[RarestTgtWordCountBin] ../data/voc-counts.en ../data/bins11
+[DistCurrentSrcFirstWord] ../data/classes.fr
+[DistCurrentSrcLastWord] ../data/classes.fr
+[DistCurrentTgtFirstWord] ../data/classes.en
+[DistCurrentTgtLastWord] ../data/classes.en
+[DistGapSrcWord] ../data/classes.fr
+[DistTopSrcFirstWord] ../data/classes.fr
+[DistTopSrcLastWord] ../data/classes.fr
+[DistPrevTgtWord] ../data/classes.en
+[DistCurrentSrcFirstWord] ../data/freq-word-classes.fr
+[DistCurrentSrcLastWord] ../data/freq-word-classes.fr
+[DistCurrentTgtFirstWord] ../data/freq-word-classes.en
+[DistCurrentTgtLastWord] ../data/freq-word-classes.en
+[DistGapSrcWord] ../data/freq-word-classes.fr
+[DistTopSrcFirstWord] ../data/freq-word-classes.fr
+[DistTopSrcLastWord] ../data/freq-word-classes.fr
+[DistPrevTgtWord] ../data/freq-word-classes.en
+
+
+set weights to average values across 0 examples
+saved SparseModel to out3/sparsemodel
+
+SparseModel contains 9265 features and 9265 events
+Learned from 0 examples

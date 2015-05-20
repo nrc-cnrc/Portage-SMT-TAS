@@ -1,0 +1,59 @@
+List of all current sparsemodel features, with status for testing here.
+
+[TgtContextWordAtPos] -n        -- nth word before current target phrase
+[CurTgtPhraseWordAtPos] n       -- nth word in cur tgt phrase (from end if n < 0)
+[CurSrcPhraseWordAtPos] n       -- nth word in cur src phrase (from end if n < 0)
+[PrevTgtPhraseWordAtPos] n      -- nth word in prev tgt phrase (from end if n < 0)
+[PrevSrcPhraseWordAtPos] n      -- nth word in prev src phrase (from end if n < 0)
+[CurTgtPhraseContainsWord]      -- cur tgt phrase contains word
+[CurSrcPhraseContainsWord]      -- cur src phrase contains word
+[PrevTgtPhraseContainsWord]     -- prev tgt phrase contains word
+[PrevSrcPhraseContainsWord]     -- prev src phrase contains word
+ok [TgtNgramCountBin] cnts m l h n -- m-gram ending at pos n in cur tgt phrase
+                                   has count in [l,h] in SRILM counts file cnts.
+skip [PhrasePairLengthBin] a b c d   -- cur phrase has srclen in [a,b], tgtlen in [c,d]
+ok [PhrasePairAllBiLengthBins] a b -- all length bins, max srclen a, max tgtlen b
+ok [PhrasePairAllTgtLengthBins] a  -- all tgt length bins, max tgtlen a
+ok [PhrasePairAllSrcLengthBins] a  -- all src length bins, max srclen a
+skip [PhrasePairTotalLengthBin] len  -- cur phrase has srclen+tgtlen = len
+ok [LexUnalTgtAny] f               -A tgt word in file f is unaligned in cur phrase
+ok [LexUnalSrcAny] f               -A src word in file f is unaligned in cur phrase
+ok [AlignedWordPair] svoc tvoc     -A src word in file svoc is aligned 1-1 with tgt
+                                   word in tvoc or other word, or is not 1-1
+skip [PhrasePairCountBin] min max    -C current phrase pair has joint count in [min,max]
+ok [PhrasePairCountMultiBin] bins  -C current phrase pair has joint count in some bin
+                                   in file bins ([low high] count pairs) - one 
+                                   feature per bin
+skip [PhrasePairCountsMultiBin] args -C where args is 'bins b e': same as previous, except
+                                   applied to each count in 1-based count range [b,e]
+                                   in 'c=' field; num-bins * (e-b+1) features total
+ok [RarestTgtWordCountBin] c b     -- rarest tgt word, according to file c (word count
+                                   pairs), has count in some bin in file b (low high
+                                   pairs)
+skip [AvgTgtWordScoreBin] scores n m -- avg tgt word score, according to file scores (word
+                                   score pairs), with real-valued scores binned into
+                                   n equal ranges, linearly if m is 'lin', logwise if
+                                   m is 'log'
+skip [MinTgtWordScoreBin] scores n m -- same as AvgTgtScoreBin, but use minimum score
+ok [DistCurrentSrcPhrase] cls      -- represents source phrase using clusters provided in
+                                   file 'cls' and then tracks HierLDM orientation (MSD)
+ok [DistCurrentSrcFirstWord] cls   -- first source word cluster in current phrase + MSD
+ok [DistCurrentSrcLastWord] cls    -- last source word cluster in current phrase + MSD
+ok [DistCurrentTgtFirstWord] cls   -- first target word cluster in current phrase + MSD
+ok [DistCurrentTgtLastWord] cls    -- last target word cluster in current phrase + MSD
+ok [DistReducedSrcFirstWord] cls   -- first source word cluster in any reduced phrase + MSD
+ok [DistReducedSrcLastWord] cls    -- last source word cluster in any reduced phrase + MSD
+ok [DistReducedTgtLastWord] cls    -- last target word cluster in any reduced phrase + MSD
+ok [DistGapSrcWord] cls            -- one cluster event for each source word between current
+                                   phrase and the top of the shift-reduce stack
+ok [DistTopSrcFirstWord] cls       -- first source word cluster of the top of the stack + MSD
+ok [DistTopSrcLastWord] cls        -- last source word cluster of the top of the stack + MSD
+ok [DistPrevTgtWord] cls           -- last target word cluster of previous phrase + MSD
+ok [LmUnigram] cls                 -- unigram language model over provided clusters
+ok [LmBigram] cls                  -- bigram language model over provided clusters
+skip [InQuotePos]                    -- position in quoted text - truecasing only
+skip [PhrasePairContextMatch] args   -X match between current phrase pair and sent-level context
+                                   args: tagfile idcol field pweight numbins
+                                   see constructor in palminer.h for further doc
+skip [PhrasePairSubCorpRank] n c b-e -X out of n sub-corpus probs in c'th column, those
+                                   that have ranks in range [b-e] for current phrase pair

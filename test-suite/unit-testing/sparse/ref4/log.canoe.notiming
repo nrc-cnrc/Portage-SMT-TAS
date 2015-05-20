@@ -1,0 +1,81 @@
+
+
+Reading input sentences.
+Warning: Cannot find local SparseModel weights file; using remote one, which might not be tuned.
+loaded 9265 SparseModel features from data/../ref3/sparsemodel.feats.gz
+loaded 9265 SparseModel weights from data/../ref3/sparsemodel.wts.gz -- all weights are 0
+created 9265 SparseModel events
+compiled 2393 partial features
+loading phrase table from data/../data/cpt.all.fr2en.gz: 
+92440 lines read, 4028 entries kept.
+
+opening text lexicalized distortion data/../data/dm.all.fr2en.gz
+loading lexicalized distortion model from data/../data/dm.all.fr2en.gz: 
+79861 lines read, 3017 entries kept.
+
+loading language model from data/../data/all.lm.gz
+Reading 9352 1-grams. ... kept: 9352 in 
+Reading 62173 2-grams. ... kept: 20739 in 
+Reading 17927 3-grams. ... kept: 7843 in 
+
+
+
+Log-linear model used:
+index	weight	feature description
+1	0.207254	DistortionModel:WordDisplacement
+2	-0.0251657	DistortionModel:back-hlex#m#data/../data/dm.all.fr2en.gz
+3	0.119905	DistortionModel:back-hlex#s#data/../data/dm.all.fr2en.gz
+4	0.188054	DistortionModel:back-hlex#d#data/../data/dm.all.fr2en.gz
+5	0.0419859	DistortionModel:fwd-hlex#m#data/../data/dm.all.fr2en.gz
+6	0.129292	DistortionModel:fwd-hlex#s#data/../data/dm.all.fr2en.gz
+7	-0.0785739	DistortionModel:fwd-hlex#d#data/../data/dm.all.fr2en.gz
+8	-0.378918	LengthFeature
+9	1	SparseModel:data/../ref3/sparsemodel
+10	1	LanguageModel:data/../data/all.lm.gz;SimpleAutoVoc
+11	0.0955649	TranslationModel:data/../data/cpt.all.fr2en.gz(col=0)
+12	0.202645	TranslationModel:data/../data/cpt.all.fr2en.gz(col=1)
+13	0.140673	ForwardTranslationModel:data/../data/cpt.all.fr2en.gz(col=2)
+14	0.058664	ForwardTranslationModel:data/../data/cpt.all.fr2en.gz(col=3)
+15-63	0	SparseModel:PhrasePairAllBiLengthBins:7 7
+64-70	0	SparseModel:PhrasePairAllSrcLengthBins:7
+71-77	0	SparseModel:PhrasePairAllTgtLengthBins:7
+78-91	0	SparseModel:LexUnalTgtAny:../data/freq-unal-words.en
+92-141	0	SparseModel:LexUnalSrcAny:../data/freq-unal-words.fr
+142-6865	0	SparseModel:AlignedWordPair:../data/freq-words.fr ../data/freq-words.en
+6866-6876	0	SparseModel:PhrasePairCountMultiBin:../data/bins11
+6877-6887	0	SparseModel:RarestTgtWordCountBin:../data/voc-counts.en ../data/bins11
+6888-6953	0	SparseModel:DistCurrentSrcFirstWord:../data/classes.fr
+6954-7019	0	SparseModel:DistCurrentSrcLastWord:../data/classes.fr
+7020-7085	0	SparseModel:DistCurrentTgtFirstWord:../data/classes.en
+7086-7151	0	SparseModel:DistCurrentTgtLastWord:../data/classes.en
+7152-7195	0	SparseModel:DistGapSrcWord:../data/classes.fr
+7196-7261	0	SparseModel:DistTopSrcFirstWord:../data/classes.fr
+7262-7327	0	SparseModel:DistTopSrcLastWord:../data/classes.fr
+7328-7393	0	SparseModel:DistPrevTgtWord:../data/classes.en
+7394-7639	0	SparseModel:DistCurrentSrcFirstWord:../data/freq-word-classes.fr
+7640-7885	0	SparseModel:DistCurrentSrcLastWord:../data/freq-word-classes.fr
+7886-8131	0	SparseModel:DistCurrentTgtFirstWord:../data/freq-word-classes.en
+8132-8377	0	SparseModel:DistCurrentTgtLastWord:../data/freq-word-classes.en
+8378-8541	0	SparseModel:DistGapSrcWord:../data/freq-word-classes.fr
+8542-8787	0	SparseModel:DistTopSrcFirstWord:../data/freq-word-classes.fr
+8788-9033	0	SparseModel:DistTopSrcLastWord:../data/freq-word-classes.fr
+9034-9279	0	SparseModel:DistPrevTgtWord:../data/freq-word-classes.en
+
+Translating 10 sentences.
+..........
+
+TimingStats over per-sentence model creation, decoding, and output times, in seconds:
+
+
+
+
+
+
+
+
+
+Overall LM hits:
+Found k-grams: 0:8815( 2%) 1:207392(45%) 2:207038(45%) 3:34421( 8%) Total: 457666
+Used 1.1e+04 non-ITG reductions, left 0 incomplete stacks
+
+
