@@ -1,0 +1,126 @@
+ngram 1=12527
+ngram 2=70432
+ngram 3=133766
+ngram 4=162566
+ngram 5=170720
+-4.198970	officiel	-0.159227
+-0.565921	magazine officiel	-0.200827
+-1.318756	officiel *	-0.063629
+-1.122339	officiel .	-0.063629
+-0.727734	officiel de	-0.200827
+-1.265248	officiel qui	-0.063629
+-1.940386	organisme officiel	-0.063629
+-1.698271	porte-parole officiel	-0.063629
+-1.849143	rendu officiel	-0.063629
+-1.522385	voyage officiel	-0.063629
+-0.835075	, organisme officiel	-0.031729
+-0.828248	Compte rendu officiel	-0.031729
+-0.430684	du magazine officiel	-0.031729
+-0.518833	le magazine officiel	-0.031729
+-1.433358	le porte-parole officiel	-0.031729
+-0.311471	magazine officiel de	-0.168397
+-0.619962	officiel * Table	-0.031729
+-0.029017	officiel . </s>
+-0.375584	officiel de l'	-0.031729
+-0.857700	officiel qui me	-0.031729
+-0.737124	organisme officiel qui	-0.031729
+-0.525846	porte-parole officiel de	-0.031729
+-0.750207	rendu officiel *	-0.031729
+-1.146490	un voyage officiel	-0.031729
+-0.695828	voyage officiel .	-0.031729
+-0.270973	<s> Compte rendu officiel	-0.370616
+-0.618474	, organisme officiel qui	-0.026484
+-0.627687	Compte rendu officiel *	-0.370616
+-0.863928	d' un voyage officiel	-0.026484
+-0.280514	du magazine officiel de	-0.026484
+-0.453546	est le magazine officiel	-0.026484
+-0.979951	est le porte-parole officiel	-0.026484
+-0.381670	extrait du magazine officiel	-0.026484
+-0.280514	le magazine officiel de	-0.026484
+-0.459146	le porte-parole officiel de	-0.026484
+-0.216676	magazine officiel de l'	-0.201475
+-0.398131	officiel * Table des	-0.370616
+-1.440393	officiel de l' Institut	-0.026484
+-1.309723	officiel de l' opposition	-0.026484
+-1.009554	officiel qui me conseille	-0.026484
+-0.700168	organisme officiel qui me	-0.026484
+-0.335439	porte-parole officiel de l'	-0.026484
+-0.532456	rendu officiel * Table	-0.370616
+-0.685402	retraite , organisme officiel	-0.026484
+-0.588863	un voyage officiel .	-0.026484
+-0.026908	voyage officiel . </s>
+-0.171072	<s> Compte rendu officiel *
+-0.802202	, est le porte-parole officiel
+-0.607640	, organisme officiel qui me
+-0.155504	Compte rendu officiel * Table
+-0.726162	cadre d' un voyage officiel
+-0.520531	d' un voyage officiel .
+-0.596367	de retraite , organisme officiel
+-0.200365	du magazine officiel de l'
+-0.257797	est le magazine officiel de
+-0.413384	est le porte-parole officiel de
+-0.257797	extrait du magazine officiel de
+-0.200365	le magazine officiel de l'
+-0.306496	le porte-parole officiel de l'
+-0.404513	magazine officiel de l' Institut
+-0.181752	officiel * Table des matières
+-0.823059	officiel de l' Institut canadien
+-0.471915	officiel de l' Institut des
+-1.146203	officiel de l' opposition au
+-0.465875	officiel qui me conseille en
+-0.820461	organisme officiel qui me conseille
+-0.977702	porte-parole officiel de l' opposition
+-0.408638	qui est le magazine officiel
+-0.128229	rendu officiel * Table des
+-0.544173	retraite , organisme officiel qui
+-0.346921	un extrait du magazine officiel
+-0.025269	un voyage officiel . </s>
+ngram 1=12526
+ngram 2=70003
+ngram 3=131126
+ngram 4=157526
+-4.4592	officiel	0
+-0.519575	magazine officiel	0
+-0.703884	officiel *	0
+-1.24866	officiel .	0
+-0.66479	officiel de	0
+-1.3968	officiel qui	0
+-1.91008	organisme officiel	0
+-1.77961	porte-parole officiel	0
+-1.14306	rendu officiel	0
+-1.45242	voyage officiel	0
+-0.735346	, organisme officiel	0
+-0.266046	Compte rendu officiel	0
+-0.399295	du magazine officiel	0
+-0.506509	le magazine officiel	0
+-1.35868	le porte-parole officiel	0
+-0.274139	magazine officiel de	0
+-0.228332	officiel * Table	0
+-0.027692	officiel . </s>
+-0.241912	officiel de l'	0
+-0.752425	officiel qui me	0
+-0.658996	organisme officiel qui	0
+-0.482821	porte-parole officiel de	0
+-0.253623	rendu officiel *	0
+-1.08119	un voyage officiel	0
+-0.625714	voyage officiel .	0
+-0.575847	, organisme officiel qui
+-0.208037	Compte rendu officiel *
+-0.782463	d' un voyage officiel
+-0.267812	du magazine officiel de
+-0.428153	est le magazine officiel
+-0.872903	est le porte-parole officiel
+-0.362121	extrait du magazine officiel
+-0.267812	le magazine officiel de
+-0.43326	le porte-parole officiel de
+-0.190197	magazine officiel de l'
+-0.154202	officiel * Table des
+-0.586635	officiel de l' Institut
+-1.35541	officiel de l' opposition
+-0.895094	officiel qui me conseille
+-0.646613	organisme officiel qui me
+-0.319204	porte-parole officiel de l'
+-0.188317	rendu officiel * Table
+-0.633955	retraite , organisme officiel
+-0.549775	un voyage officiel .
+-0.026001	voyage officiel . </s>

@@ -1,0 +1,3 @@
+Rest-cost LM v1.0 (NRC)
+full-lm=LM.rclm/5g.lm.gz
+rest-costs=LM.rclm/rest-costs.lm.gz

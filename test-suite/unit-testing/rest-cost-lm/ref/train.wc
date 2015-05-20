@@ -1,0 +1,8 @@
+#Lines	#Words	#Char	min #W	max #W	min #C	max #C	#empty L	mean(W/L)	sdev(W/L)	filename
+8893	208404	1178207	1	234	3	1606	0	23.43	15.69	-
+
+8893	208404	1178207	1	234	3	1606	0	23.43	15.69	TOTAL
+
+208404.00 words per doc with sdev of 0.00
+8893.00 lines per doc with sdev of 0.00
+1 documents in total
