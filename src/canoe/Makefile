@@ -79,7 +79,10 @@ PROGRAMS=$(TESTPROGS) \
 	count_multi_prob_columns \
 	filter_models \
 	join_phrasetables \
-	mix_phrasetables
+	mix_phrasetables \
+	palminer \
+	palview \
+	palstats
 
 BINSCRIPTS= \
 	build-sparse-model.sh \
