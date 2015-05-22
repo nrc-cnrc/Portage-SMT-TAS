@@ -1,0 +1,28 @@
+[ttable-multi-prob] 
+   cpt.ibm2-rf-zn-kn3.tm-train.en2fr.gz
+[lex-dist-model-file] 
+   dm.hmm1+ibm2.en2fr.gz
+[lmodel-file] 
+   lm-train_fr-kn-5g.binlm.gz
+[weight-d] 0.1617493927:-0.2716070414:0.250221163:0.5705035925:0.4222081304:0.08271834254:-0.04700667411
+[weight-w] -0.6068904996
+[weight-l] 1
+[weight-t] 0.456325531:0.1201893017:0.1558215469
+[weight-f] -0.05707108602:0.007193521131:0.01788942702
+[ttable-limit] 30
+[ttable-threshold] 0
+[stack] 20000
+[beam-threshold] 0.001
+[distortion-limit] 7
+[dist-limit-ext]
+[dist-phrase-swap]
+[distortion-model] 
+   WordDisplacement
+   back-lex#m
+   back-lex#s
+   back-lex#d
+   fwd-lex#m
+   fwd-lex#s
+   fwd-lex#d
+[bypass-marked]
+[cube-pruning]

@@ -1,0 +1,6 @@
+[lmodel-file] ../forced-decoding/lm
+[ttable-multi-prob] cpt
+[lex-dist-model-file] dm1#L1 dm2#L2
+[distortion-model]
+back-lex#m#L1:back-lex#s#L1:back-lex#d#L1:fwd-lex#m#L1:fwd-lex#s#L1:fwd-lex#d#L1
+back-lex#m#L2:back-lex#s#L2:back-lex#d#L2:fwd-lex#m#L2:fwd-lex#s#L2:fwd-lex#d#L2
