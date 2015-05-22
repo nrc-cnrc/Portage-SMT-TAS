@@ -154,6 +154,7 @@ public:
    vector<string> LDMFiles;         ///< Lexicalized distortion model file names
    vector<string> tpptFiles;        ///< TPPT phrase table file names
    vector<string> lmFiles;          ///< Language model file names
+   string vocFile;                  ///< Vocabulary file name
    Uint lmOrder;                    ///< Maximum LM order (0 == no limit)
    int maxLmContextSize;            ///< Maximum LM context from history (-1 == no limit)
    bool minimizeLmContextSize;      ///< Keep as little context as needed for future queries

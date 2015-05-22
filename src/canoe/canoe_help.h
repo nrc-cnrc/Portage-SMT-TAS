@@ -488,6 +488,10 @@ Options (in command-line format):\n\
      sentences whose ID (0-based) is returned by the daemon running on\n\
      HOST:PORT.\n\
 \n\
+ -Voc-file FILE                         Precompiled vocabulary (experimental)  [none]\n\
+     Provides a precompiled vocabulary file.  Don't use this.\n\
+     Kept around for some stuff in development that needed it at some point.\n\
+\n\
  -palign|-trace|-t                      Output alignment and OOV info  [don't]\n\
      Produce alignment and OOV output. If -lattice is given, this info\n\
      will also be stored in the lattice. If -nbest is given, alignment\n\

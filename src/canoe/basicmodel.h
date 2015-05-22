@@ -529,6 +529,13 @@ namespace Portage
             Uint limit_order = 0, ostream *const os_filtered = 0);
 
       /**
+       * Load the vocabulary for a group of previously translated sentences.
+       * Experimental only.
+       * @param file          The vocabulary file.
+       */
+      virtual void loadVoc(const char *file);
+
+      /**
        * Extracts the vocabulary from the TPPTs.
        */
       void extractVocabFromTPPTs();

@@ -190,6 +190,11 @@ BasicModelGenerator::BasicModelGenerator(const CanoeConfig& c) :
 
    phraseTable = new PhraseTable(tgt_vocab, c.phraseTablePruneType.c_str(), c.appendJointCounts);
 
+   // Sometimes, it's useful to preload a vocabulary of frequent
+   // words, or maybe to control to voc IDs.
+   if (! c.vocFile.empty())
+      loadVoc(c.vocFile.c_str());
+
    InitDecoderFeatures(c);
 }
 
@@ -213,6 +218,11 @@ BasicModelGenerator::BasicModelGenerator(
    GlobalVoc::set(&tgt_vocab);
 
    phraseTable = new PhraseTable(tgt_vocab, c.phraseTablePruneType.c_str(), c.appendJointCounts);
+
+   // Sometimes, it's useful to preload a vocabulary of frequent
+   // words, or maybe to control to voc IDs.
+   if (! c.vocFile.empty())
+      loadVoc(c.vocFile.c_str());
 
    if (limitPhrases)
    {
@@ -307,6 +317,22 @@ void BasicModelGenerator::addLanguageModel(const char *lmFile, double weight,
 
    lmWeightsV.push_back(weight);
 } // addLanguageModel
+
+void BasicModelGenerator::loadVoc(const char *vocFile)
+{
+   error_unless_exists(vocFile, true, "vocabulary");
+
+   assert(tgt_vocab.empty());
+
+   // We must clear tgt_vocab first, since we want to preserve the same
+   // word<->index map as was in place when the vocab was generated.
+   tgt_vocab.clear();
+
+   tgt_vocab.read(vocFile);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 
 void BasicModelGenerator::extractVocabFromTPPTs()
 {

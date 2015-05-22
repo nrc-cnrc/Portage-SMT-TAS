@@ -169,6 +169,7 @@ CanoeConfig::CanoeConfig()
    loadFirst              = false;
    canoeDaemon            = "";
    input                  = "-";
+   vocFile                = "";
    bAppendOutput          = false;
    bLoadBalancing         = false;
    bStackDecoding         = false;
@@ -198,6 +199,7 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("lmodel-file", "stringVect", &lmFiles,
       ParamInfo::relative_path_modification | ParamInfo::lm_check_file_name));
    param_infos.push_back(ParamInfo("nbestProcessor", "string", &nbestProcessor));
+   param_infos.push_back(ParamInfo("Voc-file", "string", &vocFile));
    param_infos.push_back(ParamInfo("lmodel-order", "Uint", &lmOrder));
    param_infos.push_back(ParamInfo("max-lm-context-size", "int", &maxLmContextSize));
    param_infos.push_back(ParamInfo("minimize-lm-context-size", "bool", &minimizeLmContextSize));
