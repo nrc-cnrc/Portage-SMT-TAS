@@ -1,0 +1,4 @@
+a <wall name="a"/> b <wall/> c <wall name=""/> d
+a <zone name="a"> b c </zone> d
+a <zone> b c </zone> d
+a <zone name=""> b c </zone> d

@@ -1,0 +1,6 @@
+[ttable-multi-prob] cpt
+[lmodel-file] lm
+[ftm] 1
+[b] 1e-20
+[lm] 0.001
+[cube-pruning]

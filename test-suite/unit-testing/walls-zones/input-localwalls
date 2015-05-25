@@ -1,0 +1,2 @@
+<zone name="z1"> a <zone name="z2"> b <wall name="w"/> c <localwall name="lw1"/> d <localwall name="lw2"/> e </zone> f </zone>
+w x <zone> y <localwall/> z </zone>
