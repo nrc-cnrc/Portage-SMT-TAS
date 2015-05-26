@@ -39,7 +39,7 @@ testsuite:
 testsuite: pre_installation
 
 .PHONY: pre_installation
-pre_installation: perl_version python_version make_version gcc_version ram_vs_swap
+pre_installation: perl_version perl_modules python_version make_version gcc_version ram_vs_swap
 	@echo "Prerequisites are correctly installed." >&2
 
 .PHONY: perl_version
@@ -47,6 +47,12 @@ perl_version:
 	@perl -e 'require 5.8.5;' || ! echo "Your perl version is too old." >&2
 	@perl -e 'require 5.8.8;' || echo "Some perl XML functionalities will most likely fail." >&2
 	@perl -e 'use threads;' || ! echo "Perl must be installed with -Dusethreads." >&2
+
+.PHONY: perl_modules
+perl_modules:
+	@rc=0; for module in XML::Twig JSON File::Spec File::Temp List::Util Time::gmtime FindBin; do \
+		perldoc -l $$module > /dev/null || rc=1; \
+	done; [[ $$rc == 0 ]] || ! echo "Some required Perl modules are missing." >&2
 
 .PHONY: python_version
 python_version:
