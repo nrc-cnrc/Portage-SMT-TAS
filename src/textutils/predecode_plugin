@@ -50,9 +50,11 @@ if [[ -s ${FIXED_TERMS_MODEL_DIRECTORY}/fixedTerms/tm ]]; then
    # IMPORTANT NOTE: YES we double canoe-escaple here if we want the
    # original xmlish markup to be escape while it passes through canoe
    # which unescapes them.
+   LOCK_FILE=${FIXED_TERMS_MODEL_DIRECTORY}/fixedTerms/tm.lock
+   touch $LOCK_FILE
    canoe-escapes.pl -add | canoe-escapes.pl -add \
    | utf8_filter \
-   | flock --shared ${FIXED_TERMS_MODEL_DIRECTORY}/fixedTerms/tm.lock --command "canoe \
+   | flock --shared $LOCK_FILE canoe \
       -f /dev/null \
       -load-first \
       -oov pass \
@@ -64,7 +66,7 @@ if [[ -s ${FIXED_TERMS_MODEL_DIRECTORY}/fixedTerms/tm ]]; then
       -lm 0.0 \
       -tm 1.0 \
       -distortion-limit 0 \
-   2> /dev/null"
+   2> /dev/null
 else
    # If you have a rules parser, replace the canoe-escapes.pl call by a call to
    # your rules parser. The rules parser must also escape literal use of the
