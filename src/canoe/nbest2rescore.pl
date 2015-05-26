@@ -1,4 +1,4 @@
-#!/usr/bin/perl -sw
+#!/usr/bin/env perl
 
 # @file nbest2rescore.pl
 # @brief Parses nbest lists.
@@ -38,8 +38,12 @@ my $ffvals_re = qr/v=\[([^\]]+)\]/;
 my $legacy_re = qr/\(([^\)]+)\)/;
 
 # command-line
-my $HELP =
-"Usage: nbest2rescore.pl [options]
+sub usage {
+   local $, = "\n";
+   print STDERR @_, "";
+   $0 =~ s#.*/##;
+   print STDERR "
+Usage: nbest2rescore.pl [options]
 
 Read N-best translation files, as produced by the canoe decoder, and produce
 output in a format compatible with the rescore programs (rescore_train,
@@ -71,27 +75,40 @@ Note: all output can be directed to stdout by specifying '-' as output file;
 each translation then produces up to four lines of output: translation, phrase
 alignment info, word alignment info, and ff values (in that order).
 ";
-
-our ($h, $help, $in, $out, $ffout, $palout, $wal, $nbest, $format, $legacy, $canoe, $oov, $tagoov, $append, $source, $json);
-
-if (defined($h) or defined($help)) {
-    print STDERR $HELP;
-    exit 0;
+   exit 1;
 }
+
+use Getopt::Long;
+Getopt::Long::Configure("no_ignore_case");
+# Note to programmer: Getopt::Long automatically accepts unambiguous
+# abbreviations for all options.
+my $verbose = 1;
+GetOptions(
+   help        => sub { usage },
+   verbose     => sub { ++$verbose },
+   quiet       => sub { $verbose = 0 },
+   debug       => \my $debug,
+   "in=s"      => \my $in,
+   "out=s"     => \my $out,
+   "ffout=s"   => \my $ffout,
+   "palout=s"  => \my $palout,
+   "source=s"  => \my $source,
+   "json=s"    => \my $json,
+   oov         => \my $oov,
+   wal         => \my $wal,
+   tagoov      => \my $tagoov,
+   "nbest=i"   => \my $nbest,
+   "format=s"  => \my $format,
+   append      => \my $append,
+   legacy      => \my $legacy,
+   canoe       => \my $canoe,
+) or usage "Error: Invalid option(s).";
+
 $in = "-" unless defined $in;
 $out = "-" unless defined $out;
-$ffout = 0 unless defined $ffout;
-$palout = 0 unless defined $palout;
-$wal = 0 unless defined $wal;
-$nbest = 0 unless defined $nbest;
 $format = "rescore" unless defined $format;
-$legacy = 0 unless defined $legacy;
-$canoe = 0 unless defined $canoe;
-$oov = 0 unless defined $oov;
-$json =0 unless defined $json;
-$source = 0 unless defined $source;
 $oov = 1 if $wal;
-$tagoov = 0 unless defined $tagoov;
+
 my $mode = ">";
 $mode = ">>" if (defined($append));
 
