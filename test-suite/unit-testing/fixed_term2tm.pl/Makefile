@@ -99,7 +99,7 @@ mismatch_target_language:  src/fiches_termino.utf8.txt
 all:  test
 test:  src/fiches_termino.utf8.txt
 	${FIXED_TERM2TM} -source_column=1 -source=en -target=fr $< \
-	| sort --unique \
+	| LC_ALL=C sort --unique \
 	| diff - ref/fiches_termino.utf8.tm --brief
 
 
@@ -110,5 +110,5 @@ header.txt:  src/fiches_termino.utf8.txt
 all:  header_only
 header_only:  header.txt
 	${FIXED_TERM2TM} -source_column=1 -source=en -target=fr $< \
-	| sort --unique \
+	| LC_ALL=C sort --unique \
 	| diff - ref/header_only.tm --brief
