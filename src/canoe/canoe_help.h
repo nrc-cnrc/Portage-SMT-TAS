@@ -170,6 +170,8 @@ Options (in command-line format):\n\
 \n\
  -weight-bilm W1[:W2[:..]]              Weights for BiLM models  [1.0 for each feature]\n\
 \n\
+ -weight-nnjm W1[:W2[:..]]              Weights for NNJM models  [1.0 for each feature]\n\
+\n\
  -random-weights|-r                     Set weights randomly per sent  [don't]\n\
      Ignore given weights, setting weights randomly for each sentence.\n\
      By default, the uniform distribution between -1 and +1 will be used for\n\
@@ -445,6 +447,9 @@ Options (in command-line format):\n\
      If cls(tgt/src) is used with one or both of cls(src) or cls(tgt), it must\n\
      list classes of bitokens of the classes implied by cls(tgt)/cls(src).\n\
 \n\
+ -nnjm-file FILE1[:FILE2[:..]]          NNJM files - neural net joint models  [none]\n\
+     BBN-style neural-net joint model files. See help string in nnjm.cc for details.\n\
+\n\
  -bypass-marked                         Allow bypassing marked translations  [don't]\n\
      When marked translations are found in the source text, translation\n\
      options from the translation table are not excluded.\n\
@@ -559,6 +564,9 @@ Options (in command-line format):\n\
 \n\
  -input FILE                            Input file  [-, i.e., STDIN]\n\
      The source sentences file.  [-]\n\
+\n\
+ -srctags FILE                          Tags for input file  [none]\n\
+     Optional file containing tags for input sentences.\n\
 \n\
  -ref   FILE                            Reference translation file  [none]\n\
      The reference target sentences file.\n\

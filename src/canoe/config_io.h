@@ -231,6 +231,7 @@ public:
    bool loadFirst;                  ///< Whether to load models before input
    string canoeDaemon;              ///< Sentence by sentence mode specifications
    string input;                    ///< Source sentences input file name
+   string srctags;                  ///< Source sentences tags file name
    string refFile;                  ///< Reference file name
    bool bAppendOutput;              ///< Flag to output one single file instead of multiple files.
    bool bLoadBalancing;             ///< Running in load-balancing mode => parse source sentences ids

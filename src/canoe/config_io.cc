@@ -25,6 +25,7 @@
 #include "bilm_model.h"
 #include "tppt.h"
 #include "sparsemodel.h"
+#include "nnjm.h"
 #include <boost/version.hpp>
 #if BOOST_VERSION >= 103800
    #include <boost/spirit/include/classic.hpp>
@@ -277,6 +278,8 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("future-score-lm-heuristic", "string", &futLMHeuristic));
    param_infos.push_back(ParamInfo("use-ftm", "bool", &useFtm));
    param_infos.push_back(ParamInfo("lb", "bool", &bLoadBalancing));
+   param_infos.push_back(ParamInfo("srctags", "string", &srctags,
+      ParamInfo::relative_path_modification | ParamInfo::check_file_name));
    param_infos.push_back(ParamInfo("ref", "string", &refFile,
       ParamInfo::relative_path_modification | ParamInfo::check_file_name));
    param_infos.push_back(ParamInfo("hierarchy", "bool", &hierarchy));
@@ -304,6 +307,7 @@ CanoeConfig::CanoeConfig()
       "ng", "ngrams", "NgramMatchFeature",
       "ruw", "rules", "RuleFeature",
       "bilm", "bilm", "BiLMModel",
+      "nnjm", "nnjm", "NNJM",
       // insert new features above this line - in the same order as in
       // BMG::InitDecoderFeatures()!!!
    };
@@ -336,6 +340,8 @@ CanoeConfig::CanoeConfig()
    featureGroup("ng")->need_args = true; // but args not via param_infos - created in check()
    param_infos.push_back(ParamInfo("bilm-file", "stringVect", &featureGroup("bilm")->args,
       ParamInfo::relative_path_modification | ParamInfo::bilm_check_file_name));
+   param_infos.push_back(ParamInfo("nnjm-file", "stringVect", &featureGroup("nnjm")->args,
+      ParamInfo::relative_path_modification | ParamInfo::check_file_name));
 
    // The rule feature is weird, we have to turn off its need_args here, and turn
    // it back on in check() after initializing its args vector.

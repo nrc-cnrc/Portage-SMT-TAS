@@ -32,6 +32,7 @@ SUBDIRS = adaptation \
 	  eval \
 	  lm \
 	  logging \
+	  nn \
 	  preprocessing \
 	  rescoring \
 	  tm \

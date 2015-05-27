@@ -779,6 +779,14 @@ int MAIN(argc, argv)
          sents.push_back(nss);
    }
 
+   // Read source tags if available. This always reads the whole tags file even
+   // if we're currently only processing a portion of the input via
+   // canoe-parallel.sh. Sub-optimal space-wise, but more convenient for users
+   // and implementers.
+   vector<string> srctag_lines;
+   if (!c.srctags.empty())
+      readFileLines(c.srctags, srctag_lines);
+
    // get reference (target sentences) if levenshtein or n-gram is used
    vector<vector<string> > tgt_sents;
    // test parameters for levenshtein or n-gram
@@ -922,6 +930,15 @@ int MAIN(argc, argv)
          else
             error(ETWarn, "source sentence index %d out of range for sentWeights file - %s",
                   sourceSentenceId, "using global weights");
+      }
+
+      if (srctag_lines.size()) {
+         if (srctag_lines.size() <= sourceSentenceId)
+            error(ETFatal, "Unexpected end of source tags file before end of source file.");
+         if (splitZ(srctag_lines[sourceSentenceId], nss->src_sent_tags) !=
+             nss->src_sent.size())
+            error(ETFatal, "Number of tags in line %d doesn't match number of source tokens.",
+                  sourceSentenceId);
       }
 
       nss->external_src_sent_id = sourceSentenceId;

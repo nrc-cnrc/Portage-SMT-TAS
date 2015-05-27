@@ -24,6 +24,7 @@
 #include "unal_feature.h"
 #include "sparsemodel.h"
 #include "bilm_model.h"
+#include "nnjm.h"
 #include "basicmodel.h"
 #include "errors.h"
 
@@ -56,6 +57,8 @@ DecoderFeature* DecoderFeature::create(BasicModelGenerator* bmg,
                           true, bmg->c->sparseModelAllowNonLocalWts, false, true);
    } else if ( group == "BiLMModel" ) {
       f = new BiLMModel(bmg, args);
+   } else if ( group == "NNJM" ) {
+      f = new NNJM(bmg, args);
    } else {
       if ( fail )
          error(ETFatal, "unknown decoder feature: " + group);

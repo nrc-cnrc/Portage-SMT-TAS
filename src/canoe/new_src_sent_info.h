@@ -89,6 +89,9 @@ struct newSrcSentInfo {
    /// Marked translation options available.
    vector<MarkedTranslation> marks;
 
+   /// Optional tags for src sent (either empty or one per token in src_sent).
+   vector<string> src_sent_tags;
+
    /// Triangular array of the candidate target phrases.
    /// Filled by BasicModelGenerator::createModel.
    vector<PhraseInfo *>** potential_phrases;

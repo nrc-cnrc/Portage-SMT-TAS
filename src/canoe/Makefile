@@ -48,6 +48,7 @@ OBJECTS= \
     marked_translation.o \
     nbesttranslation.o \
     ngrammatch_feature.o \
+    nnjm.o \
     partialtranslation.o \
     phrasefinder.o \
     phrasetable.o \
@@ -104,7 +105,7 @@ canoe: DYNLIBS += -lpthread
 
 MODULE_CF=
 
-MODULE_DEPENDS=logging tm word_align lm tp_models tpt preprocessing
+MODULE_DEPENDS=logging tm word_align lm tp_models tpt preprocessing nn
 
 include ../build/Makefile.incl
 

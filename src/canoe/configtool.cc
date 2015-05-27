@@ -494,8 +494,10 @@ int main(int argc, char* argv[])
       otherfiles.insert(otherfiles.end(), c.tpptFiles.begin(), c.tpptFiles.end());
       otherfiles.insert(otherfiles.end(), c.featureGroup("sparse")->args.begin(), c.featureGroup("sparse")->args.end());
       otherfiles.insert(otherfiles.end(), c.featureGroup("ibm1f")->args.begin(), c.featureGroup("ibm1f")->args.end());
+      otherfiles.insert(otherfiles.end(), c.featureGroup("nnjm")->args.begin(), c.featureGroup("nnjm")->args.end());
       cout << join(otherfiles, nf_endl) << nf_endl;
       if (!c.sentWeights.empty()) cout << c.sentWeights << nf_endl;
+      if (!c.srctags.empty()) cout << c.srctags << nf_endl;
       if (!c.refFile.empty()) cout << c.refFile << nf_endl;
       if (!c.featureGroup("sparse")->args.empty()) {
          error(ETWarn, "list-all-files does not yet know how to list sparse model components");
