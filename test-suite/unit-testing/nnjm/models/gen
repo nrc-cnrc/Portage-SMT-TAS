@@ -1,0 +1,9 @@
+#!/bin/bash
+
+ngram-count -text - -lm lm < ../corpus/train_en.tok
+
+gen_phrase_tables -1 fr -2 en -ext -write-al top -multipr fwd -o cpt \
+   ../corpus/train_fr.tok ../corpus/train_en.tok ../corpus/train.wal
+
+gen_phrase_tables -1 fr -2 en -ext -multipr fwd -o cpt-noal \
+   ../corpus/train_fr.tok ../corpus/train_en.tok ../corpus/train.wal

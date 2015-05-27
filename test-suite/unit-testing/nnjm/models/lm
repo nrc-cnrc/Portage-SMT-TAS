@@ -1,0 +1,34 @@
+
+\data\
+ngram 1=11
+ngram 2=10
+ngram 3=0
+
+\1-grams:
+-1	.	-99
+-1	</s>
+-99	<s>	-99
+-1	and	-99
+-1	customs	-99
+-1	harmonizing	-99
+-1	immigration	-99
+-1	involves	-99
+-1	perimeter	-99
+-1	policies	-99
+-1	the	-99
+
+\2-grams:
+0	. </s>
+0	<s> the
+0	and immigration
+0	customs and
+0	harmonizing customs
+0	immigration policies
+0	involves harmonizing
+0	perimeter involves
+0	policies .
+0	the perimeter
+
+\3-grams:
+
+\end\

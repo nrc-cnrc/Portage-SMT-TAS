@@ -1,0 +1,424 @@
+Warning: [file] parameter not supplied for NNJM models/nnjm - all scores will be 0
+NNJM::pFS([0, 1), the) NNJM: <BOS> <BOS> <BOS> <BOS> <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep / <ELID> <ELID> <ELID> / <TAG>:fcn : 0
+NNJM::pFS([1, 2), création) NNJM: <BOS> <BOS> <BOS> <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC / <ELID> <ELID> <ELID> / <UNK> : 0
+NNJM::pFS([0, 2), the) NNJM: <BOS> <BOS> <BOS> <BOS> <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep / <ELID> <ELID> <ELID> / <TAG>:fcn : 0
+NNJM::pFS([2, 3), d') NNJM: <BOS> <BOS> <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb / <ELID> <ELID> <ELID> / <UNK> : 0
+NNJM::pFS([0, 3), the) NNJM: <BOS> <BOS> <BOS> <BOS> <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep / <ELID> <ELID> <ELID> / <TAG>:fcn : 0
+NNJM::pFS([3, 4), un) NNJM: <BOS> <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' / <ELID> <ELID> <ELID> / <UNK> : 0
+NNJM::pFS([0, 4), the) NNJM: <BOS> <BOS> <BOS> <BOS> <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep / <ELID> <ELID> <ELID> / <TAG>:fcn : 0
+NNJM::pFS([4, 5), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <ELID> <ELID> <ELID> / perimeter : 0
+NNJM::pFS([3, 5), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <ELID> <ELID> <ELID> / perimeter : 0
+NNJM::pFS([2, 5), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <ELID> <ELID> <ELID> / perimeter : 0
+NNJM::pFS([1, 5), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <ELID> <ELID> <ELID> / perimeter : 0
+NNJM::pFS([5, 6), de) NNJM: la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete / <ELID> <ELID> <ELID> / <UNK> : 0
+NNJM::pFS([4, 6), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <ELID> <ELID> <ELID> / perimeter : 0
+NNJM::pFS([3, 6), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <ELID> <ELID> <ELID> / perimeter : 0
+NNJM::pFS([2, 6), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <ELID> <ELID> <ELID> / perimeter : 0
+NNJM::pFS([6, 7), sécurité) NNJM: <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC / <ELID> <ELID> <ELID> / <UNK> : 0
+NNJM::pFS([4, 7), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <ELID> <ELID> <ELID> / perimeter : 0
+NNJM::pFS([3, 7), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <ELID> <ELID> <ELID> / perimeter : 0
+NNJM::pFS([7, 8), involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <ELID> <ELID> <ELID> / <TAG>:content : 0
+NNJM::pFS([6, 8), involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <ELID> <ELID> <ELID> / <TAG>:content : 0
+NNJM::pFS([5, 8), involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <ELID> <ELID> <ELID> / <TAG>:content : 0
+NNJM::pFS([4, 8), perimeter involves) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <ELID> <ELID> <ELID> / perimeter : 0
+NNJM::pFS([4, 8), perimeter involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <ELID> <ELID> perimeter / <TAG>:content : 0
+NNJM::pFS([8, 9), l') NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <ELID> <ELID> <ELID> / <UNK> : 0
+NNJM::pFS([9, 10), harmonisation) NNJM: périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> / <ELID> <ELID> <ELID> / <UNK> : 0
+NNJM::pFS([8, 10), harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <ELID> <ELID> <ELID> / harmonizing : 0
+NNJM::pFS([7, 10), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <ELID> <ELID> <ELID> / <TAG>:content : 0
+NNJM::pFS([7, 10), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <ELID> <ELID> <TAG>:content / harmonizing : 0
+NNJM::pFS([6, 10), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <ELID> <ELID> <ELID> / <TAG>:content : 0
+NNJM::pFS([6, 10), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <ELID> <ELID> <TAG>:content / harmonizing : 0
+NNJM::pFS([10, 11), des) NNJM: <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> / <ELID> <ELID> <ELID> / <UNK> : 0
+NNJM::pFS([8, 11), harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <ELID> <ELID> <ELID> / harmonizing : 0
+NNJM::pFS([7, 11), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <ELID> <ELID> <ELID> / <TAG>:content : 0
+NNJM::pFS([7, 11), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <ELID> <ELID> <TAG>:content / harmonizing : 0
+NNJM::pFS([11, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <ELID> <ELID> <ELID> / <TAG>:content : 0
+NNJM::pFS([10, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <ELID> <ELID> <ELID> / <TAG>:content : 0
+NNJM::pFS([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <ELID> <ELID> <ELID> / customs : 0
+NNJM::pFS([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <ELID> <ELID> <TAG>:content / and : 0
+NNJM::pFS([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <ELID> <TAG>:content and / immigration : 0
+NNJM::pFS([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <ELID> <ELID> <ELID> / customs : 0
+NNJM::pFS([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <ELID> <ELID> <TAG>:content / and : 0
+NNJM::pFS([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <ELID> <TAG>:content and / immigration : 0
+NNJM::pFS([11, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::pFS([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <ELID> <ELID> <ELID> / customs : 0
+NNJM::pFS([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <ELID> <ELID> <TAG>:content / and : 0
+NNJM::pFS([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <ELID> <TAG>:content and / immigration : 0
+NNJM::pFS([10, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::pFS([13, 14), .) NNJM: l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> <EOS> / <ELID> <ELID> <ELID> / <TAG>:fcn : 0
+NNJM::s([0, 1), the) NNJM: <BOS> <BOS> <BOS> <BOS> <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep / <BOS> <BOS> <BOS> / <TAG>:fcn : 0
+NNJM::s([1, 2), création) NNJM: <BOS> <BOS> <BOS> <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC / <BOS> <BOS> <BOS> / <UNK> : 0
+NNJM::s([2, 3), d') NNJM: <BOS> <BOS> <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb / <BOS> <BOS> <BOS> / <UNK> : 0
+NNJM::s([3, 4), un) NNJM: <BOS> <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' / <BOS> <BOS> <BOS> / <UNK> : 0
+NNJM::s([4, 5), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <BOS> / perimeter : 0
+NNJM::s([5, 6), de) NNJM: la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete / <BOS> <BOS> <BOS> / <UNK> : 0
+NNJM::s([6, 7), sécurité) NNJM: <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC / <BOS> <BOS> <BOS> / <UNK> : 0
+NNJM::s([7, 8), involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <BOS> / <TAG>:content : 0
+NNJM::s([8, 9), l') NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <BOS> <BOS> / <UNK> : 0
+NNJM::s([9, 10), harmonisation) NNJM: périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> / <BOS> <BOS> <BOS> / <UNK> : 0
+NNJM::s([10, 11), des) NNJM: <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> / <BOS> <BOS> <BOS> / <UNK> : 0
+NNJM::s([11, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <BOS> <BOS> <BOS> / <TAG>:content : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <BOS> <BOS> / customs : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:content / and : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:content and / immigration : 0
+NNJM::s([13, 14), .) NNJM: l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> <EOS> / <BOS> <BOS> <BOS> / <TAG>:fcn : 0
+NNJM::s([0, 2), the) NNJM: <BOS> <BOS> <BOS> <BOS> <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep / <BOS> <BOS> <BOS> / <TAG>:fcn : 0
+NNJM::s([3, 5), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <BOS> / perimeter : 0
+NNJM::s([4, 6), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <BOS> / perimeter : 0
+NNJM::s([6, 8), involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <BOS> / <TAG>:content : 0
+NNJM::s([8, 10), harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <BOS> <BOS> / harmonizing : 0
+NNJM::s([10, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <BOS> <BOS> <BOS> / <TAG>:content : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <BOS> <BOS> / customs : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:content / and : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:content and / immigration : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([1, 2), création) NNJM: <BOS> <BOS> <BOS> <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([2, 3), d') NNJM: <BOS> <BOS> <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([3, 4), un) NNJM: <BOS> <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([4, 5), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([5, 6), de) NNJM: la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([6, 7), sécurité) NNJM: <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([7, 8), involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([8, 9), l') NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([9, 10), harmonisation) NNJM: périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([10, 11), des) NNJM: <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([11, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / customs : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn <TAG>:content / and : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn <TAG>:content and / immigration : 0
+NNJM::s([13, 14), .) NNJM: l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / <TAG>:fcn : 0
+NNJM::s([0, 3), the) NNJM: <BOS> <BOS> <BOS> <BOS> <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep / <BOS> <BOS> <BOS> / <TAG>:fcn : 0
+NNJM::s([2, 5), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <BOS> / perimeter : 0
+NNJM::s([3, 6), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <BOS> / perimeter : 0
+NNJM::s([4, 7), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <BOS> / perimeter : 0
+NNJM::s([5, 8), involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <BOS> / <TAG>:content : 0
+NNJM::s([7, 10), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <BOS> / <TAG>:content : 0
+NNJM::s([7, 10), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <BOS> <TAG>:content / harmonizing : 0
+NNJM::s([8, 11), harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <BOS> <BOS> / harmonizing : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <BOS> <BOS> / customs : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:content / and : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:content and / immigration : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([3, 5), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([4, 6), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([6, 8), involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([8, 10), harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <BOS> <TAG>:fcn / harmonizing : 0
+NNJM::s([10, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / customs : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn <TAG>:content / and : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn <TAG>:content and / immigration : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([2, 3), d') NNJM: <BOS> <BOS> <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([3, 4), un) NNJM: <BOS> <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([4, 5), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([5, 6), de) NNJM: la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([6, 7), sécurité) NNJM: <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([7, 8), involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([8, 9), l') NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([9, 10), harmonisation) NNJM: périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([10, 11), des) NNJM: <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([11, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / customs : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn <TAG>:content / and : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn <TAG>:content and / immigration : 0
+NNJM::s([13, 14), .) NNJM: l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / <TAG>:fcn : 0
+NNJM::s([0, 4), the) NNJM: <BOS> <BOS> <BOS> <BOS> <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep / <BOS> <BOS> <BOS> / <TAG>:fcn : 0
+NNJM::s([1, 5), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <BOS> / perimeter : 0
+NNJM::s([2, 6), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <BOS> / perimeter : 0
+NNJM::s([3, 7), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <BOS> / perimeter : 0
+NNJM::s([4, 8), perimeter involves) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <BOS> / perimeter : 0
+NNJM::s([4, 8), perimeter involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> perimeter / <TAG>:content : 0
+NNJM::s([6, 10), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <BOS> / <TAG>:content : 0
+NNJM::s([6, 10), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <BOS> <TAG>:content / harmonizing : 0
+NNJM::s([7, 11), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <BOS> / <TAG>:content : 0
+NNJM::s([7, 11), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <BOS> <TAG>:content / harmonizing : 0
+NNJM::s([2, 5), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([3, 6), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([4, 7), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([5, 8), involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([7, 10), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([7, 10), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <TAG>:fcn <TAG>:content / harmonizing : 0
+NNJM::s([8, 11), harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <BOS> <TAG>:fcn / harmonizing : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / customs : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn <TAG>:content / and : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn <TAG>:content and / immigration : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([3, 5), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([4, 6), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([6, 8), involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([8, 10), harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <BOS> <TAG>:fcn / harmonizing : 0
+NNJM::s([10, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / customs : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn <TAG>:content / and : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn <TAG>:content and / immigration : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([3, 4), un) NNJM: <BOS> <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([4, 5), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([5, 6), de) NNJM: la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([6, 7), sécurité) NNJM: <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([7, 8), involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([8, 9), l') NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([9, 10), harmonisation) NNJM: périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([10, 11), des) NNJM: <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([11, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / customs : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn <TAG>:content / and : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn <TAG>:content and / immigration : 0
+NNJM::s([13, 14), .) NNJM: l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / <TAG>:fcn : 0
+NNJM::s([1, 5), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([2, 6), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([3, 7), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([4, 8), perimeter involves) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([4, 8), perimeter involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <TAG>:fcn perimeter / <TAG>:content : 0
+NNJM::s([6, 10), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([6, 10), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <TAG>:fcn <TAG>:content / harmonizing : 0
+NNJM::s([7, 11), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([7, 11), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <TAG>:fcn <TAG>:content / harmonizing : 0
+NNJM::s([2, 5), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([3, 6), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([4, 7), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([5, 8), involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([7, 10), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([7, 10), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <TAG>:fcn <TAG>:content / harmonizing : 0
+NNJM::s([8, 11), harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <BOS> <TAG>:fcn / harmonizing : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / customs : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn <TAG>:content / and : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn <TAG>:content and / immigration : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([3, 5), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([4, 6), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([6, 8), involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([8, 10), harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <BOS> <TAG>:fcn / harmonizing : 0
+NNJM::s([10, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / customs : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn <TAG>:content / and : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn <TAG>:content and / immigration : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([4, 5), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([5, 6), de) NNJM: la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([6, 7), sécurité) NNJM: <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([7, 8), involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([8, 9), l') NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([9, 10), harmonisation) NNJM: périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([10, 11), des) NNJM: <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / <UNK> : 0
+NNJM::s([11, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / customs : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn <TAG>:content / and : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn <TAG>:content and / immigration : 0
+NNJM::s([13, 14), .) NNJM: l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / <TAG>:fcn : 0
+NNJM::s([2, 6), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([3, 7), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([4, 8), perimeter involves) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([4, 8), perimeter involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <TAG>:fcn perimeter / <TAG>:content : 0
+NNJM::s([6, 10), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([6, 10), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <TAG>:fcn <TAG>:content / harmonizing : 0
+NNJM::s([7, 11), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([7, 11), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <TAG>:fcn <TAG>:content / harmonizing : 0
+NNJM::s([3, 6), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([4, 7), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([5, 8), involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([7, 10), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([7, 10), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <TAG>:fcn <TAG>:content / harmonizing : 0
+NNJM::s([8, 11), harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <BOS> <TAG>:fcn / harmonizing : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / customs : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn <TAG>:content / and : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn <TAG>:content and / immigration : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([4, 6), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([6, 8), involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([8, 10), harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <BOS> <TAG>:fcn / harmonizing : 0
+NNJM::s([10, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / customs : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn <TAG>:content / and : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn <TAG>:content and / immigration : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([5, 6), de) NNJM: la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete / <BOS> <TAG>:fcn perimeter / <UNK> : 0
+NNJM::s([6, 7), sécurité) NNJM: <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC / <BOS> <TAG>:fcn perimeter / <UNK> : 0
+NNJM::s([7, 8), involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <TAG>:fcn perimeter / <TAG>:content : 0
+NNJM::s([8, 9), l') NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <TAG>:fcn perimeter / <UNK> : 0
+NNJM::s([9, 10), harmonisation) NNJM: périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> / <BOS> <TAG>:fcn perimeter / <UNK> : 0
+NNJM::s([10, 11), des) NNJM: <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> / <BOS> <TAG>:fcn perimeter / <UNK> : 0
+NNJM::s([11, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn perimeter / <TAG>:content : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn perimeter / customs : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn perimeter <TAG>:content / and : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content and / immigration : 0
+NNJM::s([13, 14), .) NNJM: l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn perimeter / <TAG>:fcn : 0
+NNJM::s([3, 7), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([4, 8), perimeter involves) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([4, 8), perimeter involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <TAG>:fcn perimeter / <TAG>:content : 0
+NNJM::s([6, 10), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([6, 10), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <TAG>:fcn <TAG>:content / harmonizing : 0
+NNJM::s([7, 11), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([7, 11), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <TAG>:fcn <TAG>:content / harmonizing : 0
+NNJM::s([4, 7), perimeter) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([5, 8), involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([7, 10), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([7, 10), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <TAG>:fcn <TAG>:content / harmonizing : 0
+NNJM::s([8, 11), harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <BOS> <TAG>:fcn / harmonizing : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <BOS> <TAG>:fcn / customs : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn <TAG>:content / and : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn <TAG>:content and / immigration : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([6, 8), involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <TAG>:fcn perimeter / <TAG>:content : 0
+NNJM::s([8, 10), harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <TAG>:fcn perimeter / harmonizing : 0
+NNJM::s([10, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn perimeter / <TAG>:content : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn perimeter / customs : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn perimeter <TAG>:content / and : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content and / immigration : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([6, 7), sécurité) NNJM: <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC / <BOS> <TAG>:fcn perimeter / <UNK> : 0
+NNJM::s([7, 8), involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <TAG>:fcn perimeter / <TAG>:content : 0
+NNJM::s([8, 9), l') NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <TAG>:fcn perimeter / <UNK> : 0
+NNJM::s([9, 10), harmonisation) NNJM: périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> / <BOS> <TAG>:fcn perimeter / <UNK> : 0
+NNJM::s([10, 11), des) NNJM: <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> / <BOS> <TAG>:fcn perimeter / <UNK> : 0
+NNJM::s([11, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn perimeter / <TAG>:content : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn perimeter / customs : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn perimeter <TAG>:content / and : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content and / immigration : 0
+NNJM::s([13, 14), .) NNJM: l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn perimeter / <TAG>:fcn : 0
+NNJM::s([4, 8), perimeter involves) NNJM: <BOS> la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC / <BOS> <BOS> <TAG>:fcn / perimeter : 0
+NNJM::s([4, 8), perimeter involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <TAG>:fcn perimeter / <TAG>:content : 0
+NNJM::s([6, 10), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([6, 10), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <TAG>:fcn <TAG>:content / harmonizing : 0
+NNJM::s([7, 11), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <BOS> <TAG>:fcn / <TAG>:content : 0
+NNJM::s([7, 11), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <TAG>:fcn <TAG>:content / harmonizing : 0
+NNJM::s([5, 8), involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <TAG>:fcn perimeter / <TAG>:content : 0
+NNJM::s([7, 10), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <TAG>:fcn perimeter / <TAG>:content : 0
+NNJM::s([7, 10), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <TAG>:fcn perimeter <TAG>:content / harmonizing : 0
+NNJM::s([8, 11), harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <TAG>:fcn perimeter / harmonizing : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn perimeter / customs : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn perimeter <TAG>:content / and : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content and / immigration : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([6, 8), involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <TAG>:fcn perimeter / <TAG>:content : 0
+NNJM::s([8, 10), harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <TAG>:fcn perimeter / harmonizing : 0
+NNJM::s([10, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn perimeter / <TAG>:content : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn perimeter / customs : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn perimeter <TAG>:content / and : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content and / immigration : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([7, 8), involves) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <TAG>:fcn perimeter / <TAG>:content : 0
+NNJM::s([8, 9), l') NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <TAG>:fcn perimeter / <UNK> : 0
+NNJM::s([9, 10), harmonisation) NNJM: périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> / <BOS> <TAG>:fcn perimeter / <UNK> : 0
+NNJM::s([10, 11), des) NNJM: <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> / <BOS> <TAG>:fcn perimeter / <UNK> : 0
+NNJM::s([11, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn perimeter / <TAG>:content : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn perimeter / customs : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn perimeter <TAG>:content / and : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content and / immigration : 0
+NNJM::s([13, 14), .) NNJM: l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn perimeter / <TAG>:fcn : 0
+NNJM::s([6, 10), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <TAG>:fcn perimeter / <TAG>:content : 0
+NNJM::s([6, 10), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <TAG>:fcn perimeter <TAG>:content / harmonizing : 0
+NNJM::s([7, 11), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <TAG>:fcn perimeter / <TAG>:content : 0
+NNJM::s([7, 11), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <TAG>:fcn perimeter <TAG>:content / harmonizing : 0
+NNJM::s([7, 10), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <TAG>:fcn perimeter / <TAG>:content : 0
+NNJM::s([7, 10), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <TAG>:fcn perimeter <TAG>:content / harmonizing : 0
+NNJM::s([8, 11), harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <TAG>:fcn perimeter / harmonizing : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn perimeter / customs : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn perimeter <TAG>:content / and : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content and / immigration : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([8, 10), harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <TAG>:fcn perimeter / harmonizing : 0
+NNJM::s([10, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn perimeter / <TAG>:content : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn perimeter / customs : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn perimeter <TAG>:content / and : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content and / immigration : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([8, 9), l') NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <TAG>:fcn perimeter <TAG>:content / <UNK> : 0
+NNJM::s([9, 10), harmonisation) NNJM: périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> / <TAG>:fcn perimeter <TAG>:content / <UNK> : 0
+NNJM::s([10, 11), des) NNJM: <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> / <TAG>:fcn perimeter <TAG>:content / <UNK> : 0
+NNJM::s([11, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:fcn perimeter <TAG>:content / <TAG>:content : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn perimeter <TAG>:content / customs : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content <TAG>:content / and : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:content <TAG>:content and / immigration : 0
+NNJM::s([13, 14), .) NNJM: l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn perimeter <TAG>:content / <TAG>:fcn : 0
+NNJM::s([6, 10), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <TAG>:fcn perimeter / <TAG>:content : 0
+NNJM::s([6, 10), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <TAG>:fcn perimeter <TAG>:content / harmonizing : 0
+NNJM::s([7, 11), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <TAG>:fcn perimeter / <TAG>:content : 0
+NNJM::s([7, 11), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <TAG>:fcn perimeter <TAG>:content / harmonizing : 0
+NNJM::s([7, 10), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <TAG>:fcn perimeter / <TAG>:content : 0
+NNJM::s([7, 10), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <TAG>:fcn perimeter <TAG>:content / harmonizing : 0
+NNJM::s([8, 11), harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <BOS> <TAG>:fcn perimeter / harmonizing : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <BOS> <TAG>:fcn perimeter / customs : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn perimeter <TAG>:content / and : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content and / immigration : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([8, 10), harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <TAG>:fcn perimeter <TAG>:content / harmonizing : 0
+NNJM::s([10, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:fcn perimeter <TAG>:content / <TAG>:content : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn perimeter <TAG>:content / customs : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content <TAG>:content / and : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:content <TAG>:content and / immigration : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([5, 6), de) NNJM: la <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete / perimeter <TAG>:content harmonizing / <UNK> : 0
+NNJM::s([10, 11), des) NNJM: <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> / perimeter <TAG>:content harmonizing / <UNK> : 0
+NNJM::s([11, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / perimeter <TAG>:content harmonizing / <TAG>:content : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content harmonizing / customs : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:content harmonizing <TAG>:content / and : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / harmonizing <TAG>:content and / immigration : 0
+NNJM::s([13, 14), .) NNJM: l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content harmonizing / <TAG>:fcn : 0
+NNJM::s([6, 7), sécurité) NNJM: <TAG>:NomC <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC / perimeter <TAG>:content harmonizing / <UNK> : 0
+NNJM::s([10, 11), des) NNJM: <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> / perimeter <TAG>:content harmonizing / <UNK> : 0
+NNJM::s([11, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / perimeter <TAG>:content harmonizing / <TAG>:content : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content harmonizing / customs : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:content harmonizing <TAG>:content / and : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / harmonizing <TAG>:content and / immigration : 0
+NNJM::s([13, 14), .) NNJM: l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content harmonizing / <TAG>:fcn : 0
+NNJM::s([7, 11), involves harmonizing) NNJM: <TAG>:Prep <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ / <BOS> <TAG>:fcn perimeter / <TAG>:content : 0
+NNJM::s([7, 11), involves harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <TAG>:fcn perimeter <TAG>:content / harmonizing : 0
+NNJM::s([8, 11), harmonizing) NNJM: <TAG>:Dete périmètre <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc / <TAG>:fcn perimeter <TAG>:content / harmonizing : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:fcn perimeter <TAG>:content / customs : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content <TAG>:content / and : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:content <TAG>:content and / immigration : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([10, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / perimeter <TAG>:content harmonizing / <TAG>:content : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content harmonizing / customs : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:content harmonizing <TAG>:content / and : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / harmonizing <TAG>:content and / immigration : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([10, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / perimeter <TAG>:content harmonizing / <TAG>:content : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content harmonizing / customs : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:content harmonizing <TAG>:content / and : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / harmonizing <TAG>:content and / immigration : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([10, 11), des) NNJM: <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> / perimeter <TAG>:content harmonizing / <UNK> : 0
+NNJM::s([11, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / perimeter <TAG>:content harmonizing / <TAG>:content : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content harmonizing / customs : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:content harmonizing <TAG>:content / and : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / harmonizing <TAG>:content and / immigration : 0
+NNJM::s([13, 14), .) NNJM: l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content harmonizing / <TAG>:fcn : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content harmonizing / customs : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:content harmonizing <TAG>:content / and : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / harmonizing <TAG>:content and / immigration : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content harmonizing / customs : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:content harmonizing <TAG>:content / and : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / harmonizing <TAG>:content and / immigration : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([10, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / perimeter <TAG>:content harmonizing / <TAG>:content : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content harmonizing / customs : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:content harmonizing <TAG>:content / and : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / harmonizing <TAG>:content and / immigration : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([10, 11), des) NNJM: <TAG>:Prep <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> / <TAG>:content and <TAG>:content / <UNK> : 0
+NNJM::s([11, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([13, 14), .) NNJM: l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:fcn : 0
+NNJM::s([11, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / perimeter <TAG>:content harmonizing / <TAG>:content : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content harmonizing / customs : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:content harmonizing <TAG>:content / and : 0
+NNJM::s([12, 13), customs and immigration) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / harmonizing <TAG>:content and / immigration : 0
+NNJM::s([13, 14), .) NNJM: l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content harmonizing / <TAG>:fcn : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content harmonizing / customs : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:content harmonizing <TAG>:content / and : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / harmonizing <TAG>:content and / immigration : 0
+NNJM::s([10, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([10, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / perimeter <TAG>:content harmonizing / customs : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / <TAG>:content harmonizing <TAG>:content / and : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> / harmonizing <TAG>:content and / immigration : 0
+NNJM::s([11, 13), customs and immigration policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([11, 12), policies) NNJM: <TAG>:NomC <TAG>:Verb l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:content : 0
+NNJM::s([13, 14), .) NNJM: l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> <EOS> / <TAG>:content and <TAG>:content / <TAG>:fcn : 0
+NNJM::s([13, 14), .) NNJM: l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> <EOS> / and <TAG>:content <TAG>:content / <TAG>:fcn : 0
+NNJM::s([13, 14), <EOS>) NNJM: <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> <EOS> <EOS> / <TAG>:content <TAG>:content <TAG>:fcn / <EOS> : 0
+NNJM::s([13, 14), .) NNJM: l' <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> <EOS> / and <TAG>:content <TAG>:content / <TAG>:fcn : 0
+NNJM::s([13, 14), <EOS>) NNJM: <TAG>:NomC <TAG>:Dete <TAG>:NomC <TAG>:AdjQ <TAG>:Punc <EOS> <EOS> <EOS> <EOS> <EOS> <EOS> / <TAG>:content <TAG>:content <TAG>:fcn / <EOS> : 0

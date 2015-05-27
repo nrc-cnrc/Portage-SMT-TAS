@@ -1,0 +1,5 @@
+[srcvoc] ../corpus/voc.src
+[tgtvoc] ../corpus/voc.tgt
+[outvoc] ../corpus/voc.out
+[tgtclasses] ../corpus/classes.en
+[dump]

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e
+
+assign-mkcls-tags.py classes.en < train_en.tok > train_en.tag
+
+nnjm-genex.py -isv 3 -itv 3 -ov 5 -stag train_fr.tag -ttag train_en.tag \
+    -voc voc train_fr.tok train_en.tok train.wal \
+    > nnjm.out
