@@ -12,6 +12,7 @@
 set -o errexit
 
 make clean
+make gitignore
 #make SETUP
 make -j 5 run_canoe
 make all
