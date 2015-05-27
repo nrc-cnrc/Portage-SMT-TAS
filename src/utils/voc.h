@@ -64,10 +64,10 @@ public:
    };
    struct indexConverter
    {
-      Voc& voc;   ///< Vocabulary used
+      const Voc& voc;   ///< Vocabulary used
       /// Default constructor.
       /// @param voc vocabulary to use
-      indexConverter(Voc& voc) : voc(voc) {}
+      indexConverter(const Voc& voc) : voc(voc) {}
 
       /**
        * Make the object a functor to map a string its uint representation.
