@@ -252,6 +252,13 @@ sub printForm {
                 "-- Check this box if input file contains tags and you want to process & transfer them.")),
           Tr({valign=>'top'},
              td({align=>'right'},
+                checkbox(-name=>'useConfidenceEstimation',
+                         -checked=>0,
+                         -label=>'')),
+             td(strong("Confidence Estimation"),
+                "-- Check this box if you want to use Confidence Estimation when a system provides Confidence Estimation.")),
+          Tr({valign=>'top'},
+             td({align=>'right'},
                 scrolling_list(-name=>'filter',
                                -default=>'no filtering',
                                -values=>[ 'no filtering', map(sprintf("%0.2f", $_), @filter_values) ],
@@ -347,7 +354,7 @@ sub processText {
     push @tr_opt, ("-verbose",
                   "-out=\"$work_dir/P.out\"",
                   "-dir=\"$work_dir\"");
-    push @tr_opt, ($CONTEXT{$context}->{ce_model}
+    push @tr_opt, ((param('useConfidenceEstimation') and $CONTEXT{$context}->{ce_model})
                    ? "-with-ce"
                    : "-decode-only");
     my $filter_threshold = (!defined param('filter') ? 0
