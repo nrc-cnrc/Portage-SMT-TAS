@@ -26,7 +26,7 @@ function debug($i) {
 class PortageLiveAPI {
 
    # Load models in memory
-   function primeModels($context, $PrimeMode) {
+   public function primeModels($context, $PrimeMode) {
       $rc = 0;
       $i = $this->getContextInfo($context);
       $this->validateContext($i);
@@ -40,7 +40,7 @@ class PortageLiveAPI {
    }
 
    # Gather all relevant information about translation context $context
-   function getContextInfo($context) {
+   public function getContextInfo($context) {
       $info = array();
       $info["context"] = $context;
       global $base_portage_dir;
@@ -80,7 +80,7 @@ class PortageLiveAPI {
    }
 
    # Enumerate all installed contexts
-   function getAllContexts($verbose = false) {
+   public function getAllContexts($verbose = false) {
       $contexts = array();
       global $base_portage_dir;
       $dirs = scandir("$base_portage_dir/models");
@@ -99,7 +99,7 @@ class PortageLiveAPI {
    # Validate the context described in context info $i, throwing SoapFault if
    # there are errors.
    # If $need_ce is true, also check that the context provides confidence estimation.
-   function validateContext(&$i, $need_ce = false) {
+   private function validateContext(&$i, $need_ce = false) {
       $context = $i["context"];
       if ( ! $i["good"] ) {
          if (!file_exists($i["context_dir"])) {
@@ -121,7 +121,7 @@ class PortageLiveAPI {
    #   If $exit_status is not NULL, set $exit_status to $command's exit status.
    # If $wantoutput is false, STDERR and STDOUT are discarded; required to
    # launch a background job using &, for example.
-   function runCommand($command, $src_string, &$i, &$exit_status = NULL, $wantoutput = true) {
+   private function runCommand($command, $src_string, &$i, &$exit_status = NULL, $wantoutput = true) {
       $cwd = "/tmp";
       global $base_portage_dir;
       $context_dir = $i["context_dir"];
@@ -190,7 +190,7 @@ class PortageLiveAPI {
    # Create a working directory based on $filename.
    # Throws SoapFault (faultcode=PortageServer) in case of error.
    # Returns the name of the directory created.
-   function makeWorkDir($filename) {
+   private function makeWorkDir($filename) {
       date_default_timezone_set("UTC");
       $timestamp = date("Ymd\THis\Z");
       $base = $this->normalizeName("SOAP_{$filename}_{$timestamp}");
@@ -204,7 +204,7 @@ class PortageLiveAPI {
    }
 
    # Normalize a name to keep only alphanumeric, dash, underscore, dot and plus
-   function normalizeName($filename) {
+   private function normalizeName($filename) {
       return preg_replace(array("/[^-_.+a-zA-Z0-9]/", '/[ .]$/', '/^[ .]/'), array("", '', ''), $filename);
    }
 
@@ -214,7 +214,7 @@ class PortageLiveAPI {
    # $filename is the name of the XML file.
    # If $xtags is true, transfer tags from the source-language segments to the translations.
    # $type indicates the type of XML file we're translating
-   function translateFileCE($contents_base64, $filename, $context, $ce_threshold, $xtags, $type) {
+   private function translateFileCE($contents_base64, $filename, $context, $ce_threshold, $xtags, $type) {
       $i = $this->getContextInfo($context);
       $this->validateContext($i, $ce_threshold > 0);
       $is_xml = $type === "tmx" or $type === "sdlxliff";
@@ -271,19 +271,19 @@ class PortageLiveAPI {
       return $monitor;
    }
 
-   function translateTMXCE($TMX_contents_base64, $TMX_filename, $context, $ce_threshold, $xtags) {
+   public function translateTMXCE($TMX_contents_base64, $TMX_filename, $context, $ce_threshold, $xtags) {
       return $this->translateFileCE($TMX_contents_base64, $TMX_filename, $context, $ce_threshold, $xtags, "tmx");
    }
 
-   function translateSDLXLIFFCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, $ce_threshold, $xtags) {
+   public function translateSDLXLIFFCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, $ce_threshold, $xtags) {
       return $this->translateFileCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, $ce_threshold, $xtags, "sdlxliff");
    }
 
-   function translatePlainTextCE($PlainText_contents_base64, $PlainText_filename, $context, $ce_threshold, $xtags) {
+   public function translatePlainTextCE($PlainText_contents_base64, $PlainText_filename, $context, $ce_threshold, $xtags) {
       return $this->translateFileCE($PlainText_contents_base64, $PlainText_filename, $context, $ce_threshold, $xtags, "plaintext");
    }
 
-   function translateFileCE_Status($monitor_token) {
+   private function translateFileCE_Status($monitor_token) {
       $tokens = preg_split("/[?&]/", $monitor_token);
       $info = array();
       foreach ($tokens as $token) {
@@ -328,21 +328,21 @@ class PortageLiveAPI {
       }
    }
 
-   function translateTMXCE_Status($monitor_token) {
+   public function translateTMXCE_Status($monitor_token) {
       return $this->translateFileCE_Status($monitor_token);
    }
 
-   function translateSDLXLIFFCE_Status($monitor_token) {
+   public function translateSDLXLIFFCE_Status($monitor_token) {
       return $this->translateFileCE_Status($monitor_token);
    }
 
-   function translatePlainTextCE_Status($monitor_token) {
+   public function translatePlainTextCE_Status($monitor_token) {
       return $this->translateFileCE_Status($monitor_token);
    }
 
    # This function would be nice to use but we have case aka "a<1>b</1>" is not
    # valid xml since tag aren't allowed to start with digits.
-   function checkIsThisXML($string) {
+   private function checkIsThisXML($string) {
       $test = "<?xml version='1.0'" . "?" . ">\n<document>" . $string . "</document>";
       #$test = "<document>" . $string . "</document>";
       if (simplexml_load_string($test) == FALSE) {
@@ -355,7 +355,7 @@ class PortageLiveAPI {
    # param newline:  what is the interpretation of newline in the input
    # param xtags:  Transfer tags
    # param withCE:  Should we use confidence estimation?
-   function translateText($src_string, $context, $newline, $xtags, $withCE) {
+   private function translateText($src_string, $context, $newline, $xtags, $withCE) {
       #$this->checkIsThisXML($src_string);
       if (!($newline == "s" or $newline == "p" or $newline == "w"))
          throw new SoapFault("PortageBadArgs", "Illegal newline type " . $newline . "\nAllowed newline types are: s, p or w");
@@ -373,21 +373,21 @@ class PortageLiveAPI {
    }
 
    # Translate $src_string using model $context and confidence estimation
-   function getTranslationCE($src_string, $context, $newline, $xtags) {
+   public function getTranslationCE($src_string, $context, $newline, $xtags) {
       return $this->translateText($src_string, $context, $newline, $xtags, true);
    }
 
    # Translate $src_string using model $context
-   function getTranslation2($src_string, $context, $newline, $xtags) {
+   public function getTranslation2($src_string, $context, $newline, $xtags) {
       return $this->translateText($src_string, $context, $newline, $xtags, false);
    }
 
    # Translate $src_string using the default context
-   function getTranslation($src_string, $newline, $xtags) {
+   public function getTranslation($src_string, $newline, $xtags) {
       return $this->translateText($src_string, "context", $newline, $xtags, false);
    }
 
-   function updateFixedTerms($content, $filename, $encoding, $context, $sourceColumnIndex, $sourceLanguage, $targetLanguage) {
+   public function updateFixedTerms($content, $filename, $encoding, $context, $sourceColumnIndex, $sourceLanguage, $targetLanguage) {
       #error_log(func_get_args(), 3, '/tmp/PortageLiveAPI.debug.log');
       $encoding = strtolower($encoding);
       if (!($encoding == 'cp-1252' or $encoding == 'utf-8')) {
@@ -445,7 +445,7 @@ class PortageLiveAPI {
       return true;
    }
 
-   function getFixedTerms($context) {
+   public function getFixedTerms($context) {
       $contextInfo = $this->getContextInfo($context);
       $this->validateContext($contextInfo);
 
@@ -464,7 +464,7 @@ class PortageLiveAPI {
       return $content;
    }
 
-   function removeFixedTerms($context) {
+   public function removeFixedTerms($context) {
       $contextInfo = $this->getContextInfo($context);
       $this->validateContext($contextInfo);
 
