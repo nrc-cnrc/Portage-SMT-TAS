@@ -390,7 +390,7 @@ sub processText {
         open(my $P, "<${tr_output}") or problem("Can't open output file ${tr_output}");
         my @p = readline($P);
         close $P;
-        textBoxOutput(param('textbox'), @p);
+        textBoxOutput(param('textbox'), $work_dir, @p);
     }
 }
 
@@ -431,7 +431,10 @@ sub monitor {
 # - @target: target language translation, as a list of text segments
 
 sub textBoxOutput {
-    my ($source, @target) = @_;
+    my ($source, $workDir, @target) = @_;
+
+    # strip out webroot since the traceFile argument to plive-monitor will have the webroot prepended later on.
+    $workDir =~ s#^$WEB_PATH##;
 
     print header(-type=>'text/html',
                  -charset=>'utf-8');
@@ -448,6 +451,14 @@ sub textBoxOutput {
         h2("Translation:"),
         p(join("<br>", map { HTML::Entities::encode_entities($_, '<>&') } @target));
     print p(a({-href=>"plive.cgi?context=".param('context')}, "Translate more text"));
+    print p("To view the out-of-vocabulary words click here: ",
+          a({-href=>"$workDir/oov.html"}, "OOVs"),
+          ".");
+
+    print p(a({-href=>"$workDir/pal.html"}, "To view the phrase aligments click here."));
+    print p("In case of problems, have a look at the job's ",
+             a({-href=>"plive-monitor.cgi?traceFile=$workDir/trace"}, "trace file"),
+             ".");
     #my @params = param();
     #print "<PRE> @params </PRE>";
     #foreach my $param (@params) {
