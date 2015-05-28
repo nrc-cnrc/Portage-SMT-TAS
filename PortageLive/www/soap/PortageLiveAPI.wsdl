@@ -6,14 +6,16 @@
   <documentation>
     file: PortageLiveAPI.wsdl
     brief: Definition of the API to the Portage SMT software suite.
-    author: Patrick Paul, Eric Joanis and Samuel Larkin
+    author: Samuel Larkin, Patrick Paul and Eric Joanis
 
   Traitement multilingue de textes / Multilingual Text Processing
   Technologies de l'information et des communications /
     Information and Communications Technologies
   Conseil national de recherches Canada / National Research Council Canada
-  Copyright 2009 - 2014, Sa Majesté la Reine du Chef du Canada /
-  Copyright 2009 - 2014, Her Majesty in Right of Canada
+  Copyright 2009 - 2015, Sa Majesté la Reine du Chef du Canada /
+  Copyright 2009 - 2015, Her Majesty in Right of Canada
+
+  ChangeLog
   </documentation>
   <!-- ============================================================
                          M E S S A G E S
@@ -22,33 +24,50 @@
     <part name="context" type="xsd:string"/>
     <part name="PrimeMode" type="xsd:string"/>
   </message>
+  <message name="primeModelsResponse">
+    <part name="status" type="xsd:boolean"/>
+  </message>
+
   <message name="getAllContextsRequest">
     <part name="verbose" type="xsd:boolean"/>
   </message>
-  <message name="getTranslationRequest">
+  <message name="getAllContextsResponse">
+    <part name="contexts" type="xsd:string"/>
+  </message>
+
+  <message name="translateRequest">
     <part name="srcString" type="xsd:string"/>
+    <part name="context" type="xsd:string"/>
     <part name="newline" type="xsd:string"/>
     <part name="xtags" type="xsd:boolean"/>
+    <part name="useCE" type="xsd:boolean"/>
   </message>
-  <message name="getTranslationResponse">
+  <message name="translateResponse">
     <part name="Result" type="xsd:string"/>
+  </message>
+
+  <message name="translateFileRequest">
+    <part name="ContentsBase64" type="xsd:string"/>
+    <part name="Filename" type="xsd:string"/>
+    <part name="context" type="xsd:string"/>
+    <part name="useCE" type="xsd:boolean"/>
+    <part name="xtags" type="xsd:boolean"/>
+  </message>
+  <message name="translateXmlFileRequest">
+    <part name="ContentsBase64" type="xsd:string"/>
+    <part name="Filename" type="xsd:string"/>
+    <part name="context" type="xsd:string"/>
+    <part name="useCE" type="xsd:boolean"/>
+    <part name="CETreshold" type="xsd:decimal"/>
+    <part name="xtags" type="xsd:boolean"/>
   </message>
   <message name="translationToken">
     <part name="token" type="xsd:string"/>
   </message>
-  <message name="getTranslation2Request">
-    <part name="srcString" type="xsd:string"/>
-    <part name="context" type="xsd:string"/>
-    <part name="newline" type="xsd:string"/>
-    <part name="xtags" type="xsd:boolean"/>
+  <message name="translateFileStatusResponse">
+    <part name="token" type="xsd:string"/>
   </message>
-  <message name="translateFileCERequest">
-    <part name="ContentsBase64" type="xsd:string"/>
-    <part name="Filename" type="xsd:string"/>
-    <part name="context" type="xsd:string"/>
-    <part name="CETreshold" type="xsd:decimal"/>
-    <part name="xtags" type="xsd:boolean"/>
-  </message>
+
   <message name="updateFixedTermRequest">
     <part name="ContentsBase64" type="xsd:base64Binary"/>
     <part name="Filename" type="xsd:string"/>
@@ -61,17 +80,25 @@
   <message name="updateFixedTermResponse">
     <part name="status" type="xsd:boolean"/>
   </message>
+
   <message name="getFixedTermRequest">
     <part name="context" type="xsd:string"/>
   </message>
   <message name="getFixedTermResponse">
     <part name="ContentsBase64" type="xsd:base64Binary"/>
   </message>
+
   <message name="removeFixedTermRequest">
     <part name="context" type="xsd:string"/>
   </message>
   <message name="removeFixedTermResponse">
     <part name="status" type="xsd:boolean"/>
+  </message>
+
+  <message name="getVersionRequest">
+  </message>
+  <message name="getVersionResponse">
+    <part name="version" type="xsd:string"/>
   </message>
   <!-- ============================================================
                       P O R T   T Y P E S
@@ -106,8 +133,9 @@
            error, normally described by the faultcode and explained by the faulstring.
       </documentation>
       <input message="tns:primeModelsRequest"/>
-      <output message="tns:getTranslationResponse"/>
+      <output message="tns:primeModelsResponse"/>
     </operation>
+
     <operation name="getAllContexts">
       <documentation>
         Get the list of contexts installed on the PortageLive server.
@@ -121,17 +149,10 @@
         Throws a SoapFault exception in case of a protocol or connection error.
       </documentation>
       <input message="tns:getAllContextsRequest"/>
-      <output message="tns:getTranslationResponse"/>
+      <output message="tns:getAllContextsResponse"/>
     </operation>
-    <operation name="getTranslation">
-      <documentation>
-        Same as getTranslation2(), but using the default context.  See
-        getTranslation2() for documentation.
-      </documentation>
-      <input message="tns:getTranslationRequest"/>
-      <output message="tns:getTranslationResponse"/>
-    </operation>
-    <operation name="getTranslation2">
+
+    <operation name="translate">
       <documentation>
         Translate text using the specified context.
 
@@ -164,29 +185,12 @@
          - otherwise some other problem occurred, normally described by the
            faultcode and explained by the faulstring.
       </documentation>
-      <input message="tns:getTranslation2Request"/>
-      <output message="tns:getTranslationResponse"/>
+      <input message="tns:translateRequest"/>
+      <output message="tns:translateResponse"/>
     </operation>
-    <operation name="getTranslationCE">
-      <documentation>
-        Translate text using the specified context, and calculate confidence scores
-        on the translation.  The result is the translation, one sentence per line,
-        with the confidence score preceeding each translation, separated by a tab
-        character.  Note that blank lines in the input will also get a confidence
-        score in the output; this score is meaningless and should be ignored.
 
-        See getTranslation2() for argument and SoapFault documentation, with the
-        following exceptions:
-         - the newline="p" mode does not currently work correctly with confidence
-           estimation: the confidence scores will not be attached to the right
-           sentence.  Use "s" or "w" only.
-         - a SoapFault with faultcode="PortageContext" will also be thrown if the
-           context does not support confidence estimation.
-      </documentation>
-      <input message="tns:getTranslation2Request"/>
-      <output message="tns:getTranslationResponse"/>
-    </operation>
-    <operation name="translateTMXCE">
+
+    <operation name="translateTMX">
       <documentation>
         Submit a request to translate a TMX file using the specified context.
 
@@ -194,15 +198,17 @@
          - context must be a valid context identifier as returned by getAllContexts().
          - TMXContentsBase64 is the contents of the TMX file in base64 encoding.
          - TMXFilename is the name of the TMX file.
-         - IF CETreshold is greater than 0, confidence estimation is used to
+         - useCE enables generating CE scores which in turn enables CETreshold.
+         - If CETreshold is greater than 0, confidence estimation is used to
            filter out translations with confidence score below the threshold
            (valid values are between 0 and 1).
+           CETreshold must be set to 0 if useCE is false.
          - If xtags is true, tags in the source sentences are transfered to the
            target sentences.
 
         Returns a token used to monitor the job.  The token can be used in one of
         two ways: it is a URL you can use to interactively monitor the job in a
-        browser.  Or you can pass it as argument to translateTMXCE_Status().
+        browser.  Or you can pass it as argument to translateFileStatus().
 
         Throws SoapFault in case of problems.
         If the faultcode is "PortageContext", the problem is with the context
@@ -212,14 +218,51 @@
         otherwise some other problem occurred, normally described by the
         faultcode and explained by the faulstring.
       </documentation>
-      <input message="tns:translateFileCERequest"/>
+      <input message="tns:translateXmlFileRequest"/>
       <output message="tns:translationToken"/>
     </operation>
-    <operation name="translateTMXCE_Status">
+    <operation name="translateSDLXLIFF">
       <documentation>
-        Get the status of a job submitted using translateTMXCE().
+        Does the same thing as translateTMX(), but for SDLXLIFF file.
+        See the documentation of translateTMX() for details.
+      </documentation>
+      <input message="tns:translateXmlFileRequest"/>
+      <output message="tns:translationToken"/>
+    </operation>
+    <operation name="translatePlainText">
+      <documentation>
+        Submit a request to translate a TMX file using the specified context.
 
-        token must be the token returned by a previous call to translateTMXCE().
+        Arguments:
+         - context must be a valid context identifier as returned by getAllContexts().
+         - TMXContentsBase64 is the contents of the TMX file in base64 encoding.
+         - TMXFilename is the name of the TMX file.
+         - useCE enables generating CE scores.
+         - If xtags is true, tags in the source sentences are transfered to the
+           target sentences.
+
+        Returns a token used to monitor the job.  The token can be used in one of
+        two ways: it is a URL you can use to interactively monitor the job in a
+        browser.  Or you can pass it as argument to translateFileStatus().
+
+        Throws SoapFault in case of problems.
+        If the faultcode is "PortageContext", the problem is with the context
+        (including the case where the context does not support confidence
+        estimation and CETreshold&gt;0),
+        if it is "PortageServer", the problem is with PortageLive server,
+        otherwise some other problem occurred, normally described by the
+        faultcode and explained by the faulstring.
+      </documentation>
+      <input message="tns:translateFileRequest"/>
+      <output message="tns:translationToken"/>
+    </operation>
+
+
+    <operation name="translateFileStatus">
+      <documentation>
+        Get the status of a job submitted using translateTMX().
+
+        token must be the token returned by a previous call to translateTMX().
 
         Returns a string containing a one digit code followed by a human readable
         description of the status.
@@ -241,42 +284,10 @@
         Throws a SoapFault exception in case of a protocol or connection error.
       </documentation>
       <input message="tns:translationToken"/>
-      <output message="tns:getTranslationResponse"/>
+      <output message="tns:translateFileStatusResponse"/>
     </operation>
-    <operation name="translateSDLXLIFFCE">
-      <documentation>
-        Does the same thing as translateTMXCE(), but for SDLXLIFF file.
-        See the documentation of translateTMXCE() for details.
-      </documentation>
-      <input message="tns:translateFileCERequest"/>
-      <output message="tns:translationToken"/>
-    </operation>
-    <operation name="translateSDLXLIFFCE_Status">
-      <documentation>
-        Works the same as translateTMXCE_Status(), accepting the token returned
-        by translateSDLXLIFFCE().
-        See the documentation of translateTMXCE_Status() for details.
-      </documentation>
-      <input message="tns:translationToken"/>
-      <output message="tns:getTranslationResponse"/>
-    </operation>
-    <operation name="translatePlainTextCE">
-      <documentation>
-        Does the same thing as translateTMXCE(), but for plain text file.
-        See the documentation of translateTMXCE() for details.
-      </documentation>
-      <input message="tns:translateFileCERequest"/>
-      <output message="tns:translationToken"/>
-    </operation>
-    <operation name="translatePlainTextCE_Status">
-      <documentation>
-        Works the same as translateTMXCE_Status(), accepting the token returned
-        by translatePlainTextCE().
-        See the documentation of translateTMXCE_Status() for details.
-      </documentation>
-      <input message="tns:translationToken"/>
-      <output message="tns:getTranslationResponse"/>
-    </operation>
+
+
     <operation name="updateFixedTerms">
       <documentation>
          Given a translation system that is instrumented to process fixed
@@ -339,8 +350,17 @@
 
          Throws a SoapFault exception in case of a protocol or connection error.
       </documentation>
-      <input message="tns:getFixedTermRequest"/>
-      <output message="tns:getFixedTermResponse"/>
+      <input message="tns:removeFixedTermRequest"/>
+      <output message="tns:removeFixedTermResponse"/>
+    </operation>
+
+    <operation name="getVersion">
+      <documentation>
+         Returns the current API's version.
+         Throws a SoapFault exception in case of a protocol or connection error.
+      </documentation>
+      <input message="tns:getVersionRequest"/>
+      <output message="tns:getVersionResponse"/>
     </operation>
   </portType>
   <!-- ============================================================
@@ -366,8 +386,8 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
-    <operation name="getTranslation">
-      <soap:operation soapAction="getTranslation"/>
+    <operation name="translate">
+      <soap:operation soapAction="translate"/>
       <input>
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </input>
@@ -375,8 +395,10 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
-    <operation name="getTranslation2">
-      <soap:operation soapAction="getTranslation2"/>
+
+
+    <operation name="translateFileStatus">
+      <soap:operation soapAction="translateFileStatus"/>
       <input>
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </input>
@@ -384,8 +406,10 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
-    <operation name="getTranslationCE">
-      <soap:operation soapAction="getTranslationCE"/>
+
+
+    <operation name="translateTMX">
+      <soap:operation soapAction="translateTMX"/>
       <input>
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </input>
@@ -393,8 +417,8 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
-    <operation name="translateTMXCE">
-      <soap:operation soapAction="translateTMXCE"/>
+    <operation name="translateSDLXLIFF">
+      <soap:operation soapAction="translateSDLXLIFF"/>
       <input>
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </input>
@@ -402,8 +426,8 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
-    <operation name="translateTMXCE_Status">
-      <soap:operation soapAction="translateTMXCE_Status"/>
+    <operation name="translatePlainText">
+      <soap:operation soapAction="translatePlainText"/>
       <input>
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </input>
@@ -411,42 +435,7 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
-    <operation name="translateSDLXLIFFCE">
-      <soap:operation soapAction="translateSDLXLIFFCE"/>
-      <input>
-        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
-      </input>
-      <output>
-        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
-      </output>
-    </operation>
-    <operation name="translateSDLXLIFFCE_Status">
-      <soap:operation soapAction="translateSDLXLIFFCE_Status"/>
-      <input>
-        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
-      </input>
-      <output>
-        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
-      </output>
-    </operation>
-    <operation name="translatePlainTextCE">
-      <soap:operation soapAction="translatePlainTextCE"/>
-      <input>
-        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
-      </input>
-      <output>
-        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
-      </output>
-    </operation>
-    <operation name="translatePlainTextCE_Status">
-      <soap:operation soapAction="translatePlainTextCE_Status"/>
-      <input>
-        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
-      </input>
-      <output>
-        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
-      </output>
-    </operation>
+
     <operation name="updateFixedTerms">
       <soap:operation soapAction="updateFixedTerms"/>
       <input>
@@ -474,6 +463,16 @@
         <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
       </output>
     </operation>
+
+    <operation name="getVersion">
+      <soap:operation soapAction="getVersion"/>
+      <input>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </input>
+      <output>
+        <soap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:cnrc-nrc:portageliveservice" use="encoded"/>
+      </output>
+    </operation>
   </binding>
   <!-- ============================================================
                          S E R V I C E
@@ -484,7 +483,7 @@
       software suite.
 
       Typical usage: call getAllContexts() to obtain the list of trained
-      systems available on the server, and then call getTranslation2() for each
+      systems available on the server, and then call translate() for each
       unit of text you need to translate.
 
       The context embeds a number of parameters that are configured on the
@@ -499,12 +498,10 @@
       processing, listing just the contexts installed on the server, while
       the verbose mode adds human-readable details such as language
       direction and whether confidence estimation is available. (See
-      getTranslationCE()).
+      translateCE()).
 
-      To translate text, call getTranslation2() with the desired
-      context.  getTranslation() does the same thing, using the default
-      context on the server.
-      In both cases, srcString is the raw text to be translated.  It should
+      To translate text, call translate() with the desired context.
+      srcString is used for the raw text to be translated.  It should
       be plain text, optionally with markup.  The text will be split in
       sentences and translated.  The result will respect the paragraph
       structure specified by the newline parameter.
@@ -518,7 +515,7 @@
       is provided to you by the server administrator.
       Before the series of requests starts:
       primeModels(context, "partial");
-      loop: getTranslation2(srcText, context, "p", false);
+      loop: translate(srcText, context, "p", false);
 
       &lt;b>Constraints&lt;/b>
       &lt;b>Time-out issues&lt;/b>: because the SOAP API calls are made through the HTTP
@@ -526,7 +523,7 @@
       Apache server time-out, browser or other client time-out, etc.  If
       you're submitting large amounts of text for translation that might
       exceed typical time-outs, you should split the input into smaller
-      chunks, e.g., paragraphs, and make several calls to getTranslation2().
+      chunks, e.g., paragraphs, and make several calls to translate().
       Asynchronous methods exist for translating TMX and XLIFF files, but
       not yet for plain text.
 

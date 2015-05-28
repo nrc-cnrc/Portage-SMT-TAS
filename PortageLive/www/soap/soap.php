@@ -8,8 +8,8 @@
 # Technologies de l'information et des communications /
 #   Information and Communications Technologies
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2009 - 2011, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2009 - 2011, Her Majesty in Right of Canada
+# Copyright 2009 - 2015, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2009 - 2015, Her Majesty in Right of Canada
 
 # This works if this file and the WSDL and PortageLive service are on the same
 # machine and in the same directory:
@@ -21,9 +21,6 @@ $WSDL="PortageLiveAPI.wsdl";
 $context = "";
 $button = "";
 $monitor_token = "";
-$file_xtags = 0;
-$to_translate_xtags = 0;
-$newline = "";
 #print_r( $_POST);  // Nice for debug POST's values.
 if ( $_POST ) {
    if ( array_key_exists('context', $_POST) ) {
@@ -42,37 +39,22 @@ if ( $_POST ) {
          $button = "getFixedTerms";
       if ( array_key_exists('removeFixedTerms', $_POST) )
          $button = "removeFixedTerms";
-   }
-
-   if ( array_key_exists('context', $_POST) ) {
-      $context = $_POST['context'];
       if ( array_key_exists('Prime', $_POST) )
          $button = "Prime";
    }
 
-   if ( array_key_exists('newline', $_POST) )
-      $newline = $_POST['newline'];
+   if ( array_key_exists('MonitorJob', $_POST) )
+      $button = "MonitorJob";
 
    if ( array_key_exists('ce_threshold', $_POST) )
       $ce_threshold = $_POST['ce_threshold'] + 0;
    else
       $ce_threshold = 0;
 
-   if ( array_key_exists('file_xtags', $_POST) )
-      $file_xtags = 1;
-   else
-      $file_xtags = 0;
-
-   if ( array_key_exists('to_translate_xtags', $_POST) )
-      $to_translate_xtags = 1;
-   else
-      $to_translate_xtags = 0;
-
    if ( array_key_exists('monitor_token', $_POST) )
       $monitor_token = $_POST['monitor_token'];
-   if ( array_key_exists('MonitorJob', $_POST) )
-      $button = "MonitorJob";
-} else {
+}
+else {
    $ce_threshold = 0;
 }
 
@@ -87,6 +69,416 @@ function displayFault($exception, $title = "SOAP Fault:") {
    echo "Fault line: " . $exception->getLine() . "\n";
    echo "</pre>";
    print "</div>\n";
+}
+
+function listContext() {
+   try {
+      global $WSDL;
+      $client = new SoapClient($WSDL);
+      $call = $client->getAllContexts(false);
+      $tokens = preg_split("/;/", $call);
+
+      print "<SELECT NAME = \"context\">\n";
+      foreach ($tokens as $token) {
+         if ($context == $token) {
+            print "<OPTION SELECTED=\"selected\" VALUE=\"$token\">$token</OPTION>\n";
+         }
+         else {
+            print "<OPTION VALUE=\"$token\">$token</OPTION>\n";
+         }
+      }
+      print "<OPTION VALUE=\"InvalidContext\">Invalid context for debugging</OPTION>\n";
+      print "</SELECT>\n";
+   }
+   catch (SoapFault $exception) {
+      displayFault($exception, "SOAP Fault trying to list contexts:");
+   }
+}
+
+function getAllContexts($verbose) {
+   try {
+      global $WSDL;
+      $client = new SoapClient($WSDL);
+      return $client->getAllContexts($verbose);
+   }
+   catch (SoapFault $exception) {
+      displayFault($exception, "SOAP Fault trying to list contexts:");
+   }
+}
+
+# @param type  either translateTMXCE or translateSDLXLIFFCE which represent
+#              what function to call depending on what is the type of the file
+#              argument.
+# @paran file  $_FILES["sdlxliff_filename"] or $_FILES["tmx_filename"]
+function processFile($type, $file) {
+   global $context;
+   global $ce_threshold;
+
+   $filename = $file["name"];
+   $file_xtags = array_key_exists('file_xtags', $_POST);
+   $use_Confidence_Estimation = array_key_exists('use_Confidence_Estimation', $_POST);
+
+   print "<section id='file_translation'>\n";
+   print "<header>$type</header>\n";
+   print "<b>Translating using $type and file: </b> $filename <br/>";
+   print "<b>Context: </b> $context <br/>";
+   print "<b>Processed on: </b> " . `date` . "<br/>";
+
+   if ( is_uploaded_file($file["tmp_name"]) ) {
+      $tmp_file = $file["tmp_name"];
+      //print "<br/><b>$type Upload OK.  Trace: </b> " . print_r($file, true);
+      $tmp_contents = file_get_contents($tmp_file);
+      $tmp_contents_base64 = base64_encode($tmp_contents);
+      //print "<br/><b>file contents len: </b> " . strlen($tmp_contents) .
+      //      " <b>base64 len: </b> " . strlen($tmp_contents_base64);
+
+      try {
+         global $WSDL;
+         $client = new SoapClient($WSDL);
+
+         $ce_threshold += 0;
+         $reply = $client->$type($tmp_contents_base64, $filename, $context, $ce_threshold, $file_xtags, $use_Confidence_Estimation);
+
+         print "<b>Portage replied: </b>$reply";
+         print "<br/><a href=\"$reply\">Monitor job interactively</a>";
+         global $monitor_token;
+         $monitor_token = $reply;
+         //print "<br/><b>Trace: </b>"; var_dump($client);
+      }
+      catch (SoapFault $exception) {
+         displayFault($exception);
+      }
+
+   }
+   else {
+      print "<br/><b>$type Upload error.  Trace: </b> " . print_r($file, true);
+      $file_error_codes = array(
+            0=>"There is no error, the file uploaded with success",
+            1=>"The uploaded file exceeds the upload_max_filesize directive in php.ini",
+            2=>"The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form",
+            3=>"The uploaded file was only partially uploaded",
+            4=>"No file was uploaded",
+            6=>"Missing a temporary folder",
+            7=>"Failed to write file to disk",
+            8=>"A PHP extension stopped the file upload",
+            );
+      print "<br/><b>Error code description: </b> {$file_error_codes[$file["error"]]}";
+   }
+
+   print "<hr/><b>Done processing on: </b>" . `date`;
+   print "</section>\n";
+}
+
+function primeTestCase($WSDL, $context, $PrimeMode) {
+   print "<section id='prime'>\n";
+   print "<header>Prime</header>\n";
+   try {
+      $PrimeMode = $_POST['PrimeMode'];
+      $client = new SoapClient($WSDL);
+      $rc = $client->primeModels($context, $PrimeMode);
+      print "Prime Models ($context, $PrimeMode) rc = $rc<br />";  // DEBUGGING
+      if ($rc === true)
+         print "<div class=\"PRIME SUCCESS\">Primed successfully!</div>";
+      else {
+         // This case should never happen since primeModels either returns true or a soapFault.
+         print "<div class=\"PRIME ERROR\">INVALID return code.</div>";
+      }
+   }
+   catch (SoapFault $exception) {
+      print "<div class=\"PRIME ERROR\">\n";
+      displayFault($exception, "Error with primeModels");
+      print "</div>\n";
+   }
+   print "</section\n>";
+}
+
+function updateFixedTermsTestCase($WSDL) {
+   #print_r($_POST);  // Nice for debug POST's values.
+   #print_r($_FILES);  // Nice for debug POST's values.
+   global $context;
+   $file = $_FILES["fixedTermsFilename"];
+   $filename = $file["name"];
+   print "<section id='updateFixedTermesResponse'>\n";
+   print "<header>Update Fixed Terms</header>\n";
+   print "<b>Updating fixed terms using file: </b> $filename <br/>";
+   print "<b>Context: </b> $context <br/>";
+   print "<b>Processed on: </b> " . `date` . "<br/>";
+
+   $sourceColumnIndex = -1;
+   if ( array_key_exists('fixedTermsSourceColumn', $_POST) ) {
+      $sourceColumnIndex = $_POST['fixedTermsSourceColumn'];
+   }
+   else {
+   }
+
+   $sourceLanguage = 'UNDEF';
+   if ( array_key_exists('fixedTermsSourceLanguage', $_POST) ) {
+      $sourceLanguage = $_POST['fixedTermsSourceLanguage'];
+   }
+   else {
+   }
+
+   $targetLanguage = 'UNDEF';
+   if ( array_key_exists('fixedTermsTargetLanguage', $_POST) ) {
+      $targetLanguage = $_POST['fixedTermsTargetLanguage'];
+   }
+   else {
+   }
+
+   $encoding = 'UNDEF';
+   if ( array_key_exists('encoding', $_POST) ) {
+      $encoding = $_POST['encoding'];
+   }
+   else {
+   }
+
+   if ( is_uploaded_file($file["tmp_name"]) ) {
+      $tmp_file = $file["tmp_name"];
+      //print "<br/><b>$type Upload OK.  Trace: </b> " . print_r($file, true);
+      $tmp_contents = file_get_contents($tmp_file);
+      //print "<br/><b>file contents len: </b> " . strlen($tmp_contents) .
+      //      " <b>base64 len: </b> " . strlen($tmp_contents);
+
+      try {
+         $client = new SoapClient($WSDL);
+
+         $reply = $client->updateFixedTerms($tmp_contents, $filename, $encoding, $context, $sourceColumnIndex, $sourceLanguage, $targetLanguage);
+
+         if ($reply)
+            print "<div class=\"SUCCESS\">Updated fixed terms successfully!</div>";
+         else
+            print "<div class=\"ERROR\">Error updating fixed terms.</div>";
+      }
+      catch (SoapFault $exception) {
+         displayFault($exception);
+      }
+   }
+   else {
+      print "<br/><b>$type Upload error.  Trace: </b> " . print_r($file, true);
+      $file_error_codes = array(
+            0=>"There is no error, the file uploaded with success",
+            1=>"The uploaded file exceeds the upload_max_filesize directive in php.ini",
+            2=>"The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form",
+            3=>"The uploaded file was only partially uploaded",
+            4=>"No file was uploaded",
+            6=>"Missing a temporary folder",
+            7=>"Failed to write file to disk",
+            8=>"A PHP extension stopped the file upload",
+            );
+      print "<br/><b>Error code description: </b> {$file_error_codes[$file["error"]]}";
+   }
+
+   print "<hr/><b>Done processing on: </b>" . `date`;
+   print "</section>\n";
+}
+
+function getFixedTermsTestCase($WSDL, $context) {
+   print "<section id='getFixedTermsResponse'>\n";
+   print "<header>Get Fixed Terms List</header>\n";
+   try {
+      $client = new SoapClient($WSDL);
+
+      $reply = $client->getFixedTerms($context);
+
+      if ($reply) {
+         print "<div class=\"SUCCESS\">Get Fixed terms successfully!</div>";
+         print "<textarea name=\"fixed terms list\" rows=\"10\" cols=\"50\">$reply</textarea>\n";
+      }
+      else
+         print "<div class=\"ERROR\">Error getting fixed terms.</div>";
+   }
+   catch (SoapFault $exception) {
+      displayFault($exception);
+   }
+   print "</section>\n";
+}
+
+function removeFixedTermsTestCase($WSDL, $context) {
+   print "<section id='removeFixedTermsResponse'>\n";
+   print "<header>Remove Fixed Terms List</header>\n";
+   try {
+      $client = new SoapClient($WSDL);
+
+      $reply = $client->removeFixedTerms($context);
+
+      if ($reply) {
+         print "<div class=\"SUCCESS\">Remove fixed terms successfully!</div>";
+      }
+      else
+         print "<div class=\"ERROR\">Error removing fixed terms.</div>";
+   }
+   catch (SoapFault $exception) {
+      displayFault($exception);
+   }
+   print "</section>\n";
+}
+
+function monitorJobTestCase($WSDL, $button, $monitor_token) {
+   try {
+      $client = new SoapClient($WSDL);
+      if ( $button == "TranslateTMX" or $button == "TranslateSDLXLIFF" or $button == "TranslatePlainText") {
+         $reply = $client->translateFileStatus($monitor_token);
+      }
+      else {
+         print "<B>Unknown type: $monitor_token</B><BR/>\n";
+      }
+      print "<hr/><b>Job status: </b> $reply";
+      if ( preg_match("/^0 Done: (\S*)/", $reply, $matches) )
+         print "<br/>Right click and save: <a href=\"$matches[1]\">Translated content</a>";
+      print "<br/><a href=\"$monitor_token\">Switch to interactive job monitoring</a>";
+   }
+   catch (SoapFault $exception) {
+      displayFault($exception);
+   }
+}
+
+function translateTestCase($WSDL, $context) {
+   $newline = "p";
+   if ( array_key_exists('newline', $_POST) )
+      $newline = $_POST['newline'];
+
+   $to_translate_xtags = array_key_exists('to_translate_xtags', $_POST);
+   $to_translate = $_POST['to_translate'];
+
+   print "<section id='source_text'>\n";
+   print "<header>Source text</header>\n";
+   print "<b>Translating: </b>";
+   print "<div><code>" . nl2br(htmlspecialchars($to_translate)) . "</code></div>";
+   print "<b>Context:</b> $context <br/>";
+   print "<b>newline:</b> $newline <br/>";
+   echo "<b>xtags?:</b> ", ($to_translate_xtags ? "TRUE" : "FALSE"), "<br/>";
+   print "<b>Processed on: </b> " . `date` . "<br/>";
+   print "</section>\n";
+
+   $client = "";
+   try {
+      $client = new SoapClient($WSDL);
+   }
+   catch (SoapFault $exception) {
+      displayFault($exception);
+   }
+
+
+   print "<section id='translateWithDefaultContext'>\n";
+   $start_time = microtime(true);
+   try {
+      print "<header>translate() with default context</header>\n";
+      print "<b>Portage translate() replied: </b>";
+      $reply = nl2br(htmlspecialchars($client->translate($to_translate, "context", $newline, $to_translate_xtags, false)));
+      print "<div><code>\n";
+      print "$reply\n";
+      print "</code></div>\n";
+      //print "<br/><b>Trace: </b>"; var_dump($client);
+   }
+   catch (SoapFault $exception) {
+      displayFault($exception);
+   }
+   $end_time = microtime(true);
+   printf("<b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
+   print "<b>Finished at: </b>" . `date` . "<br/>";
+   print "</section>\n";
+
+
+   print "<section id='translateWithoutConfidenceEstimation'>\n";
+   $start_time = microtime(true);
+   try {
+      print "<header>translate() without Confidence Estimation</header>\n";
+      print "<b>translate() replied: </b>";
+      $reply = nl2br(htmlspecialchars($client->translate($to_translate, $context, $newline, $to_translate_xtags, false)));
+      print "<div><code>\n";
+      print "$reply\n";
+      print "</code></div>\n";
+      //print "<br/><b>Trace: </b>"; var_dump($client);
+   }
+   catch (SoapFault $exception) {
+      displayFault($exception);
+   }
+   $end_time = microtime(true);
+   printf("<b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
+   print "<b>Finished at: </b>" . `date` . "<br/>";
+   print "</section>\n";
+
+
+   print "<section id='translateWithConfidenceEstimation'>\n";
+   $start_time = microtime(true);
+   try {
+      print "<header>translate() with Confidence Estimation</header>\n";
+      print "<b>translate() replied: </b>";
+      $reply = nl2br(htmlspecialchars($client->translate($to_translate, $context, $newline, $to_translate_xtags, true)));
+      print "<div><code>\n";
+      print "$reply\n";
+      print "</code></div>\n";
+      //print "<br/><b>Trace: </b>"; var_dump($client);
+   }
+   catch (SoapFault $exception) {
+      displayFault($exception);
+   }
+   $end_time = microtime(true);
+   printf("<b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
+   print "<b>Finished at: </b>" . `date` . "<br/>";
+   print "</section>\n";
+
+
+
+   /*
+      try {
+      }
+      catch (SoapFault $exception) {
+      if ($exception->faultcode == "PortageContext") {
+      print "<HR/><b>PortageContext error: </b>{$exception->faultstring}<br/>";
+      }
+      else {
+      print "<HR/><b>Unknown SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}<BR/>";
+      print "<br/><b>exception: </b>";
+      var_dump($exception);
+      print "<br/><b>client: </b>";
+      var_dump($client);
+      }
+      }
+    */
+}
+
+function testSuite($WSDL) {
+   global $button;
+   global $context;
+   global $PrimeMode;
+   global $monitor_token;
+
+   if ( $button == "Prime"  && $_POST['Prime'] != "" ) {
+      primeTestCase($WSDL, $context, $PrimeMode);
+   }
+   else
+   if ( $button == "updateFixedTerms" && $_FILES['fixedTermsFilename']['name'] != "") {
+      updateFixedTermsTestCase($WSDL);
+   }
+   else
+   if ( $button == "getFixedTerms") {
+      getFixedTermsTestCase($WSDL, $context);
+   }
+   else
+   if ( $button == "removeFixedTerms") {
+      removeFixedTermsTestCase($WSDL, $context);
+   }
+   else
+   if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
+      translateTestCase($WSDL, $context);
+   }
+   else
+   if ( $button == "TranslateTMX" && $_FILES["tmx_filename"]["name"] != "") {
+      processFile("translateTMX", $_FILES["tmx_filename"]);
+   }
+   else
+   if ($button == "TranslateSDLXLIFF" && $_FILES["sdlxliff_filename"]["name"] != "") {
+      processFile("translateSDLXLIFF", $_FILES["sdlxliff_filename"]);
+   }
+   else
+   if ($button == "TranslatePlainText" && $_FILES["plain_text_filename"]["name"] != "") {
+      processFile("translatePlainText", $_FILES["plain_text_filename"]);
+   }
+   else
+   if ( $button == "MonitorJob" && !empty($monitor_token) ) {
+      monitorJobTestCase($WSDL, $button, $monitor_token);
+   }
 }
 
 ?>
@@ -150,27 +542,7 @@ Link to <a href="<?php echo $WSDL;?>">the WSDL</a> and its
 <section id='context'>
 <header>Context</header>
 <br/> Context:
-<SELECT NAME = "context">
-<?php
-try {
-   $client = new SoapClient($WSDL);
-   $call = $client->getAllContexts(false);
-   $tokens = preg_split("/;/", $call);
-   foreach ($tokens as $token) {
-      if ($context == $token) {
-         print "<OPTION SELECTED=\"selected\" VALUE=\"$token\">$token</OPTION>";
-      }
-      else {
-         print "<OPTION VALUE=\"$token\">$token</OPTION>";
-      }
-   }
-}
-catch (SoapFault $exception) {
-   displayFault($exception, "SOAP Fault trying to list contexts:");
-}
-?>
-<OPTION VALUE="InvalidContext">Invalid context for debugging</OPTION>
-</SELECT>
+<?php listContext() ?>
 </section>
 
 <section id='prime'>
@@ -322,6 +694,15 @@ OR
 -- Check this box if input text contains tags and you want to process &amp; transfer them.
 </td>
 </tr>
+<tr valign="top">
+<td>
+<INPUT TYPE = "checkbox" Name = "use_Confidence_Estimation" VALUE = "Use Confidence Estimation if available."/>
+</td>
+<td>
+<b>Confidence Estimation</b>
+-- Check this box if you want to use Confidence Estimation when a system provides Confidence Estimation.
+</td>
+</tr>
 <tr>
 <td>
 <INPUT TYPE = "TEXT"   Name = "ce_threshold"  VALUE = "<?php echo $ce_threshold;?>" SIZE="4" />
@@ -338,359 +719,14 @@ CE threshold for filtering (between 0 and 1; 0.0 = no filter)
 </FORM>
 
 
-<?php
+<section id='getAllContexts'>
+<header>getAllContexts()</header>
+<b>Contexts: </b> <?php print getAllContexts(false) ?> <br/>
+<br/>
+<b>Verbose contexts: </b> <?php print getAllContexts(true) ?> <br/>
+</section>
 
-print "<section id='getAllContexts'>\n";
-print "<header>getAllContexts()</header>\n";
-try {
-   $client = new SoapClient($WSDL);
-   print "<b>Contexts: </b>" . $client->getAllContexts(false) . "</br>";
-   print "<br/><b>Verbose contexts: </b>" . $client->getAllContexts(true) . "</br>";
-}
-catch (SoapFault $exception) {
-   displayFault($exception, "SOAP Fault trying to list contexts:");
-}
-print "</section>\n";
-
-
-# @param type  either translateTMXCE or translateSDLXLIFFCE which represent
-#              what function to call depending on what is the type of the file
-#              argument.
-# @paran file  $_FILES["sdlxliff_filename"] or $_FILES["tmx_filename"]
-function processFile($type, $file) {
-   global $context;
-   global $ce_threshold;
-   global $file_xtags;
-   $filename = $file["name"];
-   print "<section id='file_translation'>\n";
-   print "<header>$type</header>\n";
-   print "<b>Translating using $type and file: </b> $filename <br/>";
-   print "<b>Context: </b> $context <br/>";
-   print "<b>Processed on: </b> " . `date` . "<br/>";
-
-   if ( is_uploaded_file($file["tmp_name"]) ) {
-      $tmp_file = $file["tmp_name"];
-      //print "<br/><b>$type Upload OK.  Trace: </b> " . print_r($file, true);
-      $tmp_contents = file_get_contents($tmp_file);
-      $tmp_contents_base64 = base64_encode($tmp_contents);
-      //print "<br/><b>file contents len: </b> " . strlen($tmp_contents) .
-      //      " <b>base64 len: </b> " . strlen($tmp_contents_base64);
-
-      try {
-         global $WSDL;
-         $client = new SoapClient($WSDL);
-
-         $ce_threshold += 0;
-         $reply = $client->$type($tmp_contents_base64, $filename, $context, $ce_threshold, $file_xtags);
-
-         print "<b>Portage replied: </b>$reply";
-         print "<br/><a href=\"$reply\">Monitor job interactively</a>";
-         global $monitor_token;
-         $monitor_token=$reply;
-         //print "<br/><b>Trace: </b>"; var_dump($client);
-      } catch (SoapFault $exception) {
-         displayFault($exception);
-      }
-
-   } else {
-      print "<br/><b>$type Upload error.  Trace: </b> " . print_r($file, true);
-      $file_error_codes = array(
-            0=>"There is no error, the file uploaded with success",
-            1=>"The uploaded file exceeds the upload_max_filesize directive in php.ini",
-            2=>"The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form",
-            3=>"The uploaded file was only partially uploaded",
-            4=>"No file was uploaded",
-            6=>"Missing a temporary folder",
-            7=>"Failed to write file to disk",
-            8=>"A PHP extension stopped the file upload",
-            );
-      print "<br/><b>Error code description: </b> {$file_error_codes[$file["error"]]}";
-   }
-
-   print "<hr/><b>Done processing on: </b>" . `date`;
-   print "</section>\n";
-}
-
-if ( $button == "Prime"  && $_POST['Prime'] != "" ) {
-   print "<section id='prime'>\n";
-   print "<header>Prime</header>\n";
-   try {
-      $PrimeMode = $_POST['PrimeMode'];
-      $client = new SoapClient($WSDL);
-      $rc = $client->primeModels($context, $PrimeMode);
-      //print "Prime Models ($context, $PrimeMode) rc = $rc<br />";  // DEBUGGING
-      print "<div class=\"PRIME SUCCESS\">Primed successfully!</div>";
-      if ($rc != "OK")
-         print "<div class=\"PRIME ERROR\">INVALID return code.</div>";
-   }
-   catch (SoapFault $exception) {
-      print "<div class=\"PRIME ERROR\">\n";
-      displayFault($exception, "Error with primeModels");
-      print "</div>\n";
-      //print "<div class=\"PRIME ERROR\">Error with primeModels:<br/><b>{$exception->faultcode}</b><br/>{$exception->faultstring}</div>";
-   }
-   print "</section\n>";
-}
-else
-if ( $button == "updateFixedTerms" && $_FILES['fixedTermsFilename']['name'] != "") {
-   #print_r($_POST);  // Nice for debug POST's values.
-   #print_r($_FILES);  // Nice for debug POST's values.
-   global $context;
-   $file = $_FILES["fixedTermsFilename"];
-   $filename = $file["name"];
-   print "<section id='updateFixedTermesResponse'>\n";
-   print "<header>Update Fixed Terms</header>\n";
-   print "<b>Updating fixed terms using file: </b> $filename <br/>";
-   print "<b>Context: </b> $context <br/>";
-   print "<b>Processed on: </b> " . `date` . "<br/>";
-
-   $sourceColumnIndex = -1;
-   if ( array_key_exists('fixedTermsSourceColumn', $_POST) ) {
-      $sourceColumnIndex = $_POST['fixedTermsSourceColumn'];
-   }
-   else {
-   }
-
-   $sourceLanguage = 'UNDEF';
-   if ( array_key_exists('fixedTermsSourceLanguage', $_POST) ) {
-      $sourceLanguage = $_POST['fixedTermsSourceLanguage'];
-   }
-   else {
-   }
-
-   $targetLanguage = 'UNDEF';
-   if ( array_key_exists('fixedTermsTargetLanguage', $_POST) ) {
-      $targetLanguage = $_POST['fixedTermsTargetLanguage'];
-   }
-   else {
-   }
-
-   $encoding = 'UNDEF';
-   if ( array_key_exists('encoding', $_POST) ) {
-      $encoding = $_POST['encoding'];
-   }
-   else {
-   }
-
-   if ( is_uploaded_file($file["tmp_name"]) ) {
-      $tmp_file = $file["tmp_name"];
-      //print "<br/><b>$type Upload OK.  Trace: </b> " . print_r($file, true);
-      $tmp_contents = file_get_contents($tmp_file);
-      //print "<br/><b>file contents len: </b> " . strlen($tmp_contents) .
-      //      " <b>base64 len: </b> " . strlen($tmp_contents);
-
-      try {
-         global $WSDL;
-         $client = new SoapClient($WSDL);
-
-         $reply = $client->updateFixedTerms($tmp_contents, $filename, $encoding, $context, $sourceColumnIndex, $sourceLanguage, $targetLanguage);
-
-         if ($reply)
-            print "<div class=\"SUCCESS\">Updated fixed terms successfully!</div>";
-         else
-            print "<div class=\"ERROR\">Error updating fixed terms.</div>";
-      }
-      catch (SoapFault $exception) {
-         displayFault($exception);
-      }
-   }
-   else {
-      print "<br/><b>$type Upload error.  Trace: </b> " . print_r($file, true);
-      $file_error_codes = array(
-            0=>"There is no error, the file uploaded with success",
-            1=>"The uploaded file exceeds the upload_max_filesize directive in php.ini",
-            2=>"The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form",
-            3=>"The uploaded file was only partially uploaded",
-            4=>"No file was uploaded",
-            6=>"Missing a temporary folder",
-            7=>"Failed to write file to disk",
-            8=>"A PHP extension stopped the file upload",
-            );
-      print "<br/><b>Error code description: </b> {$file_error_codes[$file["error"]]}";
-   }
-
-   print "<hr/><b>Done processing on: </b>" . `date`;
-   print "</section>\n";
-}
-else
-if ( $button == "getFixedTerms") {
-   print "<section id='getFixedTermsResponse'>\n";
-   print "<header>Get Fixed Terms List</header>\n";
-   try {
-      global $WSDL;
-      #global $context;
-      $context = $_POST['context'];
-      $client = new SoapClient($WSDL);
-
-      $reply = $client->getFixedTerms($context);
-
-      if ($reply) {
-         print "<div class=\"SUCCESS\">Get Fixed terms successfully!</div>";
-         print "<textarea name=\"fixed terms list\" rows=\"10\" cols=\"50\">$reply</textarea>\n";
-      }
-      else
-         print "<div class=\"ERROR\">Error getting fixed terms.</div>";
-   }
-   catch (SoapFault $exception) {
-      displayFault($exception);
-   }
-   print "</section>\n";
-}
-else
-if ( $button == "removeFixedTerms") {
-   print "<section id='removeFixedTermsResponse'>\n";
-   print "<header>Remove Fixed Terms List</header>\n";
-   try {
-      global $WSDL;
-      #global $context;
-      $context = $_POST['context'];
-      $client = new SoapClient($WSDL);
-
-      $reply = $client->removeFixedTerms($context);
-
-      if ($reply) {
-         print "<div class=\"SUCCESS\">Remove fixed terms successfully!</div>";
-      }
-      else
-         print "<div class=\"ERROR\">Error removing fixed terms.</div>";
-   }
-   catch (SoapFault $exception) {
-      displayFault($exception);
-   }
-   print "</section>\n";
-}
-else
-if ( $button == "TranslateBox" && $_POST['to_translate'] != "") {
-   $to_translate = $_POST['to_translate'];
-
-   print "<section id='source_text'>\n";
-   print "<header>Source text</header>\n";
-   print "<b>Translating: </b>";
-   print "<div><code>" . nl2br(htmlspecialchars($to_translate)) . "</code></div>";
-   print "<b>Context: </b> $context <br/>";
-   print "<b>Processed on: </b> " . `date` . "<br/>";
-   print "</section>\n";
-
-   $client = "";
-   try {
-      $client = new SoapClient($WSDL);
-   }
-   catch (SoapFault $exception) {
-      displayFault($exception);
-   }
-
-   print "<section id='getTranslation_result'>\n";
-   $start_time = microtime(true);
-   try {
-      print "<header>getTranslation()</header>\n";
-      print "<b>Portage getTranslation() replied: </b>";
-      $reply = nl2br(htmlspecialchars($client->getTranslation($to_translate, $newline, $to_translate_xtags)));
-      print "<div><code>\n";
-      print "$reply\n";
-      print "</code></div>\n";
-      //print "<br/><b>Trace: </b>"; var_dump($client);
-   }
-   catch (SoapFault $exception) {
-      displayFault($exception);
-   }
-   $end_time = microtime(true);
-   printf("<b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
-   print "<b>Finished at: </b>" . `date` . "<br/>";
-   print "</section>\n";
-
-   print "<section id='getTranslation2_result'>\n";
-   $start_time = microtime(true);
-   try {
-      print "<header>getTranslation2()</header>\n";
-      print "<b>getTranslation2() replied: </b>";
-      $reply = nl2br(htmlspecialchars($client->getTranslation2($to_translate, $context, $newline, $to_translate_xtags)));
-      print "<div><code>\n";
-      print "$reply\n";
-      print "</code></div>\n";
-      //print "<br/><b>Trace: </b>"; var_dump($client);
-   }
-   catch (SoapFault $exception) {
-      displayFault($exception);
-   }
-   $end_time = microtime(true);
-   printf("<b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
-   print "<b>Finished at: </b>" . `date` . "<br/>";
-   print "</section>\n";
-
-   print "<section id='getTranslationCE_result'>\n";
-   $start_time = microtime(true);
-   try {
-      print "<header>getTranslationCE()</header>\n";
-      print "<b>getTranslationCE() replied: </b>";
-      $reply = nl2br(htmlspecialchars($client->getTranslationCE($to_translate, $context, $newline, $to_translate_xtags)));
-      print "<div><code>\n";
-      print "$reply\n";
-      print "</code></div>\n";
-      //print "<br/><b>Trace: </b>"; var_dump($client);
-   }
-   catch (SoapFault $exception) {
-      displayFault($exception);
-   }
-   $end_time = microtime(true);
-   printf("<b>Translating took: </b>%.2f seconds <br/>", $end_time-$start_time);
-   print "<b>Finished at: </b>" . `date` . "<br/>";
-   print "</section>\n";
-
-
-
-   /*
-      try {
-      } catch (SoapFault $exception) {
-      if ($exception->faultcode == "PortageContext") {
-      print "<HR/><b>PortageContext error: </b>{$exception->faultstring}<br/>";
-      } else {
-      print "<HR/><b>Unknown SOAP Fault: </b>faultcode: {$exception->faultcode}, faultstring: {$exception->faultstring}<BR/>";
-      print "<br/><b>exception: </b>";
-      var_dump($exception);
-      print "<br/><b>client: </b>";
-      var_dump($client);
-      }
-      }
-    */
-}
-else
-if ( $button == "TranslateTMX" && $_FILES["tmx_filename"]["name"] != "") {
-   processFile("translateTMXCE", $_FILES["tmx_filename"]);
-}
-else
-if ($button == "TranslateSDLXLIFF" && $_FILES["sdlxliff_filename"]["name"] != "") {
-   processFile("translateSDLXLIFFCE", $_FILES["sdlxliff_filename"]);
-}
-else
-if ($button == "TranslatePlainText" && $_FILES["plain_text_filename"]["name"] != "") {
-   processFile("translatePlainTextCE", $_FILES["plain_text_filename"]);
-}
-else
-if ( $button == "MonitorJob" && !empty($monitor_token) ) {
-   try {
-      $client = new SoapClient($WSDL);
-      if ( $button == "TranslateTMX") {
-         $reply = $client->translateTMXCE_Status($monitor_token);
-      }
-      else
-      if ($button == "TranslateSDLXLIFF") {
-         $reply = $client->translateSDLXLIFFCE_Status($monitor_token);
-      }
-      else {
-         print "<B>Unknown type: $monitor_token</B><BR/>\n";
-      }
-      print "<hr/><b>Job status: </b> $reply";
-      if ( preg_match("/^0 Done: (\S*)/", $reply, $matches) )
-         print "<br/>Right click and save: <a href=\"$matches[1]\">Translated content</a>";
-      print "<br/><a href=\"$monitor_token\">Switch to interactive job monitoring</a>";
-   }
-   catch (SoapFault $exception) {
-      displayFault($exception);
-   }
-}
-
-
-?>
+<?php testSuite($WSDL); ?>
 
 <section id='monitor_job'>
 <header>Monitor a job</header>
@@ -721,7 +757,11 @@ Job Token:
 	 <img alt="NRC-ICT" src="images/sidenav_graphicbottom_e.gif" />
       </td>
       <td align="center" valign="top">
-	 <small>Traitement multilingue de textes / Multilingual Text Processing <br /> Technologies de l'information et des communications / Information and Communications Technologies <br /> Conseil national de recherches Canada / National Research Council Canada <br /> Copyright 2004&ndash;2014, Sa Majest&eacute; la Reine du Chef du Canada /  Her Majesty in Right of Canada <br /> <a href="/portage_notices.html">Third party Copyright notices</a>
+	 <small>Traitement multilingue de textes / Multilingual Text Processing <br />
+            Technologies de l'information et des communications / Information and Communications Technologies <br />
+            Conseil national de recherches Canada / National Research Council Canada <br />
+            Copyright 2004&ndash;2014, Sa Majest&eacute; la Reine du Chef du Canada /  Her Majesty in Right of Canada <br />
+            <a href="/portage_notices.html">Third party Copyright notices</a>
 	 </small>
       </td>
    </tr>
