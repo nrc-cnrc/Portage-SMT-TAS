@@ -17,6 +17,14 @@ Phrase Alignment and Out-Of-Vocabulary
   div {
      background-color: Gainsboro;
   }
+
+  noscript > p {
+     color: red;
+     font-style: italic;
+     border: 25px solid red;
+     padding: 25px;
+     margin: 25px;
+  }
 </style>
 
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
@@ -124,5 +132,10 @@ $(phraseAlignment.getData);
   <p>
     Mouse over words or phrases to see their alignment with their counter parts.
   </p>
+  <noscript>
+    <p id="thereIsNoScript">
+      To enable interactive phrase alignment highlights, you need javavascipt.
+    </p>
+  </noscript>
   </body>
 </html>
