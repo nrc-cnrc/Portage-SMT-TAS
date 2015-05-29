@@ -20,6 +20,8 @@ _log.cvs*
 *.eps
 *.svg
 *.rpm
+*.patch
+*.orig
 
 # patterns for files created while running the unit test suites
 _log.run-test
