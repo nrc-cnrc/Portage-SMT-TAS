@@ -1,0 +1,14 @@
+la	Dete
+création	NomC
+d'	Prep
+un	Dete
+périmètre	NomC
+de	Prep
+sécurité	NomC
+suppose	Verb
+l'	Dete
+harmonisation	NomC
+des	Dete
+politiques	NomC
+douanières	AdjQ
+.	Punc

@@ -13,11 +13,12 @@
 
 CANOE := canoe
 
-TEMP_DIRS=out
+TEMP_DIRS=out out2
 TEMP_FILES= *~
 include ../Makefile.incl
 
 all: cmp_out/log cmp_out/log.noal
+all: cmp_out2/log cmp_out2/log.noal
 
 out:
 	mkdir -p out
@@ -26,7 +27,19 @@ cmp_out/%: out out/%
 	egrep '^(NNJM|Warning):' out/$* | diff - ref/$* -q
 
 out/log:
-	${CANOE} -f models/canoe.ini -srctags corpus/train_fr.tag < corpus/train_fr.tok >& out/log
+	${CANOE} -f models/canoe.ini -srctags corpus/train_fr.tag < corpus/train_fr.tok >& $@
 
 out/log.noal:
-	${CANOE} -f models/canoe.noal.ini -srctags corpus/train_fr.tag < corpus/train_fr.tok >& out/log.noal
+	${CANOE} -f models/canoe.noal.ini -srctags corpus/train_fr.tag < corpus/train_fr.tok >& $@
+
+out2:
+	mkdir -p out2
+
+cmp_out2/%: out2 out2/%
+	egrep '^(NNJM|Warning):' out2/$* | sed 's/nnjm2/nnjm/' | diff - ref/$* -q
+
+out2/log:
+	${CANOE} -f models/canoe.ini -nnjm-file models/nnjm2 < corpus/train_fr.tok >& $@
+
+out2/log.noal:
+	${CANOE} -f models/canoe.noal.ini -nnjm-file models/nnjm2 < corpus/train_fr.tok >& $@
