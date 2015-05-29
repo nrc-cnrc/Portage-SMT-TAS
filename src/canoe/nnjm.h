@@ -47,6 +47,7 @@ class NNJM : public DecoderFeature {
    Voc srcvoc;   // for words in source sentence
    Voc tgtvoc;   // for words in target history
    Voc outvoc;   // for predicted words
+   map<string,string> srctags;  // srcword -> tag ; optional alterative to canoe -srctags option
    map<string,string> tgttags;  // tgtword -> tag
    map<string, NNJMAbstract*> file_to_nnjm; // filename -> NNJMAbstract object
    vector<NNJMAbstract*> nnjm_wraps; // python pickled NNJM or plain txt native NNJM

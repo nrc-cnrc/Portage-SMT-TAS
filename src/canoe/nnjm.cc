@@ -137,6 +137,15 @@ NNJM::NNJM(BasicModelGenerator* bmg, const string& arg, bool arg_is_filename) :
       } else if (toks[i] == "[outvoc]") {
          checkArg(toks, i++, 1);
          have_tgt_tags = readVoc(dir, toks[i], outvoc) || have_tgt_tags;
+      } else if (toks[i] == "[srcclasses]") {
+         checkArg(toks, i++, 1);
+         iSafeMagicStream is(adjustRelativePath(dir, toks[i]));
+         while (getline(is, line)) {
+            vector<string> sc = split<string>(line); // word\tclass
+            if (sc.size() != 2)
+               error(ETFatal, "expected 'word\ttag' entries in <%s>", toks[i].c_str());
+            srctags[sc[0]] = sc[1];
+         }
       } else if (toks[i] == "[tgtclasses]") {
          checkArg(toks, i++, 1);
          iSafeMagicStream is(adjustRelativePath(dir, toks[i]));
@@ -270,16 +279,28 @@ void NNJM::newSrcSent(const newSrcSentInfo& info)
 {
    NNJM_MEMORY_FOOTPRINT_PRINT(cerr << score_cache.getStats() << endl;)
    score_cache.clear();
-   if (have_src_tags && info.src_sent_tags.empty() && !info.src_sent.empty())
-      error(ETFatal, "you need to specify source tags via the canoe -srctags option with this NNJM model");
-   if (info.src_sent_tags.size() != info.src_sent.size())
+   vector<string> src_sent_tags;
+   if (have_src_tags && !info.src_sent.empty()) {
+      if (!srctags.empty()) {
+         src_sent_tags.reserve(info.src_sent.size());
+         for (Uint i = 0; i < info.src_sent.size(); ++i) {
+            map<string,string>::iterator p = srctags.find(info.src_sent[i]);
+            src_sent_tags.push_back(p == srctags.end() ? string("<unk>") : p->second);
+         }
+      } else if (!info.src_sent_tags.empty()) {
+         src_sent_tags = info.src_sent_tags;
+      } else {
+         error(ETFatal, "you need to specify source tags via the canoe -srctags option with this NNJM model");
+      }
+   }
+   if (src_sent_tags.size() != info.src_sent.size())
       error(ETFatal, "number of tags doesn't match number of tokens for input sentence %d",
             info.external_src_sent_id);
    src_pad.assign(srcwindow/2, BOS);
    for (Uint i = 0; i < info.src_sent.size(); ++i) {
       Uint ind = srcvoc.index(info.src_sent[i].c_str());
       if (ind == srcvoc.size()) { // word not in voc
-         const string s = tag_prefix + info.src_sent_tags[i];
+         const string s = tag_prefix + src_sent_tags[i];
          ind = srcvoc.index(s.c_str());
          if (ind == srcvoc.size()) // tag not in voc
             ind = UNK;
