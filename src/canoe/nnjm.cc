@@ -34,6 +34,8 @@ entries in the form 'index <TAG>tag'.)\n\
 [srcvoc] file containing vocabulary for source language\n\
 [tgtvoc] file containing vocabulary for target history\n\
 [outvoc] file containing vocabulary for target predictions\n\
+[srcclasses] file containing source class mapping in the form 'word\tindex'\n\
+        (for context-dependent tags, used canoe's -srctags option instead)\n\
 [tgtclasses] file containing target class mapping in the form 'word\tindex'\n\
 [file] file containing saved python model, accessed via nnjm.py\n\
 [dump] dump every call (debugging only!)\n\
