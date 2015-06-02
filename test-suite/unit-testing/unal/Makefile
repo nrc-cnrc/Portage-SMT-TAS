@@ -28,10 +28,10 @@ configtool: check nf weights
 check: cpt.top.fr2en.gz
 	configtool check canoe.ini
 
-nf:
+nf: cpt.top.fr2en.gz
 	configtool nf canoe.ini | diff - <(echo 12)
 
-weights:
+weights: cpt.top.fr2en.gz
 	configtool weights canoe.ini | diff - <(echo ' -d 1 -w 0 -unal 1:1:1:1:1 -lm 1 -tm 1 -ftm 1 -atm 1:1')
 
 
