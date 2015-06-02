@@ -85,11 +85,11 @@ my $out = shift || "-";
 
 my $psep = $p ? "\n\n" : "\n";
 
-open(IN, "<$in") || die "Error: tokenize.pl: Can't open $in for reading";
-open(OUT, ">$out") || die "Error: tokenize.pl: Can't open $out for writing";
+zopen(*IN, "<$in") || die "Error: tokenize.pl: Can't open $in for reading";
+zopen(*OUT, ">$out") || die "Error: tokenize.pl: Can't open $out for writing";
 
 if ( !$ss && !$noss ) {
-   die "Error: tokenize.pl: One of -ss and -noss is now required.\n";
+   die "Error: tokenize.pl: One of -ss and -noss is now required; the old default (-ss) frequently caused unexpected behaviour, so we disabled it.\n";
 }
 if ( $notok && $pretok ) {
    die "Error: tokenize.pl: Specify only one of -notok or -pretok.\n";
@@ -98,10 +98,10 @@ if ( $ss && $noss ) {
    die "Error: tokenize.pl: Specify only one of -ss or -noss.\n";
 }
 if ( $noss && $notok ) {
-   warn "Warning: Just copying the input since -noss and -notok are both specified.\n";
+   warn "Warning: tokenize.pl: Just copying the input since -noss and -notok are both specified.\n";
 }
 if ( $noss && $pretok ) {
-   warn "Warning: Just copying the input since -noss and -pretok are both specified.\n";
+   warn "Warning: tokenize.pl: Just copying the input since -noss and -pretok are both specified.\n";
 }
 
 # Enable immediate flush when piping
@@ -110,16 +110,12 @@ select(OUT); $| = 1;
 while (1)
 {
    my $para;
-   if ($noss)
-   {
-      unless (defined($para = <IN>))
-      {
+   if ($noss || ($paraline && $p)) {
+      unless (defined($para = <IN>)) {
          last;
       }
-   } else
-   {
-      unless ($para = get_para(\*IN, $paraline))
-      {
+   } else {
+      unless ($para = get_para(\*IN, $paraline)) {
          last;
       }
    }

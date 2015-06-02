@@ -106,12 +106,15 @@ periods.detok.utf8: periods.tok.utf8
 .PHONY: not_option
 HYPHENS = hyphens.noss hyphens.notok hyphens.pretok hyphens.noss.notok
 PERIODS = periods.noss periods.notok periods.pretok periods.noss.notok
+PARAOUT = hyphens.ss.tok.paraline.p hyphens.ss.tok.paraline hyphens.ss.tok.p
 not_option: ${HYPHENS} $(addsuffix .utf8, ${HYPHENS})
 not_option: ${PERIODS} $(addsuffix .utf8, ${PERIODS})
+not_option: ${PARAOUT} $(addsuffix .utf8, ${PARAOUT})
 
 # Verify that the not option targets match the reference.
 compare_not_option: $(addprefix compare., ${HYPHENS} $(addsuffix .utf8, ${HYPHENS}))
 compare_not_option: $(addprefix compare., ${PERIODS} $(addsuffix .utf8, ${PERIODS}))
+compare_not_option: $(addprefix compare., ${PARAOUT} $(addsuffix .utf8, ${PARAOUT}))
 
 # Adding dependencies to french-hyphens.
 french-hyphens: compare_not_option
@@ -168,6 +171,24 @@ periods.noss.notok: periods
 periods.noss.notok.utf8: periods.utf8
 	${UTOKENIZE} -lang=en -noss -notok < $< > $@
 
+# -p option
+hyphens.ss.tok.paraline.p: hyphens
+	${TOKENIZE} -lang=fr -ss -paraline -p < $< > $@
+
+hyphens.ss.tok.paraline.p.utf8: hyphens.utf8
+	${UTOKENIZE} -lang=fr -ss -paraline -p < $< > $@
+
+hyphens.ss.tok.paraline: hyphens
+	${TOKENIZE} -lang=fr -ss -paraline < $< > $@
+
+hyphens.ss.tok.paraline.utf8: hyphens.utf8
+	${UTOKENIZE} -lang=fr -ss -paraline < $< > $@
+
+hyphens.ss.tok.p: hyphens
+	${TOKENIZE} -lang=fr -ss -p < $< > $@
+
+hyphens.ss.tok.p.utf8: hyphens.utf8
+	${UTOKENIZE} -lang=fr -ss -p < $< > $@
 
 # Chinese specific.
 chinese-punc.detok.000: chinese-punc
@@ -263,10 +284,10 @@ es.source:
 	echo "${SOURCE_ES}" > $@
 
 es.tok: es.source
-	${UTOKENIZE} -lang=es -ss < $< | tee $@
+	${UTOKENIZE} -lang=es -ss < $< > $@
 
 es.detok: es.tok
-	${UDETOKENIZE} -lang=es < $< | tee $@
+	${UDETOKENIZE} -lang=es < $< > $@
 
 
 ################################################################################

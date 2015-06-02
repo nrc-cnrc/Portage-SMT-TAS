@@ -140,7 +140,9 @@ sub get_para #(\*FILEHANDLE, $one_para_per_line)
    my $line_count = 0;
 
    # skip leading blank lines
-
+   # Yes, even in $one_para_per_line mode: this method looks for and returns
+   # the first non-empty paragraph. Just use <IN> in cases where the output
+   # must be line-aligned to the input.
    while ($line = <$fh>) {
       if ($line !~ /^\s*$/o) {
          $para .= $line;
@@ -148,7 +150,9 @@ sub get_para #(\*FILEHANDLE, $one_para_per_line)
          last;
       }
    }
-   if ($line && ($line =~ /^\s*<[^>]+>\s*$/o || $one_para_per_line)) {return $para;}
+   if ($line && ($line =~ /^\s*<[^>]+>\s*$/o || $one_para_per_line)) {
+      return $para;
+   }
 
    while ($line = <$fh>) {
       if ($line =~ /^\s*$/o) {last;}
