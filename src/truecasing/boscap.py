@@ -190,7 +190,7 @@ def bos_markup(grp=True):
     """
     return '<bos +case="({0}.+?)"/>'.format("" if grp else "?:")
 
-tok_re = re.compile('(?:{0})|(?:\S+)'.format(bos_markup(False)))
+tok_re = re.compile('(?:{0})|(?:[^ \t\n]+)'.format(bos_markup(False)))
 
 def decide_unknown_case(toks, i):
     """Return case decision for no reference along with updated sentence start index.
@@ -343,7 +343,7 @@ def move_bos_markup(src_line, tgt_line, pal_line, line_number):
         info("src_toks: ",src_toks)
         info("tgt_line: ~",tgt_line,"~",sep='')
         info("tgt_toks: ",tgt_toks)
-        info("expected length: ",(max(pal, key=lambda x:x.tgt.end).tgt.end + 1))
+        info("expected length: ",((max(pal, key=lambda x:x.tgt.end).tgt.end + 1) if len(pal) else 0))
         fatal_error("# tgt tokens mismatch with pal info at line", line_number)
 
     # Add BOS case markup in target for sentences that did not have markup

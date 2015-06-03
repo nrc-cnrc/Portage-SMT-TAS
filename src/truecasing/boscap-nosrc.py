@@ -217,7 +217,7 @@ def bos_markup(grp=True):
     """
     return '<bos +case="({0}.+?)"/>'.format("" if grp else "?:")
 
-tok_re = re.compile('(?:{0})|(?:\S+)'.format(bos_markup(False)))
+tok_re = re.compile('(?:{0})|(?:[^ \t\n]+)'.format(bos_markup(False)))
 bos_re = re.compile(bos_markup(True))
 
 def remove_bos_markup(line, line_number):
