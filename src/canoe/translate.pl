@@ -1181,7 +1181,8 @@ sub detokenize {
       }
       else {
          my $options = "";
-         $options = " -deparaline" if ($nl eq "p");
+         # deparaline is now always done via sub deparaline() below.
+         #$options = " -deparaline" if ($nl eq "p");
          my $u = $utf8 ? "u" : "";
          call("${u}detokenize.pl -lang=${lang} $options < '${in}' > '${out}'", $out);
       }
