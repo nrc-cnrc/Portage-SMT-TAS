@@ -244,6 +244,16 @@ endif
 # program.c or program.cc.
 # PROGRAMS =
 
+# In the case where a PROGRAM has an unconventional target commands, the user
+# can define a specific target for it but needs to exclude that program from
+# the default target that builds PROGRAMS.
+# PROGRAMS with its own specific target.
+# PROGRAMS_WITH_TARGET =
+
+# In the case where a PROGRAM is not C++ but still needs to be compiled
+# Will be implicitly part of PROGRAMS_WITH_TARGET
+# PROGRAMS_NOT_CPP =
+
 # Programs for dynamic linking with local libs. Each must have a corresponding
 # program.c or program.cc. LD_LIBRARY_PATH needs to be set to $(LIB_DIR) in
 # order to run these.
@@ -256,6 +266,10 @@ endif
 # Scripts to install by copying into the bin dir without compiling or
 # stripping.
 # BINSCRIPTS =
+
+# Files to be included in .gitignore that are not included by virtue of
+# being programs/tests
+# IGNORES =
 
 # Info doc files. This is a list of .info files, each of which must have a
 # corresponding .texinfo file.
@@ -306,7 +320,7 @@ endif
            .info .dvi .tex .texinfo .texi .txinfo .w .ch .web .elc .el .cpp
 
 # make everything that can be made, except doxy, which spews too many messages
-all: lib bin python_lib TAGS tags info test .gitignore
+all: .gitignore lib bin python_lib TAGS tags info test
 
 # make everything from scratch
 new: clean
@@ -343,7 +357,7 @@ clean: clean_testrunners
 # The project .gitignore file contains general file patterns to ignore, this
 # one contains module-specific names that cannot be matched by general patterns.
 .gitignore: Makefile ../build/Makefile.incl
-	echo .gitignore $(PROGRAMS) $(CXXTEST_RUNNERS) $(CXXTEST_RUNNERS_CC) $(LEGACY_TESTS) | tr ' ' '\n' > $@
+	echo .gitignore $(IGNORES) $(PROGRAMS) $(CXXTEST_RUNNERS) $(CXXTEST_RUNNERS_CC) $(LEGACY_TESTS) | tr ' ' '\n' > $@
 
 # make static and dynamic libraries
 lib: $(LIBRARY).a
@@ -441,12 +455,12 @@ endif
 # make programs, linking to library if there is one, else to all object files
 bin: $(PROGRAMS) $(DYNPROGS)
 ifdef LIBRARY
-$(PROGRAMS) $(CXXTEST_RUNNERS) $(LEGACY_TESTS): %: %.o $(LIBRARY).a $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).a)
+$(filter-out ${PROGRAMS_NOT_CPP} ${PROGRAMS_WITH_TARGET},$(PROGRAMS)) $(CXXTEST_RUNNERS) $(LEGACY_TESTS): %: %.o $(LIBRARY).a $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).a)
 	$(CXX) $(LINKFLAGS) -o $@ $< $(LIBRARY).a $(LINKWITH) $(ALLDYNLIBS)
 $(DYNPROGS): %: %.o $(LIBRARY).so $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).so)
 	$(CXX) $(LINKFLAGS) -o $@ $< $(LIBRARY).so $(LIBS) $(ALLDYNLIBS)
 else
-$(PROGRAMS) $(CXXTEST_RUNNERS) $(LEGACY_TESTS): %: %.o $(OBJECTS) $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).a)
+$(filter-out ${PROGRAMS_NOT_CPP} ${PROGRAMS_WITH_TARGET},$(PROGRAMS)) $(CXXTEST_RUNNERS) $(LEGACY_TESTS): %: %.o $(OBJECTS) $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).a)
 	$(CXX) $(LINKFLAGS) -o $@ $(OBJECTS) $< $(LINKWITH) $(ALLDYNLIBS)
 $(DYNPROGS): %: %.o $(OBJECTS) $(foreach DIR, $(LIB_LIST), ../$(DIR)/libportage_$(DIR).so)
 	$(CXX) $(LINKFLAGS) -o $@ $(OBJECTS) $< $(LIBS) $(ALLDYNLIBS)
@@ -541,15 +555,19 @@ endif
 install_bin: $(PROGRAMS) $(DYNPROGS) $(BINSCRIPTS)
 ifdef PROGRAMS
     # only call install if PROGRAMS\TESTPROGS is non-empty
-    ifneq ($(strip $(filter-out $(TESTPROGS), $(PROGRAMS))),)
+    ifneq ($(strip $(filter-out ${PROGRAMS_NOT_CPP} $(TESTPROGS), $(PROGRAMS))),)
 	install -d -m0750 $(BIN_DIR)
-	$(INST_EX) -m0750 $(filter-out $(TESTPROGS), $(PROGRAMS)) $(BIN_DIR)
+	$(INST_EX) -m0750 $(filter-out ${PROGRAMS_NOT_CPP} $(TESTPROGS), $(PROGRAMS)) $(BIN_DIR)
     endif
 endif
 ifdef DYNPROGS
 	install -d -m0750 $(BIN_DIR)
-	$(INST_EX) -m0750 $(filter-out $(TESTPROGS), $(DYNPROGS)) $(BIN_DIR)
+	$(INST_EX) -m0750 $(filter-out ${PROGRAMS_NOT_CPP} $(TESTPROGS), $(DYNPROGS)) $(BIN_DIR)
 endif
+ifdef PROGRAMS_NOT_CPP
+	install -d -m0750 $(BIN_DIR)
+	install -p -m0750 $(PROGRAMS_NOT_CPP) $(BIN_DIR)
+endif   
 ifdef BINSCRIPTS
 	install -d -m0750 $(BIN_DIR)
 	install -p -m0750 $(BINSCRIPTS) $(BIN_DIR)
