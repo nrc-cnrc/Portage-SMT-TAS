@@ -101,7 +101,9 @@ can be launched manually this way:
 This will launch all tests, 30-ways parallel, and report on the success or
 failure of each tests.
 
-On a non-clustered machine, you probably don't want to use -j at all.
+On a non-clustered machine, you probably want to use -j with a third to half
+the number of hyperthreaded cores on the machine (e.g., -j 12 to 15 on a
+machine with 16 cores hyperthreaded to 32 apparent cores).
 
 To clean up all tests, you can run
    ./clean-all-tests.sh
@@ -132,11 +134,30 @@ in all cases.
 If you write your unit test in the Makefile, make sure the "all" target runs
 them. A typical run-test.sh file might then simply say
    make clean
-   make all -j 2
+   make all
 
 If you write your unit tests in bash, your run-test.sh file should first say
    make gitignore
 and then proceed to run your tests.
+
+
+Parallelism guidelines
+======================
+
+It is strongly recommended to make each test suite finish in just a few
+seconds, if possible.
+
+A quick test suite should not be parallel (use "make all" without -j in
+run-test.sh).
+
+A slow test should use some parallelism, with the level of parallelism
+chosen to minimize the total run time of
+   ./run-all-tests.sh -j N
+with N between a third and half the number of hyperthreaded cores on a
+non-clustered machine.
+
+A slow test can also detect when it's running on a cluster and maximize
+parallelism in that case. See tune.py/run-test.sh for an example.
 
 
 Additional suggestions
