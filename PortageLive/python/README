@@ -44,8 +44,8 @@ iltautobuild so python is built without the modules needing those packages.
         return
    at the top of the detect_tkinter function.
 
-5. Configure and build Python 2.7.1:
-        ./configure --prefix=/opt/python-2.7.1
+5. Configure and build Python 2.7.1 with shared libraries enabled:
+        ./configure --enable-shared --prefix=/opt/python-2.7.1
         make
         DESTDIR=../python-2.7.1-install make install
 
@@ -70,4 +70,3 @@ iltautobuild so python is built without the modules needing those packages.
         ln -s ../../../python-2.7.1-install
         ./prep-file-layout.sh
         PATH=../../../rpm-scripts:$PATH ../scripts/make-rpm
-      

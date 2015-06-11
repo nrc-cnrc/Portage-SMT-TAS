@@ -364,7 +364,7 @@ sub run
    my ($cmd, $with_bash) = @_;
    my $start = time if $timing;
    $with_bash = 0 unless defined $with_bash;
-   print STDERR "COMMAND: $cmd\n" if $verbose;
+   print STDERR "truecase.pl: $cmd\n" if $verbose;
    system($with_bash ? ("/bin/bash", "-c", $cmd) : $cmd) == 0
       or die "Error: truecase.pl failed (error $?) running '$cmd'.\n";
    (print STDERR "truecase.pl: Running ", (split(' ', $cmd, 2))[0], " took ", time - $start, " seconds.\n") if $timing;

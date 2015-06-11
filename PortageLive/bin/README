@@ -22,6 +22,9 @@ In this directory:
 Make sure you have compiled and installed PortageII already, and set the
 path properly by calling $PORTAGE/SETUP.bash.
 
+Prepare the bin layout
+======================
+
 Run
    make
 or
@@ -34,6 +37,19 @@ relevant shared libraries in the result.
 Then, either copy the files manually to your translation server, if you have
 just one physical server, or build the RPM by running ../scripts/make-rpm.sh if
 you are using virtual appliances.
+
+Python 2.7
+==========
+
+Once you've copied or installed the bin layout, you must make sure PortageLive
+will find Python 2.7. As mentioned in INSTALL in the top-level directory of
+PortageII, the recommended installation procedure is to symlink python and its
+libraries into /opt/PortageII/bin and lib:
+   ln -s /PATH_TO/python2.7.x/bin/python /opt/PortageII/bin/python
+   ln -s /PATH_TO/python2.7.x/lib/libpython2.7.so* /opt/PortageII/lib/
+
+Notes
+=====
 
 Note (1): the scripts work for us, but rely on details of how the OS is
 installed, among other things.  You should expect to have to adjust the

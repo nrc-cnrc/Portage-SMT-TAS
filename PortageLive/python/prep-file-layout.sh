@@ -23,7 +23,7 @@ Usage: ./prep-file-layout.sh
   installing manually on a translation server.
 
   The python installation is put in /opt/python-2.7.1 and 
-  /opt/PortageII/bin/python is linked to the python /opt/python-2.7.1/bin/pyton.
+  /opt/PortageII/bin/python is linked to the python /opt/python-2.7.1/bin/python.
 
   Once the layout has been prepared, you can package it into an RPM using
   ../scripts/make-rpm.sh
@@ -63,6 +63,7 @@ DEST=rpm.build.root/opt/${PYTHON_VERSION}
 # Create directory structure
 mkdir -p ${DEST}
 mkdir -p rpm.build.root/opt/PortageII/bin
+mkdir -p rpm.build.root/opt/PortageII/lib
 
 if [[ $PYTHON_DIR =~ : ]]; then
    CP_CMD="rsync -avrzlp"
@@ -76,6 +77,8 @@ ${CP_CMD} ${PYTHON_DIR}/opt/${PYTHON_VERSION}/* $DEST
 
 # Create the link in /opt/PortageII/bin
 ln -s /opt/${PYTHON_VERSION}/bin/python rpm.build.root/opt/PortageII/bin/
+ln -s /opt/${PYTHON_VERSION}/lib/libpython2.7.so rpm.build.root/opt/PortageII/lib/
+ln -s /opt/${PYTHON_VERSION}/lib/libpython2.7.so.1.0 rpm.build.root/opt/PortageII/lib/
 
 
 # Set proper permissions on the directory and file structure

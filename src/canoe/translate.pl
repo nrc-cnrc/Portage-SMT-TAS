@@ -510,6 +510,16 @@ $tc or (!defined $tclm && !defined $tcmap && !defined $tcsrclm)
 !defined $tcsrclm or !$with_rescoring
    or die "Error: -tcsrclm cannot be used with -with-rescoring.\nStopped";
 
+my $python_version = `python --version 2>&1`;
+if ($python_version !~ /2\.7/) {
+   chomp $python_version;
+   die "Error: translate.pl requires Python 2.7. Found $python_version instead. Please check your installation.\nIf you see this message in PortageLive's trace, place a symlink to the 2.7 python executable in $ENV{PORTAGE}/bin/ and symlinks to libpython2.7.so* in $ENV{PORTAGE}/lib/, and make sure the Apache process has sufficient permissions to use them.\n";
+}
+if ($python_version =~ /(libpython\S*):/) {
+   print STDERR "translate.pl: $python_version";
+   die "Error: translate.pl requires Python 2.7 and its library $1.\nIf you see this message in PortageLive's trace, place a symlink to $1 in $ENV{PORTAGE}/lib/.\n";
+}
+
 # Locate the Truecasing model.
 if ($tc and !defined $tclm) {
    my @tc_files = ();

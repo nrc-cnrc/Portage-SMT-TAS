@@ -177,12 +177,13 @@ Mandatory dependencies for all distributions:
    be the right version: version 2.7 (any 2.7.x) is required.  If you install
    Python 2.7 in a non-standard location, make sure it comes first on your
    PATH, or add its bin directory to EXTRA_PROGRAM_PATH in SETUP.bash/tcsh.
-   Alternatively, make a soft link (using ln -s) in $PORTAGE/bin to the python
-   executable.  (The soft link is the best solution for your PortageLive
-   server(s), where you must also make sure the apache user has sufficient
-   permissions to use python 2.7.)  If you compile Python 2.7 by hand, make
-   sure you have the zlib-devel (or zlib-dev, or zlib1g-dev) package installed
-   first, or download zlib from http://www.zlib.net and install it by hand.
+   Alternatively, make symlinks (using ln -s) in $PORTAGE/bin to the python
+   executable and in $PORTAGE/live to libpython2.7.so*.  (The symlink is the
+   best solution for your PortageLive server(s), where you must also make sure
+   the apache user has sufficient permissions to use python 2.7.)  If you
+   compile Python 2.7 by hand, make sure you have the zlib-devel (or zlib-dev,
+   or zlib1g-dev) package installed first, or download zlib from
+   http://www.zlib.net and install it by hand.
 
    This procedure worked for us:
       # Obtain Python-2.7.1.tar.bz2 from the web.
@@ -193,6 +194,16 @@ Mandatory dependencies for all distributions:
       make install -j 5
       # Add $PORTAGE/pkgs/python2.7.1/bin to EXTRA_DYNLIB_PATH in SETUP.bash/tcsh,
       # or: ln -s $PORTAGE/pkgs/python2.7.1/bin/python $PORTAGE/bin/python
+      #     ln -s $PORTAGE/pkgs/python2.7.1/lib/libpython2.7.so* $PORTAGE/lib/
+
+   PortageLive also needs to see python 2.7, and the above won't suffice
+   because PortageLive binaries are normally installed in a different location.
+   Once you've completed the PortageLive installation itself (see PortageLive/
+   subdirectory as well as the "PortageLive Manual" section of the PortageII
+   user manual: doc/user-manual.html / Portage Live Manual), you need to create
+   the symlinks so PortageLive sees your custom python installation:
+      ln -s /PATH_TO/python2.7.x/bin/python /opt/PortageII/bin/python
+      ln -s /PATH_TO/python2.7.x/lib/libpython2.7.so* /opt/PortageII/lib/
 
  - A language modelling toolkit to train language models.  Our code can read
    and use language models, but we don't provide the training functionality,
