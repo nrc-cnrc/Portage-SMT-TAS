@@ -51,7 +51,7 @@ clean_prep:
 
 prep: train.en2fr.align.gz coarse${refsuffix}_en coarse${refsuffix}_fr coarse${refsuffix}train_bilm bilm.coarse${refsuffix}.gz coarse.in canoe.ini.coarse.FILT
 
-train_%: ../dynamic-pt/train_%.al.bz2
+train_%: train_%.al.bz2
 	bzcat $< > $@
 %.cls.gz: train_%
 	${RM} $@
