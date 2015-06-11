@@ -48,6 +48,15 @@ libraries into /opt/PortageII/bin and lib:
    ln -s /PATH_TO/python2.7.x/bin/python /opt/PortageII/bin/python
    ln -s /PATH_TO/python2.7.x/lib/libpython2.7.so* /opt/PortageII/lib/
 
+Manual Installation
+===================
+
+To manually copy the files to your PortageLive translation server, you can use
+rsync:
+   rsync -arzv rpm.build.root/* root@<host>:/
+or, locally:
+   rsync -arv rpm.build.root/* /
+
 Notes
 =====
 
