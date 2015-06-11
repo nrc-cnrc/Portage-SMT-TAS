@@ -449,7 +449,7 @@ sub textBoxOutput {
         h2("Source text:"),
         p($source),
         h2("Translation:"),
-        p(join("<br>", map { HTML::Entities::encode_entities($_, '<>&') } @target));
+        p(join("<br />", map { HTML::Entities::encode_entities($_, '<>&') } @target));
     print p(a({-href=>"plive.cgi?context=".param('context')}, "Translate more text"));
     print p("To view the out-of-vocabulary words click here: ",
           a({-href=>"$workDir/oov.html"}, "OOVs"),

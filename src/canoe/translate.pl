@@ -1337,7 +1337,7 @@ sub generateOOVsPage {
       s/>/\&gt;/g;
       s/&lt;OOV&gt;/<span class="OOV">/g;
       s/&lt;\/OOV&gt;/<\/span>/g;
-      s/$/<br\/>/;
+      s/$/<br \/>/;
       print HTML;
    }
    print HTML '</body></html>';
