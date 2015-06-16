@@ -31,8 +31,12 @@ all:  testcase
 
 
 
-p.dec.oov.check  p.json.check  p.pal.check  json.args.tooShort.check  json.args.tooLong.check:  %.check:  %  ref/%
+p.dec.oov.check  p.pal.check:  %.check:  %  ref/%
 	diff  $+  --brief
+
+p.json.check  json.args.tooShort.check  json.args.tooLong.check:  %.check:  %  ref/%
+	diff  <(jq --sort-keys . $<)  <(jq --sort-keys . ref/$<)  --brief
+
 
 testcase:  p.json.check
 p.json:  q.dec  p.raw
