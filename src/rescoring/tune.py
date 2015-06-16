@@ -67,9 +67,9 @@ parser.add_option("--debug", dest="debug", action="store_true", default=False,
                   help="write debug output to stderr [%default]")
 parser.add_option("-v", dest="verbose", action="store_true", default=False,
                   help="write verbose output to stderr [%default]")
-#parser.add_option("-r", dest="sparse", action="store_true", default=False,
-#                  help="use sparse feature representation for nbest hyps; " + \
-#                  "if SparseModel(s) are included, tune component weights [%default]")
+parser.add_option("-r", dest="sparse", action="store_true", default=False,
+                  help="use sparse feature representation for nbest hyps; " + \
+                  "if SparseModel(s) are included, tune component weights [%default]")
 parser.add_option("-f", dest="config", type="string", default="canoe.ini",
                   help="initial decoder configuration file, including weights [%default]")
 parser.add_option("-o", dest="configout", type="string", default="canoe.tune",
@@ -140,10 +140,8 @@ if opts.bleuOrder!=4 and not(alg!="mira" or alg!="lmira"):
 
 # allff is the aggregated feature-value file output from canoe, in sparse or
 # dense format 
-opts.sparse = False
 if opts.sparse:
     allff = workdir + "/allsfvals.gz"
-    parser.error("sparse features are not supported")
 else:
     allff = workdir + "/allffvals.gz"
 
@@ -421,9 +419,6 @@ def wts2decoderConfig(wts, config):
     s = ""
     for w in wts:
         s += "x " + str(w) + "\n"
-    #if opts.debug:
-    #    print >> sys.stderr, ' '.join(wts2decoderConfigStr(config))
-    #    print >> sys.stderr, "with input: ", s
     Popen(wts2decoderConfigStr(config), stdin=PIPE).communicate(s)
     if opts.debug:
        call(["cat", config])
@@ -537,23 +532,32 @@ def optimize(iter, wts):
     if alg == "powell":
         ret = optimizePowell(iter, wts, args, logfile)
     elif alg == "mira":
-        ret = optimizeMIRA(iter, wts, args, logfile)
+        ret = optimizeMIRA(iter, args, logfile)
     elif alg == "pro":
-        ret = optimizePRO(iter, wts, args, logfile)
+        ret = optimizePRO(iter, args, logfile)
     elif alg == "expsb":
-        ret = optimizeExpSentBleu(iter, wts, args, logfile)
+        ret = optimizeExpSentBleu(iter, args, logfile)
     elif alg == "svm":
-        ret = optimizeSVM(iter, wts, args, logfile)
+        ret = optimizeSVM(iter, args, logfile)
     elif alg == "lmira":
-        ret = optimizeLMIRA(iter, wts, args, logfile)
+        ret = optimizeLMIRA(iter, args, logfile)
     elif alg == "olmira":
         ret = optimizeOnlineLMIRA(iter, wts, args, logfile)
     else:
         assert 0   # has already been checked
     logfile.close()
 
+    # all these algs write their output to 'optimizer_out', so read this file
+    # to get optimized wts and (optionally) feda_wts
+    if alg in ["mira", "pro", "expsb", "svm", "lmira"]:
+        f = open(optimizer_out)
+        for i in range(len(wts)):
+           wts[i] = float(f.readline().partition(' ')[2])
+        normalize(wts, wts)
+        f.close()
+
     if alg != "powell":
-       shutil.copyfile(optimizer_out, optimizer_in)
+        shutil.copyfile(optimizer_out, optimizer_in)
 
     return ret
 
@@ -575,7 +579,7 @@ def optimizePowell(iter, wts, args, logfile):
         s = float(f.readline().split()[2])
     return s
 
-def optimizeMIRA(iter, wts, args, logfile):
+def optimizeMIRA(iter, args, logfile):
     """Optimize weights using MIRA over current aggregate nbest lists."""
     C = "1e-02"  # learning rate; 1e-4 recommended fomr B=1, 1e-8 for B=2
     I = "30"     # number of iterations
@@ -605,10 +609,9 @@ def optimizeMIRA(iter, wts, args, logfile):
     if call(cmd, stdout=outfile, stderr=logfile) is not 0:
         error("optimizer failed with cmd: {}".format(' '.join(cmd)))
     outfile.close()
-    normalize(optimizerModel2wts(optimizer_out), wts)
     return getOptimizedScore(re.compile('Best BLEU found on it# \d+, score ([\d\.]+)').search)
 
-def optimizeSVM(iter, wts, args, logfile):
+def optimizeSVM(iter, args, logfile):
     """Optimize weights as multiclass SVM training over current aggregate nbest lists."""
     C = "1e-03" # C-parameter, turn up for lower losses, less regularization
     B = "-1"    # if >0, col to find BLEU in allbleus file; if < 0, internal metric
@@ -628,10 +631,9 @@ def optimizeSVM(iter, wts, args, logfile):
     if call(cmd, stdout=outfile, stderr=logfile) is not 0:
         error("optimizer failed: {}".format(' '.join(cmd)))
     outfile.close()
-    normalize(optimizerModel2wts(optimizer_out), wts)
     return getOptimizedScore(re.compile('Best obj found on it# \d+, score it   \d+ : BLEU = ([\d\.]+)').search)
 
-def optimizeExpSentBleu(iter, wts, args, logfile):
+def optimizeExpSentBleu(iter, args, logfile):
     """Optimize weights according to expected sum of sentence-level BLEU scores"""
     L = "50"
     BleuCol = "-2"
@@ -655,10 +657,9 @@ def optimizeExpSentBleu(iter, wts, args, logfile):
     if call(cmd, stdout=outfile, stderr=logfile) is not 0:
         error("optimizer failed: {}".format(' '.join(cmd)))
     outfile.close()
-    normalize(optimizerModel2wts(optimizer_out), wts)
     return getOptimizedScore(re.compile('([\d\.]+$)').search)
 
-def optimizePRO(iter, wts, args, logfile):
+def optimizePRO(iter, args, logfile):
     """Optimize weights using PRO over current aggregate nbest lists."""
     alg = "MaxentZero" # values are SVM, MIRA, Pagasos (=SVM), MegaM (not on cluster), 
                        # Maxent (regularizes to initializer), MaxentZero (regularizes to 0)
@@ -682,10 +683,9 @@ def optimizePRO(iter, wts, args, logfile):
     logfile.flush()
     if call(cmd, stdout=logfile, stderr=logfile) is not 0:
         error("optimizer failed: {}".format(' '.join(cmd)))
-    normalize(optimizerModel2wts(optimizer_out), wts)
     return getOptimizedScore(re.compile('Best BLEU found \(samp=\d+\) : ([\d\.]+)').search)
 
-def optimizeLMIRA(iter, wts, args, logfile):
+def optimizeLMIRA(iter, args, logfile):
     """Optimize weights using lattice MIRA over current lattices."""
     seed = "1"
     if(opts.seed>0): seed = str(opts.seed * 10000 + iter)
@@ -699,14 +699,13 @@ def optimizeLMIRA(iter, wts, args, logfile):
            "--mem", hypmem, \
            "--seed", seed, \
            "--bleuOrder", str(opts.bleuOrder)]
-    cmd.extend(args_vals);
+    cmd.extend(args_vals)
     outfile = open(optimizer_out, 'w')
     print >> logfile, ' '.join(cmd)
     logfile.flush()
     if call(cmd, stdout=outfile, stderr=logfile) is not 0:
         error("optimizer failed: {}".format(' '.join(cmd)))
     outfile.close()
-    normalize(optimizerModel2wts(optimizer_out), wts)
     return getOptimizedScore(re.compile('Best BLEU found on it# \d+, score ([\d\.]+)').search)
 
 def optimizeOnlineLMIRA(iter, wts, args, logfile):
