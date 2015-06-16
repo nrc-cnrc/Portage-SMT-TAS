@@ -13,6 +13,7 @@
 
 use strict;
 use warnings;
+use 5.10.0;
 
 BEGIN {
    # If this script is run from within src/ rather than being properly
