@@ -21,7 +21,7 @@ PORTAGE ?= ../../..
 .PHONY: clean small check all online online_hard online_soft notonline notonline_hard notonline_soft FORCE
 .PRECIOUS: $(foreach f, $(FILES), trans.$f)
 
-all: gitignore small prune-type-full check phrases-GT-ZN.fr2en.FILT.gz
+all: gitignore small test-dm prune-type-full check phrases-GT-ZN.fr2en.FILT.gz
 
 ############################################################
 ## CLEAN
@@ -30,7 +30,7 @@ TEMP_FILES=log.* core.* tm.*.ttpt-* \
            europarl.en.srilm.FILT \
            phrases-GT-ZN.fr2en.FILT.gz phrases-GT-ZN.fr2en.ORIG.GREP.gz phrases-GT-ZN.fr2en.ORIG.LIMIT.gz \
            phrases-GT-KN.fr2en.FILT.gz phrases-GT-KN.fr2en.ORIG.GREP.gz phrases-GT-KN.fr2en.ORIG.LIMIT.gz \
-           canoe.ini* phrases.small.* trans.* tmp.* prune-full.*
+           canoe.ini* phrases.small.* dm.small* trans.* tmp.* prune-full.*
 
 clean:
 	${RM} ${TEMP_FILES}
@@ -358,7 +358,8 @@ canoe.ini.small.binlm:
 [lmodel-file]\n\
     ${PORTAGE}/test-suite/regress-small-voc/europarl.en.srilm.binlm#2\n\
 [ttable-prune-type] backward-weights\n\
-[distortion-limit] 0" > $@
+[distortion-limit] 0\n\
+[use-ftm]" > $@
 
 all: filter.binlm
 # This should fail with binlm
@@ -373,7 +374,8 @@ canoe.ini.small.lm:
     ${PORTAGE}/test-suite/regress-small-voc/europarl.en.srilm\n\
 [lmodel-order] 2\n\
 [ttable-prune-type] backward-weights\n\
-[distortion-limit] 0" > $@
+[distortion-limit] 0\n\
+[use-ftm]" > $@
 
 all: europarl.en.srilm.FILT
 # NOTE: you cannot use egrep in quiet mode or else it closes the pipe and
@@ -433,3 +435,38 @@ check_prune-full.%: prune-full.%
 	egrep '(candidate phrases|Keeping|Discarding|top candidate)' $< | diff - ref/$<
 
 prune-full: check_prune-full.T$T-L$L
+
+############################################################
+## (H)LDM filtering
+test-dm: phrases.small.with-ldm.FILT phrases.small.with-tpldm.FILT
+
+phrases.small.with-ldm.FILT:  %.FILT:  FORCE canoe.ini.small.dm phrases.small.fr2en dm.small
+	echo ceci cela encore oov | \
+	   ${FILTER_MODELS} -f canoe.ini.small.dm -ttable-prune-type backward-weights -tm-soft-limit $* -ldm
+	diff-round.pl $@ ref/$@
+	diff-round.pl dm.small.FILT ref/dm.small.FILT
+	diff-round.pl dm.small.FILT.bkoff ref/dm.small.FILT.bkoff
+
+dm.small: phrases.small.fr2en dm.small.bkoff
+	cat $< | sed 's/[^|]*$$/ 1 0 0 1 0 0/' > $@
+
+dm.small.bkoff:
+	echo 0.85 0.03 0.12 0.89 0.03 0.08 > $@
+
+canoe.ini.small.dm: canoe.ini.small dm.small
+	{ cat canoe.ini.small; \
+	  echo '[lex-dist-model-file] dm.small'; \
+	  echo '[distortion-model] WordDisplacement back-hlex fwd-hlex'; } > $@
+
+phrases.small.with-tpldm.FILT:  %.FILT:  FORCE canoe.ini.small.tpdm phrases.small.fr2en dm.small.tpldm
+	echo ceci cela encore oov | \
+	   ${FILTER_MODELS} -f canoe.ini.small.tpdm -ttable-prune-type backward-weights -tm-soft-limit $* -ldm
+	diff-round.pl $@ ref/$@
+
+canoe.ini.small.tpdm: canoe.ini.small dm.small.tpldm
+	{ cat canoe.ini.small; \
+	  echo '[lex-dist-model-file] dm.small.tpldm'; \
+	  echo '[distortion-model] WordDisplacement back-hlex fwd-hlex'; } > $@
+
+%.tpldm: %
+	textldm2tpldm.sh $< 2> log.$@

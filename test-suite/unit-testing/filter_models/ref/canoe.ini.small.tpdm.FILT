@@ -1,0 +1,14 @@
+[ttable-multi-prob] 
+   phrases.small.with-tpldm.FILT
+[lex-dist-model-file] 
+   dm.small.tpldm
+[lmodel-file] 
+   /home/portage/test-suite/regress-small-voc/europarl.en.srilm.binlm
+[weight-f] 0:1
+[ttable-limit] 2
+[ttable-prune-type] backward-weights
+[distortion-limit] 0
+[distortion-model] 
+   WordDisplacement
+   back-hlex
+   fwd-hlex
