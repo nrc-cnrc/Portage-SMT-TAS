@@ -1,0 +1,26 @@
+	States kept: 8 + 0 recombined = 8
+	States kept: 24 + 1 recombined = 25
+	States kept: 66 + 28 recombined = 94
+	States kept: 51 + 31 recombined = 82
+	States kept: 40 + 51 recombined = 91
+	States kept: 13 + 32 recombined = 45
+	Final States kept: 202 + 143 recombined = 345
+FSTATS	6	180	674	537	202	143	345
+	States kept: 5 + 0 recombined = 5
+	States kept: 9 + 1 recombined = 10
+	States kept: 7 + 1 recombined = 8
+	States kept: 8 + 4 recombined = 12
+	States kept: 13 + 10 recombined = 23
+	States kept: 7 + 11 recombined = 18
+	Final States kept: 49 + 27 recombined = 76
+FSTATS	6	70	191	141	49	27	76
+	States kept: 7 + 0 recombined = 7
+	States kept: 43 + 0 recombined = 43
+	States kept: 203 + 25 recombined = 228
+	States kept: 438 + 446 recombined = 884
+	States kept: 538 + 987 recombined = 1525
+	States kept: 403 + 1045 recombined = 1448
+	States kept: 175 + 586 recombined = 761
+	States kept: 34 + 139 recombined = 173
+	Final States kept: 1841 + 3228 recombined = 5069
+FSTATS	8	704	5851	5792	1841	3228	5069

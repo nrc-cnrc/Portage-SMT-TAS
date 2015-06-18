@@ -11,11 +11,13 @@
 
 .SECONDARY:
 
-TEMP_FILES=out.wcl_en out.wcl_fr out.wcl_en.bad log.out.wcl_en.bad \
+TEMP_FILES=out.wcl_en out.wcl_fr out.wcl_en.bad log.* \
 	wcl_en.lm text_en.lm out.lm_eval.text_en out.lm_eval.wcl_en \
-	test_en.mapped out.dynmap log.dynmap out.manual \
-	out.dynmap_limit log.dynmap_limit out.en.classes.filt \
-	word_given_wcl_en.lm word_given_wcl_fr.lm
+	test_en.mapped out.dynmap out.manual \
+	out.dynmap_limit out.en.classes.filt \
+	word_given_wcl_en.lm word_given_wcl_fr.lm \
+	decode.coarse-*
+TEMP_DIRS=wcl_en.tplm
 
 include ../Makefile.incl
 
@@ -61,4 +63,26 @@ out.en.classes.filt: en.classes test_en.txt
 word_given_wcl_en.lm word_given_wcl_fr.lm: word_given_wcl_%.lm: %.classes in_%
 	gen-word-given-wcl-lm.py $+ > $@
 	diff $@ ref/$@ -q
-	
+
+
+###########################################################
+# Run some tests decoding using the coarse LM
+all: decode fstats
+COARSE_LMS = lm tplm min-tplm
+decode: ${foreach l,${COARSE_LMS},decode.coarse-$l}
+fstats: ${foreach l,${COARSE_LMS},fstats.decode.coarse-$l}
+
+wcl_en.tplm: wcl_en.lm
+	arpalm2tplm.sh $< $@ 2> log.$@
+
+decode.coarse-lm: wcl_en.lm cpt.fr2en in_fr canoe.ini
+	canoe -f canoe.ini -lmodel-file 'DynMap;wordClasses-en.classes;$<' -input in_fr  -v 2 > $@ 2> log.$@
+
+decode.coarse-tplm: wcl_en.tplm cpt.fr2en in_fr canoe.ini
+	canoe -f canoe.ini -lmodel-file 'DynMap;wordClasses-en.classes;$<' -input in_fr  -v 2 > $@ 2> log.$@
+
+decode.coarse-min-tplm: wcl_en.tplm cpt.fr2en in_fr canoe.ini
+	canoe -f canoe.ini -lmodel-file 'DynMap;wordClasses-en.classes;$<' -input in_fr  -minimize-lm-context-size -v 2 > $@ 2> log.$@
+
+fstats.%: %
+	egrep 'FSTATS|recombined' log.$* | diff - ref/log.$*.fstats
