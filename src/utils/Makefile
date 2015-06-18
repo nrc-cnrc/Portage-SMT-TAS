@@ -85,6 +85,7 @@ BINSCRIPTS = \
         randomly-choose-n-nums \
         reverseffvals.pl \
         run-after.sh \
+        run-mkcls.sh \
         run-parallel.sh \
         r-parallel-d.pl \
         r-parallel-worker.pl \
