@@ -26,9 +26,10 @@ usage() {
    for msg in "$@"; do
       echo $msg >&2
    done
+   [[ $0 =~ [^/]*$ ]] && PROG=$BASH_REMATCH || PROG=$0
    cat <<==EOF== >&2
 
-Usage: $0 corp-in corp-out
+Usage: $PROG corp-in corp-out
 
   Concatenate all files corp-in/*_lang.ext to corp-out/all_lang.ext, for each
   "_lang.ext" pattern in corp-in. Same for any corp-in/*.id files. Any files
