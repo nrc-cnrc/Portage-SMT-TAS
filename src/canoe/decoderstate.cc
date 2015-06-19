@@ -89,8 +89,8 @@ void DecoderState::display(ostream& out, PhraseDecoderModel *model, Uint sourceL
    out << trans->lastPhrase->src_words << " = ";
    out << displayUintSet(trans->sourceWordsNotCovered, false, sourceLength) << endl;
    out << "\tnum covered words     " << trans->numSourceWordsCovered << endl;
-   if (trans->lmContextSize >= 0)
-      out << "\tlm context size       " << trans->lmContextSize << endl;
+   if (trans->isLmContextSizeSet())
+      out << "\tlm context size       " << trans->getLmContextSize() << endl;
 
    if (model) {
       out << "\ttarget phrase         "

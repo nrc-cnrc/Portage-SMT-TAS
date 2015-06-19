@@ -29,6 +29,31 @@ using namespace std;
 
 namespace Portage
 {
+
+   /**
+    * Utility class to pack 8 4-bit Uints into 4 bytes, with array-like access.
+    */
+   class ArrayUint4 {
+      Uint _storage;
+    public:
+      /// Default and one-parameter construction uses a Uint initial value to
+      /// see all values together - good for -1 (all 15) or 0 (all 0).
+      ArrayUint4(Uint init = 0) : _storage(init) {}
+      /// Two-parameter constructor initializes the first n values to init, the
+      /// rest to 0.
+      ArrayUint4(Uint init, Uint n) : _storage(0) {
+         n = min(n, 7);
+         for (Uint i = 0; i < n; ++i) set(i, init);
+      }
+
+      Uint get(Uint i) const { return (_storage >> (4*i)) & 15; }
+      void set(Uint i, Uint v) {
+         assert(i <= 7);
+         _storage &= ~(15 << (4*i));
+         _storage |= (v&15) << (4*i);
+      }
+   };
+
    /**
     * Structure to represent a phrase translation option.
     */
@@ -187,15 +212,22 @@ namespace Portage
       Uint numSourceWordsCovered;
 
       /**
-       * The right context size, following Li & Khudanpur, 2008: A Scalable
+       * The right context sizes, following Li & Khudanpur, 2008: A Scalable
        * Decoder for Parsing-based Machine Translation with Equivalent Language
        * Model State Maintenance.
        * recombination and LM queries on subsequent partial translations only
-       * need to consider the last lmContextSize of this PT.
+       * need to consider the last lm context size of this PT.
+       *
+       * contextSizes[0] is the max required size over all LMs (coarse,
+       * regular, mix, whatever) (i.e. max_LM(min context size(LM))
+       * contextSizes[1..7] are the required context sizes for the BiLMs
        */
-      mutable int lmContextSize;
+      mutable ArrayUint4 contextSizes;
+      int getLmContextSize() const { return contextSizes.get(0); }
+      void setLmContextSize(Uint size) const { contextSizes.set(0, size); }
+      bool isLmContextSizeSet() const { return contextSizes.get(0) != 15; }
 
-      // EJJ Packing note: numSourceWordsCovered and lmContextSize are placed
+      // EJJ Packing note: numSourceWordsCovered and contextSizes are placed
       // together to pack well, filling exactly a Word slot between pointers
       // (assuming a 64 bit word, which we now always use).
 

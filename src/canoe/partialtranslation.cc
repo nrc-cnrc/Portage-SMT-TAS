@@ -29,7 +29,7 @@ PartialTranslation::PartialTranslation(PhraseInfo* phrase)
    : back(NULL)
    , lastPhrase(phrase)
    , numSourceWordsCovered(0)
-   , lmContextSize(-1) // == uninit
+   , contextSizes(-1) // == uninit x 8
    , levInfo(NULL)
    , shiftReduce(NULL)
 {}
@@ -40,7 +40,7 @@ PartialTranslation::PartialTranslation(Uint sourceLen,
    : back(NULL)
    , lastPhrase(&EmptyPhraseInfo)
    , numSourceWordsCovered(0)
-   , lmContextSize(1) // the initial empty state always provides <s> as context
+   , contextSizes(1,8) // the initial empty state always provides <s> (or its bitoken) as context
    , levInfo(usingLev ? new PartialTranslation::levenshteinInfo() : NULL)
    , shiftReduce(usingSR ? new ShiftReducer(sourceLen) : NULL)
 {
@@ -68,7 +68,7 @@ PartialTranslation::PartialTranslation(const PartialTranslation* trans0,
       const PhraseInfo* phrase, const UintSet* preCalcSourceWordsCovered)
    : back(trans0)
    , lastPhrase(phrase)
-   , lmContextSize(-1) // == uninit
+   , contextSizes(-1) // == uninit x 8
    , levInfo(trans0->levInfo ? new PartialTranslation::levenshteinInfo() : NULL)
    , shiftReduce(trans0->shiftReduce
                  ? new ShiftReducer(phrase->src_words,trans0->shiftReduce)
