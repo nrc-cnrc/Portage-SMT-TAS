@@ -138,6 +138,13 @@ while (defined(my $input = <STDIN>)) {
       next;
    }
 
+   # Need plain format for buckwalterizing.
+   # This should be  harmless in any case.
+   # We will escape entity after buckwalterizing.
+   $input =~ s/&lt;/</g;
+   $input =~ s/&gt;/>/g;
+   $input =~ s/&amp;/&/g;
+
    # Howard's preprocessing where we split Arabic characters from non-Arabic
    # characters.
 
@@ -173,13 +180,14 @@ while (defined(my $input = <STDIN>)) {
          $input =~ s/^w\+\s+//;
       }
 
-      # Protect xml entity from the decoder.
-      $input =~ s/&/&amp;/g;
-      $input =~ s/</&lt;/g;
-      $input =~ s/>/&gt;/g;
-
       # Treat hashtags as markup [MS]
       if (defined($markHashTag)) {
+         # Protect xml entity from the decoder.
+         # Espacially the buckwalter's encoded characters "<", ">" & "&"
+         $input =~ s/&/&amp;/g;
+         $input =~ s/</&lt;/g;
+         $input =~ s/>/&gt;/g;
+
          $input = markHashtags($input);
          debug("[[ --> markHashtags \n--> \"$input\" ]]\n");
       }
