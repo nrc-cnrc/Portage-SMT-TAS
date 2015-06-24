@@ -19,6 +19,7 @@ TESTPROGS = \
 
 PROGRAMS = $(TESTPROGS) \
         count_phrasefreqs \
+        count_unal_words \
         gen_jpt_filter_tool \
         gen_phrase_tables \
         joint2cond_phrase_tables \
