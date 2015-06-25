@@ -212,20 +212,22 @@ for c in $features; do
                argCheck ${toks[0]} 2 ${#toks[*]}
                jptdir=${toks[1]}
                nw=${toks[2]}
-               echo "$PF count_unal_words -l 1 $jptdir/jpt.* | sort -nr -k2,2 | head -$nw | cut -d' ' -f1 > $outfile" >> $cmdfile_tmp
+               # Note: '{ sort -nr -k2,2; true; }' is done on purpose to avoid broken pipe errors.
+               echo "$PF count_unal_words -l 1 $jptdir/jpt.* | { sort -nr -k2,2; true; } | head -$nw | cut -d' ' -f1 > $outfile" >> $cmdfile_tmp
                ;;
             auto:tunal*)
                argCheck ${toks[0]} 2 ${#toks[*]}
                jptdir=${toks[1]}
                nw=${toks[2]}
-               echo "$PF count_unal_words -l 2 $jptdir/jpt.* | sort -nr -k2,2 | head -$nw | cut -d' ' -f1 > $outfile" >> $cmdfile_tmp
+               # Note: '{ sort -nr -k2,2; true; }' is done on purpose to avoid broken pipe errors.
+               echo "$PF count_unal_words -l 2 $jptdir/jpt.* | { sort -nr -k2,2; true; } | head -$nw | cut -d' ' -f1 > $outfile" >> $cmdfile_tmp
                ;;
             auto:mkcls*)
                argCheck ${toks[0]} 3 ${#toks[*]}
                file=${toks[1]}
                nclust=${toks[2]}
                niters=${toks[3]}
-               echo "$PF mkcls -c$nclust -n$niters -V$outfile -p<(zcat -f $file) opt" >> $cmdfile_tmp
+               echo "mkcls -c$nclust -n$niters -V$outfile -p<(zcat -f $file) opt" >> $cmdfile_tmp
                ;;
             auto:df1*)
                argCheck ${toks[0]} 1 ${#toks[*]}
@@ -242,7 +244,7 @@ for c in $features; do
                ;;
             auto:bins11)  # this is ridiculous
                argCheck ${toks[0]} 0 ${#toks[*]}
-               echo "$PF echo -e '1 1\n2 2\n3 4\n5 8\n9 16\n17 32\n33 64\n65 128\n129 1000\n1001 10000\n10001 0' > $outfile" >> $cmdfile_tmp
+               echo "echo -e '1 1\n2 2\n3 4\n5 8\n9 16\n17 32\n33 64\n65 128\n129 1000\n1001 10000\n10001 0' > $outfile" >> $cmdfile_tmp
                ;;
             # ADD OTHER auto:xxx COMMANDS HERE
             auto:*)
