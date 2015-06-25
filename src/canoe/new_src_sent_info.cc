@@ -83,3 +83,19 @@ ostream& newSrcSentInfo::toJSON(ostream& out, Voc const * const voc) const
 
    return out;
 }
+
+
+void newSrcSentInfo::printTriangularArrayAsCPT(ostream& out) const
+{
+   for ( Uint i = 0; i < src_sent.size(); ++i ) {
+      for ( Uint j = i; j < src_sent.size(); ++j ) {
+         const vector<PhraseInfo*>& ph = potential_phrases[i][j-i];
+         if ( ! ph.empty() ) {
+            for (Uint k=0; k<ph.size(); ++k) {
+               ph[k]->printCPT(out, src_sent);
+               assert(ph[k]->src_words == Range(i,j+1));
+            }
+         }
+      }
+   }
+}

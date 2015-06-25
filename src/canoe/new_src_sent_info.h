@@ -169,6 +169,8 @@ struct newSrcSentInfo {
          out << join(*oovs) << endl;
    }
 
+   void printTriangularArrayAsCPT(ostream& out = cerr) const;
+
    ostream& toJSON(ostream& out = cerr, Voc const * const voc = NULL) const;
 }; // ends newSrcSentInfo
 

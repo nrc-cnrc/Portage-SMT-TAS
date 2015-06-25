@@ -60,12 +60,12 @@ class IFileInfo : private NonCopyable {
       oSafeMagicStream* f_lattice_state;  ///< lattice state stream
 
    public:
-      string s_nbest;          ///< nbestlist Stream
-      string s_ffvals;         ///< ffvals stream
-      string s_sfvals;         ///< sfvals stream
-      string s_pal;            ///< pal stream
-      string s_lattice;        ///< lattice stream
-      string s_lattice_state;  ///< lattice state stream
+      string s_nbest;          ///< nbestlist filename
+      string s_ffvals;         ///< ffvals filename
+      string s_sfvals;         ///< sfvals filename
+      string s_pal;            ///< pal filename
+      string s_lattice;        ///< lattice filename
+      string s_lattice_state;  ///< lattice state filename
 
    public:
       /**
@@ -283,9 +283,13 @@ class HierarchyFileInfo : public MultipleFileInfo {
  * @param oovs   Source Out-of-Vocabulary.
  * @param c      Global canoe configuration object.
  * @param file_info  Specifies to output just one nbest containing all nbests
+ * @return the best Hypothesis string.
  */
-static void doOutput(HypothesisStack &h, BasicModel &model,
-                     Uint num, vector<bool>* oovs, const CanoeConfig& c,
+static string doOutput(HypothesisStack &h,
+                     BasicModel &model,
+                     Uint num,
+                     vector<bool>* oovs,
+                     const CanoeConfig& c,
                      IFileInfo& file_info)
 {
    bool masse(c.masse); // MUST declare a new masse to be able to disable it only for this function
@@ -500,6 +504,8 @@ static void doOutput(HypothesisStack &h, BasicModel &model,
    } while (!good && (++iteration < maxTries) && (sleep(rand() % 5 + 1), true));
 
    delete printPtr;
+
+   return s;
 } // doOutput
 
 /**
@@ -843,6 +849,10 @@ int MAIN(argc, argv)
    if (!c.nssiFilename.empty())
       nssiStream = new oSafeMagicStream(c.nssiFilename);
 
+   oSafeMagicStream* triangularArrayAsCPTStream = NULL;     ///< Stream to write the triangular array as a CPT;
+   if (!c.triangularArrayFilename.empty())
+      triangularArrayAsCPTStream = new oSafeMagicStream(c.triangularArrayFilename);
+
    if (!c.loadFirst) {
       cerr << "Translating " << sents.size() << " sentences." << endl;
    } else {
@@ -1009,9 +1019,14 @@ int MAIN(argc, argv)
 
       assert(!h->isEmpty());
 
-      doOutput(*h, *model, sourceSentenceId, &oovs, c, *file_info);
+      const string bestHypothesis = doOutput(*h, *model, sourceSentenceId, &oovs, c, *file_info);
       if (nssiStream != NULL)
          nss->toJSON(*nssiStream, &(gen->get_voc())) << endl;;
+      if (triangularArrayAsCPTStream != NULL) {
+         *triangularArrayAsCPTStream << bestHypothesis << endl;
+         nss->printTriangularArrayAsCPT(*triangularArrayAsCPTStream);
+         *triangularArrayAsCPTStream << endl;
+      }
 
       nss.reset();
       delete h;
@@ -1029,7 +1044,7 @@ int MAIN(argc, argv)
               << createTime + decodeTime + outputTime << " seconds." << endl;
 
       if (useCanoeDaemon) {
-         string response =
+         const string response =
             sendMessageToDaemon(c.canoeDaemon, "DONE " + toString(i) + " (rc=0)", false);
          if (response.substr(0,10) == "ALLSTARTED")
             break;
@@ -1058,6 +1073,7 @@ int MAIN(argc, argv)
    delete gen;
    delete file_info;
    delete nssiStream;
+   delete triangularArrayAsCPTStream;
 
    if (c.verbosity >= 1) logTime("done");
 

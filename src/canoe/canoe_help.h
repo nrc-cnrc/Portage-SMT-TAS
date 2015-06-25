@@ -639,6 +639,9 @@ Options (in command-line format):\n\
  -nssiFilename <F>                    Write Source Sentence Info to <F> [don't]\n\
      For every source sentence, write its newSrcSentInfo into <F> in json format.\
 \n\
+ -triangularArrayFilename <F>        Write each triangular array [don't]\n\
+     For every source sentence, write to <F> canoe's triangular array as a CPT.\
+\n\
  NOTES:\n\
 \n\
    - All boolean options (i.e., all the switches that don't take an argument)\n\

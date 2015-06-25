@@ -36,8 +36,10 @@ namespace Portage
    {
       /// Default constructor makes an empty phrase info
       PhraseInfo()
-         : src_words(0,0), phrase_trans_prob(0)
-         , forward_trans_prob(0), adir_prob(0)
+         : src_words(0,0)
+         , phrase_trans_prob(0)
+         , forward_trans_prob(0)
+         , adir_prob(0)
          , partial_score(NAN)
       {}
 
@@ -116,6 +118,20 @@ namespace Portage
       virtual void display() const {
          cerr << src_words << " " << phrase_trans_prob;
          cerr << " " << forward_trans_prob << " " << adir_prob;
+      }
+
+      virtual void printCPT(ostream& out, const vector<string>& src_sent) const {
+         const Voc& voc = *GlobalVoc::get();
+         out << join(src_sent.begin()+src_words.start, src_sent.begin()+src_words.end, " ");
+         out << " ||| " << phrase2string(phrase, voc);
+         //out << " ||| " << join(phrase_trans_probs);
+         out << " |||";
+         for (Uint i(0); i<phrase_trans_probs.size(); ++i)
+            out << " " <<  exp(phrase_trans_probs[i]);
+         //out << " ||| " << join(forward_trans_probs);
+         for (Uint i(0); i<forward_trans_probs.size(); ++i)
+            out << " " <<  exp(forward_trans_probs[i]);
+         out << endl;
       }
    }; // PhraseInfo
 

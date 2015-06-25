@@ -244,6 +244,7 @@ public:
    bool forcedDecoding;             ///< Indicates if decoding is forced to match the reference
    bool forcedDecodingNZ;           ///< Forced decoding without zeroing lm, length and ibm1 weights
    Uint maxlen;                     ///< Skip sentences longer than max len (0 means do all)
+   string triangularArrayFilename;  ///< Where should we write each triangular array.
 
    string nssiFilename;             ///< Triggers outputing, for every input sentence, the newSrcSentInfo into a file in a json format.
 

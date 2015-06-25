@@ -290,6 +290,7 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("final-cleanup", "bool", &final_cleanup));
    param_infos.push_back(ParamInfo("bind", "int", &bind_pid));
    param_infos.push_back(ParamInfo("timing", "bool", &timing));
+   param_infos.push_back(ParamInfo("triangularArrayFilename", "string", &triangularArrayFilename));
 
 
 
