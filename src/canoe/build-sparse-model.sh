@@ -165,6 +165,7 @@ features=`cat -- $config |
       -e "s/<srcext>/$srcext/g" \
       -e "s/<tgtext>/$tgtext/g" \
    `
+PF="set -o pipefail;"
 for c in $features; do
    #[[ $DEBUG ]] && echo "Processing feature token $c" >&2
    case $c in
@@ -180,7 +181,7 @@ for c in $features; do
                corp=${toks[1]}
                nw=${toks[2]}
                [[ $srclang ]] || error_exit "Please specify -srclang when using auto:svoci* features"
-               echo "get_voc -sc ${corp}_${srclang}.${srcext} | head -$nw | cut -d' ' -f1 |\
+               echo "$PF get_voc -sc ${corp}_${srclang}.${srcext} | head -$nw | cut -d' ' -f1 |\
                   perl -n -e 'BEGIN {\$i=2}' -e 'chomp; print \$_,\"\t\",\$i++,\"\n\"' > $outfile" \
                   >> $cmdfile_tmp
                ;;
@@ -189,7 +190,7 @@ for c in $features; do
                corp=${toks[1]}
                nw=${toks[2]}
                [[ $tgtlang ]] || error_exit "Please specify -tgtlang when using auto:tvoci* features"
-               echo "get_voc -sc ${corp}_${tgtlang}.${tgtext} | head -$nw | cut -d' ' -f1 |\
+               echo "$PF get_voc -sc ${corp}_${tgtlang}.${tgtext} | head -$nw | cut -d' ' -f1 |\
                   perl -n -e 'BEGIN {\$i=2}' -e 'chomp; print \$_,\"\t\",\$i++,\"\n\"' > $outfile" \
                   >> $cmdfile_tmp
                ;;
@@ -198,50 +199,50 @@ for c in $features; do
                corp=${toks[1]}
                nw=${toks[2]}
                [[ $srclang ]] || error_exit "Please specify -srclang when using auto:svoc* features"
-               echo "get_voc -sc ${corp}_${srclang}.${srcext} | head -$nw | cut -d' ' -f1 > $outfile" >> $cmdfile_tmp
+               echo "$PF get_voc -sc ${corp}_${srclang}.${srcext} | head -$nw | cut -d' ' -f1 > $outfile" >> $cmdfile_tmp
                ;;
             auto:tvoc*)
                argCheck ${toks[0]} 2 ${#toks[*]}
                corp=${toks[1]}
                nw=${toks[2]}
                [[ $tgtlang ]] || error_exit "Please specify -tgtlang when using auto:tvoc* features"
-               echo "get_voc -sc ${corp}_${tgtlang}.${tgtext} | head -$nw | cut -d' ' -f1 > $outfile" >> $cmdfile_tmp
+               echo "$PF get_voc -sc ${corp}_${tgtlang}.${tgtext} | head -$nw | cut -d' ' -f1 > $outfile" >> $cmdfile_tmp
                ;;
             auto:sunal*)
                argCheck ${toks[0]} 2 ${#toks[*]}
                jptdir=${toks[1]}
                nw=${toks[2]}
-               echo "count_unal_words -l 1 $jptdir/jpt.* | sort -nr -k2,2 | head -$nw | cut -d' ' -f1 > $outfile" >> $cmdfile_tmp
+               echo "$PF count_unal_words -l 1 $jptdir/jpt.* | sort -nr -k2,2 | head -$nw | cut -d' ' -f1 > $outfile" >> $cmdfile_tmp
                ;;
             auto:tunal*)
                argCheck ${toks[0]} 2 ${#toks[*]}
                jptdir=${toks[1]}
                nw=${toks[2]}
-               echo "count_unal_words -l 2 $jptdir/jpt.* | sort -nr -k2,2 | head -$nw | cut -d' ' -f1 > $outfile" >> $cmdfile_tmp
+               echo "$PF count_unal_words -l 2 $jptdir/jpt.* | sort -nr -k2,2 | head -$nw | cut -d' ' -f1 > $outfile" >> $cmdfile_tmp
                ;;
             auto:mkcls*)
                argCheck ${toks[0]} 3 ${#toks[*]}
                file=${toks[1]}
                nclust=${toks[2]}
                niters=${toks[3]}
-               echo "mkcls -c$nclust -n$niters -V$outfile -p<(zcat -f $file) opt" >> $cmdfile_tmp
+               echo "$PF mkcls -c$nclust -n$niters -V$outfile -p<(zcat -f $file) opt" >> $cmdfile_tmp
                ;;
             auto:df1*)
                argCheck ${toks[0]} 1 ${#toks[*]}
                corp=${toks[1]}
                [[ $tgtlang ]] || error_exit "Please specify -tgtlang when using auto:df1* features"
-               echo "cat ${corp}_${tgtlang}.${tgtext} | pseudo_docfreqs > $outfile" >> $cmdfile_tmp
+               echo "$PF cat ${corp}_${tgtlang}.${tgtext} | pseudo_docfreqs > $outfile" >> $cmdfile_tmp
                ;;
             auto:df2*)
                argCheck ${toks[0]} 2 ${#toks[*]}
                corp=${toks[1]}
                d=${toks[2]}
                [[ $tgtlang ]] || error_exit "Please specify -tgtlang when using auto:df2* features"
-               echo "cat ${corp}_${tgtlang}.${tgtext} | pseudo_docfreqs -d$d > $outfile" >> $cmdfile_tmp
+               echo "$PF cat ${corp}_${tgtlang}.${tgtext} | pseudo_docfreqs -d$d > $outfile" >> $cmdfile_tmp
                ;;
             auto:bins11)  # this is ridiculous
                argCheck ${toks[0]} 0 ${#toks[*]}
-               echo "echo -e '1 1\n2 2\n3 4\n5 8\n9 16\n17 32\n33 64\n65 128\n129 1000\n1001 10000\n10001 0' > $outfile" >> $cmdfile_tmp
+               echo "$PF echo -e '1 1\n2 2\n3 4\n5 8\n9 16\n17 32\n33 64\n65 128\n129 1000\n1001 10000\n10001 0' > $outfile" >> $cmdfile_tmp
                ;;
             # ADD OTHER auto:xxx COMMANDS HERE
             auto:*)
