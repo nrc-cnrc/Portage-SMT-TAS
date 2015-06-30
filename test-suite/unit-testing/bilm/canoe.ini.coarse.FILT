@@ -1,7 +1,7 @@
 [ttable-multi-prob] 
    cpt.ibm2.en2fr.FILT.gz
 [lmodel-file] 
-   lm
+   lm.tplm
 [weight-l] 0
 [cube-pruning]
 [use-ftm]

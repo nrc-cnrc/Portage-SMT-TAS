@@ -14,6 +14,8 @@
 
 
 SHELL=/bin/bash
+.PHONY: FORCE
+FORCE:
 
 all: out coarseout
 
@@ -21,7 +23,7 @@ TEMP_FILES=out log.* coarse*out coarse*out.tmp log.coarseout \
            train_en train_fr coarse*_en coarse*_fr \
            coarse*train_bilm coarse*train_bilm.raw \
            en.cls* fr.cls* bitoken*.cls* bilm.coarse*.gz
-TEMP_DIRS=bilm.*.tplm run-p.*
+TEMP_DIRS=bilm.*.tplm run-p.* lm.tplm
 include ../Makefile.incl
 
 init-lm:
@@ -40,6 +42,10 @@ out: in canoe.ini bilm lm
 .SECONDARY:
 refsuffix?=$(or ${cls_en},0)$(or ${cls_fr},0)$(or ${cls_bitoken},0)
 
+##############################################################################
+# This prep part of the test suite only works in Portage R&D, not in PortageII
+# However, its results are saved in PortageII so we do not need to re-run it.
+#
 # Before running "make prep":
 #  - run the test suite in ../dynamic-pt/
 #  - run "make cpt.ibm2.en2fr.gz" in ../dynamic-pt/
@@ -49,7 +55,10 @@ TEMP_PREP_FILES=train_en train_fr coarse*_en coarse*_fr \
 clean_prep:
 	${RM} ${TEMP_PREP_FILES}
 
-prep: train.en2fr.align.gz coarse${refsuffix}_en coarse${refsuffix}_fr coarse${refsuffix}train_bilm bilm.coarse${refsuffix}.gz coarse.in canoe.ini.coarse.FILT
+prep: train.en2fr.align.gz \
+      coarse${refsuffix}_en coarse${refsuffix}_fr \
+      coarse${refsuffix}train_bilm bilm.coarse${refsuffix}.gz \
+      coarse.in canoe.ini.coarse.FILT
 
 train_%: train_%.al.bz2
 	bzcat $< > $@
@@ -92,6 +101,12 @@ canoe.ini.coarse.FILT: refsuffix=
 canoe.ini.coarse.FILT: coarse.in canoe.ini.coarse ../dynamic-pt/cpt.ibm2.en2fr.gz en.cls.gz fr.cls.gz bilm.coarse.gz
 	filter_models -v -f canoe.ini.coarse < $<
 
+lm.tplm: lm
+	arpalm2tplm.sh -n 1 $< &> log.$@
+
+############################### End of prep ##################################
+##############################################################################
+
 LM_EXT?=tplm
 COARSE_BILM:=bilm.coarse${refsuffix}.${LM_EXT}
 ifdef cls_en
@@ -104,15 +119,19 @@ ifdef cls_bitoken
    COARSE_BILM:=${COARSE_BILM};cls(tgt/src)=bitoken${refsuffix}.cls.gz
 endif
 
+LMC_MIN?=""
 verbosity ?= 1
 coarseout:
-	${MAKE} coarse${refsuffix}out LM_EXT=gz
-	${MAKE} coarse${refsuffix}out LM_EXT=tplm
+	${MAKE} coarse${refsuffix}out LM_EXT=gz LMC_MIN=
+	${MAKE} coarse${refsuffix}out LM_EXT=tplm LMC_MIN=
+	${MAKE} coarse${refsuffix}out LM_EXT=tplm LMC_MIN=-minimize-lm-context-size
 
-coarse${refsuffix}out: bilm.coarse${refsuffix}.${LM_EXT} en.cls.gz fr.cls.gz
+coarse${refsuffix}out: FORCE bilm.coarse${refsuffix}.${LM_EXT} en.cls.gz fr.cls.gz lm.tplm
 	canoe -f canoe.ini.coarse.FILT -ffvals -trace -input coarse.in \
-	   -v ${verbosity} -timing \
+	   -v ${verbosity} -timing ${LMC_MIN} \
 	   -bilm-file "bilm:${COARSE_BILM}" \
 	   > $@.tmp 2> log.$@
 	mv $@.tmp $@
 	diff $@ ref/$@ || diff $@ ref/$@-alt
+
+
