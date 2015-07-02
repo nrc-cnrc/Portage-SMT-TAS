@@ -249,6 +249,15 @@ public:
       TS_ASSERT(!conv("-20000000000000000000", x));
    }
 
+   void testReplaceAll() {
+      string a = "AbAbAA";
+      replaceAll(a, "A", "Z");
+      TS_ASSERT_EQUALS(a, "ZbZbZZ");
+
+      replaceAll(a, "Zb", "zB");
+      TS_ASSERT_EQUALS(a, "zBzBZZ");
+   }
+
 }; // TestStrUtils
 
 } // Portage
