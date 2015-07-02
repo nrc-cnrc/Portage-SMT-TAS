@@ -783,5 +783,18 @@ struct NullDeleter
  */
 char* strdup_new(const char* in);
 
+/**
+ */
+inline void replaceAll(string& str, const string& f, const string& t) {
+   if (f.empty()) return;
+   size_t pos = 0;
+   const size_t fl = f.size();
+   const size_t tl = t.size();
+   while ((pos = str.find(f, pos)) != string::npos) {
+      str.replace(pos, fl, t);
+      pos += tl;
+   }
+}
+
 } // ends Portage namespace
 #endif /*STR_UTILS_H*/

@@ -838,6 +838,11 @@ int MAIN(argc, argv)
    if (c.sentWeights != "")
       readFileLines(c.sentWeights, sent_weights);
 
+
+   oSafeMagicStream* nssiStream = NULL;     ///< Stream to write the newSrcSentInfo;
+   if (!c.nssiFilename.empty())
+      nssiStream = new oSafeMagicStream(c.nssiFilename);
+
    if (!c.loadFirst) {
       cerr << "Translating " << sents.size() << " sentences." << endl;
    } else {
@@ -1005,6 +1010,8 @@ int MAIN(argc, argv)
       assert(!h->isEmpty());
 
       doOutput(*h, *model, sourceSentenceId, &oovs, c, *file_info);
+      if (nssiStream != NULL)
+         nss->toJSON(*nssiStream, &(gen->get_voc())) << endl;;
 
       nss.reset();
       delete h;
@@ -1050,6 +1057,7 @@ int MAIN(argc, argv)
 
    delete gen;
    delete file_info;
+   delete nssiStream;
 
    if (c.verbosity >= 1) logTime("done");
 

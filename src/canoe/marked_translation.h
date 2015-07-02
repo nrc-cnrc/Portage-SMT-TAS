@@ -19,6 +19,7 @@
 #include "canoe_general.h"
 #include <vector>
 #include <string>
+#include "toJSON.h"
 
 namespace Portage {
    using namespace std;
@@ -39,7 +40,12 @@ namespace Portage {
        * @return true iff *this and b and identical
        */
       bool operator==(const MarkedTranslation &b) const;
+
+      friend ostream& operator<<(ostream& out, const MarkedTranslation& o);
+
+      ostream& toJSON(ostream& out) const;
    }; // MarkedTranslation
+
 }; // ends namespace Portage 
 
 #endif // ends __MARKED_TRANSLATION__H__

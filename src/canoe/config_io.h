@@ -245,6 +245,8 @@ public:
    bool forcedDecodingNZ;           ///< Forced decoding without zeroing lm, length and ibm1 weights
    Uint maxlen;                     ///< Skip sentences longer than max len (0 means do all)
 
+   string nssiFilename;             ///< Triggers outputing, for every input sentence, the newSrcSentInfo into a file in a json format.
+
    // how to run the software
    bool final_cleanup;              ///< Indicates if canoe should delete its bmg.
    int  bind_pid;                   ///< What pid to monitor.
