@@ -36,21 +36,20 @@ namespace Portage
    class ArrayUint4 {
       Uint _storage;
     public:
-      /// Default and one-parameter construction uses a Uint initial value to
-      /// see all values together - good for -1 (all 15) or 0 (all 0).
-      ArrayUint4(Uint init = 0) : _storage(init) {}
-      /// Two-parameter constructor initializes the first n values to init, the
-      /// rest to 0.
-      ArrayUint4(Uint init, Uint n) : _storage(0) {
-         n = min(n, 7);
-         for (Uint i = 0; i < n; ++i) set(i, init);
+      static const Uint MAX = 15; ///< Greatest value that can be stored: 0b1111
+      static const Uint MAXI = 7; ///< Greatest index i that can be used
+      /// Default and one-parameter construction sets all 8 values to init [0]
+      /// (You can use -1 for MAX, which can be used to mean uninitialized)
+      ArrayUint4(Uint init = 0) : _storage(init) {
+         if (init != Uint(-1) && init != 0)
+            for (Uint i = 0; i <= MAXI; ++i) set(i, init);
       }
 
-      Uint get(Uint i) const { return (_storage >> (4*i)) & 15; }
+      Uint get(Uint i) const { return (_storage >> (4*i)) & MAX; }
       void set(Uint i, Uint v) {
-         assert(i <= 7);
-         _storage &= ~(15 << (4*i));
-         _storage |= (v&15) << (4*i);
+         assert(i <= MAXI);
+         _storage &= ~(MAX << (4*i));
+         _storage |= (v&MAX) << (4*i);
       }
    };
 
@@ -223,9 +222,18 @@ namespace Portage
        * contextSizes[1..7] are the required context sizes for the BiLMs
        */
       mutable ArrayUint4 contextSizes;
-      int getLmContextSize() const { return contextSizes.get(0); }
-      void setLmContextSize(Uint size) const { contextSizes.set(0, size); }
-      bool isLmContextSizeSet() const { return contextSizes.get(0) != 15; }
+      Uint getLmContextSize() const { return contextSizes.get(0); }
+      void setLmContextSize(Uint size) const;
+      bool isLmContextSizeSet() const { return contextSizes.get(0) != ArrayUint4::MAX; }
+
+      /**
+       * The right context size for BiLMs
+       */
+      Uint getBiLMContextSize(Uint biLM_ID) const { return contextSizes.get(biLM_ID); }
+      void setBiLMContextSize(Uint biLM_ID, Uint size) const;
+
+      /// Set all LM and BiLM context sizes to the same value given
+      void setAllContextSizes(Uint size) const;
 
       // EJJ Packing note: numSourceWordsCovered and contextSizes are placed
       // together to pack well, filling exactly a Word slot between pointers

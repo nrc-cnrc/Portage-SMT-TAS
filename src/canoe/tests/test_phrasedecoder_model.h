@@ -39,9 +39,14 @@ public:
       a.set(6,28);
       TS_ASSERT_EQUALS(a.get(0), 3); TS_ASSERT_EQUALS(a.get(1), 15); TS_ASSERT_EQUALS(a.get(2), 15); TS_ASSERT_EQUALS(a.get(3), 15); TS_ASSERT_EQUALS(a.get(4), 15); TS_ASSERT_EQUALS(a.get(5), 14); TS_ASSERT_EQUALS(a.get(6), 12); TS_ASSERT_EQUALS(a.get(7), 0); 
 
-      ArrayUint4 b(3, 5);
+      //ArrayUint4 b(3, 5); // This constructor has been removed from the class
+      ArrayUint4 b;
+      b.set(0,3); b.set(1,3); b.set(2,3); b.set(3,3); b.set(4,3);
       TS_ASSERT_EQUALS(b.get(0), 3); TS_ASSERT_EQUALS(b.get(1), 3); TS_ASSERT_EQUALS(b.get(2), 3); TS_ASSERT_EQUALS(b.get(3), 3); TS_ASSERT_EQUALS(b.get(4), 3); TS_ASSERT_EQUALS(b.get(5), 0); TS_ASSERT_EQUALS(b.get(6), 0); TS_ASSERT_EQUALS(b.get(7), 0); 
-      b = ArrayUint4(5, 1);
+      //b = ArrayUint4(5, 1); // This constructor has been removed from the class
+      ArrayUint4 c;
+      c.set(0,5);
+      b = c;
       TS_ASSERT_EQUALS(b.get(0), 5); TS_ASSERT_EQUALS(b.get(1), 0); TS_ASSERT_EQUALS(b.get(2), 0); TS_ASSERT_EQUALS(b.get(3), 0); TS_ASSERT_EQUALS(b.get(4), 0); TS_ASSERT_EQUALS(b.get(5), 0); TS_ASSERT_EQUALS(b.get(6), 0); TS_ASSERT_EQUALS(b.get(7), 0); 
    }
 }; // class TestCanoeGeneral

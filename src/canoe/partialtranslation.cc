@@ -23,13 +23,34 @@ using namespace Portage;
 
 const PhraseInfo PartialTranslation::EmptyPhraseInfo;
 
+void PartialTranslation::setLmContextSize(Uint size) const
+{
+   if (size >= ArrayUint4::MAX)
+      error(ETFatal, "Trying to set lm context size to unsupported value %u. When using -minimize-lm-context-size, you may not use n-gram LMs of order higher than %u.", size, ArrayUint4::MAX);
+   contextSizes.set(0, size);
+}
+
+void PartialTranslation::setBiLMContextSize(Uint biLM_ID, Uint size) const
+{
+   if (size >= ArrayUint4::MAX)
+      error(ETFatal, "Trying to set BiLM context size to unsupported value %u. When using -minimize-lm-context-size, you may not use n-gram LMs of order higher than %u.", size, ArrayUint4::MAX);
+   contextSizes.set(biLM_ID, size);
+}
+
+void PartialTranslation::setAllContextSizes(Uint size) const
+{
+   if (size >= ArrayUint4::MAX)
+      error(ETFatal, "Trying to set lm and bilm context sizes to unsupported value %u. When using -minimize-lm-context-size, you may not use n-gram LMs of order higher than %u.", size, ArrayUint4::MAX);
+   contextSizes = ArrayUint4(size);
+}
+
 // CAC: It breaks my heart, but this needs to stay to enable
 // legacy testing.
 PartialTranslation::PartialTranslation(PhraseInfo* phrase)
    : back(NULL)
    , lastPhrase(phrase)
    , numSourceWordsCovered(0)
-   , contextSizes(-1) // == uninit x 8
+   , contextSizes(-1) // == all uninit
    , levInfo(NULL)
    , shiftReduce(NULL)
 {}
@@ -40,7 +61,7 @@ PartialTranslation::PartialTranslation(Uint sourceLen,
    : back(NULL)
    , lastPhrase(&EmptyPhraseInfo)
    , numSourceWordsCovered(0)
-   , contextSizes(1,8) // the initial empty state always provides <s> (or its bitoken) as context
+   , contextSizes(1) // the initial empty state always provides <s> (or its bitoken) as context
    , levInfo(usingLev ? new PartialTranslation::levenshteinInfo() : NULL)
    , shiftReduce(usingSR ? new ShiftReducer(sourceLen) : NULL)
 {
@@ -68,7 +89,7 @@ PartialTranslation::PartialTranslation(const PartialTranslation* trans0,
       const PhraseInfo* phrase, const UintSet* preCalcSourceWordsCovered)
    : back(trans0)
    , lastPhrase(phrase)
-   , contextSizes(-1) // == uninit x 8
+   , contextSizes(-1) // == all uninit
    , levInfo(trans0->levInfo ? new PartialTranslation::levenshteinInfo() : NULL)
    , shiftReduce(trans0->shiftReduce
                  ? new ShiftReducer(phrase->src_words,trans0->shiftReduce)

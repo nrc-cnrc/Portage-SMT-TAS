@@ -161,6 +161,11 @@ BasicModelGenerator* BasicModelGenerator::create(
    if (c.maxLmContextSize > -1)
       result->lm_numwords = min(result->lm_numwords, c.maxLmContextSize + 1);
 
+   // This is late error checking, after loading all the models, which is not
+   // ideal, but at least it's before we actually start decoding
+   if (c.minimizeLmContextSize && result->lm_numwords > ArrayUint4::MAX)
+      error(ETFatal, "-minimize-lm-context-size supports a maximum LM order of %u.", ArrayUint4::MAX);
+
    // We no longer need all that filtering data, since dynmamic LM filtering
    // has been completed by now.
    result->tgt_vocab.freePerSentenceData();
@@ -962,8 +967,8 @@ void BasicModelGenerator::getRawLM(
          Uint size = lms[j]->minContextSize(&(endPhrase[0]), contextAvailable);
          if (size > requiredLMContextSize) requiredLMContextSize = size;
       }
-      if (requiredLMContextSize > 14)
-         error(ETFatal, "-minimize-lm-context-size supports only up to 15-gram language models.");
+      if (requiredLMContextSize >= ArrayUint4::MAX)
+         error(ETFatal, "-minimize-lm-context-size supports only up to %u-gram language models.", ArrayUint4::MAX);
       trans.setLmContextSize(requiredLMContextSize);
    }
 } // getRawLM
