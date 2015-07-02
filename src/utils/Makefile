@@ -38,6 +38,7 @@ OBJECTS = \
         str_utils.o \
         timer.o \
         tm_entry.o \
+        toJSON.o \
         trie.o \
         utf8_utils.o \
         voc.o \
