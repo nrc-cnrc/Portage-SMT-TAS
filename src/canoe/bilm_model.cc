@@ -168,7 +168,7 @@ void BiLMModel::finalizeInitialization()
    }
    cerr << "Loading BiLM model " << model_string << endl;
    bilm = PLM::Create(filename, biVoc, PLM::SimpleAutoVoc, LOG_ALMOST_0,
-      bmg->limitPhrases, 0, NULL, false);
+      bmg->limitPhrases, 0, NULL, false, "BiLMModel");
    assert(bilm);
    order = bilm->getOrder();
    if (order == 0)

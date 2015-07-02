@@ -316,6 +316,8 @@ public:
     * @param os_filtered   Opened stream to output the filtered LM.
     *                      [typical value: NULL]
     * @param quiet         Suppresses verbose.
+    * @param descriptor    Prefix to use instead of "LanguageModel" for
+    *                      describeFeature()
     */
    static PLM* Create(const string& lm_filename,
                       VocabFilter* vocab,
@@ -324,7 +326,8 @@ public:
                       bool limit_vocab,
                       Uint limit_order,
                       ostream *const os_filtered,
-                      bool quiet = false);
+                      bool quiet = false,
+                      const string descriptor = "LanguageModel");
 
    /**
     * Calculate the total size of memory mapped files in lm_filename, if any.
@@ -429,7 +432,7 @@ public:
    virtual ~PLM();
 
    /**
-    * Get a human readable description of the model.  To override the default
+    * Get a human readable escription of the model.  To override the default
     * value for your derived class, set protected member description above to a
     * new value in your create() function or in your constructor.
     *

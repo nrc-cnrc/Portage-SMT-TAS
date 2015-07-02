@@ -150,7 +150,7 @@ public:
    virtual float cachedWordProb(Uint word, const Uint context[], Uint context_length);
    virtual void clearCache() {}
    virtual Uint minContextSize(const Uint context[], Uint context_length) {
-      error(ETFatal, "-minimize-lm-context-size is not supported with LMs in ARPA or binlm format, because it cannot be implemented exactly correctly in our LMTrie data structure without augmenting it. Use TPLMs instead.");
+      error(ETFatal, "-minimize-lm-context-size is not supported with LMs in ARPA or binlm format, because it cannot be implemented exactly correctly in our LMTrie data structure without augmenting it. Convert LM %s to TPLM format.", describeFeature().c_str());
       return Uint(-1);
    }
 
