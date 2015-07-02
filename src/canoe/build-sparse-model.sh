@@ -181,7 +181,7 @@ for c in $features; do
                corp=${toks[1]}
                nw=${toks[2]}
                [[ $srclang ]] || error_exit "Please specify -srclang when using auto:svoci* features"
-               echo "$PF get_voc -sc ${corp}_${srclang}.${srcext} | head -$nw | cut -d' ' -f1 |\
+               echo "get_voc -sc ${corp}_${srclang}.${srcext} | head -$nw | cut -d' ' -f1 |\
                   perl -n -e 'BEGIN {\$i=2}' -e 'chomp; print \$_,\"\t\",\$i++,\"\n\"' > $outfile" \
                   >> $cmdfile_tmp
                ;;
@@ -190,7 +190,7 @@ for c in $features; do
                corp=${toks[1]}
                nw=${toks[2]}
                [[ $tgtlang ]] || error_exit "Please specify -tgtlang when using auto:tvoci* features"
-               echo "$PF get_voc -sc ${corp}_${tgtlang}.${tgtext} | head -$nw | cut -d' ' -f1 |\
+               echo "get_voc -sc ${corp}_${tgtlang}.${tgtext} | head -$nw | cut -d' ' -f1 |\
                   perl -n -e 'BEGIN {\$i=2}' -e 'chomp; print \$_,\"\t\",\$i++,\"\n\"' > $outfile" \
                   >> $cmdfile_tmp
                ;;
@@ -199,14 +199,14 @@ for c in $features; do
                corp=${toks[1]}
                nw=${toks[2]}
                [[ $srclang ]] || error_exit "Please specify -srclang when using auto:svoc* features"
-               echo "$PF get_voc -sc ${corp}_${srclang}.${srcext} | head -$nw | cut -d' ' -f1 > $outfile" >> $cmdfile_tmp
+               echo "get_voc -sc ${corp}_${srclang}.${srcext} | head -$nw | cut -d' ' -f1 > $outfile" >> $cmdfile_tmp
                ;;
             auto:tvoc*)
                argCheck ${toks[0]} 2 ${#toks[*]}
                corp=${toks[1]}
                nw=${toks[2]}
                [[ $tgtlang ]] || error_exit "Please specify -tgtlang when using auto:tvoc* features"
-               echo "$PF get_voc -sc ${corp}_${tgtlang}.${tgtext} | head -$nw | cut -d' ' -f1 > $outfile" >> $cmdfile_tmp
+               echo "get_voc -sc ${corp}_${tgtlang}.${tgtext} | head -$nw | cut -d' ' -f1 > $outfile" >> $cmdfile_tmp
                ;;
             auto:sunal*)
                argCheck ${toks[0]} 2 ${#toks[*]}
