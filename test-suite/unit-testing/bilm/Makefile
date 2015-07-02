@@ -17,7 +17,7 @@ SHELL=/bin/bash
 .PHONY: FORCE
 FORCE:
 
-all: out coarseout
+all: out err_min_lmc coarseout
 
 TEMP_FILES=out log.* coarse*out coarse*out.tmp log.coarseout \
            train_en train_fr coarse*_en coarse*_fr \
@@ -30,12 +30,21 @@ init-lm:
 	ngram-count -unk -text <(echo .) -lm lm
 
 init-bilm:
-	ngram-count -unk -text train_bilm -lm bilm
+	ngram-count -unk -text train_bilm -lm bilm.tiny.gz
 
-out: in canoe.ini bilm lm
+out: in canoe.ini bilm.tiny.gz lm
 	canoe -f canoe.ini -input in -ffvals > out 2> log.out
 	diff out ref/out
 
+err_min_lmc: in canoe.ini lm lm.tplm bilm.tiny.gz bilm.tiny.tplm
+	! canoe -f canoe.ini -input in -minimize-lm-context-size >& log.err1
+	grep 'Convert LM.*to TPLM format' log.err1
+	! canoe -f canoe.ini -input in -minimize-lm-context-size -lmodel-file lm.tplm >& log.err2
+	grep 'Convert LM.*to TPLM format' log.err2
+	! canoe -f canoe.ini -input in -minimize-lm-context-size -bilm-file bilm.tiny.tplm >& log.err3
+	grep 'Convert LM.*to TPLM format' log.err3
+	canoe -f canoe.ini -input in -minimize-lm-context-size -lmodel-file lm.tplm -bilm-file bilm.tiny.tplm >& log.noerr
+	grep 'Translated ' log.noerr
 
 # Coarse BiLM
 
@@ -69,11 +78,27 @@ train_%: train_%.al.bz2
 train.en2fr.align.gz: ../dynamic-pt/train.en2fr.ibm2.tpa
 	tp_alignment_dump $< | gzip > $@
 
+coarse.in: ${PORTAGE}/test-suite/tutorial-data/dev1_en.al
+	echo 1 2 3 5 6 7 8 9 10 | tr ' ' $$'\n' | lines.py /dev/stdin $< | lc-latin.pl > $@
+
+# in ../dynamic-pt, run "make cpt.ibm2.en2fr.gz"
+canoe.ini.coarse.FILT: refsuffix=
+canoe.ini.coarse.FILT: coarse.in canoe.ini.coarse ../dynamic-pt/cpt.ibm2.en2fr.gz en.cls.gz fr.cls.gz bilm.coarse.gz
+	filter_models -v -f canoe.ini.coarse < $<
+
+lm.tplm: lm
+	arpalm2tplm.sh -n 1 $< &> log.$@
+
+############################### End of prep ##################################
+##############################################################################
+
+
 coarse${refsuffix}_%: train_% %.cls.gz
 	if [[ -n "${cls_$*}" ]]; then word2class $+ $@; else cp $< $@; fi
 
 checktrain_bilm: train_en train_fr train.en2fr.align.gz
 	word_align_tool -fin green -fout bilm -t $+ $@
+
 coarse${refsuffix}train_bilm.raw: coarse${refsuffix}_en coarse${refsuffix}_fr
 	word_align_tool -fin green -fout bilm -t $+ train.en2fr.align.gz $@
 
@@ -93,19 +118,6 @@ bilm.coarse${refsuffix}.gz: coarse${refsuffix}train_bilm
 	ngram-count -unk -text $< -lm $@
 bilm.%.tplm: bilm.%.gz
 	arpalm2tplm.sh -n 1 $< >& log.$@
-coarse.in: ${PORTAGE}/test-suite/tutorial-data/dev1_en.al
-	echo 1 2 3 5 6 7 8 9 10 | tr ' ' $$'\n' | lines.py /dev/stdin $< | lc-latin.pl > $@
-
-# in ../dynamic-pt, run "make cpt.ibm2.en2fr.gz"
-canoe.ini.coarse.FILT: refsuffix=
-canoe.ini.coarse.FILT: coarse.in canoe.ini.coarse ../dynamic-pt/cpt.ibm2.en2fr.gz en.cls.gz fr.cls.gz bilm.coarse.gz
-	filter_models -v -f canoe.ini.coarse < $<
-
-lm.tplm: lm
-	arpalm2tplm.sh -n 1 $< &> log.$@
-
-############################### End of prep ##################################
-##############################################################################
 
 LM_EXT?=tplm
 COARSE_BILM:=bilm.coarse${refsuffix}.${LM_EXT}
@@ -126,12 +138,18 @@ coarseout:
 	${MAKE} coarse${refsuffix}out LM_EXT=tplm LMC_MIN=
 	${MAKE} coarse${refsuffix}out LM_EXT=tplm LMC_MIN=-minimize-lm-context-size
 
-coarse${refsuffix}out: FORCE bilm.coarse${refsuffix}.${LM_EXT} en.cls.gz fr.cls.gz lm.tplm
+coarse${refsuffix}out: FORCE bilm.coarse${refsuffix}.${LM_EXT} en.cls.gz fr.cls.gz lm.tplm bilm.tiny.${LM_EXT}
 	canoe -f canoe.ini.coarse.FILT -ffvals -trace -input coarse.in \
 	   -v ${verbosity} -timing ${LMC_MIN} \
-	   -bilm-file "bilm:${COARSE_BILM}" \
-	   > $@.tmp 2> log.$@
+	   -bilm-file "bilm.tiny.${LM_EXT}:${COARSE_BILM}" \
+	   > $@.tmp 2> log.$@.lmext-${LM_EXT}${LMC_MIN}
 	mv $@.tmp $@
 	diff $@ ref/$@ || diff $@ ref/$@-alt
 
+
+##############################################################################
+# Section with toy class files of order up to 16, to test boundary cases
+
+%.3cls.gz: %.cls.gz
+	zcat $< | perl -ple 's/	([0-9]+)$$/($$1 % 3)/ex;' | gzip > $@
 

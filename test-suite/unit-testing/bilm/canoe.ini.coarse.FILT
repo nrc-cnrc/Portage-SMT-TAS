@@ -7,5 +7,5 @@
 [use-ftm]
 [weight-d] 0
 [bilm-file] 
-   bilm
+   bilm.tiny.gz
    bilm.coarse.gz;cls(src)=en.cls.gz;cls(tgt)=fr.cls.gz
