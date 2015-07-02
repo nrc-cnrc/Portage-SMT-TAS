@@ -24,3 +24,22 @@ bool MarkedTranslation::operator==(const MarkedTranslation &b) const
           && log_prob == b.log_prob;
 } // operator==
 
+ostream& MarkedTranslation::toJSON(ostream& out) const {
+   out << "{";
+   out << to_JSON("src_words", src_words);
+   out << ',';
+   out << to_JSON("log_prob", log_prob);
+   out << ',';
+   out << to_JSON("markString", markString);
+   out << ',';
+   out << to_JSON("class_name", class_name);
+   out << "}";
+   return out;
+}
+
+namespace Portage {
+   ostream& operator<<(ostream& out, const MarkedTranslation& o) {
+      return o.toJSON(out);
+   }
+};
+

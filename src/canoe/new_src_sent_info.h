@@ -2,9 +2,9 @@
  * @author Samuel Larkin
  * @file new_src_sent_info.h
  * Groups all the information about a source sentence needed by a decoder feature.
- * 
- * 
- * COMMENTS: 
+ *
+ *
+ * COMMENTS:
  *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
@@ -38,6 +38,7 @@ struct SrcWall {
    string name;
    SrcWall() : pos(0) {}
    explicit SrcWall(Uint pos, const string& name = "") : pos(pos), name(name) {}
+   ostream& toJSON(ostream& out) const;
 };
 /// A SrcZone describes a section of an input sentence marked with <zone name="name"> blah </zone>
 struct SrcZone {
@@ -45,6 +46,7 @@ struct SrcZone {
    string name;
    SrcZone() {}
    explicit SrcZone(Range range, const string& name = "") : range(range), name(name) {}
+   ostream& toJSON(ostream& out) const;
 };
 /// A SrcLocalWall describes an occurrence of <localwall name="name"/> inside a zone.
 struct SrcLocalWall {
@@ -54,6 +56,7 @@ struct SrcLocalWall {
    SrcLocalWall() {}
    explicit SrcLocalWall(Uint pos, const string& name = "") :
       pos(pos), zone(0,0), name(name) {}
+   ostream& toJSON(ostream& out) const;
 };
 
 inline ostream& operator<<(ostream& o, const SrcWall& w) { o << w.pos; return o; }
@@ -153,7 +156,7 @@ struct newSrcSentInfo {
 
    /// Prints the content of the newSrcSentInfo.
    /// @param out  stream to output the content of newSrcSentInfo.
-   void print(ostream& out = cerr) const 
+   void print(ostream& out = cerr) const
    {
       out << "internal_src_sent_seq: " << internal_src_sent_seq << endl;
       out << "external_src_sent_id: " << external_src_sent_id << endl;
@@ -165,6 +168,8 @@ struct newSrcSentInfo {
       if (oovs != NULL)
          out << join(*oovs) << endl;
    }
+
+   ostream& toJSON(ostream& out = cerr, Voc const * const voc = NULL) const;
 }; // ends newSrcSentInfo
 
 typedef boost::shared_ptr<newSrcSentInfo> PSrcSent;

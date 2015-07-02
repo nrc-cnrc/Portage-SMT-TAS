@@ -286,6 +286,7 @@ CanoeConfig::CanoeConfig()
    param_infos.push_back(ParamInfo("forced", "bool", &forcedDecoding));
    param_infos.push_back(ParamInfo("forced-nz", "bool", &forcedDecodingNZ));
    param_infos.push_back(ParamInfo("maxlen", "Uint", &maxlen));
+   param_infos.push_back(ParamInfo("nssiFilename", "string", &nssiFilename));
    param_infos.push_back(ParamInfo("final-cleanup", "bool", &final_cleanup));
    param_infos.push_back(ParamInfo("bind", "int", &bind_pid));
    param_infos.push_back(ParamInfo("timing", "bool", &timing));

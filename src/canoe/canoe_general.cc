@@ -18,6 +18,16 @@
 #include "canoe_general.h"
 
 namespace Portage {
+   ostream& to_JSON(ostream& out, const Phrase& phrase, const Voc& voc) {
+      out << '[';
+      for (Uint i(0); i<phrase.size(); ++i) {
+         if (i>0) out << ',';
+         out << to_JSON(string(voc.word(phrase[i])));
+      }
+      out << ']';
+      return out;
+   }
+
    void addRange(UintSet &result, const UintSet &s, const Range &r)
    {
       result.clear();

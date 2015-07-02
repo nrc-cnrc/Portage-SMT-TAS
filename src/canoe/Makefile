@@ -47,6 +47,7 @@ OBJECTS= \
     levenshtein_feature.o \
     marked_translation.o \
     nbesttranslation.o \
+    new_src_sent_info.o \
     ngrammatch_feature.o \
     nnjm.o \
     partialtranslation.o \

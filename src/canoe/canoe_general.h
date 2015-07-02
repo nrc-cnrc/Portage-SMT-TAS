@@ -23,6 +23,7 @@
 #include <cassert>
 #include <compact_phrase.h>
 #include <boost/static_assert.hpp>
+#include "toJSON.h"
 
 using namespace std;
 using namespace Portage;
@@ -55,6 +56,8 @@ namespace Portage
    /// utils/compact_phrase.h
    typedef VectorPhrase Phrase;
    //typedef CompactPhrase Phrase;
+
+   ostream& to_JSON(ostream& out, const Phrase& phrase, const Voc& voc);
 
    /**
     * A range of words in a sentence [start, end):
@@ -108,6 +111,15 @@ namespace Portage
          ostringstream s;
          s << "[" << start << "," << end << ")";
          return s.str();
+      }
+
+      ostream& toJSON(ostream& out) const {
+         out << '{';
+         out << to_JSON("start", start);
+         out << ',';
+         out << to_JSON("end", end);
+         out << '}';
+         return out;
       }
 
       /// Return the length of a range

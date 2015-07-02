@@ -23,6 +23,7 @@
 #include <vector>
 #include <cmath> // NAN
 #include <boost/dynamic_bitset.hpp>
+#include "toJSON.h"
 
 using namespace std;
 
@@ -73,6 +74,44 @@ namespace Portage
       /// Annotation trail left by various features, to find their way later, stored
       /// for each phrase pair in an annotation list
       AnnotationList annotations;
+
+      ostream& toJSON(ostream& out, Voc const * const voc = NULL) const {
+         out << '{';
+         out << to_JSON("src_words", src_words);
+         if (voc != NULL) {
+            out << ',';
+            out << keyJSON("phrase");
+            // Since Phrase has no method .toJSON, we must print it this way.
+            to_JSON(out, phrase, *voc);
+         }
+         else {
+            //  This outputs the phrase as a vector of ints.
+            out << ',';
+            out << to_JSON("phrase", (vector<Uint>)phrase);
+         }
+         out << ',';
+         out << to_JSON("phrase_trans_prob", phrase_trans_prob);
+         out << ',';
+         out << to_JSON("phrase_trans_probs", phrase_trans_probs);
+         out << ',';
+         out << to_JSON("forward_trans_prob", forward_trans_prob);
+         out << ',';
+         out << to_JSON("forward_trans_probs", forward_trans_probs);
+         out << ',';
+         out << to_JSON("adir_prob", adir_prob);
+         out << ',';
+         out << to_JSON("adir_probs", adir_probs);
+         out << ',';
+         out << to_JSON("lexdis_probs", lexdis_probs);
+         out << ',';
+         out << to_JSON("partial_score", partial_score);
+	 /*
+         out << ',';
+         out << to_JSON("annotations", annotations);
+	 */
+         out << '}';
+         return out;
+      }
 
       virtual void display() const {
          cerr << src_words << " " << phrase_trans_prob;
