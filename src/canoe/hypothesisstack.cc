@@ -4,8 +4,6 @@
  * classes HistogramHypStack and ThresholdHypStack, as well as the
  * helper-classes HypHash and HypEquiv.
  *
- * $Id$
- *
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -66,10 +64,13 @@ bool WorseScore::operator()(const DecoderState *s1, const DecoderState *s2) cons
 } // operator()
 
 RecombHypStack::RecombHypStack(
-      PhraseDecoderModel &model, bool discardRecombined
+      PhraseDecoderModel &model,
+      bool discardRecombined,
+      bool verbose
 )
    : hh(model)
    , he(model)
+   , verbose(verbose)
    , recombHash(1, hh, he)
    , discardRecombined(discardRecombined)
    , numRecombined(0)
@@ -114,6 +115,7 @@ void RecombHypStack::push(DecoderState *s)
       // Found a translation to recombine with
       numRecombined++;
       DecoderState *rState = *finder;
+      if (verbose) cerr << "\trecombining           " << s->id << " with " << rState->id << nf_endl;
       assert(rState->refCount == 1);
 
       if (rState->futureScore < s->futureScore)
