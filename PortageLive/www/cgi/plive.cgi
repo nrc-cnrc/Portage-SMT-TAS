@@ -463,17 +463,14 @@ sub textBoxOutput {
         h2("Translation:"),
         p(join("<br />", map { HTML::Entities::encode_entities($_, '<>&') } @target));
     print p(a({-href=>"plive.cgi?context=".param('context')}, "Translate more text"));
-    print p("To view the out-of-vocabulary words click here: ",
-          a({-href=>"$workDir/oov.html"}, "OOVs"),
-          ".");
 
-    print p(a({-href=>"$workDir/pal.html"}, "To view the phrase aligments click here."));
-    if (-r "/var/www/html/$workDir/P.triangArray.txt") {
-       print p(a({-href=>"$workDir/P.triangArray.txt"}, "To view Portage's relevant Conditional Phrase Table for each source sentence."));
-    }
-    print p("In case of problems, have a look at the job's ",
-             a({-href=>"plive-monitor.cgi?traceFile=$workDir/trace"}, "trace file"),
-             ".");
+    my @debuggingTools = (
+       a({-href=>"$workDir/oov.html"}, "Out-of-vocabulary words"),
+       a({-href=>"$workDir/pal.html"}, "Phrase alignments"),
+       a({-href=>"plive-monitor.cgi?traceFile=$workDir/trace"}, "Trace file"));
+    push(@debuggingTools, a({-href=>"$workDir/P.triangArray.txt"}, "Phrase tables")) if (-r "/var/www/html/$workDir/P.triangArray.txt");
+    print div({-style=>'font-size: 0.8em;'}, h3("Debugging Tools"),  ul(li({-type=>'circle'}, \@debuggingTools)));
+
     #my @params = param();
     #print "<PRE> @params </PRE>";
     #foreach my $param (@params) {
