@@ -216,6 +216,12 @@ sub printForm {
                          -label=>'')),
              td(strong("xtags"),
                 "-- Check this box if input text contains tags and you want to process & transfer them.")),
+          Tr(td({align=>'center'},
+                checkbox(-name=>'enable_phrase_table_debug',
+                         -checked=>0,
+                         -label=>'')),
+             td(strong("phrase table"),
+                "-- Check this box if you want to genereate a phrase table per source sentence for debugging purposes.")),
           Tr(td({colspan=>2, align=>'center'},
                 submit(-name=>'TranslateBox', -value=>'Translate Text'))),
 
@@ -365,6 +371,12 @@ sub processText {
         push @tr_opt, "-nl=" . param('newline');
     }
 
+    unless (param('TranslateFile') and param('filename')) {
+        if (param('enable_phrase_table_debug')) {
+           push @tr_opt, "-xtra-decode-opts='-triangularArrayFilename $work_dir/P.triangArray.txt'";
+        }
+    }
+
     my $tr_opt = join(" ", @tr_opt);
     my $tr_cmd = $CONTEXT{$context}->{script} . " ${tr_opt} \"$work_dir/Q.in\" >& \"$work_dir/trace\"";
 
@@ -456,6 +468,9 @@ sub textBoxOutput {
           ".");
 
     print p(a({-href=>"$workDir/pal.html"}, "To view the phrase aligments click here."));
+    if (-r "/var/www/html/$workDir/P.triangArray.txt") {
+       print p(a({-href=>"$workDir/P.triangArray.txt"}, "To view Portage's relevant Conditional Phrase Table for each source sentence."));
+    }
     print p("In case of problems, have a look at the job's ",
              a({-href=>"plive-monitor.cgi?traceFile=$workDir/trace"}, "trace file"),
              ".");
