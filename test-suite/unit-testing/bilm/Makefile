@@ -22,7 +22,7 @@ all: out err_min_lmc coarseout
 TEMP_FILES=out log.* coarse*out coarse*out.tmp log.coarseout \
            train_en train_fr coarse*_en coarse*_fr \
            coarse*train_bilm coarse*train_bilm.raw \
-           en.cls* fr.cls* bitoken*.cls* bilm.coarse*.gz
+           en.cls* fr.cls* *.3cls.gz bitoken*.cls* bilm.coarse*.gz
 TEMP_DIRS=bilm.*.tplm run-p.* lm.tplm
 include ../Makefile.incl
 
@@ -132,7 +132,7 @@ ifdef cls_bitoken
 endif
 
 LMC_MIN?=""
-verbosity ?= 1
+verbosity ?= 2
 coarseout:
 	${MAKE} coarse${refsuffix}out LM_EXT=gz LMC_MIN=
 	${MAKE} coarse${refsuffix}out LM_EXT=tplm LMC_MIN=
