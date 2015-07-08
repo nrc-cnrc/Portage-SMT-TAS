@@ -150,12 +150,9 @@ BiLMModel::BiLMModel(BasicModelGenerator* bmg, const string& model_string)
    if (debug_coarse_bilm) cerr << "biVoc " << biVoc << " .size() = " << biVoc->size() << endl;
    bmg->getPhraseTable().registerAnnotator(annotator);
 
-   if (minimizeLmContextSize) {
+   if (minimizeLmContextSize)
       if (biLM_ID > ArrayUint4::MAXI)
          error(ETFatal, "With -minimize-lm-context-size, a maximum of %u BiLMs are supported.", ArrayUint4::MAXI);
-      if (order > ArrayUint4::MAX)
-         error(ETFatal, "With -minimize-lm-context-size, BiLMs of a maximum order of %u are supported.", ArrayUint4::MAX);
-   }
 }
 
 void BiLMModel::finalizeInitialization()
@@ -171,10 +168,16 @@ void BiLMModel::finalizeInitialization()
       bmg->limitPhrases, 0, NULL, false, "BiLMModel");
    assert(bilm);
    order = bilm->getOrder();
+   if (bmg->c->verbosity >= 2)
+      cerr << "Loaded BiLM model " << model_string << " of order " << order << endl;
    if (order == 0)
       error(ETFatal, "Got an order 0 bilm infile %s; this makes no sense.", filename.c_str());
    sentStartID = biVoc->index(PLM::SentStart);
    assert(sentStartID != biVoc->size());
+
+   if (minimizeLmContextSize)
+      if (order > ArrayUint4::MAX)
+         error(ETFatal, "With -minimize-lm-context-size, BiLMs of a maximum order of %u are supported.", ArrayUint4::MAX);
 }
 
 BiLMModel::~BiLMModel()
