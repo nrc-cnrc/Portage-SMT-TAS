@@ -17,12 +17,12 @@ SHELL=/bin/bash
 .PHONY: FORCE
 FORCE:
 
-all: out err_min_lmc coarseout
+all: out err_min_lmc coarseout boundary_cases
 
 TEMP_FILES=out log.* coarse*out coarse*out.tmp log.coarseout \
            train_en train_fr coarse*_en coarse*_fr \
            coarse*train_bilm coarse*train_bilm.raw \
-           en.cls* fr.cls* *.3cls.gz bitoken*.cls* bilm.coarse*.gz
+           en.cls* fr.cls* bitoken*.cls* bilm.coarse*.gz bilm.*gram.gz
 TEMP_DIRS=bilm.*.tplm run-p.* lm.tplm
 include ../Makefile.incl
 
@@ -120,16 +120,17 @@ bilm.%.tplm: bilm.%.gz
 	arpalm2tplm.sh -n 1 $< >& log.$@
 
 LM_EXT?=tplm
-COARSE_BILM:=bilm.coarse${refsuffix}.${LM_EXT}
+COARSE_BILM_FILE=bilm.coarse${refsuffix}.${LM_EXT}
 ifdef cls_en
-   COARSE_BILM:=${COARSE_BILM};cls(src)=en.cls.gz
+   COARSE_BILM_EN=;cls(src)=en.cls.gz
 endif
 ifdef cls_fr
-   COARSE_BILM:=${COARSE_BILM};cls(tgt)=fr.cls.gz
+   COARSE_BILM_FR=;cls(tgt)=fr.cls.gz
 endif
 ifdef cls_bitoken
-   COARSE_BILM:=${COARSE_BILM};cls(tgt/src)=bitoken${refsuffix}.cls.gz
+   COARSE_BILM_BI=;cls(tgt/src)=bitoken${refsuffix}.cls.gz
 endif
+COARSE_BILM=${COARSE_BILM_FILE}${COARSE_BILM_EN}${COARSE_BILM_FR}${COARSE_BILM_BI}
 
 LMC_MIN?=""
 verbosity ?= 2
@@ -144,12 +145,55 @@ coarse${refsuffix}out: FORCE bilm.coarse${refsuffix}.${LM_EXT} en.cls.gz fr.cls.
 	   -bilm-file "bilm.tiny.${LM_EXT}:${COARSE_BILM}" \
 	   > $@.tmp 2> log.$@.lmext-${LM_EXT}${LMC_MIN}
 	mv $@.tmp $@
-	diff $@ ref/$@ || diff $@ ref/$@-alt
+	-diff $@ ref/$@ || diff $@ ref/$@-alt
 
 
 ##############################################################################
 # Section with toy class files of order up to 16, to test boundary cases
 
-%.3cls.gz: %.cls.gz
-	zcat $< | perl -ple 's/	([0-9]+)$$/($$1 % 3)/ex;' | gzip > $@
+boundary_cases: 7bilm_ok 8bilm_fail 8bilm_nomin_ok \
+                15gram_ok 16gram_fail 16gram_nomin_ok
 
+7bilm_ok: override LM_EXT=tplm
+7bilm_ok: FORCE coarse.in bilm.tiny.tplm bilm.coarse${refsuffix}.tplm
+	canoe -f canoe.ini.coarse.FILT -input coarse.in -v 2 \
+	   -minimize-lm-context-size \
+	   -bilm-file "bilm.tiny.tplm:${COARSE_BILM}:bilm.tiny.tplm:${COARSE_BILM}:bilm.tiny.tplm:${COARSE_BILM}:bilm.tiny.tplm" \
+	   >& log.$@
+
+8bilm_fail: override LM_EXT=tplm
+8bilm_fail: FORCE coarse.in bilm.tiny.tplm bilm.coarse${refsuffix}.tplm
+	! canoe -f canoe.ini.coarse.FILT -input coarse.in -v 2 \
+	   -minimize-lm-context-size \
+	   -bilm-file "bilm.tiny.tplm:${COARSE_BILM}:bilm.tiny.tplm:${COARSE_BILM}:bilm.tiny.tplm:${COARSE_BILM}:bilm.tiny.tplm:${COARSE_BILM}" \
+	   >& log.$@
+	grep 'maximum of 7' log.$@
+
+8bilm_nomin_ok: override LM_EXT=tplm
+8bilm_nomin_ok: FORCE coarse.in bilm.tiny.tplm bilm.coarse${refsuffix}.tplm
+	canoe -f canoe.ini.coarse.FILT -input coarse.in -v 2 \
+	   -no-minimize-lm-context-size \
+	   -bilm-file "bilm.tiny.tplm:${COARSE_BILM}:bilm.tiny.tplm:${COARSE_BILM}:bilm.tiny.tplm:${COARSE_BILM}:bilm.tiny.tplm:${COARSE_BILM}" \
+	   >& log.$@
+
+bilm.%gram.gz: coarse${refsuffix}train_bilm
+	ngram-count -order $* -unk -text $< -lm $@ >& log.$@
+
+15gram_ok: bilm.15gram.tplm coarse.in bilm.tiny.tplm FORCE
+	canoe -f canoe.ini.coarse.FILT -input coarse.in -v 2 \
+	   -minimize-lm-context-size \
+	   -bilm-file "bilm.tiny.tplm:$<" \
+	   >& log.$@
+
+16gram_fail: bilm.16gram.tplm coarse.in bilm.tiny.tplm FORCE
+	! canoe -f canoe.ini.coarse.FILT -input coarse.in -v 2 \
+	   -minimize-lm-context-size \
+	   -bilm-file "bilm.tiny.tplm:$<" \
+	   >& log.$@
+	grep 'maximum order of 15' log.$@
+
+16gram_nomin_ok: bilm.16gram.tplm coarse.in bilm.tiny.tplm FORCE
+	canoe -f canoe.ini.coarse.FILT -input coarse.in -v 2 \
+	   -no-minimize-lm-context-size \
+	   -bilm-file "bilm.tiny.tplm:$<" \
+	   >& log.$@
