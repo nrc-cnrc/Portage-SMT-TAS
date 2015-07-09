@@ -73,7 +73,9 @@ train_%: train_%.al.bz2
 	bzcat $< > $@
 %.cls.gz: train_%
 	${RM} $@
-	mkcls -p$< -V$*.cls
+	word2vec -cbow 0 -size 100 -window 1 -negative 0 -hs 1 -sample 0 -threads 1 -min-count 1 \
+	   -classes 100 -train $< -output $*.cls
+	sed -i -e 's/ /\t/' $*.cls
 	gzip $*.cls
 train.en2fr.align.gz: ../dynamic-pt/train.en2fr.ibm2.tpa
 	tp_alignment_dump $< | gzip > $@
@@ -94,7 +96,7 @@ lm.tplm: lm
 
 
 coarse${refsuffix}_%: train_% %.cls.gz
-	if [[ -n "${cls_$*}" ]]; then word2class $+ $@; else cp $< $@; fi
+	if [[ -n "${cls_$*}" ]]; then word2class -no-error $+ $@; else cp $< $@; fi
 
 checktrain_bilm: train_en train_fr train.en2fr.align.gz
 	word_align_tool -fin green -fout bilm -t $+ $@
@@ -104,10 +106,12 @@ coarse${refsuffix}train_bilm.raw: coarse${refsuffix}_en coarse${refsuffix}_fr
 
 ifdef cls_bitoken
 coarse${refsuffix}train_bilm: coarse${refsuffix}train_bilm.raw bitoken${refsuffix}.cls.gz
-	word2class $+ $@
+	word2class -no-error $+ $@
 bitoken${refsuffix}.cls.gz: coarse${refsuffix}train_bilm.raw
 	${RM} $@
-	mkcls -p$< -Vbitoken${refsuffix}.cls
+	word2vec -cbow 0 -size 100 -window 1 -negative 0 -hs 1 -sample 0 -threads 1 -min-count 1 \
+	   -classes 100 -train $< -output bitoken${refsuffix}.cls
+	sed -i -e 's/ /\t/' bitoken${refsuffix}.cls
 	gzip bitoken${refsuffix}.cls
 else
 coarse${refsuffix}train_bilm: coarse${refsuffix}train_bilm.raw
