@@ -2,8 +2,6 @@
  * @author Eric Joanis
  * @file bilm_model.h  BiLM decoder feature, following Niehues et al, WMT-2011.
  *
- * $Id$
- * 
  * Technologies langagieres interactives / Interactive Language Technologies
  * Inst. de technologie de l'information / Institute for Information Technology
  * Conseil national de recherches Canada / National Research Council Canada
@@ -32,6 +30,9 @@ class BiLMModel : public DecoderFeature {
    Uint order;
    VocabFilter* biVoc;
    Uint sentStartID;
+   bool minimizeLmContextSize;
+   const Uint biLM_ID; ///< This BiLM instance's ID, for BiLM context sizes
+   static Uint nextBiLM_ID;
    void getLastBiWordsBackwards(VectorPhrase &biWords, Uint num, const PartialTranslation& trans);
 public:
    /// Check that all files exist, appending each file to *list if list != NULL

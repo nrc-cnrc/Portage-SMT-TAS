@@ -18,6 +18,8 @@
 
 using namespace Portage;
 
+Uint BiLMModel::nextBiLM_ID = 1; // starts at 1; 0 is for the regular LMs
+
 void BiLMModel::getLastBiWordsBackwards(VectorPhrase &biWords, Uint num, const PartialTranslation& trans)
 {
    biWords.clear();
@@ -130,6 +132,8 @@ BiLMModel::BiLMModel(BasicModelGenerator* bmg, const string& model_string)
 , order(0)
 , biVoc(NULL)
 , sentStartID(Uint(-1)) // "uninit"
+, minimizeLmContextSize(bmg->c->minimizeLmContextSize)
+, biLM_ID(nextBiLM_ID++)
 {
    // This feature requires that the phrase table have BiLM Annotations in place
    vector<string> tokens;
@@ -145,6 +149,10 @@ BiLMModel::BiLMModel(BasicModelGenerator* bmg, const string& model_string)
    biVoc = annotator->getVoc();
    if (debug_coarse_bilm) cerr << "biVoc " << biVoc << " .size() = " << biVoc->size() << endl;
    bmg->getPhraseTable().registerAnnotator(annotator);
+
+   if (minimizeLmContextSize)
+      if (biLM_ID > ArrayUint4::MAXI)
+         error(ETFatal, "With -minimize-lm-context-size, a maximum of %u BiLMs are supported.", ArrayUint4::MAXI);
 }
 
 void BiLMModel::finalizeInitialization()
@@ -157,11 +165,19 @@ void BiLMModel::finalizeInitialization()
    }
    cerr << "Loading BiLM model " << model_string << endl;
    bilm = PLM::Create(filename, biVoc, PLM::SimpleAutoVoc, LOG_ALMOST_0,
-      bmg->limitPhrases, 0, NULL, false);
+      bmg->limitPhrases, 0, NULL, false, "BiLMModel");
    assert(bilm);
    order = bilm->getOrder();
+   if (bmg->c->verbosity >= 2)
+      cerr << "Loaded BiLM model " << model_string << " of order " << order << endl;
+   if (order == 0)
+      error(ETFatal, "Got an order 0 bilm infile %s; this makes no sense.", filename.c_str());
    sentStartID = biVoc->index(PLM::SentStart);
    assert(sentStartID != biVoc->size());
+
+   if (minimizeLmContextSize)
+      if (order > ArrayUint4::MAX)
+         error(ETFatal, "With -minimize-lm-context-size, BiLMs of a maximum order of %u are supported.", ArrayUint4::MAX);
 }
 
 BiLMModel::~BiLMModel()
@@ -218,13 +234,26 @@ double BiLMModel::score(const PartialTranslation& pt)
    BiLMAnnotation* ann = annotator->get(pt.lastPhrase->annotations);
    assert(ann);
    const Uint bi_phrase_size = ann->getBiPhrase().size();
-   // non-reentrant!
-   static VectorPhrase endBiPhrase;
-   getLastBiWordsBackwards(endBiPhrase, order-1 + bi_phrase_size, pt);
-   Uint context_length = endBiPhrase.size()-1;
+
+   const Uint back_context_size = minimizeLmContextSize
+      ? pt.back->getBiLMContextSize(biLM_ID)
+      : order-1;
+
+   static VectorPhrase endBiPhrase; // non-reentrant!
+   getLastBiWordsBackwards(endBiPhrase, back_context_size + bi_phrase_size, pt);
+   Uint total_context_length = endBiPhrase.size()-1;
+
    double result = 0;
    for (int i = bi_phrase_size - 1; i >= 0; --i)
-      result += bilm->cachedWordProb(endBiPhrase[i], &(endBiPhrase[i+1]), context_length-i);
+      result += bilm->cachedWordProb(endBiPhrase[i], &(endBiPhrase[i+1]), total_context_length-i);
+
+   if (minimizeLmContextSize && pt.getBiLMContextSize(biLM_ID) == ArrayUint4::MAX) {
+      Uint contextAvailable = min(endBiPhrase.size(), order-1);
+      Uint size = bilm->minContextSize(&(endBiPhrase[0]), contextAvailable);
+      assert(size < ArrayUint4::MAX);
+      pt.setBiLMContextSize(biLM_ID, size);
+   }
+
    return result;
 }
 
@@ -235,11 +264,19 @@ double BiLMModel::partialScore(const PartialTranslation &trans)
 
 Uint BiLMModel::computeRecombHash(const PartialTranslation &pt)
 {
+   Uint result = 0;
+
+   Uint context_size = order-1;
+   if (minimizeLmContextSize) {
+      context_size = pt.getBiLMContextSize(biLM_ID);
+      assert(context_size != ArrayUint4::MAX);
+      result = context_size * 2551;
+   }
+
    // We need to go over the order-1 last bi_phrase elements
    // non-reentrant!
    static VectorPhrase endBiPhrase;
-   getLastBiWordsBackwards(endBiPhrase, order-1, pt);
-   Uint result = 0;
+   getLastBiWordsBackwards(endBiPhrase, context_size, pt);
    for (Uint i = 0; i < endBiPhrase.size(); ++i) {
       result += endBiPhrase[i];
       result = result * biVoc->size();
@@ -250,10 +287,17 @@ Uint BiLMModel::computeRecombHash(const PartialTranslation &pt)
 bool BiLMModel::isRecombinable(const PartialTranslation &pt1,
                                const PartialTranslation &pt2)
 {
+   Uint context_size = order-1;
+   if (minimizeLmContextSize) {
+      context_size = pt1.getBiLMContextSize(biLM_ID);
+      if (context_size != pt2.getBiLMContextSize(biLM_ID))
+         return false;
+   }
+
    // We need to compare the order-1 last bi_phrase elements
    // non-reentrant!
    static VectorPhrase endBiPhrase1, endBiPhrase2;
-   getLastBiWordsBackwards(endBiPhrase1, order-1, pt1);
-   getLastBiWordsBackwards(endBiPhrase2, order-1, pt2);
+   getLastBiWordsBackwards(endBiPhrase1, context_size, pt1);
+   getLastBiWordsBackwards(endBiPhrase2, context_size, pt2);
    return endBiPhrase1 == endBiPhrase2;
 }

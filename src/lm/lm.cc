@@ -133,7 +133,8 @@ PLM* PLM::Create(const string& lm_filename,
                  bool limit_vocab,
                  Uint limit_order,
                  ostream *const os_filtered,
-                 bool quiet)
+                 bool quiet,
+                 const string descriptor)
 {
    shared_ptr<Creator> creator(getCreator(lm_filename));
    if ( creator->naming_limit_order )
@@ -191,7 +192,7 @@ PLM* PLM::Create(const string& lm_filename,
 
    if ( lm->description.empty() ) {
       ostringstream description;
-      description << "LanguageModel:" << creator->lm_physical_filename;
+      description << descriptor << ":" << creator->lm_physical_filename;
       if ( limit_order ) description << lm_order_separator << limit_order;
       switch ( oov_handling.type ) {
          case OOVHandling::ClosedVoc: break;

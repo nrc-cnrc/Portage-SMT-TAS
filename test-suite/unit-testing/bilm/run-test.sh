@@ -15,8 +15,8 @@
 
 make clean
 make gitignore
-make out || BAD=1
-make en.cls.gz fr.cls.gz -j || BAD=1
+make out err_min_lmc boundary_cases -j 4 || BAD=1
+make en.cls.gz fr.cls.gz lm.tplm bilm.tiny.tplm -j || BAD=1
 
 #time-mem make -j coarseout cls_en=  cls_fr=  cls_bitoken=  verbosity=2 || BAD=1 # takes about 35s.
 #time-mem make -j coarseout cls_en=1 cls_fr=  cls_bitoken=  verbosity=2 || BAD=1 # takes about 15s.

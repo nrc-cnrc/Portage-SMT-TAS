@@ -82,15 +82,24 @@ void DecoderState::display(ostream& out, PhraseDecoderModel *model, Uint sourceL
 
    out << id;
    if (back) out << " from " << back->id << endl;
-   if (back) out << "\tbase score            " << back->score << endl;
+   if (back) out << "\tback score            " << back->score << endl;
    out << "\tcoverage              ";
    if (back)
       out << displayUintSet(back->trans->sourceWordsNotCovered, false, sourceLength) << " + ";
    out << trans->lastPhrase->src_words << " = ";
    out << displayUintSet(trans->sourceWordsNotCovered, false, sourceLength) << endl;
    out << "\tnum covered words     " << trans->numSourceWordsCovered << endl;
-   if (trans->lmContextSize >= 0)
-      out << "\tlm context size       " << trans->lmContextSize << endl;
+   if (trans->isLmContextSizeSet())
+      out << "\tlm context size       " << trans->getLmContextSize() << endl;
+   if (trans->getBiLMContextSize(1) != ArrayUint4::MAX) {
+      out << "\tBiLM context size(s) ";
+      for (Uint i = 1; i <= ArrayUint4::MAXI; ++i) {
+         Uint size = trans->getBiLMContextSize(i);
+         if (size == ArrayUint4::MAX) break;
+         out << " " << size;
+      }
+      out << endl;
+   }
 
    if (model) {
       out << "\ttarget phrase         "

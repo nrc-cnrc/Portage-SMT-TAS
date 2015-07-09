@@ -4,8 +4,6 @@
  * class HypothesisStack, as well as the definition of HistogramHypStack and
  * ThresholdHypStack, for the two different types of pruning.
  *
- * $Id$
- *
  * Canoe Decoder
  *
  * Technologies langagieres interactives / Interactive Language Technologies
@@ -227,15 +225,14 @@ namespace Portage
    class RecombHypStack: public HypothesisStack
    {
       private:
-         /**
-          * The hash function.
-          */
+         /// The hash function.
          HypHash hh;
 
-         /**
-          * The equivalence (recombinable) function.
-          */
+         /// The equivalence (recombinable) function.
          HypEquiv he;
+
+         /// Whether to log recombination operations to stderr
+         bool verbose;
 
       protected:
          /// Definition of a Recombined set of DecoderStates.
@@ -261,8 +258,10 @@ namespace Portage
           *                  as they are added, keeping only the higher scoring
           *                  state.  Set only if you will not trying to extract
           *                  lattices or n-best lists.
+          * @param verbose   If true, log recombining operations to STDERR
           */
-         RecombHypStack(PhraseDecoderModel &model, bool discardRecombined);
+         RecombHypStack(PhraseDecoderModel &model, bool discardRecombined,
+                        bool verbose = false);
          /// Destructor.
          virtual ~RecombHypStack();
 

@@ -29,6 +29,30 @@ using namespace std;
 
 namespace Portage
 {
+
+   /**
+    * Utility class to pack 8 4-bit Uints into 4 bytes, with array-like access.
+    */
+   class ArrayUint4 {
+      Uint _storage;
+    public:
+      static const Uint MAX = 15; ///< Greatest value that can be stored: 0b1111
+      static const Uint MAXI = 7; ///< Greatest index i that can be used
+      /// Default and one-parameter construction sets all 8 values to init [0]
+      /// (You can use -1 for MAX, which can be used to mean uninitialized)
+      ArrayUint4(Uint init = 0) : _storage(init) {
+         if (init != Uint(-1) && init != 0)
+            for (Uint i = 0; i <= MAXI; ++i) set(i, init);
+      }
+
+      Uint get(Uint i) const { return (_storage >> (4*i)) & MAX; }
+      void set(Uint i, Uint v) {
+         assert(i <= MAXI);
+         _storage &= ~(MAX << (4*i));
+         _storage |= (v&MAX) << (4*i);
+      }
+   };
+
    /**
     * Structure to represent a phrase translation option.
     */
@@ -187,15 +211,31 @@ namespace Portage
       Uint numSourceWordsCovered;
 
       /**
-       * The right context size, following Li & Khudanpur, 2008: A Scalable
+       * The right context sizes, following Li & Khudanpur, 2008: A Scalable
        * Decoder for Parsing-based Machine Translation with Equivalent Language
        * Model State Maintenance.
        * recombination and LM queries on subsequent partial translations only
-       * need to consider the last lmContextSize of this PT.
+       * need to consider the last lm context size of this PT.
+       *
+       * contextSizes[0] is the max required size over all LMs (coarse,
+       * regular, mix, whatever) (i.e. max_LM(min context size(LM))
+       * contextSizes[1..7] are the required context sizes for the BiLMs
        */
-      mutable int lmContextSize;
+      mutable ArrayUint4 contextSizes;
+      Uint getLmContextSize() const { return contextSizes.get(0); }
+      void setLmContextSize(Uint size) const;
+      bool isLmContextSizeSet() const { return contextSizes.get(0) != ArrayUint4::MAX; }
 
-      // EJJ Packing note: numSourceWordsCovered and lmContextSize are placed
+      /**
+       * The right context size for BiLMs
+       */
+      Uint getBiLMContextSize(Uint biLM_ID) const { return contextSizes.get(biLM_ID); }
+      void setBiLMContextSize(Uint biLM_ID, Uint size) const;
+
+      /// Set all LM and BiLM context sizes to the same value given
+      void setAllContextSizes(Uint size) const;
+
+      // EJJ Packing note: numSourceWordsCovered and contextSizes are placed
       // together to pack well, filling exactly a Word slot between pointers
       // (assuming a 64 bit word, which we now always use).
 

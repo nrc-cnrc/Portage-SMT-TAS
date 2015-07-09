@@ -153,6 +153,36 @@ public:
       TS_ASSERT(!isDisjoint(Range(8,10),s));
       TS_ASSERT(!isDisjoint(Range(1,10),s));
    }
+
+   void test_bitfield() {
+      class ArrayUint4 {
+         Uint _v;
+       public:
+         ArrayUint4(Uint init = 0) : _v(init) {}
+         Uint get(Uint i) { return (_v >> (4*i)) & 15; }
+         void set(Uint i, Uint v) {
+            assert(i <= 7);
+            _v &= ~(15 << (4*i));
+            _v |= (v&15) << (4*i);
+         }
+      };
+      TS_ASSERT_EQUALS(sizeof(ArrayUint4), 4);
+      struct MyTest {
+         ArrayUint4 a;
+         Uint b;
+      };
+      TS_ASSERT_EQUALS(sizeof(MyTest), 8);
+      ArrayUint4 a(-1);
+      TS_ASSERT_EQUALS(a.get(0), 15); TS_ASSERT_EQUALS(a.get(1), 15); TS_ASSERT_EQUALS(a.get(2), 15); TS_ASSERT_EQUALS(a.get(3), 15); TS_ASSERT_EQUALS(a.get(4), 15); TS_ASSERT_EQUALS(a.get(5), 15); TS_ASSERT_EQUALS(a.get(6), 15); TS_ASSERT_EQUALS(a.get(7), 15); 
+      a.set(0, 3);
+      TS_ASSERT_EQUALS(a.get(0), 3); TS_ASSERT_EQUALS(a.get(1), 15); TS_ASSERT_EQUALS(a.get(2), 15); TS_ASSERT_EQUALS(a.get(3), 15); TS_ASSERT_EQUALS(a.get(4), 15); TS_ASSERT_EQUALS(a.get(5), 15); TS_ASSERT_EQUALS(a.get(6), 15); TS_ASSERT_EQUALS(a.get(7), 15); 
+      a.set(7,0);
+      a.set(6,3);
+      a.set(5,-2);
+      TS_ASSERT_EQUALS(a.get(0), 3); TS_ASSERT_EQUALS(a.get(1), 15); TS_ASSERT_EQUALS(a.get(2), 15); TS_ASSERT_EQUALS(a.get(3), 15); TS_ASSERT_EQUALS(a.get(4), 15); TS_ASSERT_EQUALS(a.get(5), 14); TS_ASSERT_EQUALS(a.get(6), 3); TS_ASSERT_EQUALS(a.get(7), 0); 
+      a.set(6,28);
+      TS_ASSERT_EQUALS(a.get(0), 3); TS_ASSERT_EQUALS(a.get(1), 15); TS_ASSERT_EQUALS(a.get(2), 15); TS_ASSERT_EQUALS(a.get(3), 15); TS_ASSERT_EQUALS(a.get(4), 15); TS_ASSERT_EQUALS(a.get(5), 14); TS_ASSERT_EQUALS(a.get(6), 12); TS_ASSERT_EQUALS(a.get(7), 0); 
+   }
 }; // class TestCanoeGeneral
 
 } // namespace Portage

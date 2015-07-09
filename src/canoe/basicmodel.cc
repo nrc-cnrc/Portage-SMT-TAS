@@ -161,6 +161,11 @@ BasicModelGenerator* BasicModelGenerator::create(
    if (c.maxLmContextSize > -1)
       result->lm_numwords = min(result->lm_numwords, c.maxLmContextSize + 1);
 
+   // This is late error checking, after loading all the models, which is not
+   // ideal, but at least it's before we actually start decoding
+   if (c.minimizeLmContextSize && result->lm_numwords > ArrayUint4::MAX)
+      error(ETFatal, "-minimize-lm-context-size supports a maximum LM order of %u.", ArrayUint4::MAX);
+
    // We no longer need all that filtering data, since dynmamic LM filtering
    // has been completed by now.
    result->tgt_vocab.freePerSentenceData();
@@ -903,8 +908,8 @@ void BasicModelGenerator::getRawLM(
    const Uint last_phrase_size = trans.lastPhrase->phrase.size();
    Uint contextSize;
    if (c->minimizeLmContextSize) {
-      assert(trans.back->lmContextSize >= 0 && "calling getRawLM() with uninitialized lmContextSize");
-      contextSize = trans.back->lmContextSize;
+      assert(trans.back->isLmContextSizeSet() && "calling getRawLM() with uninitialized lm context size");
+      contextSize = trans.back->getLmContextSize();
    } else {
       contextSize = lm_numwords - 1;
    }
@@ -947,8 +952,8 @@ void BasicModelGenerator::getRawLM(
       }
    }
 
-   // Calculate the lmContextSize for this partial translation if required
-   if (c->minimizeLmContextSize && trans.lmContextSize == -1) {
+   // Calculate the lm context size for this partial translation if required
+   if (c->minimizeLmContextSize && !trans.isLmContextSizeSet()) {
       // lm_min_context is 1 by default because some sparse features depend on
       // the LM to make sure the last word of the previous phrase is taken
       // into account for recombination. It is 3 if NNJMs are used, because
@@ -962,7 +967,9 @@ void BasicModelGenerator::getRawLM(
          Uint size = lms[j]->minContextSize(&(endPhrase[0]), contextAvailable);
          if (size > requiredLMContextSize) requiredLMContextSize = size;
       }
-      trans.lmContextSize = requiredLMContextSize;
+      if (requiredLMContextSize >= ArrayUint4::MAX)
+         error(ETFatal, "-minimize-lm-context-size supports only up to %u-gram language models.", ArrayUint4::MAX);
+      trans.setLmContextSize(requiredLMContextSize);
    }
 } // getRawLM
 
@@ -1197,7 +1204,7 @@ double BasicModel::scoreTranslation(const PartialTranslation &trans, Uint verbos
       if (parent.filter_features[k]->score(trans) < 0.0) {
          if (verbosity >= 3)
             cerr << "\tfilter feature score < 0 => setting this state's score to -INFINITY" << endl;
-         if (c->minimizeLmContextSize) trans.lmContextSize = 0;
+         if (c->minimizeLmContextSize) trans.setLmContextSize(0);
          return -INFINITY;
       }
    }
@@ -1249,8 +1256,8 @@ double BasicModel::scoreTranslation(const PartialTranslation &trans, Uint verbos
    }
 
    if (verbosity >= 3) {
-      if (trans.lmContextSize >= 0)
-         cerr << "\tlm context size       " << trans.lmContextSize << endl;
+      if (trans.isLmContextSizeSet())
+         cerr << "\tlm context size       " << trans.getLmContextSize() << endl;
    }
 
    return transScore + forwardScore + adirScore + lmScore + ffScore;
@@ -1342,9 +1349,9 @@ Uint BasicModel::computeRecombHash(const PartialTranslation &trans)
    static VectorPhrase endPhrase;
    endPhrase.clear();
    if (c->minimizeLmContextSize) {
-      assert(trans.lmContextSize >= 0 && "lmContextSize not properly initialized before calling computeRecombHash()");
-      result = (result + trans.lmContextSize) * 7;
-      trans.getLastWords(endPhrase, trans.lmContextSize);
+      assert(trans.isLmContextSizeSet() && "lm context size not properly initialized before calling computeRecombHash()");
+      result = (result + trans.getLmContextSize()) * 7;
+      trans.getLastWords(endPhrase, trans.getLmContextSize());
    } else {
       trans.getLastWords(endPhrase, parent.lm_numwords - 1);
    }
@@ -1388,9 +1395,9 @@ bool BasicModel::isRecombinable(const PartialTranslation &trans1,
    if (trans1.sourceWordsNotCovered != trans2.sourceWordsNotCovered)
       return false;
    if (c->minimizeLmContextSize) {
-      assert(trans1.lmContextSize >= 0 && trans2.lmContextSize >= 0 && "lmContextSize not properly initialized before calling isRecombinable()");
-      if (trans1.lmContextSize != trans2.lmContextSize ||
-          !trans1.sameLastWords(trans2, trans1.lmContextSize))
+      assert(trans1.isLmContextSizeSet() && trans2.isLmContextSizeSet() && "lm context size not properly initialized before calling isRecombinable()");
+      if (trans1.getLmContextSize() != trans2.getLmContextSize() ||
+          !trans1.sameLastWords(trans2, trans1.getLmContextSize()))
          return false;
    } else {
       if (!trans1.sameLastWords(trans2, parent.lm_numwords - 1))

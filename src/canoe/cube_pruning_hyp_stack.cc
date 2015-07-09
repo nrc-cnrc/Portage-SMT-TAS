@@ -219,7 +219,7 @@ void CubePruningHypStack::KBest(Uint K, double pruningThreshold,
                             hyperedges[i]->phrases.size();
    }
    make_heap(cand_heap.begin(), cand_heap.end(), heap_cmp);
-   RecombHypStack buffer(model, discardRecombined);
+   RecombHypStack buffer(model, discardRecombined, verbosity >= 3);
    double best_score = cand_heap.front()->ds->futureScore;
 
    const Uint sourceLength = hyperedges[0]->sourceLength;
@@ -239,7 +239,7 @@ void CubePruningHypStack::KBest(Uint K, double pruningThreshold,
          //NOT IMPLEMENTED YET
 
          // If we got this far, we're keeping this item
-         if ( verbosity >= 3 ) {
+         if (verbosity >= 3) {
             cerr << "Keeping hypothesis ";
             item->ds->display(cerr, &model, sourceLength);
             cerr << "\thyperedge coordinates "

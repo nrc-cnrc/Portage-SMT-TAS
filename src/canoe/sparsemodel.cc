@@ -1836,8 +1836,8 @@ double SparseModel::score(const PartialTranslation& hyp) {
          cerr << hyp.lastPhrase->src_words << " | ";
          cerr << displayUintSet(hyp.sourceWordsNotCovered, false) << endl;
          cerr << "\tnum covered words     " << hyp.numSourceWordsCovered << endl;
-         if (hyp.lmContextSize >= 0)
-            cerr << "\tlm context size       " << hyp.lmContextSize << endl;
+         if (hyp.isLmContextSizeSet())
+            cerr << "\tlm context size       " << hyp.getLmContextSize() << endl;
          hyp.lastPhrase->annotations.display(cerr);
          ++warn_count;
       }

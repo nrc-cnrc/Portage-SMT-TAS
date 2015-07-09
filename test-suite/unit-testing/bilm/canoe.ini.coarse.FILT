@@ -1,11 +1,13 @@
 [ttable-multi-prob] 
    cpt.ibm2.en2fr.FILT.gz
 [lmodel-file] 
-   lm
+   lm.tplm
 [weight-l] 0
 [cube-pruning]
 [use-ftm]
 [weight-d] 0
+[distortion-limit] 5
+[stack] 1000
 [bilm-file] 
-   bilm
+   bilm.tiny.gz
    bilm.coarse.gz;cls(src)=en.cls.gz;cls(tgt)=fr.cls.gz

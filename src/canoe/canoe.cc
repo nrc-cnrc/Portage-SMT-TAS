@@ -377,6 +377,8 @@ static string doOutput(HypothesisStack &h,
          travBack->display(cerr, &model, oovs->size());
          if (travBack->back)
             model.scoreTranslation(*travBack->trans, 3);
+         cerr << "\tbase score            " << travBack->score << endl;
+         cerr << "\tfuture score          " << travBack->futureScore << endl;
       }
    }
 
