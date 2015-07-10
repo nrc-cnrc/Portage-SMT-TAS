@@ -16,7 +16,7 @@ INPUT ?= test.in
 LM = ${LMPREFIX}.${LMEXT}
 
 # runs the test suite over a variety of input files and lms.
-all: case1 case2 case3 case4 case5 case6 case7
+all: case1 case2 case3 case4 case5 case6 case7 unk
 
 # case2 uses the same LMs as case1, prevent parallelism via a dependence.
 case1: case2
@@ -86,6 +86,21 @@ ${INPUT}.${LMPREFIX}.${LMEXT}.out-per-sent-limit: ${INPUT} ${LM}
 %.binlm: %.${ARPALMEXT}
 	arpalm2binlm $< $@ >& log.$@
 
-TEMP_FILES=*.out *.out-limit *.out-per-sent-limit log.* *.binlm europarl.en.lm europarl.en.in
+TEMP_FILES=*.out *.out-limit *.out-per-sent-limit log.* *.binlm europarl.en.lm europarl.en.in *.lm.unk
 TEMP_DIRS=europarl.en.tplm test.tplm test2.tplm test3.tplm europarl.en.tplm.tmp.* test.tplm.tmp.* test2.tplm.tmp.* test3.tplm.tmp.*
 include ../Makefile.incl
+
+################################################
+# Test lm-add-heuristic-unk.pl
+
+unk: test3.lm.unk_diff test4.lm.unk_diff test5.lm.unk_diff test6.lm.unk_diff unk-errors
+
+%.lm.unk: %.lm
+	lm-add-heuristic-unk.pl $< > $@
+
+%_diff: %
+	diff $* ref/$*
+
+unk-errors:
+	! lm-add-heuristic-unk.pl Makefile
+	! lm-add-heuristic-unk.pl -delta alpha test3.lm >& log.unk-bad-delta

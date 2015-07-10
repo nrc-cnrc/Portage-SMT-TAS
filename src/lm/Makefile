@@ -27,6 +27,7 @@ PROGRAMS = \
 
 BINSCRIPTS = \
 	gen-word-given-wcl-lm.py \
+	lm-add-heuristic-unk.pl \
 	lm-filter.py \
 	lm-order.pl \
 	lm_sort.pl \
