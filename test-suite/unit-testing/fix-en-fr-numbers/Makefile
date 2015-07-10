@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 # vim:ts=3:noet
 
-# Makefile - unit test fix-en-fr-numbers.pl
+# Makefile - unit test fix-en-fr-numbers.pl and other number handling scripts
 #
 # PROGRAMMER: Eric Joanis
 #
@@ -15,11 +15,14 @@
 
 all: test
 
-test: test-utf8 test-latin1
+test: test-utf8 test-latin1 test-en test-fr
 
-test-utf8: out.utf8
+test-%: out.%
 	diff $< ref/$<
 
+#test-utf8: out.utf8
+#	diff $< ref/$<
+#
 test-latin1: out.latin1 ref/out.latin1
 	diff $< ref/$<
 
@@ -33,3 +36,9 @@ TEMP_FILES=out.* in.latin1 ref/out.latin1
 include ../Makefile.incl
 gitignore:
 	echo ref/out.latin1 >> .gitignore
+
+out.en: in.en
+	utokenize.pl -noss < $< | mark-english-number.pl en > $@
+
+out.fr: in.fr
+	utokenize.pl -noss -lang=fr < $< | mark-french-numbers.pl fr > $@

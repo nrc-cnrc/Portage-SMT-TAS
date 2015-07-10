@@ -1,15 +1,15 @@
 #!/usr/bin/env perl
 
-# @file mark-english-number.pl
-# @brief Mark up English numbers with their French equivalents.
+# @file mark-french-numbers.pl
+# @brief Mark up French numbers with their English equivalents.
 #
-# @author Samuel Larkin; ugly RE by Eric Joanis
+# @author Eric Joanis
 #
 # Traitement multilingue de textes / Multilingual Text Processing
 # Tech. de l'information et des communications / Information and Communications Tech.
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2014, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2014, Her Majesty in Right of Canada
+# Copyright 2015, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2015, Her Majesty in Right of Canada
 
 use strict;
 use warnings;
@@ -25,7 +25,7 @@ BEGIN {
    }
 }
 use portage_utils;
-printCopyright 2014;
+printCopyright 2015;
 $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
 
@@ -37,18 +37,21 @@ sub usage {
 Usage: $0 [options] source_lang < IN > OUT
 
   The following sample code maps numbers of the following forms, from
-  English to French:
-   - 420K -> 420 000
-   - 14.5M -> 14,5 millions
-   - 12,345,678.90 -> 12 345 678,90
+  French to English:
+   - 420 000 -> 420,000
+   - 14,5 -> 14.5
+   - 12 345 678,90 -> 12,345,678.90
    - An optional + or - in front is allowed and preserved
-   - The number has to be the whole token, so that we don't
-     accidentally grab longer codes
+   - The number has to cover one or more whole tokens, so that we don't
+     accidentally grab parts of longer codes
    - The number has to be in groups of three: 4-digit years will not be
      touched.
-   - This code is aware of xmlish markup done prior i.e. fixed terms
+   - Or it has to have a decimal comma and up to 5 digits on either side:
+     12345,678 -> 12345.678
+   - This code is aware of xmlish markup done prior, i.e. fixed terms, and
+     protects it.
 
-   source_lang  source language of the input [must be en].
+   source_lang  source language of the input [must be fr].
 
 Options:
 
@@ -67,7 +70,7 @@ GetOptions(
 
 
 my $SOURCE_LANGUAGE = shift or die "Error: Missing language code argument";
-die "Error: This number parser only works with English input" unless ($SOURCE_LANGUAGE eq 'en');
+die "Error: This number parser only works with English input" unless ($SOURCE_LANGUAGE eq 'fr');
 
 
 while (<>) {
@@ -81,30 +84,26 @@ while (<>) {
    # perl -e 'print "|$&|$1|" if ("ab" =~ m/a(?=b)/)'
    # > |a||
    s/
-      (?<TAG><(FT)[^>]+>(?:.*?)<\/\2>)
+      (?<TAG><(FT)[^>]+>(?:.*?)<\/\2>)      # Skip tags
      |
-      (?<PRE>^|\ )
-         (?<DOLLAR>\$\ |)
-         (?<WHOLE>[-+]?\d{1,3}(?:,\d{3})*)
-         (?<SUFF>k|\.(?:\d{3},)*\d{1,3}|(?<MFRAC>\.\d{1,3})?(?<M>m|\ million))?
-      (?=\ |$)
+      (?<PRE>^|\ )                          # space or start of line marks token boundary
+         (?<WHOLE>[-+]?\d{1,3}(?:\ \d{3})*) # Whole part, with optional sign
+         (?<FRAC>,(?:\d{3}\ )*\d{1,3})?     # fractional part
+      (?=\ |$)                              # space or end of line marks token boundary
+     |
+      (?<PRE>^|\ )                          # space or start of line marks token boundary
+         (?<WHOLE>[-+]?\d{1,5})             # 1 to 5 digit whole part, with optional sign, no spaces
+         (?<FRAC>,\d{1,5})                  # 1 to 5 digit fraction, no spaces
+      (?=\ |$)                              # space or end of line marks token boundary
    /
       if (defined($+{TAG})) {
          $+{TAG};
-      }
-      else {
+      } else {
          $+{PRE} .
-         "<NUMK target=\"" .
-         do { my $num = $+{WHOLE}; $num =~ s#,# #g; $num } .
-         ($+{SUFF} eq "k"
-            ? " 000"
-            : ($+{M} ne ""
-               ? do { my $num = $+{MFRAC}; $num =~ s#^\.#,#; $num } . " million" . ($+{WHOLE} eq "1" ? "" : "s")
-               : do { my $num = $+{SUFF}; $num =~ s#,# #g; $num =~ s#^\.#,#; $num }
-              )
-         ) .
-         ($+{DOLLAR} eq "\$ " ? ($+{M} ne "" ? " de dollars" : " \$") : "") .
-         "\">$+{DOLLAR}$+{WHOLE}$+{SUFF}<\/NUMK>"
+         "<NUMFREN target=\"" .
+         do { my $whole = $+{WHOLE}; $whole =~ s# #,#g; $whole } .
+         do { my $frac = $+{FRAC}; $frac =~ s#^,#.#; $frac =~ s# #,#g; $frac } .
+         "\">$+{WHOLE}$+{FRAC}<\/NUMFREN>"
       }
    /exg;
    print;
