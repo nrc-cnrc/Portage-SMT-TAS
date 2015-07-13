@@ -73,6 +73,8 @@ BINSCRIPTS = \
         best-rr-val \
         cvs-status-summary.pl \
         diff-round.pl \
+	fast_align_glue_corpora.py \
+	fast_align_normalize_ttable.py \
         load-balancing.pl \
         monitor-process.sh \
         parallelize.pl \
