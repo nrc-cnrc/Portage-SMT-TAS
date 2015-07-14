@@ -89,6 +89,7 @@ while (<>) {
       (?<PRE>^|\ )                          # space or start of line marks token boundary
          (?<WHOLE>[-+]?\d{1,3}(?:\ \d{3})*) # Whole part, with optional sign
          (?<FRAC>,(?:\d{3}\ )*\d{1,3})?     # fractional part
+         (?<D>\ \$|\ millions?\ de\ dollars)? # ->$ n (million)
       (?=\ |$)                              # space or end of line marks token boundary
      |
       (?<PRE>^|\ )                          # space or start of line marks token boundary
@@ -101,9 +102,11 @@ while (<>) {
       } else {
          $+{PRE} .
          "<NUMFREN target=\"" .
+         (defined $+{D} ? "\$ " : "") .
          do { my $whole = $+{WHOLE}; $whole =~ s# #,#g; $whole } .
          do { my $frac = $+{FRAC}; $frac =~ s#^,#.#; $frac =~ s# #,#g; $frac } .
-         "\">$+{WHOLE}$+{FRAC}<\/NUMFREN>"
+         (defined $+{D} && $+{D} ne " \$" ? " million" : "") .
+         "\">$+{WHOLE}$+{FRAC}$+{D}<\/NUMFREN>"
       }
    /exg;
    print;
