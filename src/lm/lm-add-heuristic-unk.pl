@@ -41,6 +41,7 @@ Usage: $0 [options] [IN [OUT]]
   in the model, which is typically a singleton log prob.
 
   If the model already has log p(<unk>), it is overridden.
+  If the model has a bow for <unk>, it is replaced by 0.
 
   If the model contains -99 or -inf, (e.g., for <s>), those lines are ignored
   in determining the minimum log prob found.
@@ -97,6 +98,7 @@ $verbose and print STDERR "Reading lm $in with $unigram_count unigrams.\n";
 my @unigram_lines;
 my @inf_lines;
 my $unk_line;
+my $unk_has_bow = 0;
 my $bos_line;
 my $min_prob = 0;
 my $min_prob_count = 0;
@@ -112,6 +114,7 @@ while (<IN>) {
          $verbose and print STDERR "Removing existing <unk> entry:    $_\n";
          $unk_line = $_;
          pop @unigram_lines;
+         $unk_has_bow = (@tokens == 3);
       } elsif ($tokens[1] eq "<s>") {
          $verbose and print STDERR "Ignoring <s> prob:                $_\n";
          $bos_line = $_;
@@ -158,7 +161,7 @@ if (defined $unk_line) {
    }
 }
 
-print OUT "$new_unk_prob\t<unk>\n";
+print OUT "$new_unk_prob\t<unk>", ($unk_has_bow ? "\t0" : ""), "\n";
 print OUT @unigram_lines;
 
 while (<IN>) {
