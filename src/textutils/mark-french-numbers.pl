@@ -99,6 +99,9 @@ while (<>) {
    /
       if (defined($+{TAG})) {
          $+{TAG};
+      } elsif (!defined $+{FRAC} && !defined $+{D} && length($+{WHOLE}) <= 4) {
+         # Leave short numbers alone
+         "$+{PRE}$+{WHOLE}"
       } else {
          $+{PRE} .
          "<NUMFREN target=\"" .

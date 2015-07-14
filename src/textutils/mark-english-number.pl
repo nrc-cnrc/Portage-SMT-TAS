@@ -84,15 +84,16 @@ while (<>) {
       (?<TAG><(FT)[^>]+>(?:.*?)<\/\2>)
      |
       (?<PRE>^|\ )
-         (?<DOLLAR>\$\ |)
+         (?<DOLLAR>\$\ )?
          (?<WHOLE>[-+]?\d{1,3}(?:,\d{3})*)
          (?<SUFF>k|\.(?:\d{3},)*\d{1,3}|(?<MFRAC>\.\d{1,3})?(?<M>m|\ million))?
       (?=\ |$)
    /
       if (defined($+{TAG})) {
          $+{TAG};
-      }
-      else {
+      } elsif (!defined $+{DOLLAR} && !defined $+{SUFF} && length($+{WHOLE}) <= 4) {
+         "$+{PRE}$+{WHOLE}"
+      } else {
          $+{PRE} .
          "<NUMK target=\"" .
          do { my $num = $+{WHOLE}; $num =~ s#,# #g; $num } .
