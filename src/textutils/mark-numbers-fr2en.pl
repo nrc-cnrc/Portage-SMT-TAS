@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# @file mark-french-numbers.pl
+# @file mark-numbers-fr2en.pl
 # @brief Mark up French numbers with their English equivalents.
 #
 # @author Eric Joanis
@@ -36,8 +36,8 @@ sub usage {
    print STDERR "
 Usage: $0 [options] source_lang < IN > OUT
 
-  The following sample code maps numbers of the following forms, from
-  French to English:
+  Mark numbers for translation from French to English according to the
+  following rules:
    - 420 000 -> 420,000
    - 14,5 -> 14.5
    - 12 345 678,90 -> 12,345,678.90
@@ -48,8 +48,8 @@ Usage: $0 [options] source_lang < IN > OUT
      touched.
    - Or it has to have a decimal comma and up to 5 digits on either side:
      12345,678 -> 12345.678
-   - This code is aware of xmlish markup done prior, i.e. fixed terms, and
-     protects it.
+   - This code is aware of xmlish markup done prior, i.e. fixed terms,
+     and protects it from unwanted modification.
 
    source_lang  source language of the input [must be fr].
 
@@ -69,8 +69,8 @@ GetOptions(
 ) or usage "Error: Invalid option(s).";
 
 
-my $SOURCE_LANGUAGE = shift or die "Error: Missing language code argument";
-die "Error: This number parser only works with English input" unless ($SOURCE_LANGUAGE eq 'fr');
+my $SOURCE_LANGUAGE = (shift or "fr");
+die "Error: This number parser only works with French input" unless ($SOURCE_LANGUAGE eq 'fr');
 
 
 while (<>) {

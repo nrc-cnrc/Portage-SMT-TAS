@@ -14,7 +14,7 @@
 
 FIXED_TERM2TM := fixed_term2tm.pl
 PREDECODE_PLUGIN := predecode_plugin
-MARK_ENGLISH_NUMBER := mark-english-number.pl
+MARK_ENGLISH_NUMBER := mark-numbers-en2fr.pl
 
 -include Makefile.params
 
