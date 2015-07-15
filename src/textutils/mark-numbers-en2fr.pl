@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
 
-# @file mark-english-number.pl
+# @file mark-numbers-en2fr.pl
 # @brief Mark up English numbers with their French equivalents.
 #
-# @author Samuel Larkin
+# @author Samuel Larkin; ugly RE by Eric Joanis
 #
 # Traitement multilingue de textes / Multilingual Text Processing
 # Tech. de l'information et des communications / Information and Communications Tech.
@@ -36,17 +36,18 @@ sub usage {
    print STDERR "
 Usage: $0 [options] source_lang < IN > OUT
 
-  The following sample code maps numbers of the following forms, from
-  English to French:
+  Mark numbers for translation from English to French according to the
+  following rules:
    - 420K -> 420 000
    - 14.5M -> 14,5 millions
-   - 12,345,678.90 -> 12 345,678 90
+   - 12,345,678.90 -> 12 345 678,90
    - An optional + or - in front is allowed and preserved
    - The number has to be the whole token, so that we don't
      accidentally grab longer codes
    - The number has to be in groups of three: 4-digit years will not be
      touched.
-   - This code is aware of xmlish markup done prior i.e. fixed terms
+   - This code is aware of xmlish markup done prior, i.e. fixed terms,
+     and protects it from unwanted modification.
 
    source_lang  source language of the input [must be en].
 
@@ -66,33 +67,47 @@ GetOptions(
 ) or usage "Error: Invalid option(s).";
 
 
-my $SOURCE_LANGUAGE = shift or die "Error: Missing language code argument";
+my $SOURCE_LANGUAGE = (shift || "en");
 die "Error: This number parser only works with English input" unless ($SOURCE_LANGUAGE eq 'en');
 
 
 while (<>) {
+   # Turn off warnings because all unmatched parts below cause warnings about
+   # using unitialized variables.
+   no warnings;
+
    # Don't mark number that have previously been marked as fixed terms.
    # TODO $8 == (?=\ |$) which is a Positive lookahead thus it should always be undefined?
    # To illustrate
    # perl -e 'print "|$&|$1|" if ("ab" =~ m/a(?=b)/)'
    # > |a||
-   s/(?<TAG><(FT)[^>]+>(?:.*?)<\/\2>)|(^|\ )([-+]?\d{1,3}(?:,\d{3})*)(k|\.(?:\d{3},)*\d{1,3}|(\.\d{1,3})?(m))?(?=\ |$)/
+   s/
+      (?<TAG><(FT)[^>]+>(?:.*?)<\/\2>)
+     |
+      (?<PRE>^|\ )
+         (?<DOLLAR>\$\ )?
+         (?<WHOLE>[-+]?\d{1,3}(?:,\d{3})*)
+         (?<SUFF>k|\.(?:\d{3},)*\d{1,3}|(?<MFRAC>\.\d{1,3})?(?<M>m|\ million))?
+      (?=\ |$)
+   /
       if (defined($+{TAG})) {
          $+{TAG};
-      }
-      else {
-         $3 .
+      } elsif (!defined $+{DOLLAR} && !defined $+{SUFF} && length($+{WHOLE}) <= 4) {
+         "$+{PRE}$+{WHOLE}"
+      } else {
+         $+{PRE} .
          "<NUMK target=\"" .
-         do { my $num = $4; $num =~ s#,# #g; $num } .
-         ($5 eq "k"
+         do { my $num = $+{WHOLE}; $num =~ s#,# #g; $num } .
+         ($+{SUFF} eq "k"
             ? " 000"
-            : ($7 eq "m"
-               ? do { my $num = $6; $num =~ s#^\.#,#; $num } . " millions"
-               : do { my $num = $5; $num =~ s#,# #g; $num =~ s#^\.#,#; $num }
+            : ($+{M} ne ""
+               ? do { my $num = $+{MFRAC}; $num =~ s#^\.#,#; $num } . " million" . ($+{WHOLE} eq "1" ? "" : "s")
+               : do { my $num = $+{SUFF}; $num =~ s#,# #g; $num =~ s#^\.#,#; $num }
               )
          ) .
-         "\">$4$5<\/NUMK>"
+         ($+{DOLLAR} eq "\$ " ? ($+{M} ne "" ? " de dollars" : " \$") : "") .
+         "\">$+{DOLLAR}$+{WHOLE}$+{SUFF}<\/NUMK>"
       }
-    /exg;
-    print;
+   /exg;
+   print;
 }

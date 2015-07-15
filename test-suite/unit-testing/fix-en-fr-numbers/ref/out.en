@@ -1,0 +1,14 @@
+The first was a <NUMK target="10 millions de dollars">$ 10 million</NUMK> contribution to the fund in 2001/02 - 2002/03 . 
+The first was a <NUMK target="20 000 000 $">$ 20,000,000</NUMK> contribution to the fund in 2002/03 - 2003/04 . 
+There are 10000 homes or 10 homes or +100 or - 100 in this town . 
+There are <NUMK target="10 000">10,000</NUMK> homes in this town . 
+There are 10 % new homes in this town . 
+The weight is <NUMK target="10 000,55">10,000.55</NUMK> lb. 
+The weight is <NUMK target="6,5">6.5</NUMK> lb. 
+Section 1.3.5 should not be changed , nor sections 1.3/1.4 , while we accept that 
+section <NUMK target="1,3">1.3</NUMK> will incorrectly get changed . 
+Larger numbers : <NUMK target="10 123 456 789 012,032 543 765">10,123,456,789,012.032,543,765</NUMK> and <NUMK target="10 000 000">10,000,000</NUMK> and 
+<NUMK target="10 000 000 000">10,000,000,000</NUMK> and <NUMK target="10 000 000 000,00">10,000,000,000.00</NUMK> get fixed . 
+These ones used to be handled wrong : <NUMK target="10 123 456 789 012,032 543 75">10,123,456,789,012.032,543,75</NUMK> or <NUMK target="1 123 456,032 5">1,123,456.032,5</NUMK> 
+<NUMK target="1 million de dollars">$ 1m</NUMK> or <NUMK target="1,5 million de dollars">$ 1.5m</NUMK> or <NUMK target="2 millions de dollars">$ 2m</NUMK> and <NUMK target="15 millions de dollars">$ 15m</NUMK> are lots of money . 
+<NUMK target="720 000">720k</NUMK> <NUMK target="720 000 $">$ 720k</NUMK> 

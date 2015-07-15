@@ -32,8 +32,10 @@ SOURCE_LANGUAGE=$1; shift
 # TODO: How to pickup the proper plugins/fixedTerms if this is the default script located in /opt/PortageII/bin/?
 FIXED_TERMS_MODEL_DIRECTORY=${FIXED_TERMS_MODEL_DIRECTORY:-$(dirname $0)}
 
-# Uncomment if you want to mark English number for rule-based translation to their French format.
-#MARK_ENGLISH_NUMBERS=1
+# Uncomment if you want to mark English numbers for rule-based translation to
+# their French format, or French numbers to their English format.
+# Warning: Only use this for en->fr and fr->en systems!
+#MARK_NUMBERS_ENFR=1
 
 # Uncomment to turn on ascii markup processing for Arabic
 #CONVERT_ASCII_TO_MARKUP=1
@@ -74,9 +76,11 @@ else
    # TODO should this be in front of the fixed terms regardless?
    canoe-escapes.pl -add | utf8_filter
 fi \
-| if [[ -n "$MARK_ENGLISH_NUMBERS" ]]; then
-   if [[ $SOURCE_LANGUAGE -eq "en" ]]; then
-      mark-english-number.pl $SOURCE_LANGUAGE
+| if [[ -n "$MARK_NUMBERS_ENFR" ]]; then
+   if [[ $SOURCE_LANGUAGE == en ]]; then
+      mark-numbers-en2fr.pl $SOURCE_LANGUAGE
+   elif [[ $SOURCE_LANGUAGE == fr ]]; then
+      mark-numbers-fr2en.pl $SOURCE_LANGUAGE
    fi
 else
    cat
