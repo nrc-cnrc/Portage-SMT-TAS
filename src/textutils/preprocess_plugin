@@ -27,39 +27,20 @@ fi
 [[ $# = 0 ]] && echo "Missing language code argument" >&2 && exit 1
 SOURCE_LANGUAGE=$1; shift
 
+# Uncomment the following line to separate slash-separated words, or comment it
+# out to leave them together:
+FIX_SLASHES=1
+
 # The following does minimalist preprocessing: remove the UTF8 bit-order mark,
 # and convert newlines from the DOS to the Linux standard.
 #ridbom.sh | crlf2lf.sh
 
-# The following does more detailed preprocessing: comment out individual lines
-# you don't need; uncomment individual lines you do need:
-perl -ple '
-   # work in utf-8, both this script and its input/output
-   BEGIN{use encoding "UTF-8"; use utf8};
-   # Convert various non-breaking hyphen encodings to -: \xAD and \x1E for MS
-   # Word, \x2011 for Unicode.  Warning: for html documents, \xAD should be
-   # stripped, rather than converted to -.
-   s/[\x1E­\x{2011}]/-/g; # warning, the \xAD is literal here, in utf8
-   # Strip out the MS Word discretional hyphen, \x1F
-   s/\x1F//g;
-   # strip out XML/HTML markup
-#   s/\s*(<[^A-Z>][^>]*>\s*)+\s*/ /g;
-   # Strip the BOM out
-   s/\x{FEFF}//g;
-   # replace remaining control characters by spaces.
-   s/[\x01-\x09\x0B\x0C\x0E-\x1F\x7F\x{2060}\x{2028}\x{2029}]/ /g;
-   # equivalent to crlf2lf.sh: convert DOS newlines to Linux ones
-   s/\x0D$//;
-   # Collapse multiple spaces to a single space
-   s/\s+/ /g;
-   # If ||| appears stand-alone in text, that causes problems with Portage
-   s/(^| )\|\|\|(?= |$)/ ___|||___/g;
-   # Remove leading whitespace
-   s/^\s+//g;
-   # Remove trailing whitespace
-   s/\s+$//g;
-'
-# To separate slash-separated words, add "| fix-slashes.pl" at the end of the
-# line above, so that it looks like the following, minus the #:
-#' | fix-slashes.pl
+# Clean up utf8 text: space, control characters, hyphens, etc
+clean-utf8-text.pl |
 
+# Optionally pre-tokenize around slashes:
+if [[ $FIX_SLASHES ]]; then
+   fix-slashes.pl
+else
+   cat
+fi
