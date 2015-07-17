@@ -57,7 +57,8 @@ Options:
   -ffout=FF	Specify output feature functions file; implies -ff [none]
   -palout=PAL	Specify output phrase alignment file; implies -pal [none]
   -source=source Specify the source sentence file; [none]
-  -json=file     Output the phrase alignment in a json format to file.  requires -source  [don't]
+  -target=target Specify an alternate target sentence file to use with -json; [none]
+  -json=file     Output the phrase alignment in a json format to file.  requires -source [don't]
 
   -oov          Output OOV status in -palout file [don't]
   -wal          Output word-alignment info in the -palout file (implies -oov) [don't]
@@ -93,6 +94,7 @@ GetOptions(
    "ffout=s"   => \my $ffout,
    "palout=s"  => \my $palout,
    "source=s"  => \my $source,
+   "target=s"  => \my $target,
    "json=s"    => \my $json,
    oov         => \my $oov,
    wal         => \my $wal,
@@ -152,6 +154,14 @@ if ($source) {
    binmode($source_stream, ":encoding(utf-8)");
 }
 
+my $target_stream;
+if ($target) {
+   $target_stream = new FileHandle;
+   zopen($target_stream, "<$target")
+      or die "Error: nbest2rescore.pl can't open input target file '$target': $!\n";
+   binmode($target_stream, ":encoding(utf-8)");
+}
+
 my $json_stream;
 if ($json) {
    $json_stream = new FileHandle;
@@ -186,6 +196,10 @@ if ($source) {
    warn("Warning: Source file too long!") if (defined(<$source_stream>));
    close $source_stream if $source;
 }
+if ($target) {
+   warn("Warning: Target file too long!") if (defined(<$target_stream>));
+   close $target_stream if $target;
+}
 close $json_stream if $json;
 
 exit 0;
@@ -195,6 +209,7 @@ exit 0;
 # Subs
 
 my $sourceTooShort = undef;
+my $targetTooShort = undef;
 sub parseTranslation {
     my ($string, $legacy) = @_;
 
@@ -278,6 +293,29 @@ sub parseTranslation {
           $translation->{source} = [split(/ +/, "Error: The source file is too short!")];
           warn("Warning: The source file is too short!") unless(defined($sourceTooShort));
           $sourceTooShort = 1;
+       }
+    }
+
+    if ($target) {
+       # TODO: What about unbalanced target / input stream.  Should be unlikely but we should still check it.
+       if (defined(my $s = <$target_stream>)) {
+          chomp($s);
+          # Let's add the translation to the sentence.
+          $translation->{target} = [split(/ +/, $s)];
+          # Let's replace each phrase's target by the equivalent in target.
+          my $targetWordIndex = 0;
+          foreach my $phrase (@{$translation->{phrases}}) {
+             my $pl = scalar(@{$phrase->{phrase}});
+             my $end = $targetWordIndex + $pl;
+             $phrase->{phrase} = [ @{$translation->{target}}[$targetWordIndex..$end-1] ];
+             $targetWordIndex = $end;
+          }
+          die "You provide a -target that doesn't match the input file." unless($targetWordIndex == scalar(@{$translation->{target}}));
+       }
+       else {
+          $translation->{target} = [split(/ +/, "Error: The target file is too short!")];
+          warn("Warning: The target file is too short!") unless(defined($targetTooShort));
+          $targetTooShort = 1;
        }
     }
 

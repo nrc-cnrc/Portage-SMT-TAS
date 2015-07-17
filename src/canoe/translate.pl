@@ -821,12 +821,10 @@ TRANS:{
       call("$decoder $decoder_opts -f ${canoe_ini} < '${q_dec}' > '${p_out}' ${decoder_log}");
 
       my $wal_opt = ($wal eq "h") ? "" : "-wal";
-      call("nbest2rescore.pl -canoe -tagoov -oov $wal_opt -palout='${p_pal}' -source=${q_dec} -json=${p_json} < '${p_raw}'" .
+      call("nbest2rescore.pl -canoe -tagoov -oov $wal_opt -palout='${p_pal}' < '${p_raw}'" .
            "| perl -pe 's/ +\$//;' > '${p_decoov}'");
 
       generateOOVsPage(${p_decoov}, ${oov_html});
-
-      symlink(${dir}."/../../phraseAlignmentVisualization.html", ${dir}."/pal.html");
 
       if ($with_ce) {
          # ce_canoe2ffvals.pl generates $p_dec from $p_raw, among other things
@@ -906,6 +904,12 @@ POST:{
    }
 
    plugin("postprocess", $tgt, $in, $P_txt);
+
+   # Generate pal.html's data.
+   unless ($with_rescoring) {
+      call("nbest2rescore.pl -canoe -source='${Q_tok}' -target='${P_tok}' -json='${p_json}' < '${p_raw}' > /dev/null");
+      symlink(${dir}."/../../phraseAlignmentVisualization.html", ${dir}."/pal.html");
+   }
 }
 
 # Predict CE
