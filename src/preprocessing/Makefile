@@ -19,6 +19,7 @@ PROGRAMS = \
 	map_number \
 	markup_canoe_output \
 	sample_parallel_text \
+	split_parallel_text_by_tag \
 	ssal
 
 DYNLIBS= $(LIBICU)
