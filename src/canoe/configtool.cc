@@ -103,6 +103,7 @@ depending on <cmd>, one of:\n\
                        distortion models to their tightly packed version for\n\
                        portageLive.\n\
   list-lm            - List language model file names.\n\
+  list-bilm          - List bilm language model file names.\n\
   list-ldm           - List lexicalized distortion model file names.\n\
   list-tm            - List all translation model file names.\n\
   list-all-files     - List all files used by this canoe.ini.\n\
@@ -118,12 +119,14 @@ Options:\n\
 \n\
 -p  Pretty-print output config files [don't]\n\
 -c  Skip integrity check on input config file [check]\n\
+-l  When using one of list-{lm,bilm,ldm,tm}, display one model per line [don't]\n\
 ";
 
 // globals
 
 static bool verbose = false;
 static bool pretty = false;
+static const char * separator = " ";
 static string cmd;
 static string config_in = "-";
 static ofstream ofs;
@@ -455,13 +458,15 @@ int main(int argc, char* argv[])
 
       c.write(os, 0, pretty);
    } else if (isPrefix("list-lm", cmd)) {
-      cout << join(c.lmFiles) << endl;
+      cout << join(c.lmFiles, separator) << endl;
+   } else if (isPrefix("list-bilm", cmd)) {
+      cout << join(c.featureGroup("bilm")->args, separator) << endl;
    } else if (isPrefix("list-ldm", cmd)) {
-      cout << join(c.LDMFiles) << endl;
+      cout << join(c.LDMFiles, separator) << endl;
    } else if (isPrefix("list-tm", cmd)) {
       vector<string> alltms(c.multiProbTMFiles);
       alltms.insert(alltms.end(), c.tpptFiles.begin(), c.tpptFiles.end());
-      cout << join(alltms) << endl;
+      cout << join(alltms, separator) << endl;
    } else if (isPrefix("list-all-files", cmd)) {
       // arghhh. I (EJ) wrote this, but it's gross.  I should use the ParamInfo
       // flags to determine which things to print here, not have specific code
@@ -593,12 +598,14 @@ RescoreResult parseRescoreResultsLine(const string& line)
 
 void getArgs(int argc, char* argv[])
 {
-   const char* switches[] = {"v", "p", "c"};
+   const char* switches[] = {"v", "p", "c", "l"};
    ArgReader arg_reader(ARRAY_SIZE(switches), switches, 1, 3, help_message);
    arg_reader.read(argc-1, argv+1);
 
    arg_reader.testAndSet("v", verbose);
    arg_reader.testAndSet("p", pretty);
+   if (arg_reader.getSwitch("l"))
+      separator = "\n";
 
    arg_reader.testAndSet(0, "cmd", cmd);
    arg_reader.testAndSet(1, "config", config_in);
