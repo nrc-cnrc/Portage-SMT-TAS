@@ -25,6 +25,12 @@ function debug($i) {
 
 class PortageLiveAPI {
 
+   var $validLanguages = array('en' => 1, 'fr' => 1, 'es' => 1, 'da' =>1);
+
+   private function validLanguagesToString() {
+      return '{' . implode(", ", array_keys($this->validLanguages)) . '}';
+   }
+
    # Load models in memory
    public function primeModels($context, $PrimeMode) {
       $rc = 0;
@@ -401,10 +407,27 @@ class PortageLiveAPI {
       }
 
       $sourceLanguage = strtolower($sourceLanguage);
+      if ($sourceLanguage === '') {
+         throw new SoapFault("PortageBadArgs", "sourceLanguage cannot be empty it must be one of " . $this->validLanguagesToString());
+      }
+      if (!array_key_exists($sourceLanguage, $this->validLanguages)) {
+         throw new SoapFault("PortageBadArgs", "sourceLanguage($sourceLanguage) must be one of " . $this->validLanguagesToString());
+      }
+
       $targetLanguage = strtolower($targetLanguage);
+      if ($targetLanguage === '') {
+         throw new SoapFault("PortageBadArgs", "targetLanguage cannot be empty it must be one of " . $this->validLanguagesToString());
+      }
+      if (!array_key_exists($targetLanguage, $this->validLanguages)) {
+         throw new SoapFault("PortageBadArgs", "targetLanguage($targetLanguage) must be one of " . $this->validLanguagesToString());
+      }
 
       $contextInfo = $this->getContextInfo($context);
       $this->validateContext($contextInfo);
+
+      if (!file_exists($contextInfo["context_dir"] . "/plugins/fixedTerms")) {
+         throw new SoapFault("PortageContext", "This context($context) doesn't support fixed terms.");
+      }
 
       if ($content == '') {
          throw new SoapFault("PortageBadArgs", "There is no file content ($filename).");
@@ -431,7 +454,6 @@ class PortageLiveAPI {
 
       $tm = $contextInfo["context_dir"] . "/plugins/fixedTerms/tm";
       $fixedTerms = $contextInfo["context_dir"] . "/plugins/fixedTerms/fixedTerms";
-      #$command = "PORTAGE_INTERNAL_CALL=1 flock " . $contextInfo["context_dir"] . "/plugins/fixedTerms/tm -c \"set -o pipefail; fixed_term2tm.pl -source_column=$sourceColumnIndex -source=$sourceLanguage -target=$targetLanguage $localFilename";
       $command = "flock $tm.lock --command \"set -o pipefail;";
       $command .= " cp $localFilename $fixedTerms";
       $command .= " && fixed_term2tm.pl -source_column=$sourceColumnIndex -source=$sourceLanguage -target=$targetLanguage $fixedTerms";
