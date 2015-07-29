@@ -1,0 +1,70 @@
+PortageII-3.0
+origin/PortageII-2.2-maintenance-branch..HEAD
+- changed messages:
+  - getTranslationRequest -> translateRequest:
+    - added context
+    - added useCE
+  - getTranslationResponse -> translateResponse
+  - translateFileCERequest -> translateXmlFileRequest:
+    - added part useCE
+- removed messages:
+  - getTranslation2Request
+- new messages:
+  - primeModelsResponse
+  - getAllContextsResponse
+  - translateFileStatusResponse
+  - getVersionRequest
+  - getVersionResponse
+- changed operations:
+  - primeModels() returns a primeModelsResponse instread of getTranslationResponse
+  - getAllContexts() returns a getAllContextResponse instead of getTranslationResponse
+  - getTranslation() -> translate():
+    - translate() returns a translateResponse instead of getTranslation2Response
+- new operations:
+  - getVersion()
+- renamed operations:
+  - getTranslation2() -> translate()
+  - getTranslationCE() -> translate(useCE = true)
+  - translateSDLXLIFFCE() -> translateSDLXLIFF(useCE = true)
+  - translateSDLXLIFFCE_Status() -> translateFileStatus()
+  - translateTMXCE() -> translateTMX(useCE = true)
+  - translateTMXCE_Status() -> translateFileStatus()
+  - translatePlainTextCE() -> translatePlainText(useCE = true)
+  - translatePlainTextCE_Status() -> translateFileStatus()
+
+PortageII-2.2
+origin/PortageII-2.1-maintenance-branch..origin/PortageII-2.2-maintenance-branch
+- changed message:
+  - translateXMLCERequest -> translateFileCERequest
+    - translateXMLCERequest.XMLContentsBase64 -> translateFileCERequest.ContentsBase64
+    - translateXMLCERequest.XMLFilename -> translateFileCERequest.Filename
+- new messages:
+  - updateFixedTermRequest
+  - updateFixedTermResponse
+  - getFixedTermRequest
+  - getFixedTermResponse
+  - removeFixedTermRequest
+  - removeFixedTermResponse
+- new operations:
+  - translatePlainTextCE()
+  - translatePlainTextCE_Status()
+  - updateFixedTerms()
+  - getFixedTerms()
+  - removeFixedTerms()
+
+
+New in version PortageII-2.1
+origin/PortageII-2.0-maintenance-branch..origin/PortageII-2.1-maintenance-branch
+Humm not much except a copyright update for the dates.
+
+New in version PortageII-2.0
+origin/v1_5_0_maintenance_branch..origin/PortageII-2.0-maintenance-branch
+- changed messages:
+  - getTranslationRequest used getTranslation():
+    - Added newline
+    - Added xtags
+  - getTranslation2Request used getTranslation2() & getTranslationCE():
+    - Added newline
+    - Added xtags
+  - translateXMLCERequest used by translateSDLXLIFFCE() & translateTMXCE():
+    - Added xtags

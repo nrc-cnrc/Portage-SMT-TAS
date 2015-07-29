@@ -2,14 +2,14 @@
 # @file PortageLiveAPI.php
 # @brief Implementation of the API to the PortageII SMT software suite.
 #
-# @author Patrick Paul, Eric Joanis and Samuel Larkin
+# @author Samuel Larkin, Patrick Paul & Eric Joanis
 #
 # Traitement multilingue de textes / Multilingual Text Processing
 # Technologies de l'information et des communications /
 #   Information and Communications Technologies
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2009 - 2014, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2009 - 2014, Her Majesty in Right of Canada
+# Copyright 2009 - 2015, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2009 - 2015, Her Majesty in Right of Canada
 
 
 $base_web_dir = "/var/www/html";
@@ -36,7 +36,7 @@ class PortageLiveAPI {
       if ( $rc != 0 )
          throw new SoapFault("PortagePrimeError", "Failed to prime, something went wrong in prime.sh.\nrc=$rc; Command=$command");
 
-      return "OK";
+      return true;
    }
 
    # Gather all relevant information about translation context $context
@@ -52,7 +52,8 @@ class PortageLiveAPI {
          if ( preg_match('/(-decode-only|-with-ce|-with-rescoring)/', $cmdline, $matches) ) {
             $info["good"] = false;
             $info["label"] = "$context: context from a previous, incompatible version of PortageII";
-         } else {
+         }
+         else {
             $src = "";
             if ( preg_match('/-xsrc=([-a-zA-Z]+)/', $cmdline, $matches) )
                $src = $matches[1];
@@ -72,7 +73,8 @@ class PortageLiveAPI {
             $info["label"] = "$context ($src --> $tgt)" .
                            (empty($info["ce_model"]) ? "" : " with CE");
          }
-      } else {
+      }
+      else {
          $info["good"] = false;
          $info["label"] = "$context: bad context";
       }
@@ -104,7 +106,8 @@ class PortageLiveAPI {
       if ( ! $i["good"] ) {
          if (!file_exists($i["context_dir"])) {
             throw new SoapFault("PortageContext", "Context \"$context\" does not exist.\n" . debug($i));
-         } else {
+         }
+         else {
             throw new SoapFault("PortageContext", "Context \"$context\" is broken.\n" . debug($i));
          }
       }
@@ -176,11 +179,13 @@ class PortageLiveAPI {
                   "PortageLiveAPI");
             else
                $exit_status = $return_value;
-         } else {
+         }
+         else {
             if (!is_null($exit_status))
                $exit_status = 0;
          }
-      } else {
+      }
+      else {
          throw new SoapFault("PortageServer", "failed to run $translate_script: $!\n".debug($i));
       }
 
@@ -214,10 +219,17 @@ class PortageLiveAPI {
    # $filename is the name of the XML file.
    # If $xtags is true, transfer tags from the source-language segments to the translations.
    # $type indicates the type of XML file we're translating
-   private function translateFileCE($contents_base64, $filename, $context, $ce_threshold, $xtags, $type) {
+   private function translateFileCE($contents_base64, $filename, $context, $useCE, $ce_threshold, $xtags, $type) {
+      #error_log("translateFileCE with $type\n", 3, '/tmp/PortageLiveAPI.debug.log');
+
+      #if ($type === "plaintext" and !$useCE and $ce_threshold != 0) {
+      #   # TODO send a meaningful SoapFault
+      #   throw new SoapFault("Client", "Translating plain text file");
+      #}
+
       $i = $this->getContextInfo($context);
       $this->validateContext($i, $ce_threshold > 0);
-      $is_xml = $type === "tmx" or $type === "sdlxliff";
+      $is_xml = ($type === "tmx" or $type === "sdlxliff");
 
       $work_dir = $this->makeWorkDir("{$context}_$filename");
       $work_name = $this->normalizeName("{$context}_$filename");
@@ -242,16 +254,23 @@ class PortageLiveAPI {
                "", $i, $xml_check_rc);
          #return "TMX check log: $xml_check_log; xml_check_rc: $xml_check_rc";
          if ( $xml_check_rc != 0 )
-            throw new SoapFault("Client", "$type check failed for $filename: $xml_check_log");
+            throw new SoapFault("Client", "$type check failed for $filename: $xml_check_log\n$work_dir/Q.in");
       }
 
       #$xml_lang = array("fr" => "FR-CA", "en" => "EN-CA"); # add more languages here as needed
       $command = "$i[script] ";  # Requires that last space.
-      $command .= ($is_xml ? "-xml" : "");
+      $command .= ($is_xml ? " -xml " : "");
+      if ($useCE and !empty($i["ce_model"])) {
+         $command .= "-with-ce ";
+         if ($ce_threshold > 0) {
+            $command .= "-filter=$ce_threshold ";
+         }
+      }
+      else {
+         $command .= "-decode-only ";
+      }
       $command .= "-nl=s -dir=\"$work_dir\" -out=\"$work_dir/P.out\" " .
                  ($xtags ? " -xtags " : "") .
-                 (!empty($i["ce_model"]) ? "-with-ce " : "-decode-only ") .
-                 ($ce_threshold > 0 ? "-filter=$ce_threshold " : "") .
                  "\"$work_dir/Q.in\" >& \"$work_dir/trace\" ";
       if ($is_xml)
          $command = "(if ($command); then ln -s QP.xml $work_dir/PLive-$work_name; fi; touch $work_dir/done)& disown %1";
@@ -271,19 +290,20 @@ class PortageLiveAPI {
       return $monitor;
    }
 
-   public function translateTMXCE($TMX_contents_base64, $TMX_filename, $context, $ce_threshold, $xtags) {
-      return $this->translateFileCE($TMX_contents_base64, $TMX_filename, $context, $ce_threshold, $xtags, "tmx");
+   public function translateTMX($TMX_contents_base64, $TMX_filename, $context, $useCE, $ce_threshold, $xtags) {
+      return $this->translateFileCE($TMX_contents_base64, $TMX_filename, $context, $useCE, $ce_threshold, $xtags, "tmx");
    }
 
-   public function translateSDLXLIFFCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, $ce_threshold, $xtags) {
-      return $this->translateFileCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, $ce_threshold, $xtags, "sdlxliff");
+   public function translateSDLXLIFF($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, $useCE, $ce_threshold, $xtags) {
+      return $this->translateFileCE($SDLXLIFF_contents_base64, $SDLXLIFF_filename, $context, $useCE, $ce_threshold, $xtags, "sdlxliff");
    }
 
-   public function translatePlainTextCE($PlainText_contents_base64, $PlainText_filename, $context, $ce_threshold, $xtags) {
-      return $this->translateFileCE($PlainText_contents_base64, $PlainText_filename, $context, $ce_threshold, $xtags, "plaintext");
+   public function translatePlainText($PlainText_contents_base64, $PlainText_filename, $context, $useCE, $xtags) {
+      $ce_threshold = 0;
+      return $this->translateFileCE($PlainText_contents_base64, $PlainText_filename, $context, $useCE, $ce_threshold, $xtags, "plaintext");
    }
 
-   private function translateFileCE_Status($monitor_token) {
+   public function translateFileStatus($monitor_token) {
       $tokens = preg_split("/[?&]/", $monitor_token);
       $info = array();
       foreach ($tokens as $token) {
@@ -304,10 +324,12 @@ class PortageLiveAPI {
          if (is_file("$dir/done")) {
             if (is_file("$dir/$info[file]")) {
                return "0 Done: $info[dir]/$info[file]";
-            } else {
+            }
+            else {
                return "2 Failed".debug($info).": $info[dir]/trace";
             }
-         } else {
+         }
+         else {
             $linestodo = `cat $dir/q.tok 2> /dev/null | wc -l 2> /dev/null`;
             $linesdone = 0;
             if ( $info['ce'] )
@@ -323,21 +345,10 @@ class PortageLiveAPI {
             }
             return "1 In progress ($progress% done)".debug($info);
          }
-      } else {
+      }
+      else {
          return "3 Dir not found".debug($info);
       }
-   }
-
-   public function translateTMXCE_Status($monitor_token) {
-      return $this->translateFileCE_Status($monitor_token);
-   }
-
-   public function translateSDLXLIFFCE_Status($monitor_token) {
-      return $this->translateFileCE_Status($monitor_token);
-   }
-
-   public function translatePlainTextCE_Status($monitor_token) {
-      return $this->translateFileCE_Status($monitor_token);
    }
 
    # This function would be nice to use but we have case aka "a<1>b</1>" is not
@@ -354,17 +365,20 @@ class PortageLiveAPI {
    # param context:  translate src_string using what context
    # param newline:  what is the interpretation of newline in the input
    # param xtags:  Transfer tags
-   # param withCE:  Should we use confidence estimation?
-   private function translateText($src_string, $context, $newline, $xtags, $withCE) {
+   # param useCE:  Should we use confidence estimation?
+   public function translate($src_string, $context, $newline, $xtags, $useCE) {
       #$this->checkIsThisXML($src_string);
+      if (!isset($newline))
+         throw new SoapFault("PortageBadArgs", "You must defined newline.\nAllowed newline types are: s, p or w");
+
       if (!($newline == "s" or $newline == "p" or $newline == "w"))
          throw new SoapFault("PortageBadArgs", "Illegal newline type " . $newline . "\nAllowed newline types are: s, p or w");
 
       $i = $this->getContextInfo($context);
-      $this->validateContext($i, $withCE);
+      $this->validateContext($i, $useCE);
 
       $options = " -verbose";
-      $options .= ($withCE ? " -with-ce" : " -decode-only");
+      $options .= ($useCE ? " -with-ce" : " -decode-only");
       $options .= ($xtags ? " -xtags" : "");
       $options .= " -nl=" . $newline;
       #$options .= " -dir=/tmp/";  # SAM DEBUGGING
@@ -372,21 +386,13 @@ class PortageLiveAPI {
       return $this->runCommand($i["script"] . $options, $src_string, $i);
    }
 
-   # Translate $src_string using model $context and confidence estimation
-   public function getTranslationCE($src_string, $context, $newline, $xtags) {
-      return $this->translateText($src_string, $context, $newline, $xtags, true);
-   }
-
-   # Translate $src_string using model $context
-   public function getTranslation2($src_string, $context, $newline, $xtags) {
-      return $this->translateText($src_string, $context, $newline, $xtags, false);
-   }
-
-   # Translate $src_string using the default context
-   public function getTranslation($src_string, $newline, $xtags) {
-      return $this->translateText($src_string, "context", $newline, $xtags, false);
-   }
-
+   # param  ContentsBase64 is the contents of the fixed term file in base64 encoding.
+   # param  Filename is the fixed term file name.
+   # param  encoding is the fixed term file's encoding and can be either UTF-8 or CP-1252.
+   # param  context must be a valid context identifier as returned by getAllContexts().
+   # param  sourceColumnIndex is the 1-based index of the source column. {1 or 2}
+   # param  sourceLanguage is the source term's language code {en, fr, es, da}
+   # param  targetLanguage is the target term's language code {en, fr, es, da}
    public function updateFixedTerms($content, $filename, $encoding, $context, $sourceColumnIndex, $sourceLanguage, $targetLanguage) {
       #error_log(func_get_args(), 3, '/tmp/PortageLiveAPI.debug.log');
       $encoding = strtolower($encoding);
@@ -445,6 +451,7 @@ class PortageLiveAPI {
       return true;
    }
 
+   # param context must be a valid context identifier as returned by getAllContexts().
    public function getFixedTerms($context) {
       $contextInfo = $this->getContextInfo($context);
       $this->validateContext($contextInfo);
@@ -464,6 +471,7 @@ class PortageLiveAPI {
       return $content;
    }
 
+   # param context must be a valid context identifier as returned by getAllContexts().
    public function removeFixedTerms($context) {
       $contextInfo = $this->getContextInfo($context);
       $this->validateContext($contextInfo);
@@ -483,6 +491,11 @@ class PortageLiveAPI {
       }
 
       return true;
+   }
+
+   # Returns the current API's version.
+   public function getVersion() {
+      return "PortageII-3.0";
    }
 }
 
