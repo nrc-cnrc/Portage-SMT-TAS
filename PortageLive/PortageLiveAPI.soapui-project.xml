@@ -3510,6 +3510,64 @@ testCase.setPropertyValue( "input", encodedData)
           </con:request>
         </con:config>
       </con:testStep>
+      <con:testStep type="request" name="updateFixedTerms - UTF-8 - context that doesn't support fixedTerms - Request">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>updateFixedTerms</con:operation>
+          <con:request name="updateFixedTerms - UTF-8 - context that doesn't support fixedTerms - Request" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+              <con:setting id="WsdlSettings@enable-mtom">false</con:setting>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@disable-multipart-attachments">false</con:setting>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@enable_inline_files">true</con:setting>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@encode_attachments">true</con:setting>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@inline-response-attachments">false</con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:updateFixedTerms soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <ContentsBase64 xsi:type="xsd:base64Binary">${#TestSuite#fiches_termino_utf-8.b64}</ContentsBase64>
+         <Filename xsi:type="xsd:string">fiches_termino_utf-8</Filename>
+         <context xsi:type="xsd:string">${#TestSuite#context.toy_en2fr}</context>
+         <sourceColumnIndex xsi:type="xsd:decimal">1</sourceColumnIndex>
+         <sourceLanguage xsi:type="xsd:string">en</sourceLanguage>
+         <targetLanguage xsi:type="xsd:string">fr</targetLanguage>
+         <encoding xsi:type="xsd:string">UTF-8</encoding>
+      </urn:updateFixedTerms>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:assertion type="Not SOAP Fault Assertion" name="SOAP Fault"/>
+            <con:assertion type="XQuery Match" name="faultcode is PortageContext">
+              <con:configuration>
+                <path>//*:Fault/faultcode</path>
+                <content>PortageContext</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:assertion type="XQuery Match" name="Validate faultstring">
+              <con:configuration>
+                <path>//*:Fault/faultstring</path>
+                <content>This context(${#TestSuite#context.toy_en2fr}) doesn't support fixed terms.</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:selectedAuthProfile>NTLM</con:selectedAuthProfile>
+              <con:addedBasicAuthenticationTypes>NTLM</con:addedBasicAuthenticationTypes>
+              <con:authType>NTLM</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="updateFixedTerms"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
       <con:testStep type="request" name="updateFixedTerms - UTF-8 - invalid source column index base - Request">
         <con:settings/>
         <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -3640,6 +3698,71 @@ testCase.setPropertyValue( "input", encodedData)
           </con:request>
         </con:config>
       </con:testStep>
+      <con:testStep type="request" name="updateFixedTerms - UTF-8 - Empty source language - Request">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>updateFixedTerms</con:operation>
+          <con:request name="updateFixedTerms - UTF-8 - Empty source language - Request" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+              <con:setting id="WsdlSettings@enable-mtom">false</con:setting>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@disable-multipart-attachments">false</con:setting>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@enable_inline_files">true</con:setting>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@encode_attachments">true</con:setting>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@inline-response-attachments">false</con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:updateFixedTerms soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <ContentsBase64 xsi:type="xsd:base64Binary">${#TestSuite#fiches_termino_utf-8.b64}</ContentsBase64>
+         <Filename xsi:type="xsd:string">fiches_termino_utf-8</Filename>
+         <encoding xsi:type="xsd:string">UTF-8</encoding>
+         <context xsi:type="xsd:string">${#TestCase#context}</context>
+         <sourceColumnIndex xsi:type="xsd:decimal">1</sourceColumnIndex>
+         <sourceLanguage xsi:type="xsd:string"></sourceLanguage>
+         <targetLanguage xsi:type="xsd:string">fr</targetLanguage>
+      </urn:updateFixedTerms>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:assertion type="Not SOAP Fault Assertion" name="SOAP Fault"/>
+            <con:assertion type="XQuery Match" name="falutcode is PortageBadArgs">
+              <con:configuration>
+                <path>//*:Fault/faultcode</path>
+                <content>PortageBadArgs</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:assertion type="XQuery Match" name="Validate faultstring">
+              <con:configuration>
+                <path>//*:Fault/faultstring</path>
+                <content>sourceLanguage cannot be empty it must be one of {en, fr, es, da}</content>
+                <allowWildcards>true</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:assertion type="XQuery Match" name="Validate detail" disabled="true">
+              <con:configuration>
+                <path>//*:Fault/detail</path>
+                <content>Unsupported source language (zz) *</content>
+                <allowWildcards>true</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:selectedAuthProfile>NTLM</con:selectedAuthProfile>
+              <con:addedBasicAuthenticationTypes>NTLM</con:addedBasicAuthenticationTypes>
+              <con:authType>NTLM</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="updateFixedTerms"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
       <con:testStep type="request" name="updateFixedTerms - UTF-8 - Invalid source language - Request">
         <con:settings/>
         <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -3675,14 +3798,14 @@ testCase.setPropertyValue( "input", encodedData)
             <con:assertion type="XQuery Match" name="falutcode is PortageBadArgs">
               <con:configuration>
                 <path>//*:Fault/faultcode</path>
-                <content>PortageServer</content>
+                <content>PortageBadArgs</content>
                 <allowWildcards>false</allowWildcards>
               </con:configuration>
             </con:assertion>
             <con:assertion type="XQuery Match" name="Validate faultstring">
               <con:configuration>
                 <path>//*:Fault/faultstring</path>
-                <content>non-zero return code from *</content>
+                <content>sourceLanguage(zz) must be one of {en, fr, es, da}</content>
                 <allowWildcards>true</allowWildcards>
               </con:configuration>
             </con:assertion>
@@ -3690,6 +3813,71 @@ testCase.setPropertyValue( "input", encodedData)
               <con:configuration>
                 <path>//*:Fault/detail</path>
                 <content>Unsupported source language (zz) *</content>
+                <allowWildcards>true</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:selectedAuthProfile>NTLM</con:selectedAuthProfile>
+              <con:addedBasicAuthenticationTypes>NTLM</con:addedBasicAuthenticationTypes>
+              <con:authType>NTLM</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="updateFixedTerms"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="request" name="updateFixedTerms - UTF-8 - Empty target language - Request">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>updateFixedTerms</con:operation>
+          <con:request name="updateFixedTerms - UTF-8 - Empty target language - Request" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+              <con:setting id="WsdlSettings@enable-mtom">false</con:setting>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@disable-multipart-attachments">false</con:setting>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@enable_inline_files">true</con:setting>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@encode_attachments">true</con:setting>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@inline-response-attachments">false</con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:updateFixedTerms soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <ContentsBase64 xsi:type="xsd:base64Binary">${#TestSuite#fiches_termino_utf-8.b64}</ContentsBase64>
+         <Filename xsi:type="xsd:string">fiches_termino_utf-8</Filename>
+         <encoding xsi:type="xsd:string">UTF-8</encoding>
+         <context xsi:type="xsd:string">${#TestCase#context}</context>
+         <sourceColumnIndex xsi:type="xsd:decimal">1</sourceColumnIndex>
+         <sourceLanguage xsi:type="xsd:string">en</sourceLanguage>
+         <targetLanguage xsi:type="xsd:string"></targetLanguage>
+      </urn:updateFixedTerms>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:assertion type="Not SOAP Fault Assertion" name="SOAP Fault"/>
+            <con:assertion type="XQuery Match" name="falutcode is PortageBadArgs">
+              <con:configuration>
+                <path>//*:Fault/faultcode</path>
+                <content>PortageBadArgs</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:assertion type="XQuery Match" name="Validate faultstring">
+              <con:configuration>
+                <path>//*:Fault/faultstring</path>
+                <content>targetLanguage cannot be empty it must be one of {en, fr, es, da}</content>
+                <allowWildcards>true</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:assertion type="XQuery Match" name="Validating detail" disabled="true">
+              <con:configuration>
+                <path>//*:Fault/detail</path>
+                <content>Unsupported target language (yy) *</content>
                 <allowWildcards>true</allowWildcards>
               </con:configuration>
             </con:assertion>
@@ -3740,14 +3928,14 @@ testCase.setPropertyValue( "input", encodedData)
             <con:assertion type="XQuery Match" name="falutcode is PortageBadArgs">
               <con:configuration>
                 <path>//*:Fault/faultcode</path>
-                <content>PortageServer</content>
+                <content>PortageBadArgs</content>
                 <allowWildcards>false</allowWildcards>
               </con:configuration>
             </con:assertion>
             <con:assertion type="XQuery Match" name="Validate faultstring">
               <con:configuration>
                 <path>//*:Fault/faultstring</path>
-                <content>non-zero return code from *</content>
+                <content>targetLanguage(yy) must be one of {en, fr, es, da}</content>
                 <allowWildcards>true</allowWildcards>
               </con:configuration>
             </con:assertion>
@@ -3815,122 +4003,6 @@ testCase.setPropertyValue( "input", encodedData)
               <con:configuration>
                 <path>//*:Fault/detail</path>
                 <content>Language mismatch for source language(file: eng, cli: fr).*</content>
-                <allowWildcards>true</allowWildcards>
-              </con:configuration>
-            </con:assertion>
-            <con:credentials>
-              <con:selectedAuthProfile>NTLM</con:selectedAuthProfile>
-              <con:addedBasicAuthenticationTypes>NTLM</con:addedBasicAuthenticationTypes>
-              <con:authType>NTLM</con:authType>
-            </con:credentials>
-            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
-            <con:jmsPropertyConfig/>
-            <con:wsaConfig mustUnderstand="NONE" version="200508" action="updateFixedTerms"/>
-            <con:wsrmConfig version="1.2"/>
-          </con:request>
-        </con:config>
-      </con:testStep>
-      <con:testStep type="request" name="updateFixedTerms - UTF-8 - no source language - Request">
-        <con:settings/>
-        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-          <con:interface>PortageLive_SoapHttpBinding</con:interface>
-          <con:operation>updateFixedTerms</con:operation>
-          <con:request name="updateFixedTerms - UTF-8 - no source language - Request" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
-            <con:settings>
-              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
-              <con:setting id="WsdlSettings@enable-mtom">false</con:setting>
-              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@disable-multipart-attachments">false</con:setting>
-              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@enable_inline_files">true</con:setting>
-              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@encode_attachments">true</con:setting>
-              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@inline-response-attachments">false</con:setting>
-            </con:settings>
-            <con:encoding>UTF-8</con:encoding>
-            <con:endpoint>${#Project#endpoint}</con:endpoint>
-            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
-   <soapenv:Header/>
-   <soapenv:Body>
-      <urn:updateFixedTerms soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-         <ContentsBase64 xsi:type="xsd:base64Binary">${#TestSuite#fiches_termino_utf-8.b64}</ContentsBase64>
-         <Filename xsi:type="xsd:string">fiches_termino_utf-8</Filename>
-         <encoding xsi:type="xsd:string">UTF-8</encoding>
-         <context xsi:type="xsd:string">${#TestCase#context}</context>
-         <sourceColumnIndex xsi:type="xsd:decimal">1</sourceColumnIndex>
-         <sourceLanguage xsi:type="xsd:string">en</sourceLanguage>
-         <targetLanguage xsi:type="xsd:string"></targetLanguage>
-      </urn:updateFixedTerms>
-   </soapenv:Body>
-</soapenv:Envelope>]]></con:request>
-            <con:assertion type="SOAP Response" name="SOAP Response"/>
-            <con:assertion type="Not SOAP Fault Assertion" name="SOAP Fault"/>
-            <con:assertion type="XQuery Match" name="falutcode is PortageBadArgs">
-              <con:configuration>
-                <path>//*:Fault/faultcode</path>
-                <content>PortageServer</content>
-                <allowWildcards>false</allowWildcards>
-              </con:configuration>
-            </con:assertion>
-            <con:assertion type="XQuery Match" name="Validate faultstring">
-              <con:configuration>
-                <path>//*:Fault/faultstring</path>
-                <content>non-zero return code from *</content>
-                <allowWildcards>true</allowWildcards>
-              </con:configuration>
-            </con:assertion>
-            <con:credentials>
-              <con:selectedAuthProfile>NTLM</con:selectedAuthProfile>
-              <con:addedBasicAuthenticationTypes>NTLM</con:addedBasicAuthenticationTypes>
-              <con:authType>NTLM</con:authType>
-            </con:credentials>
-            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
-            <con:jmsPropertyConfig/>
-            <con:wsaConfig mustUnderstand="NONE" version="200508" action="updateFixedTerms"/>
-            <con:wsrmConfig version="1.2"/>
-          </con:request>
-        </con:config>
-      </con:testStep>
-      <con:testStep type="request" name="updateFixedTerms - UTF-8 - no target language - Request">
-        <con:settings/>
-        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-          <con:interface>PortageLive_SoapHttpBinding</con:interface>
-          <con:operation>updateFixedTerms</con:operation>
-          <con:request name="updateFixedTerms - UTF-8 - no target language - Request" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
-            <con:settings>
-              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
-              <con:setting id="WsdlSettings@enable-mtom">false</con:setting>
-              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@disable-multipart-attachments">false</con:setting>
-              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@enable_inline_files">true</con:setting>
-              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@encode_attachments">true</con:setting>
-              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@inline-response-attachments">false</con:setting>
-            </con:settings>
-            <con:encoding>UTF-8</con:encoding>
-            <con:endpoint>${#Project#endpoint}</con:endpoint>
-            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
-   <soapenv:Header/>
-   <soapenv:Body>
-      <urn:updateFixedTerms soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-         <ContentsBase64 xsi:type="xsd:base64Binary">${#TestSuite#fiches_termino_utf-8.b64}</ContentsBase64>
-         <Filename xsi:type="xsd:string">fiches_termino_utf-8</Filename>
-         <encoding xsi:type="xsd:string">UTF-8</encoding>
-         <context xsi:type="xsd:string">${#TestCase#context}</context>
-         <sourceColumnIndex xsi:type="xsd:decimal">1</sourceColumnIndex>
-         <sourceLanguage xsi:type="xsd:string"></sourceLanguage>
-         <targetLanguage xsi:type="xsd:string">fr</targetLanguage>
-      </urn:updateFixedTerms>
-   </soapenv:Body>
-</soapenv:Envelope>]]></con:request>
-            <con:assertion type="SOAP Response" name="SOAP Response"/>
-            <con:assertion type="Not SOAP Fault Assertion" name="SOAP Fault"/>
-            <con:assertion type="XQuery Match" name="falutcode is PortageBadArgs">
-              <con:configuration>
-                <path>//*:Fault/faultcode</path>
-                <content>PortageServer</content>
-                <allowWildcards>false</allowWildcards>
-              </con:configuration>
-            </con:assertion>
-            <con:assertion type="XQuery Match" name="Validate faultstring">
-              <con:configuration>
-                <path>//*:Fault/faultstring</path>
-                <content>non-zero return code from *</content>
                 <allowWildcards>true</allowWildcards>
               </con:configuration>
             </con:assertion>
