@@ -71,9 +71,8 @@ function displayFault($exception, $title = "SOAP Fault:") {
    print "</div>\n";
 }
 
-function listContext() {
+function listContext($WSDL, $context) {
    try {
-      global $WSDL;
       $client = new SoapClient($WSDL);
       $call = $client->getAllContexts(false);
       $tokens = preg_split("/;/", $call);
@@ -209,6 +208,8 @@ function updateFixedTermsTestCase($WSDL) {
       $sourceColumnIndex = $_POST['fixedTermsSourceColumn'];
    }
    else {
+      print "<div class=\"ERROR\">Error updating fixed terms.  Missing source column.</div>";
+      return;
    }
 
    $sourceLanguage = 'UNDEF';
@@ -216,6 +217,8 @@ function updateFixedTermsTestCase($WSDL) {
       $sourceLanguage = $_POST['fixedTermsSourceLanguage'];
    }
    else {
+      print "<div class=\"ERROR\">Error updating fixed terms.  Missing source language.</div>";
+      return;
    }
 
    $targetLanguage = 'UNDEF';
@@ -223,6 +226,8 @@ function updateFixedTermsTestCase($WSDL) {
       $targetLanguage = $_POST['fixedTermsTargetLanguage'];
    }
    else {
+      print "<div class=\"ERROR\">Error updating fixed terms.  Missing target language.</div>";
+      return;
    }
 
    $encoding = 'UNDEF';
@@ -230,6 +235,8 @@ function updateFixedTermsTestCase($WSDL) {
       $encoding = $_POST['encoding'];
    }
    else {
+      print "<div class=\"ERROR\">Error updating fixed terms.  Missing encoding.</div>";
+      return;
    }
 
    if ( is_uploaded_file($file["tmp_name"]) ) {
@@ -542,7 +549,7 @@ Link to <a href="<?php echo $WSDL;?>">the WSDL</a> and its
 <section id='context'>
 <header>Context</header>
 <br/> Context:
-<?php listContext() ?>
+<?php listContext($WSDL, $context) ?>
 </section>
 
 <section id='prime'>
