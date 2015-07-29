@@ -131,6 +131,7 @@ if (my $filename = param('file')     # The name of the file we are monitoring
       my $trace_url = catdir("", $work_dir, "trace");
       my $oov_url = catdir("", $work_dir, "oov.html");
       my $pal_url = catdir("", $work_dir, "pal.html");
+      my $P_triangArray_txt = catdir("", $work_dir, "P.triangArray.txt");
 
       if (-e $job_done) {
          print pageHead($filename, $context); # Background process is done
@@ -187,6 +188,10 @@ if (my $filename = param('file')     # The name of the file we are monitoring
          }
       }
 
+      my @debuggingTools = (
+            a({-href=>"plive-monitor.cgi?traceFile=$trace_file"}, "Trace file")
+            );
+
       if (not -e $job_done) {
          print p("Elapsed time so far: $elapsed_time seconds.");
       }
@@ -216,15 +221,12 @@ if (my $filename = param('file')     # The name of the file we are monitoring
             close MONITOR;
          }
 
-         print p("To view the out-of-vocabulary words click here: ",
-            a({-href=>"$oov_url"}, "OOVs"),
-            ".");
-
-         print p(a({-href=>"$pal_url"}, "To view the phrase aligments click here."));
+         unshift(@debuggingTools, a({-href=>"$P_triangArray_txt"}, "Phrase tables")) if (-r "/var/www/html/$P_triangArray_txt");
+         unshift(@debuggingTools, a({-href=>"$pal_url"}, "Phrase alignments"));
+         unshift(@debuggingTools, a({-href=>"$oov_url"}, "Out-of-vocabulary words"));
       }
-      print p("In case of problems, have a look at the job's ",
-         a({-href=>"plive-monitor.cgi?traceFile=$trace_url"}, "trace file"),
-         ".");
+      print div({-style=>'font-size: 0.8em;'}, h3("Debugging Tools"),  ul(li({-type=>'circle'}, \@debuggingTools)));
+
    }
 }
 elsif (my $traceFile = param('traceFile')) {
