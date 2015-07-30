@@ -13,18 +13,25 @@
 #ifndef _NNJM_H_
 #define _NNJM_H_
 
-#include <map>
 #include "decoder_feature.h"
 #include "basicmodel.h"
 #include "unal_feature.h"
 #include "nnjm_abstract.h"
+//#include <map>
+//#include <tr1/unordered_map>
+//#include "tpt_tokenindex.h"
+#include "wordClass.h"
 
 namespace Portage {
 
 typedef enum NNJM_FORMAT{nrc=0,udem=1,native=2} NNJM_Format;
+//using std::tr1::unordered_map;
 
 class NNJM : public DecoderFeature {
+public:
+   typedef IWordClass Tags;
 
+private:
    static const Uint max_srcphrase_len = 255; // using Uchar indexing
    static const char* help;
    static const char* tag_prefix; // <TAG>:
@@ -32,6 +39,9 @@ class NNJM : public DecoderFeature {
    static const char* keywords[]; // <ELID>, <UNK>, <BOS>, <EOS>
 
    BasicModelGenerator* bmg;
+
+   WordClassTightlyPacked wctp;
+   WordClass wc;
 
    Uint srcwindow;
    Uint ngorder;
@@ -47,8 +57,10 @@ class NNJM : public DecoderFeature {
    Voc srcvoc;   // for words in source sentence
    Voc tgtvoc;   // for words in target history
    Voc outvoc;   // for predicted words
-   map<string,string> srctags;  // srcword -> tag ; optional alterative to canoe -srctags option
-   map<string,string> tgttags;  // tgtword -> tag
+
+   Tags* srctags;  // srcword -> tag ; optional alterative to canoe -srctags option
+   Tags* tgttags;  // tgtword -> tag
+
    map<string, NNJMAbstract*> file_to_nnjm; // filename -> NNJMAbstract object
    vector<NNJMAbstract*> nnjm_wraps; // python pickled NNJM or plain txt native NNJM
                                      // one for each level of backoff (may be the same
@@ -176,6 +188,8 @@ public:
    NNJM(BasicModelGenerator* bmg, const string& arg, bool arg_is_filename=true);
 
    ~NNJM() {
+      delete srctags;
+      delete tgttags;
       for(map<string,NNJMAbstract*>::iterator p = file_to_nnjm.begin();
           p != file_to_nnjm.end();
           p++) {

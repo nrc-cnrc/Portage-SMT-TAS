@@ -59,6 +59,8 @@ static void checkArg(const vector<string>& toks, Uint i, Uint n)
             toks[i].c_str());
 }
 
+
+
 Uint NNJM::readVoc(const string& dir, const string& filename, Voc& voc)
 {
    Uint tag_count = 0;
@@ -95,6 +97,8 @@ NNJM::NNJM(BasicModelGenerator* bmg, const string& arg, bool arg_is_filename) :
    srcSentCaching(true),
    cache_hits(0),
    cache_misses(0),
+   srctags(NULL),
+   tgttags(NULL),
    nnjm_wrap(NULL),
    format(native)
 {
@@ -141,22 +145,12 @@ NNJM::NNJM(BasicModelGenerator* bmg, const string& arg, bool arg_is_filename) :
          have_tgt_tags = readVoc(dir, toks[i], outvoc) || have_tgt_tags;
       } else if (toks[i] == "[srcclasses]") {
          checkArg(toks, i++, 1);
-         iSafeMagicStream is(adjustRelativePath(dir, toks[i]));
-         while (getline(is, line)) {
-            vector<string> sc = split<string>(line); // word\tclass
-            if (sc.size() != 2)
-               error(ETFatal, "expected 'word\ttag' entries in <%s>", toks[i].c_str());
-            srctags[sc[0]] = sc[1];
-         }
+	 cerr << "Loading tgtclasses " << toks[i] << endl;
+         srctags = loadClasses(adjustRelativePath(dir, toks[i]));
       } else if (toks[i] == "[tgtclasses]") {
          checkArg(toks, i++, 1);
-         iSafeMagicStream is(adjustRelativePath(dir, toks[i]));
-         while (getline(is, line)) {
-            vector<string> tc = split<string>(line); // word\tclass
-            if (tc.size() != 2)
-               error(ETFatal, "expected 'word\ttag' entries in <%s>", toks[i].c_str());
-            tgttags[tc[0]] = tc[1];
-         }
+	 cerr << "Loading tgtclasses " << toks[i] << endl;
+         tgttags = loadClasses(adjustRelativePath(dir, toks[i]));
       } else if (toks[i] == "[file]") {
          checkArg(toks, i++, 1);
          vector<string> hashsplit;
@@ -203,7 +197,7 @@ NNJM::NNJM(BasicModelGenerator* bmg, const string& arg, bool arg_is_filename) :
       for (Uint i = 0; i < NUMKEYS; ++i)
          outvoc.add(keywords[i]);
    }
-   if (have_tgt_tags && tgttags.empty()) {
+   if (have_tgt_tags && tgttags->empty()) {
       error(ETFatal, "this NNJM requires a non-empty [tgttags] file");
    }
    tgt_pad.resize(ngorder-1, BOS);
@@ -255,9 +249,9 @@ void NNJM::updateIndexMap(const Voc& ind_voc, vector<Uint>& ind_map)
          ind_map[i] = id;   // word is in ind_voc
       else {
          string w = voc.word(i);
-         map<string,string>::iterator p = tgttags.find(w);
-         if (p != tgttags.end()) {
-            w = tag_prefix + p->second;
+         Tags::findType p = tgttags->find(w);
+         if (p.first) {
+            w = tag_prefix + string(p.second);
             id = ind_voc.index(w.c_str());
             if (id < ind_voc.size())
                ind_map[i] = id;  // word's tag is in ind_voc
@@ -283,11 +277,11 @@ void NNJM::newSrcSent(const newSrcSentInfo& info)
    score_cache.clear();
    vector<string> src_sent_tags;
    if (have_src_tags && !info.src_sent.empty()) {
-      if (!srctags.empty()) {
+      if (!srctags->empty()) {
          src_sent_tags.reserve(info.src_sent.size());
          for (Uint i = 0; i < info.src_sent.size(); ++i) {
-            map<string,string>::iterator p = srctags.find(info.src_sent[i]);
-            src_sent_tags.push_back(p == srctags.end() ? string("<unk>") : p->second);
+            Tags::findType p = srctags->find(info.src_sent[i]);
+            src_sent_tags.push_back(p.first == true ? p.second : "<unk>");
          }
       } else if (!info.src_sent_tags.empty()) {
          src_sent_tags = info.src_sent_tags;
@@ -322,8 +316,8 @@ void NNJM::newSrcSent(const newSrcSentInfo& info)
 vector<Uchar>* NNJM::getSposMap(const PhraseInfo& pi)
 {
    static Uint unal_phrasepairs = 0, total_phrasepairs = 0; // for alignment check
-   Uint src_len = pi.src_words.size();
-   Uint tgt_len = pi.phrase.size();
+   const Uint src_len = pi.src_words.size();
+   const Uint tgt_len = pi.phrase.size();
    if (total_phrasepairs <= 100) ++total_phrasepairs;
    if (src_len > max_srcphrase_len)
       error(ETFatal, "maximum permissible source phrase length for NNJMs is %d", 
@@ -332,9 +326,9 @@ vector<Uchar>* NNJM::getSposMap(const PhraseInfo& pi)
    // find cached tgt pos -> src pos map for this phrase pair, or make new cache entry
 
    vector<Uchar>* spos = NULL;  // tgt pos -> src pos
-   AlignmentAnnotation* al = AlignmentAnnotation::get(pi.annotations);
+   const AlignmentAnnotation* al = AlignmentAnnotation::get(pi.annotations);
    if (al) {
-      Uint al_id = al->getAlignmentID();
+      const Uint al_id = al->getAlignmentID();
       Cache::iterator res = align_cache.find(CacheKey(src_len, tgt_len, al_id));
       if (res == align_cache.end()) {
          const vector< vector<Uint> >& sets = *al->getAlignmentSets(al_id, src_len); // src pos -> links
@@ -353,7 +347,7 @@ vector<Uchar>* NNJM::getSposMap(const PhraseInfo& pi)
          spos = &res->second;
          spos->resize(tgt_len);
          for (Uint ii = tgt_len; ii > 0; --ii) { // reverse iter for rtward attachment
-            Uint i = ii-1;
+            const Uint i = ii-1;
             if (sp_sets[i].size()) { // alignments exist for this tgt position
                sort(sp_sets[i].begin(), sp_sets[i].end());
                (*spos)[i] = sp_sets[i][(sp_sets[i].size()-1)/2]; // centre link, round down
@@ -363,7 +357,8 @@ vector<Uchar>* NNJM::getSposMap(const PhraseInfo& pi)
       }
       spos = &res->second;
       assert(spos->size() == tgt_len);
-   } else if (total_phrasepairs <= 100) {
+   }
+   else if (total_phrasepairs <= 100) {
       ++unal_phrasepairs;
       // fatal error rather than warning?
       if (total_phrasepairs == 100 && unal_phrasepairs > 50)
@@ -408,6 +403,7 @@ double NNJM::score(const PartialTranslation& pt)
 
 double NNJM::precomputeFutureScore(const PhraseInfo& pi)
 {
+   // TODO prove that these two updateIndexMap are useless.
    updateIndexMap(tgtvoc, tgtind_map); // needed?
    updateIndexMap(outvoc, outind_map); // needed?
  
