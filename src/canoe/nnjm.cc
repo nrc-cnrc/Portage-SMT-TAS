@@ -338,6 +338,10 @@ vector<Uchar>* NNJM::getSposMap(const PhraseInfo& pi)
       Cache::iterator res = align_cache.find(CacheKey(src_len, tgt_len, al_id));
       if (res == align_cache.end()) {
          const vector< vector<Uint> >& sets = *al->getAlignmentSets(al_id, src_len); // src pos -> links
+
+         // This phrase pair doesn't have an alignment annotaion.
+         if (sets.empty()) return NULL;
+
          assert(sets.size() == src_len || sets.size() == src_len+1);
          vector< vector<Uint> > sp_sets(tgt_len); // tgt pos -> links
          for (Uint i = 0; i < src_len; ++i)
