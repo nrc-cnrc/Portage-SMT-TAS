@@ -24,7 +24,7 @@ namespace Portage {
 class ExpTable {
    private:
       const double m_epsilon;
-      double m_max_exp;
+      const double m_max_exp;
       int m_size;
       double* m_exp_table;
       double* m_sig_table;
