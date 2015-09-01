@@ -18,6 +18,8 @@
 #include <cmath>
 #include "nnjm_native.h"
 #include "binio.h"
+#include <iterator>  // std::iterator_traits
+
 
 // To activate use -DNNJM_MEMORY_FOOTPRINT flag at compile time
 #ifdef NNJM_MEMORY_FOOTPRINT
@@ -186,8 +188,9 @@ template <typename InputIterator>
 double NNJMLayer::evalAt(Uint out_i, InputIterator beg, InputIterator end) const {
    double toRet = b[out_i];
    Uint in_i = 0;
-   for(InputIterator it_in=beg;it_in!=end;it_in++) {
-      toRet += *it_in * w[in_i++][out_i];
+   for(InputIterator it_in(beg); it_in!=end; ++it_in) {
+      toRet += *it_in * w[in_i][out_i];
+      ++in_i;
    }
    return activate_at(toRet);
 }
@@ -202,12 +205,16 @@ template <typename InputIterator, typename OutputIterator>
 Uint NNJMLayer::part_eval(InputIterator beg, InputIterator end, Uint modelOffset, OutputIterator result) const {
    // Apply w
    Uint in_i = modelOffset;
-   for(InputIterator it_in=beg;it_in!=end;it_in++) {
-      int out_i=0;
-      for(OutputIterator out = result; out<result+out_n; out++) {
-         *out += *it_in * w[in_i][out_i++];
+   typedef typename std::iterator_traits<InputIterator>::value_type ValueType;
+   for (InputIterator it_in(beg); it_in!=end; ++it_in) {
+      const ValueType it_in_val = *it_in;
+      const double* const w_in_i = w[in_i];
+      int out_i = 0;
+      for (OutputIterator out(result), out_end(result+out_n); out<out_end; ++out) {
+         *out += it_in_val * w_in_i[out_i];
+         ++out_i;
       }
-      in_i++;
+      ++in_i;
    }
    return in_i - modelOffset;
 }
@@ -215,23 +222,32 @@ Uint NNJMLayer::part_eval(InputIterator beg, InputIterator end, Uint modelOffset
 template <typename OutputIterator>
 void NNJMLayer::apply_activation(OutputIterator result) const {
    // Apply non-linear activation function
-   if(act==tanh) {
-      for(OutputIterator out = result; out<result+out_n; out++) {
-         if (table) {
+   if (act == tanh) {
+      if (table) {
+         for(OutputIterator out(result), out_end(result+out_n); out<out_end; ++out) {
             *out = table->tanh(*out);
          }
-         else {
+      }
+      else {
+         for(OutputIterator out(result), out_end(result+out_n); out<out_end; ++out) {
             *out = std::tanh(*out);
          }
       }
-   } else if(act==sigmoid) {
-      for(OutputIterator out = result; out<result+out_n; out++)
-         if (table) {
+   }
+   else if (act == sigmoid) {
+      if (table) {
+         for(OutputIterator out(result), out_end(result+out_n); out<out_end; ++out) {
             *out = table->sig(*out);
          }
-         else {
+      }
+      else {
+         for(OutputIterator out(result), out_end(result+out_n); out<out_end; ++out) {
             *out = 1.0/(1.0+exp(-(*out)));
          }
+      }
+   }
+   else {
+      error(ETFatal, "Unsupported activation function <%s>.", act.c_str());
    }
 }
 
