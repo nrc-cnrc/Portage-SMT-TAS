@@ -247,7 +247,7 @@ void NNJMLayer::apply_activation(OutputIterator result) const {
       }
    }
    else {
-      error(ETFatal, "Unsupported activation function <%s>.", act.c_str());
+      error(ETFatal, "Unsupported activation function.");
    }
 }
 
