@@ -217,7 +217,7 @@ class PortageLiveAPI {
    function translateFileCE($contents_base64, $filename, $context, $ce_threshold, $xtags, $type) {
       $i = $this->getContextInfo($context);
       $this->validateContext($i, $ce_threshold > 0);
-      $is_xml = $type === "tmx" or $type === "sdlxliff";
+      $is_xml = ($type === "tmx" or $type === "sdlxliff");
 
       $work_dir = $this->makeWorkDir("{$context}_$filename");
       $work_name = $this->normalizeName("{$context}_$filename");
@@ -247,7 +247,7 @@ class PortageLiveAPI {
 
       #$xml_lang = array("fr" => "FR-CA", "en" => "EN-CA"); # add more languages here as needed
       $command = "$i[script] ";  # Requires that last space.
-      $command .= ($is_xml ? "-xml" : "");
+      $command .= ($is_xml ? " -xml " : "");
       $command .= "-nl=s -dir=\"$work_dir\" -out=\"$work_dir/P.out\" " .
                  ($xtags ? " -xtags " : "") .
                  (!empty($i["ce_model"]) ? "-with-ce " : "-decode-only ") .
