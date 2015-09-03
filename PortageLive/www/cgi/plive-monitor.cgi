@@ -241,7 +241,8 @@ elsif (my $traceFile = param('traceFile')) {
            NRCBanner(),
            h1("PORTAGELive");
 
-   print getTrace($WEB_PATH . $traceFile);
+   $traceFile = $WEB_PATH . $traceFile unless ($traceFile =~ m/^$WEB_PATH/);
+   print getTrace($traceFile);
 }
 else {
    print pageHead(0);

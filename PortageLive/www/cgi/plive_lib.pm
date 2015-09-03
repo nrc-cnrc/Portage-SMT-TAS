@@ -136,6 +136,8 @@ sub NRCFooter {
 }
 
 
+# getTrace
+# @param trace_file the absolute path to the trace file.
 sub getTrace {
    my ($trace_file) = @_;
    if (-r $trace_file) {
