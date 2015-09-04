@@ -1534,6 +1534,308 @@ rc=3; Command=prime.sh bogus</content>
         </con:property>
       </con:properties>
     </con:testCase>
+    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="translateSDLXLIFF minimalist TestCase" searchProperties="true" id="7d89c480-ce60-4219-8eed-066e993d4391">
+      <con:description>This testcase will you the most minimalist but still valid sdlxliff file.  This means a sdlxliff with a bodt tag with nothing in it.</con:description>
+      <con:settings/>
+      <con:testStep type="request" name="Submit sdlxliff request">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>translateSDLXLIFF</con:operation>
+          <con:request name="Submit sdlxliff request" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+              <con:setting id="WsdlSettings@enable-mtom">false</con:setting>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@encode_attachments">true</con:setting>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@enable_inline_files">true</con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translateSDLXLIFF soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <ContentsBase64 xsi:type="xsd:string">${#TestCase#input}</ContentsBase64>
+         <Filename xsi:type="xsd:string">input.sdlxliff</Filename>
+         <context xsi:type="xsd:string">${#TestCase#context}</context>
+         <useCE xsi:type="xsd:boolean">false</useCE>
+         <CETreshold xsi:type="xsd:decimal">0</CETreshold>
+         <xtags xsi:type="xsd:boolean">false</xtags>
+      </urn:translateSDLXLIFF>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:assertion type="SOAP Fault Assertion" name="Not SOAP Fault"/>
+            <con:assertion type="XQuery Match" name="Contains a monitoring token">
+              <con:configuration>
+                <path>contains(//*:translateSDLXLIFFResponse/*:token, "plive-monitor.cgi")</path>
+                <content>true</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:selectedAuthProfile>Basic</con:selectedAuthProfile>
+              <con:addedBasicAuthenticationTypes>Basic</con:addedBasicAuthenticationTypes>
+              <con:authType>Global HTTP Settings</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="translateSDLXLIFFCE"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="transfer" name="MonitoringAddress">
+        <con:settings/>
+        <con:config xsi:type="con:PropertyTransfersStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:transfers setNullOnMissingSource="true" transferTextContent="true" failOnError="true" ignoreEmpty="false" transferToAll="false" useXQuery="false" entitize="false" transferChildNodes="false">
+            <con:name>token</con:name>
+            <con:sourceType>Response</con:sourceType>
+            <con:sourceStep>Submit sdlxliff request</con:sourceStep>
+            <con:sourcePath>//token/text()</con:sourcePath>
+            <con:targetType>MonitoringAddress</con:targetType>
+            <con:targetStep>#TestCase#</con:targetStep>
+          </con:transfers>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="delay" name="Wait for translations">
+        <con:settings/>
+        <con:config>
+          <delay>5000</delay>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="httprequest" name="Monitoring">
+        <con:settings/>
+        <con:config method="GET" xsi:type="con:HttpRequest" name="Monitoring" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+          </con:settings>
+          <con:encoding>UTF-8</con:encoding>
+          <con:endpoint>${#TestCase#MonitoringAddress}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="There should an indication that there is no output">
+            <con:configuration>
+              <path>count(//p[text() = "Translation job terminated with no output."])</path>
+              <content>1</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:selectedAuthProfile>Basic</con:selectedAuthProfile>
+            <con:addedBasicAuthenticationTypes>Basic</con:addedBasicAuthenticationTypes>
+            <con:authType>Global HTTP Settings</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters/>
+        </con:config>
+      </con:testStep>
+      <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
+import org.apache.commons.codec.binary.Base64
+
+def input = context.expand( '${#TestCase#input_txt}' )
+def bytes = input.bytes
+
+//Base64 coder = new Base64()
+//def encodedData = coder.encode(bytes)
+
+def encodedData = bytes.encodeBase64().toString()
+log.info(testCase.getPropertyValue( "input"))
+log.info(encodedData)
+testCase.setPropertyValue( "input", encodedData)
+
+
+//http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
+      <con:tearDownScript>for (prop in ["input", "MonitoringAddress", "TranslationsAddress", "numberSourceSentence"]) {
+	testCase.setPropertyValue(prop, "")
+}</con:tearDownScript>
+      <con:properties>
+        <con:property>
+          <con:name>context</con:name>
+          <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+        </con:property>
+        <con:property>
+          <con:name>input_txt</con:name>
+          <con:value><![CDATA[<xliff version='1.2'        xmlns='urn:oasis:names:tc:xliff:document:1.2'> <file original='hello.txt' source-language='en' target-language='fr'        datatype='plaintext'> <body> </body> </file> </xliff>]]></con:value>
+        </con:property>
+        <con:property>
+          <con:name>input</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
+          <con:name>MonitoringAddress</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
+          <con:name>TranslationsAddress</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
+          <con:name>numberSourceSentence</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
+          <con:name>TranslationFileAddress</con:name>
+          <con:value/>
+        </con:property>
+      </con:properties>
+    </con:testCase>
+    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="translateSDLXLIFF 1-tans-unit / nomrk TestCase" searchProperties="true" id="e51c3339-2cc6-4e2b-a664-f82de07c41b9">
+      <con:description>This testcase will you the most minimalist but still valid sdlxliff file.  This means a sdlxliff with a bodt tag with nothing in it.</con:description>
+      <con:settings/>
+      <con:testStep type="request" name="Submit sdlxliff request">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>translateSDLXLIFF</con:operation>
+          <con:request name="Submit sdlxliff request" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+              <con:setting id="WsdlSettings@enable-mtom">false</con:setting>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@encode_attachments">true</con:setting>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@enable_inline_files">true</con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translateSDLXLIFF soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <ContentsBase64 xsi:type="xsd:string">${#TestCase#input}</ContentsBase64>
+         <Filename xsi:type="xsd:string">input.sdlxliff</Filename>
+         <context xsi:type="xsd:string">${#TestCase#context}</context>
+         <useCE xsi:type="xsd:boolean">false</useCE>
+         <CETreshold xsi:type="xsd:decimal">0</CETreshold>
+         <xtags xsi:type="xsd:boolean">false</xtags>
+      </urn:translateSDLXLIFF>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:assertion type="SOAP Fault Assertion" name="Not SOAP Fault"/>
+            <con:assertion type="XQuery Match" name="Contains a monitoring token">
+              <con:configuration>
+                <path>contains(//*:translateSDLXLIFFResponse/*:token, "plive-monitor.cgi")</path>
+                <content>true</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:selectedAuthProfile>Basic</con:selectedAuthProfile>
+              <con:addedBasicAuthenticationTypes>Basic</con:addedBasicAuthenticationTypes>
+              <con:authType>Global HTTP Settings</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="translateSDLXLIFFCE"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="transfer" name="MonitoringAddress">
+        <con:settings/>
+        <con:config xsi:type="con:PropertyTransfersStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:transfers setNullOnMissingSource="true" transferTextContent="true" failOnError="true" ignoreEmpty="false" transferToAll="false" useXQuery="false" entitize="false" transferChildNodes="false">
+            <con:name>token</con:name>
+            <con:sourceType>Response</con:sourceType>
+            <con:sourceStep>Submit sdlxliff request</con:sourceStep>
+            <con:sourcePath>//token/text()</con:sourcePath>
+            <con:targetType>MonitoringAddress</con:targetType>
+            <con:targetStep>#TestCase#</con:targetStep>
+          </con:transfers>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="delay" name="Wait for translations">
+        <con:settings/>
+        <con:config>
+          <delay>5000</delay>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="httprequest" name="Monitoring">
+        <con:settings/>
+        <con:config method="GET" xsi:type="con:HttpRequest" name="Monitoring" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+          </con:settings>
+          <con:encoding>UTF-8</con:encoding>
+          <con:endpoint>${#TestCase#MonitoringAddress}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="There should an indication that there is no output">
+            <con:configuration>
+              <path>count(//p[text() = "Translation job terminated with no output."])</path>
+              <content>1</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:selectedAuthProfile>Basic</con:selectedAuthProfile>
+            <con:addedBasicAuthenticationTypes>Basic</con:addedBasicAuthenticationTypes>
+            <con:authType>Global HTTP Settings</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters/>
+        </con:config>
+      </con:testStep>
+      <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
+import org.apache.commons.codec.binary.Base64
+
+def input = context.expand( '${#TestCase#input_txt}' )
+def bytes = input.bytes
+
+//Base64 coder = new Base64()
+//def encodedData = coder.encode(bytes)
+
+def encodedData = bytes.encodeBase64().toString()
+log.info(testCase.getPropertyValue( "input"))
+log.info(encodedData)
+testCase.setPropertyValue( "input", encodedData)
+
+
+//http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
+      <con:tearDownScript>for (prop in ["input", "MonitoringAddress", "TranslationsAddress", "numberSourceSentence"]) {
+	testCase.setPropertyValue(prop, "")
+}</con:tearDownScript>
+      <con:properties>
+        <con:property>
+          <con:name>context</con:name>
+          <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+        </con:property>
+        <con:property>
+          <con:name>input_txt</con:name>
+          <con:value><![CDATA[<xliff version='1.2'        xmlns='urn:oasis:names:tc:xliff:document:1.2'> <file original='hello.txt' source-language='en' target-language='fr'        datatype='plaintext'> <body> <trans-unit id='hi'> <source>Hello world</source> <target>Bonjour le monde</target> </trans-unit> </body> </file> </xliff>]]></con:value>
+        </con:property>
+        <con:property>
+          <con:name>input</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
+          <con:name>MonitoringAddress</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
+          <con:name>TranslationsAddress</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
+          <con:name>numberSourceSentence</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
+          <con:name>TranslationFileAddress</con:name>
+          <con:value/>
+        </con:property>
+      </con:properties>
+    </con:testCase>
     <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="translateSDLXLIFF without CE TestCase" searchProperties="true" id="56914c90-1e00-41c9-9fa9-671ea5dca824">
       <con:settings/>
       <con:testStep type="request" name="Submit sdlxliff request">
