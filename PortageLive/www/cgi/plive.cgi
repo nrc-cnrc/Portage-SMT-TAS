@@ -466,11 +466,11 @@ sub textBoxOutput {
     print p(a({-href=>"plive.cgi?context=".param('context')}, "Translate more text"));
 
     my @debuggingTools = (
-       a({-href=>"$workDir/oov.html"}, "Out-of-vocabulary words"),
-       a({-href=>"$workDir/pal.html"}, "Phrase alignments"),
-       a({-href=>"plive-monitor.cgi?traceFile=$workDir/trace"}, "Trace file"));
-    push(@debuggingTools, a({-href=>"$workDir/P.triangArray.txt"}, "Phrase tables")) if (-r "$WEB_PATH/$workDir/P.triangArray.txt");
-    print div({-style=>'font-size: 0.8em;'}, h3("Debugging Tools"),  ul(li({-type=>'circle'}, \@debuggingTools)));
+       a({-id=>'oov', -href=>"$workDir/oov.html"}, "Out-of-vocabulary words"),
+       a({-id=>'pal', -href=>"$workDir/pal.html"}, "Phrase alignments"),
+       a({-id=>'trace', -href=>"plive-monitor.cgi?traceFile=$workDir/trace"}, "Trace file"));
+    push(@debuggingTools, a({-id=>'triangArray', -href=>"$workDir/P.triangArray.txt"}, "Phrase tables")) if (-r "$WEB_PATH/$workDir/P.triangArray.txt");
+    print div({-style=>'font-size: 0.8em;'}, h3("Debugging Tools"),  ul({-id=>"debuggingTools"}, li({-type=>'circle'}, \@debuggingTools)));
 
     #my @params = param();
     #print "<PRE> @params </PRE>";

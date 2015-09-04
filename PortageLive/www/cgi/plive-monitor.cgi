@@ -192,7 +192,7 @@ if (my $filename = param('file')     # The name of the file we are monitoring
       }
 
       my @debuggingTools = (
-            a({-href=>"plive-monitor.cgi?traceFile=$trace_file"}, "Trace file")
+            a({-id=>'trace', -href=>"plive-monitor.cgi?traceFile=$trace_file"}, "Trace file")
             );
 
       if (not -e $job_done) {
@@ -224,11 +224,11 @@ if (my $filename = param('file')     # The name of the file we are monitoring
             close MONITOR;
          }
 
-         unshift(@debuggingTools, a({-href=>"$P_triangArray_txt"}, "Phrase tables")) if (-r "/var/www/html/$P_triangArray_txt");
-         unshift(@debuggingTools, a({-href=>"$pal_url"}, "Phrase alignments"));
-         unshift(@debuggingTools, a({-href=>"$oov_url"}, "Out-of-vocabulary words"));
+         unshift(@debuggingTools, a({-id=>'triangArray', -href=>"$P_triangArray_txt"}, "Phrase tables")) if (-r "/var/www/html/$P_triangArray_txt");
+         unshift(@debuggingTools, a({-id=>'pal', -href=>"$pal_url"}, "Phrase alignments"));
+         unshift(@debuggingTools, a({-id=>'oov', -href=>"$oov_url"}, "Out-of-vocabulary words"));
       }
-      print div({-style=>'font-size: 0.8em;'}, h3("Debugging Tools"),  ul(li({-type=>'circle'}, \@debuggingTools)));
+      print div({-style=>'font-size: 0.8em;'}, h3("Debugging Tools"),  ul({-id=>"debugginTools"}, li({-type=>'circle'}, \@debuggingTools)));
 
    }
 }
