@@ -228,8 +228,9 @@ if (my $filename = param('file')     # The name of the file we are monitoring
          unshift(@debuggingTools, a({-id=>'pal', -href=>"$pal_url"}, "Phrase alignments"));
          unshift(@debuggingTools, a({-id=>'oov', -href=>"$oov_url"}, "Out-of-vocabulary words"));
       }
-      print div({-style=>'font-size: 0.8em;'}, h3("Debugging Tools"),  ul({-id=>"debugginTools"}, li({-type=>'circle'}, \@debuggingTools)));
-
+      print div({-id=>'debuggingToolsDiv', -style=>'font-size: 0.8em;'},
+         h3("Debugging Tools"),
+         ul({-id=>"debuggingToolsList"}, li({-type=>'circle'}, \@debuggingTools)));
    }
 }
 elsif (my $traceFile = param('traceFile')) {
