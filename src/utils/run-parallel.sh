@@ -17,6 +17,7 @@
 # Requirements for the run-parallel.sh suite:
 # Make sure the following are in your path:
 # - parallelize.pl
+# - time-mem
 # - process-memory-usage.pl
 # - psub
 # - r-parallel-d.pl
