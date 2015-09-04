@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<!--
+# vim:expandtab:shiftwidth=3:tabstop=3
+# @file portage.translate.soap.html
+# @brief A realtime translation prototype for Portage.
+#
+# @author Samuel Larkin
+#
+# Technologies langagieres interactives / Interactive Language Technologies
+# Inst. de technologie de l'information / Institute for Information Technology
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2016, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2016, Her Majesty in Right of Canada
+-->
+<html>
+<head>
+<title>NRC's Emotion WebService Interface</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+<script type="text/javascript" src="jquery.soap.js"></script>
+<script type="text/javascript" src="jquery.xml2json.js"></script>
+<!-- <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery.xml2json/1.2/jquery.xml2json.js"></script> -->
+
+<script type="text/javascript">
+var translate = {
+   setup: function() {
+      $("#source").on("input", function() {
+         //if (this.value.endsWith(" ")) {
+         if (this.value.match(/[ \.]$/)) {
+            translate.translate(this.value);
+         }
+      });
+      $("#source").on("change", function() {
+         translate.translate();
+      });
+   },
+
+   translate: function(source) {
+      // Since we now have a rest api over json, we could change the following
+      // call from soap to rest.
+      $.soap({
+         url: 'http://132.246.128.219/PortageLiveAPI.php',
+         method: 'getTranslation2',
+         appendMethodToURL: false,
+
+         data: {
+            srcString: source,
+            context: 'toy-regress-en2fr',
+            newline: 's'
+         },
+
+         success: function (soapResponse) {
+            var test = soapResponse.toJSON();
+            $("#translation").text(test.Body.getTranslation2Response.Result.text);
+            // do stuff with soapResponse
+            // if you want to have the response as JSON use soapResponse.toJSON();
+            // or soapResponse.toString() to get XML string
+            // or soapResponse.toXML() to get XML DOM
+         },
+         error: function (soapResponse) {
+            alert(soapResponse.toJSON());
+            // show error
+         }
+      });
+   }
+}
+
+$(translate.setup);
+</script>
+</head>
+
+<body>
+<textarea id='source' rows='5' cols='50'>
+</textarea>
+<textarea id='translation' rows='5' cols='50'>
+</textarea>
+</body>
+</html>
