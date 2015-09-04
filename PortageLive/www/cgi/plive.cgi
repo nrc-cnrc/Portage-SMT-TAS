@@ -316,6 +316,10 @@ sub processText {
         problem("No system (\"context\") specified.");
     }
 
+    if (not -d "$PORTAGE_MODEL_DIR/$context") {
+        problem("Invalid context (\"$context\") specified.");
+    }
+
     # Create the work dir, get the source text in there:
     if (param('translate_file') and param('filename')) {  # File upload
         my $src_file = tmpFileName(param('filename'))
@@ -334,8 +338,8 @@ sub processText {
         else {
             checkFile("$work_dir/Q.in", param('notok'), param('noss'));
         }
-
-    } elsif (param('translate_text') and param('source_text')) {  # Text box
+    }
+    elsif (param('translate_text') and param('source_text')) {  # Text box
         problem("Input text too large (limit = ${MAX_TEXTBOX}).  Try file upload instead.")
             if length(param('source_text')) > $MAX_TEXTBOX;
         $work_name = join("_", $context, "Text-Box");
@@ -347,8 +351,8 @@ sub processText {
         close $fh;
 
         push @tr_opt, "-xtags" if (param('text_xtags'));
-
-    } else {
+    }
+    else {
         problem("No text or file to translate");
     }
 
@@ -410,14 +414,15 @@ sub processText {
         close STDOUT;
         system("/bin/bash", "-c", "(if (${tr_cmd}); then ln -s ${tr_output} ${user_output}; fi; touch $work_dir/done)&") == 0
             or die("Call returned with error code: ${tr_cmd} (error = %d)", $?>>8);
-    } else {
+    }
+    else {
         # Perform job here for text box
         system(${tr_cmd}) == 0
             or problem("Call returned with error code: ${tr_cmd} (error = %d)", $?>>8);
         open(my $P, "<${tr_output}") or problem("Can't open output file ${tr_output}");
         my @p = readline($P);
         close $P;
-        textBoxOutput(param('source_text'), $work_dir, @p);
+        translationTextOutput(param('source_text'), $work_dir, @p);
     }
 }
 
@@ -451,13 +456,13 @@ sub monitor {
     print copyright();
 }
 
-# textBoxOutput($source, @target)
+# translationTextOutput($source, @target)
 #
 # Produce an HTML page with source text and target translation
 # - $source: source-language text, as a single string of text
 # - @target: target language translation, as a list of text segments
 
-sub textBoxOutput {
+sub translationTextOutput {
     my ($source, $workDir, @target) = @_;
 
     # strip out webroot since the traceFile argument to plive-monitor will have the webroot prepended later on.
@@ -479,7 +484,7 @@ sub textBoxOutput {
         div({-id=>'translation'},
            h2("Translation:"),
            p(join("<br />", map { HTML::Entities::encode_entities($_, '<>&') } @target)));
-    print p(a({-href=>"plive.cgi?context=".param('context')}, "Translate more text"));
+    print p(a({-id=>'translateMore', -href=>"plive.cgi?context=".param('context')}, "Translate more text"));
 
     my @debuggingTools = (
        a({-id=>'oov', -href=>"$workDir/oov.html"}, "Out-of-vocabulary words"),
@@ -636,8 +641,10 @@ sub problem {
 
     print
         NRCBanner(),
-        h1("PORTAGELive PROBLEM"),
-        p(sprintf($message, @args)),
+        "\n",
+        div({-id=>'problemDescription'},
+           h1("PORTAGELive PROBLEM"),
+           p(sprintf($message, @args))),
         "\n";
 
     if (param('trace') and -r param('trace')) {
