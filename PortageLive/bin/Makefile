@@ -45,7 +45,8 @@ DECODE_SCRIPTS ?= canoe-escapes.pl canoe-parallel.sh sh_utils.sh
 TRANSLATE ?= postdecode_plugin postprocess_plugin predecode_plugin preprocess_plugin sentsplit_plugin tokenize_plugin \
              sentsplit-with-tags-combine.pl sentsplit-with-tags-split.pl tok-with-tags-combine.pl tok-with-tags-split.pl \
              translate.pl ridbom.sh crlf2lf.sh fix-en-fr-numbers.pl add-fr-nbsp.pl \
-             mark-numbers-en2fr.pl mark-numbers-fr2en.pl fixed_term2tm.pl
+             mark-numbers-en2fr.pl mark-numbers-fr2en.pl fixed_term2tm.pl \
+             clean-utf8-text.pl fix-slashes.pl
 OTHER_BIN ?= utf8_filter utf8_casemap configtool portage_info normc1 markup_canoe_output
 RESCORE_BIN ?= feature_function_tool gen_feature_values rescore_translate
 RESCORE_SCRIPTS ?= gen-features-parallel.pl nbest2rescore.pl rat.sh
