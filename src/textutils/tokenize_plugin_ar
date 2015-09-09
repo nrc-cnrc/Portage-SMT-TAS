@@ -76,7 +76,7 @@ Options:
                 This option has no effect when used with -prepoOnly.
   -m            xmlishify hashtags. [don't]
                 This option has no effect when used with -prepoOnly.
-                You will need to enalbe xml2hashtag.pl in postprocess_plugin.
+                You will need to enable xml2hashtag.pl in postprocess_plugin.
 
   -h(elp)       print this help message
   -v(erbose)    increment the verbosity level by 1 (may be repeated)
