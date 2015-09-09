@@ -47,7 +47,7 @@ files placed in that directory reproduce the location where files are to be
 installed on the translation server, as is normally done with RPMs.
 
 Dynamic IP:
-   ./prep-file-layout.sh
+   ./prep-file-layout.sh -dynamic-ip
 Static IP:
    ./prep-file-layout.sh -ip 10.15.20.25
 
@@ -84,4 +84,4 @@ procedure for your own environment.
 Note: If you are planing to use ssl/https, each place in the wsdl file that
 has http://__REPLACE_THIS_WITH_YOUR_IP__/ needs to have https instead of http.
 ./prep-file-layout.sh does this automatically while copying the file to the
-rpm.build.root layout, under html/secure instead of just html/.
+rpm.build.root layout, under html/secure/ instead of just html/.
