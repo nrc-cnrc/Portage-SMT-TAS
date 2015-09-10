@@ -37,7 +37,7 @@ CHINESE ?= chinese_rule_create.pl chinese_rule_markup.pl ictclas_postprocessing.
 CE ?= ce_canoe2ffvals.pl ce_gen_features.pl ce.pl ce_tmx.pl ce_train.pl ce_translate.pl ce_ttx2ospl.pl plog.pl
 CE_EXTERNAL ?= svm-predict
 CLUSTER ?= parallelize.pl psub r-parallel-d.pl r-parallel-worker.pl run-parallel.sh \
-           which-test.sh time-mem sum.pl process-memory-usage.pl
+           which-test.sh time-mem sum.pl process-memory-usage.pl rp-mon-totals.pl
 DECODE_BIN ?= canoe
 DECODE_SCRIPTS ?= canoe-escapes.pl canoe-parallel.sh sh_utils.sh
 # NOTE: DO NOT add detokenize_plugin script to the BINSCRIPTS variable since
