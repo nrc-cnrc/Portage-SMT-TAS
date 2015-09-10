@@ -275,9 +275,10 @@ class PortageLiveAPI {
       else {
          $command .= "-decode-only ";
       }
-      $command .= "-nl=s -dir=\"$work_dir\" -out=\"$work_dir/P.out\" " .
-                 ($xtags ? " -xtags " : "") .
-                 "\"$work_dir/Q.in\" >& \"$work_dir/trace\" ";
+      $command .= ($is_xml ? " -nl=s " : " -nl=p ") .
+                  ($xtags ? " -xtags " : "") .
+                  " -dir=\"$work_dir\" -out=\"$work_dir/P.out\" " .
+                  " \"$work_dir/Q.in\" >& \"$work_dir/trace\" ";
       if ($is_xml)
          $command = "(if ($command); then ln -s QP.xml $work_dir/PLive-$work_name; fi; touch $work_dir/done)& disown %1";
       else

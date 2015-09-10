@@ -206,6 +206,8 @@
          - If xtags is true, tags in the source sentences are transfered to the
            target sentences.
 
+        Each translation unit in the TMX file is treated as one sentence.
+
         Returns a token used to monitor the job.  The token can be used in one of
         two ways: it is a URL you can use to interactively monitor the job in a
         browser.  Or you can pass it as argument to translateFileStatus().
@@ -223,7 +225,7 @@
     </operation>
     <operation name="translateSDLXLIFF">
       <documentation>
-        Does the same thing as translateTMX(), but for SDLXLIFF file.
+        Does the same thing as translateTMX(), but for an SDLXLIFF file.
         See the documentation of translateTMX() for details.
       </documentation>
       <input message="tns:translateXmlFileRequest"/>
@@ -231,7 +233,7 @@
     </operation>
     <operation name="translatePlainText">
       <documentation>
-        Submit a request to translate a TMX file using the specified context.
+        Submit a request to translate a plain text file using the specified context.
 
         Arguments:
          - context must be a valid context identifier as returned by getAllContexts().
@@ -240,6 +242,9 @@
          - useCE enables generating CE scores.
          - If xtags is true, tags in the source sentences are transfered to the
            target sentences.
+
+        Newline characters are interpreted as paragraph ends, like when you
+        specify newline=p to translate().
 
         Returns a token used to monitor the job.  The token can be used in one of
         two ways: it is a URL you can use to interactively monitor the job in a
