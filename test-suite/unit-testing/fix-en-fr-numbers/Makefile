@@ -38,7 +38,7 @@ gitignore:
 	echo ref/out.latin1 >> .gitignore
 
 out.en: in.en
-	utokenize.pl -noss < $< | mark-numbers-en2fr.pl en > $@
+	utokenize.pl -noss < $< | mark-numbers-en2fr.pl > $@
 
 out.fr: in.fr
-	utokenize.pl -noss -lang=fr < $< | mark-numbers-fr2en.pl fr > $@
+	utokenize.pl -noss -lang=fr < $< | mark-numbers-fr2en.pl > $@

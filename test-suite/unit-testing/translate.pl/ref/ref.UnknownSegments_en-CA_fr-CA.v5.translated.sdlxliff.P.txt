@@ -1,37 +1,37 @@
-C'est une test une liste :.
+C'est une test une liste :.
 3 &gt; 4
-C'est une test de 12 V.
+C'est une test de 12 V.
 Nous conducting un vice trial le président.
 1 &lt; 2
 Nous conducting un vice trial le président.
 Non-breaking espace?
 emspace
-Pendant we're ici, et d'autres stuff en rtf : &lt; &gt; &amp;
+Pendant we're ici, et d'autres stuff en rtf : &lt; &gt; &amp;
 Et Subscript.
 em — dash
 Les essais encoding de &lt; et &gt; en xliff et tmx, spaces et &lt;without&gt; spaces.
 C'est advise le vice-président aux affaires publiques de la situation.
 non-breaking hyphen
 em espace
-C'est une test pour 12,456 unités.
+C'est une test de 12 456 unités.
 Ajouter / sabrer, \ backslash, &amp; ampersand.
 C'est une test à voir overlapping formatting tags sont géré par tmx et xliff dossiers.
 Optionalhyphen
 Non breaking espace
-C'est une test pour 12,456 unités.
-C'est une test de 12 V.
+C'est une test de 12 456 unités.
+C'est une test de 12 V.
 C'est une test million de 3 2 4 5 6 76 7 78 8 9 90
-C'est une test pour "12,456 unités".
+C'est une test pour "12 456 unités".
 Et subscriptinsuperscript
 en
-C'est une test 12,456 $.
+C'est une test de 12 456 $.
 Optionalhyphen
 Il est supplied en 200mL vials.
 en espace
 en – dash
 C'est une partie test pour un certain nombre de A-2.
 Le rapport semaines d'ici 2012
-C'est une test 12,456 $.
+C'est une test de 12 456 $.
 C'est advise le vice-président aux affaires publiques de la situation.
 non-breaking hyphen
 Superscript.

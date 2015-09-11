@@ -1,9 +1,9 @@
-C'est une test pour 12,456 unités.
-C'est une test pour 12,456 unités.
+C'est une test de 12 456 unités.
+C'est une test de 12 456 unités.
 Nous conducting un vice trial le président.
-C'est une test 12,456 $.
+C'est une test de 12 456 $.
 C'est une partie test pour un certain nombre de A-2.
-C'est une test de 12 V.
+C'est une test de 12 V.
 C'est le advise vicepresident de la situation.
 Non breaking espace
 Optionalhyphen
@@ -18,9 +18,9 @@ Les essais encoding de &lt; et &gt; en xliff et tmx, spaces et &lt;without&gt; s
 Ajouter / sabrer, \ backslash, &amp; ampersand.
 C'est une test à voir overlapping formatting tags sont géré par tmx et xliff dossiers.
 C'est une test million de 3 2 4 5 6 76 7 78 8 9 90
-Pendant we're ici, et d'autres stuff en rtf : &lt; &gt; &amp;
+Pendant we're ici, et d'autres stuff en rtf : &lt; &gt; &amp;
 Non-breaking espace?
-C'est une test 12,456 $.
+C'est une test de 12 456 $.
 Superscript.
 Et Subscript.
 Et subscriptinsuperscript
@@ -29,8 +29,8 @@ en espace
 Terre-Neuve-et-Labrador
 0
 C'est une partie test pour un certain nombre de A-2.
-C'est une test de 12 V.
-C'est une test pour "12,456 unités".
-C'est une test une liste :.
+C'est une test de 12 V.
+C'est une test pour "12 456 unités".
+C'est une test une liste :.
 Il est supplied en 200mL vials.
 C'est advise le vice-président aux affaires publiques de la situation.

@@ -58,7 +58,7 @@ pre.conv:  %:  ref/%  fixedTerms/tm
 	| utokenize.pl -noss -lang=en \
 	| utf8_casemap -c l \
 	| ${PREDECODE_PLUGIN} en \
-	| ${MARK_ENGLISH_NUMBER} en \
+	| ${MARK_ENGLISH_NUMBER} \
 	| diff - $<
 
 conv:  %:  ref/%  fixedTerms/tm
@@ -67,5 +67,5 @@ conv:  %:  ref/%  fixedTerms/tm
 	| utokenize.pl -noss -lang=en \
 	| utf8_casemap -c l \
 	| canoe-escapes.pl -add | utf8_filter \
-	| ${MARK_ENGLISH_NUMBER} en \
+	| ${MARK_ENGLISH_NUMBER} \
 	| diff - $<
