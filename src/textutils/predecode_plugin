@@ -21,24 +21,38 @@
 ## Among other things, the predecoding plugin must apply the rules parser.
 ##
 
+# ######################################################## #
+#               Quick configuration options                #
+# ######################################################## #
+# Some behaviours can be turned on and off here, although you can also do
+# more advanced configuration by modifying the rest of the script below.
+
+# Uncomment if you want to mark English numbers for rule-based translation to
+# their French format, or French numbers to their English format.
+# Note: has no effect unless the system is en->fr or fr->en.
+MARK_NUMBERS_ENFR=1
+
+# Uncomment to turn on ascii markup processing for Arabic
+#CONVERT_ASCII_TO_MARKUP=1
+
+# ######################################################## #
+#            End of Quick configuration options            #
+# ######################################################## #
+
 if [[ $1 = -help || $1 = -h ]]; then
     cat $0 | grep "^##" | cut -c4-
     exit 1
 fi
 
 [[ $# = 0 ]] && echo "Missing language code argument" >&2 && exit 1
-SOURCE_LANGUAGE=$1; shift
+SRC_TGT=$1; shift
+declare -a LANGS
+LANGS=(`echo $SRC_TGT | tr '-' ' '`)
+SOURCE_LANGUAGE=${LANGS[0]}
+TARGET_LANGUAGE=${LANGS[1]}
 
 # TODO: How to pickup the proper plugins/fixedTerms if this is the default script located in /opt/PortageII/bin/?
 FIXED_TERMS_MODEL_DIRECTORY=${FIXED_TERMS_MODEL_DIRECTORY:-$(dirname $0)}
-
-# Uncomment if you want to mark English numbers for rule-based translation to
-# their French format, or French numbers to their English format.
-# Warning: Only use this for en->fr and fr->en systems!
-#MARK_NUMBERS_ENFR=1
-
-# Uncomment to turn on ascii markup processing for Arabic
-#CONVERT_ASCII_TO_MARKUP=1
 
 set -o pipefail
 
@@ -77,10 +91,12 @@ else
    canoe-escapes.pl -add | utf8_filter
 fi \
 | if [[ -n "$MARK_NUMBERS_ENFR" ]]; then
-   if [[ $SOURCE_LANGUAGE == en ]]; then
-      mark-numbers-en2fr.pl $SOURCE_LANGUAGE
-   elif [[ $SOURCE_LANGUAGE == fr ]]; then
-      mark-numbers-fr2en.pl $SOURCE_LANGUAGE
+   if [[ $SOURCE_LANGUAGE == en && $TARGET_LANGUAGE == fr ]]; then
+      mark-numbers-en2fr.pl
+   elif [[ $SOURCE_LANGUAGE == fr && $TARGET_LANGUAGE == en ]]; then
+      mark-numbers-fr2en.pl
+   else
+      cat
    fi
 else
    cat

@@ -796,7 +796,7 @@ PREP:{
 
 # Translate
 TRANS:{
-   plugin("predecode", $src, $q_tok, $q_dec);
+   plugin("predecode", "$src-$tgt", $q_tok, $q_dec);
 
    if (defined $w and $n > 1) {
       my $sent_count = `wc -l < $q_dec` + 0;

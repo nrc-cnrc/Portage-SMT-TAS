@@ -19,6 +19,22 @@
 ## Default postprocessing plugin: to be called after detokenization.
 ##
 
+# ######################################################## #
+#               Quick configuration options                #
+# ######################################################## #
+# Some behaviours can be turned on and off here, although you can also do
+# more advanced configuration by modifying the rest of the script below.
+
+# Uncomment to insert non-breaking spaces where required in French output
+# (inside quotes, before currency symbols, etc.: see add-fr-nbsp.pl -h for full
+# details.
+# Note: has no effect unless your target language is French
+ADD_FR_NBSP=1
+
+# ######################################################## #
+#            End of Quick configuration options            #
+# ######################################################## #
+
 if [[ $1 = -help || $1 = -h ]]; then
     cat $0 | grep "^##" | cut -c4-
     exit 1
@@ -32,12 +48,12 @@ TARGET_LANGUAGE=$1; shift
 # Uncomment the following line to activate:
 #fix-en-fr-numbers.pl |
 
-# Suggestion: insert non-breaking spaces where needed in French.
-#if [[ $TARGET_LANGUAGE = fr ]]; then
-#   add-fr-nbsp.pl
-#else
-#   cat
-#fi |
+# Optionally insert non-breaking spaces where needed in French.
+if [[ $ADD_FR_NBSP && $TARGET_LANGUAGE = fr ]]; then
+   add-fr-nbsp.pl
+else
+   cat
+fi |
 
 # Suggestion: make some hyphens non-breaking (warning: code not tag safe)
 # Uncomment the following block of lines to activate, and modify to suit your

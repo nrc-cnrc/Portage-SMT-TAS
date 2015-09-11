@@ -3,7 +3,7 @@
 # @file preprocess_plugin
 # @brief Default Preprocessing plugin
 #
-# @author Michel Simard
+# @author Michel Simard and Eric Joanis
 #
 # COMMENTS:
 #
@@ -19,6 +19,20 @@
 ## Default preprocessing plugin, to be called prior to tokenization
 ##
 
+# ######################################################## #
+#               Quick configuration options                #
+# ######################################################## #
+# Some behaviours can be turned on and off here, although you can also do
+# more advanced configuration by modifying the rest of the script below.
+
+# Uncomment the following line to separate slash-separated words, e.g., or comment it
+# out to leave them together:
+FIX_SLASHES=1
+
+# ######################################################## #
+#            End of Quick configuration options            #
+# ######################################################## #
+
 if [[ $1 = -help || $1 = -h ]]; then
     cat $0 | grep "^##" | cut -c4-
     exit 1
@@ -27,13 +41,6 @@ fi
 [[ $# = 0 ]] && echo "Missing language code argument" >&2 && exit 1
 SOURCE_LANGUAGE=$1; shift
 
-# Uncomment the following line to separate slash-separated words, or comment it
-# out to leave them together:
-FIX_SLASHES=1
-
-# The following does minimalist preprocessing: remove the UTF8 bit-order mark,
-# and convert newlines from the DOS to the Linux standard.
-#ridbom.sh | crlf2lf.sh
 
 # Clean up utf8 text: space, control characters, hyphens, etc
 clean-utf8-text.pl |

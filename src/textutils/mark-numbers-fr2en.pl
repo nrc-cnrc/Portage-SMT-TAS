@@ -34,7 +34,7 @@ sub usage {
    print STDERR @_, "";
    $0 =~ s#.*/##;
    print STDERR "
-Usage: $0 [options] source_lang < IN > OUT
+Usage: $0 [options] < IN > OUT
 
   Mark numbers for translation from French to English according to the
   following rules:
@@ -51,8 +51,6 @@ Usage: $0 [options] source_lang < IN > OUT
    - This code is aware of xmlish markup done prior, i.e. fixed terms,
      and protects it from unwanted modification.
 
-   source_lang  source language of the input [must be fr].
-
 Options:
 
   -h(elp)       print this help message
@@ -67,10 +65,6 @@ Getopt::Long::Configure("no_ignore_case");
 GetOptions(
    help        => sub { usage },
 ) or usage "Error: Invalid option(s).";
-
-
-my $SOURCE_LANGUAGE = (shift or "fr");
-die "Error: This number parser only works with French input" unless ($SOURCE_LANGUAGE eq 'fr');
 
 
 while (<>) {
