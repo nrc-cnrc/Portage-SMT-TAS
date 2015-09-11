@@ -81,7 +81,7 @@ while (<>) {
       (?<PRE>^|\ )
          (?<DOLLAR>\$\ )?
          (?<WHOLE>[-+]?\d{1,3}(?:,\d{3})*)
-         (?<SUFF>k|\.(?:\d{3},)*\d{1,3}|(?<MFRAC>\.\d{1,3})?(?<M>m|\ million))?
+         (?<SUFF>k|(?<MFRAC>\.\d{1,3})?(?<M>m|\ million|\ billion)|\.(?:\d{3},)*\d{1,3})?
       (?=\ |$)
    /
       if (defined($+{TAG})) {
@@ -95,7 +95,9 @@ while (<>) {
          ($+{SUFF} eq "k"
             ? " 000"
             : ($+{M} ne ""
-               ? do { my $num = $+{MFRAC}; $num =~ s#^\.#,#; $num } . " million" . ($+{WHOLE} eq "1" ? "" : "s")
+               ? do { my $num = $+{MFRAC}; $num =~ s#^\.#,#; $num } .
+                 ($+{M} eq " billion" ? " milliard" : " million") .
+                 ($+{WHOLE} eq "1" ? "" : "s")
                : do { my $num = $+{SUFF}; $num =~ s#,# #g; $num =~ s#^\.#,#; $num }
               )
          ) .
