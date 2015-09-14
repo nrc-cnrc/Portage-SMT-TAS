@@ -541,7 +541,7 @@ function testSuite($WSDL) {
 This page demonstrates how the appliance can be used as a web service.
 
 Link to <a href="<?php echo $WSDL;?>">the WSDL</a> and its
-<a href="<?php echo $WSDL;?>".xml>auto-generated documentation</a>
+<a href="<?php echo $WSDL;?>.xml">auto-generated documentation</a>
 (requires an XSLT interpreter, e.g., IE or Chrome).
 
 <FORM action="" enctype="multipart/form-data" method="post" name="formulaire" target="_self">
