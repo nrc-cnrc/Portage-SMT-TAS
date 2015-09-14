@@ -197,7 +197,7 @@ NNJM::NNJM(BasicModelGenerator* bmg, const string& arg, bool arg_is_filename) :
       for (Uint i = 0; i < NUMKEYS; ++i)
          outvoc.add(keywords[i]);
    }
-   if (have_tgt_tags && tgttags->empty()) {
+   if (have_tgt_tags && (tgttags == NULL || tgttags->empty())) {
       error(ETFatal, "this NNJM requires a non-empty [tgttags] file");
    }
    tgt_pad.resize(ngorder-1, BOS);
@@ -249,12 +249,14 @@ void NNJM::updateIndexMap(const Voc& ind_voc, vector<Uint>& ind_map)
          ind_map[i] = id;   // word is in ind_voc
       else {
          string w = voc.word(i);
-         Tags::findType p = tgttags->find(w);
-         if (p.first) {
-            w = tag_prefix + string(p.second);
-            id = ind_voc.index(w.c_str());
-            if (id < ind_voc.size())
-               ind_map[i] = id;  // word's tag is in ind_voc
+         if (tgttags != NULL) {
+            Tags::findType p = tgttags->find(w);
+            if (p.first) {
+               w = tag_prefix + string(p.second);
+               id = ind_voc.index(w.c_str());
+               if (id < ind_voc.size())
+                  ind_map[i] = id;  // word's tag is in ind_voc
+            }
          }
       }
    }
@@ -277,7 +279,7 @@ void NNJM::newSrcSent(const newSrcSentInfo& info)
    score_cache.clear();
    vector<string> src_sent_tags;
    if (have_src_tags && !info.src_sent.empty()) {
-      if (!srctags->empty()) {
+      if (srctags != NULL && !srctags->empty()) {
          src_sent_tags.reserve(info.src_sent.size());
          for (Uint i = 0; i < info.src_sent.size(); ++i) {
             Tags::findType p = srctags->find(info.src_sent[i]);
