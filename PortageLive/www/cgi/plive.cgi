@@ -104,12 +104,6 @@ my $WORK_PATH = "${WEB_PATH}/plive";
 # job size:
 my $MAX_TEXTBOX = 3000;
 
-# ISO-639 language name stuff -- you may want to add languages.
-my $LANG = { iso2=>{ fr=>'fr', en=>'en' },
-             iso3=>{ fr=>'fra', en=>'eng' },
-             xml=>{ fr=>'FR-CA', en=>'EN-CA' },
-             name=>{ fr=>'French', en=>'English'} };
-
 ## ---------------------- END USER CONFIGURATION ---------------------------
 ##
 ## below this line, you're on your own...

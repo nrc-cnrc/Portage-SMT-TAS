@@ -61,9 +61,6 @@ use plive_lib;
 ## Where PortageII files reside -- standard is /opt/PortageII
 my $PORTAGE_PATH = "/opt/PortageII";
 
-## Where PortageII executables reside -- standard is ${PORTAGE_PATH}/bin
-my $PORTAGE_BIN = "${PORTAGE_PATH}/bin";
-
 ## Where PortageII code libraries reside -- standard is ${PORTAGE_PATH}/lib
 my $PORTAGE_LIB = "${PORTAGE_PATH}/lib";
 
@@ -78,9 +75,6 @@ my $DO_CLEAN_UP = 0;
 ## below this line, you're on your own...
 
 $ENV{PORTAGE} = $PORTAGE_PATH;
-#$ENV{PATH} = join(":", $PORTAGE_BIN, $ENV{PATH});
-#$ENV{PERL5LIB} = exists $ENV{PERL5LIB} ? join(":", $PORTAGE_LIB, $ENV{PERL5LIB}) : $PORTAGE_LIB;
-#$ENV{LD_LIBRARY_PATH} = exists $ENV{LD_LIBRARY_PATH} ? join(":", $PORTAGE_LIB, $ENV{LD_LIBRARY_PATH}) : $PORTAGE_LIB;
 push @INC, $PORTAGE_LIB;
 
 use CGI qw(:standard);
@@ -113,7 +107,7 @@ if (my $filename = param('file')     # The name of the file we are monitoring
 
    my $ce = int(param('ce'));  # Are we estimating confidence?
 
-      my $filepath = catdir($WEB_PATH, $work_dir, $filename);
+   my $filepath = catdir($WEB_PATH, $work_dir, $filename);
    my $url = catdir("", $work_dir, $filename);
    my $elapsed_time = time() - $start_time;
 

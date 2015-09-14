@@ -91,7 +91,7 @@ if [[ $FIXED_IP ]]; then
 elif [[ $DYNAMIC_IP ]]; then
    SOAP_DEST=${ROOT_DIR}/opt/PortageII/www
 else
-   error_exit "Please provide your server\'s static IP address via -ip," \
+   error_exit "Please provide your server's static IP address via -ip," \
       "or use -dynamic-ip to enable the dynamic IP mechanism" \
       "(in that case, don't forget the subsequent-boot script in ../va/)."
 fi
