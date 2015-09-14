@@ -308,9 +308,10 @@
 
          The Fixed Term file format is comprised of a header and a body.
          The header is a single line in the following format:
-         sourceLanguage&lt;TAB&gt;targetLanguage
+         sourceLanguage TAB targetLanguage
          The body is several lines in the following format:
-         sourceTerm&lt;TAB&gt;targetTerm
+         sourceTerm TAB targetTerm
+         Above, " TAB " means an actual tab character.
 
          Important considerations about the fixed term list:
          - No morphological transformation will be applied.  You have to
