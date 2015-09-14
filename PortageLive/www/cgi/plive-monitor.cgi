@@ -94,9 +94,15 @@ print header(-type=>'text/html; charset=utf8');
 # Calculate the number of seconds from $start_time to the modification time of
 # $file
 sub time_delta($$) {
-    my ($start_time, $file) = @_;
-    my @stats = stat($file);
-    $stats[9] - $start_time;
+   my ($start_time, $file) = @_;
+   my @stats = stat($file);
+   $stats[9] - $start_time;
+}
+
+sub lineCount(@) {
+   #return int(`cat $canoe_parallel_out $canoe_out 2> /dev/null | wc --lines`) + 0;
+   my $list = join(" ", @_);
+   return int(`cat $list 2> /dev/null | wc --lines`) + 0;
 }
 
 ## Script expects these parameters: file, dir, time, ce and context
@@ -123,6 +129,7 @@ if (my $filename = param('file')     # The name of the file we are monitoring
       my $canoe_out = catdir($WEB_PATH, $work_dir, "p.dec");
       $canoe_out = $p_raw if (-r $p_raw);
       my $canoe_parallel_out = catdir($WEB_PATH, $work_dir, "canoe-parallel*", "out*");
+      my $canoe_per_sentence_out = catdir($WEB_PATH, $work_dir, "run-p.*", "out.worker-*");
       my $ce_out = catdir($WEB_PATH, $work_dir, "pr.ce");
       my $job_done = catdir($WEB_PATH, $work_dir, "done");
       my $trace_file = catdir($WEB_PATH, $work_dir, "trace");
@@ -150,28 +157,30 @@ if (my $filename = param('file')     # The name of the file we are monitoring
       if (not -r $canoe_in) { # No decoder-ready file yet: still pre-processing
          print br("Loading ...");
       }
-      else {
+      else
+      {
          print br("Loading ... elapsed time: " . time_delta($start_time, $canoe_in) . " seconds.");
          #print p("canoe_out: $canoe_out");
          if (not -r $canoe_out) { # No decoder-output file yet: probably loading models
-            my $in_count = int(`wc --lines < $canoe_in`) + 0;
+            my $in_count = lineCount $canoe_in;
             print br("Preparing to translate ${in_count} segments...");
          }
-         else {
-            my $in_count = int(`wc --lines < $canoe_in`) + 0;
-            my $out_count = int(`wc --lines < $canoe_out`) + 0;
+         else
+         {
+            my $in_count = lineCount $canoe_in;
+            my $out_count = lineCount $canoe_out, $canoe_parallel_out, $canoe_per_sentence_out;
             if ($in_count != $out_count) { # Means decoding in progress
-               my $parallel_out_count = int(`cat $canoe_parallel_out 2> /dev/null | wc --lines`) + 0;
-               if ($parallel_out_count > $out_count) { $out_count = $parallel_out_count; }
                print br("Translated ${out_count} of ${in_count} segments...");
             }
-            else { # Means decoding is done
+            else
+            { # Means decoding is done
                print br("Translated ${out_count} of ${in_count} segments... elapsed time: "
                      . time_delta($start_time, $canoe_out) . " seconds");
                if (param('ce') and not -r $ce_out) { # we might be estimating confidence
                   print br("Estimating confidence...");
                }
-               else {        # or just postprocessing
+               else
+               {        # or just postprocessing
                   if (param('ce')) {
                      print br("Estimating confidence... elapsed time: "
                            . time_delta($start_time, $ce_out) . " seconds");
@@ -195,7 +204,7 @@ if (my $filename = param('file')     # The name of the file we are monitoring
       if (not -e $job_done) {
          print p("Elapsed time so far: $elapsed_time seconds.");
       }
-      else  { # Background process is done
+      else { # Background process is done
          $elapsed_time = time_delta($start_time, $job_done);
          print p("Total job processing time: ${elapsed_time} seconds.");
 

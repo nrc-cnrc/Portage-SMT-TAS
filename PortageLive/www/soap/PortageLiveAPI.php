@@ -339,14 +339,18 @@ class PortageLiveAPI {
          else {
             $linestodo = `cat $dir/q.tok 2> /dev/null | wc -l 2> /dev/null`;
             $linesdone = 0;
+            $outputs = " $dir/canoe-parallel*/out*  $dir/run-p.*/out.worker-* ";
             if ( $info['ce'] )
-               $linesdone = `cat $dir/p.raw 2> /dev/null | wc -l 2> /dev/null`;
+               $output .= "$dir/p.raw";
             else
-               $linesdone = `cat $dir/p.dec 2> /dev/null | wc -l 2> /dev/null`;
+               $output .= "$dir/p.dec";
+
+            $linesdone = `cat $outputs 2> /dev/null | wc -l 2> /dev/null`;
+
             $progress = 0;
-            if ( $linestodo > 0 ) {
-               if ( $linesdone < $linestodo )
-                  $progress = intval(($linesdone / $linestodo) * 89);
+            if ( intval($linestodo) > 0 ) {
+               if ( intval($linesdone) < intval($linestodo) )
+                  $progress = intval(($linesdone / $linestodo) * 100);
                else
                   $progress = 90;
             }
