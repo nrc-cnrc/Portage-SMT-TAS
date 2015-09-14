@@ -12,8 +12,12 @@
 # Copyright 2009 - 2015, Her Majesty in Right of Canada
 
 
+# Server configuration options
 $base_web_dir = "/var/www/html";
 $base_portage_dir = "/opt/PortageII";
+$base_url = "/";
+
+
 
 # produce debugging information
 function debug($i) {
@@ -287,8 +291,9 @@ class PortageLiveAPI {
       $start_time = time();
       $result = $this->runCommand($command, "", $i, $exit_status, false);
       $info2 = "result len: " . strlen($result) . "<br/>";
+      global $base_url;
       $monitor = "http://" . $_SERVER['SERVER_NAME'] .
-                 "/cgi-bin/plive-monitor.cgi?" .
+                 "${base_url}cgi-bin/plive-monitor.cgi?" .
                  "time=$start_time&" .
                  "file=PLive-$work_name&" .
                  "context=$context&" .

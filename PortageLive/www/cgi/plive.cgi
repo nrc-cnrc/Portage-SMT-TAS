@@ -430,7 +430,7 @@ sub monitor {
     my @path = splitdir($work_dir);
     while (@path and $path[0] ne 'plive') { shift @path; }
     my $time = time();
-    my $redirect="/cgi-bin/plive-monitor.cgi?time=${time}&file=${outfilename}&context=${context}&dir=".join("/",@path);
+    my $redirect="plive-monitor.cgi?time=${time}&file=${outfilename}&context=${context}&dir=".join("/",@path);
     $redirect .= $CONTEXT{$context}->{ce_model} ? "&ce=1" : "&ce=0";
     print start_html(-title=>"PORTAGELive",
                      -head=>meta({-http_equiv => 'refresh',
@@ -475,7 +475,7 @@ sub textBoxOutput {
        a({-href=>"$workDir/oov.html"}, "Out-of-vocabulary words"),
        a({-href=>"$workDir/pal.html"}, "Phrase alignments"),
        a({-href=>"plive-monitor.cgi?traceFile=$workDir/trace"}, "Trace file"));
-    push(@debuggingTools, a({-href=>"$workDir/P.triangArray.txt"}, "Phrase tables")) if (-r "/var/www/html/$workDir/P.triangArray.txt");
+    push(@debuggingTools, a({-href=>"$workDir/P.triangArray.txt"}, "Phrase tables")) if (-r "$WEB_PATH/$workDir/P.triangArray.txt");
     print div({-style=>'font-size: 0.8em;'}, h3("Debugging Tools"),  ul(li({-type=>'circle'}, \@debuggingTools)));
 
     #my @params = param();
