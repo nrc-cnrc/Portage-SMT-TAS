@@ -323,12 +323,7 @@ function removeFixedTermsTestCase($WSDL, $context) {
 function monitorJobTestCase($WSDL, $button, $monitor_token) {
    try {
       $client = new SoapClient($WSDL);
-      if ( $button == "TranslateTMX" or $button == "TranslateSDLXLIFF" or $button == "TranslatePlainText") {
-         $reply = $client->translateFileStatus($monitor_token);
-      }
-      else {
-         print "<B>Unknown type: $monitor_token</B><BR/>\n";
-      }
+      $reply = $client->translateFileStatus($monitor_token);
       print "<hr/><b>Job status: </b> $reply";
       if ( preg_match("/^0 Done: (\S*)/", $reply, $matches) )
          print "<br/>Right click and save: <a href=\"$matches[1]\">Translated content</a>";
