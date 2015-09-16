@@ -316,6 +316,10 @@ class PortageLiveAPI {
    }
 
    public function translateFileStatus($monitor_token) {
+      if (! isset($monitor_token)) {
+         return "3 Invalid job token (): missing monitor token";
+      }
+
       $tokens = preg_split("/[?&]/", $monitor_token);
       $info = array();
       foreach ($tokens as $token) {
