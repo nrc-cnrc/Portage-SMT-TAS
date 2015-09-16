@@ -351,9 +351,9 @@ class PortageLiveAPI {
             $linesdone = 0;
             $outputs = " $dir/canoe-parallel*/out*  $dir/run-p.*/out.worker-* ";
             if ( $info['ce'] )
-               $output .= "$dir/p.raw";
+               $outputs .= "$dir/p.raw";
             else
-               $output .= "$dir/p.dec";
+               $outputs .= "$dir/p.dec";
 
             $linesdone = `cat $outputs 2> /dev/null | wc -l 2> /dev/null`;
 
