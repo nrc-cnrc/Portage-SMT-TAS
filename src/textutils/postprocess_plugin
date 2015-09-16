@@ -33,11 +33,11 @@ TARGET_LANGUAGE=$1; shift
 #fix-en-fr-numbers.pl |
 
 # Suggestion: insert non-breaking spaces where needed in French.
-#if [[ $TARGET_LANGUAGE = fr ]]; then
-#   add-fr-nbsp.pl
-#else
-#   cat
-#fi |
+if [[ $TARGET_LANGUAGE = fr ]]; then
+   add-fr-nbsp.pl
+else
+   cat
+fi |
 
 # Suggestion: make some hyphens non-breaking (warning: code not tag safe)
 # Uncomment the following block of lines to activate, and modify to suit your
