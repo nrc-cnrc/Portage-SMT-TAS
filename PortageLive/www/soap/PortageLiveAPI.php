@@ -335,7 +335,12 @@ class PortageLiveAPI {
       if (is_dir($dir)) {
          if (is_file("$dir/done")) {
             if (is_file("$dir/$info[file]")) {
-               return "0 Done: $info[dir]/$info[file]";
+               if (filesize("$dir/P.txt") > 0) {
+                  return "0 Done: $info[dir]/$info[file]";
+               }
+               else {
+                  return "2 Failed - no sentences to translate : $info[dir]/trace";
+               }
             }
             else {
                return "2 Failed".debug($info).": $info[dir]/trace";
