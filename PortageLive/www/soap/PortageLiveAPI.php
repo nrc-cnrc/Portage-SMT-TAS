@@ -347,7 +347,7 @@ class PortageLiveAPI {
             }
          }
          else {
-            $linestodo = `cat $dir/q.tok 2> /dev/null | wc -l 2> /dev/null`;
+            $linestodo = `cat $dir/q.tok 2> /dev/null | wc --lines 2> /dev/null`;
             $linesdone = 0;
             $outputs = " $dir/canoe-parallel*/out*  $dir/run-p.*/out.worker-* ";
             if ( $info['ce'] )
@@ -355,7 +355,7 @@ class PortageLiveAPI {
             else
                $outputs .= "$dir/p.dec";
 
-            $linesdone = `cat $outputs 2> /dev/null | wc -l 2> /dev/null`;
+            $linesdone = `cat $outputs 2> /dev/null | wc --lines 2> /dev/null`;
 
             $progress = 0;
             if ( intval($linestodo) > 0 ) {
