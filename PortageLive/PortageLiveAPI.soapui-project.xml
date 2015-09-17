@@ -6748,7 +6748,7 @@ testCase.setPropertyValue( "input", encodedData)
         </con:property>
         <con:property>
           <con:name>MonitoringToken</con:name>
-          <con:value>http://132.246.128.219/cgi-bin/plive-monitor.cgi?time=1442435980&amp;file=PLive-toy-regress-en2fr_input.sdlxliff&amp;context=toy-regress-en2fr&amp;dir=plive/SOAP_toy-regress-en2fr_input.sdlxliff_20150916T203940Z_FyJyqk&amp;ce=1</con:value>
+          <con:value>http://132.246.128.219/cgi-bin/plive-monitor.cgi?time=1442492297&amp;file=PLive-toy-regress-en2fr_input.sdlxliff&amp;context=toy-regress-en2fr&amp;dir=plive/SOAP_toy-regress-en2fr_input.sdlxliff_20150917T121817Z_ucGsfi&amp;ce=1</con:value>
         </con:property>
         <con:property>
           <con:name>numberSourceSentence</con:name>
@@ -6756,7 +6756,7 @@ testCase.setPropertyValue( "input", encodedData)
         </con:property>
         <con:property>
           <con:name>TranslationFileAddress</con:name>
-          <con:value>plive/SOAP_toy-regress-en2fr_input.sdlxliff_20150916T203940Z_FyJyqk/PLive-toy-regress-en2fr_input.sdlxliff</con:value>
+          <con:value>plive/SOAP_toy-regress-en2fr_input.sdlxliff_20150917T121817Z_ucGsfi/PLive-toy-regress-en2fr_input.sdlxliff</con:value>
         </con:property>
         <con:property>
           <con:name>MonitoringAddress</con:name>
@@ -9926,7 +9926,7 @@ testSuite.setPropertyValue( "input", encodedData)
         </con:property>
       </con:properties>
     </con:testCase>
-    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Translate with fixedTerms TestCase" searchProperties="true" id="cc667ada-a7b1-459e-860b-35585e2a3747">
+    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="translate with fixedTerms TestCase" searchProperties="true" id="cc667ada-a7b1-459e-860b-35585e2a3747">
       <con:settings/>
       <con:testStep type="request" name="populate with fixed terms - Request - (MARK_NUMBERS_ENFR must be enabled)">
         <con:settings/>
@@ -10765,6 +10765,230 @@ for (prop in ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", 
         </con:property>
       </con:properties>
     </con:testCase>
+    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="translateSDLXLIFF Fixed Terms TestCase" searchProperties="true" id="f70bdf4b-51e1-4a76-88e5-53dd9d954dbe">
+      <con:settings/>
+      <con:testStep type="request" name="Submit sdlxliff request" id="226b907e-f944-4039-a7ee-ceff131b957f">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>translateSDLXLIFF</con:operation>
+          <con:request name="Submit sdlxliff request" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+              <con:setting id="WsdlSettings@enable-mtom">false</con:setting>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@encode_attachments">true</con:setting>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@enable_inline_files">true</con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translateSDLXLIFF soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <ContentsBase64 xsi:type="xsd:string">${#TestCase#input}</ContentsBase64>
+         <Filename xsi:type="xsd:string">input.sdlxliff</Filename>
+         <context xsi:type="xsd:string">${#TestCase#context}</context>
+         <useCE xsi:type="xsd:boolean">false</useCE>
+         <CETreshold xsi:type="xsd:decimal">0</CETreshold>
+         <xtags xsi:type="xsd:boolean">false</xtags>
+      </urn:translateSDLXLIFF>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:assertion type="SOAP Fault Assertion" name="Not SOAP Fault"/>
+            <con:assertion type="XQuery Match" name="Contains a monitoring token">
+              <con:configuration>
+                <path>contains(//*:translateSDLXLIFFResponse/*:token, "plive-monitor.cgi")</path>
+                <content>true</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:selectedAuthProfile>Basic</con:selectedAuthProfile>
+              <con:addedBasicAuthenticationTypes>Basic</con:addedBasicAuthenticationTypes>
+              <con:authType>Global HTTP Settings</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="translateSDLXLIFFCE"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="transfer" name="MonitoringToken" id="3d6ad362-1897-4799-b1c4-121077cfafa5">
+        <con:settings/>
+        <con:config xsi:type="con:PropertyTransfersStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:transfers setNullOnMissingSource="true" transferTextContent="true" failOnError="true" ignoreEmpty="false" transferToAll="false" useXQuery="false" entitize="false" transferChildNodes="false">
+            <con:name>token</con:name>
+            <con:sourceType>Response</con:sourceType>
+            <con:sourceStep>Submit sdlxliff request</con:sourceStep>
+            <con:sourcePath>//token/text()</con:sourcePath>
+            <con:targetType>MonitoringToken</con:targetType>
+            <con:targetStep>#TestCase#</con:targetStep>
+          </con:transfers>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="delay" name="Wait for translations" id="1258a47f-2c4d-48cb-b220-235775b6f5df">
+        <con:settings/>
+        <con:config>
+          <delay>2000</delay>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="request" name="translateFileStatus - Are we done translating - Request" id="4b014e9e-04b2-4b80-8ca2-efc73b06e2f3">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>translateFileStatus</con:operation>
+          <con:request name="translateFileStatus - Are we done translating - Request" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translateFileStatus soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <token xsi:type="xsd:string"><![CDATA[${#TestCase#MonitoringToken}]]]]>><![CDATA[</token>
+      </urn:translateFileStatus>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:credentials>
+              <con:authType>No Authorization</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="translateFileStatus"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="goto" name="Are translations available" id="c21de4b8-4483-4f34-ac03-5f23dd8efaf8">
+        <con:settings/>
+        <con:config xsi:type="con:GotoStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:condition>
+            <con:name>Translation availability</con:name>
+            <con:type>XPATH</con:type>
+            <con:expression>contains(//*:translateFileStatusResponse/token, "1 In progress")</con:expression>
+            <con:targetStep>Wait for translations</con:targetStep>
+          </con:condition>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="transfer" name="TranslationFileAddress" id="3bbd5de1-be19-4d08-aced-1dda114f897b">
+        <con:settings/>
+        <con:config xsi:type="con:PropertyTransfersStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:transfers setNullOnMissingSource="false" transferTextContent="true" failOnError="true" ignoreEmpty="false" transferToAll="false" useXQuery="false" entitize="false" transferChildNodes="false">
+            <con:name>TranslationFileLink</con:name>
+            <con:sourceType>Response</con:sourceType>
+            <con:sourceStep>translateFileStatus - Are we done translating - Request</con:sourceStep>
+            <con:sourcePath>tokenize(//*:translateFileStatusResponse/token, "\s*: \s*")[2]</con:sourcePath>
+            <con:targetType>TranslationFileAddress</con:targetType>
+            <con:targetStep>#TestCase#</con:targetStep>
+            <con:targetPath/>
+          </con:transfers>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="httprequest" name="Get Translation File" id="4acca309-25b1-498b-a52a-45633396a997">
+        <con:settings/>
+        <con:config method="GET" xsi:type="con:HttpRequest" name="Get Translation File" postQueryString="false" mediaType="application/xml" downloadIncludedResources="false" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            <con:setting id="com.eviware.soapui.impl.support.AbstractHttpRequest@dump-file"/>
+          </con:settings>
+          <con:encoding>UTF-8</con:encoding>
+          <con:endpoint>http://${#Project#ServerName}/${#TestCase#TranslationFileAddress}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="Contains the proper translation for sponsorship program">
+            <con:configuration>
+              <path>contains(/*:xliff/*:file/*:body/*:trans-unit/*:target/*:mrk, "margorp pihsrosnops")</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="Contains the proper translation for A B">
+            <con:configuration>
+              <path>contains(/*:xliff/*:file/*:body/*:trans-unit/*:target/*:mrk, "1 2")</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="Contains the proper translation for &lt;symbol \b>">
+            <con:configuration>
+              <path>contains(/*:xliff/*:file/*:body/*:trans-unit/*:target/*:mrk, "&lt;symbole \b>")</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:selectedAuthProfile>Basic</con:selectedAuthProfile>
+            <con:addedBasicAuthenticationTypes>Basic</con:addedBasicAuthenticationTypes>
+            <con:authType>Global HTTP Settings</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters/>
+        </con:config>
+      </con:testStep>
+      <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
+import org.apache.commons.codec.binary.Base64
+
+def input = context.expand( '${#TestCase#input_txt}' )
+def bytes = input.bytes
+
+//Base64 coder = new Base64()
+//def encodedData = coder.encode(bytes)
+
+def encodedData = bytes.encodeBase64().toString()
+log.info(testCase.getPropertyValue( "input"))
+log.info(encodedData)
+testCase.setPropertyValue( "input", encodedData)
+
+
+//http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
+      <con:tearDownScript>for (prop in ["input", "MonitoringAddress", "TranslationsAddress", "numberSourceSentence"]) {
+	testCase.setPropertyValue(prop, "")
+}</con:tearDownScript>
+      <con:properties>
+        <con:property>
+          <con:name>context</con:name>
+          <con:value>${#TestSuite#context.fixedTerms}</con:value>
+        </con:property>
+        <con:property>
+          <con:name>input_txt</con:name>
+          <con:value>${#TestSuite#fixedTerms.xliff}</con:value>
+        </con:property>
+        <con:property>
+          <con:name>input</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
+          <con:name>MonitoringToken</con:name>
+          <con:value>http://132.246.128.219/cgi-bin/plive-monitor.cgi?time=1442494917&amp;file=PLive-fixedTerms_input.sdlxliff&amp;context=fixedTerms&amp;dir=plive/SOAP_fixedTerms_input.sdlxliff_20150917T130157Z_pvQrVg&amp;ce=0</con:value>
+        </con:property>
+        <con:property>
+          <con:name>numberSourceSentence</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
+          <con:name>TranslationFileAddress</con:name>
+          <con:value>plive/SOAP_fixedTerms_input.sdlxliff_20150917T130157Z_pvQrVg/PLive-fixedTerms_input.sdlxliff</con:value>
+        </con:property>
+        <con:property>
+          <con:name>MonitoringAddress</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
+          <con:name>TranslationsAddress</con:name>
+          <con:value/>
+        </con:property>
+      </con:properties>
+    </con:testCase>
     <con:properties>
       <con:property>
         <con:name>fiches_termino_utf-8.txt</con:name>
@@ -10813,6 +11037,10 @@ for (prop in ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", 
       <con:property>
         <con:name>context.fixedTerms</con:name>
         <con:value>fixedTerms</con:value>
+      </con:property>
+      <con:property>
+        <con:name>fixedTerms.xliff</con:name>
+        <con:value><![CDATA[<?xml version="1.0" encoding="utf-8"?> <xliff version='1.2'              xmlns='urn:oasis:names:tc:xliff:document:1.2'              xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'              xsi:schemaLocation='              urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2.xsd'> <file source-language="EN" datatype="plaintext" original="file.ext"> <body> <trans-unit id="1"> <source>Banana sponsorship program A B &lt;symbol \b> with the moon.</source> <seg-source><mrk mtype="seg">Banana sponsorship program A B &lt;symbol \b> with the moon.</mrk></seg-source> </trans-unit> </body> </file> </xliff>]]></con:value>
       </con:property>
     </con:properties>
     <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
