@@ -769,7 +769,8 @@ goto $skipto if $skipto;
 IN:{
    if ($xml) {
       call("ce_tmx.pl -verbose=$verbose -src=$xsrc -tgt=$xtgt extract '$dir' '$input_text'");
-      cleanupAndDie("XML file $input_text has no sentences in language $xsrc.\n") unless -s $Q_txt or $dryrun;
+      # $Q_txt can be empty if there is nothing in the original document.
+      cleanupAndDie("XML file $input_text has no sentences in language $xsrc.\n") unless -e $Q_txt or $dryrun;
    } else {
       if ($xtags) {
          copy($input_text, $Q_tags);
