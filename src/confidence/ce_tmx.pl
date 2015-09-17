@@ -232,7 +232,7 @@ sub processFile {
    $parser->{filter_count} = 0;
    $parser->{'tool-id'} = 'PortageII-cur';
    $parser->{'tool-name'} = 'PortageII';
-   $parser->{'tool-version'} = '3.0';
+   $parser->{'tool-version'} = 'cur';
    $parser->{'tool-company'} = 'CNRC-NRC';
 
    verbose("[Processing file %s ...]\n", $parser->{xml_in});
