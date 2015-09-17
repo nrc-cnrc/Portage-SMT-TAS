@@ -6276,7 +6276,7 @@ testSuite.setPropertyValue( "input", encodedData)
           </con:request>
         </con:config>
       </con:testStep>
-      <con:testStep type="transfer" name="MonitoringAddress">
+      <con:testStep type="transfer" name="Get Monitoring Token">
         <con:settings/>
         <con:config xsi:type="con:PropertyTransfersStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
           <con:transfers setNullOnMissingSource="true" transferTextContent="true" failOnError="true" ignoreEmpty="false" transferToAll="false" useXQuery="false" entitize="false" transferChildNodes="false">
@@ -6284,7 +6284,7 @@ testSuite.setPropertyValue( "input", encodedData)
             <con:sourceType>Response</con:sourceType>
             <con:sourceStep>Submit sdlxliff request</con:sourceStep>
             <con:sourcePath>//token/text()</con:sourcePath>
-            <con:targetType>MonitoringAddress</con:targetType>
+            <con:targetType>MonitoringToken</con:targetType>
             <con:targetStep>#TestCase#</con:targetStep>
           </con:transfers>
         </con:config>
@@ -6292,7 +6292,7 @@ testSuite.setPropertyValue( "input", encodedData)
       <con:testStep type="delay" name="Wait for translations">
         <con:settings/>
         <con:config>
-          <delay>1000</delay>
+          <delay>2000</delay>
         </con:config>
       </con:testStep>
       <con:testStep type="request" name="translateFileStatus - Request">
@@ -6310,7 +6310,7 @@ testSuite.setPropertyValue( "input", encodedData)
    <soapenv:Header/>
    <soapenv:Body>
       <urn:translateFileStatus soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-         <token xsi:type="xsd:string"><![CDATA[${#TestCase#MonitoringAddress}]]]]>><![CDATA[</token>
+         <token xsi:type="xsd:string"><![CDATA[${#TestCase#MonitoringToken}]]]]>><![CDATA[</token>
       </urn:translateFileStatus>
    </soapenv:Body>
 </soapenv:Envelope>]]></con:request>
@@ -6340,27 +6340,15 @@ testSuite.setPropertyValue( "input", encodedData)
       </con:testStep>
       <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
 import org.apache.commons.codec.binary.Base64
-
-def input = context.expand( '${#TestCase#input_txt}' )
-def bytes = input.bytes
-
-//Base64 coder = new Base64()
-//def encodedData = coder.encode(bytes)
-
-def encodedData = bytes.encodeBase64().toString()
-log.info(testCase.getPropertyValue( "input"))
-log.info(encodedData)
-testCase.setPropertyValue( "input", encodedData)
-
-
+testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').bytes.encodeBase64().toString())
 //http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
-      <con:tearDownScript>for (prop in ["input", "MonitoringAddress", "TranslationsAddress", "numberSourceSentence"]) {
+      <con:tearDownScript>for (prop in ["input", "MonitoringToken", "TranslationFileAddress"]) {
 	testCase.setPropertyValue(prop, "")
 }</con:tearDownScript>
       <con:properties>
         <con:property>
           <con:name>context</con:name>
-          <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+          <con:value>${#TestSuite#context}</con:value>
         </con:property>
         <con:property>
           <con:name>input_txt</con:name>
@@ -6371,15 +6359,7 @@ testCase.setPropertyValue( "input", encodedData)
           <con:value/>
         </con:property>
         <con:property>
-          <con:name>MonitoringAddress</con:name>
-          <con:value/>
-        </con:property>
-        <con:property>
-          <con:name>TranslationsAddress</con:name>
-          <con:value/>
-        </con:property>
-        <con:property>
-          <con:name>numberSourceSentence</con:name>
+          <con:name>MonitoringToken</con:name>
           <con:value/>
         </con:property>
         <con:property>
@@ -6447,7 +6427,7 @@ testCase.setPropertyValue( "input", encodedData)
             <con:sourceType>Response</con:sourceType>
             <con:sourceStep>Submit sdlxliff request</con:sourceStep>
             <con:sourcePath>//token/text()</con:sourcePath>
-            <con:targetType>MonitoringAddress</con:targetType>
+            <con:targetType>MonitoringToken</con:targetType>
             <con:targetStep>#TestCase#</con:targetStep>
           </con:transfers>
         </con:config>
@@ -6473,7 +6453,7 @@ testCase.setPropertyValue( "input", encodedData)
    <soapenv:Header/>
    <soapenv:Body>
       <urn:translateFileStatus soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-         <token xsi:type="xsd:string"><![CDATA[${#TestCase#MonitoringAddress}]]]]>><![CDATA[</token>
+         <token xsi:type="xsd:string"><![CDATA[${#TestCase#MonitoringToken}]]]]>><![CDATA[</token>
       </urn:translateFileStatus>
    </soapenv:Body>
 </soapenv:Envelope>]]></con:request>
@@ -6503,27 +6483,15 @@ testCase.setPropertyValue( "input", encodedData)
       </con:testStep>
       <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
 import org.apache.commons.codec.binary.Base64
-
-def input = context.expand( '${#TestCase#input_txt}' )
-def bytes = input.bytes
-
-//Base64 coder = new Base64()
-//def encodedData = coder.encode(bytes)
-
-def encodedData = bytes.encodeBase64().toString()
-log.info(testCase.getPropertyValue( "input"))
-log.info(encodedData)
-testCase.setPropertyValue( "input", encodedData)
-
-
+testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').bytes.encodeBase64().toString())
 //http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
-      <con:tearDownScript>for (prop in ["input", "MonitoringAddress", "TranslationsAddress", "numberSourceSentence"]) {
+      <con:tearDownScript>for (prop in ["input", "MonitoringToken", "TranslationFileAddress"]) {
 	testCase.setPropertyValue(prop, "")
 }</con:tearDownScript>
       <con:properties>
         <con:property>
           <con:name>context</con:name>
-          <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+          <con:value>${#TestSuite#context}</con:value>
         </con:property>
         <con:property>
           <con:name>input_txt</con:name>
@@ -6534,15 +6502,7 @@ testCase.setPropertyValue( "input", encodedData)
           <con:value/>
         </con:property>
         <con:property>
-          <con:name>MonitoringAddress</con:name>
-          <con:value/>
-        </con:property>
-        <con:property>
-          <con:name>TranslationsAddress</con:name>
-          <con:value/>
-        </con:property>
-        <con:property>
-          <con:name>numberSourceSentence</con:name>
+          <con:name>MonitoringToken</con:name>
           <con:value/>
         </con:property>
         <con:property>
@@ -6716,27 +6676,15 @@ testCase.setPropertyValue( "input", encodedData)
       </con:testStep>
       <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
 import org.apache.commons.codec.binary.Base64
-
-def input = context.expand( '${#TestCase#input_txt}' )
-def bytes = input.bytes
-
-//Base64 coder = new Base64()
-//def encodedData = coder.encode(bytes)
-
-def encodedData = bytes.encodeBase64().toString()
-log.info(testCase.getPropertyValue( "input"))
-log.info(encodedData)
-testCase.setPropertyValue( "input", encodedData)
-
-
+testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').bytes.encodeBase64().toString())
 //http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
-      <con:tearDownScript>for (prop in ["input", "MonitoringAddress", "TranslationsAddress", "numberSourceSentence"]) {
+      <con:tearDownScript>for (prop in ["input", "MonitoringToken", "TranslationFileAddress"]) {
 	testCase.setPropertyValue(prop, "")
 }</con:tearDownScript>
       <con:properties>
         <con:property>
           <con:name>context</con:name>
-          <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+          <con:value>${#TestSuite#context}</con:value>
         </con:property>
         <con:property>
           <con:name>input_txt</con:name>
@@ -6748,22 +6696,10 @@ testCase.setPropertyValue( "input", encodedData)
         </con:property>
         <con:property>
           <con:name>MonitoringToken</con:name>
-          <con:value>http://132.246.128.219/cgi-bin/plive-monitor.cgi?time=1442492297&amp;file=PLive-toy-regress-en2fr_input.sdlxliff&amp;context=toy-regress-en2fr&amp;dir=plive/SOAP_toy-regress-en2fr_input.sdlxliff_20150917T121817Z_ucGsfi&amp;ce=1</con:value>
-        </con:property>
-        <con:property>
-          <con:name>numberSourceSentence</con:name>
           <con:value/>
         </con:property>
         <con:property>
           <con:name>TranslationFileAddress</con:name>
-          <con:value>plive/SOAP_toy-regress-en2fr_input.sdlxliff_20150917T121817Z_ucGsfi/PLive-toy-regress-en2fr_input.sdlxliff</con:value>
-        </con:property>
-        <con:property>
-          <con:name>MonitoringAddress</con:name>
-          <con:value/>
-        </con:property>
-        <con:property>
-          <con:name>TranslationsAddress</con:name>
           <con:value/>
         </con:property>
       </con:properties>
@@ -6933,27 +6869,15 @@ testCase.setPropertyValue( "input", encodedData)
       </con:testStep>
       <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
 import org.apache.commons.codec.binary.Base64
-
-def input = context.expand( '${#TestCase#input_txt}' )
-def bytes = input.bytes
-
-//Base64 coder = new Base64()
-//def encodedData = coder.encode(bytes)
-
-def encodedData = bytes.encodeBase64().toString()
-log.info(testCase.getPropertyValue( "input"))
-log.info(encodedData)
-testCase.setPropertyValue( "input", encodedData)
-
-
+testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').bytes.encodeBase64().toString())
 //http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
-      <con:tearDownScript>for (prop in ["input", "MonitoringAddress", "TranslationsAddress", "numberSourceSentence"]) {
+      <con:tearDownScript>for (prop in ["input", "MonitoringToken", "TranslationFileAddress"]) {
 	testCase.setPropertyValue(prop, "")
 }</con:tearDownScript>
       <con:properties>
         <con:property>
           <con:name>context</con:name>
-          <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+          <con:value>${#TestSuite#context}</con:value>
         </con:property>
         <con:property>
           <con:name>input_txt</con:name>
@@ -6965,22 +6889,10 @@ testCase.setPropertyValue( "input", encodedData)
         </con:property>
         <con:property>
           <con:name>MonitoringToken</con:name>
-          <con:value>http://132.246.128.219/cgi-bin/plive-monitor.cgi?time=1442435994&amp;file=PLive-toy-regress-en2fr_input.sdlxliff&amp;context=toy-regress-en2fr&amp;dir=plive/SOAP_toy-regress-en2fr_input.sdlxliff_20150916T203954Z_Fqs0lh&amp;ce=1</con:value>
+          <con:value/>
         </con:property>
         <con:property>
           <con:name>TranslationFileAddress</con:name>
-          <con:value>plive/SOAP_toy-regress-en2fr_input.sdlxliff_20150916T203954Z_Fqs0lh/PLive-toy-regress-en2fr_input.sdlxliff</con:value>
-        </con:property>
-        <con:property>
-          <con:name>MonitoringAddress</con:name>
-          <con:value/>
-        </con:property>
-        <con:property>
-          <con:name>TranslationsAddress</con:name>
-          <con:value/>
-        </con:property>
-        <con:property>
-          <con:name>numberSourceSentence</con:name>
           <con:value/>
         </con:property>
       </con:properties>
@@ -7150,27 +7062,15 @@ testCase.setPropertyValue( "input", encodedData)
       </con:testStep>
       <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
 import org.apache.commons.codec.binary.Base64
-
-def input = context.expand( '${#TestCase#input_txt}' )
-def bytes = input.bytes
-
-//Base64 coder = new Base64()
-//def encodedData = coder.encode(bytes)
-
-def encodedData = bytes.encodeBase64().toString()
-log.info(testCase.getPropertyValue( "input"))
-log.info(encodedData)
-testCase.setPropertyValue( "input", encodedData)
-
-
+testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').bytes.encodeBase64().toString())
 //http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
-      <con:tearDownScript>for (prop in ["input", "MonitoringAddress", "TranslationsAddress", "numberSourceSentence"]) {
+      <con:tearDownScript>for (prop in ["input", "MonitoringToken", "TranslationFileAddress"]) {
 	testCase.setPropertyValue(prop, "")
 }</con:tearDownScript>
       <con:properties>
         <con:property>
           <con:name>context</con:name>
-          <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+          <con:value>${#TestSuite#context}</con:value>
         </con:property>
         <con:property>
           <con:name>input_txt</con:name>
@@ -7182,59 +7082,29 @@ testCase.setPropertyValue( "input", encodedData)
         </con:property>
         <con:property>
           <con:name>MonitoringToken</con:name>
-          <con:value>http://132.246.128.219/cgi-bin/plive-monitor.cgi?time=1442436007&amp;file=PLive-toy-regress-en2fr_input.sdlxliff&amp;context=toy-regress-en2fr&amp;dir=plive/SOAP_toy-regress-en2fr_input.sdlxliff_20150916T204007Z_0YAl7v&amp;ce=1</con:value>
+          <con:value/>
         </con:property>
         <con:property>
           <con:name>TranslationFileAddress</con:name>
-          <con:value>plive/SOAP_toy-regress-en2fr_input.sdlxliff_20150916T204007Z_0YAl7v/PLive-toy-regress-en2fr_input.sdlxliff</con:value>
-        </con:property>
-        <con:property>
-          <con:name>MonitoringAddress</con:name>
-          <con:value/>
-        </con:property>
-        <con:property>
-          <con:name>TranslationsAddress</con:name>
-          <con:value/>
-        </con:property>
-        <con:property>
-          <con:name>numberSourceSentence</con:name>
           <con:value/>
         </con:property>
       </con:properties>
     </con:testCase>
     <con:properties>
       <con:property>
-        <con:name>input</con:name>
-        <con:value/>
+        <con:name>context</con:name>
+        <con:value>toy-regress-en2fr</con:value>
       </con:property>
       <con:property>
-        <con:name>context.toy_en2fr</con:name>
-        <con:value>toy-regress-en2fr</con:value>
+        <con:name>input</con:name>
+        <con:value/>
       </con:property>
       <con:property>
         <con:name>input.xliff</con:name>
         <con:value><![CDATA[<?xml version="1.0" encoding="utf-8"?> <xliff xmlns:sdl="http://sdl.com/FileTypes/SdlXliff/1.0" version="1.2" sdl:version="1.0" xmlns="urn:oasis:names:tc:xliff:document:1.2">   <doc-info xmlns="http://sdl.com/FileTypes/SdlXliff/1.0">     <rep-defs>       <rep-def id="7ad33544-6421-40c5-97c4-7f7a38163185-6">         <entry tu="37d1c718-24a6-4378-b42a-3fad8cdb4348" seg="7" />          <entry tu="7ad33544-6421-40c5-97c4-7f7a38163185" seg="6" />       </rep-def>     </rep-defs>   </doc-info>    <file original="Greenhouse Gas Sources and Sinks in Canada.htm" source-language="en-CA" datatype="x-sdlfilterframework2"   target-language="fr-CA">     <header>       <file-info xmlns="http://sdl.com/FileTypes/SdlXliff/1.0">         <value key="SDL:FileId">ce8305ed-4f36-4e78-816b-cd56c89c0767</value>          <value key="SDL:CreationDate">05/07/2013 08:31:40</value>          <value key="SDL:OriginalFilePath">Greenhouse Gas Sources and Sinks in Canada.htm</value>          <value key="SDL:OriginalEncoding">utf-8</value>          <value key="SDL:AutoClonedFlagSupported">True</value>          <value key="ParagraphTextDirections">         </value>          <sniff-info>           <detected-source-lang detection-level="Guess" lang="en-CA" />            <props>             <value key="SDL:Sniffed">True</value>           </props>         </sniff-info>       </file-info>        <sdl:filetype-info>         <sdl:filetype-id>HTML v 1.0.0.0</sdl:filetype-id>       </sdl:filetype-info>        <fmt-defs xmlns="http://sdl.com/FileTypes/SdlXliff/1.0">         <fmt-def id="1">           <value key="TextColor">Blue</value>            <value key="Underline">True</value>         </fmt-def>       </fmt-defs>        <cxt-defs xmlns="http://sdl.com/FileTypes/SdlXliff/1.0">         <cxt-def id="1" type="sdl:meta" />          <cxt-def id="2" type="x-tm-heading" code="T" name="Title" descr="Title of the document" />       </cxt-defs>        <node-defs xmlns="http://sdl.com/FileTypes/SdlXliff/1.0">         <node-def id="1" force-name="false">           <cxt id="8" />         </node-def>       </node-defs>        <tag-defs xmlns="http://sdl.com/FileTypes/SdlXliff/1.0">         <tag id="60">           <bpt name="a" word-end="false">&lt;a href="#wb-main-in"&gt;</bpt>            <bpt-props>             <value key="ttTagType">ec_Start</value>           </bpt-props>            <ept name="a" word-end="false">&lt;/a&gt;</ept>            <ept-props>             <value key="ttTagType">ec_End</value>           </ept-props>            <fmt id="1" />         </tag>       </tag-defs>     </header>      <body>       <trans-unit id="92ac1a13-5581-4e02-9e4d-f57fe3b4119d" translate="no">         <source>           <x id="0" />         </source>       </trans-unit>        <group>         <sdl:cxts>           <sdl:cxt id="2" />            <sdl:cxt id="1" />         </sdl:cxts>          <trans-unit id="49debe10-2ae3-4070-91c3-e762bac67243">           <source>Environment Canada - Climate Change - National Inventory Report 1990-2011: Greenhouse Gas Sources and Sinks in Canada -           Executive Summary</source>            <seg-source>             <mrk mtype="seg" mid="1">Environment Canada - Climate Change - National Inventory Report 1990-2011: Greenhouse Gas Sources and             Sinks in Canada - Executive Summary</mrk>           </seg-source>            <target>             <mrk mtype="seg" mid="1" />           </target>            <sdl:seg-defs>             <sdl:seg id="1" />           </sdl:seg-defs>         </trans-unit>          <trans-unit id="73a3a264-5fe8-4597-8d03-83a1a1a7c7ea" translate="no">           <source>             <x id="10" />           </source>         </trans-unit>       </group>        <group>         <sdl:cxts>           <sdl:cxt id="13" />            <sdl:cxt id="14" />         </sdl:cxts>          <trans-unit id="2b184ae5-b548-45fe-b6c0-b113e5a91788">           <source>Symbol of the Government of Canada</source>            <seg-source>             <mrk mtype="seg" mid="12">Symbol of the Government of Canada</mrk>           </seg-source>            <target>             <mrk mtype="seg" mid="12" />           </target>            <sdl:seg-defs>             <sdl:seg id="12">               <sdl:rep id="2b184ae5-b548-45fe-b6c0-b113e5a91788-12" />             </sdl:seg>           </sdl:seg-defs>         </trans-unit>       </group>        <group>         <sdl:cxts>           <sdl:cxt id="17" />         </sdl:cxts>          <trans-unit id="45f831c3-aed1-4f3f-b3d3-acb4d999f139">           <source>Canada is committed to tackling climate change through sustained action to build a low-carbon economy that includes           reaching a post-2020 global climate change agreement, working with our North American partners and taking action domestically.           Under the Copenhagen Accord, Canada has committed to reducing its</source>            <seg-source>             <mrk mtype="seg" mid="113">Canada is committed to tackling climate change through sustained action to build a low-carbon             economy that includes reaching a post-2020 global climate change agreement, working with our North American partners and taking             action domestically.</mrk>              <mrk mtype="seg" mid="114">Under the Copenhagen Accord, Canada has committed to reducing its</mrk>           </seg-source>            <target>             <mrk mtype="seg" mid="113" />              <mrk mtype="seg" mid="114" />           </target>            <sdl:seg-defs>             <sdl:seg id="113" />              <sdl:seg id="114" />           </sdl:seg-defs>         </trans-unit>          <trans-unit id="3f54c69b-62c1-4471-8d69-ccf76af0da00" translate="no">           <source>             <x id="508" xid="9e13a29f-71a9-4026-ad60-b2cda7a1f003" />              <x id="511" xid="f77a3d5c-54ad-4b40-9b51-4af3429675c1" />           </source>         </trans-unit>       </group>         <group>         <sdl:cxts>           <sdl:cxt id="17" />         </sdl:cxts>          <trans-unit id="be969da5-8163-4c6a-a5cc-19eddb559d98">           <source>Together, efficiency increases and technological and structural changes have resulted in a continuing weakening of the           link between GDP growth and emissions, so that the GHG emissions per unit of GDP (or "GHG intensity of the economy") have           decreased on average by 2% per year since 1996 (           <g id="562">Figure S-2</g>            ). This has resulted in the decoupling of economic growth and emissions.</source>            <seg-source>             <mrk mtype="seg" mid="138">Together, efficiency increases and technological and structural changes have resulted in a             continuing weakening of the link between GDP growth and emissions, so that the GHG emissions per unit of GDP (or "GHG intensity             of the economy") have decreased on average by 2% per year since 1996 (             <g id="562">Figure S-2</g>              ).</mrk>              <mrk mtype="seg" mid="139">This has resulted in the decoupling of economic growth and emissions.</mrk>           </seg-source>            <target>             <mrk mtype="seg" mid="138" />              <mrk mtype="seg" mid="139" />           </target>            <sdl:seg-defs>             <sdl:seg id="138" />              <sdl:seg id="139" />           </sdl:seg-defs>         </trans-unit>          <trans-unit id="9d97097c-5e41-4d30-8822-2caeb7d39a41" translate="no">           <source>             <x id="563" />              <x id="564" />           </source>         </trans-unit>       </group>      </body>   </file> </xliff>]]></con:value>
       </con:property>
     </con:properties>
-    <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
-import org.apache.commons.codec.binary.Base64
-
-def input = context.expand( '${#TestSuite#fiches_termino_utf-8_txt}' )
-def bytes = input.bytes
-
-//Base64 coder = new Base64()
-//def encodedData = coder.encode(bytes)
-
-def encodedData = bytes.encodeBase64().toString()
-log.info(encodedData)
-//assert encodedData == context.expand( '${#TestSuite#fiches_termino_utf-8}' )
-log.info(testSuite.getPropertyValue( "input"))
-log.info('a')
-testSuite.setPropertyValue( "input", encodedData)
-
-
-
-//http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
+    <con:setupScript/>
   </con:testSuite>
   <con:testSuite name="PortageLive_SoapHttpBinding translateTMX TestSuite">
     <con:description>PortageLive API testSuite</con:description>
@@ -7259,7 +7129,7 @@ testSuite.setPropertyValue( "input", encodedData)
       <urn:translateTMX soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
          <ContentsBase64 xsi:type="xsd:string">${#TestCase#input}</ContentsBase64>
          <Filename xsi:type="xsd:string">input.tmx</Filename>
-         <context xsi:type="xsd:string">${#TestSuite#context.toy_en2fr}</context>
+         <context xsi:type="xsd:string">${#TestSuite#context}</context>
          <useCE xsi:type="xsd:boolean">false</useCE>
          <CETreshold xsi:type="xsd:decimal">0</CETreshold>
          <xtags xsi:type="xsd:boolean">false</xtags>
@@ -7397,28 +7267,15 @@ testSuite.setPropertyValue( "input", encodedData)
       </con:testStep>
       <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
 import org.apache.commons.codec.binary.Base64
-
-def input = context.expand( '${#TestCase#input_txt}' )
-def bytes = input.bytes
-
-//Base64 coder = new Base64()
-//def encodedData = coder.encode(bytes)
-
-def encodedData = bytes.encodeBase64().toString()
-log.info(testCase.getPropertyValue( "input"))
-log.info(encodedData)
-testCase.setPropertyValue( "input", encodedData)
-
-
-
+testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').bytes.encodeBase64().toString())
 //http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
-      <con:tearDownScript>for (prop in ["input", "MonitoringAddress", "TranslationFileAddress"]) {
+      <con:tearDownScript>for (prop in ["input", "MonitoringToken", "TranslationFileAddress"]) {
 	testCase.setPropertyValue(prop, "")
 }</con:tearDownScript>
       <con:properties>
         <con:property>
           <con:name>context</con:name>
-          <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+          <con:value>${#TestSuite#context}</con:value>
         </con:property>
         <con:property>
           <con:name>input_txt</con:name>
@@ -7430,14 +7287,10 @@ testCase.setPropertyValue( "input", encodedData)
         </con:property>
         <con:property>
           <con:name>MonitoringToken</con:name>
-          <con:value>http://132.246.128.219/cgi-bin/plive-monitor.cgi?time=1442436107&amp;file=PLive-toy-regress-en2fr_input.tmx&amp;context=toy-regress-en2fr&amp;dir=plive/SOAP_toy-regress-en2fr_input.tmx_20150916T204147Z_FXHkFA&amp;ce=1</con:value>
-        </con:property>
-        <con:property>
-          <con:name>TranslationFileAddress</con:name>
           <con:value/>
         </con:property>
         <con:property>
-          <con:name>MonitoringAddress</con:name>
+          <con:name>TranslationFileAddress</con:name>
           <con:value/>
         </con:property>
       </con:properties>
@@ -7461,7 +7314,7 @@ testCase.setPropertyValue( "input", encodedData)
       <urn:translateTMX soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
          <ContentsBase64 xsi:type="xsd:string">${#TestCase#input}</ContentsBase64>
          <Filename xsi:type="xsd:string">input.tmx</Filename>
-         <context xsi:type="xsd:string">${#TestSuite#context.toy_en2fr}</context>
+         <context xsi:type="xsd:string">${#TestSuite#context}</context>
          <useCE xsi:type="xsd:boolean">false</useCE>
          <CETreshold xsi:type="xsd:decimal">0</CETreshold>
          <xtags xsi:type="xsd:boolean">false</xtags>
@@ -7600,28 +7453,15 @@ testCase.setPropertyValue( "input", encodedData)
       </con:testStep>
       <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
 import org.apache.commons.codec.binary.Base64
-
-def input = context.expand( '${#TestCase#input_txt}' )
-def bytes = input.bytes
-
-//Base64 coder = new Base64()
-//def encodedData = coder.encode(bytes)
-
-def encodedData = bytes.encodeBase64().toString()
-log.info(testCase.getPropertyValue( "input"))
-log.info(encodedData)
-testCase.setPropertyValue( "input", encodedData)
-
-
-
+testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').bytes.encodeBase64().toString())
 //http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
-      <con:tearDownScript>for (prop in ["input", "MonitoringAddress", "TranslationFileAddress"]) {
+      <con:tearDownScript>for (prop in ["input", "MonitoringToken", "TranslationFileAddress"]) {
 	testCase.setPropertyValue(prop, "")
 }</con:tearDownScript>
       <con:properties>
         <con:property>
           <con:name>context</con:name>
-          <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+          <con:value>${#TestSuite#context}</con:value>
         </con:property>
         <con:property>
           <con:name>input_txt</con:name>
@@ -7633,14 +7473,10 @@ testCase.setPropertyValue( "input", encodedData)
         </con:property>
         <con:property>
           <con:name>MonitoringToken</con:name>
-          <con:value>http://132.246.128.219/cgi-bin/plive-monitor.cgi?time=1442436110&amp;file=PLive-toy-regress-en2fr_input.tmx&amp;context=toy-regress-en2fr&amp;dir=plive/SOAP_toy-regress-en2fr_input.tmx_20150916T204150Z_IedhFn&amp;ce=1</con:value>
-        </con:property>
-        <con:property>
-          <con:name>TranslationFileAddress</con:name>
           <con:value/>
         </con:property>
         <con:property>
-          <con:name>MonitoringAddress</con:name>
+          <con:name>TranslationFileAddress</con:name>
           <con:value/>
         </con:property>
       </con:properties>
@@ -7664,7 +7500,7 @@ testCase.setPropertyValue( "input", encodedData)
       <urn:translateTMX soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
          <ContentsBase64 xsi:type="xsd:string">${#TestCase#input}</ContentsBase64>
          <Filename xsi:type="xsd:string">input.tmx</Filename>
-         <context xsi:type="xsd:string">${#TestSuite#context.toy_en2fr}</context>
+         <context xsi:type="xsd:string">${#TestSuite#context}</context>
          <useCE xsi:type="xsd:boolean">true</useCE>
          <CETreshold xsi:type="xsd:decimal">0</CETreshold>
          <xtags xsi:type="xsd:boolean">false</xtags>
@@ -7805,28 +7641,15 @@ testCase.setPropertyValue( "input", encodedData)
       </con:testStep>
       <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
 import org.apache.commons.codec.binary.Base64
-
-def input = context.expand( '${#TestCase#input_txt}' )
-def bytes = input.bytes
-
-//Base64 coder = new Base64()
-//def encodedData = coder.encode(bytes)
-
-def encodedData = bytes.encodeBase64().toString()
-log.info(testCase.getPropertyValue( "input"))
-log.info(encodedData)
-testCase.setPropertyValue( "input", encodedData)
-
-
-
+testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').bytes.encodeBase64().toString())
 //http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
-      <con:tearDownScript>for (prop in ["input", "MonitoringAddress", "TranslationFileAddress"]) {
+      <con:tearDownScript>for (prop in ["input", "MonitoringToken", "TranslationFileAddress"]) {
 	testCase.setPropertyValue(prop, "")
 }</con:tearDownScript>
       <con:properties>
         <con:property>
           <con:name>context</con:name>
-          <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+          <con:value>${#TestSuite#context}</con:value>
         </con:property>
         <con:property>
           <con:name>input_txt</con:name>
@@ -7838,14 +7661,10 @@ testCase.setPropertyValue( "input", encodedData)
         </con:property>
         <con:property>
           <con:name>MonitoringToken</con:name>
-          <con:value>http://132.246.128.219/cgi-bin/plive-monitor.cgi?time=1442436121&amp;file=PLive-toy-regress-en2fr_input.tmx&amp;context=toy-regress-en2fr&amp;dir=plive/SOAP_toy-regress-en2fr_input.tmx_20150916T204201Z_kdszmL&amp;ce=1</con:value>
-        </con:property>
-        <con:property>
-          <con:name>TranslationFileAddress</con:name>
           <con:value/>
         </con:property>
         <con:property>
-          <con:name>MonitoringAddress</con:name>
+          <con:name>TranslationFileAddress</con:name>
           <con:value/>
         </con:property>
       </con:properties>
@@ -7869,7 +7688,7 @@ testCase.setPropertyValue( "input", encodedData)
       <urn:translateTMX soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
          <ContentsBase64 xsi:type="xsd:string">${#TestCase#input}</ContentsBase64>
          <Filename xsi:type="xsd:string">input.tmx</Filename>
-         <context xsi:type="xsd:string">${#TestSuite#context.toy_en2fr}</context>
+         <context xsi:type="xsd:string">${#TestSuite#context}</context>
          <useCE xsi:type="xsd:boolean">true</useCE>
          <CETreshold xsi:type="xsd:decimal">0.15</CETreshold>
          <xtags xsi:type="xsd:boolean">false</xtags>
@@ -8012,28 +7831,15 @@ count(//*:tu/*:prop[@type="Txt::CE"])</path>
       </con:testStep>
       <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
 import org.apache.commons.codec.binary.Base64
-
-def input = context.expand( '${#TestCase#input_txt}' )
-def bytes = input.bytes
-
-//Base64 coder = new Base64()
-//def encodedData = coder.encode(bytes)
-
-def encodedData = bytes.encodeBase64().toString()
-log.info(testCase.getPropertyValue( "input"))
-log.info(encodedData)
-testCase.setPropertyValue( "input", encodedData)
-
-
-
+testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').bytes.encodeBase64().toString())
 //http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
-      <con:tearDownScript>for (prop in ["input", "MonitoringAddress", "TranslationFileAddress"]) {
+      <con:tearDownScript>for (prop in ["input", "MonitoringToken", "TranslationFileAddress"]) {
 	testCase.setPropertyValue(prop, "")
 }</con:tearDownScript>
       <con:properties>
         <con:property>
           <con:name>context</con:name>
-          <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+          <con:value>${#TestSuite#context}</con:value>
         </con:property>
         <con:property>
           <con:name>input_txt</con:name>
@@ -8045,51 +7851,29 @@ testCase.setPropertyValue( "input", encodedData)
         </con:property>
         <con:property>
           <con:name>MonitoringToken</con:name>
-          <con:value>http://132.246.128.219/cgi-bin/plive-monitor.cgi?time=1442436132&amp;file=PLive-toy-regress-en2fr_input.tmx&amp;context=toy-regress-en2fr&amp;dir=plive/SOAP_toy-regress-en2fr_input.tmx_20150916T204211Z_GpuTM5&amp;ce=1</con:value>
-        </con:property>
-        <con:property>
-          <con:name>TranslationFileAddress</con:name>
           <con:value/>
         </con:property>
         <con:property>
-          <con:name>MonitoringAddress</con:name>
+          <con:name>TranslationFileAddress</con:name>
           <con:value/>
         </con:property>
       </con:properties>
     </con:testCase>
     <con:properties>
       <con:property>
-        <con:name>input</con:name>
-        <con:value/>
+        <con:name>context</con:name>
+        <con:value>toy-regress-en2fr</con:value>
       </con:property>
       <con:property>
-        <con:name>context.toy_en2fr</con:name>
-        <con:value>toy-regress-en2fr</con:value>
+        <con:name>input</con:name>
+        <con:value/>
       </con:property>
       <con:property>
         <con:name>input.tmx</con:name>
         <con:value><![CDATA[<?xml version="1.0" ?> <!DOCTYPE tmx SYSTEM "tmx14.dtd"> <tmx version="1.4"> <header        creationtool="vim"        creationtoolversion="vim"        segtype="sentence"        o-tmf="TW4Win 2.0 Format"        adminlang="EN-US"        srclang="EN-CA"        datatype="rtf"        creationdate="20150715"        creationid="Samuel" > <prop type="RTFFontTable"> {\fonttbl {\f1 \fmodern\fprq1 \fcharset0 Courier New;} }</prop> <prop type="RTFStyleSheet"> {\stylesheet {\St \s0 {\StN Normal}} }</prop> <prop type="Name">soapui sample</prop> <prop type="Copyright">2015 NRC-CNRC</prop> <prop type="Description">Enter Description Here</prop> </header>  <body> <tu usagecount="1" changedate="20130507T125139Z" changeid="CTHIFFAULT"> <tuv xml:lang="EN-CA"> <seg>Environment Canada - Climate Change - National Inventory Report 1990-2011: Greenhouse Gas Sources and Sinks in Canada - Executive Summary</seg> </tuv> </tu>  <tu usagecount="1" changedate="20130507T125139Z" changeid="CTHIFFAULT"> <tuv xml:lang="EN-CA"> <seg><ut>{\cs6\f1\cf6\lang1024  </ut>&lt;span&gt;<ut>}</ut>Site<ut>{\cs6\f1\cf6\lang1024  </ut>&lt;/span&gt;<ut>}</ut> menu</seg> </tuv> </tu>  <tu usagecount="1" changedate="20130507T125139Z" changeid="CTHIFFAULT"> <tuv xml:lang="EN-CA"> <seg>Species at Risk Public Registry</seg> </tuv> </tu>  <tu usagecount="1" changedate="20130507T125139Z" changeid="CTHIFFAULT"> <tuv xml:lang="EN-CA"> <seg>Canada&apos;s National Inventory Submission is the annual communication through which Canada meets its annual reporting obligations under the Convention and serves as the authoritative indicator and basis of comparison of national performance.</seg> </tuv> </tu> <tu usagecount="1" changedate="20130507T125139Z" changeid="CTHIFFAULT"> <tuv xml:lang="EN-CA"> <seg>It is a source of reliable, detailed information for Canadians on key emission trends for specific sources, sectors and regions; and provides a core set of data for setting baseline emissions and further analysis.</seg> </tuv> </tu>  </body> </tmx>]]></con:value>
       </con:property>
     </con:properties>
-    <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
-import org.apache.commons.codec.binary.Base64
-
-def input = context.expand( '${#TestSuite#fiches_termino_utf-8_txt}' )
-def bytes = input.bytes
-
-//Base64 coder = new Base64()
-//def encodedData = coder.encode(bytes)
-
-def encodedData = bytes.encodeBase64().toString()
-log.info(encodedData)
-//assert encodedData == context.expand( '${#TestSuite#fiches_termino_utf-8}' )
-log.info(testSuite.getPropertyValue( "input"))
-log.info('a')
-testSuite.setPropertyValue( "input", encodedData)
-
-
-
-//http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
+    <con:setupScript/>
   </con:testSuite>
   <con:testSuite name="PortageLive_SoapHttpBinding translatePlainText TestSuite">
     <con:description>PortageLive API testSuite</con:description>
@@ -8245,20 +8029,7 @@ testSuite.setPropertyValue( "input", encodedData)
       </con:testStep>
       <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
 import org.apache.commons.codec.binary.Base64
-
-def input = context.expand( '${#TestCase#input_txt}' )
-def bytes = input.bytes
-
-//Base64 coder = new Base64()
-//def encodedData = coder.encode(bytes)
-
-def encodedData = bytes.encodeBase64().toString()
-log.info(testCase.getPropertyValue( "input"))
-log.info(encodedData)
-testCase.setPropertyValue( "input", encodedData)
-
-
-
+testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').bytes.encodeBase64().toString())
 //http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
       <con:tearDownScript>for (prop in ["input", "MonitoringAddress", "TranslationFileAddress"]) {
 	testCase.setPropertyValue(prop, "")
@@ -8278,7 +8049,7 @@ testCase.setPropertyValue( "input", encodedData)
         </con:property>
         <con:property>
           <con:name>MonitoringToken</con:name>
-          <con:value>http://132.246.128.219/cgi-bin/plive-monitor.cgi?time=1442436221&amp;file=PLive-toy-regress-en2fr_input.txt&amp;context=toy-regress-en2fr&amp;dir=plive/SOAP_toy-regress-en2fr_input.txt_20150916T204341Z_GI7Uoc&amp;ce=1</con:value>
+          <con:value>http://132.246.128.219/cgi-bin/plive-monitor.cgi?time=1442514052&amp;file=PLive-toy-regress-en2fr_input.txt&amp;context=toy-regress-en2fr&amp;dir=plive/SOAP_toy-regress-en2fr_input.txt_20150917T182052Z_ZdixVN&amp;ce=1</con:value>
         </con:property>
         <con:property>
           <con:name>TranslationFileAddress</con:name>
@@ -8454,20 +8225,7 @@ testCase.setPropertyValue( "input", encodedData)
       </con:testStep>
       <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
 import org.apache.commons.codec.binary.Base64
-
-def input = context.expand( '${#TestCase#input_txt}' )
-def bytes = input.bytes
-
-//Base64 coder = new Base64()
-//def encodedData = coder.encode(bytes)
-
-def encodedData = bytes.encodeBase64().toString()
-log.info(testCase.getPropertyValue( "input"))
-log.info(encodedData)
-testCase.setPropertyValue( "input", encodedData)
-
-
-
+testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').bytes.encodeBase64().toString())
 //http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
       <con:tearDownScript>for (prop in ["input", "MonitoringAddress", "TranslationFileAddress"]) {
 	testCase.setPropertyValue(prop, "")
@@ -8487,7 +8245,7 @@ testCase.setPropertyValue( "input", encodedData)
         </con:property>
         <con:property>
           <con:name>MonitoringToken</con:name>
-          <con:value>http://132.246.128.219/cgi-bin/plive-monitor.cgi?time=1442436224&amp;file=PLive-toy-regress-en2fr_input.txt&amp;context=toy-regress-en2fr&amp;dir=plive/SOAP_toy-regress-en2fr_input.txt_20150916T204344Z_Aji6u7&amp;ce=1</con:value>
+          <con:value>http://132.246.128.219/cgi-bin/plive-monitor.cgi?time=1442514054&amp;file=PLive-toy-regress-en2fr_input.txt&amp;context=toy-regress-en2fr&amp;dir=plive/SOAP_toy-regress-en2fr_input.txt_20150917T182054Z_GwFbvf&amp;ce=1</con:value>
         </con:property>
         <con:property>
           <con:name>TranslationFileAddress</con:name>
@@ -8656,20 +8414,7 @@ testCase.setPropertyValue( "input", encodedData)
       </con:testStep>
       <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
 import org.apache.commons.codec.binary.Base64
-
-def input = context.expand( '${#TestCase#input_txt}' )
-def bytes = input.bytes
-
-//Base64 coder = new Base64()
-//def encodedData = coder.encode(bytes)
-
-def encodedData = bytes.encodeBase64().toString()
-log.info(testCase.getPropertyValue( "input"))
-log.info(encodedData)
-testCase.setPropertyValue( "input", encodedData)
-
-
-
+testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').bytes.encodeBase64().toString())
 //http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
       <con:tearDownScript>for (prop in ["input", "MonitoringAddress", "TranslationFileAddress"]) {
 	testCase.setPropertyValue(prop, "")
@@ -8711,25 +8456,7 @@ testCase.setPropertyValue( "input", encodedData)
         <con:value>This is a test.  First line is a paragraph. The car would have been blue.</con:value>
       </con:property>
     </con:properties>
-    <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
-import org.apache.commons.codec.binary.Base64
-
-def input = context.expand( '${#TestSuite#fiches_termino_utf-8_txt}' )
-def bytes = input.bytes
-
-//Base64 coder = new Base64()
-//def encodedData = coder.encode(bytes)
-
-def encodedData = bytes.encodeBase64().toString()
-log.info(encodedData)
-//assert encodedData == context.expand( '${#TestSuite#fiches_termino_utf-8}' )
-log.info(testSuite.getPropertyValue( "input"))
-log.info('a')
-testSuite.setPropertyValue( "input", encodedData)
-
-
-
-//http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
+    <con:setupScript/>
   </con:testSuite>
   <con:testSuite name="PortageLive_SoapHttpBinding Fixed Terms TestSuite">
     <con:description>Validates manipulating and translating with fixed terms.</con:description>
