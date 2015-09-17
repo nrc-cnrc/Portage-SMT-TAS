@@ -313,6 +313,12 @@ use File::Copy;
 sub processXLIFF {
    my ($parser, $elt) = @_;
 
+   # Make sure xmlns:sdl is defined or else soapui complains.
+   unless(defined($elt->{att}->{'xmlns:sdl'})) {
+      warn "Warning: Couldn't find xmlns:sdl";
+      $elt->{att}->{'xmlns:sdl'} = 'http://sdl.com/FileTypes/SdlXliff/1.0';
+   }
+
    if ($parser->{action} eq 'extract' or $parser->{action} eq 'check') {
       $parser->setTwigHandlers( {
             'trans-unit' => \&processTransUnit,
