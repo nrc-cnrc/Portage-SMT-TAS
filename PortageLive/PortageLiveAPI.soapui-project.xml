@@ -8732,7 +8732,7 @@ testSuite.setPropertyValue( "input", encodedData)
 //http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
   </con:testSuite>
   <con:testSuite name="PortageLive_SoapHttpBinding Fixed Terms TestSuite">
-    <con:description>PortageLive API testSuite</con:description>
+    <con:description>Validates manipulating and translating with fixed terms.</con:description>
     <con:settings/>
     <con:runType>SEQUENTIAL</con:runType>
     <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="updateFixedTerms TestCase" searchProperties="true" id="433822b9-954a-4f3c-9da3-257025db49f9">
@@ -9052,7 +9052,7 @@ testSuite.setPropertyValue( "input", encodedData)
       <urn:updateFixedTerms soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
          <ContentsBase64 xsi:type="xsd:base64Binary">${#TestSuite#fiches_termino_utf-8.b64}</ContentsBase64>
          <Filename xsi:type="xsd:string">fiches_termino_utf-8</Filename>
-         <context xsi:type="xsd:string">${#TestSuite#context.toy_en2fr}</context>
+         <context xsi:type="xsd:string">${#TestSuite#context.noFixedTerms}</context>
          <sourceColumnIndex xsi:type="xsd:decimal">1</sourceColumnIndex>
          <sourceLanguage xsi:type="xsd:string">en</sourceLanguage>
          <targetLanguage xsi:type="xsd:string">fr</targetLanguage>
@@ -9072,7 +9072,7 @@ testSuite.setPropertyValue( "input", encodedData)
             <con:assertion type="XQuery Match" name="Validate faultstring">
               <con:configuration>
                 <path>//*:Fault/faultstring</path>
-                <content>This context(${#TestSuite#context.toy_en2fr}) doesn't support fixed terms.</content>
+                <content>This context(${#TestSuite#context.noFixedTerms}) doesn't support fixed terms.</content>
                 <allowWildcards>false</allowWildcards>
               </con:configuration>
             </con:assertion>
@@ -9652,7 +9652,7 @@ testSuite.setPropertyValue( "input", encodedData)
       <con:properties>
         <con:property>
           <con:name>context</con:name>
-          <con:value>${#TestSuite#context.fixedTerms}</con:value>
+          <con:value>${#TestSuite#context}</con:value>
         </con:property>
       </con:properties>
     </con:testCase>
@@ -9769,7 +9769,7 @@ testSuite.setPropertyValue( "input", encodedData)
    <soapenv:Header/>
    <soapenv:Body>
       <urn:getFixedTerms soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-         <context xsi:type="xsd:string">${#TestSuite#context.toy_en2fr}</context>
+         <context xsi:type="xsd:string">${#TestSuite#context.noFixedTerms}</context>
       </urn:getFixedTerms>
    </soapenv:Body>
 </soapenv:Envelope>]]></con:request>
@@ -9795,7 +9795,71 @@ testSuite.setPropertyValue( "input", encodedData)
             <con:assertion type="XQuery Match" name="Validate faultstring">
               <con:configuration>
                 <path>//*:Fault/*:faultstring</path>
-                <content>${#TestSuite#context.toy_en2fr} doesn't have fixed terms.</content>
+                <content>${#TestSuite#context.noFixedTerms} doesn't have fixed terms.</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:assertion type="XQuery Match" name="Validate faultactor">
+              <con:configuration>
+                <path>//*:Fault/*:faultactor</path>
+                <content>PortageLiveAPI</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:selectedAuthProfile>NTLM</con:selectedAuthProfile>
+              <con:addedBasicAuthenticationTypes>NTLM</con:addedBasicAuthenticationTypes>
+              <con:authType>NTLM</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="getFixedTerms"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="request" name="getFixedTerms - get fixed terms list from invalid context - Request">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>getFixedTerms</con:operation>
+          <con:request name="getFixedTerms - get fixed terms list from invalid context - Request" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:getFixedTerms soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <context xsi:type="xsd:string">INVALID CONTEXT</context>
+      </urn:getFixedTerms>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:assertion type="Not SOAP Fault Assertion" name="SOAP Fault"/>
+            <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+              <con:configuration>
+                <codes>500</codes>
+              </con:configuration>
+            </con:assertion>
+            <con:assertion type="Invalid HTTP Status Codes" name="Invalid HTTP Status Codes">
+              <con:configuration>
+                <codes>200</codes>
+              </con:configuration>
+            </con:assertion>
+            <con:assertion type="XQuery Match" name="Validate faultcode">
+              <con:configuration>
+                <path>//*:Fault/*:faultcode</path>
+                <content>PortageContext</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:assertion type="XQuery Match" name="Validate faultstring">
+              <con:configuration>
+                <path>//*:Fault/*:faultstring</path>
+                <content>Context "INVALID CONTEXT" does not exist.</content>
                 <allowWildcards>false</allowWildcards>
               </con:configuration>
             </con:assertion>
@@ -9821,7 +9885,7 @@ testSuite.setPropertyValue( "input", encodedData)
       <con:properties>
         <con:property>
           <con:name>context</con:name>
-          <con:value>${#TestSuite#context.fixedTerms}</con:value>
+          <con:value>${#TestSuite#context}</con:value>
         </con:property>
       </con:properties>
     </con:testCase>
@@ -9922,7 +9986,7 @@ testSuite.setPropertyValue( "input", encodedData)
       <con:properties>
         <con:property>
           <con:name>context</con:name>
-          <con:value>${#TestSuite#context.fixedTerms}</con:value>
+          <con:value>${#TestSuite#context}</con:value>
         </con:property>
       </con:properties>
     </con:testCase>
@@ -10633,135 +10697,131 @@ contains(//*:translateResponse/Result, "<c> z 420k v</c>")]]></path>
           </con:request>
         </con:config>
       </con:testStep>
-      <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
+      <con:setupScript><![CDATA[// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
 import org.apache.commons.codec.binary.Base64
 
 //testCase.setPropertyValue( "input1", context.expand( '${#TestCase#input1.txt}').bytes.encodeBase64().toString() )
 //testCase.setPropertyValue( "input2", context.expand( '${#TestCase#input2.txt}').bytes.encodeBase64().toString() )
 
+// Could also be:
+//<srcString xsi:type="xsd:string">${=context.getTestCase().getPropertyValue('delme').replaceAll('<', '&lt;')}</srcString>
 for (prop in ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]) {
 	prop = 'input' + prop
-	testCase.setPropertyValue( prop, context.expand( '${#TestCase#' + prop + '.txt}').replaceAll('&lt;', "&amp;lt;"))
+	testCase.setPropertyValue(prop, context.expand('${#TestCase#' + prop + '.txt}').replaceAll('<', "&lt;"))
 }
 
-//http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
-      <con:tearDownScript>/*
-for (prop in ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]) {
+//http://forum.soapui.org/viewtopic.php?f=15&t=7571&p=21923#p21923]]></con:setupScript>
+      <con:tearDownScript>for (prop in ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]) {
 	testCase.setPropertyValue('input'+prop, "")
-}
-*/</con:tearDownScript>
+}</con:tearDownScript>
       <con:properties>
         <con:property>
           <con:name>context</con:name>
-          <con:value>${#TestSuite#context.fixedTerms}</con:value>
+          <con:value>${#TestSuite#context}</con:value>
+        </con:property>
+        <con:property>
+          <con:name>input00</con:name>
+          <con:value/>
         </con:property>
         <con:property>
           <con:name>input00.txt</con:name>
           <con:value>Banana sponsorship program A B &lt;symbol \b> with the moon.</con:value>
         </con:property>
         <con:property>
+          <con:name>input01</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
           <con:name>input01.txt</con:name>
           <con:value>These laws in relation to the administration of justice are too long.</con:value>
+        </con:property>
+        <con:property>
+          <con:name>input02</con:name>
+          <con:value/>
         </con:property>
         <con:property>
           <con:name>input02.txt</con:name>
           <con:value>Chemical compound &lt;symbol a>, is quite explosif.</con:value>
         </con:property>
         <con:property>
+          <con:name>input03</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
           <con:name>input03.txt</con:name>
           <con:value>Never mix &lt;symbol \b> with water.</con:value>
+        </con:property>
+        <con:property>
+          <con:name>input04</con:name>
+          <con:value/>
         </con:property>
         <con:property>
           <con:name>input04.txt</con:name>
           <con:value>We love big \tree in our backyard.</con:value>
         </con:property>
         <con:property>
+          <con:name>input05</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
           <con:name>input05.txt</con:name>
           <con:value>Julien spoke and although the recommendations were sound, we heard nothing.</con:value>
+        </con:property>
+        <con:property>
+          <con:name>input06</con:name>
+          <con:value/>
         </con:property>
         <con:property>
           <con:name>input06.txt</con:name>
           <con:value>z a b c d e f</con:value>
         </con:property>
         <con:property>
+          <con:name>input07</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
           <con:name>input07.txt</con:name>
           <con:value>710k account</con:value>
+        </con:property>
+        <con:property>
+          <con:name>input08</con:name>
+          <con:value/>
         </con:property>
         <con:property>
           <con:name>input08.txt</con:name>
           <con:value>710k</con:value>
         </con:property>
         <con:property>
+          <con:name>input09</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
           <con:name>input09.txt</con:name>
           <con:value>410k &lt;a>Z 420k V&lt;/a> 430k</con:value>
+        </con:property>
+        <con:property>
+          <con:name>input10</con:name>
+          <con:value/>
         </con:property>
         <con:property>
           <con:name>input10.txt</con:name>
           <con:value>number must not be changed but ft tagged &lt;b>Z 420k V&lt;/b></con:value>
         </con:property>
         <con:property>
+          <con:name>input11</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
           <con:name>input11.txt</con:name>
           <con:value>&lt;NUM whatever>blah&lt;/NUM></con:value>
         </con:property>
         <con:property>
+          <con:name>input12</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
           <con:name>input12.txt</con:name>
           <con:value>&lt;FT whatever>blah 742k blah&lt;/FT></con:value>
-        </con:property>
-        <con:property>
-          <con:name>input3</con:name>
-          <con:value>Banana sponsorship program A B &amp;lt;symbol \b> with the moon.</con:value>
-        </con:property>
-        <con:property>
-          <con:name>input01</con:name>
-          <con:value>These laws in relation to the administration of justice are too long.</con:value>
-        </con:property>
-        <con:property>
-          <con:name>input02</con:name>
-          <con:value>Chemical compound &amp;lt;symbol a>, is quite explosif.</con:value>
-        </con:property>
-        <con:property>
-          <con:name>input03</con:name>
-          <con:value>Never mix &amp;lt;symbol \b> with water.</con:value>
-        </con:property>
-        <con:property>
-          <con:name>input04</con:name>
-          <con:value>We love big \tree in our backyard.</con:value>
-        </con:property>
-        <con:property>
-          <con:name>input05</con:name>
-          <con:value>Julien spoke and although the recommendations were sound, we heard nothing.</con:value>
-        </con:property>
-        <con:property>
-          <con:name>input06</con:name>
-          <con:value>z a b c d e f</con:value>
-        </con:property>
-        <con:property>
-          <con:name>input07</con:name>
-          <con:value>710k account</con:value>
-        </con:property>
-        <con:property>
-          <con:name>input08</con:name>
-          <con:value>710k</con:value>
-        </con:property>
-        <con:property>
-          <con:name>input09</con:name>
-          <con:value>410k &amp;lt;a>Z 420k V&amp;lt;/a> 430k</con:value>
-        </con:property>
-        <con:property>
-          <con:name>input10</con:name>
-          <con:value>number must not be changed but ft tagged &amp;lt;b>Z 420k V&amp;lt;/b></con:value>
-        </con:property>
-        <con:property>
-          <con:name>input11</con:name>
-          <con:value>&amp;lt;NUM whatever>blah&amp;lt;/NUM></con:value>
-        </con:property>
-        <con:property>
-          <con:name>input12</con:name>
-          <con:value>&amp;lt;FT whatever>blah 742k blah&amp;lt;/FT></con:value>
-        </con:property>
-        <con:property>
-          <con:name>input00</con:name>
-          <con:value>Banana sponsorship program A B &amp;lt;symbol \b> with the moon.</con:value>
         </con:property>
       </con:properties>
     </con:testCase>
@@ -10938,18 +10998,7 @@ for (prop in ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", 
       </con:testStep>
       <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
 import org.apache.commons.codec.binary.Base64
-
-def input = context.expand( '${#TestCase#input_txt}' )
-def bytes = input.bytes
-
-//Base64 coder = new Base64()
-//def encodedData = coder.encode(bytes)
-
-def encodedData = bytes.encodeBase64().toString()
-log.info(testCase.getPropertyValue( "input"))
-log.info(encodedData)
-testCase.setPropertyValue( "input", encodedData)
-
+testCase.setPropertyValue("input", context.expand('${#TestCase#input_txt}').bytes.encodeBase64().toString())
 
 //http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
       <con:tearDownScript>for (prop in ["input", "MonitoringToken", "TranslationFileAddress"]) {
@@ -10958,7 +11007,7 @@ testCase.setPropertyValue( "input", encodedData)
       <con:properties>
         <con:property>
           <con:name>context</con:name>
-          <con:value>${#TestSuite#context.fixedTerms}</con:value>
+          <con:value>${#TestSuite#context}</con:value>
         </con:property>
         <con:property>
           <con:name>input_txt</con:name>
@@ -11152,20 +11201,7 @@ testCase.setPropertyValue( "input", encodedData)
       </con:testStep>
       <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
 import org.apache.commons.codec.binary.Base64
-
-def input = context.expand( '${#TestCase#input_txt}' )
-def bytes = input.bytes
-
-//Base64 coder = new Base64()
-//def encodedData = coder.encode(bytes)
-
-def encodedData = bytes.encodeBase64().toString()
-log.info(testCase.getPropertyValue( "input"))
-log.info(encodedData)
-testCase.setPropertyValue( "input", encodedData)
-
-
-
+testCase.setPropertyValue("input", context.expand('${#TestCase#input_txt}').bytes.encodeBase64().toString())
 //http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
       <con:tearDownScript>for (prop in ["input", "MonitoringToken", "TranslationFileAddress"]) {
 	testCase.setPropertyValue(prop, "")
@@ -11357,20 +11393,7 @@ testCase.setPropertyValue( "input", encodedData)
       </con:testStep>
       <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
 import org.apache.commons.codec.binary.Base64
-
-def input = context.expand( '${#TestCase#input_txt}' )
-def bytes = input.bytes
-
-//Base64 coder = new Base64()
-//def encodedData = coder.encode(bytes)
-
-def encodedData = bytes.encodeBase64().toString()
-log.info(testCase.getPropertyValue( "input"))
-log.info(encodedData)
-testCase.setPropertyValue( "input", encodedData)
-
-
-
+testCase.setPropertyValue("input", context.expand('${#TestCase#input_txt}').bytes.encodeBase64().toString())
 //http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
       <con:tearDownScript>for (prop in ["input", "MonitoringToken", "TranslationFileAddress"]) {
 	testCase.setPropertyValue(prop, "")
@@ -11402,6 +11425,14 @@ testCase.setPropertyValue( "input", encodedData)
       <con:property>
         <con:name>context</con:name>
         <con:value>fixedTerms</con:value>
+      </con:property>
+      <con:property>
+        <con:name>context.noFixedTerms</con:name>
+        <con:value>toy-regress-en2fr</con:value>
+      </con:property>
+      <con:property>
+        <con:name>delme</con:name>
+        <con:value>ZW5nZnJhIGhlYXJpbmcgZmVlcyAgICBGcmFpcyBkkmF1ZGllbmNlIExhYm91ciBTdGFuZGFyZHMgICAgICAgIE5vcm1lcyBkdSB0cmF2YWlsIEF0dG9ybmV5IEdlbmVyYWwgICAgICAgIFByb2N1cmV1ciBn6W7pcmFsIHN1cnZpdmluZyBjb25zb3J0ICAgICAgIGNvbmpvaW50IHN1cnZpdmFudCBvY2N1cGF0aW9uYWwgZGlzZWFzZSAgICBtYWxhZGllIHByb2Zlc3Npb25uZWxsZSBsZWdhbCBwZXJzb24gICAgcGVyc29ubmUgbW9yYWxlIHJ1bGUgb2YgbGF3ICAgICBwcmltYXV06SBkdSBkcm9pdCBwZXJtaXNzaWJsZSBleGVyY2lzZSBvZiB0aGUgUHJvdmluY2WScyBqdXJpc2RpY3Rpb24gICAgIGFjY2VwdGFibGUgZGUgbGEgY29tcOl0ZW5jZSByZWNvbm51ZSDgIGxhIFByb3ZpbmNlIGFncmVlbWVudCBvZiB0aGUgcGFydGllcyAgICAgICAgYWNjb3JkIGRlcyBwYXJ0aWVzIEFkdm9jYXRlc5IgU29jaWV0eSAgICAgIEFkdm9jYXRlc5IgU29jaWV0eSBwZXJzcGVjdGl2ZSBvZiByZW51bmNpYXRpb24gICAgIGFuZ2xlIGRlIGxhIHJlbm9uY2lhdGlvbiB5ZWFycyBvZiB1bmludGVycnVwdGVkIHNlcnZpY2UgIGFucyBkZSBzZXJ2aWNlIGNvbnRpbnUgYXBwZWxsYW50L3Jlc3BvbmRlbnQgb24gY3Jvc3MtYXBwZWFsICAgIGFwcGVsYW50ZS9pbnRpbellIGF1IHBvdXJ2b2kgaW5jaWRlbnQgQXNwaGFsdGUgRGVzamFyZGlucyBpbmMgQXNwaGFsdGUgRGVzamFyZGlucyBpbmMgQ2FuYWRpYW4gQmFyIEFzc29jaWF0aW9uICAgICAgICBBc3NvY2lhdGlvbiBkdSBCYXJyZWF1IGNhbmFkaWVuIGhlYXJpbmcgZmVlcyBpbiBhcHByb3ByaWF0ZSAgICAgYXVkaWVuY2UgZGFucyBsZXMgY2FzIHF1aSBzknkgcHLqdGVudCBDYW5hZGlhbiBQYWNpZmljIFJhaWx3YXkgICAgICAgIENhbmFkaWFuIFBhY2lmaWMgUmFpbHdheSBDaGVtQWN0aW9uIGluYyAgQ2hlbUFjdGlvbiBJbmMuIGNvbW1vbiBsYXcgICAgICBjb21tb24gbGF3IENvbXBvZ2VzdCBJbmMgICBDb21wb2dlc3QgSW5jIGNvcmUganVyaXNkaWN0aW9uIG9mIHByb3ZpbmNpYWwgc3VwZXJpb3IgY291cnRzIGNvbXDpdGVuY2UgZm9uZGFtZW50YWxlIGRlcyBjb3VycyBzdXDpcmlldXJlcyBwcm92aW5jaWFsZXMgYW5udWFsIGxlYXZlICAgIGNvbmfpIGFubnVlbCBDb250cmFjdCBvZiBlbXBsb3ltZW50ICBDb250cmF0IGRlIHRyYXZhaWwgQ291cnQgb2YgUXXpYmVjIENvdXIgZHUgUXXpYmVjIGxpbmUgb2YgYXV0aG9yaXR5ICAgICAgIGNvdXJhbnQganVyaXNwcnVkZW50aWVsIGNvdXJ0cyBvZiBzdXBlcmlvciBqdXJpc2RpY3Rpb24gY291cnMgZGUganVyaWRpY3Rpb24gc3Vw6XJpZXVyZSBwcm92aW5jaWFsIHN1cGVyaW9yIGNvdXJ0cyAgICAgIGNvdXJzIHN1cOlyaWV1cmVzIHByb3ZpbmNpYWxlcyBkZXBhcnR1cmUgZGF0ZSBhbm5vdW5jZWQgICAgICAgIGRhdGUgZGUgZOlwYXJ0IGFubm9uY+llIERlc2phcmRpbnMgaW5jICBEZXNqYXJkaW5zIGluYyB1bmR1ZSBoYXJkc2hpcCBvbiBsaXRpZ2FudHMgYW5kIGltcGVkZXMgdGhlIHJpZ2h0ICAgICAgIGRpZmZpY3VsdOlzIGV4Y2Vzc2l2ZXMgYXV4IHBsYWlkZXVycyBkZSBsYSBDb2xvbWJpZS1Ccml0YW5uaXF1ZSBhdmFpbGFibGUgb24gQ2FuTElJICAgICBkaXNwb25pYmxlIHN1ciBDYW5MSUkgYnJhbmNoIG9mIHRoZSBDYW5hZGlhbiBCYXIgQXNzb2NpYXRpb24gIERpdmlzaW9uIGRlIGxhIENvbG9tYmllLUJyaXRhbm5pcXVlIGRlIGySQXNzb2NpYXRpb24gZ2VuZXJhbCBsYXcgICAgIGRyb2l0IGNvbW11biByaWdodCBvZiByZWFzb25hYmxlIGFjY2VzcyAgICAgIGRyb2l0IGSSYWNj6HMgcmFpc29ubmFibGUgUmlnaHRzIGFuZCBGcmVlZG9tcyAgICAgZHJvaXRzIGV0IGxpYmVydOlzIG5lY2Vzc2FyeSBpbXBsaWNhdGlvbiAgIGTpZHVjdGlvbiBu6WNlc3NhaXJlIG5vdGljZSBvZiB0ZXJtaW5hdGlvbiAgIGTpbGFpIGRlIGNvbmfpIHR1cm4gaGF2aW5nIHRvIGdpdmUgICAgIGTpbGFpIGRlIGNvbmfpIGSSdW4gc2FsYXJp6SBkZW1vY3JhdGljYWxseSBlbGVjdGVkICBk6W1vY3JhdGlxdWVtZW50IOlsdXMgZW1wbG95ZXIgd2hvIHJlY2VpdmVzICAgZW1wbG95ZXVyIHF1aSByZedvaXQgaGVhcmluZyBmZWVzICAgIGZyYWlzIGSSYXVkaWVuY2UgR2FyY2lhIFRyYW5zcG9ydCBMdOllICAgR2FyY2lhIFRyYW5zcG9ydCBMdOllIElCTSBDYW5hZGEgbHTpZSBJQk0gQ2FuYWRhIGx06WUgSW1wZXJpYWwgVG9iYWNjbyAgICAgICAgSW1wZXJpYWwgVG9iYWNjbyBpbmRlbW5pdHkgcHJvdmlkZWQgZm9yIGluIHNzICAgIGluZGVtbml06SBwcul2dWUgYXV4IGFydCBwbGFjZXMgYW4gdW5kdWUgaGFyZHNoaXAgb24gbGl0aWdhbnRzIGFuZCBpbXBlZGVzICAgICAgIGludGVudGVyIGRlcyByZWNvdXJzIGzpZ2l0aW1lcyBkZXZhbnQgbGVzIHRyaWJ1bmF1eCBpbnRlcnZlbmVyIHRoZSBBdHRvcm5leSBHZW5lcmFsIGludGVydmVuYW50IGxlIHByb2N1cmV1ciBn6W7pcmFsIFJlc3BvbmRlbnQvQXBwZWxsYW50IG9uIGNyb3NzLWFwcGVhbCAgICBJbnRpbekvQXBwZWxhbnQgYXUgcG91cnZvaSBpbmNpZGVudCBJc2lkb3JlIEdhcm9uIGx06WUgICAgICBJc2lkb3JlIEdhcm9uIGx06WUgbGF3ICAgICBqdXN0aWNlIGNpdmlsIGp1c3RpY2UgICBqdXN0aWNlIGNpdmlsZSBMYXdzIGluIHJlbGF0aW9uICAgICAgICBsb2lzIHJlbGF0aXZlcyBsYXdzIGluIHJlbGF0aW9uIHRvIHRoZSBhZG1pbmlzdHJhdGlvbiBvZiBqdXN0aWNlICAgICAgIGxvaXMgcmVsYXRpdmVzIOAgbJJhZG1pbmlzdHJhdGlvbiBkZSBsYSBqdXN0aWNlIGdlc3Rpb25uYWlyZSAgICBtYW5hZ2VyIHRlcm1pbmF0ZXMgdGhlIGNvbnRyYWN0IG1ldCBmaW4gTGFib3VyIFN0YW5kYXJkcyAgICAgICAgTm9ybWVzIGR1IHRyYXZhaWwgTnVydW4gSW5jICAgICAgIE51cnVuIEluYyBlZmZlY3RpdmUgaW1tZWRpYXRlbHkgICBu6WFubW9pbnMgZGUgcmVzdGVyIGNvbnRyYWN0dWFsIG9ibGlnYXRpb25zIG9ibGlnYXRpb25zIGNvbnRyYWN0dWVsbGVzIHB1YmxpYyBvcmRlciAgICBvcmRyZSBwdWJsaWMgY292ZXIgcGVvcGxlIG9mIG1vZGVzdCBtZWFucyAgICBwZXJzb25uZXMgcXVpIGRpc3Bvc2VudCBkZSBtb3llbnMgbW9kZXN0ZXMgYXBwZWFsIHJhaXNlcyAgIHBvdXJ2b2kgc291bOh2ZSBmaXJzdCB0aHJlZSBkYXlzICAgICAgICBwcmVtaWVycyBqb3VycyB1bndyaXR0ZW4gcHJpbmNpcGxlIG9mIHRoZSBydWxlIG9mIGxhdyAgcHJpbmNpcGUgbm9uIOljcml0IGRlIGxhIHByaW1hdXTpIGR1IGRyb2l0IHVud3JpdHRlbiBwcmluY2lwbGVzICAgIHByaW5jaXBlcyBub24g6WNyaXRzIFNvbGljaXRvciBmb3IgdGhlIGludGVydmVuZXIgdGhlIEF0dG9ybmV5IEdlbmVyYWwgICAgICAgUHJvY3VyZXVyIGRlIGySaW50ZXJ2ZW5hbnQgbGUgcHJvY3VyZXVyIGfpbulyYWwgQXR0b3JuZXkgR2VuZXJhbCAgICAgICAgUHJvY3VyZXVyIGfpbulyYWwgQXR0b3JuZXkgR2VuZXJhbCBvZiBCcml0aXNoIENvbHVtYmlhICAgIFByb2N1cmV1ciBn6W7pcmFsIGRlIGxhIENvbG9tYmllLUJyaXRhbm5pcXVlIEF0dG9ybmV5IEdlbmVyYWwgb2YgQWxiZXJ0YSAgICAgcHJvY3VyZXVyIGfpbulyYWwgZGUgbJJBbGJlcnRhIEF0dG9ybmV5IEdlbmVyYWwgb2YgT250YXJpbyAgICAgcHJvY3VyZXVyIGfpbulyYWwgZGUgbJJPbnRhcmlvIEF0dG9ybmV5IEdlbmVyYWwgb2YgQ2FuYWRhICAgICAgUHJvY3VyZXVyIGfpbulyYWwgZHUgQ2FuYWRhIHNpbmNlIHRoZSB0ZXJtaW5hdGlvbiAgIHB1aXNxdWUgbGEgZmluIFFDIENBICAgUUMgQ0EgUUMgQ1EgICBRQyBDUSBRdeliZWMgaW5jICAgICAgUXXpYmVjIGluYyBiYXNlZCBvbiBpdHMgY29udGVudCAgICByYWlzb24gZGUgc29uIGNvbnRlbnUgcmVudW5jaWF0aW9uIG9mIHRoZSBpbmRlbW5pdHkgICByZW5vbmNpYXRpb24g4CBskmluZGVtbml06SBSZWZlcmVuY2UgcmUgTWFuaXRvYmEgTGFuZ3VhZ2UgUmlnaHRzICAgUmVudm9pIHJlbGF0aWYgYXV4IGRyb2l0cyBsaW5ndWlzdGlxdWVzIGF1IE1hbml0b2JhIFVuaXRlZCBLaW5nZG9tICBSb3lhdW1lLVVuaSB1bmlsYXRlcmFsIHJlc2lsaWF0aW9uICBy6XNpbGlhdGlvbiB1bmlsYXTpcmFsZSBlbXBsb3llZSBhbm5vdW5jZXMgICAgICBzYWxhcmnpIGFubm9uY2UgdW5pbnRlcnJ1cHRlZCBzZXJ2aWNlICAgc2VydmljZSBjb250aW51IFNsYWlnaHQgY29tbXVuaWNhdGlvbnMgaW5jICAgICAgU2xhaWdodCBjb21tdW5pY2F0aW9ucyBpbmMgU3VwcmVtZSBDb3VydCBDaXZpbCBSdWxlcyAgICAgICBTdXByZW1lIENvdXJ0IENpdmlsIFJ1bGVzIGp1c3RpY2Ugc3lzdGVtICBzeXN06G1lIGRlIGp1c3RpY2UgVHJhbnNmb3JjZSBpbmMgIFRyYW5zZm9yY2UgaW5jIGNpdmlsIGNvdXJ0cyAgICB0cmlidW5hdXggY2l2aWxzIHVsdHJhIHZpcmVzIHRoZSBDb3VydCBSdWxlcyBBY3QgdWx0cmEgdmlyZXMgZGUgbGEgQ291cnQgUnVsZXMgQWN0IFVuaXRlZCBHcmFpbiBHcm93ZXJzIEx0ZCAgICAgICAgVW5pdGVkIEdyYWluIEdyb3dlcnMgTHRkIGVmZmljaWVudCB1c2UgICB1dGlsaXNhdGlvbiBlZmZpY2llbnRlIHBsYWNlIGF0IHRoZSB0aW1lICAgICAgIHZpZ3VldXIgYXUgbW9tZW50IHBsYWNlIGF0IHRoZSB0aW1lIHRoaXMgY2FzZSBiZWdhbiAgICAgICB2aWd1ZXVyIGF1IG1vbWVudCBv+SBsYSBwculzZW50ZSBhZmZhaXJlICA8c3ltYm9sIGE+ICAgICAgPHN5bWJvbGUgYT4gXHRyZWUgICBcYXJicmUgPHN5bWJvbCBcYj4gICAgIDxzeW1ib2xlIFxiPiBzcG9uc29yc2hpcCBwcm9ncmFtICAgICBtYXJnb3JwIHBpaHNyb3Nub3BzIGFsdGhvdWdoIHRoZSByZWNvbW1lbmRhdGlvbnMgd2VyZSBzb3VuZCBzb24gc29uIHNvbiBzb24gc29uICAgYSBiIGMgZCB6IHkgeCBxIGEgYiAgICAgMSAyIGMgZCAgICAgMyA0ICA3MTBrIGFjY291bnQgICAgY29tcHRlIDcwMWsgWiA0MjBrIFYgICAgICAgIHMgNDIwayB0IDxiPlogNDIwayBWPC9iPiA8Yz5aIDQyMGsgVjwvYz4=</con:value>
       </con:property>
       <con:property>
         <con:name>fiches_termino_cp1252.b64</con:name>
@@ -11440,6 +11471,10 @@ testCase.setPropertyValue( "input", encodedData)
         <con:value><![CDATA[<?xml version="1.0" encoding="utf-8"?> <xliff version='1.2' xmlns='urn:oasis:names:tc:xliff:document:1.2' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'              xsi:schemaLocation='              urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2.xsd'> <file source-language="EN" datatype="plaintext" original="file.ext"> <body> <trans-unit id="1"> <source>Banana sponsorship program A B &lt;symbol \b> with the moon.</source> <seg-source><mrk mtype="seg">Banana sponsorship program A B &lt;symbol \b> with the moon.</mrk></seg-source> </trans-unit> </body> </file> </xliff>]]></con:value>
       </con:property>
       <con:property>
+        <con:name>input</con:name>
+        <con:value/>
+      </con:property>
+      <con:property>
         <con:name>input.tmx</con:name>
         <con:value><![CDATA[<?xml version="1.0" ?> <!DOCTYPE tmx SYSTEM "tmx14.dtd"> <tmx version="1.4"> <header        creationtool="vim"        creationtoolversion="vim"        segtype="sentence"        o-tmf="TW4Win 2.0 Format"        adminlang="EN-US"        srclang="EN-CA"        datatype="rtf"        creationdate="20150715"        creationid="Samuel" > <prop type="RTFFontTable"> {\fonttbl {\f1 \fmodern\fprq1 \fcharset0 Courier New;} }</prop> <prop type="RTFStyleSheet"> {\stylesheet {\St \s0 {\StN Normal}} }</prop> <prop type="Name">soapui sample</prop> <prop type="Copyright">2015 NRC-CNRC</prop> <prop type="Description">Enter Description Here</prop> </header>  <body> <tu usagecount="1" changedate="20130507T125139Z" changeid="CTHIFFAULT"> <tuv xml:lang="EN-CA"> <seg>Environment Canada - Climate Change - National Inventory Report 1990-2011: Greenhouse Gas Sources and Sinks in Canada - Executive Summary</seg> </tuv> </tu>  <tu usagecount="1" changedate="20130507T125139Z" changeid="CTHIFFAULT"> <tuv xml:lang="EN-CA"> <seg><ut>{\cs6\f1\cf6\lang1024  </ut>&lt;span&gt;<ut>}</ut>Site<ut>{\cs6\f1\cf6\lang1024  </ut>&lt;/span&gt;<ut>}</ut> menu</seg> </tuv> </tu>  <tu usagecount="1" changedate="20130507T125139Z" changeid="CTHIFFAULT"> <tuv xml:lang="EN-CA"> <seg>Species at Risk Public Registry</seg> </tuv> </tu>  <tu usagecount="1" changedate="20130507T125139Z" changeid="CTHIFFAULT"> <tuv xml:lang="EN-CA"> <seg>Canada&apos;s National Inventory Submission is the annual communication through which Canada meets its annual reporting obligations under the Convention and serves as the authoritative indicator and basis of comparison of national performance.</seg> </tuv> </tu> <tu usagecount="1" changedate="20130507T125139Z" changeid="CTHIFFAULT"> <tuv xml:lang="EN-CA"> <seg>It is a source of reliable, detailed information for Canadians on key emission trends for specific sources, sectors and regions; and provides a core set of data for setting baseline emissions and further analysis.</seg> </tuv> </tu>  </body> </tmx>]]></con:value>
       </con:property>
@@ -11462,12 +11497,14 @@ def bytes = input.bytes
 //def encodedData = coder.encode(bytes)
 
 def encodedData = bytes.encodeBase64().toString()
-log.info(encodedData)
+//log.info(encodedData)
 //assert encodedData == context.expand( '${#TestSuite#fiches_termino_utf-8}' )
-log.info(testSuite.getPropertyValue( "input"))
-log.info('a')
+//log.info(testSuite.getPropertyValue( "input"))
+//log.info('a')
 testSuite.setPropertyValue( "input", encodedData)
 
+log.info('Z' + testSuite.getPropertyValue( 'fiches_termino_utf-8.txt'))
+testSuite.setPropertyValue( "delme", testSuite.getPropertyValue( 'fiches_termino_utf-8.txt').bytes.encodeBase64().toString())
 
 
 //http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
