@@ -115,7 +115,7 @@ class PortageLiveAPI {
       $context = $i["context"];
       if ( ! $i["good"] ) {
          if (!file_exists($i["context_dir"])) {
-            throw new SoapFault("PortageContext", "Context \"$context\" does not exist.\n" . debug($i));
+            throw new SoapFault("PortageContext", "Context \"$context\" does not exist.\n" . debug($i), "PortageLiveAPI");
          }
          else {
             throw new SoapFault("PortageContext", "Context \"$context\" is broken.\n" . debug($i));
@@ -507,7 +507,7 @@ class PortageLiveAPI {
 
       $content = file_get_contents($fixedTerms);
       if ( $content === FALSE)
-         throw new SoapFault("PortageServer", "incomplete read of fixed terms local file ($fixedTerms).");
+         throw new SoapFault("PortageServer", "incomplete read of fixed terms local file ($fixedTerms).", "PortageLiveAPI");
 
       return $content;
    }
