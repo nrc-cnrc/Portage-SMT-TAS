@@ -61,9 +61,9 @@ run the software:
    make -C $HOME/PortageII-cur/test-suite/unit-testing/check-installation
 This script invokes programs that are each installed differently, and exercise
 the key parts of PortageII installation.  If everything is OK, you should see
-the following message: "Everything is correctly installed!" otherwise you will
-get some indication of what could be missing or mis-configured.  Repeat the
-command until you solved all errors.
+the following message: "Installation successful." otherwise you will get some
+indication of what could be missing or mis-configured.  Repeat the command
+until you solved all errors.
 
 If you get "command not found" for any of these, your PATH is not correctly set
 or your installation failed.  Check your SETUP.bash/tcsh file and make sure you
@@ -99,10 +99,8 @@ Binary distributions only:
  - If canoe -h complains about a lib*.so* file not being found, some external
    dependency might be missing or you have the wrong version of a dynamic
    library.  An error about libstdc++.so, GLIBCXX or libgomp.so probably means
-   your version of g++ is older than the one we used to compile PortageII.  You
-   might need a newer version: you won't use the compiler, but you still need
-   its dynamic libraries.  See the ICU section below if your get an error about
-   libicu*.so.
+   a discrepancy between our compiling environment and your operating system.
+   Contact us.
  - If canoe -h says "cannot execute binary file", then we might not have built
    an executable compatible with your computing hardware.  Contact us.
 
@@ -207,10 +205,9 @@ Mandatory dependencies for all distributions:
 
  - A language modelling toolkit to train language models.  Our code can read
    and use language models, but we don't provide the training functionality,
-   since it is readily available.  If your licensing requirements allow it, we
-   recommend SRILM (http://www.speech.sri.com/projects/srilm/).  If you can't
-   use SRILM, we recommend MITLM (http://code.google.com/p/mitlm/), another
-   excellent LM toolkit which allows commercial use.  You can also use any
+   since it is readily available.  We recommend MITLM
+   (http://code.google.com/p/mitlm/) or SRILM
+   (http://www.speech.sri.com/projects/srilm/).  You can also use any
    other package which produces language models in Doug Paul's ARPA format, but
    note that in our experiments, SRILM and MITLM have worked best.
 
@@ -278,22 +275,8 @@ Optional dependencies for all distributions:
    difficulties with it, you can leave it out.  In this case, for source
    distributions, set the ICU variable in src/Makefile.user-conf to NONE.
 
-   With binary only distributions, use programs and libraries in bin/<arch>-icu
-   and lib/<arch>-icu if you have ICU, or programs in libraries in bin/<arch>
-   and lib/<arch> if you don't.  The choice of which executables to use is best
-   done by editing the user configurable variables in SETUP.bash and
-   SETUP.tcsh.  Unfortunately, dynamic ICU libraries of different versions are
-   not interchangeable, so you must have the same version we compiled with to
-   use the ICU version.  If you run "ldd bin/<arch>/canoe", you should see a
-   line in the output reading "libicuuc.so.NN => ...".  The number after .so
-   tells you what version we compiled with, e.g., 40 means 4.0 (the minor
-   version number does not matter, e.g., 3.4.1 is OK for 34).  The text after
-   the arrow will either say "not found", in which case you have a problem, or
-   it will give the path to this file, in which case things should work.  If
-   you have installed the right version of ICU and this command still says "not
-   found", add the path where the libicuuc.so.NN file is found to your
-   LD_LIBRARY_PATH environment variable, e.g., by editing SETUP.bash and
-   SETUP.tcsh as described below.
+   For binary distribution of PortageII, we now include the relevant ICU
+   libraries, so you don't need to do anything to get them.
 
    With source code distributions, if you install ICU, edit the ICU variable in
    src/Makefile.user-conf to enable the compilation of the relevant code.
