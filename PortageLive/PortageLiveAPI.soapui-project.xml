@@ -1478,7 +1478,7 @@ Allowed newline types are: s, p or w</content>
    <soapenv:Body>
       <urn:translate soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
          <srcString xsi:type="xsd:string"></srcString>
-         <context xsi:type="xsd:string">context</context>
+         <context xsi:type="xsd:string">${#TestCase#context}</context>
          <newline xsi:type="xsd:string">s</newline>
          <useCE xsi:type="xsd:boolean">false</useCE>
          <xtags xsi:type="xsd:boolean">false</xtags>
@@ -1526,7 +1526,7 @@ not(//*:translateResponse/Result/node())</path>
    <soapenv:Body>
       <urn:translate soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
          <srcString xsi:type="xsd:string">This is a simple test.</srcString>
-         <context xsi:type="xsd:string">context</context>
+         <context xsi:type="xsd:string">${#TestCase#context}</context>
          <newline xsi:type="xsd:string">s</newline>
          <useCE xsi:type="xsd:boolean">false</useCE>
          <xtags xsi:type="xsd:boolean">false</xtags>
@@ -1621,7 +1621,7 @@ not(//*:translateResponse/Result/node())</path>
    <soapenv:Body>
       <urn:translate soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
          <srcString xsi:type="xsd:string">This is a simple test.</srcString>
-         <context xsi:type="xsd:string">context</context>
+         <context xsi:type="xsd:string">${#TestCase#context}</context>
          <newline xsi:type="xsd:string">s</newline>
          <useCE xsi:type="xsd:boolean">true</useCE>
          <xtags xsi:type="xsd:boolean">false</xtags>
