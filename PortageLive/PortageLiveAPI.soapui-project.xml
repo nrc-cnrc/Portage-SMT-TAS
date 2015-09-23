@@ -1652,7 +1652,60 @@ not(//*:translateResponse/Result/node())</path>
           </con:request>
         </con:config>
       </con:testStep>
-      <con:properties/>
+      <con:testStep type="request" name="translate - Empty Source with CE">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>translate</con:operation>
+          <con:request name="translate - Empty Source with CE" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translate soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <srcString xsi:type="xsd:string"></srcString>
+         <context xsi:type="xsd:string">${#TestCase#context}</context>
+         <newline xsi:type="xsd:string">s</newline>
+         <useCE xsi:type="xsd:boolean">true</useCE>
+         <xtags xsi:type="xsd:boolean">false</xtags>
+      </urn:translate>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:assertion type="SOAP Fault Assertion" name="Not SOAP Fault"/>
+            <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+              <con:configuration>
+                <codes>200</codes>
+              </con:configuration>
+            </con:assertion>
+            <con:assertion type="XQuery Match" name="Validate Translation">
+              <con:configuration>
+                <path>(: Fancy way of checking that the element has no content :)
+not(//*:translateResponse/Result/node())</path>
+                <content>true</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:authType>No Authorization</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="translate"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
+      <con:properties>
+        <con:property>
+          <con:name>context</con:name>
+          <con:value>${#TestSuite#context}</con:value>
+        </con:property>
+      </con:properties>
     </con:testCase>
     <con:properties>
       <con:property>
