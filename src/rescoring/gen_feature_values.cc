@@ -75,14 +75,27 @@ int MAIN(argc, argv)
 
    getArgs(argc, argv);
 
+   // Prepare the output stream.
+   oMagicStream outstr(out_file);
+
    // Prepare the source sentences
    Sentences  src_sents;
    const Uint S  = RescoreIO::readSource(src_file, src_sents);
-   if (S == 0)
-      error(ETFatal, "empty source file: %s", src_file.c_str());
    const Uint KS = countFileLines(nbest_file);
-   const Uint K = KS / S;
+   if (S == 0 && KS == 0) {
+      error(ETWarn, "empty input files: %s, %s", src_file.c_str(), nbest_file.c_str());
+      // This is not an error but we shall stop here.
+      exit(0);
+   }
 
+   if ((S == 0 && KS > 0) or (S > 0 && KS == 0)) {
+      error(ETFatal, "Problem with the input sizes (NB: %d, S: %d)", KS, S);
+   }
+
+   const Uint K = KS / S;
+   if (K * S != KS) {
+      error(ETFatal, "Nbest list's size(%d) is not a multiple of source's size(%d).", KS, S);
+   }
 
    // Prepare the feature function
    // EJJ 11Jul2006
@@ -120,9 +133,6 @@ int MAIN(argc, argv)
          error(ETFatal, "%s requires the alignment file", name.c_str());
       }
    }
-
-   // Prepare the output stream
-   oMagicStream outstr(out_file);
 
    outstr << setprecision(10);
    NbestReader  pfr(FileReader::create<Translation>(nbest_file, K));
