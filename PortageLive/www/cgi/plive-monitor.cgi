@@ -210,8 +210,9 @@ if (my $filename = param('file')     # The name of the file we are monitoring
                }
             }
             print
+               div({-id => 'translationLink'},
                p("Output file is ready.  Right-click this link to save the file:",
-               a({-href=>$url, -id=>"translations_file"}, $filename));
+                  a({-href=>$url, -id=>"translations_file"}, $filename)));
          }
          else { # The output file doesn't exist, so something went wrong
             print p("Translation job terminated with no output.");
