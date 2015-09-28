@@ -48,6 +48,7 @@ BINSCRIPTS = \
 	cow-timing-full.pl \
 	gen-features-parallel.pl \
 	rat.sh \
+	rescore.py \
 	rescore-bwd-lm.sh \
 	rescore-train-micro.sh \
 	rescoremodel2canoearg.sh \
