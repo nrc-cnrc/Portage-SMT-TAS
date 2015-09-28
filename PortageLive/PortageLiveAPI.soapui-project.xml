@@ -7538,9 +7538,144 @@ testSuite.setPropertyValue( "delme.txt", new String(context.expand( '${#TestSuit
           </con:assertion>
           <con:assertion type="XQuery Match" name="Validate the translation">
             <con:configuration>
-              <path>//h2[text() = "Translation:"]/following-sibling::p[1]</path>
+              <path>//div[@id = "translation"]/p[1]</path>
               <content>C'est une test.</content>
               <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters>
+            <con:parameter>
+              <con:name>context</con:name>
+              <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+              <con:style>QUERY</con:style>
+              <con:default>toy-regress-en2fr</con:default>
+              <con:path xsi:nil="true"/>
+              <con:description xsi:nil="true"/>
+            </con:parameter>
+            <con:parameter>
+              <con:name>source_text</con:name>
+              <con:value>This is a test.</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>translate_text</con:name>
+              <con:value>on</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>filter</con:name>
+              <con:value>no filtering</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>newline</con:name>
+              <con:value>p</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+          </con:parameters>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="httprequest" name="Presence of Translation section">
+        <con:settings/>
+        <con:config method="GET" xsi:type="con:HttpRequest" name="Presence of Translation section" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+          </con:settings>
+          <con:endpoint>${#TestSuite#endpoint}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="Validate the translation">
+            <con:configuration>
+              <path>//div[@id = "translation"]/p[1]</path>
+              <content>C'est une test.</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="There should be a Source section">
+            <con:configuration>
+              <path>exists(//div[@id = "source"])</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="There should be a paragraph that holds the source text in the Source section">
+            <con:configuration>
+              <path>count(//div[@id = "source"]/p)</path>
+              <content>1</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="There should be a Target section">
+            <con:configuration>
+              <path>exists(//div[@id = "translation"])</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="There should be a paragraph that holds the translation in the Target section">
+            <con:configuration>
+              <path>count(//div[@id = "translation"]/p)</path>
+              <content>1</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters>
+            <con:parameter>
+              <con:name>context</con:name>
+              <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+              <con:style>QUERY</con:style>
+              <con:default>toy-regress-en2fr</con:default>
+              <con:path xsi:nil="true"/>
+              <con:description xsi:nil="true"/>
+            </con:parameter>
+            <con:parameter>
+              <con:name>source_text</con:name>
+              <con:value>This is a test.</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>translate_text</con:name>
+              <con:value>on</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>filter</con:name>
+              <con:value>no filtering</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>newline</con:name>
+              <con:value>p</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+          </con:parameters>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="httprequest" name="Debugging Tools">
+        <con:settings/>
+        <con:config method="GET" xsi:type="con:HttpRequest" name="Debugging Tools" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+          </con:settings>
+          <con:endpoint>${#TestSuite#endpoint}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
             </con:configuration>
           </con:assertion>
           <con:assertion type="XQuery Match" name="There should be three debugging tools">
@@ -7553,6 +7688,27 @@ testSuite.setPropertyValue( "delme.txt", new String(context.expand( '${#TestSuit
           <con:assertion type="XQuery Match" name="There should be a link to translate more text">
             <con:configuration>
               <path>exists(//a[@id = "translateMore"])</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="There should be an Out-Of-Vocabulary link">
+            <con:configuration>
+              <path>exists(//ul[@id = "debuggingToolsList"]/li/a[@id = "oov"])</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="There should be an phrase alignment link">
+            <con:configuration>
+              <path>exists(//ul[@id = "debuggingToolsList"]/li/a[@id = "pal"])</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="There should be an trace link">
+            <con:configuration>
+              <path>exists(//ul[@id = "debuggingToolsList"]/li/a[@id = "trace"])</path>
               <content>true</content>
               <allowWildcards>false</allowWildcards>
             </con:configuration>
@@ -7609,7 +7765,7 @@ testSuite.setPropertyValue( "delme.txt", new String(context.expand( '${#TestSuit
           </con:assertion>
           <con:assertion type="XQuery Match" name="Validate the translation">
             <con:configuration>
-              <path>//h2[text() = "Translation:"]/following-sibling::p[1]</path>
+              <path>//div[@id = "translation"]/p[1]</path>
               <content>C'est une test.</content>
               <allowWildcards>false</allowWildcards>
             </con:configuration>
@@ -7715,6 +7871,284 @@ testSuite.setPropertyValue( "delme.txt", new String(context.expand( '${#TestSuit
             <con:parameter>
               <con:name>newline</con:name>
               <con:value>p</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+          </con:parameters>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="httprequest" name="xtags Request">
+        <con:settings/>
+        <con:config method="GET" xsi:type="con:HttpRequest" name="xtags Request" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+          </con:settings>
+          <con:endpoint>${#TestSuite#endpoint}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="Validate the translation">
+            <con:configuration>
+              <path>//div[@id = "translation"]/p[1]</path>
+              <content><![CDATA[<p>&lt;blue>C'&lt;red>est&lt;/red> une test.&lt;/blue></p>]]></content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters>
+            <con:parameter>
+              <con:name>context</con:name>
+              <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+              <con:style>QUERY</con:style>
+              <con:default>toy-regress-en2fr</con:default>
+              <con:path xsi:nil="true"/>
+              <con:description xsi:nil="true"/>
+            </con:parameter>
+            <con:parameter>
+              <con:name>source_text</con:name>
+              <con:value>&lt;blue>This &lt;red>is&lt;/red> a test.&lt;/blue></con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>translate_text</con:name>
+              <con:value>on</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>filter</con:name>
+              <con:value>no filtering</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>newline</con:name>
+              <con:value>p</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>text_xtags</con:name>
+              <con:value>on</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+          </con:parameters>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="httprequest" name="one sentence per line Request">
+        <con:settings/>
+        <con:config method="POST" xsi:type="con:HttpRequest" name="one sentence per line Request" postQueryString="true" mediaType="multipart/form-data" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+          </con:settings>
+          <con:encoding>UTF-8</con:encoding>
+          <con:endpoint>${#TestSuite#endpoint}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="There should be 1 paragraph">
+            <con:configuration>
+              <path>count(//div[@id = "translation"]/p)</path>
+              <content>1</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="The first and only paragraph should have three lines">
+            <con:configuration>
+              <path>count(tokenize(replace(data(//div[@id = "translation"]/p[1]), '\s+\n\s+', "	"), '\t'))</path>
+              <content>3</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters>
+            <con:parameter>
+              <con:name>context</con:name>
+              <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+              <con:style>QUERY</con:style>
+              <con:default>toy-regress-en2fr</con:default>
+              <con:path xsi:nil="true"/>
+              <con:description xsi:nil="true"/>
+            </con:parameter>
+            <con:parameter>
+              <con:name>source_text</con:name>
+              <con:value>I eat an apple.  It is apple picking time.${="\r\n"}The car is blue.${="\r\n\r\n"}It is Friday.</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>translate_text</con:name>
+              <con:value>on</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>filter</con:name>
+              <con:value>no filtering</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>newline</con:name>
+              <con:value>s</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+          </con:parameters>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="httprequest" name="one paragraph per line Request">
+        <con:settings/>
+        <con:config method="POST" xsi:type="con:HttpRequest" name="one paragraph per line Request" postQueryString="true" mediaType="multipart/form-data" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+          </con:settings>
+          <con:encoding>UTF-8</con:encoding>
+          <con:endpoint>${#TestSuite#endpoint}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="There should be 3 paragraphs">
+            <con:configuration>
+              <path>count(//div[@id = "translation"]/p)</path>
+              <content>3</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="The first paragraph should have two sentences">
+            <con:configuration>
+              <path>count(tokenize(//div[@id = "translation"]/p[1]/text()[1], "\.\s+")[. ne ''])</path>
+              <content>2</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="The second paragraph should have one sentence">
+            <con:configuration>
+              <path>count(tokenize(//div[@id = "translation"]/p[2]/text(), "\.\s+")[. ne ''])</path>
+              <content>1</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="The third paragraph should have one sentence">
+            <con:configuration>
+              <path>count(tokenize(//div[@id = "translation"]/p[3]/text(), "\.\s+")[. ne ''])</path>
+              <content>1</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters>
+            <con:parameter>
+              <con:name>context</con:name>
+              <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+              <con:style>QUERY</con:style>
+              <con:default>toy-regress-en2fr</con:default>
+              <con:path xsi:nil="true"/>
+              <con:description xsi:nil="true"/>
+            </con:parameter>
+            <con:parameter>
+              <con:name>source_text</con:name>
+              <con:value>I eat an apple.  It is apple picking time.${="\r\n"}The car is blue.${="\r\n\r\n"}It is Friday.${="\r\n"}</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>translate_text</con:name>
+              <con:value>on</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>filter</con:name>
+              <con:value>no filtering</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>newline</con:name>
+              <con:value>p</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+          </con:parameters>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="httprequest" name="Blank lines mark paragraph Request">
+        <con:settings/>
+        <con:config method="POST" xsi:type="con:HttpRequest" name="Blank lines mark paragraph Request" postQueryString="true" mediaType="multipart/form-data" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+          </con:settings>
+          <con:encoding>UTF-8</con:encoding>
+          <con:endpoint>${#TestSuite#endpoint}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="There should be 2 paragraphs aka lines in the translation">
+            <con:configuration>
+              <path>count(//div[@id = "translation"]/p)</path>
+              <content>2</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="The first paragraph should have three sentences">
+            <con:configuration>
+              <path>count(tokenize(replace(data(//div[@id = "translation"]/p[1]), '\s+\n\s+', "	"), '\t'))</path>
+              <content>3</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="The second paragraph should have one sentence">
+            <con:configuration>
+              <path>count(normalize-space(tokenize(//div[@id = "translation"]/p[2]/text(), "\.\s+"))[. ne ''])</path>
+              <content>1</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters>
+            <con:parameter>
+              <con:name>context</con:name>
+              <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+              <con:style>QUERY</con:style>
+              <con:default>toy-regress-en2fr</con:default>
+              <con:path xsi:nil="true"/>
+              <con:description xsi:nil="true"/>
+            </con:parameter>
+            <con:parameter>
+              <con:name>source_text</con:name>
+              <con:value>I eat an apple.  It is apple picking time.${="\r\n"}The car is blue.${="\r\n\r\n"}It is Friday.${="\r\n"}</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>translate_text</con:name>
+              <con:value>on</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>filter</con:name>
+              <con:value>no filtering</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>newline</con:name>
+              <con:value>w</con:value>
               <con:style>QUERY</con:style>
             </con:parameter>
           </con:parameters>
