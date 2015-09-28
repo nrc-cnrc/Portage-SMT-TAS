@@ -1,5 +1,5 @@
-Sparse Features in Portage
---------------------------
+Sparse Features in PortageII
+----------------------------
 
 Sparse features are decoder features that are not necessarily active on each
 target phrase. When they are active, they have value 1; otherwise they have
@@ -22,7 +22,7 @@ The remainder of this document is organized as follows:
 1. Using Sparse Features
 ------------------------
 
-To use sparse features in Portage, you first create a sparse model file
+To use sparse features in PortageII, you first create a sparse model file
 containing "event template" specifications. Each event template generates one
 or more sparse features (later we'll get to why these are called event
 templates and not feature templates, but for now you can think of them as
@@ -140,13 +140,6 @@ being used, its value gets set to 0 in the nbest lists or lattices that the
 tuning algorithms work with (so it plays no role), and its weight is always 1
 in the model read in by canoe (so the individual sparse feature weights get
 used as-is).
-
-A final note about using the "sparse-model" feature in canoe is that several
-flags of the form "#flag" can follow the pathname argument. Most of these are
-for use with FEDA (see portage/rescoring/feda.txt) and are set up automatically
-when you tune with the -feda flag. One that you may want to experiment with
-manually is "#pfs" which changes the way future scores are computed. See "canoe
--h" and "Writing Sparse Features" below for more info.
 
 2. Another Way to Train Sparse Weights
 --------------------------------------

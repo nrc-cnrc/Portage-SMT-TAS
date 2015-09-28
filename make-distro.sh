@@ -341,6 +341,7 @@ make_pdfs() {
          r mkdir -p ../doc/confidence
          r cp -p confidence/README confidence/ce*.ini ../doc/confidence/
          r cp -p rescoring/README ../doc/rescoring.README
+         r cp -p canoe/sparse-features.txt ../doc/sparse-features.README
       r popd
 
       r pushd ./test-suite/unit-testing/toy
