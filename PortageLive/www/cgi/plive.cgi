@@ -439,23 +439,14 @@ sub processText {
 sub monitor {
     my ($work_name, $work_dir, $outfilename, $context) = @_;
 # Output redirection to plive-monitor
-    print header(-type=>'text/html',
-                 -charset=>'utf-8');
 
     my @path = splitdir($work_dir);
     while (@path and $path[0] ne 'plive') { shift @path; }
     my $time = time();
     my $redirect="plive-monitor.cgi?time=${time}&file=${outfilename}&context=${context}&dir=".join("/",@path);
     $redirect .= $CONTEXT{$context}->{ce_model} ? "&ce=1" : "&ce=0";
-    print start_html(-title=>"PORTAGELive",
-                     -head=>meta({-http_equiv => 'refresh',
-                                  -content => "0;url=${redirect}"}));
 
-    print
-        NRCBanner(),
-        h1("PORTAGELive"),
-        "\n";
-    print copyright();
+    print redirect(-uri=>$redirect);
 }
 
 # translationTextOutput($source, @target)
