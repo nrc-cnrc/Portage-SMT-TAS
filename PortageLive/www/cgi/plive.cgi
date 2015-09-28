@@ -29,6 +29,10 @@ file upload.  In the latter case, the translation job is performed in
 the background, and the user is redirected to F<plive-monitor.cgi> while
 awaiting job completion.
 
+=head1 Translate from the command line.
+
+./plive.cgi context=toy-regress-en2fr source_text="This is a test." translate_text="Translate Text"
+
 =head1 CONFIGURATION
 
 For this script to work for your application, you will likely have to
@@ -59,7 +63,7 @@ Michel Simard
 # NOTE
 # HOW TO test this script from the command line:
 # http://curl.haxx.se/docs/httpscripting.html
-# curl --form "xml=1" --form "filename=@/root/PORTAGEshared/src/xliff/test_numbers_hyphens_2.docx.sdlxliff" --form "TranslateFile=Translate File" --form "context=reversed" 'http://localhost/cgi-bin/plive.cgi'
+# curl --form "is_xml=1" --form "filename=@/root/PORTAGEshared/src/xliff/test_numbers_hyphens_2.docx.sdlxliff" --form "translate_file=Translate File" --form "context=reversed" 'http://localhost/cgi-bin/plive.cgi'
 
 use strict;
 use warnings;
@@ -140,9 +144,10 @@ $|=1;
 
 my %CONTEXT = getContexts(@PORTAGE_CONTEXTS);
 
-if (param('TranslateBox') or param('TranslateFile')) {
+if (param('translate_text') or param('translate_file')) {
     processText();
-} else {
+}
+else {
     printForm();
 }
 
@@ -195,17 +200,19 @@ sub printForm {
           Tr(td({colspan=>2, align=>'left', border=>0},
                 p("Either type in some text, or select a text file to translate (plain text or TMX or SDLXLIFF).<BR /> Press the <em>Translate Text</em> or the <em>Translate File</em> button to have PORTAGELive <br /> translate your text or file."),
                 br())),
+
+
           ## Text-box (textarea) interface:
 
           Tr(td({colspan=>2, align=>'left'},
                 strong("Type in source-language text:"))),
           Tr(td({colspan=>2, align=>'left'},
-                textarea(-name=>'textbox',
+                textarea(-name=>'source_text',
                          -value=>'',
                          -columns=>66,
                          -rows=>10))),
           Tr(td({align=>'center'},
-                checkbox(-name=>'textbox_xtags',
+                checkbox(-name=>'text_xtags',
                          -checked=>0,
                          -label=>'')),
              td(strong("xtags"),
@@ -217,7 +224,7 @@ sub printForm {
              td(strong("phrase table"),
                 "-- Check this box if you want to genereate a phrase table per source sentence for debugging purposes.")),
           Tr(td({colspan=>2, align=>'center'},
-                submit(-name=>'TranslateBox', -value=>'Translate Text'))),
+                submit(-name=>'translate_text', -value=>'Translate Text'))),
 
 
           ## File-upload interface:
@@ -232,7 +239,7 @@ sub printForm {
                           -size=>60))),
           Tr({valign=>'top'},
              td({align=>'right'},
-                checkbox(-name=>'xml',
+                checkbox(-name=>'is_xml',
                          -checked=>0,
                          -label=>'')),
              td(strong("TMX/SDLXLIFF"),
@@ -261,8 +268,14 @@ sub printForm {
                 "-- Set the filtering threshold on confidence (TMX/SDLXLIFF files only).")),
           Tr({valign=>'top'},
              td({colspan=>2, align=>'center'},
-                submit(-name=>'TranslateFile', -value=>'Translate File'))),
-          Tr(td({colspan=>2, align=>'center'}, hr())),
+                submit(-name=>'translate_file', -value=>'Translate File'))),
+          Tr(td({colspan=>2, align=>'center'},
+
+
+          ## Advanced options.
+          #
+          hr())),
+
           Tr(td({colspan=>2, align=>'left'},
                 strong("Advanced Options (plain text input):"))),
           Tr({valign=>'top'},
@@ -303,8 +316,12 @@ sub processText {
         problem("No system (\"context\") specified.");
     }
 
+    if (not -d "$PORTAGE_MODEL_DIR/$context") {
+        problem("Invalid context (\"$context\") specified.");
+    }
+
     # Create the work dir, get the source text in there:
-    if (param('TranslateFile') and param('filename')) {  # File upload
+    if (param('translate_file') and param('filename')) {  # File upload
         my $src_file = tmpFileName(param('filename'))
             || problem("Can't get tmpFileName()");
         my @src_file_parts = split(/[:\\\/]+/, param('filename'));
@@ -315,27 +332,27 @@ sub processText {
             || problem("Can't copy input file $src_file into $work_dir/Q.in");
 
         # Do some basic checks on source text:
-        if (param('xml')) {
+        if (param('is_xml')) {
             checkXML("$work_dir/Q.in");
         }
         else {
             checkFile("$work_dir/Q.in", param('notok'), param('noss'));
         }
-
-    } elsif (param('TranslateBox') and param('textbox')) {  # Text box
+    }
+    elsif (param('translate_text') and param('source_text')) {  # Text box
         problem("Input text too large (limit = ${MAX_TEXTBOX}).  Try file upload instead.")
-            if length(param('textbox')) > $MAX_TEXTBOX;
+            if length(param('source_text')) > $MAX_TEXTBOX;
         $work_name = join("_", $context, "Text-Box");
         $work_dir = makeWorkDir($work_name)
             || problem("Can't make work directory for $work_name");
         open(my $fh, "> $work_dir/Q.in")
             || problem("Can't create input file Q.in in work directory $work_dir");
-        print {$fh} param('textbox'), "\n";
+        print {$fh} param('source_text'), "\n";
         close $fh;
 
-        push @tr_opt, "-xtags" if (param('textbox_xtags'));
-
-    } else {
+        push @tr_opt, "-xtags" if (param('text_xtags'));
+    }
+    else {
         problem("No text or file to translate");
     }
 
@@ -356,23 +373,24 @@ sub processText {
                             : param('filter') + 0);
     if ($filter_threshold > 0) {
         problem("Confidence-based filtering is only currently compatible with TMX input.")
-            unless param('xml');
+            unless param('is_xml');
         problem("Confidence-based filtering not available with system %s", $context)
             unless $CONTEXT{$context}->{ce_model};
 
         push @tr_opt, "-filter=$filter_threshold";
     }
 
-    if (param('TranslateFile') and param('xml')) {
+    my $newline = param('newline') || "p";
+    if (param('translate_file') and param('is_xml')) {
         push @tr_opt, ("-xml", "-nl=s");
         push @tr_opt, "-xtags" if (param('file_xtags'));
     }
     else {
         push @tr_opt, param('notok') ? "-notok": "-tok";
-        push @tr_opt, "-nl=" . param('newline');
+        push @tr_opt, "-nl=" . $newline;
     }
 
-    unless (param('TranslateFile') and param('filename')) {
+    unless (param('translate_file') and param('filename')) {
         if (param('enable_phrase_table_debug')) {
            push @tr_opt, "-xtra-decode-opts='-triangularArrayFilename $work_dir/P.triangArray.txt'";
         }
@@ -381,12 +399,12 @@ sub processText {
     my $tr_opt = join(" ", @tr_opt);
     my $tr_cmd = $CONTEXT{$context}->{script} . " ${tr_opt} \"$work_dir/Q.in\" >& \"$work_dir/trace\"";
 
-    my $tr_output = catdir($work_dir, param('xml') ? "QP.xml" : "P.txt");
+    my $tr_output = catdir($work_dir, param('is_xml') ? "QP.xml" : "P.txt");
     my $user_output = catdir($work_dir, $outfilename);
     param('trace', "$work_dir/trace");
 
     # Launch translation
-    if (param('TranslateFile') and param('filename')) {
+    if (param('translate_file') and param('filename')) {
         monitor($work_name, $work_dir, $outfilename, $context);
 
         # Launch translate.pl in the background for uploaded files, in order to return to
@@ -396,14 +414,17 @@ sub processText {
         close STDOUT;
         system("/bin/bash", "-c", "(if (${tr_cmd}); then ln -s ${tr_output} ${user_output}; fi; touch $work_dir/done)&") == 0
             or die("Call returned with error code: ${tr_cmd} (error = %d)", $?>>8);
-    } else {
+    }
+    else {
         # Perform job here for text box
         system(${tr_cmd}) == 0
             or problem("Call returned with error code: ${tr_cmd} (error = %d)", $?>>8);
         open(my $P, "<${tr_output}") or problem("Can't open output file ${tr_output}");
+        local $/ = "\n\n" if ($newline eq "w");
         my @p = readline($P);
         close $P;
-        textBoxOutput(param('textbox'), $work_dir, @p);
+        @p = (join("\n", @p)) if ($newline eq "s");
+        translationTextOutput(param('source_text'), $work_dir, @p);
     }
 }
 
@@ -418,32 +439,23 @@ sub processText {
 sub monitor {
     my ($work_name, $work_dir, $outfilename, $context) = @_;
 # Output redirection to plive-monitor
-    print header(-type=>'text/html',
-                 -charset=>'utf-8');
 
     my @path = splitdir($work_dir);
     while (@path and $path[0] ne 'plive') { shift @path; }
     my $time = time();
     my $redirect="plive-monitor.cgi?time=${time}&file=${outfilename}&context=${context}&dir=".join("/",@path);
     $redirect .= $CONTEXT{$context}->{ce_model} ? "&ce=1" : "&ce=0";
-    print start_html(-title=>"PORTAGELive",
-                     -head=>meta({-http_equiv => 'refresh',
-                                  -content => "0;url=${redirect}"}));
 
-    print
-        NRCBanner(),
-        h1("PORTAGELive"),
-        "\n";
-    print copyright();
+    print redirect(-uri=>$redirect);
 }
 
-# textBoxOutput($source, @target)
+# translationTextOutput($source, @target)
 #
 # Produce an HTML page with source text and target translation
 # - $source: source-language text, as a single string of text
 # - @target: target language translation, as a list of text segments
 
-sub textBoxOutput {
+sub translationTextOutput {
     my ($source, $workDir, @target) = @_;
 
     # strip out webroot since the traceFile argument to plive-monitor will have the webroot prepended later on.
@@ -456,21 +468,33 @@ sub textBoxOutput {
 
     $source = HTML::Entities::encode_entities($source, '<>&');
     $source =~ s/\n/<br \/>/g;
+
+    #print "AAA: ", scalar(@target);
+    # ./plive.cgi context=toy-regress-en2fr source_text=$"I eat an apple. It is apple picking time.\nThe car is blue.\n\nIt is Friday." translate_text=on
+    @target = map { HTML::Entities::encode_entities($_, '<>&') } @target;
+
+    @target = map { chomp; s#\n+#<br />#g; $_ } @target;
+
     print
         NRCBanner(),
         h1("PORTAGELive"),
-        h2("Source text:"),
-        p($source),
-        h2("Translation:"),
-        p(join("<br />", map { HTML::Entities::encode_entities($_, '<>&') } @target));
-    print p(a({-href=>"plive.cgi?context=".param('context')}, "Translate more text"));
+        div({-id=>'source'},
+           h2("Source text:"),
+           p($source)), "\n",
+        div({-id=>'translation'},
+           h2("Translation:"),
+           map { p($_) } @target);
+    print p(a({-id=>'translateMore', -href=>"plive.cgi?context=".param('context')}, "Translate more text"));
 
     my @debuggingTools = (
-       a({-href=>"$workDir/oov.html"}, "Out-of-vocabulary words"),
-       a({-href=>"$workDir/pal.html"}, "Phrase alignments"),
-       a({-href=>"plive-monitor.cgi?traceFile=$workDir/trace"}, "Trace file"));
-    push(@debuggingTools, a({-href=>"$workDir/P.triangArray.txt"}, "Phrase tables")) if (-r "$WEB_PATH/$workDir/P.triangArray.txt");
-    print div({-style=>'font-size: 0.8em;'}, h3("Debugging Tools"),  ul(li({-type=>'circle'}, \@debuggingTools)));
+       a({-id=>'oov', -href=>"$workDir/oov.html"}, "Out-of-vocabulary words"),
+       a({-id=>'pal', -href=>"$workDir/pal.html"}, "Phrase alignments"),
+       a({-id=>'trace', -href=>"plive-monitor.cgi?traceFile=$workDir/trace"}, "Trace file"));
+    push(@debuggingTools, a({-id=>'triangArray', -href=>"$workDir/P.triangArray.txt"}, "Phrase tables")) if (-r "$WEB_PATH/$workDir/P.triangArray.txt");
+
+    print div({-id=>'debuggingToolsDiv', -style=>'font-size: 0.8em;'},
+       h3("Debugging Tools"),
+       ul({-id=>"debuggingToolsList"}, li({-type=>'circle'}, \@debuggingTools)));
 
     #my @params = param();
     #print "<PRE> @params </PRE>";
@@ -617,8 +641,10 @@ sub problem {
 
     print
         NRCBanner(),
-        h1("PORTAGELive PROBLEM"),
-        p(sprintf($message, @args)),
+        "\n",
+        div({-id=>'problemDescription'},
+           h1("PORTAGELive PROBLEM"),
+           p(sprintf($message, @args))),
         "\n";
 
     if (param('trace') and -r param('trace')) {
