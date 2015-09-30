@@ -1,0 +1,11 @@
+ICU_HOME=${ICU_HOME_OVERRIDE:-$PORTAGE/third-party/icu}
+if [[ -d $ICU_HOME ]]; then
+   export ICU=${ICU_HOME}
+   export PATH=$ICU_HOME/bin:$PATH
+   export LIBRARY_PATH=$ICU_HOME/lib${LIBRARY_PATH:+:$LIBRARY_PATH}
+   export LD_LIBRARY_PATH=$ICU_HOME/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+   export LD_RUN_PATH=$ICU_HOME/lib${LD_RUN_PATH:+:$LD_RUN_PATH}
+   export CPLUS_INCLUDE_PATH=$ICU_HOME/include${CPLUS_INCLUDE_PATH:+:$CPLUS_INCLUDE_PATH}
+   export MANPATH=$ICU_HOME/share/man:$MANPATH
+fi
+unset ICU_HOME

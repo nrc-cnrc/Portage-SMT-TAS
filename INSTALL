@@ -32,10 +32,10 @@ If you chose a location other than $HOME/PortageII-cur, edit SETUP.bash and
 SETUP.tcsh and change the value of the PORTAGE variable to the actual location
 where your installed PortageII, and adjust the next steps below accordingly.
 
-Add $HOME/PortageII-cur/{bin,lib,include} to the appropriate environment
-variables by sourcing $HOME/PortageII-cur/SETUP.bash or SETUP.tcsh (depending
-on your preferred shell - if you use a shell other than bash or csh/tcsh,
-you're on your own):
+Add $HOME/PortageII-cur/{bin,lib} to the appropriate environment variables by
+sourcing $HOME/PortageII-cur/SETUP.bash or SETUP.tcsh (depending on your
+preferred shell - if you use a shell other than bash or csh/tcsh, you're on
+your own):
    source $HOME/PortageII-cur/SETUP.bash
 or
    source $HOME/PortageII-cur/SETUP.tcsh
@@ -132,13 +132,17 @@ performance on some sample datasets.
 Before installing PortageII itself, you need to make sure you have the
 following dependencies installed.
 
-Note that in the following, we show instructions for installing all external
-packages to $PORTAGE/pkgs/<package_name>.  This is just a suggestion, you can
-choose any destination you want, as long as you set the required configuration
-variables accordingly afterwards.  You also can simplify your configuration by
-always using the same destination, say $PORTAGE/pkgs, or even just $PORTAGE,
-but then it will be harder to distinguish files installed by different
-packages.
+Note that in the following, we show instructions for installing external
+packages to $PORTAGE/third-party, or to $PORTAGE/third-party/<name> in a few
+cases.  This is just a suggestion, but if you follow this pattern the default
+SETUP.bash/tcsh will pick up things installed there automatically.  We
+recommend using $PORTAGE/third-party for simple packages, so they all end up in
+$PORTAGE/third-party/{bin,lib}, but for complex packages, such as a manually
+installed Python, add <name> for better control.
+
+If you choose different destinations, adjust SETUP.bash/tcsh accordingly.  In
+any case, make sure you update the User Configurable Variables section of
+SETUP.bash/tcsh.
 
 Mandatory dependencies for all distributions:
 
@@ -184,15 +188,12 @@ Mandatory dependencies for all distributions:
    http://www.zlib.net and install it by hand.
 
    This procedure worked for us:
-      # Obtain Python-2.7.1.tar.bz2 from the web.
-      tar -xjf Python-2.7.1.tar.bz2
-      cd Python-2.7.1
-      ./configure --prefix=$PORTAGE/pkgs/python2.7.1
+      # Obtain Python-2.7.10.tgz from the web.
+      tar -xjf Python-2.7.10.tgz
+      cd Python-2.7.10
+      ./configure --prefix=$PORTAGE/third-party/Python2.7.10
       make -j 5
       make install -j 5
-      # Add $PORTAGE/pkgs/python2.7.1/bin to EXTRA_DYNLIB_PATH in SETUP.bash/tcsh,
-      # or: ln -s $PORTAGE/pkgs/python2.7.1/bin/python $PORTAGE/bin/python
-      #     ln -s $PORTAGE/pkgs/python2.7.1/lib/libpython2.7.so* $PORTAGE/lib/
 
    PortageLive also needs to see python 2.7, and the above won't suffice
    because PortageLive binaries are normally installed in a different location.
@@ -200,16 +201,28 @@ Mandatory dependencies for all distributions:
    subdirectory as well as the "PortageLive Manual" section of the PortageII
    user manual: doc/user-manual.html / Portage Live Manual), you need to create
    the symlinks so PortageLive sees your custom python installation:
-      ln -s /PATH_TO/python2.7.x/bin/python /opt/PortageII/bin/python
-      ln -s /PATH_TO/python2.7.x/lib/libpython2.7.so* /opt/PortageII/lib/
+      ln -s /PATH_TO/Python2.7.x/bin/python /opt/PortageII/bin/python
+      ln -s /PATH_TO/Python2.7.x/lib/libpython2.7.so* /opt/PortageII/lib/
+   If using multiple PortageLive servers, you need to perform the full Python
+   2.7 installation procedure on each of them, unlike other third party
+   software, which automatically get installed along with PortageLive itself.
 
  - A language modelling toolkit to train language models.  Our code can read
    and use language models, but we don't provide the training functionality,
    since it is readily available.  We recommend MITLM
-   (http://code.google.com/p/mitlm/) or SRILM
-   (http://www.speech.sri.com/projects/srilm/).  You can also use any
+   (http://code.google.com/p/mitlm/ or https://github.com/mit-nlp/mitlm) or
+   SRILM (http://www.speech.sri.com/projects/srilm/).  You can also use any
    other package which produces language models in Doug Paul's ARPA format, but
    note that in our experiments, SRILM and MITLM have worked best.
+
+   Installing the current version of MITLM from the Git repo on GitHub is
+   easiest:
+      # Download ZIP from https://github.com/mit-nlp/mitlm or use Git:
+      git clone https://github.com/mit-nlp/mitlm.git
+      cd mitlm
+      ./autogen.sh --prefix=$PORTAGE/third-party
+      make -j 5
+      make -j 5 install
 
  - Java - A JRE (Java Runtime Environment) version 1.6 or more recent is
    required to perform decoder weight tuning.  The command "java" must be on
@@ -221,81 +234,94 @@ Mandatory dependencies for all distributions:
  - MGIZA++ - PortageII supports combining IBM4 alignments with its own HMM and
    IBM2 alignments for improved phrase table extraction.  IBM4 alignments must
    be generated by an external word-alignment toolkit.  Although any toolkit in
-   the giza family should work, we have only tested MGIZA++, a multi-threaded
-   implementation of Giza++.  You can obtain it here:
-   http://sourceforge.net/projects/mgizapp/.
+   the giza family should work, we have only tested MGIZA++, a fast,
+   multi-threaded implementation.  It is now available from GitHub:
+   https://github.com/moses-smt/mgiza
 
-   As we write this, MGIZA++ versions 0.6.3 and 0.7.2 are available and
-   equivalent for our purposes.  For installation under Linux, however, version
-   0.6.3 can be easier.  We're not aware of any advantages version 0.7.2 might
-   have over 0.6.3 on Linux machines.
+   Get and install the current version:
+      # Download ZIP from https://github.com/moses-smt/mgiza or use Git:
+      git clone https://github.com/moses-smt/mgiza.git
+      cd mgiza/mgizapp
+      # If you have cmake, you can try to follow the instructions in INSTALL,
+      # but they did not work easily for us. The manual-compile route was much
+      # easier:
+      cd manual-compile
+      # Edit compile.sh and
+      #  - set SRC_DIR to mgiza/mgizapp/src
+      #  - set BOOST_ROOT to where you installed BOOST (see boost section later
+      #    in this file)
+      #  - we had to change BOOST_LIBRARYDIR to $BOOST_ROOT/lib, instead of
+      #    $BOOST_ROOT/lib64, but the default might work for you as is.
+      ./compile.sh
+      # Edit transfer.sh to set the scp destination to $PORTAGE/third-party/bin.
+      ./transfer.sh
 
-   Installation of MGIZA++ 0.6.3 is straightforward.  This worked for us:
+   If you have an old download of version 0.6.3 or 0.7.2, or a current one,
+   they are all equivalent for our purposes.  If it works, keep what you have.
+   We're not aware of any advantages one version has over another, so you can
+   chose whichever one you successfully compile.
+
+   Version 0.6.3 can still be found at http://www.cs.cmu.edu/~qing/release/
+   and is easy to install. This worked for us:
       # Obtain mgizapp-0.6.3.tar.gz
       tar -xzf mgizapp-0.6.3.tar.gz
       cd mgizapp
-      ./configure --prefix=$PORTAGE/pkgs/mgizapp-0.6.3
+      ./configure --prefix=$PORTAGE/third-party
       make -j 5
       make -j 5 install
       # Add $PORTAGE/pkgs/mgizapp-0.6.3/bin *and*
       # $PORTAGE/pkgs/mgizapp-0.6.3/scripts to EXTRA_PROGRAM_PATH in
       # SETUP.bash/tcsh.
 
-   Installation of MGIZA++ 0.7.2 can be a bit trickier:
-      # Obtain mgizapp-0.7.2.tar.gz
-      tar -xzf mgizapp-0.7.2.tar.gz
-      cd mgizapp
-      ./configure --prefix=$PORTAGE/pkgs/mgizapp-0.7.2
-      # MGIZA++ 0.7 requires a fairly recent version of boost.  If you get
-      # errors when you compile with "make -j 5; make -j 5 install", first try
-      # updating boost using your machine's package manager.  If compilation
-      # still fails, then manually install a recent version of boost (see boost
-      # section below for help), set BOOST_ROOT to point to where you installed
-      # it, and try this:
-      LD_RUN_PATH=$BOOST_ROOT/lib:$LD_RUN_PATH \
-         make -j 5 CPPFLAGS="-isystem $BOOST_ROOT/include" \
-         LDFLAGS="-L$BOOST_ROOT/lib -lboost_thread"
-      LD_RUN_PATH=$BOOST_ROOT/lib:$LD_RUN_PATH \
-         make -j 5 CPPFLAGS="-isystem $BOOST_ROOT/include" \
-         LDFLAGS="-L$BOOST_ROOT/lib -lboost_thread" \
-         install
-      # Add $PORTAGE/pkgs/mgizapp-0.7.2/bin *and*
-      # $PORTAGE/pkgs/mgizapp-0.7.2/scripts to EXTRA_PROGRAM_PATH in
-      # SETUP.bash/tcsh.
+ - mkcls - this word clustering tool by Franz Och is required for some models
+   added to PortageII in version 3.0, in particular the sparse ones. It comes
+   with MGIZA++, so follow the instructions above to install it.
 
- - mkcls - this word clustering tool by Franz Och is required for a number of
-   models added to PortageII since version 3.0. It comes with MGIZA++, so
-   follow the instructions above to install it.
+ - word2vec - this more recent, fast word clustering tool by Google is now also
+   required for some models added to PortageII in version 3.0, in particular
+   for our coarse language models. There is no download package available, but
+   compilation is easy from source:
+      # Obtain the package from https://code.google.com/p/word2vec/
+      # It is not available as a download file, so you have to do an svn
+      # checkout to obtain the latest version:
+      mkdir word2vec
+      cd word2vec
+      svn checkout http://word2vec.googlecode.com/svn/trunk/
+      cd trunk
+      make all
+   Installation is manual. You can put it anywhere on your path:
+      cp word2vec $PORTAGE/pkgs/word2vec/bin/
+      # Add $PORTAGE/pkgs/word2vec/bin to EXTRA_PROGRAM_PATH in SETUP.bash/tcsh.
+      # Alternatively, copy trunk/word2vec to $PORTAGE/bin; then no further
+      # configuration is required.
 
 Optional dependencies for all distributions:
 
- - ICU - PortageII includes a few tools that use ICU to correctly do
-   case-mapping on utf-8 data.  This functionality will be disabled if ICU is
-   not available.  We recommend you install ICU if you can, but if you have
-   difficulties with it, you can leave it out.  In this case, for source
-   distributions, set the ICU variable in src/Makefile.user-conf to NONE.
+ - ICU - PortageII relies on includes a few tools that use ICU to correctly do
+   case-mapping on utf-8 data.  We distribute the ICU libraries with binary
+   distributions of PortageII, so you don't need to do anything in that case.
 
-   For binary distribution of PortageII, we now include the relevant ICU
-   libraries, so you don't need to do anything to get them.
-
-   With source code distributions, if you install ICU, edit the ICU variable in
-   src/Makefile.user-conf to enable the compilation of the relevant code.
+   With source code distributions, we We strongly recommend you install ICU,
+   but if you have difficulties with it, you can leave it out.  In that case,
+   some functionality will not be available. Set the ICU variable in
+   src/Makefile.user-conf to NONE if you leave ICU out, or to your ICU root
+   path to enable the compilation of the relevant code.
 
    With most Linux distros, you just need to install a package called something
    like libicu-dev, and you're done.  In this case the ICU variable is not
    required since the library will be installed in the standard locations.
 
    If it is not available via your Linux distro, ICU can be downloaded from
-   http://icu-project.org/download/.  Any version will do; we've tested 49, 4.0
+   http://icu-project.org/download/.  Any version should do; we've tested 49, 4.0
    and 3.4.
    This worked for us:
       # Download the ICU4C 49 tar ball and expand it
       wget 'http://download.icu-project.org/files/icu4c/49.1.2/icu4c-49_1_2-src.tgz'
       tar -xzf icu4c-49_1_2-src.tgz
       mv icu icu-49.1.2
-      cd icu-49.1.2
+      cd icu-49.1.2/source
       # Run the configuration program
-      ./runConfigureICU Linux --prefix=$PORTAGE/pkgs/icu
+      ./runConfigureICU Linux --prefix=$PORTAGE/third-party/icu
       # Compile and install
       make -j 4 install
       # Edit src/Makefile.user-conf and set the ICU variable to $PORTAGE/pkgs/icu.
@@ -310,12 +336,12 @@ Optional dependencies for all distributions:
       # Download the current tar ball
       wget 'http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/libsvm.cgi?+http://www.csie.ntu.edu.tw/~cjlin/libsvm+tar.gz'
       # Expand it
-      tar -xzf libsvm-3.12.tar.gz
+      tar -xzf libsvm-3.20.tar.gz
       # Go in the directory and compile the package
       cd libsvm-3.12
       make
       # "Install" the three executables somewhere on the PATH.
-      cp svm-predict svm-train svm-scale $PORTAGE/bin
+      cp svm-predict svm-train svm-scale $PORTAGE/third-party/bin
 
    If you can work as root, libsvm is available in some Linux distros as a
    package called libsvm-tools or libsvm.  On CentOS, which uses yum, this
@@ -357,22 +383,19 @@ Optional dependencies for all distributions:
    this CD for convenience.  The latter is easier to install, but ICTCLAS is
    known to produce better results, so we recommend it.
 
-   The NRC rewrite of the LDC/UPENN segmenter can be installed like this:
-      # We assume $PORTAGE points to the top level directory of the CD
-      cp $PORTAGE/third-party/chinese-segmentation/chinese_segmenter.pl $PORTAGE/bin/
-      cp $PORTAGE/third-party/chinese-segmentation/manseg.fre $PORTAGE/lib/
+   The NRC rewrite of the LDC/UPENN segmenter comes pre-installed in
+   $PORTAGE/third-party/chinese-segmentation, so you don't need to install it.
 
    The ICTCLAS downloaded from the link provided above can be installed like
-   this:
-      # On the github site, click on "Downloads" and then "Download as tar.gz"
-      # Expand the .tar.gz file and cd into the directory created
-      cd Source
+   this, but this procedure is sometimes buggy - consult us before trying it:
+      # Download ZIP from https://github.com/pierrchen/ictclas_plus or use Git:
+      git clone https://github.com/pierrchen/ictclas_plus.git
+      cd ictclas_plus/Source
       g++ -c *.cpp
       ar -r ictclas.a *.o
       cd ..
       g++ -o ictclas main.cpp Source/ictclas.a
-      # Choose a destination $DEST on your PATH, possibly $PORTAGE/bin
-      cp -pr ictclas Data $DEST
+      cp -pr ictclas Data $PORTAGE/third-party/bin
 
    If you use ICTCLAS, you must also edit tokenize_plugin (in bin/ for binary
    distributions, in src/textutils/ for source distributions) to make your
@@ -528,7 +551,7 @@ Optional PortageLive dependencies
 MADA and dependencies
 
   If you have obtained all licenses to all of MADA's dependencies, here is how
-  you can install MADA on a system that servers portagelive.
+  you can install MADA on a system that serves PortageLive with Arabic data.
 
   # g++ version 4
   check if you have g++ installed and what version

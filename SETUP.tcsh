@@ -46,17 +46,31 @@ setenv PORTAGE $HOME/PortageII-cur
 
 echo 'PortageII_cur, NRC-CNRC, (c) 2004 - 2013, Her Majesty in Right of Canada' > /dev/stderr
 
+set TMP_PORTAGE_PATH $PORTAGE/bin:$PORTAGE/third-party/bin
+if ($?EXTRA_PROGRAM_PATH) then
+   set TMP_PORTAGE_PATH ${TMP_PORTAGE_PATH}:$EXTRA_PROGRAM_PATH
+   unset EXTRA_PROGRAM_PATH
+endif
+
 if (! $?PATH) then
-   setenv PATH $PORTAGE/bin
+   setenv PATH $TMP_PORTAGE_PATH
 else
-   setenv PATH $PORTAGE/bin:$PATH
+   setenv PATH ${TMP_PORTAGE_PATH}:$PATH
+endif
+unset TMP_PORTAGE_PATH
+
+set TMP_PORTAGE_DYNLIB $PORTAGE/lib:$PORTAGE/third-party/lib
+if ($?EXTRA_DYNLIB_PATH) then
+   set TMP_PORTAGE_DYNLIB ${TMP_PORTAGE_DYNLIB}:$EXTRA_DYNLIB_PATH
+   unset EXTRA_DYNLIB_PATH
 endif
 
 if (! $?LD_LIBRARY_PATH) then
-   setenv LD_LIBRARY_PATH $PORTAGE/lib
+   setenv LD_LIBRARY_PATH $TMP_PORTAGE_DYNLIB
 else
-   setenv LD_LIBRARY_PATH $PORTAGE/lib:$LD_LIBRARY_PATH
+   setenv LD_LIBRARY_PATH ${TMP_PORTAGE_DYNLIB}:$LD_LIBRARY_PATH
 endif
+unset TMP_PORTAGE_DYNLIB
 
 if (! $?PERL5LIB) then
    setenv PERL5LIB $PORTAGE/lib
@@ -70,24 +84,9 @@ else
    setenv PYTHONPATH $PORTAGE/lib:$PYTHONPATH
 endif
 
-if (! $?CPLUS_INCLUDE_PATH) then
-   setenv CPLUS_INCLUDE_PATH $PORTAGE/include
-else
-   setenv CPLUS_INCLUDE_PATH $PORTAGE/include:$CPLUS_INCLUDE_PATH
-endif
-
 if ($?PRECOMP_PORTAGE_ARCH) then
    setenv PATH $PORTAGE/bin/${PRECOMP_PORTAGE_ARCH}:$PATH
    setenv LD_LIBRARY_PATH $PORTAGE/lib/${PRECOMP_PORTAGE_ARCH}:$LD_LIBRARY_PATH
    unset PRECOMP_PORTAGE_ARCH
 endif
 
-if ($?EXTRA_DYNLIB_PATH) then
-   setenv LD_LIBRARY_PATH ${EXTRA_DYNLIB_PATH}:$LD_LIBRARY_PATH
-   unset EXTRA_DYNLIB_PATH
-endif
-
-if ($?EXTRA_PROGRAM_PATH) then
-   setenv PATH ${EXTRA_PROGRAM_PATH}:$PATH
-   unset EXTRA_PROGRAM_PATH
-endif

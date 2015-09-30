@@ -7,8 +7,8 @@
 # Technologies de l'information et des communications /
 #   Information and Communications Technologies
 # Conseil national de recherches Canada / National Research Council Canada
-# Copyright 2006 - 2014, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2006 - 2014, Her Majesty in Right of Canada
+# Copyright 2006 - 2015, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2006 - 2015, Her Majesty in Right of Canada
 
 
 # =======================================================================
@@ -18,6 +18,15 @@
 # package.
 # Change this variable to indicate where this package is actually located.
 PORTAGE=$HOME/PortageII-cur
+
+# Software overrides
+# Uncomment and change the following if you installed these packages in
+# a different location:
+#CHINESE_SEGMENTATION_HOME_OVERRIDE=$PORTAGE/third-party/chinese-segmentation
+#PYTHON_HOME_OVERRIDE=$PORTAGE/third-party/Python-2.7.10
+#ICU_HOME_OVERRIDE=$PORTAGE/third-party/icu
+
+# Extra software configuration
 
 # Extra dynamic libraries.  If you had to install dynamic libraries in custom
 # locations to get PortageII running, list the PATHs where the .so files are
@@ -44,28 +53,30 @@ PORTAGE=$HOME/PortageII-cur
 # END OF USER CONFIGURABLE VARIABLES
 # =======================================================================
 
-echo 'PortageII_cur, NRC-CNRC, (c) 2004 - 2013, Her Majesty in Right of Canada' >&2
+echo 'PortageII_cur, NRC-CNRC, (c) 2004 - 2015, Her Majesty in Right of Canada' >&2
 
-PATH=$PORTAGE/bin${PATH:+:$PATH}
-if [[ $EXTRA_PROGRAM_PATH ]]; then
-   PATH=$EXTRA_PROGRAM_PATH:$PATH
-fi
+# Setup third-party software in the default location
+PATH=$PORTAGE/third-party/bin:$PORTAGE/third-party/scripts${PATH:+:$PATH}
+LD_LIBRARY_PATH=$PORTAGE/third-party/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+MANPATH=$PORTAGE/third-party/share/man:$MANPATH
 
-LD_LIBRARY_PATH=$PORTAGE/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+# Setup third-party software with specific configuration procedures
+for config in $PORTAGE/third-party/conf.d/*.bash; do
+   source $config
+done
 
+# Setup PortageII itself, making sure it comes ahead of third-party software
+PATH=$PORTAGE/bin:$PATH
+LD_LIBRARY_PATH=$PORTAGE/lib:$LD_LIBRARY_PATH
 PERL5LIB=$PORTAGE/lib${PERL5LIB:+:$PERL5LIB}
-
 PYTHONPATH=$PORTAGE/lib${PYTHONPATH:+:$PYTHONPATH}
 
+# Setup architecture-specific binaries last, so they come ahead of everything else
 if [[ $PRECOMP_PORTAGE_ARCH ]]; then
    PATH=$PORTAGE/bin/$PRECOMP_PORTAGE_ARCH:$PATH
    LD_LIBRARY_PATH=$PORTAGE/lib/$PRECOMP_PORTAGE_ARCH:$LD_LIBRARY_PATH
    unset PRECOMP_PORTAGE_ARCH
 fi
 
-if [[ $EXTRA_DYNLIB_PATH ]]; then
-   LD_LIBRARY_PATH=$EXTRA_DYNLIB_PATH:$LD_LIBRARY_PATH
-   unset EXTRA_DYNLIB_PATH
-fi
-
-export PORTAGE PATH LD_LIBRARY_PATH PERL5LIB PYTHONPATH
+# Export all the variables we setup in this script
+export PORTAGE PATH LD_LIBRARY_PATH PERL5LIB PYTHONPATH MANPATH
