@@ -406,7 +406,10 @@ class PortageLiveAPI {
       $options .= ($useCE ? " -with-ce" : " -decode-only");
       $options .= ($xtags ? " -xtags" : "");
       $options .= " -nl=" . $newline;
-      #$options .= " -dir=/tmp/";  # SAM DEBUGGING
+
+      # PTGSH-197
+      $work_dir = $this->makeWorkDir("{$context}_srcString");
+      $options .= " -dir=\"$work_dir\"";
 
       return $this->runCommand($i["script"] . $options, $src_string, $i);
    }
