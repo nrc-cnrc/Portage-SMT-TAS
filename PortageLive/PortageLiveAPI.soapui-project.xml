@@ -6569,6 +6569,66 @@ for (prop in ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", 
     <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="translateSDLXLIFF Fixed Terms TestCase" searchProperties="true" id="f70bdf4b-51e1-4a76-88e5-53dd9d954dbe">
       <con:description>Translate a sdlxliff file containing text which can be found in the fixed terms list.</con:description>
       <con:settings/>
+      <con:testStep type="request" name="updateFixedTerms - Request - UTF-8 file">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>updateFixedTerms</con:operation>
+          <con:request name="updateFixedTerms - Request - UTF-8 file" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:por="http://132.246.128.219/PortageLiveAPI.wsdl">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <por:updateFixedTerms soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <ContentsBase64 xsi:type="xsd:base64Binary">cid:817321072532</ContentsBase64>
+         <Filename xsi:type="xsd:string">Termino</Filename>
+         <encoding xsi:type="xsd:string">UTF-8</encoding>
+         <context xsi:type="xsd:string">${#TestCase#context}</context>
+         <sourceColumnIndex xsi:type="xsd:decimal">1</sourceColumnIndex>
+         <sourceLanguage xsi:type="xsd:string">en</sourceLanguage>
+         <targetLanguage xsi:type="xsd:string">fr</targetLanguage>
+      </por:updateFixedTerms>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:assertion type="SOAP Fault Assertion" name="Not SOAP Fault"/>
+            <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+              <con:configuration>
+                <codes>200</codes>
+              </con:configuration>
+            </con:assertion>
+            <con:assertion type="XQuery Match" name="Updating fixed terms should succeed">
+              <con:configuration>
+                <path>//*:updateFixedTermsResponse/*:status</path>
+                <content>true</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:selectedAuthProfile>NTLM</con:selectedAuthProfile>
+              <con:addedBasicAuthenticationTypes>NTLM</con:addedBasicAuthenticationTypes>
+              <con:authType>NTLM</con:authType>
+            </con:credentials>
+            <con:attachment>
+              <con:name>fiches_termino.utf8.txt</con:name>
+              <con:contentType>text/plain</con:contentType>
+              <con:size>4745</con:size>
+              <con:contentId>817321072532</con:contentId>
+              <con:part>817321072532</con:part>
+              <con:data>UEsDBBQACAgIAEBhbkUAAAAAAAAAAAAAAAAXAAAAZmljaGVzX3Rlcm1pbm8udXRmOC50eHSNWEuSHLcRXaMi6g64AMXwZ6lQxHAYYkx4SItDyXY4uEFXZXdjAgWU8OlR73wN77QT2zfwum/ik/hloqrYPdNDccGeApAAEomX7yVIfqPW0bTNlky0fqPXREl9H41Nuv/fv/5tSm/Jd9Q2t2YVStQfsvG9iX1S70IcCFZF52h2xrq2uco5RE97/YY8RePUDzF0JRLmbY4Hfzygr21SiTu748264FOIWeHvfbA+6zpkfG6b0HVlNNkGb5zubSKTSA3GGTikxxjWlBIGPTkH7xxtYDZSTMGr+seTHgI2xGgsjnRYa2ce1BjtYEo+HtjzPgaLvTBhsFhuBTP6hWKH7dg+b0njCPC1IwQj6fsSbeptx24p03U0ZsOTesLaOM4wHg+Z46Uj4VC+kD7+ykPzKm1jNpFoIBx22mA0MVsEHcuF2GOpNHchoP0udCZTwu76Q+gs5b261ClnSCPBs524HskX31lTPfWbxUkMhHmgbfa49sT2xSP+FGMZM/U6Ee6hI0xMPG1q8n1l6wsOMY6IO+7pZaQ0Bt/LebzuYkjpBY/i8sUINvQSS9vheCBtih6Bol2wGtGwPA2HTOPWuEz6NaV7QMtiU4yqZ/rb5tp4oMB4/cpEfZVSmM958s23i+FI2LITe/LnKMdaGi7GAEQgmmqGuu751A4GnUn652I1B3oPzB3/k8XhZf8fTGfXttN3QP+D2avnBjBlS8OVwEaOdtK88d03bQPoDGgwQD9/YhoQFTaUMpupsxbPiXSGSL7HsQLNIhtSASZsiLi2EnNSp/Bc484Mo9AIMJLYJJ6CJLVIWEbhshRD0QDNWNSR2REnLBJacx85dtODAzqBNA2jC3teWtXuzAhaKOKafWG79+V4WBEfCuyAy5raSGXrBcFI0m2IFoBn34CjetYxFoaN5X3rwdh4OetZhtZD9TVKc5BOzois+VK4ficiPXGeYgCIAUoRjICUo15JE7v2xwNbyIjvgP+2eQTxx8guvgdlbJlft3bkjHI22w0On7BKr+0wEt8W80a0m21WvV0DaMWB0BK4q2NW3MHClF/06AxSbAoBUv86uDCsLL14hbDCKftzYULiixEWw3ZA8O3NDVblrBY+BCVPvW2zwjV025m4nk3D12D3JDn47LYyhLQ6mdY2m6oakgXCzMyoQ8GInLXSmgG1i7dMvylNhqJVXXf8lDRrF6iXbdrmjifW2H0P3u3DMM1AsDKCu6LIkWsbT7yaiXuOsbNdPQlusC8VNlAvsbAMGx8y8yEHgqXDL9aIOB+t5kfbAB0e1ylil4Pe4GqeWInvBbiEtkXLs3oaQofEgRfO7TU50DrD6niY+hFAURCsVOB7TTmK+mEbWHiIEaCmXlwfc1ik42+idWdCv74g9G8M9M/oH3HXAAHge4sIkbrc3TY3r95WJBjtxPBxB0wGzixc7I9hxSqnHne0jYWEDB7JXnOshwatkYqgaFzxPIhYgYQPu0ICb6QWEtiZjuHu9VfmjmKdY6kT2mOZ5gRxx8MG1lLQEBcgIgA52lXx2IsdxJQdA1Sw/6TSmcfrVD7F08LnbtHKl1ezgD5RzZuqldWCDS5q5k2yPdM/boUPWgP/tA9sily6L4nhCr5EYjo9NeduLb1S4T2IKEbsK3h2waaptWPCc48MGNIcDNMjBWxirp9UaN7ifAWphRhr5/aVJRYnWeC4sONMQ8HnzYYiMmnKs4n8uklx1IA0Xlv/dfXpuxKLKK5avpA96/VUNtlhoJ5rAbdXuDPjh2BrAQTyz+zFvC0rYVg5oItdTerke3GtcGWKqI0Fg51GbUdR4Rc3VLt4uR3wNFIYa306hJ7VfSDk2FLF1hpEGDlx0vdc1+4JO1VzEWfBjlAfED7DJYXijp92iOnaRqybt6BAiNUeJpEGiw30PcOfhecB5IzEAHIZZZNDojPnxTMPkoaggX26aPN0fZfK6guLpmWJdLIGHPgQEBGLpJK8531/L+M+vy0mLfmaFPy6F8pjKz4+i5dNW1azAjUzl2Z+UWcvLXrlWICMuuDropDV5PL8v6KAQ83ypfmTyeX5lacvH6VMo3iw8ctFLuFU7cZiEys5DiwJ+P5aX18p+a2N99J4j0Yt7aTiOflGPYE3Xc8MyHrMecNVY9VveXYwN0ovnhynD5oZmotqqNNXzUwzn2WDqXdNcXqY6bcGvVAefYuHUQG/6FomqDvynDeVsNYiMlOxgKJ0g/OK9HJxtazRNj/hA6f4CyxQXqi7sDdloBfo5gxAaZUl2qAQ66YCCSK2NHS1kaDTouWfy8mk5sJgqiNJlr3wWHvySvuAOoPrplpFTTVNLTyfH8K0wuyA+k5K9WvRjLvCufvsSNvMYpL2YKRB8Z/jp4Fq8T0xu9QOSO+OxIfz5qxOU/W9SG+VJ6YoB1rVOxsnCahOyPYabyl1Oj7n4ZnFclVvADGP3/DADHibe/XcgKgDeIl5tyRSJePaUr23ZYSmKkSbXJMEZYTa2U3hhAJUhjCIZj8xwoeVVybpFaFQeTpJh+N/K7sCMbyVNut1LUHb5tu0H1bBafOdmj4x/F3bfMygefXRxBXbzVYfVydmaCCtR/nvF6mWQCCbaAbobdyEiLbdJlQlPoysLg4vsbLZVjkgxgxBZCtkECrOVFRfivP10T/280q/0tf6tfqn/of+m/67dKg/6D/iMYjeP+k/s9H/AVBLBwiR/jqk3wcAAIkSAABQSwECFAAUAAgICABAYW5Fkf46pN8HAACJEgAAFwAAAAAAAAAAAAAAAAAAAAAAZmljaGVzX3Rlcm1pbm8udXRmOC50eHRQSwUGAAAAAAEAAQBFAAAAJAgAAAAA</con:data>
+              <con:id>ac7e6eeb-6d76-47f8-bfdb-1e7784ac99b0</con:id>
+            </con:attachment>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="updateFixedTerms"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
       <con:testStep type="request" name="Submit sdlxliff request" id="226b907e-f944-4039-a7ee-ceff131b957f">
         <con:settings/>
         <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -6771,6 +6831,66 @@ testCase.setPropertyValue("input", context.expand('${#TestCase#input_txt}').byte
     <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="translateTMX Fixed Terms TestCase" searchProperties="true" id="3a00fb74-5cbe-4a14-9450-83c4d93f1277">
       <con:description>Translate a tmx file containing text which can be found in the fixed terms list.</con:description>
       <con:settings/>
+      <con:testStep type="request" name="updateFixedTerms - Request - UTF-8 file">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>updateFixedTerms</con:operation>
+          <con:request name="updateFixedTerms - Request - UTF-8 file" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:por="http://132.246.128.219/PortageLiveAPI.wsdl">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <por:updateFixedTerms soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <ContentsBase64 xsi:type="xsd:base64Binary">cid:817321072532</ContentsBase64>
+         <Filename xsi:type="xsd:string">Termino</Filename>
+         <encoding xsi:type="xsd:string">UTF-8</encoding>
+         <context xsi:type="xsd:string">${#TestCase#context}</context>
+         <sourceColumnIndex xsi:type="xsd:decimal">1</sourceColumnIndex>
+         <sourceLanguage xsi:type="xsd:string">en</sourceLanguage>
+         <targetLanguage xsi:type="xsd:string">fr</targetLanguage>
+      </por:updateFixedTerms>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:assertion type="SOAP Fault Assertion" name="Not SOAP Fault"/>
+            <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+              <con:configuration>
+                <codes>200</codes>
+              </con:configuration>
+            </con:assertion>
+            <con:assertion type="XQuery Match" name="Updating fixed terms should succeed">
+              <con:configuration>
+                <path>//*:updateFixedTermsResponse/*:status</path>
+                <content>true</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:selectedAuthProfile>NTLM</con:selectedAuthProfile>
+              <con:addedBasicAuthenticationTypes>NTLM</con:addedBasicAuthenticationTypes>
+              <con:authType>NTLM</con:authType>
+            </con:credentials>
+            <con:attachment>
+              <con:name>fiches_termino.utf8.txt</con:name>
+              <con:contentType>text/plain</con:contentType>
+              <con:size>4745</con:size>
+              <con:contentId>817321072532</con:contentId>
+              <con:part>817321072532</con:part>
+              <con:data>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</con:data>
+              <con:id>ac7e6eeb-6d76-47f8-bfdb-1e7784ac99b0</con:id>
+            </con:attachment>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="updateFixedTerms"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
       <con:testStep type="request" name="Submit tmx request" id="1f6b5c5d-804a-4628-8746-1220faa61b79">
         <con:settings/>
         <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -6892,7 +7012,7 @@ testCase.setPropertyValue("input", context.expand('${#TestCase#input_txt}').byte
             <con:name>Get Translation File Address</con:name>
             <con:sourceType>Response</con:sourceType>
             <con:sourceStep>translateFileStatus - Are we done translating - Request</con:sourceStep>
-            <con:sourcePath>tokenize(//*:translateFileStatusResponse/token, "\s*:\s*")[2]</con:sourcePath>
+            <con:sourcePath>tokenize(//*:translateFileStatusResponse/*:token, "\s*:\s*")[2]</con:sourcePath>
             <con:targetType>TranslationFileAddress</con:targetType>
             <con:targetStep>#TestCase#</con:targetStep>
           </con:transfers>
@@ -6972,6 +7092,66 @@ testCase.setPropertyValue("input", context.expand('${#TestCase#input_txt}').byte
     </con:testCase>
     <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="translatePlainText Fixed Terms TestCase" searchProperties="true" id="3bf32491-3436-454b-a5e4-1ad68a9b441f">
       <con:settings/>
+      <con:testStep type="request" name="updateFixedTerms - Request - UTF-8 file">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>updateFixedTerms</con:operation>
+          <con:request name="updateFixedTerms - Request - UTF-8 file" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:por="http://132.246.128.219/PortageLiveAPI.wsdl">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <por:updateFixedTerms soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <ContentsBase64 xsi:type="xsd:base64Binary">cid:817321072532</ContentsBase64>
+         <Filename xsi:type="xsd:string">Termino</Filename>
+         <encoding xsi:type="xsd:string">UTF-8</encoding>
+         <context xsi:type="xsd:string">${#TestCase#context}</context>
+         <sourceColumnIndex xsi:type="xsd:decimal">1</sourceColumnIndex>
+         <sourceLanguage xsi:type="xsd:string">en</sourceLanguage>
+         <targetLanguage xsi:type="xsd:string">fr</targetLanguage>
+      </por:updateFixedTerms>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:assertion type="SOAP Fault Assertion" name="Not SOAP Fault"/>
+            <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+              <con:configuration>
+                <codes>200</codes>
+              </con:configuration>
+            </con:assertion>
+            <con:assertion type="XQuery Match" name="XQuery Match">
+              <con:configuration>
+                <path>//*:updateFixedTermsResponse/*:status</path>
+                <content>true</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:selectedAuthProfile>NTLM</con:selectedAuthProfile>
+              <con:addedBasicAuthenticationTypes>NTLM</con:addedBasicAuthenticationTypes>
+              <con:authType>NTLM</con:authType>
+            </con:credentials>
+            <con:attachment>
+              <con:name>fiches_termino.utf8.txt</con:name>
+              <con:contentType>text/plain</con:contentType>
+              <con:size>4745</con:size>
+              <con:contentId>817321072532</con:contentId>
+              <con:part>817321072532</con:part>
+              <con:data>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</con:data>
+              <con:id>ac7e6eeb-6d76-47f8-bfdb-1e7784ac99b0</con:id>
+            </con:attachment>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="updateFixedTerms"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
       <con:testStep type="request" name="translatePlainText - Request" id="573b964d-53c7-4aca-953e-8bc588d76796">
         <con:settings/>
         <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -7165,6 +7345,64 @@ testCase.setPropertyValue("input", context.expand('${#TestCase#input_txt}').byte
     <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="translateSDLXLIFF Fixed Terms - xtags TestCase" searchProperties="true" id="513876b2-77ce-4e73-a23d-7f96db991cdc">
       <con:description>Translate a sdlxliff file containing text which can be found in the fixed terms list.</con:description>
       <con:settings/>
+      <con:testStep type="request" name="updateFixedTerms - Request - UTF-8 file">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>updateFixedTerms</con:operation>
+          <con:request name="updateFixedTerms - Request - UTF-8 file" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings/>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:por="http://132.246.128.219/PortageLiveAPI.wsdl">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <por:updateFixedTerms soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <ContentsBase64 xsi:type="xsd:base64Binary">cid:817321072532</ContentsBase64>
+         <Filename xsi:type="xsd:string">Termino</Filename>
+         <encoding xsi:type="xsd:string">UTF-8</encoding>
+         <context xsi:type="xsd:string">${#TestCase#context}</context>
+         <sourceColumnIndex xsi:type="xsd:decimal">1</sourceColumnIndex>
+         <sourceLanguage xsi:type="xsd:string">en</sourceLanguage>
+         <targetLanguage xsi:type="xsd:string">fr</targetLanguage>
+      </por:updateFixedTerms>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:assertion type="SOAP Fault Assertion" name="Not SOAP Fault"/>
+            <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+              <con:configuration>
+                <codes>200</codes>
+              </con:configuration>
+            </con:assertion>
+            <con:assertion type="XQuery Match" name="XQuery Match">
+              <con:configuration>
+                <path>//*:updateFixedTermsResponse/*:status</path>
+                <content>true</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:selectedAuthProfile>NTLM</con:selectedAuthProfile>
+              <con:addedBasicAuthenticationTypes>NTLM</con:addedBasicAuthenticationTypes>
+              <con:authType>NTLM</con:authType>
+            </con:credentials>
+            <con:attachment>
+              <con:name>fiches_termino.utf8.txt</con:name>
+              <con:contentType>text/plain</con:contentType>
+              <con:size>4745</con:size>
+              <con:contentId>817321072532</con:contentId>
+              <con:part>817321072532</con:part>
+              <con:data>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</con:data>
+              <con:id>ac7e6eeb-6d76-47f8-bfdb-1e7784ac99b0</con:id>
+            </con:attachment>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="updateFixedTerms"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
       <con:testStep type="request" name="Submit sdlxliff request">
         <con:settings/>
         <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
