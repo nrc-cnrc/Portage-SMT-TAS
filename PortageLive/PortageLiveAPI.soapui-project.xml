@@ -1799,7 +1799,7 @@ not(//*:translateResponse/Result/node())</path>
               <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
             </con:settings>
             <con:encoding>UTF-8</con:encoding>
-            <con:endpoint>http://132.246.128.219/PortageLiveAPI.php</con:endpoint>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
             <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
    <soapenv:Header/>
    <soapenv:Body>
@@ -1983,7 +1983,7 @@ testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').byt
               <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
             </con:settings>
             <con:encoding>UTF-8</con:encoding>
-            <con:endpoint>http://132.246.128.219/PortageLiveAPI.php</con:endpoint>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
             <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
    <soapenv:Header/>
    <soapenv:Body>
@@ -2048,7 +2048,7 @@ testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').byt
             </con:assertion>
             <con:assertion type="XQuery Match" name="We should get an return code of 2 saying that there is no sentences to translate">
               <con:configuration>
-                <path>//*:translateFileStatusResponse/token</path>
+                <path>//*:translateFileStatusResponse/*:token</path>
                 <content>2 Failed - no sentences to translate *</content>
                 <allowWildcards>true</allowWildcards>
               </con:configuration>
@@ -2904,7 +2904,7 @@ testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').byt
               <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
             </con:settings>
             <con:encoding>UTF-8</con:encoding>
-            <con:endpoint>http://132.246.128.219/PortageLiveAPI.php</con:endpoint>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
             <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
    <soapenv:Header/>
    <soapenv:Body>
@@ -5174,7 +5174,7 @@ testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').byt
               <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
             </con:settings>
             <con:encoding>UTF-8</con:encoding>
-            <con:endpoint>http://132.246.128.219/PortageLiveAPI.php</con:endpoint>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
             <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
    <soapenv:Header/>
    <soapenv:Body>
@@ -6901,7 +6901,7 @@ testCase.setPropertyValue("input", context.expand('${#TestCase#input_txt}').byte
               <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
             </con:settings>
             <con:encoding>UTF-8</con:encoding>
-            <con:endpoint>http://132.246.128.219/PortageLiveAPI.php</con:endpoint>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
             <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
    <soapenv:Header/>
    <soapenv:Body>
@@ -7351,7 +7351,9 @@ testCase.setPropertyValue("input", context.expand('${#TestCase#input_txt}').byte
           <con:interface>PortageLive_SoapHttpBinding</con:interface>
           <con:operation>updateFixedTerms</con:operation>
           <con:request name="updateFixedTerms - Request - UTF-8 file" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
-            <con:settings/>
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            </con:settings>
             <con:encoding>UTF-8</con:encoding>
             <con:endpoint>${#Project#endpoint}</con:endpoint>
             <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:por="http://132.246.128.219/PortageLiveAPI.wsdl">
