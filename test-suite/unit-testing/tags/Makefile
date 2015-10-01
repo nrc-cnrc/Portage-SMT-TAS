@@ -75,7 +75,7 @@ trx: trx_setup xtags
 	${RM} -r workdir-xtags
 	mkdir workdir-xtags
 	en2fr/soap-translate.sh -src=xy -v -decode-only -dir=workdir-xtags \
-	   -xtags -nl=p -f en2fr/canoe.ini.fast \
+	   -xtags -nl=p -f `readlink -f en2fr/canoe.ini.fast` \
 	   xtags > workdir-xtags/out
 
 trx.diff: trx
@@ -94,7 +94,7 @@ trzh: trzh_setup zh
 	${RM} -r workdir-zh
 	mkdir workdir-zh
 	ch2en/soap-translate.sh -v -decode-only -dir=workdir-zh \
-	   -xtags -nl=p -f ch2en/canoe.ini.fast \
+	   -xtags -nl=p -f `readlink -f ch2en/canoe.ini.fast` \
 	   zh > workdir-zh/out
 
 trzh.diff: trzh
