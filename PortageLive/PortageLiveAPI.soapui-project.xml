@@ -687,7 +687,7 @@
    <soapenv:Header/>
    <soapenv:Body>
       <urn:translateFileStatus soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-         <token xsi:type="xsd:string"><![CDATA[${#TestCase#MonitoringAddress}]]]]>><![CDATA[</token>
+         <token xsi:type="xsd:string"><![CDATA[${#TestCase#MonitoringToken}]]]]>><![CDATA[</token>
       </urn:translateFileStatus>
    </soapenv:Body>
 </soapenv:Envelope>]]></con:request>
