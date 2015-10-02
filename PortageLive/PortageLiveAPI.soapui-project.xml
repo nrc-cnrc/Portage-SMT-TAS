@@ -1798,6 +1798,57 @@ It is Friday.</srcString>
           </con:request>
         </con:config>
       </con:testStep>
+      <con:testStep type="request" name="translate - newline=p - Request">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>translate</con:operation>
+          <con:request name="translate - newline=p - Request" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translate soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <srcString xsi:type="xsd:string">I eat an apple.  It is apple picking time.
+The car is blue.
+
+It is Friday.</srcString>
+         <context xsi:type="xsd:string">${#TestCase#context}</context>
+         <newline xsi:type="xsd:string">s</newline>
+         <useCE xsi:type="xsd:boolean">false</useCE>
+         <xtags xsi:type="xsd:boolean">false</xtags>
+      </urn:translate>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:assertion type="XQuery Match" name="There should be 4 lines in the translation.">
+              <con:configuration>
+                <path>count(tokenize(//*:translateResponse/*:Result, "\n"))</path>
+                <content>4</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:assertion type="XQuery Match" name="The third line should be empty.">
+              <con:configuration>
+                <path>tokenize(//*:translateResponse/*:Result, "\n")[3]</path>
+                <content>&lt;xml-fragment/></content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:authType>No Authorization</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="translate"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
       <con:properties>
         <con:property>
           <con:name>context</con:name>
