@@ -6716,6 +6716,12 @@ for (prop in ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", 
    </soapenv:Body>
 </soapenv:Envelope>]]></con:request>
             <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:assertion type="SOAP Fault Assertion" name="Not SOAP Fault"/>
+            <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+              <con:configuration>
+                <codes>200</codes>
+              </con:configuration>
+            </con:assertion>
             <con:credentials>
               <con:authType>No Authorization</con:authType>
             </con:credentials>
@@ -7008,11 +7014,11 @@ testCase.setPropertyValue("input", context.expand('${#TestCase#input_txt}').byte
       <con:testStep type="transfer" name="TranslationFileAddress">
         <con:settings/>
         <con:config xsi:type="con:PropertyTransfersStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-          <con:transfers setNullOnMissingSource="true" transferTextContent="true" failOnError="true" ignoreEmpty="false" transferToAll="false" useXQuery="false" entitize="false" transferChildNodes="false">
+          <con:transfers setNullOnMissingSource="false" transferTextContent="true" failOnError="true" ignoreEmpty="false" transferToAll="false" useXQuery="false" entitize="false" transferChildNodes="false">
             <con:name>Get Translation File Address</con:name>
             <con:sourceType>Response</con:sourceType>
             <con:sourceStep>translateFileStatus - Are we done translating - Request</con:sourceStep>
-            <con:sourcePath>tokenize(//*:translateFileStatusResponse/*:token, "\s*:\s*")[2]</con:sourcePath>
+            <con:sourcePath>tokenize(//*:translateFileStatusResponse/*:token, "\s*: \s*")[2]</con:sourcePath>
             <con:targetType>TranslationFileAddress</con:targetType>
             <con:targetStep>#TestCase#</con:targetStep>
           </con:transfers>
