@@ -27,6 +27,7 @@ SHELL = bash
 .PHONY: all
 all:  sdlxliff
 all:  tmx
+all:  other_tests
 
 
 TEMP_FILES = U*.sdlxliff T*.tmx U*.sdlxliff.P.txt T*.tmx.P.txt log.*
@@ -200,4 +201,27 @@ validate_tmx_xtags_CE_filter: TestMemory_Unknown.xtags.CE.filter.tmx.validate
 
 trans_tmx:  TestMemory_Unknown.xtags.CE.filter.tmx
 TestMemory_Unknown.xtags.CE.filter.tmx:  override OPTIONS = -with-ce -xtags -filter=0.20
+
+
+
+########################################
+# Additional tests
+.PHONY:  other_tests
+
+# Check handling of bad locale (i.e. bad country code)
+.PHONY:  bad_locale
+other_tests: bad_locale
+bad_locale:  TestMemory_Unknown.tmx  | workdir.bad_locale.tmx
+	! ${SOAP_TRANSLATE} \
+		-verbose \
+		-out=$|/P.out \
+		-dir=$| \
+		-nl=s \
+		-xml \
+		-decode-only \
+		-src-country=XX \
+		$< \
+		2> log.$@ \
+	|| ! echo "Error: invalid locale not detected."
+	grep "Error: Invalid locale" log.$@ || ! echo "Error: invalid locale not detected." 
 

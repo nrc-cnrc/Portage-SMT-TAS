@@ -144,18 +144,23 @@ file SRCLM to provide addition source language information for the truecasing
 model (valid for -tc or -tctp).
 [source LM file located in F<models/tc> directory relative to the F<canoe.ini> location, if present]
 
-=item -src=SRC
+=item -src=SRC_LANG
 
-Use SRC as the source language. [en]
+Use SRC_LANG as the source language. [en]
 
-=item -tgt=TGT
+=item -tgt=TGT_LANG
 
-Use TGT as the target language. [fr]
+Use TGT_LANG as the target language. [fr]
+
+=item -src-country=SRC_COUNTRY
+
+Use SRC_COUNTRY as the country code (2 uppercase chars) in the source locale. 
+Needed only by truecasing using -tcsrclm. [CA]
 
 =item -encoding=ENC
 
 Use encoding ENC as the encoding of the input (SRC_TEXT) and output (OUTPUT).
-Supported encodings are: 'utf8', 'cp1252'. [utf8]
+Supported encodings are: 'utf-8', 'cp1252'. [utf-8]
 
 =item -out=OUTPUT
 
@@ -217,11 +222,11 @@ the heuristic otherwise.
 
 =item -xsrc=XSRC
 
-Use XSRC as the XML source language name. [EN-CA]
+Use XSRC as the XML source language name. [uppercase SRC_LANG-SRC_COUNTRY]
 
 =item -xtgt=XTGT
 
-Use XTGT as the XML target language name. [FR-CA]
+Use XTGT as the XML target language name. [uppercase TGT_LANG-SRC_COUNTRY]
 
 =back
 
@@ -329,7 +334,7 @@ BEGIN {
 }
 
 use portage_utils;
-printCopyright(2010);
+printCopyright("translate.pl", 2010);
 $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
 use ULexiTools qw(strip_xml_entities);
@@ -381,6 +386,7 @@ Getopt::Long::GetOptions(
    "src=s"          => \my $src,
    "tgt=s"          => \my $tgt,
 
+   "src-country=s"  => \my $src_country,
    "encoding=s"     => \my $encoding,
 
    "out=s"          => \my $out,
@@ -484,6 +490,9 @@ if ($with_rescoring) {
 $src = "en" unless defined $src;
 $tgt = "fr" unless defined $tgt;
 
+$src_country = "CA" unless defined $src_country;
+$src_country = uc $src_country;
+
 $tok = 1 unless defined $tok;
 $lc = 1 unless defined $lc;
 $detok = 1 unless defined $detok;
@@ -506,18 +515,23 @@ $tc or (!defined $tclm && !defined $tcmap && !defined $tcsrclm)
 (defined $tclm && defined $tcmap) or (!defined $tclm && !defined $tcmap)
    or die "Error: Specify neither or both of -tclm and -tcmap.\nStopped";
 (defined $tcsrclm && defined $tclm) or (!defined $tcsrclm)
-   or die "Error: Do not specify -tcsrc without -tclm specified.\nStopped";
+   or die "Error: Do not specify -tcsrclm without -tclm specified.\nStopped";
 !defined $tcsrclm or !$with_rescoring
    or die "Error: -tcsrclm cannot be used with -with-rescoring.\nStopped";
 
 my $python_version = `python --version 2>&1`;
 if ($python_version !~ /2\.7/) {
    chomp $python_version;
-   die "Error: translate.pl requires Python 2.7. Found $python_version instead. Please check your installation.\nIf you see this message in PortageLive's trace, place a symlink to the 2.7 python executable in $ENV{PORTAGE}/bin/ and symlinks to libpython2.7.so* in $ENV{PORTAGE}/lib/, and make sure the Apache process has sufficient permissions to use them.\n";
+   die "Error: translate.pl requires Python 2.7. ",
+       "Found $python_version instead. ", "Please check your installation.\n",
+       "If you see this message in PortageLive's trace, place a symlink to the 2.7 python executable ",
+       "in $ENV{PORTAGE}/bin/ and symlinks to libpython2.7.so* in $ENV{PORTAGE}/lib/, ",
+       "and make sure the Apache process has sufficient permissions to use them.\n";
 }
 if ($python_version =~ /(libpython\S*):/) {
    print STDERR "translate.pl: $python_version";
-   die "Error: translate.pl requires Python 2.7 and its library $1.\nIf you see this message in PortageLive's trace, place a symlink to $1 in $ENV{PORTAGE}/lib/.\n";
+   die "Error: translate.pl requires Python 2.7 and its library $1.\n",
+       "If you see this message in PortageLive's trace, place a symlink to $1 in $ENV{PORTAGE}/lib/.\n";
 }
 
 # Locate the Truecasing model.
@@ -582,9 +596,20 @@ if (defined $encoding) {
    $utf8 = $lc_enc eq "utf8" || $lc_enc eq "utf-8";
    $utf8 or $lc_enc eq "cp1252"
       or die "Error: -encoding must be one of: 'utf8' or 'cp1252'.\nStopped";
+} else {
+   $encoding = "utf-8";
 }
 if ($xtags && !$utf8) {
    die "Error: -xtags is not compatible with encoding $encoding: only utf8 is supported";
+}
+
+my $src_locale;
+if (defined $tcsrclm) {
+   $src_locale = "${src}_${src_country}.${encoding}";
+   system("perl", "-e", "use POSIX qw(locale_h); exit 1 unless defined setlocale(LC_CTYPE,q($src_locale));") == 0
+      or die "Error: Invalid locale '$src_locale'; ",
+             "check -src (${src}), -src-country (${src_country}), -encoding (${encoding}); ",
+             "if correct, locale '$src_locale' needs to be installed.\nStopped";
 }
 
 # Locate the Plugins directory
@@ -606,11 +631,11 @@ $xtra_rat_opts = "" unless defined $xtra_rat_opts;
 $xml = 0 unless defined $xml;
 if ($xml) {
    if (!defined $xsrc) {
-      $xsrc = "$src-CA";
+      $xsrc = "$src-$src_country";
       $xsrc =~ tr/a-z/A-Z/;
    }
    if (!defined $xtgt) {
-      $xtgt = "$tgt-CA";
+      $xtgt = "$tgt-$src_country";
       $xtgt =~ tr/a-z/A-Z/;
    }
 } else {
@@ -1210,6 +1235,7 @@ sub deparaline {
    open IN, $in or cleanupAndDie("Can't open $in for reading: $!");
    open OUT, ">$out" or cleanupAndDie("Can't open $out for writing: $!", $out);
 
+   my $empty = '^\s*$'; # keep Eclipse Perl plugin happy by avoiding $/ in code.
    PARA: while (1) {
       $_ = <IN>;
       last if !defined $_;
@@ -1222,7 +1248,7 @@ sub deparaline {
             last PARA;
          }
          chomp;
-         last SENT if /^\s*$/;
+         last SENT if /${empty}/;
          print OUT " ", $_;
       }
       print OUT "\n";
@@ -1242,18 +1268,19 @@ sub lowercase {
 }
 
 sub truecase {
-   my ($lang, $in, $out, $src, $pal) = @_;
+   my ($lang, $in, $out, $src_file, $pal) = @_;
    unless ($tc) {
       copy($in, $out);
    } else {
       my ($lm_sw, $map_sw) = $tctp ? ("tplm", "tppt") : ("lm", "map");
+      my $locale_opts = $src_locale ? "-locale ${src_locale}" : "-encoding ${encoding}";
       my $model_opts = "-$lm_sw '${tclm}' -$map_sw '${tcmap}'";
-      my $src_opts = defined $tcsrclm ? "-src '${src}' -pal '${pal}' -srclm ${tcsrclm}" : "";
+      my $src_opts = defined $tcsrclm ? "-src '${src_file}' -pal '${pal}' -srclm ${tcsrclm}" : "";
       my $enc = $utf8 ? "utf-8" : "cp1252";
       my $v = $verbose ? "-verbose" : "";
       my $d = $debug ? "-debug" : "";
       my $t = $timing ? "-time" : "";
-      call("truecase.pl -wal $wal $v $d $t -text '${in}' -bos -enc ${enc} -out '${out}' $model_opts $src_opts", $out);
+      call("truecase.pl -wal $wal $v $d $t -text '${in}' -bos $locale_opts -out '${out}' $model_opts $src_opts", $out);
    }
 }
 
