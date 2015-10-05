@@ -23,23 +23,12 @@ PORTAGE=$HOME/PortageII-cur
 # Uncomment and change the following if you installed these packages in
 # a different location:
 #CHINESE_SEGMENTATION_HOME_OVERRIDE=$PORTAGE/third-party/chinese-segmentation
-#PYTHON_HOME_OVERRIDE=$PORTAGE/third-party/Python-2.7.10
+#PYTHON_HOME_OVERRIDE=$PORTAGE/third-party/Python2.7
 #ICU_HOME_OVERRIDE=$PORTAGE/third-party/icu
 
 # Extra software configuration
-
-# Extra dynamic libraries.  If you had to install dynamic libraries in custom
-# locations to get PortageII running, list the PATHs where the .so files are
-# located in this variable.  Multiple directories should be separated by
-# colons.  The sample value shown here would apply if you installed g++ 4.6.0
-# in /opt/gcc-4.6.0 on a 64 bit machine.
-#EXTRA_DYNLIB_PATH=/opt/gcc-4.6.0/lib64:/opt/gcc-4.6.0/lib
-
-# Extra program PATHs.  If you installed Python, Perl, your language modelling
-# toolkit, or other required programs in non-standard locations, you can add
-# them to your PATH globally on your system, or add them to the
-# EXTRA_PROGRAM_PATH variable here.
-#EXTRA_PROGRAM_PATH=/path/to/python2.7/bin:/path/to/other/dependency/bin
+# Add scripts called <prog-name>.bash in third-party/conf.d/, following the
+# examples there, to configure additional third-party dependencies.
 
 # Binary distributions only: we used to include 32 and 64 bits pre-compiled
 # executable, with and without ICU.  We no longer support 32 bits since tuning

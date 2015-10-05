@@ -191,7 +191,7 @@ Mandatory dependencies for all distributions:
       # Obtain Python-2.7.10.tgz from the web.
       tar -xjf Python-2.7.10.tgz
       cd Python-2.7.10
-      ./configure --prefix=$PORTAGE/third-party/Python2.7.10
+      ./configure --enable-shared --prefix=$PORTAGE/third-party/Python2.7
       make -j 5
       make install -j 5
 
@@ -201,8 +201,8 @@ Mandatory dependencies for all distributions:
    subdirectory as well as the "PortageLive Manual" section of the PortageII
    user manual: doc/user-manual.html / Portage Live Manual), you need to create
    the symlinks so PortageLive sees your custom python installation:
-      ln -s /PATH_TO/Python2.7.x/bin/python /opt/PortageII/bin/python
-      ln -s /PATH_TO/Python2.7.x/lib/libpython2.7.so* /opt/PortageII/lib/
+      ln -s /PATH_TO/Python2.7/bin/python /opt/PortageII/bin/python
+      ln -s /PATH_TO/Python2.7/lib/libpython2.7.so* /opt/PortageII/lib/
    If using multiple PortageLive servers, you need to perform the full Python
    2.7 installation procedure on each of them, unlike other third party
    software, which automatically get installed along with PortageLive itself.
@@ -269,9 +269,6 @@ Mandatory dependencies for all distributions:
       ./configure --prefix=$PORTAGE/third-party
       make -j 5
       make -j 5 install
-      # Add $PORTAGE/pkgs/mgizapp-0.6.3/bin *and*
-      # $PORTAGE/pkgs/mgizapp-0.6.3/scripts to EXTRA_PROGRAM_PATH in
-      # SETUP.bash/tcsh.
 
  - mkcls - this word clustering tool by Franz Och is required for some models
    added to PortageII in version 3.0, in particular the sparse ones. It comes
@@ -284,16 +281,11 @@ Mandatory dependencies for all distributions:
       # Obtain the package from https://code.google.com/p/word2vec/
       # It is not available as a download file, so you have to do an svn
       # checkout to obtain the latest version:
-      mkdir word2vec
-      cd word2vec
-      svn checkout http://word2vec.googlecode.com/svn/trunk/
-      cd trunk
+      svn checkout http://word2vec.googlecode.com/svn/trunk/ word2vec.trunk
+      cd word2vec.trunk
       make all
    Installation is manual. You can put it anywhere on your path:
-      cp word2vec $PORTAGE/pkgs/word2vec/bin/
-      # Add $PORTAGE/pkgs/word2vec/bin to EXTRA_PROGRAM_PATH in SETUP.bash/tcsh.
-      # Alternatively, copy trunk/word2vec to $PORTAGE/bin; then no further
-      # configuration is required.
+      cp word2vec $PORTAGE/third-party/bin
 
 Optional dependencies for all distributions:
 
@@ -324,9 +316,6 @@ Optional dependencies for all distributions:
       ./runConfigureICU Linux --prefix=$PORTAGE/third-party/icu
       # Compile and install
       make -j 4 install
-      # Edit src/Makefile.user-conf and set the ICU variable to $PORTAGE/pkgs/icu.
-      # Edit SETUP.bash and SETUP.tcsh and add :$PORTAGE/pkgs/icu/lib at
-      # the end of EXTRA_DYNLIB_PATH.
 
  - libsvm - The executable programs that come with the libsvm library are
    needed for Confidence Estimation.  The package is available from
@@ -442,16 +431,16 @@ Mandatory dependencies for source code distributions:
       tar -xjf boost_1_NN_0.tar.bz2
       # Go into it
       cd boost_1_NN_0/
-      # Do auto-config, overriding the install destination - replace $DEST with
-      # your preferred destination, e.g., $PORTAGE, $HOME, $HOME/pkgs/boost_1_NN_0 or
-      # $HOME/boost_1_NN_0, making sure that $BOOST_ROOT points to $DEST, either as en
-      # environment variable or in src/build/Makefile.incl.
-      ./bootstrap.sh --prefix=$DEST
+      # Auto config using bootstrap.sh, changing the install destination if you
+      # want, e.g., $PORTAGE/third-party/boost, $HOME, $HOME/pkgs/boost_1_NN_0
+      # or $HOME/boost_1_NN_0, making sure that $BOOST_ROOT points to $DEST,
+      # either as an environment variable or in src/build/Makefile.incl.
+      ./bootstrap.sh --prefix=$PORTAGE/third-party/boost
       # Build.  This step will take a long time.
-      bjam -j4
-      # Install to $DEST/{include,lib}
-      bjam -j4 install
-      # Edit src/Makefile.user-conf and set the BOOST_ROOT variable to $DEST.
+      b2 -j4
+      b2 -j4 install
+      # Edit src/Makefile.user-conf and set the BOOST_ROOT variable to the
+      # value of --prefix if you changed it.
 
 Optional dependencies for source code distributions:
 
@@ -460,19 +449,21 @@ Optional dependencies for source code distributions:
    http://code.google.com/p/gperftools/.  After you download and install it,
    set the variable TCMALLOC in src/Makefile.user-conf to enable its use.
    TCMalloc depends on libunwind, so you might have to install that first.  It
-   is available at http://www.nongnu.org/libunwind/.
+   is available at http://www.nongnu.org/libunwind/ if it's not already on your
+   system.
 
    This procedure worked for us:
       # Change the definition of PKG_DIR if you want to install somewhere else.
-      # Doing the export before you start, as shows here, will let you cut and
-      # paste the instructions below into your shell.
-      export PKG_DIR=$PORTAGE/pkgs
+      # If you cut and paste the PKG_DIR definition to your shell, you will
+      # also be able to cut and paste the instructions below into your shell.
+      PKG_DIR=$PORTAGE/third-party
 
-      # Get and install the latest libunwind, 1.0.1 at the time of writing:
-      wget 'http://download.savannah.gnu.org/releases/libunwind/libunwind-1.0.1.tar.gz'
-      tar -xzf libunwind-1.0.1.tar.gz
-      cd libunwind-1.0.1/
-      ./configure --prefix=$PKG_DIR/libunwind-1.0.1
+      # If necessary, get and install the latest libunwind, 1.1 at the time
+      # of updating these instructions:
+      wget 'http://download.savannah.gnu.org/releases/libunwind/libunwind-1.1.tar.gz'
+      tar -xzf libunwind-1.1.tar.gz
+      cd libunwind-1.1/
+      ./configure --prefix=$PKG_DIR/libunwind
       make -j 4
       # make check showed errors for us, but they don't seem to affect
       # TCMalloc, so we've been ignoring them.
@@ -480,31 +471,37 @@ Optional dependencies for source code distributions:
       make install -j 4
       cd ..
 
-      # Get the latest gperftools (which includes TCMalloc), 2.0 at the time of
-      # writing:
-      # Obtain gperftools-2.0.tar.gz from http://code.google.com/p/gperftools/
-      tar -xzf gperftools-2.0.tar.gz
-      cd gperftools-2.0
-      # Yes, the follow is ugly, but doing it this way will make your life easier later
-      LD_RUN_PATH=$PKG_DIR/libunwind-1.0.1/lib:$LD_RUN_PATH C_INCLUDE_PATH=$PKG_DIR/libunwind-1.0.1/include LDFLAGS=-L$PKG_DIR/libunwind-1.0.1/lib ./configure --prefix=$PKG_DIR/gperftools-2.0
-      LD_RUN_PATH=$PKG_DIR/libunwind-1.0.1/lib:$LD_RUN_PATH LDFLAGS=-L$PKG_DIR/libunwind-1.0.1/lib make CXXFLAGS="-g -I$PKG_DIR/libunwind-1.0.1/include" -j 5
-      LD_RUN_PATH=$PKG_DIR/libunwind-1.0.1/lib:$LD_RUN_PATH LDFLAGS=-L$PKG_DIR/libunwind-1.0.1/lib make CXXFLAGS="-g -I$PKG_DIR/libunwind-1.0.1/include" -j 5 check
-      LD_RUN_PATH=$PKG_DIR/libunwind-1.0.1/lib:$LD_RUN_PATH LDFLAGS=-L$PKG_DIR/libunwind-1.0.1/lib make CXXFLAGS="-g -I$PKG_DIR/libunwind-1.0.1/include" -j 5 install
+      # If you had to install libunwind, define these variables before building
+      # gperfools (in your current shell, not in your default configuration):
+      export LD_RUN_PATH=$PKG_DIR/libunwind/lib:$LD_RUN_PATH
+      export CPATH=$PKG_DIR/libunwind/include
+      export LDFLAGS=-L$PKG_DIR/libunwind/lib
 
-      # Edit src/Makefile.user-conf and set TCMALLOC=$PKG_DIR/gperftools-2.0
-      # (here you need to replace $PKG_DIR by its value, e.g., $PORTAGE/pkgs).
+      # Get the latest gperftools (which includes TCMalloc), 2.4 when we last
+      # updated these instructions:
+      # Obtain gperftools-2.4.tar.gz from http://code.google.com/p/gperftools/
+      tar -xzf gperftools-2.4.tar.gz
+      cd gperftools-2.4
+      ./configure --prefix=$PKG_DIR/gperftools
+      make CXXFLAGS=-g -j 5
+      make CXXFLAGS=-g -j 5 check
+      make CXXFLAGS=-g -j 5 install
+
+      # Edit src/Makefile.user-conf and set TCMALLOC=$PKG_DIR/gperftools
+      # (here you need to replace $PKG_DIR by its value).
 
  - CxxTest - our unit testing framework depends on CxxTest, which can be
-   downloaded from http://cxxtest.tigris.org/.  CxxTest is a very small package
+   downloaded from http://cxxtest.com/.  CxxTest is a very small package
    that is very easy to install, even though it needs to be installed manually.
 
    This procedure worked for us:
-      # Obtain cxxtest-4.0.3.tar.gz (or the current version) from http://cxxtest.com/
+      # Obtain cxxtest-4.4.tar.gz (or the current version) from http://cxxtest.com/
       # Installation is done by simply expanding the tar ball in the
       # destination directory
-      cd $PORTAGE/pkgs
-      tar -xzf /PATH/TO/cxxtest-4.0.3.tar.gz
-      # Edit src/Makefile.user-conf and set the CXXTEST variable to $PORTAGE/pkgs/cxxtest
+      cd $PORTAGE/third-party
+      tar -xzf /PATH/TO/cxxtest-4.4.tar.gz
+      # Edit src/Makefile.user-conf and set the CXXTEST variable to
+      # $PORTAGE/third-party/cxxtest-4.4
 
    If you don't install CxxTest, set CXXTEST=NONE in src/Makefile.user-conf.
 
@@ -513,25 +510,12 @@ Optional dependencies for source code distributions:
    To enable logging, make sure you have log4cxx installed, edit
    src/Makefile.user-conf to set LOG4CXX to the full path with log4cxx is
    installed, and compile again.  The logging facilities are not well
-   documented, so you would probably only do this in communication with ILT
-   staff, who will explain how to use it as necessary.
+   documented, so you would probably only do this in communication with NRC
+   staff, who will explain how to install and use it as necessary.
 
-   log4cxx home: http://logging.apache.org/log4cxx/.
-   This procedure worked for us, and may help you install it yourself, if your
-   sys admins can't do it globally for you:
-      # Download log4cxx-0.9.7.tar.gz by following the download links from the
-      # log4cxx home page.
-      # Expand the package
-      tar -xzf log4cxx-0.9.7.tar.gz
-      cd log4cxx-0.9.7
-      # Run autoconf - see notes about $DEST/log4cxx in the boost section above.
-      ./autogen.sh
-      ./configure -with-XML=no --prefix=$DEST/log4cxx
-      # Compile (add -j 5 to speed up this step)
-      make
-      # Install to $DEST/log4cxx/{include,lib}
-      make install
-      # Edit src/Makefile.user-conf and set the LOG4CXX variable to $DEST.
+   The log4cxx home is http://logging.apache.org/log4cxx/ but we strongly
+   recommend using an OS distro based installation by your sys admin and not
+   try a manual installation.
 
  - etags and/or ctags - recommended if you program with emacs or vi or related
    programs.  These programs will build the databases needed to enable
@@ -541,6 +525,13 @@ Optional dependencies for source code distributions:
    use by defining PORTAGE_NO_CTAGS and/or PORTAGE_NO_ETAGS to 1 in your
    .<shell>rc file, or by uncommenting the lines "PORTAGE_NO_CTAGS=1" and/or
    "PORTAGE_NO_ETAGS=1" in src/Makefile.user-conf.
+
+ - jq - This command line JSON processor is used to run some unit tests.
+
+ - srilm & mitlm - The instructions above say you can chose the LM toolkit you
+   want.  That's true for using PortageII, but some of the unit tests depend on
+   srilm and others depend on mitlm.  You can safely ignore those unit test
+   failures if you don't have both toolkits installed.
 
 Optional PortageLive dependencies
 

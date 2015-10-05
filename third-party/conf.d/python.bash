@@ -1,6 +1,6 @@
 ############ PYTHON ############
 # Set this variable to override where Python is installed
-export PYTHON_HOME=${PYTHON_HOME_OVERRIDE:-$PORTAGE/third-party/Python-2.7.10}
+export PYTHON_HOME=${PYTHON_HOME_OVERRIDE:-$PORTAGE/third-party/Python2.7}
 if [[ -d $PYTHON_HOME ]]; then
    export PYTHON=${PYTHON_HOME}/bin/python
    export PATH=$PYTHON_HOME/bin:$PATH
@@ -13,5 +13,5 @@ if [[ -d $PYTHON_HOME ]]; then
 elif python --version 2>&1 | grep -q 2\.7; then
    true
 else
-   echo Error: PortageII required Python version 2.7
+   echo Error: PortageII requires Python version 2.7
 fi
