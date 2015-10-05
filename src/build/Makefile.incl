@@ -65,7 +65,7 @@ PYTHON_LIB_DIR := $(INSTALL_DIR)/lib
 # If BOOST_ROOT is defined, pull boost from there
 # Note: keep a space between -isystem and its argument, to keep Klocwork happy.
 ifdef BOOST_ROOT
-   BOOST_LIB_DIR = -L$(BOOST_ROOT)/lib
+   BOOST_LIB_DIR = -L$(BOOST_ROOT)/lib -Wl,-rpath,$(BOOST_ROOT)/lib
    BOOST_INC_DIR = -isystem $(patsubst %/boost,%,$(wildcard $(BOOST_ROOT)/include/*/boost))
    ifeq ($(strip $(BOOST_INC_DIR)),-isystem)
       BOOST_INC_DIR = -isystem $(patsubst %/boost,%,$(wildcard $(BOOST_ROOT)/include/boost))
