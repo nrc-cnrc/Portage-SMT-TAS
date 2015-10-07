@@ -1700,6 +1700,208 @@ not(//*:translateResponse/Result/node())</path>
           </con:request>
         </con:config>
       </con:testStep>
+      <con:testStep type="request" name="translate - xtags - Request">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>translate</con:operation>
+          <con:request name="translate - xtags - Request" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translate soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <srcString xsi:type="xsd:string"><![CDATA[Hello <red>world</red>]]]]>><![CDATA[</srcString>
+         <context xsi:type="xsd:string">${#TestCase#context}</context>
+         <newline xsi:type="xsd:string">s</newline>
+         <useCE xsi:type="xsd:boolean">false</useCE>
+         <xtags xsi:type="xsd:boolean">true</xtags>
+      </urn:translate>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:assertion type="SOAP Fault Assertion" name="Not SOAP Fault"/>
+            <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+              <con:configuration>
+                <codes>200</codes>
+              </con:configuration>
+            </con:assertion>
+            <con:assertion type="XQuery Match" name="Validate Translation">
+              <con:configuration>
+                <path>contains(//*:translateResponse/*:Result, "&lt;red>")</path>
+                <content>true</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:authType>No Authorization</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="translate"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="request" name="translate - newline=s - Request">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>translate</con:operation>
+          <con:request name="translate - newline=s - Request" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translate soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <srcString xsi:type="xsd:string">I eat an apple.  It is apple picking time.
+The car is blue.
+
+It is Friday.</srcString>
+         <context xsi:type="xsd:string">${#TestCase#context}</context>
+         <newline xsi:type="xsd:string">p</newline>
+         <useCE xsi:type="xsd:boolean">false</useCE>
+         <xtags xsi:type="xsd:boolean">false</xtags>
+      </urn:translate>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:assertion type="XQuery Match" name="There should be 4 lines in the translation.">
+              <con:configuration>
+                <path>count(tokenize(//*:translateResponse/*:Result, "\n"))</path>
+                <content>4</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:assertion type="XQuery Match" name="The third line should be empty.">
+              <con:configuration>
+                <path>tokenize(//*:translateResponse/*:Result, "\n")[3]</path>
+                <content>&lt;xml-fragment/></content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:authType>No Authorization</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="translate"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="request" name="translate - newline=p - Request">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>translate</con:operation>
+          <con:request name="translate - newline=p - Request" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translate soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <srcString xsi:type="xsd:string">I eat an apple.  It is apple picking time.
+The car is blue.
+
+It is Friday.</srcString>
+         <context xsi:type="xsd:string">${#TestCase#context}</context>
+         <newline xsi:type="xsd:string">s</newline>
+         <useCE xsi:type="xsd:boolean">false</useCE>
+         <xtags xsi:type="xsd:boolean">false</xtags>
+      </urn:translate>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:assertion type="XQuery Match" name="There should be 4 lines in the translation.">
+              <con:configuration>
+                <path>count(tokenize(//*:translateResponse/*:Result, "\n"))</path>
+                <content>4</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:assertion type="XQuery Match" name="The third line should be empty.">
+              <con:configuration>
+                <path>tokenize(//*:translateResponse/*:Result, "\n")[3]</path>
+                <content>&lt;xml-fragment/></content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:authType>No Authorization</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="translate"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="request" name="translate - newline=w - Request">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>translate</con:operation>
+          <con:request name="translate - newline=w - Request" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translate soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <!-- NOTE The second sentence of the first paragraph is deliberately spreading on two lines. -->
+         <srcString xsi:type="xsd:string">I eat an apple.  It is
+apple picking time.
+The car is blue.
+
+It is Friday.</srcString>
+         <context xsi:type="xsd:string">${#TestCase#context}</context>
+         <newline xsi:type="xsd:string">w</newline>
+         <useCE xsi:type="xsd:boolean">false</useCE>
+         <xtags xsi:type="xsd:boolean">false</xtags>
+      </urn:translate>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:assertion type="XQuery Match" name="There should be 5 lines in the translation.">
+              <con:configuration>
+                <path>count(tokenize(//*:translateResponse/*:Result, "\n"))</path>
+                <content>5</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:assertion type="XQuery Match" name="The fourth line should be empty.">
+              <con:configuration>
+                <path>tokenize(//*:translateResponse/*:Result, "\n")[4]</path>
+                <content>&lt;xml-fragment/></content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:authType>No Authorization</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="translate"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
       <con:properties>
         <con:property>
           <con:name>context</con:name>
@@ -1903,7 +2105,7 @@ testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').byt
         </con:property>
       </con:properties>
     </con:testCase>
-    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="translateSDLXLIFF 1-tans-unit / nomrk TestCase" searchProperties="true" id="0e364d64-aa4e-458c-937b-d52d0e2391d3">
+    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="translateSDLXLIFF 1-trans-unit / nomrk TestCase" searchProperties="true" id="0e364d64-aa4e-458c-937b-d52d0e2391d3">
       <con:description>This testcase will you the most minimalist but still valid sdlxliff file.  This means a sdlxliff with a bodt tag with nothing in it.</con:description>
       <con:settings/>
       <con:testStep type="request" name="Submit sdlxliff request">
@@ -3034,8 +3236,12 @@ testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').byt
                 <codes>200</codes>
               </con:configuration>
             </con:assertion>
-            <con:assertion type="XQuery Match" name="XQuery Match">
-              <con:configuration/>
+            <con:assertion type="XQuery Match" name="We should get a failure message saying there was no text to translate.">
+              <con:configuration>
+                <path>starts-with(//*:translateFileStatusResponse/*:token, "2 Failed - no sentences to translate")</path>
+                <content>true</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
             </con:assertion>
             <con:credentials>
               <con:authType>No Authorization</con:authType>
@@ -3062,6 +3268,195 @@ testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').byt
         <con:property>
           <con:name>input_txt</con:name>
           <con:value><![CDATA[<?xml version="1.0"?> <tmx version="1.4">  <header   creationtool="XYZTool"   creationtoolversion="1.01-023"   segtype="sentence"   o-tmf="ABCTransMem"   adminlang="en-us"   srclang="EN"   datatype="PlainText"  >  </header>  <body>  </body> </tmx>]]></con:value>
+        </con:property>
+        <con:property>
+          <con:name>input</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
+          <con:name>MonitoringToken</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
+          <con:name>TranslationFileAddress</con:name>
+          <con:value/>
+        </con:property>
+      </con:properties>
+    </con:testCase>
+    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="translateTMX no seg TestCase" searchProperties="true" id="b4758682-ba14-4714-84cb-7d24781d4e7e">
+      <con:settings/>
+      <con:testStep type="request" name="Submit tmx request">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>translateTMX</con:operation>
+          <con:request name="Submit tmx request">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translateTMX soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <ContentsBase64 xsi:type="xsd:string">${#TestCase#input}</ContentsBase64>
+         <Filename xsi:type="xsd:string">input.tmx</Filename>
+         <context xsi:type="xsd:string">${#TestSuite#context}</context>
+         <useCE xsi:type="xsd:boolean">false</useCE>
+         <CETreshold xsi:type="xsd:decimal">0</CETreshold>
+         <xtags xsi:type="xsd:boolean">false</xtags>
+      </urn:translateTMX>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response"/>
+            <con:assertion type="SOAP Fault Assertion" name="Not SOAP Fault"/>
+            <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+              <con:configuration>
+                <codes>200</codes>
+              </con:configuration>
+            </con:assertion>
+            <con:assertion type="XQuery Match" name="Contains a monitoring token">
+              <con:configuration>
+                <path>contains(//*:translateTMXResponse/*:token, "plive-monitor.cgi")</path>
+                <content>true</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:authType>No Authorization</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="transfer" name="Get Monitoring Address">
+        <con:settings/>
+        <con:config xsi:type="con:PropertyTransfersStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:transfers setNullOnMissingSource="true" transferTextContent="true" failOnError="true" ignoreEmpty="false" transferToAll="false" useXQuery="false" entitize="false" transferChildNodes="false">
+            <con:name>Get Monitoring Address</con:name>
+            <con:sourceType>Response</con:sourceType>
+            <con:sourceStep>Submit tmx request</con:sourceStep>
+            <con:sourcePath>//token/text()</con:sourcePath>
+            <con:targetType>MonitoringToken</con:targetType>
+            <con:targetStep>#TestCase#</con:targetStep>
+          </con:transfers>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="delay" name="Wait for translations">
+        <con:settings/>
+        <con:config>
+          <delay>2000</delay>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="request" name="translateFileStatus - Are we done translating - Request">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>translateFileStatus</con:operation>
+          <con:request name="translateFileStatus - Are we done translating - Request" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translateFileStatus soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <token xsi:type="xsd:string"><![CDATA[${#TestCase#MonitoringToken}]]]]>><![CDATA[</token>
+      </urn:translateFileStatus>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:assertion type="SOAP Fault Assertion" name="Not SOAP Fault"/>
+            <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+              <con:configuration>
+                <codes>200</codes>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:authType>No Authorization</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="translateFileStatus"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="goto" name="Are translations available">
+        <con:settings/>
+        <con:config xsi:type="con:GotoStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:condition>
+            <con:name>Translation Availability</con:name>
+            <con:type>XPATH</con:type>
+            <con:expression>contains(//*:translateFileStatusResponse/*:token, "1 In progress")</con:expression>
+            <con:targetStep>Wait for translations</con:targetStep>
+          </con:condition>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="request" name="translateFileStatus - Get Translations - Request">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>translateFileStatus</con:operation>
+          <con:request name="translateFileStatus - Get Translations - Request" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translateFileStatus soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <token xsi:type="xsd:string"><![CDATA[${#TestCase#MonitoringToken}]]]]>><![CDATA[</token>
+      </urn:translateFileStatus>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:assertion type="SOAP Fault Assertion" name="Not SOAP Fault"/>
+            <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+              <con:configuration>
+                <codes>200</codes>
+              </con:configuration>
+            </con:assertion>
+            <con:assertion type="XQuery Match" name="We should get a failure message saying there was no text to translate.">
+              <con:configuration>
+                <path>starts-with(//*:translateFileStatusResponse/*:token, "2 Failed - no sentences to translate")</path>
+                <content>true</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:authType>No Authorization</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="translateFileStatus"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
+      <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
+import org.apache.commons.codec.binary.Base64
+testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').bytes.encodeBase64().toString())
+//http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
+      <con:tearDownScript>for (prop in ["input", "MonitoringToken", "TranslationFileAddress"]) {
+	testCase.setPropertyValue(prop, "")
+}</con:tearDownScript>
+      <con:properties>
+        <con:property>
+          <con:name>context</con:name>
+          <con:value>${#TestSuite#context}</con:value>
+        </con:property>
+        <con:property>
+          <con:name>input_txt</con:name>
+          <con:value><![CDATA[<?xml version="1.0"?> <tmx version="1.4">   <header creationtool="XYZTool" creationtoolversion="1.01-023" segtype="sentence" o-tmf="ABCTransMem" adminlang="en-us" srclang="EN"  datatype="PlainText"> </header>   <body>     <tu>       <tuv xml:lang="EN-CA"> Hello world.     </tuv>   </tu> </body> </tmx>]]></con:value>
         </con:property>
         <con:property>
           <con:name>input</con:name>
@@ -3641,6 +4036,192 @@ testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').byt
         </con:property>
       </con:properties>
     </con:testCase>
+    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="translateTMX xtags TestCase" searchProperties="true" id="dd3be17f-1a8b-4c51-bfe7-be80636239dc">
+      <con:settings/>
+      <con:testStep type="request" name="Submit tmx request">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>translateTMX</con:operation>
+          <con:request name="Submit tmx request">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translateTMX soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <ContentsBase64 xsi:type="xsd:string">${#TestCase#input}</ContentsBase64>
+         <Filename xsi:type="xsd:string">input.tmx</Filename>
+         <context xsi:type="xsd:string">${#TestSuite#context}</context>
+         <useCE xsi:type="xsd:boolean">false</useCE>
+         <CETreshold xsi:type="xsd:decimal">0</CETreshold>
+         <xtags xsi:type="xsd:boolean">true</xtags>
+      </urn:translateTMX>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response"/>
+            <con:assertion type="SOAP Fault Assertion" name="Not SOAP Fault"/>
+            <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+              <con:configuration>
+                <codes>200</codes>
+              </con:configuration>
+            </con:assertion>
+            <con:assertion type="XQuery Match" name="Contains a monitoring token">
+              <con:configuration>
+                <path>contains(//*:translateTMXResponse/*:token, "plive-monitor.cgi")</path>
+                <content>true</content>
+                <allowWildcards>false</allowWildcards>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:authType>No Authorization</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="transfer" name="Get Monitoring Address">
+        <con:settings/>
+        <con:config xsi:type="con:PropertyTransfersStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:transfers setNullOnMissingSource="true" transferTextContent="true" failOnError="true" ignoreEmpty="false" transferToAll="false" useXQuery="false" entitize="false" transferChildNodes="false">
+            <con:name>Get Monitoring Address</con:name>
+            <con:sourceType>Response</con:sourceType>
+            <con:sourceStep>Submit tmx request</con:sourceStep>
+            <con:sourcePath>//token/text()</con:sourcePath>
+            <con:targetType>MonitoringToken</con:targetType>
+            <con:targetStep>#TestCase#</con:targetStep>
+          </con:transfers>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="delay" name="Wait for translations">
+        <con:settings/>
+        <con:config>
+          <delay>2000</delay>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="request" name="translateFileStatus - Are we done translating - Request">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>translateFileStatus</con:operation>
+          <con:request name="translateFileStatus - Are we done translating - Request" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings/>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translateFileStatus soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <token xsi:type="xsd:string"><![CDATA[${#TestCase#MonitoringToken}]]]]>><![CDATA[</token>
+      </urn:translateFileStatus>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:credentials>
+              <con:authType>No Authorization</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="translateFileStatus"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="goto" name="Are translations available">
+        <con:settings/>
+        <con:config xsi:type="con:GotoStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:condition>
+            <con:name>Translation Availability</con:name>
+            <con:type>XPATH</con:type>
+            <con:expression>contains(//*:translateFileStatusResponse/*:token, "1 In progress")</con:expression>
+            <con:targetStep>Wait for translations</con:targetStep>
+          </con:condition>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="transfer" name="Get Translation File Address">
+        <con:settings/>
+        <con:config xsi:type="con:PropertyTransfersStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:transfers setNullOnMissingSource="true" transferTextContent="true" failOnError="true" ignoreEmpty="false" transferToAll="false" useXQuery="false" entitize="false" transferChildNodes="false">
+            <con:name>Get Translation File Address</con:name>
+            <con:sourceType>Response</con:sourceType>
+            <con:sourceStep>translateFileStatus - Are we done translating - Request</con:sourceStep>
+            <con:sourcePath>tokenize(//*:translateFileStatusResponse/token, "\s*: \s*")[2]</con:sourcePath>
+            <con:targetType>TranslationFileAddress</con:targetType>
+            <con:targetStep>#TestCase#</con:targetStep>
+          </con:transfers>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="httprequest" name="Get Translation File">
+        <con:settings/>
+        <con:config method="GET" xsi:type="con:HttpRequest" name="Get Translation File" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+          </con:settings>
+          <con:endpoint>http://${#Project#ServerName}/${#TestCase#TranslationFileAddress}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="The source sentence should have one red tag.">
+            <con:configuration>
+              <path>count(//*:tuv[@xml:lang="EN-CA"]/*:seg/*:red)</path>
+              <content>1</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="The translation should have one red tag.">
+            <con:configuration>
+              <path>count(//*:tuv[@xml:lang="FR-CA"]/*:seg/*:red)</path>
+              <content>1</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters/>
+        </con:config>
+      </con:testStep>
+      <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
+import org.apache.commons.codec.binary.Base64
+testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').bytes.encodeBase64().toString())
+//http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
+      <con:tearDownScript>for (prop in ["input", "MonitoringToken", "TranslationFileAddress"]) {
+	testCase.setPropertyValue(prop, "")
+}</con:tearDownScript>
+      <con:properties>
+        <con:property>
+          <con:name>context</con:name>
+          <con:value>${#TestSuite#context}</con:value>
+        </con:property>
+        <con:property>
+          <con:name>input_txt</con:name>
+          <con:value><![CDATA[<?xml version="1.0"?> <tmx version="1.4">   <header creationtool="XYZTool" creationtoolversion="1.01-023" segtype="sentence" o-tmf="ABCTransMem" adminlang="en-us" srclang="EN" datatype="PlainText"> </header>   <body>     <tu>       <tuv xml:lang="EN-CA">         <seg> Hello <red>world</red>       </seg>     </tuv>   </tu> </body> </tmx>]]></con:value>
+        </con:property>
+        <con:property>
+          <con:name>input</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
+          <con:name>MonitoringToken</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
+          <con:name>TranslationFileAddress</con:name>
+          <con:value/>
+        </con:property>
+      </con:properties>
+    </con:testCase>
     <con:properties>
       <con:property>
         <con:name>context</con:name>
@@ -3801,7 +4382,7 @@ testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').byt
             </con:assertion>
             <con:assertion type="XQuery Match" name="Validate Failed due to no sentences to translate">
               <con:configuration>
-                <path>//*:translateFileStatusResponse/token</path>
+                <path>//*:translateFileStatusResponse/*:token</path>
                 <content>2 Failed - no sentences to translate : *</content>
                 <allowWildcards>true</allowWildcards>
               </con:configuration>
@@ -4397,6 +4978,184 @@ testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').byt
         </con:property>
         <con:property>
           <con:name>MonitoringToken</con:name>
+          <con:value/>
+        </con:property>
+      </con:properties>
+    </con:testCase>
+    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="translatePlainText xtags TestCase" searchProperties="true" id="ce6f0637-5655-44e7-be7b-3da6425bcbc5">
+      <con:settings/>
+      <con:testStep type="request" name="translatePlainText - Request">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>translatePlainText</con:operation>
+          <con:request name="translatePlainText - Request" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+              <con:setting id="WsdlSettings@enable-mtom">false</con:setting>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@skip_soap_action">false</con:setting>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@force_mtom">false</con:setting>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@disable-multipart-attachments">true</con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translatePlainText soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <ContentsBase64 xsi:type="xsd:string">${#TestCase#input}</ContentsBase64>
+         <Filename xsi:type="xsd:string">input.txt</Filename>
+         <context xsi:type="xsd:string">${#TestCase#context}</context>
+         <useCE xsi:type="xsd:boolean">false</useCE>
+         <xtags xsi:type="xsd:boolean">true</xtags>
+      </urn:translatePlainText>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:assertion type="SOAP Fault Assertion" name="Not SOAP Fault"/>
+            <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+              <con:configuration>
+                <codes>200</codes>
+              </con:configuration>
+            </con:assertion>
+            <con:credentials>
+              <con:authType>No Authorization</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="translatePlainTextCE"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="transfer" name="Monitoring Address">
+        <con:settings/>
+        <con:config xsi:type="con:PropertyTransfersStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:transfers setNullOnMissingSource="true" transferTextContent="true" failOnError="true" ignoreEmpty="false" transferToAll="false" useXQuery="false" entitize="false" transferChildNodes="false">
+            <con:name>token</con:name>
+            <con:sourceType>Response</con:sourceType>
+            <con:sourceStep>translatePlainText - Request</con:sourceStep>
+            <con:sourcePath>//token/text()</con:sourcePath>
+            <con:targetType>MonitoringToken</con:targetType>
+            <con:targetStep>#TestCase#</con:targetStep>
+          </con:transfers>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="delay" name="Wait for translations">
+        <con:settings/>
+        <con:config>
+          <delay>2000</delay>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="request" name="translateFileStatus - Are we done translating- Request">
+        <con:settings/>
+        <con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:interface>PortageLive_SoapHttpBinding</con:interface>
+          <con:operation>translateFileStatus</con:operation>
+          <con:request name="translateFileStatus - Are we done translating- Request" outgoingWss="" incomingWss="" timeout="" sslKeystore="" useWsAddressing="false" useWsReliableMessaging="false" wssPasswordType="">
+            <con:settings>
+              <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            </con:settings>
+            <con:encoding>UTF-8</con:encoding>
+            <con:endpoint>${#Project#endpoint}</con:endpoint>
+            <con:request><![CDATA[<soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:cnrc-nrc:portageliveservice">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <urn:translateFileStatus soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+         <token xsi:type="xsd:string"><![CDATA[${#TestCase#MonitoringToken}]]]]>><![CDATA[</token>
+      </urn:translateFileStatus>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request>
+            <con:assertion type="SOAP Response" name="SOAP Response"/>
+            <con:credentials>
+              <con:authType>No Authorization</con:authType>
+            </con:credentials>
+            <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+            <con:jmsPropertyConfig/>
+            <con:wsaConfig mustUnderstand="NONE" version="200508" action="translateFileStatus"/>
+            <con:wsrmConfig version="1.2"/>
+          </con:request>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="goto" name="Are translations available">
+        <con:settings/>
+        <con:config xsi:type="con:GotoStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:condition>
+            <con:name>Translation availability</con:name>
+            <con:type>XPATH</con:type>
+            <con:expression>contains(//*:translateFileStatusResponse/*:token, "1 In progress")</con:expression>
+            <con:targetStep>Wait for translations</con:targetStep>
+          </con:condition>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="transfer" name="Translation File Address">
+        <con:settings/>
+        <con:config xsi:type="con:PropertyTransfersStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:transfers setNullOnMissingSource="true" transferTextContent="true" failOnError="true" ignoreEmpty="false" transferToAll="false" useXQuery="false" entitize="false" transferChildNodes="false">
+            <con:name>Translation File Link</con:name>
+            <con:sourceType>Response</con:sourceType>
+            <con:sourceStep>translateFileStatus - Are we done translating- Request</con:sourceStep>
+            <con:sourcePath>tokenize(//*:translateFileStatusResponse/token, "\s*: \s*")[2]</con:sourcePath>
+            <con:targetType>TranslationFileAddress</con:targetType>
+            <con:targetStep>#TestCase#</con:targetStep>
+          </con:transfers>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="httprequest" name="Get Translation File">
+        <con:settings/>
+        <con:config method="GET" xsi:type="con:HttpRequest" name="Get Translation File" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+          </con:settings>
+          <con:encoding>UTF-8</con:encoding>
+          <con:endpoint>http://${#Project#ServerName}/${#TestCase#TranslationFileAddress}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="There should be a red tag in the translation.">
+            <con:configuration>
+              <path>contains(/data/text(), "&lt;red>")</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters/>
+        </con:config>
+      </con:testStep>
+      <con:setupScript>// source: http://prystash.blogspot.ca/2009/06/groovy-base64-encodedecode-with-and.html
+import org.apache.commons.codec.binary.Base64
+testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').bytes.encodeBase64().toString())
+//http://forum.soapui.org/viewtopic.php?f=15&amp;t=7571&amp;p=21923#p21923</con:setupScript>
+      <con:tearDownScript>for (prop in ["input", "MonitoringToken", "TranslationFileAddress"]) {
+	testCase.setPropertyValue(prop, "")
+}</con:tearDownScript>
+      <con:properties>
+        <con:property>
+          <con:name>context</con:name>
+          <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+        </con:property>
+        <con:property>
+          <con:name>input_txt</con:name>
+          <con:value>Hello &lt;red>world&lt;/red></con:value>
+        </con:property>
+        <con:property>
+          <con:name>input</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
+          <con:name>MonitoringToken</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
+          <con:name>TranslationFileAddress</con:name>
           <con:value/>
         </con:property>
       </con:properties>
