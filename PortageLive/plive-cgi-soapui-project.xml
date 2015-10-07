@@ -4,7 +4,7 @@
   <con:testSuite name="plive.cgi">
     <con:settings/>
     <con:runType>SEQUENTIAL</con:runType>
-    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Landing page - TestCase" searchProperties="true">
+    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Landing page - TestCase" searchProperties="true" id="ffb94dd4-e90b-4e41-8eb9-cb538fff2c4c">
       <con:settings/>
       <con:testStep type="httprequest" name="HTTP Test Request">
         <con:settings/>
@@ -39,18 +39,18 @@
     <con:properties>
       <con:property>
         <con:name>endpoint</con:name>
-        <con:value>http://${#Project#ServerName}/cgi-bin/plive.cgi</con:value>
+        <con:value>${#Project#endpoint}</con:value>
       </con:property>
       <con:property>
-        <con:name>context.toy_en2fr</con:name>
-        <con:value>toy-regress-en2fr</con:value>
+        <con:name>context</con:name>
+        <con:value>${#Project#context.toy_en2fr}</con:value>
       </con:property>
     </con:properties>
   </con:testSuite>
   <con:testSuite name="TextBox Translation">
     <con:settings/>
     <con:runType>SEQUENTIAL</con:runType>
-    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Translate with TextBox - TestCase" searchProperties="true">
+    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Translate with TextBox - TestCase" searchProperties="true" id="3dc1b7ae-a782-40fa-9b0b-ac8acc901e14">
       <con:settings/>
       <con:testStep type="httprequest" name="Simple request" id="78fd6b2b-f0b0-4df6-a9ea-486c73ad2f5b">
         <con:settings/>
@@ -80,7 +80,7 @@
           <con:parameters>
             <con:parameter>
               <con:name>context</con:name>
-              <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+              <con:value>${#TestSuite#context}</con:value>
               <con:style>QUERY</con:style>
               <con:default>toy-regress-en2fr</con:default>
               <con:path xsi:nil="true"/>
@@ -165,7 +165,7 @@
           <con:parameters>
             <con:parameter>
               <con:name>context</con:name>
-              <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+              <con:value>${#TestSuite#context}</con:value>
               <con:style>QUERY</con:style>
               <con:default>toy-regress-en2fr</con:default>
               <con:path xsi:nil="true"/>
@@ -250,7 +250,7 @@
           <con:parameters>
             <con:parameter>
               <con:name>context</con:name>
-              <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+              <con:value>${#TestSuite#context}</con:value>
               <con:style>QUERY</con:style>
               <con:default>toy-regress-en2fr</con:default>
               <con:path xsi:nil="true"/>
@@ -364,7 +364,7 @@
           <con:parameters>
             <con:parameter>
               <con:name>context</con:name>
-              <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+              <con:value>${#TestSuite#context}</con:value>
               <con:style>QUERY</con:style>
               <con:default>toy-regress-en2fr</con:default>
               <con:path xsi:nil="true"/>
@@ -434,7 +434,7 @@
           <con:parameters>
             <con:parameter>
               <con:name>context</con:name>
-              <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+              <con:value>${#TestSuite#context}</con:value>
               <con:style>QUERY</con:style>
               <con:default>toy-regress-en2fr</con:default>
               <con:path xsi:nil="true"/>
@@ -513,7 +513,7 @@
           <con:parameters>
             <con:parameter>
               <con:name>context</con:name>
-              <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+              <con:value>${#TestSuite#context}</con:value>
               <con:style>QUERY</con:style>
               <con:default>toy-regress-en2fr</con:default>
               <con:path xsi:nil="true"/>
@@ -585,7 +585,7 @@
           <con:parameters>
             <con:parameter>
               <con:name>context</con:name>
-              <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+              <con:value>${#TestSuite#context}</con:value>
               <con:style>QUERY</con:style>
               <con:default>toy-regress-en2fr</con:default>
               <con:path xsi:nil="true"/>
@@ -616,7 +616,7 @@
       </con:testStep>
       <con:properties/>
     </con:testCase>
-    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Phrase Table - TestCase" searchProperties="true">
+    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Phrase Table - TestCase" searchProperties="true" id="63abd7c2-46eb-4740-92db-61d43950afa2">
       <con:settings/>
       <con:testStep type="httprequest" name="Generate phrase table" id="ad7499bf-85ef-4b4d-896b-c3bb11e20262">
         <con:settings/>
@@ -653,7 +653,7 @@
           <con:parameters>
             <con:parameter>
               <con:name>context</con:name>
-              <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+              <con:value>${#TestSuite#context}</con:value>
               <con:style>QUERY</con:style>
               <con:default>toy-regress-en2fr</con:default>
               <con:path xsi:nil="true"/>
@@ -737,7 +737,16 @@ assert (messageExchange.responseHeaders["Content-Length"].get(0).toInteger() > 0
         </con:property>
       </con:properties>
     </con:testCase>
-    <con:properties/>
+    <con:properties>
+      <con:property>
+        <con:name>endpoint</con:name>
+        <con:value>${#Project#endpoint}</con:value>
+      </con:property>
+      <con:property>
+        <con:name>context</con:name>
+        <con:value>${#Project#context.toy_en2fr}</con:value>
+      </con:property>
+    </con:properties>
   </con:testSuite>
   <con:testSuite name="Translate XLIFF">
     <con:settings/>
@@ -910,7 +919,7 @@ exists(//head/meta[@http-equiv = "refresh"])</con:expression>
       <con:properties>
         <con:property>
           <con:name>context</con:name>
-          <con:value>${#TestSuite#context.toy_en2fr}</con:value>
+          <con:value>${#TestSuite#context}</con:value>
         </con:property>
         <con:property>
           <con:name>monitoringToken</con:name>
@@ -924,7 +933,24 @@ exists(//head/meta[@http-equiv = "refresh"])</con:expression>
     </con:testCase>
     <con:properties/>
   </con:testSuite>
-  <con:properties/>
+  <con:properties>
+    <con:property>
+      <con:name>ServerName</con:name>
+      <con:value>132.246.128.219</con:value>
+    </con:property>
+    <con:property>
+      <con:name>Service</con:name>
+      <con:value>cgi-bin/plive.cgi</con:value>
+    </con:property>
+    <con:property>
+      <con:name>endpoint</con:name>
+      <con:value>http://${#Project#ServerName}/${#Project#Service}</con:value>
+    </con:property>
+    <con:property>
+      <con:name>context.toy_en2fr</con:name>
+      <con:value>toy-regress-en2fr</con:value>
+    </con:property>
+  </con:properties>
   <con:wssContainer/>
   <con:oAuth2ProfileContainer/>
 </con:soapui-project>
