@@ -20,6 +20,6 @@ converted from the GB2312 encoding to UTF-8.
 To install NRC's modified Chinese segmenter, copy the script itself to a bin/
 directory on your PATH, and manseg.fre into the corresponding lib/ directory.
 For example, this will work:
-   cp chinese_segmenter.pl $PORTAGE/bin
-   cp manseg.fre $PORTAGE/lib
+   cp bin/chinese_segmenter.pl $PORTAGE/bin
+   cp lib/manseg.fre $PORTAGE/lib
 

@@ -65,7 +65,7 @@ PYTHON_LIB_DIR := $(INSTALL_DIR)/lib
 # If BOOST_ROOT is defined, pull boost from there
 # Note: keep a space between -isystem and its argument, to keep Klocwork happy.
 ifdef BOOST_ROOT
-   BOOST_LIB_DIR = -L$(BOOST_ROOT)/lib
+   BOOST_LIB_DIR = -L$(BOOST_ROOT)/lib -Wl,-rpath,$(BOOST_ROOT)/lib
    BOOST_INC_DIR = -isystem $(patsubst %/boost,%,$(wildcard $(BOOST_ROOT)/include/*/boost))
    ifeq ($(strip $(BOOST_INC_DIR)),-isystem)
       BOOST_INC_DIR = -isystem $(patsubst %/boost,%,$(wildcard $(BOOST_ROOT)/include/boost))
@@ -359,6 +359,10 @@ clean: clean_testrunners
 .gitignore: Makefile ../build/Makefile.incl
 	echo .gitignore $(IGNORES) $(PROGRAMS) $(CXXTEST_RUNNERS) $(CXXTEST_RUNNERS_CC) $(LEGACY_TESTS) | tr ' ' '\n' > $@
 
+# Have the libraries trigger doing the .gitignore right away
+lib: .gitignore
+dyn_lib: .gitignore
+
 # make static and dynamic libraries
 lib: $(LIBRARY).a
 dyn_lib: $(LIBRARY).so
@@ -380,6 +384,14 @@ ifeq ($(strip $(wildcard tests/*.h)),)
 test:
 clean_testrunners:
 else
+
+# Define these variables even if we don't have CxxTest, so they show up in
+# .gitignore either way.
+CXXTEST_SUITES=$(wildcard tests/*.h)
+CXXTEST_RUNNERS=$(patsubst %.h,%,$(CXXTEST_SUITES))
+CXXTEST_RUNNERS_CC=$(patsubst %.h,%.cc,$(CXXTEST_SUITES))
+CXXTEST_RUNNERS_O=$(patsubst %.h,%.o,$(CXXTEST_SUITES))
+
 ifeq ($(CXXTEST),NONE)
 .PHONY: warn_no_cxxtest
 test: warn_no_cxxtest
@@ -388,10 +400,6 @@ warn_no_cxxtest:
 clean_testrunners:
 else
 test: run_testsuites
-CXXTEST_SUITES=$(wildcard tests/*.h)
-CXXTEST_RUNNERS=$(patsubst %.h,%,$(CXXTEST_SUITES))
-CXXTEST_RUNNERS_CC=$(patsubst %.h,%.cc,$(CXXTEST_SUITES))
-CXXTEST_RUNNERS_O=$(patsubst %.h,%.o,$(CXXTEST_SUITES))
 $(CXXTEST_RUNNERS_O): CXXTEST_INC_DIR=-isystem $(CXXTEST)
 run_testsuites: $(addprefix run_,$(CXXTEST_RUNNERS))
 clean_testrunners:
@@ -402,6 +410,7 @@ run_tests/%: tests/%
 CXXTESTGEN?=$(word 1,$(wildcard $(strip ${CXXTEST})/bin/cxxtestgen*) cxxtestgen)
 $(CXXTEST_RUNNERS_CC): %.cc: %.h
 	${CXXTESTGEN} --error-printer -o $@ $<
+
 endif
 endif
 

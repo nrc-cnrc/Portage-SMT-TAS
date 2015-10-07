@@ -2,11 +2,12 @@
 # @brief User-configurable building parameters for PortageII
 # @author Eric Joanis
 #
-# Technologies langagieres interactives / Interactive Language Technologies
-# Inst. de technologie de l'information / Institute for Information Technology 
-# Conseil national de recherches Canada / National Research Council Canada 
-# Copyright 2008-2013, Sa Majeste la Reine du Chef du Canada /
-# Copyright 2008-2013, Her Majesty in Right of Canada 
+# Traitement multilingue de textes / Multilingual Text Processing
+# Technologies de l'information et des communications /
+#    Information and Communications Technologies
+# Conseil national de recherches Canada / National Research Council Canada
+# Copyright 2008-2015, Sa Majeste la Reine du Chef du Canada /
+# Copyright 2008-2015, Her Majesty in Right of Canada
 
 
 # This file contains all the user-configurable variables used to build
@@ -20,10 +21,10 @@
 # SETUP.bash/tcsh and source the appropriate file for your shell before trying
 # to compile or use PortageII.
 
-# AT NRC: lines with this commend are automatically removed when creating the
+# AT NRC: lines with this comment are automatically removed when creating the
 # AT NRC: PORTAGEshared CD.  If you commit changes to this file, make sure you
 # AT NRC: mark NRC-specific lines with this comment, while leaving untouched
-# AT NRC: the (sometimes redundant) lines that are intended as defaults on the]
+# AT NRC: the (sometimes redundant) lines that are intended as defaults on the
 # AT NRC: official CD.
 
 
@@ -41,7 +42,7 @@
 # Notes:           Uncomment and edit this line to tell the compiler where
 #                  to find boost if it is not in a standard location.
 
-#BOOST_ROOT=/full/path/to/boost
+BOOST_ROOT ?= ${PORTAGE}/third-party/boost
 
 
 
@@ -58,29 +59,29 @@
 #                  /full/path/to/icu: Use ICU, looking for its include files in
 #                  $(ICU)/include, and its libraries in $(ICU)/lib.  In this
 #                  case, you will also need to make sure the environment
-#                  variable $LD_LIBRARY_PATH includes $(ICU)/lib. 
+#                  variable $LD_LIBRARY_PATH includes $(ICU)/lib.
 # Notes:           Comment out the ICU?=NONE line below to enable Unicode-
-#                  compliant casemapping in PortageII.  Requires ICU.  
+#                  compliant casemapping in PortageII.  Requires ICU.
 #                  Uncomment and edit the next line if needed.
 
-ICU=NONE
-#ICU=$(PORTAGE)
-ICU=$(PORTAGE)# AT NRC
+#ICU ?= NONE
+ICU ?= $(PORTAGE)/third-party/icu
+ICU ?= $(PORTAGE)# AT NRC
 
 # ------------------------------------
 # Variable:        CXXTEST
 # Possible values: Specifies where CxxTest is installed.
 # Notes:           "make test" will fail unless CxxTest in installed, but
 #                  compilation of PortageII will not be affected.
-#                  Set this value so that $(CXXTEST)/bin/cxxtestgen.pl and
-#                  $(CXXTEST)/include/cxxtest/*.h exist.
+#                  Set this value so that $(CXXTEST)/bin/cxxtestgen and
+#                  $(CXXTEST)/cxxtest/*.h exist.
 
-CXXTEST?=NONE
-#CXXTEST=$(PORTAGE)/pkgs/cxxtest
+#CXXTEST ?= NONE
+CXXTEST ?= $(PORTAGE)/third-party/cxxtest
 
 # ------------------------------------
 # Variable:        PORTAGE_OPENMP
-# Possible values: specifies the compiler flag to enable OpenMP 
+# Possible values: specifies the compiler flag to enable OpenMP
 #                  (requires g++ 4.2 or more recent)
 # Notes:           Comment this line out to disable multi-threading, currently
 #                  only used by rescore_train.  (Other programs are
@@ -101,9 +102,9 @@ PORTAGE_OPENMP=-fopenmp # AT NRC
 # Notes:           Comment out this line to enable logging.  Requires log4cxx.
 #                  Uncomment and edit the next line if needed.
 
-LOG4CXX?=NONE
-#LOG4CXX=$(PORTAGE)
-LOG4CXX=$(PORTAGE)# AT NRC
+LOG4CXX ?= NONE
+#LOG4CXX = $(PORTAGE)/third-party/log4cxx
+LOG4CXX ?= $(PORTAGE)# AT NRC
 
 # ------------------------------------
 # Variable:        PORTAGE_CTAGS
@@ -137,11 +138,11 @@ MYLATEX ?= latex -interaction=batchmode
 # ------------------------------------
 # Variable:        HAS_LZMA
 # Possible values: NONE or we will attempt to autodetect the presence of lzma.
-# Notes:           Uncomment the "HAS_LZMA = NONE" line if you don't want to
+# Notes:           Uncomment the "HAS_LZMA := NONE" line if you don't want to
 #                  support lzma in Portage.
 
 HAS_LZMA := $(or $(shell test -x "`which lzma 2> /dev/null`" && echo USER-DEFINED), NONE)
-#HAS_LZMA = NONE
+#HAS_LZMA := NONE
 
 # ------------------------------------
 # Variable:        TCMALLOC
@@ -150,8 +151,8 @@ HAS_LZMA := $(or $(shell test -x "`which lzma 2> /dev/null`" && echo USER-DEFINE
 # Notes:           TCMalloc provides faster memory allocation than the default
 #                  malloc on some systems
 
-TCMALLOC ?= NONE
-#TCMALLOC = <fullpath>/google-perftools-1.8
+#TCMALLOC ?= NONE
+TCMALLOC ?= $(PORTAGE)/third-party/gperftools
 
 # ------------------------------------
 # Variable:        GOOGLE_PROFILER
@@ -159,6 +160,6 @@ TCMALLOC ?= NONE
 #                  or "NONE" or undefined to disable using it.
 # Notes:           Used only for development purposes.
 
-GOOGLE_PROFILER ?= NONE
-#GOOGLE_PROFILER = <fullpath>/google-perftools-1.8
+#GOOGLE_PROFILER ?= NONE
+GOOGLE_PROFILER ?= $(PORTAGE)/third-party/gperftools
 
