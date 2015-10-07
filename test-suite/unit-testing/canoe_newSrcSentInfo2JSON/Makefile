@@ -43,4 +43,4 @@ nssi.json.parsable:  %.parsable:  %
 	${JQ} . $< &> /dev/null
 
 nssi.json.check:  %.check:  %  ref/%
-	diff-round.pl -p 5 'jq . nssi.json | sed "s/,/ ,/" |' 'jq . ref/nssi.json | sed "s/,/ ,/" |'
+	diff-round.pl -p 5 '${JQ} . nssi.json | sed "s/,/ ,/" |' '${JQ} . ref/nssi.json | sed "s/,/ ,/" |'
