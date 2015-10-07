@@ -36,9 +36,23 @@
       </con:testStep>
       <con:properties/>
     </con:testCase>
+    <con:properties>
+      <con:property>
+        <con:name>endpoint</con:name>
+        <con:value>http://${#Project#ServerName}/cgi-bin/plive.cgi</con:value>
+      </con:property>
+      <con:property>
+        <con:name>context.toy_en2fr</con:name>
+        <con:value>toy-regress-en2fr</con:value>
+      </con:property>
+    </con:properties>
+  </con:testSuite>
+  <con:testSuite name="TextBox Translation">
+    <con:settings/>
+    <con:runType>SEQUENTIAL</con:runType>
     <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Translate with TextBox - TestCase" searchProperties="true">
       <con:settings/>
-      <con:testStep type="httprequest" name="Simple request">
+      <con:testStep type="httprequest" name="Simple request" id="78fd6b2b-f0b0-4df6-a9ea-486c73ad2f5b">
         <con:settings/>
         <con:config method="GET" xsi:type="con:HttpRequest" name="Simple request" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
           <con:settings>
@@ -95,7 +109,7 @@
           </con:parameters>
         </con:config>
       </con:testStep>
-      <con:testStep type="httprequest" name="Presence of Translation section">
+      <con:testStep type="httprequest" name="Presence of Translation section" id="d03d72e5-d21e-46b3-9bd4-98432d3be232">
         <con:settings/>
         <con:config method="GET" xsi:type="con:HttpRequest" name="Presence of Translation section" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
           <con:settings>
@@ -180,7 +194,7 @@
           </con:parameters>
         </con:config>
       </con:testStep>
-      <con:testStep type="httprequest" name="Debugging Tools">
+      <con:testStep type="httprequest" name="Debugging Tools" id="3afa67c0-49b5-46dc-b6c9-d267a5fc7428">
         <con:settings/>
         <con:config method="GET" xsi:type="con:HttpRequest" name="Debugging Tools" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
           <con:settings>
@@ -265,7 +279,7 @@
           </con:parameters>
         </con:config>
       </con:testStep>
-      <con:testStep type="httprequest" name="Invalid context">
+      <con:testStep type="httprequest" name="Invalid context" id="28768eff-4498-42ab-a546-83cd6fa539f8">
         <con:settings/>
         <con:config method="GET" xsi:type="con:HttpRequest" name="Invalid context" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
           <con:settings>
@@ -322,7 +336,7 @@
           </con:parameters>
         </con:config>
       </con:testStep>
-      <con:testStep type="httprequest" name="xtags Request">
+      <con:testStep type="httprequest" name="xtags Request" id="52d1305b-8c38-4a23-97c4-d6911af24238">
         <con:settings/>
         <con:config method="GET" xsi:type="con:HttpRequest" name="xtags Request" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
           <con:settings>
@@ -384,7 +398,7 @@
           </con:parameters>
         </con:config>
       </con:testStep>
-      <con:testStep type="httprequest" name="one sentence per line Request">
+      <con:testStep type="httprequest" name="one sentence per line Request" id="8a61d361-ad2c-4708-bd25-f447e6c3d545">
         <con:settings/>
         <con:config method="POST" xsi:type="con:HttpRequest" name="one sentence per line Request" postQueryString="true" mediaType="multipart/form-data" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
           <con:settings>
@@ -449,7 +463,7 @@
           </con:parameters>
         </con:config>
       </con:testStep>
-      <con:testStep type="httprequest" name="one paragraph per line Request">
+      <con:testStep type="httprequest" name="one paragraph per line Request" id="47a56b13-d80e-4f23-8007-065784f77ff3">
         <con:settings/>
         <con:config method="POST" xsi:type="con:HttpRequest" name="one paragraph per line Request" postQueryString="true" mediaType="multipart/form-data" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
           <con:settings>
@@ -528,7 +542,7 @@
           </con:parameters>
         </con:config>
       </con:testStep>
-      <con:testStep type="httprequest" name="Blank lines mark paragraph Request">
+      <con:testStep type="httprequest" name="Blank lines mark paragraph Request" id="0ae107c5-46d3-4fbb-9ce0-aff1a7c0c1e6">
         <con:settings/>
         <con:config method="POST" xsi:type="con:HttpRequest" name="Blank lines mark paragraph Request" postQueryString="true" mediaType="multipart/form-data" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
           <con:settings>
@@ -604,7 +618,7 @@
     </con:testCase>
     <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Phrase Table - TestCase" searchProperties="true">
       <con:settings/>
-      <con:testStep type="httprequest" name="Generate phrase table">
+      <con:testStep type="httprequest" name="Generate phrase table" id="ad7499bf-85ef-4b4d-896b-c3bb11e20262">
         <con:settings/>
         <con:config method="GET" xsi:type="con:HttpRequest" name="Generate phrase table" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
           <con:settings>
@@ -673,7 +687,7 @@
           </con:parameters>
         </con:config>
       </con:testStep>
-      <con:testStep type="transfer" name="Get Phrase Table's URL">
+      <con:testStep type="transfer" name="Get Phrase Table's URL" id="0ee71ece-55c6-4259-92c8-edcbc9556218">
         <con:settings/>
         <con:config xsi:type="con:PropertyTransfersStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
           <con:transfers setNullOnMissingSource="true" transferTextContent="true" failOnError="true" ignoreEmpty="false" transferToAll="false" useXQuery="false" entitize="false" transferChildNodes="false">
@@ -686,7 +700,7 @@
           </con:transfers>
         </con:config>
       </con:testStep>
-      <con:testStep type="httprequest" name="Fetch phrase table">
+      <con:testStep type="httprequest" name="Fetch phrase table" id="de9d4f91-3800-42bf-bf18-cda8a47cbc4f">
         <con:settings/>
         <con:config method="GET" xsi:type="con:HttpRequest" name="Fetch phrase table" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
           <con:settings>
@@ -723,9 +737,14 @@ assert (messageExchange.responseHeaders["Content-Length"].get(0).toInteger() > 0
         </con:property>
       </con:properties>
     </con:testCase>
+    <con:properties/>
+  </con:testSuite>
+  <con:testSuite name="Translate XLIFF">
+    <con:settings/>
+    <con:runType>SEQUENTIAL</con:runType>
     <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Translate XLIFF - TestCase" searchProperties="true">
       <con:settings/>
-      <con:testStep type="httprequest" name="Submit translation">
+      <con:testStep type="httprequest" name="Submit translation" id="4f4327e9-573b-4c8e-8c73-661a2fcfb977">
         <con:settings/>
         <con:config method="POST" xsi:type="con:HttpRequest" name="Submit translation" postQueryString="true" mediaType="multipart/form-data" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
           <con:settings>
@@ -789,13 +808,13 @@ context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEnd
           </con:parameters>
         </con:config>
       </con:testStep>
-      <con:testStep type="delay" name="Wait for the translation to be finished">
+      <con:testStep type="delay" name="Wait for the translation to be finished" id="ddb896f3-cb79-44ac-bb7f-ecb5edde345f">
         <con:settings/>
         <con:config>
           <delay>1000</delay>
         </con:config>
       </con:testStep>
-      <con:testStep type="httprequest" name="Inspect the monitoring page">
+      <con:testStep type="httprequest" name="Inspect the monitoring page" id="70ed4e32-b28d-4a9a-abbf-0190a8d0ff8a">
         <con:settings/>
         <con:config method="GET" xsi:type="con:HttpRequest" name="Inspect the monitoring page" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
           <con:settings>
@@ -816,7 +835,7 @@ context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEnd
           <con:parameters/>
         </con:config>
       </con:testStep>
-      <con:testStep type="goto" name="Conditional Goto">
+      <con:testStep type="goto" name="Conditional Goto" id="ab8c0599-7f23-4774-ad3b-057e4b3fd964">
         <con:settings/>
         <con:config xsi:type="con:GotoStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
           <con:condition>
@@ -829,7 +848,7 @@ exists(//head/meta[@http-equiv = "refresh"])</con:expression>
           </con:condition>
         </con:config>
       </con:testStep>
-      <con:testStep type="transfer" name="Get the translation URL">
+      <con:testStep type="transfer" name="Get the translation URL" id="a5c21519-9b7e-4e33-9dc8-6755043f15ad">
         <con:settings/>
         <con:config xsi:type="con:PropertyTransfersStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
           <con:transfers setNullOnMissingSource="true" transferTextContent="true" failOnError="true" ignoreEmpty="false" transferToAll="false" useXQuery="false" entitize="false" transferChildNodes="false">
@@ -842,7 +861,7 @@ exists(//head/meta[@http-equiv = "refresh"])</con:expression>
           </con:transfers>
         </con:config>
       </con:testStep>
-      <con:testStep type="httprequest" name="Get Translations">
+      <con:testStep type="httprequest" name="Get Translations" id="0f281692-df83-4079-83a2-b0f047128cdb">
         <con:settings/>
         <con:config method="GET" xsi:type="con:HttpRequest" name="Get Translations" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
           <con:settings>
@@ -903,16 +922,7 @@ exists(//head/meta[@http-equiv = "refresh"])</con:expression>
         </con:property>
       </con:properties>
     </con:testCase>
-    <con:properties>
-      <con:property>
-        <con:name>endpoint</con:name>
-        <con:value>http://${#Project#ServerName}/cgi-bin/plive.cgi</con:value>
-      </con:property>
-      <con:property>
-        <con:name>context.toy_en2fr</con:name>
-        <con:value>toy-regress-en2fr</con:value>
-      </con:property>
-    </con:properties>
+    <con:properties/>
   </con:testSuite>
   <con:properties/>
   <con:wssContainer/>
