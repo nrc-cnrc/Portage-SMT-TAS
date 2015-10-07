@@ -2627,17 +2627,24 @@ testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').byt
               <codes>200</codes>
             </con:configuration>
           </con:assertion>
+          <con:assertion type="XQuery Match" name="There should be 6 seg-source">
+            <con:configuration>
+              <path>count(//*:seg-source/*:mrk)</path>
+              <content>6</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
           <con:assertion type="XQuery Match" name="There should be 6 translations">
             <con:configuration>
               <path>count(//*:target/*:mrk)</path>
-              <content>&lt;xml-fragment>6&lt;/xml-fragment></content>
+              <content>6</content>
               <allowWildcards>false</allowWildcards>
             </con:configuration>
           </con:assertion>
           <con:assertion type="XQuery Match" name="There should be 6 confidence estimation scores">
             <con:configuration>
               <path>count(//*:seg[@percent])</path>
-              <content>&lt;xml-fragment>6&lt;/xml-fragment></content>
+              <content>6</content>
               <allowWildcards>false</allowWildcards>
             </con:configuration>
           </con:assertion>
