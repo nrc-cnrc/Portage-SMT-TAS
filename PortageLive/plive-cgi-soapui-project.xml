@@ -3293,9 +3293,9 @@ exists(//head/meta[@http-equiv = "refresh"])</con:expression>
     <con:runType>SEQUENTIAL</con:runType>
     <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="translate string" searchProperties="true">
       <con:settings/>
-      <con:testStep type="httprequest" name="HTTP Test Request">
+      <con:testStep type="httprequest" name="translation - Request">
         <con:settings/>
-        <con:config method="GET" xsi:type="con:HttpRequest" name="HTTP Test Request" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <con:config method="GET" xsi:type="con:HttpRequest" name="translation - Request" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
           <con:settings>
             <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
           </con:settings>
@@ -3362,6 +3362,400 @@ exists(//head/meta[@http-equiv = "refresh"])</con:expression>
         </con:config>
       </con:testStep>
       <con:properties/>
+    </con:testCase>
+    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Translate XLIFF - TestCase" searchProperties="true" id="0c44aef7-3bcc-4507-ac15-cbb2d53c43a0">
+      <con:settings/>
+      <con:testStep type="httprequest" name="Submit translation" id="a89edc9a-fcd6-4611-987c-f5742390b73f">
+        <con:settings/>
+        <con:config method="POST" xsi:type="con:HttpRequest" name="Submit translation" postQueryString="true" mediaType="multipart/form-data" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            <con:setting id="com.eviware.soapui.impl.support.AbstractHttpRequest@follow-redirects">true</con:setting>
+          </con:settings>
+          <con:encoding>UTF-8</con:encoding>
+          <con:endpoint>${#TestSuite#endpoint}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="GroovyScriptAssertion" name="Extract the monitoring URL">
+            <con:configuration>
+              <scriptText>log.info(messageExchange.getRequestContent())
+log.info(messageExchange.getEndpoint())
+context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEndpoint())</scriptText>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:attachment>
+            <con:name>fixedTerms.xliff</con:name>
+            <con:contentType>application/octet-stream</con:contentType>
+            <con:size>663</con:size>
+            <con:contentId>filename</con:contentId>
+            <con:url>C:/temp/sopaui.examples/fixedTerms.xliff</con:url>
+            <con:data>UEsDBBQACAgIAMeER0cAAAAAAAAAAAAAAAAQAAAAZml4ZWRUZXJtcy54bGlmZqVSPU/DMBDdK/U/nDyQKXFbFmSSVlRiKywsDCyu4yQW9jmyHZL+e5y0tEUwIGEvd+/evfuw881gNHxI55XFgiyzBQGJwpYK64J0oUrvyGY9n+WDVlV1JibLbJVATEVfJJ1DZrlXniE30rMg2MRmpRWdkRjYhc0Gr4qkCaFllPZ9n/W3mXU1XS0WS/r6tHsRjTQ8VegDRyET+HZiMvMTY2cFD1Mn3xl/6gUmKBXWyTS62eDLJM4IkFdKS/C2c0KmmmPd8VoW5PGZQMkDD4c2eq3mCoMcAgHrVK2Q64KMidmITTpRaW/Lw8mOXnAcfdqhCqDKuGZyDsXgsd56yzFe8K1Fb51vVAuts7XjBh5gCzc63PuD2VsNb/s19Co0EBoJxlrMcnoSuZaVdfoDjbhx72COo0QK+WfdqHZdlP5SNaeX8b/WQ8/7yem4u/GL0elZojWffQJQSwcInhAysFQBAACXAgAAUEsBAhQAFAAICAgAx4RHR54QMrBUAQAAlwIAABAAAAAAAAAAAAAAAAAAAAAAAGZpeGVkVGVybXMueGxpZmZQSwUGAAAAAAEAAQA+AAAAkgEAAAAA</con:data>
+            <con:id>ca318e4c-2efe-45bc-abbd-1f6f6091752e</con:id>
+          </con:attachment>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters>
+            <con:parameter>
+              <con:name>context</con:name>
+              <con:value>${#TestCase#context}</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>is_xml</con:name>
+              <con:value>on</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>filter</con:name>
+              <con:value>no filtering</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>translate_file</con:name>
+              <con:value>Translate File</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+          </con:parameters>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="delay" name="Wait for the translation to be finished" id="fccfda40-8884-4fb5-b3b6-e34a210f337c">
+        <con:settings/>
+        <con:config>
+          <delay>1000</delay>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="httprequest" name="Inspect the monitoring page" id="906e0a1c-e24a-4a6d-b8c9-9d4b2554e773">
+        <con:settings/>
+        <con:config method="GET" xsi:type="con:HttpRequest" name="Inspect the monitoring page" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+          </con:settings>
+          <con:endpoint>${#TestCase#monitoringToken}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters/>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="goto" name="Conditional Goto" id="6b37b5d2-b628-4472-a8f9-3acebde8a65c">
+        <con:settings/>
+        <con:config xsi:type="con:GotoStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:condition>
+            <con:name>Need some more time</con:name>
+            <con:type>XPATH</con:type>
+            <con:expression>(: not(//div[@id="translationLink"]//a/@href) :)
+(: As long as the page says to reload, we will wait. :)
+exists(//head/meta[@http-equiv = "refresh"])</con:expression>
+            <con:targetStep>Wait for the translation to be finished</con:targetStep>
+          </con:condition>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="transfer" name="Get the translation URL" id="ac199be9-a6aa-439a-95ae-d3f74febdc89">
+        <con:settings/>
+        <con:config xsi:type="con:PropertyTransfersStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:transfers setNullOnMissingSource="true" transferTextContent="true" failOnError="true" ignoreEmpty="false" transferToAll="false" useXQuery="false" entitize="false" transferChildNodes="false">
+            <con:name>Get URL</con:name>
+            <con:sourceType>ResponseAsXml</con:sourceType>
+            <con:sourceStep>Inspect the monitoring page</con:sourceStep>
+            <con:sourcePath>//div[@id="translationLink"]//a/@href</con:sourcePath>
+            <con:targetType>translationURL</con:targetType>
+            <con:targetStep>#TestCase#</con:targetStep>
+          </con:transfers>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="httprequest" name="Get Translations" id="68e0c1e9-6ca3-47ae-8bcb-bf2244537802">
+        <con:settings/>
+        <con:config method="GET" xsi:type="con:HttpRequest" name="Get Translations" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+          </con:settings>
+          <con:encoding>UTF-8</con:encoding>
+          <con:endpoint>http://${#Project#ServerName}/${#TestCase#translationURL}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="We should find a mrk tag in the seg-source.">
+            <con:configuration>
+              <path>exists(/*:xliff/*:file/*:body/*:trans-unit/*:seg-source/*:mrk)</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="We should find a red tag in the target">
+            <con:configuration>
+              <path>exists(/*:xliff/*:file/*:body/*:trans-unit/*:target/*:mrk)</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="We should have a fixed translation for sponsorship program.">
+            <con:configuration>
+              <path>contains(//*:trans-unit/*:target/*:mrk, "margorp pihsrosnops")</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="We should have a fixed translation for A B.">
+            <con:configuration>
+              <path>contains(//*:trans-unit/*:target/*:mrk, "1 2")</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="We should have a fixed translation for &lt;symbol \b>.">
+            <con:configuration>
+              <path>contains(//*:trans-unit/*:target/*:mrk, "&lt;symbole \b>")</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="There should be no confidence estimation scores.">
+            <con:configuration>
+              <path>count(//*:seg-defs/*:seg/@percent)</path>
+              <content>0</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters/>
+        </con:config>
+      </con:testStep>
+      <con:tearDownScript>for (prop in ["monitoringToken", "translationURL"]) {
+	testCase.setPropertyValue(prop, "")
+}</con:tearDownScript>
+      <con:properties>
+        <con:property>
+          <con:name>context</con:name>
+          <con:value>${#TestSuite#context}</con:value>
+        </con:property>
+        <con:property>
+          <con:name>monitoringToken</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
+          <con:name>translationURL</con:name>
+          <con:value/>
+        </con:property>
+      </con:properties>
+    </con:testCase>
+    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Translate TMX - TestCase" searchProperties="true" id="50c1c146-ce77-4f34-87c1-c874cebe0a1d">
+      <con:settings/>
+      <con:testStep type="httprequest" name="Submit translation" id="c0ab5c33-6178-407f-acae-babb6f80219d">
+        <con:settings/>
+        <con:config method="POST" xsi:type="con:HttpRequest" name="Submit translation" postQueryString="true" mediaType="multipart/form-data" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            <con:setting id="com.eviware.soapui.impl.support.AbstractHttpRequest@follow-redirects">true</con:setting>
+          </con:settings>
+          <con:encoding>UTF-8</con:encoding>
+          <con:endpoint>${#TestSuite#endpoint}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="GroovyScriptAssertion" name="Extract the monitoring URL">
+            <con:configuration>
+              <scriptText>log.info(messageExchange.getRequestContent())
+log.info(messageExchange.getEndpoint())
+context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEndpoint())</scriptText>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:attachment>
+            <con:name>fixedTerms.tmx</con:name>
+            <con:contentType>application/octet-stream</con:contentType>
+            <con:size>407</con:size>
+            <con:contentId>filename</con:contentId>
+            <con:url>C:/temp/sopaui.examples/fixedTerms.tmx</con:url>
+            <con:data>UEsDBBQACAgIAA6GR0cAAAAAAAAAAAAAAAAOAAAAZml4ZWRUZXJtcy50bXhdkL1ugzAUhfdIeYcrD90ISdupBSKIOrbqwNBWXQzcApJ/kH2Twtv3OpAoqjz4+Dv28bGT/agVnND53ppU7DZbsc/Wq4T0eEsfBUOApEPZoAOA2qEkNslalYqPz6+Shfhn3Mbuou39Q9jgsaVpwFR4NISmxgBtRPonFXlxKJ00/hV1oLLRvVHStKlAEx39+birZ/LyFpaNJDnHvSvZmxJHYhxeEM9d596VbaazYk3HRZ31CfgDni6R0SEXV5d9LptBIQ0P8IM13jrf9QMMzrZOasihgDtFz37SlVXwXWXw21MH1CFoa80GkjhkXC+M+cZLkXhpksRLPSZ65Hm9+gNQSwcIJhQpWP8AAACXAQAAUEsBAhQAFAAICAgADoZHRyYUKVj/AAAAlwEAAA4AAAAAAAAAAAAAAAAAAAAAAGZpeGVkVGVybXMudG14UEsFBgAAAAABAAEAPAAAADsBAAAAAA==</con:data>
+            <con:id>5947b059-b96c-43f0-baab-022e46f9741f</con:id>
+          </con:attachment>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters>
+            <con:parameter>
+              <con:name>context</con:name>
+              <con:value>${#TestCase#context}</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>is_xml</con:name>
+              <con:value>on</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>filter</con:name>
+              <con:value>no filtering</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>translate_file</con:name>
+              <con:value>Translate File</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+          </con:parameters>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="delay" name="Wait for the translation to be finished" id="548f124e-724e-45a3-9e03-b478a3da3915">
+        <con:settings/>
+        <con:config>
+          <delay>1000</delay>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="httprequest" name="Inspect the monitoring page" id="1e5375b6-55b8-40ca-9f17-9162a31bd5d9">
+        <con:settings/>
+        <con:config method="GET" xsi:type="con:HttpRequest" name="Inspect the monitoring page" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+          </con:settings>
+          <con:endpoint>${#TestCase#monitoringToken}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters/>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="goto" name="Conditional Goto" id="e8c860fb-2f54-4076-a411-6bd2d4bd110e">
+        <con:settings/>
+        <con:config xsi:type="con:GotoStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:condition>
+            <con:name>Need some more time</con:name>
+            <con:type>XPATH</con:type>
+            <con:expression>(: not(//div[@id="translationLink"]//a/@href) :)
+(: As long as the page says to reload, we will wait. :)
+exists(//head/meta[@http-equiv = "refresh"])</con:expression>
+            <con:targetStep>Wait for the translation to be finished</con:targetStep>
+          </con:condition>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="transfer" name="Get the translation URL" id="8bc7d546-a0ae-49ef-8b26-7ed858971f3d">
+        <con:settings/>
+        <con:config xsi:type="con:PropertyTransfersStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:transfers setNullOnMissingSource="true" transferTextContent="true" failOnError="true" ignoreEmpty="false" transferToAll="false" useXQuery="false" entitize="false" transferChildNodes="false">
+            <con:name>Get URL</con:name>
+            <con:sourceType>ResponseAsXml</con:sourceType>
+            <con:sourceStep>Inspect the monitoring page</con:sourceStep>
+            <con:sourcePath>//div[@id="translationLink"]//a/@href</con:sourcePath>
+            <con:targetType>translationURL</con:targetType>
+            <con:targetStep>#TestCase#</con:targetStep>
+          </con:transfers>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="httprequest" name="Get Translations" id="4e6a7c38-c73b-4b7b-a40b-94158aceef8a">
+        <con:settings/>
+        <con:config method="GET" xsi:type="con:HttpRequest" name="Get Translations" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+          </con:settings>
+          <con:encoding>UTF-8</con:encoding>
+          <con:endpoint>http://${#Project#ServerName}/${#TestCase#translationURL}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="There should be a source segments.">
+            <con:configuration>
+              <path>count(//*:tuv[@xml:lang="EN-CA"]/*:seg)</path>
+              <content>1</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="There should be a target segments.">
+            <con:configuration>
+              <path>count(//*:tuv[@xml:lang="FR-CA"]/*:seg)</path>
+              <content>1</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="There should be no confidence estimation scores.">
+            <con:configuration>
+              <path>count(//*:tu/*:prop[@type="Txt::CE"])</path>
+              <content>0</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="There should be a fixed translation for sponsorship program.">
+            <con:configuration>
+              <path>contains(//*:tuv[@xml:lang="FR-CA"]/seg, "margorp pihsrosnops")</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="There should be a fixed translation for A B.">
+            <con:configuration>
+              <path>contains(//*:tuv[@xml:lang="FR-CA"]/seg, "1 2")</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="There should be a fixed translation for &lt;symbold \b>.">
+            <con:configuration>
+              <path>contains(//*:tuv[@xml:lang="FR-CA"]/seg, "&lt;symbole \b>")</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters/>
+        </con:config>
+      </con:testStep>
+      <con:tearDownScript>for (prop in ["monitoringToken", "translationURL"]) {
+	testCase.setPropertyValue(prop, "")
+}</con:tearDownScript>
+      <con:properties>
+        <con:property>
+          <con:name>context</con:name>
+          <con:value>${#TestSuite#context}</con:value>
+        </con:property>
+        <con:property>
+          <con:name>monitoringToken</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
+          <con:name>translationURL</con:name>
+          <con:value/>
+        </con:property>
+      </con:properties>
     </con:testCase>
     <con:properties>
       <con:property>
