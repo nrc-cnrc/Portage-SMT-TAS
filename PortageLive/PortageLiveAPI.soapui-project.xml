@@ -3989,6 +3989,14 @@ testCase.setPropertyValue( "input", context.expand('${#TestCase#input_txt}').byt
               <codes>200</codes>
             </con:configuration>
           </con:assertion>
+          <con:assertion type="XQuery Match" name="We should have 3 source segments.">
+            <con:configuration>
+              <path>(: we lose 2 segments by filtering :)
+count(//*:tu/*:tuv[@xml:lang="EN-CA"])</path>
+              <content>3</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
           <con:assertion type="XQuery Match" name="Verify that we have translations">
             <con:configuration>
               <path>(: we lose 2 segments by filtering :)
