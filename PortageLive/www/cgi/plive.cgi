@@ -365,9 +365,8 @@ sub processText {
     push @tr_opt, ("-verbose",
                   "-out=\"$work_dir/P.out\"",
                   "-dir=\"$work_dir\"");
-    push @tr_opt, ((param('useConfidenceEstimation') and $CONTEXT{$context}->{ce_model})
-                   ? "-with-ce"
-                   : "-decode-only");
+    my $doCE = param('useConfidenceEstimation') and $CONTEXT{$context}->{ce_model};
+    push @tr_opt, ($doCE ? "-with-ce" : "-decode-only");
     my $filter_threshold = (!defined param('filter') ? 0
                             : param('filter') eq 'no filtering' ? 0
                             : param('filter') + 0);
@@ -377,7 +376,7 @@ sub processText {
         problem("Confidence-based filtering not available with system %s", $context)
             unless $CONTEXT{$context}->{ce_model};
 
-        push @tr_opt, "-filter=$filter_threshold";
+        push @tr_opt, "-filter=$filter_threshold" if ($doCE);
     }
 
     my $newline = param('newline') || "p";
