@@ -3288,6 +3288,92 @@ exists(//head/meta[@http-equiv = "refresh"])</con:expression>
       </con:property>
     </con:properties>
   </con:testSuite>
+  <con:testSuite name="Using FixedTerms">
+    <con:settings/>
+    <con:runType>SEQUENTIAL</con:runType>
+    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="translate string" searchProperties="true">
+      <con:settings/>
+      <con:testStep type="httprequest" name="HTTP Test Request">
+        <con:settings/>
+        <con:config method="GET" xsi:type="con:HttpRequest" name="HTTP Test Request" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+          </con:settings>
+          <con:endpoint>${#TestSuite#endpoint}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="Should contain a fixed translation of sponsorship program.">
+            <con:configuration>
+              <path>contains(//div[@id="translation"]/p, "margorp pihsrosnops")</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="Should contain a fixed translation of A B.">
+            <con:configuration>
+              <path>contains(//div[@id="translation"]/p, "1 2")</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="Should contain a fixed translation of &lt;symbol \b>.">
+            <con:configuration>
+              <path>contains(//div[@id="translation"]/p, "&lt;symbole \b>")</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters>
+            <con:parameter>
+              <con:name>context</con:name>
+              <con:value>${#TestSuite#context}</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>source_text</con:name>
+              <con:value>Banana sponsorship program A B &lt;symbol \b> with the moon.</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>translate_text</con:name>
+              <con:value>on</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>filter</con:name>
+              <con:value>no filtering</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>newline</con:name>
+              <con:value>p</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+          </con:parameters>
+        </con:config>
+      </con:testStep>
+      <con:properties/>
+    </con:testCase>
+    <con:properties>
+      <con:property>
+        <con:name>context</con:name>
+        <con:value>fixedTerms</con:value>
+      </con:property>
+      <con:property>
+        <con:name>endpoint</con:name>
+        <con:value>${#Project#endpoint}</con:value>
+      </con:property>
+    </con:properties>
+  </con:testSuite>
   <con:properties>
     <con:property>
       <con:name>ServerName</con:name>
