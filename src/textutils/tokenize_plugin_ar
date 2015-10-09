@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# @file tokenize_plugin
+# @file tokenize_plugin_ar
 # @brief  A special tokenize_plugin to replace MADA's slow preprocessing.  This
 # scrpts combines all preprocessing steps done for a NIST evaluation.
 #
@@ -12,6 +12,7 @@
 # Copyright 2014, Her Majesty in Right of Canada
 
 
+use 5.014_000;
 use strict;
 use warnings;
 use utf8;  # This script has a unicode code point \xB7
