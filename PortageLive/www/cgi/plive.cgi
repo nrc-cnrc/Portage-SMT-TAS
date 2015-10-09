@@ -370,13 +370,13 @@ sub processText {
     my $filter_threshold = (!defined param('filter') ? 0
                             : param('filter') eq 'no filtering' ? 0
                             : param('filter') + 0);
-    if ($filter_threshold > 0) {
+    if ($doCE and $filter_threshold > 0) {
         problem("Confidence-based filtering is only currently compatible with TMX input.")
             unless param('is_xml');
         problem("Confidence-based filtering not available with system %s", $context)
             unless $CONTEXT{$context}->{ce_model};
 
-        push @tr_opt, "-filter=$filter_threshold" if ($doCE);
+        push @tr_opt, "-filter=$filter_threshold";
     }
 
     my $newline = param('newline') || "p";
