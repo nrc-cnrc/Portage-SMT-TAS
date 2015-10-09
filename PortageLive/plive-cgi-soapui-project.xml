@@ -3281,6 +3281,182 @@ exists(//head/meta[@http-equiv = "refresh"])</con:expression>
       </con:property>
     </con:properties>
   </con:testSuite>
+  <con:testSuite name="Translate Plain Text">
+    <con:settings/>
+    <con:runType>SEQUENTIAL</con:runType>
+    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Translate Plain Text with xtags - TestCase" searchProperties="true" id="3cfebb62-6ffe-4b1c-bafb-8ebc24b878d2">
+      <con:settings/>
+      <con:testStep type="httprequest" name="Submit translation" id="94ed7b62-d926-4aa9-9098-8b1e5302ab3c">
+        <con:settings/>
+        <con:config method="POST" xsi:type="con:HttpRequest" name="Submit translation" postQueryString="true" mediaType="multipart/form-data" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            <con:setting id="com.eviware.soapui.impl.support.AbstractHttpRequest@follow-redirects">true</con:setting>
+          </con:settings>
+          <con:encoding>UTF-8</con:encoding>
+          <con:endpoint>${#TestSuite#endpoint}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="GroovyScriptAssertion" name="Extract the monitoring URL">
+            <con:configuration>
+              <scriptText>log.info(messageExchange.getRequestContent())
+log.info(messageExchange.getEndpoint())
+context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEndpoint())</scriptText>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:attachment>
+            <con:name>test.xtags.txt</con:name>
+            <con:contentType>text/plain</con:contentType>
+            <con:size>23</con:size>
+            <con:contentId>filename</con:contentId>
+            <con:url>C:/temp/sopaui.examples/test.xtags.txt</con:url>
+            <con:data>UEsDBBQACAgIADJvSUcAAAAAAAAAAAAAAAAOAAAAdGVzdC54dGFncy50eHTzSM3JyVewKUpNsSvPL8pJ0bPRB7EBUEsHCOgHcCEWAAAAFwAAAFBLAQIUABQACAgIADJvSUfoB3AhFgAAABcAAAAOAAAAAAAAAAAAAAAAAAAAAAB0ZXN0Lnh0YWdzLnR4dFBLBQYAAAAAAQABADwAAABSAAAAAAA=</con:data>
+            <con:id>e357033b-19a8-48e1-8033-a7cfbb6ced38</con:id>
+          </con:attachment>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters>
+            <con:parameter>
+              <con:name>context</con:name>
+              <con:value>${#TestCase#context}</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>file_xtags</con:name>
+              <con:value>on</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>filter</con:name>
+              <con:value>no filtering</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>translate_file</con:name>
+              <con:value>Translate File</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+          </con:parameters>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="delay" name="Wait for the translation to be finished" id="a2a5f391-922e-4d5d-9161-2d7c90e0c41e">
+        <con:settings/>
+        <con:config>
+          <delay>1000</delay>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="httprequest" name="Inspect the monitoring page" id="e733a0ab-e9b6-4e71-ab85-e989474a9b29">
+        <con:settings/>
+        <con:config method="GET" xsi:type="con:HttpRequest" name="Inspect the monitoring page" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+          </con:settings>
+          <con:endpoint>${#TestCase#monitoringToken}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters/>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="goto" name="Conditional Goto" id="6daa476b-29c3-4c33-98af-a72969af0f58">
+        <con:settings/>
+        <con:config xsi:type="con:GotoStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:condition>
+            <con:name>Need some more time</con:name>
+            <con:type>XPATH</con:type>
+            <con:expression>(: not(//div[@id="translationLink"]//a/@href) :)
+(: As long as the page says to reload, we will wait. :)
+exists(//head/meta[@http-equiv = "refresh"])</con:expression>
+            <con:targetStep>Wait for the translation to be finished</con:targetStep>
+          </con:condition>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="transfer" name="Get the translation URL" id="dc87ec59-3e06-43e9-a339-1771534a2e1a">
+        <con:settings/>
+        <con:config xsi:type="con:PropertyTransfersStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:transfers setNullOnMissingSource="true" transferTextContent="true" failOnError="true" ignoreEmpty="false" transferToAll="false" useXQuery="false" entitize="false" transferChildNodes="false">
+            <con:name>Get URL</con:name>
+            <con:sourceType>ResponseAsXml</con:sourceType>
+            <con:sourceStep>Inspect the monitoring page</con:sourceStep>
+            <con:sourcePath>//div[@id="translationLink"]//a/@href</con:sourcePath>
+            <con:targetType>translationURL</con:targetType>
+            <con:targetStep>#TestCase#</con:targetStep>
+          </con:transfers>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="httprequest" name="Get Translations" id="3c9f40a7-69ac-4fde-adbe-60c31761257f">
+        <con:settings/>
+        <con:config method="GET" xsi:type="con:HttpRequest" name="Get Translations" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+          </con:settings>
+          <con:encoding>UTF-8</con:encoding>
+          <con:endpoint>http://${#Project#ServerName}/${#TestCase#translationURL}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="We should find a red tag in the translation.">
+            <con:configuration>
+              <path>contains(//*:data, "&lt;red>")</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters/>
+        </con:config>
+      </con:testStep>
+      <con:tearDownScript>for (prop in ["monitoringToken", "translationURL"]) {
+	testCase.setPropertyValue(prop, "")
+}</con:tearDownScript>
+      <con:properties>
+        <con:property>
+          <con:name>context</con:name>
+          <con:value>${#TestSuite#context}</con:value>
+        </con:property>
+        <con:property>
+          <con:name>monitoringToken</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
+          <con:name>translationURL</con:name>
+          <con:value/>
+        </con:property>
+      </con:properties>
+    </con:testCase>
+    <con:properties>
+      <con:property>
+        <con:name>endpoint</con:name>
+        <con:value>${#Project#endpoint}</con:value>
+      </con:property>
+      <con:property>
+        <con:name>context</con:name>
+        <con:value>${#Project#context.toy_en2fr}</con:value>
+      </con:property>
+    </con:properties>
+  </con:testSuite>
   <con:testSuite name="Using FixedTerms">
     <con:settings/>
     <con:runType>SEQUENTIAL</con:runType>
