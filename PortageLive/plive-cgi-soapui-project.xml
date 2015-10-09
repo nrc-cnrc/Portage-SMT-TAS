@@ -949,7 +949,6 @@ context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEnd
             <con:contentType>application/octet-stream</con:contentType>
             <con:size>351</con:size>
             <con:contentId>filename</con:contentId>
-            <con:url>C:/temp/sopaui.examples/test.1-trans-unit.nomrk.sdlxliff</con:url>
             <con:data>UEsDBBQACAgIAGFuR0cAAAAAAAAAAAAAAAAgAAAAdGVzdC4xLXRyYW5zLXVuaXQubm9tcmsuc2RseGxpZmZtkLFywyAMhvfc5R3YmBxfO3K2h059DdXIrnpYyoFInbcvkPTcoSyg/5f0CQ17oGUxN4yJhEf7cnm155N5nH0LnEabIzuBRMkxbJiczq5VOS9z3pDV1arpfBoWCmgk0koMYbSfGIJcdFdrkuQ4YxeA1wwrjhbZGoW4ov4Rl3jAPSjo/VrUawBixdKmMj7E3+utETh1mUkN+cKi5j4403slm2+JwQ/9U6surt2/GYdeO7expjfhr6KZ8qVN2OPQP42S0h/0Fv4O1dcNtEfb0PQDUEsHCDWC3pTQAAAAXwEAAFBLAQIUABQACAgIAGFuR0c1gt6U0AAAAF8BAAAgAAAAAAAAAAAAAAAAAAAAAAB0ZXN0LjEtdHJhbnMtdW5pdC5ub21yay5zZGx4bGlmZlBLBQYAAAAAAQABAE4AAAAeAQAAAAA=</con:data>
             <con:id>d32dbb75-4f2c-4681-afc1-953001463911</con:id>
           </con:attachment>
@@ -1310,7 +1309,6 @@ context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEnd
             <con:contentType>application/octet-stream</con:contentType>
             <con:size>7607</con:size>
             <con:contentId>filename</con:contentId>
-            <con:url>C:/temp/sopaui.examples/soapui.sdlxliff</con:url>
             <con:data>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</con:data>
             <con:id>8b31da55-71f7-4894-8e30-c9cf50cbe4f4</con:id>
           </con:attachment>
@@ -2055,7 +2053,6 @@ context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEnd
             <con:contentType>application/octet-stream</con:contentType>
             <con:size>255</con:size>
             <con:contentId>filename</con:contentId>
-            <con:url>C:/temp/sopaui.examples/test.minimalist.tmx</con:url>
             <con:data>UEsDBBQACAgIAMd2R0cAAAAAAAAAAAAAAAATAAAAdGVzdC5taW5pbWFsaXN0LnRteF2PMQ+CMBCFdxL+Q9MdAXVsIWocNQ4M6lbhRJL2atpq4N/b0oU4vbvv3b3csXpUknzB2EEjp+WqoHWVJsypcUm31ENC2AtEB4YQ0hoQzptOa8np9XZvfEH/jGVsmRXrTRiw0LvpDZxaQAfYQoA6c+rJ6W5/aIxAewIVqOjUgFJgzylg9rHzumkjOZ5D2wknYtxFigEbGJ3H4YM83hrvfuhuqlg+S/D8e17T5AdQSwcIsJlKaqwAAAD/AAAAUEsBAhQAFAAICAgAx3ZHR7CZSmqsAAAA/wAAABMAAAAAAAAAAAAAAAAAAAAAAHRlc3QubWluaW1hbGlzdC50bXhQSwUGAAAAAAEAAQBBAAAA7QAAAAAA</con:data>
             <con:id>d91b7821-9f82-4834-9a56-2ff9f5f5596e</con:id>
           </con:attachment>
@@ -2222,7 +2219,6 @@ context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEnd
             <con:contentType>application/octet-stream</con:contentType>
             <con:size>314</con:size>
             <con:contentId>filename</con:contentId>
-            <con:url>C:/temp/sopaui.examples/test.noseg.tmx</con:url>
             <con:data>UEsDBBQACAgIADp3R0cAAAAAAAAAAAAAAAAOAAAAdGVzdC5ub3NlZy50bXhVj81uwjAQhO9IvMNq7yHQ9lTZQYCQeinqIYe2NxMvEMk/yF4gvH23JEhw8ufZndGsmnfewZlSbmPQOJtMcV6NR4p996i+oYgA6kDGUoImkWEZcYxO4/fPby2AT/Jj5KyYvrwiZNrz9UgaMwWm0BBCLNjvNC6WqzqZkD/JIxjr2+BM2GukUJyyGFPT/9cbBLCGTZ/z5Uwbaur4v50q+3J90W201xsJ82mgG59BLn6/5xWrBVbwQc5FuMTk7ESVsnO3loNXlUOgKL6Tdzz6A1BLBwiDYerdzgAAADoBAABQSwECFAAUAAgICAA6d0dHg2Hq3c4AAAA6AQAADgAAAAAAAAAAAAAAAAAAAAAAdGVzdC5ub3NlZy50bXhQSwUGAAAAAAEAAQA8AAAACgEAAAAA</con:data>
             <con:id>7ea13cb4-bffe-4b63-b0b7-d131521ce9ba</con:id>
           </con:attachment>
@@ -2576,7 +2572,6 @@ context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEnd
             <con:contentType>application/octet-stream</con:contentType>
             <con:size>4068</con:size>
             <con:contentId>filename</con:contentId>
-            <con:url>C:/temp/sopaui.examples/soapui.tmx</con:url>
             <con:data>UEsDBBQACAgIAMl4R0cAAAAAAAAAAAAAAAAKAAAAc29hcHVpLnRteO1X227TQBCdV5D4B9OHPgEh5SZoKUIhQCUoCBchEC+p4yRWYzvYTqBC/XXgzJld22laCIgniiLZ3rntzJnLbr5/25FH8kVSmUogC4mlkFISySWTh7IhXbkhN/EOILUrV+Sy7MhVeSKvpCcH8l5eSx+8Cvpf8A5BCUHvy0usNhy9K7dhZYjVEDRvxeucveftluQEEgPoqpxSLkErwrdSK6dX4ZkjBtVfgJbi/SvZ1Z1Pa5aQGEP+WGb4UgmlqAV9Rng2srlcZ0wjyh3IO8TwDvYy8LaIYiBPIVVARn1pNDW2lJJTfGfYUS30ZR8W3wLPtj8Fdl2V6snjltSQ9gdLfhdYjX6CiemY7BZ87codPO/xfb5WAj3VCEFLZQ7e1En73M2gkeMZLHnzBvg8JRqK5QG0D6EZ1zn/Kh/hrXEr8oIWvYuVvlNIWFVkXOten2puhLoZML8xbCj6PcjPQUmoEwC5WD7LtpzQ9gm87dT+ruN/SJr6HbJGY2a1iaCs+WXNb+IIuVIp9c1T9umXr5IpvPp97/aZDUOzBH8AzhxRa/0oZ0af1rfXI+2YyI0RiUXpq0T9fQMZrUL7Wt/yE2IT0fKsriq13nddpnk6WyqQ5+SfHUlnaWoY1TiHrJrj1hyaw9ac2IwhHbFKdHebRRus+4nrufiMTrmFp3XLAVZb+Fbaffmwouv7RWfnc9ljDzxGj7/AemPJowU0bSo/OLffvbxNKcNMJ1hBfFI3qbTuVX9AzwNoK2XKSWeR6Lrx0ST2W10+YP/t0Xrs5mcBBANkOwbmOadLgKjv43cT+oZLF74H8ow5Ur0JkS25xzNYLXliWE9GzHFAL4ak6zw8Is1m6GoUfSCk+ZrT0wXthliljEw91Drw6Pi6MHSX1+36+HfqYYfI7HK2RKDeddNTVyOuvKUuvN3CeRXgp5iY3ib4FeZjiRyr3CbPwu3a7klLVvNVsRf/zp6dtXYNXJXPL3imQ07UiCebdVHF7kywOsLXa9g9ZM9HrmvH5FX/u2RprmzyrMzB2yaO603BkOimRLSsT6eEFiqeQzbXtE7NiqKV8saUMSfNLqZREE09awPcUCaUmazMwNTdKWxGVvX8bPYpWvM5IRp6T7VKGLd2LZnLzJ2Wjdc9cn283kM/o0tKL+qaW453zu+cp3bl9rIZnVDfx51zR2/zkHYMuxwTw2M140RPeJ/Jal62kp8ZfRrVNyi7pd+44DW+x3mQuDwFRNGfuh7Lgrf3pL6LX+M/iZi5S0gZutw16DY1MXJ5bCo04ZflUSWOYEG7JV7plIp7a/7LlqWynmkjN7faXpf0r6SE1VD79lC4CWe1vd3i2D1xQbzjGo+IFmJnsaox8f+k2l7F/E/iu8nq1ZDLaOF0fG2/RvTfesRXvdbtsav5P6vTzsqdtuP+Xdv6B1BLBwgcLlGfJgQAAOQPAABQSwECFAAUAAgICADJeEdHHC5RnyYEAADkDwAACgAAAAAAAAAAAAAAAAAAAAAAc29hcHVpLnRteFBLBQYAAAAAAQABADgAAABeBAAAAAA=</con:data>
             <con:id>c61def18-8150-4edf-8c6e-e3d5cfdaaeb7</con:id>
           </con:attachment>
@@ -2942,7 +2937,6 @@ context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEnd
             <con:contentType>application/octet-stream</con:contentType>
             <con:size>4068</con:size>
             <con:contentId>filename</con:contentId>
-            <con:url>C:/temp/sopaui.examples/soapui.tmx</con:url>
             <con:data>UEsDBBQACAgIAEZ5R0cAAAAAAAAAAAAAAAAKAAAAc29hcHVpLnRteO1X227TQBCdV5D4B9OHPgEh5SZoKUIhQCUoCBchEC+p4yRWYzvYTqBC/XXgzJld22laCIgniiLZ3rntzJnLbr5/25FH8kVSmUogC4mlkFISySWTh7IhXbkhN/EOILUrV+Sy7MhVeSKvpCcH8l5eSx+8Cvpf8A5BCUHvy0usNhy9K7dhZYjVEDRvxeucveftluQEEgPoqpxSLkErwrdSK6dX4ZkjBtVfgJbi/SvZ1Z1Pa5aQGEP+WGb4UgmlqAV9Rng2srlcZ0wjyh3IO8TwDvYy8LaIYiBPIVVARn1pNDW2lJJTfGfYUS30ZR8W3wLPtj8Fdl2V6snjltSQ9gdLfhdYjX6CiemY7BZ87codPO/xfb5WAj3VCEFLZQ7e1En73M2gkeMZLHnzBvg8JRqK5QG0D6EZ1zn/Kh/hrXEr8oIWvYuVvlNIWFVkXOten2puhLoZML8xbCj6PcjPQUmoEwC5WD7LtpzQ9gm87dT+ruN/SJr6HbJGY2a1iaCs+WXNb+IIuVIp9c1T9umXr5IpvPp97/aZDUOzBH8AzhxRa/0oZ0af1rfXI+2YyI0RiUXpq0T9fQMZrUL7Wt/yE2IT0fKsriq13nddpnk6WyqQ5+SfHUlnaWoY1TiHrJrj1hyaw9ac2IwhHbFKdHebRRus+4nrufiMTrmFp3XLAVZb+Fbaffmwouv7RWfnc9ljDzxGj7/AemPJowU0bSo/OLffvbxNKcNMJ1hBfFI3qbTuVX9AzwNoK2XKSWeR6Lrx0ST2W10+YP/t0Xrs5mcBBANkOwbmOadLgKjv43cT+oZLF74H8ow5Ur0JkS25xzNYLXliWE9GzHFAL4ak6zw8Is1m6GoUfSCk+ZrT0wXthliljEw91Drw6Pi6MHSX1+36+HfqYYfI7HK2RKDeddNTVyOuvKUuvN3CeRXgp5iY3ib4FeZjiRyr3CbPwu3a7klLVvNVsRf/zp6dtXYNXJXPL3imQ07UiCebdVHF7kywOsLXa9g9ZM9HrmvH5FX/u2RprmzyrMzB2yaO603BkOimRLSsT6eEFiqeQzbXtE7NiqKV8saUMSfNLqZREE09awPcUCaUmazMwNTdKWxGVvX8bPYpWvM5IRp6T7VKGLd2LZnLzJ2Wjdc9cn283kM/o0tKL+qaW453zu+cp3bl9rIZnVDfx51zR2/zkHYMuxwTw2M140RPeJ/Jal62kp8ZfRrVNyi7pd+44DW+x3mQuDwFRNGfuh7Lgrf3pL6LX+M/iZi5S0gZutw16DY1MXJ5bCo04ZflUSWOYEG7JV7plIp7a/7LlqWynmkjN7faXpf0r6SE1VD79lC4CWe1vd3i2D1xQbzjGo+IFmJnsaox8f+k2l7F/E/iu8nq1ZDLaOF0fG2/RvTfesRXvdbtsav5P6vTzsqdtuP+Xdv6B1BLBwgcLlGfJgQAAOQPAABQSwECFAAUAAgICABGeUdHHC5RnyYEAADkDwAACgAAAAAAAAAAAAAAAAAAAAAAc29hcHVpLnRteFBLBQYAAAAAAQABADgAAABeBAAAAAA=</con:data>
             <con:id>8b80dca4-aae3-4bf3-a2fd-9a45065ba57e</con:id>
           </con:attachment>
@@ -3128,7 +3122,6 @@ context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEnd
             <con:contentType>application/octet-stream</con:contentType>
             <con:size>356</con:size>
             <con:contentId>filename</con:contentId>
-            <con:url>C:/temp/sopaui.examples/test.xtags.tmx</con:url>
             <con:data>UEsDBBQACAgIADR4R0cAAAAAAAAAAAAAAAAOAAAAdGVzdC54dGFncy50bXhVjz1OAzEQhXsk7jCafnECVMhOFCIkGhDFFkBn1kNYyT/InoTN2Sg4Eldgsg5RUvl7M/Z7z7/fP3o+BA8byqVP0eD0YoLz2fmZ5jAcT69RhgD6g6yjDF0my7LilLzB55fXVgBPxseW02ZyeYVQaMXbTzJYKDLFjhBSw+Hd4OJ22WYbywMFBOtCH72NK4MUm3WRh7mr+u4RwVm21ebJ2z62NPCunFa1W+35ltx2JGFe72nkDciHb/7tmuUCD1vZS0WR9+R9Ap3Jzb5S9k6rHR5MVL1VWRxrpBpztNpHiw6DnH9QSwcIoxYeReEAAABkAQAAUEsBAhQAFAAICAgANHhHR6MWHkXhAAAAZAEAAA4AAAAAAAAAAAAAAAAAAAAAAHRlc3QueHRhZ3MudG14UEsFBgAAAAABAAEAPAAAAB0BAAAAAA==</con:data>
             <con:id>7d6b3f44-6388-4f15-8470-ef5b66f84b91</con:id>
           </con:attachment>
@@ -3363,7 +3356,7 @@ exists(//head/meta[@http-equiv = "refresh"])</con:expression>
       </con:testStep>
       <con:properties/>
     </con:testCase>
-    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Translate XLIFF - TestCase" searchProperties="true" id="0c44aef7-3bcc-4507-ac15-cbb2d53c43a0">
+    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="translate XLIFF - TestCase" searchProperties="true" id="0c44aef7-3bcc-4507-ac15-cbb2d53c43a0">
       <con:settings/>
       <con:testStep type="httprequest" name="Submit translation" id="a89edc9a-fcd6-4611-987c-f5742390b73f">
         <con:settings/>
@@ -3395,7 +3388,6 @@ context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEnd
             <con:contentType>application/octet-stream</con:contentType>
             <con:size>663</con:size>
             <con:contentId>filename</con:contentId>
-            <con:url>C:/temp/sopaui.examples/fixedTerms.xliff</con:url>
             <con:data>UEsDBBQACAgIAMeER0cAAAAAAAAAAAAAAAAQAAAAZml4ZWRUZXJtcy54bGlmZqVSPU/DMBDdK/U/nDyQKXFbFmSSVlRiKywsDCyu4yQW9jmyHZL+e5y0tEUwIGEvd+/evfuw881gNHxI55XFgiyzBQGJwpYK64J0oUrvyGY9n+WDVlV1JibLbJVATEVfJJ1DZrlXniE30rMg2MRmpRWdkRjYhc0Gr4qkCaFllPZ9n/W3mXU1XS0WS/r6tHsRjTQ8VegDRyET+HZiMvMTY2cFD1Mn3xl/6gUmKBXWyTS62eDLJM4IkFdKS/C2c0KmmmPd8VoW5PGZQMkDD4c2eq3mCoMcAgHrVK2Q64KMidmITTpRaW/Lw8mOXnAcfdqhCqDKuGZyDsXgsd56yzFe8K1Fb51vVAuts7XjBh5gCzc63PuD2VsNb/s19Co0EBoJxlrMcnoSuZaVdfoDjbhx72COo0QK+WfdqHZdlP5SNaeX8b/WQ8/7yem4u/GL0elZojWffQJQSwcInhAysFQBAACXAgAAUEsBAhQAFAAICAgAx4RHR54QMrBUAQAAlwIAABAAAAAAAAAAAAAAAAAAAAAAAGZpeGVkVGVybXMueGxpZmZQSwUGAAAAAAEAAQA+AAAAkgEAAAAA</con:data>
             <con:id>ca318e4c-2efe-45bc-abbd-1f6f6091752e</con:id>
           </con:attachment>
@@ -3499,7 +3491,7 @@ exists(//head/meta[@http-equiv = "refresh"])</con:expression>
               <allowWildcards>false</allowWildcards>
             </con:configuration>
           </con:assertion>
-          <con:assertion type="XQuery Match" name="We should find a red tag in the target">
+          <con:assertion type="XQuery Match" name="We should find a mrk in the target">
             <con:configuration>
               <path>exists(/*:xliff/*:file/*:body/*:trans-unit/*:target/*:mrk)</path>
               <content>true</content>
@@ -3560,7 +3552,7 @@ exists(//head/meta[@http-equiv = "refresh"])</con:expression>
         </con:property>
       </con:properties>
     </con:testCase>
-    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="Translate TMX - TestCase" searchProperties="true" id="50c1c146-ce77-4f34-87c1-c874cebe0a1d">
+    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="translate TMX - TestCase" searchProperties="true" id="50c1c146-ce77-4f34-87c1-c874cebe0a1d">
       <con:settings/>
       <con:testStep type="httprequest" name="Submit translation" id="c0ab5c33-6178-407f-acae-babb6f80219d">
         <con:settings/>
@@ -3592,7 +3584,6 @@ context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEnd
             <con:contentType>application/octet-stream</con:contentType>
             <con:size>407</con:size>
             <con:contentId>filename</con:contentId>
-            <con:url>C:/temp/sopaui.examples/fixedTerms.tmx</con:url>
             <con:data>UEsDBBQACAgIAA6GR0cAAAAAAAAAAAAAAAAOAAAAZml4ZWRUZXJtcy50bXhdkL1ugzAUhfdIeYcrD90ISdupBSKIOrbqwNBWXQzcApJ/kH2Twtv3OpAoqjz4+Dv28bGT/agVnND53ppU7DZbsc/Wq4T0eEsfBUOApEPZoAOA2qEkNslalYqPz6+Shfhn3Mbuou39Q9jgsaVpwFR4NISmxgBtRPonFXlxKJ00/hV1oLLRvVHStKlAEx39+birZ/LyFpaNJDnHvSvZmxJHYhxeEM9d596VbaazYk3HRZ31CfgDni6R0SEXV5d9LptBIQ0P8IM13jrf9QMMzrZOasihgDtFz37SlVXwXWXw21MH1CFoa80GkjhkXC+M+cZLkXhpksRLPSZ65Hm9+gNQSwcIJhQpWP8AAACXAQAAUEsBAhQAFAAICAgADoZHRyYUKVj/AAAAlwEAAA4AAAAAAAAAAAAAAAAAAAAAAGZpeGVkVGVybXMudG14UEsFBgAAAAABAAEAPAAAADsBAAAAAA==</con:data>
             <con:id>5947b059-b96c-43f0-baab-022e46f9741f</con:id>
           </con:attachment>
@@ -3728,6 +3719,229 @@ exists(//head/meta[@http-equiv = "refresh"])</con:expression>
             <con:configuration>
               <path>contains(//*:tuv[@xml:lang="FR-CA"]/seg, "&lt;symbole \b>")</path>
               <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters/>
+        </con:config>
+      </con:testStep>
+      <con:tearDownScript>for (prop in ["monitoringToken", "translationURL"]) {
+	testCase.setPropertyValue(prop, "")
+}</con:tearDownScript>
+      <con:properties>
+        <con:property>
+          <con:name>context</con:name>
+          <con:value>${#TestSuite#context}</con:value>
+        </con:property>
+        <con:property>
+          <con:name>monitoringToken</con:name>
+          <con:value/>
+        </con:property>
+        <con:property>
+          <con:name>translationURL</con:name>
+          <con:value/>
+        </con:property>
+      </con:properties>
+    </con:testCase>
+    <con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="translate XLIFF with xtags - TestCase" searchProperties="true" id="3732a51e-972a-49d3-a830-65829a8d85a6">
+      <con:settings/>
+      <con:testStep type="httprequest" name="Submit translation">
+        <con:settings/>
+        <con:config method="POST" xsi:type="con:HttpRequest" name="Submit translation" postQueryString="true" mediaType="multipart/form-data" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+            <con:setting id="com.eviware.soapui.impl.support.AbstractHttpRequest@follow-redirects">true</con:setting>
+          </con:settings>
+          <con:encoding>UTF-8</con:encoding>
+          <con:endpoint>${#TestSuite#endpoint}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="GroovyScriptAssertion" name="Extract the monitoring URL">
+            <con:configuration>
+              <scriptText>log.info(messageExchange.getRequestContent())
+log.info(messageExchange.getEndpoint())
+context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEndpoint())</scriptText>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:attachment>
+            <con:name>fixedTerms.xtags.xliff</con:name>
+            <con:contentType>application/octet-stream</con:contentType>
+            <con:size>674</con:size>
+            <con:contentId>filename</con:contentId>
+            <con:url>C:/temp/sopaui.examples/fixedTerms.xtags.xliff</con:url>
+            <con:data>UEsDBBQACAgIAKFjSUcAAAAAAAAAAAAAAAAWAAAAZml4ZWRUZXJtcy54dGFncy54bGlmZo1SPW/DIBDdI+U/nBjqySZJl4piR43ULe3SpUMXYmMb1RwW4Nr598VOmg81UgsL93j37u4BXw+6gS9pnTKYkmWyICAxN4XCKiWdL+MHss7mMz40qixPxGiZrCIIqejSqLPIjHDKMRRaOuZzNrFZYfJOS/TszGaDU2lUe98ySvu+T/r7xNiKrhaLJX1/2b7ltdQiVui8wFxGcLVCMnMTY2ty4adOrhn/6gUmKM6NlXEIk8EVUZgRgJeqkeBMZ3MZNwKrTlQyJc+vBArhhd+3IWobodDLwRMwVlUKRZOSMTEZsUknKO1MsT+eQ+StQBd3qDyoIthMTlfh8lAv2wgMG1xr0BnratVCa01lhYYn2MBd4x/dXu9MAx+7DHrla/C1BG0MJpweRS5lZRX/QgOu7SfowyiBQm7V5VYW2UVxTkfgrxaC8GV9eqMBTs9O/DhFT1ZxOto4/jY6vVA4zWffUEsHCJiq2mNeAQAAogIAAFBLAQIUABQACAgIAKFjSUeYqtpjXgEAAKICAAAWAAAAAAAAAAAAAAAAAAAAAABmaXhlZFRlcm1zLnh0YWdzLnhsaWZmUEsFBgAAAAABAAEARAAAAKIBAAAAAA==</con:data>
+            <con:id>18936fe5-70b2-4e3d-9cb8-34bb4c336add</con:id>
+          </con:attachment>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters>
+            <con:parameter>
+              <con:name>context</con:name>
+              <con:value>${#TestCase#context}</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>is_xml</con:name>
+              <con:value>on</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>filter</con:name>
+              <con:value>no filtering</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>translate_file</con:name>
+              <con:value>Translate File</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+            <con:parameter>
+              <con:name>file_xtags</con:name>
+              <con:value>on</con:value>
+              <con:style>QUERY</con:style>
+            </con:parameter>
+          </con:parameters>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="delay" name="Wait for the translation to be finished">
+        <con:settings/>
+        <con:config>
+          <delay>1000</delay>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="httprequest" name="Inspect the monitoring page">
+        <con:settings/>
+        <con:config method="GET" xsi:type="con:HttpRequest" name="Inspect the monitoring page" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+          </con:settings>
+          <con:endpoint>${#TestCase#monitoringToken}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:credentials>
+            <con:authType>No Authorization</con:authType>
+          </con:credentials>
+          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
+          <con:jmsPropertyConfig/>
+          <con:parameters/>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="goto" name="Conditional Goto">
+        <con:settings/>
+        <con:config xsi:type="con:GotoStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:condition>
+            <con:name>Need some more time</con:name>
+            <con:type>XPATH</con:type>
+            <con:expression>(: not(//div[@id="translationLink"]//a/@href) :)
+(: As long as the page says to reload, we will wait. :)
+exists(//head/meta[@http-equiv = "refresh"])</con:expression>
+            <con:targetStep>Wait for the translation to be finished</con:targetStep>
+          </con:condition>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="transfer" name="Get the translation URL">
+        <con:settings/>
+        <con:config xsi:type="con:PropertyTransfersStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:transfers setNullOnMissingSource="true" transferTextContent="true" failOnError="true" ignoreEmpty="false" transferToAll="false" useXQuery="false" entitize="false" transferChildNodes="false">
+            <con:name>Get URL</con:name>
+            <con:sourceType>ResponseAsXml</con:sourceType>
+            <con:sourceStep>Inspect the monitoring page</con:sourceStep>
+            <con:sourcePath>//div[@id="translationLink"]//a/@href</con:sourcePath>
+            <con:targetType>translationURL</con:targetType>
+            <con:targetStep>#TestCase#</con:targetStep>
+          </con:transfers>
+        </con:config>
+      </con:testStep>
+      <con:testStep type="httprequest" name="Get Translations">
+        <con:settings/>
+        <con:config method="GET" xsi:type="con:HttpRequest" name="Get Translations" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <con:settings>
+            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
+          </con:settings>
+          <con:encoding>UTF-8</con:encoding>
+          <con:endpoint>http://${#Project#ServerName}/${#TestCase#translationURL}</con:endpoint>
+          <con:request/>
+          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
+            <con:configuration>
+              <codes>200</codes>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="We should find a mrk tag in the seg-source.">
+            <con:configuration>
+              <path>exists(/*:xliff/*:file/*:body/*:trans-unit/*:seg-source/*:mrk)</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="We should find a mrk in the target">
+            <con:configuration>
+              <path>exists(/*:xliff/*:file/*:body/*:trans-unit/*:target/*:mrk)</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="We should have a fixed translation for sponsorship program.">
+            <con:configuration>
+              <path>contains(replace(string(//*:trans-unit/*:target/*:mrk), "\s+", " "), "margorp pihsrosnops")</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="We should have a fixed translation for A B.">
+            <con:configuration>
+              <path>contains(//*:trans-unit/*:target/*:mrk, "1 2")</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="We should have a fixed translation for &lt;symbol \b>.">
+            <con:configuration>
+              <path>contains(//*:trans-unit/*:target/*:mrk, "&lt;symbole \b>")</path>
+              <content>true</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="There should be no confidence estimation scores.">
+            <con:configuration>
+              <path>count(//*:seg-defs/*:seg/@percent)</path>
+              <content>0</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="We should find a red tag in the seg-source.">
+            <con:configuration>
+              <path>count(/*:xliff/*:file/*:body/*:trans-unit/*:seg-source/*:mrk/*:red)</path>
+              <content>1</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="We should find a red in the target">
+            <con:configuration>
+              <path>count(/*:xliff/*:file/*:body/*:trans-unit/*:target/*:mrk/*:red)</path>
+              <content>1</content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="The red tag should contain the translation for sponsorship A B">
+            <con:configuration>
+              <path>/*:xliff/*:file/*:body/*:trans-unit/*:target/*:mrk/*:red</path>
+              <content>pihsrosnops 1 2</content>
               <allowWildcards>false</allowWildcards>
             </con:configuration>
           </con:assertion>
