@@ -379,13 +379,13 @@ sub processText {
         push @tr_opt, "-filter=$filter_threshold";
     }
 
-    my $newline = param('newline') || "p";
     if (param('translate_file') and param('is_xml')) {
         push @tr_opt, ("-xml", "-nl=s");
         push @tr_opt, "-xtags" if (param('file_xtags'));
     }
     else {
         push @tr_opt, param('notok') ? "-notok": "-tok";
+        my $newline = param('newline') || "p";
         push @tr_opt, "-nl=" . $newline;
     }
 
@@ -419,10 +419,8 @@ sub processText {
         system(${tr_cmd}) == 0
             or problem("Call returned with error code: ${tr_cmd} (error = %d)", $?>>8);
         open(my $P, "<${tr_output}") or problem("Can't open output file ${tr_output}");
-        local $/ = "\n\n" if ($newline eq "w");
         my @p = readline($P);
         close $P;
-        @p = (join("\n", @p)) if ($newline eq "s");
         translationTextOutput(param('source_text'), $work_dir, @p);
     }
 }
@@ -467,22 +465,15 @@ sub translationTextOutput {
 
     $source = HTML::Entities::encode_entities($source, '<>&');
     $source =~ s/\n/<br \/>/g;
-
-    #print "AAA: ", scalar(@target);
-    # ./plive.cgi context=toy-regress-en2fr source_text=$"I eat an apple. It is apple picking time.\nThe car is blue.\n\nIt is Friday." translate_text=on
-    @target = map { HTML::Entities::encode_entities($_, '<>&') } @target;
-
-    @target = map { chomp; s#\n+#<br />#g; $_ } @target;
-
     print
         NRCBanner(),
         h1("PORTAGELive"),
         div({-id=>'source'},
            h2("Source text:"),
-           p($source)), "\n",
+           p($source)),
         div({-id=>'translation'},
            h2("Translation:"),
-           map { p($_) } @target);
+           p(join("<br />", map { HTML::Entities::encode_entities($_, '<>&') } @target)));
     print p(a({-id=>'translateMore', -href=>"plive.cgi?context=".param('context')}, "Translate more text"));
 
     my @debuggingTools = (
