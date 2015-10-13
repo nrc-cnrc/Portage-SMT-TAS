@@ -3477,32 +3477,10 @@ exists(//head/meta[@http-equiv = "refresh"])</con:expression>
               <codes>200</codes>
             </con:configuration>
           </con:assertion>
-          <con:assertion type="XQuery Match" name="There should be a data tag.">
+          <con:assertion type="GroovyScriptAssertion" name="We should get an empty text file back.">
             <con:configuration>
-              <path>exists(//*:data)</path>
-              <content>true</content>
-              <allowWildcards>false</allowWildcards>
-            </con:configuration>
-          </con:assertion>
-          <con:assertion type="XQuery Match" name="We should find no translation.">
-            <con:configuration>
-              <path>string(//*:data)</path>
-              <content/>
-              <allowWildcards>false</allowWildcards>
-            </con:configuration>
-          </con:assertion>
-          <con:assertion type="XQuery Match" name="contentLength should be 0 to indicate and empty translation.">
-            <con:configuration>
-              <path>/*:data/@contentLength = 0</path>
-              <content>true</content>
-              <allowWildcards>false</allowWildcards>
-            </con:configuration>
-          </con:assertion>
-          <con:assertion type="Simple Contains" name="Contains">
-            <con:configuration>
-              <token>Content-Length: 0</token>
-              <ignoreCase>false</ignoreCase>
-              <useRegEx>false</useRegEx>
+              <scriptText>// Reference: http://forum.loadui.org/viewtopic.php?f=13&amp;t=8399
+assert messageExchange.hasResponse() == false</scriptText>
             </con:configuration>
           </con:assertion>
           <con:credentials>
