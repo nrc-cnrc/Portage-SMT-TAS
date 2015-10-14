@@ -3526,11 +3526,18 @@ assert messageExchange.hasResponse() == false</scriptText>
               <codes>200</codes>
             </con:configuration>
           </con:assertion>
-          <con:assertion type="GroovyScriptAssertion" name="Extract the monitoring URL">
+          <con:assertion type="XQuery Match" name="The page's title should indicate that there was an error.">
             <con:configuration>
-              <scriptText>log.info(messageExchange.getRequestContent())
-log.info(messageExchange.getEndpoint())
-context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEndpoint())</scriptText>
+              <path>/html/head/title</path>
+              <content>&lt;title>PORTAGELive Problem&lt;/title></content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="There should be an explanation describing the error.">
+            <con:configuration>
+              <path>//div[@id="problemDescription"]/p</path>
+              <content>&lt;p>Confidence-based filtering is only currently compatible with TMX or SDLXLIFF input.&lt;/p></content>
+              <allowWildcards>false</allowWildcards>
             </con:configuration>
           </con:assertion>
           <con:credentials>
@@ -3568,102 +3575,6 @@ context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEnd
               <con:style>QUERY</con:style>
             </con:parameter>
           </con:parameters>
-        </con:config>
-      </con:testStep>
-      <con:testStep type="delay" name="Wait for the translation to be finished">
-        <con:settings/>
-        <con:config>
-          <delay>1000</delay>
-        </con:config>
-      </con:testStep>
-      <con:testStep type="httprequest" name="Inspect the monitoring page">
-        <con:settings/>
-        <con:config method="GET" xsi:type="con:HttpRequest" name="Inspect the monitoring page" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-          <con:settings>
-            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
-          </con:settings>
-          <con:endpoint>${#TestCase#monitoringToken}</con:endpoint>
-          <con:request/>
-          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
-            <con:configuration>
-              <codes>200</codes>
-            </con:configuration>
-          </con:assertion>
-          <con:credentials>
-            <con:authType>No Authorization</con:authType>
-          </con:credentials>
-          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
-          <con:jmsPropertyConfig/>
-          <con:parameters/>
-        </con:config>
-      </con:testStep>
-      <con:testStep type="goto" name="Conditional Goto">
-        <con:settings/>
-        <con:config xsi:type="con:GotoStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-          <con:condition>
-            <con:name>Need some more time</con:name>
-            <con:type>XPATH</con:type>
-            <con:expression>(: not(//div[@id="translationLink"]//a/@href) :)
-(: As long as the page says to reload, we will wait. :)
-exists(//head/meta[@http-equiv = "refresh"])</con:expression>
-            <con:targetStep>Wait for the translation to be finished</con:targetStep>
-          </con:condition>
-        </con:config>
-      </con:testStep>
-      <con:testStep type="transfer" name="Get the translation URL">
-        <con:settings/>
-        <con:config xsi:type="con:PropertyTransfersStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-          <con:transfers setNullOnMissingSource="true" transferTextContent="true" failOnError="true" ignoreEmpty="false" transferToAll="false" useXQuery="false" entitize="false" transferChildNodes="false">
-            <con:name>Get URL</con:name>
-            <con:sourceType>ResponseAsXml</con:sourceType>
-            <con:sourceStep>Inspect the monitoring page</con:sourceStep>
-            <con:sourcePath>//div[@id="translationLink"]//a/@href</con:sourcePath>
-            <con:targetType>translationURL</con:targetType>
-            <con:targetStep>#TestCase#</con:targetStep>
-          </con:transfers>
-        </con:config>
-      </con:testStep>
-      <con:testStep type="httprequest" name="Get Translations">
-        <con:settings/>
-        <con:config method="GET" xsi:type="con:HttpRequest" name="Get Translations" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-          <con:settings>
-            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
-          </con:settings>
-          <con:encoding>UTF-8</con:encoding>
-          <con:endpoint>http://${#Project#ServerName}/${#TestCase#translationURL}</con:endpoint>
-          <con:request/>
-          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
-            <con:configuration>
-              <codes>200</codes>
-            </con:configuration>
-          </con:assertion>
-          <con:assertion type="XQuery Match" name="There should be a data tag.">
-            <con:configuration>
-              <path>exists(//*:data)</path>
-              <content>true</content>
-              <allowWildcards>false</allowWildcards>
-            </con:configuration>
-          </con:assertion>
-          <con:assertion type="XQuery Match" name="We should find no translation.">
-            <con:configuration>
-              <path>string(//*:data)</path>
-              <content/>
-              <allowWildcards>false</allowWildcards>
-            </con:configuration>
-          </con:assertion>
-          <con:assertion type="XQuery Match" name="contentLength should be 0 to indicate and empty translation.">
-            <con:configuration>
-              <path>/*:data/@contentLength = 0</path>
-              <content>true</content>
-              <allowWildcards>false</allowWildcards>
-            </con:configuration>
-          </con:assertion>
-          <con:credentials>
-            <con:authType>No Authorization</con:authType>
-          </con:credentials>
-          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
-          <con:jmsPropertyConfig/>
-          <con:parameters/>
         </con:config>
       </con:testStep>
       <con:tearDownScript>for (prop in ["monitoringToken", "translationURL"]) {
@@ -3862,11 +3773,18 @@ exists(//head/meta[@http-equiv = "refresh"])</con:expression>
               <codes>200</codes>
             </con:configuration>
           </con:assertion>
-          <con:assertion type="GroovyScriptAssertion" name="Extract the monitoring URL">
+          <con:assertion type="XQuery Match" name="The page's title should indicate an error">
             <con:configuration>
-              <scriptText>log.info(messageExchange.getRequestContent())
-log.info(messageExchange.getEndpoint())
-context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEndpoint())</scriptText>
+              <path>/html/head/title</path>
+              <content>&lt;title>PORTAGELive Problem&lt;/title></content>
+              <allowWildcards>false</allowWildcards>
+            </con:configuration>
+          </con:assertion>
+          <con:assertion type="XQuery Match" name="There should be an explaination describing the error.">
+            <con:configuration>
+              <path>//div[@id="problemDescription"]/p</path>
+              <content>&lt;p>Confidence-based filtering is only currently compatible with TMX or SDLXLIFF input.&lt;/p></content>
+              <allowWildcards>false</allowWildcards>
             </con:configuration>
           </con:assertion>
           <con:credentials>
@@ -3904,102 +3822,6 @@ context.getTestCase().setPropertyValue("monitoringToken", messageExchange.getEnd
               <con:style>QUERY</con:style>
             </con:parameter>
           </con:parameters>
-        </con:config>
-      </con:testStep>
-      <con:testStep type="delay" name="Wait for the translation to be finished">
-        <con:settings/>
-        <con:config>
-          <delay>1000</delay>
-        </con:config>
-      </con:testStep>
-      <con:testStep type="httprequest" name="Inspect the monitoring page">
-        <con:settings/>
-        <con:config method="GET" xsi:type="con:HttpRequest" name="Inspect the monitoring page" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-          <con:settings>
-            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
-          </con:settings>
-          <con:endpoint>${#TestCase#monitoringToken}</con:endpoint>
-          <con:request/>
-          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
-            <con:configuration>
-              <codes>200</codes>
-            </con:configuration>
-          </con:assertion>
-          <con:credentials>
-            <con:authType>No Authorization</con:authType>
-          </con:credentials>
-          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
-          <con:jmsPropertyConfig/>
-          <con:parameters/>
-        </con:config>
-      </con:testStep>
-      <con:testStep type="goto" name="Conditional Goto">
-        <con:settings/>
-        <con:config xsi:type="con:GotoStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-          <con:condition>
-            <con:name>Need some more time</con:name>
-            <con:type>XPATH</con:type>
-            <con:expression>(: not(//div[@id="translationLink"]//a/@href) :)
-(: As long as the page says to reload, we will wait. :)
-exists(//head/meta[@http-equiv = "refresh"])</con:expression>
-            <con:targetStep>Wait for the translation to be finished</con:targetStep>
-          </con:condition>
-        </con:config>
-      </con:testStep>
-      <con:testStep type="transfer" name="Get the translation URL">
-        <con:settings/>
-        <con:config xsi:type="con:PropertyTransfersStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-          <con:transfers setNullOnMissingSource="true" transferTextContent="true" failOnError="true" ignoreEmpty="false" transferToAll="false" useXQuery="false" entitize="false" transferChildNodes="false">
-            <con:name>Get URL</con:name>
-            <con:sourceType>ResponseAsXml</con:sourceType>
-            <con:sourceStep>Inspect the monitoring page</con:sourceStep>
-            <con:sourcePath>//div[@id="translationLink"]//a/@href</con:sourcePath>
-            <con:targetType>translationURL</con:targetType>
-            <con:targetStep>#TestCase#</con:targetStep>
-          </con:transfers>
-        </con:config>
-      </con:testStep>
-      <con:testStep type="httprequest" name="Get Translations">
-        <con:settings/>
-        <con:config method="GET" xsi:type="con:HttpRequest" name="Get Translations" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-          <con:settings>
-            <con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting>
-          </con:settings>
-          <con:encoding>UTF-8</con:encoding>
-          <con:endpoint>http://${#Project#ServerName}/${#TestCase#translationURL}</con:endpoint>
-          <con:request/>
-          <con:assertion type="Valid HTTP Status Codes" name="Valid HTTP Status Codes">
-            <con:configuration>
-              <codes>200</codes>
-            </con:configuration>
-          </con:assertion>
-          <con:assertion type="XQuery Match" name="There should be a data tag.">
-            <con:configuration>
-              <path>exists(//*:data)</path>
-              <content>true</content>
-              <allowWildcards>false</allowWildcards>
-            </con:configuration>
-          </con:assertion>
-          <con:assertion type="XQuery Match" name="We should find no translation.">
-            <con:configuration>
-              <path>string(//*:data)</path>
-              <content/>
-              <allowWildcards>false</allowWildcards>
-            </con:configuration>
-          </con:assertion>
-          <con:assertion type="XQuery Match" name="contentLength should be 0 to indicate and empty translation.">
-            <con:configuration>
-              <path>/*:data/@contentLength = 0</path>
-              <content>true</content>
-              <allowWildcards>false</allowWildcards>
-            </con:configuration>
-          </con:assertion>
-          <con:credentials>
-            <con:authType>No Authorization</con:authType>
-          </con:credentials>
-          <con:jmsConfig JMSDeliveryMode="PERSISTENT"/>
-          <con:jmsPropertyConfig/>
-          <con:parameters/>
         </con:config>
       </con:testStep>
       <con:tearDownScript>for (prop in ["monitoringToken", "translationURL"]) {
