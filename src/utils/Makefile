@@ -25,6 +25,7 @@ OBJECTS = \
         ls_poly_fit.o \
         MagicStream.o \
         matrix_solver.o \
+        mm_map.o \
         multi_voc.o \
         ngram_counts.o \
         number_mapper.o \
@@ -65,7 +66,8 @@ PROGRAMS = $(TESTPROGS) \
         merge_counts \
         merge_multi_column_counts \
         portage_info \
-        wc_stats
+        wc_stats \
+        wordClasses2MMmap
 
 BINSCRIPTS = \
         alignment-stats.pl \
@@ -73,8 +75,8 @@ BINSCRIPTS = \
         best-rr-val \
         cvs-status-summary.pl \
         diff-round.pl \
-	fast_align_glue_corpora.py \
-	fast_align_normalize_ttable.py \
+        fast_align_glue_corpora.py \
+        fast_align_normalize_ttable.py \
         load-balancing.pl \
         monitor-process.sh \
         parallelize.pl \

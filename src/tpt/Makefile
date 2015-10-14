@@ -10,7 +10,6 @@
 
 OBJECTS = \
    bitwise.o \
-   mm_map.o \
    repos_getSequence.o \
    tpt_encodingschemes.o \
    tpt_error.o \
@@ -35,7 +34,6 @@ TESTPROGS =
 
 PROGRAMS = \
    $(TESTPROGS) \
-   wordClass2mmMap \
    find_similar_sentences \
    mmctrack.build \
    mmctrack.dump \

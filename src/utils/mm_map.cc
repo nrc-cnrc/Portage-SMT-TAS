@@ -1,35 +1,30 @@
-// This file is derivative work from Ulrich Germann's Tightly Packed Tries
-// package (TPTs and related software).
-//
-// Original Copyright:
-// Copyright 2005-2009 Ulrich Germann; all rights reserved.
-// Under licence to NRC.
-//
-// Copyright for modifications:
-// Technologies langagieres interactives / Interactive Language Technologies
-// Inst. de technologie de l'information / Institute for Information Technology
-// Conseil national de recherches Canada / National Research Council Canada
-// Copyright 2008-2010, Sa Majeste la Reine du Chef du Canada /
-// Copyright 2008-2010, Her Majesty in Right of Canada
+/**
+ * @author Samuel Larkin
+ * @file mm_map.h
+ * @brief A Memory mapped map.
+ *
+ *
+ * Technologies langagieres interactives / Interactive Language Technologies
+ * Inst. de technologie de l'information / Institute for Information Technology
+ * Conseil national de recherches Canada / National Research Council Canada
+ * Copyright 2015, Sa Majeste la Reine du Chef du Canada /
+ * Copyright 2015, Her Majesty in Right of Canada
+ */
 
 
+#include "mm_map.h"
+#include "file_utils.h"
 
-// (c) 2007,2008 Ulrich Germann
-#include <sstream>
 #include <cstring>
 #include <algorithm>
 #include <iostream>
-#include <boost/pool/pool_alloc.hpp>
-
-#include "mm_map.h"
-#include "tpt_utils.h"  // open_mapped_file_source
-#include "file_utils.h"
+#include <tr1/unordered_map>
 
 using namespace std;
 
-const char* const ugdiss::MMMap::version1 = "Portage TPMap-1.0\tconst char* -> const char*";
+const char* const Portage::MMMap::version1 = "Portage TPMap-1.0\tconst char* -> const char*";
 
-namespace ugdiss
+namespace Portage
 {
    MMMap::
    MMMap()
@@ -52,19 +47,26 @@ namespace ugdiss
          Portage::iSafeMagicStream is(fname);
          string version;
          if (!getline(is, version)) {
-            cerr << efatal << "Bad token index '" << fname << "'." << exit_1;
+            error(ETFatal, "Bad token index '%s'", fname.c_str());
          }
          else {
             if (version != version1) {
-               cerr << efatal << "Unsupported version '" << fname << "'." << exit_1;
+               error(ETFatal, "Unsupported version '%s'", fname.c_str());
             }
          }
       }
 
-      open_mapped_file_source(file, fname);
+      try {
+          file.open(fname);
+          if (!file.is_open())
+             error(ETFatal, "Unable to open memory mapped file.");
+      }
+      catch(std::exception& e) {
+         error(ETFatal, "Unable to open memory mapped file '%s'' for reading (errno=%d, %s).", fname.c_str(), errno, strerror(errno));
+      }
 
       if (file.size() < 4 + 2*sizeof(uint32_t))
-         cerr << efatal << "Bad token index '" << fname << "'." << exit_1;
+         error(ETFatal, "Bad token index '%s'", fname.c_str());
 
       uint32_t offset = strlen(version1) + 1;
 
@@ -89,7 +91,7 @@ namespace ugdiss
             || getValue(getOffsets(0)) > file.data() + file.size()
             || valueStart + valueSize != file.data() + file.size()
          )
-         cerr << efatal << "Bad token index '" << fname << "'." << exit_1;
+         error(ETFatal, "Bad token index '%s'", fname.c_str());
    }
 
    MMMap::
@@ -126,6 +128,39 @@ namespace ugdiss
    }
 
 
+   /*
+    * +----------
+    * | Version String
+    * +----------
+    * | N the number of keys in the map
+    * +----------
+    * | key's size in bytes
+    * +----------
+    * | value's size in bytes
+    * +---------- indices' stream:
+    * | key's Offset 1
+    * | value's Offset 1
+    * | key's Offset 2
+    * | value's Offset 2
+    * | key's Offset 3
+    * | value's Offset 3
+    * | ...
+    * | key's Offset N
+    * | value's Offset N
+    * +---------- keys' stream:
+    * | word1\0
+    * | word2\0
+    * | word3\0
+    * | ...
+    * | wordN\0
+    * +---------- values' stream:
+    * | value1\0
+    * | value2\0
+    * | value3\0
+    * | ...
+    * | valueM\0   <= note that the values are deduplicated thus M <= N.
+    * +----------
+    */
 
    void mkMemoryMappedMap(istream& is, ostream& os) {
       typedef pair<string, string> Entry;

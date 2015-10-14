@@ -14,6 +14,7 @@
 #include "file_utils.h"
 #include "arg_reader.h"
 #include "printCopyright.h"
+#include "exception_dump.h"  // MAIN
 
 using namespace Portage;
 using namespace std;
@@ -36,7 +37,7 @@ int MAIN(argc, argv) {
 
    iSafeMagicStream is(infile);
    oSafeMagicStream os(outfile);
-   ugdiss::mkMemoryMappedMap(is, os);
+   mkMemoryMappedMap(is, os);
 
    return 0;
 }
