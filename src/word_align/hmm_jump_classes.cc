@@ -146,7 +146,7 @@ void HMMJumpClasses::countJumps(const dMatrix& A_counts,
    assert(max_normal_i == src_toks.size() - 1);
    const Uint max_reg_jump_to_i = (anchor && end_dist) ? (I-1) : I;
    for ( Uint i(1); i <= max_normal_i; ++i ) {
-      Uint class_id = wc.classOf(src_toks[i].c_str());
+      const Uint class_id = wc.classOf(src_toks[i].c_str());
       assert(class_id == WordClasses::NoClass || class_id < class_count.size());
       for ( Uint j(1); j <= max_reg_jump_to_i; ++j ) {
          const double new_count = A_counts(i,j) + A_counts(i + I+1, j);

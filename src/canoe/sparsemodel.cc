@@ -58,12 +58,12 @@ Uint SparseModel::ClusterMap::phraseId(Uint startLex, Uint endLex, Uint len)
    // 0..max                          : [sw]
    // max..max+(max*max)              : [sw fw]
    // max+(max*max)..max+2(max*max)   : [sw .. fw]
-   Uint max = this->num_clust_id;
-   Uint start = this->clusterId(startLex);
+   const Uint max = this->num_clust_id;
+   const Uint start = this->clusterId(startLex);
    if(len==1)
       return start;
    else {
-      Uint end = this->clusterId(endLex);
+      const Uint end = this->clusterId(endLex);
       Uint multi = 0;
       if(len>2) multi = 1;
       return max + start + (max * end) + (max * max * multi);
@@ -84,14 +84,14 @@ Uint SparseModel::ClusterMap::numClustIds()
 
 Uint SparseModel::ClusterMap::numPhraseIds()
 {
-   Uint max = this->num_clust_id;
+   const Uint max = this->num_clust_id;
    return max + 2 * (max * max);
 }
 
 string SparseModel::ClusterMap::phraseStr(Uint phraseId)
 {
    Uint event = phraseId;
-   Uint max = this->num_clust_id;
+   const Uint max = this->num_clust_id;
    ostringstream tmpstr;
    tmpstr << "[";
    if(event < max) {
@@ -99,10 +99,10 @@ string SparseModel::ClusterMap::phraseStr(Uint phraseId)
    }
    else {
       event -= max;
-      Uint multi = event / (max*max);
+      const Uint multi = event / (max*max);
       event = event % (max*max);
-      Uint end = event / max;
-      Uint start = event % max;
+      const Uint end = event / max;
+      const Uint start = event % max;
       tmpstr << start;
       tmpstr << (multi==(Uint)1 ? ".." : " ");
       tmpstr << end;
