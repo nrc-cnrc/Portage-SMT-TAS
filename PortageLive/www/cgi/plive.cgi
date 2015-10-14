@@ -365,13 +365,13 @@ sub processText {
     push @tr_opt, ("-verbose",
                   "-out=\"$work_dir/P.out\"",
                   "-dir=\"$work_dir\"");
-    my $doCE = param('useConfidenceEstimation') and $CONTEXT{$context}->{ce_model};
+    my $doCE = defined(param('useConfidenceEstimation')) && $CONTEXT{$context}->{ce_model};
     push @tr_opt, ($doCE ? "-with-ce" : "-decode-only");
     my $filter_threshold = (!defined param('filter') ? 0
                             : param('filter') eq 'no filtering' ? 0
                             : param('filter') + 0);
     if ($doCE and $filter_threshold > 0) {
-        problem("Confidence-based filtering is only currently compatible with TMX input.")
+        problem("Confidence-based filtering is only currently compatible with TMX or SDLXLIFF input.")
             unless param('is_xml');
         problem("Confidence-based filtering not available with system %s", $context)
             unless $CONTEXT{$context}->{ce_model};
@@ -471,9 +471,11 @@ sub translationTextOutput {
         div({-id=>'source'},
            h2("Source text:"),
            p($source)),
+        "\n",
         div({-id=>'translation'},
            h2("Translation:"),
-           p(join("<br />", map { HTML::Entities::encode_entities($_, '<>&') } @target)));
+           p(join("<br />", map { HTML::Entities::encode_entities($_, '<>&') } @target)),
+        "\n");
     print p(a({-id=>'translateMore', -href=>"plive.cgi?context=".param('context')}, "Translate more text"));
 
     my @debuggingTools = (
