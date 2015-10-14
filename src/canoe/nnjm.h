@@ -17,10 +17,7 @@
 #include "basicmodel.h"
 #include "unal_feature.h"
 #include "nnjm_abstract.h"
-//#include <map>
-//#include <tr1/unordered_map>
-//#include "tpt_tokenindex.h"
-#include "wordClass.h"
+#include "mapper.h"
 
 namespace Portage {
 
@@ -28,9 +25,6 @@ typedef enum NNJM_FORMAT{nrc=0,udem=1,native=2} NNJM_Format;
 //using std::tr1::unordered_map;
 
 class NNJM : public DecoderFeature {
-public:
-   typedef IWordClass Tags;
-
 private:
    static const Uint max_srcphrase_len = 255; // using Uchar indexing
    static const char* help;
@@ -39,9 +33,6 @@ private:
    static const char* keywords[]; // <ELID>, <UNK>, <BOS>, <EOS>
 
    BasicModelGenerator* bmg;
-
-   WordClassTightlyPacked wctp;
-   WordClass wc;
 
    Uint srcwindow;
    Uint ngorder;
@@ -58,8 +49,8 @@ private:
    Voc tgtvoc;   // for words in target history
    Voc outvoc;   // for predicted words
 
-   Tags* srctags;  // srcword -> tag ; optional alterative to canoe -srctags option
-   Tags* tgttags;  // tgtword -> tag
+   IWordClassesMapper* srctags;  // srcword -> tag ; optional alterative to canoe -srctags option
+   IWordClassesMapper* tgttags;  // tgtword -> tag
 
    map<string, NNJMAbstract*> file_to_nnjm; // filename -> NNJMAbstract object
    vector<NNJMAbstract*> nnjm_wraps; // python pickled NNJM or plain txt native NNJM

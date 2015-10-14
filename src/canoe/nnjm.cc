@@ -146,11 +146,11 @@ NNJM::NNJM(BasicModelGenerator* bmg, const string& arg, bool arg_is_filename) :
       } else if (toks[i] == "[srcclasses]") {
          checkArg(toks, i++, 1);
 	 cerr << "Loading tgtclasses " << toks[i] << endl;
-         srctags = loadClasses(adjustRelativePath(dir, toks[i]));
+         srctags = loadClasses(adjustRelativePath(dir, toks[i]), "<unk>");
       } else if (toks[i] == "[tgtclasses]") {
          checkArg(toks, i++, 1);
 	 cerr << "Loading tgtclasses " << toks[i] << endl;
-         tgttags = loadClasses(adjustRelativePath(dir, toks[i]));
+         tgttags = loadClasses(adjustRelativePath(dir, toks[i]), "<unk>");
       } else if (toks[i] == "[file]") {
          checkArg(toks, i++, 1);
          vector<string> hashsplit;
@@ -248,11 +248,11 @@ void NNJM::updateIndexMap(const Voc& ind_voc, vector<Uint>& ind_map)
       if (id < ind_voc.size())
          ind_map[i] = id;   // word is in ind_voc
       else {
-         string w = voc.word(i);
          if (tgttags != NULL) {
-            Tags::findType p = tgttags->find(w);
-            if (p.first) {
-               w = tag_prefix + string(p.second);
+            string w = voc.word(i);
+            w = (*tgttags)(w);
+            if (w != tgttags->unknown) {
+               w = tag_prefix + w;
                id = ind_voc.index(w.c_str());
                if (id < ind_voc.size())
                   ind_map[i] = id;  // word's tag is in ind_voc
@@ -282,12 +282,13 @@ void NNJM::newSrcSent(const newSrcSentInfo& info)
       if (srctags != NULL && !srctags->empty()) {
          src_sent_tags.reserve(info.src_sent.size());
          for (Uint i = 0; i < info.src_sent.size(); ++i) {
-            Tags::findType p = srctags->find(info.src_sent[i]);
-            src_sent_tags.push_back(p.first == true ? p.second : "<unk>");
+            src_sent_tags.push_back((*srctags)(info.src_sent[i]));
          }
-      } else if (!info.src_sent_tags.empty()) {
+      }
+      else if (!info.src_sent_tags.empty()) {
          src_sent_tags = info.src_sent_tags;
-      } else {
+      }
+      else {
          error(ETFatal, "you need to specify source tags via the canoe -srctags option with this NNJM model");
       }
    }
