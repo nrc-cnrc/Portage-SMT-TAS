@@ -164,14 +164,51 @@ Mandatory dependencies for all distributions:
  - Standard utilities: awk, bash (3.0 or more recent), bzip2, (e)grep, gzip,
    head, sed, sort, tail, tar, etc.
 
- - Perl 5.10 or more recent. Older versions do not handle UTF-8 data correctly.
-   If you install Perl in a non-standard location, make sure it comes first on
-   your PATH, or add its bin directory to EXTRA_PROGRAM_PATH in
-   SETUP.bash/tcsh.
-
  - GNU make 3.81 or more recent - when compiling PortageII and when running the
    experimental framework, our Makefiles use GNU extensions to make, as well as
    features that were introduced in version 3.81.
+
+ - Perl 5.10 or more recent. Older versions do not handle UTF-8 data correctly.
+   If you're processing Arabic text, Perl 5.14 or more recent is required.
+   If you install Perl in a non-standard location, make sure it comes first on
+   your PATH, or set PERL_HOME_OVERRIDE in SETUP.bash/tcsh.
+
+   This worked for us:
+      # Obtain perl-5.22.0.tar.gz from www.perl.org
+      tar -zxf perl-5.22.0.tar.gz
+      cd perl-5.22.0
+      ./Configure -des -Dusethreads -Dprefix=$PORTAGE/third-party/perl-5.22.0
+      make -j 5
+      make -j 5 test
+      make -j 5 install
+
+ - Perl packages: the following Perl packages are required to run PortageII:
+    - XML::XPath
+    - XML::Twig version 3.32 or later, including the xml_grep tool that comes
+      with it, and all of XML::Twig's dependencies - used to process XML files
+      such as TMX or XLIFF
+    - JSON
+    - Normally standard package, including File::Spec, File::Temp, List::Util,
+      Time::gmtime, FindBin.
+
+   If you're using yum or another Linux package manager, installing
+   perl-XML-Twig and perl-JSON, plus all dependencies, should do the trick.
+   This has to be done as root.
+
+   Failing that, you can try using cpan.  Executed as root, this command might
+   do the trick.  If you compiled Perl manually following the instructions
+   above, this command should also work.
+      Launch "cpan" and do:
+         install XML::Twig
+         install JSON
+   You have to let cpan install all dependencies.  (Say y or yes to all
+   questions.)  You mileage may vary because various compilation steps are
+   required.
+
+   If you cannot work as root, you can setup libraries in your user account,
+   but some work will be needed to configure CPAN to do so, and then some more
+   work will be required so those libraries are seen by Perl at runtime.  Ask
+   your sysadmin for help if you don't already know how to do this.
 
  - Python 2.7 - our new tuning script, tune.py, the new truecasing module, as
    well as some some convenience scripts, use python.  In most distros, Python
@@ -191,7 +228,7 @@ Mandatory dependencies for all distributions:
       # Obtain Python-2.7.10.tgz from the web.
       tar -xjf Python-2.7.10.tgz
       cd Python-2.7.10
-      ./configure --enable-shared --prefix=$PORTAGE/third-party/Python2.7
+      ./configure --enable-shared --prefix=$PORTAGE/third-party/python-2.7
       make -j 5
       make install -j 5
 
@@ -201,8 +238,8 @@ Mandatory dependencies for all distributions:
    subdirectory as well as the "PortageLive Manual" section of the PortageII
    user manual: doc/user-manual.html / Portage Live Manual), you need to create
    the symlinks so PortageLive sees your custom python installation:
-      ln -s /PATH_TO/Python2.7/bin/python /opt/PortageII/bin/python
-      ln -s /PATH_TO/Python2.7/lib/libpython2.7.so* /opt/PortageII/lib/
+      ln -s /PATH_TO/python-2.7/bin/python /opt/PortageII/bin/python
+      ln -s /PATH_TO/python-2.7/lib/libpython2.7.so* /opt/PortageII/lib/
    If using multiple PortageLive servers, you need to perform the full Python
    2.7 installation procedure on each of them, unlike other third party
    software, which automatically get installed along with PortageLive itself.
@@ -339,27 +376,6 @@ Optional dependencies for all distributions:
       yum search libsvm
       # Find the one matching your architecture, say x86_64:
       yum install libsvm.x86_64
-
- - XML::Twig version 3.32 or later - this Perl module is used by tmx2lfl.pl to
-   extract text out of TMX files.  It has a number of further dependencies that
-   need to be installed as well, and that should be handled automatically by
-   the following methods.
-
-   If you're using yum or another Linux package manager, the easiest method is
-   to install perl-XML-Twig.  This has to be done as root.  It should cause
-   perl-XML-Parser and probably several other packages to get isntalled too.
-
-   Failing that, you can try using cpan.  Executed as root, this command might
-   do the trick.
-      cpan -i XML::Twig
-   You have to let it install all dependencies.  (Say y or yes to all
-   questions.)  You mileage may vary because various compilation steps are
-   required.
-
-   If you cannot work as root, you can setup libraries in your user account,
-   but some work will be needed to configure CPAN to do so, and then some more
-   work will be required so those libraries are seen by Perl at runtime.  Ask
-   your sysadmin for help if you don't already know how to do this.
 
  - xml_grep and xmllint - also required by tmx2lfl.pl.  xml_grep comes with
    XML::Twig.  xmllint is fairly standard and should be available via the

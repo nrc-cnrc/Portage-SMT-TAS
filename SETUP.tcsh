@@ -22,9 +22,11 @@ setenv PORTAGE $HOME/PortageII-cur
 # Software overrides
 # Uncomment and change the following if you installed these packages in
 # a different location:
-#CHINESE_SEGMENTATION_HOME_OVERRIDE=$PORTAGE/third-party/chinese-segmentation
-#PYTHON_HOME_OVERRIDE=$PORTAGE/third-party/Python2.7
-#ICU_HOME_OVERRIDE=$PORTAGE/third-party/icu
+#set CHINESE_SEGMENTATION_HOME_OVERRIDE=$PORTAGE/third-party/chinese-segmentation
+#set PYTHON_HOME_OVERRIDE=$PORTAGE/third-party/python-2.7
+#set ICU_HOME_OVERRIDE=$PORTAGE/third-party/icu
+#set PERL_HOME_OVERRIDE=$PORTAGE/third-party/perl-5.14
+
 
 # Extra software configuration
 # Add scripts called <prog-name>.bash in third-party/conf.d/, following the

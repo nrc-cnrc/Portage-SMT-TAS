@@ -23,8 +23,9 @@ PORTAGE=$HOME/PortageII-cur
 # Uncomment and change the following if you installed these packages in
 # a different location:
 #CHINESE_SEGMENTATION_HOME_OVERRIDE=$PORTAGE/third-party/chinese-segmentation
-#PYTHON_HOME_OVERRIDE=$PORTAGE/third-party/Python2.7
+#PYTHON_HOME_OVERRIDE=$PORTAGE/third-party/python-2.7
 #ICU_HOME_OVERRIDE=$PORTAGE/third-party/icu
+#PERL_HOME_OVERRIDE=$PORTAGE/third-party/perl-5.14
 
 # Extra software configuration
 # Add scripts called <prog-name>.bash in third-party/conf.d/, following the
