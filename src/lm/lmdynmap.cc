@@ -126,7 +126,8 @@ LMDynMap::LMDynMap(const string& name, VocabFilter* vocab,
    const string nm = name.substr(p+1);
    if (map_type == "ident") {
       mapping = new IdentMap();
-   } else if (isPrefix("lower", map_type)) {    // lowercase mapping
+   }
+   else if (isPrefix("lower", map_type)) {    // lowercase mapping
       string loc("en_US.UTF-8");
       const Uint keylen = strlen("lower");
       if (map_type.size() > keylen + 1) 
@@ -134,17 +135,21 @@ LMDynMap::LMDynMap(const string& name, VocabFilter* vocab,
       else if (map_type.size() != keylen)
          error(ETFatal, "syntax error in LMDynMap map type spec: " + map_type);
       mapping = new LowerCaseMap(loc.c_str());
-   } else if (isSuffix("Number", map_type.c_str())) {
+   }
+   else if (isSuffix("Number", map_type.c_str())) {
       mapping = new Number(map_type);
-   } else if (isPrefix("wordClasses", map_type)) {      // word classes mapping
+   }
+   else if (isPrefix("wordClasses", map_type)) {      // word classes mapping
       const Uint keylen = strlen("wordClasses");
       string classesFile;
       if (map_type.size() > keylen + 1)
          classesFile = map_type.substr(keylen+1);
       else
          error(ETFatal, "syntax error in LMDynMap map type spec: " + map_type);
+
       mapping = new WordClassesMap(classesFile, limit_vocab ? vocab : NULL);
-   } else
+   }
+   else
       error(ETFatal, "unknown LMDynMap map type: %s\n%s",
             map_type.c_str(), help_the_poor_user);
    assert(mapping);
@@ -247,19 +252,14 @@ const string LMDynMap::WordClassesMap::SentEnd(PLM::SentEnd);
 
 LMDynMap::WordClassesMap::WordClassesMap(const string& classesFile, Voc *vocab)
 : classesFile(classesFile)
+, mapper(loadClasses(classesFile, UNK_Symbol, vocab))
 {
-   word_classes.read(classesFile, vocab, true);
-   class_str.reserve(word_classes.getHighestClassId()+1);
-   char buf[24];
-   for (Uint i = 0; i <= word_classes.getHighestClassId(); ++i) {
-      sprintf(buf, "%d", i);
-      class_str.push_back(buf);
-   }
+   assert(mapper != NULL);
 }
 
-const string& LMDynMap::WordClassesMap::operator()(string& in) {
-   if (in == SentStart || in == SentEnd || in == UNK_Symbol)
-      return in;
-   return getClassString(word_classes.classOf(in.c_str()));
+const string& LMDynMap::WordClassesMap::operator()(string& word) {
+   if (word == SentStart || word == SentEnd || word == UNK_Symbol)
+      return word;
+   return (*mapper)(word);
 }
 
