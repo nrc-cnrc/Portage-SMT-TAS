@@ -1,6 +1,6 @@
 ############ PYTHON ############
 if (! $?PYTHON_HOME_OVERRIDE) then
-   set PYTHON_HOME=$PORTAGE/third-party/Python2.7
+   set PYTHON_HOME=$PORTAGE/third-party/python-2.7
 else
    set PYTHON_HOME=$PYTHON_HOME_OVERRIDE
 endif

@@ -26,6 +26,7 @@ setenv PORTAGE $HOME/PortageII-cur
 #set PYTHON_HOME_OVERRIDE=$PORTAGE/third-party/python-2.7
 #set ICU_HOME_OVERRIDE=$PORTAGE/third-party/icu
 #set PERL_HOME_OVERRIDE=$PORTAGE/third-party/perl-5.14
+#set JAVA_HOME_OVERRIDE=$PORTAGE/third-party/jdk-1.7
 
 
 # Extra software configuration

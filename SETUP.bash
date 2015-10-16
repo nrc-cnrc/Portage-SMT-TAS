@@ -26,6 +26,7 @@ PORTAGE=$HOME/PortageII-cur
 #PYTHON_HOME_OVERRIDE=$PORTAGE/third-party/python-2.7
 #ICU_HOME_OVERRIDE=$PORTAGE/third-party/icu
 #PERL_HOME_OVERRIDE=$PORTAGE/third-party/perl-5.14
+#JAVA_HOME_OVERRIDE=$PORTAGE/third-party/jdk-1.7
 
 # Extra software configuration
 # Add scripts called <prog-name>.bash in third-party/conf.d/, following the

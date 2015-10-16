@@ -191,14 +191,18 @@ Mandatory dependencies for all distributions:
     - Normally standard package, including File::Spec, File::Temp, List::Util,
       Time::gmtime, FindBin.
 
-   If you're using yum or another Linux package manager, installing
-   perl-XML-Twig and perl-JSON, plus all dependencies, should do the trick.
-   This has to be done as root.
+   To find out if you have a package already, try "perldoc <module>", e.g.,
+   "perldoc XML::XPath" or "perldoc JSON".
 
-   Failing that, you can try using cpan.  Executed as root, this command might
-   do the trick.  If you compiled Perl manually following the instructions
-   above, this command should also work.
-      Launch "cpan" and do:
+   If you're using yum or another Linux package manager, installing
+   perl-XML-XPath, perl-XML-Twig and perl-JSON, including all dependencies,
+   should do the trick.  This has to be done as root.  This is by far the
+   easiest way to go.
+
+   Failing that, you can try using cpan.  Executed as root, or if you compiled
+   Perl manually following the instructions above, this might work:
+      Launch "cpan" and do this for any package you don't already have:
+         install XML::XPath
          install XML::Twig
          install JSON
    You have to let cpan install all dependencies.  (Say y or yes to all
@@ -213,16 +217,16 @@ Mandatory dependencies for all distributions:
  - Python 2.7 - our new tuning script, tune.py, the new truecasing module, as
    well as some some convenience scripts, use python.  In most distros, Python
    should be standard, or available via the package manager, but it might not
-   be the right version: version 2.7 (any 2.7.x) is required.  If you install
-   Python 2.7 in a non-standard location, make sure it comes first on your
-   PATH, or add its bin directory to EXTRA_PROGRAM_PATH in SETUP.bash/tcsh.
-   Alternatively, make symlinks (using ln -s) in $PORTAGE/bin to the python
-   executable and in $PORTAGE/live to libpython2.7.so*.  (The symlink is the
-   best solution for your PortageLive server(s), where you must also make sure
-   the apache user has sufficient permissions to use python 2.7.)  If you
-   compile Python 2.7 by hand, make sure you have the zlib-devel (or zlib-dev,
-   or zlib1g-dev) package installed first, or download zlib from
-   http://www.zlib.net and install it by hand.
+   be the right version: version 2.7 (any 2.7.x) is required.
+
+   If you install Python 2.7 in a non-standard location, set
+   PYTHON_HOME_OVERRIDE in SETUP.bash/tcsh.  Alternatively, make symlinks
+   (using ln -s) in $PORTAGE/bin to the python executable and in $PORTAGE/live
+   to libpython2.7.so*.  (The symlink is the best solution for your PortageLive
+   server(s), where you must also make sure the apache user has sufficient
+   permissions to use python 2.7.)  If you compile Python 2.7 by hand, make
+   sure you have the zlib-devel (or zlib-dev, or zlib1g-dev) package installed
+   first, or download zlib from http://www.zlib.net and install it by hand.
 
    This procedure worked for us:
       # Obtain Python-2.7.10.tgz from the web.
@@ -264,9 +268,8 @@ Mandatory dependencies for all distributions:
  - Java - A JRE (Java Runtime Environment) version 1.6 or more recent is
    required to perform decoder weight tuning.  The command "java" must be on
    your PATH.  Running "java -version" should produce something like 1.6.0_nn
-   or 1.7.0_nn if your installation is correct.  (Again, you can add java's bin
-   directory to EXTRA_PROGRAM_PATH in SETUP.bash/tcsh if you install it in a
-   non-standard location.)
+   or 1.7.0_nn if your installation is correct.  (Set JAVA_HOME_OVERRIDE in
+   SETUP.bash/tcsh if you install it in a non-standard location.)
 
  - MGIZA++ - PortageII supports combining IBM4 alignments with its own HMM and
    IBM2 alignments for improved phrase table extraction.  IBM4 alignments must
