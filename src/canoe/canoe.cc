@@ -86,7 +86,11 @@ class IFileInfo : private NonCopyable {
          freeFiles();
       }
 
+      /// Tell the file info option we're about to handle sentence number id
       virtual void currentSourceSentenceId(Uint id) {}
+      /// Tell the file info we're done the current sentence, so it can close
+      /// file handles if that's appropriate.
+      virtual void doneSentence() {}
 
       void freeFiles() {
          if (f_nbest) delete f_nbest; f_nbest = NULL;
@@ -187,6 +191,11 @@ class MultipleFileInfo : public IFileInfo {
          s_lattice       = generateLatticeName(id);
          s_lattice_state = addExtension(s_lattice, ".state");
       }
+
+      virtual void doneSentence() {
+         freeFiles();
+      }
+
    protected:
       virtual string generateNbestName(Uint num) const = 0;
       virtual string generateLatticeName(Uint num) const = 0;
@@ -502,8 +511,14 @@ static string doOutput(HypothesisStack &h,
             good = false;
          }
       }
-      // Let's wait between 15 to 30 seconds
+      // Let's wait between 1 and 5 seconds
    } while (!good && (++iteration < maxTries) && (sleep(rand() % 5 + 1), true));
+
+   // EJJ - Close our file handles if we're doing one file per sentence
+   // (non-append mode). Could this also have fixed the problem the above loop
+   // fixes? No idea, and I'm not going to test it or touch it cause it ain't
+   // really broke.
+   file_info.doneSentence();
 
    delete printPtr;
 
