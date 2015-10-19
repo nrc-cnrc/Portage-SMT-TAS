@@ -261,7 +261,7 @@ Mandatory dependencies for all distributions:
       # Download ZIP from https://github.com/mit-nlp/mitlm or use Git:
       git clone https://github.com/mit-nlp/mitlm.git
       cd mitlm
-      ./autogen.sh --prefix=$PORTAGE/third-party
+      ./autogen.sh --prefix=$PORTAGE/third-party/mitlm
       make -j 5
       make -j 5 install
 

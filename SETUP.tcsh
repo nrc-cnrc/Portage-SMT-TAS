@@ -27,6 +27,7 @@ setenv PORTAGE $HOME/PortageII-cur
 #set ICU_HOME_OVERRIDE=$PORTAGE/third-party/icu
 #set PERL_HOME_OVERRIDE=$PORTAGE/third-party/perl-5.14
 #set JAVA_HOME_OVERRIDE=$PORTAGE/third-party/jdk-1.7
+#set MITLM_HOME_OVERRIDE=$PORTAGE/third-party/mitlm
 
 
 # Extra software configuration
