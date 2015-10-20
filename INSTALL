@@ -327,6 +327,33 @@ Mandatory dependencies for all distributions:
    Installation is manual. You can put it anywhere on your path:
       cp word2vec $PORTAGE/third-party/bin
 
+ - libsvm - The executable programs that come with the libsvm library are
+   needed for Confidence Estimation.  The package is available from
+   http://www.csie.ntu.edu.tw/~cjlin/libsvm/ and is very easy to compile.
+   Installation is manual but trivial.  Any version should do, as far as we
+   know.  This procedure worked for us:
+      # Download the current tar ball
+      wget 'http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/libsvm.cgi?+http://www.csie.ntu.edu.tw/~cjlin/libsvm+tar.gz'
+      # Expand it
+      tar -xzf libsvm-3.20.tar.gz
+      # Go in the directory and compile the package
+      cd libsvm-3.20
+      make
+      # "Install" the three executables somewhere on the PATH.
+      cp svm-predict svm-train svm-scale $PORTAGE/third-party/bin
+
+   If you can work as root, libsvm is available in some Linux distros as a
+   package called libsvm-tools or libsvm.  On CentOS, which uses yum, this
+   should work:
+      # Search for packages called libsvm
+      yum search libsvm
+      # Find the one matching your architecture, say x86_64:
+      yum install libsvm.x86_64
+
+ - xml_grep and xmllint - also required by tmx2lfl.pl.  xml_grep comes with
+   XML::Twig.  xmllint is fairly standard and should be available via the
+   package manager in most distros.
+
 Optional dependencies for all distributions:
 
  - ICU - PortageII relies on includes a few tools that use ICU to correctly do
@@ -356,33 +383,6 @@ Optional dependencies for all distributions:
       ./runConfigureICU Linux --prefix=$PORTAGE/third-party/icu
       # Compile and install
       make -j 4 install
-
- - libsvm - The executable programs that come with the libsvm library are
-   needed for Confidence Estimation.  The package is available from
-   http://www.csie.ntu.edu.tw/~cjlin/libsvm/ and is very easy to compile.
-   Installation is manual but trivial.  Any version should do, as far as we
-   know.  This procedure worked for us:
-      # Download the current tar ball
-      wget 'http://www.csie.ntu.edu.tw/~cjlin/cgi-bin/libsvm.cgi?+http://www.csie.ntu.edu.tw/~cjlin/libsvm+tar.gz'
-      # Expand it
-      tar -xzf libsvm-3.20.tar.gz
-      # Go in the directory and compile the package
-      cd libsvm-3.12
-      make
-      # "Install" the three executables somewhere on the PATH.
-      cp svm-predict svm-train svm-scale $PORTAGE/third-party/bin
-
-   If you can work as root, libsvm is available in some Linux distros as a
-   package called libsvm-tools or libsvm.  On CentOS, which uses yum, this
-   should work:
-      # Search for packages called libsvm
-      yum search libsvm
-      # Find the one matching your architecture, say x86_64:
-      yum install libsvm.x86_64
-
- - xml_grep and xmllint - also required by tmx2lfl.pl.  xml_grep comes with
-   XML::Twig.  xmllint is fairly standard and should be available via the
-   package manager in most distros.
 
  - If you are planning to process Chinese text, you need a Chinese segmenter.
    You can obtain and use ICTCLAS, available in various locations on the web,
