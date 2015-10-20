@@ -26,7 +26,6 @@ use portage_utils;
 printCopyright("add-fr-nbsp.pl", 2015);
 $ENV{PORTAGE_INTERNAL_CALL} = 1;
 
-use encoding "UTF-8";
 use utf8; # This script uses literal utf-8 characters.
 use ULexiTools qw/get_tag_re/;
 my $tag_re = get_tag_re();
@@ -72,8 +71,11 @@ GetOptions(
    debug       => \my $debug,
 ) or usage;
 
+binmode( STDIN,  ":encoding(UTF-8)" );
+binmode( STDOUT, ":encoding(UTF-8)" );
+
 my $nbsp = " "; # There is a literal non-break space, \xA0, in the quotes here
-while (<>) {
+while (<STDIN>) {
    chomp;
    while (/(.*?)($tag_re|$)/go) {
       my $text = $1;

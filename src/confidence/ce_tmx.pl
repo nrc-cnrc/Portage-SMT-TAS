@@ -115,8 +115,9 @@ use strict;
 use warnings;
 use XML::Twig;
 use Time::gmtime;
-use encoding "UTF-8";
-binmode(STDIN, ":encoding(UTF-8)");
+use open IO => ':encoding(utf-8)';
+use open ':std';
+binmode(STDIN,  ":encoding(UTF-8)");
 binmode(STDOUT, ":encoding(UTF-8)");
 binmode(STDERR, ":encoding(UTF-8)");
 
