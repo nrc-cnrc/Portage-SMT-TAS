@@ -39,14 +39,14 @@ SOURCE_LANGUAGE=$1; shift
 
 if [[ $SOURCE_LANGUAGE = ar ]]; then
    perl -ple '
-      BEGIN{use encoding "UTF-8";}
-      s/(\.|!|؟|\?) /$1\n/g;
+      BEGIN { use open IO => ":encoding(utf-8)"; use open ":std"; }
+      s/(\.|!|\x{061F}|\?) /$1\n/g; # 61F is ؟
       s/\n*$/\n/;
    '
 
 elif [[ $SOURCE_LANGUAGE = ch || $SOURCE_LANGUAGE = zh ]]; then
    perl -ple '
-      BEGIN{use encoding "UTF-8";}
+      BEGIN { use open IO => ":encoding(utf-8)"; use open ":std"; }
       s/(\.\.\.\.\.\.|\.\.\.|\x{2026}{1,2}|\.(?![0-9])|\x{FF0E}|\x3F|\x{FF1F}|\x21|\x{FF01}|\x{3002}|\x{FF61})/$1\n/g;
       s/\n*$/\n/;
    '
