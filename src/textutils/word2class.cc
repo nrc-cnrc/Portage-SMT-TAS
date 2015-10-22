@@ -3,7 +3,7 @@
  * @file word2class.cc
  * @brief  Program to map words in a text file to word classes, replacing
  * each word by its corresponding word class number.
- * 
+ *
  * Technologies langagieres interactives / Interactive Language Technologies
  * Tech. de l'information et des communications / Information and Communications Tech.
  * Conseil national de recherches Canada / National Research Council Canada
@@ -59,58 +59,69 @@ void getArgs(int argc, char* argv[])
 }
 
 
+struct classIdConverter {
+   WordClasses word_classes;
+   vector<string> class_str; ///< strings for class numbers
+   Uint map_errors;
+
+   classIdConverter(const string& filename)
+      : map_errors(0)
+   {
+      word_classes.read(filename);
+
+      class_str.reserve(word_classes.getHighestClassId()+1);
+      char buf[24];
+      for (Uint i = 0; i <= word_classes.getHighestClassId(); ++i) {
+         sprintf(buf, "%d", i);
+         class_str.push_back(buf);
+      }
+   }
+
+   bool operator()(const char* const w, string& dest) {
+      const Uint cl(word_classes.classOf(w));
+      if (cl == WordClasses::NoClass)
+         ++map_errors;
+      dest = (cl == WordClasses::NoClass ? "<unk>" : class_str[cl]);
+      if (debug) cerr << "  class of " << w << " : " << dest << nf_endl;
+      return true;
+   }
+};
+
+
 int main(int argc, char* argv[])
 {
    printCopyright(2013, "word2class");
    getArgs(argc, argv);
    iSafeMagicStream txt_in(in_file);
-   WordClasses word_classes;
    oSafeMagicStream txt_out(out_file);
 
-   word_classes.read(classes_file);
-
-   vector<string> class_str; ///< strings for class numbers
-   class_str.reserve(word_classes.getHighestClassId()+1);
-   char buf[24];
-   for (Uint i = 0; i <= word_classes.getHighestClassId(); ++i) {
-      sprintf(buf, "%d", i);
-      class_str.push_back(buf);
-   }
 
    Uint lineno = 0;
-   Uint map_errors = 0;
    Uint tok_count = 0;
    string line;
-   vector<string> toks;
    vector<string> cls;
+   classIdConverter converter(classes_file);
    while (getline(txt_in, line)) {
       ++lineno;
 
       if (debug)
          cerr << "in(" << lineno << "): " << line << nf_endl;
 
-      splitZ(line, toks);
-
       cls.clear();
-      for (vector<string>::iterator it = toks.begin(); it < toks.end(); ++it) {
-         Uint cl(word_classes.classOf(it->c_str()));
-         if (cl == WordClasses::NoClass)
-            ++map_errors;
-         cls.push_back(cl == WordClasses::NoClass ? "<unk>" : class_str[cl]);
-         if (debug) cerr << "  class of " << *it << " : " << cls.back() << nf_endl;
-      }
-      tok_count += toks.size();
+      split(line.c_str(), cls, converter);
+
+      tok_count += cls.size();
 
       txt_out << join(cls) << nf_endl;
    }
 
    txt_out.flush();
 
-   if (map_errors > 0)
-      cerr << map_errors << " word mapping errors." << endl;
-   cerr << tok_count-map_errors << " of " << tok_count << " words mapped to word classes." << endl;
-   if (map_errors > 0)
+   if (converter.map_errors > 0)
+      cerr << converter.map_errors << " word mapping errors." << endl;
+   cerr << tok_count-converter.map_errors << " of " << tok_count << " words mapped to word classes." << endl;
+   if (converter.map_errors > 0)
       error(no_error ? ETWarn : ETFatal,
-            "Output contains %d word class mapping errors (<unk>).", map_errors);
+            "Output contains %d word class mapping errors (<unk>).", converter.map_errors);
 }
 
