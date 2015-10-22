@@ -39,6 +39,11 @@ gen_phrase_tables -ext [Options]\n\
                   file1_lang1 file1_lang2 align1_1_to_2\n\
                   [ ... fileN_lang1 fileN_lang2 alignN_1_to_2]\n\
 \n\
+gen_phrase_tables -ext -w [Options]\n\
+                  ibm-model_lang2_given_lang1 ibm-model_lang1_given_lang2\n\
+                  file1_lang1 file1_lang2 align1_1_to_2\n\
+                  [ ... fileN_lang1 fileN_lang2 alignN_1_to_2]\n\
+\n\
 Generate phrase translation tables from either:\n\
 \n\
 1) default: IBM models and set of line-aligned text files. The models should be\n\
@@ -48,6 +53,9 @@ Generate phrase translation tables from either:\n\
    bi-directional word-alignment files (see -giza below for details).\n\
 3) -ext: a set of line-aligned text files, each with a symmetrized sri-format\n\
    alignment file (see -ext below for details).\n\
+4) while -ext implies -ibm 0 (IBM models are not required to align pre-\n\
+   aligned corpora), the -w switch requires IBM models in all modes, including\n\
+   -giza and -ext.\n\
 \n\
 Options:\n\
 \n\
@@ -116,7 +124,7 @@ Options:\n\
        ... fileN_lang1 fileN_lang2 alignN_1_to_2 ...\n\
        Notes:\n\
         - this replace the hack: -a 'ExternalAligner align' -ibm 1 /dev/null /dev/null,\n\
-        - IBM models should not be provided as arguments,\n\
+        - IBM models should not be provided as arguments (unless -w is used),\n\
         - implies -a ExternalAligner; you cannot use -a to change this.\n\
 \n\
 HMM only options:\n\
@@ -289,7 +297,7 @@ public:
 
       if (ppe.ibm_num == 0 and !ppe.use_hmm) {
          if (!giza_alignment && !externalAlignerMode)
-            error(ETFatal, "Can't use -ibm=0 trick unless -giza or -ext is used");
+            error(ETFatal, "Can't use -ibm 0 trick unless -giza or -ext is used");
          first_file_arg = 0;
       }
       else {
